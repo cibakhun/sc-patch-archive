@@ -268,6 +268,15 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
     assert.equal(g.page.replaced, '/');
   });
 
+  test('jeder Aufruf der Torseite räumt abgelaufene Einträge weg, laufende bleiben', async () => {
+    const g = runGate({ search: '?next=%2Fx', local: flows({ [F1]: flow('A'.repeat(43), '/pilot/abc', Date.now() - 3 * 86400 * 1000), [F2]: flow('B'.repeat(43)) }) });
+    await settle();
+    assert.deepEqual(Object.keys(JSON.parse(g.ls.get('vb_gate_pkce'))), [F2]);
+    const h = runGate({ local: flows({ [F1]: flow('A'.repeat(43), '/pilot/abc', Date.now() - 3 * 86400 * 1000) }) });
+    await settle();
+    assert.equal(h.ls.has('vb_gate_pkce'), false, 'nur Abgelaufenes: Schlüssel weg');
+  });
+
   test('ein bloßer Aufruf der Torseite lässt eine laufende Anmeldung in Ruhe', async () => {
     const local = flows({ [F1]: flow('X'.repeat(43)) });
     const g = runGate({ local });
@@ -405,6 +414,14 @@ describe('Torseite: gespeicherte Sitzung wird erneuert', () => {
     assert.equal(refreshes(g).length, 1);
     assert.equal(JSON.parse(g.ls.get('sb-test-auth-token')).access_token, 'NEW');
     assert.equal(g.page.replaced, '/patches.html');
+  });
+
+  test('abgewiesen, Erneuern scheitert am Server: kein zweites mint mit demselben Token', async () => {
+    const g = runGate({ local: stored({ expires_at: now() + 1800 }), answers: { mint: [403, { ok: false, grund: 'kein-zugang' }], refresh: [503, {}] } });
+    await settle();
+    assert.deepEqual(mintsOf(g), ['Bearer OLD']);
+    assert.equal(refreshes(g).length, 1);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /Could not renew/);
   });
 
   test('abgewiesen auch nach dem Erneuern: Hinweis, kein dritter Versuch', async () => {

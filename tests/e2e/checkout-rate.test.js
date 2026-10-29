@@ -126,6 +126,10 @@ describe('Verdrahtung', () => {
     // Je Schluessel, und ohne zu warten: kein Stau in der gemeinsamen Datenbank.
     assert.match(sql, /if not pg_catalog\.pg_try_advisory_xact_lock\(pg_catalog\.hashtextextended\('checkout_rate:' \|\| p_ip_key, 0\)\) then\s+return false;/);
     assert.doesNotMatch(sql, /pg_advisory_xact_lock\(/);
+    // Aufgeraeumt wird auch bei einem gebremsten Aufruf: das delete steht
+    // nach der Sperre und vor der Grenze (so steht es in der Erklaerung).
+    const body = sql.slice(sql.indexOf('pg_try_advisory_xact_lock'), sql.indexOf('insert into private.checkout_attempts'));
+    assert.ok(body.indexOf('delete from private.checkout_attempts') !== -1 && body.indexOf('delete from') < body.indexOf('if recent >='), 'delete fehlt zwischen Sperre und Grenze');
     assert.match(sql, /revoke all on function public\.checkout_rate_ok\(text\) from public, anon, authenticated;/);
     assert.match(sql, /grant execute on function public\.checkout_rate_ok\(text\) to service_role;/);
   });

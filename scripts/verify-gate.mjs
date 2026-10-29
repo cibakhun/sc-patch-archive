@@ -48,9 +48,11 @@
      7  Kein Ort liefert am Tor vorbei aus: jeder location-Block im
         server-Block fragt $vb_gate_ok ab, ist eine benannte
         GATE-AUSNAHME oder leitet nur weiter (nichts als rewrite und
-        return, und das LETZTE ist ein return). Ein `location /x/ {
-        rewrite … last; }` ohne abschliessendes return lieferte alles,
-        was die Regel nicht trifft, ohne Torpruefung aus dem root aus.
+        return, und das LETZTE ist ein return; kein rewrite … break).
+        Ein `location /x/ { rewrite … last; }` ohne abschliessendes
+        return lieferte alles, was die Regel nicht trifft, ohne
+        Torpruefung aus dem root aus. Ein Block mit einer verschachtelten
+        location gilt als offen.
 
    Kopfzeile: geprueft Ausnahmen, geprueft Ressourcen der Torseite,
    geprueftes Artefakt (dist/). Untergrenzen als Sperrklinken — sie
@@ -375,9 +377,15 @@ if (serverEnde !== -1) {
     const kopf = a.text.slice(0, a.text.indexOf('{')).replace(/\s+/g, ' ').trim();
     const inhalt = anweisungen(a.text.slice(a.text.indexOf('{') + 1, a.text.lastIndexOf('}')));
     let art;
-    if (inhalt.some((x) => x.wort === 'if' && TOR_RE.test(x.text.replace(/\s+/g, ' ')))) art = 'tor';
+    // Eine verschachtelte location erbt weder die Torabfrage noch das return
+    // des aeusseren Blocks: so ein Block gilt als offen, bis er aufgeloest ist.
+    // rewrite … break bleibt in DIESER location und liefert aus dem root aus,
+    // ist also keine Weiterleitung (ohne Flag, last, redirect, permanent schon).
+    const umschreibenOk = (x) => x.wort === 'rewrite' && !/\sbreak\s*;$/.test(x.text);
+    if (inhalt.some((x) => x.wort === 'location')) art = 'offen';
+    else if (inhalt.some((x) => x.wort === 'if' && TOR_RE.test(x.text.replace(/\s+/g, ' ')))) art = 'tor';
     else if (ausnahmeZeilen.has(zeile)) art = 'ausnahme';
-    else if (inhalt.length && inhalt.every((x) => !x.block && (x.wort === 'return' || x.wort === 'rewrite')) && inhalt[inhalt.length - 1].wort === 'return')
+    else if (inhalt.length && inhalt.every((x) => !x.block && (x.wort === 'return' || umschreibenOk(x))) && inhalt[inhalt.length - 1].wort === 'return')
       art = 'weiterleitung';
     else art = 'offen';
     orte.push({ kopf, zeile, art });

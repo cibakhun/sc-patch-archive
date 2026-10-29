@@ -22,8 +22,9 @@
 --      Anschluss parallel, und der Aufruf gilt als gebremst. So ueberholen
 --      parallele Aufrufe die Grenze nicht gemeinsam, und unter Last staut
 --      sich nichts in der Datenbank, die auch das Tor der Vorschau fragt.
---      Jeder Aufruf loescht Zeilen, die aelter als eine Stunde sind (laenger
---      braucht die Zaehlung sie nicht). Gezaehlt wird je oeffentlicher
+--      Jeder Aufruf, der die Sperre bekommt, loescht Zeilen, die aelter als
+--      eine Stunde sind (laenger braucht die Zaehlung sie nicht), auch ein
+--      gebremster. Gezaehlt wird je oeffentlicher
 --      IPv4-Adresse bzw. je IPv6-/56 (rate.js).
 --      SECURITY DEFINER, leerer search_path, ausfuehrbar NUR fuer
 --      service_role. Dieselbe Bauart wie register_rate_ok und rsi_rate_ok:
@@ -60,6 +61,7 @@ begin
   if not pg_catalog.pg_try_advisory_xact_lock(pg_catalog.hashtextextended('checkout_rate:' || p_ip_key, 0)) then
     return false;
   end if;
+  delete from private.checkout_attempts where created_at < now() - interval '1 hour';
   select count(*) into recent
   from private.checkout_attempts
   where ip_key = p_ip_key
@@ -68,7 +70,6 @@ begin
     return false;
   end if;
   insert into private.checkout_attempts (ip_key) values (p_ip_key);
-  delete from private.checkout_attempts where created_at < now() - interval '1 hour';
   return true;
 end;
 $$;
@@ -76,7 +77,7 @@ $$;
 comment on function public.checkout_rate_ok(text) is
   'Bremse fuer create-checkout-session: hoechstens 10 Aufrufe je '
   'IP-Schluessel (HMAC, nie die Adresse) und Stunde. Nur service_role. '
-  'Loescht bei jedem Aufruf Zeilen aelter als eine Stunde.';
+  'Loescht bei jedem Aufruf mit Sperre Zeilen aelter als eine Stunde.';
 
 revoke all on function public.checkout_rate_ok(text) from public, anon, authenticated;
 grant execute on function public.checkout_rate_ok(text) to service_role;

@@ -17,8 +17,9 @@
 // ein Proxy der Anlage, und alle Spender teilten sich ein Konto; dann lieber
 // ungebremst (siehe unten) und im Log. Gespeichert wird nie die
 // Adresse, nur HMAC-SHA-256(Geheimwert, Adresse) als Hex. Der Geheimwert ist
-// CHECKOUT_RATE_SECRET, sonst der Service-Key der Function (beide nur in der
-// Function). Ohne Geheimwert liesse sich eine
+// CHECKOUT_RATE_SECRET, sonst der Service-Key der Function (beide nur
+// serverseitig, nie in der Datenbank; den Service-Key haben auch die anderen
+// Functions und der Bot). Ohne Geheimwert liesse sich eine
 // IPv4-Adresse aus ihrem blossen SHA-256 in Minuten zurueckrechnen.
 //
 // Ausfall offen: ist die Adresse unbekannt, die Datenbank nicht erreichbar

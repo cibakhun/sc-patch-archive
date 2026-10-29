@@ -619,9 +619,10 @@ body{font-family:var(--font-body)}
       <a href="#testpilots">test pilots</a> and administrators. At the entrance you sign in with your
       account; the entrance page connects to Supabase for this and, if your stored sign-in has
       expired, renews it with the refresh key. If you sign in there with Discord, your browser
-      keeps the preview page you wanted to open next to the check value (PKCE) until you return,
-      for at most 15 minutes; Supabase and Discord see only a random identifier of the sign-in
-      instead of that page. The server then asks the account
+      keeps the preview page you wanted to open next to the check value (PKCE) until you return;
+      Supabase and Discord see only a random identifier of the sign-in instead of that page. Your
+      return uses the entry up; an unused one stops being valid after 15 minutes and is deleted
+      the next time you open the entrance page. The server then asks the account
       system whether you have access, stores the time of your visit and sets two technically
       necessary cookies: <code>vb_gate</code> (the access pass with your account ID, signed by the
       server, not readable by scripts) and <code>vb_gate_exp</code> (its expiry time), both valid for
@@ -701,10 +702,11 @@ body{font-family:var(--font-body)}
     <p>
       So that nobody can misuse the button automatically, the function accepts at most ten calls
       per hour for each internet connection, and so creates at most ten payment pages. To do this
-      it stores, for each call, a check value derived from your IP address (for IPv6, only its
-      first 56 bits) and a secret that exists only inside the function, plus the time of the
-      call. The IP address itself is not stored, and without the secret it cannot be recovered
-      from the check value. The function deletes entries older than one hour on its next call.
+      it stores, for each accepted call, a check value derived from your IP address (for IPv6,
+      only its first 56 bits) and a secret that is held only on the server side and not stored in
+      the database, plus the time of the call. The IP address itself is not stored, and without
+      the secret it cannot be recovered from the check value. The function deletes entries older
+      than one hour on the next call for which it forms a check value.
       The legal basis is Art. 6 (1) (f) GDPR; the legitimate interest is protecting the donation
       path and the Stripe account against payment pages created in bulk.
     </p>
