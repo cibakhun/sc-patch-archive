@@ -288,7 +288,7 @@ export const CHECKS = [
     script: 'scripts/verify-vorklick.mjs',
     rail: 'A',
     checks:
-      'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
+      'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Inline-Skripte und JS-Dateien duerfen diese Hosts nur an benannten Klick-Bindungen nennen (mit Zombie-Waechter); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
   },
   {
     id: 'audit:site',

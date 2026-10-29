@@ -333,14 +333,20 @@
   // die Datenschutzerklaerung sagt "nicht mehr mitgeschickt" (Gegenpruefung
   // 29.10.2026). Jetzt heisst unbekannt null: der Puls geht ohne Angabe
   // raus, und erst die Antwort entscheidet, ob ein zweiter sie nachreicht.
+  // Der Wert im Speicher gehoert dem Konto, dessen Puls ihn erfahren hat
+  // (hbShareUid): meldet sich in einem anderen Tab jemand anderes an, liest
+  // diese Seite die neue Sitzung, und das "an" des Vorgaengers darf nicht
+  // fuer den Nachfolger gelten (cubic #239). Und das "aus" des Dashboards
+  // wird vor dem Speicher gefragt, damit es auch mitten in der Seite gewinnt.
   var hbShare = null;
+  var hbShareUid = null;
   var HB_SHARE_KEY = 'vb_share_';
   function hbShareOf(uid) {
-    if (hbShare !== null) return hbShare;
     try {
       var p = JSON.parse(localStorage.getItem('vb_profile_' + uid) || 'null');
       if (p && p.share_activity === false) return false;
     } catch (e) { /* noop */ }
+    if (hbShare !== null && hbShareUid === uid) return hbShare;
     try {
       var s = sessionStorage.getItem(HB_SHARE_KEY + uid);
       if (s === '1') return true;
@@ -372,6 +378,7 @@
           return r.json().then(function (rows) {
             if (!rows || !rows[0] || typeof rows[0].share_activity !== 'boolean') return;
             hbShare = rows[0].share_activity;
+            hbShareUid = uid;
             try { sessionStorage.setItem(HB_SHARE_KEY + uid, hbShare ? '1' : '0'); } catch (e) { /* noop */ }
             if (share === null) hbWrite();     // gleich nachreichen: an -> Angabe, aus -> geleert
           }).catch(function () { /* noop */ });

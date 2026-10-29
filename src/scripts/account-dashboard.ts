@@ -1562,7 +1562,9 @@ import { supabase } from '../lib/supabase';
       const MIRROR_PREFIXES = ['vb.fleet.v1.', 'craft.state.v2.', 'vb.layouts.v1.'];
       const forgetLocalCopies = () => {
         try { localStorage.removeItem(localKey); localStorage.removeItem('vb_rsi_code'); } catch { /* egal */ }
-        try { sessionStorage.removeItem(`vb_share_${user.id}`); } catch { /* egal */ }
+        // vb_user_role: die Konto-Rolle aus account-lite.js, sonst bliebe sie
+        // samt Konto-ID im Tab liegen (Datenschutzerklärung #storage).
+        try { sessionStorage.removeItem(`vb_share_${user.id}`); sessionStorage.removeItem('vb_user_role'); } catch { /* egal */ }
         try {
           const doomed: string[] = [];
           for (let i = 0; i < localStorage.length; i++) {

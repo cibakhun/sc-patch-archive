@@ -52,8 +52,9 @@ function respond(status, body) {
  * refreshes: je Refresh-Anfrage { answer(status, body), offline() }.
  * reads (nur mit holdReads): je Name- oder Rollenabfrage
  * { uid, kind: 'name' | 'role', answer(status = 200) }.
- * shareActivity (true/false): Stand des Schalters profiles.share_activity,
- * den der Heartbeat in seiner Antwort erfährt; ohne Angabe bleibt es bei 204.
+ * shareActivity (true/false, oder { uid: true/false } je Konto): Stand des
+ * Schalters profiles.share_activity, den der Heartbeat in seiner Antwort
+ * erfährt; ohne Angabe bleibt es bei 204.
  */
 export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareActivity } = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 12, 0, 0), timers: [], seq: 0 };
@@ -83,8 +84,10 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, shareAc
       if (init.method === 'PATCH') {
         // Mit shareActivity antwortet der Puls wie PostgREST mit
         // return=representation auf select=share_activity; sonst 204.
-        if (typeof shareActivity === 'boolean' && url.includes('select=share_activity'))
-          return Promise.resolve(respond(200, [{ share_activity: shareActivity }]));
+        const owner = (url.match(/id=eq\.([^&]+)/) || [])[1];
+        const share = shareActivity && typeof shareActivity === 'object' ? shareActivity[owner] : shareActivity;
+        if (typeof share === 'boolean' && url.includes('select=share_activity'))
+          return Promise.resolve(respond(200, [{ share_activity: share }]));
         return Promise.resolve(respond(204));
       }
       const uid = (url.match(/id=eq\.([^&]+)/) || [])[1];

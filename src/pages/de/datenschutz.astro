@@ -9,12 +9,14 @@
 // Online-Status, RSI, Testpiloten, Testvorschau-Cookies, Discord-Bot, Stripe
 // und PayPal. Ändert sich eins davon im Code, gehört der Satz hier mit in
 // denselben Commit — und in die englische Fassung (src/pages/datenschutz.astro),
-// Absatz für Absatz gleich. Offen beim Betreiber: Aufbewahrungsfristen für
-// Server-Protokolle und Umami; die E-Mail-Registrierung ist pausiert (der
-// Abschnitt #accounts sagt das und muss mit der Wiederaufnahme mitwandern).
+// Absatz für Absatz gleich. Aufbewahrung von Server-Protokollen und Umami:
+// bis zu zehn Jahre (Entscheidung des Betreibers, 29.10.2026). Die
+// E-Mail-Registrierung ist pausiert (der Abschnitt #accounts sagt das und muss
+// mit der Wiederaufnahme mitwandern).
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
+import { IS_STAGING } from '../../lib/seo';
 ---
 <Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: Hosting und Cloudflare, cookiefreie Reichweitenmessung mit Widerspruch per Klick, externe Bilder, YouTube erst nach Klick, Feedback-Formular, Benutzerkonto mit Discord, Profil, Freunden und Online-Status sowie Spenden über Stripe und PayPal."} themeColor="#05070d" translated={true}>
 <style is:inline>
@@ -96,28 +98,39 @@ body{font-family:var(--font-body)}
       <a href="#youtube">YouTube-Video</a> startest, <a href="#feedback">Feedback</a> schickst, ein
       <a href="#accounts">Benutzerkonto</a> nutzt oder <a href="#support">spendest</a>. Diese Website
       setzt selbst nur einen Cookie, den für deinen Widerspruch (auf der
-      <a href="#staging">Testvorschau</a> zwei weitere). Einzelheiten stehen unten.
+      <a href="#staging">Testvorschau</a> zwei weitere); dazu kommen Schutz-Cookies, die
+      <a href="#cloudflare">Cloudflare</a> zur Abwehr automatisierter Zugriffe setzt. Einzelheiten
+      stehen unten.
     </p>
 
     <h2 id="hosting">Server-Logdateien (Hosting)</h2>
     <p>
       Unser Webserver (nginx) läuft auf einem Server der Hetzner Online GmbH (Industriestr. 25,
       91710 Gunzenhausen, Deutschland), den wir betreiben; Hetzner ist dafür unser
-      Auftragsverarbeiter. Der Webserver protokolliert jeden Abruf: IP-Adresse (über die
-      Weiterleitung von Cloudflare), Zeitpunkt, die angefragte Adresse samt angehängter Parameter,
-      Statuscode, übertragene Datenmenge, Verweisadresse und Browserkennung (User-Agent). Die
-      Protokolle dienen dem Betrieb und der Sicherheit der Website. Rechtsgrundlage ist Art. 6
-      Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren Bereitstellung).
+      Auftragsverarbeiter. Der Webserver protokolliert jeden Abruf: die IP-Adresse der
+      zuliefernden Verbindung (in der Regel ein Server von Cloudflare) und die mitgeschickte
+      Weiterleitungskette, die deine IP-Adresse enthalten kann, dazu Zeitpunkt, die angefragte
+      Adresse samt angehängter Parameter, Statuscode, übertragene Datenmenge, Verweisadresse und
+      Browserkennung (User-Agent). Die Protokolle dienen dem Betrieb und der Sicherheit der
+      Website; wir bewahren sie bis zu zehn Jahre auf. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+      DSGVO (berechtigtes Interesse an der sicheren Bereitstellung).
     </p>
 
     <h2 id="cloudflare">Auslieferung und Reichweitenmessung (Cloudflare)</h2>
     <p>
       Die Seite wird über Cloudflare (Cloudflare, Inc., 101 Townsend Street, San Francisco,
       CA 94107, USA) ausgeliefert. Cloudflare sitzt als Proxy vor dem Hosting: Jeder Aufruf dieser
-      Website und ihrer Unteradressen läuft darüber, dabei werden Verbindungsdaten (IP-Adresse,
-      Zeitpunkt, aufgerufene Adresse, User-Agent) zur Auslieferung und zur Abwehr von Angriffen
-      verarbeitet. Zur Abwehr automatisierter Zugriffe kann Cloudflare dabei eigene, technisch
-      notwendige Cookies setzen (etwa <code>__cf_bm</code>, 30 Minuten gültig).
+      Website und ihrer Subdomains (etwa stats.verse-base.com und staging.verse-base.com) läuft
+      darüber, dabei werden Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Adresse,
+      User-Agent) zur Auslieferung und zur Abwehr von Angriffen verarbeitet. Zur Abwehr
+      automatisierter Zugriffe fügt Cloudflare jeder Seite außerdem ein kleines, unsichtbares
+      Prüfskript hinzu (geladen unter <code>/cdn-cgi/challenge-platform/</code>), das in deinem
+      Browser technische Merkmale prüft; das Ergebnis legt Cloudflare in einem eigenen Cookie ab
+      (<code>cf_clearance</code>). Daneben kann Cloudflare weitere technisch notwendige Cookies
+      setzen (etwa <code>__cf_bm</code>, 30 Minuten gültig). Das dient dem Schutz der Seite, nicht
+      der Reichweitenmessung; dein <a href="#opt-out">Widerspruch</a> betrifft es deshalb nicht.
+      Rechtsgrundlage für Prüfskript und Cookies ist § 25 Abs. 2 Nr. 2 TDDDG (für die sichere
+      Bereitstellung der aufgerufenen Seite unbedingt erforderlich).
     </p>
     <p>
       Zusätzlich fügt Cloudflare den Seiten <strong>Cloudflare Web Analytics</strong> hinzu, ein
@@ -141,13 +154,14 @@ body{font-family:var(--font-body)}
       <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert.</strong> Um
       Besuche auseinanderzuhalten, bildet der Server eine Prüfsumme aus IP-Adresse, Browserkennung
       und einem Geheimwert, der jeden Monat wechselt; die IP-Adresse selbst wird nicht gespeichert.
+      Die Statistikdaten bewahren wir bis zu zehn Jahre auf.
       Die Aufrufe laufen wie alle Aufrufe dieser Website über Cloudflare (siehe oben); andere Dritte
       erhalten die Daten nicht. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
       Interesse an Reichweitenzahlen). Auch diese Messung stoppt dein
       <a href="#opt-out">Widerspruch</a>.
     </p>
 
-    <div class="optout" id="opt-out">
+    <div class="optout" id="opt-out" data-staging={IS_STAGING ? '1' : undefined}>
       <span id="rum-status">Wird geprüft …</span>
       <button type="button" id="rum-toggle">Nicht mitzählen</button>
       <p class="note">
@@ -156,8 +170,9 @@ body{font-family:var(--font-body)}
         gilt 400 Tage. Er wirkt ab dem nächsten Seitenaufruf und betrifft beide Dienste: der Server
         erlaubt die Messskripte dann nicht mehr, sie laden gar nicht erst. Löschst du deine
         Cookies, musst du hier erneut widersprechen. Für Administrator-Konten setzt die Seite
-        denselben Cookie nach der Anmeldung von selbst; dieser Browser wird dann ab dem folgenden
-        Aufruf nicht mehr mitgezählt, auch nach dem Abmelden. Rechtsgrundlage für den Cookie ist
+        denselben Cookie nach der Anmeldung von selbst, außer du hast in diesem Browser zuvor
+        „Wieder mitzählen“ gewählt; dieser Browser wird dann ab dem folgenden Aufruf nicht mehr
+        mitgezählt, auch nach dem Abmelden. Rechtsgrundlage für den Cookie ist
         § 25 Abs. 2 Nr. 2 TDDDG.
       </p>
     </div>
@@ -168,8 +183,12 @@ body{font-family:var(--font-body)}
         const status = document.getElementById('rum-status');
         const btn = document.getElementById('rum-toggle');
         if (!status || !btn) return;
+        // Der Vorschau-Bau laedt keinen Zaehler (CSP leer), ob mit oder ohne Cookie.
+        const staging = document.getElementById('opt-out')?.dataset.staging === '1';
         const render = (hint) => {
-          status.textContent = (off()
+          status.textContent = (staging
+            ? 'Auf der Testvorschau wirst du nicht mitgezählt, ob mit oder ohne Widerspruch; deine Wahl hier gilt nur für diese Adresse.'
+            : off()
             ? 'Du wirst hier nicht mitgezählt.'
             : 'Du wirst hier derzeit mitgezählt.') + (hint ? ' ' + hint : '');
           btn.textContent = off() ? 'Wieder mitzählen' : 'Nicht mitzählen';
@@ -201,15 +220,17 @@ body{font-family:var(--font-body)}
     <p>
       Bist du angemeldet, liegen in deinem Browser außerdem deine Sitzung (Zugangs- und
       Erneuerungsschlüssel samt Konto-Angaben wie E-Mail-Adresse und gegebenenfalls den Angaben von
-      Discord), für einige Minuten deine Konto-Rolle, eine Kopie deines Profils und, falls du eins
-      verifizierst, dein <a href="#rsi">RSI-Code</a>. Crafting-Planer und „Im Besitz“-Markierungen,
+      Discord), für die Dauer des Tabs deine Konto-Rolle samt Konto-ID (höchstens alle fünf Minuten
+      neu vom Server abgefragt), eine Kopie deines Profils und, sobald du das Konto-Dashboard einmal
+      geöffnet hast, dein <a href="#rsi">RSI-Code</a>, auch wenn du nie ein Handle verifizierst.
+      Crafting-Planer und „Im Besitz“-Markierungen,
       Flotte und Hangar-Layouts speichern ihre Inhalte dann zusätzlich in deinem
       <a href="#accounts">Benutzerkonto</a>, damit sie auf allen Geräten bereitstehen, und dieser
       Browser behält eine Kopie. Was du ohne Anmeldung in diesem Browser angelegt hattest, wandert
       beim ersten Abgleich ins Konto; die Flotte wird dort zu Favoriten. Mining-Vorlagen und
       Refinery-Aufträge liegen nur im Konto. Meldest du dich im Konto-Dashboard ab oder löschst das
-      Konto, entfernt die Seite Sitzung, Profilkopie, RSI-Code und die Konto-Kopien der Werkzeuge
-      aus diesem Browser.
+      Konto, entfernt die Seite Sitzung, Konto-Rolle, Profilkopie, RSI-Code und die Konto-Kopien
+      der Werkzeuge aus diesem Browser.
     </p>
 
     <h2 id="images">Extern eingebundene Bilder</h2>
@@ -221,8 +242,8 @@ body{font-family:var(--font-body)}
     <ul>
       <li><strong>media.starcitizen.tools</strong> (Star Citizen Wiki) und
         <strong>cstone.space</strong>: die meisten Schiffsbilder, als Hauptbild und Vorschaubild auf
-        Schiffsseiten, in der Schiffsliste, im Hangar, in den Mining-Werkzeugen und in der Flotte auf
-        Piloten-Profilen</li>
+        Schiffsseiten, in der Schiffsliste, in der Flotte auf Piloten-Profilen und auf den Kacheln
+        gespeicherter Schiffe und Loadouts im Konto-Dashboard</li>
       <li><strong>api.fleetyards.net</strong> (FleetYards): Lackierungen auf den Schiffsseiten und
         Ersatzbilder für Schiffe ohne eigenes Bild; die Abrufe können zum Speicher von FleetYards
         weitergeleitet werden</li>
@@ -322,18 +343,24 @@ body{font-family:var(--font-body)}
     <ul>
       <li><strong>E-Mail-Adresse</strong> und <strong>Passwort</strong> (das Passwort wird
         ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext). Legst du das
-        Konto mit Discord an, stammt die E-Mail-Adresse von Discord, und es gibt kein Passwort.</li>
+        Konto mit Discord an, stammt die E-Mail-Adresse von Discord, und es gibt zunächst kein
+        Passwort. Setzt du später im Konto-Dashboard eins, wird es ebenso nur als Hash gespeichert,
+        und du kannst dich dann auch mit E-Mail-Adresse und Passwort anmelden.</li>
       <li><strong>Profildaten</strong>, die du selbst angibst: Anzeigename, Handle,
         Kurzbeschreibung, Profilbild oder Symbol mit Farbe, Banner, Rolle, Status und Statustext,
-        Org-Name, deine Namen bei Twitch, YouTube und X sowie dein
-        <a href="#rsi">RSI-Handle</a>. Den Anzeigenamen setzt das Konto beim Anlegen vorläufig
+        Org-Name, ein Discord-Tag (nur für dich sichtbar; ist Discord verbunden, trägt das Konto es
+        selbst ein, siehe <a href="#discord">Discord</a>), deine Namen bei Twitch, YouTube und X
+        sowie dein <a href="#rsi">RSI-Handle</a>. Den Anzeigenamen setzt das Konto beim Anlegen vorläufig
         selbst, wenn du keinen angibst: deinen Discord-Namen oder, ohne Discord, den Teil deiner
         E-Mail-Adresse vor dem @. Du kannst ihn jederzeit ändern; öffentlich wird er erst mit
         einem Handle (siehe <a href="#profile">Piloten-Profil</a>).</li>
       <li><strong>Hochgeladene Bilder</strong> (Profilbild, Banner): Dein Browser schneidet sie
         zu und rechnet sie neu, Metadaten des Originals wie Kamera- oder Standortangaben werden
-        dabei nicht hochgeladen. Sie liegen in einem öffentlichen Speicherbereich von Supabase und
-        sind für jeden abrufbar.</li>
+        dabei nicht hochgeladen. Hochgeladen wird das Bild, sobald du den Zuschnitt bestätigst,
+        auch wenn du das Profil danach nicht speicherst. Es liegt in einem öffentlichen
+        Speicherbereich von Supabase unter einer Adresse, die deine interne Konto-ID enthält, und ist
+        für jeden abrufbar; die im Profil gespeicherte Adresse nennt außerdem den Zeitpunkt des
+        Hochladens.</li>
       <li><strong>Favoriten</strong>, die du aktiv speicherst, darunter deine Schiffsflotte</li>
       <li><strong>Werkzeug-Daten</strong>, die du aktiv anlegst (Crafting-Planer und
         „Im Besitz“-Markierungen, Refinery-Aufträge, Mining-Vorlagen, Hangar-Layouts); sie sind
@@ -342,8 +369,9 @@ body{font-family:var(--font-body)}
         <a href="#friends">Freunde und Nachrichten</a>)</li>
       <li>dein <a href="#presence"><strong>Online-Status</strong></a> und die Angabe, was du
         gerade machst, solange du angemeldet bist</li>
-      <li>bei der <a href="#rsi">RSI-Verifizierung</a> dein Verifizierungscode und das
-        Prüfergebnis, als <a href="#testpilots">Testpilot</a> die zugehörigen Angaben</li>
+      <li>dein <a href="#rsi">RSI-Verifizierungscode</a>, sobald du das Konto-Dashboard einmal
+        geöffnet hast (auch wenn du nie verifizierst), nach einer Prüfung auch das Prüfergebnis;
+        als <a href="#testpilots">Testpilot</a> die zugehörigen Angaben</li>
       <li>technisch bedingt <strong>Sitzungs- und Sicherheitsdaten</strong>: für jede Anmeldung
         IP-Adresse, Browserkennung und Zeitpunkte, bis du dich auf diesem Gerät abmeldest oder das
         Konto löschst; dazu Zeitpunkt der Kontoerstellung und der letzten Anmeldung. Supabase
@@ -352,12 +380,18 @@ body{font-family:var(--font-body)}
     </ul>
     <p>
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der Konto-Funktion auf deinen
-      Wunsch). Die Anmeldung auf verse-base.com setzt keine Cookies; deine Sitzung liegt in deinem
-      Browser (siehe <a href="#storage">Speicherung im Browser</a>). Nach einer Anmeldung mit Discord
-      enthält sie auch den Zugangsschlüssel, den Discord dafür ausgestellt hat; die Website nutzt und
-      versendet ihn nicht. Forderst du ein neues Passwort an oder änderst deine E-Mail-Adresse,
-      schickt Supabase für uns eine E-Mail mit einem einmaligen Link an diese Adresse (bei einer
-      Änderung an die neue).
+      Wunsch). Die Anmeldung auf verse-base.com setzt für deine Sitzung keine Cookies; die Sitzung
+      liegt in deinem Browser (siehe <a href="#storage">Speicherung im Browser</a>). Nur bei
+      Administrator-Konten setzt die Seite nach der Anmeldung zusätzlich den Cookie
+      <code>vb_noanalytics</code>, damit dieser Browser nicht mitgezählt wird (siehe
+      <a href="#opt-out">Widerspruch</a>). Nach einer Anmeldung mit Discord enthält die Sitzung
+      außerdem die beiden Schlüssel, die Discord dafür ausgestellt hat (Zugangs- und
+      Erneuerungsschlüssel), bis sie zum ersten Mal erneuert wird: nach etwa einer Stunde, wenn du
+      die Website dann geöffnet hast, sonst bei deinem nächsten Besuch. Die Website nutzt und
+      versendet sie nicht. Forderst du ein neues Passwort an, schickt Supabase für uns eine E-Mail
+      mit einem einmaligen Link an diese Adresse. Änderst du deine E-Mail-Adresse, geht je eine
+      E-Mail mit einem einmaligen Bestätigungslink an deine bisherige und an deine neue Adresse;
+      wirksam wird die Änderung erst, wenn du beide bestätigt hast.
     </p>
     <p>
       Du kannst dein Konto jederzeit selbst im
@@ -365,8 +399,9 @@ body{font-family:var(--font-body)}
       unwiderruflich entfernt: Anmeldedaten und Sitzungen, Profil samt Online-Zeitpunkten,
       Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, gesendete und empfangene Nachrichten
       (auch beim Gegenüber), die Verknüpfung mit Discord samt gespeicherter Discord-ID,
-      Testpilot-Angaben und Werten vom Discord-Server, sowie die Kopien deiner Daten in diesem
-      Browser. <strong>Hochgeladene Profilbilder und Banner</strong> bleiben derzeit als Datei
+      Testpilot-Angaben und den ins Konto übernommenen Werten vom Discord-Server (die Daten des
+      Bots selbst bleiben, siehe <a href="#discord-server">Discord-Server und Bot</a>), sowie die
+      Kopien deiner Daten in diesem Browser. <strong>Hochgeladene Profilbilder und Banner</strong> bleiben derzeit als Datei
       erhalten, wenn du sie im Dashboard entfernst oder das Konto löschst; schreib uns eine E-Mail,
       dann löschen wir sie. Einen Verifizierungscode in deiner RSI-Bio entfernst du selbst auf
       robertsspaceindustries.com.
@@ -434,11 +469,16 @@ body{font-family:var(--font-body)}
       <a href="#discord-server">Discord-Server</a>.
     </p>
     <p>
-      Trennst du Discord im Dashboard, bleiben übernommene Angaben (Name, Bildadresse,
-      Discord-Tag) und die Zuordnung deiner Discord-ID im Konto stehen, bis du sie änderst oder
-      das Konto löschst; die Zuordnung entfernen wir auf Anfrage per E-Mail. Rechtsgrundlage ist
-      Art. 6 Abs. 1 lit. b DSGVO. Discord verarbeitet Daten auch in den USA; für die Anmeldung
-      bei Discord gilt dessen Datenschutzerklärung:
+      Trennst du Discord im Dashboard, löst das nur die Anmeldeverbindung. Übernommene Angaben
+      (Name, Bildadresse, Discord-Tag) bleiben im Konto stehen, bis du sie änderst oder das Konto
+      löschst. Auch die Zuordnung deiner Discord-ID bleibt bestehen und wirkt weiter: Unser
+      <a href="#discord-server">Discord-Bot</a> überträgt weiterhin deine Werte vom Discord-Server
+      und ob du die Rolle „Test Pilots“ trägst in dein Konto, und davon hängt weiter dein Zugang zur
+      <a href="#staging">Testvorschau</a> ab; nur Level, Rang und Prestige sind dann nicht mehr
+      öffentlich abrufbar. Das endet erst, wenn du das Konto löschst oder wir die Zuordnung auf
+      deine Anfrage per E-Mail entfernen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Discord
+      verarbeitet Daten auch in den USA und nimmt nach eigenen Angaben am EU-US Data Privacy
+      Framework teil; für die Anmeldung bei Discord gilt dessen Datenschutzerklärung:
       <a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>.
     </p>
 
@@ -449,18 +489,24 @@ body{font-family:var(--font-body)}
       ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
       Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
       das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
-      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte. Bist
-      du mit Discord verknüpft und Mitglied unseres Discord-Servers, gehören dazu auch dein Level,
-      Rang und Prestige dort (siehe <a href="#discord-server">Discord-Server</a>). Dieselben
-      Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem genauen
-      Zeitpunkt, zu dem du das Konto angelegt und jeden Favoriten gespeichert hast, und zwar für
-      alle Profile mit Handle auf einmal.
+      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte.
+      Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
+      genauen Zeitpunkt, zu dem du das Konto angelegt und jeden Favoriten gespeichert hast, und
+      zwar für alle Profile mit Handle auf einmal. Bist du mit Discord verknüpft und Mitglied
+      unseres Discord-Servers, liefert sie außerdem dein Level, deinen Rang und dein Prestige dort
+      (siehe <a href="#discord-server">Discord-Server</a>); deine Profilseite lädt diese Werte mit,
+      zeigt sie derzeit aber nicht an.
     </p>
     <p>
       Angemeldete Nutzer können über die Schnittstelle zusätzlich die interne Konto-ID jedes
-      Profils mit Handle lesen; auf der Website findest du andere nur über ihr genaues Handle.
+      Profils mit Handle lesen. Hast du ein eigenes Profilbild oder Banner hochgeladen, steht sie
+      außerdem in dessen Adresse, zusammen mit dem Zeitpunkt des Hochladens, und ist damit für
+      jeden lesbar (siehe
+      <a href="#accounts">Benutzerkonto</a>). Auf der Website findest du andere nur über ihr genaues
+      Handle.
       Nicht öffentlich sind deine E-Mail-Adresse, dein Discord-Tag, dein Verifizierungscode, deine
-      Werkzeug-Daten und Hangar-Layouts, deine Freundesliste und deine Nachrichten. Nutzt du dein
+      Werkzeug-Daten und Hangar-Layouts und deine Nachrichten; deine Freundesliste zeigt die
+      Website nur dir. Nutzt du dein
       Discord-Bild als Profilbild, lädt jeder Browser, der dein Profil zeigt, das Bild direkt von
       Discord; die Bildadresse enthält deine Discord-ID, die damit ebenfalls öffentlich lesbar ist.
       Die Profilseite ist für Suchmaschinen gesperrt (noindex). Entfernst du das Handle, ist das
@@ -472,8 +518,9 @@ body{font-family:var(--font-body)}
     <p>
       Angemeldet und mit eigenem Handle kannst du anderen Piloten über ihr genaues Handle eine
       Freundschaftsanfrage schicken. Gespeichert werden Absender, Empfänger, Status und die
-      Zeitpunkte von Anfrage und Antwort, für eine Freundschaft beide Konten und ihr Beginn. Sehen
-      können das nur die beiden Beteiligten; Freundeslisten sind nirgends öffentlich. Ablehnen
+      Zeitpunkte von Anfrage und Antwort, für eine Freundschaft beide Konten und ihr Beginn. Diese
+      Einzelheiten sehen nur die beiden Beteiligten, und eine Freundesliste zeigt die Website
+      nirgends öffentlich an. Ablehnen
       oder Zurückziehen löscht die Anfrage, „Entfernen“ die Freundschaft samt allen Anfragen
       zwischen euch.
     </p>
@@ -532,8 +579,8 @@ body{font-family:var(--font-body)}
       des Dashboards einen persönlichen Code (VERSEBASE-VERIFY-…) zu und speichert ihn; du trägst
       ihn in deine öffentliche Bio auf robertsspaceindustries.com ein. Auf deinen Klick ruft unser
       Serverteil (eine Supabase-Funktion) die öffentliche Profilseite
-      robertsspaceindustries.com/citizens/&lt;Handle&gt; ab und sucht dort den Code. RSI erfährt
-      dabei nur das Handle, und zwar von einem Server von Supabase aus; deine IP-Adresse,
+      robertsspaceindustries.com/citizens/&lt;Handle&gt; ab und sucht dort den Code. RSI (Roberts
+      Space Industries International Limited, Vereinigtes Königreich) erfährt dabei nur das Handle, und zwar von einem Server von Supabase aus; deine IP-Adresse,
       E-Mail-Adresse oder Konto-ID erfährt RSI nicht. Ist das Handle verifiziert, wiederholt das
       Dashboard die Prüfung bei jedem Aufruf; steht der Code nicht mehr in der Bio, wird die
       Verifizierung aufgehoben.
@@ -550,18 +597,22 @@ body{font-family:var(--font-body)}
     <p>
       Testpiloten erproben neue Funktionen auf der <a href="#staging">Testvorschau</a>. Wer dazu
       gehört, richtet sich nach der Rolle „Test Pilots“ auf unserem
-      <a href="#discord-server">Discord-Server</a>. Hast du Discord mit deinem Konto verbunden,
+      <a href="#discord-server">Discord-Server</a>. Ist deine Discord-ID deinem Konto zugeordnet,
       meldet unser Discord-Bot an das Konto-System, ob du diese Rolle trägst (ja oder nein), bei
-      jeder Änderung und regelmäßig zum Abgleich. Gespeichert werden dazu deine Discord-ID, ob du
+      jeder Änderung und regelmäßig zum Abgleich, auch nachdem du Discord im Dashboard getrennt
+      hast (siehe <a href="#discord">Discord</a>); solange du die Rolle trägst, bleibt dir damit der
+      Zugang zur Testvorschau. Gespeichert werden dazu deine Discord-ID, ob du
       die Rolle trägst, und der Zeitpunkt deines letzten Besuchs der Testvorschau. Administratoren
       sehen in einer Übersicht Handle, Anzeigename, Discord-ID und letzten Besuch aller
       Testpiloten. Um jemandem den Zugang zu entziehen, kann ein Sperrvermerk mit Begründung
       gespeichert werden.
     </p>
     <p>
-      Öffentlich ist als Testpilot zweierlei: Hast du ein Handle, zeigt dein Piloten-Profil das
-      Abzeichen „Testpilot“. Und schaltest du im Dashboard „Meinen Namen bei den Testpiloten
-      nennen“ ein (Vorgabe aus), steht dein Anzeigename (ohne ihn dein Handle) mit einem Link auf
+      Öffentlich sein kann als Testpilot zweierlei. Beides richtet sich nach einem
+      Testpilot-Vermerk in deinem Profil, den nur das Konto-System selbst setzt, nie dein Browser.
+      Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
+      „Testpilot“; nur dann erscheint im Dashboard auch der Schalter „Meinen Namen bei den
+      Testpiloten nennen“. Schaltest du ihn ein (Vorgabe aus), steht dein Anzeigename (ohne ihn dein Handle) mit einem Link auf
       dein Profil in der Testpiloten-Liste der Seite <a href="/de/feedback.html">Feedback</a>.
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, für die Liste deine Einwilligung (Art. 6
       Abs. 1 lit. a DSGVO), die du mit dem Schalter jederzeit widerrufst. Alles hier wird mit dem
@@ -576,9 +627,10 @@ body{font-family:var(--font-body)}
       fragt dann beim Konto-System, ob du Zugang hast, speichert den Zeitpunkt deines Besuchs und
       setzt zwei technisch notwendige Cookies: <code>vb_gate</code> (der Zutrittsnachweis mit
       deiner Konto-ID, vom Server signiert, für Skripte nicht lesbar) und <code>vb_gate_exp</code>
-      (dessen Ablaufzeit), beide 5 Minuten gültig. Solange eine Seite der Vorschau offen ist,
-      erneuert der Browser den Nachweis vor Ablauf, und jedes Erneuern schreibt den
-      Besuchszeitpunkt fort. Eine Reichweitenmessung läuft auf der Testvorschau nicht.
+      (dessen Ablaufzeit), beide 5 Minuten gültig. Solange eine Seite der Vorschau sichtbar im
+      Vordergrund ist, erneuert der Browser den Nachweis etwa eine Minute vor Ablauf. Liegt der Tab
+      im Hintergrund, setzt das aus; wird er wieder sichtbar, erneuert der Browser den Nachweis
+      einmal sofort. Jedes Erneuern schreibt den Besuchszeitpunkt fort. Eine Reichweitenmessung läuft auf der Testvorschau nicht.
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, für die Cookies § 25 Abs. 2 Nr. 2 TDDDG. Auf
       verse-base.com gibt es diesen Eingang und diese Cookies nicht.
     </p>
@@ -587,20 +639,39 @@ body{font-family:var(--font-body)}
     <p>
       Zu VerseBase gehört ein Discord-Server mit einem eigenen Bot, den wir auf unserem Server
       betreiben. Für Mitglieder des Discord-Servers führt er ein Level-System: Je Discord-ID
-      speichert er Erfahrungspunkte, Level, Prestige, die Zahl deiner Nachrichten und deine Zeit
-      in Sprachkanälen sowie Bonuspunkte für Fehlerberichte. Den Inhalt von Nachrichten liest er
-      nicht. Level und Rang sehen andere Mitglieder über <code>/rank</code> und die Bestenliste,
-      Aufstiege meldet der Bot im Server. Außerdem gleicht er die Rolle „Test Pilots“ mit
-      verbundenen Website-Konten ab (siehe <a href="#testpilots">Testpiloten</a>). Ist dein
-      Discord-Konto mit der Website verbunden, übernimmt das Konto deine Werte vom Server (Level,
-      Rang, Prestige, Erfahrungspunkte, Nachrichten, Sprachzeit, Platz auf der Bestenliste);
-      Level, Rang und Prestige sind dann Teil deines öffentlichen
-      <a href="#profile">Piloten-Profils</a>, die übrigen Werte siehst nur du.
+      speichert er Erfahrungspunkte (im laufenden Durchgang und insgesamt), Prestige, die Zahl
+      deiner Nachrichten, deine Zeit in Sprachkanälen und den Zeitpunkt der letzten Änderung; Level
+      und Rang berechnet er daraus. Für jeden Beitrag, den du im Forum für Fehlerberichte eröffnest,
+      gibt es einmal Bonuspunkte; dazu vermerkt er die Kennung des Beitrags, deine Discord-ID und
+      den Zeitpunkt. Den Inhalt von Nachrichten liest er nicht; den Titel eines solchen
+      Fehlerberichts schreibt er aber zusammen mit deiner Discord-ID in sein Betriebsprotokoll auf
+      unserem Server. Level, Rang, Prestige, Erfahrungspunkte und deinen Platz auf der Bestenliste
+      sehen alle Mitglieder des Servers, über <code>/rank</code>, das sich für jedes Mitglied
+      abrufen lässt, und über die Bestenliste; deinen Rang zeigt außerdem eine Discord-Rolle, und
+      Aufstiege meldet der Bot im Server. Die Zahl deiner Nachrichten und deine Sprachzeit zeigt er
+      dort nicht an.
     </p>
     <p>
-      Die Daten des Bots liegen in einer eigenen Datenbank auf unserem Server. Beim Löschen des
-      Website-Kontos werden sie nicht automatisch entfernt; auf Anfrage per E-Mail löschen wir
-      sie. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem
+      Außerdem gleicht der Bot die Rolle „Test Pilots“ mit Website-Konten ab (siehe
+      <a href="#testpilots">Testpiloten</a>). Ist deine Discord-ID einem Website-Konto zugeordnet,
+      überträgt er deine Werte in dieses Konto: Level, Rang, Prestige, Erfahrungspunkte,
+      Nachrichten, Sprachzeit, Platz auf der Bestenliste und ob du gerade Mitglied des Servers bist,
+      beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg. Das gilt auch nach
+      dem Trennen von Discord, bis die Zuordnung entfernt ist (siehe <a href="#discord">Discord</a>).
+      Solange Discord verbunden ist und du Mitglied des Servers bist, kann jeder Level, Rang und
+      Prestige zusammen mit deinem <a href="#profile">Piloten-Profil</a> über die öffentliche
+      Datenbank-Schnittstelle abrufen (die Profilseite selbst zeigt sie derzeit nicht an); die
+      übrigen Werte zeigt die Website nur dir. Für den Abgleich schickt der Bot deine Discord-ID an
+      das Konto-System bei Supabase, auch wenn du kein Website-Konto hast: wenn du den Server
+      verlässt, wenn sich deine Rolle „Test Pilots“ ändert und wenn du ein Level aufsteigst. Ist die
+      Discord-ID mit keinem Konto verbunden, wird dort nichts gespeichert.
+    </p>
+    <p>
+      Die Daten des Bots liegen in einer eigenen Datenbank auf unserem Server. Wir bewahren sie
+      auf, solange wir den Bot betreiben; automatisch gelöscht werden sie nicht, auch nicht, wenn du
+      den Server verlässt oder dein Website-Konto löschst. Auf Anfrage per E-Mail löschen wir sie.
+      Hast du den Server verlassen, führt die Bestenliste deinen Eintrag weiter, statt mit deinem
+      Namen mit den ersten Ziffern deiner Discord-ID. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem
       lebendigen Community-Server). Für alles Übrige auf dem Server gilt die Datenschutzerklärung
       von Discord (<a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>).
     </p>
@@ -617,16 +688,20 @@ body{font-family:var(--font-body)}
       deinem Konto, auch wenn du angemeldet bist. Die Funktion lässt bei Stripe eine Bezahlseite
       anlegen (Betrag in Euro, fester Produktname, Seitensprache, Rücksprungadressen) und schickt
       dich dorthin. Alles, was du eingibst — Zahlungsart, Kartendaten, Rechnungsdaten,
-      E-Mail-Adresse — gibst du <em>auf der Seite von Stripe</em> ein, nicht auf dieser.
-      Kartendaten und Bankverbindung erreichen diese Website zu keinem Zeitpunkt. Stripe verarbeitet
-      die Zahlung als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung.
+      E-Mail-Adresse — gibst du <em>auf der Seite von Stripe</em> ein, nicht auf dieser. Wählst du
+      dort PayPal, Apple Pay, Google Pay oder eine andere angebotene Zahlart, ist zusätzlich deren
+      Anbieter beteiligt: Bei PayPal meldest du dich auf dessen Seite an, bei Apple Pay und Google
+      Pay kommen die Zahlungsdaten aus deinem Wallet; dafür gilt jeweils die Datenschutzerklärung
+      dieses Anbieters. Kartendaten und Bankverbindung erreichen diese Website zu keinem
+      Zeitpunkt. Stripe verarbeitet die Zahlung als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung.
       Rechtsgrundlage für die Übermittlung, die den Vorgang anstößt, ist Art. 6 Abs. 1 lit. b DSGVO
       (Durchführung der von dir ausgelösten Zahlung).
     </p>
     <p>
-      Ist eine Zahlung bestätigt, schickt Stripe dem Serverteil dieses Projekts eine Bestätigung.
-      Sie enthält die Angaben, die Stripe erhoben hat (etwa E-Mail-Adresse, Name und Land);
-      gespeichert werden davon nur <strong>Betrag, Währung, Zeitpunkt, ein Kennzeichen für Test-
+      Schließt du die Bezahlung ab, schickt Stripe dem Serverteil dieses Projekts eine Nachricht
+      darüber. Sie enthält die Angaben, die Stripe erhoben hat (etwa E-Mail-Adresse, Name und
+      Land). Gespeichert wird nur eine Zahlung, die Stripe in diesem Moment schon als bezahlt meldet
+      (etwa per Karte), und davon nur <strong>Betrag, Währung, Zeitpunkt, ein Kennzeichen für Test-
       oder Echtzahlung und die Vorgangsnummern von Stripe</strong>. <strong>Kein Name, keine
       E-Mail-Adresse, keine Anschrift und keine Zahlungsdaten werden in unserer Datenbank
       gespeichert</strong>, und die Einträge kann nur ein Administrator lesen. Über die
@@ -640,7 +715,7 @@ body{font-family:var(--font-body)}
       Beim Öffnen liest die Seite Unterstützen den <strong>Spendenstand</strong>: das Ziel, die
       Teilsummen über Stripe und über PayPal und den Zeitpunkt der letzten Änderung; angezeigt wird
       die Gesamtsumme. Dieser Stand ist für jeden lesbar. Weil sich die Stripe-Teilsumme und der
-      Zeitpunkt mit jeder bestätigten Stripe-Zahlung ändern, lässt sich daraus ablesen, wann zuletzt
+      Zeitpunkt mit jeder so gespeicherten Stripe-Zahlung ändern, lässt sich daraus ablesen, wann zuletzt
       über Stripe gespendet wurde und wie viel; Namen enthält er nicht. Nach einer abgeschlossenen
       Zahlung schickt Stripe dich mit dem Zusatz <code>?danke=1</code> zurück, nach einem Abbruch
       ohne ihn. Er trägt keinen Betrag; die Seite entfernt ihn sofort, die Statistik zählt ihn
@@ -676,10 +751,19 @@ body{font-family:var(--font-body)}
       <li><strong>Google</strong> (Irland, mit möglicher Übermittlung in die USA): YouTube nach
         deinem Klick, unser E-Mail-Postfach; Google LLC ist nach dem EU-US Data Privacy Framework
         zertifiziert</li>
-      <li><strong>Supabase</strong> (Singapur; Zugriffe auch aus den USA möglich): Konto-System;
+      <li><strong>Supabase</strong> (Singapur; Zugriffe auch aus den USA möglich): Konto-System
+        und Abgleich des Discord-Bots; Standardvertragsklauseln</li>
+      <li><strong>Web3Forms</strong> (Indien, mit Dienstleistern auch in den USA): Feedback;
         Standardvertragsklauseln</li>
-      <li><strong>Web3Forms</strong> (Indien): Feedback; Standardvertragsklauseln</li>
-      <li><strong>Discord</strong> (USA): Anmeldung mit Discord und Profilbilder aus Discord</li>
+      <li><strong>Discord</strong> (USA): Anmeldung mit Discord, Profilbilder aus Discord und unser
+        <a href="#discord-server">Discord-Server mit Bot</a> (Level-System, Rang-Rollen,
+        Aufstiegsmeldungen, Abgleich der Rolle „Test Pilots“); nach eigenen Angaben nimmt Discord am
+        EU-US Data Privacy Framework teil</li>
+      <li><strong>Roberts Space Industries</strong> (Roberts Space Industries International
+        Limited, Vereinigtes Königreich, nach eigenen Angaben auch mit Servern in den USA): dein
+        RSI-Handle bei der <a href="#rsi">RSI-Verifizierung</a> und, solange es verifiziert ist, bei
+        jedem Aufruf des Dashboards; für das Vereinigte Königreich gilt ein Angemessenheitsbeschluss
+        der EU-Kommission</li>
       <li><strong>Stripe</strong> und <strong>PayPal</strong>: Spenden, nach deren eigenen
         Datenschutzerklärungen auch in den USA</li>
     </ul>
@@ -695,10 +779,12 @@ body{font-family:var(--font-body)}
     </p>
     <p class="muted">
       Auch ohne Benutzerkonto verarbeiten wir die oben beschriebenen Daten (Server-Protokolle,
-      Reichweitenmessung, Feedback-Nachrichten, Spendenvorgänge); auf Anfrage erteilen wir Auskunft
-      oder löschen sie, soweit wir sie dir zuordnen können. Mit Konto siehst und änderst du deine
-      Profildaten im Dashboard und löschst dort das ganze Konto; was dabei bleibt, steht unter
-      <a href="#accounts">Benutzerkonto</a>. Kontodaten speichern wir, bis du sie änderst oder das
+      Reichweitenmessung, Feedback-Nachrichten, Spendenvorgänge und, wenn du Mitglied unseres
+      Discord-Servers bist, die Werte des Bots); auf Anfrage erteilen wir Auskunft oder löschen sie,
+      soweit wir sie dir zuordnen können. Mit Konto siehst und änderst du deine Profildaten im
+      Dashboard und löschst dort das ganze Konto; was dabei bleibt, steht unter
+      <a href="#accounts">Benutzerkonto</a> und <a href="#discord-server">Discord-Server und
+      Bot</a>. Kontodaten speichern wir, bis du sie änderst oder das
       Konto löschst. Für alles Weitere, etwa eine vollständige Auskunft, schreib uns eine E-Mail.
     </p>
   </div>

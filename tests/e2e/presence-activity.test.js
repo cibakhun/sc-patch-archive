@@ -51,3 +51,19 @@ test('ein "aus" im Dashboard-Cache gewinnt gegen den im Tab gemerkten Wert', asy
   assert.equal(pings(tab).length, 1);
   assert.equal(pings(tab)[0].activity, null, 'schon der erste Puls schickt nichts mit');
 });
+
+test('Kontowechsel in einem anderen Tab: das "an" des Vorgaengers gilt nicht fuer den Nachfolger', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, shareActivity: { 'user-1': true, 'user-2': false } });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(pings(tab)[1].activity, SHIP, 'user-1 teilt, die Seite hat es gelernt');
+
+  b.signIn(2, 'user-2');
+  await b.drain();
+  await b.advance(60000);
+  const of2 = tab.requests
+    .filter((r) => r.method === 'PATCH' && r.url.includes('/rest/v1/profiles?id=eq.user-2'))
+    .map((r) => JSON.parse(r.body));
+  assert.ok(of2.length >= 2, 'der Puls laeuft fuer das neue Konto');
+  assert.deepEqual(of2.filter((p) => p.activity), [], 'fuer user-2 verlaesst keine Angabe den Browser');
+});

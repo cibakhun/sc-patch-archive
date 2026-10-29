@@ -27,8 +27,16 @@
      Web3Forms             „erst beim Absenden"
 
    NICHT gemeldet werden <a href> (Navigation, braucht einen Klick) und
-   <form action> (braucht ein Absenden), ebenso URLs, die ein Inline-Skript
-   erst im Klick-Handler zusammensetzt — genau so soll es sein.
+   <form action> (braucht ein Absenden).
+
+   SKRIPT-CODE (seit cubic #239): Inline-Skripte und jede .js/.mjs-Datei in
+   dist/ werden nach denselben Hosts durchsucht. Ob Code erst nach einem
+   Klick laeuft, sieht kein Regex — deshalb gilt jede Fundstelle als FEHLER,
+   bis sie als KLICK_GEBUNDEN unten mit Anlass eingetragen ist (Datei, Host,
+   wo die Klick-Schranke sitzt). Ein neuer fetch-Aufruf oder ein dynamisch
+   erzeugtes <script> zu YouTube & Co. reisst also das Tor, und wer es
+   eintraegt, muss die Schranke benennen. Zombie-Waechter (Grundsatz 6): eine
+   Ausnahme, die nichts mehr trifft, reisst ebenfalls.
 
    SELBSTAUSKUNFT + SPERRKLINKEN (Grundsaetze 2 und 5): gezaehlt werden die
    geprueften Seiten UND die Klick-Fassaden fuer YouTube (data-yt, data-lb
@@ -47,8 +55,12 @@
    Danach Rueckbau, wieder gruen. Zusaetzlich gegen eine Kunstseite mit je
    einem Fall pro Muster (stylesheet, dns-prefetch, srcset, data-src, Stil-
    url(), CSS-@import, script, iframe, poster): alle neun gemeldet; <a href>,
-   <form action>, rel=canonical/alternate, data-yt und eine URL im Inline-
-   Skript blieben still.
+   <form action>, rel=canonical/alternate und data-yt blieben still.
+   Skript-Code, vorgefuehrt 29.10.2026: in dist/patches/sc-4-0-0.html ein
+   Inline-Skript mit einem fetch-Aufruf nach www.youtube.com/oembed eingesetzt
+   -> FEHLER „Skript-Code  www.youtube.com"; und die Ausnahme fuer
+   assets/detail.js umbenannt -> FEHLER fuer die Fundstelle UND fuer die
+   verwaiste Ausnahme. Rueckbau, wieder gruen.
 
    Schiene A: liest ausschliesslich dist/ — kein git, kein Netz, kein
    Kindprozess.                                                          */
@@ -71,6 +83,24 @@ const zusageFuer = (url) => {
   try { host = new URL(url.startsWith('//') ? 'https:' + url : url).host.toLowerCase(); } catch { return null; }
   return ZUSAGEN.find((z) => z.hosts.some((h) => host === h || host.endsWith('.' + h))) ?? null;
 };
+
+/* Skript-Code: benannte Klick-Bindungen. `datei` ist der Pfad unter dist/,
+   `host` der genaue Host im Code. Jede Zeile braucht ihren Anlass — wo die
+   Schranke sitzt, die den Code erst nach dem Klick laufen laesst. */
+const KLICK_GEBUNDEN = [
+  { datei: /^(?:de\/)?schiffe\/[^/]+\.html$/, host: 'www.youtube.com',
+    anlass: 'ShipDetail.astro loadYT(): setzt das iframe_api-Skript erst ein, wenn #holoytgo geklickt wurde (ytAsked)' },
+  { datei: /^(?:de\/)?schiffe\/[^/]+\.html$/, host: 'www.youtube-nocookie.com',
+    anlass: 'ShipDetail.astro initVideo(): host des YT.Player, laeuft erst nach loadYT(), also nach dem Klick' },
+  { datei: /^(?:de\/)?patches\/[^/]+\.html$/, host: 'www.youtube-nocookie.com',
+    anlass: 'Fassaden-Skript der Patch-Seiten: das iframe entsteht erst im Klick-Handler von .video[data-yt] bzw. [data-lb="yt:…"]' },
+  { datei: /^assets\/detail\.js$/, host: 'www.youtube-nocookie.com',
+    anlass: 'dieselbe Fassade als Datei (Themenseiten): iframe erst im Klick-Handler' },
+  { datei: /^_astro\/socials\.[^/]+\.js$/, host: 'www.youtube.com',
+    anlass: 'Profil-Link https://www.youtube.com/@Name — wird nur als <a href> gesetzt, kein Abruf' },
+];
+const HOST_IM_CODE = new RegExp(String.raw`(?<![a-z0-9.-])((?:[a-z0-9-]+\.)*(?:` +
+  ZUSAGEN.flatMap((z) => z.hosts).map((h) => h.replace(/\./g, '\\.')).join('|') + String.raw`))(?![a-z0-9-])`, 'gi');
 
 /* Was der Browser ohne Zutun laedt. Jedes Muster liefert [art, url]. */
 const URL_RE = String.raw`((?:https?:)?\/\/[^\s"'<>),]+)`;
@@ -103,16 +133,26 @@ const lauf = (d) => {
   for (const e of readdirSync(d)) {
     const p = d + '/' + e;
     if (statSync(p).isDirectory()) { lauf(p); continue; }
-    if (e.endsWith('.html') || e.endsWith('.css')) dateien.push(p);
+    if (e.endsWith('.html') || e.endsWith('.css') || e.endsWith('.js') || e.endsWith('.mjs')) dateien.push(p);
   }
 };
 lauf(DIST);
 
-let seiten = 0, cssDateien = 0, fassaden = 0;
+let seiten = 0, cssDateien = 0, fassaden = 0, skriptBloecke = 0, jsDateien = 0, gebunden = 0;
 const funde = [];
 const melde = (datei, art, url) => {
   const z = zusageFuer(url);
   if (z) funde.push({ datei, art, url, zusage: z.name });
+};
+const treffer = new Map(KLICK_GEBUNDEN.map((k) => [k, 0]));
+const pruefeCode = (datei, code) => {
+  const rel = datei.slice(DIST.length + 1);
+  for (const m of code.matchAll(HOST_IM_CODE)) {
+    const host = m[1].toLowerCase();
+    const k = KLICK_GEBUNDEN.find((x) => x.host === host && x.datei.test(rel));
+    if (k) { treffer.set(k, treffer.get(k) + 1); gebunden++; continue; }
+    melde(datei, 'Skript-Code', 'https://' + host);
+  }
 };
 
 for (const datei of dateien) {
@@ -122,10 +162,21 @@ for (const datei of dateien) {
     for (const m of text.matchAll(CSS_URL_RE)) melde(datei, 'url()/@import', m[1]);
     continue;
   }
+  if (datei.endsWith('.js') || datei.endsWith('.mjs')) {
+    jsDateien++;
+    pruefeCode(datei, text);
+    continue;
+  }
   seiten++;
-  /* Inline-Skripte zuerst ausblenden: ihr Text ist Code, der URLs erst zur
-     Laufzeit (im Klick-Handler) zusammensetzt, kein Markup, das der Parser
-     laedt. Ein <script src> steht im oeffnenden Tag und bleibt erhalten. */
+  /* Inline-Skripte: ihr Text ist Code, kein Markup, das der Parser laedt.
+     Er geht an pruefeCode() (benannte Klick-Bindungen), und fuer die
+     Markup-Muster wird er ausgeblendet. Ein <script src> steht im
+     oeffnenden Tag und bleibt erhalten. */
+  for (const m of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
+    if (!m[1].trim()) continue;
+    skriptBloecke++;
+    pruefeCode(datei, m[1]);
+  }
   const markup = text.replace(/(<script\b[^>]*>)[\s\S]*?(<\/script>)/gi, '$1$2');
   fassaden += (markup.match(/\sdata-yt\s*=|\sdata-lb\s*=\s*["']yt:|\sid\s*=\s*["']holoytgo["']/gi) || []).length;
   for (const { art, re } of MUSTER) for (const m of markup.matchAll(re)) melde(datei, art(m), m[3]);
@@ -143,8 +194,16 @@ for (const datei of dateien) {
 }
 
 console.log(`verify:vorklick — gegen ${DIST}/: ${seiten} Seiten + ${cssDateien} CSS-Dateien geprueft (Klinke ${MIN_SEITEN}), ${fassaden} YouTube-Klick-Fassaden gezaehlt (Klinke ${MIN_FASSADEN})`);
+console.log(`  Skript-Code: ${skriptBloecke} Inline-Skripte + ${jsDateien} JS-Dateien durchsucht, ${gebunden} Fundstelle(n) in ${KLICK_GEBUNDEN.length} benannten Klick-Bindungen`);
 
 let rot = false;
+const verwaist = KLICK_GEBUNDEN.filter((k) => treffer.get(k) === 0);
+if (verwaist.length) {
+  console.error(`FEHLER  ${verwaist.length} Klick-Bindung(en) ohne Fundstelle — die Ausnahme hat ihren Anlass verloren:`);
+  for (const k of verwaist) console.error(`  ${k.host}  in ${k.datei}  (${k.anlass})`);
+  console.error('        Ist der Code umgezogen, die Zeile anpassen; ist er weg, die Zeile streichen.');
+  rot = true;
+}
 if (seiten < MIN_SEITEN) {
   console.error(`FEHLER  nur ${seiten} Seiten gefunden, erwartet mindestens ${MIN_SEITEN}.`);
   console.error('        Entweder ist der Build unvollstaendig, oder dieses Tor laeuft leer.');
@@ -174,6 +233,8 @@ if (funde.length) {
   console.error('  Die Datenschutzerklaerung sagt fuer diese Anbieter „erst nach Klick" oder „nie".');
   console.error('  Den Verweis in einen Klick-Handler verlegen (Muster: data-yt in den Patch-Seiten,');
   console.error('  #holoytgo in ShipDetail.astro) — oder die Erklaerung UND dieses Tor bewusst aendern.');
+  console.error('  „Skript-Code" heisst: der Host steht in einem Skript. Laeuft der Code nachweislich erst');
+  console.error('  nach einem Klick, die Stelle in KLICK_GEBUNDEN eintragen und die Schranke als Anlass nennen.');
   rot = true;
 }
 
