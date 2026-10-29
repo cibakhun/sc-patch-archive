@@ -12,7 +12,7 @@
 //                  vb.dcLinking      Merker "Discord wird gerade verbunden"
 // Beim Loeschen zusaetzlich die Werkzeug-Spiegel des Kontos; ihre offenen
 // Schreibvorgaenge haben kein Ziel mehr:
-//   localStorage   vb.fleet.v1.<uid>, craft.state.v2.<uid>
+//   localStorage   vb.fleet.v1.<uid>, craft.state.v2.<uid>, vb.layouts.v1.<uid>
 // Die Supabase-Sitzung selbst entfernt supabase.auth.signOut().
 
 export const PROFILE_CACHE_PREFIX = 'vb_profile_';
@@ -21,6 +21,7 @@ export const ROLE_CACHE_KEY = 'vb_user_role';
 export const DC_LINKING_KEY = 'vb.dcLinking';
 export const FLEET_MIRROR_PREFIX = 'vb.fleet.v1.';
 export const CRAFT_MIRROR_PREFIX = 'craft.state.v2.';
+export const LAYOUT_MIRROR_PREFIX = 'vb.layouts.v1.';
 
 /** Das Noetigste von Storage, damit Tests eine Map hineinreichen koennen. */
 export interface KeyStore {
@@ -34,7 +35,7 @@ export type CleanupMode = 'signout' | 'delete';
 /** Feste Schluessel fuer dieses Konto (ohne den vb_profile_-Rundumschlag). */
 export function accountKeys(uid: string, mode: CleanupMode): { local: string[]; session: string[] } {
   const local = [PROFILE_CACHE_PREFIX + uid, RSI_CODE_KEY];
-  if (mode === 'delete') local.push(FLEET_MIRROR_PREFIX + uid, CRAFT_MIRROR_PREFIX + uid);
+  if (mode === 'delete') local.push(FLEET_MIRROR_PREFIX + uid, CRAFT_MIRROR_PREFIX + uid, LAYOUT_MIRROR_PREFIX + uid);
   return { local, session: [ROLE_CACHE_KEY, DC_LINKING_KEY] };
 }
 

@@ -378,7 +378,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
       // Live Profile Card Renderer
       const updateCard = () => {
-        const dName = nameInput.value.trim() || user.email?.split('@')[0] || 'Citizen';
+        // Wie die oeffentliche Seite (display_name, sonst Handle); nie ein
+        // Teil der Mailadresse, auch nicht in der Vorschau.
+        const dName = nameInput.value.trim() || handleInput.value.trim() || 'Citizen';
         const dHandle = handleInput.value.trim() ? `@${handleInput.value.trim()}` : '@citizen';
 
         document.getElementById('pcName')!.textContent = dName;
@@ -955,13 +957,17 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           removeEl.addEventListener('click', async () => {
             removeEl.disabled = true;
             setStatus('');
+            let cleared = false;
             try {
               const { error: dbErr } = await supabase.from('profiles')
                 .update({ [o.stateKey]: null }).eq('id', user.id);
               if (dbErr) throw dbErr;
+              cleared = true;
               o.urlInput.value = '';
               profileState[o.stateKey] = '';
               try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+              // change: die Discord-Bild-Auswahl (markDcAvatar) sieht das leere Feld
+              o.urlInput.dispatchEvent(new Event('change'));
               updateCard();
               syncRemove();
               const { error: rmErr } = await supabase.storage.from(o.bucket).remove([`${user.id}/${o.kind}`]);
@@ -970,6 +976,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
               setTimeout(() => setStatus(''), 1600);
             } catch (err) {
               console.warn('image remove failed', err);
+              // Verweis schon weg, Datei noch da: Knopf sichtbar lassen, damit
+              // "erneut versuchen" auch geht.
+              if (cleared) removeEl.hidden = false;
               setStatus(D.msgRemoveErr || 'Could not remove the image.', 'err');
             } finally {
               removeEl.disabled = false;
@@ -1868,9 +1877,11 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             const pic = dcAvatarOf(dc);
             if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
             const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            // Vorgabename ersetzen: 'Pilot' (handle_new_user seit
+            // 20261030132000) bzw. bei aelteren Konten der Mail-Lokalteil.
             const mailName = (user.email || '').split('@')[0];
             const curName = (profileState.display_name || '').trim();
-            if (nick && (!curName || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (nick && (!curName || curName === 'Pilot' || curName === mailName)) patch.display_name = nick.slice(0, 60);
             if (Object.keys(patch).length) {
               await dcSave(patch);
               if (patch.avatar_url) {

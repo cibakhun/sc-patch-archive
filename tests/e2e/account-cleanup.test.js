@@ -32,6 +32,8 @@ const BROWSER = () => ({
     [`vb.fleet.v1.${UID}`]: '{"ships":[]}',
     [`craft.state.v2.${UID}`]: '{"owned":{}}',
     'craft.state.v2': '{"owned":{}}',
+    [`vb.layouts.v1.${UID}`]: '{"layouts":[]}',
+    'vb.layouts.v1': '{"layouts":[]}',
     'vb.theme': 'dark',
     'sb-trgjhmbnodoarnfmlcqx-auth-token': '{"access_token":"t"}',
   }),
@@ -50,6 +52,8 @@ test('Abmelden entfernt Profil-Caches (auch fruehere Konten), RSI-Code und Rolle
     `craft.state.v2.${UID}`,
     'sb-trgjhmbnodoarnfmlcqx-auth-token',
     `vb.fleet.v1.${UID}`,
+    'vb.layouts.v1',
+    `vb.layouts.v1.${UID}`,
     'vb.theme',
   ].sort(), 'Werkzeug-Spiegel, Gast-Ablage, Einstellungen und die Sitzung (signOut) bleiben');
   assert.deepEqual([...b.session.map.keys()], ['vb:from']);
@@ -61,9 +65,12 @@ test('Konto loeschen entfernt zusaetzlich die Werkzeug-Spiegel des Kontos', () =
   assert.deepEqual([...b.local.map.keys()].sort(), [
     'craft.state.v2',
     'sb-trgjhmbnodoarnfmlcqx-auth-token',
+    'vb.layouts.v1',
     'vb.theme',
-  ].sort());
-  assert.ok(accountKeys(UID, 'delete').local.includes(`vb.fleet.v1.${UID}`));
+  ].sort(), 'Gast-Ablagen, Einstellungen und die Sitzung bleiben; die Spiegel des Kontos gehen');
+  for (const k of [`vb.fleet.v1.${UID}`, `craft.state.v2.${UID}`, `vb.layouts.v1.${UID}`]) {
+    assert.ok(accountKeys(UID, 'delete').local.includes(k), `${k} fehlt beim Loeschen`);
+  }
 });
 
 test('gesperrter Speicher bricht nichts ab', () => {
@@ -103,4 +110,17 @@ test('Bild entfernen loescht die Datei im Bucket, nicht nur den Verweis', () => 
   const rm = h.indexOf('supabase.storage.from(o.bucket).remove([`${user.id}/${o.kind}`])');
   assert.ok(db > 0, 'Profilzeile wird geleert');
   assert.ok(rm > db, 'danach die Datei entfernt');
+  const retry = h.indexOf('if (cleared) removeEl.hidden = false;');
+  assert.ok(retry > rm, 'scheitert nur das Entfernen der Datei, bleibt der Knopf fuer einen neuen Versuch');
+});
+
+// Neue Konten heissen 'Pilot' (20261030132000), nie wie der Teil der
+// Mailadresse vor dem @: auch die Vorschau im Dashboard nicht, und beim
+// Verbinden von Discord gilt 'Pilot' als Vorgabename, den der Discord-Name
+// ersetzen darf.
+test('Anzeigename: Vorschau ohne Mailadresse, Pilot gilt als Vorgabe', () => {
+  const card = handlerAround('const updateCard = () => {', 400);
+  assert.doesNotMatch(card.slice(0, card.indexOf('const dHandle')), /user\.email/, 'Vorschau-Name greift auf die Mailadresse zurueck');
+  const adopt = handlerAround('const curName =', 300);
+  assert.match(adopt, /curName === 'Pilot'/, "Discord-Uebernahme behandelt 'Pilot' nicht als Vorgabename");
 });

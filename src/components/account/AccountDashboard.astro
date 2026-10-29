@@ -41,7 +41,7 @@ const COPY = {
     secDanger: 'Konto löschen',
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
-    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Eindeutig auf VerseBase.',
+    handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Mit einem Handle ist deine Pilotenseite öffentlich: Anzeigename, Bilder, Bio, Status und verlinkte Profile sieht dann jeder.',
     bio: 'Biografie / Über mich', bioPh: 'Erzähle der Flotte etwas über dich, deine Schiffe oder Missionen …',
     bannerSelect: 'Banner-Vorlage wählen',
     bannerUrl: 'Oder eigene Banner-Bild-URL',
@@ -194,7 +194,7 @@ const COPY = {
     secDanger: 'Delete account',
     name: 'Display name', namePh: 'e.g. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
-    handleHint: '3–24 characters: lowercase letters, digits, underscore. Unique on VerseBase.',
+    handleHint: '3–24 characters: lowercase letters, digits, underscore. With a handle your pilot page is public: anyone can see your display name, images, bio, status and linked profiles.',
     bio: 'Bio / About me', bioPh: 'Tell the fleet about yourself, your ships, or missions …',
     bannerSelect: 'Choose banner preset',
     bannerUrl: 'Or custom banner image URL',
@@ -544,7 +544,8 @@ const confirmRedirect = loginHref + '?confirmed=1';
                 </div>
                 <div class="field">
                   <label for="pfHandle">{COPY.handle} <span class="hint">{COPY.optional}</span></label>
-                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} /></div>
+                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} aria-describedby="pfHandleHint" /></div>
+                  <p class="acx-hint" id="pfHandleHint">{COPY.handleHint}</p>
                 </div>
                 <div class="field" style="margin-bottom:0">
                   <label for="pfBio">{COPY.bio}</label>
