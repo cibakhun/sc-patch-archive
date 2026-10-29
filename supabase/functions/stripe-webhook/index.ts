@@ -33,7 +33,9 @@
 // Abhaengigkeiten, der Pin friert es also ganz ein. Anheben nur bewusst und
 // zusammen mit API_VERSION.
 // supabase-js 2.118.0: neueste 2.x am 29.10.2026, dieselbe Fassung wie in
-// delete-account. Die @supabase-Unterpakete pinnt das Paket selbst exakt.
+// delete-account. Die @supabase-Unterpakete pinnt das Paket selbst exakt;
+// offen bleibt nur iceberg-js (von storage-js, Bereich ^0.8.1), bis es ein
+// deno.lock fuer diese Function gibt.
 import Stripe from 'npm:stripe@22.4.0';
 import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 
