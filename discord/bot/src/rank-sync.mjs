@@ -13,7 +13,8 @@
 //      Durchlauf holt nach. Der Bot laeuft ohne Supabase unveraendert.
 //
 //  Zeitpunkte: einmal beim Start, dann alle 5 Minuten, und sofort fuer ein
-//  Mitglied, das gerade aufgestiegen ist (award.mjs -> pushRank).
+//  Mitglied, das gerade aufgestiegen ist (award.mjs -> pushRank). Alles
+//  nacheinander, und nur fuer EINEN Server (homeGuild).
 // ═══════════════════════════════════════════════════════════════════════════
 import { levelForXp } from './leveling.mjs';
 import { rankForLevel } from './ranks.mjs';
@@ -58,12 +59,39 @@ function headers(supabase, extra = {}) {
   return { apikey: supabase.key, Authorization: `Bearer ${supabase.key}`, ...extra };
 }
 
+const SEITE = 1000; // PostgREST liefert hoechstens so viele Zeilen je Abruf
+
 async function fetchLinked(supabase, onlyId) {
   const filter = onlyId ? `discord_user_id=eq.${encodeURIComponent(onlyId)}` : 'discord_user_id=not.is.null';
-  const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?select=discord_user_id,${FIELDS.join(',')}&${filter}`, { headers: headers(supabase) });
-  if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${await res.text().catch(() => '')}`);
-  return res.json();
+  const all = [];
+  // Seitenweise, sonst bleiben ab dem tausendsten verbundenen Konto alle stehen.
+  for (let offset = 0; ; offset += SEITE) {
+    const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?select=discord_user_id,${FIELDS.join(',')}&${filter}&order=discord_user_id&limit=${SEITE}&offset=${offset}`, { headers: headers(supabase) });
+    if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${await res.text().catch(() => '')}`);
+    const rows = await res.json();
+    all.push(...rows);
+    if (rows.length < SEITE) return all;
+  }
 }
+
+/**
+ * Der Server, dessen Rang die Kontoseite zeigt. Eine Zeile je Konto kann nur
+ * EINEN Server spiegeln: mit GUILD_ID dieser; ohne GUILD_ID der einzige
+ * Server oder, ist der Bot auf mehreren, der mitgliederstaerkste (stabil,
+ * statt dass der zuletzt abgearbeitete gewinnt). Rein (selftest.mjs).
+ */
+export function homeGuild(guilds, guildId = process.env.GUILD_ID) {
+  const list = [...guilds];
+  if (guildId) return list.find((g) => g.id === guildId) || null;
+  if (list.length <= 1) return list[0] || null;
+  return list.reduce((a, b) => ((b.memberCount || 0) > (a.memberCount || 0) || ((b.memberCount || 0) === (a.memberCount || 0) && b.id < a.id) ? b : a));
+}
+
+// Alle Abgleiche (Fuenf-Minuten-Lauf und Sofort-Abgleich nach einem
+// Aufstieg) laufen nacheinander: sonst koennte ein aelterer Stand einen
+// neueren ueberschreiben, wenn zwei Aufstiege kurz hintereinander kommen.
+let kette = Promise.resolve();
+const nacheinander = (fn) => (kette = kette.then(fn, fn));
 
 async function writeRow(supabase, discordId, patch) {
   const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?discord_user_id=eq.${encodeURIComponent(discordId)}`, {
@@ -112,12 +140,15 @@ export async function syncRanks(ctx, guild, onlyId = null) {
 
 /** Sofort-Abgleich fuer ein Mitglied (nach Level-Aufstieg). Wirft nie. */
 export function pushRank(ctx, guild, discordId) {
-  if (process.env.GUILD_ID && guild.id !== process.env.GUILD_ID) return;
-  syncRanks(ctx, guild, discordId).catch(() => {});
+  if (!ctx.supabase) return;
+  const home = homeGuild(ctx.client?.guilds?.cache?.values() || [guild]);
+  if (!home || home.id !== guild.id) return;
+  nacheinander(() => syncRanks(ctx, guild, discordId)).catch(() => {});
 }
 
 const INTERVALL_MS = 5 * 60 * 1000;
 let laeuft = false;
+let gemeldet = '';
 
 export function startRankSync(ctx) {
   if (!ctx.supabase) return;
@@ -125,12 +156,14 @@ export function startRankSync(ctx) {
     if (laeuft) return;
     laeuft = true;
     try {
-      // Ein Bot, ein Server: mit GUILD_ID nur dieser (sonst schriebe jeder
-      // weitere Server seine eigenen Zahlen in dieselbe Zeile).
-      for (const guild of ctx.client.guilds.cache.values()) {
-        if (process.env.GUILD_ID && guild.id !== process.env.GUILD_ID) continue;
-        await syncRanks(ctx, guild);
+      const guilds = [...ctx.client.guilds.cache.values()];
+      const home = homeGuild(guilds);
+      if (!home) return;
+      if (!process.env.GUILD_ID && guilds.length > 1 && gemeldet !== home.id) {
+        gemeldet = home.id;
+        console.warn(`  ! Rangspiegel: Bot ist auf ${guilds.length} Servern, GUILD_ID fehlt -- gespiegelt wird ${home.name} (meiste Mitglieder).`);
       }
+      await nacheinander(() => syncRanks(ctx, home));
     } finally { laeuft = false; }
   };
   tick();
