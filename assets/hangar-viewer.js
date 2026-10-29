@@ -245,12 +245,46 @@ const nextTask = () => new Promise((r) => setTimeout(r, 0));
 // fetch gleich los, dekodiert wird in derselben Reihe; jedes fertige Bild
 // meldet seine Bytes an tally(parser) (Fortschritt des Ladebalkens).
 const pooledImage = (def) => def.bufferView === undefined && typeof def.uri === 'string' && !/^(data|blob):/.test(def.uri);
+// Mittel einer Farbkarte, linear je Kanal (für albedoFloor): auf 8 × 8
+// verkleinert (mit Mip-Stufen, nicht nur einzelne Punkte) und gemittelt.
+// Nur für Bilder, die eine Farbkarte sind; ohne Erfolg undefined.
+const SRGB_LIN = Array.from({ length: 256 }, (_, i) => { const v = i / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+let meanCtx = null;
+async function imageMean(bitmap) {
+  let small = null;
+  try {
+    small = await createImageBitmap(bitmap, { resizeWidth: 8, resizeHeight: 8, resizeQuality: 'medium', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    if (!meanCtx) {
+      const cv = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(8, 8) : Object.assign(document.createElement('canvas'), { width: 8, height: 8 });
+      meanCtx = cv.getContext('2d', { willReadFrequently: true });
+    }
+    meanCtx.clearRect(0, 0, 8, 8);
+    meanCtx.drawImage(small, 0, 0, 8, 8);
+    const d = meanCtx.getImageData(0, 0, 8, 8).data, c = [0, 0, 0];
+    for (let i = 0; i < d.length; i += 4) for (let k = 0; k < 3; k++) c[k] += SRGB_LIN[d[i + k]];
+    return c.map((v) => v / 64);
+  } catch {
+    return undefined;
+  } finally {
+    small?.close();
+  }
+}
+const colourImages = (json) => {
+  const out = new Set();
+  for (const m of json.materials ?? []) {
+    const t = m.pbrMetallicRoughness?.baseColorTexture, tex = t && json.textures?.[t.index];
+    const src = tex?.extensions?.EXT_texture_webp?.source ?? tex?.source;
+    if (src != null) out.add(src);
+  }
+  return out;
+};
 function embeddedImages(ms, tally = () => null) {
   const pause = slicer(ms, nextTask);
   let turn = Promise.resolve();
   return (parser) => {
     const load = parser.loadImageSource.bind(parser);
     const count = tally(parser);
+    const colour = colourImages(parser.json);
     parser.loadImageSource = (i, loader) => {
       const def = parser.json.images[i];
       const pooled = pooledImage(def);
@@ -264,11 +298,12 @@ function embeddedImages(ms, tally = () => null) {
       const p = go
         .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
         .then((blob) => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' }))
-        .then((bitmap) => {
+        .then(async (bitmap) => {
           const t = new THREE.Texture(bitmap);
           t.needsUpdate = true;
           if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
           t.userData.mimeType = def.mimeType;
+          if (colour.has(i)) t.userData.mean = await imageMean(bitmap);
           return t;
         });
       if (pooled) p.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
@@ -4564,6 +4599,62 @@ export function palettePbr(tint, specular, gloss) {
   });
   return { color, metalness: metal, roughness: Number.isFinite(gloss) ? clamp(1 - gloss / 255) : null };
 }
+
+// Glätte des Lacks wie im Spiel (Krisz 29.10.2026 zur Polaris: „nicht so
+// dunkel und shiny“). Das Spiel multipliziert die Glätte des Kanals (gloss)
+// mit der Glätte der Materialkarte; glTF und three.js multiplizieren die
+// Rauheiten. Mit roughness = 1 − gloss/255 als Faktor über der Rauheitskarte
+// (G, aus der Glätte des Spiels) wurde jeder Lack fast zum Spiegel: Polaris
+// Glätte 210 auf einer Karte mit Rauheit 0,2 ergab 0,036 statt 0,34.
+// Ausgeglichen also 1 − (1 − r)(1 − t) = mix(t, 1, r), r die Rauheit der
+// Palette. Nur mit echter Karte; ohne sie gilt r allein, wie bisher.
+export function paletteGloss(m) {
+  if (m.userData.paletteGloss) return;
+  m.userData.paletteGloss = true;
+  const prev = m.onBeforeCompile, prevKey = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => {
+    prev?.call(m, sh, r);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+#ifdef USE_ROUGHNESSMAP
+  roughnessFactor = mix( texelRoughness.g, 1.0, roughness );
+#endif`);
+  };
+  m.customProgramCacheKey = () => (prevKey ? prevKey.call(m) : '') + '|palgloss';
+}
+
+// Untergrenze der Grundfarbe (Krisz 29.10.2026 zur Polaris: „nicht so
+// dunkel“). Der Rohexport backt bei vielen Schichtmaterialien die Tönung in
+// die Farbkarte und setzt sie zusätzlich als Grundfarbe. Die Polaris trug auf
+// gut einem Viertel ihrer Dreiecke (Paint_Glossy_Dark, Paint_Matte_Dark) eine
+// Karte mit demselben Muster wie ihr Lack, aber auf 5 % abgedunkelt, und dazu
+// die Tönung 0,023: im Mittel 0,00005, schwärzer als jeder Lack. Über alle
+// Schiffe liegen 18 % der Dreiecke so doppelt dunkel. Dunkelste Lacke und
+// Kunststoffe liegen bei 0,02 bis 0,04. Darum: Ist das Mittel aus Farbkarte
+// (albT, beim Laden gemessen, embeddedImages) mal Grundfarbe kleiner als
+// ALB_MIN, wird die Grundfarbe so weit angehoben, dass es ALB_MIN ist. Muster
+// und Farbton bleiben, alles darüber bleibt, wie es war. Nur Nichtmetall,
+// undurchsichtig. ALB_MIN ist rund #2b2b2b, die Serienfarbe der Polaris.
+// col: die Farbe, die gesetzt wird (paint() setzt die ungedimmte).
+// true, wenn angehoben.
+export const ALB_MIN = 0.025;
+export function albedoFloor(m, col = m.color) {
+  const T = m.userData.albT;
+  if (T == null || m.metalness >= 0.5) return false;
+  const f = Math.max(col.r, col.g, col.b);
+  if (f * T >= ALB_MIN) return false;
+  if (f > 1e-4) col.multiplyScalar(ALB_MIN / (f * T));
+  else col.setScalar(ALB_MIN / T);
+  return true;
+}
+
+// Schadensnetze (Krisz 29.10.2026: „starlancer tac und max sind verglitched“,
+// Railen „innen“, Polaris „so dunkel“). Unter dem Rumpf liegt das Innere, das
+// das Spiel erst zeigt, wo Treffer den Rumpf aufreißen (Damage_Internal_*,
+// damage_structure, Ext_Damage_Pom …). Unbeschädigt bleibt es verdeckt; hier
+// stach es fleckig durch den Lack, bei der Polaris über einem Sechstel der
+// Dreiecke. Lackmaterialien, die nur so heißen (paint_grey_nodamage,
+// metal_engines_damageable, Paint_Damaged_Atlas der Ursa), bleiben.
+export const isDamageMesh = (name) => /damage/i.test(name || '') && !/nodamage|damageable|damaged/i.test(name);
 
 // Aufstand auf dem Fahrwerk (PC-Lauf „Hangar-Flotte“, Krisz 24.10.2026:
 // „alle schiffe korrekt auf dem boden … mit deren landinggear“). contacts
@@ -10574,6 +10665,7 @@ void main() {
     // (Nieten, Plattenkanten), deren Farbbild nie sichtbar ist. Als
     // eigene Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
     if (/(^|_)pom(_|$)|pom_?decal/i.test(m.name || '')) { n.visible = false; return false; }
+    if (isDamageMesh(m.name)) { n.visible = false; n.userData.damage = true; return false; }
     // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
     // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
     // ist im Spiel fast immer, was dort sitzt.
@@ -10588,6 +10680,17 @@ void main() {
       const q = palettePbr(pal.tint, HEX6.test(pal.specular ?? '') ? pal.specular : undefined, Number.isFinite(pal.gloss) ? pal.gloss : undefined);
       m.color.setRGB(...q.color, THREE.LinearSRGBColorSpace); m.metalness = q.metalness;
       if (q.roughness != null) m.roughness = q.roughness;
+      if (m.roughnessMap && !isNeutral(m.roughnessMap)) paletteGloss(m);
+    }
+    if (!m.transparent && !(m.alphaTest > 0)) {
+      // Mittel der Farbkarte (linear, hellster Kanal); eine schwarze Karte
+      // (Mittel unter 0,0005) trägt nichts, an ihrer Stelle gilt die Farbe allein
+      const mean = !m.map || isNeutral(m.map) ? [1, 1, 1] : m.map.userData?.mean;
+      if (mean) {
+        m.userData.albT = Math.max(...mean);
+        if (m.userData.albT < 5e-4) { m.map = null; m.userData.albT = 1; }
+        if (albedoFloor(m)) m.userData.albLift = true;
+      }
     }
     m.envMapIntensity = 0.9;
     for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
@@ -10643,6 +10746,16 @@ void main() {
       // bei Großschiffen (Polaris, Idris) fleckig.
       n.geometry.computeVertexNormals();
     });
+    if (textured) {
+      // Selbstauskunft: Schadensnetze aus, Grundfarben angehoben (albedoFloor)
+      const mats = new Set(); let dmg = 0, tris = 0, gemessen = 0;
+      model.traverse((n) => {
+        if (!n.isMesh) return;
+        if (n.userData.damage) { dmg++; tris += (n.geometry.index?.count ?? n.geometry.attributes.position.count) / 3; } else mats.add(n.material);
+      });
+      for (const m of mats) if (m.userData.albT != null) gemessen++;
+      console.info(`[hangar] Lack: ${[...mats].filter((m) => m.userData.albLift).length} von ${mats.size} Materialien bis zur Untergrenze angehoben (${gemessen} mit gemessener Farbkarte), ${dmg} Schadensnetze aus (${Math.round(tris)} Dreiecke)`);
+    }
     // Die Achsdrehung Z-oben -> Y-oben steckt schon im Knoten der .glb.
     // Bug in -Z: einmal umdrehen, im Schiffsraum zeigt er nach +Z (Grundriss,
     // Wartungsplatz); zum Hallentor dreht ihn erst SHIP_YAW an der Gruppe.
@@ -10829,6 +10942,7 @@ void main() {
       if (!on || !t.pbr) {
         col.copy(on ? new THREE.Color(on.cols[t.slot]) : t.c0);
         if (t.pbr) { m.metalness = t.metal0; m.roughness = t.rough0; }
+        if (on) albedoFloor(m, col);
         continue;
       }
       const [specular, gloss] = on.fin?.[t.slot] ?? [];
@@ -10836,6 +10950,7 @@ void main() {
       col.setRGB(...q.color, THREE.LinearSRGBColorSpace);
       m.metalness = q.metalness;
       m.roughness = q.roughness ?? t.rough0;
+      albedoFloor(m, col);
     }
     redim(current);
     return map.size;
