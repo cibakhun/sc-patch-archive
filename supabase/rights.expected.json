@@ -3,6 +3,14 @@
   "stand": "2026-10-30",
   "quelle": "supabase/migrations/20261030100000_rechte_nur_nach_bedarf.sql",
   "objekte": {
+    "column public.support_progress.note": {
+      "authenticated": ["UPDATE"],
+      "warum": "admin-PATCH des Spendenstands; Policy nur admin (20261030133000)"
+    },
+    "column public.support_progress.raised_cents": {
+      "authenticated": ["UPDATE"],
+      "warum": "admin-PATCH des Spendenstands; Policy nur admin (20261030133000)"
+    },
     "default public functions von postgres": {
       "warum": "neue Funktionen sind fuer anon/authenticated/PUBLIC unsichtbar, bis eine Migration ausdruecklich granted"
     },
@@ -50,10 +58,17 @@
       "authenticated": ["EXECUTE"],
       "warum": "FriendsDock: Nachrichten als gelesen markieren (security definer, nur eigene)"
     },
+    "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
     "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
+    "function public.rsi_challenge_get(p_user uuid, p_handle text)": { "warum": "nur Edge Function verify-rsi (service_role)" },
+    "function public.rsi_challenge_issue(p_user uuid, p_handle text)": { "warum": "nur Edge Function verify-rsi (service_role)" },
+    "function public.rsi_challenge_result(p_user uuid, p_handle text, p_code text, p_found boolean)": { "warum": "nur Edge Function verify-rsi (service_role)" },
+    "function public.rsi_rate_ok(p_user uuid)": { "warum": "nur Edge Function verify-rsi (service_role)" },
     "function public.set_updated_at()": { "warum": "Triggerfunktion" },
     "function public.support_progress_stamp()": { "warum": "Triggerfunktion" },
     "function public.sync_discord_identity()": { "warum": "Triggerfunktion auf auth.identities" },
+    "function public.tester_blocklist_drop_empty()": { "warum": "Triggerfunktion auf tester_blocklist" },
+    "function public.tester_blocklist_fill_discord()": { "warum": "Triggerfunktion auf tester_blocklist" },
     "function public.tester_overview()": {
       "authenticated": ["EXECUTE"],
       "warum": "Konto (admin): Testerliste; prueft die admin-Rolle selbst"
@@ -61,6 +76,7 @@
     "function public.touch_crafting_entry()": { "warum": "Triggerfunktion" },
     "function public.touch_hangar_layout()": { "warum": "Triggerfunktion" },
     "function public.touch_mining_sig_preset()": { "warum": "Triggerfunktion" },
+    "function public.unsync_discord_identity()": { "warum": "Triggerfunktion auf auth.identities" },
 
     "role anon": { "warum": "keine Attribute, keine Mitgliedschaften" },
     "role authenticated": { "warum": "keine Attribute, keine Mitgliedschaften" },
@@ -74,12 +90,15 @@
     },
 
     "sequence private.register_attempts_id_seq": { "warum": "identity, nur service_role" },
+    "sequence private.rsi_attempts_id_seq": { "warum": "identity, nur service_role" },
     "sequence public.direct_messages_id_seq": { "warum": "identity: Postgres prueft beim Einfuegen kein Sequenzrecht" },
     "sequence public.donations_id_seq": { "warum": "identity" },
     "sequence public.favorites_id_seq": { "warum": "identity" },
     "sequence public.refinery_jobs_id_seq": { "warum": "identity" },
 
     "table private.register_attempts": { "warum": "nur register_rate_ok (security definer)" },
+    "table private.rsi_attempts": { "warum": "nur rsi_rate_ok (service_role)" },
+    "table private.rsi_challenges": { "warum": "nur Edge Function verify-rsi (service_role)" },
     "table public.crafting_entries": {
       "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
       "warum": "crafting-app: lesen, upsert (merge-duplicates), loeschen; RLS: eigene Zeilen"
@@ -126,8 +145,8 @@
     },
     "table public.support_progress": {
       "anon": ["SELECT"],
-      "authenticated": ["INSERT", "SELECT", "UPDATE"],
-      "warum": "SupportBody liest ohne Anmeldung (Policy true); admin-PATCH (Policies nur admin)"
+      "authenticated": ["SELECT"],
+      "warum": "SupportBody liest ohne Anmeldung (Policy true); geschrieben wird nur ueber die Spaltenrechte darueber"
     },
     "table public.tester_blocklist": { "warum": "nur gate_verdict (security definer)" },
     "table public.user_roles": {

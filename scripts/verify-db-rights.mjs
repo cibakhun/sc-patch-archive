@@ -56,7 +56,11 @@ export const ABFRAGE_DATEI = 'supabase/rights.snapshot.sql';
 // Schemas, Standardrechte, Rollen). Darf nur nach OBEN wandern -- nach unten
 // nur per Commit, der die Ursache nennt.
 // Stand 30.10.2026: 51 (live gemessen, Migration 20261030100000).
-export const KLINKE_OBJEKTE = 51;
+// Angehoben auf 64 mit den Objekten aus 20261030110000 (presence_none_clears),
+// 20261030120000 (vier rsi_*-Funktionen, zwei Tabellen, eine Sequenz),
+// 20261030130000/131000 (drei Triggerfunktionen) und 20261030133000 (zwei
+// Spaltenrechte); auf der Replik mit allen Migrationen gemessen.
+export const KLINKE_OBJEKTE = 64;
 
 export const ROLLEN = ['anon', 'authenticated', 'public'];
 
