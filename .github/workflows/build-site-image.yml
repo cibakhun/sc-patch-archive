@@ -207,6 +207,13 @@ jobs:
             test -f image-dist/index.html || { echo "FEHLER: image-dist/index.html fehlt -- Webwurzel im Image geaendert?" >&2; exit 1; }
             node scripts/check-gate.mjs --base http://localhost:8080 --dist image-dist --bypass "$GATE_BYPASS" || code=$?
           fi
+          # Sicherheits-Kopfzeilen und Content-Security-Policy, wie nginx sie
+          # WIRKLICH ausliefert (check-headers.mjs, Schiene C). Hier streng:
+          # zwischen Runner und Container sitzt kein Cloudflare, also ist jede
+          # fehlende Kopfzeile ein Befund ueber das Image, nicht ueber das Netz.
+          if [ "$code" -eq 0 ]; then
+            node scripts/check-headers.mjs --base http://localhost:8080 || code=$?
+          fi
           docker stop smoke >/dev/null || true
           exit $code
 

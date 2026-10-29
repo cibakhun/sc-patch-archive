@@ -130,6 +130,8 @@ jobs:
           sparse-checkout: |
             .github/scripts/coolify-deploy.sh
             scripts/check-deployed.mjs
+            scripts/check-headers.mjs
+            scripts/lib/csp-inline.mjs
 
       # Coolify anstossen, das neue Image zu ziehen. Ablauf, Fehlermeldungen
       # und die Gruende fuer Trimmen und Zeitgrenzen: .github/scripts/coolify-deploy.sh.
@@ -158,3 +160,10 @@ jobs:
             --live \
             --weich \
             --warte 600
+
+      # Dieselben Kopfzeilen wie im Rauchtest, jetzt durch Cloudflare hindurch:
+      # das sieht nur, wer die ausgelieferte Seite fragt. `--weich`, weil
+      # Cloudflare den Runner meist abweist (siehe oben); was durchkommt, wird
+      # streng beurteilt. Streng von Hand: node scripts/check-headers.mjs --base https://verse-base.com
+      - name: Kopfzeilen der Live-Seite pruefen
+        run: node scripts/check-headers.mjs --base https://verse-base.com --weich
