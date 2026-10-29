@@ -8,6 +8,7 @@
 // (discord/bot/src/ranks.mjs), damit Seite und Server nie verschiedene
 // Namen oder Farben zeigen.
 import { supabase } from '../lib/supabase';
+import { cssUrl } from '../lib/cssUrl';
 import { RANKS, rankForLevel, nextRank, prestigeStars } from '../../discord/bot/src/ranks.mjs';
 import { progress, totalXpForLevel, xpToNext } from '../../discord/bot/src/leveling.mjs';
 import { layoutList, startLayouts, shipLabel, KIND_IC, favHref, hangarLink } from './account-layouts';
@@ -308,10 +309,11 @@ function boot(root: HTMLElement) {
     ul.replaceChildren(...tiles.slice(0, 12).map((t) => {
       const li = document.createElement('li');
       const a = document.createElement('a');
-      a.className = 'ck-tile' + (t.isLayout ? ' is-layout' : '') + (t.img ? '' : ' no-img');
+      const bild = cssUrl(t.img);
+      a.className = 'ck-tile' + (t.isLayout ? ' is-layout' : '') + (bild ? '' : ' no-img');
       a.href = t.href;
       a.style.setProperty('--kc', t.c);
-      if (t.img) a.style.backgroundImage = `url('${t.img}')`;
+      if (bild) a.style.backgroundImage = bild;
       else {
         const NS = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(NS, 'svg');

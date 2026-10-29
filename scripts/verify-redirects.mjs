@@ -34,7 +34,9 @@
         hatten nie eine /en/-Adresse), keine FEHLER.
      5  Ruecksprungziel des Tors: $vb_next kommt aus gate.next, und die
         Funktion aus nginx/gate.js liefert fuer die Angriffsliste nur
-        prozentkodierte Zeichen (in node:vm ausgefuehrt, wie test:e2e).
+        prozentkodierte Zeichen (in node:vm ausgefuehrt, wie test:e2e) —
+        und gibt die angefragte Adresse samt Query zurueck, auch nach
+        einem internen rewrite wie /pilot/<handle> -> /pilot.html?h=…
 
    Kopfzeile: gepruefte Weiterleitungen, Angriffe, Seiten, Artefakt.
    Untergrenzen als Sperrklinken (Grundsatz 5).
@@ -343,10 +345,32 @@ console.log(`    function next(r) vorhanden und exportiert — Soll: ja   Ist: $
 if (nutztNext && !(nextFn && exportiert)) fail('nginx/gate.js: function next(r) fehlt oder steht nicht im Default-Export');
 if (nextFn) {
   const next = vm.runInNewContext(`(${nextFn})`, {});
+  // Jede Probe einmal als dekodierter Pfad (r.uri) und einmal als Adresse wie
+  // angefragt ($request_uri, mit Query) — gate.next darf beide Quellen lesen.
   const proben = [...ANGRIFFE.map((a) => '/schiffe/' + a), '/a b?c#d&e', '/\ud800', '/"<x>'];
-  const schlecht = proben.filter((u) => !/^[A-Za-z0-9%\/._~!*'()-]*$/.test(String(next({ uri: u }))));
-  console.log(`    Proben mit Zeichen ausserhalb der Prozentkodierung — Soll: 0/${proben.length}   Ist: ${schlecht.length}/${proben.length}`);
-  if (schlecht.length) fail(`gate.next liefert fuer ${zeig(schlecht[0])} ${zeig(next({ uri: schlecht[0] }))} — nicht kodiert`);
+  const aufrufe = proben.flatMap((u) => [{ uri: u }, { uri: '/x.html', variables: { request_uri: u, args: 'q=1' } }]);
+  const schlecht = aufrufe.filter((r) => !/^[A-Za-z0-9%\/._~!*'()-]*$/.test(String(next(r))));
+  console.log(`    Proben mit Zeichen ausserhalb der Prozentkodierung — Soll: 0/${aufrufe.length}   Ist: ${schlecht.length}/${aufrufe.length}`);
+  if (schlecht.length) fail(`gate.next liefert fuer ${zeig(schlecht[0])} ${zeig(next(schlecht[0]))} — nicht kodiert`);
+
+  // Der Ruecksprung muss die angefragte Adresse samt Query zurueckgeben, auch
+  // nach einem internen rewrite: aus /pilot/<handle> macht `location /pilot/`
+  // intern /pilot.html?h=<handle>, und nur r.uri gelesen landete der Pilot
+  // nach dem Tor auf /pilot.html ohne Namen. So dekodiert, wie safeNext() in
+  // src/pages/gate.astro es tut (URLSearchParams).
+  const zurueck = (r) => new URLSearchParams('next=' + String(next(r))).get('next');
+  const faelle = [
+    { r: { uri: '/pilot.html', variables: { request_uri: '/pilot/Cibakhun', args: 'h=Cibakhun' } }, soll: '/pilot/Cibakhun' },
+    { r: { uri: '/de/pilot.html', variables: { request_uri: '/de/pilot/abc-1/', args: 'h=abc-1' } }, soll: '/de/pilot/abc-1/' },
+    { r: { uri: '/suche.html', variables: { request_uri: '/suche.html?q=a%26b&s=2', args: 'q=a%26b&s=2' } }, soll: '/suche.html?q=a%26b&s=2' },
+    // Tippfehler mit doppeltem Schraegstrich: wie bisher (merge_slashes auf
+    // r.uri) zurueck auf die Seite, nicht als "//…" auf die Startseite.
+    { r: { uri: '/schiffe.html', variables: { request_uri: '//schiffe.html', args: '' } }, soll: '/schiffe.html' },
+  ];
+  const verloren = faelle.filter((f) => zurueck(f.r) !== f.soll);
+  console.log(`    Ruecksprung behaelt Pfad und Query (auch nach rewrite) — Soll: ${faelle.length}/${faelle.length}   Ist: ${faelle.length - verloren.length}/${faelle.length}`);
+  for (const f of verloren)
+    fail(`gate.next: angefragt ${zeig(f.soll)}, zurueck kaeme ${zeig(zurueck(f.r))} — der Ruecksprung landet nicht auf der angefragten Seite`);
 }
 
 console.log(`\nverify-redirects: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}${warnungen ? ` (${warnungen} Warnung(en))` : ''}`);

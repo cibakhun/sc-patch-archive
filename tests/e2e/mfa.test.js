@@ -272,6 +272,34 @@ describe('Torseite: zweiter Faktor', () => {
     assert.equal(g.ls.size, 0);
   });
 
+  test('Code richtig, aber kein Testpilot: Code-Schritt zu, kein zweiter Versuch ins Leere', async () => {
+    const g = runGate({ answers: { password: [200, withFactors(AAL1, [TOTP('f1')])], verify: { f1: 'ok' }, mint: () => 403 } });
+    g.getEl('gateForm').fire('submit', { preventDefault() {} });
+    await settle();
+    el.code = '123456';
+    g.getEl('gateMfaForm').fire('submit', { preventDefault() {} });
+    await settle();
+    assert.match(g.getEl('gateMfaStatus').textContent, /no Test Pilot access/);
+    assert.equal(g.getEl('gateMfaBtn').disabled, true);
+    assert.equal(g.getEl('gateMfaCode').disabled, true);
+    assert.equal(g.ls.size, 0);
+  });
+
+  test('Tor kurz nicht erreichbar: Code-Schritt bleibt offen, ein neuer Code versucht es erneut', async () => {
+    const g = runGate({ answers: { password: [200, withFactors(AAL1, [TOTP('f1')])], verify: { f1: 'ok' }, mint: () => 503 } });
+    g.getEl('gateForm').fire('submit', { preventDefault() {} });
+    await settle();
+    el.code = '123456';
+    g.getEl('gateMfaForm').fire('submit', { preventDefault() {} });
+    await settle();
+    assert.match(g.getEl('gateMfaStatus').textContent, /try again/);
+    assert.equal(g.getEl('gateMfaBtn').disabled, false);
+    el.code = '234567';
+    g.getEl('gateMfaForm').fire('submit', { preventDefault() {} });
+    await settle();
+    assert.equal(g.calls.filter((c) => c.url.endsWith('/verify')).length, 2);
+  });
+
   test('Eingabe ohne sechs Ziffern geht nicht an den Server', async () => {
     const g = runGate({ answers: { password: [200, withFactors(AAL1, [TOTP('f1')])] } });
     g.getEl('gateForm').fire('submit', { preventDefault() {} });
@@ -284,7 +312,8 @@ describe('Torseite: zweiter Faktor', () => {
   });
 
   test('Discord-Rücksprung mit Faktor: erst der Code', async () => {
-    const g = runGate({ search: '?code=C1', local: { vb_gate_pkce: 'V'.repeat(43) }, answers: { pkce: [200, withFactors(AAL1, [TOTP('f1')])] } });
+    const pkce = JSON.stringify({ Flow1Flow1Flow1A: { v: 'V'.repeat(43), n: '/', t: Date.now() } });
+    const g = runGate({ search: '?f=Flow1Flow1Flow1A&code=C1', local: { vb_gate_pkce: pkce }, answers: { pkce: [200, withFactors(AAL1, [TOTP('f1')])] } });
     await settle();
     assert.deepEqual(mints(g), []);
     assert.equal(g.getEl('gateMfaForm').hidden, false);

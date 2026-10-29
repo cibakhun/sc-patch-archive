@@ -6667,7 +6667,15 @@ export async function initHangar(container, opts = {}) {
   controls.target.set(0, 2.2, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.enablePan = false;
+  // Rechte Maustaste ziehen schiebt den Blick durch die Halle (Krisz,
+  // 29.10.2026: „mit rechtsclick gedrückthalten und ziehen sich in der
+  // hangar mit der kamera bewegen“): Ziel und Kamera wandern zusammen
+  // waagrecht über den Boden, der Boden folgt der Maus (zu sich ziehen fährt
+  // nach vorn). Grenzen: keepPan, keepOut. Am Telefon bleiben zwei Finger
+  // beim Zoomen, sonst schöbe jedes Spreizen die Ansicht mit.
+  controls.enablePan = true;
+  controls.screenSpacePanning = false;
+  renderer.domElement.addEventListener('pointerdown', (e) => { controls.enablePan = e.pointerType !== 'touch'; }, { capture: true });
   controls.minPolarAngle = 0.15;
   controls.maxPolarAngle = Math.PI / 2 - 0.03; // nie unter den Boden
   // Kein Umlauf (Krisz, 2026-10-18: keine automatische Kameradrehung): die
@@ -6683,6 +6691,10 @@ export async function initHangar(container, opts = {}) {
   const wake = (ms) => { activeUntil = Math.max(activeUntil, performance.now() + ms); };
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
+  // panned: das Ziel ist geschoben, also nicht mehr Schiffsmitte oder
+  // Hardpoint (keepPan); panLive: wann zuletzt mit der Maus geschoben wurde,
+  // 0 seit der letzten Kamerafahrt
+  let panned = false, panLive = 0;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
@@ -6701,6 +6713,10 @@ export async function initHangar(container, opts = {}) {
   }
   const sph = (pos, tgt) => new THREE.Spherical().setFromVector3(pos.clone().sub(tgt));
   function flyTo(tgt, pos, dur = 900) {
+    // Was die Dämpfung vom Schieben noch nachlaufen ließe, jetzt ganz und
+    // geprüft (keepPan), sonst verschöbe es das Ziel der Fahrt
+    if (panLive) { controls.enableDamping = false; controls.update(); controls.enableDamping = true; }
+    panned = false; panLive = 0;
     if (reduceMotion) { controls.target.copy(tgt); camera.position.copy(pos); fly = null; return; }
     const a = sph(camera.position, controls.target), b = sph(pos, tgt);
     // kürzester Weg um die Hochachse
@@ -10961,7 +10977,7 @@ void main() {
   // hold: so lange steht die Kamera erst am Start (das Tor hinter ihr geht
   // auf) und dreht sich derweil schon zum Weg
   function tripStart(plan, look0, look1, ev = [], t0 = performance.now(), hold = 0) {
-    fly = null; onPoint = false; touched = false;
+    fly = null; onPoint = false; touched = false; panned = false; panLive = 0;
     controls.enabled = false;
     // Was die Dämpfung vom letzten Ziehen noch nachlaufen ließe, ist mit der
     // Fahrt vorbei: einmal ohne Dämpfung ganz angewandt (das Bild setzt gleich
@@ -11158,7 +11174,7 @@ void main() {
     adopt(ship, s, { werk: true });
     werkFoot(current);
     const tgt = werkTarget(s.info);
-    fly = null; onPoint = false; touched = false;
+    fly = null; onPoint = false; touched = false; panned = false;
     controls.target.copy(tgt);
     camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
     controls.update();
@@ -11487,7 +11503,7 @@ void main() {
     ship.position.y = ship.userData.baseY;
     const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
     if (!current) {
-      onPoint = false;
+      onPoint = false; panned = false;
       controls.target.copy(tgt); camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
     } else {
       // Der Blick bleibt beim Wechsel (Betreiber 18.10.2026: „die kamera
@@ -12069,13 +12085,17 @@ void main() {
   // Ohne echte Halle schwebt das Schiff um bis zu so viel über und unter
   // seiner Ruhelage (Carrack 1,1 m); gemessen wird dann über fünf Höhen
   const shipBob = () => (reduceMotion || realHall ? 0 : 0.009 * span);
-  let shipFree = null, shipBusy = false;
+  // shipHome: dieselbe Messung von der Schiffsmitte (homeTgt) aus, für den
+  // geschobenen Blick (keepOut)
+  let shipFree = null, shipHome = null, shipBusy = false;
   const aim = () => (fly ? fly.tb : controls.target);
   // am Ziel einer Fahrt steht es nur bis auf Rundung (lerpVectors)
   const sameAim = (a, b) => a.distanceToSquared(b) < 1e-8;
-  const shipStale = () => current && !shipBusy && (!shipFree || shipFree.c !== current || shipFree.y !== current.group.userData.baseY || shipFree.b !== shipBob() || !sameAim(shipFree.o, aim()));
-  function measureShip() {
-    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = aim().clone(), t0 = performance.now();
+  const staleFrom = (m, o) => !m || m.c !== current || m.y !== current.group.userData.baseY || m.b !== shipBob() || !sameAim(m.o, o);
+  const shipStale = () => current && !shipBusy && staleFrom(shipFree, aim());
+  const homeStale = () => current && homeTgt && !shipBusy && staleFrom(shipHome, homeTgt);
+  function measureShip(from = aim()) {
+    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = from.clone(), t0 = performance.now(), home = !!homeTgt && sameAim(o, homeTgt);
     // Ruhelage wie in focus(): während der Einfahrt schwebt und dreht es noch.
     // Schwebt es, die fernste Fläche über die ganze Höhe: Ein fester Rand
     // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
@@ -12091,6 +12111,7 @@ void main() {
     p.then((dist) => {
       if (current !== c || g.userData.baseY !== y) return;
       shipFree = { o, dist, c, y, b };
+      if (home) shipHome = shipFree;
       // Läuft die Fahrt noch, endet sie gleich außerhalb statt danach zu springen
       if (fly && sameAim(o, fly.tb)) {
         const d = new THREE.Vector3().setFromSpherical(new THREE.Spherical(1, fly.b.phi, fly.b.theta));
@@ -12100,6 +12121,7 @@ void main() {
     }).catch((e) => {
       // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
       shipFree = { o, dist: null, c, y, b };
+      if (home) shipHome = shipFree;
       console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
     }).finally(() => { shipBusy = false; });
   }
@@ -12287,7 +12309,10 @@ void main() {
     let L = keepD.subVectors(c, t).length();
     if (L < 1e-6) return;
     keepD.divideScalar(L);
-    const need = shipNeed(t, keepD);
+    // Geschoben steht das Ziel irgendwo in der Halle, das Schiff womöglich
+    // hinter der Kamera: Die Linie vom Ziel hinaus führte dann durch den
+    // Rumpf auf seine andere Seite. Dort hält keepOut die Kamera draußen.
+    const need = panned ? 0 : shipNeed(t, keepD);
     if (L < need) { L = Math.min(need, controls.maxDistance); c.copy(keepAt(t, L)); }
     if (!camFree || freeOk(c) || !targetOk(t)) return;
     const b = hallOk(c) && inBox(c);
@@ -12321,6 +12346,82 @@ void main() {
       else if (d < -1e-9) L = Math.min(L, ((lo - p) * k) / d);
     }
     c.copy(keepAt(t, Math.max(0, L)));
+  }
+  // Schieben (rechte Maustaste). OrbitControls schiebt in update(), also
+  // auch zwischen zwei Bildern im Zeigerereignis; darum prüft keepPan gleich
+  // dort. Das Blickziel bleibt in der Halle, mit 2,5 · camFree.m Rand vor
+  // der ersten Fläche vom Ziel der Startansicht aus und außerhalb der Möbel,
+  // in der Werkhalle mit 1,5 m Rand im Raum. Reißt ein Schritt die Grenze,
+  // gleitet es an ihr entlang (nur x, dann nur z), sonst bleibt es; die
+  // Kamera rückt um dasselbe. Ohne gemessene Halle oder Hülle schiebt nichts.
+  const ORBIT_PAN = 2;   // OrbitControls: state beim Schieben (_STATE.PAN)
+  const PAN_SLIDE = [[1, 1], [1, 0], [0, 1]];
+  const panT = new THREE.Vector3(), panD = new THREE.Vector3(), panT0 = new THREE.Vector3(), panC0 = new THREE.Vector3();
+  const panPrevT = new THREE.Vector3(), panPrevC = new THREE.Vector3(), outV = new THREE.Vector3();
+  let panPrevS = -Infinity;
+  function panAllowed(t) {
+    if (ort === 'werk') {
+      const k = hallRoot.scale.x, R = WERK.raum, m = 1.5, wx = wkX(), x = t.x / k, z = t.z / k;
+      return x >= R.x[0] + m + wx && x <= R.x[1] - m + wx && z >= R.z[0] + m && z <= R.z[1] - m;
+    }
+    if (!camFree) return false;
+    freeV.subVectors(t, camFree.o);
+    const D = freeV.length();
+    return (D < 1e-3 || D <= freeCone(freeV.divideScalar(D)) - 2.5 * camFree.m) && !inBox(t);
+  }
+  // Abstand der Stelle p zur Hülle des Schiffs, auf der Linie von der
+  // Schiffsmitte aus hinter ihrer fernsten Fläche gemessen (shipHome): ab 0
+  // steht p sicher draußen. Streng: Was von der Mitte aus vor einer Fläche
+  // liegt, Buchten und der Raum unter Flügeln, zählt zum Schiff. null: noch
+  // nicht gemessen.
+  function shipOut(p) {
+    if (!current) return Infinity;
+    if (!shipHome?.dist || shipHome.c !== current) return null;
+    outV.subVectors(p, shipHome.o);
+    const D = outV.length();
+    if (D < 1e-6) return -Infinity;
+    const f = freeCone(outV.divideScalar(D), shipHome.dist, Math.max);
+    return f > 0 ? D - f - SHIP_M : Infinity;
+  }
+  function keepPan(t0, c0) {
+    const t = controls.target, now = performance.now();
+    if (controls.state === ORBIT_PAN) panLive = now;
+    panD.subVectors(t, t0);
+    // nur, was die Maus schob, samt Nachlauf der Dämpfung (bei wenigen
+    // Bildern je Sekunde läuft der fast ganz nach dem Loslassen)
+    if (panD.lengthSq() < 1e-12 || fly || trip || !panLive) return;
+    let ok = false;
+    if (shipOut(c0) != null) {
+      for (const [mx, mz] of PAN_SLIDE) {
+        panT.set(t0.x + panD.x * mx, t.y, t0.z + panD.z * mz);
+        if (panAllowed(panT)) { ok = true; break; }
+      }
+    }
+    if (!ok) panT.copy(t0);
+    if (!panned && panT.distanceToSquared(t0) > 1e-12) {
+      panned = true; onPoint = false;
+      panPrevT.copy(t0); panPrevC.copy(c0); panPrevS = shipOut(c0);
+    }
+    panD.subVectors(panT, t);
+    t.add(panD); camera.position.add(panD);
+  }
+  const orbitUpdate = controls.update.bind(controls);
+  controls.update = (dt) => {
+    panT0.copy(controls.target); panC0.copy(camera.position);
+    const r = orbitUpdate(dt);
+    keepPan(panT0, panC0);
+    return r;
+  };
+  // Geschoben (panned) gilt keepFree nur noch für die Halle: Am Ende jedes
+  // Bilds darf die Kamera nicht in die Hülle (shipOut unter 0). Rückte sie
+  // hinein, gehen Ziel und Kamera auf den Stand des letzten Bilds zurück,
+  // ob Schieben, Drehen oder Zoomen sie brachte. Stand sie schon drin (vom
+  // Hardpoint aus geschoben), darf sie nur hinaus.
+  function keepOut() {
+    const s = shipOut(camera.position);
+    if (s == null) return;
+    if (s < 0 && s < panPrevS - 1e-3) { controls.target.copy(panPrevT); camera.position.copy(panPrevC); return; }
+    panPrevT.copy(controls.target); panPrevC.copy(camera.position); panPrevS = s;
   }
 
   // Spiegelbild für den Boden (hallRefl): die Kamera an der Bodenebene
@@ -12600,7 +12701,10 @@ void main() {
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
     if (freeDirty && !trip) measureFree();
-    if (!trip && shipStale()) measureShip();
+    // Geschoben gilt die Hülle von der Schiffsmitte aus (keepOut); die vom
+    // Ziel aus wird erst nach dem Zurücksetzen wieder gebraucht
+    if (!trip && !panned && shipStale()) measureShip();
+    else if (!trip && homeStale()) measureShip(homeTgt);
     // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
     // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
     // Bildern: Drehen lässt ihn, Hineinzoomen setzt ihn auf den neuen
@@ -12630,6 +12734,7 @@ void main() {
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
       keepFree();
       if (ort === 'werk') keepWerk();
+      if (panned) keepOut();
       // Shift-Optik folgt Höhe, Schiff und Titel weich; im ersten Bild sitzt sie
       const lw = lensWant();
       if (Math.abs(lw - lensS) > 1e-4) {

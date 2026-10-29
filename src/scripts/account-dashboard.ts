@@ -3,6 +3,7 @@
 
 import { supabase } from '../lib/supabase';
 import { escapeHtml as escHtml } from '../lib/escape';
+import { cssUrl } from '../lib/cssUrl';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
@@ -474,7 +475,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
         // Banner Image
         const bUrl = bannerUrlInput.value.trim() || profileState.banner_url || '/assets/t-pyro-2.jpg';
         const bannerImgEl = document.getElementById('pcBannerImg');
-        if (bannerImgEl) bannerImgEl.style.backgroundImage = `url('${bUrl}')`;
+        const bCss = cssUrl(bUrl);
+        if (bannerImgEl && bCss) bannerImgEl.style.backgroundImage = bCss;
 
         // Bio
         const bioTxt = bioInput.value.trim();
@@ -616,7 +618,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
         }
 
         const ovBanner = document.getElementById('ovBanner') as HTMLElement | null;
-        if (ovBanner) ovBanner.style.backgroundImage = `url('${bUrl}')`;
+        const ovCss = cssUrl(bUrl);
+        if (ovBanner && ovCss) ovBanner.style.backgroundImage = ovCss;
 
         const ovDot = document.getElementById('ovStatusDot') as HTMLElement | null;
         if (ovDot) { ovDot.style.background = stInfo.color; ovDot.classList.toggle('pulse', !!stInfo.pulse); }
