@@ -11,6 +11,7 @@ import { RENDERS, stripName } from '../../lib/shipRenders';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { href } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
+import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   lang?: 'de' | 'en';
@@ -100,7 +101,6 @@ const COPY = lang === 'de'
 const registerHref = href('/account/register.html', lang);
 const accountHref = lang === 'de' ? '/de/account.html' : '/account.html';
 const homeHref = lang === 'de' ? '/de.html' : '/';
-const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
 
 <Layout
@@ -340,8 +340,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 
 <Attribution sources={[]} />
 
-<script type="application/json" id="ppCopyData" set:html={jsonSafe(COPY)}></script>
-<script type="application/json" id="ppShipData" set:html={jsonSafe(SHIPS)}></script>
+<script type="application/json" id="ppCopyData" set:html={jsonForScript(COPY)}></script>
+<script type="application/json" id="ppShipData" set:html={jsonForScript(SHIPS)}></script>
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 
 <style is:global>
@@ -821,6 +821,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   import { renderSocialLinks } from '../../lib/socials';
   import { rankOf, rankTitle } from '../../lib/rankBadge';
   import { PRESTIGE } from '../../../discord/bot/src/ranks.mjs';
+  import { escapeHtml as esc } from '../../lib/escape';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -830,9 +831,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     const COPY = JSON.parse($('ppCopyData')?.textContent || '{}');
     const SHIPS: Record<string, { n: string; i: string | null; m: string | null }> =
       JSON.parse($('ppShipData')?.textContent || '{}');
-
-    const esc = (s: string) =>
-      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
     const favPath = (kind: string, slug: string) => {
       const tpl = FAV_PATH[kind] || '/index.html';

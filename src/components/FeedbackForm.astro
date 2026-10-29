@@ -381,14 +381,13 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
      tester_credit, nur das Rendern dessen, was die View liefert. -->
 <script>
   import { SUPABASE } from '../consts';
+  import { escapeHtml as esc } from '../lib/escape';
 
   const el = document.getElementById('fbTesters');
   if (el) {
     const heading = el.getAttribute('data-heading') || '';
     const lede = el.getAttribute('data-lede') || '';
     const pilotBase = el.getAttribute('data-pilot-base') || '/pilot/';
-    const esc = (s: string) =>
-      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
     fetch(`${SUPABASE.url}/rest/v1/tester_credits?select=handle,display_name`, {
       headers: { apikey: SUPABASE.publishableKey, Accept: 'application/json' },

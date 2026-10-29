@@ -20,6 +20,7 @@
     "verify:metrics": "node scripts/verify-metrics.mjs",
     "verify:fx": "node scripts/verify-fx.mjs",
     "verify:help": "node scripts/verify-help.mjs --complete",
+    "verify:ausgabe": "node scripts/verify-ausgabe.mjs",
     "verify:typo": "node scripts/verify-typo-motion.mjs",
     "verify:responsive": "node scripts/verify-responsive.mjs",
     "verify:sprachpaar-css": "node scripts/verify-sprachpaar-css.mjs",

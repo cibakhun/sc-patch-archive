@@ -137,8 +137,8 @@
     return document.getElementById(id) || (popDoc ? popDoc.getElementById(id) : null);
   };
   function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
   var NF = new Intl.NumberFormat(D.lang === 'de' ? 'de-DE' : 'en-GB');

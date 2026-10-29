@@ -2,6 +2,7 @@
 // Wird vom <script> der Komponente importiert; Astro bündelt es mit.
 
 import { supabase } from '../lib/supabase';
+import { escapeHtml as escHtml } from '../lib/escape';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
@@ -15,7 +16,6 @@ import { supabase } from '../lib/supabase';
     // Übersicht-Panel: trägt die dynamischen i18n-Templates als data-l-* Attribute
     const ovPanel = document.getElementById('tab-panel-overview');
     const ovTpl = (k: string) => (ovPanel && ovPanel.dataset[k]) || '';
-    const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
     const fmtAuec = (n: number) => {
       if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + '<small>M aUEC</small>';
       if (n >= 1000) return Math.round(n / 1000) + '<small>k aUEC</small>';

@@ -11,6 +11,7 @@ import { href, useTranslations } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -903,7 +904,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
     die alte crafting-db.json OHNE dismantle_blacklist — die App fiele dann auf
     „nichts selten“ zurück (der Lindinium-Bug). Da das HTML no-cache ist, zieht
     jeder Aufruf so die zum Markup passende Datenversion. */}
-<script is:inline set:html={`window.__CRAFT=${JSON.stringify({
+<script is:inline set:html={`window.__CRAFT=${jsonForScript({
   lang,
   dbUrl: '/assets/crafting-db.json?v=' + version,
   dismantleUrl: '/assets/dismantling-items.json?v=' + version,
