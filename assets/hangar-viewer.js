@@ -6692,7 +6692,8 @@ export async function initHangar(container, opts = {}) {
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
   // panned: das Ziel ist geschoben, also nicht mehr Schiffsmitte oder
-  // Hardpoint (keepPan); panLive: wann zuletzt mit der Maus geschoben wurde
+  // Hardpoint (keepPan); panLive: wann zuletzt mit der Maus geschoben wurde,
+  // 0 seit der letzten Kamerafahrt
   let panned = false, panLive = 0;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
@@ -6712,6 +6713,9 @@ export async function initHangar(container, opts = {}) {
   }
   const sph = (pos, tgt) => new THREE.Spherical().setFromVector3(pos.clone().sub(tgt));
   function flyTo(tgt, pos, dur = 900) {
+    // Was die Dämpfung vom Schieben noch nachlaufen ließe, jetzt ganz und
+    // geprüft (keepPan), sonst verschöbe es das Ziel der Fahrt
+    if (panLive) { controls.enableDamping = false; controls.update(); controls.enableDamping = true; }
     panned = false; panLive = 0;
     if (reduceMotion) { controls.target.copy(tgt); camera.position.copy(pos); fly = null; return; }
     const a = sph(camera.position, controls.target), b = sph(pos, tgt);
@@ -12383,9 +12387,9 @@ void main() {
     const t = controls.target, now = performance.now();
     if (controls.state === ORBIT_PAN) panLive = now;
     panD.subVectors(t, t0);
-    // nur, was die Maus schob, samt Nachlauf der Dämpfung; nicht der Rest,
-    // der nach einer Kamerafahrt noch ausläuft
-    if (panD.lengthSq() < 1e-12 || fly || trip || now - panLive > 1500) return;
+    // nur, was die Maus schob, samt Nachlauf der Dämpfung (bei wenigen
+    // Bildern je Sekunde läuft der fast ganz nach dem Loslassen)
+    if (panD.lengthSq() < 1e-12 || fly || trip || !panLive) return;
     let ok = false;
     if (shipOut(c0) != null) {
       for (const [mx, mz] of PAN_SLIDE) {
