@@ -8,7 +8,7 @@
    Auslieferungs-Image verhindern (Grundsatz 4,
    docs/maschinelle-validierung.md § 4).
 
-   Sechs Zusicherungen, jede mit einer Soll/Ist-Zeile:
+   Sieben Zusicherungen, jede mit einer Soll/Ist-Zeile:
 
      1  Jede Ausnahme traegt ihren Anlass: Zeilen im Format
         "# GATE-AUSNAHME: <pfad> — <anlass>" muessen einen unmittelbar
@@ -45,6 +45,12 @@
         — verschiebt sich das, greift der sed nicht mehr, und ohne
         diese Zusicherung fiele das erst auf, wenn die Vorschau offen
         steht (D-12).
+     7  Kein Ort liefert am Tor vorbei aus: jeder location-Block im
+        server-Block fragt $vb_gate_ok ab, ist eine benannte
+        GATE-AUSNAHME oder leitet nur weiter (nichts als rewrite und
+        return, und das LETZTE ist ein return). Ein `location /x/ {
+        rewrite … last; }` ohne abschliessendes return lieferte alles,
+        was die Regel nicht trifft, ohne Torpruefung aus dem root aus.
 
    Kopfzeile: geprueft Ausnahmen, geprueft Ressourcen der Torseite,
    geprueftes Artefakt (dist/). Untergrenzen als Sperrklinken — sie
@@ -88,6 +94,9 @@ const fail = (msg) => {
 // (theme.css, fonts.css).
 const MIN_AUSNAHMEN = 6;
 const MIN_TORSEITE_RESSOURCEN = 2;
+// Stand 30.10.2026: 20 location-Bloecke, 4 davon mit Torabfrage.
+const MIN_LOCATIONS = 20;
+const MIN_LOCATIONS_MIT_TOR = 4;
 
 /* ---------- GATE-AUSNAHME-Zeilen einsammeln ---------- */
 const AUSNAHME_RE = /^# GATE-AUSNAHME: (.+)$/;
@@ -276,6 +285,120 @@ else if (!hatVorgabe0)
   fail(
     'nginx/default.conf: im $vb_gate_on-Block fehlt "default "0";" in genau dieser Form — der Dockerfile-sed griffe nicht mehr, und ohne diese Zusicherung fiele das erst auf, wenn die Vorschau offen steht'
   );
+
+/* ---- [7] Kein Ort liefert am Tor vorbei aus ---- */
+console.log('\n[7] Jeder location-Block: Torabfrage, benannte Ausnahme oder reine Weiterleitung');
+// Kommentare (# bis Zeilenende, ausserhalb von Anfuehrungszeichen) durch
+// Leerzeichen ersetzen, Zeilenumbrueche bleiben fuer die Zeilennummern.
+function ohneKommentare(text) {
+  let out = '';
+  let quote = null;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      out += c;
+      if (c === '\\' && i + 1 < text.length) out += text[++i];
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") {
+      quote = c;
+      out += c;
+    } else if (c === '#') {
+      while (i < text.length && text[i] !== '\n') {
+        out += ' ';
+        i++;
+      }
+      if (i < text.length) out += '\n';
+    } else out += c;
+  }
+  return out;
+}
+// Ende des Blocks, der an `offen` (Index einer {) beginnt.
+function blockEnde(text, offen) {
+  let tiefe = 0;
+  let quote = null;
+  for (let i = offen; i < text.length; i++) {
+    const c = text[i];
+    if (quote) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = null;
+    } else if (c === '"' || c === "'") quote = c;
+    else if (c === '{') tiefe++;
+    else if (c === '}' && --tiefe === 0) return i;
+  }
+  return -1;
+}
+// Anweisungen der obersten Ebene eines Blockinhalts: `wort … ;` oder `wort … { … }`.
+function anweisungen(body) {
+  const out = [];
+  let i = 0;
+  while (i < body.length) {
+    while (i < body.length && /\s/.test(body[i])) i++;
+    if (i >= body.length) break;
+    let j = i;
+    let quote = null;
+    let block = false;
+    for (; j < body.length; j++) {
+      const c = body[j];
+      if (quote) {
+        if (c === '\\') j++;
+        else if (c === quote) quote = null;
+      } else if (c === '"' || c === "'") quote = c;
+      else if (c === ';') break;
+      else if (c === '{') {
+        j = blockEnde(body, j);
+        block = true;
+        break;
+      }
+    }
+    if (j < 0) j = body.length;
+    const text = body.slice(i, j + 1).trim();
+    out.push({ wort: text.split(/\s+/)[0], block, text });
+    i = j + 1;
+  }
+  return out;
+}
+const confOhne = ohneKommentare(confRaw);
+const serverStart = confOhne.search(/^server\s*\{/m);
+const serverEnde = serverStart === -1 ? -1 : blockEnde(confOhne, confOhne.indexOf('{', serverStart));
+const ausnahmeZeilen = new Set(ausnahmen.map((a) => a.zeile + 1));
+const TOR_RE = /^if\s*\(\s*\$vb_gate_ok\s*=\s*"0"\s*\)\s*\{\s*return\s+302\s+\/gate\.html\?next=\$vb_next;\s*\}$/;
+const orte = [];
+if (serverEnde !== -1) {
+  const serverInhalt = confOhne.slice(confOhne.indexOf('{', serverStart) + 1, serverEnde);
+  const basis = confOhne.indexOf('{', serverStart) + 1;
+  let pos = 0;
+  for (const a of anweisungen(serverInhalt)) {
+    const start = serverInhalt.indexOf(a.text, pos);
+    pos = start + a.text.length;
+    if (a.wort !== 'location') continue;
+    const zeile = confOhne.slice(0, basis + start).split('\n').length;
+    const kopf = a.text.slice(0, a.text.indexOf('{')).replace(/\s+/g, ' ').trim();
+    const inhalt = anweisungen(a.text.slice(a.text.indexOf('{') + 1, a.text.lastIndexOf('}')));
+    let art;
+    if (inhalt.some((x) => x.wort === 'if' && TOR_RE.test(x.text.replace(/\s+/g, ' ')))) art = 'tor';
+    else if (ausnahmeZeilen.has(zeile)) art = 'ausnahme';
+    else if (inhalt.length && inhalt.every((x) => !x.block && (x.wort === 'return' || x.wort === 'rewrite')) && inhalt[inhalt.length - 1].wort === 'return')
+      art = 'weiterleitung';
+    else art = 'offen';
+    orte.push({ kopf, zeile, art });
+  }
+}
+const zaehl = (art) => orte.filter((o) => o.art === art).length;
+console.log(
+  `    location-Bloecke: ${orte.length}   mit Torabfrage: ${zaehl('tor')}   benannte Ausnahme: ${zaehl('ausnahme')}   reine Weiterleitung: ${zaehl('weiterleitung')}`
+);
+console.log(`    am Tor vorbei auslieferbar — Soll: 0   Ist: ${zaehl('offen')}`);
+if (serverEnde === -1) fail(`${NGINX_CONF}: kein server-Block gefunden`);
+for (const o of orte.filter((x) => x.art === 'offen'))
+  fail(
+    `${NGINX_CONF}:${o.zeile} "${o.kopf}" liefert ohne Torpruefung aus — Torabfrage wie in location / einsetzen, als GATE-AUSNAHME mit Anlass benennen oder mit return abschliessen`
+  );
+console.log(`    location-Bloecke — Untergrenze: ${MIN_LOCATIONS}   Ist: ${orte.length}`);
+if (orte.length < MIN_LOCATIONS)
+  fail(`nur ${orte.length} location-Bloecke erkannt, Untergrenze ist ${MIN_LOCATIONS} — Leser kaputt oder Bloecke entfernt; Ursache klaeren, nicht die Untergrenze senken`);
+console.log(`    davon mit Torabfrage — Untergrenze: ${MIN_LOCATIONS_MIT_TOR}   Ist: ${zaehl('tor')}`);
+if (zaehl('tor') < MIN_LOCATIONS_MIT_TOR)
+  fail(`nur ${zaehl('tor')} location-Bloecke mit Torabfrage, Untergrenze ist ${MIN_LOCATIONS_MIT_TOR} — Ursache klaeren, nicht die Untergrenze senken`);
 
 console.log(`\nverify-gate: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);
 if (!ok) process.exit(1);

@@ -104,7 +104,7 @@ export const CHECKS = [
     script: 'scripts/verify-gate.mjs',
     rail: 'A',
     checks:
-      'die Ausnahmeliste des Testpilot-Tors (nginx/default.conf, GATE-AUSNAHME-Zeilen) traegt jeden Anlass, deckt genau das, was dist/gate.html anfordert, hat keinen erfundenen Eintrag, die Torseite bleibt ungepaart und ohne /_astro/-Buendel, nginx/gate.js traegt kein eingebautes Geheimnis, und der $vb_gate_on-Schalter steht in der Form, auf die der Dockerfile-sed zielt (D-06, D-09, D-12)',
+      'die Ausnahmeliste des Testpilot-Tors (nginx/default.conf, GATE-AUSNAHME-Zeilen) traegt jeden Anlass, deckt genau das, was dist/gate.html anfordert, hat keinen erfundenen Eintrag, die Torseite bleibt ungepaart und ohne /_astro/-Buendel, nginx/gate.js traegt kein eingebautes Geheimnis, der $vb_gate_on-Schalter steht in der Form, auf die der Dockerfile-sed zielt, und jeder location-Block fragt das Tor ab, ist eine benannte Ausnahme oder leitet nur weiter (D-06, D-09, D-12)',
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
     // ausschliesslich dist/ und die beiden nginx-Dateien als Text.
   },

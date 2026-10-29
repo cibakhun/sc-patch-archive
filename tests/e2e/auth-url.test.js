@@ -9,9 +9,11 @@
 // 2. Der gemeinsame Client in src/lib/supabase.ts bleibt auf PKCE und liest
 //    die Adresse erst NACH der Bereinigung.
 // 3. Die Torseite (src/pages/gate.astro, SDK-frei, inline) meldet per PKCE an:
-//    code_challenge = S256(code_verifier), der Verifier liegt im
-//    localStorage des Browsers (Rücksprung auch in einem neuen Tab) und wird
-//    erst beim Rücksprung verbraucht, ein Rücksprung ohne ihn wird verworfen, Tokens
+//    code_challenge = S256(code_verifier), der Verifier liegt mit dem
+//    Rückziel je Anmeldung im localStorage des Browsers (Rücksprung auch in
+//    einem neuen Tab, zwei Tabs stören sich nicht, das Rückziel reist nicht
+//    über den Anmeldedienst) und wird erst beim Rücksprung verbraucht, ein
+//    Rücksprung ohne ihn wird verworfen, Tokens
 //    im Fragment werden nie gespeichert, und gespeichert wird erst, wenn
 //    /_gate/mint die Sitzung angenommen hat. Das Inline-Skript läuft dazu in
 //    einer nachgebauten Browserumgebung (node:vm), ohne Netz.
@@ -183,28 +185,51 @@ const until = async (cond) => {
   for (let t = 0; t < 2000 && !cond(); t += 10) await new Promise((r) => setTimeout(r, 10));
 };
 const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+// Laufende Anmeldungen, wie die Torseite sie unter vb_gate_pkce ablegt.
+const F1 = 'Flow1Flow1Flow1A';
+const F2 = 'Flow2Flow2Flow2B';
+const flows = (o) => ({ vb_gate_pkce: JSON.stringify(o) });
+const flow = (v, n = '/', t = Date.now()) => ({ v, n, t });
 
 describe('Torseite: Discord-Anmeldung per PKCE', () => {
   test('Inline-Skript gefunden', () => assert.ok(inline, '<script define:vars> in gate.astro nicht gefunden'));
 
-  test('Sprung zu Discord trägt code_challenge = S256(Verifier); der Verifier liegt im Browser', async () => {
-    const g = runGate({ search: '?next=%2Fpatches.html' });
+  test('Sprung zu Discord trägt code_challenge = S256(Verifier); Verifier und Rückziel bleiben im Browser', async () => {
+    const g = runGate({ search: '?next=%2Faccount.html%3Ftoken_hash%3Dpkce_abc%26type%3Drecovery' });
     g.getEl('gateDiscordBtn').fire('click');
     await until(() => !!g.page.href);
-    const verifier = g.ls.get('vb_gate_pkce');
+    const stored = JSON.parse(g.ls.get('vb_gate_pkce'));
+    const ids = Object.keys(stored);
+    assert.equal(ids.length, 1);
+    assert.match(ids[0], /^[A-Za-z0-9_-]{16}$/);
+    const { v: verifier, n, t } = stored[ids[0]];
     assert.match(verifier || '', /^[A-Za-z0-9_-]{43,128}$/);
+    assert.equal(n, '/account.html?token_hash=pkce_abc&type=recovery');
+    assert.ok(Math.abs(Date.now() - t) < 5000);
     const u = new URL(g.page.href);
     assert.equal(u.origin + u.pathname, SB + '/auth/v1/authorize');
     assert.equal(u.searchParams.get('provider'), 'discord');
     assert.equal(u.searchParams.get('code_challenge_method'), 's256');
     assert.equal(u.searchParams.get('code_challenge'), b64url(createHash('sha256').update(verifier).digest()));
-    assert.equal(u.searchParams.get('redirect_to'), 'https://staging.verse-base.com/gate.html?next=%2Fpatches.html');
-    assert.deepEqual([...g.ls.keys()], ['vb_gate_pkce'], 'außer dem Verifier nichts gespeichert');
+    // Nur die Kennung reist mit: kein Rückziel, keine Einmal-Parameter beim
+    // Anmeldedienst oder bei Discord.
+    assert.equal(u.searchParams.get('redirect_to'), 'https://staging.verse-base.com/gate.html?f=' + ids[0]);
+    assert.doesNotMatch(g.page.href, /token_hash|account\.html|next/);
+    assert.deepEqual([...g.ls.keys()], ['vb_gate_pkce'], 'außer den Anmeldungen nichts gespeichert');
     assert.equal(g.ss.size, 0);
   });
 
+  test('zwei Tabs: jede Anmeldung behält ihren eigenen Eintrag', async () => {
+    const g = runGate({ search: '?next=%2Fpatches.html', local: flows({ [F1]: flow('A'.repeat(43), '/hangar.html') }) });
+    g.getEl('gateDiscordBtn').fire('click');
+    await until(() => !!g.page.href);
+    const stored = JSON.parse(g.ls.get('vb_gate_pkce'));
+    assert.equal(Object.keys(stored).length, 2);
+    assert.equal(stored[F1].v, 'A'.repeat(43), 'die Anmeldung des anderen Tabs bleibt stehen');
+  });
+
   test('Rücksprung in einem neuen Tab findet den Verifier (localStorage)', async () => {
-    const g = runGate({ search: '?code=C2', local: { vb_gate_pkce: 'W'.repeat(43) } });
+    const g = runGate({ search: '?f=' + F1 + '&code=C2', local: flows({ [F1]: flow('W'.repeat(43)) }) });
     await settle();
     const tok = g.calls.find((c) => c.url.includes('grant_type=pkce'));
     assert.ok(tok, 'kein Aufruf von /auth/v1/token?grant_type=pkce');
@@ -212,16 +237,45 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
     assert.equal(g.ls.has('vb_gate_pkce'), false, 'Verifier ist verbraucht');
   });
 
-  test('ein bloßer Aufruf der Torseite lässt eine laufende Anmeldung in Ruhe', async () => {
-    const g = runGate({ local: { vb_gate_pkce: 'X'.repeat(43) } });
+  test('Rücksprung verbraucht nur den eigenen Eintrag', async () => {
+    const g = runGate({ search: '?f=' + F1 + '&code=C2', local: flows({ [F1]: flow('W'.repeat(43)), [F2]: flow('Z'.repeat(43)) }) });
     await settle();
-    assert.equal(g.ls.get('vb_gate_pkce'), 'X'.repeat(43));
+    assert.equal(JSON.parse(g.calls.find((c) => c.url.includes('grant_type=pkce')).init.body).code_verifier, 'W'.repeat(43));
+    assert.deepEqual(Object.keys(JSON.parse(g.ls.get('vb_gate_pkce'))), [F2]);
+  });
+
+  test('abgelaufener Eintrag (älter als 15 Minuten) gilt nicht und wird weggeräumt', async () => {
+    const g = runGate({ search: '?f=' + F1 + '&code=C2', local: flows({ [F1]: flow('W'.repeat(43), '/', Date.now() - 16 * 60 * 1000) }) });
+    await settle();
+    assert.equal(g.calls.length, 0);
+    assert.equal(g.ls.has('vb_gate_pkce'), false);
+    assert.match(g.getEl('gateDiscordStatus').textContent, /could not be completed/);
+  });
+
+  test('das frühere Format (bloßer Verifier) wird nicht eingelöst', async () => {
+    const g = runGate({ search: '?next=%2Fpatches.html&code=C1', local: { vb_gate_pkce: 'V'.repeat(43) } });
+    await settle();
+    assert.equal(g.calls.length, 0);
+    assert.equal(g.ls.has('vb_gate_pkce'), false);
+  });
+
+  test('das Rückziel aus dem Eintrag geht erneut durch safeNext', async () => {
+    const g = runGate({ search: '?f=' + F1 + '&code=C1', local: flows({ [F1]: flow('V'.repeat(43), '/.//evil.example') }) });
+    await settle();
+    assert.equal(g.page.replaced, '/');
+  });
+
+  test('ein bloßer Aufruf der Torseite lässt eine laufende Anmeldung in Ruhe', async () => {
+    const local = flows({ [F1]: flow('X'.repeat(43)) });
+    const g = runGate({ local });
+    await settle();
+    assert.equal(g.ls.get('vb_gate_pkce'), local.vb_gate_pkce);
     assert.equal(g.calls.length, 0);
   });
 
   test('Rücksprung mit code: Einlösen mit Verifier, speichern erst nach angenommenem mint', async () => {
-    const g = runGate({ search: '?next=%2Fpatches.html&code=C1', local: { vb_gate_pkce: 'V'.repeat(43) } });
-    assert.equal(g.loc.search, '?next=%2Fpatches.html', 'code bleibt nicht in der Adresse');
+    const g = runGate({ search: '?f=' + F1 + '&code=C1', local: flows({ [F1]: flow('V'.repeat(43), '/patches.html') }) });
+    assert.equal(g.loc.search, '?next=%2Fpatches.html', 'code und Kennung bleiben nicht in der Adresse, das Rückziel steht wieder da');
     await settle();
     const tok = g.calls.find((c) => c.url.includes('grant_type=pkce'));
     assert.ok(tok, 'kein Aufruf von /auth/v1/token?grant_type=pkce');
@@ -234,7 +288,7 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
   });
 
   test('mint lehnt ab (kein Testpilot): nichts gespeichert, Hinweis', async () => {
-    const g = runGate({ search: '?code=C1', local: { vb_gate_pkce: 'V'.repeat(43) }, answers: { mint: [403, {}] } });
+    const g = runGate({ search: '?f=' + F1 + '&code=C1', local: flows({ [F1]: flow('V'.repeat(43)) }), answers: { mint: [403, {}] } });
     await settle();
     assert.equal(g.ls.size, 0);
     assert.equal(g.page.replaced, null);

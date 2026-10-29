@@ -341,12 +341,16 @@ function mint(r) {
    safeNext() in src/pages/gate.astro dekodiert ueber URLSearchParams und
    laesst nur Ziele auf derselben Origin zu. encodeURIComponent wirft bei
    kaputtem UTF-8 — dann der dekodierte Pfad ohne Query wie frueher, sonst
-   die Startseite. */
+   die Startseite. Fuehrende Mehrfach-Schraegstriche fasst next() zu einem
+   zusammen, wie merge_slashes es fuer r.uri tat: //schiffe.html kommt nach
+   dem Tor auf /schiffe.html an statt auf der Startseite. */
 function next(r) {
   const vars = r.variables || {};
   try {
     const ziel = vars.request_uri;
-    if (typeof ziel === 'string' && ziel.charAt(0) === '/') return encodeURIComponent(ziel).replace(/%2F/g, '/');
+    if (typeof ziel === 'string' && ziel.charAt(0) === '/') {
+      return encodeURIComponent(ziel.replace(/^\/{2,}/, '/')).replace(/%2F/g, '/');
+    }
   } catch (e) {
     /* weiter mit r.uri */
   }

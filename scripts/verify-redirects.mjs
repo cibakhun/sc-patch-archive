@@ -363,11 +363,14 @@ if (nextFn) {
     { r: { uri: '/pilot.html', variables: { request_uri: '/pilot/Cibakhun', args: 'h=Cibakhun' } }, soll: '/pilot/Cibakhun' },
     { r: { uri: '/de/pilot.html', variables: { request_uri: '/de/pilot/abc-1/', args: 'h=abc-1' } }, soll: '/de/pilot/abc-1/' },
     { r: { uri: '/suche.html', variables: { request_uri: '/suche.html?q=a%26b&s=2', args: 'q=a%26b&s=2' } }, soll: '/suche.html?q=a%26b&s=2' },
+    // Tippfehler mit doppeltem Schraegstrich: wie bisher (merge_slashes auf
+    // r.uri) zurueck auf die Seite, nicht als "//…" auf die Startseite.
+    { r: { uri: '/schiffe.html', variables: { request_uri: '//schiffe.html', args: '' } }, soll: '/schiffe.html' },
   ];
   const verloren = faelle.filter((f) => zurueck(f.r) !== f.soll);
   console.log(`    Ruecksprung behaelt Pfad und Query (auch nach rewrite) — Soll: ${faelle.length}/${faelle.length}   Ist: ${faelle.length - verloren.length}/${faelle.length}`);
   for (const f of verloren)
-    fail(`gate.next: angefragt ${zeig(f.soll)}, zurueck kaeme ${zeig(zurueck(f.r))} — Query oder Pilotenname geht am Tor verloren`);
+    fail(`gate.next: angefragt ${zeig(f.soll)}, zurueck kaeme ${zeig(zurueck(f.r))} — der Ruecksprung landet nicht auf der angefragten Seite`);
 }
 
 console.log(`\nverify-redirects: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}${warnungen ? ` (${warnungen} Warnung(en))` : ''}`);

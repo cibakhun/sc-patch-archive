@@ -342,9 +342,20 @@ import { SUPABASE, DISCORD } from '../consts';
         if (tone) mfaStatus.setAttribute('data-tone', tone);
         else mfaStatus.removeAttribute('data-tone');
       }
+      // Nach einer endgueltigen Absage (kein Testpilot, Anmeldung abgelaufen)
+      // fuehrt der Code-Schritt nirgends mehr hin: Feld und Knopf aus, die
+      // Meldung bleibt stehen. Weiter geht es nur mit einer neuen Anmeldung.
+      function closeMfa() {
+        mfaPending = null;
+        mfaBtn.disabled = true;
+        mfaBtnTxt.textContent = 'Verify';
+        try { document.getElementById('gateMfaCode').disabled = true; } catch (e) { /* noop */ }
+      }
       function askGateCode(sess, factors, msg) {
         mfaPending = { sess: sess, factors: factors };
         mfaForm.hidden = false;
+        mfaBtn.disabled = false;
+        try { document.getElementById('gateMfaCode').disabled = false; } catch (e) { /* noop */ }
         showMfaStatus(msg || '');
         try { document.getElementById('gateMfaCode').focus(); } catch (e) { /* noop */ }
       }
@@ -367,6 +378,7 @@ import { SUPABASE, DISCORD } from '../consts';
                   : 'Could not verify the code — please try again.',
                 'error'
               );
+              if (res.status === 401) { closeMfa(); return; }
               mfaBtn.disabled = false;
               mfaBtnTxt.textContent = 'Verify';
               return;
@@ -378,13 +390,14 @@ import { SUPABASE, DISCORD } from '../consts';
                 location.replace(next);
                 return;
               }
-              mfaPending = null;
-              showMfaStatus(
-                r.status === 403
-                  ? 'Signed in, but this account has no Test Pilot access.'
-                  : 'Could not verify access — please try again.',
-                'error'
-              );
+              if (r.status === 403) {
+                showMfaStatus('Signed in, but this account has no Test Pilot access.', 'error');
+                closeMfa();
+                return;
+              }
+              // Sonst bleibt der Code-Schritt offen: ein neuer Code aus der
+              // App versucht es noch einmal mit derselben Anmeldung.
+              showMfaStatus('Could not verify access — please try again with the next code.', 'error');
               mfaBtn.disabled = false;
               mfaBtnTxt.textContent = 'Verify';
             });
@@ -422,13 +435,38 @@ import { SUPABASE, DISCORD } from '../consts';
       // PKCE ohne SDK (RFC 7636, S256): base64url ohne Auffuellung. Der
       // Verifier liegt im localStorage, nicht im sessionStorage: oeffnet die
       // Discord-App den Ruecksprung in einem neuen Tab, ist er dort sonst
-      // weg. Er ist nur zusammen mit dem Code nutzbar und wird beim ersten
-      // Ruecksprung verbraucht.
+      // weg. Je Anmeldung ein Eintrag unter einer Zufallskennung (f), die
+      // als einziger Parameter im redirect_to mitreist: zwei Tabs stoeren
+      // sich nicht, und das Rueckziel (next) bleibt im Browser, statt ueber
+      // den Anmeldedienst und Discord zu laufen. Ein Eintrag ist nur
+      // zusammen mit dem Code nutzbar, wird beim ersten Ruecksprung
+      // verbraucht und verfaellt nach 15 Minuten.
       var PKCE_KEY = 'vb_gate_pkce';
+      var PKCE_TTL_MS = 15 * 60 * 1000;
+      var FLOW_RE = /^[A-Za-z0-9_-]{16}$/;
       function b64url(bytes) {
         var s = '';
         for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
         return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+      // Laufende Anmeldungen dieses Browsers; Abgelaufenes und Unlesbares
+      // (auch das fruehere Format, ein blosser Verifier) faellt dabei weg.
+      function readFlows() {
+        var all = null;
+        try { all = JSON.parse(localStorage.getItem(PKCE_KEY) || 'null'); } catch (e) { all = null; }
+        var live = {};
+        if (!all || typeof all !== 'object' || Array.isArray(all)) return live;
+        var now = Date.now();
+        Object.keys(all).forEach(function (k) {
+          var f = all[k];
+          if (FLOW_RE.test(k) && f && typeof f.v === 'string' && typeof f.n === 'string' &&
+              typeof f.t === 'number' && f.t <= now && now - f.t < PKCE_TTL_MS) live[k] = f;
+        });
+        return live;
+      }
+      function writeFlows(flows) {
+        if (Object.keys(flows).length) localStorage.setItem(PKCE_KEY, JSON.stringify(flows));
+        else localStorage.removeItem(PKCE_KEY);
       }
 
       discordBtn.addEventListener('click', function () {
@@ -436,17 +474,22 @@ import { SUPABASE, DISCORD } from '../consts';
         discordBtnTxt.textContent = 'Redirecting …';
         // Keine zusaetzlichen Scopes -- identify+email ist die
         // Provider-Vorgabe (D-03, siehe Koordinator-Gegenprobe:
-        // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst
-        // (next bleibt erhalten), damit der Ruecksprung SDK-frei vom
-        // bestehenden Inline-Skript gelesen werden kann.
-        var redirectTo = location.origin + '/gate.html?next=' + encodeURIComponent(next);
-        var verifier;
+        // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst,
+        // damit der Ruecksprung SDK-frei vom bestehenden Inline-Skript
+        // gelesen werden kann; next steht im Eintrag, nicht in der Adresse.
+        var verifier, flow;
         try {
           var raw = new Uint8Array(32);
           crypto.getRandomValues(raw);
           verifier = b64url(raw);
-          localStorage.setItem(PKCE_KEY, verifier);
+          var id = new Uint8Array(12);
+          crypto.getRandomValues(id);
+          flow = b64url(id);
+          var flows = readFlows();
+          flows[flow] = { v: verifier, n: next, t: Date.now() };
+          writeFlows(flows);
         } catch (e) { verifier = null; }
+        var redirectTo = location.origin + '/gate.html?f=' + flow;
         if (!verifier || !crypto.subtle) {
           showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
           discordBtn.disabled = false;
@@ -495,19 +538,28 @@ import { SUPABASE, DISCORD } from '../consts';
         var tokensInUrl = hp.has('access_token') || hp.has('refresh_token') ||
           qp.has('access_token') || qp.has('refresh_token');
         if (!code && !oauthErr && !tokensInUrl && !hp.has('error_description')) return false;
-        // Verbraucht wird der Verifier nur bei einem Ruecksprung mit Code
-        // oder Fehler; ein blosser Aufruf der Torseite (zweiter Tab) laesst
-        // eine laufende Anmeldung in Ruhe.
+        // Verbraucht wird ein Eintrag nur bei einem Ruecksprung mit Code
+        // oder Fehler, und nur der dieser Anmeldung (f); ein blosser Aufruf
+        // der Torseite (zweiter Tab) laesst laufende Anmeldungen in Ruhe.
+        // Das Rueckziel kommt aus dem Eintrag und geht erneut durch safeNext.
         var verifier = null;
         if (code || oauthErr) {
-          try { verifier = localStorage.getItem(PKCE_KEY); localStorage.removeItem(PKCE_KEY); } catch (e) { /* noop */ }
+          try {
+            var flowId = qp.get('f') || '';
+            var flows = readFlows();
+            var entry = FLOW_RE.test(flowId) ? flows[flowId] : null;
+            if (entry) delete flows[flowId];
+            writeFlows(flows);
+            if (entry) { verifier = entry.v; next = safeNext(entry.n); }
+          } catch (e) { /* noop */ }
         }
 
         // Adresse sofort bereinigen (T-14-23): kein Code, Token oder
         // Fehlertext im Verlauf, in einem Lesezeichen oder Bildschirmfoto.
-        // Nur next bleibt stehen.
+        // Nur next bleibt stehen (auch das aus dem Eintrag, fuer ein
+        // Neuladen nach einem Fehler).
         var keep = new URLSearchParams();
-        if (qp.has('next')) keep.set('next', qp.get('next'));
+        if (next !== '/') keep.set('next', next);
         var ks = keep.toString();
         history.replaceState(null, '', location.pathname + (ks ? '?' + ks : ''));
 
