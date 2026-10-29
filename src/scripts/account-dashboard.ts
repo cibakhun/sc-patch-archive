@@ -243,41 +243,45 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // 'verify-rsi' — die Site ist statisch (Docker/nginx auf Coolify) und
       // kann selbst keinen Server-Code ausführen; Browser-Aufrufe auf RSI
       // werden von Cloudflare CORS/Bot-Protection blockiert. supabase-js hängt
-      // das Session-JWT automatisch an; die Function persistiert das Ergebnis
-      // serverseitig per Service Role (ein DB-Trigger verbietet Client-Writes
-      // auf rsi_verified=true).
-      // Rückgabe: { verified, error?, persisted? } oder null, wenn die
-      // Function nicht erreicht werden konnte (dann darf NICHT revokiert
-      // werden).
-      const serverVerify = async (rHandle: string, rCode: string): Promise<{ verified: boolean; error?: string; persisted?: boolean } | null> => {
+      // das Session-JWT automatisch an. Den Prüfcode stellt der Server aus
+      // ({ action: 'challenge', rsi_handle }) und bindet ihn an Konto und
+      // Handle; geprüft wird mit { action: 'verify', rsi_handle? } — Handle und
+      // Code liest die Function dann selbst aus der Datenbank, und sie hält das
+      // Ergebnis auch selbst fest (Abzeichen setzen oder entziehen).
+      // Rückgabe: HTTP-Status und JSON. status 0 = nicht erreichbar. Nur 200
+      // ist ein Prüfergebnis; alles andere (429 gedrosselt, 502/504 RSI nicht
+      // erreichbar, 409/410 kein oder abgelaufener Code) ändert nichts.
+      const RSI_HANDLE_RE = /^[A-Za-z0-9_-]{3,60}$/;
+      const cleanRsiHandle = (v: string) => v.trim().replace(/^@+/, '');
+      const rsiCall = async (body: Record<string, unknown>): Promise<{ status: number; data: any }> => {
         try {
-          const { data, error } = await supabase.functions.invoke('verify-rsi', {
-            body: { rsi_handle: rHandle, rsi_code: rCode }
-          });
-          if (!error && data && typeof data.verified === 'boolean') {
-            return { verified: data.verified, error: data.error, persisted: data.persisted };
+          const { data, error } = await supabase.functions.invoke('verify-rsi', { body, timeout: 20000 });
+          if (!error) return { status: 200, data };
+          const ctx = (error as { context?: unknown }).context;
+          if (ctx instanceof Response) {
+            let payload: any = null;
+            try { payload = await ctx.json(); } catch {}
+            return { status: ctx.status, data: payload };
           }
         } catch (efErr) {
           console.warn('verify-rsi edge function call failed:', efErr);
         }
-
-        return null;
+        return { status: 0, data: null };
       };
+      // Altlast des früheren Ablaufs (Code im Browser erzeugt) aufräumen.
+      try { localStorage.removeItem('vb_rsi_code'); } catch {}
 
-      // Silent Re-verification check if user is marked verified (Auto-Revocation)
-      if (profileState.rsi_verified === true && profileState.rsi_handle && profileState.rsi_code) {
+      // Stille Nachprüfung, wenn das Konto verifiziert ist. Nur ein eindeutiges
+      // "Code steht nicht mehr in der Bio" (200, verified:false) nimmt das
+      // Abzeichen — die Function hat es dann schon serverseitig entzogen.
+      if (profileState.rsi_verified === true && profileState.rsi_handle) {
         (async () => {
-          try {
-            const result = await serverVerify(profileState.rsi_handle, profileState.rsi_code);
-            // Nur bei einem definitiv erfolgreichen Server-Check OHNE Code-Fund revokieren —
-            // bei Netzwerk-/Server-Fehlern (result === null oder error gesetzt) bleibt das Badge.
-            if (result && result.verified === false && !result.error) {
-              console.warn('Re-verification failed: RSI bio code missing. Revoking badge.');
-              profileState.rsi_verified = false;
-              await supabase.from('profiles').update({ rsi_verified: false }).eq('id', user.id);
-              updateCard();
-            }
-          } catch (reErr) { console.warn('Background re-verify check skipped:', reErr); }
+          const r = await rsiCall({ action: 'verify' });
+          if (r.status === 200 && r.data && r.data.verified === false) {
+            console.warn('Re-verification: RSI bio code missing, badge revoked server-side.');
+            profileState.rsi_verified = false;
+            updateCard();
+          }
         })();
       }
 
@@ -982,27 +986,48 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const btnCheckRsiNow = document.getElementById('btnCheckRsiNow')!;
       const rsiVerifyMsg = document.getElementById('rsiVerifyMsg')!;
 
-      // Fester, eindeutiger Verifizierungscode pro Nutzer: DB-Wert hat Vorrang,
-      // dann localStorage; ein neu generierter Code wird sofort serverseitig
-      // persistiert, damit er geräteübergreifend und bei jedem Aufruf gleich bleibt.
-      const codeFromDb = typeof profileState.rsi_code === 'string' && profileState.rsi_code.length > 0;
-      let activeCode = codeFromDb ? profileState.rsi_code
-        : (localStorage.getItem('vb_rsi_code') || `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
-      try { localStorage.setItem('vb_rsi_code', activeCode); } catch {}
-      profileState.rsi_code = activeCode;
-      if (!codeFromDb) {
-        supabase.from('profiles').upsert({ id: user.id, rsi_code: activeCode })
-          .then(({ error }) => { if (error) console.warn('Could not persist rsi_code:', error); })
-          .catch(() => {});
-      }
+      // Der Prüfcode kommt vom Server und gilt für Konto + Handle. Für dasselbe
+      // Handle gibt der Server denselben Code wieder aus (bestätigt: dauerhaft,
+      // offen: 24 Stunden), damit ein schon in die Bio kopierter Code gilt.
+      let rsiChallenge: { handle: string; code: string } | null = null;
+      const rsiMsg = (text: string, kind: '' | 'ok' | 'err' = '') => {
+        rsiVerifyMsg.textContent = text;
+        rsiVerifyMsg.className = 'acx-status' + (kind ? ' acx-status--' + kind : '');
+        rsiVerifyMsg.hidden = false;
+      };
+      const rsiErrText = (r: { status: number; data: any }) =>
+        r.status === 429 ? D.msgRsiRate!
+          : (r.status === 400 && r.data && r.data.error === 'invalid_handle') ? D.msgRsiBadHandle!
+            : D.msgRsiServerErr!;
+      const loadRsiChallenge = async (handle: string): Promise<boolean> => {
+        rsiChallenge = null;
+        rsiCodeEl.textContent = '…';
+        (btnCopyRsiCode as HTMLButtonElement).disabled = true;
+        (btnCheckRsiNow as HTMLButtonElement).disabled = true;
+        const r = await rsiCall({ action: 'challenge', rsi_handle: handle });
+        if (r.status === 200 && r.data && typeof r.data.code === 'string') {
+          rsiChallenge = { handle: typeof r.data.rsi_handle === 'string' ? r.data.rsi_handle : handle, code: r.data.code };
+          rsiCodeEl.textContent = rsiChallenge.code;
+          (btnCopyRsiCode as HTMLButtonElement).disabled = false;
+          (btnCheckRsiNow as HTMLButtonElement).disabled = false;
+          return true;
+        }
+        rsiCodeEl.textContent = '—';
+        rsiMsg(rsiErrText(r), 'err');
+        return false;
+      };
 
       btnRsiVerifyModal.addEventListener('click', () => {
-        const handle = rsiHandleInput.value.trim();
+        const handle = cleanRsiHandle(rsiHandleInput.value);
         const targetHandleEl = document.getElementById('rsiModalTargetHandle');
         const profileLinkEl = document.getElementById('rsiModalProfileLink') as HTMLAnchorElement;
 
         if (!handle) {
           show(pfStatus as HTMLElement, D.msgRsiEnterHandle!);
+          return;
+        }
+        if (!RSI_HANDLE_RE.test(handle)) {
+          show(pfStatus as HTMLElement, D.msgRsiBadHandle!);
           return;
         }
 
@@ -1011,10 +1036,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           profileLinkEl.href = `https://robertsspaceindustries.com/account/profile`;
         }
 
-        rsiCodeEl.textContent = activeCode;
         rsiVerifyMsg.hidden = true;
         rsiVerifyMsg.className = 'acx-status';
         if (rsiModal.showModal) rsiModal.showModal();
+        loadRsiChallenge(handle);
       });
 
       btnCloseRsiModal.addEventListener('click', () => rsiModal.close());
@@ -1148,64 +1173,55 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       }
 
       btnCopyRsiCode.addEventListener('click', () => {
-        navigator.clipboard.writeText(activeCode);
+        if (!rsiChallenge) return;
+        navigator.clipboard.writeText(rsiChallenge.code);
         btnCopyRsiCode.textContent = D.rsiCopied || 'Copied! ✓';
         setTimeout(() => btnCopyRsiCode.textContent = D.rsiCopy || 'Copy', 2000);
       });
 
       btnCheckRsiNow.addEventListener('click', async () => {
-        const rsiHandle = rsiHandleInput.value.trim();
-        if (!rsiHandle) {
-          rsiVerifyMsg.textContent = D.msgRsiNoHandle!;
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          rsiVerifyMsg.hidden = false;
+        const ch = rsiChallenge;
+        if (!ch) {
+          rsiMsg(D.msgRsiNoHandle!, 'err');
           return;
         }
 
-        btnCheckRsiNow.disabled = true;
-        rsiVerifyMsg.className = 'acx-status';
-        rsiVerifyMsg.textContent = D.msgRsiChecking!.replace('%handle%', rsiHandle);
-        rsiVerifyMsg.hidden = false;
+        (btnCheckRsiNow as HTMLButtonElement).disabled = true;
+        rsiMsg(D.msgRsiChecking!.replace('%handle%', ch.handle));
 
-        try {
-          // Ausschließlich serverseitige Prüfung (CF Function → Supabase Edge Function).
-          // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
-          // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
-          const result = await serverVerify(rsiHandle, activeCode);
-          const verified = result?.verified === true;
-          const errorMessage = result?.error || '';
+        // Ausschließlich serverseitige Prüfung (Supabase Edge Function).
+        // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
+        // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
+        const r = await rsiCall({ action: 'verify', rsi_handle: ch.handle });
 
-          if (verified) {
-            profileState.rsi_verified = true;
-            profileState.rsi_handle = rsiHandle;
+        if (r.status === 200 && r.data && r.data.verified === true) {
+          // Gesetzt hat das Abzeichen die Function (Service Role); der Client
+          // schreibt rsi_verified NICHT selbst, ein DB-Trigger verbietet das.
+          const verifiedHandle = typeof r.data.rsi_handle === 'string' ? r.data.rsi_handle : ch.handle;
+          profileState.rsi_verified = true;
+          profileState.rsi_handle = verifiedHandle;
+          rsiHandleInput.value = verifiedHandle;
+          rsiMsg('✓ ' + D.msgRsiSuccess!, 'ok');
+          updateCard();
 
-            // DB-Persistierung läuft ausschließlich serverseitig in der Edge
-            // Function (mit Session-JWT) — der Client schreibt rsi_verified
-            // NICHT selbst, ein DB-Trigger verbietet das.
-            if (result && result.persisted === false) {
-              console.warn('RSI verify: Edge Function konnte nicht persistieren (JWT/Service-Role prüfen).');
-            }
-
-            rsiVerifyMsg.textContent = '✓ ' + D.msgRsiSuccess!;
-            rsiVerifyMsg.className = 'acx-status acx-status--ok';
-            updateCard();
-
-            setTimeout(() => {
-              rsiModal.close();
-              btnCheckRsiNow.disabled = false;
-            }, 1200);
-          } else {
-            rsiVerifyMsg.textContent = result === null
-              ? D.msgRsiServerErr!
-              : (errorMessage || D.msgRsiNotFound!.replace('%code%', activeCode).replace('%handle%', rsiHandle));
-            rsiVerifyMsg.className = 'acx-status acx-status--err';
-            btnCheckRsiNow.disabled = false;
-          }
-        } catch (err: any) {
-          rsiVerifyMsg.textContent = D.msgRsiServerErr! + ' (' + (err.message || err) + ')';
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          btnCheckRsiNow.disabled = false;
+          setTimeout(() => {
+            rsiModal.close();
+            (btnCheckRsiNow as HTMLButtonElement).disabled = false;
+          }, 1200);
+          return;
         }
+
+        if (r.status === 200) {
+          rsiMsg(D.msgRsiNotFound!.replace('%code%', ch.code).replace('%handle%', ch.handle), 'err');
+        } else if (r.status === 410 || (r.status === 409 && r.data
+          && (r.data.error === 'challenge_changed' || r.data.error === 'no_challenge'))) {
+          // Code abgelaufen oder inzwischen ersetzt: neuen holen und anzeigen.
+          if (await loadRsiChallenge(ch.handle)) rsiMsg(D.msgRsiNewCode!, 'err');
+          return;
+        } else {
+          rsiMsg(rsiErrText(r), 'err');
+        }
+        (btnCheckRsiNow as HTMLButtonElement).disabled = false;
       });
 
       // Reset RSI Verification Handler
@@ -1280,7 +1296,19 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         // MITgesendet.
         // Das RSI-Handle wird normal persistiert; weicht es vom verifizierten
         // Handle ab, erlischt die Verknüpfung (Revoke in Richtung false).
-        const rsiHandleVal = rsiHandleInput.value.trim() || null;
+        const rsiHandleVal = cleanRsiHandle(rsiHandleInput.value) || null;
+        if (rsiHandleVal && !RSI_HANDLE_RE.test(rsiHandleVal)) {
+          show(pfStatus as HTMLElement, D.msgRsiBadHandle!);
+          rsiHandleInput.focus();
+          return;
+        }
+        // Handle-Wechsel nimmt das Abzeichen (die Datenbank tut das selbst,
+        // guard_rsi_verified). Der Vergleich steht VOR dem Object.assign
+        // darunter, das profileState.rsi_handle überschreibt.
+        if (profileState.rsi_verified === true
+          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
+          profileState.rsi_verified = false;
+        }
         const testerCreditVal = testerCreditInput ? testerCreditInput.checked : profileState.tester_credit === true;
 
         // Alle sichtbaren Profilfelder aus Inputs + Picker-State übernehmen,

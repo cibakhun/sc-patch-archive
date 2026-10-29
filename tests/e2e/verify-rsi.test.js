@@ -13,8 +13,11 @@
 //     verified:false; auf Nicht-2xx tut es nichts.
 //   * Kein Abruf bei RSI ohne Sitzung, mit ungueltigem Handle oder gedrosselt.
 //   * CORS nur fuer die eigenen Herkuenfte, keine Fehlertexte in Antworten.
+//   * Das Dashboard erzeugt keinen Code mehr selbst.
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   createHandler,
   pageVerdict,
@@ -399,5 +402,20 @@ describe('verify-rsi: wo der Code stehen muss', () => {
     assert.ok(bioSection(html).includes('nichts'));
     assert.strictEqual(bioSection('<div class="entry">x</div>'), null);
     assert.ok(bioSection("<div class='bio entry'><div class=\"value\">x</div></div>").includes('x'));
+  });
+});
+
+describe('Dashboard: kein Code mehr aus dem Browser', () => {
+  const src = fs.readFileSync(path.resolve('src/scripts/account-dashboard.ts'), 'utf8');
+
+  test('kein selbst erzeugter Code, kein gespeicherter Code im Browser', () => {
+    assert.ok(!/VERSEBASE-VERIFY-\$\{/.test(src), 'Code-Generator im Dashboard');
+    assert.ok(!/setItem\(\s*['"]vb_rsi_code/.test(src), 'vb_rsi_code wird noch geschrieben');
+    assert.ok(!/rsi_code\s*:/.test(src), 'rsi_code wird noch gesendet oder geschrieben');
+  });
+
+  test('der Code kommt aus der Function (action challenge), gepruefte wird per action verify', () => {
+    assert.match(src, /action:\s*'challenge'/);
+    assert.match(src, /action:\s*'verify'/);
   });
 });
