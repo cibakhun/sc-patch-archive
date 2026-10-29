@@ -5,6 +5,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
+  import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -141,6 +142,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       if (userErr) {
         const st = (userErr as { status?: number }).status;
         if (st === 401 || st === 403) {
+          clearAccountTraces(session.user.id, 'signout', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.replace(D.login!);
           return;
@@ -148,6 +150,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         throw userErr;
       }
       if (!userData.user) {
+        clearAccountTraces(session.user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.replace(D.login!);
         return;
@@ -942,13 +945,34 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           });
         }
 
+        // Entfernen loescht die hochgeladene Datei, nicht nur den Verweis:
+        // erst die Profilzeile leeren (keine Seite zeigt dann mehr auf das
+        // Bild), dann <uid>/<art> im Bucket entfernen. Steht im Feld eine
+        // fremde Adresse (Discord-Bild, Vorlage), gibt es dort meist nichts zu
+        // loeschen; remove() meldet das nicht als Fehler.
         if (removeEl) {
-          removeEl.addEventListener('click', () => {
-            o.urlInput.value = '';
-            profileState[o.stateKey] = '';
-            updateCard();
-            syncRemove();
+          removeEl.addEventListener('click', async () => {
+            removeEl.disabled = true;
             setStatus('');
+            try {
+              const { error: dbErr } = await supabase.from('profiles')
+                .update({ [o.stateKey]: null }).eq('id', user.id);
+              if (dbErr) throw dbErr;
+              o.urlInput.value = '';
+              profileState[o.stateKey] = '';
+              try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+              updateCard();
+              syncRemove();
+              const { error: rmErr } = await supabase.storage.from(o.bucket).remove([`${user.id}/${o.kind}`]);
+              if (rmErr) throw rmErr;
+              setStatus('✓', 'ok');
+              setTimeout(() => setStatus(''), 1600);
+            } catch (err) {
+              console.warn('image remove failed', err);
+              setStatus(D.msgRemoveErr || 'Could not remove the image.', 'err');
+            } finally {
+              removeEl.disabled = false;
+            }
           });
         }
       };
@@ -1577,8 +1601,11 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
+      // Danach die Spuren des Kontos im Browser entfernen (Profil-Cache,
+      // RSI-Code, gemerkte Rolle; lib/account-cleanup.ts), fuer geteilte Geraete.
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
         try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', user.id); } catch { /* egal */ }
+        clearAccountTraces(user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1600,6 +1627,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
+          clearAccountTraces(user.id, 'delete', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
         } catch {
@@ -1855,6 +1883,19 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             const { error } = await (supabase.auth as any).unlinkIdentity(dc);
             dcBusy(dcOff, false);
             if (error) { dcSay(D.dcLinkErr || '', 'err'); return; }
+            // Aus Discord uebernommene Felder auch im Formular leeren. Die
+            // Datenbank tut dasselbe per Trigger (trg_unsync_discord_identity);
+            // ohne das hier schriebe das naechste Speichern sie zurueck.
+            const unlinkPatch: Record<string, any> = { discord_tag: null };
+            if (/^https:\/\/cdn\.discordapp\.com\//.test(avatarUrlInput.value.trim())) unlinkPatch.avatar_url = null;
+            await dcSave(unlinkPatch);
+            discordInput.value = '';
+            if ('avatar_url' in unlinkPatch) {
+              avatarUrlInput.value = '';
+              const rm = document.getElementById('pfAvatarRemove');
+              if (rm) rm.hidden = true;
+            }
+            updateCard();
             dcSay(D.dcUnlinkDone || '', 'ok');
             await dcRender();
           } catch {

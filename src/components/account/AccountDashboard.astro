@@ -135,10 +135,11 @@ const COPY = {
     errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
-    dangerBody: 'Löscht dein Konto samt Profil und Favoriten endgültig. Das lässt sich nicht rückgängig machen.',
+    dangerBody: 'Löscht dein Konto samt Profil, Favoriten, Werkzeug-Daten, Nachrichten und hochgeladenen Bildern endgültig. Das lässt sich nicht rückgängig machen.',
     dangerConfirmLabel: 'Zum Bestätigen „LÖSCHEN" eintippen',
     dangerWord: 'LÖSCHEN',
     dangerBtn: 'Konto endgültig löschen', dangerBusy: 'Lösche Konto …',
+    removeErr: 'Das Bild konnte nicht entfernt werden — bitte erneut versuchen.',
     errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
     errRate: 'Zu viele Anfragen — bitte kurz warten.',
     modalTitle: 'Öffentliche Profil-Vorschau',
@@ -282,10 +283,11 @@ const COPY = {
     errShort: 'The password needs at least 8 characters.',
     errMatch: 'The passwords do not match.',
     errSame: 'The new password must differ from the old one.',
-    dangerBody: 'Permanently deletes your account including profile and favorites. This cannot be undone.',
+    dangerBody: 'Permanently deletes your account including profile, favorites, tool data, messages and uploaded images. This cannot be undone.',
     dangerConfirmLabel: 'Type “DELETE” to confirm',
     dangerWord: 'DELETE',
     dangerBtn: 'Delete account permanently', dangerBusy: 'Deleting account …',
+    removeErr: 'Could not remove the image — please try again.',
     errNet: 'That did not work — please try again.',
     errRate: 'Too many requests — please wait a moment.',
     modalTitle: 'Public Profile Preview',
@@ -349,6 +351,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-msg-upload-toobig={COPY.uploadTooBig}
   data-msg-upload-badtype={COPY.uploadBadType}
   data-msg-upload-err={COPY.uploadErr}
+  data-msg-remove-err={COPY.removeErr}
   data-crop-title-avatar={COPY.cropTitleAvatar}
   data-crop-title-banner={COPY.cropTitleBanner}
   data-crop-calc={COPY.cropCalc}
