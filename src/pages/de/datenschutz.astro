@@ -1,14 +1,24 @@
 ---
-// Datenschutzerklärung — beschreibt FAKTISCH, was diese statische Site tut
-// (Reichweitenmessung cookiefrei via Cloudflare, Widerspruch per Cookie,
-// localStorage nur lokal, externe Bild-CDNs,
-// YouTube nur per Klick). [TODO]-Felder vor Publish füllen — audit:site
-// bleibt absichtlich rot, solange sie im Build stehen.
+// Datenschutzerklärung — beschreibt FAKTISCH, was die Website tut, Abschnitt
+// für Abschnitt gegen den Code geprüft (29.10.2026): Hosting-Protokolle,
+// Cloudflare (Proxy + Web Analytics) und Umami mit Widerspruch per Cookie
+// (auch automatisch für Admins), Speicherung im Browser samt Konto-Spiegeln,
+// externe Bildquellen (Wiki, cstone, FleetYards, Discord, Supabase Storage),
+// YouTube erst nach Klick (Schiffsseiten: Tor #holoytgo, verify:vorklick),
+// Web3Forms, Supabase-Konto mit Discord, Profil, Freunden, Nachrichten,
+// Online-Status, RSI, Testpiloten, Testvorschau-Cookies, Discord-Bot, Stripe
+// und PayPal. Ändert sich eins davon im Code, gehört der Satz hier mit in
+// denselben Commit — und in die englische Fassung (src/pages/datenschutz.astro),
+// Absatz für Absatz gleich. Aufbewahrung von Server-Protokollen und Umami:
+// bis zu zehn Jahre (Entscheidung des Betreibers, 29.10.2026). Die
+// E-Mail-Registrierung ist pausiert (der Abschnitt #accounts sagt das und muss
+// mit der Wiederaufnahme mitwandern).
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
+import { IS_STAGING } from '../../lib/seo';
 ---
-<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: welche Daten beim Aufruf, bei der cookiefreien Reichweitenmessung, bei externen Bildquellen und bei Klick auf YouTube-Videos verarbeitet werden — samt Widerspruch mit einem Klick."} themeColor="#05070d" translated={true}>
+<Layout title={"Datenschutzerklärung | VerseBase"} description={"Datenschutzerklärung von VerseBase: Hosting und Cloudflare, cookiefreie Reichweitenmessung mit Widerspruch per Klick, externe Bilder, YouTube erst nach Klick, Feedback-Formular, Benutzerkonto mit Discord, Profil, Freunden und Online-Status sowie Spenden über Stripe und PayPal."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* ⚠⚠ GESEHEN 30.08.2026 im Kontaktbogen: diese Seite rendert komplett in
@@ -54,6 +64,7 @@ body{font-family:var(--font-body)}
 .lg-wrap .optout button:hover{filter:brightness(1.08)}
 .lg-wrap .optout .note{flex:1 1 100%;margin:0;color:var(--muted);font-size:var(--fs-7);line-height:1.55}
 .lg-wrap .optout code{font-size:.85em;color:var(--accent-2)}
+.lg-wrap code{font-size:.85em;color:var(--accent-2)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .lg-fill{color:#893c40}
@@ -71,69 +82,99 @@ body{font-family:var(--font-body)}
 
     <h2>Grundsatz</h2>
     <p>
-      Diese Website ist ein rein statisches, nicht-kommerzielles Fan-Projekt. Sie zeigt keine
-      Werbung und hat keine Kommentarfunktionen. Die Reichweite messen zwei cookiefreie
-      Dienste: <a href="#cloudflare">Cloudflare Web Analytics</a> und das selbst betriebene
-      <a href="#umami">Umami</a> — beide ohne Fingerprinting, ohne Personenprofile und ohne
-      Speicherung auf deinem Gerät. Der Messung kannst du mit einem Klick
-      <a href="#opt-out">widersprechen</a>;
-      nur dann wird ein technischer Cookie gesetzt, der genau diese Entscheidung festhält.
-      Darüber hinaus übermittelst du Daten nur über das
-      <a href="#feedback">Feedback-Formular</a> und das optionale
-      <a href="#accounts">Benutzerkonto</a> — beides freiwillig; die dabei verarbeiteten Daten
-      sind unten gesondert beschrieben.
+      VerseBase ist ein nicht-kommerzielles Fan-Projekt ohne Werbung und ohne Kommentarfunktion.
+      Die Seiten selbst sind fertige, statische Dateien. Dazu gehören ein Konto-System mit
+      Serverfunktionen (<a href="#accounts">Supabase</a>) für Konten, Profile, Freunde, Nachrichten
+      und Spenden, ein eigener Statistik-Server (<a href="#umami">Umami</a>) und ein
+      <a href="#discord-server">Discord-Bot</a>.
+    </p>
+    <p>
+      Schon beim Lesen verarbeiten <a href="#cloudflare">Cloudflare</a> und
+      <a href="#hosting">unser Server</a> deine Verbindungsdaten, und zwei cookiefreie
+      Reichweitenmessungen zählen den Aufruf; dem kannst du mit einem Klick
+      <a href="#opt-out">widersprechen</a>. Bilder kommen teils von
+      <a href="#images">externen Anbietern</a>, und einige Seiten lesen öffentliche Daten aus dem
+      Konto-System. Alles Weitere geschieht nur, wenn du es auslöst: wenn du ein
+      <a href="#youtube">YouTube-Video</a> startest, <a href="#feedback">Feedback</a> schickst, ein
+      <a href="#accounts">Benutzerkonto</a> nutzt, <a href="#support">spendest</a> oder Mitglied
+      unseres <a href="#discord-server">Discord-Servers</a> bist. Diese Website
+      setzt selbst nur einen Cookie, den für deinen Widerspruch (auf der
+      <a href="#staging">Testvorschau</a> zwei weitere); dazu kommen Schutz-Cookies, die
+      <a href="#cloudflare">Cloudflare</a> zur Abwehr automatisierter Zugriffe setzt. Einzelheiten
+      stehen unten.
     </p>
 
-    <h2>Server-Logdateien (Hosting)</h2>
+    <h2 id="hosting">Server-Logdateien (Hosting)</h2>
     <p>
-      Beim Aufruf der Website verarbeitet der Hosting-Anbieter
-      Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Deutschland) technisch bedingt
-      Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Ressource, User-Agent) in Server-Logs.
-      Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der sicheren
-      Bereitstellung). Auf diese Logs haben wir keinen inhaltlichen Zugriff über das für den
-      Betrieb Erforderliche hinaus.
+      Unser Webserver (nginx) läuft auf einem Server der Hetzner Online GmbH (Industriestr. 25,
+      91710 Gunzenhausen, Deutschland), den wir betreiben; Hetzner ist dafür unser
+      Auftragsverarbeiter. Der Webserver protokolliert jeden Abruf: die IP-Adresse der
+      zuliefernden Verbindung (in der Regel ein Server von Cloudflare) und die mitgeschickte
+      Weiterleitungskette, die deine IP-Adresse enthalten kann, dazu Zeitpunkt, die angefragte
+      Adresse samt angehängter Parameter, Statuscode, übertragene Datenmenge, Verweisadresse und
+      Browserkennung (User-Agent). Die Protokolle dienen dem Betrieb und der Sicherheit der
+      Website; wir bewahren sie bis zu zehn Jahre auf. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+      DSGVO (berechtigtes Interesse an der sicheren Bereitstellung).
     </p>
 
     <h2 id="cloudflare">Auslieferung und Reichweitenmessung (Cloudflare)</h2>
     <p>
       Die Seite wird über Cloudflare (Cloudflare, Inc., 101 Townsend Street, San Francisco,
-      CA 94107, USA) ausgeliefert. Cloudflare sitzt als Proxy vor dem Hosting: Jeder Aufruf
-      läuft darüber, dabei werden Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Ressource,
-      User-Agent) zur Auslieferung und zur Abwehr von Angriffen verarbeitet.
+      CA 94107, USA) ausgeliefert. Cloudflare sitzt als Proxy vor dem Hosting: Jeder Aufruf dieser
+      Website und ihrer Subdomains (etwa stats.verse-base.com und staging.verse-base.com) läuft
+      darüber, dabei werden Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene Adresse,
+      User-Agent) zur Auslieferung und zur Abwehr von Angriffen verarbeitet. Zur Abwehr
+      automatisierter Zugriffe fügt Cloudflare jeder Seite außerdem ein kleines, unsichtbares
+      Prüfskript hinzu (geladen unter <code>/cdn-cgi/challenge-platform/</code>), das in deinem
+      Browser technische Merkmale prüft; das Ergebnis legt Cloudflare in einem eigenen Cookie ab
+      (<code>cf_clearance</code>). Daneben kann Cloudflare weitere technisch notwendige Cookies
+      setzen (etwa <code>__cf_bm</code>, 30 Minuten gültig). Das dient dem Schutz der Seite, nicht
+      der Reichweitenmessung; dein <a href="#opt-out">Widerspruch</a> betrifft es deshalb nicht.
+      Rechtsgrundlage für Prüfskript und Cookies ist § 25 Abs. 2 Nr. 2 TDDDG (für die sichere
+      Bereitstellung der aufgerufenen Seite unbedingt erforderlich).
     </p>
     <p>
       Zusätzlich fügt Cloudflare den Seiten <strong>Cloudflare Web Analytics</strong> hinzu, ein
       Messskript, das Seitenaufrufe, Besuche und Ladezeiten erfasst. Es setzt
       <strong>keine Cookies</strong>, nutzt kein Fingerprinting und verfolgt dich nicht über andere
-      Websites hinweg; uns liegen ausschließlich zusammengefasste Zahlen vor, keine Einzelprofile.
+      Websites hinweg; aus der Messung sehen wir nur zusammengefasste Zahlen, keine Einzelprofile.
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an sicherer, schneller
-      Auslieferung und an einfachen Reichweitenzahlen). Eine Verarbeitung auf Servern außerhalb der
-      EU ist dabei möglich; Details findest du in der Datenschutzerklärung des Anbieters:
+      Auslieferung und an einfachen Reichweitenzahlen). Cloudflare verarbeitet Daten auch in den
+      USA und ist nach dem EU-US Data Privacy Framework zertifiziert. Details findest du in der
+      Datenschutzerklärung des Anbieters:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+
     <h2 id="umami">Eigene Reichweitenmessung (Umami)</h2>
     <p>
-      Zusätzlich läuft <strong>Umami</strong> unter stats.verse-base.com — eine quelloffene
-      Statistik, die auf unserem eigenen Server arbeitet. Erfasst werden die aufgerufene Seite,
-      die Verweisquelle, Land, Gerätetyp, Browser und Betriebssystem sowie die Verweildauer.
-      <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert</strong>;
-      um Besuche auseinanderzuhalten, dient eine täglich wechselnde Prüfsumme, aus der sich
-      niemand zurückrechnen lässt. Die Daten verlassen unseren Server nicht — es ist kein
-      Drittanbieter beteiligt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
+      Zusätzlich läuft <strong>Umami</strong> unter stats.verse-base.com, eine quelloffene
+      Statistik auf unserem eigenen Server bei Hetzner. Erfasst werden die aufgerufene Seite (nur
+      der Pfad, ohne angehängte Parameter und Sprungmarken), der Seitentitel, die Verweisquelle,
+      Bildschirmgröße und Browsersprache, Gerätetyp, Browser und Betriebssystem, das aus der
+      IP-Adresse abgeleitete Land mit Region und Stadt sowie Zeitpunkte und Verweildauer.
+      <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert.</strong> Um
+      Besuche auseinanderzuhalten, bildet der Server eine Prüfsumme aus IP-Adresse, Browserkennung
+      und einem Geheimwert, der jeden Monat wechselt; die IP-Adresse selbst wird nicht gespeichert.
+      Die Statistikdaten bewahren wir bis zu zehn Jahre auf.
+      Die Aufrufe laufen wie alle Aufrufe dieser Website über Cloudflare (siehe oben); andere Dritte
+      erhalten die Daten nicht. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes
       Interesse an Reichweitenzahlen). Auch diese Messung stoppt dein
       <a href="#opt-out">Widerspruch</a>.
     </p>
 
-    <div class="optout" id="opt-out">
+    <div class="optout" id="opt-out" data-staging={IS_STAGING ? '1' : undefined}>
       <span id="rum-status">Wird geprüft …</span>
       <button type="button" id="rum-toggle">Nicht mitzählen</button>
       <p class="note">
         Die Entscheidung merkt sich der technische Cookie <code>vb_noanalytics</code> in genau
-        diesem Browser; sein ganzer Inhalt ist eine 1 oder eine 0. Sie wirkt ab dem nächsten
-        Seitenaufruf und betrifft beide Dienste: der Server erlaubt die Messskripte dann nicht
-        mehr, sie laden gar nicht erst. Löschst du deine
-        Cookies, musst du hier erneut widersprechen. Wer die Seite betreut und angemeldet ist,
-        wird ohnehin nicht mitgezählt.
+        diesem Browser und nur für diese Adresse; sein ganzer Inhalt ist eine 1 oder eine 0, und er
+        gilt 400 Tage. Er wirkt ab dem nächsten Seitenaufruf und betrifft beide Dienste: der Server
+        erlaubt die Messskripte dann nicht mehr, sie laden gar nicht erst. Löschst du deine
+        Cookies, musst du hier erneut widersprechen. Für Administrator-Konten setzt die Seite
+        denselben Cookie nach der Anmeldung von selbst, außer du hast in diesem Browser zuvor
+        „Wieder mitzählen“ gewählt; dieser Browser wird dann ab dem folgenden Aufruf nicht mehr
+        mitgezählt, auch nach dem Abmelden. Rechtsgrundlage für den Cookie ist
+        § 25 Abs. 2 Nr. 2 TDDDG.
       </p>
     </div>
     <script is:inline>
@@ -143,8 +184,12 @@ body{font-family:var(--font-body)}
         const status = document.getElementById('rum-status');
         const btn = document.getElementById('rum-toggle');
         if (!status || !btn) return;
+        // Der Vorschau-Bau laedt keinen Zaehler (CSP leer), ob mit oder ohne Cookie.
+        const staging = document.getElementById('opt-out')?.dataset.staging === '1';
         const render = (hint) => {
-          status.textContent = (off()
+          status.textContent = (staging
+            ? 'Auf der Testvorschau wirst du nicht mitgezählt, ob mit oder ohne Widerspruch; deine Wahl hier gilt nur für diese Adresse.'
+            : off()
             ? 'Du wirst hier nicht mitgezählt.'
             : 'Du wirst hier derzeit mitgezählt.') + (hint ? ' ' + hint : '');
           btn.textContent = off() ? 'Wieder mitzählen' : 'Nicht mitzählen';
@@ -159,158 +204,491 @@ body{font-family:var(--font-body)}
       })();
     </script>
 
-    <h2>Lokale Speicherung im Browser (localStorage)</h2>
+    <h2 id="storage">Speicherung im Browser (localStorage, sessionStorage)</h2>
     <p>
-      Einzelne Werkzeuge der Seite (z. B. Crafting-Planer, „Im Besitz“-Markierungen,
-      Ansichts-Einstellungen) speichern ihre Einstellungen <strong>lokal in deinem
-      Browser</strong> (localStorage). Diese Daten verlassen dein Gerät nicht und können jederzeit
-      über die Browser-Einstellungen gelöscht werden. Bist du angemeldet, werden die Inhalte
-      kontogebundener Werkzeuge (Crafting-Planer und „Im Besitz“-Markierungen, Refinery-Aufträge)
-      zusätzlich in deinem <a href="#accounts">Benutzerkonto</a> gespeichert, damit sie auf allen
-      Geräten verfügbar sind. Deine Schiffsflotte (auf den Schiffs-Datenblättern und im 3D-Hangar)
-      bleibt ohne Anmeldung in diesem Browser; meldest du dich an, wandert sie als Favoriten in
-      dein Konto. Solange du angemeldet bist, behält dieser Browser zusätzlich eine Kopie der
-      Flotte. Hast du ein Handle gesetzt, erscheint die Flotte auf deinem öffentlichen
-      Piloten-Profil. Gespeicherte Hangar-Layouts (Loadouts) halten es genauso: ohne Anmeldung
-      bleiben sie in diesem Browser; meldest du dich an, wandern sie in dein Konto und stehen auf
-      jedem Gerät bereit, auf dem du angemeldet bist, während dieser Browser eine Kopie behält.
+      Werkzeuge und Einstellungen dieser Website legen Daten <strong>lokal in deinem
+      Browser</strong> ab: Arbeitsstände (Crafting-Plan und „Im Besitz“-Markierungen, Flotte,
+      Hangar-Layouts, Mining-Werkbank, Rechner-Eingaben wie die Precision-Jump-Route) und
+      Einstellungen (Darstellung, Leistungsmodus, Hangar-Optionen, ob du einen Hinweis schon
+      gesehen hast). Nur für die Dauer eines Tabs (sessionStorage) kommen kleine Merker dazu, etwa
+      die Angabe für den Zurück-Link zur vorigen Seite. Ohne Anmeldung schickt kein Skript diese
+      Inhalte irgendwohin; du kannst sie jederzeit über die Browser-Einstellungen löschen.
+      Rechtsgrundlage ist § 25 Abs. 2 Nr. 2 TDDDG (für die Funktion, die du nutzt, unbedingt
+      erforderlich). Manche Werkzeuge schreiben ihren Stand auch in die Adresszeile, etwa ein
+      Hangar-Layout zum Teilen; lädst du eine solche Adresse, steht sie wie jede andere im
+      <a href="#hosting">Server-Protokoll</a>.
+    </p>
+    <p>
+      Bist du angemeldet, liegen in deinem Browser außerdem deine Sitzung (Zugangs- und
+      Erneuerungsschlüssel samt Konto-Angaben wie E-Mail-Adresse und gegebenenfalls den Angaben von
+      Discord), für die Dauer des Tabs deine Konto-Rolle samt Konto-ID (höchstens alle fünf Minuten
+      neu vom Server abgefragt), eine Kopie deines Profils und, sobald du das Konto-Dashboard einmal
+      geöffnet hast, dein <a href="#rsi">RSI-Code</a>, auch wenn du nie ein Handle verifizierst.
+      Crafting-Planer und „Im Besitz“-Markierungen,
+      Flotte und Hangar-Layouts speichern ihre Inhalte dann zusätzlich in deinem
+      <a href="#accounts">Benutzerkonto</a>, damit sie auf allen Geräten bereitstehen, und dieser
+      Browser behält eine Kopie. Was du ohne Anmeldung in diesem Browser angelegt hattest, wandert
+      beim ersten Abgleich ins Konto; die Flotte wird dort zu Favoriten. Mining-Vorlagen und
+      Refinery-Aufträge liegen nur im Konto. Meldest du dich im Konto-Dashboard ab (auch mit
+      „Überall abmelden“) oder löschst das Konto, entfernt die Seite Sitzung, Konto-Rolle, Profilkopie, RSI-Code und die Konto-Kopien
+      der Werkzeuge aus diesem Browser.
     </p>
 
-    <h2>Extern eingebundene Bilder</h2>
+    <h2 id="images">Extern eingebundene Bilder</h2>
     <p>
-      Teile der Bilddaten werden von externen Quellen geladen. Beim Abruf dieser Bilder wird deine
-      IP-Adresse technisch bedingt an den jeweiligen Anbieter übermittelt:
+      Teile der Bilder werden von externen Quellen geladen, sobald sie auf der Seite erscheinen.
+      Dabei erhält der jeweilige Anbieter technisch bedingt deine IP-Adresse und Browserkennung und
+      höchstens die Angabe, dass der Abruf von verse-base.com kommt:
     </p>
     <ul>
-      <li><strong>fleetyards.net</strong> — Schiffs- und Fahrzeugbilder</li>
-      <li><strong>starcitizen.tools / cstone.space</strong> — einzelne Medieninhalte</li>
+      <li><strong>media.starcitizen.tools</strong> (Star Citizen Wiki) und
+        <strong>cstone.space</strong>: die meisten Schiffsbilder, als Hauptbild und Vorschaubild auf
+        Schiffsseiten, in der Schiffsliste, in der Flotte auf Piloten-Profilen und auf den Kacheln
+        gespeicherter Schiffe und Loadouts im Konto-Dashboard</li>
+      <li><strong>api.fleetyards.net</strong> (FleetYards): Lackierungen auf den Schiffsseiten und
+        Ersatzbilder für Schiffe ohne eigenes Bild; die Abrufe können zum Speicher von FleetYards
+        weitergeleitet werden</li>
+      <li><strong>cdn.discordapp.com</strong> (Discord Inc., USA): Profilbilder, die aus Discord
+        übernommen wurden, auf Piloten-Profilen, in Freundesliste und Chat und im Dashboard (siehe
+        <a href="#discord">Discord</a>)</li>
+      <li><strong>trgjhmbnodoarnfmlcqx.supabase.co</strong> (Supabase, siehe
+        <a href="#accounts">Benutzerkonto</a>): hochgeladene Profilbilder und Banner</li>
     </ul>
-
-    <h2>Ambient-Hintergrundvideos</h2>
     <p>
-      Einzelne Seiten zeigen kurze, stumme Videoschleifen (Trailer-Ausschnitte) als
-      Hintergrund. Diese Dateien werden <strong>lokal von dieser Website</strong> ausgeliefert —
-      es wird kein Drittserver kontaktiert. Bei aktivierter Bewegungsreduzierung
-      (prefers-reduced-motion), aktivem Datensparmodus oder auf kleinen Bildschirmen
-      wird stattdessen nur das Standbild geladen.
+      Eigene Bildadressen, die jemand im Profil einträgt, zeigt die Website nur von diesen
+      Anbietern an. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse daran,
+      Schiffe und Profile bebildert zu zeigen, ohne jedes Bild selbst vorzuhalten).
     </p>
 
-    <h2>YouTube-Videos (Klick-Aktivierung)</h2>
+    <h2>Hintergrund- und Schiffsvideos (lokal)</h2>
     <p>
-      Videos sind als Vorschaubild eingebunden und werden <strong>erst nach deinem Klick</strong>
-      über youtube-nocookie.com (Google Ireland Ltd.) geladen. Vor dem Klick findet keine
-      Verbindung zu Google statt; mit dem Klick gelten die
+      Einzelne Patch-Seiten zeigen kurze, stumme Videoschleifen (Trailer-Ausschnitte) als
+      Hintergrund. Diese Dateien werden <strong>lokal von dieser Website</strong> ausgeliefert, es
+      wird kein Drittserver kontaktiert. Bei aktivierter Bewegungsreduzierung
+      (prefers-reduced-motion), im Datensparmodus (wo der Browser ihn meldet), im Leicht-Modus der
+      Website oder bei einem Fenster unter 1000 Pixel Breite bleibt es beim Standbild. Einzelne
+      Schiffsseiten haben statt eines YouTube-Commercials ein eigenes Video; es lädt, ebenfalls
+      lokal, erst wenn du die Ansicht „Video“ wählst.
+    </p>
+
+    <h2 id="youtube">YouTube-Videos (Klick-Aktivierung)</h2>
+    <p>
+      Auf Patch- und Themenseiten sind Videos als lokales Vorschaubild eingebunden. Erst dein Klick
+      darauf lädt den Player von youtube-nocookie.com, und das Video startet sofort. Auf
+      Schiffsseiten mit offiziellem Commercial wählst du die Ansicht „Video“ und klickst dann auf
+      „Commercial abspielen“; dieser Klick lädt die Player-Schnittstelle von www.youtube.com und
+      den Player von youtube-nocookie.com, und das Video läuft stumm in einer Schleife.
+      <strong>Vor dem Klick findet keine Verbindung zu Google statt.</strong> Der Klick gilt nur für
+      dieses Video; beim nächsten Seitenaufruf lädt wieder nichts.
+    </p>
+    <p>
+      Mit dem Klick erhält Google (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4,
+      Irland) deine IP-Adresse, Browserdaten, die Herkunft verse-base.com und, soweit dein Browser
+      sie mitschickt, bereits vorhandene YouTube-Cookies. Der Player lädt weitere Inhalte von
+      Servern von Google und kann Daten in deinem Browser ablegen. Eine Übermittlung an Google LLC
+      in den USA ist möglich; Google LLC ist nach dem EU-US Data Privacy Framework zertifiziert.
+      Rechtsgrundlage ist deine Einwilligung durch den Klick (Art. 6 Abs. 1 lit. a DSGVO, § 25
+      Abs. 1 TDDDG). Es gelten die
       <a href="https://policies.google.com/privacy" rel="noopener">Datenschutzhinweise von Google</a>.
+      Verweise wie „Auf YouTube ansehen“ und YouTube-Kanäle in Profilen sind gewöhnliche Links; sie
+      übertragen nichts, bevor du ihnen folgst.
     </p>
 
     <h2 id="feedback">Feedback-Formular (Web3Forms)</h2>
     <p>
       Auf der Seite <a href="/de/feedback.html">Feedback</a> kannst du uns freiwillig eine Nachricht
-      senden. Da diese Website statisch ist und keinen eigenen Server-Backend hat, wird der Versand
-      über den Dienst <strong>Web3Forms</strong> abgewickelt. Beim Absenden werden folgende Daten an
-      Web3Forms übermittelt und von dort per E-Mail an uns zugestellt:
+      senden. Den Versand übernimmt der Dienst <strong>Web3Forms</strong>. Beim Absenden werden
+      folgende Daten an Web3Forms übermittelt und von dort per E-Mail in unser Postfach bei Google
+      (Gmail) zugestellt:
     </p>
     <ul>
       <li><strong>Nachrichtentext</strong> (Pflichtfeld)</li>
       <li><strong>Bewertung</strong> (1–5 Sterne, optional)</li>
-      <li><strong>E-Mail-Adresse</strong> (optional — nur wenn du eine Antwort möchtest; sie wird als
+      <li><strong>E-Mail-Adresse</strong> (optional, nur wenn du eine Antwort möchtest; sie wird als
         Antwortadresse gesetzt)</li>
-      <li>technisch bedingt deine IP-Adresse sowie Absendezeitpunkt</li>
+      <li>feste Formularangaben (Formularschlüssel, Betreff, Absendername, ein Feld zur Spam-Abwehr)</li>
+      <li>technisch bedingt deine IP-Adresse, Browserkennung und Spracheinstellung, die Herkunft
+        verse-base.com und der Absendezeitpunkt</li>
     </ul>
     <p>
-      Rechtsgrundlage ist deine Einwilligung durch das aktive Absenden des Formulars
-      (Art. 6 Abs. 1 lit. a DSGVO). Die Angabe der E-Mail-Adresse ist freiwillig; ohne sie können
-      wir nicht auf dein Feedback antworten. Wir verwenden die Daten ausschließlich zur Bearbeitung
-      und Beantwortung deines Feedbacks und geben sie nicht zu anderen Zwecken weiter.
+      Angaben aus deinem Benutzerkonto werden nicht mitgeschickt, auch wenn du angemeldet bist.
+      Rechtsgrundlage ist deine Einwilligung durch das aktive Absenden des Formulars (Art. 6 Abs. 1
+      lit. a DSGVO). Die Angabe der E-Mail-Adresse ist freiwillig; ohne sie können wir nicht
+      antworten. Wir verwenden die Daten ausschließlich zur Bearbeitung und Beantwortung deines
+      Feedbacks und geben sie nicht zu anderen Zwecken weiter. Die E-Mail bleibt in unserem
+      Postfach, bis wir sie löschen; auf Wunsch löschen wir sie sofort.
     </p>
     <p class="muted">
-      Anbieter des Formular-Dienstes ist Web3Forms. Bei der Übermittlung kann eine Verarbeitung auf
-      Servern außerhalb der EU stattfinden. Details zur Datenverarbeitung durch den Dienst findest du
-      in dessen Datenschutzerklärung: <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>.
-      Das Formular setzt keine Cookies und lädt keine externen Skripte; es wird erst beim Absenden
-      eine Verbindung zu Web3Forms hergestellt.
+      Web3Forms wird von Web3Creative mit Sitz in Indien betrieben und nutzt Dienstleister in der EU
+      und den USA; Grundlage der Übermittlung sind laut dessen Auftragsverarbeitungsvertrag die
+      Standardvertragsklauseln der EU-Kommission. Nach eigenen Angaben bewahrt Web3Forms
+      Einsendungen bis zu drei Jahre auf. Details:
+      <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>. Das Postfach
+      stellt Google Ireland Limited bereit; eine Übermittlung an Google LLC (USA, zertifiziert nach
+      dem EU-US Data Privacy Framework) ist möglich. Das Formular setzt keine Cookies und lädt keine
+      externen Skripte; mit Web3Forms verbindet sich dein Browser erst beim Absenden. Ohne
+      JavaScript wird das Formular als gewöhnliches Formular abgeschickt, und du landest auf einer
+      Bestätigungsseite von Web3Forms. Beim Öffnen lädt die Seite Feedback außerdem die
+      <a href="#testpilots">Testpiloten-Liste</a> aus dem Konto-System.
     </p>
 
     <h2 id="accounts">Benutzerkonto (Supabase)</h2>
     <p>
-      Du kannst freiwillig ein Benutzerkonto anlegen, um Favoriten (z. B. gemerkte Schiffe) zu
-      speichern und ein Profil zu verwalten. Die Konto-Funktion wird über den Dienst
-      <strong>Supabase</strong> bereitgestellt; die Daten liegen in einem EU-Rechenzentrum
+      Du kannst freiwillig ein Benutzerkonto anlegen, mit E-Mail-Adresse und Passwort oder mit
+      deinem <a href="#discord">Discord-Konto</a>. Die Registrierung mit E-Mail-Adresse ist derzeit
+      pausiert; neue Konten lassen sich nur mit Discord anlegen, bestehende melden sich weiter mit
+      E-Mail-Adresse und Passwort an. Die Konto-Funktion wird über den Dienst
+      <strong>Supabase</strong> bereitgestellt; die Datenbank liegt in einem EU-Rechenzentrum
       (AWS Frankfurt am Main, Region eu-central-1). Verarbeitet werden:
     </p>
     <ul>
       <li><strong>E-Mail-Adresse</strong> und <strong>Passwort</strong> (das Passwort wird
-        ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext)</li>
-      <li><strong>Profildaten</strong>, die du selbst angibst (Anzeigename, Handle — beides optional;
-        dazu freiwillig Namen bei Twitch, YouTube und X, die als Links auf deinem öffentlichen
-        Piloten-Profil stehen)</li>
-      <li>bei der freiwilligen <strong>Anmeldung mit Discord</strong> oder wenn du Discord im Konto
-        verbindest: die Angaben, die Discord dafür übermittelt (Discord-ID, Benutzername,
-        Anzeigename, Profilbild, E-Mail-Adresse); Name und Bild übernimmt das Konto als Vorschlag
-        in dein Profil</li>
-      <li><strong>Nachrichten</strong>, die du im Chat an bestätigte Freunde schreibst, mit
-        Absender, Empfänger, Zeitpunkt und Lesestatus; lesen können sie nur Absender und
-        Empfänger</li>
-      <li><strong>Favoriten</strong>, die du aktiv speicherst, darunter deine Schiffsflotte; sobald
-        du ein Handle gesetzt hast, sind sie auf deinem öffentlichen Piloten-Profil sichtbar</li>
+        ausschließlich als kryptografischer Hash gespeichert, niemals im Klartext). Legst du das
+        Konto mit Discord an, stammt die E-Mail-Adresse von Discord, und es gibt zunächst kein
+        Passwort. Setzt du später im Konto-Dashboard eins, wird es ebenso nur als Hash gespeichert,
+        und du kannst dich dann auch mit E-Mail-Adresse und Passwort anmelden.</li>
+      <li><strong>Profildaten</strong>, die du selbst angibst: Anzeigename, Handle,
+        Kurzbeschreibung, Profilbild oder Symbol mit Farbe, Banner, Rolle, Status und Statustext,
+        Org-Name, ein Discord-Tag (nur für dich sichtbar; ist Discord verbunden, trägt das Konto es
+        selbst ein, siehe <a href="#discord">Discord</a>), deine Namen bei Twitch, YouTube und X
+        sowie dein <a href="#rsi">RSI-Handle</a>. Den Anzeigenamen setzt das Konto beim Anlegen vorläufig
+        selbst, wenn du keinen angibst: deinen Discord-Namen oder, ohne Discord, den Teil deiner
+        E-Mail-Adresse vor dem @. Du kannst ihn jederzeit ändern; öffentlich wird er erst mit
+        einem Handle (siehe <a href="#profile">Piloten-Profil</a>).</li>
+      <li><strong>Hochgeladene Bilder</strong> (Profilbild, Banner): Dein Browser schneidet sie
+        zu und rechnet sie neu, Metadaten des Originals wie Kamera- oder Standortangaben werden
+        dabei nicht hochgeladen. Hochgeladen wird das Bild, sobald du den Zuschnitt bestätigst,
+        auch wenn du das Profil danach nicht speicherst. Es liegt in einem öffentlichen
+        Speicherbereich von Supabase unter einer Adresse, die deine interne Konto-ID enthält, und ist
+        für jeden abrufbar; die im Profil gespeicherte Adresse nennt außerdem den Zeitpunkt des
+        Hochladens.</li>
+      <li><strong>Favoriten</strong>, die du aktiv speicherst, darunter deine Schiffsflotte</li>
       <li><strong>Werkzeug-Daten</strong>, die du aktiv anlegst (Crafting-Planer und
-        „Im Besitz“-Markierungen, Refinery-Aufträge)</li>
-      <li>dein <a href="#presence"><strong>Online-Status</strong></a>, solange du angemeldet bist</li>
-      <li>technisch bedingt Sitzungs- und Sicherheitsdaten des Anbieters (z. B. Zeitpunkt der
-        Anmeldung, IP-Adresse in Sicherheits-Logs)</li>
+        „Im Besitz“-Markierungen, Refinery-Aufträge, Mining-Vorlagen, Hangar-Layouts); sie sind
+        nur für dich sichtbar</li>
+      <li><strong>Freundschaftsanfragen, Freundschaften und Nachrichten</strong> (siehe
+        <a href="#friends">Freunde und Nachrichten</a>)</li>
+      <li>dein <a href="#presence"><strong>Online-Status</strong></a> und die Angabe, was du
+        gerade machst, solange du angemeldet bist</li>
+      <li>dein <a href="#rsi">RSI-Verifizierungscode</a>, sobald du das Konto-Dashboard einmal
+        geöffnet hast (auch wenn du nie verifizierst), nach einer Prüfung auch das Prüfergebnis;
+        als <a href="#testpilots">Testpilot</a> die zugehörigen Angaben</li>
+      <li>technisch bedingt <strong>Sitzungs- und Sicherheitsdaten</strong>: für jede Anmeldung
+        IP-Adresse, Browserkennung und Zeitpunkte, bis du dich auf diesem Gerät abmeldest, die
+        Sitzung im Dashboard unter Sicherheit &amp; Konto mit „Andere Geräte abmelden“ oder
+        „Überall abmelden“ beendest oder das Konto löschst; dazu Zeitpunkt der Kontoerstellung und der letzten Anmeldung. Supabase
+        protokolliert Zugriffe mit IP-Adresse außerdem für eine kurze, vom Anbieter festgelegte
+        Zeit.</li>
     </ul>
     <p>
       Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der Konto-Funktion auf deinen
-      Wunsch). Die Anmeldung erfolgt ohne Cookies: das Sitzungs-Token wird ausschließlich lokal in
-      deinem Browser gespeichert (localStorage). Du kannst dein Konto jederzeit selbst im
-      <a href="/de/account.html">Konto-Dashboard</a> endgültig löschen — dabei werden alle
-      zugehörigen Daten (Profil, Favoriten, Werkzeug-Daten, gesendete und empfangene Nachrichten,
-      Anmeldedaten) unwiderruflich entfernt.
+      Wunsch). Die Anmeldung auf verse-base.com setzt für deine Sitzung keine Cookies; die Sitzung
+      liegt in deinem Browser (siehe <a href="#storage">Speicherung im Browser</a>). Nur bei
+      Administrator-Konten setzt die Seite nach der Anmeldung zusätzlich den Cookie
+      <code>vb_noanalytics</code>, damit dieser Browser nicht mitgezählt wird (siehe
+      <a href="#opt-out">Widerspruch</a>). Nach einer Anmeldung mit Discord und nach dem Verbinden
+      von Discord im Dashboard enthält die Sitzung außerdem die beiden Schlüssel, die Discord dafür ausgestellt hat (Zugangs- und
+      Erneuerungsschlüssel), bis sie zum ersten Mal erneuert wird: nach etwa einer Stunde, wenn du
+      die Website dann geöffnet hast, sonst bei deinem nächsten Besuch. Die Website nutzt und
+      versendet sie nicht. Forderst du ein neues Passwort an, schickt Supabase für uns eine E-Mail
+      mit einem einmaligen Link an diese Adresse. Änderst du deine E-Mail-Adresse, geht je eine
+      E-Mail mit einem einmaligen Bestätigungslink an deine bisherige und an deine neue Adresse;
+      wirksam wird die Änderung erst, wenn du beide bestätigt hast.
+    </p>
+    <p>
+      Du kannst dein Konto jederzeit selbst im
+      <a href="/de/account.html">Konto-Dashboard</a> endgültig löschen. Dabei werden
+      unwiderruflich entfernt: Anmeldedaten und Sitzungen, Profil samt Online-Zeitpunkten,
+      Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, gesendete und empfangene Nachrichten
+      (auch beim Gegenüber), die Verknüpfung mit Discord samt gespeicherter Discord-ID,
+      Testpilot-Angaben und den ins Konto übernommenen Werten vom Discord-Server (die Daten des
+      Bots selbst bleiben, siehe <a href="#discord-server">Discord-Server und Bot</a>), sowie die
+      Kopien deiner Daten in diesem Browser. <strong>Hochgeladene Profilbilder und Banner</strong> bleiben derzeit als Datei
+      erhalten, wenn du sie im Dashboard entfernst oder das Konto löschst; schreib uns eine E-Mail,
+      dann löschen wir sie. Einen Verifizierungscode in deiner RSI-Bio entfernst du selbst auf
+      robertsspaceindustries.com.
+    </p>
+    <p>
+      Als Betreiber der Datenbank haben wir technisch Zugriff auf alle gespeicherten Kontodaten,
+      auch auf E-Mail-Adressen, Anmeldezeitpunkte, die IP-Adressen der Sitzungen und Nachrichten.
+      Innerhalb der Website sehen Administrator-Konten zusätzlich nur die
+      <a href="#testpilots">Testpiloten-Übersicht</a>.
     </p>
     <p class="muted">
-      Auftragsverarbeiter: Supabase, Inc.; Datenhaltung in der EU (AWS eu-central-1, Frankfurt).
-      Details zur Datenverarbeitung durch den Dienst:
+      Auftragsverarbeiter: Supabase Pte. Ltd., 65 Chulia Street #38-02/03, OCBC Centre,
+      Singapur 049513. Die Datenbank liegt in der EU (AWS eu-central-1, Frankfurt); Supabase und
+      seine Unterauftragnehmer können aber auch aus Drittländern wie Singapur und den USA auf Daten
+      zugreifen. Grundlage dafür sind die Standardvertragsklauseln der EU-Kommission im
+      Auftragsverarbeitungsvertrag von Supabase. Details zur Datenverarbeitung durch den Dienst:
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
+    </p>
+    <p class="muted">
       Ohne Anmeldung verbindet sich die Website mit Supabase nur, wenn du Konto-Funktionen nutzt
-      (Registrierung, Anmeldung), und auf drei Seiten, die öffentliche Daten lesen: ein
-      öffentliches Piloten-Profil (Profil und Favoriten dieses Piloten), die Seite Feedback (die
-      Liste der genannten Tester) und die Seite Unterstützen (die bisherige Summe; auch die
-      Stripe-Bezahlseite legt der Knopf dort über Supabase an und schickt dafür nur den gewählten
-      Betrag und die Seitensprache). Nichts, was dich erkennbar macht, wird dabei gesendet; technisch bedingt erfährt Supabase wie bei jedem Abruf deine IP-Adresse. Bist du
-      angemeldet, verbinden sich die Seiten mit dem Menü der Website mit Supabase, um deine
-      Sitzung bei Bedarf zu erneuern, deinen Anzeigenamen im Menü zu zeigen und deinen
-      <a href="#presence">Online-Status</a> zu schreiben; Seiten mit kontogebundenen Werkzeugen
-      gleichen zusätzlich deren Inhalte ab.
+      (Anmeldung, Passwort zurücksetzen), und auf drei Arten von Seiten, die öffentliche Daten
+      lesen: ein öffentliches Piloten-Profil (Profil und Favoriten dieses Piloten beim Öffnen,
+      danach alle 40 Sekunden sein Online-Status, solange die Seite offen ist; hochgeladene Bilder
+      kommen aus dem Speicher von Supabase), die Seite Feedback (die Liste der genannten
+      <a href="#testpilots">Testpiloten</a>) und die Seite Unterstützen (der
+      <a href="#support">Spendenstand</a>; auch die Stripe-Bezahlseite legt der Knopf dort über
+      Supabase an und schickt dafür nur den gewählten Betrag und die Seitensprache). Nichts, was
+      dich erkennbar macht, wird dabei gesendet; technisch bedingt erfährt Supabase wie bei jedem
+      Abruf deine IP-Adresse. Rechtsgrundlage dieser Abrufe ist Art. 6 Abs. 1 lit. f DSGVO
+      (berechtigtes Interesse, öffentliche Profile, die Testpiloten-Liste und den Spendenstand zu
+      zeigen).
+    </p>
+    <p class="muted">
+      Bist du angemeldet, verbinden sich die Seiten mit dem Menü der Website mit Supabase, um
+      deine Sitzung bei Bedarf zu erneuern, Anzeigenamen und Konto-Rolle für das Menü zu lesen und
+      deinen <a href="#presence">Online-Status</a> zu schreiben. Seiten mit kontogebundenen
+      Werkzeugen gleichen deren Inhalte ab und übernehmen beim ersten Mal, was du ohne Anmeldung
+      in diesem Browser gespeichert hattest. Das Konto-Dashboard hält zusätzlich eine dauerhafte
+      Verbindung zu Supabase, über die neue Nachrichten eintreffen, fragt Nachrichten, ungelesene
+      Nachrichten und den Status deiner Freunde regelmäßig ab und prüft bei einem verifizierten
+      RSI-Handle, ob dein Code noch in der RSI-Bio steht. Auf Piloten-Profilen schickt die Seite
+      bei ihren Abrufen deine Sitzung mit.
+    </p>
+
+    <h2 id="discord">Anmelden und Verbinden mit Discord</h2>
+    <p>
+      Anmelden, Registrieren und Verbinden mit Discord sind freiwillig und beginnen erst mit
+      deinem Klick. Dein Browser wechselt dann zu Discord (Discord Inc., 444 De Haro Street,
+      Suite 200, San Francisco, CA 94107, USA); nach deiner Zustimmung dort übermittelt Discord an
+      das Konto-System deine Discord-ID, deinen Benutzer- und Anzeigenamen, die Adresse deines
+      Profilbilds und deine E-Mail-Adresse (Berechtigungen „identify“ und „email“). Gibt es noch
+      kein Konto, legt der Klick eines an. Gibt es bereits ein Konto mit derselben bestätigten
+      E-Mail-Adresse, verbindet das Konto-System beide automatisch.
+    </p>
+    <p>
+      Legst du das Konto mit Discord an, übernimmt das Profil sofort deinen Discord-Anzeigenamen
+      (sonst den Benutzernamen), dein Discord-Profilbild und „@Benutzername“ als Discord-Tag.
+      Verbindest du Discord später, übernimmt es Bild und Namen, sofern du noch kein eigenes Bild
+      und keinen eigenen Namen gesetzt hast; das Discord-Tag hält es aktuell, solange die
+      Verbindung besteht. Das Discord-Tag siehst nur du. Das Profilbild bleibt eine Adresse auf
+      dem Server von Discord (cdn.discordapp.com): wer dein Profil sieht oder dich im eigenen
+      Dashboard angezeigt bekommt (als Freund, Anfrage, Suchtreffer, Vorschlag oder im Chat), lädt
+      es direkt von dort (siehe <a href="#images">extern eingebundene Bilder</a>).
+      Deine Discord-ID speichert das Konto außerdem für den
+      <a href="#testpilots">Testpilot-Abgleich</a> und die Werte vom
+      <a href="#discord-server">Discord-Server</a>.
+    </p>
+    <p>
+      Trennst du Discord im Dashboard, löst das nur die Anmeldeverbindung. Übernommene Angaben
+      (Name, Bildadresse, Discord-Tag) bleiben im Konto stehen, bis du sie änderst oder das Konto
+      löschst. Auch die Zuordnung deiner Discord-ID bleibt bestehen und wirkt weiter: Unser
+      <a href="#discord-server">Discord-Bot</a> überträgt weiterhin deine Werte vom Discord-Server
+      und ob du die Rolle „Test Pilots“ trägst in dein Konto, und davon hängt weiter dein Zugang zur
+      <a href="#staging">Testvorschau</a> ab; nur Level, Rang und Prestige sind dann nicht mehr
+      öffentlich abrufbar. Das endet erst, wenn du das Konto löschst oder wir die Zuordnung auf
+      deine Anfrage per E-Mail entfernen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO. Discord
+      verarbeitet Daten auch in den USA und nimmt nach eigenen Angaben am EU-US Data Privacy
+      Framework teil; für die Anmeldung bei Discord gilt dessen Datenschutzerklärung:
+      <a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>.
+    </p>
+
+    <h2 id="profile">Öffentliches Piloten-Profil</h2>
+    <p>
+      Dein Profil ist zunächst nicht öffentlich. Erst wenn du im Dashboard ein
+      <strong>Handle</strong> setzt, ist unter /pilot/&lt;Handle&gt; für jeden sichtbar, auch
+      ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
+      Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
+      das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
+      dein <a href="#presence">Online-Status</a> und alle deine Favoriten samt Schiffsflotte. Bist
+      du mit Discord verknüpft und Mitglied unseres Discord-Servers, zeigt das Profil außerdem ein
+      Rang-Abzeichen mit deinem Rang, Level und Prestige dort (siehe
+      <a href="#discord-server">Discord-Server</a>). Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
+      genauen Zeitpunkt, zu dem du das Konto angelegt und jeden Favoriten gespeichert hast, und
+      zwar für alle Profile mit Handle auf einmal.
+    </p>
+    <p>
+      Angemeldete Nutzer können über die Schnittstelle zusätzlich die interne Konto-ID jedes
+      Profils mit Handle lesen. Hast du ein eigenes Profilbild oder Banner hochgeladen, steht sie
+      außerdem in dessen Adresse, zusammen mit dem Zeitpunkt des Hochladens, und ist damit für
+      jeden lesbar (siehe
+      <a href="#accounts">Benutzerkonto</a>). Angemeldete Nutzer, auch ohne eigenes Handle, finden
+      Profile mit Handle außerdem im Konto-Dashboard: Ab zwei getippten Zeichen zeigt die Suche zum
+      Hinzufügen von Freunden bis zu sechs Profile, deren Handle oder Anzeigename so beginnt, und
+      unter „Vorschläge“ stehen bis zu zwölf Profile mit derselben Org oder Rolle oder mit einem
+      Rang vom Discord-Server. Treffer und Vorschläge zeigen Anzeigename, Handle, Profilbild oder
+      Symbol, ob das RSI-Handle verifiziert ist, gegebenenfalls das Rang-Abzeichen und bei
+      Vorschlägen die gemeinsame Org oder Rolle. Nicht öffentlich sind deine E-Mail-Adresse, dein Discord-Tag, dein Verifizierungscode, deine
+      Werkzeug-Daten und Hangar-Layouts und deine Nachrichten; deine Freundesliste zeigt die
+      Website nur dir. Nutzt du dein
+      Discord-Bild als Profilbild, lädt jeder Browser, der dein Profil zeigt, das Bild direkt von
+      Discord; die Bildadresse enthält deine Discord-ID, die damit ebenfalls öffentlich lesbar ist.
+      Die Profilseite ist für Suchmaschinen gesperrt (noindex). Entfernst du das Handle, ist das
+      Profil nicht mehr öffentlich. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO: das öffentliche
+      Profil ist eine Funktion, die du mit dem Handle selbst einschaltest.
+    </p>
+
+    <h2 id="friends">Freunde und Nachrichten (nur mit Konto)</h2>
+    <p>
+      Angemeldet und mit eigenem Handle kannst du anderen Piloten mit Handle eine
+      Freundschaftsanfrage schicken: im Konto-Dashboard über die Suche nach Handle oder Anzeigename
+      oder über die Vorschläge (siehe <a href="#profile">Piloten-Profil</a>) und mit „Freund
+      hinzufügen“ auf ihrem Piloten-Profil; dort kannst du auch eine Anfrage an dich annehmen. Die
+      getippten Zeichen der Suche gehen dabei als Suchanfrage an Supabase. Gespeichert werden Absender, Empfänger, Status und die
+      Zeitpunkte von Anfrage und Antwort, für eine Freundschaft beide Konten und ihr Beginn. Diese
+      Einzelheiten sehen nur die beiden Beteiligten, und eine Freundesliste zeigt die Website
+      nirgends öffentlich an. Ablehnen
+      oder Zurückziehen löscht die Anfrage, „Entfernen“ die Freundschaft samt allen Anfragen
+      zwischen euch.
+    </p>
+    <p>
+      Bestätigte Freunde können sich im Konto-Dashboard <strong>Nachrichten</strong> schreiben.
+      Gespeichert werden Text, Absender, Empfänger, Zeitpunkt und wann die Nachricht gelesen
+      wurde. Über die Website lesen können sie nur Absender und Empfänger; sie sind aber nicht
+      Ende-zu-Ende-verschlüsselt, technisch haben wir als Betreiber der Datenbank und Supabase
+      Zugriff. Neue Nachrichten kommen über eine dauerhafte Verbindung zu Supabase an, solange das
+      Dashboard offen ist. Einzelne Nachrichten oder Verläufe lassen sich nicht löschen; sie bleiben
+      auch nach dem Ende einer Freundschaft für beide lesbar und werden gelöscht, sobald einer von
+      euch beiden sein Konto löscht. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
     </p>
 
     <h2 id="presence">Online-Status (nur mit Konto)</h2>
     <p>
       Solange du angemeldet bist und eine Seite mit dem Menü der Website geöffnet hast (das sind
-      alle außer den Ausstattungsseiten einzelner Schiffe im Hangar und den Onepager-Leitfäden),
-      schreibt dein Browser zwei Zeitpunkte in dein Profil: wann die Seite zuletzt offen war und wann du
-      zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen, Berühren; das Laden der Seite
-      und die Rückkehr auf den Tab zählen mit). Das geschieht beim Laden, danach alle
-      30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder Rückkehr auf den Tab.
-      Auf einigen Seiten kommt eine kurze Angabe dazu, was du gerade machst: im Hangar, beim
-      Loadout-Bauen oder auf einer Schiffsseite (jeweils mit dem Schiffsnamen) oder bei der
-      Mining-Planung; auf allen anderen Seiten wird sie geleert. Diese Angabe sehen nur deine
-      bestätigten Freunde, und nur solange sie frisch ist (3 Minuten). Im Konto-Dashboard
-      kannst du sie abschalten („Freunde sehen, was ich gerade mache“); dann wird sie geleert
-      und nicht mehr mitgeschickt. Weitere Angaben dazu, welche Seite du ansiehst und was du
-      dort tust, werden nicht übermittelt. Ohne Anmeldung wird nichts geschrieben.
+      alle außer den Ausstattungsseiten einzelner Schiffe im Hangar, den Onepager-Leitfäden und
+      der Fehlerseite), schreibt dein Browser Zeitpunkte in dein Profil: wann die Seite zuletzt
+      offen war und wann du zuletzt mit ihr interagiert hast (Maus, Tastatur, Scrollen,
+      Berühren; das Laden der Seite und die Rückkehr auf den Tab zählen mit). Das geschieht beim
+      Laden, danach alle 30 Sekunden, auch wenn der Tab im Hintergrund liegt, und bei jeder
+      Rückkehr auf den Tab.
+    </p>
+    <p>
+      Auf einigen Seiten kommt eine kurze Angabe dazu, was du gerade machst, mit ihrem Zeitpunkt:
+      im Hangar (mit dem gewählten Schiff), beim Loadout-Bauen oder auf einer Schiffsseite
+      (jeweils mit dem Schiffsnamen), bei der Mining-Planung oder in der Refinery; auf allen
+      anderen Seiten wird sie geleert. Diese Angabe sehen nur deine bestätigten Freunde, und nur
+      solange sie frisch ist (3 Minuten). Sie ist eingeschaltet, bis du sie im Konto-Dashboard
+      abschaltest („Freunde sehen, was ich gerade mache“); dann wird sie geleert und nicht mehr
+      mitgeschickt. Kennt ein Browser deine Einstellung noch nicht, schickt er die Angabe erst,
+      nachdem er sie vom Konto erfahren hat. Weitere Angaben dazu, welche Seite du ansiehst und
+      was du dort tust, werden nicht übermittelt. Ohne Anmeldung wird nichts geschrieben.
     </p>
     <p>
       Andere sehen nicht die Zeitpunkte, sondern nur einen daraus abgeleiteten Status:
       <em>online</em> (Seite offen und in den letzten 3 Minuten benutzt), <em>abwesend</em>
       (Seite offen, aber länger unbenutzt, oder vor weniger als 3 Minuten geschlossen) oder
-      <em>offline</em>. Sichtbar ist dieser Status nur, wenn du ein Handle gesetzt hast: für
-      jeden auf deinem öffentlichen Piloten-Profil und für angemeldete Nutzer im Freundes- und
-      Piloten-Verzeichnis. Meldest du dich im Konto-Dashboard ab, versucht die Seite zuerst,
-      beide Zeitpunkte und die Angabe zu leeren, und meldet dich danach in jedem Fall ab. Gelingt das Leeren
-      nicht (etwa ohne Netz), schreibt dieser Browser keine weiteren Zeitpunkte, und der Status
-      wechselt nach spätestens 3 Minuten auf offline, sofern nicht auf einem anderen Gerät, auf
-      dem du angemeldet bist, noch eine Seite dieser Website offen ist. Beim Löschen des Kontos verschwinden die Zeitpunkte mit dem Profil.
-      Rechtsgrundlage ist wie beim übrigen Konto Art. 6 Abs. 1 lit. b DSGVO.
+      <em>offline</em>. Berechnet wird dieser Status nur, wenn du ein Handle gesetzt hast. Dann
+      ist er für jeden lesbar: auf deinem öffentlichen Piloten-Profil, das ihn alle 40 Sekunden
+      auffrischt, und über die öffentliche Schnittstelle für alle Profile mit Handle. Angemeldeten
+      Nutzern zeigt die Website ihn bei Freunden und offenen Anfragen. Meldest du dich im
+      Konto-Dashboard ab (auch mit „Überall abmelden“), versucht die Seite zuerst, die Zeitpunkte und die Angabe zu leeren, und
+      meldet dich danach in jedem Fall ab. Gelingt das Leeren nicht (etwa ohne Netz), schreibt
+      dieser Browser keine weiteren Zeitpunkte, und der Status wechselt nach spätestens 3 Minuten
+      auf offline, sofern nicht auf einem anderen Gerät, auf dem du angemeldet bist, noch eine
+      Seite dieser Website offen ist. Beim Löschen des Kontos verschwinden die Zeitpunkte mit dem
+      Profil. Rechtsgrundlage ist wie beim übrigen Konto Art. 6 Abs. 1 lit. b DSGVO.
+    </p>
+
+    <h2 id="rsi">RSI-Verifizierung (nur mit Konto)</h2>
+    <p>
+      Im Dashboard kannst du freiwillig dein Citizen-Handle bei Roberts Space Industries (RSI)
+      eintragen und bestätigen, dass es dir gehört. Dafür teilt dir das Konto beim ersten Öffnen
+      des Dashboards einen persönlichen Code (VERSEBASE-VERIFY-…) zu und speichert ihn; du trägst
+      ihn in deine öffentliche Bio auf robertsspaceindustries.com ein. Auf deinen Klick ruft unser
+      Serverteil (eine Supabase-Funktion) die öffentliche Profilseite
+      robertsspaceindustries.com/citizens/&lt;Handle&gt; ab und sucht dort den Code. RSI (Roberts
+      Space Industries International Limited, Vereinigtes Königreich) erfährt dabei nur das Handle, und zwar von einem Server von Supabase aus; deine IP-Adresse,
+      E-Mail-Adresse oder Konto-ID erfährt RSI nicht. Ist das Handle verifiziert, wiederholt das
+      Dashboard die Prüfung bei jedem Aufruf; steht der Code nicht mehr in der Bio, wird die
+      Verifizierung aufgehoben.
+    </p>
+    <p>
+      Gespeichert werden RSI-Handle, Code und Prüfergebnis. Hast du ein Handle bei uns gesetzt,
+      sind dein RSI-Handle (auch unverifiziert, als Link zu RSI) und das Abzeichen „RSI
+      verifiziert“ auf deinem <a href="#profile">Piloten-Profil</a> öffentlich; den Code siehst
+      nur du. Leerst du das Feld und speicherst, ist das RSI-Handle gelöscht; „Verifizierung
+      aufheben“ entfernt nur den Status. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
+    </p>
+
+    <h2 id="testpilots">Testpiloten</h2>
+    <p>
+      Testpiloten erproben neue Funktionen auf der <a href="#staging">Testvorschau</a>. Wer dazu
+      gehört, richtet sich nach der Rolle „Test Pilots“ auf unserem
+      <a href="#discord-server">Discord-Server</a>. Ist deine Discord-ID deinem Konto zugeordnet,
+      meldet unser Discord-Bot an das Konto-System, ob du diese Rolle trägst (ja oder nein), bei
+      jeder Änderung und regelmäßig zum Abgleich, auch nachdem du Discord im Dashboard getrennt
+      hast (siehe <a href="#discord">Discord</a>); solange du die Rolle trägst, bleibt dir damit der
+      Zugang zur Testvorschau. Gespeichert werden dazu deine Discord-ID, ob du
+      die Rolle trägst, und der Zeitpunkt deines letzten Besuchs der Testvorschau. Administratoren
+      sehen in einer Übersicht Handle, Anzeigename, Discord-ID und letzten Besuch aller
+      Testpiloten. Um jemandem den Zugang zu entziehen, kann ein Sperrvermerk mit Begründung
+      gespeichert werden.
+    </p>
+    <p>
+      Öffentlich sein kann als Testpilot zweierlei. Beides richtet sich nach einem
+      Testpilot-Vermerk in deinem Profil, den nur wir serverseitig setzen, nie dein Browser. Er
+      folgt der Rolle „Test Pilots“ derzeit nicht automatisch: Verlierst du die Rolle, bleibt er
+      stehen, bis wir ihn entfernen. Trägt dein Profil ihn und hast du ein Handle, zeigt dein Piloten-Profil das Abzeichen
+      „Testpilot“; nur dann erscheint im Dashboard auch der Schalter „Meinen Namen bei den
+      Testpiloten nennen“. Schaltest du ihn ein (Vorgabe aus), steht dein Anzeigename (ohne ihn
+      dein Handle) mit einem Link auf dein Profil in der Testpiloten-Liste der Seite <a href="/de/feedback.html">Feedback</a>.
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, für die Liste deine Einwilligung (Art. 6
+      Abs. 1 lit. a DSGVO), die du mit dem Schalter jederzeit widerrufst. Alles hier wird mit dem
+      Konto gelöscht.
+    </p>
+
+    <h2 id="staging">Testvorschau (staging.verse-base.com)</h2>
+    <p>
+      Unter staging.verse-base.com betreiben wir eine Testvorschau, die nur
+      <a href="#testpilots">Testpiloten</a> und Administratoren offensteht. Am Eingang meldest du
+      dich mit deinem Konto an; die Eingangsseite verbindet sich dafür mit Supabase. Der Server
+      fragt dann beim Konto-System, ob du Zugang hast, speichert den Zeitpunkt deines Besuchs und
+      setzt zwei technisch notwendige Cookies: <code>vb_gate</code> (der Zutrittsnachweis mit
+      deiner Konto-ID, vom Server signiert, für Skripte nicht lesbar) und <code>vb_gate_exp</code>
+      (dessen Ablaufzeit), beide 5 Minuten gültig. Solange eine Seite der Vorschau sichtbar im
+      Vordergrund ist, erneuert der Browser den Nachweis etwa eine Minute vor Ablauf. Liegt der Tab
+      im Hintergrund, setzt das aus; wird er wieder sichtbar, erneuert der Browser den Nachweis
+      einmal sofort. Jedes Erneuern schreibt den Besuchszeitpunkt fort. Eine Reichweitenmessung läuft auf der Testvorschau nicht.
+      Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, für die Cookies § 25 Abs. 2 Nr. 2 TDDDG. Auf
+      verse-base.com gibt es diesen Eingang und diese Cookies nicht.
+    </p>
+
+    <h2 id="discord-server">Discord-Server und Bot</h2>
+    <p>
+      Zu VerseBase gehört ein Discord-Server mit einem eigenen Bot, den wir auf unserem Server
+      betreiben. Für Mitglieder des Discord-Servers führt er ein Level-System: Je Discord-ID
+      speichert er Erfahrungspunkte (im laufenden Durchgang und insgesamt), Prestige, die Zahl
+      deiner Nachrichten, deine Zeit in Sprachkanälen und den Zeitpunkt der letzten Änderung; Level
+      und Rang berechnet er daraus. Für jeden Beitrag, den du im Forum für Fehlerberichte eröffnest,
+      gibt es einmal Bonuspunkte; dazu vermerkt er die Kennung des Beitrags, deine Discord-ID und
+      den Zeitpunkt. Den Inhalt von Nachrichten liest er nicht. In sein Betriebsprotokoll auf
+      unserem Server schreibt er aber den Titel eines solchen Fehlerberichts zusammen mit deiner
+      Discord-ID und außerdem, wenn du den Server verlässt, sich deine Rolle „Test Pilots“ ändert
+      oder ein Abgleich mit dem Konto-System fehlschlägt, deine Discord-ID und ob ihr ein
+      Website-Konto zugeordnet ist. Level, Rang, Prestige, Erfahrungspunkte und deinen Platz auf der Bestenliste
+      sehen alle Mitglieder des Servers, über <code>/rank</code>, das sich für jedes Mitglied
+      abrufen lässt, und über die Bestenliste; deinen Rang zeigt außerdem eine Discord-Rolle, und
+      Aufstiege meldet der Bot im Server. Die Zahl deiner Nachrichten und deine Sprachzeit zeigt er
+      dort nicht an.
+    </p>
+    <p>
+      Außerdem gleicht der Bot die Rolle „Test Pilots“ mit Website-Konten ab (siehe
+      <a href="#testpilots">Testpiloten</a>). Ist deine Discord-ID einem Website-Konto zugeordnet,
+      überträgt er deine Werte in dieses Konto: Level, Rang, Prestige, Erfahrungspunkte,
+      Nachrichten, Sprachzeit, Platz auf der Bestenliste und ob du gerade Mitglied des Servers bist,
+      beim Start des Bots, danach alle 5 Minuten und sofort nach jedem Aufstieg. Das gilt auch nach
+      dem Trennen von Discord, bis die Zuordnung entfernt ist (siehe <a href="#discord">Discord</a>).
+      Solange Discord verbunden ist und du Mitglied des Servers bist, zeigt dein
+      <a href="#profile">Piloten-Profil</a> Level, Rang und Prestige jedem als Rang-Abzeichen, und
+      jeder kann sie über die öffentliche Datenbank-Schnittstelle abrufen; angemeldeten Nutzern
+      zeigt die Website das Abzeichen auch bei Freunden, in Anfragen, Suchtreffern und
+      Vorschlägen. Die übrigen Werte zeigt die Website nur dir. Für den Abgleich schickt der Bot deine Discord-ID an
+      das Konto-System bei Supabase, auch wenn du kein Website-Konto hast: wenn du den Server
+      verlässt, wenn sich deine Rolle „Test Pilots“ ändert und wenn du ein Level aufsteigst. Ist die
+      Discord-ID mit keinem Konto verbunden, legt das Konto-System dazu nichts an; die Anfrage samt
+      Discord-ID steht dann nur im Zugriffsprotokoll von Supabase, für eine kurze, vom Anbieter
+      festgelegte Zeit.
+    </p>
+    <p>
+      Die Daten des Bots liegen in einer eigenen Datenbank auf unserem Server. Wir bewahren sie
+      auf, solange wir den Bot betreiben; automatisch gelöscht werden sie nicht, auch nicht, wenn du
+      den Server verlässt oder dein Website-Konto löschst. Auf Anfrage per E-Mail löschen wir sie.
+      Hast du den Server verlassen, führt die Bestenliste deinen Eintrag weiter, statt mit deinem
+      Namen mit den ersten Ziffern deiner Discord-ID. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem
+      lebendigen Community-Server). Für alles Übrige auf dem Server gilt die Datenschutzerklärung
+      von Discord (<a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>).
     </p>
 
     <h2 id="support">Freiwillige Unterstützung (Stripe, PayPal)</h2>
@@ -320,52 +698,111 @@ body{font-family:var(--font-body)}
       Bezahlschranke, und ein Beitrag kauft weder Waren noch Leistungen noch Vorteile im Konto.
     </p>
     <p>
-      <strong>Stripe.</strong> Wenn du den Knopf drückst, lässt diese Website bei Stripe eine
-      Bezahlseite anlegen und schickt dich dorthin. Alles, was du eingibst — Zahlungsart,
-      Kartendaten, Rechnungsdaten, E-Mail-Adresse — gibst du <em>auf der Seite von Stripe</em> ein,
-      nicht auf dieser. Diese Website erhält, sieht und speichert deine Zahlungsdaten zu keinem
-      Zeitpunkt. Stripe verarbeitet die Zahlung in eigener Verantwortung als eigenständiger
-      Verantwortlicher nach seiner eigenen Datenschutzerklärung. Rechtsgrundlage für die
-      Übermittlung, die den Vorgang anstößt, ist Art. 6 Abs. 1 lit. b DSGVO (Durchführung der von
-      dir ausgelösten Zahlung).
+      <strong>Stripe.</strong> Drückst du den Knopf, schickt dein Browser nur den gewählten Betrag
+      und die Seitensprache an eine Serverfunktion dieses Projekts bei Supabase, ohne Angaben aus
+      deinem Konto, auch wenn du angemeldet bist. Die Funktion lässt bei Stripe eine Bezahlseite
+      anlegen (Betrag in Euro, fester Produktname, Seitensprache, Rücksprungadressen) und schickt
+      dich dorthin. Alles, was du eingibst — Zahlungsart, Kartendaten, Rechnungsdaten,
+      E-Mail-Adresse — gibst du <em>auf der Seite von Stripe</em> ein, nicht auf dieser. Wählst du
+      dort PayPal, Apple Pay, Google Pay oder eine andere angebotene Zahlart, ist zusätzlich deren
+      Anbieter beteiligt: Bei PayPal meldest du dich auf dessen Seite an, bei Apple Pay und Google
+      Pay kommen die Zahlungsdaten aus deinem Wallet; dafür gilt jeweils die Datenschutzerklärung
+      dieses Anbieters. Kartendaten und Bankverbindung erreichen diese Website zu keinem
+      Zeitpunkt. Stripe verarbeitet die Zahlung als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung.
+      Rechtsgrundlage für die Übermittlung, die den Vorgang anstößt, ist Art. 6 Abs. 1 lit. b DSGVO
+      (Durchführung der von dir ausgelösten Zahlung).
     </p>
     <p>
-      Ist eine Zahlung bestätigt, meldet Stripe das an den Serverteil dieses Projekts. Was bei uns
-      gespeichert wird, ist bewusst auf das beschränkt, was eine laufende Summe braucht:
-      <strong>Betrag, Währung, Zeitpunkt und die technischen Vorgangsnummern von Stripe</strong>.
-      <strong>Kein Name, keine E-Mail-Adresse, keine Anschrift und keine Zahlungsdaten werden bei
-      uns gespeichert</strong>, und die gespeicherten Einträge sind nicht öffentlich lesbar.
-      Öffentlich sichtbar ist allein die Summe. Auch die Adresse, auf die du danach zurückkommst,
-      trägt keinen Betrag — sie sagt nur, dass du zurück bist.
+      Schließt du die Bezahlung ab, schickt Stripe dem Serverteil dieses Projekts eine Nachricht
+      darüber. Sie enthält die Angaben, die Stripe erhoben hat (etwa E-Mail-Adresse, Name und
+      Land). Gespeichert wird nur eine Zahlung, die Stripe in diesem Moment schon als bezahlt meldet
+      (etwa per Karte), und davon nur <strong>Betrag, Währung, Zeitpunkt, ein Kennzeichen für Test-
+      oder Echtzahlung und die Vorgangsnummern von Stripe</strong>. <strong>Kein Name, keine
+      E-Mail-Adresse, keine Anschrift und keine Zahlungsdaten werden in unserer Datenbank
+      gespeichert</strong>, und die Einträge kann nur ein Administrator lesen. Über die
+      Vorgangsnummern lässt sich ein Eintrag der Zahlung in unserem Stripe-Konto zuordnen; dort
+      sehen wir als Empfänger, was Stripe zu einer Zahlung anzeigt (etwa Name, E-Mail-Adresse,
+      Zahlungsart und Land). Die Einträge bewahren wir auf, solange wir die Spendensumme führen.
+      Rechtsgrundlage dafür ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer
+      nachvollziehbaren Summe).
+    </p>
+    <p>
+      Beim Öffnen liest die Seite Unterstützen den <strong>Spendenstand</strong>: das Ziel, die
+      Teilsummen über Stripe und über PayPal und den Zeitpunkt der letzten Änderung; angezeigt wird
+      die Gesamtsumme. Dieser Stand ist für jeden lesbar. Weil sich die Stripe-Teilsumme und der
+      Zeitpunkt mit jeder so gespeicherten Stripe-Zahlung ändern, lässt sich daraus ablesen, wann zuletzt
+      über Stripe gespendet wurde und wie viel; Namen enthält er nicht. Nach einer abgeschlossenen
+      Zahlung schickt Stripe dich mit dem Zusatz <code>?danke=1</code> zurück, nach einem Abbruch
+      ohne ihn. Er trägt keinen Betrag; die Seite entfernt ihn sofort, die Statistik zählt ihn
+      nicht mit, im <a href="#hosting">Server-Protokoll</a> steht der Aufruf wie jeder andere.
     </p>
     <p class="muted">
       Zahlungsdienstleister: Stripe Payments Europe, Ltd. (Irland), mit Weitergabe an Stripe, Inc.
-      (USA). Details zur Datenverarbeitung durch den Dienst:
-      <a href="https://stripe.com/de/privacy" rel="noopener">stripe.com/de/privacy</a>. Eine
-      Verbindung zu Stripe wird erst hergestellt, wenn du den Knopf drückst — nicht beim bloßen
+      (USA, zertifiziert nach dem EU-US Data Privacy Framework). Details zur Datenverarbeitung durch
+      den Dienst: <a href="https://stripe.com/de/privacy" rel="noopener">stripe.com/de/privacy</a>.
+      Eine Verbindung zu Stripe wird erst hergestellt, wenn du den Knopf drückst, nicht beim bloßen
       Lesen der Seite.
     </p>
     <p>
       <strong>PayPal.</strong> Als zweiter Weg steht auf der Seite ein gewöhnlicher Link zu
-      PayPal.me. Es ist ein Link und sonst nichts: auf dieser Website läuft kein PayPal-Skript, und
-      es werden keine Daten übertragen, solange du ihm nicht folgst. Ab dann gilt die
-      Datenschutzerklärung von PayPal
-      (<a href="https://www.paypal.com/de/webapps/mpp/ua/privacy-full" rel="noopener">paypal.com</a>).
-      Dieser Weg meldet uns nichts zurück; Zahlungen darüber werden deshalb nirgends auf dieser
-      Website automatisch erfasst.
+      PayPal.me. Auf dieser Website läuft kein PayPal-Skript, und es werden keine Daten übertragen,
+      solange du ihm nicht folgst. Folgst du ihm, erhält PayPal den gewählten Betrag (er steht im
+      Link), deine IP-Adresse und die Herkunft verse-base.com; ab dann gilt die
+      Datenschutzerklärung von PayPal (PayPal (Europe) S.à r.l. et Cie, S.C.A., Luxemburg;
+      <a href="https://www.paypal.com/de/webapps/mpp/ua/privacy-full" rel="noopener">paypal.com</a>).
+      Zahlst du, zeigt PayPal uns als Empfänger deinen PayPal-Namen, deine E-Mail-Adresse und eine
+      etwaige Mitteilung. Den Betrag tragen wir von Hand in die PayPal-Teilsumme ein, ohne Namen;
+      darüber hinaus wird auf dieser Website nichts erfasst. Rechtsgrundlage ist Art. 6 Abs. 1
+      lit. f DSGVO (berechtigtes Interesse, Spenden anzunehmen und die Summe zu führen).
     </p>
 
     <h2>Schriftarten</h2>
     <p>Alle Webfonts werden lokal von dieser Website ausgeliefert. Es findet keine Verbindung zu Google Fonts statt.</p>
 
+    <h2 id="third-countries">Empfänger außerhalb der EU</h2>
+    <ul>
+      <li><strong>Cloudflare</strong> (USA): jeder Aufruf; zertifiziert nach dem EU-US Data Privacy
+        Framework</li>
+      <li><strong>Google</strong> (Irland, mit möglicher Übermittlung in die USA): YouTube nach
+        deinem Klick, unser E-Mail-Postfach; Google LLC ist nach dem EU-US Data Privacy Framework
+        zertifiziert</li>
+      <li><strong>Supabase</strong> (Singapur; Zugriffe auch aus den USA möglich): Konto-System
+        und Abgleich des Discord-Bots; Standardvertragsklauseln</li>
+      <li><strong>Web3Forms</strong> (Indien, mit Dienstleistern auch in den USA): Feedback;
+        Standardvertragsklauseln</li>
+      <li><strong>Discord</strong> (USA): Anmeldung mit Discord, Profilbilder aus Discord und unser
+        <a href="#discord-server">Discord-Server mit Bot</a> (Level-System, Rang-Rollen,
+        Aufstiegsmeldungen, Abgleich der Rolle „Test Pilots“); nach eigenen Angaben nimmt Discord am
+        EU-US Data Privacy Framework teil</li>
+      <li><strong>Roberts Space Industries</strong> (Roberts Space Industries International
+        Limited, Vereinigtes Königreich, nach eigenen Angaben auch mit Servern in den USA): dein
+        RSI-Handle bei der <a href="#rsi">RSI-Verifizierung</a> und, solange es verifiziert ist, bei
+        jedem Aufruf des Dashboards; für das Vereinigte Königreich gilt ein Angemessenheitsbeschluss
+        der EU-Kommission</li>
+      <li><strong>Stripe</strong> und <strong>PayPal</strong>: Spenden, nach deren eigenen
+        Datenschutzerklärungen auch in den USA</li>
+    </ul>
+
     <h2>Deine Rechte</h2>
     <p class="muted">
       Dir stehen die Rechte aus Art. 15–21 DSGVO zu (Auskunft, Berichtigung, Löschung, Einschränkung,
-      Datenübertragbarkeit, Widerspruch) sowie das Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde
-      (Art. 77 DSGVO). Ohne Benutzerkonto erhebt oder speichert diese Website keine
-      personenbezogenen Daten von dir; mit Konto kannst du deine Daten jederzeit selbst im
-      Dashboard einsehen, ändern, als Datei herunterladen (Sicherheit &amp; Konto → Meine Daten) und
-      vollständig löschen — melde dich im Zweifel per E-Mail.
+      Datenübertragbarkeit, Widerspruch) sowie das Beschwerderecht bei einer
+      Datenschutz-Aufsichtsbehörde (Art. 77 DSGVO). Eine Einwilligung (YouTube-Klick, Feedback,
+      Testpiloten-Liste) kannst du jederzeit für die Zukunft widerrufen. Verarbeitungen auf
+      Grundlage berechtigter Interessen kannst du widersprechen; für die Reichweitenmessung genügt
+      der Klick <a href="#opt-out">oben</a>.
+    </p>
+    <p class="muted">
+      Auch ohne Benutzerkonto verarbeiten wir die oben beschriebenen Daten (Server-Protokolle,
+      Reichweitenmessung, Feedback-Nachrichten, Spendenvorgänge und, wenn du Mitglied unseres
+      Discord-Servers bist, die Werte des Bots); auf Anfrage erteilen wir Auskunft oder löschen sie,
+      soweit wir sie dir zuordnen können. Mit Konto siehst und änderst du deine Profildaten im
+      Dashboard, lädst unter Sicherheit &amp; Konto → Meine Daten die Daten deines Kontos als Datei
+      herunter (Profil, Favoriten, Werkzeug-Daten, Freundschaften und Anfragen, Nachrichten und die
+      Werte vom Discord-Server; die Datei entsteht in deinem Browser) und löschst dort das ganze
+      Konto; was dabei bleibt, steht unter
+      <a href="#accounts">Benutzerkonto</a> und <a href="#discord-server">Discord-Server und
+      Bot</a>. Kontodaten speichern wir, bis du sie änderst oder das Konto löschst. Für alles Weitere, etwa eine vollständige Auskunft, schreib uns eine E-Mail.
     </p>
   </div>
 </main>

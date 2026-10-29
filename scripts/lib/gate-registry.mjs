@@ -280,6 +280,17 @@ export const CHECKS = [
     checks: 'jedes Schiff, das die Hangarseite aufs Fahrwerk stellt, steht mit der Ebene des ausgelieferten Viewers auf Ecken seiner Datei (kein Bein schwebt, kein Teil steckt tiefer als die Grenze im Boden), Fahrzeuge ohne Fahrwerk stehen waagrecht auf ihrer tiefsten Ecke, jedes andere Schiff hat einen Grund aus dem Manifest, Klinken fuer beide Arten',
   },
   {
+    // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
+    // audit:site: liest jede gebaute Seite einmal als Text, wenige Sekunden.
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — nur dist/.
+    id: 'verify:vorklick',
+    npm: 'verify:vorklick',
+    script: 'scripts/verify-vorklick.mjs',
+    rail: 'A',
+    checks:
+      'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Inline-Skripte und JS-Dateien duerfen diese Hosts nur an benannten Klick-Bindungen nennen (mit Zombie-Waechter); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
+  },
+  {
     id: 'audit:site',
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',

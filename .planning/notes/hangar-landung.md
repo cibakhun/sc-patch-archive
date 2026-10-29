@@ -528,3 +528,35 @@ Hermes `extras.palette` aus dem Rohexport (dort gab es einen Rückfall ohne
   0,29 → 1), Xi'an Scout, Santok.yāi, Talon Shrike, Alpha Wolf.
 - Die Freelancer sieht nach dem Neubau hell aus (Metallrumpf); sie bleibt in
   `HOLD`, bis Krisz sie freigibt (WINDOWS 130).
+
+**Cloud 29.10.2026 spät, nach Krisz 17:34** („freelancer. railen sieht gut
+aus außer das interior. polaris ist nicht so dunkel und shiny, starlancer tac
+und max sind verglitched“, dazu Bilder der Geometrie-Fassungen von Freelancer
+und Andromeda):
+
+- **Schadensnetze** (`Damage_Internal_*`, `damage_structure`,
+  `Ext_Damage_Pom` …): Das Innere unter dem Rumpf, das das Spiel erst an
+  Trefferstellen zeigt, stach fleckig durch den Lack. 117 Schiffe tragen
+  welche, zusammen 3,07 Mio. von 76,6 Mio. Dreiecken; Polaris 17 %,
+  Guardian 18 %, Pulse 21 %, Starlancer TAC/MAX 7–8 %; bei der Railen
+  leuchtete es (Emission 1). Der Viewer blendet sie aus (`isDamageMesh`,
+  Namensregel ohne `nodamage`, `damageable`, `Paint_Damaged`). **Für den
+  nächsten Bau:** dieselbe Regel in `build-hangar-assets.mjs`, damit sie gar
+  nicht erst in die Webdateien kommen (spart Download und Speicher).
+- Freelancer und Andromeda sind aus `HOLD` frei (Krisz sah die
+  Geometrie-Fassungen, bei der Andromeda mit zerfallenen Rumpfteilen).
+- Glätte der Palette wie im Spiel (`paletteGloss`): Glätte multipliziert,
+  nicht Rauheit.
+- **Doppelt dunkle Schichtmaterialien:** Bei vielen Materialien ohne Palette
+  trägt die Farbkarte die Tönung schon (Polaris `Panel_LF_Paint_Glossy_Dark`
+  und `_Matte_Dark`: dasselbe Muster wie die Karte von
+  `Panel_LF_Paint_Primary`, Korrelation 0,84, aber Mittel 6,5 statt 140 in
+  sRGB-Bytes, Verhältnis 0,047 ≈ 2 × Tönung 0,023), und `baseColorFactor` ist
+  dieselbe Tönung noch einmal. Über alle Schiffe 18 % der Dreiecke (Karte
+  linear unter 0,01 und Faktor unter 0,2), 208 Schiffe über 5 %. Der Viewer
+  hebt jetzt jedes undurchsichtige Nichtmetall auf mindestens 0,025 (Mittel
+  aus Karte mal Grundfarbe, `albedoFloor`). **Für den PC:** im Rohexport
+  nachsehen, ob StarBreaker die Tönung (`TintColor` der Schicht) in die Karte
+  backt; wenn ja, im Bau den Faktor auf 1 setzen statt sie doppelt zu nehmen.
+  Bei Corsair passt das Verhältnis nicht zu 2 × Tönung (4 bis 5), dort ist
+  die Herkunft offen.

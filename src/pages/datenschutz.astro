@@ -1,12 +1,16 @@
 ---
-// Privacy policy (EN mirror of /datenschutz.html — same slug so the language
-// switcher pairs the pages). Describes factually what this static site does.
-// [TODO] fields must be filled before publishing.
+// Privacy policy, English page (/datenschutz.html; the German page is
+// /de/datenschutz.html, same slug so the language switcher pairs them).
+// Describes FACTUALLY what the website does, checked section by section
+// against the code on 29.10.2026. Keep it paragraph for paragraph identical
+// in substance to src/pages/de/datenschutz.astro — the head comment there
+// lists what it covers and what is still open with the operator.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
+import { IS_STAGING } from '../lib/seo';
 ---
-<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: what data is processed when visiting, by the cookieless reach measurement, when external images load, and when YouTube videos are clicked — including a one-click opt-out."} themeColor="#05070d" translated={true}>
+<Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: hosting and Cloudflare, cookieless reach measurement with one-click opt-out, external images, YouTube only after a click, the feedback form, user accounts with Discord, profiles, friends and online status, and donations via Stripe and PayPal."} themeColor="#05070d" translated={true}>
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;--accent:#2dd4ff;--accent-2:#6ea8ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);--line-soft:rgba(232,238,252,.10);--ink:#05070d;--maxw:840px;}
 /* ⚠⚠ GESEHEN 30.08.2026 im Kontaktbogen: diese Seite rendert komplett in
@@ -52,6 +56,7 @@ body{font-family:var(--font-body)}
 .lg-wrap .optout button:hover{filter:brightness(1.08)}
 .lg-wrap .optout .note{flex:1 1 100%;margin:0;color:var(--muted);font-size:var(--fs-7);line-height:1.55}
 .lg-wrap .optout code{font-size:.85em;color:var(--accent-2)}
+.lg-wrap code{font-size:.85em;color:var(--accent-2)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
 :root[data-theme="light"] .lg-fill{color:#893c40}
@@ -69,63 +74,92 @@ body{font-family:var(--font-body)}
 
     <h2>Principle</h2>
     <p>
-      This website is a purely static, non-commercial fan project. It shows no advertising and
-      has no comment functions. Reach is measured by two cookieless services:
-      <a href="#cloudflare">Cloudflare Web Analytics</a> and the self-hosted
-      <a href="#umami">Umami</a> — both without fingerprinting, without personal profiles and
-      without storing anything on your device. You can <a href="#opt-out">opt out</a> with one
-      click; only then is a technical
-      cookie set, which records exactly that choice. Beyond that you only transmit
-      data via the
-      <a href="#feedback">feedback form</a> and the optional <a href="#accounts">user account</a> —
-      both voluntary; the data processed there is described separately below.
+      VerseBase is a non-commercial fan project without advertising and without comment functions.
+      The pages themselves are ready-made, static files. Alongside them run an account system with
+      server functions (<a href="#accounts">Supabase</a>) for accounts, profiles, friends, messages
+      and donations, our own statistics server (<a href="#umami">Umami</a>) and a
+      <a href="#discord-server">Discord bot</a>.
+    </p>
+    <p>
+      Even while you just read, <a href="#cloudflare">Cloudflare</a> and
+      <a href="#hosting">our server</a> process your connection data, and two cookieless reach
+      measurements count the visit; you can <a href="#opt-out">opt out</a> with one click. Some
+      images come from <a href="#images">external providers</a>, and some pages read public data
+      from the account system. Everything else happens only when you trigger it: when you start a
+      <a href="#youtube">YouTube video</a>, send <a href="#feedback">feedback</a>, use a
+      <a href="#accounts">user account</a>, <a href="#support">donate</a> or are a member of our
+      <a href="#discord-server">Discord server</a>. This website itself
+      sets only one cookie, the one for your opt-out (two more on the
+      <a href="#staging">test preview</a>); in addition, <a href="#cloudflare">Cloudflare</a> sets
+      protection cookies to fend off automated access. Details follow below.
     </p>
 
-    <h2>Server log files (hosting)</h2>
+    <h2 id="hosting">Server log files (hosting)</h2>
     <p>
-      When you visit this website, the hosting provider
-      Hetzner Online GmbH (Industriestr. 25, 91710 Gunzenhausen, Germany) technically
-      processes connection data (IP address, timestamp, requested resource, user agent) in server
-      logs. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in secure operation).
+      Our web server (nginx) runs on a server of Hetzner Online GmbH (Industriestr. 25,
+      91710 Gunzenhausen, Germany) that we operate; Hetzner acts as our processor for this. The web
+      server logs every request: the IP address of the delivering connection (usually a Cloudflare
+      server) and the forwarding chain sent along, which may contain your IP address, plus the time,
+      the requested address including any appended parameters, status code, amount of data
+      transferred, referring address and browser identifier (user agent). The logs serve the
+      operation and security of the website; we keep them for up to ten years. Legal basis: Art. 6 (1) (f) GDPR (legitimate
+      interest in secure operation).
     </p>
 
     <h2 id="cloudflare">Delivery and reach measurement (Cloudflare)</h2>
     <p>
       The site is delivered via Cloudflare (Cloudflare, Inc., 101 Townsend Street, San Francisco,
-      CA 94107, USA). Cloudflare sits in front of the hosting as a proxy: every request passes
-      through it, and connection data (IP address, timestamp, requested resource, user agent) is
-      processed there for delivery and to fend off attacks.
+      CA 94107, USA). Cloudflare sits in front of the hosting as a proxy: every request to this
+      website and its subdomains (such as stats.verse-base.com and staging.verse-base.com) passes
+      through it, and connection data (IP address, time, requested address, user agent) is
+      processed there for delivery and to fend off attacks. To fend off automated access,
+      Cloudflare also adds a small, invisible check script to every page (loaded from
+      <code>/cdn-cgi/challenge-platform/</code>) that checks technical signals in your browser;
+      Cloudflare stores the result in its own cookie (<code>cf_clearance</code>). Cloudflare may
+      also set other technically necessary cookies (for example <code>__cf_bm</code>, valid for 30
+      minutes). This protects the site and is not part of reach measurement, so your
+      <a href="#opt-out">opt-out</a> does not affect it. Legal basis for the check script and the
+      cookies: Section 25 (2) no. 2 TDDDG (strictly necessary to deliver the requested page
+      securely).
     </p>
     <p>
       Cloudflare additionally adds <strong>Cloudflare Web Analytics</strong> to the pages, a
       measurement script that records page views, visits and load times. It sets
       <strong>no cookies</strong>, uses no fingerprinting and does not follow you across other
-      websites; we only ever see aggregated figures, never individual profiles. Legal basis:
-      Art. 6 (1) (f) GDPR (legitimate interest in secure, fast delivery and in basic reach
-      figures). Processing on servers outside the EU is possible; for details see the provider's
-      privacy policy:
+      websites; from this measurement we only see aggregated figures, never individual profiles.
+      Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in secure, fast delivery and in basic
+      reach figures). Cloudflare also processes data in the USA and is certified under the EU-U.S.
+      Data Privacy Framework. For details see the provider's privacy policy:
       <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">cloudflare.com/privacypolicy</a>.
     </p>
+
     <h2 id="umami">Self-hosted reach measurement (Umami)</h2>
     <p>
-      <strong>Umami</strong> also runs at stats.verse-base.com — open-source analytics operating
-      on our own server. Recorded are the page visited, the referrer, country, device type,
-      browser and operating system, plus time on page. <strong>No cookies are set and nothing is
-      stored on your device</strong>; to tell visits apart, a checksum that changes daily is used,
-      which cannot be traced back to anyone. The data never leaves our server — no third party is
-      involved. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in reach figures). Your
-      <a href="#opt-out">opt-out</a> stops this measurement too.
+      <strong>Umami</strong> also runs at stats.verse-base.com, open-source analytics on our own
+      server at Hetzner. Recorded are the page visited (only the path, without appended parameters
+      or fragments), the page title, the referrer, screen size and browser language, device type,
+      browser and operating system, the country with region and city derived from the IP address,
+      and times and time on page. <strong>No cookies are set and nothing is stored on your
+      device.</strong> To tell visits apart, the server computes a checksum from the IP address, the
+      browser identifier and a secret value that changes every month; the IP address itself is not
+      stored. We keep the statistics data for up to ten years. The requests pass through Cloudflare
+      like every request to this website (see above);
+      no other third party receives the data. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest
+      in reach figures). Your <a href="#opt-out">opt-out</a> stops this measurement too.
     </p>
 
-    <div class="optout" id="opt-out">
+    <div class="optout" id="opt-out" data-staging={IS_STAGING ? '1' : undefined}>
       <span id="rum-status">Checking …</span>
       <button type="button" id="rum-toggle">Don't count me</button>
       <p class="note">
         Your choice is remembered by the technical cookie <code>vb_noanalytics</code> in this
-        browser; its entire content is a 1 or a 0. It takes effect from the next page load and
-        covers both services: the server then no longer allows the measurement scripts, so they
-        never load at all. If you clear your cookies, you have to
-        opt out here again. Whoever maintains the site is not counted while signed in anyway.
+        browser and only for this address; its entire content is a 1 or a 0, and it lasts 400 days.
+        It takes effect from the next page load and covers both services: the server then no longer
+        allows the measurement scripts, so they never load at all. If you clear your cookies, you
+        have to opt out here again. For administrator accounts the site sets the same cookie by
+        itself after sign-in, unless you previously chose “Count me again” in this browser; this
+        browser is then no longer counted from the following page load on, even after signing
+        out. Legal basis for the cookie: Section 25 (2) no. 2 TDDDG.
       </p>
     </div>
     <script is:inline>
@@ -135,8 +169,12 @@ body{font-family:var(--font-body)}
         const status = document.getElementById('rum-status');
         const btn = document.getElementById('rum-toggle');
         if (!status || !btn) return;
+        // The preview build loads no counter (empty CSP), cookie or not.
+        const staging = document.getElementById('opt-out')?.dataset.staging === '1';
         const render = (hint) => {
-          status.textContent = (off()
+          status.textContent = (staging
+            ? 'You are not counted on the test preview, whether or not you have opted out; your choice here applies only to this address.'
+            : off()
             ? 'You are not being counted here.'
             : 'You are currently being counted here.') + (hint ? ' ' + hint : '');
           btn.textContent = off() ? 'Count me again' : "Don't count me";
@@ -151,147 +189,472 @@ body{font-family:var(--font-body)}
       })();
     </script>
 
-    <h2>Local browser storage (localStorage)</h2>
+    <h2 id="storage">Storage in your browser (localStorage, sessionStorage)</h2>
     <p>
-      Some tools on this site (e.g. the crafting planner, “owned” marks, view settings) store their
-      state <strong>locally in your browser</strong> (localStorage). This data never
-      leaves your device and can be deleted at any time via your browser settings. When you are
-      signed in, the contents of account-bound tools (crafting planner and “owned” marks, refinery
-      jobs) are additionally stored in your <a href="#accounts">user account</a> so they are
-      available across devices. Your ship fleet (on the ship data sheets and in the 3D hangar)
-      stays in this browser while you are signed out; when you sign in, it moves into your account
-      as favorites. While you are signed in, this browser also keeps a copy of the fleet. If you have
-      set a handle, the fleet appears on your public pilot profile. Saved hangar loadouts work the
-      same way: signed out they stay in this browser; when you sign in, they move into your account
-      and are available on every device where you are signed in, while this browser keeps a copy.
+      Tools and settings of this website store data <strong>locally in your browser</strong>:
+      working state (crafting plan and “owned” marks, fleet, hangar loadouts, mining workbench,
+      calculator inputs such as the Precision Jump route) and settings (display, performance mode,
+      hangar options, whether you have already seen a hint). For the lifetime of a tab only
+      (sessionStorage), small markers are added, such as the details for the back link to the
+      previous page. While you are signed out, no script sends this content anywhere; you can delete
+      it at any time via your browser settings. Legal basis: Section 25 (2) no. 2 TDDDG (strictly
+      necessary for the function you use). Some tools also write their state into the address bar,
+      for example a hangar loadout for sharing; if you load such an address, it appears in the
+      <a href="#hosting">server log</a> like any other.
+    </p>
+    <p>
+      When you are signed in, your browser also holds your session (access and refresh keys plus
+      account details such as your e-mail address and, where applicable, the details from Discord),
+      your account role together with your account ID for the lifetime of the tab (re-fetched from
+      the server at most every five minutes), a copy of your profile and, once you have opened the
+      account dashboard, your <a href="#rsi">RSI code</a>, even if you never verify a handle. The
+      crafting planner and “owned” marks, the fleet and hangar
+      loadouts then also store their contents in your <a href="#accounts">user account</a> so they
+      are available on all devices, and this browser keeps a copy. Whatever you had created in this
+      browser while signed out moves into the account at the first sync; the fleet becomes
+      favorites there. Mining presets and refinery jobs live only in the account. When you sign out
+      in the account dashboard (also with “Sign out everywhere”) or delete your account, the site
+      removes the session, the account
+      role, the profile copy, the RSI code and the account copies of the tools from this browser.
     </p>
 
-    <h2>Externally embedded images</h2>
+    <h2 id="images">Externally embedded images</h2>
     <p>
-      Some imagery is loaded from external sources. When these images are fetched, your IP address
-      is technically transmitted to the respective provider:
+      Some images are loaded from external sources as soon as they appear on the page. For
+      technical reasons, the respective provider then receives your IP address and browser
+      identifier and at most the fact that the request comes from verse-base.com:
     </p>
     <ul>
-      <li><strong>fleetyards.net</strong> — ship and vehicle imagery</li>
-      <li><strong>starcitizen.tools / cstone.space</strong> — individual media assets</li>
+      <li><strong>media.starcitizen.tools</strong> (Star Citizen Wiki) and
+        <strong>cstone.space</strong>: most ship images, as main image and thumbnail on ship pages,
+        in the ship list, in the fleet on pilot profiles and on the tiles of saved ships and loadouts
+        in the account dashboard</li>
+      <li><strong>api.fleetyards.net</strong> (FleetYards): paints on the ship pages and fallback
+        images for ships without an image of their own; the requests may be redirected to
+        FleetYards' storage</li>
+      <li><strong>cdn.discordapp.com</strong> (Discord Inc., USA): profile pictures taken over from
+        Discord, on pilot profiles, in the friends list and chat and in the dashboard (see
+        <a href="#discord">Discord</a>)</li>
+      <li><strong>trgjhmbnodoarnfmlcqx.supabase.co</strong> (Supabase, see
+        <a href="#accounts">user account</a>): uploaded profile pictures and banners</li>
     </ul>
-
-    <h2>Ambient background videos</h2>
     <p>
-      Some pages show short, muted video loops (trailer excerpts) as backgrounds. These files
-      are served <strong>locally by this website</strong> — no third-party server is contacted.
-      With reduced motion enabled (prefers-reduced-motion), an active data-saver mode, or on
-      small screens, only the still image is loaded instead.
+      Custom image addresses that someone enters in a profile are only displayed from these
+      providers. Legal basis: Art. 6 (1) (f) GDPR (legitimate interest in showing ships and profiles
+      with pictures without hosting every image ourselves).
     </p>
 
-    <h2>YouTube videos (click to load)</h2>
+    <h2>Background and ship videos (local)</h2>
     <p>
-      Videos are embedded as preview stills and load <strong>only after you click</strong>, via
-      youtube-nocookie.com (Google Ireland Ltd.). Before the click, no connection to Google is made;
-      after the click, <a href="https://policies.google.com/privacy" rel="noopener">Google’s privacy policy</a> applies.
+      Some patch pages show short, muted video loops (trailer excerpts) as backgrounds. These files
+      are served <strong>locally by this website</strong>; no third-party server is contacted. With
+      reduced motion enabled (prefers-reduced-motion), in data-saver mode (where the browser reports
+      it), in the website's light mode or with a window narrower than 1000 pixels, only the still
+      image is shown. Some ship pages have a video of their own instead of a YouTube commercial; it
+      loads, also locally, only when you choose the “Video” view.
+    </p>
+
+    <h2 id="youtube">YouTube videos (click to load)</h2>
+    <p>
+      On patch and topic pages, videos are embedded as a local preview image. Only your click on it
+      loads the player from youtube-nocookie.com, and the video starts right away. On ship pages
+      with an official commercial, you choose the “Video” view and then click “Play commercial”;
+      this click loads the player interface from www.youtube.com and the player from
+      youtube-nocookie.com, and the video plays muted in a loop. <strong>Before the click, no
+      connection to Google is made.</strong> The click applies to this one video only; the next page
+      load loads nothing again.
+    </p>
+    <p>
+      With the click, Google (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4,
+      Ireland) receives your IP address, browser data, the origin verse-base.com and, where your
+      browser sends them, existing YouTube cookies. The player loads further content from Google's
+      servers and may store data in your browser. A transfer to Google LLC in the USA is possible;
+      Google LLC is certified under the EU-U.S. Data Privacy Framework. The legal basis is your
+      consent given by the click (Art. 6 (1) (a) GDPR, Section 25 (1) TDDDG).
+      <a href="https://policies.google.com/privacy" rel="noopener">Google’s privacy policy</a>
+      applies. References such as “Watch on YouTube” and YouTube channels in profiles are ordinary
+      links; they transmit nothing until you follow them.
     </p>
 
     <h2 id="feedback">Feedback form (Web3Forms)</h2>
     <p>
       On the <a href="/feedback.html">Feedback</a> page you can voluntarily send us a message.
-      Because this website is static and has no server backend of its own, delivery is handled by the
-      service <strong>Web3Forms</strong>. When you submit, the following data is transmitted to
-      Web3Forms and delivered from there to us by e-mail:
+      Delivery is handled by the service <strong>Web3Forms</strong>. When you submit, the following
+      data is transmitted to Web3Forms and delivered from there by e-mail to our mailbox at Google
+      (Gmail):
     </p>
     <ul>
       <li><strong>message text</strong> (required)</li>
       <li><strong>rating</strong> (1–5 stars, optional)</li>
-      <li><strong>e-mail address</strong> (optional — only if you want a reply; it is set as the
+      <li><strong>e-mail address</strong> (optional, only if you want a reply; it is set as the
         reply-to address)</li>
-      <li>technically, your IP address and the time of submission</li>
+      <li>fixed form details (form key, subject, sender name, a field for spam protection)</li>
+      <li>technically, your IP address, browser identifier and language setting, the origin
+        verse-base.com and the time of submission</li>
     </ul>
     <p>
-      The legal basis is your consent given by actively submitting the form (Art. 6 (1) (a) GDPR).
-      Providing your e-mail address is voluntary; without it we cannot reply to your feedback. We use
-      the data solely to process and answer your feedback and do not pass it on for other purposes.
+      Nothing from your user account is sent along, even when you are signed in. The legal basis is
+      your consent given by actively submitting the form (Art. 6 (1) (a) GDPR). Providing your
+      e-mail address is voluntary; without it we cannot reply. We use the data solely to process
+      and answer your feedback and do not pass it on for other purposes. The e-mail stays in our
+      mailbox until we delete it; on request we delete it right away.
     </p>
     <p class="muted">
-      The form service is provided by Web3Forms. Transmission may involve processing on servers
-      outside the EU. For details on how the service processes data, see its privacy policy:
-      <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>. The form sets
-      no cookies and loads no external scripts; a connection to Web3Forms is only established upon
-      submission.
+      Web3Forms is operated by Web3Creative, based in India, and uses service providers in the EU
+      and the USA; according to its data processing agreement, transfers rely on the European
+      Commission's standard contractual clauses. By its own account, Web3Forms keeps submissions for
+      up to three years. Details:
+      <a href="https://web3forms.com/privacy" rel="noopener">web3forms.com/privacy</a>. The mailbox
+      is provided by Google Ireland Limited; a transfer to Google LLC (USA, certified under the
+      EU-U.S. Data Privacy Framework) is possible. The form sets no cookies and loads no external
+      scripts; your browser only connects to Web3Forms upon submission. Without JavaScript the form
+      is sent as an ordinary form, and you land on a confirmation page from Web3Forms. When opened,
+      the Feedback page also loads the <a href="#testpilots">Test Pilots list</a> from the account
+      system.
     </p>
 
     <h2 id="accounts">User account (Supabase)</h2>
     <p>
-      You can voluntarily create a user account to save favorites (e.g. bookmarked ships) and manage
-      a profile. The account feature is provided via <strong>Supabase</strong>; the data is stored in
-      an EU data center (AWS Frankfurt, region eu-central-1). The following data is processed:
+      You can voluntarily create a user account, with an e-mail address and password or with your
+      <a href="#discord">Discord account</a>. Registration with an e-mail address is currently
+      paused; new accounts can only be created with Discord, and existing accounts keep signing in
+      with e-mail address and password. The account feature is provided via
+      <strong>Supabase</strong>; the database is located in an EU data center (AWS Frankfurt,
+      region eu-central-1). The following data is processed:
     </p>
     <ul>
       <li><strong>e-mail address</strong> and <strong>password</strong> (the password is stored
-        exclusively as a cryptographic hash, never in plain text)</li>
-      <li><strong>profile data</strong> you enter yourself (display name, handle — both optional;
-        optionally also names on Twitch, YouTube and X, shown as links on your public pilot
-        profile)</li>
-      <li>when you voluntarily <strong>sign in with Discord</strong> or connect Discord in your
-        account: the details Discord transmits for this (Discord ID, username, display name,
-        avatar, e-mail address); the account suggests the name and avatar for your profile</li>
-      <li><strong>messages</strong> you write in the chat to confirmed friends, with sender,
-        recipient, time and read status; only the sender and the recipient can read them</li>
-      <li><strong>favorites</strong> you actively save, including your ship fleet; once you have set a
-        handle, they are visible on your public pilot profile</li>
+        exclusively as a cryptographic hash, never in plain text). If you create the account with
+        Discord, the e-mail address comes from Discord and there is no password at first. If you
+        later set one in the account dashboard, it is likewise stored only as a hash, and you can
+        then also sign in with your e-mail address and password.</li>
+      <li><strong>profile data</strong> you enter yourself: display name, handle, bio, profile
+        picture or icon with colour, banner, role, status and status text, org name, a Discord tag
+        (visible only to you; once Discord is connected, the account fills it in itself, see
+        <a href="#discord">Discord</a>), your names on Twitch, YouTube and X, and your
+        <a href="#rsi">RSI handle</a>. If you do not enter a display
+        name, the account sets a provisional one when it is created: your Discord name or, without
+        Discord, the part of your e-mail address before the @. You can change it at any time; it
+        only becomes public with a handle (see <a href="#profile">pilot profile</a>).</li>
+      <li><strong>uploaded images</strong> (profile picture, banner): your browser crops and
+        re-encodes them, so metadata of the original such as camera or location details is not
+        uploaded. The image is uploaded as soon as you confirm the crop, even if you do not save
+        the profile afterwards. It is kept in a public storage area at Supabase at an address that
+        contains your internal account ID, and can be retrieved by anyone; the address saved in
+        your profile also shows when you uploaded it.</li>
+      <li><strong>favorites</strong> you actively save, including your ship fleet</li>
       <li><strong>tool data</strong> you actively create (crafting planner and “owned” marks,
-        refinery jobs)</li>
-      <li>your <a href="#presence"><strong>online status</strong></a> while you are signed in</li>
-      <li>technically, session and security data of the provider (e.g. sign-in timestamps,
-        IP address in security logs)</li>
+        refinery jobs, mining presets, hangar loadouts); only you can see it</li>
+      <li><strong>friend requests, friendships and messages</strong> (see
+        <a href="#friends">friends and messages</a>)</li>
+      <li>your <a href="#presence"><strong>online status</strong></a> and the note on what you are
+        doing, while you are signed in</li>
+      <li>your <a href="#rsi">RSI verification code</a> once you have opened the account dashboard
+        (even if you never verify), and after a check also the check result; as a
+        <a href="#testpilots">test pilot</a> the related details</li>
+      <li>technically, <strong>session and security data</strong>: for each sign-in the IP address,
+        browser identifier and times, until you sign out on that device, end the session in the
+        dashboard under Security &amp; Account with “Sign out other devices” or “Sign out
+        everywhere”, or delete the account; also
+        the time the account was created and of the last sign-in. Supabase additionally logs
+        requests with IP addresses for a short period set by the provider.</li>
     </ul>
     <p>
       The legal basis is Art. 6 (1) (b) GDPR (providing the account feature at your request).
-      Sign-in works without cookies: the session token is stored exclusively locally in your browser
-      (localStorage). You can permanently delete your account yourself at any time in the
-      <a href="/account.html">account dashboard</a> — this irreversibly removes all associated
-      data (profile, favorites, tool data, sent and received messages, credentials).
+      Signing in on verse-base.com sets no cookies for your session; the session is kept in your
+      browser (see <a href="#storage">storage in your browser</a>). Only for administrator accounts
+      does the site also set the cookie <code>vb_noanalytics</code> after sign-in, so that this
+      browser is not counted (see <a href="#opt-out">opt-out</a>). After signing in with Discord,
+      and after connecting Discord in the dashboard, the session also contains the two keys Discord issued for it (an access key and a refresh
+      key) until it is first renewed: after about an hour if you have the website open then,
+      otherwise on your next visit. The website neither uses nor sends them. If you request a new
+      password, Supabase sends an e-mail with a one-time link to that address on our behalf. If you
+      change your e-mail address, it sends one e-mail with a one-time confirmation link each to your
+      current and to your new address; the change only takes effect once you have confirmed both.
+    </p>
+    <p>
+      You can permanently delete your account yourself at any time in the
+      <a href="/account.html">account dashboard</a>. This irreversibly removes: credentials and
+      sessions, the profile including online timestamps, favorites, tool data, friendships and
+      requests, sent and received messages (also on the other person's side), the Discord link
+      including the stored Discord ID, test pilot details and the values copied into the account
+      from the Discord server (the bot's own data remains, see
+      <a href="#discord-server">Discord server and bot</a>), as well as the copies of your data in
+      this browser. <strong>Uploaded profile pictures and
+      banners</strong> currently remain as files when you remove them in the dashboard or delete the
+      account; send us an e-mail and we will delete them. You remove a verification code in your RSI
+      bio yourself on robertsspaceindustries.com.
+    </p>
+    <p>
+      As operator of the database we technically have access to all stored account data, including
+      e-mail addresses, sign-in times, the IP addresses of sessions and messages. Within the
+      website, administrator accounts additionally see only the
+      <a href="#testpilots">test pilot overview</a>.
     </p>
     <p class="muted">
-      Processor: Supabase, Inc.; data residency in the EU (AWS eu-central-1, Frankfurt). For details
-      on how the service processes data, see
+      Processor: Supabase Pte. Ltd., 65 Chulia Street #38-02/03, OCBC Centre, Singapore 049513. The
+      database is located in the EU (AWS eu-central-1, Frankfurt); Supabase and its sub-processors
+      may, however, also access data from third countries such as Singapore and the USA. This relies
+      on the European Commission's standard contractual clauses in Supabase's data processing
+      agreement. For details on how the service processes data, see
       <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a>.
+    </p>
+    <p class="muted">
       When you are not signed in, the website only connects to Supabase when you use account
-      features (registration, sign-in) and on three pages that read public data: a public pilot
-      profile (that pilot's profile and favorites), the Feedback page (the list of credited
-      testers) and the Support page (the running total; the button there also creates the Stripe
+      features (sign-in, password reset) and on three kinds of pages that read public data: a public
+      pilot profile (that pilot's profile and favorites when opened, then that pilot's online status
+      every 40 seconds while the page is open; uploaded images come from Supabase's storage), the
+      Feedback page (the list of credited <a href="#testpilots">test pilots</a>) and the Support
+      page (the <a href="#support">donation status</a>; the button there also creates the Stripe
       payment page via Supabase, sending only the amount you chose and the page language). Nothing
-      that identifies you is sent; as with any request, Supabase technically learns your IP address. While you are signed in, the pages with the site menu
-      connect to Supabase to renew your session when needed, show your display name in the menu
-      and write your <a href="#presence">online status</a>; pages with account-bound tools also
-      sync their contents.
+      that identifies you is sent; as with any request, Supabase technically learns your IP address.
+      The legal basis for these requests is Art. 6 (1) (f) GDPR (legitimate interest in showing
+      public profiles, the test pilot list and the donation status).
+    </p>
+    <p class="muted">
+      While you are signed in, the pages with the site menu connect to Supabase to renew your
+      session when needed, read your display name and account role for the menu and write your
+      <a href="#presence">online status</a>. Pages with account-bound tools sync their contents and,
+      the first time, take over whatever you had saved in this browser while signed out. The account
+      dashboard additionally keeps a permanent connection to Supabase through which new messages
+      arrive, regularly queries messages, unread messages and your friends' status, and, for a
+      verified RSI handle, checks whether your code is still in your RSI bio. On pilot profiles the
+      page sends your session along with its requests.
+    </p>
+
+    <h2 id="discord">Signing in and connecting with Discord</h2>
+    <p>
+      Signing in, registering and connecting with Discord are voluntary and only start with your
+      click. Your browser then switches to Discord (Discord Inc., 444 De Haro Street, Suite 200,
+      San Francisco, CA 94107, USA); after your consent there, Discord transmits to the account
+      system your Discord ID, your user name and display name, the address of your profile picture
+      and your e-mail address (permissions “identify” and “email”). If no account exists yet, the
+      click creates one. If an account with the same confirmed e-mail address already exists, the
+      account system links the two automatically.
+    </p>
+    <p>
+      If you create the account with Discord, the profile immediately takes over your Discord
+      display name (otherwise the user name), your Discord profile picture and “@username” as Discord
+      tag. If you connect Discord later, it takes over picture and name unless you have already set a
+      picture and name of your own; it keeps the Discord tag up to date while the connection exists.
+      Only you see the Discord tag. The profile picture remains an address on Discord's server
+      (cdn.discordapp.com): anyone who sees your profile or is shown you in their own dashboard (as
+      a friend, request, search hit, suggestion or in the chat) loads it directly from there (see
+      <a href="#images">externally embedded images</a>). The account also
+      stores your Discord ID for the <a href="#testpilots">test pilot sync</a> and the values from
+      the <a href="#discord-server">Discord server</a>.
+    </p>
+    <p>
+      If you disconnect Discord in the dashboard, this only removes the sign-in connection. The
+      details taken over (name, picture address, Discord tag) remain in the account until you change
+      them or delete the account. The mapping of your Discord ID also remains and stays in effect:
+      our <a href="#discord-server">Discord bot</a> keeps transferring your values from the Discord
+      server and whether you hold the “Test Pilots” role into your account, and your access to the
+      <a href="#staging">test preview</a> still depends on that; only level, rank and prestige are
+      then no longer publicly readable. This ends only when you delete the account or we remove the
+      mapping at your request by e-mail. The legal basis is Art. 6 (1) (b) GDPR. Discord also
+      processes data in the USA and, by its own account, participates in the EU-U.S. Data Privacy
+      Framework; Discord's privacy policy applies to signing in with Discord:
+      <a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>.
+    </p>
+
+    <h2 id="profile">Public pilot profile</h2>
+    <p>
+      Your profile is not public at first. Only when you set a <strong>handle</strong> in the
+      dashboard does /pilot/&lt;handle&gt; become visible to anyone, even without signing in: handle,
+      display name, bio, profile picture or icon, banner, role, status and status text, org name,
+      RSI handle and whether it is verified, where applicable the “Test Pilot” badge, your names on
+      Twitch, YouTube and X, since when you have been a member, your
+      <a href="#presence">online status</a> and all your favorites including your ship fleet. If you
+      are linked with Discord and a member of our Discord server, the profile also shows a rank
+      badge with your rank, level and prestige there (see
+      <a href="#discord-server">Discord server</a>). The website's public database interface
+      returns the same details, with the exact time you created the account and saved each
+      favorite, and for all profiles with a handle at once.
+    </p>
+    <p>
+      Signed-in users can additionally read the internal account ID of every profile with a handle
+      through the interface. If you have uploaded your own profile picture or banner, the ID is also
+      part of its address, together with the time of the upload, and can therefore be read by
+      anyone (see <a href="#accounts">user account</a>). Signed-in users, even without a handle of
+      their own, can also find profiles with a handle in the account dashboard: from two typed
+      characters on, the search for adding friends shows up to six profiles whose handle or display
+      name starts that way, and “Suggestions” lists up to twelve profiles with the same org or role
+      or with a rank from the Discord server. Hits and suggestions show display name, handle,
+      profile picture or icon, whether the RSI handle is verified, where applicable the rank badge
+      and, for suggestions, the shared org or role. Not public are your e-mail address, your
+      Discord tag, your verification code, your tool data and hangar loadouts and your messages;
+      the website shows your friends list only to you. If you use your Discord picture as profile
+      picture, every browser that shows your profile loads the picture directly from Discord; the
+      picture address contains your Discord ID, which is therefore publicly readable as well. The
+      profile page is blocked for search engines (noindex). If you remove the handle, the profile is
+      no longer public. The legal basis is Art. 6 (1) (b) GDPR: the public profile is a feature you
+      switch on yourself with the handle.
+    </p>
+
+    <h2 id="friends">Friends and messages (account only)</h2>
+    <p>
+      Signed in and with a handle of your own, you can send other pilots with a handle a friend
+      request: in the account dashboard through the search by handle or display name or through
+      the suggestions (see <a href="#profile">pilot profile</a>), and with “Add friend” on their
+      pilot profile, where you can also accept a request sent to you. The characters you type into
+      the search are sent to Supabase as a search query. Stored are sender, recipient, status and the times of request and reply,
+      and for a friendship both accounts and when it began. Only the two people involved can see
+      these details, and the website does not display a friends list publicly anywhere. Declining
+      or withdrawing deletes the request,
+      “Remove” deletes the friendship together with all requests between you.
+    </p>
+    <p>
+      Confirmed friends can write each other <strong>messages</strong> in the account dashboard.
+      Stored are text, sender, recipient, time and when the message was read. Through the website,
+      only sender and recipient can read them; they are, however, not end-to-end encrypted, and we as
+      operator of the database and Supabase technically have access. New messages arrive through a
+      permanent connection to Supabase while the dashboard is open. Individual messages or
+      conversations cannot be deleted; they remain readable for both even after a friendship ends
+      and are deleted as soon as either of you deletes their account. The legal basis is
+      Art. 6 (1) (b) GDPR.
     </p>
 
     <h2 id="presence">Online status (account only)</h2>
     <p>
-      While you are signed in and have a page with the site menu open (all pages except the
-      loadout pages of individual ships in the hangar and the one-pager guides), your browser
-      writes two timestamps to your profile: when the page was last open and when you last interacted with it
-      (mouse, keyboard, scrolling, touch; loading the page and returning to the tab count as
+      While you are signed in and have a page with the site menu open (all pages except the loadout
+      pages of individual ships in the hangar, the one-pager guides and the error page), your browser
+      writes timestamps to your profile: when the page was last open and when you last interacted
+      with it (mouse, keyboard, scrolling, touch; loading the page and returning to the tab count as
       well). This happens on load, then every 30 seconds, even while the tab is in the background,
-      and whenever you return to the tab. On some pages a short note on what you are doing is added: in
-      the hangar, building a loadout or on a ship page (each with the ship name) or planning
-      mining; on all other pages it is cleared. Only your confirmed friends see this note, and
-      only while it is fresh (3 minutes). You can switch it off in the account dashboard
-      (“Friends see what I am doing”); it is then cleared and no longer sent. No other details
-      about which page you are viewing or what you do there are transmitted. Nothing is written
-      when you are not signed in.
+      and whenever you return to the tab.
     </p>
     <p>
-      Others do not see the timestamps, only a status derived from them: <em>online</em> (page
-      open and used within the last 3 minutes), <em>away</em> (page open but unused for longer, or
-      closed less than 3 minutes ago) or <em>offline</em>. This status is only visible once you
-      have set a handle: to anyone on your public pilot profile and to signed-in users in the
-      friends and pilot directory. When you sign out in the account dashboard, the page first
-      tries to clear both timestamps and the note and then signs you out regardless. If clearing fails (for
-      example without a network), this browser writes no further timestamps, and the status
-      switches to offline within 3 minutes unless a page of this website is still open while you
-      are signed in on another device.
-      Deleting your account removes the timestamps together with your profile. As for the rest
-      of the account, the legal basis is Art. 6 (1) (b) GDPR.
+      On some pages a short note on what you are doing is added, with its time: in the hangar (with
+      the selected ship), building a loadout or on a ship page (each with the ship name), planning
+      mining or in the refinery; on all other pages it is cleared. Only your confirmed friends see
+      this note, and only while it is fresh (3 minutes). It is on until you switch it off in the
+      account dashboard (“Friends see what I am doing”); it is then cleared and no longer sent. If a
+      browser does not know your setting yet, it only sends the note after learning the setting from
+      the account. No other details about which page you are viewing or what you do there are
+      transmitted. Nothing is written when you are not signed in.
+    </p>
+    <p>
+      Others do not see the timestamps, only a status derived from them: <em>online</em> (page open
+      and used within the last 3 minutes), <em>away</em> (page open but unused for longer, or closed
+      less than 3 minutes ago) or <em>offline</em>. This status is only computed once you have set a
+      handle. It is then readable by anyone: on your public pilot profile, which refreshes it every
+      40 seconds, and through the public interface for all profiles with a handle. To signed-in
+      users, the website shows it for friends and open requests. When you sign out in the account
+      dashboard (also with “Sign out everywhere”), the page first tries to clear the timestamps and the note and then signs you out
+      regardless. If clearing fails (for example without a network), this browser writes no further
+      timestamps, and the status switches to offline within 3 minutes unless a page of this website
+      is still open on another device where you are signed in. Deleting your account removes the
+      timestamps together with your profile. As for the rest of the account, the legal basis is
+      Art. 6 (1) (b) GDPR.
+    </p>
+
+    <h2 id="rsi">RSI verification (account only)</h2>
+    <p>
+      In the dashboard you can voluntarily enter your citizen handle at Roberts Space Industries
+      (RSI) and confirm that it belongs to you. For this, the account assigns you a personal code
+      (VERSEBASE-VERIFY-…) the first time you open the dashboard and stores it; you put it into your
+      public bio on robertsspaceindustries.com. On your click, our server component (a Supabase
+      function) fetches the public profile page robertsspaceindustries.com/citizens/&lt;handle&gt;
+      and looks for the code there. RSI (Roberts Space Industries International Limited, United
+      Kingdom) only learns the handle, and does so from a Supabase server;
+      RSI does not learn your IP address, e-mail address or account ID. Once the handle is verified,
+      the dashboard repeats the check on every visit; if the code is no longer in the bio, the
+      verification is removed.
+    </p>
+    <p>
+      Stored are RSI handle, code and check result. If you have set a handle with us, your RSI
+      handle (even unverified, as a link to RSI) and the “RSI verified” badge are public on your
+      <a href="#profile">pilot profile</a>; only you see the code. If you empty the field and save,
+      the RSI handle is deleted; “Revoke verification” only removes the status. The legal basis is
+      Art. 6 (1) (b) GDPR.
+    </p>
+
+    <h2 id="testpilots">Test pilots</h2>
+    <p>
+      Test pilots try out new features on the <a href="#staging">test preview</a>. Who belongs to
+      them follows the “Test Pilots” role on our <a href="#discord-server">Discord server</a>. If
+      your Discord ID is mapped to your account, our Discord bot reports to the account system
+      whether you hold this role (yes or no), on every change and regularly for reconciliation,
+      also after you disconnect Discord in the dashboard (see <a href="#discord">Discord</a>); while
+      you hold the role, this keeps your access to the test preview.
+      Stored for this are your Discord ID, whether you hold the role, and the time of your last
+      visit to the test preview. Administrators see handle, display name, Discord ID and last visit
+      of all test pilots in an overview. To revoke someone's access, a block note with a reason can
+      be stored.
+    </p>
+    <p>
+      As a test pilot, two things can be public. Both depend on a test-pilot mark in your profile
+      that only we set on the server side, never your browser. It does not currently follow the
+      “Test Pilots” role automatically: if you lose the role, it stays in place until we remove it.
+      If your profile carries it and
+      you have a handle, your pilot profile shows the “Test Pilot” badge; only then does the
+      dashboard also show the switch “List my name among the Test Pilots”. If you switch it on (off
+      by default), your display name (without one, your handle) appears with a link to your
+      profile in the Test Pilots list on the <a href="/feedback.html">Feedback</a> page. The legal
+      basis is Art. 6 (1) (b) GDPR, and for the list your consent (Art. 6 (1) (a) GDPR), which you
+      withdraw at any time with the switch. Everything here is deleted with the account.
+    </p>
+
+    <h2 id="staging">Test preview (staging.verse-base.com)</h2>
+    <p>
+      At staging.verse-base.com we run a test preview that is only open to
+      <a href="#testpilots">test pilots</a> and administrators. At the entrance you sign in with your
+      account; the entrance page connects to Supabase for this. The server then asks the account
+      system whether you have access, stores the time of your visit and sets two technically
+      necessary cookies: <code>vb_gate</code> (the access pass with your account ID, signed by the
+      server, not readable by scripts) and <code>vb_gate_exp</code> (its expiry time), both valid for
+      5 minutes. While a page of the preview is visible in the foreground, the browser renews the
+      pass about a minute before it expires. While the tab is in the background this pauses; when
+      the tab becomes visible again, the browser renews the pass once right away. Each renewal
+      updates the visit time. No reach measurement runs on the test preview. The
+      legal basis is Art. 6 (1) (b) GDPR, and for the cookies Section 25 (2) no. 2 TDDDG. This
+      entrance and these cookies do not exist on verse-base.com.
+    </p>
+
+    <h2 id="discord-server">Discord server and bot</h2>
+    <p>
+      VerseBase has a Discord server with its own bot, which we run on our server. For members of
+      the Discord server it keeps a level system: per Discord ID it stores experience points (for
+      the current run and in total), prestige, the number of your messages, your time in voice
+      channels and the time of the last change; it calculates level and rank from these. Each post
+      you open in the bug-reports forum earns bonus points once; for this the bot records the post's
+      ID, your Discord ID and the time. It does not read the content of messages. Into its
+      operating log on our server, however, it writes the title of such a bug report together with
+      your Discord ID and, whenever you leave the server, your “Test Pilots” role changes or a
+      reconciliation with the account system fails, your Discord ID and whether it is mapped to a
+      website account. All members of the server can see your level, rank, prestige, experience points and
+      leaderboard position, via <code>/rank</code>, which works for any member, and via the
+      leaderboard; your rank is also shown as a Discord role, and the bot announces level-ups on the
+      server. The bot does not show the number of your messages or your voice time there.
+    </p>
+    <p>
+      The bot also reconciles the “Test Pilots” role with website accounts (see
+      <a href="#testpilots">test pilots</a>). If your Discord ID is mapped to a website account, it
+      transfers your values into that account: level, rank, prestige, experience points, messages,
+      voice time, leaderboard position and whether you are currently a member of the server, when
+      the bot starts, then every 5 minutes and right after each level-up. This also applies after
+      you disconnect Discord, until the mapping is removed (see <a href="#discord">Discord</a>).
+      While Discord is connected and you are a member of the server, your
+      <a href="#profile">pilot profile</a> shows level, rank and prestige to anyone as a rank badge,
+      and anyone can read them through the public database interface; to signed-in users the
+      website also shows the badge for friends and in requests, search hits and suggestions. The
+      website shows the other values only to you. For the reconciliation the bot sends your Discord ID to
+      the account system at Supabase, even if you have no website account: when you leave the
+      server, when your “Test Pilots” role changes and when you level up. If the Discord ID is not
+      mapped to any account, the account system creates nothing for it; the request including the
+      Discord ID then only appears in Supabase's access log, for a short period set by the
+      provider.
+    </p>
+    <p>
+      The bot's data is kept in a separate database on our server. We keep it for as long as we run
+      the bot; it is not deleted automatically, not even when you leave the server or delete your
+      website account. We delete it on request by e-mail. If you have left the server, the
+      leaderboard keeps listing your entry, with the first digits of your Discord ID instead of your
+      name. The legal basis is
+      Art. 6 (1) (f) GDPR (legitimate interest in a lively community server). Everything else on the
+      server is subject to Discord's privacy policy
+      (<a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>).
     </p>
 
     <h2 id="support">Voluntary support (Stripe, PayPal)</h2>
@@ -301,49 +664,106 @@ body{font-family:var(--font-body)}
       buys no goods, services or account privileges.
     </p>
     <p>
-      <strong>Stripe.</strong> When you press the button, this website asks Stripe to create a
-      payment page and then sends you there. Everything you enter — payment method, card details,
-      billing data, e-mail address — you enter <em>on Stripe’s page</em>, not on this one. This
-      website never receives, sees or stores your payment details. Stripe processes the payment on
-      its own responsibility as an independent controller under its own privacy policy.
-      The legal basis for the transfer that starts the process is Art. 6 (1) (b) GDPR (carrying out
-      the payment you initiated).
+      <strong>Stripe.</strong> When you press the button, your browser sends only the amount you
+      chose and the page language to a server function of this project at Supabase, without any
+      details from your account, even when you are signed in. The function asks Stripe to create a
+      payment page (amount in euros, fixed product name, page language, return addresses) and sends
+      you there. Everything you enter — payment method, card details, billing data, e-mail address —
+      you enter <em>on Stripe’s page</em>, not on this one. If you choose PayPal, Apple Pay, Google
+      Pay or another method offered there, that provider is involved as well: with PayPal you sign
+      in on PayPal’s own page, and with Apple Pay and Google Pay the payment details come from your
+      wallet; in each case that provider’s privacy policy applies. Card and bank details never reach
+      this website. Stripe processes the payment as an independent controller under its own privacy
+      policy. The legal basis for the transfer that starts the process is Art. 6 (1) (b) GDPR
+      (carrying out the payment you initiated).
     </p>
     <p>
-      Once a payment has been confirmed, Stripe notifies this project’s server component. What is
-      stored on our side is deliberately reduced to what a running total needs: <strong>the amount,
-      the currency, the time, and Stripe’s technical reference numbers for the transaction</strong>.
-      <strong>No name, no e-mail address, no address and no payment details are stored by us</strong>,
-      and the stored records are not publicly readable. The figure shown publicly on the Support page
-      is the sum alone. The address you are returned to afterwards carries no amount either — it
-      only says that you came back.
+      When you complete the payment, Stripe sends this project's server component a notification
+      about it. It contains the details Stripe collected (such as e-mail address, name and
+      country). Only a payment that Stripe already reports as paid at that moment (for example by
+      card) is stored, and of it only <strong>the amount, the currency, the time, a flag for test or
+      live payment and Stripe's reference numbers</strong>. <strong>No name, no e-mail address,
+      no address and no payment details are stored in our database</strong>, and only an
+      administrator can read the records. Using the reference numbers, a record can be matched to
+      the payment in our Stripe account; there, as the recipient, we see what Stripe shows for a
+      payment (such as name, e-mail address, payment method and country). We keep the records for
+      as long as we keep the donation total. The legal basis for this is Art. 6 (1) (f) GDPR
+      (legitimate interest in a traceable total).
+    </p>
+    <p>
+      When opened, the Support page reads the <strong>donation status</strong>: the goal, the
+      subtotals via Stripe and via PayPal and the time of the last change; the total is displayed.
+      This status is readable by anyone. Because the Stripe subtotal and the time change with every
+      Stripe payment stored this way, it reveals when the last Stripe donation was made and how much; it
+      contains no names. After a completed payment Stripe sends you back with the suffix
+      <code>?danke=1</code>, after a cancellation without it. It carries no amount; the page removes
+      it right away and the statistics do not count it, while the
+      <a href="#hosting">server log</a> records the request like any other.
     </p>
     <p class="muted">
       Payment service provider: Stripe Payments Europe, Ltd. (Ireland), with onward transfer to
-      Stripe, Inc. (USA). For details on how the service processes data, see
-      <a href="https://stripe.com/privacy" rel="noopener">stripe.com/privacy</a>. A connection to
-      Stripe is only established when you press the button — not when merely reading the page.
+      Stripe, Inc. (USA, certified under the EU-U.S. Data Privacy Framework). For details on how the
+      service processes data, see <a href="https://stripe.com/privacy" rel="noopener">stripe.com/privacy</a>.
+      A connection to Stripe is only established when you press the button, not when merely reading
+      the page.
     </p>
     <p>
-      <strong>PayPal.</strong> As a second route the Support page carries an ordinary link to
-      PayPal.me. It is a link and nothing more: no PayPal script runs on this site, and no data is
-      transmitted until you follow it. From that point PayPal’s own privacy policy applies
-      (<a href="https://www.paypal.com/webapps/mpp/ua/privacy-full" rel="noopener">paypal.com</a>).
-      This route reports nothing back to us, so payments made through it are not recorded
-      automatically anywhere on this site.
+      <strong>PayPal.</strong> As a second route the page carries an ordinary link to PayPal.me. No
+      PayPal script runs on this site, and no data is transmitted until you follow it. If you follow
+      it, PayPal receives the amount you chose (it is part of the link), your IP address and the
+      origin verse-base.com; from then on PayPal's privacy policy applies (PayPal (Europe) S.à r.l. et
+      Cie, S.C.A., Luxembourg;
+      <a href="https://www.paypal.com/webapps/mpp/ua/privacy-full" rel="noopener">paypal.com</a>). If
+      you pay, PayPal shows us as the recipient your PayPal name, your e-mail address and any message.
+      We enter the amount by hand into the PayPal subtotal, without names; nothing beyond that is
+      recorded on this website. The legal basis is Art. 6 (1) (f) GDPR (legitimate interest in
+      accepting donations and keeping the total).
     </p>
 
     <h2>Fonts</h2>
     <p>All web fonts are served locally by this website. No connection to Google Fonts is made.</p>
 
+    <h2 id="third-countries">Recipients outside the EU</h2>
+    <ul>
+      <li><strong>Cloudflare</strong> (USA): every request; certified under the EU-U.S. Data
+        Privacy Framework</li>
+      <li><strong>Google</strong> (Ireland, with possible transfer to the USA): YouTube after your
+        click, our e-mail mailbox; Google LLC is certified under the EU-U.S. Data Privacy
+        Framework</li>
+      <li><strong>Supabase</strong> (Singapore; access from the USA also possible): account system
+        and the Discord bot's reconciliation; standard contractual clauses</li>
+      <li><strong>Web3Forms</strong> (India, with service providers also in the USA): feedback;
+        standard contractual clauses</li>
+      <li><strong>Discord</strong> (USA): signing in with Discord, profile pictures from Discord and
+        our <a href="#discord-server">Discord server and bot</a> (level system, rank roles, level-up
+        announcements, matching of the “Test Pilots” role); by its own account Discord participates
+        in the EU-U.S. Data Privacy Framework</li>
+      <li><strong>Roberts Space Industries</strong> (Roberts Space Industries International
+        Limited, United Kingdom, by its own account also with servers in the USA): your RSI handle
+        during <a href="#rsi">RSI verification</a> and, while it is verified, on every dashboard
+        visit; an EU Commission adequacy decision applies to the United Kingdom</li>
+      <li><strong>Stripe</strong> and <strong>PayPal</strong>: donations, according to their own
+        privacy policies also in the USA</li>
+    </ul>
+
     <h2>Your rights</h2>
     <p class="muted">
       You have the rights under Art. 15–21 GDPR (access, rectification, erasure, restriction, data
       portability, objection) and the right to lodge a complaint with a supervisory authority
-      (Art. 77 GDPR). Without a user account, this website does not collect or store personal data
-      about you; with an account, you can view, change and fully delete your data yourself in the
-      dashboard at any time, and download it as a file (Security &amp; Account → My data) — if in
-      doubt, reach out by e-mail.
+      (Art. 77 GDPR). You can withdraw consent (YouTube click, feedback, Test Pilots list) at any time
+      with effect for the future. You can object to processing based on legitimate interests; for the
+      reach measurement, the click <a href="#opt-out">above</a> is enough.
+    </p>
+    <p class="muted">
+      Even without a user account we process the data described above (server logs, reach
+      measurement, feedback messages, donations and, if you are a member of our Discord server, the
+      bot's values); on request we provide access to it or delete it, as far as we can attribute it
+      to you. With an account, you view and change your profile data in the dashboard, download
+      your account's data as a file under Security &amp; Account → My data (profile, favorites, tool
+      data, friendships and requests, messages and the values from the Discord server; the file is
+      created in your browser) and delete the whole account there; what remains is described under
+      <a href="#accounts">user account</a> and <a href="#discord-server">Discord server and
+      bot</a>. We keep account data until you change it or delete the account. For anything else, such as full access to your data, send us an e-mail.
     </p>
   </div>
 </main>
