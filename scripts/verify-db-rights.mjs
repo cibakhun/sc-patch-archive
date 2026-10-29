@@ -61,9 +61,10 @@ export const ABFRAGE_DATEI = 'supabase/rights.snapshot.sql';
 // 20261030130000/131000 (drei Triggerfunktionen) und 20261030133000 (zwei
 // Spaltenrechte); auf der Replik mit allen Migrationen gemessen.
 // 65 mit profiles_guard_times() aus 20261030140000.
-// 68 mit checkout_rate_ok(), private.checkout_attempts und deren Sequenz aus
+// 66 mit der View public_showcase aus 20261029205000 (live seit 29.10.2026 20:51).
+// 69 mit checkout_rate_ok(), private.checkout_attempts und deren Sequenz aus
 // 20261030160000 (Bremse des Spenden-Checkouts).
-export const KLINKE_OBJEKTE = 68;
+export const KLINKE_OBJEKTE = 69;
 
 export const ROLLEN = ['anon', 'authenticated', 'public'];
 

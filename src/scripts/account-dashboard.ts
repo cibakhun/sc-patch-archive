@@ -224,6 +224,7 @@ import { cssUrl } from '../lib/cssUrl';
         is_tester: false,
         tester_credit: false,
         share_activity: true,
+        show_favorites: true,
         presence_visibility: 'friends',
         social_twitch: '',
         social_youtube: '',
@@ -333,6 +334,7 @@ import { cssUrl } from '../lib/cssUrl';
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
       const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const showFavsInput = document.getElementById('pfShowFavs') as HTMLInputElement | null;
       const presVisSelect = document.getElementById('pfPresenceVis') as HTMLSelectElement | null;
       const socialInputs = {
         social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
@@ -355,6 +357,7 @@ import { cssUrl } from '../lib/cssUrl';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
       if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      if (showFavsInput) showFavsInput.checked = profileState.show_favorites !== false;
       // Wer den Online-Status sieht (profiles.presence_visibility); alles
       // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
       const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
@@ -1396,6 +1399,7 @@ import { cssUrl } from '../lib/cssUrl';
           socialVals[s.key] = v;
         }
         const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
+        const showFavsVal = showFavsInput ? showFavsInput.checked : profileState.show_favorites !== false;
         const presVisVal = presVisOf(presVisSelect ? presVisSelect.value : profileState.presence_visibility);
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
@@ -1442,6 +1446,7 @@ import { cssUrl } from '../lib/cssUrl';
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          show_favorites: showFavsVal,
           presence_visibility: presVisVal,
           ...socialVals,
         });
@@ -1463,6 +1468,7 @@ import { cssUrl } from '../lib/cssUrl';
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          show_favorites: showFavsVal,
           presence_visibility: presVisVal,
           social_twitch: socialVals.social_twitch || null,
           social_youtube: socialVals.social_youtube || null,

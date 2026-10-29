@@ -163,6 +163,11 @@
       "authenticated": ["SELECT"],
       "warum": "PilotPage (oeffentlich); View mit Besitzerrechten"
     },
+    "view public.public_showcase": {
+      "anon": ["SELECT"],
+      "authenticated": ["SELECT"],
+      "warum": "PilotPage (oeffentlich): angeheftete Loadouts; View mit Besitzerrechten (20261029205000)"
+    },
     "view public.public_profiles": {
       "anon": ["SELECT"],
       "authenticated": ["SELECT"],

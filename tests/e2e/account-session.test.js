@@ -647,3 +647,104 @@ test('VBAccount.rest reicht ein AbortSignal an fetch weiter', async () => {
   assert.equal(last.url.includes('/rest/v1/crafting_entries?select=slug'), true);
   assert.equal(last.signal, ctl.signal);
 });
+
+// ---- Zahl am Konto-Knopf ---------------------------------------------------
+// Offene Anfragen an mich + ungelesene Nachrichten von Freunden. Gezählt wie
+// in der Freundesleiste der Kontoseite: ein Ex-Freund steht dort in keiner
+// Liste mehr, seine Nachricht liesse sich also nie als gelesen markieren.
+const INBOX = () => ({
+  requests: [
+    { id: 'r1', sender_id: 'user-3', receiver_id: 'user-1', status: 'pending' },
+    { id: 'r2', sender_id: 'user-4', receiver_id: 'user-1', status: 'pending' },
+    { id: 'r3', sender_id: 'user-1', receiver_id: 'user-5', status: 'pending' },
+  ],
+  messages: [
+    { sender_id: 'user-2', receiver_id: 'user-1', read_at: null },
+    { sender_id: 'user-2', receiver_id: 'user-1', read_at: null },
+    { sender_id: 'user-2', receiver_id: 'user-1', read_at: '2026-10-08T11:00:00Z' },
+    { sender_id: 'user-9', receiver_id: 'user-1', read_at: null },
+  ],
+  friends: [{ user_id: 'user-2', friend_id: 'user-1' }],
+});
+const NO_BADGE = { text: '', hidden: true, href: '/account.html', aria: 'Account', title: 'Nova' };
+const badgeFetches = (tab) => calls(tab, 'GET', '/rest/v1/friend_requests?');
+
+test('die Zahl am Konto-Knopf zählt offene Anfragen an mich und Ungelesenes von Freunden, der Knopf führt dann zu Freunde', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.badge(), {
+    text: '4', hidden: false, href: '/account.html#friends',
+    aria: 'Account (2 friend requests · 2 unread messages)',
+    title: 'Nova · 2 friend requests · 2 unread messages',
+  });
+});
+
+test('ohne Anfragen und Ungelesenes bleibt die Zahl weg und fragt nicht nach Freunden', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: { requests: [], messages: [], friends: [{ user_id: 'user-2', friend_id: 'user-1' }] } });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.badge(), NO_BADGE);
+  assert.equal(calls(tab, 'GET', '/rest/v1/friends?'), 0);
+});
+
+test('meldet sich ein anderer Tab ab, verschwindet die Zahl und der Knopf führt zur Anmeldung', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(tab.badge().text, '4');
+  b.signOut();
+  await b.drain();
+  assert.deepEqual(tab.badge(), { text: '', hidden: true, href: '/account/login.html', aria: 'Account', title: '' });
+});
+
+test('die Zahl fragt jede Minute nach, solange der Tab sichtbar ist, und sofort bei der Rückkehr', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(badgeFetches(tab), 1);
+  b.inbox.requests = [];
+  await b.advance(60000);
+  assert.equal(badgeFetches(tab), 2);
+  assert.equal(tab.badge().text, '2');
+
+  tab.setVisible(false);
+  await b.advance(180000);
+  assert.equal(badgeFetches(tab), 2, 'versteckt fragt der Tab nicht');
+  b.inbox.messages = [];
+  tab.setVisible(true);
+  await b.drain();
+  assert.equal(badgeFetches(tab), 3);
+  assert.deepEqual(tab.badge(), NO_BADGE);
+});
+
+test('scheitert die Abfrage, bleibt die letzte Zahl stehen', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
+  const tab = b.open();
+  await b.drain();
+  b.inbox.down = true;
+  await b.advance(60000);
+  assert.equal(badgeFetches(tab), 2);
+  assert.equal(tab.badge().text, '4');
+});
+
+test('auf der Kontoseite gelten Freundesliste und Chat sofort', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
+  const tab = b.open();
+  await b.drain();
+  tab.fireDoc('vb:chat-unread', 0);
+  assert.equal(tab.badge().text, '2');
+  tab.fireDoc('vb:friends', { friends: [], incoming: [] });
+  assert.deepEqual(tab.badge(), NO_BADGE);
+});
+
+test('meldet sich in einem anderen Tab ein anderes Konto an, zählt die Zahl für das neue Konto', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(tab.badge().text, '4');
+  b.signIn(9, 'user-2');
+  await b.drain();
+  assert.deepEqual(tab.badge(), { text: '', hidden: true, href: '/account.html', aria: 'Account', title: 'Vega' });
+  assert.equal(badgeFetches(tab), 2);
+});
