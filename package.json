@@ -30,6 +30,7 @@
     "verify:hangar": "node scripts/verify-hangar.mjs",
     "verify:hangar-hall": "node scripts/verify-hangar-hall.mjs",
     "verify:hangar-gear": "node scripts/verify-hangar-gear.mjs",
+    "verify:hangar-cockpit": "node scripts/verify-hangar-cockpit.mjs",
     "verify:theme": "node scripts/verify-theme-gen.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
