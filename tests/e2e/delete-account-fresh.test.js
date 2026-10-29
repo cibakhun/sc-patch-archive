@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { signedInRecently, REAUTH_WINDOW } from '../../supabase/functions/delete-account/fresh.ts';
+import { signedInRecently, secondFactorMissing, REAUTH_WINDOW } from '../../supabase/functions/delete-account/fresh.ts';
 
 const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64')
   .replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -42,6 +42,22 @@ test('ein Zeitpunkt weit in der Zukunft zaehlt nicht', () => {
   assert.equal(signedInRecently(jwt({ amr: [{ method: 'password', timestamp: NOW + 3600 }] }), NOW), false);
 });
 
+test('Konto ohne bestaetigten Faktor: kein Code noetig', () => {
+  const t = jwt({ aal: 'aal1', amr: [{ method: 'password', timestamp: NOW }] });
+  assert.equal(secondFactorMissing(t, []), false);
+  assert.equal(secondFactorMissing(t, undefined), false);
+  assert.equal(secondFactorMissing(t, [{ factor_type: 'totp', status: 'unverified' }]), false);
+});
+
+test('Konto mit bestaetigtem Faktor: nur eine Sitzung mit Code darf loeschen', () => {
+  const f = [{ factor_type: 'totp', status: 'verified' }];
+  assert.equal(secondFactorMissing(jwt({ aal: 'aal1' }), f), true);
+  assert.equal(secondFactorMissing(jwt({}), f), true);
+  assert.equal(secondFactorMissing(jwt({ aal: 'AAL2' }), f), true);
+  assert.equal(secondFactorMissing('kaputt', f), true);
+  assert.equal(secondFactorMissing(jwt({ aal: 'aal2' }), f), false);
+});
+
 test('index.ts prueft die Frische nach getUser und vor Aufraeumen und Loeschen', () => {
   const src = fs.readFileSync(path.resolve('supabase/functions/delete-account/index.ts'), 'utf8');
   const at = (s) => { const i = src.indexOf(s); assert.ok(i >= 0, `fehlt: ${s}`); return i; };
@@ -51,4 +67,7 @@ test('index.ts prueft die Frische nach getUser und vor Aufraeumen und Loeschen',
   assert.ok(getUser < fresh && fresh < reauth, 'Frische-Pruefung nicht nach getUser');
   assert.ok(reauth < at('purgeUserFiles(admin.storage'), 'Frische-Pruefung nicht vor dem Aufraeumen');
   assert.ok(reauth < at('deleteUser(user.id)'), 'Frische-Pruefung nicht vor dem Loeschen');
+  const mfa = at("'mfa_required'");
+  assert.ok(getUser < at('secondFactorMissing(jwt, user.factors)') && mfa < at('purgeUserFiles(admin.storage'),
+    'Code-Pruefung nicht zwischen getUser und Aufraeumen');
 });

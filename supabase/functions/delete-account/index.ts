@@ -10,13 +10,14 @@
 // Scheitert das Aufräumen der Bilder, bleibt das Konto bestehen (500), damit
 // keine Dateien eines gelöschten Kontos öffentlich zurückbleiben.
 // Ohne frische Anmeldung (fresh.ts) antwortet die Funktion 401
-// reauth_required und löscht nichts.
+// reauth_required, bei einem Konto mit zweitem Faktor ohne Code-Sitzung
+// 401 mfa_required; gelöscht wird dann nichts.
 //
 // Version fest gepinnt (vorher jsr:@supabase/supabase-js@2, also jeweils die
 // neueste 2.x zum Zeitpunkt des Deploys).
 import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
 import { purgeUserFiles } from './purge.ts';
-import { signedInRecently } from './fresh.ts';
+import { secondFactorMissing, signedInRecently } from './fresh.ts';
 
 const ALLOWED_ORIGINS = new Set([
   'https://verse-base.com',
@@ -63,6 +64,9 @@ Deno.serve(async (req: Request) => {
     }
     if (!signedInRecently(jwt, Date.now() / 1000)) {
       return new Response(JSON.stringify({ error: 'reauth_required' }), { status: 401, headers });
+    }
+    if (secondFactorMissing(jwt, user.factors)) {
+      return new Response(JSON.stringify({ error: 'mfa_required' }), { status: 401, headers });
     }
 
     const admin = createClient(
