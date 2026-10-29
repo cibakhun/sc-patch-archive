@@ -43,7 +43,12 @@ const rel = (f) => '/' + f.slice(DIST.length + 1).replaceAll('\\', '/');
 function servedBy(urlPath) {
   // 1. /en/… -> /… (Sprach-Tausch, alte indexierte URLs)
   if (urlPath === '/en' || urlPath === '/en.html') return '/index.html';
-  if (urlPath.startsWith('/en/')) urlPath = urlPath.slice(3) || '/';
+  if (urlPath.startsWith('/en/')) {
+    // Gleiches Muster wie `location /en/` — alles andere dort ist 404.
+    const en = /^\/en\/([A-Za-z0-9._-][A-Za-z0-9._\/-]*)?$/.exec(urlPath);
+    if (!en) return urlPath;
+    urlPath = '/' + (en[1] || '');
+  }
 
   // 2. Verzeichnisse ohne .html-Zwilling, die eigene Ziele haben
   const FIXED = {
