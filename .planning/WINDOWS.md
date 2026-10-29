@@ -1773,6 +1773,18 @@ last_updated: 2026-10-29T22:30:00.000Z
     "reason": "",
     "recorded_at": "2026-10-29T19:00:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 137,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "scripts/build-hangar-assets.mjs",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schiffe von innen hohl nach Krisz 29.10.2026 11:16 mit Bild der Gladius: „siehst wie das schiff von innen hohl ist?“): Durch die Haube sah man neben und hinter dem Sitz durch das Schiff in die Halle. Das Spiel zeichnet Rumpf und Cockpit zweiseitig, der Export trug das nicht; jetzt sind sie zweiseitig wie im Spiel, und Innenraum, den man durch Glas sieht, bleibt beim Bau (Glas plus 2,5 m). Alle 231 Schiffe neu gebaut, zusammen mit den Grundfarben aus #238. Blick in die Halle über 230 Schiffe mit Haube im Mittel 6,4 → 0,8 %, Schiffe über 10 % 50 → 2. Zu beurteilen: Gladius aus deiner Sicht (vorn links vor dem Sitz), Hornet F7C Mk II, L-21 Wolf, Starlifter A2; 23 Schiffe zeigen jetzt durch einseitige Innenverkleidung mehr Innenraum (Reliant, 600i, Cutlass Black), stört das? Offen und als Ausnahme benannt: Vanduul Blade (zwischen den Rippen offen) und Hammerhead/Showdown (unter den Brückensitzen fehlt der Boden). Argo SRV 2,8 → 15,2 MB. Bilder /mnt/project-files/hangar-cockpit/, Befund .planning/notes/hangar-cockpit-hohl.md; Tor verify:hangar-cockpit hält es fest.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-29T21:30:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
