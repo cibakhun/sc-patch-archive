@@ -9,7 +9,7 @@
 // Namen oder Farben zeigen.
 import { supabase } from '../lib/supabase';
 import { RANKS, rankForLevel, nextRank, prestigeStars } from '../../discord/bot/src/ranks.mjs';
-import { progress } from '../../discord/bot/src/leveling.mjs';
+import { progress, totalXpForLevel, xpToNext } from '../../discord/bot/src/leveling.mjs';
 import { layoutList, startLayouts, shipLabel, KIND_IC, favHref, hangarLink } from './account-layouts';
 
 type Copy = Record<string, any>;
@@ -68,8 +68,9 @@ function boot(root: HTMLElement) {
     $('ckPrestige')!.hidden = true;
   };
 
-  const renderRank = (row: RankRow | null) => {
-    if (dcLinked === false) {
+  const renderRank = (raw: RankRow | null) => {
+    const row = preview || raw;
+    if (dcLinked === false && !preview) {
       showCta('nolink', C.noLink, C.noLinkBtn, () => (document.getElementById('btnDiscordLink') as HTMLButtonElement | null)?.click());
       return;
     }
@@ -95,7 +96,7 @@ function boot(root: HTMLElement) {
     $('ckRankName')!.textContent = rank.name;
     const lv = $('ckRankLv')!;
     lv.hidden = false;
-    lv.textContent = fill(C.lv, { n: level });
+    lv.textContent = fill(C.lv, { n: level }) + (preview ? ` · ${C.preview}` : '');
     const pres = $('ckPrestige')!;
     pres.textContent = prestigeStars(row.prestige || 0);
     pres.hidden = !pres.textContent;
@@ -115,11 +116,32 @@ function boot(root: HTMLElement) {
   };
 
   let rankRow: RankRow | null = null;
+  // Vorschau nur für Admins: ?rang=max, ein Rangname (ace) oder ein Level (42),
+  // dazu wahlweise &prestige=2. Ändert nur diese Ansicht; Datenbank, Bot-XP und
+  // Discord-Rollen bleiben, wie sie sind.
+  let preview: RankRow | null = null;
+  const loadPreview = async () => {
+    const q = new URLSearchParams(location.search);
+    const p = (q.get('rang') || '').trim().toLowerCase();
+    if (!p) return;
+    const { data } = await supabase.from('user_roles').select('role').eq('user_id', me).maybeSingle();
+    if ((data as { role?: string } | null)?.role !== 'admin') return;
+    const byKey = p === 'max' ? RANKS[RANKS.length - 1] : RANKS.find((r) => r.key === p);
+    const level = byKey ? byKey.level : /^\d{1,3}$/.test(p) ? Number(p) : NaN;
+    if (!Number.isFinite(level)) return;
+    preview = {
+      in_guild: true, level, xp: totalXpForLevel(level) + Math.round(xpToNext(level) * 0.6),
+      prestige: Math.min(9, Math.max(0, Number(q.get('prestige')) || 0)), rank_key: rankForLevel(level).key,
+      messages: rankRow?.messages ?? null, voice_seconds: rankRow?.voice_seconds ?? null,
+      server_rank: rankRow?.server_rank ?? null, server_members: rankRow?.server_members ?? null, stats_at: new Date().toISOString(),
+    };
+  };
   const loadRank = async () => {
     const { data } = await supabase.from('discord_role_state')
       .select('in_guild, level, xp, prestige, rank_key, messages, voice_seconds, server_rank, server_members, stats_at')
       .maybeSingle();
     rankRow = (data as RankRow) || null;
+    await loadPreview();
     renderRank(rankRow);
   };
   document.addEventListener('vb:discord', (e) => {

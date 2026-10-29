@@ -362,9 +362,19 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
          dort zaehlt nur die Kombination „Chrome iOS ohne Herkunft" (201 von
          203 Chrome-iOS-Besuchern, alle auf Uebersichtsseiten, alle 0 s).
       Liefert vbZaehlen null, schickt das Umami-Skript nichts ab. */}
+  {/* ⚠ Adress-Hygiene (29.10.2026): Neuere Umami-Zähler schicken die volle
+      Adresse samt ?Parametern und #Sprungmarke — und jede Änderung per
+      history.replaceState als neuen Aufruf, mit der alten Adresse als
+      Herkunft. So landeten Rücksprünge aus der Anmeldung, geteilte
+      Hangar-Layouts (?layout=… mit dem selbst vergebenen Namen) und
+      ?danke=1 nach einer Spende in der Statistik. Gezählt wird deshalb nur
+      der Pfad: vbZaehlen schneidet ? und # von url und referrer ab, die
+      beiden data-exclude-* sagen dasselbe für Zähler, die sie kennen. Die
+      Datenschutzerklärung (#umami) sagt genau das zu. */}
   <script is:inline>
     (function () {
       var BOT = ['1280x1200', '800x600', '1024x1024', '1200x3000', '1280x1280'];
+      var nurPfad = function (u) { return typeof u === 'string' ? u.replace(/[?#][\s\S]*$/, '') : u; };
       window.vbZaehlen = function (typ, daten) {
         try {
           if (navigator.webdriver) return null;
@@ -372,11 +382,15 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
           if (BOT.indexOf(s) !== -1) return null;
           if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
         } catch (e) {}
+        if (daten && typeof daten === 'object') {
+          daten.url = nurPfad(daten.url);
+          daten.referrer = nurPfad(daten.referrer);
+        }
         return daten;
       };
     })();
   </script>
-  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-before-send="vbZaehlen"></script>
+  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-exclude-search="true" data-exclude-hash="true" data-before-send="vbZaehlen"></script>
   <slot name="head" />
 </head>
 <body>

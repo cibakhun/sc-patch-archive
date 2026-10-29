@@ -324,16 +324,35 @@
   var hbActivityOk = true;
   // Schalter "Freunde sehen, was ich gerade mache" (profiles.share_activity):
   // ist er aus, schickt der Puls gar keine Angabe mit, statt sie nur vom View
-  // verstecken zu lassen. Quelle: die Antwort des letzten Pulses, vorher der
-  // Profil-Cache des Konto-Dashboards; unbekannt = an (Vorgabe der Spalte).
+  // verstecken zu lassen. Quelle: die Antwort des letzten Pulses (fuer die
+  // naechste Seite im selben Tab in sessionStorage gemerkt), davor der
+  // Profil-Cache des Konto-Dashboards, dessen "aus" immer gewinnt.
+  // ⚠ Unbekannt galt hier als "an" (Vorgabe der Spalte). Ein Browser ohne
+  // Dashboard-Cache schickte damit beim ersten Puls JEDER Seite die Angabe
+  // mit und schrieb sie ins Profil, auch bei ausgeschaltetem Schalter —
+  // die Datenschutzerklaerung sagt "nicht mehr mitgeschickt" (Gegenpruefung
+  // 29.10.2026). Jetzt heisst unbekannt null: der Puls geht ohne Angabe
+  // raus, und erst die Antwort entscheidet, ob ein zweiter sie nachreicht.
+  // Der Wert im Speicher gehoert dem Konto, dessen Puls ihn erfahren hat
+  // (hbShareUid): meldet sich in einem anderen Tab jemand anderes an, liest
+  // diese Seite die neue Sitzung, und das "an" des Vorgaengers darf nicht
+  // fuer den Nachfolger gelten (cubic #239). Und das "aus" des Dashboards
+  // wird vor dem Speicher gefragt, damit es auch mitten in der Seite gewinnt.
   var hbShare = null;
+  var hbShareUid = null;
+  var HB_SHARE_KEY = 'vb_share_';
   function hbShareOf(uid) {
-    if (hbShare !== null) return hbShare;
     try {
       var p = JSON.parse(localStorage.getItem('vb_profile_' + uid) || 'null');
       if (p && p.share_activity === false) return false;
     } catch (e) { /* noop */ }
-    return true;
+    if (hbShare !== null && hbShareUid === uid) return hbShare;
+    try {
+      var s = sessionStorage.getItem(HB_SHARE_KEY + uid);
+      if (s === '1') return true;
+      if (s === '0') return false;
+    } catch (e) { /* noop */ }
+    return null;
   }
   function hbWrite() {
     ensureSession().then(function (sess) {
@@ -344,8 +363,12 @@
       };
       var path = 'profiles?id=eq.' + sess.user.id;
       if (!hbActivityOk) { rest(sess, 'PATCH', path, base).catch(function () { /* noop */ }); return; }
-      var act = hbShareOf(sess.user.id) ? currentActivity() : null;
-      var body = { last_seen: base.last_seen, last_active: base.last_active, activity: act, activity_at: base.last_seen };
+      var uid = sess.user.id;
+      var share = hbShareOf(uid);
+      // Schalter unbekannt: activity gar nicht anfassen (kein Leeren, kein
+      // Schreiben) — der Puls fragt nur nach dem Schalter.
+      var body = share === null ? base
+        : { last_seen: base.last_seen, last_active: base.last_active, activity: share ? currentActivity() : null, activity_at: base.last_seen };
       rest(sess, 'PATCH', path + '&select=share_activity', body, 'return=representation').then(function (r) {
         if (r && r.status === 400) {
           hbActivityOk = false;
@@ -353,7 +376,11 @@
         }
         if (r && r.ok) {
           return r.json().then(function (rows) {
-            if (rows && rows[0] && typeof rows[0].share_activity === 'boolean') hbShare = rows[0].share_activity;
+            if (!rows || !rows[0] || typeof rows[0].share_activity !== 'boolean') return;
+            hbShare = rows[0].share_activity;
+            hbShareUid = uid;
+            try { sessionStorage.setItem(HB_SHARE_KEY + uid, hbShare ? '1' : '0'); } catch (e) { /* noop */ }
+            if (share === null) hbWrite();     // gleich nachreichen: an -> Angabe, aus -> geleert
           }).catch(function () { /* noop */ });
         }
       }).catch(function () { /* noop */ });
