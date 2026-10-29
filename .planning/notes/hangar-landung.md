@@ -170,6 +170,23 @@ PC-Lauf 27.10.2026, Branch `pc/hangar-landung` (Zwischenstand 1).
   eigenen Familie (600i BIS2951 aus ORIG 600i). Alle acht Lacke der BIS2951
   tragen jetzt Palette und Finish.
 
+- **Teil A nach Vertrag (PC, 29.10.2026):** `datamine:paints` schreibt
+  `finish { a/b/c: { specular, gloss } }` für `base` und jede Lackierung:
+  2103 von 2103 Lackierungen und 207 von 207 Grundpaletten vollständig, mit
+  Metall (metallic > 0,5 nach `palettePbr`) 1246 bzw. 114 (gezählt vor
+  `DIEL_MAX`; nachgezählt siehe Cloud 29.10. abends unten: 863 bzw. 61,
+  ohne Sättigungsregel 589 bzw. 51). Lack ab Werk auch
+  über `entityClassReference` (1: Hornet F7C-M Mk II Heartseeker; ab Werk
+  lackiert jetzt 4). Der Bau schreibt an jedes Palettenmaterial der eigenen
+  Palette `extras.palette { ch, tint, specular, gloss }` (Werte aus
+  `ship-paints.json`, sonst aus dem Rohexport) und setzt Grundfarbe, Metall
+  und Rauheit aus `palettePbr` (importiert aus `assets/hangar-viewer.js`).
+  Alle 231 Web-Schiffe auf dem mit PR #223 (Innenraum) vereinten Stand neu
+  gebaut, damit auch dessen 26 Schiffe. Corsair primär: Stahl (metallic 1,
+  Grundfarbe 0,33, Rauheit 0,41) statt Schwarz; im Hangar hell (angesehen).
+  Railen bleibt gestreift: Kanal A Weiß tönt die Steinlinien, B und C sind
+  Metall.
+
 ### Teil B: Landestellung
 
 - **Rumpf zuerst:** `poseShip` (`scripts/lib/landing-gear.mjs`) spielt vor
@@ -484,3 +501,30 @@ blieben Lack).
   Aufrufe. Die Lack-Baupläne (`public/hangar/paints/`) tragen noch die alten
   Schwesterfarben (Cutlass Black Cypress #434649 statt #5a5139 wie Steel und
   Red); sie werden beim Neubau aller Schiffe neu geschrieben.
+
+**Cloud 29.10.2026 abends, beim Zusammenführen mit `pc/hangar-landung`
+(PR #238, Teil A mit allen 231 Schiffen):** Beide PC-Läufe haben Teil A
+gebaut. Übernommen sind Datenlauf, Bau-Code und `ship-paints.json` aus
+PR #234 (oben, engere Schwesterregel); `ship-paints.json` aus
+`pc/hangar-landung` war bis auf die drei Farben oben gleich. Die 231 GLBs
+kommen aus `pc/hangar-landung`: Ihre `extras.palette` stimmt bei allen
+Schiffen mit `base` in `ship-paints.json` überein, Glas trägt keine.
+Abweichend vom Bau-Code hier tragen Apollo Medivac, Apollo Triage und
+Hermes `extras.palette` aus dem Rohexport (dort gab es einen Rückfall ohne
+`base`); der nächste Bau lässt sie weg. Für den nächsten PC-Lauf:
+
+- **Lack-Baupläne neu schreiben** (`public/hangar/paints/`): Sie stammen aus
+  dem Bau mit der alten Schwesterregel. 8 von 2103 Einträgen weichen von
+  `ship-paints.json` ab: Mustang Beta, Delta, Gamma und Omega „Vindicator“
+  tragen Palette und Schablone der Alpha; Cutlass Black, Blue und Steel
+  „Hawthorn“ die Palette der Red (#323232 / #1a1918 / #414236); Cutlass Blue
+  „Cypress“ die der Steel. Nach der Regel oben bleiben sie auf ihrer
+  Serienpalette (cubic zu PR #238). Cutlass Black Cypress trägt schon die
+  Steel-Palette wie die Daten. Betroffen: `cnou-mustang-beta`, `-delta`,
+  `-gamma`, `-omega`, `drak-cutlass-black`, `-blue`, `-steel`.
+- **Metall gezählt** mit `palettePbr` nach PR #234 (Sättigung): 863 von 2103
+  Lackierungen, Grundpaletten 61 von 207; ohne die Sättigungsregel 589 bzw.
+  51. 18 Grundpaletten ändern ihr Metall, darunter Railen und Tyilui (Kanal C
+  0,29 → 1), Xi'an Scout, Santok.yāi, Talon Shrike, Alpha Wolf.
+- Die Freelancer sieht nach dem Neubau hell aus (Metallrumpf); sie bleibt in
+  `HOLD`, bis Krisz sie freigibt (WINDOWS 130).

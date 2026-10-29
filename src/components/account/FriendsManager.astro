@@ -412,7 +412,12 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       rm.addEventListener('click', async () => {
         if (!armed) {
           rm.classList.add('is-armed');
-          armed = window.setTimeout(() => { armed = 0; rm.classList.remove('is-armed'); }, 4000);
+          armed = window.setTimeout(() => {
+            armed = 0;
+            rm.classList.remove('is-armed');
+            // Was der Präsenz-Takt währenddessen zurückgehalten hat, jetzt zeigen.
+            if (presenceStale) repaint();
+          }, 4000);
           return;
         }
         clearTimeout(armed);
@@ -766,6 +771,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     // Live-Präsenz: alle 40 s die Präsenz der angezeigten Profile neu abfragen.
     // Der Wechsel nach offline entsteht durch Zeitablauf (kein DB-Ereignis),
     // daher Abfragen statt Realtime. Danach neu malen (Gruppen Online/Offline).
+    let presenceStale = false;
     const pollPresence = async () => {
       const ids = [...new Set([...friends, ...incoming, ...outgoing].map((x) => x.p && x.p.id).filter(Boolean) as string[])];
       if (!ids.length) return;
@@ -777,11 +783,16 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       const before = JSON.stringify(all.map((x) => x.p));
       const upd = (x: { p: Prof }) => { const r = map.get(x.p.id); if (r) Object.assign(x.p, r); };
       all.forEach(upd);
-      if (JSON.stringify(all.map((x) => x.p)) === before) return;
-      // Während „Entfernen?" scharf ist, nicht neu malen (der Knopf ginge verloren).
-      if (fmWrap.querySelector('.fm-ib--rm.is-armed')) { announce(); return; }
-      // Neu malen ersetzt die Karten: den Fokus auf denselben Knopf derselben
-      // Karte zurücksetzen (Tastaturbedienung).
+      if (JSON.stringify(all.map((x) => x.p)) === before && !presenceStale) return;
+      // Während „Entfernen?" scharf ist, nicht neu malen (der Knopf ginge
+      // verloren); die Nachfrage malt nach, sobald sie abläuft.
+      if (fmWrap.querySelector('.fm-ib--rm.is-armed')) { presenceStale = true; announce(); return; }
+      repaint();
+    };
+    // Neu malen ersetzt die Karten: den Fokus auf denselben Knopf derselben
+    // Karte zurücksetzen (Tastaturbedienung).
+    const repaint = () => {
+      presenceStale = false;
       const f = document.activeElement as HTMLElement | null;
       const cardEl = f && fmWrap.contains(f) ? f.closest<HTMLElement>('.fm-card') : null;
       const key = cardEl?.dataset.id;
