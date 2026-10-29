@@ -415,6 +415,17 @@ export const CHECKS = [
   },
 
   {
+    id: 'check:headers',
+    npm: 'check:headers',
+    script: 'scripts/check-headers.mjs',
+    rail: 'C',
+    checks:
+      'die AUSGELIEFERTEN Antworten (200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
+    env:
+      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng.',
+  },
+
+  {
     id: 'check:gate',
     npm: 'check:gate',
     script: 'scripts/check-gate.mjs',

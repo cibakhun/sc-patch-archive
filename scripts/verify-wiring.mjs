@@ -64,7 +64,7 @@ const rel = (p) => p.replaceAll('\\', '/');
 // namentlich genannte Ausreisser. `browser-smoke.mjs` heisst so, weil es
 // keine Datei prueft, sondern eine laufende Seite — es gehoert trotzdem
 // unter dieselbe Bijektionspflicht.
-const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs', 'check-gate.mjs'];
+const PRUEFER_AUSSER_DER_REIHE = ['browser-smoke.mjs', 'check-deployed.mjs', 'check-gate.mjs', 'check-headers.mjs'];
 const DATEIEN = readdirSync(resolve(ROOT, 'scripts'))
   .filter((n) => /^(verify|audit)-.*\.mjs$/.test(n) || PRUEFER_AUSSER_DER_REIHE.includes(n))
   .map((n) => `scripts/${n}`)
