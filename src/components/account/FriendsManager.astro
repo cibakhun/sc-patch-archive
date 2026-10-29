@@ -324,10 +324,10 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
   .fm-dot {
     position: absolute;
-    right: -1px;
-    bottom: -1px;
-    width: 12px;
-    height: 12px;
+    right: 2px;
+    bottom: 2px;
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     border: 2px solid var(--surface-2);
   }
@@ -404,7 +404,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
 <script>
   import { supabase } from '../../lib/supabase';
-  import { STATUS_STATES } from '../../lib/profilePresets';
+  import { STATUS_STATES, CITIZEN_ROLES } from '../../lib/profilePresets';
   import { resolveStatusKey } from '../../lib/presence';
 
   const fmWrap = document.querySelector('.friends-manager') as HTMLElement | null;
@@ -621,6 +621,18 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       await loadAll();
     };
 
+    const roleLabel = (id: string | null) => {
+      const r = CITIZEN_ROLES.find((x) => x.id === id);
+      return r ? (lang === 'de' ? r.labelDe : r.labelEn) : '';
+    };
+
+    // Die Freundesleiste rechts (FriendsDock) zeigt dieselben Daten: sie hört
+    // auf dieses Ereignis statt selbst zu laden, damit beide nie auseinander-
+    // laufen (Annehmen/Entfernen/Präsenz kommen sofort rechts an).
+    const announce = () => {
+      document.dispatchEvent(new CustomEvent('vb:friends', { detail: { friends, incoming, outgoing, myHandle } }));
+    };
+
     // ---- Rendern --------------------------------------------------------
     const render = () => {
       const q = (filterInput?.value || '').trim().toLowerCase();
@@ -645,7 +657,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         card.className = 'fm-pilot-card';
         const main = document.createElement('div');
         main.className = 'fm-card-main';
-        const sub = f.p.status_text || f.p.role || `${D.lblSince || ''} ${fmtDate(f.since)}`.trim();
+        const sub = f.p.status_text || roleLabel(f.p.role) || `${D.lblSince || ''} ${fmtDate(f.since)}`.trim();
         main.append(avatarNode(f.p), infoNode(f.p, sub));
 
         const acts = document.createElement('div');
@@ -692,6 +704,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       countIncoming.textContent = String(incoming.length);
       countOutgoing.textContent = String(outgoing.length);
       emptyRequests.hidden = incoming.length + outgoing.length > 0;
+      announce();
     };
 
     // ---- Tabs + Filter --------------------------------------------------
@@ -705,6 +718,11 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       panelRequests.hidden = isF;
     };
     tabFriendsBtn.addEventListener('click', () => showTab('friends'));
+    document.addEventListener('vb:friends-show', (e) => {
+      const w = (e as CustomEvent).detail === 'requests' ? 'requests' : 'friends';
+      showTab(w);
+      if (w === 'friends' && !handleInput.disabled) handleInput.focus();
+    });
     tabRequestsBtn.addEventListener('click', () => showTab('requests'));
     filterInput?.addEventListener('input', render);
 
@@ -774,6 +792,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         const r = map.get(dot.dataset.uid!);
         if (r) applyDot(dot, r.presence, r.status_state);
       });
+      announce();
     };
     setInterval(pollPresence, 40000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pollPresence(); });

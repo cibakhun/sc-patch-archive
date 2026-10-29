@@ -70,18 +70,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     const tabPanels = document.querySelectorAll<HTMLElement>('.acx-tab-panel');
     const activateSection = (target: string | undefined) => {
       if (!target) return;
+      if (!document.getElementById(`tab-panel-${target}`)) return;
       navItems.forEach(b => b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false'));
       tabPanels.forEach(p => { p.hidden = p.id !== `tab-panel-${target}`; });
-      // Sanft zur Tab-Leiste scrollen, wenn man darüber steht — Inhalt sichtbar
-      // machen, ohne über dem Hero hängen zu bleiben.
-      const bar = document.querySelector('.tabsbar') as HTMLElement | null;
+      // Bereich in der Adresse merken (#friends …): Neu laden und Links von
+      // außen landen im selben Bereich.
+      try { history.replaceState(null, '', target === 'overview' ? location.pathname + location.search : '#' + target); } catch { /* egal */ }
+      // Breite Schirme: der Bereich scrollt in seinem Kasten, also dort nach
+      // oben. Handy: die Seite scrollt — zum Bereich springen, wenn man
+      // darunter steht.
+      const main = document.querySelector('.acc-main') as HTMLElement | null;
+      if (!main) return;
+      main.scrollTop = 0;
       const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav')) || 64;
-      if (bar) {
-        const y = Math.max(0, bar.getBoundingClientRect().top + window.pageYOffset - navH);
-        if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
-      }
+      const y = Math.max(0, main.getBoundingClientRect().top + window.pageYOffset - navH - 8);
+      if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
+    if (location.hash.length > 1) activateSection(location.hash.slice(1));
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -1649,6 +1655,16 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         const dcRender = async () => {
           const ids = await dcIdentities();
           const dc = ids.find((i) => i.provider === 'discord');
+          // Discord-Avatar statt Logo, sobald verbunden (kommt aus den
+          // OAuth-Rohdaten, kein zusätzlicher Discord-Aufruf).
+          const dcAv = document.getElementById('dcAvatar') as HTMLImageElement | null;
+          const dcLogo = document.getElementById('dcLogo');
+          const avUrl = dc ? String((dc.identity_data || {}).avatar_url || '') : '';
+          if (dcAv && dcLogo) {
+            if (avUrl) { dcAv.src = avUrl; dcAv.hidden = false; dcLogo.hidden = true; }
+            else { dcAv.hidden = true; dcLogo.hidden = false; }
+          }
+          dcCard.classList.toggle('is-linked', !!dc);
           if (dc) {
             dcState.textContent = (D.dcLinkOne || 'Connected as %name%').replace('%name%', dcName(dc));
             dcBtn.hidden = true;
