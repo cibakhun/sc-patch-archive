@@ -103,7 +103,7 @@ const COPY = {
     rsiEnterHandle: 'Bitte trage zuerst dein RSI Citizen Handle im Feld oben ein (z. B. Roberts).',
     rsiNotFound: 'Code "%code%" wurde noch nicht in der Bio von @%handle% auf robertsspaceindustries.com gefunden. Bitte speichere die Bio auf RSI (die Anzeige kann 1–2 Minuten dauern).',
     rsiServerErr: 'Der Verifizierungsserver ist gerade nicht erreichbar — bitte später erneut versuchen.',
-    discordTag: 'Discord Tag', discordPh: 'z. B. Pilot#1234 oder @pilot',
+    discordTag: 'Discord', discordPh: 'z. B. @pilot', discordFromLink: 'Kommt aus deiner Discord-Verbindung', avatarDiscord: 'Discord-Bild',
     secDiscordLink: 'Discord-Konto verbinden',
     dcLinkDesc: 'Verbinde dein Discord-Konto. Erst dann kennt die Seite deine Discord-Rollen (z. B. Testpilot). Die E-Mail-Adresse bei Discord spielt keine Rolle.',
     dcLinkNone: 'Nicht verbunden',
@@ -249,7 +249,7 @@ const COPY = {
     rsiEnterHandle: 'Please enter your RSI Citizen handle in the field above first (e.g. Roberts).',
     rsiNotFound: 'Code "%code%" was not found in @%handle%\'s bio on robertsspaceindustries.com yet. Please save your bio on RSI (it can take 1–2 minutes to show up).',
     rsiServerErr: 'The verification server is currently unreachable — please try again later.',
-    discordTag: 'Discord Tag', discordPh: 'e.g. Pilot#1234 or @pilot',
+    discordTag: 'Discord', discordPh: 'e.g. @pilot', discordFromLink: 'Comes from your Discord connection', avatarDiscord: 'Discord picture',
     secDiscordLink: 'Connect Discord account',
     dcLinkDesc: 'Connect your Discord account. Only then does the site know your Discord roles (e.g. Test Pilot). Your Discord e-mail address does not matter.',
     dcLinkNone: 'Not connected',
@@ -357,6 +357,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-dc-link-err-taken={COPY.dcLinkErrTaken}
   data-dc-link-err={COPY.dcLinkErr}
   data-dc-unlink-needs-two={COPY.dcUnlinkNeedsTwo}
+  data-dc-from-link={COPY.discordFromLink}
   data-tester-overview-empty={COPY.testerOverviewEmpty}
   data-tester-never-seen={COPY.testerNeverSeen}
   data-tester-col-name={COPY.testerColName}
@@ -566,6 +567,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
                       <div class="acx-upload" data-kind="avatar">
                         <input type="file" id="pfAvatarFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
                         <button type="button" class="acx-upload__btn" id="pfAvatarUploadBtn"><span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadAvatar}</span></button>
+                        <button type="button" class="acx-upload__btn acx-upload__dc" id="pfAvatarDiscord" hidden><img id="pfAvatarDiscordImg" src="" alt="" /> <span>{COPY.avatarDiscord}</span></button>
                         <button type="button" class="acx-upload__remove" id="pfAvatarRemove" hidden>{COPY.uploadRemove}</button>
                         <span class="acx-upload__status" id="pfAvatarUploadStatus" role="status" aria-live="polite"></span>
                       </div>

@@ -1652,9 +1652,66 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           return String(d.user_name || d.preferred_username || d.full_name || d.name || idn.id || '?');
         };
 
+        // Eigenes Discord-Bild der Identität. Discords Standardbild
+        // (cdn.discordapp.com/embed/avatars/…) ist das blaue Logo, das jeder
+        // ohne eigenes Bild hat — als Profilbild taugt es nicht.
+        const dcAvatarOf = (idn: any): string => {
+          const u = String(((idn && idn.identity_data) || {}).avatar_url || '');
+          return /^https:\/\/cdn\.discordapp\.com\/avatars\//.test(u) ? u : '';
+        };
+        // Discord-Benutzername (full_name in den Supabase-Rohdaten) und der
+        // Anzeigename, den man bei Discord selbst gewählt hat (global_name).
+        const dcUserOf = (idn: any): string => String(((idn && idn.identity_data) || {}).full_name || '').trim();
+        const dcGlobalOf = (idn: any): string =>
+          String((((idn && idn.identity_data) || {}).custom_claims || {}).global_name || '').trim();
+
+        // Schreibt nur die genannten Felder; derselbe Cache wie beim Speichern.
+        const dcSave = async (patch: Record<string, any>) => {
+          Object.assign(profileState, patch);
+          try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+          try { await supabase.from('profiles').update(patch).eq('id', user.id); } catch {}
+        };
+
+        const pfDcBtn = document.getElementById('pfAvatarDiscord') as HTMLButtonElement | null;
+        const pfDcImg = document.getElementById('pfAvatarDiscordImg') as HTMLImageElement | null;
+        const markDcAvatar = () => {
+          if (pfDcBtn) pfDcBtn.classList.toggle('is-on', !!pfDcImg && !!pfDcImg.src && avatarUrlInput.value.trim() === pfDcBtn.dataset.url);
+        };
+        pfDcBtn?.addEventListener('click', () => {
+          const url = pfDcBtn.dataset.url || '';
+          if (!url) return;
+          avatarUrlInput.value = url;
+          profileState.avatar_url = url;
+          const rm = document.getElementById('pfAvatarRemove');
+          if (rm) rm.hidden = false;
+          updateCard();
+          markDcAvatar();
+        });
+        avatarUrlInput.addEventListener('change', markDcAvatar);
+        document.getElementById('pfAvatarRemove')?.addEventListener('click', () => setTimeout(markDcAvatar));
+
         const dcRender = async () => {
           const ids = await dcIdentities();
           const dc = ids.find((i) => i.provider === 'discord');
+          // Discord-Bild als Profilbild anbieten (ein Klick, Speichern wie sonst).
+          const dcPic = dc ? dcAvatarOf(dc) : '';
+          if (pfDcBtn && pfDcImg) {
+            pfDcBtn.hidden = !dcPic;
+            pfDcBtn.dataset.url = dcPic;
+            if (dcPic) pfDcImg.src = dcPic;
+            markDcAvatar();
+          }
+          // Discord-Name im Profil kommt aus der Verbindung, nicht von Hand:
+          // ein getippter Name kann jeder sein, der verbundene ist bestätigt.
+          const dcUser = dc ? dcUserOf(dc) : '';
+          discordInput.readOnly = !!dcUser;
+          discordInput.classList.toggle('is-linked', !!dcUser);
+          discordInput.title = dcUser ? (D.dcFromLink || '') : '';
+          if (dcUser) {
+            const tag = '@' + dcUser;
+            discordInput.value = tag;
+            if ((profileState.discord_tag || '') !== tag) await dcSave({ discord_tag: tag });
+          }
           // Discord-Avatar statt Logo, sobald verbunden (kommt aus den
           // OAuth-Rohdaten, kein zusätzlicher Discord-Aufruf).
           const dcAv = document.getElementById('dcAvatar') as HTMLImageElement | null;
@@ -1677,6 +1734,35 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         };
         await dcRender();
 
+        // Zurück von Discord nach dem Verbinden: Bild und Name übernehmen,
+        // aber nur dort, wo noch nichts Eigenes steht. Ein selbst
+        // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
+        let justLinked = false;
+        try { justLinked = sessionStorage.getItem('vb.dcLinking') === '1'; sessionStorage.removeItem('vb.dcLinking'); } catch {}
+        if (justLinked) {
+          const dc = (await dcIdentities()).find((i) => i.provider === 'discord');
+          if (dc) {
+            const patch: Record<string, any> = {};
+            const pic = dcAvatarOf(dc);
+            if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
+            const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            const mailName = (user.email || '').split('@')[0];
+            const curName = (profileState.display_name || '').trim();
+            if (nick && (!curName || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (Object.keys(patch).length) {
+              await dcSave(patch);
+              if (patch.avatar_url) {
+                avatarUrlInput.value = patch.avatar_url;
+                const rm = document.getElementById('pfAvatarRemove');
+                if (rm) rm.hidden = false;
+              }
+              if (patch.display_name) nameInput.value = patch.display_name;
+              updateCard();
+              markDcAvatar();
+            }
+          }
+        }
+
         dcBtn.addEventListener('click', async () => {
           dcSay('');
           dcBusy(dcBtn, true);
@@ -1684,11 +1770,13 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der
             // Rueckweg auf der Site-URL, und der Nutzer stuende nach dem
             // Verbinden woanders als dort, wo er den Knopf gedrueckt hat.
+            try { sessionStorage.setItem('vb.dcLinking', '1'); } catch {}
             const { error } = await (supabase.auth as any).linkIdentity({
               provider: 'discord',
               options: { redirectTo: window.location.origin + window.location.pathname },
             });
             if (!error) return; // Erfolg = Weiterleitung zu Discord, hier geht es nicht weiter
+            try { sessionStorage.removeItem('vb.dcLinking'); } catch {}
             dcBusy(dcBtn, false);
             const m = String(error.message || '').toLowerCase();
             if (m.includes('manual linking') || m.includes('not enabled') || m.includes('disabled')) dcSay(D.dcLinkErrDisabled || '', 'err');
