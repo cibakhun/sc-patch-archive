@@ -95,7 +95,7 @@ export const CHECKS = [
     npm: 'audit:csp',
     script: 'scripts/audit-csp.mjs',
     rail: 'A',
-    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), der Zaehl-Host steht nur in connect-src, und kein add_header ausserhalb des server-Blocks',
+    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', \'unsafe-eval\', * und reine Schema-Quellen, jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), jede Seite mit data-img-fail traegt den Bild-Hoerer davor, der Zaehl-Host steht nur in connect-src, und kein add_header ausserhalb des server-Blocks oder ohne always',
   },
   {
     // Direkt nach audit:csp — beide betreffen nginx/default.conf.
@@ -420,7 +420,7 @@ export const CHECKS = [
     script: 'scripts/check-headers.mjs',
     rail: 'C',
     checks:
-      'die AUSGELIEFERTEN Antworten (200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
+      'die AUSGELIEFERTEN Antworten (eine je location-Block, 200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), ohne \'unsafe-eval\', * und reine Schema-Quellen in script-src, mit default-src, object-src \'none\' und base-uri/frame-ancestors \'self\' oder \'none\', und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
     env:
       'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng.',
   },

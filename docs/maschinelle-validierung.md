@@ -482,12 +482,16 @@ Grenze:
   erzeugt — und reißt, wenn eine Datei fehlt (nginx fiele still auf
   `'unsafe-inline'` zurück), ein Inline-Skript aus `dist/` keinen Hash hat,
   ein Inline-Handler ohne benannte Ausnahme im Build steht (Ausnahmen mit
-  Zombie-Wächter), der Zähl-Host in `script-src` steht oder ein `add_header`
-  in einer `location` die Sicherheits-Kopfzeilen verwirft. Selbstauskunft:
-  Seiten, ausgeführte Inline-Skripte und ihre Fassungen, mit Klinken.
-- **`check:headers` (Schiene C, neu)** fragt die ausgelieferte Seite: HSTS,
-  CSP, X-Frame-Options, X-Content-Type-Options und Referrer-Policy an 200,
-  301, 302 und 404, die Richtlinie auf Hashes statt Rückfall, und jedes
+  Zombie-Wächter), `script-src` `'unsafe-eval'`, `*` oder eine reine
+  Schema-Quelle trägt, ein Bild mit `data-img-fail` vor (oder ohne) den
+  Bild-Hörer gerät, der Zähl-Host in `script-src` steht oder ein
+  `add_header` in einer `location` die Sicherheits-Kopfzeilen verwirft.
+  Selbstauskunft: Seiten, ausgeführte Inline-Skripte und ihre Fassungen,
+  mit Klinken.
+- **`check:headers` (Schiene C, neu)** fragt die ausgelieferte Seite, eine
+  Adresse je `location`-Block: HSTS, CSP, X-Frame-Options,
+  X-Content-Type-Options und Referrer-Policy an 200, 301, 302 und 404, die
+  Richtlinie auf Hashes statt Rückfall und ohne zu weite Quellen, und jedes
   Inline-Skript der ausgelieferten HTML-Antworten gegen die Richtlinie
   derselben Antwort. Grundsatz 7: Was Cloudflare und nginx wirklich
   ausliefern, sieht nur die laufende Seite.

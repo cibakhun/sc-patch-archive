@@ -18,8 +18,12 @@
 //   · jede include-Datei der Richtlinie liegt in dist/ (sonst fiele nginx
 //     still auf 'unsafe-inline' zurück) und dist/ landet laut Dockerfile
 //     genau dort, wo nginx sucht;
-//   · script-src trägt kein 'unsafe-inline', und JEDES ausgeführte
-//     Inline-Skript aus dist/ hat seinen Hash darin;
+//   · script-src trägt kein 'unsafe-inline', kein 'unsafe-eval', kein `*`
+//     und keine reine Schema-Quelle (https:, http:, data:), und JEDES
+//     ausgeführte Inline-Skript aus dist/ hat seinen Hash darin;
+//   · jede Seite mit data-img-fail-Bildern trägt den Bild-Hörer aus
+//     Layout.astro VOR dem ersten solchen Bild (sonst bleibt das kaputte
+//     Bildsymbol stehen, wo früher onerror half);
 //   · jeder Inline-Handler (onclick=…) ist eine benannte Ausnahme
 //     (HANDLER_AUSNAHMEN, mit Zombie-Wächter) und in script-src-attr
 //     freigegeben; ohne Handler steht dort 'none';
@@ -173,7 +177,10 @@ const inline = {
   hashes: new Map(),     // hash -> { n, seite, kopf }
   handler: new Map(),    // hash -> { n, seite, tag, attr, wert, unbekannt }
   jsUrls: [], svg: [], tokenAbweichung: [],
+  imgFailSeiten: 0, imgFailOhneHoerer: [],
 };
+// Der Bild-Hörer aus Layout.astro (data-img-fail). Erkannt an seinem Kern.
+const IMG_HOERER = "getAttribute('data-img-fail')";
 const zaehlHosts = new Map();   // host -> erste Seite (data-host-url)
 
 function walk(dir) {
@@ -209,6 +216,13 @@ function walk(dir) {
       else inline.handler.set(x.hash, { n: 1, seite: p, tag: x.tag, attr: x.attr, wert: x.wert, unbekannt: x.unbekannt });
     }
     for (const j of z.jsUrls) inline.jsUrls.push(`${p}: <${j.tag} ${j.attr}="${j.wert.slice(0, 40)}">`);
+    const ersteImgFail = html.search(/\sdata-img-fail=/);
+    if (ersteImgFail >= 0) {
+      inline.imgFailSeiten++;
+      const hoerer = z.skripte.some((x) => x.hash && x.text.includes(IMG_HOERER) && /addEventListener\('error'/.test(x.text));
+      const vorne = html.indexOf(IMG_HOERER);
+      if (!hoerer || vorne < 0 || vorne > ersteImgFail) inline.imgFailOhneHoerer.push(p);
+    }
 
     // Inline-Skripte bauen ihre URLs erst im Browser zusammen (die Klick-zu-
     // Laden-Fassade steckt den YouTube-<iframe> per innerHTML hinein, die
@@ -294,6 +308,12 @@ const kurz = (liste, max = 10) => liste.slice(0, max).concat(liste.length > max 
 
 if (skriptSrc.has("'unsafe-inline'"))
   fehler.push("script-src trägt 'unsafe-inline' — ausgeliefert hieße das: eine HTML-Injektion führt Skript aus. Hashes kommen aus dist/_csp/ (siehe oben)");
+// Quellen, die eingeschleustem oder fremdem Code dieselben Rechte geben
+// wie dem eigenen. Gilt für script-src bzw. default-src, wenn es fehlt.
+const VERBOTEN_IN_SCRIPT_SRC = ["'unsafe-eval'", '*', 'http:', 'https:', 'data:'];
+for (const q of srcFor('script-src'))
+  if (VERBOTEN_IN_SCRIPT_SRC.includes(q.toLowerCase()))
+    fehler.push(`script-src trägt ${q} — damit liefe fremder bzw. eingeschleuster Code wie eigener; die Quelle gezielt benennen`);
 // Ohne einen einzigen Hash gilt ein 'unsafe-inline' daneben — dann blockt
 // der Browser nichts, und der Befund steht schon in der Zeile darüber.
 const mitHash = (menge) => [...menge].some((q) => /^'sha(256|384|512)-/.test(q));
@@ -323,6 +343,8 @@ for (const a of zombies)
 if (!inline.handler.size && !(attrSrc.size === 1 && attrSrc.has("'none'")))
   fehler.push(`Kein Inline-Handler im Build, script-src-attr steht trotzdem auf "${[...attrSrc].join(' ')}" — Soll 'none'`);
 for (const z of kurz(inline.jsUrls)) fehler.push(`javascript:-Link ${z} — läuft unter dieser Richtlinie nicht; als Knopf mit Listener umsetzen`);
+for (const z of kurz(inline.imgFailOhneHoerer))
+  fehler.push(`${z}: Bild mit data-img-fail, aber der Bild-Hörer aus Layout.astro steht nicht davor — ein kaputtes Bild bliebe stehen; die Seite über Layout.astro bauen`);
 for (const z of kurz(inline.svg)) fehler.push(`${z}: ausgeführtes Inline-Skript in <svg> — dort löst der Parser Zeichenreferenzen auf, der Hash ließe sich nicht sicher rechnen; Skript aus dem <svg> nehmen`);
 for (const [host, seite] of zaehlHosts) {
   if (srcFor('script-src').some((q) => q === `https://${host}` || q === host))
@@ -402,6 +424,7 @@ console.log(`    Seiten: ${inline.seiten} (Klinke ${MIN_SEITEN})   ausgeführte 
 console.log(`    ohne Hash in script-src — Soll: 0   Ist: ${skriptHashModus ? ohneHash.length : 'nicht messbar (Rückfall)'}`);
 console.log(`    Inline-Handler: ${[...inline.handler.values()].reduce((a, e) => a + e.n, 0)} in ${inline.handler.size} Fassung(en)   benannte Ausnahmen: ${HANDLER_AUSNAHMEN.length}   Zombies — Soll: 0   Ist: ${zombies.length}`);
 console.log(`    script-src-attr: ${[...attrSrc].map((q) => (q.length > 20 ? q.slice(0, 18) + '…\'' : q)).join(' ')}`);
+console.log(`    Seiten mit data-img-fail: ${inline.imgFailSeiten}   ohne Bild-Hörer davor — Soll: 0   Ist: ${inline.imgFailOhneHoerer.length}`);
 console.log(`    javascript:-Links: ${inline.jsUrls.length}   Inline-Skripte in <svg>: ${inline.svg.length}   Zähl-Hosts (data-host-url): ${[...zaehlHosts.keys()].join(', ') || '—'}`);
 console.log(`    add_header im server-Block: ${addHeaderServer}   außerhalb — Soll: 0   Ist: ${addHeaderAusserhalb}`);
 if (inline.seiten < MIN_SEITEN)

@@ -17,12 +17,19 @@
    (Grundsatz 7).
 
    Stichproben (fest, weil jede Antwortart ihren eigenen Weg durch nginx
-   nimmt): Wurzel, robots.txt, gate.html, zwei feste Weiterleitungen und
-   zwei Adressen, die es nicht gibt. Live antworten sie mit 200, 301 und
-   404; auf der Vorschau leitet das Testpilot-Tor die gesperrten mit 302
-   auf /gate.html um — dann gibt es dort kein 404, und das Tor sagt es.
-   Gefolgt wird keiner Weiterleitung: die Kopfzeilen der 301/302 selbst
-   werden geprueft.
+   nimmt): je eine Adresse fuer JEDEN location-Block mit eigenem Inhalt
+   (Wurzel, robots.txt, gate.html, build.json, theme.css, /assets/fonts/,
+   /_astro/, /holo/, /hangar/, /pilot/, /en/), feste Weiterleitungen und
+   eine Adresse, die es nicht gibt — genau dort verloere ein add_header in
+   der location die Kopfzeilen. Dazu ein echtes Buendel unter /_astro/,
+   das die erste HTML-Antwort nennt (live; auf der Vorschau leitet das
+   Tor um, dann zaehlt die 302 aus derselben location). Live antworten
+   sie mit 200, 301 und 404; auf der Vorschau leitet das Testpilot-Tor
+   die gesperrten mit 302 auf /gate.html um — dann gibt es dort kein 404,
+   und das Tor sagt es. Gefolgt wird keiner Weiterleitung: die Kopfzeilen
+   der 301/302 selbst werden geprueft. Jede Anfrage traegt einen
+   Wegwerf-Parameter (?vbkz=…): Cloudflare haelt Dateien mit ihren alten
+   Kopfzeilen im Zwischenspeicher, gefragt wird aber der Ursprung.
 
    Drei Zusicherungen, jede mit Soll/Ist:
 
@@ -31,11 +38,13 @@
         SAMEORIGIN), X-Content-Type-Options: nosniff und eine Referrer-
         Policy, die keine volle Adresse an Fremde gibt. Fehlt eine
         davon, ist das FEHLER.
-     2  Die Richtlinie selbst: script-src ohne 'unsafe-inline' und mit
-        Hashes, script-src-attr gesetzt, object-src 'none', base-uri und
-        frame-ancestors vorhanden. 'unsafe-inline' in script-src heisst,
-        dass nginx auf den Rueckfall gefallen ist (dist/_csp/ fehlt im
-        Image) — FEHLER.
+     2  Die Richtlinie selbst: default-src gesetzt, script-src ohne
+        'unsafe-inline' und mit Hashes, ohne 'unsafe-eval', ohne `*` und
+        ohne reine Schema-Quellen (https:, http:, data:), script-src-attr
+        gesetzt, object-src 'none', base-uri und frame-ancestors je
+        'self' oder 'none'. 'unsafe-inline' in script-src heisst, dass
+        nginx auf den Rueckfall gefallen ist (dist/_csp/ fehlt im Image)
+        — FEHLER.
      3  Jedes ausgefuehrte Inline-Skript und jeder Inline-Handler der
         ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie
         GENAU DIESER Antwort. Sonst blockt der Browser es. Ein Skript,
@@ -44,7 +53,7 @@
         Funktion gebraucht wird, entscheidet ein Mensch.
 
    WARNUNG (blockt nicht): Permissions-Policy oder Cross-Origin-Opener-
-   Policy fehlt.
+   Policy fehlt, Strict-Transport-Security ohne includeSubDomains.
 
    Selbstauskunft: Ziel, ausgelieferte Kennung aus /build.json, Zahl der
    Antworten je Status, gepruefte HTML-Antworten und Inline-Skripte.
@@ -62,33 +71,52 @@ const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
 const BASE = flag('--base', 'https://staging.verse-base.com').replace(/\/$/, '');
 const WEICH = argv.includes('--weich');
 
-// Untergrenzen (Stand 29.10.2026, gegen einen nginx-Container mit diesem
-// Stand gemessen): 7 Antworten, davon live 4 HTML-Antworten mit Inline-
-// Skripten (Wurzel, gate.html, zweimal 404), auf der Vorschau 1 (gate.html).
-const MIN_ANTWORTEN = 7;
+// Untergrenzen (Stand 29.10.2026, gegen nginx mit diesem Stand gemessen):
+// 14 feste Stichproben (live kommt das /_astro/-Buendel dazu), davon live
+// 8 HTML-Antworten mit Inline-Skripten (Wurzel, gate.html, Pilotenseite,
+// fuenfmal 404), auf der Vorschau 1 (gate.html).
+const MIN_ANTWORTEN = 14;
 const MIN_HTML = 1;
 // Ein Jahr, wie nginx/default.conf es setzt. Darunter laesst ein Browser
 // die HTTPS-Pflicht zu frueh fallen.
 const MIN_HSTS = 31536000;
 const REFERRER_OK = new Set(['strict-origin-when-cross-origin', 'strict-origin', 'same-origin', 'no-referrer']);
 
+// Eine Adresse je location-Block. Die "…-probe"-Adressen gibt es nicht:
+// live endet das als 404 (ueber error_page in location /), auf der
+// Vorschau als 302 des Tors AUS DER JEWEILIGEN location — dort wirkte ein
+// add_header in der location also mit.
 const STICHPROBEN = [
   { pfad: '/', art: 'Startseite (live 200, Vorschau 302 auf das Tor)' },
   { pfad: '/robots.txt', art: 'Ausnahme des Tors, immer 200' },
   { pfad: '/gate.html', art: 'Torseite, eigenes Dokument, 200' },
+  { pfad: '/build.json', art: 'Baukennung, eigene location, immer 200' },
+  { pfad: '/assets/theme.css', art: 'Ausnahme des Tors, eigene location, 200' },
   { pfad: '/patches', art: 'feste Weiterleitung, 301' },
   { pfad: '/en.html', art: 'feste Weiterleitung, 301' },
+  { pfad: '/en/__vb-kopfzeilen-probe.html', art: 'alte /en/-Adresse, location /en/, 301' },
+  { pfad: '/pilot/vb-kopfzeilen-probe', art: 'Pilotenseite ueber rewrite (live 200, Vorschau 302)' },
   { pfad: '/__vb-kopfzeilen-probe.html', art: 'gibt es nicht (live 404, Vorschau 302)' },
-  { pfad: '/assets/fonts/__vb-kopfzeilen-probe.woff2', art: 'gibt es nicht, eigene location (live 404, Vorschau 302)' },
+  { pfad: '/assets/fonts/__vb-kopfzeilen-probe.woff2', art: 'gibt es nicht, location /assets/fonts/ (live 404, Vorschau 302)' },
+  { pfad: '/_astro/__vb-kopfzeilen-probe.js', art: 'gibt es nicht, location /_astro/ (live 404, Vorschau 302)' },
+  { pfad: '/holo/__vb-kopfzeilen-probe.glb', art: 'gibt es nicht, location /holo/ (live 404, Vorschau 302)' },
+  { pfad: '/hangar/__vb-kopfzeilen-probe.json', art: 'gibt es nicht, location /hangar/ (live 404, Vorschau 302)' },
 ];
+// Quellen, die script-src nie tragen darf: sie geben fremdem oder
+// eingeschleustem Code dieselben Rechte wie dem eigenen.
+const VERBOTEN_IN_SCRIPT_SRC = new Set(["'unsafe-eval'", '*', 'http:', 'https:', 'data:']);
+const FRAME_UND_BASE_OK = new Set(["'none'", "'self'"]);
 
 const fehler = [];
 const warnungen = [];
 const fail = (m) => fehler.push(m);
 const warn = (m) => warnungen.push(m);
 
+// Wegwerf-Parameter: Cloudflare nimmt die Abfrage in den Cache-Schluessel,
+// nginx ignoriert sie fuer die location-Wahl.
+const WEGWERF = `vbkz=${Date.now().toString(36)}`;
 async function holen(pfad) {
-  return fetch(`${BASE}${pfad}`, {
+  return fetch(`${BASE}${pfad}${pfad.includes('?') ? '&' : '?'}${WEGWERF}`, {
     redirect: 'manual',
     cache: 'no-store',
     signal: AbortSignal.timeout(15000),
@@ -125,7 +153,7 @@ try {
 
 console.log(`\n=== check-headers: Sicherheits-Kopfzeilen der ausgelieferten Seite (Schiene C) ===`);
 console.log(`Gepruefte Seite: ${BASE}   ausgelieferter Stand: ${kennung}`);
-console.log(`Stichproben: ${STICHPROBEN.length}`);
+console.log(`Stichproben: ${STICHPROBEN.length} fest, dazu das erste /_astro/-Buendel einer HTML-Antwort (Wegwerf-Parameter ${WEGWERF})`);
 
 /** Richtlinie in Direktiven zerlegen (Name klein, Quellen wie geliefert). */
 function richtlinie(text) {
@@ -141,7 +169,9 @@ const proStatus = new Map();
 let htmlGeprueft = 0, skripteGeprueft = 0, handlerGeprueft = 0, ohne404 = 0;
 const antworten = [];
 
-for (const s of STICHPROBEN) {
+let astroDazu = false;
+for (let i = 0; i < STICHPROBEN.length; i++) {
+  const s = STICHPROBEN[i];
   let r;
   try { r = await holen(s.pfad); } catch (e) { fail(`${s.pfad}: Anfrage fehlgeschlagen (${e.cause?.code ?? e.message})`); continue; }
   const h = r.headers;
@@ -156,6 +186,7 @@ for (const s of STICHPROBEN) {
   const maxAge = Number(/max-age\s*=\s*"?(\d+)/i.exec(hsts ?? '')?.[1] ?? NaN);
   if (!hsts) fail(`${wo}: Strict-Transport-Security fehlt`);
   else if (!(maxAge >= MIN_HSTS)) fail(`${wo}: Strict-Transport-Security max-age=${maxAge}, Soll mindestens ${MIN_HSTS}`);
+  else if (!/;\s*includesubdomains\b/i.test(hsts)) warn(`${wo}: Strict-Transport-Security ohne includeSubDomains`);
   const csp = h.get('content-security-policy');
   if (!csp) fail(`${wo}: Content-Security-Policy fehlt`);
   const xfo = (h.get('x-frame-options') ?? '').trim().toUpperCase();
@@ -182,9 +213,15 @@ for (const s of STICHPROBEN) {
   else if (!mitHash(skriptSrc)) fail(`${wo}: script-src ohne einen einzigen Hash`);
   if (!pol.has('script-src-attr')) fail(`${wo}: script-src-attr fehlt — Inline-Handler fielen auf script-src zurueck`);
   if (attrSrc.includes("'unsafe-inline'")) fail(`${wo}: script-src-attr traegt 'unsafe-inline'`);
+  if (!pol.has('default-src')) fail(`${wo}: default-src fehlt — jede nicht eigens genannte Ladeart waere offen`);
+  for (const q of skriptSrc)
+    if (VERBOTEN_IN_SCRIPT_SRC.has(q.toLowerCase())) fail(`${wo}: script-src traegt ${q} — damit liefe fremder bzw. eingeschleuster Code wie eigener`);
   if ((pol.get('object-src') ?? []).join(' ') !== "'none'") fail(`${wo}: object-src ist nicht 'none'`);
-  if (!pol.has('base-uri')) fail(`${wo}: base-uri fehlt`);
-  if (!pol.has('frame-ancestors')) fail(`${wo}: frame-ancestors fehlt`);
+  for (const d of ['base-uri', 'frame-ancestors']) {
+    const q = pol.get(d);
+    if (!q) fail(`${wo}: ${d} fehlt`);
+    else if (q.length !== 1 || !FRAME_UND_BASE_OK.has(q[0])) fail(`${wo}: ${d} "${q.join(' ')}", Soll 'self' oder 'none'`);
+  }
 
   /* ---- [3] Inline-Skripte der ausgelieferten Seite gegen ihre Richtlinie ---- */
   if (!/text\/html/i.test(h.get('content-type') ?? '') || r.status >= 300 && r.status < 400) continue;
@@ -195,6 +232,13 @@ for (const s of STICHPROBEN) {
   const html = await r.text();
   const { skripte, handler } = zerlege(html);
   htmlGeprueft++;
+  // Ein echtes Buendel unter /_astro/ (eigene location mit expires 1y):
+  // die Stichprobe darauf haengt sich hinten an, einmal.
+  const buendel = /(?:src|href)="(\/_astro\/[^"?#]+\.(?:js|css))"/.exec(html)?.[1];
+  if (buendel && !astroDazu) {
+    astroDazu = true;
+    STICHPROBEN.push({ pfad: buendel, art: 'Buendel unter /_astro/ aus der ersten HTML-Antwort (live 200, Vorschau 302)' });
+  }
   const erlaubt = new Set(skriptSrc);
   for (const x of skripte) {
     if (!x.hash) continue;

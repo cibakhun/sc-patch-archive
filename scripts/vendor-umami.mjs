@@ -4,11 +4,10 @@
 
    WARUM ES EINE KOPIE GIBT (29.10.2026): Der Zaehler lief als Skript von
    stats.verse-base.com auf jeder Seite, und die Content-Security-Policy
-   musste den Host dafuer in script-src fuehren. Wer den Statistik-Server
-   uebernimmt, haette damit ein Skript auf allen Seiten gehabt, neben der
-   Sitzung im localStorage. Jetzt laedt die Seite eine gepruefte Kopie vom
-   eigenen Ursprung, und stats.verse-base.com nimmt nur noch die Zaehlung
-   entgegen (data-host-url, connect-src).
+   musste den Host dafuer in script-src fuehren. Welcher Code auf allen
+   Seiten lief, entschied damit ein zweiter Server. Jetzt laedt die Seite
+   eine gepruefte Kopie vom eigenen Ursprung, und stats.verse-base.com
+   nimmt nur noch die Zaehlung entgegen (data-host-url, connect-src).
 
    Gepinnt heisst: die Kopie aendert sich nur, wenn jemand dieses Werkzeug
    bewusst mit einer neuen Fassung laufen laesst. Ein Umami-Update auf dem
