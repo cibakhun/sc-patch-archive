@@ -118,6 +118,7 @@ const COPY = {
     dcLinkErr: 'Hat nicht geklappt. Bitte später erneut versuchen.',
     dcUnlinkNeedsTwo: 'Zum Lösen brauchst du einen zweiten Anmeldeweg. Setze zuerst ein Passwort.',
     orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
+    shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', socialBad: 'Dieser Name passt nicht zu %s.',
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
@@ -264,6 +265,7 @@ const COPY = {
     dcLinkErr: 'Connecting did not work — please try again later.',
     dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in. Set a password first.',
     orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
+    shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', socialBad: 'That name does not fit %s.',
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
@@ -358,6 +360,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
   data-dc-link-err={COPY.dcLinkErr}
   data-dc-unlink-needs-two={COPY.dcUnlinkNeedsTwo}
   data-dc-from-link={COPY.discordFromLink}
+  data-msg-social-bad={COPY.socialBad}
   data-tester-overview-empty={COPY.testerOverviewEmpty}
   data-tester-never-seen={COPY.testerNeverSeen}
   data-tester-col-name={COPY.testerColName}
@@ -418,6 +421,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
           <span class="acc-chip" id="ovOrgPill" hidden><svg viewBox="0 0 24 24"><use href="#ic-org"/></svg> <span id="ovOrgText"></span></span>
         </div>
         <p class="acc-id__bio" id="ovLede" hidden></p>
+        <div class="acc-id__soc" id="ovSocials" hidden></div>
         <span class="acc-id__since">{COPY.memberSince} <span id="idSince">—</span><span id="ovRegId" hidden>VB-••••••••</span></span>
       </div>
 
@@ -441,7 +445,7 @@ const confirmRedirect = loginHref + '?confirmed=1';
         <button type="button" class="tab" role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24"><use href="#ic-hex"/></svg><span class="lbl">{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
         <button type="button" class="tab" role="tab" aria-selected="false" data-tab="profile"><svg viewBox="0 0 24 24"><use href="#ic-edit"/></svg><span class="lbl">{COPY.tabProfile}</span></button>
         <button type="button" class="tab" role="tab" aria-selected="false" data-tab="favs"><svg viewBox="0 0 24 24"><use href="#ic-star"/></svg><span class="lbl">{COPY.tabFavs}</span><span class="badge" id="navFavCount" hidden>0</span></button>
-        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg><span class="lbl">{COPY.tabFriends}</span><span class="badge" id="navFriendCount" hidden>0</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg><span class="lbl">{COPY.tabFriends}</span><span class="badge" id="navFriendCount" hidden>0</span><span class="badge badge--chat" id="navChatUnread" hidden>0</span></button>
         <button type="button" class="tab" role="tab" aria-selected="false" data-tab="security"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg><span class="lbl">{COPY.tabSecurity}</span></button>
       </nav>
 
@@ -619,6 +623,10 @@ const confirmRedirect = loginHref + '?confirmed=1';
                     <input class="inp" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
                   </div>
                 </div>
+                <label class="pf-check">
+                  <input type="checkbox" id="pfShareActivity" checked />
+                  <span>{COPY.shareActivity}</span>
+                </label>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
                   <button class="btn primary" type="submit" id="pfBtn"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> <span id="pfBtnTxt">{COPY.saveProfile}</span></button>
                 </div>
@@ -628,6 +636,22 @@ const confirmRedirect = loginHref + '?confirmed=1';
               <!-- Testpilot-Zustimmungsschalter (D-22) — nur sichtbar fuer
                    Konten mit is_tester=true; per JS ein/ausgeblendet, siehe
                    account-dashboard.ts. Standard AUS (DB-Vorgabewert). -->
+              <div class="subpanel sp-social">
+                <h3 class="subhead">Socials</h3>
+                <div class="field">
+                  <label for="pfTwitch" class="pf-soc-l pf-soc-l--tw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.3 3 3 6.4v13.1h4.5V22h2.5l2.4-2.5h3.6L21 14.6V3H4.3Zm14.9 10.7-2.8 2.8h-4.5l-2.4 2.4v-2.4H5.7V4.8h13.5v8.9ZM16.4 7.6h-1.8v5.1h1.8V7.6Zm-4.9 0H9.7v5.1h1.8V7.6Z"/></svg> Twitch</label>
+                  <div class="inp-affix"><span class="pre">twitch.tv/</span><input class="inp mono" id="pfTwitch" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
+                </div>
+                <div class="field">
+                  <label for="pfYoutube" class="pf-soc-l pf-soc-l--yt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg> YouTube</label>
+                  <div class="inp-affix"><span class="pre">youtube.com/@</span><input class="inp mono" id="pfYoutube" type="text" maxlength="80" autocapitalize="off" spellcheck="false" /></div>
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label for="pfX" class="pf-soc-l pf-soc-l--x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7 4.2H5l12 16Z"/></svg> X</label>
+                  <div class="inp-affix"><span class="pre">x.com/</span><input class="inp mono" id="pfX" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
+                </div>
+              </div>
+
               <div class="subpanel sp-tester" id="pfTesterPanel" hidden>
                 <h3 class="subhead">{COPY.secTester}</h3>
                 <div class="field" style="margin-bottom:0">

@@ -927,6 +927,10 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .frm{border:1px solid var(--line)}
 .dsr .tab{border-right:1px solid var(--line-soft)}
 .dsr .tab:first-child{border-left:1px solid var(--line-soft)}
+.dsr .fm-btn{border:1px solid var(--line);background:none;color:var(--muted)}
+.dsr .fm-btn--primary{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.dsr .fm-btn--primary:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.dsr .fm-btn--danger:hover{border-color:#f87171;color:#f87171}
 
 /* Metrik-Karten als klickbare Divs (behalten Rand; keyboard via JS) */
 .dsr .metric[role="button"],.dsr .metric[data-tab-jump]{cursor:pointer}
@@ -1083,6 +1087,17 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .acx-upload__dc:hover{border-color:#5865f2;background:rgba(88,101,242,.26)}
 .dsr .acx-upload__dc img{width:22px;height:22px;border-radius:50%;object-fit:cover}
 .dsr .acx-upload__dc.is-on{border-color:#5865f2;box-shadow:0 0 0 1px #5865f2 inset}
+/* Profil: Rich-Presence-Schalter und Socials */
+.dsr .pf-check{display:flex;align-items:flex-start;gap:9px;margin:4px 0 14px;font-size:var(--fs-6);line-height:1.4;color:var(--text);cursor:pointer}
+.dsr .pf-check input{margin-top:2px;accent-color:var(--accent)}
+.dsr .field label.pf-soc-l{justify-content:flex-start;align-items:center;gap:7px}
+.pf-soc-l svg{width:15px;height:15px;fill:currentColor}
+.pf-soc-l--tw svg{color:#a970ff}
+.pf-soc-l--yt svg{color:#ff4e45}
+.acc-id__soc{display:flex;gap:6px;margin-top:10px}
+.soc-link{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;border:1px solid var(--line-2);color:var(--soc,var(--text));background:color-mix(in srgb,var(--soc,#fff) 10%,transparent);transition:background var(--dur-fast) var(--ease-ui)}
+.soc-link:hover{background:color-mix(in srgb,var(--soc,#fff) 22%,transparent)}
+.soc-link svg{width:16px;height:16px;fill:currentColor}
 .dsr .inp.is-linked{border-color:rgba(88,101,242,.55);background:rgba(88,101,242,.1);color:#c3c8fa;cursor:default}
 
 /* --- Bereiche --- */
@@ -1146,11 +1161,47 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .fd-txt{min-width:0;display:flex;flex-direction:column;line-height:1.3}
 .fd-txt b{font-weight:600;font-size:var(--fs-8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fd-txt small{font-size:var(--fs-5);color:color-mix(in srgb,var(--text) 62%,var(--muted));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-txt small.is-act{color:var(--accent);font-weight:600}
 .fd-row.is-off .fd-av{opacity:.5}
 .fd-row.is-off .fd-txt b{color:var(--muted)}
 .fd-empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px 16px;color:var(--muted);font-size:var(--fs-8);text-align:center}
 .fd-empty svg{width:40px;height:40px;opacity:.5}
 @media(prefers-reduced-motion:reduce){.fd-dot.pulse{animation:none}}
+.dsr .fd-row{width:100%;border:0;background:none;text-align:left;cursor:pointer;font:inherit}
+.dsr .fd-row:hover{background:rgba(45,212,255,.08)}
+.fd-unread{margin-left:auto;flex:none;min-width:22px;height:22px;padding:0 7px;display:grid;place-items:center;border-radius:11px;background:var(--gold);color:var(--ink);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4)}
+.fd-row.has-unread .fd-txt b{color:#fff}
+.tab .badge--chat{background:var(--gold)}
+.tab .badge.is-muted{display:none}
+.fd.is-chat > .fd-head{display:none}
+
+/* --- Chat in der Freundesleiste --- */
+.fc{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.fc-head{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 8px;border-bottom:1px solid var(--line-soft)}
+.fc-head .fd-txt{flex:1 1 auto}
+.dsr .fc-back,.dsr .fc-prof{flex:none;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:10px;background:none;color:var(--muted);cursor:pointer}
+.dsr .fc-back:hover,.dsr .fc-prof:hover{background:rgba(45,212,255,.1);color:var(--accent)}
+.fc-back svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.fc-prof svg{width:18px;height:18px}
+.fc-log{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:10px 12px 6px;display:flex;flex-direction:column;gap:2px;scrollbar-width:thin}
+.fc-log > :first-child{margin-top:auto}
+.fc-day{align-self:center;margin:10px 0 6px;padding:2px 10px;border-radius:999px;background:var(--surface-2);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-3);letter-spacing:var(--ls-8);text-transform:uppercase;color:var(--muted)}
+.fc-msg{max-width:85%;align-self:flex-start;margin-top:8px;display:flex;flex-direction:column;gap:2px}
+.fc-msg.is-cont{margin-top:0}
+.fc-msg p{margin:0;padding:7px 11px;border-radius:14px 14px 14px 5px;background:var(--surface-2);color:var(--text);font-size:var(--fs-7);line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.fc-msg.is-me{align-self:flex-end;align-items:flex-end}
+.fc-msg.is-me p{border-radius:14px 14px 5px 14px;background:color-mix(in srgb,var(--accent) 22%,var(--surface-2));color:#eaf9ff}
+.fc-msg time{font-family:var(--font-mono);font-size:var(--fs-2);color:var(--muted);padding:0 4px}
+.fc-msg.is-cont time{display:none}
+.fc-msg:hover time{display:block}
+.fc-empty{margin:auto;padding:20px;text-align:center;color:var(--muted);font-size:var(--fs-7)}
+.fc-err{margin:0 12px 6px;font-size:var(--fs-5);color:var(--hot)}
+.fc-form{display:flex;align-items:flex-end;gap:8px;padding:8px 10px 10px;border-top:1px solid var(--line-soft)}
+.dsr .fc-form textarea{flex:1 1 auto;min-height:40px;max-height:132px;resize:none;padding:9px 12px;border:1px solid var(--line-2);border-radius:12px;background:var(--bg-2);color:var(--text);font:inherit;font-size:var(--fs-7);line-height:1.4}
+.dsr .fc-form textarea:focus{outline:none;border-color:var(--accent)}
+.dsr .fc-send{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:12px;background:var(--accent);color:var(--ink);cursor:pointer;transition:background var(--dur-fast) var(--ease-ui)}
+.dsr .fc-send:hover{background:#7fe6ff}
+.fc-send svg{width:18px;height:18px;fill:currentColor}
 
 /* --- Handy/Tablet: untereinander; Abmelden ans Ende statt mitten hinein,
    die Bereichsleiste klebt beim Scrollen oben --- */
@@ -1160,6 +1211,8 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
   .acc-nav{order:1;position:sticky;top:var(--nav);z-index:5;margin:0 -4px;padding:6px 4px;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
   .acc-main{order:2}
   .acc-side__foot{order:3;margin-top:8px}
+  /* Chat auf dem Handy: volle Fläche unter der Seitenleiste */
+  .acc-dock.is-chat{display:flex;flex-direction:column;position:fixed;inset:var(--nav) 0 0 0;z-index:60;padding:8px;background:var(--bg)}
 }
 @media (max-width:700px){
   .acc-main .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1181,11 +1234,12 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
   .acc-main .metrics{gap:12px}
   .dsr .acc-main .metric{min-height:0}
   /* Profil: drei Spalten nebeneinander (Identitaet | Status | Aussehen) */
-  .acc-main #profileForm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto 1fr;gap:14px;align-items:start}
+  .acc-main #profileForm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto 1fr;gap:14px;align-items:start}
   .acc-main #profileForm .subpanel + .subpanel{margin-top:0}
   .acc-main .sp-id{grid-column:1;grid-row:1}
-  .acc-main .sp-status{grid-column:2;grid-row:1 / span 2}
-  .acc-main .sp-design{grid-column:3;grid-row:1 / span 2}
-  .acc-main .sp-tester{grid-column:1;grid-row:2}
+  .acc-main .sp-status{grid-column:2;grid-row:1 / span 3}
+  .acc-main .sp-design{grid-column:3;grid-row:1 / span 3}
+  .acc-main .sp-social{grid-column:1;grid-row:2}
+  .acc-main .sp-tester{grid-column:1;grid-row:3}
   .acc-main .seccols{grid-template-columns:repeat(3,minmax(0,1fr))}
 }

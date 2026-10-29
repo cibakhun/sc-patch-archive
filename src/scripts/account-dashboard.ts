@@ -4,6 +4,7 @@
 import { supabase, FAV_PATH } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { resolveStatusKey } from '../lib/presence';
+  import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -88,6 +89,17 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
     if (location.hash.length > 1) activateSection(location.hash.slice(1));
+    // Ungelesene Chat-Nachrichten (FriendsDock zählt) am Reiter „Freunde":
+    // dann weicht die Freundeszahl dem goldenen Zähler.
+    document.addEventListener('vb:chat-unread', (e) => {
+      const n = Number((e as CustomEvent).detail) || 0;
+      const u = document.getElementById('navChatUnread');
+      const f = document.getElementById('navFriendCount');
+      if (!u) return;
+      u.textContent = n > 99 ? '99+' : String(n);
+      u.hidden = n <= 0;
+      if (f) f.classList.toggle('is-muted', n > 0);
+    });
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -180,6 +192,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         org_name: '',
         is_tester: false,
         tester_credit: false,
+        share_activity: true,
+        social_twitch: '',
+        social_youtube: '',
+        social_x: '',
       };
 
       // Zähler für den Stats-Readout (werden nach dem jeweiligen Load gesetzt)
@@ -277,6 +293,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const rsiHandleInput = document.getElementById('pfRsiHandle') as HTMLInputElement;
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
+      const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const socialInputs = {
+        social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
+        social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
+        social_x: document.getElementById('pfX') as HTMLInputElement | null,
+      };
 
       nameInput.value = profileState.display_name || '';
       handleInput.value = profileState.handle || '';
@@ -292,6 +314,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       rsiHandleInput.value = profileState.rsi_handle || '';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
+      if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
+      const ovSoc = document.getElementById('ovSocials');
+      if (ovSoc) renderSocialLinks(ovSoc, profileState);
 
       // Testpilot-Zustimmungsschalter (D-22): nur sichtbar, wenn das Konto
       // die Eigenschaft traegt. Wer die Rolle nicht hat, sieht keinen
@@ -1225,6 +1251,22 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           show(pfStatus as HTMLElement, D.msgHandleFormat!);
           return;
         }
+        // Socials: eingefügte Adressen auf den Namen kürzen; was nicht passt,
+        // wird nicht gespeichert, sondern beim Feld gemeldet.
+        const socialVals: Record<string, string> = {};
+        for (const s of SOCIALS) {
+          const el = socialInputs[s.key];
+          if (!el) { socialVals[s.key] = profileState[s.key] || ''; continue; }
+          const v = normalizeSocial(s.key, el.value);
+          if (v === null) {
+            show(pfStatus as HTMLElement, (D.msgSocialBad || '%s').replace('%s', s.label));
+            el.focus();
+            return;
+          }
+          el.value = v;
+          socialVals[s.key] = v;
+        }
+        const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1257,6 +1299,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           discord_tag: discordInput.value.trim(),
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          ...socialVals,
         });
 
         const payload: Record<string, any> = {
@@ -1275,7 +1319,14 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           org_name: profileState.org_name || null,
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          social_twitch: socialVals.social_twitch || null,
+          social_youtube: socialVals.social_youtube || null,
+          social_x: socialVals.social_x || null,
         };
+        // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
+        // nicht erst beim naechsten Puls.
+        if (!shareActVal) payload.activity = null;
         if (profileState.rsi_verified === true
           && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
           payload.rsi_verified = false;
@@ -1285,6 +1336,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+        { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
         try {
           const { error } = await supabase
@@ -1526,7 +1578,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
-        try { await supabase.from('profiles').update({ last_seen: null, last_active: null }).eq('id', user.id); } catch { /* egal */ }
+        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', user.id); } catch { /* egal */ }
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
