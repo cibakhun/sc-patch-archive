@@ -243,9 +243,11 @@ function boot(root: HTMLElement) {
     return t.map((w) => (/^(i|ii|iii|iv|v|vi)$/.test(w) || /^[a-z]+\d/.test(w) ? w.toUpperCase() : w.charAt(0).toUpperCase() + w.slice(1))).join(' ');
   };
   const hangarBase = lang === 'de' ? '/de/hangar.html' : '/hangar.html';
+  // Wie favPath in account-dashboard.ts: FAV_PATH sind Vorlagen mit %s.
   const favPath = (kind: string, slug: string) => {
-    const base = (FAV_PATH as Record<string, string>)[kind];
-    return base ? `${lang === 'de' ? '/de' : ''}${base}${encodeURIComponent(slug)}.html` : '#';
+    const tpl = (FAV_PATH as Record<string, string>)[kind] || '/index.html';
+    const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
+    return lang === 'de' ? '/de' + p : p;
   };
   // Wie im Bereich Favoriten: Zeichen + Farbe je Art (für Kacheln ohne Bild)
   const KIND_IC: Record<string, { ic: string; c: string }> = {
