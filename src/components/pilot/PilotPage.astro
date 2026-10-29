@@ -824,6 +824,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
   import { rankOf, rankTitle } from '../../lib/rankBadge';
   import { PRESTIGE } from '../../../discord/bot/src/ranks.mjs';
   import { escapeHtml as esc } from '../../lib/escape';
+  import { cssUrl } from '../../lib/cssUrl';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -894,7 +895,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       // schwarz und die Seite sähe kaputt aus, obwohl nur ein Bild fehlt.
       const BANNER_FALLBACK = '/assets/t-pyro-2.jpg';
       const bannerEl = $('ppBannerImg') as HTMLElement;
-      const setBanner = (url: string) => { bannerEl.style.backgroundImage = `url('${url}')`; };
+      // cssUrl: die Adresse schreibt der Besitzer des Profils, nicht die Seite.
+      const setBanner = (url: string) => { const v = cssUrl(url); if (v) bannerEl.style.backgroundImage = v; };
       setBanner(BANNER_FALLBACK);
       if (p.banner_url && p.banner_url !== BANNER_FALLBACK) {
         const probe = new Image();
