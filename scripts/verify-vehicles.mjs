@@ -145,6 +145,10 @@ const COVERAGE_FLOOR = {
   scmSpeed: 183, maxSpeed: 183, boostForward: 183,
   pitch: 183, yaw: 183, roll: 183,
   hullHp: 223, shieldHp: 208,
+  // massKg (29.10.2026): alle 227 gebauten Fahrzeuge (ohne die 4 ATLS-
+  // Übernahmen). Der Riegel fängt z. B. ein Steuerzeichen im Zahlwert, das
+  // die Gladius Valiant still auf 0 kg gesetzt hatte.
+  massKg: 227,
   qtSpeedMs: 176, qtSpoolS: 176,
   cargoSCU: 223,
   insClaimMin: 223, insExpediteMin: 223, insExpediteCost: 223,

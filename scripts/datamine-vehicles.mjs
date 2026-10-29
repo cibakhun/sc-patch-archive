@@ -400,7 +400,7 @@ const SIZE_LABEL = {
 /* Ein Fahrzeug bauen                                                */
 /* ---------------------------------------------------------------- */
 const stats = {
-  impl: 0, ifcs: 0, hull: 0, cargo: 0, shield: 0, qt: 0, qtFuel: 0, qtRange: 0, h2Fuel: 0, ore: 0, noRec: [], badMod: [], noIfcs: [],
+  impl: 0, ifcs: 0, hull: 0, mass: 0, cargo: 0, shield: 0, qt: 0, qtFuel: 0, qtRange: 0, h2Fuel: 0, ore: 0, noRec: [], badMod: [], noIfcs: [],
   // Gap 1 (01.4-06): billige Mitzaehlung, wie oft die Teilsumme wirklich
   // Waffen ohne bekannte DPS uebersprungen hat — sichtbar in der Konsole,
   // damit ein kuenftiger stiller Rueckgang auffiele, nicht nur der Fund
@@ -505,8 +505,8 @@ function buildVehicle(id) {
   if (ifcs) stats.ifcs++; else if (veh?.movementClass === 'Spaceship') stats.noIfcs.push(id);
   const ang = ifcs?.maxAngularVelocity ?? null;
 
-  // --- Implementierungs-XML: Hüllen-HP + Waffen-Ports ---
-  let hullHp = null, mounts = [];
+  // --- Implementierungs-XML: Hüllen-HP, Masse + Waffen-Ports ---
+  let hullHp = null, massKg = null, mounts = [];
   const { root: impl, modOk } = veh?.vehicleDefinition
     ? readImpl(veh.vehicleDefinition, veh.modification)
     : { root: null, modOk: null };
@@ -522,6 +522,17 @@ function buildVehicle(id) {
       .filter((n) => n.attr.damageMax && !/^hardpoint_/i.test(n.attr.name || ''));
     const sum = parts.reduce((s, n) => s + (Number(n.attr.damageMax) || 0), 0);
     if (sum > 0) { hullHp = Math.round(sum); stats.hull++; }
+    // Masse = Summe der `mass`-Attribute ALLER Bauteile, anders als bei den
+    // Hüllen-HP auch der `hardpoint_*`-Teile: Masse tragen dort nur Räder,
+    // Achsen und Federbeine von Bodenfahrzeugen (Ballista, Nova, Storm, ROC,
+    // Centurion …), also Teile des Fahrzeugs selbst; Aufhängungen für Waffen
+    // und Komponenten tragen keine. Bei Schiffen trägt kein `hardpoint_*`-Teil
+    // Masse, beide Regeln sind dort gleich. Gegenprobe: Gladius
+    // 48 552 kg, der öffentliche Wert der leeren Hülle. parseFloat statt
+    // Number: die Valiant-Modifikation schreibt "51501.51" mit unsichtbarem
+    // Steuerzeichen (U+202C) dahinter — Number() machte daraus NaN, die Masse 0.
+    const mass = findAllLive(impl, 'Part').reduce((s, n) => s + (parseFloat(n.attr.mass) || 0), 0);
+    if (mass > 0) { massKg = Math.round(mass); stats.mass++; }
     // Waffen-Ports: was PASST, nicht was drin ist
     const sizes = new Map();
     for (const part of findAllLive(impl, 'Part')) {
@@ -746,6 +757,7 @@ function buildVehicle(id) {
     // Gegenprobe Buccaneer: {49, 155, 42} = pitch 49, roll 155, yaw 42.
     pitch: round(ang?.x), yaw: round(ang?.z), roll: round(ang?.y),
     hullHp,
+    massKg,
     shieldHp: shieldHp || null,
     qtSpeedMs, qtSpoolS, qtRangeM, qtFuel, h2Fuel,
     oreSCU: oreScu,
@@ -829,7 +841,7 @@ for (const id of ids) {
 p4k.close();
 
 console.log(`Fahrzeuge gebaut: ${out.length}/${ids.length}`);
-console.log(`  Implementierungs-XML: ${stats.impl}   Hüllen-HP: ${stats.hull}`);
+console.log(`  Implementierungs-XML: ${stats.impl}   Hüllen-HP: ${stats.hull}   Masse: ${stats.mass}`);
 console.log(`  Flugwerte (IFCS):     ${stats.ifcs}`);
 console.log(`  Schild-HP:            ${stats.shield}   Quantum: ${stats.qt}   Fracht: ${stats.cargo}`);
 console.log(`  QT-Treibstoff:        ${stats.qtFuel}   QT-Reichweite: ${stats.qtRange}   H2-Treibstoff: ${stats.h2Fuel}   Erz: ${stats.ore}`);

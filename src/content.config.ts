@@ -183,6 +183,7 @@ const vehicles = defineCollection({
     lengthM: z.number().nullable().default(null),
     widthM: z.number().nullable().default(null),
     heightM: z.number().nullable().default(null),
+    massKg: z.number().nullable().default(null),
     scmSpeed: z.number().nullable(),
     maxSpeed: z.number().nullable(),
     boostForward: z.number().nullable(),
