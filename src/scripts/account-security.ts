@@ -164,10 +164,13 @@ function boot(root: HTMLElement) {
   const all = $('secAll') as HTMLButtonElement | null;
   if (all) arm(all, async () => {
     const { data } = await supabase.auth.getUser();
-    // Wie beim normalen Abmelden: Präsenz sofort auf offline.
+    // Wie beim normalen Abmelden: Präsenz sofort auf offline, dann die
+    // lokalen Kopien des Kontos aus diesem Browser (forgetLocalCopies in
+    // account-dashboard.ts; die Datenschutzerklärung #storage sagt das zu).
     if (data?.user) {
-      try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null }).eq('id', data.user.id); } catch { /* egal */ }
+      try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null, activity_at: null }).eq('id', data.user.id); } catch { /* egal */ }
     }
+    document.dispatchEvent(new Event('vb:forget-local'));
     const { error } = await supabase.auth.signOut({ scope: 'global' });
     if (error) { toast(C.err); return; }
     location.href = home;
