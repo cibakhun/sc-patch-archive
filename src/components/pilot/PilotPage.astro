@@ -277,7 +277,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
             <div class="pp-empty" id="ppHangarEmpty" hidden>
               <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-ship"/></svg>
               <p>{COPY.emptyHangar}</p>
-              <a class="pp-empty__go" id="ppHangarGo" href={shipsHref} hidden>{COPY.emptyHangarGo} &rarr;</a>
+              <a class="pp-empty__go" id="ppHangarGo" href={shipsHref}>{COPY.emptyHangarGo} &rarr;</a>
             </div>
           </div>
         </section>
@@ -394,6 +394,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
      ein fester Platz für die Kopfleiste (position:fixed, 67–69 px hoch);
      der Banner liegt absolut (inset:0) und bleibt randlos. */
   .pp-app { --pp-w: min(1960px, 100%); --pp-gut: clamp(14px, 1.6vw, 32px); }
+  /* Breite Schirme machen .pp-app zum Raster; ohne diese Zeile stünde das
+     leere Profil beim Laden und neben „nicht gefunden" mit da. */
+  .pp-app[hidden] { display: none; }
   .pp-app .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .pp-hero {
     position: relative; min-height: 360px; padding: 5.25rem 0 0;

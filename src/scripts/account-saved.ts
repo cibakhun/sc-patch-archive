@@ -75,13 +75,31 @@ function boot(root: HTMLElement) {
   // null = noch nicht geladen oder Spalte fehlt: dann gibt es keinen Knopf.
   const MAX_PIN = 3;
   let pinned: string[] | null = null;
-  const savePins = async (next: string[]) => {
-    const before = pinned;
+  // Geschrieben wird der Reihe nach und immer der neueste Stand: zwei schnelle
+  // Klicks überholen sich nicht, ein übersprungener Zwischenstand geht mit dem
+  // nächsten Schreiben mit. Ein Fehler setzt auf das zurück, was der Server
+  // zuletzt bestätigt hat, nicht auf den Stand vor irgendeinem Klick.
+  let pinsSaved: string[] = [];
+  let pinSeq = 0;
+  let pinWrite: Promise<boolean> = Promise.resolve(true);
+  const savePins = (next: string[]) => {
     pinned = next;
     render();
-    const { error } = await supabase.from('profiles').update({ showcase: next }).eq('id', me);
-    if (error) { pinned = before; render(); toast(C.failed); return false; }
-    return true;
+    const seq = ++pinSeq;
+    pinWrite = pinWrite.then(async () => {
+      if (seq !== pinSeq) return true;
+      const want = pinned || [];
+      let failed = true;
+      try {
+        const { error } = await supabase.from('profiles').update({ showcase: want }).eq('id', me);
+        failed = !!error;
+      } catch { /* wie ein Fehler */ }
+      if (!failed) { pinsSaved = want; return true; }
+      if (seq === pinSeq) { pinned = pinsSaved; render(); }
+      toast(C.failed);
+      return false;
+    });
+    return pinWrite;
   };
   // Nur IDs, die es noch gibt (ein gelöschtes Loadout belegt sonst einen Platz).
   const livePins = () => (pinned || []).filter((id) => layoutList().some((l) => l.id === id));
@@ -141,10 +159,20 @@ function boot(root: HTMLElement) {
     rm.addEventListener('click', () => {
       const gone = layouts.store.remove(e.id);
       if (!gone) { toast(C.failed); return; }
-      if (pinned?.includes(e.id)) savePins(livePins());
+      // Rückgängig heftet es wieder an, an dieselbe Stelle, wenn noch Platz ist.
+      const pinAt = pinned ? pinned.indexOf(e.id) : -1;
+      if (pinAt >= 0) savePins(livePins());
       render();
       announce();
-      toast(C.removed.replace('%s', name), () => { layouts.store.restore(gone); render(); announce(); });
+      toast(C.removed.replace('%s', name), () => {
+        layouts.store.restore(gone);
+        const cur = livePins();
+        if (pinAt >= 0 && pinned && !cur.includes(e.id) && cur.length < MAX_PIN) {
+          savePins([...cur.slice(0, pinAt), e.id, ...cur.slice(pinAt)]);
+        }
+        render();
+        announce();
+      });
     });
     acts.append(adv, copy, rm);
     if (pinned) {
@@ -275,7 +303,7 @@ function boot(root: HTMLElement) {
       supabase.from('profiles').select('showcase').eq('id', me).maybeSingle(),
     ]);
     thumbs = th || {};
-    if (!sc.error) pinned = Array.isArray(sc.data?.showcase) ? (sc.data!.showcase as unknown[]).map(String) : [];
+    if (!sc.error) pinned = pinsSaved = Array.isArray(sc.data?.showcase) ? (sc.data!.showcase as unknown[]).map(String) : [];
     favs = (res.data || []) as Fav[];
     favsLoaded = true;
     render();
