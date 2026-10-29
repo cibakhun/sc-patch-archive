@@ -1668,6 +1668,18 @@ last_updated: 2026-10-29T13:00:00.000Z
     "reason": "",
     "recorded_at": "2026-10-29T13:00:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 129,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "src/components/hangar/HangarPage.astro",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Schiffe finden und wählen nach Krisz 29.10.2026 13:49: „man kann ohne manufacturere name oder schiff name kaum nach etwas suchen … painy“, und 14:52 zu den drei Entwurfsbildern: „konzept 2 sieht am besten aus“): Die Spalte links zeigt sofort eine Liste, eine Zeile je Schiff mit einem einheitlichen Bild aus unseren 3D-Modellen (alle 231 Schiffe in derselben Ansicht, ohne Wiki-Fotos), Name, Hersteller und Rolle; nach einem Kennwert sortiert steht sein Wert rechts. Die Suche versteht Zweck, Unterrolle, Größe, Crew, Hersteller, „ab 100 scu“, „unter 2 mio“, Spitznamen („cutty“, „connie“) und Tippfehler, auf Deutsch und Englisch; was sie erkennt, steht darunter als Chip mit ×. Darunter sechs Pillen (Wofür, Größe, Crew, Fracht, Preis, Hersteller), jede klappt ihre Stufen mit der Zahl der Treffer auf; nach einem Zweck folgen Unterrollen. Fährt die Maus über eine Zeile (oder ↑ ↓), steht daneben eine Karte mit Bild, Kennzahlen samt Abstand zum Schiff in der Halle, beiden Draufsichten im selben Maßstab und den Knöpfen „In die Halle“, „+ Vergleich“ und Stern (Flotte). Die Taste / springt in die Suche. Die Wofür-Kacheln, „Zuletzt angesehen“ und „Ähnlich wie“ aus dem ersten Entwurf sind nicht drin. Ersetzt die zwei Kartenspalten und die Rollenzeile aus #127 (dort Fragen 1 und 3). Zu beurteilen: (1) Findet man jetzt ohne Namen schnell, was man sucht? (2) Liest sich die Liste mit den gerenderten Bildern gut, sind die Bilder groß genug? (3) Steht die Karte neben der Liste gut, oder verdeckt sie zu viel Halle? (4) Größenvergleich: sagen die Umrisse etwas? Maschinell: npm run gate nach normalem und Vorschau-Build (29/29), verify:hangar [19] (eigene Bilder, Suchwörter, 12 Suchproben durch die ausgelieferte Suche) dreimal vorgeführt rot, Rauchtest gegen den Build, kein Überlauf bei 390 px, Knöpfe der Karte im Browser geklickt. Bilder: /mnt/project-files/hangar-schiffswahl/ (umsetzung-*.png).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-29T15:40:00.000Z",
+    "resolved_at": null
   }
 ]
 ````
