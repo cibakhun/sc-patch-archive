@@ -11,17 +11,23 @@
 //               taeglichen Lauf loeschen.
 //  Taeglich  -> 1. Abgleich mit der echten Mitgliederliste: wer waehrend
 //                  einer Bot-Pause gegangen oder zurueckgekommen ist, wird
-//                  nachgetragen. Haengt der Abruf, entfaellt dieser
-//                  Schritt fuer die Gilde, und geloescht wird dort an dem
-//                  Tag auch nicht: wer waehrend einer Pause zurueckkam,
-//                  traegt noch seine Marke. Markiert wird nie auf Verdacht.
+//                  nachgetragen. Bremst Discord den Abruf (ein voller
+//                  Mitgliederabruf je Gilde und 30 s, den beim Start auch
+//                  der Rollenabgleich braucht), wartet er einmal ab. Haengt
+//                  der Abruf, entfaellt dieser Schritt fuer die Gilde, und
+//                  geloescht wird dort an dem Tag auch nicht: wer waehrend
+//                  einer Pause zurueckkam, traegt noch seine Marke. Markiert
+//                  wird nie auf Verdacht.
 //                  Zeilen aus Gilden, in denen der Bot nicht mehr ist,
 //                  laufen in dieselbe Frist (die Heim-Gilde nie). Kommt
 //                  der Bot zurueck, nimmt er genau diese Marken wieder
 //                  weg (GuildCreate und jeder taegliche Lauf), ohne die
 //                  Mitgliederliste zu brauchen.
 //               2. Loeschen, was die Frist ueberschritten hat, samt den
-//                  Fehlerbericht-Sperren dieser Nutzer. Sperren aelter als
+//                  Fehlerbericht-Sperren dieser Nutzer -- nur in Gilden mit
+//                  gelungenem Abgleich und in Gilden ohne Bot. Fehlt die
+//                  Heim-Gilde oder ist der Bot in keiner, ruht es dort
+//                  bzw. ueberall. Sperren aelter als
 //                  LOCK_DAYS fallen ebenfalls weg (siehe db.purgeExpired).
 //  Selbstauskunft: jeder Lauf druckt, wie viele Zeilen er gesehen, markiert
 //  und geloescht hat -- ein leerlaufender Lauf soll sich von einem echten
@@ -32,6 +38,7 @@ import { Events } from 'discord.js';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LOCK_DAYS = 30;
 const FETCH_TIMEOUT_MS = 15_000;
+const RATE_LIMIT_MAX_S = 60;
 // meta-Schluessel je Gilde: wann markOrphanedGuilds ihre Zeilen vorgemerkt hat.
 const BOT_WEG = 'bot_left_at';
 
@@ -64,11 +71,15 @@ export function reconcileLeavers(db, guildId, memberIds, now = Date.now()) {
  * draussen oder der Zugang falsch, und ihre Raenge sollen das ueberstehen.
  * Rein (kein Discord-Aufruf), damit selftest.mjs es pruefen kann.
  */
+// Gilt die Gilde als verlassen? Dieselbe Regel fuers Vormerken und fuers
+// Loeschen. In keiner Gilde: eher falscher Zugang als Abschied.
+export const ohneBot = (presentIds, homeId) => (g) => presentIds.size > 0 && g !== homeId && !presentIds.has(g);
+
 export function markOrphanedGuilds(db, presentIds, homeId, now = Date.now()) {
-  if (!presentIds.size) return 0; // in keiner Gilde: eher falscher Zugang als Abschied
+  const weg = ohneBot(presentIds, homeId);
   let marked = 0;
   for (const g of db.openGuilds()) {
-    if (g === homeId || presentIds.has(g)) continue;
+    if (!weg(g)) continue;
     // Ein Zeitstempel je Gilde, damit restoreGuild genau diese Marken
     // wiederfindet -- auch fuer Zeilen, die erst spaeter vorgemerkt werden.
     // Den alten nur, solange noch eine Zeile ihn traegt: nach dem Loeschen
@@ -96,22 +107,41 @@ export function restoreGuild(db, guildId) {
   return n;
 }
 
-export async function runRetention(ctx, now = Date.now(), env = process.env) {
+const schlafen = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Volle Mitgliederliste mit Zeitgrenze. Discord erlaubt je Gilde einen
+// vollen Abruf in 30 s; der Rollenabgleich beim Start und alle 2 Minuten
+// braucht denselben. Antwortet Discord mit RATE_LIMITED, einmal die
+// genannte Zeit abwarten und neu fragen.
+async function mitglieder(guild, schlafe) {
+  for (let versuch = 0; ; versuch++) {
+    let timer;
+    try {
+      return await Promise.race([
+        guild.members.fetch(),
+        new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('Zeitueberschreitung')), FETCH_TIMEOUT_MS); }),
+      ]).finally(() => clearTimeout(timer));
+    } catch (e) {
+      const s = e?.name === 'GatewayRateLimitError' ? Number(e.data?.retry_after) : NaN;
+      if (versuch > 0 || !(s >= 0)) throw e;
+      await schlafe((Math.min(s, RATE_LIMIT_MAX_S) + 1) * 1000);
+    }
+  }
+}
+
+export async function runRetention(ctx, now = Date.now(), env = process.env, schlafe = schlafen) {
   const days = retentionDays(env);
   let seen = 0, marked = 0, cleared = 0, restored = 0;
-  const ausgelassen = new Set();
+  const ausgelassen = new Set(), geprueft = new Set();
   // Zuerst: Gilden, in die der Bot zurueckgekehrt ist, auch waehrend einer
   // Pause (dann feuert kein GuildCreate, die Gilde ist beim Start einfach da).
   // Vor dem Abgleich, damit der danach markiert, wer wirklich fehlt.
   const amAnfang = new Set(ctx.client.guilds.cache.keys());
   for (const id of amAnfang) restored += restoreGuild(ctx.db, id);
   for (const guild of ctx.client.guilds.cache.values()) {
-    let members, timer;
+    let members;
     try {
-      members = await Promise.race([
-        guild.members.fetch(),
-        new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('Zeitueberschreitung')), FETCH_TIMEOUT_MS); }),
-      ]).finally(() => clearTimeout(timer));
+      members = await mitglieder(guild, schlafe);
     } catch (e) {
       ausgelassen.add(guild.id);
       console.warn(`  ! Datenfrist: Mitgliederabruf in ${guild.name} fehlgeschlagen (${e.message}) -- Abgleich dort ausgelassen.`);
@@ -126,15 +156,25 @@ export async function runRetention(ctx, now = Date.now(), env = process.env) {
     }
     const r = reconcileLeavers(ctx.db, guild.id, new Set(members.keys()), now);
     seen += r.seen; marked += r.marked; cleared += r.cleared;
+    geprueft.add(guild.id);
   }
   // guilds.cache fuehrt nach READY jede Gilde, auch voruebergehend nicht
   // verfuegbare -- fehlt eine, wurde der Bot dort entfernt (auch waehrend
   // einer Pause, ohne GuildDelete). Wer erst waehrend dieses Laufs ging,
   // ist im naechsten dran: der Abgleich oben hat dort Austritte mit
   // demselben `now` markiert, und restoreGuild darf die nie mit zuruecknehmen.
-  const orphaned = markOrphanedGuilds(ctx.db, new Set([...amAnfang, ...ctx.client.guilds.cache.keys()]), ctx.home?.id, now);
+  const present = new Set([...amAnfang, ...ctx.client.guilds.cache.keys()]);
+  const orphaned = markOrphanedGuilds(ctx.db, present, ctx.home?.id, now);
   marked += orphaned;
-  const purged = ctx.db.purgeExpired(now - days * DAY_MS, now - LOCK_DAYS * DAY_MS, ausgelassen);
+  // Geloescht wird nur, wo heute jemand nachsehen konnte: nach gelungenem
+  // Abgleich oder weil der Bot dort nicht mehr ist. Eine Heim-Gilde, die
+  // fehlt, oder eine, die waehrend des Laufs verschwand, bleibt unberuehrt.
+  const weg = ohneBot(present, ctx.home?.id);
+  // Eine Millisekunde vor der Grenze: was dieser Lauf selbst mit `now`
+  // markiert hat, ist nie schon abgelaufen, auch bei 0 Tagen nicht
+  // ("am naechsten taeglichen Lauf loeschen").
+  const purged = ctx.db.purgeExpired(now - days * DAY_MS - 1, now - LOCK_DAYS * DAY_MS, (g) => geprueft.has(g) || weg(g));
+  if (ctx.home?.id && !present.has(ctx.home.id)) console.warn(`  ! Datenfrist: der Bot ist nicht in der Heim-Gilde ${ctx.home.id} -- dort weder Abgleich noch Loeschen.`);
   console.log(`  · Datenfrist (${days} Tage): ${seen} Zeilen abgeglichen, ${marked} als ausgetreten markiert${orphaned ? ` (davon ${orphaned} aus Gilden ohne Bot)` : ''}, ${cleared} zurueckgekehrt${restored ? `, ${restored} nach Rueckkehr des Bots zurueckgeholt` : ''}, ${purged.users} Ehemalige und ${purged.locks} alte Sperren geloescht${ausgelassen.size ? `, ${ausgelassen.size} Gilde(n) ausgelassen (dort nichts geloescht)` : ''}.`);
 }
 

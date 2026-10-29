@@ -682,6 +682,58 @@ try {
       assert.equal(z.position('home', 'U'), 1, 'the next working check clears the mark');
     });
     z.close();
+    // 0 Tage heisst: am naechsten taeglichen Lauf, nicht im selben.
+    const n = openDb(':memory:');
+    n.addXp('home', 'frueher', 1); n.markLeft('home', 'frueher', T0 - 1);
+    n.addXp('home', 'jetzt', 1); n.addXp('gW', 'w', 1);
+    const null0 = (t) => runRetention({ db: n, home: H, client: { guilds: { cache: new Map([gilde('home', [])]) } } }, t, { LEAVER_RETENTION_DAYS: '0' });
+    await null0(T0);
+    const erster = { frueher: n.getUser('home', 'frueher').xp, jetzt: n.getUser('home', 'jetzt').xp, w: n.getUser('gW', 'w').xp };
+    await null0(T0 + DAY);
+    t('with 0 days a row marked by this run goes at the next run, not in the same one', () => {
+      assert.deepEqual(erster, { frueher: 0, jetzt: 1, w: 1 }, 'marked earlier: gone; marked by this run (reconcile, server without the bot): kept');
+      assert.equal(n.getUser('home', 'jetzt').xp, 0);
+      assert.equal(n.getUser('gW', 'w').xp, 0);
+    });
+    n.close();
+    // Heim-Gilde fehlt im Cache (Bot dort versehentlich draussen) oder der
+    // Bot ist in keiner Gilde: dort prueft heute niemand, also kein Loeschen.
+    const h = openDb(':memory:');
+    h.addXp('home', 'U', 900); h.markLeft('home', 'U', T0);
+    h.addXp('gX', 'x', 5); h.markLeft('gX', 'x', T0);
+    const ohneHeim = (cache) => runRetention({ db: h, home: H, client: { guilds: { cache } } }, T0 + 31 * DAY, {});
+    await ohneHeim(new Map());
+    const leer = { U: h.getUser('home', 'U').xp, x: h.getUser('gX', 'x').xp };
+    await ohneHeim(new Map([gilde('gY', [])]));
+    t('no deletion in a home server the bot is not in, nor anywhere while it is in no server', () => {
+      assert.deepEqual(leer, { U: 900, x: 5 }, 'in no server at all: nothing is deleted');
+      assert.equal(h.getUser('home', 'U').xp, 900, 'home missing from the cache keeps its rows');
+      assert.equal(h.getUser('gX', 'x').xp, 0, 'a server without the bot still runs into the deadline');
+    });
+    h.close();
+    // Discord bremst den vollen Mitgliederabruf (einer je Gilde und 30 s):
+    // einmal abwarten, dann gilt der Abgleich; ein zweites Mal nicht.
+    const q = openDb(':memory:');
+    q.addXp('home', 'weg', 1); q.addXp('home', 'da', 1);
+    const gebremst = (mal) => {
+      let n = 0;
+      return { id: 'home', name: 'home', memberCount: 1, members: { fetch: async () => {
+        if (n++ < mal) throw Object.assign(new Error('Request with opcode 8 was rate limited.'), { name: 'GatewayRateLimitError', data: { retry_after: 2.5 } });
+        return new Map([['da', {}]]);
+      } } };
+    };
+    const gewartet = [];
+    const bremse = (g) => runRetention({ db: q, home: H, client: { guilds: { cache: new Map([['home', g]]) } } }, T0, {}, async (ms) => { gewartet.push(ms); });
+    await bremse(gebremst(2));
+    const zweimal = { weg: q.position('home', 'weg'), gewartet: [...gewartet] };
+    await bremse(gebremst(1));
+    t('a rate-limited member fetch waits once as told and then counts', () => {
+      assert.deepEqual(zweimal, { weg: 1, gewartet: [3500] }, 'limited twice: skipped, nobody marked on suspicion');
+      assert.deepEqual(gewartet, [3500, 3500]);
+      assert.equal(q.position('home', 'weg'), null, 'limited once: the reconcile ran and marked the leaver');
+      assert.equal(q.position('home', 'da'), 1);
+    });
+    q.close();
     r.close(); e.close();
   }
   t('LEAVER_RETENTION_DAYS: default 30, 0 allowed, capped at 365, junk ignored', () => {

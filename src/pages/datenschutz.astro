@@ -655,9 +655,11 @@ body{font-family:var(--font-body)}
       if you come back before then, you keep your rank. If the bot was not running when you left, it
       records your departure at the next daily check; until then the leaderboard lists your entry
       with the first digits of your Discord ID instead of your name, and the 30 days run from that
-      check. Records of bug reports are deleted after 30 days in any case, and values from other
+      check. Records of bug reports in its database are deleted after 30 days in any case, and values from other
       servers the bot has been removed from after the same period as a departure, unless it comes
-      back before then. We delete everything earlier on request by e-mail. The legal basis is
+      back before then. While the bot is not in our server, checking and deleting values pause there until
+      it is back; while it is in no server at all, both pause everywhere. We keep its operating log for up to ten years, like the
+      <a href="#hosting">server log</a>; deleting from the database does not cover it. We delete everything earlier on request by e-mail. The legal basis is
       Art. 6 (1) (f) GDPR (legitimate interest in a lively community server). Everything else on the
       server is subject to Discord's privacy policy
       (<a href="https://discord.com/privacy" rel="noopener">discord.com/privacy</a>).

@@ -112,7 +112,7 @@ manufacturers arrive.
 cd discord/bot
 cp .env.example .env      # then paste DISCORD_TOKEN (and GUILD_ID for instant commands)
 npm install
-npm run selftest          # optional: 72 offline checks (also run in the Docker build)
+npm run selftest          # optional: 75 offline checks (also run in the Docker build)
 npm run register          # push slash commands (instant if GUILD_ID is set)
 npm start                 # go live
 ```
@@ -234,10 +234,15 @@ git-ignored.
 **Retention.** When someone leaves the server, their row is marked and drops off
 the leaderboard. After `LEAVER_RETENTION_DAYS` (default 30, at most 365) a daily job
 deletes it, together with their bug-report XP locks; locks older than 30 days
-go too. If that day's member check for a server fails, nothing is deleted
-there that day (someone may have come back while the bot was down). Rows from a server the bot is no longer in (other than the home
+go too. Rows are only deleted in a server whose member check worked that day
+(someone may have come back while the bot was down) or that the bot is no
+longer in; if Discord rate-limits the check (one full member fetch per server
+every 30 s, which the role reconcile at start also needs), the job waits once.
+Rows from a server the bot is no longer in (other than the home
 server) run into the same deadline; if the bot is added back, exactly those
-marks are taken back (on join, on reconnect and at each daily run). Rejoining
+marks are taken back (on join, on reconnect and at each daily run). While the
+bot is not in the home server, nothing is checked or deleted there; while it
+is in no server at all, nothing is marked or deleted anywhere. Rejoining
 before the deadline keeps the rank. Each run logs how many rows it checked,
 marked, restored and deleted. The privacy policy (`src/pages/datenschutz.astro`
 and `src/pages/de/datenschutz.astro`, section `#discord-server`) states the

@@ -114,25 +114,39 @@ const ohneText = (x) => x.replace(/\[\s*'([\w-]+)'\s*\]|'[^']*'/g, (m, idx) => (
 const FREMDTEXT = /(?<![\w.-])github\s*(?:\.\s*head_ref\b|\.\s*event\b(?:\s*\.\s*[\w-]+|\s*\[[^\]]*\]|\s*\.\s*\*)*)/gi;
 const GANZ = /(?<![\w.-])github\b(?!\s*[.[])|(?<![\w.-])github\s*\.\s*\*/gi;
 const HARMLOS = /\.(number|id|sha|size|draft|merged|run_id|run_number)$/i;
-// Liefert der Ausdruck nur true/false, kommt kein Fremdtext ins Skript: ein
-// Vergleich oder `!…` auf oberster Ebene ohne && / || (die liefern einen
-// ihrer Operanden, also Text), oder ein Aufruf von contains, startsWith
-// oder endsWith (dahinter kann in gueltiger Syntax nur ein Operator stehen,
-// und die sind oben schon behandelt). Erwartet den Ausdruck nach ohneText.
-function nurWahrheitswert(x) {
-  let tiefe = 0, vergleich = false;
+// Liefert der Ausdruck nur true/false oder ein festes Literal, kommt kein
+// Fremdtext ins Skript. && und || liefern einen ihrer Operanden, also gilt
+// das nur, wenn es fuer JEDEN Operanden gilt: ein Vergleich oder `!…` auf
+// oberster Ebene, ein Aufruf von contains, startsWith oder endsWith
+// (dahinter kann in gueltiger Syntax nur ein Operator stehen), ein Literal
+// ('', true, false, null, Zahl) oder eine Klammer um so etwas. So bleiben
+// `a == 'x' && '--flag' || ''` frei und `a == 'x' && github.event.issue.body`
+// ein Treffer. Erwartet den Ausdruck nach ohneText.
+function operanden(x) {
+  const out = [];
+  let tiefe = 0, start = 0;
   for (let i = 0; i < x.length; i++) {
     const c = x[i], zwei = x.slice(i, i + 2);
     if (c === '(' || c === '[') tiefe++;
     else if (c === ')' || c === ']') tiefe--;
-    else if (tiefe === 0) {
-      if (zwei === '&&' || zwei === '||') return false;
-      if (['==', '!=', '<=', '>='].includes(zwei)) { vergleich = true; i++; } else if (c === '<' || c === '>') vergleich = true;
-    }
+    else if (tiefe === 0 && (zwei === '&&' || zwei === '||')) { out.push(x.slice(start, i)); start = i + 2; i++; }
   }
-  const t = x.trim();
-  return vergleich || t.startsWith('!') || /^(?:contains|startsWith|endsWith)\s*\(/i.test(t);
+  return [...out, x.slice(start)];
 }
+function wahrheitswertOderLiteral(x) {
+  const t = x.trim();
+  if (/^(?:''|true|false|null|-?(?:0x[\da-f]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?))$/i.test(t)) return true;
+  let tiefe = 0, zu = -1;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i], zwei = t.slice(i, i + 2);
+    if (c === '(' || c === '[') tiefe++;
+    else if (c === ')' || c === ']') { if (--tiefe === 0 && zu < 0) zu = i; }
+    else if (tiefe === 0 && (['==', '!=', '<=', '>='].includes(zwei) || c === '<' || c === '>')) return true;
+  }
+  if (t.startsWith('(') && zu === t.length - 1) return nurWahrheitswert(t.slice(1, -1));
+  return t.startsWith('!') || /^(?:contains|startsWith|endsWith)\s*\(/i.test(t);
+}
+const nurWahrheitswert = (x) => operanden(x).every(wahrheitswertOderLiteral);
 const fremd = (s) => [...s.matchAll(AUSDRUCK)].flatMap(([, roh]) => {
   const x = ohneText(roh);
   if (nurWahrheitswert(x)) return [];
@@ -178,7 +192,9 @@ for (const s of ['${{ github.head_ref || github.ref_name }}', "${{ github.event.
   "${{ github['EVENT'].issue.title }}", '${{ github . event . issue . title }}', "${{ github ['event'].issue.title }}",
   '${{ toJSON(github) }}', '${{ github.* }}', '${{ fromJSON(toJSON(github)).event.issue.title }}',
   "${{ contains(github.event.issue.labels.*.name, 'bug') || github.event.issue.title }}",
-  "${{ format('{0}{1}', github.event.issue.title, 1 == 1) }}", "${{ github.event.issue.title == 'a' && github.event.issue.body }}"])
+  "${{ format('{0}{1}', github.event.issue.title, 1 == 1) }}", "${{ github.event.issue.title == 'a' && github.event.issue.body }}",
+  '${{ (github.event.issue.title) }}', "${{ github.event.inputs.x == 'true' && github.event.inputs.y || '' }}",
+  "${{ (github.event.issue.title == 'a') || github.event.issue.body }}", "${{ '' || github.head_ref }}"])
   need(fremd(s).length > 0, `Selbstprobe: ${s} wird nicht als Fremdtext erkannt — AUSDRUCK/FREMDTEXT/GANZ pruefen`);
 for (const s of ['${{ github.event_name }}', '${{ GITHUB.EVENT_NAME }}', '${{ github.event.pull_request.number || 0 }}',
   '${{ github.event.pull_request.NUMBER }}', '${{ github . event . pull_request . number }}', '${{ steps.a.outputs.b }}',
@@ -187,7 +203,11 @@ for (const s of ['${{ github.event_name }}', '${{ GITHUB.EVENT_NAME }}', '${{ gi
   "${{ format('{0}}}', github.run_id) }} github.event.issue.title }}",
   "${{ steps['github'].outputs.x }}", "${{ needs['github-pages'].outputs.url }}", "${{ x['github.event.issue.title'] }}",
   "${{ contains(github.event.issue.labels.*.name, 'bug') }}", "${{ startsWith(github.head_ref, 'dependabot/') }}",
-  '${{ github.event.pull_request.head.repo.full_name == github.repository }}', '${{ !github.event.issue.title }}'])
+  '${{ github.event.pull_request.head.repo.full_name == github.repository }}', '${{ !github.event.issue.title }}',
+  "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}",
+  "${{ contains(github.event.pull_request.labels.*.name, 'skip-e2e') && '--skip' || '' }}",
+  "${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}", "${{ (github.event.issue.title == 'x') }}",
+  "${{ (contains(github.event.issue.labels.*.name, 'bug')) }}", "${{ github.event.pull_request.merged == true && 1 || 0 }}"])
   need(fremd(s).length === 0, `Selbstprobe: ${s} gilt faelschlich als Fremdtext — AUSDRUCK/FREMDTEXT/GANZ pruefen`);
 const probe = (...schritte) => runSkripte(['on: push', 'permissions: {}', 'jobs:', '  j:', '    runs-on: x', '    steps:', ...schritte].join('\n'), 'Selbstprobe')
   .flatMap((b) => fremd(b.text));

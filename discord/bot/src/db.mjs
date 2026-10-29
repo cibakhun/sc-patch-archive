@@ -232,13 +232,14 @@ export function openDb(path) {
      * Mitglieder (Austritt vor `leftBefore`) samt ihren Fehlerbericht-
      * Sperren, und Sperren, die aelter als `locksBefore` sind (die Sperre
      * braucht es nur, solange ThreadCreate fuer denselben Thread noch
-     * einmal feuern koennte). Eine Transaktion. Gilden in `skipGuilds`
-     * bleiben unberuehrt: dort konnte heute niemand pruefen, ob ein
-     * Vorgemerkter inzwischen zurueck ist.
+     * einmal feuern koennte). Eine Transaktion. Zeilen loescht es nur in
+     * Gilden, fuer die `inGuild(id)` zustimmt: anderswo konnte heute niemand
+     * pruefen, ob ein Vorgemerkter inzwischen zurueck ist. Die Sperren laufen
+     * ueberall nach Alter.
      */
-    purgeExpired(leftBefore, locksBefore, skipGuilds = new Set()) {
+    purgeExpired(leftBefore, locksBefore, inGuild = () => true) {
       return db.transaction(() => {
-        const rows = S.expired.all(leftBefore).filter((r) => !skipGuilds.has(r.guild_id));
+        const rows = S.expired.all(leftBefore).filter((r) => inGuild(r.guild_id));
         for (const r of rows) {
           S.del.run(r.guild_id, r.user_id);
           S.delBugXpOf.run(r.guild_id, r.user_id);
