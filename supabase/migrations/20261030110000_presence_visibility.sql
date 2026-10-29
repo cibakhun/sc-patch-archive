@@ -11,7 +11,7 @@
 --     presence nur bei 'all', sonst null.
 --   social_profiles (nur angemeldet, Freundesliste):
 --     presence fuer die eigene Zeile, bei 'all' fuer jeden, bei 'friends'
---     nur fuer bestaetigte Freunde (public.are_friends), sonst null.
+--     nur fuer bestaetigte Freunde (Zeile in public.friends), sonst null.
 --     activity ("Im Hangar · Gladius") bleibt wie bisher an share_activity
 --     und an die Freundschaft gebunden -- auch bei 'all' sehen sie nur
 --     Freunde, so verspricht es der Schalter -- und faellt bei 'none' weg.
@@ -43,10 +43,13 @@
 --   angemeldet social_profiles, damit Freunde und man selbst den Status
 --   dort weiter sehen. Der Puls (account-lite.js) sendet bei 'none' nicht.
 --
--- Die Funktion in social_profiles (are_friends) braucht EXECUTE beim
--- Aufrufer: authenticated hat es, anon nicht. Bekaeme anon je wieder SELECT
--- auf social_profiles, scheitert die Abfrage mit "permission denied for
--- function are_friends", statt Daten zu zeigen.
+-- Die Freundschaft sieht social_profiles wie bisher bei activity selbst in
+-- public.friends nach (EXISTS mit den Rechten des View-Besitzers), nicht ueber
+-- public.are_friends(): sonst haengt jede Abfrage der View am EXECUTE-Recht
+-- des Lesers auf dieser Funktion, und wer es spaeter entzieht, legt die
+-- Freundesliste lahm. Ohne Anmeldung (auth.uid() null) gibt es keine
+-- Freundschaft; bekaeme anon je wieder SELECT auf social_profiles, saehe es
+-- den Status also nur bei 'all', wie in public_profiles.
 
 alter table public.profiles
   add column if not exists presence_visibility text not null default 'friends'
@@ -92,7 +95,9 @@ create or replace view public.social_profiles with (security_barrier = true) as
         CASE
             WHEN id = (select auth.uid())
               OR presence_visibility = 'all'
-              OR (presence_visibility = 'friends' AND public.are_friends((select auth.uid()), id))
+              OR (presence_visibility = 'friends' AND EXISTS (SELECT 1 FROM public.friends f
+                    WHERE (f.user_id = (select auth.uid()) AND f.friend_id = profiles.id)
+                       OR (f.friend_id = (select auth.uid()) AND f.user_id = profiles.id)))
             THEN
             CASE
                 WHEN (last_seen IS NULL) THEN 'offline'::text
@@ -110,7 +115,9 @@ create or replace view public.social_profiles with (security_barrier = true) as
              AND activity IS NOT NULL
              AND activity_at > (now() - '00:03:00'::interval)
              AND (id = (select auth.uid())
-                  OR (presence_visibility <> 'none' AND public.are_friends((select auth.uid()), id)))
+                  OR (presence_visibility <> 'none' AND EXISTS (SELECT 1 FROM public.friends f
+                        WHERE (f.user_id = (select auth.uid()) AND f.friend_id = profiles.id)
+                           OR (f.friend_id = (select auth.uid()) AND f.user_id = profiles.id))))
             THEN activity
         END AS activity,
     social_twitch,
