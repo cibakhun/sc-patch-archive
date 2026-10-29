@@ -36,7 +36,7 @@ import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { initGear, poseShip } from './lib/landing-gear.mjs';
-import { gearPlane, GEAR_TILT_MAX } from '../assets/hangar-viewer.js';
+import { gearPlane, GEAR_TILT_MAX, palettePbr } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import sharp from 'sharp';
@@ -373,7 +373,14 @@ async function attachHallTextures(doc, only = null) {
 // Ohne Quellangabe zählt das Material zum Schiff (Rumpf der 300i).
 // paintTargets: Materialien, die ein Lack ändert (paintPlan), tragen
 // extras.paint = ihr Name und bleiben so eigenständig.
-function cleanMaterials(doc, { paletteOwner, paintTargets } = {}) {
+// series: Serienpalette aus src/data/ship-paints.json ({ a, b, c, finish }).
+// Jedes eigene Palettenmaterial (außer Glas) trägt dann extras.palette =
+// { ch, tint, specular, gloss } mit den Rohwerten des Spiels, und Grundfarbe,
+// Metall und Rauheit kommen aus palettePbr (assets/hangar-viewer.js), wie der
+// Viewer jede Lackierung rechnet. Sonst wird Metall mit Tönung 0 schwarz
+// (.planning/notes/hangar-landung.md, Teil A).
+function cleanMaterials(doc, { paletteOwner, paintTargets, series } = {}) {
+  const pbr = { materials: 0, metal: 0, conductor: 0, offTone: 0 };
   const root = doc.getRoot();
   for (const m of root.listMaterials()) {
     const x = m.getExtras() || {};
@@ -402,12 +409,27 @@ function cleanMaterials(doc, { paletteOwner, paintTargets } = {}) {
     }
     const source = x.semantic?.palette?.source_name;
     const ownTint = paletteOwner && [1, 2, 3].includes(x.palette_tint) && (source == null || source.toLowerCase() === paletteOwner);
-    m.setExtras({ ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
+    const k = ownTint && !glass && series ? 'abc'[x.palette_tint - 1] : null;
+    const pal = k ? { ch: x.palette_tint, tint: series[k], ...(series.finish ? { specular: series.finish[k].specular, gloss: series.finish[k].gloss } : {}) } : null;
+    if (pal) {
+      // Selbstauskunft: Grundfarbe des Exports nicht der Serienton (Ab-Werk-Lack, Metall des Materials)
+      const lin = [1, 3, 5].map((i) => { const s = parseInt(pal.tint.slice(i, i + 2), 16) / 255; return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; });
+      const f = m.getBaseColorFactor();
+      if (Math.abs(lin[0] - f[0]) + Math.abs(lin[1] - f[1]) + Math.abs(lin[2] - f[2]) >= 3e-3) pbr.offTone++;
+      if (/conductor/i.test(x.diffuse_tex || '')) pbr.conductor++;
+      const q = palettePbr(pal.tint, pal.specular, pal.gloss);
+      m.setBaseColorFactor([...q.color, f[3]]).setMetallicFactor(q.metalness);
+      if (q.roughness != null) m.setRoughnessFactor(q.roughness);
+      pbr.materials++;
+      if (q.metalness > 0.5) pbr.metal++;
+    }
+    m.setExtras({ ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(pal ? { palette: pal } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
   }
   for (const e of root.listExtensionsUsed()) {
     if (/lights_punctual|materials_(ior|transmission|volume)/.test(e.extensionName)) e.dispose();
   }
   for (const n of root.listNodes()) { n.setExtras({}); }
+  return pbr;
 }
 
 // Attribute, die three falsch deutet oder nicht braucht: COLOR_0 sind im
@@ -768,10 +790,18 @@ async function paintTexture(rel, made) {
 // gegen die Materialien des geschriebenen GLB.
 // Fehlt einer Variante die Palette im eigenen Paket (600i BIS2951: Cold Forge,
 // Sterling), dieselbe Lackierung (gleicher Tag) aus einem Schwesterpaket mit
-// Palette, aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i) oder
-// aus dem einzigen anderen Paket mit dem Tag; mehrere fremde sind mehrdeutig
+// Palette: aus der eigenen Familie (gleiche zwei ersten Wörter: ORIG 600i),
+// sonst nur, wenn es genau eine Palette für den Tag gibt; gleiche Paletten
+// mehrerer Pakete zählen als eine, verschiedene sind mehrdeutig.
+// Nur dieselbe Lackierung: gleiches Material (exterior_material_sidecar) und
+// eine Palette des Lacks, nicht die Serienpalette des Schwesterpakets (Cutlass
+// Hawthorn je Variante mit eigenem Material, Mustang Vindicator; dieselbe Regel
+// wie scripts/datamine-ship-paints.mjs)
 let sisterIndex = null;
-function sisterPalette(pkg, tag) {
+// nach Werten: die Kennungen bildet der Export aus Tag und Record, nicht aus der Palette des Spiels
+const paletteLook = (x) => JSON.stringify([x?.primary, x?.secondary, x?.tertiary, x?.finish]);
+function sisterPalette(pkg, variant) {
+  const tag = variant?.subgeometry_tag;
   if (!tag) return null;
   if (!sisterIndex) {
     sisterIndex = new Map();
@@ -780,20 +810,27 @@ function sisterPalette(pkg, tag) {
       const f = (n) => new URL(`Packages/${p}/${n}`, PAINT_DEC);
       if (!existsSync(f('paints.json')) || !existsSync(f('palettes.json'))) continue;
       const pals = new Map(JSON.parse(readFileSync(f('palettes.json'), 'utf8')).palettes.map((x) => [x.id, x]));
+      const liveries = existsSync(f('liveries.json')) ? JSON.parse(readFileSync(f('liveries.json'), 'utf8')).liveries ?? [] : [];
+      const serie = paletteLook(pals.get(liveries.find((l) => l.entity_names.some((n) => n.startsWith('EntityClassDefinition.')))?.palette_id));
       for (const v of JSON.parse(readFileSync(f('paints.json'), 'utf8')).paint_variants ?? []) {
         const pal = pals.get(v.palette_id), k = v.subgeometry_tag?.toLowerCase();
-        if (!pal || !k) continue;
+        if (!pal || !k || paletteLook(pal) === serie) continue;
         if (!sisterIndex.has(k)) sisterIndex.set(k, []);
-        sisterIndex.get(k).push({ pkg: p, pal });
+        sisterIndex.get(k).push({ pkg: p, pal, mtl: v.exterior_material_sidecar?.toLowerCase() ?? null });
       }
     }
   }
   const fam = (p) => p.split(/[ _]/).slice(0, 2).join(' ').toLowerCase();
-  const hits = sisterIndex.get(tag.toLowerCase())?.filter((h) => h.pkg !== pkg) ?? [];
-  // Nur eindeutig: eigene Familie, sonst ein einziges Paket mit dem Tag
-  const hit = hits.find((h) => fam(h.pkg) === fam(pkg)) ?? (hits.length === 1 ? hits[0] : null);
-  if (hit) sisterUsed.push(`${pkg}: ${tag} aus ${hit.pkg}`);
-  return hit?.pal ?? null;
+  const mtl = variant.exterior_material_sidecar?.toLowerCase() ?? null;
+  const hits = sisterIndex.get(tag.toLowerCase())?.filter((h) => h.pkg !== pkg && h.mtl === mtl) ?? [];
+  // je verschiedene Palette die Pakete, die sie tragen
+  const distinct = (hs) => [...Map.groupBy(hs, (h) => paletteLook(h.pal)).values()];
+  const own = distinct(hits.filter((h) => fam(h.pkg) === fam(pkg))), all = distinct(hits);
+  const hit = own.length === 1 ? own[0] : !own.length && all.length === 1 ? all[0] : null;
+  const names = (g) => g.map((h) => h.pkg).join(', ');
+  if (hit) sisterUsed.push(`${pkg}: ${tag} aus ${names(hit)}`);
+  else if (hits.length) sisterUsed.push(`${pkg}: ${tag} mehrdeutig (${(own.length ? own : all).map((g) => `[${names(g)}]`).join(' ')}), nicht genommen`);
+  return hit?.[0].pal ?? null;
 }
 const sisterUsed = [];
 async function paintPlan(slug) {
@@ -824,7 +861,7 @@ async function paintPlan(slug) {
   const targets = new Set();
   const paints = [];
   for (const v of variants) {
-    const pal = palettes.get(v.palette_id) ?? sisterPalette(pkg, v.subgeometry_tag);
+    const pal = palettes.get(v.palette_id) ?? sisterPalette(pkg, v);
     const ids = (SHIP_PAINTS[slug]?.paints ?? []).filter((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase()).map((p) => p.id);
     const look = { tag: v.subgeometry_tag, ids, name: v.display_name ?? null, palette: null, materials: {} };
     // Ohne Palette im zerlegten Export (Freelancer Storm Surge): die Lackkanäle
@@ -1543,7 +1580,7 @@ async function buildOne(kind, name, inPath) {
   const liftUv = liftParts ? uvReport(doc) : null;
   // Palette des Schiffs = Record des Rohexports (Constellation: …_andromeda_gs)
   const plan = kind === 'ships' ? await paintPlan(name) : null;
-  cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets } : {});
+  const pbr = cleanMaterials(doc, kind === 'ships' ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, series: SHIP_PAINTS[name]?.base } : {});
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || kind === 'ships' || werk }), weld());
@@ -1622,6 +1659,11 @@ async function buildOne(kind, name, inPath) {
   const gearTest = kind === 'ships' ? gearCheck(written, gearPose) : null;
   const palette = kind === 'ships' ? { 1: 0, 2: 0, 3: 0 } : null;
   if (palette) for (const m of written.getRoot().listMaterials()) { const t = m.getExtras()?.palette_tint; if (t in palette) palette[t]++; }
+  // extras.palette im geschriebenen GLB (dedup legt gleiche zusammen), dazu je Material vor dem Zusammenlegen
+  if (kind === 'ships') {
+    const withPal = written.getRoot().listMaterials().filter((m) => m.getExtras()?.palette);
+    console.log(`    Serienpalette (extras.palette): ${withPal.length} Materialien im GLB, ${withPal.filter((m) => m.getMetallicFactor() > 0.5).length} Metall; vorher ${pbr.materials} (Metall ${pbr.metal}, Export nicht im Serienton ${pbr.offTone}, conductor ${pbr.conductor})${SHIP_PAINTS[name]?.base ? '' : ' — keine Serienpalette in ship-paints.json'}`);
+  }
   const paints = plan ? writePaints(name, plan, new Set(written.getRoot().listMaterials().map((m) => m.getName()))) : null;
   if (seams) seams.written = seamStats(written);
   // Halle: Dichtheit der Hülle und Bodenhöhe (der Viewer lotet sie sonst
@@ -2770,7 +2812,7 @@ for (const kind of Object.keys(BUDGET)) {
       const pr = r.paintReport;
       delete r.paintReport;
       if (kind === 'ships') console.log(pr ? `    Lacke: ${pr.paints} (${pr.linked} mit Lack-Item, ${pr.patterned} mit eigenem Material: ${pr.stencils} Stencil-, ${pr.layerSwaps} Schichtwechsel), ${pr.textures} Karten${pr.missing ? `; ${pr.missing} Lack-Materialien nicht im Web-Modell (Innenraum, Glühen u. ä. weggelassen: ${pr.missingNames.slice(0, 6).join(', ')})` : ''}` : '    Lacke: keine Lackvarianten im zerlegten Export (oder kein Export, Extraktor-Teil ships)');
-      if (kind === 'ships' && sisterUsed.length) console.log(`    Paletten aus Schwesterpaketen: ${sisterUsed.splice(0).join('; ')}`);
+      if (kind === 'ships' && sisterUsed.length) console.log(`    Schwesterpakete: ${sisterUsed.splice(0).join('; ')}`);
       if (r.anchorBy) console.log(`    Befestigung über ${r.anchorBy === 'name' ? 'den Entity-Namen' : r.anchorBy === 'kind' ? 'das einzige Kind der Wurzel' : 'die Szenenwurzel — WARNUNG: Lage am Schiff ungeprüft'}`);
       if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       if (r.hull) {

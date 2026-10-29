@@ -109,6 +109,17 @@ export const CHECKS = [
     // ausschliesslich dist/ und die beiden nginx-Dateien als Text.
   },
   {
+    // Direkt nach verify:gate — dieselben beiden nginx-Dateien.
+    id: 'verify:redirects',
+    npm: 'verify:redirects',
+    script: 'scripts/verify-redirects.mjs',
+    rail: 'A',
+    checks:
+      'jede Weiterleitung in nginx/default.conf bleibt auf dieser Seite: server-weiter Riegel gegen Steuerzeichen und Rueckstriche, keine roh eingesetzte Pfadvariable, jedes umleitende rewrite gegen eine Angriffsliste nachgespielt, die alte /en/-Adresse jeder gebauten Seite leitet auf sie, und $vb_next ist prozentkodiert (gate.next in node:vm ausgefuehrt)',
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
+    // dist/ (nur die Dateinamen) und die beiden nginx-Dateien als Text.
+  },
+  {
     // Direkt nach verify:gate, weil beide dasselbe Muster haben: sie messen
     // eine Datei, die voellig normal AUSSIEHT, waehrend ein Werkzeug an ihr
     // scheitert.

@@ -534,6 +534,25 @@ export const DISCOVERED_REGISTRY = [
     // wer ihn dort aendert, muss ihn hier mitziehen.
     text: { large: { tokenKey: '#FF5E1A', minRatio: 3.0, label: 'h1, orangenes Wort (Titelverlauf endet auf --accent-media #FF5E1A)' } },
   },
+  {
+    id: 'D7-account-saved-tile',
+    archetype: 'discovered',
+    label: 'D7 · .ck-tile (Kontoseite, Übersicht „Gespeichert": Loadout- und Favoriten-Kacheln)',
+    selectorFamilies: ['.ck-tile::before'],
+    rationale:
+      'Von Zusicherung 5 gefunden (29.10.2026): Art und Name einer gespeicherten Kachel liegen unten ueber dem Schiffbild, hinter einem --scrim-6/--scrim-5/--scrim-0-Verlauf (.ck-tile::before), Text in --on-media/--on-media-dim, die Art-Farbe nur als Punkt. Die echten Bilder kommen aus ship-thumbs.json (fremde Bildquelle, nicht im Repo); gemessen wird deshalb mit zwei lokalen Schiffbildern, darunter img-cutlass.jpg mit HELLEM Studiohintergrund als unguenstigster Fall. Anker: die Kachel (ca. 1,7:1, cover) zeigt vom 1,3:1-Bild den Streifen 0,12..0,88; die Art-Zeile sitzt bei 70 % Kachelhoehe = 0,65 im Bild.',
+    kind: 'photo',
+    images: [
+      { id: 'saved-tile-light', path: 'public/assets/img-cutlass.jpg', usedBy: 'src/scripts/account-cockpit.ts (.ck-tile, Stellvertreter fuer ein Schiffbild mit hellem Hintergrund)' },
+      { id: 'saved-tile-dark', path: 'public/assets/img-apollo.jpg', usedBy: 'src/scripts/account-cockpit.ts (.ck-tile, Stellvertreter fuer ein typisches Schiffbild)' },
+    ],
+    anchor: { xFrac: 0.2, yFrac: 0.65 },
+    scrim: { layers: [{ angle: 0, stops: [{ t: 0.04, tok: 'scrim6' }, { t: 0.45, tok: 'scrim5' }, { t: 1, tok: 'scrim0' }] }] },
+    text: {
+      body: { tokenKey: '--on-media-dim', minRatio: 4.5, label: '.ck-tile small (Art: Loadout, Schiff, Mission …)' },
+      large: { tokenKey: '--on-media', minRatio: 3.0, label: '.ck-tile b (Name)' },
+    },
+  },
 ];
 
 /* /archiv verwendet keine 480px-Thumb-Quelle im Baum unter demselben Pfad

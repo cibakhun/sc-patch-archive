@@ -48,10 +48,10 @@ function verifyJwtOf(text, name) {
 describe('Vertrauensgrenze: supabase/config.toml', () => {
   const sections = functionSections(raw);
 
-  test('genau die drei Functions ohne JWT sind aufgefuehrt', () => {
+  test('genau die Functions ohne JWT sind aufgefuehrt', () => {
     assert.deepStrictEqual(
       [...sections].sort(),
-      ['create-checkout-session', 'register', 'stripe-webhook'],
+      ['bot-role-sync', 'create-checkout-session', 'register', 'stripe-webhook'],
       'config.toml muss GENAU die Functions auffuehren, die live OHNE JWT ' +
         'laufen. Eine zu wenig -> der naechste Deploy schaltet sie ab. Eine ' +
         'zu viel -> sie wird ohne Anmeldung erreichbar.'
@@ -83,7 +83,7 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     });
   }
 
-  for (const fn of ['create-checkout-session', 'stripe-webhook']) {
+  for (const fn of ['create-checkout-session', 'stripe-webhook', 'bot-role-sync']) {
     test(`${fn} hat verify_jwt = false`, () => {
       assert.strictEqual(
         verifyJwtOf(raw, fn),
@@ -93,6 +93,17 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
       );
     });
   }
+
+  // bot-role-sync laeuft ohne Gateway-JWT und muss deshalb SELBST pruefen.
+  // Faellt die eigene Pruefung weg, waere die Function fuer jeden offen, der
+  // die URL kennt — und sie schreibt mit service_role.
+  test('bot-role-sync prueft sein Geheimnis selbst und faellt geschlossen aus', () => {
+    const src = fs.readFileSync('supabase/functions/bot-role-sync/index.ts', 'utf8');
+    assert.match(src, /Deno\.env\.get\('BOT_ROLE_SYNC_SECRET'\)/, 'liest BOT_ROLE_SYNC_SECRET nicht');
+    assert.match(src, /reply\(401,/, 'kein 401 bei falschem Geheimnis');
+    assert.match(src, /reply\(503, \{ error: 'not_configured' \}\)/, 'kein geschlossener Ausfall ohne Geheimnis');
+    assert.doesNotMatch(src, /\.(insert|upsert|delete|rpc)\(/, 'schreibt mehr als UPDATE');
+  });
 
   test('project_id ist gesetzt', () => {
     assert.match(
