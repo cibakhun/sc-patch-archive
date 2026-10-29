@@ -3,9 +3,9 @@
 
 import { supabase, FAV_PATH } from '../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
+  import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
-  import { AUTH_URL } from '../lib/supabase';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -1708,8 +1708,18 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           if (error) throw error;
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
-        } catch {
-          show(delStatus as HTMLElement, D.msgNet!);
+        } catch (err) {
+          // Verlangt delete-account serverseitig eine frische Anmeldung
+          // (401 reauth_required), den passenden Hinweis statt "hat nicht
+          // geklappt" zeigen.
+          let code = '';
+          const ctx = (err as { context?: Response }).context;
+          if (ctx && ctx.status === 401) {
+            try { code = ((await ctx.json()) as { error?: string }).error || ''; } catch { /* noop */ }
+          }
+          show(delStatus as HTMLElement, code === 'reauth_required'
+            ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : D.msgNet!);
           delBtn.textContent = delBtn.dataset.idle!;
           delBtn.disabled = false;
         }
