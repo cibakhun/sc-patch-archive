@@ -1,0 +1,2318 @@
+{
+ "werkzeug": "cockpit-rays 1, verborgen a78ff98f",
+ "ueber10": 2,
+ "schiffe": {
+  "aegs-avenger-stalker": {
+   "sha": "f0dc06302b43995f",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 19,
+    "glas": 664
+   }
+  },
+  "aegs-avenger-titan": {
+   "sha": "f7e6fd87d1788956",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 34,
+    "glas": 442
+   }
+  },
+  "aegs-avenger-titan-renegade": {
+   "sha": "07c26ebaeaaaa225",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 17,
+    "glas": 460
+   }
+  },
+  "aegs-avenger-warlock": {
+   "sha": "4d8aff4270b2c4df",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 29,
+    "glas": 574
+   }
+  },
+  "aegs-eclipse": {
+   "sha": "260ff50251755a38",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 22,
+    "glas": 269
+   }
+  },
+  "aegs-gladius": {
+   "sha": "4b938329e4dca248",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 132
+   }
+  },
+  "aegs-gladius-pir": {
+   "sha": "da1dd0d8c2397c5b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 10,
+    "glas": 590
+   }
+  },
+  "aegs-gladius-valiant": {
+   "sha": "f60222df33369732",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 10,
+    "glas": 624
+   }
+  },
+  "aegs-hammerhead": {
+   "sha": "fbc1a9a7e8309f19",
+   "durch": 15,
+   "gemessen": {
+    "rays": 160,
+    "durch": 15,
+    "hohl": 35,
+    "glas": 4121
+   }
+  },
+  "aegs-hammerhead-showdown": {
+   "sha": "3f371a37f23bb612",
+   "durch": 18,
+   "gemessen": {
+    "rays": 160,
+    "durch": 18,
+    "hohl": 46,
+    "glas": 3934
+   },
+   "ausnahme": "Bruecke: Blick durch das Bugglas nach hinten unten in die Halle, unter den Sitzen fehlt der Boden; vor dem Fix gleich (11 %), Hammerhead ohne Showdown 9 %; Folgeauftrag PC (.planning/notes/hangar-cockpit-hohl.md, offen)"
+  },
+  "aegs-idris-m": {
+   "sha": "35765016acb22aa4",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 40,
+    "glas": 7352
+   }
+  },
+  "aegs-idris-p": {
+   "sha": "3b68ab123ce6cf49",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 30,
+    "glas": 8158
+   }
+  },
+  "aegs-javelin": {
+   "sha": "763e7505bc5e6a65",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 6521
+   }
+  },
+  "aegs-reclaimer": {
+   "sha": "3be38e42eaad4508",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 15,
+    "glas": 1440
+   }
+  },
+  "aegs-reclaimer-showdown": {
+   "sha": "bd4a1c9f98e8fef1",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 15,
+    "glas": 1440
+   }
+  },
+  "aegs-redeemer": {
+   "sha": "5a2737f972fb0d0a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 2351
+   }
+  },
+  "aegs-retaliator": {
+   "sha": "8f9d4097780a3490",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 11,
+    "glas": 4016
+   }
+  },
+  "aegs-sabre": {
+   "sha": "67c26f4ccd44d350",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 497
+   }
+  },
+  "aegs-sabre-comet": {
+   "sha": "7557dec435224826",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 521
+   }
+  },
+  "aegs-sabre-firebird": {
+   "sha": "08f1f409177aa339",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 220
+   }
+  },
+  "aegs-sabre-peregrine": {
+   "sha": "1224381b4e33877a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 602
+   }
+  },
+  "aegs-sabre-raven": {
+   "sha": "fdfa87a4a85332a4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 613
+   }
+  },
+  "aegs-sabre-raven-ex": {
+   "sha": "29eaac84792e74d7",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 533
+   }
+  },
+  "aegs-tiburon": {
+   "sha": "d525b37fc4dad865",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 20,
+    "glas": 1816
+   }
+  },
+  "aegs-vanguard": {
+   "sha": "58320c499c82ca0f",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 26,
+    "glas": 608
+   }
+  },
+  "aegs-vanguard-harbinger": {
+   "sha": "7471e3850620d72c",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 47,
+    "glas": 691
+   }
+  },
+  "aegs-vanguard-hoplite": {
+   "sha": "eae3c74b0413d9cc",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 28,
+    "glas": 648
+   }
+  },
+  "aegs-vanguard-sentinel": {
+   "sha": "dcd445fa89466454",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 35,
+    "glas": 608
+   }
+  },
+  "anvl-arrow": {
+   "sha": "6723e09bdc729fa0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 31,
+    "glas": 490
+   }
+  },
+  "anvl-asgard": {
+   "sha": "7cbb4a554678449c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 20,
+    "glas": 3975
+   }
+  },
+  "anvl-ballista": {
+   "sha": "51f482ae039c388c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 31,
+    "glas": 933
+   }
+  },
+  "anvl-ballista-dunestalker": {
+   "sha": "52b9b9b4a3080394",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 31,
+    "glas": 933
+   }
+  },
+  "anvl-ballista-snowblind": {
+   "sha": "0662576529c3fbd5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 31,
+    "glas": 933
+   }
+  },
+  "anvl-c8-pisces": {
+   "sha": "6687963d0ae821c1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 584
+   }
+  },
+  "anvl-c8r-pisces": {
+   "sha": "0f8fa42da0d594f6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1793
+   }
+  },
+  "anvl-c8x-pisces-expedition": {
+   "sha": "91e112530d9567f1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 584
+   }
+  },
+  "anvl-carrack": {
+   "sha": "9c8ac1cedacf8175",
+   "durch": 6,
+   "gemessen": {
+    "rays": 160,
+    "durch": 6,
+    "hohl": 14,
+    "glas": 2800
+   }
+  },
+  "anvl-carrack-expedition": {
+   "sha": "06f0610b3e7141ec",
+   "durch": 5,
+   "gemessen": {
+    "rays": 160,
+    "durch": 5,
+    "hohl": 16,
+    "glas": 2812
+   }
+  },
+  "anvl-centurion": {
+   "sha": "3c614196287728e4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 32,
+    "glas": 410
+   }
+  },
+  "anvl-gladiator": {
+   "sha": "62f368c9fd338cce",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 621
+   }
+  },
+  "anvl-hawk": {
+   "sha": "7cec4a9f6e26e6e7",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 812
+   }
+  },
+  "anvl-hornet-f7a-mk1": {
+   "sha": "08f824a5329efb72",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1348
+   }
+  },
+  "anvl-hornet-f7a-mk2": {
+   "sha": "8bcb126a48a84acd",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 667
+   }
+  },
+  "anvl-hornet-f7c": {
+   "sha": "ccb38824e0d61d3b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1034
+   }
+  },
+  "anvl-hornet-f7c-mk2": {
+   "sha": "b5304df74e9d67b6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 2591
+   }
+  },
+  "anvl-hornet-f7c-wildfire": {
+   "sha": "3a8644bf482b995f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1034
+   }
+  },
+  "anvl-hornet-f7cm": {
+   "sha": "4d2fd4c4d1fb564e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1714
+   }
+  },
+  "anvl-hornet-f7cm-heartseeker": {
+   "sha": "9be6fa6189cf307d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 48
+   }
+  },
+  "anvl-hornet-f7cm-mk2": {
+   "sha": "be6387c997de4483",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 998
+   }
+  },
+  "anvl-hornet-f7cm-mk2-heartseeker": {
+   "sha": "b4f4511d1f6f7012",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 588
+   }
+  },
+  "anvl-hornet-f7cr": {
+   "sha": "e055efdfe48bb083",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1034
+   }
+  },
+  "anvl-hornet-f7cr-mk2": {
+   "sha": "3df0ad593fd993be",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 2329
+   }
+  },
+  "anvl-hornet-f7cs": {
+   "sha": "831d32f502d2ae42",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1034
+   }
+  },
+  "anvl-hornet-f7cs-mk2": {
+   "sha": "db9675b10bccb5bf",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 2447
+   }
+  },
+  "anvl-hurricane": {
+   "sha": "2e4d079b6ac27e24",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 18,
+    "glas": 1018
+   }
+  },
+  "anvl-lightning-f8": {
+   "sha": "378888833bb09c5f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 26,
+    "glas": 775
+   }
+  },
+  "anvl-lightning-f8c": {
+   "sha": "bf3d926a707c4a38",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 24,
+    "glas": 603
+   }
+  },
+  "anvl-lightning-f8c-exec": {
+   "sha": "e2afe7b69c355c01",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 24,
+    "glas": 603
+   }
+  },
+  "anvl-paladin": {
+   "sha": "7fdcd1b2a96c15e4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1253
+   }
+  },
+  "anvl-spartan": {
+   "sha": "72a5f980bb2c9d45",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 858
+   }
+  },
+  "anvl-terrapin": {
+   "sha": "41abb8db5b17aa5e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
+    "glas": 1334
+   }
+  },
+  "anvl-terrapin-medic": {
+   "sha": "5ac589ec2223ef65",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 847
+   }
+  },
+  "anvl-valkyrie": {
+   "sha": "361303531208b00b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 21,
+    "glas": 3967
+   }
+  },
+  "argo-atls": {
+   "sha": "52d6a2043e4d332b",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 13,
+    "glas": 75
+   }
+  },
+  "argo-atls-geo": {
+   "sha": "2396f267c98ca399",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 19,
+    "glas": 47
+   }
+  },
+  "argo-atls-geo-collector-grad01": {
+   "sha": "f14319f5adbcba52",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 19,
+    "glas": 47
+   }
+  },
+  "argo-atls-geo-collector-grad03": {
+   "sha": "54cc3231c28082b2",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 19,
+    "glas": 47
+   }
+  },
+  "argo-csv-cargo": {
+   "sha": "5edf92f3281fc443",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1011
+   }
+  },
+  "argo-mole": {
+   "sha": "966665e7075bbf51",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 701
+   }
+  },
+  "argo-moth": {
+   "sha": "adba49e5f6ef4ff6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1243
+   }
+  },
+  "argo-mpuv": {
+   "sha": "d81cdd40c27bf4ed",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 54,
+    "glas": 439
+   }
+  },
+  "argo-mpuv-1t": {
+   "sha": "5d9a3aa47b3fcfa3",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 30,
+    "glas": 716
+   }
+  },
+  "argo-mpuv-transport": {
+   "sha": "966329173867294e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 64,
+    "glas": 182
+   }
+  },
+  "argo-raft": {
+   "sha": "6ad55e3f262e39c7",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 16,
+    "glas": 800
+   }
+  },
+  "argo-srv": {
+   "sha": "dcfe61577c5df30a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 5639
+   }
+  },
+  "banu-defender": {
+   "sha": "c4935120f017d5b0",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 107,
+    "glas": 1307
+   }
+  },
+  "cnou-hoverquad": {
+   "sha": "23fe4bb96125e9fe",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 226
+   }
+  },
+  "cnou-mustang-alpha": {
+   "sha": "e8a958aaf4a6984b",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-alpha-citizencon2018": {
+   "sha": "99bae6bf1b458b09",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-beta": {
+   "sha": "b4be7f730d4ff430",
+   "durch": 12,
+   "gemessen": {
+    "rays": 160,
+    "durch": 12,
+    "hohl": 12,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-delta": {
+   "sha": "035e62c8eb67449d",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-gamma": {
+   "sha": "56f7f20de7287b0a",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-omega": {
+   "sha": "b5db6ec4931c2e87",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-nomad": {
+   "sha": "488c52d702786d04",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 19,
+    "glas": 6465
+   }
+  },
+  "crus-intrepid": {
+   "sha": "cab2a91ded4d17de",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1498
+   }
+  },
+  "crus-spirit-a1": {
+   "sha": "a314515c890c66e7",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 47,
+    "glas": 261
+   }
+  },
+  "crus-spirit-c1": {
+   "sha": "1344df3ccf1f49ae",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 55,
+    "glas": 466
+   }
+  },
+  "crus-star-runner": {
+   "sha": "266b5ccb390b10a5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 21,
+    "glas": 4920
+   }
+  },
+  "crus-starfighter-inferno": {
+   "sha": "26e14233ad68f934",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 23,
+    "glas": 717
+   }
+  },
+  "crus-starfighter-ion": {
+   "sha": "10f63f5f1a17eff6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 23,
+    "glas": 703
+   }
+  },
+  "crus-starlifter-a2": {
+   "sha": "e317874674f8d9ea",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 84
+   }
+  },
+  "crus-starlifter-c2": {
+   "sha": "88cc4725d7e4f0f0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 90
+   }
+  },
+  "crus-starlifter-m2": {
+   "sha": "d2ab8b363ad1719c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 84
+   }
+  },
+  "drak-buccaneer": {
+   "sha": "e0af0589d9984d7a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
+    "glas": 708
+   }
+  },
+  "drak-caterpillar": {
+   "sha": "431ae5969b2481cc",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 6,
+    "glas": 2516
+   }
+  },
+  "drak-caterpillar-pirate": {
+   "sha": "318bd97656750496",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 2779
+   }
+  },
+  "drak-clipper": {
+   "sha": "edd0b545502716a6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 1240
+   }
+  },
+  "drak-corsair": {
+   "sha": "ba4a76f7e1980b42",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
+    "glas": 3297
+   }
+  },
+  "drak-cutlass-black": {
+   "sha": "0d9f07f9cd6a072f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 72,
+    "glas": 814
+   }
+  },
+  "drak-cutlass-blue": {
+   "sha": "4d5b8f7c775b7c73",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 9,
+    "glas": 2048
+   }
+  },
+  "drak-cutlass-red": {
+   "sha": "d4b71806af4baaea",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1382
+   }
+  },
+  "drak-cutlass-steel": {
+   "sha": "e8c1c6383d433619",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 41,
+    "glas": 638
+   }
+  },
+  "drak-cutter": {
+   "sha": "19ea3b155d9516cd",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 36,
+    "glas": 878
+   }
+  },
+  "drak-cutter-rambler": {
+   "sha": "cec7ac09522808a8",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 34,
+    "glas": 962
+   }
+  },
+  "drak-cutter-scout": {
+   "sha": "9c36fea7c941b746",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 32,
+    "glas": 824
+   }
+  },
+  "drak-dragonfly": {
+   "sha": "a72b8eb74d5b3e40",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 142
+   }
+  },
+  "drak-dragonfly-yellow": {
+   "sha": "f3da5b9c8763c473",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 142
+   }
+  },
+  "drak-golem": {
+   "sha": "e03737c433ffa674",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1169
+   }
+  },
+  "drak-golem-ox": {
+   "sha": "1adb80e1e78c0879",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1319
+   }
+  },
+  "drak-herald": {
+   "sha": "2236f147c42a8ab6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 6,
+    "glas": 300
+   }
+  },
+  "drak-ironclad": {
+   "sha": "8c5a04c7b56b718e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1828
+   }
+  },
+  "drak-ironclad-assault": {
+   "sha": "296bca45d9e4f02e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 40,
+    "glas": 726
+   }
+  },
+  "drak-mule": {
+   "sha": "31f3e185e72fea4f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 2411
+   }
+  },
+  "drak-pitbull": {
+   "sha": "db83917a3d55c40d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 447
+   }
+  },
+  "drak-vulture": {
+   "sha": "c6b868bb49e7a84b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 17,
+    "glas": 922
+   }
+  },
+  "espr-prowler": {
+   "sha": "4e8b869249bd3170",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 33,
+    "glas": 816
+   }
+  },
+  "espr-prowler-utility": {
+   "sha": "a0e339781cc0874a",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 39,
+    "glas": 1369
+   }
+  },
+  "espr-talon": {
+   "sha": "b8ae2cfc873db5a6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 194
+   }
+  },
+  "espr-talon-shrike": {
+   "sha": "35313f665c54c267",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 114
+   }
+  },
+  "gama-railen": {
+   "sha": "89b1ed83bc0fb778",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 29,
+    "glas": 1132
+   }
+  },
+  "gama-syulen": {
+   "sha": "0c933f777d5fa79d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 6,
+    "glas": 550
+   }
+  },
+  "gama-tyilui": {
+   "sha": "63843c7acd9211f2",
+   "durch": 13,
+   "gemessen": {
+    "rays": 160,
+    "durch": 13,
+    "hohl": 48,
+    "glas": 801
+   }
+  },
+  "glsn-basher": {
+   "sha": "fe7b379787f78155",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 4,
+    "glas": 603
+   }
+  },
+  "glsn-shiv": {
+   "sha": "4fc00ee9aa5eb0a3",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 78,
+    "glas": 920
+   }
+  },
+  "grin-mdc": {
+   "sha": "5497fe26b526eecc",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 9,
+    "glas": 426
+   }
+  },
+  "grin-mtc": {
+   "sha": "30ef53f2aa138587",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 9,
+    "glas": 355
+   }
+  },
+  "grin-ptv": {
+   "sha": "0d04d93a448ed9f4",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 22,
+    "glas": 122
+   }
+  },
+  "grin-roc": {
+   "sha": "0258b037600b2114",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 80
+   }
+  },
+  "grin-roc-ds": {
+   "sha": "07c9dddb1f5e19b1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 126
+   }
+  },
+  "grin-stv": {
+   "sha": "5b64fe122bfb5000",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
+    "glas": 1114
+   }
+  },
+  "grin-utv": {
+   "sha": "3d1e515a96f939f4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 8,
+    "glas": 1012
+   }
+  },
+  "krig-l21-wolf": {
+   "sha": "6452737304d93574",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1924
+   }
+  },
+  "krig-l22-alphawolf": {
+   "sha": "106ad2bc2f0999c6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1208
+   }
+  },
+  "krig-p52-merlin": {
+   "sha": "42ec1cb11eaff794",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 11,
+    "glas": 915
+   }
+  },
+  "krig-p72-archimedes": {
+   "sha": "4245f2cd827315ba",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 877
+   }
+  },
+  "krig-p72-archimedes-emerald": {
+   "sha": "adab104a3f04eb21",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 877
+   }
+  },
+  "krig-s65-stingray": {
+   "sha": "fab0468c707f71f9",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 52,
+    "glas": 461
+   }
+  },
+  "misc-fortune": {
+   "sha": "5f2cb75e646e31ef",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 2023
+   }
+  },
+  "misc-freelancer": {
+   "sha": "0552d2868d992a71",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 68,
+    "glas": 415
+   }
+  },
+  "misc-freelancer-dur": {
+   "sha": "71e4f369298f26b5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 49,
+    "glas": 613
+   }
+  },
+  "misc-freelancer-max": {
+   "sha": "d422ef404458d4af",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 62,
+    "glas": 521
+   }
+  },
+  "misc-freelancer-mis": {
+   "sha": "8ab5d8d9b4f74935",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 50,
+    "glas": 597
+   }
+  },
+  "misc-fury": {
+   "sha": "fa6e860494a8bbf8",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 2700
+   }
+  },
+  "misc-fury-lx": {
+   "sha": "d27e910c01383587",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 3632
+   }
+  },
+  "misc-fury-miru": {
+   "sha": "34de6db7e623f9c9",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 6,
+    "glas": 3208
+   }
+  },
+  "misc-hull-a": {
+   "sha": "aede124ad3649b5b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
+    "glas": 1402
+   }
+  },
+  "misc-hull-b": {
+   "sha": "6aeb57995ab1a90d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 3729
+   }
+  },
+  "misc-hull-c": {
+   "sha": "8d8916dd8bc6a8db",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 1361
+   }
+  },
+  "misc-prospector": {
+   "sha": "a5a6250cee76c8c9",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 59,
+    "glas": 1197
+   }
+  },
+  "misc-razor": {
+   "sha": "3392ac3fb833ef06",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1620
+   }
+  },
+  "misc-razor-ex": {
+   "sha": "04f6781f7c104bea",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1266
+   }
+  },
+  "misc-razor-lx": {
+   "sha": "6c267ad3e474d9e4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1620
+   }
+  },
+  "misc-reliant": {
+   "sha": "d9019de51fbf0fce",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 71,
+    "glas": 2031
+   }
+  },
+  "misc-reliant-mako": {
+   "sha": "db9dd6ea654b9ee5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 47,
+    "glas": 875
+   }
+  },
+  "misc-reliant-sen": {
+   "sha": "a9edb358f365de43",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 47,
+    "glas": 970
+   }
+  },
+  "misc-reliant-tana": {
+   "sha": "d4734047280dfa82",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 68,
+    "glas": 726
+   }
+  },
+  "misc-starfarer": {
+   "sha": "62d22f92b07db300",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 2919
+   }
+  },
+  "misc-starfarer-gemini": {
+   "sha": "e0b90249402d1684",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 10,
+    "glas": 2925
+   }
+  },
+  "misc-starlancer-max": {
+   "sha": "8bf4438edee390e1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 7322
+   }
+  },
+  "misc-starlancer-tac": {
+   "sha": "994ca4a24a6b4f51",
+   "durch": 8,
+   "gemessen": {
+    "rays": 160,
+    "durch": 8,
+    "hohl": 8,
+    "glas": 2235
+   }
+  },
+  "misc-starlite": {
+   "sha": "511b46cdabc03060",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1597
+   }
+  },
+  "mrai-guardian": {
+   "sha": "91696dc563293c9d",
+   "durch": 6,
+   "gemessen": {
+    "rays": 160,
+    "durch": 6,
+    "hohl": 10,
+    "glas": 1695
+   }
+  },
+  "mrai-guardian-mx": {
+   "sha": "3fdf9770297b682c",
+   "durch": 4,
+   "gemessen": {
+    "rays": 60,
+    "durch": 4,
+    "hohl": 12,
+    "glas": 2575
+   }
+  },
+  "mrai-guardian-qi": {
+   "sha": "6ce5e30b4da9b83c",
+   "durch": 7,
+   "gemessen": {
+    "rays": 160,
+    "durch": 7,
+    "hohl": 14,
+    "glas": 1697
+   }
+  },
+  "mrai-pulse": {
+   "sha": "b3603e5aacef2411",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 13,
+    "glas": 77
+   }
+  },
+  "mrai-pulse-lx": {
+   "sha": "fa8528395db2d9dc",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 12,
+    "glas": 82
+   }
+  },
+  "orig-100i": {
+   "sha": "d583cde744770f02",
+   "durch": 11,
+   "gemessen": {
+    "rays": 160,
+    "durch": 11,
+    "hohl": 28,
+    "glas": 2455
+   }
+  },
+  "orig-125a": {
+   "sha": "6e3ac9dae7240d1f",
+   "durch": 14,
+   "gemessen": {
+    "rays": 160,
+    "durch": 14,
+    "hohl": 34,
+    "glas": 2271
+   }
+  },
+  "orig-135c": {
+   "sha": "b0cf86053841914a",
+   "durch": 7,
+   "gemessen": {
+    "rays": 160,
+    "durch": 7,
+    "hohl": 24,
+    "glas": 3195
+   }
+  },
+  "orig-300i": {
+   "sha": "783696a2f960e4c4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 8,
+    "glas": 1006
+   }
+  },
+  "orig-315p": {
+   "sha": "0e5e046281096272",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 16,
+    "glas": 1438
+   }
+  },
+  "orig-325a": {
+   "sha": "fae3920b24c6f377",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 9,
+    "glas": 1006
+   }
+  },
+  "orig-350r": {
+   "sha": "7b56b0f3548ffe76",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 8,
+    "glas": 318
+   }
+  },
+  "orig-400i": {
+   "sha": "eaa91210ee67f772",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 28,
+    "glas": 3886
+   }
+  },
+  "orig-600i": {
+   "sha": "9b226061964bdaa7",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 94,
+    "glas": 8354
+   }
+  },
+  "orig-600i-bis2951": {
+   "sha": "efb32b262f14acc6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 94,
+    "glas": 8354
+   }
+  },
+  "orig-600i-touring": {
+   "sha": "8ec73757dc2f0c2b",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 73,
+    "glas": 6745
+   }
+  },
+  "orig-85x": {
+   "sha": "a1b2aa9946864ddd",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1401
+   }
+  },
+  "orig-890jump": {
+   "sha": "95bb3fe9b804e68f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 2847
+   }
+  },
+  "orig-m50": {
+   "sha": "5385490bda4ea2a0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 12,
+    "glas": 4676
+   }
+  },
+  "orig-m80": {
+   "sha": "701d5f86543e7d62",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 2092
+   }
+  },
+  "orig-x1": {
+   "sha": "00c138881460b03a",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 7,
+    "glas": 10506
+   }
+  },
+  "orig-x1-force": {
+   "sha": "7a2a17f6cdee2a49",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 9,
+    "glas": 10506
+   }
+  },
+  "orig-x1-velocity": {
+   "sha": "bcb500eb5fc4256f",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 10,
+    "glas": 10506
+   }
+  },
+  "rsi-apollo-medivac": {
+   "sha": "304767a72f531ade",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 37,
+    "glas": 4395
+   }
+  },
+  "rsi-apollo-triage": {
+   "sha": "82e91e9529588c21",
+   "durch": 5,
+   "gemessen": {
+    "rays": 160,
+    "durch": 5,
+    "hohl": 35,
+    "glas": 4383
+   }
+  },
+  "rsi-aurora-gs-cl": {
+   "sha": "7479f376fe479ccf",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 461
+   }
+  },
+  "rsi-aurora-gs-es": {
+   "sha": "dcbfac40a8fcd9cf",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 554
+   }
+  },
+  "rsi-aurora-gs-ln": {
+   "sha": "919b67f05fc80128",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 461
+   }
+  },
+  "rsi-aurora-gs-lx": {
+   "sha": "c91b01107f5f58d2",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 537
+   }
+  },
+  "rsi-aurora-gs-mr": {
+   "sha": "4a6eff356c411274",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 775
+   }
+  },
+  "rsi-aurora-gs-se": {
+   "sha": "e19d79530acecb6d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 461
+   }
+  },
+  "rsi-aurora-mk2": {
+   "sha": "4e28dcfc8ff43d19",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 13,
+    "glas": 998
+   }
+  },
+  "rsi-constellation-andromeda": {
+   "sha": "f1ff067e871f99ce",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 31,
+    "glas": 3950
+   }
+  },
+  "rsi-constellation-aquila": {
+   "sha": "907cf22ffcdca57b",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 15,
+    "glas": 2135
+   }
+  },
+  "rsi-constellation-mk5-centaurus": {
+   "sha": "ebe0c784770fad60",
+   "durch": 12,
+   "gemessen": {
+    "rays": 160,
+    "durch": 12,
+    "hohl": 55,
+    "glas": 1550
+   }
+  },
+  "rsi-constellation-phoenix": {
+   "sha": "321c620857674ea6",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 42,
+    "glas": 4447
+   }
+  },
+  "rsi-constellation-phoenix-emerald": {
+   "sha": "daf4cbf510b776d5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 82,
+    "glas": 9425
+   }
+  },
+  "rsi-constellation-taurus": {
+   "sha": "1f58c98fa3a7391b",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 22,
+    "glas": 2288
+   }
+  },
+  "rsi-hermes": {
+   "sha": "1684996311afc92a",
+   "durch": 6,
+   "gemessen": {
+    "rays": 160,
+    "durch": 6,
+    "hohl": 49,
+    "glas": 2925
+   }
+  },
+  "rsi-lynx": {
+   "sha": "af3286030f20cde6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 1720
+   }
+  },
+  "rsi-mantis": {
+   "sha": "79a823175fdc0c8c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 519
+   }
+  },
+  "rsi-meteor": {
+   "sha": "cc4e4833ee0700e0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 488
+   }
+  },
+  "rsi-perseus": {
+   "sha": "9d708a7653a30591",
+   "durch": 10,
+   "gemessen": {
+    "rays": 160,
+    "durch": 10,
+    "hohl": 71,
+    "glas": 1416
+   }
+  },
+  "rsi-polaris": {
+   "sha": "0f61c1415facfdc6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 945
+   }
+  },
+  "rsi-salvation": {
+   "sha": "0cd329f7db206ed3",
+   "durch": 0,
+   "gemessen": {
+    "rays": 6,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 112
+   }
+  },
+  "rsi-scorpius": {
+   "sha": "690db6a383710c5f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 643
+   }
+  },
+  "rsi-scorpius-antares": {
+   "sha": "f24e3b0c6198231d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 643
+   }
+  },
+  "rsi-skylark": {
+   "sha": "fe6be05e627d4e44",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 1556
+   }
+  },
+  "rsi-ursa-medivac": {
+   "sha": "da63cc91542c46dc",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 21,
+    "glas": 2311
+   }
+  },
+  "rsi-ursa-rover": {
+   "sha": "8e9b8d824923f9ab",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 784
+   }
+  },
+  "rsi-ursa-rover-emerald": {
+   "sha": "b826c5ea707ccc0d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 910
+   }
+  },
+  "rsi-zeus-cl": {
+   "sha": "7827952018657d17",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1766
+   }
+  },
+  "rsi-zeus-es": {
+   "sha": "855bb934d3d930de",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 13,
+    "glas": 1578
+   }
+  },
+  "tmbl-cyclone": {
+   "sha": "54095ebba177e0b1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 40,
+    "glas": 336
+   }
+  },
+  "tmbl-cyclone-aa": {
+   "sha": "71d659585579d525",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 40,
+    "glas": 336
+   }
+  },
+  "tmbl-cyclone-mt": {
+   "sha": "b00de047bee2404c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 40,
+    "glas": 367
+   }
+  },
+  "tmbl-cyclone-rc": {
+   "sha": "cd511f0c1e29bc90",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 28,
+    "glas": 348
+   }
+  },
+  "tmbl-cyclone-rn": {
+   "sha": "13c5510ea5efdde6",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 40,
+    "glas": 336
+   }
+  },
+  "tmbl-cyclone-tr": {
+   "sha": "d3df9cdb366004ee",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 40,
+    "glas": 336
+   }
+  },
+  "tmbl-nova": {
+   "sha": "03cc48bf8c19d263",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 69,
+    "glas": 216
+   }
+  },
+  "tmbl-storm": {
+   "sha": "279daeaa59ca21f0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 74,
+    "glas": 106
+   }
+  },
+  "tmbl-storm-aa": {
+   "sha": "243685ce4a1ddce5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 120,
+    "durch": 0,
+    "hohl": 81,
+    "glas": 4106
+   }
+  },
+  "vncl-blade": {
+   "sha": "0eb1f0d3c382b9e6",
+   "durch": 39,
+   "gemessen": {
+    "rays": 160,
+    "durch": 39,
+    "hohl": 60,
+    "glas": 699
+   },
+   "ausnahme": "Rippenrumpf der Vanduul: zwischen den Rippen hinter der Haube offen, man sieht nach aussen; vor dem Fix gleich (24 %), ob das Spiel dort schliesst, ist ungeprueft (.planning/notes/hangar-cockpit-hohl.md, offen)"
+  },
+  "vncl-glaive": {
+   "sha": "5a9953814f9a51cc",
+   "durch": 0,
+   "gemessen": {
+    "rays": 0,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 0
+   }
+  },
+  "vncl-scythe": {
+   "sha": "748f634c8794f9f2",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1809
+   }
+  },
+  "vncl-stinger": {
+   "sha": "de742c1731ed42c5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 101,
+    "durch": 0,
+    "hohl": 12,
+    "glas": 256
+   }
+  },
+  "xian-nox": {
+   "sha": "0f6903a505b9722e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 110
+   }
+  },
+  "xian-nox-kue": {
+   "sha": "fbe40f4e5092cb01",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 110
+   }
+  },
+  "xian-scout": {
+   "sha": "574e0892479f6be3",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
+    "glas": 3762
+   }
+  },
+  "xnaa-santokyai": {
+   "sha": "c5d666e099b6f91b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 7,
+    "glas": 7454
+   }
+  }
+ }
+}
