@@ -221,24 +221,21 @@ function projektRef(argRef) {
 }
 
 async function holeLive(ref, token, sql) {
-  const basis = `https://api.supabase.com/v1/projects/${encodeURIComponent(ref)}/database/query`;
-  const anfrage = (url) => fetch(url, {
+  // Nur der read-only-Endpunkt (Abfrage als supabase_read_only_user). Bewusst
+  // KEIN Rueckfall auf den allgemeinen Endpunkt: der fuehrt die Abfrage aus
+  // dem Repository mit Schreibrechten aus, und das Token gilt fuer das ganze
+  // Konto. Antwortet der Endpunkt nicht (er ist bei Supabase als Beta
+  // gefuehrt), endet das Tor mit Exit 2 -- offline weiter mit --snapshot.
+  const url = `https://api.supabase.com/v1/projects/${encodeURIComponent(ref)}/database/query/read-only`;
+  const res = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: sql }),
     signal: AbortSignal.timeout(30000),
   });
-  let weg = 'read-only';
-  let res = await anfrage(`${basis}/read-only`);
-  if (res.status === 404 || res.status === 405) {
-    // Der read-only-Endpunkt ist bei Supabase als Beta gefuehrt. Faellt er
-    // weg, laeuft dieselbe reine Leseabfrage ueber den allgemeinen Endpunkt.
-    weg = 'allgemein (read-only-Endpunkt antwortete ' + res.status + ')';
-    res = await anfrage(basis);
-  }
   const text = await res.text();
   if (!res.ok) throw new Error(`Management API ${res.status}: ${text.slice(0, 300)}`);
-  return { rows: leseMomentaufnahme(text), weg };
+  return { rows: leseMomentaufnahme(text), weg: 'read-only' };
 }
 
 /* ---------- Hauptlauf ---------- */

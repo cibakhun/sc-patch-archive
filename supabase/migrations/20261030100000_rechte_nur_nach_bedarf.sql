@@ -54,13 +54,46 @@
 --     fuer PUBLIC ausfuehrbar (z. B. in private).
 --   * supabase/rights.expected.json im selben Commit nachziehen; sonst meldet
 --     verify:db-rights FEHLER (zu viel) bzw. WARNUNG (fehlt).
+--   * Das gilt auch fuer Tabellen, die jemand im Supabase-Dashboard anlegt
+--     (Table Editor, SQL-Editor laufen als postgres): ohne GRANT antwortet
+--     die REST-Schnittstelle mit "permission denied", auch Realtime liefert
+--     dann nichts.
+--   * Die oeffentlichen Views (public_profiles, public_favorites,
+--     tester_credits) lesen profiles mit den Rechten ihres Besitzers. Wer sie
+--     auf security_invoker umstellt (etwa wegen eines Advisor-Hinweises),
+--     braucht fuer anon zusaetzlich SELECT auf profiles/favorites und eine
+--     passende Lese-Policy -- sonst bleibt die Pilotenseite leer.
 --
 -- NICHT BERUEHRT: service_role und postgres; die Plattformschemas storage,
 -- auth, realtime; die Standardrechte der Rolle supabase_admin (postgres kann
 -- sie nicht aendern; ein Objekt, das supabase_admin in public anlegt, faengt
 -- verify:db-rights). Spaltengenaue Rechte (profiles, support_progress) sind
 -- eine eigene Migration; sie muss NACH dieser laufen, sonst weitet Abschnitt
--- 3 sie wieder auf.
+-- 3 sie wieder auf. Abschnitt 0 bricht deshalb ab, wenn schon Spaltenrechte
+-- fuer anon, authenticated oder PUBLIC bestehen.
+
+-- -------------------------------------------- 0. Vorbedingung --------------
+-- Abschnitt 2 entzieht mit den Tabellenrechten auch alle Spaltenrechte, und
+-- Abschnitt 3 vergibt nur ganze Tabellen. Laeuft eine spaltengenaue Migration
+-- (z. B. 20261030133000_support_progress_spaltenrechte) schon vorher, wuerde
+-- diese hier sie still wieder aufweiten. Dann lieber abbrechen: zuerst diese
+-- Migration einspielen, danach die spaltengenaue noch einmal.
+do $vorbedingung$
+declare
+  v_spalten text;
+begin
+  select string_agg(distinct c.relname || '.' || a.attname, ', ') into v_spalten
+  from pg_catalog.pg_attribute a
+  join pg_catalog.pg_class c on c.oid = a.attrelid
+  join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+  cross join lateral pg_catalog.aclexplode(a.attacl) x
+  where n.nspname = 'public' and a.attnum > 0 and not a.attisdropped
+    and x.grantee = any (array[0::oid, 'anon'::regrole::oid, 'authenticated'::regrole::oid]);
+  if v_spalten is not null then
+    raise exception 'rechte_nur_nach_bedarf: es gibt schon Spaltenrechte (%) -- diese Migration muss vor den spaltengenauen laufen', v_spalten;
+  end if;
+end
+$vorbedingung$;
 
 -- -------------------------------------------- 1. Standardrechte (kuenftig) --
 alter default privileges for role postgres revoke execute on functions from public;
@@ -168,7 +201,10 @@ $pruefung$;
 --   grant execute on function public.<fn>(<args>) to authenticated;
 -- Voller Rueckbau auf den Stand vom 29.10.2026 (oeffnet alles wieder, was
 -- diese Migration geschlossen hat; die Views und direct_messages/
--- friend_requests behalten dabei ihren Stand von 20261029123218/145718/145731):
+-- friend_requests behalten dabei ihren Stand von 20261029123218/145718/145731).
+-- Er weitet auch spaeter vergebene Spaltenrechte wieder auf ganze Tabellen
+-- auf; eine spaltengenaue Migration danach erneut einspielen. Funktionen, die
+-- nach dieser Migration entstanden sind, behalten ihre eigenen Rechte.
 --   alter default privileges for role postgres grant execute on functions to public;
 --   alter default privileges for role postgres in schema public grant all on functions to anon, authenticated;
 --   alter default privileges for role postgres in schema public grant all on tables to anon, authenticated;
