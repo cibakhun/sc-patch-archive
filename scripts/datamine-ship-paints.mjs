@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
+import { palettePbr } from '../assets/hangar-viewer.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA = resolve(__dirname, '..', 'src', 'data');
@@ -68,7 +69,10 @@ function paletteColours(pal) {
     node = node?.children?.find((ch) => ch?.name?.toLowerCase() === step.toLowerCase());
   }
   if (!node) { childPathFallbacks++; node = root; }
-  return { a: hex(node.entryA.tintColor), b: hex(node.entryB.tintColor), c: hex(node.entryC.tintColor) };
+  // finish: Glanzfarbe (F0) und Glätte je Kanal; das Spiel zeichnet im
+  // Specular-Workflow, Metall = Tönung 0 + helle Glanzfarbe (palettePbr im Viewer)
+  const fin = (e) => ({ specular: e?.specColor ? hex(e.specColor) : null, gloss: Number.isFinite(e?.glossiness) ? e.glossiness : null });
+  return { a: hex(node.entryA.tintColor), b: hex(node.entryB.tintColor), c: hex(node.entryC.tintColor), finish: { a: fin(node.entryA), b: fin(node.entryB), c: fin(node.entryC) } };
 }
 
 // ---- Schiffe ----
@@ -85,7 +89,7 @@ const shipByName = new Map();
 for (const r of entityRecs) { const n = r.name.toLowerCase(); if (!shipByName.has(n)) shipByName.set(n, r); }
 
 const noRecord = [], noBase = [], sameName = [], factoryPaint = [];
-let subNoPalette = 0, dupDropped = 0;
+let subNoPalette = 0, dupDropped = 0, factoryByRef = 0;
 const ships = {};
 for (const slug of slugs) {
   const key = 'entityclassdefinition.' + slug.replace(/-/g, '_');
@@ -101,13 +105,15 @@ for (const slug of slugs) {
   // Ab Werk lackiert: Steckt in der Standardausrüstung ein Lack (hardpoint_paint,
   // Gladius Pirate und Valiant), trägt das Schiff dessen Palette, nicht die
   // Grundpalette seiner Geometrie
-  const factory = (component(db.readRecord(rec, { typed: true, maxDepth: 6 }), 'SEntityComponentDefaultLoadoutParams')?.loadout?.entries ?? []).find((e) => /paint/i.test(e?.itemPortName ?? '') && e.entityClassName);
+  const factory = (component(db.readRecord(rec, { typed: true, maxDepth: 6 }), 'SEntityComponentDefaultLoadoutParams')?.loadout?.entries ?? []).find((e) => /paint/i.test(e?.itemPortName ?? '') && (e.entityClassName || e.entityClassReference?.__ref));
   if (factory) {
-    const item = shipByName.get(`entityclassdefinition.${factory.entityClassName.toLowerCase()}`);
+    // Name oder, ohne Namen, Verweis auf den Record (entityClassReference)
+    const item = factory.entityClassName ? shipByName.get(`entityclassdefinition.${factory.entityClassName.toLowerCase()}`) : db.recordById.get(factory.entityClassReference.__ref);
+    if (!factory.entityClassName) factoryByRef++;
     const tags = new Set(tokens(component(item && db.readRecord(item, { typed: true, maxDepth: 6 }), 'SAttachableComponentParams')?.AttachDef?.Tags).map((t) => t.replace(/^@/, '').toLowerCase()));
     const sub = (geo.SubGeometry ?? []).find((s) => tokens(s.Tags).some((t) => tags.has(t.toLowerCase())));
     const c = sub && paletteColours(sub.Geometry?.Palette);
-    if (c) { base = c; factoryPaint.push(`${slug} (${factory.entityClassName})`); }
+    if (c) { base = c; factoryPaint.push(`${slug} (${factory.entityClassName || item?.name?.replace(/^EntityClassDefinition\./, "")})`); }
   }
 
   const byId = new Map();
@@ -125,7 +131,7 @@ for (const slug of slugs) {
   }
   const byLook = new Map();
   for (const p of [...byId.values()].sort((x, y) => (x.id < y.id ? -1 : 1))) {
-    const look = [p.name, p.a, p.b, p.c, p.pattern].join('|');
+    const look = [p.name, p.a, p.b, p.c, p.pattern, JSON.stringify(p.finish ?? null)].join('|');
     if (byLook.has(look)) { dupDropped++; continue; }
     byLook.set(look, p);
   }
@@ -147,7 +153,13 @@ console.log(`Schiffe geschrieben:           ${Object.keys(ships).length}`);
 console.log(`Lackierungen gesamt:           ${all.length} (mit Muster: ${withPattern}, nur Palette: ${all.length - withPattern})`);
 console.log(`ChildPath nicht gefunden:      ${childPathFallbacks} (Wurzel der Palette genommen)`);
 console.log(`SubGeometry ohne Palette:      ${subNoPalette} (Grundfarben des Schiffs genommen)`);
-console.log(`Ab Werk lackiert:              ${factoryPaint.length}${factoryPaint.length ? '  ' + factoryPaint.join(', ') : ''} (Grundfarben = Lack der Standardausrüstung)`);
+console.log(`Ab Werk lackiert:              ${factoryPaint.length}${factoryPaint.length ? '  ' + factoryPaint.join(', ') : ''} (Grundfarben = Lack der Standardausrüstung; ${factoryByRef} nur über entityClassReference)`);
+// finish vollständig = alle drei Kanäle mit Glanzfarbe und Glätte; Metall nach
+// derselben Umrechnung wie der Viewer (palettePbr), metallic über 0,5
+const fullFinish = (p) => ['a', 'b', 'c'].every((k) => p.finish?.[k]?.specular && p.finish[k].gloss != null);
+const metal = (p) => fullFinish(p) && ['a', 'b', 'c'].some((k) => palettePbr(p[k], p.finish[k].specular, p.finish[k].gloss).metalness > 0.5);
+console.log(`Lackierungen mit finish:       ${all.filter(fullFinish).length} von ${all.length} (Grundpaletten: ${Object.values(ships).filter((s) => fullFinish(s.base)).length} von ${Object.keys(ships).length})`);
+console.log(`  davon mit Metall:            ${all.filter(metal).length} (Grundpaletten: ${Object.values(ships).filter((s) => metal(s.base)).length})`);
 console.log(`Doppelte verworfen:            ${dupDropped} (gleicher Name, gleiche Farben, niedrigste Id bleibt)`);
 console.log(`Gleicher Name, andere Farben:  ${sameName.length}`);
 for (const s of sameName) console.log(`  ${s.slug}: ${s.name} -> ${s.looks.map((p) => `${p.a} ${p.b} ${p.c}${p.pattern ? ' Muster' : ''}`).join(' | ')}`);
