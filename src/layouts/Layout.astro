@@ -45,6 +45,17 @@ interface Props {
     /** Name des beschriebenen Dings; ohne Angabe steht der volle <title> im LD. */
     name?: string;
   };
+  /**
+   * Reichweitenmessung (Umami) auf dieser Seite laden. Default true.
+   * false auf jeder Seite, die Anmeldedaten entgegennimmt oder auf die ein
+   * Anmelde-Ruecksprung zeigt (Konto, Anmelden, Registrieren, Passwort):
+   * dort stehen Passwortfelder, und nach Discord-Anmeldung, Wiederherstellungs-
+   * link oder Discord-Verbindung traegt die Adresse die Sitzung im Fragment.
+   * Auf solchen Seiten laeuft kein Skript eines Nebenhosts. Welche Seiten
+   * ohne Zaehler laufen, haelt scripts/verify-zaehler.mjs als benannte
+   * Ausnahmeliste fest — wer hier false setzt, traegt die Seite dort ein.
+   */
+  analytics?: boolean;
 }
 
 const {
@@ -57,6 +68,7 @@ const {
   noindex = false,
   translated = false,
   itemPage,
+  analytics = true,
 } = Astro.props;
 
 const base = SITE.url.replace(/\/$/, '');
@@ -348,7 +360,9 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       Browser `vb_noanalytics=1`, liefert nginx den Host nicht mehr in script-src
       aus und das Skript laedt gar nicht erst (map in nginx/default.conf). Ein
       Tag, der bei Widerspruch verschwinden muesste, waere in 17.000 statischen
-      Seiten nicht zu haben — die Kopfzeile kann das pro Aufruf. */}
+      Seiten nicht zu haben — die Kopfzeile kann das pro Aufruf.
+      Auf Konto- und Anmeldeseiten steht der Tag gar nicht (Prop `analytics`,
+      siehe oben): dort laeuft kein Skript eines Nebenhosts. */}
   {/* Zaehl-Hygiene (06.10.2026). Zwei Sorten Aufrufe verbogen jede Kennzahl:
       1. Eigene Messlaeufe — localhost 662 und 127.0.0.1 996 Aufrufe in 90
          Tagen (Playwright-Werkzeuge gegen dist/). `data-domains` laesst den
@@ -361,22 +375,38 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
          Bildschirmgroesse steht darunter. 390x844 ist ein echtes iPhone —
          dort zaehlt nur die Kombination „Chrome iOS ohne Herkunft" (201 von
          203 Chrome-iOS-Besuchern, alle auf Uebersichtsseiten, alle 0 s).
-      Liefert vbZaehlen null, schickt das Umami-Skript nichts ab. */}
-  <script is:inline>
-    (function () {
-      var BOT = ['1280x1200', '800x600', '1024x1024', '1200x3000', '1280x1280'];
-      window.vbZaehlen = function (typ, daten) {
-        try {
-          if (navigator.webdriver) return null;
-          var s = screen.width + 'x' + screen.height;
-          if (BOT.indexOf(s) !== -1) return null;
-          if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
-        } catch (e) {}
-        return daten;
-      };
-    })();
-  </script>
-  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-before-send="vbZaehlen"></script>
+      Liefert vbZaehlen null, schickt das Umami-Skript nichts ab.
+      Adresse ohne Fragment und ohne Abfrage (29.10.2026): was hinter `#`
+      oder `?` steht, gehoert der Seite (Sprungmarken, Filterstand, nach
+      einem Anmelde-Ruecksprung auch Anmeldedaten) und nicht in die
+      Statistik. `data-exclude-hash`/`data-exclude-search` sagen das dem
+      Skript selbst; vbZaehlen schneidet das Fragment von Adresse und
+      Herkunft zusaetzlich ab, damit es nicht an der Version des Zaehlers
+      haengt, ob er die beiden Attribute kennt. Folge fuer die Zahlen:
+      Kampagnen-Parameter (utm_*) und Sprungziele erscheinen nicht mehr.
+      scripts/verify-zaehler.mjs fuehrt vbZaehlen aus dem gebauten Stand aus
+      und haelt beides fest. */}
+  {analytics && (
+    <>
+      <script is:inline>
+        (function () {
+          var BOT = ['1280x1200', '800x600', '1024x1024', '1200x3000', '1280x1280'];
+          window.vbZaehlen = function (typ, daten) {
+            try {
+              if (navigator.webdriver) return null;
+              var s = screen.width + 'x' + screen.height;
+              if (BOT.indexOf(s) !== -1) return null;
+              if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
+            } catch (e) {}
+            if (daten && daten.url) daten.url = String(daten.url).split('#')[0];
+            if (daten && daten.referrer) daten.referrer = String(daten.referrer).split('#')[0];
+            return daten;
+          };
+        })();
+      </script>
+      <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-exclude-search="true" data-exclude-hash="true" data-before-send="vbZaehlen"></script>
+    </>
+  )}
   <slot name="head" />
 </head>
 <body>
