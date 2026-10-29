@@ -108,7 +108,7 @@ const DE = {
   'snd.off': 'aus',
   'act.hint': 'Ziehen zum Drehen, Mausrad zum Zoomen, Pfeiltasten wechseln das Schiff',
   'dock.label': 'Schiffsauswahl',
-  'dock.search': 'Schiff oder Hersteller…',
+  'dock.search': 'Rolle, Name, Hersteller …',
   'dock.searchLabel': 'Suche',
   'dock.type': 'Rolle',
   'dock.typeAll': 'Alle Rollen',
@@ -167,6 +167,30 @@ const DE = {
   'dock.sortName': 'Name',
   'dock.random': 'Zufallsschiff',
   'dock.filter': 'Filter',
+  // Schiffssuche (src/lib/hangar/finder.ts): Filterpillen, Liste, Schnellansicht
+  'find.purpose': 'Wofür',
+  'find.groups': 'Unterrolle',
+  'find.list': 'Alle Schiffe',
+  'find.sortBy': 'Sortiert:',
+  'find.sortBest': 'Beste Treffer',
+  'find.reset': 'Alles zurücksetzen',
+  'find.any': 'Egal',
+  'find.size': 'Größe',
+  'find.crew': 'Crew',
+  'find.cargo': 'Fracht',
+  'find.price': 'Preis',
+  'find.facets': 'Filter',
+  'find.keys': 'Taste / sucht, ↑ ↓ blättern, Enter wählt',
+  'msg.find.hits.one': '{n} Treffer',
+  'msg.find.hits.other': '{n} Treffer',
+  'msg.find.cargo': 'ab {n} SCU',
+  'msg.find.price': 'bis {n} aUEC',
+  'msg.find.remove': '{name} entfernen',
+  'qv.crew': 'Crew',
+  'qv.top': 'Draufsicht, maßstabsgetreu',
+  'msg.qv.here': '{name} (in der Halle)',
+  'qv.go': 'In die Halle',
+  'qv.cmp': '+ Vergleich',
 } as const;
 
 export type HangarKey = keyof typeof DE;
@@ -259,7 +283,7 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'snd.off': 'off',
   'act.hint': 'Drag to rotate, scroll to zoom, arrow keys switch ships',
   'dock.label': 'Ship selection',
-  'dock.search': 'Ship or manufacturer…',
+  'dock.search': 'Role, name, maker …',
   'dock.searchLabel': 'Search',
   'dock.type': 'Role',
   'dock.typeAll': 'All roles',
@@ -314,6 +338,29 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'dock.sortName': 'Name',
   'dock.random': 'Random ship',
   'dock.filter': 'Filter',
+  'find.purpose': 'Purpose',
+  'find.groups': 'Sub-role',
+  'find.list': 'All ships',
+  'find.sortBy': 'Sorted:',
+  'find.sortBest': 'Best match',
+  'find.reset': 'Reset all',
+  'find.any': 'Any',
+  'find.size': 'Size',
+  'find.crew': 'Crew size',
+  'find.cargo': 'Cargo',
+  'find.price': 'Price',
+  'find.facets': 'Filters',
+  'find.keys': 'Press / to search, ↑ ↓ to browse, Enter to pick',
+  'msg.find.hits.one': '{n} match',
+  'msg.find.hits.other': '{n} matches',
+  'msg.find.cargo': 'from {n} SCU',
+  'msg.find.price': 'up to {n} aUEC',
+  'msg.find.remove': 'Remove {name}',
+  'qv.crew': 'Crew',
+  'qv.top': 'Top view, to scale',
+  'msg.qv.here': '{name} (in the hall)',
+  'qv.go': 'Into the hall',
+  'qv.cmp': '+ Compare',
 };
 
 const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> = { de: DE, en: EN };
@@ -321,7 +368,7 @@ const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> =
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname, ein
 // Fachkürzel oder ein Wort ist, das beide Sprachen gleich schreiben (Name,
 // Filter); jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];

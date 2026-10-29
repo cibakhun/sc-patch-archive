@@ -275,8 +275,6 @@ try {
   else throw e;
 }
 
-// Bilingual data projections (needs the bundled game-data snapshot present).
-console.log('\n▸ Bilingual data');
 console.log('\n▸ Rank mirror (Kontoseite)');
 {
   const { rankSnapshot, changedFields } = await import('./rank-sync.mjs');
@@ -306,6 +304,36 @@ console.log('\n▸ Rank mirror (Kontoseite)');
     assert.deepEqual(changedFields(stored, s), {});
     assert.deepEqual(changedFields({ ...stored, level: 11 }, s), { level: 12 });
     assert.deepEqual(changedFields({}, { ...s, in_guild: false }).in_guild, false);
+  });
+  const { pushRank } = await import('./rank-sync.mjs');
+  const HOME = '333333333333333333', A = '444444444444444444';
+  const guildOf = (id) => ({ id, name: id, members: { cache: new Map([[A, {}]]), fetch: async () => { throw { code: 10007 }; } } });
+  let aktiv = 0, hoechstens = 0;
+  const lists = [], writes = [];
+  const siteDb = {
+    async listLinked(q) {
+      lists.push(q); aktiv++; hoechstens = Math.max(hoechstens, aktiv);
+      await new Promise((r) => setTimeout(r, 15));
+      aktiv--;
+      return [{ discord_user_id: A, level: 0 }];
+    },
+    async setStats(id, patch) { writes.push({ id, patch }); return { updated: 1 }; },
+  };
+  const ctx = { home: { id: HOME }, db: fakeDb, siteDb };
+  rows[A] = rows.a;
+  await ta('rank mirror: only the home guild is read or written', async () => {
+    await pushRank(ctx, guildOf('555555555555555555'), A);
+    assert.equal(lists.length, 0, 'a foreign guild never reaches the site');
+    await pushRank(ctx, guildOf(HOME), A);
+    assert.equal(lists.length, 1);
+    assert.equal(writes[0].id, A);
+    assert.equal(writes[0].patch.level, 12, 'only the changed level is sent');
+  });
+  await ta('rank mirror: two level-ups in a row never overlap', async () => {
+    lists.length = 0; hoechstens = 0;
+    await Promise.all([pushRank(ctx, guildOf(HOME), A), pushRank(ctx, guildOf(HOME), A)]);
+    assert.equal(lists.length, 2);
+    assert.equal(hoechstens, 1, 'second sync started before the first finished');
   });
 }
 
@@ -444,6 +472,18 @@ console.log('\n▸ Website-Spiegel (site-db)');
     await assert.rejects(() => db.setTester('1 or 1=1', true), /Discord-ID/);
     assert.equal(calls.length, 0);
   });
+  await ta('legacy list reads page by page past the 1000-row cap', async () => {
+    calls.length = 0;
+    const page = JSON.stringify(Array.from({ length: 1000 }, (_, i) => ({ discord_user_id: String(i) })));
+    const { db } = createSiteDb(
+      { ...base, SUPABASE_SERVICE_ROLE_KEY: 'k' },
+      { fetchImpl: fake([{ status: 200, body: page }, { status: 200, body: '[{"discord_user_id":"x"}]' }]), log: () => {} },
+    );
+    const rows = await db.listLinked();
+    assert.equal(rows.length, 1001);
+    assert.equal(calls.length, 2);
+    assert.match(calls[1].url, /&limit=1000&offset=1000$/);
+  });
 }
 
 console.log('\n▸ Datenfrist (retention)');
@@ -481,6 +521,8 @@ try {
   else throw e;
 }
 
+// Bilingual data projections (needs the bundled game-data snapshot present).
+console.log('\n▸ Bilingual data');
 try {
   const { latestPatch, localizedPatch, findShip, localizedShip } = await import('./data.mjs');
   const p = latestPatch();

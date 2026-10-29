@@ -118,6 +118,17 @@ export const CHECKS = [
     // ausschliesslich dist/ und die beiden nginx-Dateien als Text.
   },
   {
+    // Direkt nach verify:gate — dieselben beiden nginx-Dateien.
+    id: 'verify:redirects',
+    npm: 'verify:redirects',
+    script: 'scripts/verify-redirects.mjs',
+    rail: 'A',
+    checks:
+      'jede Weiterleitung in nginx/default.conf bleibt auf dieser Seite: server-weiter Riegel gegen Steuerzeichen und Rueckstriche, keine roh eingesetzte Pfadvariable, jedes umleitende rewrite gegen eine Angriffsliste nachgespielt, die alte /en/-Adresse jeder gebauten Seite leitet auf sie, und $vb_next ist prozentkodiert (gate.next in node:vm ausgefuehrt)',
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
+    // dist/ (nur die Dateinamen) und die beiden nginx-Dateien als Text.
+  },
+  {
     // Direkt nach verify:gate, weil beide dasselbe Muster haben: sie messen
     // eine Datei, die voellig normal AUSSIEHT, waehrend ein Werkzeug an ihr
     // scheitert.
@@ -215,7 +226,7 @@ export const CHECKS = [
     script: 'scripts/verify-hangar.mjs',
     rail: 'A',
     checks:
-      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe); Bildablage der Schiffe: kein Bild mehr eingebettet, jeder Verweis liegt in dist/hangar/tex und heisst nach seinem Inhalt, Deckel fuer die Gesamtgroesse und je Datei (Klinke Schiffe mit Ablage)',
+      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe); Bildablage der Schiffe: kein Bild mehr eingebettet, jeder Verweis liegt in dist/hangar/tex und heisst nach seinem Inhalt, Deckel fuer die Gesamtgroesse und je Datei (Klinke Schiffe mit Ablage); Schiffswahl: jede Karte mit eigenem Bild und Umriss in dist/ (Version = Inhalt, Klinke), Suchwoerter unter fold() stabil, jeder Zweck, jede Unterrolle und Groesse eine Stufe der Pillen, und Proben je Sprache durch die ausgelieferte Suche ueber die Karten aus dist/ (Spitzname, Zweck mit Crew, Fracht, Preis, Tippfehler, Unterrolle; Klinke)',
   },
   {
     id: 'verify:theme',

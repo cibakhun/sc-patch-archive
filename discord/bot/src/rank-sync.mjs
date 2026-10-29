@@ -16,7 +16,8 @@
 //      Durchlauf holt nach. Der Bot laeuft ohne Supabase unveraendert.
 //
 //  Zeitpunkte: einmal beim Start, dann alle 5 Minuten, und sofort fuer ein
-//  Mitglied, das gerade aufgestiegen ist (award.mjs -> pushRank).
+//  Mitglied, das gerade aufgestiegen ist (award.mjs -> pushRank). Alles
+//  nacheinander, nie zwei Abgleiche gleichzeitig.
 // ═══════════════════════════════════════════════════════════════════════════
 import { levelForXp } from './leveling.mjs';
 import { rankForLevel } from './ranks.mjs';
@@ -68,6 +69,16 @@ async function memberState(guild, id) {
   }
 }
 
+// PostgREST liefert hoechstens so viele Zeilen je Abruf. Der Uebergangsweg
+// liest seitenweise (site-db.mjs); die Function liefert bisher eine Seite.
+const SEITE = 1000;
+
+// Alle Abgleiche (Fuenf-Minuten-Lauf und Sofort-Abgleich nach einem
+// Aufstieg) laufen nacheinander: sonst koennte ein aelterer Stand einen
+// neueren ueberschreiben, wenn zwei Aufstiege kurz hintereinander kommen.
+let kette = Promise.resolve();
+const nacheinander = (fn) => (kette = kette.then(fn, fn));
+
 /**
  * Abgleich fuer eine Gilde. `onlyId` begrenzt auf ein Mitglied (nach einem
  * Aufstieg). Wirft nie.
@@ -78,6 +89,9 @@ export async function syncRanks(ctx, guild, onlyId = null) {
   let rows;
   try { rows = await siteDb.listLinked(onlyId ? { discordUserId: onlyId } : {}); }
   catch (e) { console.warn(`  ! Rangspiegel: Lesen fehlgeschlagen: ${e.message}`); return; }
+  if (!onlyId && rows.length >= SEITE) {
+    console.warn(`  ! Rangspiegel: ${rows.length} Zeilen in einer Antwort -- vermutlich abgeschnitten, Konten dahinter bleiben stehen.`);
+  }
 
   let written = 0;
   for (const stored of rows) {
@@ -95,8 +109,8 @@ export async function syncRanks(ctx, guild, onlyId = null) {
 
 /** Sofort-Abgleich fuer ein Mitglied (nach Level-Aufstieg). Wirft nie. */
 export function pushRank(ctx, guild, discordId) {
-  if (!isHomeGuild(ctx, guild)) return;
-  syncRanks(ctx, guild, discordId).catch(() => {});
+  if (!isHomeGuild(ctx, guild)) return Promise.resolve();
+  return nacheinander(() => syncRanks(ctx, guild, discordId)).catch(() => {});
 }
 
 const INTERVALL_MS = 5 * 60 * 1000;
@@ -110,7 +124,7 @@ export function startRankSync(ctx) {
     try {
       // Ein Bot, ein Server: nur die Heim-Gilde.
       const guild = ctx.client.guilds.cache.get(ctx.home?.id);
-      if (guild) await syncRanks(ctx, guild);
+      if (guild) await nacheinander(() => syncRanks(ctx, guild));
     } finally { laeuft = false; }
   };
   tick();

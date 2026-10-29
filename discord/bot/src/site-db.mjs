@@ -33,6 +33,7 @@
 export const STATS_FIELDS = ['in_guild', 'level', 'xp', 'total_xp', 'prestige', 'rank_key', 'messages', 'voice_seconds', 'server_rank', 'server_members'];
 
 const TIMEOUT_MS = 10_000;
+const PAGE = 1000;
 const SNOWFLAKE = /^\d{17,20}$/;
 
 function assertId(id) {
@@ -107,12 +108,20 @@ function legacyBackend({ url, key }, fetchImpl) {
     async listLinked({ discordUserId } = {}) {
       if (discordUserId) assertId(discordUserId);
       const filter = discordUserId ? `discord_user_id=eq.${encodeURIComponent(discordUserId)}` : 'discord_user_id=not.is.null';
-      const res = await fetchImpl(
-        `${url}/rest/v1/discord_role_state?select=discord_user_id,is_tester,${STATS_FIELDS.join(',')}&${filter}`,
-        { headers: headers(), signal: AbortSignal.timeout(TIMEOUT_MS) },
-      );
-      if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`);
-      return res.json();
+      const all = [];
+      // Seitenweise: PostgREST liefert hoechstens 1000 Zeilen je Abruf, sonst
+      // blieben ab dem tausendsten verbundenen Konto alle stehen.
+      for (let offset = 0; ; offset += PAGE) {
+        const res = await fetchImpl(
+          `${url}/rest/v1/discord_role_state?select=discord_user_id,is_tester,${STATS_FIELDS.join(',')}&${filter}&order=discord_user_id&limit=${PAGE}&offset=${offset}`,
+          { headers: headers(), signal: AbortSignal.timeout(TIMEOUT_MS) },
+        );
+        if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`);
+        const rows = await res.json();
+        if (!Array.isArray(rows)) throw new Error('Supabase-GET: Antwort ist keine Liste');
+        all.push(...rows);
+        if (rows.length < PAGE) return all;
+      }
     },
     async setTester(discordUserId, isTester) {
       assertId(discordUserId);
