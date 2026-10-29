@@ -12,25 +12,40 @@
 # werden — er braucht die lokale Data.p4k. Ein neuer Katalog entsteht nur
 # noch lokal (`npm run datamine:loadouts && npm run datamine:vehicles`) und
 # wird von Hand committet, wie die übrigen Datamine-Werkzeuge des Projekts.
+#
+# ZWEI JOBS (Befund Lieferkette): `sync` installiert Pakete und ruft fremde
+# APIs ab — dort laeuft fremder Code, deshalb nur Leserecht und kein
+# hinterlegtes Token. Er reicht die neuen Snapshots als Patch weiter.
+# `commit` hat Schreibrecht, fuehrt keinen Paketcode aus, nimmt nur
+# Aenderungen an den drei Snapshot-Dateien der Syncs an und committet erst,
+# wenn der Bau mit den neuen Daten bestanden hat (vorher wurde auch ein Stand
+# committet, an dem der Bau dann riss).
 name: Build
 
 on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: build-button
   cancel-in-progress: false
 
 jobs:
-  build:
+  sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.patch.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -49,15 +64,20 @@ jobs:
         run: npm run sync:extras
         continue-on-error: true
 
-      - name: Commit refreshed snapshots
+      # Vor dem Bau festhalten: committet wird, was die Syncs geholt haben,
+      # nicht was der Bau nebenher erzeugt.
+      - name: Snapshot-Aenderungen als Patch sichern
+        id: patch
         run: |
-          git config user.name "build-button"
-          git config user.email "actions@users.noreply.github.com"
-          if ! git diff --quiet -- src/data; then
-            git add src/data
-            git commit -m "data: refresh snapshots (build button)"
-            git push
+          # Gegen HEAD, nicht gegen den Index: `git add -N` traegt Loeschungen
+          # sofort in den Index ein, ein Diff gegen ihn liesse sie aus.
+          git add -N src/data
+          git diff --binary HEAD -- src/data > "$RUNNER_TEMP/snapshots.patch"
+          if [ -s "$RUNNER_TEMP/snapshots.patch" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat HEAD -- src/data | tail -1
           else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "snapshots unchanged"
           fi
 
@@ -67,8 +87,65 @@ jobs:
       - name: Verify integrity
         run: node scripts/_verify.mjs
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.patch.outputs.changed == 'true'
+        with:
+          name: snapshots-patch
+          path: ${{ runner.temp }}/snapshots.patch
+          retention-days: 1
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: site
           path: dist
           retention-days: 7
+
+  commit:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: snapshots-patch
+          path: ${{ runner.temp }}/patch
+
+      # Der Patch kommt aus dem Job, in dem fremder Code lief. Angenommen
+      # wird er nur, wenn er ausschliesslich die drei Dateien aendert, die
+      # die Syncs schreiben, und sie gewoehnliche Dateien bleiben. Alles
+      # andere unter src/data/ (z. B. .ts-Module, die beim Bau laufen, oder
+      # der lokal erzeugte Fahrzeug-Katalog) kommt so nie hinein, ebenso
+      # neue, geloeschte oder in Verweise verwandelte Dateien.
+      - name: Patch pruefen und anwenden
+        run: |
+          git apply --index "$RUNNER_TEMP/patch/snapshots.patch"
+          ERLAUBT='^src/data/(ships|vehicle-prices|ship-extras)\.json$'
+          FREMD=$(git -c core.quotePath=false diff --cached --no-renames --name-only | grep -vE "$ERLAUBT" || true)
+          NEU_WEG=$(git -c core.quotePath=false diff --cached --no-renames --name-only --diff-filter=ADT || true)
+          MODUS=$(git diff --cached --raw --no-renames | awk '$1!=":100644" || $2!="100644"' || true)
+          if [ -n "$FREMD$NEU_WEG$MODUS" ]; then
+            echo "::error::Der Patch aendert mehr als die drei Snapshot-Dateien — nichts wird committet:"
+            printf '%s\n' "$FREMD" "$NEU_WEG" "$MODUS"
+            exit 1
+          fi
+          git diff --cached --stat | tail -1
+
+      - name: Commit refreshed snapshots
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "build-button"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "data: refresh snapshots (build button)"
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            push origin "HEAD:${GITHUB_REF}"

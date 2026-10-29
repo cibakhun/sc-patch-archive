@@ -1,0 +1,238 @@
+# Baut das Seiten-Image und prueft es — OHNE ein einziges Schreibrecht.
+# Gemeinsamer Baustein fuer deploy-image.yml (live), deploy-staging.yml
+# (Vorschau) und pr-check.yml (jeder PR). Wer veroeffentlicht, holt sich das
+# FERTIG GEPRUEFTE Image als Artefakt und schiebt genau das (Grundsatz 7:
+# gegen das Artefakt pruefen, und genau das ausliefern).
+#
+# WARUM EIN EIGENER JOB OHNE RECHTE: hier laeuft fremder Code auf dem Runner
+# (npm ci fuer den Browser-Rauchtest, mit allen Lifecycle-Skripten). Lag das
+# im selben Job wie `docker login` und der Coolify-Token, konnte ein
+# praepariertes Paket beides mitlesen. Jetzt hat dieser Job nur
+# `contents: read`, der Checkout hinterlegt kein Token, und die Rechte zum
+# Schieben und Deployen leben in eigenen Jobs auf frischen Maschinen.
+#
+# WARUM DIE IMAGE-ID ALS AUSGABE: sie wird direkt nach dem Bau festgehalten,
+# BEVOR hier irgendein npm-Paket laeuft. Der Veroeffentlichungs-Job laedt das
+# Artefakt und vergleicht die ID — ein unterwegs ausgetauschtes Image faellt
+# dort auf und wird nie geschoben. Die ID ist der Inhalts-Hash der
+# Image-Konfiguration (inklusive aller Schicht-Hashes).
+name: Seiten-Image bauen und pruefen
+
+on:
+  workflow_call:
+    inputs:
+      staging:
+        description: 'Vorschau-Build (STAGING=1, Tor scharf, noindex)'
+        type: boolean
+        required: true
+      tags:
+        description: 'Image-Tags, eine je Zeile; die erste wird geprueft'
+        type: string
+        required: true
+      artifact:
+        description: 'Name des Image-Artefakts; leer = nicht hochladen (PR-Pruefung)'
+        type: string
+        required: false
+        default: ''
+    outputs:
+      image-id:
+        description: 'Image-ID direkt nach dem Bau (sha256:…)'
+        value: ${{ jobs.build.outputs.image-id }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    outputs:
+      image-id: ${{ steps.festhalten.outputs.id }}
+    env:
+      STAGING_BUILD: ${{ inputs.staging }}
+      TAGS: ${{ inputs.tags }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Erstes Tag bestimmen
+        run: |
+          FIRST=$(printf '%s\n' "$TAGS" | sed -n '/[^[:space:]]/{s/^[[:space:]]*//;s/[[:space:]]*$//;p;q}')
+          [ -n "$FIRST" ] || { echo "::error::Kein Image-Tag uebergeben."; exit 1; }
+          echo "IMAGE=$FIRST" >> "$GITHUB_ENV"
+          echo "geprueft wird: $FIRST"
+
+      # Das Qualitaetstor (e2e-Tests + Link-Integritaet) steckt im Dockerfile,
+      # NICHT als eigener Schritt hier: dort existiert dist/ bereits, ein
+      # Schritt an dieser Stelle muesste die Seite ein zweites Mal bauen.
+      # Schlaegt es fehl, bricht dieser Build ab und es wird nichts
+      # veroeffentlicht.
+      - name: Build (noch nicht pushen)
+        id: bau
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          load: true
+          push: false
+          # Keine Attestierung im Image-Index: die Image-ID soll das Image
+          # selbst bezeichnen, auf jedem Docker-Speicher gleich.
+          provenance: false
+          build-args: |
+            STAGING=${{ inputs.staging && '1' || '' }}
+            GIT_SHA=${{ github.sha }}
+          tags: ${{ inputs.tags }}
+
+      # Direkt nach dem Bau, bevor auf dem Runner fremder Code laeuft: jedes
+      # Tag muss auf das gebaute Image zeigen. Diese ID ist die Ausgabe des
+      # Workflows und das, wogegen der Veroeffentlichungs-Job vergleicht.
+      - name: Image-ID festhalten
+        id: festhalten
+        env:
+          BUILT: ${{ steps.bau.outputs.imageid }}
+        run: |
+          case "$BUILT" in sha256:*) ;; *) echo "::error::Der Bau hat keine Image-ID geliefert ('$BUILT')."; exit 1 ;; esac
+          mapfile -t ALL < <(printf '%s\n' "$TAGS" | sed '/^[[:space:]]*$/d;s/^[[:space:]]*//;s/[[:space:]]*$//')
+          for t in "${ALL[@]}"; do
+            HAVE=$(docker image inspect --format '{{.Id}}' "$t")
+            [ "$HAVE" = "$BUILT" ] || { echo "::error::$t zeigt auf $HAVE statt auf das gebaute $BUILT."; exit 1; }
+          done
+          echo "id=$BUILT" >> "$GITHUB_OUTPUT"
+          echo "${#ALL[@]} Tag(s) -> $BUILT"
+
+      # Gegenprobe im fertigen Image, in beide Richtungen:
+      #   Vorschau — eine versehentlich indexierbare Kopie waere Duplicate
+      #     Content gegen die eigene Domain.
+      #   Live — Anlass 09.08.2026: ein Live-Build, der versehentlich mit
+      #     STAGING=1 entsteht, traegt eine sperrende robots.txt und
+      #     site-weites noindex. Er wuerde tadellos deployen und die ganze
+      #     Domain aus dem Index nehmen, ohne dass etwas bricht.
+      # ⚠ Verneinende Pruefungen als `if`, NICHT als `grep -q … && exit 1`:
+      # steht so eine UND-Liste als LETZTE Zeile, wird ihr Status 1 zum
+      # Status des Schritts, und der Deploy reisst genau dann, wenn alles in
+      # Ordnung ist.
+      - name: Indexierbarkeit pruefen
+        run: |
+          CID=$(docker create "$IMAGE")
+          docker cp "$CID:/usr/share/nginx/html/robots.txt" ./robots.check
+          docker cp "$CID:/usr/share/nginx/html/index.html" ./index.check
+          docker cp "$CID:/usr/share/nginx/html/sitemap.xml" ./sitemap.check
+          docker rm "$CID" >/dev/null
+          echo "--- robots.txt ---"; cat ./robots.check
+          if [ "$STAGING_BUILD" = "true" ]; then
+            grep -q '^Disallow: /' ./robots.check || { echo "FEHLER: robots.txt sperrt nicht."; exit 1; }
+            grep -q 'name="robots" content="noindex"' ./index.check || { echo "FEHLER: index.html hat kein noindex."; exit 1; }
+            echo "OK — Vorschau ist gesperrt."
+          else
+            if grep -qE '^Disallow: /$' ./robots.check; then
+              echo "FEHLER: robots.txt sperrt die LIVE-Seite (versehentlich ein STAGING-Build?)"; exit 1
+            fi
+            if grep -q 'name="robots" content="noindex"' ./index.check; then
+              echo "FEHLER: die Startseite traegt noindex."; exit 1
+            fi
+            grep -q '<loc>' ./sitemap.check || { echo "FEHLER: der Sitemap-Index bewirbt nichts."; exit 1; }
+            echo "OK — die Live-Seite ist indexierbar."
+          fi
+
+      # ---- Browser-Rauchtest gegen den LAUFENDEN Container ----------------
+      # Warum hier und nicht im Dockerfile-Tor: node:22-alpine hat keinen
+      # Browser, und die Content-Security-Policy ist ein nginx-HEADER — sie
+      # existiert erst, wenn der Container laeuft.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Jedes installierte Paket gegen die Registry-Signatur pruefen. Ein
+      # Paket, das unterwegs (Spiegel, Proxy, Cache) ausgetauscht wurde,
+      # faellt hier auf. Die Herkunft im Lockfile prueft verify:supply-chain
+      # im Tor.
+      - name: Paketsignaturen pruefen
+        run: npm audit signatures
+
+      - name: Browser bereitstellen
+        run: |
+          for c in google-chrome google-chrome-stable chromium chromium-browser; do
+            if command -v "$c" >/dev/null 2>&1; then
+              echo "CHROME_PATH=$(command -v "$c")" >> "$GITHUB_ENV"
+              echo "gefunden: $(command -v "$c")"; exit 0
+            fi
+          done
+          echo "kein Browser vorinstalliert — chromium wird nachinstalliert"
+          sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
+          echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
+
+      # ---- Testpilot-Tor: der Rauchtest braucht einen Weg hindurch --------
+      # Nur im Vorschau-Build steht das Tor scharf (STAGING=1, Plan 08). Der
+      # Weg ist bewusst KEIN Dauerschluessel (T-14-56/T-14-57/T-14-58, siehe
+      # nginx/gate.js check()):
+      #   1. je Lauf frisch gewuerfelt (openssl rand -hex 32) und nirgends
+      #      gespeichert -- kein Repo-Secret, kein Coolify-Eintrag, keine
+      #      Datei. Der Vorschau-Container auf Coolify bekommt ihn NIE.
+      #   2. beide Seiten (VB_GATE_BYPASS im Container, SMOKE_GATE_BYPASS im
+      #      Rauchtest) entstehen in DIESEM Schritt.
+      #   3. der Wert wird erzeugt und verwendet, aber nie ausgegeben (T-14-58).
+      # check-gate.mjs (Schiene C) laeuft danach gegen denselben laufenden
+      # Container. Zusicherung 4 wuerfelt einen FREMDEN Wert und misst, dass
+      # genau der nicht durchkommt (Negativfall); per --bypass bekommt es
+      # zusaetzlich den ECHTEN Wert dieses Laufs und misst in Zusicherung 6,
+      # dass genau der eine gesperrte Stichprobe oeffnet (Positivfall, WR-01
+      # — die Pruefung, deren Fehlen CR-02 unentdeckt liess). Die Stichproben
+      # stammen aus der Webwurzel des laufenden Containers, nicht aus einem
+      # lokalen dist/: der Astro-Bau entsteht IM Image, der Runner sieht ihn
+      # nie (am 20.08.2026 riss der Schritt genau daran). Das ist strenger
+      # als ein lokales dist/ (Grundsatz 7).
+      - name: Rauchtest gegen das fertige Image
+        run: |
+          GATE_BYPASS=""
+          if [ "$STAGING_BUILD" = "true" ]; then
+            GATE_BYPASS=$(openssl rand -hex 32)
+            docker run -d --rm -p 8080:80 -e VB_GATE_BYPASS="$GATE_BYPASS" --name smoke "$IMAGE"
+          else
+            docker run -d --rm -p 8080:80 --name smoke "$IMAGE"
+          fi
+          for _ in $(seq 1 30); do
+            curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          # `|| code=$?`, damit der Container auch nach einem Fehlschlag
+          # gestoppt wird. Der Exit-Code bleibt der letzten Pruefung.
+          code=0
+          SMOKE_GATE_BYPASS="$GATE_BYPASS" node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
+          if [ "$STAGING_BUILD" = "true" ] && [ "$code" -eq 0 ]; then
+            mkdir -p image-dist
+            docker cp smoke:/usr/share/nginx/html/. image-dist/
+            test -f image-dist/index.html || { echo "FEHLER: image-dist/index.html fehlt -- Webwurzel im Image geaendert?" >&2; exit 1; }
+            node scripts/check-gate.mjs --base http://localhost:8080 --dist image-dist --bypass "$GATE_BYPASS" || code=$?
+          fi
+          docker stop smoke >/dev/null || true
+          exit $code
+
+      - name: Image fuer die Veroeffentlichung sichern
+        if: inputs.artifact != ''
+        env:
+          IMAGE_ID: ${{ steps.festhalten.outputs.id }}
+        run: |
+          # Die ID kommt aus dem Schritt direkt nach dem Bau, nicht aus
+          # `docker images` jetzt — siehe Kopf dieser Datei.
+          mapfile -t ALL < <(printf '%s\n' "$TAGS" | sed '/^[[:space:]]*$/d;s/^[[:space:]]*//;s/[[:space:]]*$//')
+          for t in "${ALL[@]}"; do
+            HAVE=$(docker image inspect --format '{{.Id}}' "$t")
+            if [ "$HAVE" != "$IMAGE_ID" ]; then
+              echo "::error::Das Image unter $t ist nicht mehr das gebaute ($HAVE statt $IMAGE_ID)."; exit 1
+            fi
+          done
+          docker save "${ALL[@]}" | zstd -T0 -3 -q -o "$RUNNER_TEMP/image.tar.zst"
+          ls -la "$RUNNER_TEMP/image.tar.zst"
+
+      - name: Image-Artefakt hochladen
+        if: inputs.artifact != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ inputs.artifact }}
+          path: ${{ runner.temp }}/image.tar.zst
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error

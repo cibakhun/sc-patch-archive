@@ -81,7 +81,9 @@ jobs:
     # seit Plan 08).
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Vorschau-Image bauen (STAGING=1 — derselbe Bauweg wie deploy-staging.yml)
         run: docker build --build-arg STAGING=1 --build-arg GIT_SHA=${{ github.sha }} -t vb-gate-e2e:staging .

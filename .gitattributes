@@ -13,3 +13,8 @@
 # Zeilenenden-Umbruch entsteht.
 .planning/STATE.md   text eol=lf
 .planning/WINDOWS.md text eol=lf
+
+# Shell-Skripte der Pipelines laufen auf Linux-Runnern: ein CRLF-Auschecken
+# unter Windows (core.autocrlf=true) und ein Commit von dort braechen sie mit
+# "$'\r': command not found".
+.github/scripts/*.sh text eol=lf
