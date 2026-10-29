@@ -445,7 +445,32 @@ blieben Lack).
 - Neubau aller Schiffe mit `extras.palette` (zweiter Teil, nach
   `pc/hangar-cockpit` auf staging). Danach zieht auch der Bauplan der Cutlass
   Black Cypress nach, und `sisterPalette` wirkt mit der neuen Regel.
-- Cloud: Lack aus `?layout=` beim Laden; dunkle farbige Glanzfarben in
-  `palettePbr` (beides oben).
+- ~~Cloud: Lack aus `?layout=` beim Laden; dunkle farbige Glanzfarben in
+  `palettePbr` (beides oben).~~ Erledigt, siehe unten.
 - Die 43 Einträge ohne Palette nehmen die Serienpalette; im Spiel angesehen
   ist das nicht.
+
+**Cloud 29.10.2026, beim Übernehmen von `pc/hangar-lack`:**
+
+- **Farbige Glanzfarbe ist Metall** (`palettePbr`): Neben der Helligkeit
+  blendet jetzt auch die Sättigung der Glanzfarbe das Metall ein (linear,
+  (max − min) / max, ab 0,3 weich, ab 0,5 ganz). Nichtmetalle spiegeln grau;
+  in den Daten liegen 5 403 dunkle Kanäle bei Sättigung 0 und nur 36 zwischen
+  0,1 und 0,3, die farbigen fast alle über 0,5. Grauer Lack (Corsair #3b3b3b,
+  Polaris #464646) bleibt Lack. Ergebnis über `ship-paints.json`: Alle 53
+  Lackierungen mit Tönung #000000 tragen jetzt Metall in mindestens einem
+  Kanal (Purple Haze und Fortuna ganz, Disco in A und C, Meteor Bolide in B
+  und C). Insgesamt ändert sich das Metall in 561 von 6 930 Kanälen (369
+  Lackierungen, 18 Grundpaletten, darunter Railen, Xi'an Scout, Tyilui,
+  Stinger). Der Viewer rechnet die Serie aus `extras.palette` nach
+  (`dressTextured`), der Bau nimmt dieselbe Funktion; sichtbar wird es mit
+  dem Neubau aller Schiffe.
+- **Lack aus `?layout=` beim Laden:** `paint()` kam an (11 Materialien an
+  der Gladius umgefärbt), aber noch während der Auffahrt. `dimIn` dunkelt das
+  Schiff im Schacht ab und schreibt dabei jedes Bild aus `dim.base`, den
+  Farben beim Laden; der Lack war damit beim nächsten Schritt wieder die
+  Serie. Nach dem Klick war die Auffahrt vorbei, darum ging es dort. Jetzt
+  ändert `paint()` die ungedimmte Farbe in `dim.base` und legt das Abdunkeln
+  neu darüber; `hullTint` liest Serienton und Rückfall ebenfalls ungedimmt.
+  Geprüft mit Gladius Pirate über den Link (rot), dann „Stock paint“ (grün)
+  und wieder Pirate (rot).
