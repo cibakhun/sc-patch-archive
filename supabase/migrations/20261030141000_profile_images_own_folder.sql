@@ -6,14 +6,11 @@
 -- AUSGANGSLAGE (live gelesen 29.10.2026): Die Buckets avatars und banners
 -- sind public. Ausgeliefert werden die Bilder ueber
 -- /storage/v1/object/public/<bucket>/<pfad>; dieser Weg fragt die
--- Zeilenregeln von storage.objects nicht ab. Die Lese-Regel
--- profile_images_public_read (Rolle public, also auch anon) wird fuer die
--- Auslieferung also nicht gebraucht; sie gilt aber fuer alles, was die
--- Storage-API mit den Rechten des Aufrufers aus der Datenbank liest, auch
--- fuer die Ordnerliste (storage.search, search_v2,
--- list_objects_with_delimiter laufen live als security invoker). Schreiben
--- durfte jeder angemeldete Nutzer unter beliebigem Dateinamen im eigenen
--- Ordner <uid>/.
+-- Zeilenregeln von storage.objects nicht ab. Die allgemeine Lese-Regel
+-- profile_images_public_read wird fuer die Auslieferung also nicht
+-- gebraucht. Ueber die Datenbank lesen soll nur noch, wer es fuer das
+-- eigene Konto braucht. Hochladen ging bisher im eigenen Ordner <uid>/
+-- unter jedem Dateinamen.
 --
 -- WAS SICH AENDERT
 --   1. profile_images_public_read faellt weg. Neu ist

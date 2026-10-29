@@ -75,7 +75,21 @@
 --   from public.profiles;
 
 -- -------------------------------------------- 1. Wertebereiche --------------
+-- Erst entfernen, dann neu anlegen: so laeuft die Datei auch ein zweites Mal
+-- fehlerfrei (ADD CONSTRAINT kennt kein IF NOT EXISTS). Beides steht in
+-- EINEM ALTER TABLE und damit in einem Schritt.
 alter table public.profiles
+  drop constraint if exists profiles_handle_reserved,
+  drop constraint if exists profiles_role_known,
+  drop constraint if exists profiles_status_state_known,
+  drop constraint if exists profiles_bio_len,
+  drop constraint if exists profiles_status_text_len,
+  drop constraint if exists profiles_org_name_len,
+  drop constraint if exists profiles_discord_tag_len,
+  drop constraint if exists profiles_avatar_icon_len,
+  drop constraint if exists profiles_avatar_color_hex,
+  drop constraint if exists profiles_avatar_url_source,
+  drop constraint if exists profiles_banner_url_source,
   add constraint profiles_handle_reserved check (
     handle is null
     or not (handle = any (array['admin', 'administrator', 'moderator', 'mod', 'support', 'staff',

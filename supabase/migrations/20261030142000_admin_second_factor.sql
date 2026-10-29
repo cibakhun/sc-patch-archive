@@ -4,6 +4,13 @@
 -- und mit Code angemeldet ist. Abschnitt 0 prueft genau das und bricht sonst
 -- ab, ohne etwas zu aendern.
 --
+-- Ausserdem erst, wenn die Code-Abfrage (Anmeldung, Konto) auch auf main
+-- ausgeliefert ist, nicht nur auf staging: Die Datenbank ist geteilt, und
+-- eine Sitzung gilt nur fuer ihre Adresse. Ohne Code-Abfrage auf
+-- verse-base.com bleibt eine Admin-Anmeldung dort auf aal1, und Spenden,
+-- Spendenstand und Testpiloten-Liste gingen auf der Live-Seite nicht mehr.
+-- Diese Bedingung prueft Abschnitt 0 nicht.
+--
 -- AUSGANGSLAGE: Die Admin-Pfade pruefen nur public.user_roles.role = 'admin':
 -- donations (Lesen), support_progress (Anlegen/Aendern), tester_overview()
 -- und der Admin-Zweig von gate_verdict(). Seit sec/haertung bietet das Konto
@@ -269,11 +276,18 @@ $pruefung$;
 --   alter policy support_progress_update_admin on public.support_progress
 --     using (exists (select 1 from public.user_roles r where r.user_id = auth.uid() and r.role = 'admin'))
 --     with check (exists (select 1 from public.user_roles r where r.user_id = auth.uid() and r.role = 'admin'));
---   tester_overview: die Fassung oben ohne den Block "Seit dem 30.10. nur mit
---   zweitem Faktor" einspielen (= Live-Fassung 29.10.2026).
---   gate_verdict: die Fassung oben mit "if exists (" statt
---   "if coalesce(auth.jwt() ->> 'aal', '') = 'aal2' and exists (" einspielen
---   (= 20261030131000).
+--   tester_overview: den Block "create or replace function
+--   public.tester_overview()" aus 20260817192813_gate_verdict.sql (vor
+--   der Umbenennung auf die Live-Versionen: 20260818001000_gate_verdict.sql)
+--   unveraendert erneut einspielen (= Live-Fassung 29.10.2026, md5
+--   0b9a80bd265116da8ca674fc374d6fe5).
+--   gate_verdict: Abschnitt 3 ("create or replace function
+--   public.gate_verdict()") aus 20261030131000_sperrliste_discord_id.sql
+--   unveraendert erneut einspielen (md5 4063edf137ee214698b82fcf5e091289).
+--   Nur die Funktionen von Hand zu aendern (z. B. allein die if-Zeile),
+--   laesst die Kommentare stehen; dann passt der md5 in Abschnitt 0 nicht
+--   mehr, und ein spaeteres erneutes Einspielen dieser Datei bricht ab.
+--   create or replace behaelt die Rechte.
 -- Nur einen Faktor entfernen statt Rueckbau: Supabase-Dashboard ->
 -- Authentication -> Users -> Konto -> MFA-Faktor loeschen.
 -- ============================================================================
