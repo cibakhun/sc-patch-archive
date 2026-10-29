@@ -245,6 +245,18 @@ export const CHECKS = [
     checks: 'der Mauszeiger-Schein ist getilgt, der FX-Umschalter-Vertrag haelt, und beide Sprachfassungen tragen ihn gleich',
   },
   {
+    // Neuzugang (29.10.2026), schnell (wenige Sekunden): liest src/, assets/
+    // und dist/ als Text. Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess im Skript — die Helfer aus src/lib/ werden wie bei
+    // verify:crafting mit esbuild gebuendelt und importiert.
+    id: 'verify:ausgabe',
+    npm: 'verify:ausgabe',
+    script: 'scripts/verify-ausgabe.mjs',
+    rail: 'A',
+    checks:
+      'Ausgabekodierung: JSON in <script>-Bloecken laeuft ueber jsonForScript (src/lib/safeJson.ts; maskiert <, U+2028, U+2029 und ist fuer Daten ohne diese Zeichen byte-gleich mit JSON.stringify), kein set:html-Ausdruck ruft JSON.stringify auf (benannte Ausnahmen mit Zombie-Waechter), jede HTML-Maskierer-Kopie deckt & < > " \' ab, und in dist/ ist jeder application/(ld+)json- und window.__X-Block gueltiges JSON ohne rohes < (Klinken fuer Helferstellen, Maskierer und Bloecke)',
+  },
+  {
     // Neuzugang, vor dem langen audit:site: dekodiert die ausgelieferte
     // Halle (gut 10 MB, wenige Sekunden). Kein env-Feld: kein git, kein
     // Netz, kein Kindprozess — liest dist/ und fuer [12] dazu das Manifest
