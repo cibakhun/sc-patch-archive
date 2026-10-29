@@ -1486,9 +1486,9 @@ import { supabase } from '../lib/supabase';
       const ovAct = document.getElementById('ovActivity');
       const ovActEmpty = document.getElementById('ovActEmpty');
       if (ovAct) {
-        if (!activity.length) { if (ovActEmpty) ovActEmpty.hidden = false; }
-        else {
-          if (ovActEmpty) ovActEmpty.hidden = true;
+        ovAct.hidden = !activity.length;
+        if (ovActEmpty) ovActEmpty.hidden = !!activity.length;
+        if (activity.length) {
           activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
           const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
           ovAct.innerHTML = activity.slice(0, 5).map(it =>
