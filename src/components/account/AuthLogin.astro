@@ -1,10 +1,17 @@
 ---
 // Login-Form — geteilt DE/EN (Muster FeedbackForm). Behandelt außerdem:
-//  - #access_token im Fragment (Bestätigungs-Link): supabase-js übernimmt die
-//    Session automatisch -> direkter Sprung ins Dashboard
-//  - ?confirmed=1 (Register-Redirect ohne Auto-Login): Erfolgsbanner
+//  - ?code= (Discord-Rücksprung, PKCE): supabase-js löst ihn mit dem
+//    code_verifier dieses Browsers ein -> direkter Sprung ins Dashboard
+//  - ?token_hash=…&type=email|signup|magiclink|email_change (Mailvorlagen):
+//    Link wird in einem eigenen, nicht speichernden Client bestätigt; es
+//    entsteht KEINE Sitzung in diesem Browser (ein fremder Link kann also
+//    niemanden in ein anderes Konto setzen) -> Hinweis, dann anmelden
+//  - ?confirmed=1 (Ziel des E-Mail-Wechsels mit den alten Vorlagen): Banner
 //  - ?next=/… (nur relative Pfade): Rücksprungziel nach Login
+//  - zweiter Faktor: hat das Konto einen bestätigten Authenticator, gilt die
+//    Anmeldung (Passwort ODER Discord) erst mit dem Code (MfaCodeDialog)
 import { href } from '../../i18n/ui';
+import MfaCodeDialog from './MfaCodeDialog.astro';
 
 interface Props {
   lang: 'de' | 'en';
@@ -26,11 +33,17 @@ const COPY = {
     discordBtn: 'Mit Discord anmelden',
     // Seit 29.10.2026 legt der Discord-Knopf ein Konto an, wenn es noch
     // keines gibt (D-02 aufgehoben, supabase/migrations/
-    // 20261029120000_allow_discord_signup.sql). Scheitert das Anlegen doch,
+    // 20261029121956_allow_discord_signup.sql). Scheitert das Anlegen doch,
     // ist der haeufigste Grund eine E-Mail-Adresse, die schon einem Konto
     // gehoert -- dann fuehrt der Weg ueber dieses Konto.
     errDiscordBlocked: 'Mit Discord hat es nicht geklappt. Hast du schon ein Konto mit derselben E-Mail? Dann melde dich mit E-Mail an und verbinde Discord im Konto.',
     errOauth: 'Discord-Anmeldung fehlgeschlagen — bitte versuche es erneut oder melde dich mit E-Mail und Passwort an.',
+    checking: 'Prüfe deinen Link …',
+    linkInvalid: 'Dieser Link ist ungültig oder abgelaufen.',
+    emailChanged: 'Neue E-Mail-Adresse bestätigt.',
+    emailChangeHalf: 'Bestätigung angenommen — bitte öffne auch den Link, den wir an deine andere Adresse geschickt haben.',
+    toDash: 'Weiter zu deinem Konto',
+    mfaCancel: 'Anmeldung abgebrochen — ohne den Code aus der Authenticator-App bleibst du abgemeldet.',
   },
   en: {
     email: 'E-mail', emailPh: 'you@example.com',
@@ -46,6 +59,12 @@ const COPY = {
     discordBtn: 'Sign in with Discord',
     errDiscordBlocked: 'Discord did not work. Do you already have an account with the same e-mail? Then sign in with e-mail and connect Discord in your account.',
     errOauth: 'Discord sign-in failed — please try again, or sign in with e-mail and password.',
+    checking: 'Checking your link …',
+    linkInvalid: 'This link is invalid or has expired.',
+    emailChanged: 'New e-mail address confirmed.',
+    emailChangeHalf: 'Confirmation accepted — please also open the link we sent to your other address.',
+    toDash: 'Continue to your account',
+    mfaCancel: 'Sign-in cancelled — without the code from your authenticator app you stay signed out.',
   },
 }[lang];
 
@@ -67,6 +86,12 @@ const resetHref = href('/account/reset.html', lang);
     data-submit={COPY.submit}
     data-msg-discord-blocked={COPY.errDiscordBlocked}
     data-msg-oauth={COPY.errOauth}
+    data-msg-checking={COPY.checking}
+    data-msg-link-invalid={COPY.linkInvalid}
+    data-msg-email-changed={COPY.emailChanged}
+    data-msg-email-change-half={COPY.emailChangeHalf}
+    data-to-dash={COPY.toDash}
+    data-msg-mfa-cancel={COPY.mfaCancel}
   >
     <div class="acx-field">
       <label class="acx-label" for="loEmail">{COPY.email} <span class="reqm">*</span></label>
@@ -91,6 +116,7 @@ const resetHref = href('/account/reset.html', lang);
     <a href={resetHref}>{COPY.toReset}</a>
   </div>
 </div>
+<MfaCodeDialog lang={lang} />
 
 <style>
   /* D-01: gleichrangig neben E-Mail/Passwort — volle Breite wie der Submit-
@@ -101,7 +127,10 @@ const resetHref = href('/account/reset.html', lang);
 </style>
 
 <script>
-  import { supabase } from '../../lib/supabase';
+  import { supabase, linkClient, AUTH_URL } from '../../lib/supabase';
+  import { dropCodeFromUrl } from '../../lib/auth-url';
+  import { needsCode } from '../../lib/mfa';
+  import { askCode } from '../../lib/mfa-dialog';
 
   const form = document.getElementById('loginForm') as HTMLFormElement | null;
   if (form) {
@@ -131,40 +160,96 @@ const resetHref = href('/account/reset.html', lang);
     const next = safeNext(rawNext);
 
     const go = () => location.replace(next);
+    const say = (el: HTMLElement, msg: string) => { el.textContent = msg; el.hidden = false; };
 
-    // Discord-OAuth-Rücksprung mit Fehler (D-02): bei flowType 'implicit'
-    // kommt eine Absage als #error=…&error_description=… im Fragment
-    // zurück, NICHT als ?-Parameter. GoTrue verpackt die im Trigger
-    // geworfene Ausnahme mancherorts generisch ("Database error saving new
-    // user", error_code "unexpected_failure") statt den eigenen Text
-    // durchzureichen — offener Punkt .planning/WINDOWS.md id 16, darum wird
-    // auf BEIDE Formen reagiert. Der Rohtext aus error_description wird nie
-    // angezeigt — nur der handgeschriebene Hinweis.
-    const hashParams = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : '');
-    const oauthError = hashParams.get('error');
-    if (oauthError) {
-      const desc = (hashParams.get('error_description') || '').toLowerCase();
-      const code = (hashParams.get('error_code') || '').toLowerCase();
+    // Zweiter Faktor: hat das Konto einen bestätigten Authenticator, gilt
+    // die Anmeldung erst mit dem Code. Abbruch meldet ab — sonst bliebe eine
+    // Sitzung ohne Code (aal1) in diesem Browser liegen.
+    const passSecondFactor = async (): Promise<boolean> => {
+      if (!(await needsCode(supabase))) return true;
+      if (await askCode(supabase)) return true;
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* verfällt ohnehin */ }
+      ok.hidden = true;
+      say(status, D.msgMfaCancel!);
+      return false;
+    };
+
+    // Rücksprung mit Fehler (Discord abgewiesen, Mail-Link abgelaufen). Bei
+    // PKCE kommt er als ?error=… in der Query, bei alten Links als #error=…
+    // im Fragment — lib/auth-url.ts liest beides und hat die Adresse schon
+    // bereinigt (T-14-23: kein Fehlertext im Verlauf/Screenshot).
+    // GoTrue verpackt die im Trigger geworfene Ausnahme mancherorts generisch
+    // ("Database error saving new user", error_code "unexpected_failure")
+    // statt den eigenen Text durchzureichen — offener Punkt
+    // .planning/WINDOWS.md id 16, darum wird auf BEIDE Formen reagiert. Der
+    // Rohtext aus error_description wird nie angezeigt — nur der
+    // handgeschriebene Hinweis.
+    if (AUTH_URL.error) {
+      const desc = AUTH_URL.errorDescription.toLowerCase();
+      const code = AUTH_URL.errorCode.toLowerCase();
       const looksBlocked =
         desc.includes('kein konto auf verse-base.com') ||
         desc.includes('database error saving new user') ||
         code === 'unexpected_failure';
-      status.textContent = looksBlocked ? D.msgDiscordBlocked! : D.msgOauth!;
-      status.hidden = false;
-      // Fragment sofort entfernen (T-14-23): kein Fehlertext im Verlauf/Screenshot.
-      history.replaceState(null, '', location.pathname + location.search);
+      say(status, code === 'otp_expired' ? D.msgLinkInvalid!
+        : looksBlocked ? D.msgDiscordBlocked! : D.msgOauth!);
     }
 
-    if (params.get('confirmed') === '1') {
-      ok.textContent = D.msgConfirmed!;
-      ok.hidden = false;
-    }
+    if (params.get('confirmed') === '1' && !AUTH_URL.error) say(ok, D.msgConfirmed!);
+    // Erste von zwei Bestätigungen eines E-Mail-Wechsels (alte Vorlagen).
+    if (AUTH_URL.message && !AUTH_URL.error) say(ok, D.msgEmailChangeHalf!);
 
-    // Bereits eingeloggt (oder Session frisch aus dem Discord-Rücksprung /
-    // E-Mail-Link von supabase-js' detectSessionInUrl übernommen)?
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) go();
-    });
+    // Mail-Link mit token_hash (neue Vorlagen). Bestätigt wird in einem
+    // eigenen Client ohne Speicher: die dabei entstehende Sitzung wird sofort
+    // wieder beendet und erreicht die Sitzung dieses Browsers nie.
+    const LINK_TYPES = ['email', 'signup', 'magiclink', 'email_change'] as const;
+    type LinkType = (typeof LINK_TYPES)[number];
+    const verifyLink = async (): Promise<boolean> => {
+      if (!AUTH_URL.tokenHash) return false;
+      const type = AUTH_URL.type as LinkType;
+      if (!LINK_TYPES.includes(type)) { say(status, D.msgLinkInvalid!); return true; }
+      say(ok, D.msgChecking!);
+      try {
+        const rc = linkClient();
+        const { data, error } = await rc.auth.verifyOtp({ token_hash: AUTH_URL.tokenHash, type });
+        if (error) { ok.hidden = true; ok.textContent = ''; say(status, D.msgLinkInvalid!); return true; }
+        say(ok, type !== 'email_change' ? D.msgConfirmed!
+          : data.session ? D.msgEmailChanged! : D.msgEmailChangeHalf!);
+        if (data.session) { try { await rc.auth.signOut({ scope: 'local' }); } catch { /* verfällt ohnehin */ } }
+      } catch {
+        ok.hidden = true;
+        ok.textContent = '';
+        say(status, D.msgNet!);
+      }
+      return true;
+    };
+
+    (async () => {
+      const linkHandled = await verifyLink();
+      // Bereits eingeloggt (oder Session frisch aus dem Discord-Rücksprung
+      // per PKCE-Code eingelöst)?
+      const { data } = await supabase.auth.getSession();
+      // Ein Code, den supabase-js nicht einlösen konnte (kein passender
+      // code_verifier in diesem Browser, z. B. ein Mail-Link auf einem
+      // anderen Gerät), hat in der Adresse nichts verloren.
+      const strayCode = AUTH_URL.hasCode && new URLSearchParams(location.search).has('code');
+      dropCodeFromUrl();
+      if (data.session) {
+        // Nach einem Hinweis nicht wegspringen, sondern den Weg anbieten.
+        if (linkHandled || AUTH_URL.message) {
+          const a = document.createElement('a');
+          a.href = next;
+          a.textContent = D.toDash!;
+          ok.append(' ', a);
+          ok.hidden = false;
+          return;
+        }
+        if (!(await passSecondFactor())) return;
+        go();
+        return;
+      }
+      if (strayCode && !AUTH_URL.error && !linkHandled && params.get('confirmed') !== '1') say(status, D.msgOauth!);
+    })();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -178,6 +263,7 @@ const resetHref = href('/account/reset.html', lang);
       try {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (!error) {
+          if (!(await passSecondFactor())) return;
           go();
           return;
         }
@@ -208,11 +294,11 @@ const resetHref = href('/account/reset.html', lang);
         // redirectTo zeigt bewusst auf DIESE Login-Seite selbst, nicht auf
         // /account/ (Dashboard): das Dashboard-Skript (account-dashboard.ts)
         // leitet ohne Sitzung sofort per location.replace() zu dieser Seite
-        // weiter — dabei ginge ein #error=…-Fragment aus einer abgewiesenen
-        // Anmeldung verloren, bevor es je gelesen werden könnte. Der
-        // Rücksprung auf sich selbst behandelt Erfolg (supabase-js liest die
-        // Session aus dem Fragment, der bestehende getSession()-Zweig oben
-        // leitet dann weiter) UND Fehler (Block oben) an derselben Stelle.
+        // weiter — dabei ginge ein ?error=… aus einer abgewiesenen Anmeldung
+        // verloren, bevor es je gelesen werden könnte. Der Rücksprung auf sich
+        // selbst behandelt Erfolg (supabase-js löst den ?code= ein, der
+        // getSession()-Zweig oben leitet dann weiter) UND Fehler (Block oben)
+        // an derselben Stelle. location.search ist hier schon bereinigt.
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'discord',
           options: { redirectTo: location.origin + location.pathname + location.search },

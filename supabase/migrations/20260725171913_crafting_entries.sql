@@ -1,3 +1,10 @@
+-- Live-Abgleich 29.10.2026: Version und Name wie in der Anlage
+-- (supabase_migrations.schema_migrations). Der ausgefuehrte SQL-Text ist an
+-- den dort gespeicherten Wortlaut angeglichen. Die fruehere Repo-Fassung
+-- setzte search_path = '' fuer touch_crafting_entry() schon hier; live kam
+-- das 13 Minuten spaeter mit 20260725173248. Die Erlaeuterungen unten sind
+-- die der frueheren Repo-Fassung.
+--
 -- Crafting: „Im Besitz" + Fabricator-Planer ans Konto binden.
 --
 -- Bis hierher lebten beide Zustände nur im localStorage (craft.owned.v1 /
@@ -45,12 +52,13 @@ create policy crafting_entries_delete_own on public.crafting_entries
 
 -- updated_at serverseitig setzen: der Client schickt es nicht mit, und bei einem
 -- Upsert (ON CONFLICT DO UPDATE) bliebe sonst der alte Zeitstempel stehen.
--- search_path fest verdrahtet (Supabase-Linter 0011): sonst könnte ein Aufrufer
--- mit eigenem search_path bestimmen, welche Objekte die Funktion sieht.
+-- Den festen search_path (Supabase-Linter 0011: sonst könnte ein Aufrufer mit
+-- eigenem search_path bestimmen, welche Objekte die Funktion sieht) setzt erst
+-- die Folgemigration 20260725173248_crafting_entries_touch_search_path. So ist
+-- es live gelaufen.
 create or replace function public.touch_crafting_entry()
 returns trigger
 language plpgsql
-set search_path = ''
 as $$
 begin
   new.updated_at := now();

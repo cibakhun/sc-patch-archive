@@ -8,6 +8,7 @@
 // Aufklappen, Zustände und die neuen Aktionen; Discord löst die vorhandenen
 // Knöpfe der Discord-Karte aus und hört auf 'vb:discord'.
 import { supabase } from '../lib/supabase';
+import { buildAccountExport, exportFileName, type ExportClient } from '../lib/account-export';
 
 const root = document.getElementById('sec');
 if (root) boot(root);
@@ -177,69 +178,35 @@ function boot(root: HTMLElement) {
   });
 
   /* -------------------------------------------------------- Meine Daten --- */
-  // Alles, was diesem Konto gehört, als eine Datei (Auskunft und Mitnahme).
-  // Nachrichten seitenweise, weil PostgREST je Abfrage höchstens 1000
-  // Zeilen liefert; ohne Obergrenze, bis eine Seite kürzer ist.
+  // Alles, was diesem Konto gehört, als eine Datei (Auskunft und Mitnahme,
+  // Art. 15/20 DSGVO): lib/account-export.ts liest mit der eigenen Sitzung
+  // jede Tabelle seitenweise und ausdrücklich nur die eigenen Zeilen, dazu die
+  // Liste der hochgeladenen Bilder. Was sich nicht lesen lässt, steht in der
+  // Datei unter errors; der Rest kommt trotzdem.
   const exportBtn = $('secExport') as HTMLButtonElement | null;
-  const paged = async (table: string, order: string) => {
-    const out: unknown[] = [];
-    for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from(table).select('*').order(order).range(from, from + 999);
-      if (error) throw error;
-      out.push(...(data || []));
-      if (!data || data.length < 1000) break;
-    }
-    return out;
-  };
   exportBtn?.addEventListener('click', async () => {
     exportBtn.disabled = true;
     const label = exportBtn.innerHTML;
     exportBtn.textContent = C.exportBusy;
     try {
-      const { data: u } = await supabase.auth.getUser();
+      const { data: u, error: uErr } = await supabase.auth.getUser();
       const user = u?.user;
-      if (!user) throw new Error('no user');
-      const one = async (q: PromiseLike<{ data: unknown; error: unknown }>) => {
-        const { data, error } = await q;
-        if (error) throw error;
-        return data;
-      };
-      const [profile, favorites, layouts, friends, requests, refinery, crafting, mining, discord, messages] = await Promise.all([
-        one(supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()),
-        one(supabase.from('favorites').select('*').order('created_at')),
-        one(supabase.from('hangar_layouts').select('*').order('updated_at')),
-        one(supabase.from('friends').select('*').order('created_at')),
-        one(supabase.from('friend_requests').select('*').order('created_at')),
-        one(supabase.from('refinery_jobs').select('*').order('created_at')),
-        one(supabase.from('crafting_entries').select('*').order('slug')),
-        one(supabase.from('mining_sig_presets').select('*').order('name')),
-        one(supabase.from('discord_role_state').select('*').eq('user_id', user.id)),
-        paged('direct_messages', 'id'),
-      ]);
-      const dump = {
-        exported_at: new Date().toISOString(),
-        site: location.origin,
-        account: {
-          id: user.id,
-          email: user.email,
-          created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at,
-          providers: (user.identities || []).map((i) => i.provider),
-        },
-        profile, favorites, hangar_layouts: layouts, friends, friend_requests: requests,
-        direct_messages: messages, refinery_jobs: refinery, crafting: crafting,
-        mining_presets: mining, discord_rank: discord,
-      };
+      if (uErr || !user) throw uErr || new Error('no user');
+      // ExportClient ist die schmale Form, die account-export.ts braucht; der
+      // Vergleich mit den generischen supabase-js-Typen ist tsc zu tief.
+      const dump = await buildAccountExport(
+        supabase as unknown as ExportClient,
+        user as unknown as { id: string } & Record<string, unknown>,
+      );
       const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
-      const handle = (profile as { handle?: string } | null)?.handle || user.id.slice(0, 8);
       a.href = URL.createObjectURL(blob);
-      a.download = `versebase-konto-${handle}-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = exportFileName(lang);
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      toast(C.exportDone);
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+      toast(dump.errors ? C.exportPartial : C.exportDone);
     } catch {
       toast(C.err);
     } finally {

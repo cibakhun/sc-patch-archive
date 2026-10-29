@@ -25,12 +25,12 @@ type VehicleData = CollectionEntry<'vehicles'>['data'];
 // Schluessel, die das Inhaltsschema mit .default() fuellt: in der Datei fehlen
 // sie bei Fahrzeugen ohne Wert (vehicle-external.json fuehrt sie nur dann).
 type Defaulted = 'roleEn' | 'roleDe' | 'sizeClass' | 'descriptionEn' | 'crewMax' | 'msrpUSD'
-  | 'fixedWeaponMounts' | 'fixedWeaponSizes' | 'turretWeapons' | 'pledgeUrl' | 'image';
+  | 'fixedWeaponMounts' | 'fixedWeaponSizes' | 'turretWeapons' | 'pledgeUrl' | 'image' | 'massKg';
 type VehicleJson = Omit<VehicleData, Defaulted> & Partial<Pick<VehicleData, Defaulted>>;
 
 const toVehicle = (v: VehicleJson): VehicleData => ({
   roleEn: null, roleDe: null, sizeClass: null, descriptionEn: null, crewMax: null, msrpUSD: null,
-  fixedWeaponMounts: [], fixedWeaponSizes: [], turretWeapons: [], pledgeUrl: null, image: null,
+  fixedWeaponMounts: [], fixedWeaponSizes: [], turretWeapons: [], pledgeUrl: null, image: null, massKg: null,
   ...v,
 });
 
@@ -40,11 +40,12 @@ export type ShipId = string & { readonly [shipIdBrand]: true };
 
 export type StatKey =
   | 'scm' | 'max' | 'hull' | 'shield' | 'dps' | 'cargo' | 'crew' | 'len'
-  | 'missiles' | 'qtSpeed' | 'qtRange' | 'h2' | 'price';
+  | 'missiles' | 'qtSpeed' | 'qtRange' | 'h2' | 'price'
+  | 'wid' | 'hgt' | 'mass' | 'boost' | 'pitch' | 'yaw' | 'roll' | 'tdps' | 'pledge';
 
 export interface StatDef {
   readonly key: StatKey;
-  readonly unit: '' | 'm/s' | 'HP' | 'DPS' | 'SCU' | 'm' | 'Mm/s' | 'Gm' | 'aUEC';
+  readonly unit: '' | 'm/s' | 'HP' | 'DPS' | 'SCU' | 'm' | 'Mm/s' | 'Gm' | 'aUEC' | 'kg' | '°/s' | 'USD';
   readonly digits: 0 | 1;
   /** Richtung von "besser" fuer ein Vergleichs-Delta: 1 mehr, -1 weniger, 0 keine. */
   readonly better: 1 | -1 | 0;
@@ -78,6 +79,18 @@ export const STATS: readonly StatDef[] = [
   { key: 'qtRange', unit: 'Gm', digits: 0, better: 1, sortable: false, comparable: true, read: (v) => (v.qtRangeM == null ? null : v.qtRangeM / 1e9) },
   { key: 'h2', unit: 'SCU', digits: 1, better: 1, sortable: false, comparable: true, read: (v) => pos(v.h2Fuel) },
   { key: 'price', unit: 'aUEC', digits: 0, better: -1, sortable: false, comparable: true, read: (_v, id) => lowestBuy(id) },
+  // Die Werte, die CIG auf der Schiffsseite zeigt (Ship Matrix: Beam, Height,
+  // Mass, Pitch/Yaw/Roll Max, Preis), dazu Boost und Turm-Feuerkraft fuer den
+  // Vergleich. Masse 0 gibt es nicht: unbekannt.
+  { key: 'wid', unit: 'm', digits: 1, better: 0, sortable: false, comparable: true, read: (v) => pos(v.widthM) },
+  { key: 'hgt', unit: 'm', digits: 1, better: 0, sortable: false, comparable: true, read: (v) => pos(v.heightM) },
+  { key: 'mass', unit: 'kg', digits: 0, better: 0, sortable: true, comparable: true, read: (v) => pos(v.massKg) },
+  { key: 'boost', unit: 'm/s', digits: 0, better: 1, sortable: false, comparable: true, read: (v) => pos(v.boostForward) },
+  { key: 'pitch', unit: '°/s', digits: 1, better: 1, sortable: false, comparable: true, read: (v) => pos(v.pitch) },
+  { key: 'yaw', unit: '°/s', digits: 1, better: 1, sortable: false, comparable: true, read: (v) => pos(v.yaw) },
+  { key: 'roll', unit: '°/s', digits: 1, better: 1, sortable: false, comparable: true, read: (v) => pos(v.roll) },
+  { key: 'tdps', unit: 'DPS', digits: 1, better: 1, sortable: false, comparable: true, read: (v) => pos(v.turretDps) },
+  { key: 'pledge', unit: 'USD', digits: 0, better: -1, sortable: false, comparable: true, read: (v) => pos(v.msrpUSD) },
 ];
 
 export const STAT: Readonly<Record<StatKey, StatDef>> = Object.fromEntries(STATS.map((s) => [s.key, s])) as Record<StatKey, StatDef>;
@@ -163,7 +176,7 @@ export function statValue(key: StatKey, x: number | null): number | null {
  * Genauigkeit, '-' fuer unbekannt. Der Client liest die Schluesselfolge aus
  * data-stats des Docks; Sortierung, Vergleich und Flottenzeile rechnen damit,
  * ohne eine Bucht zu holen.
- *   dockFigures(gladius) === '226 1193 6110 6336 1944.5 0 1 21 6 161 32 1.6 2262330'
+ *   dockFigures(gladius) === '226 1193 6110 6336 1944.5 0 1 21 6 161 32 1.6 2262330 17.5 5.5 48552 520 68 52 200 - 90'
  */
 export function dockFigures(f: ShipFacts): string {
   return STATS.map((s) => statValue(s.key, f.stat[s.key]) ?? '-').join(' ');

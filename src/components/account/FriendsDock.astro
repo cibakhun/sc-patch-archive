@@ -18,7 +18,7 @@ interface Props {
 const { lang } = Astro.props;
 const COPY = {
   de: {
-    title: 'Freunde', add: 'Freund hinzufügen', online: 'Online', offline: 'Offline',
+    title: 'Freunde', add: 'Freund hinzufügen', online: 'Online', offline: 'Offline', hidden: 'Status verborgen',
     req1: 'offene Anfrage', reqN: 'offene Anfragen', empty: 'Noch keine Freunde',
     back: 'Zurück zur Liste', profile: 'Profil ansehen', send: 'Senden',
     chatPh: 'Nachricht an %name%', chatEmpty: 'Noch keine Nachrichten. Sag hallo!',
@@ -27,7 +27,7 @@ const COPY = {
     errLoad: 'Chat gerade nicht erreichbar.',
   },
   en: {
-    title: 'Friends', add: 'Add friend', online: 'Online', offline: 'Offline',
+    title: 'Friends', add: 'Add friend', online: 'Online', offline: 'Offline', hidden: 'Status hidden',
     req1: 'open request', reqN: 'open requests', empty: 'No friends yet',
     back: 'Back to list', profile: 'View profile', send: 'Send',
     chatPh: 'Message %name%', chatEmpty: 'No messages yet. Say hi!',
@@ -43,6 +43,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   data-pilot-base={pilotBase}
   data-l-online={COPY.online}
   data-l-offline={COPY.offline}
+  data-l-hidden={COPY.hidden}
   data-l-req1={COPY.req1}
   data-l-reqn={COPY.reqN}
   data-l-chat-ph={COPY.chatPh}
@@ -134,14 +135,19 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     $('fdAddEmpty')!.addEventListener('click', () => goFriends('friends'));
     req.addEventListener('click', () => goFriends('requests'));
 
-    const rank = (pres: string) => (pres === 'online' ? 0 : pres === 'away' ? 1 : 2);
+    const rank = (pres: string) => (pres === 'online' ? 0 : pres === 'away' ? 1 : pres === 'offline' ? 2 : 3);
     const nameOf = (p: Prof) => p.display_name || p.handle || '?';
+    // presence null: der Freund zeigt seinen Status niemandem
+    // (profiles.presence_visibility = 'none'). Eigene Gruppe, kein Punkt,
+    // kein "Offline", das er nie gesagt hat.
+    const isHidden = (p: Prof) => !(p.presence === 'online' || p.presence === 'away' || p.presence === 'offline');
     const presOf = (p: Prof) => (p.presence === 'online' || p.presence === 'away' ? p.presence : 'offline');
     const stOf = (p: Prof) => ST[resolveStatusKey(presOf(p), p.status_state)] || ST.offline;
     const labelOf = (p: Prof) => { const st = stOf(p); return lang === 'de' ? st.labelDe : st.labelEn; };
     // Unterzeile: was der Freund gerade auf der Seite macht (Rich Presence)
     // vor seinem eigenen Statustext vor dem reinen Präsenz-Wort.
     const subOf = (p: Prof): { text: string; act: boolean } => {
+      if (isHidden(p)) return { text: p.status_text || '', act: false };
       if (presOf(p) === 'offline') return { text: labelOf(p), act: false };
       const act = formatActivity(p.activity, lang);
       if (act) return { text: act, act: true };
@@ -160,6 +166,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       } else {
         av.textContent = p.avatar_icon || nameOf(p).charAt(0).toUpperCase();
       }
+      if (isHidden(p)) return;
       const st = stOf(p);
       const dot = document.createElement('i');
       dot.className = 'fd-dot' + (st.pulse ? ' pulse' : '');
@@ -173,7 +180,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       const pres = presOf(p);
       const a = document.createElement('button');
       a.type = 'button';
-      a.className = 'fd-row' + (pres === 'offline' ? ' is-off' : '');
+      a.className = 'fd-row' + (pres === 'offline' || isHidden(p) ? ' is-off' : '');
       a.addEventListener('click', () => openChat(p.id));
 
       const av = document.createElement('span');
@@ -221,12 +228,14 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         const px = rank(x.presence || ''), py = rank(y.presence || '');
         return px - py || nameOf(x).localeCompare(nameOf(y));
       });
-      const on = sorted.filter((p) => presOf(p) !== 'offline');
-      const off = sorted.filter((p) => presOf(p) === 'offline');
+      const on = sorted.filter((p) => !isHidden(p) && presOf(p) !== 'offline');
+      const off = sorted.filter((p) => !isHidden(p) && presOf(p) === 'offline');
+      const hid = sorted.filter(isHidden);
 
       list.innerHTML = '';
       if (on.length) { list.appendChild(section(D.lOnline || 'Online', on.length)); on.forEach((p) => list.appendChild(row(p))); }
       if (off.length) { list.appendChild(section(D.lOffline || 'Offline', off.length)); off.forEach((p) => list.appendChild(row(p))); }
+      if (hid.length) { list.appendChild(section(D.lHidden || 'Status hidden', hid.length)); hid.forEach((p) => list.appendChild(row(p))); }
       const chatOpen = !!chatWith;
       empty.hidden = chatOpen || friends.length > 0;
       list.hidden = chatOpen || friends.length === 0;

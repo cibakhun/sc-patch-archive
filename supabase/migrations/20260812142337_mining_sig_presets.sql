@@ -1,3 +1,8 @@
+-- Live-Abgleich 29.10.2026: Version und Name wie in der Anlage
+-- (supabase_migrations.schema_migrations). Einziger Unterschied zur
+-- frueheren Repo-Fassung war der Tabellenkommentar: live ohne Umlaute
+-- (Schluessel, Eintraege). Er ist hier angeglichen.
+--
 -- Mining-Werkbank: benannte Presets der Signaturenliste ans Konto binden.
 --
 -- Die angeheftete Signaturenliste lebt weiterhin im localStorage — sie ist der
@@ -26,7 +31,7 @@ create table if not exists public.mining_sig_presets (
 );
 
 comment on table public.mining_sig_presets is
-  'Benannte Zusammenstellungen der Signaturenliste in der Mining-Werkbank, je Nutzer. Schlüssel der Einträge ist der Mineralname.';
+  'Benannte Zusammenstellungen der Signaturenliste in der Mining-Werkbank, je Nutzer. Schluessel der Eintraege ist der Mineralname.';
 
 alter table public.mining_sig_presets enable row level security;
 

@@ -13,7 +13,7 @@ import { makeAccountBrowser } from './helpers/account-dom.js';
 /** Die Koerper aller Heartbeats dieses Tabs, in Reihenfolge. */
 const pings = (tab) => tab.requests
   .filter((r) => r.method === 'PATCH' && r.url.includes('/rest/v1/profiles?'))
-  .map((r) => JSON.parse(r.body));
+  .map((r) => r.body);
 const SHIP = 'ship|Gladius';
 
 test('Schalter aus, kein Cache: kein Puls traegt je eine Angabe, der zweite leert sie', async () => {
@@ -63,7 +63,7 @@ test('Kontowechsel in einem anderen Tab: das "an" des Vorgaengers gilt nicht fue
   await b.advance(60000);
   const of2 = tab.requests
     .filter((r) => r.method === 'PATCH' && r.url.includes('/rest/v1/profiles?id=eq.user-2'))
-    .map((r) => JSON.parse(r.body));
+    .map((r) => r.body);
   assert.ok(of2.length >= 2, 'der Puls laeuft fuer das neue Konto');
   assert.deepEqual(of2.filter((p) => p.activity), [], 'fuer user-2 verlaesst keine Angabe den Browser');
 });

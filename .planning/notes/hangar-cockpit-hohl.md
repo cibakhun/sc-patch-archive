@@ -377,4 +377,4 @@ den echten Grundfarben aus #238 und diesem Zweig), alle 231 Schiffe mit
   den Review-Änderungen an `palettePbr`; jetzt rechnet derselbe Code wie
   der Viewer. Weniger nur Apollo Medivac, Triage, Hermes (angekündigt).
 - Bilder: `/mnt/project-files/hangar-cockpit/` (Gladius aus Krisz' Sicht,
-  Hornet F7C Mk II, vorher/nachher). Sichturteil: WINDOWS #135.
+  Hornet F7C Mk II, vorher/nachher). Sichturteil: WINDOWS #137.

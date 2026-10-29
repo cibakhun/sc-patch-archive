@@ -8,6 +8,11 @@
 //   -> Tab offen + idle >3min = away (NIE offline); Tab zu -> ~1min away, 3min offline.
 // Der Client liest die fertige `presence` aus der View; diese Datei macht nur
 // noch die Aktivitäts-Überlagerung fürs Label/den Punkt.
+// Wer den Status sieht, wählt jeder selbst (profiles.presence_visibility):
+// 'friends' (Vorgabe) zeigt ihn in social_profiles nur bestätigten Freunden,
+// 'all' auch in public_profiles, 'none' niemandem. Wer ihn nicht sehen darf,
+// bekommt presence = null; die Anzeigen blenden den Punkt dann aus, statt
+// "Offline" zu behaupten.
 export type Presence = 'online' | 'away' | 'offline';
 
 /**

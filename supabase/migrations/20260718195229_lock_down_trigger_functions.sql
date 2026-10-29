@@ -1,0 +1,21 @@
+-- lock_down_trigger_functions: aus der Live-Anlage uebernommen am 29.10.2026.
+--
+-- Quelle: supabase_migrations.schema_migrations, Version 20260718195229, Name
+-- lock_down_trigger_functions, angewandt 18.07.2026 19:52 UTC. Alles unterhalb
+-- der Trennlinie ist der dort gespeicherte Wortlaut (statements, mit ';\n'
+-- verbunden), zeichengleich.
+-- md5 des Wortlauts: 88defca5bfbd6c997eb97efbe6d360c5
+--
+-- WARUM DIESE DATEI: die Migration lief direkt gegen die Anlage (Management
+-- API) und lag bis heute nicht im Repo. Ohne sie bildet supabase/migrations/
+-- die Anlage nicht ab, und `supabase db push` haelt die Live-Historie fuer
+-- fremd.
+--
+-- WAS SIE FUER DIE SEITE BEDEUTET: nichts. Sie ist live angewandt und wird
+-- nicht erneut eingespielt. Wortlaut nicht aendern; Korrekturen gehoeren in
+-- eine neue Migration.
+-- ============================================================================
+-- Trigger-Funktionen sind kein öffentliches RPC-API: EXECUTE entziehen.
+-- (Trigger feuern als Tabellen-Owner weiter — dafür ist kein Grant nötig.)
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.set_updated_at() from public, anon, authenticated;

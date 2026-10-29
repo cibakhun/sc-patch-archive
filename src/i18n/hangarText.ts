@@ -65,6 +65,26 @@ const DE = {
   'stat.qtRange': 'Quantum-Reichweite',
   'stat.h2': 'Wasserstoff',
   'stat.price': 'Preis im Verse',
+  'stat.wid': 'Breite',
+  'stat.hgt': 'Höhe',
+  'stat.mass': 'Masse',
+  'stat.boost': 'Boost vorwärts',
+  'stat.pitch': 'Nicken',
+  'stat.yaw': 'Gieren',
+  'stat.roll': 'Rollen',
+  'stat.tdps': 'Feuerkraft Türme',
+  'stat.pledge': 'Pledge-Preis',
+  // Kacheln im Überblick, Textzeilen und Abschnitte im Vergleich
+  'ov.size': 'Größe',
+  'ov.status': 'Status',
+  'cmp.role': 'Fokus',
+  'cmp.sec.specs': 'Kenndaten',
+  'cmp.sec.flight': 'Flug',
+  'cmp.sec.combat': 'Kampfwerte',
+  'cmp.sec.weapons': 'Bewaffnung',
+  'cmp.sec.systems': 'Systeme',
+  'cmp.loading': 'Lädt …',
+  'cmp.jump': 'Abschnitte',
   // Einheiten am Kennwert einer Zeile
   'unit.damage': 'Schaden',
   'unit.charges': 'Ladungen',
@@ -244,6 +264,25 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'stat.qtRange': 'Quantum range',
   'stat.h2': 'Hydrogen fuel',
   'stat.price': 'In-game price',
+  'stat.wid': 'Beam',
+  'stat.hgt': 'Height',
+  'stat.mass': 'Mass',
+  'stat.boost': 'Forward boost',
+  'stat.pitch': 'Pitch',
+  'stat.yaw': 'Yaw',
+  'stat.roll': 'Roll',
+  'stat.tdps': 'Turret firepower',
+  'stat.pledge': 'Pledge price',
+  'ov.size': 'Size',
+  'ov.status': 'Status',
+  'cmp.role': 'Focus',
+  'cmp.sec.specs': 'Specifications',
+  'cmp.sec.flight': 'Flight',
+  'cmp.sec.combat': 'Combat',
+  'cmp.sec.weapons': 'Weaponry',
+  'cmp.sec.systems': 'Systems',
+  'cmp.loading': 'Loading …',
+  'cmp.jump': 'Sections',
   'unit.damage': 'damage',
   'unit.charges': 'charges',
   'unit.power': 'power',
@@ -368,7 +407,7 @@ const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> =
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname, ein
 // Fachkürzel oder ein Wort ist, das beide Sprachen gleich schreiben (Name,
 // Filter); jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];

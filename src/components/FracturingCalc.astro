@@ -29,6 +29,7 @@ import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
+import { jsonForScript } from '../lib/safeJson';
 
 /* Titel ins Gehaeuse (15.08.2026), wie bei der Mining-Werkbank: das Kopfband
    der Grafik traegt ihn, der separate `.hero` der Seite faellt dafuer weg. */
@@ -611,5 +612,5 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   </div>{/* .fc__chassis */}
 </section>
 
-<script type="application/json" id="fc-data" set:html={JSON.stringify(payload)}></script>
+<script type="application/json" id="fc-data" set:html={jsonForScript(payload)}></script>
 <script is:inline src={versioned('assets/fracturing-calc.js', '/assets/fracturing-calc.js')}></script>
