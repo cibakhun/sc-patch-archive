@@ -20,8 +20,17 @@
 // racks die getauschten Raketenhalterungen (dann steht die Rakete des Slots
 // immer ausdruecklich in slots), paint die Lackierung, wenn es nicht der
 // Serienlack ist. Dasselbe Format traegt spaeter den
-// Kennwert-Ueberblick, den Vergleich zweier Layouts und einen Abgleich mit
-// dem Konto. Beim Import passiert nichts; die Tests rufen die reinen Funktionen.
+// Kennwert-Ueberblick und den Vergleich zweier Layouts. Beim Import passiert
+// nichts; die Tests rufen die reinen Funktionen.
+//
+// Konto (Krisz 10-29: "loadouts sollen accountgebunden gespeichert werden"):
+// Ohne Anmeldung bleibt alles unter 'vb.layouts.v1' in diesem Browser. Mit
+// Anmeldung liest und schreibt die Seite den Spiegel 'vb.layouts.v1.<uid>'
+// (sofort, ohne Netz), und syncLayouts() gleicht ihn mit der Tabelle
+// hangar_layouts ab: je Layout gewinnt der juengere Stand (rev), Loeschen
+// laeuft als Grabstein, und die Gast-Layouts dieses Browsers wandern beim
+// ersten Abgleich ins Konto. Wie die Flotte (assets/fleet.js) folgt der
+// Schluessel der gespeicherten Sitzung bei jedem Zugriff, nicht erst dem Netz.
 
 export const LAYOUT_VERSION = 1;
 export const STORE_KEY = 'vb.layouts.v1';
@@ -253,58 +262,293 @@ function cleanEntry(e) {
  * Gespeicherte Layouts in einem Speicher mit getItem/setItem (localStorage).
  * Jede Leseoperation liest neu: ein zweiter Tab schreibt mit. Ein Speicher,
  * der wirft (privates Fenster, voll), liefert eine leere Liste, und save()
- * meldet false.
+ * meldet false. key ist der Schluessel oder eine Funktion, die ihn bei jedem
+ * Zugriff nennt (Gast oder Spiegel des Kontos, siehe layoutKey()).
+ *
+ * Neben den Layouts fuehrt die Ablage rev (id -> Zeitpunkt der letzten
+ * Aenderung hier, auch beim Zurueckholen) und gone (id -> Zeitpunkt des
+ * Loeschens). Beides braucht nur der Abgleich mit dem Konto; updated bleibt
+ * der Zeitstempel, den die Liste zeigt und nach dem sie sortiert.
  * @param {Pick<Storage, 'getItem'|'setItem'>|null} storage @param {() => number} [now]
+ * @param {string|(() => string)} [key]
  */
-export function createStore(storage, now = Date.now) {
-  const read = () => {
+export function createStore(storage, now = Date.now, key = STORE_KEY) {
+  const keyNow = () => (typeof key === 'function' ? key() : key);
+  const readAll = () => {
     let raw = null;
-    try { raw = storage?.getItem(STORE_KEY) ?? null; } catch { return []; }
+    try { raw = storage?.getItem(keyNow()) ?? null; } catch { return { list: [], rev: {}, gone: {} }; }
     let v;
-    try { v = raw ? JSON.parse(raw) : null; } catch { return []; }
+    try { v = raw ? JSON.parse(raw) : null; } catch { return { list: [], rev: {}, gone: {} }; }
     const list = Array.isArray(v?.layouts) ? v.layouts.map(cleanEntry).filter(Boolean) : [];
-    return list;
+    return { list, rev: cleanStamps(v?.rev), gone: cleanStamps(v?.gone) };
   };
-  const write = (list) => {
+  const read = () => readAll().list;
+  const writeAll = ({ list, rev, gone }) => {
     try {
-      storage.setItem(STORE_KEY, JSON.stringify({ v: LAYOUT_VERSION, layouts: list.slice(0, MAX_SAVED) }));
+      const keep = list.slice(0, MAX_SAVED);
+      const ids = new Set(keep.map((e) => e.id));
+      const r = Object.fromEntries(Object.entries(rev).filter(([id]) => ids.has(id)));
+      const g = Object.fromEntries(Object.entries(gone).filter(([id]) => !ids.has(id)));
+      storage.setItem(keyNow(), JSON.stringify({ v: LAYOUT_VERSION, layouts: keep, ...(Object.keys(r).length ? { rev: r } : {}), ...(Object.keys(g).length ? { gone: g } : {}) }));
       return true;
     } catch {
       return false;
     }
   };
   return {
+    /** Der Schluessel, unter dem die Ablage gerade liegt. */
+    key: keyNow,
     /** Neueste zuerst. */
     list: () => read().sort((a, b) => b.updated - a.updated),
     get: (id) => read().find((e) => e.id === id) ?? null,
     /** Legt an oder ersetzt (gleiche id); liefert den Eintrag oder null. */
     save(entry) {
-      const list = read();
+      const all = readAll();
+      const { list } = all;
       const at = list.findIndex((e) => e.id === entry.id);
       const t = now();
       const e = cleanEntry({ ...entry, created: at >= 0 ? list[at].created : t, updated: t });
       if (!e) return null;
       if (at >= 0) list.splice(at, 1);
       list.unshift(e);
-      return write(list) ? e : null;
+      all.rev[e.id] = t;
+      delete all.gone[e.id];
+      return writeAll(all) ? e : null;
     },
     remove(id) {
-      const list = read();
-      const at = list.findIndex((e) => e.id === id);
+      const all = readAll();
+      const at = all.list.findIndex((e) => e.id === id);
       if (at < 0) return null;
-      const [gone] = list.splice(at, 1);
-      return write(list) ? gone : null;
+      const [gone] = all.list.splice(at, 1);
+      all.gone[id] = now();
+      return writeAll(all) ? gone : null;
     },
     /** Ein geloeschtes Layout zurueck, mit seinen alten Zeitstempeln. */
     restore(entry) {
-      const list = read().filter((e) => e.id !== entry.id);
+      const all = readAll();
+      all.list = all.list.filter((e) => e.id !== entry.id);
       const e = cleanEntry(entry);
       if (!e) return false;
-      list.push(e);
-      list.sort((a, b) => b.updated - a.updated);
-      return write(list);
+      all.list.push(e);
+      all.list.sort((a, b) => b.updated - a.updated);
+      all.rev[e.id] = now();
+      delete all.gone[e.id];
+      return writeAll(all);
     },
+    /** Rohzustand fuer den Abgleich: Layouts, rev, gone. */
+    snapshot: readAll,
+    /** Ersetzt den ganzen Zustand (nur der Abgleich). */
+    replace: writeAll,
   };
+}
+
+const cleanStamps = (o) => {
+  const out = {};
+  if (o && typeof o === 'object') for (const [id, t] of Object.entries(o)) if (/^[a-z0-9]{4,32}$/.test(id) && Number.isFinite(t)) out[id] = t;
+  return out;
+};
+
+/* ---------------------------------------------------------- Konto --- */
+
+/** Benutzer-id der gespeicherten Sitzung (VBAccount.peek()) oder null. */
+export function sessionUid(sess) {
+  const uid = sess?.user?.id;
+  return typeof uid === 'string' && /^[0-9a-f-]{36}$/i.test(uid) ? uid.toLowerCase() : null;
+}
+
+/** Gast: STORE_KEY; angemeldet: der Spiegel des Kontos. */
+export const layoutKey = (uid) => (uid ? `${STORE_KEY}.${uid}` : STORE_KEY);
+
+/**
+ * Gleicht den Spiegel des angemeldeten Kontos mit hangar_layouts ab. Darf
+ * beliebig oft laufen: jeder Schritt ist ein Upsert mit dem Stand, den er
+ * zuletzt gesehen hat.
+ *   1. Gast-Layouts dieses Browsers in den Spiegel (rev = jetzt).
+ *   2. Server lesen. Je id gewinnt der groessere rev; ein Grabstein (deleted)
+ *      mit groesserem oder gleichem rev nimmt das Layout hier weg, ein
+ *      juengerer Grabstein von hier loescht es dort.
+ *   3. Was hier juenger ist, in EINEM Upsert hochschicken; erst danach fallen
+ *      die uebernommenen Gast-Layouts und die bestaetigten Grabsteine weg.
+ * Liefert { ok, changed, migrated } — changed: der Spiegel hat sich durch den
+ * Server geaendert (die Seite malt neu).
+ * @param {{ storage: any, uid: string, rest: (method: string, path: string, body?: any, prefer?: string) => Promise<Response>, now?: () => number }} o
+ */
+export async function syncLayouts({ storage, uid, rest, now = Date.now }) {
+  const mirror = createStore(storage, now, layoutKey(uid));
+  const guest = createStore(storage, now, STORE_KEY);
+  const t0 = now();
+
+  // 1. Gast-Layouts uebernehmen.
+  const g = guest.snapshot();
+  const st = mirror.snapshot();
+  const migrated = [];
+  const seen = new Map(g.list.map((e) => [e.id, e.updated]));
+  let moved = false;
+  for (const e of g.list) {
+    // Schon im Spiegel (ein frueherer Lauf scheiterte am Server): nur noch aufraeumen.
+    migrated.push(e.id);
+    if (st.list.some((x) => x.id === e.id) || e.id in st.gone) continue;
+    st.list.push(e);
+    st.rev[e.id] = t0;
+    moved = true;
+  }
+  if (moved && !mirror.replace(st)) return { ok: false, changed: false, migrated: 0 };
+
+  // 2. Server lesen.
+  let rows;
+  try {
+    const r = await rest('GET', 'hangar_layouts?select=id,rev,deleted,entry');
+    if (!r.ok) return { ok: false, changed: false, migrated: 0 };
+    rows = await r.json();
+  } catch {
+    return { ok: false, changed: false, migrated: 0 };
+  }
+  // Waehrend des Lesens kann diese Seite gespeichert haben: frisch lesen.
+  const cur = mirror.snapshot();
+  const local = new Map(cur.list.map((e) => [e.id, e]));
+  const remote = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    if (!row || typeof row.id !== 'string' || !Number.isFinite(row.rev)) continue;
+    const entry = row.deleted ? null : cleanEntry(row.entry);
+    if (!row.deleted && (!entry || entry.id !== row.id)) continue;
+    remote.set(row.id, { rev: row.rev, entry });
+  }
+  let changed = false;
+  const push = [];
+  for (const [id, r] of remote) {
+    const mine = local.get(id);
+    const myRev = mine ? (cur.rev[id] ?? 0) : (cur.gone[id] ?? -1);
+    if (r.rev > myRev) {
+      // Der Server ist juenger: sein Stand gilt hier.
+      if (r.entry) {
+        if (!mine || !sameEntry(mine, r.entry)) changed = true;
+        local.set(id, r.entry);
+        cur.rev[id] = r.rev;
+        delete cur.gone[id];
+      } else {
+        if (mine) changed = true;
+        local.delete(id);
+        delete cur.rev[id];
+        delete cur.gone[id];
+      }
+    } else if (r.rev === myRev && !r.entry && mine) {
+      // Gleichstand zwischen Layout und Grabstein: der Grabstein gewinnt.
+      changed = true;
+      local.delete(id);
+      delete cur.rev[id];
+    } else if (r.rev === myRev && r.entry && !mine) {
+      push.push({ id, rev: myRev, deleted: true, entry: null });
+    } else if (r.rev < myRev) {
+      push.push(mine ? { id, rev: myRev, deleted: false, entry: mine } : { id, rev: myRev, deleted: true, entry: null });
+    } else if (!mine) {
+      delete cur.gone[id]; // beide geloescht, bestaetigt
+    }
+  }
+  for (const [id, mine] of local) {
+    if (remote.has(id)) continue;
+    cur.rev[id] ??= t0;
+    push.push({ id, rev: cur.rev[id], deleted: false, entry: mine });
+  }
+  // Grabsteine von Layouts, die der Server nie kannte, sind erledigt.
+  for (const id of Object.keys(cur.gone)) if (!remote.has(id)) delete cur.gone[id];
+  // Was hochgeht, steht vorerst weiter als Grabstein hier (falls der Upsert scheitert).
+  for (const p of push) if (p.deleted) cur.gone[p.id] = p.rev;
+  cur.list = [...local.values()].sort((a, b) => b.updated - a.updated);
+  mirror.replace(cur);
+
+  // 3. Hochschicken.
+  if (push.length) {
+    let ok = false;
+    try {
+      const r = await rest('POST', 'hangar_layouts?on_conflict=user_id,id',
+        push.map((p) => ({ user_id: uid, id: p.id, rev: p.rev, deleted: p.deleted, entry: p.entry })),
+        'resolution=merge-duplicates,return=minimal');
+      ok = r.ok;
+    } catch { ok = false; }
+    if (!ok) return { ok: false, changed, migrated: 0 };
+    const after = mirror.snapshot();
+    for (const p of push) if (p.deleted && after.gone[p.id] === p.rev) delete after.gone[p.id];
+    mirror.replace(after);
+  }
+  if (migrated.length) {
+    const left = guest.snapshot();
+    // Nur, was seit dem Uebernehmen unveraendert ist (ein abgemeldeter Tab kann mitschreiben).
+    left.list = left.list.filter((e) => !migrated.includes(e.id) || seen.get(e.id) !== e.updated);
+    guest.replace(left);
+  }
+  return { ok: true, changed, migrated: migrated.length };
+}
+
+const sameEntry = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/**
+ * Verdrahtet Ablage und Konto fuer eine Seite. account ist window.VBAccount
+ * (oder null, solange account-lite fehlt). Liefert
+ *   store          die Ablage; ihr Schluessel folgt der Sitzung
+ *   signedIn()     ob gerade ein Konto angemeldet ist
+ *   sync()         Abgleich jetzt (bei Gast nichts); ruft onChange, wenn sich
+ *                  die Liste durch den Server geaendert hat
+ *   touched()      nach jedem Speichern/Loeschen: Abgleich kurz danach
+ * @param {{ storage: any, account: any, onChange: () => void, win?: any }} o
+ */
+export function accountStore({ storage, account, onChange, win = globalThis }) {
+  const acct = () => account ?? win.VBAccount ?? null;
+  const uid = () => sessionUid(acct()?.peek?.());
+  const base = createStore(storage, Date.now, () => layoutKey(uid()));
+  // Jede Aenderung stoesst kurz danach den Abgleich an (bei Gast tut er nichts).
+  const after = (fn) => (...args) => { const r = fn(...args); if (r) touched(); return r; };
+  const store = { ...base, save: after(base.save), remove: after(base.remove), restore: after(base.restore) };
+  let running = null;
+  let again = false;
+  let last = null; // Ergebnis des letzten Abgleichs dieses Kontos
+  let lastUid = null;
+  let timer = 0;
+  const run = async () => {
+    const a = acct();
+    const id = uid();
+    if (!a || !id) return null;
+    const sess = await a.session();
+    if (!sessionUid(sess) || sessionUid(sess) !== id) return null;
+    const res = await syncLayouts({ storage, uid: id, rest: (method, path, body, prefer) => a.rest(sess, method, path, body, prefer) });
+    last = res.ok;
+    lastUid = id;
+    onChange();
+    return res;
+  };
+  const sync = () => {
+    if (running) { again = true; return running; }
+    running = (async () => {
+      try {
+        const lock = win.navigator?.locks;
+        return lock ? await lock.request('vb.layouts.sync', run) : await run();
+      } catch {
+        last = false;
+        lastUid = uid();
+        try { onChange(); } catch { /* Seite malt beim naechsten Mal */ }
+        return null;
+      } finally {
+        running = null;
+        if (again) { again = false; sync(); }
+      }
+    })();
+    return running;
+  };
+  function touched() {
+    clearTimeout(timer);
+    timer = 0;
+    if (uid()) timer = setTimeout(() => { timer = 0; sync(); }, 400);
+  }
+  /**
+   * 'guest' | 'synced' (letzter Abgleich ok und seither nichts offen)
+   * | 'pending' (angemeldet, Abgleich laeuft oder steht aus) | 'error'.
+   */
+  const state = () => {
+    const id = uid();
+    if (!id) return 'guest';
+    if (lastUid !== id || last === null || timer) return 'pending';
+    return last ? 'synced' : 'error';
+  };
+  return { store, signedIn: () => !!uid(), state, sync, touched };
 }
 
 export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '0123456789abcdefghijklmnopqrstuvwxyz'[Math.floor(rnd() * 36)]).join('');
@@ -334,7 +578,9 @@ export function initWorkshop(doc, bridge) {
   const plural = (base, n) => fill(m(`${base}.${pr.select(n) === 'one' ? 'one' : 'other'}`), { n: nf.format(n) });
   let storage = null;
   try { storage = window.localStorage; } catch { storage = null; }
-  const store = createStore(storage);
+  // Angemeldet: Spiegel des Kontos + Abgleich (siehe Kopf). repaint ist weiter unten definiert.
+  const acct = accountStore({ storage, account: null, onChange: () => repaint() });
+  const store = acct.store;
 
   const nameIn = $('hgl-name');
   const slotsHost = $('hgl-slots');
@@ -1078,11 +1324,20 @@ export function initWorkshop(doc, bridge) {
     const all = store.list();
     $('hgl-count').textContent = nf.format(all.length);
     if (view !== 'saved') return;
+    paintWhere($('hgl-where'));
     if (!all.length) {
       list.replaceChildren(el('li', { class: 'hgl-empty' }, m('saved.empty')));
       return;
     }
     list.replaceChildren(...savedCards());
+  }
+  // Wo die Layouts liegen: im Konto, oder nur hier mit dem Weg zur Anmeldung.
+  function paintWhere(p) {
+    if (!p) return;
+    const st = acct.state();
+    if (st !== 'guest') { p.replaceChildren(m(st === 'synced' ? 'saved.account' : st === 'error' ? 'saved.error' : 'saved.pending')); return; }
+    const href = window.VBAccount?.loginHref() ?? `${de ? '/de' : ''}/account/login.html`;
+    p.replaceChildren(`${m('saved.guest')} `, el('a', { href }, m('saved.login')));
   }
   // Oeffnen, Teilen, Loeschen eines gespeicherten Layouts; Panel und Fenster teilen sich das.
   function savedClick(b) {
@@ -1111,12 +1366,21 @@ export function initWorkshop(doc, bridge) {
     const b = e.target.closest('button');
     if (b) savedClick(b);
   });
-  // Ein zweiter Tab speichert mit: Liste und Stand ziehen nach.
-  window.addEventListener('storage', (e) => {
-    if (e.key !== STORE_KEY || !data) return;
+  // Ein zweiter Tab speichert mit: Liste und Stand ziehen nach. Meldet er
+  // sich an oder ab, wechselt die Ablage, und das Konto wird abgeglichen.
+  function repaint() {
+    if (!data) return;
     paintSaved();
     paintHead();
+  }
+  window.addEventListener('storage', (e) => {
+    if (e.key === store.key()) repaint();
+    else if (e.key && /^sb-.*-auth-token$/.test(e.key)) { repaint(); acct.sync(); }
   });
+  window.addEventListener('vb-account-session', () => { repaint(); acct.sync(); });
+  if (window.VBAccount) acct.sync();
+  else window.addEventListener('vb-account-ready', () => acct.sync(), { once: true });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acct.sync(); });
 
   /* ---- Takt des Controllers ---- */
   function render(state) {
