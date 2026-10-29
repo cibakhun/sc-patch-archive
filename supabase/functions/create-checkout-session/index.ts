@@ -15,6 +15,8 @@
 //     bei verify-rsi, wo das noch offen steht.
 //   * Die Rueckkehr-URL wird NICHT aus der Anfrage uebernommen, sondern aus der
 //     geprueften Herkunft gebaut. Sonst waere das eine offene Weiterleitung.
+//   * Hoechstens 10 Aufrufe je Anschluss und Stunde (rate.js), danach 429.
+//     Deploy: index.ts UND rate.js; die Migration 20261030160000 vorher live.
 //
 // Der Schluessel in STRIPE_SECRET_KEY ist ein EINGESCHRAENKTER Schluessel
 // (rk_…) mit genau einem Recht: Checkout Sessions schreiben. Ein abgegriffener
@@ -30,6 +32,7 @@
 // Abhaengigkeiten, der Pin friert es also ganz ein. Anheben nur bewusst und
 // zusammen mit API_VERSION.
 import Stripe from 'npm:stripe@22.4.0';
+import { checkoutAllowed, RETRY_AFTER_S } from './rate.js';
 
 /** Gepinnt: ohne feste Version aendert Stripe das Antwortformat unter uns weg. */
 const API_VERSION = '2026-07-29.dahlia';
@@ -65,10 +68,10 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-function json(body: unknown, status: number, origin: string | null) {
+function json(body: unknown, status: number, origin: string | null, extra: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -86,6 +89,25 @@ Deno.serve(async (req: Request) => {
   if (!secret) {
     // Kein Schluessel hinterlegt: ehrlich scheitern statt so tun, als ginge es.
     return json({ error: 'not_configured' }, 503, origin);
+  }
+
+  // Bremse je Anschluss (rate.js, Migration 20261030160000): hoechstens 10
+  // Aufrufe je Stunde. VOR dem Lesen des Rumpfs, damit auch unbrauchbare
+  // Aufrufe zaehlen und sich die Bremse nach einem Deploy mit ungueltigen
+  // Betraegen pruefen laesst, ohne dass bei Stripe eine Bezahlseite entsteht.
+  // Faellt die Buchfuehrung aus, laeuft die Spende durch.
+  const allowed = await checkoutAllowed({
+    headers: req.headers,
+    env: {
+      SUPABASE_URL: Deno.env.get('SUPABASE_URL'),
+      SUPABASE_SERVICE_ROLE_KEY: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+      CHECKOUT_RATE_SECRET: Deno.env.get('CHECKOUT_RATE_SECRET'),
+    },
+    fetch,
+    log: (m: string) => console.warn(m),
+  });
+  if (!allowed) {
+    return json({ error: 'rate_limited' }, 429, origin, { 'Retry-After': String(RETRY_AFTER_S) });
   }
 
   let body: { amount_cents?: unknown; lang?: unknown };

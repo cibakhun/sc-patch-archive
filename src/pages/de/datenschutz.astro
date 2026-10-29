@@ -735,6 +735,17 @@ body{font-family:var(--font-body)}
       (Durchführung der von dir ausgelösten Zahlung).
     </p>
     <p>
+      Damit niemand den Knopf automatisiert missbraucht, nimmt die Funktion je Internetanschluss
+      höchstens zehn Aufrufe in der Stunde an und legt also höchstens zehn Bezahlseiten an. Dafür
+      speichert sie zu jedem Aufruf einen Prüfwert, gebildet aus deiner IP-Adresse (bei IPv6 nur
+      aus deren ersten 64 Bit) und einem Geheimwert, der nur in der Funktion liegt, und den
+      Zeitpunkt. Die IP-Adresse selbst wird nicht gespeichert, und ohne den Geheimwert lässt sie
+      sich aus dem Prüfwert nicht zurückgewinnen. Einträge, die älter als eine Stunde sind,
+      löscht die Funktion bei ihrem nächsten Aufruf. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+      DSGVO; das berechtigte Interesse ist der Schutz des Spendenwegs und des Stripe-Kontos vor
+      massenhaft angelegten Bezahlseiten.
+    </p>
+    <p>
       Schließt du die Bezahlung ab, schickt Stripe dem Serverteil dieses Projekts eine Nachricht
       darüber. Sie enthält die Angaben, die Stripe erhoben hat (etwa E-Mail-Adresse, Name und
       Land). Gespeichert wird nur eine Zahlung, die Stripe in diesem Moment schon als bezahlt meldet

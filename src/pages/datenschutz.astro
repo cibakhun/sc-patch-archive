@@ -695,6 +695,16 @@ body{font-family:var(--font-body)}
       (carrying out the payment you initiated).
     </p>
     <p>
+      So that nobody can misuse the button automatically, the function accepts at most ten calls
+      per hour for each internet connection, and so creates at most ten payment pages. To do this
+      it stores, for each call, a check value derived from your IP address (for IPv6, only its
+      first 64 bits) and a secret that exists only inside the function, plus the time of the
+      call. The IP address itself is not stored, and without the secret it cannot be recovered
+      from the check value. The function deletes entries older than one hour on its next call.
+      The legal basis is Art. 6 (1) (f) GDPR; the legitimate interest is protecting the donation
+      path and the Stripe account against payment pages created in bulk.
+    </p>
+    <p>
       When you complete the payment, Stripe sends this project's server component a notification
       about it. It contains the details Stripe collected (such as e-mail address, name and
       country). Only a payment that Stripe already reports as paid at that moment (for example by
