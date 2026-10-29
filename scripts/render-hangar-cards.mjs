@@ -40,13 +40,14 @@ const CARD = { w: 480, h: 270, pad: 0.06 };
 const TOP_PPM = 8;
 const TOP_MAX = 320;
 
-const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
+const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] ?? '' : null; };
 const only = arg('--only')?.split(',').filter(Boolean) ?? null;
 
 const ids = Object.keys(JSON.parse(readFileSync(path.join(ROOT, 'src/data/holo-meshes.json'), 'utf8')).meshes);
 const unknown = (only ?? []).filter((id) => !ids.includes(id));
 if (unknown.length) { console.error(`render-hangar-cards: unbekannte Id ${unknown.join(', ')}`); process.exit(2); }
 const todo = only ?? ids;
+if (!todo.length) { console.error('render-hangar-cards: keine Id ausgewählt'); process.exit(2); }
 
 const BROWSER = [process.env.CHROME_PATH, '/opt/pw-browsers/chromium', 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', '/usr/bin/google-chrome', '/usr/bin/chromium'].filter(Boolean).find((p) => existsSync(p));
 if (!BROWSER) { console.error('render-hangar-cards: kein Browser gefunden, CHROME_PATH setzen'); process.exit(2); }
