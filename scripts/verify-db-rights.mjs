@@ -60,7 +60,8 @@ export const ABFRAGE_DATEI = 'supabase/rights.snapshot.sql';
 // 20261030120000 (vier rsi_*-Funktionen, zwei Tabellen, eine Sequenz),
 // 20261030130000/131000 (drei Triggerfunktionen) und 20261030133000 (zwei
 // Spaltenrechte); auf der Replik mit allen Migrationen gemessen.
-export const KLINKE_OBJEKTE = 64;
+// 65 mit profiles_guard_times() aus 20261030140000.
+export const KLINKE_OBJEKTE = 65;
 
 export const ROLLEN = ['anon', 'authenticated', 'public'];
 

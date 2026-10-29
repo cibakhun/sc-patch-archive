@@ -59,6 +59,7 @@
       "warum": "FriendsDock: Nachrichten als gelesen markieren (security definer, nur eigene)"
     },
     "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
+    "function public.profiles_guard_times()": { "warum": "Triggerfunktion auf profiles (haelt created_at fest, kappt Praesenzzeiten auf now())" },
     "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
     "function public.rsi_challenge_get(p_user uuid, p_handle text)": { "warum": "nur Edge Function verify-rsi (service_role)" },
     "function public.rsi_challenge_issue(p_user uuid, p_handle text)": { "warum": "nur Edge Function verify-rsi (service_role)" },
