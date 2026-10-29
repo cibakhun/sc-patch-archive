@@ -9,12 +9,21 @@
 -- E-Mail-Adresse vor dem @. Der Anzeigename ist fuer andere sichtbar; ein
 -- Teil der Anmeldeadresse gehoert dort nicht hin.
 --
--- WAS SICH AENDERT: genau eine Zeile im coalesce faellt weg; die Reihenfolge
--- ist jetzt eigener Anzeigename, Discord-Anzeigename (global_name),
--- Discord-Benutzername, sonst 'Pilot'. Grundlage ist die Live-Fassung
--- (pg_get_functiondef am 29.10.2026; live als Version 20261029121956
--- allow_discord_signup gefuehrt, im Repo unter demselben Namen
--- 20261029121956_allow_discord_signup.sql); alles andere ist wortgleich.
+-- WAS SICH AENDERT
+--   1. Genau eine Zeile im coalesce faellt weg; die Reihenfolge ist jetzt
+--      eigener Anzeigename, Discord-Anzeigename (global_name),
+--      Discord-Benutzername, sonst 'Pilot'.
+--   2. Das Discord-Bild wird nur uebernommen, wenn es genau die Form hat,
+--      die die Regel profiles_avatar_url_source (20261030140000) erlaubt;
+--      sonst bleibt avatar_url leer. Vorher genuegte der Anfang der Adresse.
+--      Mit der strengeren Regel haette ein abweichendes Bild das INSERT
+--      scheitern lassen, und mit ihm das Anlegen des ganzen Kontos
+--      ("Database error saving new user"). 20261030140000 prueft darum
+--      vorab, dass diese Fassung live ist.
+-- Grundlage ist die Live-Fassung (pg_get_functiondef am 29.10.2026; live als
+-- Version 20261029121956 allow_discord_signup gefuehrt, im Repo unter
+-- demselben Namen 20261029121956_allow_discord_signup.sql); alles andere ist
+-- wortgleich.
 --
 -- WAS ES FUER DIE SEITE BEDEUTET: wer sich ohne Anzeigenamen registriert,
 -- heisst zunaechst "Pilot" und waehlt seinen Namen im Dashboard. Bestehende
@@ -41,7 +50,10 @@ begin
       dc_user,
       'Pilot'
     ), 60),
-    case when is_discord and dc_avatar like 'https://cdn.discordapp.com/avatars/%' then dc_avatar end,
+    -- Muster wortgleich mit profiles_avatar_url_source (20261030140000).
+    case when is_discord
+          and dc_avatar ~ '^https://cdn\.discordapp\.com/avatars/[0-9]{5,25}/[A-Za-z0-9_]{1,80}\.(png|jpe?g|webp|gif)(\?[A-Za-z0-9=&_-]{0,60})?$'
+         then dc_avatar end,
     case when is_discord and dc_user is not null then left('@' || dc_user, 40) end
   )
   on conflict (id) do nothing;
@@ -60,5 +72,8 @@ revoke all on function public.handle_new_user() from public, anon, authenticated
 -- Live-Version 20261029121956_allow_discord_signup.sql). Sie ist diese Datei
 -- plus die Zeile
 --   nullif(split_part(coalesce(new.email, ''), '@', 1), ''),
--- vor 'Pilot'.
+-- vor 'Pilot', und mit der alten Bild-Zeile
+--   case when is_discord and dc_avatar like 'https://cdn.discordapp.com/avatars/%' then dc_avatar end,
+-- Laeuft 20261030140000 schon, zuerst deren Rueckbau, sonst scheitert jede
+-- Discord-Anmeldung mit einem abweichenden Bild.
 -- ============================================================================

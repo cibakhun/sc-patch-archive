@@ -32,6 +32,9 @@
 --     Anzeige "Dabei seit <Monat Jahr>" in jeder Zeitzone den richtigen
 --     Monat zeigt; Typ bleibt timestamptz).
 --   public_favorites.created_at: nur noch der Tag (UTC-Mitternacht).
+--     Ausgeblendete Favoriten (show_favorites = false) bleiben ausgeblendet;
+--     die Bedingung stammt aus 20261029205000_profile_showcase (live seit
+--     29.10.2026) und steht unten wortgleich.
 --   social_profiles: security_barrier wie die anderen drei Views.
 --
 -- WAS ES FUER DIE SEITE HEISST
@@ -50,6 +53,20 @@
 -- Freundesliste lahm. Ohne Anmeldung (auth.uid() null) gibt es keine
 -- Freundschaft; bekaeme anon je wieder SELECT auf social_profiles, saehe es
 -- den Status also nur bei 'all', wie in public_profiles.
+
+-- ------------------------------------------------------------ Vorbedingung --
+-- Ohne profiles.show_favorites gaebe es die Bedingung in public_favorites
+-- nicht; dann ist der Live-Stand ein anderer als der, gegen den diese Datei
+-- geschrieben ist. Abbruch ohne Aenderung.
+do $vorbedingung$
+begin
+  if not exists (select 1 from pg_catalog.pg_attribute
+                 where attrelid = 'public.profiles'::regclass
+                   and attname = 'show_favorites' and not attisdropped) then
+    raise exception 'presence_visibility: profiles.show_favorites fehlt -- zuerst 20261029205000_profile_showcase einspielen';
+  end if;
+end
+$vorbedingung$;
 
 alter table public.profiles
   add column if not exists presence_visibility text not null default 'friends'
@@ -199,14 +216,14 @@ create or replace view public.public_favorites with (security_barrier = true) as
     date_trunc('day', f.created_at) AS created_at
    FROM (public.favorites f
      JOIN public.profiles p ON ((p.id = f.user_id)))
-  WHERE (p.handle IS NOT NULL);
+  WHERE ((p.handle IS NOT NULL) AND p.show_favorites);
 
 -- ============================================================================
 -- RUECKBAU (in dieser Reihenfolge; Spalten und Typen bleiben gleich, also
 -- geht alles per create or replace, die Rechte bleiben erhalten):
 --   1. die drei Views mit den Definitionen aus 20261029150000_discord_rank.sql
---      (social_profiles, public_profiles) bzw. 20260723182258_public_profile_views.sql
---      (public_favorites, f.created_at) neu setzen, danach
+--      (social_profiles, public_profiles) bzw. 20261029205000_profile_showcase.sql
+--      (public_favorites, f.created_at, mit show_favorites) neu setzen, danach
 --      alter view public.social_profiles reset (security_barrier);
 --   2. drop trigger if exists trg_presence_none_clears on public.profiles;
 --      drop function if exists public.presence_none_clears();
