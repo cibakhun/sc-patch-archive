@@ -11,7 +11,7 @@
    entgegen, und nach Discord-Anmeldung, Wiederherstellungslink oder
    Discord-Verbindung traegt ihre Adresse Anmeldedaten im Fragment. Auf
    diesen Seiten laeuft seither kein Skript eines Nebenhosts, und auf allen
-   anderen geht die Adresse ohne Fragment an den Zaehler.
+   anderen geht die Adresse ohne Abfrage und ohne Fragment an den Zaehler.
 
    Fuenf Zusicherungen, jede mit Soll/Ist-Zeile:
 
@@ -24,16 +24,20 @@
         wieder, hat der Eintrag seinen Anlass verloren.
      3  Pfadregel: keine Seite unter account/ bzw. de/account/ (samt
         account.html, de/account.html) laedt den Zaehler — auch eine
-        neue, noch nicht eingetragene nicht.
+        neue, noch nicht eingetragene nicht. Laedt eine Kontoseite sonst
+        ein Skript von einem fremden Host, meldet das Tor eine WARNUNG
+        (blockt nicht: ein Pruefdienst gegen Massenregistrierung kann
+        dort gewollt sein, das entscheidet ein Mensch).
      4  Jeder Zaehler-Tag traegt data-exclude-hash="true" und
         data-exclude-search="true", nennt in data-before-send einen Haken,
         und dieselbe Seite definiert ihn inline (window.<name> = …).
         Fehlt der Haken, schickt Umami ungefiltert.
      5  Jede verschiedene Fassung des Hakens aus dem gebauten Stand laeuft
-        in node:vm: das Fragment verschwindet aus url und referrer, eine
-        Adresse ohne Fragment kommt unveraendert durch, und ein Aufruf
-        ohne url/referrer wirft nicht (ein Wurf im Haken legt die
-        Zaehlung still).
+        in node:vm: Abfrage und Fragment verschwinden aus url und
+        referrer, als volle Adresse wie als reiner Pfad (aeltere Umami-
+        Fassungen schicken nur den Pfad), eine Adresse ohne beides kommt
+        unveraendert durch, und ein Aufruf ohne url/referrer wirft nicht
+        (ein Wurf im Haken legt die Zaehlung still).
 
    Den Zaehler erkennt das Tor am Umami-Merkmal `data-website-id`, nicht
    am Host — zieht das Skript auf einen anderen Host um, bleibt das Tor
@@ -91,6 +95,9 @@ const KEIN_ZAEHLER = [
 ];
 
 const KONTO_PFAD = /^(?:de\/)?account(?:\.html$|\/)/;
+// Skript mit absoluter oder protokollrelativer Adresse = fremder Host
+// (eigene Skripte bindet der Build mit /_astro/… bzw. /assets/… ein).
+const FREMDES_SKRIPT = /<script\b[^>]*\ssrc="((?:https?:)?\/\/[^"]+)"/g;
 const LAYOUT_MERKMAL = /<meta name="theme-color"[^>]*\sdata-dark="/;
 const ZAEHLER_TAG = /<script\b[^>]*\sdata-website-id="[^"]*"[^>]*>/g;
 const attr = (tag, name) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1];
@@ -125,6 +132,7 @@ const hakenFassungen = new Map(); // Quelltext -> erste Seite
 let layoutSeiten = 0, zaehlerSeiten = 0, zaehlerTags = 0;
 const layoutOhneZaehler = [];
 const kontoMitZaehler = [];
+const kontoFremdeSkripte = [];
 const tagMaengel = [];
 
 const INLINE_SKRIPT = /<script\b(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g;
@@ -139,6 +147,8 @@ for (const s of seiten) {
 
   if (layout && !tags.length && !ausnahmeNach.has(s)) layoutOhneZaehler.push(s);
   if (tags.length && KONTO_PFAD.test(s)) kontoMitZaehler.push(s);
+  if (KONTO_PFAD.test(s))
+    for (const [, src] of html.matchAll(FREMDES_SKRIPT)) kontoFremdeSkripte.push(`${s}: ${src}`);
 
   for (const tag of tags) {
     const maengel = [];
@@ -191,6 +201,10 @@ for (const s of kontoMitZaehler)
 const kontoOhneEintrag = kontoSeiten.filter((s) => !ausnahmeNach.has(s));
 for (const s of kontoOhneEintrag)
   fail(`${s}: Kontoseite ohne Eintrag in KEIN_ZAEHLER — mit Anlass eintragen`);
+console.log(`    Skripte fremder Hosts auf Kontoseiten (WARNUNG, blockt nicht): ${kontoFremdeSkripte.length}`);
+for (const w of kontoFremdeSkripte.slice(0, 10))
+  console.log(`    WARNUNG ${w} — laeuft neben Passwortfeld und Sitzung; gewollt? Sonst entfernen`);
+if (kontoFremdeSkripte.length > 10) console.log(`    WARNUNG … und ${kontoFremdeSkripte.length - 10} weitere`);
 
 /* ---- [4] Attribute und Haken an jedem Tag ---- */
 console.log('\n[4] Jeder Zaehler-Tag: Fragment und Abfrage ausgeschlossen, Haken definiert');
@@ -199,7 +213,7 @@ for (const m of tagMaengel.slice(0, 20)) fail(m);
 if (tagMaengel.length > 20) fail(`… und ${tagMaengel.length - 20} weitere mangelhafte Tags`);
 
 /* ---- [5] Der ausgelieferte Haken, ausgefuehrt ---- */
-console.log('\n[5] Der ausgelieferte Haken schneidet das Fragment ab (node:vm)');
+console.log('\n[5] Der ausgelieferte Haken schneidet Abfrage und Fragment ab (node:vm)');
 function fahre(quelle, name) {
   const ctx = {
     navigator: { webdriver: false, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36' },
@@ -225,22 +239,31 @@ for (const [quelle, { seite, name }] of hakenFassungen) {
     if (m) fail(`${seite}: ${titel} — ${m}`);
   };
   probe(
-    'Adresse mit Fragment',
-    { url: 'https://verse-base.com/schiffe/probe.html?v=1#abschnitt&x=1', referrer: 'https://verse-base.com/account/login.html#y=2', website: 'w' },
+    'volle Adresse mit Abfrage und Fragment',
+    { url: 'https://verse-base.com/schiffe/probe.html?v=1&code=2#abschnitt&x=1', referrer: 'https://verse-base.com/account/login.html?confirmed=1#y=2', website: 'w' },
     (r) =>
       !r ? 'liefert null fuer einen normalen Aufruf'
-        : r.url !== 'https://verse-base.com/schiffe/probe.html?v=1' ? `url bleibt "${r.url}"`
+        : r.url !== 'https://verse-base.com/schiffe/probe.html' ? `url bleibt "${r.url}"`
         : r.referrer !== 'https://verse-base.com/account/login.html' ? `referrer bleibt "${r.referrer}"`
         : null,
   );
   probe(
-    'Adresse ohne Fragment',
+    'reiner Pfad mit Abfrage und Fragment',
+    { url: '/schiffe/probe.html?token_hash=1&type=x#abschnitt', referrer: '/archiv.html#y', website: 'w' },
+    (r) =>
+      !r ? 'liefert null fuer einen normalen Aufruf'
+        : r.url !== '/schiffe/probe.html' ? `url bleibt "${r.url}"`
+        : r.referrer !== '/archiv.html' ? `referrer bleibt "${r.referrer}"`
+        : null,
+  );
+  probe(
+    'Adresse ohne Abfrage und Fragment',
     { url: 'https://verse-base.com/support.html', referrer: '', website: 'w' },
     (r) => (!r ? 'liefert null fuer einen normalen Aufruf' : r.url !== 'https://verse-base.com/support.html' ? `url wird zu "${r.url}"` : null),
   );
   probe('Aufruf ohne url/referrer', { website: 'w', name: 'probe' }, () => null);
 }
-console.log(`    Haken-Fassungen ausgefuehrt: ${hakenGeprueft}   je 3 Proben`);
+console.log(`    Haken-Fassungen ausgefuehrt: ${hakenGeprueft}   je 4 Proben`);
 
 /* ---- Selbstauskunft + Klinken ---- */
 console.log('\nSelbstauskunft');

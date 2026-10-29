@@ -380,9 +380,12 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       oder `?` steht, gehoert der Seite (Sprungmarken, Filterstand, nach
       einem Anmelde-Ruecksprung auch Anmeldedaten) und nicht in die
       Statistik. `data-exclude-hash`/`data-exclude-search` sagen das dem
-      Skript selbst; vbZaehlen schneidet das Fragment von Adresse und
-      Herkunft zusaetzlich ab, damit es nicht an der Version des Zaehlers
-      haengt, ob er die beiden Attribute kennt. Folge fuer die Zahlen:
+      Skript selbst; vbZaehlen schneidet Abfrage und Fragment von Adresse
+      und Herkunft zusaetzlich ab, damit es nicht an der Version des
+      Zaehlers haengt, ob er die beiden Attribute kennt. Das gilt auch fuer
+      Einmal-Schluessel aus Mail-Links (`?token_hash=`) und den `?code=`
+      eines Ruecksprungs, falls einer doch auf einer gezaehlten Seite
+      landet (etwa ueber die Site-URL als Rueckfallziel). Folge fuer die Zahlen:
       Kampagnen-Parameter (utm_*) und Sprungziele erscheinen nicht mehr.
       scripts/verify-zaehler.mjs fuehrt vbZaehlen aus dem gebauten Stand aus
       und haelt beides fest. */}
@@ -398,8 +401,8 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
               if (BOT.indexOf(s) !== -1) return null;
               if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
             } catch (e) {}
-            if (daten && daten.url) daten.url = String(daten.url).split('#')[0];
-            if (daten && daten.referrer) daten.referrer = String(daten.referrer).split('#')[0];
+            if (daten && daten.url) daten.url = String(daten.url).split(/[?#]/)[0];
+            if (daten && daten.referrer) daten.referrer = String(daten.referrer).split(/[?#]/)[0];
             return daten;
           };
         })();

@@ -277,7 +277,7 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet das Fragment von Adresse und Herkunft ab (in node:vm ausgefuehrt), Klinken fuer Layout-Seiten, Zaehler-Seiten und Haken-Fassungen',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad (in node:vm ausgefuehrt), Klinken fuer Layout-Seiten, Zaehler-Seiten und Haken-Fassungen; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
   },
   {
     id: 'audit:site',

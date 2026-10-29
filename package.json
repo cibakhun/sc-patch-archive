@@ -30,6 +30,7 @@
     "verify:hangar": "node scripts/verify-hangar.mjs",
     "verify:hangar-hall": "node scripts/verify-hangar-hall.mjs",
     "verify:hangar-gear": "node scripts/verify-hangar-gear.mjs",
+    "verify:zaehler": "node scripts/verify-zaehler.mjs",
     "verify:theme": "node scripts/verify-theme-gen.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
@@ -82,7 +83,6 @@
     "audit:site": "node scripts/audit-site.mjs",
     "audit:csp": "node scripts/audit-csp.mjs",
     "verify:gate": "node scripts/verify-gate.mjs",
-    "verify:zaehler": "node scripts/verify-zaehler.mjs",
     "verify:windows": "node scripts/verify-windows.mjs",
     "pretest:e2e": "node scripts/_test-prereqs.mjs",
     "test:e2e": "node --test tests/e2e/**/*.test.js"
