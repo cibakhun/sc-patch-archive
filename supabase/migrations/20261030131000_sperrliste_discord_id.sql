@@ -26,7 +26,9 @@
 --      abgesicherter Block).
 --   4. gate_verdict sperrt, wenn die Konto-ID ODER eine mit dem Konto
 --      verbundene Discord-Identitaet auf der Liste steht. Admins gehen weiter
---      vor (Betreiberentscheidung 20.08.2026, WINDOWS.md id 39).
+--      vor (Betreiberentscheidung 20.08.2026, WINDOWS.md id 39). Die
+--      Testpilot-Rolle zaehlt nur noch, wenn discord_role_state.discord_user_id
+--      eine verbundene Discord-Identitaet des Kontos ist (auth.identities).
 --   5. sync_discord_identity setzt is_tester auf false, wenn sich die
 --      gespiegelte Discord-ID aendert (die Rolle gehoerte dem alten
 --      Discord-Konto; der Bot spiegelt sie fuer das neue beim naechsten
@@ -118,7 +120,7 @@ create trigger trg_tester_blocklist_drop_empty
 update public.tester_blocklist set user_id = user_id where discord_user_id is null and user_id is not null;
 
 -- -------------------------------------------- 3. gate_verdict ---------------
--- Live-Fassung (pg_get_functiondef, 29.10.2026), geaendert nur Schritt 3.
+-- Live-Fassung (pg_get_functiondef, 29.10.2026), geaendert nur Schritt 3 und 4.
 create or replace function public.gate_verdict()
 returns json
 language plpgsql
@@ -154,10 +156,15 @@ begin
   ) then
     return json_build_object('allowed', false, 'grund', 'gesperrt');
 
-  -- 4. Discord-Testpilot-Rolle (D-03/D-08).
+  -- 4. Discord-Testpilot-Rolle (D-03/D-08). Zaehlt nur, solange die
+  --    gespiegelte Discord-ID noch eine verbundene Identitaet des Kontos ist.
   elsif exists (
-    select 1 from public.discord_role_state
-    where user_id = v_uid and is_tester = true
+    select 1 from public.discord_role_state d
+    where d.user_id = v_uid and d.is_tester = true
+      and exists (
+        select 1 from auth.identities i
+        where i.user_id = v_uid and i.provider = 'discord'
+          and i.provider_id = d.discord_user_id)
   ) then
     v_reason := 'tester';
   else

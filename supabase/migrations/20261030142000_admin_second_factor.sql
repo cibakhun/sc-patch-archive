@@ -96,8 +96,8 @@ begin
 
   select md5(replace(p.prosrc, chr(13), '')) into v_gate
   from pg_catalog.pg_proc p where p.oid = 'public.gate_verdict()'::regprocedure;
-  if v_gate not in ('4063edf137ee214698b82fcf5e091289',   -- 20261030131000
-                    '8fb26cc37f41d8364719bbb02c8f15a0') then -- diese Fassung (erneuter Lauf)
+  if v_gate not in ('3ba3588b88485118649c120f694ffbb0',   -- 20261030131000
+                    '73fa946bead70240ba44cedc0009a484') then -- diese Fassung (erneuter Lauf)
     raise exception 'admin_second_factor: gate_verdict live (md5 %) ist nicht die erwartete Grundlage -- Datei auf den Live-Stand umbauen', v_gate;
   end if;
 
@@ -224,10 +224,15 @@ begin
   ) then
     return json_build_object('allowed', false, 'grund', 'gesperrt');
 
-  -- 4. Discord-Testpilot-Rolle (D-03/D-08).
+  -- 4. Discord-Testpilot-Rolle (D-03/D-08). Zaehlt nur, solange die
+  --    gespiegelte Discord-ID noch eine verbundene Identitaet des Kontos ist.
   elsif exists (
-    select 1 from public.discord_role_state
-    where user_id = v_uid and is_tester = true
+    select 1 from public.discord_role_state d
+    where d.user_id = v_uid and d.is_tester = true
+      and exists (
+        select 1 from auth.identities i
+        where i.user_id = v_uid and i.provider = 'discord'
+          and i.provider_id = d.discord_user_id)
   ) then
     v_reason := 'tester';
   else
@@ -283,7 +288,7 @@ $pruefung$;
 --   0b9a80bd265116da8ca674fc374d6fe5).
 --   gate_verdict: Abschnitt 3 ("create or replace function
 --   public.gate_verdict()") aus 20261030131000_sperrliste_discord_id.sql
---   unveraendert erneut einspielen (md5 4063edf137ee214698b82fcf5e091289).
+--   unveraendert erneut einspielen (md5 3ba3588b88485118649c120f694ffbb0).
 --   Nur die Funktionen von Hand zu aendern (z. B. allein die if-Zeile),
 --   laesst die Kommentare stehen; dann passt der md5 in Abschnitt 0 nicht
 --   mehr, und ein spaeteres erneutes Einspielen dieser Datei bricht ab.
