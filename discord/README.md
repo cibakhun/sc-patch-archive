@@ -74,7 +74,8 @@ name it anything (the builder renames it to *VerseBase*). Done.
    ```
    DISCORD_TOKEN=your-token-here
    ```
-4. *(Optional but tidy)* On the **Bot** tab, turn **off** "Public Bot" so only you can invite it.
+4. On the **Bot** tab, turn **off** "Public Bot" so only you can invite it. Not optional:
+   with it on, anyone who knows the application ID can add the bot to their own server.
 
 **One privileged intent IS required, since Phase 14 (Testpilot gate):** the
 always-on bot (`bot/`) mirrors membership in the `tester` role ("Test
@@ -98,6 +99,18 @@ https://discord.com/oauth2/authorize?client_id=YOUR_APPLICATION_ID&scope=bot+app
 ```
 
 Pick your new server, keep **Administrator** ticked, authorise.
+
+> **Administrator is for the maintenance scripts only.** `npm run build`, `order`,
+> `audit`, `prune` (with `--archive`/`--delete`), `prune:invite` and
+> `clean-orphaned-messages.mjs --delete` need it. The always-on bot (`bot/`) shares
+> this application and needs only Manage Roles plus the basics (see
+> `bot/README.md`). Once the server is built, authorise the bot a second time with
+> the least-privilege link from `bot/README.md` (`permissions=2416036864`): that
+> switches **on** exactly Manage Roles, View Channels, Send Messages, Embed Links,
+> Attach Files, Read Message History and Use Application Commands. Then Server
+> Settings → **Roles** → the bot's role → switch **Administrator off**. Switch it
+> back on only while one of the scripts above runs, then off again. A leaked bot
+> token is then a role manager, not a server owner.
 
 ---
 

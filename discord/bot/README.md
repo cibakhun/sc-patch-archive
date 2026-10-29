@@ -92,7 +92,16 @@ https://discord.com/oauth2/authorize?client_id=YOUR_APP_ID&scope=bot+application
 ```
 
 That grant = View Channels, Send Messages, Embed Links, Attach Files, Read
-History, **Manage Roles**, Use Application Commands.
+History, **Manage Roles**, Use Application Commands. The bot must **not** hold
+Administrator in normal operation. At start it logs a warning if it does, and
+lists any of these permissions it is missing. One feature needs more: uploading
+new manufacturer emoji needs **Manage Expressions**. Without it the bot skips
+the upload with a log line; grant it (or Administrator) briefly when new
+manufacturers arrive.
+
+> Developer Portal → **Bot** → turn **"Public Bot" off**. Otherwise anyone can
+> add the bot to their own server. The mirror ignores every server except the
+> home guild anyway, but there is no reason to let it in.
 
 > After inviting, drag the bot's role **near the top** of Settings → Roles.
 > The bot can only create/assign rank roles that sit *below* its own.
@@ -103,7 +112,7 @@ History, **Manage Roles**, Use Application Commands.
 cd discord/bot
 cp .env.example .env      # then paste DISCORD_TOKEN (and GUILD_ID for instant commands)
 npm install
-npm run selftest          # optional: 27 offline checks
+npm run selftest          # optional: 58 offline checks (also run in the Docker build)
 npm run register          # push slash commands (instant if GUILD_ID is set)
 npm start                 # go live
 ```
@@ -184,11 +193,34 @@ install, or `card.image` is off, `/rank` falls back to a rich embed. Point
 
 ---
 
+## Website mirror (Testpilot role and rank on the account page)
+
+The bot mirrors two things to the website's database for members who linked
+their Discord account: whether they hold the Testpilot role, and their
+rank/level/XP. It does this **only for the home guild** (`HOME_GUILD_ID`,
+see `.env.example`) and finds the role by ID (`TESTER_ROLE_ID`).
+
+All writes go through the Supabase Edge Function `bot-role-sync`, which
+accepts exactly three requests and nothing else. Set `SUPABASE_URL` and
+`BOT_ROLE_SYNC_SECRET` (the same value as the function's secret). The old
+way, `SUPABASE_SERVICE_ROLE_KEY`, still works as a fallback while the function
+is not deployed, but that key bypasses every access rule of the whole
+database: remove it from the bot's environment as soon as the function is
+live. The log says at every start which way is in use.
+
+---
+
 ## Data & backup
 
 Everything lives in `data/leveling.db` (SQLite, WAL mode). Back it up by copying
 the `data/` folder while the bot is stopped, or with SQLite's online backup. It's
 git-ignored.
+
+**Retention.** When someone leaves the server, their row is marked and drops off
+the leaderboard. After `LEAVER_RETENTION_DAYS` (default 30) a daily job deletes
+it, together with their bug-report XP locks; locks older than 30 days go too.
+Rejoining before the deadline keeps the rank. Each run logs how many rows it
+checked, marked and deleted.
 
 ## Troubleshooting
 
