@@ -597,7 +597,20 @@ const OBERGRENZE_RAND = { tris: 10000, mats: 10, bytes: 1e6 };
 // glieder 474, gestapelt 197, spuren 244, arten 171, fach 104, geprueft
 // 455, hochGeprueft 74, frei 289, fahrspuren 1, leitungen 8, inNischen 135;
 // angehoben: mittel 16.
-const KLINKE_DEKO = { zonen: 36, mittel: 16, glieder: 474, gestapelt: 197, spuren: 244, arten: 171, fach: 104, geprueft: 455, hochGeprueft: 74, massstaebe: 6, gerueckt: 5, frei: 289, gehwege: 6, fahrspuren: 1, leitungen: 8, luftEnden: 6, nischen: 2, inNischen: 135 };
+// Gesenkt am 27.10.2026 (Betreiber: „mach mal sinnvolle einrichtung,
+// momentan ist es einfach asset ausstellung“): jede Aufgabe einmal, dort wo
+// sie gebraucht wird. Gegangen sind die Doppelten und Schaustuecke: vier
+// weitere Werkstaetten und Werkbaenke, zweite Tankstelle, Generatoren, drei
+// weitere Lager, Stellplaetze mit Staplern ohne Arbeit, Lueftung (damit alle
+// Luftschlaeuche), Reifenlager, was vor dem Tor stand; an den Tueren der
+// Aufzugstuerme Bank, Wasser und Eimer. Stand: 21 Zonen (14 ab mittel),
+// 243 Glieder (98 gestapelt), 185 Spuren, 121 Arten, 47 in Regalfaechern,
+// 229 im Band (44 hohe darueber), 154 frei gedreht, 4 Leitungen, 0 Enden
+// von Luftschlaeuchen, 2 Nischen mit 67 Stuecken. Gesenkt: zonen 21,
+// mittel 14, glieder 243, gestapelt 98, spuren 185, arten 121, fach 47,
+// geprueft 229, hochGeprueft 44, frei 154, leitungen 4, luftEnden 0,
+// inNischen 67.
+const KLINKE_DEKO = { zonen: 21, mittel: 14, glieder: 243, gestapelt: 98, spuren: 185, arten: 121, fach: 47, geprueft: 229, hochGeprueft: 44, massstaebe: 6, gerueckt: 5, frei: 154, gehwege: 6, fahrspuren: 1, leitungen: 4, luftEnden: 0, nischen: 2, inNischen: 67 };
 const OBERGRENZE_DEKO = { mats: 178, tris: { mittel: 630000, hoch: 1900000 }, bytes: 14e6 };
 // Werkhalle ([18]): so viele Dreiecke Wand liegen mindestens in der Scheibe,
 // die der Viewer als Durchgang ausschneidet, und so viele Ecken des Logos
@@ -631,8 +644,16 @@ const STUFEN_MAX = 3500;
 // gesenkt (443 000 -> 431 000), weil PTV, ROC und Ursa mit ihren Konsolen
 // aus der Nische gegangen sind (Grund siehe KLINKE_DEKO), die uebrigen
 // Werte angehoben.
-const KLINKE_DEKO_SCHICHTEN = { zeilen: 318, blend: 156, abnutzung: 137, detail: 93, normale: 90, karten: 66, ecken: 431000 };
-const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1100000 };
+// Einrichtung nach Zweck (27.10.2026, Grund siehe KLINKE_DEKO): 270 Zeilen,
+// 132 / 210 / 76 / 77, 71 Karten, 311 672 Ecken, Raster 1208 KB. Gesenkt
+// zeilen, blend, detail, normale und ecken (431 000 -> 311 000), weil die
+// Haelfte der Stuecke gegangen ist; abnutzung (137 -> 210) und karten
+// (66 -> 71) angehoben: Der Satz war zuletzt am 24.10. gebaut, die
+// Abnutzungskarten im Kartenordner kamen am 25.10. (Hangar-Flotte, c6524030)
+// und sind erst mit diesem Neubau darin. Obergrenze des Rasters darum
+// 1100 -> 1250 KB.
+const KLINKE_DEKO_SCHICHTEN = { zeilen: 270, blend: 132, abnutzung: 210, detail: 76, normale: 77, karten: 71, ecken: 311000 };
+const OBERGRENZE_DEKO_SCHICHTEN = { bytes: 1250000 };
 const KLINKE_FUELLUNG ={ 'revelyork-single': { 'Holzblende auf dem Deckenkasten': 14, 'Rohrstueck mitten an der Decke': 142, 'Rueckwand der Schlitze unten im Nordtor': 4 } };
 
 const findings = [];
@@ -1716,13 +1737,14 @@ const FAHRSPUR = { laenge: 8, rand: 0.3 };
 const LUFT_OEFFNUNG = {
   luecke: 0.05, versatz: 0.1, spiel: 10, mess: 0.03,
   schlauch: /airduct_hose_(straight|corner|stepdown)/,
-  teile: {
-    prop_schlauch_lt_airduct_hose_junction_a: [[0.626, 0.376, -0.007, 0]],
-    prop_schlauch_lt_airduct_hose_straight_8m_a: [[-3.963, 0.295, 0.086, 180], [3.968, 0.296, 0.092, 0]],
-    prop_schlauch_lt_airduct_hose_corner_1m_a: [[0.655, 0.296, 0.331, 0], [-0.352, 0.297, -0.645, 90]],
-    prop_schlauch_lt_airduct_hose_stepdown_0_025m_a: [[-1, 0.294, 0.009, 180], [1.005, 0.529, 0.023, 0]],
-    prop_schlauch_lt_sm_airduct_fan_a_b: [[-0.542, 0.573, 0, 180], [0.542, 0.573, 0, 0]],
-  },
+  // leer seit 27.10.2026: Die Lueftung ist mit der Einrichtung nach Zweck
+  // gegangen (KLINKE_DEKO); stellt die Deko wieder Luftschlaeuche, verlangt
+  // [17] ihre Oeffnungen hier. Gemessen waren: junction_a [0.626, 0.376,
+  // -0.007, 0]; straight_8m_a [-3.963, 0.295, 0.086, 180], [3.968, 0.296,
+  // 0.092, 0]; corner_1m_a [0.655, 0.296, 0.331, 0], [-0.352, 0.297, -0.645,
+  // 90]; stepdown_0_025m_a [-1, 0.294, 0.009, 180], [1.005, 0.529, 0.023, 0];
+  // sm_airduct_fan_a_b [-0.542, 0.573, 0, 180], [0.542, 0.573, 0, 0]
+  teile: {},
 };
 const knotenDreiecke = async (file) => {
   const out = new Map();

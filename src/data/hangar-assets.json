@@ -646,11 +646,43 @@
     },
     "aegs-javelin": {
       "url": "/hangar/ships/aegs-javelin.glb",
-      "v": "b3ec680e",
+      "v": "80533623",
       "tris": 374924,
       "trisRaw": 2725508,
-      "textures": 132,
-      "attached": 0,
+      "textures": 135,
+      "attached": {
+        "attached": 2,
+        "color": 1,
+        "normal": 1,
+        "flatNormals": 0,
+        "rough": 1,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 1,
+        "dropped": 0,
+        "created": 1,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 609,
+          "diffuse": 535,
+          "normal": 491,
+          "trisOhneMaterial": 305060,
+          "tris": 2725508
+        },
+        "after": {
+          "materials": 605,
+          "diffuse": 531,
+          "normal": 489,
+          "trisOhneMaterial": 304872,
+          "tris": 2725200
+        }
+      },
       "swap": {
         "hardpoint_turret_rear_lower": 2,
         "hardpoint_turret_front_lower": 2,
@@ -683,11 +715,11 @@
         "bits": 16,
         "degenerate": 2.6
       },
-      "bytes": 3167408,
+      "bytes": 3168720,
       "pool": {
-        "images": 132,
-        "bytes": 8773070,
-        "fresh": 5096750
+        "images": 135,
+        "bytes": 9471008,
+        "fresh": 60328
       }
     },
     "aegs-reclaimer-showdown": {
@@ -2181,11 +2213,43 @@
     },
     "anvl-hornet-f7a-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk2.glb",
-      "v": "d9127d5e",
+      "v": "398501f5",
       "tris": 213429,
       "trisRaw": 227066,
       "textures": 166,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 4,
+        "dropped": 0,
+        "created": 0,
+        "reused": 4
+      },
+      "cover": {
+        "before": {
+          "materials": 147,
+          "diffuse": 140,
+          "normal": 126,
+          "trisOhneMaterial": 112,
+          "tris": 227066
+        },
+        "after": {
+          "materials": 143,
+          "diffuse": 136,
+          "normal": 124,
+          "trisOhneMaterial": 0,
+          "tris": 226839
+        }
+      },
       "swap": {
         "hardpoint_weapon_center": 2,
         "hardpoint_weapon_left_wing": 1,
@@ -2208,7 +2272,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2224,20 +2289,52 @@
         "bits": 18,
         "degenerate": 1.7
       },
-      "bytes": 1923404,
+      "bytes": 1923912,
       "pool": {
         "images": 166,
         "bytes": 8705146,
-        "fresh": 15334
+        "fresh": 0
       }
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "62515b3f",
-      "tris": 203601,
+      "v": "a4b78bf0",
+      "tris": 203607,
       "trisRaw": 219205,
       "textures": 161,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 4,
+        "dropped": 0,
+        "created": 0,
+        "reused": 4
+      },
+      "cover": {
+        "before": {
+          "materials": 135,
+          "diffuse": 127,
+          "normal": 115,
+          "trisOhneMaterial": 112,
+          "tris": 219205
+        },
+        "after": {
+          "materials": 131,
+          "diffuse": 123,
+          "normal": 113,
+          "trisOhneMaterial": 0,
+          "tris": 218978
+        }
+      },
       "swap": {
         "hardpoint_weapon_left_wing": 1,
         "hardpoint_weapon_right_wing": 1
@@ -2258,7 +2355,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2274,7 +2372,7 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1850360,
+      "bytes": 1850532,
       "pool": {
         "images": 161,
         "bytes": 8950396,
@@ -2334,11 +2432,43 @@
     },
     "anvl-hornet-f7c": {
       "url": "/hangar/ships/anvl-hornet-f7c.glb",
-      "v": "84c73543",
+      "v": "18c89008",
       "tris": 199630,
       "trisRaw": 203433,
-      "textures": 128,
-      "attached": 0,
+      "textures": 134,
+      "attached": {
+        "attached": 8,
+        "color": 5,
+        "normal": 3,
+        "flatNormals": 1,
+        "rough": 4,
+        "tiled": 0,
+        "blended": 2,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 12,
+        "dropped": 0,
+        "created": 5,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 119,
+          "diffuse": 118,
+          "normal": 109,
+          "trisOhneMaterial": 20118,
+          "tris": 203433
+        },
+        "after": {
+          "materials": 123,
+          "diffuse": 122,
+          "normal": 113,
+          "trisOhneMaterial": 0,
+          "tris": 203430
+        }
+      },
       "swap": {
         "hardpoint_class_2_left_wing": 1,
         "hardpoint_class_2_right_wing": 1
@@ -2359,7 +2489,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2373,13 +2504,13 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2.2
+        "degenerate": 2.1
       },
-      "bytes": 1754932,
+      "bytes": 1848184,
       "pool": {
-        "images": 128,
-        "bytes": 6761718,
-        "fresh": 0
+        "images": 134,
+        "bytes": 6895950,
+        "fresh": 53808
       }
     },
     "anvl-hornet-f7cm-heartseeker": {
@@ -2436,11 +2567,43 @@
     },
     "anvl-hornet-f7cm-mk2-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2-heartseeker.glb",
-      "v": "faa6d003",
-      "tris": 213611,
+      "v": "86c3589d",
+      "tris": 213635,
       "trisRaw": 350880,
       "textures": 164,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 4,
+        "dropped": 0,
+        "created": 0,
+        "reused": 4
+      },
+      "cover": {
+        "before": {
+          "materials": 164,
+          "diffuse": 158,
+          "normal": 138,
+          "trisOhneMaterial": 112,
+          "tris": 350880
+        },
+        "after": {
+          "materials": 159,
+          "diffuse": 153,
+          "normal": 136,
+          "trisOhneMaterial": 0,
+          "tris": 350829
+        }
+      },
       "swap": {
         "hardpoint_weapon_left_wing": 1,
         "hardpoint_weapon_nose": 2,
@@ -2462,7 +2625,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2478,20 +2642,52 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2409476,
+      "bytes": 2409592,
       "pool": {
         "images": 164,
         "bytes": 8270888,
-        "fresh": 9794
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cm-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2.glb",
-      "v": "afa74126",
-      "tris": 217631,
+      "v": "c1843716",
+      "tris": 217659,
       "trisRaw": 377198,
       "textures": 165,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 4,
+        "dropped": 0,
+        "created": 0,
+        "reused": 4
+      },
+      "cover": {
+        "before": {
+          "materials": 172,
+          "diffuse": 165,
+          "normal": 144,
+          "trisOhneMaterial": 112,
+          "tris": 377198
+        },
+        "after": {
+          "materials": 167,
+          "diffuse": 160,
+          "normal": 142,
+          "trisOhneMaterial": 0,
+          "tris": 377147
+        }
+      },
       "swap": {
         "hardpoint_weapon_center.0": 2,
         "hardpoint_weapon_left_wing": 1,
@@ -2514,7 +2710,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2530,11 +2727,11 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2460580,
+      "bytes": 2461220,
       "pool": {
         "images": 165,
         "bytes": 8276960,
-        "fresh": 15866
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cm": {
@@ -2591,11 +2788,43 @@
     },
     "anvl-hornet-f7cr-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cr-mk2.glb",
-      "v": "b9899f05",
-      "tris": 210759,
+      "v": "f2bb0a8f",
+      "tris": 210779,
       "trisRaw": 247495,
       "textures": 152,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 4,
+        "dropped": 0,
+        "created": 0,
+        "reused": 4
+      },
+      "cover": {
+        "before": {
+          "materials": 125,
+          "diffuse": 119,
+          "normal": 107,
+          "trisOhneMaterial": 112,
+          "tris": 247495
+        },
+        "after": {
+          "materials": 121,
+          "diffuse": 115,
+          "normal": 105,
+          "trisOhneMaterial": 0,
+          "tris": 247268
+        }
+      },
       "swap": {
         "hardpoint_weapon_left_wing": 1,
         "hardpoint_weapon_right_wing": 1
@@ -2616,7 +2845,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2632,11 +2862,11 @@
         "bits": 18,
         "degenerate": 1.9
       },
-      "bytes": 1953072,
+      "bytes": 1953356,
       "pool": {
         "images": 152,
         "bytes": 8336076,
-        "fresh": 8120
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cr": {
@@ -2691,11 +2921,43 @@
     },
     "anvl-hornet-f7cs-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cs-mk2.glb",
-      "v": "40d320cf",
-      "tris": 205505,
+      "v": "95633024",
+      "tris": 205515,
       "trisRaw": 228045,
       "textures": 152,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 4,
+        "dropped": 0,
+        "created": 0,
+        "reused": 4
+      },
+      "cover": {
+        "before": {
+          "materials": 123,
+          "diffuse": 118,
+          "normal": 105,
+          "trisOhneMaterial": 112,
+          "tris": 228045
+        },
+        "after": {
+          "materials": 119,
+          "diffuse": 114,
+          "normal": 103,
+          "trisOhneMaterial": 0,
+          "tris": 227818
+        }
+      },
       "swap": {
         "hardpoint_weapon_left_wing": 1,
         "hardpoint_weapon_right_wing": 1
@@ -2716,7 +2978,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": -0.001
       },
       "budget": {
         "tris": 200000,
@@ -2732,11 +2995,11 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1868832,
+      "bytes": 1869328,
       "pool": {
         "images": 152,
         "bytes": 8333440,
-        "fresh": 2348
+        "fresh": 0
       }
     },
     "anvl-hornet-f7cs": {
@@ -4767,7 +5030,39 @@
       "tris": 837634,
       "trisRaw": 3390526,
       "textures": 368,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 628,
+          "diffuse": 605,
+          "normal": 518,
+          "trisOhneMaterial": 22,
+          "tris": 3390526
+        },
+        "after": {
+          "materials": 620,
+          "diffuse": 597,
+          "normal": 515,
+          "trisOhneMaterial": 22,
+          "tris": 3390249
+        }
+      },
       "swap": {
         "hardpoint_turret_top": 2,
         "hardpoint_turret_bottom": 2,
@@ -4799,6 +5094,7 @@
           0,
           -3.622
         ],
+        "sink": -0.899,
         "why": "Aufstandspunkte weichen bis 3.622 m ab"
       },
       "budget": {
@@ -4819,7 +5115,7 @@
       "pool": {
         "images": 368,
         "bytes": 18007562,
-        "fresh": 866
+        "fresh": 0
       }
     },
     "drak-caterpillar": {
@@ -4828,7 +5124,39 @@
       "tris": 837626,
       "trisRaw": 3209260,
       "textures": 370,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 633,
+          "diffuse": 610,
+          "normal": 522,
+          "trisOhneMaterial": 22,
+          "tris": 3209260
+        },
+        "after": {
+          "materials": 625,
+          "diffuse": 602,
+          "normal": 519,
+          "trisOhneMaterial": 22,
+          "tris": 3208983
+        }
+      },
       "swap": {
         "hardpoint_turret_top": 2,
         "hardpoint_turret_bottom": 2,
@@ -4860,6 +5188,7 @@
           0,
           -3.622
         ],
+        "sink": -0.899,
         "why": "Aufstandspunkte weichen bis 3.622 m ab"
       },
       "budget": {
@@ -4880,7 +5209,7 @@
       "pool": {
         "images": 370,
         "bytes": 18009104,
-        "fresh": 1574384
+        "fresh": 0
       }
     },
     "drak-clipper": {
@@ -5952,11 +6281,44 @@
     },
     "espr-talon-shrike": {
       "url": "/hangar/ships/espr-talon-shrike.glb",
-      "v": "80e3140a",
-      "tris": 260900,
+      "v": "6e00c718",
+      "tris": 260930,
       "trisRaw": 301395,
-      "textures": 225,
-      "attached": 0,
+      "textures": 236,
+      "attached": {
+        "attached": 10,
+        "color": 6,
+        "normal": 4,
+        "flatNormals": 2,
+        "rough": 6,
+        "tiled": 0,
+        "blended": 3,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 8,
+        "dropped": 0,
+        "created": 6,
+        "reused": 0,
+        "layered": 2
+      },
+      "cover": {
+        "before": {
+          "materials": 135,
+          "diffuse": 130,
+          "normal": 113,
+          "trisOhneMaterial": 192,
+          "tris": 301395
+        },
+        "after": {
+          "materials": 140,
+          "diffuse": 135,
+          "normal": 119,
+          "trisOhneMaterial": 0,
+          "tris": 301392
+        }
+      },
       "swap": {
         "hardpoint_gun_left": 1,
         "hardpoint_gun_right": 1
@@ -5978,7 +6340,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -5994,20 +6357,53 @@
         "bits": 21,
         "degenerate": 1.2
       },
-      "bytes": 2868696,
+      "bytes": 2876604,
       "pool": {
-        "images": 225,
-        "bytes": 10039280,
-        "fresh": 0
+        "images": 236,
+        "bytes": 10270458,
+        "fresh": 18882
       }
     },
     "espr-talon": {
       "url": "/hangar/ships/espr-talon.glb",
-      "v": "1b6caf90",
-      "tris": 239696,
+      "v": "60b9ec6e",
+      "tris": 239726,
       "trisRaw": 306971,
-      "textures": 231,
-      "attached": 0,
+      "textures": 242,
+      "attached": {
+        "attached": 10,
+        "color": 6,
+        "normal": 4,
+        "flatNormals": 2,
+        "rough": 6,
+        "tiled": 0,
+        "blended": 3,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 8,
+        "dropped": 0,
+        "created": 6,
+        "reused": 0,
+        "layered": 2
+      },
+      "cover": {
+        "before": {
+          "materials": 140,
+          "diffuse": 135,
+          "normal": 117,
+          "trisOhneMaterial": 192,
+          "tris": 306971
+        },
+        "after": {
+          "materials": 145,
+          "diffuse": 140,
+          "normal": 123,
+          "trisOhneMaterial": 0,
+          "tris": 306968
+        }
+      },
       "swap": {
         "hardpoint_gun_left": 1,
         "hardpoint_gun_right": 1
@@ -6029,7 +6425,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -6045,11 +6442,11 @@
         "bits": 21,
         "degenerate": 1.4
       },
-      "bytes": 2623000,
+      "bytes": 2630892,
       "pool": {
-        "images": 231,
-        "bytes": 10102904,
-        "fresh": 3148158
+        "images": 242,
+        "bytes": 10334082,
+        "fresh": 0
       }
     },
     "gama-railen": {
@@ -6112,11 +6509,43 @@
     },
     "gama-syulen": {
       "url": "/hangar/ships/gama-syulen.glb",
-      "v": "e2825bc4",
-      "tris": 284170,
+      "v": "b1fbc98d",
+      "tris": 284174,
       "trisRaw": 512001,
-      "textures": 227,
-      "attached": 0,
+      "textures": 230,
+      "attached": {
+        "attached": 4,
+        "color": 4,
+        "normal": 0,
+        "flatNormals": 4,
+        "rough": 4,
+        "tiled": 0,
+        "blended": 4,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 6,
+        "dropped": 0,
+        "created": 4,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 180,
+          "diffuse": 176,
+          "normal": 139,
+          "trisOhneMaterial": 122,
+          "tris": 512001
+        },
+        "after": {
+          "materials": 180,
+          "diffuse": 176,
+          "normal": 143,
+          "trisOhneMaterial": 0,
+          "tris": 511968
+        }
+      },
       "swap": {
         "hardpoint_weapon_bottom": 1,
         "hardpoint_weapon_left": 1,
@@ -6149,10 +6578,10 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2993568,
+      "bytes": 2996768,
       "pool": {
-        "images": 227,
-        "bytes": 10193444,
+        "images": 230,
+        "bytes": 10202968,
         "fresh": 0
       }
     },
@@ -6720,11 +7149,43 @@
     },
     "krig-p52-merlin": {
       "url": "/hangar/ships/krig-p52-merlin.glb",
-      "v": "e9a4e982",
+      "v": "fa322b5e",
       "tris": 214558,
       "trisRaw": 277630,
-      "textures": 123,
-      "attached": 0,
+      "textures": 125,
+      "attached": {
+        "attached": 1,
+        "color": 1,
+        "normal": 0,
+        "flatNormals": 1,
+        "rough": 1,
+        "tiled": 0,
+        "blended": 1,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 1,
+        "dropped": 0,
+        "created": 1,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 98,
+          "diffuse": 95,
+          "normal": 82,
+          "trisOhneMaterial": 20,
+          "tris": 277630
+        },
+        "after": {
+          "materials": 97,
+          "diffuse": 94,
+          "normal": 82,
+          "trisOhneMaterial": 0,
+          "tris": 277589
+        }
+      },
       "swap": {
         "hardpoint_weapon_gun_centermount": 1,
         "hardpoint_wing_right": 1,
@@ -6746,7 +7207,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -6762,10 +7224,10 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 1951384,
+      "bytes": 1951872,
       "pool": {
-        "images": 123,
-        "bytes": 4602406,
+        "images": 125,
+        "bytes": 4609418,
         "fresh": 0
       }
     },
@@ -8540,11 +9002,43 @@
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "907e92d1",
-      "tris": 180537,
+      "v": "9f650636",
+      "tris": 180535,
       "trisRaw": 179288,
-      "textures": 147,
-      "attached": 0,
+      "textures": 164,
+      "attached": {
+        "attached": 27,
+        "color": 21,
+        "normal": 6,
+        "flatNormals": 9,
+        "rough": 15,
+        "tiled": 2,
+        "blended": 11,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 172,
+        "dropped": 0,
+        "created": 24,
+        "reused": 6
+      },
+      "cover": {
+        "before": {
+          "materials": 119,
+          "diffuse": 118,
+          "normal": 107,
+          "trisOhneMaterial": 63291,
+          "tris": 179288
+        },
+        "after": {
+          "materials": 141,
+          "diffuse": 138,
+          "normal": 122,
+          "trisOhneMaterial": 0,
+          "tris": 179283
+        }
+      },
       "swap": {
         "hardpoint_weapon_nose": 1,
         "hardpoint_weapon_wing_right": 1,
@@ -8559,39 +9053,72 @@
       "record": "ORIG_300i",
       "game": "12913470",
       "interiorDropped": 0,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -3.702,
+        "why": "ein Teil steckt 370 cm im Boden"
       },
       "budget": {
         "tris": 200000,
         "tex": 1024
       },
       "uv": {
-        "rangeBefore": 97,
+        "rangeBefore": 114,
         "rangeAfter": 95.88,
         "bits": 19,
-        "degenerate": 3.6
+        "degenerate": 3.3
       },
-      "bytes": 1279788,
+      "bytes": 1574736,
       "pool": {
-        "images": 147,
-        "bytes": 5897334,
-        "fresh": 0
+        "images": 164,
+        "bytes": 6194730,
+        "fresh": 102534
       }
     },
     "orig-315p": {
       "url": "/hangar/ships/orig-315p.glb",
-      "v": "b485bcce",
-      "tris": 200137,
+      "v": "309d2143",
+      "tris": 200135,
       "trisRaw": 198374,
-      "textures": 157,
-      "attached": 0,
+      "textures": 173,
+      "attached": {
+        "attached": 26,
+        "color": 20,
+        "normal": 6,
+        "flatNormals": 8,
+        "rough": 14,
+        "tiled": 2,
+        "blended": 10,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 197,
+        "dropped": 0,
+        "created": 22,
+        "reused": 14
+      },
+      "cover": {
+        "before": {
+          "materials": 129,
+          "diffuse": 126,
+          "normal": 114,
+          "trisOhneMaterial": 68924,
+          "tris": 198374
+        },
+        "after": {
+          "materials": 149,
+          "diffuse": 145,
+          "normal": 128,
+          "trisOhneMaterial": 0,
+          "tris": 198369
+        }
+      },
       "swap": {
         "hardpoint_tractor": 1,
         "hardpoint_weapon_wing_right": 1,
@@ -8606,39 +9133,72 @@
       "record": "ORIG_315p",
       "game": "12913470",
       "interiorDropped": 0,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -3.702,
+        "why": "ein Teil steckt 370 cm im Boden"
       },
       "budget": {
         "tris": 200000,
         "tex": 1024
       },
       "uv": {
-        "rangeBefore": 97,
+        "rangeBefore": 114,
         "rangeAfter": 95.88,
         "bits": 19,
-        "degenerate": 3
+        "degenerate": 3.1
       },
-      "bytes": 1474876,
+      "bytes": 1786888,
       "pool": {
-        "images": 157,
-        "bytes": 6083168,
+        "images": 173,
+        "bytes": 6377816,
         "fresh": 0
       }
     },
     "orig-325a": {
       "url": "/hangar/ships/orig-325a.glb",
-      "v": "d7c285db",
+      "v": "d06bd05d",
       "tris": 211605,
       "trisRaw": 195884,
-      "textures": 160,
-      "attached": 0,
+      "textures": 176,
+      "attached": {
+        "attached": 26,
+        "color": 20,
+        "normal": 6,
+        "flatNormals": 8,
+        "rough": 14,
+        "tiled": 2,
+        "blended": 10,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 184,
+        "dropped": 0,
+        "created": 20,
+        "reused": 15
+      },
+      "cover": {
+        "before": {
+          "materials": 150,
+          "diffuse": 148,
+          "normal": 134,
+          "trisOhneMaterial": 66415,
+          "tris": 195884
+        },
+        "after": {
+          "materials": 168,
+          "diffuse": 166,
+          "normal": 148,
+          "trisOhneMaterial": 0,
+          "tris": 195879
+        }
+      },
       "swap": {
         "hardpoint_weapon_nose": 1,
         "hardpoint_weapon_wing_right": 1,
@@ -8653,39 +9213,72 @@
       "record": "ORIG_325a",
       "game": "12913470",
       "interiorDropped": 0,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
           -0.001,
           0,
           0
-        ]
+        ],
+        "sink": -3.702,
+        "why": "ein Teil steckt 370 cm im Boden"
       },
       "budget": {
         "tris": 200000,
         "tex": 1024
       },
       "uv": {
-        "rangeBefore": 97,
+        "rangeBefore": 114,
         "rangeAfter": 95.88,
         "bits": 19,
         "degenerate": 2.9
       },
-      "bytes": 1585604,
+      "bytes": 1904416,
       "pool": {
-        "images": 160,
-        "bytes": 6541040,
-        "fresh": 17642
+        "images": 176,
+        "bytes": 6835688,
+        "fresh": 0
       }
     },
     "orig-350r": {
       "url": "/hangar/ships/orig-350r.glb",
-      "v": "36653ac5",
+      "v": "f8e3ac9d",
       "tris": 192949,
       "trisRaw": 194412,
-      "textures": 117,
-      "attached": 0,
+      "textures": 138,
+      "attached": {
+        "attached": 29,
+        "color": 22,
+        "normal": 7,
+        "flatNormals": 7,
+        "rough": 14,
+        "tiled": 4,
+        "blended": 10,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 187,
+        "dropped": 0,
+        "created": 22,
+        "reused": 34
+      },
+      "cover": {
+        "before": {
+          "materials": 88,
+          "diffuse": 85,
+          "normal": 72,
+          "trisOhneMaterial": 53667,
+          "tris": 194412
+        },
+        "after": {
+          "materials": 109,
+          "diffuse": 106,
+          "normal": 88,
+          "trisOhneMaterial": 0,
+          "tris": 194409
+        }
+      },
       "swap": {
         "hardpoint_weapon_nose": 1,
         "hardpoint_weapon_wing_right": 1,
@@ -8700,14 +9293,15 @@
       "record": "ORIG_350r",
       "game": "12913470",
       "interiorDropped": 0,
-      "gear": true,
       "gearCheck": {
-        "ok": true,
+        "ok": false,
         "dev": [
-          -0.001,
+          0,
           0,
           0
-        ]
+        ],
+        "sink": -3.702,
+        "why": "ein Teil steckt 370 cm im Boden"
       },
       "budget": {
         "tris": 200000,
@@ -8717,13 +9311,13 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 3.4
+        "degenerate": 3.1
       },
-      "bytes": 1348912,
+      "bytes": 1665844,
       "pool": {
-        "images": 117,
-        "bytes": 5328230,
-        "fresh": 57058
+        "images": 138,
+        "bytes": 5665224,
+        "fresh": 15588
       }
     },
     "orig-400i": {
@@ -9029,11 +9623,43 @@
     },
     "orig-m50": {
       "url": "/hangar/ships/orig-m50.glb",
-      "v": "6174cec8",
+      "v": "06ca5472",
       "tris": 216412,
       "trisRaw": 211774,
       "textures": 142,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 1,
+        "dropped": 0,
+        "created": 0,
+        "reused": 1
+      },
+      "cover": {
+        "before": {
+          "materials": 106,
+          "diffuse": 101,
+          "normal": 89,
+          "trisOhneMaterial": 1296,
+          "tris": 211774
+        },
+        "after": {
+          "materials": 105,
+          "diffuse": 100,
+          "normal": 89,
+          "trisOhneMaterial": 0,
+          "tris": 211771
+        }
+      },
       "swap": {
         "hardpoint_weapon_gun_class1_right_wing": 1,
         "hardpoint_weapon_gun_class1_left_wing": 1
@@ -9054,7 +9680,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -9070,11 +9697,11 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 1817272,
+      "bytes": 1822488,
       "pool": {
         "images": 142,
         "bytes": 6240298,
-        "fresh": 1081298
+        "fresh": 0
       }
     },
     "orig-m80": {
@@ -9715,11 +10342,43 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "fcab7e7b",
+      "v": "07062f1a",
       "tris": 824772,
       "trisRaw": 1960624,
-      "textures": 329,
-      "attached": 0,
+      "textures": 331,
+      "attached": {
+        "attached": 1,
+        "color": 1,
+        "normal": 0,
+        "flatNormals": 1,
+        "rough": 1,
+        "tiled": 0,
+        "blended": 1,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 1,
+        "dropped": 0,
+        "created": 1,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 371,
+          "diffuse": 350,
+          "normal": 286,
+          "trisOhneMaterial": 20,
+          "tris": 1960624
+        },
+        "after": {
+          "materials": 357,
+          "diffuse": 336,
+          "normal": 281,
+          "trisOhneMaterial": 0,
+          "tris": 1956885
+        }
+      },
       "swap": {
         "hardpoint_gun_laser_top_right": 1,
         "hardpoint_gun_laser_top_left": 1,
@@ -9766,20 +10425,52 @@
         "bits": 21,
         "degenerate": 2.7
       },
-      "bytes": 8572344,
+      "bytes": 8572804,
       "pool": {
-        "images": 329,
-        "bytes": 14764412,
+        "images": 331,
+        "bytes": 14771424,
         "fresh": 0
       }
     },
     "rsi-constellation-aquila": {
       "url": "/hangar/ships/rsi-constellation-aquila.glb",
-      "v": "1476a9d6",
+      "v": "c27ce03e",
       "tris": 730580,
       "trisRaw": 1504385,
-      "textures": 339,
-      "attached": 0,
+      "textures": 341,
+      "attached": {
+        "attached": 1,
+        "color": 1,
+        "normal": 0,
+        "flatNormals": 1,
+        "rough": 1,
+        "tiled": 0,
+        "blended": 1,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 1,
+        "dropped": 0,
+        "created": 1,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 331,
+          "diffuse": 312,
+          "normal": 255,
+          "trisOhneMaterial": 20,
+          "tris": 1504385
+        },
+        "after": {
+          "materials": 320,
+          "diffuse": 301,
+          "normal": 251,
+          "trisOhneMaterial": 0,
+          "tris": 1503163
+        }
+      },
       "swap": {
         "hardpoint_gun_laser_top_right": 1,
         "hardpoint_gun_laser_top_left": 1,
@@ -9825,10 +10516,10 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 7480828,
+      "bytes": 7481288,
       "pool": {
-        "images": 339,
-        "bytes": 15157378,
+        "images": 341,
+        "bytes": 15164390,
         "fresh": 0
       }
     },
@@ -10167,11 +10858,43 @@
     },
     "rsi-mantis": {
       "url": "/hangar/ships/rsi-mantis.glb",
-      "v": "b4e72447",
-      "tris": 212373,
+      "v": "4328d868",
+      "tris": 211431,
       "trisRaw": 341595,
       "textures": 239,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 33,
+        "dropped": 0,
+        "created": 0,
+        "reused": 33
+      },
+      "cover": {
+        "before": {
+          "materials": 182,
+          "diffuse": 177,
+          "normal": 138,
+          "trisOhneMaterial": 14095,
+          "tris": 341595
+        },
+        "after": {
+          "materials": 173,
+          "diffuse": 168,
+          "normal": 135,
+          "trisOhneMaterial": 0,
+          "tris": 340576
+        }
+      },
       "swap": {
         "hardpoint_weapon_left": 1,
         "hardpoint_weapon_right": 1
@@ -10201,22 +10924,55 @@
         "rangeBefore": 180,
         "rangeAfter": 180.75,
         "bits": 20,
-        "degenerate": 1.4
+        "degenerate": 2.4
       },
-      "bytes": 2282464,
+      "bytes": 2321584,
       "pool": {
         "images": 239,
         "bytes": 11212840,
-        "fresh": 434220
+        "fresh": 0
       }
     },
     "rsi-meteor": {
       "url": "/hangar/ships/rsi-meteor.glb",
-      "v": "ce7d37e1",
-      "tris": 237530,
+      "v": "2f42f1bc",
+      "tris": 237450,
       "trisRaw": 431261,
-      "textures": 256,
-      "attached": 0,
+      "textures": 257,
+      "attached": {
+        "attached": 1,
+        "color": 1,
+        "normal": 0,
+        "flatNormals": 1,
+        "rough": 1,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 2,
+        "dropped": 0,
+        "created": 1,
+        "reused": 1,
+        "layered": 1
+      },
+      "cover": {
+        "before": {
+          "materials": 208,
+          "diffuse": 201,
+          "normal": 162,
+          "trisOhneMaterial": 1118,
+          "tris": 431261
+        },
+        "after": {
+          "materials": 199,
+          "diffuse": 192,
+          "normal": 160,
+          "trisOhneMaterial": 0,
+          "tris": 430224
+        }
+      },
       "swap": {
         "hardpoint_weapon_upper_left": 1,
         "hardpoint_weapon_upper_right": 1,
@@ -10250,13 +11006,13 @@
         "rangeBefore": 131,
         "rangeAfter": 121,
         "bits": 19,
-        "degenerate": 1.8
+        "degenerate": 2.5
       },
-      "bytes": 2755688,
+      "bytes": 2756652,
       "pool": {
-        "images": 256,
-        "bytes": 11509712,
-        "fresh": 334708
+        "images": 257,
+        "bytes": 11513236,
+        "fresh": 0
       }
     },
     "rsi-perseus": {
@@ -10428,7 +11184,39 @@
       "tris": 293181,
       "trisRaw": 503280,
       "textures": 230,
-      "attached": 0,
+      "attached": {
+        "attached": 0,
+        "color": 0,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0,
+        "reused": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 170,
+          "diffuse": 164,
+          "normal": 131,
+          "trisOhneMaterial": 12,
+          "tris": 503280
+        },
+        "after": {
+          "materials": 166,
+          "diffuse": 160,
+          "normal": 131,
+          "trisOhneMaterial": 12,
+          "tris": 503173
+        }
+      },
       "swap": {
         "hardpoint_emp": 1,
         "hardpoint_weapon_gun_left_top": 1,
@@ -10452,7 +11240,8 @@
           0,
           0.007,
           0.007
-        ]
+        ],
+        "sink": 0
       },
       "budget": {
         "tris": 200000,
@@ -10472,7 +11261,7 @@
       "pool": {
         "images": 230,
         "bytes": 10301538,
-        "fresh": 252254
+        "fresh": 0
       }
     },
     "rsi-scorpius": {
@@ -11396,11 +12185,43 @@
     },
     "xian-nox-kue": {
       "url": "/hangar/ships/xian-nox-kue.glb",
-      "v": "0ed5d77d",
+      "v": "4ea74ad5",
       "tris": 60842,
       "trisRaw": 54472,
-      "textures": 80,
-      "attached": 0,
+      "textures": 84,
+      "attached": {
+        "attached": 4,
+        "color": 3,
+        "normal": 1,
+        "flatNormals": 1,
+        "rough": 2,
+        "tiled": 0,
+        "blended": 2,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 24,
+        "dropped": 0,
+        "created": 3,
+        "reused": 20
+      },
+      "cover": {
+        "before": {
+          "materials": 43,
+          "diffuse": 42,
+          "normal": 36,
+          "trisOhneMaterial": 3379,
+          "tris": 54472
+        },
+        "after": {
+          "materials": 46,
+          "diffuse": 45,
+          "normal": 38,
+          "trisOhneMaterial": 0,
+          "tris": 54472
+        }
+      },
       "swap": {},
       "swapNodes": 0,
       "palette": {
@@ -11425,24 +12246,56 @@
       },
       "uv": {
         "rangeBefore": 14,
-        "rangeAfter": 9.25,
+        "rangeAfter": 10.08,
         "bits": 16,
-        "degenerate": 0.9
+        "degenerate": 1.3
       },
-      "bytes": 539640,
+      "bytes": 564772,
       "pool": {
-        "images": 80,
-        "bytes": 3912396,
-        "fresh": 9384
+        "images": 84,
+        "bytes": 3961746,
+        "fresh": 49350
       }
     },
     "xian-nox": {
       "url": "/hangar/ships/xian-nox.glb",
-      "v": "5cdc2897",
+      "v": "09746dae",
       "tris": 89009,
       "trisRaw": 101475,
-      "textures": 112,
-      "attached": 0,
+      "textures": 113,
+      "attached": {
+        "attached": 1,
+        "color": 1,
+        "normal": 0,
+        "flatNormals": 0,
+        "rough": 0,
+        "tiled": 0,
+        "blended": 0,
+        "blendMetal": 0,
+        "blendSkipped": 0
+      },
+      "matfix": {
+        "fixed": 24,
+        "dropped": 0,
+        "created": 1,
+        "reused": 23
+      },
+      "cover": {
+        "before": {
+          "materials": 59,
+          "diffuse": 58,
+          "normal": 51,
+          "trisOhneMaterial": 3379,
+          "tris": 101475
+        },
+        "after": {
+          "materials": 60,
+          "diffuse": 59,
+          "normal": 51,
+          "trisOhneMaterial": 0,
+          "tris": 101475
+        }
+      },
       "swap": {
         "hardpoint_weapon_left": 1,
         "hardpoint_weapon_right": 1
@@ -11472,13 +12325,13 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 4.7
+        "degenerate": 4.5
       },
-      "bytes": 838616,
+      "bytes": 869512,
       "pool": {
-        "images": 112,
-        "bytes": 4792028,
-        "fresh": 1898118
+        "images": 113,
+        "bytes": 4794240,
+        "fresh": 0
       }
     },
     "xian-scout": {

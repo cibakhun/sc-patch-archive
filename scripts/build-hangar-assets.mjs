@@ -119,8 +119,14 @@ function texFile(p) {
 // von scripts/extract-hangar-sources.mjs — je Mesh die .mtl und die
 // Untermaterial-ID jedes Submeshes, je .mtl die Untermaterialien samt
 // Texturen. Bestehende Materialien desselben Untermaterials werden
-// wiederverwendet (Name „<mtl>_mtl_<name>_<index>“), sonst neu angelegt.
-function applyMatFix(doc, fix) {
+// wiederverwendet (Name „<mtl>_mtl_<name>_<index>“), sonst neu angelegt und
+// mit extras.matfix markiert (nur an diese hängen Schiffe Karten).
+// Schiffe (ship): Schlüssel ist der volle Mesh-Name, je Name ggf. mehrere
+// Einträge, unterschieden an den Dreieckszahlen; neue Materialien heißen wie
+// die des Exports (Index mit führender 0, dann trifft sie auch ein Lack),
+// Decals blenden, Glow leuchtet, Schichten gehen an applyLayers; die schon
+// aufgelösten Materialien des Schiffs bleiben unberührt.
+function applyMatFix(doc, fix, { ship = false } = {}) {
   const root = doc.getRoot();
   const mats = root.listMaterials();
   const made = new Map();
@@ -129,39 +135,50 @@ function applyMatFix(doc, fix) {
     if (!sub?.name) return null;
     if (/nodraw/i.test(sub.shader || '')) return 'drop';
     const key = `${base}_mtl_${sub.name}_`;
-    const hit = mats.find((m) => m.getName().startsWith(key) && Number(m.getName().slice(key.length)) === id);
+    // Schiffe: der Export schreibt den .mtl-Namen teils klein (orig_300i_ext)
+    const fold = (s) => (ship ? s.toLowerCase() : s);
+    const hit = mats.find((m) => fold(m.getName()).startsWith(fold(key)) && Number(m.getName().slice(key.length)) === id);
     if (hit) return hit;
     if (!made.has(key)) {
       const dif = String(sub.diffuse || '1,1,1').split(',').map(Number);
-      made.set(key, doc.createMaterial(`${key}${String(id).padStart(2, '0')}`)
+      const m = doc.createMaterial(`${key}${ship ? `0${id}` : String(id).padStart(2, '0')}`)
         .setBaseColorFactor([...dif.slice(0, 3), 1]).setRoughnessFactor(Math.max(0.2, 1 - Number(sub.shininess || 128) / 255))
         .setExtras({
           diffuse_tex: sub.d, normal_tex: sub.n, spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend, vc: sub.vc, is_glass: /glass/i.test(sub.shader || ''),
           semantic: { authored_attributes: [{ name: 'Shader', value: sub.shader }, { name: 'Specular', value: sub.specular }, { name: 'Shininess', value: sub.shininess }] },
-        }));
+          matfix: true,
+          ...(ship ? { glow: sub.glow, layers: sub.layers } : {}),
+        });
+      if (ship && sub.decal) m.setAlphaMode('BLEND');
+      made.set(key, m);
     }
     return made.get(key);
   };
-  let fixed = 0, dropped = 0;
+  const entry = (mesh) => {
+    if (!ship) return fix.meshes[mesh.getName().replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '')];
+    const tris = JSON.stringify(mesh.listPrimitives().map((p) => (p.getIndices()?.getCount() ?? 0) / 3));
+    return fix.meshes[mesh.getName()]?.find((e) => JSON.stringify(e.tris) === tris);
+  };
+  let fixed = 0, dropped = 0, reused = 0;
   for (const mesh of root.listMeshes()) {
-    const f = fix.meshes[mesh.getName().replace(/.*[\\/]/, '').replace(/\.(cgf|cga)$/i, '')];
+    const f = entry(mesh);
     if (!f) continue;
     mesh.listPrimitives().forEach((p, i) => {
       if (p.getMaterial()?.getName()) return;
       const m = matFor(f.mtl, f.ids[i]);
       if (m === 'drop') { mesh.removePrimitive(p); p.dispose(); dropped++; }
       // Markierung für die Selbstauskunft der Vertexfarben (stripAttributes)
-      else if (m) { p.setMaterial(m).setExtras({ ...p.getExtras(), matfix: true }); fixed++; }
+      else if (m) { p.setMaterial(m).setExtras({ ...p.getExtras(), matfix: true }); fixed++; if (!m.getExtras()?.matfix) reused++; }
     });
   }
   // Specular-Maps und Kachelung (TexMod) auch für die schon aufgelösten
   // Materialien nachtragen — die nennt der Export nicht
-  for (const m of mats) {
+  if (!ship) for (const m of mats) {
     const [base, rest] = m.getName().split('_mtl_');
     const sub = rest && fix.mtls[base]?.find((s, i) => s.name && rest.startsWith(s.name + '_') && Number(rest.slice(s.name.length + 1)) === i);
     if (sub) m.setExtras({ ...m.getExtras(), spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend, vc: sub.vc });
   }
-  return { fixed, dropped, created: made.size };
+  return { fixed, dropped, created: made.size, ...(ship ? { reused } : {}) };
 }
 
 // Abdeckung für den Bericht: benutzte Materialien gesamt / mit Farb- bzw.
@@ -256,7 +273,9 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
 //   roughness = 1 − gloss, als metallicRoughness-Karte (G-Kanal; B voll,
 //   der Metallfaktor des Materials bleibt maßgeblich).
 // - Kachelung: TexMod TileU/TileV der .mtl über KHR_texture_transform.
-async function attachHallTextures(doc) {
+// only: nur diese Materialien (Schiffe: die nachgetragenen, die übrigen
+// tragen ihre eingebetteten Karten)
+async function attachHallTextures(doc, only = null) {
   const root = doc.getRoot();
   const cache = new Map();
   const tex = (file, name, image) => {
@@ -284,7 +303,7 @@ async function attachHallTextures(doc) {
   const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0 };
   // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
   const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
-  for (const m of [...used].filter(Boolean)) {
+  for (const m of [...used].filter((u) => u && (!only || only(u)))) {
     const x = m.getExtras() || {};
     const metal = /conductor/i.test(x.diffuse_tex || '');
     const d = texFile(metal ? x.spec_tex : x.diffuse_tex);
@@ -1098,13 +1117,13 @@ function writeLiftJson(name, parts, { extras = null, uv = null, proj = null } = 
 // Schichtmaterialien (HardSurface/LayerBlend ohne eigene Karten): Karten der
 // ersten Schicht aus <name>.layers.json (Extraktor) als Farbe/Normalen, die
 // Tönung der Schicht als Grundfarbe, LayerTiling als Kachelung. attachHall-
-// Textures hängt sie danach wie eigene Karten an.
-function applyLayers(doc, name, dir = 'lift') {
+// Textures hängt sie danach wie eigene Karten an. only wie dort.
+function applyLayers(doc, name, dir = 'lift', only = null) {
   const f = fileURLToPath(new URL(`${dir}/${name}.layers.json`, SRC));
   if (!existsSync(f)) return { missing: true };
   const layers = JSON.parse(readFileSync(f, 'utf8'));
   const s = { materials: 0, textured: 0, glow: 0 };
-  for (const m of doc.getRoot().listMaterials()) {
+  for (const m of doc.getRoot().listMaterials().filter((x) => !only || only(x))) {
     const x = m.getExtras() || {};
     // Leuchtglas der Warnlampen (Illum, „glow“): leuchtet als Fläche, der Viewer schaltet es mit dem Lampenzustand
     if (x.shader === 'Illum' && /glow/i.test(m.getName())) { m.setExtras({ ...x, glow: true }); s.glow++; continue; }
@@ -1519,16 +1538,25 @@ async function buildOne(kind, name, inPath) {
   if (kind === 'ships') dropUnreachable(doc);
   const b = kind === 'ships' ? shipBudget(name) : BUDGET[kind];
   const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : 0;
-  dropJunk(doc);
   let matfix = null, cover = null;
+  const fixFile = fileURLToPath(new URL(`${kind}/${name}.matfix.json`, SRC));
+  // Schiffe (.planning/notes/hangar-innenraum.md): Nachtrag vor dropJunk,
+  // damit DROP_MAT auch nachgetragene RTT- und Stencil-Materialien trifft
+  const shipFix = kind === 'ships' && existsSync(fixFile);
+  if (shipFix) {
+    cover = { before: coverage(doc) };
+    matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')), { ship: true });
+  }
+  dropJunk(doc);
   if (kind === 'hall' || kind === 'lift' || werk) {
-    const fixFile = fileURLToPath(new URL(`${kind}/${name}.matfix.json`, SRC));
     cover = { before: coverage(doc) };
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
-  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : null;
-  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : 0;
+  const fixedOnly = (m) => !!m.getExtras()?.matfix;
+  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, kind, fixedOnly) : null;
+  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
   if (cover) cover.after = coverage(doc);
+  if (shipFix && !layered.missing) matfix.layered = layered.materials;
   const vertexColors = stripAttributes(doc, werk ? 'hall' : kind);
   const liftUv = liftParts ? uvReport(doc) : null;
   // Palette des Schiffs = Record des Rohexports (Constellation: …_andromeda_gs)
@@ -2736,7 +2764,7 @@ for (const kind of Object.keys(BUDGET)) {
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     // bei Schiffen auch der Lack-Bauplan: Lackliste, Index des zerlegten
     // Exports und Sidecar des Rohexports müssen älter sein als Modell und Bauplan
-    if (kind === 'ships') side.push(...[fileURLToPath(new URL('../src/data/ship-paints.json', import.meta.url)), fileURLToPath(new URL('index.json', PAINT_DEC)), fileURLToPath(new URL(`${name}.json`, dir))].filter((x) => existsSync(x)));
+    if (kind === 'ships') side.push(...[fileURLToPath(new URL('../src/data/ship-paints.json', import.meta.url)), fileURLToPath(new URL('index.json', PAINT_DEC)), ...['json', 'matfix.json', 'layers.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir)))].filter((x) => existsSync(x)));
     const paintOut = kind === 'ships' && prev.ships?.[name]?.paints ? fileURLToPath(new URL(`paints/${name}.json`, OUT)) : null;
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (!paintOut || (existsSync(paintOut) && [inPath, ...side].every((x) => statSync(paintOut).mtimeMs > statSync(x).mtimeMs)))
@@ -2756,6 +2784,7 @@ for (const kind of Object.keys(BUDGET)) {
       if (r.swap) console.log(`    Tauschteile: ${Object.keys(r.swap).length} Waffen-Ports (${Object.values(r.swap).reduce((a, b) => a + b, 0)} Exemplare, ${r.swapNodes} Knoten)${Object.keys(r.swap).length ? '' : ' — WARNUNG: keine Serienwaffe im Rohexport gefunden'}`);
       if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
       if (kind === 'ships') console.log(`    Quelle: ${r.record ?? 'Rohexport ohne Sidecar'}${r.game ? ` (CL ${r.game})` : ''}, Innenraum ${r.interiorDropped ? `${r.interiorDropped} Container entfernt` : 'behalten'}`);
+      if (kind === 'ships' && r.matfix) console.log(`    Materialnachtrag: ${r.matfix.fixed} Primitive (${r.matfix.reused} auf Materialien des Exports, ${r.matfix.created} neue Materialien, ${r.matfix.layered ?? 0} mit Schichtkarten), ${r.matfix.dropped} NoDraw entfernt; ohne Material ${r.cover.before.trisOhneMaterial} -> ${r.cover.after.trisOhneMaterial} Dreiecke`);
       const pr = r.paintReport;
       delete r.paintReport;
       if (kind === 'ships') console.log(pr ? `    Lacke: ${pr.paints} (${pr.linked} mit Lack-Item, ${pr.patterned} mit eigenem Material: ${pr.stencils} Stencil-, ${pr.layerSwaps} Schichtwechsel), ${pr.textures} Karten${pr.missing ? `; ${pr.missing} Lack-Materialien nicht im Web-Modell (Innenraum, Glühen u. ä. weggelassen: ${pr.missingNames.slice(0, 6).join(', ')})` : ''}` : '    Lacke: keine Lackvarianten im zerlegten Export (oder kein Export, Extraktor-Teil ships)');
