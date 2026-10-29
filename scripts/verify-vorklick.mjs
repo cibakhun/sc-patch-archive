@@ -86,7 +86,11 @@ const zusageFuer = (url) => {
 
 /* Skript-Code: benannte Klick-Bindungen. `datei` ist der Pfad unter dist/,
    `host` der genaue Host im Code. Jede Zeile braucht ihren Anlass — wo die
-   Schranke sitzt, die den Code erst nach dem Klick laufen laesst. */
+   Schranke sitzt, die den Code erst nach dem Klick laufen laesst. Optional
+   `umfeld`: die Fundstelle zaehlt nur, wenn der Text um sie herum (gut 20
+   Zeichen je Seite) darauf passt. Das braucht eine Bindung, deren Datei kein
+   fester Name ist: Rollup benennt einen geteilten Baustein nach irgendeinem
+   seiner Module, und der Name wandert mit jedem neuen Import. */
 const KLICK_GEBUNDEN = [
   { datei: /^(?:de\/)?schiffe\/[^/]+\.html$/, host: 'www.youtube.com',
     anlass: 'ShipDetail.astro loadYT(): setzt das iframe_api-Skript erst ein, wenn #holoytgo geklickt wurde (ytAsked)' },
@@ -96,8 +100,9 @@ const KLICK_GEBUNDEN = [
     anlass: 'Fassaden-Skript der Patch-Seiten: das iframe entsteht erst im Klick-Handler von .video[data-yt] bzw. [data-lb="yt:…"]' },
   { datei: /^assets\/detail\.js$/, host: 'www.youtube-nocookie.com',
     anlass: 'dieselbe Fassade als Datei (Themenseiten): iframe erst im Klick-Handler' },
-  { datei: /^_astro\/socials\.[^/]+\.js$/, host: 'www.youtube.com',
-    anlass: 'Profil-Link https://www.youtube.com/@Name — wird nur als <a href> gesetzt, kein Abruf' },
+  { datei: /^_astro\/[^/]+\.js$/, host: 'www.youtube.com', umfeld: /url:\s*["']https:\/\/www\.youtube\.com\/@["']/,
+    anlass: 'src/lib/socials.ts: Profil-Link https://www.youtube.com/@Name — wird nur als <a href> gesetzt, kein Abruf. '
+      + 'Der Baustein hiess socials.*.js, seit 29.10.2026 (Pilotenseite + Konto teilen ihn mit hangar-layouts) hangar-layouts.*.js' },
 ];
 const HOST_IM_CODE = new RegExp(String.raw`(?<![a-z0-9.-])((?:[a-z0-9-]+\.)*(?:` +
   ZUSAGEN.flatMap((z) => z.hosts).map((h) => h.replace(/\./g, '\\.')).join('|') + String.raw`))(?![a-z0-9-])`, 'gi');
@@ -149,7 +154,8 @@ const pruefeCode = (datei, code) => {
   const rel = datei.slice(DIST.length + 1);
   for (const m of code.matchAll(HOST_IM_CODE)) {
     const host = m[1].toLowerCase();
-    const k = KLICK_GEBUNDEN.find((x) => x.host === host && x.datei.test(rel));
+    const umfeld = code.slice(Math.max(0, m.index - 24), m.index + m[0].length + 24);
+    const k = KLICK_GEBUNDEN.find((x) => x.host === host && x.datei.test(rel) && (!x.umfeld || x.umfeld.test(umfeld)));
     if (k) { treffer.set(k, treffer.get(k) + 1); gebunden++; continue; }
     melde(datei, 'Skript-Code', 'https://' + host);
   }

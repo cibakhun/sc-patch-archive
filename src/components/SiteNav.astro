@@ -372,6 +372,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         <span class="snav__acct-dot" aria-hidden="true"></span>
       </span>
       <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
+      <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
     <ThemeToggle />
@@ -418,6 +419,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </span>
       <span class="snav__menu-txt snav__menu-txt--open">{t('nav.menu')}</span>
       <span class="snav__menu-txt snav__menu-txt--close"><kbd>Esc</kbd></span>
+      <span class="snav__badge snav__badge--menu js-nav-badge" aria-hidden="true" hidden></span>
     </button>
   </div>
   {renderBack && (
@@ -556,6 +558,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
                       <span class={acct ? 'snav-deck__icon snav__acct-icon' : 'snav-deck__icon'}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
                         {acct && <span class="snav__acct-dot" aria-hidden="true"></span>}
+                        {acct && <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>}
                       </span>
                       <span class="snav-deck__text">
                         <span class={acct ? 'snav-deck__label js-nav-acct-txt' : 'snav-deck__label'}>{item.label}</span>
@@ -847,6 +850,56 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   }
   .js-nav-acct.is-authed .snav__acct-dot {
     display: block;
+  }
+  /* Zahl für offene Freundschaftsanfragen + ungelesene Nachrichten
+     (account-lite.js setzt Text und hidden). Sie ersetzt den grünen Punkt:
+     eine Zahl sagt „angemeldet" schon mit. Bernstein statt Akzent-Cyan, damit
+     sie sich vom Hover-Zustand abhebt; der Ring in Leistenfarbe trennt sie
+     vom Rahmen darunter. Am Konto-Knopf steht sie in der Zeile hinter dem
+     Namen: am Icon verdeckte sie dessen ersten Buchstaben, auf der Ecke lag
+     auf staging das Band „Vorschau — nicht live" darüber. Am Menü-Knopf
+     auf der Ecke, und nur, solange der Konto-Knopf selbst ins Menü
+     gewandert ist (≤ 860 px). */
+  .snav__badge {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #f5a623;
+    color: #1a1204;
+    font-family: var(--font-ui, sans-serif);
+    font-size: var(--fs-3);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: var(--ls-3);
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 0 2px var(--bg, var(--chrome-solid));
+    pointer-events: none;
+  }
+  .snav__acct .snav__badge {
+    position: static;
+    box-shadow: none;
+  }
+  .snav__badge[hidden] {
+    display: none;
+  }
+  .js-nav-acct.has-badge .snav__acct-dot {
+    display: none;
+  }
+  @media (min-width: 860.02px) {
+    .snav__badge--menu {
+      display: none;
+    }
+  }
+  :global(html.is-deck-open) .snav__badge--menu {
+    display: none;
   }
   /* Burger & Morphing Esc Button */
   /* Gleiches Material wie Suche und Menue — Rahmen, Fuellung, Hoehe. Ohne
@@ -1787,6 +1840,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     top: 2px;
     right: 2px;border-color:var(--bg, var(--chrome-solid));
   }
+  .snav-deck__row .snav__badge {
+    top: -3px;
+    right: -5px;
+  }
+  /* account-lite.js schreibt hier dann „1 Anfrage · 2 Nachrichten" */
+  .snav-deck__row.has-badge .snav-deck__sub {
+    color: #f5a623;
+  }
 
   /* ---- Fuß ---- */
   .snav-deck__foot {
@@ -1930,7 +1991,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__row::before {
       transition: none;
     }
-  }</style>
+  }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] .snav-deck__row.has-badge .snav-deck__sub{color:#794e00}
+</style>
 
 <script is:inline>
   (function () {
