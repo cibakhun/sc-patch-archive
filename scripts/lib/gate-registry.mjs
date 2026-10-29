@@ -269,6 +269,17 @@ export const CHECKS = [
     checks: 'jedes Schiff, das die Hangarseite aufs Fahrwerk stellt, steht mit der Ebene des ausgelieferten Viewers auf Ecken seiner Datei (kein Bein schwebt, kein Teil steckt tiefer als die Grenze im Boden), Fahrzeuge ohne Fahrwerk stehen waagrecht auf ihrer tiefsten Ecke, jedes andere Schiff hat einen Grund aus dem Manifest, Klinken fuer beide Arten',
   },
   {
+    // Neuzugang (29.10.2026), vor dem langen audit:site: liest die
+    // gebauten Seiten als Text (gut 2 s). Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — node:vm fuehrt nur den Haken aus dist/ aus.
+    id: 'verify:zaehler',
+    npm: 'verify:zaehler',
+    script: 'scripts/verify-zaehler.mjs',
+    rail: 'A',
+    checks:
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet das Fragment von Adresse und Herkunft ab (in node:vm ausgefuehrt), Klinken fuer Layout-Seiten, Zaehler-Seiten und Haken-Fassungen',
+  },
+  {
     id: 'audit:site',
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',
