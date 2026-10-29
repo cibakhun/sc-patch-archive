@@ -64,6 +64,28 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+      # Die Pruefung braucht den Abhaengigkeitsgraphen des Repos (Settings ->
+      # Code security -> Dependency graph). Ist er aus, antwortet GitHub 403.
+      # Das ist eine Einstellung, kein Befund am PR: dann WARNUNG statt rot.
+      # Jede andere Antwort bleibt ein Fehler.
+      - name: Abhaengigkeitsgraph verfuegbar?
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if OUT=$(gh api "repos/$REPO/dependency-graph/compare/$BASE...$HEAD" 2>&1 >/dev/null); then
+            echo "on=true" >> "$GITHUB_OUTPUT"
+          elif printf '%s' "$OUT" | grep -q 'HTTP 403'; then
+            echo "::warning::Abhaengigkeitsgraph ist aus, die Abhaengigkeitspruefung entfaellt. Einschalten: Settings -> Code security -> Dependency graph."
+            echo "on=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Abhaengigkeitsvergleich nicht abrufbar: $OUT"
+            exit 1
+          fi
+      - if: steps.graph.outputs.on == 'true'
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
         with:
           fail-on-severity: high
