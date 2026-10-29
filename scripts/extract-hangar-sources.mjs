@@ -1231,7 +1231,7 @@ function parseSubMaterials(xml) {
     }).filter((l) => l.path);
     out.push({
       name: attr('Name'), shader: attr('Shader'), diffuse: attr('Diffuse'), specular: attr('Specular'),
-      shininess: attr('Shininess'), opacity: attr('Opacity'),
+      shininess: attr('Shininess'), opacity: attr('Opacity'), flags: attr('MtlFlags'),
       d: tex('TexSlot1'), n: tex('TexSlot2'), s: tex('TexSlot4'), td: tile('TexSlot1'), tn: tile('TexSlot2'),
       blend,
       // %VERTCOLORS: das Spiel dunkelt die Fläche mit COLOR_0 ab (Build behält es)

@@ -15,7 +15,10 @@
      Rückseite eines einseitigen  → hohl (man sieht hindurch)
      nichts bis 30 m              → frei (Glas auf beiden Seiten, oder hohl)
    Glas = Material mit glass/canopy/window im Namen und Alpha BLEND,
-   ohne Scheinwerfer- und Lampengläser.
+   ohne Scheinwerfer- und Lampengläser. Ein Startpunkt zählt nur, wenn er
+   von außen frei zu sehen ist (der Gegenstrahl trifft nichts
+   Undurchsichtiges): Innenfenster eines behaltenen Innenraums sind keine
+   Haube.
 
    Werkzeug, kein Tor (gate-registry: rail null): Es vergleicht Rohexport
    und Web-Fassung (PC) und zeigt, welche Schiffe betroffen sind.
@@ -89,14 +92,26 @@ function measure(doc) {
   const total = area.reduce((a, b) => a + b, 0);
   let seed = 1; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const ctr = [(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2];
-  let zu = 0, hohl = 0, frei = 0;
-  for (let s = 0; s < RAYS; s++) {
+  let zu = 0, hohl = 0, frei = 0, innen = 0;
+  for (let s = 0, tries = 0; s < RAYS && tries < 20 * RAYS; tries++) {
     let r = rnd() * total, g = 0; while (r > area[g] && g < area.length - 1) r -= area[g++];
     const b = 9 * glass[g]; let u = rnd(), w = rnd(); if (u + w > 1) { u = 1 - u; w = 1 - w; }
     const p = [0, 1, 2].map((k) => X[b + k] + u * (X[b + 3 + k] - X[b + k]) + w * (X[b + 6 + k] - X[b + k]));
     let d = [0, 1, 2].map((k) => ctr[k] - p[k] + (rnd() - 0.5) * 0.6 * Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) * 0.3);
     const dl = Math.hypot(...d); d = d.map((x) => x / dl);
+    // nur Außenglas: von außen muss der Punkt frei zu sehen sein. Innenfenster
+    // (Türen, Zwischenwände) zählten sonst mit, und ihre Strahlen träfen die
+    // Rückseiten von Wänden mitten im Schiff
+    if (firstHit(p, d.map((x) => -x), 0.02).t < REACH) { innen++; continue; }
+    s++;
     const o = [0, 1, 2].map((k) => p[k] - d[k] * 0.3);
+    const { t: best, tri: bestT, front: bestFront } = firstHit(o, d, 0.32);
+    if (bestT < 0) frei++;
+    else if (bestFront) zu++;
+    else hohl++;
+  }
+  // erste undurchsichtige Fläche auf dem Strahl o + t·d (t > tmin)
+  function firstHit(o, d, tmin) {
     let best = Infinity, bestT = -1, bestFront = false;
     for (let i = 0; i < near.length; i++) {
       const cx = C[4 * i] - o[0], cy = C[4 * i + 1] - o[1], cz = C[4 * i + 2] - o[2], cr = C[4 * i + 3];
@@ -113,15 +128,14 @@ function measure(doc) {
       const qv = [sv[1] * e1[2] - sv[2] * e1[1], sv[2] * e1[0] - sv[0] * e1[2], sv[0] * e1[1] - sv[1] * e1[0]];
       const vv = f * (d[0] * qv[0] + d[1] * qv[1] + d[2] * qv[2]); if (vv < 0 || uu + vv > 1) continue;
       const tt = f * (e2[0] * qv[0] + e2[1] * qv[1] + e2[2] * qv[2]);
-      if (tt <= 0.32 || tt >= REACH || kind[t] >= 2) continue; // vor dem Glas oder durchsichtig
+      if (tt <= tmin || tt >= REACH || kind[t] >= 2) continue; // vor dem Glas oder durchsichtig
       // a = -d·(e1×e2): a > 0 heißt, der Strahl sieht die Vorderseite
       if (tt < best - 0.02 || (Math.abs(tt - best) <= 0.02 && (a > 0 || kind[t] === 1))) { best = tt; bestT = t; bestFront = a > 0 || kind[t] === 1; }
     }
-    if (bestT < 0) frei++;
-    else if (bestFront) zu++;
-    else hohl++;
+    return { t: best, tri: bestT, front: bestFront };
   }
-  return { tris: T, glass: glass.length, rays: RAYS, zu, hohl, frei, hohlPct: Math.round((100 * hohl) / RAYS) };
+  const rays = zu + hohl + frei;
+  return { tris: T, glass: glass.length, rays, innen, zu, hohl, frei, hohlPct: rays ? Math.round((100 * hohl) / rays) : null };
 }
 
 const files = readdirSync(dir).filter((f) => f.endsWith('.glb') && (!only || only.test(f))).sort();
@@ -129,8 +143,8 @@ const out = {};
 for (const f of files) {
   const r = measure(await io.read(`${dir}/${f}`));
   out[f.replace(/\.glb$/, '')] = r;
-  console.log(f.padEnd(44), r.glass ? `Glas ${String(r.glass).padStart(5)}  hohl ${String(r.hohlPct).padStart(3)} %  (zu ${r.zu}, hohl ${r.hohl}, frei ${r.frei} von ${r.rays})` : 'kein Haubenglas');
+  console.log(f.padEnd(44), r.glass ? `Glas ${String(r.glass).padStart(5)}  hohl ${String(r.hohlPct).padStart(3)} %  (zu ${r.zu}, hohl ${r.hohl}, frei ${r.frei} von ${r.rays}; ${r.innen} Startpunkte auf Innenglas verworfen)` : 'kein Haubenglas');
 }
-const withGlass = Object.values(out).filter((r) => r.glass);
+const withGlass = Object.values(out).filter((r) => r.glass && r.hohlPct != null);
 console.log(`\n${files.length} Modelle, ${withGlass.length} mit Haubenglas, hohl im Mittel ${withGlass.length ? (withGlass.reduce((a, r) => a + r.hohlPct, 0) / withGlass.length).toFixed(1) : '-'} %`);
 if (jsonFile) writeFileSync(jsonFile, JSON.stringify(out, null, 1));
