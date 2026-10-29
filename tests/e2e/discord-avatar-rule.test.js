@@ -5,6 +5,9 @@
 // durch, das die Regel ablehnt, scheitert das Anlegen des Kontos bzw. der
 // gemeinsame Patch mit dem Anzeigenamen (23514). Darum muessen alle drei
 // dasselbe Muster tragen.
+//
+// Die Migrationen werden ueber ihren Inhalt gefunden, nicht ueber den
+// Dateinamen: nach dem Einspielen tragen sie die Live-Version im Namen.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -14,7 +17,16 @@ const ROOT = path.resolve(import.meta.dirname, '..', '..');
 const MIG = path.join(ROOT, 'supabase', 'migrations');
 const read = (...p) => fs.readFileSync(path.join(...p), 'utf8').replace(/\r\n/g, '\n');
 
-const RULE_FILE = '20261030140000_profile_columns_checked.sql';
+const MIGRATIONS = fs.readdirSync(MIG).filter((f) => f.endsWith('.sql')).sort();
+
+/** Juengste Migration, deren Text das Muster traegt. */
+function latest(re, was) {
+  const hits = MIGRATIONS.filter((f) => re.test(read(MIG, f)));
+  assert.ok(hits.length > 0, `keine Migration ${was}`);
+  return hits.at(-1);
+}
+
+const RULE_FILE = latest(/add constraint profiles_avatar_url_source check/, 'legt profiles_avatar_url_source an');
 const rule = read(MIG, RULE_FILE);
 
 /** Discord-Muster aus der Regel profiles_avatar_url_source. */
@@ -26,13 +38,6 @@ function rulePattern() {
   return dc[1];
 }
 
-/** Juengste Migration, die handle_new_user anlegt. */
-function latestHandleNewUser() {
-  const files = fs.readdirSync(MIG).filter((f) => f.endsWith('.sql')).sort();
-  const hits = files.filter((f) => /create or replace function public\.handle_new_user\(\)/.test(read(MIG, f)));
-  assert.ok(hits.length > 0, 'keine Migration legt handle_new_user an');
-  return hits.at(-1);
-}
 
 const SAMPLES = {
   ok: [
@@ -58,8 +63,7 @@ test('Discord-Muster der Regel: Selbstauskunft und Stichproben', () => {
 });
 
 test('handle_new_user uebernimmt das Discord-Bild nur nach dem Muster der Regel', () => {
-  const file = latestHandleNewUser();
-  assert.ok(file >= '20261030132000', `juengste handle_new_user-Fassung ${file} ist aelter als 20261030132000`);
+  const file = latest(/create or replace function public\.handle_new_user\(\)/, 'legt handle_new_user an');
   const src = read(MIG, file);
   const fn = src.slice(src.indexOf('create or replace function public.handle_new_user()'));
   const body = fn.slice(0, fn.indexOf('$function$;') + 1);
