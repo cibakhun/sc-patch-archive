@@ -280,3 +280,37 @@ Bilder: `gladius-web-vorher/nachher.jpg`, `hornet-f7c-mk2-vorher/nachher.jpg`
   festschreibt.
 - **Budget:** Argo SRV 15,2 MB für einen Schlepper. Wenn das zu viel ist,
   `GLASS_REACH` kleiner oder ein Deckel für den behaltenen Innenraum.
+
+### Teil C: Neubau auf dem zusammengeführten Stand (68379f57)
+
+PC-Lauf 29.10.2026, `pc/hangar-cockpit` auf 68379f57 (staging 5d512205 mit
+den echten Grundfarben aus #238 und diesem Zweig), alle 231 Schiffe mit
+`build-hangar-alle.mjs --redo` in einem Lauf. `cleanMaterials` nimmt
+`series` (Serienpalette, `extras.palette`) und `twoSided` zugleich.
+
+- **Ergebnis wie in Teil B:** hohl im Mittel 25,0 → 12,0 % (vorher =
+  staging 5d512205, `messung-vorher.json`), über 10 % 165 → 100, über
+  20 % 133 → 45, 23 schlechter (dieselben). 0 Fehler, keines über 16 MB;
+  größtes Argo SRV und Ironclad je 15,3 MB. Tor [17]: GLB 895,8 MB +
+  Ablage 240,1 MB = **1135,9 MB** (Deckel 1600). Dreiecke ohne Material 56.
+  Tabelle je Schiff neu gegen 5d512205.
+- **Serienpalette** (GLB gegen GLB, `extras.palette`): 3524 → 3502
+  Materialien. Weniger nur bei Apollo Medivac, Apollo Triage und Hermes
+  (je 20 → 0). Das ist der in `hangar-landung.md` angekündigte Wegfall:
+  Ihre staging-GLBs stammen aus 708595ee mit einem Rückfall auf den
+  Rohexport, `ship-paints.json` hat für sie kein `base`, und der Bau-Code
+  aus #238 lässt sie dann weg. Alle übrigen 228 Schiffe tragen dieselbe
+  Zahl wie auf staging. `doubleSided` 5028 → 10 498 Materialien.
+- **Lack-Baupläne:** Cutlass Black, Blue und Steel neu geschrieben,
+  „Hawthorn“ und „Cypress“ jetzt wie `ship-paints.json`; dazu Golem,
+  Golem OX, Terrapin Medic, 600i BIS2951, Zeus CL (behaltene
+  Innenraum-Materialien) und zwei neue Lackkarten (Drake-Scheinwerfer).
+  **Noch abweichend:** Mustang Beta, Delta, Gamma, Omega „CitizenCon2018“
+  tragen weiter die Palette #5b5d5d/#4b4b4b/#532720, `ship-paints.json`
+  nennt je eigene. Ihre Pakete haben für den Tag keine eigene Palette
+  (`palette/citizencon2018` fehlt in `palettes.json`), `sisterPalette`
+  nimmt die der eigenständigen Mustang Alpha CitizenCon2018. Der Bau
+  schreibt diese vier Pläne also bytegleich wie staging; das ist eine
+  Frage der Lackregel, nicht dieses Zweigs.
+- `check:hangar-shader` gegen `npx serve`: Gladius ✓ 105 Programme,
+  Cutlass Black ✓ 107, Hammerhead ✓ 109, je höchstens 16 Texturen.
