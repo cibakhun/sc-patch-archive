@@ -278,7 +278,7 @@ try {
 console.log('\n▸ Bilingual data');
 console.log('\n▸ Rank mirror (Kontoseite)');
 {
-  const { rankSnapshot, changedFields } = await import('./rank-sync.mjs');
+  const { rankSnapshot, changedFields, homeGuild } = await import('./rank-sync.mjs');
   const rows = { a: { xp: totalXpForLevel(12) + 5, prestige: 0, total_xp: 9000, messages: 40, voice_seconds: 600, updated_at: 1 } };
   const fakeDb = {
     getUser: (g, u) => rows[u] || { xp: 0, prestige: 0, total_xp: 0, messages: 0, voice_seconds: 0, updated_at: 0 },
@@ -305,6 +305,18 @@ console.log('\n▸ Rank mirror (Kontoseite)');
     assert.deepEqual(changedFields(stored, s), {});
     assert.deepEqual(changedFields({ ...stored, level: 11 }, s), { level: 12 });
     assert.deepEqual(changedFields({}, { ...s, in_guild: false }).in_guild, false);
+  });
+  t('one account row mirrors exactly one server', () => {
+    const a = { id: '1', memberCount: 400 }, b = { id: '2', memberCount: 3 };
+    assert.equal(homeGuild([a, b], '2'), b, 'GUILD_ID wins');
+    assert.equal(homeGuild([a, b], '9'), null, 'GUILD_ID not joined: nothing');
+    assert.equal(homeGuild([b], ''), b, 'single server');
+    assert.equal(homeGuild([a, b], ''), a, 'several: the largest');
+    assert.equal(homeGuild([b, a], ''), a, 'several: the largest, whatever the order');
+    const t10 = { id: '10', memberCount: 3 }, t9 = { id: '9', memberCount: 3 };
+    assert.equal(homeGuild([t10, t9], ''), t9, 'ties: numerically smaller ID');
+    assert.equal(homeGuild([t9, t10], ''), t9, 'ties: whatever the order');
+    assert.equal(homeGuild([], ''), null);
   });
 }
 
