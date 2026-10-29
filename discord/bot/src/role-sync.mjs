@@ -34,7 +34,8 @@
 //
 //  NUR die Heim-Gilde zaehlt (home-guild.mjs): jedes Ereignis aus einer
 //  anderen Gilde wird verworfen, bevor irgendetwas geschrieben wird, und die
-//  Rolle wird ueber ihre ID verglichen, nicht ueber ihren Namen.
+//  Rolle wird ueber ihre ID verglichen, nicht ueber ihren Namen. Nur solange
+//  keine ID festgehalten ist, entzieht der Name -- vergeben wird darueber nie.
 // ═══════════════════════════════════════════════════════════════════════════
 import { Events } from 'discord.js';
 import * as bp from '../../blueprint.mjs';
@@ -50,6 +51,14 @@ export const TESTER_ROLE_NAME = bp.roles.find((r) => r.key === 'tester')?.name;
 export function hasTesterRole(member, roleId) {
   if (!roleId || !member?.roles?.cache) return false;
   return member.roles.cache.has(roleId);
+}
+
+/** Traegt das Mitglied irgendeine Rolle mit dem Testpilot-Namen? Nur fuer
+ * den Entzug, solange keine Rollen-ID festgehalten ist -- vergeben wird
+ * darueber nie. */
+function holdsTesterName(member) {
+  if (!TESTER_ROLE_NAME || !member?.roles?.cache) return false;
+  return [...member.roles.cache.values()].some((r) => r.name === TESTER_ROLE_NAME && !r.managed);
 }
 
 /** Darf ein Ereignis dieses Mitglieds den Spiegel beruehren? */
@@ -88,7 +97,14 @@ export function registerRoleSync(ctx) {
   const { client } = ctx;
 
   client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
-    if (!mirrorable(ctx, newMember)) return; // fremde Gilde oder Spiegel aus
+    if (!isHomeGuild(ctx, newMember?.guild)) return; // fremde Gilde
+    if (!ctx.mirror?.roleId) {
+      // Spiegel aus (Rolle doppelt, falsche ID): nie vergeben, aber Entzug
+      // wirkt -- wer die letzte Rolle mit dem Testpilot-Namen verliert, kann
+      // kein Testpilot mehr sein. Wie bei GuildMemberRemove unten.
+      if (holdsTesterName(oldMember) && !holdsTesterName(newMember)) await writeIsTester(ctx.siteDb, newMember.id, false);
+      return;
+    }
     const before = hasTesterRole(oldMember, ctx.mirror.roleId);
     const after = hasTesterRole(newMember, ctx.mirror.roleId);
     if (before === after) return; // andere Rollenaenderung (Rang/Sprache/Ping) -- kein Tester-Wechsel

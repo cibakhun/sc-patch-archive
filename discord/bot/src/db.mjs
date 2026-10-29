@@ -94,6 +94,9 @@ export function openDb(path) {
     markLeft:    db.prepare('UPDATE users SET left_at=@ts WHERE guild_id=@g AND user_id=@u AND left_at IS NULL'),
     clearLeft:   db.prepare('UPDATE users SET left_at=NULL WHERE guild_id=? AND user_id=? AND left_at IS NOT NULL'),
     members:     db.prepare('SELECT user_id, left_at FROM users WHERE guild_id=?'),
+    openGuilds:  db.prepare('SELECT DISTINCT guild_id FROM users WHERE left_at IS NULL'),
+    markGuild:   db.prepare('UPDATE users SET left_at=@ts WHERE guild_id=@g AND left_at IS NULL'),
+    clearGuild:  db.prepare('UPDATE users SET left_at=NULL WHERE guild_id=@g AND left_at=@ts'),
     expired:     db.prepare('SELECT guild_id, user_id FROM users WHERE left_at IS NOT NULL AND left_at <= ?'),
     delBugXpOf:  db.prepare('DELETE FROM bug_xp_threads WHERE guild_id=? AND user_id=?'),
     delBugXpOld: db.prepare('DELETE FROM bug_xp_threads WHERE granted_at <= ?'),
@@ -209,16 +212,33 @@ export function openDb(path) {
       return S.members.all(g);
     },
 
+    /** Gilden mit mindestens einer noch nicht vorgemerkten Zeile. */
+    openGuilds() {
+      return S.openGuilds.all().map((r) => r.guild_id);
+    },
+
+    /** Alle offenen Zeilen einer Gilde vormerken (Bot nicht mehr dort). */
+    markGuildLeft(g, ts = Date.now()) {
+      return S.markGuild.run({ g, ts }).changes;
+    },
+
+    /** Nimmt genau die Marken mit Zeitstempel `ts` zurueck (Bot wieder da). */
+    clearGuildMark(g, ts) {
+      return S.clearGuild.run({ g, ts }).changes;
+    },
+
     /**
      * Loescht alles, was die Frist ueberschritten hat: Zeilen ausgetretener
      * Mitglieder (Austritt vor `leftBefore`) samt ihren Fehlerbericht-
      * Sperren, und Sperren, die aelter als `locksBefore` sind (die Sperre
      * braucht es nur, solange ThreadCreate fuer denselben Thread noch
-     * einmal feuern koennte). Eine Transaktion.
+     * einmal feuern koennte). Eine Transaktion. Gilden in `skipGuilds`
+     * bleiben unberuehrt: dort konnte heute niemand pruefen, ob ein
+     * Vorgemerkter inzwischen zurueck ist.
      */
-    purgeExpired(leftBefore, locksBefore) {
+    purgeExpired(leftBefore, locksBefore, skipGuilds = new Set()) {
       return db.transaction(() => {
-        const rows = S.expired.all(leftBefore);
+        const rows = S.expired.all(leftBefore).filter((r) => !skipGuilds.has(r.guild_id));
         for (const r of rows) {
           S.del.run(r.guild_id, r.user_id);
           S.delBugXpOf.run(r.guild_id, r.user_id);

@@ -112,7 +112,7 @@ manufacturers arrive.
 cd discord/bot
 cp .env.example .env      # then paste DISCORD_TOKEN (and GUILD_ID for instant commands)
 npm install
-npm run selftest          # optional: 63 offline checks (also run in the Docker build)
+npm run selftest          # optional: 72 offline checks (also run in the Docker build)
 npm run register          # push slash commands (instant if GUILD_ID is set)
 npm start                 # go live
 ```
@@ -198,7 +198,22 @@ install, or `card.image` is off, `/rank` falls back to a rich embed. Point
 The bot mirrors two things to the website's database for members who linked
 their Discord account: whether they hold the Testpilot role, and their
 rank/level/XP. It does this **only for the home guild** (`HOME_GUILD_ID`,
-see `.env.example`) and finds the role by ID (`TESTER_ROLE_ID`).
+see `.env.example`).
+
+The Testpilot role: `TESTER_ROLE_ID` is optional. When it is set, the bot uses
+exactly that role; an invalid or unknown ID switches the mirror off. Without
+it, the bot looks the role up by its blueprint name (`Test Pilots`) at start
+and on every reconcile, and from then on compares by ID only. A rename while
+the bot runs is harmless, but the next start looks for the name again, so set
+`TESTER_ROLE_ID` if you rename the role or if two roles carry that name. If the
+role in use is deleted and no replacement is found, the next reconcile revokes
+every pass.
+
+While no role is found the mirror grants nothing. It still revokes when a
+member leaves the server or loses the last role literally named `Test Pilots`
+(this name check also runs when `TESTER_ROLE_ID` is set but wrong). A renamed
+role is not covered: its passes stay as they are until `TESTER_ROLE_ID` points
+at it. The log says why the mirror is off.
 
 All writes go through the Supabase Edge Function `bot-role-sync`, which
 accepts exactly three requests and nothing else. Set `SUPABASE_URL` and
@@ -217,10 +232,16 @@ the `data/` folder while the bot is stopped, or with SQLite's online backup. It'
 git-ignored.
 
 **Retention.** When someone leaves the server, their row is marked and drops off
-the leaderboard. After `LEAVER_RETENTION_DAYS` (default 30) a daily job deletes
-it, together with their bug-report XP locks; locks older than 30 days go too.
-Rejoining before the deadline keeps the rank. Each run logs how many rows it
-checked, marked and deleted.
+the leaderboard. After `LEAVER_RETENTION_DAYS` (default 30, at most 365) a daily job
+deletes it, together with their bug-report XP locks; locks older than 30 days
+go too. If that day's member check for a server fails, nothing is deleted
+there that day (someone may have come back while the bot was down). Rows from a server the bot is no longer in (other than the home
+server) run into the same deadline; if the bot is added back, exactly those
+marks are taken back (on join, on reconnect and at each daily run). Rejoining
+before the deadline keeps the rank. Each run logs how many rows it checked,
+marked, restored and deleted. The privacy policy (`src/pages/datenschutz.astro`
+and `src/pages/de/datenschutz.astro`, section `#discord-server`) states the
+30 days: change it there in the same commit if you change the setting.
 
 ## Troubleshooting
 

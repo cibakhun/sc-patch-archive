@@ -315,19 +315,24 @@ console.log('\n▸ Rank mirror (Kontoseite)');
       lists.push(q); aktiv++; hoechstens = Math.max(hoechstens, aktiv);
       await new Promise((r) => setTimeout(r, 15));
       aktiv--;
-      return [{ discord_user_id: A, level: 0 }];
+      return [{ ...gespeichert }];
     },
     async setStats(id, patch) { writes.push({ id, patch }); return { updated: 1 }; },
   };
   const ctx = { home: { id: HOME }, db: fakeDb, siteDb };
   rows[A] = rows.a;
+  // Gespeichert ist der aktuelle Stand mit EINEM abweichenden Feld.
+  let gespeichert = { discord_user_id: A, ...rankSnapshot(fakeDb, HOME, A, true), level: 11 };
   await ta('rank mirror: only the home guild is read or written', async () => {
     await pushRank(ctx, guildOf('555555555555555555'), A);
     assert.equal(lists.length, 0, 'a foreign guild never reaches the site');
     await pushRank(ctx, guildOf(HOME), A);
     assert.equal(lists.length, 1);
     assert.equal(writes[0].id, A);
-    assert.equal(writes[0].patch.level, 12, 'only the changed level is sent');
+    assert.deepEqual(writes[0].patch, { level: 12 }, 'only the changed field is sent');
+    gespeichert = { discord_user_id: A, ...rankSnapshot(fakeDb, HOME, A, true) };
+    await pushRank(ctx, guildOf(HOME), A);
+    assert.equal(writes.length, 1, 'an unchanged row is not written again');
   });
   await ta('rank mirror: two level-ups in a row never overlap', async () => {
     lists.length = 0; hoechstens = 0;
@@ -385,7 +390,7 @@ console.log('\n▸ Heim-Gilde und Testpilot-Rolle');
   try {
     const { pinTesterRole } = await import('./role-reconcile.mjs');
     const { registerRoleSync } = await import('./role-sync.mjs');
-    t('a deleted pinned role is looked up again instead of staying pinned', () => {
+    t('a deleted pinned role is replaced once a new one is found', () => {
       const g = guild(role(A, 'Test Pilots'));
       const ctx = { mirror: { roleId: null } };
       const quiet = console.warn; const loud = console.log; console.warn = () => {}; console.log = () => {};
@@ -394,6 +399,47 @@ console.log('\n▸ Heim-Gilde und Testpilot-Rolle');
         g.roles.cache.delete(A);
         g.roles.cache.set(B, { id: B, name: 'Test Pilots', managed: false });
         assert.equal(pinTesterRole(ctx, g), B);
+      } finally { console.warn = quiet; console.log = loud; }
+    });
+    await ta('losing the last tester-named role revokes even while the mirror is off', async () => {
+      const handlers = {};
+      const writes = [];
+      const ctx = {
+        client: { on: (ev, fn) => { handlers[ev] = fn; } },
+        home: { id: A },
+        mirror: { roleId: null }, // Rolle doppelt -> Spiegel aus
+        siteDb: { setTester: async (id, v) => { writes.push([id, v]); return { updated: 1 }; } },
+      };
+      registerRoleSync(ctx);
+      const U = '999999999999999999', R1 = '555555555555555555', R2 = '666666666666666666';
+      const m = (gid, ...rs) => ({ id: U, guild: { id: gid }, roles: { cache: new Map(rs) } });
+      const loud = console.log; console.log = () => {};
+      try {
+        await handlers.guildMemberUpdate(m(A, role(R1, 'Test Pilots'), role(R2, 'Test Pilots')), m(A, role(R2, 'Test Pilots')));
+        await handlers.guildMemberUpdate(m(A), m(A, role(R1, 'Test Pilots')));
+        await handlers.guildMemberUpdate(m(B, role(R1, 'Test Pilots')), m(B));
+        await handlers.guildMemberUpdate(m(A, role(R1, 'Test Pilots')), m(A));
+      } finally { console.log = loud; }
+      assert.deepEqual(writes, [[U, false]], 'never grants while off, keeps one of two, ignores foreign guilds, revokes the last');
+    });
+    const { reconcileRoles } = await import('./role-reconcile.mjs');
+    await ta('a deleted tester role without a replacement revokes every pass; one never found leaves them', async () => {
+      const U = '999999999999999999';
+      const g = { id: '444444444444444444', name: 'G', roles: { cache: new Map([role(A, 'Test Pilots')]) } };
+      g.members = { fetch: async () => new Map([[U, { id: U, roles: { cache: { has: (id) => id === A && g.roles.cache.has(A) } } }]]) };
+      const writes = [];
+      const siteDb = { listLinked: async () => [{ discord_user_id: U, is_tester: true }], setTester: async (id, v) => { writes.push([id, v]); return { updated: 1 }; } };
+      const quiet = console.warn; const loud = console.log; console.warn = () => {}; console.log = () => {};
+      try {
+        const ctx = { home: { id: g.id }, siteDb, mirror: { roleId: null } };
+        await reconcileRoles(ctx, g);
+        assert.deepEqual(writes, [], 'holder of the pinned role keeps the pass');
+        g.roles.cache.delete(A);
+        await reconcileRoles(ctx, g);
+        assert.deepEqual(writes, [[U, false]], 'deleted role: nobody can hold it, the pass goes');
+        writes.length = 0;
+        await reconcileRoles({ home: { id: g.id }, siteDb, mirror: { roleId: null } }, g);
+        assert.deepEqual(writes, [], 'never found at start: passes stay untouched');
       } finally { console.warn = quiet; console.log = loud; }
     });
     await ta('leaving the home guild revokes the pass even while the mirror is off', async () => {
@@ -509,7 +555,8 @@ console.log('\n▸ Website-Spiegel (site-db)');
 console.log('\n▸ Datenfrist (retention)');
 try {
   const { openDb } = await import('./db.mjs');
-  const { reconcileLeavers, retentionDays } = await import('./retention.mjs');
+  const { reconcileLeavers, retentionDays, markOrphanedGuilds, restoreGuild, runRetention, registerRetention } = await import('./retention.mjs');
+  const { Events } = await import('discord.js');
   const d = openDb(':memory:');
   const G = 'g1', DAY = 86_400_000, now = 100 * DAY;
   d.addXp(G, 'stay', 500); d.addXp(G, 'gone', 900); d.addXp(G, 'back', 300);
@@ -529,10 +576,121 @@ try {
     assert.equal(d.getUser(G, 'stay').xp, 500);
     assert.equal(d.getUser(G, 'back').xp, 300);
   });
-  t('LEAVER_RETENTION_DAYS: default 30, 0 allowed, junk ignored', () => {
+  t('rows of a server without the bot run into the deadline, home never', () => {
+    d.addXp('g2', 'p', 50); d.addXp('home', 'h', 70);
+    assert.equal(markOrphanedGuilds(d, new Set(), 'home', now), 0, 'no server at all: wrong token, not a departure');
+    assert.equal(markOrphanedGuilds(d, new Set([G]), 'home', now), 1);
+    assert.equal(d.count('g2'), 0);
+    assert.equal(d.count('home'), 1, 'home guild is never marked by absence');
+    assert.equal(d.count(G), 2);
+    assert.equal(d.purgeExpired(now, 0).users, 1);
+    assert.equal(d.getUser('g2', 'p').xp, 0);
+  });
+  d.addXp('g3', 'a', 10); d.addXp('g3', 'b', 20); d.addXp('g3', 'self', 30);
+  d.markLeft('g3', 'self', now - 2 * DAY);
+  t('a server the bot rejoins gets its rows back, an own departure keeps its mark', () => {
+    assert.equal(markOrphanedGuilds(d, new Set([G]), 'home', now), 2);
+    assert.equal(d.count('g3'), 0);
+    const on = {};
+    registerRetention({ db: d, client: { on: (ev, fn) => { on[ev] = fn; } } });
+    assert.equal(on[Events.GuildAvailable], on[Events.GuildCreate], 'a return during a reconnect arrives as GuildAvailable');
+    on[Events.GuildCreate]({ id: 'g3', name: 'g3' });
+    assert.equal(d.count('g3'), 2, 'the bot is invited back: its absence marks go');
+    assert.equal(d.position('g3', 'self'), null, 'someone who left on their own stays marked');
+    assert.equal(restoreGuild(d, 'g3'), 0, 'a second restore changes nothing');
+  });
+  // Rueckkehr waehrend einer Pause: kein GuildCreate, die Gilde ist beim
+  // naechsten taeglichen Lauf einfach im Cache.
+  // Der Mitgliederabruf dort scheitert: zurueckgeholt wird trotzdem, sonst
+  // liefen Anwesende in die Frist einer Gilde, in der der Bot wieder ist.
+  markOrphanedGuilds(d, new Set([G]), 'home', now);
+  const gilde = (id, ids) => [id, { id, name: id, memberCount: ids?.length, members: { fetch: async () => {
+    if (!ids) throw new Error('offline');
+    return new Map(ids.map((u) => [u, {}]));
+  } } }];
+  // Frist ausdruecklich 30 Tage, unabhaengig vom LEAVER_RETENTION_DAYS der Umgebung.
+  const lauf = (g3) => runRetention({ db: d, home: { id: 'home' }, client: { guilds: { cache: new Map([gilde(G, ['stay', 'back']), gilde('g3', g3)]) } } }, now + DAY, {});
+  await lauf(null);
+  const nachAbruffehler = { a: d.position('g3', 'a'), b: d.position('g3', 'b'), marke: d.getMeta('g3', 'bot_left_at') };
+  await lauf(['a']);
+  t('the daily run restores a server the bot came back to, even when its member fetch fails', () => {
+    assert.deepEqual(nachAbruffehler, { a: 2, b: 1, marke: null }, 'both rows back on the board without a member list');
+    assert.equal(d.position('g3', 'a'), 1);
+    assert.equal(d.position('g3', 'b'), null, 'gone during the absence: marked by the next reconcile');
+    assert.equal(d.getUser('g3', 'b').xp, 20, 'marked, not deleted');
+  });
+  // Eigene Datenbanken: Zeitstempel, Reihenfolge und Gildengrenzen der
+  // Abwesenheitsmarken, unabhaengig vom Zustand oben.
+  {
+    const e = openDb(':memory:'), H = { id: 'home' }, T0 = 200 * DAY;
+    const only = new Set(['home']);
+    e.addXp('gR', 'a', 1); markOrphanedGuilds(e, only, 'home', T0);
+    e.addXp('gR', 'late', 1);
+    const spaeter = markOrphanedGuilds(e, only, 'home', T0 + DAY);
+    e.addXp('gA', 'x', 1); e.addXp('gB', 'y', 1); markOrphanedGuilds(e, only, 'home', T0);
+    e.addXp('gS', 'old', 1); markOrphanedGuilds(e, only, 'home', T0);
+    e.purgeExpired(T0, 0); // auch gR/gA/gB: alles mit T0 ist abgelaufen -- deshalb erst danach pruefen
+    t('one absence keeps one timestamp; a purged one does not lend its deadline to the next', () => {
+      assert.equal(spaeter, 1);
+      assert.equal(e.getUser('gS', 'old').xp, 0);
+      e.addXp('gS', 'new', 1);
+      assert.equal(markOrphanedGuilds(e, only, 'home', T0 + 100 * DAY), 1);
+      assert.equal(e.getMeta('gS', 'bot_left_at'), String(T0 + 100 * DAY), 'a fresh absence starts its own deadline');
+      assert.equal(e.purgeExpired(T0 + 99 * DAY, 0).users, 0, 'the new row is not already expired');
+    });
+    const f = openDb(':memory:');
+    f.addXp('gR', 'a', 1); markOrphanedGuilds(f, only, 'home', T0);
+    f.addXp('gR', 'late', 1); markOrphanedGuilds(f, only, 'home', T0 + DAY);
+    f.addXp('gA', 'x', 1); f.addXp('gB', 'y', 1); markOrphanedGuilds(f, only, 'home', T0 + 2 * DAY);
+    t('restore takes back every row of that absence and only in that server', () => {
+      assert.equal(f.getMeta('gR', 'bot_left_at'), String(T0));
+      assert.equal(restoreGuild(f, 'gR'), 2, 'rows marked later in the same absence come back too');
+      assert.equal(restoreGuild(f, 'gA'), 1);
+      assert.equal(f.count('gB'), 0, 'same timestamp, other server: stays marked');
+    });
+    f.close();
+    // Reihenfolge: zuruecknehmen VOR dem Abgleich, sonst kaeme wer waehrend
+    // der Abwesenheit ging zurueck auf die Bestenliste.
+    const r = openDb(':memory:');
+    r.addXp('g4', 'a', 1); r.addXp('g4', 'b', 1); markOrphanedGuilds(r, only, 'home', T0);
+    await runRetention({ db: r, home: H, client: { guilds: { cache: new Map([gilde('g4', ['a'])]) } } }, T0 + DAY, {});
+    const reihenfolge = { a: r.position('g4', 'a'), b: r.position('g4', 'b') };
+    // Gilde verschwindet waehrend des Laufs (Abruf einer anderen Gilde laeuft noch).
+    r.addXp('g5', 'left', 1); r.addXp('g5', 'stay', 1); r.addXp('g6', 'z', 1);
+    const cache = new Map([gilde('g5', ['stay'])]);
+    cache.set('g6', { id: 'g6', name: 'g6', memberCount: 1, members: { fetch: async () => { cache.delete('g5'); return new Map([['z', {}]]); } } });
+    await runRetention({ db: r, home: H, client: { guilds: { cache } } }, T0 + 2 * DAY, {});
+    const nachLauf = { meta: r.getMeta('g5', 'bot_left_at'), stay: r.position('g5', 'stay') };
+    await runRetention({ db: r, home: H, client: { guilds: { cache } } }, T0 + 3 * DAY, {});
+    t('the daily run restores before it reconciles, and never folds this run\'s departures into an absence', () => {
+      assert.deepEqual(reihenfolge, { a: 1, b: null }, 'gone during the absence stays off the board');
+      assert.deepEqual(nachLauf, { meta: null, stay: 1 }, 'removed mid-run: marked on the next run, not with this run\'s timestamp');
+      assert.equal(r.getMeta('g5', 'bot_left_at'), String(T0 + 3 * DAY));
+      assert.equal(restoreGuild(r, 'g5'), 1);
+      assert.equal(r.position('g5', 'left'), null, 'their own departure keeps its mark');
+    });
+    // Zurueck waehrend einer Bot-Pause, und am Fristtag scheitert der Abruf:
+    // geloescht wird dort dann nicht.
+    const z = openDb(':memory:');
+    z.addXp('home', 'U', 900); z.markBugXp('thr-U', 'home', 'U'); z.markLeft('home', 'U', T0);
+    const heim = (ids) => ({ db: z, home: H, client: { guilds: { cache: new Map([gilde('home', ids)]) } } });
+    await runRetention(heim(null), T0 + 31 * DAY, {});
+    const nachFehlschlag = { xp: z.getUser('home', 'U').xp, sperre: z.hasBugXp('thr-U') };
+    await runRetention(heim(['U']), T0 + 32 * DAY, {});
+    t('no deletion in a server whose member check failed that day', () => {
+      assert.deepEqual(nachFehlschlag, { xp: 900, sperre: true }, 'a member who came back while the bot was down keeps their data');
+      assert.equal(z.position('home', 'U'), 1, 'the next working check clears the mark');
+    });
+    z.close();
+    r.close(); e.close();
+  }
+  t('LEAVER_RETENTION_DAYS: default 30, 0 allowed, capped at 365, junk ignored', () => {
     assert.equal(retentionDays({}), 30);
     assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '0' }), 0);
+    assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '365' }), 365);
+    assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '400' }), 365, 'above the cap keeps longer, never falls back to 30');
     assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '-3' }), 30);
+    assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: '30.5' }), 30);
     assert.equal(retentionDays({ LEAVER_RETENTION_DAYS: 'viel' }), 30);
   });
   d.close();
@@ -568,8 +726,10 @@ try {
     console.log('  · no ship data found — skipped ship projection');
   }
 } catch (e) {
+  // Fehlende Daten fangen die Zweige oben ab (latestPatch/findShip -> null);
+  // was hier ankommt, ist ein echter Fehlschlag und soll den Lauf reissen.
   if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install`)');
-  else console.log(`  · skipped (${e.message})`);
+  else throw e;
 }
 
 // Sperrklinke fuer den Lauf im Bot-Image (discord/bot/Dockerfile setzt

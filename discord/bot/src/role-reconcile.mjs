@@ -35,22 +35,24 @@ const FETCH_TIMEOUT_MS = 10_000;
  * beim Start und bei jedem Nachlauf -- so greift der Spiegel auch, wenn die
  * Rolle erst spaeter angelegt wird. Eine gefundene ID bleibt, solange es die
  * Rolle gibt (eine Umbenennung aendert nichts). Wird sie geloescht, wird neu
- * gesucht; sonst verglichen alle Ereignisse bis zum naechsten Neustart gegen
- * eine Rolle, die niemand mehr tragen kann, und alte Ausweise blieben stehen.
+ * gesucht; bis eine neue gefunden ist, bleibt die alte ID festgehalten --
+ * niemand kann sie tragen, also setzt der Abgleich jeden alten Ausweis
+ * zurueck und vergibt keinen neuen. Wird beim Start gar keine Rolle gefunden
+ * (doppelter Name, falsche ID), bleibt der Spiegel aus und die Ausweise
+ * unveraendert; Entzuege wirken trotzdem (role-sync.mjs).
  */
 export function pinTesterRole(ctx, guild) {
   ctx.mirror ??= { roleId: null };
-  if (ctx.mirror.roleId && guild.roles.cache.has(ctx.mirror.roleId)) return ctx.mirror.roleId;
-  if (ctx.mirror.roleId) {
-    console.warn(`  ! Testpilot-Rolle ${ctx.mirror.roleId} gibt es auf ${guild.name} nicht mehr -- suche neu.`);
-    ctx.mirror.roleId = null;
-  }
+  const pinned = ctx.mirror.roleId;
+  if (pinned && guild.roles.cache.has(pinned)) return pinned;
   const r = resolveTesterRole(guild, TESTER_ROLE_NAME);
   if (r.id) {
     ctx.mirror.roleId = r.id;
     console.log(`  · Testpilot-Rolle ${r.id} in ${guild.name} (gefunden ueber ${r.source}).`);
   } else if (ctx.mirror.lastError !== r.error) {
-    console.warn(`  ! Rollenspiegel aus -- ${r.error}.`);
+    console.warn(pinned
+      ? `  ! Testpilot-Rolle ${pinned} gibt es auf ${guild.name} nicht mehr (${r.error}) -- der Abgleich setzt alle Ausweise zurueck.`
+      : `  ! Rollenspiegel aus -- ${r.error}; bestehende Ausweise bleiben unveraendert.`);
   }
   ctx.mirror.lastError = r.error ?? null;
   return ctx.mirror.roleId;

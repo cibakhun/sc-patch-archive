@@ -26,8 +26,9 @@ import { GUILD_ID as SITE_GUILD_ID } from '../../site-invite.mjs';
 const SNOWFLAKE = /^\d{17,20}$/;
 
 /**
- * @returns {{ id: string|null, source: string, error?: string }}
+ * @returns {{ id: string|null, source: string, error?: string, warning?: string }}
  * `id: null` heisst: Spiegel aus. `error` erklaert, warum.
+ * `warning`: Heim-Gilde gilt, aber GUILD_ID weicht von HOME_GUILD_ID ab.
  */
 export function resolveHomeGuild(env = process.env) {
   const home = (env.HOME_GUILD_ID || '').trim();
