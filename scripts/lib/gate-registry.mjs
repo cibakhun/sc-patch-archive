@@ -366,6 +366,21 @@ export const CHECKS = [
       'zieht je Hangar-Schiff die Lackierungen mit ihren Palettenfarben A/B/C nach src/data/ship-paints.json und reisst, wenn der Leser kein Schiff oder keine Lackierung findet',
     env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B',
   },
+  {
+    // Kein Datenlauf, aber dieselbe Umgebung: Zugang, den es nur auf dem
+    // Betreiber-Rechner gibt. Anlass: 20261029123218 (Profil-Views fuer
+    // Anonyme beschreibbar, Ursache Supabase-Standardrechte) und
+    // 20261030100000 (Rechte nur nach Bedarf). Vorgefuehrt rot gegen den
+    // Live-Stand vor der Migration, gruen gegen die lokale Replik danach.
+    id: 'verify:db-rights',
+    npm: 'verify:db-rights',
+    script: 'scripts/verify-db-rights.mjs',
+    rail: 'B',
+    checks:
+      'die wirksamen Datenbankrechte von anon, authenticated und PUBLIC (Tabellen, Views, Sequenzen, Funktionen, Spalten, Schemas, Standardrechte fuer neue Objekte, Rollenattribute) gehen nicht ueber supabase/rights.expected.json hinaus (sonst FEHLER), fehlende Soll-Rechte sind WARNUNG, benannte Ausnahmen tragen ihren Anlass (Zombie-Waechter), Klinke fuer die Zahl der geprueften Objekte',
+    env:
+      'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.

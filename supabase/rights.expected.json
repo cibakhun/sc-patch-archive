@@ -1,0 +1,158 @@
+{
+  "_zweck": "Soll-Rechte von anon, authenticated und PUBLIC in den Schemas public und private. Gepflegt zusammen mit jeder Migration, die ein Objekt anlegt oder ein Recht aendert. Geprueft von scripts/verify-db-rights.mjs (npm run verify:db-rights, Schiene B) gegen die live wirksamen Rechte, gemessen mit supabase/rights.snapshot.sql. Mehr als hier steht: FEHLER. Weniger: WARNUNG. Fehlt eine Rolle in einem Eintrag, hat sie dort KEIN Recht. 'ausnahme' = geduldetes Zuviel mit Anlass; verschwindet das Zuviel, reisst das Tor (Zombie-Waechter).",
+  "stand": "2026-10-30",
+  "quelle": "supabase/migrations/20261030100000_rechte_nur_nach_bedarf.sql",
+  "objekte": {
+    "default public functions von postgres": {
+      "warum": "neue Funktionen sind fuer anon/authenticated/PUBLIC unsichtbar, bis eine Migration ausdruecklich granted"
+    },
+    "default public sequences von postgres": {
+      "warum": "neue Sequenzen ohne Rechte fuer anon/authenticated"
+    },
+    "default public tables von postgres": {
+      "warum": "neue Tabellen und Views ohne Rechte fuer anon/authenticated"
+    },
+    "default public functions von supabase_admin": {
+      "anon": ["EXECUTE"],
+      "authenticated": ["EXECUTE"],
+      "public": ["EXECUTE"],
+      "ausnahme": "Supabase-Plattform: Standardrechte der Rolle supabase_admin, die postgres nicht aendern darf. Ein Objekt, das supabase_admin in public anlegt, faellt trotzdem auf, weil es hier keinen Soll-Eintrag hat."
+    },
+    "default public sequences von supabase_admin": {
+      "anon": ["SELECT", "UPDATE", "USAGE"],
+      "authenticated": ["SELECT", "UPDATE", "USAGE"],
+      "ausnahme": "Supabase-Plattform: Standardrechte der Rolle supabase_admin, die postgres nicht aendern darf."
+    },
+    "default public tables von supabase_admin": {
+      "anon": ["DELETE", "INSERT", "MAINTAIN", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE"],
+      "authenticated": ["DELETE", "INSERT", "MAINTAIN", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE"],
+      "ausnahme": "Supabase-Plattform: Standardrechte der Rolle supabase_admin, die postgres nicht aendern darf."
+    },
+
+    "function public.accept_friend_request(req_id uuid)": {
+      "authenticated": ["EXECUTE"],
+      "warum": "FriendsManager: Anfrage annehmen (security definer, prueft Empfaenger selbst)"
+    },
+    "function public.are_friends(a uuid, b uuid)": {
+      "authenticated": ["EXECUTE"],
+      "warum": "RLS-Policy dm_insert ruft sie fuer authenticated auf; ohne EXECUTE scheitert jede Nachricht"
+    },
+    "function public.direct_messages_guard()": { "warum": "Triggerfunktion; EXECUTE wird beim Feuern nicht geprueft" },
+    "function public.donations_bump_progress()": { "warum": "Triggerfunktion (stripe-webhook, service_role)" },
+    "function public.gate_verdict()": {
+      "authenticated": ["EXECUTE"],
+      "warum": "nginx/gate.js ruft rpc/gate_verdict mit dem Nutzer-JWT; ohne Sitzung entscheidet gate.js selbst"
+    },
+    "function public.guard_is_tester()": { "warum": "Triggerfunktion auf profiles" },
+    "function public.guard_rsi_verified()": { "warum": "Triggerfunktion auf profiles" },
+    "function public.handle_new_user()": { "warum": "Triggerfunktion auf auth.users" },
+    "function public.mark_messages_read(friend uuid)": {
+      "authenticated": ["EXECUTE"],
+      "warum": "FriendsDock: Nachrichten als gelesen markieren (security definer, nur eigene)"
+    },
+    "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
+    "function public.set_updated_at()": { "warum": "Triggerfunktion" },
+    "function public.support_progress_stamp()": { "warum": "Triggerfunktion" },
+    "function public.sync_discord_identity()": { "warum": "Triggerfunktion auf auth.identities" },
+    "function public.tester_overview()": {
+      "authenticated": ["EXECUTE"],
+      "warum": "Konto (admin): Testerliste; prueft die admin-Rolle selbst"
+    },
+    "function public.touch_crafting_entry()": { "warum": "Triggerfunktion" },
+    "function public.touch_hangar_layout()": { "warum": "Triggerfunktion" },
+    "function public.touch_mining_sig_preset()": { "warum": "Triggerfunktion" },
+
+    "role anon": { "warum": "keine Attribute, keine Mitgliedschaften" },
+    "role authenticated": { "warum": "keine Attribute, keine Mitgliedschaften" },
+
+    "schema private": { "warum": "nur service_role" },
+    "schema public": {
+      "anon": ["USAGE"],
+      "authenticated": ["USAGE"],
+      "public": ["USAGE"],
+      "warum": "PostgREST braucht USAGE; CREATE hat nur der Besitzer"
+    },
+
+    "sequence private.register_attempts_id_seq": { "warum": "identity, nur service_role" },
+    "sequence public.direct_messages_id_seq": { "warum": "identity: Postgres prueft beim Einfuegen kein Sequenzrecht" },
+    "sequence public.donations_id_seq": { "warum": "identity" },
+    "sequence public.favorites_id_seq": { "warum": "identity" },
+    "sequence public.refinery_jobs_id_seq": { "warum": "identity" },
+
+    "table private.register_attempts": { "warum": "nur register_rate_ok (security definer)" },
+    "table public.crafting_entries": {
+      "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
+      "warum": "crafting-app: lesen, upsert (merge-duplicates), loeschen; RLS: eigene Zeilen"
+    },
+    "table public.direct_messages": {
+      "authenticated": ["INSERT", "SELECT"],
+      "warum": "FriendsDock + Realtime: lesen, senden (RLS: nur an Freunde); gelesen-Markierung ueber mark_messages_read"
+    },
+    "table public.discord_role_state": {
+      "authenticated": ["SELECT"],
+      "warum": "Konto: eigene Zeile (Policy select_own); geschrieben nur ueber service_role/security definer"
+    },
+    "table public.donations": {
+      "authenticated": ["SELECT"],
+      "warum": "Policy donations_select_admin (nur admin); geschrieben nur von stripe-webhook"
+    },
+    "table public.favorites": {
+      "authenticated": ["DELETE", "INSERT", "SELECT"],
+      "warum": "Flotte, account-lite, Konto: lesen, anlegen, loeschen; RLS: eigene Zeilen"
+    },
+    "table public.friend_requests": {
+      "authenticated": ["DELETE", "INSERT", "SELECT"],
+      "warum": "FriendsManager: lesen, senden, zurueckziehen/ablehnen; annehmen nur ueber accept_friend_request"
+    },
+    "table public.friends": {
+      "authenticated": ["DELETE", "SELECT"],
+      "warum": "FriendsManager/Konto: lesen, loesen; anlegen nur ueber accept_friend_request"
+    },
+    "table public.hangar_layouts": {
+      "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
+      "warum": "hangar-layouts: lesen, upsert (merge-duplicates); DELETE laut Policy delete_own; RLS: eigene Zeilen"
+    },
+    "table public.mining_sig_presets": {
+      "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
+      "warum": "mining-workbench: lesen, upsert, umbenennen, loeschen; RLS: eigene Zeilen"
+    },
+    "table public.profiles": {
+      "authenticated": ["INSERT", "SELECT", "UPDATE"],
+      "warum": "Konto (upsert), Puls in account-lite (PATCH); RLS: eigene Zeile; oeffentlich nur ueber die Views"
+    },
+    "table public.refinery_jobs": {
+      "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
+      "warum": "RefineryDashboard; RLS: eigene Zeilen"
+    },
+    "table public.support_progress": {
+      "anon": ["SELECT"],
+      "authenticated": ["INSERT", "SELECT", "UPDATE"],
+      "warum": "SupportBody liest ohne Anmeldung (Policy true); admin-PATCH (Policies nur admin)"
+    },
+    "table public.tester_blocklist": { "warum": "nur gate_verdict (security definer)" },
+    "table public.user_roles": {
+      "authenticated": ["SELECT"],
+      "warum": "account-lite/Konto: eigene Rolle; die admin-Policies auf donations/support_progress lesen sie als authenticated"
+    },
+
+    "view public.public_favorites": {
+      "anon": ["SELECT"],
+      "authenticated": ["SELECT"],
+      "warum": "PilotPage (oeffentlich); View mit Besitzerrechten"
+    },
+    "view public.public_profiles": {
+      "anon": ["SELECT"],
+      "authenticated": ["SELECT"],
+      "warum": "PilotPage (oeffentlich); View mit Besitzerrechten"
+    },
+    "view public.social_profiles": {
+      "authenticated": ["SELECT"],
+      "warum": "Freundesliste und Chat, nur angemeldet (20261029145731)"
+    },
+    "view public.tester_credits": {
+      "anon": ["SELECT"],
+      "authenticated": ["SELECT"],
+      "warum": "FeedbackForm: Danke-Liste (oeffentlich)"
+    }
+  }
+}
