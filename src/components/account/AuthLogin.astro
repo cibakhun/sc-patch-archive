@@ -8,7 +8,10 @@
 //    niemanden in ein anderes Konto setzen) -> Hinweis, dann anmelden
 //  - ?confirmed=1 (Ziel des E-Mail-Wechsels mit den alten Vorlagen): Banner
 //  - ?next=/… (nur relative Pfade): Rücksprungziel nach Login
+//  - zweiter Faktor: hat das Konto einen bestätigten Authenticator, gilt die
+//    Anmeldung (Passwort ODER Discord) erst mit dem Code (MfaCodeDialog)
 import { href } from '../../i18n/ui';
+import MfaCodeDialog from './MfaCodeDialog.astro';
 
 interface Props {
   lang: 'de' | 'en';
@@ -40,6 +43,7 @@ const COPY = {
     emailChanged: 'Neue E-Mail-Adresse bestätigt.',
     emailChangeHalf: 'Bestätigung angenommen — bitte öffne auch den Link, den wir an deine andere Adresse geschickt haben.',
     toDash: 'Weiter zu deinem Konto',
+    mfaCancel: 'Anmeldung abgebrochen — ohne den Code aus der Authenticator-App bleibst du abgemeldet.',
   },
   en: {
     email: 'E-mail', emailPh: 'you@example.com',
@@ -60,6 +64,7 @@ const COPY = {
     emailChanged: 'New e-mail address confirmed.',
     emailChangeHalf: 'Confirmation accepted — please also open the link we sent to your other address.',
     toDash: 'Continue to your account',
+    mfaCancel: 'Sign-in cancelled — without the code from your authenticator app you stay signed out.',
   },
 }[lang];
 
@@ -86,6 +91,7 @@ const resetHref = href('/account/reset.html', lang);
     data-msg-email-changed={COPY.emailChanged}
     data-msg-email-change-half={COPY.emailChangeHalf}
     data-to-dash={COPY.toDash}
+    data-msg-mfa-cancel={COPY.mfaCancel}
   >
     <div class="acx-field">
       <label class="acx-label" for="loEmail">{COPY.email} <span class="reqm">*</span></label>
@@ -110,6 +116,7 @@ const resetHref = href('/account/reset.html', lang);
     <a href={resetHref}>{COPY.toReset}</a>
   </div>
 </div>
+<MfaCodeDialog lang={lang} />
 
 <style>
   /* D-01: gleichrangig neben E-Mail/Passwort — volle Breite wie der Submit-
@@ -122,6 +129,8 @@ const resetHref = href('/account/reset.html', lang);
 <script>
   import { supabase, linkClient, AUTH_URL } from '../../lib/supabase';
   import { dropCodeFromUrl } from '../../lib/auth-url';
+  import { needsCode } from '../../lib/mfa';
+  import { askCode } from '../../lib/mfa-dialog';
 
   const form = document.getElementById('loginForm') as HTMLFormElement | null;
   if (form) {
@@ -152,6 +161,18 @@ const resetHref = href('/account/reset.html', lang);
 
     const go = () => location.replace(next);
     const say = (el: HTMLElement, msg: string) => { el.textContent = msg; el.hidden = false; };
+
+    // Zweiter Faktor: hat das Konto einen bestätigten Authenticator, gilt
+    // die Anmeldung erst mit dem Code. Abbruch meldet ab — sonst bliebe eine
+    // Sitzung ohne Code (aal1) in diesem Browser liegen.
+    const passSecondFactor = async (): Promise<boolean> => {
+      if (!(await needsCode(supabase))) return true;
+      if (await askCode(supabase)) return true;
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* verfällt ohnehin */ }
+      ok.hidden = true;
+      say(status, D.msgMfaCancel!);
+      return false;
+    };
 
     // Rücksprung mit Fehler (Discord abgewiesen, Mail-Link abgelaufen). Bei
     // PKCE kommt er als ?error=… in der Query, bei alten Links als #error=…
@@ -223,6 +244,7 @@ const resetHref = href('/account/reset.html', lang);
           ok.hidden = false;
           return;
         }
+        if (!(await passSecondFactor())) return;
         go();
         return;
       }
@@ -241,6 +263,7 @@ const resetHref = href('/account/reset.html', lang);
       try {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (!error) {
+          if (!(await passSecondFactor())) return;
           go();
           return;
         }

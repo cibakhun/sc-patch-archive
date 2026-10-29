@@ -38,6 +38,12 @@
 // Rücksprung ohne gespeicherten Verifier wird verworfen, Sitzungs-Tokens im
 // Fragment werden nie übernommen, und gespeichert wird eine Sitzung erst,
 // wenn /_gate/mint sie angenommen hat.
+// Zweiter Faktor (TOTP): hat das Konto einen bestaetigten Authenticator und
+// traegt die frische Sitzung noch kein aal2 (Passwort und Discord liefern
+// aal1), fragt die Seite zuerst den Code ab und hebt die Sitzung ueber
+// /auth/v1/factors/<id>/challenge + /verify auf aal2 — ebenfalls SDK-frei.
+// Gemintet und gespeichert wird dann die Sitzung mit Code. Der Admin-Zweig
+// von gate_verdict verlangt aal2 (20261030142000_admin_second_factor.sql).
 import { versioned } from '../lib/assetVersion';
 import { SUPABASE, DISCORD } from '../consts';
 ---
@@ -104,6 +110,7 @@ import { SUPABASE, DISCORD } from '../consts';
     }
     .discord-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(45,212,255,.35)}
     .discord-btn:disabled{opacity:.6;cursor:progress}
+    [hidden]{display:none!important}
     .divider{font-family:var(--font-ui);font-size:var(--fs-5);color:var(--muted);text-transform:uppercase;letter-spacing:var(--ls-8);margin:.2rem 0}
     :focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
 </head>
@@ -128,6 +135,16 @@ import { SUPABASE, DISCORD } from '../consts';
     </div>
     <button type="submit" id="gateBtn"><span id="gateBtnTxt">Sign in</span></button>
     <p class="status" id="gateStatus" role="alert" aria-live="assertive"></p>
+  </form>
+
+  <form class="card" id="gateMfaForm" novalidate hidden>
+    <p class="role-link">This account uses two-factor sign-in. Enter the six-digit code from your authenticator app.</p>
+    <div class="field">
+      <label for="gateMfaCode">Code</label>
+      <input id="gateMfaCode" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="9" spellcheck="false" required />
+    </div>
+    <button type="submit" id="gateMfaBtn"><span id="gateMfaBtnTxt">Verify</span></button>
+    <p class="status" id="gateMfaStatus" role="alert" aria-live="assertive"></p>
   </form>
 
   <p class="role-link">Not a Test Pilot yet? <a href={DISCORD.invite}>Get the role on Discord</a>.</p>
@@ -180,9 +197,122 @@ import { SUPABASE, DISCORD } from '../consts';
         var sess = readSession();
         if (!sess || !sess.access_token) return;
         mint(sess.access_token).then(function (r) {
-          if (r.ok) location.replace(next);
+          if (r.ok) { location.replace(next); return; }
+          // Abgewiesen, Sitzung noch ohne Code, Konto mit Authenticator
+          // (Admin-Zweig verlangt aal2): den Code anbieten.
+          var f = r.status === 403 ? codeFactors(sess) : null;
+          if (f) askGateCode(sess, f, 'Enter the code from your authenticator app to continue.');
         }).catch(function () { /* bleibt auf der Torseite */ });
       }
+
+      // ---- Zweiter Faktor (TOTP) ------------------------------------------
+      function jwtAal(token) {
+        try {
+          var p = String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          while (p.length % 4) p += '=';
+          return JSON.parse(atob(p)).aal || '';
+        } catch (e) { return ''; }
+      }
+      // Bestaetigte TOTP-Faktoren, wenn die Sitzung noch den Code braucht;
+      // sonst null. Die Faktoren stehen im user-Objekt der Token-Antwort.
+      function codeFactors(sess) {
+        var f = (sess && sess.user && sess.user.factors) || [];
+        var out = [];
+        for (var i = 0; i < f.length; i++) {
+          if (f[i] && f[i].factor_type === 'totp' && f[i].status === 'verified') out.push(f[i]);
+        }
+        return out.length && jwtAal(sess.access_token) !== 'aal2' ? out : null;
+      }
+      function asJson(r) {
+        return r.json().then(
+          function (b) { return { ok: r.ok, status: r.status, body: b }; },
+          function () { return { ok: r.ok, status: r.status, body: null }; }
+        );
+      }
+      // Code gegen jeden bestaetigten Faktor pruefen (zwei Geraete = zwei
+      // Schluessel), bis einer passt. Ergebnis: { status, sess? }.
+      function verifyGate(sess, factors, code, i) {
+        var hdr = { apikey: SB_KEY, Authorization: 'Bearer ' + sess.access_token, 'Content-Type': 'application/json' };
+        var base = SB_URL + '/auth/v1/factors/' + encodeURIComponent(factors[i].id);
+        return fetch(base + '/challenge', { method: 'POST', headers: hdr, body: '{}' })
+          .then(asJson)
+          .then(function (ch) {
+            if (!ch.ok || !ch.body || !ch.body.id) return { status: ch.status };
+            return fetch(base + '/verify', {
+              method: 'POST', headers: hdr,
+              body: JSON.stringify({ challenge_id: ch.body.id, code: code }),
+            })
+              .then(asJson)
+              .then(function (v) {
+                if (v.ok && v.body && v.body.access_token) return { status: 200, sess: v.body };
+                if (v.status === 429 || i + 1 >= factors.length) return { status: v.status };
+                return verifyGate(sess, factors, code, i + 1);
+              });
+          });
+      }
+      var mfaForm = document.getElementById('gateMfaForm');
+      var mfaBtn = document.getElementById('gateMfaBtn');
+      var mfaBtnTxt = document.getElementById('gateMfaBtnTxt');
+      var mfaStatus = document.getElementById('gateMfaStatus');
+      var mfaPending = null;
+      function showMfaStatus(msg, tone) {
+        mfaStatus.textContent = msg;
+        if (tone) mfaStatus.setAttribute('data-tone', tone);
+        else mfaStatus.removeAttribute('data-tone');
+      }
+      function askGateCode(sess, factors, msg) {
+        mfaPending = { sess: sess, factors: factors };
+        mfaForm.hidden = false;
+        showMfaStatus(msg || '');
+        try { document.getElementById('gateMfaCode').focus(); } catch (e) { /* noop */ }
+      }
+      mfaForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!mfaPending) return;
+        var code = String(mfaForm.elements.namedItem('code').value || '').replace(/[\s-]/g, '');
+        if (!/^[0-9]{6}$/.test(code)) { showMfaStatus('Please enter the six digits from the app.', 'error'); return; }
+        var p = mfaPending;
+        mfaBtn.disabled = true;
+        mfaBtnTxt.textContent = 'Checking …';
+        showMfaStatus('');
+        verifyGate(p.sess, p.factors, code, 0)
+          .then(function (res) {
+            if (!res.sess) {
+              showMfaStatus(
+                res.status === 429 ? 'Too many attempts — please wait a moment and try again.'
+                  : res.status === 401 ? 'Your sign-in has expired — please sign in again.'
+                  : res.status === 400 || res.status === 422 ? 'That code is not right — use the current one from the app.'
+                  : 'Could not verify the code — please try again.',
+                'error'
+              );
+              mfaBtn.disabled = false;
+              mfaBtnTxt.textContent = 'Verify';
+              return;
+            }
+            return mint(res.sess.access_token).then(function (r) {
+              if (r.ok) {
+                // Erst jetzt speichern: die Sitzung MIT Code, angenommen vom Tor.
+                storeSession(res.sess);
+                location.replace(next);
+                return;
+              }
+              mfaPending = null;
+              showMfaStatus(
+                r.status === 403
+                  ? 'Signed in, but this account has no Test Pilot access.'
+                  : 'Could not verify access — please try again.',
+                'error'
+              );
+              mfaBtn.disabled = false;
+              mfaBtnTxt.textContent = 'Verify';
+            });
+          })
+          .catch(function () {
+            showMfaStatus('Network error — please try again.', 'error');
+            mfaBtn.disabled = false;
+            mfaBtnTxt.textContent = 'Verify';
+          });
+      });
 
       var form = document.getElementById('gateForm');
       var status = document.getElementById('gateStatus');
@@ -337,6 +467,13 @@ import { SUPABASE, DISCORD } from '../consts';
               return;
             }
             var sess = result.body;
+            var factors = codeFactors(sess);
+            if (factors) {
+              discordBtn.disabled = false;
+              discordBtnTxt.textContent = 'Sign in with Discord';
+              askGateCode(sess, factors);
+              return;
+            }
             return mint(sess.access_token).then(function (r) {
               if (r.ok) {
                 // Erst jetzt speichern: das Tor hat die Sitzung angenommen.
@@ -390,6 +527,13 @@ import { SUPABASE, DISCORD } from '../consts';
               showStatus('Wrong e-mail or password.', 'error');
               btn.disabled = false;
               btnTxt.textContent = 'Sign in';
+              return;
+            }
+            var factors = codeFactors(result.body);
+            if (factors) {
+              btn.disabled = false;
+              btnTxt.textContent = 'Sign in';
+              askGateCode(result.body, factors);
               return;
             }
             return mint(result.body.access_token).then(function (r) {

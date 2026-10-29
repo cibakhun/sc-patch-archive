@@ -8,6 +8,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
   import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
+  import { needsCode, needsAal2Error } from '../lib/mfa';
+  import { askCode } from '../lib/mfa-dialog';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -168,6 +170,19 @@ import { escapeHtml as escHtml } from '../lib/escape';
         return;
       }
       const user = userData.user;
+
+      // Zweiter Faktor: hat das Konto einen bestätigten Authenticator und
+      // steht diese Sitzung noch ohne Code (z. B. nach „Mit Discord
+      // bestätigen“ oder dem Verbinden von Discord), kommt zuerst der Code.
+      // Abbruch meldet ab — wie auf der Anmeldeseite.
+      if (await needsCode(supabase, true)) {
+        if (!(await askCode(supabase))) {
+          await supabase.auth.signOut({ scope: 'local' });
+          location.replace(D.login! + '?next=' + encodeURIComponent(location.pathname + location.search));
+          return;
+        }
+        document.dispatchEvent(new CustomEvent('vb:aal2'));
+      }
 
       // Header Identity
       document.getElementById('idEmail')!.textContent = user.email || '—';
@@ -1488,6 +1503,13 @@ import { escapeHtml as escHtml } from '../lib/escape';
               show(pfStatus as HTMLElement, D.msgHandleTaken!);
               return;
             }
+            // Wert ausserhalb der Regeln der Datenbank (CHECK, 23514): melden,
+            // statt still nur Name und Handle zu sichern.
+            if (error.code === '23514') {
+              show(pfStatus as HTMLElement, /profiles_handle_reserved/.test(error.message || '')
+                ? D.msgHandleReserved! : D.msgProfileInvalid!);
+              return;
+            }
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           } else {
             stored = true;
@@ -1660,12 +1682,18 @@ import { escapeHtml as escHtml } from '../lib/escape';
               return code === 'invalid_credentials' ? D.msgCurWrong!
                 : code.includes('rate_limit') ? D.msgRate! : D.msgNet!;
             }
-            return data.user && data.user.id === user.id ? '' : D.msgNet!;
+            if (!data.user || data.user.id !== user.id) return D.msgNet!;
           } catch { return D.msgNet!; }
+        } else {
+          const { data } = await supabase.auth.getSession();
+          const s = data.session;
+          if (!(s && s.user.id === user.id && signedInRecently(s.access_token))) return D.msgReauthNeed!;
         }
-        const { data } = await supabase.auth.getSession();
-        const s = data.session;
-        return s && s.user.id === user.id && signedInRecently(s.access_token) ? '' : D.msgReauthNeed!;
+        // Die frische Anmeldung steht auf aal1. Für ein Konto mit
+        // Authenticator nimmt Supabase E-Mail und Passwort nur aus einer
+        // Sitzung mit Code an (insufficient_aal) — also gleich nachfragen.
+        if ((await needsCode(supabase)) && !(await askCode(supabase))) return D.msgMfaNeed!;
+        return '';
       };
 
       // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
@@ -1727,7 +1755,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
         idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate! : D.msgNet!);
+          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate!
+            : needsAal2Error(error) ? D.msgMfaNeed! : D.msgNet!);
           return;
         }
         clearValue('seEmailCur');
@@ -1761,6 +1790,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
             : code === 'weak_password' ? D.msgWeak!
             : code.includes('current_password') ? D.msgCurWrong!
             : code === 'reauthentication_needed' ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : needsAal2Error(error) ? D.msgMfaNeed!
             : D.msgNet!);
           return;
         }
@@ -1822,8 +1852,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
           location.href = D.home!;
         } catch (err) {
           // Verlangt delete-account serverseitig eine frische Anmeldung
-          // (401 reauth_required), den passenden Hinweis statt "hat nicht
-          // geklappt" zeigen.
+          // (401 reauth_required) oder den Code (401 mfa_required), den
+          // passenden Hinweis statt "hat nicht geklappt" zeigen.
           let code = '';
           const ctx = (err as { context?: Response }).context;
           if (ctx && ctx.status === 401) {
@@ -1831,7 +1861,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           }
           show(delStatus as HTMLElement, code === 'reauth_required'
             ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
-            : D.msgNet!);
+            : code === 'mfa_required' ? D.msgMfaNeed! : D.msgNet!);
           delBtn.textContent = delBtn.dataset.idle!;
           delBtn.disabled = false;
         }
@@ -1845,7 +1875,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
       // is-admin ausdrueckt — hier direkt gegen user_roles gepruft, weil
       // account-lite.js auf /account/-Seiten nicht laeuft (volles
       // supabase-js). Fire-and-forget, blockiert die Dashboard-Anzeige nicht.
-      (async () => {
+      const loadTesterOverview = async () => {
         const overviewCard = document.getElementById('testerOverviewCard');
         const overviewBody = document.getElementById('testerOverviewBody');
         if (!overviewCard || !overviewBody) return;
@@ -1858,8 +1888,16 @@ import { escapeHtml as escHtml } from '../lib/escape';
           if (!roleRow || roleRow.role !== 'admin') return; // Karte bleibt verborgen, KEIN Aufruf von tester_overview()
 
           const { data: rows, error } = await supabase.rpc('tester_overview');
-          // Schlaegt der Aufruf fehl (Rolle waehrenddessen entzogen o.ae.),
-          // bleibt die Karte verborgen statt eine Fehlermeldung zu zeigen.
+          // Admin ohne Code (seit 20261030142000_admin_second_factor): Hinweis
+          // statt Liste. Jeder andere Fehler (Rolle waehrenddessen entzogen
+          // o.ae.) laesst die Karte verborgen statt eine Meldung zu zeigen.
+          if (error && (error as { hint?: string }).hint === 'aal2') {
+            overviewBody.textContent = D.testerNeedsCode || '';
+            overviewCard.hidden = false;
+            // Code in der Zwei-Faktor-Karte eingegeben: Liste neu laden.
+            document.addEventListener('vb:aal2', () => { void loadTesterOverview(); }, { once: true });
+            return;
+          }
           if (error) return;
           const list: Array<{ handle: string; display_name: string | null; discord_user_id: string | null; last_staging_seen: string | null }> =
             Array.isArray(rows) ? rows : [];
@@ -1886,7 +1924,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
           }
           overviewCard.hidden = false;
         } catch { /* verborgen bei jedem Fehler -- keine Fehlermeldung */ }
-      })();
+      };
+      void loadTesterOverview();
 
       // ── Discord-Verbindung (linkIdentity) ──────────────────────────────
       // Warum nicht "mit Discord anmelden": das verknuepft nur, wenn die

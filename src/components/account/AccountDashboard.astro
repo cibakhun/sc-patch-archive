@@ -4,6 +4,8 @@ import { href } from '../../i18n/ui';
 import ProfileCard from './ProfileCard.astro';
 import FriendsManager from './FriendsManager.astro';
 import FriendsDock from './FriendsDock.astro';
+import MfaSettings from './MfaSettings.astro';
+import MfaCodeDialog from './MfaCodeDialog.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 import { DISCORD } from '../../consts';
 
@@ -41,6 +43,7 @@ const COPY = {
     testerOverviewDesc: 'Wer die Rolle trägt und wann derjenige zuletzt auf der Vorschau war.',
     testerOverviewEmpty: 'Aktuell trägt niemand die Testpilot-Rolle.',
     testerNeverSeen: 'noch nie',
+    testerNeedsCode: 'Die Testpiloten-Liste gibt es nur in einer Sitzung mit Code aus der Authenticator-App. Richte unter „Zwei-Faktor-Anmeldung“ einen Authenticator ein oder gib dort den Code ein.',
     testerColName: 'Name', testerColHandle: 'Handle', testerColDiscord: 'Discord-ID', testerColSeen: 'Zuletzt auf der Vorschau',
     secSocial: 'Social Links & Organisation',
     secFavs: 'Deine Favoriten',
@@ -134,6 +137,9 @@ const COPY = {
     saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
+    errHandleReserved: 'Dieses Handle ist reserviert — bitte ein anderes wählen.',
+    errProfileInvalid: 'Nicht gespeichert: ein Feld enthält einen Wert, den das Profil nicht annimmt (zu lang oder kein Bild aus deinem Upload bzw. von Discord).',
+    errMfaNeed: 'Ohne den Code aus der Authenticator-App lässt sich das nicht ändern.',
     favsEmpty: 'Noch keine Favoriten. Nimm Schiffe im 3D-Hangar oder auf ihrem Datenblatt in deine Flotte auf — sie erscheinen dann hier.',
     favsHangar: 'Zum 3D-Hangar →',
     favRemove: 'Entfernen',
@@ -204,6 +210,7 @@ const COPY = {
     testerOverviewDesc: 'Who holds the role and when they were last on the preview.',
     testerOverviewEmpty: 'Nobody currently holds the Test Pilot role.',
     testerNeverSeen: 'never yet',
+    testerNeedsCode: 'The Test Pilot list is only available in a session signed in with a code from your authenticator app. Set up an authenticator under “Two-factor sign-in” or enter the code there.',
     testerColName: 'Name', testerColHandle: 'Handle', testerColDiscord: 'Discord ID', testerColSeen: 'Last seen on preview',
     secSocial: 'Social Links & Organization',
     secFavs: 'Your Favorites',
@@ -297,6 +304,9 @@ const COPY = {
     saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
+    errHandleReserved: 'This handle is reserved — please pick another one.',
+    errProfileInvalid: 'Not saved: a field holds a value the profile does not accept (too long, or an image that is neither your upload nor from Discord).',
+    errMfaNeed: 'This cannot be changed without the code from your authenticator app.',
     favsEmpty: 'No favorites yet. Add ships to your fleet in the 3D hangar or on their data sheet and they will show up here.',
     favsHangar: 'Open the 3D hangar →',
     favRemove: 'Remove',
@@ -445,6 +455,9 @@ const SEC = {
   data-kinds={JSON.stringify(COPY.kind)}
   data-msg-handle-taken={COPY.errHandleTaken}
   data-msg-handle-format={COPY.errHandleFormat}
+  data-msg-handle-reserved={COPY.errHandleReserved}
+  data-msg-profile-invalid={COPY.errProfileInvalid}
+  data-msg-mfa-need={COPY.errMfaNeed}
   data-msg-saved={COPY.savedProfile}
   data-msg-email-sent={COPY.emailSent}
   data-msg-pass-saved={COPY.passSaved}
@@ -497,6 +510,7 @@ const SEC = {
   data-msg-social-bad={COPY.socialBad}
   data-tester-overview-empty={COPY.testerOverviewEmpty}
   data-tester-never-seen={COPY.testerNeverSeen}
+  data-tester-needs-code={COPY.testerNeedsCode}
   data-tester-col-name={COPY.testerColName}
   data-tester-col-handle={COPY.testerColHandle}
   data-tester-col-discord={COPY.testerColDiscord}
@@ -996,6 +1010,8 @@ const SEC = {
             <!-- Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten; der Aufruf
                  von tester_overview() wird fuer alle anderen gar nicht erst
                  abgesetzt (siehe account-dashboard.ts). -->
+            <MfaSettings lang={lang} variant="sec" />
+
             <div class="sec-card sec-card--wide" id="testerOverviewCard" hidden>
               <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>{COPY.secTesterOverview}</h3>
               <div class="sec-scroll" id="testerOverviewBody"></div>
@@ -1203,6 +1219,10 @@ const SEC = {
     </div>
   </dialog>
 </div>
+
+<!-- Code-Dialog ausserhalb von #dash: er wird schon gebraucht, solange #dash
+     noch verborgen ist (Sitzung ohne zweiten Faktor beim Laden). -->
+<MfaCodeDialog lang={lang} />
 
 <script>
 import '../../scripts/account-dashboard';
