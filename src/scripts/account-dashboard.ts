@@ -4,6 +4,7 @@
 import { supabase } from '../lib/supabase';
 import { escapeHtml as escHtml } from '../lib/escape';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
+  import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
   import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
 
@@ -1497,6 +1498,90 @@ import { escapeHtml as escHtml } from '../lib/escape';
         }
       }
 
+      // ── Erneute Bestätigung vor heiklen Änderungen ─────────────────────
+      // E-Mail-Wechsel, Passwortwechsel und Löschen verlangen das aktuelle
+      // Passwort: eine frische Anmeldung per signInWithPassword gegen die
+      // eigene Adresse (beim Passwortwechsel geht es zusätzlich als
+      // current_password mit, das prüft Supabase selbst, sobald „Require
+      // current password" eingeschaltet ist). Konten ohne Passwort (nur
+      // Discord) bestätigen stattdessen mit einer frischen Discord-Anmeldung.
+      // Gezählt wird dann der Anmelde-Zeitstempel im Token (amr), den der
+      // Server signiert hat, kein Wert aus dem Browser.
+      const hasPassword = (user.identities || []).some((i) => i.provider === 'email')
+        || ((user.app_metadata?.providers as string[] | undefined) || []).includes('email');
+      document.querySelectorAll<HTMLElement>('[data-reauth="pw"]').forEach((el) => { el.hidden = !hasPassword; });
+      document.querySelectorAll<HTMLElement>('[data-reauth="dc"]').forEach((el) => { el.hidden = hasPassword; });
+      const reauthWindow = Number(D.reauthWindow) || 600;
+      const minPass = Number(D.minPass) || 12;
+      const reauthStatus = document.getElementById('seReauthStatus') as HTMLElement | null;
+
+      const signedInRecently = (token: string): boolean => {
+        try {
+          const b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          const claims = JSON.parse(atob(b + '='.repeat((4 - (b.length % 4)) % 4)));
+          const now = Date.now() / 1000;
+          return Array.isArray(claims.amr) &&
+            claims.amr.some((m: { timestamp?: number }) => m && now - Number(m.timestamp) < reauthWindow);
+        } catch { return false; }
+      };
+
+      /** Leerer Text = bestätigt, sonst die Meldung für den Nutzer. */
+      const confirmIdentity = async (current: string): Promise<string> => {
+        if (hasPassword) {
+          if (!current) return D.msgCurPass!;
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email: user.email || '', password: current });
+            if (error) {
+              const code = (error as { code?: string }).code || '';
+              return code === 'invalid_credentials' ? D.msgCurWrong!
+                : code.includes('rate_limit') ? D.msgRate! : D.msgNet!;
+            }
+            return data.user && data.user.id === user.id ? '' : D.msgNet!;
+          } catch { return D.msgNet!; }
+        }
+        const { data } = await supabase.auth.getSession();
+        const s = data.session;
+        return s && s.user.id === user.id && signedInRecently(s.access_token) ? '' : D.msgReauthNeed!;
+      };
+
+      // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
+      document.querySelectorAll<HTMLButtonElement>('.js-reauth-dc').forEach((b) => {
+        b.addEventListener('click', async () => {
+          b.disabled = true;
+          b.textContent = b.dataset.busy || '';
+          try { sessionStorage.setItem('vb.reauth', user.id); } catch { /* dann ohne Hinweis */ }
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'discord',
+            options: { redirectTo: location.origin + location.pathname },
+          });
+          if (!error) return; // Weiterleitung zu Discord läuft
+          try { sessionStorage.removeItem('vb.reauth'); } catch { /* egal */ }
+          b.disabled = false;
+          b.textContent = b.dataset.idle || '';
+          if (reauthStatus) show(reauthStatus, D.msgReauthErr!);
+        });
+      });
+      // Zurück von dieser Bestätigung?
+      let reauthFor = '';
+      try { reauthFor = sessionStorage.getItem('vb.reauth') || ''; sessionStorage.removeItem('vb.reauth'); } catch { /* egal */ }
+      if (reauthFor) {
+        activateSection('security');
+        if (reauthStatus) {
+          if (AUTH_URL.error) show(reauthStatus, D.msgReauthErr!);
+          else if (reauthFor !== user.id) show(reauthStatus, D.msgReauthOther!);
+          else show(reauthStatus, D.msgReauthOk!, true);
+        }
+      }
+
+      const curValue = (id: string) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        return el ? el.value : '';
+      };
+      const clearValue = (id: string) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        if (el) el.value = '';
+      };
+
       // Security Forms
       const emailForm = document.getElementById('emailForm') as HTMLFormElement;
       const emailStatus = document.getElementById('seEmailStatus')!;
@@ -1508,17 +1593,20 @@ import { escapeHtml as escHtml } from '../lib/escape';
         if (!email || email === user.email) return;
         emailBtn.disabled = true;
         emailBtn.textContent = emailBtn.dataset.busy!;
+        const idle = () => { emailBtn.disabled = false; emailBtn.textContent = emailBtn.dataset.idle!; };
+        const why = await confirmIdentity(curValue('seEmailCur'));
+        if (why) { idle(); show(emailStatus as HTMLElement, why); return; }
         const { error } = await supabase.auth.updateUser(
           { email },
           { emailRedirectTo: location.origin + D.confirmRedirect! },
         );
-        emailBtn.disabled = false;
-        emailBtn.textContent = emailBtn.dataset.idle!;
+        idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
           show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate! : D.msgNet!);
           return;
         }
+        clearValue('seEmailCur');
         show(emailStatus as HTMLElement, D.msgEmailSent!, true);
       });
 
@@ -1530,20 +1618,31 @@ import { escapeHtml as escHtml } from '../lib/escape';
         passStatus.hidden = true;
         const p1 = (document.getElementById('sePass') as HTMLInputElement).value;
         const p2 = (document.getElementById('sePass2') as HTMLInputElement).value;
-        if (p1.length < 8) { show(passStatus as HTMLElement, D.msgShort!); return; }
+        if (p1.length < minPass) { show(passStatus as HTMLElement, D.msgShort!); return; }
         if (p1 !== p2) { show(passStatus as HTMLElement, D.msgMatch!); return; }
         passBtn.disabled = true;
         passBtn.textContent = passBtn.dataset.busy!;
-        const { error } = await supabase.auth.updateUser({ password: p1 });
-        passBtn.disabled = false;
-        passBtn.textContent = passBtn.dataset.idle!;
+        const idle = () => { passBtn.disabled = false; passBtn.textContent = passBtn.dataset.idle!; };
+        const current = curValue('sePassCur');
+        const why = await confirmIdentity(current);
+        if (why) { idle(); show(passStatus as HTMLElement, why); return; }
+        const attrs: { password: string; current_password?: string } = { password: p1 };
+        if (hasPassword) attrs.current_password = current;
+        const { error } = await supabase.auth.updateUser(attrs);
+        idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(passStatus as HTMLElement, code === 'same_password' ? D.msgSame! : D.msgNet!);
+          show(passStatus as HTMLElement,
+            code === 'same_password' ? D.msgSame!
+            : code === 'weak_password' ? D.msgWeak!
+            : code.includes('current_password') ? D.msgCurWrong!
+            : code === 'reauthentication_needed' ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : D.msgNet!);
           return;
         }
-        (document.getElementById('sePass') as HTMLInputElement).value = '';
-        (document.getElementById('sePass2') as HTMLInputElement).value = '';
+        clearValue('sePassCur');
+        clearValue('sePass');
+        clearValue('sePass2');
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
 
@@ -1601,14 +1700,31 @@ import { escapeHtml as escHtml } from '../lib/escape';
         delStatus.hidden = true;
         delBtn.disabled = true;
         delBtn.textContent = delBtn.dataset.busy!;
+        const why = await confirmIdentity(curValue('delCur'));
+        if (why) {
+          show(delStatus as HTMLElement, why);
+          delBtn.textContent = delBtn.dataset.idle!;
+          delBtn.disabled = false;
+          return;
+        }
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
           forgetLocalCopies();
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
-        } catch {
-          show(delStatus as HTMLElement, D.msgNet!);
+        } catch (err) {
+          // Verlangt delete-account serverseitig eine frische Anmeldung
+          // (401 reauth_required), den passenden Hinweis statt "hat nicht
+          // geklappt" zeigen.
+          let code = '';
+          const ctx = (err as { context?: Response }).context;
+          if (ctx && ctx.status === 401) {
+            try { code = ((await ctx.json()) as { error?: string }).error || ''; } catch { /* noop */ }
+          }
+          show(delStatus as HTMLElement, code === 'reauth_required'
+            ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : D.msgNet!);
           delBtn.textContent = delBtn.dataset.idle!;
           delBtn.disabled = false;
         }
@@ -1801,6 +1917,15 @@ import { escapeHtml as escHtml } from '../lib/escape';
         // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
         let justLinked = false;
         try { justLinked = sessionStorage.getItem('vb.dcLinking') === '1'; sessionStorage.removeItem('vb.dcLinking'); } catch {}
+        // Abgewiesenes Verbinden: der Fehler kommt bei PKCE als ?error=… in
+        // der Query (lib/auth-url.ts hat ihn gelesen und weggeräumt).
+        if (justLinked && AUTH_URL.error) {
+          const c = AUTH_URL.errorCode.toLowerCase();
+          dcSay(c === 'identity_already_exists' ? (D.dcLinkErrTaken || '')
+            : c === 'manual_linking_disabled' ? (D.dcLinkErrDisabled || '')
+            : (D.dcLinkErr || ''), 'err');
+          justLinked = false;
+        }
         if (justLinked) {
           const dc = (await dcIdentities()).find((i) => i.provider === 'discord');
           if (dc) {

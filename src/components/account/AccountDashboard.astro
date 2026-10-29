@@ -12,6 +12,12 @@ interface Props {
 }
 const { lang } = Astro.props;
 
+// Mindestlänge für neue Passwörter, gleich wie auf update-password.html; die
+// verbindliche Grenze setzt Supabase (Auth -> Passwords).
+const MIN_PASS = 12;
+// So lange gilt eine Bestätigung per Discord für heikle Änderungen (Sekunden).
+const REAUTH_WINDOW = 600;
+
 const COPY = {
   de: {
     loading: 'Lade dein Konto …',
@@ -130,10 +136,20 @@ const COPY = {
     email: 'E-Mail-Adresse ändern', emailPh: 'neue@beispiel.de',
     emailBtn: 'E-Mail ändern', emailBusy: 'Sende Bestätigung …',
     emailSent: 'Bestätigungs-Mails sind unterwegs — der Wechsel wird nach dem Bestätigen wirksam.',
-    pass: 'Neues Passwort', passPh: 'Mindestens 8 Zeichen',
+    pass: 'Neues Passwort', passPh: `Mindestens ${MIN_PASS} Zeichen`,
     pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
     passBtn: 'Passwort ändern', passBusy: 'Speichere …', passSaved: 'Passwort geändert.',
-    errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
+    errShort: `Das Passwort braucht mindestens ${MIN_PASS} Zeichen.`,
+    errWeak: 'Dieses Passwort ist zu schwach — bitte wähle ein anderes.',
+    curPass: 'Aktuelles Passwort', curPassPh: 'Zur Bestätigung',
+    errCurPass: 'Bitte gib zur Bestätigung dein aktuelles Passwort ein.',
+    errCurWrong: 'Das aktuelle Passwort stimmt nicht.',
+    reauthDcHint: 'Dein Konto meldet sich über Discord an. Zur Bestätigung meldest du dich kurz neu mit Discord an.',
+    reauthDcBtn: 'Mit Discord bestätigen', reauthDcBusy: 'Weiterleitung zu Discord …',
+    reauthDcNeed: 'Bitte bestätige zuerst mit Discord.',
+    reauthDcOk: `Bestätigt — du hast jetzt ${REAUTH_WINDOW / 60} Minuten für die Änderung.`,
+    reauthDcOther: 'Das war ein anderes Discord-Konto. Du bist jetzt mit dem dazugehörigen Konto angemeldet — prüfe die Adresse oben.',
+    reauthDcErr: 'Die Bestätigung mit Discord hat nicht geklappt. Bitte erneut versuchen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errSame: 'Das neue Passwort muss sich vom alten unterscheiden.',
     dangerBody: 'Löscht dein Konto mit Profil, Loadouts, Favoriten, Freunden und Nachrichten endgültig. Das lässt sich nicht rückgängig machen.',
@@ -277,10 +293,20 @@ const COPY = {
     email: 'Change e-mail address', emailPh: 'new@example.com',
     emailBtn: 'Change e-mail', emailBusy: 'Sending confirmation …',
     emailSent: 'Confirmation e-mails are on their way — the change takes effect after confirming.',
-    pass: 'New password', passPh: 'At least 8 characters',
+    pass: 'New password', passPh: `At least ${MIN_PASS} characters`,
     pass2: 'Repeat password', pass2Ph: 'Same password again',
     passBtn: 'Change password', passBusy: 'Saving …', passSaved: 'Password changed.',
-    errShort: 'The password needs at least 8 characters.',
+    errShort: `The password needs at least ${MIN_PASS} characters.`,
+    errWeak: 'This password is too weak — please choose another one.',
+    curPass: 'Current password', curPassPh: 'To confirm',
+    errCurPass: 'Please enter your current password to confirm.',
+    errCurWrong: 'The current password is wrong.',
+    reauthDcHint: 'Your account signs in with Discord. To confirm, sign in with Discord again.',
+    reauthDcBtn: 'Confirm with Discord', reauthDcBusy: 'Redirecting to Discord …',
+    reauthDcNeed: 'Please confirm with Discord first.',
+    reauthDcOk: `Confirmed — you now have ${REAUTH_WINDOW / 60} minutes for the change.`,
+    reauthDcOther: 'That was a different Discord account. You are now signed in to the account that belongs to it — check the address above.',
+    reauthDcErr: 'Confirming with Discord did not work. Please try again.',
     errMatch: 'The passwords do not match.',
     errSame: 'The new password must differ from the old one.',
     dangerBody: 'Permanently deletes your account with profile, loadouts, favorites, friends and messages. This cannot be undone.',
@@ -409,6 +435,15 @@ const SEC = {
   data-msg-email-sent={COPY.emailSent}
   data-msg-pass-saved={COPY.passSaved}
   data-msg-short={COPY.errShort}
+  data-msg-weak={COPY.errWeak}
+  data-min-pass={MIN_PASS}
+  data-reauth-window={REAUTH_WINDOW}
+  data-msg-cur-pass={COPY.errCurPass}
+  data-msg-cur-wrong={COPY.errCurWrong}
+  data-msg-reauth-need={COPY.reauthDcNeed}
+  data-msg-reauth-ok={COPY.reauthDcOk}
+  data-msg-reauth-other={COPY.reauthDcOther}
+  data-msg-reauth-err={COPY.reauthDcErr}
   data-msg-match={COPY.errMatch}
   data-msg-same={COPY.errSame}
   data-msg-net={COPY.errNet}
@@ -846,6 +881,7 @@ const SEC = {
       <section id="tab-panel-security" class="acx-tab-panel" hidden>
         <div class="sec" id="sec" data-lang={lang} data-home={homeHref} data-copy={JSON.stringify(SEC.js)}>
           <div class="sv-bar"><h2 class="sv-h">{COPY.tabSecurity}</h2></div>
+          <p class="acx-status" id="seReauthStatus" role="status" aria-live="polite" hidden></p>
           <div class="sec-grid">
 
             <div class="sec-card">
@@ -857,6 +893,8 @@ const SEC = {
               </div>
               <form id="emailForm" class="sec-form" novalidate hidden>
                 <input class="inp mono" id="seEmail" name="email" type="email" autocomplete="email" placeholder={COPY.emailPh} aria-label={SEC.newEmail} />
+                <input class="inp" id="seEmailCur" name="current_password" type="password" autocomplete="current-password" placeholder={COPY.curPassPh} aria-label={COPY.curPass} data-reauth="pw" />
+                <div class="sec-reauth" data-reauth="dc" hidden><p class="sec-note">{COPY.reauthDcHint}</p><button type="button" class="sec-btn js-reauth-dc" data-busy={COPY.reauthDcBusy} data-idle={COPY.reauthDcBtn}>{COPY.reauthDcBtn}</button></div>
                 <button class="sec-btn sec-btn--go" type="submit" id="seEmailBtn" data-busy={COPY.emailBusy} data-idle={SEC.send}>{SEC.send}</button>
                 <p class="acx-status" id="seEmailStatus" role="status" aria-live="polite" hidden></p>
               </form>
@@ -866,8 +904,10 @@ const SEC = {
                 <button type="button" class="sec-btn" id="secPassBtn" data-sec-open="passForm" aria-controls="passForm" aria-expanded="false">{SEC.change}</button>
               </div>
               <form id="passForm" class="sec-form" novalidate hidden>
-                <input class="inp" id="sePass" name="password" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.passPh} aria-label={COPY.pass} />
-                <input class="inp" id="sePass2" name="password2" type="password" minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} aria-label={COPY.pass2} />
+                <input class="inp" id="sePassCur" name="current_password" type="password" autocomplete="current-password" placeholder={COPY.curPassPh} aria-label={COPY.curPass} data-reauth="pw" />
+                <div class="sec-reauth" data-reauth="dc" hidden><p class="sec-note">{COPY.reauthDcHint}</p><button type="button" class="sec-btn js-reauth-dc" data-busy={COPY.reauthDcBusy} data-idle={COPY.reauthDcBtn}>{COPY.reauthDcBtn}</button></div>
+                <input class="inp" id="sePass" name="password" type="password" minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.passPh} aria-label={COPY.pass} />
+                <input class="inp" id="sePass2" name="password2" type="password" minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.pass2Ph} aria-label={COPY.pass2} />
                 <button class="sec-btn sec-btn--go" type="submit" id="sePassBtn" data-busy={COPY.passBusy} data-idle={SEC.save}>{SEC.save}</button>
                 <p class="acx-status" id="sePassStatus" role="status" aria-live="polite" hidden></p>
               </form>
@@ -941,6 +981,8 @@ const SEC = {
               </div>
               <form id="deleteForm" class="sec-form" novalidate hidden>
                 <p class="sec-note">{COPY.dangerBody}</p>
+                <input class="inp" id="delCur" name="current_password" type="password" autocomplete="current-password" placeholder={COPY.curPassPh} aria-label={COPY.curPass} data-reauth="pw" />
+                <div class="sec-reauth" data-reauth="dc" hidden><p class="sec-note">{COPY.reauthDcHint}</p><button type="button" class="sec-btn js-reauth-dc" data-busy={COPY.reauthDcBusy} data-idle={COPY.reauthDcBtn}>{COPY.reauthDcBtn}</button></div>
                 <input class="inp mono" id="delConfirm" name="confirm" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder={COPY.dangerWord} aria-label={COPY.dangerConfirmLabel} />
                 <button class="sec-btn sec-btn--hot" type="submit" id="delBtn" disabled data-busy={COPY.dangerBusy} data-idle={COPY.dangerBtn}>{COPY.dangerBtn}</button>
                 <p class="acx-status" id="delStatus" role="alert" aria-live="assertive" hidden></p>

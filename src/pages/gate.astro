@@ -28,11 +28,16 @@
 // Formular ist dieser Weg (Discord kommt in Plan 04 als optisch fuehrender
 // Knopf daneben, ohne dass sich diese Bauform aendert).
 // Plan 04 (D-01/D-03/D-11): Discord wird der Hauptweg, das E-Mail-Formular
-// bleibt der von D-04 verlangte Discord-unabhängige Weg. Der OAuth-Rücksprung
-// (`?code=` nicht relevant hier — Supabase liefert bei einer Client-seitigen
-// Anfrage an /auth/v1/authorize das implizite Ergebnis im URL-Fragment) wird
-// unten vom bestehenden Inline-Skript ausgewertet, SDK-frei wie der Rest der
-// Seite (Pitfall 6 — kein /_astro/-Bündel).
+// bleibt der von D-04 verlangte Discord-unabhängige Weg. Der OAuth-Ablauf ist
+// PKCE, SDK-frei wie der Rest der Seite (Pitfall 6 — kein /_astro/-Bündel):
+// vor dem Sprung zu Discord entsteht ein code_verifier, der nur im
+// localStorage DIESES Browsers liegt (wie bei supabase-js: auch ein
+// Rücksprung in einem neuen Tab, etwa aus der Discord-App, findet ihn);
+// /auth/v1/authorize bekommt dessen SHA-256 als code_challenge. Der Rücksprung trägt `?code=`, den nur
+// /auth/v1/token?grant_type=pkce zusammen mit dem Verifier einlöst. Ein
+// Rücksprung ohne gespeicherten Verifier wird verworfen, Sitzungs-Tokens im
+// Fragment werden nie übernommen, und gespeichert wird eine Sitzung erst,
+// wenn /_gate/mint sie angenommen hat.
 import { versioned } from '../lib/assetVersion';
 import { SUPABASE, DISCORD } from '../consts';
 ---
@@ -170,13 +175,14 @@ import { SUPABASE, DISCORD } from '../consts';
 
       // Schon angemeldet (Sitzung aus einem frueheren Besuch oder von
       // account-lite.js aktualisiert)? Dann direkt minten und weiterspringen.
-      (function tryEnter() {
+      // Laeuft erst, wenn kein Discord-Ruecksprung zu behandeln ist (unten).
+      function tryEnter() {
         var sess = readSession();
         if (!sess || !sess.access_token) return;
         mint(sess.access_token).then(function (r) {
           if (r.ok) location.replace(next);
         }).catch(function () { /* bleibt auf der Torseite */ });
-      })();
+      }
 
       var form = document.getElementById('gateForm');
       var status = document.getElementById('gateStatus');
@@ -200,6 +206,18 @@ import { SUPABASE, DISCORD } from '../consts';
         else discordStatus.removeAttribute('data-tone');
       }
 
+      // PKCE ohne SDK (RFC 7636, S256): base64url ohne Auffuellung. Der
+      // Verifier liegt im localStorage, nicht im sessionStorage: oeffnet die
+      // Discord-App den Ruecksprung in einem neuen Tab, ist er dort sonst
+      // weg. Er ist nur zusammen mit dem Code nutzbar und wird beim ersten
+      // Ruecksprung verbraucht.
+      var PKCE_KEY = 'vb_gate_pkce';
+      function b64url(bytes) {
+        var s = '';
+        for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+        return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      }
+
       discordBtn.addEventListener('click', function () {
         discordBtn.disabled = true;
         discordBtnTxt.textContent = 'Redirecting …';
@@ -209,7 +227,29 @@ import { SUPABASE, DISCORD } from '../consts';
         // (next bleibt erhalten), damit der Ruecksprung SDK-frei vom
         // bestehenden Inline-Skript gelesen werden kann.
         var redirectTo = location.origin + '/gate.html?next=' + encodeURIComponent(next);
-        location.href = SB_URL + '/auth/v1/authorize?provider=discord&redirect_to=' + encodeURIComponent(redirectTo);
+        var verifier;
+        try {
+          var raw = new Uint8Array(32);
+          crypto.getRandomValues(raw);
+          verifier = b64url(raw);
+          localStorage.setItem(PKCE_KEY, verifier);
+        } catch (e) { verifier = null; }
+        if (!verifier || !crypto.subtle) {
+          showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
+          discordBtn.disabled = false;
+          discordBtnTxt.textContent = 'Sign in with Discord';
+          return;
+        }
+        crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(function (hash) {
+          location.href = SB_URL + '/auth/v1/authorize?provider=discord' +
+            '&redirect_to=' + encodeURIComponent(redirectTo) +
+            '&code_challenge=' + encodeURIComponent(b64url(new Uint8Array(hash))) +
+            '&code_challenge_method=s256';
+        }).catch(function () {
+          showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
+          discordBtn.disabled = false;
+          discordBtnTxt.textContent = 'Sign in with Discord';
+        });
       });
 
       // D-02: unbekanntes Discord-Konto -> Weg nennen, nicht den Rohtext der
@@ -226,18 +266,38 @@ import { SUPABASE, DISCORD } from '../consts';
           c === 'unexpected_failure';
       }
 
-      (function handleOauthReturn() {
+      // Rueckgabe: true, wenn ein Discord-Ruecksprung behandelt wird (dann
+      // kein tryEnter mit einer aelteren Sitzung dazwischen).
+      function handleOauthReturn() {
+        var qp = new URLSearchParams(location.search);
         var hp = new URLSearchParams(location.hash.charAt(0) === '#' ? location.hash.slice(1) : '');
-        var accessToken = hp.get('access_token');
-        var oauthErr = hp.get('error');
-        if (!accessToken && !oauthErr) return;
+        var code = qp.get('code');
+        var oauthErr = qp.get('error') || hp.get('error');
+        var errDesc = qp.get('error_description') || hp.get('error_description');
+        var errCode = qp.get('error_code') || hp.get('error_code');
+        // Sitzungs-Tokens im Fragment stammen nie aus dem eigenen Ablauf
+        // (PKCE) und werden nicht uebernommen -- nur weggeraeumt.
+        var tokensInUrl = hp.has('access_token') || hp.has('refresh_token') ||
+          qp.has('access_token') || qp.has('refresh_token');
+        if (!code && !oauthErr && !tokensInUrl && !hp.has('error_description')) return false;
+        // Verbraucht wird der Verifier nur bei einem Ruecksprung mit Code
+        // oder Fehler; ein blosser Aufruf der Torseite (zweiter Tab) laesst
+        // eine laufende Anmeldung in Ruhe.
+        var verifier = null;
+        if (code || oauthErr) {
+          try { verifier = localStorage.getItem(PKCE_KEY); localStorage.removeItem(PKCE_KEY); } catch (e) { /* noop */ }
+        }
 
-        // Fragment sofort entfernen (T-14-23): kein Access-Token/Fehlertext
-        // im Verlauf, in einem Lesezeichen oder in einem Bildschirmfoto.
-        history.replaceState(null, '', location.pathname + location.search);
+        // Adresse sofort bereinigen (T-14-23): kein Code, Token oder
+        // Fehlertext im Verlauf, in einem Lesezeichen oder Bildschirmfoto.
+        // Nur next bleibt stehen.
+        var keep = new URLSearchParams();
+        if (qp.has('next')) keep.set('next', qp.get('next'));
+        var ks = keep.toString();
+        history.replaceState(null, '', location.pathname + (ks ? '?' + ks : ''));
 
         if (oauthErr) {
-          if (looksLikeSignupBlocked(hp.get('error_description'), hp.get('error_code'))) {
+          if (looksLikeSignupBlocked(errDesc, errCode)) {
             showDiscordStatus(
               'There is no verse-base.com account linked to this Discord account yet. ' +
               'Register with e-mail and password first on ' +
@@ -249,34 +309,60 @@ import { SUPABASE, DISCORD } from '../consts';
             showDiscordStatus('Discord sign-in failed — please try again, or sign in with e-mail and password below.', 'error');
           }
           discordBtnTxt.textContent = 'Sign in with Discord';
-          return;
+          return true;
+        }
+        if (!code) return false; // nur Tokens im Fragment: verworfen, normal weiter
+        if (!verifier) {
+          // Kein Verifier in diesem Browser: der Ruecksprung gehoert nicht
+          // zu einer hier gestarteten Anmeldung.
+          showDiscordStatus('Discord sign-in could not be completed in this browser — please try again.', 'error');
+          return true;
         }
 
-        // Erfolgsfall: Sitzung in derselben Ablageform wie assets/account-lite.js
-        var sess = {
-          access_token: accessToken,
-          refresh_token: hp.get('refresh_token'),
-          expires_in: parseInt(hp.get('expires_in') || '3600', 10),
-          token_type: hp.get('token_type') || 'bearer',
-        };
-        storeSession(sess);
-        mint(sess.access_token).then(function (r) {
-          if (r.ok) {
-            location.replace(next);
-            return;
-          }
-          showDiscordStatus(
-            r.status === 403
-              ? 'Signed in, but this account has no Test Pilot access.'
-              : 'Could not verify access — please try again.',
-            'error'
-          );
-          discordBtnTxt.textContent = 'Sign in with Discord';
-        }).catch(function () {
-          showDiscordStatus('Network error — please try again.', 'error');
-          discordBtnTxt.textContent = 'Sign in with Discord';
-        });
-      })();
+        discordBtn.disabled = true;
+        discordBtnTxt.textContent = 'Signing in …';
+        fetch(SB_URL + '/auth/v1/token?grant_type=pkce', {
+          method: 'POST',
+          headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auth_code: code, code_verifier: verifier }),
+        })
+          .then(function (r) {
+            return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+          })
+          .then(function (result) {
+            if (!result.ok || !result.body || !result.body.access_token) {
+              showDiscordStatus('Discord sign-in failed — please try again, or sign in with e-mail and password below.', 'error');
+              discordBtn.disabled = false;
+              discordBtnTxt.textContent = 'Sign in with Discord';
+              return;
+            }
+            var sess = result.body;
+            return mint(sess.access_token).then(function (r) {
+              if (r.ok) {
+                // Erst jetzt speichern: das Tor hat die Sitzung angenommen.
+                storeSession(sess);
+                location.replace(next);
+                return;
+              }
+              showDiscordStatus(
+                r.status === 403
+                  ? 'Signed in, but this account has no Test Pilot access.'
+                  : 'Could not verify access — please try again.',
+                'error'
+              );
+              discordBtn.disabled = false;
+              discordBtnTxt.textContent = 'Sign in with Discord';
+            });
+          })
+          .catch(function () {
+            showDiscordStatus('Network error — please try again.', 'error');
+            discordBtn.disabled = false;
+            discordBtnTxt.textContent = 'Sign in with Discord';
+          });
+        return true;
+      }
+
+      if (!handleOauthReturn()) tryEnter();
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -306,9 +392,10 @@ import { SUPABASE, DISCORD } from '../consts';
               btnTxt.textContent = 'Sign in';
               return;
             }
-            storeSession(result.body);
             return mint(result.body.access_token).then(function (r) {
               if (r.ok) {
+                // Erst speichern, wenn das Tor die Sitzung angenommen hat.
+                storeSession(result.body);
                 location.replace(next);
                 return;
               }
