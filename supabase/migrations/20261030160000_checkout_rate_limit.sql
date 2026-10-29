@@ -17,10 +17,14 @@
 --      nie die Adresse selbst) und dem Zeitpunkt.
 --   2. public.checkout_rate_ok(p_ip_key): zaehlt die Aufrufe dieses
 --      Schluessels in der letzten Stunde; ab 10 false, sonst Buchung und true.
---      Je Schluessel serialisiert (Advisory-Lock), damit parallele Aufrufe die
---      Grenze nicht gemeinsam ueberholen. Jeder Aufruf loescht Zeilen, die
---      aelter als eine Stunde sind (laenger braucht die Zaehlung sie nicht).
---      Gezaehlt wird je IPv4-Adresse bzw. je IPv6-/64 (rate.js).
+--      Je Schluessel eine Advisory-Sperre, OHNE zu warten: haelt ein
+--      paralleler Aufruf desselben Schluessels sie gerade, feuert dieser
+--      Anschluss parallel, und der Aufruf gilt als gebremst. So ueberholen
+--      parallele Aufrufe die Grenze nicht gemeinsam, und unter Last staut
+--      sich nichts in der Datenbank, die auch das Tor der Vorschau fragt.
+--      Jeder Aufruf loescht Zeilen, die aelter als eine Stunde sind (laenger
+--      braucht die Zaehlung sie nicht). Gezaehlt wird je oeffentlicher
+--      IPv4-Adresse bzw. je IPv6-/56 (rate.js).
 --      SECURITY DEFINER, leerer search_path, ausfuehrbar NUR fuer
 --      service_role. Dieselbe Bauart wie register_rate_ok und rsi_rate_ok:
 --      das Schema private ist ueber die REST-Schnittstelle nicht erreichbar.
@@ -53,7 +57,9 @@ begin
   if p_ip_key is null or p_ip_key !~ '^[0-9a-f]{64}$' then
     return false;
   end if;
-  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('checkout_rate:' || p_ip_key, 0));
+  if not pg_catalog.pg_try_advisory_xact_lock(pg_catalog.hashtextextended('checkout_rate:' || p_ip_key, 0)) then
+    return false;
+  end if;
   select count(*) into recent
   from private.checkout_attempts
   where ip_key = p_ip_key

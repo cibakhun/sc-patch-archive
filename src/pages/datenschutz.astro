@@ -617,7 +617,11 @@ body{font-family:var(--font-body)}
     <p>
       At staging.verse-base.com we run a test preview that is only open to
       <a href="#testpilots">test pilots</a> and administrators. At the entrance you sign in with your
-      account; the entrance page connects to Supabase for this. The server then asks the account
+      account; the entrance page connects to Supabase for this and, if your stored sign-in has
+      expired, renews it with the refresh key. If you sign in there with Discord, your browser
+      keeps the preview page you wanted to open next to the check value (PKCE) until you return,
+      for at most 15 minutes; Supabase and Discord see only a random identifier of the sign-in
+      instead of that page. The server then asks the account
       system whether you have access, stores the time of your visit and sets two technically
       necessary cookies: <code>vb_gate</code> (the access pass with your account ID, signed by the
       server, not readable by scripts) and <code>vb_gate_exp</code> (its expiry time), both valid for
@@ -698,7 +702,7 @@ body{font-family:var(--font-body)}
       So that nobody can misuse the button automatically, the function accepts at most ten calls
       per hour for each internet connection, and so creates at most ten payment pages. To do this
       it stores, for each call, a check value derived from your IP address (for IPv6, only its
-      first 64 bits) and a secret that exists only inside the function, plus the time of the
+      first 56 bits) and a secret that exists only inside the function, plus the time of the
       call. The IP address itself is not stored, and without the secret it cannot be recovered
       from the check value. The function deletes entries older than one hour on its next call.
       The legal basis is Art. 6 (1) (f) GDPR; the legitimate interest is protecting the donation

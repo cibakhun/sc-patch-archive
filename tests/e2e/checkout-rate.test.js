@@ -3,7 +3,9 @@
 //
 // Zusicherungen:
 //   * Die Adresse kommt aus cf-connecting-ip; ein vom Aufrufer gesetzter
-//     x-forwarded-for-Anfang zaehlt nicht.
+//     x-forwarded-for-Anfang zaehlt nicht. Gezaehlt wird je oeffentlicher
+//     IPv4 bzw. je IPv6-/56; eine private Adresse (Proxy der Anlage) zaehlt
+//     gar nicht, statt alle Spender in ein Konto zu werfen.
 //   * An die Datenbank geht nur ein HMAC-Schluessel, nie die Adresse.
 //   * false von checkout_rate_ok heisst gebremst, alles andere laesst die
 //     Spende durch (Ausfall offen) und steht im Log.
@@ -36,15 +38,25 @@ describe('clientIp', () => {
     assert.equal(clientIp(H({ 'x-real-ip': '198.51.100.1' })), '198.51.100.1');
     assert.equal(clientIp(H({ 'x-forwarded-for': '6.6.6.6, 203.0.113.9' })), '203.0.113.9');
   });
-  test('IPv6 zaehlt je /64, ::ffff:-Adressen als IPv4, Unsinn ist unbekannt', () => {
+  test('IPv6 zaehlt je /56, ::ffff:-Adressen als IPv4, Unsinn ist unbekannt', () => {
     assert.equal(subjectOf('2001:db8:1:2:aaaa::1'), subjectOf('2001:db8:1:2:bbbb::9'));
-    assert.equal(subjectOf('2001:db8:1:2:aaaa::1'), '2001:db8:1:2::/64');
-    assert.notEqual(subjectOf('2001:db8:1:3::1'), subjectOf('2001:db8:1:2::1'));
+    assert.equal(subjectOf('2001:db8:1:2:aaaa::1'), '2001:db8:1:0::/56');
+    assert.equal(subjectOf('2001:db8:1:3::1'), subjectOf('2001:db8:1:ff::1'), 'ein /56, viele /64');
+    assert.notEqual(subjectOf('2001:db8:1:100::1'), subjectOf('2001:db8:1:2::1'));
     assert.equal(subjectOf('::ffff:203.0.113.7'), '203.0.113.7');
-    assert.equal(clientIp(H({ 'cf-connecting-ip': '2001:db8::1' })), '2001:db8:0:0::/64');
+    assert.equal(clientIp(H({ 'cf-connecting-ip': '2001:db8::1' })), '2001:db8:0:0::/56');
     assert.equal(clientIp(H({ 'cf-connecting-ip': 'x; drop table' })), '');
     assert.equal(subjectOf('1::2::3'), '');
     assert.equal(clientIp(H({})), '');
+  });
+  test('nicht oeffentliche Adressen zaehlen nicht (kein gemeinsames Konto aller Spender)', () => {
+    for (const ip of ['10.1.2.3', '172.16.0.1', '172.31.255.1', '192.168.0.1', '127.0.0.1', '100.64.0.1', '100.127.0.1',
+      '169.254.1.1', '0.1.2.3', '240.0.0.1', '255.255.255.255', '224.0.0.1', '256.1.1.1', '::ffff:10.0.0.1',
+      '::1', '::', 'fd12:3456::1', 'fc00::1', 'fe80::1', 'ff02::1']) {
+      assert.equal(subjectOf(ip), '', ip);
+    }
+    for (const ip of ['172.15.0.1', '172.32.0.1', '100.63.0.1', '100.128.0.1', '8.8.8.8']) assert.equal(subjectOf(ip), ip, ip);
+    assert.equal(clientIp(H({ 'cf-connecting-ip': '10.0.0.1', 'x-forwarded-for': '203.0.113.9' })), '203.0.113.9');
   });
 });
 
@@ -111,6 +123,9 @@ describe('Verdrahtung', () => {
 
   test('Grenze in Function und Migration gleich, RPC nur fuer service_role', () => {
     assert.match(sql, new RegExp(`if recent >= ${LIMIT_PER_HOUR} then`));
+    // Je Schluessel, und ohne zu warten: kein Stau in der gemeinsamen Datenbank.
+    assert.match(sql, /if not pg_catalog\.pg_try_advisory_xact_lock\(pg_catalog\.hashtextextended\('checkout_rate:' \|\| p_ip_key, 0\)\) then\s+return false;/);
+    assert.doesNotMatch(sql, /pg_advisory_xact_lock\(/);
     assert.match(sql, /revoke all on function public\.checkout_rate_ok\(text\) from public, anon, authenticated;/);
     assert.match(sql, /grant execute on function public\.checkout_rate_ok\(text\) to service_role;/);
   });
@@ -119,6 +134,8 @@ describe('Verdrahtung', () => {
     const de = fs.readFileSync('src/pages/de/datenschutz.astro', 'utf8');
     const en = fs.readFileSync('src/pages/datenschutz.astro', 'utf8');
     assert.match(de, /höchstens\s+zehn\s+Aufrufe\s+in\s+der\s+Stunde/);
+    assert.match(de, /ersten\s+56\s+Bit/);
+    assert.match(en, /first\s+56\s+bits/);
     assert.match(de, /älter\s+als\s+eine\s+Stunde/);
     assert.match(en, /at\s+most\s+ten\s+calls\s+per\s+hour/);
     assert.match(en, /older\s+than\s+one\s+hour/);
