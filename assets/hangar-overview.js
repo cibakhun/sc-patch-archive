@@ -670,9 +670,12 @@ export function boot(doc) {
   function markCards(id) {
     for (const a of strip.querySelectorAll('.hg-card')) a.setAttribute('aria-current', a.dataset.id === id ? 'true' : 'false');
   }
+  // Ab 761 px ist die Leiste eine Spalte links und rollt senkrecht, schmal
+  // ein Streifen, der waagerecht laeuft: beide Ziele gesetzt, die Achse ohne
+  // Bildlauf klemmt der Browser auf 0.
   function scrollToCard(id, behavior = reduce ? 'auto' : 'smooth') {
     const li = cardOf(id)?.parentElement;
-    if (li) strip.scrollTo({ left: li.offsetLeft - strip.clientWidth / 2 + li.clientWidth / 2, behavior });
+    if (li) strip.scrollTo({ left: li.offsetLeft - strip.clientWidth / 2 + li.clientWidth / 2, top: li.offsetTop - strip.clientHeight / 2 + li.clientHeight / 2, behavior });
   }
   function select(id, { scroll = true } = {}) {
     if (scroll) scrollToCard(id);
@@ -774,9 +777,11 @@ export function boot(doc) {
     e.preventDefault();
     select(a.dataset.id, { scroll: false });
   });
-  // Ein Mausrad rollt senkrecht, die Leiste laeuft waagerecht: das Rad
-  // schiebt sie, und mit der Maus laesst sie sich ziehen. Am Rand gibt das
-  // Rad an die Seite weiter. Nach einem Zug waehlt das Loslassen kein Schiff.
+  // Ein Mausrad rollt senkrecht, der Streifen schmaler Fenster laeuft
+  // waagerecht: das Rad schiebt ihn, und mit der Maus laesst er sich ziehen.
+  // Am Rand gibt das Rad an die Seite weiter. Die Spalte links (ab 761 px)
+  // rollt selbst senkrecht, dort hat sie keine waagerechte Strecke und das
+  // Rad bleibt beim Browser. Nach einem Zug waehlt das Loslassen kein Schiff.
   const sideways = (el) => el.addEventListener('wheel', (e) => {
     if (e.ctrlKey || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
     const max = el.scrollWidth - el.clientWidth;
@@ -786,21 +791,26 @@ export function boot(doc) {
   }, { passive: false });
   sideways(strip);
   sideways($('hgx-roles'));
+  // Gezogen wird entlang der Achse, auf der die Leiste rollt: in der Spalte
+  // links senkrecht, im Streifen schmaler Fenster waagerecht.
   let drag = null;
   let dragged = false;
   strip.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'mouse' && e.button === 0) drag = { x: e.clientX, left: strip.scrollLeft, id: e.pointerId, moved: false };
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const down = strip.scrollHeight - strip.clientHeight > strip.scrollWidth - strip.clientWidth;
+    drag = { at: down ? e.clientY : e.clientX, from: down ? strip.scrollTop : strip.scrollLeft, down, id: e.pointerId, moved: false };
   });
   strip.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
-    const dx = e.clientX - drag.x;
+    const d = (drag.down ? e.clientY : e.clientX) - drag.at;
     if (!drag.moved) {
-      if (Math.abs(dx) < 6) return;
+      if (Math.abs(d) < 6) return;
       drag.moved = true;
       strip.setPointerCapture(e.pointerId);
       strip.classList.add('is-drag');
     }
-    strip.scrollLeft = drag.left - dx;
+    if (drag.down) strip.scrollTop = drag.from - d;
+    else strip.scrollLeft = drag.from - d;
   });
   const endDrag = () => {
     if (drag?.moved) {
@@ -1380,7 +1390,9 @@ export function boot(doc) {
         // Titelblock zaehlt nur, was danach bleibt: die Knopfreihe oben an
         // seinem Platz. Sonst fand das Hologramm neben dem ganzen Block oft
         // keinen Platz und erschien nie, und der Block wich nie.
-        const side = doc.querySelector('.hg-side'), nav = $('topbar'), acts = title?.querySelector('.hgx-actions');
+        // Ab 761 px liegt links die Schiffsauswahl ueber der Buehne, offen oder
+        // als schmale Spalte; schmal steht sie unter der Tafel und zaehlt nicht.
+        const side = doc.querySelector('.hg-side'), dockEl = doc.querySelector('.hg-dock'), nav = $('topbar'), acts = title?.querySelector('.hgx-actions');
         const hint = $('hg-hint'), keep = [$('hg-tools'), hint, $('hgx-tray')];
         const safe = () => {
           const c = canvas.getBoundingClientRect();
@@ -1389,11 +1401,11 @@ export function boot(doc) {
             const r = el?.getBoundingClientRect();
             return r && r.width && r.height && r.left < c.right && r.right > c.left && r.top < c.bottom && r.bottom > c.top ? r : null;
           };
-          const p = on(side), b = on(nav), t = on(title), a = t && on(acts);
+          const p = on(side), d = on(dockEl), b = on(nav), t = on(title), a = t && on(acts);
           const rects = keep.map(on);
           if (a) rects.push({ left: a.left, right: a.right, top: t.top, bottom: t.top + a.height });
           v.setSafe?.({
-            l: 0, t: b ? b.bottom - c.top + 14 : 0, r: p ? c.right - p.left + 14 : 0,
+            l: d ? d.right - c.left + 14 : 0, t: b ? b.bottom - c.top + 14 : 0, r: p ? c.right - p.left + 14 : 0,
             rects: rects.filter(Boolean).map((r) => ({ l: r.left - c.left, t: r.top - c.top, r: r.right - c.left, b: r.bottom - c.top })),
           });
         };
@@ -1402,7 +1414,7 @@ export function boot(doc) {
           else delete main.dataset.holo;
           safe();
         });
-        for (const el of [side, canvas, title, ...keep]) if (el) new ResizeObserver(safe).observe(el);
+        for (const el of [side, dockEl, canvas, title, ...keep]) if (el) new ResizeObserver(safe).observe(el);
         window.addEventListener('scroll', safe, { passive: true });
         // der Bedienhinweis geht nach dem ersten Anfassen aus (data-hint)
         new MutationObserver(safe).observe(main, { attributes: true, attributeFilter: ['data-hint'] });

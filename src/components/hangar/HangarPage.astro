@@ -2,8 +2,9 @@
 // Die Oberflaeche um die Szene, EIN Koerper fuer DE und EN (D-12): Titel mit
 // Aktionen (Flotte, Vergleichen, Link), Kennwerte und Ausstattung in Tabs,
 // die Leiste am Buehnenfuss (Werkzeuge, Flottenzeile, Korb des Vergleichs),
-// der Vergleichsdialog, das Dock mit Werkzeug-Hilfe und der Controller
-// (assets/hangar-overview.js). Die Szene ist HangarApp.astro (Sache der
+// der Vergleichsdialog, das Dock mit Werkzeug-Hilfe (ab 761 px eine
+// einklappbare Spalte links ueber der Halle, schmal unter der Tafel) und der
+// Controller (assets/hangar-overview.js). Die Szene ist HangarApp.astro (Sache der
 // Szenen-Sitzung); sie stellt in ihrer Buehne einen <slot /> bereit, darin
 // stehen Titel und Marker im selben Kasten wie #hg-canvas. Die Leiste steht
 // dahinter, damit sie unter 760 px zwischen Buehne und Tafel fliessen kann.
@@ -61,29 +62,38 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    Hellmodus bleibt sie Halle, nur das Karussell darunter wird Papier. */
 .hg{display:block}
 /* Ab 761 px ist die Seite genau ein Fenster hoch und scrollt nicht: kein
-   Seitenfuss (footer={false} in pages/hangar.astro), die Buehne nimmt, was
-   das Dock uebrig laesst, auch wenn es aufklappt oder die Hilfe darin offen
-   steht. Impressum und Datenschutz stehen dafuer am Ende der Dockzeile
-   (.hg-legal). Erst unter 540 px Fensterhoehe scrollt die Seite wieder,
-   kleiner wird die Tafel unbedienbar. Schmal bleibt sie eine lange Seite:
-   die Tafel steht dort unter der Buehne. */
+   Seitenfuss (footer={false} in pages/hangar.astro), die Buehne nimmt das
+   ganze Fenster. Das Dock liegt dort als Spalte links ueber der Halle, so
+   gebaut wie die Tafel rechts (Krisz 29.10.2026: „das soll auf die linke
+   seite vertikal sein auf der seite, einklappbar“); Impressum und
+   Datenschutz stehen an seinem Fuss (.hg-legal). Erst unter 540 px
+   Fensterhoehe scrollt die Seite wieder, kleiner wird die Tafel
+   unbedienbar. Schmal bleibt sie eine lange Seite: die Tafel steht dort
+   unter der Buehne, das Dock als Streifen darunter. */
 @media (min-width:761px){
-  .hg{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:540px}
+  .hg{position:relative;display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:540px}
   .hg-stagewrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
-  .hg-dock{flex:none}
+}
+/* Rand, Kopfzeile und die Spalten links und rechts einmal, fuer Buehne und
+   Dock: was links auf der Buehne steht (Titel, Zeichen, Hinweis, Korb),
+   beginnt rechts der Spalte des Docks (--hg-left). Zugeklappt ist die Spalte
+   eine schmale Leiste. Schmal liegt das Dock unter der Buehne, dort ist
+   --hg-left der Rand. */
+.hg{--hg-top:76px;--hg-gut:clamp(16px,3vw,40px);--hg-panelw:min(400px,36vw);--hg-dockw:0px;--hg-left:var(--hg-gut)}
+@media (min-width:761px){
+  .hg{--hg-dockw:clamp(256px,20vw,360px);--hg-left:calc(var(--hg-gut) + var(--hg-dockw) + 12px)}
+  .hg[data-dock="closed"]{--hg-dockw:3.4rem}
 }
 /* Auf der Insel selbst deklariert, nicht an .hg: eine Variable, die auf
    var(--text) verweist, loest dort auf, wo sie steht — an .hg waere das
    noch der Papierwert, nicht der Inselwert. */
-.hg-stagewrap{--hg-top:76px;--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 90%,transparent);--hg-hair:var(--line)}
+.hg-stagewrap{--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 90%,transparent);--hg-hair:var(--line)}
 /* Keine Unschaerfe hinter Tafel und Knoepfen: backdrop-filter ueber der
    WebGL-Leinwand kostet die Grafikkarte in jedem Bild. Die Flaechen sind
    dafuer fast deckend. Ein Lichtsaum oben gibt ihnen Kante statt Glas. */
 .hg-stagewrap{--hg-rim:inset 0 1px 0 color-mix(in srgb,var(--hg-on) 9%,transparent);--hg-lift:0 18px 44px -22px var(--shadow-color)}
-/* Rand und Tafelbreite einmal: die Leiste am Buehnenfuss spart genau die Spalte der Tafel aus. */
-.hg-stagewrap{--hg-gut:clamp(16px,3vw,40px);--hg-panelw:min(400px,36vw)}
 .hg-stagewrap{position:relative}
-.hg-title{position:absolute;left:clamp(16px,3vw,40px);top:calc(var(--hg-top) + 12px);max-width:min(520px,60%);pointer-events:none}
+.hg-title{position:absolute;left:var(--hg-left);top:calc(var(--hg-top) + 12px);max-width:min(520px,60%,calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 28px));pointer-events:none}
 /* Die Ueberschrift „Hangar“ nur fuer Vorleser und Suche: als Zeile ueber dem
    Namen sagte sie nichts (Krisz 25.10.2026: „wofuer steht hangar da?“, „kann
    raus“); das Hologramm traegt dort das Herstellerlogo. */
@@ -142,10 +152,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-ico:is(:hover,:focus-visible,:focus-within) .hgx-tip{opacity:1;transform:none}
 /* Linksbuendig am Knopf: die Knoepfe stehen am linken Rand, mittig liefe die
    Blase des ersten aus der Buehne. Unten auf der Buehne steht sie darueber. */
-.hg-tools .hgx-tip,.hgx-rand .hgx-tip{top:auto;bottom:calc(100% + 6px);transform:translateY(3px)}
+.hg-tools .hgx-tip{top:auto;bottom:calc(100% + 6px);transform:translateY(3px)}
 /* Am Zeilenende liefe sie aus dem Fenster: dort rechtsbuendig (hangar-overview.js, fitTips) */
 .hgx-tip.is-end{left:auto;right:0}
-.hg-tools{position:absolute;left:var(--hg-gut);bottom:16px;z-index:2;display:flex;gap:.4rem}
+.hg-tools{position:absolute;left:var(--hg-left);bottom:16px;z-index:2;display:flex;gap:.4rem}
 .hgx-gfx[hidden],.hgx-snd[hidden]{display:none}
 .hgx-snd[aria-pressed="true"] .hgx-snd__off,.hgx-snd[aria-pressed="false"] .hgx-snd__on{display:none}
 .hgx-snd[aria-pressed="false"]{color:var(--hg-dim)}
@@ -154,7 +164,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-gfx select option{background:var(--bg-2);color:var(--text)}
 .hgx-gfx:focus-within{border-color:var(--hg-amber)}
 /* Bedienhinweis neben den drei Zeichen der Ansicht, bis zum ersten Anfassen. */
-.hg-hint{position:absolute;left:calc(var(--hg-gut) + 9.4rem);bottom:22px;margin:0;max-width:calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px - 9.9rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+.hg-hint{position:absolute;left:calc(var(--hg-left) + 9.4rem);bottom:22px;margin:0;max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 9.9rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
 .hg[data-hint="seen"] .hg-hint{opacity:0;visibility:hidden}
 /* Steht der Korb des Vergleichs unten, macht der Hinweis ihm Platz. */
 .hg:has(#hgx-tray:not([hidden])) .hg-hint{display:none}
@@ -166,7 +176,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Leiste am Buehnenfuss, nur fuer den Korb des Vergleichs. Sie spart links
    die Zeichen der Ansicht (.hg-tools) und rechts die Spalte der Tafel aus;
    unter 760 px steht sie zwischen Buehne und Tafel. */
-.hgx-stagebar{position:absolute;left:calc(var(--hg-gut) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:16px;display:flex;justify-content:flex-end;pointer-events:none}
+.hgx-stagebar{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:16px;display:flex;justify-content:flex-end;pointer-events:none}
 .hgx-stagebar[hidden]{display:none}
 /* Die Flottenzeile steht im Dock (eigene Insel): dieselben Insel-Woerter dort. */
 .hg-dock{--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-hair:var(--line)}
@@ -254,9 +264,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-err p{margin:.3rem 0 .7rem}
 /* Der Rueckfall der Szene (#hg-fallback, ohne 3D) steht wie die Modellmeldung
    zwischen Titel und Tafel; ganzflaechig zentriert lief er unter beide. Mitte
-   und Breite sind die des freien Streifens links der Tafel (wie .hgx-stagebar):
-   auf der Buehnenmitte lag bei 1100 px das letzte Drittel unter der Tafel. */
-.hgx-modelerr,.hg-stagewrap .hg-fallback{inset:auto;position:absolute;left:calc((100% - var(--hg-panelw) - 16px) / 2);top:58%;transform:translate(-50%,-50%);width:min(360px,calc(100% - 2 * var(--hg-gut) - var(--hg-panelw) - 16px));margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center}
+   und Breite sind die des freien Streifens zwischen Dock und Tafel (wie
+   .hgx-stagebar): auf der Buehnenmitte lag bei 1100 px das letzte Drittel
+   unter der Tafel. */
+.hgx-modelerr,.hg-stagewrap .hg-fallback{inset:auto;position:absolute;left:calc((100% + var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px) / 2);top:58%;transform:translate(-50%,-50%);width:min(360px,calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px));margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
    transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab
@@ -349,8 +360,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-filtern{min-width:1.2rem;padding:0 .3rem;border-radius:999px;background:var(--dk-a);color:var(--bg);font-size:var(--fs-6);font-weight:800;text-align:center}
 .hgx-filtern[hidden]{display:none}
 .hg-strip li.is-fleet .hg-card::after{content:"★";position:absolute;top:.4rem;right:.45rem;z-index:1;display:grid;place-items:center;width:1.4rem;height:1.4rem;border-radius:999px;background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--dk-a);font-size:var(--fs-6);line-height:1}
-/* Ab 2K wachsen die Karten mit: bei 2560 px wirkten sie sonst wie Briefmarken. */
-@media (min-width:2200px) and (min-height:1200px){.hg-card{width:236px;height:132px}.hg-card span{font-size:var(--fs-8)}}
+/* Ab 2K waechst die Spalte des Docks mit: bei 2560 px wirkten die Karten sonst wie Briefmarken. */
+@media (min-width:2200px) and (min-height:1200px){.hg{--hg-dockw:440px}.hg-dock .hg-card span{font-size:var(--fs-8)}}
 .hg-btn:disabled{opacity:.5;cursor:default;border-color:var(--hg-hair)}
 /* Die Filterzeile bleibt ab 1280 px einzeilig, sonst rutschen die Karten
    unter die Falz: die Herstellerliste ist sonst so breit wie ihr laengster Name. */
@@ -366,25 +377,22 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-filter .tool-help:not([open]){border-radius:999px}
 .hg-filter .tool-help:not([open]) .tool-help__summary{width:2.3rem;height:2.3rem;padding:0;justify-content:center;gap:0;font-size:0}
 .hg-filter .tool-help:not([open]) .tool-help__summary::before{content:'?';font-size:var(--fs-8);font-weight:800;line-height:1}
-/* Ab 761 px klappt die Hilfe als Tafel ueber der Halle auf, links neben der
-   Tafel der Werkstatt: im Dock zoege sie die Buehne um 320 px zusammen, die
-   Seite ist dort ein Fenster hoch. Das Fragezeichen bleibt in der Zeile und
-   traegt den Akzent, solange sie offen ist. */
+/* Ab 761 px klappt die Hilfe als Tafel ueber der Halle auf, rechts neben dem
+   Dock und links der Tafel der Werkstatt, oben buendig mit dem Dock: in der
+   Spalte schoebe sie die Karten unter den Fuss. Was nicht passt, rollt in
+   der Tafel. Das Fragezeichen bleibt in der Zeile und traegt den Akzent,
+   solange sie offen ist. */
 @media (min-width:761px){
-  .hg-dock{position:relative}
   .hg-filter .tool-help{overflow:visible}
   .hg-filter .tool-help[open]{flex-basis:auto;border-radius:999px;border-color:var(--accent)}
   .hg-filter .tool-help[open] .tool-help__summary{width:2.3rem;height:2.3rem;padding:0;justify-content:center;gap:0;font-size:0}
   .hg .hg-dock .hg-filter .tool-help[open] .tool-help__summary::before{content:'?';font-size:var(--fs-8);font-weight:800;line-height:1;transform:none}
-  .hg-filter .tool-help__body{position:absolute;left:clamp(16px,3vw,40px);bottom:calc(100% + 10px);z-index:4;width:min(720px,calc(100% - 2 * clamp(16px,3vw,40px) - min(400px,36vw) - 16px));max-height:min(460px,calc(100dvh - 390px));overflow-y:auto;overscroll-behavior:contain;padding:.2rem 1.1rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);box-shadow:0 18px 44px -22px var(--shadow-color)}
-  /* Ihre Oberkante bleibt unter den Knoepfen des Titels (bis 300 px), was
-     nicht passt, rollt in der Tafel; offen ist das Dock 155 px hoeher. */
-  .hg:not([data-dock="closed"]) .hg-filter .tool-help__body{max-height:max(150px,min(460px,calc(100dvh - 545px)))}
+  .hg-filter .tool-help__body{position:absolute;left:calc(100% + 12px);top:-1px;z-index:4;width:max(280px,min(640px,calc(100vw - 2 * var(--hg-gut) - var(--hg-dockw) - var(--hg-panelw) - 40px)));max-height:min(560px,calc(100% + 2px));overflow-y:auto;overscroll-behavior:contain;padding:.2rem 1.1rem 1rem;border:1px solid var(--line);border-radius:10px;background:var(--bg-2);box-shadow:0 18px 44px -22px var(--shadow-color)}
 }
-/* Zugeklappt bleibt vom Dock eine Zeile: Hilfe und Schalter. Ab 761 px waechst
-   die Buehne um den Rest (sie fuellt die Spalte, siehe .hg oben); schmal
-   steht das Dock unter der Tafel und kuerzt dort nur die Seite. Offen nennt
-   der Schalter nur noch die Anzahl, sein Wort bleibt fuer Vorleser stehen. */
+/* Zugeklappt bleibt vom Dock schmal eine Zeile (Hilfe und Schalter) unter der
+   Tafel, ab 761 px eine schmale Leiste links ueber der Halle (siehe unten).
+   Offen nennt der Schalter nur noch die Anzahl, sein Wort bleibt fuer
+   Vorleser stehen. */
 .hgx-docktog svg{transition:transform var(--dur-fast) var(--ease-ui)}
 .hg:not([data-dock="closed"]) .hgx-docktog svg{transform:rotate(180deg)}
 .hg:not([data-dock="closed"]) .hgx-docktog__lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -395,13 +403,67 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg[data-dock="closed"] .hg-filter{margin-bottom:0}
 .hg[data-dock="closed"] .hg-filter>:is(.hgx-search,.hgx-roles,select,.hgx-filters,.hgx-chip:not(.hgx-docktog,.hgx-rand)),.hg[data-dock="closed"] .hg-rail,.hg[data-dock="closed"] .hg-dock .hg-empty,.hg[data-dock="closed"] .hgx-fleetline:not(.is-alert){display:none}
 .hg[data-dock="closed"] .hgx-fleetline{margin:.5rem 0 0}
-/* Die Pflichtlinks des fehlenden Seitenfusses: leise am Zeilenende, auch bei
-   zugeklapptem Dock. */
-.hg-legal{display:flex;align-items:center;gap:.5rem;margin-left:auto;font-size:var(--fs-5);color:var(--muted)}
+/* Die Pflichtlinks des fehlenden Seitenfusses: leise am Ende des Docks, auch
+   bei zugeklapptem Dock. */
+.hg-legal{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;margin:.35rem 0 0;font-size:var(--fs-5);color:var(--muted)}
 .hg-legal a{color:var(--muted);text-decoration:none}
 .hg-legal a:hover,.hg-legal a:focus-visible{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 /* Nach einem Kennwert sortiert, traegt jede Karte ihren Wert oben links. */
 .hg-card[data-sv]::before{content:attr(data-sv);position:absolute;left:.45rem;top:.4rem;z-index:1;padding:.1rem .45rem;border-radius:999px;background:color-mix(in srgb,var(--bg) 78%,transparent);color:var(--dk-a);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* Ab 761 px ist das Dock eine Spalte links ueber der Halle, gebaut wie die
+   Tafel rechts: fast deckende Flaeche, Lichtsaum, Kante, dieselbe Hoehe.
+   Oben die Werkzeugzeile (Schalter mit Anzahl, Zufall, Hilfe; darunter
+   Suche, Rollen, Filter und Flotte), darunter die Karten in zwei Spalten,
+   die senkrecht rollen, am Fuss Impressum und Datenschutz. Zugeklappt bleibt
+   eine schmale Leiste von voller Hoehe: Schalter mit stehender Schrift,
+   Zufall, Hilfe, unten die Pflichtlinks. Die Reihenfolge stellt order her,
+   schmal gilt die des Dokuments. */
+@media (min-width:761px){
+  .hg-dock{position:absolute;left:var(--hg-gut);top:calc(var(--hg-top) + 12px);bottom:16px;width:var(--hg-dockw);display:flex;flex-direction:column;padding:.6rem .75rem .5rem;border:1px solid var(--hg-hair);border-radius:12px;background:color-mix(in srgb,var(--bg) 90%,transparent);box-shadow:inset 0 1px 0 color-mix(in srgb,var(--hg-on) 9%,transparent),0 18px 44px -22px var(--shadow-color)}
+  .hg-filter{flex:none;gap:.45rem;margin-bottom:.5rem}
+  .hg-filter>.hgx-docktog{order:1;min-width:0}
+  .hg-filter>.hgx-rand{order:2;margin-left:auto}
+  .hg-filter>.tool-help{order:3}
+  .hg-filter>.hgx-search{order:4;flex:1 1 100%}
+  /* Die Rollen bleiben eine Zeile, die waagerecht rollt (Rad und Wischen):
+     umgebrochen standen sie bei 1280 px in sieben Zeilen ueber den Karten. */
+  .hg-filter>.hgx-roles{order:5;flex:1 1 100%;min-width:0}
+  .hgx-roles button{height:1.9rem;padding:0 .7rem;font-size:var(--fs-6)}
+  .hg-filter>.hgx-filtertog{order:6}
+  .hg-filter>#hgx-fleetonly{order:7}
+  .hgx-filters select{order:8;flex:1 1 7rem;max-width:none}
+  .hgx-fleetline{margin:0 0 .5rem}
+  /* Die Meldungen ueber den Karten, nicht unter der rollenden Spalte. */
+  .hg-dock>.hg-rail{order:2}
+  .hg-dock>.hg-legal{order:3}
+  .hg-rail{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;margin:0 -.75rem}
+  .hg-strip{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:.5rem;margin:0;padding:.4rem .75rem .9rem;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-mask-image:linear-gradient(180deg,transparent,#000 .5rem,#000 calc(100% - 1.3rem),transparent);mask-image:linear-gradient(180deg,transparent,#000 .5rem,#000 calc(100% - 1.3rem),transparent)}
+  .hg-strip li{min-width:0}
+  .hg-card{width:auto;height:auto;aspect-ratio:7/4;border-radius:10px}
+  .hg-card span{padding:1.5rem .55rem .45rem;font-size:var(--fs-6)}
+  .hg-card[aria-current="true"]{border-width:2px}
+  /* Ein Schiff weiter geht hier mit den Pfeiltasten; die Karten stehen alle in Reichweite. */
+  .hg-arrow{display:none}
+  .hg-dock .hg-empty{padding:.6rem 0}
+  .hg-legal{flex:none;justify-content:center;margin:.35rem -.75rem 0;padding:.45rem .75rem 0;border-top:1px solid var(--line-soft)}
+  /* zugeklappt: die schmale Leiste */
+  .hg[data-dock="closed"] .hg-dock{align-items:center;padding:.5rem 0}
+  .hg[data-dock="closed"] .hg-filter{flex-direction:column;flex-wrap:nowrap;align-items:center;gap:.4rem}
+  .hg[data-dock="closed"] .hg-filter>.hgx-rand{margin-left:0}
+  .hg[data-dock="closed"] .hgx-docktog{flex-direction:column;justify-content:flex-start;width:2.3rem;height:auto;padding:.7rem 0 .8rem;gap:.55rem}
+  .hg[data-dock="closed"] .hgx-docktog>span{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+  /* von unten nach oben gelesen: das Wort, dann die Anzahl */
+  .hg[data-dock="closed"] .hgx-docktog__lbl{order:2}
+  .hg[data-dock="closed"] .hgx-docktog svg{transform:rotate(90deg)}
+  .hg:not([data-dock="closed"]) .hgx-docktog svg{transform:rotate(-90deg)}
+  .hg[data-dock="closed"] .hgx-rand .hgx-tip{left:calc(100% + 8px);top:.35rem;transform:translateX(-3px)}
+  .hg[data-dock="closed"] .hgx-rand:is(:hover,:focus-visible) .hgx-tip{transform:none}
+  .hg[data-dock="closed"] .hg-legal{margin:auto 0 0;padding:0;border:0;writing-mode:vertical-rl;transform:rotate(180deg);gap:.35rem}
+  /* Eine Meldung der Flotte (Uebernahme, Fehler im Abgleich) steht auch
+     zugeklappt: als kleine Tafel neben der Leiste. */
+  .hg[data-dock="closed"] .hgx-fleetline.is-alert{position:absolute;left:calc(100% + 12px);top:-1px;z-index:4;width:max-content;max-width:min(26rem,calc(100vw - 2 * var(--hg-gut) - var(--hg-dockw) - var(--hg-panelw) - 40px));margin:0;padding:.55rem .8rem;border:1px solid var(--hg-hair);border-radius:10px;background:var(--bg-2);box-shadow:0 18px 44px -22px var(--shadow-color)}
+}
 
 /* Flache Fenster (1280x720): Ueberblick und Datenblatt-Knopf passen ohne
    Bildlauf in die Buehne. */
@@ -436,7 +498,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hg-arrow{display:none}
   .hgx-search{order:4;flex:1 1 100%;max-width:none}
   .hgx-roles{order:5;flex-basis:100%}
-  .hg-legal{order:6}
   /* Die Dockzeile bricht hier je nach Sprache anders um: das Zufallsschiff
      steht mal am rechten, mal am linken Rand, und seine Blase ragte (auch
      unsichtbar) aus dem Fenster, die Seite scrollte waagerecht. Ohne Maus
@@ -631,13 +692,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d={star} fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
         <span class="hgx-lbl">{t('dock.fleet')}</span> <span class="hgx-chipn" id="hgx-fleetn">0</span>
       </button>
-      {/* Statt des Seitenfusses (die Seite ist ein Fenster hoch): Impressum
-          und Datenschutz bleiben einen Klick entfernt. */}
-      <nav class="hg-legal" aria-label={ui('footer.pageNav')}>
-        <a href={href('/impressum.html', lang)}>{ui('footer.imprint')}</a>
-        <span aria-hidden="true">·</span>
-        <a href={href('/datenschutz.html', lang)}>{ui('footer.privacy')}</a>
-      </nav>
     </div>
     {/* Summen der Flotte und wo sie liegt: steht, solange das Dock nur die
         Flotte zeigt, und von selbst bei einer Uebernahme oder einem Fehler
@@ -675,6 +729,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     </div>
     <p class="hg-empty" id="hg-empty" hidden>{t('dock.empty')}</p>
     <p class="hg-empty" id="hgx-empty-fleet" hidden>{t('fleet.empty')}</p>
+    {/* Statt des Seitenfusses (die Seite ist ein Fenster hoch): Impressum
+        und Datenschutz bleiben einen Klick entfernt, am Fuss des Docks. */}
+    <nav class="hg-legal" aria-label={ui('footer.pageNav')}>
+      <a href={href('/impressum.html', lang)}>{ui('footer.imprint')}</a>
+      <span aria-hidden="true">·</span>
+      <a href={href('/datenschutz.html', lang)}>{ui('footer.privacy')}</a>
+    </nav>
   </section>
 
   <p class="hgx-sr" id="hgx-live" aria-live="polite"></p>
