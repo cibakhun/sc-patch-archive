@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 91
+open_count: 92
 waived_count: 2
 fixed_count: 37
-total_count: 130
-last_updated: 2026-10-29T16:30:00.000Z
+total_count: 131
+last_updated: 2026-10-29T18:00:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -145,6 +145,7 @@ last_updated: 2026-10-29T16:30:00.000Z
 | 129 | hangar | unrun-verify | src/components/hangar/HangarPage.astro |  | Sichturteil offen (Hangar, Schiffe finden und wählen nach Krisz 29.10.2026 13:49: „man kann ohne manufacturere name oder schiff name kaum nach etwas suchen … painy“, und 14:52 zu den drei Entwurfsbildern: „konzept 2 sieht am besten aus“): Die Spalte links zeigt sofort eine Liste, eine Zeile je Schiff mit einem einheitlichen Bild aus unseren 3D-Modellen (alle 231 Schiffe in derselben Ansicht, ohne Wiki-Fotos), Name, Hersteller und Rolle; nach einem Kennwert sortiert steht sein Wert rechts. Die Suche versteht Zweck, Unterrolle, Größe, Crew, Hersteller, „ab 100 scu“, „unter 2 mio“, Spitznamen („cutty“, „connie“) und Tippfehler, auf Deutsch und Englisch; was sie erkennt, steht darunter als Chip mit ×. Darunter sechs Pillen (Wofür, Größe, Crew, Fracht, Preis, Hersteller), jede klappt ihre Stufen mit der Zahl der Treffer auf; nach einem Zweck folgen Unterrollen. Fährt die Maus über eine Zeile (oder ↑ ↓), steht daneben eine Karte mit Bild, Kennzahlen samt Abstand zum Schiff in der Halle, beiden Draufsichten im selben Maßstab und den Knöpfen „In die Halle“, „+ Vergleich“ und Stern (Flotte). Die Taste / springt in die Suche. Die Wofür-Kacheln, „Zuletzt angesehen“ und „Ähnlich wie“ aus dem ersten Entwurf sind nicht drin. Ersetzt die zwei Kartenspalten und die Rollenzeile aus #127 (dort Fragen 1 und 3). Zu beurteilen: (1) Findet man jetzt ohne Namen schnell, was man sucht? (2) Liest sich die Liste mit den gerenderten Bildern gut, sind die Bilder groß genug? (3) Steht die Karte neben der Liste gut, oder verdeckt sie zu viel Halle? (4) Größenvergleich: sagen die Umrisse etwas? Maschinell: npm run gate nach normalem und Vorschau-Build (29/29), verify:hangar [19] (eigene Bilder, Suchwörter, 12 Suchproben durch die ausgelieferte Suche) dreimal vorgeführt rot, Rauchtest gegen den Build, kein Überlauf bei 390 px, Knöpfe der Karte im Browser geklickt. Bilder: /mnt/project-files/hangar-schiffswahl/ (umsetzung-*.png). | open |  | 2026-10-29T15:40:00.000Z |  |
 | 130 | hangar | unrun-verify | scripts/build-hangar-assets.mjs |  | Sichturteil offen (Hangar, Grundfarben aller Schiffe nach PC-Lauf Hangar-Landung Teil A, Krisz 29.10.2026 11:15 und 14:52; offene Frage vom 25.10.: sind Corsair, Polaris, Freelancer und Andromeda im Spiel so dunkel?): Alle 231 Schiffe sind neu gebaut, ihre Lackkanäle tragen jetzt neben der Farbe auch Glanzfarbe und Glätte aus dem Spiel, daraus Metall und Rauheit. Metall war vorher schwarz. Corsair: Stahl mit gelbem Streifen statt schwarz. Freelancer: heller Metallrumpf statt schwarz; sie bleibt zurückgehalten, bis Krisz sie freigibt. Polaris bleibt dunkelgrau, so steht sie in den Spieldaten. Railen: Kanal A weiß mit Chromglanz, seit der Sättigungsregel aus PR #234 (farbiger Glanz ist Metall) auch Kanal C Metall, B schwarz; die Streifen der Oberfläche bleiben. Andromeda bleibt fast schwarz und weiter zurückgehalten. Zu beurteilen: (1) Sieht die Corsair so aus wie im Spiel? (2) Ist die Freelancer richtig (hell, Metall), darf sie frei? (3) Ist die Railen im Spiel so stark gestreift? (4) Ist die Polaris im Spiel so dunkel? (5) Andromeda: im Spiel so dunkel, oder bleibt sie zurückgehalten? Maschinell: npm run gate grün (30 von 30, nach dem Zusammenführen mit PR #234), gate:data grün auf dem PC (in der Cloud ohne Netz zu UEX nicht lauffähig), check:hangar-shader grün. Bild: /mnt/project-files/hangar/v93-grundfarben.png. | open |  | 2026-10-29T16:30:00.000Z |  |
 | 131 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Dampf nach Krisz 29.10.2026 13:34 und 13:40 mit Bild vom Feldrand aus der Nähe: „dampf oder rauch sieht sehr unfluid aus. sehr unnatürlich“, „so siehts momentan aus“): Der Dampf zerfiel aus der Nähe in Körnchen und lag als flache weiße Flecken auf dem Boden. Jetzt ist er weich und durchscheinend statt Blumenkohl: kein Detail unter rund 30 cm, keine harte Kante, von oben keine Streifen mehr (das Rauschen folgt der Blickrichtung), ein langsam drehendes Feld lässt das Innere quellen. Doppelt so viele, kleinere Schwaden, der Stoß am Rand kommt als Schwall über gut eine halbe Sekunde, beim Hochfahren schiebt die Plattform einen Strom aus dem Schacht; die Bodenschicht sitzt höher. Zu beurteilen: (1) Wirkt der Dampf jetzt flüssig und natürlich, auch aus der Nähe? (2) Ist er zu dünn oder zu durchsichtig? (3) Stehen am fernen Feldrand noch einzelne Bällchen? (4) Ruckelt der Wechsel auf der echten Grafikkarte? Rund 520 Ballen, gemessen 0,32 ms je Bild auf dem Prozessor, nur während des Wechsels. Maschinell: in der Seite mit virtueller Uhr Bild für Bild aufgenommen, check:hangar-shader grün. Bilder: /mnt/project-files/hangar/v92-dampf-weich.png und /mnt/project-files/hangar/v92-dampf-weich.mp4. | open |  | 2026-10-29T16:30:00.000Z |  |
+| 132 | hangar | unrun-verify | assets/hangar-viewer.js |  | Sichturteil offen (Hangar, Metall- und Chromlacke; Krisz 29.10.2026 13:17 „ja“ zum Lack-Datenlauf, Anlass cubic zu PR #215: 53 Lackierungen färbten das Schiff mattschwarz): Im Spiel ist bei diesen Lacken die Diffusfarbe #000000, die Farbe steckt in der Glanzfarbe. Seit PR #234 tragen die Lackdaten Glanzfarbe und Glätte je Kanal, farbiger Glanz zählt als Metall, und seit PR #238 tragen alle Schiffe die Kanalangaben, die der Viewer dafür braucht. Gerendert über den geteilten Layout-Link: Carrack Purple Haze kräftig violett, Hammerhead Fortuna metallisch grün, Sabre Blue Steel silbern. Zu beurteilen: (1) Sehen Purple Haze, Fortuna und Blue Steel aus wie im Spiel? (2) Ist Purple Haze zu hell oder zu bunt? (3) Fällt beim Durchklicken der Lacke ein Lack auf, der noch schwarz bleibt oder falsch glänzt? Maschinell: alle 53 Lacke mit Tönung #000000 tragen Metall in mindestens einem Kanal (Vergleich über ship-paints.json), npm run gate grün (30 von 30), check:hangar-shader grün mit Lack aus dem Link. Bild: /mnt/project-files/hangar-lack/metalllacke-vorher-nachher.jpg. | open |  | 2026-10-29T18:00:00.000Z |  |
 
 ````json
 [
@@ -1706,6 +1707,18 @@ last_updated: 2026-10-29T16:30:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-10-29T16:30:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 132,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-viewer.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar, Metall- und Chromlacke; Krisz 29.10.2026 13:17 „ja“ zum Lack-Datenlauf, Anlass cubic zu PR #215: 53 Lackierungen färbten das Schiff mattschwarz): Im Spiel ist bei diesen Lacken die Diffusfarbe #000000, die Farbe steckt in der Glanzfarbe. Seit PR #234 tragen die Lackdaten Glanzfarbe und Glätte je Kanal, farbiger Glanz zählt als Metall, und seit PR #238 tragen alle Schiffe die Kanalangaben, die der Viewer dafür braucht. Gerendert über den geteilten Layout-Link: Carrack Purple Haze kräftig violett, Hammerhead Fortuna metallisch grün, Sabre Blue Steel silbern. Zu beurteilen: (1) Sehen Purple Haze, Fortuna und Blue Steel aus wie im Spiel? (2) Ist Purple Haze zu hell oder zu bunt? (3) Fällt beim Durchklicken der Lacke ein Lack auf, der noch schwarz bleibt oder falsch glänzt? Maschinell: alle 53 Lacke mit Tönung #000000 tragen Metall in mindestens einem Kanal (Vergleich über ship-paints.json), npm run gate grün (30 von 30), check:hangar-shader grün mit Lack aus dem Link. Bild: /mnt/project-files/hangar-lack/metalllacke-vorher-nachher.jpg.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-29T18:00:00.000Z",
     "resolved_at": null
   }
 ]
