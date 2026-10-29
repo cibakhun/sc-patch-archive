@@ -5,7 +5,7 @@
 // Eine Wahrheit fuer die gebuendelten Skripte (src/). Die klassischen Skripte
 // unter assets/ und die is:inline-Skripte der Patchseiten koennen nichts
 // importieren; sie tragen je eine Kopie mit demselben Zeichensatz, und
-// verify:script-json haelt alle Kopien auf diesem Stand.
+// verify:ausgabe haelt alle Kopien auf diesem Stand.
 //
 // Wo kein Markup gebraucht wird, ist textContent/append die bessere Wahl
 // (siehe RefineryDashboard.astro) — dort gibt es nichts zu maskieren.

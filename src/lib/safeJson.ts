@@ -7,7 +7,7 @@
 // Warum nicht einfach JSON.stringify: der HTML-Parser beendet ein Skript beim
 // ersten `</script`, auch wenn das mitten in einem JSON-String steht — und die
 // Strings kommen zum Teil aus Fremdquellen (Schiffsliste, Preise, Datenlauf).
-// `<` wird deshalb zu `<` — fuer JSON.parse und fuer JavaScript dasselbe
+// `<` wird deshalb zu `\u003c` — fuer JSON.parse und fuer JavaScript dasselbe
 // Zeichen, fuer den HTML-Parser kein Tag-Anfang mehr. Damit ist auch `<!--`
 // erledigt. U+2028/U+2029 (Zeilen-/Absatztrenner) werden ebenfalls als Escape
 // geschrieben: in JavaScript vor ES2019 beendeten sie String-Literale, und als
@@ -16,7 +16,7 @@
 // Ausserhalb von Strings kann JSON.stringify keines der drei Zeichen erzeugen;
 // jede Ersetzung landet also in einem String und aendert seinen Wert nicht.
 // Fuer Daten ohne die drei Zeichen ist die Ausgabe Byte fuer Byte die von
-// JSON.stringify. verify:script-json haelt das fest (Quelle und dist/).
+// JSON.stringify. verify:ausgabe haelt das fest (Quelle und dist/).
 //
 // Die Regex-Literale schreiben U+2028/U+2029 bewusst als Escape (\u2028), nie
 // als rohes Zeichen — ein rohes Zeichen ist im Quelltext unsichtbar.

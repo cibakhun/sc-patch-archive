@@ -22,7 +22,9 @@
         Zeichen & < > " '.
      2  Quelle: kein set:html-Ausdruck in den .astro-Dateien unter
         src/ ruft JSON.stringify( auf — weder fuer type="application/(ld+)json"
-        noch fuer `window.__X=${…}` in ausfuehrbaren Inline-Skripten.
+        noch fuer `window.__X=${…}` in ausfuehrbaren Inline-Skripten, und
+        auch nicht ueber eine Frontmatter-Variable
+        (`const x = JSON.stringify(…)` … `set:html={x}`).
         Benannte Ausnahmen tragen ihren Anlass; verliert eine ihn, reisst
         das Tor (Zombie-Waechter). Klinke: Zahl der jsonForScript-Stellen.
      3  Quelle: jede Maskierer-Kopie (function esc / escHtml / escapeHtml)
@@ -60,11 +62,19 @@ const rel = (p) => relative(ROOT, p).replaceAll('\\', '/');
 // 22 Patchseiten, src/lib/escape.ts). Bloecke gemessen an zwei Builds vom
 // selben Tag: Live-Build 17.510 Seiten / 52.929 JSON-Bloecke, Vorschau-Build
 // 18.222 Seiten / 53.687 JSON-Bloecke, in beiden 10 window.__X-Bloecke
-// (__UIF, __MX, __PJUMP, __CRAFT, __WKB je Sprache). Die Klinke folgt dem
-// kleineren.
+// (__UIF, __MX, __PJUMP, __CRAFT, __WKB je Sprache).
+// Helferstellen, Maskierer und window.__X-Bloecke haengen nur am Code und
+// sitzen deshalb genau auf dem Ist. Die Zahl der JSON-Bloecke haengt dagegen
+// an den Daten (rund drei Bloecke je Datenseite): ein Datenlauf, der ein
+// paar Dutzend Seiten verliert, ist kein Defekt dieses Tores, und eine Klinke
+// knapp unter dem Ist risse dann das Auslieferungs-Image. Ihre Aufgabe ist,
+// einen leerlaufenden Waechter zu entlarven (falsches oder halbes dist/,
+// Bloecke nicht mehr erkannt) — dafuer reicht 50.000: rund 5 % unter dem
+// kleineren Build, und schon der Wegfall einer einzigen Blockart auf den
+// Datenseiten (gut 17.000 Bloecke) faellt weit darunter.
 const MIN_HELFER_STELLEN = 19;
 const MIN_MASKIERER = 30;
-const MIN_JSON_BLOECKE = 52900;
+const MIN_JSON_BLOECKE = 50000;
 const MIN_FENSTER_BLOECKE = 10;
 
 // Benannte Ausnahmen fuer Zusicherung 2. Jede braucht einen Anlass; trifft
@@ -228,12 +238,23 @@ for (const f of astroDateien) {
     if (/\bJSON\.stringify\s*\(/.test(code)) treffer.push({ datei: rel(f), zeile: lineOf(s, m.index) });
   }
 }
-// HangarApp setzt den Helfer ueber eine Variable ein (set:html={payload}).
+// Umweg ueber eine Frontmatter-Variable: `const x = jsonForScript(…)` zaehlt
+// als Helferstelle (HangarApp: set:html={payload}), `const x =
+// JSON.stringify(…)` ist derselbe Befund wie JSON.stringify direkt im
+// Ausdruck (der Fall HangarApp vor dieser Umstellung).
+let viaVariable = 0;
 for (const f of astroDateien) {
   const s = readFileSync(f, 'utf8');
   const fm = s.startsWith('---') ? s.slice(0, s.indexOf('\n---', 3)) : '';
-  const vars = [...fm.matchAll(/const\s+(\w+)\s*=\s*jsonForScript\s*\(/g)].map((x) => x[1]);
-  for (const v of vars) if (new RegExp(`set:html=\\{${v}\\}`).test(s)) helferStellen++;
+  const nutzung = (v) => new RegExp(`set:html=\\{\\s*${v}\\s*\\}`, 'g');
+  const helferVars = [...fm.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*jsonForScript\s*\(/g)].map((x) => x[1]);
+  for (const v of helferVars) if (nutzung(v).test(s)) helferStellen++;
+  const rohVars = [...fm.matchAll(/(?:const|let|var)\s+(\w+)\s*=\s*JSON\.stringify\s*\(/g)].map((x) => x[1]);
+  for (const v of rohVars) {
+    const re = nutzung(v);
+    let m;
+    while ((m = re.exec(s))) { viaVariable++; treffer.push({ datei: rel(f), zeile: lineOf(s, m.index), via: v }); }
+  }
 }
 const ausnahmeTreffer = new Map(AUSNAHMEN.map((a) => [a.datei, 0]));
 const offen = [];
@@ -242,9 +263,9 @@ for (const t of treffer) {
   else offen.push(t);
 }
 console.log(`    .astro-Dateien: ${astroDateien.length}   set:html-Ausdruecke: ${setHtml}   davon mit jsonForScript: ${helferStellen}   Klinke: ${MIN_HELFER_STELLEN}`);
-console.log(`    JSON.stringify in set:html ohne Ausnahme — Soll: 0   Ist: ${offen.length}`);
+console.log(`    JSON.stringify in set:html ohne Ausnahme — Soll: 0   Ist: ${offen.length}   (davon ueber eine Frontmatter-Variable gefunden, mit Ausnahmen: ${viaVariable})`);
 for (const t of offen)
-  fail.push(`${t.datei}:${t.zeile}: set:html mit JSON.stringify( — jsonForScript aus src/lib/safeJson.ts verwenden (maskiert '<', U+2028, U+2029; fuer Daten ohne diese Zeichen byte-gleich)`);
+  fail.push(`${t.datei}:${t.zeile}: set:html mit JSON.stringify(${t.via ? ` (ueber die Variable ${t.via} aus dem Frontmatter)` : ''} — jsonForScript aus src/lib/safeJson.ts verwenden (maskiert '<', U+2028, U+2029; fuer Daten ohne diese Zeichen byte-gleich)`);
 for (const a of AUSNAHMEN) {
   const n = ausnahmeTreffer.get(a.datei);
   console.log(`    Ausnahme ${a.datei}: ${n} Treffer — Anlass: ${a.anlass}`);
