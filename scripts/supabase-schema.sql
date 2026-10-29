@@ -22,13 +22,17 @@
 -- was hier einmal von Hand lief.
 --
 -- Die Datei bleibt nur stehen, weil aeltere Migrationen und Planungsnotizen
--- auf sie verweisen. Die erste Anweisung bricht jeden Lauf ab, damit sie
--- nicht versehentlich im SQL-Editor landet.
+-- auf sie verweisen. Der alte Inhalt steht deshalb vollstaendig in einem
+-- Blockkommentar (/* ... */ bis zum Dateiende) und ist fuer keinen Client
+-- ausfuehrbarer Text. Ein Abbruch per raise allein reicht nicht: psql -f
+-- laeuft ohne ON_ERROR_STOP nach einem Fehler mit der naechsten Anweisung
+-- weiter. Die einzige ausfuehrbare Anweisung ist die Meldung darunter.
 -- ============================================================================
 do $$ begin
   raise exception 'scripts/supabase-schema.sql ist veraltet und wird nicht ausgefuehrt. Schema-Quelle: supabase/migrations/';
 end $$;
 
+/* ALTER INHALT, NUR ZUM NACHLESEN -- nicht ausfuehren.
 -- ============================================================================
 -- VERSEBASE SUPABASE DATABASE MIGRATION SCRIPT
 -- Kopiere diesen Code und führe ihn im Supabase SQL Editor aus (https://supabase.com/dashboard/project/trgjhmbnodoarnfmlcqx/sql)
@@ -119,3 +123,4 @@ SELECT id, 'admin'
 FROM auth.users
 WHERE email = 'krysx141@gmail.com'
 ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+*/

@@ -10,10 +10,12 @@
 -- UNERWAEHNT. Die Testpilot-Eigenschaft lebt in Discord, nicht in
 -- user_roles -- user_id ist dort Primaerschluessel, ein Konto koennte sonst
 -- nicht gleichzeitig Admin und Testpilot sein.
--- ⚠ scripts/supabase-schema.sql (Zeilen 68-91) ist bei dieser Aussage NICHT
--- die lebende Wahrheit: dort steht `CHECK (role IN ('user','admin'))`, live
--- gilt seit der Migration `user_roles_allow_beta` (24.07.2026, im Repo NICHT
--- vorhanden) `role = ANY (ARRAY['user','admin','beta'])`. D-05 aendert das
+-- ⚠ scripts/supabase-schema.sql (Abschnitt 4, user_roles) ist bei dieser
+-- Aussage NICHT die lebende Wahrheit: dort steht `CHECK (role IN
+-- ('user','admin'))`, live gilt seit der Migration `user_roles_allow_beta`
+-- (24.07.2026, seit 29.10.2026 im Repo als
+-- 20260724143938_user_roles_allow_beta.sql)
+-- `role = ANY (ARRAY['user','admin','beta'])`. D-05 aendert das
 -- nicht -- die Entscheidung traegt auf dem Primaerschluessel (user_id, genau
 -- eine Rolle je Konto), nicht auf der Zahl der erlaubten Werte -- aber der
 -- Dateiverweis waere sonst irrefuehrend. Siehe auch die Warnung vor Abschnitt

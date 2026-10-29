@@ -16,10 +16,12 @@
 -- eine neue Migration.
 --
 -- ACHTUNG Neuaufbau: die Tabelle public.user_roles und ihre Policy "Nutzer
--- koennen eigene Rolle lesen" legt KEINE Migration an. Sie entstanden vorher
--- ausserhalb der Migrationshistorie, vermutlich im SQL-Editor mit Abschnitt 4
--- von scripts/supabase-schema.sql (dort noch mit Check auf 'user'/'admin').
--- Ein Aufbau nur aus supabase/migrations/ bricht deshalb hier ab.
+-- koennen eigene Rolle lesen" legte live KEINE Migration an. Sie entstanden
+-- vorher ausserhalb der Migrationshistorie, vermutlich im SQL-Editor mit
+-- Abschnitt 4 von scripts/supabase-schema.sql (dort noch mit Check auf
+-- 'user'/'admin'). Fuer einen Aufbau nur aus supabase/migrations/ legt sie
+-- seit 29.10.2026 der Nachtrag 20260718192135_nachtrag_user_roles_rsi_spalten
+-- an; ohne ihn bricht der Aufbau hier ab.
 -- ============================================================================
 -- Beta-Whitelist-Modell: role darf jetzt auch 'beta' sein. Aktiviert NUR den
 -- Wert (gewährt niemandem Zugang) — der /account-Guard in account-lite.js lässt
