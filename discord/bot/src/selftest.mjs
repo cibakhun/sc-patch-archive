@@ -276,6 +276,47 @@ try {
 
 // Bilingual data projections (needs the bundled game-data snapshot present).
 console.log('\n▸ Bilingual data');
+console.log('\n▸ Rank mirror (Kontoseite)');
+{
+  const { rankSnapshot, changedFields, homeGuild } = await import('./rank-sync.mjs');
+  const rows = { a: { xp: totalXpForLevel(12) + 5, prestige: 0, total_xp: 9000, messages: 40, voice_seconds: 600, updated_at: 1 } };
+  const fakeDb = {
+    getUser: (g, u) => rows[u] || { xp: 0, prestige: 0, total_xp: 0, messages: 0, voice_seconds: 0, updated_at: 0 },
+    position: (g, u) => (rows[u] ? 1 : null),
+    count: () => 7,
+  };
+  t('snapshot carries level, rank and board position', () => {
+    const s = rankSnapshot(fakeDb, 'g', 'a', true);
+    assert.equal(s.level, 12);
+    assert.equal(s.rank_key, rankForLevel(12).key);
+    assert.equal(s.server_rank, 1);
+    assert.equal(s.server_members, 7);
+    assert.equal(s.in_guild, true);
+  });
+  t('unknown member: level 0, no board position', () => {
+    const s = rankSnapshot(fakeDb, 'g', 'nobody', false);
+    assert.equal(s.level, 0);
+    assert.equal(s.rank_key, RANKS[0].key);
+    assert.equal(s.server_rank, null);
+  });
+  t('only changed fields are written; unknown membership never overwrites', () => {
+    const s = rankSnapshot(fakeDb, 'g', 'a', null);
+    const stored = { ...s, in_guild: true };
+    assert.deepEqual(changedFields(stored, s), {});
+    assert.deepEqual(changedFields({ ...stored, level: 11 }, s), { level: 12 });
+    assert.deepEqual(changedFields({}, { ...s, in_guild: false }).in_guild, false);
+  });
+  t('one account row mirrors exactly one server', () => {
+    const a = { id: '1', memberCount: 400 }, b = { id: '2', memberCount: 3 };
+    assert.equal(homeGuild([a, b], '2'), b, 'GUILD_ID wins');
+    assert.equal(homeGuild([a, b], '9'), null, 'GUILD_ID not joined: nothing');
+    assert.equal(homeGuild([b], ''), b, 'single server');
+    assert.equal(homeGuild([a, b], ''), a, 'several: the largest');
+    assert.equal(homeGuild([b, a], ''), a, 'several: the largest, whatever the order');
+    assert.equal(homeGuild([], ''), null);
+  });
+}
+
 try {
   const { latestPatch, localizedPatch, findShip, localizedShip } = await import('./data.mjs');
   const p = latestPatch();
