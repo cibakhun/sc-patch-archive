@@ -7,6 +7,7 @@
 // liegen in der Tabelle favorites; Rückgängig legt die Zeile neu an.
 // Nach jeder Änderung: 'vb:saved' (Zahlen im Dashboard, Kacheln im Cockpit).
 import { supabase } from '../lib/supabase';
+import { cssUrl } from '../lib/cssUrl';
 import { changeCount } from '../../assets/hangar-layouts.js';
 import { layouts, layoutList, startLayouts, shipLabel, KIND_IC, favHref, hangarLink, advancedLink, type LayoutEntry } from './account-layouts';
 
@@ -72,10 +73,11 @@ function boot(root: HTMLElement) {
   /* ------------------------------------------------------ Kartenbauer --- */
   const poster = (li: HTMLElement, img: string, ic: string, c: string) => {
     li.style.setProperty('--kc', c);
-    if (img) {
+    const bild = cssUrl(img);
+    if (bild) {
       li.classList.add('fav--poster');
       const bg = el('span', 'fav__bg');
-      bg.style.backgroundImage = `url('${img}')`;
+      bg.style.backgroundImage = bild;
       bg.setAttribute('aria-hidden', 'true');
       const scrim = el('span', 'fav__scrim');
       scrim.setAttribute('aria-hidden', 'true');
