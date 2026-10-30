@@ -434,6 +434,10 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
         html += row2(worst.n, worst.s + ' · ' + T.worst, Math.abs(worst.y) / maxAbs * 100,
           (worst.y > 0 ? '+' : '') + worst.y + ' %', false);
       }
+      if (D.refineryPath) {
+        html += '<a class="wb__link" href="' + esc(D.refineryPath + '?erz=' + encodeURIComponent(m.name) + '#ertrag') + '">' +
+          esc(T.allRefs) + '</a>';
+      }
       $('wb-refs').innerHTML = html;
     }
 

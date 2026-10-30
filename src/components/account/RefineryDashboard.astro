@@ -1,526 +1,819 @@
 ---
-// Refinery-Dashboard — kontogebundener Tracker für Raffinerie-Aufträge.
-// Design: TRACKER (exakt), kein Schätzmodell. Der Nutzer trägt die Zahlen ein,
-// die ihm das Ingame-Refinery-Terminal zeigt (Ausbeute/Kosten/Dauer) — die
-// exakte Refinery-Ökonomie ist serverseitig. Verkaufswert-Schätzung aus UEX.
-// Auth-Guard wie AccountDashboard: ohne Session -> Login mit ?next=.
-// Dynamisch erzeugte Zeilen nutzen is:global-Styles.
+// Refinery-Seite: öffentlicher Wissensteil (Erze, Ertrag je Raffinerie,
+// Methoden) plus kontogebundener Tracker. Design = Konto-Cockpit
+// (account-dossier.css, .dsr/.ck-*), damit Kacheln, Knöpfe und leere
+// Zustände dieselben sind wie im Konto.
+// Tracker: exakt, kein Schätzmodell. Der Nutzer trägt die Zahlen ein, die
+// ihm das Ingame-Terminal zeigt; die Refinery-Ökonomie ist serverseitig.
+// Ohne Anmeldung bleibt der Wissensteil sichtbar, der Tracker zeigt einen
+// Anmelde-Knopf statt umzuleiten.
 import { href } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
-import { REFINERY, stationsBySystem } from '../../lib/refinery';
+import { REFINERY, stationsBySystem, rankStations, dataPatch } from '../../lib/refinery';
+import { miningLink } from '../../lib/miningLinks';
 import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   lang: 'de' | 'en';
 }
 const { lang } = Astro.props;
+const de = lang === 'de';
 const h = useHelp(lang);
+const loc = de ? 'de-DE' : 'en-US';
 
 const stationGroups = stationsBySystem();
 const methods = REFINERY.methods;
 const ores = REFINERY.ores;
+const patch = dataPatch();
 
 const COPY = {
   de: {
+    eyebrow: 'Mining · Raffinerie',
+    title: 'Raffinerie',
+    lead: 'Welche Station holt aus deinem Erz am meisten heraus, welche Methode lohnt sich, und wann ist dein Auftrag fertig. Ertragswerte aus dem Spiel, dein Tracker im Konto.',
+    fStations: 'Raffinerien', fMethods: 'Methoden', fOres: 'Erze', fPatch: 'Spielstand', fPrices: 'Preise',
+    jTracker: 'Tracker', jOres: 'Erze', jYield: 'Ertrag je Station', jMethods: 'Methoden',
     loading: 'Lade deine Refinery-Aufträge …',
-    loadError: 'Konnte deine Aufträge nicht laden — bitte Verbindung prüfen.',
+    loadError: 'Konnte deine Aufträge nicht laden. Bitte Verbindung prüfen.',
     retry: 'Neu laden',
-    backToMining: '← Mining',
-    // Statistik
-    ovTitle: 'Übersicht',
-    stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen',
-    stPipeScu: 'In Arbeit', stPipeVal: 'Wert in Arbeit',
-    stDone: 'Abgeschlossen', stRefined: 'Raffiniert gesamt', stValue: 'Wert gesamt',
-    stCost: 'Refining-Kosten', stProfit: 'Netto-Gewinn',
-    stTopMethod: 'Top-Methode', stTopStation: 'Top-Raffinerie',
-    lifetime: 'Gesamt', none: '—',
-    // Aktiv
+    outTitle: 'Dein Refinery-Tracker',
+    outText: 'Melde dich an, um laufende Aufträge mit Countdown zu verfolgen und deinen Erlös festzuhalten. Der Wert erscheint auch in deinem Konto.',
+    login: 'Anmelden', register: 'Konto erstellen',
+    stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen', stPipe: 'SCU in Arbeit', stValue: 'Refinery-Wert',
+    subActive: '%n aktiv', subActive1: '1 aktiv', subNoActive: 'keine aktiv',
     activeTitle: 'Aktive Aufträge',
-    activeEmpty: 'Keine aktiven Aufträge. Trag unten einen an, um das Tracking zu starten.',
+    activeEmpty: 'Keine aktiven Aufträge. Trag einen neuen Auftrag ein, um das Tracking zu starten.',
     readyNow: 'Fertig zum Abholen', remaining: 'übrig', readyAt: 'fertig',
-    started: 'gestartet', yieldLbl: 'Ausbeute', valueLbl: 'gesch. Wert',
+    yieldLbl: 'Ausbeute', valueLbl: 'gesch. Wert',
     collect: 'Abholen', del: 'Löschen', confirmDel: 'Diesen Auftrag löschen?',
-    // Neuer Auftrag
     newTitle: 'Neuer Auftrag',
-    fromTerminal: 'Trage die Werte ein, die dir das Ingame-Refinery-Terminal anzeigt — dann ist das Tracking exakt.',
+    fromTerminal: 'Trag die Werte ein, die dir das Ingame-Terminal anzeigt. Dann ist das Tracking exakt.',
     fStation: 'Raffinerie', pickStation: 'Raffinerie wählen',
     fMethod: 'Methode', pickMethod: 'Methode wählen',
     tagYield: 'Ausbeute', tagSpeed: 'Tempo', tagCost: 'Kosten',
     lvl: { vlow: 'sehr niedrig', low: 'niedrig', mid: 'mittel', high: 'hoch' } as Record<string, string>,
-    fOres: 'Erze', fOre: 'Erz', pickOre: 'Erz wählen',
-    fRaw: 'Roh-SCU', fYield: 'Ausbeute-SCU', addOre: '+ Erz hinzufügen', removeOre: 'Entfernen',
-    oreHintPrice: '≈ %p aUEC/SCU', oreHintBest: 'beste Raffinerie: %s (%b%)', oreHintSell: 'bester Verkauf: %s',
+    fOresLbl: 'Erze', pickOre: 'Erz wählen',
+    fRaw: 'Roh-SCU', fYield: 'Ausbeute-SCU', addOre: 'Erz hinzufügen', removeOre: 'Entfernen',
+    hintPrice: '≈ %p aUEC/SCU', hintHere: 'hier %b', hintBest: 'am besten: %s (%b)', hintBestHere: 'beste Station',
     fDuration: 'Bearbeitungszeit', hLbl: 'Std', mLbl: 'Min',
     fCost: 'Kosten (aUEC)', fCostPh: 'z. B. 4200',
-    fNote: 'Notiz', fNotePh: '— optional',
+    fNote: 'Notiz', fNotePh: 'optional',
     pvYield: 'Ausbeute gesamt', pvValue: 'gesch. Verkaufswert', pvReady: 'Fertig um',
     submit: 'Tracking starten', submitBusy: 'Speichere …',
-    errForm: 'Wähle Raffinerie, Methode, mind. ein Erz mit Roh-SCU und eine Bearbeitungszeit > 0.',
-    errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
-    // Historie
+    errForm: 'Wähle Raffinerie, Methode, mindestens ein Erz mit Roh-SCU und eine Bearbeitungszeit über 0.',
+    errNet: 'Das hat nicht geklappt. Bitte erneut versuchen.',
+    notifyTitle: 'Benachrichtigungen',
+    nSite: 'Mitteilung auf VerseBase.',
+    nSiteSub: 'Der Konto-Knopf zeigt fertige Aufträge auf jeder Seite, und ein Hinweis erscheint, sobald einer fertig wird.',
+    nDc: 'Discord-Nachricht vom Verse-Bot.',
+    nDcSub: 'Der Bot schreibt dir privat, wenn ein Auftrag fertig ist.',
+    nDcHow: 'Dafür musst du auf dem VerseBase-Discord sein und Direktnachrichten von Servermitgliedern erlauben.',
+    nDcLink: 'Verbinde zuerst Discord in deinem Konto, dann kannst du die Discord-Nachricht anschalten.',
+    nDcLinkBtn: 'Discord verbinden',
+    nSaved: 'Gespeichert.',
+    nUnavailable: 'Benachrichtigungen sind gerade nicht verfügbar.',
     histTitle: 'Historie',
-    histEmpty: 'Noch nichts hier — abgeschlossene Aufträge erscheinen hier.',
-    profit: 'Gewinn', soldFor: 'Verkauft für', setSold: 'Verkaufserlös eintragen',
-    collectedOn: 'abgeholt', reactivate: 'Reaktivieren',
+    histEmpty: 'Noch nichts hier. Abgeholte Aufträge erscheinen hier.',
+    lDone: 'abgeschlossen', lRefined: 'SCU raffiniert', lCost: 'Kosten', lProfit: 'Netto-Gewinn',
+    profit: 'Gewinn', soldFor: 'Verkauft für', setSold: 'Erlös eintragen',
+    collectedOn: 'abgeholt',
     save: 'Speichern', cancel: 'Abbrechen',
-    scu: 'SCU', perScu: '/SCU',
-    methodNote: 'Methoden-Trade-offs sind qualitativ (exakte Yield-Prozente sind nicht öffentlich). Die echten Zahlen deines Auftrags trägst du oben aus dem Terminal ein.',
-    priceNote: 'Verkaufswerte auf Basis von UEX-Durchschnittspreisen (%d) — nur eine Schätzung; deinen echten Erlös kannst du in der Historie eintragen.',
+    scu: 'SCU',
+    oresTitle: 'Raffinierbare Erze',
+    oresNote: 'Ø Preis aus Verkaufsterminals (UEX, Stand %d). Der Erzname führt zum Datenblatt in der Mining-Datenbank mit Fundorten.',
+    thOre: 'Erz', thKind: 'Art', thRarity: 'Seltenheit', thPrice: 'Ø aUEC/SCU', thBest: 'Beste Raffinerie', thSystems: 'Vorkommen',
+    kind: { Metal: 'Metall', Mineral: 'Mineral', Ice: 'Eis' } as Record<string, string>,
+    rarity: { common: 'häufig', uncommon: 'ungewöhnlich', rare: 'selten', epic: 'episch', legendary: 'legendär' } as Record<string, string>,
+    noBonus: 'überall ±0 %',
+    yieldTitle: 'Ertrag je Raffinerie',
+    yieldLead: 'Jede Station verarbeitet Erze mit eigenem Aufschlag auf die Ausbeute. Wähle ein Erz, um alle Raffinerien zu vergleichen.',
+    yieldOre: 'Erz', showTable: 'Alle Aufschläge als Tabelle',
+    tblStation: 'Station',
+    methodsTitle: 'Methoden',
+    methodsLead: 'Die Methode tauscht Ausbeute gegen Tempo und Kosten. Exakte Prozentwerte sind nicht öffentlich, die Stufen zeigen die Richtung. Deine echten Zahlen stehen im Terminal.',
+    thMethod: 'Methode',
+    priceNote: 'Verkaufswerte auf Basis von UEX-Durchschnittspreisen (%d). Nur eine Schätzung, deinen echten Erlös trägst du in der Historie ein.',
   },
   en: {
+    eyebrow: 'Mining · Refinery',
+    title: 'Refinery',
+    lead: 'Which station gets the most out of your ore, which method pays off, and when your order is ready. Yield figures from the game, your tracker in your account.',
+    fStations: 'Refineries', fMethods: 'Methods', fOres: 'Ores', fPatch: 'Game version', fPrices: 'Prices',
+    jTracker: 'Tracker', jOres: 'Ores', jYield: 'Yield by station', jMethods: 'Methods',
     loading: 'Loading your refinery orders …',
-    loadError: 'Could not load your orders — please check your connection.',
+    loadError: 'Could not load your orders. Please check your connection.',
     retry: 'Reload',
-    backToMining: '← Mining',
-    ovTitle: 'Overview',
-    stActive: 'Active orders', stReady: 'Ready to collect',
-    stPipeScu: 'Refining now', stPipeVal: 'Pipeline value',
-    stDone: 'Completed', stRefined: 'Refined total', stValue: 'Value total',
-    stCost: 'Refining cost', stProfit: 'Net profit',
-    stTopMethod: 'Top method', stTopStation: 'Top refinery',
-    lifetime: 'Lifetime', none: '—',
+    outTitle: 'Your refinery tracker',
+    outText: 'Sign in to follow running orders with a live countdown and record your proceeds. The value also shows up in your account.',
+    login: 'Sign in', register: 'Create account',
+    stActive: 'Active orders', stReady: 'Ready to collect', stPipe: 'SCU refining', stValue: 'Refinery value',
+    subActive: '%n active', subActive1: '1 active', subNoActive: 'none active',
     activeTitle: 'Active work orders',
-    activeEmpty: 'No active work orders. Log one below to start tracking.',
+    activeEmpty: 'No active work orders. Log a new one to start tracking.',
     readyNow: 'Ready to collect', remaining: 'left', readyAt: 'ready',
-    started: 'started', yieldLbl: 'Yield', valueLbl: 'est. value',
+    yieldLbl: 'Yield', valueLbl: 'est. value',
     collect: 'Collect', del: 'Delete', confirmDel: 'Delete this work order?',
     newTitle: 'New work order',
-    fromTerminal: 'Enter the figures the in-game refinery terminal shows you — then the tracking is exact.',
+    fromTerminal: 'Enter the figures the in-game refinery terminal shows you. Then the tracking is exact.',
     fStation: 'Refinery', pickStation: 'Select refinery',
     fMethod: 'Method', pickMethod: 'Select method',
     tagYield: 'Yield', tagSpeed: 'Speed', tagCost: 'Cost',
     lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' } as Record<string, string>,
-    fOres: 'Ores', fOre: 'Ore', pickOre: 'Select ore',
-    fRaw: 'Raw SCU', fYield: 'Yield SCU', addOre: '+ Add ore', removeOre: 'Remove',
-    oreHintPrice: '≈ %p aUEC/SCU', oreHintBest: 'best refinery: %s (%b%)', oreHintSell: 'best sale: %s',
+    fOresLbl: 'Ores', pickOre: 'Select ore',
+    fRaw: 'Raw SCU', fYield: 'Yield SCU', addOre: 'Add ore', removeOre: 'Remove',
+    hintPrice: '≈ %p aUEC/SCU', hintHere: 'here %b', hintBest: 'best: %s (%b)', hintBestHere: 'best station',
     fDuration: 'Processing time', hLbl: 'h', mLbl: 'min',
     fCost: 'Cost (aUEC)', fCostPh: 'e.g. 4200',
-    fNote: 'Note', fNotePh: '— optional',
+    fNote: 'Note', fNotePh: 'optional',
     pvYield: 'Total yield', pvValue: 'est. sell value', pvReady: 'Ready at',
     submit: 'Start tracking', submitBusy: 'Saving …',
-    errForm: 'Pick a refinery, a method, at least one ore with raw SCU, and a processing time > 0.',
-    errNet: 'That did not work — please try again.',
+    errForm: 'Pick a refinery, a method, at least one ore with raw SCU, and a processing time above 0.',
+    errNet: 'That did not work. Please try again.',
+    notifyTitle: 'Notifications',
+    nSite: 'Notice on VerseBase.',
+    nSiteSub: 'The account button shows finished orders on every page, and a notice pops up the moment one is done.',
+    nDc: 'Discord message from Verse-Bot.',
+    nDcSub: 'The bot messages you privately when an order is done.',
+    nDcHow: 'You need to be on the VerseBase Discord and allow direct messages from server members.',
+    nDcLink: 'Link Discord in your account first, then you can switch on the Discord message.',
+    nDcLinkBtn: 'Link Discord',
+    nSaved: 'Saved.',
+    nUnavailable: 'Notifications are not available right now.',
     histTitle: 'History',
-    histEmpty: 'Nothing here yet — completed orders show up here.',
-    profit: 'Profit', soldFor: 'Sold for', setSold: 'Record sale value',
-    collectedOn: 'collected', reactivate: 'Reactivate',
+    histEmpty: 'Nothing here yet. Collected orders show up here.',
+    lDone: 'completed', lRefined: 'SCU refined', lCost: 'Cost', lProfit: 'Net profit',
+    profit: 'Profit', soldFor: 'Sold for', setSold: 'Record sale',
+    collectedOn: 'collected',
     save: 'Save', cancel: 'Cancel',
-    scu: 'SCU', perScu: '/SCU',
-    methodNote: 'Method trade-offs are qualitative (exact yield percentages are not public). Enter your order’s real numbers above from the terminal.',
-    priceNote: 'Sell values based on UEX average prices (%d) — an estimate only; record your actual proceeds in the history.',
+    scu: 'SCU',
+    oresTitle: 'Refinable ores',
+    oresNote: 'Average price from sell terminals (UEX, as of %d). The ore name opens its sheet in the mining database with locations.',
+    thOre: 'Ore', thKind: 'Type', thRarity: 'Rarity', thPrice: 'Avg aUEC/SCU', thBest: 'Best refinery', thSystems: 'Found in',
+    kind: { Metal: 'Metal', Mineral: 'Mineral', Ice: 'Ice' } as Record<string, string>,
+    rarity: { common: 'common', uncommon: 'uncommon', rare: 'rare', epic: 'epic', legendary: 'legendary' } as Record<string, string>,
+    noBonus: '±0 % everywhere',
+    yieldTitle: 'Yield by refinery',
+    yieldLead: 'Every station refines ores with its own bonus or penalty on yield. Pick an ore to compare all refineries.',
+    yieldOre: 'Ore', showTable: 'All bonuses as a table',
+    tblStation: 'Station',
+    methodsTitle: 'Methods',
+    methodsLead: 'The method trades yield against speed and cost. Exact percentages are not public, the levels show the direction. Your real numbers are on the terminal.',
+    thMethod: 'Method',
+    priceNote: 'Sell values based on UEX average prices (%d). An estimate only, record your actual proceeds in the history.',
   },
 }[lang];
 
+const priceDate = REFINERY.meta.priceDate ? new Date(REFINERY.meta.priceDate + 'T12:00:00Z').toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const loginHref = href('/account/login.html', lang);
-const miningHref = href('/topics/mining.html', lang);
-const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—');
+const registerHref = href('/account/register.html', lang);
+const pct = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + ' %';
+const fmtPrice = (n: number | null) => (n == null ? '—' : Math.round(n).toLocaleString(loc));
+const LVL = { vlow: 1, low: 2, mid: 3, high: 4 } as Record<string, number>;
+const methodRows = methods.map((m) => ({ ...m, y: LVL[m.yield], s: LVL[m.speed], c: LVL[m.cost] }));
+
+const oreRows = ores
+  .map((o) => {
+    const ranked = rankStations(o.name);
+    const top = ranked[0]?.bonus ?? 0;
+    return { o, top, best: top > 0 ? ranked.filter((r) => r.bonus === top).map((r) => r.station) : [], link: miningLink(o.name, lang) };
+  })
+  .sort((a, b) => (b.o.sell ?? -1) - (a.o.sell ?? -1));
+
+// Vorauswahl im Ertragsvergleich: das wertvollste Erz mit einem echten Unterschied zwischen den Stationen.
+const defaultOre = oreRows.find((r) => r.top > 0)?.o.name ?? ores[0]?.name;
+const SYSTEM_TOPIC: Record<string, string> = { Pyro: '/topics/4-0-0-pyro-system.html', Nyx: '/topics/4-4-0-nyx-system.html' };
+const systemHref = (s: string) => (SYSTEM_TOPIC[s] ? href(SYSTEM_TOPIC[s], lang) : null);
+const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
 ---
 
-<div id="rfd-loading" class="acx-hint" style="text-align:center">{COPY.loading}</div>
+<div class="dsr rf" id="rf" data-lang={lang} data-login={loginHref} data-account={href('/account.html', lang) + '#security'}>
+  <script type="application/json" id="rfd-copy" is:inline set:html={jsonForScript({ ...COPY, oreHref })} />
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <g id="rf-ic-refinery" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v6l-5.2 9.2A2 2 0 0 0 5.6 21h12.8a2 2 0 0 0 1.8-2.8L15 9V3"/><path d="M8 3h8M7 14.5h10"/></g>
+      <g id="rf-ic-hex" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.7v9.6L12 21.5l-8.2-4.7V7.2z"/></g>
+      <g id="rf-ic-check" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></g>
+      <g id="rf-ic-gem" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3L6 9l6 12 6-12-3-6"/></g>
+      <g id="rf-ic-lock" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="1"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/><path d="M12 14.5v2.5"/></g>
+      <g id="rf-ic-plus" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></g>
+    </defs>
+  </svg>
 
-<div id="rfd" hidden data-lang={lang} data-login={loginHref}>
-  <script type="application/json" id="rfd-copy" is:inline set:html={jsonForScript(COPY)} />
-
-  <div class="rfd-top">
-    <a class="rfd-back" href={miningHref}>{COPY.backToMining}</a>
-  </div>
-
-  <ToolHelp tool="refinerytracker" lang={lang} steps={4} />
-
-  <!-- Übersicht / Statistik -->
-  <div class="rfd-stats reveal" id="rfd-stats" data-help={h('refinerytracker.ctl.stats')}></div>
-
-  <!-- 01 Aktive Aufträge -->
-  <div class="sec-head reveal"><span class="num">01</span><h2>{COPY.activeTitle}</h2><span class="rule"></span></div>
-  <div id="rfd-active" class="rfd-jobs" data-help={h('refinerytracker.ctl.active')}></div>
-  <div id="rfd-active-empty" class="acx-card rfd-empty" hidden>{COPY.activeEmpty}</div>
-
-  <!-- 02 Neuer Auftrag -->
-  <div class="sec-head reveal"><span class="num">02</span><h2>{COPY.newTitle}</h2><span class="rule"></span></div>
-  <div class="acx-card reveal">
-    <p class="acx-note">{COPY.fromTerminal}</p>
-    <form id="rfd-form" novalidate>
-      <div class="rfd-grid2">
-        <div class="acx-field">
-          <label class="acx-label" for="rfd-station">{COPY.fStation}</label>
-          <select class="acx-input" id="rfd-station" name="station" required data-help={h('refinerytracker.ctl.station')}>
-            <option value="" selected disabled>{COPY.pickStation}</option>
-            {stationGroups.map((g) => (
-              <optgroup label={g.system}>
-                {g.stations.map((s) => (<option value={s.name}>{s.name}</option>))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-        <div class="acx-field">
-          <label class="acx-label" for="rfd-method">{COPY.fMethod}</label>
-          <select class="acx-input" id="rfd-method" name="method" required data-help={h('refinerytracker.ctl.method')}>
-            <option value="" selected disabled>{COPY.pickMethod}</option>
-            {methods.map((m) => (<option value={m.name} data-key={m.key}>{m.name}</option>))}
-          </select>
-          <div class="rfd-mtags" id="rfd-mtags" hidden></div>
-        </div>
+  <div class="rf-in ck">
+    <header class="ck-panel rf-hero">
+      <div class="rf-hero__badge" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#rf-ic-refinery"/></svg></div>
+      <div class="rf-hero__main">
+        <div class="ck-k">{COPY.eyebrow}</div>
+        <h1 class="rf-hero__title">{COPY.title}</h1>
+        <p class="rf-hero__lead">{COPY.lead}</p>
+        <ul class="rf-facts">
+          <li><a href="#ertrag"><b class="tnum">{REFINERY.stations.length}</b> {COPY.fStations}</a></li>
+          <li><a href="#methoden"><b class="tnum">{methods.length}</b> {COPY.fMethods}</a></li>
+          <li><a href="#erze"><b class="tnum">{ores.length}</b> {COPY.fOres}</a></li>
+          {patch && <li><a href={href(patch.path, lang)}>{COPY.fPatch} <b>{patch.label}</b></a></li>}
+          <li><a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">{COPY.fPrices} <b>UEX {priceDate}</b></a></li>
+        </ul>
       </div>
+      <nav class="rf-jump" aria-label={COPY.title}>
+        <a href="#tracker">{COPY.jTracker}</a>
+        <a href="#erze">{COPY.jOres}</a>
+        <a href="#ertrag">{COPY.jYield}</a>
+        <a href="#methoden">{COPY.jMethods}</a>
+      </nav>
+    </header>
 
-      <div class="acx-field">
-        <label class="acx-label">{COPY.fOres}</label>
-        <div id="rfd-ores" class="rfd-ores" data-help={h('refinerytracker.ctl.ores')}></div>
-        <button type="button" class="rfd-addore" id="rfd-addore">{COPY.addOre}</button>
-      </div>
+    <!-- ===== Tracker ===== -->
+    <section id="tracker" class="rf-sec">
+      <ToolHelp tool="refinerytracker" lang={lang} steps={4} />
+      <div id="rfd-loading" class="ck-col"><div class="ck-empty"><p>{COPY.loading}</p></div></div>
 
-      <div class="rfd-grid3">
-        <div class="acx-field">
-          <label class="acx-label" for="rfd-hours">{COPY.fDuration}</label>
-          <div class="rfd-dur" data-help={h('refinerytracker.ctl.duration')}>
-            <input class="acx-input rfd-num" id="rfd-hours" name="hours" type="number" min="0" max="240" step="1" inputmode="numeric" placeholder="0" />
-            <span class="rfd-durlbl">{COPY.hLbl}</span>
-            <input class="acx-input rfd-num" id="rfd-mins" name="mins" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0" />
-            <span class="rfd-durlbl">{COPY.mLbl}</span>
+      <div id="rfd-out" class="ck-col" hidden>
+        <h2 class="ck-h">{COPY.outTitle}</h2>
+        <div class="ck-empty">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-lock"/></svg>
+          <p>{COPY.outText}</p>
+          <div class="rf-acts">
+            <a class="btn primary" id="rfd-login" href={loginHref}>{COPY.login}</a>
+            <a class="btn" href={registerHref}>{COPY.register}</a>
           </div>
         </div>
-        <div class="acx-field">
-          <label class="acx-label" for="rfd-cost">{COPY.fCost}</label>
-          <input class="acx-input" id="rfd-cost" name="cost" type="number" min="0" step="1" inputmode="numeric" placeholder={COPY.fCostPh} />
-        </div>
-        <div class="acx-field">
-          <label class="acx-label" for="rfd-note">{COPY.fNote} <span class="opt">{COPY.fNotePh}</span></label>
-          <input class="acx-input" id="rfd-note" name="note" type="text" maxlength="500" autocomplete="off" />
-        </div>
       </div>
 
-      <div class="rfd-preview" id="rfd-preview" aria-live="polite" data-help={h('refinerytracker.ctl.preview')}>
-        <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvYield}</span><b class="rfd-pv__v" id="rfd-pv-yield">— {COPY.scu}</b></div>
-        <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvValue}</span><b class="rfd-pv__v rfd-pv__v--auec" id="rfd-pv-value">—</b></div>
-        <div class="rfd-pv"><span class="rfd-pv__k">{COPY.pvReady}</span><b class="rfd-pv__v" id="rfd-pv-ready">—</b></div>
-      </div>
+      <div id="rfd" class="rf-tracker" hidden>
+        <div class="ck-strip rf-strip" data-help={h('refinerytracker.ctl.stats')}>
+          <a class="ck-stat" href="#rfd-active-col">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-hex"/></svg><b class="tnum" id="rfd-st-active">0</b><span>{COPY.stActive}</span>
+          </a>
+          <a class="ck-stat" href="#rfd-active-col">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-check"/></svg><b class="tnum" id="rfd-st-ready">0</b><span>{COPY.stReady}</span>
+          </a>
+          <a class="ck-stat" href="#rfd-active-col">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-gem"/></svg><b class="tnum" id="rfd-st-pipe">0</b><span>{COPY.stPipe}</span>
+          </a>
+          <a class="ck-stat ck-stat--gold" href="#rfd-hist-col">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-refinery"/></svg><b class="tnum" id="rfd-st-value">—</b><span>{COPY.stValue}</span><em id="rfd-st-sub"></em>
+            <svg class="ck-spark" id="rfd-spark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </a>
+        </div>
 
-      <div class="acx-actions">
-        <button class="acx-submit" type="submit" id="rfd-submit"><span id="rfd-submit-txt">{COPY.submit}</span></button>
+        <section class="ck-col" id="rfd-notify" aria-labelledby="rfd-notify-h" data-help={h('refinerytracker.ctl.notify')}>
+          <h2 class="ck-h" id="rfd-notify-h">{COPY.notifyTitle}</h2>
+          <div class="rf-pad rf-notify">
+            <label class="pf-check"><input type="checkbox" id="rfd-n-site" disabled /><span><b>{COPY.nSite}</b> {COPY.nSiteSub}</span></label>
+            <label class="pf-check"><input type="checkbox" id="rfd-n-dc" disabled /><span><b>{COPY.nDc}</b> {COPY.nDcSub}</span></label>
+            <p class="rf-src" id="rfd-n-hint" hidden></p>
+            <p class="acx-status" id="rfd-n-status" role="status" aria-live="polite" hidden></p>
+          </div>
+        </section>
+
+        <div class="rf-cols">
+          <section class="ck-col" id="rfd-active-col" aria-labelledby="rfd-active-h">
+            <h2 class="ck-h" id="rfd-active-h">{COPY.activeTitle}<span class="rf-n" id="rfd-active-n" hidden></span></h2>
+            <div id="rfd-active" class="rf-jobs" data-help={h('refinerytracker.ctl.active')}></div>
+            <div id="rfd-active-empty" class="ck-empty" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-refinery"/></svg>
+              <p>{COPY.activeEmpty}</p>
+            </div>
+          </section>
+
+          <section class="ck-col" aria-labelledby="rfd-new-h">
+            <h2 class="ck-h" id="rfd-new-h">{COPY.newTitle}</h2>
+            <form id="rfd-form" class="rf-form" novalidate>
+              <p class="rf-note">{COPY.fromTerminal}</p>
+              <div class="rf-grid2">
+                <div class="field">
+                  <label for="rfd-station">{COPY.fStation}</label>
+                  <select class="inp ctrl" id="rfd-station" name="station" required data-help={h('refinerytracker.ctl.station')}>
+                    <option value="" selected disabled>{COPY.pickStation}</option>
+                    {stationGroups.map((g) => (
+                      <optgroup label={g.system}>
+                        {g.stations.map((s) => (<option value={s.name}>{s.name}</option>))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rfd-method">{COPY.fMethod}</label>
+                  <select class="inp ctrl" id="rfd-method" name="method" required data-help={h('refinerytracker.ctl.method')}>
+                    <option value="" selected disabled>{COPY.pickMethod}</option>
+                    {methods.map((m) => (<option value={m.name}>{m.name}</option>))}
+                  </select>
+                  <div class="rf-mtags" id="rfd-mtags" hidden></div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>{COPY.fOresLbl}</label>
+                <div id="rfd-ores" class="rf-ores" data-help={h('refinerytracker.ctl.ores')}></div>
+                <button type="button" class="btn sm ghost rf-addore" id="rfd-addore"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-plus"/></svg>{COPY.addOre}</button>
+              </div>
+
+              <div class="rf-grid3">
+                <div class="field">
+                  <label for="rfd-hours">{COPY.fDuration}</label>
+                  <div class="rf-dur" data-help={h('refinerytracker.ctl.duration')}>
+                    <input class="inp rf-num" id="rfd-hours" name="hours" type="number" min="0" max="240" step="1" inputmode="numeric" placeholder="0" />
+                    <span>{COPY.hLbl}</span>
+                    <input class="inp rf-num" id="rfd-mins" name="mins" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0" />
+                    <span>{COPY.mLbl}</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="rfd-cost">{COPY.fCost}</label>
+                  <input class="inp rf-num" id="rfd-cost" name="cost" type="number" min="0" step="1" inputmode="numeric" placeholder={COPY.fCostPh} />
+                </div>
+                <div class="field">
+                  <label for="rfd-note">{COPY.fNote} <span class="hint">{COPY.fNotePh}</span></label>
+                  <input class="inp" id="rfd-note" name="note" type="text" maxlength="500" autocomplete="off" />
+                </div>
+              </div>
+
+              <dl class="rf-preview" id="rfd-preview" aria-live="polite" data-help={h('refinerytracker.ctl.preview')}>
+                <div><dt>{COPY.pvYield}</dt><dd id="rfd-pv-yield">— {COPY.scu}</dd></div>
+                <div><dt>{COPY.pvValue}</dt><dd class="rf-gold" id="rfd-pv-value">—</dd></div>
+                <div><dt>{COPY.pvReady}</dt><dd id="rfd-pv-ready">—</dd></div>
+              </dl>
+
+              <div class="rf-acts">
+                <button class="btn primary" type="submit" id="rfd-submit"><span id="rfd-submit-txt">{COPY.submit}</span></button>
+              </div>
+              <p class="acx-status" id="rfd-form-status" role="status" aria-live="polite" hidden></p>
+              <p class="rf-src">{COPY.priceNote.replace('%d', priceDate)}</p>
+            </form>
+          </section>
+        </div>
+
+        <section class="ck-col" id="rfd-hist-col" aria-labelledby="rfd-hist-h">
+          <h2 class="ck-h" id="rfd-hist-h">{COPY.histTitle}</h2>
+          <dl class="rf-life" id="rfd-life" hidden></dl>
+          <div id="rfd-history" class="rf-hist" data-help={h('refinerytracker.ctl.history')}></div>
+          <div id="rfd-history-empty" class="ck-empty" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-check"/></svg>
+            <p>{COPY.histEmpty}</p>
+          </div>
+        </section>
       </div>
-      <p class="acx-status" id="rfd-form-status" role="status" aria-live="polite" hidden></p>
-    </form>
-    <p class="rfd-src">{priceNote}</p>
-    <p class="rfd-src">{COPY.methodNote}</p>
+    </section>
+
+    <!-- ===== Erze ===== -->
+    <section id="erze" class="ck-col rf-sec" aria-labelledby="rf-ores-h">
+      <h2 class="ck-h" id="rf-ores-h">{COPY.oresTitle}<span class="rf-n">{ores.length}</span></h2>
+      <div class="rf-scroll">
+        <table class="rf-table">
+          <thead><tr><th scope="col">{COPY.thOre}</th><th scope="col">{COPY.thKind}</th><th scope="col">{COPY.thRarity}</th><th scope="col" class="num">{COPY.thPrice}</th><th scope="col">{COPY.thBest}</th><th scope="col">{COPY.thSystems}</th></tr></thead>
+          <tbody>
+            {oreRows.map(({ o, top, best, link }) => (
+              <tr>
+                <th scope="row">{link ? <a href={link}>{o.name}</a> : o.name}{o.code && <small>{o.code}</small>}</th>
+                <td>{(o.kind && COPY.kind[o.kind]) || o.kind || '—'}</td>
+                <td>{o.rarity ? <span class={`rf-rar rf-rar--${o.rarity}`}>{COPY.rarity[o.rarity] || o.rarity}</span> : '—'}</td>
+                <td class="num tnum">{fmtPrice(o.sell)}</td>
+                <td>
+                  {best.length
+                    ? <button type="button" class="rf-pick" data-ore={o.name}><b class="rf-pos">{pct(top)}</b> {best.map((s) => s.short).join(', ')}</button>
+                    : <span class="rf-mut">{COPY.noBonus}</span>}
+                </td>
+                <td>{o.systems.length ? o.systems.map((s, i) => { const sh = systemHref(s); return <>{i > 0 && ', '}{sh ? <a href={sh}>{s}</a> : s}</>; }) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="rf-src rf-pad">{COPY.oresNote.replace('%d', priceDate)}</p>
+    </section>
+
+    <!-- ===== Ertrag je Raffinerie ===== -->
+    <section id="ertrag" class="ck-col rf-sec" aria-labelledby="rf-yield-h">
+      <h2 class="ck-h" id="rf-yield-h">{COPY.yieldTitle}<span class="rf-n">{REFINERY.stations.length}</span></h2>
+      <div class="rf-pad">
+        <p class="rf-lead">{COPY.yieldLead}</p>
+        <div class="field rf-oresel">
+          <label for="rf-yield-ore">{COPY.yieldOre}</label>
+          <select class="inp ctrl" id="rf-yield-ore">
+            {ores.map((o) => (<option value={o.name} selected={o.name === defaultOre}>{o.name}</option>))}
+          </select>
+          <a class="rf-orelink" id="rf-yield-link" href={oreHref[defaultOre] ?? '#'}>{defaultOre}</a>
+        </div>
+        <ol class="rf-rank" id="rf-rank">
+          {rankStations(defaultOre).map(({ station, bonus }) => (
+            <li class={bonus > 0 ? 'is-pos' : bonus < 0 ? 'is-neg' : 'is-zero'}>
+              <span class="rf-rank__n">{station.name}</span>
+              <span class="rf-rank__s">{station.system}</span>
+              <span class="rf-rank__bar"><i style={`width:${Math.min(100, Math.abs(bonus) / 13 * 100)}%`}></i></span>
+              <b class="tnum">{pct(bonus)}</b>
+            </li>
+          ))}
+        </ol>
+        <details class="rf-matrix">
+          <summary>{COPY.showTable}</summary>
+          <div class="rf-scroll">
+            <table class="rf-table rf-table--matrix">
+              <thead><tr><th scope="col">{COPY.tblStation}</th>{ores.map((o) => <th scope="col" class="num" title={o.name}>{o.code || o.name}</th>)}</tr></thead>
+              <tbody>
+                {stationGroups.map((g) => (
+                  <>
+                    <tr class="rf-sys"><th scope="rowgroup" colspan={ores.length + 1}>{systemHref(g.system) ? <a href={systemHref(g.system)!}>{g.system}</a> : g.system}</th></tr>
+                    {g.stations.map((s) => (
+                      <tr>
+                        <th scope="row">{s.name}</th>
+                        {ores.map((o) => { const b = s.bonus[o.name] ?? 0; return <td class={`num tnum ${b > 0 ? 'rf-pos' : b < 0 ? 'rf-neg' : 'rf-mut'}`}>{b ? (b > 0 ? '+' : '−') + Math.abs(b) : '·'}</td>; })}
+                      </tr>
+                    ))}
+                  </>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ===== Methoden ===== -->
+    <section id="methoden" class="ck-col rf-sec" aria-labelledby="rf-meth-h">
+      <h2 class="ck-h" id="rf-meth-h">{COPY.methodsTitle}<span class="rf-n">{methods.length}</span></h2>
+      <p class="rf-lead rf-pad">{COPY.methodsLead}</p>
+      <div class="rf-scroll">
+        <table class="rf-table rf-table--meth">
+          <thead><tr><th scope="col">{COPY.thMethod}</th><th scope="col">{COPY.tagYield}</th><th scope="col">{COPY.tagSpeed}</th><th scope="col">{COPY.tagCost}</th></tr></thead>
+          <tbody>
+            {methodRows.map((m) => (
+              <tr>
+                <th scope="row">{m.name}</th>
+                {([[m.y, m.yield, ''], [m.s, m.speed, ''], [m.c, m.cost, ' rf-meter--cost']] as const).map(([n, k, cls]) => (
+                  <td><span class={'rf-meter' + cls} data-n={n}><i></i><i></i><i></i><i></i></span> {COPY.lvl[k]}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
-
-  <!-- 03 Historie -->
-  <div class="sec-head reveal"><span class="num">03</span><h2>{COPY.histTitle}</h2><span class="rule"></span></div>
-  <div id="rfd-history" class="rfd-hist" data-help={h('refinerytracker.ctl.history')}></div>
-  <div id="rfd-history-empty" class="acx-card rfd-empty" hidden>{COPY.histEmpty}</div>
 </div>
 
-<!-- Vorlage einer Erz-Zeile (Optionen serverseitig gerendert -> Klon behält sie) -->
+<!-- Vorlage einer Erz-Zeile (Optionen serverseitig gerendert, der Klon behält sie) -->
 <template id="rfd-ore-tpl">
-  <div class="rfd-ore">
-    <div class="rfd-ore__main">
-      <select class="acx-input rfd-ore__sel" data-role="ore">
+  <div class="rf-ore">
+    <div class="rf-ore__main">
+      <select class="inp ctrl rf-ore__sel" data-role="ore" aria-label={COPY.pickOre}>
         <option value="" selected disabled>{COPY.pickOre}</option>
-        {ores.map((o) => (
-          <option value={o.name} data-sell={o.sell ?? ''} data-best={o.bestRefinery ?? ''} data-bonus={o.bestRefineryBonus ?? ''} data-loc={o.sellLoc ?? ''}>{o.name}</option>
-        ))}
+        {ores.map((o) => (<option value={o.name}>{o.name}</option>))}
       </select>
-      <input class="acx-input rfd-num" data-role="raw" type="number" min="0" step="0.01" inputmode="decimal" placeholder={COPY.fRaw} aria-label={COPY.fRaw} />
-      <input class="acx-input rfd-num" data-role="yield" type="number" min="0" step="0.01" inputmode="decimal" placeholder={COPY.fYield} aria-label={COPY.fYield} />
-      <button type="button" class="rfd-ore__rm" data-role="remove" aria-label={COPY.removeOre}>×</button>
+      <input class="inp rf-num" data-role="raw" type="number" min="0" step="0.01" inputmode="decimal" placeholder={COPY.fRaw} aria-label={COPY.fRaw} />
+      <input class="inp rf-num" data-role="yield" type="number" min="0" step="0.01" inputmode="decimal" placeholder={COPY.fYield} aria-label={COPY.fYield} />
+      <button type="button" class="rf-x" data-role="remove" aria-label={COPY.removeOre}>×</button>
     </div>
-    <p class="rfd-ore__hint" data-role="hint" hidden></p>
+    <p class="rf-ore__hint" data-role="hint" hidden></p>
   </div>
 </template>
 
 <style is:global>
-  /* ---- Layout ---- */
-  .rfd-top { margin-bottom: 1.4rem; }
-  .rfd-back { color: var(--muted); font-size: var(--fs-8); border-bottom: 1px solid transparent; }
-  .rfd-back:hover { color: var(--accent); border-color: var(--line); }
-  .rfd-empty { color: var(--muted); text-align: center; font-size: var(--fs-9); }
+  .rf .rf-in { max-width: 1500px; margin: 0 auto; padding: 18px clamp(12px, 3vw, 28px) 56px; }
+  .rf .ck-col { overflow: visible; }
+  .rf section { padding: 0; margin: 0; }
+  .rf-sec { scroll-margin-top: calc(var(--nav, 64px) + 14px); }
+  .rf-pad { padding: 14px 16px; }
+  .rf-n { margin-left: auto; font-family: var(--font-num); font-weight: 600; font-size: var(--fs-9); color: var(--muted); letter-spacing: normal; }
+  .rf-mut { color: var(--muted); }
+  .rf-pos { color: var(--ok); }
+  .rf-neg { color: var(--hot); }
+  .rf-gold { color: var(--gold); }
+  .rf-acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+  .rf-src { margin: 12px 0 0; font-size: var(--fs-5); color: var(--muted); line-height: 1.5; }
+  .rf-lead { margin: 0 0 14px; color: var(--muted); font-size: var(--fs-7); line-height: 1.55; max-width: 72ch; }
+  .rf-note { margin: 0 0 16px; padding: 10px 13px; border: 1px solid var(--line-soft); border-left: 3px solid var(--accent); border-radius: 9px; background: color-mix(in srgb, var(--accent) 6%, transparent); color: var(--muted); font-size: var(--fs-6); line-height: 1.5; }
 
-  /* ---- Statistik-Kacheln ---- */
-  .rfd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px,100%), 1fr)); gap: 0.9rem; margin-bottom: 0.6rem; }
-  .rfd-tile {
-    border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
-    padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.2rem;
-  }
-  .rfd-tile--hot { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--glow); }
-  .rfd-tile__k { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-2); letter-spacing: var(--ls-13); text-transform: uppercase; color: var(--muted); }
-  .rfd-tile--hot .rfd-tile__k { color: var(--accent); }
-  .rfd-tile__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-14); color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .rfd-tile__v small { font-size: var(--fs-4); color: var(--muted); font-weight: 600; margin-left: 0.15rem; }
-  .rfd-tile__v.pos { color: #9be8a8; } .rfd-tile__v.neg { color: #ff8a8a; }
-  .rfd-tile__sub { font-size: var(--fs-4); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rfd-statgroup { grid-column: 1 / -1; font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-2); letter-spacing: var(--ls-14); text-transform: uppercase; color: var(--accent); margin: 0.6rem 0 -0.2rem; }
+  /* ---- Kopf ---- */
+  .rf-hero { position: relative; overflow: hidden; isolation: isolate; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px clamp(16px, 1.6vw, 28px); align-items: center; padding: clamp(16px, 1.4vw, 26px);
+    border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+    background: radial-gradient(120% 160% at 0% 0%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 62%), color-mix(in srgb, var(--surface) 90%, transparent); }
+  .rf-hero__badge { width: clamp(68px, 5vw, 96px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 26%; color: var(--gold);
+    background: color-mix(in srgb, var(--gold) 12%, var(--bg-2)); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--gold) 60%, transparent), 0 0 36px -10px var(--gold); }
+  .rf-hero__badge svg { width: 54%; height: auto; }
+  .rf-hero__main { min-width: 0; }
+  .rf-hero__title { margin: 4px 0 6px; font-family: var(--font-display); font-weight: 900; font-size: var(--fs-17); line-height: 1.05; letter-spacing: var(--ls-4); color: var(--text); }
+  .rf-hero__lead { margin: 0 0 12px; max-width: 70ch; color: var(--muted); font-size: var(--fs-8); line-height: 1.55; }
+  .rf-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+  .rf-facts a { display: inline-flex; gap: 6px; align-items: baseline; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-6); color: var(--muted); transition: border-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui); }
+  .rf-facts a:hover { border-color: var(--accent); color: var(--text); }
+  .rf-facts b { color: var(--text); font-weight: 700; }
+  .rf-jump { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 18px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+  .rf-jump a { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); color: var(--accent); }
+  .rf-jump a:hover { text-decoration: underline; }
+  @container (max-width: 560px) { .rf-hero { grid-template-columns: minmax(0, 1fr); } .rf-hero__badge { display: none; } }
 
-  /* ---- Job-Karten ---- */
-  .rfd-jobs { display: flex; flex-direction: column; gap: 1rem; }
-  .rfd-job {
-    border: 1px solid var(--line); background: linear-gradient(180deg, var(--surface), var(--bg-2));
-    padding: clamp(1rem, 3vw, 1.4rem); position: relative; overflow: hidden;
-  }
-  .rfd-job.is-ready { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: var(--glow); }
-  .rfd-job__head { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
-  .rfd-mtag, .rfd-job__method {
-    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-3); letter-spacing: var(--ls-11);
-    text-transform: uppercase; color: var(--accent); border: 1px solid var(--line);
-    padding: 0.2rem 0.55rem; background: color-mix(in srgb, var(--accent) 8%, transparent); white-space: nowrap;
-  }
-  .rfd-job__station { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-11); color: var(--text); }
-  .rfd-job__sys { font-size: var(--fs-4); color: var(--muted); }
-  .rfd-job__spacer { flex: 1; }
-  .rfd-badge {
-    font-family: var(--font-ui, sans-serif); font-weight: 800; font-size: var(--fs-3); letter-spacing: var(--ls-11);
-    text-transform: uppercase; color: var(--ink); background: var(--accent); padding: 0.24rem 0.6rem;
-    box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 40%, transparent);
-  }
-  .rfd-job__ores { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; margin-bottom: 0.8rem; }
-  .rfd-orepill {
-    font-size: var(--fs-6); color: var(--text);background:var(--veil);
-    border: 1px solid var(--line-soft); padding: 0.2rem 0.55rem; font-variant-numeric: tabular-nums;
-  }
-  .rfd-orepill b { color: var(--accent); font-weight: 700; }
-  .rfd-orepill span { color: var(--muted); }
-  /* Fortschritt */
-  .rfd-prog { height: 8px;background:var(--veil); border: 1px solid var(--line-soft); overflow: hidden; margin-bottom: 0.6rem; }
-  .rfd-prog__bar { height: 100%; width: 0%; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 55%, transparent), var(--accent)); transition: width 0.9s linear; }
-  .rfd-job.is-ready .rfd-prog__bar { background: var(--accent); }
-  .rfd-job__meta { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem 1.4rem; flex-wrap: wrap; }
-  .rfd-cd { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-11); color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: var(--ls-5); }
-  .rfd-job.is-ready .rfd-cd { color: #9be8a8; }
-  .rfd-cd__sub { font-size: var(--fs-5); color: var(--muted); font-weight: 400; font-family: var(--font-ui, sans-serif); letter-spacing: var(--ls-3); margin-left: 0.5rem; }
-  .rfd-job__figs { display: flex; gap: 1.2rem; text-align: right; }
-  .rfd-fig__k { display: block; font-size: var(--fs-2); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
-  .rfd-fig__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-10); color: var(--text); font-variant-numeric: tabular-nums; }
-  .rfd-job__act { display: flex; gap: 0.7rem; margin-top: 1rem; flex-wrap: wrap; }
+  /* ---- Tracker ---- */
+  .rf-tracker { display: flex; flex-direction: column; gap: var(--ck-gap); }
+  #tracker { display: flex; flex-direction: column; gap: var(--ck-gap); }
+  .rf-strip { grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr)); }
+  .rf-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: var(--ck-gap); align-items: start; }
+  @container (max-width: 1000px) { .rf-cols { grid-template-columns: minmax(0, 1fr); } }
+  .rf-jobs { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+  .rf-jobs:empty { display: none; }
+  .rf-job { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+  .rf-job.is-ready { border-color: color-mix(in srgb, var(--ok) 60%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ok) 25%, transparent), 0 12px 30px -18px var(--ok); }
+  .rf-job__head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 8px; }
+  .rf-job__station { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-10); color: var(--text); }
+  .rf-job__sys { font-size: var(--fs-5); color: var(--muted); }
+  .rf-chip { padding: 2px 9px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-4); color: var(--accent); white-space: nowrap; }
+  .rf-badge { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: var(--ok); color: var(--ink); font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-4); }
+  .rf-job__ores { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .rf-pill { padding: 2px 9px; border: 1px solid var(--line-soft); border-radius: 7px; font-size: var(--fs-5); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .rf-pill a, .rf-pill b { color: var(--text); font-weight: 600; }
+  .rf-pill a:hover { color: var(--accent); }
+  .rf-prog { height: 8px; border-radius: 999px; background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--line-soft); overflow: hidden; margin-bottom: 8px; }
+  .rf-prog i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 55%, transparent), var(--accent)); transition: width var(--dur-slow) linear; }
+  .rf-job.is-ready .rf-prog i { background: var(--ok); }
+  .rf-job__meta { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+  .rf-cd { font-family: var(--font-num); font-weight: 600; font-size: var(--fs-14); line-height: 1; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .rf-job.is-ready .rf-cd { color: var(--ok); }
+  .rf-cd small { display: block; margin-top: 4px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-5); color: var(--muted); }
+  .rf-figs { display: flex; gap: 16px; margin: 0; }
+  .rf-figs div { display: flex; flex-direction: column; align-items: flex-end; }
+  .rf-figs dt { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-4); color: var(--muted); }
+  .rf-figs dd { margin: 0; font-family: var(--font-num); font-weight: 600; font-size: var(--fs-11); line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rf-job__note { margin: 8px 0 0; font-size: var(--fs-5); color: var(--muted); font-style: italic; }
+  .rf-job__act { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
-  /* ---- Neuer-Auftrag-Formular ---- */
-  .rfd-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.35rem; }
-  .rfd-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.35rem; margin-top: 0.2rem; }
-  @media (max-width: 640px) { .rfd-grid2, .rfd-grid3 { grid-template-columns: 1fr; } }
-  .rfd-mtags { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
-  .rfd-mtags span { font-size: var(--fs-4); color: var(--muted); font-family: var(--font-ui, sans-serif); }
-  .rfd-mtags b { color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: var(--ls-7); }
-  .rfd-ores { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.7rem; }
-  .rfd-ore__main { display: grid; grid-template-columns: minmax(0, 1.6fr) 1fr 1fr auto; gap: 0.5rem; align-items: center; }
-  @media (max-width: 560px) { .rfd-ore__main { grid-template-columns: 1fr 1fr auto; } .rfd-ore__sel { grid-column: 1 / -1; } }
-  .rfd-num { text-align: right; font-variant-numeric: tabular-nums; }
-  .rfd-ore__rm { flex: none; background: none; border: 1px solid var(--line-soft); color: var(--muted); font-size: var(--fs-11); line-height: 1; width: 2.2rem; height: 2.2rem; cursor: pointer; transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
-  .rfd-ore__rm:hover { color: #ff8a8a; border-color: rgba(255,122,122,0.45); }
-  .rfd-ore__hint { font-size: var(--fs-5); color: var(--muted); margin: 0.35rem 0 0; }
-  .rfd-ore__hint b { color: var(--accent); }
-  .rfd-addore { background: none; border: 1px dashed var(--line); color: var(--accent); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-9); text-transform: uppercase; padding: 0.5rem 0.9rem; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
-  .rfd-addore:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); border-color: var(--accent); }
-  .rfd-dur { display: flex; align-items: center; gap: 0.5rem; }
-  .rfd-dur .rfd-num { max-width: 5rem; }
-  .rfd-durlbl { font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-6); color: var(--muted); text-transform: uppercase; letter-spacing: var(--ls-9); }
-  .rfd-preview { display: flex; flex-wrap: wrap; gap: 0.8rem 2rem; margin-top: 1.6rem; padding: 1rem 1.1rem; border: 1px solid var(--line-soft);background:var(--veil); }
-  .rfd-pv { display: flex; flex-direction: column; gap: 0.15rem; }
-  .rfd-pv__k { font-size: var(--fs-2); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; }
-  .rfd-pv__v { font-family: var(--font-display, sans-serif); font-weight: 800; font-size: var(--fs-12); color: var(--text); font-variant-numeric: tabular-nums; }
-  .rfd-pv__v--auec { color: var(--accent); }
-  .rfd-src { font-size: var(--fs-5); color: var(--muted); font-style: italic; line-height: 1.5; margin: 0.9rem 0 0; }
+  .rf-notify { display: grid; gap: 2px; }
+  .rf-notify .pf-check { margin: 4px 0 8px; }
+  .rf-notify .pf-check b { font-weight: 700; }
+  .rf-notify .rf-src { margin-top: 4px; }
+  .rf-notify .rf-src .btn { margin-left: 8px; vertical-align: middle; }
+  .rf-notify .acx-status { margin-top: 4px; }
+  .rf-form { padding: 14px 16px 16px; }
+  .rf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .rf-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
+  @container (max-width: 640px) { .rf-grid2, .rf-grid3 { grid-template-columns: 1fr; } }
+  .rf .field select.inp { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 36px; }
+  .rf .inp { border-radius: 9px; }
+  .rf-mtags { display: flex; gap: 6px 12px; flex-wrap: wrap; margin-top: 4px; font-size: var(--fs-5); color: var(--muted); }
+  .rf-mtags b { color: var(--accent); font-weight: 700; }
+  .rf-ores { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .rf-ore__main { display: grid; grid-template-columns: minmax(0, 1.6fr) 1fr 1fr auto; gap: 8px; align-items: center; }
+  @container (max-width: 560px) { .rf-ore__main { grid-template-columns: 1fr 1fr auto; } .rf-ore__sel { grid-column: 1 / -1; } }
+  .rf-num { text-align: right; font-variant-numeric: tabular-nums; }
+  .rf-x { width: 2.4rem; height: 2.4rem; border: 1px solid var(--line-soft) !important; border-radius: 9px; color: var(--muted) !important; font-size: var(--fs-11); line-height: 1; transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
+  .rf-x:hover { color: var(--hot) !important; border-color: color-mix(in srgb, var(--hot) 50%, transparent) !important; }
+  .rf-ore__hint { margin: 5px 0 0; font-size: var(--fs-5); color: var(--muted); }
+  .rf-ore__hint b { color: var(--text); }
+  .rf-ore__hint .rf-pos, .rf-ore__hint .rf-neg { font-weight: 700; }
+  .rf-addore { align-self: flex-start; }
+  .rf-addore svg { width: 14px; height: 14px; }
+  .rf-dur { display: flex; align-items: center; gap: 8px; }
+  .rf-dur .inp { max-width: 5.5rem; }
+  .rf-dur span { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-6); color: var(--muted); }
+  .rf-preview { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 6px 0 16px; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: 12px; background: color-mix(in srgb, var(--bg-2) 60%, transparent); }
+  .rf-preview div { display: flex; flex-direction: column; gap: 2px; }
+  .rf-preview dt { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-5); color: var(--muted); }
+  .rf-preview dd { margin: 0; font-family: var(--font-num); font-weight: 600; font-size: var(--fs-13); line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rf-preview dd.rf-gold { color: var(--gold); }
+  .rf-form .rf-acts { justify-content: flex-start; }
 
-  /* ---- Historie ---- */
-  .rfd-hist { display: flex; flex-direction: column; gap: 0.6rem; }
-  .rfd-hrow {
-    border: 1px solid var(--line-soft); background: linear-gradient(180deg, var(--surface), var(--bg-2));
-    padding: 0.85rem 1rem; display: grid; grid-template-columns: 1fr auto; gap: 0.5rem 1rem; align-items: center;
-  }
-  .rfd-hrow__main { min-width: 0; }
-  .rfd-hrow__top { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-  .rfd-hrow__station { font-family: var(--font-display, sans-serif); font-weight: 800; color: var(--text); font-size: var(--fs-10); }
-  .rfd-hrow__date { font-size: var(--fs-5); color: var(--muted); }
-  .rfd-hrow__ores { font-size: var(--fs-6); color: var(--muted); margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; }
-  .rfd-hrow__figs { display: flex; gap: 1.1rem; align-items: baseline; text-align: right; }
-  .rfd-hrow__right { display: flex; flex-direction: column; gap: 0.55rem; align-items: flex-end; }
-  .rfd-hrow__act { display: flex; gap: 0.5rem; align-items: center; }
-  .rfd-mini { background: none; border: 1px solid transparent; color: var(--muted); font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: var(--fs-4); letter-spacing: var(--ls-9); text-transform: uppercase; cursor: pointer; padding: 0.3rem 0.5rem; transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
-  .rfd-mini:hover { color: var(--accent); border-color: var(--line); }
-  .rfd-mini--rm:hover { color: #ff8a8a; border-color: rgba(255,122,122,0.45); }
-  .rfd-sold { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.4rem; }
-  .rfd-sold input { max-width: 8rem; padding: 0.4rem 0.55rem; }
-  @media (max-width: 560px) { .rfd-hrow { grid-template-columns: 1fr; } .rfd-hrow__figs { text-align: left; } }
+  .rf-life { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line-soft); }
+  .rf-life div { display: flex; flex-direction: column; }
+  .rf-life dt { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-5); color: var(--muted); }
+  .rf-life dd { margin: 0; font-family: var(--font-num); font-weight: 600; font-size: var(--fs-13); line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+  .rf-hist { display: flex; flex-direction: column; padding: 4px 8px 8px; }
+  .rf-hist:empty { display: none; }
+  .rf-hrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; padding: 11px 8px; border-bottom: 1px solid var(--line-soft); }
+  .rf-hrow:last-child { border-bottom: 0; }
+  .rf-hrow__top { display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; }
+  .rf-hrow__date { font-size: var(--fs-5); color: var(--muted); }
+  .rf-hrow__ores { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .rf-hrow__right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .rf-hrow__act { display: flex; gap: 6px; }
+  .rf-mini { padding: 4px 9px; border: 1px solid transparent !important; border-radius: 7px; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5); color: var(--muted) !important; transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui); }
+  .rf-mini:hover { color: var(--accent) !important; border-color: var(--line) !important; }
+  .rf-mini--rm:hover { color: var(--hot) !important; border-color: color-mix(in srgb, var(--hot) 45%, transparent) !important; }
+  .rf-sold { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+  .rf-sold:empty { display: none; }
+  .rf-sold .inp { max-width: 9rem; padding: 7px 10px; }
+  @container (max-width: 560px) { .rf-hrow { grid-template-columns: 1fr; } .rf-hrow__right { align-items: flex-start; } .rf-figs div { align-items: flex-start; } }
+
+  /* ---- Tabellen ---- */
+  .rf-scroll { overflow-x: auto; scrollbar-width: thin; }
+  .rf-table { width: 100%; border-collapse: collapse; font-size: var(--fs-7); }
+  .rf-table th, .rf-table td { padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+  .rf-table thead th { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5); color: var(--muted); background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+  .rf-table tbody th { font-family: var(--font-ui); font-weight: 700; color: var(--text); }
+  .rf-table tbody th a { color: var(--text); border-bottom: 1px solid var(--line); }
+  .rf-table tbody th a:hover, .rf-table td a:hover { color: var(--accent); border-color: var(--accent); }
+  .rf-table td a { color: var(--text); border-bottom: 1px dotted var(--line-2); }
+  .rf-table th small { margin-left: 8px; font-family: var(--font-mono); font-weight: 400; font-size: var(--fs-4); color: var(--muted); }
+  .rf-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .rf-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+  .rf-rar { font-family: var(--font-ui); font-weight: 600; }
+  .rf-rar--uncommon { color: var(--ok); } .rf-rar--rare { color: var(--accent); } .rf-rar--epic { color: #b18cff; } .rf-rar--legendary { color: var(--gold); }
+  .rf-pick { padding: 3px 9px; border: 1px solid var(--line) !important; border-radius: 999px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-6); color: var(--text) !important; transition: border-color var(--dur-fast) var(--ease-ui); }
+  .rf-pick:hover { border-color: var(--accent) !important; }
+  .rf-table--matrix { font-size: var(--fs-6); }
+  .rf-table--matrix th, .rf-table--matrix td { padding: 6px 9px; }
+  .rf-table--matrix tbody th, .rf-table--matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .rf-sys th { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5); color: var(--accent) !important; text-transform: uppercase; letter-spacing: var(--ls-10); background: color-mix(in srgb, var(--surface-2) 80%, var(--surface)) !important; }
+  .rf-sys th a { color: inherit !important; border: 0 !important; }
+
+  /* ---- Ertrag ---- */
+  .rf-oresel { display: grid; grid-template-columns: auto minmax(0, 16rem) auto; align-items: center; gap: 8px 12px; margin-bottom: 14px; }
+  .rf-oresel label { margin: 0; }
+  .rf-orelink { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); color: var(--accent); }
+  .rf-orelink::after { content: ' →'; }
+  .rf-orelink:hover { text-decoration: underline; }
+  .rf-rank { display: grid; gap: 4px; margin: 0 0 14px; padding: 0; list-style: none; }
+  .rf-rank li { display: grid; grid-template-columns: minmax(0, 15rem) 5rem minmax(0, 1fr) 4.5rem; gap: 12px; align-items: center; padding: 6px 10px; border-radius: 9px; }
+  .rf-rank li:nth-child(odd) { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+  .rf-rank__n { font-family: var(--font-ui); font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rf-rank__s { font-size: var(--fs-5); color: var(--muted); }
+  .rf-rank__bar { height: 8px; border-radius: 999px; background: var(--bg-2); overflow: hidden; }
+  .rf-rank__bar i { display: block; height: 100%; border-radius: inherit; }
+  .rf-rank .is-pos i { background: var(--ok); } .rf-rank .is-neg i { background: var(--hot); }
+  .rf-rank b { text-align: right; font-family: var(--font-num); font-weight: 600; font-size: var(--fs-11); line-height: 1; }
+  .rf-rank .is-pos b { color: var(--ok); } .rf-rank .is-neg b { color: var(--hot); } .rf-rank .is-zero b { color: var(--muted); }
+  @container (max-width: 560px) { .rf-rank li { grid-template-columns: minmax(0, 1fr) 4rem; } .rf-rank__s, .rf-rank__bar { display: none; } .rf-oresel { grid-template-columns: minmax(0, 1fr); } }
+  .rf-matrix summary { cursor: pointer; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); color: var(--accent); padding: 6px 0; }
+  .rf-matrix[open] summary { margin-bottom: 8px; }
+
+  /* ---- Methoden ---- */
+  .rf-meter { display: inline-flex; gap: 3px; vertical-align: middle; margin-right: 6px; }
+  .rf-meter i { width: 14px; height: 6px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .rf-meter[data-n="1"] i:nth-child(-n+1), .rf-meter[data-n="2"] i:nth-child(-n+2),
+  .rf-meter[data-n="3"] i:nth-child(-n+3), .rf-meter[data-n="4"] i:nth-child(-n+4) { background: var(--accent); }
+  .rf-meter--cost i { background: color-mix(in srgb, var(--gold) 16%, transparent); }
+  .rf-meter--cost[data-n="1"] i:nth-child(-n+1), .rf-meter--cost[data-n="2"] i:nth-child(-n+2),
+  .rf-meter--cost[data-n="3"] i:nth-child(-n+3), .rf-meter--cost[data-n="4"] i:nth-child(-n+4) { background: var(--gold); }
+  .rf-table--meth td { color: var(--muted); }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .rfd-tile__v.pos{color:#016b2b}
-:root[data-theme="light"] .rfd-tile__v.neg{color:#a2172b}
-:root[data-theme="light"] .rfd-job.is-ready .rfd-cd{color:#016b2b}
-:root[data-theme="light"] .rfd-ore__rm:hover{color:#a2172b;border-color:rgba(200,66,72,.63)}
-:root[data-theme="light"] .rfd-mini--rm:hover{color:#a2172b;border-color:rgba(200,66,72,.63)}
+:root[data-theme="light"] .rf-rar--epic{color:#6732b2}
 </style>
 
 <script>
   import { supabase } from '../../lib/supabase';
   import { clearAccountTraces, browserStores } from '../../lib/account-cleanup';
   import {
-    REFINERY, oreByName, estimateValue, fmtCountdown, fmtDuration, fmtAuec, fmtScu,
+    REFINERY, estimateValue, fmtCountdown, fmtDuration, fmtAuec, fmtScu, rankStations, bonusAt, stationByName, oreByName,
     type RefineryJob, type RefineryItem,
   } from '../../lib/refinery';
+  import { refineryValue, refinerySpark, jobValue } from '../../lib/refineryJobs';
 
-  const root = document.getElementById('rfd');
+  const root = document.getElementById('rf') as HTMLElement | null;
   if (root) {
-    const D = (root as HTMLElement).dataset;
-    const lang: 'de' | 'en' = D.lang === 'de' ? 'de' : 'en';
-    const loadingEl = document.getElementById('rfd-loading')!;
+    const lang: 'de' | 'en' = root.dataset.lang === 'de' ? 'de' : 'en';
     const C: any = JSON.parse(document.getElementById('rfd-copy')!.textContent || '{}');
     const locale = lang === 'de' ? 'de-DE' : 'en-US';
+    const $ = (id: string) => document.getElementById(id)!;
 
-    // Kleine DOM-Helfer
     const el = (tag: string, cls?: string, txt?: string) => {
       const n = document.createElement(tag);
       if (cls) n.className = cls;
       if (txt != null) n.textContent = txt;
       return n;
     };
-    const methodByName = (name: string) => REFINERY.methods.find((m) => m.name === name) || null;
-    const stationByName = (name: string) => REFINERY.stations.find((s) => s.name === name) || null;
+    const pct = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + ' %';
+    const oreLink = (name: string) => {
+      const u = C.oreHref?.[name];
+      if (!u) return el('b', undefined, name);
+      const a = el('a', undefined, name) as HTMLAnchorElement;
+      a.href = u;
+      return a;
+    };
+
+    // ---- Ertragsvergleich (öffentlich) ------------------------------------
+    const yieldSel = $('rf-yield-ore') as HTMLSelectElement;
+    const yieldLink = $('rf-yield-link') as HTMLAnchorElement;
+    function renderRank(ore: string) {
+      const list = $('rf-rank');
+      list.textContent = '';
+      for (const { station, bonus } of rankStations(ore)) {
+        const li = el('li', bonus > 0 ? 'is-pos' : bonus < 0 ? 'is-neg' : 'is-zero');
+        const bar = el('span', 'rf-rank__bar');
+        const fill = el('i');
+        fill.style.width = Math.min(100, Math.abs(bonus) / 13 * 100) + '%';
+        bar.appendChild(fill);
+        const b = el('b', 'tnum', pct(bonus));
+        li.append(el('span', 'rf-rank__n', station.name), el('span', 'rf-rank__s', station.system), bar, b);
+        list.appendChild(li);
+      }
+      yieldLink.textContent = ore;
+      yieldLink.href = C.oreHref?.[ore] || '#erze';
+    }
+    function pickOre(ore: string, scroll: boolean) {
+      if (!oreByName.has(ore)) return;
+      yieldSel.value = ore;
+      renderRank(ore);
+      if (scroll) $('ertrag').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    yieldSel.addEventListener('change', () => pickOre(yieldSel.value, false));
+    document.querySelectorAll<HTMLButtonElement>('.rf-pick').forEach((b) =>
+      b.addEventListener('click', () => pickOre(b.dataset.ore || '', true)));
+    // Tieflink ?erz=<Name> aus der Mining-Datenbank: Vergleich für genau dieses Erz.
+    try {
+      const want = new URLSearchParams(location.search).get('erz') || new URLSearchParams(location.search).get('ore');
+      const hit = want && REFINERY.ores.find((o) => o.name.toLowerCase() === want.trim().toLowerCase());
+      if (hit) pickOre(hit.name, !location.hash);
+    } catch { /* ohne gültigen Parameter bleibt die Vorauswahl */ }
+
+    // ---- Tracker -----------------------------------------------------------
+    const loadingEl = $('rfd-loading');
+    const outEl = $('rfd-out');
+    const tracker = $('rfd');
 
     const fmtReadyAt = (iso: string) => {
       const d = new Date(iso);
-      const now = new Date();
-      const sameDay = d.toDateString() === now.toDateString();
       const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-      return sameDay ? time : d.toLocaleDateString(locale, { day: '2-digit', month: 'short' }) + ' ' + time;
+      return d.toDateString() === new Date().toDateString() ? time : d.toLocaleDateString(locale, { day: '2-digit', month: 'short' }) + ' ' + time;
     };
     const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
 
     let jobs: RefineryJob[] = [];
 
-    // ---- Rendering ---------------------------------------------------------
-    const activeWrap = document.getElementById('rfd-active')!;
-    const activeEmpty = document.getElementById('rfd-active-empty')!;
-    const histWrap = document.getElementById('rfd-history')!;
-    const histEmpty = document.getElementById('rfd-history-empty')!;
-    const statsWrap = document.getElementById('rfd-stats')!;
-
-    function oresLine(items: RefineryItem[]) {
-      return items.map((it) => `${it.ore} ${fmtScu(it.rawScu, lang)}${it.yieldScu ? '→' + fmtScu(it.yieldScu, lang) : ''}`).join(' · ');
-    }
-
-    // Alles, was hier ins DOM geht, laeuft als Text (textContent/append), nie
-    // als HTML: Methode, Station und Erze stehen in refinery_jobs und kommen
-    // damit vom Konto, nicht aus dem Build. Das entstehende Markup ist
-    // dasselbe wie frueher per innerHTML (<small>-Einheit, <b>-Zahl, Klassen,
-    // style-Attribut).
-    // Bezeichnung + Wert: <span class="rfd-fig__k">…</span><span class="rfd-fig__v">…</span>
-    const fig = (k: string, v: string, vCls?: string) =>
-      [el('span', 'rfd-fig__k', k), el('span', 'rfd-fig__v' + (vCls ? ' ' + vCls : ''), v)];
-
-    function tile(k: string, v: string, opts: { unit?: string; sub?: string; hot?: boolean; cls?: string } = {}) {
-      const t = el('div', 'rfd-tile' + (opts.hot ? ' rfd-tile--hot' : ''));
-      t.appendChild(el('div', 'rfd-tile__k', k));
-      const val = el('div', 'rfd-tile__v' + (opts.cls ? ' ' + opts.cls : ''), v);
-      if (opts.unit != null) val.appendChild(el('small', undefined, opts.unit));
-      t.appendChild(val);
-      if (opts.sub) t.appendChild(el('div', 'rfd-tile__sub', opts.sub));
-      return t;
-    }
+    // Alles, was hier ins DOM geht, läuft als Text (textContent/append), nie als
+    // HTML: Methode, Station, Erze und Notiz kommen aus refinery_jobs, also vom Konto.
+    const fig = (k: string, v: string, cls?: string) => {
+      const d = el('div');
+      d.append(el('dt', undefined, k), el('dd', cls, v));
+      return d;
+    };
+    const orePills = (items: RefineryItem[]) => {
+      const w = el('div', 'rf-job__ores');
+      for (const it of items) {
+        const p = el('span', 'rf-pill');
+        p.append(oreLink(String(it.ore ?? '')), ' ' + fmtScu(it.yieldScu || it.rawScu, lang) + ' ' + C.scu);
+        w.appendChild(p);
+      }
+      return w;
+    };
 
     function renderStats() {
       const active = jobs.filter((j) => j.status === 'active');
-      const done = jobs.filter((j) => j.status === 'done');
       const now = Date.now();
-      const ready = active.filter((j) => new Date(j.ready_at).getTime() <= now);
-      const pipeScu = active.reduce((s, j) => s + Number(j.yield_scu || 0), 0);
-      const pipeVal = active.reduce((s, j) => s + Number(j.est_value || 0), 0);
-      const refined = done.reduce((s, j) => s + Number(j.yield_scu || 0), 0);
-      const valueTotal = done.reduce((s, j) => s + Number(j.sold_value ?? j.est_value ?? 0), 0);
-      const costTotal = done.reduce((s, j) => s + Number(j.cost || 0), 0);
-      const profit = valueTotal - costTotal;
+      const { total } = refineryValue(jobs);
+      $('rfd-st-active').textContent = String(active.length);
+      $('rfd-st-ready').textContent = String(active.filter((j) => new Date(j.ready_at).getTime() <= now).length);
+      $('rfd-st-pipe').textContent = fmtScu(active.reduce((s, j) => s + Number(j.yield_scu || 0), 0), lang);
+      $('rfd-st-value').textContent = fmtAuec(total, lang);
+      $('rfd-st-sub').textContent = active.length === 0 ? C.subNoActive : active.length === 1 ? C.subActive1 : C.subActive.replace('%n', String(active.length));
+      $('rfd-spark').innerHTML = refinerySpark(jobs, 'rfd-sparkg');
 
-      // Häufigste Methode / Station (über alle Aufträge)
-      const freq = (key: 'method' | 'station') => {
-        const m = new Map<string, number>();
-        for (const j of jobs) m.set(j[key], (m.get(j[key]) || 0) + 1);
-        let top = '', n = 0;
-        for (const [k, c] of m) if (c > n) { top = k; n = c; }
-        return top;
-      };
-      const topMethod = freq('method');
-      const topStation = freq('station');
-      const topStationShort = topStation ? (stationByName(topStation)?.short || topStation) : C.none;
-
-      statsWrap.innerHTML = '';
-      statsWrap.appendChild(tile(C.stActive, String(active.length), { hot: active.length > 0 }));
-      statsWrap.appendChild(tile(C.stReady, String(ready.length), { hot: ready.length > 0 }));
-      statsWrap.appendChild(tile(C.stPipeScu, fmtScu(pipeScu, lang), { unit: C.scu }));
-      statsWrap.appendChild(tile(C.stPipeVal, fmtAuec(pipeVal, lang), { unit: 'aUEC' }));
+      const done = jobs.filter((j) => j.status === 'done');
+      const life = $('rfd-life');
+      life.textContent = '';
+      life.hidden = done.length === 0;
       if (done.length) {
-        statsWrap.appendChild(el('div', 'rfd-statgroup', C.lifetime));
-        statsWrap.appendChild(tile(C.stDone, String(done.length)));
-        statsWrap.appendChild(tile(C.stRefined, fmtScu(refined, lang), { unit: C.scu }));
-        statsWrap.appendChild(tile(C.stValue, fmtAuec(valueTotal, lang), { unit: 'aUEC' }));
-        statsWrap.appendChild(tile(C.stProfit, fmtAuec(profit, lang), { unit: 'aUEC', cls: profit > 0 ? 'pos' : profit < 0 ? 'neg' : '' }));
-        statsWrap.appendChild(tile(C.stTopMethod, topMethod || C.none, { sub: C.stTopStation + ': ' + topStationShort }));
+        const value = done.reduce((s, j) => s + jobValue(j), 0);
+        const cost = done.reduce((s, j) => s + Number(j.cost || 0), 0);
+        const profit = value - cost;
+        life.append(
+          fig(C.lDone, String(done.length)),
+          fig(C.lRefined, fmtScu(done.reduce((s, j) => s + Number(j.yield_scu || 0), 0), lang)),
+          fig(C.lCost, fmtAuec(cost, lang) + ' aUEC'),
+          fig(C.lProfit, fmtAuec(profit, lang) + ' aUEC', profit > 0 ? 'rf-pos' : profit < 0 ? 'rf-neg' : ''),
+        );
       }
     }
 
     function jobCard(j: RefineryJob) {
-      const card = el('article', 'rfd-job');
-      card.dataset.id = String(j.id);
+      const card = el('article', 'rf-job');
       card.dataset.started = j.started_at;
       card.dataset.ready = j.ready_at;
 
-      const head = el('div', 'rfd-job__head');
-      head.appendChild(el('span', 'rfd-job__method', j.method));
-      const st = stationByName(j.station);
-      const stName = el('span', 'rfd-job__station', st?.short || j.station);
-      head.appendChild(stName);
-      head.appendChild(el('span', 'rfd-job__sys', st ? st.system : ''));
-      head.appendChild(el('span', 'rfd-job__spacer'));
-      const badge = el('span', 'rfd-badge', C.readyNow);
+      const st = stationByName.get(j.station);
+      const head = el('div', 'rf-job__head');
+      head.append(el('span', 'rf-job__station', st?.name || j.station), el('span', 'rf-job__sys', st?.system || ''), el('span', 'rf-chip', j.method));
+      const badge = el('span', 'rf-badge', C.readyNow);
       badge.hidden = true;
       badge.dataset.role = 'badge';
       head.appendChild(badge);
       card.appendChild(head);
+      if (j.items?.length) card.appendChild(orePills(j.items));
 
-      if (j.items?.length) {
-        const ow = el('div', 'rfd-job__ores');
-        for (const it of j.items) {
-          const p = el('span', 'rfd-orepill');
-          // Unbekannte Erze bleiben sichtbar (Umbenennung im Patch), nur eben als Text.
-          p.append(
-            String(it.ore ?? '') + ' ',
-            el('b', undefined, fmtScu(it.yieldScu || it.rawScu, lang)),
-            ' ',
-            el('span', undefined, `${it.yieldScu ? C.yieldLbl : C.fRaw} ${C.scu}`),
-          );
-          ow.appendChild(p);
-        }
-        card.appendChild(ow);
-      }
-
-      const prog = el('div', 'rfd-prog');
-      const bar = el('div', 'rfd-prog__bar');
+      const prog = el('div', 'rf-prog');
+      const bar = el('i');
       bar.dataset.role = 'bar';
       prog.appendChild(bar);
       card.appendChild(prog);
 
-      const meta = el('div', 'rfd-job__meta');
-      const cd = el('div', 'rfd-cd');
+      const meta = el('div', 'rf-job__meta');
+      const cd = el('div', 'rf-cd');
       cd.dataset.role = 'cd';
-      meta.appendChild(cd);
-      const figs = el('div', 'rfd-job__figs');
-      const y = el('div');
-      y.append(...fig(C.yieldLbl, `${fmtScu(Number(j.yield_scu), lang)} ${C.scu}`));
-      figs.appendChild(y);
-      if (j.est_value != null) {
-        const v = el('div');
-        v.append(...fig(C.valueLbl, fmtAuec(j.est_value, lang)));
-        figs.appendChild(v);
-      }
-      meta.appendChild(figs);
+      const figs = el('dl', 'rf-figs');
+      figs.appendChild(fig(C.yieldLbl, `${fmtScu(Number(j.yield_scu), lang)} ${C.scu}`));
+      if (j.est_value != null) figs.appendChild(fig(C.valueLbl, fmtAuec(j.est_value, lang), 'rf-gold'));
+      meta.append(cd, figs);
       card.appendChild(meta);
+      if (j.note) card.appendChild(el('p', 'rf-job__note', j.note));
 
-      const act = el('div', 'rfd-job__act');
-      const collectBtn = el('button', 'acx-submit', C.collect) as HTMLButtonElement;
+      const act = el('div', 'rf-job__act');
+      const collectBtn = el('button', 'btn sm ok', C.collect) as HTMLButtonElement;
       collectBtn.type = 'button';
       collectBtn.addEventListener('click', () => collect(j.id, collectBtn));
-      const delBtn = el('button', 'acx-submit acx-submit--ghost', C.del) as HTMLButtonElement;
+      const delBtn = el('button', 'btn sm ghost', C.del) as HTMLButtonElement;
       delBtn.type = 'button';
-      delBtn.addEventListener('click', () => del(j.id, C.confirmDel));
-      act.appendChild(collectBtn);
-      act.appendChild(delBtn);
+      delBtn.addEventListener('click', () => del(j.id));
+      act.append(collectBtn, delBtn);
       card.appendChild(act);
 
-      tickCard(card); // Erstzustand
+      tickCard(card);
       return card;
     }
 
@@ -528,61 +821,65 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       const active = jobs
         .filter((j) => j.status === 'active')
         .sort((a, b) => new Date(a.ready_at).getTime() - new Date(b.ready_at).getTime());
-      activeWrap.innerHTML = '';
-      activeEmpty.hidden = active.length > 0;
-      for (const j of active) activeWrap.appendChild(jobCard(j));
+      const wrap = $('rfd-active');
+      wrap.textContent = '';
+      $('rfd-active-empty').hidden = active.length > 0;
+      const n = $('rfd-active-n');
+      n.hidden = active.length === 0;
+      n.textContent = String(active.length);
+      for (const j of active) wrap.appendChild(jobCard(j));
     }
 
     function histRow(j: RefineryJob) {
-      const row = el('div', 'rfd-hrow');
-      row.dataset.id = String(j.id);
-      const main = el('div', 'rfd-hrow__main');
-      const top = el('div', 'rfd-hrow__top');
-      top.appendChild(el('span', 'rfd-hrow__station', (stationByName(j.station)?.short || j.station)));
-      top.appendChild(el('span', 'rfd-job__method', j.method));
-      top.appendChild(el('span', 'rfd-hrow__date', C.collectedOn + ' ' + fmtDate(j.collected_at || j.created_at)));
+      const row = el('div', 'rf-hrow');
+      const main = el('div');
+      const top = el('div', 'rf-hrow__top');
+      top.append(
+        el('span', 'rf-job__station', stationByName.get(j.station)?.name || j.station),
+        el('span', 'rf-chip', j.method),
+        el('span', 'rf-hrow__date', C.collectedOn + ' ' + fmtDate(j.collected_at || j.created_at)),
+      );
       main.appendChild(top);
-      if (j.items?.length) main.appendChild(el('div', 'rfd-hrow__ores', oresLine(j.items)));
+      if (j.items?.length) {
+        const ores = orePills(j.items);
+        ores.className = 'rf-hrow__ores';
+        main.appendChild(ores);
+      }
+      const soldWrap = el('div', 'rf-sold');
+      main.appendChild(soldWrap);
 
-      // Verkaufserlös-Editor
-      const soldWrap = el('div', 'rfd-sold');
-      const val = j.sold_value ?? j.est_value ?? 0;
-      const profit = Number(val) - Number(j.cost || 0);
-      const figs = el('div', 'rfd-hrow__figs');
-      const fYield = el('div');
-      fYield.append(...fig(C.yieldLbl, fmtScu(Number(j.yield_scu), lang)));
-      const fVal = el('div');
-      fVal.append(...fig(j.sold_value != null ? C.soldFor : C.valueLbl, fmtAuec(val, lang)));
-      const fProfit = el('div');
-      const profitPair = fig(C.profit, fmtAuec(profit, lang), profit >= 0 ? 'pos' : 'neg');
-      profitPair[1].setAttribute('style', `color:${profit >= 0 ? '#9be8a8' : '#ff8a8a'}`);
-      fProfit.append(...profitPair);
-      figs.append(fYield, fVal, fProfit);
+      const val = jobValue(j);
+      const profit = val - Number(j.cost || 0);
+      const figs = el('dl', 'rf-figs');
+      figs.append(
+        fig(C.yieldLbl, fmtScu(Number(j.yield_scu), lang)),
+        fig(j.sold_value != null ? C.soldFor : C.valueLbl, fmtAuec(val, lang), 'rf-gold'),
+        fig(C.profit, fmtAuec(profit, lang), profit >= 0 ? 'rf-pos' : 'rf-neg'),
+      );
 
-      const act = el('div', 'rfd-hrow__act');
-      const soldBtn = el('button', 'rfd-mini', C.setSold) as HTMLButtonElement;
+      const act = el('div', 'rf-hrow__act');
+      const soldBtn = el('button', 'rf-mini', C.setSold) as HTMLButtonElement;
       soldBtn.type = 'button';
       soldBtn.addEventListener('click', () => {
-        const inp = el('input', 'acx-input rfd-num') as HTMLInputElement;
+        const inp = el('input', 'inp rf-num') as HTMLInputElement;
         inp.type = 'number'; inp.min = '0'; inp.placeholder = 'aUEC';
         inp.value = j.sold_value != null ? String(j.sold_value) : '';
-        const ok = el('button', 'rfd-mini', C.save) as HTMLButtonElement; ok.type = 'button';
-        const cancel = el('button', 'rfd-mini', C.cancel) as HTMLButtonElement; cancel.type = 'button';
-        soldWrap.innerHTML = ''; soldWrap.append(inp, ok, cancel); inp.focus();
+        const ok = el('button', 'btn sm primary', C.save) as HTMLButtonElement; ok.type = 'button';
+        const cancel = el('button', 'btn sm ghost', C.cancel) as HTMLButtonElement; cancel.type = 'button';
+        soldWrap.textContent = ''; soldWrap.append(inp, ok, cancel); inp.focus();
         ok.addEventListener('click', async () => {
           const v = parseFloat(inp.value);
           await update(j.id, { sold_value: isFinite(v) && v >= 0 ? v : null });
         });
-        cancel.addEventListener('click', () => renderHistory());
+        cancel.addEventListener('click', () => { soldWrap.textContent = ''; });
       });
-      const delBtn = el('button', 'rfd-mini rfd-mini--rm', C.del) as HTMLButtonElement;
+      const delBtn = el('button', 'rf-mini rf-mini--rm', C.del) as HTMLButtonElement;
       delBtn.type = 'button';
-      delBtn.addEventListener('click', () => del(j.id, C.confirmDel));
+      delBtn.addEventListener('click', () => del(j.id));
       act.append(soldBtn, delBtn);
 
-      const right = el('div', 'rfd-hrow__right');
+      const right = el('div', 'rf-hrow__right');
       right.append(figs, act);
-      main.appendChild(soldWrap);
       row.append(main, right);
       return row;
     }
@@ -591,58 +888,57 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       const done = jobs
         .filter((j) => j.status === 'done')
         .sort((a, b) => new Date(b.collected_at || b.created_at).getTime() - new Date(a.collected_at || a.created_at).getTime());
-      histWrap.innerHTML = '';
-      histEmpty.hidden = done.length > 0;
-      for (const j of done) histWrap.appendChild(histRow(j));
+      const wrap = $('rfd-history');
+      wrap.textContent = '';
+      $('rfd-history-empty').hidden = done.length > 0;
+      for (const j of done) wrap.appendChild(histRow(j));
     }
 
-    function renderAll() { renderStats(); renderActive(); renderHistory(); }
+    const renderAll = () => { renderStats(); renderActive(); renderHistory(); };
 
-    // ---- Live-Ticker -------------------------------------------------------
     function tickCard(card: HTMLElement) {
       const started = new Date(card.dataset.started!).getTime();
       const ready = new Date(card.dataset.ready!).getTime();
       const now = Date.now();
-      const total = Math.max(1, ready - started);
       const remaining = ready - now;
-      const pct = Math.max(0, Math.min(100, ((now - started) / total) * 100));
       const bar = card.querySelector('[data-role="bar"]') as HTMLElement;
       const cd = card.querySelector('[data-role="cd"]') as HTMLElement;
       const badge = card.querySelector('[data-role="badge"]') as HTMLElement;
-      if (bar) bar.style.width = pct + '%';
-      if (remaining <= 0) {
-        card.classList.add('is-ready');
-        if (badge) badge.hidden = false;
-        if (cd) { cd.textContent = C.readyNow; cd.appendChild(el('span', 'rfd-cd__sub', `${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}`)); }
-      } else {
-        card.classList.remove('is-ready');
-        if (badge) badge.hidden = true;
-        if (cd) { cd.textContent = fmtCountdown(remaining / 1000); cd.appendChild(el('span', 'rfd-cd__sub', `${C.remaining} · ${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}`)); }
-      }
+      bar.style.width = Math.max(0, Math.min(100, ((now - started) / Math.max(1, ready - started)) * 100)) + '%';
+      const isReady = remaining <= 0;
+      card.classList.toggle('is-ready', isReady);
+      badge.hidden = !isReady;
+      cd.textContent = isReady ? C.readyNow : fmtCountdown(remaining / 1000);
+      cd.appendChild(el('small', undefined, isReady ? `${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}` : `${C.remaining} · ${C.readyAt} ${fmtReadyAt(card.dataset.ready!)}`));
     }
     setInterval(() => {
-      const cards = activeWrap.querySelectorAll('.rfd-job');
-      cards.forEach((c) => tickCard(c as HTMLElement));
+      $('rfd-active').querySelectorAll<HTMLElement>('.rf-job').forEach(tickCard);
+      if (!tracker.hidden) {
+        const now = Date.now();
+        $('rfd-st-ready').textContent = String(jobs.filter((j) => j.status === 'active' && new Date(j.ready_at).getTime() <= now).length);
+      }
     }, 1000);
 
-    // ---- Mutationen --------------------------------------------------------
-    async function collect(id: number, btn?: HTMLButtonElement) {
-      if (btn) { btn.disabled = true; btn.textContent = '…'; }
-      const { error } = await supabase
-        .from('refinery_jobs')
-        .update({ status: 'done', collected_at: new Date().toISOString() })
-        .eq('id', id);
-      if (error) { if (btn) { btn.disabled = false; btn.textContent = C.collect; } return; }
+    // Konto-Knopf (account-lite.js) zaehlt fertige Auftraege; er soll Abholen sofort sehen.
+    const tellNav = () => document.dispatchEvent(new Event('vb:refinery'));
+
+    async function collect(id: number, btn: HTMLButtonElement) {
+      btn.disabled = true; btn.textContent = '…';
+      const at = new Date().toISOString();
+      const { error } = await supabase.from('refinery_jobs').update({ status: 'done', collected_at: at }).eq('id', id);
+      if (error) { btn.disabled = false; btn.textContent = C.collect; return; }
       const j = jobs.find((x) => x.id === id);
-      if (j) { j.status = 'done'; j.collected_at = new Date().toISOString(); }
+      if (j) { j.status = 'done'; j.collected_at = at; }
       renderAll();
+      tellNav();
     }
-    async function del(id: number, confirmMsg: string) {
-      if (!confirm(confirmMsg)) return;
+    async function del(id: number) {
+      if (!confirm(C.confirmDel)) return;
       const { error } = await supabase.from('refinery_jobs').delete().eq('id', id);
       if (error) return;
       jobs = jobs.filter((x) => x.id !== id);
       renderAll();
+      tellNav();
     }
     async function update(id: number, patch: Partial<RefineryJob>) {
       const { error } = await supabase.from('refinery_jobs').update(patch).eq('id', id);
@@ -653,21 +949,19 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
     }
 
     // ---- Neuer-Auftrag-Formular -------------------------------------------
-    const form = document.getElementById('rfd-form') as HTMLFormElement;
-    const oresBox = document.getElementById('rfd-ores')!;
-    const oreTpl = document.getElementById('rfd-ore-tpl') as HTMLTemplateElement;
-    const methodSel = document.getElementById('rfd-method') as HTMLSelectElement;
-    const mtags = document.getElementById('rfd-mtags')!;
-    const hoursEl = document.getElementById('rfd-hours') as HTMLInputElement;
-    const minsEl = document.getElementById('rfd-mins') as HTMLInputElement;
-    const costEl = document.getElementById('rfd-cost') as HTMLInputElement;
-    const pvYield = document.getElementById('rfd-pv-yield')!;
-    const pvValue = document.getElementById('rfd-pv-value')!;
-    const pvReady = document.getElementById('rfd-pv-ready')!;
+    const form = $('rfd-form') as HTMLFormElement;
+    const oresBox = $('rfd-ores');
+    const oreTpl = $('rfd-ore-tpl') as HTMLTemplateElement;
+    const stationSel = $('rfd-station') as HTMLSelectElement;
+    const methodSel = $('rfd-method') as HTMLSelectElement;
+    const mtags = $('rfd-mtags');
+    const hoursEl = $('rfd-hours') as HTMLInputElement;
+    const minsEl = $('rfd-mins') as HTMLInputElement;
+    const costEl = $('rfd-cost') as HTMLInputElement;
 
     function currentItems(): RefineryItem[] {
       const items: RefineryItem[] = [];
-      oresBox.querySelectorAll('.rfd-ore').forEach((row) => {
+      oresBox.querySelectorAll('.rf-ore').forEach((row) => {
         const ore = (row.querySelector('[data-role="ore"]') as HTMLSelectElement).value;
         const rawScu = parseFloat((row.querySelector('[data-role="raw"]') as HTMLInputElement).value) || 0;
         const yieldScu = parseFloat((row.querySelector('[data-role="yield"]') as HTMLInputElement).value) || 0;
@@ -678,96 +972,104 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 
     function updatePreview() {
       const items = currentItems();
-      const totalYield = items.reduce((s, it) => s + it.yieldScu, 0);
       const val = estimateValue(items);
-      pvYield.textContent = `${fmtScu(totalYield, lang)} ${C.scu}`;
-      pvValue.textContent = val > 0 ? `${fmtAuec(val, lang)} aUEC` : '—';
+      $('rfd-pv-yield').textContent = `${fmtScu(items.reduce((s, it) => s + it.yieldScu, 0), lang)} ${C.scu}`;
+      $('rfd-pv-value').textContent = val > 0 ? `${fmtAuec(val, lang)} aUEC` : '—';
       const mins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
-      if (mins > 0) {
-        const ready = new Date(Date.now() + mins * 60000);
-        pvReady.textContent = `${fmtReadyAt(ready.toISOString())} (${fmtDuration(mins * 60)})`;
-      } else pvReady.textContent = '—';
+      $('rfd-pv-ready').textContent = mins > 0
+        ? `${fmtReadyAt(new Date(Date.now() + mins * 60000).toISOString())} (${fmtDuration(mins * 60)})`
+        : '—';
+    }
+
+    // Erz-Hinweis: Preis, Aufschlag der gewählten Station, beste Station(en).
+    function oreHint(row: HTMLElement) {
+      const hint = row.querySelector('[data-role="hint"]') as HTMLElement;
+      const ore = oreByName.get((row.querySelector('[data-role="ore"]') as HTMLSelectElement).value);
+      hint.textContent = '';
+      if (!ore) { hint.hidden = true; return; }
+      const sep = () => hint.append(' · ');
+      if (ore.sell != null) hint.append(C.hintPrice.replace('%p', fmtAuec(ore.sell, lang)));
+      const ranked = rankStations(ore.name);
+      const top = ranked[0]?.bonus ?? 0;
+      const st = stationByName.get(stationSel.value);
+      if (st) {
+        const b = bonusAt(st, ore.name);
+        if (hint.childNodes.length) sep();
+        const [pre, post] = C.hintHere.split('%b');
+        hint.append(pre, el('span', b > 0 ? 'rf-pos' : b < 0 ? 'rf-neg' : '', pct(b)), post);
+        if (top > 0 && b === top) { sep(); hint.append(C.hintBestHere); }
+      }
+      if (top > 0 && !(st && bonusAt(st, ore.name) === top)) {
+        if (hint.childNodes.length) sep();
+        const names = ranked.filter((r) => r.bonus === top).map((r) => r.station.short).join(', ');
+        const [pre, post] = C.hintBest.replace('%s', names).split('%b');
+        hint.append(pre, el('span', 'rf-pos', pct(top)), post);
+      }
+      hint.hidden = !hint.childNodes.length;
     }
 
     function wireOreRow(row: HTMLElement) {
       const sel = row.querySelector('[data-role="ore"]') as HTMLSelectElement;
-      const hint = row.querySelector('[data-role="hint"]') as HTMLElement;
-      sel.addEventListener('change', () => {
-        const opt = sel.selectedOptions[0];
-        const sell = parseFloat(opt?.dataset.sell || '');
-        const best = opt?.dataset.best || '';
-        const bonus = opt?.dataset.bonus || '';
-        const loc = opt?.dataset.loc || '';
-        const bits: string[] = [];
-        if (isFinite(sell)) bits.push(C.oreHintPrice.replace('%p', fmtAuec(sell, lang)));
-        if (best) bits.push(C.oreHintBest.replace('%s', best).replace('%b', (Number(bonus) > 0 ? '+' : '') + bonus));
-        if (loc) bits.push(C.oreHintSell.replace('%s', loc));
-        if (bits.length) { hint.textContent = bits.join(' · '); hint.hidden = false; } else hint.hidden = true;
-        updatePreview();
-      });
+      sel.addEventListener('change', () => { oreHint(row); updatePreview(); });
       row.querySelector('[data-role="raw"]')!.addEventListener('input', updatePreview);
       row.querySelector('[data-role="yield"]')!.addEventListener('input', updatePreview);
       row.querySelector('[data-role="remove"]')!.addEventListener('click', () => {
-        if (oresBox.querySelectorAll('.rfd-ore').length > 1) row.remove();
-        else { // letzte Zeile: nur leeren
-          sel.value = ''; (row.querySelector('[data-role="raw"]') as HTMLInputElement).value = '';
-          (row.querySelector('[data-role="yield"]') as HTMLInputElement).value = ''; hint.hidden = true;
+        if (oresBox.querySelectorAll('.rf-ore').length > 1) row.remove();
+        else {
+          sel.value = '';
+          (row.querySelector('[data-role="raw"]') as HTMLInputElement).value = '';
+          (row.querySelector('[data-role="yield"]') as HTMLInputElement).value = '';
+          oreHint(row);
         }
         updatePreview();
       });
     }
     function addOreRow() {
-      const frag = oreTpl.content.cloneNode(true) as DocumentFragment;
-      const row = frag.querySelector('.rfd-ore') as HTMLElement;
+      const row = (oreTpl.content.cloneNode(true) as DocumentFragment).querySelector('.rf-ore') as HTMLElement;
       oresBox.appendChild(row);
       wireOreRow(row);
-      return row;
     }
-    document.getElementById('rfd-addore')!.addEventListener('click', () => addOreRow());
+    $('rfd-addore').addEventListener('click', addOreRow);
+    stationSel.addEventListener('change', () => oresBox.querySelectorAll<HTMLElement>('.rf-ore').forEach(oreHint));
 
     methodSel.addEventListener('change', () => {
-      const m = methodByName(methodSel.value);
-      if (!m) { mtags.hidden = true; return; }
-      const mtag = (k: string, v: string) => { const s = el('span'); s.append(el('b', undefined, k + ':'), ' ' + v); return s; };
+      const m = REFINERY.methods.find((x) => x.name === methodSel.value);
       mtags.textContent = '';
-      mtags.append(
-        mtag(C.tagYield, C.lvl[m.yield] || m.yield),
-        mtag(C.tagSpeed, C.lvl[m.speed] || m.speed),
-        mtag(C.tagCost, C.lvl[m.cost] || m.cost),
-      );
-      mtags.hidden = false;
+      mtags.hidden = !m;
+      if (!m) return;
+      const tag = (k: string, v: string) => { const s = el('span'); s.append(el('b', undefined, k + ':'), ' ' + v); return s; };
+      mtags.append(tag(C.tagYield, C.lvl[m.yield] || m.yield), tag(C.tagSpeed, C.lvl[m.speed] || m.speed), tag(C.tagCost, C.lvl[m.cost] || m.cost));
     });
     [hoursEl, minsEl, costEl].forEach((e) => e.addEventListener('input', updatePreview));
 
-    const formStatus = document.getElementById('rfd-form-status')!;
-    const submitBtn = document.getElementById('rfd-submit') as HTMLButtonElement;
-    const submitTxt = document.getElementById('rfd-submit-txt')!;
+    const formStatus = $('rfd-form-status');
+    const submitBtn = $('rfd-submit') as HTMLButtonElement;
+    const submitTxt = $('rfd-submit-txt');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       formStatus.hidden = true;
-      const station = (document.getElementById('rfd-station') as HTMLSelectElement).value;
+      const station = stationSel.value;
       const method = methodSel.value;
       const items = currentItems();
       const mins = (parseInt(hoursEl.value) || 0) * 60 + (parseInt(minsEl.value) || 0);
       const cost = parseFloat(costEl.value) || 0;
-      const note = (document.getElementById('rfd-note') as HTMLInputElement).value.trim();
+      const note = ($('rfd-note') as HTMLInputElement).value.trim();
       if (!station || !method || !items.length || mins <= 0) {
         formStatus.textContent = C.errForm; formStatus.hidden = false; return;
       }
-      const input_scu = items.reduce((s, it) => s + it.rawScu, 0);
-      const yield_scu = items.reduce((s, it) => s + it.yieldScu, 0);
       const est = estimateValue(items);
       const started = new Date();
-      const ready = new Date(started.getTime() + mins * 60000);
 
       submitBtn.disabled = true; submitTxt.textContent = C.submitBusy;
       const { data, error } = await supabase.from('refinery_jobs').insert({
         station, method, items,
-        input_scu, yield_scu, cost,
+        input_scu: items.reduce((s, it) => s + it.rawScu, 0),
+        yield_scu: items.reduce((s, it) => s + it.yieldScu, 0),
+        cost,
         est_value: est > 0 ? est : null,
         started_at: started.toISOString(),
-        ready_at: ready.toISOString(),
+        ready_at: new Date(started.getTime() + mins * 60000).toISOString(),
         status: 'active',
         note: note || null,
       }).select().single();
@@ -776,39 +1078,97 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
 
       jobs.unshift(data as RefineryJob);
       renderAll();
-      // Formular zurücksetzen
+      tellNav();
       form.reset();
       mtags.hidden = true;
-      oresBox.innerHTML = ''; addOreRow();
+      oresBox.textContent = ''; addOreRow();
       updatePreview();
-      activeWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('rfd-active-col').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // ---- Init --------------------------------------------------------------
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        location.replace(D.login! + '?next=' + encodeURIComponent(location.pathname + location.search));
+    // ---- Benachrichtigungen (notification_settings) -----------------------
+    // Keine Zeile = Vorgabe: Seite an, Discord aus. Geschrieben wird per
+    // UPDATE, und nur ohne Zeile per INSERT (die Rechte erlauben kein Upsert).
+    // Discord geht nur mit verbundenem Discord; der Bot findet das Konto
+    // ueber discord_role_state.
+    async function initNotify(uid: string) {
+      const site = $('rfd-n-site') as HTMLInputElement;
+      const dc = $('rfd-n-dc') as HTMLInputElement;
+      const hint = $('rfd-n-hint');
+      const status = $('rfd-n-status');
+      const [{ data: prefs, error: prefErr }, { data: dcRow }] = await Promise.all([
+        supabase.from('notification_settings').select('refinery_site, refinery_discord').maybeSingle(),
+        supabase.from('discord_role_state').select('discord_user_id').maybeSingle(),
+      ]);
+      if (prefErr) {
+        status.textContent = C.nUnavailable; status.hidden = false;
         return;
       }
+      const linked = !!dcRow?.discord_user_id;
+      site.checked = prefs ? prefs.refinery_site !== false : true;
+      dc.checked = !!prefs?.refinery_discord && linked;
+      site.disabled = false;
+      dc.disabled = !linked;
+
+      const showHint = () => {
+        hint.textContent = '';
+        if (!linked) {
+          const a = el('a', 'btn sm', C.nDcLinkBtn) as HTMLAnchorElement;
+          a.href = root.dataset.account || '#';
+          hint.append(C.nDcLink + ' ', a);
+        } else if (dc.checked) hint.append(C.nDcHow);
+        hint.hidden = !hint.childNodes.length;
+      };
+      showHint();
+
+      let exists = !!prefs;
+      const save = async () => {
+        status.hidden = true;
+        const row = { refinery_site: site.checked, refinery_discord: dc.checked, lang };
+        site.disabled = dc.disabled = true;
+        let error: unknown = null;
+        if (exists) {
+          const r = await supabase.from('notification_settings').update(row).eq('user_id', uid).select('user_id');
+          error = r.error;
+          if (!r.error && !r.data?.length) exists = false;
+        }
+        if (!exists && !error) {
+          const r = await supabase.from('notification_settings').insert(row);
+          error = r.error;
+          if (!error) exists = true;
+        }
+        site.disabled = false; dc.disabled = !linked;
+        status.className = error ? 'acx-status' : 'acx-status acx-status--ok';
+        status.textContent = error ? C.errNet : C.nSaved;
+        status.hidden = false;
+        showHint();
+        if (!error) tellNav();
+      };
+      site.addEventListener('change', save);
+      dc.addEventListener('change', save);
+    }
+
+    // ---- Start: angemeldet → Tracker, sonst Anmelde-Knopf -----------------
+    const showOut = () => {
+      ($('rfd-login') as HTMLAnchorElement).href = root.dataset.login + '?next=' + encodeURIComponent(location.pathname + '#tracker');
+      loadingEl.hidden = true; outEl.hidden = false;
+    };
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { showOut(); return; }
       const { data: userData, error: userErr } = await supabase.auth.getUser();
       if (userErr) {
         const st = (userErr as { status?: number }).status;
-        if (st === 401 || st === 403) {
-          clearAccountTraces(data.session.user.id, 'signout', browserStores());
-          await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return;
-        }
-        throw userErr;
+        if (st !== 401 && st !== 403) throw userErr;
       }
-      if (!userData.user) {
+      if (userErr || !userData.user) {
         clearAccountTraces(data.session.user.id, 'signout', browserStores());
-        await supabase.auth.signOut({ scope: 'local' }); location.replace(D.login!); return;
+        await supabase.auth.signOut({ scope: 'local' });
+        showOut();
+        return;
       }
 
-      const { data: rows, error } = await supabase
-        .from('refinery_jobs')
-        .select('*')
-        .order('ready_at', { ascending: true });
+      const { data: rows, error } = await supabase.from('refinery_jobs').select('*').order('ready_at', { ascending: true });
       if (error) throw error;
       jobs = (rows || []) as RefineryJob[];
 
@@ -816,18 +1176,22 @@ const priceNote = COPY.priceNote.replace('%d', REFINERY.meta.priceDate || '—')
       renderAll();
       updatePreview();
       loadingEl.hidden = true;
-      (root as HTMLElement).hidden = false;
+      tracker.hidden = false;
+      initNotify(userData.user.id).catch((e) => {
+        console.error('refinery notify init failed', e);
+        const status = $('rfd-n-status');
+        status.textContent = C.nUnavailable; status.hidden = false;
+      });
     };
 
     init().catch((e) => {
       console.error('refinery dashboard init failed', e);
-      loadingEl.textContent = C.loadError;
-      const retry = document.createElement('button');
-      retry.type = 'button'; retry.className = 'acx-submit acx-submit--ghost';
-      retry.style.marginTop = '1.1rem'; retry.textContent = C.retry;
+      const box = loadingEl.querySelector('.ck-empty')!;
+      box.textContent = '';
+      const retry = el('button', 'btn sm', C.retry) as HTMLButtonElement;
+      retry.type = 'button';
       retry.addEventListener('click', () => location.reload());
-      loadingEl.appendChild(document.createElement('br'));
-      loadingEl.appendChild(retry);
+      box.append(el('p', undefined, C.loadError), retry);
     });
   }
 </script>

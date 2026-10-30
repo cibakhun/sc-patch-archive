@@ -51,6 +51,7 @@ const COPY = lang === 'de'
       verified: 'RSI verifiziert',
       verifiedTitle: 'RSI-Konto verifiziert',
       testPilot: 'Testpilot',
+      profileComplete: 'Profil komplett',
       rank: 'Discord-Rang',
       lv: 'Lv %n%',
       next: 'Ab Lv %n%: %r%',
@@ -85,6 +86,7 @@ const COPY = lang === 'de'
       verified: 'RSI verified',
       verifiedTitle: 'RSI account verified',
       testPilot: 'Test Pilot',
+      profileComplete: 'Profile complete',
       rank: 'Discord rank',
       lv: 'Lv %n%',
       next: 'At Lv %n%: %r%',
@@ -704,6 +706,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
      dieselbe Farbe tragen (D-19). */
   .pp-badge--tester { border-color: rgba(255, 94, 26, 0.5); color: #ff5e1a; }
   .pp-badge--tester svg { color: #ff5e1a; }
+  .pp-badge--complete { border-color: rgba(47, 191, 164, 0.5); color: #2fbfa4; }
   .pp-badge--era { border-color: var(--line-soft); color: var(--muted); }
   .pp-badge--era svg { color: var(--muted); }
   .pp-links { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -758,6 +761,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
   :root[data-theme='light'] .pp-badge--verified svg { color: #15803d; }
   :root[data-theme='light'] .pp-badge--tester { color: #b1330a; border-color: rgba(177, 51, 10, 0.45); }
   :root[data-theme='light'] .pp-badge--tester svg { color: #b1330a; }
+  :root[data-theme='light'] .pp-badge--complete { color: #157a68; border-color: rgba(21, 122, 104, 0.45); }
   :root[data-theme='light'] .pp-chip__dot { background: #16a34a; box-shadow: 0 0 6px rgba(22, 163, 74, 0.55); }
   :root[data-theme='light'] .pp-fav__ic { color: color-mix(in srgb, var(--kc) 60%, #000); }
   /* Light-Theme: --surface-2 auf --surface hat fast keinen Kontrast —
@@ -879,13 +883,15 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
         return;
       }
 
-      const [profileRes, favsRes, showRes, thumbs] = await Promise.all([
+      const [profileRes, favsRes, showRes, thumbs, badgeRes] = await Promise.all([
         supabase.from('public_profiles').select('*').eq('handle', handle).maybeSingle(),
         supabase.from('public_favorites').select('*').eq('handle', handle).order('created_at', { ascending: false }),
         // Angeheftete Loadouts (Schaufenster), in der Reihenfolge des Piloten
         supabase.from('public_showcase').select('id, pos, entry').eq('handle', handle).order('pos'),
         // Große Schiffsbilder wie die Kacheln im Konto; ohne Datei die kleinen.
         fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
+        // Abzeichen "Profil komplett" (Sicht profile_badges); fehlt sie, kein Abzeichen.
+        supabase.from('profile_badges').select('profile_complete').eq('handle', handle).maybeSingle(),
       ]);
       if (profileRes.error) throw profileRes.error;
       const p = profileRes.data;
@@ -1013,6 +1019,9 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       // sonst verdreht sich die Rangfolge der beiden Nachweise.
       if (p.is_tester === true) {
         badges.push(`<span class="pp-badge pp-badge--tester"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l1.9 4.3 4.6.5-3.4 3.2.9 4.6-4-2.3-4 2.3.9-4.6-3.4-3.2 4.6-.5z"/></svg>${esc(COPY.testPilot)}</span>`);
+      }
+      if (badgeRes.data?.profile_complete === true) {
+        badges.push(`<span class="pp-badge pp-badge--complete"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l1.8 1.8L14.8 7.3M8.5 14.2L7 21.5l5-2.5 5 2.5-1.5-7.3"/></svg>${esc(COPY.profileComplete)}</span>`);
       }
       if (p.created_at) {
         const sinceTxt = new Date(p.created_at).toLocaleDateString(COPY.locale, { month: 'long', year: 'numeric' });

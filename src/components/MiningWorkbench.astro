@@ -255,7 +255,7 @@ const S_DE = {
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
   tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
-  bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
+  bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl', allRefs: 'Alle Raffinerien vergleichen',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
   // Phase 12: Fundort-Ansicht (D-01/D-11) — Zurueck-Knopf-Beschriftung und
   // das Spur-Abzeichen fuer Erze mit hoechstens 10 % Anteil (D-07).
@@ -291,7 +291,7 @@ const S_EN = {
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
-  bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
+  bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick', allRefs: 'Compare all refineries',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
   // Phase 12: location view (D-01/D-11) — back-button label and the trace
   // badge for ores with at most 10% share (D-07).
@@ -324,6 +324,7 @@ const payload = {
   lang, minerals, refineries, profiles, t: S,
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
   craftingPath: href(craftingPath, lang),
+  refineryPath: href('/refinery.html', lang),
   fracturingPath,
   shipsByMethod,
 };

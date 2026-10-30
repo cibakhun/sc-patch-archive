@@ -901,6 +901,50 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   :global(html.is-deck-open) .snav__badge--menu {
     display: none;
   }
+  /* Hinweis "Raffinerie-Auftrag fertig" (account-lite.js refToast), auf jeder Seite mit Nav. */
+  :global(.vb-toast) {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: min(22rem, calc(100vw - 32px));
+    padding: 12px 16px;
+    border: 1px solid color-mix(in srgb, #f5a623 55%, transparent);
+    border-left-width: 4px;
+    border-radius: 12px;
+    background: var(--surface, var(--chrome-solid));
+    color: var(--text);
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-ui, sans-serif);
+    text-decoration: none;
+    animation: vbToastIn var(--dur-base) var(--ease-ui);
+    transition: opacity var(--dur-slow) var(--ease-ui), transform var(--dur-slow) var(--ease-ui);
+  }
+  :global(.vb-toast b) {
+    font-size: var(--fs-8);
+    color: #f5a623;
+  }
+  :global(.vb-toast span) {
+    font-size: var(--fs-6);
+    color: var(--muted);
+  }
+  :global(.vb-toast:hover) {
+    border-color: #f5a623;
+  }
+  :global(.vb-toast.is-out) {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  @keyframes vbToastIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.vb-toast) { animation: none; transition: none; }
+  }
   /* Burger & Morphing Esc Button */
   /* Gleiches Material wie Suche und Menue — Rahmen, Fuellung, Hoehe. Ohne
      Beschriftung ist es quadratisch statt breit; der Innenabstand ist so
@@ -1993,6 +2037,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     }
   }
 /* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] :global(.vb-toast b){color:#794e00}
+:root[data-theme="light"] :global(.vb-toast:hover){border-color:#a16a05}
 :root[data-theme="light"] .snav-deck__row.has-badge .snav-deck__sub{color:#794e00}
 </style>
 

@@ -22,6 +22,7 @@ import { resolveHomeGuild, isHomeGuild } from './home-guild.mjs';
 import { createSiteDb } from './site-db.mjs';
 import { registerRetention, startRetention } from './retention.mjs';
 import { startRankSync } from './rank-sync.mjs';
+import { startRefineryNotify } from './refinery-notify.mjs';
 import { registerBugThreadXp } from './bug-thread-xp.mjs';
 import * as commands from './commands.mjs';
 import { ensureEmoji } from './emoji.mjs';
@@ -146,8 +147,10 @@ client.once(Events.ClientReady, async (c) => {
   // Rangspiegel fuer die Kontoseite: Level/Rang/XP verbundener Konten nach
   // discord_role_state (rank-sync.mjs). Ohne Supabase-Schluessel inaktiv.
   startRankSync(ctx);
+  // Raffinerie-Auftrag fertig -> DM, fuer Konten mit Discord-Schalter (refinery-notify.mjs).
+  startRefineryNotify(ctx);
   startRetention(ctx);
-  console.log('  · voice XP sweep + patch watch + periodic role reconcile + rank mirror + retention started — bot is live.');
+  console.log('  · voice XP sweep + patch watch + periodic role reconcile + rank mirror + refinery DMs + retention started — bot is live.');
 });
 
 client.on(Events.GuildCreate, async (guild) => {

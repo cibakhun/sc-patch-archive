@@ -32,7 +32,6 @@ function toBaseForm(pathname: string): string {
  * Aufgenommen wird nur, was für Suchende keinen Wert hat:
  *   - Kontobereich: persönliche Ansicht bzw. reine Hilfsseiten hinter einem
  *     Mail-Link. (Anmelden/Registrieren bleiben BEWUSST indexierbar.)
- *   - /refinery.html: Werkzeug, das ohne Login nichts anzeigt.
  *   - /pilot.html: öffentliche Profilseite, deren Inhalt erst clientseitig aus
  *     Supabase kommt. Für Crawler ist sie eine leere Hülle mit generischem
  *     Titel — indexiert würde sie als „soft 404" gewertet. Zusätzlich verlinkt
@@ -42,7 +41,6 @@ export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/account.html',
   '/account/reset.html',
   '/account/update-password.html',
-  '/refinery.html',
   '/pilot.html',
   // Testpilot-Torseite (Phase 14 Plan 01): existiert auch im Live-Build (sie
   // ist eine normale Astro-Seite, nur $vb_gate_on entscheidet, ob nginx sie

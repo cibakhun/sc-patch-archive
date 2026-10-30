@@ -738,6 +738,74 @@ test('auf der Kontoseite gelten Freundesliste und Chat sofort', async () => {
   assert.deepEqual(tab.badge(), NO_BADGE);
 });
 
+// ---- Raffinerie am Konto-Knopf ---------------------------------------------
+// Fertige, nicht abgeholte Auftraege zaehlen mit (Schalter refinery_site,
+// fehlt die Zeile: an). Ein Hinweis kommt nur fuer einen Auftrag, den DIESE
+// Seite hat fertig werden sehen.
+const NOW = Date.UTC(2026, 9, 8, 12, 0, 0);
+const at = (min) => new Date(NOW + min * 60000).toISOString();
+const REFINERY = () => ({
+  requests: [], messages: [], friends: [],
+  refinery: [
+    { id: 1, station: 'Levski', ready_at: at(-30), status: 'active' },
+    { id: 2, station: 'MIC-L2 Long Forest Station', ready_at: at(5), status: 'active' },
+    { id: 3, station: 'Levski', ready_at: at(-90), status: 'done' },
+  ],
+});
+
+test('fertige Raffinerie-Aufträge zählen am Konto-Knopf, und allein führen sie zum Tracker', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: REFINERY() });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.badge(), {
+    text: '1', hidden: false, href: '/refinery.html#tracker',
+    aria: 'Account (1 refinery order ready)',
+    title: 'Nova · 1 refinery order ready',
+  });
+  assert.deepEqual(tab.toastTexts(), [], 'schon beim Laden fertig: nur die Zahl, kein Hinweis');
+});
+
+test('wird ein Auftrag fertig, während die Seite offen ist, kommt genau ein Hinweis', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: REFINERY() });
+  const tab = b.open();
+  await b.drain();
+  await b.advance(5 * 60000 + 2000);
+  assert.equal(tab.badge().text, '2');
+  assert.deepEqual(tab.toastTexts(), ['Refinery order ready | MIC-L2 Long Forest Station · ready to collect -> /refinery.html#tracker']);
+  await b.advance(60000);
+  assert.equal(tab.toastsShown, 1, 'der naechste Takt meldet denselben Auftrag nicht noch einmal');
+  assert.deepEqual(tab.toastTexts(), [], 'der Hinweis geht nach einer Weile von selbst');
+});
+
+test('mit Anfragen zusammen führt der Knopf weiter zu Freunde', async () => {
+  const box = REFINERY();
+  box.requests = [{ id: 'r1', sender_id: 'user-3', receiver_id: 'user-1', status: 'pending' }];
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: box });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(tab.badge().text, '2');
+  assert.equal(tab.badge().href, '/account.html#friends');
+});
+
+test('ist die Mitteilung auf der Seite aus, zählt die Raffinerie nicht und fragt nicht nach Aufträgen', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: { ...REFINERY(), refinerySite: false } });
+  const tab = b.open();
+  await b.drain();
+  assert.deepEqual(tab.badge(), NO_BADGE);
+  assert.equal(calls(tab, 'GET', '/rest/v1/refinery_jobs?'), 0);
+});
+
+test('holt die Refinery-Seite einen Auftrag ab, verschwindet er sofort aus der Zahl', async () => {
+  const b = makeAccountBrowser({ expiresIn: 3600, inbox: REFINERY() });
+  const tab = b.open();
+  await b.drain();
+  assert.equal(tab.badge().text, '1');
+  b.inbox.refinery[0].status = 'done';
+  tab.fireDoc('vb:refinery');
+  await b.drain();
+  assert.deepEqual(tab.badge(), NO_BADGE);
+});
+
 test('meldet sich in einem anderen Tab ein anderes Konto an, zählt die Zahl für das neue Konto', async () => {
   const b = makeAccountBrowser({ expiresIn: 3600, inbox: INBOX() });
   const tab = b.open();

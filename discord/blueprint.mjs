@@ -144,6 +144,9 @@ export const roles = [
   // operator, not picked in onboarding. See the private #test-pilots channel
   // in BUILD & FEEDBACK for what it unlocks.
   { key: 'tester', name: 'Test Pilots', color: C.craftOrange, hoist: false, mentionable: false, permissions: [] },
+  // Badge for a complete verse-base.com profile. Granted and revoked by the
+  // always-on bot (bot/src/badge-sync.mjs) from the site's database, never by hand.
+  { key: 'profile-complete', name: 'Profile Complete', color: C.miningTeal, hoist: false, mentionable: false, permissions: [] },
 
   // Language
   { key: 'lang-en', name: '🇬🇧 English', color: null, hoist: false, mentionable: false, permissions: [] },
