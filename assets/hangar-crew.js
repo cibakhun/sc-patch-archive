@@ -31,6 +31,12 @@ const STAND_OFF = 0.42;      // Abstand der Figur vor der Front eines Geräts, m
 const WALK_ACC = 1.6;        // m/s² beim Anlaufen und Abbremsen
 const TURN_RATE = 2.6;       // rad/s, Drehung beim Gehen
 const FADE = 0.35;           // s, Überblendung zwischen Clips
+// Abstand zweier Figuren (Mitte zu Mitte, m): SEP zwischen Plätzen, AVOID_R
+// um eine Figur, die ein Weg umgeht (eine Rasterzelle Spiel eingerechnet),
+// AHEAD so weit vorn bleibt ein Gehender vor einer anderen stehen
+const SEP = 0.9;
+const AVOID_R = 0.85;
+const AHEAD = 0.95;
 
 const sanitize = THREE.PropertyBinding.sanitizeNodeName;
 const wrapPi = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
@@ -150,6 +156,8 @@ function crewMaterial(src, tab, rows, variant, wear) {
 function buildNav(area, blocks, hull) {
   const C = NAV_CELL, x0 = area.x0, z0 = area.z0, nx = Math.max(2, Math.ceil((area.x1 - x0) / C)), nz = Math.max(2, Math.ceil((area.z1 - z0) / C));
   const N = nx * nz, cells = new Uint8Array(N), hullC = new Uint8Array(N);
+  // vorübergehend belegt (andere Figuren), nur während route()
+  const tmp = new Uint8Array(N);
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
     const x = x0 + (i + 0.5) * C, z = z0 + (j + 0.5) * C;
     if (hull?.(x, z)) hullC[j * nx + i] = 1;
@@ -201,7 +209,7 @@ function buildNav(area, blocks, hull) {
     let tx = si ? ((si > 0 ? x0 + (i + 1) * C : x0 + i * C) - a.x) / dx : Infinity;
     let tz = sj ? ((sj > 0 ? z0 + (j + 1) * C : z0 + j * C) - a.z) / dz : Infinity;
     for (let n = 0; n < nx + nz + 4; n++) {
-      if (i < 0 || j < 0 || i >= nx || j >= nz || cells[j * nx + i]) return false;
+      if (i < 0 || j < 0 || i >= nx || j >= nz || cells[j * nx + i] || tmp[j * nx + i]) return false;
       if (i === i1 && j === j1) return true;
       if (tx < tz) { tx += tdx; i += si; } else { tz += tdz; j += sj; }
     }
@@ -222,18 +230,36 @@ function buildNav(area, blocks, hull) {
     return best;
   };
   // Weg a -> b: A* über die Zellen (8er-Nachbarschaft, keine Ecken schneiden),
-  // dann gestrafft (Sichtlinien). null, wenn keiner da ist.
+  // dann gestrafft (Sichtlinien). null, wenn keiner da ist. avoid: Punkte
+  // (andere Figuren), um die der Weg AVOID_R Abstand hält; Start- und
+  // Zielzelle bleiben frei.
   const gScore = new Float32Array(N), came = new Int32Array(N), stamp = new Uint32Array(N);
   let run = 0;
-  const route = (a, b) => {
+  const route = (a, b, avoid = []) => {
     const s = near(a), g = near(b);
     if (s < 0 || g < 0) return null;
+    const marked = [], rc = Math.ceil(AVOID_R / C);
+    for (const p of avoid) {
+      const pi = Math.floor((p.x - x0) / C), pj = Math.floor((p.z - z0) / C);
+      for (let dj = -rc; dj <= rc; dj++) for (let di = -rc; di <= rc; di++) {
+        const i = pi + di, j = pj + dj;
+        if (i < 0 || j < 0 || i >= nx || j >= nz) continue;
+        const k = j * nx + i;
+        if (tmp[k] || k === s || k === g) continue;
+        if (Math.hypot(x0 + (i + 0.5) * C - p.x, z0 + (j + 0.5) * C - p.z) > AVOID_R) continue;
+        tmp[k] = 1; marked.push(k);
+      }
+    }
+    try { return search(a, b, s, g); } finally { for (const k of marked) tmp[k] = 0; }
+  };
+  const search = (a, b, s, g) => {
     run++;
     const open = [s], gi = g % nx, gj = (g - gi) / nx;
     const hcost = (k) => { const i = k % nx, j = (k - i) / nx, dx = Math.abs(i - gi), dz = Math.abs(j - gj); return Math.max(dx, dz) + 0.4142 * Math.min(dx, dz); };
     const f = new Map([[s, hcost(s)]]);
     stamp[s] = run; gScore[s] = 0; came[s] = -1;
     let found = false, steps = 0;
+    const off = (q) => cells[q] || tmp[q];
     while (open.length && steps++ < 60000) {
       let bi = 0;
       for (let q = 1; q < open.length; q++) if (f.get(open[q]) < f.get(open[bi])) bi = q;
@@ -246,7 +272,7 @@ function buildNav(area, blocks, hull) {
         const a2 = i + di, b2 = j + dj;
         if (a2 < 0 || b2 < 0 || a2 >= nx || b2 >= nz) continue;
         const m = b2 * nx + a2;
-        if (cells[m] || (di && dj && (cells[j * nx + a2] || cells[b2 * nx + i]))) continue;
+        if (off(m) || (di && dj && (off(j * nx + a2) || off(b2 * nx + i)))) continue;
         const ng = gScore[k] + (di && dj ? 1.4142 : 1);
         if (stamp[m] === run && ng >= gScore[m]) continue;
         const fresh = stamp[m] !== run || !f.has(m);
@@ -383,7 +409,7 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
       yaw: 0, speed: 0, vmax: 0, path: null, s: 0, steps: [], step: null, job: null, rootActs: [], wait: 0, busy: 0,
     });
   }
-  let count = MAX, castOn = false, built = null, world = null, lastHold = false;
+  let count = MAX, castOn = false, built = null, world = null, lastHold = false, clock = 0;
   const v = new THREE.Vector3(), w3 = new THREE.Vector3();
 
   const action = (n, name) => {
@@ -510,12 +536,25 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
   const keyOf = (s) => `${s.name}|${s.x.toFixed(1)}|${s.z.toFixed(1)}`;
   function release(n) { for (const [k, o] of taken) if (o === n) taken.delete(k); }
   const active = (n) => n.i < count;
+  // Wo andere stehen oder hingehen: ihr Platz (Auftrag) und, solange sie
+  // nicht gehen, ihr Standort. Ein Platz näher als r daran ist besetzt.
+  function crowded(n, s, r = SEP, skip = null) {
+    for (const o of npcs) {
+      if (o === n || o === skip || !active(o)) continue;
+      if (o.job && Math.hypot(o.job.x - s.x, o.job.z - s.z) < r) return true;
+      if (!o.path && Math.hypot(o.root.position.x - s.x, o.root.position.z - s.z) < r) return true;
+    }
+    return false;
+  }
+  // stehende Figuren (für Wege, die um sie herumführen)
+  const standing = (n, near = Infinity) => npcs.filter((o) => o !== n && active(o) && !o.path
+    && Math.hypot(o.root.position.x - n.root.position.x, o.root.position.z - n.root.position.z) < near).map((o) => o.root.position);
   // Nächsten Auftrag wählen: meist Gerät, sonst Fahrwerk, Reden, Schauen.
   // snap: sofort dort, mitten im Ablauf (vor dem ersten Bild, beim Tausch)
   function pick(n, snap = false) {
     release(n);
     const P = built, r = n.rnd(), p = n.root.position;
-    const freeOf = (list) => list.filter((s) => !taken.has(keyOf(s)) && s.name !== n.job?.name);
+    const freeOf = (list) => list.filter((s) => !taken.has(keyOf(s)) && s.name !== n.job?.name && !crowded(n, s));
     // eher in der Nähe, aber nicht immer dasselbe
     const near = (list) => {
       if (!list.length) return null;
@@ -529,12 +568,15 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
     if (!job && r < 0.9 && !snap) {
       // zu zweit reden: mit einer Figur, die gerade frei wird
       const mate = npcs.find((o) => o !== n && active(o) && o.lingering && Math.hypot(o.root.position.x - p.x, o.root.position.z - p.z) < 25);
-      const spot = mate && near(P.open.filter((s) => !taken.has(keyOf(s))));
+      const spot = mate && near(P.open.filter((s) => !taken.has(keyOf(s)) && !crowded(n, s, SEP + 0.62, mate)));
       if (spot) { talk(n, mate, spot); return; }
     }
     if (!job) job = near(freeOf(P.open));
     // nichts frei: stehen bleiben, wo man ist (sofern dort frei)
-    if (!job) job = P.nav.free(p.x, p.z) || !P.open.length ? { name: 'frei', x: p.x, z: p.z, yaw: n.yaw } : P.open[Math.floor(n.rnd() * P.open.length)];
+    if (!job) {
+      const spare = P.open.filter((s) => !crowded(n, s));
+      job = (P.nav.free(p.x, p.z) && !crowded(n, p)) || !spare.length ? { name: 'frei', x: p.x, z: p.z, yaw: n.yaw } : spare[Math.floor(n.rnd() * spare.length)];
+    }
     assign(n, job.kind ? job : { ...job, kind: 'schauen' }, snap);
   }
   function talk(a, b, spot) {
@@ -582,7 +624,8 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
     if (s.go) {
       if (hold) return;   // fährt der Aufzug, geht niemand los
       n.steps.shift();
-      const pts = built.nav.route(n.root.position, new THREE.Vector3(s.go.x, 0, s.go.z));
+      const to = new THREE.Vector3(s.go.x, 0, s.go.z);
+      const pts = built.nav.route(n.root.position, to, standing(n)) ?? built.nav.route(n.root.position, to);
       if (!pts) { n.steps = [{ linger: 2 }]; return; }
       const path = pathOf(pts);
       if (path.total < 0.15) { n.root.position.x = s.go.x; n.root.position.z = s.go.z; return; }
@@ -630,13 +673,51 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
       if (!n.cur || n.curName === 'walk' || !info[n.curName].loop) play(n, n.rnd() < 0.5 ? 'idleA' : 'idleB', 0.5);
     }
   }
+  // die nächste Figur dicht voraus (in Wegrichtung, AHEAD)
+  function ahead(n) {
+    const p = n.root.position, q = n.path.at(Math.min(n.path.total, n.s + 0.6), v.set(0, 0, 0));
+    let dx = q.x - p.x, dz = q.z - p.z;
+    const L = Math.hypot(dx, dz);
+    if (L < 1e-3) return null;
+    dx /= L; dz /= L;
+    let best = null, bd = AHEAD;
+    for (const o of npcs) {
+      if (o === n || !active(o)) continue;
+      const ox = o.root.position.x - p.x, oz = o.root.position.z - p.z, d = Math.hypot(ox, oz);
+      if (d < bd && d > 1e-3 && (ox * dx + oz * dz) / d > 0.4) { best = o; bd = d; }
+    }
+    return best;
+  }
+  // neuer Weg zum selben Ziel, um alle Figuren in der Nähe herum
+  function detour(n) {
+    n.detourAt = clock;
+    const p = n.root.position, goal = n.path.points[n.path.points.length - 1];
+    const others = npcs.filter((o) => o !== n && active(o) && Math.hypot(o.root.position.x - p.x, o.root.position.z - p.z) < 4).map((o) => o.root.position);
+    const pts = built.nav.route(p, goal, others);
+    if (!pts) return false;
+    n.path = pathOf(pts); n.s = 0;
+    return !ahead(n);
+  }
   function tick(n, dt, hold) {
     const st = n.step;
     if (st.walk) {
-      const p = n.path, left = p.total - n.s;
+      const p0 = n.path;
+      // Figur voraus: einem Gehenden mit kleinerer Nummer Vortritt lassen
+      // (so wartet nie jeder auf jeden), sonst um sie herum; geht das nicht,
+      // warten. Nach 6 s Warten einen anderen Auftrag.
+      const o = p0.total - n.s > 0.25 ? ahead(n) : null;
+      if (!o) { st.wait = false; n.waitT = 0; }
+      else if (o.path && !o.step?.wait && o.i < n.i) st.wait = true;
+      else st.wait = !(clock - (n.detourAt ?? -9) > 0.8 && detour(n));
+      if (st.wait && (n.waitT = (n.waitT ?? 0) + dt) > 6) {
+        n.path = null; n.step = null; n.speed = 0; n.waitT = 0; n.steps = [];
+        play(n, 'idle', 0.4);
+        return;
+      }
+      const p = n.path, left = p.total - n.s, stop = hold || st.wait;
       // anlaufen, vor dem Ziel abbremsen; fährt der Aufzug: stehen bleiben
       const stopD = (n.vmax * n.vmax) / (2 * WALK_ACC);
-      const want = hold ? 0 : left < stopD ? Math.max(0.25, n.vmax * Math.sqrt(left / stopD)) : n.vmax;
+      const want = stop ? 0 : left < stopD ? Math.max(0.25, n.vmax * Math.sqrt(left / stopD)) : n.vmax;
       n.speed = want > n.speed ? Math.min(want, n.speed + WALK_ACC * dt) : Math.max(want, n.speed - WALK_ACC * 1.5 * dt);
       n.s = Math.min(p.total, n.s + n.speed * dt);
       p.at(n.s, n.root.position);
@@ -646,8 +727,8 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
         n.yaw += Math.sign(d) * Math.min(Math.abs(d), TURN_RATE * dt * (0.4 + n.speed));
       }
       if (n.curName === 'walk') n.cur.setEffectiveTimeScale(Math.max(0.05, n.speed / info.walk.speed));
-      if (hold && n.speed < 0.05 && n.curName === 'walk') play(n, 'idle', 0.5);
-      else if (!hold && n.curName !== 'walk' && n.speed > 0.05) play(n, 'walk', 0.4);
+      if (stop && n.speed < 0.05 && n.curName === 'walk') play(n, 'idle', 0.5);
+      else if (!stop && n.curName !== 'walk' && n.speed > 0.05) play(n, 'walk', 0.4);
       if (left < 0.02) { n.path = null; n.step = null; n.speed = 0; play(n, 'idle', 0.35); }
       return;
     }
@@ -696,7 +777,7 @@ export async function crewRig(gltf, { reduceMotion = false, seed = 7 } = {}) {
   }
   function update(dt, t, hold = false) {
     if (!built) return;
-    lastHold = hold;
+    lastHold = hold; clock += dt;
     for (const n of npcs) {
       if (!active(n)) continue;
       if (reduceMotion) {

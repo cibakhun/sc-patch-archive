@@ -28,6 +28,13 @@
 
    --versatz sucht je Innenraum (Web) oder je Container (roh) den
    Versatz bis 4 m, mit dem am wenigsten außen liegt.
+
+   Pilotensitz (Web: spots aus dem Manifest, roh: hardpoint_*seat*, Pilot
+   zuerst): ✓, wenn mindestens 20 Dreiecksmitten des Innenraums bis 1,5 m
+   um ihn liegen. Ein Container, der 8 m neben dem Cockpit noch im Rumpf
+   liegt, besteht die Spannen und reißt hier. Dazu, was der Blick aus 0,8 m
+   Kopfhöhe senkrecht nach oben bis 4 m trifft (Glas, Rumpf oder frei; frei
+   ist bei offenen Fahrzeugen richtig, sonst ansehen).
    ============================================================ */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -78,7 +85,7 @@ function* worldTris(nodes) {
       const pos = p.getAttribute('POSITION'); if (!pos) continue;
       const idx = p.getIndices();
       const n = idx ? idx.getCount() : pos.getCount();
-      for (let i = 0; i + 2 < n; i += 3) yield [node, w(idx ? idx.getScalar(i) : i, pos), w(idx ? idx.getScalar(i + 1) : i + 1, pos), w(idx ? idx.getScalar(i + 2) : i + 2, pos)];
+      for (let i = 0; i + 2 < n; i += 3) yield [node, w(idx ? idx.getScalar(i) : i, pos), w(idx ? idx.getScalar(i + 1) : i + 1, pos), w(idx ? idx.getScalar(i + 2) : i + 2, pos), p];
     }
   }
 }
@@ -155,6 +162,42 @@ function judge(spans, nodes) {
   return r;
 }
 
+// Pilotensitz (PC, 30.10.2026): Innenraum um ihn (Dreiecksmitten bis
+// SITZ_R) und der Blick nach oben aus Kopfhöhe (erstes Rumpfdreieck bis
+// OBEN_M: Glas, Rumpf oder frei). Die Spannen sehen keinen Container, der
+// 8 m neben dem Cockpit noch im Rumpf liegt (Gladius im Rohexport).
+const SITZ_R = 1.5, SITZ_MIN = 20, KOPF = 0.8, OBEN_M = 4;
+const isGlass = (m) => { const name = m?.getName() || ''; return (m?.getExtras()?.is_glass || /glass|canopy|window/i.test(name)) && !/headlight|light_glass|lamp|lens|bulb/i.test(name); };
+// senkrecht nach oben (+Y): Höhe über o, in der der Strahl das Dreieck trifft
+function rayUp(o, a, b, c) {
+  const d = (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
+  if (Math.abs(d) < 1e-12) return null;
+  const u = ((o[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (o[2] - a[2])) / d;
+  const v = ((b[0] - a[0]) * (o[2] - a[2]) - (o[0] - a[0]) * (b[2] - a[2])) / d;
+  if (u < 0 || v < 0 || u + v > 1) return null;
+  const y = a[1] + u * (b[1] - a[1]) + v * (c[1] - a[1]);
+  return y > o[1] ? y - o[1] : null;
+}
+function seatCheck(seat, innerNodes, hullNodes, label = () => null) {
+  let nah = 0, best = Infinity, bestNode = null;
+  for (const [node, a, b, c] of worldTris(innerNodes)) {
+    const d = Math.hypot((a[0] + b[0] + c[0]) / 3 - seat.p[0], (a[1] + b[1] + c[1]) / 3 - seat.p[1], (a[2] + b[2] + c[2]) / 3 - seat.p[2]);
+    if (d < best) { best = d; bestNode = node; }
+    if (d <= SITZ_R) nah++;
+  }
+  const o = [seat.p[0], seat.p[1] + KOPF, seat.p[2]];
+  let hit = OBEN_M, glas = false;
+  for (const [, a, b, c, prim] of worldTris(hullNodes)) {
+    const t = rayUp(o, a, b, c);
+    if (t != null && t < hit) { hit = t; glas = isGlass(prim.getMaterial()); }
+  }
+  const oben = hit < OBEN_M ? (glas ? 'Glas' : 'Rumpf') : 'frei';
+  return { name: seat.name, p: seat.p.map(r2), nah, abstand: r2(best), ...(label(bestNode) ? { naechster: label(bestNode) } : {}), oben, obenM: hit < OBEN_M ? r2(hit) : null, ok: nah >= SITZ_MIN };
+}
+const seatLine = (s) => (s ? `Sitz ${s.name}: ${s.nah} Dr. bis ${SITZ_R} m (nächstes ${s.abstand} m${s.naechster ? `, ${s.naechster}` : ''}), oben ${s.oben}${s.obenM != null ? ` ${s.obenM} m` : ''} ${s.ok ? '✓' : '✗'}` : 'kein Pilotensitz');
+// Pilot zuerst (nicht der Kopilot), sonst der erste Sitz
+const pickSeat = (list) => list.find((s) => /(?<!co)pilot/i.test(s.name)) ?? list.find((s) => /pilot/i.test(s.name)) ?? list[0] ?? null;
+
 const result = {};
 const t0 = Date.now();
 if (rohFile) {
@@ -175,6 +218,13 @@ if (rohFile) {
     result[c.getName()] = r;
     console.log(`  ${c.getName().padEnd(48)} ${String(r.tris).padStart(8)} Dr.  außen ${String(r.aussenPct).padStart(6)} % (bis ${r.maxM} m)  t ${r.t.join(' ')}  r ${r.r.join(' ')}${r.versatz ? `  Versatz ${r.versatz.join(' ')} -> ${r.mitVersatzPct} %` : ''}`);
   }
+  const seats = doc.getRoot().listNodes().filter((n) => /^hardpoint_.*?seat/i.test(n.getName()) && !/access/i.test(n.getName()))
+    .map((n) => { const m = n.getWorldMatrix(); return { name: n.getName(), p: [m[12], m[13], m[14]] }; });
+  const seat = pickSeat(seats);
+  const inner = []; for (const c of containers) c.traverse((n) => n.getMesh() && inner.push(n));
+  const box = (n) => { for (let p = n; p; p = p.getParentNode()) if (containers.includes(p)) return p.getName(); return null; };
+  if (seat) result._sitz = seatCheck(seat, inner, hull, box);
+  console.log(`  ${seatLine(result._sitz)}`);
 } else {
   const man = JSON.parse(readFileSync(`${ROOT}src/data/hangar-assets.json`, 'utf8'));
   const slugs = slugsArg[0] === 'all' ? Object.keys(man.interior ?? {}).sort() : slugsArg;
@@ -183,13 +233,20 @@ if (rohFile) {
     if (!existsSync(hullF) || !existsSync(inF)) { console.log(`${slug}: Rumpf oder Innenraum fehlt`); continue; }
     const hull = await readGeometry(hullF), inner = await readGeometry(inF);
     // den groben Innenraum im Rumpf (extras.interior) nicht als Rumpf zählen
-    const spans = hullSpans(hull.getRoot().listNodes().filter((n) => n.getMesh() && !n.getExtras()?.interior));
+    const hullNodes = hull.getRoot().listNodes().filter((n) => n.getMesh() && !n.getExtras()?.interior);
+    const spans = hullSpans(hullNodes);
     const r = judge(spans, inner.getRoot().listNodes());
-    result[slug] = { ...r, voxel: r2(spans.vox) };
-    console.log(`${slug.padEnd(36)} ${String(r.tris).padStart(8)} Dr.  außen ${String(r.aussenPct).padStart(6)} % (bis ${r.maxM} m)${r.versatz ? `  Versatz ${r.versatz.join(' ')} -> ${r.mitVersatzPct} %` : ''}`);
+    const seat = pickSeat((man.interior[slug]?.spots ?? []).filter((s) => s.kind === 'seat'));
+    result[slug] = { ...r, voxel: r2(spans.vox), ...(seat ? { sitz: seatCheck(seat, inner.getRoot().listNodes(), hullNodes) } : {}) };
+    console.log(`${slug.padEnd(36)} ${String(r.tris).padStart(8)} Dr.  außen ${String(r.aussenPct).padStart(6)} % (bis ${r.maxM} m)${r.versatz ? `  Versatz ${r.versatz.join(' ')} -> ${r.mitVersatzPct} %` : ''}  ${seatLine(result[slug].sitz)}`);
   }
   const all = Object.values(result);
   const over = (p) => all.filter((r) => r.aussenPct >= p).length;
   console.log(`\n${all.length} Innenräume gemessen in ${Math.round((Date.now() - t0) / 1000)} s; mindestens 1 % außen: ${over(1)}, mindestens 5 %: ${over(5)}, mindestens 20 %: ${over(20)}`);
+  const withSeat = Object.entries(result).filter(([, r]) => r.sitz);
+  const bad = withSeat.filter(([, r]) => !r.sitz.ok);
+  const open = withSeat.filter(([, r]) => r.sitz.oben === 'frei').map(([s]) => s);
+  console.log(`Pilotensitz: ${withSeat.length} mit Sitz, ${withSeat.length - bad.length} ✓ (Innenraum am Sitz), ${bad.length} ✗${bad.length ? ` (${bad.map(([s, r]) => `${s}: ${r.sitz.nah} Dr., nächstes ${r.sitz.abstand} m`).join('; ')})` : ''}; ohne Sitzangabe: ${all.length - withSeat.length}`);
+  console.log(`Über dem Sitz bis ${OBEN_M} m: Glas ${withSeat.filter(([, r]) => r.sitz.oben === 'Glas').length}, Rumpf ${withSeat.filter(([, r]) => r.sitz.oben === 'Rumpf').length}, frei ${open.length}${open.length ? ` (${open.join(', ')})` : ''}`);
 }
 if (jsonFile) writeFileSync(jsonFile, JSON.stringify(result, null, 1));
