@@ -12709,12 +12709,25 @@ void main() {
     const W = c.model.matrixWorld, order = ['seat', 'access', 'door', 'ramp', 'ladder', 'elevator'];
     const rank = (s) => (order.indexOf(s.kind) + 1 || 9) * 2 - (/pilot/i.test(s.name) ? 1 : 0);
     const back = new THREE.Vector3(0, 0, 1).transformDirection(W).setY(0).normalize();
-    let at = null;
-    for (const s of [...inner.spots].sort((a, b) => rank(a) - rank(b))) {
+    // Wer vom Sitz aus nicht weiterkommt (Lehne hinter sich, Freelancer),
+    // steht am nächsten Punkt mit mindestens WALK_FREE Feldern Boden; ist
+    // keiner so frei (Jäger: nur das Cockpit), am freiesten.
+    const WALK_FREE = 40;
+    let at = null, best = null;
+    for (const s of [...inner.spots].sort((a, b) => rank(a) - rank(b)).slice(0, 10)) {
       const p = new THREE.Vector3(...s.p).applyMatrix4(W);
-      for (const k of [0, 0.6, 1.2]) if ((at = walkStand(grid, p.clone().addScaledVector(back, k)))) break;
-      if (at) { console.info(`[hangar] Einstieg bei ${s.name} (${s.kind})`); break; }
+      let here = null;
+      for (const k of [0, 0.6, 1.2]) if ((here = walkStand(grid, p.clone().addScaledVector(back, k)))) break;
+      if (!here) continue;
+      here.n = walkReach(grid, box, here.e, here.floor, WALK_FREE);
+      here.s = s;
+      if (!best || here.n > best.n) best = here;
+      if (here.n >= WALK_FREE) break;
+      await pause();
+      if (walk !== me) return false;
     }
+    at = best;
+    if (at) console.info(`[hangar] Einstieg bei ${at.s.name} (${at.s.kind}), ${at.n >= WALK_FREE ? `mindestens ${WALK_FREE}` : at.n} Felder Boden frei`);
     if (!at) {
       // ohne passenden Punkt: Mitte des Innenraums, vom Boden aus
       const m = box.getCenter(new THREE.Vector3());
@@ -12792,21 +12805,51 @@ void main() {
   const wFwd = new THREE.Vector3(), wSide = new THREE.Vector3(), wTry = new THREE.Vector3();
   // ein Schritt um (f, s) Meter vor und zur Seite, mit Wänden und Boden
   function walkMove(f, s) {
-    const g = walk.grid, p = walk.p;
+    const p = walk.p;
     wFwd.set(-Math.sin(walk.yaw), 0, -Math.cos(walk.yaw)); wSide.set(-wFwd.z, 0, wFwd.x);
     const len = Math.hypot(f, s), n = Math.max(1, Math.ceil(len / (WALK_R * 0.8)));
+    const dx = (wFwd.x * f + wSide.x * s) / n, dz = (wFwd.z * f + wSide.z * s) / n;
     for (let i = 0; i < n; i++) {
-      wTry.copy(p).addScaledVector(wFwd, f / n).addScaledVector(wSide, s / n);
-      const feet = walk.floor;
-      // Kopf, Hüfte und über der Stufe
-      for (const h of [WALK_EYE, WALK_EYE - 0.8, WALK_STEP + WALK_R]) {
-        const y = wTry.y; wTry.y = feet + h; walkPush(g, wTry, WALK_R); wTry.y = y;
-      }
-      const fl = walkFloor(g, wTry.x, feet + WALK_STEP + 0.05, wTry.z, WALK_STEP + 2.5);
-      // ohne Boden (Loch, Kante) nicht weiter; Stufen bis WALK_STEP hinauf
-      if (fl === null || !walk.box.containsPoint(wTry)) break;
+      const fl = walkTry(walk.grid, walk.box, p, walk.floor, dx, dz, wTry);
+      if (fl === null) break;
       p.x = wTry.x; p.z = wTry.z; walk.floor = fl;
     }
+  }
+  // Ein Teilschritt von p (Auge, Füße auf floor) um (dx, dz) nach out: Kopf,
+  // Hüfte und der Raum über einer Stufe schieben sich aus den Wänden, der
+  // Boden folgt bis WALK_STEP hinauf. null ohne Boden (Loch, Kante) oder
+  // außerhalb des Kastens.
+  function walkTry(g, box, p, floor, dx, dz, out) {
+    out.copy(p); out.x += dx; out.z += dz;
+    for (const h of [WALK_EYE, WALK_EYE - 0.8, WALK_STEP + WALK_R]) {
+      const y = out.y; out.y = floor + h; walkPush(g, out, WALK_R); out.y = y;
+    }
+    const fl = walkFloor(g, out.x, floor + WALK_STEP + 0.05, out.z, WALK_STEP + 2.5);
+    return fl === null || !box.containsPoint(out) ? null : fl;
+  }
+  // Wie viel Boden von e aus zu Fuß erreichbar ist: Felder zu WALK_REACH_CELL
+  // m in Breitensuche, je Nachbar in Teilschritten wie walkMove, höchstens max
+  const WALK_REACH_CELL = 0.5;
+  function walkReach(g, box, e, floor, max) {
+    const C = WALK_REACH_CELL, key = (p) => `${Math.round(p.x / C)},${Math.round(p.z / C)}`, seen = new Set([key(e)]), q = [[e.clone(), floor]], t = new THREE.Vector3();
+    let n = 0;
+    while (q.length && n < max) {
+      const [p, f] = q.shift();
+      n++;
+      for (const [dx, dz] of [[C, 0], [-C, 0], [0, C], [0, -C]]) {
+        const cur = p.clone();
+        let cf = f;
+        for (let i = 0; i < 3 && cf !== null; i++) { cf = walkTry(g, box, cur, cf, dx / 3, dz / 3, t); if (cf !== null) cur.copy(t); }
+        // abgeglitten statt angekommen zählt nicht
+        if (cf === null || Math.hypot(cur.x - p.x - dx, cur.z - p.z - dz) > C / 2) continue;
+        const k = key(cur);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        cur.y = cf + WALK_EYE;
+        q.push([cur, cf]);
+      }
+    }
+    return n;
   }
   function walkStep(dt, now) {
     const w = walk;
