@@ -219,3 +219,54 @@ Stalker 1 → 0.
 Pilotensitz (Web: `spots` aus dem Manifest, roh: `hardpoint_*seat*`, Pilot
 vor Kopilot): ✓ ab 20 Dreiecksmitten des Innenraums bis 1,5 m, dazu was der
 Blick aus 0,8 m Kopfhöhe senkrecht nach oben bis 4 m trifft. Kein Tor.
+
+## Durchsicht Cloud (Teil 3 und 4 gegen staging)
+
+Stand: `claude/project-thread-x4oyij` mit den PC-Commits bis 00fbd61d, gegen
+staging 73369043 (#267). Gerendert mit three.js wie die Seite, Bilder unter
+`/mnt/project-files/hangar-innenlage/`.
+
+**Pilotensicht, alle 215 Innenräume.** Kamera 0,8 m über dem Pilotensitz
+(Einstiegspunkte aus dem Manifest, Pilot zuerst), sechs Blickrichtungen,
+Rumpf plus Innenraum-Datei wie beim Einsteigen, Magenta = Blick ins Leere.
+132 Schiffe sehen anders aus als auf staging, 83 gleich. Bei den geänderten
+liegt das Cockpit jetzt um den Sitz: Gladius, alle Hornets, Avenger, Sabre,
+Vanguard, Hammerhead, Retaliator, 100i/125a/135c, Apollo, 600i, Blade, MPUV,
+Basher, Shiv. Mehr Magenta als vorher zeigen nur Schiffe, deren Kanzel
+vorher von einem falsch liegenden Container verstellt war (Reliant, Nova,
+Ursa Rover). Keine neue Lücke.
+
+**Grenze dieser Prüfansicht:** Bei rund 25 Schiffen liegt der erste
+Einstiegspunkt nicht im Cockpit (Kamera über dem Schiff: Wolf, Stingray,
+Prospector, Aurora Mk II, Zeus, Constellation; in Geometrie: Valkyrie,
+Defender, Merlin/Archimedes, Hull C, Asgard; hinter der Lehne: Cutlass,
+Cutter, C8, Basher, 100i). Auf staging genauso, die Seite sucht beim
+Einsteigen ihren Standpunkt über das Stoßgitter selbst und hängt daran
+nicht.
+
+**Röntgen** (Rumpf durchsichtig, Innenraum farbig, oben/Seite/vorn/schräg),
+alle Schiffe mit verschobenen Containern, je Baureihe ein Vertreter neben
+staging: Innenräume liegen in der Hülle, Cockpits unter der Kanzel; was
+vorher aus dem Dach ragte (Cutlass, Vanguard, Star Runner, Hammerhead,
+Tiburon), liegt jetzt längs im Rumpf. Carrack: Innenraum reicht jetzt bis
+zur Brücke im Bug (0 % außen).
+
+**Hornet:** Mit den heilen Ablöseteilen sind Außenflügel samt Flügelwaffe
+und das Leitwerk (zwei nach hinten gezogene Streben mit Querholm) wieder
+da. F7C: 18,5 × 19,2 × 6,0 m (L × B × H) auf staging, jetzt 22,5 × 21,6 ×
+6,6 m; die Herstellerangabe ist 22,5 × 21,5 × 6,5 m. Auf staging fehlten
+also gut 4 m Heck.
+
+**Außen, alle 62 neu gebauten Rümpfe** (Teil 3 mit behaltenem Innenraum und
+Teil 4 mit Ablöseteilen) von vier Seiten und durch die Kanzel, neben
+staging: Was auf staging aus dem Dach ragte, ist weg (Ursa Medivac und
+Rover: Kisten und Wände auf dem Dach), die Hornets sind vollständig, die
+Pulse hat ihre Seitenpaneele, die Blade-Kanzel ist von außen zu sehen. Kein
+Rumpf hat außen etwas verloren. Prüffalle: Liegt Innenraum-Glas jetzt an
+seinem Platz (Zellen der Avenger Stalker im Heck), verschiebt ein
+Kanzelsucher, der über alles Glas mittelt, seine Mitte nach hinten; das ist
+die Prüfseite, nicht das Modell.
+
+**Ergebnis:** keine Verschlechterung gegen staging gefunden. Offen bleiben die
+oben genannten fünf Innenräume über 1 % außen und die elf losen Teile aus
+`hangar-inseln.md`. Sichturteil WINDOWS #143.
