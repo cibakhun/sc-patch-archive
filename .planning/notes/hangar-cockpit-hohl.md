@@ -389,10 +389,13 @@ das zerlegt aussah: „es ist mit ganz vielen schiffen etwas kaputt“.
   Glas (Hüllquader + 2,5 m) stehen. Der Rohexport legt aber Teile der
   Innenraum-Container falsch ab (siehe `hangar-innenleben.md`: ein
   Carrack-Teil 111 m zur Seite, Andromeda 14 Teile bis 14,5 m über den
-  Rumpf). Dazu bekam bei der 100i ein Rumpfteil über den Materialnachtrag
-  ein Innenraum-Material: 7 164 Dreiecke von `hull_d` auf
-  `orig_100i_interior_mtl_panel_light`. Im Viewer nachgestellt (die
-  Platte steht da, mit dem Viewer vor #263).
+  Rumpf). Bei der 100i trugen im Neubau 7 164 Dreiecke
+  `orig_100i_interior_mtl_panel_light` (vorher keines).
+- **Die Platte der 100i kam nicht von #257.** Sie ist eine Platzhalterwand
+  aus dem Rohbau des Spiels (`template_int_a_mtl_grid_grey_light_4m`,
+  `_grid_pink_4m`, 2,3 × 2,5 m, 136 Dreiecke) und steckt seit dem 25.10.
+  (79298365) in 100i, 125a, 135c und Hull C, im alten Stand wie im Neubau.
+  `dressTextured` blendet sie seit #265 aus.
 - **Umfang:** 51 von 231 Schiffen haben mit #257 über 25 % mehr Dreiecke,
   fast alles Innenraum-Material (Argo SRV +498 %, Starlancer MAX +108 %,
   Star Runner +159 %, Corsair +81 %, Caterpillar +74 %, Carrack +48 % …).
@@ -411,3 +414,29 @@ das zerlegt aussah: „es ist mit ganz vielen schiffen etwas kaputt“.
   seinem Platz geprüft ist), Materialnachtrag nicht auf Rumpfteile mit
   Rumpfmaterial. Vor dem Ausliefern jedes geänderte Schiff von außen
   ansehen und die Dreieckszahl je Schiff gegen den alten Stand prüfen.
+
+## Neubau nur zweiseitig (30.10.2026)
+
+Krisz, 30.10.2026 13:20: „ja aber am ende sollen innenräüme auch dabei
+sein, und jedes schiff soll komplett angeschaut werden, innen und aussen.
+componente sollen auch physicalized sein und an deren richtige stelle
+sitzen“.
+
+- **Bauskript:** Den Innenraum hinter dem Glas behält
+  `build-hangar-assets.mjs` nur noch mit `HANGAR_SHIP_GLASS_INTERIOR=1`
+  (zum Messen). `build-hangar-alle.mjs` hat dafür keine eigene Stufe mehr.
+  Sonst gilt beim Innenraum wieder der Stand vor #257: `KEEP_INTERIOR`
+  ganz, sonst nur bei Rohbau bis 1,5 × Budget. „zweiseitig“ aus den
+  `MtlFlags` bleibt.
+- **PC:** `node scripts/build-hangar-alle.mjs --redo` für alle Rümpfe.
+- **Cloud danach, je Schiff:** Dreiecke, Knoten und Dreiecke je Material
+  gegen den Stand von #265. Erwartet wird derselbe Stand, nur mit
+  `doubleSided`; jede andere Abweichung wird erklärt oder zurückgestellt.
+  Jedes Schiff von außen aus mehreren Winkeln und durch die Haube
+  ansehen. Danach die Klinke von `verify:hangar-cockpit` nachziehen;
+  Ausnahmen, die der Neubau schließt, fallen weg.
+- **Dann:** die begehbaren Innenräume (`public/hangar/interior/`) Schiff
+  für Schiff auf falsch liegende Teile prüfen, gemeinsam mit
+  `hangar-innenleben.md`. Komponenten (Kraftwerk, Kühler, Schild,
+  Quantenantrieb) als Teile an ihren Halterungen: zuerst prüfen, was der
+  Rohexport an Geometrie und Halterungen hergibt.

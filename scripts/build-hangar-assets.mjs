@@ -668,18 +668,20 @@ const KEEP_INTERIOR = new Set(['aegs-gladius', 'anvl-arrow', 'anvl-hornet-f7c-mk
 // Dreiecksbudgets haben (dann kostet die Dezimierung den Rumpf kaum etwas);
 // HANGAR_SHIP_NO_INTERIOR=1 nimmt ihn sonst immer (erste Stufe gegen die 16 MB).
 // KEEP_INTERIOR geht vor: dort sähe man durch die Haube ein leeres Cockpit.
-// Sonst bleibt, was man durch Glas sieht (.planning/notes/hangar-cockpit-hohl.md):
-// jeder Knoten eines Containers, dessen Hüllquader den eines Außenglases
-// (Haube, Brücke) um GLASS_REACH erweitert schneidet. interiorDropped zählt
-// die Container, die dabei ganz oder teilweise weggefallen sind.
-// HANGAR_SHIP_NO_GLASS_INTERIOR=1 nimmt auch das weg (Stufe gegen die 16 MB,
-// vor kleineren Karten: Guardian, Aurora Mk II).
+// interiorDropped zählt die Container, die ganz oder teilweise wegfallen.
+// HANGAR_SHIP_GLASS_INTERIOR=1 behält, was man durch Glas sieht: jeder Knoten
+// eines Containers, dessen Hüllquader den eines Außenglases (Haube, Brücke)
+// um GLASS_REACH erweitert schneidet. Nur zum Messen, nicht für die
+// Auslieferung: #257 hat das für alle Schiffe gebaut, und der Rohexport legt
+// Teile der Container falsch ab (Caterpillar oben offenes Gerüst, 51 Schiffe
+// über 25 % mehr Dreiecke; Krisz 30.10.2026, Rücknahme #265,
+// .planning/notes/hangar-cockpit-hohl.md).
 const GLASS_REACH = 2.5;
 function dropInterior(doc, slug, rawTris = Infinity, budgetTris = 0) {
   const none = { dropped: 0, keptNodes: 0, keptTris: 0 };
   if (KEEP_INTERIOR.has(slug)) return none;
   if (!process.env.HANGAR_SHIP_NO_INTERIOR && rawTris <= 1.5 * budgetTris) return none;
-  const glass = process.env.HANGAR_SHIP_NO_GLASS_INTERIOR ? [] : glassBoxes(doc).map((b) => ({ min: b.min.map((v) => v - GLASS_REACH), max: b.max.map((v) => v + GLASS_REACH) }));
+  const glass = !process.env.HANGAR_SHIP_GLASS_INTERIOR ? [] : glassBoxes(doc).map((b) => ({ min: b.min.map((v) => v - GLASS_REACH), max: b.max.map((v) => v + GLASS_REACH) }));
   const seen = (b) => b && glass.some((g) => [0, 1, 2].every((k) => b.min[k] <= g.max[k] && b.max[k] >= g.min[k]));
   const r = { ...none };
   for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
