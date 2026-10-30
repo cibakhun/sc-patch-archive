@@ -125,7 +125,7 @@
    }
   },
   "aegs-javelin": {
-   "sha": "0dc71e1b32baa63f",
+   "sha": "e5ca8d7bf3c6b2a8",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -335,7 +335,7 @@
    }
   },
   "anvl-c8-pisces": {
-   "sha": "11bc8989e1e9c602",
+   "sha": "bb176a7438c4dc15",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -345,17 +345,17 @@
    }
   },
   "anvl-c8r-pisces": {
-   "sha": "1ca20c3711f7f5cb",
+   "sha": "44a915dc18c1b679",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 5,
-    "glas": 1873
+    "glas": 1869
    }
   },
   "anvl-c8x-pisces-expedition": {
-   "sha": "113078678cef209b",
+   "sha": "081360900f42f13d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -415,17 +415,17 @@
    }
   },
   "anvl-hornet-f7a-mk1": {
-   "sha": "abe886d02f6a76ba",
+   "sha": "def0acff42b070c1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1456
+    "glas": 1500
    }
   },
   "anvl-hornet-f7a-mk2": {
-   "sha": "f0b8ba6ba4763ea0",
+   "sha": "837c5b6a4ba259d0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -435,113 +435,113 @@
    }
   },
   "anvl-hornet-f7c": {
-   "sha": "ef04db8872537a4d",
+   "sha": "71e65c0d4c0a0516",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1034
+    "hohl": 1,
+    "glas": 1058
    }
   },
   "anvl-hornet-f7c-mk2": {
-   "sha": "52d0aa2e4e9f0471",
+   "sha": "8c85c20c53ee5e10",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2591
+    "glas": 2529
    }
   },
   "anvl-hornet-f7c-wildfire": {
-   "sha": "ee79da02b7445e7b",
+   "sha": "469bedcc3283d32d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1034
+    "hohl": 1,
+    "glas": 1058
    }
   },
   "anvl-hornet-f7cm": {
-   "sha": "8d959f455ac41214",
+   "sha": "b42007a1c4dd8601",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
-    "glas": 1714
+    "hohl": 1,
+    "glas": 1695
    }
   },
   "anvl-hornet-f7cm-heartseeker": {
-   "sha": "4fef976a2fee6a45",
+   "sha": "35f317d08b56857f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 48
+    "hohl": 0,
+    "glas": 75
    }
   },
   "anvl-hornet-f7cm-mk2": {
-   "sha": "459fb60d0e6e66a9",
+   "sha": "195ae5eec72e4a80",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 1068
+    "hohl": 0,
+    "glas": 1062
    }
   },
   "anvl-hornet-f7cm-mk2-heartseeker": {
-   "sha": "66d7e3c015194c0f",
+   "sha": "2964641f4f8d284e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 628
+   }
+  },
+  "anvl-hornet-f7cr": {
+   "sha": "e050dbc565124b15",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
-    "glas": 588
-   }
-  },
-  "anvl-hornet-f7cr": {
-   "sha": "f682c283fcc307ca",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 0,
-    "glas": 1034
+    "glas": 1058
    }
   },
   "anvl-hornet-f7cr-mk2": {
-   "sha": "c37b452fb4d36e57",
+   "sha": "d4bd1a4e3bce194c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2329
+    "glas": 2279
    }
   },
   "anvl-hornet-f7cs": {
-   "sha": "051f7fdd5c1d3dc0",
+   "sha": "54d0198f2c43881b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1034
+    "hohl": 1,
+    "glas": 1058
    }
   },
   "anvl-hornet-f7cs-mk2": {
-   "sha": "a4a2a4e0978bddc3",
+   "sha": "147786c1190eca95",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2447
+    "glas": 2391
    }
   },
   "anvl-hurricane": {
@@ -1481,7 +1481,7 @@
    }
   },
   "misc-hull-c": {
-   "sha": "268447bca6ce17ee",
+   "sha": "e5a03cb348ddd38d",
    "durch": 2,
    "gemessen": {
     "rays": 160,
@@ -1651,7 +1651,7 @@
    }
   },
   "mrai-pulse": {
-   "sha": "60369fc57bc458a2",
+   "sha": "29e82e250a8cb4ac",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1661,7 +1661,7 @@
    }
   },
   "mrai-pulse-lx": {
-   "sha": "3330ef03c3e3b61e",
+   "sha": "0d271d9a8b56b4fe",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2139,7 +2139,7 @@
    }
   },
   "rsi-zeus-cl": {
-   "sha": "6d71efcbd8503083",
+   "sha": "e2694e2b315f939b",
    "durch": 2,
    "gemessen": {
     "rays": 160,
@@ -2149,7 +2149,7 @@
    }
   },
   "rsi-zeus-es": {
-   "sha": "a7c6e82a722a4540",
+   "sha": "624f28521a383e0b",
    "durch": 3,
    "gemessen": {
     "rays": 160,
