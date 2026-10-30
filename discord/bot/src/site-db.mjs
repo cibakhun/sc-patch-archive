@@ -1,9 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════════════
 //  site-db.mjs — der EINE Weg, auf dem der Bot in die Datenbank der Website
-//  schreibt (public.discord_role_state). role-sync.mjs, role-reconcile.mjs
-//  und rank-sync.mjs kennen nur diese drei Aufrufe:
+//  schreibt (public.discord_role_state). role-sync.mjs, role-reconcile.mjs,
+//  rank-sync.mjs und badge-sync.mjs kennen nur diese vier Aufrufe:
 //
 //    listLinked({ discordUserId? })   -> Zeilen verbundener Konten
+//    listBadges()                     -> [{ discord_user_id, profile_complete }]
 //    setTester(discordUserId, bool)   -> { updated }
 //    setStats(discordUserId, patch)   -> { updated }
 //    refineryDue()                    -> faellige Raffinerie-Meldungen
@@ -112,6 +113,15 @@ function functionBackend({ url, secret }, fetchImpl, log = console.warn) {
         if (out.rows.length < PAGE) return all;
       }
     },
+    async listBadges() {
+      const all = [];
+      for (let offset = 0; ; offset += PAGE) {
+        const out = await call(offset ? { op: 'badges', offset } : { op: 'badges' });
+        if (!Array.isArray(out?.rows)) throw new Error('bot-role-sync badges: kein rows-Feld');
+        all.push(...out.rows);
+        if (out.rows.length < PAGE) return all;
+      }
+    },
     async setTester(discordUserId, isTester) {
       assertId(discordUserId);
       const out = await call({ op: 'set', discord_user_id: String(discordUserId), is_tester: !!isTester });
@@ -170,6 +180,20 @@ function legacyBackend({ url, key }, fetchImpl) {
         if (rows.length < PAGE) return all;
       }
     },
+    async listBadges() {
+      const all = [];
+      for (let offset = 0; ; offset += PAGE) {
+        const res = await fetchImpl(
+          `${url}/rest/v1/discord_profile_badges?select=discord_user_id,profile_complete&order=discord_user_id&limit=${PAGE}&offset=${offset}`,
+          { headers: headers(), signal: AbortSignal.timeout(TIMEOUT_MS) },
+        );
+        if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`);
+        const rows = await res.json();
+        if (!Array.isArray(rows)) throw new Error('Supabase-GET: Antwort ist keine Liste');
+        all.push(...rows);
+        if (rows.length < PAGE) return all;
+      }
+    },
     async setTester(discordUserId, isTester) {
       assertId(discordUserId);
       return patchRow(discordUserId, { is_tester: !!isTester, updated_at: new Date().toISOString() });
@@ -216,7 +240,7 @@ function withFallback(primary, fallback, log) {
   };
   return {
     mode: fallback ? 'function+legacy' : 'function',
-    listLinked: wrap('listLinked'), setTester: wrap('setTester'), setStats: wrap('setStats'),
+    listLinked: wrap('listLinked'), listBadges: wrap('listBadges'), setTester: wrap('setTester'), setStats: wrap('setStats'),
     refineryDue: wrap('refineryDue'), refinerySent: wrap('refinerySent'),
   };
 }

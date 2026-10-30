@@ -146,8 +146,13 @@ const werk = werkAsset && werkJson && existsSync(werkJson)
 const hall = !hallAsset?.room ? null : furniture && lite
   ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift, workshop, werk }
   : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift, workshop, werk };
+// Crew: mit Skelett und Spielanimationen (scripts/build-hangar-crew.mjs,
+// Modul assets/hangar-crew.js), sonst die starre Figur aus hangar-assets
+const crewRig = existsSync('src/data/hangar-crew.json') ? JSON.parse(readFileSync('src/data/hangar-crew.json', 'utf8')) : null;
 const crewAsset = Object.values(real.npc ?? {})[0];
-const crew = crewAsset ? { url: withV(crewAsset) } : null;
+const crew = crewRig?.url && existsSync(`public${crewRig.url}`)
+  ? { url: `${crewRig.url}?v=${crewRig.v}`, bytes: crewRig.bytes, module: versioned('assets/hangar-crew.js', '/assets/hangar-crew.js') }
+  : crewAsset ? { url: withV(crewAsset) } : null;
 
 // Fahrwerk (PC-Lauf „Hangar-Flotte“, scripts/build-hangar-gear.mjs): Die
 // Geometrie-Fassung des Hangars (public/hangar/geo/, ohne Innenraum, im Raum

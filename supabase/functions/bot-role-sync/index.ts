@@ -14,6 +14,10 @@
 //          Seitenweise: hoechstens PAGE Zeilen, sortiert nach discord_user_id,
 //          ab offset (Ganzzahl >= 0, Vorgabe 0). Weniger als PAGE Zeilen =
 //          letzte Seite.
+//   {"op":"badges"[, "offset":n]}
+//       -> 200 {"rows":[{discord_user_id, profile_complete}, …]}
+//          aus der Sicht discord_profile_badges (Abzeichen "Profil komplett"),
+//          seitenweise wie list.
 //   {"op":"set","discord_user_id":"…","is_tester":true|false}
 //       -> 200 {"updated":n}   setzt is_tester und updated_at.
 //   {"op":"stats","discord_user_id":"…","patch":{…}}
@@ -127,6 +131,19 @@ Deno.serve(async (req: Request) => {
       if (typeof id === 'string') q = q.eq('discord_user_id', id);
       q = q.order('discord_user_id').range(offset as number, (offset as number) + PAGE - 1);
       const { data, error } = await q;
+      if (error) throw error;
+      return reply(200, { rows: data ?? [] });
+    }
+
+    if (body.op === 'badges') {
+      if (!onlyKeys(body, ['op', 'offset'])) return reply(400, { error: 'unknown_field' });
+      const offset = body.offset ?? 0;
+      if (!nonNegInt(INT4_MAX)(offset)) return reply(400, { error: 'invalid_offset' });
+      const { data, error } = await admin
+        .from('discord_profile_badges')
+        .select('discord_user_id,profile_complete')
+        .order('discord_user_id')
+        .range(offset as number, (offset as number) + PAGE - 1);
       if (error) throw error;
       return reply(200, { rows: data ?? [] });
     }
