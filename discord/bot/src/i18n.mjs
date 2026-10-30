@@ -123,6 +123,11 @@ export const STRINGS = {
     dm: {
       rankChanged: 'You reached **Level {level}** in **{guild}** and earned the **{ins} {name}** rank! 🎉',
       level: 'You reached **Level {level}** in **{guild}**.',
+      refineryTitle: 'Refinery order ready',
+      refineryBody: 'Your work order at **{station}** ({method}) is done and ready to collect.',
+      refineryOres: 'Yield',
+      refineryOpen: 'Open tracker',
+      refineryFooter: 'Discord notifications are on in your VerseBase refinery tracker. You can switch them off there.',
     },
     admin: {
       needPerm: 'You need the **Manage Server** permission.',
@@ -225,6 +230,11 @@ export const STRINGS = {
     dm: {
       rankChanged: 'Du hast in **{guild}** **Level {level}** erreicht und den Rang **{ins} {name}** freigeschaltet! 🎉',
       level: 'Du hast in **{guild}** **Level {level}** erreicht.',
+      refineryTitle: 'Raffinerie-Auftrag fertig',
+      refineryBody: 'Dein Auftrag bei **{station}** ({method}) ist fertig und kann abgeholt werden.',
+      refineryOres: 'Ausbeute',
+      refineryOpen: 'Tracker öffnen',
+      refineryFooter: 'Discord-Benachrichtigungen sind in deinem VerseBase-Raffinerie-Tracker an. Dort kannst du sie ausschalten.',
     },
     admin: {
       needPerm: 'Du brauchst die Berechtigung **Server verwalten**.',

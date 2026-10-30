@@ -190,7 +190,7 @@
 
   // ---- Zahl am Konto-Knopf -------------------------------------------------
   // Offene Freundschaftsanfragen an mich + ungelesene Nachrichten von
-  // Freunden, auf jeder Seite. Gezaehlt wird wie in der Freundesleiste der
+  // Freunden + fertige Raffinerie-Auftraege (siehe unten), auf jeder Seite. Gezaehlt wird wie in der Freundesleiste der
   // Kontoseite (FriendsDock): Nachrichten eines Ex-Freundes bleiben lesbar,
   // stehen dort aber in keiner Liste mehr -- hier mitgezaehlt, liesse sich
   // die Zahl nie wegklicken. Steht eine Zahl, fuehrt der Knopf direkt in den
@@ -198,7 +198,7 @@
   // bei Rueckkehr auf den Tab; auf der Kontoseite melden Freundesliste und
   // Chat ihren Stand sofort (vb:friends, vb:chat-unread).
   var BADGE_MS = 60000;
-  var badge = { req: 0, msg: 0 };
+  var badge = { req: 0, msg: 0, ref: 0 };
   var badgeTimer = null;
   // Je Konto eine laufende Abfrage. Ein Kontowechsel zaehlt badgeGen hoch:
   // die Abfrage fuers alte Konto haelt den Riegel dann nicht mehr fest.
@@ -209,19 +209,27 @@
     var parts = [];
     if (badge.req) parts.push(badge.req + (IS_DE ? (badge.req === 1 ? ' neue Freundschaftsanfrage' : ' neue Freundschaftsanfragen') : (badge.req === 1 ? ' friend request' : ' friend requests')));
     if (badge.msg) parts.push(badge.msg + (IS_DE ? (badge.msg === 1 ? ' ungelesene Nachricht' : ' ungelesene Nachrichten') : (badge.msg === 1 ? ' unread message' : ' unread messages')));
+    if (badge.ref) parts.push(refText(badge.ref));
     return parts.join(' · ');
+  }
+
+  function refText(n) {
+    return n + (IS_DE ? (n === 1 ? ' Raffinerie-Auftrag fertig' : ' Raffinerie-Aufträge fertig') : (n === 1 ? ' refinery order ready' : ' refinery orders ready'));
   }
 
   function badgeShort() {
     var parts = [];
     if (badge.req) parts.push(badge.req + (IS_DE ? (badge.req === 1 ? ' Anfrage' : ' Anfragen') : (badge.req === 1 ? ' request' : ' requests')));
     if (badge.msg) parts.push(badge.msg + (IS_DE ? (badge.msg === 1 ? ' Nachricht' : ' Nachrichten') : (badge.msg === 1 ? ' message' : ' messages')));
+    if (badge.ref) parts.push(badge.ref + (IS_DE ? ' Raffinerie' : ' refinery'));
     return parts.join(' · ');
   }
 
   function paintBadge() {
     var loggedIn = !!shown;
-    var n = loggedIn ? badge.req + badge.msg : 0;
+    var n = loggedIn ? badge.req + badge.msg + badge.ref : 0;
+    // Wartet nur Raffinerie, fuehrt der Knopf zum Tracker statt zu den Freunden.
+    var refOnly = n && !badge.req && !badge.msg;
     var label = n > 99 ? '99+' : String(n);
     var sum = n ? badgeSummary() : '';
     var dots = document.querySelectorAll('.js-nav-badge');
@@ -233,7 +241,7 @@
     for (var j = 0; j < els.length; j++) {
       var el = els[j];
       var dash = el.getAttribute('data-dash');
-      el.href = loggedIn ? (n ? dash + '#friends' : dash) : el.getAttribute('data-login');
+      el.href = loggedIn ? (refOnly ? REF_PATH : n ? dash + '#friends' : dash) : el.getAttribute('data-login');
       el.title = [navName, sum].filter(Boolean).join(' · ');
       el.classList.toggle('has-badge', !!n);
       ariaWith(el, sum);
@@ -265,6 +273,79 @@
     paintBadge();
   }
 
+  // ---- Raffinerie: fertige Auftraege ---------------------------------------
+  // Zaehlt aktive Auftraege, deren ready_at erreicht ist, bis sie im Tracker
+  // abgeholt oder geloescht werden; Schalter "Mitteilung auf der Seite" in
+  // notification_settings (fehlt die Zeile oder die Tabelle: an). Wird ein
+  // Auftrag fertig, waehrend diese Seite offen ist, kommt zusaetzlich ein
+  // Hinweis unten rechts; was beim Laden schon fertig war, zeigt nur die Zahl.
+  // Ohne Speicher: je Seite gilt, was diese Seite selbst hat fertig werden
+  // sehen.
+  var REF_PATH = (IS_DE ? '/de' : '') + '/refinery.html#tracker';
+  var refOn = null;        // Schalter, je Konto einmal gelesen
+  var refSeen = null;      // id -> true: beim letzten Blick schon fertig
+  var refTimer = null;     // weckt zum naechsten ready_at
+
+  function fetchRefinery(sess, me) {
+    var on = refOn !== null ? Promise.resolve(refOn)
+      : rest(sess, 'GET', 'notification_settings?select=refinery_site&user_id=eq.' + me)
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (rs) { return (refOn = !(rs && rs[0] && rs[0].refinery_site === false)); }, function () { return true; });
+    return on.then(function (yes) {
+      if (!yes) return [];
+      return rest(sess, 'GET', 'refinery_jobs?select=id,station,ready_at&status=eq.active&order=ready_at&limit=50').then(rows);
+    });
+  }
+
+  function setRefinery(jobs) {
+    var now = Date.now();
+    var ready = [];
+    var next = Infinity;
+    for (var i = 0; i < jobs.length; i++) {
+      var t = Date.parse(jobs[i].ready_at);
+      if (t <= now) ready.push(jobs[i]);
+      else if (t < next) next = t;
+    }
+    if (refSeen) {
+      for (var j = 0; j < ready.length; j++) if (!refSeen[ready[j].id]) refToast(ready[j]);
+    }
+    refSeen = {};
+    for (var k = 0; k < ready.length; k++) refSeen[ready[k].id] = true;
+    if (refTimer) { clearTimeout(refTimer); refTimer = null; }
+    // Hoechstens einen Tag voraus (setTimeout-Grenze, und der Minutentakt holt ohnehin nach).
+    if (next - now < 86400000) refTimer = setTimeout(function () { refTimer = null; fetchBadge(); }, next - now + 1500);
+    if (ready.length !== badge.ref) { badge.ref = ready.length; paintBadge(); }
+  }
+
+  function refToast(job) {
+    if (location.pathname.indexOf('/refinery.html') !== -1) return; // dort zeigt die Karte es selbst
+    var box = document.createElement('a');
+    box.className = 'vb-toast';
+    box.href = REF_PATH;
+    box.setAttribute('role', 'status');
+    var b = document.createElement('b');
+    b.textContent = IS_DE ? 'Raffinerie-Auftrag fertig' : 'Refinery order ready';
+    var s = document.createElement('span');
+    s.textContent = String(job.station || '') + (IS_DE ? ' · zum Abholen bereit' : ' · ready to collect');
+    box.appendChild(b);
+    box.appendChild(s);
+    document.body.appendChild(box);
+    setTimeout(function () { box.classList.add('is-out'); setTimeout(function () { box.remove(); }, 400); }, 12000);
+  }
+
+  function stopRefinery() {
+    if (refTimer) { clearTimeout(refTimer); refTimer = null; }
+    refOn = null;
+    refSeen = null;
+    badge.ref = 0;
+  }
+
+  // Die Refinery-Seite meldet geaenderte Schalter und abgeholte Auftraege sofort.
+  document.addEventListener('vb:refinery', function () {
+    refOn = null;
+    if (shown) fetchBadge();
+  });
+
   function rows(r) { return r && r.ok ? r.json() : Promise.reject(r && r.status); }
 
   // Eine gescheiterte Abfrage laesst die letzte Zahl stehen, statt sie zu
@@ -275,6 +356,9 @@
     ensureSession().then(function (sess) {
       var me = userOf(sess);
       if (!me || me !== userOf(shown)) return null;
+      fetchRefinery(sess, me).then(function (jobs) {
+        if (gen === badgeGen && me === userOf(shown)) setRefinery(jobs);
+      }).catch(function () { /* naechster Takt */ });
       return Promise.all([
         rest(sess, 'GET', 'friend_requests?select=id&receiver_id=eq.' + me + '&status=eq.pending&limit=100').then(rows),
         rest(sess, 'GET', 'direct_messages?select=sender_id&receiver_id=eq.' + me + '&read_at=is.null&limit=500').then(rows),
@@ -307,6 +391,7 @@
     badgeGen++;
     badge.req = 0;
     badge.msg = 0;
+    stopRefinery();
   }
 
   document.addEventListener('visibilitychange', function () {

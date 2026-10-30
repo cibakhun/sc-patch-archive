@@ -63,6 +63,16 @@ const COPY = {
     submit: 'Tracking starten', submitBusy: 'Speichere …',
     errForm: 'Wähle Raffinerie, Methode, mindestens ein Erz mit Roh-SCU und eine Bearbeitungszeit über 0.',
     errNet: 'Das hat nicht geklappt. Bitte erneut versuchen.',
+    notifyTitle: 'Benachrichtigungen',
+    nSite: 'Mitteilung auf VerseBase.',
+    nSiteSub: 'Der Konto-Knopf zeigt fertige Aufträge auf jeder Seite, und ein Hinweis erscheint, sobald einer fertig wird.',
+    nDc: 'Discord-Nachricht vom Verse-Bot.',
+    nDcSub: 'Der Bot schreibt dir privat, wenn ein Auftrag fertig ist.',
+    nDcHow: 'Dafür musst du auf dem VerseBase-Discord sein und Direktnachrichten von Servermitgliedern erlauben.',
+    nDcLink: 'Verbinde zuerst Discord in deinem Konto, dann kannst du die Discord-Nachricht anschalten.',
+    nDcLinkBtn: 'Discord verbinden',
+    nSaved: 'Gespeichert.',
+    nUnavailable: 'Benachrichtigungen sind gerade nicht verfügbar.',
     histTitle: 'Historie',
     histEmpty: 'Noch nichts hier. Abgeholte Aufträge erscheinen hier.',
     lDone: 'abgeschlossen', lRefined: 'SCU raffiniert', lCost: 'Kosten', lProfit: 'Netto-Gewinn',
@@ -120,6 +130,16 @@ const COPY = {
     submit: 'Start tracking', submitBusy: 'Saving …',
     errForm: 'Pick a refinery, a method, at least one ore with raw SCU, and a processing time above 0.',
     errNet: 'That did not work. Please try again.',
+    notifyTitle: 'Notifications',
+    nSite: 'Notice on VerseBase.',
+    nSiteSub: 'The account button shows finished orders on every page, and a notice pops up the moment one is done.',
+    nDc: 'Discord message from Verse-Bot.',
+    nDcSub: 'The bot messages you privately when an order is done.',
+    nDcHow: 'You need to be on the VerseBase Discord and allow direct messages from server members.',
+    nDcLink: 'Link Discord in your account first, then you can switch on the Discord message.',
+    nDcLinkBtn: 'Link Discord',
+    nSaved: 'Saved.',
+    nUnavailable: 'Notifications are not available right now.',
     histTitle: 'History',
     histEmpty: 'Nothing here yet. Collected orders show up here.',
     lDone: 'completed', lRefined: 'SCU refined', lCost: 'Cost', lProfit: 'Net profit',
@@ -167,7 +187,7 @@ const systemHref = (s: string) => (SYSTEM_TOPIC[s] ? href(SYSTEM_TOPIC[s], lang)
 const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
 ---
 
-<div class="dsr rf" id="rf" data-lang={lang} data-login={loginHref}>
+<div class="dsr rf" id="rf" data-lang={lang} data-login={loginHref} data-account={href('/account.html', lang) + '#security'}>
   <script type="application/json" id="rfd-copy" is:inline set:html={jsonForScript({ ...COPY, oreHref })} />
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
@@ -236,6 +256,16 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
             <svg class="ck-spark" id="rfd-spark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
           </a>
         </div>
+
+        <section class="ck-col" id="rfd-notify" aria-labelledby="rfd-notify-h" data-help={h('refinerytracker.ctl.notify')}>
+          <h2 class="ck-h" id="rfd-notify-h">{COPY.notifyTitle}</h2>
+          <div class="rf-pad rf-notify">
+            <label class="pf-check"><input type="checkbox" id="rfd-n-site" disabled /><span><b>{COPY.nSite}</b> {COPY.nSiteSub}</span></label>
+            <label class="pf-check"><input type="checkbox" id="rfd-n-dc" disabled /><span><b>{COPY.nDc}</b> {COPY.nDcSub}</span></label>
+            <p class="rf-src" id="rfd-n-hint" hidden></p>
+            <p class="acx-status" id="rfd-n-status" role="status" aria-live="polite" hidden></p>
+          </div>
+        </section>
 
         <div class="rf-cols">
           <section class="ck-col" id="rfd-active-col" aria-labelledby="rfd-active-h">
@@ -506,6 +536,12 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
   .rf-job__note { margin: 8px 0 0; font-size: var(--fs-5); color: var(--muted); font-style: italic; }
   .rf-job__act { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
+  .rf-notify { display: grid; gap: 2px; }
+  .rf-notify .pf-check { margin: 4px 0 8px; }
+  .rf-notify .pf-check b { font-weight: 700; }
+  .rf-notify .rf-src { margin-top: 4px; }
+  .rf-notify .rf-src .btn { margin-left: 8px; vertical-align: middle; }
+  .rf-notify .acx-status { margin-top: 4px; }
   .rf-form { padding: 14px 16px 16px; }
   .rf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .rf-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
@@ -883,6 +919,9 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
       }
     }, 1000);
 
+    // Konto-Knopf (account-lite.js) zaehlt fertige Auftraege; er soll Abholen sofort sehen.
+    const tellNav = () => document.dispatchEvent(new Event('vb:refinery'));
+
     async function collect(id: number, btn: HTMLButtonElement) {
       btn.disabled = true; btn.textContent = '…';
       const at = new Date().toISOString();
@@ -891,6 +930,7 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
       const j = jobs.find((x) => x.id === id);
       if (j) { j.status = 'done'; j.collected_at = at; }
       renderAll();
+      tellNav();
     }
     async function del(id: number) {
       if (!confirm(C.confirmDel)) return;
@@ -898,6 +938,7 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
       if (error) return;
       jobs = jobs.filter((x) => x.id !== id);
       renderAll();
+      tellNav();
     }
     async function update(id: number, patch: Partial<RefineryJob>) {
       const { error } = await supabase.from('refinery_jobs').update(patch).eq('id', id);
@@ -1037,12 +1078,75 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
 
       jobs.unshift(data as RefineryJob);
       renderAll();
+      tellNav();
       form.reset();
       mtags.hidden = true;
       oresBox.textContent = ''; addOreRow();
       updatePreview();
       $('rfd-active-col').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+
+    // ---- Benachrichtigungen (notification_settings) -----------------------
+    // Keine Zeile = Vorgabe: Seite an, Discord aus. Geschrieben wird per
+    // UPDATE, und nur ohne Zeile per INSERT (die Rechte erlauben kein Upsert).
+    // Discord geht nur mit verbundenem Discord; der Bot findet das Konto
+    // ueber discord_role_state.
+    async function initNotify(uid: string) {
+      const site = $('rfd-n-site') as HTMLInputElement;
+      const dc = $('rfd-n-dc') as HTMLInputElement;
+      const hint = $('rfd-n-hint');
+      const status = $('rfd-n-status');
+      const [{ data: prefs, error: prefErr }, { data: dcRow }] = await Promise.all([
+        supabase.from('notification_settings').select('refinery_site, refinery_discord').maybeSingle(),
+        supabase.from('discord_role_state').select('discord_user_id').maybeSingle(),
+      ]);
+      if (prefErr) {
+        status.textContent = C.nUnavailable; status.hidden = false;
+        return;
+      }
+      const linked = !!dcRow?.discord_user_id;
+      site.checked = prefs ? prefs.refinery_site !== false : true;
+      dc.checked = !!prefs?.refinery_discord && linked;
+      site.disabled = false;
+      dc.disabled = !linked;
+
+      const showHint = () => {
+        hint.textContent = '';
+        if (!linked) {
+          const a = el('a', 'btn sm', C.nDcLinkBtn) as HTMLAnchorElement;
+          a.href = root.dataset.account || '#';
+          hint.append(C.nDcLink + ' ', a);
+        } else if (dc.checked) hint.append(C.nDcHow);
+        hint.hidden = !hint.childNodes.length;
+      };
+      showHint();
+
+      let exists = !!prefs;
+      const save = async () => {
+        status.hidden = true;
+        const row = { refinery_site: site.checked, refinery_discord: dc.checked, lang };
+        site.disabled = dc.disabled = true;
+        let error: unknown = null;
+        if (exists) {
+          const r = await supabase.from('notification_settings').update(row).eq('user_id', uid).select('user_id');
+          error = r.error;
+          if (!r.error && !r.data?.length) exists = false;
+        }
+        if (!exists && !error) {
+          const r = await supabase.from('notification_settings').insert(row);
+          error = r.error;
+          if (!error) exists = true;
+        }
+        site.disabled = false; dc.disabled = !linked;
+        status.className = error ? 'acx-status' : 'acx-status acx-status--ok';
+        status.textContent = error ? C.errNet : C.nSaved;
+        status.hidden = false;
+        showHint();
+        if (!error) tellNav();
+      };
+      site.addEventListener('change', save);
+      dc.addEventListener('change', save);
+    }
 
     // ---- Start: angemeldet → Tracker, sonst Anmelde-Knopf -----------------
     const showOut = () => {
@@ -1073,6 +1177,11 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
       updatePreview();
       loadingEl.hidden = true;
       tracker.hidden = false;
+      initNotify(userData.user.id).catch((e) => {
+        console.error('refinery notify init failed', e);
+        const status = $('rfd-n-status');
+        status.textContent = C.nUnavailable; status.hidden = false;
+      });
     };
 
     init().catch((e) => {

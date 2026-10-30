@@ -59,6 +59,9 @@
       "authenticated": ["EXECUTE"],
       "warum": "FriendsDock: Nachrichten als gelesen markieren (security definer, nur eigene)"
     },
+    "function public.notification_settings_stamp()": { "warum": "Triggerfunktion auf notification_settings (Zeitstempel, refinery_discord_since)" },
+    "function public.refinery_discord_due(p_limit integer)": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
+    "function public.refinery_discord_sent(p_ids bigint[])": { "warum": "nur Edge Function bot-role-sync (service_role), 20261030180000" },
     "function public.presence_none_clears()": { "warum": "Triggerfunktion auf profiles (Sichtbarkeit Niemand leert die Zeitpunkte)" },
     "function public.profiles_guard_times()": { "warum": "Triggerfunktion auf profiles (haelt created_at fest, kappt Praesenzzeiten auf now())" },
     "function public.register_rate_ok(p_ip_hash text)": { "warum": "nur Edge Function register (service_role)" },
@@ -146,6 +149,22 @@
     "table public.refinery_jobs": {
       "authenticated": ["DELETE", "INSERT", "SELECT", "UPDATE"],
       "warum": "RefineryDashboard; RLS: eigene Zeilen"
+    },
+    "table public.notification_settings": {
+      "authenticated": ["SELECT"],
+      "warum": "Refinery-Seite und account-lite lesen die eigenen Schalter; geschrieben wird nur ueber die Spaltenrechte darunter (20261030180000)"
+    },
+    "column public.notification_settings.refinery_site": {
+      "authenticated": ["INSERT", "UPDATE"],
+      "warum": "Schalter Mitteilung auf der Seite; RLS: eigene Zeile"
+    },
+    "column public.notification_settings.refinery_discord": {
+      "authenticated": ["INSERT", "UPDATE"],
+      "warum": "Schalter Discord-Nachricht; RLS: eigene Zeile"
+    },
+    "column public.notification_settings.lang": {
+      "authenticated": ["INSERT", "UPDATE"],
+      "warum": "Sprache der Discord-Nachricht; RLS: eigene Zeile"
     },
     "table public.support_progress": {
       "anon": ["SELECT"],

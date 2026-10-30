@@ -6,6 +6,9 @@
 //    listLinked({ discordUserId? })   -> Zeilen verbundener Konten
 //    setTester(discordUserId, bool)   -> { updated }
 //    setStats(discordUserId, patch)   -> { updated }
+//    refineryDue()                    -> faellige Raffinerie-Meldungen
+//    refinerySent(jobIds)             -> { updated }
+//  (die beiden letzten nur fuer refinery-notify.mjs)
 //
 //  Zwei Wege dahinter:
 //
@@ -38,6 +41,21 @@ const SNOWFLAKE = /^\d{17,20}$/;
 
 function assertId(id) {
   if (!SNOWFLAKE.test(String(id ?? ''))) throw new Error(`keine Discord-ID: "${id}"`);
+}
+
+/** 1-100 Auftrags-IDs (positive Ganzzahlen), sonst Fehler vor jedem Aufruf. */
+function cleanJobIds(ids) {
+  const out = [...new Set(ids || [])];
+  if (!out.length || out.length > 100 || !out.every((v) => Number.isSafeInteger(v) && v >= 1)) {
+    throw new Error(`keine gueltigen Auftrags-IDs: ${JSON.stringify(ids).slice(0, 80)}`);
+  }
+  return out;
+}
+
+/** Nur Zeilen mit Discord-ID und Auftrags-ID; der Rest waere nicht zustellbar. */
+function dueRows(rows) {
+  if (!Array.isArray(rows)) throw new Error('refinery_due: Antwort ist keine Liste');
+  return rows.filter((r) => SNOWFLAKE.test(String(r?.discord_user_id ?? '')) && Number.isSafeInteger(r?.job_id));
 }
 
 /** Nur die erlaubten Felder, damit kein Aufrufer versehentlich mehr schreibt. */
@@ -106,6 +124,13 @@ function functionBackend({ url, secret }, fetchImpl, log = console.warn) {
       const out = await call({ op: 'stats', discord_user_id: String(discordUserId), patch: clean });
       return { updated: Number(out?.updated) || 0 };
     },
+    async refineryDue() {
+      return dueRows((await call({ op: 'refinery_due' }))?.rows);
+    },
+    async refinerySent(jobIds) {
+      const out = await call({ op: 'refinery_sent', ids: cleanJobIds(jobIds) });
+      return { updated: Number(out?.updated) || 0 };
+    },
   };
 }
 
@@ -155,7 +180,23 @@ function legacyBackend({ url, key }, fetchImpl) {
       if (!Object.keys(clean).length) return { updated: 0 };
       return patchRow(discordUserId, { ...clean, stats_at: new Date().toISOString() });
     },
+    async refineryDue() {
+      return dueRows(await rpc('refinery_discord_due', { p_limit: 50 }));
+    },
+    async refinerySent(jobIds) {
+      return { updated: Number(await rpc('refinery_discord_sent', { p_ids: cleanJobIds(jobIds) })) || 0 };
+    },
   };
+  async function rpc(name, args) {
+    const res = await fetchImpl(`${url}/rest/v1/rpc/${name}`, {
+      method: 'POST',
+      headers: headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(args),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!res.ok) throw new Error(`Supabase-RPC ${name} ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`);
+    return res.json();
+  }
 }
 
 /** function zuerst, bei "gibt es nicht" einmal legacy fuer DIESEN Aufruf. */
@@ -173,7 +214,11 @@ function withFallback(primary, fallback, log) {
       return fallback[name](...args);
     }
   };
-  return { mode: fallback ? 'function+legacy' : 'function', listLinked: wrap('listLinked'), setTester: wrap('setTester'), setStats: wrap('setStats') };
+  return {
+    mode: fallback ? 'function+legacy' : 'function',
+    listLinked: wrap('listLinked'), setTester: wrap('setTester'), setStats: wrap('setStats'),
+    refineryDue: wrap('refineryDue'), refinerySent: wrap('refinerySent'),
+  };
 }
 
 /**

@@ -33,6 +33,7 @@ export const EXPORT_SPECS: readonly ExportSpec[] = [
   { key: 'favorites', table: 'favorites', own: { col: 'user_id' }, order: 'id' },
   { key: 'crafting_entries', table: 'crafting_entries', own: { col: 'user_id' }, order: 'slug' },
   { key: 'refinery_jobs', table: 'refinery_jobs', own: { col: 'user_id' }, order: 'id' },
+  { key: 'notification_settings', table: 'notification_settings', own: { col: 'user_id' }, order: 'user_id' },
   { key: 'mining_sig_presets', table: 'mining_sig_presets', own: { col: 'user_id' }, order: 'name' },
   { key: 'hangar_layouts', table: 'hangar_layouts', own: { col: 'user_id' }, order: 'id' },
   { key: 'friends', table: 'friends', own: { any: ['user_id', 'friend_id'] }, order: 'id' },

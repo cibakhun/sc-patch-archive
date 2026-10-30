@@ -4,7 +4,7 @@
 // service_role-Schluessel und schrieb per PostgREST direkt in
 // public.discord_role_state — wer den Bot-Host kompromittierte, hatte damit
 // Vollzugriff auf ALLE Tabellen, an RLS vorbei. Jetzt haelt der Bot nur noch
-// ein eigenes Geheimnis, und dieses Geheimnis kann genau drei Dinge:
+// ein eigenes Geheimnis, und dieses Geheimnis kann genau diese Dinge:
 //
 //   {"op":"list"[, "discord_user_id":"…"][, "offset":n]}
 //       -> 200 {"rows":[{discord_user_id, is_tester, in_guild, level, xp,
@@ -18,6 +18,12 @@
 //       -> 200 {"updated":n}   setzt is_tester und updated_at.
 //   {"op":"stats","discord_user_id":"…","patch":{…}}
 //       -> 200 {"updated":n}   setzt die erlaubten Rang-Felder und stats_at.
+//   {"op":"refinery_due"}
+//       -> 200 {"rows":[{job_id, discord_user_id, lang, station, method,
+//          items, ready_at}, …]}   faellige Raffinerie-Meldungen (hoechstens
+//          50), aus public.refinery_discord_due — keine user_id.
+//   {"op":"refinery_sent","ids":[n, …]}
+//       -> 200 {"updated":n}   markiert 1-100 Auftraege als gemeldet.
 //
 // set und stats sind reine UPDATEs per discord_user_id, nie INSERT: die Zeile
 // legt die Datenbank selbst an, wenn ein Konto Discord verknuepft. 0 Zeilen
@@ -30,9 +36,13 @@
 // alten Weg zurueck, damit ein Rollenentzug nie ausfaellt.
 //
 // Antworten: 401 falsches/fehlendes Geheimnis, 405 kein POST, 400 alles, was
-// nicht exakt einer der drei Formen entspricht (unbekannte Schluessel, falsche
+// nicht exakt einer der Formen oben entspricht (unbekannte Schluessel, falsche
 // Typen, leeres patch, Rumpf ueber 2 KB), 500 Datenbankfehler (nur im Log
 // beschriftet). Kein CORS: reine Server-zu-Server-Schnittstelle.
+// Die beiden refinery-Ops lesen und schreiben nur ueber die zwei
+// security-definer-Funktionen der Migration 20261030180000; die Function
+// selbst fasst refinery_jobs nicht an.
+//
 // Version fest gepinnt wie in stripe-webhook und delete-account (vorher @2,
 // also jeweils die neueste 2.x zum Zeitpunkt des Deploys).
 import { createClient } from 'jsr:@supabase/supabase-js@2.118.0';
@@ -119,6 +129,24 @@ Deno.serve(async (req: Request) => {
       const { data, error } = await q;
       if (error) throw error;
       return reply(200, { rows: data ?? [] });
+    }
+
+    if (body.op === 'refinery_due') {
+      if (!onlyKeys(body, ['op'])) return reply(400, { error: 'unknown_field' });
+      const { data, error } = await admin.rpc('refinery_discord_due', { p_limit: 50 });
+      if (error) throw error;
+      return reply(200, { rows: data ?? [] });
+    }
+
+    if (body.op === 'refinery_sent') {
+      if (!onlyKeys(body, ['op', 'ids'])) return reply(400, { error: 'unknown_field' });
+      const ids = body.ids;
+      if (!Array.isArray(ids) || ids.length < 1 || ids.length > 100 || !ids.every((v) => nonNegInt(Number.MAX_SAFE_INTEGER)(v) && (v as number) >= 1)) {
+        return reply(400, { error: 'invalid_ids' });
+      }
+      const { data, error } = await admin.rpc('refinery_discord_sent', { p_ids: ids });
+      if (error) throw error;
+      return reply(200, { updated: Number(data) || 0 });
     }
 
     if (typeof id !== 'string' || !DISCORD_ID_RE.test(id)) return reply(400, { error: 'invalid_discord_user_id' });
