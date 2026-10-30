@@ -8,7 +8,7 @@
 //   SC_STARBREAKER=<pfad zur starbreaker.exe>   (Default siehe unten)
 //   SC_P4K=<pfad zur Data.p4k>
 //
-// Usage:  node scripts/extract-hangar-sources.mjs [ships|ships-matfix|weapons|hall|lift|werkstatt|werkhalle|npc ...] [--ships slug,slug] [--force]
+// Usage:  node scripts/extract-hangar-sources.mjs [ships|ships-matfix|weapons|components|hall|lift|werkstatt|werkhalle|npc ...] [--ships slug,slug] [--force]
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
@@ -117,7 +117,7 @@ const NPCS = [
 const argv = process.argv.slice(2);
 const FORCE = argv.includes('--force');
 const shipArg = argv.includes('--ships') ? argv[argv.indexOf('--ships') + 1].split(',') : null;
-const parts = argv.filter((a) => ['ships', 'ships-matfix', 'weapons', 'hall', 'lift', 'werkstatt', 'werkhalle', 'npc'].includes(a));
+const parts = argv.filter((a) => ['ships', 'ships-matfix', 'weapons', 'components', 'hall', 'lift', 'werkstatt', 'werkhalle', 'npc'].includes(a));
 const want = (p) => !parts.length || parts.includes(p);
 
 if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER} (SC_STARBREAKER setzen)`); process.exit(1); }
@@ -323,6 +323,56 @@ if (want('weapons')) {
     } catch (e) { console.error(`  ! ${v.key} (${stem}): ${e.message}`); fail++; }
   }
   if (fail) console.log(`  ${fail} Waffen ohne Modell`);
+}
+
+// Komponenten für den Tausch (.planning/notes/hangar-komponenten/): wie die
+// Waffen jede Komponente der Werkstatt (Kraftwerk, Kühler, Schild,
+// Quantenantrieb, Radar) in einer Größe, die ein Komponenten-Port eines
+// Schiffs mit Rohexport hat, dazu jede Serienklasse aus ship-loadouts.json,
+// die kein Werkstatt-Teil ist (Schlüssel = Klasse).
+const COMPONENT_CATS = { 'Vehiclegear / Powerplant': 'power', 'Vehiclegear / Cooler': 'cooler', 'Vehiclegear / Shield': 'shield', 'Vehiclegear / Quantumdrive': 'quantum', 'Vehiclegear / Radar': 'radar' };
+if (want('components')) {
+  console.log('Komponenten');
+  const { openP4k } = await import('./lib/p4k.mjs');
+  const { openDataCore } = await import('./lib/datacore.mjs');
+  const root = new URL('../', import.meta.url);
+  const loadouts = JSON.parse(readFileSync(new URL('src/data/ship-loadouts.json', root), 'utf8')).ships;
+  const raw = existsSync(`${SRC}ships`) ? readdirSync(`${SRC}ships`).filter((f) => f.endsWith('.glb')).map((f) => f.slice(0, -4)) : [];
+  const cats = new Set(Object.values(COMPONENT_CATS));
+  const sizes = new Map(), stockCls = new Set();
+  for (const slug of raw) for (const items of Object.values(loadouts[slug] ?? {})) for (const it of items) {
+    if (!cats.has(it.cat) || !it.cls) continue;
+    stockCls.add(it.cls.toLowerCase());
+    if (it.size >= 0) sizes.set(it.cat, (sizes.get(it.cat) ?? new Set()).add(it.size));
+  }
+  const all = JSON.parse(readFileSync(new URL('assets/universal-items.json', root), 'utf8'));
+  const p4k = openP4k(P4K);
+  const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
+  p4k.close();
+  const want2 = [];
+  for (const it of Array.isArray(all) ? all : all.items ?? Object.values(all)) {
+    const cat = COMPONENT_CATS[it.category];
+    if (!cat || /placeholder|<=|=>|\bTBD\b/i.test(it.name)) continue;
+    const g = it.game ?? {};
+    const vs = g.variants?.length ? g.variants.map((v) => ({ size: v.size, guid: v.guid, key: `${it.id}~${v.size}` })) : [{ size: g.size, guid: g.guid, key: it.id }];
+    for (const v of vs) {
+      const stem = v.guid && db.recordById.get(v.guid)?.name?.replace(/^EntityClassDefinition\./, '');
+      if (stem && (sizes.get(cat)?.has(v.size) || stockCls.has(stem.toLowerCase()))) want2.push({ ...v, cat, stem });
+    }
+  }
+  const covered = new Set(want2.map((v) => v.stem.toLowerCase()));
+  const byStem = new Map(db.records.filter((r) => r.name.startsWith('EntityClassDefinition.')).map((r) => [r.name.slice(22).toLowerCase(), r.name.slice(22)]));
+  for (const cls of stockCls) if (!covered.has(cls) && byStem.has(cls)) want2.push({ key: byStem.get(cls), stem: byStem.get(cls), cat: null, stock: true });
+  console.log(`  ${want2.length} Komponenten (${want2.filter((v) => v.stock).length} Serienklassen ohne Werkstatt-Teil) aus ${raw.length} Schiffen`);
+  let fail = 0;
+  for (const v of want2) {
+    const file = `${SRC}components/${v.key.replace('~', '-s')}.glb`;
+    try {
+      exportTo(file, ['entity', 'export', v.stem]);
+      writeFileSync(file.replace(/\.glb$/, '.json'), JSON.stringify({ key: v.key, stem: v.stem, cat: v.cat }) + '\n');
+    } catch (e) { console.error(`  ! ${v.key} (${v.stem}): ${e.message}`); fail++; }
+  }
+  if (fail) console.log(`  ${fail} Komponenten ohne Modell`);
 }
 
 // Halle und Aufzug: socpak-Export mit Lichtprotokoll, Materialnachtrag, Texturen

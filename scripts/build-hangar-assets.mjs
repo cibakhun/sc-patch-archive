@@ -74,6 +74,9 @@ const BUDGET = {
   // Bordwaffen für den Tausch in der Layout-Werkstatt: klein am Schiff,
   // aus der Nähe aber angesehen (NDB-30 roh: 12.763 Dreiecke, 56 Texturen)
   weapons: { tris: 12000, tex: 256, ntex: 128 },
+  // Komponenten (Kraftwerk, Kühler, Schild, Quantenantrieb, Radar) für den
+  // Tausch wie die Waffen; man sieht sie nur von innen
+  components: { tris: 4000, tex: 256, ntex: 128 },
   // Aufzugsschacht: Bausatzteile, nie dezimiert; Grenze = Warnschwelle
   lift: { tris: 60000, tex: 1024, ntex: 512 },
   // Werkhalle für Bodenfahrzeuge (.planning/notes/hangar-werkhalle.md): wie
@@ -564,51 +567,108 @@ const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|tabl
 // matrix der Waffenwurzel } und einen Namen, damit join() ihn nicht in den
 // Rumpf schmilzt. Alles andere verliert seinen Namen und wird wie bisher
 // zusammengelegt. Vor flatten() aufrufen: danach fehlt die Hierarchie.
+// Komponenten (.planning/notes/hangar-komponenten/) ebenso, mit extras.cat;
+// trägt der Export am Port kein Serienteil, bleibt ein leerer Anker an der
+// Matrix des Port-Helfers (empty, nach dem letzten prune() eingesetzt, sonst
+// räumt prune() den Knoten ohne Netz weg). Das Standardteil kommt dann zur
+// Laufzeit, nicht in den Rumpf.
 const LOADOUTS = JSON.parse(readFileSync(new URL('../src/data/ship-loadouts.json', import.meta.url), 'utf8')).ships;
+const COMPONENT_CATS = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 const round5 = (m) => Array.from(m, (v) => Math.round(v * 1e5) / 1e5);
 function markSwapParts(doc, slug) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
   const named = new Set();
-  const ports = {};
+  const ports = {}, components = {}, empty = [], detail = [], seen = new Set();
   let nodes = 0;
   for (const hp of root.listNodes()) {
     const hit = stock.get(hp.getName().toLowerCase());
     if (!hit) continue;
     const [port, items] = hit;
     items.forEach((it, i) => {
-      if (it.cat !== 'weapon' || !it.cls) return;
+      const comp = COMPONENT_CATS.has(it.cat);
+      if ((it.cat !== 'weapon' && !comp) || !it.cls) return;
+      const key = items.length > 1 ? `${port}.${i}` : port;
+      // gleichnamige Helfer: Komponenten nur am ersten (ein Anker je Port)
+      if (comp && seen.has(key)) return;
+      seen.add(key);
       const want = it.cls.toLowerCase();
       const roots = [];
       const walk = (n) => { for (const c of n.listChildren()) { if (c.getName().toLowerCase() === want) roots.push(c); else walk(c); } };
       walk(hp);
+      let tris = 0;
       roots.forEach((r, inst) => {
         const anchor = round5(r.getWorldMatrix());
+        // Komponenten: ein eigenes Item darunter (Sprungmodul am Quantenantrieb,
+        // aus dem Loadout des Schiffs) gehört nicht zum Tauschteil
+        const own = (n) => { for (let p = n; p && p !== r; p = p.getParentNode()) if (/_SCItem$/i.test(p.getName())) return false; return true; };
         r.traverse((n) => {
-          if (!n.getMesh()) return;
-          n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor });
+          if (!n.getMesh() || (comp && !own(n))) return;
+          tris += n.getMesh().listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
+          n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}) });
           n.setName(`swap_${nodes++}`);
           named.add(n);
           n.getMesh().setName(n.getName());
         });
       });
-      if (roots.length) ports[items.length > 1 ? `${port}.${i}` : port] = roots.length;
+      if (roots.length) (comp ? components : ports)[key] = roots.length;
+      if (!comp) return;
+      const H = hp.getWorldMatrix(), R = roots[0]?.getWorldMatrix();
+      if (!roots.length) empty.push({ swap: port, item: i, inst: 0, anchor: round5(H), cat: it.cat });
+      detail.push({ port, item: i, cat: it.cat, cls: it.cls, geometry: roots.length, tris, at: [H[12], H[13], H[14]].map((v) => Math.round(v * 1000) / 1000), ...(R ? { rootOff: Math.round(Math.hypot(R[12] - H[12], R[13] - H[13], R[14] - H[14]) * 1000) / 1000 } : {}) });
     });
   }
-  for (const n of root.listNodes()) if (!named.has(n) && !n.getExtras()?.interior) n.setName('');
+  for (const n of root.listNodes()) if (!named.has(n) && !n.getExtras()?.interior && !n.getExtras()?.placed) n.setName('');
   const keep = new Set([...named].map((n) => n.getMesh()));
-  for (const m of root.listMeshes()) if (!keep.has(m)) m.setName('');
-  return { ports, nodes };
+  for (const m of root.listMeshes()) if (!keep.has(m) && !/^swap_placed_/.test(m.getName())) m.setName('');
+  return { ports, components, empty, detail, nodes };
+}
+// Komponenten-Ports mit der Lage ihres Helfers, solange der Rumpf noch da
+// ist (der Innenraum-Bau nimmt ihn mit keepInteriorOnly weg)
+function componentPorts(doc, slug) {
+  const ports = Object.entries(LOADOUTS[slug] ?? {}).flatMap(([port, items]) => items.map((it, item) => ({ port, item, cat: it.cat })).filter((x) => COMPONENT_CATS.has(x.cat)));
+  const out = [];
+  for (const p of ports) {
+    const hp = doc.getRoot().listNodes().find((n) => n.getName().toLowerCase() === p.port.toLowerCase() && !inContainer(n));
+    if (hp) out.push({ ...p, H: hp.getWorldMatrix() });
+  }
+  return out;
+}
+// Container tragen bei manchen Schiffen Komponenten als feste Platzierung
+// (Centurion, Spartan: Kraftwerk; Hull C: Radar). Liegt eine davon am
+// Helfer eines Ports ihrer Art (0,75 m), gehört sie zu diesem Port: extras
+// wie ein Tauschteil (placed: true), damit der Tausch sie ausblendet und
+// das Standardteil nicht doppelt erscheint. Erkannt an der Geometrie der
+// Komponente selbst (powr_/cool_/shld_/qdrv_/radr_), nicht an Gehäusen oder
+// Schildern. Nach cleanMaterials (leert die Knoten-Extras) aufrufen.
+const PLACED_PATH = { power: /[\\/]powr_/i, cooler: /[\\/]cool_/i, shield: /[\\/]shld_/i, quantum: /[\\/]qdrv_/i, radar: /[\\/]radr_/i };
+// unter einem Container interior_* (Kind des obersten Knotens), nicht unter
+// einem gleichnamigen Helfer des Rumpfs (Gladius: interior_cockpit)
+const inContainer = (n) => { for (let p = n; p; p = p.getParentNode()) { const q = p.getParentNode(); if (q && !q.getParentNode() && /^interior_/i.test(p.getName())) return true; } return false; };
+function markPlacedComponents(doc, ports) {
+  let n = 0;
+  for (const node of doc.getRoot().listNodes()) {
+    const mesh = node.getMesh();
+    if (!mesh || node.getExtras()?.swap || !inContainer(node)) continue;
+    const name = mesh.getName();
+    const W = node.getWorldMatrix();
+    const hit = ports.find((p) => PLACED_PATH[p.cat].test(name) && Math.hypot(W[12] - p.H[12], W[13] - p.H[13], W[14] - p.H[14]) < 0.75);
+    if (!hit) continue;
+    node.setExtras({ ...node.getExtras(), swap: hit.port, item: hit.item, inst: 0, anchor: round5(hit.H), cat: hit.cat, placed: true }).setName(`swap_placed_${n}`);
+    mesh.setName(node.getName());
+    n++;
+  }
+  return n;
 }
 
 // Bordwaffe: auf den Rahmen ihrer Wurzel umrechnen (Knoten mit dem Entity-
 // Namen aus <datei>.json, sonst das einzige Kind der Szenenwurzel). Der
 // Viewer setzt sie dann mit der anchor-Matrix des Ports ins Schiff, und
 // Achsdrehung wie Halterung kürzen sich heraus.
-function prepareWeapon(doc, name) {
+function prepareWeapon(doc, name, kind = 'weapons') {
   const root = doc.getRoot();
   const scene = root.listScenes()[0];
-  const metaFile = fileURLToPath(new URL(`weapons/${name}.json`, SRC));
+  const metaFile = fileURLToPath(new URL(`${kind}/${name}.json`, SRC));
   const meta = existsSync(metaFile) ? JSON.parse(readFileSync(metaFile, 'utf8')) : {};
   const stem = (meta.stem || '').toLowerCase();
   let base = stem ? root.listNodes().find((n) => n.getName().toLowerCase() === stem) : null;
@@ -1827,7 +1887,7 @@ async function buildOne(kind, name, inPath) {
   const root = doc.getRoot();
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
-  const weapon = kind === 'weapons' ? prepareWeapon(doc, name) : null;
+  const weapon = kind === 'weapons' || kind === 'components' ? prepareWeapon(doc, name, kind) : null;
   const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
   // keepAttributes: die Texturen hängen erst danach; ohne das wirft prune
   // TEXCOORD_0 als unbenutzt weg (Schacht-Tiefe: Wände ohne UVs)
@@ -1851,6 +1911,7 @@ async function buildOne(kind, name, inPath) {
   const gearPose = ship ? shipGear(doc, name) : null;
   if (ship) dropUnreachable(doc);
   const placement = ship ? placeContainers(doc, name) : null;
+  const compPorts = ship ? componentPorts(doc, name) : [];
   const b = inner ? interiorBudget(name) : kind === 'ships' ? shipBudget(name) : BUDGET[kind];
   const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : null;
   const innerInfo = inner ? keepInteriorOnly(doc) : null;
@@ -1886,7 +1947,10 @@ async function buildOne(kind, name, inPath) {
   // Namen); was vom Innenraum im Rumpf bleibt (ganz oder hinter dem Glas)
   const interiorMarked = kind === 'ships' ? markInterior(doc) : 0;
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
+  const placedComp = ship ? markPlacedComponents(doc, compPorts) : 0;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
+  // je Komponenten-Port Lage, Klasse und ob der Export ein Teil trägt (Bericht, nicht ausgeliefert)
+  if (swap) { const d = new URL('../hangar-komponenten/', SRC); mkdirSync(d, { recursive: true }); writeFileSync(new URL(`${name}.json`, d), JSON.stringify(swap.detail, null, 1)); }
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || ship || werk }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
@@ -1951,12 +2015,14 @@ async function buildOne(kind, name, inPath) {
   // Nur noch das Nötige ankündigen
   doc.createExtension(KHRDracoMeshCompression).setRequired(true);
   doc.createExtension(EXTTextureWebP).setRequired(true);
+  // leere Komponenten-Anker erst jetzt: prune() nähme Knoten ohne Netz weg
+  if (swap?.empty.length) for (const [i, e] of swap.empty.entries()) root.listScenes()[0].addChild(doc.createNode(`swap_anchor_${i}`).setExtras(e));
 
   mkdirSync(new URL(`${kind}/`, OUT), { recursive: true });
   const outPath = fileURLToPath(new URL(`${kind}/${name}.glb`, OUT));
   await io.write(outPath, doc);
-  // Schiffe: Bilder in die gemeinsame Ablage, im GLB nur der Verweis
-  const pooled = ship ? poolGlbFile(outPath, SHIP_POOL) : null;
+  // Schiffe und Komponenten: Bilder in die gemeinsame Ablage, im GLB nur der Verweis
+  const pooled = ship || kind === 'components' ? poolGlbFile(outPath, SHIP_POOL) : null;
   // Selbstauskunft gegen das geschriebene Artefakt, nicht gegen den Zwischenstand
   const written = await io.read(outPath);
   const uvDeg = degenerateUvShare(written.getRoot());
@@ -1997,6 +2063,8 @@ async function buildOne(kind, name, inPath) {
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
     ...(swap ? { swap: swap.ports, swapNodes: swap.nodes } : {}),
+    ...(swap && (Object.keys(swap.components).length || swap.empty.length) ? { swapComp: swap.components, swapEmpty: swap.empty.length } : {}),
+    ...(placedComp ? { swapPlaced: placedComp } : {}),
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
@@ -3072,7 +3140,7 @@ try { prev = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* erster Lau
 // den ersten Eintrag unter hall als Halle.
 const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
-const manifest = { ships: {}, interior: {}, weapons: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
+const manifest = { ships: {}, interior: {}, weapons: {}, components: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
 let built = 0, reused = 0;
 const webShip = (name) => !!prev.ships?.[name] || SHIPS_ARG.includes(name) || SHIPS_ARG.includes('all');
 for (const kind of Object.keys(BUDGET)) {
@@ -3117,6 +3185,7 @@ for (const kind of Object.keys(BUDGET)) {
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB${r.pool ? ` + ${r.pool.images} Bilder ${(r.pool.bytes / 1048576).toFixed(2)} MB (neu in der Ablage ${(r.pool.fresh / 1048576).toFixed(2)} MB)` : ''}`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
       if (r.swap) console.log(`    Tauschteile: ${Object.keys(r.swap).length} Waffen-Ports (${Object.values(r.swap).reduce((a, b) => a + b, 0)} Exemplare, ${r.swapNodes} Knoten)${Object.keys(r.swap).length ? '' : ' — WARNUNG: keine Serienwaffe im Rohexport gefunden'}`);
+      if (r.swapComp) console.log(`    Komponenten: ${Object.keys(r.swapComp).length} Ports mit Serienteil, ${r.swapEmpty} leere Anker`);
       if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
       if (kind === 'ships') console.log(`    Quelle: ${r.record ?? 'Rohexport ohne Sidecar'}${r.game ? ` (CL ${r.game})` : ''}, Innenraum ${r.interiorDropped ? `${r.interiorDropped} Container entfernt${r.interiorKept ? `, hinter Glas behalten ${r.interiorKept.nodes} Knoten mit ${r.interiorKept.tris} Dreiecken` : ''}` : 'behalten'}`);
       if (kind === 'ships' && r.matfix) console.log(`    Materialnachtrag: ${r.matfix.fixed} Primitive (${r.matfix.reused} auf Materialien des Exports, ${r.matfix.created} neue Materialien, ${r.matfix.layered ?? 0} mit Schichtkarten), ${r.matfix.dropped} NoDraw entfernt; ohne Material ${r.cover.before.trisOhneMaterial} -> ${r.cover.after.trisOhneMaterial} Dreiecke`);
@@ -3182,9 +3251,9 @@ if (existsSync(new URL('ships/', SRC)) && existsSync(`${PAINT_DIR}tex`)) {
   for (const f of stale) rmSync(`${PAINT_DIR}tex/${f}`);
   console.log(`  Lackkarten: ${used.size} in Gebrauch, ${stale.length} verwaiste entfernt`);
 }
-// Schiffsbilder, auf die kein Schiff mehr zeigt, ebenso nur dort entfernen
-if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships' || KIND === 'interior')) {
-  const r = prunePool(SHIP_POOL.poolDir, ['ships/', 'interior/'].map((d) => fileURLToPath(new URL(d, OUT))).filter((d) => existsSync(d)), SHIP_POOL.uriPrefix);
+// Schiffsbilder, auf die kein Schiff und keine Komponente mehr zeigt, ebenso nur dort entfernen
+if (existsSync(new URL('ships/', SRC)) && (!KIND || KIND === 'ships' || KIND === 'interior' || KIND === 'components')) {
+  const r = prunePool(SHIP_POOL.poolDir, ['ships/', 'interior/', 'components/'].map((d) => fileURLToPath(new URL(d, OUT))).filter((d) => existsSync(d)), SHIP_POOL.uriPrefix);
   console.log(`  Schiffsbilder: ${r.used} in Gebrauch, ${r.removed.length} verwaiste entfernt`);
 }
 // Werkstatt: eigene Quelle (zwei Stufen eines Hangars), nur bei Bedarf neu

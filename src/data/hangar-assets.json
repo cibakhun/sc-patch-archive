@@ -119,7 +119,7 @@
     },
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "ac1b2444",
+      "v": "fa82824c",
       "tris": 210138,
       "trisRaw": 289558,
       "textures": 336,
@@ -130,6 +130,8 @@
         "hardpoint_weapon_class2_nose": 1
       },
       "swapNodes": 14,
+      "swapComp": {},
+      "swapEmpty": 7,
       "palette": {
         "1": 3,
         "2": 3,
@@ -169,7 +171,7 @@
         "bits": 17,
         "degenerate": 1.6
       },
-      "bytes": 2132292,
+      "bytes": 2133456,
       "pool": {
         "images": 336,
         "bytes": 15366328,
@@ -400,8 +402,8 @@
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "ff1cada4",
-      "tris": 234067,
+      "v": "fad7eac8",
+      "tris": 231731,
       "trisRaw": 417041,
       "textures": 283,
       "attached": 0,
@@ -410,7 +412,15 @@
         "hardpoint_gun_right_wing": 1,
         "hardpoint_gun_left_wing": 1
       },
-      "swapNodes": 9,
+      "swapNodes": 17,
+      "swapComp": {
+        "hardpoint_quantum_drive": 1,
+        "hardpoint_radar": 1,
+        "hardpoint_power_plant": 1,
+        "hardpoint_cooler_right": 1,
+        "hardpoint_cooler_left": 1
+      },
+      "swapEmpty": 2,
       "palette": {
         "1": 3,
         "2": 4,
@@ -450,7 +460,7 @@
         "bits": 20,
         "degenerate": 2.6
       },
-      "bytes": 2671136,
+      "bytes": 2661392,
       "pool": {
         "images": 283,
         "bytes": 10598884,
@@ -2110,8 +2120,8 @@
     },
     "anvl-carrack": {
       "url": "/hangar/ships/anvl-carrack.glb",
-      "v": "045f581c",
-      "tris": 669491,
+      "v": "63b39bc2",
+      "tris": 665112,
       "trisRaw": 2491249,
       "textures": 266,
       "attached": 0,
@@ -2121,7 +2131,14 @@
         "hardpoint_turret_left": 2,
         "hardpoint_turret_right": 2
       },
-      "swapNodes": 32,
+      "swapNodes": 36,
+      "swapComp": {
+        "hardpoint_cooler_l": 1,
+        "hardpoint_cooler_r": 1,
+        "hardpoint_power_plant_01": 1,
+        "hardpoint_quantum_drive": 1
+      },
+      "swapEmpty": 4,
       "palette": {
         "1": 9,
         "2": 7,
@@ -2130,6 +2147,14 @@
       "record": "ANVL_Carrack",
       "game": "12913470",
       "interiorDropped": 3,
+      "containerPlace": {
+        "placed": 4,
+        "moved": 3,
+        "byOffset": 4,
+        "byHelper": 0,
+        "dup": 15,
+        "dupTris": 7064
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2154,7 +2179,7 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 6395644,
+      "bytes": 6342264,
       "pool": {
         "images": 266,
         "bytes": 11497312,
@@ -5712,7 +5737,7 @@
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "73063755",
+      "v": "0bcefe53",
       "tris": 325241,
       "trisRaw": 749280,
       "textures": 239,
@@ -5726,6 +5751,8 @@
         "hardpoint_turret": 2
       },
       "swapNodes": 38,
+      "swapComp": {},
+      "swapEmpty": 6,
       "palette": {
         "1": 3,
         "2": 3,
@@ -5734,6 +5761,12 @@
       "record": "DRAK_Cutlass_Black",
       "game": "12913470",
       "interiorDropped": 2,
+      "containerPlace": {
+        "placed": 3,
+        "moved": 3,
+        "byOffset": 3,
+        "byHelper": 0
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5758,7 +5791,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 3706000,
+      "bytes": 3707072,
       "pool": {
         "images": 239,
         "bytes": 10726208,
@@ -10949,8 +10982,8 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "693699a2",
-      "tris": 824784,
+      "v": "b105cc13",
+      "tris": 816702,
       "trisRaw": 1960624,
       "textures": 331,
       "attached": {
@@ -10994,7 +11027,16 @@
         "hardpoint_gun_laser_bottom_right": 1,
         "hardpoint_gun_laser_bottom_left": 1
       },
-      "swapNodes": 32,
+      "swapNodes": 38,
+      "swapComp": {
+        "hardpoint_powerplant_left": 1,
+        "hardpoint_quantum_drive": 1,
+        "hardpoint_cooler_right": 1,
+        "hardpoint_radar": 1,
+        "hardpoint_powerplant_right": 1,
+        "hardpoint_cooler_left": 1
+      },
+      "swapEmpty": 1,
       "palette": {
         "1": 11,
         "2": 12,
@@ -11003,6 +11045,12 @@
       "record": "RSI_Constellation_Andromeda_GS",
       "game": "12913470",
       "interiorDropped": 10,
+      "containerPlace": {
+        "placed": 10,
+        "moved": 9,
+        "byOffset": 9,
+        "byHelper": 1
+      },
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -11032,7 +11080,7 @@
         "bits": 21,
         "degenerate": 2.7
       },
-      "bytes": 8577420,
+      "bytes": 8566208,
       "pool": {
         "images": 331,
         "bytes": 14771424,
@@ -12475,13 +12523,15 @@
     },
     "tmbl-cyclone": {
       "url": "/hangar/ships/tmbl-cyclone.glb",
-      "v": "439387e1",
+      "v": "d4420cae",
       "tris": 143637,
       "trisRaw": 146440,
       "textures": 83,
       "attached": 0,
       "swap": {},
       "swapNodes": 0,
+      "swapComp": {},
+      "swapEmpty": 4,
       "palette": {
         "1": 3,
         "2": 3,
@@ -12490,6 +12540,12 @@
       "record": "TMBL_Cyclone",
       "game": "12913470",
       "interiorDropped": 0,
+      "containerPlace": {
+        "placed": 2,
+        "moved": 0,
+        "byOffset": 0,
+        "byHelper": 2
+      },
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -12508,7 +12564,7 @@
         "bits": 17,
         "degenerate": 1.4
       },
-      "bytes": 986948,
+      "bytes": 987604,
       "pool": {
         "images": 83,
         "bytes": 5094524,
@@ -847936,6 +847992,7532 @@
         "images": 0,
         "bytes": 0,
         "fresh": 0
+      }
+    }
+  },
+  "components": {
+    "5ca-akura": {
+      "url": "/hangar/components/5ca-akura.glb",
+      "v": "a5365822",
+      "tris": 4021,
+      "trisRaw": 7427,
+      "textures": 15,
+      "attached": 0,
+      "key": "5ca-akura",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 55208,
+      "pool": {
+        "images": 15,
+        "bytes": 144722,
+        "fresh": 127582
+      }
+    },
+    "5ma-chimalli": {
+      "url": "/hangar/components/5ma-chimalli.glb",
+      "v": "abb1197a",
+      "tris": 4020,
+      "trisRaw": 7426,
+      "textures": 15,
+      "attached": 0,
+      "key": "5ma-chimalli",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 55200,
+      "pool": {
+        "images": 15,
+        "bytes": 144722,
+        "fresh": 0
+      }
+    },
+    "5sa-rhada": {
+      "url": "/hangar/components/5sa-rhada.glb",
+      "v": "46591039",
+      "tris": 4373,
+      "trisRaw": 7426,
+      "textures": 13,
+      "attached": 0,
+      "key": "5sa-rhada",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 57256,
+      "pool": {
+        "images": 13,
+        "bytes": 122482,
+        "fresh": 39054
+      }
+    },
+    "6ca-bila": {
+      "url": "/hangar/components/6ca-bila.glb",
+      "v": "534eaea9",
+      "tris": 4040,
+      "trisRaw": 8135,
+      "textures": 14,
+      "attached": 0,
+      "key": "6ca-bila",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.4
+      },
+      "bytes": 54748,
+      "pool": {
+        "images": 14,
+        "bytes": 145256,
+        "fresh": 25642
+      }
+    },
+    "6ma-kozane": {
+      "url": "/hangar/components/6ma-kozane.glb",
+      "v": "81ca762b",
+      "tris": 4033,
+      "trisRaw": 8134,
+      "textures": 14,
+      "attached": 0,
+      "key": "6ma-kozane",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.22,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 54876,
+      "pool": {
+        "images": 14,
+        "bytes": 145256,
+        "fresh": 0
+      }
+    },
+    "6sa-arbiter": {
+      "url": "/hangar/components/6sa-arbiter.glb",
+      "v": "377e9f91",
+      "tris": 4059,
+      "trisRaw": 8135,
+      "textures": 12,
+      "attached": 0,
+      "key": "6sa-arbiter",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.24,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 54136,
+      "pool": {
+        "images": 12,
+        "bytes": 118330,
+        "fresh": 0
+      }
+    },
+    "7ca-nargun": {
+      "url": "/hangar/components/7ca-nargun.glb",
+      "v": "80f32cf6",
+      "tris": 4046,
+      "trisRaw": 8075,
+      "textures": 21,
+      "attached": 0,
+      "key": "7ca-nargun",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 58712,
+      "pool": {
+        "images": 21,
+        "bytes": 151668,
+        "fresh": 20240
+      }
+    },
+    "7ma-lorica": {
+      "url": "/hangar/components/7ma-lorica.glb",
+      "v": "7838720c",
+      "tris": 4031,
+      "trisRaw": 8074,
+      "textures": 21,
+      "attached": 0,
+      "key": "7ma-lorica",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 59076,
+      "pool": {
+        "images": 21,
+        "bytes": 151668,
+        "fresh": 0
+      }
+    },
+    "7sa-concord": {
+      "url": "/hangar/components/7sa-concord.glb",
+      "v": "c477f533",
+      "tris": 4021,
+      "trisRaw": 8075,
+      "textures": 19,
+      "attached": 0,
+      "key": "7sa-concord",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 58424,
+      "pool": {
+        "images": 19,
+        "bytes": 124348,
+        "fresh": 0
+      }
+    },
+    "abetti": {
+      "url": "/hangar/components/abetti.glb",
+      "v": "f0de3551",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "abetti",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 68654
+      }
+    },
+    "absolutezero": {
+      "url": "/hangar/components/absolutezero.glb",
+      "v": "b38322cd",
+      "tris": 4297,
+      "trisRaw": 7844,
+      "textures": 7,
+      "attached": 0,
+      "key": "absolutezero",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 42108,
+      "pool": {
+        "images": 7,
+        "bytes": 46568,
+        "fresh": 45214
+      }
+    },
+    "agni": {
+      "url": "/hangar/components/agni.glb",
+      "v": "3551cfc8",
+      "tris": 4305,
+      "trisRaw": 5125,
+      "textures": 15,
+      "attached": 0,
+      "key": "agni",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.5
+      },
+      "bytes": 56484,
+      "pool": {
+        "images": 15,
+        "bytes": 143620,
+        "fresh": 141220
+      }
+    },
+    "agrippa": {
+      "url": "/hangar/components/agrippa.glb",
+      "v": "84cf5680",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "agrippa",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "agure": {
+      "url": "/hangar/components/agure.glb",
+      "v": "29e7c0df",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "agure",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "aither": {
+      "url": "/hangar/components/aither.glb",
+      "v": "75629743",
+      "tris": 4206,
+      "trisRaw": 6472,
+      "textures": 17,
+      "attached": 0,
+      "key": "aither",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 53768,
+      "pool": {
+        "images": 17,
+        "bytes": 122718,
+        "fresh": 1438
+      }
+    },
+    "algid": {
+      "url": "/hangar/components/algid.glb",
+      "v": "927ca031",
+      "tris": 48,
+      "trisRaw": 48,
+      "textures": 1,
+      "attached": 0,
+      "key": "algid",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 75
+      },
+      "bytes": 5096,
+      "pool": {
+        "images": 1,
+        "bytes": 72,
+        "fresh": 0
+      }
+    },
+    "allstop": {
+      "url": "/hangar/components/allstop.glb",
+      "v": "94438bb5",
+      "tris": 4050,
+      "trisRaw": 9436,
+      "textures": 11,
+      "attached": 0,
+      "key": "allstop",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 1.8
+      },
+      "bytes": 55128,
+      "pool": {
+        "images": 11,
+        "bytes": 111966,
+        "fresh": 9492
+      }
+    },
+    "anysta": {
+      "url": "/hangar/components/anysta.glb",
+      "v": "fa04cf53",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "anysta",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "arctic": {
+      "url": "/hangar/components/arctic.glb",
+      "v": "778171db",
+      "tris": 4145,
+      "trisRaw": 8987,
+      "textures": 12,
+      "attached": 0,
+      "key": "arctic",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 48652,
+      "pool": {
+        "images": 12,
+        "bytes": 62988,
+        "fresh": 43796
+      }
+    },
+    "arcticstorm": {
+      "url": "/hangar/components/arcticstorm.glb",
+      "v": "2818181e",
+      "tris": 5691,
+      "trisRaw": 11415,
+      "textures": 14,
+      "attached": 0,
+      "key": "arcticstorm",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 63196,
+      "pool": {
+        "images": 14,
+        "bytes": 125526,
+        "fresh": 74220
+      }
+    },
+    "armada": {
+      "url": "/hangar/components/armada.glb",
+      "v": "a0415227",
+      "tris": 5045,
+      "trisRaw": 10925,
+      "textures": 12,
+      "attached": 0,
+      "key": "armada",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.08,
+        "bits": 13,
+        "degenerate": 1.5
+      },
+      "bytes": 60896,
+      "pool": {
+        "images": 12,
+        "bytes": 107626,
+        "fresh": 5802
+      }
+    },
+    "armor": {
+      "url": "/hangar/components/armor.glb",
+      "v": "cb52d913",
+      "tris": 4062,
+      "trisRaw": 9047,
+      "textures": 14,
+      "attached": 0,
+      "key": "armor",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.5
+      },
+      "bytes": 61040,
+      "pool": {
+        "images": 14,
+        "bytes": 104166,
+        "fresh": 1658
+      }
+    },
+    "aspis": {
+      "url": "/hangar/components/aspis.glb",
+      "v": "414fe260",
+      "tris": 4577,
+      "trisRaw": 10069,
+      "textures": 14,
+      "attached": 0,
+      "key": "aspis",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.12,
+        "bits": 13,
+        "degenerate": 1.9
+      },
+      "bytes": 58096,
+      "pool": {
+        "images": 14,
+        "bytes": 140506,
+        "fresh": 33836
+      }
+    },
+    "atlas": {
+      "url": "/hangar/components/atlas.glb",
+      "v": "dd4696a7",
+      "tris": 4340,
+      "trisRaw": 6744,
+      "textures": 16,
+      "attached": 0,
+      "key": "atlas",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 3.5
+      },
+      "bytes": 57356,
+      "pool": {
+        "images": 16,
+        "bytes": 123110,
+        "fresh": 0
+      }
+    },
+    "aufeis": {
+      "url": "/hangar/components/aufeis.glb",
+      "v": "010a0d42",
+      "tris": 4495,
+      "trisRaw": 12793,
+      "textures": 17,
+      "attached": 0,
+      "key": "aufeis",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.8
+      },
+      "bytes": 55476,
+      "pool": {
+        "images": 17,
+        "bytes": 169942,
+        "fresh": 49518
+      }
+    },
+    "avalanche": {
+      "url": "/hangar/components/avalanche.glb",
+      "v": "30951cb3",
+      "tris": 4137,
+      "trisRaw": 8987,
+      "textures": 12,
+      "attached": 0,
+      "key": "avalanche",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 48648,
+      "pool": {
+        "images": 12,
+        "bytes": 62988,
+        "fresh": 0
+      }
+    },
+    "backlund": {
+      "url": "/hangar/components/backlund.glb",
+      "v": "c781fc35",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "backlund",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "balandin": {
+      "url": "/hangar/components/balandin.glb",
+      "v": "f35ef60c",
+      "tris": 4349,
+      "trisRaw": 6281,
+      "textures": 8,
+      "attached": 0,
+      "key": "balandin",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.5
+      },
+      "bytes": 44528,
+      "pool": {
+        "images": 8,
+        "bytes": 86932,
+        "fresh": 42582
+      }
+    },
+    "bamoty": {
+      "url": "/hangar/components/bamoty.glb",
+      "v": "5a229354",
+      "tris": 4266,
+      "trisRaw": 12071,
+      "textures": 16,
+      "attached": 0,
+      "key": "bamoty",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 57008,
+      "pool": {
+        "images": 16,
+        "bytes": 120580,
+        "fresh": 19560
+      }
+    },
+    "barbican": {
+      "url": "/hangar/components/barbican.glb",
+      "v": "417fc053",
+      "tris": 3991,
+      "trisRaw": 5663,
+      "textures": 8,
+      "attached": 0,
+      "key": "barbican",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.5
+      },
+      "bytes": 47376,
+      "pool": {
+        "images": 8,
+        "bytes": 45836,
+        "fresh": 1514
+      }
+    },
+    "battani": {
+      "url": "/hangar/components/battani.glb",
+      "v": "7dbceb41",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "battani",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "beacon": {
+      "url": "/hangar/components/beacon.glb",
+      "v": "14d5d2da",
+      "tris": 4040,
+      "trisRaw": 7987,
+      "textures": 9,
+      "attached": 0,
+      "key": "beacon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.7,
+        "bits": 13,
+        "degenerate": 4.1
+      },
+      "bytes": 45148,
+      "pool": {
+        "images": 9,
+        "bytes": 116616,
+        "fresh": 0
+      }
+    },
+    "berian": {
+      "url": "/hangar/components/berian.glb",
+      "v": "d5849202",
+      "tris": 6898,
+      "trisRaw": 16897,
+      "textures": 17,
+      "attached": 0,
+      "key": "berian",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1
+      },
+      "bytes": 76268,
+      "pool": {
+        "images": 17,
+        "bytes": 187274,
+        "fresh": 40824
+      }
+    },
+    "blastchill": {
+      "url": "/hangar/components/blastchill.glb",
+      "v": "9541a139",
+      "tris": 4698,
+      "trisRaw": 10876,
+      "textures": 13,
+      "attached": 0,
+      "key": "blastchill",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.95,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 54856,
+      "pool": {
+        "images": 13,
+        "bytes": 127654,
+        "fresh": 1986
+      }
+    },
+    "blizzard": {
+      "url": "/hangar/components/blizzard.glb",
+      "v": "a9109b21",
+      "tris": 4014,
+      "trisRaw": 4593,
+      "textures": 9,
+      "attached": 0,
+      "key": "blizzard",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 39568,
+      "pool": {
+        "images": 9,
+        "bytes": 43130,
+        "fresh": 0
+      }
+    },
+    "bloc": {
+      "url": "/hangar/components/bloc.glb",
+      "v": "e9dec07e",
+      "tris": 4047,
+      "trisRaw": 9048,
+      "textures": 14,
+      "attached": 0,
+      "key": "bloc",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.4
+      },
+      "bytes": 60856,
+      "pool": {
+        "images": 14,
+        "bytes": 104166,
+        "fresh": 0
+      }
+    },
+    "bolide": {
+      "url": "/hangar/components/bolide.glb",
+      "v": "46bf7cc4",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "bolide",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.5,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52532,
+      "pool": {
+        "images": 17,
+        "bytes": 88794,
+        "fresh": 37852
+      }
+    },
+    "bolon": {
+      "url": "/hangar/components/bolon.glb",
+      "v": "d4aa6ea4",
+      "tris": 4598,
+      "trisRaw": 7045,
+      "textures": 13,
+      "attached": 0,
+      "key": "bolon",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.2
+      },
+      "bytes": 58092,
+      "pool": {
+        "images": 13,
+        "bytes": 143036,
+        "fresh": 20678
+      }
+    },
+    "bolt": {
+      "url": "/hangar/components/bolt.glb",
+      "v": "a65e341f",
+      "tris": 4036,
+      "trisRaw": 5229,
+      "textures": 9,
+      "attached": 0,
+      "key": "bolt",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.47,
+        "bits": 14,
+        "degenerate": 0.2
+      },
+      "bytes": 42372,
+      "pool": {
+        "images": 9,
+        "bytes": 87128,
+        "fresh": 0
+      }
+    },
+    "boreal": {
+      "url": "/hangar/components/boreal.glb",
+      "v": "7f808105",
+      "tris": 4143,
+      "trisRaw": 8987,
+      "textures": 12,
+      "attached": 0,
+      "key": "boreal",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 48660,
+      "pool": {
+        "images": 12,
+        "bytes": 62988,
+        "fresh": 0
+      }
+    },
+    "bracer": {
+      "url": "/hangar/components/bracer.glb",
+      "v": "e5a8be4e",
+      "tris": 5590,
+      "trisRaw": 14754,
+      "textures": 15,
+      "attached": 0,
+      "key": "bracer",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.8
+      },
+      "bytes": 63656,
+      "pool": {
+        "images": 15,
+        "bytes": 154768,
+        "fresh": 3812
+      }
+    },
+    "breton": {
+      "url": "/hangar/components/breton.glb",
+      "v": "d3418b23",
+      "tris": 4063,
+      "trisRaw": 7573,
+      "textures": 15,
+      "attached": 0,
+      "key": "breton",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 0.9
+      },
+      "bytes": 50340,
+      "pool": {
+        "images": 15,
+        "bytes": 160976,
+        "fresh": 133554
+      }
+    },
+    "briskair-ic-10": {
+      "url": "/hangar/components/briskair-ic-10.glb",
+      "v": "35d9e24e",
+      "tris": 5744,
+      "trisRaw": 15709,
+      "textures": 17,
+      "attached": 0,
+      "key": "briskair-ic-10",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.3
+      },
+      "bytes": 65340,
+      "pool": {
+        "images": 17,
+        "bytes": 241724,
+        "fresh": 98790
+      }
+    },
+    "briskair-ic-20": {
+      "url": "/hangar/components/briskair-ic-20.glb",
+      "v": "30708972",
+      "tris": 5721,
+      "trisRaw": 15709,
+      "textures": 17,
+      "attached": 0,
+      "key": "briskair-ic-20",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.3
+      },
+      "bytes": 65196,
+      "pool": {
+        "images": 17,
+        "bytes": 241724,
+        "fresh": 0
+      }
+    },
+    "briskair-ic-30": {
+      "url": "/hangar/components/briskair-ic-30.glb",
+      "v": "496d780e",
+      "tris": 5738,
+      "trisRaw": 15707,
+      "textures": 17,
+      "attached": 0,
+      "key": "briskair-ic-30",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.3
+      },
+      "bytes": 65292,
+      "pool": {
+        "images": 17,
+        "bytes": 241724,
+        "fresh": 0
+      }
+    },
+    "broadspec-go": {
+      "url": "/hangar/components/broadspec-go.glb",
+      "v": "c5b15b41",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "broadspec-go",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "broadspec-max": {
+      "url": "/hangar/components/broadspec-max.glb",
+      "v": "1e7e6078",
+      "tris": 48,
+      "trisRaw": 48,
+      "textures": 1,
+      "attached": 0,
+      "key": "broadspec-max",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 75
+      },
+      "bytes": 5016,
+      "pool": {
+        "images": 1,
+        "bytes": 72,
+        "fresh": 0
+      }
+    },
+    "broadspec-s2": {
+      "url": "/hangar/components/broadspec-s2.glb",
+      "v": "9a93a4d3",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "broadspec~2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "broadspec-s3": {
+      "url": "/hangar/components/broadspec-s3.glb",
+      "v": "d5d53abb",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "broadspec~3",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "bulwark": {
+      "url": "/hangar/components/bulwark.glb",
+      "v": "46032a6a",
+      "tris": 4704,
+      "trisRaw": 10069,
+      "textures": 14,
+      "attached": 0,
+      "key": "bulwark",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.12,
+        "bits": 13,
+        "degenerate": 2
+      },
+      "bytes": 59216,
+      "pool": {
+        "images": 14,
+        "bytes": 140506,
+        "fresh": 0
+      }
+    },
+    "burst": {
+      "url": "/hangar/components/burst.glb",
+      "v": "e84ddbac",
+      "tris": 4256,
+      "trisRaw": 6810,
+      "textures": 13,
+      "attached": 0,
+      "key": "burst",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.2
+      },
+      "bytes": 55904,
+      "pool": {
+        "images": 13,
+        "bytes": 123148,
+        "fresh": 3002
+      }
+    },
+    "capston": {
+      "url": "/hangar/components/capston.glb",
+      "v": "e9c0bf57",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "capston",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "capsulo": {
+      "url": "/hangar/components/capsulo.glb",
+      "v": "7e548b60",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "capsulo",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "cascade": {
+      "url": "/hangar/components/cascade.glb",
+      "v": "1ca05981",
+      "tris": 4030,
+      "trisRaw": 7490,
+      "textures": 11,
+      "attached": 0,
+      "key": "cascade",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.9
+      },
+      "bytes": 49052,
+      "pool": {
+        "images": 11,
+        "bytes": 117252,
+        "fresh": 192
+      }
+    },
+    "cassandra": {
+      "url": "/hangar/components/cassandra.glb",
+      "v": "04fb5ca6",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "cassandra",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "castra": {
+      "url": "/hangar/components/castra.glb",
+      "v": "ef086bc0",
+      "tris": 2924,
+      "trisRaw": 2924,
+      "textures": 14,
+      "attached": 0,
+      "key": "castra",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.09,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 32740,
+      "pool": {
+        "images": 14,
+        "bytes": 90502,
+        "fresh": 51448
+      }
+    },
+    "celestial": {
+      "url": "/hangar/components/celestial.glb",
+      "v": "8f6c796a",
+      "tris": 4774,
+      "trisRaw": 13015,
+      "textures": 12,
+      "attached": 0,
+      "key": "celestial",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.2
+      },
+      "bytes": 56080,
+      "pool": {
+        "images": 12,
+        "bytes": 149874,
+        "fresh": 10620
+      }
+    },
+    "centurion": {
+      "url": "/hangar/components/centurion.glb",
+      "v": "42ac6793",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "centurion",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.33,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52372,
+      "pool": {
+        "images": 17,
+        "bytes": 62230,
+        "fresh": 1582
+      }
+    },
+    "charger": {
+      "url": "/hangar/components/charger.glb",
+      "v": "06cdb8b1",
+      "tris": 4908,
+      "trisRaw": 6364,
+      "textures": 15,
+      "attached": 0,
+      "key": "charger",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.2
+      },
+      "bytes": 48728,
+      "pool": {
+        "images": 15,
+        "bytes": 149660,
+        "fresh": 11848
+      }
+    },
+    "chernykh": {
+      "url": "/hangar/components/chernykh.glb",
+      "v": "37cb8a7d",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "chernykh",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "chill-max": {
+      "url": "/hangar/components/chill-max.glb",
+      "v": "f621b2cb",
+      "tris": 3994,
+      "trisRaw": 10877,
+      "textures": 7,
+      "attached": 0,
+      "key": "chill-max",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.35,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 38792,
+      "pool": {
+        "images": 7,
+        "bytes": 43500,
+        "fresh": 5228
+      }
+    },
+    "cirrus": {
+      "url": "/hangar/components/cirrus.glb",
+      "v": "6e9c82a2",
+      "tris": 4100,
+      "trisRaw": 9126,
+      "textures": 13,
+      "attached": 0,
+      "key": "cirrus",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.81,
+        "bits": 13,
+        "degenerate": 1
+      },
+      "bytes": 46928,
+      "pool": {
+        "images": 13,
+        "bytes": 166714,
+        "fresh": 28194
+      }
+    },
+    "citadel": {
+      "url": "/hangar/components/citadel.glb",
+      "v": "6552948b",
+      "tris": 4026,
+      "trisRaw": 4851,
+      "textures": 4,
+      "attached": 0,
+      "key": "citadel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 38436,
+      "pool": {
+        "images": 4,
+        "bytes": 6604,
+        "fresh": 0
+      }
+    },
+    "cloak": {
+      "url": "/hangar/components/cloak.glb",
+      "v": "2fc8f2fd",
+      "tris": 4128,
+      "trisRaw": 4128,
+      "textures": 1,
+      "attached": 0,
+      "key": "cloak",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 36428,
+      "pool": {
+        "images": 1,
+        "bytes": 828,
+        "fresh": 0
+      }
+    },
+    "coldsnap": {
+      "url": "/hangar/components/coldsnap.glb",
+      "v": "6b567f45",
+      "tris": 5701,
+      "trisRaw": 11415,
+      "textures": 14,
+      "attached": 0,
+      "key": "coldsnap",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 63320,
+      "pool": {
+        "images": 14,
+        "bytes": 125526,
+        "fresh": 0
+      }
+    },
+    "coldsurge": {
+      "url": "/hangar/components/coldsurge.glb",
+      "v": "fa15f562",
+      "tris": 4906,
+      "trisRaw": 10311,
+      "textures": 14,
+      "attached": 0,
+      "key": "coldsurge",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 57936,
+      "pool": {
+        "images": 14,
+        "bytes": 146992,
+        "fresh": 24712
+      }
+    },
+    "colossus": {
+      "url": "/hangar/components/colossus.glb",
+      "v": "21b1f87f",
+      "tris": 4120,
+      "trisRaw": 4414,
+      "textures": 8,
+      "attached": 0,
+      "key": "colossus",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.4
+      },
+      "bytes": 45636,
+      "pool": {
+        "images": 8,
+        "bytes": 77814,
+        "fresh": 0
+      }
+    },
+    "coolcore": {
+      "url": "/hangar/components/coolcore.glb",
+      "v": "fb92ee65",
+      "tris": 7540,
+      "trisRaw": 13235,
+      "textures": 18,
+      "attached": 0,
+      "key": "coolcore",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 86768,
+      "pool": {
+        "images": 18,
+        "bytes": 169362,
+        "fresh": 0
+      }
+    },
+    "COOL_ORIG_S04_890J_SCItem": {
+      "url": "/hangar/components/COOL_ORIG_S04_890J_SCItem.glb",
+      "v": "c4c4529c",
+      "tris": 3994,
+      "trisRaw": 10877,
+      "textures": 7,
+      "attached": 0,
+      "key": "COOL_ORIG_S04_890J_SCItem",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.35,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 38792,
+      "pool": {
+        "images": 7,
+        "bytes": 43500,
+        "fresh": 0
+      }
+    },
+    "coverall": {
+      "url": "/hangar/components/coverall.glb",
+      "v": "aefedd57",
+      "tris": 4013,
+      "trisRaw": 10139,
+      "textures": 11,
+      "attached": 0,
+      "key": "coverall",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 53816,
+      "pool": {
+        "images": 11,
+        "bytes": 104766,
+        "fresh": 2292
+      }
+    },
+    "crossfield": {
+      "url": "/hangar/components/crossfield.glb",
+      "v": "b510a50d",
+      "tris": 4049,
+      "trisRaw": 7987,
+      "textures": 9,
+      "attached": 0,
+      "key": "crossfield",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 3.7
+      },
+      "bytes": 45204,
+      "pool": {
+        "images": 9,
+        "bytes": 116616,
+        "fresh": 0
+      }
+    },
+    "cryo-star-ex": {
+      "url": "/hangar/components/cryo-star-ex.glb",
+      "v": "88cc7d9b",
+      "tris": 7547,
+      "trisRaw": 21494,
+      "textures": 17,
+      "attached": 0,
+      "key": "cryo-star-ex",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 86652,
+      "pool": {
+        "images": 17,
+        "bytes": 126634,
+        "fresh": 17360
+      }
+    },
+    "cryo-star-sl": {
+      "url": "/hangar/components/cryo-star-sl.glb",
+      "v": "736481ed",
+      "tris": 3991,
+      "trisRaw": 5213,
+      "textures": 19,
+      "attached": 0,
+      "key": "cryo-star-sl",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 48192,
+      "pool": {
+        "images": 19,
+        "bytes": 102470,
+        "fresh": 26414
+      }
+    },
+    "cryo-star-xl": {
+      "url": "/hangar/components/cryo-star-xl.glb",
+      "v": "d2ddf875",
+      "tris": 7539,
+      "trisRaw": 21503,
+      "textures": 17,
+      "attached": 0,
+      "key": "cryo-star-xl",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 86408,
+      "pool": {
+        "images": 17,
+        "bytes": 126634,
+        "fresh": 0
+      }
+    },
+    "cryo-star": {
+      "url": "/hangar/components/cryo-star.glb",
+      "v": "c21656c7",
+      "tris": 7550,
+      "trisRaw": 21494,
+      "textures": 17,
+      "attached": 0,
+      "key": "cryo-star",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 86452,
+      "pool": {
+        "images": 17,
+        "bytes": 126634,
+        "fresh": 0
+      }
+    },
+    "daybreak": {
+      "url": "/hangar/components/daybreak.glb",
+      "v": "1e88ef22",
+      "tris": 4939,
+      "trisRaw": 13107,
+      "textures": 13,
+      "attached": 0,
+      "key": "daybreak",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.4
+      },
+      "bytes": 58960,
+      "pool": {
+        "images": 13,
+        "bytes": 152450,
+        "fresh": 0
+      }
+    },
+    "defiant": {
+      "url": "/hangar/components/defiant.glb",
+      "v": "0c57cb6f",
+      "tris": 2572,
+      "trisRaw": 2572,
+      "textures": 16,
+      "attached": 0,
+      "key": "defiant",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.28,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 33316,
+      "pool": {
+        "images": 16,
+        "bytes": 99954,
+        "fresh": 52892
+      }
+    },
+    "delphi-rs-10": {
+      "url": "/hangar/components/delphi-rs-10.glb",
+      "v": "1bb33c71",
+      "tris": 600,
+      "trisRaw": 600,
+      "textures": 6,
+      "attached": 0,
+      "key": "delphi-rs-10",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 4.3
+      },
+      "bytes": 9928,
+      "pool": {
+        "images": 6,
+        "bytes": 76560,
+        "fresh": 73828
+      }
+    },
+    "delphi-rs-20": {
+      "url": "/hangar/components/delphi-rs-20.glb",
+      "v": "a1afeb32",
+      "tris": 600,
+      "trisRaw": 600,
+      "textures": 6,
+      "attached": 0,
+      "key": "delphi-rs-20",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 4.3
+      },
+      "bytes": 9912,
+      "pool": {
+        "images": 6,
+        "bytes": 76560,
+        "fresh": 0
+      }
+    },
+    "delphi-rs-30": {
+      "url": "/hangar/components/delphi-rs-30.glb",
+      "v": "6a622bfd",
+      "tris": 600,
+      "trisRaw": 600,
+      "textures": 6,
+      "attached": 0,
+      "key": "delphi-rs-30",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 4.3
+      },
+      "bytes": 9912,
+      "pool": {
+        "images": 6,
+        "bytes": 76560,
+        "fresh": 0
+      }
+    },
+    "deltamax": {
+      "url": "/hangar/components/deltamax.glb",
+      "v": "8bc20f5f",
+      "tris": 4062,
+      "trisRaw": 12082,
+      "textures": 11,
+      "attached": 0,
+      "key": "deltamax",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.81,
+        "bits": 13,
+        "degenerate": 1.8
+      },
+      "bytes": 47880,
+      "pool": {
+        "images": 11,
+        "bytes": 130160,
+        "fresh": 10406
+      }
+    },
+    "denning": {
+      "url": "/hangar/components/denning.glb",
+      "v": "b7d3482a",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "denning",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "devoue": {
+      "url": "/hangar/components/devoue.glb",
+      "v": "9ddef60b",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "devoue",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "diligence": {
+      "url": "/hangar/components/diligence.glb",
+      "v": "d57bef71",
+      "tris": 4106,
+      "trisRaw": 7142,
+      "textures": 13,
+      "attached": 0,
+      "key": "diligence",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 1.3
+      },
+      "bytes": 50784,
+      "pool": {
+        "images": 13,
+        "bytes": 165866,
+        "fresh": 0
+      }
+    },
+    "drassik": {
+      "url": "/hangar/components/drassik.glb",
+      "v": "ff35fce5",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "drassik",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.33,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52360,
+      "pool": {
+        "images": 17,
+        "bytes": 71844,
+        "fresh": 10130
+      }
+    },
+    "draug": {
+      "url": "/hangar/components/draug.glb",
+      "v": "417cb90b",
+      "tris": 6640,
+      "trisRaw": 16811,
+      "textures": 17,
+      "attached": 0,
+      "key": "draug",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 0.9
+      },
+      "bytes": 74044,
+      "pool": {
+        "images": 17,
+        "bytes": 187274,
+        "fresh": 0
+      }
+    },
+    "drift": {
+      "url": "/hangar/components/drift.glb",
+      "v": "ee254ec8",
+      "tris": 4288,
+      "trisRaw": 7761,
+      "textures": 9,
+      "attached": 0,
+      "key": "drift",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 3.55,
+        "bits": 14,
+        "degenerate": 2.6
+      },
+      "bytes": 47832,
+      "pool": {
+        "images": 9,
+        "bytes": 87128,
+        "fresh": 0
+      }
+    },
+    "drifter": {
+      "url": "/hangar/components/drifter.glb",
+      "v": "12bf0ca1",
+      "tris": 4347,
+      "trisRaw": 7682,
+      "textures": 12,
+      "attached": 0,
+      "key": "drifter",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 2.6
+      },
+      "bytes": 55040,
+      "pool": {
+        "images": 12,
+        "bytes": 104892,
+        "fresh": 31058
+      }
+    },
+    "durajet": {
+      "url": "/hangar/components/durajet.glb",
+      "v": "a63e0142",
+      "tris": 1968,
+      "trisRaw": 1968,
+      "textures": 14,
+      "attached": 0,
+      "key": "durajet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.14,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 30000,
+      "pool": {
+        "images": 14,
+        "bytes": 88418,
+        "fresh": 0
+      }
+    },
+    "durango": {
+      "url": "/hangar/components/durango.glb",
+      "v": "60dde0aa",
+      "tris": 4472,
+      "trisRaw": 8622,
+      "textures": 13,
+      "attached": 0,
+      "key": "durango",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.51,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 50568,
+      "pool": {
+        "images": 13,
+        "bytes": 73058,
+        "fresh": 48416
+      }
+    },
+    "dynaflux": {
+      "url": "/hangar/components/dynaflux.glb",
+      "v": "7a4e32d4",
+      "tris": 6799,
+      "trisRaw": 13231,
+      "textures": 14,
+      "attached": 0,
+      "key": "dynaflux",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.4
+      },
+      "bytes": 74312,
+      "pool": {
+        "images": 14,
+        "bytes": 152480,
+        "fresh": 7040
+      }
+    },
+    "echo": {
+      "url": "/hangar/components/echo.glb",
+      "v": "185a8dca",
+      "tris": 5007,
+      "trisRaw": 7428,
+      "textures": 11,
+      "attached": 0,
+      "key": "echo",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 56740,
+      "pool": {
+        "images": 11,
+        "bytes": 117252,
+        "fresh": 0
+      }
+    },
+    "eclipse": {
+      "url": "/hangar/components/eclipse.glb",
+      "v": "8caf8a10",
+      "tris": 4119,
+      "trisRaw": 9157,
+      "textures": 11,
+      "attached": 0,
+      "key": "eclipse",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 1.81,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 44992,
+      "pool": {
+        "images": 11,
+        "bytes": 144496,
+        "fresh": 5826
+      }
+    },
+    "eco-flow": {
+      "url": "/hangar/components/eco-flow.glb",
+      "v": "41dc39cf",
+      "tris": 3993,
+      "trisRaw": 6271,
+      "textures": 10,
+      "attached": 0,
+      "key": "eco-flow",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 48752,
+      "pool": {
+        "images": 10,
+        "bytes": 107028,
+        "fresh": 0
+      }
+    },
+    "ecouter": {
+      "url": "/hangar/components/ecouter.glb",
+      "v": "77f0ce04",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "ecouter",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "elsen": {
+      "url": "/hangar/components/elsen.glb",
+      "v": "e39c1411",
+      "tris": 4014,
+      "trisRaw": 4593,
+      "textures": 9,
+      "attached": 0,
+      "key": "elsen",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 39568,
+      "pool": {
+        "images": 9,
+        "bytes": 43130,
+        "fresh": 0
+      }
+    },
+    "endo": {
+      "url": "/hangar/components/endo.glb",
+      "v": "738c79c9",
+      "tris": 5793,
+      "trisRaw": 15808,
+      "textures": 16,
+      "attached": 0,
+      "key": "endo",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 64644,
+      "pool": {
+        "images": 16,
+        "bytes": 203374,
+        "fresh": 38612
+      }
+    },
+    "endurance": {
+      "url": "/hangar/components/endurance.glb",
+      "v": "1a6965e5",
+      "tris": 4169,
+      "trisRaw": 7138,
+      "textures": 15,
+      "attached": 0,
+      "key": "endurance",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 1.4
+      },
+      "bytes": 53240,
+      "pool": {
+        "images": 15,
+        "bytes": 166818,
+        "fresh": 9596
+      }
+    },
+    "eos": {
+      "url": "/hangar/components/eos.glb",
+      "v": "22f0e679",
+      "tris": 4158,
+      "trisRaw": 6371,
+      "textures": 16,
+      "attached": 0,
+      "key": "eos",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 2.2
+      },
+      "bytes": 52444,
+      "pool": {
+        "images": 16,
+        "bytes": 124768,
+        "fresh": 0
+      }
+    },
+    "epier": {
+      "url": "/hangar/components/epier.glb",
+      "v": "4bb3199a",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "epier",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "erebos": {
+      "url": "/hangar/components/erebos.glb",
+      "v": "9799080c",
+      "tris": 4263,
+      "trisRaw": 6730,
+      "textures": 16,
+      "attached": 0,
+      "key": "erebos",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 3.7
+      },
+      "bytes": 56916,
+      "pool": {
+        "images": 16,
+        "bytes": 123110,
+        "fresh": 0
+      }
+    },
+    "exogen": {
+      "url": "/hangar/components/exogen.glb",
+      "v": "dfe551f9",
+      "tris": 5928,
+      "trisRaw": 12111,
+      "textures": 14,
+      "attached": 0,
+      "key": "exogen",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 64984,
+      "pool": {
+        "images": 14,
+        "bytes": 172522,
+        "fresh": 49214
+      }
+    },
+    "exotherm": {
+      "url": "/hangar/components/exotherm.glb",
+      "v": "d087adc1",
+      "tris": 4124,
+      "trisRaw": 4124,
+      "textures": 13,
+      "attached": 0,
+      "key": "exotherm",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.04,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 32000,
+      "pool": {
+        "images": 13,
+        "bytes": 175672,
+        "fresh": 175672
+      }
+    },
+    "expedition": {
+      "url": "/hangar/components/expedition.glb",
+      "v": "a14c9352",
+      "tris": 4121,
+      "trisRaw": 6953,
+      "textures": 13,
+      "attached": 0,
+      "key": "expedition",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 5.6
+      },
+      "bytes": 53168,
+      "pool": {
+        "images": 13,
+        "bytes": 107054,
+        "fresh": 0
+      }
+    },
+    "fabian": {
+      "url": "/hangar/components/fabian.glb",
+      "v": "22871662",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "fabian",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "falco": {
+      "url": "/hangar/components/falco.glb",
+      "v": "186c11d8",
+      "tris": 4048,
+      "trisRaw": 9468,
+      "textures": 9,
+      "attached": 0,
+      "key": "falco",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 47784,
+      "pool": {
+        "images": 9,
+        "bytes": 102474,
+        "fresh": 0
+      }
+    },
+    "fawad": {
+      "url": "/hangar/components/fawad.glb",
+      "v": "6f8d9079",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "fawad",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "fidele": {
+      "url": "/hangar/components/fidele.glb",
+      "v": "28397860",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "fidele",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "fierell-cascade": {
+      "url": "/hangar/components/fierell-cascade.glb",
+      "v": "8f7feac6",
+      "tris": 4800,
+      "trisRaw": 6474,
+      "textures": 15,
+      "attached": 0,
+      "key": "fierell-cascade",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 48064,
+      "pool": {
+        "images": 15,
+        "bytes": 152980,
+        "fresh": 2660
+      }
+    },
+    "fissure": {
+      "url": "/hangar/components/fissure.glb",
+      "v": "a197b4e4",
+      "tris": 4017,
+      "trisRaw": 6699,
+      "textures": 15,
+      "attached": 0,
+      "key": "fissure",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 2.8
+      },
+      "bytes": 55216,
+      "pool": {
+        "images": 15,
+        "bytes": 134186,
+        "fresh": 0
+      }
+    },
+    "flash": {
+      "url": "/hangar/components/flash.glb",
+      "v": "b929b88a",
+      "tris": 4270,
+      "trisRaw": 6817,
+      "textures": 15,
+      "attached": 0,
+      "key": "flash",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.6
+      },
+      "bytes": 59060,
+      "pool": {
+        "images": 15,
+        "bytes": 134186,
+        "fresh": 0
+      }
+    },
+    "flashfreeze": {
+      "url": "/hangar/components/flashfreeze.glb",
+      "v": "242a1661",
+      "tris": 4782,
+      "trisRaw": 10262,
+      "textures": 14,
+      "attached": 0,
+      "key": "flashfreeze",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 56800,
+      "pool": {
+        "images": 14,
+        "bytes": 146992,
+        "fresh": 0
+      }
+    },
+    "fleming": {
+      "url": "/hangar/components/fleming.glb",
+      "v": "f38188b4",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "fleming",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "flood": {
+      "url": "/hangar/components/flood.glb",
+      "v": "4a74f475",
+      "tris": 4033,
+      "trisRaw": 7429,
+      "textures": 11,
+      "attached": 0,
+      "key": "flood",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 52032,
+      "pool": {
+        "images": 11,
+        "bytes": 117238,
+        "fresh": 0
+      }
+    },
+    "forcewall": {
+      "url": "/hangar/components/forcewall.glb",
+      "v": "fb8e4bc5",
+      "tris": 4059,
+      "trisRaw": 10138,
+      "textures": 11,
+      "attached": 0,
+      "key": "forcewall",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.2
+      },
+      "bytes": 53860,
+      "pool": {
+        "images": 11,
+        "bytes": 104766,
+        "fresh": 0
+      }
+    },
+    "fortitude": {
+      "url": "/hangar/components/fortitude.glb",
+      "v": "017b9f96",
+      "tris": 4302,
+      "trisRaw": 7480,
+      "textures": 12,
+      "attached": 0,
+      "key": "fortitude",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 0.5
+      },
+      "bytes": 50200,
+      "pool": {
+        "images": 12,
+        "bytes": 143992,
+        "fresh": 1044
+      }
+    },
+    "foxfire": {
+      "url": "/hangar/components/foxfire.glb",
+      "v": "04c495ee",
+      "tris": 4244,
+      "trisRaw": 4244,
+      "textures": 11,
+      "attached": 0,
+      "key": "foxfire",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 19,
+        "rangeAfter": 1.73,
+        "bits": 13,
+        "degenerate": 1.1
+      },
+      "bytes": 42516,
+      "pool": {
+        "images": 11,
+        "bytes": 104636,
+        "fresh": 0
+      }
+    },
+    "fr-66": {
+      "url": "/hangar/components/fr-66.glb",
+      "v": "69c68445",
+      "tris": 4040,
+      "trisRaw": 10080,
+      "textures": 11,
+      "attached": 0,
+      "key": "fr-66",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.78,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 54432,
+      "pool": {
+        "images": 11,
+        "bytes": 104454,
+        "fresh": 1980
+      }
+    },
+    "fr-76": {
+      "url": "/hangar/components/fr-76.glb",
+      "v": "fb09477c",
+      "tris": 4043,
+      "trisRaw": 10079,
+      "textures": 11,
+      "attached": 0,
+      "key": "fr-76",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.78,
+        "bits": 13,
+        "degenerate": 1.7
+      },
+      "bytes": 55060,
+      "pool": {
+        "images": 11,
+        "bytes": 104454,
+        "fresh": 0
+      }
+    },
+    "fr-86": {
+      "url": "/hangar/components/fr-86.glb",
+      "v": "13535ede",
+      "tris": 4310,
+      "trisRaw": 5363,
+      "textures": 3,
+      "attached": 0,
+      "key": "fr-86",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 53516,
+      "pool": {
+        "images": 3,
+        "bytes": 2808,
+        "fresh": 0
+      }
+    },
+    "fridan": {
+      "url": "/hangar/components/fridan.glb",
+      "v": "d8a3b994",
+      "tris": 4051,
+      "trisRaw": 4508,
+      "textures": 20,
+      "attached": 0,
+      "key": "fridan",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 4.93,
+        "bits": 15,
+        "degenerate": 4.1
+      },
+      "bytes": 49876,
+      "pool": {
+        "images": 20,
+        "bytes": 62326,
+        "fresh": 0
+      }
+    },
+    "frontline": {
+      "url": "/hangar/components/frontline.glb",
+      "v": "1cba8f15",
+      "tris": 1591,
+      "trisRaw": 1591,
+      "textures": 12,
+      "attached": 0,
+      "key": "frontline",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 2.25,
+        "bits": 14,
+        "degenerate": 1.9
+      },
+      "bytes": 19780,
+      "pool": {
+        "images": 12,
+        "bytes": 199254,
+        "fresh": 81444
+      }
+    },
+    "frost-star-ex": {
+      "url": "/hangar/components/frost-star-ex.glb",
+      "v": "48c35cc6",
+      "tris": 8583,
+      "trisRaw": 22603,
+      "textures": 19,
+      "attached": 0,
+      "key": "frost-star-ex",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 96748,
+      "pool": {
+        "images": 19,
+        "bytes": 127170,
+        "fresh": 0
+      }
+    },
+    "frost-star-sl": {
+      "url": "/hangar/components/frost-star-sl.glb",
+      "v": "36d86587",
+      "tris": 4271,
+      "trisRaw": 4271,
+      "textures": 18,
+      "attached": 0,
+      "key": "frost-star-sl",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.71,
+        "bits": 14,
+        "degenerate": 2
+      },
+      "bytes": 49240,
+      "pool": {
+        "images": 18,
+        "bytes": 71312,
+        "fresh": 0
+      }
+    },
+    "frost-star-xl": {
+      "url": "/hangar/components/frost-star-xl.glb",
+      "v": "757b7106",
+      "tris": 8534,
+      "trisRaw": 22610,
+      "textures": 19,
+      "attached": 0,
+      "key": "frost-star-xl",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 96248,
+      "pool": {
+        "images": 19,
+        "bytes": 127170,
+        "fresh": 0
+      }
+    },
+    "frost-star": {
+      "url": "/hangar/components/frost-star.glb",
+      "v": "fa8a8e4b",
+      "tris": 6530,
+      "trisRaw": 21992,
+      "textures": 19,
+      "attached": 0,
+      "key": "frost-star",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.5,
+        "bits": 13,
+        "degenerate": 1.6
+      },
+      "bytes": 69256,
+      "pool": {
+        "images": 19,
+        "bytes": 127170,
+        "fresh": 0
+      }
+    },
+    "frostbite": {
+      "url": "/hangar/components/frostbite.glb",
+      "v": "0718462c",
+      "tris": 4906,
+      "trisRaw": 10311,
+      "textures": 14,
+      "attached": 0,
+      "key": "frostbite",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 57936,
+      "pool": {
+        "images": 14,
+        "bytes": 146992,
+        "fresh": 0
+      }
+    },
+    "frostburn": {
+      "url": "/hangar/components/frostburn.glb",
+      "v": "11c68549",
+      "tris": 5696,
+      "trisRaw": 11384,
+      "textures": 14,
+      "attached": 0,
+      "key": "frostburn",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 62964,
+      "pool": {
+        "images": 14,
+        "bytes": 125526,
+        "fresh": 0
+      }
+    },
+    "fulgur": {
+      "url": "/hangar/components/fulgur.glb",
+      "v": "1df21a75",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "fulgur",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.33,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52404,
+      "pool": {
+        "images": 17,
+        "bytes": 72582,
+        "fresh": 804
+      }
+    },
+    "fullblock": {
+      "url": "/hangar/components/fullblock.glb",
+      "v": "4c536017",
+      "tris": 4357,
+      "trisRaw": 9155,
+      "textures": 3,
+      "attached": 0,
+      "key": "fullblock",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.8
+      },
+      "bytes": 50264,
+      "pool": {
+        "images": 3,
+        "bytes": 3120,
+        "fresh": 0
+      }
+    },
+    "fullforce-pro": {
+      "url": "/hangar/components/fullforce-pro.glb",
+      "v": "bde76e40",
+      "tris": 4286,
+      "trisRaw": 8779,
+      "textures": 16,
+      "attached": 0,
+      "key": "fullforce-pro",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 2
+      },
+      "bytes": 52124,
+      "pool": {
+        "images": 16,
+        "bytes": 176694,
+        "fresh": 3978
+      }
+    },
+    "fullforce": {
+      "url": "/hangar/components/fullforce.glb",
+      "v": "78a71eab",
+      "tris": 4299,
+      "trisRaw": 8780,
+      "textures": 16,
+      "attached": 0,
+      "key": "fullforce",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 2
+      },
+      "bytes": 52284,
+      "pool": {
+        "images": 16,
+        "bytes": 176694,
+        "fresh": 0
+      }
+    },
+    "fullfrost": {
+      "url": "/hangar/components/fullfrost.glb",
+      "v": "91ff2209",
+      "tris": 4880,
+      "trisRaw": 10311,
+      "textures": 14,
+      "attached": 0,
+      "key": "fullfrost",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 57620,
+      "pool": {
+        "images": 14,
+        "bytes": 146992,
+        "fresh": 0
+      }
+    },
+    "fullspec-go": {
+      "url": "/hangar/components/fullspec-go.glb",
+      "v": "c18a54aa",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "fullspec-go",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "fullspec-max": {
+      "url": "/hangar/components/fullspec-max.glb",
+      "v": "fa73a43f",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "fullspec-max",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "fullspec": {
+      "url": "/hangar/components/fullspec.glb",
+      "v": "5c075eaa",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "fullspec",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "fullstop": {
+      "url": "/hangar/components/fullstop.glb",
+      "v": "ab171cad",
+      "tris": 4026,
+      "trisRaw": 9436,
+      "textures": 11,
+      "attached": 0,
+      "key": "fullstop",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 2
+      },
+      "bytes": 54804,
+      "pool": {
+        "images": 11,
+        "bytes": 111966,
+        "fresh": 0
+      }
+    },
+    "galinstan": {
+      "url": "/hangar/components/galinstan.glb",
+      "v": "1eca3e8a",
+      "tris": 3322,
+      "trisRaw": 3322,
+      "textures": 9,
+      "attached": 0,
+      "key": "galinstan",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 37532,
+      "pool": {
+        "images": 9,
+        "bytes": 43130,
+        "fresh": 0
+      }
+    },
+    "gammamax": {
+      "url": "/hangar/components/gammamax.glb",
+      "v": "53df0a5c",
+      "tris": 4060,
+      "trisRaw": 9028,
+      "textures": 10,
+      "attached": 0,
+      "key": "gammamax",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.81,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 43824,
+      "pool": {
+        "images": 10,
+        "bytes": 143108,
+        "fresh": 0
+      }
+    },
+    "gelid": {
+      "url": "/hangar/components/gelid.glb",
+      "v": "0918252f",
+      "tris": 4514,
+      "trisRaw": 12919,
+      "textures": 17,
+      "attached": 0,
+      "key": "gelid",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.4,
+        "bits": 13,
+        "degenerate": 0.9
+      },
+      "bytes": 56824,
+      "pool": {
+        "images": 17,
+        "bytes": 169942,
+        "fresh": 0
+      }
+    },
+    "genoa": {
+      "url": "/hangar/components/genoa.glb",
+      "v": "f6318e26",
+      "tris": 4190,
+      "trisRaw": 7165,
+      "textures": 13,
+      "attached": 0,
+      "key": "genoa",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 0.8
+      },
+      "bytes": 49072,
+      "pool": {
+        "images": 13,
+        "bytes": 171178,
+        "fresh": 0
+      }
+    },
+    "ginzel": {
+      "url": "/hangar/components/ginzel.glb",
+      "v": "c3e4911e",
+      "tris": 4465,
+      "trisRaw": 8622,
+      "textures": 13,
+      "attached": 0,
+      "key": "ginzel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.51,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 50476,
+      "pool": {
+        "images": 13,
+        "bytes": 73058,
+        "fresh": 0
+      }
+    },
+    "glacier": {
+      "url": "/hangar/components/glacier.glb",
+      "v": "c7fb407c",
+      "tris": 5167,
+      "trisRaw": 12897,
+      "textures": 7,
+      "attached": 0,
+      "key": "glacier",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 52736,
+      "pool": {
+        "images": 7,
+        "bytes": 54484,
+        "fresh": 0
+      }
+    },
+    "glacis": {
+      "url": "/hangar/components/glacis.glb",
+      "v": "44ab3f43",
+      "tris": 13621,
+      "trisRaw": 51987,
+      "textures": 8,
+      "attached": 0,
+      "key": "glacis",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 13,
+        "rangeAfter": 13.75,
+        "bits": 16,
+        "degenerate": 1.9
+      },
+      "bytes": 167284,
+      "pool": {
+        "images": 8,
+        "bytes": 123730,
+        "fresh": 83844
+      }
+    },
+    "goliath": {
+      "url": "/hangar/components/goliath.glb",
+      "v": "f610a8b2",
+      "tris": 4511,
+      "trisRaw": 6966,
+      "textures": 13,
+      "attached": 0,
+      "key": "goliath",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.4
+      },
+      "bytes": 58208,
+      "pool": {
+        "images": 13,
+        "bytes": 122608,
+        "fresh": 0
+      }
+    },
+    "graupel": {
+      "url": "/hangar/components/graupel.glb",
+      "v": "54d9a180",
+      "tris": 6817,
+      "trisRaw": 16807,
+      "textures": 17,
+      "attached": 0,
+      "key": "graupel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.3
+      },
+      "bytes": 75108,
+      "pool": {
+        "images": 17,
+        "bytes": 187274,
+        "fresh": 0
+      }
+    },
+    "guard": {
+      "url": "/hangar/components/guard.glb",
+      "v": "016fde26",
+      "tris": 4041,
+      "trisRaw": 8343,
+      "textures": 15,
+      "attached": 0,
+      "key": "guard",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.7
+      },
+      "bytes": 58376,
+      "pool": {
+        "images": 15,
+        "bytes": 106768,
+        "fresh": 2878
+      }
+    },
+    "guardian": {
+      "url": "/hangar/components/guardian.glb",
+      "v": "c3952c60",
+      "tris": 3916,
+      "trisRaw": 3916,
+      "textures": 4,
+      "attached": 0,
+      "key": "guardian",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.2
+      },
+      "bytes": 32304,
+      "pool": {
+        "images": 4,
+        "bytes": 6604,
+        "fresh": 0
+      }
+    },
+    "haltur": {
+      "url": "/hangar/components/haltur.glb",
+      "v": "62c4e11b",
+      "tris": 4294,
+      "trisRaw": 12076,
+      "textures": 16,
+      "attached": 0,
+      "key": "haltur",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.8
+      },
+      "bytes": 57732,
+      "pool": {
+        "images": 16,
+        "bytes": 119278,
+        "fresh": 17156
+      }
+    },
+    "haven": {
+      "url": "/hangar/components/haven.glb",
+      "v": "0e98c08e",
+      "tris": 4064,
+      "trisRaw": 9199,
+      "textures": 16,
+      "attached": 0,
+      "key": "haven",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.2
+      },
+      "bytes": 59584,
+      "pool": {
+        "images": 16,
+        "bytes": 105102,
+        "fresh": 0
+      }
+    },
+    "heatsafe": {
+      "url": "/hangar/components/heatsafe.glb",
+      "v": "a14e64c0",
+      "tris": 6873,
+      "trisRaw": 13077,
+      "textures": 14,
+      "attached": 0,
+      "key": "heatsafe",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.4
+      },
+      "bytes": 73552,
+      "pool": {
+        "images": 14,
+        "bytes": 124112,
+        "fresh": 3386
+      }
+    },
+    "heatsink": {
+      "url": "/hangar/components/heatsink.glb",
+      "v": "d01e966a",
+      "tris": 6850,
+      "trisRaw": 13077,
+      "textures": 14,
+      "attached": 0,
+      "key": "heatsink",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.4
+      },
+      "bytes": 73324,
+      "pool": {
+        "images": 14,
+        "bytes": 124964,
+        "fresh": 0
+      }
+    },
+    "helios-ip-10": {
+      "url": "/hangar/components/helios-ip-10.glb",
+      "v": "2eb5d19f",
+      "tris": 6388,
+      "trisRaw": 12412,
+      "textures": 13,
+      "attached": 0,
+      "key": "helios-ip-10",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 69768,
+      "pool": {
+        "images": 13,
+        "bytes": 189396,
+        "fresh": 9010
+      }
+    },
+    "helios-ip-20": {
+      "url": "/hangar/components/helios-ip-20.glb",
+      "v": "5dd0acf2",
+      "tris": 6395,
+      "trisRaw": 12412,
+      "textures": 13,
+      "attached": 0,
+      "key": "helios-ip-20",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 69768,
+      "pool": {
+        "images": 13,
+        "bytes": 189396,
+        "fresh": 0
+      }
+    },
+    "helios-ip-30": {
+      "url": "/hangar/components/helios-ip-30.glb",
+      "v": "5f018049",
+      "tris": 6391,
+      "trisRaw": 12412,
+      "textures": 13,
+      "attached": 0,
+      "key": "helios-ip-30",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 69760,
+      "pool": {
+        "images": 13,
+        "bytes": 189396,
+        "fresh": 0
+      }
+    },
+    "hemera": {
+      "url": "/hangar/components/hemera.glb",
+      "v": "437c1614",
+      "tris": 4297,
+      "trisRaw": 6731,
+      "textures": 16,
+      "attached": 0,
+      "key": "hemera",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 3.7
+      },
+      "bytes": 57252,
+      "pool": {
+        "images": 16,
+        "bytes": 123110,
+        "fresh": 0
+      }
+    },
+    "hex": {
+      "url": "/hangar/components/hex.glb",
+      "v": "fab07b11",
+      "tris": 4131,
+      "trisRaw": 9103,
+      "textures": 14,
+      "attached": 0,
+      "key": "hex",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.3
+      },
+      "bytes": 61324,
+      "pool": {
+        "images": 14,
+        "bytes": 104166,
+        "fresh": 0
+      }
+    },
+    "holdstrong": {
+      "url": "/hangar/components/holdstrong.glb",
+      "v": "2e0f9824",
+      "tris": 1591,
+      "trisRaw": 1591,
+      "textures": 12,
+      "attached": 0,
+      "key": "holdstrong",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 2.25,
+        "bits": 14,
+        "degenerate": 1.9
+      },
+      "bytes": 19780,
+      "pool": {
+        "images": 12,
+        "bytes": 199254,
+        "fresh": 0
+      }
+    },
+    "hunter": {
+      "url": "/hangar/components/hunter.glb",
+      "v": "f50f20cb",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "hunter",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "huracan": {
+      "url": "/hangar/components/huracan.glb",
+      "v": "7bda741d",
+      "tris": 4108,
+      "trisRaw": 4791,
+      "textures": 10,
+      "attached": 0,
+      "key": "huracan",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 49484,
+      "pool": {
+        "images": 10,
+        "bytes": 99076,
+        "fresh": 0
+      }
+    },
+    "hydrocel": {
+      "url": "/hangar/components/hydrocel.glb",
+      "v": "2d967605",
+      "tris": 6740,
+      "trisRaw": 12692,
+      "textures": 17,
+      "attached": 0,
+      "key": "hydrocel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.63,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 77836,
+      "pool": {
+        "images": 17,
+        "bytes": 164642,
+        "fresh": 0
+      }
+    },
+    "hydrojet": {
+      "url": "/hangar/components/hydrojet.glb",
+      "v": "439441a4",
+      "tris": 6709,
+      "trisRaw": 12693,
+      "textures": 17,
+      "attached": 0,
+      "key": "hydrojet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.63,
+        "bits": 13,
+        "degenerate": 0.8
+      },
+      "bytes": 77520,
+      "pool": {
+        "images": 17,
+        "bytes": 164642,
+        "fresh": 0
+      }
+    },
+    "hydropulse": {
+      "url": "/hangar/components/hydropulse.glb",
+      "v": "e29e1a20",
+      "tris": 6728,
+      "trisRaw": 12692,
+      "textures": 16,
+      "attached": 0,
+      "key": "hydropulse",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.63,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 77328,
+      "pool": {
+        "images": 16,
+        "bytes": 162184,
+        "fresh": 0
+      }
+    },
+    "hypergen": {
+      "url": "/hangar/components/hypergen.glb",
+      "v": "2a733d94",
+      "tris": 7248,
+      "trisRaw": 14633,
+      "textures": 15,
+      "attached": 0,
+      "key": "hypergen",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 78296,
+      "pool": {
+        "images": 15,
+        "bytes": 171436,
+        "fresh": 1898
+      }
+    },
+    "hyperion": {
+      "url": "/hangar/components/hyperion.glb",
+      "v": "40ab2506",
+      "tris": 4156,
+      "trisRaw": 6483,
+      "textures": 18,
+      "attached": 0,
+      "key": "hyperion",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 2.6
+      },
+      "bytes": 54640,
+      "pool": {
+        "images": 18,
+        "bytes": 122896,
+        "fresh": 0
+      }
+    },
+    "ice-flush": {
+      "url": "/hangar/components/ice-flush.glb",
+      "v": "6a1542e4",
+      "tris": 4275,
+      "trisRaw": 9025,
+      "textures": 13,
+      "attached": 0,
+      "key": "ice-flush",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 1.7
+      },
+      "bytes": 60676,
+      "pool": {
+        "images": 13,
+        "bytes": 145154,
+        "fresh": 0
+      }
+    },
+    "icebox": {
+      "url": "/hangar/components/icebox.glb",
+      "v": "faf34bdc",
+      "tris": 6191,
+      "trisRaw": 11975,
+      "textures": 14,
+      "attached": 0,
+      "key": "icebox",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 66892,
+      "pool": {
+        "images": 14,
+        "bytes": 143570,
+        "fresh": 868
+      }
+    },
+    "icedive": {
+      "url": "/hangar/components/icedive.glb",
+      "v": "22372150",
+      "tris": 5911,
+      "trisRaw": 12718,
+      "textures": 17,
+      "attached": 0,
+      "key": "icedive",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.24,
+        "bits": 13,
+        "degenerate": 1.1
+      },
+      "bytes": 75136,
+      "pool": {
+        "images": 17,
+        "bytes": 173994,
+        "fresh": 54680
+      }
+    },
+    "iceplunge": {
+      "url": "/hangar/components/iceplunge.glb",
+      "v": "1f7d2e19",
+      "tris": 5666,
+      "trisRaw": 12215,
+      "textures": 14,
+      "attached": 0,
+      "key": "iceplunge",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.12,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 56684,
+      "pool": {
+        "images": 14,
+        "bytes": 120004,
+        "fresh": 0
+      }
+    },
+    "impulse": {
+      "url": "/hangar/components/impulse.glb",
+      "v": "e2b6d2fb",
+      "tris": 4140,
+      "trisRaw": 6809,
+      "textures": 15,
+      "attached": 0,
+      "key": "impulse",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 4.7
+      },
+      "bytes": 56528,
+      "pool": {
+        "images": 15,
+        "bytes": 123644,
+        "fresh": 496
+      }
+    },
+    "ink": {
+      "url": "/hangar/components/ink.glb",
+      "v": "2cd0c7e6",
+      "tris": 4071,
+      "trisRaw": 9256,
+      "textures": 16,
+      "attached": 0,
+      "key": "ink",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.8
+      },
+      "bytes": 59784,
+      "pool": {
+        "images": 16,
+        "bytes": 105102,
+        "fresh": 0
+      }
+    },
+    "ionburst": {
+      "url": "/hangar/components/ionburst.glb",
+      "v": "ffed0e59",
+      "tris": 5532,
+      "trisRaw": 15201,
+      "textures": 20,
+      "attached": 0,
+      "key": "ionburst",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.2
+      },
+      "bytes": 70304,
+      "pool": {
+        "images": 20,
+        "bytes": 134114,
+        "fresh": 4244
+      }
+    },
+    "ionsurge-pro": {
+      "url": "/hangar/components/ionsurge-pro.glb",
+      "v": "fe786195",
+      "tris": 4230,
+      "trisRaw": 8682,
+      "textures": 14,
+      "attached": 0,
+      "key": "ionsurge-pro",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 48760,
+      "pool": {
+        "images": 14,
+        "bytes": 152870,
+        "fresh": 0
+      }
+    },
+    "ionsurge": {
+      "url": "/hangar/components/ionsurge.glb",
+      "v": "722a2338",
+      "tris": 4279,
+      "trisRaw": 8682,
+      "textures": 14,
+      "attached": 0,
+      "key": "ionsurge",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.4
+      },
+      "bytes": 49140,
+      "pool": {
+        "images": 14,
+        "bytes": 152870,
+        "fresh": 0
+      }
+    },
+    "ionwave": {
+      "url": "/hangar/components/ionwave.glb",
+      "v": "11b64204",
+      "tris": 1968,
+      "trisRaw": 1968,
+      "textures": 14,
+      "attached": 0,
+      "key": "ionwave",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.14,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 30000,
+      "pool": {
+        "images": 14,
+        "bytes": 88418,
+        "fresh": 0
+      }
+    },
+    "jaghte": {
+      "url": "/hangar/components/jaghte.glb",
+      "v": "e0e181c7",
+      "tris": 4030,
+      "trisRaw": 9318,
+      "textures": 9,
+      "attached": 0,
+      "key": "jaghte",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 50396,
+      "pool": {
+        "images": 9,
+        "bytes": 102474,
+        "fresh": 0
+      }
+    },
+    "jennet": {
+      "url": "/hangar/components/jennet.glb",
+      "v": "a6512bbd",
+      "tris": 2572,
+      "trisRaw": 2572,
+      "textures": 16,
+      "attached": 0,
+      "key": "jennet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.28,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 33316,
+      "pool": {
+        "images": 16,
+        "bytes": 99954,
+        "fresh": 0
+      }
+    },
+    "js-300": {
+      "url": "/hangar/components/js-300.glb",
+      "v": "f83d5803",
+      "tris": 6751,
+      "trisRaw": 13650,
+      "textures": 13,
+      "attached": 0,
+      "key": "js-300",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 72844,
+      "pool": {
+        "images": 13,
+        "bytes": 143572,
+        "fresh": 0
+      }
+    },
+    "js-400": {
+      "url": "/hangar/components/js-400.glb",
+      "v": "7da4f31f",
+      "tris": 6475,
+      "trisRaw": 12441,
+      "textures": 13,
+      "attached": 0,
+      "key": "js-400",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 68732,
+      "pool": {
+        "images": 13,
+        "bytes": 154468,
+        "fresh": 2170
+      }
+    },
+    "js-500": {
+      "url": "/hangar/components/js-500.glb",
+      "v": "02537bed",
+      "tris": 5552,
+      "trisRaw": 9395,
+      "textures": 9,
+      "attached": 0,
+      "key": "js-500",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 0,
+        "rangeAfter": 0.18,
+        "bits": 12,
+        "degenerate": 19.6
+      },
+      "bytes": 46596,
+      "pool": {
+        "images": 9,
+        "bytes": 88738,
+        "fresh": 0
+      }
+    },
+    "kama": {
+      "url": "/hangar/components/kama.glb",
+      "v": "a82772ec",
+      "tris": 4609,
+      "trisRaw": 7045,
+      "textures": 13,
+      "attached": 0,
+      "key": "kama",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 58044,
+      "pool": {
+        "images": 13,
+        "bytes": 143036,
+        "fresh": 0
+      }
+    },
+    "kelvid": {
+      "url": "/hangar/components/kelvid.glb",
+      "v": "f41b1381",
+      "tris": 4051,
+      "trisRaw": 4508,
+      "textures": 20,
+      "attached": 0,
+      "key": "kelvid",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 4.93,
+        "bits": 15,
+        "degenerate": 4.1
+      },
+      "bytes": 49876,
+      "pool": {
+        "images": 20,
+        "bytes": 62326,
+        "fresh": 0
+      }
+    },
+    "khaos": {
+      "url": "/hangar/components/khaos.glb",
+      "v": "25b12598",
+      "tris": 4112,
+      "trisRaw": 6392,
+      "textures": 17,
+      "attached": 0,
+      "key": "khaos",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.5
+      },
+      "bytes": 54188,
+      "pool": {
+        "images": 17,
+        "bytes": 124998,
+        "fresh": 0
+      }
+    },
+    "kragen": {
+      "url": "/hangar/components/kragen.glb",
+      "v": "83ed1996",
+      "tris": 4014,
+      "trisRaw": 4593,
+      "textures": 9,
+      "attached": 0,
+      "key": "kragen",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 39568,
+      "pool": {
+        "images": 9,
+        "bytes": 43130,
+        "fresh": 0
+      }
+    },
+    "lightblossom": {
+      "url": "/hangar/components/lightblossom.glb",
+      "v": "547e84a2",
+      "tris": 7854,
+      "trisRaw": 20006,
+      "textures": 13,
+      "attached": 0,
+      "key": "lightblossom",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.6
+      },
+      "bytes": 82312,
+      "pool": {
+        "images": 13,
+        "bytes": 126944,
+        "fresh": 0
+      }
+    },
+    "lightfire": {
+      "url": "/hangar/components/lightfire.glb",
+      "v": "472614e5",
+      "tris": 4143,
+      "trisRaw": 4143,
+      "textures": 10,
+      "attached": 0,
+      "key": "lightfire",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 10,
+        "rangeAfter": 9.48,
+        "bits": 16,
+        "degenerate": 4.5
+      },
+      "bytes": 41876,
+      "pool": {
+        "images": 10,
+        "bytes": 104384,
+        "fresh": 288
+      }
+    },
+    "lotus": {
+      "url": "/hangar/components/lotus.glb",
+      "v": "b4115ef6",
+      "tris": 5039,
+      "trisRaw": 13135,
+      "textures": 13,
+      "attached": 0,
+      "key": "lotus",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.1
+      },
+      "bytes": 58412,
+      "pool": {
+        "images": 13,
+        "bytes": 150638,
+        "fresh": 0
+      }
+    },
+    "lumacore": {
+      "url": "/hangar/components/lumacore.glb",
+      "v": "f674ad72",
+      "tris": 3209,
+      "trisRaw": 3209,
+      "textures": 11,
+      "attached": 0,
+      "key": "lumacore",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 34420,
+      "pool": {
+        "images": 11,
+        "bytes": 117580,
+        "fresh": 5512
+      }
+    },
+    "luxcore": {
+      "url": "/hangar/components/luxcore.glb",
+      "v": "548fe3e8",
+      "tris": 3404,
+      "trisRaw": 3404,
+      "textures": 12,
+      "attached": 0,
+      "key": "luxcore",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 37420,
+      "pool": {
+        "images": 12,
+        "bytes": 170036,
+        "fresh": 0
+      }
+    },
+    "maelstrom": {
+      "url": "/hangar/components/maelstrom.glb",
+      "v": "d7578a78",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "maelstrom",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.5,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52532,
+      "pool": {
+        "images": 17,
+        "bytes": 96600,
+        "fresh": 0
+      }
+    },
+    "magnabloom": {
+      "url": "/hangar/components/magnabloom.glb",
+      "v": "e1f1fbfc",
+      "tris": 7664,
+      "trisRaw": 19256,
+      "textures": 14,
+      "attached": 0,
+      "key": "magnabloom",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.8
+      },
+      "bytes": 83304,
+      "pool": {
+        "images": 14,
+        "bytes": 144314,
+        "fresh": 17366
+      }
+    },
+    "main-powerplant": {
+      "url": "/hangar/components/main-powerplant.glb",
+      "v": "1d13071f",
+      "tris": 3997,
+      "trisRaw": 7789,
+      "textures": 8,
+      "attached": 0,
+      "key": "main-powerplant",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.4,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 41340,
+      "pool": {
+        "images": 8,
+        "bytes": 61106,
+        "fresh": 29828
+      }
+    },
+    "mauler-cooler": {
+      "url": "/hangar/components/mauler-cooler.glb",
+      "v": "985ed70d",
+      "tris": 3999,
+      "trisRaw": 22687,
+      "textures": 3,
+      "attached": 0,
+      "key": "mauler-cooler",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 6.74,
+        "bits": 15,
+        "degenerate": 0.4
+      },
+      "bytes": 22352,
+      "pool": {
+        "images": 3,
+        "bytes": 29574,
+        "fresh": 29574
+      }
+    },
+    "mauler-power-plant": {
+      "url": "/hangar/components/mauler-power-plant.glb",
+      "v": "fa3135e7",
+      "tris": 2956,
+      "trisRaw": 2956,
+      "textures": 3,
+      "attached": 0,
+      "key": "mauler-power-plant",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.03,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 16060,
+      "pool": {
+        "images": 3,
+        "bytes": 29574,
+        "fresh": 0
+      }
+    },
+    "mauler-quantum-drive": {
+      "url": "/hangar/components/mauler-quantum-drive.glb",
+      "v": "2b4d6f54",
+      "tris": 3999,
+      "trisRaw": 12069,
+      "textures": 3,
+      "attached": 0,
+      "key": "mauler-quantum-drive",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.88,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 25904,
+      "pool": {
+        "images": 3,
+        "bytes": 29574,
+        "fresh": 0
+      }
+    },
+    "mauler-radar": {
+      "url": "/hangar/components/mauler-radar.glb",
+      "v": "55cb0d29",
+      "tris": 4000,
+      "trisRaw": 18020,
+      "textures": 3,
+      "attached": 0,
+      "key": "mauler-radar",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.81,
+        "bits": 12,
+        "degenerate": 1.1
+      },
+      "bytes": 25764,
+      "pool": {
+        "images": 3,
+        "bytes": 29574,
+        "fresh": 0
+      }
+    },
+    "megaflux": {
+      "url": "/hangar/components/megaflux.glb",
+      "v": "0164f009",
+      "tris": 4729,
+      "trisRaw": 11333,
+      "textures": 10,
+      "attached": 0,
+      "key": "megaflux",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.2
+      },
+      "bytes": 54492,
+      "pool": {
+        "images": 10,
+        "bytes": 124390,
+        "fresh": 0
+      }
+    },
+    "mercury": {
+      "url": "/hangar/components/mercury.glb",
+      "v": "51ea7a31",
+      "tris": 3324,
+      "trisRaw": 3324,
+      "textures": 9,
+      "attached": 0,
+      "key": "mercury",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 37484,
+      "pool": {
+        "images": 9,
+        "bytes": 43130,
+        "fresh": 0
+      }
+    },
+    "metis": {
+      "url": "/hangar/components/metis.glb",
+      "v": "966f80b9",
+      "tris": 4111,
+      "trisRaw": 6352,
+      "textures": 17,
+      "attached": 0,
+      "key": "metis",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.6
+      },
+      "bytes": 54064,
+      "pool": {
+        "images": 17,
+        "bytes": 124998,
+        "fresh": 0
+      }
+    },
+    "mirage": {
+      "url": "/hangar/components/mirage.glb",
+      "v": "96bbf5f6",
+      "tris": 4148,
+      "trisRaw": 4148,
+      "textures": 1,
+      "attached": 0,
+      "key": "mirage",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 37428,
+      "pool": {
+        "images": 1,
+        "bytes": 828,
+        "fresh": 0
+      }
+    },
+    "newdawn": {
+      "url": "/hangar/components/newdawn.glb",
+      "v": "cc9bb5ca",
+      "tris": 4868,
+      "trisRaw": 13106,
+      "textures": 13,
+      "attached": 0,
+      "key": "newdawn",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.4
+      },
+      "bytes": 58260,
+      "pool": {
+        "images": 13,
+        "bytes": 152450,
+        "fresh": 0
+      }
+    },
+    "nightfall": {
+      "url": "/hangar/components/nightfall.glb",
+      "v": "cf4b252f",
+      "tris": 5658,
+      "trisRaw": 11746,
+      "textures": 14,
+      "attached": 0,
+      "key": "nightfall",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.1
+      },
+      "bytes": 62908,
+      "pool": {
+        "images": 14,
+        "bytes": 129474,
+        "fresh": 698
+      }
+    },
+    "nova": {
+      "url": "/hangar/components/nova.glb",
+      "v": "c9a2bbff",
+      "tris": 4143,
+      "trisRaw": 5703,
+      "textures": 9,
+      "attached": 0,
+      "key": "nova",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.47,
+        "bits": 14,
+        "degenerate": 0.2
+      },
+      "bytes": 42356,
+      "pool": {
+        "images": 9,
+        "bytes": 87128,
+        "fresh": 0
+      }
+    },
+    "obscura": {
+      "url": "/hangar/components/obscura.glb",
+      "v": "c8073bf7",
+      "tris": 4013,
+      "trisRaw": 4535,
+      "textures": 2,
+      "attached": 0,
+      "key": "obscura",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 38712,
+      "pool": {
+        "images": 2,
+        "bytes": 936,
+        "fresh": 108
+      }
+    },
+    "observer-go": {
+      "url": "/hangar/components/observer-go.glb",
+      "v": "60dabc1d",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "observer-go",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "observer-lite": {
+      "url": "/hangar/components/observer-lite.glb",
+      "v": "5081f1e6",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "observer-lite",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "observer-max": {
+      "url": "/hangar/components/observer-max.glb",
+      "v": "50a536dd",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "observer-max",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "observer": {
+      "url": "/hangar/components/observer.glb",
+      "v": "882818f0",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "observer",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "odyssey": {
+      "url": "/hangar/components/odyssey.glb",
+      "v": "0f02d80b",
+      "tris": 4102,
+      "trisRaw": 6943,
+      "textures": 14,
+      "attached": 0,
+      "key": "odyssey",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 5.2
+      },
+      "bytes": 53736,
+      "pool": {
+        "images": 14,
+        "bytes": 107312,
+        "fresh": 0
+      }
+    },
+    "overdrive": {
+      "url": "/hangar/components/overdrive.glb",
+      "v": "959aea8f",
+      "tris": 6837,
+      "trisRaw": 13553,
+      "textures": 14,
+      "attached": 0,
+      "key": "overdrive",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 73972,
+      "pool": {
+        "images": 14,
+        "bytes": 178108,
+        "fresh": 0
+      }
+    },
+    "palisade": {
+      "url": "/hangar/components/palisade.glb",
+      "v": "431bd1d6",
+      "tris": 5066,
+      "trisRaw": 10714,
+      "textures": 15,
+      "attached": 0,
+      "key": "palisade",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.05,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 61604,
+      "pool": {
+        "images": 15,
+        "bytes": 105956,
+        "fresh": 4132
+      }
+    },
+    "parapet": {
+      "url": "/hangar/components/parapet.glb",
+      "v": "122010db",
+      "tris": 4919,
+      "trisRaw": 9074,
+      "textures": 10,
+      "attached": 0,
+      "key": "parapet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 54736,
+      "pool": {
+        "images": 10,
+        "bytes": 34424,
+        "fresh": 0
+      }
+    },
+    "pelerous": {
+      "url": "/hangar/components/pelerous.glb",
+      "v": "29885a78",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "pelerous",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "permafrost": {
+      "url": "/hangar/components/permafrost.glb",
+      "v": "c7df23d0",
+      "tris": 4138,
+      "trisRaw": 8987,
+      "textures": 12,
+      "attached": 0,
+      "key": "permafrost",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 48656,
+      "pool": {
+        "images": 12,
+        "bytes": 62988,
+        "fresh": 0
+      }
+    },
+    "pin": {
+      "url": "/hangar/components/pin.glb",
+      "v": "ca36b2cb",
+      "tris": 4128,
+      "trisRaw": 4128,
+      "textures": 13,
+      "attached": 0,
+      "key": "pin",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.19,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 39908,
+      "pool": {
+        "images": 13,
+        "bytes": 81964,
+        "fresh": 15176
+      }
+    },
+    "polar": {
+      "url": "/hangar/components/polar.glb",
+      "v": "f32a575d",
+      "tris": 5167,
+      "trisRaw": 12897,
+      "textures": 7,
+      "attached": 0,
+      "key": "polar",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 52736,
+      "pool": {
+        "images": 7,
+        "bytes": 54484,
+        "fresh": 0
+      }
+    },
+    "pontes": {
+      "url": "/hangar/components/pontes.glb",
+      "v": "4d5ed0ea",
+      "tris": 5039,
+      "trisRaw": 15101,
+      "textures": 15,
+      "attached": 0,
+      "key": "pontes",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 36,
+        "rangeAfter": 7.4,
+        "bits": 15,
+        "degenerate": 4.8
+      },
+      "bytes": 63464,
+      "pool": {
+        "images": 15,
+        "bytes": 93294,
+        "fresh": 43930
+      }
+    },
+    "powerbolt": {
+      "url": "/hangar/components/powerbolt.glb",
+      "v": "b0d3b96b",
+      "tris": 5532,
+      "trisRaw": 15201,
+      "textures": 20,
+      "attached": 0,
+      "key": "powerbolt",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.2
+      },
+      "bytes": 70304,
+      "pool": {
+        "images": 20,
+        "bytes": 134114,
+        "fresh": 0
+      }
+    },
+    "POWR_AEGS_S04_Idris_SCItem": {
+      "url": "/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb",
+      "v": "a3ebdcba",
+      "tris": 3997,
+      "trisRaw": 7789,
+      "textures": 8,
+      "attached": 0,
+      "key": "POWR_AEGS_S04_Idris_SCItem",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.4,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 41340,
+      "pool": {
+        "images": 8,
+        "bytes": 61106,
+        "fresh": 0
+      }
+    },
+    "POWR_RSI_S04_Polaris_SCItem": {
+      "url": "/hangar/components/POWR_RSI_S04_Polaris_SCItem.glb",
+      "v": "5d81df4e",
+      "tris": 3997,
+      "trisRaw": 7789,
+      "textures": 8,
+      "attached": 0,
+      "key": "POWR_RSI_S04_Polaris_SCItem",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 2.4,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 41340,
+      "pool": {
+        "images": 8,
+        "bytes": 61106,
+        "fresh": 0
+      }
+    },
+    "predator": {
+      "url": "/hangar/components/predator.glb",
+      "v": "89d6cedf",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "predator",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "prevenir": {
+      "url": "/hangar/components/prevenir.glb",
+      "v": "a9008154",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "prevenir",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "prophet": {
+      "url": "/hangar/components/prophet.glb",
+      "v": "8e79dfd0",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "prophet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "quadracell-mt": {
+      "url": "/hangar/components/quadracell-mt.glb",
+      "v": "022352e1",
+      "tris": 3503,
+      "trisRaw": 3503,
+      "textures": 9,
+      "attached": 0,
+      "key": "quadracell-mt",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 7,
+        "rangeAfter": 2.02,
+        "bits": 14,
+        "degenerate": 0.3
+      },
+      "bytes": 37360,
+      "pool": {
+        "images": 9,
+        "bytes": 45430,
+        "fresh": 38686
+      }
+    },
+    "quadracell-mx": {
+      "url": "/hangar/components/quadracell-mx.glb",
+      "v": "c814238c",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "quadracell-mx",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.33,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52360,
+      "pool": {
+        "images": 17,
+        "bytes": 71956,
+        "fresh": 178
+      }
+    },
+    "quadracell": {
+      "url": "/hangar/components/quadracell.glb",
+      "v": "76dde9e8",
+      "tris": 3154,
+      "trisRaw": 3154,
+      "textures": 3,
+      "attached": 0,
+      "key": "quadracell",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.44,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 28300,
+      "pool": {
+        "images": 3,
+        "bytes": 3218,
+        "fresh": 3218
+      }
+    },
+    "quest": {
+      "url": "/hangar/components/quest.glb",
+      "v": "ab586ed9",
+      "tris": 4361,
+      "trisRaw": 7682,
+      "textures": 12,
+      "attached": 0,
+      "key": "quest",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 2.8
+      },
+      "bytes": 55080,
+      "pool": {
+        "images": 12,
+        "bytes": 104892,
+        "fresh": 0
+      }
+    },
+    "quikcool": {
+      "url": "/hangar/components/quikcool.glb",
+      "v": "25754e07",
+      "tris": 4562,
+      "trisRaw": 12179,
+      "textures": 11,
+      "attached": 0,
+      "key": "quikcool",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.12,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 50408,
+      "pool": {
+        "images": 11,
+        "bytes": 118748,
+        "fresh": 0
+      }
+    },
+    "radar-s1": {
+      "url": "/hangar/components/radar-s1.glb",
+      "v": "fa6446b5",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "radar~1",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "radiance": {
+      "url": "/hangar/components/radiance.glb",
+      "v": "57449cad",
+      "tris": 4833,
+      "trisRaw": 13013,
+      "textures": 12,
+      "attached": 0,
+      "key": "radiance",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.1
+      },
+      "bytes": 56776,
+      "pool": {
+        "images": 12,
+        "bytes": 149874,
+        "fresh": 0
+      }
+    },
+    "radix": {
+      "url": "/hangar/components/radix.glb",
+      "v": "c547a010",
+      "tris": 1968,
+      "trisRaw": 1968,
+      "textures": 14,
+      "attached": 0,
+      "key": "radix",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.14,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 30000,
+      "pool": {
+        "images": 14,
+        "bytes": 88418,
+        "fresh": 0
+      }
+    },
+    "RADR_RSI_S04_Polaris": {
+      "url": "/hangar/components/RADR_RSI_S04_Polaris.glb",
+      "v": "a0a918ef",
+      "tris": 19672,
+      "trisRaw": 42991,
+      "textures": 8,
+      "attached": 0,
+      "key": "RADR_RSI_S04_Polaris",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 11,
+        "rangeAfter": 10.69,
+        "bits": 16,
+        "degenerate": 7.3
+      },
+      "bytes": 203864,
+      "pool": {
+        "images": 8,
+        "bytes": 88822,
+        "fresh": 13646
+      }
+    },
+    "RADR_WLOP_S03_Lephari": {
+      "url": "/hangar/components/RADR_WLOP_S03_Lephari.glb",
+      "v": "47e713c9",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "RADR_WLOP_S03_Lephari",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "rampart": {
+      "url": "/hangar/components/rampart.glb",
+      "v": "4cbd7231",
+      "tris": 4016,
+      "trisRaw": 4449,
+      "textures": 4,
+      "attached": 0,
+      "key": "rampart",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 39352,
+      "pool": {
+        "images": 4,
+        "bytes": 1310,
+        "fresh": 0
+      }
+    },
+    "ranger": {
+      "url": "/hangar/components/ranger.glb",
+      "v": "a085bbf1",
+      "tris": 5039,
+      "trisRaw": 15101,
+      "textures": 15,
+      "attached": 0,
+      "key": "ranger",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 36,
+        "rangeAfter": 7.4,
+        "bits": 15,
+        "degenerate": 4.8
+      },
+      "bytes": 63464,
+      "pool": {
+        "images": 15,
+        "bytes": 93294,
+        "fresh": 0
+      }
+    },
+    "rapidcool": {
+      "url": "/hangar/components/rapidcool.glb",
+      "v": "aa3ae0a7",
+      "tris": 4947,
+      "trisRaw": 12179,
+      "textures": 13,
+      "attached": 0,
+      "key": "rapidcool",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.57,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 63848,
+      "pool": {
+        "images": 13,
+        "bytes": 154974,
+        "fresh": 17470
+      }
+    },
+    "regulus": {
+      "url": "/hangar/components/regulus.glb",
+      "v": "5eea06e7",
+      "tris": 4787,
+      "trisRaw": 6758,
+      "textures": 16,
+      "attached": 0,
+      "key": "regulus",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.1
+      },
+      "bytes": 51032,
+      "pool": {
+        "images": 16,
+        "bytes": 168676,
+        "fresh": 0
+      }
+    },
+    "reliance": {
+      "url": "/hangar/components/reliance.glb",
+      "v": "5d218291",
+      "tris": 4472,
+      "trisRaw": 8622,
+      "textures": 13,
+      "attached": 0,
+      "key": "reliance",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.51,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 50568,
+      "pool": {
+        "images": 13,
+        "bytes": 73058,
+        "fresh": 0
+      }
+    },
+    "resolu": {
+      "url": "/hangar/components/resolu.glb",
+      "v": "4be384cb",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "resolu",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "roughneck": {
+      "url": "/hangar/components/roughneck.glb",
+      "v": "290fee6d",
+      "tris": 4846,
+      "trisRaw": 8573,
+      "textures": 13,
+      "attached": 0,
+      "key": "roughneck",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 0.4
+      },
+      "bytes": 55700,
+      "pool": {
+        "images": 13,
+        "bytes": 169372,
+        "fresh": 0
+      }
+    },
+    "rpel": {
+      "url": "/hangar/components/rpel.glb",
+      "v": "d2c6d42b",
+      "tris": 4033,
+      "trisRaw": 8343,
+      "textures": 15,
+      "attached": 0,
+      "key": "rpel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.6
+      },
+      "bytes": 58292,
+      "pool": {
+        "images": 15,
+        "bytes": 106768,
+        "fresh": 0
+      }
+    },
+    "rs-barrier": {
+      "url": "/hangar/components/rs-barrier.glb",
+      "v": "49337e78",
+      "tris": 48,
+      "trisRaw": 48,
+      "textures": 1,
+      "attached": 0,
+      "key": "rs-barrier",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 75
+      },
+      "bytes": 5036,
+      "pool": {
+        "images": 1,
+        "bytes": 72,
+        "fresh": 0
+      }
+    },
+    "rush": {
+      "url": "/hangar/components/rush.glb",
+      "v": "6e466d06",
+      "tris": 4283,
+      "trisRaw": 6700,
+      "textures": 15,
+      "attached": 0,
+      "key": "rush",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 2
+      },
+      "bytes": 57796,
+      "pool": {
+        "images": 15,
+        "bytes": 134130,
+        "fresh": 0
+      }
+    },
+    "savoir": {
+      "url": "/hangar/components/savoir.glb",
+      "v": "c693a625",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "savoir",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "securehyde": {
+      "url": "/hangar/components/securehyde.glb",
+      "v": "5bb1d7d0",
+      "tris": 4084,
+      "trisRaw": 10292,
+      "textures": 11,
+      "attached": 0,
+      "key": "securehyde",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.78,
+        "bits": 13,
+        "degenerate": 1.6
+      },
+      "bytes": 51608,
+      "pool": {
+        "images": 11,
+        "bytes": 103700,
+        "fresh": 190
+      }
+    },
+    "securescreen": {
+      "url": "/hangar/components/securescreen.glb",
+      "v": "162e06e7",
+      "tris": 3996,
+      "trisRaw": 10292,
+      "textures": 11,
+      "attached": 0,
+      "key": "securescreen",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 1.5
+      },
+      "bytes": 50576,
+      "pool": {
+        "images": 11,
+        "bytes": 111966,
+        "fresh": 0
+      }
+    },
+    "secureshield": {
+      "url": "/hangar/components/secureshield.glb",
+      "v": "90a90030",
+      "tris": 4064,
+      "trisRaw": 10292,
+      "textures": 11,
+      "attached": 0,
+      "key": "secureshield",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 1.7
+      },
+      "bytes": 51080,
+      "pool": {
+        "images": 11,
+        "bytes": 111966,
+        "fresh": 0
+      }
+    },
+    "sedulity": {
+      "url": "/hangar/components/sedulity.glb",
+      "v": "fbff35fe",
+      "tris": 4074,
+      "trisRaw": 7047,
+      "textures": 14,
+      "attached": 0,
+      "key": "sedulity",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 0.7
+      },
+      "bytes": 49600,
+      "pool": {
+        "images": 14,
+        "bytes": 163184,
+        "fresh": 0
+      }
+    },
+    "sens": {
+      "url": "/hangar/components/sens.glb",
+      "v": "6063344a",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "sens",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "serac": {
+      "url": "/hangar/components/serac.glb",
+      "v": "8a8e59d1",
+      "tris": 28464,
+      "trisRaw": 88744,
+      "textures": 7,
+      "attached": 0,
+      "key": "serac",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 10,
+        "bits": 16,
+        "degenerate": 1.1
+      },
+      "bytes": 342348,
+      "pool": {
+        "images": 7,
+        "bytes": 83844,
+        "fresh": 0
+      }
+    },
+    "sheut": {
+      "url": "/hangar/components/sheut.glb",
+      "v": "c655938c",
+      "tris": 4026,
+      "trisRaw": 4851,
+      "textures": 4,
+      "attached": 0,
+      "key": "sheut",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 38436,
+      "pool": {
+        "images": 4,
+        "bytes": 6604,
+        "fresh": 0
+      }
+    },
+    "shimmer": {
+      "url": "/hangar/components/shimmer.glb",
+      "v": "338521c4",
+      "tris": 4128,
+      "trisRaw": 4128,
+      "textures": 1,
+      "attached": 0,
+      "key": "shimmer",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 36428,
+      "pool": {
+        "images": 1,
+        "bytes": 828,
+        "fresh": 0
+      }
+    },
+    "SHLD_BANU_S02_Placeholder_SCItem": {
+      "url": "/hangar/components/SHLD_BANU_S02_Placeholder_SCItem.glb",
+      "v": "73db73d4",
+      "tris": 3988,
+      "trisRaw": 7844,
+      "textures": 9,
+      "attached": 0,
+      "key": "SHLD_BANU_S02_Placeholder_SCItem",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 1.6
+      },
+      "bytes": 50352,
+      "pool": {
+        "images": 9,
+        "bytes": 102474,
+        "fresh": 0
+      }
+    },
+    "shroud": {
+      "url": "/hangar/components/shroud.glb",
+      "v": "4236f95c",
+      "tris": 4013,
+      "trisRaw": 4535,
+      "textures": 2,
+      "attached": 0,
+      "key": "shroud",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 38712,
+      "pool": {
+        "images": 2,
+        "bytes": 936,
+        "fresh": 0
+      }
+    },
+    "siren": {
+      "url": "/hangar/components/siren.glb",
+      "v": "90e402aa",
+      "tris": 7075,
+      "trisRaw": 10786,
+      "textures": 9,
+      "attached": 0,
+      "key": "siren",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 3.7
+      },
+      "bytes": 66648,
+      "pool": {
+        "images": 9,
+        "bytes": 116616,
+        "fresh": 0
+      }
+    },
+    "slipstream": {
+      "url": "/hangar/components/slipstream.glb",
+      "v": "27482713",
+      "tris": 3998,
+      "trisRaw": 12502,
+      "textures": 12,
+      "attached": 0,
+      "key": "slipstream",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.81,
+        "bits": 13,
+        "degenerate": 0.8
+      },
+      "bytes": 47736,
+      "pool": {
+        "images": 12,
+        "bytes": 130238,
+        "fresh": 0
+      }
+    },
+    "smartgen": {
+      "url": "/hangar/components/smartgen.glb",
+      "v": "daa1dc1a",
+      "tris": 5948,
+      "trisRaw": 12107,
+      "textures": 14,
+      "attached": 0,
+      "key": "smartgen",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 65160,
+      "pool": {
+        "images": 14,
+        "bytes": 172522,
+        "fresh": 0
+      }
+    },
+    "snowblind": {
+      "url": "/hangar/components/snowblind.glb",
+      "v": "f578299b",
+      "tris": 5688,
+      "trisRaw": 11746,
+      "textures": 14,
+      "attached": 0,
+      "key": "snowblind",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 63116,
+      "pool": {
+        "images": 14,
+        "bytes": 129142,
+        "fresh": 1670
+      }
+    },
+    "snowfall": {
+      "url": "/hangar/components/snowfall.glb",
+      "v": "a3eed5a7",
+      "tris": 7540,
+      "trisRaw": 13235,
+      "textures": 18,
+      "attached": 0,
+      "key": "snowfall",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 86768,
+      "pool": {
+        "images": 18,
+        "bytes": 169362,
+        "fresh": 0
+      }
+    },
+    "snowpack": {
+      "url": "/hangar/components/snowpack.glb",
+      "v": "ce5227ba",
+      "tris": 4120,
+      "trisRaw": 8815,
+      "textures": 12,
+      "attached": 0,
+      "key": "snowpack",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 50516,
+      "pool": {
+        "images": 12,
+        "bytes": 125302,
+        "fresh": 0
+      }
+    },
+    "sns-r5x": {
+      "url": "/hangar/components/sns-r5x.glb",
+      "v": "45caf14b",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "sns-r5x",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "sns-r6": {
+      "url": "/hangar/components/sns-r6.glb",
+      "v": "756a79dd",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "sns-r6",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "sns-r6x": {
+      "url": "/hangar/components/sns-r6x.glb",
+      "v": "3e9339de",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "sns-r6x",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "sns-r7x": {
+      "url": "/hangar/components/sns-r7x.glb",
+      "v": "14076da8",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "sns-r7x",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "snsr5": {
+      "url": "/hangar/components/snsr5.glb",
+      "v": "760ae421",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "snsr5",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "snsr7": {
+      "url": "/hangar/components/snsr7.glb",
+      "v": "11dd4e31",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "snsr7",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "socoria": {
+      "url": "/hangar/components/socoria.glb",
+      "v": "b3148998",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "socoria",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "sojourn": {
+      "url": "/hangar/components/sojourn.glb",
+      "v": "ff88b825",
+      "tris": 4131,
+      "trisRaw": 7062,
+      "textures": 12,
+      "attached": 0,
+      "key": "sojourn",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 6.2
+      },
+      "bytes": 53904,
+      "pool": {
+        "images": 12,
+        "bytes": 91156,
+        "fresh": 16932
+      }
+    },
+    "solarflare": {
+      "url": "/hangar/components/solarflare.glb",
+      "v": "17b19b74",
+      "tris": 4022,
+      "trisRaw": 4022,
+      "textures": 16,
+      "attached": 0,
+      "key": "solarflare",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.2
+      },
+      "bytes": 46072,
+      "pool": {
+        "images": 16,
+        "bytes": 236478,
+        "fresh": 61176
+      }
+    },
+    "soniclite": {
+      "url": "/hangar/components/soniclite.glb",
+      "v": "1a4d7391",
+      "tris": 4073,
+      "trisRaw": 12418,
+      "textures": 12,
+      "attached": 0,
+      "key": "soniclite",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.81,
+        "bits": 13,
+        "degenerate": 0.7
+      },
+      "bytes": 47816,
+      "pool": {
+        "images": 12,
+        "bytes": 129906,
+        "fresh": 0
+      }
+    },
+    "sovereign-ip-10": {
+      "url": "/hangar/components/sovereign-ip-10.glb",
+      "v": "fc825e22",
+      "tris": 6236,
+      "trisRaw": 12319,
+      "textures": 13,
+      "attached": 0,
+      "key": "sovereign-ip-10",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 66664,
+      "pool": {
+        "images": 13,
+        "bytes": 161062,
+        "fresh": 26404
+      }
+    },
+    "sovereign-ip-20": {
+      "url": "/hangar/components/sovereign-ip-20.glb",
+      "v": "3beb6800",
+      "tris": 6238,
+      "trisRaw": 12319,
+      "textures": 13,
+      "attached": 0,
+      "key": "sovereign-ip-20",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 66660,
+      "pool": {
+        "images": 13,
+        "bytes": 161062,
+        "fresh": 0
+      }
+    },
+    "sovereign-ip-30": {
+      "url": "/hangar/components/sovereign-ip-30.glb",
+      "v": "7fbdd212",
+      "tris": 6238,
+      "trisRaw": 12319,
+      "textures": 13,
+      "attached": 0,
+      "key": "sovereign-ip-30",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 66668,
+      "pool": {
+        "images": 13,
+        "bytes": 161062,
+        "fresh": 0
+      }
+    },
+    "sparkfire": {
+      "url": "/hangar/components/sparkfire.glb",
+      "v": "d21950a9",
+      "tris": 4144,
+      "trisRaw": 4144,
+      "textures": 12,
+      "attached": 0,
+      "key": "sparkfire",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 10,
+        "rangeAfter": 9.48,
+        "bits": 16,
+        "degenerate": 2
+      },
+      "bytes": 49520,
+      "pool": {
+        "images": 12,
+        "bytes": 110186,
+        "fresh": 2932
+      }
+    },
+    "sparkjet-pro": {
+      "url": "/hangar/components/sparkjet-pro.glb",
+      "v": "3be94aba",
+      "tris": 4116,
+      "trisRaw": 8475,
+      "textures": 14,
+      "attached": 0,
+      "key": "sparkjet-pro",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 13,
+        "degenerate": 1.7
+      },
+      "bytes": 48200,
+      "pool": {
+        "images": 14,
+        "bytes": 175648,
+        "fresh": 48178
+      }
+    },
+    "sparkjet": {
+      "url": "/hangar/components/sparkjet.glb",
+      "v": "848639ce",
+      "tris": 4112,
+      "trisRaw": 8475,
+      "textures": 14,
+      "attached": 0,
+      "key": "sparkjet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 13,
+        "degenerate": 1.8
+      },
+      "bytes": 48292,
+      "pool": {
+        "images": 14,
+        "bytes": 175648,
+        "fresh": 0
+      }
+    },
+    "spectre": {
+      "url": "/hangar/components/spectre.glb",
+      "v": "52f62a98",
+      "tris": 4163,
+      "trisRaw": 4757,
+      "textures": 6,
+      "attached": 0,
+      "key": "spectre",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.6
+      },
+      "bytes": 37508,
+      "pool": {
+        "images": 6,
+        "bytes": 43212,
+        "fresh": 0
+      }
+    },
+    "spicule": {
+      "url": "/hangar/components/spicule.glb",
+      "v": "0e5408ce",
+      "tris": 4036,
+      "trisRaw": 5229,
+      "textures": 9,
+      "attached": 0,
+      "key": "spicule",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.47,
+        "bits": 14,
+        "degenerate": 0.2
+      },
+      "bytes": 42372,
+      "pool": {
+        "images": 9,
+        "bytes": 87128,
+        "fresh": 0
+      }
+    },
+    "spyglass": {
+      "url": "/hangar/components/spyglass.glb",
+      "v": "850f9265",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "spyglass",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "starburn": {
+      "url": "/hangar/components/starburn.glb",
+      "v": "10493da4",
+      "tris": 3357,
+      "trisRaw": 3357,
+      "textures": 11,
+      "attached": 0,
+      "key": "starburn",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 34640,
+      "pool": {
+        "images": 11,
+        "bytes": 146030,
+        "fresh": 38332
+      }
+    },
+    "starheart": {
+      "url": "/hangar/components/starheart.glb",
+      "v": "86fd5881",
+      "tris": 3802,
+      "trisRaw": 3802,
+      "textures": 11,
+      "attached": 0,
+      "key": "starheart",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 37560,
+      "pool": {
+        "images": 11,
+        "bytes": 109486,
+        "fresh": 0
+      }
+    },
+    "steadfast": {
+      "url": "/hangar/components/steadfast.glb",
+      "v": "d3d6f21a",
+      "tris": 2572,
+      "trisRaw": 2572,
+      "textures": 16,
+      "attached": 0,
+      "key": "steadfast",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.28,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 33316,
+      "pool": {
+        "images": 16,
+        "bytes": 99954,
+        "fresh": 0
+      }
+    },
+    "stellate": {
+      "url": "/hangar/components/stellate.glb",
+      "v": "71392044",
+      "tris": 4472,
+      "trisRaw": 8622,
+      "textures": 13,
+      "attached": 0,
+      "key": "stellate",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.51,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 50568,
+      "pool": {
+        "images": 13,
+        "bytes": 73058,
+        "fresh": 0
+      }
+    },
+    "steward": {
+      "url": "/hangar/components/steward.glb",
+      "v": "0c413c08",
+      "tris": 5066,
+      "trisRaw": 10714,
+      "textures": 15,
+      "attached": 0,
+      "key": "steward",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.05,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 61604,
+      "pool": {
+        "images": 15,
+        "bytes": 105956,
+        "fresh": 0
+      }
+    },
+    "stop": {
+      "url": "/hangar/components/stop.glb",
+      "v": "737ab118",
+      "tris": 4033,
+      "trisRaw": 8343,
+      "textures": 15,
+      "attached": 0,
+      "key": "stop",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.6
+      },
+      "bytes": 58292,
+      "pool": {
+        "images": 15,
+        "bytes": 106768,
+        "fresh": 0
+      }
+    },
+    "stronghold": {
+      "url": "/hangar/components/stronghold.glb",
+      "v": "5623b1fa",
+      "tris": 4635,
+      "trisRaw": 10070,
+      "textures": 14,
+      "attached": 0,
+      "key": "stronghold",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.12,
+        "bits": 13,
+        "degenerate": 2
+      },
+      "bytes": 58536,
+      "pool": {
+        "images": 14,
+        "bytes": 140506,
+        "fresh": 0
+      }
+    },
+    "sunfire": {
+      "url": "/hangar/components/sunfire.glb",
+      "v": "5a417211",
+      "tris": 3879,
+      "trisRaw": 3879,
+      "textures": 9,
+      "attached": 0,
+      "key": "sunfire",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.4
+      },
+      "bytes": 42404,
+      "pool": {
+        "images": 9,
+        "bytes": 64402,
+        "fresh": 1468
+      }
+    },
+    "sunflare": {
+      "url": "/hangar/components/sunflare.glb",
+      "v": "7e0cae69",
+      "tris": 4087,
+      "trisRaw": 4087,
+      "textures": 16,
+      "attached": 0,
+      "key": "sunflare",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.03,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 43160,
+      "pool": {
+        "images": 16,
+        "bytes": 181922,
+        "fresh": 2460
+      }
+    },
+    "superdrive": {
+      "url": "/hangar/components/superdrive.glb",
+      "v": "b4c6b475",
+      "tris": 6423,
+      "trisRaw": 12406,
+      "textures": 15,
+      "attached": 0,
+      "key": "superdrive",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 70564,
+      "pool": {
+        "images": 15,
+        "bytes": 189618,
+        "fresh": 0
+      }
+    },
+    "surestop": {
+      "url": "/hangar/components/surestop.glb",
+      "v": "24dfc218",
+      "tris": 4316,
+      "trisRaw": 9436,
+      "textures": 11,
+      "attached": 0,
+      "key": "surestop",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.96,
+        "bits": 13,
+        "degenerate": 1.3
+      },
+      "bytes": 56428,
+      "pool": {
+        "images": 11,
+        "bytes": 111966,
+        "fresh": 0
+      }
+    },
+    "surveyor-go": {
+      "url": "/hangar/components/surveyor-go.glb",
+      "v": "991a4d43",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "surveyor-go",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "surveyor-lite": {
+      "url": "/hangar/components/surveyor-lite.glb",
+      "v": "7dbc7873",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "surveyor-lite",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "surveyor-max": {
+      "url": "/hangar/components/surveyor-max.glb",
+      "v": "ebe58107",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "surveyor-max",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "surveyor": {
+      "url": "/hangar/components/surveyor.glb",
+      "v": "f7c29df9",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "surveyor",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "taiga": {
+      "url": "/hangar/components/taiga.glb",
+      "v": "b869db9f",
+      "tris": 5701,
+      "trisRaw": 15710,
+      "textures": 16,
+      "attached": 0,
+      "key": "taiga",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.3
+      },
+      "bytes": 64252,
+      "pool": {
+        "images": 16,
+        "bytes": 203374,
+        "fresh": 0
+      }
+    },
+    "targa": {
+      "url": "/hangar/components/targa.glb",
+      "v": "1be17253",
+      "tris": 4027,
+      "trisRaw": 8615,
+      "textures": 10,
+      "attached": 0,
+      "key": "targa",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.5
+      },
+      "bytes": 50960,
+      "pool": {
+        "images": 10,
+        "bytes": 102582,
+        "fresh": 0
+      }
+    },
+    "tempest": {
+      "url": "/hangar/components/tempest.glb",
+      "v": "f5473352",
+      "tris": 4014,
+      "trisRaw": 4593,
+      "textures": 9,
+      "attached": 0,
+      "key": "tempest",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.55,
+        "bits": 13,
+        "degenerate": 0.1
+      },
+      "bytes": 39564,
+      "pool": {
+        "images": 9,
+        "bytes": 43130,
+        "fresh": 0
+      }
+    },
+    "tepilo": {
+      "url": "/hangar/components/tepilo.glb",
+      "v": "bc5522d9",
+      "tris": 3610,
+      "trisRaw": 3610,
+      "textures": 18,
+      "attached": 0,
+      "key": "tepilo",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 5,
+        "rangeAfter": 4.93,
+        "bits": 15,
+        "degenerate": 0.3
+      },
+      "bytes": 45548,
+      "pool": {
+        "images": 18,
+        "bytes": 89052,
+        "fresh": 49412
+      }
+    },
+    "thermalcore": {
+      "url": "/hangar/components/thermalcore.glb",
+      "v": "012e71a2",
+      "tris": 7557,
+      "trisRaw": 13235,
+      "textures": 18,
+      "attached": 0,
+      "key": "thermalcore",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 86976,
+      "pool": {
+        "images": 18,
+        "bytes": 169362,
+        "fresh": 0
+      }
+    },
+    "thermax": {
+      "url": "/hangar/components/thermax.glb",
+      "v": "c33210f9",
+      "tris": 7495,
+      "trisRaw": 13234,
+      "textures": 18,
+      "attached": 0,
+      "key": "thermax",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 86496,
+      "pool": {
+        "images": 18,
+        "bytes": 169362,
+        "fresh": 0
+      }
+    },
+    "tige": {
+      "url": "/hangar/components/tige.glb",
+      "v": "85d984ff",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "tige",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "tigerlilly": {
+      "url": "/hangar/components/tigerlilly.glb",
+      "v": "f89e844d",
+      "tris": 5002,
+      "trisRaw": 13138,
+      "textures": 13,
+      "attached": 0,
+      "key": "tigerlilly",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 6,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.1
+      },
+      "bytes": 58112,
+      "pool": {
+        "images": 13,
+        "bytes": 150638,
+        "fresh": 0
+      }
+    },
+    "torrent": {
+      "url": "/hangar/components/torrent.glb",
+      "v": "0be9641e",
+      "tris": 4338,
+      "trisRaw": 6751,
+      "textures": 15,
+      "attached": 0,
+      "key": "torrent",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 58152,
+      "pool": {
+        "images": 15,
+        "bytes": 134186,
+        "fresh": 0
+      }
+    },
+    "trenta": {
+      "url": "/hangar/components/trenta.glb",
+      "v": "da216213",
+      "tris": 4330,
+      "trisRaw": 12075,
+      "textures": 18,
+      "attached": 0,
+      "key": "trenta",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0.9
+      },
+      "bytes": 59008,
+      "pool": {
+        "images": 18,
+        "bytes": 130904,
+        "fresh": 12884
+      }
+    },
+    "trommel": {
+      "url": "/hangar/components/trommel.glb",
+      "v": "1074b973",
+      "tris": 4172,
+      "trisRaw": 6832,
+      "textures": 14,
+      "attached": 0,
+      "key": "trommel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.88,
+        "bits": 14,
+        "degenerate": 1.6
+      },
+      "bytes": 49288,
+      "pool": {
+        "images": 14,
+        "bytes": 191704,
+        "fresh": 0
+      }
+    },
+    "ts-2": {
+      "url": "/hangar/components/ts-2.glb",
+      "v": "1d6fad1e",
+      "tris": 4196,
+      "trisRaw": 6004,
+      "textures": 8,
+      "attached": 0,
+      "key": "ts-2",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 43624,
+      "pool": {
+        "images": 8,
+        "bytes": 86932,
+        "fresh": 0
+      }
+    },
+    "tundra": {
+      "url": "/hangar/components/tundra.glb",
+      "v": "f8628448",
+      "tris": 5590,
+      "trisRaw": 14754,
+      "textures": 15,
+      "attached": 0,
+      "key": "tundra",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.8
+      },
+      "bytes": 63656,
+      "pool": {
+        "images": 15,
+        "bytes": 154768,
+        "fresh": 0
+      }
+    },
+    "turbodrive": {
+      "url": "/hangar/components/turbodrive.glb",
+      "v": "2ddc270f",
+      "tris": 6450,
+      "trisRaw": 12409,
+      "textures": 15,
+      "attached": 0,
+      "key": "turbodrive",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 70684,
+      "pool": {
+        "images": 15,
+        "bytes": 189618,
+        "fresh": 0
+      }
+    },
+    "tyche": {
+      "url": "/hangar/components/tyche.glb",
+      "v": "f256420b",
+      "tris": 4206,
+      "trisRaw": 6469,
+      "textures": 17,
+      "attached": 0,
+      "key": "tyche",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 53900,
+      "pool": {
+        "images": 17,
+        "bytes": 122718,
+        "fresh": 0
+      }
+    },
+    "ultra-flow": {
+      "url": "/hangar/components/ultra-flow.glb",
+      "v": "ac40475a",
+      "tris": 3993,
+      "trisRaw": 6505,
+      "textures": 10,
+      "attached": 0,
+      "key": "ultra-flow",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.5
+      },
+      "bytes": 45372,
+      "pool": {
+        "images": 10,
+        "bytes": 87796,
+        "fresh": 0
+      }
+    },
+    "ultraflux": {
+      "url": "/hangar/components/ultraflux.glb",
+      "v": "5137efcc",
+      "tris": 6182,
+      "trisRaw": 12316,
+      "textures": 13,
+      "attached": 0,
+      "key": "ultraflux",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1
+      },
+      "bytes": 66276,
+      "pool": {
+        "images": 13,
+        "bytes": 155164,
+        "fresh": 0
+      }
+    },
+    "umbra": {
+      "url": "/hangar/components/umbra.glb",
+      "v": "029a7e92",
+      "tris": 4016,
+      "trisRaw": 4449,
+      "textures": 4,
+      "attached": 0,
+      "key": "umbra",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.3
+      },
+      "bytes": 39352,
+      "pool": {
+        "images": 4,
+        "bytes": 1310,
+        "fresh": 0
+      }
+    },
+    "v60-26": {
+      "url": "/hangar/components/v60-26.glb",
+      "v": "ce723119",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "v60-26",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "v801-11": {
+      "url": "/hangar/components/v801-11.glb",
+      "v": "3adb6493",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "v801-11",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "v801-12": {
+      "url": "/hangar/components/v801-12.glb",
+      "v": "f10bda5d",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "v801-12",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "v880": {
+      "url": "/hangar/components/v880.glb",
+      "v": "d90d3ef5",
+      "tris": 8532,
+      "trisRaw": 16951,
+      "textures": 13,
+      "attached": 0,
+      "key": "v880",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 4,
+        "rangeAfter": 1.89,
+        "bits": 13,
+        "degenerate": 0.2
+      },
+      "bytes": 96752,
+      "pool": {
+        "images": 13,
+        "bytes": 130026,
+        "fresh": 0
+      }
+    },
+    "vaporblock": {
+      "url": "/hangar/components/vaporblock.glb",
+      "v": "0ab84c2a",
+      "tris": 6873,
+      "trisRaw": 13077,
+      "textures": 14,
+      "attached": 0,
+      "key": "vaporblock",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.13,
+        "bits": 13,
+        "degenerate": 0.4
+      },
+      "bytes": 73552,
+      "pool": {
+        "images": 14,
+        "bytes": 124112,
+        "fresh": 0
+      }
+    },
+    "veil": {
+      "url": "/hangar/components/veil.glb",
+      "v": "e4846487",
+      "tris": 4128,
+      "trisRaw": 4128,
+      "textures": 1,
+      "attached": 0,
+      "key": "veil",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.16,
+        "bits": 13,
+        "degenerate": 0
+      },
+      "bytes": 36428,
+      "pool": {
+        "images": 1,
+        "bytes": 828,
+        "fresh": 0
+      }
+    },
+    "vesta": {
+      "url": "/hangar/components/vesta.glb",
+      "v": "175e684c",
+      "tris": 4894,
+      "trisRaw": 7776,
+      "textures": 13,
+      "attached": 0,
+      "key": "vesta",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.8
+      },
+      "bytes": 53196,
+      "pool": {
+        "images": 13,
+        "bytes": 137918,
+        "fresh": 20758
+      }
+    },
+    "vigilance": {
+      "url": "/hangar/components/vigilance.glb",
+      "v": "a8654d6b",
+      "tris": 4084,
+      "trisRaw": 8478,
+      "textures": 13,
+      "attached": 0,
+      "key": "vigilance",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 2.19,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 59032,
+      "pool": {
+        "images": 13,
+        "bytes": 103772,
+        "fresh": 0
+      }
+    },
+    "vk-00": {
+      "url": "/hangar/components/vk-00.glb",
+      "v": "d58c99da",
+      "tris": 7261,
+      "trisRaw": 11008,
+      "textures": 9,
+      "attached": 0,
+      "key": "vk-00",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 3.7
+      },
+      "bytes": 67652,
+      "pool": {
+        "images": 9,
+        "bytes": 116616,
+        "fresh": 0
+      }
+    },
+    "vogel": {
+      "url": "/hangar/components/vogel.glb",
+      "v": "c3e2fdb7",
+      "tris": 1423,
+      "trisRaw": 1423,
+      "textures": 12,
+      "attached": 0,
+      "key": "vogel",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.71,
+        "bits": 12,
+        "degenerate": 2.1
+      },
+      "bytes": 26620,
+      "pool": {
+        "images": 12,
+        "bytes": 116096,
+        "fresh": 0
+      }
+    },
+    "voir": {
+      "url": "/hangar/components/voir.glb",
+      "v": "cc46e401",
+      "tris": 4039,
+      "trisRaw": 4584,
+      "textures": 14,
+      "attached": 0,
+      "key": "voir",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 1.02,
+        "bits": 13,
+        "degenerate": 0.3
+      },
+      "bytes": 54020,
+      "pool": {
+        "images": 14,
+        "bytes": 132870,
+        "fresh": 0
+      }
+    },
+    "vortex": {
+      "url": "/hangar/components/vortex.glb",
+      "v": "e2cadf87",
+      "tris": 4678,
+      "trisRaw": 6566,
+      "textures": 17,
+      "attached": 0,
+      "key": "vortex",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 2.5,
+        "bits": 14,
+        "degenerate": 0.1
+      },
+      "bytes": 52532,
+      "pool": {
+        "images": 17,
+        "bytes": 87186,
+        "fresh": 68
+      }
+    },
+    "voyage": {
+      "url": "/hangar/components/voyage.glb",
+      "v": "82c09632",
+      "tris": 4121,
+      "trisRaw": 6953,
+      "textures": 13,
+      "attached": 0,
+      "key": "voyage",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 5.6
+      },
+      "bytes": 53168,
+      "pool": {
+        "images": 13,
+        "bytes": 107054,
+        "fresh": 0
+      }
+    },
+    "vulcan": {
+      "url": "/hangar/components/vulcan.glb",
+      "v": "285a9468",
+      "tris": 4797,
+      "trisRaw": 7749,
+      "textures": 13,
+      "attached": 0,
+      "key": "vulcan",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.8
+      },
+      "bytes": 57804,
+      "pool": {
+        "images": 13,
+        "bytes": 117510,
+        "fresh": 0
+      }
+    },
+    "wanderer": {
+      "url": "/hangar/components/wanderer.glb",
+      "v": "2e1030c6",
+      "tris": 4122,
+      "trisRaw": 6953,
+      "textures": 14,
+      "attached": 0,
+      "key": "wanderer",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 5.1
+      },
+      "bytes": 53884,
+      "pool": {
+        "images": 14,
+        "bytes": 107312,
+        "fresh": 0
+      }
+    },
+    "ward": {
+      "url": "/hangar/components/ward.glb",
+      "v": "5164a7ce",
+      "tris": 4977,
+      "trisRaw": 10926,
+      "textures": 12,
+      "attached": 0,
+      "key": "ward",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1.08,
+        "bits": 13,
+        "degenerate": 1.6
+      },
+      "bytes": 60168,
+      "pool": {
+        "images": 12,
+        "bytes": 107626,
+        "fresh": 0
+      }
+    },
+    "wayfare": {
+      "url": "/hangar/components/wayfare.glb",
+      "v": "d4bf8edc",
+      "tris": 4026,
+      "trisRaw": 7684,
+      "textures": 11,
+      "attached": 0,
+      "key": "wayfare",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 3.1
+      },
+      "bytes": 52956,
+      "pool": {
+        "images": 11,
+        "bytes": 104680,
+        "fresh": 0
+      }
+    },
+    "web": {
+      "url": "/hangar/components/web.glb",
+      "v": "05c07909",
+      "tris": 4057,
+      "trisRaw": 8400,
+      "textures": 15,
+      "attached": 0,
+      "key": "web",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 18,
+        "rangeAfter": 18.38,
+        "bits": 17,
+        "degenerate": 0.4
+      },
+      "bytes": 58444,
+      "pool": {
+        "images": 15,
+        "bytes": 106768,
+        "fresh": 0
+      }
+    },
+    "whiteout": {
+      "url": "/hangar/components/whiteout.glb",
+      "v": "51f9b7b7",
+      "tris": 4739,
+      "trisRaw": 10876,
+      "textures": 13,
+      "attached": 0,
+      "key": "whiteout",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.95,
+        "bits": 13,
+        "degenerate": 0.6
+      },
+      "bytes": 55020,
+      "pool": {
+        "images": 13,
+        "bytes": 127654,
+        "fresh": 0
+      }
+    },
+    "whiterose": {
+      "url": "/hangar/components/whiterose.glb",
+      "v": "58eafd6f",
+      "tris": 7664,
+      "trisRaw": 19256,
+      "textures": 14,
+      "attached": 0,
+      "key": "whiterose",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 1.8
+      },
+      "bytes": 83304,
+      "pool": {
+        "images": 14,
+        "bytes": 144314,
+        "fresh": 0
+      }
+    },
+    "winter-star-ex": {
+      "url": "/hangar/components/winter-star-ex.glb",
+      "v": "4be18409",
+      "tris": 7547,
+      "trisRaw": 21494,
+      "textures": 17,
+      "attached": 0,
+      "key": "winter-star-ex",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.99,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 86652,
+      "pool": {
+        "images": 17,
+        "bytes": 126634,
+        "fresh": 0
+      }
+    },
+    "winter-star-sl": {
+      "url": "/hangar/components/winter-star-sl.glb",
+      "v": "c1fd16ab",
+      "tris": 4271,
+      "trisRaw": 4271,
+      "textures": 18,
+      "attached": 0,
+      "key": "winter-star-sl",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 3,
+        "rangeAfter": 3.71,
+        "bits": 14,
+        "degenerate": 2
+      },
+      "bytes": 49228,
+      "pool": {
+        "images": 18,
+        "bytes": 73164,
+        "fresh": 0
+      }
+    },
+    "winter-star-xl": {
+      "url": "/hangar/components/winter-star-xl.glb",
+      "v": "f6c91c94",
+      "tris": 7496,
+      "trisRaw": 22068,
+      "textures": 19,
+      "attached": 0,
+      "key": "winter-star-xl",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.75,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 87512,
+      "pool": {
+        "images": 19,
+        "bytes": 147008,
+        "fresh": 6996
+      }
+    },
+    "winter-star": {
+      "url": "/hangar/components/winter-star.glb",
+      "v": "a68eb903",
+      "tris": 7550,
+      "trisRaw": 22057,
+      "textures": 19,
+      "attached": 0,
+      "key": "winter-star",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.75,
+        "bits": 13,
+        "degenerate": 1.4
+      },
+      "bytes": 88284,
+      "pool": {
+        "images": 19,
+        "bytes": 147008,
+        "fresh": 0
+      }
+    },
+    "xl-1": {
+      "url": "/hangar/components/xl-1.glb",
+      "v": "21797803",
+      "tris": 4092,
+      "trisRaw": 8220,
+      "textures": 9,
+      "attached": 0,
+      "key": "xl-1",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 6
+      },
+      "bytes": 47944,
+      "pool": {
+        "images": 9,
+        "bytes": 116616,
+        "fresh": 0
+      }
+    },
+    "yaluk": {
+      "url": "/hangar/components/yaluk.glb",
+      "v": "480ea928",
+      "tris": 4891,
+      "trisRaw": 7775,
+      "textures": 13,
+      "attached": 0,
+      "key": "yaluk",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 0.8
+      },
+      "bytes": 53264,
+      "pool": {
+        "images": 13,
+        "bytes": 137918,
+        "fresh": 0
+      }
+    },
+    "yeager": {
+      "url": "/hangar/components/yeager.glb",
+      "v": "f3e36ff1",
+      "tris": 4067,
+      "trisRaw": 8096,
+      "textures": 9,
+      "attached": 0,
+      "key": "yeager",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1.74,
+        "bits": 13,
+        "degenerate": 4.6
+      },
+      "bytes": 47576,
+      "pool": {
+        "images": 9,
+        "bytes": 116616,
+        "fresh": 0
+      }
+    },
+    "zapjet": {
+      "url": "/hangar/components/zapjet.glb",
+      "v": "8c9cb5fb",
+      "tris": 5290,
+      "trisRaw": 14892,
+      "textures": 19,
+      "attached": 0,
+      "key": "zapjet",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.7
+      },
+      "bytes": 67956,
+      "pool": {
+        "images": 19,
+        "bytes": 145114,
+        "fresh": 0
+      }
+    },
+    "zephyr": {
+      "url": "/hangar/components/zephyr.glb",
+      "v": "45c3b659",
+      "tris": 4041,
+      "trisRaw": 5326,
+      "textures": 6,
+      "attached": 0,
+      "key": "zephyr",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 1,
+        "rangeAfter": 0.99,
+        "bits": 12,
+        "degenerate": 1.3
+      },
+      "bytes": 40220,
+      "pool": {
+        "images": 6,
+        "bytes": 43212,
+        "fresh": 0
+      }
+    },
+    "zerorush": {
+      "url": "/hangar/components/zerorush.glb",
+      "v": "4d6e2f1d",
+      "tris": 4214,
+      "trisRaw": 7142,
+      "textures": 5,
+      "attached": 0,
+      "key": "zerorush",
+      "anchorBy": "kind",
+      "uv": {
+        "rangeBefore": 2,
+        "rangeAfter": 1,
+        "bits": 12,
+        "degenerate": 0
+      },
+      "bytes": 38928,
+      "pool": {
+        "images": 5,
+        "bytes": 45800,
+        "fresh": 190
       }
     }
   }
