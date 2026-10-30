@@ -530,6 +530,15 @@ export const CHECKS = [
       'Laeuft auf dem PC auch gegen Rohexporte (--roh), um die Lage der Container zu klaeren; ein Tor folgt, wenn die Innenraeume sitzen.',
   },
   {
+    id: 'measure-hangar-inseln',
+    script: 'scripts/measure-hangar-inseln.mjs',
+    rail: null,
+    checks: 'sucht je Rumpf (oder je Rohexport) Teile, die mehr als 1 m vom Rumpf getrennt ausserhalb seines Huellquaders in der Luft haengen, und nennt Material und (roh) Knotenpfad',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-inseln.md (Krisz, 30.10.2026: jedes Schiff innen und aussen ansehen): Hornet-Fluegelwaffen, ein Feuerloescherschrank ueber dem Avenger und Kleinteile unter der 300i-Reihe hingen frei in der Luft. ' +
+      'Laeuft auf dem PC auch gegen Rohexporte (--roh, --mit-ausgeblendet), um zu sehen, ob der Bau ein verbindendes Teil weglaesst; ein Tor folgt, wenn die Teile sitzen.',
+  },
+  {
     id: 'verify-hardpoints',
     script: 'scripts/verify-hardpoints.mjs',
     rail: null,
