@@ -1,99 +1,89 @@
 {
  "werkzeug": "cockpit-rays 1, verborgen a78ff98f",
- "ueber10": 60,
+ "ueber10": 8,
  "schiffe": {
   "aegs-avenger-stalker": {
-   "sha": "1145b9b48550d664",
-   "durch": 49,
-   "gemessen": {
-    "rays": 160,
-    "durch": 49,
-    "hohl": 90,
-    "glas": 664
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-avenger-titan": {
-   "sha": "49d67573a9cc96e6",
-   "durch": 6,
-   "gemessen": {
-    "rays": 160,
-    "durch": 6,
-    "hohl": 71,
-    "glas": 442
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-avenger-titan-renegade": {
-   "sha": "7b444e68f7b8d9c6",
-   "durch": 24,
-   "gemessen": {
-    "rays": 160,
-    "durch": 24,
-    "hohl": 79,
-    "glas": 460
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-avenger-warlock": {
-   "sha": "8ed0fadc46ee5533",
-   "durch": 11,
-   "gemessen": {
-    "rays": 160,
-    "durch": 11,
-    "hohl": 64,
-    "glas": 574
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-eclipse": {
-   "sha": "33cdc44d5fce3aa5",
+   "sha": "6b6f09111feed5f2",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
-    "hohl": 24,
+    "hohl": 20,
+    "glas": 676
+   }
+  },
+  "aegs-avenger-titan": {
+   "sha": "f32c6cf81b5c6a9d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 30,
+    "glas": 450
+   }
+  },
+  "aegs-avenger-titan-renegade": {
+   "sha": "6cc5cbd38a558105",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 19,
+    "glas": 472
+   }
+  },
+  "aegs-avenger-warlock": {
+   "sha": "e0226ba779aaeebd",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 29,
+    "glas": 578
+   }
+  },
+  "aegs-eclipse": {
+   "sha": "16ff27b331642a7c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 22,
     "glas": 269
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-gladius": {
-   "sha": "2d3eb5675164532d",
-   "durch": 10,
+   "sha": "47dd4f71b885b3d5",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 10,
-    "hohl": 22,
-    "glas": 132
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 4,
+    "glas": 130
+   }
   },
   "aegs-gladius-pir": {
-   "sha": "4e9f88684539ca9f",
-   "durch": 4,
+   "sha": "da1dd0d8c2397c5b",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 17,
-    "glas": 596
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 10,
+    "glas": 590
+   }
   },
   "aegs-gladius-valiant": {
-   "sha": "2145131f44d88e47",
-   "durch": 2,
+   "sha": "f60222df33369732",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 2,
-    "hohl": 15,
-    "glas": 628
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 10,
+    "glas": 624
+   }
   },
   "aegs-hammerhead": {
-   "sha": "65a7ab3ebead0378",
+   "sha": "9f88431ea9103f48",
    "durch": 15,
    "gemessen": {
     "rays": 160,
@@ -103,7 +93,7 @@
    }
   },
   "aegs-hammerhead-showdown": {
-   "sha": "c26e3a5265214767",
+   "sha": "3e8ab7f6f72eae38",
    "durch": 19,
    "gemessen": {
     "rays": 160,
@@ -115,40 +105,37 @@
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "aegs-idris-m": {
-   "sha": "ac97bec56de94c42",
-   "durch": 8,
+   "sha": "35765016acb22aa4",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 8,
-    "hohl": 65,
+    "durch": 1,
+    "hohl": 40,
     "glas": 7352
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-idris-p": {
-   "sha": "7fbb1728c200eff9",
-   "durch": 5,
+   "sha": "3b68ab123ce6cf49",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 5,
-    "hohl": 44,
+    "durch": 1,
+    "hohl": 30,
     "glas": 8158
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-javelin": {
-   "sha": "a236d20ace6e13a6",
-   "durch": 2,
+   "sha": "0dc71e1b32baa63f",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 2,
-    "hohl": 42,
+    "durch": 0,
+    "hohl": 2,
     "glas": 2650
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-reclaimer": {
-   "sha": "a0dcb9b98fe0f2cd",
+   "sha": "3be38e42eaad4508",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -158,7 +145,7 @@
    }
   },
   "aegs-reclaimer-showdown": {
-   "sha": "65f7aa9db7adc86c",
+   "sha": "bd4a1c9f98e8fef1",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -168,176 +155,157 @@
    }
   },
   "aegs-redeemer": {
-   "sha": "723a4e488bb55cfd",
-   "durch": 1,
+   "sha": "00f6231e753f792b",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 8,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1391
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-retaliator": {
-   "sha": "f3f31952b7faf043",
-   "durch": 51,
-   "gemessen": {
-    "rays": 160,
-    "durch": 51,
-    "hohl": 76,
-    "glas": 3790
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-sabre": {
-   "sha": "5d9873e4063713b2",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 3,
-    "glas": 499
-   }
-  },
-  "aegs-sabre-comet": {
-   "sha": "e87330918fe12881",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 7,
-    "glas": 521
-   }
-  },
-  "aegs-sabre-firebird": {
-   "sha": "ac2bd55e2f06151d",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 5,
-    "glas": 220
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-sabre-peregrine": {
-   "sha": "e1ac5a1f3b00d5b5",
+   "sha": "367bd80920b5a5d1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
+    "glas": 3790
+   }
+  },
+  "aegs-sabre": {
+   "sha": "b6396176de8ffd5a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 2,
+    "glas": 495
+   }
+  },
+  "aegs-sabre-comet": {
+   "sha": "d623ad9e7a6e05c1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 517
+   }
+  },
+  "aegs-sabre-firebird": {
+   "sha": "9f0ccb96480cef2f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 220
+   }
+  },
+  "aegs-sabre-peregrine": {
+   "sha": "e18be9fc608cbf1b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
     "glas": 602
    }
   },
   "aegs-sabre-raven": {
-   "sha": "96b8a7f64773440b",
-   "durch": 11,
+   "sha": "9dda94b5ce5afb69",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 50,
-    "glas": 697
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 4,
+    "glas": 695
+   }
   },
   "aegs-sabre-raven-ex": {
-   "sha": "a3e06c308140f5bb",
+   "sha": "933738f4e3eff6ee",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 565
+   }
+  },
+  "aegs-tiburon": {
+   "sha": "39de86bfe946180b",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 26,
+    "glas": 1405
+   }
+  },
+  "aegs-vanguard": {
+   "sha": "488f77c0085c940e",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 23,
+    "glas": 600
+   }
+  },
+  "aegs-vanguard-harbinger": {
+   "sha": "97782a3b25dddae3",
    "durch": 5,
    "gemessen": {
     "rays": 160,
     "durch": 5,
-    "hohl": 52,
-    "glas": 565
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-tiburon": {
-   "sha": "9356e2f286fda70a",
-   "durch": 16,
-   "gemessen": {
-    "rays": 160,
-    "durch": 16,
-    "hohl": 47,
-    "glas": 1405
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-vanguard": {
-   "sha": "233965ec3ad8b76c",
-   "durch": 21,
-   "gemessen": {
-    "rays": 160,
-    "durch": 21,
-    "hohl": 38,
-    "glas": 600
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "aegs-vanguard-harbinger": {
-   "sha": "55d43e14fe9281d2",
-   "durch": 21,
-   "gemessen": {
-    "rays": 160,
-    "durch": 21,
-    "hohl": 44,
+    "hohl": 22,
     "glas": 663
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-vanguard-hoplite": {
-   "sha": "72842d223964750a",
-   "durch": 23,
+   "sha": "69c83934a2b99de8",
+   "durch": 5,
    "gemessen": {
     "rays": 160,
-    "durch": 23,
-    "hohl": 35,
+    "durch": 5,
+    "hohl": 21,
     "glas": 672
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "aegs-vanguard-sentinel": {
-   "sha": "c63383383ac13cad",
-   "durch": 23,
+   "sha": "bc7dcde864d5fa16",
+   "durch": 4,
    "gemessen": {
     "rays": 160,
-    "durch": 23,
-    "hohl": 37,
+    "durch": 4,
+    "hohl": 22,
     "glas": 584
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-arrow": {
-   "sha": "f028d3f242f14bb8",
-   "durch": 18,
+   "sha": "52f32632c7a78759",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 18,
-    "hohl": 34,
+    "durch": 0,
+    "hohl": 31,
     "glas": 490
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-asgard": {
-   "sha": "af5a4eaddb5e79ab",
-   "durch": 21,
+   "sha": "969690f7b648164a",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 21,
-    "hohl": 36,
+    "durch": 0,
+    "hohl": 0,
     "glas": 2167
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-ballista": {
-   "sha": "019c6544867c6be3",
+   "sha": "34eea879cee81b11",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -347,7 +315,7 @@
    }
   },
   "anvl-ballista-dunestalker": {
-   "sha": "4cfe43df3c90d7ea",
+   "sha": "d8f50ed34c618cc7",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -357,7 +325,7 @@
    }
   },
   "anvl-ballista-snowblind": {
-   "sha": "79d728a88773c339",
+   "sha": "0db1a660d2310d97",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -367,7 +335,7 @@
    }
   },
   "anvl-c8-pisces": {
-   "sha": "0487eae7186ed8e5",
+   "sha": "4db3c23cb04394ab",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -377,17 +345,17 @@
    }
   },
   "anvl-c8r-pisces": {
-   "sha": "e257ab15d0544acb",
+   "sha": "5dd8e61169a70d7d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 1793
+    "hohl": 0,
+    "glas": 1873
    }
   },
   "anvl-c8x-pisces-expedition": {
-   "sha": "95ccf29f824a59cd",
+   "sha": "b7f8f6bfd4636557",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -397,27 +365,27 @@
    }
   },
   "anvl-carrack": {
-   "sha": "e250b80a3adad08d",
-   "durch": 4,
-   "gemessen": {
-    "rays": 160,
-    "durch": 4,
-    "hohl": 40,
-    "glas": 1706
-   }
-  },
-  "anvl-carrack-expedition": {
-   "sha": "cf789822939f70ba",
+   "sha": "9f64c337b94998e0",
    "durch": 3,
    "gemessen": {
     "rays": 160,
     "durch": 3,
-    "hohl": 39,
+    "hohl": 10,
+    "glas": 1706
+   }
+  },
+  "anvl-carrack-expedition": {
+   "sha": "e51b123ac424bda5",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 7,
     "glas": 1722
    }
   },
   "anvl-centurion": {
-   "sha": "caad2ebda34630c3",
+   "sha": "a6e24be03a85a946",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -427,211 +395,197 @@
    }
   },
   "anvl-gladiator": {
-   "sha": "800821cb1e4b2dde",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 16,
-    "glas": 623
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hawk": {
-   "sha": "38ac72e9778913ff",
+   "sha": "46ac3bf944069873",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 19,
-    "glas": 870
+    "hohl": 7,
+    "glas": 621
+   }
+  },
+  "anvl-hawk": {
+   "sha": "315684eb0bcc0101",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 8,
+    "glas": 844
    }
   },
   "anvl-hornet-f7a-mk1": {
-   "sha": "31fa88fb25c5306a",
+   "sha": "abe886d02f6a76ba",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 4,
-    "glas": 1460
+    "hohl": 0,
+    "glas": 1456
    }
   },
   "anvl-hornet-f7a-mk2": {
-   "sha": "cf05247d1f854bf2",
-   "durch": 28,
-   "gemessen": {
-    "rays": 160,
-    "durch": 28,
-    "hohl": 105,
-    "glas": 667
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hornet-f7c": {
-   "sha": "e0d5240ff0b82c0f",
+   "sha": "3a50ef6d19f94b96",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 2,
+    "glas": 667
+   }
+  },
+  "anvl-hornet-f7c": {
+   "sha": "2e9566c0706dcba8",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1034
    }
   },
   "anvl-hornet-f7c-mk2": {
-   "sha": "48e3d3af22663bb3",
-   "durch": 19,
-   "gemessen": {
-    "rays": 160,
-    "durch": 19,
-    "hohl": 80,
-    "glas": 2591
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hornet-f7c-wildfire": {
-   "sha": "86cc77a3b441b38d",
+   "sha": "8f52de3a072d3009",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 0,
+    "glas": 2591
+   }
+  },
+  "anvl-hornet-f7c-wildfire": {
+   "sha": "3b9f708b11684d15",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1034
    }
   },
   "anvl-hornet-f7cm": {
-   "sha": "fbad387d46994193",
+   "sha": "3512288555ae7922",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
+    "hohl": 0,
     "glas": 1714
    }
   },
   "anvl-hornet-f7cm-heartseeker": {
-   "sha": "7a65521b86bcee37",
+   "sha": "1d20df847f2c91cd",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 0,
     "glas": 48
    }
   },
   "anvl-hornet-f7cm-mk2": {
-   "sha": "3b76d19bf7652b36",
-   "durch": 12,
-   "gemessen": {
-    "rays": 160,
-    "durch": 12,
-    "hohl": 42,
-    "glas": 1070
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hornet-f7cm-mk2-heartseeker": {
-   "sha": "dd8ab810b3641ea7",
-   "durch": 14,
-   "gemessen": {
-    "rays": 160,
-    "durch": 14,
-    "hohl": 43,
-    "glas": 588
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hornet-f7cr": {
-   "sha": "9d4fd1b50ab17668",
+   "sha": "459fb60d0e6e66a9",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 1,
+    "glas": 1068
+   }
+  },
+  "anvl-hornet-f7cm-mk2-heartseeker": {
+   "sha": "66d7e3c015194c0f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 588
+   }
+  },
+  "anvl-hornet-f7cr": {
+   "sha": "ea43c83e58fea77d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1034
    }
   },
   "anvl-hornet-f7cr-mk2": {
-   "sha": "548067a75828effa",
-   "durch": 37,
-   "gemessen": {
-    "rays": 160,
-    "durch": 37,
-    "hohl": 88,
-    "glas": 2329
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hornet-f7cs": {
-   "sha": "9d303b7a28940bd6",
+   "sha": "f2808f9bb44a5a1c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 0,
+    "glas": 2329
+   }
+  },
+  "anvl-hornet-f7cs": {
+   "sha": "434e90989dd3adee",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1034
    }
   },
   "anvl-hornet-f7cs-mk2": {
-   "sha": "b068060d320c3e5a",
-   "durch": 17,
-   "gemessen": {
-    "rays": 160,
-    "durch": 17,
-    "hohl": 86,
-    "glas": 2447
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "anvl-hurricane": {
-   "sha": "3c83cdd933f0b12b",
+   "sha": "abd9c415cfe1301f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 34,
-    "glas": 1042
+    "hohl": 0,
+    "glas": 2447
+   }
+  },
+  "anvl-hurricane": {
+   "sha": "de429f47a9aaabf3",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 18,
+    "glas": 1028
    }
   },
   "anvl-lightning-f8": {
-   "sha": "3eb2745645cfbede",
-   "durch": 2,
+   "sha": "7fa98c9f84d7f7da",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 2,
-    "hohl": 43,
+    "durch": 0,
+    "hohl": 27,
     "glas": 819
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-lightning-f8c": {
-   "sha": "9b1608658bdb3e12",
-   "durch": 4,
+   "sha": "eaf0fe7a582d72c3",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 46,
+    "durch": 0,
+    "hohl": 24,
     "glas": 617
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-lightning-f8c-exec": {
-   "sha": "d7e8a78a5e839d3b",
-   "durch": 4,
+   "sha": "bf7a40ef14837f8e",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 46,
+    "durch": 0,
+    "hohl": 24,
     "glas": 617
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-paladin": {
-   "sha": "5ab8b1428c2acc13",
+   "sha": "7ff7686c29a6bbb2",
    "durch": 44,
    "gemessen": {
     "rays": 160,
@@ -643,61 +597,57 @@
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "anvl-spartan": {
-   "sha": "e6d6d5678553d6f3",
+   "sha": "ac112c6ef08cbf63",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
-    "glas": 858
+    "hohl": 3,
+    "glas": 1056
    }
   },
   "anvl-terrapin": {
-   "sha": "5d0b17f17f67af68",
-   "durch": 7,
+   "sha": "964af43f48fad571",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 7,
-    "hohl": 83,
+    "durch": 0,
+    "hohl": 8,
     "glas": 752
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-terrapin-medic": {
-   "sha": "31a331f57e7efb84",
-   "durch": 13,
+   "sha": "0a4e3a98d5bba1c9",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 13,
-    "hohl": 89,
+    "durch": 0,
+    "hohl": 14,
     "glas": 239
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "anvl-valkyrie": {
-   "sha": "172c507ffd08d79e",
-   "durch": 17,
+   "sha": "c607d48da2c7bd80",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 17,
-    "hohl": 35,
+    "durch": 0,
+    "hohl": 3,
     "glas": 1983
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "argo-atls": {
-   "sha": "f98dbdbe03e4e351",
+   "sha": "52d6a2043e4d332b",
    "durch": 2,
    "gemessen": {
     "rays": 160,
     "durch": 2,
-    "hohl": 56,
+    "hohl": 13,
     "glas": 75
    }
   },
   "argo-atls-geo": {
-   "sha": "aadc35f656bda125",
+   "sha": "2396f267c98ca399",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -707,7 +657,7 @@
    }
   },
   "argo-atls-geo-collector-grad01": {
-   "sha": "768dda2b08c09589",
+   "sha": "f14319f5adbcba52",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -717,7 +667,7 @@
    }
   },
   "argo-atls-geo-collector-grad03": {
-   "sha": "a39453dc0cf2daee",
+   "sha": "54cc3231c28082b2",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -727,455 +677,407 @@
    }
   },
   "argo-csv-cargo": {
-   "sha": "8668c37148eb25cb",
+   "sha": "139bfa60c57d7b2c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1011
+   }
+  },
+  "argo-mole": {
+   "sha": "0f9bb61dbddec325",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 617
+   }
+  },
+  "argo-moth": {
+   "sha": "cee1c0c0449071a4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 11,
+    "glas": 1107
+   }
+  },
+  "argo-mpuv": {
+   "sha": "2226e7f7a883e7ca",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 55,
+    "glas": 439
+   }
+  },
+  "argo-mpuv-1t": {
+   "sha": "75f715757e7c4738",
+   "durch": 3,
+   "gemessen": {
+    "rays": 160,
+    "durch": 3,
+    "hohl": 30,
+    "glas": 716
+   }
+  },
+  "argo-mpuv-transport": {
+   "sha": "7f4f27b44b10eef4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 64,
+    "glas": 182
+   }
+  },
+  "argo-raft": {
+   "sha": "5aa653969e6ce3f0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 12,
+    "glas": 524
+   }
+  },
+  "argo-srv": {
+   "sha": "3180689e85904b3f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 827
+   }
+  },
+  "banu-defender": {
+   "sha": "00e3a7ee4b8fb4cf",
+   "durch": 7,
+   "gemessen": {
+    "rays": 160,
+    "durch": 7,
+    "hohl": 16,
+    "glas": 1415
+   }
+  },
+  "cnou-hoverquad": {
+   "sha": "a67b05a6270b652c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 226
+   }
+  },
+  "cnou-mustang-alpha": {
+   "sha": "89a44da03d915e48",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-alpha-citizencon2018": {
+   "sha": "014def5e560e18d5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-beta": {
+   "sha": "f39cd9f115ec9f77",
+   "durch": 12,
+   "gemessen": {
+    "rays": 160,
+    "durch": 12,
+    "hohl": 12,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-delta": {
+   "sha": "5289c0948bebbc28",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-gamma": {
+   "sha": "1fbded1251de8d83",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-omega": {
+   "sha": "a3bbc14a1b4a467c",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 2,
+    "glas": 3901
+   }
+  },
+  "cnou-nomad": {
+   "sha": "c3484d8f56815fc0",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 17,
+    "glas": 7447
+   }
+  },
+  "crus-intrepid": {
+   "sha": "6e2dacf164d597bc",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 2,
+    "glas": 1040
+   }
+  },
+  "crus-spirit-a1": {
+   "sha": "1ab81d83974fa81c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 33,
+    "glas": 167
+   }
+  },
+  "crus-spirit-c1": {
+   "sha": "e6fc2e7d3ad42845",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 46,
+    "glas": 370
+   }
+  },
+  "crus-star-runner": {
+   "sha": "b569b4fd168ff6ca",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 2,
-    "glas": 1011
-   }
-  },
-  "argo-mole": {
-   "sha": "5228c2584f013291",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 76,
-    "glas": 617
-   }
-  },
-  "argo-moth": {
-   "sha": "c12289a9b9d379c4",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 71,
-    "glas": 1107
-   }
-  },
-  "argo-mpuv": {
-   "sha": "72befc0b9044e990",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 58,
-    "glas": 439
-   }
-  },
-  "argo-mpuv-1t": {
-   "sha": "449da32da2becd06",
-   "durch": 38,
-   "gemessen": {
-    "rays": 160,
-    "durch": 38,
-    "hohl": 70,
-    "glas": 716
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "argo-mpuv-transport": {
-   "sha": "327dd523795b45b8",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 71,
-    "glas": 182
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "argo-raft": {
-   "sha": "216a64892ac3cf59",
-   "durch": 36,
-   "gemessen": {
-    "rays": 160,
-    "durch": 36,
-    "hohl": 93,
-    "glas": 524
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "argo-srv": {
-   "sha": "bc71acbd2af7ffc6",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 31,
-    "glas": 827
-   }
-  },
-  "banu-defender": {
-   "sha": "32029b79e918292e",
-   "durch": 39,
-   "gemessen": {
-    "rays": 160,
-    "durch": 39,
-    "hohl": 69,
-    "glas": 1417
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "cnou-hoverquad": {
-   "sha": "dc9b87b4a26b046d",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 23,
-    "glas": 226
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "cnou-mustang-alpha": {
-   "sha": "4ccd1270ed1979de",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 34,
-    "glas": 3901
-   }
-  },
-  "cnou-mustang-alpha-citizencon2018": {
-   "sha": "bb1218e3b9ee9650",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 34,
-    "glas": 3901
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "cnou-mustang-beta": {
-   "sha": "9ebcf94e73a03a75",
-   "durch": 13,
-   "gemessen": {
-    "rays": 160,
-    "durch": 13,
-    "hohl": 50,
-    "glas": 3901
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "cnou-mustang-delta": {
-   "sha": "dd542dbdfde10d6b",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 34,
-    "glas": 3901
-   }
-  },
-  "cnou-mustang-gamma": {
-   "sha": "fb228a1b042a5341",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 34,
-    "glas": 3901
-   }
-  },
-  "cnou-mustang-omega": {
-   "sha": "8fbc8d8b3989341c",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 34,
-    "glas": 3901
-   }
-  },
-  "cnou-nomad": {
-   "sha": "1ad752f6b4d64caa",
-   "durch": 20,
-   "gemessen": {
-    "rays": 160,
-    "durch": 20,
-    "hohl": 46,
-    "glas": 6465
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "crus-intrepid": {
-   "sha": "03df71e3c5266aad",
-   "durch": 34,
-   "gemessen": {
-    "rays": 160,
-    "durch": 34,
-    "hohl": 73,
-    "glas": 1040
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "crus-spirit-a1": {
-   "sha": "3d11673936607e59",
-   "durch": 18,
-   "gemessen": {
-    "rays": 160,
-    "durch": 18,
-    "hohl": 62,
-    "glas": 167
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "crus-spirit-c1": {
-   "sha": "2acb08fdb244b995",
-   "durch": 21,
-   "gemessen": {
-    "rays": 160,
-    "durch": 21,
-    "hohl": 85,
-    "glas": 370
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "crus-star-runner": {
-   "sha": "40b8f48abb5e17c6",
-   "durch": 14,
-   "gemessen": {
-    "rays": 160,
-    "durch": 14,
-    "hohl": 33,
     "glas": 572
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "crus-starfighter-inferno": {
-   "sha": "c76d734575b77e4e",
-   "durch": 22,
+   "sha": "26e14233ad68f934",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 22,
-    "hohl": 60,
+    "durch": 1,
+    "hohl": 23,
     "glas": 717
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "crus-starfighter-ion": {
-   "sha": "7d021aa669f0d3d9",
-   "durch": 19,
+   "sha": "10f63f5f1a17eff6",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 19,
-    "hohl": 61,
+    "durch": 0,
+    "hohl": 23,
     "glas": 703
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "crus-starlifter-a2": {
-   "sha": "d17f7ffe4a433f3b",
-   "durch": 96,
+   "sha": "8650fec41e69b2e8",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 96,
-    "hohl": 102,
+    "durch": 0,
+    "hohl": 1,
     "glas": 84
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "crus-starlifter-c2": {
-   "sha": "48f7f29ea6a71dde",
-   "durch": 10,
+   "sha": "f5f9b9d7240240f8",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 10,
-    "hohl": 19,
+    "durch": 0,
+    "hohl": 2,
     "glas": 90
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "crus-starlifter-m2": {
-   "sha": "65af490c161e2cdd",
-   "durch": 95,
+   "sha": "d2ab8b363ad1719c",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 95,
-    "hohl": 100,
+    "durch": 0,
+    "hohl": 1,
     "glas": 84
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-buccaneer": {
-   "sha": "e463c6dd9a4d0e9a",
-   "durch": 7,
+   "sha": "c3b470e7ce224019",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 7,
-    "hohl": 56,
+    "durch": 0,
+    "hohl": 4,
     "glas": 708
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-caterpillar": {
-   "sha": "0fce1f8dfb72ec17",
-   "durch": 11,
+   "sha": "eff9be9f650f34a2",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 68,
+    "durch": 0,
+    "hohl": 1,
     "glas": 1029
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-caterpillar-pirate": {
-   "sha": "87a78417f3809fba",
-   "durch": 11,
+   "sha": "9cc487e59a1598c6",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 68,
+    "durch": 0,
+    "hohl": 1,
     "glas": 1029
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-clipper": {
-   "sha": "eaf1a2cffb4154ae",
-   "durch": 11,
+   "sha": "bb92fd061a690145",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 29,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1146
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-corsair": {
-   "sha": "743b5810b2790ee1",
-   "durch": 11,
+   "sha": "61f549d363a74aea",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 43,
+    "durch": 0,
+    "hohl": 2,
     "glas": 1600
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-cutlass-black": {
-   "sha": "099638ad56de110a",
-   "durch": 8,
+   "sha": "9707c5b70da7d88d",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 8,
-    "hohl": 28,
+    "durch": 0,
+    "hohl": 3,
     "glas": 622
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-cutlass-blue": {
-   "sha": "3f298a6bfeb50015",
-   "durch": 32,
+   "sha": "36906d2bf3635c13",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 32,
-    "hohl": 49,
+    "durch": 0,
+    "hohl": 6,
     "glas": 1242
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-cutlass-red": {
-   "sha": "4ed68c1c369bed18",
-   "durch": 35,
+   "sha": "4d8ed0667732bc00",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 35,
-    "hohl": 49,
-    "glas": 992
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 1,
+    "glas": 990
+   }
   },
   "drak-cutlass-steel": {
-   "sha": "b983fb4555c34c8e",
-   "durch": 29,
+   "sha": "4e310edc8c22c569",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 29,
-    "hohl": 45,
+    "durch": 0,
+    "hohl": 2,
     "glas": 446
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-cutter": {
-   "sha": "cd54a1d6d0da7cf4",
-   "durch": 19,
+   "sha": "c3b291d772176fbd",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 19,
-    "hohl": 77,
+    "durch": 0,
+    "hohl": 50,
     "glas": 574
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-cutter-rambler": {
-   "sha": "3e99beca81877fb8",
-   "durch": 20,
+   "sha": "064e26848718d507",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 20,
-    "hohl": 81,
+    "durch": 0,
+    "hohl": 50,
     "glas": 652
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-cutter-scout": {
-   "sha": "4bae05b3f0d5ad55",
-   "durch": 22,
+   "sha": "a7f94c232dc1ea9e",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 22,
-    "hohl": 82,
+    "durch": 0,
+    "hohl": 54,
     "glas": 502
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-dragonfly": {
-   "sha": "eb2a708089ce642c",
-   "durch": 5,
+   "sha": "a72b8eb74d5b3e40",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 5,
-    "hohl": 36,
+    "durch": 0,
+    "hohl": 0,
     "glas": 142
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-dragonfly-yellow": {
-   "sha": "e58cff62618dc530",
-   "durch": 5,
+   "sha": "f3da5b9c8763c473",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 5,
-    "hohl": 36,
+    "durch": 0,
+    "hohl": 0,
     "glas": 142
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-golem": {
-   "sha": "b5387fbdfb57319c",
+   "sha": "b7ef1ad6aad4d342",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1185,51 +1087,47 @@
    }
   },
   "drak-golem-ox": {
-   "sha": "1e95651a5dbbf23f",
+   "sha": "f5667854c8e9c343",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
+    "hohl": 0,
     "glas": 1319
    }
   },
   "drak-herald": {
-   "sha": "7ca365a7cf9be6f3",
-   "durch": 36,
+   "sha": "efb3448b3fac2c98",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 36,
-    "hohl": 89,
+    "durch": 0,
+    "hohl": 2,
     "glas": 212
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-ironclad": {
-   "sha": "88b7598cd8fb3b34",
-   "durch": 4,
+   "sha": "8c5a04c7b56b718e",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 95,
-    "glas": 704
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 3,
+    "glas": 1828
+   }
   },
   "drak-ironclad-assault": {
-   "sha": "e63e5e50b9d689ec",
-   "durch": 1,
+   "sha": "296bca45d9e4f02e",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 55,
+    "durch": 0,
+    "hohl": 40,
     "glas": 726
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "drak-mule": {
-   "sha": "4deb914063c84c1e",
+   "sha": "28b9d3dc8323d651",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1239,28 +1137,27 @@
    }
   },
   "drak-pitbull": {
-   "sha": "f40a33914fc24d97",
+   "sha": "15c45ff727e9232a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
+    "hohl": 0,
     "glas": 445
    }
   },
   "drak-vulture": {
-   "sha": "490ec29ec1795e14",
-   "durch": 4,
+   "sha": "37301ccb76bc1c9a",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 14,
+    "durch": 0,
+    "hohl": 3,
     "glas": 507
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "espr-prowler": {
-   "sha": "01dab4d34000a42c",
+   "sha": "dde4d959e117e23a",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -1270,7 +1167,7 @@
    }
   },
   "espr-prowler-utility": {
-   "sha": "6ea3028f6233b103",
+   "sha": "4dce6c5de8f20a5d",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -1280,7 +1177,7 @@
    }
   },
   "espr-talon": {
-   "sha": "ea403b3ad6a27b21",
+   "sha": "b8ae2cfc873db5a6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1290,7 +1187,7 @@
    }
   },
   "espr-talon-shrike": {
-   "sha": "5adf688810802127",
+   "sha": "35313f665c54c267",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1300,17 +1197,17 @@
    }
   },
   "gama-railen": {
-   "sha": "d5a25d8cd05f4356",
+   "sha": "d71a7f13b5aa3911",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 29,
+    "hohl": 24,
     "glas": 1214
    }
   },
   "gama-syulen": {
-   "sha": "2157329ffc2684f4",
+   "sha": "67f683fbcca1ffca",
    "durch": 23,
    "gemessen": {
     "rays": 160,
@@ -1322,58 +1219,57 @@
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "gama-tyilui": {
-   "sha": "f24e1563f84963ff",
+   "sha": "dd61b11db4f22045",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 38,
+    "hohl": 35,
     "glas": 796
    }
   },
   "glsn-basher": {
-   "sha": "5f62a2c41997e022",
+   "sha": "ce35cbf0fe1bdaff",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
-    "hohl": 23,
+    "hohl": 4,
     "glas": 603
    }
   },
   "glsn-shiv": {
-   "sha": "c5beec0946235920",
-   "durch": 11,
-   "gemessen": {
-    "rays": 160,
-    "durch": 11,
-    "hohl": 79,
-    "glas": 739
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "grin-mdc": {
-   "sha": "217ffce2c6e8151e",
+   "sha": "756dc96ae6375481",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 9,
-    "glas": 426
+    "hohl": 15,
+    "glas": 739
+   }
+  },
+  "grin-mdc": {
+   "sha": "60778d58ead1edc7",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 8,
+    "glas": 434
    }
   },
   "grin-mtc": {
-   "sha": "af925afff3f451df",
+   "sha": "7afa5b5840a91450",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 9,
-    "glas": 355
+    "glas": 365
    }
   },
   "grin-ptv": {
-   "sha": "e8400fe7071ec4f3",
+   "sha": "0d04d93a448ed9f4",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -1383,7 +1279,7 @@
    }
   },
   "grin-roc": {
-   "sha": "2530384422b7f10a",
+   "sha": "a76791b88ee55e9f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1393,7 +1289,7 @@
    }
   },
   "grin-roc-ds": {
-   "sha": "32f90a36572defcb",
+   "sha": "1f2dd428e670b9fb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1403,7 +1299,7 @@
    }
   },
   "grin-stv": {
-   "sha": "06fd758bf8821dd5",
+   "sha": "503a1cef8ce177eb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1413,7 +1309,7 @@
    }
   },
   "grin-utv": {
-   "sha": "47079390515b549f",
+   "sha": "67ef7c0654290a7a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1423,133 +1319,119 @@
    }
   },
   "krig-l21-wolf": {
-   "sha": "6a148c5b97af2fe5",
-   "durch": 76,
+   "sha": "69589d5a497586bc",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 76,
-    "hohl": 89,
+    "durch": 0,
+    "hohl": 1,
     "glas": 1922
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "krig-l22-alphawolf": {
-   "sha": "37ca2f28c1b3ce77",
-   "durch": 100,
+   "sha": "dd53c94dacdacbef",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 100,
-    "hohl": 102,
+    "durch": 0,
+    "hohl": 0,
     "glas": 1214
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "krig-p52-merlin": {
-   "sha": "51f7838a0195362b",
-   "durch": 7,
+   "sha": "5e5e95f5c8f0dd8c",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 7,
-    "hohl": 47,
+    "durch": 0,
+    "hohl": 11,
     "glas": 915
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "krig-p72-archimedes": {
-   "sha": "2173287d8d407d35",
-   "durch": 32,
+   "sha": "f2a04586ea0ccb8d",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 32,
-    "hohl": 56,
+    "durch": 0,
+    "hohl": 34,
     "glas": 919
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "krig-p72-archimedes-emerald": {
-   "sha": "da1075b7ed2948bb",
-   "durch": 32,
+   "sha": "e5cc8374b3eab6a2",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 32,
-    "hohl": 56,
+    "durch": 0,
+    "hohl": 34,
     "glas": 919
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "krig-s65-stingray": {
-   "sha": "390c2ded7ad5c844",
+   "sha": "8c49aa8e3d582f6b",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
-    "hohl": 61,
+    "hohl": 56,
     "glas": 461
    },
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "misc-fortune": {
-   "sha": "8f5f88d5229c0da4",
-   "durch": 31,
+   "sha": "75f7677dce558d55",
+   "durch": 26,
    "gemessen": {
     "rays": 160,
-    "durch": 31,
-    "hohl": 100,
+    "durch": 26,
+    "hohl": 37,
     "glas": 896
    },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen"
   },
   "misc-freelancer": {
-   "sha": "d0d3a15ba44a9daf",
-   "durch": 1,
+   "sha": "a4858af99f478407",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 43,
+    "durch": 0,
+    "hohl": 41,
     "glas": 160
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-freelancer-dur": {
-   "sha": "ff49da26decffc3b",
-   "durch": 1,
+   "sha": "f335171d062fdfd1",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
+    "durch": 0,
     "hohl": 33,
     "glas": 172
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-freelancer-max": {
-   "sha": "acbccb476c2714a1",
-   "durch": 3,
+   "sha": "1cc7ff6cf45af5c2",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 3,
-    "hohl": 55,
-    "glas": 202
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 51,
+    "glas": 200
+   }
   },
   "misc-freelancer-mis": {
-   "sha": "9d8f9566b74c408c",
-   "durch": 4,
+   "sha": "3163b8c4e32d1229",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 41,
+    "durch": 0,
+    "hohl": 39,
     "glas": 156
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-fury": {
-   "sha": "218a5a40ac0ebc1e",
+   "sha": "4858bc6d092c9192",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1559,7 +1441,7 @@
    }
   },
   "misc-fury-lx": {
-   "sha": "8c1714d5406206ea",
+   "sha": "e48f45faabc2155d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1569,7 +1451,7 @@
    }
   },
   "misc-fury-miru": {
-   "sha": "3410ad62d2783a85",
+   "sha": "b27434a39ae473e1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1579,94 +1461,87 @@
    }
   },
   "misc-hull-a": {
-   "sha": "5bb67033648b6d67",
-   "durch": 42,
+   "sha": "697417118a852d0d",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 42,
-    "hohl": 119,
-    "glas": 558
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 4,
+    "glas": 556
+   }
   },
   "misc-hull-b": {
-   "sha": "8c43c5947507d943",
-   "durch": 30,
+   "sha": "a8601dae8b5f1514",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 30,
-    "hohl": 95,
+    "durch": 0,
+    "hohl": 4,
     "glas": 2240
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-hull-c": {
-   "sha": "0a868fad2748d335",
-   "durch": 25,
+   "sha": "268447bca6ce17ee",
+   "durch": 2,
    "gemessen": {
     "rays": 160,
-    "durch": 25,
-    "hohl": 43,
+    "durch": 2,
+    "hohl": 5,
     "glas": 972
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-prospector": {
-   "sha": "8b2092b3224034e6",
-   "durch": 16,
-   "gemessen": {
-    "rays": 160,
-    "durch": 16,
-    "hohl": 92,
-    "glas": 1181
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "misc-razor": {
-   "sha": "c2c829a12d163991",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 3,
-    "glas": 1620
-   }
-  },
-  "misc-razor-ex": {
-   "sha": "2b56c5d4438b7509",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 3,
-    "glas": 1266
-   }
-  },
-  "misc-razor-lx": {
-   "sha": "6925d9e222e65884",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 3,
-    "glas": 1620
-   }
-  },
-  "misc-reliant": {
-   "sha": "eb7ff25c6595e1da",
+   "sha": "6d5d3b0fe8f5fc2a",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
-    "hohl": 6,
+    "hohl": 71,
+    "glas": 1181
+   }
+  },
+  "misc-razor": {
+   "sha": "3392ac3fb833ef06",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1620
+   }
+  },
+  "misc-razor-ex": {
+   "sha": "04f6781f7c104bea",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1266
+   }
+  },
+  "misc-razor-lx": {
+   "sha": "6c267ad3e474d9e4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 1620
+   }
+  },
+  "misc-reliant": {
+   "sha": "cb4119605bda70bb",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 4,
     "glas": 1103
    }
   },
   "misc-reliant-mako": {
-   "sha": "bfaca924cf092ee6",
+   "sha": "af9b27fba94220f1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1676,88 +1551,77 @@
    }
   },
   "misc-reliant-sen": {
-   "sha": "e7a0248373199dfe",
-   "durch": 3,
+   "sha": "09210f079c0f756e",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 3,
-    "hohl": 7,
+    "durch": 0,
+    "hohl": 2,
     "glas": 973
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-reliant-tana": {
-   "sha": "43bc796bb6b07dc5",
-   "durch": 2,
+   "sha": "b27c2eee6f63d613",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 2,
-    "hohl": 6,
+    "durch": 0,
+    "hohl": 4,
     "glas": 625
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-starfarer": {
-   "sha": "8e7e0e08fbddf5f4",
-   "durch": 24,
+   "sha": "7d8f358ac6bb7ce2",
+   "durch": 14,
    "gemessen": {
     "rays": 160,
-    "durch": 24,
-    "hohl": 37,
+    "durch": 14,
+    "hohl": 22,
     "glas": 457
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-starfarer-gemini": {
-   "sha": "abe9da9514ef2e64",
-   "durch": 20,
+   "sha": "7cd228df92b3cd0d",
+   "durch": 12,
    "gemessen": {
     "rays": 160,
-    "durch": 20,
-    "hohl": 32,
-    "glas": 425
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 12,
+    "hohl": 20,
+    "glas": 423
+   }
   },
   "misc-starlancer-max": {
-   "sha": "84bb374ba9833042",
-   "durch": 28,
+   "sha": "2cda505e7d501f2f",
+   "durch": 10,
    "gemessen": {
     "rays": 160,
-    "durch": 28,
-    "hohl": 44,
+    "durch": 10,
+    "hohl": 15,
     "glas": 1245
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-starlancer-tac": {
-   "sha": "986e6fb69e1b5f9f",
-   "durch": 17,
+   "sha": "994ca4a24a6b4f51",
+   "durch": 8,
    "gemessen": {
     "rays": 160,
-    "durch": 17,
-    "hohl": 27,
+    "durch": 8,
+    "hohl": 8,
     "glas": 2235
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "misc-starlite": {
-   "sha": "a0374f5ebfa79391",
-   "durch": 16,
+   "sha": "e0c122bfce3dbbcc",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 16,
-    "hohl": 56,
+    "durch": 0,
+    "hohl": 28,
     "glas": 1007
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "mrai-guardian": {
-   "sha": "3a02591513f2bc5f",
+   "sha": "91696dc563293c9d",
    "durch": 6,
    "gemessen": {
     "rays": 160,
@@ -1767,7 +1631,7 @@
    }
   },
   "mrai-guardian-mx": {
-   "sha": "5585eed1f676388b",
+   "sha": "3fdf9770297b682c",
    "durch": 4,
    "gemessen": {
     "rays": 60,
@@ -1777,7 +1641,7 @@
    }
   },
   "mrai-guardian-qi": {
-   "sha": "dc129b978a68f8d3",
+   "sha": "6ce5e30b4da9b83c",
    "durch": 7,
    "gemessen": {
     "rays": 160,
@@ -1797,17 +1661,17 @@
    }
   },
   "mrai-pulse-lx": {
-   "sha": "03c0e7b962d3a7de",
+   "sha": "3330ef03c3e3b61e",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 12,
+    "hohl": 8,
     "glas": 82
    }
   },
   "orig-100i": {
-   "sha": "a6220e8fdeb52abc",
+   "sha": "65f00af157d4358a",
    "durch": 11,
    "gemessen": {
     "rays": 160,
@@ -1817,49 +1681,47 @@
    }
   },
   "orig-125a": {
-   "sha": "b2124b3ce5c399aa",
+   "sha": "0d38c49aa63a2c50",
    "durch": 14,
    "gemessen": {
     "rays": 160,
     "durch": 14,
-    "hohl": 35,
+    "hohl": 37,
     "glas": 2271
    }
   },
   "orig-135c": {
-   "sha": "3c37f09147797c22",
+   "sha": "8314552a9445912c",
    "durch": 7,
    "gemessen": {
     "rays": 160,
     "durch": 7,
-    "hohl": 24,
+    "hohl": 25,
     "glas": 3195
    }
   },
   "orig-300i": {
-   "sha": "b5bb9827f01f1da3",
-   "durch": 1,
+   "sha": "4c7afd308bfb44f4",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 9,
+    "durch": 0,
+    "hohl": 8,
     "glas": 1006
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "orig-315p": {
-   "sha": "942bfd3de6e35533",
-   "durch": 3,
+   "sha": "132bcdf9fd76b9d3",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 3,
-    "hohl": 21,
+    "durch": 0,
+    "hohl": 16,
     "glas": 1438
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "orig-325a": {
-   "sha": "a95a77b2caffb3fa",
+   "sha": "5b5bf4694cdea7cd",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -1869,7 +1731,7 @@
    }
   },
   "orig-350r": {
-   "sha": "4bb2ceef79cfcef6",
+   "sha": "6ebb5073d5de2fd6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1879,41 +1741,40 @@
    }
   },
   "orig-400i": {
-   "sha": "1efb15d9ea2bbc5c",
-   "durch": 46,
+   "sha": "af2f99e29a678c70",
+   "durch": 42,
    "gemessen": {
     "rays": 160,
-    "durch": 46,
-    "hohl": 56,
+    "durch": 42,
+    "hohl": 51,
     "glas": 1229
    },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen"
   },
   "orig-600i": {
-   "sha": "6c493516935e6b3e",
+   "sha": "d629cde5af135271",
    "durch": 4,
    "gemessen": {
     "rays": 160,
     "durch": 4,
     "hohl": 55,
-    "glas": 3156
+    "glas": 3154
    },
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "orig-600i-bis2951": {
-   "sha": "56e8db7ec6f4cf04",
+   "sha": "a5f46e9691904232",
    "durch": 4,
    "gemessen": {
     "rays": 160,
     "durch": 4,
     "hohl": 55,
-    "glas": 3156
+    "glas": 3154
    },
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "orig-600i-touring": {
-   "sha": "5062569ce8df900e",
+   "sha": "b6a9281b93ed55b8",
    "durch": 12,
    "gemessen": {
     "rays": 160,
@@ -1924,50 +1785,47 @@
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "orig-85x": {
-   "sha": "e046e3510434c5c4",
+   "sha": "e77b2658939f8878",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 0,
     "glas": 1401
    }
   },
   "orig-890jump": {
-   "sha": "599d9350e687f3a9",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 3,
-    "glas": 2847
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "orig-m50": {
-   "sha": "9de79d6868f177f8",
+   "sha": "95bb3fe9b804e68f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 21,
+    "hohl": 0,
+    "glas": 2847
+   }
+  },
+  "orig-m50": {
+   "sha": "c3b432c6dfd03c85",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 12,
     "glas": 4676
    }
   },
   "orig-m80": {
-   "sha": "38fac38aaacfdf07",
-   "durch": 26,
+   "sha": "9119f0f736934fa8",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 26,
-    "hohl": 47,
+    "durch": 0,
+    "hohl": 17,
     "glas": 1684
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "orig-x1": {
-   "sha": "1b09a03dbc1548ed",
+   "sha": "00c138881460b03a",
    "durch": 2,
    "gemessen": {
     "rays": 160,
@@ -1977,7 +1835,7 @@
    }
   },
   "orig-x1-force": {
-   "sha": "a08a0d15c26f80ef",
+   "sha": "7a2a17f6cdee2a49",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -1987,7 +1845,7 @@
    }
   },
   "orig-x1-velocity": {
-   "sha": "eab05e3153e9e6e9",
+   "sha": "bcb500eb5fc4256f",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -1997,198 +1855,177 @@
    }
   },
   "rsi-apollo-medivac": {
-   "sha": "8032f0484328fa8f",
-   "durch": 47,
-   "gemessen": {
-    "rays": 160,
-    "durch": 47,
-    "hohl": 90,
-    "glas": 2359
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-apollo-triage": {
-   "sha": "56e572172073c679",
-   "durch": 46,
-   "gemessen": {
-    "rays": 160,
-    "durch": 46,
-    "hohl": 93,
-    "glas": 2363
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-gs-cl": {
-   "sha": "8bb0ab32dd78ec1c",
-   "durch": 16,
-   "gemessen": {
-    "rays": 160,
-    "durch": 16,
-    "hohl": 88,
-    "glas": 499
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-gs-es": {
-   "sha": "efeae86dea0d86b4",
-   "durch": 12,
-   "gemessen": {
-    "rays": 160,
-    "durch": 12,
-    "hohl": 89,
-    "glas": 592
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-gs-ln": {
-   "sha": "d162960c902f9908",
-   "durch": 13,
-   "gemessen": {
-    "rays": 160,
-    "durch": 13,
-    "hohl": 90,
-    "glas": 497
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-gs-lx": {
-   "sha": "5947fef3e9fc0ac1",
-   "durch": 12,
-   "gemessen": {
-    "rays": 160,
-    "durch": 12,
-    "hohl": 96,
-    "glas": 575
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-gs-mr": {
-   "sha": "876487e88118cf07",
-   "durch": 12,
-   "gemessen": {
-    "rays": 160,
-    "durch": 12,
-    "hohl": 94,
-    "glas": 869
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-gs-se": {
-   "sha": "9052e5556a23e0d3",
-   "durch": 20,
-   "gemessen": {
-    "rays": 160,
-    "durch": 20,
-    "hohl": 92,
-    "glas": 493
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-aurora-mk2": {
-   "sha": "433607bebaae74ef",
-   "durch": 7,
-   "gemessen": {
-    "rays": 160,
-    "durch": 7,
-    "hohl": 60,
-    "glas": 998
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-constellation-andromeda": {
-   "sha": "666f6bbfb460e1bf",
+   "sha": "e0a49def0e6dd606",
    "durch": 8,
    "gemessen": {
     "rays": 160,
     "durch": 8,
-    "hohl": 50,
-    "glas": 3291
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "hohl": 39,
+    "glas": 2359
+   }
   },
-  "rsi-constellation-aquila": {
-   "sha": "dfaaa95242ad8a39",
+  "rsi-apollo-triage": {
+   "sha": "9f9d4e17ae3918e1",
    "durch": 9,
    "gemessen": {
     "rays": 160,
     "durch": 9,
-    "hohl": 62,
-    "glas": 1965
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "hohl": 47,
+    "glas": 2363
+   }
   },
-  "rsi-constellation-mk5-centaurus": {
-   "sha": "44184f5a6368b6e7",
-   "durch": 15,
-   "gemessen": {
-    "rays": 160,
-    "durch": 15,
-    "hohl": 61,
-    "glas": 1550
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-constellation-phoenix": {
-   "sha": "b43c0d20ad6d5ffd",
-   "durch": 20,
-   "gemessen": {
-    "rays": 160,
-    "durch": 20,
-    "hohl": 51,
-    "glas": 3574
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-constellation-phoenix-emerald": {
-   "sha": "f945c7bec6ebeb0f",
-   "durch": 19,
-   "gemessen": {
-    "rays": 160,
-    "durch": 19,
-    "hohl": 50,
-    "glas": 3779
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-constellation-taurus": {
-   "sha": "d81602157b9f1763",
-   "durch": 11,
-   "gemessen": {
-    "rays": 160,
-    "durch": 11,
-    "hohl": 48,
-    "glas": 1846
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-hermes": {
-   "sha": "48b4334700c36ee7",
-   "durch": 15,
-   "gemessen": {
-    "rays": 160,
-    "durch": 15,
-    "hohl": 52,
-    "glas": 2317
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-lynx": {
-   "sha": "90e7b23ce903dd4c",
+  "rsi-aurora-gs-cl": {
+   "sha": "78e1d8efbb5e66ca",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
-    "glas": 1720
+    "hohl": 0,
+    "glas": 499
+   }
+  },
+  "rsi-aurora-gs-es": {
+   "sha": "9fe2449f99a2324d",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 592
+   }
+  },
+  "rsi-aurora-gs-ln": {
+   "sha": "cc400575f874dcf9",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 497
+   }
+  },
+  "rsi-aurora-gs-lx": {
+   "sha": "92f113165f912ee4",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 575
+   }
+  },
+  "rsi-aurora-gs-mr": {
+   "sha": "ed3ac5b73e8a8851",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 869
+   }
+  },
+  "rsi-aurora-gs-se": {
+   "sha": "256437fd1ed2b2e1",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 493
+   }
+  },
+  "rsi-aurora-mk2": {
+   "sha": "4e28dcfc8ff43d19",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 13,
+    "glas": 998
+   }
+  },
+  "rsi-constellation-andromeda": {
+   "sha": "edd66603237254af",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 15,
+    "glas": 3291
+   }
+  },
+  "rsi-constellation-aquila": {
+   "sha": "c174248dad240d49",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 20,
+    "glas": 1965
+   }
+  },
+  "rsi-constellation-mk5-centaurus": {
+   "sha": "ebe0c784770fad60",
+   "durch": 12,
+   "gemessen": {
+    "rays": 160,
+    "durch": 12,
+    "hohl": 55,
+    "glas": 1550
+   }
+  },
+  "rsi-constellation-phoenix": {
+   "sha": "06173232775e3882",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 16,
+    "glas": 3574
+   }
+  },
+  "rsi-constellation-phoenix-emerald": {
+   "sha": "22255b20ea1fc59b",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 35,
+    "glas": 3779
+   }
+  },
+  "rsi-constellation-taurus": {
+   "sha": "08a5e472f506064e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 14,
+    "glas": 1846
+   }
+  },
+  "rsi-hermes": {
+   "sha": "8f7164fa2c692093",
+   "durch": 1,
+   "gemessen": {
+    "rays": 160,
+    "durch": 1,
+    "hohl": 30,
+    "glas": 2317
+   }
+  },
+  "rsi-lynx": {
+   "sha": "6d5e318efe2e2a98",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 11,
+    "glas": 1782
    }
   },
   "rsi-mantis": {
-   "sha": "6a00a9562b9436b1",
+   "sha": "f05bfd87f67dbe71",
    "durch": 37,
    "gemessen": {
     "rays": 160,
@@ -2200,19 +2037,19 @@
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "rsi-meteor": {
-   "sha": "a6e9fdd3780460ac",
+   "sha": "dd1ecf93cb7c33f5",
    "durch": 17,
    "gemessen": {
     "rays": 160,
     "durch": 17,
-    "hohl": 36,
+    "hohl": 35,
     "glas": 130
    },
    "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "rsi-perseus": {
-   "sha": "010e40f58cc768a0",
+   "sha": "9d708a7653a30591",
    "durch": 10,
    "gemessen": {
     "rays": 160,
@@ -2222,18 +2059,17 @@
    }
   },
   "rsi-polaris": {
-   "sha": "2c12445809c1962d",
-   "durch": 9,
+   "sha": "0f61c1415facfdc6",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 9,
-    "hohl": 33,
+    "durch": 0,
+    "hohl": 0,
     "glas": 945
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "rsi-salvation": {
-   "sha": "c5cb91747d5e8d26",
+   "sha": "e2e39c431476a7db",
    "durch": 0,
    "gemessen": {
     "rays": 6,
@@ -2243,97 +2079,87 @@
    }
   },
   "rsi-scorpius": {
-   "sha": "f78cbc313cac91c0",
+   "sha": "98773215193e7758",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 23,
+    "hohl": 2,
     "glas": 643
    }
   },
   "rsi-scorpius-antares": {
-   "sha": "6d179386760e7909",
-   "durch": 1,
+   "sha": "f73b6eaba7e83318",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 19,
+    "durch": 0,
+    "hohl": 0,
     "glas": 643
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "rsi-skylark": {
-   "sha": "237f4b56a82b80fd",
-   "durch": 12,
+   "sha": "600a7cf0bc56c7a3",
+   "durch": 11,
    "gemessen": {
     "rays": 160,
-    "durch": 12,
-    "hohl": 29,
+    "durch": 11,
+    "hohl": 24,
     "glas": 1606
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "rsi-ursa-medivac": {
-   "sha": "4300de4f30dfb53f",
-   "durch": 24,
+   "sha": "0ac03658a6b4e8c4",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 24,
-    "hohl": 56,
-    "glas": 2311
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 14,
+    "glas": 2381
+   }
   },
   "rsi-ursa-rover": {
-   "sha": "dafc6c79a844eb3b",
-   "durch": 35,
+   "sha": "20ee20c0c0d31a60",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 35,
-    "hohl": 48,
+    "durch": 0,
+    "hohl": 3,
     "glas": 784
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "rsi-ursa-rover-emerald": {
-   "sha": "f3c06b2c29095bcd",
-   "durch": 47,
+   "sha": "7ca2c50d9c2794af",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 47,
-    "hohl": 57,
+    "durch": 0,
+    "hohl": 5,
     "glas": 910
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "rsi-zeus-cl": {
-   "sha": "eb69c506db936aa3",
-   "durch": 12,
+   "sha": "6d71efcbd8503083",
+   "durch": 2,
    "gemessen": {
     "rays": 160,
-    "durch": 12,
-    "hohl": 50,
+    "durch": 2,
+    "hohl": 10,
     "glas": 611
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "rsi-zeus-es": {
-   "sha": "9327b8b859b6b56d",
-   "durch": 15,
+   "sha": "a7c6e82a722a4540",
+   "durch": 3,
    "gemessen": {
     "rays": 160,
-    "durch": 15,
-    "hohl": 52,
+    "durch": 3,
+    "hohl": 9,
     "glas": 447
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   }
   },
   "tmbl-cyclone": {
-   "sha": "4fbc46e030abc609",
+   "sha": "54095ebba177e0b1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2343,7 +2169,7 @@
    }
   },
   "tmbl-cyclone-aa": {
-   "sha": "0254973eae33c576",
+   "sha": "71d659585579d525",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2353,7 +2179,7 @@
    }
   },
   "tmbl-cyclone-mt": {
-   "sha": "e6bb2ede5a8c5c4a",
+   "sha": "b00de047bee2404c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2363,7 +2189,7 @@
    }
   },
   "tmbl-cyclone-rc": {
-   "sha": "c7b24527522d1fce",
+   "sha": "cd511f0c1e29bc90",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2373,7 +2199,7 @@
    }
   },
   "tmbl-cyclone-rn": {
-   "sha": "36a1a04cd7fc2450",
+   "sha": "13c5510ea5efdde6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2383,7 +2209,7 @@
    }
   },
   "tmbl-cyclone-tr": {
-   "sha": "7d8653bc4e696c5e",
+   "sha": "d3df9cdb366004ee",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2393,7 +2219,7 @@
    }
   },
   "tmbl-nova": {
-   "sha": "8664eb54c15d0d7b",
+   "sha": "3f9d86ebbb781f2b",
    "durch": 0,
    "gemessen": {
     "rays": 2,
@@ -2403,7 +2229,7 @@
    }
   },
   "tmbl-storm": {
-   "sha": "b494a43de2dc526c",
+   "sha": "0faabcacfc77ae6c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2413,7 +2239,7 @@
    }
   },
   "tmbl-storm-aa": {
-   "sha": "b4b2c6f7109e4fbb",
+   "sha": "9c4010d505fbc5fd",
    "durch": 0,
    "gemessen": {
     "rays": 118,
@@ -2423,18 +2249,18 @@
    }
   },
   "vncl-blade": {
-   "sha": "1ff645d00d6090ef",
+   "sha": "2d99a285f3d4269b",
    "durch": 39,
    "gemessen": {
     "rays": 160,
     "durch": 39,
     "hohl": 60,
-    "glas": 699
+    "glas": 711
    },
    "ausnahme": "Rippenrumpf der Vanduul: zwischen den Rippen hinter der Haube offen, man sieht nach aussen; vor dem Fix gleich (24 %), ob das Spiel dort schliesst, ist ungeprueft (.planning/notes/hangar-cockpit-hohl.md, offen)"
   },
   "vncl-glaive": {
-   "sha": "230acda0e2511377",
+   "sha": "5a9953814f9a51cc",
    "durch": 0,
    "gemessen": {
     "rays": 0,
@@ -2444,17 +2270,17 @@
    }
   },
   "vncl-scythe": {
-   "sha": "fcb82ff327133678",
+   "sha": "748f634c8794f9f2",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 0,
     "glas": 1809
    }
   },
   "vncl-stinger": {
-   "sha": "d31db2b2625802e1",
+   "sha": "f8431df9efdd754c",
    "durch": 0,
    "gemessen": {
     "rays": 101,
@@ -2464,27 +2290,27 @@
    }
   },
   "xian-nox": {
-   "sha": "0bcf9c393b19aaa7",
+   "sha": "0f6903a505b9722e",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 10,
+    "hohl": 0,
     "glas": 110
    }
   },
   "xian-nox-kue": {
-   "sha": "7a19c1579e9e3eab",
+   "sha": "fbe40f4e5092cb01",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 10,
+    "hohl": 0,
     "glas": 110
    }
   },
   "xian-scout": {
-   "sha": "d7cc4666f90405f2",
+   "sha": "574e0892479f6be3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2494,7 +2320,7 @@
    }
   },
   "xnaa-santokyai": {
-   "sha": "8e47c67d98e03200",
+   "sha": "c5d666e099b6f91b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
