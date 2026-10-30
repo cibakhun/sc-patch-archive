@@ -12098,7 +12098,8 @@ void main() {
   const SHIP_M = 0.35;
   // Ohne echte Halle schwebt das Schiff um bis zu so viel über und unter
   // seiner Ruhelage (Carrack 1,1 m); gemessen wird dann über fünf Höhen
-  const shipBob = () => (reduceMotion || realHall ? 0 : 0.009 * span);
+  // drinnen steht das Schiff still (das Stoßgitter liegt fest in der Welt)
+  const shipBob = () => (reduceMotion || realHall || walk ? 0 : 0.009 * span);
   // shipHome: dieselbe Messung von der Schiffsmitte (homeTgt) aus, für den
   // geschobenen Blick (keepOut)
   let shipFree = null, shipHome = null, shipBusy = false;
@@ -12458,7 +12459,7 @@ void main() {
   // 4,5 Mio.) nicht weiß ausbrennen.
   const WALK_LAMP_K = HALL_LIGHT_SCALE * 5 / 750, WALK_LAMP_MAX = 40;
   let walkFn = null;
-  const walkCan = () => !!(realHall && current?.inner && !current.werk);
+  const walkCan = () => !!(current?.inner && !current.werk);
   const walkState = () => walkFn?.({ can: walkCan(), on: !!walk, busy: !!walk && walk.state !== 'on' });
   // Innenraum laden, herrichten wie den Rumpf und neben dessen Modell
   // hängen (dasselbe Elternteil, also derselbe Modellraum). Einmal je
@@ -12676,17 +12677,19 @@ void main() {
     const c = current;
     // nicht während eines Wechsels (Aufzug unterwegs oder unten, Einfahrt)
     if (!walkCan() || walk || trip || leaving || lift.dur || Math.abs(lift.y) > 1e-3 || performance.now() - c.born < 1600 || !revealed) return false;
-    walk = { c, state: 'load', saved: { t: controls.target.clone(), p: camera.position.clone() }, keys: new Set(), yaw: 0, pitch: 0, drag: null, mv: new THREE.Vector2(), fov: 0 };
+    const me = walk = { c, state: 'load', saved: { t: controls.target.clone(), p: camera.position.clone() }, keys: new Set(), yaw: 0, pitch: 0, drag: null, mv: new THREE.Vector2(), fov: 0 };
     fly = null; controls.enabled = false; dragging = false;
     walkState(); wake(1000);
     const inner = await loadInner(c);
-    if (walk?.c !== c) return false;
+    if (walk !== me) return false;
     if (!inner) { leave(true); return false; }
     const t0 = performance.now(), pause = slicer(12, nextTask);
     c.group.updateMatrixWorld(true);
+    // an, bevor coarseOf misst: Gitter nehmen nur Sichtbares
+    inner.root.visible = true;
     if (!inner.coarse) {
       inner.coarse = await coarseOf(c, inner, pause);
-      if (walk?.c !== c) return false;
+      if (walk !== me) return false;
       console.info(`[hangar] Grober Innenraum im Rumpf: ${inner.coarse.list.length} Teile aus (nach ${inner.coarse.by}), ${Math.round(performance.now() - t0)} ms`);
     }
     innerShow(inner, true);
@@ -12694,8 +12697,8 @@ void main() {
     const box = new THREE.Box3().setFromObject(inner.root).expandByScalar(1);
     const t1 = performance.now();
     const grid = await walkGrid([inner.root, c.model], box, pause);
-    if (walk?.c !== c) return false;
-    walk.grid = grid; walk.box = box;
+    if (walk !== me) return false;
+    me.grid = grid; me.box = box;
     console.info(`[hangar] Stoßgitter: ${grid.n} Dreiecke in ${grid.nx}×${grid.ny}×${grid.nz} Zellen, ${Math.round(performance.now() - t1)} ms`);
     // Einstieg: Pilot zuerst, dann Zugänge, Türen, Rampen, Leitern, Aufzüge;
     // der erste mit Boden und Platz, sonst einen Schritt dahinter. Blick
