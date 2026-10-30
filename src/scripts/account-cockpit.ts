@@ -196,8 +196,6 @@ function boot(root: HTMLElement) {
       });
     }
     tiles.sort((a, b) => b.ts - a.ts);
-    const n = $('ckStatLayouts');
-    if (n) n.textContent = String(los.length);
     const ul = $('ckFavs')!;
     ul.replaceChildren(...tiles.slice(0, 12).map((t) => {
       const li = document.createElement('li');

@@ -1563,19 +1563,16 @@ import { cssUrl } from '../lib/cssUrl';
       const setBadge = (id: string, n: number) => { const el = document.getElementById(id); if (!el) return; el.textContent = String(n); el.hidden = n <= 0; };
       // navFavCount (Favoriten + Loadouts) setzt account-saved.ts.
       setBadge('navFriendCount', friendCount);
-      const ovFavsEl = document.getElementById('ovStatFavs'); if (ovFavsEl) ovFavsEl.textContent = String(favCount);
       document.addEventListener('vb:saved', (e) => {
         const n = (e as CustomEvent).detail?.favs;
         if (typeof n !== 'number') return;
         favCount = n;
         updateCard();
-        const el = document.getElementById('ovStatFavs'); if (el) el.textContent = String(n);
       });
-      const ovFriEl = document.getElementById('ovStatFriends'); if (ovFriEl) ovFriEl.textContent = String(friendCount);
 
       const activity: Array<{ g: string; html: string; ts: number }> = [];
 
-      // Offene eingehende Freundschaftsanfragen (Zähler + Kachel-Unterzeile)
+      // Offene eingehende Freundschaftsanfragen (Aktivitäts-Feed)
       let pendingCount = 0;
       try {
         const { count: pc } = await supabase.from('friend_requests')
@@ -1584,8 +1581,6 @@ import { cssUrl } from '../lib/cssUrl';
         pendingCount = pc || 0;
       } catch {}
       const pendingLbl = pendingCount === 1 ? ovTpl('lPending1') : ovTpl('lPending').replace('%n%', String(pendingCount));
-      const ovFriendsSub = document.getElementById('ovFriendsSub');
-      if (ovFriendsSub) ovFriendsSub.textContent = pendingCount <= 0 ? '' : pendingLbl;
       if (pendingCount > 0) activity.push({ g: 'i-users', html: pendingLbl, ts: Date.now() });
 
       // Refinery: Gesamtwert (verkauft, sonst geschätzt) + aktive Jobs
