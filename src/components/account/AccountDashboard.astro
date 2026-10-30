@@ -372,9 +372,8 @@ const CK = {
     noGuild: 'Du bist noch nicht auf dem VerseBase-Server.', noGuildBtn: 'Server beitreten',
     waiting: 'Dein Rang kommt in ein paar Minuten.', waitingBtn: 'Zum Server',
     profile: 'Profil', todo: { handle: 'Handle', avatar: 'Bild', bio: 'Über mich', status: 'Status', role: 'Rolle', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
-    loadouts: 'Loadouts', chats: 'Nachrichten', chatsEmpty: 'Noch keine Nachrichten.', chatsCta: 'Freunde öffnen', you: 'Du',
+    loadouts: 'Loadouts',
     saved: 'Gespeichert', savedEmpty: 'Noch nichts gespeichert.', savedCta: 'Zum Hangar', layout: 'Loadout', kinds: { ship: 'Schiff', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Thema' },
-    now: 'jetzt', min: '%n% Min.', hrs: '%n% Std.', days: '%n% T.',
   },
   en: {
     rank: 'Discord rank', pos: 'Rank', msgs: 'Messages', voice: 'Voice',
@@ -383,9 +382,8 @@ const CK = {
     noGuild: 'You are not on the VerseBase server yet.', noGuildBtn: 'Join the server',
     waiting: 'Your rank arrives in a few minutes.', waitingBtn: 'Open server',
     profile: 'Profile', todo: { handle: 'Handle', avatar: 'Picture', bio: 'About me', status: 'Status', role: 'Role', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
-    loadouts: 'Loadouts', chats: 'Messages', chatsEmpty: 'No messages yet.', chatsCta: 'Open friends', you: 'You',
+    loadouts: 'Loadouts',
     saved: 'Saved', savedEmpty: 'Nothing saved yet.', savedCta: 'Go to hangar', layout: 'Loadout', kinds: { ship: 'Ship', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Topic' },
-    now: 'now', min: '%n%m', hrs: '%n%h', days: '%n%d',
   },
 }[lang];
 
@@ -687,15 +685,6 @@ const SEC = {
           </div>
 
           <div class="ck-cols">
-            <section class="ck-col" aria-labelledby="ckChatsH">
-              <h3 class="ck-h" id="ckChatsH">{CK.chats}<span class="ck-h__n" id="ckChatsN" hidden></span></h3>
-              <ul class="ck-list" id="ckChats"></ul>
-              <div class="ck-empty" id="ckChatsEmpty" hidden>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
-                <p>{CK.chatsEmpty}</p>
-                <button type="button" class="btn sm" data-tab-jump="friends">{CK.chatsCta}</button>
-              </div>
-            </section>
             <section class="ck-col" aria-labelledby="ckFavsH">
               <h3 class="ck-h" id="ckFavsH">{CK.saved}</h3>
               <ul class="ck-tiles" id="ckFavs"></ul>

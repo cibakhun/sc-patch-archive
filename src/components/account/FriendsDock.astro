@@ -5,6 +5,10 @@
 // 'vb:friends', damit Liste und Freunde-Bereich nie auseinanderlaufen. Kein
 // Text, der erklärt: Punkt + Name + was der Freund gerade macht.
 //
+// Steht schon eine Nachricht im Chat, zeigt die Zeile wie bei WhatsApp die
+// letzte davon samt Zeit, und Freunde mit frischem Chat rücken in ihrer
+// Gruppe nach oben.
+//
 // Klick auf einen Freund öffnet den Chat an derselben Stelle (die Liste
 // weicht, Zurück-Pfeil holt sie wieder). Nachrichten liegen in
 // public.direct_messages (supabase/migrations/20261029130000_direct_messages.sql):
@@ -22,7 +26,7 @@ const COPY = {
     req1: 'offene Anfrage', reqN: 'offene Anfragen', empty: 'Noch keine Freunde',
     back: 'Zurück zur Liste', profile: 'Profil ansehen', send: 'Senden',
     chatPh: 'Nachricht an %name%', chatEmpty: 'Noch keine Nachrichten. Sag hallo!',
-    today: 'Heute', yesterday: 'Gestern', unread: 'ungelesen',
+    today: 'Heute', yesterday: 'Gestern', unread: 'ungelesen', you: 'Du',
     errSend: 'Nicht gesendet. Nochmal versuchen?', errFlood: 'Kurz durchatmen: zu viele Nachrichten auf einmal.',
     errLoad: 'Chat gerade nicht erreichbar.',
   },
@@ -31,7 +35,7 @@ const COPY = {
     req1: 'open request', reqN: 'open requests', empty: 'No friends yet',
     back: 'Back to list', profile: 'View profile', send: 'Send',
     chatPh: 'Message %name%', chatEmpty: 'No messages yet. Say hi!',
-    today: 'Today', yesterday: 'Yesterday', unread: 'unread',
+    today: 'Today', yesterday: 'Yesterday', unread: 'unread', you: 'You',
     errSend: 'Not sent. Try again?', errFlood: 'Slow down: too many messages at once.',
     errLoad: 'Chat is unavailable right now.',
   },
@@ -51,6 +55,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   data-l-today={COPY.today}
   data-l-yesterday={COPY.yesterday}
   data-l-unread={COPY.unread}
+  data-l-you={COPY.you}
   data-l-err-send={COPY.errSend}
   data-l-err-flood={COPY.errFlood}
   data-l-err-load={COPY.errLoad}
@@ -101,6 +106,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   if (root) {
     const D = root.dataset;
     const lang = D.lang === 'de' ? 'de' : 'en';
+    const loc = lang === 'de' ? 'de-DE' : 'en-GB';
     const $ = (id: string) => document.getElementById(id);
     const list = $('fdList')!;
     const empty = $('fdEmpty')!;
@@ -123,6 +129,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     let friends: Prof[] = [];
     let incomingN = 0;
     const unread = new Map<string, number>();
+    const lastMsg = new Map<string, Msg>();
     let chatWith: Prof | null = null;
     let lastId = 0;
 
@@ -176,6 +183,22 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       av.appendChild(dot);
     };
 
+    const noteLast = (m: Msg) => {
+      const other = m.sender_id === me ? m.receiver_id : m.sender_id;
+      const cur = lastMsg.get(other);
+      if (!cur || m.id > cur.id) lastMsg.set(other, m);
+    };
+    // Heute die Uhrzeit, gestern „Gestern", diese Woche der Wochentag, sonst das Datum.
+    const stampOf = (iso: string) => {
+      const d = new Date(iso);
+      const t = new Date();
+      const y = new Date(); y.setDate(t.getDate() - 1);
+      if (d.toDateString() === t.toDateString()) return timeOf(iso);
+      if (d.toDateString() === y.toDateString()) return D.lYesterday || '';
+      if (t.getTime() - d.getTime() < 6 * 864e5) return d.toLocaleDateString(loc, { weekday: 'short' });
+      return d.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: '2-digit' });
+    };
+
     const row = (p: Prof) => {
       const pres = presOf(p);
       const a = document.createElement('button');
@@ -198,12 +221,23 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       const rk = rankBadge(p, true);
       if (rk) nmRow.appendChild(rk);
       const sub = document.createElement('small');
-      const so = subOf(p);
-      sub.textContent = so.text;
-      sub.classList.toggle('is-act', so.act);
+      const n = unread.get(p.id) || 0;
+      const m = lastMsg.get(p.id);
+      if (m) {
+        const tm = document.createElement('time');
+        tm.className = 'fd-time';
+        tm.dateTime = m.created_at;
+        tm.textContent = stampOf(m.created_at);
+        nmRow.appendChild(tm);
+        sub.textContent = (m.sender_id === me ? (D.lYou || '') + ': ' : '') + m.body.replace(/\s+/g, ' ');
+        sub.classList.toggle('is-new', n > 0);
+      } else {
+        const so = subOf(p);
+        sub.textContent = so.text;
+        sub.classList.toggle('is-act', so.act);
+      }
       txt.append(nmRow, sub);
       a.append(av, txt);
-      const n = unread.get(p.id) || 0;
       if (n) {
         const b = document.createElement('span');
         b.className = 'fd-unread';
@@ -226,7 +260,8 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     const renderList = () => {
       const sorted = friends.slice().sort((x, y) => {
         const px = rank(x.presence || ''), py = rank(y.presence || '');
-        return px - py || nameOf(x).localeCompare(nameOf(y));
+        const lx = lastMsg.get(x.id)?.id || 0, ly = lastMsg.get(y.id)?.id || 0;
+        return px - py || ly - lx || nameOf(x).localeCompare(nameOf(y));
       });
       const on = sorted.filter((p) => !isHidden(p) && presOf(p) !== 'offline');
       const off = sorted.filter((p) => !isHidden(p) && presOf(p) === 'offline');
@@ -303,6 +338,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     // Eine Nachricht anhängen. Aufeinanderfolgende vom selben Absender rücken
     // zusammen (wie bei Discord); ein neuer Tag bekommt eine Trennzeile.
     const append = (m: Msg) => {
+      noteLast(m);
       if (log.querySelector(`[data-id="${m.id}"]`)) return;
       log.querySelector('.fc-empty')?.remove();
       const last = log.lastElementChild as HTMLElement | null;
@@ -454,6 +490,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
         if (stick) toBottom();
         markRead(m.sender_id);
       } else {
+        noteLast(m);
         unread.set(m.sender_id, (unread.get(m.sender_id) || 0) + 1);
         renderList();
       }
@@ -469,6 +506,19 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
           if (chatWith && r.sender_id === chatWith.id) return;
           unread.set(r.sender_id, (unread.get(r.sender_id) || 0) + 1);
         });
+        renderList();
+      } catch { /* still */ }
+    };
+
+    // Die jüngsten Nachrichten beider Richtungen ergeben je Freund die letzte
+    // für die Zeile; wer seit 500 Nachrichten still ist, zeigt seinen Status.
+    const loadLast = async () => {
+      try {
+        const { data, error } = await supabase.from('direct_messages')
+          .select('id,sender_id,receiver_id,body,created_at,read_at')
+          .order('id', { ascending: false }).limit(500);
+        if (error) return;
+        ((data || []) as Msg[]).forEach(noteLast);
         renderList();
       } catch { /* still */ }
     };
@@ -493,9 +543,10 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       me = data.session?.user?.id || '';
       if (!me) return;
       loadUnread();
+      loadLast();
       setInterval(pollOpen, 8000);
-      setInterval(() => { if (!document.hidden) loadUnread(); }, 30000);
-      document.addEventListener('visibilitychange', () => { if (!document.hidden) { loadUnread(); pollOpen(); } });
+      setInterval(() => { if (!document.hidden) { loadUnread(); loadLast(); } }, 30000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) { loadUnread(); loadLast(); pollOpen(); } });
       try {
         supabase.channel('dm-' + me)
           .on('postgres_changes',
