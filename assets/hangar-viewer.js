@@ -13085,7 +13085,10 @@ void main() {
     // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
     // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
     // Laden, das hängt, hält sie nicht länger als 60 s wach.
-    if ((busy && now - busyAt < 60000) || dragging || fly || trip || fovGlide || propGlide || grow.glide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
+    // Einsteigen: die Fahrt hinein und gehaltene Tasten wecken am Anfang des
+    // Bilds, sonst legte ein Bild über REST_MS (erstes Bild des Innenraums auf
+    // langsamer Grafik) die Schleife schlafen und die Fahrt käme nie an
+    if ((busy && now - busyAt < 60000) || dragging || fly || trip || (walk && (walk.state === 'fly' || walk.keys.size)) || fovGlide || propGlide || grow.glide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
