@@ -1161,7 +1161,7 @@ say('\n[20] Begehbare Innenräume: Datei, Lampen und Einstiegspunkte je Schiff, 
 // genau dieses Schiff betritt. Hüllquader aus dem JSON-Teil der GLB (Knoten
 // und Eckwerte der Positionen): jeder Hüllquader des Innenraums im Hüllquader
 // des Rumpfs mit INNEN.rand Spielraum. Klinke: Innenräume auf der Seite.
-const INNEN = { min: 26, randM: 0.5 };
+const INNEN = { min: 106, randM: 0.5 };
 {
   const glbJson = (file) => {
     const buf = readFileSync(file);

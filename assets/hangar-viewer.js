@@ -12693,8 +12693,11 @@ void main() {
       console.info(`[hangar] Grober Innenraum im Rumpf: ${inner.coarse.list.length} Teile aus (nach ${inner.coarse.by}), ${Math.round(performance.now() - t0)} ms`);
     }
     innerShow(inner, true);
-    // Kasten: Innenraum mit 1 m Rand; darüber hinaus geht niemand
-    const box = new THREE.Box3().setFromObject(inner.root).expandByScalar(1);
+    // Kasten: Innenraum mit 1 m Rand, dazu jeder Einstiegspunkt mit 1,5 m
+    // (Cockpits stecken bei manchen Schiffen im Rumpf, Freelancer); darüber
+    // hinaus geht niemand
+    const box = new THREE.Box3().setFromObject(inner.root).expandByScalar(1), sp = new THREE.Vector3();
+    for (const s of inner.spots) box.union(new THREE.Box3().setFromCenterAndSize(sp.set(...s.p).applyMatrix4(c.model.matrixWorld), new THREE.Vector3(3, 3, 3)));
     const t1 = performance.now();
     const grid = await walkGrid([inner.root, c.model], box, pause);
     if (walk !== me) return false;
