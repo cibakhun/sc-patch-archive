@@ -11336,6 +11336,10 @@ void main() {
     // eigene Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
     if (/(^|_)pom(_|$)|pom_?decal/i.test(m.name || '')) { n.visible = false; return false; }
     if (isDamageMesh(m.name)) { n.visible = false; n.userData.damage = true; return false; }
+    // Platzhalterwand aus dem Rohbau des Spiels (Raster grau/pink, 2,3 × 2,5 m):
+    // Bei 100i, 125a, 135c und Hull C ragt sie hinter der Haube senkrecht aus
+    // dem Rumpf (Krisz 30.10.2026 mit Bild der 100i: „?“).
+    if (/^template_int_a_mtl_grid_/i.test(m.name || '')) { n.visible = false; return false; }
     // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
     // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
     // ist im Spiel fast immer, was dort sitzt.
