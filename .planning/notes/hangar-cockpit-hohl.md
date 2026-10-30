@@ -389,10 +389,13 @@ das zerlegt aussah: „es ist mit ganz vielen schiffen etwas kaputt“.
   Glas (Hüllquader + 2,5 m) stehen. Der Rohexport legt aber Teile der
   Innenraum-Container falsch ab (siehe `hangar-innenleben.md`: ein
   Carrack-Teil 111 m zur Seite, Andromeda 14 Teile bis 14,5 m über den
-  Rumpf). Dazu bekam bei der 100i ein Rumpfteil über den Materialnachtrag
-  ein Innenraum-Material: 7 164 Dreiecke von `hull_d` auf
-  `orig_100i_interior_mtl_panel_light`. Im Viewer nachgestellt (die
-  Platte steht da, mit dem Viewer vor #263).
+  Rumpf). Bei der 100i trugen im Neubau 7 164 Dreiecke
+  `orig_100i_interior_mtl_panel_light` (vorher keines).
+- **Die Platte der 100i kam nicht von #257.** Sie ist eine Platzhalterwand
+  aus dem Rohbau des Spiels (`template_int_a_mtl_grid_grey_light_4m`,
+  `_grid_pink_4m`, 2,3 × 2,5 m, 136 Dreiecke) und steckt seit dem 25.10.
+  (79298365) in 100i, 125a, 135c und Hull C, im alten Stand wie im Neubau.
+  `dressTextured` blendet sie seit #265 aus.
 - **Umfang:** 51 von 231 Schiffen haben mit #257 über 25 % mehr Dreiecke,
   fast alles Innenraum-Material (Argo SRV +498 %, Starlancer MAX +108 %,
   Star Runner +159 %, Corsair +81 %, Caterpillar +74 %, Carrack +48 % …).
@@ -411,3 +414,118 @@ das zerlegt aussah: „es ist mit ganz vielen schiffen etwas kaputt“.
   seinem Platz geprüft ist), Materialnachtrag nicht auf Rumpfteile mit
   Rumpfmaterial. Vor dem Ausliefern jedes geänderte Schiff von außen
   ansehen und die Dreieckszahl je Schiff gegen den alten Stand prüfen.
+
+## Neubau nur zweiseitig (30.10.2026)
+
+Krisz, 30.10.2026 13:20: „ja aber am ende sollen innenräüme auch dabei
+sein, und jedes schiff soll komplett angeschaut werden, innen und aussen.
+componente sollen auch physicalized sein und an deren richtige stelle
+sitzen“.
+
+- **Bauskript:** Den Innenraum hinter dem Glas behält
+  `build-hangar-assets.mjs` nur noch mit `HANGAR_SHIP_GLASS_INTERIOR=1`
+  (zum Messen). `build-hangar-alle.mjs` hat dafür keine eigene Stufe mehr.
+  Sonst gilt beim Innenraum wieder der Stand vor #257: `KEEP_INTERIOR`
+  ganz, sonst nur bei Rohbau bis 1,5 × Budget. „zweiseitig“ aus den
+  `MtlFlags` bleibt.
+- **PC:** `node scripts/build-hangar-alle.mjs --redo` für alle Rümpfe.
+- **Cloud danach, je Schiff:** Dreiecke, Knoten und Dreiecke je Material
+  gegen den Stand von #265. Erwartet wird derselbe Stand, nur mit
+  `doubleSided`; jede andere Abweichung wird erklärt oder zurückgestellt.
+  Jedes Schiff von außen aus mehreren Winkeln und durch die Haube
+  ansehen. Danach die Klinke von `verify:hangar-cockpit` nachziehen;
+  Ausnahmen, die der Neubau schließt, fallen weg.
+- **Dann:** die begehbaren Innenräume (`public/hangar/interior/`) Schiff
+  für Schiff auf falsch liegende Teile prüfen, gemeinsam mit
+  `hangar-innenleben.md`. Komponenten (Kraftwerk, Kühler, Schild,
+  Quantenantrieb) als Teile an ihren Halterungen: zuerst prüfen, was der
+  Rohexport an Geometrie und Halterungen hergibt.
+
+## Befund vom PC (Neubau zweiseitig)
+
+- **Stand:** Branch `pc/hangar-zweiseitig`, Basis e77429fc
+  (`claude/project-thread-x4oyij`), Commit mit dieser Notiz. Lauf
+  `node scripts/build-hangar-alle.mjs --redo` 30.10.2026 14:48–16:35
+  (Ortszeit), ohne `HANGAR_SHIP_GLASS_INTERIOR`.
+- **Ergebnis:** 231 gebaut, 0 Fehler. GLB zusammen 741,7 → 749,0 MB,
+  Ablage 7 973 Bilder, 273,7 MB, 0 verwaist (217 alte entfernt, 8 neu).
+  Tor [17]: GLB 749,0 + Innenräume 418,9 + Ablage 273,7 = 1 441,7 MB von
+  2 400 MB, keine Datei über 50 MB; kein Schiff über 16 MB. Stufe > 0:
+  Idris M und P, Ironclad, Centaurus (3), Ironclad Assault, Perseus (4),
+  Polaris (5). Innenraum im Rumpf behalten (`interiorDropped` 0) bei 104,
+  davon 67 mit gekennzeichneten Knoten (`interiorMarked`); die übrigen 37
+  haben keine Container mit Netz.
+- **Je Schiff:** `hangar-cockpit-hohl/zweiseitig-je-schiff.md` (Dreiecke und
+  GLB staging → neu, Stufe, `interiorDropped`, `interiorMarked`). Über 2 %
+  Abweichung bei den Dreiecken: 8 Schiffe, alle mit Grund dort. Ironclad
+  +46 % (Stufe 3 statt 4, ohne `HANGAR_SHIP_ERR`), sieben weitere zwischen
+  −3,9 und +4,1 % (mehr Primitive: behaltener Innenraum als eigene Knoten,
+  mehr zweiseitige Materialien).
+- **Bau gerissen beim ersten Anlauf, behoben:** Jedes Schiff scheiterte in
+  `paintPlan` mit „colourspace: parameter space not set“. Ursache war das
+  `npm audit fix` von 76394f47. Es hob `ndarray-pixels` auf 5.2.0, das ein
+  eigenes sharp 0.35.5 samt libvips mitbringt. Zwei libvips in einem
+  Node-Prozess vertragen sich unter Windows nicht. `package.json` hält
+  `ndarray-pixels` jetzt per `overrides` auf 5.0.1 (Stand davor, nutzt das
+  sharp 0.34.5, das astro und die Skripte schon laden). `npm audit` nennt
+  damit zwei Einträge mehr, dieselbe sharp-Fassung über einen weiteren Pfad.
+  Alles auf sharp 0.35 zu heben ist eine eigene Entscheidung. Die Fehlermeldung
+  von `paintTexture` nennt jetzt die Lackkarte.
+- **verify:hangar-cockpit `--nachziehen`:** ohne Einwand, kein `--anlass`
+  nötig, kein Wert gestiegen. Mittel „durch“ 7,12 → 1,47 % (2 613 → 533 von
+  36 287 Strahlen, 230 Schiffe mit Haubenglas), „hohl“ im Mittel 25,3 →
+  10,6 %. 125 Klinken gesunken. Über 10 % durch: 60 → 8. Ausnahmen 60 → 8,
+  gestrichen 52: crus-spirit-a1, crus-starlifter-a2, rsi-apollo-medivac,
+  rsi-apollo-triage, crus-starfighter-inferno, crus-starfighter-ion,
+  anvl-arrow, anvl-asgard, rsi-aurora-gs-se, aegs-avenger-stalker,
+  aegs-avenger-titan-renegade, crus-spirit-c1, rsi-constellation-phoenix,
+  rsi-constellation-phoenix-emerald, drak-cutlass-blue, drak-cutlass-red,
+  drak-cutlass-steel, drak-cutter, drak-cutter-rambler, drak-cutter-scout,
+  banu-defender, anvl-hornet-f7a-mk2, anvl-hornet-f7c-mk2,
+  anvl-hornet-f7cr-mk2, anvl-hornet-f7cs-mk2, drak-herald, crus-intrepid,
+  krig-l21-wolf, krig-l22-alphawolf, crus-starlifter-m2, orig-m80,
+  misc-hull-a, misc-hull-b, misc-hull-c, misc-starfarer,
+  misc-starfarer-gemini, misc-starlancer-max, misc-starlancer-tac,
+  argo-mpuv-1t, cnou-nomad, krig-p72-archimedes,
+  krig-p72-archimedes-emerald, argo-raft, aegs-retaliator, rsi-ursa-rover,
+  rsi-ursa-rover-emerald, rsi-ursa-medivac, anvl-valkyrie,
+  aegs-vanguard-harbinger, aegs-vanguard-hoplite, aegs-vanguard-sentinel,
+  aegs-vanguard. Es bleiben (durch von 160, vorher): Paladin 44 (44),
+  400i 42 (46), Blade 39 (39), Mantis 37 (37), Fortune 26 (31), Syulen 23
+  (23), Hammerhead Showdown 19 (19), Meteor 17 (17).
+- **check:hangar-shader** gegen den gebauten Stand (`npx serve dist`,
+  :8444): aegs-gladius 102 Programme, drak-cutlass-black 105, anvl-carrack
+  107, aegs-hammerhead 110, orig-100i 88, jeweils höchstens 16 Texturen ✓.
+  Cutlass von außen angesehen (`--ohne-ui`): Rumpf geschlossen, ohne
+  fehlende Flächen.
+- **Build und Tor:** `npm run build` + `npm run gate`: „Geprüftes Artefakt:
+  dist/ — Live-Build mit nginx/default.conf“, 35 von 35 Schritten grün
+  (467,6 s). `STAGING=1`: „Artefakt: Vorschau-Build (STAGING=1) — site-weit
+  noindex, Sitemaps absichtlich leer“, 35 von 35 grün (546,0 s).
+- **Lackpläne:** 1 echter Unterschied. drak-cutlass-black nennt
+  `DRAK_Cutlass_Black_mtl_Paint_Red_INT_028` nicht mehr (Innenraum-Material,
+  der Innenraum ist weg), dazu zwei Lackkarten weniger
+  (`drak_headlight_glow_*`, kamen mit 02a3bd6b). Die übrigen 31 als geändert
+  gemeldeten Lackdateien unterscheiden sich nur im Zeilenende.
+- **Komponenten-Umfrage (Teil 2):** folgt im nächsten Commit.
+
+## Durchsicht Cloud (Neubau zweiseitig gegen staging 081d9ca0)
+
+- **Zahlen je Schiff:** alle 231 GLB gegen staging verglichen (Dreiecke,
+  Größe, Hüllquader, zweiseitige Materialien, Innenraum, Materialliste).
+  Lage und Größe gleich bis 0,13 m; einzig die Gladiator weicht im
+  Hüllquader 0,93 m ab, im Bild nicht zu sehen. Gewachsen sind neben der
+  Ironclad (+46 %, Stufe 3 statt 4) nur Schiffe, deren gleiche Teile jetzt
+  als eigene Knoten vorliegen (Avenger-Reihe, Spartan).
+- **Bilder:** alle 231 von außen (zwei Schrägansichten, Seite und Draufsicht
+  orthografisch) und durch die Kanzel (zwei Ansichten vor magenta Grund, der
+  zeigt, wo man durchsieht). 28 Schiffe direkt neben staging. Ergebnis: die
+  Kanzeln, die auf staging durchsichtig waren, sind zu; kein Teil verrutscht,
+  keine neue Lücke. Bilder in `/mnt/project-files/hangar-zweiseitig/`
+  (`vorher-nachher-*`, `alle-schiffe-*`, `auffaellig-*`).
+- **Auf staging schon so, nicht Teil dieses Schritts:** Tumbril Nova ganz
+  weiß; Ursa Rover und Medivac ohne Dach (der Laderaum liegt offen); ROC und
+  325a mit den losen Teilen aus `hangar-inseln.md`. Die Vanduul Glaive hat
+  kein Material, das nach Glas heißt; die Kanzelansicht des Prüfbilds schaut
+  deshalb in die Schiffsmitte und zeigt nur Grund, das Schiff selbst ist
+  vollständig.
