@@ -119,8 +119,8 @@
         Bild mehr eingebettet, jeder Verweis ../tex/<inhalt>.<endung> liegt
         in dist/hangar/tex, und jeder Dateiname dort ist sha256 seines
         Inhalts (16 Zeichen; die URL steht ein Jahr im Cache). Deckel fuer
-        GLB und Ablage zusammen und je Datei, Klinke: Schiffe mit Ablage.
-        Verwaiste Bilder: WARNUNG (Ballast, kein Schaden).
+        GLB, Innenraeume und Ablage zusammen und je Datei, Klinke: Schiffe
+        mit Ablage. Verwaiste Bilder: WARNUNG (Ballast, kein Schaden).
     18  Platzhaltermaterial (seit 27.10.2026, Krisz: weisses Cockpit der
         325a). Dreiecke der Schiffs-GLBs ohne Material oder mit namenlosem
         Material (Ersatz des Exports, im Hangar reinweiss) zaehlen. Seit dem
@@ -141,6 +141,15 @@
         (#hgx-vocab, parseQuery, findShip, dockSearch) ueber die Karten aus
         dist/, je Sprache: Spitzname, Zweck mit Crew, Fracht, Preis,
         Tippfehler. Klinken: Karten mit eigenem Bild, Proben.
+    20  Begehbare Innenraeume (seit 29.10.2026, Krisz: „ja ich will auch
+        in die innenräume“). Je Hangarseite: opts.interior nennt je
+        Werkslack-Datei, die ein Schiff zeigt, einen Innenraum in
+        dist/hangar/interior und seine Liste /hangar-innen/<id>.json (Lampen
+        und Einstiegspunkte, jede mit Lage, Version gleich der des
+        Innenraums); sein Hüllquader liegt im Hüllquader des Rumpfs (aus dem
+        JSON-Teil beider GLB, Rand 0,5 m), der Knopf #hgx-walk steht auf der
+        Seite. Ohne Einstiegspunkte: WARNUNG. Klinke: Innenraeume. [17]
+        zaehlt die Innenraeume in Ablage und Deckel mit.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -185,6 +194,12 @@
      z  Bau vor dem Nachtrag in finder.ts (Laufbahn, Boden ohne
         Rollendaten): 6 Schiffe ohne Zweck (vier ATLS, Clipper,
         Retaliator)                                                  -> [19]
+    aa  in dist/hangar/interior/misc-freelancer.glb die Wurzeln um
+        6 m nach hinten setzen (30.10.2026: ragt 1.81 m ueber den
+        Rumpf)                                                       -> [20]
+    bb  dist/hangar-innen/drak-cutlass-black.json loeschen           -> [20]
+    cc  Bau mit 5 statt 26 Innenraeumen (30.10.2026, vor dem
+        zweiten Stapel des PCs: Klinke 26)                          -> [20]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -923,18 +938,25 @@ say('\n[17] Bildablage der Schiffe: jeder Verweis liegt in dist/, Name = Inhalt,
 // sieht nur, wer genau dieses Schiff waehlt. Klinke: Schiffe mit Bildablage
 // (Start 10, waechst mit jedem Lauf des PCs). Deckel: zusammen BILDER.gesamtMB
 // fuer GLB und Ablage (Repo und Auslieferungs-Image), je Datei BILDER.dateiMB
-// (GitHub warnt ab 50 MB und lehnt ab 100 MB ab).
-const BILDER = { schiffe: 231, gesamtMB: 1600, dateiMB: 50 };
+// (GitHub warnt ab 50 MB und lehnt ab 100 MB ab). Die begehbaren Innenräume
+// (dist/hangar/interior, PC-Lauf Hangar-Innenleben) nutzen dieselbe Ablage
+// und zählen mit. Deckel am 30.10.2026 von 1600 auf 2400 MB gehoben, Anlass:
+// die Innenräume, nach 26 Schiffen 5,6 MB je Schiff samt Ablage, für rund
+// 190 Schiffe mit Innenraum zusammen 2,0 bis 2,1 GB
+// (.planning/notes/hangar-innenleben.md, Auftrag Teil A 4).
+const BILDER = { schiffe: 231, gesamtMB: 2400, dateiMB: 50 };
 {
-  const shipDir = join(DIST, 'hangar', 'ships'), texDir = join(DIST, 'hangar', 'tex');
+  const shipDir = join(DIST, 'hangar', 'ships'), innerDir = join(DIST, 'hangar', 'interior'), texDir = join(DIST, 'hangar', 'tex');
   const NAME = /^\.\.\/tex\/([0-9a-f]{16})\.(webp|png|jpg|ktx2)$/;
   const glbs = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).sort() : [];
-  const used = new Map();   // Datei -> Zahl der Schiffe
-  let refs = 0, embedded = 0, pooledShips = 0, glbBytes = 0, big = [];
+  const inners = existsSync(innerDir) ? readdirSync(innerDir).filter((x) => x.endsWith('.glb')).sort() : [];
+  const used = new Map();   // Datei -> Zahl der Schiffe (Rumpf und Innenraum je eins)
+  let refs = 0, embedded = 0, pooledShips = 0, glbBytes = 0, innerBytes = 0, big = [];
   const missing = new Set(), foreign = [];
-  for (const f of glbs) {
-    const buf = readFileSync(join(shipDir, f));
-    glbBytes += buf.length;
+  for (const [dir, f] of [...glbs.map((f) => [shipDir, f]), ...inners.map((f) => [innerDir, `interior/${f}`])]) {
+    const buf = readFileSync(join(dir, f.replace(/^interior\//, '')));
+    const hull = dir === shipDir;
+    if (hull) glbBytes += buf.length; else innerBytes += buf.length;
     if (buf.length > BILDER.dateiMB * 1048576) big.push(`${f} ${(buf.length / 1048576).toFixed(1)} MB`);
     const len = buf.readUInt32LE(12);
     const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
@@ -952,7 +974,7 @@ const BILDER = { schiffe: 231, gesamtMB: 1600, dateiMB: 50 };
     for (const x of mine) used.set(x, (used.get(x) ?? 0) + 1);
     embedded += emb;
     if (emb) fail(`[17] ${f}: ${emb} Bilder noch eingebettet: node scripts/pool-hangar-textures.mjs (verlustfrei) oder neu bauen (scripts/build-hangar-assets.mjs legt sie selbst ab)`);
-    if (mine.size && !emb) pooledShips++;
+    if (hull && mine.size && !emb) pooledShips++;
   }
   const files = existsSync(texDir) ? readdirSync(texDir) : [];
   let poolBytes = 0;
@@ -965,16 +987,16 @@ const BILDER = { schiffe: 231, gesamtMB: 1600, dateiMB: 50 };
     if (!used.has(f)) orphans.push(f);
   }
   const shared = [...used.values()].filter((n) => n > 1).length;
-  const totalMB = (glbBytes + poolBytes) / 1048576;
-  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einem Schiff)   eingebettet: ${embedded}`);
-  say(`    GLB ${(glbBytes / 1048576).toFixed(1)} MB + Ablage ${files.length} Dateien ${(poolBytes / 1048576).toFixed(1)} MB = ${totalMB.toFixed(1)} MB`);
-  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
+  const totalMB = (glbBytes + innerBytes + poolBytes) / 1048576;
+  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Innenräume: ${inners.length}   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einer Datei)   eingebettet: ${embedded}`);
+  say(`    GLB ${(glbBytes / 1048576).toFixed(1)} MB + Innenräume ${(innerBytes / 1048576).toFixed(1)} MB + Ablage ${files.length} Dateien ${(poolBytes / 1048576).toFixed(1)} MB = ${totalMB.toFixed(1)} MB`);
+  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff und kein Innenraum (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
   sollIst(`Schiffe mit Bildablage >= ${BILDER.schiffe}, jeder Verweis da und Name = sha256 des Inhalts, zusammen <= ${BILDER.gesamtMB} MB, je Datei <= ${BILDER.dateiMB} MB`, `${pooledShips}, ${missing.size} fehlen, ${wrongName.length} falsch benannt, ${totalMB.toFixed(1)} MB, ${big.length} zu gross`);
   for (const x of [...missing].slice(0, 10)) fail(`[17] ${x} fehlt in dist/hangar/tex: das Material bleibt ohne diese Karte (Ablage nicht mit eingecheckt oder vom Bau zu frueh entfernt?)`);
   for (const x of wrongName.slice(0, 10)) fail(`[17] dist/hangar/tex/${x}: Name ist nicht der Inhalt (sha256, 16 Zeichen); die URL ist ein Jahr im Cache, ein geaenderter Inhalt unter altem Namen erreicht niemanden`);
   for (const x of foreign.slice(0, 10)) fail(`[17] ${x}: Bild mit URI ausserhalb der Ablage (../tex/<inhalt>.<endung>)`);
   for (const x of big.slice(0, 10)) fail(`[17] ${x} ueber ${BILDER.dateiMB} MB: GitHub lehnt ab 100 MB ab; Karten verkleinern oder Schiff teilen`);
-  if (totalMB > BILDER.gesamtMB) fail(`[17] Schiffe mit Ablage zusammen ${totalMB.toFixed(1)} MB ueber dem Deckel von ${BILDER.gesamtMB} MB (Repo und Image): Karten grosser Schiffe kleiner oder Innenraum weg, Budget in .planning/notes/hangar-alle-schiffe.md`);
+  if (totalMB > BILDER.gesamtMB) fail(`[17] Schiffe, Innenräume und Ablage zusammen ${totalMB.toFixed(1)} MB ueber dem Deckel von ${BILDER.gesamtMB} MB (Repo und Image): Karten grosser Schiffe kleiner oder Innenraum weg, Budget in .planning/notes/hangar-alle-schiffe.md`);
   if (pooledShips < BILDER.schiffe) fail(`[17] nur ${pooledShips} Schiffe mit Bildablage (Klinke ${BILDER.schiffe}): fehlt dist/hangar/tex oder ein Schiff traegt seine Bilder wieder selbst?`);
   ist.bildSchiffe = pooledShips; ist.bildDateien = files.length; ist.bildMB = Math.round(totalMB);
 }
@@ -1129,8 +1151,92 @@ const WAHL = { karten: 231, proben: 12 };
   ist.wahlKarten = eigen; ist.wahlProben = proben;
 }
 
+say('\n[20] Begehbare Innenräume: Datei, Lampen und Einstiegspunkte je Schiff, im Modellraum des Rumpfs, Naht zu Controller und Seite');
+// Seit 29.10.2026 (Krisz 20:49: „ja ich will auch in die innenräume“) gibt
+// die Szene je Werkslack-Datei einen Innenraum mit (opts.interior, HangarApp
+// .astro), den der Viewer beim Einsteigen lädt und neben das Modell des
+// Rumpfs hängt, ohne eigene Verschiebung. Stimmt sein Modellraum nicht,
+// steht der Innenraum neben dem Schiff; fehlt die Datei oder ihre Liste
+// /hangar-innen/<id>.json, scheitert das Einsteigen, und das sieht nur, wer
+// genau dieses Schiff betritt. Hüllquader aus dem JSON-Teil der GLB (Knoten
+// und Eckwerte der Positionen): jeder Hüllquader des Innenraums im Hüllquader
+// des Rumpfs mit INNEN.rand Spielraum. Klinke: Innenräume auf der Seite.
+const INNEN = { min: 217, randM: 0.5 };
+{
+  const glbJson = (file) => {
+    const buf = readFileSync(file);
+    return buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + buf.readUInt32LE(12))) : null;
+  };
+  // Hüllquader einer Szene: je Knoten mit Netz die acht Ecken der Eckwerte
+  // seiner Positionen, mit der Weltmatrix des Knotens (TRS oder matrix)
+  const mul = (a, b) => { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; };
+  const trs = (n) => {
+    if (n.matrix) return n.matrix;
+    const [x, y, z, w] = n.rotation ?? [0, 0, 0, 1], [sx, sy, sz] = n.scale ?? [1, 1, 1], [tx, ty, tz] = n.translation ?? [0, 0, 0];
+    return [(1 - 2 * (y * y + z * z)) * sx, 2 * (x * y + z * w) * sx, 2 * (x * z - y * w) * sx, 0, 2 * (x * y - z * w) * sy, (1 - 2 * (x * x + z * z)) * sy, 2 * (y * z + x * w) * sy, 0, 2 * (x * z + y * w) * sz, 2 * (y * z - x * w) * sz, (1 - 2 * (x * x + y * y)) * sz, 0, tx, ty, tz, 1];
+  };
+  const bounds = (j) => {
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    const walk = (i, P) => {
+      const n = j.nodes[i], M = mul(P, trs(n));
+      for (const p of n.mesh !== undefined ? j.meshes[n.mesh].primitives : []) {
+        const a = j.accessors[p.attributes.POSITION];
+        if (!a?.min || !a?.max) continue;
+        for (let c = 0; c < 8; c++) {
+          const v = [c & 1 ? a.max[0] : a.min[0], c & 2 ? a.max[1] : a.min[1], c & 4 ? a.max[2] : a.min[2]];
+          for (let k = 0; k < 3; k++) { const w = M[k] * v[0] + M[4 + k] * v[1] + M[8 + k] * v[2] + M[12 + k]; lo[k] = Math.min(lo[k], w); hi[k] = Math.max(hi[k], w); }
+        }
+      }
+      for (const c of n.children ?? []) walk(c, M);
+    };
+    for (const i of j.scenes?.[j.scene ?? 0]?.nodes ?? []) walk(i, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    return { lo, hi };
+  };
+  const pathOf = (u) => String(u ?? '').split('?')[0];
+  let innen = 0, imRumpf = 0, mitPunkten = 0, lampen = 0;
+  const seen = new Set();
+  for (const page of PAGES) {
+    let cfg = null;
+    try { cfg = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html)?.[1] ?? 'null'); } catch { cfg = null; }
+    const map = cfg?.opts?.interior;
+    if (!map || typeof map !== 'object') { fail(`[20] ${page.file}: opts.interior fehlt in #hg-stage (HangarApp.astro): kein Schiff bietet Einsteigen an`); continue; }
+    if (!/id="hgx-walk"/.test(page.html)) fail(`[20] ${page.file}: Knopf #hgx-walk fehlt (HangarPage.astro): Einsteigen ist nicht zu erreichen`);
+    const tex = new Set(Object.values(cfg.models ?? {}).map((e) => pathOf(e?.[1])).filter(Boolean));
+    const n = Object.keys(map).length;
+    if (page.lang === 'de') innen = n;
+    for (const [hull, e] of Object.entries(map)) {
+      const id = hull.replace(/^\/hangar\/ships\//, '').replace(/\.glb$/, '');
+      if (!tex.has(hull)) fail(`[20] ${page.file}: Innenraum zu ${hull}, aber kein Schiff zeigt diese Werkslack-Datei (models): der Viewer findet ihn nie`);
+      const glb = join(DIST, pathOf(e?.url)), meta = join(DIST, pathOf(e?.meta));
+      if (!e?.url || !existsSync(glb)) { fail(`[20] ${page.file}: ${id}: Innenraum ${pathOf(e?.url) || '(ohne url)'} fehlt in dist/: Einsteigen scheitert`); continue; }
+      if (!e?.meta || !existsSync(meta)) { fail(`[20] ${page.file}: ${id}: Liste ${pathOf(e?.meta) || '(ohne meta)'} fehlt in dist/ (src/pages/hangar-innen/[id].json.ts)`); continue; }
+      const v = /[?&]v=([^&]+)/.exec(e.url)?.[1], mv = /[?&]v=([^&]+)/.exec(e.meta)?.[1];
+      if (v !== mv) fail(`[20] ${page.file}: ${id}: Version der Liste (${mv}) nicht die des Innenraums (${v}): der Jahres-Cache hielte alte Lampen und Punkte`);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      let m = null;
+      try { m = JSON.parse(readFileSync(meta, 'utf8')); } catch { m = null; }
+      if (!m || !Array.isArray(m.lights) || !Array.isArray(m.spots)) { fail(`[20] ${id}: ${pathOf(e.meta)} ist keine Liste { lights, spots }`); continue; }
+      const badP = [...m.lights, ...m.spots].filter((x) => !Array.isArray(x?.p) || x.p.length !== 3 || !x.p.every(Number.isFinite)).length;
+      if (badP) fail(`[20] ${id}: ${badP} Lampen oder Punkte ohne Lage [x, y, z]`);
+      if (m.spots.length) mitPunkten++;
+      else say(`    WARNUNG: ${id}: keine Einstiegspunkte, der Viewer steigt in der Mitte des Innenraums ein`);
+      lampen += m.lights.length;
+      const hullFile = join(DIST, hull);
+      if (!existsSync(hullFile)) { fail(`[20] ${id}: Rumpf ${hull} fehlt in dist/`); continue; }
+      const a = bounds(glbJson(glb)), h = bounds(glbJson(hullFile));
+      const over = Math.max(0, ...[0, 1, 2].flatMap((k) => [h.lo[k] - INNEN.randM - a.lo[k], a.hi[k] - h.hi[k] - INNEN.randM]));
+      if (over > 0) fail(`[20] ${id}: Innenraum ragt ${over.toFixed(2)} m über den Hüllquader des Rumpfs: Modellraum stimmt nicht (Wurzel wie beim Rumpf, scripts/build-hangar-assets.mjs --kind interior)`);
+      else imRumpf++;
+    }
+  }
+  sollIst(`Innenräume auf der Seite >= ${INNEN.min}, je Datei und Liste in dist/, Version gleich, Hüllquader im Rumpf (Rand ${INNEN.randM} m), Knopf da`, `${innen} Innenräume, ${imRumpf} im Rumpf, ${mitPunkten} mit Einstiegspunkten, ${lampen} Lampen`);
+  if (innen < INNEN.min) fail(`[20] nur ${innen} Innenräume auf /de/hangar.html (Klinke ${INNEN.min}): opts.interior in HangarApp.astro oder interior im Manifest leer?`);
+  ist.innen = innen; ist.innenLampen = lampen;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

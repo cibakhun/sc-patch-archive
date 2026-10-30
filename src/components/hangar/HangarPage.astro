@@ -222,6 +222,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Bedienhinweis neben den drei Zeichen der Ansicht, bis zum ersten Anfassen. */
 .hg-hint{position:absolute;left:calc(var(--hg-left) + 9.4rem);bottom:22px;margin:0;max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 9.9rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
 .hg[data-hint="seen"] .hg-hint{opacity:0;visibility:hidden}
+/* Einsteigen: ein Zeichen mehr unten links, der Hinweis rueckt nach; drinnen
+   steht statt des Bedienhinweises der zum Gehen */
+.hg:has(#hgx-walk:not([hidden])) .hg-hint{left:calc(var(--hg-left) + 12.3rem);max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 12.8rem)}
+.hg .hgx-walkhint{opacity:0;visibility:hidden}
+.hg[data-walk="on"] .hgx-walkhint{opacity:1;visibility:visible;transition:opacity var(--dur-slow) var(--ease-ui)}
+.hg[data-walk="on"] #hg-hint{display:none}
+#hgx-walk[aria-pressed="true"]{color:var(--hg-amber,var(--accent))}
 /* Steht der Korb des Vergleichs unten, macht der Hinweis ihm Platz. */
 .hg:has(#hgx-tray:not([hidden])) .hg-hint{display:none}
 /* Aktionen unter dem Titel; der Titel selbst laesst Klicks zur Leinwand durch. */
@@ -255,7 +262,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-tray__hint{color:var(--hg-dim)}
 .hgx-tray__msg{flex-basis:100%;margin:0;color:color-mix(in srgb,var(--hot) 55%,var(--hg-on))}
 /* mobile-ux.css setzt unter 820 px jeden button auf inline-flex und schlaegt damit hidden. */
-.hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden],.hgx-tray[hidden],.hgx-tray__open[hidden],#hg-reset[hidden]{display:none}
+.hgx-fleetsum[hidden],.hgx-retry[hidden],.hgx-merged[hidden],.hgx-tray[hidden],.hgx-tray__open[hidden],#hg-reset[hidden],#hgx-walk[hidden]{display:none}
 /* Vergleich: eine Spalte je Schiff, Abschnitte und Zeilen aus COMPARE
    (bay.ts). Die Abweichung zur Basis traegt den Ton nach der Richtung
    von "besser". */
@@ -679,6 +686,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
           <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 102.2-5.3M4.5 4.5v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
           <span class="hgx-tip">{t('act.reset')}</span>
         </button>
+        {/* Einsteigen in den Innenraum (hangar-viewer.js enter/leave), nur bei
+            Schiffen mit begehbarem Innenraum; drinnen heisst er Aussteigen. */}
+        <button type="button" class="hg-btn hgx-ico" id="hgx-walk" aria-pressed="false" data-in={t('walk.in')} data-out={t('walk.out')} data-load={t('walk.load')} hidden>
+          <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M13 4.5h5a1 1 0 011 1v13a1 1 0 01-1 1h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M4 12h10M10.5 8.5L14 12l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span class="hgx-tip" id="hgx-walk-now">{t('walk.in')}</span>
+        </button>
         {/* Die Auswahl liegt unsichtbar ueber dem Zeichen: ein Klick oeffnet die Liste des Browsers. */}
         <label class="hg-btn hgx-ico hgx-gfx" id="hgx-gfx-wrap" data-help={h('hangar.ctl.gfx')} hidden>
           <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><circle cx="15" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="9" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
@@ -698,6 +711,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         </button>
       </div>
       <p class="hg-hint" id="hg-hint">{t('act.hint')}</p>
+      <p class="hg-hint hgx-walkhint" id="hgx-walkhint">{t('walk.hint')}</p>
     </HangarApp>
     {/* Die Leiste am Buehnenfuss traegt nur noch den Korb des Vergleichs; sie
         laesst links den Platz der beiden Zeichen frei. */}

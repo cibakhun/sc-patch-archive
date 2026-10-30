@@ -54,11 +54,13 @@ const STEPS = [{}, { HANGAR_SHIP_NO_INTERIOR: '1' }, NG, { ...NG, HANGAR_SHIP_TE
   // über den Auftrag hinaus: stärker dezimieren (build-hangar-assets.mjs, HANGAR_SHIP_ERR)
   { ...NG, HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' },
   { ...NG, HANGAR_SHIP_TEX: '256', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' }];
-if (INNER) STEPS.splice(0, STEPS.length, {}, { HANGAR_SHIP_TEX: '512' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' });
+if (INNER) STEPS.splice(0, STEPS.length, {}, { HANGAR_SHIP_TEX: '512' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' }, { HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' }, { HANGAR_SHIP_TEX: '256', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' });
 let done = 0;
 for (const slug of order) {
   if (done >= MAX) break;
   if (!REDO && stand[slug]?.ok && stand[slug].rawMtime === statSync(`${RAW}${slug}.glb`).mtimeMs) continue;
+  // ohne Container interior_* im Rohexport gibt es nichts zu bauen
+  if (!REDO && /kein Innenraum/.test(stand[slug]?.error ?? '')) continue;
   const before = poolFiles();
   const t0 = Date.now();
   let entry = null, size = 0, step = 0, err = null;

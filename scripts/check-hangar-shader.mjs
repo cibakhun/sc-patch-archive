@@ -33,6 +33,11 @@
        liegt nach dem Laden am Modell (bis 29.10.2026 erst nach einem Klick auf
        den Lack, .planning/notes/hangar-landung.md)
      … --ohne-ui           Aufnahme nur der Halle, Bedienelemente ausgeblendet
+     … --innen             danach einsteigen (Knopf #hgx-walk): der Innenraum
+       laedt erst dann (.planning/notes/hangar-innenleben.md), seine
+       Programme zaehlen mit; die Aufnahme zeigt dann den Blick drinnen.
+       FEHLER, wenn das Schiff keinen Innenraum hat oder das Einsteigen nicht
+       ankommt (Zeile "[hangar] Licht drinnen")
    Dazu FEHLER, wenn ein Bild des Schiffs nicht laedt (Bildablage
    /hangar/tex/, Meldung des Viewers oder von GLTFLoader).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
@@ -46,7 +51,7 @@ const BASE = flag('--base', process.env.SMOKE_BASE || 'http://localhost:4321').r
 const SHIP = flag('--ship', null);
 const SHOT = flag('--shot', null);
 const LAYOUT = flag('--layout', null);
-const OHNE_UI = argv.includes('--ohne-ui');
+const OHNE_UI = argv.includes('--ohne-ui'), INNEN = argv.includes('--innen');
 if (SHIP && !/^[a-z0-9][a-z0-9-]{0,63}$/.test(SHIP)) { console.error(`\n--ship ${SHIP}: keine Schiffskennung\n`); process.exit(2); }
 if (LAYOUT && !/^[A-Za-z0-9_-]{1,4000}$/.test(LAYOUT)) { console.error(`\n--layout ${LAYOUT}: kein Link-Code\n`); process.exit(2); }
 const GRENZE = 16;
@@ -107,12 +112,13 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '';
+let deko = '', viewer = '', drinnen = '';
 const shaderFehler = [];
 page.on('console', (m) => {
   const t = m.text();
   if (t.startsWith('[hangar] Hallendeko:')) deko = t;
   if (t.startsWith('[hangar] Texturen je Bildshader:')) viewer = t;
+  if (t.startsWith('[hangar] Licht drinnen:') || t.startsWith('[hangar] Innenraum geladen:')) drinnen = drinnen ? `${drinnen} · ${t.slice(9)}` : t.slice(9);
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
 });
@@ -127,6 +133,18 @@ try {
   }
   if (!deko && !fehler.length) fehler.push(`nach ${WARTE_MS / 60000} min keine Zeile "[hangar] Hallendeko:"`);
   if (deko) await page.waitForTimeout(NACHLAUF_MS);
+  if (deko && INNEN) {
+    const vorher = await page.evaluate(() => window.__texProgramme.length);
+    const knopf = await page.evaluate(() => { const b = document.getElementById('hgx-walk'); if (!b || b.hidden) return false; b.click(); return true; });
+    if (!knopf) fehler.push('--innen: kein Knopf Einsteigen (#hgx-walk), das Schiff hat keinen Innenraum oder die Seite gibt ihn nicht mit');
+    else {
+      const t1 = Date.now();
+      while (!/Licht drinnen/.test(drinnen) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
+      if (!/Licht drinnen/.test(drinnen)) fehler.push(`--innen: nach ${WARTE_MS / 60000} min nicht drin (keine Zeile "[hangar] Licht drinnen")`);
+      else await page.waitForTimeout(NACHLAUF_MS);
+      console.log(`  Innenraum: ${drinnen || '—'}; Programme dazu: ${(await page.evaluate(() => window.__texProgramme.length)) - vorher}`);
+    }
+  }
 } catch (e) {
   fehler.push(`Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
 }

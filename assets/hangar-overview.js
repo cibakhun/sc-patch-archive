@@ -1940,6 +1940,26 @@ export function boot(doc) {
       } catch { /* ohne Speicher gilt die Wahl bis zum Neuladen */ }
     });
   }
+  // Einsteigen (hangar-viewer.js enter/leave): sichtbar, solange das gezeigte
+  // Schiff einen begehbaren Innenraum hat; drinnen heisst der Knopf
+  // Aussteigen, und statt des Bedienhinweises steht der zum Gehen
+  // (data-walk). Ein Klick waehrend des Ladens steigt gleich wieder aus.
+  function walkSchalter(v) {
+    const btn = $('hgx-walk');
+    if (!btn || typeof v.onWalk !== 'function') return;
+    const txt = $('hgx-walk-now');
+    v.onWalk((s) => {
+      btn.hidden = !s.can && !s.on;
+      btn.setAttribute('aria-pressed', s.on ? 'true' : 'false');
+      txt.textContent = s.busy ? btn.dataset.load : s.on ? btn.dataset.out : btn.dataset.in;
+      if (s.on) main.dataset.walk = 'on';
+      else delete main.dataset.walk;
+    });
+    btn.addEventListener('click', () => {
+      if (btn.getAttribute('aria-pressed') === 'true') v.leave();
+      else { hintSeen(); v.enter(); }
+    });
+  }
   function canStore() {
     try { localStorage.setItem('hg-probe', '1'); localStorage.removeItem('hg-probe'); return true; } catch { return false; }
   }
@@ -2033,6 +2053,7 @@ export function boot(doc) {
         });
         grafikSchalter(v);
         tonSchalter(v);
+        walkSchalter(v);
         viewerShow(state.ship);
       })
       .catch((e) => noStage('failed', e));
