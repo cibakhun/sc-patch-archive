@@ -85,6 +85,14 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
 
 - Datenherkunft (Data.p4k, DataCore, scmdb, „datamined") taucht **nirgends**
   im sichtbaren Text auf; `audit:site` erzwingt das als FEHLER.
+- Sicherheitsfixes tragen eine **neutrale Betreffzeile** („Konto: Eingaben
+  strenger prüfen", nicht „XSS im Profil schließen"), PR-Titel und -Text
+  ebenso. Das Repo ist öffentlich, und „Testphase eröffnen" schickt
+  Betreffzeilen in den Tester-Discord — eine benannte Lücke ist bis zum
+  Live-Gang eine Anleitung. Was genau offen war, steht im privaten Bericht,
+  nicht im Repo. Neue Workflows: Actions per Commit-SHA, `permissions:`
+  ausdrücklich, Checkout mit `persist-credentials: false` —
+  `verify:supply-chain` erzwingt das.
 - Sichturteile („trägt das Motiv noch?") entscheidet kein Skript. Sie gehen
   als benannter Punkt nach `.planning/WINDOWS.md` an den Betreiber.
 - Bei sichtbaren Ergebnissen: erst hinsehen (Screenshot/Render), dann

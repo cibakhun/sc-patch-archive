@@ -19,6 +19,18 @@
 # Senden selbst weitersetzt. Gibt es das Tag noch nicht (erste Ansage), nimmt
 # er die letzten 20 Commits und sagt das ausdruecklich -- eine geratene Liste
 # waere schlimmer als eine kurze.
+#
+# WAS NICHT DRINSTEHT: Betreffzeilen, die nach Sicherheitsarbeit klingen
+# (Hausregel in CLAUDE.md: solche Commits tragen ohnehin einen neutralen
+# Betreff). Sie werden nur gezaehlt ("+ 2 interne Aenderungen"). Der Kanal ist
+# offen fuer alle Testpiloten, und eine Ansage "Luecke X geschlossen" vor dem
+# Live-Gang zeigt genau, wo die Live-Seite noch offen ist.
+#
+# WIE DIE BETREFFZEILEN WANDERN: als Datei in $RUNNER_TEMP, NICHT ueber
+# GITHUB_ENV. Ein Commit-Betreff ist fremder Text; mit festem Begrenzer in
+# GITHUB_ENV haette ein Betreff, der genau dieser Begrenzer ist, die naechste
+# Zeile zur Umgebungsvariablen jedes folgenden Schritts gemacht — auch des
+# Schritts mit dem Discord-Webhook.
 name: Testphase eroeffnen
 
 on:
@@ -35,7 +47,7 @@ on:
         default: true
 
 permissions:
-  contents: write # zum Weitersetzen des Tags
+  contents: write # zum Weitersetzen des Tags (letzter Schritt, Token nur dort)
 
 concurrency:
   group: testphase-ansage
@@ -44,12 +56,18 @@ concurrency:
 jobs:
   ansage:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Der Discord-Webhook gehoert in die Secrets dieser Umgebung, nicht ins
+    # Repo — dann sehen ihn nur Laeufe dieses Workflows.
+    environment: testpilot-ansage
     steps:
-      # Voller Klon: der Vergleich braucht die Historie und das Tag.
-      - uses: actions/checkout@v4
+      # Voller Klon: der Vergleich braucht die Historie und das Tag. Kein
+      # hinterlegtes Token — gebraucht wird es nur fuers Tag am Ende.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: staging
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Aenderungen seit der letzten Ansage sammeln
         id: sammeln
@@ -75,13 +93,9 @@ jobs:
 
           echo "ERSTE=$ERSTE" >> "$GITHUB_ENV"
           echo "ANZ=$ANZ" >> "$GITHUB_ENV"
-          # Mehrzeiliges in GITHUB_ENV braucht einen Begrenzer, sonst bricht
-          # der Schreibvorgang ab (am 18.08. schon einmal eine Sonde gerissen).
-          {
-            echo 'SUBJECTS<<VB_ENDE'
-            printf '%s\n' "$SUBJECTS" | tr -d '\r'
-            echo 'VB_ENDE'
-          } >> "$GITHUB_ENV"
+          # Betreffzeilen als Datei — siehe Kopf dieser Datei, warum nicht
+          # ueber GITHUB_ENV. Leerzeilen fallen weg.
+          printf '%s\n' "$SUBJECTS" | tr -d '\r' | sed '/^[[:space:]]*$/d' > "$RUNNER_TEMP/subjects.txt"
 
           if [ "$ANZ" -eq 0 ]; then
             echo "::warning::Seit der letzten Ansage hat sich nichts geaendert — nichts zu melden."
@@ -110,10 +124,22 @@ jobs:
           # YAML-Blockskalar, und die Datei ist dann kein gueltiges YAML
           # mehr. Hier einmal passiert, vom Syntaxpruefer gefangen.
           NL=$'\n'
-          GEZEIGT=$(printf '%s\n' "$SUBJECTS" | head -10 | sed 's/^/- /')
-          REST=$((ANZ - 10))
+          # Sicherheitsnahe Betreffzeilen nur zaehlen, nie zeigen (Kopf dieser
+          # Datei). Lieber eine harmlose Zeile zu viel verschwiegen als eine
+          # offene Stelle angekuendigt.
+          INTERN_RE='(sicherheit|secur|luecke|lücke|schwachstelle|vuln|cve|exploit|xss|csrf|ssrf|inject|\brls\b|polic|service.?role|secret|geheimnis|token|credential|passw|leak|bypass|haert|härt|harden|auth|login|anmeld|admin|\brechte|(zugriffs|schreib|lese|bot|admin)rechte|berechtig|zugriff|permission|privileg|absicher|umgeh|missbrauch|angriff|schluessel|schlüssel|\bkey\b|\bcsp\b|cookie|signatur|lieferkette|zeilenschutz|durchlass)'
+          grep -viE "$INTERN_RE" "$RUNNER_TEMP/subjects.txt" > "$RUNNER_TEMP/shown.txt" || true
+          INTERN=$(grep -ciE "$INTERN_RE" "$RUNNER_TEMP/subjects.txt" || true)
+          SICHTBAR=$(wc -l < "$RUNNER_TEMP/shown.txt")
+          echo "Betreffzeilen: $ANZ, davon $INTERN intern (nur gezaehlt)."
+
+          GEZEIGT=$(head -10 "$RUNNER_TEMP/shown.txt" | sed 's/^/- /')
+          REST=$((SICHTBAR - 10))
           if [ "$REST" -gt 0 ]; then
             GEZEIGT="${GEZEIGT}${NL}... und ${REST} weitere"
+          fi
+          if [ "$INTERN" -gt 0 ]; then
+            GEZEIGT="${GEZEIGT:+${GEZEIGT}${NL}}+ ${INTERN} interne Aenderung(en)"
           fi
 
           KOPF=""
@@ -143,8 +169,8 @@ jobs:
           fi
 
           BODY=$(mktemp)
-          CODE=$(curl -sS -o "$BODY" -w '%{http_code}' "$WEBHOOK" \
-            -H "Content-Type: application/json" -d "$PAYLOAD")
+          CODE=$(curl -sS --max-time 30 -o "$BODY" -w '%{http_code}' "$WEBHOOK" \
+            -H "Content-Type: application/json" -d "$PAYLOAD") || CODE=000
           echo "HTTP $CODE"
           echo "Antwort: $(head -c 400 "$BODY")"
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
@@ -157,11 +183,18 @@ jobs:
       # Die Marke wandert NUR nach einem echten Versand. Nach einer Vorschau
       # stehenzubleiben ist Absicht: sonst waere der Zeitraum verbraucht,
       # ohne dass jemand die Nachricht gesehen hat.
+      # Das Token kommt erst hier dazu, nur fuer diesen einen Push, und
+      # landet nicht in .git/config.
       - name: Marke weitersetzen
         if: env.GESENDET == 'ja'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -f testphase-zuletzt HEAD
-          git push -f origin refs/tags/testphase-zuletzt
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" \
+            push -f origin refs/tags/testphase-zuletzt
           echo "Marke testphase-zuletzt steht jetzt auf $(git rev-parse --short HEAD)."

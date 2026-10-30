@@ -36,6 +36,7 @@
     "verify:zaehler": "node scripts/verify-zaehler.mjs",
     "verify:theme": "node scripts/verify-theme-gen.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
+    "verify:supply-chain": "node scripts/verify-supply-chain.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
     "sync:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs",
