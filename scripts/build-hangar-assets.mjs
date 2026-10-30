@@ -585,7 +585,7 @@ function markSwapParts(doc, slug) {
       if (roots.length) ports[items.length > 1 ? `${port}.${i}` : port] = roots.length;
     });
   }
-  for (const n of root.listNodes()) if (!named.has(n)) n.setName('');
+  for (const n of root.listNodes()) if (!named.has(n) && !n.getExtras()?.interior) n.setName('');
   const keep = new Set([...named].map((n) => n.getMesh()));
   for (const m of root.listMeshes()) if (!keep.has(m)) m.setName('');
   return { ports, nodes };
@@ -745,7 +745,8 @@ async function insideHull(written, slug) {
 function markInterior(doc) {
   let n = 0;
   for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
-    for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) c.traverse((x) => { if (x.getMesh()) { x.setExtras({ ...(x.getExtras() || {}), interior: true }); n++; } });
+    // mit Namen, sonst legt join sie mit dem Rumpf zusammen (keepNamed)
+    for (const c of top.listChildren()) if (/^interior_/i.test(c.getName())) c.traverse((x) => { if (x.getMesh()) { x.setExtras({ ...(x.getExtras() || {}), interior: true }).setName(`interior_part_${n}`); n++; } });
   }
   return n;
 }
@@ -1647,7 +1648,6 @@ async function buildOne(kind, name, inPath) {
   if (ship) dropUnreachable(doc);
   const b = inner ? interiorBudget(name) : kind === 'ships' ? shipBudget(name) : BUDGET[kind];
   const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : 0;
-  const interiorMarked = kind === 'ships' && !interior ? markInterior(doc) : 0;
   const innerInfo = inner ? keepInteriorOnly(doc) : null;
   if (inner && !innerInfo.containers) throw new Error('Rohexport ohne Container interior_* (kein Innenraum)');
   // Dreiecke des Innenraums roh: nur Netze an Knoten (die abgehängten des Rumpfs zählen nicht)
@@ -1676,6 +1676,8 @@ async function buildOne(kind, name, inPath) {
   // Palette des Schiffs = Record des Rohexports (Constellation: …_andromeda_gs)
   const plan = ship ? await paintPlan(name) : null;
   const pbr = cleanMaterials(doc, ship ? { paletteOwner: (shipSource(name).record ?? name.replace(/-/g, '_')).toLowerCase(), paintTargets: plan?.targets, series: SHIP_PAINTS[name]?.base } : {});
+  // nach cleanMaterials (leert die Knoten-Extras), vor markSwapParts (löscht Namen)
+  const interiorMarked = kind === 'ships' && !interior ? markInterior(doc) : 0;
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || ship || werk }), weld());
@@ -1791,7 +1793,8 @@ async function buildOne(kind, name, inPath) {
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(kind === 'ships' ? shipSource(name, interior) : {}),
-    ...(interiorMarked ? { interiorMarked } : {}),
+    // gezählt in der geschriebenen Datei (prune nimmt leer gewordene Netze heraus)
+    ...(interiorMarked ? { interiorMarked: written.getRoot().listNodes().filter((n) => n.getExtras()?.interior).length } : {}),
     ...(inner ? { containers: innerInfo.containers, trisInterior: trisInner, lights: innerInfo.lights, spots: innerInfo.spots, outside: innerInfo.outside.length, outsideTop: innerInfo.outside.slice(0, 5), inHull: await insideHull(written, name) } : {}),
     ...(gearTest ? { ...(gearTest.ok ? { gear: true } : {}), gearCheck: gearTest, budget: { tris: b.tris, tex: b.tex, ...(b.q ? { q: b.q } : {}) } } : {}),
     ...(paints ? { paints: { url: paints.url, v: paints.v } } : {}),

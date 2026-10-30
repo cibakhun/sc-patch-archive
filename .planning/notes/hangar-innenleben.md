@@ -163,3 +163,39 @@ Cutlass-Laderaum und Carrack-Struktur, alle mit Spieltexturen. Summe auf
 der Platte: Rumpf 741,7 MB + Innenraum 29,3 MB + Ablage 236,9 MB =
 1008 MB. Die Ablage wächst um rund 23 MB, die Innenräume bringen eigene
 Karten mit.
+
+### Teil A, alle Schiffe (Stand 30.10.2026)
+
+- **217 Innenraum-Dateien**, 418,9 MB GLB; Dreiecke roh 76,3 Mio. → Web 43,8 Mio.
+  Alle liegen im Hüllquader ihres Rumpfs. 214 auf Stufe 0, Carrack und Carrack
+  Expedition auf Stufe 2. Javelin: Stufe 4 (Karten 256 px, Schwelle bis 8 %)
+  mit 24,4 MB, als einzige über 16 MB (roh 10 Mio. Dreiecke, 3016 Lichter).
+- **Lichter** 51 149 (jedes Schiff hat welche), **Einstiegspunkte** 1932
+  (jedes Schiff hat welche). Höchstens 5 Karten je Material.
+- **Teile außerhalb der Hülle entfernt**: 209 bei 38 Schiffen.
+- **Ohne Innenraum im Rohexport** (14): Idris M, Idris P, Reclaimer,
+  Reclaimer Showdown, Ironclad, Ironclad Assault, 890 Jump, Polaris,
+  Perseus, Constellation Mk V Centaurus (alle über der 24-GB-Grenze ohne
+  Innenraum exportiert), ATLS, ATLS GEO und die zwei GEO-Collector (ein
+  Anzug ohne Container). Für die zehn großen bräuchte es einen eigenen
+  Export nur der Container.
+- Kleine Jäger und Fahrzeuge bringen nur ihr Cockpit mit (Gladius 13 k,
+  Hornet 6 k bis 39 k Dreiecke, 0,1 bis 0,4 MB).
+
+### Teil B
+
+Rumpfbau: Die Knoten der Container `interior_*` tragen `extras.interior =
+true` und den Namen `interior_part_<n>` (sonst legt `join` sie mit dem Rumpf
+zusammen; `cleanMaterials` leert Knoten-Extras, deshalb wird danach
+gekennzeichnet). Neu gebaut die 87 Rümpfe, die ihren Innenraum tragen und
+einen haben (gleiche Stufe 0). 67 tragen danach Innenraum-Knoten. Bei 20
+bleibt nach dem Junk-Filter keiner übrig (Cyclone ×6, X1 ×3, Nox ×2,
+Razor ×3, Dragonfly ×2, Glaive, Scythe, Xi'an Scout, PTV: offene Cockpits).
+
+### Summe
+
+Rumpf 744,1 MB + Innenraum 418,9 MB + Ablage 276,6 MB = **1439,6 MB**,
+größte Datei 19,3 MB (Javelin). Tor [17] zählt heute Rumpf und Ablage
+(1020,7 MB). build+gate grün, auch mit `STAGING=1`;
+`check:hangar-shader` an Avenger Titan und Mustang Alpha (Rümpfe mit
+Innenraum-Knoten) ✓.
