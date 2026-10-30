@@ -164,6 +164,42 @@ der Platte: Rumpf 741,7 MB + Innenraum 29,3 MB + Ablage 236,9 MB =
 1008 MB. Die Ablage wächst um rund 23 MB, die Innenräume bringen eigene
 Karten mit.
 
+### Teil A, alle Schiffe (Stand 30.10.2026)
+
+- **217 Innenraum-Dateien**, 418,9 MB GLB; Dreiecke roh 76,3 Mio. → Web 43,8 Mio.
+  Alle liegen im Hüllquader ihres Rumpfs. 214 auf Stufe 0, Carrack und Carrack
+  Expedition auf Stufe 2. Javelin: Stufe 4 (Karten 256 px, Schwelle bis 8 %)
+  mit 24,4 MB, als einzige über 16 MB (roh 10 Mio. Dreiecke, 3016 Lichter).
+- **Lichter** 51 149 (jedes Schiff hat welche), **Einstiegspunkte** 1932
+  (jedes Schiff hat welche). Höchstens 5 Karten je Material.
+- **Teile außerhalb der Hülle entfernt**: 209 bei 38 Schiffen.
+- **Ohne Innenraum im Rohexport** (14): Idris M, Idris P, Reclaimer,
+  Reclaimer Showdown, Ironclad, Ironclad Assault, 890 Jump, Polaris,
+  Perseus, Constellation Mk V Centaurus (alle über der 24-GB-Grenze ohne
+  Innenraum exportiert), ATLS, ATLS GEO und die zwei GEO-Collector (ein
+  Anzug ohne Container). Für die zehn großen bräuchte es einen eigenen
+  Export nur der Container.
+- Kleine Jäger und Fahrzeuge bringen nur ihr Cockpit mit (Gladius 13 k,
+  Hornet 6 k bis 39 k Dreiecke, 0,1 bis 0,4 MB).
+
+### Teil B
+
+Rumpfbau: Die Knoten der Container `interior_*` tragen `extras.interior =
+true` und den Namen `interior_part_<n>` (sonst legt `join` sie mit dem Rumpf
+zusammen; `cleanMaterials` leert Knoten-Extras, deshalb wird danach
+gekennzeichnet). Neu gebaut die 87 Rümpfe, die ihren Innenraum tragen und
+einen haben (gleiche Stufe 0). 67 tragen danach Innenraum-Knoten. Bei 20
+bleibt nach dem Junk-Filter keiner übrig (Cyclone ×6, X1 ×3, Nox ×2,
+Razor ×3, Dragonfly ×2, Glaive, Scythe, Xi'an Scout, PTV: offene Cockpits).
+
+### Summe
+
+Rumpf 744,1 MB + Innenraum 418,9 MB + Ablage 276,6 MB = **1439,6 MB**,
+größte Datei 19,3 MB (Javelin). Tor [17] zählt heute Rumpf und Ablage
+(1020,7 MB). build+gate grün, auch mit `STAGING=1`;
+`check:hangar-shader` an Avenger Titan und Mustang Alpha (Rümpfe mit
+Innenraum-Knoten) ✓.
+
 ## Cloud, 29.10.2026 nach dem ersten Push
 
 - `pc/hangar-innenleben` (692d5d67) ist in `claude/wot-hangar-hzs46w`
@@ -190,3 +226,24 @@ Karten mit.
   übrigen Innenraum-Dateien, zuerst die fünf.
 - Prüfung in der Cloud nach dem Merge: alle 1 224 Bildverweise der fünf
   Innenräume und alle 53 520 der 231 Rümpfe liegen in `public/hangar/tex`.
+
+## Cloud, 30.10.2026 nach dem Schlussbericht
+
+- Der Schlussstand 3b210dd7 ist gemergt, die 217 Innenräume und das Manifest
+  dazu. **Teil B ist nicht übernommen**: Die 87 Rümpfe sind vom Stand vor
+  #257 gebaut (einseitig, ohne den Innenraum hinter dem Glas). Bei den 68,
+  die auch #257 neu gebaut hat, gilt dessen Fassung; der Viewer erkennt den
+  groben Innenraum dort nach Lage (Ecken auf Flächen des scharfen) und
+  blendet ihn drinnen aus. `mrai-pulse` kam ohne Konflikt mit.
+- Auch die Bildablage ist nicht geräumt: 319 Bilder, die der PC als
+  verwaist entfernt hatte, nutzen die Rümpfe von #257; sie bleiben.
+- **Nächster PC-Lauf** (derselbe Satz „Hangar-Innenleben“): zuerst
+  `origin/claude/wot-hangar-hzs46w` in `pc/hangar-innenleben` mergen
+  (Konflikte dort schon gelöst: `dropInterior` liefert das Objekt von #257,
+  `markInterior` läuft nach `cleanMaterials` bei jedem Rumpf), dann Teil B
+  noch einmal für alle Rümpfe mit Innenraum-Knoten, vom gemergten Stand.
+  Prüfen mit `npm run verify:hangar-cockpit` (Tor von #257) und
+  `verify:hangar` [17] und [20].
+- Die zehn großen ohne Innenraum (Idris M/P, Reclaimer ×2, Ironclad ×2,
+  890 Jump, Polaris, Perseus, Centaurus): eigener Export nur der Container,
+  danach als Innenraum bauen wie die übrigen.
