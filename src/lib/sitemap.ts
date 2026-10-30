@@ -66,7 +66,7 @@ function fileToUrl(file: string): string | null {
   // Google als „Uebermittelte URL als ‚noindex' markiert". Layout.astro und
   // diese Liste lesen aus derselben Quelle (lib/seo#NOINDEX_PATHS), damit die
   // beiden Signale nicht auseinanderlaufen. Betrifft /account.html,
-  // /refinery.html, /pilot.html und die Konto-Unterseiten.
+  // /pilot.html und die Konto-Unterseiten.
   return isNoindex(url) ? null : url;
 }
 
