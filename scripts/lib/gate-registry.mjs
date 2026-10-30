@@ -521,6 +521,15 @@ export const CHECKS = [
       'Dieselbe Rechnung (scripts/lib/cockpit-rays.mjs) prueft verify:hangar-cockpit als Tor gegen die ausgelieferten Modelle.',
   },
   {
+    id: 'measure-hangar-innenlage',
+    script: 'scripts/measure-hangar-innenlage.mjs',
+    rail: null,
+    checks: 'misst je begehbarem Innenraum (oder je Container eines Rohexports), wie viele Dreiecke ausserhalb des Rumpfs liegen, und sucht den Versatz, mit dem er hineinpasst',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-innenlage.md (Krisz, 30.10.2026: Innenraeume dabei, jedes Schiff innen und aussen ansehen): Roentgenbilder zeigten Innenraeume, die aus dem Rumpf ragen. ' +
+      'Laeuft auf dem PC auch gegen Rohexporte (--roh), um die Lage der Container zu klaeren; ein Tor folgt, wenn die Innenraeume sitzen.',
+  },
+  {
     id: 'verify-hardpoints',
     script: 'scripts/verify-hardpoints.mjs',
     rail: null,
