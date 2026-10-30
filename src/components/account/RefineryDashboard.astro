@@ -469,6 +469,10 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
 </template>
 
 <style is:global>
+  /* account-dossier.css macht .dsr ab 1100x600 zu einem Bildschirm hohen Kasten
+     ohne Scrollen (Konto-Rahmen). Die Refinery-Seite scrollt als Ganzes, sonst
+     quetscht der Kasten Kacheln und Karten zusammen. */
+  .dsr.rf { height: auto; overflow: visible; overflow-x: clip; }
   .rf .rf-in { max-width: 1500px; margin: 0 auto; padding: 18px clamp(12px, 3vw, 28px) 56px; }
   .rf .ck-col { overflow: visible; }
   .rf section { padding: 0; margin: 0; }
@@ -712,6 +716,50 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
       const hit = want && REFINERY.ores.find((o) => o.name.toLowerCase() === want.trim().toLowerCase());
       if (hit) pickOre(hit.name, !location.hash);
     } catch { /* ohne gültigen Parameter bleibt die Vorauswahl */ }
+
+    // ---- Zurück-Leiste nach Sprüngen innerhalb der Seite ------------------
+    // Die Leiste (SiteNav, back-link.js) zeigt, woher man auf die Seite kam.
+    // Nach einem Sprung zu Erze/Ertrag/Methoden fuehrt sie zuerst an die
+    // Stelle der Seite zurueck, von der man gesprungen ist.
+    const back = document.querySelector<HTMLAnchorElement>('.snav__back');
+    if (back) {
+      const backLbl = back.querySelector('[data-back-label]');
+      const orig = { href: back.getAttribute('href'), label: backLbl?.textContent ?? '', aria: back.getAttribute('aria-label'), hidden: back.hidden };
+      let jumps = Number(history.state?.rfJump) || 0;
+      const paint = () => {
+        const inPage = jumps > 0;
+        back.hidden = inPage ? false : orig.hidden;
+        back.setAttribute('href', inPage ? location.pathname + location.search : orig.href ?? '');
+        if (!inPage && orig.href == null) back.removeAttribute('href');
+        if (backLbl) backLbl.textContent = inPage ? C.title : orig.label;
+        if (inPage) back.setAttribute('aria-label', (back.dataset.backAria || '') + ' ' + C.title);
+        else if (orig.aria == null) back.removeAttribute('aria-label');
+        else back.setAttribute('aria-label', orig.aria);
+        document.documentElement.classList.toggle('vb-has-back', !back.hidden);
+      };
+      root.addEventListener('click', (e) => {
+        const a = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+        const hash = a?.getAttribute('href') || '';
+        if (hash.length <= 1 || hash === location.hash) return;
+        // Die Tiefe steht im History-Eintrag: Chrome feuert popstate auch beim
+        // Sprung selbst, ein blosser Zaehler wuerde dabei gleich wieder sinken.
+        const next = jumps + 1;
+        setTimeout(() => {
+          history.replaceState({ ...(history.state || {}), rfJump: next }, '');
+          jumps = next;
+          paint();
+        }, 0);
+      });
+      addEventListener('popstate', () => { jumps = Number(history.state?.rfJump) || 0; paint(); });
+      if (jumps) paint();
+      // Capture: vor dem Klick-Hoerer aus back-link.js, der sonst die Seite verlaesst.
+      back.addEventListener('click', (e) => {
+        if (!jumps || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        history.back();
+      }, true);
+    }
 
     // ---- Tracker -----------------------------------------------------------
     const loadingEl = $('rfd-loading');
