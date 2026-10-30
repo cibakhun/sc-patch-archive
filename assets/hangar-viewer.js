@@ -39,11 +39,16 @@
 // /hangar/tex/ (embeddedImages); opts.texBytes nennt je Modelldatei (Pfad
 // ohne ?v=) ihre Summe, damit der Ladebalken sie mitzählt.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, sound?: false }) -> Promise<{
+// INNENRAUM: opts.interior nennt je Werkslack-Datei (Pfad ohne ?v=) den
+// begehbaren Innenraum im selben Modellraum (url) und seine Lampen und
+// Einstiegspunkte (meta, JSON { lights, spots }); enter() lädt beides.
+//
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, interior?: { [pfad]: { url, meta, bytes? } }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
-//         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn) }>
+//         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn),
+//         enter() -> Promise<bool>, leave(), onWalk(fn) }>
 // project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
 // (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
 // Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
@@ -6662,6 +6667,8 @@ export async function initHangar(container, opts = {}) {
   let fovGlide = null;
   const inOut3 = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
   const fitFov = (now = performance.now()) => {
+    // drinnen eigener Blickwinkel, ohne Shift-Optik
+    if (walk?.fov) { camera.fov = walk.fov; camera.aspect = W() / H(); camera.clearViewOffset(); return; }
     const d = wantDist(), k = 1 + lensS;
     baseFov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
     if (fovGlide) {
@@ -6685,7 +6692,15 @@ export async function initHangar(container, opts = {}) {
   controls.target.set(0, 2.2, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
-  controls.enablePan = false;
+  // Rechte Maustaste ziehen schiebt den Blick durch die Halle (Krisz,
+  // 29.10.2026: „mit rechtsclick gedrückthalten und ziehen sich in der
+  // hangar mit der kamera bewegen“): Ziel und Kamera wandern zusammen
+  // waagrecht über den Boden, der Boden folgt der Maus (zu sich ziehen fährt
+  // nach vorn). Grenzen: keepPan, keepOut. Am Telefon bleiben zwei Finger
+  // beim Zoomen, sonst schöbe jedes Spreizen die Ansicht mit.
+  controls.enablePan = true;
+  controls.screenSpacePanning = false;
+  renderer.domElement.addEventListener('pointerdown', (e) => { controls.enablePan = e.pointerType !== 'touch'; }, { capture: true });
   controls.minPolarAngle = 0.15;
   controls.maxPolarAngle = Math.PI / 2 - 0.03; // nie unter den Boden
   // Kein Umlauf (Krisz, 2026-10-18: keine automatische Kameradrehung): die
@@ -6701,6 +6716,13 @@ export async function initHangar(container, opts = {}) {
   const wake = (ms) => { activeUntil = Math.max(activeUntil, performance.now() + ms); };
   // Ziel kam aus focus(): ein Punkt am Schiff, der mit dem Schiff wandert
   let onPoint = false;
+  // panned: das Ziel ist geschoben, also nicht mehr Schiffsmitte oder
+  // Hardpoint (keepPan); panLive: wann zuletzt mit der Maus geschoben wurde,
+  // 0 seit der letzten Kamerafahrt
+  let panned = false, panLive = 0;
+  // walk: Einsteigen läuft (enter, walkStep); solange ruhen OrbitControls,
+  // Grenzen und Shift-Optik
+  let walk = null;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
@@ -6719,6 +6741,10 @@ export async function initHangar(container, opts = {}) {
   }
   const sph = (pos, tgt) => new THREE.Spherical().setFromVector3(pos.clone().sub(tgt));
   function flyTo(tgt, pos, dur = 900) {
+    // Was die Dämpfung vom Schieben noch nachlaufen ließe, jetzt ganz und
+    // geprüft (keepPan), sonst verschöbe es das Ziel der Fahrt
+    if (panLive) { controls.enableDamping = false; controls.update(); controls.enableDamping = true; }
+    panned = false; panLive = 0;
     if (reduceMotion) { controls.target.copy(tgt); camera.position.copy(pos); fly = null; return; }
     const a = sph(camera.position, controls.target), b = sph(pos, tgt);
     // kürzester Weg um die Hochachse
@@ -10993,7 +11019,7 @@ void main() {
   // hold: so lange steht die Kamera erst am Start (das Tor hinter ihr geht
   // auf) und dreht sich derweil schon zum Weg
   function tripStart(plan, look0, look1, ev = [], t0 = performance.now(), hold = 0) {
-    fly = null; onPoint = false; touched = false;
+    fly = null; onPoint = false; touched = false; panned = false; panLive = 0;
     controls.enabled = false;
     // Was die Dämpfung vom letzten Ziehen noch nachlaufen ließe, ist mit der
     // Fahrt vorbei: einmal ohne Dämpfung ganz angewandt (das Bild setzt gleich
@@ -11154,12 +11180,13 @@ void main() {
       mats.push(...[].concat(n.material));
       if (n.isMesh && [].concat(n.material).some((m) => m.transparent)) clear.push(n);
     });
-    current = { group: ship, model: s.model, born: performance.now(), mat: s.mat, info: s.info, hull: s.textured ? s.hull : null, lift: !!flags.lift, werk: !!flags.werk, dim: dimOf(mats), clear };
+    current = { group: ship, model: s.model, born: performance.now(), mat: s.mat, info: s.info, hull: s.textured ? s.hull : null, inner: s.textured ? s.inner : null, lift: !!flags.lift, werk: !!flags.werk, dim: dimOf(mats), clear };
     if (s.textured) wearPaint(current, liveryKey !== 'werk');
     if (flags.werk) werkVeh = current;
     camFree = null; freeDirty = !flags.werk;
     prog.delete('ship'); prog.delete('ship-tex');
     reveal();
+    walkState();
     if (progressFn) progressFn(100);
   }
 
@@ -11190,7 +11217,7 @@ void main() {
     adopt(ship, s, { werk: true });
     werkFoot(current);
     const tgt = werkTarget(s.info);
-    fly = null; onPoint = false; touched = false;
+    fly = null; onPoint = false; touched = false; panned = false;
     controls.target.copy(tgt);
     camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
     controls.update();
@@ -11375,6 +11402,7 @@ void main() {
   }
   async function showShip(url, o) {
     const my = ++token;
+    if (walk) leave(true);
     makerCode = o.maker || '';
     prog.delete('ship'); prog.delete('ship-tex');
     // Eine Fahrt zwischen Halle und Werkhalle fährt zu Ende, dann der nächste Wechsel
@@ -11490,7 +11518,7 @@ void main() {
     const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under };
     // in die Werkhalle, in ihr von Fahrzeug zu Fahrzeug oder aus ihr hinaus
     if (toWerk || current?.werk) {
-      if (await werkShow(ship, { model, mat, info, textured, hull, my, drop, lowered, covered, padDown, toWerk })) return;
+      if (await werkShow(ship, { model, mat, info, textured, hull, inner: textured ? innerOf(o.tex) : null, my, drop, lowered, covered, padDown, toWerk })) return;
     }
     if (lowered) {
       // getauscht wird unten und unter geschlossenem Tor
@@ -11523,7 +11551,7 @@ void main() {
     ship.position.y = ship.userData.baseY;
     const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
     if (!current) {
-      onPoint = false;
+      onPoint = false; panned = false;
       controls.target.copy(tgt); camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
     } else {
       // Der Blick bleibt beim Wechsel (Betreiber 18.10.2026: „die kamera
@@ -11559,10 +11587,11 @@ void main() {
       mats.push(...[].concat(n.material));
       if (n.isMesh && [].concat(n.material).some((m) => m.transparent)) clear.push(n);
     });
-    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null, lift: up, dim: dimOf(mats), clear };
+    current = { group: ship, model, born: performance.now(), mat, info, hull: textured ? hull : null, inner: textured ? innerOf(o.tex) : null, lift: up, dim: dimOf(mats), clear };
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship'); prog.delete('ship-tex');
     reveal();
+    walkState();
     if (progressFn) progressFn(100);
   }
 
@@ -11780,6 +11809,7 @@ void main() {
   function resetView() {
     // die Fahrt zwischen Halle und Werkhalle führt die Kamera selbst
     if (trip) return;
+    if (walk) leave(true);
     touched = false; onPoint = false;
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
     const t = homeTgt ? homeTgt.clone() : controls.target.clone();
@@ -11795,7 +11825,7 @@ void main() {
     out.length = points.length;
     // Im Schacht (Aufzug nicht oben), mit der Bühne der Werkhalle unten und
     // auf der Fahrt dorthin zeigt die Oberfläche keine Marker
-    const m = current && current.group.visible && !trip && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
+    const m = current && current.group.visible && !trip && !walk && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
     const w = W(), h = H();
     for (let i = 0; i < points.length; i++) {
       if (!m) { out[i] = null; continue; }
@@ -11808,7 +11838,7 @@ void main() {
     return out;
   }
   function focus(p) {
-    if (!current || trip) return;
+    if (!current || trip || walk) return;
     if (!p) { resetView(); return; }
     // Ziel aus der Ruhelage: waehrend der Einfahrt schwebt und dreht die
     // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
@@ -12104,14 +12134,19 @@ void main() {
   const SHIP_M = 0.35;
   // Ohne echte Halle schwebt das Schiff um bis zu so viel über und unter
   // seiner Ruhelage (Carrack 1,1 m); gemessen wird dann über fünf Höhen
-  const shipBob = () => (reduceMotion || realHall ? 0 : 0.009 * span);
-  let shipFree = null, shipBusy = false;
+  // drinnen steht das Schiff still (das Stoßgitter liegt fest in der Welt)
+  const shipBob = () => (reduceMotion || realHall || walk ? 0 : 0.009 * span);
+  // shipHome: dieselbe Messung von der Schiffsmitte (homeTgt) aus, für den
+  // geschobenen Blick (keepOut)
+  let shipFree = null, shipHome = null, shipBusy = false;
   const aim = () => (fly ? fly.tb : controls.target);
   // am Ziel einer Fahrt steht es nur bis auf Rundung (lerpVectors)
   const sameAim = (a, b) => a.distanceToSquared(b) < 1e-8;
-  const shipStale = () => current && !shipBusy && (!shipFree || shipFree.c !== current || shipFree.y !== current.group.userData.baseY || shipFree.b !== shipBob() || !sameAim(shipFree.o, aim()));
-  function measureShip() {
-    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = aim().clone(), t0 = performance.now();
+  const staleFrom = (m, o) => !m || m.c !== current || m.y !== current.group.userData.baseY || m.b !== shipBob() || !sameAim(m.o, o);
+  const shipStale = () => current && !shipBusy && staleFrom(shipFree, aim());
+  const homeStale = () => current && homeTgt && !shipBusy && staleFrom(shipHome, homeTgt);
+  function measureShip(from = aim()) {
+    const c = current, g = c.group, y = g.userData.baseY, b = shipBob(), o = from.clone(), t0 = performance.now(), home = !!homeTgt && sameAim(o, homeTgt);
     // Ruhelage wie in focus(): während der Einfahrt schwebt und dreht es noch.
     // Schwebt es, die fernste Fläche über die ganze Höhe: Ein fester Rand
     // reicht nicht, eine flach geschnittene Fläche wandert auf der Linie
@@ -12127,6 +12162,7 @@ void main() {
     p.then((dist) => {
       if (current !== c || g.userData.baseY !== y) return;
       shipFree = { o, dist, c, y, b };
+      if (home) shipHome = shipFree;
       // Läuft die Fahrt noch, endet sie gleich außerhalb statt danach zu springen
       if (fly && sameAim(o, fly.tb)) {
         const d = new THREE.Vector3().setFromSpherical(new THREE.Spherical(1, fly.b.phi, fly.b.theta));
@@ -12136,6 +12172,7 @@ void main() {
     }).catch((e) => {
       // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
       shipFree = { o, dist: null, c, y, b };
+      if (home) shipHome = shipFree;
       console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
     }).finally(() => { shipBusy = false; });
   }
@@ -12323,7 +12360,10 @@ void main() {
     let L = keepD.subVectors(c, t).length();
     if (L < 1e-6) return;
     keepD.divideScalar(L);
-    const need = shipNeed(t, keepD);
+    // Geschoben steht das Ziel irgendwo in der Halle, das Schiff womöglich
+    // hinter der Kamera: Die Linie vom Ziel hinaus führte dann durch den
+    // Rumpf auf seine andere Seite. Dort hält keepOut die Kamera draußen.
+    const need = panned ? 0 : shipNeed(t, keepD);
     if (L < need) { L = Math.min(need, controls.maxDistance); c.copy(keepAt(t, L)); }
     if (!camFree || freeOk(c) || !targetOk(t)) return;
     const b = hallOk(c) && inBox(c);
@@ -12358,6 +12398,577 @@ void main() {
     }
     c.copy(keepAt(t, Math.max(0, L)));
   }
+  // Schieben (rechte Maustaste). OrbitControls schiebt in update(), also
+  // auch zwischen zwei Bildern im Zeigerereignis; darum prüft keepPan gleich
+  // dort. Das Blickziel bleibt in der Halle, mit 2,5 · camFree.m Rand vor
+  // der ersten Fläche vom Ziel der Startansicht aus und außerhalb der Möbel,
+  // in der Werkhalle mit 1,5 m Rand im Raum. Reißt ein Schritt die Grenze,
+  // gleitet es an ihr entlang (nur x, dann nur z), sonst bleibt es; die
+  // Kamera rückt um dasselbe. Ohne gemessene Halle oder Hülle schiebt nichts.
+  const ORBIT_PAN = 2;   // OrbitControls: state beim Schieben (_STATE.PAN)
+  const PAN_SLIDE = [[1, 1], [1, 0], [0, 1]];
+  const panT = new THREE.Vector3(), panD = new THREE.Vector3(), panT0 = new THREE.Vector3(), panC0 = new THREE.Vector3();
+  const panPrevT = new THREE.Vector3(), panPrevC = new THREE.Vector3(), outV = new THREE.Vector3();
+  let panPrevS = -Infinity;
+  function panAllowed(t) {
+    if (ort === 'werk') {
+      const k = hallRoot.scale.x, R = WERK.raum, m = 1.5, wx = wkX(), x = t.x / k, z = t.z / k;
+      return x >= R.x[0] + m + wx && x <= R.x[1] - m + wx && z >= R.z[0] + m && z <= R.z[1] - m;
+    }
+    if (!camFree) return false;
+    freeV.subVectors(t, camFree.o);
+    const D = freeV.length();
+    return (D < 1e-3 || D <= freeCone(freeV.divideScalar(D)) - 2.5 * camFree.m) && !inBox(t);
+  }
+  // Abstand der Stelle p zur Hülle des Schiffs, auf der Linie von der
+  // Schiffsmitte aus hinter ihrer fernsten Fläche gemessen (shipHome): ab 0
+  // steht p sicher draußen. Streng: Was von der Mitte aus vor einer Fläche
+  // liegt, Buchten und der Raum unter Flügeln, zählt zum Schiff. null: noch
+  // nicht gemessen.
+  function shipOut(p) {
+    if (!current) return Infinity;
+    if (!shipHome?.dist || shipHome.c !== current) return null;
+    outV.subVectors(p, shipHome.o);
+    const D = outV.length();
+    if (D < 1e-6) return -Infinity;
+    const f = freeCone(outV.divideScalar(D), shipHome.dist, Math.max);
+    return f > 0 ? D - f - SHIP_M : Infinity;
+  }
+  function keepPan(t0, c0) {
+    const t = controls.target, now = performance.now();
+    if (controls.state === ORBIT_PAN) panLive = now;
+    panD.subVectors(t, t0);
+    // nur, was die Maus schob, samt Nachlauf der Dämpfung (bei wenigen
+    // Bildern je Sekunde läuft der fast ganz nach dem Loslassen)
+    if (panD.lengthSq() < 1e-12 || fly || trip || !panLive) return;
+    let ok = false;
+    if (shipOut(c0) != null) {
+      for (const [mx, mz] of PAN_SLIDE) {
+        panT.set(t0.x + panD.x * mx, t.y, t0.z + panD.z * mz);
+        if (panAllowed(panT)) { ok = true; break; }
+      }
+    }
+    if (!ok) panT.copy(t0);
+    if (!panned && panT.distanceToSquared(t0) > 1e-12) {
+      panned = true; onPoint = false;
+      panPrevT.copy(t0); panPrevC.copy(c0); panPrevS = shipOut(c0);
+    }
+    panD.subVectors(panT, t);
+    t.add(panD); camera.position.add(panD);
+  }
+  const orbitUpdate = controls.update.bind(controls);
+  controls.update = (dt) => {
+    panT0.copy(controls.target); panC0.copy(camera.position);
+    const r = orbitUpdate(dt);
+    keepPan(panT0, panC0);
+    return r;
+  };
+  // Geschoben (panned) gilt keepFree nur noch für die Halle: Am Ende jedes
+  // Bilds darf die Kamera nicht in die Hülle (shipOut unter 0). Rückte sie
+  // hinein, gehen Ziel und Kamera auf den Stand des letzten Bilds zurück,
+  // ob Schieben, Drehen oder Zoomen sie brachte. Stand sie schon drin (vom
+  // Hardpoint aus geschoben), darf sie nur hinaus.
+  function keepOut() {
+    const s = shipOut(camera.position);
+    if (s == null) return;
+    if (s < 0 && s < panPrevS - 1e-3) { controls.target.copy(panPrevT); camera.position.copy(panPrevC); return; }
+    panPrevT.copy(controls.target); panPrevC.copy(camera.position); panPrevS = s;
+  }
+
+  // Einsteigen (Krisz 29.10.2026 20:49: „ja ich will auch in die
+  // innenräume“). Der Innenraum ist je Schiff eine eigene Datei im
+  // Modellraum des Rumpfs (PC-Lauf Hangar-Innenleben,
+  // .planning/notes/hangar-innenleben.md), dazu Lampen und Einstiegspunkte
+  // des Spiels (opts.interior[pfad].meta). Beides lädt erst beim Einsteigen,
+  // und nach dem Aussteigen ist der Innenraum wieder aus: Die Halle kostet
+  // so viel wie vorher. Drinnen: Ziehen schaut umher, rechte Maustaste, WASD
+  // oder Pfeiltasten gehen, das Mausrad geht vor und zurück, Umschalt läuft,
+  // Esc steigt aus. Wände, Boden und Stufen kommen aus einem Stoßgitter über
+  // Rumpf und Innenraum (walkGrid), Licht aus den Lampen des Spiels
+  // (walkLamps).
+  const innerOf = (u) => (u && opts.interior?.[u.split('?')[0]]) || null;
+  const WALK_EYE = 1.65, WALK_R = 0.26, WALK_STEP = 0.45, WALK_SPEED = 1.6, WALK_RUN = 3.6;
+  const WALK_CELL = 0.75, WALK_FOV = 70, WALK_MIN_EDGE = 0.12;
+  // Spielstärke der Innenlampen -> three.js. Die Datei trägt sie in anderer
+  // Einheit als die Halle (Railen im Mittel 750, Halle 5); am Render
+  // abgeglichen, gedeckelt, damit einzelne Strahler (Freelancer bis
+  // 4,5 Mio.) nicht weiß ausbrennen.
+  const WALK_LAMP_K = HALL_LIGHT_SCALE * 5 / 750, WALK_LAMP_MAX = 40;
+  let walkFn = null;
+  const walkCan = () => !!(current?.inner && !current.werk);
+  const walkState = () => walkFn?.({ can: walkCan(), on: !!walk, busy: !!walk && walk.state !== 'on' });
+  // Innenraum laden, herrichten wie den Rumpf und neben dessen Modell
+  // hängen (dasselbe Elternteil, also derselbe Modellraum). Einmal je
+  // Schiff, danach bleibt er bis zum Wechsel geladen, aber außerhalb aus.
+  function loadInner(c) {
+    if (c.innerP) return c.innerP;
+    const inf = c.inner, t0 = performance.now();
+    c.innerP = (async () => {
+      const [g, meta] = await Promise.all([
+        fetchGltf(inf.url, 'interior', inf.bytes || 8e6),
+        fetch(inf.meta).then((r) => (r.ok ? r.json() : null), () => null),
+      ]);
+      if (current !== c) { disposeObject(g.scene); return null; }
+      const root = g.scene;
+      let tris = 0;
+      root.traverse((n) => {
+        if (!n.isMesh) return;
+        n.castShadow = false; n.receiveShadow = true;
+        if (dressTextured(n)) tris += (n.geometry.index?.count ?? n.geometry.attributes.position.count) / 3;
+      });
+      root.visible = false;
+      c.model.parent.add(root);
+      root.updateMatrixWorld(true);
+      await prepare(root);
+      if (current !== c) return null;
+      const lamps = (meta?.lights ?? []).filter((l) => Array.isArray(l.p) && l.intensity > 0);
+      const spots = (meta?.spots ?? []).filter((s) => Array.isArray(s.p));
+      console.info(`[hangar] Innenraum geladen: ${Math.round(tris)} Dreiecke, ${lamps.length} Lampen, ${spots.length} Einstiegspunkte, ${Math.round(performance.now() - t0)} ms`);
+      return { root, lamps, spots, coarse: null };
+    })().catch((e) => { console.warn('[hangar] Innenraum nicht geladen', e); c.innerP = null; return null; })
+      .finally(() => { prog.delete('interior'); progressFn?.(100); });
+    return c.innerP;
+  }
+
+  // Stoßgitter: alle Dreiecke der roots, die im Kasten box liegen und eine
+  // Kante ab minEdge haben (Nieten und Kleinteile halten niemanden auf), in
+  // Weltkoordinaten; das Schiff steht still, solange jemand drin ist. Je
+  // Würfel von WALK_CELL m die Dreiecke, die seinen Kasten berühren, als
+  // Liste (start, items).
+  async function walkGrid(roots, box, pause, minEdge = WALK_MIN_EDGE) {
+    let P = new Float32Array(9 * 65536), n = 0;
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3(), lo = box.min, hi = box.max, e2 = minEdge * minEdge;
+    const meshes = [];
+    for (const r of roots) r.traverse((m) => { if (m.isMesh && m.geometry?.attributes.position && shown(m)) meshes.push(m); });
+    for (const m of meshes) {
+      const pos = m.geometry.attributes.position, idx = m.geometry.index, cnt = idx ? idx.count : pos.count, W = m.matrixWorld;
+      for (let i = 0; i < cnt; i += 3) {
+        a.fromBufferAttribute(pos, idx ? idx.getX(i) : i).applyMatrix4(W);
+        b.fromBufferAttribute(pos, idx ? idx.getX(i + 1) : i + 1).applyMatrix4(W);
+        d.fromBufferAttribute(pos, idx ? idx.getX(i + 2) : i + 2).applyMatrix4(W);
+        if ((i & 32767) === 0) await pause();
+        if (Math.max(a.x, b.x, d.x) < lo.x || Math.min(a.x, b.x, d.x) > hi.x || Math.max(a.y, b.y, d.y) < lo.y || Math.min(a.y, b.y, d.y) > hi.y || Math.max(a.z, b.z, d.z) < lo.z || Math.min(a.z, b.z, d.z) > hi.z) continue;
+        if (e2 && Math.max(a.distanceToSquared(b), b.distanceToSquared(d), d.distanceToSquared(a)) < e2) continue;
+        if (n * 9 + 9 > P.length) { const q = new Float32Array(P.length * 2); q.set(P); P = q; }
+        const o = n * 9;
+        P[o] = a.x; P[o + 1] = a.y; P[o + 2] = a.z; P[o + 3] = b.x; P[o + 4] = b.y; P[o + 5] = b.z; P[o + 6] = d.x; P[o + 7] = d.y; P[o + 8] = d.z;
+        n++;
+      }
+    }
+    const C = WALK_CELL, nx = Math.max(1, Math.ceil((hi.x - lo.x) / C)), ny = Math.max(1, Math.ceil((hi.y - lo.y) / C)), nz = Math.max(1, Math.ceil((hi.z - lo.z) / C));
+    const cell = (v, o, k) => Math.min(k - 1, Math.max(0, Math.floor((v - o) / C)));
+    const range = (t, f) => {
+      const o = t * 9;
+      const x0 = cell(Math.min(P[o], P[o + 3], P[o + 6]), lo.x, nx), x1 = cell(Math.max(P[o], P[o + 3], P[o + 6]), lo.x, nx);
+      const y0 = cell(Math.min(P[o + 1], P[o + 4], P[o + 7]), lo.y, ny), y1 = cell(Math.max(P[o + 1], P[o + 4], P[o + 7]), lo.y, ny);
+      const z0 = cell(Math.min(P[o + 2], P[o + 5], P[o + 8]), lo.z, nz), z1 = cell(Math.max(P[o + 2], P[o + 5], P[o + 8]), lo.z, nz);
+      for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) for (let z = z0; z <= z1; z++) f((x * ny + y) * nz + z);
+    };
+    const start = new Uint32Array(nx * ny * nz + 1);
+    for (let t = 0; t < n; t++) { range(t, (k) => { start[k + 1]++; }); if ((t & 32767) === 0) await pause(); }
+    for (let k = 0; k < nx * ny * nz; k++) start[k + 1] += start[k];
+    const items = new Uint32Array(start[nx * ny * nz]), fill = start.slice(0, -1);
+    for (let t = 0; t < n; t++) { range(t, (k) => { items[fill[k]++] = t; }); if ((t & 32767) === 0) await pause(); }
+    return { P: P.subarray(0, n * 9), n, lo: lo.clone(), nx, ny, nz, start, items, stamp: new Uint32Array(n), q: 0, cell };
+  }
+  // sichtbar samt aller Eltern
+  const shown = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
+  // Jedes Dreieck des Gitters im Kasten [x0..x1, y0..y1, z0..z1] einmal; gibt
+  // f true zurück, ist die Suche zu Ende (und gridEach gibt true zurück)
+  function gridEach(g, x0, y0, z0, x1, y1, z1, f) {
+    const q = ++g.q;
+    const ax = g.cell(x0, g.lo.x, g.nx), bx = g.cell(x1, g.lo.x, g.nx), ay = g.cell(y0, g.lo.y, g.ny), by = g.cell(y1, g.lo.y, g.ny), az = g.cell(z0, g.lo.z, g.nz), bz = g.cell(z1, g.lo.z, g.nz);
+    for (let x = ax; x <= bx; x++) for (let y = ay; y <= by; y++) for (let z = az; z <= bz; z++) {
+      const k = (x * g.ny + y) * g.nz + z;
+      for (let i = g.start[k]; i < g.start[k + 1]; i++) {
+        const t = g.items[i];
+        if (g.stamp[t] === q) continue;
+        g.stamp[t] = q;
+        if (f(t) === true) return true;
+      }
+    }
+    return false;
+  }
+  // Nächster Punkt des Dreiecks t zu (px, py, pz) nach out (Ericson,
+  // Real-Time Collision Detection 5.1.5)
+  function closestOnTri(P, t, px, py, pz, out) {
+    const o = t * 9, ax = P[o], ay = P[o + 1], az = P[o + 2];
+    const abx = P[o + 3] - ax, aby = P[o + 4] - ay, abz = P[o + 5] - az, acx = P[o + 6] - ax, acy = P[o + 7] - ay, acz = P[o + 8] - az;
+    const apx = px - ax, apy = py - ay, apz = pz - az;
+    const d1 = abx * apx + aby * apy + abz * apz, d2 = acx * apx + acy * apy + acz * apz;
+    if (d1 <= 0 && d2 <= 0) return out.set(ax, ay, az);
+    const bpx = px - P[o + 3], bpy = py - P[o + 4], bpz = pz - P[o + 5];
+    const d3 = abx * bpx + aby * bpy + abz * bpz, d4 = acx * bpx + acy * bpy + acz * bpz;
+    if (d3 >= 0 && d4 <= d3) return out.set(P[o + 3], P[o + 4], P[o + 5]);
+    const vc = d1 * d4 - d3 * d2;
+    if (vc <= 0 && d1 >= 0 && d3 <= 0) { const v = d1 / (d1 - d3); return out.set(ax + abx * v, ay + aby * v, az + abz * v); }
+    const cpx = px - P[o + 6], cpy = py - P[o + 7], cpz = pz - P[o + 8];
+    const d5 = abx * cpx + aby * cpy + abz * cpz, d6 = acx * cpx + acy * cpy + acz * cpz;
+    if (d6 >= 0 && d5 <= d6) return out.set(P[o + 6], P[o + 7], P[o + 8]);
+    const vb = d5 * d2 - d1 * d6;
+    if (vb <= 0 && d2 >= 0 && d6 <= 0) { const w = d2 / (d2 - d6); return out.set(ax + acx * w, ay + acy * w, az + acz * w); }
+    const va = d3 * d6 - d5 * d4;
+    if (va <= 0 && d4 - d3 >= 0 && d5 - d6 >= 0) {
+      const w = (d4 - d3) / (d4 - d3 + (d5 - d6));
+      return out.set(P[o + 3] + (P[o + 6] - P[o + 3]) * w, P[o + 4] + (P[o + 7] - P[o + 4]) * w, P[o + 5] + (P[o + 8] - P[o + 5]) * w);
+    }
+    const den = 1 / (va + vb + vc), v = vb * den, w = vc * den;
+    return out.set(ax + abx * v + acx * w, ay + aby * v + acy * w, az + abz * v + acz * w);
+  }
+  // Kugel (p, r) aus den Flächen schieben, nur waagrecht (Wände; Boden und
+  // Stufen nimmt walkFloor). Gibt die Zahl der Berührungen zurück.
+  const wQ = new THREE.Vector3(), wPush = new THREE.Vector3();
+  function walkPush(g, p, r) {
+    let hits = 0;
+    for (let it = 0; it < 3; it++) {
+      wPush.set(0, 0, 0);
+      let any = 0;
+      gridEach(g, p.x - r, p.y - r, p.z - r, p.x + r, p.y + r, p.z + r, (t) => {
+        closestOnTri(g.P, t, p.x, p.y, p.z, wQ);
+        const dx = p.x - wQ.x, dz = p.z - wQ.z, dy = p.y - wQ.y, d = Math.sqrt(dx * dx + dy * dy + dz * dz), h = Math.sqrt(dx * dx + dz * dz);
+        if (d >= r || h < 1e-5) return;
+        wPush.x += (dx / h) * (r - d); wPush.z += (dz / h) * (r - d); any++;
+      });
+      if (!any) break;
+      hits += any;
+      p.x += wPush.x; p.z += wPush.z;
+    }
+    return hits;
+  }
+  // Höchste Fläche unter (x, top, z) bis top - depth (Möller-Trumbore mit
+  // Strahl nach unten); null, wenn keine
+  function walkFloor(g, x, top, z, depth) {
+    let best = null;
+    gridEach(g, x - 0.01, top - depth, z - 0.01, x + 0.01, top, z + 0.01, (t) => {
+      const P = g.P, o = t * 9, ax = P[o], ay = P[o + 1], az = P[o + 2];
+      const e1x = P[o + 3] - ax, e1y = P[o + 4] - ay, e1z = P[o + 5] - az, e2x = P[o + 6] - ax, e2y = P[o + 7] - ay, e2z = P[o + 8] - az;
+      // Richtung (0, -1, 0): h = d × e2 = (-e2z, 0, e2x)
+      const hx = -e2z, hz = e2x, det = e1x * hx + e1z * hz;
+      if (Math.abs(det) < 1e-9) return;
+      const f = 1 / det, sx = x - ax, sy = top - ay, sz = z - az, u = f * (sx * hx + sz * hz);
+      if (u < 0 || u > 1) return;
+      // q = s × e1, v = f · d · q, t = f · e2 · q
+      const qx = sy * e1z - sz * e1y, qy = sz * e1x - sx * e1z, qz = sx * e1y - sy * e1x, v = f * -qy;
+      if (v < 0 || u + v > 1) return;
+      const dist = f * (e2x * qx + e2y * qy + e2z * qz);
+      if (dist < 0 || dist > depth) return;
+      const y = top - dist;
+      if (best === null || y > best) best = y;
+    });
+    return best;
+  }
+  // Augenpunkt über dem Boden bei p (Weltkoordinaten) und ob dort Platz ist
+  function walkStand(g, p) {
+    const f = walkFloor(g, p.x, p.y + 0.6, p.z, 3);
+    if (f === null) return null;
+    const e = new THREE.Vector3(p.x, f + WALK_EYE, p.z);
+    for (const h of [WALK_EYE, WALK_EYE - 0.8, WALK_STEP + WALK_R]) {
+      const s = new THREE.Vector3(e.x, f + h, e.z), x = s.x, z = s.z;
+      walkPush(g, s, WALK_R);
+      if (Math.hypot(s.x - x, s.z - z) > 0.35) return null;
+      e.x = s.x; e.z = s.z;
+    }
+    return { e, floor: f };
+  }
+
+  // Grober Innenraum im Rumpf: #257 lässt im Rumpf stehen, was man durch
+  // Glas sieht (Carrack 607 000 Dreiecke), ausgedünnt wie der Rumpf. Neben
+  // dem scharfen läge er als zweite, gröbere Fläche. Er geht, solange der
+  // scharfe an ist: nach Kennzeichen (extras.interior, Teil B des PC-Laufs),
+  // sonst nach Lage. Ein Teil des Rumpfs, dessen Ecken zu COARSE_HIT auf
+  // Flächen des scharfen Innenraums liegen (bis COARSE_TOL), ist dessen
+  // ausgedünnte Kopie: Das Ausdünnen lässt die Ecken auf ihren alten Plätzen.
+  const COARSE_TOL = 0.04, COARSE_HIT = 0.8, COARSE_SAMPLES = 48;
+  async function coarseOf(c, inner, pause) {
+    const marked = [];
+    c.model.traverse((n) => { if (n.isMesh && n.userData?.interior) marked.push(n); });
+    if (marked.length) return { list: marked, by: 'Kennzeichen' };
+    const box = new THREE.Box3().setFromObject(inner.root).expandByScalar(COARSE_TOL);
+    const g = await walkGrid([inner.root], box, pause, 0);
+    const list = [], v = new THREE.Vector3(), mb = new THREE.Box3(), T = COARSE_TOL, T2 = T * T;
+    const meshes = [];
+    c.model.traverse((n) => { if (n.isMesh && n.geometry?.attributes.position && !n.userData.damage) meshes.push(n); });
+    let k = 0;
+    for (const m of meshes) {
+      if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+      if (!mb.copy(m.geometry.boundingBox).applyMatrix4(m.matrixWorld).intersectsBox(box)) continue;
+      const pos = m.geometry.attributes.position, step = Math.max(1, Math.floor(pos.count / COARSE_SAMPLES));
+      let n = 0, hit = 0;
+      for (let i = 0; i < pos.count; i += step) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld); n++;
+        if (box.containsPoint(v) && gridEach(g, v.x - T, v.y - T, v.z - T, v.x + T, v.y + T, v.z + T, (t) => closestOnTri(g.P, t, v.x, v.y, v.z, wQ).distanceToSquared(v) < T2)) hit++;
+      }
+      if (n && hit >= COARSE_HIT * n) list.push(m);
+      if ((++k & 31) === 0) await pause();
+    }
+    return { list, by: 'Lage' };
+  }
+  // Innenraum an (scharf an, grob aus) oder aus (wie vor dem Einsteigen)
+  function innerShow(inner, on) {
+    inner.root.visible = on;
+    for (const m of inner.coarse?.list ?? []) m.visible = !on;
+  }
+
+  async function enter() {
+    const c = current;
+    // nicht während eines Wechsels (Aufzug unterwegs oder unten, Einfahrt)
+    if (!walkCan() || walk || trip || leaving || lift.dur || Math.abs(lift.y) > 1e-3 || performance.now() - c.born < 1600 || !revealed) return false;
+    const me = walk = { c, state: 'load', saved: { t: controls.target.clone(), p: camera.position.clone() }, keys: new Set(), yaw: 0, pitch: 0, drag: null, mv: new THREE.Vector2(), fov: 0 };
+    fly = null; controls.enabled = false; dragging = false;
+    walkState(); wake(1000);
+    const inner = await loadInner(c);
+    if (walk !== me) return false;
+    if (!inner) { leave(true); return false; }
+    const t0 = performance.now(), pause = slicer(12, nextTask);
+    c.group.updateMatrixWorld(true);
+    // an, bevor coarseOf misst: Gitter nehmen nur Sichtbares
+    inner.root.visible = true;
+    if (!inner.coarse) {
+      inner.coarse = await coarseOf(c, inner, pause);
+      if (walk !== me) return false;
+      console.info(`[hangar] Grober Innenraum im Rumpf: ${inner.coarse.list.length} Teile aus (nach ${inner.coarse.by}), ${Math.round(performance.now() - t0)} ms`);
+    }
+    innerShow(inner, true);
+    // Kasten: Innenraum mit 1 m Rand, dazu jeder Einstiegspunkt mit 1,5 m
+    // (Cockpits stecken bei manchen Schiffen im Rumpf, Freelancer); darüber
+    // hinaus geht niemand
+    const box = new THREE.Box3().setFromObject(inner.root).expandByScalar(1), sp = new THREE.Vector3();
+    for (const s of inner.spots) box.union(new THREE.Box3().setFromCenterAndSize(sp.set(...s.p).applyMatrix4(c.model.matrixWorld), new THREE.Vector3(3, 3, 3)));
+    const t1 = performance.now();
+    const grid = await walkGrid([inner.root, c.model], box, pause);
+    if (walk !== me) return false;
+    me.grid = grid; me.box = box;
+    console.info(`[hangar] Stoßgitter: ${grid.n} Dreiecke in ${grid.nx}×${grid.ny}×${grid.nz} Zellen, ${Math.round(performance.now() - t1)} ms`);
+    // Einstieg: Pilot zuerst, dann Zugänge, Türen, Rampen, Leitern, Aufzüge;
+    // der erste mit Boden und Platz, sonst einen Schritt dahinter. Blick
+    // nach vorn (Bug in -Z im Modellraum).
+    const W = c.model.matrixWorld, order = ['seat', 'access', 'door', 'ramp', 'ladder', 'elevator'];
+    const rank = (s) => (order.indexOf(s.kind) + 1 || 9) * 2 - (/pilot/i.test(s.name) ? 1 : 0);
+    const back = new THREE.Vector3(0, 0, 1).transformDirection(W).setY(0).normalize();
+    // Wer vom Sitz aus nicht weiterkommt (Lehne hinter sich, Freelancer),
+    // steht am nächsten Punkt mit mindestens WALK_FREE Feldern Boden; ist
+    // keiner so frei (Jäger: nur das Cockpit), am freiesten.
+    const WALK_FREE = 40;
+    let at = null, best = null;
+    for (const s of [...inner.spots].sort((a, b) => rank(a) - rank(b)).slice(0, 10)) {
+      const p = new THREE.Vector3(...s.p).applyMatrix4(W);
+      let here = null;
+      for (const k of [0, 0.6, 1.2]) if ((here = walkStand(grid, p.clone().addScaledVector(back, k)))) break;
+      if (!here) continue;
+      here.n = walkReach(grid, box, here.e, here.floor, WALK_FREE);
+      here.s = s;
+      if (!best || here.n > best.n) best = here;
+      if (here.n >= WALK_FREE) break;
+      await pause();
+      if (walk !== me) return false;
+    }
+    at = best;
+    if (at) console.info(`[hangar] Einstieg bei ${at.s.name} (${at.s.kind}), ${at.n >= WALK_FREE ? `mindestens ${WALK_FREE}` : at.n} Felder Boden frei`);
+    if (!at) {
+      // ohne passenden Punkt: Mitte des Innenraums, vom Boden aus
+      const m = box.getCenter(new THREE.Vector3());
+      at = walkStand(grid, m) ?? { e: m, floor: m.y - WALK_EYE };
+      console.info('[hangar] Einstieg in der Mitte des Innenraums');
+    }
+    const fwd = back.clone().negate();
+    walk.yaw = Math.atan2(-fwd.x, -fwd.z); walk.pitch = 0;
+    walk.p = at.e.clone(); walk.floor = at.floor;
+    walkLamps(inner.lamps, W);
+    const q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(walk.pitch, walk.yaw, 0, 'YXZ'));
+    walk.flyIn = { p0: camera.position.clone(), q0: camera.quaternion.clone(), q1, t0: performance.now(), dur: reduceMotion ? 0 : 1400, fov0: camera.fov };
+    walk.state = 'fly';
+    walkState(); wake(1600);
+    return true;
+  }
+  // now: ohne Fahrt zurück (Schiffswechsel, Zurücksetzen)
+  function leave(now = false) {
+    if (!walk) return;
+    const w = walk;
+    walk = null;
+    walkLampsBack(w);
+    const inner = w.c.innerP && w.c === current ? w.c.inner : null;
+    if (inner) w.c.innerP.then((x) => { if (x && !walk) innerShow(x, false); });
+    controls.enabled = true;
+    fitFov();
+    if (now || w.state !== 'on') {
+      controls.target.copy(w.saved.t); camera.position.copy(w.saved.p);
+    } else {
+      controls.target.copy(w.saved.t);
+      camera.lookAt(w.saved.t);
+      flyTo(w.saved.t, w.saved.p, 900);
+    }
+    walkState(); wake(1500);
+  }
+  // Licht drinnen: Die Spiellampen der Halle ohne Schattenwurf wandern zu
+  // den Lampen des Innenraums, die dem Auge am nächsten sind (alle 300 ms
+  // neu gewählt), Strahler als Halbkugel nach unten. Eigene Lichter dazu
+  // änderten die Zahl der Lichter in jedem Shader, three.js übersetzte beim
+  // Ein- und Aussteigen alle Programme neu (Sekunden Stillstand). Die
+  // Schattenlampen bleiben über der Plattform, der Rumpf hält ihr Licht ab.
+  function walkLamps(list, W) {
+    const pool = hallLamps ? hallLamps.children.filter((q) => q.isLight && !shadowLamps.includes(q)) : [];
+    walk.pool = pool.map((L) => ({ L, keep: { p: L.position.clone(), c: L.color.clone(), I: L.intensity, d: L.distance, decay: L.decay, ...(L.isSpotLight ? { a: L.angle, pen: L.penumbra, t: L.target.position.clone() } : {}) } }));
+    walk.lamps = list.map((l) => ({ p: new THREE.Vector3(...l.p).applyMatrix4(W), c: new THREE.Color().setRGB(...(l.color || [1, 1, 1])), I: Math.min(WALK_LAMP_MAX, l.intensity * WALK_LAMP_K), r: Math.max(1, l.range || 4) }));
+    walk.lampAt = -1e9;
+    console.info(`[hangar] Licht drinnen: ${walk.pool.length} Hallenlampen für ${walk.lamps.length} Lampen des Innenraums`);
+  }
+  const wLp = new THREE.Vector3();
+  function walkLampStep(now) {
+    const w = walk;
+    if (!w.pool?.length || now - w.lampAt < 300) return;
+    w.lampAt = now;
+    const e = camera.position;
+    const pick = w.lamps.map((l) => [l, l.p.distanceTo(e) / l.r]).sort((a, b) => a[1] - b[1]).slice(0, w.pool.length);
+    w.pool.forEach(({ L }, i) => {
+      const l = pick[i]?.[0];
+      if (!l) { L.intensity = 0; return; }
+      L.parent.worldToLocal(wLp.copy(l.p));
+      L.position.copy(wLp);
+      L.color.copy(l.c); L.intensity = l.I; L.distance = l.r * 1.5; L.decay = 2;
+      if (L.isSpotLight) {
+        L.angle = Math.PI / 2; L.penumbra = 1;
+        wLp.copy(l.p); wLp.y -= 1;
+        L.target.position.copy((L.target.parent ?? L.parent).worldToLocal(wLp));
+      }
+    });
+  }
+  function walkLampsBack(w) {
+    for (const { L, keep: k } of w.pool ?? []) {
+      L.position.copy(k.p); L.color.copy(k.c); L.intensity = k.I; L.distance = k.d; L.decay = k.decay;
+      if (L.isSpotLight) { L.angle = k.a; L.penumbra = k.pen; L.target.position.copy(k.t); }
+    }
+  }
+  const wFwd = new THREE.Vector3(), wSide = new THREE.Vector3(), wTry = new THREE.Vector3();
+  // ein Schritt um (f, s) Meter vor und zur Seite, mit Wänden und Boden
+  function walkMove(f, s) {
+    const p = walk.p;
+    wFwd.set(-Math.sin(walk.yaw), 0, -Math.cos(walk.yaw)); wSide.set(-wFwd.z, 0, wFwd.x);
+    const len = Math.hypot(f, s), n = Math.max(1, Math.ceil(len / (WALK_R * 0.8)));
+    const dx = (wFwd.x * f + wSide.x * s) / n, dz = (wFwd.z * f + wSide.z * s) / n;
+    for (let i = 0; i < n; i++) {
+      const fl = walkTry(walk.grid, walk.box, p, walk.floor, dx, dz, wTry);
+      if (fl === null) break;
+      p.x = wTry.x; p.z = wTry.z; walk.floor = fl;
+    }
+  }
+  // Ein Teilschritt von p (Auge, Füße auf floor) um (dx, dz) nach out: Kopf,
+  // Hüfte und der Raum über einer Stufe schieben sich aus den Wänden, der
+  // Boden folgt bis WALK_STEP hinauf. null ohne Boden (Loch, Kante) oder
+  // außerhalb des Kastens.
+  function walkTry(g, box, p, floor, dx, dz, out) {
+    out.copy(p); out.x += dx; out.z += dz;
+    for (const h of [WALK_EYE, WALK_EYE - 0.8, WALK_STEP + WALK_R]) {
+      const y = out.y; out.y = floor + h; walkPush(g, out, WALK_R); out.y = y;
+    }
+    const fl = walkFloor(g, out.x, floor + WALK_STEP + 0.05, out.z, WALK_STEP + 2.5);
+    return fl === null || !box.containsPoint(out) ? null : fl;
+  }
+  // Wie viel Boden von e aus zu Fuß erreichbar ist: Felder zu WALK_REACH_CELL
+  // m in Breitensuche, je Nachbar in Teilschritten wie walkMove, höchstens max
+  const WALK_REACH_CELL = 0.5;
+  function walkReach(g, box, e, floor, max) {
+    const C = WALK_REACH_CELL, key = (p) => `${Math.round(p.x / C)},${Math.round(p.z / C)}`, seen = new Set([key(e)]), q = [[e.clone(), floor]], t = new THREE.Vector3();
+    let n = 0;
+    while (q.length && n < max) {
+      const [p, f] = q.shift();
+      n++;
+      for (const [dx, dz] of [[C, 0], [-C, 0], [0, C], [0, -C]]) {
+        const cur = p.clone();
+        let cf = f;
+        for (let i = 0; i < 3 && cf !== null; i++) { cf = walkTry(g, box, cur, cf, dx / 3, dz / 3, t); if (cf !== null) cur.copy(t); }
+        // abgeglitten statt angekommen zählt nicht
+        if (cf === null || Math.hypot(cur.x - p.x - dx, cur.z - p.z - dz) > C / 2) continue;
+        const k = key(cur);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        cur.y = cf + WALK_EYE;
+        q.push([cur, cf]);
+      }
+    }
+    return n;
+  }
+  function walkStep(dt, now) {
+    const w = walk;
+    // Schiff weg (Wechsel): ohne Fahrt hinaus, der Wechsel führt die Kamera
+    if (w.c !== current) { leave(true); return; }
+    if (w.state === 'load') return;
+    if (w.state === 'fly') {
+      const k = w.flyIn.dur ? Math.min(1, (now - w.flyIn.t0) / w.flyIn.dur) : 1, e = inOut3(k);
+      camera.position.lerpVectors(w.flyIn.p0, w.p, e);
+      camera.quaternion.slerpQuaternions(w.flyIn.q0, w.flyIn.q1, e);
+      w.fov = THREE.MathUtils.lerp(w.flyIn.fov0, WALK_FOV, e);
+      fitFov();
+      if (k >= 1) { w.state = 'on'; walkState(); }
+      wake(300);
+      walkLampStep(now);
+      return;
+    }
+    const K = w.keys, run = K.has('ShiftLeft') || K.has('ShiftRight') ? WALK_RUN : WALK_SPEED;
+    const f = (K.has('KeyW') || K.has('ArrowUp') ? 1 : 0) - (K.has('KeyS') || K.has('ArrowDown') ? 1 : 0);
+    const s = (K.has('KeyD') || K.has('ArrowRight') ? 1 : 0) - (K.has('KeyA') || K.has('ArrowLeft') ? 1 : 0);
+    if (f || s) { const l = Math.hypot(f, s); walkMove((f / l) * run * dt, (s / l) * run * dt); wake(300); }
+    if (w.mv.x || w.mv.y) { walkMove(w.mv.y, w.mv.x); w.mv.set(0, 0); wake(300); }
+    // Augenhöhe gleitet über Stufen
+    const want = w.floor + WALK_EYE;
+    w.p.y += (want - w.p.y) * (reduceMotion ? 1 : Math.min(1, dt * 12));
+    if (Math.abs(want - w.p.y) > 1e-3) wake(300);
+    camera.position.copy(w.p);
+    camera.quaternion.setFromEuler(new THREE.Euler(w.pitch, w.yaw, 0, 'YXZ'));
+    walkLampStep(now);
+  }
+  // Eingaben drinnen (OrbitControls ruht): links ziehen schaut, rechts
+  // ziehen geht, beides greift wie in der Halle (der Raum folgt der Maus:
+  // nach rechts ziehen dreht den Blick nach links, zu sich ziehen geht vor);
+  // das Mausrad geht vor und zurück, am Telefon geht der zweite Finger
+  const cvs = renderer.domElement;
+  const WALK_LOOK = 0.0045, WALK_DRAG = 0.012;
+  cvs.addEventListener('pointerdown', (e) => {
+    if (walk?.state !== 'on') return;
+    if (e.pointerType === 'touch') walk.touch = (walk.touch || 0) + 1;
+    walk.drag = { id: e.pointerId, x: e.clientX, y: e.clientY, move: e.button === 2 || e.shiftKey || (e.pointerType === 'touch' && walk.touch > 1) };
+    try { cvs.setPointerCapture(e.pointerId); } catch { /* schon losgelassen */ }
+  });
+  cvs.addEventListener('pointermove', (e) => {
+    const d = walk?.drag;
+    if (walk?.state !== 'on' || !d || d.id !== e.pointerId) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    d.x = e.clientX; d.y = e.clientY;
+    if (d.move) walk.mv.set(walk.mv.x - dx * WALK_DRAG, walk.mv.y + dy * WALK_DRAG);
+    else {
+      walk.yaw += dx * WALK_LOOK;
+      walk.pitch = THREE.MathUtils.clamp(walk.pitch + dy * WALK_LOOK, -1.35, 1.35);
+    }
+    wake(300);
+  });
+  const walkUp = (e) => {
+    if (!walk) return;
+    if (e.pointerType === 'touch') walk.touch = Math.max(0, (walk.touch || 0) - 1);
+    if (walk.drag?.id === e.pointerId) walk.drag = null;
+  };
+  cvs.addEventListener('pointerup', walkUp);
+  cvs.addEventListener('pointercancel', walkUp);
+  cvs.addEventListener('wheel', (e) => {
+    if (walk?.state !== 'on') return;
+    e.preventDefault();
+    walk.mv.y -= Math.sign(e.deltaY) * 0.4;
+    wake(300);
+  }, { passive: false });
+  cvs.addEventListener('contextmenu', (e) => { if (walk) e.preventDefault(); });
+  // Tasten vor der Seite (Pfeiltasten wechseln sonst das Schiff)
+  const WALK_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight']);
+  const typing = (t) => t?.closest?.('input, textarea, select, [contenteditable="true"]');
+  const onWalkKey = (e) => {
+    if (!walk || typing(e.target)) return;
+    if (e.type === 'keydown' && e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); leave(); return; }
+    if (!WALK_KEYS.has(e.code)) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.type === 'keydown') walk.keys.add(e.code); else walk.keys.delete(e.code);
+    wake(300);
+  };
+  const onWalkBlur = () => walk?.keys.clear();
+  window.addEventListener('keydown', onWalkKey, { capture: true });
+  window.addEventListener('keyup', onWalkKey, { capture: true });
+  window.addEventListener('blur', onWalkBlur);
 
   // Spiegelbild für den Boden (hallRefl): die Kamera an der Bodenebene
   // gespiegelt, mit schräger Nahebene in der Ebene (three.js Reflector),
@@ -12510,7 +13121,10 @@ void main() {
     // mit der Auffahrt wieder zurück, Verdeckung und Spiegel in anderer
     // Auflösung (20.10.2026, Krisz: „beleuchtungsprobleme (poppen)“). Ein
     // Laden, das hängt, hält sie nicht länger als 60 s wach.
-    if ((busy && now - busyAt < 60000) || dragging || fly || trip || fovGlide || propGlide || grow.glide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
+    // Einsteigen: die Fahrt hinein und gehaltene Tasten wecken am Anfang des
+    // Bilds, sonst legte ein Bild über REST_MS (erstes Bild des Innenraums auf
+    // langsamer Grafik) die Schleife schlafen und die Fahrt käme nie an
+    if ((busy && now - busyAt < 60000) || dragging || fly || trip || (walk && (walk.state === 'fly' || walk.keys.size)) || fovGlide || propGlide || grow.glide || lift.dur || realHall?.shaft?.gate?.run || leaving || fade.to || (current && now - current.born < 1600) || (steam && last < steam.until) || werkBusy(now)) wake(300);
     // Ruhe: nichts zu zeichnen
     const quiet = now - Math.max(seen, activeUntil);
     if (quiet > REST_MS + REST_EASE) return;
@@ -12635,8 +13249,11 @@ void main() {
       leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
-    if (freeDirty && !trip) measureFree();
-    if (!trip && shipStale()) measureShip();
+    if (freeDirty && !trip && !walk) measureFree();
+    // Geschoben gilt die Hülle von der Schiffsmitte aus (keepOut); die vom
+    // Ziel aus wird erst nach dem Zurücksetzen wieder gebraucht
+    if (walk) { /* das Schiff steht, gemessen wird danach */ } else if (!trip && !panned && shipStale()) measureShip();
+    else if (!trip && homeStale()) measureShip(homeTgt);
     // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
     // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
     // Bildern: Drehen lässt ihn, Hineinzoomen setzt ihn auf den neuen
@@ -12644,7 +13261,7 @@ void main() {
     // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
     const flying = !!fly;
     if (trip) tripStep(now);
-    else if (!flying) {
+    else if (!flying && !walk) {
       const r = camera.position.distanceTo(controls.target);
       if (!camRef) camWant = r;
       else if (!camera.position.equals(camLast)) {
@@ -12659,13 +13276,15 @@ void main() {
     if (propGlide) propStep(now);
     if (grow.glide) growStep(now);
     if (now - texAt > 2000) { texAt = now; texBudget(); }
-    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep)
-    if (!trip) {
+    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep), drinnen walkStep
+    if (walk) walkStep(dt, now);
+    else if (!trip) {
       controls.update(dt);
       // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
       keepFree();
       if (ort === 'werk') keepWerk();
+      if (panned) keepOut();
       // Shift-Optik folgt Höhe, Schiff und Titel weich; im ersten Bild sitzt sie
       const lw = lensWant();
       if (Math.abs(lw - lensS) > 1e-4) {
@@ -12677,7 +13296,8 @@ void main() {
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
     adapt(now, cap);
-    renderMirror();
+    // drinnen sieht niemand den Hallenboden glänzen
+    if (!walk) renderMirror();
     renderer.shadowMap.needsUpdate = shadowsDue();
     if (holoStep(now)) wake(300);
     if (composer) composer.render(); else renderer.render(scene, camera);
@@ -12716,7 +13336,7 @@ void main() {
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
     fitFov();
-    if (!touched && !trip) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
+    if (!touched && !trip && !walk) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
   ro.observe(container);
   const io = new IntersectionObserver((es) => { visible = es[0]?.isIntersecting ?? true; });
@@ -12743,6 +13363,12 @@ void main() {
     resetView,
     project,
     focus,
+    // Einsteigen (Innenraum zum Begehen, opts.interior): enter() ->
+    // Promise<bool>, leave(); onWalk(fn): fn({ can, on, busy }) bei jedem
+    // Wechsel, can: das gezeigte Schiff hat einen Innenraum
+    enter,
+    leave() { leave(); },
+    onWalk(fn) { walkFn = fn; walkState(); },
     // Die obersten px der Bühne verdeckt die Oberfläche (Titelblock am
     // Telefon): das Schiff rückt in den freien Teil darunter; 0 = mittig.
     setCover(px) { coverTop = Math.max(0, Number(px) || 0); wake(300); },
@@ -12778,6 +13404,9 @@ void main() {
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('blur', onBlur);
+      window.removeEventListener('keydown', onWalkKey, { capture: true });
+      window.removeEventListener('keyup', onWalkKey, { capture: true });
+      window.removeEventListener('blur', onWalkBlur);
       document.removeEventListener('pointermove', onHover);
       controls.dispose();
       disposeObject(scene);

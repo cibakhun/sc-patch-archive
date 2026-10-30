@@ -3,6 +3,7 @@
 
 import { supabase } from '../lib/supabase';
 import { escapeHtml as escHtml } from '../lib/escape';
+import { cssUrl } from '../lib/cssUrl';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
@@ -223,6 +224,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
         is_tester: false,
         tester_credit: false,
         share_activity: true,
+        show_favorites: true,
         presence_visibility: 'friends',
         social_twitch: '',
         social_youtube: '',
@@ -332,6 +334,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
       const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const showFavsInput = document.getElementById('pfShowFavs') as HTMLInputElement | null;
       const presVisSelect = document.getElementById('pfPresenceVis') as HTMLSelectElement | null;
       const socialInputs = {
         social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
@@ -354,6 +357,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
       if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      if (showFavsInput) showFavsInput.checked = profileState.show_favorites !== false;
       // Wer den Online-Status sieht (profiles.presence_visibility); alles
       // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
       const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
@@ -471,7 +475,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
         // Banner Image
         const bUrl = bannerUrlInput.value.trim() || profileState.banner_url || '/assets/t-pyro-2.jpg';
         const bannerImgEl = document.getElementById('pcBannerImg');
-        if (bannerImgEl) bannerImgEl.style.backgroundImage = `url('${bUrl}')`;
+        const bCss = cssUrl(bUrl);
+        if (bannerImgEl && bCss) bannerImgEl.style.backgroundImage = bCss;
 
         // Bio
         const bioTxt = bioInput.value.trim();
@@ -613,7 +618,8 @@ import { escapeHtml as escHtml } from '../lib/escape';
         }
 
         const ovBanner = document.getElementById('ovBanner') as HTMLElement | null;
-        if (ovBanner) ovBanner.style.backgroundImage = `url('${bUrl}')`;
+        const ovCss = cssUrl(bUrl);
+        if (ovBanner && ovCss) ovBanner.style.backgroundImage = ovCss;
 
         const ovDot = document.getElementById('ovStatusDot') as HTMLElement | null;
         if (ovDot) { ovDot.style.background = stInfo.color; ovDot.classList.toggle('pulse', !!stInfo.pulse); }
@@ -1393,6 +1399,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           socialVals[s.key] = v;
         }
         const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
+        const showFavsVal = showFavsInput ? showFavsInput.checked : profileState.show_favorites !== false;
         const presVisVal = presVisOf(presVisSelect ? presVisSelect.value : profileState.presence_visibility);
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
@@ -1439,6 +1446,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          show_favorites: showFavsVal,
           presence_visibility: presVisVal,
           ...socialVals,
         });
@@ -1460,6 +1468,7 @@ import { escapeHtml as escHtml } from '../lib/escape';
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
           share_activity: shareActVal,
+          show_favorites: showFavsVal,
           presence_visibility: presVisVal,
           social_twitch: socialVals.social_twitch || null,
           social_youtube: socialVals.social_youtube || null,
@@ -1974,10 +1983,14 @@ import { escapeHtml as escHtml } from '../lib/escape';
 
         // Eigenes Discord-Bild der Identität. Discords Standardbild
         // (cdn.discordapp.com/embed/avatars/…) ist das blaue Logo, das jeder
-        // ohne eigenes Bild hat — als Profilbild taugt es nicht.
+        // ohne eigenes Bild hat — als Profilbild taugt es nicht. Das Muster
+        // ist wortgleich mit der Regel profiles_avatar_url_source der
+        // Datenbank: was hier durchgeht, nimmt sie auch an, sonst scheitert
+        // der gemeinsame Patch mit dem Anzeigenamen.
+        const DC_AVATAR_RE = /^https:\/\/cdn\.discordapp\.com\/avatars\/[0-9]{5,25}\/[A-Za-z0-9_]{1,80}\.(png|jpe?g|webp|gif)(\?[A-Za-z0-9=&_-]{0,60})?$/;
         const dcAvatarOf = (idn: any): string => {
           const u = String(((idn && idn.identity_data) || {}).avatar_url || '');
-          return /^https:\/\/cdn\.discordapp\.com\/avatars\//.test(u) ? u : '';
+          return DC_AVATAR_RE.test(u) ? u : '';
         };
         // Discord-Benutzername (full_name in den Supabase-Rohdaten) und der
         // Anzeigename, den man bei Discord selbst gewählt hat (global_name).

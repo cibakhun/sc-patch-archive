@@ -74,6 +74,23 @@
 --          count(*) filter (where last_seen > now() or last_active > now() or activity_at > now()) as zukunft
 --   from public.profiles;
 
+-- -------------------------------------------- 0. Vorbedingung ---------------
+-- handle_new_user muss Discord-Bilder schon nach genau der Regel unten
+-- filtern (20261030132000). Die aeltere Fassung prueft nur den Anfang der
+-- Adresse; ein abweichendes Discord-Bild liesse dann das INSERT in profiles
+-- scheitern und mit ihm das Anlegen des ganzen Kontos. Fehlt die neue
+-- Fassung, bricht die Migration hier ab und aendert nichts.
+do $$
+declare
+  src text;
+begin
+  select p.prosrc into src from pg_proc p
+   where p.oid = 'public.handle_new_user()'::regprocedure;
+  if position('dc_avatar ~ ''^https://cdn\.discordapp\.com/avatars/[0-9]{5,25}/[A-Za-z0-9_]{1,80}\.(png|jpe?g|webp|gif)(\?[A-Za-z0-9=&_-]{0,60})?$''' in src) = 0 then
+    raise exception 'handle_new_user filtert Discord-Bilder noch nicht nach profiles_avatar_url_source: zuerst 20261030132000 einspielen';
+  end if;
+end $$;
+
 -- -------------------------------------------- 1. Wertebereiche --------------
 -- Erst entfernen, dann neu anlegen: so laeuft die Datei auch ein zweites Mal
 -- fehlerfrei (ADD CONSTRAINT kennt kein IF NOT EXISTS). Beides steht in

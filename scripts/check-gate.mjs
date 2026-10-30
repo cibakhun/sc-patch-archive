@@ -29,7 +29,11 @@
    Sechs Zusicherungen, jede mit Soll/Ist:
 
      1  Gesperrt ist gesperrt: jede gesperrte Stichprobe antwortet OHNE
-        Cookie mit 302 auf /gate.html. Ein 200 ist FEHLER.
+        Cookie mit 302 auf /gate.html. Ein 200 ist FEHLER, ebenso eine
+        Umleitung mit max-age > 0 oder ohne no-store (Browser oder
+        Cloudflare behielten sie). Dazu der
+        Ruecksprung: /pilot/<handle>?probe=1 (intern umgeschrieben) traegt
+        genau diese Adresse als next= — sonst FEHLER.
      2  Offen ist offen: jeder Eintrag der Ausnahmeliste antwortet ohne
         Cookie mit 200 (bei /_gate/mint genuegt "nicht 302", weil er
         ohne Kopfzeile 401 gibt, siehe nginx/gate.js mint()). Ein 302
@@ -55,8 +59,10 @@
         Negativfall unveraendert gruen. Zusicherung 6 schliesst genau
         diese Luecke: derselbe Wert, den DIESER CI-Lauf per
         `docker run -e VB_GATE_BYPASS=...` gesetzt hat, muss auf eine
-        gesperrte Stichprobe mit 200 antworten. Ohne --bypass wird die
-        Zusicherung sichtbar uebersprungen (nicht still gruen).
+        gesperrte Stichprobe mit 200 antworten, und diese Antwort traegt
+        Cache-Control private (kein geteilter Cache gibt sie ohne Ausweis
+        weiter). Ohne --bypass wird die Zusicherung sichtbar uebersprungen
+        (nicht still gruen).
 
    Selbstauskunft: gepruefte Adresse, Zahl der gesperrten und der
    offenen Stichproben. Untergrenzen als Sperrklinken — duerfen nur
@@ -234,11 +240,24 @@ if (!vorab.erreichbar) {
 /* ---- [1] Gesperrt ist gesperrt ---- */
 console.log('\n[1] Gesperrt ist gesperrt');
 let gesperrtOk = 0;
+let ohneCacheZeit = 0;
 for (const pfad of gesperrteStichproben) {
   try {
     const r = await holen(pfad);
     const location = r.headers.get('location') || '';
     const trifft = r.status === 302 && /\/gate\.html/.test(location);
+    // Die Umleitung darf nicht im Cache bleiben: mit max-age behielt der
+    // Browser sie (nginx: expires 1y in /_astro/, /holo/, /hangar/;
+    // Cloudflare: Browser-Cache-Zeit der Zone fuer .js), und die Datei blieb
+    // auch nach dem Anmelden unerreichbar. "no-store" haelt Browser und
+    // Cloudflare heraus (nginx/default.conf, map $vb_cc_vorschau).
+    const cc = r.headers.get('cache-control') || '';
+    const maxAge = /max-age=(\d+)/i.exec(cc);
+    if (trifft && maxAge && Number(maxAge[1]) > 0)
+      fail(`${pfad}: die Torumleitung traegt Cache-Control max-age=${maxAge[1]} — der Browser behielte sie, Soll no-store`);
+    else if (trifft && !/no-store/i.test(cc))
+      fail(`${pfad}: die Torumleitung traegt kein no-store (Cache-Control: ${cc || '—'})`);
+    else if (trifft) ohneCacheZeit++;
     if (trifft) gesperrtOk++;
     else
       fail(
@@ -250,6 +269,28 @@ for (const pfad of gesperrteStichproben) {
   }
 }
 console.log(`    Gepruefte gesperrte Stichproben: ${gesperrteStichproben.length}   302 auf /gate.html — Soll: ${gesperrteStichproben.length}   Ist: ${gesperrtOk}`);
+console.log(`    davon Umleitung mit no-store und ohne max-age > 0 — Soll: ${gesperrtOk}   Ist: ${ohneCacheZeit}`);
+
+// Ruecksprungziel: /pilot/<handle> wird intern zu /pilot.html?h=<handle>
+// umgeschrieben. Das Tor muss sich die Adresse WIE ANGEFRAGT merken, samt
+// Query ($request_uri in nginx/gate.js next()), sonst landet der Testpilot
+// nach der Anmeldung auf einer leeren Pilotenseite. Prueft, dass das
+// ausgelieferte njs request_uri wirklich liefert (Schiene A kann das nur
+// nachspielen, siehe verify-redirects [5]).
+{
+  const angefragt = '/pilot/vb-gate-probe?probe=1';
+  try {
+    const r = await holen(angefragt);
+    const location = r.headers.get('location') || '';
+    let zurueck = null;
+    try { zurueck = new URL(location, BASE).searchParams.get('next'); } catch { /* bleibt null */ }
+    console.log(`    Ruecksprung von ${angefragt} — Soll: next=${angefragt}   Ist: ${r.status} next=${zurueck}`);
+    if (!(r.status === 302 && zurueck === angefragt))
+      fail(`${angefragt}: Soll 302 mit next=${angefragt}, Ist ${r.status} Location: ${location || '-'} — Pfad oder Query geht am Tor verloren`);
+  } catch (e) {
+    fail(`${angefragt}: Anfrage fehlgeschlagen (${e.message})`);
+  }
+}
 
 /* ---- [2] Offen ist offen ---- */
 console.log('\n[2] Offen ist offen');
@@ -333,6 +374,12 @@ if (BYPASS) {
       fail(
         `${ziel} mit dem echten, fuer diesen Lauf gueltigen Bypass-Wert antwortet ${r.status} statt 200 — der CI-Rauchtest-Weg durchs Tor ist nicht verdrahtet (siehe Dockerfile env-Direktiven, CR-02)`
       );
+    // Eine Antwort hinter dem Tor darf in keinen geteilten Cache: Cloudflare
+    // schluesselt nicht nach Cookies und gaebe sie sonst auch ohne Ausweis aus.
+    const cc = r.headers.get('cache-control') || '';
+    console.log(`    dieselbe Antwort traegt Cache-Control private — Soll: ja   Ist: ${/\bprivate\b/i.test(cc) ? 'ja' : 'nein'} (${cc || '—'})`);
+    if (trifft && !/\bprivate\b/i.test(cc))
+      fail(`${ziel}: die Antwort hinter dem Tor traegt kein Cache-Control private (${cc || '—'}) — ein geteilter Cache koennte sie ohne Ausweis ausliefern`);
   } catch (e) {
     fail(`Positiv-Bypass-Probe gegen ${ziel} fehlgeschlagen (${e.message})`);
   }

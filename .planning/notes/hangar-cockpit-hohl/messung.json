@@ -1,0 +1,2306 @@
+{
+ "aegs-avenger-stalker": {
+  "tris": 220929,
+  "glass": 664,
+  "rays": 160,
+  "innen": 92,
+  "zu": 139,
+  "hohl": 20,
+  "frei": 1,
+  "hohlPct": 13
+ },
+ "aegs-avenger-titan-renegade": {
+  "tris": 212558,
+  "glass": 460,
+  "rays": 160,
+  "innen": 57,
+  "zu": 143,
+  "hohl": 17,
+  "frei": 0,
+  "hohlPct": 11
+ },
+ "aegs-avenger-titan": {
+  "tris": 222034,
+  "glass": 442,
+  "rays": 160,
+  "innen": 57,
+  "zu": 126,
+  "hohl": 34,
+  "frei": 0,
+  "hohlPct": 21
+ },
+ "aegs-avenger-warlock": {
+  "tris": 219882,
+  "glass": 574,
+  "rays": 160,
+  "innen": 25,
+  "zu": 131,
+  "hohl": 29,
+  "frei": 0,
+  "hohlPct": 18
+ },
+ "aegs-eclipse": {
+  "tris": 231146,
+  "glass": 269,
+  "rays": 160,
+  "innen": 21,
+  "zu": 134,
+  "hohl": 22,
+  "frei": 4,
+  "hohlPct": 14
+ },
+ "aegs-gladius-pir": {
+  "tris": 263648,
+  "glass": 590,
+  "rays": 160,
+  "innen": 4,
+  "zu": 153,
+  "hohl": 7,
+  "frei": 0,
+  "hohlPct": 4
+ },
+ "aegs-gladius-valiant": {
+  "tris": 247883,
+  "glass": 624,
+  "rays": 160,
+  "innen": 4,
+  "zu": 150,
+  "hohl": 10,
+  "frei": 0,
+  "hohlPct": 6
+ },
+ "aegs-gladius": {
+  "tris": 249613,
+  "glass": 132,
+  "rays": 160,
+  "innen": 0,
+  "zu": 155,
+  "hohl": 5,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "aegs-hammerhead-showdown": {
+  "tris": 1424691,
+  "glass": 3934,
+  "rays": 160,
+  "innen": 89,
+  "zu": 111,
+  "hohl": 45,
+  "frei": 4,
+  "hohlPct": 28
+ },
+ "aegs-hammerhead": {
+  "tris": 1443426,
+  "glass": 4121,
+  "rays": 160,
+  "innen": 86,
+  "zu": 116,
+  "hohl": 35,
+  "frei": 9,
+  "hohlPct": 22
+ },
+ "aegs-idris-m": {
+  "tris": 1675701,
+  "glass": 7352,
+  "rays": 160,
+  "innen": 152,
+  "zu": 110,
+  "hohl": 45,
+  "frei": 5,
+  "hohlPct": 28
+ },
+ "aegs-idris-p": {
+  "tris": 1755948,
+  "glass": 8158,
+  "rays": 160,
+  "innen": 135,
+  "zu": 119,
+  "hohl": 32,
+  "frei": 9,
+  "hohlPct": 20
+ },
+ "aegs-javelin": {
+  "tris": 1022378,
+  "glass": 6521,
+  "rays": 160,
+  "innen": 345,
+  "zu": 102,
+  "hohl": 30,
+  "frei": 28,
+  "hohlPct": 19
+ },
+ "aegs-reclaimer-showdown": {
+  "tris": 720795,
+  "glass": 1440,
+  "rays": 160,
+  "innen": 117,
+  "zu": 139,
+  "hohl": 15,
+  "frei": 6,
+  "hohlPct": 9
+ },
+ "aegs-reclaimer": {
+  "tris": 720795,
+  "glass": 1440,
+  "rays": 160,
+  "innen": 117,
+  "zu": 139,
+  "hohl": 15,
+  "frei": 6,
+  "hohlPct": 9
+ },
+ "aegs-redeemer": {
+  "tris": 733959,
+  "glass": 2351,
+  "rays": 160,
+  "innen": 209,
+  "zu": 156,
+  "hohl": 3,
+  "frei": 1,
+  "hohlPct": 2
+ },
+ "aegs-retaliator": {
+  "tris": 745612,
+  "glass": 4016,
+  "rays": 160,
+  "innen": 290,
+  "zu": 146,
+  "hohl": 11,
+  "frei": 3,
+  "hohlPct": 7
+ },
+ "aegs-sabre-comet": {
+  "tris": 234721,
+  "glass": 521,
+  "rays": 160,
+  "innen": 9,
+  "zu": 156,
+  "hohl": 4,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "aegs-sabre-firebird": {
+  "tris": 228349,
+  "glass": 220,
+  "rays": 160,
+  "innen": 6,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "aegs-sabre-peregrine": {
+  "tris": 204565,
+  "glass": 602,
+  "rays": 160,
+  "innen": 48,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "aegs-sabre-raven-ex": {
+  "tris": 240373,
+  "glass": 533,
+  "rays": 160,
+  "innen": 10,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "aegs-sabre-raven": {
+  "tris": 241316,
+  "glass": 613,
+  "rays": 160,
+  "innen": 8,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "aegs-sabre": {
+  "tris": 274191,
+  "glass": 497,
+  "rays": 160,
+  "innen": 5,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "aegs-tiburon": {
+  "tris": 938954,
+  "glass": 1816,
+  "rays": 160,
+  "innen": 150,
+  "zu": 131,
+  "hohl": 20,
+  "frei": 9,
+  "hohlPct": 13
+ },
+ "aegs-vanguard-harbinger": {
+  "tris": 293592,
+  "glass": 691,
+  "rays": 160,
+  "innen": 97,
+  "zu": 116,
+  "hohl": 44,
+  "frei": 0,
+  "hohlPct": 28
+ },
+ "aegs-vanguard-hoplite": {
+  "tris": 244324,
+  "glass": 648,
+  "rays": 160,
+  "innen": 35,
+  "zu": 132,
+  "hohl": 28,
+  "frei": 0,
+  "hohlPct": 18
+ },
+ "aegs-vanguard-sentinel": {
+  "tris": 265907,
+  "glass": 608,
+  "rays": 160,
+  "innen": 43,
+  "zu": 125,
+  "hohl": 35,
+  "frei": 0,
+  "hohlPct": 22
+ },
+ "aegs-vanguard": {
+  "tris": 259440,
+  "glass": 608,
+  "rays": 160,
+  "innen": 57,
+  "zu": 134,
+  "hohl": 26,
+  "frei": 0,
+  "hohlPct": 16
+ },
+ "anvl-arrow": {
+  "tris": 226692,
+  "glass": 490,
+  "rays": 160,
+  "innen": 3,
+  "zu": 128,
+  "hohl": 31,
+  "frei": 1,
+  "hohlPct": 19
+ },
+ "anvl-asgard": {
+  "tris": 938546,
+  "glass": 3975,
+  "rays": 160,
+  "innen": 209,
+  "zu": 137,
+  "hohl": 20,
+  "frei": 3,
+  "hohlPct": 13
+ },
+ "anvl-ballista-dunestalker": {
+  "tris": 208634,
+  "glass": 933,
+  "rays": 160,
+  "innen": 15,
+  "zu": 129,
+  "hohl": 31,
+  "frei": 0,
+  "hohlPct": 19
+ },
+ "anvl-ballista-snowblind": {
+  "tris": 208634,
+  "glass": 933,
+  "rays": 160,
+  "innen": 15,
+  "zu": 129,
+  "hohl": 31,
+  "frei": 0,
+  "hohlPct": 19
+ },
+ "anvl-ballista": {
+  "tris": 208634,
+  "glass": 933,
+  "rays": 160,
+  "innen": 15,
+  "zu": 129,
+  "hohl": 31,
+  "frei": 0,
+  "hohlPct": 19
+ },
+ "anvl-c8-pisces": {
+  "tris": 223410,
+  "glass": 584,
+  "rays": 160,
+  "innen": 106,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-c8r-pisces": {
+  "tris": 238495,
+  "glass": 1793,
+  "rays": 160,
+  "innen": 577,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-c8x-pisces-expedition": {
+  "tris": 246188,
+  "glass": 584,
+  "rays": 160,
+  "innen": 106,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-carrack-expedition": {
+  "tris": 1173283,
+  "glass": 2812,
+  "rays": 160,
+  "innen": 186,
+  "zu": 107,
+  "hohl": 19,
+  "frei": 34,
+  "hohlPct": 12
+ },
+ "anvl-carrack": {
+  "tris": 1173271,
+  "glass": 2800,
+  "rays": 160,
+  "innen": 182,
+  "zu": 122,
+  "hohl": 14,
+  "frei": 24,
+  "hohlPct": 9
+ },
+ "anvl-centurion": {
+  "tris": 306236,
+  "glass": 410,
+  "rays": 160,
+  "innen": 65,
+  "zu": 128,
+  "hohl": 32,
+  "frei": 0,
+  "hohlPct": 20
+ },
+ "anvl-gladiator": {
+  "tris": 255850,
+  "glass": 621,
+  "rays": 160,
+  "innen": 8,
+  "zu": 151,
+  "hohl": 7,
+  "frei": 2,
+  "hohlPct": 4
+ },
+ "anvl-hawk": {
+  "tris": 286177,
+  "glass": 812,
+  "rays": 160,
+  "innen": 72,
+  "zu": 153,
+  "hohl": 7,
+  "frei": 0,
+  "hohlPct": 4
+ },
+ "anvl-hornet-f7a-mk1": {
+  "tris": 263695,
+  "glass": 1348,
+  "rays": 160,
+  "innen": 10,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7a-mk2": {
+  "tris": 266306,
+  "glass": 667,
+  "rays": 160,
+  "innen": 24,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "anvl-hornet-f7c-mk2": {
+  "tris": 229847,
+  "glass": 2591,
+  "rays": 160,
+  "innen": 29,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7c-wildfire": {
+  "tris": 214790,
+  "glass": 1034,
+  "rays": 160,
+  "innen": 6,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7c": {
+  "tris": 230231,
+  "glass": 1034,
+  "rays": 160,
+  "innen": 6,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7cm-heartseeker": {
+  "tris": 241016,
+  "glass": 48,
+  "rays": 160,
+  "innen": 7,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7cm-mk2-heartseeker": {
+  "tris": 256138,
+  "glass": 588,
+  "rays": 160,
+  "innen": 18,
+  "zu": 159,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "anvl-hornet-f7cm-mk2": {
+  "tris": 298363,
+  "glass": 998,
+  "rays": 160,
+  "innen": 20,
+  "zu": 159,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "anvl-hornet-f7cm": {
+  "tris": 270277,
+  "glass": 1714,
+  "rays": 160,
+  "innen": 7,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7cr-mk2": {
+  "tris": 236183,
+  "glass": 2329,
+  "rays": 160,
+  "innen": 18,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "anvl-hornet-f7cr": {
+  "tris": 222121,
+  "glass": 1034,
+  "rays": 160,
+  "innen": 6,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hornet-f7cs-mk2": {
+  "tris": 231401,
+  "glass": 2447,
+  "rays": 160,
+  "innen": 20,
+  "zu": 151,
+  "hohl": 9,
+  "frei": 0,
+  "hohlPct": 6
+ },
+ "anvl-hornet-f7cs": {
+  "tris": 183969,
+  "glass": 1034,
+  "rays": 160,
+  "innen": 6,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "anvl-hurricane": {
+  "tris": 322627,
+  "glass": 1018,
+  "rays": 160,
+  "innen": 27,
+  "zu": 142,
+  "hohl": 18,
+  "frei": 0,
+  "hohlPct": 11
+ },
+ "anvl-lightning-f8": {
+  "tris": 329695,
+  "glass": 775,
+  "rays": 160,
+  "innen": 26,
+  "zu": 134,
+  "hohl": 26,
+  "frei": 0,
+  "hohlPct": 16
+ },
+ "anvl-lightning-f8c-exec": {
+  "tris": 261200,
+  "glass": 603,
+  "rays": 160,
+  "innen": 34,
+  "zu": 136,
+  "hohl": 24,
+  "frei": 0,
+  "hohlPct": 15
+ },
+ "anvl-lightning-f8c": {
+  "tris": 261246,
+  "glass": 603,
+  "rays": 160,
+  "innen": 34,
+  "zu": 136,
+  "hohl": 24,
+  "frei": 0,
+  "hohlPct": 15
+ },
+ "anvl-paladin": {
+  "tris": 1053702,
+  "glass": 1253,
+  "rays": 160,
+  "innen": 114,
+  "zu": 156,
+  "hohl": 3,
+  "frei": 1,
+  "hohlPct": 2
+ },
+ "anvl-spartan": {
+  "tris": 210148,
+  "glass": 858,
+  "rays": 160,
+  "innen": 27,
+  "zu": 155,
+  "hohl": 5,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "anvl-terrapin-medic": {
+  "tris": 360818,
+  "glass": 847,
+  "rays": 160,
+  "innen": 1078,
+  "zu": 159,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "anvl-terrapin": {
+  "tris": 363023,
+  "glass": 1334,
+  "rays": 160,
+  "innen": 556,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "anvl-valkyrie": {
+  "tris": 787692,
+  "glass": 3967,
+  "rays": 160,
+  "innen": 74,
+  "zu": 138,
+  "hohl": 21,
+  "frei": 1,
+  "hohlPct": 13
+ },
+ "argo-atls-geo-collector-grad01": {
+  "tris": 195239,
+  "glass": 47,
+  "rays": 160,
+  "innen": 111,
+  "zu": 131,
+  "hohl": 19,
+  "frei": 10,
+  "hohlPct": 12
+ },
+ "argo-atls-geo-collector-grad03": {
+  "tris": 195239,
+  "glass": 47,
+  "rays": 160,
+  "innen": 111,
+  "zu": 131,
+  "hohl": 19,
+  "frei": 10,
+  "hohlPct": 12
+ },
+ "argo-atls-geo": {
+  "tris": 195239,
+  "glass": 47,
+  "rays": 160,
+  "innen": 111,
+  "zu": 131,
+  "hohl": 19,
+  "frei": 10,
+  "hohlPct": 12
+ },
+ "argo-atls": {
+  "tris": 141960,
+  "glass": 75,
+  "rays": 160,
+  "innen": 134,
+  "zu": 132,
+  "hohl": 13,
+  "frei": 15,
+  "hohlPct": 8
+ },
+ "argo-csv-cargo": {
+  "tris": 202285,
+  "glass": 1011,
+  "rays": 160,
+  "innen": 76,
+  "zu": 159,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "argo-mole": {
+  "tris": 583358,
+  "glass": 701,
+  "rays": 160,
+  "innen": 50,
+  "zu": 153,
+  "hohl": 3,
+  "frei": 4,
+  "hohlPct": 2
+ },
+ "argo-moth": {
+  "tris": 575953,
+  "glass": 1243,
+  "rays": 160,
+  "innen": 137,
+  "zu": 155,
+  "hohl": 3,
+  "frei": 2,
+  "hohlPct": 2
+ },
+ "argo-mpuv-1t": {
+  "tris": 196395,
+  "glass": 716,
+  "rays": 160,
+  "innen": 66,
+  "zu": 130,
+  "hohl": 30,
+  "frei": 0,
+  "hohlPct": 19
+ },
+ "argo-mpuv-transport": {
+  "tris": 210520,
+  "glass": 182,
+  "rays": 160,
+  "innen": 63,
+  "zu": 96,
+  "hohl": 64,
+  "frei": 0,
+  "hohlPct": 40
+ },
+ "argo-mpuv": {
+  "tris": 169948,
+  "glass": 439,
+  "rays": 160,
+  "innen": 277,
+  "zu": 106,
+  "hohl": 54,
+  "frei": 0,
+  "hohlPct": 34
+ },
+ "argo-raft": {
+  "tris": 479680,
+  "glass": 800,
+  "rays": 160,
+  "innen": 85,
+  "zu": 144,
+  "hohl": 16,
+  "frei": 0,
+  "hohlPct": 10
+ },
+ "argo-srv": {
+  "tris": 1673483,
+  "glass": 5639,
+  "rays": 160,
+  "innen": 314,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "banu-defender": {
+  "tris": 285255,
+  "glass": 1307,
+  "rays": 160,
+  "innen": 61,
+  "zu": 53,
+  "hohl": 107,
+  "frei": 0,
+  "hohlPct": 67
+ },
+ "cnou-hoverquad": {
+  "tris": 125032,
+  "glass": 226,
+  "rays": 160,
+  "innen": 44,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "cnou-mustang-alpha-citizencon2018": {
+  "tris": 231214,
+  "glass": 3901,
+  "rays": 160,
+  "innen": 57,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "cnou-mustang-alpha": {
+  "tris": 231214,
+  "glass": 3901,
+  "rays": 160,
+  "innen": 57,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "cnou-mustang-beta": {
+  "tris": 245530,
+  "glass": 3901,
+  "rays": 160,
+  "innen": 57,
+  "zu": 148,
+  "hohl": 12,
+  "frei": 0,
+  "hohlPct": 8
+ },
+ "cnou-mustang-delta": {
+  "tris": 298706,
+  "glass": 3901,
+  "rays": 160,
+  "innen": 57,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "cnou-mustang-gamma": {
+  "tris": 244432,
+  "glass": 3901,
+  "rays": 160,
+  "innen": 57,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "cnou-mustang-omega": {
+  "tris": 244432,
+  "glass": 3901,
+  "rays": 160,
+  "innen": 57,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "cnou-nomad": {
+  "tris": 255919,
+  "glass": 6465,
+  "rays": 160,
+  "innen": 133,
+  "zu": 142,
+  "hohl": 18,
+  "frei": 0,
+  "hohlPct": 11
+ },
+ "crus-intrepid": {
+  "tris": 743177,
+  "glass": 1498,
+  "rays": 160,
+  "innen": 160,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "crus-spirit-a1": {
+  "tris": 674264,
+  "glass": 261,
+  "rays": 160,
+  "innen": 21,
+  "zu": 136,
+  "hohl": 21,
+  "frei": 3,
+  "hohlPct": 13
+ },
+ "crus-spirit-c1": {
+  "tris": 513165,
+  "glass": 466,
+  "rays": 160,
+  "innen": 15,
+  "zu": 132,
+  "hohl": 27,
+  "frei": 1,
+  "hohlPct": 17
+ },
+ "crus-star-runner": {
+  "tris": 1055284,
+  "glass": 4920,
+  "rays": 160,
+  "innen": 240,
+  "zu": 133,
+  "hohl": 26,
+  "frei": 1,
+  "hohlPct": 16
+ },
+ "crus-starfighter-inferno": {
+  "tris": 239028,
+  "glass": 717,
+  "rays": 160,
+  "innen": 12,
+  "zu": 137,
+  "hohl": 23,
+  "frei": 0,
+  "hohlPct": 14
+ },
+ "crus-starfighter-ion": {
+  "tris": 241893,
+  "glass": 703,
+  "rays": 160,
+  "innen": 11,
+  "zu": 137,
+  "hohl": 23,
+  "frei": 0,
+  "hohlPct": 14
+ },
+ "crus-starlifter-a2": {
+  "tris": 761905,
+  "glass": 84,
+  "rays": 160,
+  "innen": 18,
+  "zu": 130,
+  "hohl": 1,
+  "frei": 29,
+  "hohlPct": 1
+ },
+ "crus-starlifter-c2": {
+  "tris": 531876,
+  "glass": 90,
+  "rays": 160,
+  "innen": 72,
+  "zu": 117,
+  "hohl": 2,
+  "frei": 41,
+  "hohlPct": 1
+ },
+ "crus-starlifter-m2": {
+  "tris": 571756,
+  "glass": 84,
+  "rays": 160,
+  "innen": 18,
+  "zu": 131,
+  "hohl": 1,
+  "frei": 28,
+  "hohlPct": 1
+ },
+ "drak-buccaneer": {
+  "tris": 234123,
+  "glass": 708,
+  "rays": 160,
+  "innen": 14,
+  "zu": 154,
+  "hohl": 3,
+  "frei": 3,
+  "hohlPct": 2
+ },
+ "drak-caterpillar-pirate": {
+  "tris": 1546830,
+  "glass": 2779,
+  "rays": 160,
+  "innen": 218,
+  "zu": 151,
+  "hohl": 5,
+  "frei": 4,
+  "hohlPct": 3
+ },
+ "drak-caterpillar": {
+  "tris": 1456680,
+  "glass": 2516,
+  "rays": 160,
+  "innen": 136,
+  "zu": 147,
+  "hohl": 8,
+  "frei": 5,
+  "hohlPct": 5
+ },
+ "drak-clipper": {
+  "tris": 713852,
+  "glass": 1240,
+  "rays": 160,
+  "innen": 58,
+  "zu": 147,
+  "hohl": 1,
+  "frei": 12,
+  "hohlPct": 1
+ },
+ "drak-corsair": {
+  "tris": 1486179,
+  "glass": 3297,
+  "rays": 160,
+  "innen": 113,
+  "zu": 154,
+  "hohl": 6,
+  "frei": 0,
+  "hohlPct": 4
+ },
+ "drak-cutlass-black": {
+  "tris": 494270,
+  "glass": 814,
+  "rays": 160,
+  "innen": 63,
+  "zu": 88,
+  "hohl": 72,
+  "frei": 0,
+  "hohlPct": 45
+ },
+ "drak-cutlass-blue": {
+  "tris": 683423,
+  "glass": 2048,
+  "rays": 160,
+  "innen": 55,
+  "zu": 151,
+  "hohl": 9,
+  "frei": 0,
+  "hohlPct": 6
+ },
+ "drak-cutlass-red": {
+  "tris": 457650,
+  "glass": 1382,
+  "rays": 160,
+  "innen": 52,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "drak-cutlass-steel": {
+  "tris": 642012,
+  "glass": 638,
+  "rays": 160,
+  "innen": 69,
+  "zu": 119,
+  "hohl": 41,
+  "frei": 0,
+  "hohlPct": 26
+ },
+ "drak-cutter-rambler": {
+  "tris": 472213,
+  "glass": 962,
+  "rays": 160,
+  "innen": 299,
+  "zu": 139,
+  "hohl": 21,
+  "frei": 0,
+  "hohlPct": 13
+ },
+ "drak-cutter-scout": {
+  "tris": 395898,
+  "glass": 824,
+  "rays": 160,
+  "innen": 278,
+  "zu": 146,
+  "hohl": 14,
+  "frei": 0,
+  "hohlPct": 9
+ },
+ "drak-cutter": {
+  "tris": 430324,
+  "glass": 878,
+  "rays": 160,
+  "innen": 276,
+  "zu": 142,
+  "hohl": 18,
+  "frei": 0,
+  "hohlPct": 11
+ },
+ "drak-dragonfly-yellow": {
+  "tris": 166795,
+  "glass": 142,
+  "rays": 160,
+  "innen": 367,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "drak-dragonfly": {
+  "tris": 166795,
+  "glass": 142,
+  "rays": 160,
+  "innen": 367,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "drak-golem-ox": {
+  "tris": 292687,
+  "glass": 1319,
+  "rays": 160,
+  "innen": 29,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "drak-golem": {
+  "tris": 364905,
+  "glass": 1169,
+  "rays": 160,
+  "innen": 291,
+  "zu": 154,
+  "hohl": 0,
+  "frei": 6,
+  "hohlPct": 0
+ },
+ "drak-herald": {
+  "tris": 286467,
+  "glass": 300,
+  "rays": 160,
+  "innen": 63,
+  "zu": 154,
+  "hohl": 6,
+  "frei": 0,
+  "hohlPct": 4
+ },
+ "drak-ironclad-assault": {
+  "tris": 1346119,
+  "glass": 726,
+  "rays": 160,
+  "innen": 325,
+  "zu": 119,
+  "hohl": 41,
+  "frei": 0,
+  "hohlPct": 26
+ },
+ "drak-ironclad": {
+  "tris": 1807598,
+  "glass": 1828,
+  "rays": 160,
+  "innen": 280,
+  "zu": 151,
+  "hohl": 3,
+  "frei": 6,
+  "hohlPct": 2
+ },
+ "drak-mule": {
+  "tris": 206428,
+  "glass": 2411,
+  "rays": 160,
+  "innen": 44,
+  "zu": 156,
+  "hohl": 4,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "drak-pitbull": {
+  "tris": 332255,
+  "glass": 447,
+  "rays": 160,
+  "innen": 52,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "drak-vulture": {
+  "tris": 479831,
+  "glass": 922,
+  "rays": 160,
+  "innen": 3038,
+  "zu": 138,
+  "hohl": 17,
+  "frei": 5,
+  "hohlPct": 11
+ },
+ "espr-prowler-utility": {
+  "tris": 635646,
+  "glass": 1369,
+  "rays": 160,
+  "innen": 2491,
+  "zu": 120,
+  "hohl": 39,
+  "frei": 1,
+  "hohlPct": 24
+ },
+ "espr-prowler": {
+  "tris": 529009,
+  "glass": 816,
+  "rays": 160,
+  "innen": 1352,
+  "zu": 126,
+  "hohl": 33,
+  "frei": 1,
+  "hohlPct": 21
+ },
+ "espr-talon-shrike": {
+  "tris": 260930,
+  "glass": 114,
+  "rays": 160,
+  "innen": 136,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "espr-talon": {
+  "tris": 239726,
+  "glass": 194,
+  "rays": 160,
+  "innen": 168,
+  "zu": 151,
+  "hohl": 5,
+  "frei": 4,
+  "hohlPct": 3
+ },
+ "gama-railen": {
+  "tris": 653241,
+  "glass": 1132,
+  "rays": 160,
+  "innen": 64,
+  "zu": 142,
+  "hohl": 18,
+  "frei": 0,
+  "hohlPct": 11
+ },
+ "gama-syulen": {
+  "tris": 398655,
+  "glass": 550,
+  "rays": 160,
+  "innen": 34,
+  "zu": 154,
+  "hohl": 6,
+  "frei": 0,
+  "hohlPct": 4
+ },
+ "gama-tyilui": {
+  "tris": 749437,
+  "glass": 801,
+  "rays": 160,
+  "innen": 174,
+  "zu": 99,
+  "hohl": 42,
+  "frei": 19,
+  "hohlPct": 26
+ },
+ "glsn-basher": {
+  "tris": 256926,
+  "glass": 603,
+  "rays": 160,
+  "innen": 951,
+  "zu": 153,
+  "hohl": 7,
+  "frei": 0,
+  "hohlPct": 4
+ },
+ "glsn-shiv": {
+  "tris": 484065,
+  "glass": 920,
+  "rays": 160,
+  "innen": 109,
+  "zu": 82,
+  "hohl": 78,
+  "frei": 0,
+  "hohlPct": 49
+ },
+ "grin-mdc": {
+  "tris": 212855,
+  "glass": 426,
+  "rays": 160,
+  "innen": 74,
+  "zu": 151,
+  "hohl": 9,
+  "frei": 0,
+  "hohlPct": 6
+ },
+ "grin-mtc": {
+  "tris": 237059,
+  "glass": 355,
+  "rays": 160,
+  "innen": 92,
+  "zu": 151,
+  "hohl": 9,
+  "frei": 0,
+  "hohlPct": 6
+ },
+ "grin-ptv": {
+  "tris": 29554,
+  "glass": 122,
+  "rays": 160,
+  "innen": 2,
+  "zu": 129,
+  "hohl": 22,
+  "frei": 9,
+  "hohlPct": 14
+ },
+ "grin-roc-ds": {
+  "tris": 203670,
+  "glass": 126,
+  "rays": 160,
+  "innen": 86,
+  "zu": 152,
+  "hohl": 2,
+  "frei": 6,
+  "hohlPct": 1
+ },
+ "grin-roc": {
+  "tris": 114591,
+  "glass": 80,
+  "rays": 160,
+  "innen": 66,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "grin-stv": {
+  "tris": 146179,
+  "glass": 1114,
+  "rays": 160,
+  "innen": 10,
+  "zu": 153,
+  "hohl": 4,
+  "frei": 3,
+  "hohlPct": 3
+ },
+ "grin-utv": {
+  "tris": 205594,
+  "glass": 1012,
+  "rays": 160,
+  "innen": 14,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "krig-l21-wolf": {
+  "tris": 358060,
+  "glass": 1924,
+  "rays": 160,
+  "innen": 62,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "krig-l22-alphawolf": {
+  "tris": 375250,
+  "glass": 1208,
+  "rays": 160,
+  "innen": 50,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "krig-p52-merlin": {
+  "tris": 243809,
+  "glass": 915,
+  "rays": 160,
+  "innen": 43,
+  "zu": 143,
+  "hohl": 11,
+  "frei": 6,
+  "hohlPct": 7
+ },
+ "krig-p72-archimedes-emerald": {
+  "tris": 304697,
+  "glass": 877,
+  "rays": 160,
+  "innen": 26,
+  "zu": 151,
+  "hohl": 7,
+  "frei": 2,
+  "hohlPct": 4
+ },
+ "krig-p72-archimedes": {
+  "tris": 304697,
+  "glass": 877,
+  "rays": 160,
+  "innen": 26,
+  "zu": 151,
+  "hohl": 7,
+  "frei": 2,
+  "hohlPct": 4
+ },
+ "krig-s65-stingray": {
+  "tris": 368352,
+  "glass": 461,
+  "rays": 160,
+  "innen": 6,
+  "zu": 125,
+  "hohl": 35,
+  "frei": 0,
+  "hohlPct": 22
+ },
+ "misc-fortune": {
+  "tris": 407306,
+  "glass": 2023,
+  "rays": 160,
+  "innen": 143,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "misc-freelancer-dur": {
+  "tris": 347855,
+  "glass": 613,
+  "rays": 160,
+  "innen": 263,
+  "zu": 114,
+  "hohl": 46,
+  "frei": 0,
+  "hohlPct": 29
+ },
+ "misc-freelancer-max": {
+  "tris": 337355,
+  "glass": 521,
+  "rays": 160,
+  "innen": 321,
+  "zu": 98,
+  "hohl": 62,
+  "frei": 0,
+  "hohlPct": 39
+ },
+ "misc-freelancer-mis": {
+  "tris": 438855,
+  "glass": 597,
+  "rays": 160,
+  "innen": 205,
+  "zu": 111,
+  "hohl": 49,
+  "frei": 0,
+  "hohlPct": 31
+ },
+ "misc-freelancer": {
+  "tris": 358173,
+  "glass": 415,
+  "rays": 160,
+  "innen": 269,
+  "zu": 92,
+  "hohl": 68,
+  "frei": 0,
+  "hohlPct": 43
+ },
+ "misc-fury-lx": {
+  "tris": 209870,
+  "glass": 3632,
+  "rays": 160,
+  "innen": 123,
+  "zu": 134,
+  "hohl": 5,
+  "frei": 21,
+  "hohlPct": 3
+ },
+ "misc-fury-miru": {
+  "tris": 245829,
+  "glass": 3208,
+  "rays": 160,
+  "innen": 966,
+  "zu": 153,
+  "hohl": 6,
+  "frei": 1,
+  "hohlPct": 4
+ },
+ "misc-fury": {
+  "tris": 285861,
+  "glass": 2700,
+  "rays": 160,
+  "innen": 80,
+  "zu": 144,
+  "hohl": 3,
+  "frei": 13,
+  "hohlPct": 2
+ },
+ "misc-hull-a": {
+  "tris": 331623,
+  "glass": 1402,
+  "rays": 160,
+  "innen": 333,
+  "zu": 156,
+  "hohl": 4,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "misc-hull-b": {
+  "tris": 932352,
+  "glass": 3729,
+  "rays": 160,
+  "innen": 164,
+  "zu": 158,
+  "hohl": 2,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "misc-hull-c": {
+  "tris": 701804,
+  "glass": 1361,
+  "rays": 160,
+  "innen": 360,
+  "zu": 159,
+  "hohl": 0,
+  "frei": 1,
+  "hohlPct": 0
+ },
+ "misc-prospector": {
+  "tris": 238512,
+  "glass": 1197,
+  "rays": 160,
+  "innen": 53,
+  "zu": 101,
+  "hohl": 59,
+  "frei": 0,
+  "hohlPct": 37
+ },
+ "misc-razor-ex": {
+  "tris": 206888,
+  "glass": 1266,
+  "rays": 160,
+  "innen": 6,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "misc-razor-lx": {
+  "tris": 232232,
+  "glass": 1620,
+  "rays": 160,
+  "innen": 13,
+  "zu": 159,
+  "hohl": 0,
+  "frei": 1,
+  "hohlPct": 0
+ },
+ "misc-razor": {
+  "tris": 232224,
+  "glass": 1620,
+  "rays": 160,
+  "innen": 13,
+  "zu": 159,
+  "hohl": 0,
+  "frei": 1,
+  "hohlPct": 0
+ },
+ "misc-reliant-mako": {
+  "tris": 236277,
+  "glass": 875,
+  "rays": 160,
+  "innen": 79,
+  "zu": 101,
+  "hohl": 47,
+  "frei": 12,
+  "hohlPct": 29
+ },
+ "misc-reliant-sen": {
+  "tris": 231919,
+  "glass": 970,
+  "rays": 160,
+  "innen": 81,
+  "zu": 106,
+  "hohl": 47,
+  "frei": 7,
+  "hohlPct": 29
+ },
+ "misc-reliant-tana": {
+  "tris": 269413,
+  "glass": 726,
+  "rays": 160,
+  "innen": 85,
+  "zu": 82,
+  "hohl": 68,
+  "frei": 10,
+  "hohlPct": 43
+ },
+ "misc-reliant": {
+  "tris": 277668,
+  "glass": 2031,
+  "rays": 160,
+  "innen": 128,
+  "zu": 79,
+  "hohl": 71,
+  "frei": 10,
+  "hohlPct": 44
+ },
+ "misc-starfarer-gemini": {
+  "tris": 983987,
+  "glass": 2925,
+  "rays": 160,
+  "innen": 1106,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "misc-starfarer": {
+  "tris": 953242,
+  "glass": 2919,
+  "rays": 160,
+  "innen": 1103,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "misc-starlancer-max": {
+  "tris": 1648787,
+  "glass": 7322,
+  "rays": 160,
+  "innen": 870,
+  "zu": 159,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "misc-starlancer-tac": {
+  "tris": 1117148,
+  "glass": 2235,
+  "rays": 160,
+  "innen": 175,
+  "zu": 147,
+  "hohl": 0,
+  "frei": 13,
+  "hohlPct": 0
+ },
+ "misc-starlite": {
+  "tris": 548308,
+  "glass": 1597,
+  "rays": 160,
+  "innen": 132,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "mrai-guardian-mx": {
+  "tris": 723000,
+  "glass": 2575,
+  "rays": 39,
+  "innen": 3161,
+  "zu": 28,
+  "hohl": 10,
+  "frei": 1,
+  "hohlPct": 26
+ },
+ "mrai-guardian-qi": {
+  "tris": 503949,
+  "glass": 1697,
+  "rays": 160,
+  "innen": 92,
+  "zu": 85,
+  "hohl": 11,
+  "frei": 64,
+  "hohlPct": 7
+ },
+ "mrai-guardian": {
+  "tris": 538298,
+  "glass": 1695,
+  "rays": 160,
+  "innen": 93,
+  "zu": 89,
+  "hohl": 8,
+  "frei": 63,
+  "hohlPct": 5
+ },
+ "mrai-pulse-lx": {
+  "tris": 118118,
+  "glass": 82,
+  "rays": 160,
+  "innen": 603,
+  "zu": 148,
+  "hohl": 12,
+  "frei": 0,
+  "hohlPct": 8
+ },
+ "mrai-pulse": {
+  "tris": 118978,
+  "glass": 77,
+  "rays": 160,
+  "innen": 605,
+  "zu": 147,
+  "hohl": 13,
+  "frei": 0,
+  "hohlPct": 8
+ },
+ "orig-100i": {
+  "tris": 236198,
+  "glass": 2455,
+  "rays": 160,
+  "innen": 72,
+  "zu": 127,
+  "hohl": 28,
+  "frei": 5,
+  "hohlPct": 18
+ },
+ "orig-125a": {
+  "tris": 241511,
+  "glass": 2271,
+  "rays": 160,
+  "innen": 89,
+  "zu": 122,
+  "hohl": 34,
+  "frei": 4,
+  "hohlPct": 21
+ },
+ "orig-135c": {
+  "tris": 240672,
+  "glass": 3195,
+  "rays": 160,
+  "innen": 129,
+  "zu": 130,
+  "hohl": 24,
+  "frei": 6,
+  "hohlPct": 15
+ },
+ "orig-300i": {
+  "tris": 211330,
+  "glass": 1006,
+  "rays": 160,
+  "innen": 18,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "orig-315p": {
+  "tris": 228556,
+  "glass": 1438,
+  "rays": 160,
+  "innen": 9,
+  "zu": 144,
+  "hohl": 16,
+  "frei": 0,
+  "hohlPct": 10
+ },
+ "orig-325a": {
+  "tris": 240026,
+  "glass": 1006,
+  "rays": 160,
+  "innen": 18,
+  "zu": 151,
+  "hohl": 9,
+  "frei": 0,
+  "hohlPct": 6
+ },
+ "orig-350r": {
+  "tris": 225925,
+  "glass": 318,
+  "rays": 160,
+  "innen": 13,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "orig-400i": {
+  "tris": 640011,
+  "glass": 3886,
+  "rays": 160,
+  "innen": 586,
+  "zu": 137,
+  "hohl": 23,
+  "frei": 0,
+  "hohlPct": 14
+ },
+ "orig-600i-bis2951": {
+  "tris": 623776,
+  "glass": 8354,
+  "rays": 160,
+  "innen": 368,
+  "zu": 55,
+  "hohl": 94,
+  "frei": 11,
+  "hohlPct": 59
+ },
+ "orig-600i-touring": {
+  "tris": 555208,
+  "glass": 6745,
+  "rays": 160,
+  "innen": 287,
+  "zu": 59,
+  "hohl": 73,
+  "frei": 28,
+  "hohlPct": 46
+ },
+ "orig-600i": {
+  "tris": 623776,
+  "glass": 8354,
+  "rays": 160,
+  "innen": 368,
+  "zu": 55,
+  "hohl": 94,
+  "frei": 11,
+  "hohlPct": 59
+ },
+ "orig-85x": {
+  "tris": 279143,
+  "glass": 1401,
+  "rays": 160,
+  "innen": 5,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "orig-890jump": {
+  "tris": 886950,
+  "glass": 2847,
+  "rays": 160,
+  "innen": 84,
+  "zu": 104,
+  "hohl": 0,
+  "frei": 56,
+  "hohlPct": 0
+ },
+ "orig-m50": {
+  "tris": 247368,
+  "glass": 4676,
+  "rays": 160,
+  "innen": 29,
+  "zu": 148,
+  "hohl": 12,
+  "frei": 0,
+  "hohlPct": 8
+ },
+ "orig-m80": {
+  "tris": 438469,
+  "glass": 2092,
+  "rays": 160,
+  "innen": 115,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "orig-x1-force": {
+  "tris": 240148,
+  "glass": 10506,
+  "rays": 160,
+  "innen": 23,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "orig-x1-velocity": {
+  "tris": 186366,
+  "glass": 10506,
+  "rays": 160,
+  "innen": 22,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "orig-x1": {
+  "tris": 198920,
+  "glass": 10506,
+  "rays": 160,
+  "innen": 23,
+  "zu": 152,
+  "hohl": 8,
+  "frei": 0,
+  "hohlPct": 5
+ },
+ "rsi-apollo-medivac": {
+  "tris": 1027058,
+  "glass": 4395,
+  "rays": 160,
+  "innen": 368,
+  "zu": 126,
+  "hohl": 28,
+  "frei": 6,
+  "hohlPct": 18
+ },
+ "rsi-apollo-triage": {
+  "tris": 1010744,
+  "glass": 4383,
+  "rays": 160,
+  "innen": 346,
+  "zu": 124,
+  "hohl": 30,
+  "frei": 6,
+  "hohlPct": 19
+ },
+ "rsi-aurora-gs-cl": {
+  "tris": 239517,
+  "glass": 461,
+  "rays": 160,
+  "innen": 178,
+  "zu": 130,
+  "hohl": 30,
+  "frei": 0,
+  "hohlPct": 19
+ },
+ "rsi-aurora-gs-es": {
+  "tris": 231231,
+  "glass": 554,
+  "rays": 160,
+  "innen": 197,
+  "zu": 136,
+  "hohl": 24,
+  "frei": 0,
+  "hohlPct": 15
+ },
+ "rsi-aurora-gs-ln": {
+  "tris": 280268,
+  "glass": 461,
+  "rays": 160,
+  "innen": 199,
+  "zu": 135,
+  "hohl": 25,
+  "frei": 0,
+  "hohlPct": 16
+ },
+ "rsi-aurora-gs-lx": {
+  "tris": 239957,
+  "glass": 537,
+  "rays": 160,
+  "innen": 178,
+  "zu": 133,
+  "hohl": 27,
+  "frei": 0,
+  "hohlPct": 17
+ },
+ "rsi-aurora-gs-mr": {
+  "tris": 239851,
+  "glass": 775,
+  "rays": 160,
+  "innen": 198,
+  "zu": 139,
+  "hohl": 21,
+  "frei": 0,
+  "hohlPct": 13
+ },
+ "rsi-aurora-gs-se": {
+  "tris": 283671,
+  "glass": 461,
+  "rays": 160,
+  "innen": 177,
+  "zu": 133,
+  "hohl": 27,
+  "frei": 0,
+  "hohlPct": 17
+ },
+ "rsi-aurora-mk2": {
+  "tris": 506729,
+  "glass": 998,
+  "rays": 160,
+  "innen": 70,
+  "zu": 141,
+  "hohl": 19,
+  "frei": 0,
+  "hohlPct": 12
+ },
+ "rsi-constellation-andromeda": {
+  "tris": 1155765,
+  "glass": 3950,
+  "rays": 160,
+  "innen": 317,
+  "zu": 118,
+  "hohl": 30,
+  "frei": 12,
+  "hohlPct": 19
+ },
+ "rsi-constellation-aquila": {
+  "tris": 861829,
+  "glass": 2135,
+  "rays": 160,
+  "innen": 230,
+  "zu": 129,
+  "hohl": 20,
+  "frei": 11,
+  "hohlPct": 13
+ },
+ "rsi-constellation-mk5-centaurus": {
+  "tris": 1478913,
+  "glass": 1550,
+  "rays": 160,
+  "innen": 115,
+  "zu": 94,
+  "hohl": 62,
+  "frei": 4,
+  "hohlPct": 39
+ },
+ "rsi-constellation-phoenix-emerald": {
+  "tris": 842438,
+  "glass": 9425,
+  "rays": 160,
+  "innen": 334,
+  "zu": 78,
+  "hohl": 81,
+  "frei": 1,
+  "hohlPct": 51
+ },
+ "rsi-constellation-phoenix": {
+  "tris": 1077680,
+  "glass": 4447,
+  "rays": 160,
+  "innen": 232,
+  "zu": 107,
+  "hohl": 51,
+  "frei": 2,
+  "hohlPct": 32
+ },
+ "rsi-constellation-taurus": {
+  "tris": 811589,
+  "glass": 2288,
+  "rays": 160,
+  "innen": 362,
+  "zu": 132,
+  "hohl": 19,
+  "frei": 9,
+  "hohlPct": 12
+ },
+ "rsi-hermes": {
+  "tris": 893198,
+  "glass": 2925,
+  "rays": 160,
+  "innen": 308,
+  "zu": 110,
+  "hohl": 38,
+  "frei": 12,
+  "hohlPct": 24
+ },
+ "rsi-lynx": {
+  "tris": 219807,
+  "glass": 1720,
+  "rays": 160,
+  "innen": 266,
+  "zu": 155,
+  "hohl": 5,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "rsi-mantis": {
+  "tris": 233990,
+  "glass": 519,
+  "rays": 160,
+  "innen": 33,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "rsi-meteor": {
+  "tris": 275870,
+  "glass": 488,
+  "rays": 160,
+  "innen": 37,
+  "zu": 159,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 1
+ },
+ "rsi-perseus": {
+  "tris": 1112349,
+  "glass": 1416,
+  "rays": 160,
+  "innen": 56,
+  "zu": 87,
+  "hohl": 73,
+  "frei": 0,
+  "hohlPct": 46
+ },
+ "rsi-polaris": {
+  "tris": 1225898,
+  "glass": 945,
+  "rays": 160,
+  "innen": 2114,
+  "zu": 143,
+  "hohl": 0,
+  "frei": 17,
+  "hohlPct": 0
+ },
+ "rsi-salvation": {
+  "tris": 245044,
+  "glass": 112,
+  "rays": 6,
+  "innen": 3194,
+  "zu": 5,
+  "hohl": 1,
+  "frei": 0,
+  "hohlPct": 17
+ },
+ "rsi-scorpius-antares": {
+  "tris": 361252,
+  "glass": 643,
+  "rays": 160,
+  "innen": 16,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "rsi-scorpius": {
+  "tris": 450812,
+  "glass": 643,
+  "rays": 160,
+  "innen": 14,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "rsi-skylark": {
+  "tris": 255676,
+  "glass": 1556,
+  "rays": 160,
+  "innen": 56,
+  "zu": 143,
+  "hohl": 0,
+  "frei": 17,
+  "hohlPct": 0
+ },
+ "rsi-ursa-medivac": {
+  "tris": 243061,
+  "glass": 2311,
+  "rays": 160,
+  "innen": 143,
+  "zu": 139,
+  "hohl": 21,
+  "frei": 0,
+  "hohlPct": 13
+ },
+ "rsi-ursa-rover-emerald": {
+  "tris": 215145,
+  "glass": 910,
+  "rays": 160,
+  "innen": 97,
+  "zu": 155,
+  "hohl": 5,
+  "frei": 0,
+  "hohlPct": 3
+ },
+ "rsi-ursa-rover": {
+  "tris": 199867,
+  "glass": 784,
+  "rays": 160,
+  "innen": 185,
+  "zu": 157,
+  "hohl": 3,
+  "frei": 0,
+  "hohlPct": 2
+ },
+ "rsi-zeus-cl": {
+  "tris": 909609,
+  "glass": 1766,
+  "rays": 160,
+  "innen": 163,
+  "zu": 152,
+  "hohl": 0,
+  "frei": 8,
+  "hohlPct": 0
+ },
+ "rsi-zeus-es": {
+  "tris": 693083,
+  "glass": 1578,
+  "rays": 160,
+  "innen": 182,
+  "zu": 145,
+  "hohl": 3,
+  "frei": 12,
+  "hohlPct": 2
+ },
+ "tmbl-cyclone-aa": {
+  "tris": 165121,
+  "glass": 336,
+  "rays": 160,
+  "innen": 132,
+  "zu": 120,
+  "hohl": 40,
+  "frei": 0,
+  "hohlPct": 25
+ },
+ "tmbl-cyclone-mt": {
+  "tris": 193454,
+  "glass": 367,
+  "rays": 160,
+  "innen": 151,
+  "zu": 120,
+  "hohl": 40,
+  "frei": 0,
+  "hohlPct": 25
+ },
+ "tmbl-cyclone-rc": {
+  "tris": 148002,
+  "glass": 348,
+  "rays": 160,
+  "innen": 77,
+  "zu": 132,
+  "hohl": 28,
+  "frei": 0,
+  "hohlPct": 18
+ },
+ "tmbl-cyclone-rn": {
+  "tris": 156989,
+  "glass": 336,
+  "rays": 160,
+  "innen": 132,
+  "zu": 120,
+  "hohl": 40,
+  "frei": 0,
+  "hohlPct": 25
+ },
+ "tmbl-cyclone-tr": {
+  "tris": 162638,
+  "glass": 336,
+  "rays": 160,
+  "innen": 132,
+  "zu": 120,
+  "hohl": 40,
+  "frei": 0,
+  "hohlPct": 25
+ },
+ "tmbl-cyclone": {
+  "tris": 143637,
+  "glass": 336,
+  "rays": 160,
+  "innen": 132,
+  "zu": 120,
+  "hohl": 40,
+  "frei": 0,
+  "hohlPct": 25
+ },
+ "tmbl-nova": {
+  "tris": 240588,
+  "glass": 216,
+  "rays": 160,
+  "innen": 2098,
+  "zu": 91,
+  "hohl": 69,
+  "frei": 0,
+  "hohlPct": 43
+ },
+ "tmbl-storm-aa": {
+  "tris": 495209,
+  "glass": 4106,
+  "rays": 133,
+  "innen": 3067,
+  "zu": 37,
+  "hohl": 96,
+  "frei": 0,
+  "hohlPct": 72
+ },
+ "tmbl-storm": {
+  "tris": 231669,
+  "glass": 106,
+  "rays": 160,
+  "innen": 367,
+  "zu": 74,
+  "hohl": 86,
+  "frei": 0,
+  "hohlPct": 54
+ },
+ "vncl-blade": {
+  "tris": 284626,
+  "glass": 699,
+  "rays": 160,
+  "innen": 256,
+  "zu": 80,
+  "hohl": 60,
+  "frei": 20,
+  "hohlPct": 38
+ },
+ "vncl-glaive": {
+  "tris": 212404,
+  "glass": 0
+ },
+ "vncl-scythe": {
+  "tris": 202386,
+  "glass": 1809,
+  "rays": 160,
+  "innen": 322,
+  "zu": 127,
+  "hohl": 0,
+  "frei": 33,
+  "hohlPct": 0
+ },
+ "vncl-stinger": {
+  "tris": 338078,
+  "glass": 256,
+  "rays": 99,
+  "innen": 3101,
+  "zu": 80,
+  "hohl": 19,
+  "frei": 0,
+  "hohlPct": 19
+ },
+ "xian-nox-kue": {
+  "tris": 60842,
+  "glass": 110,
+  "rays": 160,
+  "innen": 119,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "xian-nox": {
+  "tris": 128815,
+  "glass": 110,
+  "rays": 160,
+  "innen": 119,
+  "zu": 160,
+  "hohl": 0,
+  "frei": 0,
+  "hohlPct": 0
+ },
+ "xian-scout": {
+  "tris": 221484,
+  "glass": 3762,
+  "rays": 160,
+  "innen": 153,
+  "zu": 150,
+  "hohl": 4,
+  "frei": 6,
+  "hohlPct": 3
+ },
+ "xnaa-santokyai": {
+  "tris": 420069,
+  "glass": 7454,
+  "rays": 160,
+  "innen": 53,
+  "zu": 147,
+  "hohl": 6,
+  "frei": 7,
+  "hohlPct": 4
+ }
+}

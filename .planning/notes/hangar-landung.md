@@ -560,3 +560,80 @@ und Andromeda):
   backt; wenn ja, im Bau den Faktor auf 1 setzen statt sie doppelt zu nehmen.
   Bei Corsair passt das Verhältnis nicht zu 2 × Tönung (4 bis 5), dort ist
   die Herkunft offen.
+
+## Lauf 30.10.2026 (Mustang-Vindicator-Lack)
+
+PC-Lauf, Branch `pc/hangar-mustang-lack` von `origin/staging` (77de8ff6),
+Worktree `.claude/worktrees/hangar-mustang-lack`. Anlass: der offene
+cubic-Thread zu PR #238 (Lack-Baupläne der Mustangs und Cutlass, Punkt oben
+„Lack-Baupläne neu schreiben“).
+
+- **Ursache:** Das Paket der Mustang Alpha CitizenCon2018 trägt für
+  `CitizenCon2018` genau die Farben seiner Serie (#5b5d5d/#4b4b4b/#532720).
+  `sisterPalette` vergleicht die Serie mit `paletteLook`, also samt Glanz, und
+  der Export lässt bei der Serienpalette dieses Pakets die Glätte weg (null),
+  an der Variante steht 255. Der Eintrag blieb so als einzige Schwester im
+  Index (gleiches Material `cnou_mustang_citizencon2018`, Familie CNOU
+  Mustang) und färbte Alpha, Beta, Delta, Gamma und Omega gleich.
+- **Schwester-Regel** (`build-hangar-assets.mjs`, `sisterPalette`):
+  1. Eine Palette, deren Farben der Grundpalette des Schwesterschiffs in
+     `ship-paints.json` gleichen (`base.a/b/c`, Paket → Schiff über
+     `index.json`), zählt nicht. 22 Einträge fallen so aus dem Index.
+  2. Gleich sind Paletten mit gleichen Farben und gleicher Glanzfarbe; eine
+     fehlende Glätte zählt nicht als Unterschied, genommen wird die Palette
+     mit voller Glätte. Zwei mit voller, aber verschiedener Glätte bleiben
+     mehrdeutig. Grund: Die ORIG 600i trägt Cold Forge ohne Glätte, die 600i
+     Touring mit 248/212/209; vorher galt das als zwei Paletten, und die
+     BIS2951 bekam keine Schwester (auf staging Cold Forge ohne Glanz).
+  `datamine-ship-paints.mjs` vergleicht seitdem ebenso nur die Farben mit
+  `base`, wie sie in `ship-paints.json` steht (mit Lack ab Werk,
+  `shipBase`). Er wählt dieselben drei Schwestern wie der Bau;
+  `ship-paints.json` bleibt byte-gleich.
+- **Rückfall ohne eigene Palette und ohne Schwester** (`paintPlan`): Das Spiel
+  behält die Palette des Schiffs. Der Bau nimmt darum die Serienpalette des
+  eigenen Pakets ganz (Farben, Glanzfarbe, Glas, Decal), wenn ihre Farben dem
+  Eintrag in `ship-paints.json` gleichen. Sonst, als Abweichung gezählt, nur
+  die drei Lackkanäle wie bisher; ohne Eintrag dort (Lack ohne Namen, Schiff
+  ohne Grundpalette) bleibt `palette` null. Das Baulog zählt je Schiff und
+  im Lauf: Schwester, Serie des Pakets, ohne Eintrag, Abweichung.
+- **Zahlen.** Trockenlauf über alle 215 Pakete (dieselbe Logik ohne Bau):
+  Schwester 3 (600i BIS2951 Cold Forge und Sterling aus ORIG 600i und
+  Touring, Cutlass Black Cypress aus der Steel), Serie 43, ohne Eintrag 10
+  (NineTails × 7: `Mustang_Delta_NineTails` in allen sechs Mustang-Paketen und
+  Prospector; Avenger Titan Renegade und Nova × 2 ohne Grundpalette),
+  Abweichung 0. Gebaut wurden die 28 Schiffe mit geändertem Plan (Stufe 0 aus
+  `alle-stand.json`): Schwester 3, Serie 43, ohne Eintrag 5, Abweichung 0.
+- **GLBs byte-gleich** (alle 28), `verify-hangar-cockpit --nachziehen` war
+  nicht nötig. Geändert: 28 Lackpläne mit 44 Einträgen, im Manifest nur
+  `paints.v` der 28 (Baufeld `pool.fresh` wie staging), ein neues Decal-Bild
+  `paints/tex/anvl_decal_stencil-48e88a83.webp` (Arrow).
+- **Vorher/nachher:** Alle 44 Einträge tragen die Farben aus
+  `ship-paints.json`. Mustang Beta, Delta, Gamma, Omega Vindicator: eigene
+  Grundpalette statt der Alpha (Beta #354753/#b47528/#2a2a2a, Delta
+  #38442a/#1f3018/#836f38, Gamma #051923/#000000/#000000, Omega
+  #900e0b/#282828/#000000) und die eigene Schablone der Serie
+  (`murray_cup_racing_cnou_mustang_<beta|delta|gamma>_stencil`; die Serie der
+  Omega nennt im Export die der Gamma). Die Alpha behält ihre Farben. 600i BIS2951 Cold Forge: Glanz
+  #3b3b3b/248, #313131/212, #3b3b3b/209, Glas und ORIG-Logo dazu. Die übrigen
+  38 (Freelancer × 4 Storm Surge, Starfarer × 2, Avenger × 3, Arrow,
+  Retaliator, Valkyrie, Vanguard × 12, Storm × 8, Mole × 2, Cutlass Black,
+  Blue, Steel): Farben gleich, Glanzfarbe und Glas dazu, bei Freelancer,
+  Starfarer, Avenger und Arrow auch das Decal der Serie. Die Glätte fehlt
+  dort, weil der Export sie an den Serienpaletten weglässt; bei der Mustang
+  Alpha fällt dadurch die bisherige Glätte 255 aus ihrem Plan.
+- **Gegenprobe** `datamine:paints` gegen die neuen Pläne: 2103 verglichen,
+  2103 gleich (vorher 4 abweichend, die vier Mustangs), keiner mehr nur mit
+  Farben.
+- **Sichtbar ist das noch nicht:** Kein Code der Seite liest
+  `public/hangar/paints/*.json` (gesucht in `assets/` und `src/`); der Viewer
+  nimmt den Lack aus `ship-paints.json`, und dort stimmten die Farben seit
+  PR #234. Die Aufnahmen zeigen also den Lack aus den Daten.
+- **Aufnahmen** (`check:hangar-shader --layout <Code> --ohne-ui --shot`,
+  gebauter Stand über `astro preview`, launch.json „hangar-mustang-lack-dist“):
+  [`hangar-lack/mustang-beta-vindicator.jpg`](hangar-lack/mustang-beta-vindicator.jpg)
+  (eigenes Blau-Orange der Beta), [`hangar-lack/freelancer-storm-surge.jpg`](hangar-lack/freelancer-storm-surge.jpg)
+  (heller Metallrumpf, Serie), [`hangar-lack/600i-bis2951-cold-forge.jpg`](hangar-lack/600i-bis2951-cold-forge.jpg)
+  (Schwarz und Rot). Der Lack aus dem Link kommt seit PR #234 beim Laden an;
+  alle drei ohne Bildshader über 16 Texturen (103 bis 111 Programme).
+- Die beiden offenen cubic-Threads zu PR #238 (`drak-cutlass-steel.json`,
+  `cnou-mustang-beta.json`) sind damit erledigt.

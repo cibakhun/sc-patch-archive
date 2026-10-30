@@ -246,7 +246,8 @@ body{font-family:var(--font-body)}
     <ul>
       <li><strong>media.starcitizen.tools</strong> (Star Citizen Wiki) und
         <strong>cstone.space</strong>: die meisten Schiffsbilder, als Hauptbild und Vorschaubild auf
-        Schiffsseiten, in der Schiffsliste, in der Flotte auf Piloten-Profilen und auf den Kacheln
+        Schiffsseiten, in der Schiffsliste, in der Flotte und bei angehefteten Loadouts auf
+        Piloten-Profilen und auf den Kacheln
         gespeicherter Schiffe und Loadouts im Konto-Dashboard</li>
       <li><strong>api.fleetyards.net</strong> (FleetYards): Lackierungen auf den Schiffsseiten und
         Ersatzbilder für Schiffe ohne eigenes Bild; die Abrufe können zum Speicher von FleetYards
@@ -372,7 +373,8 @@ body{font-family:var(--font-body)}
       <li><strong>Favoriten</strong>, die du aktiv speicherst, darunter deine Schiffsflotte</li>
       <li><strong>Werkzeug-Daten</strong>, die du aktiv anlegst (Crafting-Planer und
         „Im Besitz“-Markierungen, Refinery-Aufträge, Mining-Vorlagen, Hangar-Layouts); sie sind
-        nur für dich sichtbar</li>
+        nur für dich sichtbar, außer den Loadouts, die du auf dein Profil heftest (siehe
+        <a href="#profile">Piloten-Profil</a>)</li>
       <li><strong>Freundschaftsanfragen, Freundschaften und Nachrichten</strong> (siehe
         <a href="#friends">Freunde und Nachrichten</a>)</li>
       <li>dein <a href="#presence"><strong>Online-Status</strong></a> und die Angabe, was du
@@ -433,7 +435,7 @@ body{font-family:var(--font-body)}
     <p class="muted">
       Ohne Anmeldung verbindet sich die Website mit Supabase nur, wenn du Konto-Funktionen nutzt
       (Anmeldung, Passwort zurücksetzen), und auf drei Arten von Seiten, die öffentliche Daten
-      lesen: ein öffentliches Piloten-Profil (Profil und Favoriten dieses Piloten beim Öffnen,
+      lesen: ein öffentliches Piloten-Profil (Profil, Favoriten und angeheftete Loadouts dieses Piloten beim Öffnen,
       danach alle 40 Sekunden sein Online-Status, solange die Seite offen ist; hochgeladene Bilder
       kommen aus dem Speicher von Supabase), die Seite Feedback (die Liste der genannten
       <a href="#testpilots">Testpiloten</a>) und die Seite Unterstützen (der
@@ -446,8 +448,10 @@ body{font-family:var(--font-body)}
     </p>
     <p class="muted">
       Bist du angemeldet, verbinden sich die Seiten mit dem Menü der Website mit Supabase, um
-      deine Sitzung bei Bedarf zu erneuern, Anzeigenamen und Konto-Rolle für das Menü zu lesen und
-      deinen <a href="#presence">Online-Status</a> zu schreiben. Seiten mit kontogebundenen
+      deine Sitzung bei Bedarf zu erneuern, Anzeigenamen und Konto-Rolle für das Menü zu lesen,
+      offene Freundschaftsanfragen an dich und ungelesene Nachrichten von Freunden für die Zahl am
+      Konto-Knopf abzufragen (siehe <a href="#friends">Freunde und Nachrichten</a>) und deinen
+      <a href="#presence">Online-Status</a> zu schreiben. Seiten mit kontogebundenen
       Werkzeugen gleichen deren Inhalte ab und übernehmen beim ersten Mal, was du ohne Anmeldung
       in diesem Browser gespeichert hattest. Das Konto-Dashboard hält zusätzlich eine dauerhafte
       Verbindung zu Supabase, über die neue Nachrichten eintreffen, fragt Nachrichten, ungelesene
@@ -500,11 +504,16 @@ body{font-family:var(--font-body)}
       ohne Anmeldung: Handle, Anzeigename, Kurzbeschreibung, Profilbild oder Symbol, Banner,
       Rolle, Status und Statustext, Org-Name, RSI-Handle und ob es verifiziert ist, gegebenenfalls
       das Abzeichen „Testpilot“, deine Namen bei Twitch, YouTube und X, seit wann du dabei bist,
-      dein <a href="#presence">Online-Status</a>, wenn du ihn für alle freigegeben hast, und alle deine Favoriten samt Schiffsflotte. Bist
+      dein <a href="#presence">Online-Status</a>, wenn du ihn für alle freigegeben hast, alle deine
+      Favoriten samt Schiffsflotte, solange im Profil „Favoriten auf meiner öffentlichen Seite
+      zeigen“ eingeschaltet ist (so ist es voreingestellt), und bis zu drei Loadouts, die du unter
+      „Gespeichert“ aufs öffentliche Profil heftest, jeweils mit Schiff, dem Namen, den du ihm
+      gegeben hast, den gewählten Bauteilen und Raketenhalterungen und der Lackierung. Bist
       du mit Discord verknüpft und Mitglied unseres Discord-Servers, zeigt das Profil außerdem ein
       Rang-Abzeichen mit deinem Rang, Level und Prestige dort (siehe
       <a href="#discord-server">Discord-Server</a>). Dieselben Angaben liefert die öffentliche Datenbank-Schnittstelle der Website, mit dem
-      Monat, in dem du das Konto angelegt hast, und dem Tag, an dem du jeden Favoriten gespeichert
+      Monat, in dem du das Konto angelegt hast, dem Tag, an dem du jeden Favoriten gespeichert
+      hast, und dem Zeitpunkt, zu dem du jedes angeheftete Loadout angelegt und zuletzt geändert
       hast, und zwar für alle Profile mit Handle auf einmal.
     </p>
     <p>
@@ -519,12 +528,14 @@ body{font-family:var(--font-body)}
       Rang vom Discord-Server. Treffer und Vorschläge zeigen Anzeigename, Handle, Profilbild oder
       Symbol, ob das RSI-Handle verifiziert ist, gegebenenfalls das Rang-Abzeichen und bei
       Vorschlägen die gemeinsame Org oder Rolle. Nicht öffentlich sind deine E-Mail-Adresse, dein Discord-Tag, dein Verifizierungscode, deine
-      Werkzeug-Daten und Hangar-Layouts und deine Nachrichten; deine Freundesliste zeigt die
+      Werkzeug-Daten, deine nicht angehefteten Hangar-Layouts und deine Nachrichten; deine Freundesliste zeigt die
       Website nur dir. Nutzt du dein
       Discord-Bild als Profilbild, lädt jeder Browser, der dein Profil zeigt, das Bild direkt von
       Discord; die Bildadresse enthält deine Discord-ID, die damit ebenfalls öffentlich lesbar ist.
       Die Profilseite ist für Suchmaschinen gesperrt (noindex). Entfernst du das Handle, ist das
-      Profil nicht mehr öffentlich. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO: das öffentliche
+      Profil nicht mehr öffentlich. Nimmst du ein Loadout vom Profil oder löschst es, ist es nicht
+      mehr öffentlich; schaltest du die Favoriten aus, zeigen weder das Profil noch die
+      Schnittstelle sie. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO: das öffentliche
       Profil ist eine Funktion, die du mit dem Handle selbst einschaltest.
     </p>
 
@@ -549,7 +560,11 @@ body{font-family:var(--font-body)}
       Zugriff. Neue Nachrichten kommen über eine dauerhafte Verbindung zu Supabase an, solange das
       Dashboard offen ist. Einzelne Nachrichten oder Verläufe lassen sich nicht löschen; sie bleiben
       auch nach dem Ende einer Freundschaft für beide lesbar und werden gelöscht, sobald einer von
-      euch beiden sein Konto löscht. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
+      euch beiden sein Konto löscht. Angemeldet zeigt die Website am Konto-Knopf im Menü, wie viele
+      Freundschaftsanfragen an dich offen sind und wie viele Nachrichten von Freunden du noch nicht
+      gelesen hast. Dafür fragt dein Browser beim Laden einer Seite, danach jede Minute, solange
+      der Tab sichtbar ist, und bei der Rückkehr auf den Tab bei Supabase nach. Die Zahlen
+      speichert die Website nicht, und Nachrichten gelten dadurch nicht als gelesen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.
     </p>
 
     <h2 id="presence">Online-Status (nur mit Konto)</h2>
@@ -655,7 +670,13 @@ body{font-family:var(--font-body)}
     <p>
       Unter staging.verse-base.com betreiben wir eine Testvorschau, die nur
       <a href="#testpilots">Testpiloten</a> und Administratoren offensteht. Am Eingang meldest du
-      dich mit deinem Konto an; die Eingangsseite verbindet sich dafür mit Supabase. Der Server
+      dich mit deinem Konto an; die Eingangsseite verbindet sich dafür mit Supabase und erneuert
+      dabei eine abgelaufene gespeicherte Anmeldung mit dem Erneuerungsschlüssel. Meldest du dich
+      dort mit Discord an, merkt sich dein Browser bis zur Rückkehr neben dem Prüfwert (PKCE) die
+      Seite der Vorschau, die du aufrufen wolltest; Supabase und Discord sehen statt dieser Seite
+      nur eine zufällige Kennung der Anmeldung. Die Rückkehr verbraucht den Eintrag; ein nicht
+      eingelöster gilt nach 15 Minuten nicht mehr und wird beim nächsten Aufruf der Eingangsseite
+      gelöscht. Der Server
       fragt dann beim Konto-System, ob du Zugang hast, speichert den Zeitpunkt deines Besuchs und
       setzt zwei technisch notwendige Cookies: <code>vb_gate</code> (der Zutrittsnachweis mit
       deiner Konto-ID, vom Server signiert, für Skripte nicht lesbar) und <code>vb_gate_exp</code>
@@ -733,6 +754,18 @@ body{font-family:var(--font-body)}
       Zeitpunkt. Stripe verarbeitet die Zahlung als eigenständiger Verantwortlicher nach seiner eigenen Datenschutzerklärung.
       Rechtsgrundlage für die Übermittlung, die den Vorgang anstößt, ist Art. 6 Abs. 1 lit. b DSGVO
       (Durchführung der von dir ausgelösten Zahlung).
+    </p>
+    <p>
+      Damit niemand den Knopf automatisiert missbraucht, nimmt die Funktion je Internetanschluss
+      höchstens zehn Aufrufe in der Stunde an und legt also höchstens zehn Bezahlseiten an. Dafür
+      speichert sie zu jedem angenommenen Aufruf einen Prüfwert, gebildet aus deiner IP-Adresse
+      (bei IPv6 nur aus deren ersten 56 Bit) und einem Geheimwert, der nur serverseitig vorliegt
+      und nicht in der Datenbank steht, und den Zeitpunkt. Die IP-Adresse selbst wird nicht
+      gespeichert, und ohne den Geheimwert lässt sie sich aus dem Prüfwert nicht zurückgewinnen.
+      Einträge, die älter als eine Stunde sind, löscht die Funktion beim nächsten Aufruf, für den
+      sie einen Prüfwert bildet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f
+      DSGVO; das berechtigte Interesse ist der Schutz des Spendenwegs und des Stripe-Kontos vor
+      massenhaft angelegten Bezahlseiten.
     </p>
     <p>
       Schließt du die Bezahlung ab, schickt Stripe dem Serverteil dieses Projekts eine Nachricht

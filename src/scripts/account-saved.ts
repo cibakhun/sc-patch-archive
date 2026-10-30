@@ -7,6 +7,7 @@
 // liegen in der Tabelle favorites; Rückgängig legt die Zeile neu an.
 // Nach jeder Änderung: 'vb:saved' (Zahlen im Dashboard, Kacheln im Cockpit).
 import { supabase } from '../lib/supabase';
+import { cssUrl } from '../lib/cssUrl';
 import { changeCount } from '../../assets/hangar-layouts.js';
 import { layouts, layoutList, startLayouts, shipLabel, KIND_IC, favHref, hangarLink, advancedLink, type LayoutEntry } from './account-layouts';
 
@@ -69,13 +70,49 @@ function boot(root: HTMLElement) {
     document.dispatchEvent(new CustomEvent('vb:saved', { detail: { favs: favs.length, changed } }));
   };
 
+  /* --------------------------------------- Schaufenster (Pilotenseite) --- */
+  // Bis zu drei Loadouts hängen am öffentlichen Profil (profiles.showcase,
+  // nur die IDs; die Pilotenseite liest sie über die View public_showcase).
+  // null = noch nicht geladen oder Spalte fehlt: dann gibt es keinen Knopf.
+  const MAX_PIN = 3;
+  let pinned: string[] | null = null;
+  // Geschrieben wird der Reihe nach und immer der neueste Stand: zwei schnelle
+  // Klicks überholen sich nicht, ein übersprungener Zwischenstand geht mit dem
+  // nächsten Schreiben mit. Ein Fehler setzt auf das zurück, was der Server
+  // zuletzt bestätigt hat, nicht auf den Stand vor irgendeinem Klick.
+  let pinsSaved: string[] = [];
+  let pinSeq = 0;
+  let pinWrite: Promise<boolean> = Promise.resolve(true);
+  const savePins = (next: string[]) => {
+    pinned = next;
+    render();
+    const seq = ++pinSeq;
+    pinWrite = pinWrite.then(async () => {
+      if (seq !== pinSeq) return true;
+      const want = pinned || [];
+      let failed = true;
+      try {
+        const { error } = await supabase.from('profiles').update({ showcase: want }).eq('id', me);
+        failed = !!error;
+      } catch { /* wie ein Fehler */ }
+      if (!failed) { pinsSaved = want; return true; }
+      if (seq === pinSeq) { pinned = pinsSaved; render(); }
+      toast(C.failed);
+      return false;
+    });
+    return pinWrite;
+  };
+  // Nur IDs, die es noch gibt (ein gelöschtes Loadout belegt sonst einen Platz).
+  const livePins = () => (pinned || []).filter((id) => layoutList().some((l) => l.id === id));
+
   /* ------------------------------------------------------ Kartenbauer --- */
   const poster = (li: HTMLElement, img: string, ic: string, c: string) => {
     li.style.setProperty('--kc', c);
-    if (img) {
+    const bild = cssUrl(img);
+    if (bild) {
       li.classList.add('fav--poster');
       const bg = el('span', 'fav__bg');
-      bg.style.backgroundImage = `url('${img}')`;
+      bg.style.backgroundImage = bild;
       bg.setAttribute('aria-hidden', 'true');
       const scrim = el('span', 'fav__scrim');
       scrim.setAttribute('aria-hidden', 'true');
@@ -124,11 +161,36 @@ function boot(root: HTMLElement) {
     rm.addEventListener('click', () => {
       const gone = layouts.store.remove(e.id);
       if (!gone) { toast(C.failed); return; }
+      // Rückgängig heftet es wieder an, an dieselbe Stelle, wenn noch Platz ist.
+      const pinAt = pinned ? pinned.indexOf(e.id) : -1;
+      if (pinAt >= 0) savePins(livePins());
       render();
       announce();
-      toast(C.removed.replace('%s', name), () => { layouts.store.restore(gone); render(); announce(); });
+      toast(C.removed.replace('%s', name), () => {
+        layouts.store.restore(gone);
+        const cur = livePins();
+        if (pinAt >= 0 && pinned && !cur.includes(e.id) && cur.length < MAX_PIN) {
+          savePins([...cur.slice(0, pinAt), e.id, ...cur.slice(pinAt)]);
+        }
+        render();
+        announce();
+      });
     });
     acts.append(adv, copy, rm);
+    if (pinned) {
+      const on = pinned.includes(e.id);
+      li.classList.toggle('is-pinned', on);
+      const pin = actBtn('ic-pin', on ? C.unpin : C.pin, on ? 'sv-act--on' : '');
+      pin.setAttribute('aria-pressed', String(on));
+      pin.addEventListener('click', async () => {
+        const cur = livePins();
+        if (on) { if (await savePins(cur.filter((id) => id !== e.id))) toast(C.unpinned); return; }
+        if (cur.length >= MAX_PIN) { toast(C.pinFull); return; }
+        if (await savePins([...cur, e.id])) toast(C.pinned);
+      });
+      acts.prepend(pin);
+      if (on) main.prepend(el('span', 'sv-pin', C.onProfile));
+    }
     li.append(main, link, acts);
     return li;
   };
@@ -237,11 +299,13 @@ function boot(root: HTMLElement) {
     me = user.id;
     startLayouts();
     render();
-    const [th, res] = await Promise.all([
+    const [th, res, sc] = await Promise.all([
       fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
       supabase.from('favorites').select('id, kind, slug, label, created_at').order('created_at', { ascending: false }),
+      supabase.from('profiles').select('showcase').eq('id', me).maybeSingle(),
     ]);
     thumbs = th || {};
+    if (!sc.error) pinned = pinsSaved = Array.isArray(sc.data?.showcase) ? (sc.data!.showcase as unknown[]).map(String) : [];
     favs = (res.data || []) as Fav[];
     favsLoaded = true;
     render();

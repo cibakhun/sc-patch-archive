@@ -21,6 +21,12 @@
 // die Datenbank nicht: wer sie im select oder im Körper nennt, bekommt 400
 // wie von PostgREST. requests trägt je Anfrage auch den Körper.
 //
+// Mit inbox warten auf user-1 Freundschaftsanfragen und Nachrichten für die
+// Zahl am Konto-Knopf (badge()); inbox.down = true beantwortet diese drei
+// Abfragen mit 503. fireDoc() sendet ein Ereignis an document, wie die
+// Freundesliste der Kontoseite (vb:friends, vb:chat-unread); setVisible()
+// schaltet den Tab sichtbar oder versteckt.
+//
 // Vor account-lite läuft wie im Seitenkopf das Kopfskript aus Layout.astro,
 // das die Admin-Klasse aus dem Rollen-Cache vor dem ersten Bild setzt;
 // headAdmin() ist die Klasse danach, also das erste Bild.
@@ -62,8 +68,11 @@ function respond(status, body) {
  * shareActivity (true/false, oder { uid: true/false } je Konto): Stand des
  * Schalters profiles.share_activity, den der Heartbeat in seiner Antwort
  * erfährt (die Profilzeile nennt ihn dann nicht).
+ * inbox: { requests: [{ id, sender_id, receiver_id, status }],
+ * messages: [{ sender_id, receiver_id, read_at }], friends: [{ user_id, friend_id }] },
+ * danach als browser.inbox änderbar.
  */
-export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile = {}, missing = [], shareActivity } = {}) {
+export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile = {}, missing = [], shareActivity, inbox = null } = {}) {
   const clock = { now: Date.UTC(2026, 9, 8, 12, 0, 0), timers: [], seq: 0 };
   const data = new Map();
   const tabs = [];
@@ -116,6 +125,18 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
       }
       if (url.includes('/rest/v1/profiles?')) return read(uid, 'name', who ? [{ display_name: who.name, handle: null, ...pick(selected(url), uid) }] : []);
       if (url.includes('/rest/v1/user_roles?')) return read(uid, 'role', who ? [{ role: who.role }] : []);
+      const box = browser.inbox;
+      const to = (url.match(/receiver_id=eq\.([^&]+)/) || [])[1];
+      if (box && /\/rest\/v1\/(friend_requests|direct_messages|friends)\?/.test(url)) {
+        if (box.down) return Promise.resolve(respond(503, { message: 'HTTP 503' }));
+        if (url.includes('/rest/v1/friend_requests?')) {
+          return Promise.resolve(respond(200, (box.requests || []).filter((r) => r.receiver_id === to && r.status === 'pending').map((r) => ({ id: r.id }))));
+        }
+        if (url.includes('/rest/v1/direct_messages?')) {
+          return Promise.resolve(respond(200, (box.messages || []).filter((m) => m.receiver_id === to && !m.read_at).map((m) => ({ sender_id: m.sender_id }))));
+        }
+        return Promise.resolve(respond(200, box.friends || []));
+      }
       return Promise.resolve(respond(200, []));
     }
     const entry = { body: JSON.parse(init.body) };
@@ -141,6 +162,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
     profile: row,
     refreshes,
     reads,
+    inbox,
     storage: { get: (k) => (data.has(k) ? data.get(k) : null), set: (k, v) => { data.set(k, String(v)); } },
     /** Antwort von GoTrue auf einen Refresh: neues Token, ohne expires_at. */
     fresh: (n, uid = 'user-1') => ({ access_token: `token-${n}`, refresh_token: `refresh-${n}`, token_type: 'bearer', expires_in: 3600, user: { id: uid } }),
@@ -173,16 +195,20 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
       };
       const root = classes();
       // Wie das Konto-Element in SiteNav.astro, Seite auf Englisch.
-      const attrs = { 'data-login': '/account/login.html', 'data-dash': '/account.html', 'data-l-login': 'Sign in', 'data-l-acct': 'Account' };
+      const attrs = { 'data-login': '/account/login.html', 'data-dash': '/account.html', 'data-l-login': 'Sign in', 'data-l-acct': 'Account', 'aria-label': 'Account' };
       const label = { textContent: attrs['data-l-login'] };
+      const badge = { textContent: '', hidden: true };
       const acct = classes();
       const nav = {
         href: attrs['data-login'],
         title: '',
         classList: acct.classList,
         getAttribute: (name) => (name in attrs ? attrs[name] : null),
+        hasAttribute: (name) => name in attrs,
+        setAttribute: (name, v) => { attrs[name] = String(v); },
         querySelector: (sel) => (sel === '.js-nav-acct-txt' ? label : null),
       };
+      const docListeners = {};
       const later = (every) => (fn, ms) => {
         const id = ++clock.seq;
         const wait = Math.max(0, Number(ms) || 0);
@@ -220,8 +246,9 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
           cookie: '',
           documentElement: { classList: root.classList, setAttribute() {} },
           querySelector: () => null,
-          querySelectorAll: (sel) => (sel === '.js-nav-acct' ? [nav] : []),
-          addEventListener() {},
+          querySelectorAll: (sel) => (sel === '.js-nav-acct' ? [nav] : sel === '.js-nav-badge' ? [badge] : []),
+          getElementById: () => null,
+          addEventListener: (type, fn) => { (docListeners[type] ||= []).push(fn); },
         },
         fetch: (url, init) => {
           tab.requests.push({ method: init.method, url, signal: init.signal, body: init.body ? JSON.parse(init.body) : undefined });
@@ -258,6 +285,12 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
       /** VBAccount.rest, wie ein Seitenskript es ruft. */
       tab.rest = (...args) => sandbox.VBAccount.rest(...args);
       tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
+      tab.badge = () => ({ text: badge.textContent, hidden: badge.hidden, href: nav.href, aria: attrs['aria-label'], title: nav.title });
+      tab.fireDoc = (type, detail) => { if (tab.frozen) return; for (const fn of (docListeners[type] || []).slice()) fn({ type, detail }); };
+      tab.setVisible = (on) => {
+        sandbox.document.visibilityState = on ? 'visible' : 'hidden';
+        tab.fireDoc('visibilitychange');
+      };
       tab.admin = () => root.set.has('is-admin');
       tab.freeze = () => { tab.frozen = true; };
       tab.restore = () => { tab.frozen = false; tab.fire('pageshow', { persisted: true }); };

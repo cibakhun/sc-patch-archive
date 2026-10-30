@@ -34,7 +34,7 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
 type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number; gear?: boolean; pool?: { images: number; bytes: number; fresh: number } };
 type Gear = { pose: 'aus' | 'ein' | 'keins' | 'offen'; contacts?: number[][]; ground?: number; below?: { depth: number }[] };
-const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }>; geo?: Record<string, Asset>; gear?: Record<string, Gear> };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }>; geo?: Record<string, Asset>; gear?: Record<string, Gear>; interior?: Record<string, Asset> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
@@ -185,6 +185,15 @@ const texBytes = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
   return t?.pool?.bytes && !HOLD[id] ? [[t.url, t.pool.bytes]] : [];
 }));
 
+// Begehbare Innenräume (PC-Lauf „Hangar-Innenleben“): je Werkslack-Datei
+// der Innenraum im selben Modellraum, dazu Lampen und Einstiegspunkte
+// (/hangar-innen/<id>.json, src/pages/hangar-innen/[id].json.ts). Beides
+// lädt der Viewer erst beim Einsteigen.
+const interior = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const t = real.ships?.[id], i = real.interior?.[id];
+  return t && i && !HOLD[id] ? [[t.url, { url: withV(i), meta: `/hangar-innen/${id}.json${i.v ? `?v=${i.v}` : ''}`, bytes: i.bytes }]] : [];
+}));
+
 // Herstellerlogo je Kürzel für das Hologramm über dem Fahrzeug (buildHolo):
 // dieselben Bilder wie im Datenblatt (ShipDetail.astro), full = mit Schriftzug
 const logos = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
@@ -197,7 +206,7 @@ const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js
 // "</script>" darf ihn nicht beenden.
 const stage = {
   viewer: viewerSrc,
-  opts: { hall, crew, gear, texBytes, logos },
+  opts: { hall, crew, gear, texBytes, logos, interior },
   models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
     withV(geo[id] ?? meshes[id]),
     real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
