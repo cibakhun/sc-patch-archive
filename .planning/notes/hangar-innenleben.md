@@ -235,8 +235,10 @@ Innenraum-Knoten) ✓.
   die auch #257 neu gebaut hat, gilt dessen Fassung; der Viewer erkennt den
   groben Innenraum dort nach Lage (Ecken auf Flächen des scharfen) und
   blendet ihn drinnen aus. `mrai-pulse` kam ohne Konflikt mit.
-- Auch die Bildablage ist nicht geräumt: 319 Bilder, die der PC als
-  verwaist entfernt hatte, nutzen die Rümpfe von #257; sie bleiben.
+- Bildablage: Die 319 Bilder, die der PC zuletzt als verwaist entfernt
+  hatte, nennt wirklich kein Rumpf und kein Innenraum (auch nicht die von
+  #257, verify:hangar [17] warnte); sie sind auch in der Cloud wieder weg.
+  Alle 53 520 Verweise der Rümpfe und 18 762 der Innenräume liegen da.
 - **Nächster PC-Lauf** (derselbe Satz „Hangar-Innenleben“): zuerst
   `origin/claude/wot-hangar-hzs46w` in `pc/hangar-innenleben` mergen
   (Konflikte dort schon gelöst: `dropInterior` liefert das Objekt von #257,
