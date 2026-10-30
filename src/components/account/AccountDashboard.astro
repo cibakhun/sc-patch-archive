@@ -183,6 +183,7 @@ const COPY = {
     ovTComplete: 'Profil-Vollständigkeit', ovTRsi: 'RSI-Status',
     ovPending: '%n% offene Anfragen', ovPending1: '1 offene Anfrage', ovNoPending: 'Keine offenen Anfragen',
     ovActive: '%n% laufende Jobs', ovActive1: '1 laufender Job', ovNoActive: 'Keine laufenden Jobs',
+    ovJobReady: 'Fertig', ovJobMore: '+%n% weitere', ovJobAt: 'fertig %t%',
     ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
     ovBadgeComplete: 'Profil komplett', ovBadgeCompleteTip: 'Abzeichen für ein vollständiges Profil. Auf Discord trägst du dazu die Rolle „Profile Complete“.',
     ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert',
@@ -351,6 +352,7 @@ const COPY = {
     ovTComplete: 'Profile completeness', ovTRsi: 'RSI status',
     ovPending: '%n% pending requests', ovPending1: '1 pending request', ovNoPending: 'No pending requests',
     ovActive: '%n% active jobs', ovActive1: '1 active job', ovNoActive: 'No active jobs',
+    ovJobReady: 'Ready', ovJobMore: '+%n% more', ovJobAt: 'ready %t%',
     ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
     ovBadgeComplete: 'Profile complete', ovBadgeCompleteTip: 'Badge for a complete profile. On Discord it comes with the “Profile Complete” role.',
     ovRsiYes: 'Verified', ovRsiNo: 'Not verified',
@@ -602,8 +604,8 @@ const SEC = {
       <nav class="acc-nav" role="tablist" aria-label={lang === 'de' ? 'Konto-Bereiche' : 'Account sections'} aria-orientation="vertical">
         <button type="button" class="tab" role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24"><use href="#ic-hex"/></svg><span class="lbl">{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>
         <button type="button" class="tab" role="tab" aria-selected="false" data-tab="profile"><svg viewBox="0 0 24 24"><use href="#ic-edit"/></svg><span class="lbl">{COPY.tabProfile}</span></button>
-        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="favs"><svg viewBox="0 0 24 24"><use href="#ic-star"/></svg><span class="lbl">{COPY.tabFavs}</span><span class="badge" id="navFavCount" hidden>0</span></button>
-        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg><span class="lbl">{COPY.tabFriends}</span><span class="badge" id="navFriendCount" hidden>0</span><span class="badge badge--chat" id="navChatUnread" hidden>0</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="favs"><svg viewBox="0 0 24 24"><use href="#ic-star"/></svg><span class="lbl">{COPY.tabFavs}</span></button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-tab="friends"><svg viewBox="0 0 24 24"><use href="#ic-users"/></svg><span class="lbl">{COPY.tabFriends}</span><span class="badge badge--chat" id="navFriendsNew" hidden>0</span></button>
         <button type="button" class="tab" role="tab" aria-selected="false" data-tab="security"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg><span class="lbl">{COPY.tabSecurity}</span></button>
       </nav>
 
@@ -619,6 +621,7 @@ const SEC = {
       <section id="tab-panel-overview" class="acx-tab-panel"
         data-l-pending={COPY.ovPending} data-l-pending1={COPY.ovPending1} data-l-nopending={COPY.ovNoPending}
         data-l-active={COPY.ovActive} data-l-active1={COPY.ovActive1} data-l-noactive={COPY.ovNoActive}
+        data-l-job-ready={COPY.ovJobReady} data-l-job-more={COPY.ovJobMore} data-l-job-at={COPY.ovJobAt}
         data-l-missing={COPY.ovMissing} data-l-missing1={COPY.ovMissing1} data-l-complete={COPY.ovComplete}
         data-l-rsi-yes={COPY.ovRsiYes} data-l-rsi-no={COPY.ovRsiNo}
         data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}>
@@ -672,6 +675,7 @@ const SEC = {
           <div class="ck-strip">
             <a class="ck-stat ck-stat--gold" href={refineryHref} aria-label={COPY.ovTRefValue}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-refinery"/></svg><b class="tnum" id="ovRefValue">—</b><span>{COPY.ovTRefValue}</span><em id="ovRefSub"></em>
+              <ul class="ck-jobs" id="ovRefJobs" hidden></ul>
               <svg class="ck-spark" id="ovRefSpark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
             </a>
           </div>

@@ -47,3 +47,45 @@ export function refinerySpark(jobs: readonly JobValueFields[], gradId: string): 
     `<path d="${line}" fill="none" style="stroke:var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +
     `<circle cx="${end[0]}" cy="${end[1]}" r="2.2" style="fill:var(--gold)"/>`;
 }
+
+/** Countdown „2d 03:12:45" / „03:12:45" — für den Live-Ticker. */
+export function fmtCountdown(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const hms = `${pad(h)}:${pad(m)}:${pad(sec)}`;
+  return d > 0 ? `${d}d ${hms}` : hms;
+}
+
+/** Kurzname für den Mini-Timer: „ARC-L1" statt „ARC-L1 Wide Forest Station". */
+export function stationShort(name: string): string {
+  const n = String(name || '').trim();
+  const lp = /^([A-Z]{3}-L\d)\b/.exec(n);
+  return lp ? lp[1] : n;
+}
+
+export interface JobTimerFields {
+  status: string;
+  started_at: string;
+  ready_at: string;
+}
+
+/** Laufende Aufträge für die Mini-Timer, nach Fertigzeit (fertige zuerst):
+ *  left = Restzeit in ms, pct = Fortschritt 0–100. */
+export function jobTimers<T extends JobTimerFields>(jobs: readonly T[], now: number): Array<{ job: T; left: number; pct: number; ready: boolean }> {
+  const out: Array<{ job: T; left: number; pct: number; ready: boolean }> = [];
+  for (const job of jobs) {
+    if (job.status !== 'active') continue;
+    const ready = Date.parse(job.ready_at);
+    if (!Number.isFinite(ready)) continue;
+    const start = Date.parse(job.started_at);
+    const left = Math.max(0, ready - now);
+    const span = ready - start;
+    const pct = left <= 0 ? 100 : span > 0 ? Math.max(0, Math.min(100, ((now - start) / span) * 100)) : 0;
+    out.push({ job, left, pct, ready: left <= 0 });
+  }
+  return out.sort((a, b) => Date.parse(a.job.ready_at) - Date.parse(b.job.ready_at));
+}
