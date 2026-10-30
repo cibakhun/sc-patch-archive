@@ -1,8 +1,9 @@
-// Übersicht der Kontoseite als Cockpit: Discord-Rang, Profil-Check, letzte
-// Nachrichten und Gespeichertes (Favoriten + Hangar-Loadouts). Eigenes Modul
-// neben account-dashboard.ts: liest selbst aus Supabase und hört auf die
-// Ereignisse der übrigen Teile (vb:friends, vb:chat-unread, vb:discord,
-// vb:profile-check), statt in deren Ablauf einzugreifen.
+// Übersicht der Kontoseite als Cockpit: Discord-Rang, Profil-Check und
+// Gespeichertes (Favoriten + Hangar-Loadouts). Eigenes Modul neben
+// account-dashboard.ts: liest selbst aus Supabase und hört auf die
+// Ereignisse der übrigen Teile (vb:discord, vb:profile-check), statt in
+// deren Ablauf einzugreifen. Die letzten Nachrichten stehen in der
+// Freundesleiste (FriendsDock.astro), nicht hier.
 //
 // Rang und Leiter kommen aus derselben Datei wie im Discord-Bot
 // (discord/bot/src/ranks.mjs), damit Seite und Server nie verschiedene
@@ -14,8 +15,6 @@ import { progress, totalXpForLevel, xpToNext } from '../../discord/bot/src/level
 import { layoutList, startLayouts, shipLabel, KIND_IC, favHref, hangarLink } from './account-layouts';
 
 type Copy = Record<string, any>;
-type Prof = { id: string; handle: string | null; display_name: string | null; avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null };
-type Msg = { id: number; sender_id: string; receiver_id: string; body: string; created_at: string; read_at: string | null };
 type RankRow = {
   in_guild: boolean | null; level: number | null; xp: number | null; prestige: number | null; rank_key: string | null;
   messages: number | null; voice_seconds: number | null; server_rank: number | null; server_members: number | null; stats_at: string | null;
@@ -36,7 +35,6 @@ function boot(root: HTMLElement) {
 
   let me = '';
   let dcLinked: boolean | null = null;
-  const people = new Map<string, Prof>();
 
   /* ------------------------------------------------------------ Rang --- */
   const rankEl = $('ckRank')!;
@@ -183,111 +181,6 @@ function boot(root: HTMLElement) {
     if (badge) badge.hidden = !done;
   }
 
-  /* -------------------------------------------------------- Avatare --- */
-  const avatar = (p: Prof | undefined, fallback: string) => {
-    const s = document.createElement('span');
-    s.className = 'ck-av';
-    const col = p?.avatar_color || '#2dd4ff';
-    s.style.color = col;
-    s.style.borderColor = col;
-    if (p?.avatar_url) {
-      const img = document.createElement('img');
-      img.src = p.avatar_url; img.alt = ''; img.loading = 'lazy';
-      s.appendChild(img);
-    } else s.textContent = p?.avatar_icon || (p?.display_name || p?.handle || fallback).charAt(0).toUpperCase();
-    return s;
-  };
-  const nameOf = (p: Prof | undefined) => p?.display_name || p?.handle || '?';
-  const ago = (iso: string) => {
-    const m = Math.max(0, (Date.now() - Date.parse(iso)) / 60000);
-    if (m < 1) return C.now;
-    if (m < 60) return fill(C.min, { n: Math.round(m) });
-    if (m < 60 * 24) return fill(C.hrs, { n: Math.round(m / 60) });
-    if (m < 60 * 24 * 7) return fill(C.days, { n: Math.round(m / 1440) });
-    return new Date(iso).toLocaleDateString(loc, { day: 'numeric', month: 'short' });
-  };
-
-  /* ----------------------------------------------------- Nachrichten --- */
-  let chatTimer = 0;
-  const loadChats = async () => {
-    if (!me) return;
-    const { data, error } = await supabase.from('direct_messages')
-      .select('id, sender_id, receiver_id, body, created_at, read_at')
-      .order('id', { ascending: false }).limit(120);
-    if (error) return;
-    const last = new Map<string, Msg>();
-    const unread = new Map<string, number>();
-    for (const m of (data || []) as Msg[]) {
-      const other = m.sender_id === me ? m.receiver_id : m.sender_id;
-      if (!last.has(other)) last.set(other, m);
-      if (m.receiver_id === me && !m.read_at) unread.set(other, (unread.get(other) || 0) + 1);
-    }
-    const missing = [...last.keys()].filter((id) => !people.has(id));
-    if (missing.length) {
-      const { data: ps } = await supabase.from('social_profiles')
-        .select('id, handle, display_name, avatar_url, avatar_icon, avatar_color').in('id', missing);
-      for (const p of (ps || []) as Prof[]) people.set(p.id, p);
-    }
-    const ul = $('ckChats')!;
-    const rows = [...last.entries()].slice(0, 8);
-    ul.replaceChildren(...rows.map(([id, m]) => {
-      const p = people.get(id);
-      const li = document.createElement('li');
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'ck-chat';
-      b.addEventListener('click', () => document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: id })));
-      const t = document.createElement('span');
-      t.className = 'ck-chat__t';
-      const nm = document.createElement('b');
-      nm.textContent = nameOf(p);
-      const tm = document.createElement('time');
-      tm.dateTime = m.created_at;
-      tm.textContent = ago(m.created_at);
-      const head = document.createElement('span');
-      head.className = 'ck-chat__h';
-      head.append(nm, tm);
-      const snip = document.createElement('small');
-      snip.textContent = (m.sender_id === me ? C.you + ': ' : '') + m.body.replace(/\s+/g, ' ');
-      t.append(head, snip);
-      b.append(avatar(p, '?'), t);
-      const n = unread.get(id) || 0;
-      if (n) {
-        const u = document.createElement('span');
-        u.className = 'ck-unread';
-        u.textContent = n > 99 ? '99+' : String(n);
-        b.appendChild(u);
-        b.classList.add('has-unread');
-      }
-      li.appendChild(b);
-      return li;
-    }));
-    $('ckChatsEmpty')!.hidden = rows.length > 0;
-    if (dockUnread == null) setUnread([...unread.values()].reduce((a, b) => a + b, 0));
-  };
-  // Die Gesamtzahl zählt das Dock über alle Nachrichten; die Zeilen oben
-  // sehen nur die letzten 120 und dienen bis dahin als Näherung.
-  let dockUnread: number | null = null;
-  const setUnread = (n: number) => {
-    const nEl = $('ckChatsN')!;
-    nEl.textContent = n > 99 ? '99+' : String(n);
-    nEl.hidden = n <= 0;
-  };
-  const chatsSoon = () => { clearTimeout(chatTimer); chatTimer = window.setTimeout(loadChats, 400); };
-  document.addEventListener('vb:chat-unread', (e) => {
-    dockUnread = Number((e as CustomEvent).detail) || 0;
-    setUnread(dockUnread);
-    chatsSoon();
-  });
-  document.addEventListener('vb:friends', (e) => {
-    const d = (e as CustomEvent).detail || {};
-    for (const f of (d.friends || []) as Array<{ p?: Prof } | Prof>) {
-      const p = ((f as { p?: Prof }).p || f) as Prof;
-      if (p && p.id) people.set(p.id, p);
-    }
-    chatsSoon();
-  });
-
   /* ---------------------------------------------- Gespeichertes ------- */
   // Loadouts aus der Hangar-Ablage (account-layouts.ts), Favoriten aus der
   // Tabelle; beide neu bei 'vb:layouts' bzw. 'vb:saved' (Bereich Gespeichert).
@@ -310,8 +203,6 @@ function boot(root: HTMLElement) {
       });
     }
     tiles.sort((a, b) => b.ts - a.ts);
-    const n = $('ckStatLayouts');
-    if (n) n.textContent = String(los.length);
     const ul = $('ckFavs')!;
     ul.replaceChildren(...tiles.slice(0, 12).map((t) => {
       const li = document.createElement('li');
@@ -361,6 +252,6 @@ function boot(root: HTMLElement) {
     me = user.id;
     if (dcLinked === null) dcLinked = !!(user.identities || []).some((i) => i.provider === 'discord');
     startLayouts();
-    await Promise.all([loadRank(), loadChats(), loadSaved()]);
+    await Promise.all([loadRank(), loadSaved()]);
   })();
 }

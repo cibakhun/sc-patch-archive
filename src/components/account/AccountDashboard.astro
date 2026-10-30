@@ -179,7 +179,7 @@ const COPY = {
     publicPageNoHandle: 'Setze ein Handle, um deine öffentliche Seite zu aktivieren.',
     ovAtAGlance: 'Auf einen Blick',
     ovRecent: 'Letzte Aktivität',
-    ovTFavs: 'Favoriten', ovTFriends: 'Freunde', ovTRefValue: 'Refinery-Wert',
+    ovTRefValue: 'Refinery-Wert',
     ovTComplete: 'Profil-Vollständigkeit', ovTRsi: 'RSI-Status',
     ovPending: '%n% offene Anfragen', ovPending1: '1 offene Anfrage', ovNoPending: 'Keine offenen Anfragen',
     ovActive: '%n% laufende Jobs', ovActive1: '1 laufender Job', ovNoActive: 'Keine laufenden Jobs',
@@ -347,7 +347,7 @@ const COPY = {
     publicPageNoHandle: 'Set a handle to activate your public page.',
     ovAtAGlance: 'At a glance',
     ovRecent: 'Recent activity',
-    ovTFavs: 'Favorites', ovTFriends: 'Friends', ovTRefValue: 'Refinery value',
+    ovTRefValue: 'Refinery value',
     ovTComplete: 'Profile completeness', ovTRsi: 'RSI status',
     ovPending: '%n% pending requests', ovPending1: '1 pending request', ovNoPending: 'No pending requests',
     ovActive: '%n% active jobs', ovActive1: '1 active job', ovNoActive: 'No active jobs',
@@ -374,9 +374,7 @@ const CK = {
     noGuild: 'Du bist noch nicht auf dem VerseBase-Server.', noGuildBtn: 'Server beitreten',
     waiting: 'Dein Rang kommt in ein paar Minuten.', waitingBtn: 'Zum Server',
     profile: 'Profil', todo: { handle: 'Handle', avatar: 'Bild', bio: 'Über mich', status: 'Status', role: 'Rolle', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
-    loadouts: 'Loadouts', chats: 'Nachrichten', chatsEmpty: 'Noch keine Nachrichten.', chatsCta: 'Freunde öffnen', you: 'Du',
     saved: 'Gespeichert', savedEmpty: 'Noch nichts gespeichert.', savedCta: 'Zum Hangar', layout: 'Loadout', kinds: { ship: 'Schiff', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Thema' },
-    now: 'jetzt', min: '%n% Min.', hrs: '%n% Std.', days: '%n% T.',
   },
   en: {
     rank: 'Discord rank', pos: 'Rank', msgs: 'Messages', voice: 'Voice',
@@ -385,9 +383,7 @@ const CK = {
     noGuild: 'You are not on the VerseBase server yet.', noGuildBtn: 'Join the server',
     waiting: 'Your rank arrives in a few minutes.', waitingBtn: 'Open server',
     profile: 'Profile', todo: { handle: 'Handle', avatar: 'Picture', bio: 'About me', status: 'Status', role: 'Role', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
-    loadouts: 'Loadouts', chats: 'Messages', chatsEmpty: 'No messages yet.', chatsCta: 'Open friends', you: 'You',
     saved: 'Saved', savedEmpty: 'Nothing saved yet.', savedCta: 'Go to hangar', layout: 'Loadout', kinds: { ship: 'Ship', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Topic' },
-    now: 'now', min: '%n%m', hrs: '%n%h', days: '%n%d',
   },
 }[lang];
 
@@ -674,15 +670,6 @@ const SEC = {
           </div>
 
           <div class="ck-strip">
-            <div class="ck-stat" role="button" tabindex="0" data-tab-jump="favs" aria-label={COPY.ovTFavs}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star"/></svg><b class="tnum" id="ovStatFavs">0</b><span>{COPY.ovTFavs}</span>
-            </div>
-            <div class="ck-stat" role="button" tabindex="0" data-tab-jump="friends" aria-label={COPY.ovTFriends}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg><b class="tnum" id="ovStatFriends">0</b><span>{COPY.ovTFriends}</span><em id="ovFriendsSub"></em>
-            </div>
-            <a class="ck-stat" href={hangarHref} aria-label={CK.loadouts}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-hex"/></svg><b class="tnum" id="ckStatLayouts">0</b><span>{CK.loadouts}</span>
-            </a>
             <a class="ck-stat ck-stat--gold" href={refineryHref} aria-label={COPY.ovTRefValue}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-refinery"/></svg><b class="tnum" id="ovRefValue">—</b><span>{COPY.ovTRefValue}</span><em id="ovRefSub"></em>
               <svg class="ck-spark" id="ovRefSpark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
@@ -690,15 +677,6 @@ const SEC = {
           </div>
 
           <div class="ck-cols">
-            <section class="ck-col" aria-labelledby="ckChatsH">
-              <h3 class="ck-h" id="ckChatsH">{CK.chats}<span class="ck-h__n" id="ckChatsN" hidden></span></h3>
-              <ul class="ck-list" id="ckChats"></ul>
-              <div class="ck-empty" id="ckChatsEmpty" hidden>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
-                <p>{CK.chatsEmpty}</p>
-                <button type="button" class="btn sm" data-tab-jump="friends">{CK.chatsCta}</button>
-              </div>
-            </section>
             <section class="ck-col" aria-labelledby="ckFavsH">
               <h3 class="ck-h" id="ckFavsH">{CK.saved}</h3>
               <ul class="ck-tiles" id="ckFavs"></ul>

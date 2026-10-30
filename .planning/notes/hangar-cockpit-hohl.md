@@ -378,3 +378,36 @@ den echten Grundfarben aus #238 und diesem Zweig), alle 231 Schiffe mit
   der Viewer. Weniger nur Apollo Medivac, Triage, Hermes (angekündigt).
 - Bilder: `/mnt/project-files/hangar-cockpit/` (Gladius aus Krisz' Sicht,
   Hornet F7C Mk II, vorher/nachher). Sichturteil: WINDOWS #137.
+
+## Rücknahme (30.10.2026): Innenraum hinter dem Glas lag falsch
+
+Krisz, 30.10.2026 10:33 und 10:34, mit Bildern der 100i (graue Plattenwand
+steht senkrecht auf dem Rumpf hinter der Haube) und eines großen Schiffs,
+das zerlegt aussah: „es ist mit ganz vielen schiffen etwas kaputt“.
+
+- **Ursache #257 selbst.** `dropInterior` ließ den Innenraum hinter dem
+  Glas (Hüllquader + 2,5 m) stehen. Der Rohexport legt aber Teile der
+  Innenraum-Container falsch ab (siehe `hangar-innenleben.md`: ein
+  Carrack-Teil 111 m zur Seite, Andromeda 14 Teile bis 14,5 m über den
+  Rumpf). Dazu bekam bei der 100i ein Rumpfteil über den Materialnachtrag
+  ein Innenraum-Material: 7 164 Dreiecke von `hull_d` auf
+  `orig_100i_interior_mtl_panel_light`. Im Viewer nachgestellt (die
+  Platte steht da, mit dem Viewer vor #263).
+- **Umfang:** 51 von 231 Schiffen haben mit #257 über 25 % mehr Dreiecke,
+  fast alles Innenraum-Material (Argo SRV +498 %, Starlancer MAX +108 %,
+  Star Runner +159 %, Corsair +81 %, Caterpillar +74 %, Carrack +48 % …).
+- **Warum das Tor das nicht sah:** „durch“ zählt nur, ob ein Blick durch
+  die Haube an etwas endet. Ob das, woran er endet, am richtigen Platz
+  liegt, misst es nicht; von außen hat niemand hingesehen.
+- **Zurückgenommen:** alle Rumpfmodelle außer `mrai-pulse` (kam mit #263
+  vom PC) auf 77de8ff6^1, im Manifest die Modellfelder ebenso (Lackverweise
+  bleiben), dazu die Lackpläne von Terrapin Medic, Golem, Golem OX und
+  Zeus CL (sie nannten Materialien, die es nur im Neubau gab). 217 Bilder
+  zurück, 83, die nur der Neubau nannte, wieder weg. Tor-Klinke nachgezogen:
+  60 Ausnahmen (58 neu mit dem Anlass der Rücknahme, dazu Blade und
+  Hammerhead Showdown). WINDOWS #137 entfällt (waived).
+- **Neubau richtig:** nur zweiseitig aus den `MtlFlags`, kein Innenraum
+  im Rumpf (oder nur, was innerhalb des Rumpf-Hüllquaders liegt und an
+  seinem Platz geprüft ist), Materialnachtrag nicht auf Rumpfteile mit
+  Rumpfmaterial. Vor dem Ausliefern jedes geänderte Schiff von außen
+  ansehen und die Dreieckszahl je Schiff gegen den alten Stand prüfen.
