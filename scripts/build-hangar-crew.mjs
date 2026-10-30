@@ -250,12 +250,22 @@ const tris = io / 3;
 console.log(`Figur: ${parts.length} Teile, ${nV} Ecken, ${tris} Dreiecke, ${kept.length} von ${skel.length} Knochen, Umlauf ${flip ? 'gedreht' : 'wie im Spiel'} (${((100 * agree) / faces).toFixed(0)} % übereinstimmend), UV außerhalb: ${uvOut}`);
 
 // ─── Karten (Atlas) ───────────────────────────────────────────────────────
+// Stufen neben einer .dds: <name>.<N> (Alphakanal: <name>.<N>a), Groß- und
+// Kleinschreibung egal
+function partsOf(dir, base, suffix = '') {
+  const pre = `${base.toLowerCase()}.`, parts = {};
+  for (const f of readdirSync(dir)) {
+    const l = f.toLowerCase();
+    if (!l.startsWith(pre) || !l.endsWith(suffix)) continue;
+    const n = l.slice(pre.length, l.length - suffix.length);
+    if (/^\d+$/.test(n)) parts[n] = readFileSync(join(dir, f));
+  }
+  return parts;
+}
 function texture(p, level = null) {
   const head = findCI(`${p}.dds`);
   if (!head) return null;
-  const dir = dirname(head), base = basename(head), parts = {};
-  for (const f of readdirSync(dir)) { const m = f.match(new RegExp(`^${base.replace(/[.]/g, '\\.')}\\.(\\d+)$`, 'i')); if (m) parts[m[1]] = readFileSync(join(dir, f)); }
-  const dds = readDds(readFileSync(head), parts);
+  const dds = readDds(readFileSync(head), partsOf(dirname(head), basename(head)));
   const lv = level == null ? dds.levels[0] : dds.levels.find((l) => l.w <= level) ?? dds.levels.at(-1);
   return decodeLevel(dds, lv.level);
 }
@@ -263,9 +273,7 @@ function texture(p, level = null) {
 function glossMean(p) {
   const head = findCI(`${p}.dds.a`);
   if (!head) return null;
-  const dir = dirname(head), base = basename(head).replace(/\.a$/i, ''), parts = {};
-  for (const f of readdirSync(dir)) { const m = f.match(new RegExp(`^${base.replace(/[.]/g, '\\.')}\\.(\\d+)a$`, 'i')); if (m) parts[m[1]] = readFileSync(join(dir, f)); }
-  const dds = readDds(readFileSync(head), parts);
+  const dds = readDds(readFileSync(head), partsOf(dirname(head), basename(head).replace(/\.a$/i, ''), 'a'));
   const lv = dds.levels.find((l) => l.w <= 64) ?? dds.levels.at(-1);
   const im = decodeLevel(dds, lv.level);
   let s = 0;
