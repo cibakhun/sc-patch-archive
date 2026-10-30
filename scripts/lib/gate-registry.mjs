@@ -308,6 +308,19 @@ export const CHECKS = [
     checks: 'durch die Haube jedes Schiffs der Hangarseite sieht man nicht durch das Schiff in die Halle: Strahlen durch das Haubenglas, die hinter einer Rueckseite nichts mehr treffen, was der Viewer zeichnet, je Schiff unter seiner Klinke (Krisz 29.10.2026: Gladius von innen hohl)',
   },
   {
+    // Neuzugang (30.10.2026), vor dem langen audit:site: entpackt die
+    // Crew-Figur (1,7 MB Draco) und laedt das ausgelieferte Crew-Modul in
+    // Node (three aus node_modules), Sekunden. Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — liest dist/ und das Manifest
+    // src/data/hangar-crew.json.
+    id: 'verify:hangar-crew',
+    npm: 'verify:hangar-crew',
+    script: 'scripts/verify-hangar-crew.mjs',
+    rail: 'A',
+    checks:
+      'die Hangarseite gibt die Crew mit Skelett mit (Figur des Manifests und Modul versioniert in dist/); die Figur ist ein Netz mit Haut, Gelenke wie die Knochenliste, jede Ecke an hoechstens 4 Knochen mit Summe 1, Teilmaterial in der Farbtafel, Texturkoordinaten im Atlas, Farbtafel passend zu Stellungen und Teilmaterialien, unter den Obergrenzen fuer Bytes, Dreiecke und Knochen; der Animationsblock ist stimmig (Clips, Spuren an Knochen, Bilder in der Dauer, Einheitsquaternionen, Bahnen der Wurzel); jeder Clip, den das Modul spielen kann, steht in der Datei, mit Dauer nur Schleifen; jeder Einhaengepunkt des Materials steht im Shader von three.js; Wege im Raster des Moduls nur ueber freie Zellen (Probelauf); die Verkabelung im ausgelieferten Viewer (Arbeitsplaetze, Aufstandspunkte, Uebergabe, Ladezweig); Klinken fuer Clips und Farbstellungen (Krisz 30.10.2026: „bau npcs komplett aus“)',
+  },
+  {
     // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
     // audit:site: liest jede gebaute Seite einmal als Text, wenige Sekunden.
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — nur dist/.

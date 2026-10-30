@@ -4533,6 +4533,7 @@ function buildLife(scene, reduceMotion, withStage = true) {
       beam.scale.set(HALL_R * S * 1.8, 1, 1);
       crane.position.y = HALL_H * S - 3;
     }
+    if (rig) { rigLayout(); relay = false; }
   }
 
   // Echte Hangar-Crew (Modell aus scripts/build-hangar-assets.mjs): die Figur
@@ -4546,10 +4547,39 @@ function buildLife(scene, reduceMotion, withStage = true) {
   function setShadows(on) {
     castOn = on;
     root.traverse((n) => { if (n.userData.crewPart) n.castShadow = on; });
+    rig?.setShadows(on);
   }
   function setCount(n) {
     count = Math.min(n, crew.length);
     crew.forEach((w, i) => { w.root.visible = i < count; });
+    rig?.setCount(count);
+  }
+  // Crew mit Skelett und Spielanimationen (assets/hangar-crew.js): ersetzt
+  // die gebauten Arbeiter ganz. Sie bekommt Gerät, Rumpf, Arbeitsplätze, Feld
+  // und Fahrwerk (setBlocks, layout); ihre Figuren hängen direkt an root, so
+  // fahren sie mit dem Aufzug, dunkeln im Schacht ab und zählen fürs Hologramm.
+  // relay: Plätze neu (setBlocks ohne folgendes layout, etwa nach dem
+  // Wachsen der Halle), die Crew ordnet sich im nächsten Bild neu
+  let rig = null, places = null, relay = false;
+  function useRig(r) {
+    for (const w of crew) root.remove(w.root);
+    rig = r;
+    for (const o of r.roots) root.add(o);
+    r.setShadows(castOn); r.setCount(count);
+    rigged = true;
+    if (L) rigLayout();
+  }
+  let spotsSeen = false;
+  function rigLayout() {
+    // kommen die Plätze des Wartungsplatzes zum ersten Mal, steht die Crew
+    // gleich dort (mit dem Gerät), statt quer durch die Halle hinzugehen
+    const first = !spotsSeen && !!places?.spots?.length;
+    if (first) spotsSeen = true;
+    rig.layout({
+      ship: L.ship ?? { len: 10, halfW: 4, height: 3 }, shipYaw: SHIP_YAW, hull, visible: root.visible, snap: first,
+      blocks: (places?.boxes ?? blocks).map((r) => ({ x: r.x, z: r.z, ex: r.ex + CREW_GAP, ez: r.ez + CREW_GAP })),
+      stations: places?.spots ?? [], field: places?.field ?? null, feet: L.ship?.feet ?? [],
+    });
   }
   // Die echte Figur als EIN Mesh je Arbeiter: Die Gelenke des Gerüsts sind
   // seine Knochen, jedes Dreieck hängt mit Gewicht 1 an seinem Glied, und
@@ -4617,6 +4647,11 @@ function buildLife(scene, reduceMotion, withStage = true) {
   let walkT = 0;
   function update(dt, t, hold = false) {
     if (!L) return;
+    if (rig) {
+      if (relay && L) { relay = false; rigLayout(); }
+      rig.update(dt, t, hold);
+      return;
+    }
     if (!hold) walkT += dt;
     crew.forEach((w, i) => {
       if (i >= count) return;
@@ -4698,8 +4733,8 @@ function buildLife(scene, reduceMotion, withStage = true) {
   // Rechtecke in Weltmetern ({ x, z, ex, ez }); mit Abstand für Schultern.
   // Überlappende fasst es zu einem zusammen, sonst läge die Ecke des einen
   // im anderen. Gilt ab dem nächsten layout.
-  function setBlocks(list, under = null) {
-    hull = under;
+  function setBlocks(list, under = null, crewAt = null) {
+    hull = under; places = crewAt; relay = !!rig;
     const rs = list.map((r) => [r.x - r.ex - CREW_GAP, r.x + r.ex + CREW_GAP, r.z - r.ez - CREW_GAP, r.z + r.ez + CREW_GAP]);
     const meet = (a, b) => a[0] < b[1] && b[0] < a[1] && a[2] < b[3] && b[2] < a[3];
     for (let merged = true; merged;) {
@@ -4715,7 +4750,7 @@ function buildLife(scene, reduceMotion, withStage = true) {
     blocks = rs.map(([x0, x1, z0, z1]) => ({ x: (x0 + x1) / 2, z: (z0 + z1) / 2, ex: (x1 - x0) / 2, ez: (z1 - z0) / 2 }));
   }
 
-  return { layout, update, root, setCrew, showCrew, crewMeshes: () => crewMeshes, addStage, setShadows, setCount, isRigged: () => rigged, setBlocks };
+  return { layout, update, root, setCrew, showCrew, crewMeshes: () => crewMeshes, addStage, setShadows, setCount, isRigged: () => rigged, setBlocks, useRig, rig: () => rig };
 }
 
 // Gelenke des Arbeitergerüsts in der Folge der Knochen (worker(), rigCrew())
@@ -6978,8 +7013,11 @@ export async function initHangar(container, opts = {}) {
   function growSettled() {
     if (hallEnv && !realHall.probe) captureHallEnv(true);
     camFree = null; freeDirty = true;
-    life.setBlocks([...(realHall.dienst?.blocks ?? []), ...(realHall.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [])], realHall.dienst?.hull ?? null);
+    const deko = realHall.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x) : [];
+    life.setBlocks([...(realHall.dienst?.blocks ?? []), ...deko], realHall.dienst?.hull ?? null, crewPlaces(deko));
   }
+  // Arbeitsplätze, Feld und Grundflächen je Stück für die Crew mit Skelett
+  const crewPlaces = (deko) => ({ spots: realHall?.dienst?.spots ?? [], field: realHall?.dienst?.field ?? null, boxes: [...(realHall?.dienst?.boxes ?? []), ...deko] });
 
   // Einrichtung und Deko stehen in Originalgröße: gelegt für den Maßstab kk
   // (1/kk im Modell der Halle), im Ruhezustand kk = k. propGlide { a, t0,
@@ -7105,7 +7143,8 @@ export async function initHangar(container, opts = {}) {
     // Deko, wo sie nach dem Gleiten steht (propGlide): Die Crew stellt sich jetzt auf
     if (keep) return;
     life.root.scale.setScalar(1);
-    life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...(realHall?.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x, grow.to) : [])], realHall?.dienst?.hull ?? null);
+    const deko = realHall?.deko ? dekoBlocks(realHall.deko, hallRoot.scale.x, grow.to) : [];
+    life.setBlocks([...(realHall?.dienst?.blocks ?? []), ...deko], realHall?.dienst?.hull ?? null, crewPlaces(deko));
     life.layout(S, shipInfo);
   }
 
@@ -9028,6 +9067,18 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
       const i = Math.floor((lx - U.x0) / U.C), j = Math.floor((lz - U.z0) / U.C);
       return i >= 0 && j >= 0 && i < U.nx && j < U.nz && U.low[j * U.nx + i] < CREW_HEAD / wsc;
     };
+    // Für die Crew mit Skelett (assets/hangar-crew.js): je Platz das
+    // Hauptgerät (erstes Glied) mit Mitte, Drehung und Maßen in Weltmetern,
+    // die Grundfläche jedes Stücks einzeln (die Rechtecke oben fassen einen
+    // ganzen Platz und verdecken dessen Vorderseite) und das Feld des Aufzugs
+    const toW = (x, z) => d.group.localToWorld(new THREE.Vector3(x + sx, 0, z + sz));
+    d.spots = [...placed.entries()].map(([name, p]) => {
+      const b = p.q[0], e = d.parts.get(b.u.node), c = toW(b.x, b.z);
+      return { name, x: c.x, z: c.z, r: b.r + SHIP_YAW, sx: e.size.x * wsc, sz: e.size.z * wsc, h: (b.u.y + e.size.y) * wsc };
+    });
+    d.boxes = [...placed.values()].flatMap((p) => p.q.map((b) => { const c = toW(b.x, b.z); return { x: c.x, z: c.z, ex: b.ex * wsc, ez: b.ez * wsc }; }));
+    const fw = toW(-sx, -sz);
+    d.field = { x: fw.x, z: fw.z, ex: (FX + DIENST_EDGE) * wsc, ez: (FZ + DIENST_EDGE) * wsc };
     // Höchstes Gerät: Bei flachen Fahrzeugen (Nox 1,3 m) ist der Werkzeugschrank
     // (2,3 m) höher als das Schiff, und es fährt mit; das Schachttor wartet auf beides
     d.top = Math.max(0, ...[...placed.values()].flatMap((p) => p.q.map((b) => b.top)));
@@ -11519,7 +11570,9 @@ void main() {
     // Hüllquaders gemessen und ab dem Boden: Mit den Perzentilen allein ragte
     // der Brückenturm der Idris durch die Decke.
     const hb = box.hull ?? box, wp = wrap.position;
-    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under };
+    // Aufstandspunkte im Schiffsraum (wie in standOn gedreht): dort prüft die Crew das Fahrwerk
+    const feet = stand?.n ? gearOf(textured ? o.tex : url).contacts.filter((p) => p?.length === 3 && p.every(Number.isFinite)).map(([x, y, z]) => new THREE.Vector3(-x, y, -z).applyQuaternion(lean.quaternion).add(wp)) : null;
+    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under, feet };
     // in die Werkhalle, in ihr von Fahrzeug zu Fahrzeug oder aus ihr hinaus
     if (toWerk || current?.werk) {
       if (await werkShow(ship, { model, mat, info, textured, hull, inner: textured ? innerOf(o.tex) : null, my, drop, lowered, covered, padDown, toWerk })) return;
@@ -13322,7 +13375,17 @@ void main() {
   }
   // Crew aus dem Spiel; in der echten Halle zeigt sich ohne sie niemand
   // (die gebauten Figuren wären Selbstgebautes)
-  if (opts.crew?.url) {
+  if (opts.crew?.module && REAL) {
+    // mit Skelett und Spielanimationen: Modul und Figur zugleich laden,
+    // Programme übersetzen, bevor die Figuren an root hängen
+    Promise.all([import(opts.crew.module), fetchGltf(opts.crew.url, 'crew', opts.crew.bytes ?? 2e6)]).then(async ([mod, g]) => {
+      const r = await mod.crewRig(g, { reduceMotion });
+      await prepare({ traverse: (f) => r.roots.forEach((o) => o.traverse(f)), traverseVisible: (f) => r.roots.forEach((o) => o.traverseVisible(f)) });
+      life.useRig(r);
+      life.root.visible = revealed;
+      console.info(`[hangar] Crew: ${r.roots.length} Figuren mit Skelett, ${r.info().clips} Spielanimationen, ${r.info().variants} Farbstellungen`);
+    }).catch((e) => console.warn('[hangar] Crew mit Skelett nicht geladen', e)).finally(() => prog.delete('crew'));
+  } else if (opts.crew?.url) {
     fetchGltf(opts.crew.url, 'crew', 2e5).then(async (g) => {
       g.scene.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) unifyMaps(m); });
       await life.setCrew(g.scene);

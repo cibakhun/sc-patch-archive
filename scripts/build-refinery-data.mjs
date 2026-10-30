@@ -49,22 +49,15 @@ const stations = refineries
   .map((r) => ({ key: slug(r.name), name: r.name, short: shortName(r.name), system: r.system, profileId: r.profileId }))
   .sort((a, b) => (a.system === b.system ? a.short.localeCompare(b.short) : a.system.localeCompare(b.system)));
 
-// ---- Yield-Boni pro Station-Profil, um je Erz die beste Raffinerie zu finden ----
+// ---- Yield-Boni je Station und Erz ----
+// Die Profile nennen das Rohmaterial ("Gold (Ore)", "Raw Ice"); das Erz heißt
+// schlicht "Gold"/"Ice". Ein Erz, das ein Profil nicht nennt, hat dort ±0 %.
 const profiles = MODEL.refineryProfiles || {};
-const stripSuffix = (s) => String(s).replace(/ \((?:Ore|Raw|Pure)\)$/i, '').trim();
-// profileId -> repräsentativer Kurzname (erste Station des Profils)
-const profileShort = {};
-for (const s of stations) if (!profileShort[s.profileId]) profileShort[s.profileId] = s.short;
-function bestRefineryFor(oreName) {
-  let best = null; // { short, bonus }
-  for (const [pid, rates] of Object.entries(profiles)) {
-    for (const [k, v] of Object.entries(rates)) {
-      if (stripSuffix(k).toLowerCase() !== oreName.toLowerCase()) continue;
-      if (best == null || v > best.bonus) best = { short: profileShort[pid] || pid, bonus: v };
-    }
-  }
-  return best;
-}
+const oreKey = (s) => String(s).replace(/ \((?:Ore|Raw|Pure)\)$/i, '').replace(/^Raw /i, '').trim().toLowerCase();
+const bonusOf = (profileId, oreName) => {
+  for (const [k, v] of Object.entries(profiles[profileId] || {})) if (oreKey(k) === oreName.toLowerCase()) return v;
+  return 0;
+};
 
 // ---- Erze (game-sourced Fakten + UEX-Preis) ----
 const priceOf = (name) => PRICES.commodities?.[String(name).toLowerCase().trim()] || null;
@@ -75,7 +68,6 @@ const ores = minerals
   .map((m) => {
     const p = priceOf(m.name);
     if (!p) missingPrice.push(m.name);
-    const best = bestRefineryFor(m.name);
     return {
       name: m.name,
       code: m.code || (p && p.code) || null,
@@ -86,13 +78,15 @@ const ores = minerals
       sell: p ? p.sell : null,
       sellMax: p ? p.sellMax : null,
       sellLoc: p ? p.sellLoc : null,
-      bestRefinery: best ? best.short : null,
-      bestRefineryBonus: best ? best.bonus : null,
     };
   })
   .sort((a, b) => a.name.localeCompare(b.name));
 
-const outStations = stations.map(({ profileId, ...rest }) => rest); // profileId intern, raus aus dem Output
+// profileId bleibt intern; nach außen geht der aufgelöste Bonus je Erz (nur ≠ 0).
+const outStations = stations.map(({ profileId, ...rest }) => ({
+  ...rest,
+  bonus: Object.fromEntries(ores.map((o) => [o.name, bonusOf(profileId, o.name)]).filter(([, v]) => v !== 0)),
+}));
 
 const out = {
   meta: {

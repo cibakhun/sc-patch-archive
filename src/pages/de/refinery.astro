@@ -1,47 +1,41 @@
 ---
-// Refinery-Dashboard — DE (/de/refinery.html). Kontogebunden (Auth-Guard in der
-// Komponente, RLS), aber als Mining-WERKZEUG platziert — nicht unter /account/.
+// Refinery — DE (/de/refinery.html). Öffentlicher Wissensteil + kontogebundener
+// Tracker (Auth in der Komponente, RLS). Als Mining-WERKZEUG platziert, nicht
+// unter /account/, aber im Konto-Design (account.css + account-dossier.css).
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
 import RefineryDashboard from '../../components/account/RefineryDashboard.astro';
 import { versioned } from '../../lib/assetVersion';
+
+const cssVer = (f: string) => { try { return createHash('sha1').update(readFileSync(f)).digest('hex').slice(0, 8); } catch { return 'x'; } };
+const accountCss = `/assets/account.css?v=${cssVer('assets/account.css')}`;
+const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossier.css')}`;
 ---
 <Layout
-  title={'Refinery-Dashboard | VerseBase'}
-  description={'Verfolge deine Star-Citizen-Refinery-Aufträge — Station, Methode, Erze, Countdown und Erlös. In deinem VerseBase-Konto gespeichert.'}
+  title={'Star Citizen Raffinerie: Ertrag je Station, Erze, Methoden & Auftrags-Tracker | VerseBase'}
+  description={'Alle Star-Citizen-Raffinerien im Vergleich: Ertragsaufschlag je Station und Erz, alle Raffinerie-Methoden, Erzpreise, dazu ein Tracker für deine Aufträge mit Countdown und Erlös.'}
   themeColor="#05070d"
   ogImage="/assets/og-default.jpg"
   translated={true}
-  noindex={true}
 >
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
-<style is:inline>
-:root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#025f73;--hot:#065c71;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(43,125,148,.18)}
-
-.hero__in{max-width:var(--maxw)}
-.hero--acct{min-height:34svh}
-.acwrap--wide .sec-head{margin-top:2.6rem}</style>
+<link slot="head" rel="stylesheet" href={accountCss} />
+<link slot="head" rel="stylesheet" href={dossierCss} />
 <a class="skip" href="#main">Zum Inhalt springen</a>
 
-<SiteNav crumbs={[{ label: 'Mining', href: '/de/topics/mining.html' }, { label: 'Refinery' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: 'Mining', href: '/de/topics/mining.html' }, { label: 'Raffinerie' }]} hasEn={true} />
 
 <main id="main">
-  <AccountShell
-    eyebrow="VerseBase · Bergbau-Betrieb"
-    titleThin="Refinery"
-    title="Dashboard"
-    lead="Verfolge jeden Refinery-Auftrag — Station, Methode, Erze, Live-Countdown und Erlös. In deinem Konto gespeichert."
-    wide={true}
-  >
+  <AccountShell bare={true}>
     <RefineryDashboard lang="de" />
   </AccountShell>
 </main>
 
-<Attribution sources={[]} />
+<Attribution sources={['UEX Corp']} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

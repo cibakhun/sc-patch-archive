@@ -23,6 +23,8 @@ export interface RefStation {
   name: string;
   short: string;
   system: string;
+  /** Ertragsaufschlag in Prozent je Erzname; fehlt ein Erz, sind es ±0 %. */
+  bonus: Record<string, number>;
 }
 
 export interface RefOre {
@@ -38,9 +40,6 @@ export interface RefOre {
   sellMax: number | null;
   /** Ort des besten Preises */
   sellLoc: string | null;
-  /** beste Raffinerie (Kurzname) nach game-echtem Yield-Bonus */
-  bestRefinery: string | null;
-  bestRefineryBonus: number | null;
 }
 
 export interface RefineryData {
@@ -63,6 +62,21 @@ export const oreByName = new Map<string, RefOre>(REFINERY.ores.map((o) => [o.nam
 export const stationByKey = new Map<string, RefStation>(REFINERY.stations.map((s) => [s.key, s]));
 export const stationByName = new Map<string, RefStation>(REFINERY.stations.map((s) => [s.name, s]));
 export const methodByKey = new Map<string, RefMethod>(REFINERY.methods.map((m) => [m.key, m]));
+
+export const bonusAt = (s: RefStation, ore: string): number => s.bonus[ore] ?? 0;
+
+/** Alle Stationen für ein Erz, bester Aufschlag zuerst (bei Gleichstand nach Name). */
+export function rankStations(ore: string): { station: RefStation; bonus: number }[] {
+  return REFINERY.stations
+    .map((station) => ({ station, bonus: bonusAt(station, ore) }))
+    .sort((a, b) => b.bonus - a.bonus || a.station.name.localeCompare(b.station.name));
+}
+
+/** Spielstand der Daten als Patch: „4.10.2-live.12881860" → { label: '4.10.2', path: '/patches/sc-4-10-2.html' }. */
+export function dataPatch(): { label: string; path: string } | null {
+  const v = REFINERY.meta.gameVersion?.match(/^(\d+)\.(\d+)\.(\d+)/);
+  return v ? { label: `${v[1]}.${v[2]}.${v[3]}`, path: `/patches/sc-${v[1]}-${v[2]}-${v[3]}.html` } : null;
+}
 
 /** Stationen nach System gruppiert (Reihenfolge: Stanton, Pyro, Nyx, Rest). */
 export function stationsBySystem(): { system: string; stations: RefStation[] }[] {

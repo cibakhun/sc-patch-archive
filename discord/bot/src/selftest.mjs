@@ -573,6 +573,97 @@ console.log('\n▸ Website-Spiegel (site-db)');
     assert.equal(calls.length, 2);
     assert.match(calls[1].url, /&limit=1000&offset=1000$/);
   });
+  await ta('refinery_due keeps only deliverable rows', async () => {
+    calls.length = 0;
+    const body = JSON.stringify({ rows: [
+      { job_id: 7, discord_user_id: ID, lang: 'de', station: 'Levski', method: 'Dinyx Solventation', items: [], ready_at: '2026-10-30T12:00:00Z' },
+      { job_id: 8, discord_user_id: 'nope' },
+      { job_id: '9', discord_user_id: ID },
+    ] });
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([{ status: 200, body }]) });
+    const rows = await db.refineryDue();
+    assert.deepEqual(rows.map((r) => r.job_id), [7]);
+    assert.deepEqual(JSON.parse(calls[0].init.body), { op: 'refinery_due' });
+  });
+  await ta('refinery_sent sends unique positive ids and refuses junk before any request', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, BOT_ROLE_SYNC_SECRET: 's' }, { fetchImpl: fake([{ status: 200, body: '{"updated":2}' }]) });
+    assert.equal((await db.refinerySent([3, 4, 3])).updated, 2);
+    assert.deepEqual(JSON.parse(calls[0].init.body), { op: 'refinery_sent', ids: [3, 4] });
+    await assert.rejects(() => db.refinerySent([]), /Auftrags-IDs/);
+    await assert.rejects(() => db.refinerySent(['1; drop']), /Auftrags-IDs/);
+    assert.equal(calls.length, 1);
+  });
+  await ta('legacy key reaches refinery through the two rpc functions', async () => {
+    calls.length = 0;
+    const { db } = createSiteDb({ ...base, SUPABASE_SERVICE_ROLE_KEY: 'k' }, { fetchImpl: fake([{ status: 200, body: '[]' }, { status: 200, body: '1' }]), log: () => {} });
+    assert.deepEqual(await db.refineryDue(), []);
+    assert.equal((await db.refinerySent([5])).updated, 1);
+    assert.equal(calls[0].url, 'https://x.supabase.co/rest/v1/rpc/refinery_discord_due');
+    assert.deepEqual(JSON.parse(calls[1].init.body), { p_ids: [5] });
+  });
+}
+
+console.log('\n▸ Raffinerie-DMs (refinery-notify)');
+try {
+  const { refineryMessage, notifyRefinery } = await import('./refinery-notify.mjs');
+  const ID = '123456789012345678';
+  const row = (o = {}) => ({ job_id: 1, discord_user_id: ID, lang: 'de', station: 'MIC-L2 Long Forest Station', method: 'Gaskin Process',
+    items: [{ ore: 'Gold', rawScu: 40, yieldScu: 12.5 }, { ore: '**Bold**', rawScu: 3, yieldScu: 0 }], ready_at: '2026-10-30T12:00:00Z', ...o });
+  t('message speaks the stored language and links the matching tracker', () => {
+    const de = refineryMessage(row()).embeds[0].toJSON();
+    assert.equal(de.title, 'Raffinerie-Auftrag fertig');
+    assert.equal(de.url, 'https://verse-base.com/de/refinery.html#tracker');
+    assert.match(de.fields[0].value, /Gold · 12,5 SCU/);
+    const en = refineryMessage(row({ lang: 'xx' })).embeds[0].toJSON();
+    assert.equal(en.title, 'Refinery order ready');
+    assert.equal(en.url, 'https://verse-base.com/refinery.html#tracker');
+  });
+  t('user text cannot format the message', () => {
+    const e = refineryMessage(row({ station: '__x__' })).embeds[0].toJSON();
+    assert.match(e.description, /\\_\\_x\\_\\_/);
+    assert.match(e.fields[0].value, /\\\*\\\*Bold\\\*\\\* · 3 SCU/);
+  });
+  const fakeCtx = (sendImpl, marked) => ({
+    siteDb: {
+      refineryDue: async () => [row({ job_id: 1 }), row({ job_id: 2 }), row({ job_id: 3 })],
+      refinerySent: async (ids) => { marked.push(...ids); return { updated: ids.length }; },
+    },
+    client: { users: { fetch: async () => ({ send: sendImpl }) } },
+  });
+  await ta('sent and undeliverable orders are marked, a hiccup stays open for the next run', async () => {
+    const marked = [];
+    let n = 0;
+    const send = async () => {
+      n += 1;
+      if (n === 2) throw Object.assign(new Error('Cannot send messages to this user'), { code: 50007 });
+      if (n === 3) throw Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+    };
+    const loud = console.log; console.log = () => {};
+    try { assert.equal(await notifyRefinery(fakeCtx(send, marked), { log: () => {} }), 1); } finally { console.log = loud; }
+    assert.deepEqual(marked, [1, 2]);
+  });
+  await ta('a failed mark does not send the same DM again on the next run', async () => {
+    let sends = 0;
+    let fail = true;
+    const ctx = {
+      siteDb: {
+        refineryDue: async () => [row({ job_id: 41 })],
+        refinerySent: async (ids) => { if (fail) throw new Error('503'); return { updated: ids.length }; },
+      },
+      client: { users: { fetch: async () => ({ send: async () => { sends += 1; } }) } },
+    };
+    const loud = console.log; console.log = () => {};
+    try {
+      await notifyRefinery(ctx, { log: () => {} });
+      fail = false;
+      await notifyRefinery(ctx, { log: () => {} });
+    } finally { console.log = loud; }
+    assert.equal(sends, 1);
+  });
+} catch (e) {
+  if (e.code === 'ERR_MODULE_NOT_FOUND') console.log('  · skipped (run `npm install` for discord.js)');
+  else throw e;
 }
 
 console.log('\n▸ Datenfrist (retention)');

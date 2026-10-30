@@ -127,6 +127,14 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
       if (url.includes('/rest/v1/user_roles?')) return read(uid, 'role', who ? [{ role: who.role }] : []);
       const box = browser.inbox;
       const to = (url.match(/receiver_id=eq\.([^&]+)/) || [])[1];
+      // Raffinerie: inbox.refinery = Auftraege von user-1, inbox.refinerySite = Schalter (fehlt: keine Zeile).
+      if (box && url.includes('/rest/v1/notification_settings?')) {
+        return Promise.resolve(respond(200, typeof box.refinerySite === 'boolean' ? [{ refinery_site: box.refinerySite }] : []));
+      }
+      if (box && url.includes('/rest/v1/refinery_jobs?')) {
+        if (box.down) return Promise.resolve(respond(503, { message: 'HTTP 503' }));
+        return Promise.resolve(respond(200, (box.refinery || []).filter((j) => j.status === 'active').map(({ id, station, ready_at }) => ({ id, station, ready_at }))));
+      }
       if (box && /\/rest\/v1\/(friend_requests|direct_messages|friends)\?/.test(url)) {
         if (box.down) return Promise.resolve(respond(503, { message: 'HTTP 503' }));
         if (url.includes('/rest/v1/friend_requests?')) {
@@ -186,7 +194,7 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
       await browser.drain();
     },
     open(sessionStore = new Map()) {
-      const tab = { events: [], requests: [] };
+      const tab = { events: [], requests: [], toasts: [], toastsShown: 0 };
       tabs.push(tab);
       const listeners = {};
       const classes = () => {
@@ -249,6 +257,15 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
           querySelectorAll: (sel) => (sel === '.js-nav-acct' ? [nav] : sel === '.js-nav-badge' ? [badge] : []),
           getElementById: () => null,
           addEventListener: (type, fn) => { (docListeners[type] ||= []).push(fn); },
+          // Nur fuer den Raffinerie-Hinweis: Elemente mit Text, body sammelt sie in tab.toasts.
+          createElement: () => {
+            const el = { children: [], textContent: '', className: '', attrs: {}, classList: { add() {} } };
+            el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
+            el.appendChild = (c) => { el.children.push(c); };
+            el.remove = () => { tab.toasts = tab.toasts.filter((t) => t !== el); };
+            return el;
+          },
+          body: { appendChild: (el) => { tab.toasts.push(el); tab.toastsShown += 1; } },
         },
         fetch: (url, init) => {
           tab.requests.push({ method: init.method, url, signal: init.signal, body: init.body ? JSON.parse(init.body) : undefined });
@@ -286,6 +303,8 @@ export function makeAccountBrowser({ expiresIn = -10, holdReads = false, profile
       tab.rest = (...args) => sandbox.VBAccount.rest(...args);
       tab.nav = () => ({ href: nav.href, text: label.textContent, authed: acct.set.has('is-authed'), title: nav.title });
       tab.badge = () => ({ text: badge.textContent, hidden: badge.hidden, href: nav.href, aria: attrs['aria-label'], title: nav.title });
+      /** Sichtbare Raffinerie-Hinweise: Titel | Zeile -> Ziel. */
+      tab.toastTexts = () => tab.toasts.map((t) => t.children.map((c) => c.textContent).join(' | ') + ' -> ' + t.href);
       tab.fireDoc = (type, detail) => { if (tab.frozen) return; for (const fn of (docListeners[type] || []).slice()) fn({ type, detail }); };
       tab.setVisible = (on) => {
         sandbox.document.visibilityState = on ? 'visible' : 'hidden';

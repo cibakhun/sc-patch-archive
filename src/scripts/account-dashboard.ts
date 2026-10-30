@@ -4,6 +4,7 @@
 import { supabase } from '../lib/supabase';
 import { escapeHtml as escHtml } from '../lib/escape';
 import { cssUrl } from '../lib/cssUrl';
+import { refineryValue, refinerySpark } from '../lib/refineryJobs';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
@@ -1591,41 +1592,15 @@ import { cssUrl } from '../lib/cssUrl';
           .select('station, method, status, est_value, sold_value, started_at')
           .order('started_at', { ascending: false });
         const jobs = rjobs || [];
-        let total = 0, active = 0;
-        for (const j of jobs) {
-          const v = j.sold_value != null ? Number(j.sold_value) : (j.est_value != null ? Number(j.est_value) : 0);
-          if (!Number.isNaN(v)) total += v;
-          if (j.status === 'active') active++;
-        }
+        const { total, active } = refineryValue(jobs);
         const ovRefValue = document.getElementById('ovRefValue');
         if (ovRefValue) ovRefValue.innerHTML = fmtAuec(total);
         const ovRefSub = document.getElementById('ovRefSub');
         if (ovRefSub) ovRefSub.textContent = active <= 0 ? ovTpl('lNoactive')
           : active === 1 ? ovTpl('lActive1') : ovTpl('lActive').replace('%n%', String(active));
 
-        // Sparkline aus echten Job-Werten (alt -> neu)
         const spark = document.getElementById('ovRefSpark');
-        if (spark) {
-          const vals = jobs.slice(0, 10).map(j => {
-            const v = j.sold_value != null ? Number(j.sold_value) : (j.est_value != null ? Number(j.est_value) : 0);
-            return Number.isNaN(v) ? 0 : v;
-          }).reverse();
-          if (vals.length >= 2) {
-            const W = 120, H = 24, mx = Math.max(...vals), mn = Math.min(...vals), rng = (mx - mn) || 1;
-            const pts = vals.map((v, i) => [
-              +((i / (vals.length - 1)) * W).toFixed(1),
-              +(H - 2 - ((v - mn) / rng) * (H - 4)).toFixed(1),
-            ] as [number, number]);
-            const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
-            const area = 'M' + pts[0][0] + ',' + H + ' ' + pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') + ' L' + pts[pts.length - 1][0] + ',' + H + ' Z';
-            const end = pts[pts.length - 1];
-            spark.innerHTML =
-              '<defs><linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:0"/></linearGradient></defs>' +
-              `<path d="${area}" fill="url(#sparkg)"/>` +
-              `<path d="${line}" fill="none" style="stroke:var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +
-              `<circle cx="${end[0]}" cy="${end[1]}" r="2.2" style="fill:var(--gold)"/>`;
-          }
-        }
+        if (spark) spark.innerHTML = refinerySpark(jobs, 'sparkg');
 
         if (jobs[0]) activity.push({ g: 'i-hex', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
       } catch {}
