@@ -35,7 +35,10 @@
      [5] Jeder Einhaengepunkt des Materials steht im Shader von three.js
          (MeshStandardMaterial), sonst fehlten Farben oder Normale still.
      [6] Wege: im Raster des Moduls fuehrt jeder gefundene Weg nur ueber
-         freie Zellen und um Rumpf und Geraet herum (Probelauf).
+         freie Zellen und um Rumpf und Geraet herum (Probelauf). Steht eine
+         Figur mitten auf der Strecke, haelt der Weg um sie herum mindestens
+         ABSTAND Meter (Mitte zu Mitte; darunter laufen zwei Figuren
+         ineinander, Krisz 30.10.2026: „npcs glitchen ineinander“).
      [7] Verkabelung im ausgelieferten Viewer: Arbeitsplaetze aus dem
          Wartungsplatz, Aufstandspunkte, Uebergabe an die Crew, Ladezweig.
      [8] Klinken fuer Clips und Farbstellungen.
@@ -47,6 +50,10 @@
          scripts/build-hangar-crew.mjs und WORK in assets/hangar-crew.js
          passen nicht zusammen
        · [7] im Viewer fehlt: Ladezweig (opts.crew.module, crewRig, useRig)
+   Abstand um stehende Figuren (30.10.2026, abends): AVOID_R im
+   ausgelieferten Modul auf 0.3 gesetzt:
+       · [6] 68 Wege fuehren naeher als 0.55 m an einer stehenden Figur
+         vorbei (naechster 0.05 m): AVOID_R in assets/hangar-crew.js
    ============================================================ */
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -63,7 +70,9 @@ const PAGE = join('de', 'hangar.html');
 // Obergrenzen je Figur (acht laufen zugleich, jede ein Zeichenaufruf)
 const CAP = { bytes: 2.4e6, tris: 30000, bones: 100 };
 // 30.10.2026, erster Stand: 39 Clips, 20 Farbstellungen der Deckcrew
-const KLINKE = { clips: 39, variants: 20 };
+const KLINKE = { clips: 39, variants: 20, umgehen: 60 };
+// Schulterbreite: Mitte zu Mitte darunter durchdringen sich zwei Figuren
+const ABSTAND = 0.55;
 
 const findings = [];
 const say = (s) => console.log(s);
@@ -226,7 +235,7 @@ if (mod) {
   }
 }
 say('\n[6] Wege: nur ueber freie Zellen, um Rumpf und Geraet herum (Probelauf)');
-const wege = { gesucht: 0, gefunden: 0, schnitte: 0 };
+const wege = { gesucht: 0, gefunden: 0, schnitte: 0, umgehen: 0, umgangen: 0, zuNah: 0, naechster: Infinity };
 if (mod?.buildNav && mod?.pathOf) {
   // Schiff 6 x 14 m (Rumpf tief), vier Geraete daneben, Feld 30 x 40 m
   const hull = (x, z) => Math.abs(x) < 3 && Math.abs(z) < 7;
@@ -244,8 +253,25 @@ if (mod?.buildNav && mod?.pathOf) {
     wege.gefunden++;
     const p = mod.pathOf(pts), q = new THREE.Vector3();
     for (let d = 0; d <= p.total; d += 0.1) { p.at(d, q); if (inBlock(q.x, q.z)) { wege.schnitte++; break; } }
+    // eine Figur steht mitten auf der geraden Strecke (frei, weit genug von a und b)
+    const m = a.clone().lerp(b, 0.5);
+    if (!nav.free(m.x, m.z) || m.distanceTo(a) < 2 || m.distanceTo(b) < 2) continue;
+    wege.umgehen++;
+    const um = nav.route(a, b, [m]);
+    if (!um) continue;
+    wege.umgangen++;
+    const pu = mod.pathOf(um);
+    let nah = Infinity;
+    for (let d = 0; d <= pu.total; d += 0.05) { pu.at(d, q); nah = Math.min(nah, Math.hypot(q.x - m.x, q.z - m.z)); }
+    wege.naechster = Math.min(wege.naechster, nah);
+    if (nah < ABSTAND) wege.zuNah++;
   }
   sollIst('jeder Weg gefunden, 0 schneiden Rumpf oder Geraet', `${wege.gesucht} gesucht, ${wege.gefunden} gefunden, ${wege.schnitte} schneiden`);
+  sollIst(`um eine Figur auf der Strecke: mindestens ${KLINKE.umgehen} Proben, keiner naeher als ${ABSTAND} m`,
+    `${wege.umgehen} Proben, ${wege.umgangen} Wege gefunden, ${wege.zuNah} zu nah, naechster ${wege.naechster.toFixed(2)} m`);
+  if (wege.umgehen < KLINKE.umgehen) fail(`[6] nur ${wege.umgehen} Proben mit einer Figur auf der Strecke (Klinke ${KLINKE.umgehen})`);
+  if (wege.umgangen < wege.umgehen) fail(`[6] ${wege.umgehen - wege.umgangen} Wege um eine stehende Figur nicht gefunden`);
+  if (wege.zuNah) fail(`[6] ${wege.zuNah} Wege fuehren naeher als ${ABSTAND} m an einer stehenden Figur vorbei (naechster ${wege.naechster.toFixed(2)} m): AVOID_R in assets/hangar-crew.js`);
   if (wege.gefunden < wege.gesucht) fail(`[6] ${wege.gesucht - wege.gefunden} von ${wege.gesucht} Wegen zwischen freien Stellen nicht gefunden`);
   if (wege.schnitte) fail(`[6] ${wege.schnitte} Wege fuehren durch Rumpf oder Geraet`);
 } else if (mod) fail('[6] das Modul exportiert buildNav oder pathOf nicht mehr');
@@ -275,7 +301,7 @@ if (nClips < KLINKE.clips) fail(`[8] nur ${nClips} Clips, Klinke ${KLINKE.clips}
 if (nVar < KLINKE.variants) fail(`[8] nur ${nVar} Farbstellungen, Klinke ${KLINKE.variants}`);
 
 say('\n[Selbstauskunft]');
-say(`    Figur: ${glbBuf ? (statSync(glbFile).size / 1e6).toFixed(2) : '—'} MB, ${stat.tris} Dreiecke, ${stat.bones} Knochen   Clips: ${anim.clips} (${anim.tracks} Spuren, ${anim.keys} Schluessel)   Farbstellungen: ${nVar}   Wege: ${wege.gefunden}/${wege.gesucht}   Viewer-Stellen: ${NAHT.length + 1}`);
+say(`    Figur: ${glbBuf ? (statSync(glbFile).size / 1e6).toFixed(2) : '—'} MB, ${stat.tris} Dreiecke, ${stat.bones} Knochen   Clips: ${anim.clips} (${anim.tracks} Spuren, ${anim.keys} Schluessel)   Farbstellungen: ${nVar}   Wege: ${wege.gefunden}/${wege.gesucht}, um Figur ${wege.umgangen}/${wege.umgehen}   Viewer-Stellen: ${NAHT.length + 1}`);
 
 if (findings.length) {
   console.error(`\nverify-hangar-crew: ${findings.length} FEHLER\n`);
