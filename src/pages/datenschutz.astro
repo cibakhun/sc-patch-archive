@@ -231,7 +231,8 @@ body{font-family:var(--font-body)}
     <ul>
       <li><strong>media.starcitizen.tools</strong> (Star Citizen Wiki) and
         <strong>cstone.space</strong>: most ship images, as main image and thumbnail on ship pages,
-        in the ship list, in the fleet on pilot profiles and on the tiles of saved ships and loadouts
+        in the ship list, in the fleet and pinned loadouts on pilot profiles and on the tiles of saved
+        ships and loadouts
         in the account dashboard</li>
       <li><strong>api.fleetyards.net</strong> (FleetYards): paints on the ship pages and fallback
         images for ships without an image of their own; the requests may be redirected to
@@ -351,7 +352,8 @@ body{font-family:var(--font-body)}
         your profile also shows when you uploaded it.</li>
       <li><strong>favorites</strong> you actively save, including your ship fleet</li>
       <li><strong>tool data</strong> you actively create (crafting planner and “owned” marks,
-        refinery jobs, mining presets, hangar loadouts); only you can see it</li>
+        refinery jobs, mining presets, hangar loadouts); only you can see it, except the loadouts
+        you pin to your profile (see <a href="#profile">pilot profile</a>)</li>
       <li><strong>friend requests, friendships and messages</strong> (see
         <a href="#friends">friends and messages</a>)</li>
       <li>your <a href="#presence"><strong>online status</strong></a> and the note on what you are
@@ -409,7 +411,7 @@ body{font-family:var(--font-body)}
     <p class="muted">
       When you are not signed in, the website only connects to Supabase when you use account
       features (sign-in, password reset) and on three kinds of pages that read public data: a public
-      pilot profile (that pilot's profile and favorites when opened, then that pilot's online status
+      pilot profile (that pilot's profile, favorites and pinned loadouts when opened, then that pilot's online status
       every 40 seconds while the page is open; uploaded images come from Supabase's storage), the
       Feedback page (the list of credited <a href="#testpilots">test pilots</a>) and the Support
       page (the <a href="#support">donation status</a>; the button there also creates the Stripe
@@ -420,7 +422,9 @@ body{font-family:var(--font-body)}
     </p>
     <p class="muted">
       While you are signed in, the pages with the site menu connect to Supabase to renew your
-      session when needed, read your display name and account role for the menu and write your
+      session when needed, read your display name and account role for the menu, query open
+      friend requests to you and unread messages from friends for the number on the account button
+      (see <a href="#friends">friends and messages</a>) and write your
       <a href="#presence">online status</a>. Pages with account-bound tools sync their contents and,
       the first time, take over whatever you had saved in this browser while signed out. The account
       dashboard additionally keeps a permanent connection to Supabase through which new messages
@@ -471,12 +475,17 @@ body{font-family:var(--font-body)}
       display name, bio, profile picture or icon, banner, role, status and status text, org name,
       RSI handle and whether it is verified, where applicable the “Test Pilot” badge, your names on
       Twitch, YouTube and X, since when you have been a member, your
-      <a href="#presence">online status</a> if you have shared it with everyone, and all your favorites including your ship fleet. If you
+      <a href="#presence">online status</a> if you have shared it with everyone, all your favorites
+      including your ship fleet as long as “Show favorites on my public page” is switched on in the
+      profile (it is by default), and up to three loadouts you pin to your public profile under
+      “Saved”, each with the ship, the name you gave it, the chosen components and missile racks and
+      the paint. If you
       are linked with Discord and a member of our Discord server, the profile also shows a rank
       badge with your rank, level and prestige there (see
       <a href="#discord-server">Discord server</a>). The website's public database interface
-      returns the same details, with the month you created the account and the day you saved each
-      favorite, and for all profiles with a handle at once.
+      returns the same details, with the month you created the account, the day you saved each
+      favorite and the time you created and last changed each pinned loadout, and for all profiles
+      with a handle at once.
     </p>
     <p>
       Signed-in users can additionally read the internal account ID of every profile with a handle
@@ -489,12 +498,15 @@ body{font-family:var(--font-body)}
       or with a rank from the Discord server. Hits and suggestions show display name, handle,
       profile picture or icon, whether the RSI handle is verified, where applicable the rank badge
       and, for suggestions, the shared org or role. Not public are your e-mail address, your
-      Discord tag, your verification code, your tool data and hangar loadouts and your messages;
+      Discord tag, your verification code, your tool data, your hangar loadouts that are not pinned
+      and your messages;
       the website shows your friends list only to you. If you use your Discord picture as profile
       picture, every browser that shows your profile loads the picture directly from Discord; the
       picture address contains your Discord ID, which is therefore publicly readable as well. The
       profile page is blocked for search engines (noindex). If you remove the handle, the profile is
-      no longer public. The legal basis is Art. 6 (1) (b) GDPR: the public profile is a feature you
+      no longer public. If you remove a loadout from the profile or delete it, it is no longer
+      public; if you switch the favorites off, neither the profile nor the interface shows them.
+      The legal basis is Art. 6 (1) (b) GDPR: the public profile is a feature you
       switch on yourself with the handle.
     </p>
 
@@ -517,8 +529,11 @@ body{font-family:var(--font-body)}
       operator of the database and Supabase technically have access. New messages arrive through a
       permanent connection to Supabase while the dashboard is open. Individual messages or
       conversations cannot be deleted; they remain readable for both even after a friendship ends
-      and are deleted as soon as either of you deletes their account. The legal basis is
-      Art. 6 (1) (b) GDPR.
+      and are deleted as soon as either of you deletes their account. While you are signed in, the
+      account button in the site menu shows how many friend requests to you are open and how many
+      messages from friends you have not read yet. For this, your browser asks Supabase when a page
+      loads, then every minute while the tab is visible, and when you return to the tab. The website
+      does not store the numbers, and messages are not marked as read by this. The legal basis is Art. 6 (1) (b) GDPR.
     </p>
 
     <h2 id="presence">Online status (account only)</h2>

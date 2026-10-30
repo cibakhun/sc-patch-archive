@@ -120,14 +120,17 @@ for (const slug of slugs) {
 // Palette des Lacks, nicht die Grundpalette der Schwester. Die Cutlass-Varianten
 // tragen Hawthorn je mit eigenem Material, nur die Red mit Palette; der
 // Vindicator-Eintrag der Mustang Alpha CitizenCon2018 nennt die Grundpalette der
-// Alpha (Befund 29.10.2026, .planning/notes/hangar-landung.md).
+// Alpha (Befund 29.10.2026, .planning/notes/hangar-landung.md). Grundpalette
+// heißt hier wie im Bau: base des Schwesterschiffs, wie es in ship-paints.json
+// steht (mit Lack ab Werk), nur die Farben a/b/c verglichen (Befund 30.10.2026).
 const family = (rec) => rec.name.replace(/^EntityClassDefinition\./i, '').split('_').slice(0, 2).join(' ').toLowerCase();
 const mtlOf = (sub) => (sub.Geometry?.Material?.path ?? '').replace(/\\/g, '/').toLowerCase();
-const sisterIndex = new Map();
+const sisterIndex = new Map(), baseOf = new Map();
 for (const { slug, rec, geo } of ownShips) for (const sub of geo?.SubGeometry ?? []) {
   const colours = paletteColours(sub.Geometry?.Palette);
-  // nach Werten wie im Bau, dessen Paletten-Kennungen der Export selbst bildet
-  if (!colours || JSON.stringify(colours) === JSON.stringify(paletteColours(geo.Geometry?.Palette))) continue;
+  if (colours && !baseOf.has(slug)) baseOf.set(slug, shipBase(rec, geo).base);
+  const base = colours && baseOf.get(slug);
+  if (!colours || (base && [colours.a, colours.b, colours.c].join() === [base.a, base.b, base.c].join())) continue;
   for (const t of tokens(sub.Tags)) {
     const k = t.toLowerCase();
     if (!sisterIndex.has(k)) sisterIndex.set(k, []);
@@ -163,6 +166,19 @@ function factoryItem(e) {
   const viaName = e?.entityClassName && shipByName.get(`entityclassdefinition.${e.entityClassName.toLowerCase()}`);
   return viaName ? { item: viaName, via: 'Name' } : null;
 }
+// Grundpalette des Schiffs, wie sie als base in ship-paints.json steht: die
+// Palette der Geometrie, oder der Lack ab Werk (factory: Teil und Weg)
+function shipBase(rec, geo) {
+  const base = paletteColours(geo?.Geometry?.Palette);
+  if (!base) return { base: null, factory: null };
+  const factory = (component(db.readRecord(rec, { typed: true, maxDepth: 6 }), 'SEntityComponentDefaultLoadoutParams')?.loadout?.entries ?? [])
+    .filter((e) => /paint/i.test(e?.itemPortName ?? '')).map(factoryItem).find(Boolean);
+  if (!factory) return { base, factory: null };
+  const tags = new Set(tokens(component(db.readRecord(factory.item, { typed: true, maxDepth: 6 }), 'SAttachableComponentParams')?.AttachDef?.Tags).map((t) => t.replace(/^@/, '').toLowerCase()));
+  const sub = (geo.SubGeometry ?? []).find((s) => tokens(s.Tags).some((t) => tags.has(t.toLowerCase())));
+  const c = sub && paletteColours(sub.Geometry?.Palette);
+  return c ? { base: c, factory } : { base, factory: null };
+}
 
 const noRecord = [], noBase = [], sameName = [], factoryPaint = [], baseFallback = [];
 let subNoPalette = 0, dupDropped = 0;
@@ -173,16 +189,9 @@ for (const { slug, rec, geo } of ownShips) {
     .map((sub) => ({ sub, items: tokens(sub.Tags).flatMap((t) => paintsByTag.get(t.toLowerCase()) ?? []) }))
     .filter((m) => m.items.length);
   if (!matched.length) continue;
-  let base = paletteColours(geo.Geometry?.Palette);
+  const { base, factory } = shipBase(rec, geo);
   if (!base) { noBase.push(slug); continue; }
-  const factory = (component(db.readRecord(rec, { typed: true, maxDepth: 6 }), 'SEntityComponentDefaultLoadoutParams')?.loadout?.entries ?? [])
-    .filter((e) => /paint/i.test(e?.itemPortName ?? '')).map(factoryItem).find(Boolean);
-  if (factory) {
-    const tags = new Set(tokens(component(db.readRecord(factory.item, { typed: true, maxDepth: 6 }), 'SAttachableComponentParams')?.AttachDef?.Tags).map((t) => t.replace(/^@/, '').toLowerCase()));
-    const sub = (geo.SubGeometry ?? []).find((s) => tokens(s.Tags).some((t) => tags.has(t.toLowerCase())));
-    const c = sub && paletteColours(sub.Geometry?.Palette);
-    if (c) { base = c; factoryVia[factory.via]++; factoryPaint.push(`${slug} (${factory.item.name.replace(/^EntityClassDefinition\./i, '')}, ${factory.via})`); }
-  }
+  if (factory) { factoryVia[factory.via]++; factoryPaint.push(`${slug} (${factory.item.name.replace(/^EntityClassDefinition\./i, '')}, ${factory.via})`); }
 
   const byId = new Map();
   for (const { sub, items } of matched) {
