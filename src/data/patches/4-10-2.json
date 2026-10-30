@@ -64,6 +64,52 @@
           "label": "Sammeln",
           "value": "Shubin kauft Rohstoffe, Adagio recycelt Merlins, Archimedes und Constellations"
         }
+      ],
+      "links": [
+        {
+          "label": "Constellation Mk V Centaurus",
+          "href": "/schiffe/rsi-constellation-mk5-centaurus.html"
+        },
+        {
+          "label": "RSI Disc. Month: Refuel Request",
+          "href": "/missionen/rsi-disc-month-refuel-request.html"
+        },
+        {
+          "label": "RSI Disc. Month: Urgent Refuel Request",
+          "href": "/missionen/rsi-disc-month-urgent-refuel-request.html"
+        },
+        {
+          "label": "RSI Disc. Month: Critical Refuel Request",
+          "href": "/missionen/rsi-disc-month-critical-refuel-request.html"
+        },
+        {
+          "label": "RSI Disc. Month: Package Recovery (Exp. S)",
+          "href": "/missionen/rsi-disc-month-package-recovery-exp-s.html"
+        },
+        {
+          "label": "RSI Disc. Month: Recover Package from Hijackers",
+          "href": "/missionen/rsi-disc-month-recover-package-from-hijackers.html"
+        },
+        {
+          "label": "RSI Disc. Month: High Value Package Retrieval Op",
+          "href": "/missionen/rsi-disc-month-high-value-package-retrieval-op.html"
+        },
+        {
+          "label": "RSI Disc. Month: Procure Refined Beryl",
+          "href": "/missionen/rsi-disc-month-procure-refined-beryl.html"
+        },
+        {
+          "label": "RSI Disc. Month: Procure Refined Iron",
+          "href": "/missionen/rsi-disc-month-procure-refined-iron.html"
+        },
+        {
+          "label": "RSI Disc. Month: Procure Refined Quantainium",
+          "href": "/missionen/rsi-disc-month-procure-refined-quantainium.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
       ]
     },
     {
@@ -75,6 +121,32 @@
         {
           "label": "Missionsfamilien",
           "value": "1.355 → 1.387 (+32)"
+        }
+      ],
+      "links": [
+        {
+          "label": "Iasi 2 H Box Courier",
+          "href": "/missionen/iasi-2-h-box-courier.html"
+        },
+        {
+          "label": "Iasi Defend Ship Medium",
+          "href": "/missionen/iasi-defend-ship-medium.html"
+        },
+        {
+          "label": "Iasi Patrol Medium",
+          "href": "/missionen/iasi-patrol-medium.html"
+        },
+        {
+          "label": "Iasi Eliminate Boss Hard",
+          "href": "/missionen/iasi-eliminate-boss-hard.html"
+        },
+        {
+          "label": "Iasi Salvage Medium",
+          "href": "/missionen/iasi-salvage-medium.html"
+        },
+        {
+          "label": "Iasi Haul Cargo: Party Supplies",
+          "href": "/missionen/iasi-haul-cargo-ato-b-supply-party-supplies.html"
         }
       ]
     },
@@ -99,6 +171,36 @@
         {
           "label": "KI und Missionen",
           "value": "NPC-Constellations fliegen den neuen Rumpf; der Collector-Auftrag gibt die Gold-Standard-Taurus"
+        }
+      ],
+      "links": [
+        {
+          "label": "Constellation Mk IV Andromeda",
+          "href": "/schiffe/rsi-constellation-andromeda.html"
+        },
+        {
+          "label": "Constellation Mk IV Aquila",
+          "href": "/schiffe/rsi-constellation-aquila.html"
+        },
+        {
+          "label": "Constellation Mk IV Phoenix",
+          "href": "/schiffe/rsi-constellation-phoenix.html"
+        },
+        {
+          "label": "Constellation Mk IV Phoenix Emerald",
+          "href": "/schiffe/rsi-constellation-phoenix-emerald.html"
+        },
+        {
+          "label": "Constellation Mk IV Taurus",
+          "href": "/schiffe/rsi-constellation-taurus.html"
+        },
+        {
+          "label": "P-52 Merlin",
+          "href": "/schiffe/krig-p52-merlin.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
         }
       ]
     },
@@ -128,6 +230,16 @@
           "label": "Raketen",
           "value": "32 × StrikeForce II"
         }
+      ],
+      "links": [
+        {
+          "label": "Constellation Mk V Centaurus",
+          "href": "/schiffe/rsi-constellation-mk5-centaurus.html"
+        },
+        {
+          "label": "Skylark",
+          "href": "/schiffe/rsi-skylark.html"
+        }
       ]
     },
     {
@@ -151,6 +263,16 @@
         {
           "label": "Raketen",
           "value": "10 × Marksman I"
+        }
+      ],
+      "links": [
+        {
+          "label": "Skylark",
+          "href": "/schiffe/rsi-skylark.html"
+        },
+        {
+          "label": "Constellation Mk V Centaurus",
+          "href": "/schiffe/rsi-constellation-mk5-centaurus.html"
         }
       ]
     },
@@ -176,6 +298,12 @@
           "label": "Mindestcrew",
           "value": "9 → 8"
         }
+      ],
+      "links": [
+        {
+          "label": "Hammerhead",
+          "href": "/schiffe/aegs-hammerhead.html"
+        }
       ]
     },
     {
@@ -196,6 +324,12 @@
           "label": "Status",
           "value": "Experimentell, auf LIVE zurücknehmbar"
         }
+      ],
+      "links": [
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
       ]
     },
     {
@@ -212,43 +346,125 @@
           "label": "Abschalten",
           "value": "Zoom Gameplay Strength auf 0"
         }
+      ],
+      "links": [
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
       ]
     },
     {
       "name": "Schilde mit festem Resistenzwert",
       "system": "Combat & Waffen",
       "kind": "balance",
-      "desc": "Ein Resistenzband galt nur, wenn sein Minimum echt unter dem Maximum lag. Schilde mit einem einzigen festen Wert fielen durch diese Prüfung und schützten gar nicht. Die Einschränkung ist weg, und feste Resistenzen wirken jetzt."
+      "desc": "Ein Resistenzband galt nur, wenn sein Minimum echt unter dem Maximum lag. Schilde mit einem einzigen festen Wert fielen durch diese Prüfung und schützten gar nicht. Die Einschränkung ist weg, und feste Resistenzen wirken jetzt.",
+      "links": [
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
+      ]
     },
     {
       "name": "Verlassene Schiffe verschwinden",
       "system": "Hangars & Persistenz",
       "kind": "qol",
-      "desc": "An Everus Harbor, Seraphim Station, Baijini Point und Port Tressler fehlte die Lebensdauer für abgestellte Fahrzeuge. Die Landeplätze füllten sich mit Wracks, und andere Spieler konnten nicht mehr landen. Jetzt verschwinden abgestellte Fahrzeuge dort nach Ablauf eines Timers wie überall sonst. Außerdem kommen Schiffe aus dem Hangar wieder in dem Zustand, in dem man sie abgestellt hat, statt mit laufenden Triebwerken. Die Prospector steht nicht mehr schief auf dem Pad."
+      "desc": "An Everus Harbor, Seraphim Station, Baijini Point und Port Tressler fehlte die Lebensdauer für abgestellte Fahrzeuge. Die Landeplätze füllten sich mit Wracks, und andere Spieler konnten nicht mehr landen. Jetzt verschwinden abgestellte Fahrzeuge dort nach Ablauf eines Timers wie überall sonst. Außerdem kommen Schiffe aus dem Hangar wieder in dem Zustand, in dem man sie abgestellt hat, statt mit laufenden Triebwerken. Die Prospector steht nicht mehr schief auf dem Pad.",
+      "links": [
+        {
+          "label": "MISC Prospector",
+          "href": "/schiffe/misc-prospector.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
+      ]
     },
     {
       "name": "Orison Relief Support nachgeschärft",
       "system": "Missionen & Aktivitäten",
       "kind": "balance",
-      "desc": "Die Salvage-Aufträge des Relief-Events verlangten so wenig Abgabemenge, dass sich die ganze Belohnungsleiste in wenigen kurzen Läufen abschließen ließ. Die Mengen sind in allen drei Größen deutlich angehoben, und die Schwierigkeitsangaben passen dazu. Mehrere Relief-Aufträge lassen sich jetzt am selben Lastenaufzug in einem Zug abgeben."
+      "desc": "Die Salvage-Aufträge des Relief-Events verlangten so wenig Abgabemenge, dass sich die ganze Belohnungsleiste in wenigen kurzen Läufen abschließen ließ. Die Mengen sind in allen drei Größen deutlich angehoben, und die Schwierigkeitsangaben passen dazu. Mehrere Relief-Aufträge lassen sich jetzt am selben Lastenaufzug in einem Zug abgeben.",
+      "links": [
+        {
+          "label": "Alpha 4.10.1 · Orison Relief Support",
+          "href": "/patches/sc-4-10-1.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
+      ]
     },
     {
       "name": "Aufträge und Fracht",
       "system": "Cargo & Logistik",
       "kind": "qol",
-      "desc": "Wer bei einer Fracht-Tour mit mehreren Stopps am ersten Ziel alles abgab, verlor den Rest. Die Rückerstattung über den Lastenaufzug war unzuverlässig und gibt jetzt immer alles zurück, was der Auftrag nicht verbraucht hat. Legale Lieferaufträge schicken nicht mehr zu Cry-Astro-Orten, an denen man als Eindringling gilt. Aufträge, die sich direkt nach dem Annehmen als nicht verfügbar meldeten, bleiben verfügbar. Kopfgeld-Titel nennen keinen Schiffstyp mehr, weil der oft nicht stimmte."
+      "desc": "Wer bei einer Fracht-Tour mit mehreren Stopps am ersten Ziel alles abgab, verlor den Rest. Die Rückerstattung über den Lastenaufzug war unzuverlässig und gibt jetzt immer alles zurück, was der Auftrag nicht verbraucht hat. Legale Lieferaufträge schicken nicht mehr zu Cry-Astro-Orten, an denen man als Eindringling gilt. Aufträge, die sich direkt nach dem Annehmen als nicht verfügbar meldeten, bleiben verfügbar. Kopfgeld-Titel nennen keinen Schiffstyp mehr, weil der oft nicht stimmte.",
+      "links": [
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
+      ]
     },
     {
       "name": "Siege of Orison",
       "system": "Events",
       "kind": "qol",
-      "desc": "Kommunikationstürme drehen sich nach dem Zurücksetzen ihrer Knoten wieder. Im Endkampf öffneten sich die Türen der Kommandozentrale, und der Kommandant hörte auf zu feuern, obwohl er noch lebte. Die letzte Phase endet jetzt mit seinem Tod. Der fünfte Spieler einer Gruppe wird wieder zur Instanz der anderen verschoben."
+      "desc": "Kommunikationstürme drehen sich nach dem Zurücksetzen ihrer Knoten wieder. Im Endkampf öffneten sich die Türen der Kommandozentrale, und der Kommandant hörte auf zu feuern, obwohl er noch lebte. Die letzte Phase endet jetzt mit seinem Tod. Der fünfte Spieler einer Gruppe wird wieder zur Instanz der anderen verschoben.",
+      "links": [
+        {
+          "label": "Alpha 4.10.0 · Siege of Orison",
+          "href": "/patches/sc-4-10-0.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
+      ]
     },
     {
       "name": "Reparaturen an Schiffen",
       "system": "Schiffs-Systeme",
       "kind": "qol",
-      "desc": "Die Origin-X1-Reihe kann mit Gimbal wieder feuern und zielen. Schiffe bleiben nach dem Quantum-Sprung bei schlechter Verbindung nicht mehr steuerlos. Die Heckrampe der Cutlass hebt das Schiff nicht mehr an, Bodenfahrzeug-Ketten drehen sich wieder, das Radar der Mirai Pulse steht richtig herum, und die Caterpillar setzt die Manifest-Crew ins Kommandomodul."
+      "desc": "Die Origin-X1-Reihe kann mit Gimbal wieder feuern und zielen. Schiffe bleiben nach dem Quantum-Sprung bei schlechter Verbindung nicht mehr steuerlos. Die Heckrampe der Cutlass hebt das Schiff nicht mehr an, Bodenfahrzeug-Ketten drehen sich wieder, das Radar der Mirai Pulse steht richtig herum, und die Caterpillar setzt die Manifest-Crew ins Kommandomodul.",
+      "links": [
+        {
+          "label": "X1",
+          "href": "/schiffe/orig-x1.html"
+        },
+        {
+          "label": "X1 Force",
+          "href": "/schiffe/orig-x1-force.html"
+        },
+        {
+          "label": "X1 Velocity",
+          "href": "/schiffe/orig-x1-velocity.html"
+        },
+        {
+          "label": "Cutlass Black",
+          "href": "/schiffe/drak-cutlass-black.html"
+        },
+        {
+          "label": "Pulse",
+          "href": "/schiffe/mrai-pulse.html"
+        },
+        {
+          "label": "Pulse LX",
+          "href": "/schiffe/mrai-pulse-lx.html"
+        },
+        {
+          "label": "Caterpillar",
+          "href": "/schiffe/drak-caterpillar.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
+        }
+      ]
     },
     {
       "name": "Neue Ausrüstung",
@@ -263,6 +479,72 @@
         {
           "label": "Constellation-Teile",
           "value": "Lackierungen und Modelle laufen jetzt unter „Mk IV\""
+        }
+      ],
+      "links": [
+        {
+          "label": "Monolith Armor Core",
+          "href": "/items/monolith-armor-core.html"
+        },
+        {
+          "label": "Monolith Armor Arms",
+          "href": "/items/monolith-armor-arms.html"
+        },
+        {
+          "label": "Monolith Armor Legs",
+          "href": "/items/monolith-armor-legs.html"
+        },
+        {
+          "label": "Monolith",
+          "href": "/armor-sets.html#monolith"
+        },
+        {
+          "label": "Atzkav \"Starwalker\"",
+          "href": "/items/atzkav-starwalker-sniper-rifle.html"
+        },
+        {
+          "label": "S71 \"Infrared\"",
+          "href": "/items/s71-infrared-rifle.html"
+        },
+        {
+          "label": "P8-SC \"Echo\"",
+          "href": "/items/p8-sc-echo-smg.html"
+        },
+        {
+          "label": "R97 \"Runic\"",
+          "href": "/items/r97-runic-shotgun.html"
+        },
+        {
+          "label": "Ravager-212 \"Infrared\"",
+          "href": "/items/ravager-212-infrared-twin-shotgun.html"
+        },
+        {
+          "label": "BriskAir IC-10",
+          "href": "/items/briskair-ic-10.html"
+        },
+        {
+          "label": "Delphi RS-10",
+          "href": "/items/delphi-rs-10.html"
+        },
+        {
+          "label": "Helios IP-10",
+          "href": "/items/helios-ip-10.html"
+        },
+        {
+          "label": "Sovereign IP-10",
+          "href": "/items/sovereign-ip-10.html"
+        },
+        {
+          "label": "Wikelo Emporium",
+          "href": "/topics/wikelo-emporium.html"
+        },
+        {
+          "label": "Big Style LMG",
+          "href": "/missionen/big-style-lmg.html"
+        },
+        {
+          "label": "Patch Notes 4.10.2 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21351-Star-Citizen-Alpha-4102"
         }
       ]
     },
@@ -279,6 +561,48 @@
         {
           "label": "Monolith-Set",
           "value": "Fünf Teile, je Grundfassung und Shadowflux"
+        }
+      ],
+      "links": [
+        {
+          "label": "Monolith Helmet",
+          "href": "/crafting/monolith-helmet.html"
+        },
+        {
+          "label": "Monolith Armor Core",
+          "href": "/crafting/monolith-armor-core.html"
+        },
+        {
+          "label": "Monolith Armor Arms",
+          "href": "/crafting/monolith-armor-arms.html"
+        },
+        {
+          "label": "Monolith Armor Legs",
+          "href": "/crafting/monolith-armor-legs.html"
+        },
+        {
+          "label": "Monolith Backpack",
+          "href": "/crafting/monolith-backpack.html"
+        },
+        {
+          "label": "Monolith Helmet Shadowflux",
+          "href": "/crafting/monolith-helmet-shadowflux.html"
+        },
+        {
+          "label": "F55 \"Shadowflux\" LMG",
+          "href": "/crafting/f55-shadowflux-lmg.html"
+        },
+        {
+          "label": "DayBreak",
+          "href": "/crafting/daybreak.html"
+        },
+        {
+          "label": "Goliath",
+          "href": "/crafting/goliath.html"
+        },
+        {
+          "label": "Monolith Armor Very Smooth",
+          "href": "/missionen/monolith-armor-very-smooth.html"
         }
       ]
     }
@@ -299,11 +623,32 @@
       "notes": "Beiboot der Constellation Mk V"
     },
     {
-      "name": "Constellation Mk IV (Andromeda, Aquila, Phoenix, Taurus)",
+      "name": "Constellation Mk IV Andromeda",
       "manufacturer": "Roberts Space Industries",
-      "role": "Mehrzweck",
+      "role": "Mittlerer Frachter / Kanonenschiff",
       "status": "Gold Standard",
-      "notes": "Ganze Reihe neu gebaut: Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
+      "notes": "Neu gebaut: Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
+    },
+    {
+      "name": "Constellation Mk IV Aquila",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Mittlerer Frachter / Kanonenschiff",
+      "status": "Gold Standard",
+      "notes": "Neu gebaut: Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
+    },
+    {
+      "name": "Constellation Mk IV Phoenix",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Mittlerer Frachter / Kanonenschiff",
+      "status": "Gold Standard",
+      "notes": "Neu gebaut: Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
+    },
+    {
+      "name": "Constellation Mk IV Taurus",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Mittlerer Frachter",
+      "status": "Gold Standard",
+      "notes": "Neu gebaut: Brücke, Lifte, Luftschleuse, Türme, Außenhülle"
     },
     {
       "name": "Hammerhead",

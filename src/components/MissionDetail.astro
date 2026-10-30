@@ -14,6 +14,7 @@ import { blueprintPath, blueprintsByMission, blueprintListLabels } from '../lib/
 import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { patchesMentioning } from '../lib/patchMentions';
 
 interface Props { m: Mission; lang: Locale }
 const { m, lang } = Astro.props;
@@ -106,6 +107,7 @@ const reps = repSummary(m);
 // aber nur das Ergebnis (blueprint.missions[]) heraus, nicht den Schluessel.
 // Darum wird hier von der Bauplan-Seite her aufgeloest, nicht vom Pool her.
 const craftedHere = blueprintsByMission.get(m.slug) ?? [];
+const mentions = patchesMentioning(`/missionen/${m.slug}.html`);
 // Gleichnamige Bauplaene in DERSELBEN Liste bekommen einen Unterscheider —
 // sonst stehen zwei identische Chips da, die auf verschiedene Seiten fuehren
 // (Register id 49). Details in blueprintListLabels().
@@ -377,6 +379,22 @@ const t = useTranslations(lang);
           </table>
         </div>
       </section>
+
+      {mentions.length > 0 && (
+        <section class="md__sec">
+          <h2 class="md__h2">{lang === 'de' ? 'Im Patch-Archiv' : 'In the patch archive'}</h2>
+          <ul class="md__rel">
+            {mentions.map((p) => (
+              <li>
+                <a href={L(p.page)}>
+                  <b>Alpha {p.version}</b>
+                  <span>{p.codename}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Verwandte */}
       {related.length > 0 && (
