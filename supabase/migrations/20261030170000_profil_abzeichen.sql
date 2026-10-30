@@ -18,7 +18,8 @@
 --     Spalte an public_profiles, damit sie nicht mit den offenen Änderungen
 --     an dieser Sicht (presence_visibility) kollidiert.
 --   discord_profile_badges (nur Service-Rolle): Discord-ID und ja/nein, für
---     den Bot. Discord-IDs bleiben für Clients unsichtbar.
+--     den Bot (Edge Function bot-role-sync, op "badges"). Discord-IDs
+--     bleiben für Clients unsichtbar.
 -- Die Funktion selbst ist für Clients gesperrt: sie liest auth.identities und
 -- würde mit einer selbst gebauten Zeile verraten, ob ein Konto Discord hat.
 

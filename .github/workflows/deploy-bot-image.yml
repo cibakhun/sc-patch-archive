@@ -1,5 +1,11 @@
 # Builds the VerseBase rank/data bot as a Docker image and pushes it to ghcr.io.
 # Coolify pulls the finished image. Only runs when bot-relevant files change.
+#
+# Order matters: BUILD and TEST first (the selftest and the import check run
+# inside the Dockerfile, against the finished image), log in and push only
+# afterwards. Third-party npm code only ever runs inside the build container,
+# never on the runner next to a credential. The Coolify secrets live in a
+# separate job in the `bot` environment.
 name: Build & Push Bot Image
 
 on:
@@ -7,14 +13,17 @@ on:
     branches: [main]
     paths:
       - 'discord/bot/**'
+      - 'discord/blueprint.mjs'
+      - 'discord/site-invite.mjs'
+      - 'discord/assets/verse-bot-avatar.png'
       - 'src/data/**'
       - 'assets/manufacturers/**'
       - '.github/workflows/deploy-bot-image.yml'
+      - '.github/scripts/coolify-deploy.sh'
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: bot-image-build
@@ -23,36 +32,67 @@ concurrency:
 jobs:
   build-push:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # Fails (and nothing is pushed) if the selftest or the import check in
+      # discord/bot/Dockerfile fails.
+      - name: Build (not pushed yet)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: discord/bot/Dockerfile
+          load: true
+          push: false
+          provenance: false
+          tags: |
+            ghcr.io/cibakhun/verse-base-rank-bot:latest
+            ghcr.io/cibakhun/verse-base-rank-bot:${{ github.sha }}
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: discord/bot/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/cibakhun/verse-base-rank-bot:latest
-            ghcr.io/cibakhun/verse-base-rank-bot:${{ github.sha }}
+      - name: Push
+        run: |
+          docker push ghcr.io/cibakhun/verse-base-rank-bot:latest
+          docker push ghcr.io/cibakhun/verse-base-rank-bot:${{ github.sha }}
 
-      # Nudge Coolify to pull the new image. Uses a SEPARATE webhook for the bot
-      # service (COOLIFY_BOT_DEPLOY_WEBHOOK) + the shared API token. If either is
-      # unset, it just logs a hint — then click "Redeploy" in Coolify manually.
+  deploy:
+    needs: build-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: bot
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/scripts/coolify-deploy.sh
+
+      # Nudge Coolify to pull the new image. SEPARATE webhook for the bot
+      # service (COOLIFY_BOT_DEPLOY_WEBHOOK) + the shared API token. If either
+      # is unset it warns — then click "Redeploy" in Coolify manually. Every
+      # call has a time limit (on 29.10.2026 the webhook call hung for seven
+      # minutes before failing). Optional immutable tag: COOLIFY_PIN_IMAGE_TAG=true.
+      # Switching it off again does not unpin: switch it off first, then (with no run in flight) reset
+      # the tag in Coolify to latest by hand and redeploy (see coolify-deploy.sh).
       - name: Trigger Coolify redeploy
         env:
           HOOK: ${{ secrets.COOLIFY_BOT_DEPLOY_WEBHOOK }}
           TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
-        run: |
-          if [ -n "$HOOK" ] && [ -n "$TOKEN" ]; then
-            curl -fsSL "$HOOK" -H "Authorization: Bearer $TOKEN" && echo "Coolify bot redeploy triggered."
-          else
-            echo "COOLIFY_BOT_DEPLOY_WEBHOOK and/or COOLIFY_API_TOKEN not set — redeploy the bot manually in Coolify."
-          fi
+          LABEL: bot
+          PIN_TAG: ${{ vars.COOLIFY_PIN_IMAGE_TAG == 'true' && github.sha || '' }}
+        run: bash .github/scripts/coolify-deploy.sh

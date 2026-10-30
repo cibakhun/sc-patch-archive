@@ -1,0 +1,54 @@
+# Statische Codeanalyse (CodeQL): sucht in JavaScript/TypeScript nach den
+# ueblichen Mustern — Injection, unsichere Weiterleitungen, Prototype
+# Pollution, Geheimnisse im Code — und in den Workflows selbst nach
+# Muster-Fehlern wie ungefiltertem Fremdtext in `run:`-Zeilen. Befunde
+# landen unter Security -> Code scanning, nicht im Lauf-Protokoll.
+#
+# Kein Tor: ein Befund blockiert nichts, er wird dort gesichtet. Ein Lauf
+# pro Woche faengt neue Regeln fuer alten Code.
+name: CodeQL
+
+on:
+  push:
+    branches: [staging, main]
+  pull_request:
+    branches: [staging, main]
+  schedule:
+    - cron: '23 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config: |
+            paths-ignore:
+              - node_modules
+              - '**/node_modules'
+              - dist
+              - public/vendor
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        with:
+          category: /language:${{ matrix.language }}

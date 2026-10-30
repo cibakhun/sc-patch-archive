@@ -7,10 +7,12 @@
 //  "Vollständig" entscheidet die Datenbank (public.profile_is_complete, Sicht
 //  discord_profile_badges), nicht der Bot -- so zeigen Site und Discord nie
 //  verschiedene Stände. Läuft im Fünf-Minuten-Takt des Rangspiegels
-//  (rank-sync.mjs) für denselben Heimserver. Wirft nie.
+//  (rank-sync.mjs), nur auf der Heim-Gilde, gelesen über site-db.mjs
+//  (listBadges). Wirft nie.
 // ═══════════════════════════════════════════════════════════════════════════
 import { resolveColor } from 'discord.js';
 import * as bp from '../../blueprint.mjs';
+import { isHomeGuild } from './home-guild.mjs';
 
 const BADGE = bp.roles.find((r) => r.key === 'profile-complete');
 
@@ -27,14 +29,6 @@ export function badgeDiff(rows, holders, members) {
   };
 }
 
-async function fetchBadges(supabase) {
-  const res = await fetch(`${supabase.url}/rest/v1/discord_profile_badges?select=discord_user_id,profile_complete`, {
-    headers: { apikey: supabase.key, Authorization: `Bearer ${supabase.key}` },
-  });
-  if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${await res.text().catch(() => '')}`);
-  return res.json();
-}
-
 async function ensureRole(guild) {
   const found = guild.roles.cache.find((r) => r.name === BADGE.name && !r.managed);
   if (found) return found;
@@ -49,10 +43,10 @@ async function ensureRole(guild) {
 }
 
 export async function syncProfileBadges(ctx, guild) {
-  const { supabase } = ctx;
-  if (!supabase || !BADGE) return;
+  const { siteDb } = ctx;
+  if (!siteDb || !BADGE || !isHomeGuild(ctx, guild)) return;
   try {
-    const rows = await fetchBadges(supabase);
+    const rows = await siteDb.listBadges();
     const role = await ensureRole(guild);
     const members = await guild.members.fetch();
     const holders = new Set(role.members.map((m) => m.id));

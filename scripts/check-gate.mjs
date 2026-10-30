@@ -44,7 +44,7 @@
      4  Der Bypass ist kein Dauerschluessel (T-14-56/T-14-57): ein je
         Lauf gewuerfelter Wert in der Bypass-Kopfzeile (X-VB-Gate-
         Bypass, siehe nginx/gate.js und .github/workflows/
-        deploy-staging.yml, Aufgabe 3 dieses Plans) auf eine gesperrte
+        build-site-image.yml, Aufgabe 3 dieses Plans) auf eine gesperrte
         Stichprobe muss weiterhin 302 liefern. Ein 200 waere der
         schlimmste denkbare Zustand: ein offener Bypass, den niemand
         kennt.
