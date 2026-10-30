@@ -507,4 +507,19 @@ sitzen“.
   der Innenraum ist weg), dazu zwei Lackkarten weniger
   (`drak_headlight_glow_*`, kamen mit 02a3bd6b). Die übrigen 31 als geändert
   gemeldeten Lackdateien unterscheiden sich nur im Zeilenende.
-- **Komponenten-Umfrage (Teil 2):** folgt im nächsten Commit.
+- **Komponenten-Umfrage (Teil 2):** `hangar-komponenten/umfrage.md`, je
+  Schiff und Port `umfrage.json`, Platzierungen in Containern
+  `platzierungen.json`. Über 231 Rohexporte, Ports aus
+  `ship-loadouts.json`. Ports finden sich fast alle im Export (Kraftwerk
+  295 von 301, Kühler 397/398, Schild 382/398, Quantenantrieb 179/179,
+  Radar 228/229, Wasserstofftank 311/315, Quantentank 174/179).
+  Geometrie der Serienklasse hängt am Port bei Kraftwerk 193 Ports (138
+  Schiffe), Kühler 233 (135), Quantenantrieb 107 (107), Radar 114 (114),
+  alle im Rumpfquader. Schilde: bei keinem Port Geometrie, obwohl die
+  Spieldaten für 392 Ports einen Geometriepfad nennen; der Export hängt sie
+  nicht an. Tanks: im Spiel ohne eigene Geometrie (kein Pfad). Daneben
+  tragen manche Container Komponenten als feste Platzierung (Kraftwerk bei
+  15 Schiffen, Kühler 12, Quantenantrieb 12, Schild 5, Radar 3,
+  Wasserstofftank 2), etwa der Avenger mit Schild, Kraftwerk, Kühler und
+  Quantenantrieb im Innenraum. Sie kommen mit dem Innenraum, nicht mit dem
+  Loadout. Werkzeug `.cache/zweiseitig/komponenten.mjs` (nicht im Repo).

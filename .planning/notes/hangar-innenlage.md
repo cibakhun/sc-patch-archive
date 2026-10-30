@@ -104,3 +104,110 @@ Black, Prowler (rein senkrecht), Andromeda, Hammerhead, Vanguard, Carrack:
    (`build-hangar-alle.mjs --kind interior --only …`) und mit
    `measure-hangar-innenlage.mjs` nachmessen (Ziel: unter 1 % außen).
    Ein Tor über die Innenlage folgt, wenn die Innenräume sitzen.
+
+## Befund vom PC
+
+Branch `pc/hangar-zweiseitig`, auf Teil 1 (6a38c768) und 611cac24. Je Schiff:
+`hangar-innenlage/je-schiff.md`, Messungen `vorher.json`, `nachher.json`,
+Rohexporte `roh-<slug>.json`.
+
+**Regel aus den Spieldaten.** Das Spiel setzt jeden Container mit dem
+Eintrag `EntityClassDefinition.<Record>.Components[VehicleComponentParams]
+.objectContainers[]` in den Schiffsraum: `fileName` (die .socpak, deren Name
+der Container `interior_<name>` trägt), `boneName` (Knoten des Rumpfs, an dem
+er hängt) und `Offset.Position`/`Offset.Rotation` (Meter, Grad, Schiffsraum
+Z oben). StarBreaker legt alle Container an die Wurzel und trägt nur ihre
+eigene Matrix (= `container_transform` aus scene.json), Offset und Knochen
+lässt es weg. Gegenprobe über alle Rohexporte: 403 Container haben Offset und
+Helfer (`scene.json interiors[].parent_node_name`); Schiffswurzel × Offset
+ergibt bei 385 die Weltlage des Helfers auf 2 cm (höchstens 15 mm), bei 18
+nicht (Phoenix und Taurus: base-Container 2 bis 7,5 m; Mantis/Meteor-Lichter
+3 m; Wolf-Lichter 2 m; MPUV, Hoverquad, STV, X1, Syulen, Retaliator unter
+1 m). Gedreht sind per Offset Nova (±180°) und Ironclad (ohne Container im
+Rohexport), per Helfer Hammerhead und Showdown (Turmlichter, Heck),
+Starlancer TAC, Valkyrie und Blade, alle um die Hochachse.
+
+**Umgesetzt** in `placeContainers` (`scripts/build-hangar-assets.mjs`), für
+den Rumpf (`markInterior`) und den Innenraum (`--kind interior`), direkt
+nach `dropUnreachable`: Lage = Offset über die Schiffswurzel; ohne Eintrag
+der Helfer; ohne beides bleibt der Container. Gleichnamige der Reihe nach.
+Danach fällt jedes Container-Netz weg, das der Rumpf oder ein früherer
+Container gleich und an derselben Stelle (2 cm) schon trägt. Manifest je
+Schiff: `containerPlace` (placed, moved, byOffset, byHelper, unplaced, dup,
+dupTris).
+
+**Gladius** (Cloud-Hinweis „Innenraum-Material an zwei Stellen“): Der Rumpf
+trägt Sitz und Armaturenbrett als eigene Teile am Helfer `interior_cockpit`
+(Body > Nose), richtig unter der Kanzel. Der Container
+`base_int_all_geo_sc` ist die Cockpitwanne (16 579 Ecken) und lag 8,5 m zu
+weit hinten. Mit der Regel liegt sie um den Sitz (z −10,3 bis −6,9, Sitz
+z −8,37), keine Doppelung (verschiedene Netze).
+
+**Neu gebaut:** alle 217 Innenräume und die 67 Rümpfe mit gekennzeichnetem
+Innenraum. Rümpfe: bei 45 bewegen sich Container (79 per Offset, 88 per
+Helfer), 7 doppelte Netze weg (C8R 1, Spartan 2, MDC 2, Lynx 2; 2 000
+Dreiecke), keine Abweichung über 2 % bei den Dreiecken, GLB 121,0 MB wie
+vorher. Innenräume: bei 146 bewegen sich Container (416 per Offset, 305 per
+Helfer, 4 ohne Angabe), 334 doppelte Netze weg (994 212 Dreiecke), Teile
+außerhalb der Hülle entfernt 209 → 175, GLB 418,9 MB wie vorher. 14 Schiffe
+ohne Container (Idris, Reclaimer, ATLS, Ironclad, 890, Centaurus, Perseus,
+Polaris) haben wie vorher keine Innenraum-Datei.
+
+**Messung** (`measure-hangar-innenlage.mjs all`, jetzt mit Pilotensitz):
+
+| | vorher | nachher |
+|---|---:|---:|
+| mindestens 1 % außen | 41 | 5 |
+| mindestens 5 % | 34 | 1 |
+| mindestens 20 % | 15 | 0 |
+| Innenraum am Pilotensitz (✓) | 100 von 215 | 192 von 215 |
+
+Die sechs zuerst gemessenen und die Gladius (außen %, Sitz):
+
+| Schiff | vorher | nachher |
+|---|---|---|
+| drak-cutlass-black | 28,35 %, ✗ (nächstes 3,97 m) | 0 %, ✓ 2 271 Dreiecke |
+| espr-prowler | 5,13 %, ✗ (6,74 m) | 0 %, ✓ 18 900 |
+| rsi-constellation-andromeda | 22,54 %, ✗ (10,15 m) | 0 %, ✓ 75 |
+| aegs-hammerhead | 27,77 %, ✗ (23,04 m) | 0 %, ✓ 1 399 |
+| aegs-vanguard | 21,31 %, ✗ (4,78 m) | 0 %, ✓ 23 489 |
+| anvl-carrack | 15,55 %, ✗ (26,64 m) | 0 %, ✓ 357 |
+| aegs-gladius | 0 %, ✗ (6,56 m) | 0 %, ✓ 10 955 |
+
+**Noch über 1 % außen (5):**
+
+- `rsi-constellation-phoenix` 16,87 %: Der Record nennt die base-Container
+  der Andromeda (`base_cockpit_comp_bay`, `base_habs_usables`,
+  `base_engineering_comp_bay`) mit deren Offsets. Im kürzeren Phoenix-Rumpf
+  ragen sie heraus (gemessen am gesetzten Rohexport: Rechenräume 100 %,
+  `base_habs_usables` 58 % außen); die Phoenix bringt eigene Container für
+  dieselben Räume mit. Ob das Spiel die base-Container dort zeigt, sagen
+  die Daten nicht; die Teile über der Hülle nimmt `keepInteriorOnly` weg
+  (49 Knoten), der Rest bleibt. Taurus (dieselbe Lage, 19 Knoten weg)
+  misst 0 %.
+- `misc-starfarer` 3,12 %, `misc-starfarer-gemini` 2,99 %: Container
+  `base_int_bdall_main` (gesetzt 7,8 % außen); Grund offen, im Bild prüfen.
+- `drak-caterpillar-pirate` 2,59 %: Kommandomodul (`command_module_interior`,
+  `base_pira_int_command_geo`); Sitz ✓.
+- `cnou-mustang-beta` 1,48 %: `beta_int_body_main`, Sitz ✓.
+
+**Sitz ✗ (23):** nur Innenraum-Dateien ohne Dreiecke (Dragonfly, Talon,
+PTV, Razor, X1, Cyclone, Glaive, Scythe, Nox, Scout, Santok.yai): ihre
+Container tragen nur Lichter, vorher wie nachher.
+
+**Über dem Sitz frei bis 4 m (43):** offene Fahrzeuge (Cyclone, Nox,
+Dragonfly, PTV …) und Schiffe mit hoher Kanzel oder Kuppel (Hammerhead,
+Tiburon, Constellation, Zeus, Aurora Mk II, Fortune). Nur Angabe, kein
+Kriterium; die Liste steht in `nachher.json` und im Lauf.
+
+**Aurora Mk II −70 % Dreiecke im Innenraum** ist gewollt: Der Container
+`rsi_aurora_mk2_cabin` trägt fünf Kopien des ganzen Außenrumpfs
+(`rsi_aurora_mk2.cga`, je 408 691 Dreiecke) an verstreuten Stellen. Eine
+lag bisher zufällig im Rumpfquader und blieb drin (25,6 % außen). Mit der
+Regel liegen alle fünf 4 bis 10 m über der Hülle und fallen weg; 0 % außen,
+Sitz ✓ mit 11 683 Dreiecken.
+
+**Werkzeug:** `measure-hangar-innenlage.mjs` prüft zusätzlich den
+Pilotensitz (Web: `spots` aus dem Manifest, roh: `hardpoint_*seat*`, Pilot
+vor Kopilot): ✓ ab 20 Dreiecksmitten des Innenraums bis 1,5 m, dazu was der
+Blick aus 0,8 m Kopfhöhe senkrecht nach oben bis 4 m trifft. Kein Tor.

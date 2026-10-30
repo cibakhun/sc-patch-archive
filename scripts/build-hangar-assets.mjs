@@ -828,6 +828,69 @@ function markInterior(doc) {
   }
   return n;
 }
+// Container an ihren Platz (.planning/notes/hangar-innenlage.md): Das Spiel
+// setzt jeden Container (VehicleComponentParams.objectContainers) mit seinem
+// Offset in den Schiffsraum; boneName nennt den Knoten des Rumpfs, an dem er
+// hängt. StarBreaker legt alle an die Wurzel und trägt nur ihre eigene
+// Matrix. Lage: das Offset über die Schiffswurzel, wo der Eintrag fehlt der
+// Helfer aus dem zerlegten Export (scene.json interiors[].parent_node_name),
+// sonst bleibt der Container, wo er ist. Offset und Helfer stimmen bei 385
+// von 403 Containern auf 2 cm überein; wo nicht (Constellation Phoenix und
+// Taurus: base-Container 2 bis 7,5 m vor dem Helfer), sitzt der Container mit
+// dem Offset im Rumpf. Gleichnamige Container, Einträge und Helfer der Reihe
+// nach. Danach Doppelungen: Ein Netz im Container, das der Rumpf oder ein
+// früherer Container gleich und an derselben Stelle (2 cm) schon trägt, fällt
+// weg, sonst flimmern beide (Rumpf und Innenraum-Datei zeigt der Hangar
+// zusammen).
+function placeContainers(doc, slug) {
+  const index = existsSync(new URL('index.json', PAINT_DEC)) ? JSON.parse(readFileSync(new URL('index.json', PAINT_DEC), 'utf8')) : {};
+  const pkg = index[slug]?.package ?? (index[slug]?.record ? `${index[slug].record.replace(/_/g, ' ')}_LOD1_TEX1` : null);
+  const sceneFile = pkg ? new URL(`Packages/${pkg}/scene.json`, PAINT_DEC) : null;
+  if (!sceneFile || !existsSync(sceneFile)) return null;
+  const interiors = JSON.parse(readFileSync(sceneFile, 'utf8')).interiors ?? [];
+  const offsets = containerOffsets(slug);
+  const out = { placed: 0, moved: 0, byOffset: 0, byHelper: 0, unplaced: [], dup: 0, dupTris: 0 };
+  const lower = (n) => n.getName().toLowerCase();
+  const group = (nodes) => nodes.reduce((m, n) => m.set(lower(n), [...(m.get(lower(n)) ?? []), n]), new Map());
+  const trisOf = (m) => m.listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
+  for (const scene of doc.getRoot().listScenes()) for (const top of scene.listChildren()) {
+    const conts = top.listChildren().filter((c) => /^interior_/i.test(c.getName()));
+    if (!conts.length) continue;
+    const contSet = new Set(conts), hull = [];
+    const walk = (n) => { if (contSet.has(n)) return; hull.push(n); n.listChildren().forEach(walk); };
+    walk(top);
+    const helpers = group(hull), byName = group(conts), uses = new Map(), entries = new Map();
+    for (const o of offsets) entries.set(o.file, [...(entries.get(o.file) ?? []), o]);
+    // Schiffswurzel: das Kind des obersten Knotens mit dem größten Teilbaum
+    const size = (n) => { let k = 0; n.traverse(() => k++); return k; };
+    const shipRoot = top.listChildren().filter((n) => !contSet.has(n)).map((n) => [n, size(n)]).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const T = invert4(worldOf(top)), S = shipRoot && worldOf(shipRoot);
+    for (const it of interiors) {
+      const c = byName.get(`interior_${it.name}`.toLowerCase())?.shift();
+      if (!c) continue;
+      const hn = (it.parent_node_name || '').toLowerCase(), k = uses.get(hn) ?? 0;
+      uses.set(hn, k + 1);
+      const entry = entries.get(it.name.toLowerCase())?.shift();
+      const list = helpers.get(hn), W = entry && S ? mul(S, offsetMatrix(entry)) : list && worldOf(list[Math.min(k, list.length - 1)]);
+      if (!W) { out.unplaced.push(it.name); continue; }
+      if (entry && S) out.byOffset++; else out.byHelper++;
+      const rel = mul(T, W);
+      c.setMatrix(mul(rel, c.getMatrix()));
+      out.placed++;
+      if (Math.hypot(rel[12], rel[13], rel[14]) > 0.01 || Math.abs(rel[0] + rel[5] + rel[10] - 3) > 1e-4) out.moved++;
+    }
+    const key = (m) => m.listPrimitives().map((p) => `${p.getIndices()?.getCount() ?? 0}/${p.getAttribute('POSITION')?.getCount() ?? 0}`).join(',');
+    const inner = [];
+    for (const c of conts) c.traverse((n) => n.getMesh() && inner.push(n));
+    const wanted = new Set(inner.map((n) => key(n.getMesh())));
+    const seen = new Map();
+    const same = (a, b) => [0, 1, 2].every((i) => Math.abs(a.min[i] - b.min[i]) < 0.02 && Math.abs(a.max[i] - b.max[i]) < 0.02);
+    const known = (n) => { const k = key(n.getMesh()), b = usedBox(n); if (!b) return false; const list = seen.get(k) ?? []; if (list.some((o) => same(o, b))) return true; seen.set(k, [...list, b]); return false; };
+    for (const n of hull) if (n.getMesh() && wanted.has(key(n.getMesh()))) known(n);
+    for (const n of inner) if (known(n)) { out.dup++; out.dupTris += trisOf(n.getMesh()); n.setMesh(null); }
+  }
+  return out;
+}
 // Budget für die Nähe: 500 000 Dreiecke, ab 60 m Länge 1 000 000; Stufen
 // gegen die 16 MB wie beim Rumpf (HANGAR_SHIP_TEX / _Q / _ERR)
 function interiorBudget(slug) {
@@ -846,12 +909,35 @@ function shipBudget(slug) {
 
 // Fahrwerk: dieselbe Pose wie die Geometrie-Fassung (scripts/lib/landing-gear.mjs),
 // auf den Rohexport vor allem Weiteren
-let gearReady = false;
+let game = null;
+function gameData() {
+  if (!game) {
+    const p4k = openP4k(DEFAULT_P4K), db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
+    initGear(p4k, db);
+    game = { db, byName: new Map(db.records.map((r) => [r.name, r])) };
+  }
+  return game;
+}
 function shipGear(doc, slug) {
   const rec = shipSource(slug).record;
   if (!rec) return null;
-  if (!gearReady) { const p = openP4k(DEFAULT_P4K); initGear(p, openDataCore(p.read(/^Data[\\/]Game2\.dcb$/i))); gearReady = true; }
+  gameData();
   return poseShip(doc, rec);
+}
+// Container-Einträge des Fahrzeugs (VehicleComponentParams.objectContainers):
+// Datei ohne .socpak, Offset im Schiffsraum (Meter, Grad)
+function containerOffsets(slug) {
+  const rec = shipSource(slug).record, { db, byName } = gameData();
+  const r = rec && byName.get(`EntityClassDefinition.${rec}`);
+  if (!r) return [];
+  const v = (db.readRecord(r, { maxDepth: 6, typed: true }).Components || []).find((c) => c?.__type === 'VehicleComponentParams');
+  const xyz = (p) => [p?.x ?? 0, p?.y ?? 0, p?.z ?? 0];
+  return (v?.objectContainers ?? []).map((c) => ({ file: (c.fileName || '').split('/').pop().replace(/\.socpak$/i, '').toLowerCase(), pos: xyz(c.Offset?.Position), rot: xyz(c.Offset?.Rotation) }));
+}
+// Offset als Matrix: Drehung wie CryEngine Ang3 (erst x, dann y, dann z)
+function offsetMatrix({ pos, rot }) {
+  const [a, b, c] = rot.map((d) => (d * Math.PI) / 180), [ca, sa, cb, sb, cc, sc] = [Math.cos(a), Math.sin(a), Math.cos(b), Math.sin(b), Math.cos(c), Math.sin(c)];
+  return [cb * cc, cb * sc, -sb, 0, sa * sb * cc - ca * sc, sa * sb * sc + ca * cc, sa * cb, 0, ca * sb * cc + sa * sc, ca * sb * sc - sa * cc, ca * cb, 0, pos[0], pos[1], pos[2], 1];
 }
 // Knoten, die die Szene nicht erreicht, weg: im Rohexport hängen manche im
 // Kreis (M80, Salvation), dann läuft jede Weltmatrix endlos; gezeichnet
@@ -1760,6 +1846,7 @@ async function buildOne(kind, name, inPath) {
   const inner = kind === 'interior', ship = kind === 'ships' || inner, srcKind = inner ? 'ships' : kind;
   const gearPose = ship ? shipGear(doc, name) : null;
   if (ship) dropUnreachable(doc);
+  const placement = ship ? placeContainers(doc, name) : null;
   const b = inner ? interiorBudget(name) : kind === 'ships' ? shipBudget(name) : BUDGET[kind];
   const interior = kind === 'ships' ? dropInterior(doc, name, tris0, b.tris) : null;
   const innerInfo = inner ? keepInteriorOnly(doc) : null;
@@ -1911,6 +1998,7 @@ async function buildOne(kind, name, inPath) {
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
     ...(interior?.keptNodes && interior.dropped ? { interiorKept: { nodes: interior.keptNodes, tris: Math.round(interior.keptTris) } } : {}),
     ...(bareInterior ? { interiorBare: bareInterior } : {}),
+    ...(placement?.placed || placement?.unplaced.length ? { containerPlace: { placed: placement.placed, moved: placement.moved, byOffset: placement.byOffset, byHelper: placement.byHelper, ...(placement.unplaced.length ? { unplaced: placement.unplaced } : {}), ...(placement.dup ? { dup: placement.dup, dupTris: Math.round(placement.dupTris) } : {}) } } : {}),
     // gezählt in der geschriebenen Datei (prune nimmt leer gewordene Netze heraus)
     ...(interiorMarked ? { interiorMarked: written.getRoot().listNodes().filter((n) => n.getExtras()?.interior).length } : {}),
     ...(inner ? { containers: innerInfo.containers, trisInterior: trisInner, lights: innerInfo.lights, spots: innerInfo.spots, outside: innerInfo.outside.length, outsideTop: innerInfo.outside.slice(0, 5), inHull: await insideHull(written, name) } : {}),
@@ -3066,6 +3154,7 @@ for (const kind of Object.keys(BUDGET)) {
       }
       if (kind === 'interior') console.log(`    Innenraum: ${r.containers} Container, ${r.trisInterior.toLocaleString()} Dreiecke roh, ${r.lights.length} Lichter, ${r.spots.length} Einstiegspunkte (${[...new Set(r.spots.map((x) => x.kind))].join(', ')}), ${r.outside} Teile außerhalb der Hülle entfernt${r.outside ? ` (${r.outsideTop.map((o) => `${o.name} ${o.over} m`).join(', ')})` : ''}, im Rumpf: ${r.inHull.ok ? 'ja' : `NEIN (${r.inHull.why})`}`);
       if (kind === 'ships' && r.interiorMarked) console.log(`    Innenraum im Rumpf gekennzeichnet: ${r.interiorMarked} Knoten (extras.interior)`);
+      if (r.containerPlace) console.log(`    Container an ihrem Platz: ${r.containerPlace.placed} (${r.containerPlace.byOffset} per Offset, ${r.containerPlace.byHelper} per Helfer, ${r.containerPlace.moved} verschoben)${r.containerPlace.unplaced ? `, ohne Helfer: ${r.containerPlace.unplaced.join(', ')}` : ''}${r.containerPlace.dup ? `, ${r.containerPlace.dup} doppelte Netze entfernt (${r.containerPlace.dupTris} Dreiecke)` : ''}`);
       if (r.lights?.missing) {
         console.log(`    WARNUNG Lampen: Exportprotokoll fehlt (${r.lights.missing}). Lampenliste nicht erneuert; Halle mit dem Extraktor neu exportieren (--force).`);
       } else if (r.lights && !Array.isArray(r.lights)) {
