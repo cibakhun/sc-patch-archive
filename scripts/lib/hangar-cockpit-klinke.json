@@ -1,64 +1,64 @@
 {
  "werkzeug": "cockpit-rays 1, verborgen a78ff98f",
- "ueber10": 8,
+ "ueber10": 7,
  "schiffe": {
   "aegs-avenger-stalker": {
-   "sha": "6b6f09111feed5f2",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 20,
-    "glas": 676
-   }
-  },
-  "aegs-avenger-titan": {
-   "sha": "f32c6cf81b5c6a9d",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 30,
-    "glas": 450
-   }
-  },
-  "aegs-avenger-titan-renegade": {
-   "sha": "6cc5cbd38a558105",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 19,
-    "glas": 472
-   }
-  },
-  "aegs-avenger-warlock": {
-   "sha": "e0226ba779aaeebd",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 29,
-    "glas": 578
-   }
-  },
-  "aegs-eclipse": {
-   "sha": "16ff27b331642a7c",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 22,
-    "glas": 269
-   }
-  },
-  "aegs-gladius": {
-   "sha": "47dd4f71b885b3d5",
+   "sha": "51fc76602917d48d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 4,
+    "glas": 676
+   }
+  },
+  "aegs-avenger-titan": {
+   "sha": "66afe7c502d13306",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 450
+   }
+  },
+  "aegs-avenger-titan-renegade": {
+   "sha": "3d429e10c886b72e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 472
+   }
+  },
+  "aegs-avenger-warlock": {
+   "sha": "ffd1ecdcbc40ceba",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 578
+   }
+  },
+  "aegs-eclipse": {
+   "sha": "11d583d07025f465",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 269
+   }
+  },
+  "aegs-gladius": {
+   "sha": "69fa994cabf89d33",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
     "glas": 130
    }
   },
@@ -175,7 +175,7 @@
    }
   },
   "aegs-sabre": {
-   "sha": "b6396176de8ffd5a",
+   "sha": "f6209cb5e504fadb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -185,12 +185,12 @@
    }
   },
   "aegs-sabre-comet": {
-   "sha": "d623ad9e7a6e05c1",
+   "sha": "096d034b6581f090",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
+    "hohl": 0,
     "glas": 517
    }
   },
@@ -285,12 +285,12 @@
    }
   },
   "anvl-arrow": {
-   "sha": "52f32632c7a78759",
+   "sha": "792230c7bb8e7ac0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 31,
+    "hohl": 13,
     "glas": 490
    }
   },
@@ -335,32 +335,32 @@
    }
   },
   "anvl-c8-pisces": {
-   "sha": "4db3c23cb04394ab",
+   "sha": "11bc8989e1e9c602",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
+    "hohl": 6,
     "glas": 584
    }
   },
   "anvl-c8r-pisces": {
-   "sha": "5dd8e61169a70d7d",
+   "sha": "1ca20c3711f7f5cb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
+    "hohl": 5,
     "glas": 1873
    }
   },
   "anvl-c8x-pisces-expedition": {
-   "sha": "b7f8f6bfd4636557",
+   "sha": "113078678cef209b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
+    "hohl": 6,
     "glas": 584
    }
   },
@@ -395,12 +395,12 @@
    }
   },
   "anvl-gladiator": {
-   "sha": "46ac3bf944069873",
+   "sha": "d9cfb4ba1ed0f535",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 7,
+    "hohl": 4,
     "glas": 621
    }
   },
@@ -425,17 +425,17 @@
    }
   },
   "anvl-hornet-f7a-mk2": {
-   "sha": "3a50ef6d19f94b96",
+   "sha": "f0b8ba6ba4763ea0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
+    "hohl": 0,
     "glas": 667
    }
   },
   "anvl-hornet-f7c": {
-   "sha": "2e9566c0706dcba8",
+   "sha": "ef04db8872537a4d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -445,7 +445,7 @@
    }
   },
   "anvl-hornet-f7c-mk2": {
-   "sha": "8f52de3a072d3009",
+   "sha": "52d0aa2e4e9f0471",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -455,7 +455,7 @@
    }
   },
   "anvl-hornet-f7c-wildfire": {
-   "sha": "3b9f708b11684d15",
+   "sha": "ee79da02b7445e7b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -465,22 +465,22 @@
    }
   },
   "anvl-hornet-f7cm": {
-   "sha": "3512288555ae7922",
+   "sha": "8d959f455ac41214",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
+    "hohl": 3,
     "glas": 1714
    }
   },
   "anvl-hornet-f7cm-heartseeker": {
-   "sha": "1d20df847f2c91cd",
+   "sha": "4fef976a2fee6a45",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
+    "hohl": 1,
     "glas": 48
    }
   },
@@ -505,7 +505,7 @@
    }
   },
   "anvl-hornet-f7cr": {
-   "sha": "ea43c83e58fea77d",
+   "sha": "f682c283fcc307ca",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -515,7 +515,7 @@
    }
   },
   "anvl-hornet-f7cr-mk2": {
-   "sha": "f2808f9bb44a5a1c",
+   "sha": "c37b452fb4d36e57",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -525,7 +525,7 @@
    }
   },
   "anvl-hornet-f7cs": {
-   "sha": "434e90989dd3adee",
+   "sha": "051f7fdd5c1d3dc0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -535,7 +535,7 @@
    }
   },
   "anvl-hornet-f7cs-mk2": {
-   "sha": "abd9c415cfe1301f",
+   "sha": "a4a2a4e0978bddc3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -597,7 +597,7 @@
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "anvl-spartan": {
-   "sha": "ac112c6ef08cbf63",
+   "sha": "2066dcafadf8b72c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -707,32 +707,32 @@
    }
   },
   "argo-mpuv": {
-   "sha": "2226e7f7a883e7ca",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 55,
-    "glas": 439
-   }
-  },
-  "argo-mpuv-1t": {
-   "sha": "75f715757e7c4738",
-   "durch": 3,
-   "gemessen": {
-    "rays": 160,
-    "durch": 3,
-    "hohl": 30,
-    "glas": 716
-   }
-  },
-  "argo-mpuv-transport": {
-   "sha": "7f4f27b44b10eef4",
+   "sha": "37d3dee59ec9c82e",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 64,
+    "hohl": 8,
+    "glas": 439
+   }
+  },
+  "argo-mpuv-1t": {
+   "sha": "7bea2d986308d447",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 10,
+    "glas": 716
+   }
+  },
+  "argo-mpuv-transport": {
+   "sha": "60fb68cfce7cd385",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 12,
     "glas": 182
    }
   },
@@ -767,7 +767,7 @@
    }
   },
   "cnou-hoverquad": {
-   "sha": "a67b05a6270b652c",
+   "sha": "c2fbe597e4e7c02f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -777,17 +777,17 @@
    }
   },
   "cnou-mustang-alpha": {
-   "sha": "89a44da03d915e48",
-   "durch": 2,
+   "sha": "ed6ca8488bddc7eb",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 2,
-    "hohl": 2,
+    "durch": 0,
+    "hohl": 0,
     "glas": 3901
    }
   },
   "cnou-mustang-alpha-citizencon2018": {
-   "sha": "014def5e560e18d5",
+   "sha": "1a2cd0b3ca921acd",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -797,52 +797,52 @@
    }
   },
   "cnou-mustang-beta": {
-   "sha": "f39cd9f115ec9f77",
-   "durch": 12,
-   "gemessen": {
-    "rays": 160,
-    "durch": 12,
-    "hohl": 12,
-    "glas": 3901
-   }
-  },
-  "cnou-mustang-delta": {
-   "sha": "5289c0948bebbc28",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 2,
-    "glas": 3901
-   }
-  },
-  "cnou-mustang-gamma": {
-   "sha": "1fbded1251de8d83",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 2,
-    "glas": 3901
-   }
-  },
-  "cnou-mustang-omega": {
-   "sha": "a3bbc14a1b4a467c",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 2,
-    "glas": 3901
-   }
-  },
-  "cnou-nomad": {
-   "sha": "c3484d8f56815fc0",
+   "sha": "b61ee259955b48aa",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 17,
+    "hohl": 0,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-delta": {
+   "sha": "0da19984abe691bf",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-gamma": {
+   "sha": "9e4f0749392692d7",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 3901
+   }
+  },
+  "cnou-mustang-omega": {
+   "sha": "2fbea087f01e5f9e",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 3901
+   }
+  },
+  "cnou-nomad": {
+   "sha": "ac599c29ff6ae42b",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
     "glas": 7447
    }
   },
@@ -937,12 +937,12 @@
    }
   },
   "drak-buccaneer": {
-   "sha": "c3b470e7ce224019",
+   "sha": "53805b8a7b4d565a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 4,
+    "hohl": 6,
     "glas": 708
    }
   },
@@ -1249,7 +1249,7 @@
    }
   },
   "grin-mdc": {
-   "sha": "60778d58ead1edc7",
+   "sha": "9a7aad0b57bd2d81",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1279,7 +1279,7 @@
    }
   },
   "grin-roc": {
-   "sha": "a76791b88ee55e9f",
+   "sha": "2b14fc355beca714",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1289,7 +1289,7 @@
    }
   },
   "grin-roc-ds": {
-   "sha": "1f2dd428e670b9fb",
+   "sha": "6c12994ea22e420f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1339,7 +1339,7 @@
    }
   },
   "krig-p52-merlin": {
-   "sha": "5e5e95f5c8f0dd8c",
+   "sha": "8f06b8c9d2372df8",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1671,37 +1671,37 @@
    }
   },
   "orig-100i": {
-   "sha": "65f00af157d4358a",
-   "durch": 11,
+   "sha": "87ad2fb069d32b93",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 30,
+    "durch": 1,
+    "hohl": 2,
     "glas": 2455
    }
   },
   "orig-125a": {
-   "sha": "0d38c49aa63a2c50",
-   "durch": 14,
+   "sha": "fa966f5a1660e272",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 14,
-    "hohl": 37,
+    "durch": 1,
+    "hohl": 3,
     "glas": 2271
    }
   },
   "orig-135c": {
-   "sha": "8314552a9445912c",
-   "durch": 7,
+   "sha": "98e46f7bc1ebce76",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 7,
-    "hohl": 25,
+    "durch": 0,
+    "hohl": 6,
     "glas": 3195
    }
   },
   "orig-300i": {
-   "sha": "4c7afd308bfb44f4",
+   "sha": "87a609aed61c4034",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1711,7 +1711,7 @@
    }
   },
   "orig-315p": {
-   "sha": "132bcdf9fd76b9d3",
+   "sha": "2595256bf3cbf5c3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1721,7 +1721,7 @@
    }
   },
   "orig-325a": {
-   "sha": "5b5bf4694cdea7cd",
+   "sha": "04cf8188822f13a5",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -1731,7 +1731,7 @@
    }
   },
   "orig-350r": {
-   "sha": "6ebb5073d5de2fd6",
+   "sha": "bdbf93c18e03cbe0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1805,12 +1805,12 @@
    }
   },
   "orig-m50": {
-   "sha": "c3b432c6dfd03c85",
+   "sha": "f8b847997b1b0941",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 12,
+    "hohl": 0,
     "glas": 4676
    }
   },
@@ -2015,13 +2015,13 @@
    }
   },
   "rsi-lynx": {
-   "sha": "6d5e318efe2e2a98",
+   "sha": "899698c0b15800d3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 11,
-    "glas": 1782
+    "hohl": 10,
+    "glas": 1786
    }
   },
   "rsi-mantis": {
@@ -2109,32 +2109,32 @@
    }
   },
   "rsi-ursa-medivac": {
-   "sha": "0ac03658a6b4e8c4",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 14,
-    "glas": 2381
-   }
-  },
-  "rsi-ursa-rover": {
-   "sha": "20ee20c0c0d31a60",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 3,
-    "glas": 784
-   }
-  },
-  "rsi-ursa-rover-emerald": {
-   "sha": "7ca2c50d9c2794af",
+   "sha": "fc47cc729a7a1b42",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 5,
+    "glas": 2381
+   }
+  },
+  "rsi-ursa-rover": {
+   "sha": "a4fd5af33f5e2a07",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 8,
+    "glas": 784
+   }
+  },
+  "rsi-ursa-rover-emerald": {
+   "sha": "3f1dbad93c4f9a1f",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 6,
     "glas": 910
    }
   },
@@ -2249,15 +2249,14 @@
    }
   },
   "vncl-blade": {
-   "sha": "2d99a285f3d4269b",
-   "durch": 39,
+   "sha": "899da21949d3e320",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 39,
-    "hohl": 60,
+    "durch": 1,
+    "hohl": 12,
     "glas": 711
-   },
-   "ausnahme": "Rippenrumpf der Vanduul: zwischen den Rippen hinter der Haube offen, man sieht nach aussen; vor dem Fix gleich (24 %), ob das Spiel dort schliesst, ist ungeprueft (.planning/notes/hangar-cockpit-hohl.md, offen)"
+   }
   },
   "vncl-glaive": {
    "sha": "5a9953814f9a51cc",

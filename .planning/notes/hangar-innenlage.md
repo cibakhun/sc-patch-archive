@@ -207,6 +207,14 @@ lag bisher zufällig im Rumpfquader und blieb drin (25,6 % außen). Mit der
 Regel liegen alle fünf 4 bis 10 m über der Hülle und fallen weg; 0 % außen,
 Sitz ✓ mit 11 683 Dreiecken.
 
+**Blick durch die Kanzel** (`verify:hangar-cockpit --nachziehen`, kein
+Wert gestiegen): Wo der Rumpf seinen Innenraum behält, sitzt das Cockpit
+jetzt hinter dem Glas. „durch“ im Mittel 1,47 → 1,21 % (533 → 440 von
+36 287 Strahlen), 12 Klinken gesunken: Blade 39 → 1 (Ausnahme gestrichen,
+es bleiben 7), 125a 14 → 1, 100i 11 → 1, Mustang Beta 12 → 0, 135c 7 → 0,
+MPUV 1T 3 → 0, Mustang Alpha/Delta/Gamma/Omega 2 → 0, MPUV und Avenger
+Stalker 1 → 0.
+
 **Werkzeug:** `measure-hangar-innenlage.mjs` prüft zusätzlich den
 Pilotensitz (Web: `spots` aus dem Manifest, roh: `hardpoint_*seat*`, Pilot
 vor Kopilot): ✓ ab 20 Dreiecksmitten des Innenraums bis 1,5 m, dazu was der
