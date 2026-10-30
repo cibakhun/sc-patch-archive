@@ -64,9 +64,6 @@ function boot(root: HTMLElement) {
 
   /* ------------------------------------------------------------ Zahlen --- */
   const announce = (changed = true) => {
-    const nav = document.getElementById('navFavCount');
-    const n = favs.length + layoutList().length;
-    if (nav) { nav.textContent = String(n); nav.hidden = n <= 0; }
     document.dispatchEvent(new CustomEvent('vb:saved', { detail: { favs: favs.length, changed } }));
   };
 

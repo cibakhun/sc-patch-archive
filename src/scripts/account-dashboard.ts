@@ -4,7 +4,7 @@
 import { supabase } from '../lib/supabase';
 import { escapeHtml as escHtml } from '../lib/escape';
 import { cssUrl } from '../lib/cssUrl';
-import { refineryValue, refinerySpark } from '../lib/refineryJobs';
+import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort } from '../lib/refineryJobs';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
@@ -88,17 +88,19 @@ import { refineryValue, refinerySpark } from '../lib/refineryJobs';
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
     if (location.hash.length > 1) activateSection(location.hash.slice(1));
-    // Ungelesene Chat-Nachrichten (FriendsDock zählt) am Reiter „Freunde":
-    // dann weicht die Freundeszahl dem goldenen Zähler.
-    document.addEventListener('vb:chat-unread', (e) => {
-      const n = Number((e as CustomEvent).detail) || 0;
-      const u = document.getElementById('navChatUnread');
-      const f = document.getElementById('navFriendCount');
-      if (!u) return;
-      u.textContent = n > 99 ? '99+' : String(n);
-      u.hidden = n <= 0;
-      if (f) f.classList.toggle('is-muted', n > 0);
-    });
+    // Am Reiter „Freunde" steht nur, was wartet: offene Anfragen an mich und
+    // ungelesene Nachrichten (dieselbe Zahl wie am Konto-Knopf). Reine Anzahlen
+    // (Freunde, Gespeichertes) sahen wie Hinweise aus und stehen nicht mehr da.
+    let newReq = 0, newMsg = 0;
+    const paintFriendsNew = () => {
+      const el = document.getElementById('navFriendsNew');
+      if (!el) return;
+      const n = newReq + newMsg;
+      el.textContent = n > 99 ? '99+' : String(n);
+      el.hidden = n <= 0;
+    };
+    document.addEventListener('vb:chat-unread', (e) => { newMsg = Number((e as CustomEvent).detail) || 0; paintFriendsNew(); });
+    document.addEventListener('vb:friends', (e) => { newReq = ((e as CustomEvent).detail?.incoming || []).length; paintFriendsNew(); });
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -1562,16 +1564,69 @@ import { refineryValue, refinerySpark } from '../lib/refineryJobs';
       } catch {}
       updateCard();
 
-      // ---- Übersicht: Kennzahlen, Sidebar-Badges, Aktivitäts-Feed ----
-      const setBadge = (id: string, n: number) => { const el = document.getElementById(id); if (!el) return; el.textContent = String(n); el.hidden = n <= 0; };
-      // navFavCount (Favoriten + Loadouts) setzt account-saved.ts.
-      setBadge('navFriendCount', friendCount);
+      // ---- Übersicht: Kennzahlen und Aktivitäts-Feed ----
       document.addEventListener('vb:saved', (e) => {
         const n = (e as CustomEvent).detail?.favs;
         if (typeof n !== 'number') return;
         favCount = n;
         updateCard();
       });
+
+      // Mini-Timer je laufendem Refinery-Auftrag (wie im Tracker, nur kompakt).
+      // Station kommt aus refinery_jobs, also vom Konto: nur als Text ins DOM.
+      const REF_TIMERS = 3;
+      let refTick = 0;
+      const renderRefTimers = (jobs: Array<{ station: string; method: string; status: string; started_at: string; ready_at: string }>) => {
+        const list = document.getElementById('ovRefJobs');
+        if (!list) return;
+        const shown = jobTimers(jobs, Date.now()).slice(0, REF_TIMERS);
+        const more = jobs.filter((j) => j.status === 'active').length - shown.length;
+        const fmtAt = (iso: string) => {
+          const d = new Date(iso);
+          const time = d.toLocaleTimeString(lang === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+          return d.toDateString() === new Date().toDateString() ? time : d.toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: 'short' }) + ' ' + time;
+        };
+        list.replaceChildren(...shown.map(({ job }) => {
+          const li = document.createElement('li');
+          li.className = 'ck-job';
+          li.dataset.started = job.started_at;
+          li.dataset.ready = job.ready_at;
+          li.title = [job.station, job.method, ovTpl('lJobAt').replace('%t%', fmtAt(job.ready_at))].filter(Boolean).join(' · ');
+          const name = document.createElement('small');
+          name.textContent = stationShort(job.station);
+          const t = document.createElement('time');
+          t.dateTime = job.ready_at;
+          const bar = document.createElement('i');
+          bar.className = 'ck-job__bar';
+          bar.appendChild(document.createElement('i'));
+          li.append(name, t, bar);
+          return li;
+        }));
+        if (more > 0) {
+          const li = document.createElement('li');
+          li.className = 'ck-job ck-job--more';
+          li.textContent = ovTpl('lJobMore').replace('%n%', String(more));
+          list.appendChild(li);
+        }
+        list.hidden = !shown.length;
+        // Mit Timern sagt die Zeile rechts nichts Neues mehr
+        const sub = document.getElementById('ovRefSub');
+        if (sub && shown.length) sub.textContent = '';
+        const tick = () => {
+          const now = Date.now();
+          list.querySelectorAll<HTMLElement>('.ck-job[data-ready]').forEach((li) => {
+            const [{ left, pct, ready }] = jobTimers([{ status: 'active', started_at: li.dataset.started!, ready_at: li.dataset.ready! }], now);
+            li.classList.toggle('is-ready', ready);
+            const t = li.querySelector('time');
+            if (t) t.textContent = ready ? ovTpl('lJobReady') : fmtCountdown(left / 1000);
+            const fill = li.querySelector<HTMLElement>('.ck-job__bar > i');
+            if (fill) fill.style.width = pct.toFixed(1) + '%';
+          });
+        };
+        tick();
+        clearInterval(refTick);
+        if (shown.some((x) => !x.ready)) refTick = window.setInterval(() => { if (!document.hidden) tick(); }, 1000);
+      };
 
       const activity: Array<{ g: string; html: string; ts: number }> = [];
 
@@ -1589,7 +1644,7 @@ import { refineryValue, refinerySpark } from '../lib/refineryJobs';
       // Refinery: Gesamtwert (verkauft, sonst geschätzt) + aktive Jobs
       try {
         const { data: rjobs } = await supabase.from('refinery_jobs')
-          .select('station, method, status, est_value, sold_value, started_at')
+          .select('station, method, status, est_value, sold_value, started_at, ready_at')
           .order('started_at', { ascending: false });
         const jobs = rjobs || [];
         const { total, active } = refineryValue(jobs);
@@ -1598,6 +1653,7 @@ import { refineryValue, refinerySpark } from '../lib/refineryJobs';
         const ovRefSub = document.getElementById('ovRefSub');
         if (ovRefSub) ovRefSub.textContent = active <= 0 ? ovTpl('lNoactive')
           : active === 1 ? ovTpl('lActive1') : ovTpl('lActive').replace('%n%', String(active));
+        renderRefTimers(jobs);
 
         const spark = document.getElementById('ovRefSpark');
         if (spark) spark.innerHTML = refinerySpark(jobs, 'sparkg');

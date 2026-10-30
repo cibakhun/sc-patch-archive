@@ -147,17 +147,9 @@ export function fmtDuration(totalSeconds: number): string {
   return parts.join(' ');
 }
 
-/** Countdown „2d 03:12:45" / „03:12:45" — für den Live-Ticker. */
-export function fmtCountdown(totalSeconds: number): string {
-  const s = Math.max(0, Math.round(totalSeconds));
-  const d = Math.floor(s / 86400);
-  const h = Math.floor((s % 86400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const hms = `${pad(h)}:${pad(m)}:${pad(sec)}`;
-  return d > 0 ? `${d}d ${hms}` : hms;
-}
+// Countdown liegt in refineryJobs.ts, damit die Konto-Kachel ihn ohne die
+// Erz-/Stationsliste mitnutzt.
+export { fmtCountdown } from './refineryJobs';
 
 /** aUEC mit lokalisiertem Tausendertrennzeichen. */
 export function fmtAuec(n: number | null | undefined, lang: 'de' | 'en'): string {
