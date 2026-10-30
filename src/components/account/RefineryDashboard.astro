@@ -29,16 +29,14 @@ const patch = dataPatch();
 
 const COPY = {
   de: {
-    eyebrow: 'Mining · Raffinerie',
     title: 'Raffinerie',
-    lead: 'Welche Station holt aus deinem Erz am meisten heraus, welche Methode lohnt sich, und wann ist dein Auftrag fertig. Ertragswerte aus dem Spiel, dein Tracker im Konto.',
-    fStations: 'Raffinerien', fMethods: 'Methoden', fOres: 'Erze', fPatch: 'Spielstand', fPrices: 'Preise',
-    jTracker: 'Tracker', jOres: 'Erze', jYield: 'Ertrag je Station', jMethods: 'Methoden',
+    lead: 'Ertrag aller %s Raffinerien je Erz, die %m Methoden und dein Tracker.',
+    leadData: 'Spielstand %v, Preise von %u vom %d.',
     loading: 'Lade deine Refinery-Aufträge …',
     loadError: 'Konnte deine Aufträge nicht laden. Bitte Verbindung prüfen.',
     retry: 'Neu laden',
     outTitle: 'Dein Refinery-Tracker',
-    outText: 'Melde dich an, um laufende Aufträge mit Countdown zu verfolgen und deinen Erlös festzuhalten. Der Wert erscheint auch in deinem Konto.',
+    outText: 'Melde dich an, um Aufträge mit Countdown zu verfolgen. Der Wert erscheint auch in deinem Konto.',
     login: 'Anmelden', register: 'Konto erstellen',
     stActive: 'Aktive Aufträge', stReady: 'Fertig zum Abholen', stPipe: 'SCU in Arbeit', stValue: 'Refinery-Wert',
     subActive: '%n aktiv', subActive1: '1 aktiv', subNoActive: 'keine aktiv',
@@ -48,7 +46,7 @@ const COPY = {
     yieldLbl: 'Ausbeute', valueLbl: 'gesch. Wert',
     collect: 'Abholen', del: 'Löschen', confirmDel: 'Diesen Auftrag löschen?',
     newTitle: 'Neuer Auftrag',
-    fromTerminal: 'Trag die Werte ein, die dir das Ingame-Terminal anzeigt. Dann ist das Tracking exakt.',
+    fromTerminal: 'Trag die Werte aus dem Ingame-Terminal ein.',
     fStation: 'Raffinerie', pickStation: 'Raffinerie wählen',
     fMethod: 'Methode', pickMethod: 'Methode wählen',
     tagYield: 'Ausbeute', tagSpeed: 'Tempo', tagCost: 'Kosten',
@@ -81,31 +79,29 @@ const COPY = {
     save: 'Speichern', cancel: 'Abbrechen',
     scu: 'SCU',
     oresTitle: 'Raffinierbare Erze',
-    oresNote: 'Ø Preis aus Verkaufsterminals (UEX, Stand %d). Der Erzname führt zum Datenblatt in der Mining-Datenbank mit Fundorten.',
+    oresNote: 'Ø Verkaufspreis laut UEX, Stand %d. Der Erzname führt zur Mining-Datenbank.',
     thOre: 'Erz', thKind: 'Art', thRarity: 'Seltenheit', thPrice: 'Ø aUEC/SCU', thBest: 'Beste Raffinerie', thSystems: 'Vorkommen',
     kind: { Metal: 'Metall', Mineral: 'Mineral', Ice: 'Eis' } as Record<string, string>,
     rarity: { common: 'häufig', uncommon: 'ungewöhnlich', rare: 'selten', epic: 'episch', legendary: 'legendär' } as Record<string, string>,
     noBonus: 'überall ±0 %',
     yieldTitle: 'Ertrag je Raffinerie',
-    yieldLead: 'Jede Station verarbeitet Erze mit eigenem Aufschlag auf die Ausbeute. Wähle ein Erz, um alle Raffinerien zu vergleichen.',
+    yieldLead: 'Aufschlag jeder Station auf die Ausbeute, je Erz.',
     yieldOre: 'Erz', showTable: 'Alle Aufschläge als Tabelle',
     tblStation: 'Station',
     methodsTitle: 'Methoden',
-    methodsLead: 'Die Methode tauscht Ausbeute gegen Tempo und Kosten. Exakte Prozentwerte sind nicht öffentlich, die Stufen zeigen die Richtung. Deine echten Zahlen stehen im Terminal.',
+    methodsLead: 'Ausbeute, Tempo und Kosten je Methode als Stufen. Genaue Werte zeigt das Terminal.',
     thMethod: 'Methode',
     priceNote: 'Verkaufswerte auf Basis von UEX-Durchschnittspreisen (%d). Nur eine Schätzung, deinen echten Erlös trägst du in der Historie ein.',
   },
   en: {
-    eyebrow: 'Mining · Refinery',
     title: 'Refinery',
-    lead: 'Which station gets the most out of your ore, which method pays off, and when your order is ready. Yield figures from the game, your tracker in your account.',
-    fStations: 'Refineries', fMethods: 'Methods', fOres: 'Ores', fPatch: 'Game version', fPrices: 'Prices',
-    jTracker: 'Tracker', jOres: 'Ores', jYield: 'Yield by station', jMethods: 'Methods',
+    lead: 'Yield of all %s refineries per ore, the %m methods, and your tracker.',
+    leadData: 'Game version %v, prices from %u as of %d.',
     loading: 'Loading your refinery orders …',
     loadError: 'Could not load your orders. Please check your connection.',
     retry: 'Reload',
     outTitle: 'Your refinery tracker',
-    outText: 'Sign in to follow running orders with a live countdown and record your proceeds. The value also shows up in your account.',
+    outText: 'Sign in to track orders with a countdown. The value also shows up in your account.',
     login: 'Sign in', register: 'Create account',
     stActive: 'Active orders', stReady: 'Ready to collect', stPipe: 'SCU refining', stValue: 'Refinery value',
     subActive: '%n active', subActive1: '1 active', subNoActive: 'none active',
@@ -115,7 +111,7 @@ const COPY = {
     yieldLbl: 'Yield', valueLbl: 'est. value',
     collect: 'Collect', del: 'Delete', confirmDel: 'Delete this work order?',
     newTitle: 'New work order',
-    fromTerminal: 'Enter the figures the in-game refinery terminal shows you. Then the tracking is exact.',
+    fromTerminal: 'Enter the figures from the in-game terminal.',
     fStation: 'Refinery', pickStation: 'Select refinery',
     fMethod: 'Method', pickMethod: 'Select method',
     tagYield: 'Yield', tagSpeed: 'Speed', tagCost: 'Cost',
@@ -148,17 +144,17 @@ const COPY = {
     save: 'Save', cancel: 'Cancel',
     scu: 'SCU',
     oresTitle: 'Refinable ores',
-    oresNote: 'Average price from sell terminals (UEX, as of %d). The ore name opens its sheet in the mining database with locations.',
+    oresNote: 'Average sell price from UEX, as of %d. The ore name links to the mining database.',
     thOre: 'Ore', thKind: 'Type', thRarity: 'Rarity', thPrice: 'Avg aUEC/SCU', thBest: 'Best refinery', thSystems: 'Found in',
     kind: { Metal: 'Metal', Mineral: 'Mineral', Ice: 'Ice' } as Record<string, string>,
     rarity: { common: 'common', uncommon: 'uncommon', rare: 'rare', epic: 'epic', legendary: 'legendary' } as Record<string, string>,
     noBonus: '±0 % everywhere',
     yieldTitle: 'Yield by refinery',
-    yieldLead: 'Every station refines ores with its own bonus or penalty on yield. Pick an ore to compare all refineries.',
+    yieldLead: 'Each station’s bonus or penalty on yield, per ore.',
     yieldOre: 'Ore', showTable: 'All bonuses as a table',
     tblStation: 'Station',
     methodsTitle: 'Methods',
-    methodsLead: 'The method trades yield against speed and cost. Exact percentages are not public, the levels show the direction. Your real numbers are on the terminal.',
+    methodsLead: 'Yield, speed and cost per method as levels. The terminal shows the exact numbers.',
     thMethod: 'Method',
     priceNote: 'Sell values based on UEX average prices (%d). An estimate only, record your actual proceeds in the history.',
   },
@@ -185,6 +181,8 @@ const defaultOre = oreRows.find((r) => r.top > 0)?.o.name ?? ores[0]?.name;
 const SYSTEM_TOPIC: Record<string, string> = { Pyro: '/topics/4-0-0-pyro-system.html', Nyx: '/topics/4-4-0-nyx-system.html' };
 const systemHref = (s: string) => (SYSTEM_TOPIC[s] ? href(SYSTEM_TOPIC[s], lang) : null);
 const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
+// leadData: Text um die beiden Links (Spielstand, UEX) herum.
+const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDate).split('%v'); const [b, c] = rest.split('%u'); return [a, b, c]; })();
 ---
 
 <div class="dsr rf" id="rf" data-lang={lang} data-login={loginHref} data-account={href('/account.html', lang) + '#security'}>
@@ -201,26 +199,12 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
   </svg>
 
   <div class="rf-in ck">
-    <header class="ck-panel rf-hero">
-      <div class="rf-hero__badge" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#rf-ic-refinery"/></svg></div>
-      <div class="rf-hero__main">
-        <div class="ck-k">{COPY.eyebrow}</div>
-        <h1 class="rf-hero__title">{COPY.title}</h1>
-        <p class="rf-hero__lead">{COPY.lead}</p>
-        <ul class="rf-facts">
-          <li><a href="#ertrag"><b class="tnum">{REFINERY.stations.length}</b> {COPY.fStations}</a></li>
-          <li><a href="#methoden"><b class="tnum">{methods.length}</b> {COPY.fMethods}</a></li>
-          <li><a href="#erze"><b class="tnum">{ores.length}</b> {COPY.fOres}</a></li>
-          {patch && <li><a href={href(patch.path, lang)}>{COPY.fPatch} <b>{patch.label}</b></a></li>}
-          <li><a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">{COPY.fPrices} <b>UEX {priceDate}</b></a></li>
-        </ul>
-      </div>
-      <nav class="rf-jump" aria-label={COPY.title}>
-        <a href="#tracker">{COPY.jTracker}</a>
-        <a href="#erze">{COPY.jOres}</a>
-        <a href="#ertrag">{COPY.jYield}</a>
-        <a href="#methoden">{COPY.jMethods}</a>
-      </nav>
+    <header class="rf-head">
+      <h1>{COPY.title}</h1>
+      <p>
+        {COPY.lead.replace('%s', String(REFINERY.stations.length)).replace('%m', String(methods.length))}
+        {' '}{leadData[0]}{patch ? <a href={href(patch.path, lang)}>{patch.label}</a> : '—'}{leadData[1]}<a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">UEX</a>{leadData[2]}
+      </p>
     </header>
 
     <!-- ===== Tracker ===== -->
@@ -489,23 +473,11 @@ const oreHref = Object.fromEntries(oreRows.map((r) => [r.o.name, r.link]));
   .rf-note { margin: 0 0 16px; padding: 10px 13px; border: 1px solid var(--line-soft); border-left: 3px solid var(--accent); border-radius: 9px; background: color-mix(in srgb, var(--accent) 6%, transparent); color: var(--muted); font-size: var(--fs-6); line-height: 1.5; }
 
   /* ---- Kopf ---- */
-  .rf-hero { position: relative; overflow: hidden; isolation: isolate; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px clamp(16px, 1.6vw, 28px); align-items: center; padding: clamp(16px, 1.4vw, 26px);
-    border-color: color-mix(in srgb, var(--gold) 40%, transparent);
-    background: radial-gradient(120% 160% at 0% 0%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 62%), color-mix(in srgb, var(--surface) 90%, transparent); }
-  .rf-hero__badge { width: clamp(68px, 5vw, 96px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 26%; color: var(--gold);
-    background: color-mix(in srgb, var(--gold) 12%, var(--bg-2)); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--gold) 60%, transparent), 0 0 36px -10px var(--gold); }
-  .rf-hero__badge svg { width: 54%; height: auto; }
-  .rf-hero__main { min-width: 0; }
-  .rf-hero__title { margin: 4px 0 6px; font-family: var(--font-display); font-weight: 900; font-size: var(--fs-17); line-height: 1.05; letter-spacing: var(--ls-4); color: var(--text); }
-  .rf-hero__lead { margin: 0 0 12px; max-width: 70ch; color: var(--muted); font-size: var(--fs-8); line-height: 1.55; }
-  .rf-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-  .rf-facts a { display: inline-flex; gap: 6px; align-items: baseline; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-6); color: var(--muted); transition: border-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui); }
-  .rf-facts a:hover { border-color: var(--accent); color: var(--text); }
-  .rf-facts b { color: var(--text); font-weight: 700; }
-  .rf-jump { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 18px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
-  .rf-jump a { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); color: var(--accent); }
-  .rf-jump a:hover { text-decoration: underline; }
-  @container (max-width: 560px) { .rf-hero { grid-template-columns: minmax(0, 1fr); } .rf-hero__badge { display: none; } }
+  .rf-head { padding: 4px 2px 2px; }
+  .rf-head h1 { margin: 0 0 6px; font-family: var(--font-display); font-weight: 900; font-size: var(--fs-17); line-height: 1.05; letter-spacing: var(--ls-4); color: var(--text); }
+  .rf-head p { margin: 0; max-width: 75ch; color: var(--muted); font-size: var(--fs-8); line-height: 1.55; }
+  .rf-head a { color: var(--text); border-bottom: 1px solid var(--line-2); }
+  .rf-head a:hover { color: var(--accent); border-color: var(--accent); }
 
   /* ---- Tracker ---- */
   .rf-tracker { display: flex; flex-direction: column; gap: var(--ck-gap); }
