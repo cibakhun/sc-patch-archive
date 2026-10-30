@@ -960,14 +960,30 @@ async function paintTexture(rel, made) {
 // eine Palette des Lacks, nicht die Serienpalette des Schwesterpakets (Cutlass
 // Hawthorn je Variante mit eigenem Material, Mustang Vindicator; dieselbe Regel
 // wie scripts/datamine-ship-paints.mjs)
-let sisterIndex = null;
+// Die Serienpalette des Pakets trägt im Export nicht immer die Glätte (Mustang
+// Alpha CitizenCon2018: Serie ohne glossiness, Variante 255, sonst gleich).
+// Darum zusätzlich: eine Palette, deren Farben der Grundpalette des
+// Schwesterschiffs in ship-paints.json gleichen (base.a/b/c, Paket -> Schiff
+// über index.json), ist keine Lackpalette; dieselbe Regel wie sisterColours im
+// Datenlauf (Befund 30.10.2026, .planning/notes/hangar-landung.md)
+// Gleich sind Schwester-Paletten mit gleichen Farben und gleicher Glanzfarbe;
+// eine fehlende Glätte (null, der Export lässt sie bei manchen Paletten weg:
+// ORIG 600i Cold Forge, bei der 600i Touring 248/212/209) zählt nicht als
+// Unterschied, genommen wird die Palette mit voller Glätte. Zwei mit voller,
+// aber verschiedener Glätte bleiben mehrdeutig.
+let sisterIndex = null, sisterBaseSkipped = 0;
 // nach Werten: die Kennungen bildet der Export aus Tag und Record, nicht aus der Palette des Spiels
 const paletteLook = (x) => JSON.stringify([x?.primary, x?.secondary, x?.tertiary, x?.finish]);
+const CHANNELS = ['primary', 'secondary', 'tertiary'];
+const sisterKey = (x) => JSON.stringify([...CHANNELS.map((k) => x?.[k]), ...CHANNELS.map((k) => x?.finish?.[k]?.specular ?? null)]);
+const sisterGloss = (x) => CHANNELS.map((k) => x?.finish?.[k]?.glossiness ?? null);
 function sisterPalette(pkg, variant) {
   const tag = variant?.subgeometry_tag;
   if (!tag) return null;
   if (!sisterIndex) {
     sisterIndex = new Map();
+    const index = existsSync(new URL('index.json', PAINT_DEC)) ? JSON.parse(readFileSync(new URL('index.json', PAINT_DEC), 'utf8')) : {};
+    const shipOf = new Map(Object.entries(index).map(([slug, e]) => [e.package ?? (e.record ? `${e.record.replace(/_/g, ' ')}_LOD1_TEX1` : null), slug]));
     const dir = new URL('Packages/', PAINT_DEC);
     for (const p of existsSync(dir) ? readdirSync(dir) : []) {
       const f = (n) => new URL(`Packages/${p}/${n}`, PAINT_DEC);
@@ -975,9 +991,11 @@ function sisterPalette(pkg, variant) {
       const pals = new Map(JSON.parse(readFileSync(f('palettes.json'), 'utf8')).palettes.map((x) => [x.id, x]));
       const liveries = existsSync(f('liveries.json')) ? JSON.parse(readFileSync(f('liveries.json'), 'utf8')).liveries ?? [] : [];
       const serie = paletteLook(pals.get(liveries.find((l) => l.entity_names.some((n) => n.startsWith('EntityClassDefinition.')))?.palette_id));
+      const base = SHIP_PAINTS[shipOf.get(p)]?.base;
       for (const v of JSON.parse(readFileSync(f('paints.json'), 'utf8')).paint_variants ?? []) {
         const pal = pals.get(v.palette_id), k = v.subgeometry_tag?.toLowerCase();
         if (!pal || !k || paletteLook(pal) === serie) continue;
+        if (base && [pal.primary, pal.secondary, pal.tertiary].map(linHex).join() === [base.a, base.b, base.c].join()) { sisterBaseSkipped++; continue; }
         if (!sisterIndex.has(k)) sisterIndex.set(k, []);
         sisterIndex.get(k).push({ pkg: p, pal, mtl: v.exterior_material_sidecar?.toLowerCase() ?? null });
       }
@@ -986,8 +1004,11 @@ function sisterPalette(pkg, variant) {
   const fam = (p) => p.split(/[ _]/).slice(0, 2).join(' ').toLowerCase();
   const mtl = variant.exterior_material_sidecar?.toLowerCase() ?? null;
   const hits = sisterIndex.get(tag.toLowerCase())?.filter((h) => h.pkg !== pkg && h.mtl === mtl) ?? [];
-  // je verschiedene Palette die Pakete, die sie tragen
-  const distinct = (hs) => [...Map.groupBy(hs, (h) => paletteLook(h.pal)).values()];
+  // je verschiedene Palette die Pakete, die sie tragen, die mit voller Glätte zuerst
+  const distinct = (hs) => [...Map.groupBy(hs, (h) => sisterKey(h.pal)).values()].flatMap((g) => {
+    const full = [...Map.groupBy(g.filter((h) => sisterGloss(h.pal).every((x) => x != null)), (h) => JSON.stringify(sisterGloss(h.pal))).values()];
+    return full.length > 1 ? full : [[...(full[0] ?? []), ...g.filter((h) => !sisterGloss(h.pal).every((x) => x != null))]];
+  });
   const own = distinct(hits.filter((h) => fam(h.pkg) === fam(pkg))), all = distinct(hits);
   const hit = own.length === 1 ? own[0] : !own.length && all.length === 1 ? all[0] : null;
   const names = (g) => g.map((h) => h.pkg).join(', ');
@@ -996,6 +1017,8 @@ function sisterPalette(pkg, variant) {
   return hit?.[0].pal ?? null;
 }
 const sisterUsed = [];
+// Varianten ohne eigene Palette, je Schiff (paintPlan) und für den ganzen Lauf
+const fallback = { sister: 0, serie: 0, none: 0, alt: [] }, fallbackRun = { sister: 0, serie: 0, none: 0, alt: [] };
 async function paintPlan(slug) {
   const index = existsSync(new URL('index.json', PAINT_DEC)) ? JSON.parse(readFileSync(new URL('index.json', PAINT_DEC), 'utf8')) : {};
   // Paketname wie StarBreaker ihn bildet: Record, Unterstriche als Leerzeichen
@@ -1024,13 +1047,25 @@ async function paintPlan(slug) {
   const targets = new Set();
   const paints = [];
   for (const v of variants) {
-    const pal = palettes.get(v.palette_id) ?? sisterPalette(pkg, v);
+    const ownPal = palettes.get(v.palette_id), sister = ownPal ? null : sisterPalette(pkg, v);
     const ids = (SHIP_PAINTS[slug]?.paints ?? []).filter((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase()).map((p) => p.id);
     const look = { tag: v.subgeometry_tag, ids, name: v.display_name ?? null, palette: null, materials: {} };
-    // Ohne Palette im zerlegten Export (Freelancer Storm Surge): die Lackkanäle
-    // aus ship-paints.json (dieselbe Palette, aus dem Schiffs-Record gelesen)
-    const listed = !pal && (SHIP_PAINTS[slug]?.paints ?? []).find((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase());
-    if (listed) {
+    // Ohne eigene Palette und ohne Schwester (Freelancer Storm Surge, Mustang
+    // Vindicator): Das Spiel behält die Palette des Schiffs. Also die
+    // Serienpalette des eigenen Pakets ganz, mit finish, Glas und Decal, wenn
+    // ihre Farben dem Eintrag in ship-paints.json gleichen (dort ebenso die
+    // Grundfarben des Schiffs). Sonst, als Abweichung gezählt, nur die drei
+    // Lackkanäle aus ship-paints.json; ohne Eintrag dort (Lack ohne Namen,
+    // Schiff ohne Grundpalette) bleibt palette null.
+    const listed = !ownPal && !sister && (SHIP_PAINTS[slug]?.paints ?? []).find((p) => p.tag?.toLowerCase() === v.subgeometry_tag?.toLowerCase());
+    const serie = listed && palettes.get(own?.palette_id);
+    const fromSerie = serie && [serie.primary, serie.secondary, serie.tertiary].map(linHex).join() === [listed.a, listed.b, listed.c].join() ? serie : null;
+    if (sister) fallback.sister++;
+    else if (!ownPal && !listed) fallback.none++;
+    else if (fromSerie) fallback.serie++;
+    else if (listed) fallback.alt.push(`${pkg}: ${v.subgeometry_tag}`);
+    const pal = ownPal ?? sister ?? fromSerie;
+    if (listed && !fromSerie) {
       const none = { gloss: null, specular: null };
       look.palette = { a: listed.a, b: listed.b, c: listed.c, glass: null, finish: { a: none, b: none, c: none }, decal: null };
     }
@@ -2991,6 +3026,12 @@ for (const kind of Object.keys(BUDGET)) {
       delete r.paintReport;
       if (kind === 'ships') console.log(pr ? `    Lacke: ${pr.paints} (${pr.linked} mit Lack-Item, ${pr.patterned} mit eigenem Material: ${pr.stencils} Stencil-, ${pr.layerSwaps} Schichtwechsel), ${pr.textures} Karten${pr.missing ? `; ${pr.missing} Lack-Materialien nicht im Web-Modell (Innenraum, Glühen u. ä. weggelassen: ${pr.missingNames.slice(0, 6).join(', ')})` : ''}` : '    Lacke: keine Lackvarianten im zerlegten Export (oder kein Export, Extraktor-Teil ships)');
       if (kind === 'ships' && sisterUsed.length) console.log(`    Schwesterpakete: ${sisterUsed.splice(0).join('; ')}`);
+      if (kind === 'ships' && sisterIndex) console.log(`    Schwester-Index: ${sisterBaseSkipped} Einträge übersprungen, deren Farben der Grundpalette ihres Schiffs gleichen`);
+      if (kind === 'ships' && (fallback.sister || fallback.serie || fallback.none || fallback.alt.length)) {
+        console.log(`    Ohne eigene Palette: Schwester ${fallback.sister}, Serie des Pakets ${fallback.serie}, ohne Eintrag ${fallback.none}, Abweichung ${fallback.alt.length}${fallback.alt.length ? ` (nur die Lackkanäle: ${fallback.alt.join('; ')})` : ''}`);
+        for (const k of ['sister', 'serie', 'none']) { fallbackRun[k] += fallback[k]; fallback[k] = 0; }
+        fallbackRun.alt.push(...fallback.alt.splice(0));
+      }
       if (r.anchorBy) console.log(`    Befestigung über ${r.anchorBy === 'name' ? 'den Entity-Namen' : r.anchorBy === 'kind' ? 'das einzige Kind der Wurzel' : 'die Szenenwurzel — WARNUNG: Lage am Schiff ungeprüft'}`);
       if (r.furnitureNodes) console.log(`    Einrichtung: ${r.furnitureNodes.roots} Möbel in ${r.furnitureNodes.nodes} eigenen Knoten (Originalgröße im Viewer), Halle ${r.furnitureNodes.drawCalls} Draw-Calls`);
       if (r.hull) {
@@ -3130,3 +3171,4 @@ for (const k of Object.keys(prev)) if (k !== 'source') merged[k] = k in manifest
 for (const k of Object.keys(manifest)) if (!(k in merged)) merged[k] = manifest[k];
 await writeFile(MANIFEST, JSON.stringify(merged, null, 2) + '\n', 'utf8');
 console.log(`${built} gebaut, ${reused} unveraendert -> ${PROBE ? fileURLToPath(MANIFEST) : 'src/data/hangar-assets.json'}`);
+if (fallbackRun.sister || fallbackRun.serie || fallbackRun.none || fallbackRun.alt.length) console.log(`Lackvarianten ohne eigene Palette: Schwester ${fallbackRun.sister}, Serie des Pakets ${fallbackRun.serie}, ohne Eintrag ${fallbackRun.none}, Abweichung ${fallbackRun.alt.length}${fallbackRun.alt.length ? ` (${fallbackRun.alt.join('; ')})` : ''}`);

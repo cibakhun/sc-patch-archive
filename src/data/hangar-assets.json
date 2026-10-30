@@ -38,7 +38,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-avenger-stalker.json",
-        "v": "9392cf6e"
+        "v": "412b6cbc"
       },
       "uv": {
         "rangeBefore": 18,
@@ -140,7 +140,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-avenger-titan.json",
-        "v": "5d9706e6"
+        "v": "d8ccc966"
       },
       "uv": {
         "rangeBefore": 18,
@@ -193,7 +193,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-avenger-warlock.json",
-        "v": "a2e69e05"
+        "v": "47e98c65"
       },
       "uv": {
         "rangeBefore": 25,
@@ -961,7 +961,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-retaliator.json",
-        "v": "d0d2c15e"
+        "v": "18ecaf57"
       },
       "uv": {
         "rangeBefore": 545,
@@ -1388,7 +1388,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-vanguard-harbinger.json",
-        "v": "de3cd843"
+        "v": "b7121d5e"
       },
       "uv": {
         "rangeBefore": 131,
@@ -1447,7 +1447,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-vanguard-hoplite.json",
-        "v": "83e902ba"
+        "v": "b265ded4"
       },
       "uv": {
         "rangeBefore": 131,
@@ -1507,7 +1507,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-vanguard-sentinel.json",
-        "v": "3129255c"
+        "v": "88375974"
       },
       "uv": {
         "rangeBefore": 131,
@@ -1566,7 +1566,7 @@
       },
       "paints": {
         "url": "/hangar/paints/aegs-vanguard.json",
-        "v": "bcad29d0"
+        "v": "a4a4d504"
       },
       "uv": {
         "rangeBefore": 131,
@@ -1618,7 +1618,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-arrow.json",
-        "v": "cda996e2"
+        "v": "bcc279e5"
       },
       "uv": {
         "rangeBefore": 288,
@@ -3608,7 +3608,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-valkyrie.json",
-        "v": "d30ffa2d"
+        "v": "9e8c61c9"
       },
       "uv": {
         "rangeBefore": 354,
@@ -3870,7 +3870,7 @@
       },
       "paints": {
         "url": "/hangar/paints/argo-mole.json",
-        "v": "944eed34"
+        "v": "9861fd3a"
       },
       "uv": {
         "rangeBefore": 607,
@@ -4375,7 +4375,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-alpha.json",
-        "v": "5c5cb446"
+        "v": "0270b535"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4425,7 +4425,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-beta.json",
-        "v": "84f7ece8"
+        "v": "8ce66e9b"
       },
       "uv": {
         "rangeBefore": 793,
@@ -4479,7 +4479,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-delta.json",
-        "v": "1caa49e9"
+        "v": "8851dee8"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4530,7 +4530,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-gamma.json",
-        "v": "d5707603"
+        "v": "04005674"
       },
       "uv": {
         "rangeBefore": 329,
@@ -4581,7 +4581,7 @@
       },
       "paints": {
         "url": "/hangar/paints/cnou-mustang-omega.json",
-        "v": "9f7efae5"
+        "v": "61901c24"
       },
       "uv": {
         "rangeBefore": 329,
@@ -5547,7 +5547,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-black.json",
-        "v": "fc7bb68d"
+        "v": "ff9dbf09"
       },
       "uv": {
         "rangeBefore": 1729,
@@ -5601,7 +5601,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-blue.json",
-        "v": "016e3410"
+        "v": "86f0d19c"
       },
       "uv": {
         "rangeBefore": 1678,
@@ -5713,7 +5713,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-steel.json",
-        "v": "7466db6b"
+        "v": "30fb4b38"
       },
       "uv": {
         "rangeBefore": 1729,
@@ -7749,7 +7749,7 @@
       },
       "paints": {
         "url": "/hangar/paints/misc-freelancer-dur.json",
-        "v": "f78ce65d"
+        "v": "8c906af5"
       },
       "uv": {
         "rangeBefore": 288,
@@ -7805,7 +7805,7 @@
       },
       "paints": {
         "url": "/hangar/paints/misc-freelancer-max.json",
-        "v": "ec94618d"
+        "v": "028f3dc5"
       },
       "uv": {
         "rangeBefore": 288,
@@ -7863,7 +7863,7 @@
       },
       "paints": {
         "url": "/hangar/paints/misc-freelancer-mis.json",
-        "v": "52e3f91f"
+        "v": "e6d2c200"
       },
       "uv": {
         "rangeBefore": 288,
@@ -7921,7 +7921,7 @@
       },
       "paints": {
         "url": "/hangar/paints/misc-freelancer.json",
-        "v": "296a8c8a"
+        "v": "51318b51"
       },
       "uv": {
         "rangeBefore": 288,
@@ -8710,7 +8710,7 @@
       },
       "paints": {
         "url": "/hangar/paints/misc-starfarer-gemini.json",
-        "v": "ce91f08c"
+        "v": "84b8253f"
       },
       "uv": {
         "rangeBefore": 599,
@@ -8770,7 +8770,7 @@
       },
       "paints": {
         "url": "/hangar/paints/misc-starfarer.json",
-        "v": "41242fd3"
+        "v": "8e2b85ca"
       },
       "uv": {
         "rangeBefore": 599,
@@ -9768,7 +9768,7 @@
       },
       "paints": {
         "url": "/hangar/paints/orig-600i-bis2951.json",
-        "v": "70a88122"
+        "v": "6cf91124"
       },
       "uv": {
         "rangeBefore": 957,
@@ -12378,7 +12378,7 @@
       },
       "paints": {
         "url": "/hangar/paints/tmbl-storm-aa.json",
-        "v": "30bf215d"
+        "v": "db122cc2"
       },
       "uv": {
         "rangeBefore": 60,
@@ -12422,7 +12422,7 @@
       },
       "paints": {
         "url": "/hangar/paints/tmbl-storm.json",
-        "v": "3fa12538"
+        "v": "9f4a454f"
       },
       "uv": {
         "rangeBefore": 60,
