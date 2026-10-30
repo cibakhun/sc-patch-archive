@@ -106,5 +106,8 @@
     "meshoptimizer": "^1.2.0",
     "playwright-core": "^1.62.1",
     "three": "^0.185.1"
+  },
+  "overrides": {
+    "ndarray-pixels": "5.0.1"
   }
 }

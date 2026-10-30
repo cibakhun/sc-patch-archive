@@ -945,7 +945,8 @@ async function paintTexture(rel, made) {
   if (!made.has(name)) {
     const out = fileURLToPath(new URL(`paints/tex/${name}`, OUT));
     mkdirSync(dirname(out), { recursive: true });
-    await sharp(src).resize(PAINT_TEX, PAINT_TEX, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 85, alphaQuality: 90 }).toFile(out);
+    await sharp(src).resize(PAINT_TEX, PAINT_TEX, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 85, alphaQuality: 90 }).toFile(out)
+      .catch((e) => { throw new Error(`Lackkarte ${rel}: ${e.message}`); });
     made.set(name, out);
   }
   return `/hangar/paints/tex/${name}`;
