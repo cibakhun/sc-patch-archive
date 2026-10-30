@@ -1,0 +1,91 @@
+{
+ "interior_base_ext_lg": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_interior": {
+  "tris": 199442,
+  "aussenPct": 32.04,
+  "maxM": 99,
+  "versatz": [
+   -4.4,
+   0.5,
+   -4.4
+  ],
+  "mitVersatzPct": 12.32,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_middle_warden": {
+  "tris": 94328,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "_sitz": {
+  "name": "hardpoint_seat_pilot",
+  "p": [
+   0,
+   0,
+   -12
+  ],
+  "nah": 0,
+  "abstand": 4.78,
+  "naechster": "interior_middle_warden",
+  "oben": "Rumpf",
+  "obenM": 0.96,
+  "ok": false
+ }
+}

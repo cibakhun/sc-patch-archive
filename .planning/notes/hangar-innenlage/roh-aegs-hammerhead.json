@@ -1,0 +1,391 @@
+{
+ "interior_nose": {
+  "tris": 302691,
+  "aussenPct": 6.05,
+  "maxM": 99,
+  "versatz": [
+   -3.5,
+   2.5,
+   -4
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_hammerhead_gs_nose_base": {
+  "tris": 302575,
+  "aussenPct": 10.04,
+  "maxM": 99,
+  "versatz": [
+   0.1,
+   3.1,
+   -4.4
+  ],
+  "mitVersatzPct": 3.14,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_lights_nose": {
+  "tris": 44,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_hammerhead_gs_front_right_base": {
+  "tris": 27358,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_front_right": {
+  "tris": 155529,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_lights_front_left": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_lights_body": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_body": {
+  "tris": 2048520,
+  "aussenPct": 43.85,
+  "maxM": 99,
+  "versatz": [
+   -0.8,
+   -4.4,
+   -4.4
+  ],
+  "mitVersatzPct": 0.8,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_hammerhead_gs_body_base": {
+  "tris": 33888,
+  "aussenPct": 36.11,
+  "maxM": 99,
+  "versatz": [
+   -1.6,
+   -4.4,
+   -4.4
+  ],
+  "mitVersatzPct": 0.01,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_hammerhead_gs_front_left_base": {
+  "tris": 27358,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_front_left": {
+  "tris": 150372,
+  "aussenPct": 0,
+  "maxM": 99,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0.01,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_lights_front_right": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_lights_tail": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_tail": {
+  "tris": 425095,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_lights_turret_side": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "_sitz": {
+  "name": "hardpoint_seat_pilot",
+  "p": [
+   -1.62,
+   -2.62,
+   -49.79
+  ],
+  "nah": 0,
+  "abstand": 8.4,
+  "naechster": "interior_front_left",
+  "oben": "frei",
+  "obenM": null,
+  "ok": false
+ }
+}

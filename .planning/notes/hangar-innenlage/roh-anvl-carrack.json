@@ -1,0 +1,118 @@
+{
+ "interior_front": {
+  "tris": 912111,
+  "aussenPct": 0.02,
+  "maxM": 99,
+  "versatz": [
+   -3.5,
+   -4,
+   2
+  ],
+  "mitVersatzPct": 0.02,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_middle": {
+  "tris": 1359558,
+  "aussenPct": 2.4,
+  "maxM": 99,
+  "versatz": [
+   -0.5,
+   -2.5,
+   4
+  ],
+  "mitVersatzPct": 0.12,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rear": {
+  "tris": 1395590,
+  "aussenPct": 39.96,
+  "maxM": 99,
+  "versatz": [
+   -2.2,
+   -4.4,
+   4.4
+  ],
+  "mitVersatzPct": 21.83,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_ext_light": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "_sitz": {
+  "name": "hardpoint_seat_pilot",
+  "p": [
+   0,
+   -6,
+   -47.25
+  ],
+  "nah": 0,
+  "abstand": 26.64,
+  "naechster": "interior_middle",
+  "oben": "Rumpf",
+  "obenM": 0,
+  "ok": false
+ }
+}
