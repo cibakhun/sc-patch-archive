@@ -4,7 +4,7 @@
 //  verbunden hat, trägt die Rolle; wird das Profil wieder lückenhaft oder
 //  Discord getrennt, fällt sie beim nächsten Abgleich weg.
 //
-//  "Vollständig" entscheidet die Datenbank (public.profile_is_complete, Sicht
+//  "Vollständig" entscheidet die Datenbank (View profile_badges, für den Bot
 //  discord_profile_badges), nicht der Bot -- so zeigen Site und Discord nie
 //  verschiedene Stände. Läuft im Fünf-Minuten-Takt des Rangspiegels
 //  (rank-sync.mjs), nur auf der Heim-Gilde, gelesen über site-db.mjs

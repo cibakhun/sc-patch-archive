@@ -47,10 +47,10 @@ const order = (ONLY ?? (INNER ? [...FIRST_INNER, ...have] : [...have, ...FIRST.f
 
 const stand = existsSync(STAND) ? JSON.parse(readFileSync(STAND, 'utf8')) : {};
 const poolFiles = () => new Map(readdirSync(POOL).map((x) => [x, statSync(`${POOL}${x}`).size]));
-// Stufe 2 (.planning/notes/hangar-cockpit-hohl.md): auch der Innenraum hinter
-// dem Glas, bevor Karten kleiner werden
-const NG = { HANGAR_SHIP_NO_INTERIOR: '1', HANGAR_SHIP_NO_GLASS_INTERIOR: '1' };
-const STEPS = [{}, { HANGAR_SHIP_NO_INTERIOR: '1' }, NG, { ...NG, HANGAR_SHIP_TEX: '512' }, { ...NG, HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' },
+// Innenraum hinter dem Glas bleibt nicht mehr stehen (Rücknahme #265,
+// .planning/notes/hangar-cockpit-hohl.md), also keine eigene Stufe dafür
+const NG = { HANGAR_SHIP_NO_INTERIOR: '1' };
+const STEPS = [{}, NG, { ...NG, HANGAR_SHIP_TEX: '512' }, { ...NG, HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72' },
   // über den Auftrag hinaus: stärker dezimieren (build-hangar-assets.mjs, HANGAR_SHIP_ERR)
   { ...NG, HANGAR_SHIP_TEX: '512', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' },
   { ...NG, HANGAR_SHIP_TEX: '256', HANGAR_SHIP_Q: '72', HANGAR_SHIP_ERR: '1' }];

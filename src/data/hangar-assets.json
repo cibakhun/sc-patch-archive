@@ -3,8 +3,8 @@
   "ships": {
     "aegs-avenger-stalker": {
       "url": "/hangar/ships/aegs-avenger-stalker.glb",
-      "v": "bbb18989",
-      "tris": 213632,
+      "v": "f11f8869",
+      "tris": 212461,
       "trisRaw": 259616,
       "textures": 336,
       "attached": 0,
@@ -22,6 +22,7 @@
       "record": "AEGS_Avenger_Stalker",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 65,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -46,7 +47,7 @@
         "bits": 17,
         "degenerate": 1.7
       },
-      "bytes": 2094360,
+      "bytes": 2157772,
       "pool": {
         "images": 336,
         "bytes": 15366328,
@@ -55,8 +56,8 @@
     },
     "aegs-avenger-titan-renegade": {
       "url": "/hangar/ships/aegs-avenger-titan-renegade.glb",
-      "v": "4ac9c77f",
-      "tris": 212560,
+      "v": "bec6b0b2",
+      "tris": 208199,
       "trisRaw": 277851,
       "textures": 320,
       "attached": 0,
@@ -72,6 +73,7 @@
       "record": "AEGS_Avenger_Titan_Renegade",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 68,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -96,7 +98,7 @@
         "bits": 17,
         "degenerate": 1.7
       },
-      "bytes": 2082276,
+      "bytes": 2105164,
       "pool": {
         "images": 320,
         "bytes": 13916430,
@@ -105,8 +107,8 @@
     },
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
-      "v": "5b434dcd",
-      "tris": 214745,
+      "v": "7fa76871",
+      "tris": 210138,
       "trisRaw": 289558,
       "textures": 336,
       "attached": 0,
@@ -124,6 +126,7 @@
       "record": "AEGS_Avenger_Titan",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 68,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -146,9 +149,9 @@
         "rangeBefore": 18,
         "rangeAfter": 18.38,
         "bits": 17,
-        "degenerate": 1.7
+        "degenerate": 1.6
       },
-      "bytes": 2111068,
+      "bytes": 2132000,
       "pool": {
         "images": 336,
         "bytes": 15366328,
@@ -157,8 +160,8 @@
     },
     "aegs-avenger-warlock": {
       "url": "/hangar/ships/aegs-avenger-warlock.glb",
-      "v": "7f81092f",
-      "tris": 212587,
+      "v": "494f75df",
+      "tris": 211089,
       "trisRaw": 296161,
       "textures": 343,
       "attached": 0,
@@ -177,6 +180,7 @@
       "record": "AEGS_Avenger_Warlock",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 53,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -201,7 +205,7 @@
         "bits": 17,
         "degenerate": 2
       },
-      "bytes": 2152404,
+      "bytes": 2159112,
       "pool": {
         "images": 343,
         "bytes": 16011418,
@@ -210,8 +214,8 @@
     },
     "aegs-eclipse": {
       "url": "/hangar/ships/aegs-eclipse.glb",
-      "v": "2fed6946",
-      "tris": 203310,
+      "v": "887e4852",
+      "tris": 203356,
       "trisRaw": 270703,
       "textures": 121,
       "attached": 0,
@@ -228,6 +232,7 @@
       "record": "AEGS_Eclipse",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -252,7 +257,7 @@
         "bits": 20,
         "degenerate": 0.8
       },
-      "bytes": 1664184,
+      "bytes": 1689708,
       "pool": {
         "images": 121,
         "bytes": 5709206,
@@ -261,8 +266,8 @@
     },
     "aegs-gladius-pir": {
       "url": "/hangar/ships/aegs-gladius-pir.glb",
-      "v": "6f4c5331",
-      "tris": 247340,
+      "v": "19e4672e",
+      "tris": 247522,
       "trisRaw": 436567,
       "textures": 275,
       "attached": 0,
@@ -279,7 +284,7 @@
       },
       "record": "AEGS_Gladius_PIR",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -304,7 +309,7 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 2830840,
+      "bytes": 2836964,
       "pool": {
         "images": 275,
         "bytes": 10290696,
@@ -313,8 +318,8 @@
     },
     "aegs-gladius-valiant": {
       "url": "/hangar/ships/aegs-gladius-valiant.glb",
-      "v": "c0b730eb",
-      "tris": 238946,
+      "v": "4e3fb07f",
+      "tris": 239118,
       "trisRaw": 427474,
       "textures": 278,
       "attached": 0,
@@ -331,7 +336,7 @@
       },
       "record": "AEGS_Gladius_Valiant",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -356,7 +361,7 @@
         "bits": 20,
         "degenerate": 2.5
       },
-      "bytes": 2751268,
+      "bytes": 2757640,
       "pool": {
         "images": 278,
         "bytes": 11119400,
@@ -365,8 +370,8 @@
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
-      "v": "59283073",
-      "tris": 233147,
+      "v": "0eed5f03",
+      "tris": 234067,
       "trisRaw": 417041,
       "textures": 283,
       "attached": 0,
@@ -384,6 +389,7 @@
       "record": "AEGS_Gladius",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -406,9 +412,9 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2.7
+        "degenerate": 2.6
       },
-      "bytes": 2638736,
+      "bytes": 2671144,
       "pool": {
         "images": 283,
         "bytes": 10598884,
@@ -417,8 +423,8 @@
     },
     "aegs-hammerhead-showdown": {
       "url": "/hangar/ships/aegs-hammerhead-showdown.glb",
-      "v": "783950c1",
-      "tris": 667396,
+      "v": "e63534dd",
+      "tris": 667474,
       "trisRaw": 2278165,
       "textures": 293,
       "attached": 0,
@@ -438,7 +444,7 @@
       },
       "record": "AEGS_Hammerhead_Showdown",
       "game": "12913470",
-      "interiorDropped": 14,
+      "interiorDropped": 6,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -463,7 +469,7 @@
         "bits": 19,
         "degenerate": 1.8
       },
-      "bytes": 6790696,
+      "bytes": 6794820,
       "pool": {
         "images": 293,
         "bytes": 15633824,
@@ -472,8 +478,8 @@
     },
     "aegs-hammerhead": {
       "url": "/hangar/ships/aegs-hammerhead.glb",
-      "v": "c9b30e1e",
-      "tris": 683843,
+      "v": "0aebc65c",
+      "tris": 683813,
       "trisRaw": 3401420,
       "textures": 268,
       "attached": 0,
@@ -493,7 +499,7 @@
       },
       "record": "AEGS_Hammerhead_GS",
       "game": "12913470",
-      "interiorDropped": 18,
+      "interiorDropped": 10,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -518,7 +524,7 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 6762148,
+      "bytes": 6763520,
       "pool": {
         "images": 268,
         "bytes": 14384366,
@@ -527,8 +533,8 @@
     },
     "aegs-idris-m": {
       "url": "/hangar/ships/aegs-idris-m.glb",
-      "v": "48765e18",
-      "tris": 1185844,
+      "v": "0cd11bad",
+      "tris": 1185878,
       "trisRaw": 2019994,
       "textures": 266,
       "attached": 0,
@@ -580,7 +586,7 @@
         "bits": 22,
         "degenerate": 5.6
       },
-      "bytes": 11306148,
+      "bytes": 11308160,
       "pool": {
         "images": 266,
         "bytes": 9203434,
@@ -589,8 +595,8 @@
     },
     "aegs-idris-p": {
       "url": "/hangar/ships/aegs-idris-p.glb",
-      "v": "d91d663c",
-      "tris": 1197721,
+      "v": "9d144a8a",
+      "tris": 1197715,
       "trisRaw": 2123261,
       "textures": 259,
       "attached": 0,
@@ -610,7 +616,7 @@
       },
       "swapNodes": 76,
       "palette": {
-        "1": 17,
+        "1": 18,
         "2": 14,
         "3": 4
       },
@@ -643,7 +649,7 @@
         "bits": 22,
         "degenerate": 5.5
       },
-      "bytes": 11346336,
+      "bytes": 11351500,
       "pool": {
         "images": 259,
         "bytes": 9147408,
@@ -652,8 +658,8 @@
     },
     "aegs-javelin": {
       "url": "/hangar/ships/aegs-javelin.glb",
-      "v": "80533623",
-      "tris": 374924,
+      "v": "b48fc373",
+      "tris": 374922,
       "trisRaw": 2725508,
       "textures": 135,
       "attached": {
@@ -721,7 +727,7 @@
         "bits": 16,
         "degenerate": 2.6
       },
-      "bytes": 3168720,
+      "bytes": 3175016,
       "pool": {
         "images": 135,
         "bytes": 9471008,
@@ -730,8 +736,8 @@
     },
     "aegs-reclaimer-showdown": {
       "url": "/hangar/ships/aegs-reclaimer-showdown.glb",
-      "v": "363b5732",
-      "tris": 498200,
+      "v": "a003bffd",
+      "tris": 498214,
       "trisRaw": 981666,
       "textures": 216,
       "attached": 0,
@@ -778,7 +784,7 @@
         "bits": 20,
         "degenerate": 6.1
       },
-      "bytes": 4826652,
+      "bytes": 4828652,
       "pool": {
         "images": 216,
         "bytes": 12573872,
@@ -787,8 +793,8 @@
     },
     "aegs-reclaimer": {
       "url": "/hangar/ships/aegs-reclaimer.glb",
-      "v": "42c0b109",
-      "tris": 498200,
+      "v": "927a6a02",
+      "tris": 498214,
       "trisRaw": 981666,
       "textures": 216,
       "attached": 0,
@@ -835,7 +841,7 @@
         "bits": 20,
         "degenerate": 6.1
       },
-      "bytes": 4826984,
+      "bytes": 4828984,
       "pool": {
         "images": 216,
         "bytes": 12571976,
@@ -844,8 +850,8 @@
     },
     "aegs-redeemer": {
       "url": "/hangar/ships/aegs-redeemer.glb",
-      "v": "a463b0c7",
-      "tris": 465097,
+      "v": "d92585d4",
+      "tris": 465145,
       "trisRaw": 1223647,
       "textures": 282,
       "attached": 0,
@@ -865,7 +871,7 @@
       },
       "record": "AEGS_Redeemer",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -891,7 +897,7 @@
         "bits": 19,
         "degenerate": 2.4
       },
-      "bytes": 4518524,
+      "bytes": 4521608,
       "pool": {
         "images": 282,
         "bytes": 12825852,
@@ -900,8 +906,8 @@
     },
     "aegs-retaliator": {
       "url": "/hangar/ships/aegs-retaliator.glb",
-      "v": "3b96d3df",
-      "tris": 469189,
+      "v": "444c5320",
+      "tris": 469243,
       "trisRaw": 1432995,
       "textures": 237,
       "attached": 0,
@@ -920,7 +926,7 @@
       },
       "record": "AEGS_Retaliator",
       "game": "12913470",
-      "interiorDropped": 7,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -948,7 +954,7 @@
         "bits": 22,
         "degenerate": 1.5
       },
-      "bytes": 5068140,
+      "bytes": 5070040,
       "pool": {
         "images": 237,
         "bytes": 9988952,
@@ -957,8 +963,8 @@
     },
     "aegs-sabre-comet": {
       "url": "/hangar/ships/aegs-sabre-comet.glb",
-      "v": "2a5331a8",
-      "tris": 207172,
+      "v": "f4a1f845",
+      "tris": 207612,
       "trisRaw": 279726,
       "textures": 248,
       "attached": 0,
@@ -977,6 +983,7 @@
       "record": "AEGS_Sabre_Comet",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1001,7 +1008,7 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 2205592,
+      "bytes": 2238716,
       "pool": {
         "images": 248,
         "bytes": 10246604,
@@ -1010,8 +1017,8 @@
     },
     "aegs-sabre-firebird": {
       "url": "/hangar/ships/aegs-sabre-firebird.glb",
-      "v": "10934a7c",
-      "tris": 228220,
+      "v": "0a37e3c0",
+      "tris": 228214,
       "trisRaw": 283381,
       "textures": 243,
       "attached": 0,
@@ -1028,6 +1035,7 @@
       "record": "AEGS_Sabre_Firebird",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -1052,7 +1060,7 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2549824,
+      "bytes": 2560092,
       "pool": {
         "images": 243,
         "bytes": 10964248,
@@ -1061,8 +1069,8 @@
     },
     "aegs-sabre-peregrine": {
       "url": "/hangar/ships/aegs-sabre-peregrine.glb",
-      "v": "6cf48923",
-      "tris": 204565,
+      "v": "d70ebd6b",
+      "tris": 204645,
       "trisRaw": 274387,
       "textures": 202,
       "attached": 0,
@@ -1076,6 +1084,7 @@
       "record": "AEGS_Sabre_Peregrine",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -1100,7 +1109,7 @@
         "bits": 19,
         "degenerate": 1.7
       },
-      "bytes": 2067016,
+      "bytes": 2077664,
       "pool": {
         "images": 202,
         "bytes": 9755010,
@@ -1109,8 +1118,8 @@
     },
     "aegs-sabre-raven-ex": {
       "url": "/hangar/ships/aegs-sabre-raven-ex.glb",
-      "v": "8670c72c",
-      "tris": 218786,
+      "v": "6b114f9b",
+      "tris": 218840,
       "trisRaw": 352213,
       "textures": 262,
       "attached": 0,
@@ -1126,7 +1135,7 @@
       },
       "record": "AEGS_Sabre_Raven_EX",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -1151,7 +1160,7 @@
         "bits": 20,
         "degenerate": 2
       },
-      "bytes": 2347508,
+      "bytes": 2349648,
       "pool": {
         "images": 262,
         "bytes": 11699438,
@@ -1160,8 +1169,8 @@
     },
     "aegs-sabre-raven": {
       "url": "/hangar/ships/aegs-sabre-raven.glb",
-      "v": "cc93745d",
-      "tris": 214828,
+      "v": "b47ce84b",
+      "tris": 214924,
       "trisRaw": 335538,
       "textures": 243,
       "attached": 0,
@@ -1179,7 +1188,7 @@
       },
       "record": "AEGS_Sabre_Raven",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -1204,7 +1213,7 @@
         "bits": 20,
         "degenerate": 1.6
       },
-      "bytes": 2317956,
+      "bytes": 2320028,
       "pool": {
         "images": 243,
         "bytes": 10183220,
@@ -1213,8 +1222,8 @@
     },
     "aegs-sabre": {
       "url": "/hangar/ships/aegs-sabre.glb",
-      "v": "da75e2e9",
-      "tris": 205471,
+      "v": "43a96d01",
+      "tris": 205835,
       "trisRaw": 309062,
       "textures": 232,
       "attached": 0,
@@ -1233,6 +1242,7 @@
       "record": "AEGS_Sabre",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1257,7 +1267,7 @@
         "bits": 20,
         "degenerate": 1.9
       },
-      "bytes": 2169488,
+      "bytes": 2202596,
       "pool": {
         "images": 232,
         "bytes": 9939512,
@@ -1266,8 +1276,8 @@
     },
     "aegs-tiburon": {
       "url": "/hangar/ships/aegs-tiburon.glb",
-      "v": "6497f2da",
-      "tris": 706992,
+      "v": "56797c7e",
+      "tris": 707094,
       "trisRaw": 3183429,
       "textures": 285,
       "attached": 0,
@@ -1312,7 +1322,7 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 7440440,
+      "bytes": 7443836,
       "pool": {
         "images": 285,
         "bytes": 15305026,
@@ -1321,8 +1331,8 @@
     },
     "aegs-vanguard-harbinger": {
       "url": "/hangar/ships/aegs-vanguard-harbinger.glb",
-      "v": "fa948c93",
-      "tris": 228835,
+      "v": "fb037496",
+      "tris": 229281,
       "trisRaw": 610652,
       "textures": 278,
       "attached": 0,
@@ -1342,7 +1352,7 @@
       },
       "record": "AEGS_Vanguard_Harbinger",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1367,7 +1377,7 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 2490420,
+      "bytes": 2494796,
       "pool": {
         "images": 278,
         "bytes": 11025424,
@@ -1376,8 +1386,8 @@
     },
     "aegs-vanguard-hoplite": {
       "url": "/hangar/ships/aegs-vanguard-hoplite.glb",
-      "v": "c7cdb669",
-      "tris": 213078,
+      "v": "15bd6c61",
+      "tris": 213118,
       "trisRaw": 613607,
       "textures": 283,
       "attached": 0,
@@ -1397,7 +1407,7 @@
       },
       "record": "AEGS_Vanguard_Hoplite",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1422,7 +1432,7 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2385404,
+      "bytes": 2387124,
       "pool": {
         "images": 283,
         "bytes": 10235308,
@@ -1431,8 +1441,8 @@
     },
     "aegs-vanguard-sentinel": {
       "url": "/hangar/ships/aegs-vanguard-sentinel.glb",
-      "v": "a59f4529",
-      "tris": 254461,
+      "v": "4ec6159e",
+      "tris": 254443,
       "trisRaw": 638721,
       "textures": 315,
       "attached": 0,
@@ -1453,7 +1463,7 @@
       },
       "record": "AEGS_Vanguard_Sentinel",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -1478,7 +1488,7 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2820876,
+      "bytes": 2822244,
       "pool": {
         "images": 315,
         "bytes": 12282066,
@@ -1487,8 +1497,8 @@
     },
     "aegs-vanguard": {
       "url": "/hangar/ships/aegs-vanguard.glb",
-      "v": "af0a8bcf",
-      "tris": 227212,
+      "v": "c807d1b9",
+      "tris": 227278,
       "trisRaw": 612070,
       "textures": 284,
       "attached": 0,
@@ -1508,7 +1518,7 @@
       },
       "record": "AEGS_Vanguard",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1533,7 +1543,7 @@
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 2550688,
+      "bytes": 2552380,
       "pool": {
         "images": 284,
         "bytes": 10215918,
@@ -1542,7 +1552,7 @@
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
-      "v": "e5219a0b",
+      "v": "9e0fc7c8",
       "tris": 196090,
       "trisRaw": 189516,
       "textures": 161,
@@ -1561,6 +1571,7 @@
       "record": "ANVL_Arrow",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1585,7 +1596,7 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 1955604,
+      "bytes": 1987808,
       "pool": {
         "images": 161,
         "bytes": 6850894,
@@ -1594,8 +1605,8 @@
     },
     "anvl-asgard": {
       "url": "/hangar/ships/anvl-asgard.glb",
-      "v": "1860166b",
-      "tris": 505459,
+      "v": "a581b923",
+      "tris": 505463,
       "trisRaw": 1273921,
       "textures": 312,
       "attached": 0,
@@ -1615,7 +1626,7 @@
       },
       "record": "ANVL_Asgard",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -1641,7 +1652,7 @@
         "bits": 21,
         "degenerate": 1
       },
-      "bytes": 5701572,
+      "bytes": 5704508,
       "pool": {
         "images": 312,
         "bytes": 13090782,
@@ -1650,8 +1661,8 @@
     },
     "anvl-ballista-dunestalker": {
       "url": "/hangar/ships/anvl-ballista-dunestalker.glb",
-      "v": "82a8b0d5",
-      "tris": 208634,
+      "v": "5d2c3291",
+      "tris": 208960,
       "trisRaw": 207692,
       "textures": 129,
       "attached": 0,
@@ -1667,6 +1678,7 @@
       "record": "ANVL_Ballista_Dunestalker",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 5,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -1681,7 +1693,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1946744,
+      "bytes": 1989320,
       "pool": {
         "images": 129,
         "bytes": 6855750,
@@ -1690,8 +1702,8 @@
     },
     "anvl-ballista-snowblind": {
       "url": "/hangar/ships/anvl-ballista-snowblind.glb",
-      "v": "b93e2006",
-      "tris": 208634,
+      "v": "400e7911",
+      "tris": 208960,
       "trisRaw": 207692,
       "textures": 129,
       "attached": 0,
@@ -1707,6 +1719,7 @@
       "record": "ANVL_Ballista_Snowblind",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 5,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -1721,7 +1734,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1946744,
+      "bytes": 1989320,
       "pool": {
         "images": 129,
         "bytes": 6855750,
@@ -1730,8 +1743,8 @@
     },
     "anvl-ballista": {
       "url": "/hangar/ships/anvl-ballista.glb",
-      "v": "d60a37e1",
-      "tris": 208634,
+      "v": "bc9dccb3",
+      "tris": 208960,
       "trisRaw": 207692,
       "textures": 129,
       "attached": 0,
@@ -1747,6 +1760,7 @@
       "record": "ANVL_Ballista",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 5,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -1761,7 +1775,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1946744,
+      "bytes": 1989320,
       "pool": {
         "images": 129,
         "bytes": 6855750,
@@ -1770,8 +1784,8 @@
     },
     "anvl-c8-pisces": {
       "url": "/hangar/ships/anvl-c8-pisces.glb",
-      "v": "c1db6b61",
-      "tris": 184184,
+      "v": "e24face3",
+      "tris": 177015,
       "trisRaw": 180361,
       "textures": 168,
       "attached": 0,
@@ -1788,6 +1802,7 @@
       "record": "ANVL_C8_Pisces",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 21,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1811,9 +1826,9 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 4.1
+        "degenerate": 4.4
       },
-      "bytes": 1673364,
+      "bytes": 1722928,
       "pool": {
         "images": 168,
         "bytes": 7868188,
@@ -1822,8 +1837,8 @@
     },
     "anvl-c8r-pisces": {
       "url": "/hangar/ships/anvl-c8r-pisces.glb",
-      "v": "3bb917f8",
-      "tris": 203869,
+      "v": "8a7db213",
+      "tris": 203515,
       "trisRaw": 237453,
       "textures": 237,
       "attached": 0,
@@ -1840,6 +1855,7 @@
       "record": "ANVL_C8R_Pisces",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 87,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1863,9 +1879,9 @@
         "rangeBefore": 288,
         "rangeAfter": 283.25,
         "bits": 21,
-        "degenerate": 3.8
+        "degenerate": 3.9
       },
-      "bytes": 1917916,
+      "bytes": 2104188,
       "pool": {
         "images": 237,
         "bytes": 8981988,
@@ -1874,8 +1890,8 @@
     },
     "anvl-c8x-pisces-expedition": {
       "url": "/hangar/ships/anvl-c8x-pisces-expedition.glb",
-      "v": "d9f6e54e",
-      "tris": 206962,
+      "v": "834770ee",
+      "tris": 199793,
       "trisRaw": 196680,
       "textures": 183,
       "attached": 0,
@@ -1894,6 +1910,7 @@
       "record": "ANVL_C8X_Pisces_Expedition",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 21,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1917,9 +1934,9 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 3.7
+        "degenerate": 4
       },
-      "bytes": 1857224,
+      "bytes": 1906772,
       "pool": {
         "images": 183,
         "bytes": 7895694,
@@ -1928,8 +1945,8 @@
     },
     "anvl-carrack-expedition": {
       "url": "/hangar/ships/anvl-carrack-expedition.glb",
-      "v": "af221d16",
-      "tris": 669525,
+      "v": "e05283d4",
+      "tris": 669507,
       "trisRaw": 2491249,
       "textures": 268,
       "attached": 0,
@@ -1947,7 +1964,7 @@
       },
       "record": "ANVL_Carrack_Expedition",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -1972,7 +1989,7 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 6394208,
+      "bytes": 6398148,
       "pool": {
         "images": 268,
         "bytes": 11500700,
@@ -1981,8 +1998,8 @@
     },
     "anvl-carrack": {
       "url": "/hangar/ships/anvl-carrack.glb",
-      "v": "eea63e98",
-      "tris": 669509,
+      "v": "045f581c",
+      "tris": 669491,
       "trisRaw": 2491249,
       "textures": 266,
       "attached": 0,
@@ -2000,7 +2017,7 @@
       },
       "record": "ANVL_Carrack",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2025,7 +2042,7 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 6391708,
+      "bytes": 6395644,
       "pool": {
         "images": 266,
         "bytes": 11497312,
@@ -2034,8 +2051,8 @@
     },
     "anvl-centurion": {
       "url": "/hangar/ships/anvl-centurion.glb",
-      "v": "6f3583c7",
-      "tris": 210202,
+      "v": "204a29e9",
+      "tris": 210206,
       "trisRaw": 398664,
       "textures": 273,
       "attached": 0,
@@ -2070,7 +2087,7 @@
         "bits": 18,
         "degenerate": 2.4
       },
-      "bytes": 2137344,
+      "bytes": 2138524,
       "pool": {
         "images": 273,
         "bytes": 9297090,
@@ -2079,8 +2096,8 @@
     },
     "anvl-gladiator": {
       "url": "/hangar/ships/anvl-gladiator.glb",
-      "v": "61f24762",
-      "tris": 206743,
+      "v": "816e3cd7",
+      "tris": 206831,
       "trisRaw": 283452,
       "textures": 136,
       "attached": 0,
@@ -2098,6 +2115,7 @@
       "record": "ANVL_Gladiator",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2123,7 +2141,7 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 2244816,
+      "bytes": 2255856,
       "pool": {
         "images": 136,
         "bytes": 5940954,
@@ -2132,8 +2150,8 @@
     },
     "anvl-hawk": {
       "url": "/hangar/ships/anvl-hawk.glb",
-      "v": "14ca7bf3",
-      "tris": 219276,
+      "v": "b687473d",
+      "tris": 211542,
       "trisRaw": 396052,
       "textures": 143,
       "attached": 0,
@@ -2154,7 +2172,7 @@
       },
       "record": "ANVL_Hawk",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2179,7 +2197,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2311888,
+      "bytes": 2270336,
       "pool": {
         "images": 143,
         "bytes": 5746646,
@@ -2188,8 +2206,8 @@
     },
     "anvl-hornet-f7a-mk1": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk1.glb",
-      "v": "7cf602d7",
-      "tris": 212711,
+      "v": "84e30947",
+      "tris": 212795,
       "trisRaw": 346209,
       "textures": 149,
       "attached": 0,
@@ -2207,7 +2225,7 @@
       },
       "record": "ANVL_Hornet_F7A_Mk1",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2232,7 +2250,7 @@
         "bits": 20,
         "degenerate": 1.2
       },
-      "bytes": 2310636,
+      "bytes": 2312888,
       "pool": {
         "images": 149,
         "bytes": 7866542,
@@ -2241,7 +2259,7 @@
     },
     "anvl-hornet-f7a-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk2.glb",
-      "v": "de449fa6",
+      "v": "0cc87de8",
       "tris": 213429,
       "trisRaw": 227066,
       "textures": 166,
@@ -2293,6 +2311,7 @@
       "record": "ANVL_Hornet_F7A_Mk2",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2317,7 +2336,7 @@
         "bits": 18,
         "degenerate": 1.7
       },
-      "bytes": 1925428,
+      "bytes": 1943456,
       "pool": {
         "images": 166,
         "bytes": 8705146,
@@ -2326,8 +2345,8 @@
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "47c692be",
-      "tris": 203607,
+      "v": "743b923e",
+      "tris": 203663,
       "trisRaw": 219205,
       "textures": 161,
       "attached": {
@@ -2376,6 +2395,7 @@
       "record": "ANVL_Hornet_F7C_Mk2",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2400,7 +2420,7 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1852104,
+      "bytes": 1869140,
       "pool": {
         "images": 161,
         "bytes": 8950396,
@@ -2409,7 +2429,7 @@
     },
     "anvl-hornet-f7c-wildfire": {
       "url": "/hangar/ships/anvl-hornet-f7c-wildfire.glb",
-      "v": "224d3364",
+      "v": "8392773b",
       "tris": 214851,
       "trisRaw": 193705,
       "textures": 150,
@@ -2428,6 +2448,7 @@
       "record": "ANVL_Hornet_F7C_Wildfire",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2452,7 +2473,7 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 1910776,
+      "bytes": 1920740,
       "pool": {
         "images": 150,
         "bytes": 6827916,
@@ -2461,7 +2482,7 @@
     },
     "anvl-hornet-f7c": {
       "url": "/hangar/ships/anvl-hornet-f7c.glb",
-      "v": "2527b39c",
+      "v": "00f0e286",
       "tris": 199630,
       "trisRaw": 203433,
       "textures": 134,
@@ -2511,6 +2532,7 @@
       "record": "ANVL_Hornet_F7C",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2535,7 +2557,7 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 1850696,
+      "bytes": 1860764,
       "pool": {
         "images": 134,
         "bytes": 6895950,
@@ -2544,8 +2566,8 @@
     },
     "anvl-hornet-f7cm-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-heartseeker.glb",
-      "v": "cf1743a0",
-      "tris": 205820,
+      "v": "49dd06dd",
+      "tris": 205880,
       "trisRaw": 239081,
       "textures": 161,
       "attached": 0,
@@ -2564,6 +2586,7 @@
       "record": "ANVL_Hornet_F7CM_Heartseeker",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2586,9 +2609,9 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 3.9
+        "degenerate": 3.8
       },
-      "bytes": 2015500,
+      "bytes": 2031524,
       "pool": {
         "images": 161,
         "bytes": 6821214,
@@ -2597,8 +2620,8 @@
     },
     "anvl-hornet-f7cm-mk2-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2-heartseeker.glb",
-      "v": "86c3589d",
-      "tris": 213635,
+      "v": "374e2725",
+      "tris": 213755,
       "trisRaw": 350880,
       "textures": 164,
       "attached": {
@@ -2647,7 +2670,7 @@
       },
       "record": "ANVL_Hornet_F7CM_Mk2_Heartseeker",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2672,7 +2695,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2409592,
+      "bytes": 2413600,
       "pool": {
         "images": 164,
         "bytes": 8270888,
@@ -2681,8 +2704,8 @@
     },
     "anvl-hornet-f7cm-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2.glb",
-      "v": "7baa4a58",
-      "tris": 217659,
+      "v": "184d2ff6",
+      "tris": 217789,
       "trisRaw": 377198,
       "textures": 165,
       "attached": {
@@ -2732,7 +2755,7 @@
       },
       "record": "ANVL_Hornet_F7CM_Mk2",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2757,7 +2780,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2462912,
+      "bytes": 2466744,
       "pool": {
         "images": 165,
         "bytes": 8276960,
@@ -2766,8 +2789,8 @@
     },
     "anvl-hornet-f7cm": {
       "url": "/hangar/ships/anvl-hornet-f7cm.glb",
-      "v": "4e23d927",
-      "tris": 212295,
+      "v": "1e29cb22",
+      "tris": 213321,
       "trisRaw": 271164,
       "textures": 152,
       "attached": 0,
@@ -2786,6 +2809,7 @@
       "record": "ANVL_Hornet_F7CM",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2810,7 +2834,7 @@
         "bits": 20,
         "degenerate": 3.5
       },
-      "bytes": 2125996,
+      "bytes": 2147464,
       "pool": {
         "images": 152,
         "bytes": 6731318,
@@ -2819,8 +2843,8 @@
     },
     "anvl-hornet-f7cr-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cr-mk2.glb",
-      "v": "edac8537",
-      "tris": 210779,
+      "v": "9b74fb79",
+      "tris": 210983,
       "trisRaw": 247495,
       "textures": 152,
       "attached": {
@@ -2869,6 +2893,7 @@
       "record": "ANVL_Hornet_F7CR_Mk2",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2893,7 +2918,7 @@
         "bits": 18,
         "degenerate": 1.9
       },
-      "bytes": 1955124,
+      "bytes": 1969440,
       "pool": {
         "images": 152,
         "bytes": 8336076,
@@ -2902,7 +2927,7 @@
     },
     "anvl-hornet-f7cr": {
       "url": "/hangar/ships/anvl-hornet-f7cr.glb",
-      "v": "440bbd3e",
+      "v": "34dfb9ec",
       "tris": 191520,
       "trisRaw": 197084,
       "textures": 133,
@@ -2920,6 +2945,7 @@
       "record": "ANVL_Hornet_F7CR",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2944,7 +2970,7 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 1748388,
+      "bytes": 1758416,
       "pool": {
         "images": 133,
         "bytes": 6342332,
@@ -2953,8 +2979,8 @@
     },
     "anvl-hornet-f7cs-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cs-mk2.glb",
-      "v": "4e928ec5",
-      "tris": 205515,
+      "v": "0d347709",
+      "tris": 205575,
       "trisRaw": 228045,
       "textures": 152,
       "attached": {
@@ -3003,6 +3029,7 @@
       "record": "ANVL_Hornet_F7CS_Mk2",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3027,7 +3054,7 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1871448,
+      "bytes": 1885776,
       "pool": {
         "images": 152,
         "bytes": 8333440,
@@ -3036,7 +3063,7 @@
     },
     "anvl-hornet-f7cs": {
       "url": "/hangar/ships/anvl-hornet-f7cs.glb",
-      "v": "15e47ae9",
+      "v": "62205585",
       "tris": 175787,
       "trisRaw": 169443,
       "textures": 128,
@@ -3054,6 +3081,7 @@
       "record": "ANVL_Hornet_F7CS",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3078,7 +3106,7 @@
         "bits": 19,
         "degenerate": 2.3
       },
-      "bytes": 1622752,
+      "bytes": 1632732,
       "pool": {
         "images": 128,
         "bytes": 6267988,
@@ -3087,8 +3115,8 @@
     },
     "anvl-hurricane": {
       "url": "/hangar/ships/anvl-hurricane.glb",
-      "v": "26dcca6f",
-      "tris": 241344,
+      "v": "59cac2ac",
+      "tris": 242180,
       "trisRaw": 424200,
       "textures": 163,
       "attached": 0,
@@ -3105,7 +3133,7 @@
       },
       "record": "ANVL_Hurricane",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3128,9 +3156,9 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 4.9
+        "degenerate": 4.8
       },
-      "bytes": 2702156,
+      "bytes": 2719268,
       "pool": {
         "images": 163,
         "bytes": 7278476,
@@ -3139,8 +3167,8 @@
     },
     "anvl-lightning-f8": {
       "url": "/hangar/ships/anvl-lightning-f8.glb",
-      "v": "a6b683d0",
-      "tris": 213557,
+      "v": "5d88fb73",
+      "tris": 213651,
       "trisRaw": 325847,
       "textures": 166,
       "attached": 0,
@@ -3161,7 +3189,7 @@
       },
       "record": "ANVL_Lightning_F8",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3186,7 +3214,7 @@
         "bits": 20,
         "degenerate": 1.9
       },
-      "bytes": 2241052,
+      "bytes": 2243308,
       "pool": {
         "images": 166,
         "bytes": 8299180,
@@ -3195,8 +3223,8 @@
     },
     "anvl-lightning-f8c-exec": {
       "url": "/hangar/ships/anvl-lightning-f8c-exec.glb",
-      "v": "669b83af",
-      "tris": 216912,
+      "v": "3ec55ec4",
+      "tris": 216942,
       "trisRaw": 319412,
       "textures": 161,
       "attached": 0,
@@ -3217,7 +3245,7 @@
       },
       "record": "ANVL_Lightning_F8C_Exec",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3242,7 +3270,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2341128,
+      "bytes": 2342992,
       "pool": {
         "images": 161,
         "bytes": 6953132,
@@ -3251,8 +3279,8 @@
     },
     "anvl-lightning-f8c": {
       "url": "/hangar/ships/anvl-lightning-f8c.glb",
-      "v": "1b387658",
-      "tris": 216904,
+      "v": "4871944f",
+      "tris": 216938,
       "trisRaw": 319412,
       "textures": 161,
       "attached": 0,
@@ -3273,7 +3301,7 @@
       },
       "record": "ANVL_Lightning_F8C",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3298,7 +3326,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2339452,
+      "bytes": 2341324,
       "pool": {
         "images": 161,
         "bytes": 6953132,
@@ -3307,8 +3335,8 @@
     },
     "anvl-paladin": {
       "url": "/hangar/ships/anvl-paladin.glb",
-      "v": "5c5bcfa9",
-      "tris": 650090,
+      "v": "335b2964",
+      "tris": 650072,
       "trisRaw": 1651492,
       "textures": 247,
       "attached": 0,
@@ -3350,7 +3378,7 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 6840776,
+      "bytes": 6842360,
       "pool": {
         "images": 247,
         "bytes": 9891418,
@@ -3359,8 +3387,8 @@
     },
     "anvl-spartan": {
       "url": "/hangar/ships/anvl-spartan.glb",
-      "v": "f1a77602",
-      "tris": 210140,
+      "v": "4f876416",
+      "tris": 218764,
       "trisRaw": 205094,
       "textures": 217,
       "attached": 0,
@@ -3376,6 +3404,7 @@
       "record": "ANVL_Spartan",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 114,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -3390,11 +3419,11 @@
       },
       "uv": {
         "rangeBefore": 40,
-        "rangeAfter": 40.14,
+        "rangeAfter": 39.63,
         "bits": 18,
-        "degenerate": 0.8
+        "degenerate": 0.7
       },
-      "bytes": 1826208,
+      "bytes": 1981988,
       "pool": {
         "images": 217,
         "bytes": 7899558,
@@ -3403,7 +3432,7 @@
     },
     "anvl-terrapin-medic": {
       "url": "/hangar/ships/anvl-terrapin-medic.glb",
-      "v": "bbac6d18",
+      "v": "aeaa6721",
       "tris": 256801,
       "trisRaw": 575783,
       "textures": 232,
@@ -3445,7 +3474,7 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 3045568,
+      "bytes": 3046348,
       "pool": {
         "images": 232,
         "bytes": 9563622,
@@ -3454,7 +3483,7 @@
     },
     "anvl-terrapin": {
       "url": "/hangar/ships/anvl-terrapin.glb",
-      "v": "5fe0e6bc",
+      "v": "06f53838",
       "tris": 263350,
       "trisRaw": 569382,
       "textures": 222,
@@ -3496,7 +3525,7 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 3091996,
+      "bytes": 3092588,
       "pool": {
         "images": 222,
         "bytes": 9179920,
@@ -3505,8 +3534,8 @@
     },
     "anvl-valkyrie": {
       "url": "/hangar/ships/anvl-valkyrie.glb",
-      "v": "8bcc10b7",
-      "tris": 354820,
+      "v": "3dc47f7d",
+      "tris": 354566,
       "trisRaw": 911931,
       "textures": 215,
       "attached": 0,
@@ -3525,7 +3554,7 @@
       },
       "record": "ANVL_Valkyrie",
       "game": "12913470",
-      "interiorDropped": 9,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3551,7 +3580,7 @@
         "bits": 21,
         "degenerate": 1.2
       },
-      "bytes": 3612872,
+      "bytes": 3614528,
       "pool": {
         "images": 215,
         "bytes": 9772774,
@@ -3560,7 +3589,7 @@
     },
     "argo-atls-geo-collector-grad01": {
       "url": "/hangar/ships/argo-atls-geo-collector-grad01.glb",
-      "v": "bceddd89",
+      "v": "434ffa39",
       "tris": 195239,
       "trisRaw": 187139,
       "textures": 93,
@@ -3593,7 +3622,7 @@
         "bits": 20,
         "degenerate": 0.5
       },
-      "bytes": 1649700,
+      "bytes": 1649852,
       "pool": {
         "images": 93,
         "bytes": 4027378,
@@ -3602,7 +3631,7 @@
     },
     "argo-atls-geo-collector-grad03": {
       "url": "/hangar/ships/argo-atls-geo-collector-grad03.glb",
-      "v": "c3b53fae",
+      "v": "58799db4",
       "tris": 195239,
       "trisRaw": 187139,
       "textures": 93,
@@ -3635,7 +3664,7 @@
         "bits": 20,
         "degenerate": 0.5
       },
-      "bytes": 1649704,
+      "bytes": 1649932,
       "pool": {
         "images": 93,
         "bytes": 4027378,
@@ -3644,7 +3673,7 @@
     },
     "argo-atls-geo": {
       "url": "/hangar/ships/argo-atls-geo.glb",
-      "v": "a3608705",
+      "v": "fcb0c2db",
       "tris": 195239,
       "trisRaw": 187139,
       "textures": 93,
@@ -3677,7 +3706,7 @@
         "bits": 20,
         "degenerate": 0.5
       },
-      "bytes": 1649576,
+      "bytes": 1649728,
       "pool": {
         "images": 93,
         "bytes": 4027378,
@@ -3686,7 +3715,7 @@
     },
     "argo-atls": {
       "url": "/hangar/ships/argo-atls.glb",
-      "v": "c8739b87",
+      "v": "973360ec",
       "tris": 141960,
       "trisRaw": 137107,
       "textures": 42,
@@ -3719,7 +3748,7 @@
         "bits": 20,
         "degenerate": 0.4
       },
-      "bytes": 1227024,
+      "bytes": 1227160,
       "pool": {
         "images": 42,
         "bytes": 1982960,
@@ -3728,8 +3757,8 @@
     },
     "argo-csv-cargo": {
       "url": "/hangar/ships/argo-csv-cargo.glb",
-      "v": "30ac609e",
-      "tris": 202285,
+      "v": "9dda8039",
+      "tris": 202539,
       "trisRaw": 242789,
       "textures": 122,
       "attached": 0,
@@ -3743,6 +3772,7 @@
       "record": "ARGO_CSV_Cargo",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 13,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -3761,7 +3791,7 @@
         "bits": 17,
         "degenerate": 2
       },
-      "bytes": 1454072,
+      "bytes": 1481648,
       "pool": {
         "images": 122,
         "bytes": 4976866,
@@ -3770,8 +3800,8 @@
     },
     "argo-mole": {
       "url": "/hangar/ships/argo-mole.glb",
-      "v": "711bb277",
-      "tris": 425713,
+      "v": "7556ed18",
+      "tris": 425715,
       "trisRaw": 1199248,
       "textures": 273,
       "attached": 0,
@@ -3809,7 +3839,7 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 4597824,
+      "bytes": 4599156,
       "pool": {
         "images": 273,
         "bytes": 11601686,
@@ -3818,8 +3848,8 @@
     },
     "argo-moth": {
       "url": "/hangar/ships/argo-moth.glb",
-      "v": "f8aadb16",
-      "tris": 446875,
+      "v": "358f8eb1",
+      "tris": 446859,
       "trisRaw": 1380489,
       "textures": 283,
       "attached": 0,
@@ -3854,7 +3884,7 @@
         "bits": 21,
         "degenerate": 2.2
       },
-      "bytes": 4642368,
+      "bytes": 4643472,
       "pool": {
         "images": 283,
         "bytes": 11801778,
@@ -3863,8 +3893,8 @@
     },
     "argo-mpuv-1t": {
       "url": "/hangar/ships/argo-mpuv-1t.glb",
-      "v": "f621574a",
-      "tris": 196401,
+      "v": "ea7e023c",
+      "tris": 196395,
       "trisRaw": 192629,
       "textures": 202,
       "attached": 0,
@@ -3881,6 +3911,7 @@
       "record": "ARGO_MPUV_1T",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 9,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3905,7 +3936,7 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 1800680,
+      "bytes": 1835284,
       "pool": {
         "images": 202,
         "bytes": 8271878,
@@ -3914,8 +3945,8 @@
     },
     "argo-mpuv-transport": {
       "url": "/hangar/ships/argo-mpuv-transport.glb",
-      "v": "20876f19",
-      "tris": 210526,
+      "v": "fc1a3f60",
+      "tris": 202266,
       "trisRaw": 202446,
       "textures": 162,
       "attached": 0,
@@ -3929,6 +3960,7 @@
       "record": "ARGO_MPUV_Transport",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 13,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -3953,7 +3985,7 @@
         "bits": 19,
         "degenerate": 1.8
       },
-      "bytes": 1717496,
+      "bytes": 1704628,
       "pool": {
         "images": 162,
         "bytes": 7677214,
@@ -3962,7 +3994,7 @@
     },
     "argo-mpuv": {
       "url": "/hangar/ships/argo-mpuv.glb",
-      "v": "8fb8aadb",
+      "v": "3f5544d7",
       "tris": 169954,
       "trisRaw": 170134,
       "textures": 135,
@@ -3977,6 +4009,7 @@
       "record": "ARGO_MPUV",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4001,7 +4034,7 @@
         "bits": 19,
         "degenerate": 3.6
       },
-      "bytes": 1325404,
+      "bytes": 1365016,
       "pool": {
         "images": 135,
         "bytes": 6770344,
@@ -4010,8 +4043,8 @@
     },
     "argo-raft": {
       "url": "/hangar/ships/argo-raft.glb",
-      "v": "a418d397",
-      "tris": 326717,
+      "v": "79c9659f",
+      "tris": 326739,
       "trisRaw": 1072176,
       "textures": 234,
       "attached": 0,
@@ -4053,7 +4086,7 @@
         "bits": 19,
         "degenerate": 1.5
       },
-      "bytes": 3146496,
+      "bytes": 3147720,
       "pool": {
         "images": 234,
         "bytes": 9351510,
@@ -4062,7 +4095,7 @@
     },
     "argo-srv": {
       "url": "/hangar/ships/argo-srv.glb",
-      "v": "e6cd016b",
+      "v": "1264fc21",
       "tris": 279811,
       "trisRaw": 1281854,
       "textures": 213,
@@ -4103,7 +4136,7 @@
         "bits": 22,
         "degenerate": 3.5
       },
-      "bytes": 2939824,
+      "bytes": 2940072,
       "pool": {
         "images": 213,
         "bytes": 8916332,
@@ -4112,8 +4145,8 @@
     },
     "banu-defender": {
       "url": "/hangar/ships/banu-defender.glb",
-      "v": "129a4c5a",
-      "tris": 223878,
+      "v": "059468b3",
+      "tris": 223860,
       "trisRaw": 485430,
       "textures": 145,
       "attached": 0,
@@ -4131,7 +4164,7 @@
       },
       "record": "BANU_Defender",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4157,7 +4190,7 @@
         "bits": 21,
         "degenerate": 1.3
       },
-      "bytes": 2466180,
+      "bytes": 2476580,
       "pool": {
         "images": 145,
         "bytes": 6401230,
@@ -4166,7 +4199,7 @@
     },
     "cnou-hoverquad": {
       "url": "/hangar/ships/cnou-hoverquad.glb",
-      "v": "36546122",
+      "v": "0e19243d",
       "tris": 125032,
       "trisRaw": 127586,
       "textures": 100,
@@ -4181,6 +4214,7 @@
       "record": "CNOU_HoverQuad",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -4206,7 +4240,7 @@
         "bits": 17,
         "degenerate": 4
       },
-      "bytes": 889716,
+      "bytes": 890896,
       "pool": {
         "images": 100,
         "bytes": 3183454,
@@ -4215,7 +4249,7 @@
     },
     "cnou-mustang-alpha-citizencon2018": {
       "url": "/hangar/ships/cnou-mustang-alpha-citizencon2018.glb",
-      "v": "95847269",
+      "v": "20fb09de",
       "tris": 200252,
       "trisRaw": 227781,
       "textures": 165,
@@ -4232,6 +4266,7 @@
       "record": "CNOU_Mustang_Alpha_CitizenCon2018",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4256,7 +4291,7 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 1976816,
+      "bytes": 2023356,
       "pool": {
         "images": 165,
         "bytes": 8200876,
@@ -4265,7 +4300,7 @@
     },
     "cnou-mustang-alpha": {
       "url": "/hangar/ships/cnou-mustang-alpha.glb",
-      "v": "b52893d2",
+      "v": "79af7d3a",
       "tris": 200252,
       "trisRaw": 227781,
       "textures": 161,
@@ -4282,6 +4317,7 @@
       "record": "CNOU_Mustang_Alpha",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4306,7 +4342,7 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 1975880,
+      "bytes": 2022172,
       "pool": {
         "images": 161,
         "bytes": 7948670,
@@ -4315,8 +4351,8 @@
     },
     "cnou-mustang-beta": {
       "url": "/hangar/ships/cnou-mustang-beta.glb",
-      "v": "26fdf9d2",
-      "tris": 214568,
+      "v": "b2913e21",
+      "tris": 211984,
       "trisRaw": 239632,
       "textures": 197,
       "attached": 0,
@@ -4332,6 +4368,7 @@
       "record": "CNOU_Mustang_Beta",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 11,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4356,7 +4393,7 @@
         "bits": 22,
         "degenerate": 1.9
       },
-      "bytes": 2111580,
+      "bytes": 2174520,
       "pool": {
         "images": 197,
         "bytes": 8440820,
@@ -4365,7 +4402,7 @@
     },
     "cnou-mustang-delta": {
       "url": "/hangar/ships/cnou-mustang-delta.glb",
-      "v": "e7917a21",
+      "v": "efd23246",
       "tris": 202168,
       "trisRaw": 261607,
       "textures": 174,
@@ -4386,6 +4423,7 @@
       "record": "CNOU_Mustang_Delta",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4410,7 +4448,7 @@
         "bits": 21,
         "degenerate": 1.8
       },
-      "bytes": 1979296,
+      "bytes": 2025944,
       "pool": {
         "images": 174,
         "bytes": 8335258,
@@ -4419,7 +4457,7 @@
     },
     "cnou-mustang-gamma": {
       "url": "/hangar/ships/cnou-mustang-gamma.glb",
-      "v": "9c5f51d3",
+      "v": "705e8905",
       "tris": 204626,
       "trisRaw": 234246,
       "textures": 170,
@@ -4437,6 +4475,7 @@
       "record": "CNOU_Mustang_Gamma",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4461,7 +4500,7 @@
         "bits": 21,
         "degenerate": 3.3
       },
-      "bytes": 1972708,
+      "bytes": 2020008,
       "pool": {
         "images": 170,
         "bytes": 8352670,
@@ -4470,7 +4509,7 @@
     },
     "cnou-mustang-omega": {
       "url": "/hangar/ships/cnou-mustang-omega.glb",
-      "v": "41c90e7c",
+      "v": "e1ac4f65",
       "tris": 204626,
       "trisRaw": 234246,
       "textures": 172,
@@ -4488,6 +4527,7 @@
       "record": "CNOU_Mustang_Omega",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4512,7 +4552,7 @@
         "bits": 21,
         "degenerate": 3.3
       },
-      "bytes": 1961744,
+      "bytes": 2008640,
       "pool": {
         "images": 172,
         "bytes": 8611822,
@@ -4521,8 +4561,8 @@
     },
     "cnou-nomad": {
       "url": "/hangar/ships/cnou-nomad.glb",
-      "v": "8b7fd6ec",
-      "tris": 207021,
+      "v": "cc3f6ed3",
+      "tris": 207652,
       "trisRaw": 266848,
       "textures": 328,
       "attached": 0,
@@ -4541,6 +4581,7 @@
       "record": "CNOU_Nomad",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 55,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk ein: hardpoint_lg_front_left: keine Animation; hardpoint_lg_front_right: keine Animation; hardpoint_lg_rear_left: keine Animation; hardpoint_lg_rear_right: keine Ani"
@@ -4559,7 +4600,7 @@
         "bits": 21,
         "degenerate": 2.6
       },
-      "bytes": 2381452,
+      "bytes": 2480112,
       "pool": {
         "images": 328,
         "bytes": 12698452,
@@ -4568,8 +4609,8 @@
     },
     "crus-intrepid": {
       "url": "/hangar/ships/crus-intrepid.glb",
-      "v": "4ba771d6",
-      "tris": 385179,
+      "v": "b932ea93",
+      "tris": 385255,
       "trisRaw": 1225239,
       "textures": 287,
       "attached": 0,
@@ -4584,7 +4625,7 @@
       },
       "record": "CRUS_Intrepid",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4609,7 +4650,7 @@
         "bits": 23,
         "degenerate": 2.2
       },
-      "bytes": 4925408,
+      "bytes": 4930600,
       "pool": {
         "images": 287,
         "bytes": 11765502,
@@ -4618,8 +4659,8 @@
     },
     "crus-spirit-a1": {
       "url": "/hangar/ships/crus-spirit-a1.glb",
-      "v": "fe3b87b3",
-      "tris": 536811,
+      "v": "77d21200",
+      "tris": 536807,
       "trisRaw": 1279497,
       "textures": 274,
       "attached": 0,
@@ -4637,7 +4678,7 @@
       },
       "record": "CRUS_Spirit_A1",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4662,7 +4703,7 @@
         "bits": 20,
         "degenerate": 4.2
       },
-      "bytes": 5296060,
+      "bytes": 5297924,
       "pool": {
         "images": 274,
         "bytes": 11245570,
@@ -4671,8 +4712,8 @@
     },
     "crus-spirit-c1": {
       "url": "/hangar/ships/crus-spirit-c1.glb",
-      "v": "8c950f65",
-      "tris": 402813,
+      "v": "a542e289",
+      "tris": 402801,
       "trisRaw": 1050597,
       "textures": 256,
       "attached": 0,
@@ -4690,7 +4731,7 @@
       },
       "record": "CRUS_Spirit_C1",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4715,7 +4756,7 @@
         "bits": 20,
         "degenerate": 3.3
       },
-      "bytes": 4094880,
+      "bytes": 4096544,
       "pool": {
         "images": 256,
         "bytes": 10364094,
@@ -4724,8 +4765,8 @@
     },
     "crus-star-runner": {
       "url": "/hangar/ships/crus-star-runner.glb",
-      "v": "620816d3",
-      "tris": 375172,
+      "v": "65d12d0d",
+      "tris": 375472,
       "trisRaw": 1461130,
       "textures": 238,
       "attached": 0,
@@ -4742,7 +4783,7 @@
       },
       "record": "CRUS_Star_Runner",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -4767,7 +4808,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 3987184,
+      "bytes": 3993588,
       "pool": {
         "images": 238,
         "bytes": 11551418,
@@ -4776,7 +4817,7 @@
     },
     "crus-starfighter-inferno": {
       "url": "/hangar/ships/crus-starfighter-inferno.glb",
-      "v": "4bbb1b04",
+      "v": "1a95eb93",
       "tris": 239028,
       "trisRaw": 344567,
       "textures": 226,
@@ -4792,7 +4833,7 @@
       },
       "record": "CRUS_Starfighter_Inferno",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4817,7 +4858,7 @@
         "bits": 19,
         "degenerate": 2.9
       },
-      "bytes": 2514880,
+      "bytes": 2515412,
       "pool": {
         "images": 226,
         "bytes": 9304714,
@@ -4826,7 +4867,7 @@
     },
     "crus-starfighter-ion": {
       "url": "/hangar/ships/crus-starfighter-ion.glb",
-      "v": "3abfbacf",
+      "v": "d30e7368",
       "tris": 241893,
       "trisRaw": 346679,
       "textures": 225,
@@ -4842,7 +4883,7 @@
       },
       "record": "CRUS_Starfighter_Ion",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4867,7 +4908,7 @@
         "bits": 19,
         "degenerate": 2.9
       },
-      "bytes": 2518084,
+      "bytes": 2518540,
       "pool": {
         "images": 225,
         "bytes": 9047218,
@@ -4876,8 +4917,8 @@
     },
     "crus-starlifter-a2": {
       "url": "/hangar/ships/crus-starlifter-a2.glb",
-      "v": "817df4dd",
-      "tris": 595031,
+      "v": "fb8fc7a2",
+      "tris": 595187,
       "trisRaw": 1562658,
       "textures": 209,
       "attached": 0,
@@ -4900,7 +4941,7 @@
       },
       "record": "CRUS_Starlifter_A2",
       "game": "12913470",
-      "interiorDropped": 10,
+      "interiorDropped": 9,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4925,7 +4966,7 @@
         "bits": 22,
         "degenerate": 3.9
       },
-      "bytes": 5843980,
+      "bytes": 5857816,
       "pool": {
         "images": 209,
         "bytes": 8536326,
@@ -4934,8 +4975,8 @@
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "c6e084a0",
-      "tris": 471460,
+      "v": "64704f7a",
+      "tris": 471864,
       "trisRaw": 1221469,
       "textures": 206,
       "attached": 0,
@@ -4953,7 +4994,7 @@
       },
       "record": "CRUS_Starlifter_C2",
       "game": "12913470",
-      "interiorDropped": 8,
+      "interiorDropped": 7,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -4978,7 +5019,7 @@
         "bits": 22,
         "degenerate": 4
       },
-      "bytes": 4604268,
+      "bytes": 4612616,
       "pool": {
         "images": 206,
         "bytes": 9047078,
@@ -4987,8 +5028,8 @@
     },
     "crus-starlifter-m2": {
       "url": "/hangar/ships/crus-starlifter-m2.glb",
-      "v": "74defc2c",
-      "tris": 473837,
+      "v": "09c5ab92",
+      "tris": 474267,
       "trisRaw": 1296598,
       "textures": 190,
       "attached": 0,
@@ -5007,7 +5048,7 @@
       },
       "record": "CRUS_Starlifter_M2",
       "game": "12913470",
-      "interiorDropped": 10,
+      "interiorDropped": 9,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5032,7 +5073,7 @@
         "bits": 22,
         "degenerate": 4.2
       },
-      "bytes": 4599324,
+      "bytes": 4614424,
       "pool": {
         "images": 190,
         "bytes": 8107936,
@@ -5041,8 +5082,8 @@
     },
     "drak-buccaneer": {
       "url": "/hangar/ships/drak-buccaneer.glb",
-      "v": "95af01dc",
-      "tris": 207635,
+      "v": "af5fd7eb",
+      "tris": 208175,
       "trisRaw": 250602,
       "textures": 180,
       "attached": 0,
@@ -5062,6 +5103,7 @@
       "record": "DRAK_Buccaneer",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "why": "nur 2 Aufstandspunkte"
@@ -5080,7 +5122,7 @@
         "bits": 22,
         "degenerate": 0.7
       },
-      "bytes": 2183084,
+      "bytes": 2212384,
       "pool": {
         "images": 180,
         "bytes": 10059132,
@@ -5089,8 +5131,8 @@
     },
     "drak-caterpillar-pirate": {
       "url": "/hangar/ships/drak-caterpillar-pirate.glb",
-      "v": "6aa3c776",
-      "tris": 837634,
+      "v": "041ab169",
+      "tris": 837858,
       "trisRaw": 3390526,
       "textures": 368,
       "attached": {
@@ -5134,12 +5176,12 @@
       "swapNodes": 36,
       "palette": {
         "1": 9,
-        "2": 9,
+        "2": 10,
         "3": 9
       },
       "record": "DRAK_Caterpillar_Pirate",
       "game": "12913470",
-      "interiorDropped": 10,
+      "interiorDropped": 8,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -5174,7 +5216,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 8437900,
+      "bytes": 8448708,
       "pool": {
         "images": 368,
         "bytes": 18007562,
@@ -5183,8 +5225,8 @@
     },
     "drak-caterpillar": {
       "url": "/hangar/ships/drak-caterpillar.glb",
-      "v": "b1f9b48c",
-      "tris": 837626,
+      "v": "b5a066d7",
+      "tris": 837850,
       "trisRaw": 3209260,
       "textures": 370,
       "attached": {
@@ -5228,12 +5270,12 @@
       "swapNodes": 36,
       "palette": {
         "1": 9,
-        "2": 9,
+        "2": 10,
         "3": 9
       },
       "record": "DRAK_Caterpillar",
       "game": "12913470",
-      "interiorDropped": 9,
+      "interiorDropped": 7,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -5268,7 +5310,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 8434292,
+      "bytes": 8445300,
       "pool": {
         "images": 370,
         "bytes": 18009104,
@@ -5277,8 +5319,8 @@
     },
     "drak-clipper": {
       "url": "/hangar/ships/drak-clipper.glb",
-      "v": "1cfe95e2",
-      "tris": 496053,
+      "v": "6dc3887c",
+      "tris": 496105,
       "trisRaw": 1360878,
       "textures": 294,
       "attached": 0,
@@ -5321,7 +5363,7 @@
         "bits": 21,
         "degenerate": 1.1
       },
-      "bytes": 5751164,
+      "bytes": 5757824,
       "pool": {
         "images": 294,
         "bytes": 12613134,
@@ -5330,8 +5372,8 @@
     },
     "drak-corsair": {
       "url": "/hangar/ships/drak-corsair.glb",
-      "v": "82989833",
-      "tris": 723523,
+      "v": "ee8f5b24",
+      "tris": 723609,
       "trisRaw": 2694496,
       "textures": 273,
       "attached": 0,
@@ -5354,7 +5396,7 @@
       },
       "record": "DRAK_Corsair",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -5379,7 +5421,7 @@
         "bits": 22,
         "degenerate": 2.6
       },
-      "bytes": 6870432,
+      "bytes": 6882432,
       "pool": {
         "images": 273,
         "bytes": 11106496,
@@ -5388,8 +5430,8 @@
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
-      "v": "c0bf824f",
-      "tris": 325165,
+      "v": "73063755",
+      "tris": 325241,
       "trisRaw": 749280,
       "textures": 239,
       "attached": 0,
@@ -5409,7 +5451,7 @@
       },
       "record": "DRAK_Cutlass_Black",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5426,7 +5468,7 @@
       },
       "paints": {
         "url": "/hangar/paints/drak-cutlass-black.json",
-        "v": "ff9dbf09"
+        "v": "b37d3263"
       },
       "uv": {
         "rangeBefore": 288,
@@ -5434,7 +5476,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 3703844,
+      "bytes": 3706000,
       "pool": {
         "images": 239,
         "bytes": 10726208,
@@ -5443,8 +5485,8 @@
     },
     "drak-cutlass-blue": {
       "url": "/hangar/ships/drak-cutlass-blue.glb",
-      "v": "f9fb5878",
-      "tris": 377589,
+      "v": "76fce56b",
+      "tris": 377599,
       "trisRaw": 841018,
       "textures": 249,
       "attached": 0,
@@ -5463,7 +5505,7 @@
       },
       "record": "DRAK_Cutlass_Blue",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5488,7 +5530,7 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 4340516,
+      "bytes": 4342428,
       "pool": {
         "images": 249,
         "bytes": 11131228,
@@ -5497,8 +5539,8 @@
     },
     "drak-cutlass-red": {
       "url": "/hangar/ships/drak-cutlass-red.glb",
-      "v": "88b0e80f",
-      "tris": 259152,
+      "v": "df73d8e0",
+      "tris": 259148,
       "trisRaw": 714774,
       "textures": 216,
       "attached": 0,
@@ -5516,7 +5558,7 @@
       },
       "record": "DRAK_Cutlass_Red",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5541,7 +5583,7 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 2876956,
+      "bytes": 2878624,
       "pool": {
         "images": 216,
         "bytes": 10809922,
@@ -5550,8 +5592,8 @@
     },
     "drak-cutlass-steel": {
       "url": "/hangar/ships/drak-cutlass-steel.glb",
-      "v": "13ae743e",
-      "tris": 402513,
+      "v": "9d924781",
+      "tris": 402487,
       "trisRaw": 766581,
       "textures": 233,
       "attached": 0,
@@ -5570,7 +5612,7 @@
       },
       "record": "DRAK_Cutlass_Steel",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5595,7 +5637,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 4210188,
+      "bytes": 4211504,
       "pool": {
         "images": 233,
         "bytes": 11222798,
@@ -5604,8 +5646,8 @@
     },
     "drak-cutter-rambler": {
       "url": "/hangar/ships/drak-cutter-rambler.glb",
-      "v": "9a57ae6f",
-      "tris": 325722,
+      "v": "aa90a040",
+      "tris": 326500,
       "trisRaw": 750291,
       "textures": 263,
       "attached": 0,
@@ -5646,7 +5688,7 @@
         "bits": 20,
         "degenerate": 4.5
       },
-      "bytes": 3356500,
+      "bytes": 3369396,
       "pool": {
         "images": 263,
         "bytes": 11733500,
@@ -5655,8 +5697,8 @@
     },
     "drak-cutter-scout": {
       "url": "/hangar/ships/drak-cutter-scout.glb",
-      "v": "28fc1131",
-      "tris": 278701,
+      "v": "ae73bfa2",
+      "tris": 280239,
       "trisRaw": 747341,
       "textures": 214,
       "attached": 0,
@@ -5697,7 +5739,7 @@
         "bits": 20,
         "degenerate": 5.4
       },
-      "bytes": 2848844,
+      "bytes": 2869584,
       "pool": {
         "images": 214,
         "bytes": 10280960,
@@ -5706,8 +5748,8 @@
     },
     "drak-cutter": {
       "url": "/hangar/ships/drak-cutter.glb",
-      "v": "2516e65a",
-      "tris": 303652,
+      "v": "805e0cd6",
+      "tris": 304748,
       "trisRaw": 729650,
       "textures": 282,
       "attached": 0,
@@ -5748,7 +5790,7 @@
         "bits": 20,
         "degenerate": 4.7
       },
-      "bytes": 3166328,
+      "bytes": 3182460,
       "pool": {
         "images": 282,
         "bytes": 12489826,
@@ -5757,7 +5799,7 @@
     },
     "drak-dragonfly-yellow": {
       "url": "/hangar/ships/drak-dragonfly-yellow.glb",
-      "v": "5ae6a7e4",
+      "v": "4f8483c0",
       "tris": 166292,
       "trisRaw": 155821,
       "textures": 117,
@@ -5793,7 +5835,7 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 1077508,
+      "bytes": 1078992,
       "pool": {
         "images": 117,
         "bytes": 5046556,
@@ -5802,7 +5844,7 @@
     },
     "drak-dragonfly": {
       "url": "/hangar/ships/drak-dragonfly.glb",
-      "v": "1c606313",
+      "v": "09d42dd0",
       "tris": 166292,
       "trisRaw": 155821,
       "textures": 114,
@@ -5838,7 +5880,7 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 1075644,
+      "bytes": 1077108,
       "pool": {
         "images": 114,
         "bytes": 4936514,
@@ -5847,8 +5889,8 @@
     },
     "drak-golem-ox": {
       "url": "/hangar/ships/drak-golem-ox.glb",
-      "v": "a2a96394",
-      "tris": 276468,
+      "v": "486dbecc",
+      "tris": 276460,
       "trisRaw": 478918,
       "textures": 248,
       "attached": 0,
@@ -5890,7 +5932,7 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 3366092,
+      "bytes": 3368684,
       "pool": {
         "images": 248,
         "bytes": 11468194,
@@ -5899,7 +5941,7 @@
     },
     "drak-golem": {
       "url": "/hangar/ships/drak-golem.glb",
-      "v": "e2d7888b",
+      "v": "7e4e1373",
       "tris": 349152,
       "trisRaw": 587232,
       "textures": 243,
@@ -5940,9 +5982,9 @@
         "rangeBefore": 815,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2.3
+        "degenerate": 2.4
       },
-      "bytes": 3852744,
+      "bytes": 3854208,
       "pool": {
         "images": 243,
         "bytes": 11754238,
@@ -5951,8 +5993,8 @@
     },
     "drak-herald": {
       "url": "/hangar/ships/drak-herald.glb",
-      "v": "353f5177",
-      "tris": 214500,
+      "v": "0c71473f",
+      "tris": 214606,
       "trisRaw": 403502,
       "textures": 182,
       "attached": 0,
@@ -5969,7 +6011,7 @@
       },
       "record": "DRAK_Herald",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -5994,7 +6036,7 @@
         "bits": 20,
         "degenerate": 2
       },
-      "bytes": 2362824,
+      "bytes": 2365048,
       "pool": {
         "images": 182,
         "bytes": 8921712,
@@ -6003,8 +6045,8 @@
     },
     "drak-ironclad-assault": {
       "url": "/hangar/ships/drak-ironclad-assault.glb",
-      "v": "90898184",
-      "tris": 1199062,
+      "v": "0e34925b",
+      "tris": 1198811,
       "trisRaw": 2912692,
       "textures": 433,
       "attached": 0,
@@ -6021,7 +6063,7 @@
       "swapNodes": 198,
       "palette": {
         "1": 17,
-        "2": 12,
+        "2": 13,
         "3": 10
       },
       "record": "DRAK_Ironclad_Assault",
@@ -6033,7 +6075,7 @@
       },
       "budget": {
         "tris": 400000,
-        "tex": 256,
+        "tex": 512,
         "q": 72
       },
       "paints": {
@@ -6046,19 +6088,19 @@
         "bits": 21,
         "degenerate": 4.3
       },
-      "bytes": 12259476,
+      "bytes": 12276192,
       "pool": {
         "images": 433,
-        "bytes": 4060622,
-        "fresh": 2782
+        "bytes": 9795118,
+        "fresh": 7532
       }
     },
     "drak-ironclad": {
       "url": "/hangar/ships/drak-ironclad.glb",
-      "v": "713a00e7",
-      "tris": 1135056,
+      "v": "2c7df085",
+      "tris": 1658155,
       "trisRaw": 2582548,
-      "textures": 428,
+      "textures": 432,
       "attached": 0,
       "swap": {
         "hardpoint_tractor_beam_nose": 1,
@@ -6073,8 +6115,8 @@
       "swapNodes": 136,
       "palette": {
         "1": 17,
-        "2": 11,
-        "3": 9
+        "2": 12,
+        "3": 11
       },
       "record": "DRAK_Ironclad",
       "game": "12913470",
@@ -6096,19 +6138,19 @@
         "rangeBefore": 509,
         "rangeAfter": 508.75,
         "bits": 21,
-        "degenerate": 4.2
+        "degenerate": 3.8
       },
-      "bytes": 11543440,
+      "bytes": 16003668,
       "pool": {
-        "images": 428,
-        "bytes": 9788886,
-        "fresh": 4673692
+        "images": 432,
+        "bytes": 9819320,
+        "fresh": 6688
       }
     },
     "drak-mule": {
       "url": "/hangar/ships/drak-mule.glb",
-      "v": "4850951c",
-      "tris": 206428,
+      "v": "5af50ff3",
+      "tris": 206624,
       "trisRaw": 234218,
       "textures": 163,
       "attached": 0,
@@ -6122,6 +6164,7 @@
       "record": "DRAK_Mule",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 14,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -6140,7 +6183,7 @@
         "bits": 19,
         "degenerate": 0.6
       },
-      "bytes": 1668704,
+      "bytes": 1701348,
       "pool": {
         "images": 163,
         "bytes": 6788828,
@@ -6149,8 +6192,8 @@
     },
     "drak-pitbull": {
       "url": "/hangar/ships/drak-pitbull.glb",
-      "v": "b1f43e54",
-      "tris": 254368,
+      "v": "9dc0d57a",
+      "tris": 254388,
       "trisRaw": 587415,
       "textures": 216,
       "attached": 0,
@@ -6195,7 +6238,7 @@
         "bits": 20,
         "degenerate": 1.4
       },
-      "bytes": 2880888,
+      "bytes": 2883336,
       "pool": {
         "images": 216,
         "bytes": 10262594,
@@ -6204,8 +6247,8 @@
     },
     "drak-vulture": {
       "url": "/hangar/ships/drak-vulture.glb",
-      "v": "091bc0af",
-      "tris": 383068,
+      "v": "2491f8e4",
+      "tris": 383144,
       "trisRaw": 911110,
       "textures": 264,
       "attached": 0,
@@ -6221,7 +6264,7 @@
       },
       "record": "DRAK_Vulture",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -6247,7 +6290,7 @@
         "bits": 20,
         "degenerate": 1.4
       },
-      "bytes": 3749904,
+      "bytes": 3752164,
       "pool": {
         "images": 264,
         "bytes": 10334598,
@@ -6256,8 +6299,8 @@
     },
     "espr-prowler-utility": {
       "url": "/hangar/ships/espr-prowler-utility.glb",
-      "v": "4e1d20a8",
-      "tris": 454199,
+      "v": "7af10693",
+      "tris": 454275,
       "trisRaw": 848149,
       "textures": 271,
       "attached": 0,
@@ -6275,7 +6318,7 @@
       },
       "record": "ESPR_Prowler_Utility",
       "game": "12913470",
-      "interiorDropped": 6,
+      "interiorDropped": 5,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk ein: hardpoint_wing_landing_gear_left: nach landing_gear_extend Fuß bei 3.783, Aufstand -7.286; hardpoint_wing_landing_gear_right: nach landing_gear_extend Fuß bei 3"
@@ -6294,7 +6337,7 @@
         "bits": 22,
         "degenerate": 2
       },
-      "bytes": 5283312,
+      "bytes": 5285380,
       "pool": {
         "images": 271,
         "bytes": 11914688,
@@ -6303,8 +6346,8 @@
     },
     "espr-prowler": {
       "url": "/hangar/ships/espr-prowler.glb",
-      "v": "ea07bb74",
-      "tris": 339675,
+      "v": "6c7e623e",
+      "tris": 339747,
       "trisRaw": 697014,
       "textures": 234,
       "attached": 0,
@@ -6321,7 +6364,7 @@
       },
       "record": "ESPR_Prowler",
       "game": "12913470",
-      "interiorDropped": 6,
+      "interiorDropped": 5,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -6349,7 +6392,7 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 3711040,
+      "bytes": 3713036,
       "pool": {
         "images": 234,
         "bytes": 10935778,
@@ -6358,7 +6401,7 @@
     },
     "espr-talon-shrike": {
       "url": "/hangar/ships/espr-talon-shrike.glb",
-      "v": "83cc1354",
+      "v": "dd240355",
       "tris": 260930,
       "trisRaw": 301395,
       "textures": 236,
@@ -6408,7 +6451,7 @@
       },
       "record": "ESPR_Talon_Shrike",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 0,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -6434,7 +6477,7 @@
         "bits": 21,
         "degenerate": 1.2
       },
-      "bytes": 2877960,
+      "bytes": 2879400,
       "pool": {
         "images": 236,
         "bytes": 10270458,
@@ -6443,7 +6486,7 @@
     },
     "espr-talon": {
       "url": "/hangar/ships/espr-talon.glb",
-      "v": "60b9ec6e",
+      "v": "1cca58dd",
       "tris": 239726,
       "trisRaw": 306971,
       "textures": 242,
@@ -6493,7 +6536,7 @@
       },
       "record": "ESPR_Talon",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 0,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -6519,7 +6562,7 @@
         "bits": 21,
         "degenerate": 1.4
       },
-      "bytes": 2630892,
+      "bytes": 2632308,
       "pool": {
         "images": 242,
         "bytes": 10334082,
@@ -6528,8 +6571,8 @@
     },
     "gama-railen": {
       "url": "/hangar/ships/gama-railen.glb",
-      "v": "c1f74f63",
-      "tris": 432522,
+      "v": "4394176f",
+      "tris": 432526,
       "trisRaw": 1668423,
       "textures": 248,
       "attached": 0,
@@ -6551,7 +6594,7 @@
       },
       "record": "GAMA_Railen",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -6577,7 +6620,7 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 4523400,
+      "bytes": 4524980,
       "pool": {
         "images": 248,
         "bytes": 12746750,
@@ -6586,8 +6629,8 @@
     },
     "gama-syulen": {
       "url": "/hangar/ships/gama-syulen.glb",
-      "v": "6a3b3426",
-      "tris": 284174,
+      "v": "c4727902",
+      "tris": 284178,
       "trisRaw": 512001,
       "textures": 230,
       "attached": {
@@ -6636,7 +6679,7 @@
       },
       "record": "GAMA_Syulen",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "why": "keine Ebene durch die Aufstandspunkte (auf einer Linie oder steiler als 15 Grad)"
@@ -6655,7 +6698,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 2998504,
+      "bytes": 2999804,
       "pool": {
         "images": 230,
         "bytes": 10202968,
@@ -6664,7 +6707,7 @@
     },
     "gama-tyilui": {
       "url": "/hangar/ships/gama-tyilui.glb",
-      "v": "be52cfce",
+      "v": "5a3b8395",
       "tris": 466965,
       "trisRaw": 1878472,
       "textures": 261,
@@ -6688,7 +6731,7 @@
       },
       "record": "GAMA_Tyilui",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 2,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -6714,7 +6757,7 @@
         "bits": 22,
         "degenerate": 1.9
       },
-      "bytes": 5226020,
+      "bytes": 5227380,
       "pool": {
         "images": 261,
         "bytes": 13581352,
@@ -6723,8 +6766,8 @@
     },
     "glsn-basher": {
       "url": "/hangar/ships/glsn-basher.glb",
-      "v": "3309448e",
-      "tris": 242981,
+      "v": "14f7ae53",
+      "tris": 243009,
       "trisRaw": 418864,
       "textures": 287,
       "attached": 0,
@@ -6771,7 +6814,7 @@
         "bits": 22,
         "degenerate": 1
       },
-      "bytes": 2992976,
+      "bytes": 2994640,
       "pool": {
         "images": 287,
         "bytes": 15206980,
@@ -6780,8 +6823,8 @@
     },
     "glsn-shiv": {
       "url": "/hangar/ships/glsn-shiv.glb",
-      "v": "10ed093e",
-      "tris": 377711,
+      "v": "97af8764",
+      "tris": 377751,
       "trisRaw": 905526,
       "textures": 342,
       "attached": 0,
@@ -6823,7 +6866,7 @@
         "bits": 19,
         "degenerate": 1.2
       },
-      "bytes": 4176660,
+      "bytes": 4179324,
       "pool": {
         "images": 342,
         "bytes": 17285720,
@@ -6832,8 +6875,8 @@
     },
     "grin-mdc": {
       "url": "/hangar/ships/grin-mdc.glb",
-      "v": "1af37445",
-      "tris": 212855,
+      "v": "ecf2a064",
+      "tris": 212473,
       "trisRaw": 245006,
       "textures": 199,
       "attached": 0,
@@ -6847,6 +6890,7 @@
       "record": "GRIN_MDC",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 26,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -6861,11 +6905,11 @@
       },
       "uv": {
         "rangeBefore": 25,
-        "rangeAfter": 15.89,
+        "rangeAfter": 15.87,
         "bits": 16,
-        "degenerate": 1.2
+        "degenerate": 1.1
       },
-      "bytes": 2113472,
+      "bytes": 2197652,
       "pool": {
         "images": 199,
         "bytes": 6846554,
@@ -6874,8 +6918,8 @@
     },
     "grin-mtc": {
       "url": "/hangar/ships/grin-mtc.glb",
-      "v": "33a5d7a0",
-      "tris": 215255,
+      "v": "5bb8bff7",
+      "tris": 213586,
       "trisRaw": 294592,
       "textures": 207,
       "attached": 0,
@@ -6891,6 +6935,7 @@
       "record": "GRIN_MTC",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 35,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -6909,7 +6954,7 @@
         "bits": 20,
         "degenerate": 1.2
       },
-      "bytes": 2600188,
+      "bytes": 2698740,
       "pool": {
         "images": 207,
         "bytes": 6856974,
@@ -6918,7 +6963,7 @@
     },
     "grin-ptv": {
       "url": "/hangar/ships/grin-ptv.glb",
-      "v": "efe615d6",
+      "v": "8355fd1a",
       "tris": 29554,
       "trisRaw": 28355,
       "textures": 29,
@@ -6947,7 +6992,7 @@
         "bits": 13,
         "degenerate": 0.1
       },
-      "bytes": 214088,
+      "bytes": 214124,
       "pool": {
         "images": 29,
         "bytes": 1801510,
@@ -6956,8 +7001,8 @@
     },
     "grin-roc-ds": {
       "url": "/hangar/ships/grin-roc-ds.glb",
-      "v": "4044d236",
-      "tris": 203670,
+      "v": "05a3c552",
+      "tris": 203680,
       "trisRaw": 230800,
       "textures": 73,
       "attached": 0,
@@ -6973,6 +7018,7 @@
       "record": "GRIN_ROC_DS",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -6991,7 +7037,7 @@
         "bits": 19,
         "degenerate": 1
       },
-      "bytes": 1504100,
+      "bytes": 1509020,
       "pool": {
         "images": 73,
         "bytes": 3858706,
@@ -7000,7 +7046,7 @@
     },
     "grin-roc": {
       "url": "/hangar/ships/grin-roc.glb",
-      "v": "29bef16e",
+      "v": "afbb392c",
       "tris": 111972,
       "trisRaw": 114033,
       "textures": 66,
@@ -7017,6 +7063,7 @@
       "record": "GRIN_ROC",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -7031,11 +7078,11 @@
       },
       "uv": {
         "rangeBefore": 67,
-        "rangeAfter": 67.22,
+        "rangeAfter": 66.86,
         "bits": 19,
         "degenerate": 0.9
       },
-      "bytes": 862640,
+      "bytes": 887916,
       "pool": {
         "images": 66,
         "bytes": 3603034,
@@ -7044,7 +7091,7 @@
     },
     "grin-stv": {
       "url": "/hangar/ships/grin-stv.glb",
-      "v": "27b5fb7a",
+      "v": "95637094",
       "tris": 146179,
       "trisRaw": 146215,
       "textures": 129,
@@ -7059,6 +7106,7 @@
       "record": "GRIN_STV",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 3,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -7077,7 +7125,7 @@
         "bits": 18,
         "degenerate": 3.4
       },
-      "bytes": 1038032,
+      "bytes": 1039024,
       "pool": {
         "images": 129,
         "bytes": 4845870,
@@ -7086,8 +7134,8 @@
     },
     "grin-utv": {
       "url": "/hangar/ships/grin-utv.glb",
-      "v": "5d4e6e18",
-      "tris": 205594,
+      "v": "4f32919b",
+      "tris": 205618,
       "trisRaw": 286472,
       "textures": 135,
       "attached": 0,
@@ -7101,6 +7149,7 @@
       "record": "GRIN_UTV",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 4,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -7119,7 +7168,7 @@
         "bits": 21,
         "degenerate": 3.3
       },
-      "bytes": 1739684,
+      "bytes": 1741676,
       "pool": {
         "images": 135,
         "bytes": 4539414,
@@ -7128,7 +7177,7 @@
     },
     "krig-l21-wolf": {
       "url": "/hangar/ships/krig-l21-wolf.glb",
-      "v": "328b03cb",
+      "v": "4857533d",
       "tris": 328726,
       "trisRaw": 531698,
       "textures": 222,
@@ -7170,7 +7219,7 @@
         "bits": 19,
         "degenerate": 2.8
       },
-      "bytes": 3755956,
+      "bytes": 3756488,
       "pool": {
         "images": 222,
         "bytes": 10173664,
@@ -7179,7 +7228,7 @@
     },
     "krig-l22-alphawolf": {
       "url": "/hangar/ships/krig-l22-alphawolf.glb",
-      "v": "8412defb",
+      "v": "6b254f84",
       "tris": 353956,
       "trisRaw": 571910,
       "textures": 222,
@@ -7221,7 +7270,7 @@
         "bits": 19,
         "degenerate": 3.1
       },
-      "bytes": 4070724,
+      "bytes": 4071300,
       "pool": {
         "images": 222,
         "bytes": 10136622,
@@ -7230,8 +7279,8 @@
     },
     "krig-p52-merlin": {
       "url": "/hangar/ships/krig-p52-merlin.glb",
-      "v": "03aee038",
-      "tris": 214558,
+      "v": "5b068936",
+      "tris": 214976,
       "trisRaw": 277630,
       "textures": 125,
       "attached": {
@@ -7281,6 +7330,7 @@
       "record": "KRIG_P52_Merlin",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7305,7 +7355,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 1953140,
+      "bytes": 1974280,
       "pool": {
         "images": 125,
         "bytes": 4609418,
@@ -7314,8 +7364,8 @@
     },
     "krig-p72-archimedes-emerald": {
       "url": "/hangar/ships/krig-p72-archimedes-emerald.glb",
-      "v": "bbd688b7",
-      "tris": 215944,
+      "v": "ba2a5bea",
+      "tris": 216122,
       "trisRaw": 342886,
       "textures": 124,
       "attached": 0,
@@ -7331,7 +7381,7 @@
       },
       "record": "KRIG_P72_Archimedes_Emerald",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7356,7 +7406,7 @@
         "bits": 20,
         "degenerate": 2.7
       },
-      "bytes": 1971588,
+      "bytes": 1974288,
       "pool": {
         "images": 124,
         "bytes": 4770452,
@@ -7365,8 +7415,8 @@
     },
     "krig-p72-archimedes": {
       "url": "/hangar/ships/krig-p72-archimedes.glb",
-      "v": "8c27db60",
-      "tris": 215944,
+      "v": "ee43e282",
+      "tris": 216122,
       "trisRaw": 342886,
       "textures": 124,
       "attached": 0,
@@ -7382,7 +7432,7 @@
       },
       "record": "KRIG_P72_Archimedes",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7407,7 +7457,7 @@
         "bits": 20,
         "degenerate": 2.7
       },
-      "bytes": 1971716,
+      "bytes": 1974412,
       "pool": {
         "images": 124,
         "bytes": 4770452,
@@ -7416,7 +7466,7 @@
     },
     "krig-s65-stingray": {
       "url": "/hangar/ships/krig-s65-stingray.glb",
-      "v": "6d07de66",
+      "v": "62c53ac6",
       "tris": 285147,
       "trisRaw": 712668,
       "textures": 258,
@@ -7462,7 +7512,7 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 3299588,
+      "bytes": 3300820,
       "pool": {
         "images": 258,
         "bytes": 10753402,
@@ -7471,8 +7521,8 @@
     },
     "misc-fortune": {
       "url": "/hangar/ships/misc-fortune.glb",
-      "v": "2667fa2a",
-      "tris": 320107,
+      "v": "210c1c06",
+      "tris": 320127,
       "trisRaw": 867196,
       "textures": 266,
       "attached": 0,
@@ -7488,7 +7538,7 @@
       },
       "record": "MISC_Fortune",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7513,7 +7563,7 @@
         "bits": 20,
         "degenerate": 4.7
       },
-      "bytes": 3466896,
+      "bytes": 3471600,
       "pool": {
         "images": 266,
         "bytes": 10107310,
@@ -7522,8 +7572,8 @@
     },
     "misc-freelancer-dur": {
       "url": "/hangar/ships/misc-freelancer-dur.glb",
-      "v": "7c9ceba7",
-      "tris": 243118,
+      "v": "27d400af",
+      "tris": 243124,
       "trisRaw": 627880,
       "textures": 285,
       "attached": 0,
@@ -7540,7 +7590,7 @@
       },
       "record": "MISC_Freelancer_DUR",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7567,7 +7617,7 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 2734884,
+      "bytes": 2739140,
       "pool": {
         "images": 285,
         "bytes": 9975900,
@@ -7576,8 +7626,8 @@
     },
     "misc-freelancer-max": {
       "url": "/hangar/ships/misc-freelancer-max.glb",
-      "v": "839e06e7",
-      "tris": 231366,
+      "v": "7ea09759",
+      "tris": 231478,
       "trisRaw": 642584,
       "textures": 249,
       "attached": 0,
@@ -7594,7 +7644,7 @@
       },
       "record": "MISC_Freelancer_MAX",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -7619,7 +7669,7 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 2563272,
+      "bytes": 2574768,
       "pool": {
         "images": 249,
         "bytes": 10539290,
@@ -7628,8 +7678,8 @@
     },
     "misc-freelancer-mis": {
       "url": "/hangar/ships/misc-freelancer-mis.glb",
-      "v": "cb799986",
-      "tris": 300094,
+      "v": "de7eb7d5",
+      "tris": 300088,
       "trisRaw": 702183,
       "textures": 243,
       "attached": 0,
@@ -7646,7 +7696,7 @@
       },
       "record": "MISC_Freelancer_MIS",
       "game": "12913470",
-      "interiorDropped": 5,
+      "interiorDropped": 4,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7673,7 +7723,7 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 3096544,
+      "bytes": 3101176,
       "pool": {
         "images": 243,
         "bytes": 9999644,
@@ -7682,8 +7732,8 @@
     },
     "misc-freelancer": {
       "url": "/hangar/ships/misc-freelancer.glb",
-      "v": "2b409aa5",
-      "tris": 237515,
+      "v": "8e8f80c4",
+      "tris": 237435,
       "trisRaw": 651045,
       "textures": 252,
       "attached": 0,
@@ -7700,7 +7750,7 @@
       },
       "record": "MISC_Freelancer",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -7727,7 +7777,7 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 2562896,
+      "bytes": 2566540,
       "pool": {
         "images": 252,
         "bytes": 10538882,
@@ -7736,7 +7786,7 @@
     },
     "misc-fury-lx": {
       "url": "/hangar/ships/misc-fury-lx.glb",
-      "v": "ac91b876",
+      "v": "953c29b4",
       "tris": 209870,
       "trisRaw": 297863,
       "textures": 168,
@@ -7751,6 +7801,7 @@
       "record": "MISC_Fury_LX",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 4,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: Fahrwerk im Export ohne Geometrie"
@@ -7769,7 +7820,7 @@
         "bits": 17,
         "degenerate": 1.6
       },
-      "bytes": 1838764,
+      "bytes": 1841852,
       "pool": {
         "images": 168,
         "bytes": 7247812,
@@ -7778,7 +7829,7 @@
     },
     "misc-fury-miru": {
       "url": "/hangar/ships/misc-fury-miru.glb",
-      "v": "21b3e87c",
+      "v": "7e009d1f",
       "tris": 245779,
       "trisRaw": 304798,
       "textures": 175,
@@ -7811,7 +7862,7 @@
         "bits": 17,
         "degenerate": 1.7
       },
-      "bytes": 2213996,
+      "bytes": 2214148,
       "pool": {
         "images": 175,
         "bytes": 7789598,
@@ -7820,7 +7871,7 @@
     },
     "misc-fury": {
       "url": "/hangar/ships/misc-fury.glb",
-      "v": "7ae7a96f",
+      "v": "2223fcfa",
       "tris": 221423,
       "trisRaw": 367862,
       "textures": 194,
@@ -7858,7 +7909,7 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 2318224,
+      "bytes": 2318376,
       "pool": {
         "images": 194,
         "bytes": 8083376,
@@ -7867,8 +7918,8 @@
     },
     "misc-hull-a": {
       "url": "/hangar/ships/misc-hull-a.glb",
-      "v": "11f78e40",
-      "tris": 258673,
+      "v": "1d809770",
+      "tris": 258945,
       "trisRaw": 530044,
       "textures": 247,
       "attached": 0,
@@ -7883,7 +7934,7 @@
       },
       "record": "MISC_Hull_A",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -7907,9 +7958,9 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 2
+        "degenerate": 1.9
       },
-      "bytes": 2709908,
+      "bytes": 2719100,
       "pool": {
         "images": 247,
         "bytes": 11378070,
@@ -7918,8 +7969,8 @@
     },
     "misc-hull-b": {
       "url": "/hangar/ships/misc-hull-b.glb",
-      "v": "d9855751",
-      "tris": 596718,
+      "v": "ce135a4d",
+      "tris": 597158,
       "trisRaw": 1707443,
       "textures": 294,
       "attached": 0,
@@ -7965,7 +8016,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 6327644,
+      "bytes": 6340040,
       "pool": {
         "images": 294,
         "bytes": 11713754,
@@ -7974,8 +8025,8 @@
     },
     "misc-hull-c": {
       "url": "/hangar/ships/misc-hull-c.glb",
-      "v": "26e2f8af",
-      "tris": 518501,
+      "v": "f0597c9b",
+      "tris": 518481,
       "trisRaw": 1409380,
       "textures": 282,
       "attached": 0,
@@ -7996,7 +8047,7 @@
       },
       "record": "MISC_Hull_C",
       "game": "12913470",
-      "interiorDropped": 9,
+      "interiorDropped": 6,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk ein: hardpoint_landinggear_front: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -15.075, Aufstand -11.212"
@@ -8015,7 +8066,7 @@
         "bits": 22,
         "degenerate": 1.6
       },
-      "bytes": 4939320,
+      "bytes": 4940080,
       "pool": {
         "images": 282,
         "bytes": 11043158,
@@ -8024,8 +8075,8 @@
     },
     "misc-prospector": {
       "url": "/hangar/ships/misc-prospector.glb",
-      "v": "ad8946bf",
-      "tris": 218815,
+      "v": "4326589e",
+      "tris": 218935,
       "trisRaw": 384742,
       "textures": 206,
       "attached": 0,
@@ -8042,7 +8093,7 @@
       },
       "record": "MISC_Prospector",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -8067,7 +8118,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 2455312,
+      "bytes": 2457248,
       "pool": {
         "images": 206,
         "bytes": 9656334,
@@ -8076,8 +8127,8 @@
     },
     "misc-razor-ex": {
       "url": "/hangar/ships/misc-razor-ex.glb",
-      "v": "4d547144",
-      "tris": 206315,
+      "v": "6596494c",
+      "tris": 206385,
       "trisRaw": 212073,
       "textures": 183,
       "attached": 0,
@@ -8118,7 +8169,7 @@
         "bits": 15,
         "degenerate": 1
       },
-      "bytes": 1521240,
+      "bytes": 1523072,
       "pool": {
         "images": 183,
         "bytes": 7467640,
@@ -8127,8 +8178,8 @@
     },
     "misc-razor-lx": {
       "url": "/hangar/ships/misc-razor-lx.glb",
-      "v": "f86e0851",
-      "tris": 204188,
+      "v": "358df0a0",
+      "tris": 204234,
       "trisRaw": 220410,
       "textures": 189,
       "attached": 0,
@@ -8169,7 +8220,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1701732,
+      "bytes": 1703628,
       "pool": {
         "images": 189,
         "bytes": 7926508,
@@ -8178,8 +8229,8 @@
     },
     "misc-razor": {
       "url": "/hangar/ships/misc-razor.glb",
-      "v": "a210da13",
-      "tris": 204180,
+      "v": "005fbc82",
+      "tris": 204226,
       "trisRaw": 220410,
       "textures": 188,
       "attached": 0,
@@ -8220,7 +8271,7 @@
         "bits": 20,
         "degenerate": 0.9
       },
-      "bytes": 1700560,
+      "bytes": 1702456,
       "pool": {
         "images": 188,
         "bytes": 7777120,
@@ -8229,8 +8280,8 @@
     },
     "misc-reliant-mako": {
       "url": "/hangar/ships/misc-reliant-mako.glb",
-      "v": "272cd8e3",
-      "tris": 207519,
+      "v": "1fabc342",
+      "tris": 207589,
       "trisRaw": 342398,
       "textures": 205,
       "attached": 0,
@@ -8246,7 +8297,7 @@
       },
       "record": "MISC_Reliant_Mako",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -8272,7 +8323,7 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 2168688,
+      "bytes": 2174484,
       "pool": {
         "images": 205,
         "bytes": 8852308,
@@ -8281,8 +8332,8 @@
     },
     "misc-reliant-sen": {
       "url": "/hangar/ships/misc-reliant-sen.glb",
-      "v": "9c9e870a",
-      "tris": 209408,
+      "v": "748ddc86",
+      "tris": 209484,
       "trisRaw": 358216,
       "textures": 206,
       "attached": 0,
@@ -8298,7 +8349,7 @@
       },
       "record": "MISC_Reliant_Sen",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -8324,7 +8375,7 @@
         "bits": 20,
         "degenerate": 1.1
       },
-      "bytes": 2211268,
+      "bytes": 2216220,
       "pool": {
         "images": 206,
         "bytes": 8944314,
@@ -8333,8 +8384,8 @@
     },
     "misc-reliant-tana": {
       "url": "/hangar/ships/misc-reliant-tana.glb",
-      "v": "019cba96",
-      "tris": 215421,
+      "v": "ac4c6119",
+      "tris": 215479,
       "trisRaw": 372314,
       "textures": 214,
       "attached": 0,
@@ -8352,15 +8403,15 @@
       },
       "record": "MISC_Reliant_Tana",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
         "dev": [
           0,
-          0.007,
+          0.014,
           0,
-          0.013
+          0.014
         ],
         "sink": 0
       },
@@ -8378,7 +8429,7 @@
         "bits": 20,
         "degenerate": 1.2
       },
-      "bytes": 2476484,
+      "bytes": 2480412,
       "pool": {
         "images": 214,
         "bytes": 9217866,
@@ -8387,8 +8438,8 @@
     },
     "misc-reliant": {
       "url": "/hangar/ships/misc-reliant.glb",
-      "v": "6d7ab8c7",
-      "tris": 207711,
+      "v": "45d0c875",
+      "tris": 207803,
       "trisRaw": 355874,
       "textures": 221,
       "attached": 0,
@@ -8406,7 +8457,7 @@
       },
       "record": "MISC_Reliant",
       "game": "12913470",
-      "interiorDropped": 3,
+      "interiorDropped": 2,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -8432,7 +8483,7 @@
         "bits": 20,
         "degenerate": 1
       },
-      "bytes": 2249252,
+      "bytes": 2254424,
       "pool": {
         "images": 221,
         "bytes": 9070138,
@@ -8441,8 +8492,8 @@
     },
     "misc-starfarer-gemini": {
       "url": "/hangar/ships/misc-starfarer-gemini.glb",
-      "v": "f8a76602",
-      "tris": 531424,
+      "v": "01c53c4f",
+      "tris": 531766,
       "trisRaw": 1323996,
       "textures": 245,
       "attached": 0,
@@ -8461,7 +8512,7 @@
       },
       "record": "MISC_Starfarer_Gemini",
       "game": "12913470",
-      "interiorDropped": 6,
+      "interiorDropped": 5,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -8487,7 +8538,7 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 5549856,
+      "bytes": 5563264,
       "pool": {
         "images": 245,
         "bytes": 13715206,
@@ -8496,8 +8547,8 @@
     },
     "misc-starfarer": {
       "url": "/hangar/ships/misc-starfarer.glb",
-      "v": "acfa060b",
-      "tris": 491944,
+      "v": "4938562b",
+      "tris": 492016,
       "trisRaw": 1300946,
       "textures": 234,
       "attached": 0,
@@ -8510,13 +8561,13 @@
       },
       "swapNodes": 32,
       "palette": {
-        "1": 10,
+        "1": 11,
         "2": 11,
         "3": 7
       },
       "record": "MISC_Starfarer",
       "game": "12913470",
-      "interiorDropped": 6,
+      "interiorDropped": 5,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -8542,7 +8593,7 @@
         "bits": 20,
         "degenerate": 1.8
       },
-      "bytes": 5112520,
+      "bytes": 5116760,
       "pool": {
         "images": 234,
         "bytes": 12468116,
@@ -8551,8 +8602,8 @@
     },
     "misc-starlancer-max": {
       "url": "/hangar/ships/misc-starlancer-max.glb",
-      "v": "f850befe",
-      "tris": 730904,
+      "v": "40b40781",
+      "tris": 731002,
       "trisRaw": 2837594,
       "textures": 242,
       "attached": 0,
@@ -8595,7 +8646,7 @@
         "bits": 23,
         "degenerate": 2.1
       },
-      "bytes": 7508944,
+      "bytes": 7520016,
       "pool": {
         "images": 242,
         "bytes": 10802720,
@@ -8604,8 +8655,8 @@
     },
     "misc-starlancer-tac": {
       "url": "/hangar/ships/misc-starlancer-tac.glb",
-      "v": "b8dcb080",
-      "tris": 906529,
+      "v": "654f96ec",
+      "tris": 906645,
       "trisRaw": 3283014,
       "textures": 272,
       "attached": 0,
@@ -8650,7 +8701,7 @@
         "bits": 23,
         "degenerate": 1.9
       },
-      "bytes": 9569452,
+      "bytes": 9584524,
       "pool": {
         "images": 272,
         "bytes": 10702724,
@@ -8659,8 +8710,8 @@
     },
     "misc-starlite": {
       "url": "/hangar/ships/misc-starlite.glb",
-      "v": "7819e752",
-      "tris": 402035,
+      "v": "d9b0e3e4",
+      "tris": 402491,
       "trisRaw": 1090312,
       "textures": 262,
       "attached": 0,
@@ -8702,7 +8753,7 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 4267800,
+      "bytes": 4281076,
       "pool": {
         "images": 262,
         "bytes": 11289472,
@@ -8711,8 +8762,8 @@
     },
     "mrai-guardian-mx": {
       "url": "/hangar/ships/mrai-guardian-mx.glb",
-      "v": "3fd56d97",
-      "tris": 643659,
+      "v": "e6960760",
+      "tris": 643727,
       "trisRaw": 1635482,
       "textures": 271,
       "attached": 0,
@@ -8756,7 +8807,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 6977972,
+      "bytes": 6980000,
       "pool": {
         "images": 271,
         "bytes": 10651584,
@@ -8765,8 +8816,8 @@
     },
     "mrai-guardian-qi": {
       "url": "/hangar/ships/mrai-guardian-qi.glb",
-      "v": "98c28480",
-      "tris": 491373,
+      "v": "b3c932fc",
+      "tris": 491433,
       "trisRaw": 1503226,
       "textures": 279,
       "attached": 0,
@@ -8808,7 +8859,7 @@
         "bits": 22,
         "degenerate": 1.2
       },
-      "bytes": 5607264,
+      "bytes": 5609228,
       "pool": {
         "images": 279,
         "bytes": 11316056,
@@ -8817,8 +8868,8 @@
     },
     "mrai-guardian": {
       "url": "/hangar/ships/mrai-guardian.glb",
-      "v": "3a5400d3",
-      "tris": 525726,
+      "v": "6081e3cf",
+      "tris": 525782,
       "trisRaw": 1496710,
       "textures": 276,
       "attached": 0,
@@ -8860,7 +8911,7 @@
         "bits": 22,
         "degenerate": 1.1
       },
-      "bytes": 6029180,
+      "bytes": 6031228,
       "pool": {
         "images": 276,
         "bytes": 11238904,
@@ -8869,7 +8920,7 @@
     },
     "mrai-pulse-lx": {
       "url": "/hangar/ships/mrai-pulse-lx.glb",
-      "v": "d14645d0",
+      "v": "329956a4",
       "tris": 118118,
       "trisRaw": 122483,
       "textures": 156,
@@ -8884,6 +8935,7 @@
       "record": "MRAI_Pulse_LX",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: Fahrwerk im Export ohne Geometrie"
@@ -8902,7 +8954,7 @@
         "bits": 18,
         "degenerate": 1.5
       },
-      "bytes": 956364,
+      "bytes": 957944,
       "pool": {
         "images": 156,
         "bytes": 5309714,
@@ -8956,8 +9008,8 @@
     },
     "orig-100i": {
       "url": "/hangar/ships/orig-100i.glb",
-      "v": "c0ee41a0",
-      "tris": 210220,
+      "v": "81e75537",
+      "tris": 210244,
       "trisRaw": 243042,
       "textures": 241,
       "attached": 0,
@@ -8974,6 +9026,7 @@
       "record": "ORIG_100i",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 7,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -8998,7 +9051,7 @@
         "bits": 21,
         "degenerate": 2.1
       },
-      "bytes": 1886660,
+      "bytes": 1936876,
       "pool": {
         "images": 241,
         "bytes": 9291668,
@@ -9007,8 +9060,8 @@
     },
     "orig-125a": {
       "url": "/hangar/ships/orig-125a.glb",
-      "v": "4f349ba3",
-      "tris": 217091,
+      "v": "91fcaca7",
+      "tris": 217173,
       "trisRaw": 250750,
       "textures": 239,
       "attached": 0,
@@ -9025,6 +9078,7 @@
       "record": "ORIG_125a",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 7,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -9049,7 +9103,7 @@
         "bits": 21,
         "degenerate": 2
       },
-      "bytes": 1989452,
+      "bytes": 2039584,
       "pool": {
         "images": 239,
         "bytes": 9494436,
@@ -9058,8 +9112,8 @@
     },
     "orig-135c": {
       "url": "/hangar/ships/orig-135c.glb",
-      "v": "97c9031a",
-      "tris": 216048,
+      "v": "04f2fff4",
+      "tris": 216104,
       "trisRaw": 259139,
       "textures": 236,
       "attached": 0,
@@ -9076,6 +9130,7 @@
       "record": "ORIG_135c",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 7,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -9098,9 +9153,9 @@
         "rangeBefore": 698,
         "rangeAfter": 256.38,
         "bits": 21,
-        "degenerate": 2.2
+        "degenerate": 2.1
       },
-      "bytes": 1943944,
+      "bytes": 1995288,
       "pool": {
         "images": 236,
         "bytes": 9312148,
@@ -9109,7 +9164,7 @@
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "9f650636",
+      "v": "f85891fc",
       "tris": 180535,
       "trisRaw": 179288,
       "textures": 164,
@@ -9160,6 +9215,7 @@
       "record": "ORIG_300i",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 8,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -9180,7 +9236,7 @@
         "bits": 19,
         "degenerate": 3.3
       },
-      "bytes": 1574736,
+      "bytes": 1593468,
       "pool": {
         "images": 164,
         "bytes": 6194730,
@@ -9189,7 +9245,7 @@
     },
     "orig-315p": {
       "url": "/hangar/ships/orig-315p.glb",
-      "v": "309d2143",
+      "v": "7bbf7a1f",
       "tris": 200135,
       "trisRaw": 198374,
       "textures": 173,
@@ -9240,6 +9296,7 @@
       "record": "ORIG_315p",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 8,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -9260,7 +9317,7 @@
         "bits": 19,
         "degenerate": 3.1
       },
-      "bytes": 1786888,
+      "bytes": 1805836,
       "pool": {
         "images": 173,
         "bytes": 6377816,
@@ -9269,8 +9326,8 @@
     },
     "orig-325a": {
       "url": "/hangar/ships/orig-325a.glb",
-      "v": "d06bd05d",
-      "tris": 211605,
+      "v": "f4f71738",
+      "tris": 211518,
       "trisRaw": 195884,
       "textures": 176,
       "attached": {
@@ -9320,6 +9377,7 @@
       "record": "ORIG_325a",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 8,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -9340,7 +9398,7 @@
         "bits": 19,
         "degenerate": 2.9
       },
-      "bytes": 1904416,
+      "bytes": 1930496,
       "pool": {
         "images": 176,
         "bytes": 6835688,
@@ -9349,7 +9407,7 @@
     },
     "orig-350r": {
       "url": "/hangar/ships/orig-350r.glb",
-      "v": "f8e3ac9d",
+      "v": "30f10c04",
       "tris": 192949,
       "trisRaw": 194412,
       "textures": 138,
@@ -9400,6 +9458,7 @@
       "record": "ORIG_350r",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 4,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -9420,7 +9479,7 @@
         "bits": 20,
         "degenerate": 3.1
       },
-      "bytes": 1665844,
+      "bytes": 1679376,
       "pool": {
         "images": 138,
         "bytes": 5665224,
@@ -9429,8 +9488,8 @@
     },
     "orig-400i": {
       "url": "/hangar/ships/orig-400i.glb",
-      "v": "b102b22f",
-      "tris": 355435,
+      "v": "b89beaf6",
+      "tris": 355439,
       "trisRaw": 807523,
       "textures": 242,
       "attached": 0,
@@ -9473,7 +9532,7 @@
         "bits": 24,
         "degenerate": 1.9
       },
-      "bytes": 3994832,
+      "bytes": 3996472,
       "pool": {
         "images": 242,
         "bytes": 11352682,
@@ -9482,8 +9541,8 @@
     },
     "orig-600i-bis2951": {
       "url": "/hangar/ships/orig-600i-bis2951.glb",
-      "v": "98118728",
-      "tris": 420408,
+      "v": "4b20145f",
+      "tris": 420486,
       "trisRaw": 1388430,
       "textures": 170,
       "attached": 0,
@@ -9502,7 +9561,7 @@
       },
       "record": "ORIG_600i_BIS2951",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -9527,7 +9586,7 @@
         "bits": 22,
         "degenerate": 2.9
       },
-      "bytes": 3707536,
+      "bytes": 3709456,
       "pool": {
         "images": 170,
         "bytes": 8116794,
@@ -9536,8 +9595,8 @@
     },
     "orig-600i-touring": {
       "url": "/hangar/ships/orig-600i-touring.glb",
-      "v": "9886c168",
-      "tris": 416156,
+      "v": "e0d14ba6",
+      "tris": 416224,
       "trisRaw": 1249006,
       "textures": 161,
       "attached": 0,
@@ -9556,7 +9615,7 @@
       },
       "record": "ORIG_600i_Touring",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -9581,7 +9640,7 @@
         "bits": 22,
         "degenerate": 2.9
       },
-      "bytes": 3577320,
+      "bytes": 3579328,
       "pool": {
         "images": 161,
         "bytes": 7584998,
@@ -9590,8 +9649,8 @@
     },
     "orig-600i": {
       "url": "/hangar/ships/orig-600i.glb",
-      "v": "8a7e4619",
-      "tris": 420408,
+      "v": "a1169356",
+      "tris": 420486,
       "trisRaw": 1388430,
       "textures": 171,
       "attached": 0,
@@ -9610,7 +9669,7 @@
       },
       "record": "ORIG_600i",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -9635,7 +9694,7 @@
         "bits": 22,
         "degenerate": 2.9
       },
-      "bytes": 3707536,
+      "bytes": 3709472,
       "pool": {
         "images": 171,
         "bytes": 8119602,
@@ -9644,7 +9703,7 @@
     },
     "orig-85x": {
       "url": "/hangar/ships/orig-85x.glb",
-      "v": "0260ed24",
+      "v": "f01f5f13",
       "tris": 208383,
       "trisRaw": 226826,
       "textures": 114,
@@ -9663,6 +9722,7 @@
       "record": "ORIG_85X",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk ein: hardpoint_landinggear_left: nach landing_gear_extend Fuß bei -0.921, Aufstand -2; hardpoint_landinggear_right: nach landing_gear_extend Fuß bei -0.921, Aufstand"
@@ -9677,7 +9737,7 @@
         "bits": 21,
         "degenerate": 3.2
       },
-      "bytes": 1687160,
+      "bytes": 1700208,
       "pool": {
         "images": 114,
         "bytes": 5107072,
@@ -9686,8 +9746,8 @@
     },
     "orig-890jump": {
       "url": "/hangar/ships/orig-890jump.glb",
-      "v": "8eabc8fd",
-      "tris": 777573,
+      "v": "bb0e4f1a",
+      "tris": 777545,
       "trisRaw": 1059224,
       "textures": 255,
       "attached": 0,
@@ -9724,7 +9784,7 @@
         "bits": 23,
         "degenerate": 6.4
       },
-      "bytes": 7393040,
+      "bytes": 7418992,
       "pool": {
         "images": 255,
         "bytes": 11482540,
@@ -9733,7 +9793,7 @@
     },
     "orig-m50": {
       "url": "/hangar/ships/orig-m50.glb",
-      "v": "ab661818",
+      "v": "90f1cbfb",
       "tris": 216412,
       "trisRaw": 211774,
       "textures": 142,
@@ -9783,6 +9843,7 @@
       "record": "ORIG_m50",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -9807,7 +9868,7 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 1823964,
+      "bytes": 1844676,
       "pool": {
         "images": 142,
         "bytes": 6240298,
@@ -9816,8 +9877,8 @@
     },
     "orig-m80": {
       "url": "/hangar/ships/orig-m80.glb",
-      "v": "739485bf",
-      "tris": 343808,
+      "v": "da98a6a6",
+      "tris": 343878,
       "trisRaw": 771119,
       "textures": 273,
       "attached": 0,
@@ -9860,7 +9921,7 @@
         "bits": 22,
         "degenerate": 2.3
       },
-      "bytes": 4190664,
+      "bytes": 4192932,
       "pool": {
         "images": 273,
         "bytes": 11627920,
@@ -9869,7 +9930,7 @@
     },
     "orig-x1-force": {
       "url": "/hangar/ships/orig-x1-force.glb",
-      "v": "2c261de2",
+      "v": "54c7ff98",
       "tris": 200348,
       "trisRaw": 220801,
       "textures": 176,
@@ -9904,7 +9965,7 @@
         "bits": 20,
         "degenerate": 3.7
       },
-      "bytes": 1512660,
+      "bytes": 1513728,
       "pool": {
         "images": 176,
         "bytes": 7724202,
@@ -9913,7 +9974,7 @@
     },
     "orig-x1-velocity": {
       "url": "/hangar/ships/orig-x1-velocity.glb",
-      "v": "9edb7bae",
+      "v": "4a9edc95",
       "tris": 186372,
       "trisRaw": 186074,
       "textures": 149,
@@ -9946,7 +10007,7 @@
         "bits": 18,
         "degenerate": 2.5
       },
-      "bytes": 1296748,
+      "bytes": 1297780,
       "pool": {
         "images": 149,
         "bytes": 7178080,
@@ -9955,7 +10016,7 @@
     },
     "orig-x1": {
       "url": "/hangar/ships/orig-x1.glb",
-      "v": "b56927ba",
+      "v": "3b313c77",
       "tris": 198926,
       "trisRaw": 198896,
       "textures": 166,
@@ -9990,7 +10051,7 @@
         "bits": 18,
         "degenerate": 2.2
       },
-      "bytes": 1350576,
+      "bytes": 1351644,
       "pool": {
         "images": 166,
         "bytes": 8235092,
@@ -9999,8 +10060,8 @@
     },
     "rsi-apollo-medivac": {
       "url": "/hangar/ships/rsi-apollo-medivac.glb",
-      "v": "d4543636",
-      "tris": 700095,
+      "v": "5d97606e",
+      "tris": 699985,
       "trisRaw": 1637569,
       "textures": 309,
       "attached": 0,
@@ -10017,7 +10078,7 @@
       },
       "record": "RSI_Apollo_Medivac",
       "game": "12913470",
-      "interiorDropped": 11,
+      "interiorDropped": 10,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -10039,7 +10100,7 @@
         "bits": 20,
         "degenerate": 2.8
       },
-      "bytes": 7443000,
+      "bytes": 7443028,
       "pool": {
         "images": 309,
         "bytes": 14514844,
@@ -10048,8 +10109,8 @@
     },
     "rsi-apollo-triage": {
       "url": "/hangar/ships/rsi-apollo-triage.glb",
-      "v": "02ebf0f3",
-      "tris": 675360,
+      "v": "04571f05",
+      "tris": 675262,
       "trisRaw": 1656589,
       "textures": 303,
       "attached": 0,
@@ -10066,7 +10127,7 @@
       },
       "record": "RSI_Apollo_Triage",
       "game": "12913470",
-      "interiorDropped": 11,
+      "interiorDropped": 10,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -10088,7 +10149,7 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 7156312,
+      "bytes": 7156492,
       "pool": {
         "images": 303,
         "bytes": 15360812,
@@ -10097,8 +10158,8 @@
     },
     "rsi-aurora-gs-cl": {
       "url": "/hangar/ships/rsi-aurora-gs-cl.glb",
-      "v": "817ce8da",
-      "tris": 210288,
+      "v": "98edb9b0",
+      "tris": 210500,
       "trisRaw": 354774,
       "textures": 231,
       "attached": 0,
@@ -10114,7 +10175,7 @@
       },
       "record": "RSI_Aurora_GS_CL",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10139,7 +10200,7 @@
         "bits": 20,
         "degenerate": 3.2
       },
-      "bytes": 2297764,
+      "bytes": 2303156,
       "pool": {
         "images": 231,
         "bytes": 11050972,
@@ -10148,8 +10209,8 @@
     },
     "rsi-aurora-gs-es": {
       "url": "/hangar/ships/rsi-aurora-gs-es.glb",
-      "v": "ddd643c2",
-      "tris": 209416,
+      "v": "163e130a",
+      "tris": 209622,
       "trisRaw": 336284,
       "textures": 231,
       "attached": 0,
@@ -10165,7 +10226,7 @@
       },
       "record": "RSI_Aurora_GS_ES",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10190,7 +10251,7 @@
         "bits": 19,
         "degenerate": 2.7
       },
-      "bytes": 2324876,
+      "bytes": 2330440,
       "pool": {
         "images": 231,
         "bytes": 10975916,
@@ -10199,8 +10260,8 @@
     },
     "rsi-aurora-gs-ln": {
       "url": "/hangar/ships/rsi-aurora-gs-ln.glb",
-      "v": "036ff16b",
-      "tris": 211738,
+      "v": "19b64784",
+      "tris": 211930,
       "trisRaw": 396661,
       "textures": 228,
       "attached": 0,
@@ -10218,7 +10279,7 @@
       },
       "record": "RSI_Aurora_GS_LN",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10243,7 +10304,7 @@
         "bits": 20,
         "degenerate": 3.2
       },
-      "bytes": 2326152,
+      "bytes": 2331196,
       "pool": {
         "images": 228,
         "bytes": 11048540,
@@ -10252,8 +10313,8 @@
     },
     "rsi-aurora-gs-lx": {
       "url": "/hangar/ships/rsi-aurora-gs-lx.glb",
-      "v": "971370a1",
-      "tris": 211136,
+      "v": "9995d5ca",
+      "tris": 211322,
       "trisRaw": 352471,
       "textures": 244,
       "attached": 0,
@@ -10269,7 +10330,7 @@
       },
       "record": "RSI_Aurora_GS_LX",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10294,7 +10355,7 @@
         "bits": 20,
         "degenerate": 3.2
       },
-      "bytes": 2296396,
+      "bytes": 2302308,
       "pool": {
         "images": 244,
         "bytes": 11058760,
@@ -10303,8 +10364,8 @@
     },
     "rsi-aurora-gs-mr": {
       "url": "/hangar/ships/rsi-aurora-gs-mr.glb",
-      "v": "7c187b2f",
-      "tris": 210212,
+      "v": "f2fb64a8",
+      "tris": 210424,
       "trisRaw": 354323,
       "textures": 234,
       "attached": 0,
@@ -10320,7 +10381,7 @@
       },
       "record": "RSI_Aurora_GS_MR",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10345,7 +10406,7 @@
         "bits": 20,
         "degenerate": 3.3
       },
-      "bytes": 2300072,
+      "bytes": 2305488,
       "pool": {
         "images": 234,
         "bytes": 11497578,
@@ -10354,8 +10415,8 @@
     },
     "rsi-aurora-gs-se": {
       "url": "/hangar/ships/rsi-aurora-gs-se.glb",
-      "v": "5df75a01",
-      "tris": 215023,
+      "v": "f2c30240",
+      "tris": 215141,
       "trisRaw": 401029,
       "textures": 226,
       "attached": 0,
@@ -10373,7 +10434,7 @@
       },
       "record": "RSI_Aurora_GS_SE",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10398,7 +10459,7 @@
         "bits": 20,
         "degenerate": 3.1
       },
-      "bytes": 2365020,
+      "bytes": 2368248,
       "pool": {
         "images": 226,
         "bytes": 10718108,
@@ -10407,7 +10468,7 @@
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
-      "v": "f1eeb3a1",
+      "v": "16343cff",
       "tris": 442325,
       "trisRaw": 1319916,
       "textures": 287,
@@ -10426,7 +10487,7 @@
       },
       "record": "RSI_Aurora_Mk2",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -10451,7 +10512,7 @@
         "bits": 22,
         "degenerate": 3.4
       },
-      "bytes": 5279088,
+      "bytes": 5280568,
       "pool": {
         "images": 287,
         "bytes": 13885076,
@@ -10460,8 +10521,8 @@
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
-      "v": "adfdcaef",
-      "tris": 824772,
+      "v": "693699a2",
+      "tris": 824784,
       "trisRaw": 1960624,
       "textures": 331,
       "attached": {
@@ -10543,7 +10604,7 @@
         "bits": 21,
         "degenerate": 2.7
       },
-      "bytes": 8575444,
+      "bytes": 8577420,
       "pool": {
         "images": 331,
         "bytes": 14771424,
@@ -10552,8 +10613,8 @@
     },
     "rsi-constellation-aquila": {
       "url": "/hangar/ships/rsi-constellation-aquila.glb",
-      "v": "0e4e5fea",
-      "tris": 730580,
+      "v": "83129677",
+      "tris": 730684,
       "trisRaw": 1504385,
       "textures": 341,
       "attached": {
@@ -10634,7 +10695,7 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 7483920,
+      "bytes": 7487960,
       "pool": {
         "images": 341,
         "bytes": 15164390,
@@ -10643,8 +10704,8 @@
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/ships/rsi-constellation-mk5-centaurus.glb",
-      "v": "ad9a5513",
-      "tris": 1273591,
+      "v": "9f2690f2",
+      "tris": 1273581,
       "trisRaw": 1965220,
       "textures": 379,
       "attached": 0,
@@ -10693,17 +10754,17 @@
         "bits": 20,
         "degenerate": 2.6
       },
-      "bytes": 12596420,
+      "bytes": 12599308,
       "pool": {
         "images": 379,
         "bytes": 10514126,
-        "fresh": 4754746
+        "fresh": 1048002
       }
     },
     "rsi-constellation-phoenix-emerald": {
       "url": "/hangar/ships/rsi-constellation-phoenix-emerald.glb",
-      "v": "59599904",
-      "tris": 554525,
+      "v": "3e46aca3",
+      "tris": 554703,
       "trisRaw": 1211834,
       "textures": 230,
       "attached": 0,
@@ -10723,14 +10784,14 @@
       },
       "record": "RSI_Constellation_Phoenix_Emerald",
       "game": "12913470",
-      "interiorDropped": 7,
+      "interiorDropped": 5,
       "gearCheck": {
         "ok": false,
         "dev": [
           0.001,
           0,
-          0.011,
-          -0.001,
+          0.01,
+          0,
           -0.65,
           0,
           -4.065,
@@ -10753,7 +10814,7 @@
         "bits": 23,
         "degenerate": 3.1
       },
-      "bytes": 6534652,
+      "bytes": 6543336,
       "pool": {
         "images": 230,
         "bytes": 10593036,
@@ -10762,8 +10823,8 @@
     },
     "rsi-constellation-phoenix": {
       "url": "/hangar/ships/rsi-constellation-phoenix.glb",
-      "v": "35b3cede",
-      "tris": 831911,
+      "v": "ec6f3c87",
+      "tris": 831897,
       "trisRaw": 1858670,
       "textures": 368,
       "attached": 0,
@@ -10783,7 +10844,7 @@
       },
       "record": "RSI_Constellation_Phoenix_GS",
       "game": "12913470",
-      "interiorDropped": 11,
+      "interiorDropped": 10,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -10813,7 +10874,7 @@
         "bits": 20,
         "degenerate": 3.7
       },
-      "bytes": 8182876,
+      "bytes": 8184880,
       "pool": {
         "images": 368,
         "bytes": 17137008,
@@ -10822,8 +10883,8 @@
     },
     "rsi-constellation-taurus": {
       "url": "/hangar/ships/rsi-constellation-taurus.glb",
-      "v": "2f6a2e0e",
-      "tris": 551308,
+      "v": "1c2ec937",
+      "tris": 551292,
       "trisRaw": 1439434,
       "textures": 285,
       "attached": 0,
@@ -10873,7 +10934,7 @@
         "bits": 21,
         "degenerate": 3.1
       },
-      "bytes": 5804928,
+      "bytes": 5806212,
       "pool": {
         "images": 285,
         "bytes": 12972604,
@@ -10882,8 +10943,8 @@
     },
     "rsi-hermes": {
       "url": "/hangar/ships/rsi-hermes.glb",
-      "v": "9c17f9a5",
-      "tris": 688794,
+      "v": "1892b2f0",
+      "tris": 688822,
       "trisRaw": 1480474,
       "textures": 290,
       "attached": 0,
@@ -10901,7 +10962,7 @@
       },
       "record": "RSI_Hermes",
       "game": "12913470",
-      "interiorDropped": 4,
+      "interiorDropped": 3,
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -10923,7 +10984,7 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 7271476,
+      "bytes": 7272976,
       "pool": {
         "images": 290,
         "bytes": 13812988,
@@ -10932,8 +10993,8 @@
     },
     "rsi-lynx": {
       "url": "/hangar/ships/rsi-lynx.glb",
-      "v": "5a577d88",
-      "tris": 208256,
+      "v": "5d2a4498",
+      "tris": 210376,
       "trisRaw": 278458,
       "textures": 209,
       "attached": 0,
@@ -10949,6 +11010,7 @@
       "record": "RSI_Lynx",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 30,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -10967,7 +11029,7 @@
         "bits": 19,
         "degenerate": 3.3
       },
-      "bytes": 2000376,
+      "bytes": 2153116,
       "pool": {
         "images": 209,
         "bytes": 9634944,
@@ -10976,7 +11038,7 @@
     },
     "rsi-mantis": {
       "url": "/hangar/ships/rsi-mantis.glb",
-      "v": "78953287",
+      "v": "4fa97d58",
       "tris": 211431,
       "trisRaw": 341595,
       "textures": 239,
@@ -11025,7 +11087,7 @@
       },
       "record": "RSI_Mantis",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "why": "nur 2 Aufstandspunkte"
@@ -11044,7 +11106,7 @@
         "bits": 20,
         "degenerate": 2.4
       },
-      "bytes": 2323980,
+      "bytes": 2325160,
       "pool": {
         "images": 239,
         "bytes": 11212840,
@@ -11053,8 +11115,8 @@
     },
     "rsi-meteor": {
       "url": "/hangar/ships/rsi-meteor.glb",
-      "v": "f8e4cf49",
-      "tris": 237450,
+      "v": "7ae32ceb",
+      "tris": 238248,
       "trisRaw": 431261,
       "textures": 257,
       "attached": {
@@ -11126,7 +11188,7 @@
         "bits": 19,
         "degenerate": 2.5
       },
-      "bytes": 2758444,
+      "bytes": 2765448,
       "pool": {
         "images": 257,
         "bytes": 11513236,
@@ -11135,8 +11197,8 @@
     },
     "rsi-perseus": {
       "url": "/hangar/ships/rsi-perseus.glb",
-      "v": "78095faa",
-      "tris": 1062770,
+      "v": "3ecc0f17",
+      "tris": 1062756,
       "trisRaw": 2487044,
       "textures": 324,
       "attached": 0,
@@ -11182,17 +11244,17 @@
         "bits": 22,
         "degenerate": 7.3
       },
-      "bytes": 12265144,
+      "bytes": 12268380,
       "pool": {
         "images": 324,
         "bytes": 9200262,
-        "fresh": 755880
+        "fresh": 0
       }
     },
     "rsi-polaris": {
       "url": "/hangar/ships/rsi-polaris.glb",
-      "v": "e926d58a",
-      "tris": 1087337,
+      "v": "0f153f5d",
+      "tris": 1087408,
       "trisRaw": 2356245,
       "textures": 304,
       "attached": 0,
@@ -11239,17 +11301,17 @@
         "bits": 22,
         "degenerate": 3.5
       },
-      "bytes": 13385940,
+      "bytes": 13389960,
       "pool": {
         "images": 304,
         "bytes": 4052686,
-        "fresh": 3214106
+        "fresh": 3139782
       }
     },
     "rsi-salvation": {
       "url": "/hangar/ships/rsi-salvation.glb",
-      "v": "608bdad1",
-      "tris": 225986,
+      "v": "f00f3ba0",
+      "tris": 225988,
       "trisRaw": 395610,
       "textures": 241,
       "attached": 0,
@@ -11291,7 +11353,7 @@
         "bits": 21,
         "degenerate": 1.9
       },
-      "bytes": 2785652,
+      "bytes": 2787060,
       "pool": {
         "images": 241,
         "bytes": 10323558,
@@ -11300,8 +11362,8 @@
     },
     "rsi-scorpius-antares": {
       "url": "/hangar/ships/rsi-scorpius-antares.glb",
-      "v": "9e17a4f7",
-      "tris": 293181,
+      "v": "dc125ae4",
+      "tris": 293303,
       "trisRaw": 503280,
       "textures": 230,
       "attached": {
@@ -11377,7 +11439,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 3073344,
+      "bytes": 3078936,
       "pool": {
         "images": 230,
         "bytes": 10301538,
@@ -11386,8 +11448,8 @@
     },
     "rsi-scorpius": {
       "url": "/hangar/ships/rsi-scorpius.glb",
-      "v": "8b370eb7",
-      "tris": 405115,
+      "v": "4d162187",
+      "tris": 405179,
       "trisRaw": 569896,
       "textures": 224,
       "attached": 0,
@@ -11430,7 +11492,7 @@
         "bits": 20,
         "degenerate": 1.3
       },
-      "bytes": 3939828,
+      "bytes": 3945592,
       "pool": {
         "images": 224,
         "bytes": 9703352,
@@ -11439,7 +11501,7 @@
     },
     "rsi-skylark": {
       "url": "/hangar/ships/rsi-skylark.glb",
-      "v": "651dd435",
+      "v": "140e198a",
       "tris": 210001,
       "trisRaw": 327658,
       "textures": 231,
@@ -11482,7 +11544,7 @@
         "bits": 20,
         "degenerate": 1.6
       },
-      "bytes": 2303960,
+      "bytes": 2305240,
       "pool": {
         "images": 231,
         "bytes": 11298048,
@@ -11491,8 +11553,8 @@
     },
     "rsi-ursa-medivac": {
       "url": "/hangar/ships/rsi-ursa-medivac.glb",
-      "v": "5b5bcbf6",
-      "tris": 210941,
+      "v": "842e7dad",
+      "tris": 213299,
       "trisRaw": 275205,
       "textures": 223,
       "attached": 0,
@@ -11508,6 +11570,7 @@
       "record": "RSI_Ursa_Medivac",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 23,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -11526,7 +11589,7 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 2085216,
+      "bytes": 2316988,
       "pool": {
         "images": 223,
         "bytes": 7270700,
@@ -11535,8 +11598,8 @@
     },
     "rsi-ursa-rover-emerald": {
       "url": "/hangar/ships/rsi-ursa-rover-emerald.glb",
-      "v": "fc010f80",
-      "tris": 156030,
+      "v": "d2e39b96",
+      "tris": 155364,
       "trisRaw": 173942,
       "textures": 197,
       "attached": 0,
@@ -11552,6 +11615,7 @@
       "record": "RSI_Ursa_Rover_Emerald",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 23,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -11570,7 +11634,7 @@
         "bits": 20,
         "degenerate": 2.8
       },
-      "bytes": 1546424,
+      "bytes": 1609408,
       "pool": {
         "images": 197,
         "bytes": 7238140,
@@ -11579,8 +11643,8 @@
     },
     "rsi-ursa-rover": {
       "url": "/hangar/ships/rsi-ursa-rover.glb",
-      "v": "bbe61832",
-      "tris": 160075,
+      "v": "a7485d4a",
+      "tris": 159409,
       "trisRaw": 176340,
       "textures": 179,
       "attached": 0,
@@ -11596,6 +11660,7 @@
       "record": "RSI_Ursa_Rover",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 23,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -11614,7 +11679,7 @@
         "bits": 20,
         "degenerate": 2.9
       },
-      "bytes": 1553256,
+      "bytes": 1617544,
       "pool": {
         "images": 179,
         "bytes": 6816654,
@@ -11623,8 +11688,8 @@
     },
     "rsi-zeus-cl": {
       "url": "/hangar/ships/rsi-zeus-cl.glb",
-      "v": "705bfe32",
-      "tris": 465116,
+      "v": "e20f3902",
+      "tris": 465128,
       "trisRaw": 1410705,
       "textures": 293,
       "attached": 0,
@@ -11667,7 +11732,7 @@
         "bits": 22,
         "degenerate": 1.4
       },
-      "bytes": 5130296,
+      "bytes": 5131968,
       "pool": {
         "images": 293,
         "bytes": 12363768,
@@ -11676,8 +11741,8 @@
     },
     "rsi-zeus-es": {
       "url": "/hangar/ships/rsi-zeus-es.glb",
-      "v": "8efa31d8",
-      "tris": 429579,
+      "v": "67561d91",
+      "tris": 429583,
       "trisRaw": 1170451,
       "textures": 278,
       "attached": 0,
@@ -11719,7 +11784,7 @@
         "bits": 22,
         "degenerate": 1.3
       },
-      "bytes": 4675552,
+      "bytes": 4677072,
       "pool": {
         "images": 278,
         "bytes": 11905328,
@@ -11728,7 +11793,7 @@
     },
     "tmbl-cyclone-aa": {
       "url": "/hangar/ships/tmbl-cyclone-aa.glb",
-      "v": "c64bb1dd",
+      "v": "66a559f2",
       "tris": 165121,
       "trisRaw": 164323,
       "textures": 103,
@@ -11763,7 +11828,7 @@
         "bits": 17,
         "degenerate": 1.3
       },
-      "bytes": 1168320,
+      "bytes": 1168416,
       "pool": {
         "images": 103,
         "bytes": 6681720,
@@ -11772,7 +11837,7 @@
     },
     "tmbl-cyclone-mt": {
       "url": "/hangar/ships/tmbl-cyclone-mt.glb",
-      "v": "225d3f09",
+      "v": "64cfb8df",
       "tris": 193454,
       "trisRaw": 189861,
       "textures": 114,
@@ -11807,7 +11872,7 @@
         "bits": 17,
         "degenerate": 1.1
       },
-      "bytes": 1452408,
+      "bytes": 1452556,
       "pool": {
         "images": 114,
         "bytes": 7186872,
@@ -11816,7 +11881,7 @@
     },
     "tmbl-cyclone-rc": {
       "url": "/hangar/ships/tmbl-cyclone-rc.glb",
-      "v": "409a8b3c",
+      "v": "70166020",
       "tris": 148002,
       "trisRaw": 152367,
       "textures": 78,
@@ -11849,7 +11914,7 @@
         "bits": 17,
         "degenerate": 1.3
       },
-      "bytes": 1007940,
+      "bytes": 1008036,
       "pool": {
         "images": 78,
         "bytes": 4167930,
@@ -11858,7 +11923,7 @@
     },
     "tmbl-cyclone-rn": {
       "url": "/hangar/ships/tmbl-cyclone-rn.glb",
-      "v": "09d2c44b",
+      "v": "4ce5199a",
       "tris": 156989,
       "trisRaw": 159702,
       "textures": 78,
@@ -11891,7 +11956,7 @@
         "bits": 17,
         "degenerate": 1.5
       },
-      "bytes": 1063960,
+      "bytes": 1064056,
       "pool": {
         "images": 78,
         "bytes": 4837286,
@@ -11900,7 +11965,7 @@
     },
     "tmbl-cyclone-tr": {
       "url": "/hangar/ships/tmbl-cyclone-tr.glb",
-      "v": "72147c3c",
+      "v": "04d68c48",
       "tris": 162638,
       "trisRaw": 165509,
       "textures": 105,
@@ -11935,7 +12000,7 @@
         "bits": 17,
         "degenerate": 1.2
       },
-      "bytes": 1126684,
+      "bytes": 1126780,
       "pool": {
         "images": 105,
         "bytes": 5363352,
@@ -11944,7 +12009,7 @@
     },
     "tmbl-cyclone": {
       "url": "/hangar/ships/tmbl-cyclone.glb",
-      "v": "8dd0cb6c",
+      "v": "439387e1",
       "tris": 143637,
       "trisRaw": 146440,
       "textures": 83,
@@ -11977,7 +12042,7 @@
         "bits": 17,
         "degenerate": 1.4
       },
-      "bytes": 986852,
+      "bytes": 986948,
       "pool": {
         "images": 83,
         "bytes": 5094524,
@@ -11986,8 +12051,8 @@
     },
     "tmbl-nova": {
       "url": "/hangar/ships/tmbl-nova.glb",
-      "v": "f1e6f2c2",
-      "tris": 210221,
+      "v": "c3843486",
+      "tris": 210415,
       "trisRaw": 302170,
       "textures": 166,
       "attached": 0,
@@ -12003,7 +12068,7 @@
       },
       "record": "TMBL_Nova",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -12022,7 +12087,7 @@
         "bits": 20,
         "degenerate": 4.8
       },
-      "bytes": 2081984,
+      "bytes": 2084352,
       "pool": {
         "images": 166,
         "bytes": 6546168,
@@ -12031,7 +12096,7 @@
     },
     "tmbl-storm-aa": {
       "url": "/hangar/ships/tmbl-storm-aa.glb",
-      "v": "ca0c1dd0",
+      "v": "0bdba9b5",
       "tris": 481585,
       "trisRaw": 658580,
       "textures": 183,
@@ -12045,7 +12110,7 @@
       },
       "record": "TMBL_Storm_AA",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -12064,7 +12129,7 @@
         "bits": 19,
         "degenerate": 1
       },
-      "bytes": 5101352,
+      "bytes": 5101444,
       "pool": {
         "images": 183,
         "bytes": 8243966,
@@ -12073,7 +12138,7 @@
     },
     "tmbl-storm": {
       "url": "/hangar/ships/tmbl-storm.glb",
-      "v": "56a4f04f",
+      "v": "3dc849c9",
       "tris": 221575,
       "trisRaw": 477614,
       "textures": 161,
@@ -12089,7 +12154,7 @@
       },
       "record": "TMBL_Storm",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 1,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -12108,7 +12173,7 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 2124192,
+      "bytes": 2124288,
       "pool": {
         "images": 161,
         "bytes": 6864620,
@@ -12117,8 +12182,8 @@
     },
     "vncl-blade": {
       "url": "/hangar/ships/vncl-blade.glb",
-      "v": "dbebed6c",
-      "tris": 211258,
+      "v": "924ab470",
+      "tris": 211700,
       "trisRaw": 266447,
       "textures": 149,
       "attached": 0,
@@ -12137,6 +12202,7 @@
       "record": "VNCL_Blade",
       "game": "12913470",
       "interiorDropped": 0,
+      "interiorMarked": 1,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -12157,7 +12223,7 @@
         "bits": 20,
         "degenerate": 2.2
       },
-      "bytes": 1939556,
+      "bytes": 1973000,
       "pool": {
         "images": 149,
         "bytes": 9240614,
@@ -12166,7 +12232,7 @@
     },
     "vncl-glaive": {
       "url": "/hangar/ships/vncl-glaive.glb",
-      "v": "f52d6f09",
+      "v": "2faa3b8b",
       "tris": 212226,
       "trisRaw": 197981,
       "textures": 86,
@@ -12200,7 +12266,7 @@
         "bits": 16,
         "degenerate": 0.9
       },
-      "bytes": 1450316,
+      "bytes": 1450544,
       "pool": {
         "images": 86,
         "bytes": 3876326,
@@ -12209,7 +12275,7 @@
     },
     "vncl-scythe": {
       "url": "/hangar/ships/vncl-scythe.glb",
-      "v": "6ce14a41",
+      "v": "5d8bf4eb",
       "tris": 202208,
       "trisRaw": 193694,
       "textures": 90,
@@ -12243,7 +12309,7 @@
         "bits": 16,
         "degenerate": 1.3
       },
-      "bytes": 1443132,
+      "bytes": 1443324,
       "pool": {
         "images": 90,
         "bytes": 4096182,
@@ -12252,8 +12318,8 @@
     },
     "vncl-stinger": {
       "url": "/hangar/ships/vncl-stinger.glb",
-      "v": "28d70ffb",
-      "tris": 267332,
+      "v": "d93105fb",
+      "tris": 267362,
       "trisRaw": 551962,
       "textures": 249,
       "attached": 0,
@@ -12274,7 +12340,7 @@
       },
       "record": "VNCL_Stinger",
       "game": "12913470",
-      "interiorDropped": 8,
+      "interiorDropped": 3,
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -12300,7 +12366,7 @@
         "bits": 19,
         "degenerate": 1.6
       },
-      "bytes": 3063612,
+      "bytes": 3065140,
       "pool": {
         "images": 249,
         "bytes": 14425176,
@@ -12309,7 +12375,7 @@
     },
     "xian-nox-kue": {
       "url": "/hangar/ships/xian-nox-kue.glb",
-      "v": "4ea74ad5",
+      "v": "034db6ff",
       "tris": 60842,
       "trisRaw": 54472,
       "textures": 84,
@@ -12374,7 +12440,7 @@
         "bits": 16,
         "degenerate": 1.3
       },
-      "bytes": 564772,
+      "bytes": 565228,
       "pool": {
         "images": 84,
         "bytes": 3961746,
@@ -12383,7 +12449,7 @@
     },
     "xian-nox": {
       "url": "/hangar/ships/xian-nox.glb",
-      "v": "aecfde7c",
+      "v": "149b3d63",
       "tris": 89009,
       "trisRaw": 101475,
       "textures": 113,
@@ -12451,7 +12517,7 @@
         "bits": 20,
         "degenerate": 4.5
       },
-      "bytes": 869832,
+      "bytes": 871788,
       "pool": {
         "images": 113,
         "bytes": 4794240,
@@ -12460,7 +12526,7 @@
     },
     "xian-scout": {
       "url": "/hangar/ships/xian-scout.glb",
-      "v": "88210082",
+      "v": "499e38f6",
       "tris": 187075,
       "trisRaw": 192695,
       "textures": 103,
@@ -12496,7 +12562,7 @@
         "bits": 18,
         "degenerate": 2.5
       },
-      "bytes": 1574408,
+      "bytes": 1576256,
       "pool": {
         "images": 103,
         "bytes": 4274924,
@@ -12505,7 +12571,7 @@
     },
     "xnaa-santokyai": {
       "url": "/hangar/ships/xnaa-santokyai.glb",
-      "v": "9dfa68ab",
+      "v": "75e44cd3",
       "tris": 385411,
       "trisRaw": 663417,
       "textures": 221,
@@ -12524,7 +12590,7 @@
       },
       "record": "XNAA_SanTokYai",
       "game": "12913470",
-      "interiorDropped": 2,
+      "interiorDropped": 0,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk ein: hardpoint_lg_rear_left: nach xnaa_santokyai_lg_rear_left_deploy Fuß bei 10.617, Aufstand -3.866; hardpoint_lg_rear_right: nach xnaa_santokyai_lg_rear_right_depl"
@@ -12543,7 +12609,7 @@
         "bits": 19,
         "degenerate": 1.1
       },
-      "bytes": 3614344,
+      "bytes": 3614328,
       "pool": {
         "images": 221,
         "bytes": 11239382,

@@ -249,3 +249,17 @@ Innenraum-Knoten) ✓.
 - Die zehn großen ohne Innenraum (Idris M/P, Reclaimer ×2, Ironclad ×2,
   890 Jump, Polaris, Perseus, Centaurus): eigener Export nur der Container,
   danach als Innenraum bauen wie die übrigen.
+
+## Rücknahme #257, 30.10.2026: Teil B geht im Neubau auf
+
+- #265 hat die Rümpfe von #257 zurückgenommen (Innenraum hinter dem Glas
+  lag teils falsch, Caterpillar oben offenes Gerüst; `hangar-cockpit-hohl.md`
+  unter „Rücknahme“). Seitdem behält `dropInterior` den Innenraum hinter
+  dem Glas nur mit `HANGAR_SHIP_GLASS_INTERIOR=1`, und `build-hangar-alle.mjs`
+  hat die Stufe dafür nicht mehr.
+- **Teil B nicht vom Stand `claude/wot-hangar-hzs46w` bauen**: Dessen
+  `dropInterior` lässt den Innenraum hinter dem Glas wieder stehen.
+- Der Neubau aller Rümpfe „nur zweiseitig“ (`hangar-cockpit-hohl.md`
+  unter „Neubau nur zweiseitig“) läuft vom aktuellen staging-Stand, also
+  mit `markInterior`. Damit tragen die Rümpfe mit Innenraum danach ihre
+  Knoten `interior_part_<n>` mit `extras.interior`, und Teil B ist erledigt.

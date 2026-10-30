@@ -52,7 +52,6 @@
       "authenticated": ["EXECUTE"],
       "warum": "nginx/gate.js ruft rpc/gate_verdict mit dem Nutzer-JWT; ohne Sitzung entscheidet gate.js selbst"
     },
-    "function public.profile_is_complete(p profiles)": { "warum": "nur fuer die Views profile_badges und discord_profile_badges (Besitzerrechte); liest auth.identities, 20261030170000" },
     "function public.guard_is_tester()": { "warum": "Triggerfunktion auf profiles" },
     "function public.guard_rsi_verified()": { "warum": "Triggerfunktion auf profiles" },
     "function public.handle_new_user()": { "warum": "Triggerfunktion auf auth.users" },
@@ -192,7 +191,7 @@
     "view public.profile_badges": {
       "anon": ["SELECT"],
       "authenticated": ["SELECT"],
-      "warum": "PilotPage (oeffentlich): Abzeichen Profil komplett; View mit Besitzerrechten, 20261030170000"
+      "warum": "PilotPage (oeffentlich): Abzeichen Profil komplett; View mit Besitzerrechten, Regel steht in der View (20261030171000)"
     },
     "view public.public_profiles": {
       "anon": ["SELECT"],
