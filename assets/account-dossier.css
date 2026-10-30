@@ -1295,6 +1295,8 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .ck-todo{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none;max-height:5.6em;overflow:hidden}
 .dsr .ck-chip{padding:3px 11px;border:1px dashed color-mix(in srgb,var(--accent) 55%,transparent);border-radius:999px;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6);color:var(--accent);transition:background var(--dur-fast) var(--ease-ui)}
 .dsr .ck-chip:hover{border-style:solid;border-color:var(--accent);background:rgba(45,212,255,.12);color:#fff}
+.ck-check[hidden]{display:none}
+.ck-top:has(> .ck-check[hidden]){grid-template-columns:minmax(0,1fr)}
 .ck-check.is-done .ck-todo{display:none}
 .ck-check.is-done .ck-check__sub{color:var(--ok)}
 .ck-rsi{display:flex;align-items:center;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line-soft);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6);color:var(--muted);cursor:pointer;min-width:0}

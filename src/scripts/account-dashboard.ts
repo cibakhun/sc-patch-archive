@@ -575,6 +575,8 @@ import { cssUrl } from '../lib/cssUrl';
         setStat('pcStatFriends', String(friendCount));
         setStat('pcStatFavs', String(favCount));
 
+        // Dieselben zehn Felder prüft public.profile_is_complete() für das
+        // Abzeichen auf der Pilotenseite und auf Discord. Nur gemeinsam ändern.
         const completeFields = [
           nameInput.value.trim(),
           handleInput.value.trim(),

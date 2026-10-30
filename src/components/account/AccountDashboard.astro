@@ -184,6 +184,7 @@ const COPY = {
     ovPending: '%n% offene Anfragen', ovPending1: '1 offene Anfrage', ovNoPending: 'Keine offenen Anfragen',
     ovActive: '%n% laufende Jobs', ovActive1: '1 laufender Job', ovNoActive: 'Keine laufenden Jobs',
     ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
+    ovBadgeComplete: 'Profil komplett', ovBadgeCompleteTip: 'Abzeichen für ein vollständiges Profil. Auf Discord trägst du dazu die Rolle „Profile Complete“.',
     ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert',
     ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Job: %x%',
     ovActEmpty: 'Noch keine Aktivität.',
@@ -351,6 +352,7 @@ const COPY = {
     ovPending: '%n% pending requests', ovPending1: '1 pending request', ovNoPending: 'No pending requests',
     ovActive: '%n% active jobs', ovActive1: '1 active job', ovNoActive: 'No active jobs',
     ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
+    ovBadgeComplete: 'Profile complete', ovBadgeCompleteTip: 'Badge for a complete profile. On Discord it comes with the “Profile Complete” role.',
     ovRsiYes: 'Verified', ovRsiNo: 'Not verified',
     ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
     ovActEmpty: 'No activity yet.',
@@ -576,6 +578,7 @@ const SEC = {
         <div class="acc-id__status" id="ovStatusPill"><span id="ovStatusLabel"></span></div>
         <div class="acc-id__chips">
           <span class="acc-chip ok" id="ovVerified" hidden title={lang === 'de' ? 'RSI verifiziert' : 'RSI verified'}><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> RSI</span>
+          <span class="acc-chip ok" id="ovBadgeComplete" hidden title={COPY.ovBadgeCompleteTip}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l1.8 1.8L14.8 7.3M8.5 14.2L7 21.5l5-2.5 5 2.5-1.5-7.3"/></svg> {COPY.ovBadgeComplete}</span>
           <span class="acc-chip" id="ovRolePill" hidden><b id="ovRoleText"></b></span>
           <span class="acc-chip" id="ovOrgPill" hidden><svg viewBox="0 0 24 24"><use href="#ic-org"/></svg> <span id="ovOrgText"></span></span>
         </div>

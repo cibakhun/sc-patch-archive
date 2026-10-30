@@ -18,6 +18,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 import { levelForXp } from './leveling.mjs';
 import { rankForLevel } from './ranks.mjs';
+import { syncProfileBadges } from './badge-sync.mjs';
 
 const FIELDS = ['in_guild', 'level', 'xp', 'total_xp', 'prestige', 'rank_key', 'messages', 'voice_seconds', 'server_rank', 'server_members'];
 
@@ -164,6 +165,7 @@ export function startRankSync(ctx) {
         console.warn(`  ! Rangspiegel: Bot ist auf ${guilds.length} Servern, GUILD_ID fehlt -- gespiegelt wird ${home.name} (meiste Mitglieder).`);
       }
       await nacheinander(() => syncRanks(ctx, home));
+      await syncProfileBadges(ctx, home);
     } finally { laeuft = false; }
   };
   tick();

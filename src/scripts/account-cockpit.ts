@@ -174,6 +174,13 @@ function boot(root: HTMLElement) {
       return li;
     }));
     root.querySelector('.ck-check')?.classList.toggle('is-done', !ul.childElementCount);
+    // Vollständig heißt: Karte weg, Abzeichen her. Erst mit bestätigter
+    // Discord-Verbindung, sonst blitzt beim Laden das Abzeichen kurz auf.
+    const done = items.length > 0 && !ul.childElementCount && dcLinked === true;
+    const card = root.querySelector<HTMLElement>('.ck-check');
+    if (card) card.hidden = done;
+    const badge = document.getElementById('ovBadgeComplete');
+    if (badge) badge.hidden = !done;
   }
 
   /* -------------------------------------------------------- Avatare --- */

@@ -317,6 +317,22 @@ console.log('\n▸ Rank mirror (Kontoseite)');
   });
 }
 
+console.log('\n▸ Profile badge role');
+{
+  const { badgeDiff } = await import('./badge-sync.mjs');
+  t('complete profiles gain the role, everyone else loses it', () => {
+    const rows = [
+      { discord_user_id: 'a', profile_complete: true },
+      { discord_user_id: 'b', profile_complete: false },
+      { discord_user_id: 'c', profile_complete: true },
+      { discord_user_id: 'gone', profile_complete: true },
+    ];
+    const diff = badgeDiff(rows, new Set(['b', 'c', 'unlinked']), new Set(['a', 'b', 'c', 'unlinked']));
+    assert.deepEqual(diff.add, ['a'], 'not yet holding, complete, on the server');
+    assert.deepEqual(diff.remove, ['b', 'unlinked'], 'incomplete or no longer linked');
+  });
+}
+
 try {
   const { latestPatch, localizedPatch, findShip, localizedShip } = await import('./data.mjs');
   const p = latestPatch();
