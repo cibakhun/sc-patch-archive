@@ -89,8 +89,12 @@ const HALL_ROOM = {
 };
 
 // Nie sichtbar oder nur im Spiel sinnvoll: Schadensmodelle, Kollisions-/
-// Schild-Hüllen, Stellvertreter, Effekt-Helfer.
-const DROP = /damage|_dmg|proxy|collision|shield_?helper|nodraw|_lod[1-9]\b|debris|\bvfx\b|_fx_|helper/i;
+// Schild-Hüllen, Stellvertreter, Effekt-Helfer. „*_Debris“ ohne Schaden im
+// Namen ist das heile Ablöseteil, kein Schadensmodell (Hornet-Außenflügel
+// samt Waffenhalter, C8-Flügel, Javelin-Bugspitzen; ohne es hing die Waffe
+// neben dem Flügel, .planning/notes/hangar-inseln.md); seine Schadensfassungen
+// (dmg_*_debris, *_debris_intDmg) fallen weiter weg.
+const DROP = /damage|_dmg|dmg_\w*debris|debris\w*dmg|proxy|collision|shield_?helper|nodraw|_lod[1-9]\b|\bvfx\b|_fx_|helper/i;
 
 await MeshoptSimplifier.ready;
 const io = new NodeIO()

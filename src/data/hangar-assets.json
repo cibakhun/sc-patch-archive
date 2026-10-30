@@ -694,8 +694,8 @@
     },
     "aegs-javelin": {
       "url": "/hangar/ships/aegs-javelin.glb",
-      "v": "b48fc373",
-      "tris": 374922,
+      "v": "6f72e3cb",
+      "tris": 380081,
       "trisRaw": 2725508,
       "textures": 135,
       "attached": {
@@ -749,6 +749,14 @@
       "record": "AEGS_Javelin",
       "game": "12913470",
       "interiorDropped": 10,
+      "containerPlace": {
+        "placed": 10,
+        "moved": 10,
+        "byOffset": 1,
+        "byHelper": 9,
+        "dup": 39,
+        "dupTris": 13042
+      },
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: Landesystem ohne Beine"
@@ -761,9 +769,9 @@
         "rangeBefore": 41,
         "rangeAfter": 13.84,
         "bits": 16,
-        "degenerate": 2.6
+        "degenerate": 2.5
       },
-      "bytes": 3175016,
+      "bytes": 3211540,
       "pool": {
         "images": 135,
         "bytes": 9471008,
@@ -1868,8 +1876,8 @@
     },
     "anvl-c8-pisces": {
       "url": "/hangar/ships/anvl-c8-pisces.glb",
-      "v": "039b3821",
-      "tris": 177015,
+      "v": "39759307",
+      "tris": 177832,
       "trisRaw": 180361,
       "textures": 168,
       "attached": 0,
@@ -1918,7 +1926,7 @@
         "bits": 20,
         "degenerate": 4.4
       },
-      "bytes": 1722916,
+      "bytes": 1730996,
       "pool": {
         "images": 168,
         "bytes": 7868188,
@@ -1927,8 +1935,8 @@
     },
     "anvl-c8r-pisces": {
       "url": "/hangar/ships/anvl-c8r-pisces.glb",
-      "v": "ce38b82d",
-      "tris": 203515,
+      "v": "b2c3cbe0",
+      "tris": 203650,
       "trisRaw": 237453,
       "textures": 237,
       "attached": 0,
@@ -1979,7 +1987,7 @@
         "bits": 21,
         "degenerate": 3.9
       },
-      "bytes": 2103892,
+      "bytes": 2109348,
       "pool": {
         "images": 237,
         "bytes": 8981988,
@@ -1988,8 +1996,8 @@
     },
     "anvl-c8x-pisces-expedition": {
       "url": "/hangar/ships/anvl-c8x-pisces-expedition.glb",
-      "v": "d6d28d1c",
-      "tris": 199793,
+      "v": "2440cdc2",
+      "tris": 200610,
       "trisRaw": 196680,
       "textures": 183,
       "attached": 0,
@@ -2040,7 +2048,7 @@
         "bits": 20,
         "degenerate": 4
       },
-      "bytes": 1906756,
+      "bytes": 1914856,
       "pool": {
         "images": 183,
         "bytes": 7895694,
@@ -2316,8 +2324,8 @@
     },
     "anvl-hornet-f7a-mk1": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk1.glb",
-      "v": "84e30947",
-      "tris": 212795,
+      "v": "c03eb7ce",
+      "tris": 214039,
       "trisRaw": 346209,
       "textures": 149,
       "attached": 0,
@@ -2329,20 +2337,26 @@
       },
       "swapNodes": 18,
       "palette": {
-        "1": 10,
+        "1": 11,
         "2": 6,
         "3": 2
       },
       "record": "ANVL_Hornet_F7A_Mk1",
       "game": "12913470",
       "interiorDropped": 1,
+      "containerPlace": {
+        "placed": 2,
+        "moved": 1,
+        "byOffset": 2,
+        "byHelper": 0
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
         "dev": [
           0,
-          0.001,
-          0.001
+          0,
+          0
         ],
         "sink": -0.001
       },
@@ -2352,15 +2366,15 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7a-mk1.json",
-        "v": "894736a6"
+        "v": "e14d6a24"
       },
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 1.2
+        "degenerate": 1.1
       },
-      "bytes": 2312888,
+      "bytes": 2337120,
       "pool": {
         "images": 149,
         "bytes": 7866542,
@@ -2369,10 +2383,10 @@
     },
     "anvl-hornet-f7a-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk2.glb",
-      "v": "63b026bd",
-      "tris": 213429,
+      "v": "fd4c1097",
+      "tris": 219007,
       "trisRaw": 227066,
-      "textures": 166,
+      "textures": 168,
       "attached": {
         "attached": 0,
         "color": 0,
@@ -2452,19 +2466,19 @@
         "bits": 18,
         "degenerate": 1.7
       },
-      "bytes": 1943452,
+      "bytes": 1979832,
       "pool": {
-        "images": 166,
-        "bytes": 8705146,
+        "images": 168,
+        "bytes": 9387000,
         "fresh": 0
       }
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
-      "v": "09c46071",
-      "tris": 203663,
+      "v": "4deef086",
+      "tris": 205129,
       "trisRaw": 219205,
-      "textures": 161,
+      "textures": 163,
       "attached": {
         "attached": 0,
         "color": 0,
@@ -2542,17 +2556,17 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1869136,
+      "bytes": 1897468,
       "pool": {
-        "images": 161,
-        "bytes": 8950396,
+        "images": 163,
+        "bytes": 9632250,
         "fresh": 0
       }
     },
     "anvl-hornet-f7c-wildfire": {
       "url": "/hangar/ships/anvl-hornet-f7c-wildfire.glb",
-      "v": "500e6cdf",
-      "tris": 214851,
+      "v": "4d281530",
+      "tris": 217522,
       "trisRaw": 193705,
       "textures": 150,
       "attached": 0,
@@ -2563,8 +2577,8 @@
       },
       "swapNodes": 16,
       "palette": {
-        "1": 7,
-        "2": 8,
+        "1": 10,
+        "2": 10,
         "3": 4
       },
       "record": "ANVL_Hornet_F7C_Wildfire",
@@ -2593,7 +2607,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7c-wildfire.json",
-        "v": "4be10d78"
+        "v": "97591f7d"
       },
       "uv": {
         "rangeBefore": 88,
@@ -2601,7 +2615,7 @@
         "bits": 19,
         "degenerate": 1.9
       },
-      "bytes": 1920748,
+      "bytes": 1956100,
       "pool": {
         "images": 150,
         "bytes": 6827916,
@@ -2610,8 +2624,8 @@
     },
     "anvl-hornet-f7c": {
       "url": "/hangar/ships/anvl-hornet-f7c.glb",
-      "v": "b7351663",
-      "tris": 199630,
+      "v": "65564fc1",
+      "tris": 202301,
       "trisRaw": 203433,
       "textures": 134,
       "attached": {
@@ -2653,8 +2667,8 @@
       },
       "swapNodes": 8,
       "palette": {
-        "1": 8,
-        "2": 7,
+        "1": 12,
+        "2": 8,
         "3": 4
       },
       "record": "ANVL_Hornet_F7C",
@@ -2683,7 +2697,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7c.json",
-        "v": "ebe53a98"
+        "v": "3d862923"
       },
       "uv": {
         "rangeBefore": 288,
@@ -2691,7 +2705,7 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 1860772,
+      "bytes": 1895664,
       "pool": {
         "images": 134,
         "bytes": 6895950,
@@ -2700,8 +2714,8 @@
     },
     "anvl-hornet-f7cm-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-heartseeker.glb",
-      "v": "0c4c1b3b",
-      "tris": 205880,
+      "v": "273888e9",
+      "tris": 208091,
       "trisRaw": 239081,
       "textures": 161,
       "attached": 0,
@@ -2713,8 +2727,8 @@
       },
       "swapNodes": 12,
       "palette": {
-        "1": 10,
-        "2": 5,
+        "1": 12,
+        "2": 7,
         "3": 4
       },
       "record": "ANVL_Hornet_F7CM_Heartseeker",
@@ -2743,7 +2757,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7cm-heartseeker.json",
-        "v": "771fd4c1"
+        "v": "48dc320b"
       },
       "uv": {
         "rangeBefore": 288,
@@ -2751,7 +2765,7 @@
         "bits": 20,
         "degenerate": 3.8
       },
-      "bytes": 2031540,
+      "bytes": 2081896,
       "pool": {
         "images": 161,
         "bytes": 6821214,
@@ -2760,10 +2774,10 @@
     },
     "anvl-hornet-f7cm-mk2-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2-heartseeker.glb",
-      "v": "374e2725",
-      "tris": 213755,
+      "v": "e3feb584",
+      "tris": 216101,
       "trisRaw": 350880,
-      "textures": 164,
+      "textures": 166,
       "attached": {
         "attached": 0,
         "color": 0,
@@ -2811,6 +2825,12 @@
       "record": "ANVL_Hornet_F7CM_Mk2_Heartseeker",
       "game": "12913470",
       "interiorDropped": 1,
+      "containerPlace": {
+        "placed": 2,
+        "moved": 1,
+        "byOffset": 2,
+        "byHelper": 0
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2835,19 +2855,19 @@
         "bits": 20,
         "degenerate": 1.7
       },
-      "bytes": 2413600,
+      "bytes": 2449464,
       "pool": {
-        "images": 164,
-        "bytes": 8270888,
+        "images": 166,
+        "bytes": 8952742,
         "fresh": 0
       }
     },
     "anvl-hornet-f7cm-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2.glb",
-      "v": "184d2ff6",
-      "tris": 217789,
+      "v": "e7b5c6da",
+      "tris": 211445,
       "trisRaw": 377198,
-      "textures": 165,
+      "textures": 167,
       "attached": {
         "attached": 0,
         "color": 0,
@@ -2896,6 +2916,12 @@
       "record": "ANVL_Hornet_F7CM_Mk2",
       "game": "12913470",
       "interiorDropped": 1,
+      "containerPlace": {
+        "placed": 2,
+        "moved": 1,
+        "byOffset": 2,
+        "byHelper": 0
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -2918,19 +2944,19 @@
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 1.7
+        "degenerate": 1.8
       },
-      "bytes": 2466744,
+      "bytes": 2443380,
       "pool": {
-        "images": 165,
-        "bytes": 8276960,
+        "images": 167,
+        "bytes": 8958814,
         "fresh": 0
       }
     },
     "anvl-hornet-f7cm": {
       "url": "/hangar/ships/anvl-hornet-f7cm.glb",
-      "v": "dc4d0857",
-      "tris": 213321,
+      "v": "5d0bc66e",
+      "tris": 215228,
       "trisRaw": 271164,
       "textures": 152,
       "attached": 0,
@@ -2942,9 +2968,9 @@
       },
       "swapNodes": 18,
       "palette": {
-        "1": 7,
-        "2": 7,
-        "3": 5
+        "1": 9,
+        "2": 8,
+        "3": 6
       },
       "record": "ANVL_Hornet_F7CM",
       "game": "12913470",
@@ -2972,15 +2998,15 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7cm.json",
-        "v": "899a56d3"
+        "v": "ba01fe70"
       },
       "uv": {
         "rangeBefore": 288,
         "rangeAfter": 241.37,
         "bits": 20,
-        "degenerate": 3.5
+        "degenerate": 3.4
       },
-      "bytes": 2147480,
+      "bytes": 2193520,
       "pool": {
         "images": 152,
         "bytes": 6731318,
@@ -2989,10 +3015,10 @@
     },
     "anvl-hornet-f7cr-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cr-mk2.glb",
-      "v": "cb82f460",
-      "tris": 210983,
+      "v": "2e58164c",
+      "tris": 212761,
       "trisRaw": 247495,
-      "textures": 152,
+      "textures": 154,
       "attached": {
         "attached": 0,
         "color": 0,
@@ -3050,7 +3076,7 @@
       "gearCheck": {
         "ok": true,
         "dev": [
-          0,
+          -0.001,
           0,
           0
         ],
@@ -3068,19 +3094,19 @@
         "rangeBefore": 62,
         "rangeAfter": 58.53,
         "bits": 18,
-        "degenerate": 1.9
+        "degenerate": 1.8
       },
-      "bytes": 1969436,
+      "bytes": 1995660,
       "pool": {
-        "images": 152,
-        "bytes": 8336076,
+        "images": 154,
+        "bytes": 9017930,
         "fresh": 0
       }
     },
     "anvl-hornet-f7cr": {
       "url": "/hangar/ships/anvl-hornet-f7cr.glb",
-      "v": "67e7dd9b",
-      "tris": 191520,
+      "v": "a39bb3fc",
+      "tris": 194191,
       "trisRaw": 197084,
       "textures": 133,
       "attached": 0,
@@ -3090,8 +3116,8 @@
       },
       "swapNodes": 8,
       "palette": {
-        "1": 6,
-        "2": 7,
+        "1": 8,
+        "2": 8,
         "3": 4
       },
       "record": "ANVL_Hornet_F7CR",
@@ -3120,7 +3146,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7cr.json",
-        "v": "e94c8371"
+        "v": "0aa39f41"
       },
       "uv": {
         "rangeBefore": 288,
@@ -3128,7 +3154,7 @@
         "bits": 20,
         "degenerate": 2.1
       },
-      "bytes": 1758424,
+      "bytes": 1793240,
       "pool": {
         "images": 133,
         "bytes": 6342332,
@@ -3137,10 +3163,10 @@
     },
     "anvl-hornet-f7cs-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cs-mk2.glb",
-      "v": "9e4661b5",
-      "tris": 205575,
+      "v": "c24f9813",
+      "tris": 207163,
       "trisRaw": 228045,
-      "textures": 152,
+      "textures": 154,
       "attached": {
         "attached": 0,
         "color": 0,
@@ -3218,17 +3244,17 @@
         "bits": 18,
         "degenerate": 1.8
       },
-      "bytes": 1885768,
+      "bytes": 1910328,
       "pool": {
-        "images": 152,
-        "bytes": 8333440,
+        "images": 154,
+        "bytes": 9015294,
         "fresh": 0
       }
     },
     "anvl-hornet-f7cs": {
       "url": "/hangar/ships/anvl-hornet-f7cs.glb",
-      "v": "429a220d",
-      "tris": 175787,
+      "v": "508e9a33",
+      "tris": 178458,
       "trisRaw": 169443,
       "textures": 128,
       "attached": 0,
@@ -3238,8 +3264,8 @@
       },
       "swapNodes": 12,
       "palette": {
-        "1": 8,
-        "2": 7,
+        "1": 12,
+        "2": 8,
         "3": 4
       },
       "record": "ANVL_Hornet_F7CS",
@@ -3268,7 +3294,7 @@
       },
       "paints": {
         "url": "/hangar/paints/anvl-hornet-f7cs.json",
-        "v": "a16ea7ae"
+        "v": "e499ff71"
       },
       "uv": {
         "rangeBefore": 88,
@@ -3276,7 +3302,7 @@
         "bits": 19,
         "degenerate": 2.3
       },
-      "bytes": 1632740,
+      "bytes": 1667852,
       "pool": {
         "images": 128,
         "bytes": 6267988,
@@ -6857,6 +6883,14 @@
       "record": "GAMA_Railen",
       "game": "12913470",
       "interiorDropped": 3,
+      "containerPlace": {
+        "placed": 5,
+        "moved": 2,
+        "byOffset": 3,
+        "byHelper": 2,
+        "dup": 31,
+        "dupTris": 62
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -6994,6 +7028,14 @@
       "record": "GAMA_Tyilui",
       "game": "12913470",
       "interiorDropped": 2,
+      "containerPlace": {
+        "placed": 5,
+        "moved": 2,
+        "byOffset": 3,
+        "byHelper": 2,
+        "dup": 35,
+        "dupTris": 70
+      },
       "gearCheck": {
         "ok": false,
         "dev": [
@@ -8337,8 +8379,8 @@
     },
     "misc-hull-c": {
       "url": "/hangar/ships/misc-hull-c.glb",
-      "v": "f0597c9b",
-      "tris": 518481,
+      "v": "1b01fd77",
+      "tris": 518911,
       "trisRaw": 1409380,
       "textures": 282,
       "attached": 0,
@@ -8360,6 +8402,14 @@
       "record": "MISC_Hull_C",
       "game": "12913470",
       "interiorDropped": 6,
+      "containerPlace": {
+        "placed": 9,
+        "moved": 7,
+        "byOffset": 4,
+        "byHelper": 5,
+        "dup": 4,
+        "dupTris": 1312
+      },
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk ein: hardpoint_landinggear_front: nach landing_gear_extend + landing_gear_compress 1 Fuß bei -15.075, Aufstand -11.212"
@@ -8378,7 +8428,7 @@
         "bits": 22,
         "degenerate": 1.6
       },
-      "bytes": 4940080,
+      "bytes": 4945548,
       "pool": {
         "images": 282,
         "bytes": 11043158,
@@ -9232,8 +9282,8 @@
     },
     "mrai-pulse-lx": {
       "url": "/hangar/ships/mrai-pulse-lx.glb",
-      "v": "329956a4",
-      "tris": 118118,
+      "v": "e38da96f",
+      "tris": 120778,
       "trisRaw": 122483,
       "textures": 156,
       "attached": 0,
@@ -9272,7 +9322,7 @@
         "bits": 18,
         "degenerate": 1.5
       },
-      "bytes": 957944,
+      "bytes": 976196,
       "pool": {
         "images": 156,
         "bytes": 5309714,
@@ -9281,8 +9331,8 @@
     },
     "mrai-pulse": {
       "url": "/hangar/ships/mrai-pulse.glb",
-      "v": "8450feb0",
-      "tris": 118978,
+      "v": "cd3c2cfb",
+      "tris": 121638,
       "trisRaw": 123343,
       "textures": 141,
       "attached": 0,
@@ -9323,7 +9373,7 @@
         "bits": 18,
         "degenerate": 0.9
       },
-      "bytes": 948620,
+      "bytes": 966492,
       "pool": {
         "images": 141,
         "bytes": 4565432,
@@ -12092,8 +12142,8 @@
     },
     "rsi-zeus-cl": {
       "url": "/hangar/ships/rsi-zeus-cl.glb",
-      "v": "e20f3902",
-      "tris": 465128,
+      "v": "8d8ec43e",
+      "tris": 465566,
       "trisRaw": 1410705,
       "textures": 293,
       "attached": 0,
@@ -12106,12 +12156,18 @@
       "swapNodes": 40,
       "palette": {
         "1": 10,
-        "2": 7,
+        "2": 8,
         "3": 9
       },
       "record": "RSI_Zeus_CL",
       "game": "12913470",
       "interiorDropped": 3,
+      "containerPlace": {
+        "placed": 3,
+        "moved": 3,
+        "byOffset": 3,
+        "byHelper": 0
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -12128,7 +12184,7 @@
       },
       "paints": {
         "url": "/hangar/paints/rsi-zeus-cl.json",
-        "v": "c68ff9c1"
+        "v": "c8698606"
       },
       "uv": {
         "rangeBefore": 703,
@@ -12136,7 +12192,7 @@
         "bits": 22,
         "degenerate": 1.4
       },
-      "bytes": 5131968,
+      "bytes": 5138268,
       "pool": {
         "images": 293,
         "bytes": 12363768,
@@ -12145,8 +12201,8 @@
     },
     "rsi-zeus-es": {
       "url": "/hangar/ships/rsi-zeus-es.glb",
-      "v": "67561d91",
-      "tris": 429583,
+      "v": "e403f21b",
+      "tris": 430019,
       "trisRaw": 1170451,
       "textures": 278,
       "attached": 0,
@@ -12158,12 +12214,18 @@
       "swapNodes": 20,
       "palette": {
         "1": 11,
-        "2": 7,
+        "2": 8,
         "3": 6
       },
       "record": "RSI_Zeus_ES",
       "game": "12913470",
       "interiorDropped": 3,
+      "containerPlace": {
+        "placed": 3,
+        "moved": 3,
+        "byOffset": 3,
+        "byHelper": 0
+      },
       "gear": true,
       "gearCheck": {
         "ok": true,
@@ -12180,7 +12242,7 @@
       },
       "paints": {
         "url": "/hangar/paints/rsi-zeus-es.json",
-        "v": "fb76dc97"
+        "v": "89786bbe"
       },
       "uv": {
         "rangeBefore": 703,
@@ -12188,7 +12250,7 @@
         "bits": 22,
         "degenerate": 1.3
       },
-      "bytes": 4677072,
+      "bytes": 4683308,
       "pool": {
         "images": 278,
         "bytes": 11905328,
@@ -506298,8 +506360,8 @@
     },
     "gama-railen": {
       "url": "/hangar/interior/gama-railen.glb",
-      "v": "19992a0d",
-      "tris": 822325,
+      "v": "84c6e102",
+      "tris": 825077,
       "trisRaw": 1668423,
       "textures": 167,
       "attached": 0,
@@ -514166,9 +514228,9 @@
         "rangeBefore": 801,
         "rangeAfter": 414.25,
         "bits": 21,
-        "degenerate": 1.3
+        "degenerate": 1.2
       },
-      "bytes": 7505040,
+      "bytes": 7533452,
       "pool": {
         "images": 167,
         "bytes": 11471612,
@@ -517472,8 +517534,8 @@
     },
     "gama-tyilui": {
       "url": "/hangar/interior/gama-tyilui.glb",
-      "v": "fdfd8dee",
-      "tris": 886603,
+      "v": "f71399f3",
+      "tris": 889355,
       "trisRaw": 1878472,
       "textures": 176,
       "attached": 0,
@@ -526674,7 +526736,7 @@
         "bits": 21,
         "degenerate": 1.3
       },
-      "bytes": 7993680,
+      "bytes": 8022244,
       "pool": {
         "images": 176,
         "bytes": 12419244,
