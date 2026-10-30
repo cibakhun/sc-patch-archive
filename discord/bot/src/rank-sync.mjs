@@ -23,6 +23,7 @@ import { levelForXp } from './leveling.mjs';
 import { rankForLevel } from './ranks.mjs';
 import { isHomeGuild } from './home-guild.mjs';
 import { STATS_FIELDS as FIELDS } from './site-db.mjs';
+import { syncProfileBadges } from './badge-sync.mjs';
 
 /**
  * Der Stand eines Mitglieds, wie er in discord_role_state steht. Rein --
@@ -117,7 +118,10 @@ export function startRankSync(ctx) {
     try {
       // Ein Bot, ein Server: nur die Heim-Gilde.
       const guild = ctx.client.guilds.cache.get(ctx.home?.id);
-      if (guild) await nacheinander(() => syncRanks(ctx, guild));
+      if (guild) {
+        await nacheinander(() => syncRanks(ctx, guild));
+        await syncProfileBadges(ctx, guild);
+      }
     } finally { laeuft = false; }
   };
   tick();

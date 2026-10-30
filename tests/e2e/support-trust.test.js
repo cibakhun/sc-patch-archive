@@ -125,7 +125,22 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     assert.match(src, /Deno\.env\.get\('BOT_ROLE_SYNC_SECRET'\)/, 'liest BOT_ROLE_SYNC_SECRET nicht');
     assert.match(src, /reply\(401,/, 'kein 401 bei falschem Geheimnis');
     assert.match(src, /reply\(503, \{ error: 'not_configured' \}\)/, 'kein geschlossener Ausfall ohne Geheimnis');
-    assert.doesNotMatch(src, /\.(insert|upsert|delete|rpc)\(/, 'schreibt mehr als UPDATE');
+    assert.doesNotMatch(src, /\.(insert|upsert|delete)\(/, 'schreibt mehr als UPDATE');
+    // Benannte Ausnahme (Raffinerie-DMs, 20261030180000): zwei Funktionen, die
+    // nur lesen bzw. nur discord_notified_at setzen. Jede andere rpc reisst,
+    // ebenso ein berechneter Name; eine Ausnahme ohne Aufruf auch.
+    const RPC_OK = ['refinery_discord_due', 'refinery_discord_sent'];
+    assert.doesNotMatch(src, /\.rpc\((?!\s*')/, 'rpc mit berechnetem Namen');
+    const rpcs = [...src.matchAll(/\.rpc\(\s*'([^']+)'/g)].map((m) => m[1]);
+    assert.deepEqual(rpcs.filter((n) => !RPC_OK.includes(n)), [], 'ruft eine Funktion ausserhalb der Ausnahme');
+    for (const n of RPC_OK) assert.ok(rpcs.includes(n), `Ausnahme ${n} ohne Aufruf: aus RPC_OK streichen`);
+    const sql = fs.readFileSync('supabase/migrations/20261030180000_refinery_benachrichtigung.sql', 'utf8');
+    const sent = sql.match(/create or replace function public\.refinery_discord_sent[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(sent, 'refinery_discord_sent nicht gefunden');
+    assert.doesNotMatch(sent[1], /\b(insert|delete)\b/i, 'refinery_discord_sent schreibt mehr als UPDATE');
+    assert.match(sent[1], /update public\.refinery_jobs\s+set discord_notified_at = now\(\)\s+where/, 'refinery_discord_sent setzt mehr als discord_notified_at');
+    const due = sql.match(/create or replace function public\.refinery_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(due && /^\s*select\b/i.test(due[1]) && !/\b(insert|update|delete)\b/i.test(due[1]), 'refinery_discord_due liest nicht nur');
   });
 
   test('project_id ist gesetzt', () => {

@@ -523,3 +523,24 @@ sitzen“.
   Wasserstofftank 2), etwa der Avenger mit Schild, Kraftwerk, Kühler und
   Quantenantrieb im Innenraum. Sie kommen mit dem Innenraum, nicht mit dem
   Loadout. Werkzeug `.cache/zweiseitig/komponenten.mjs` (nicht im Repo).
+
+## Durchsicht Cloud (Neubau zweiseitig gegen staging 081d9ca0)
+
+- **Zahlen je Schiff:** alle 231 GLB gegen staging verglichen (Dreiecke,
+  Größe, Hüllquader, zweiseitige Materialien, Innenraum, Materialliste).
+  Lage und Größe gleich bis 0,13 m; einzig die Gladiator weicht im
+  Hüllquader 0,93 m ab, im Bild nicht zu sehen. Gewachsen sind neben der
+  Ironclad (+46 %, Stufe 3 statt 4) nur Schiffe, deren gleiche Teile jetzt
+  als eigene Knoten vorliegen (Avenger-Reihe, Spartan).
+- **Bilder:** alle 231 von außen (zwei Schrägansichten, Seite und Draufsicht
+  orthografisch) und durch die Kanzel (zwei Ansichten vor magenta Grund, der
+  zeigt, wo man durchsieht). 28 Schiffe direkt neben staging. Ergebnis: die
+  Kanzeln, die auf staging durchsichtig waren, sind zu; kein Teil verrutscht,
+  keine neue Lücke. Bilder in `/mnt/project-files/hangar-zweiseitig/`
+  (`vorher-nachher-*`, `alle-schiffe-*`, `auffaellig-*`).
+- **Auf staging schon so, nicht Teil dieses Schritts:** Tumbril Nova ganz
+  weiß; Ursa Rover und Medivac ohne Dach (der Laderaum liegt offen); ROC und
+  325a mit den losen Teilen aus `hangar-inseln.md`. Die Vanduul Glaive hat
+  kein Material, das nach Glas heißt; die Kanzelansicht des Prüfbilds schaut
+  deshalb in die Schiffsmitte und zeigt nur Grund, das Schiff selbst ist
+  vollständig.

@@ -249,6 +249,7 @@ export const HELP = {
     'refinerytracker.ctl.duration': 'Legt die Bearbeitungszeit des Auftrags aus dem Terminal fest.',
     'refinerytracker.ctl.preview': 'Zeigt Ausbeute, geschätzten Wert und Fertigstellungszeit vorab.',
     'refinerytracker.ctl.history': 'Abgeschlossene Aufträge mit Gewinn und eintragbarem Verkaufserlös.',
+  'refinerytracker.ctl.notify': 'Schaltet die Mitteilung auf der Seite und die Discord-Nachricht für fertige Aufträge an oder aus.',
   },
   en: {
     // -- Shared control copy (all twelve tools) --
@@ -463,6 +464,7 @@ export const HELP = {
     'refinerytracker.ctl.duration': 'Sets the order’s processing time from the terminal.',
     'refinerytracker.ctl.preview': 'Previews yield, estimated value and completion time.',
     'refinerytracker.ctl.history': 'Completed orders with profit and a place to record the sale value.',
+  'refinerytracker.ctl.notify': 'Turns the on-site notice and the Discord message for finished orders on or off.',
   },
 } as const;
 
