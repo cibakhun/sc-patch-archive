@@ -8,6 +8,7 @@ import MfaSettings from './MfaSettings.astro';
 import MfaCodeDialog from './MfaCodeDialog.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 import { DISCORD } from '../../consts';
+import { counts as craftCounts } from '../../../assets/crafting-db.json';
 
 interface Props {
   lang: 'de' | 'en';
@@ -180,14 +181,16 @@ const COPY = {
     ovAtAGlance: 'Auf einen Blick',
     ovRecent: 'Letzte Aktivität',
     ovTRefValue: 'Refinery-Wert',
+    ovUnused: 'Noch nicht genutzt', ovToolRef: 'Refinery-Tracker', ovToolCraft: 'Crafting-Planer', ovToolMine: 'Mining-Presets',
     ovTComplete: 'Profil-Vollständigkeit', ovTRsi: 'RSI-Status',
     ovPending: '%n% offene Anfragen', ovPending1: '1 offene Anfrage', ovNoPending: 'Keine offenen Anfragen',
     ovActive: '%n% laufende Jobs', ovActive1: '1 laufender Job', ovNoActive: 'Keine laufenden Jobs',
-    ovJobReady: 'Fertig', ovJobMore: '+%n% weitere', ovJobAt: 'fertig %t%',
+    ovJobReady: 'Fertig', ovJobMore: '+%n%', ovJobAt: 'fertig %t%',
     ovMissing: 'Noch %n% Felder offen', ovMissing1: 'Noch 1 Feld offen', ovComplete: 'Profil vollständig ✓',
     ovBadgeComplete: 'Profil komplett', ovBadgeCompleteTip: 'Abzeichen für ein vollständiges Profil. Auf Discord trägst du dazu die Rolle „Profile Complete“.',
     ovRsiYes: 'Verifiziert', ovRsiNo: 'Nicht verifiziert',
-    ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Job: %x%',
+    ovActFav: 'Favorit hinzugefügt: %x%', ovActReq: 'Freundschaftsanfrage von @%x%', ovActJob: 'Refinery-Auftrag gestartet: %x%',
+    ovActReady: 'Auftrag fertig: %x%', ovActCollected: 'Abgeholt: %x%', ovActLayout: 'Loadout gespeichert: %x%', ovActFriend: 'Neuer Freund: %x%',
     ovActEmpty: 'Noch keine Aktivität.',
   },
   en: {
@@ -349,14 +352,16 @@ const COPY = {
     ovAtAGlance: 'At a glance',
     ovRecent: 'Recent activity',
     ovTRefValue: 'Refinery value',
+    ovUnused: 'Not used yet', ovToolRef: 'Refinery tracker', ovToolCraft: 'Crafting planner', ovToolMine: 'Mining presets',
     ovTComplete: 'Profile completeness', ovTRsi: 'RSI status',
     ovPending: '%n% pending requests', ovPending1: '1 pending request', ovNoPending: 'No pending requests',
     ovActive: '%n% active jobs', ovActive1: '1 active job', ovNoActive: 'No active jobs',
-    ovJobReady: 'Ready', ovJobMore: '+%n% more', ovJobAt: 'ready %t%',
+    ovJobReady: 'Ready', ovJobMore: '+%n%', ovJobAt: 'ready %t%',
     ovMissing: '%n% fields still open', ovMissing1: '1 field still open', ovComplete: 'Profile complete ✓',
     ovBadgeComplete: 'Profile complete', ovBadgeCompleteTip: 'Badge for a complete profile. On Discord it comes with the “Profile Complete” role.',
     ovRsiYes: 'Verified', ovRsiNo: 'Not verified',
-    ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery job: %x%',
+    ovActFav: 'Favorited: %x%', ovActReq: 'Friend request from @%x%', ovActJob: 'Refinery order started: %x%',
+    ovActReady: 'Order ready: %x%', ovActCollected: 'Collected: %x%', ovActLayout: 'Loadout saved: %x%', ovActFriend: 'New friend: %x%',
     ovActEmpty: 'No activity yet.',
   },
 }[lang];
@@ -365,6 +370,8 @@ const loginHref = href('/account/login.html', lang);
 const homeHref = lang === 'de' ? '/de.html' : '/';
 const hangarHref = href('/hangar.html', lang);
 const refineryHref = href('/refinery.html', lang);
+const craftingHref = href('/crafting.html', lang);
+const miningHref = href('/topics/mining.html', lang);
 const confirmRedirect = loginHref + '?confirmed=1';
 
 // Übersicht (Cockpit): Texte für account-cockpit.ts, als JSON am Wurzelknoten.
@@ -377,6 +384,7 @@ const CK = {
     waiting: 'Dein Rang kommt in ein paar Minuten.', waitingBtn: 'Zum Server',
     profile: 'Profil', todo: { handle: 'Handle', avatar: 'Bild', bio: 'Über mich', status: 'Status', role: 'Rolle', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
     saved: 'Gespeichert', savedEmpty: 'Noch nichts gespeichert.', savedCta: 'Zum Hangar', layout: 'Loadout', kinds: { ship: 'Schiff', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Thema' },
+    craftOwned: 'Blueprints', craftPlan: 'Blueprints im Planer', planN: '%n% im Planer', mine: 'Mining-Presets', mine1: 'Mining-Preset',
   },
   en: {
     rank: 'Discord rank', pos: 'Rank', msgs: 'Messages', voice: 'Voice',
@@ -386,6 +394,7 @@ const CK = {
     waiting: 'Your rank arrives in a few minutes.', waitingBtn: 'Open server',
     profile: 'Profile', todo: { handle: 'Handle', avatar: 'Picture', bio: 'About me', status: 'Status', role: 'Role', org: 'Org', rsi: 'RSI', discord: 'Discord', banner: 'Banner', name: 'Name' },
     saved: 'Saved', savedEmpty: 'Nothing saved yet.', savedCta: 'Go to hangar', layout: 'Loadout', kinds: { ship: 'Ship', mineral: 'Mineral', mission: 'Mission', item: 'Item', patch: 'Patch', topic: 'Topic' },
+    craftOwned: 'Blueprints', craftPlan: 'Blueprints planned', planN: '%n% planned', mine: 'Mining presets', mine1: 'Mining preset',
   },
 }[lang];
 
@@ -532,6 +541,7 @@ const SEC = {
       <g id="ic-ext" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4L10 14"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g>
       <g id="ic-hex" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.7v9.6L12 21.5l-8.2-4.7V7.2z"/></g>
       <g id="ic-ship" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.4c2.9 2.2 4.6 5.9 4.6 9.6L15 17H9l-1.6-5C7.4 8.3 9.1 4.6 12 2.4z"/><path d="M9 21l3-3 3 3"/><circle cx="12" cy="10" r="1.6"/></g>
+      <g id="ic-craft" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 6.5l5 5"/><path d="M10.5 8.5l-7 7a1.6 1.6 0 0 0 0 2.2l1.8 1.8a1.6 1.6 0 0 0 2.2 0l7-7"/><path d="M11.5 5.5l3-3 7 7-3 3z"/></g>
       <g id="ic-gem" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3L6 9l6 12 6-12-3-6"/></g>
       <g id="ic-target" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></g>
       <g id="ic-item" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6l8.5 4v6.8L12 21.4 3.5 13.4V6.6z"/><path d="M3.5 6.6L12 11l8.5-4.4M12 11v10.4"/></g>
@@ -624,8 +634,9 @@ const SEC = {
         data-l-job-ready={COPY.ovJobReady} data-l-job-more={COPY.ovJobMore} data-l-job-at={COPY.ovJobAt}
         data-l-missing={COPY.ovMissing} data-l-missing1={COPY.ovMissing1} data-l-complete={COPY.ovComplete}
         data-l-rsi-yes={COPY.ovRsiYes} data-l-rsi-no={COPY.ovRsiNo}
-        data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}>
-        <div class="ck" id="ck" data-copy={JSON.stringify(CK)} data-invite={DISCORD.invite} data-lang={lang}>
+        data-l-act-fav={COPY.ovActFav} data-l-act-req={COPY.ovActReq} data-l-act-job={COPY.ovActJob} data-l-act-empty={COPY.ovActEmpty}
+        data-l-act-ready={COPY.ovActReady} data-l-act-collected={COPY.ovActCollected} data-l-act-layout={COPY.ovActLayout} data-l-act-friend={COPY.ovActFriend}>
+        <div class="ck" id="ck" data-copy={JSON.stringify(CK)} data-invite={DISCORD.invite} data-lang={lang} data-bp-total={craftCounts.blueprints}>
 
           <div class="ck-top">
             <!-- Discord-Rang: Stand kommt vom Rang-Bot (discord_role_state) -->
@@ -672,12 +683,29 @@ const SEC = {
             </article>
           </div>
 
-          <div class="ck-strip">
-            <a class="ck-stat ck-stat--gold" href={refineryHref} aria-label={COPY.ovTRefValue}>
+          <!-- Werkzeuge: Refinery, Crafting, Mining mit echtem Stand (account-cockpit.ts);
+               was noch nie benutzt wurde, steht gesammelt in der letzten Kachel. -->
+          <div class="ck-strip" id="ckTools">
+            <a class="ck-stat ck-stat--gold" id="ckToolRef" href={refineryHref} aria-label={COPY.ovTRefValue}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-refinery"/></svg><b class="tnum" id="ovRefValue">—</b><span>{COPY.ovTRefValue}</span><em id="ovRefSub"></em>
               <ul class="ck-jobs" id="ovRefJobs" hidden></ul>
               <svg class="ck-spark" id="ovRefSpark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"></svg>
             </a>
+            <a class="ck-stat ck-stat--tool" id="ckToolCraft" href={craftingHref} hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-craft"/></svg><b class="tnum" id="ovCraftN">—</b><span id="ovCraftLbl"></span><em id="ovCraftSub"></em>
+              <i class="ck-meter" aria-hidden="true"><i id="ovCraftBar"></i></i>
+            </a>
+            <a class="ck-stat ck-stat--tool" id="ckToolMine" href={miningHref} hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-gem"/></svg><b class="tnum" id="ovMineN">—</b><span id="ovMineLbl"></span>
+            </a>
+            <div class="ck-stat ck-unused" id="ckToolsNew" hidden>
+              <span>{COPY.ovUnused}</span>
+              <ul>
+                <li data-tool="ref" hidden><a href={refineryHref}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-refinery"/></svg>{COPY.ovToolRef}</a></li>
+                <li data-tool="craft" hidden><a href={craftingHref}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-craft"/></svg>{COPY.ovToolCraft}</a></li>
+                <li data-tool="mine" hidden><a href={miningHref}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-gem"/></svg>{COPY.ovToolMine}</a></li>
+              </ul>
+            </div>
           </div>
 
           <div class="ck-cols">

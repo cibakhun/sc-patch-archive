@@ -4,7 +4,9 @@
 import { supabase } from '../lib/supabase';
 import { escapeHtml as escHtml } from '../lib/escape';
 import { cssUrl } from '../lib/cssUrl';
-import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort } from '../lib/refineryJobs';
+import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort, latestJobEvent } from '../lib/refineryJobs';
+import { mergeFeed, type FeedItem } from '../lib/activityFeed';
+import { layoutList, shipLabel } from './account-layouts';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
   import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
@@ -100,7 +102,17 @@ import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort } f
       el.hidden = n <= 0;
     };
     document.addEventListener('vb:chat-unread', (e) => { newMsg = Number((e as CustomEvent).detail) || 0; paintFriendsNew(); });
-    document.addEventListener('vb:friends', (e) => { newReq = ((e as CustomEvent).detail?.incoming || []).length; paintFriendsNew(); });
+    // Freundesliste merken: der Aktivitäts-Feed liest sie, wenn er so weit ist
+    type FriendSeen = { since?: string; p?: { display_name?: string | null; handle?: string | null } };
+    let friendsSeen: FriendSeen[] | null = null;
+    let onFriends: (() => void) | null = null;
+    document.addEventListener('vb:friends', (e) => {
+      const d = (e as CustomEvent).detail || {};
+      newReq = (d.incoming || []).length;
+      paintFriendsNew();
+      friendsSeen = d.friends || [];
+      onFriends?.();
+    });
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -1628,9 +1640,33 @@ import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort } f
         if (shown.some((x) => !x.ready)) refTick = window.setInterval(() => { if (!document.hidden) tick(); }, 1000);
       };
 
-      const activity: Array<{ g: string; html: string; ts: number }> = [];
+      // Letzte Aktivität: jede Quelle legt ihre Einträge unter ihrem Namen ab,
+      // gemalt wird alles zusammen, neueste zuerst. Loadouts und Freunde kommen
+      // nach (vb:layouts, vb:friends), daher neu malen statt einmal.
+      type Act = FeedItem;
+      const ACT_MAX = 12, ACT_PER = 4;
+      const actSrc: Record<string, Act[]> = {};
+      const em = (x: string) => `<em>${escHtml(x)}</em>`;
+      const renderActivity = () => {
+        const ovAct = document.getElementById('ovActivity');
+        const ovActEmpty = document.getElementById('ovActEmpty');
+        if (!ovAct) return;
+        const all = mergeFeed(actSrc, ACT_PER, ACT_MAX);
+        ovAct.hidden = !all.length;
+        if (ovActEmpty) ovActEmpty.hidden = !!all.length;
+        const loc = lang === 'de' ? 'de-DE' : 'en-US';
+        const today = new Date().toDateString();
+        const fmtWhen = (ts: number) => {
+          if (!(ts > 0)) return '';
+          const d = new Date(ts);
+          return d.toDateString() === today ? d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString(loc, { day: 'numeric', month: 'short' });
+        };
+        ovAct.innerHTML = all.map(it =>
+          `<div class="logrow"><span class="lnode"><span class="ldot"></span></span><span class="ltext">${it.html}</span><span class="ltime">${fmtWhen(it.ts)}</span></div>`
+        ).join('');
+      };
 
-      // Offene eingehende Freundschaftsanfragen (Aktivitäts-Feed)
+      // Offene eingehende Freundschaftsanfragen
       let pendingCount = 0;
       try {
         const { count: pc } = await supabase.from('friend_requests')
@@ -1639,12 +1675,12 @@ import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort } f
         pendingCount = pc || 0;
       } catch {}
       const pendingLbl = pendingCount === 1 ? ovTpl('lPending1') : ovTpl('lPending').replace('%n%', String(pendingCount));
-      if (pendingCount > 0) activity.push({ g: 'i-users', html: pendingLbl, ts: Date.now() });
+      if (pendingCount > 0) actSrc.req = [{ html: pendingLbl, ts: Date.now() }];
 
       // Refinery: Gesamtwert (verkauft, sonst geschätzt) + aktive Jobs
       try {
         const { data: rjobs } = await supabase.from('refinery_jobs')
-          .select('station, method, status, est_value, sold_value, started_at, ready_at')
+          .select('station, method, status, est_value, sold_value, started_at, ready_at, collected_at')
           .order('started_at', { ascending: false });
         const jobs = rjobs || [];
         const { total, active } = refineryValue(jobs);
@@ -1658,28 +1694,36 @@ import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort } f
         const spark = document.getElementById('ovRefSpark');
         if (spark) spark.innerHTML = refinerySpark(jobs, 'sparkg');
 
-        if (jobs[0]) activity.push({ g: 'i-hex', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
+        // Je Auftrag nur sein neuester Stand: abgeholt, fertig oder gestartet
+        const now = Date.now();
+        const tpl = { collected: 'lActCollected', ready: 'lActReady', started: 'lActJob' } as const;
+        actSrc.ref = jobs.map((j): Act => {
+          const { kind, ts } = latestJobEvent(j, now);
+          return { html: ovTpl(tpl[kind]).replace('%x%', em(j.station || '')), ts };
+        });
       } catch {}
 
       // Neueste Favoriten
-      for (const f of (favs || []).slice(0, 3)) {
-        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: Date.parse(f.created_at) || 0 });
-      }
+      actSrc.fav = (favs || []).slice(0, 5).map((f) => ({ html: ovTpl('lActFav').replace('%x%', em(f.label || f.slug)), ts: Date.parse(f.created_at) || 0 }));
 
-      // Aktivität rendern (ts absteigend; Einträge ohne ts ans Ende)
-      const ovAct = document.getElementById('ovActivity');
-      const ovActEmpty = document.getElementById('ovActEmpty');
-      if (ovAct) {
-        ovAct.hidden = !activity.length;
-        if (ovActEmpty) ovActEmpty.hidden = !!activity.length;
-        if (activity.length) {
-          activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-          const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
-          ovAct.innerHTML = activity.slice(0, 5).map(it =>
-            `<div class="logrow"><span class="lnode"><span class="ldot"></span></span><span class="ltext">${it.html}</span><span class="ltime">${fmtDate(it.ts)}</span></div>`
-          ).join('');
-        }
-      }
+      // Gespeicherte Loadouts (Hangar-Ablage, kommt nach)
+      const layoutActs = () => {
+        actSrc.lay = layoutList().filter((e) => e.updated).map((e) => ({ html: ovTpl('lActLayout').replace('%x%', em(e.name || shipLabel(e.ship))), ts: e.updated || 0 }));
+      };
+      layoutActs();
+      document.addEventListener('vb:layouts', () => { layoutActs(); renderActivity(); });
+
+      // Neue Freunde (FriendsManager meldet die Liste samt „seit")
+      const friendActs = () => {
+        actSrc.friend = (friendsSeen || []).filter((f) => f.since && f.p).map((f) => ({
+          html: ovTpl('lActFriend').replace('%x%', em(f.p!.display_name || (f.p!.handle ? '@' + f.p!.handle : ''))),
+          ts: Date.parse(f.since!) || 0,
+        }));
+      };
+      friendActs();
+      onFriends = () => { friendActs(); renderActivity(); };
+
+      renderActivity();
 
       // ── Erneute Bestätigung vor heiklen Änderungen ─────────────────────
       // E-Mail-Wechsel, Passwortwechsel und Löschen verlangen das aktuelle

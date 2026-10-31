@@ -89,3 +89,18 @@ export function jobTimers<T extends JobTimerFields>(jobs: readonly T[], now: num
   }
   return out.sort((a, b) => Date.parse(a.job.ready_at) - Date.parse(b.job.ready_at));
 }
+
+export interface JobEventFields {
+  status: string;
+  started_at: string;
+  ready_at: string;
+  collected_at?: string | null;
+}
+
+/** Neuester Stand eines Auftrags für den Verlauf: abgeholt, fertig oder gestartet. */
+export function latestJobEvent(j: JobEventFields, now: number): { kind: 'collected' | 'ready' | 'started'; ts: number } {
+  const ready = Date.parse(j.ready_at);
+  if (j.status === 'done' && j.collected_at) return { kind: 'collected', ts: Date.parse(j.collected_at) || 0 };
+  if (j.status === 'active' && ready <= now) return { kind: 'ready', ts: ready };
+  return { kind: 'started', ts: Date.parse(j.started_at) || 0 };
+}
