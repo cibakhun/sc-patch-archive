@@ -252,7 +252,11 @@ describe('Torseite: Discord-Anmeldung per PKCE', () => {
     await settle();
     assert.equal(g.calls.length, 0);
     assert.equal(g.ls.has('vb_gate_pkce'), false);
-    assert.match(g.getEl('gateDiscordStatus').textContent, /could not be completed/);
+    // Seit 31.10.2026 (anderes Discord-Konto im privaten Fenster): ein
+    // Rücksprung mit gültiger Kennung, aber ohne Eintrag hier zeigt den
+    // Rücklink fürs erste Fenster statt der Fehlermeldung. Eingelöst wird
+    // trotzdem nichts (calls bleibt leer, oben).
+    assert.equal(g.getEl('gateBack').hidden, false);
   });
 
   test('das frühere Format (bloßer Verifier) wird nicht eingelöst', async () => {

@@ -2170,6 +2170,23 @@ import { layoutList, shipLabel } from './account-layouts';
         };
         await dcRender();
 
+        // „Anderes Konto?" (DiscordElsewhere, mode link): verbunden wird im
+        // privaten Fenster. Kommt man hierher zurück, fragt die Karte neu.
+        document.addEventListener('vb:discord-recheck', () => { void dcRender(); });
+        // Im privaten Fenster angekommen (?dc=1 aus Schritt 2): den Knopf
+        // zeigen, den man jetzt drücken soll, und den Merker aus der Adresse.
+        if (new URLSearchParams(location.search).get('dc') === '1') {
+          const u = new URL(location.href);
+          u.searchParams.delete('dc');
+          history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+          if (!dcBtn.hidden) {
+            dcCard.classList.add('is-hint');
+            dcBtn.focus({ preventScroll: true });
+            dcCard.scrollIntoView({ block: 'nearest' });
+            setTimeout(() => dcCard.classList.remove('is-hint'), 6000);
+          }
+        }
+
         // Zurück von Discord nach dem Verbinden: Bild und Name übernehmen,
         // aber nur dort, wo noch nichts Eigenes steht. Ein selbst
         // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
