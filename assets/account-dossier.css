@@ -1079,6 +1079,10 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 .dsr .acc-dc__off{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);color:var(--muted);padding:4px 2px}
 .dsr .acc-dc__off:hover{color:var(--hot)}
 .acc-dc .acx-status{grid-column:1/-1;margin:0;font-size:var(--fs-6)}
+/* Im privaten Fenster nach „Anderes Konto?“ (?dc=1): hier drücken. */
+.acc-dc.is-hint{animation:accDcHint 1.2s var(--ease-ui) 3}
+@keyframes accDcHint{50%{box-shadow:0 0 0 3px rgba(88,101,242,.75),0 0 24px rgba(88,101,242,.55)}}
+@media (prefers-reduced-motion:reduce){.acc-dc.is-hint{animation:none;box-shadow:0 0 0 3px rgba(88,101,242,.75)}}
 /* Discord im Profil: Bild mit einem Klick übernehmen, Name kommt aus der Verbindung */
 .dsr .acx-upload__dc{border-color:rgba(88,101,242,.55);background:rgba(88,101,242,.14)}
 .dsr .acx-upload__dc:hover{border-color:#5865f2;background:rgba(88,101,242,.26)}

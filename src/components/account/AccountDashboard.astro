@@ -6,6 +6,7 @@ import FriendsManager from './FriendsManager.astro';
 import FriendsDock from './FriendsDock.astro';
 import MfaSettings from './MfaSettings.astro';
 import MfaCodeDialog from './MfaCodeDialog.astro';
+import DiscordElsewhere from './DiscordElsewhere.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 import { DISCORD } from '../../consts';
 import { counts as craftCounts } from '../../../assets/crafting-db.json';
@@ -641,6 +642,7 @@ const SEC = {
         <button type="button" class="acc-dc__off" id="btnDiscordUnlink" data-idle={COPY.dcUnlinkBtn} data-busy={COPY.dcUnlinkBusy} hidden>{COPY.dcUnlinkBtn}</button>
         <p class="acx-status" id="dcLinkStatus" role="status" aria-live="polite" hidden></p>
       </div>
+      <DiscordElsewhere lang={lang} mode="link" />
 
       <nav class="acc-nav" role="tablist" aria-label={lang === 'de' ? 'Konto-Bereiche' : 'Account sections'} aria-orientation="vertical">
         <button type="button" class="tab" role="tab" aria-selected="true" data-tab="overview"><svg viewBox="0 0 24 24"><use href="#ic-hex"/></svg><span class="lbl">{lang === 'de' ? 'Übersicht' : 'Overview'}</span></button>

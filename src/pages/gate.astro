@@ -110,6 +110,24 @@ import { SUPABASE, DISCORD } from '../consts';
     }
     .discord-btn:hover{transform:translateY(-1px);box-shadow:0 0 24px rgba(45,212,255,.35)}
     .discord-btn:disabled{opacity:.6;cursor:progress}
+    /* Anderes Discord-Konto: drei Schritte, Tasten statt Saetze. */
+    .other-toggle{background:none;border:0;padding:.2rem;margin-top:-.8rem;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6);letter-spacing:var(--ls-6);text-transform:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+    .other-toggle:hover,.other-toggle[aria-expanded="true"]{color:var(--text);transform:none;box-shadow:none}
+    .other,.back{text-align:left;gap:.7rem;padding:1.1rem 1.2rem}
+    .steps{list-style:none;display:grid;gap:.75rem}
+    .steps li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.3rem .7rem;align-items:center}
+    .steps .n{grid-row:span 2;align-self:start;width:1.5rem;height:1.5rem;display:grid;place-items:center;border-radius:50%;background:var(--accent);color:var(--ink);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6)}
+    .steps .t{font-size:var(--fs-7);line-height:1.35}
+    .keys{display:inline-flex;gap:4px}
+    .keys:empty{display:none}
+    kbd{min-width:1.6rem;padding:2px 6px;border-radius:5px;border:1px solid var(--line);border-bottom-width:2px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);text-align:center;color:var(--text)}
+    .copy{justify-self:start;padding:.35rem .8rem;border-radius:6px;background:var(--accent);color:var(--ink);font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-6);text-transform:uppercase;text-decoration:none}
+    .copy.is-off{opacity:.5;pointer-events:none}
+    .note{font-size:var(--fs-6);color:var(--muted);line-height:1.4}
+    .other .status{min-height:0}
+    .other .status:empty{margin-top:-.7rem}
+    .back p{font-size:var(--fs-8);line-height:1.45}
+    .back button{max-width:100%;overflow-wrap:anywhere;text-transform:none}
     [hidden]{display:none!important}
     .divider{font-family:var(--font-ui);font-size:var(--fs-5);color:var(--muted);text-transform:uppercase;letter-spacing:var(--ls-8);margin:.2rem 0}
     :focus-visible{outline:2px solid var(--accent);outline-offset:3px}</style>
@@ -121,6 +139,23 @@ import { SUPABASE, DISCORD } from '../consts';
 
   <button type="button" class="discord-btn" id="gateDiscordBtn"><span id="gateDiscordBtnTxt">Sign in with Discord</span></button>
   <p class="status" id="gateDiscordStatus" role="alert" aria-live="assertive"></p>
+
+  <!-- Anderes Discord-Konto, ohne das angemeldete abzumelden (31.10.2026):
+       Weg und Begruendung in src/lib/discord-elsewhere.ts. -->
+  <button type="button" class="other-toggle" id="gateOtherBtn" aria-expanded="false" aria-controls="gateOther">Different Discord account?</button>
+  <div class="card other" id="gateOther" hidden>
+    <ol class="steps">
+      <li><span class="n">1</span><span class="t">Open a private window</span><span class="keys" id="gateOtherKeys"></span></li>
+      <li><span class="n">2</span><span class="t">Open the link there, sign in to Discord with the other account</span><a class="copy is-off" id="gateOtherCopy" href="#" rel="nofollow noopener">Copy link</a></li>
+      <li><span class="n">3</span><span class="t">Paste the link from there here</span><input id="gateOtherPaste" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste link" aria-label="Paste link" /></li>
+    </ol>
+    <p class="note">Your current Discord account stays signed in.</p>
+    <p class="status" id="gateOtherStatus" role="status" aria-live="polite"></p>
+  </div>
+  <div class="card back" id="gateBack" hidden>
+    <p><strong>Almost done.</strong> Copy this link and paste it in the window where you started.</p>
+    <button type="button" id="gateBackCopy">Copy link</button>
+  </div>
 
   <p class="divider">or sign in with e-mail</p>
 
@@ -488,14 +523,14 @@ import { SUPABASE, DISCORD } from '../consts';
         else localStorage.removeItem(PKCE_KEY);
       }
 
-      discordBtn.addEventListener('click', function () {
-        discordBtn.disabled = true;
-        discordBtnTxt.textContent = 'Redirecting …';
-        // Keine zusaetzlichen Scopes -- identify+email ist die
-        // Provider-Vorgabe (D-03, siehe Koordinator-Gegenprobe:
-        // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst,
-        // damit der Ruecksprung SDK-frei vom bestehenden Inline-Skript
-        // gelesen werden kann; next steht im Eintrag, nicht in der Adresse.
+      // Neue Anmeldung: Eintrag mit Verifier und Rueckziel ablegen, Adresse
+      // des Anmeldedienstes liefern (null, wenn der Browser es nicht kann).
+      // Keine zusaetzlichen Scopes -- identify+email ist die
+      // Provider-Vorgabe (D-03, siehe Koordinator-Gegenprobe:
+      // scope=email+identify). redirect_to zeigt auf DIESE Seite selbst,
+      // damit der Ruecksprung SDK-frei vom bestehenden Inline-Skript
+      // gelesen werden kann; next steht im Eintrag, nicht in der Adresse.
+      function startFlow() {
         var verifier, flow;
         try {
           var raw = new Uint8Array(32);
@@ -509,22 +544,137 @@ import { SUPABASE, DISCORD } from '../consts';
           writeFlows(flows);
         } catch (e) { verifier = null; }
         var redirectTo = location.origin + '/gate.html?f=' + flow;
-        if (!verifier || !crypto.subtle) {
-          showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
-          discordBtn.disabled = false;
-          discordBtnTxt.textContent = 'Sign in with Discord';
-          return;
-        }
-        crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(function (hash) {
-          location.href = SB_URL + '/auth/v1/authorize?provider=discord' +
+        if (!verifier || !crypto.subtle) return Promise.resolve(null);
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)).then(function (hash) {
+          return SB_URL + '/auth/v1/authorize?provider=discord' +
             '&redirect_to=' + encodeURIComponent(redirectTo) +
             '&code_challenge=' + encodeURIComponent(b64url(new Uint8Array(hash))) +
             '&code_challenge_method=s256';
-        }).catch(function () {
+        }, function () { return null; });
+      }
+
+      discordBtn.addEventListener('click', function () {
+        discordBtn.disabled = true;
+        discordBtnTxt.textContent = 'Redirecting …';
+        startFlow().then(function (url) {
+          if (url) { location.href = url; return; }
           showDiscordStatus('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error');
           discordBtn.disabled = false;
           discordBtnTxt.textContent = 'Sign in with Discord';
         });
+      });
+
+      // ---- Anderes Discord-Konto (src/lib/discord-elsewhere.ts) ----------
+      // Discord nimmt immer das Konto, das in diesem Browser angemeldet ist.
+      // Ohne es abzumelden: Anmeldung HIER beginnen (Eintrag bleibt hier),
+      // den Link in einem privaten Fenster oeffnen und dort bei Discord mit
+      // dem anderen Konto anmelden, den Ruecklink von dort HIER einfuegen.
+      // Der code darin ist ohne den Verifier dieses Browsers wertlos.
+      var CODE_RE = /^[A-Za-z0-9-]{1,128}$/;
+      var otherBtn = document.getElementById('gateOtherBtn');
+      var otherBox = document.getElementById('gateOther');
+      var otherCopy = document.getElementById('gateOtherCopy');
+      var otherPaste = document.getElementById('gateOtherPaste');
+      var otherStatus = document.getElementById('gateOtherStatus');
+      var backBox = document.getElementById('gateBack');
+      var backCopy = document.getElementById('gateBackCopy');
+      var otherLink = '';
+      var ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+
+      function showOther(msg, tone) {
+        otherStatus.textContent = msg;
+        if (tone) otherStatus.setAttribute('data-tone', tone);
+        else otherStatus.removeAttribute('data-tone');
+      }
+      function copyText(text) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return false; });
+          }
+        } catch (e) { /* noop */ }
+        return Promise.resolve(false);
+      }
+      // Tasten fuers private Fenster (wie privateKeys in discord-elsewhere.ts,
+      // nur Englisch); auf Telefon und Tablet keine.
+      (function () {
+        var keysEl = document.getElementById('gateOtherKeys');
+        if (!keysEl || !ua || /Android|iPhone|iPad|Mobile/i.test(ua)) return;
+        var mac = /Macintosh|Mac OS X/.test(ua);
+        [mac ? '⌘' : 'Ctrl', mac ? '⇧' : 'Shift', /Firefox\//.test(ua) ? 'P' : 'N'].forEach(function (k) {
+          var b = document.createElement('kbd');
+          b.textContent = k;
+          keysEl.appendChild(b);
+        });
+      })();
+
+      function openOther() {
+        otherBox.hidden = false;
+        otherBtn.setAttribute('aria-expanded', 'true');
+        showOther('');
+        otherLink = '';
+        otherCopy.classList.add('is-off');
+        // Je Oeffnen eine frische Anmeldung (Eintrag gilt 15 Minuten).
+        startFlow().then(function (url) {
+          if (!url) { showOther('Your browser blocks this sign-in — please sign in with e-mail and password below.', 'error'); return; }
+          otherLink = url;
+          otherCopy.href = url;
+          otherCopy.classList.remove('is-off');
+        });
+      }
+      otherBtn.addEventListener('click', function () {
+        if (otherBox.hidden) { openOther(); return; }
+        otherBox.hidden = true;
+        otherBtn.setAttribute('aria-expanded', 'false');
+      });
+      // Klick kopiert; Rechtsklick „In privatem Fenster oeffnen" geht direkt.
+      otherCopy.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!otherLink) return;
+        copyText(otherLink).then(function (ok) { if (ok) showOther('Link copied.'); });
+      });
+
+      // Ruecklink aus dem privaten Fenster annehmen: nur diese Seite, mit
+      // Kennung und code, und nur eine Anmeldung, die DIESER Browser
+      // begonnen hat. Dann einfach oeffnen -- handleOauthReturn loest ein.
+      function takeReturn(text) {
+        var t = String(text || '').trim();
+        if (!t || t.length > 2048 || /\s/.test(t)) return false;
+        var u;
+        try { u = new URL(t); } catch (e) { return false; }
+        if (u.origin !== location.origin || u.pathname !== '/gate.html') return false;
+        var f = u.searchParams.get('f') || '';
+        var c = u.searchParams.get('code') || '';
+        if (!FLOW_RE.test(f) || !CODE_RE.test(c)) return false;
+        if (!readFlows()[f]) {
+          if (otherBox.hidden) openOther();
+          showOther('This link belongs to a sign-in in another browser. Please start again at step 2.', 'error');
+          return true;
+        }
+        location.href = '/gate.html?f=' + f + '&code=' + encodeURIComponent(c);
+        return true;
+      }
+      function pasted(e) {
+        var t = (e.clipboardData && e.clipboardData.getData('text')) || '';
+        if (takeReturn(t)) { e.preventDefault(); return; }
+        if (!otherBox.hidden && /^\s*https?:\/\//i.test(t)) showOther("That's not the link from the private window.", 'error');
+      }
+      otherPaste.addEventListener('paste', function (e) { pasted(e); if (e.stopPropagation) e.stopPropagation(); });
+      otherPaste.addEventListener('change', function () { takeReturn(otherPaste.value); });
+      if (document.addEventListener) document.addEventListener('paste', pasted);
+
+      // Im privaten Fenster: der Ruecksprung kann hier nicht eingeloest
+      // werden (kein Eintrag). Den Ruecklink zum Kopieren zeigen statt einer
+      // Fehlermeldung -- ein code ohne Verifier verraet nichts.
+      var backLink = '';
+      function showBack(f, c) {
+        if (!FLOW_RE.test(f) || !CODE_RE.test(c)) return false;
+        backLink = location.origin + '/gate.html?f=' + f + '&code=' + encodeURIComponent(c);
+        backBox.hidden = false;
+        return true;
+      }
+      backCopy.addEventListener('click', function () {
+        if (!backLink) return;
+        copyText(backLink).then(function (ok) { backCopy.textContent = ok ? 'Copied' : backLink; });
       });
 
       // Konto liess sich nicht anlegen: GoTrue meldet einen Fehler aus dem
@@ -562,9 +712,9 @@ import { SUPABASE, DISCORD } from '../consts';
         // der Torseite (zweiter Tab) laesst laufende Anmeldungen in Ruhe.
         // Das Rueckziel kommt aus dem Eintrag und geht erneut durch safeNext.
         var verifier = null;
+        var flowId = qp.get('f') || '';
         if (code || oauthErr) {
           try {
-            var flowId = qp.get('f') || '';
             var flows = readFlows();
             var entry = FLOW_RE.test(flowId) ? flows[flowId] : null;
             if (entry) delete flows[flowId];
@@ -598,7 +748,10 @@ import { SUPABASE, DISCORD } from '../consts';
         if (!code) return false; // nur Tokens im Fragment: verworfen, normal weiter
         if (!verifier) {
           // Kein Verifier in diesem Browser: der Ruecksprung gehoert nicht
-          // zu einer hier gestarteten Anmeldung.
+          // zu einer hier gestarteten Anmeldung. Meist das private Fenster
+          // aus "Different Discord account?" (oder die Discord-App hat einen
+          // anderen Browser geoeffnet): Ruecklink fuers erste Fenster zeigen.
+          if (showBack(flowId, code)) return true;
           showDiscordStatus('Discord sign-in could not be completed in this browser — please try again.', 'error');
           return true;
         }

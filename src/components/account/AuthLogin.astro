@@ -10,8 +10,12 @@
 //  - ?next=/… (nur relative Pfade): Rücksprungziel nach Login
 //  - zweiter Faktor: hat das Konto einen bestätigten Authenticator, gilt die
 //    Anmeldung (Passwort ODER Discord) erst mit dem Code (MfaCodeDialog)
+//  - anderes Discord-Konto (DiscordElsewhere, src/lib/discord-elsewhere.ts):
+//    landet ein ?code= ohne Verifier hier (privates Fenster), zeigt die
+//    Seite den Rücklink fürs erste Fenster statt einer Fehlermeldung
 import { href } from '../../i18n/ui';
 import MfaCodeDialog from './MfaCodeDialog.astro';
+import DiscordElsewhere from './DiscordElsewhere.astro';
 
 interface Props {
   lang: 'de' | 'en';
@@ -44,6 +48,9 @@ const COPY = {
     emailChangeHalf: 'Bestätigung angenommen — bitte öffne auch den Link, den wir an deine andere Adresse geschickt haben.',
     toDash: 'Weiter zu deinem Konto',
     mfaCancel: 'Anmeldung abgebrochen — ohne den Code aus der Authenticator-App bleibst du abgemeldet.',
+    backTitle: 'Fast geschafft.',
+    backText: 'Kopiere diesen Link und füge ihn in dem Fenster ein, in dem du angefangen hast.',
+    backCopy: 'Link kopieren', backCopied: 'Kopiert',
   },
   en: {
     email: 'E-mail', emailPh: 'you@example.com',
@@ -65,6 +72,9 @@ const COPY = {
     emailChangeHalf: 'Confirmation accepted — please also open the link we sent to your other address.',
     toDash: 'Continue to your account',
     mfaCancel: 'Sign-in cancelled — without the code from your authenticator app you stay signed out.',
+    backTitle: 'Almost done.',
+    backText: 'Copy this link and paste it in the window where you started.',
+    backCopy: 'Copy link', backCopied: 'Copied',
   },
 }[lang];
 
@@ -74,6 +84,10 @@ const resetHref = href('/account/reset.html', lang);
 ---
 
 <div class="acx-card reveal">
+  <div class="acx-back" id="loginBack" hidden>
+    <p><strong>{COPY.backTitle}</strong> {COPY.backText}</p>
+    <button type="button" class="acx-submit acx-discord" id="loginBackCopy" data-done={COPY.backCopied}>{COPY.backCopy}</button>
+  </div>
   <p class="acx-status acx-status--ok" id="loginOk" hidden></p>
   <form id="loginForm" novalidate
     data-dash={dashboardHref}
@@ -111,6 +125,7 @@ const resetHref = href('/account/reset.html', lang);
     <svg class="acx-discord__logo" viewBox="0 0 127.14 96.36" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21H.55A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
     <span id="discordBtnTxt">{COPY.discordBtn}</span>
   </button>
+  <DiscordElsewhere lang={lang} mode="login" />
   <div class="acx-links">
     <a href={registerHref}>{COPY.toRegister}</a>
     <a href={resetHref}>{COPY.toReset}</a>
@@ -124,6 +139,14 @@ const resetHref = href('/account/reset.html', lang);
   .acx-discord { width: 100%; justify-content: center; margin-top: 1.5rem; gap: 10px; background: #4752c4; border-color: transparent; color: #fff; }
   .acx-discord:hover { background: #5865f2; }
   .acx-discord__logo { width: 22px; height: 17px; fill: currentColor; flex: none; }
+  /* Privates Fenster nach „Anderes Discord-Konto?": der Rücklink obenan. */
+  .acx-back { display: grid; gap: 0.8rem; margin-bottom: 1.2rem; padding: 1rem 1.1rem; border-radius: 10px; border: 1px solid rgba(88, 101, 242, 0.55); background: rgba(88, 101, 242, 0.12); }
+  .acx-back p { margin: 0; line-height: 1.5; }
+  .acx-back .acx-discord { margin-top: 0; }
+  /* display:grid oben schlägt sonst das hidden-Attribut: der Kasten stünde
+     bei jedem Aufruf da (31.10.2026 im Bild gesehen, Test in
+     discord-elsewhere.test.js). */
+  .acx-back[hidden] { display: none; }
 </style>
 
 <script>
@@ -132,6 +155,12 @@ const resetHref = href('/account/reset.html', lang);
   import { needsCode } from '../../lib/mfa';
   import { askCode } from '../../lib/mfa-dialog';
   import { safeNext } from '../../lib/safe-next';
+  import { returnLink } from '../../lib/discord-elsewhere';
+  import { copyText } from '../../lib/copy-text';
+
+  // Vor jedem Aufräumen der Adresse: ein ?code= ohne Verifier hier wird
+  // unten zum Rücklink fürs erste Fenster.
+  const landing = location.href;
 
   const form = document.getElementById('loginForm') as HTMLFormElement | null;
   if (form) {
@@ -239,7 +268,23 @@ const resetHref = href('/account/reset.html', lang);
         go();
         return;
       }
-      if (strayCode && !AUTH_URL.error && !linkHandled && params.get('confirmed') !== '1') say(status, D.msgOauth!);
+      if (strayCode && !AUTH_URL.error && !linkHandled && params.get('confirmed') !== '1') {
+        // Ein code ohne Verifier in diesem Browser: meist das private Fenster
+        // aus „Anderes Discord-Konto?" (oder die Discord-App hat einen
+        // anderen Browser geöffnet). Den Rücklink anbieten; ohne den
+        // Verifier des ersten Fensters ist er wertlos.
+        const back = returnLink(landing);
+        const box = document.getElementById('loginBack');
+        const btn = document.getElementById('loginBackCopy') as HTMLButtonElement | null;
+        if (back && box && btn) {
+          box.hidden = false;
+          btn.addEventListener('click', async () => {
+            if (await copyText(back)) btn.textContent = '✓ ' + (btn.dataset.done || '');
+          });
+        } else {
+          say(status, D.msgOauth!);
+        }
+      }
     })();
 
     form.addEventListener('submit', async (e) => {
