@@ -275,6 +275,18 @@ body{font-family:var(--font-body)}
       dir ausgelösten Zahlung).
     </p>
     <p>
+      Damit niemand den Knopf automatisiert missbraucht, nimmt der Serverteil dieses Projekts je
+      Internetanschluss höchstens zehn Aufrufe in der Stunde an und legt also höchstens zehn
+      Bezahlseiten an. Dafür speichert er zu jedem angenommenen Aufruf einen Prüfwert, gebildet
+      aus deiner IP-Adresse (bei IPv6 nur aus deren ersten 56 Bit) und einem Geheimwert, der nur
+      serverseitig vorliegt und nicht in der Datenbank steht, und den Zeitpunkt. Die IP-Adresse
+      selbst wird nicht gespeichert, und ohne den Geheimwert lässt sie sich aus dem Prüfwert nicht
+      zurückgewinnen. Einträge, die älter als eine Stunde sind, löscht er beim nächsten Aufruf,
+      für den er einen Prüfwert bildet. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; das
+      berechtigte Interesse ist der Schutz des Spendenwegs und des Stripe-Kontos vor massenhaft
+      angelegten Bezahlseiten.
+    </p>
+    <p>
       Ist eine Zahlung bestätigt, meldet Stripe das an den Serverteil dieses Projekts. Was bei uns
       gespeichert wird, ist bewusst auf das beschränkt, was eine laufende Summe braucht:
       <strong>Betrag, Währung, Zeitpunkt und die technischen Vorgangsnummern von Stripe</strong>.

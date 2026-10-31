@@ -260,6 +260,17 @@ body{font-family:var(--font-body)}
       the payment you initiated).
     </p>
     <p>
+      So that nobody can misuse the button automatically, this project’s server component accepts
+      at most ten calls per hour for each internet connection, and so creates at most ten payment
+      pages. To do this it stores, for each accepted call, a check value derived from your IP
+      address (for IPv6, only its first 56 bits) and a secret that is held only on the server side
+      and not stored in the database, plus the time of the call. The IP address itself is not
+      stored, and without the secret it cannot be recovered from the check value. It deletes
+      entries older than one hour on the next call for which it forms a check value. The legal
+      basis is Art. 6 (1) (f) GDPR; the legitimate interest is protecting the donation path and
+      the Stripe account against payment pages created in bulk.
+    </p>
+    <p>
       Once a payment has been confirmed, Stripe notifies this project’s server component. What is
       stored on our side is deliberately reduced to what a running total needs: <strong>the amount,
       the currency, the time, and Stripe’s technical reference numbers for the transaction</strong>.
