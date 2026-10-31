@@ -45,6 +45,14 @@ const COPY = {
     needHandle: 'Ohne Handle findet dich niemand.',
     setHandle: 'Handle setzen',
     loading: 'Lade dein Netzwerk …',
+    inviteH: 'Freunde einladen',
+    inviteTip: 'Teile deinen Pilotenlink, zum Beispiel in Discord. Wer ihn öffnet, sieht deine Pilotenseite und kann dich mit einem Klick als Freund hinzufügen. Wer noch kein Konto hat, landet nach dem Registrieren wieder bei dir.',
+    inviteLbl: 'Dein Pilotenlink',
+    inviteCopy: 'Kopieren',
+    inviteShare: 'Teilen',
+    inviteOpen: 'Ansehen',
+    inviteDc: 'So zeigt Discord deinen Link',
+    more: 'Mehr dazu',
   },
   en: {
     tabFriends: 'Friends',
@@ -68,6 +76,14 @@ const COPY = {
     needHandle: 'Without a handle nobody can find you.',
     setHandle: 'Set handle',
     loading: 'Loading your network …',
+    inviteH: 'Invite friends',
+    inviteTip: 'Share your pilot link, for example on Discord. Whoever opens it sees your pilot page and can add you as a friend with one click. Anyone without an account comes back to you after signing up.',
+    inviteLbl: 'Your pilot link',
+    inviteCopy: 'Copy',
+    inviteShare: 'Share',
+    inviteOpen: 'View',
+    inviteDc: 'How Discord shows your link',
+    more: 'More',
   },
 }[lang];
 
@@ -88,6 +104,7 @@ const JS = {
     okRemoved: '%name% entfernt',
     okWithdrawn: 'Anfrage zurückgezogen',
     okDeclined: 'Anfrage abgelehnt',
+    okCopied: 'Link kopiert',
   },
   en: {
     accept: 'Accept', decline: 'Decline', withdraw: 'Withdraw', remove: 'Remove', removeQ: 'Remove?',
@@ -104,6 +121,7 @@ const JS = {
     okRemoved: '%name% removed',
     okWithdrawn: 'Request withdrawn',
     okDeclined: 'Request declined',
+    okCopied: 'Link copied',
   },
 }[lang];
 
@@ -151,25 +169,67 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
   <p class="acx-hint" id="fmLoading">{COPY.loading}</p>
 
-  <div id="fmPanelFriends" class="fm-panel" role="tabpanel" aria-labelledby="fmTabBtnFriends" hidden>
-    <label class="sv-search fm-filter" id="fmFilterWrap" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-search"/></svg>
-      <input type="search" id="fmFilterInput" class="inp" placeholder={COPY.filterPh} aria-label={COPY.filterPh} autocomplete="off" spellcheck="false" />
-    </label>
-    <section class="sv-sec" id="fmOnSec" hidden>
-      <h3 class="sv-sh"><span>{COPY.online}</span><b id="fmOnN"></b></h3>
-      <ul class="fm-grid" id="fmOnline"></ul>
-    </section>
-    <section class="sv-sec" id="fmOffSec" hidden>
-      <h3 class="sv-sh"><span>{COPY.offline}</span><b id="fmOffN"></b></h3>
-      <ul class="fm-grid" id="fmOffline"></ul>
-    </section>
-    <p class="sv-none" id="fmNoneFiltered" hidden>{COPY.emptyFiltered}</p>
-    <div class="ck-empty sv-empty fm-empty" id="fmFriendsEmpty" hidden>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
-      <p><b>{COPY.emptyFriends}</b><br/>{COPY.emptyHint}</p>
-      <button type="button" class="btn sm" id="fmEmptySuggest" hidden>{COPY.emptyToSuggest}</button>
+  <div id="fmPanelFriends" class="fm-panel fm-panel--friends" role="tabpanel" aria-labelledby="fmTabBtnFriends" hidden>
+    <div class="fm-lists">
+      <label class="sv-search fm-filter" id="fmFilterWrap" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-search"/></svg>
+        <input type="search" id="fmFilterInput" class="inp" placeholder={COPY.filterPh} aria-label={COPY.filterPh} autocomplete="off" spellcheck="false" />
+      </label>
+      <section class="sv-sec" id="fmOnSec" hidden>
+        <h3 class="sv-sh"><span>{COPY.online}</span><b id="fmOnN"></b></h3>
+        <ul class="fm-grid" id="fmOnline"></ul>
+      </section>
+      <section class="sv-sec" id="fmOffSec" hidden>
+        <h3 class="sv-sh"><span>{COPY.offline}</span><b id="fmOffN"></b></h3>
+        <ul class="fm-grid" id="fmOffline"></ul>
+      </section>
+      <p class="sv-none" id="fmNoneFiltered" hidden>{COPY.emptyFiltered}</p>
+      <div class="ck-empty sv-empty fm-empty" id="fmFriendsEmpty" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
+        <p><b>{COPY.emptyFriends}</b><br/>{COPY.emptyHint}</p>
+        <button type="button" class="btn sm" id="fmEmptySuggest" hidden>{COPY.emptyToSuggest}</button>
+      </div>
     </div>
+
+    <!-- Einladen (Runde 4): der eigene Pilotenlink, daneben bzw. darunter die
+         Karte, die Discord beim Teilen zeigt. Dieselbe Regel setzt nginx in
+         die Kopfzeilen der Pilotenseite (src/lib/pilotPreview.ts, nginx/pilot.js). -->
+    <aside class="fm-invite" id="fmInvite" aria-labelledby="fmInviteH" hidden>
+      <div class="fm-invite__in">
+        <h3 class="fm-invite__h" id="fmInviteH">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-user-plus"/></svg>
+          <span>{COPY.inviteH}</span>
+          <button type="button" class="pfx-i" data-tip="fmInviteTip" aria-label={COPY.more}>i</button>
+        </h3>
+        <p class="pfx-tiptext" id="fmInviteTip" hidden>{COPY.inviteTip}</p>
+        <div class="fm-link">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-link"/></svg>
+          <input type="text" class="inp" id="fmInviteUrl" readonly aria-label={COPY.inviteLbl} spellcheck="false" />
+        </div>
+        <div class="fm-invite__acts">
+          <button type="button" class="fm-btn fm-btn--primary fm-ibtn" id="fmInviteCopy">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-link"/></svg><span>{COPY.inviteCopy}</span>
+          </button>
+          <button type="button" class="fm-btn fm-ibtn" id="fmInviteShare" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-share"/></svg><span>{COPY.inviteShare}</span>
+          </button>
+          <a class="fm-btn fm-ibtn" id="fmInviteOpen" href={pilotBase} target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-ext"/></svg><span>{COPY.inviteOpen}</span>
+          </a>
+        </div>
+        <p class="fm-invite__k">
+          <svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#ic-discord"/></svg>{COPY.inviteDc}
+        </p>
+        <div class="fm-dc" id="fmDc">
+          <div class="fm-dc__main">
+            <span class="fm-dc__site">VerseBase</span>
+            <b class="fm-dc__title" id="fmDcTitle"></b>
+            <span class="fm-dc__desc" id="fmDcDesc"></span>
+          </div>
+          <img class="fm-dc__img" id="fmDcImg" alt="" />
+        </div>
+      </div>
+    </aside>
   </div>
 
   <div id="fmPanelRequests" class="fm-panel" role="tabpanel" aria-labelledby="fmTabBtnRequests" hidden>
@@ -203,6 +263,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   import { STATUS_STATES, CITIZEN_ROLES } from '../../lib/profilePresets';
   import { resolveStatusKey, formatActivity } from '../../lib/presence';
   import { rankBadge } from '../../lib/rankBadge';
+  import { pilotPreview, HANDLE_RE, type PreviewProfile } from '../../lib/pilotPreview';
 
   const fmWrap = document.querySelector('.friends-manager') as HTMLElement | null;
   if (fmWrap) {
@@ -259,6 +320,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     let myHandle: string | null = null;
     let myOrg = '';
     let myRole = '';
+    let myCard: PreviewProfile | null = null;
     let loaded = false;
     let friends: Array<{ rowId: string; since: string; p: Prof }> = [];
     let incoming: Req[] = [];
@@ -522,18 +584,71 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       avatar_color: null, role: null, status_state: null, status_text: null, presence: null, rsi_verified: null,
     });
 
+    /* --------------------------------------------------------- Einladen --- */
+    // Der eigene Pilotenlink zum Kopieren/Teilen und daneben die Karte, die
+    // Discord beim Teilen zeigt (gleiche Regel wie nginx/pilot.js). Erst mit
+    // gespeichertem Handle gibt es einen Link; ohne steht oben der Hinweis.
+    const MY_COLS = 'handle, org_name, role, display_name, bio, banner_url, avatar_url, avatar_color';
+    const inviteEl = $('fmInvite');
+    const inviteUrl = $('fmInviteUrl') as HTMLInputElement;
+    const shareBtn = $('fmInviteShare') as HTMLButtonElement;
+    const paintInvite = () => {
+      const pv = myCard ? pilotPreview(myCard, lang, location.origin) : null;
+      inviteEl.hidden = !pv;
+      if (!pv) return;
+      // Angezeigt ohne https://, kopiert und geteilt wird die ganze Adresse.
+      inviteUrl.dataset.url = pv.url;
+      inviteUrl.value = pv.url.replace(/^https?:\/\//, '');
+      ($('fmInviteOpen') as HTMLAnchorElement).href = pv.url;
+      $('fmDcTitle').textContent = pv.title;
+      $('fmDcDesc').textContent = pv.desc;
+      const img = $('fmDcImg') as HTMLImageElement;
+      // Ohne eigenes Bild zeigt Discord das Standardbild der Seite, breit.
+      img.src = pv.image || '/assets/og-default.jpg';
+      $('fmDc').classList.toggle('is-thumb', !!pv.image && !pv.large);
+      if (pv.color) $('fmDc').style.setProperty('--dcc', pv.color);
+      else $('fmDc').style.removeProperty('--dcc');
+    };
+    shareBtn.hidden = typeof navigator.share !== 'function';
+    $('fmInviteCopy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(inviteUrl.dataset.url || inviteUrl.value);
+      } catch {
+        inviteUrl.value = inviteUrl.dataset.url || inviteUrl.value;
+        inviteUrl.select();
+        document.execCommand('copy');
+      }
+      toast(C.okCopied);
+    });
+    shareBtn.addEventListener('click', () => {
+      navigator.share({ title: $('fmDcTitle').textContent || '', url: inviteUrl.dataset.url || inviteUrl.value }).catch(() => {});
+    });
+    inviteUrl.addEventListener('focus', () => inviteUrl.select());
+    // Profil gespeichert (Name, Bio, Bilder): Karte neu, ohne alles neu zu laden.
+    document.addEventListener('vb:profile-saved', async () => {
+      if (!me) return;
+      const { data } = await supabase.from('profiles').select(MY_COLS).eq('id', me).maybeSingle();
+      if (data) { myCard = data as PreviewProfile; paintInvite(); }
+    });
+    // Von einer fremden Pilotenseite ohne eigenes Handle hierher geschickt
+    // (?add=<handle>): das Feld steht schon ausgefüllt bereit.
+    const addFromUrl = (new URLSearchParams(location.search).get('add') || '').trim().toLowerCase();
+    if (HANDLE_RE.test(addFromUrl)) handleInput.value = '@' + addFromUrl;
+
     const loadAll = async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u?.user) return;
       me = u.user.id;
 
       const { data: myProf } = await supabase
-        .from('profiles').select('handle, org_name, role').eq('id', me).maybeSingle();
-      const mp = (myProf || {}) as { handle?: string; org_name?: string; role?: string };
+        .from('profiles').select(MY_COLS).eq('id', me).maybeSingle();
+      const mp = (myProf || {}) as PreviewProfile & { role?: string };
       myHandle = mp.handle || null;
       myOrg = (mp.org_name || '').trim();
       myRole = mp.role || '';
+      myCard = mp;
       noHandleEl.hidden = !!myHandle;
+      paintInvite();
 
       const [{ data: fRows }, { data: rRows }] = await Promise.all([
         supabase.from('friends').select('id, user_id, friend_id, created_at'),

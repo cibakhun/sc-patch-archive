@@ -69,7 +69,7 @@ const COPY = lang === 'de'
       ctaBtn: 'Profil erstellen',
       addFriend: 'Freund hinzufügen', requested: 'Anfrage gesendet', accept: 'Anfrage annehmen',
       message: 'Nachricht', isFriend: 'Freunde', editProfile: 'Profil bearbeiten',
-      needHandle: 'Setze zuerst dein eigenes Handle.', err: 'Das hat nicht geklappt.',
+      err: 'Das hat nicht geklappt.',
       locale: 'de-DE',
     }
   : {
@@ -104,7 +104,7 @@ const COPY = lang === 'de'
       ctaBtn: 'Create profile',
       addFriend: 'Add friend', requested: 'Request sent', accept: 'Accept request',
       message: 'Message', isFriend: 'Friends', editProfile: 'Edit profile',
-      needHandle: 'Set your own handle first.', err: 'That did not work.',
+      err: 'That did not work.',
       locale: 'en-US',
     };
 
@@ -867,6 +867,14 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
     }
     handle = handle.toLowerCase();
 
+    // Gast über einen geteilten Pilotenlink: „Profil erstellen" führt nach
+    // dem Registrieren hierher zurück (AuthRegister kennt ?next=), wo dann
+    // „Freund hinzufügen" wartet.
+    const cta = document.querySelector<HTMLAnchorElement>('.pp-cta');
+    if (cta && app.dataset.register) {
+      cta.href = app.dataset.register + '?next=' + encodeURIComponent(location.pathname + location.search);
+    }
+
     const showError = (title: string, body: string, code: string) => {
       $('ppLoading')!.hidden = true;
       $('ppRoot')!.hidden = true;
@@ -1173,7 +1181,13 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
         acts.innerHTML = `<button type="button" class="pp-act pp-act--go" id="ppAdd">${ICO.add}${esc(COPY.addFriend)}</button>`;
         $('ppAdd')!.addEventListener('click', async (e) => {
           const b = e.currentTarget as HTMLButtonElement;
-          if (!mine.data?.handle) { say(COPY.needHandle); return; }
+          // Ohne eigenes Handle geht keine Anfrage raus: in den Freunde-
+          // Bereich, dort steht dieser Pilot schon im Feld (?add=), und der
+          // Hinweis führt zum Handle.
+          if (!mine.data?.handle) {
+            location.href = `${account}?add=${encodeURIComponent(handle)}#friends`;
+            return;
+          }
           b.disabled = true;
           const { error } = await supabase.from('friend_requests').insert({ sender_id: me, receiver_id: them });
           if (error) { say(COPY.err); b.disabled = false; return; }

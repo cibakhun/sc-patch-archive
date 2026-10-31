@@ -103,9 +103,10 @@ const fail = (msg) => {
 // (theme.css, fonts.css).
 const MIN_AUSNAHMEN = 6;
 const MIN_TORSEITE_RESSOURCEN = 2;
-// Stand 30.10.2026: 20 location-Bloecke, 4 davon mit Torabfrage.
-const MIN_LOCATIONS = 20;
-const MIN_LOCATIONS_MIT_TOR = 4;
+// Stand 31.10.2026: 22 location-Bloecke, 6 davon mit Torabfrage (dazu
+// kamen die beiden Pilotenseiten mit eigener Link-Vorschau, nginx/pilot.js).
+const MIN_LOCATIONS = 22;
+const MIN_LOCATIONS_MIT_TOR = 6;
 
 /* ---------- GATE-AUSNAHME-Zeilen einsammeln ---------- */
 const AUSNAHME_RE = /^# GATE-AUSNAHME: (.+)$/;

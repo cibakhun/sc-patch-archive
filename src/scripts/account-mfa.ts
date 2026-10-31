@@ -68,7 +68,10 @@ async function boot(card: HTMLElement) {
     if (!fs) { if (!card.hidden) say(C.errNet); return; }
     verified = fs.verified;
     card.hidden = !(keep || isAdmin || verified.length > 0 || fs.pending.length > 0);
+    // Für das Schild oben im Bereich (account-security.ts): angeboten? aktiv?
+    document.dispatchEvent(new CustomEvent('vb:mfa', { detail: { offered: !card.hidden, active: verified.length > 0 } }));
     if (card.hidden) return;
+    card.classList.toggle('is-on', verified.length > 0);
     stateEl.textContent = verified.length === 0 ? C.off
       : verified.length === 1 ? C.on1 : (C.onN || '').replace('%n%', String(verified.length));
     const aal2 = await hasAal2(supabase);

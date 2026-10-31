@@ -279,6 +279,15 @@ function boot(root: HTMLElement) {
     $('svNone').hidden = !(total > 0 && !loShown.length && !favShown.length);
     ($('svSearch').closest('.sv-search') as HTMLElement).hidden = total < 6;
     $('svSync').hidden = layouts.state() !== 'error';
+    // Für die Mini-Pilotenseite im Profil (account-profile-view.ts): was dort
+    // im Hangar stünde. Erst die angehefteten Loadouts, dann Schiffe aus den
+    // Favoriten; die übrigen Favoriten zählen für den Abschnitt darunter.
+    const tile = (slug: string, name: string) => ({ name, img: thumbs[slug] || '' });
+    document.dispatchEvent(new CustomEvent('vb:showcase', { detail: {
+      pins: livePins().map((id) => los.find((l) => l.id === id)).filter((e): e is LayoutEntry => !!e).map((e) => tile(e.ship, e.name || shipLabel(e.ship))),
+      ships: favs.filter((f) => f.kind === 'ship').map((f) => tile(f.slug, f.label || shipLabel(f.slug))),
+      rest: favs.filter((f) => f.kind !== 'ship').length,
+    } }));
   }
 
   ($('svSearch') as HTMLInputElement).addEventListener('input', (e) => {
