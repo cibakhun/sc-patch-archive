@@ -270,3 +270,23 @@ die Prüfseite, nicht das Modell.
 **Ergebnis:** keine Verschlechterung gegen staging gefunden. Offen bleiben die
 oben genannten fünf Innenräume über 1 % außen und die elf losen Teile aus
 `hangar-inseln.md`. Sichturteil WINDOWS #143.
+
+## Tor (31.10.2026)
+
+`verify:hangar-lage` (Schiene A, `scripts/verify-hangar-lage.mjs`) prüft
+gegen `dist/` mit derselben Rechnung wie dieses Werkzeug
+(`scripts/lib/hangar-lage.mjs`, Viewer-Regel `isDamageMesh`, nur Knoten
+der Szene): [2] Anteil außen je Innenraum unter seiner Klinke (+0,3
+Prozentpunkte), ab 1 % nur mit benannter Ausnahme (die fünf oben), [3] ein
+Innenraum mit Dreiecken hat am Pilotensitz mindestens 20 Dreiecke bis
+1,5 m (192 von 215; die 23 ohne Dreiecke zählen nur mit). Klinke mit
+Fingerabdruck je Schiff in `scripts/lib/hangar-lage-klinke.json`: ohne
+geänderte Datei 2 s, nach einem Neubau alle 231 Schiffe gut 2 Minuten auf
+4 Kernen, danach `--nachziehen`.
+
+Vorgeführt rot: Gladius-Innenraum in `dist/` 8,5 m nach hinten gesetzt
+(der Fehler vor #269) → „[2] aegs-gladius: 100 % des Innenraums liegen
+ausserhalb des Rumpfs“, „[3] aegs-gladius: am Pilotensitz
+hardpoint_seat_pilot nur 0 Dreiecke des Innenraums bis 1.5 m (naechstes
+7.24 m)“, „[3] nur 191 Sitze mit Innenraum, Klinke 192“; Datei
+zurückgelegt → grün.

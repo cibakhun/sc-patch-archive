@@ -111,3 +111,17 @@ Die elf sichtbaren brauchen je eine eigene Klärung gegen die Spieldaten
 (Platzierung im Container, Bugscharnier einer Seite, Fahrwerksknochen,
 Tankstutzen, Laserkopf). Eine gemeinsame Regel dafür habe ich nicht gefunden;
 Versätze je Schiff von Hand habe ich nicht eingetragen.
+
+## Tor (31.10.2026)
+
+`verify:hangar-lage` [4] (Schiene A) prüft jeden ausgelieferten Rumpf mit
+derselben Rechnung (`scripts/lib/hangar-lage.mjs`): Ein Schiff mit losem
+Teil außerhalb des Hüllquaders braucht eine benannte Ausnahme (die 16
+Schiffe oben, Anlass aus dieser Tabelle), mehr Inseln oder weiter draußen
+(+0,5 m) als seine Klinke ist FEHLER, eine Ausnahme ohne Insel ein Zombie.
+Höchstens 16 Schiffe mit losen Teilen.
+
+Vorgeführt rot: am Gladius-Rumpf in `dist/` ein Teil (48 Dreiecke
+Warnband) 25 m nach hinten gesetzt → „[4] aegs-gladius: 1 lose Teile neben
+dem Rumpf (48 Dr. 7.9 m draussen, …) ohne benannte Ausnahme“, „[4] 17
+Schiffe mit losen Teilen, Klinke 16“; Datei zurückgelegt → grün.
