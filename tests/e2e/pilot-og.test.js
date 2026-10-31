@@ -145,7 +145,7 @@ describe('Teilen: eigene Link-Vorschau je Pilot', () => {
   test('5. Verdrahtung: nginx-Orte mit Tor, Modul im Image, Schlüssel wie im Seiten-JS', () => {
     assert.match(conf, /^js_import pilot from \/etc\/nginx\/pilot\.js;$/m);
     for (const loc of ['/de/pilot.html', '/pilot.html']) {
-      const re = new RegExp(`location = ${loc.replace(/[./]/g, '\\$&')} \\{\\s*if \\(\\$vb_gate_ok = "0"\\) \\{ return 302 /gate\\.html\\?next=\\$vb_next; \\}\\s*js_content pilot\\.page;\\s*\\}`);
+      const re = new RegExp(`location = ${loc.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')} \\{\\s*if \\(\\$vb_gate_ok = "0"\\) \\{ return 302 /gate\\.html\\?next=\\$vb_next; \\}\\s*js_content pilot\\.page;\\s*\\}`);
       assert.match(conf, re, `location = ${loc} ohne Tor oder ohne pilot.page`);
     }
     assert.match(docker, /^COPY nginx\/pilot\.js \/etc\/nginx\/pilot\.js$/m);

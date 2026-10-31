@@ -70,7 +70,7 @@ function imageUrl(origin, u) {
 
 // Ersetzt den content="" eines vorhandenen <meta …>; fehlt der Tag, bleibt alles.
 function setMeta(html, attr, name, value) {
-  const re = new RegExp('(<meta ' + attr + '="' + name.replace(/[.:]/g, '\\$&') + '" content=")[^"]*(")');
+  const re = new RegExp('(<meta ' + attr + '="' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '" content=")[^"]*(")');
   return html.replace(re, (m, a, b) => a + esc(value) + b);
 }
 
