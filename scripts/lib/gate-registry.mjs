@@ -308,6 +308,17 @@ export const CHECKS = [
     checks: 'durch die Haube jedes Schiffs der Hangarseite sieht man nicht durch das Schiff in die Halle: Strahlen durch das Haubenglas, die hinter einer Rueckseite nichts mehr treffen, was der Viewer zeichnet, je Schiff unter seiner Klinke (Krisz 29.10.2026: Gladius von innen hohl)',
   },
   {
+    // Neuzugang (31.10.2026): mit Fingerabdruck-Klinke wie verify:hangar-cockpit
+    // 2 s; nach einem Neubau misst es mit allen Kernen (231 Schiffe gut 2
+    // Minuten auf 4 Kernen). Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess (Worker-Faeden) — liest dist/.
+    id: 'verify:hangar-lage',
+    npm: 'verify:hangar-lage',
+    script: 'scripts/verify-hangar-lage.mjs',
+    rail: 'A',
+    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz, und kein Rumpf hat Teile, die getrennt neben ihm haengen, ohne benannte Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen)',
+  },
+  {
     // Neuzugang (30.10.2026), vor dem langen audit:site: entpackt die
     // Crew-Figur (1,7 MB Draco) und laedt das ausgelieferte Crew-Modul in
     // Node (three aus node_modules), Sekunden. Kein env-Feld: kein git, kein
@@ -540,7 +551,7 @@ export const CHECKS = [
     checks: 'misst je begehbarem Innenraum (oder je Container eines Rohexports), wie viele Dreiecke ausserhalb des Rumpfs liegen, und sucht den Versatz, mit dem er hineinpasst',
     why:
       'Erhebungswerkzeug fuer .planning/notes/hangar-innenlage.md (Krisz, 30.10.2026: Innenraeume dabei, jedes Schiff innen und aussen ansehen): Roentgenbilder zeigten Innenraeume, die aus dem Rumpf ragen. ' +
-      'Laeuft auf dem PC auch gegen Rohexporte (--roh), um die Lage der Container zu klaeren; ein Tor folgt, wenn die Innenraeume sitzen.',
+      'Laeuft auf dem PC auch gegen Rohexporte (--roh), um die Lage der Container zu klaeren. Dieselbe Rechnung (scripts/lib/hangar-lage.mjs) prueft verify:hangar-lage als Tor gegen die ausgelieferten Modelle.',
   },
   {
     id: 'measure-hangar-inseln',
@@ -549,7 +560,7 @@ export const CHECKS = [
     checks: 'sucht je Rumpf (oder je Rohexport) Teile, die mehr als 1 m vom Rumpf getrennt ausserhalb seines Huellquaders in der Luft haengen, und nennt Material und (roh) Knotenpfad',
     why:
       'Erhebungswerkzeug fuer .planning/notes/hangar-inseln.md (Krisz, 30.10.2026: jedes Schiff innen und aussen ansehen): Hornet-Fluegelwaffen, ein Feuerloescherschrank ueber dem Avenger und Kleinteile unter der 300i-Reihe hingen frei in der Luft. ' +
-      'Laeuft auf dem PC auch gegen Rohexporte (--roh, --mit-ausgeblendet), um zu sehen, ob der Bau ein verbindendes Teil weglaesst; ein Tor folgt, wenn die Teile sitzen.',
+      'Laeuft auf dem PC auch gegen Rohexporte (--roh, --mit-ausgeblendet), um zu sehen, ob der Bau ein verbindendes Teil weglaesst. Dieselbe Rechnung (scripts/lib/hangar-lage.mjs) prueft verify:hangar-lage als Tor gegen die ausgelieferten Modelle.',
   },
   {
     id: 'verify-hardpoints',
