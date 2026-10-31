@@ -11237,6 +11237,8 @@ void main() {
     camFree = null; freeDirty = !flags.werk;
     prog.delete('ship'); prog.delete('ship-tex');
     reveal();
+    // Serienkomponenten an leere Anker, bis die Werkstatt ihre Liste schickt
+    if (s.textured) fit().catch(() => {});
     walkState();
     if (progressFn) progressFn(100);
   }
@@ -11648,6 +11650,7 @@ void main() {
     if (textured) wearPaint(current, liveryKey !== 'werk');
     prog.delete('ship'); prog.delete('ship-tex');
     reveal();
+    if (textured) fit().catch(() => {});
     walkState();
     if (progressFn) progressFn(100);
   }
@@ -11783,6 +11786,11 @@ void main() {
   // Wurzeln (anchor: Matrix im Modellraum der .glb). Ports ohne Tauschteile
   // und Waffen ohne Modell bleiben, wie sie sind; die Marker der Oberfläche
   // zeigen den Tausch dann weiter allein.
+  // Komponenten (Kraftwerk, Kühler, Schild, Quantenantrieb, Radar) tragen
+  // dieselben Kennzeichen und dazu extras.stock, das Modell des Serienteils
+  // (.planning/notes/hangar-komponenten/probe.md). Hat der Export am Port
+  // kein Teil (leerer Anker), setzt fit() das Serienteil selbst ein, auch
+  // ohne Liste; ein Tausch aus der Liste geht vor.
   // list: [{ port, item, url }]; [] stellt die Serie wieder her.
   const weaponTpl = new Map();   // url -> Promise<Object3D>, geteilt über Schiffe
   function loadWeapon(url) {
@@ -11809,9 +11817,11 @@ void main() {
       const u = n.userData;
       if (typeof u?.swap !== 'string' || !Array.isArray(u.anchor)) return;
       const k = `${u.swap}|${u.item ?? 0}`;
-      if (!c.parts.has(k)) c.parts.set(k, { nodes: [], anchors: new Map(), added: [] });
+      if (!c.parts.has(k)) c.parts.set(k, { port: u.swap, item: u.item ?? 0, nodes: [], anchors: new Map(), added: [], stock: null, baked: false });
       const p = c.parts.get(k);
       p.nodes.push(n);
+      if (typeof u.stock === 'string') p.stock = u.stock;
+      if (!p.baked) n.traverse((m) => { if (m.isMesh) p.baked = true; });
       if (!p.anchors.has(u.inst ?? 0)) p.anchors.set(u.inst ?? 0, new THREE.Matrix4().fromArray(u.anchor));
     });
     return c.parts;
@@ -11822,6 +11832,8 @@ void main() {
       for (const o of p.added) o.removeFromParent();
       p.added = [];
     }
+    c.swapped = null;
+    innerFit(c);
   }
   let fitTok = 0;
   async function fit(list = []) {
@@ -11829,6 +11841,8 @@ void main() {
     if (!c) return 0;
     const parts = swapParts(c);
     const want = list.filter((f) => f?.url && parts.has(`${f.port}|${f.item ?? 0}`));
+    const chosen = new Set(want.map((f) => `${f.port}|${f.item ?? 0}`));
+    for (const [k, p] of parts) if (p.stock && !p.baked && !chosen.has(k)) want.push({ port: p.port, item: p.item, url: p.stock, stock: true });
     const tpls = await Promise.all(want.map((f) => loadWeapon(f.url).then((t) => (c.werk ? werkTpl(t) : t)).catch(() => null)));
     if (my !== fitTok || current !== c) return 0;
     unfit(c);
@@ -11848,10 +11862,25 @@ void main() {
         n++;
       }
     });
+    c.swapped = new Set(want.filter((f, i) => !f.stock && tpls[i]).map((f) => `${f.port}|${f.item ?? 0}`));
+    innerFit(c);
+    // Zeile nur, wenn sich die Bestückung ändert (die Werkstatt ruft fit() bei jeder Änderung)
+    const stockN = want.filter((f, i) => f.stock && tpls[i]).length, stockAll = want.filter((f) => f.stock).length;
+    const sig = `${c.swapped.size}/${stockN}/${stockAll}`;
+    if ((c.swapped.size || stockAll) && c.fitSig !== sig) { c.fitSig = sig; console.info(`[hangar] Tauschteile: ${c.swapped.size} getauscht, Serienkomponenten an leeren Ankern: ${stockN} von ${stockAll}`); }
     c.model.updateMatrixWorld(true);
     shadowSig = '';
     wake(800);
     return n;
+  }
+  // Innenraum-Datei: Komponenten, die ein Container an ihren Port setzt
+  // (Centurion, Spartan, Hull C), tragen dieselben Kennzeichen; ist der Port
+  // getauscht, gehen sie dort ebenso aus.
+  function innerFit(c) {
+    c.innerRoot?.traverse((n) => {
+      const u = n.userData;
+      if (typeof u?.swap === 'string') n.visible = !c.swapped?.has(`${u.swap}|${u.item ?? 0}`);
+    });
   }
 
   // Blick, auf den die Kamera gerade zuläuft (im Flug dessen Ziel), und ihr
@@ -12576,6 +12605,8 @@ void main() {
       root.visible = false;
       c.model.parent.add(root);
       root.updateMatrixWorld(true);
+      c.innerRoot = root;
+      innerFit(c);
       await prepare(root);
       if (current !== c) return null;
       const lamps = (meta?.lights ?? []).filter((l) => Array.isArray(l.p) && l.intensity > 0);

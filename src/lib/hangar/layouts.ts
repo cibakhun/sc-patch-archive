@@ -90,7 +90,7 @@ export interface LayoutData {
   readonly v: 1;
   readonly items: Readonly<Record<string, LayoutItem>>;
   readonly ships: Readonly<Record<string, readonly LayoutSlot[]>>;
-  /** 3D-Modell je Bordwaffe (Schluessel wie items, URL mit ?v=): der Hangar setzt sie getauscht ans Schiff. */
+  /** 3D-Modell je Bordwaffe und Komponente (Schluessel wie items, URL mit ?v=): der Hangar setzt sie getauscht ans Schiff. */
   readonly models: Readonly<Record<string, string>>;
   /** Lackierungen je Schiff (nur Schiffe mit mindestens einer); fehlt die Datendatei, leer. */
   readonly paints: Readonly<Record<string, ShipPaints>>;
@@ -153,6 +153,9 @@ function ammoTypes(types: readonly string[] | undefined): Set<OrdnanceType> {
 
 type WeaponAsset = { url: string; v: string; key?: string };
 const WEAPON_MODELS = ((hangarAssets as unknown as { weapons?: Record<string, WeaponAsset> }).weapons) ?? {};
+// Komponenten als Tauschteile wie die Bordwaffen (.planning/notes/hangar-komponenten/probe.md)
+const COMPONENT_MODELS = ((hangarAssets as unknown as { components?: Record<string, WeaponAsset> }).components) ?? {};
+const COMPONENT_TYPES = new Set<LayoutType>(['power', 'cooler', 'shield', 'quantum', 'radar']);
 
 const norm = (s: string) => s.toLowerCase().replace(/["'`„“”‚‘’]/g, '').replace(/\s+/g, ' ').trim();
 const PLACEHOLDER = /placeholder|<=|=>|\bTBD\b/i;
@@ -401,6 +404,10 @@ function build(): LayoutData {
   for (const [file, a] of Object.entries(WEAPON_MODELS)) {
     const key = a.key ?? file;
     if (used[key]?.[2] === 'gun') models[key] = `${a.url}?v=${a.v}`;
+  }
+  for (const [file, a] of Object.entries(COMPONENT_MODELS)) {
+    const key = a.key ?? file;
+    if (used[key] && COMPONENT_TYPES.has(used[key][2])) models[key] = `${a.url}?v=${a.v}`;
   }
   const paints: Record<string, ShipPaints> = {};
   const hx = (c: unknown) => (typeof c === 'string' && HEX.test(c.toLowerCase()) ? c.toLowerCase() : null);

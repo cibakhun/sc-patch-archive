@@ -215,6 +215,8 @@ export function deltaPct(value, base) {
 export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield']);
 /** Arten im Reiter Waffen: Bordwaffen und alles, was eine Halterung abfeuert. */
 export const WEAPON_TYPES = new Set(['gun', 'missile', 'torpedo', 'gmissile', 'bomb']);
+// Komponenten, die der Hangar als Teil ans Schiff setzt (wie die Bordwaffen)
+const COMPONENT_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 
 /**
  * Summe des Kennwerts je Gruppe, jetzt und in Serie (Kennwert mal Stueckzahl;
@@ -995,12 +997,13 @@ export function initWorkshop(doc, bridge) {
     modStyle.textContent = [...byPort].map(([sel, { gun, names }]) => (!names.length ? `${sel}{display:block}${gun ? '' : `${sel} b{display:none}`}`
       : `${sel}{display:block;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:1;background:var(--hg-amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--hg-amber) 35%,transparent),0 0 18px var(--hg-amber)}`
       + `${sel} b{display:none}${sel}::after{content:${cssStr([...new Set(names)].join(' + '))}}`)).join('\n');
-    // Am Modell: getauschte Bordwaffen, deren 3D-Modell es gibt (der Viewer
-    // laesst Ports ohne Tauschteile von selbst in Serie)
+    // Am Modell: getauschte Bordwaffen und Komponenten, deren 3D-Modell es
+    // gibt (der Viewer laesst Ports ohne Tauschteile von selbst in Serie und
+    // setzt Serienkomponenten selbst ein)
     const fits = [];
     for (const s of slots) {
       const k = draft.slots[s.key];
-      const url = k && s.type === 'gun' ? data.models?.[k] : null;
+      const url = k && (s.type === 'gun' || COMPONENT_TYPES.has(s.type)) ? data.models?.[k] : null;
       if (url) fits.push({ port: portOf(s.key), item: Number(s.key.split('.')[1] ?? 0), url });
     }
     bridge.fit?.(draft.ship, fits);

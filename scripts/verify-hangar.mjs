@@ -164,6 +164,8 @@
      g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
+     i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
+        loeschen (Serienteil von 36 Ankern)                         -> [13]
      j  in dist/hangar-layouts.json einen Ton auf 'rot' setzen       -> [14]
      k  in dist/hangar-layouts.json die Serienpalette der Gladius
         verstellen (Ton trifft kein Material mehr)                   -> [14]
@@ -662,16 +664,26 @@ say('\n[13] Getauschte Bordwaffen: Modelle der Werkstatt und Tauschteile der Sch
 // 112 der 125 gebauten Waffenmodelle passen in einen Werkstatt-Slot, die
 // zehn Schiffe mit Lack tragen 37 Waffen-Ports als Tauschteile.
 const TAUSCH = { modelle: 112, ports: 37 };
+// Komponenten (Kraftwerk, Kühler, Schild, Quantum, Radar) tauschen seit dem
+// 31.10.2026 wie die Bordwaffen; jeder Komponentenanker nennt in extras.stock
+// das Modell seines Serienteils, das der Viewer an leeren Ankern einsetzt
+// (.planning/notes/hangar-komponenten/probe.md). Gemessen 31.10.2026: 311
+// Komponentenmodelle in der Werkstatt, 1783 Anker mit Serienteil.
+const KOMP = { modelle: 311, serie: 1783 };
+const KOMP_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 {
   const lf = join(DIST, 'hangar-layouts.json');
   const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
   const models = Object.entries(ld.models ?? {});
   const bad = models.filter(([, u]) => !/\?v=[0-9a-f]{6,}$/.test(u) || !existsSync(join(DIST, u.replace(/\?.*$/, ''))));
   for (const [k, u] of bad.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k}: ${u} ohne ?v= oder nicht in dist/`);
-  const notGun = models.filter(([k]) => ld.items?.[k]?.[2] !== 'gun');
-  for (const [k] of notGun.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k} ist keine Bordwaffe der Werkstatt`);
+  const notGun = models.filter(([k]) => ld.items?.[k]?.[2] !== 'gun' && !KOMP_TYPES.has(ld.items?.[k]?.[2]));
+  for (const [k] of notGun.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k} ist weder Bordwaffe noch Komponente der Werkstatt`);
+  const komp = models.filter(([k]) => KOMP_TYPES.has(ld.items?.[k]?.[2]));
+  const guns = models.length - komp.length;
   const shipDir = join(DIST, 'hangar', 'ships');
-  let ports = 0, nodes = 0, badAnchor = 0;
+  let ports = 0, nodes = 0, badAnchor = 0, serie = 0;
+  const serieFehlt = new Map();   // URL -> Schiffe
   const perShip = [];
   for (const f of existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')) : []) {
     const buf = readFileSync(join(shipDir, f));
@@ -684,17 +696,24 @@ const TAUSCH = { modelle: 112, ports: 37 };
       nodes++;
       mine.add(`${x.swap}|${x.item ?? 0}`);
       if (!Array.isArray(x.anchor) || x.anchor.length !== 16 || !x.anchor.every(Number.isFinite)) badAnchor++;
+      if (x.stock === undefined) continue;
+      serie++;
+      const okUrl = typeof x.stock === 'string' && /^\/hangar\/components\/[A-Za-z0-9_.-]+\.glb\?v=[0-9a-f]{6,}$/.test(x.stock) && existsSync(join(DIST, x.stock.replace(/\?.*$/, '')));
+      if (!okUrl) serieFehlt.set(String(x.stock), [...(serieFehlt.get(String(x.stock)) ?? []), f.replace(/\.glb$/, '')]);
     }
     ports += mine.size;
     perShip.push(`${f.replace(/\.glb$/, '')} ${mine.size}`);
   }
   if (badAnchor) fail(`[13] ${badAnchor} Tauschteil-Knoten ohne gueltige anchor-Matrix: der Viewer setzt die Waffe dort nicht`);
-  say(`    Werkstatt-Modelle: ${models.length} (${bad.length} ohne Datei/Version, ${notGun.length} keine Bordwaffe)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten`);
+  say(`    Werkstatt-Modelle: ${models.length} (${guns} Bordwaffen, ${komp.length} Komponenten; ${bad.length} ohne Datei/Version, ${notGun.length} weder noch)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten, davon ${serie} mit Serienteil`);
   say(`      ${perShip.join(', ')}`);
-  sollIst(`Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}`, `${models.length}, ${ports}`);
-  if (models.length < TAUSCH.modelle) fail(`[13] nur ${models.length} Waffenmodelle in der Werkstatt (Klinke ${TAUSCH.modelle}): fehlt src/data/hangar-assets.json weapons oder der Schluessel-Join in src/lib/hangar/layouts.ts?`);
+  sollIst(`Bordwaffen-Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}, Komponenten-Modelle >= ${KOMP.modelle}, Anker mit Serienteil >= ${KOMP.serie}, jedes Serienteil in dist/`, `${guns}, ${ports}, ${komp.length}, ${serie}, ${serieFehlt.size} fehlen`);
+  for (const [u, ships] of [...serieFehlt].slice(0, 10)) fail(`[13] Serienteil ${u} (${ships.length} Anker, z. B. ${ships[0]}) ohne ?v= oder nicht in dist/hangar/components: der leere Anker bleibt leer`);
+  if (guns < TAUSCH.modelle) fail(`[13] nur ${guns} Waffenmodelle in der Werkstatt (Klinke ${TAUSCH.modelle}): fehlt src/data/hangar-assets.json weapons oder der Schluessel-Join in src/lib/hangar/layouts.ts?`);
+  if (komp.length < KOMP.modelle) fail(`[13] nur ${komp.length} Komponentenmodelle in der Werkstatt (Klinke ${KOMP.modelle}): fehlt src/data/hangar-assets.json components oder COMPONENT_MODELS in src/lib/hangar/layouts.ts?`);
+  if (serie < KOMP.serie) fail(`[13] nur ${serie} Komponentenanker mit Serienteil (Klinke ${KOMP.serie}): Schiffe ohne extras.stock gebaut (scripts/build-hangar-assets.mjs)?`);
   if (ports < TAUSCH.ports) fail(`[13] nur ${ports} Waffen-Ports mit Tauschteilen (Klinke ${TAUSCH.ports}): Schiffe ohne markSwapParts gebaut (scripts/build-hangar-assets.mjs)?`);
-  ist.tauschModelle = models.length; ist.tauschPorts = ports;
+  ist.tauschModelle = guns; ist.tauschPorts = ports; ist.kompModelle = komp.length; ist.kompSerie = serie;
 }
 
 say('\n[14] Lackierungen: Daten der Werkstatt und Palettenmaterialien der Schiffe mit Lack');
@@ -943,20 +962,23 @@ say('\n[17] Bildablage der Schiffe: jeder Verweis liegt in dist/, Name = Inhalt,
 // und zählen mit. Deckel am 30.10.2026 von 1600 auf 2400 MB gehoben, Anlass:
 // die Innenräume, nach 26 Schiffen 5,6 MB je Schiff samt Ablage, für rund
 // 190 Schiffe mit Innenraum zusammen 2,0 bis 2,1 GB
-// (.planning/notes/hangar-innenleben.md, Auftrag Teil A 4).
+// (.planning/notes/hangar-innenleben.md, Auftrag Teil A 4). Die Komponenten
+// zum Tausch (dist/hangar/components, .planning/notes/hangar-komponenten/)
+// legen ihre Bilder ebenso ab und zählen mit.
 const BILDER = { schiffe: 231, gesamtMB: 2400, dateiMB: 50 };
 {
-  const shipDir = join(DIST, 'hangar', 'ships'), innerDir = join(DIST, 'hangar', 'interior'), texDir = join(DIST, 'hangar', 'tex');
+  const shipDir = join(DIST, 'hangar', 'ships'), innerDir = join(DIST, 'hangar', 'interior'), compDir = join(DIST, 'hangar', 'components'), texDir = join(DIST, 'hangar', 'tex');
   const NAME = /^\.\.\/tex\/([0-9a-f]{16})\.(webp|png|jpg|ktx2)$/;
   const glbs = existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')).sort() : [];
   const inners = existsSync(innerDir) ? readdirSync(innerDir).filter((x) => x.endsWith('.glb')).sort() : [];
-  const used = new Map();   // Datei -> Zahl der Schiffe (Rumpf und Innenraum je eins)
-  let refs = 0, embedded = 0, pooledShips = 0, glbBytes = 0, innerBytes = 0, big = [];
+  const comps = existsSync(compDir) ? readdirSync(compDir).filter((x) => x.endsWith('.glb')).sort() : [];
+  const used = new Map();   // Datei -> Zahl der Dateien (Rumpf, Innenraum, Komponente je eins)
+  let refs = 0, embedded = 0, pooledShips = 0, glbBytes = 0, innerBytes = 0, compBytes = 0, big = [];
   const missing = new Set(), foreign = [];
-  for (const [dir, f] of [...glbs.map((f) => [shipDir, f]), ...inners.map((f) => [innerDir, `interior/${f}`])]) {
-    const buf = readFileSync(join(dir, f.replace(/^interior\//, '')));
+  for (const [dir, f] of [...glbs.map((f) => [shipDir, f]), ...inners.map((f) => [innerDir, `interior/${f}`]), ...comps.map((f) => [compDir, `components/${f}`])]) {
+    const buf = readFileSync(join(dir, f.replace(/^(interior|components)\//, '')));
     const hull = dir === shipDir;
-    if (hull) glbBytes += buf.length; else innerBytes += buf.length;
+    if (hull) glbBytes += buf.length; else if (dir === innerDir) innerBytes += buf.length; else compBytes += buf.length;
     if (buf.length > BILDER.dateiMB * 1048576) big.push(`${f} ${(buf.length / 1048576).toFixed(1)} MB`);
     const len = buf.readUInt32LE(12);
     const gltf = buf.toString('utf8', 16, 20) === 'JSON' ? JSON.parse(buf.toString('utf8', 20, 20 + len)) : {};
@@ -987,16 +1009,16 @@ const BILDER = { schiffe: 231, gesamtMB: 2400, dateiMB: 50 };
     if (!used.has(f)) orphans.push(f);
   }
   const shared = [...used.values()].filter((n) => n > 1).length;
-  const totalMB = (glbBytes + innerBytes + poolBytes) / 1048576;
-  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Innenräume: ${inners.length}   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einer Datei)   eingebettet: ${embedded}`);
-  say(`    GLB ${(glbBytes / 1048576).toFixed(1)} MB + Innenräume ${(innerBytes / 1048576).toFixed(1)} MB + Ablage ${files.length} Dateien ${(poolBytes / 1048576).toFixed(1)} MB = ${totalMB.toFixed(1)} MB`);
-  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff und kein Innenraum (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
+  const totalMB = (glbBytes + innerBytes + compBytes + poolBytes) / 1048576;
+  say(`    Schiffe: ${glbs.length} (mit Bildablage ${pooledShips})   Innenräume: ${inners.length}   Komponenten: ${comps.length}   Bildverweise: ${refs} auf ${used.size} Dateien (${shared} in mehr als einer Datei)   eingebettet: ${embedded}`);
+  say(`    GLB ${(glbBytes / 1048576).toFixed(1)} MB + Innenräume ${(innerBytes / 1048576).toFixed(1)} MB + Komponenten ${(compBytes / 1048576).toFixed(1)} MB + Ablage ${files.length} Dateien ${(poolBytes / 1048576).toFixed(1)} MB = ${totalMB.toFixed(1)} MB`);
+  if (orphans.length) say(`    WARNUNG: ${orphans.length} Bilder in dist/hangar/tex nennt kein Schiff, kein Innenraum und keine Komponente (${orphans.slice(0, 3).join(', ')}${orphans.length > 3 ? ', …' : ''}): Ballast im Image, der Bau entfernt sie (prunePool)`);
   sollIst(`Schiffe mit Bildablage >= ${BILDER.schiffe}, jeder Verweis da und Name = sha256 des Inhalts, zusammen <= ${BILDER.gesamtMB} MB, je Datei <= ${BILDER.dateiMB} MB`, `${pooledShips}, ${missing.size} fehlen, ${wrongName.length} falsch benannt, ${totalMB.toFixed(1)} MB, ${big.length} zu gross`);
   for (const x of [...missing].slice(0, 10)) fail(`[17] ${x} fehlt in dist/hangar/tex: das Material bleibt ohne diese Karte (Ablage nicht mit eingecheckt oder vom Bau zu frueh entfernt?)`);
   for (const x of wrongName.slice(0, 10)) fail(`[17] dist/hangar/tex/${x}: Name ist nicht der Inhalt (sha256, 16 Zeichen); die URL ist ein Jahr im Cache, ein geaenderter Inhalt unter altem Namen erreicht niemanden`);
   for (const x of foreign.slice(0, 10)) fail(`[17] ${x}: Bild mit URI ausserhalb der Ablage (../tex/<inhalt>.<endung>)`);
   for (const x of big.slice(0, 10)) fail(`[17] ${x} ueber ${BILDER.dateiMB} MB: GitHub lehnt ab 100 MB ab; Karten verkleinern oder Schiff teilen`);
-  if (totalMB > BILDER.gesamtMB) fail(`[17] Schiffe, Innenräume und Ablage zusammen ${totalMB.toFixed(1)} MB ueber dem Deckel von ${BILDER.gesamtMB} MB (Repo und Image): Karten grosser Schiffe kleiner oder Innenraum weg, Budget in .planning/notes/hangar-alle-schiffe.md`);
+  if (totalMB > BILDER.gesamtMB) fail(`[17] Schiffe, Innenräume, Komponenten und Ablage zusammen ${totalMB.toFixed(1)} MB ueber dem Deckel von ${BILDER.gesamtMB} MB (Repo und Image): Karten grosser Schiffe kleiner oder Innenraum weg, Budget in .planning/notes/hangar-alle-schiffe.md`);
   if (pooledShips < BILDER.schiffe) fail(`[17] nur ${pooledShips} Schiffe mit Bildablage (Klinke ${BILDER.schiffe}): fehlt dist/hangar/tex oder ein Schiff traegt seine Bilder wieder selbst?`);
   ist.bildSchiffe = pooledShips; ist.bildDateien = files.length; ist.bildMB = Math.round(totalMB);
 }
@@ -1236,7 +1258,7 @@ const INNEN = { min: 217, randM: 0.5 };
 }
 
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
