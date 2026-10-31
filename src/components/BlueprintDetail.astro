@@ -76,6 +76,14 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   <h1 slot="hero">{bp.name}</h1>
   <p class="dp-lead" slot="hero">{seo.lead}</p>
 
+  {/* Suchtreffer landen hier und wollen meist ins Werkzeug. Der Planer-Knopf
+      stand nur am Seitenende; ?bp= oeffnet den Planer mit diesem Blueprint.
+      Vor den Kennzahlen, weil er dahinter bei 320x640 unter die Falz rutschte. */}
+  <div class="dp-cta" slot="hero">
+    <a class="dp-btn" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')} →</a>
+    <span class="dp-note">{t('bpPlannerHint')}</span>
+  </div>
+
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('craftTime')}</b><span>{craftTime(bp.craft_time_seconds, lang)}</span></li>
     <li class="dp-key"><b>{t('bpIngredients')}</b><span>{bp.ingredients.length}</span></li>

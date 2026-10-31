@@ -80,6 +80,11 @@ const MEDIA = [
   /\.mosaic/, /\.ship(?![a-z-])/, /\.video(?![a-z-])/, /\.vlbl/, /\.gtile/, /\.zoomic/,
   /\.scrolly/, /\.sstep/, /\.tool(?![a-z-])/, /figcaption/, /\.lb(?![a-z-])/, /\.holo/,
   /\.pcard/, /\.snav-deck__shots/, /\[data-media-surface\]/,
+  // Pilotenseite: Kopfzeile, Status, Bio, „Dabei seit" und die Knöpfe liegen im Hero
+  // (.pp-hero, data-media-surface) auf dem dunklen Hangarbild.
+  /\.pp-(?:chrome|verified|transmission|bio|since)(?![a-z-])/, /\.pp-act/,
+  // Rangkarte im Ausweis und die Hangar-Bildkacheln: ebenfalls dunkle Fläche.
+  /\.pp-(?:rank|k|tile)(?:__[a-z-]+)?(?![a-z-])/,
 ];
 
 const PROPS = new Set(['color', 'border-color', 'border-left-color', 'border-right-color', 'border-top-color', 'border-bottom-color', 'outline-color', 'text-decoration-color', 'caret-color', 'fill', 'stroke']);

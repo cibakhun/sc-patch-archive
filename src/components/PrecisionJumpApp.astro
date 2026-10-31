@@ -14,6 +14,7 @@ import {
 } from '../data/precision-jump';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props {
   lang: 'de' | 'en';
@@ -255,594 +256,10 @@ const CLIENT = {
 };
 ---
 
-<section class="pj" id="pjump">
-  <div class="pj-wrap">
-    {/* Werkzeug-Hilfe (Phase 01.2, Plan 04) — Precision Jump hat keine
-        einzelne Werkzeugleiste (RESEARCH Annahme A2). Der Einstieg sitzt
-        deshalb hier, als erstes Kind von .pj-wrap, unmittelbar VOR der
-        Steuerkonsole: die Steuerung ist das Produkt dieser Seite (siehe
-        Kommentar direkt darunter) und steht zuoberst — der Einstieg sitzt
-        ueber dem, was er erklaert. Ausdruecklich NICHT in eines der
-        details.pj-tbl weiter unten, dort waere er hinter einem zugeklappten
-        Abschnitt versteckt. Diese Setzung ist eine ANNAHME, keine
-        Entscheidung des Betreibers — siehe
-        .planning/phases/01.2-werkzeuge-erklaeren/01.2-RESEARCH.md Annahme A2. */}
-    <ToolHelp tool="precisionjump" lang={lang} steps={4} />
-    <!-- ==== Steuerung ====
-         Das Werkzeug ist das Produkt dieser Seite, nicht ein Anhang zum Text:
-         Steuerung und Karte stehen zuoberst, alles Erklaerende folgt. -->
-    <div class="pj-console">
-      <div class="pj-console__head">
-        <span class="pj-console__title">{S.solver}</span>
-        <button type="button" class="pj-reset" id="pj-reset" data-help={h('precisionjump.ctl.reset')}>{S.reset}</button>
-      </div>
-
-      <div class="pj-route" data-help={h('precisionjump.ctl.route')}>
-        <div class="pj-field">
-          <label class="pj-label" for="pj-start">{S.start}</label>
-          <select id="pj-start" class="pj-select">
-            {GROUPS.map((g) => (
-              <optgroup label={g.label}>
-                {byGroup(g.key).map((a) => (
-                  <option value={a.id}>
-                    {a.type === 'station alias' ? `${a.displayName} — ${S.usesCentre.replace('%s%', a.canonicalName)}` : a.displayName}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-
-        <button type="button" class="pj-swap" id="pj-swap" title={S.swap} aria-label={S.swap} data-help={h('precisionjump.ctl.swap')}>⇄</button>
-
-        <div class="pj-field">
-          <label class="pj-label" for="pj-end">{S.dest}</label>
-          <select id="pj-end" class="pj-select">
-            {GROUPS.map((g) => (
-              <optgroup label={g.label}>
-                {byGroup(g.key).map((a) => (
-                  <option value={a.id}>
-                    {a.type === 'station alias' ? `${a.displayName} — ${S.usesCentre.replace('%s%', a.canonicalName)}` : a.displayName}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div class="pj-band" data-help={h('precisionjump.ctl.band')}>
-        <div class="pj-field">
-          <label class="pj-label" for="pj-bandsel">{S.band}</label>
-          <select id="pj-bandsel" class="pj-select">
-            {bandEntries.map(([key, b]) => (
-              <option value={key}>{b.name}</option>
-            ))}
-          </select>
-        </div>
-        <div class="pj-field">
-          <span class="pj-label">{S.density}</span>
-          <div class="pj-readout">
-            <b id="pj-density">—</b>
-            <i>{S.densitySub}</i>
-          </div>
-        </div>
-        <div class="pj-field">
-          <span class="pj-label">{S.radius}</span>
-          <div class="pj-readout">
-            <b id="pj-radius">—</b>
-            <i>{S.radiusSub}</i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Entfallen: die Routen-Zusammenfassung wiederholte nur die beiden
-           Auswahlfelder darueber, und die Huellen-Zeile steht inhaltlich
-           schon im Hinweiskasten weiter unten. Beide schoben die Karte
-           unter die Falz, ohne etwas Neues zu sagen. -->
-    </div>
-
-    <!-- ==== Result ==== -->
-    <div class="pj-result" id="pj-result" aria-live="polite">
-      <!-- Die Reiselinie: Start links, Ziel rechts, massstaeblich. Die
-           Bandzone liegt als Feld darauf, die Austrittsmarke an ihrer Stelle.
-           Sie steht VOR dem Ausloesewert: die zurueckgelegte Strecke ist die
-           Zahl, die ein Mensch braucht — der 15-stellige Rohwert ist das,
-           was man im Spiel abliest, und damit zweite Ordnung. -->
-      <!-- Die Karte steht direkt unter der Bedienung und gross: wer zwei
-           Anker waehlt, soll die Route sofort sehen, ohne zu scrollen.
-           Alles Abgelesene folgt darunter. -->
-      <figure class="pj-map">
-        <div class="pj-map__frame">
-          <svg id="pj-svg" viewBox="0 0 1000 1000" role="img" aria-label={S.mapTitle}></svg>
-        </div>
-        <figcaption class="pj-map__cap">
-          <span>{S.mapTitle}</span>
-          <i>{S.mapSub}</i>
-          <span class="pj-map__legend">
-            <span class="pj-lg pj-lg--band">{S.mapLegBand}</span>
-            <span class="pj-lg pj-lg--route">{S.mapLegRoute}</span>
-            <span class="pj-lg pj-lg--drop">{S.mapLegDrop}</span>
-          </span>
-        </figcaption>
-      </figure>
-
-      <div class="pj-trigger" id="pj-trigger">
-        <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
-        <div class="pj-trigger__val" id="pj-trigval">0</div>
-        <div class="pj-trigger__sub" id="pj-trigsub"></div>
-        <button type="button" class="pj-copy" id="pj-copy">{JS_T.copy}</button>
-      </div>
-
-      <div class="pj-stats" id="pj-stats"></div>
-
-      <div class="pj-coords">
-        <div class="pj-coords__title" id="pj-coordstitle"></div>
-        <div class="pj-coords__grid">
-          <div class="pj-coord"><span>X</span><b id="pj-cx">—</b></div>
-          <div class="pj-coord"><span>Y</span><b id="pj-cy">—</b></div>
-          <div class="pj-coord"><span>Z</span><b id="pj-cz">—</b></div>
-        </div>
-      </div>
-
-    </div>
-
-    <p class="pj-honesty" set:html={S.honesty} />
-
-    <details class="pj-tbl" open data-help={h('precisionjump.ctl.table')}>
-      <summary>
-        <span class="pj-tbl__ttl">{S.bandIdx}</span>
-        <i class="pj-tbl__sub">{S.bandIdxSub}</i>
-        <span class="pj-tbl__chev" aria-hidden="true">▾</span>
-      </summary>
-      <div class="pj-tbl__body">
-        <div class="pj-tblscroll">
-          <table>
-            <thead>
-              <tr><th>{S.thBand}</th><th>{S.thPeak}</th><th>{S.thInner}</th><th>{S.thOuter}</th><th>{S.thWidth}</th><th>{S.thDensity}</th></tr>
-            </thead>
-            <tbody>
-              {bandEntries.map(([, b]) => {
-                const m = getBandMetrics(b);
-                return (
-                  <tr class={b.densityClass === 'high' ? 'is-peak' : undefined}>
-                    <td class="pj-td-name">{b.name}</td>
-                    <td class="pj-td-anchor">{fmt0.format(b.peakDensityRadiusKm)}</td>
-                    <td class="pj-td-num">{fmt0.format(b.innerRadiusKm)}</td>
-                    <td class="pj-td-num">{fmt0.format(b.outerRadiusKm)}</td>
-                    <td class="pj-td-type">{fmt0.format(m.widthKm)}</td>
-                    <td><span class={`pj-dens pj-dens--${b.densityClass}`}>{JS_T.dens[b.densityClass]}</span></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </details>
-
-    <details class="pj-tbl" data-help={h('precisionjump.ctl.table')}>
-      <summary>
-        <span class="pj-tbl__ttl">{S.anchorIdx}</span>
-        <i class="pj-tbl__sub">{S.anchorIdxSub}</i>
-        <span class="pj-tbl__chev" aria-hidden="true">▾</span>
-      </summary>
-      <div class="pj-tbl__body">
-        <input type="search" id="pj-anchorfilter" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
-        <div class="pj-tblscroll">
-          <table>
-            <thead>
-              <tr><th>{S.thName}</th><th>{S.thType}</th><th>{S.thAnchor}</th><th>X (m)</th><th>Y (m)</th><th>Z (m)</th></tr>
-            </thead>
-            <tbody id="pj-anchorbody">
-              {anchorRows.map((a) => (
-                <tr data-name={`${a.displayName} ${S.tType[a.type]} ${a.canonicalName}`.toLowerCase()}>
-                  <td class="pj-td-name">{a.displayName}</td>
-                  <td class="pj-td-type">{S.tType[a.type]}</td>
-                  <td class="pj-td-anchor">{a.canonicalName}</td>
-                  <td class="pj-td-num">{fmt3.format(a.point.x)}</td>
-                  <td class="pj-td-num">{fmt3.format(a.point.y)}</td>
-                  <td class="pj-td-num">{fmt3.format(a.point.z)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </details>
-
-    <!-- ==== Info / credit ==== -->
-    <div class="pj-info">
-      <div class="pj-infocard">
-        <div class="pj-infocard__ttl">{S.howTitle}</div>
-        <p class="pj-infocard__body">{S.howBody}</p>
-        <div class="pj-steps">
-          <span class="pj-steps__ttl">{S.howSteps}</span>
-          <ol>
-            <li set:html={S.howStep1} />
-            <li set:html={S.howStep2} />
-            <li set:html={S.howStep3} />
-          </ol>
-        </div>
-      </div>
-      <div class="pj-infocard">
-        <div class="pj-infocard__ttl">{S.confTitle}</div>
-        <p class="pj-infocard__body" set:html={S.confBody} />
-      </div>
-      <div class="pj-infocard">
-        <div class="pj-infocard__ttl">{S.stationTitle}</div>
-        <p class="pj-infocard__body">{S.stationBody}</p>
-      </div>
-      <div class="pj-infocard pj-infocard--credit">
-        <div class="pj-infocard__ttl">{S.creditTitle}</div>
-        <p class="pj-infocard__body" set:html={S.creditBody} />
-      </div>
-    </div>
-  </div>
-</section>
-
-<script is:inline set:html={`window.__PJUMP=${JSON.stringify(CLIENT)};`} />
-
-<script is:inline>
-(function () {
-  var D = window.__PJUMP;
-  if (!D) return;
-  var T = D.t;
-  var HALF = D.meta.half;
-  var ORIGIN = { x: 0, y: 0, z: 0 };
-
-  var byId = function (id) { return document.getElementById(id); };
-  var loc = T.locale;
-  var nf0 = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
-  var nf2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
-  var nf3 = new Intl.NumberFormat(loc, { maximumFractionDigits: 3 });
-  var fill = function (s, map) { return Object.keys(map).reduce(function (a, k) { return a.split('%' + k + '%').join(map[k]); }, s); };
-
-  // Anker als Map (id -> record)
-  var AMAP = {};
-  D.anchors.forEach(function (a) { AMAP[a.id] = a; });
-
-  // -- Geometrie (Strahl-Kugel-Schnitt) --
-  function dot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-  function sub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
-  function add(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
-  function scl(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
-  function mag(a) { return Math.sqrt(dot(a, a)); }
-  function ptAt(s, d, u) { return add(s, scl(d, u)); }
-  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
-
-  function rootsForRadius(start, end, radiusM) {
-    var d = sub(end, start);
-    var q = sub(start, ORIGIN);
-    var a = dot(d, d);
-    var b = 2 * dot(q, d);
-    var c = dot(q, q) - radiusM * radiusM;
-    var disc = b * b - 4 * a * c;
-    if (a === 0 || disc < 0) return [];
-    var sq = Math.sqrt(Math.max(0, disc));
-    return [(-b - sq) / (2 * a), (-b + sq) / (2 * a)]
-      .filter(function (u) { return isFinite(u) && u > 1e-10 && u <= 1 + 1e-10; })
-      .map(function (u) { return clamp(u, 0, 1); })
-      .sort(function (x, y) { return x - y; })
-      .filter(function (u, i, arr) { return i === 0 || Math.abs(u - arr[i - 1]) > 1e-10; });
-  }
-  function closestApproach(start, end) {
-    var d = sub(end, start);
-    var den = dot(d, d);
-    var u = den === 0 ? 0 : clamp(-dot(start, d) / den, 0, 1);
-    var p = ptAt(start, d, u);
-    return { u: u, point: p, radiusKm: mag(p) / 1000 };
-  }
-  function selectRootNear(roots, target) {
-    if (!roots.length) return null;
-    return roots.reduce(function (best, cur) { return Math.abs(cur - target) < Math.abs(best - target) ? cur : best; });
-  }
-  function confidence(start, end, exit) {
-    var d = sub(end, start);
-    var rl = mag(d), radl = mag(exit);
-    var f = rl === 0 || radl === 0 ? 0 : Math.abs(dot(d, exit) / (rl * radl));
-    var score = Math.round(f * 100);
-    var ang = Math.acos(clamp(f, -1, 1)) * 180 / Math.PI;
-    if (f >= 0.5) return { label: T.confHigh, cls: 'ok', f: f, score: score, ang: ang };
-    if (f >= 0.25) return { label: T.confMod, cls: 'warn', f: f, score: score, ang: ang };
-    return { label: T.confLow, cls: 'bad', f: f, score: score, ang: ang };
-  }
-  function planeStatus(exit) {
-    var zKm = Math.abs(exit.z) / 1000;
-    if (zKm <= HALF * 0.6) return { label: T.planeSafe, cls: 'ok', zKm: zKm };
-    if (zKm <= HALF) return { label: T.planeMarg, cls: 'warn', zKm: zKm };
-    return { label: T.planeOut, cls: 'bad', zKm: zKm };
-  }
-  function monitorAxis(dir) { return Math.abs(dir.x) >= Math.abs(dir.y) ? 'x' : 'y'; }
-
-  // -- Holografische Sternenkarte (Draufsicht auf die Stanton-Ebene, z≈0) --
-  var SVG = byId('pj-svg');
-  // Kleiner deterministischer PRNG -> der Asteroidengürtel ist bei jedem Redraw
-  // identisch (springt nicht), obwohl er prozedural gestreut wird.
-  function mulberry32(a) {
-    return function () {
-      a |= 0; a = a + 0x6D2B79F5 | 0;
-      var t = Math.imul(a ^ a >>> 15, 1 | a);
-      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-  }
-  // Ring-Ausdehnung für den Asteroidengürtel, sonst
-  // Fallback auf die Band-Grenzen.
-  var HALO_IN, HALO_OUT;
-  if (D.env) { HALO_IN = D.env.inner; HALO_OUT = D.env.outer; }
-  else {
-    HALO_IN = Infinity; HALO_OUT = 0;
-    Object.keys(D.bands).forEach(function (k) {
-      HALO_IN = Math.min(HALO_IN, D.bands[k].innerRadiusKm);
-      HALO_OUT = Math.max(HALO_OUT, D.bands[k].outerRadiusKm);
-    });
-  }
-  var GM = 1e9; // 1 Gigameter = 1e9 m (Anker-Koordinaten sind in Metern)
-
-  function drawMap(start, end, band, exit) {
-    var CX = 500, CY = 500, PAD = 60, R = CY - PAD;
-    var maxR = Math.max(HALO_OUT * 1000, mag(start), mag(end)) * 1.16;
-    var sc = function (v) { return (v / maxR) * R; };
-    var tx = function (wx) { return CX + sc(wx); };
-    var ty = function (wy) { return CY - sc(wy); };
-    var P = [];
-
-    // --- Entfernungs-Ringe (alle N Gm) mit Beschriftung ---
-    var maxGm = maxR / GM;
-    var step = maxGm > 30 ? 10 : (maxGm > 12 ? 5 : 2);
-    for (var g = step; ; g += step) {
-      var rr = sc(g * GM);
-      if (rr > R) break;
-      P.push('<circle cx="500" cy="500" r="' + rr.toFixed(1) + '" class="pj-svg-range"/>');
-      P.push('<text x="507" y="' + (CY - rr - 4).toFixed(1) + '" class="pj-svg-rangelbl">' + g + ' Gm</text>');
-    }
-    P.push('<line x1="' + (CX - R) + '" y1="500" x2="' + (CX + R) + '" y2="500" class="pj-svg-axis"/>');
-    P.push('<line x1="500" y1="' + (CY - R) + '" x2="500" y2="' + (CY + R) + '" class="pj-svg-axis"/>');
-
-    // --- Planeten-Orbits (echte Bahnradien) ---
-    var planets = D.anchors.filter(function (a) { return a.type === 'planet'; });
-    planets.forEach(function (a) {
-      var r = mag(a.point);
-      if (r <= maxR) P.push('<circle cx="500" cy="500" r="' + sc(r).toFixed(1) + '" class="pj-svg-orbit"/>');
-    });
-
-    // --- Aaron-Halo als Asteroidengürtel (seeded, über den ganzen Ring gestreut) ---
-    var rnd = mulberry32(0x5C0FA10);
-    var bIn = sc(HALO_IN * 1000), bOut = sc(HALO_OUT * 1000);
-    var belt = '';
-    for (var i = 0; i < 300; i++) {
-      var ang = rnd() * Math.PI * 2;
-      var rad = bIn + rnd() * (bOut - bIn);
-      var ax = CX + Math.cos(ang) * rad, ay = CY - Math.sin(ang) * rad;
-      var sz = (0.6 + rnd() * 1.5).toFixed(2);
-      var op = (0.22 + rnd() * 0.5).toFixed(2);
-      belt += '<circle cx="' + ax.toFixed(1) + '" cy="' + ay.toFixed(1) + '" r="' + sz + '" opacity="' + op + '"/>';
-    }
-    P.push('<g class="pj-svg-belt">' + belt + '</g>');
-
-    // --- Ausgewähltes Band hervorheben (Annulus + Spitzenradius) ---
-    var rOut = sc(band.outerRadiusKm * 1000), rIn = sc(band.innerRadiusKm * 1000), rPk = sc(band.peakDensityRadiusKm * 1000);
-    var donut = 'M ' + CX + ' ' + (CY - rOut) + ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY + rOut) +
-      ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY - rOut) + ' Z' +
-      ' M ' + CX + ' ' + (CY - rIn) + ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY + rIn) +
-      ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY - rIn) + ' Z';
-    P.push('<path d="' + donut + '" class="pj-svg-band" fill-rule="evenodd"/>');
-    P.push('<circle cx="500" cy="500" r="' + rPk.toFixed(1) + '" class="pj-svg-peak"/>');
-
-    // --- QT-Route: solide Start→Ausstieg, gestrichelt Ausstieg→Ziel ---
-    var sx = tx(start.x), sy = ty(start.y), ex = tx(end.x), ey = ty(end.y);
-    if (exit) {
-      var dx = tx(exit.x), dy = ty(exit.y);
-      P.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + dx + '" y2="' + dy + '" class="pj-svg-route"/>');
-      P.push('<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--rem"/>');
-    } else {
-      P.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--miss"/>');
-    }
-
-    // --- Planeten-Knoten + Labels ---
-    planets.forEach(function (a) {
-      var r = mag(a.point);
-      if (r > maxR) return;
-      var px = tx(a.point.x), py = ty(a.point.y), right = a.point.x >= 0;
-      P.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="5" class="pj-svg-planet"/>');
-      P.push('<text x="' + (right ? px + 10 : px - 10).toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pj-svg-plabel">' + a.displayName + '</text>');
-    });
-
-    // --- Star (Systemzentrum) ---
-    P.push('<circle cx="500" cy="500" r="22" class="pj-svg-starglow"/>');
-    P.push('<circle cx="500" cy="500" r="6" class="pj-svg-star"/>');
-
-    // --- Start-/Ziel-Knoten ---
-    function node(pt, cls, tag) {
-      var mx = tx(pt.x), my = ty(pt.y), right = pt.x >= 0;
-      return '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="7" class="pj-svg-node ' + cls + '"/>' +
-        '<text x="' + (right ? mx + 12 : mx - 12).toFixed(1) + '" y="' + (my - 11).toFixed(1) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pj-svg-tag">' + tag + '</text>';
-    }
-    P.push(node(start, 'pj-svg-node--start', T.tagStart));
-    P.push(node(end, 'pj-svg-node--end', T.tagQt));
-
-    // --- Ausstiegs-Reticle (die eigentliche Antwort — Fadenkreuz + Puls) ---
-    if (exit) {
-      var ox = tx(exit.x), oy = ty(exit.y);
-      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="13" class="pj-svg-reticle"/>');
-      P.push('<path d="M ' + (ox - 19).toFixed(1) + ' ' + oy.toFixed(1) + ' h 8 M ' + (ox + 11).toFixed(1) + ' ' + oy.toFixed(1) + ' h 8 M ' + ox.toFixed(1) + ' ' + (oy - 19).toFixed(1) + ' v 8 M ' + ox.toFixed(1) + ' ' + (oy + 11).toFixed(1) + ' v 8" class="pj-svg-cross"/>');
-      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="12" class="pj-svg-pulse"/>');
-      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="4.5" class="pj-svg-drop"/>');
-    }
-
-    SVG.innerHTML = P.join('');
-  }
-
-  // -- Ergebnis rendern --
-  var result = byId('pj-result');
-  function card(label, val, cls, sub, bar) {
-    return '<div class="pj-card">' +
-      '<div class="pj-card__lbl">' + label + '</div>' +
-      '<div class="pj-card__val' + (cls ? ' pj-' + cls : '') + '">' + val + '</div>' +
-      (sub ? '<div class="pj-card__sub">' + sub + '</div>' : '') +
-      (bar != null ? '<div class="pj-bar"><i class="pj-bar__f pj-' + bar.cls + '" style="width:' + bar.score + '%"></i></div>' : '') +
-      '</div>';
-  }
-
-  function setStatus(cls) { result.className = 'pj-result pj-result--' + cls; }
-
-  function showError(title, sub) {
-    setStatus('bad');
-    byId('pj-trigaxis').textContent = title;
-    byId('pj-trigval').textContent = '—';
-    byId('pj-trigsub').textContent = sub || '';
-    byId('pj-stats').innerHTML = '';
-    byId('pj-cx').textContent = byId('pj-cy').textContent = byId('pj-cz').textContent = '—';
-    byId('pj-coordstitle').textContent = '';
-    byId('pj-copy').style.visibility = 'hidden';
-  }
-
-  function render() {
-    var sa = AMAP[byId('pj-start').value], ea = AMAP[byId('pj-end').value];
-    var band = D.bands[byId('pj-bandsel').value];
-    if (!sa || !ea || !band) return;
-
-    // Readouts + Zusammenfassung
-    byId('pj-density').textContent = T.dens[band.densityClass];
-    byId('pj-density').className = 'pj-dens-txt pj-dens--' + band.densityClass;
-    byId('pj-radius').textContent = nf0.format(band.peakDensityRadiusKm) + ' km';
-    var start = sa.point, end = ea.point;
-
-    // Gleiche Koordinate?
-    if (sa.id === ea.id || (start.x === end.x && start.y === end.y && start.z === end.z)) {
-      showError(T.sameError, '');
-      drawMap(start, end, band, null);
-      return;
-    }
-
-    var roots = rootsForRadius(start, end, band.peakDensityRadiusKm * 1000);
-    if (!roots.length) {
-      var ca = closestApproach(start, end);
-      showError(T.noCrossTitle, fill(T.noCrossSub, { band: band.name, r: nf0.format(band.peakDensityRadiusKm), c: nf0.format(ca.radiusKm) }));
-      drawMap(start, end, band, null);
-      return;
-    }
-
-    var u = roots[0];
-    var dir = sub(end, start);
-    var exit = ptAt(start, dir, u);
-    var routeKm = mag(dir) / 1000;
-    var travelledKm = routeKm * u;
-    var remainKm = routeKm * (1 - u);
-    var axis = monitorAxis(dir);
-    var trend = dir[axis] >= 0 ? T.increasing : T.decreasing;
-    var rising = dir[axis] >= 0;
-    var trig = exit[axis];
-    var conf = confidence(start, end, exit);
-    var plane = planeStatus(exit);
-    var widthKm = band.outerRadiusKm - band.innerRadiusKm;
-    var innerToPeak = band.peakDensityRadiusKm - band.innerRadiusKm;
-    var peakToOuter = band.outerRadiusKm - band.peakDensityRadiusKm;
-
-    setStatus(conf.cls === 'ok' && plane.cls === 'ok' ? 'ok' : (conf.cls === 'bad' || plane.cls === 'bad' ? 'bad' : 'warn'));
-
-    byId('pj-trigaxis').textContent = T.monitor + ' ' + axis.toUpperCase() + ' · ' + trend;
-    byId('pj-trigval').textContent = nf3.format(trig);
-    byId('pj-trigsub').textContent = rising ? T.triggerSubUp : T.triggerSubDown;
-    var copyBtn = byId('pj-copy');
-    copyBtn.style.visibility = 'visible';
-    copyBtn.dataset.value = String(trig);
-
-    // Vier Kennwerte statt acht. Gestrichen, weil anderswo schon vorhanden:
-    // Route (steht an beiden Achsenenden), Zielband (Achsen-Zonenlabel und
-    // Konsole), Routen-Fortschritt (das IST die Achse), Beobachtungsachse
-    // (gehoert zum Ausloesewert, nicht in eine eigene Kachel). Was bleibt,
-    // beantwortet vier verschiedene Fragen: Geht das? Ist es sicher? Wie
-    // weit noch? Wie viel Spielraum habe ich?
-    byId('pj-stats').innerHTML =
-      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toFixed(3), a: conf.ang.toFixed(1) }), { cls: conf.cls, score: conf.score }) +
-      card(T.cPlane, plane.label, plane.cls, fill(T.cPlaneSub, { z: nf2.format(plane.zKm), h: nf0.format(HALF) })) +
-      card(T.cDist, nf3.format(remainKm / 1e6) + ' Gm', '', fill(T.cDistSub, { k: nf0.format(remainKm) })) +
-      card(T.cWidth, nf0.format(widthKm) + ' km', '', fill(T.cWidthSub, { i: nf0.format(innerToPeak), o: nf0.format(peakToOuter) }));
-
-    byId('pj-coordstitle').textContent = T.coordsTitle;
-    byId('pj-cx').textContent = nf3.format(exit.x);
-    byId('pj-cy').textContent = nf3.format(exit.y);
-    byId('pj-cz').textContent = nf3.format(exit.z);
-
-    // Bandfenster auf der Beobachtungsachse
-    var innerRoots = rootsForRadius(start, end, band.innerRadiusKm * 1000);
-    var outerRoots = rootsForRadius(start, end, band.outerRadiusKm * 1000);
-    var iu = selectRootNear(innerRoots, u), ou = selectRootNear(outerRoots, u);
-    var AX = axis.toUpperCase();
-    // Die Bandfenster-Liste ist entfallen. Eintritt, Spitzendichte und
-    // Austritt zeigt jetzt die verschmolzene Zeichnung als Kurve durch die
-    // Bandzone — dieselbe Information im Zusammenhang statt als drei
-    // Zahlenzeilen daneben.
-
-    // ── Reise UND Ring in einer einzigen Zeichnung ──────────────────────
-    // x = zurueckgelegte Strecke, y = Abstand vom Stern. Damit werden die
-    // Dichtebaender zu waagerechten Zonen und die Route zu einer Kurve, die
-    // durch sie hindurchtaucht: man sieht die Reise, den Ringaufbau und den
-    // Schnittpunkt in EINEM Bild. Vorher brauchte es dafuer drei (Achse,
-    // Draufsicht, Bandfenster-Liste) und keines zeigte den Zusammenhang.
-
-    drawMap(start, end, band, exit);
-  }
-
-  // -- Persistenz --
-  var KEY = 'pj-route';
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify({ s: byId('pj-start').value, e: byId('pj-end').value, b: byId('pj-bandsel').value })); } catch (e) {}
-  }
-  function load() {
-    var v = null;
-    try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
-    var s = byId('pj-start'), e = byId('pj-end'), b = byId('pj-bandsel');
-    s.value = (v && AMAP[v.s]) ? v.s : D.def.start;
-    e.value = (v && AMAP[v.e]) ? v.e : D.def.end;
-    b.value = (v && D.bands[v.b]) ? v.b : D.def.band;
-    if (!s.value) s.value = D.def.start;
-    if (!e.value) e.value = D.def.end;
-  }
-
-  function onChange() { save(); render(); }
-
-  byId('pj-start').addEventListener('change', onChange);
-  byId('pj-end').addEventListener('change', onChange);
-  byId('pj-bandsel').addEventListener('change', onChange);
-  byId('pj-swap').addEventListener('click', function () {
-    var s = byId('pj-start'), e = byId('pj-end');
-    var tmp = s.value; s.value = e.value; e.value = tmp;
-    onChange();
-  });
-  byId('pj-reset').addEventListener('click', function () {
-    byId('pj-start').value = D.def.start;
-    byId('pj-end').value = D.def.end;
-    byId('pj-bandsel').value = D.def.band;
-    onChange();
-  });
-  byId('pj-copy').addEventListener('click', function () {
-    var btn = byId('pj-copy'), val = btn.dataset.value;
-    if (!val) return;
-    var done = function (txt) { var o = btn.textContent; btn.textContent = txt; setTimeout(function () { btn.textContent = o; }, 1100); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(val).then(function () { done(T.copied); }).catch(function () { done(T.copyFail); });
-    } else { done(T.copyFail); }
-  });
-
-  // Anker-Tabelle filtern
-  var af = byId('pj-anchorfilter');
-  if (af) af.addEventListener('input', function () {
-    var q = af.value.trim().toLowerCase();
-    var rows = byId('pj-anchorbody').children;
-    for (var i = 0; i < rows.length; i++) {
-      var name = rows[i].getAttribute('data-name') || '';
-      rows[i].style.display = (!q || name.indexOf(q) > -1) ? '' : 'none';
-    }
-  });
-
-  load();
-  render();
-})();
-</script>
-
+{/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
+    das Werkzeug bei langsamem Netz erst ungestylt in voller Breite und sprang
+    dann um (gemessen CLS 0,50 bei 1,6 Mbit/s). Die Reihenfolge der
+    Stilblaetter untereinander bleibt dieselbe. */}
 <style is:inline>
   .pj { padding-top: clamp(1.5rem, 4vw, 2.5rem); }
   .pj-wrap { max-width: var(--maxw); margin: 0 auto; }
@@ -1289,3 +706,591 @@ const CLIENT = {
 :root[data-theme="light"] .pj-card__val.pj-ok{color:#006a38}
 :root[data-theme="light"] .pj-dens--medium{color:#006a38}
 </style>
+
+<section class="pj" id="pjump">
+  <div class="pj-wrap">
+    {/* Werkzeug-Hilfe (Phase 01.2, Plan 04) — Precision Jump hat keine
+        einzelne Werkzeugleiste (RESEARCH Annahme A2). Der Einstieg sitzt
+        deshalb hier, als erstes Kind von .pj-wrap, unmittelbar VOR der
+        Steuerkonsole: die Steuerung ist das Produkt dieser Seite (siehe
+        Kommentar direkt darunter) und steht zuoberst — der Einstieg sitzt
+        ueber dem, was er erklaert. Ausdruecklich NICHT in eines der
+        details.pj-tbl weiter unten, dort waere er hinter einem zugeklappten
+        Abschnitt versteckt. Diese Setzung ist eine ANNAHME, keine
+        Entscheidung des Betreibers — siehe
+        .planning/phases/01.2-werkzeuge-erklaeren/01.2-RESEARCH.md Annahme A2. */}
+    <ToolHelp tool="precisionjump" lang={lang} steps={4} />
+    <!-- ==== Steuerung ====
+         Das Werkzeug ist das Produkt dieser Seite, nicht ein Anhang zum Text:
+         Steuerung und Karte stehen zuoberst, alles Erklaerende folgt. -->
+    <div class="pj-console">
+      <div class="pj-console__head">
+        <span class="pj-console__title">{S.solver}</span>
+        <button type="button" class="pj-reset" id="pj-reset" data-help={h('precisionjump.ctl.reset')}>{S.reset}</button>
+      </div>
+
+      <div class="pj-route" data-help={h('precisionjump.ctl.route')}>
+        <div class="pj-field">
+          <label class="pj-label" for="pj-start">{S.start}</label>
+          <select id="pj-start" class="pj-select">
+            {GROUPS.map((g) => (
+              <optgroup label={g.label}>
+                {byGroup(g.key).map((a) => (
+                  <option value={a.id}>
+                    {a.type === 'station alias' ? `${a.displayName} — ${S.usesCentre.replace('%s%', a.canonicalName)}` : a.displayName}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        <button type="button" class="pj-swap" id="pj-swap" title={S.swap} aria-label={S.swap} data-help={h('precisionjump.ctl.swap')}>⇄</button>
+
+        <div class="pj-field">
+          <label class="pj-label" for="pj-end">{S.dest}</label>
+          <select id="pj-end" class="pj-select">
+            {GROUPS.map((g) => (
+              <optgroup label={g.label}>
+                {byGroup(g.key).map((a) => (
+                  <option value={a.id}>
+                    {a.type === 'station alias' ? `${a.displayName} — ${S.usesCentre.replace('%s%', a.canonicalName)}` : a.displayName}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div class="pj-band" data-help={h('precisionjump.ctl.band')}>
+        <div class="pj-field">
+          <label class="pj-label" for="pj-bandsel">{S.band}</label>
+          <select id="pj-bandsel" class="pj-select">
+            {bandEntries.map(([key, b]) => (
+              <option value={key}>{b.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="pj-field">
+          <span class="pj-label">{S.density}</span>
+          <div class="pj-readout">
+            <b id="pj-density">—</b>
+            <i>{S.densitySub}</i>
+          </div>
+        </div>
+        <div class="pj-field">
+          <span class="pj-label">{S.radius}</span>
+          <div class="pj-readout">
+            <b id="pj-radius">—</b>
+            <i>{S.radiusSub}</i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entfallen: die Routen-Zusammenfassung wiederholte nur die beiden
+           Auswahlfelder darueber, und die Huellen-Zeile steht inhaltlich
+           schon im Hinweiskasten weiter unten. Beide schoben die Karte
+           unter die Falz, ohne etwas Neues zu sagen. -->
+    </div>
+
+    <!-- ==== Result ==== -->
+    <div class="pj-result" id="pj-result" aria-live="polite">
+      <!-- Die Reiselinie: Start links, Ziel rechts, massstaeblich. Die
+           Bandzone liegt als Feld darauf, die Austrittsmarke an ihrer Stelle.
+           Sie steht VOR dem Ausloesewert: die zurueckgelegte Strecke ist die
+           Zahl, die ein Mensch braucht — der 15-stellige Rohwert ist das,
+           was man im Spiel abliest, und damit zweite Ordnung. -->
+      <!-- Die Karte steht direkt unter der Bedienung und gross: wer zwei
+           Anker waehlt, soll die Route sofort sehen, ohne zu scrollen.
+           Alles Abgelesene folgt darunter. -->
+      <figure class="pj-map">
+        <div class="pj-map__frame">
+          <svg id="pj-svg" viewBox="0 0 1000 1000" role="img" aria-label={S.mapTitle}></svg>
+        </div>
+        <figcaption class="pj-map__cap">
+          <span>{S.mapTitle}</span>
+          <i>{S.mapSub}</i>
+          <span class="pj-map__legend">
+            <span class="pj-lg pj-lg--band">{S.mapLegBand}</span>
+            <span class="pj-lg pj-lg--route">{S.mapLegRoute}</span>
+            <span class="pj-lg pj-lg--drop">{S.mapLegDrop}</span>
+          </span>
+        </figcaption>
+      </figure>
+
+      <div class="pj-trigger" id="pj-trigger">
+        <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
+        <div class="pj-trigger__val" id="pj-trigval">0</div>
+        <div class="pj-trigger__sub" id="pj-trigsub"></div>
+        <button type="button" class="pj-copy" id="pj-copy">{JS_T.copy}</button>
+      </div>
+
+      <div class="pj-stats" id="pj-stats"></div>
+
+      <div class="pj-coords">
+        <div class="pj-coords__title" id="pj-coordstitle"></div>
+        <div class="pj-coords__grid">
+          <div class="pj-coord"><span>X</span><b id="pj-cx">—</b></div>
+          <div class="pj-coord"><span>Y</span><b id="pj-cy">—</b></div>
+          <div class="pj-coord"><span>Z</span><b id="pj-cz">—</b></div>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="pj-honesty" set:html={S.honesty} />
+
+    <details class="pj-tbl" open data-help={h('precisionjump.ctl.table')}>
+      <summary>
+        <span class="pj-tbl__ttl">{S.bandIdx}</span>
+        <i class="pj-tbl__sub">{S.bandIdxSub}</i>
+        <span class="pj-tbl__chev" aria-hidden="true">▾</span>
+      </summary>
+      <div class="pj-tbl__body">
+        <div class="pj-tblscroll">
+          <table>
+            <thead>
+              <tr><th>{S.thBand}</th><th>{S.thPeak}</th><th>{S.thInner}</th><th>{S.thOuter}</th><th>{S.thWidth}</th><th>{S.thDensity}</th></tr>
+            </thead>
+            <tbody>
+              {bandEntries.map(([, b]) => {
+                const m = getBandMetrics(b);
+                return (
+                  <tr class={b.densityClass === 'high' ? 'is-peak' : undefined}>
+                    <td class="pj-td-name">{b.name}</td>
+                    <td class="pj-td-anchor">{fmt0.format(b.peakDensityRadiusKm)}</td>
+                    <td class="pj-td-num">{fmt0.format(b.innerRadiusKm)}</td>
+                    <td class="pj-td-num">{fmt0.format(b.outerRadiusKm)}</td>
+                    <td class="pj-td-type">{fmt0.format(m.widthKm)}</td>
+                    <td><span class={`pj-dens pj-dens--${b.densityClass}`}>{JS_T.dens[b.densityClass]}</span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="pj-tbl" data-help={h('precisionjump.ctl.table')}>
+      <summary>
+        <span class="pj-tbl__ttl">{S.anchorIdx}</span>
+        <i class="pj-tbl__sub">{S.anchorIdxSub}</i>
+        <span class="pj-tbl__chev" aria-hidden="true">▾</span>
+      </summary>
+      <div class="pj-tbl__body">
+        <input type="search" id="pj-anchorfilter" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
+        <div class="pj-tblscroll">
+          <table>
+            <thead>
+              <tr><th>{S.thName}</th><th>{S.thType}</th><th>{S.thAnchor}</th><th>X (m)</th><th>Y (m)</th><th>Z (m)</th></tr>
+            </thead>
+            <tbody id="pj-anchorbody">
+              {anchorRows.map((a) => (
+                <tr data-name={`${a.displayName} ${S.tType[a.type]} ${a.canonicalName}`.toLowerCase()}>
+                  <td class="pj-td-name">{a.displayName}</td>
+                  <td class="pj-td-type">{S.tType[a.type]}</td>
+                  <td class="pj-td-anchor">{a.canonicalName}</td>
+                  <td class="pj-td-num">{fmt3.format(a.point.x)}</td>
+                  <td class="pj-td-num">{fmt3.format(a.point.y)}</td>
+                  <td class="pj-td-num">{fmt3.format(a.point.z)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <!-- ==== Info / credit ==== -->
+    <div class="pj-info">
+      <div class="pj-infocard">
+        <div class="pj-infocard__ttl">{S.howTitle}</div>
+        <p class="pj-infocard__body">{S.howBody}</p>
+        <div class="pj-steps">
+          <span class="pj-steps__ttl">{S.howSteps}</span>
+          <ol>
+            <li set:html={S.howStep1} />
+            <li set:html={S.howStep2} />
+            <li set:html={S.howStep3} />
+          </ol>
+        </div>
+      </div>
+      <div class="pj-infocard">
+        <div class="pj-infocard__ttl">{S.confTitle}</div>
+        <p class="pj-infocard__body" set:html={S.confBody} />
+      </div>
+      <div class="pj-infocard">
+        <div class="pj-infocard__ttl">{S.stationTitle}</div>
+        <p class="pj-infocard__body">{S.stationBody}</p>
+      </div>
+      <div class="pj-infocard pj-infocard--credit">
+        <div class="pj-infocard__ttl">{S.creditTitle}</div>
+        <p class="pj-infocard__body" set:html={S.creditBody} />
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline set:html={`window.__PJUMP=${jsonForScript(CLIENT)};`} />
+
+<script is:inline>
+(function () {
+  var D = window.__PJUMP;
+  if (!D) return;
+  var T = D.t;
+  var HALF = D.meta.half;
+  var ORIGIN = { x: 0, y: 0, z: 0 };
+
+  var byId = function (id) { return document.getElementById(id); };
+  var loc = T.locale;
+  var nf0 = new Intl.NumberFormat(loc, { maximumFractionDigits: 0 });
+  var nf2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
+  var nf3 = new Intl.NumberFormat(loc, { maximumFractionDigits: 3 });
+  var fill = function (s, map) { return Object.keys(map).reduce(function (a, k) { return a.split('%' + k + '%').join(map[k]); }, s); };
+
+  // Anker als Map (id -> record)
+  var AMAP = {};
+  D.anchors.forEach(function (a) { AMAP[a.id] = a; });
+
+  // -- Geometrie (Strahl-Kugel-Schnitt) --
+  function dot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+  function sub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+  function add(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
+  function scl(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
+  function mag(a) { return Math.sqrt(dot(a, a)); }
+  function ptAt(s, d, u) { return add(s, scl(d, u)); }
+  function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+  function rootsForRadius(start, end, radiusM) {
+    var d = sub(end, start);
+    var q = sub(start, ORIGIN);
+    var a = dot(d, d);
+    var b = 2 * dot(q, d);
+    var c = dot(q, q) - radiusM * radiusM;
+    var disc = b * b - 4 * a * c;
+    if (a === 0 || disc < 0) return [];
+    var sq = Math.sqrt(Math.max(0, disc));
+    return [(-b - sq) / (2 * a), (-b + sq) / (2 * a)]
+      .filter(function (u) { return isFinite(u) && u > 1e-10 && u <= 1 + 1e-10; })
+      .map(function (u) { return clamp(u, 0, 1); })
+      .sort(function (x, y) { return x - y; })
+      .filter(function (u, i, arr) { return i === 0 || Math.abs(u - arr[i - 1]) > 1e-10; });
+  }
+  function closestApproach(start, end) {
+    var d = sub(end, start);
+    var den = dot(d, d);
+    var u = den === 0 ? 0 : clamp(-dot(start, d) / den, 0, 1);
+    var p = ptAt(start, d, u);
+    return { u: u, point: p, radiusKm: mag(p) / 1000 };
+  }
+  function selectRootNear(roots, target) {
+    if (!roots.length) return null;
+    return roots.reduce(function (best, cur) { return Math.abs(cur - target) < Math.abs(best - target) ? cur : best; });
+  }
+  function confidence(start, end, exit) {
+    var d = sub(end, start);
+    var rl = mag(d), radl = mag(exit);
+    var f = rl === 0 || radl === 0 ? 0 : Math.abs(dot(d, exit) / (rl * radl));
+    var score = Math.round(f * 100);
+    var ang = Math.acos(clamp(f, -1, 1)) * 180 / Math.PI;
+    if (f >= 0.5) return { label: T.confHigh, cls: 'ok', f: f, score: score, ang: ang };
+    if (f >= 0.25) return { label: T.confMod, cls: 'warn', f: f, score: score, ang: ang };
+    return { label: T.confLow, cls: 'bad', f: f, score: score, ang: ang };
+  }
+  function planeStatus(exit) {
+    var zKm = Math.abs(exit.z) / 1000;
+    if (zKm <= HALF * 0.6) return { label: T.planeSafe, cls: 'ok', zKm: zKm };
+    if (zKm <= HALF) return { label: T.planeMarg, cls: 'warn', zKm: zKm };
+    return { label: T.planeOut, cls: 'bad', zKm: zKm };
+  }
+  function monitorAxis(dir) { return Math.abs(dir.x) >= Math.abs(dir.y) ? 'x' : 'y'; }
+
+  // -- Holografische Sternenkarte (Draufsicht auf die Stanton-Ebene, z≈0) --
+  var SVG = byId('pj-svg');
+  // Kleiner deterministischer PRNG -> der Asteroidengürtel ist bei jedem Redraw
+  // identisch (springt nicht), obwohl er prozedural gestreut wird.
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  // Ring-Ausdehnung für den Asteroidengürtel, sonst
+  // Fallback auf die Band-Grenzen.
+  var HALO_IN, HALO_OUT;
+  if (D.env) { HALO_IN = D.env.inner; HALO_OUT = D.env.outer; }
+  else {
+    HALO_IN = Infinity; HALO_OUT = 0;
+    Object.keys(D.bands).forEach(function (k) {
+      HALO_IN = Math.min(HALO_IN, D.bands[k].innerRadiusKm);
+      HALO_OUT = Math.max(HALO_OUT, D.bands[k].outerRadiusKm);
+    });
+  }
+  var GM = 1e9; // 1 Gigameter = 1e9 m (Anker-Koordinaten sind in Metern)
+
+  function drawMap(start, end, band, exit) {
+    var CX = 500, CY = 500, PAD = 60, R = CY - PAD;
+    var maxR = Math.max(HALO_OUT * 1000, mag(start), mag(end)) * 1.16;
+    var sc = function (v) { return (v / maxR) * R; };
+    var tx = function (wx) { return CX + sc(wx); };
+    var ty = function (wy) { return CY - sc(wy); };
+    var P = [];
+
+    // --- Entfernungs-Ringe (alle N Gm) mit Beschriftung ---
+    var maxGm = maxR / GM;
+    var step = maxGm > 30 ? 10 : (maxGm > 12 ? 5 : 2);
+    for (var g = step; ; g += step) {
+      var rr = sc(g * GM);
+      if (rr > R) break;
+      P.push('<circle cx="500" cy="500" r="' + rr.toFixed(1) + '" class="pj-svg-range"/>');
+      P.push('<text x="507" y="' + (CY - rr - 4).toFixed(1) + '" class="pj-svg-rangelbl">' + g + ' Gm</text>');
+    }
+    P.push('<line x1="' + (CX - R) + '" y1="500" x2="' + (CX + R) + '" y2="500" class="pj-svg-axis"/>');
+    P.push('<line x1="500" y1="' + (CY - R) + '" x2="500" y2="' + (CY + R) + '" class="pj-svg-axis"/>');
+
+    // --- Planeten-Orbits (echte Bahnradien) ---
+    var planets = D.anchors.filter(function (a) { return a.type === 'planet'; });
+    planets.forEach(function (a) {
+      var r = mag(a.point);
+      if (r <= maxR) P.push('<circle cx="500" cy="500" r="' + sc(r).toFixed(1) + '" class="pj-svg-orbit"/>');
+    });
+
+    // --- Aaron-Halo als Asteroidengürtel (seeded, über den ganzen Ring gestreut) ---
+    var rnd = mulberry32(0x5C0FA10);
+    var bIn = sc(HALO_IN * 1000), bOut = sc(HALO_OUT * 1000);
+    var belt = '';
+    for (var i = 0; i < 300; i++) {
+      var ang = rnd() * Math.PI * 2;
+      var rad = bIn + rnd() * (bOut - bIn);
+      var ax = CX + Math.cos(ang) * rad, ay = CY - Math.sin(ang) * rad;
+      var sz = (0.6 + rnd() * 1.5).toFixed(2);
+      var op = (0.22 + rnd() * 0.5).toFixed(2);
+      belt += '<circle cx="' + ax.toFixed(1) + '" cy="' + ay.toFixed(1) + '" r="' + sz + '" opacity="' + op + '"/>';
+    }
+    P.push('<g class="pj-svg-belt">' + belt + '</g>');
+
+    // --- Ausgewähltes Band hervorheben (Annulus + Spitzenradius) ---
+    var rOut = sc(band.outerRadiusKm * 1000), rIn = sc(band.innerRadiusKm * 1000), rPk = sc(band.peakDensityRadiusKm * 1000);
+    var donut = 'M ' + CX + ' ' + (CY - rOut) + ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY + rOut) +
+      ' A ' + rOut + ' ' + rOut + ' 0 1 0 ' + CX + ' ' + (CY - rOut) + ' Z' +
+      ' M ' + CX + ' ' + (CY - rIn) + ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY + rIn) +
+      ' A ' + rIn + ' ' + rIn + ' 0 1 0 ' + CX + ' ' + (CY - rIn) + ' Z';
+    P.push('<path d="' + donut + '" class="pj-svg-band" fill-rule="evenodd"/>');
+    P.push('<circle cx="500" cy="500" r="' + rPk.toFixed(1) + '" class="pj-svg-peak"/>');
+
+    // --- QT-Route: solide Start→Ausstieg, gestrichelt Ausstieg→Ziel ---
+    var sx = tx(start.x), sy = ty(start.y), ex = tx(end.x), ey = ty(end.y);
+    if (exit) {
+      var dx = tx(exit.x), dy = ty(exit.y);
+      P.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + dx + '" y2="' + dy + '" class="pj-svg-route"/>');
+      P.push('<line x1="' + dx + '" y1="' + dy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--rem"/>');
+    } else {
+      P.push('<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" class="pj-svg-route pj-svg-route--miss"/>');
+    }
+
+    // --- Planeten-Knoten + Labels ---
+    planets.forEach(function (a) {
+      var r = mag(a.point);
+      if (r > maxR) return;
+      var px = tx(a.point.x), py = ty(a.point.y), right = a.point.x >= 0;
+      P.push('<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="5" class="pj-svg-planet"/>');
+      P.push('<text x="' + (right ? px + 10 : px - 10).toFixed(1) + '" y="' + (py + 4).toFixed(1) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pj-svg-plabel">' + a.displayName + '</text>');
+    });
+
+    // --- Star (Systemzentrum) ---
+    P.push('<circle cx="500" cy="500" r="22" class="pj-svg-starglow"/>');
+    P.push('<circle cx="500" cy="500" r="6" class="pj-svg-star"/>');
+
+    // --- Start-/Ziel-Knoten ---
+    function node(pt, cls, tag) {
+      var mx = tx(pt.x), my = ty(pt.y), right = pt.x >= 0;
+      return '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="7" class="pj-svg-node ' + cls + '"/>' +
+        '<text x="' + (right ? mx + 12 : mx - 12).toFixed(1) + '" y="' + (my - 11).toFixed(1) + '" text-anchor="' + (right ? 'start' : 'end') + '" class="pj-svg-tag">' + tag + '</text>';
+    }
+    P.push(node(start, 'pj-svg-node--start', T.tagStart));
+    P.push(node(end, 'pj-svg-node--end', T.tagQt));
+
+    // --- Ausstiegs-Reticle (die eigentliche Antwort — Fadenkreuz + Puls) ---
+    if (exit) {
+      var ox = tx(exit.x), oy = ty(exit.y);
+      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="13" class="pj-svg-reticle"/>');
+      P.push('<path d="M ' + (ox - 19).toFixed(1) + ' ' + oy.toFixed(1) + ' h 8 M ' + (ox + 11).toFixed(1) + ' ' + oy.toFixed(1) + ' h 8 M ' + ox.toFixed(1) + ' ' + (oy - 19).toFixed(1) + ' v 8 M ' + ox.toFixed(1) + ' ' + (oy + 11).toFixed(1) + ' v 8" class="pj-svg-cross"/>');
+      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="12" class="pj-svg-pulse"/>');
+      P.push('<circle cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="4.5" class="pj-svg-drop"/>');
+    }
+
+    SVG.innerHTML = P.join('');
+  }
+
+  // -- Ergebnis rendern --
+  var result = byId('pj-result');
+  function card(label, val, cls, sub, bar) {
+    return '<div class="pj-card">' +
+      '<div class="pj-card__lbl">' + label + '</div>' +
+      '<div class="pj-card__val' + (cls ? ' pj-' + cls : '') + '">' + val + '</div>' +
+      (sub ? '<div class="pj-card__sub">' + sub + '</div>' : '') +
+      (bar != null ? '<div class="pj-bar"><i class="pj-bar__f pj-' + bar.cls + '" style="width:' + bar.score + '%"></i></div>' : '') +
+      '</div>';
+  }
+
+  function setStatus(cls) { result.className = 'pj-result pj-result--' + cls; }
+
+  function showError(title, sub) {
+    setStatus('bad');
+    byId('pj-trigaxis').textContent = title;
+    byId('pj-trigval').textContent = '—';
+    byId('pj-trigsub').textContent = sub || '';
+    byId('pj-stats').innerHTML = '';
+    byId('pj-cx').textContent = byId('pj-cy').textContent = byId('pj-cz').textContent = '—';
+    byId('pj-coordstitle').textContent = '';
+    byId('pj-copy').style.visibility = 'hidden';
+  }
+
+  function render() {
+    var sa = AMAP[byId('pj-start').value], ea = AMAP[byId('pj-end').value];
+    var band = D.bands[byId('pj-bandsel').value];
+    if (!sa || !ea || !band) return;
+
+    // Readouts + Zusammenfassung
+    byId('pj-density').textContent = T.dens[band.densityClass];
+    byId('pj-density').className = 'pj-dens-txt pj-dens--' + band.densityClass;
+    byId('pj-radius').textContent = nf0.format(band.peakDensityRadiusKm) + ' km';
+    var start = sa.point, end = ea.point;
+
+    // Gleiche Koordinate?
+    if (sa.id === ea.id || (start.x === end.x && start.y === end.y && start.z === end.z)) {
+      showError(T.sameError, '');
+      drawMap(start, end, band, null);
+      return;
+    }
+
+    var roots = rootsForRadius(start, end, band.peakDensityRadiusKm * 1000);
+    if (!roots.length) {
+      var ca = closestApproach(start, end);
+      showError(T.noCrossTitle, fill(T.noCrossSub, { band: band.name, r: nf0.format(band.peakDensityRadiusKm), c: nf0.format(ca.radiusKm) }));
+      drawMap(start, end, band, null);
+      return;
+    }
+
+    var u = roots[0];
+    var dir = sub(end, start);
+    var exit = ptAt(start, dir, u);
+    var routeKm = mag(dir) / 1000;
+    var travelledKm = routeKm * u;
+    var remainKm = routeKm * (1 - u);
+    var axis = monitorAxis(dir);
+    var trend = dir[axis] >= 0 ? T.increasing : T.decreasing;
+    var rising = dir[axis] >= 0;
+    var trig = exit[axis];
+    var conf = confidence(start, end, exit);
+    var plane = planeStatus(exit);
+    var widthKm = band.outerRadiusKm - band.innerRadiusKm;
+    var innerToPeak = band.peakDensityRadiusKm - band.innerRadiusKm;
+    var peakToOuter = band.outerRadiusKm - band.peakDensityRadiusKm;
+
+    setStatus(conf.cls === 'ok' && plane.cls === 'ok' ? 'ok' : (conf.cls === 'bad' || plane.cls === 'bad' ? 'bad' : 'warn'));
+
+    byId('pj-trigaxis').textContent = T.monitor + ' ' + axis.toUpperCase() + ' · ' + trend;
+    byId('pj-trigval').textContent = nf3.format(trig);
+    byId('pj-trigsub').textContent = rising ? T.triggerSubUp : T.triggerSubDown;
+    var copyBtn = byId('pj-copy');
+    copyBtn.style.visibility = 'visible';
+    copyBtn.dataset.value = String(trig);
+
+    // Vier Kennwerte statt acht. Gestrichen, weil anderswo schon vorhanden:
+    // Route (steht an beiden Achsenenden), Zielband (Achsen-Zonenlabel und
+    // Konsole), Routen-Fortschritt (das IST die Achse), Beobachtungsachse
+    // (gehoert zum Ausloesewert, nicht in eine eigene Kachel). Was bleibt,
+    // beantwortet vier verschiedene Fragen: Geht das? Ist es sicher? Wie
+    // weit noch? Wie viel Spielraum habe ich?
+    byId('pj-stats').innerHTML =
+      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toFixed(3), a: conf.ang.toFixed(1) }), { cls: conf.cls, score: conf.score }) +
+      card(T.cPlane, plane.label, plane.cls, fill(T.cPlaneSub, { z: nf2.format(plane.zKm), h: nf0.format(HALF) })) +
+      card(T.cDist, nf3.format(remainKm / 1e6) + ' Gm', '', fill(T.cDistSub, { k: nf0.format(remainKm) })) +
+      card(T.cWidth, nf0.format(widthKm) + ' km', '', fill(T.cWidthSub, { i: nf0.format(innerToPeak), o: nf0.format(peakToOuter) }));
+
+    byId('pj-coordstitle').textContent = T.coordsTitle;
+    byId('pj-cx').textContent = nf3.format(exit.x);
+    byId('pj-cy').textContent = nf3.format(exit.y);
+    byId('pj-cz').textContent = nf3.format(exit.z);
+
+    // Bandfenster auf der Beobachtungsachse
+    var innerRoots = rootsForRadius(start, end, band.innerRadiusKm * 1000);
+    var outerRoots = rootsForRadius(start, end, band.outerRadiusKm * 1000);
+    var iu = selectRootNear(innerRoots, u), ou = selectRootNear(outerRoots, u);
+    var AX = axis.toUpperCase();
+    // Die Bandfenster-Liste ist entfallen. Eintritt, Spitzendichte und
+    // Austritt zeigt jetzt die verschmolzene Zeichnung als Kurve durch die
+    // Bandzone — dieselbe Information im Zusammenhang statt als drei
+    // Zahlenzeilen daneben.
+
+    // ── Reise UND Ring in einer einzigen Zeichnung ──────────────────────
+    // x = zurueckgelegte Strecke, y = Abstand vom Stern. Damit werden die
+    // Dichtebaender zu waagerechten Zonen und die Route zu einer Kurve, die
+    // durch sie hindurchtaucht: man sieht die Reise, den Ringaufbau und den
+    // Schnittpunkt in EINEM Bild. Vorher brauchte es dafuer drei (Achse,
+    // Draufsicht, Bandfenster-Liste) und keines zeigte den Zusammenhang.
+
+    drawMap(start, end, band, exit);
+  }
+
+  // -- Persistenz --
+  var KEY = 'pj-route';
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ s: byId('pj-start').value, e: byId('pj-end').value, b: byId('pj-bandsel').value })); } catch (e) {}
+  }
+  function load() {
+    var v = null;
+    try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+    var s = byId('pj-start'), e = byId('pj-end'), b = byId('pj-bandsel');
+    s.value = (v && AMAP[v.s]) ? v.s : D.def.start;
+    e.value = (v && AMAP[v.e]) ? v.e : D.def.end;
+    b.value = (v && D.bands[v.b]) ? v.b : D.def.band;
+    if (!s.value) s.value = D.def.start;
+    if (!e.value) e.value = D.def.end;
+  }
+
+  function onChange() { save(); render(); }
+
+  byId('pj-start').addEventListener('change', onChange);
+  byId('pj-end').addEventListener('change', onChange);
+  byId('pj-bandsel').addEventListener('change', onChange);
+  byId('pj-swap').addEventListener('click', function () {
+    var s = byId('pj-start'), e = byId('pj-end');
+    var tmp = s.value; s.value = e.value; e.value = tmp;
+    onChange();
+  });
+  byId('pj-reset').addEventListener('click', function () {
+    byId('pj-start').value = D.def.start;
+    byId('pj-end').value = D.def.end;
+    byId('pj-bandsel').value = D.def.band;
+    onChange();
+  });
+  byId('pj-copy').addEventListener('click', function () {
+    var btn = byId('pj-copy'), val = btn.dataset.value;
+    if (!val) return;
+    var done = function (txt) { var o = btn.textContent; btn.textContent = txt; setTimeout(function () { btn.textContent = o; }, 1100); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(val).then(function () { done(T.copied); }).catch(function () { done(T.copyFail); });
+    } else { done(T.copyFail); }
+  });
+
+  // Anker-Tabelle filtern
+  var af = byId('pj-anchorfilter');
+  if (af) af.addEventListener('input', function () {
+    var q = af.value.trim().toLowerCase();
+    var rows = byId('pj-anchorbody').children;
+    for (var i = 0; i < rows.length; i++) {
+      var name = rows[i].getAttribute('data-name') || '';
+      rows[i].style.display = (!q || name.indexOf(q) > -1) ? '' : 'none';
+    }
+  });
+
+  load();
+  render();
+})();
+</script>

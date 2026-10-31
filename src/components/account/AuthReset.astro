@@ -2,6 +2,10 @@
 // Passwort vergessen — schickt den Recovery-Link. Ziel des Links ist
 // /account/update-password.html (sprachbewusst); dort setzt der User das neue
 // Passwort. Antwort ist bewusst immer „Mail ist raus" (keine Adress-Enumeration).
+// Angefordert wird über linkClient() (lib/supabase.ts), NICHT über den
+// gemeinsamen PKCE-Client: ein PKCE-Link ließe sich nur in diesem Browser
+// öffnen. Mit der token_hash-Vorlage spielt das keine Rolle mehr, mit der
+// alten Vorlage hält es den Link bis zur Umstellung geräteübergreifend.
 import { SITE } from '../../consts';
 import { href } from '../../i18n/ui';
 
@@ -71,7 +75,7 @@ const loginHref = href('/account/login.html', lang);
 </div>
 
 <script>
-  import { supabase } from '../../lib/supabase';
+  import { linkClient } from '../../lib/supabase';
 
   const form = document.getElementById('rsForm') as HTMLFormElement | null;
   if (form) {
@@ -92,7 +96,7 @@ const loginHref = href('/account/login.html', lang);
       btn.disabled = true;
       btnTxt.textContent = D.busy!;
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await linkClient().auth.resetPasswordForEmail(email, {
           redirectTo: D.redirect!,
         });
         if (error) {

@@ -9,11 +9,18 @@
 # EINRICHTUNG (einmalig, ausserhalb dieses Repos):
 #   1. Coolify: zweite Anwendung anlegen, Quelle ghcr.io/cibakhun/sc-patch-archive:staging,
 #      eigene Domain (z. B. staging.verse-base.com).
-#   2. Deren Deploy-Webhook als Repo-Secret COOLIFY_STAGING_WEBHOOK hinterlegen.
-#      COOLIFY_API_TOKEN wird mit der Live-Pipeline geteilt.
+#   2. Deren Deploy-Webhook als Secret COOLIFY_STAGING_WEBHOOK hinterlegen
+#      (Umgebung `staging`, ersatzweise Repo-Secret), dazu COOLIFY_API_TOKEN
+#      in derselben Umgebung. Ein Coolify-Token gilt fuer sein ganzes Team —
+#      steht die Vorschau im selben Team wie die Live-App, reicht ihr Token
+#      auch dorthin (siehe Kopf von deploy-image.yml).
 #   3. Zweig anlegen und pushen: git switch -c staging && git push -u origin staging
 #
 # ABLAUF danach: PR -> in `staging` mergen -> ansehen -> in `main` mergen.
+#
+# Aufbau wie deploy-image.yml: build (ohne Rechte, build-site-image.yml) ->
+# publish (frische Maschine, ID-Vergleich, Push) -> deploy (Umgebung
+# `staging`, nur dort die Coolify-Secrets). Die Begruendung steht dort.
 name: Build & Push Staging Image
 
 on:
@@ -23,182 +30,113 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: staging-image-build
   cancel-in-progress: true
 
 jobs:
-  build-push:
+  # Erst BAUEN und pruefen, nicht pushen. Die Vorschau-Pruefungen (sperrende
+  # robots.txt, noindex, Browser-Rauchtest mit frisch gewuerfeltem
+  # Tor-Durchlass, check-gate gegen den laufenden Container) stehen samt
+  # Begruendung in build-site-image.yml.
+  build:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-site-image.yml
+    with:
+      staging: true
+      tags: |
+        ghcr.io/cibakhun/sc-patch-archive:staging
+        ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
+      artifact: staging-image
+
+  publish:
+    needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Image-Artefakt holen
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: staging-image
+          path: ${{ runner.temp }}/image
+
+      # Kein Checkout in diesem Job — Pruefung wie in deploy-image.yml.
+      - name: Laden und mit dem gebauten Image vergleichen
+        env:
+          IMAGE_ID: ${{ needs.build.outputs.image-id }}
+          TAGS: |
+            ghcr.io/cibakhun/sc-patch-archive:staging
+            ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
+        run: |
+          zstd -d -q -c "$RUNNER_TEMP/image/image.tar.zst" | docker load
+          mapfile -t ALL < <(printf '%s\n' "$TAGS" | sed '/^[[:space:]]*$/d;s/^[[:space:]]*//;s/[[:space:]]*$//')
+          case "$IMAGE_ID" in sha256:*) ;; *) echo "::error::Keine Image-ID vom Bau-Job erhalten ('$IMAGE_ID')."; exit 1 ;; esac
+          for t in "${ALL[@]}"; do
+            HAVE=$(docker image inspect --format '{{.Id}}' "$t")
+            if [ "$HAVE" != "$IMAGE_ID" ]; then
+              echo "::error::$t ist nicht das gepruefte Image ($HAVE statt $IMAGE_ID) — es wird nichts geschoben."; exit 1
+            fi
+            echo "OK $t = $IMAGE_ID"
+          done
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Erst BAUEN, nicht pushen: zwischen Build und Push liegen zwei
-      # Pruefungen am fertigen Image. Was nicht besteht, wird nie
-      # veroeffentlicht — dieselbe Logik wie beim Tor im Dockerfile, eine
-      # Stufe spaeter.
-      - name: Build (noch nicht pushen)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          load: true
-          build-args: |
-            STAGING=1
-            GIT_SHA=${{ github.sha }}
-          tags: |
-            ghcr.io/cibakhun/sc-patch-archive:staging
-            ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
-
-      # Gegenprobe im fertigen Image: eine versehentlich indexierbare Kopie der
-      # Seite waere Duplicate Content gegen die eigene Domain. Lieber hier hart
-      # scheitern als es in der Search Console entdecken.
-      - name: Verify the preview is not indexable
-        run: |
-          CID=$(docker create ghcr.io/cibakhun/sc-patch-archive:staging)
-          docker cp "$CID:/usr/share/nginx/html/robots.txt" ./robots.check
-          docker cp "$CID:/usr/share/nginx/html/index.html" ./index.check
-          docker rm "$CID" >/dev/null
-          echo "--- robots.txt ---"; cat ./robots.check
-          grep -q '^Disallow: /' ./robots.check || { echo "FEHLER: robots.txt sperrt nicht."; exit 1; }
-          grep -q 'name="robots" content="noindex"' ./index.check || { echo "FEHLER: index.html hat kein noindex."; exit 1; }
-          echo "OK — Vorschau ist gesperrt."
-
-      # ---- Browser-Rauchtest gegen den LAUFENDEN Container ----------------
-      # Warum hier und nicht im Dockerfile-Tor: node:22-alpine hat keinen
-      # Browser, und die Content-Security-Policy ist ein nginx-HEADER — sie
-      # existiert erst, wenn der Container laeuft. dist/ als Dateibaum kann
-      # sie nicht zeigen. Geprueft wird damit genau das Artefakt, das gleich
-      # ausgeliefert wird.
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-
-      - name: Browser bereitstellen
-        run: |
-          for c in google-chrome google-chrome-stable chromium chromium-browser; do
-            if command -v "$c" >/dev/null 2>&1; then
-              echo "CHROME_PATH=$(command -v $c)" >> "$GITHUB_ENV"
-              echo "gefunden: $(command -v $c)"; exit 0
-            fi
-          done
-          echo "kein Browser vorinstalliert — chromium wird nachinstalliert"
-          sudo apt-get update -qq && sudo apt-get install -y -qq chromium-browser
-          echo "CHROME_PATH=$(command -v chromium-browser)" >> "$GITHUB_ENV"
-
-      # ---- Testpilot-Tor: der Rauchtest braucht einen Weg hindurch --------
-      # Das Tor steht auf diesem Container scharf (STAGING=1, Plan 08) --
-      # ohne einen Weg hindurch liefe JEDE Leitseite auf /gate.html statt
-      # auf sich selbst, und der Rauchtest risse an fast jeder Zusicherung
-      # (Plan-09-Anlass). Der Weg ist bewusst KEIN Dauerschluessel
-      # (T-14-56/T-14-57/T-14-58, siehe nginx/gate.js check()):
-      #   1. je Lauf frisch gewuerfelt (openssl rand -hex 32) und nirgends
-      #      gespeichert -- kein Repo-Secret, kein Coolify-Eintrag, keine
-      #      Datei. Der Vorschau-Container auf Coolify bekommt ihn NIE.
-      #   2. beide Seiten (Container-Umgebungsvariable VB_GATE_BYPASS UND
-      #      Rauchtest-Umgebungsvariable SMOKE_GATE_BYPASS) entstehen in
-      #      DIESEM Schritt, damit sie nicht auseinanderlaufen koennen.
-      #   3. der Wert wird erzeugt und verwendet, aber nie ausgegeben --
-      #      keine Zeile in diesem Schritt druckt ihn (T-14-58).
-      - name: Rauchtest gegen das fertige Image
-        run: |
-          GATE_BYPASS=$(openssl rand -hex 32)
-          docker run -d --rm -p 8080:80 -e VB_GATE_BYPASS="$GATE_BYPASS" --name smoke ghcr.io/cibakhun/sc-patch-archive:staging
-          # auf nginx warten, statt blind zu schlafen
-          for i in $(seq 1 30); do
-            curl -fsS http://localhost:8080/ >/dev/null 2>&1 && break
-            sleep 1
-          done
-          # `|| code=$?`, damit der Container auch nach einem Fehlschlag
-          # gestoppt wird — unter `bash -e` bricht der Schritt sonst sofort ab
-          # und laesst ihn stehen. Der Exit-Code bleibt der letzten Pruefung.
-          code=0
-          SMOKE_GATE_BYPASS="$GATE_BYPASS" node scripts/browser-smoke.mjs --base http://localhost:8080 || code=$?
-          # check-gate.mjs (Schiene C, Aufgabe 2) laeuft NACH dem Rauchtest
-          # und VOR dem Push, gegen denselben laufenden Container -- dort ist
-          # er am Platz, weil dort ein echtes Artefakt steht. Zusicherung 4
-          # wuerfelt einen FREMDEN Wert und misst, dass GENAU DER nicht
-          # durchkommt (Negativfall, bekommt den echten Wert nicht). Seit
-          # WR-01 bekommt er zusaetzlich per --bypass den ECHTEN, fuer DIESEN
-          # Lauf gueltigen Wert und misst in Zusicherung 6, dass GENAU DER
-          # eine gesperrte Stichprobe oeffnet (Positivfall) -- genau die
-          # Pruefung, deren Fehlen CR-02 (fehlende env-Direktive im
-          # Dockerfile) unentdeckt liess. Der Wert wird auch hier nicht
-          # ausgegeben (T-14-58).
-          if [ "$code" -eq 0 ]; then
-            # check-gate leitet seine gesperrten Stichproben aus dem gebauten
-            # Stand ab (keine zweite, handgepflegte Pfadliste). Hier gibt es
-            # kein dist/ -- der Astro-Bau entsteht IM Image, der Runner sieht
-            # ihn nie. Am 20.08.2026 riss der Schritt genau daran ab, nachdem
-            # browser-smoke alle Zusicherungen erfuellt hatte.
-            # Der Webwurzel-Inhalt wird deshalb aus dem laufenden Container
-            # geholt. Das ist kein Notbehelf, sondern strenger als ein
-            # lokales dist/: die Stichproben stammen dann aus genau dem
-            # Artefakt, das geprueft wird (Grundsatz 7).
-            mkdir -p image-dist
-            docker cp smoke:/usr/share/nginx/html/. image-dist/
-            # Gegenprobe, damit ein leeres Verzeichnis nicht wie ein
-            # bestandener Lauf aussieht -- check-gate selbst faengt das ueber
-            # seine Untergrenzen zwar ab, aber hier ist die Ursache lesbar.
-            test -f image-dist/index.html || { echo "FEHLER: image-dist/index.html fehlt -- Webwurzel im Image geaendert?" >&2; exit 1; }
-            node scripts/check-gate.mjs --base http://localhost:8080 --dist image-dist --bypass "$GATE_BYPASS" || code=$?
-          fi
-          docker stop smoke >/dev/null || true
-          exit $code
 
       - name: Push (erst nach bestandenen Pruefungen)
         run: |
           docker push ghcr.io/cibakhun/sc-patch-archive:staging
           docker push ghcr.io/cibakhun/sc-patch-archive:staging-${{ github.sha }}
 
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/scripts/coolify-deploy.sh
+            scripts/check-deployed.mjs
+            scripts/check-headers.mjs
+            scripts/lib/csp-inline.mjs
+
       # Am 14.08.2026 scheiterte dieser Schritt zweimal mit 401, obwohl derselbe
       # Token, direkt von Hand aufgerufen, sauber "deployment queued" lieferte.
       # Ursache war nicht der Token, sondern sein TRANSPORT: ein an den Secret-Wert
       # geratenes Zeilenende macht den Bearer-Header ungueltig, und `curl -f`
       # verschluckt dabei auch noch den Rumpf, sodass im Log nur "error: 401" stand.
-      # Daher jetzt: Rand-Leerraum abschneiden, HTTP-Code und Antwort ausgeben, und
-      # die Laenge des Tokens nennen (nicht seinen Wert) — daran ist ein
-      # eingeschlepptes Zeilenende sofort zu erkennen.
+      # Daher trimmt coolify-deploy.sh Rand-Leerraum, gibt HTTP-Code und Antwort
+      # aus und nennt die Laenge des Tokens (nicht seinen Wert) — daran ist ein
+      # eingeschlepptes Zeilenende sofort zu erkennen. Fehlt ein Secret, wird
+      # bewusst NICHT rot (ein Fork ohne Coolify soll bauen koennen), aber als
+      # ::warning:: — am 14.08.2026 lief dieser Zweig zweimal unbemerkt durch
+      # (das Secret war gesetzt, aber LEER), und der gruene Lauf sah aus wie ein
+      # geglueckter Deploy.
       - name: Trigger Coolify redeploy (staging)
         env:
           HOOK: ${{ secrets.COOLIFY_STAGING_WEBHOOK }}
           TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
-        run: |
-          # Fehlt ein Secret, wird bewusst NICHT rot — ein Fork ohne Coolify soll
-          # bauen koennen. Aber als ::warning::, damit es im Lauf sichtbar ist:
-          # am 14.08.2026 lief dieser Zweig zweimal unbemerkt durch (das Secret war
-          # gesetzt, aber LEER — `gh secret set` ohne Eingabe speichert Leerstring),
-          # und der gruene Lauf sah aus wie ein geglueckter Deploy.
-          if [ -z "$HOOK" ] || [ -z "$TOKEN" ]; then
-            FEHLT=""
-            [ -z "$HOOK" ] && FEHLT="COOLIFY_STAGING_WEBHOOK"
-            [ -z "$TOKEN" ] && FEHLT="${FEHLT:+$FEHLT und }COOLIFY_API_TOKEN"
-            echo "::warning::KEIN Deploy ausgeloest — $FEHLT leer oder nicht gesetzt. Das Image liegt fertig in ghcr; in Coolify manuell Redeploy klicken. Achtung: ein Secret kann gesetzt UND leer sein."
-            exit 0
-          fi
-          CLEAN_TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
-          echo "Token: ${#TOKEN} Zeichen roh, ${#CLEAN_TOKEN} nach dem Trimmen (Wert wird nicht ausgegeben)."
-          CLEAN_HOOK=$(printf '%s' "$HOOK" | tr -d '[:space:]')
-          BODY=$(mktemp)
-          CODE=$(curl -sS -o "$BODY" -w '%{http_code}' "$CLEAN_HOOK" -H "Authorization: Bearer $CLEAN_TOKEN")
-          echo "HTTP $CODE"
-          echo "Antwort: $(head -c 400 "$BODY")"
-          if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ]; then
-            echo "Coolify staging redeploy triggered."
-          else
-            echo "::error::Coolify lehnt den Deploy-Aufruf ab (HTTP $CODE). Bei 401: Token in Coolify unter Keys & Tokens pruefen (Berechtigung 'deploy') und COOLIFY_API_TOKEN ohne Zeilenende neu setzen."
-            exit 1
-          fi
+          LABEL: staging
+          PIN_TAG: ${{ vars.COOLIFY_PIN_IMAGE_TAG == 'true' && format('staging-{0}', github.sha) || '' }}
+        run: bash .github/scripts/coolify-deploy.sh
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
 
       # Nachsehen, ob die Vorschau den frisch gebauten Stand WIRKLICH
       # ausliefert. "Image gepusht" und "Coolify angestossen" sind keine
@@ -222,3 +160,10 @@ jobs:
             --vorschau \
             --weich \
             --warte 600
+
+      # Dieselben Kopfzeilen wie im Rauchtest, jetzt durch Cloudflare hindurch:
+      # das sieht nur, wer die ausgelieferte Seite fragt. `--weich`, weil
+      # Cloudflare den Runner meist abweist (siehe oben); was durchkommt, wird
+      # streng beurteilt. Streng von Hand: node scripts/check-headers.mjs --base https://staging.verse-base.com
+      - name: Kopfzeilen der Vorschau pruefen
+        run: node scripts/check-headers.mjs --base https://staging.verse-base.com --weich

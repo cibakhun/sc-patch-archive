@@ -24,6 +24,9 @@ pinggy.log
 
 # Selbst-enthaltene Onepager-Downloads, generiert aus public/onepager (scripts/build-downloads.mjs)
 /public/downloads/
+# Einrichtung der Halle und ihr Telefon-Teil, beim Build aus der vollen Stufe geschnitten (scripts/build-hall-furniture.mjs)
+/public/hangar/hall/*.furniture.glb
+/public/hangar/hall/*.patch.glb
 
 build.log
 
@@ -65,3 +68,16 @@ skills-lock.json
 # (siehe .github/workflows/track-marketplace.yml), nicht auf staging/main — sonst
 # loest jeder Daten-Commit ein komplettes Deploy aus.
 /data/
+
+# Messdaten und Aufnahmen der Aufloesungs-Werkzeuge (16 MB, reproduzierbar)
+/.planning/sketches/tools/out/
+
+# Lokale Umgebungsdateien mit Geheimnissen (Tokens, Schluessel) — NIE
+# einchecken. Das Repo ist oeffentlich, und ein einmal gepushtes Geheimnis
+# gilt als verbrannt, auch wenn der Commit danach verschwindet. Nur die
+# Vorlagen ohne Werte gehoeren ins Repo.
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example

@@ -534,6 +534,25 @@ export const DISCOVERED_REGISTRY = [
     // wer ihn dort aendert, muss ihn hier mitziehen.
     text: { large: { tokenKey: '#FF5E1A', minRatio: 3.0, label: 'h1, orangenes Wort (Titelverlauf endet auf --accent-media #FF5E1A)' } },
   },
+  {
+    id: 'D7-account-saved-tile',
+    archetype: 'discovered',
+    label: 'D7 · .ck-tile (Kontoseite, Übersicht „Gespeichert": Loadout- und Favoriten-Kacheln)',
+    selectorFamilies: ['.ck-tile::before'],
+    rationale:
+      'Von Zusicherung 5 gefunden (29.10.2026): Art und Name einer gespeicherten Kachel liegen unten ueber dem Schiffbild, hinter einem --scrim-6/--scrim-5/--scrim-0-Verlauf (.ck-tile::before), Text in --on-media/--on-media-dim, die Art-Farbe nur als Punkt. Die echten Bilder kommen aus ship-thumbs.json (fremde Bildquelle, nicht im Repo); gemessen wird deshalb mit zwei lokalen Schiffbildern, darunter img-cutlass.jpg mit HELLEM Studiohintergrund als unguenstigster Fall. Anker: die Kachel (ca. 1,7:1, cover) zeigt vom 1,3:1-Bild den Streifen 0,12..0,88; die Art-Zeile sitzt bei 70 % Kachelhoehe = 0,65 im Bild.',
+    kind: 'photo',
+    images: [
+      { id: 'saved-tile-light', path: 'public/assets/img-cutlass.jpg', usedBy: 'src/scripts/account-cockpit.ts (.ck-tile, Stellvertreter fuer ein Schiffbild mit hellem Hintergrund)' },
+      { id: 'saved-tile-dark', path: 'public/assets/img-apollo.jpg', usedBy: 'src/scripts/account-cockpit.ts (.ck-tile, Stellvertreter fuer ein typisches Schiffbild)' },
+    ],
+    anchor: { xFrac: 0.2, yFrac: 0.65 },
+    scrim: { layers: [{ angle: 0, stops: [{ t: 0.04, tok: 'scrim6' }, { t: 0.45, tok: 'scrim5' }, { t: 1, tok: 'scrim0' }] }] },
+    text: {
+      body: { tokenKey: '--on-media-dim', minRatio: 4.5, label: '.ck-tile small (Art: Loadout, Schiff, Mission …)' },
+      large: { tokenKey: '--on-media', minRatio: 3.0, label: '.ck-tile b (Name)' },
+    },
+  },
 ];
 
 /* /archiv verwendet keine 480px-Thumb-Quelle im Baum unter demselben Pfad
@@ -724,6 +743,11 @@ export const EXCLUSIONS = [
     reason: 'body::after (die Vignette) wird bereits EXKLUSIV durch Zusicherung 1 (Begrenzung/Maske) und Zusicherung 2 (die einzige erlaubte bildschirmfuellende Verlaufs-Ebene) geprueft -- ein zweiter Registry-Eintrag waere doppelte Zustaendigkeit fuer dieselbe Regel.',
   },
   {
+    id: 'X-hangar-vignette',
+    selectorFamilies: ['.hg-canvas::after'],
+    reason: 'src/components/hangar/HangarApp.astro: .hg-canvas::after ist eine Randabdunklung (radial-gradient, Mitte durchsichtig, Rand var(--bg) 55 %) ueber der 3D-Leinwand des Hangars, kein Scrim unter Text. Titel, Werte-Panel und Bedienknoepfe sind Geschwister ueber der Leinwand mit eigener Flaeche bzw. Textschatten; die Abdunklung kann ihren Kontrast nur heben. Die Leinwand selbst ist ein laufendes WebGL-Bild -- ein statischer Kontrastwert koennte sie ohnehin nicht zertifizieren.',
+  },
+  {
     id: 'X-rec-banner-dead',
     selectorFamilies: ['.rec-banner::after'],
     reason: 'assets/account-dossier.css: .rec-banner (samt .bmeta/.bchip/.barcode) ist TOTES CSS -- 0 Fundstellen in src/ (grep bestaetigt), die Klasse wird auf keiner Seite verwendet. Keine tatsaechliche Rendering-Instanz zu messen.',
@@ -773,6 +797,11 @@ export const EXCLUSIONS = [
     id: 'X-holo-panel-scanline',
     selectorFamilies: ['.holo__panel::after'],
     reason: 'src/components/ShipDetail.astro: .holo__panel::after ist eine sehr blasse (7%) Scanline-Textur UEBER der bereits OPAKEN Basisflaeche von .holo__panel (background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6)) -- beide Stops identisch, also deckend). Der massgebliche Kontrast (Text gegen scrim-6) haengt an der Basisregel, nicht an diesem `::after`; die Basisregel ist kein `::before/::after` und wird von Zusicherung 5 nicht erfasst, ihre Deckkraft macht die Stelle aber unkritisch (scrim-6 ist mode-unabhaengig nahezu Schwarz).',
+  },
+  {
+    id: 'X-loadout-link-frame',
+    selectorFamilies: ['.lo-pick.is-linked::before', '.lo-cmpbox.is-linked::before'],
+    reason: 'src/components/hangar/LoadoutPage.astro: die beiden ::before sind nur ein 1px-Rahmen (border) ohne Hintergrund; die linear-gradient(#000 0 0)-Werte stehen in mask/-webkit-mask und schneiden die Kerbe heraus, an der der Rahmen in den Steg zum angeklickten Platz/Teil uebergeht. Keine Flaeche ueber Text, also kein Kontrastfall.',
   },
 ];
 

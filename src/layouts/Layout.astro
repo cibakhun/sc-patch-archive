@@ -4,11 +4,12 @@
 // Page-specific CSS/JS still lives in the page (as <style is:global> /
 // <script is:inline>) so the bespoke design ports over verbatim.
 import Attribution from '../components/Attribution.astro';
-import { SITE } from '../consts';
+import { SITE, SUPABASE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
 import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
 import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Props {
   title: string;
@@ -45,6 +46,17 @@ interface Props {
     /** Name des beschriebenen Dings; ohne Angabe steht der volle <title> im LD. */
     name?: string;
   };
+  /**
+   * Reichweitenmessung (Umami) auf dieser Seite laden. Default true.
+   * false auf jeder Seite, die Anmeldedaten entgegennimmt oder auf die ein
+   * Anmelde-Ruecksprung zeigt (Konto, Anmelden, Registrieren, Passwort):
+   * dort stehen Passwortfelder, und nach Discord-Anmeldung, Wiederherstellungs-
+   * link oder Discord-Verbindung traegt die Adresse die Sitzung im Fragment.
+   * Auf solchen Seiten laeuft kein Skript eines Nebenhosts. Welche Seiten
+   * ohne Zaehler laufen, haelt scripts/verify-zaehler.mjs als benannte
+   * Ausnahmeliste fest — wer hier false setzt, traegt die Seite dort ein.
+   */
+  analytics?: boolean;
 }
 
 const {
@@ -57,6 +69,7 @@ const {
   noindex = false,
   translated = false,
   itemPage,
+  analytics = true,
 } = Astro.props;
 
 const base = SITE.url.replace(/\/$/, '');
@@ -89,8 +102,11 @@ const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
 // sonst rahmt eine schwarze Leiste eine weiße Seite. Der helle Wert wird
 // beim Bauen aus dem dunklen abgeleitet (gleicher Farbton, Papier-
 // Helligkeit), damit jede Seite ihre Tönung behält.
-// Nur echte Hex-Werte gehen in das inline-Script (unten per set:html
-// eingesetzt) — so kann eine Seite nicht versehentlich Code einschleusen.
+// Beide Werte stehen am theme-color-Meta (data-dark/data-light); das
+// Kopfskript liest sie dort und traegt selbst keine Farbe. So ist es auf
+// jeder Seite wortgleich und braucht in der Content-Security-Policy genau
+// einen Hash statt einen je Seitenfarbe (scripts/_write-csp-hashes.mjs).
+// Nur echte Hex-Werte gehen in die Attribute.
 const HEX = /^#[0-9a-f]{3,8}$/i;
 const themeColorSafe = HEX.test(themeColor) ? themeColor : '#05070d';
 const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
@@ -113,19 +129,38 @@ const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
       fest das dunkle Standard-Design. Der Rollen-Cache (vb_user_role) wird von
       account-lite.js gefüllt; steht er noch nicht (kalter Erstaufruf), gilt
       man als Nicht-Admin und account-lite gleicht das Theme nach dem Laden der
-      echten Rolle an. Ohne gültigen localStorage-Wert bleibt data-theme-auto
+      echten Rolle an. Er zählt nur für das Konto der gespeicherten Sitzung,
+      wie in account-lite.js: nach dem Abmelden oder einem Kontowechsel bleibt
+      er im Tab liegen (ohne Sitzung wirft der Vergleich, admin bleibt aus).
+      Ohne gültigen localStorage-Wert bleibt data-theme-auto
       gesetzt — daran erkennt der Umschalter, dass er (für Admins) weiter dem
       System folgen darf. */}
   <script
     is:inline
     set:html={`(function(){var d=document.documentElement;
-var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin')admin=true}}catch(e){}
+var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin'&&pr.uid===JSON.parse(localStorage.getItem('${SUPABASE.storageKey}')).user.id)admin=true}}catch(e){}
 if(admin)d.classList.add('is-admin');
 var t=null;if(admin){try{t=localStorage.getItem('vb.theme')}catch(e){}}
 var auto=admin&&(t!=='light'&&t!=='dark');
 if(!admin){t='dark'}else if(auto){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'}
 d.setAttribute('data-theme',t==='light'?'light':'dark');if(auto)d.setAttribute('data-theme-auto','');
-var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',t==='light'?'${themeColorLight}':'${themeColorSafe}')})()`}
+var m=document.querySelector('meta[name="theme-color"]'),c=m&&m.getAttribute(t==='light'?'data-light':'data-dark');if(c)m.setAttribute('content',c)})()`}
+  />
+  {/* Bild-Rueckfall fuer die ganze Seite: ein Bild mit data-img-fail, das
+      nicht laedt, wird ausgeblendet ("hide"), nimmt seine <figure> mit
+      ("figure") oder geht seine Rueckfallkette durch ("chain": erst ohne
+      srcset, dann data-fb, dann ausblenden). Stand frueher als onerror-
+      Attribut an jedem Bild; Inline-Handler laesst die Content-Security-
+      Policy nicht mehr zu (script-src-attr). Synchron im Kopf, vor dem
+      ersten <img>: der Fehler eines Bildes kommt sonst womoeglich, bevor
+      jemand zuhoert. Fehler-Ereignisse steigen nicht auf, deshalb haengt
+      der Hoerer in der Einfangphase am Dokument. */}
+  <script
+    is:inline
+    set:html={`(function(){document.addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='IMG'||!t.getAttribute)return;var a=t.getAttribute('data-img-fail');if(!a)return;
+if(a==='chain'){if(t.getAttribute('srcset')){t.removeAttribute('srcset');return}var fb=t.getAttribute('data-fb');if(fb){t.src=fb;t.removeAttribute('data-fb');return}t.setAttribute('data-bad','1');t.style.display='none';return}
+if(a==='figure'){var f=t.closest&&t.closest('figure');if(f)f.style.display='none';return}
+t.style.display='none'},true)})()`}
   />
   {/* Partikel-Ambiente (Sterne/Embers/Staub) — data-fx als Vorgabe VOR dem
       ersten Paint setzen, synchron, wie der Theme-Schnipsel darüber. Standard
@@ -139,6 +174,35 @@ var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('co
 var v=null;try{v=localStorage.getItem('vb.fx')}catch(e){}
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
+  />
+  {/* Leichtgang (data-perf="lite") fuer schwache Geraete — wie data-fx VOR
+      dem ersten Bild, synchron. Im Leichtgang stehen Endlos-Animationen
+      still, Milchglas (backdrop-filter) weicht einer deckenden Flaeche und
+      der Holo-Viewer zeichnet mit Pixeldichte 1, ohne Kantenglaettung und
+      hoechstens 30 Bildern/s; starke Geraete sehen die Seite unveraendert.
+      Ausloeser, in dieser Reihenfolge:
+        1. ?perf=lite / ?perf=full erzwingt und merkt sich die Wahl
+           (localStorage `perf`); ?perf=auto vergisst sie wieder.
+        2. Save-Data (Datensparmodus des Browsers).
+        3. Hoechstens 4 Kerne UND hoechstens 4 GB Speicher (deviceMemory
+           kennt nur Chromium — anderswo greift diese Stufe nie).
+        4. Ergebnis der Laufzeitpruefung aus assets/perf.js (Software-WebGL,
+           Bildtakt-Median ueber 40 ms) — aus derselben Sitzung.
+      Nur bei 2.–4. bleibt data-perf-auto stehen: daran erkennt perf.js, dass
+      es noch selbst pruefen darf. Eine erzwungene Wahl uebersteuert nichts. */}
+  <script
+    is:inline
+    set:html={`(function(){var d=document.documentElement,m=null,why='',q=null;
+try{q=new URLSearchParams(location.search).get('perf')}catch(e){}
+if(q==='lite'||q==='full'){m=q;why='forced';try{localStorage.setItem('perf',q)}catch(e){}}
+else{if(q==='auto'){try{localStorage.removeItem('perf')}catch(e){}}
+try{var s=localStorage.getItem('perf');if(s==='lite'||s==='full'){m=s;why='forced'}}catch(e){}}
+if(!m){var n=navigator,c=n.connection;
+if(c&&c.saveData){m='lite';why='save-data'}
+else if(n.hardwareConcurrency&&n.hardwareConcurrency<=4&&n.deviceMemory&&n.deviceMemory<=4){m='lite';why='hardware'}
+else{try{if(sessionStorage.getItem('vb.perf.auto')==='lite'){m='lite';why='session'}}catch(e){}}
+d.setAttribute('data-perf-auto','')}
+d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why);})()`}
   />
   {noindexEff && <meta name="robots" content="noindex" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -167,7 +231,7 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
   <script
     type="application/ld+json"
     is:inline
-    set:html={JSON.stringify({
+    set:html={jsonForScript({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
       name: SITE.name,
@@ -186,7 +250,7 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
     <script
       type="application/ld+json"
       is:inline
-      set:html={JSON.stringify({
+      set:html={jsonForScript({
         '@context': 'https://schema.org',
         '@type': 'ItemPage',
         name: itemPage.name ?? title,
@@ -203,7 +267,7 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
 
   {/* Webfonts selbst gehostet (scripts/fetch-fonts.mjs) — kein Google-CDN,
       keine IP-Übertragung an Dritte beim Seitenaufruf (DSGVO). */}
-  <link rel="preload" href="/assets/fonts/orbitron-700-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/orbitron-500-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link href={versioned('assets/fonts.css', '/assets/fonts.css')} rel="stylesheet" />
   {/* Farbfundament für beide Modi. Muss VOR dem Seiten-CSS stehen: die
@@ -284,16 +348,48 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
        (Leiste + Menü). Das Verhalten ist zusätzlich in JS abgesichert. */
     html:not(.is-admin) .js-theme-toggle {
       display: none !important;
+    }
+    /* Endlos-Animationen ausserhalb des Bildes — und im Leichtgang alle —
+       ruhen. Das Merkmal setzt assets/perf.js; ohne JS laeuft alles wie
+       bisher. Angehalten, nicht entfernt: das Bild bleibt auf seinem
+       aktuellen Stand stehen statt zurueckzuspringen. */
+    [data-vb-anim-off], [data-vb-anim-off]::before, [data-vb-anim-off]::after {
+      animation-play-state: paused !important;
+    }
+    /* Leichtgang: Milchglas weicht. backdrop-filter rechnet bei jedem Bild
+       den ganzen Hintergrund unter der Flaeche weich — auf der Schiffsliste
+       259 Mal (48 zusaetzliche Ebenen). Die betroffenen Flaechen tragen fast
+       alle schon einen Grund von 55 % Deckung aufwaerts; wo nicht, setzen
+       die Regeln darunter einen deckenden. */
+    html[data-perf="lite"] *, html[data-perf="lite"] *::before, html[data-perf="lite"] *::after {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    /* Die beiden Verdunkler mit nur 55 % Deckung (Suche, Item-Modal): ohne
+       Weichzeichner stuende die Seite dahinter scharf durch — sie bekommen
+       den Grund der Lightbox (theme.css --lb-backdrop, 93 % bzw. 80 %). */
+    html[data-perf="lite"] .scs__back,
+    html[data-perf="lite"] .uif-modal-overlay {
+      background-color: var(--lb-backdrop, rgba(0, 0, 0, .93)) !important;
     }</style>
   {/* Reichweitenmessung: Umami, selbst gehostet auf stats.verse-base.com.
       Cookiefrei und ohne Kennung auf dem Geraet — deshalb ohne Einwilligung
       zulaessig, und die Zahlen bleiben auf dem eigenen Server statt bei Google
       (das lief hier bis 31.07.2026 als GA4 ueber Zaraz).
-      Der Widerspruch haengt NICHT an diesem Tag, sondern an der CSP: traegt der
-      Browser `vb_noanalytics=1`, liefert nginx den Host nicht mehr in script-src
-      aus und das Skript laedt gar nicht erst (map in nginx/default.conf). Ein
-      Tag, der bei Widerspruch verschwinden muesste, waere in 17.000 statischen
-      Seiten nicht zu haben — die Kopfzeile kann das pro Aufruf. */}
+      Das Skript selbst kommt seit 29.10.2026 vom EIGENEN Ursprung: eine
+      gepruefte, gepinnte Kopie unter public/vendor/umami/script.js (Herkunft,
+      Fassung und Erneuern stehen im Kopf der Datei). stats.verse-base.com
+      nimmt nur noch die Zaehlung entgegen (data-host-url) und steht deshalb
+      nur in connect-src, nicht mehr in script-src. Was auf dem Statistik-
+      Server passiert, kann damit kein Skript mehr in diese Seiten bringen;
+      ein Umami-Update dort aendert hier nichts, bis jemand die Kopie
+      bewusst erneuert.
+      Der Widerspruch (`vb_noanalytics=1`) greift doppelt: vbZaehlen schickt
+      dann nichts ab, und nginx nimmt den Host aus connect-src (map in
+      nginx/default.conf). Ein Tag, der bei Widerspruch verschwinden muesste,
+      waere in 17.000 statischen Seiten nicht zu haben.
+      Auf Konto- und Anmeldeseiten steht der Tag gar nicht (Prop `analytics`,
+      siehe oben). */}
   {/* Zaehl-Hygiene (06.10.2026). Zwei Sorten Aufrufe verbogen jede Kennzahl:
       1. Eigene Messlaeufe — localhost 662 und 127.0.0.1 996 Aufrufe in 90
          Tagen (Playwright-Werkzeuge gegen dist/). `data-domains` laesst den
@@ -307,21 +403,42 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
          dort zaehlt nur die Kombination „Chrome iOS ohne Herkunft" (201 von
          203 Chrome-iOS-Besuchern, alle auf Uebersichtsseiten, alle 0 s).
       Liefert vbZaehlen null, schickt das Umami-Skript nichts ab. */}
-  <script is:inline>
-    (function () {
-      var BOT = ['1280x1200', '800x600', '1024x1024', '1200x3000', '1280x1280'];
-      window.vbZaehlen = function (typ, daten) {
-        try {
-          if (navigator.webdriver) return null;
-          var s = screen.width + 'x' + screen.height;
-          if (BOT.indexOf(s) !== -1) return null;
-          if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
-        } catch (e) {}
-        return daten;
-      };
-    })();
-  </script>
-  <script is:inline defer src="https://stats.verse-base.com/script.js" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-before-send="vbZaehlen"></script>
+  {/* ⚠ Adress-Hygiene (29.10.2026): Neuere Umami-Zähler schicken die volle
+      Adresse samt ?Parametern und #Sprungmarke — und jede Änderung per
+      history.replaceState als neuen Aufruf, mit der alten Adresse als
+      Herkunft. So landeten Rücksprünge aus der Anmeldung, geteilte
+      Hangar-Layouts (?layout=… mit dem selbst vergebenen Namen) und
+      ?danke=1 nach einer Spende in der Statistik. Gezählt wird deshalb nur
+      der Pfad: vbZaehlen schneidet ? und # von url und referrer ab, die
+      beiden data-exclude-* sagen dasselbe für Zähler, die sie kennen. Die
+      Datenschutzerklärung (#umami) sagt genau das zu.
+      Konto- und Anmeldeseiten setzen analytics={false} und laden den
+      Zähler gar nicht (scripts/verify-zaehler.mjs hält die Liste fest). */}
+  {analytics && (
+    <>
+      <script is:inline>
+        (function () {
+          var BOT = ['1280x1200', '800x600', '1024x1024', '1200x3000', '1280x1280'];
+          var nurPfad = function (u) { return typeof u === 'string' ? u.replace(/[?#][\s\S]*$/, '') : u; };
+          window.vbZaehlen = function (typ, daten) {
+            try {
+              if (/(?:^|;\s*)vb_noanalytics=1(?:;|$)/.test(document.cookie)) return null;
+              if (navigator.webdriver) return null;
+              var s = screen.width + 'x' + screen.height;
+              if (BOT.indexOf(s) !== -1) return null;
+              if (s === '390x844' && /CriOS/.test(navigator.userAgent) && !document.referrer) return null;
+            } catch (e) {}
+            if (daten && typeof daten === 'object') {
+              daten.url = nurPfad(daten.url);
+              daten.referrer = nurPfad(daten.referrer);
+            }
+            return daten;
+          };
+        })();
+      </script>
+      <script is:inline defer src={versioned('public/vendor/umami/script.js', '/vendor/umami/script.js')} data-host-url="https://stats.verse-base.com" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-exclude-search="true" data-exclude-hash="true" data-before-send="vbZaehlen"></script>
+    </>
+  )}
   <slot name="head" />
 </head>
 <body>
@@ -346,6 +463,10 @@ d.setAttribute('data-fx',(v==='on'&&!reduce)?'on':'off');})()`}
       Muss vor offcanvas.js stehen, das sie mitbenutzt. Reines Bereitstellen
       einer Funktion — laeuft beim Laden nichts an. */}
   <script is:inline defer src={versioned('assets/scroll-lock.js', '/assets/scroll-lock.js')}></script>
+  {/* Endlos-Animationen ausserhalb des Bildes anhalten + Laufzeitpruefung
+      fuer den Leichtgang (Kopf-Skript oben). `defer`: aendert am ersten
+      Bild nichts, haengt sich nur an bereits laufende Animationen. */}
+  <script is:inline defer src={versioned('assets/perf.js', '/assets/perf.js')}></script>
   <script is:inline defer src={versioned('assets/offcanvas.js', '/assets/offcanvas.js')}></script>
   {/* Breite Bildlauf-Tabellen: mit der Maus schiebbar machen und die weiche
       Kante rechts schalten, solange dort noch etwas steht. `defer`, weil ohne

@@ -131,7 +131,6 @@
   .scs__x,
   .cdb-view,
   .mdb-view,
-  .rff__vbtn,
   .uif-viewbtn,
   .uif-modal-close,
   .sid__mini,
@@ -497,7 +496,7 @@ summary:active {
 :where(
     .dp-btn, .dp-card, .dp-pager a, .chip, .chipbtn, .wk-pill, .uif-chip,
     .uif-viewbtn, .uif-page-btn, .uif-category-btn, .frac-preset,
-    .sid__chip, .sid__sys, .rff__sys, .evo__cell, .cdb-view, .mdb-view
+    .sid__chip, .sid__sys, .evo__cell, .cdb-view, .mdb-view
   ):active {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
   border-color: var(--accent);
@@ -576,6 +575,10 @@ summary:active {
      .uif-table-wrapper Item-Modal
      .sd__paints        Lackierungen im Schiffs-Datenblatt
 
+   NACHTRAG 18.08.2026 (Phase 14): der innere Kasten der neuen Kapitel-
+   Sprungleiste im Schiffs-Datenblatt traegt dieselbe Falle und steht
+   deshalb ebenfalls in allen drei Selektorlisten unten.
+
    ... nur SIEHT man das nicht. Auf Touch gibt es keine dauerhafte
    Bildlaufleiste, und die Tabellen sind rechts glatt abgeschnitten —
    sie lesen sich wie eine vollstaendige Tabelle, deren letzte Spalte
@@ -652,7 +655,6 @@ summary:active {
   border-radius: 999px;
 }
 
-
 /* NACHTRAG 30.08.2026: `.dp-tablewrap` (Datentabelle der Item-, Blueprint-
    und Missionsseiten) kam in alle drei Listen darueber. Gemessen ueber 214
    Seiten bei 390 px: auf 30 Item-Seiten waren 103 px waagerecht verborgen,
@@ -662,6 +664,16 @@ summary:active {
    zwei Masken auf demselben Element ueberschreiben einander — die spaetere
    Regel aus 5d gewaenne, die waagerechte Kante waere wirkungslos. Die
    dauerhafte 8-px-Leiste aus dieser Gruppe kollidiert dagegen mit nichts. */
+/* NACHTRAG 21.08.2026: `.holo__rail` (Blende der Schiffskonsole) steht in
+   SEL_FADE von assets/scroll-affordance.js, aber ABSICHTLICH in keiner der
+   beiden Selektorlisten hier darueber. Grund: die beiden Regelsaetze oben
+   geben zusaetzlich eine 8px hohe, dauerhaft sichtbare Bildlaufleiste — bei
+   einer Tabelle ist das genau richtig, unter den Registerkarten der Blende
+   laege sie mitten im Bild der Buehne. Die Blende bekommt deshalb nur die
+   weiche Kante aus [data-edgefade].is-more direkt darunter. Sie ist damit der
+   einzige Kasten mit Kante ohne Leiste; ohne JS bleibt sie hinweislos, was
+   vertretbar ist, weil ohne JS alle Gruppen ohnehin gestapelt untereinander
+   stehen (D-02) und die Blende dort nur ein Sprungziel-Verzeichnis ist. */
 
 /* Mit JS uebernimmt die zustandsbewusste Kante. Der pauschale Verlauf
    muss dann weg, sonst behauptet er am rechten Ende weiter „da kommt was". */
@@ -769,7 +781,31 @@ summary:active {
 .cdb-sidebar,
 .mx__bar,
 .mdb-sidebar,
-.calc-sidebar {
+.calc-sidebar,
+/* Mining-Werkbank: VIER senkrechte Kaesten auf einer Seite (Mineralliste,
+   Ansicht, Fundorte, Signaturen). Bewusst .wb__scroll statt .vb-scrollbox —
+   dessen max-height:calc(100vh…) wuerde mit der Flex-Hoehe der Spalten
+   kollidieren, die das Raster selbst setzt. */
+.wb__scroll,
+.wb__filters .tool-help__body,
+/* Fracturing-Rechner (/fracturing.html) — dieselbe Bauart, eigener Praefix. */
+.fc__scroll,
+.fc__filters .tool-help__body,
+/* Schiffskonsole, Auslesungsspalte. Bewusst NICHT .vb-scrollbox — aus
+   demselben Grund wie bei .wb__scroll daneben: dessen max-height:calc(100vh…)
+   wuerde die Hoehenbindung an die Buehne zerreissen, die .holo__readout
+   braucht (beide sitzen in derselben Grid-Zeile).
+   ⚠ Gemessen am 20.08.2026, Carrack/1280x720: scrollHeight 489 gegen
+   clientHeight 380 — 109 Bildpunkte lagen verborgen, Leistenbreite 0. Der
+   Kasten scrollte also, aber NICHTS zeigte es an; im Bildschirmfoto sah es
+   nach einer abgeschnittenen Karte aus. Genau der Fall, vor dem der
+   Kopfkommentar oben warnt. */
+.holo__readout,
+/* Hangar, Kennwerte und Ausstattung in der Tafel ueber der Buehne. Aus
+   demselben Grund NICHT .vb-scrollbox: die Hoehe kommt von der Buehne. */
+.hgx-scroll,
+/* Hangar, Vergleichstabelle im Dialog: die Hoehe kommt vom Dialog. */
+.hgx-cmp__scroll {
   scrollbar-width: thin !important;
   /* --tone-1 zuerst: die Verzeichnisseiten fuehren dort ihren Leitton, im
      Crafting-Zweig waere --accent die falsche Farbe. Ausserhalb von .dp
@@ -781,7 +817,14 @@ summary:active {
 .cdb-sidebar::-webkit-scrollbar,
 .mx__bar::-webkit-scrollbar,
 .mdb-sidebar::-webkit-scrollbar,
-.calc-sidebar::-webkit-scrollbar {
+.calc-sidebar::-webkit-scrollbar,
+.wb__scroll::-webkit-scrollbar,
+.wb__filters .tool-help__body::-webkit-scrollbar,
+.fc__scroll::-webkit-scrollbar,
+.fc__filters .tool-help__body::-webkit-scrollbar,
+.holo__readout::-webkit-scrollbar,
+.hgx-scroll::-webkit-scrollbar,
+.hgx-cmp__scroll::-webkit-scrollbar {
   display: block !important;
   /* width UND height: .dp-tablewrap scrollt beide Achsen und traegt
      ebenfalls .vb-scrollbox. */
@@ -794,7 +837,14 @@ summary:active {
 .cdb-sidebar::-webkit-scrollbar-thumb,
 .mx__bar::-webkit-scrollbar-thumb,
 .mdb-sidebar::-webkit-scrollbar-thumb,
-.calc-sidebar::-webkit-scrollbar-thumb {
+.calc-sidebar::-webkit-scrollbar-thumb,
+.wb__scroll::-webkit-scrollbar-thumb,
+.wb__filters .tool-help__body::-webkit-scrollbar-thumb,
+.fc__scroll::-webkit-scrollbar-thumb,
+.fc__filters .tool-help__body::-webkit-scrollbar-thumb,
+.holo__readout::-webkit-scrollbar-thumb,
+.hgx-scroll::-webkit-scrollbar-thumb,
+.hgx-cmp__scroll::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--tone-1, var(--accent)) 55%, transparent);
   border-radius: 999px;
 }

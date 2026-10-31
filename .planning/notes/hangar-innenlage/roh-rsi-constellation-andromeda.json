@@ -1,0 +1,286 @@
+{
+ "interior_rsi_constellation_gs_base_cockpit_comp_bay": {
+  "tris": 5842,
+  "aussenPct": 8.49,
+  "maxM": 3.6,
+  "versatz": [
+   -2,
+   2,
+   4
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_andromeda_cockpit": {
+  "tris": 37973,
+  "aussenPct": 63.87,
+  "maxM": 99,
+  "versatz": [
+   -0.5,
+   2.9,
+   -4.4
+  ],
+  "mitVersatzPct": 31.7,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_base_habs_usables": {
+  "tris": 137070,
+  "aussenPct": 13.83,
+  "maxM": 99,
+  "versatz": [
+   -3,
+   2.5,
+   3.5
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_base_habs": {
+  "tris": 61993,
+  "aussenPct": 28.2,
+  "maxM": 99,
+  "versatz": [
+   -1.5,
+   2.5,
+   3
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_base_cargo_bay": {
+  "tris": 187139,
+  "aussenPct": 36,
+  "maxM": 99,
+  "versatz": [
+   -0.1,
+   3.4,
+   4.4
+  ],
+  "mitVersatzPct": 0.02,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_base_engineering_comp_bay": {
+  "tris": 18339,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_base_engineering": {
+  "tris": 50540,
+  "aussenPct": 0.22,
+  "maxM": 2.2,
+  "versatz": [
+   -3.5,
+   2,
+   4
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_base_tail": {
+  "tris": 22329,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_rsi_constellation_gs_andromeda_exterior": {
+  "tris": 24,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_base_int_cockpit_main": {
+  "tris": 14291,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   -1.32,
+   0.21
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "_sitz": {
+  "name": "hardpoint_seat_pilot",
+  "p": [
+   0,
+   4.14,
+   -23.12
+  ],
+  "nah": 0,
+  "abstand": 10.15,
+  "naechster": "interior_rsi_constellation_gs_andromeda_exterior",
+  "oben": "frei",
+  "obenM": null,
+  "ok": false
+ }
+}

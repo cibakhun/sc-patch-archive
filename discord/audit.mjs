@@ -124,8 +124,13 @@ if (app.botPublic) err('bot', 'Public Bot is ON — anyone with the application 
 else ok('Public Bot off (only you can invite it)');
 if (oauth.size !== 1) warn('bot', `bot is in ${oauth.size} guilds`, [...oauth.values()].map((g) => g.name).join(', '));
 else ok(`bot is in exactly 1 guild`);
-if (!me.permissions.has(PermissionFlagsBits.Administrator)) err('bot', 'bot lacks Administrator — builder + rank sync will fail');
-else ok('bot has Administrator');
+// Administrator only while build/order/audit run; the always-on bot needs
+// Manage Roles plus the basics (bot/README.md). Off is the normal state —
+// but then Discord withholds AutoMod, onboarding and invites from this
+// report, so it says so instead of pretending to be complete.
+if (!me.permissions.has(PermissionFlagsBits.ManageRoles)) err('bot', 'bot lacks Manage Roles — rank roles cannot be assigned', 'Server Settings → Roles → bot role → Manage Roles');
+if (me.permissions.has(PermissionFlagsBits.Administrator)) warn('bot', 'bot holds Administrator — fine while build/order/audit run, switch it off again afterwards', 'Server Settings → Roles → bot role → Administrator off (Manage Roles stays)');
+else info('bot', 'bot runs without Administrator (normal state) — switch it on briefly for build/order/audit; without it AutoMod, onboarding, welcome screen and invites are skipped below');
 // The bot user avatar and the application icon are two separate images; Discord
 // shows the first in chat and the second in the profile popout and invite dialog.
 if (!client.user.avatar) warn('bot', 'bot has no avatar — it shows Discord\'s default in every message', 'npm run avatar && npm run avatar:apply');
@@ -515,13 +520,23 @@ else ok('newcomer gate, read-only channels, staff privacy, the rank gate and the
 
 // ═══ 6. AUTOMOD ════════════════════════════════════════════════════════════
 section('6 · AutoMod');
+// AutoMod, onboarding and the welcome screen need Manage Server to READ. The
+// always-on bot runs without it (Administrator only while build/order/audit
+// run), so a failed read then says so once instead of reporting every
+// blueprint rule as missing.
+const canManageGuild = me.permissions.has(PermissionFlagsBits.ManageGuild);
+const unreadable = (area, what, e) => (canManageGuild
+  ? err(area, `cannot read ${what}: ${e.message}`)
+  : info(area, `${what} not readable without Manage Server / Administrator — section skipped`));
 let liveRules = new Map();
+let rulesRead = false;
 try {
   const rules = await guild.autoModerationRules.fetch();
   liveRules = new Map([...rules.values()].map((r) => [r.name, r]));
-} catch (e) { err('automod', `cannot read AutoMod rules: ${e.message}`); }
+  rulesRead = true;
+} catch (e) { unreadable('automod', 'AutoMod rules', e); }
 const TRIG = { Spam: AutoModerationRuleTriggerType.Spam, MentionSpam: AutoModerationRuleTriggerType.MentionSpam, Keyword: AutoModerationRuleTriggerType.Keyword, KeywordPreset: AutoModerationRuleTriggerType.KeywordPreset };
-for (const want of bp.autoMod.rules) {
+for (const want of rulesRead ? bp.autoMod.rules : []) {
   const live = liveRules.get(want.name);
   if (!live) { err('automod', `missing rule: ${want.name}`); continue; }
   const issues = [];
@@ -553,7 +568,7 @@ section('7 · Onboarding & welcome screen');
 let onboarding = null;
 try {
   onboarding = await client.rest.get(Routes.guildOnboarding(guild.id));
-} catch (e) { err('onboarding', `cannot read onboarding: ${e.message}`); }
+} catch (e) { unreadable('onboarding', 'onboarding', e); }
 if (onboarding) {
   if (!onboarding.enabled) err('onboarding', 'onboarding is DISABLED — new members never get the role picker');
   else ok(`onboarding enabled (mode ${onboarding.mode === 1 ? 'advanced' : 'default'})`);
@@ -598,7 +613,10 @@ try {
     else if (l.description !== w.description) warn('welcome', `entry #${w.channel} description differs`, l.description);
   }
   ok(`welcome screen live (${liveWs.length} channels)`);
-} catch (e) { err('welcome', `welcome screen unreadable/disabled: ${e.message}`); }
+} catch (e) {
+  if (canManageGuild) err('welcome', `welcome screen unreadable/disabled: ${e.message}`);
+  else unreadable('welcome', 'welcome screen', e);
+}
 
 // ═══ 8. EMOJI, COMMANDS, INTEGRATIONS ══════════════════════════════════════
 section('8 · Emoji, slash commands & integrations');

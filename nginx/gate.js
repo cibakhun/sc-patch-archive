@@ -333,11 +333,27 @@ function mint(r) {
 }
 
 /* $vb_next: das Ruecksprungziel fuer /gate.html?next=…, prozentkodiert.
-   r.uri ist der dekodierte Pfad; roh in die Location gesetzt, wuerden
-   kodierte Zeilenumbrueche zu echten Kopfzeilen. "/" bleibt lesbar stehen,
-   safeNext() in src/pages/gate.astro dekodiert ueber URLSearchParams.
-   encodeURIComponent wirft bei kaputtem UTF-8 — dann zurueck zur Startseite. */
+   Quelle ist $request_uri, die Adresse WIE ANGEFRAGT, samt Query: r.uri
+   allein verlor den Query-String, und nach einem internen rewrite (aus
+   /pilot/<handle> wird /pilot.html?h=<handle>) auch den Pilotennamen —
+   der Ruecksprung landete auf einer leeren Pilotenseite. Prozentkodiert,
+   weil das Ziel in die Location-Kopfzeile geht; "/" bleibt lesbar stehen,
+   safeNext() in src/pages/gate.astro dekodiert ueber URLSearchParams und
+   laesst nur Ziele auf derselben Origin zu. encodeURIComponent wirft bei
+   kaputtem UTF-8 — dann der dekodierte Pfad ohne Query wie frueher, sonst
+   die Startseite. Fuehrende Mehrfach-Schraegstriche fasst next() zu einem
+   zusammen, wie merge_slashes es fuer r.uri tat: //schiffe.html kommt nach
+   dem Tor auf /schiffe.html an statt auf der Startseite. */
 function next(r) {
+  const vars = r.variables || {};
+  try {
+    const ziel = vars.request_uri;
+    if (typeof ziel === 'string' && ziel.charAt(0) === '/') {
+      return encodeURIComponent(ziel.replace(/^\/{2,}/, '/')).replace(/%2F/g, '/');
+    }
+  } catch (e) {
+    /* weiter mit r.uri */
+  }
   try {
     return encodeURIComponent(r.uri).replace(/%2F/g, '/');
   } catch (e) {

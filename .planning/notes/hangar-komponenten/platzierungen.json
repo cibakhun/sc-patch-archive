@@ -1,0 +1,380 @@
+{
+ "shield": {
+  "aegs-avenger-stalker": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   }
+  ],
+  "aegs-avenger-titan": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   }
+  ],
+  "aegs-avenger-titan-renegade": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   }
+  ],
+  "aegs-avenger-warlock": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Shields/small_component/seco/shld_seco_s01_pl04.cgf"
+   }
+  ],
+  "rsi-constellation-phoenix-emerald": [
+   {
+    "container": "phnx_int_body_main",
+    "path": "Data/Objects/Spaceships/Shields/medium_component/behr/shld_behr_s02_pl03.cgf"
+   },
+   {
+    "container": "phnx_int_body_main",
+    "path": "Data/Objects/Spaceships/Shields/medium_component/behr/shld_behr_s02_pl03.cgf"
+   }
+  ]
+ },
+ "power": {
+  "aegs-avenger-stalker": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Power_Plants/small_component/acom/powr_acom_s01_pl01.cgf"
+   }
+  ],
+  "aegs-avenger-titan": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Power_Plants/small_component/acom/powr_acom_s01_pl01.cgf"
+   }
+  ],
+  "aegs-avenger-titan-renegade": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Power_Plants/small_component/acom/powr_acom_s01_pl01.cgf"
+   }
+  ],
+  "aegs-avenger-warlock": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Power_Plants/small_component/acom/powr_acom_s01_pl01.cgf"
+   }
+  ],
+  "aegs-hammerhead-showdown": [
+   {
+    "container": "tail",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/just/powr_just_s03_pl01.cgf"
+   }
+  ],
+  "anvl-centurion": [
+   {
+    "container": "base_int_cockpit_main",
+    "path": "Data/Objects/Spaceships/Power_Plants/vehicle_component/lplt/powr_lplt_v01_pl03.cga"
+   }
+  ],
+  "anvl-spartan": [
+   {
+    "container": "base_int_cockpit_main",
+    "path": "Data/Objects/Spaceships/Power_Plants/vehicle_component/lplt/powr_lplt_v01_pl03.cga"
+   }
+  ],
+  "argo-raft": [
+   {
+    "container": "interior",
+    "path": "Data/Objects/Spaceships/Power_Plants/small_component/lplt/powr_lplt_s01_pl03.cgf"
+   }
+  ],
+  "argo-srv": [
+   {
+    "container": "int_body_front",
+    "path": "Data/Objects/Spaceships/Power_Plants/small_component/amrs/powr_amrs_s01_pl01.cgf"
+   }
+  ],
+  "crus-spirit-a1": [
+   {
+    "container": "int_rear",
+    "path": "Data/Objects/Spaceships/Power_Plants/medium_component/just/powr_just_s02_pl02.cga"
+   }
+  ],
+  "crus-spirit-c1": [
+   {
+    "container": "int_rear",
+    "path": "Data/Objects/Spaceships/Power_Plants/medium_component/just/powr_just_s02_pl02.cga"
+   }
+  ],
+  "crus-starlifter-a2": [
+   {
+    "container": "systems_c2",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/lplt/powr_lplt_s03_pl02.cga"
+   },
+   {
+    "container": "systems_c2",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/lplt/powr_lplt_s03_pl02.cga"
+   }
+  ],
+  "crus-starlifter-c2": [
+   {
+    "container": "systems_c2",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/lplt/powr_lplt_s03_pl02.cga"
+   },
+   {
+    "container": "systems_c2",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/lplt/powr_lplt_s03_pl02.cga"
+   }
+  ],
+  "crus-starlifter-m2": [
+   {
+    "container": "systems_c2",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/lplt/powr_lplt_s03_pl02.cga"
+   },
+   {
+    "container": "systems_c2",
+    "path": "Data/Objects/Spaceships/Power_Plants/large_component/lplt/powr_lplt_s03_pl02.cga"
+   }
+  ],
+  "drak-corsair": [
+   {
+    "container": "base_int_body_main",
+    "path": "Data/Objects/Spaceships/Power_Plants/medium_component/just/powr_just_s02_pl01.cga"
+   },
+   {
+    "container": "base_int_body_main",
+    "path": "Data/Objects/Spaceships/Power_Plants/medium_component/just/powr_just_s02_pl01.cga"
+   }
+  ]
+ },
+ "quantum": {
+  "aegs-avenger-stalker": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Quantum_drives/small_component/just/qdrv_just_s01_pl04.cgf"
+   }
+  ],
+  "aegs-avenger-titan": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Quantum_drives/small_component/just/qdrv_just_s01_pl04.cgf"
+   }
+  ],
+  "aegs-avenger-titan-renegade": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Quantum_drives/small_component/just/qdrv_just_s01_pl04.cgf"
+   }
+  ],
+  "aegs-avenger-warlock": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Quantum_drives/small_component/just/qdrv_just_s01_pl04.cgf"
+   }
+  ],
+  "anvl-carrack": [
+   {
+    "container": "rear",
+    "path": "Data/Objects/Spaceships/Ships/ANVL/Carrack/Interior/engineering/anvl_crk_eng_component_case_quantumdrive.cga"
+   }
+  ],
+  "anvl-carrack-expedition": [
+   {
+    "container": "rear",
+    "path": "Data/Objects/Spaceships/Ships/ANVL/Carrack/Interior/engineering/anvl_crk_eng_component_case_quantumdrive.cga"
+   }
+  ],
+  "anvl-paladin": [
+   {
+    "container": "paladin_int_soc",
+    "path": "Data/Objects/Spaceships/Ships/ANVL/Paladin/Engineering/anvl_paladin_eng_quantum_drive_surround.cgf"
+   }
+  ],
+  "argo-raft": [
+   {
+    "container": "interior",
+    "path": "Data/Objects/Spaceships/Quantum_drives/small_component/rsi/qdrv_rsi_s01_pl01.cgf"
+   }
+  ],
+  "crus-star-runner": [
+   {
+    "container": "base_int_body_main",
+    "path": "Data/Objects/Spaceships/Ships/CRUS/Star_Runner/Interior/Engineering/quantum_drive_component_housing.cga"
+   }
+  ],
+  "drak-clipper": [
+   {
+    "container": "base_int_body_main",
+    "path": "Data/Objects/Spaceships/Ships/DRAK/kit/components/drak_decal_quantumdrive_01.cgf"
+   }
+  ],
+  "drak-vulture": [
+   {
+    "container": "base_int_upper_main",
+    "path": "Data/Objects/Spaceships/Ships/DRAK/Vulture/DRAK_Vulture_Component_Quantumdrive.cga"
+   }
+  ],
+  "misc-hull-b": [
+   {
+    "container": "interior_body",
+    "path": "Data/Objects/Spaceships/Ships/MISC/Kit/addons/misc_addon_com_label_quantumdrive_01_a.cgf"
+   }
+  ]
+ },
+ "cooler": {
+  "aegs-avenger-stalker": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   }
+  ],
+  "aegs-avenger-titan": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   }
+  ],
+  "aegs-avenger-titan-renegade": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   }
+  ],
+  "aegs-avenger-warlock": [
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   },
+   {
+    "container": "base_int_mid",
+    "path": "Data/Objects/Spaceships/Coolers/small_component/acom/cool_acom_s01_pl03.cga"
+   }
+  ],
+  "aegs-vanguard": [
+   {
+    "container": "interior",
+    "path": "Data/Objects/Spaceships/Ships/AEGS/Vanguard/Interior/component_room/comp_room_bulkhead_coolers.cgf"
+   }
+  ],
+  "aegs-vanguard-harbinger": [
+   {
+    "container": "interior",
+    "path": "Data/Objects/Spaceships/Ships/AEGS/Vanguard/Interior/component_room/comp_room_bulkhead_coolers.cgf"
+   }
+  ],
+  "aegs-vanguard-hoplite": [
+   {
+    "container": "interior",
+    "path": "Data/Objects/Spaceships/Ships/AEGS/Vanguard/Interior/component_room/comp_room_bulkhead_coolers.cgf"
+   }
+  ],
+  "aegs-vanguard-sentinel": [
+   {
+    "container": "interior",
+    "path": "Data/Objects/Spaceships/Ships/AEGS/Vanguard/Interior/component_room/comp_room_bulkhead_coolers.cgf"
+   }
+  ],
+  "anvl-asgard": [
+   {
+    "container": "int_rear",
+    "path": "Data/Objects/Spaceships/Ships/ANVL/Asgard/Interior/anvl_asgard_cargo_wall_coolers_bay.cgf"
+   }
+  ],
+  "misc-hull-b": [
+   {
+    "container": "interior_body",
+    "path": "Data/Objects/Spaceships/Ships/MISC/Kit/addons/misc_addon_com_label_coolers_01_a.cgf"
+   },
+   {
+    "container": "interior_body",
+    "path": "Data/Objects/Spaceships/Ships/MISC/Kit/addons/misc_addon_com_label_coolers_01_a.cgf"
+   }
+  ],
+  "misc-starlancer-max": [
+   {
+    "container": "int_body",
+    "path": "Data/Objects/Spaceships/Ships/MISC/starlancer/interior/engineering/misc_starlancer_engineering_door_coolers.cga"
+   }
+  ],
+  "rsi-constellation-phoenix-emerald": [
+   {
+    "container": "phnx_int_body_main",
+    "path": "Data/Objects/Spaceships/Coolers/medium_component/jspn/cool_jspn_s02_pl03.cgf"
+   },
+   {
+    "container": "phnx_int_body_main",
+    "path": "Data/Objects/Spaceships/Coolers/medium_component/jspn/cool_jspn_s02_pl03.cgf"
+   }
+  ]
+ },
+ "radar": {
+  "anvl-centurion": [
+   {
+    "container": "base_int_cockpit_main",
+    "path": "Data/Objects/Spaceships/Radar/vehicle_component/wlop/radr_wlop_v01_pl01.cga"
+   },
+   {
+    "container": "base_int_cockpit_main",
+    "path": "Data/Objects/Spaceships/Radar/vehicle_component/wlop/radr_wlop_v01_pl01.cga"
+   }
+  ],
+  "anvl-spartan": [
+   {
+    "container": "base_int_cockpit_main",
+    "path": "Data/Objects/Spaceships/Radar/vehicle_component/wlop/radr_wlop_v01_pl01.cga"
+   },
+   {
+    "container": "base_int_cockpit_main",
+    "path": "Data/Objects/Spaceships/Radar/vehicle_component/wlop/radr_wlop_v01_pl01.cga"
+   }
+  ],
+  "misc-hull-c": [
+   {
+    "container": "base_int_front_main",
+    "path": "Data/Objects/Spaceships/Radar/medium_component/bltr/radr_bltr_s02_pl02.cga"
+   }
+  ]
+ },
+ "h2fueltank": {
+  "drak-corsair": [
+   {
+    "container": "base_int_body_main",
+    "path": "Data/Objects/Spaceships/Ships/DRAK/Corsair/interior/engineering/DRAK_Corsair_Component_Fueltank_b.cga"
+   },
+   {
+    "container": "base_int_body_main",
+    "path": "Data/Objects/Spaceships/Ships/DRAK/Corsair/interior/engineering/DRAK_Corsair_Component_Quantum_Fueltank_b.cga"
+   }
+  ],
+  "drak-vulture": [
+   {
+    "container": "base_int_lower_main",
+    "path": "Data/Objects/Spaceships/Ships/DRAK/Vulture/DRAK_Vulture_Component_Fuel_Tank.cga"
+   }
+  ]
+ }
+}

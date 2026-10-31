@@ -32,7 +32,6 @@ function toBaseForm(pathname: string): string {
  * Aufgenommen wird nur, was für Suchende keinen Wert hat:
  *   - Kontobereich: persönliche Ansicht bzw. reine Hilfsseiten hinter einem
  *     Mail-Link. (Anmelden/Registrieren bleiben BEWUSST indexierbar.)
- *   - /refinery.html: Werkzeug, das ohne Login nichts anzeigt.
  *   - /pilot.html: öffentliche Profilseite, deren Inhalt erst clientseitig aus
  *     Supabase kommt. Für Crawler ist sie eine leere Hülle mit generischem
  *     Titel — indexiert würde sie als „soft 404" gewertet. Zusätzlich verlinkt
@@ -42,7 +41,6 @@ export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
   '/account.html',
   '/account/reset.html',
   '/account/update-password.html',
-  '/refinery.html',
   '/pilot.html',
   // Testpilot-Torseite (Phase 14 Plan 01): existiert auch im Live-Build (sie
   // ist eine normale Astro-Seite, nur $vb_gate_on entscheidet, ob nginx sie
@@ -67,6 +65,15 @@ export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
  */
 export const IS_STAGING: boolean =
   typeof process !== 'undefined' && process.env?.STAGING === '1';
+
+/**
+ * Der Hangar gehoert nur in den Vorschau-Bau (Krisz 31.10.2026: live alles
+ * ausser dem Hangar). Ohne ihn fehlen seine Seiten und Dateien, also darf
+ * auch nichts dorthin verlinken: Navigation, Datenblatt, Schiffsliste,
+ * Konto und Pilotenseite fragen diesen Wert. Dieselbe Regel wie
+ * hangarImBau() in scripts/lib/hangar-switch.mjs (Begruendung dort).
+ */
+export const HAS_HANGAR: boolean = IS_STAGING;
 
 /** true, wenn dieser Pfad (DE oder EN) auf noindex stehen soll. */
 export function isNoindex(pathname: string): boolean {

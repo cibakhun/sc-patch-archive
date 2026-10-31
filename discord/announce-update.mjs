@@ -58,72 +58,51 @@ const REFS = ['feedback'];
 const BODY = {
   en: {
     author: 'VerseBase · Site update',
-    title: '⛏ Mining rebuilt — now live',
+    title: '📱 Better on small screens',
     description:
-      'The mining section on **verse-base.com** has been rebuilt from the ground up. ' +
-      'One bench instead of a pile of tables: pick an ore, and where to find it, ' +
-      'what it is worth refining and what else sits in that rock are all right there.',
-    fieldsTitle: "What's new",
-    fields:
-      '⛏ **Mining workbench** — all 37 ores at a glance with their scan signature, ' +
-      'their locations sorted by how much you actually get, and the refineries that ' +
-      'squeeze the most out of them\n' +
-      '📍 **Locations you can open** — click a location and see everything that occurs ' +
-      'there, with its odds. Every location has its own link now, so you can share one\n' +
-      '📌 **Pin lists and presets** — pin ores and locations while you plan; with an ' +
-      'account you can save a named set and call it back on any device\n' +
-      '🪟 **Put the lists in their own window** — a real, free-floating window you can ' +
-      'drag anywhere. In Chrome, Edge and Opera it stays on top of everything else, ' +
-      'so it works on a second screen next to the game (borderless windowed)\n' +
-      '💥 **Fracturing calculator** — its own page: will that rock break with your gear\n' +
-      '✅ **Corrected numbers** — location lists were cut short and mass shares were ' +
-      'added up wrongly. Both are fixed, so what you see now is the full picture',
-    nextTitle: 'Something look wrong?',
-    next: 'Tell me — {feedback} is wide open. Wrong numbers are the ' +
-      'kind of bug I most want to hear about.',
+      'A pass over every screen size, phone to desktop, portrait and landscape — ' +
+      'cut-off filters, oversized headers, broken German line breaks and raw ' +
+      'technical labels are fixed.',
+    nextTitle: 'Found something?',
+    next:
+      "Not everything is caught yet. If something looks wrong or doesn't work — " +
+      'on any device — tell me in {feedback}. A screenshot with your screen size ' +
+      'helps most.',
     footer: 'o7 · Krisz',
   },
   de: {
     author: 'VerseBase · Seiten-Update',
-    title: '⛏ Mining neu gebaut — jetzt live',
+    title: '📱 Besser auf kleinen Bildschirmen',
     description:
-      'Der Mining-Bereich auf **verse-base.com** ist von Grund auf neu gebaut. ' +
-      'Eine Werkbank statt eines Stapels Tabellen: Erz anklicken, und wo es liegt, ' +
-      'was es beim Raffinieren bringt und was sonst noch im Stein steckt, steht daneben.',
-    fieldsTitle: 'Was neu ist',
-    fields:
-      '⛏ **Mining-Werkbank** — alle 37 Erze auf einen Blick mit ihrer Scan-Signatur, ' +
-      'ihre Fundorte sortiert danach, was wirklich herauskommt, und die Stationen, ' +
-      'die am meisten daraus holen\n' +
-      '📍 **Fundorte zum Aufklappen** — Fundort anklicken und sehen, was dort alles ' +
-      'vorkommt, mit Chance. Jeder Fundort hat jetzt einen eigenen Link zum Teilen\n' +
-      '📌 **Merklisten und Presets** — Erze und Fundorte beim Planen anheften; mit ' +
-      'Konto lässt sich eine benannte Zusammenstellung speichern und auf jedem Gerät ' +
-      'wieder aufrufen\n' +
-      '🪟 **Die Listen in ein eigenes Fenster** — ein echtes, frei verschiebbares ' +
-      'Fenster. In Chrome, Edge und Opera bleibt es über allem anderen liegen, taugt ' +
-      'also für den zweiten Bildschirm neben dem Spiel (randloser Fenstermodus)\n' +
-      '💥 **Fracturing-Rechner** — eigene Seite: bricht der Brocken mit deiner Ausrüstung\n' +
-      '✅ **Korrigierte Zahlen** — Fundortlisten waren abgeschnitten und Massenanteile ' +
-      'falsch aufsummiert. Beides behoben, du siehst jetzt das vollständige Bild',
-    nextTitle: 'Sieht was falsch aus?',
-    next: 'Sag Bescheid — {feedback} steht offen. Falsche Zahlen sind ' +
-      'genau die Sorte Fehler, von der ich am liebsten höre.',
+      'Ein Durchgang über alle Bildschirmgrößen, Handy bis Desktop, hoch und quer — ' +
+      'abgeschnittene Filter, zu große Kopfleisten, kaputte deutsche Umbrüche und ' +
+      'rohe technische Bezeichnungen sind repariert.',
+    nextTitle: 'Was gefunden?',
+    next:
+      'Erwischt ist damit noch nicht alles. Wenn etwas falsch aussieht oder nicht ' +
+      'funktioniert — auf welchem Gerät auch immer — sag Bescheid in {feedback}. ' +
+      'Ein Screenshot mit deiner Bildschirmgröße hilft am meisten.',
     footer: 'o7 · Krisz',
   },
 };
 
-const PING_LINE = 'Mining update · Mining-Update ⛏';
+const PING_LINE = 'Site update · Seiten-Update 📱';
 
 function buildEmbed(locale, mentions) {
   const b = BODY[locale];
   const next = b.next.replace(/\{(\w+)\}/g, (m, k) => mentions[k] || `#${k}`);
+  /* ⚠ Der Punkte-Block ist OPTIONAL (seit 01.09.2026). Eine Ankuendigung, die
+     nur zwei Saetze lang ist, braucht keine Aufzaehlung — und addFields wirft,
+     wenn name/value leer sind. Fehlt fieldsTitle, steht nur der Abschluss. */
+  const felder = [];
+  if (b.fieldsTitle && b.fields) felder.push({ name: b.fieldsTitle, value: b.fields });
+  felder.push({ name: b.nextTitle, value: next });
   return new EmbedBuilder()
     .setColor(ACCENT)
     .setAuthor({ name: b.author })
     .setTitle(b.title)
     .setDescription(b.description)
-    .addFields({ name: b.fieldsTitle, value: b.fields }, { name: b.nextTitle, value: next })
+    .addFields(...felder)
     .setFooter({ text: b.footer });
 }
 

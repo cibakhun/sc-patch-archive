@@ -1,0 +1,172 @@
+{
+ "interior_base_ext_lg": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_base_int_copilot_foyer": {
+  "tris": 44795,
+  "aussenPct": 0.3,
+  "maxM": 99,
+  "versatz": [
+   -2,
+   -0.5,
+   -4
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_update_int_pilot_foyer": {
+  "tris": 67018,
+  "aussenPct": 14.51,
+  "maxM": 99,
+  "versatz": [
+   -1,
+   -0.5,
+   -4
+  ],
+  "mitVersatzPct": 1.57,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_base_int_copilot_cockpit": {
+  "tris": 34124,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_base_int_pilot_cockpit": {
+  "tris": 34108,
+  "aussenPct": 0,
+  "maxM": 0,
+  "versatz": [
+   0,
+   0,
+   0
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "interior_base_int_body_main": {
+  "tris": 196253,
+  "aussenPct": 5.66,
+  "maxM": 3,
+  "versatz": [
+   -1,
+   -1,
+   -2.5
+  ],
+  "mitVersatzPct": 0,
+  "t": [
+   0,
+   0,
+   0
+  ],
+  "r": [
+   0,
+   0,
+   0,
+   1
+  ],
+  "s": [
+   1,
+   1,
+   1
+  ]
+ },
+ "_sitz": {
+  "name": "hardpoint_pilot_seat",
+  "p": [
+   0,
+   0.21,
+   -11.44
+  ],
+  "nah": 0,
+  "abstand": 6.73,
+  "naechster": "interior_base_int_body_main",
+  "oben": "Rumpf",
+  "obenM": 0.04,
+  "ok": false
+ }
+}

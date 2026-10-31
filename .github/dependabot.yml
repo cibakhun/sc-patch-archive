@@ -1,0 +1,81 @@
+# Dependabot: haelt Pakete, Basis-Images und Actions aktuell — als PR gegen
+# staging, also durch dieselbe Pruefung (pr-check.yml) und dieselbe
+# Vorschau wie jede andere Aenderung. Nichts davon wird ohne Merge wirksam.
+#
+# Versionen von Actions und Basis-Images sind per Commit-SHA bzw. Digest
+# angeheftet (verify:supply-chain erzwingt das). Dependabot versteht beide
+# Formen und hebt Kennung UND Kommentar gemeinsam an.
+#
+# Ausnahme: Sicherheits-Updates zielen bei GitHub immer auf den
+# Standardzweig (main), unabhaengig von target-branch. Solche PRs nicht
+# direkt mergen, sondern den Stand ueber staging nachziehen.
+#
+# Sprung auf eine neue Hauptversion: bei der Seite (Astro & Co.) und beim
+# node-Basis-Image aus — das ist Umbauarbeit, keine Wartung. Sicherheits-
+# Updates kommen trotzdem (die gelten unabhaengig von diesen Regeln).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # three nicht in der Sammel-PR: die Kopie unter public/vendor/three/
+      # wird von Hand erneuert (verify:vendor prueft sie Datei fuer Datei
+      # gegen das Paket), ein three-Update ist daher bis dahin rot und soll
+      # nicht die uebrigen Updates mit festhalten.
+      seite:
+        patterns: ['*']
+        exclude-patterns: ['three']
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: npm
+    directory: /discord
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      discord-werkzeuge:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /discord/bot
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      bot:
+        patterns: ['*']
+
+  - package-ecosystem: docker
+    directories: [/, /discord/bot]
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      basis-images:
+        patterns: ['*']
+    ignore:
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: staging
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']

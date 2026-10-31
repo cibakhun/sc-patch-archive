@@ -6,11 +6,12 @@
 //
 // Das Risiko liegt NICHT bei den zwei neuen Functions, sondern bei den drei
 // alten: register (Kontoanlage), delete-account (Kontoloeschung) und
-// verify-rsi (RSI-Verifizierung) laufen live und verlassen sich darauf, dass
-// der Standard verify_jwt = true fuer sie gilt. Steht eine von ihnen
-// versehentlich in dieser Datei, waere sie ohne Anmeldung aufrufbar — und
-// nichts im Bau, im Verify-Lauf oder im Seiten-Audit wuerde das bemerken.
-// Deshalb dieser Test.
+// verify-rsi (RSI-Verifizierung) laufen live. delete-account und verify-rsi
+// verlangen ein Session-JWT. Steht eine von ihnen versehentlich mit false in
+// dieser Datei, waere sie ohne Anmeldung aufrufbar — und nichts im Bau, im
+// Verify-Lauf oder im Seiten-Audit wuerde das bemerken. Deshalb dieser Test.
+// (delete-account steht seit dem 30.10.2026 ausdruecklich mit true hier,
+// verify-rsi weiter gar nicht.)
 //
 // Er prueft ABSCHNITTSKOEPFE, nicht blosses Vorkommen: die Namen der drei
 // bestehenden Functions stehen als Prosa im Kommentarblock der Datei (genau
@@ -48,13 +49,35 @@ function verifyJwtOf(text, name) {
 describe('Vertrauensgrenze: supabase/config.toml', () => {
   const sections = functionSections(raw);
 
-  test('genau die drei Functions ohne JWT sind aufgefuehrt', () => {
+  test('genau die Functions ohne JWT stehen auf false', () => {
     assert.deepStrictEqual(
-      [...sections].sort(),
-      ['create-checkout-session', 'register', 'stripe-webhook'],
-      'config.toml muss GENAU die Functions auffuehren, die live OHNE JWT ' +
-        'laufen. Eine zu wenig -> der naechste Deploy schaltet sie ab. Eine ' +
+      sections.filter((fn) => verifyJwtOf(raw, fn) === 'false').sort(),
+      ['bot-role-sync', 'create-checkout-session', 'register', 'stripe-webhook'],
+      'config.toml muss GENAU die Functions mit false auffuehren, die live OHNE ' +
+        'JWT laufen. Eine zu wenig -> der naechste Deploy schaltet sie ab. Eine ' +
         'zu viel -> sie wird ohne Anmeldung erreichbar.'
+    );
+  });
+
+  test('jeder Abschnitt nennt verify_jwt ausdruecklich', () => {
+    for (const fn of sections) {
+      assert.ok(
+        ['true', 'false'].includes(verifyJwtOf(raw, fn)),
+        `[functions.${fn}] ohne verify_jwt: der Deploy nimmt dann den Standard, ` +
+          'und niemand sieht beim Lesen, was gilt.'
+      );
+    }
+  });
+
+  // Seit dem 30.10.2026 liegt der Quelltext von delete-account im Repo; die
+  // Function steht deshalb AUSDRUECKLICH mit true in der Datei. Ein Eintrag mit
+  // false waere genau das Loch, vor dem dieser Test warnt.
+  test('delete-account ist aufgefuehrt und steht auf true', () => {
+    assert.strictEqual(
+      verifyJwtOf(raw, 'delete-account'),
+      'true',
+      'delete-account laeuft LIVE mit verify_jwt = true. Mit false waere die ' +
+        'Kontoloeschung ohne Anmeldung erreichbar.'
     );
   });
 
@@ -72,7 +95,7 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     );
   });
 
-  for (const fn of ['delete-account', 'verify-rsi']) {
+  for (const fn of ['verify-rsi']) {
     test(`${fn} bleibt unaufgefuehrt und behaelt damit verify_jwt = true`, () => {
       assert.ok(
         !sections.includes(fn),
@@ -83,7 +106,7 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
     });
   }
 
-  for (const fn of ['create-checkout-session', 'stripe-webhook']) {
+  for (const fn of ['create-checkout-session', 'stripe-webhook', 'bot-role-sync']) {
     test(`${fn} hat verify_jwt = false`, () => {
       assert.strictEqual(
         verifyJwtOf(raw, fn),
@@ -93,6 +116,32 @@ describe('Vertrauensgrenze: supabase/config.toml', () => {
       );
     });
   }
+
+  // bot-role-sync laeuft ohne Gateway-JWT und muss deshalb SELBST pruefen.
+  // Faellt die eigene Pruefung weg, waere die Function fuer jeden offen, der
+  // die URL kennt — und sie schreibt mit service_role.
+  test('bot-role-sync prueft sein Geheimnis selbst und faellt geschlossen aus', () => {
+    const src = fs.readFileSync('supabase/functions/bot-role-sync/index.ts', 'utf8');
+    assert.match(src, /Deno\.env\.get\('BOT_ROLE_SYNC_SECRET'\)/, 'liest BOT_ROLE_SYNC_SECRET nicht');
+    assert.match(src, /reply\(401,/, 'kein 401 bei falschem Geheimnis');
+    assert.match(src, /reply\(503, \{ error: 'not_configured' \}\)/, 'kein geschlossener Ausfall ohne Geheimnis');
+    assert.doesNotMatch(src, /\.(insert|upsert|delete)\(/, 'schreibt mehr als UPDATE');
+    // Benannte Ausnahme (Raffinerie-DMs, 20261030180000): zwei Funktionen, die
+    // nur lesen bzw. nur discord_notified_at setzen. Jede andere rpc reisst,
+    // ebenso ein berechneter Name; eine Ausnahme ohne Aufruf auch.
+    const RPC_OK = ['refinery_discord_due', 'refinery_discord_sent'];
+    assert.doesNotMatch(src, /\.rpc\((?!\s*')/, 'rpc mit berechnetem Namen');
+    const rpcs = [...src.matchAll(/\.rpc\(\s*'([^']+)'/g)].map((m) => m[1]);
+    assert.deepEqual(rpcs.filter((n) => !RPC_OK.includes(n)), [], 'ruft eine Funktion ausserhalb der Ausnahme');
+    for (const n of RPC_OK) assert.ok(rpcs.includes(n), `Ausnahme ${n} ohne Aufruf: aus RPC_OK streichen`);
+    const sql = fs.readFileSync('supabase/migrations/20261030180000_refinery_benachrichtigung.sql', 'utf8');
+    const sent = sql.match(/create or replace function public\.refinery_discord_sent[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(sent, 'refinery_discord_sent nicht gefunden');
+    assert.doesNotMatch(sent[1], /\b(insert|delete)\b/i, 'refinery_discord_sent schreibt mehr als UPDATE');
+    assert.match(sent[1], /update public\.refinery_jobs\s+set discord_notified_at = now\(\)\s+where/, 'refinery_discord_sent setzt mehr als discord_notified_at');
+    const due = sql.match(/create or replace function public\.refinery_discord_due[\s\S]*?\$\$([\s\S]*?)\$\$/);
+    assert.ok(due && /^\s*select\b/i.test(due[1]) && !/\b(insert|update|delete)\b/i.test(due[1]), 'refinery_discord_due liest nicht nur');
+  });
 
   test('project_id ist gesetzt', () => {
     assert.match(

@@ -7,19 +7,23 @@
 //  Gleiches Muster wie role-sync.mjs / role-reconcile.mjs:
 //    - Gelesen wird nur, wer in discord_role_state steht (verbunden hat).
 //      Alle anderen Mitglieder verlassen den Bot nie.
-//    - Geschrieben wird per PostgREST-PATCH auf discord_user_id, NUR wenn
-//      sich etwas geaendert hat -- ein ruhiger Server erzeugt keine Writes.
+//    - Geschrieben wird ueber site-db.mjs (setStats) per discord_user_id,
+//      NUR wenn sich etwas geaendert hat -- ein ruhiger Server erzeugt
+//      keine Writes.
+//    - NUR die Heim-Gilde (home-guild.mjs): jeder weitere Server schriebe
+//      sonst seine eigenen Zahlen in dieselbe Zeile.
 //    - Jeder Netzfehler wird protokolliert und verschluckt; der naechste
 //      Durchlauf holt nach. Der Bot laeuft ohne Supabase unveraendert.
 //
 //  Zeitpunkte: einmal beim Start, dann alle 5 Minuten, und sofort fuer ein
 //  Mitglied, das gerade aufgestiegen ist (award.mjs -> pushRank). Alles
-//  nacheinander, und nur fuer EINEN Server (homeGuild).
+//  nacheinander, nie zwei Abgleiche gleichzeitig.
 // ═══════════════════════════════════════════════════════════════════════════
 import { levelForXp } from './leveling.mjs';
 import { rankForLevel } from './ranks.mjs';
-
-const FIELDS = ['in_guild', 'level', 'xp', 'total_xp', 'prestige', 'rank_key', 'messages', 'voice_seconds', 'server_rank', 'server_members'];
+import { isHomeGuild } from './home-guild.mjs';
+import { STATS_FIELDS as FIELDS } from './site-db.mjs';
+import { syncProfileBadges } from './badge-sync.mjs';
 
 /**
  * Der Stand eines Mitglieds, wie er in discord_role_state steht. Rein --
@@ -55,60 +59,6 @@ export function changedFields(stored, snap) {
   return out;
 }
 
-function headers(supabase, extra = {}) {
-  return { apikey: supabase.key, Authorization: `Bearer ${supabase.key}`, ...extra };
-}
-
-const SEITE = 1000; // PostgREST liefert hoechstens so viele Zeilen je Abruf
-
-async function fetchLinked(supabase, onlyId) {
-  const filter = onlyId ? `discord_user_id=eq.${encodeURIComponent(onlyId)}` : 'discord_user_id=not.is.null';
-  const all = [];
-  // Seitenweise, sonst bleiben ab dem tausendsten verbundenen Konto alle stehen.
-  for (let offset = 0; ; offset += SEITE) {
-    const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?select=discord_user_id,${FIELDS.join(',')}&${filter}&order=discord_user_id&limit=${SEITE}&offset=${offset}`, { headers: headers(supabase) });
-    if (!res.ok) throw new Error(`Supabase-GET ${res.status}: ${await res.text().catch(() => '')}`);
-    const rows = await res.json();
-    all.push(...rows);
-    if (rows.length < SEITE) return all;
-  }
-}
-
-/**
- * Der Server, dessen Rang die Kontoseite zeigt. Eine Zeile je Konto kann nur
- * EINEN Server spiegeln: mit GUILD_ID dieser; ohne GUILD_ID der einzige
- * Server oder, ist der Bot auf mehreren, der mitgliederstaerkste (stabil,
- * statt dass der zuletzt abgearbeitete gewinnt). Rein (selftest.mjs).
- */
-export function homeGuild(guilds, guildId = process.env.GUILD_ID) {
-  const list = [...guilds];
-  if (guildId) return list.find((g) => g.id === guildId) || null;
-  if (list.length <= 1) return list[0] || null;
-  return list.reduce((a, b) => ((b.memberCount || 0) > (a.memberCount || 0) || ((b.memberCount || 0) === (a.memberCount || 0) && kleinereId(b.id, a.id)) ? b : a));
-}
-
-// Discord-IDs sind Dezimalzahlen als Text: erst die Laenge, dann der Text
-// (sonst laege "10" vor "9").
-function kleinereId(x, y) {
-  const a = String(x), b = String(y);
-  return a.length !== b.length ? a.length < b.length : a < b;
-}
-
-// Alle Abgleiche (Fuenf-Minuten-Lauf und Sofort-Abgleich nach einem
-// Aufstieg) laufen nacheinander: sonst koennte ein aelterer Stand einen
-// neueren ueberschreiben, wenn zwei Aufstiege kurz hintereinander kommen.
-let kette = Promise.resolve();
-const nacheinander = (fn) => (kette = kette.then(fn, fn));
-
-async function writeRow(supabase, discordId, patch) {
-  const res = await fetch(`${supabase.url}/rest/v1/discord_role_state?discord_user_id=eq.${encodeURIComponent(discordId)}`, {
-    method: 'PATCH',
-    headers: headers(supabase, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-    body: JSON.stringify({ ...patch, stats_at: new Date().toISOString() }),
-  });
-  if (!res.ok) throw new Error(`Supabase-PATCH ${res.status}: ${await res.text().catch(() => '')}`);
-}
-
 /** true/false, ob die ID Mitglied ist; null, wenn Discord gerade nicht antwortet. */
 async function memberState(guild, id) {
   if (guild.members.cache.has(id)) return true;
@@ -120,15 +70,21 @@ async function memberState(guild, id) {
   }
 }
 
+// Alle Abgleiche (Fuenf-Minuten-Lauf und Sofort-Abgleich nach einem
+// Aufstieg) laufen nacheinander: sonst koennte ein aelterer Stand einen
+// neueren ueberschreiben, wenn zwei Aufstiege kurz hintereinander kommen.
+let kette = Promise.resolve();
+const nacheinander = (fn) => (kette = kette.then(fn, fn));
+
 /**
  * Abgleich fuer eine Gilde. `onlyId` begrenzt auf ein Mitglied (nach einem
  * Aufstieg). Wirft nie.
  */
 export async function syncRanks(ctx, guild, onlyId = null) {
-  const { supabase, db } = ctx;
-  if (!supabase) return;
+  const { siteDb, db } = ctx;
+  if (!siteDb || !isHomeGuild(ctx, guild)) return;
   let rows;
-  try { rows = await fetchLinked(supabase, onlyId); }
+  try { rows = await siteDb.listLinked(onlyId ? { discordUserId: onlyId } : {}); }
   catch (e) { console.warn(`  ! Rangspiegel: Lesen fehlgeschlagen: ${e.message}`); return; }
 
   let written = 0;
@@ -138,7 +94,7 @@ export async function syncRanks(ctx, guild, onlyId = null) {
     const snap = rankSnapshot(db, guild.id, id, await memberState(guild, id));
     const patch = changedFields(stored, snap);
     if (!Object.keys(patch).length) continue;
-    try { await writeRow(supabase, id, patch); written += 1; }
+    try { const { updated } = await siteDb.setStats(id, patch); if (updated) written += 1; }
     catch (e) { console.warn(`  ! Rangspiegel: Schreiben fuer ${id} fehlgeschlagen: ${e.message}`); }
   }
   // Selbstauskunft: ohne diese Zeile sieht ein leerlaufender Spiegel aus wie ein echter.
@@ -147,30 +103,25 @@ export async function syncRanks(ctx, guild, onlyId = null) {
 
 /** Sofort-Abgleich fuer ein Mitglied (nach Level-Aufstieg). Wirft nie. */
 export function pushRank(ctx, guild, discordId) {
-  if (!ctx.supabase) return;
-  const home = homeGuild(ctx.client?.guilds?.cache?.values() || [guild]);
-  if (!home || home.id !== guild.id) return;
-  nacheinander(() => syncRanks(ctx, guild, discordId)).catch(() => {});
+  if (!isHomeGuild(ctx, guild)) return Promise.resolve();
+  return nacheinander(() => syncRanks(ctx, guild, discordId)).catch(() => {});
 }
 
 const INTERVALL_MS = 5 * 60 * 1000;
 let laeuft = false;
-let gemeldet = '';
 
 export function startRankSync(ctx) {
-  if (!ctx.supabase) return;
+  if (!ctx.siteDb) return;
   const tick = async () => {
     if (laeuft) return;
     laeuft = true;
     try {
-      const guilds = [...ctx.client.guilds.cache.values()];
-      const home = homeGuild(guilds);
-      if (!home) return;
-      if (!process.env.GUILD_ID && guilds.length > 1 && gemeldet !== home.id) {
-        gemeldet = home.id;
-        console.warn(`  ! Rangspiegel: Bot ist auf ${guilds.length} Servern, GUILD_ID fehlt -- gespiegelt wird ${home.name} (meiste Mitglieder).`);
+      // Ein Bot, ein Server: nur die Heim-Gilde.
+      const guild = ctx.client.guilds.cache.get(ctx.home?.id);
+      if (guild) {
+        await nacheinander(() => syncRanks(ctx, guild));
+        await syncProfileBadges(ctx, guild);
       }
-      await nacheinander(() => syncRanks(ctx, home));
     } finally { laeuft = false; }
   };
   tick();

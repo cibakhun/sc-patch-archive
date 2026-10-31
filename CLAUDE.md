@@ -85,7 +85,26 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
 
 - Datenherkunft (Data.p4k, DataCore, scmdb, „datamined") taucht **nirgends**
   im sichtbaren Text auf; `audit:site` erzwingt das als FEHLER.
+- Sicherheitsfixes tragen eine **neutrale Betreffzeile** („Konto: Eingaben
+  strenger prüfen", nicht „XSS im Profil schließen"), PR-Titel und -Text
+  ebenso. Das Repo ist öffentlich, und „Testphase eröffnen" schickt
+  Betreffzeilen in den Tester-Discord — eine benannte Lücke ist bis zum
+  Live-Gang eine Anleitung. Was genau offen war, steht im privaten Bericht,
+  nicht im Repo. Neue Workflows: Actions per Commit-SHA, `permissions:`
+  ausdrücklich, Checkout mit `persist-credentials: false` —
+  `verify:supply-chain` erzwingt das.
 - Sichturteile („trägt das Motiv noch?") entscheidet kein Skript. Sie gehen
   als benannter Punkt nach `.planning/WINDOWS.md` an den Betreiber.
 - Bei sichtbaren Ergebnissen: erst hinsehen (Screenshot/Render), dann
   berichten. Kennzahlen messen die Untergrenze, nicht die Güte.
+- Hangar nur im Vorschau-Bau (Krisz 31.10.2026): live bekommt alles von
+  staging außer dem Hangar. Seiten, Modelle, Skripte und jeder Link dorthin
+  entstehen nur mit `STAGING=1` — Hangar-Arbeit also immer als Vorschau
+  bauen und prüfen. Neue Links zum Hangar fragen `HAS_HANGAR` (Seite) bzw.
+  `HANGAR_ON` (Skript); Schalter in `scripts/lib/hangar-switch.mjs`,
+  `verify:hangar-schalter` prüft beide Richtungen.
+- 3D-Hangar: Software-WebGL (Cloud, CI) erlaubt 32 Texturen je Shader,
+  Chrome unter Windows nur 16 — darüber bleibt ein Material dort
+  unsichtbar, und jede Aufnahme hier sieht trotzdem gut aus. Vor der
+  Fertig-Meldung von Hangar-Arbeit `npm run check:hangar-shader -- --base …`
+  gegen den gebauten Stand.

@@ -22,6 +22,7 @@ const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossi
   ogImage="/assets/og-default.jpg"
   translated={true}
   noindex={true}
+  analytics={false}
 >
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <link slot="head" rel="stylesheet" href={accountCss} />
@@ -43,5 +44,5 @@ const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossi
 
 <Attribution sources={[]} />
 
-<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+<script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

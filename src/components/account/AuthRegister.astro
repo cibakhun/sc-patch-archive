@@ -12,42 +12,52 @@ interface Props {
 }
 const { lang } = Astro.props;
 
+// Mindestlänge wie im Konto und beim Zurücksetzen (MIN_PASS dort); die
+// verbindliche Grenze setzen Supabase (Auth -> Passwords) und register.
+const MIN_PASS = 12;
+
 const COPY = {
   de: {
     name: 'Anzeigename', optional: '— optional', namePh: 'z. B. StarRunner',
     nameHint: 'Wird im Dashboard angezeigt. Später jederzeit änderbar.',
     email: 'E-Mail', emailPh: 'du@beispiel.de',
-    pass: 'Passwort', passPh: 'Mindestens 8 Zeichen',
+    pass: 'Passwort', passPh: 'Mindestens 12 Zeichen',
     pass2: 'Passwort wiederholen', pass2Ph: 'Nochmal dasselbe Passwort',
     submit: 'Konto erstellen', busy: 'Erstelle Konto …',
     privacyPre: 'Mit der Registrierung stimmst du der Verarbeitung laut', privacy: 'Datenschutzerklärung', privacyPost: 'zu.',
-    errShort: 'Das Passwort braucht mindestens 8 Zeichen.',
+    errShort: 'Das Passwort braucht mindestens 12 Zeichen.',
     errMatch: 'Die Passwörter stimmen nicht überein.',
     errExists: 'Diese E-Mail ist bereits registriert — melde dich an oder setze dein Passwort zurück.',
     errInvalidMail: 'Diese E-Mail-Adresse wird nicht akzeptiert — bitte prüfe die Schreibweise.',
     errWeak: 'Das Passwort ist zu schwach — bitte wähle ein längeres.',
     errRate: 'Zu viele Registrierungen von deiner Verbindung — bitte später erneut versuchen.',
     errNet: 'Das hat nicht geklappt — bitte später erneut versuchen.',
+    errPaused: 'Die Registrierung per E-Mail ist gerade pausiert — registriere dich bitte mit Discord.',
     okLogin: 'Konto erstellt! Du wirst angemeldet …',
     toLogin: 'Schon ein Konto? Anmelden',
+    discordBtn: 'Mit Discord registrieren', orMail: 'oder mit E-Mail',
+    errOauth: 'Discord hat nicht geklappt — bitte erneut versuchen oder mit E-Mail registrieren.',
   },
   en: {
     name: 'Display name', optional: '— optional', namePh: 'e.g. StarRunner',
     nameHint: 'Shown in your dashboard. Can be changed anytime.',
     email: 'E-mail', emailPh: 'you@example.com',
-    pass: 'Password', passPh: 'At least 8 characters',
+    pass: 'Password', passPh: 'At least 12 characters',
     pass2: 'Repeat password', pass2Ph: 'Same password again',
     submit: 'Create account', busy: 'Creating account …',
     privacyPre: 'By registering you agree to the processing described in our', privacy: 'privacy policy', privacyPost: '.',
-    errShort: 'The password needs at least 8 characters.',
+    errShort: 'The password needs at least 12 characters.',
     errMatch: 'The passwords do not match.',
     errExists: 'This e-mail is already registered — sign in or reset your password.',
     errInvalidMail: 'This e-mail address was not accepted — please check the spelling.',
     errWeak: 'This password is too weak — please pick a longer one.',
     errRate: 'Too many sign-ups from your connection — please try again later.',
     errNet: 'That did not work — please try again later.',
+    errPaused: 'Sign-up by e-mail is paused right now — please sign up with Discord.',
     okLogin: 'Account created! Signing you in …',
     toLogin: 'Already have an account? Sign in',
+    discordBtn: 'Sign up with Discord', orMail: 'or with e-mail',
+    errOauth: 'Discord did not work — please try again or sign up with e-mail.',
   },
 }[lang];
 
@@ -57,6 +67,15 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
 ---
 
 <div class="acx-card reveal">
+  <!-- Schnellster Weg zuerst: ein Klick, Name und Bild kommen von Discord.
+       Der Rücksprung landet auf der Anmeldeseite, die Erfolg (Sitzung ->
+       Konto) und Fehler (#error=…) schon an einer Stelle behandelt. -->
+  <button type="button" class="acx-submit acx-discord" id="regDiscordBtn" data-login={loginHref} data-err={COPY.errOauth}>
+    <svg class="acx-discord__logo" viewBox="0 0 127.14 96.36" aria-hidden="true"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21H.55A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+    <span>{COPY.discordBtn}</span>
+  </button>
+  <p class="acx-status" id="regDiscordStatus" role="alert" hidden></p>
+  <p class="acx-or"><span>{COPY.orMail}</span></p>
   <form id="regForm" novalidate
     data-dash={dashboardHref}
     data-login={loginHref}
@@ -67,6 +86,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     data-msg-weak={COPY.errWeak}
     data-msg-rate={COPY.errRate}
     data-msg-net={COPY.errNet}
+    data-msg-paused={COPY.errPaused}
     data-msg-ok={COPY.okLogin}
     data-busy={COPY.busy}
     data-submit={COPY.submit}
@@ -82,11 +102,11 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
     </div>
     <div class="acx-field">
       <label class="acx-label" for="rgPass">{COPY.pass} <span class="reqm">*</span></label>
-      <input class="acx-input" id="rgPass" name="password" type="password" required minlength="8" autocomplete="new-password" placeholder={COPY.passPh} />
+      <input class="acx-input" id="rgPass" name="password" type="password" required minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.passPh} />
     </div>
     <div class="acx-field">
       <label class="acx-label" for="rgPass2">{COPY.pass2} <span class="reqm">*</span></label>
-      <input class="acx-input" id="rgPass2" name="password2" type="password" required minlength="8" autocomplete="new-password" placeholder={COPY.pass2Ph} />
+      <input class="acx-input" id="rgPass2" name="password2" type="password" required minlength={MIN_PASS} autocomplete="new-password" placeholder={COPY.pass2Ph} />
     </div>
     <div class="acx-actions">
       <button class="acx-submit" type="submit" id="rgBtn"><span id="rgBtnTxt">{COPY.submit}</span></button>
@@ -97,12 +117,51 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
   </form>
 
   <div class="acx-links" id="regFootLinks">
-    <a href={loginHref}>{COPY.toLogin}</a>
+    <a href={loginHref} id="regToLogin">{COPY.toLogin}</a>
   </div>
 </div>
 
+<style>
+  .acx-discord { width: 100%; justify-content: center; gap: 10px; background: #4752c4; border-color: transparent; color: #fff; }
+  .acx-discord:hover { background: #5865f2; }
+  .acx-discord__logo { width: 22px; height: 17px; fill: currentColor; flex: none; }
+  .acx-or { display: flex; align-items: center; gap: 12px; margin: 1.4rem 0 1.1rem; color: var(--muted); font-size: var(--fs-5); }
+  .acx-or::before, .acx-or::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.14); }
+</style>
+
 <script>
   import { supabase } from '../../lib/supabase';
+  import { safeNext } from '../../lib/safe-next';
+
+  // ?next=/… (nur dieselbe Origin, src/lib/safe-next.ts): wer über den
+  // Pilotenlink eines Freundes kommt (/de/pilot/<handle>), landet nach dem
+  // Registrieren wieder dort und kann ihn gleich hinzufügen. Gilt für alle
+  // Ausgänge: E-Mail, Discord (über die Anmeldeseite, die ?next= kennt),
+  // schon angemeldet und „Schon ein Konto?".
+  const nextRaw = new URLSearchParams(location.search).get('next') || '';
+  const nextOk = safeNext(nextRaw, location.origin, '');
+  const withNext = (login: string) => (nextOk ? login + '?next=' + encodeURIComponent(nextOk) : login);
+  const toLogin = document.getElementById('regToLogin') as HTMLAnchorElement | null;
+  if (toLogin && nextOk) toLogin.href = withNext(toLogin.getAttribute('href') || '');
+
+  const dcReg = document.getElementById('regDiscordBtn') as HTMLButtonElement | null;
+  if (dcReg) {
+    dcReg.addEventListener('click', async () => {
+      dcReg.disabled = true;
+      const st = document.getElementById('regDiscordStatus');
+      if (st) st.hidden = true;
+      // Kein neues Konto, wenn es zu diesem Discord-Konto schon eins gibt —
+      // dann ist das hier einfach eine Anmeldung.
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: { redirectTo: location.origin + withNext(dcReg.dataset.login || '/account/login.html') },
+      });
+      if (error) {
+        if (st) { st.textContent = dcReg.dataset.err || ''; st.hidden = false; }
+        dcReg.disabled = false;
+      }
+    });
+  }
 
   const form = document.getElementById('regForm') as HTMLFormElement | null;
   if (form) {
@@ -113,7 +172,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
 
     // Eingeloggt? Dann gibt es hier nichts zu registrieren.
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) location.replace(D.dash!);
+      if (data.session) location.replace(nextOk || D.dash!);
     });
 
     const setStatus = (msg: string, ok = false) => {
@@ -130,7 +189,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
       const password = (form.elements.namedItem('password') as HTMLInputElement).value;
       const password2 = (form.elements.namedItem('password2') as HTMLInputElement).value;
 
-      if (password.length < 8) { setStatus(D.msgShort!); return; }
+      if (password.length < 12) { setStatus(D.msgShort!); return; } // = MIN_PASS
       if (password !== password2) { setStatus(D.msgMatch!); return; }
 
       btn.disabled = true;
@@ -151,6 +210,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
             : code === 'email_address_invalid' ? D.msgInvalidMail!
             : code === 'weak_password' ? D.msgWeak!
             : code === 'over_request_rate_limit' ? D.msgRate!
+            : code === 'signup_paused' ? D.msgPaused!
             : D.msgNet!,
           );
           return;
@@ -159,10 +219,10 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
         const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
         if (signInErr) {
           // Konto existiert, nur der Auto-Login scheiterte -> zur Anmeldung
-          location.assign(D.login!);
+          location.assign(withNext(D.login!));
           return;
         }
-        location.replace(D.dash!);
+        location.replace(nextOk || D.dash!);
       } catch {
         setStatus(D.msgNet!);
       } finally {

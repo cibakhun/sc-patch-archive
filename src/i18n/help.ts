@@ -189,6 +189,36 @@ export const HELP = {
     'ships.ctl.select': 'Schränkt die Flotte auf einen Wert dieser Auswahlliste ein.',
     'ships.ctl.sort': 'Legt die Sortierung der Ergebnisse fest.',
 
+    // -- Hangar --
+    'hangar.title': 'Wie funktioniert der Hangar?',
+    'hangar.purpose':
+      'Zeigt jedes Schiff in einer 3D-Halle, mit Kennwerten und mit Waffen, Systemen und Fracht je Hardpoint — dazu ein Vergleich von bis zu drei Schiffen, die eigene Flotte und eine Werkstatt für eigene Layouts.',
+    'hangar.step1': 'Links die Schiffsauswahl aufklappen (am Handy steht sie unten) und ein Schiff finden: über die Filter („Wofür“, Größe, Crew …) oder die Suche, die auch Rollen und Größen versteht („bergbau solo“). Die Pfeiltasten wechseln das Schiff auch zugeklappt.',
+    'hangar.step2': 'In der Tafel zwischen Überblick, Waffen, Systemen und Fracht wechseln; eine Zeile zeigt ihren Hardpoint am Schiff.',
+    'hangar.step3': '„Vergleichen" sammelt bis zu drei Schiffe im Korb, der sie nebeneinander öffnet.',
+    'hangar.step4': '„Zur Flotte" merkt sich ein Schiff, ohne Konto in diesem Browser, mit Konto überall.',
+    'hangar.step5': 'Rechts baust du dein Layout: Waffen und Bauteile tauschen, speichern und als Link teilen. „Schiffsdaten“ zeigt Kennwerte und Serienausstattung.',
+    'hangar.ctl.layout': 'Wechselt die Tafel rechts zwischen deinem Layout und den Schiffsdaten; das Layout in Arbeit bleibt dabei erhalten.',
+    'hangar.ctl.layoutName': 'Name des Layouts; der Würfel schlägt einen vor.',
+    'hangar.ctl.layoutSlots': 'Die Reiter Waffen, Systeme und Lackierung teilen die Slots wie im Spiel; am Schiff sind nur die Teile des gewählten Reiters markiert, eine Lackierung färbt das Modell um. Ein Klick auf einen Slot zeigt alle passenden Bauteile, sortiert nach ihrem Kennwert; die Zahl rechts ist der Abstand zum eingebauten Teil.',
+    'hangar.ctl.layoutSave': 'Speichert das Layout in diesem Browser; „Link teilen“ kopiert eine Adresse, die genau dieses Layout öffnet.',
+    'hangar.ctl.layoutSaved': 'Zeigt deine gespeicherten Layouts zum Öffnen, Teilen oder Löschen; ein zweiter Klick führt zurück zum Bauen.',
+    'hangar.ctl.dock': 'Klappt die Schiffsauswahl mit Suche und Filtern auf oder zu; zugeklappt hat die Halle mehr Platz.',
+    'hangar.ctl.search': 'Sucht nach Name, Hersteller, Rolle, Größe oder Crew, auf Deutsch und Englisch und auch mit Tippfehlern („bergbau solo“, „miner“, „ab 100 scu“). Erkannte Begriffe stehen darunter als Filter. Die Taste / springt hierher.',
+    'hangar.ctl.facets': 'Wofür, Größe, Crew, Fracht, Preis und Hersteller; jede Pille klappt ihre Stufen mit der Zahl der Treffer auf. Nach einem Zweck lassen sich Unterrollen wählen.',
+    'hangar.ctl.list': 'Die Treffer. Mit der Maus oder ↑ ↓ zeigt die Karte daneben Kennzahlen und die Größe neben dem Schiff in der Halle, mit Knöpfen für Vergleich und Flotte; Klick, Enter oder „In die Halle“ holt das Schiff in die Halle.',
+    'hangar.ctl.sort': 'Sortiert das Dock nach Name oder nach einem Kennwert, größter Wert zuerst.',
+    'hangar.ctl.fleetFilter': 'Zeigt im Dock nur die Schiffe der Flotte.',
+    'hangar.ctl.random': 'Holt ein zufälliges Schiff aus den sichtbaren Karten in die Halle.',
+    'hangar.ctl.gfx': 'Bildqualität der Halle. Automatisch wählt nach Gerät und regelt herunter, wenn das Bild ruckelt; Niedrig läuft auch auf schwachen Geräten flüssig.',
+    'hangar.ctl.snd': 'Geräusche der Halle: Plattform, Schachttor und Dampf beim Schiffswechsel. Die Wahl bleibt gespeichert.',
+    'hangar.ctl.tabs': 'Wechselt zwischen Überblick, Waffen, Systemen und Fracht des gezeigten Schiffs.',
+    'hangar.ctl.fleet': 'Nimmt das gezeigte Schiff in die Flotte auf oder wieder heraus.',
+    'hangar.ctl.compare': 'Legt das gezeigte Schiff in den Vergleich, höchstens drei.',
+    'hangar.ctl.copy': 'Kopiert einen Link auf dieses Schiff, diesen Tab und den Vergleich, ohne die Filter des Docks.',
+    'hangar.ctl.tray': 'Die Schiffe im Vergleich; ab zwei öffnet der Knopf sie nebeneinander.',
+    'hangar.ctl.fleetLine': 'Summen der Flotte und wo sie gespeichert ist; steht, solange das Dock nur die Flotte zeigt.',
+
     // -- Precision Jump --
     'precisionjump.title': 'Wie funktioniert der Precision-Jump-Rechner?',
     'precisionjump.purpose':
@@ -219,9 +249,10 @@ export const HELP = {
     'refinerytracker.ctl.duration': 'Legt die Bearbeitungszeit des Auftrags aus dem Terminal fest.',
     'refinerytracker.ctl.preview': 'Zeigt Ausbeute, geschätzten Wert und Fertigstellungszeit vorab.',
     'refinerytracker.ctl.history': 'Abgeschlossene Aufträge mit Gewinn und eintragbarem Verkaufserlös.',
+  'refinerytracker.ctl.notify': 'Schaltet die Mitteilung auf der Seite und die Discord-Nachricht für fertige Aufträge an oder aus.',
   },
   en: {
-    // -- Shared control copy (all eleven tools) --
+    // -- Shared control copy (all twelve tools) --
     'ui.elements': 'Explain elements',
     'ui.elementsOff': 'Stop explaining',
     'ui.bubbleLabel': 'Explanation',
@@ -373,6 +404,36 @@ export const HELP = {
     'ships.ctl.select': 'Narrows the fleet down to a value from this dropdown.',
     'ships.ctl.sort': 'Sets the sort order of the results.',
 
+    // -- Hangar --
+    'hangar.title': 'How does the hangar work?',
+    'hangar.purpose':
+      'Shows every ship in a 3D hall with its key figures and its weapons, systems and cargo per hardpoint — plus a side-by-side comparison of up to three ships, a personal fleet and a workshop for your own loadouts.',
+    'hangar.step1': 'Open the ship selection on the left (at the bottom on phones) and find a ship: by the filters (“Purpose”, size, crew …) or the search, which understands roles and sizes too (“mining solo”). The arrow keys change the ship while closed too.',
+    'hangar.step2': 'Switch the panel between overview, weapons, systems and cargo; a row points at its hardpoint on the ship.',
+    'hangar.step3': '“Compare” collects up to three ships in the tray, which opens them side by side.',
+    'hangar.step4': '“Add to fleet” keeps a ship, in this browser without an account and everywhere with one.',
+    'hangar.step5': 'Build your loadout on the right: swap weapons and components, save them and share them as a link. “Ship data” shows key figures and the stock loadout.',
+    'hangar.ctl.layout': 'Switches the right-hand panel between your loadout and the ship data; the loadout in progress is kept.',
+    'hangar.ctl.layoutName': 'Name of the loadout; the die suggests one.',
+    'hangar.ctl.layoutSlots': 'The Weapons, Systems and Paint tabs split the slots as in the game; on the ship, only parts of the selected tab are marked, and a paint recolours the model. Clicking a slot lists every matching component, sorted by its key figure; the number on the right is the gap to the fitted part.',
+    'hangar.ctl.layoutSave': 'Saves the loadout in this browser; “Share link” copies an address that opens exactly this loadout.',
+    'hangar.ctl.layoutSaved': 'Shows your saved loadouts to open, share or delete; a second click goes back to building.',
+    'hangar.ctl.dock': 'Opens or closes the ship selection with search and filters; closed, the hall gets more room.',
+    'hangar.ctl.search': 'Searches name, manufacturer, role, size or crew, in English and German and with typos (“mining solo”, “miner”, “100 scu”). Recognised terms appear below as filters. The / key jumps here.',
+    'hangar.ctl.facets': 'Purpose, size, crew, cargo, price and manufacturer; each pill opens its steps with the number of matches. After a purpose, sub-roles follow.',
+    'hangar.ctl.list': 'The matches. Hover or use ↑ ↓ and the card beside shows key figures and the size next to the ship in the hall, with buttons for compare and fleet; click, Enter or “Into the hall” brings the ship into the hall.',
+    'hangar.ctl.sort': 'Sorts the dock by name or by a key figure, highest first.',
+    'hangar.ctl.fleetFilter': 'Shows only the fleet’s ships in the dock.',
+    'hangar.ctl.random': 'Brings a random ship from the visible cards into the hall.',
+    'hangar.ctl.gfx': 'Picture quality of the hall. Automatic picks by device and steps down when the picture stutters; Low runs smoothly on weak devices too.',
+    'hangar.ctl.snd': 'Hall sounds: platform, shaft gate and steam when the ship changes. Your choice is remembered.',
+    'hangar.ctl.tabs': 'Switches between overview, weapons, systems and cargo of the ship shown.',
+    'hangar.ctl.fleet': 'Adds the ship shown to the fleet or takes it out again.',
+    'hangar.ctl.compare': 'Puts the ship shown into the comparison, three at most.',
+    'hangar.ctl.copy': 'Copies a link to this ship, tab and comparison, without the dock filters.',
+    'hangar.ctl.tray': 'The ships in the comparison; from two on, the button opens them side by side.',
+    'hangar.ctl.fleetLine': 'Fleet totals and where the fleet is kept; shown while the dock shows only the fleet.',
+
     // -- Precision Jump --
     'precisionjump.title': 'How does the Precision Jump calculator work?',
     'precisionjump.purpose':
@@ -403,6 +464,7 @@ export const HELP = {
     'refinerytracker.ctl.duration': 'Sets the order’s processing time from the terminal.',
     'refinerytracker.ctl.preview': 'Previews yield, estimated value and completion time.',
     'refinerytracker.ctl.history': 'Completed orders with profit and a place to record the sale value.',
+  'refinerytracker.ctl.notify': 'Turns the on-site notice and the Discord message for finished orders on or off.',
   },
 } as const;
 

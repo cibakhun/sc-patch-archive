@@ -1,0 +1,4738 @@
+{
+ "aegs-avenger-stalker": {
+  "tris": 236589,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.4,
+    -4.5,
+    -12.2
+   ],
+   "max": [
+    8.4,
+    2.7,
+    12.4
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 1540,
+    "aussenM": 0.7,
+    "min": [
+     0.5,
+     3.4,
+     0
+    ],
+    "max": [
+     1,
+     4.2,
+     0.2
+    ],
+    "innenraum": "ja",
+    "materialien": [
+     "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (520)",
+     "extinguisher_cabinet_1_a_mtl_tint_primary_08 (418)",
+     "extinguisher_cabinet_1_a_mtl_tint_secondary_09 (400)"
+    ]
+   }
+  ]
+ },
+ "aegs-avenger-titan": {
+  "tris": 245238,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.4,
+    -4.5,
+    -12.2
+   ],
+   "max": [
+    8.4,
+    2.7,
+    12.4
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 1534,
+    "aussenM": 0.7,
+    "min": [
+     0.5,
+     3.4,
+     0
+    ],
+    "max": [
+     1,
+     4.2,
+     0.2
+    ],
+    "innenraum": "ja",
+    "materialien": [
+     "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (520)",
+     "extinguisher_cabinet_1_a_mtl_tint_primary_08 (410)",
+     "extinguisher_cabinet_1_a_mtl_tint_secondary_09 (402)"
+    ]
+   }
+  ]
+ },
+ "aegs-avenger-titan-renegade": {
+  "tris": 236532,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.4,
+    -4.5,
+    -12.2
+   ],
+   "max": [
+    8.4,
+    2.7,
+    12.4
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 1560,
+    "aussenM": 0.7,
+    "min": [
+     0.5,
+     3.4,
+     0
+    ],
+    "max": [
+     1,
+     4.2,
+     0.2
+    ],
+    "innenraum": "ja",
+    "materialien": [
+     "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (528)",
+     "extinguisher_cabinet_1_a_mtl_tint_primary_08 (422)",
+     "extinguisher_cabinet_1_a_mtl_tint_secondary_09 (408)"
+    ]
+   }
+  ]
+ },
+ "aegs-avenger-warlock": {
+  "tris": 233680,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.4,
+    -4.5,
+    -12.2
+   ],
+   "max": [
+    8.4,
+    2.7,
+    12.4
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 1530,
+    "aussenM": 0.7,
+    "min": [
+     0.5,
+     3.4,
+     0
+    ],
+    "max": [
+     1,
+     4.2,
+     0.2
+    ],
+    "innenraum": "ja",
+    "materialien": [
+     "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (520)",
+     "extinguisher_cabinet_1_a_mtl_tint_primary_08 (408)",
+     "extinguisher_cabinet_1_a_mtl_tint_secondary_09 (400)"
+    ]
+   }
+  ]
+ },
+ "aegs-eclipse": {
+  "tris": 231190,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13,
+    -3,
+    -9.4
+   ],
+   "max": [
+    13,
+    6,
+    10.3
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-gladius": {
+  "tris": 250237,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.7,
+    -2.7,
+    -12.8
+   ],
+   "max": [
+    8.7,
+    2.9,
+    8.5
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-gladius-pir": {
+  "tris": 263648,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.7,
+    -2.7,
+    -12.8
+   ],
+   "max": [
+    8.7,
+    2.9,
+    8.5
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-gladius-valiant": {
+  "tris": 247883,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.7,
+    -2.7,
+    -13.2
+   ],
+   "max": [
+    8.7,
+    2.9,
+    8.5
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-hammerhead": {
+  "tris": 1302691,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -33.9,
+    -8.4,
+    -63.4
+   ],
+   "max": [
+    33.9,
+    10.3,
+    52.9
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-hammerhead-showdown": {
+  "tris": 1281309,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -33.9,
+    -8.4,
+    -63.4
+   ],
+   "max": [
+    33.9,
+    10.3,
+    52.9
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-idris-m": {
+  "tris": 1675701,
+  "voxel": 0.8,
+  "rumpf": {
+   "min": [
+    -63.3,
+    -27.7,
+    -127.9
+   ],
+   "max": [
+    63.3,
+    29.1,
+    105
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-idris-p": {
+  "tris": 1755948,
+  "voxel": 0.8,
+  "rumpf": {
+   "min": [
+    -63.3,
+    -27.7,
+    -127.9
+   ],
+   "max": [
+    63.3,
+    29.1,
+    105
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-javelin": {
+  "tris": 543193,
+  "voxel": 1.4,
+  "rumpf": {
+   "min": [
+    -109,
+    -44.1,
+    -170.5
+   ],
+   "max": [
+    109,
+    45.1,
+    260.5
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-reclaimer": {
+  "tris": 720795,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -55,
+    -22.6,
+    -57.2
+   ],
+   "max": [
+    54.8,
+    28.3,
+    101
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-reclaimer-showdown": {
+  "tris": 720795,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -55,
+    -22.6,
+    -57.2
+   ],
+   "max": [
+    54.8,
+    28.3,
+    101
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-redeemer": {
+  "tris": 530015,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.4,
+    -19.5,
+    -22.4
+   ],
+   "max": [
+    14.4,
+    18.4,
+    28.2
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-retaliator": {
+  "tris": 625506,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -19.8,
+    -5.3,
+    -30.4
+   ],
+   "max": [
+    19.8,
+    7.3,
+    39.2
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-sabre": {
+  "tris": 274305,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.3,
+    -2.4,
+    -13.8
+   ],
+   "max": [
+    12.3,
+    2.6,
+    10.1
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-sabre-comet": {
+  "tris": 235041,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.3,
+    -2.4,
+    -13.8
+   ],
+   "max": [
+    12.3,
+    2.6,
+    10.1
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-sabre-firebird": {
+  "tris": 228343,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10,
+    -4.3,
+    -11.6
+   ],
+   "max": [
+    10,
+    1.3,
+    12
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-sabre-peregrine": {
+  "tris": 204645,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10,
+    -4.3,
+    -11.6
+   ],
+   "max": [
+    10,
+    1.3,
+    12
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-sabre-raven": {
+  "tris": 249509,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.8,
+    -4.1,
+    -11.3
+   ],
+   "max": [
+    9.8,
+    1.5,
+    12.3
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-sabre-raven-ex": {
+  "tris": 235906,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.8,
+    -4.1,
+    -11.3
+   ],
+   "max": [
+    9.8,
+    1.8,
+    12.3
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-tiburon": {
+  "tris": 858656,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -34,
+    -8.4,
+    -68
+   ],
+   "max": [
+    34,
+    11.5,
+    52.9
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-vanguard": {
+  "tris": 249336,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -19,
+    -4.8,
+    -20.4
+   ],
+   "max": [
+    19,
+    4.8,
+    21.3
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-vanguard-harbinger": {
+  "tris": 233863,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -19,
+    -4.8,
+    -20.4
+   ],
+   "max": [
+    19,
+    4.8,
+    21.3
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-vanguard-hoplite": {
+  "tris": 236980,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -19,
+    -4.8,
+    -20.4
+   ],
+   "max": [
+    19,
+    4.8,
+    21.3
+   ]
+  },
+  "inseln": []
+ },
+ "aegs-vanguard-sentinel": {
+  "tris": 254443,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -19,
+    -4.8,
+    -21.6
+   ],
+   "max": [
+    19,
+    4.8,
+    21.3
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-arrow": {
+  "tris": 226692,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6,
+    -2.4,
+    -8.8
+   ],
+   "max": [
+    6,
+    1.7,
+    9
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-asgard": {
+  "tris": 617106,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -16.9,
+    -3.1,
+    -21.2
+   ],
+   "max": [
+    17,
+    11.5,
+    27.4
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 12,
+    "aussenM": 0.8,
+    "min": [
+     -6.3,
+     -4,
+     -11.9
+    ],
+    "max": [
+     -6.3,
+     -3.9,
+     -11.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "anvl_asgard_ext_mtl_Primairy_painted_tile_03 (11)",
+     "anvl_asgard_ext_mtl_glows_secondary_037 (1)"
+    ]
+   }
+  ]
+ },
+ "anvl-ballista": {
+  "tris": 208960,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.6,
+    -2.5,
+    -8.4
+   ],
+   "max": [
+    3.6,
+    2.9,
+    8.5
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-ballista-dunestalker": {
+  "tris": 208960,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.6,
+    -2.5,
+    -8.4
+   ],
+   "max": [
+    3.6,
+    2.9,
+    8.5
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-ballista-snowblind": {
+  "tris": 208960,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.6,
+    -2.5,
+    -8.4
+   ],
+   "max": [
+    3.6,
+    2.9,
+    8.5
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-c8-pisces": {
+  "tris": 223784,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.3,
+    -1.5,
+    -6.8
+   ],
+   "max": [
+    4.3,
+    1.9,
+    6.1
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-c8r-pisces": {
+  "tris": 242681,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.3,
+    -1.5,
+    -6.8
+   ],
+   "max": [
+    4.3,
+    1.9,
+    6.1
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-c8x-pisces-expedition": {
+  "tris": 246562,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.3,
+    -1.5,
+    -6.8
+   ],
+   "max": [
+    4.3,
+    1.9,
+    6.1
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-carrack": {
+  "tris": 854132,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -36.2,
+    -18.5,
+    -57.1
+   ],
+   "max": [
+    36.2,
+    10.3,
+    68.3
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-carrack-expedition": {
+  "tris": 854148,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -36.2,
+    -18.5,
+    -57.1
+   ],
+   "max": [
+    36.2,
+    10.3,
+    68.3
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-centurion": {
+  "tris": 290403,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.4,
+    -2.4,
+    -8.4
+   ],
+   "max": [
+    3.4,
+    2.7,
+    8.2
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-gladiator": {
+  "tris": 255862,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10.9,
+    -3.3,
+    -11.8
+   ],
+   "max": [
+    10.9,
+    2.7,
+    10.5
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-hawk": {
+  "tris": 276082,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7,
+    -3.4,
+    -7.3
+   ],
+   "max": [
+    7.1,
+    4.2,
+    9.7
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-hornet-f7a-mk1": {
+  "tris": 260008,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.5,
+    -3.5,
+    -10.6
+   ],
+   "max": [
+    9.6,
+    2.8,
+    9.3
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 14377,
+    "aussenM": 1.4,
+    "min": [
+     -9.6,
+     -2.6,
+     -3.5
+    ],
+    "max": [
+     -8.9,
+     -1.2,
+     2
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "behr_mastermaterial_2_mtl_Barrel_018 (3229)",
+     "behr_mastermaterial_2_mtl_H_bare_03_A_07 (2428)",
+     "behr_mastermaterial_2_mtl_H_copper_03_A_017 (1245)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7a-mk2": {
+  "tris": 266306,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.8,
+    -3.6,
+    -10.3
+   ],
+   "max": [
+    9.4,
+    2.4,
+    8.3
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 20412,
+    "aussenM": 0.9,
+    "min": [
+     -8.5,
+     -2.3,
+     -1.2
+    ],
+    "max": [
+     -7.6,
+     -0.7,
+     2
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_03_07 (3836)",
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_01_05 (3515)",
+     "APAR_BallisticGatling_S4_Material_mtl_Metal_01_04 (2752)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7c": {
+  "tris": 230231,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.7,
+    -3.5,
+    -10
+   ],
+   "max": [
+    7.7,
+    2.2,
+    8.6
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 34742,
+    "aussenM": 1.3,
+    "min": [
+     9,
+     -2.3,
+     -1.4
+    ],
+    "max": [
+     9.5,
+     -1.2,
+     1.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_gray_01_04 (9494)",
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_green_01_06 (9208)",
+     "KLWE_las_rep_s1-3_mtl_pom_decals_01 (5603)"
+    ]
+   },
+   {
+    "tris": 22453,
+    "aussenM": 1.3,
+    "min": [
+     -9.5,
+     -2.3,
+     -1.5
+    ],
+    "max": [
+     -9,
+     -1.2,
+     1.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_gray_01_04 (4908)",
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_green_01_06 (4604)",
+     "KLWE_las_rep_s1-3_mtl_pom_decals_01 (2934)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7c-mk2": {
+  "tris": 229873,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.8,
+    -3.6,
+    -10.3
+   ],
+   "max": [
+    9.4,
+    1.6,
+    8.3
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 19040,
+    "aussenM": 0.9,
+    "min": [
+     -8.5,
+     -2.3,
+     -1.2
+    ],
+    "max": [
+     -7.6,
+     -0.7,
+     2
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_03_07 (3484)",
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_01_05 (3357)",
+     "APAR_BallisticGatling_S4_Material_mtl_Metal_01_04 (2500)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7c-wildfire": {
+  "tris": 214790,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.6,
+    -3.5,
+    -10
+   ],
+   "max": [
+    7.7,
+    3.1,
+    8.6
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 20793,
+    "aussenM": 1.3,
+    "min": [
+     9,
+     -2.1,
+     -0.2
+    ],
+    "max": [
+     9.7,
+     -1.2,
+     1.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "gats_bal_can_I_bas_mat_mtl_N_parkerized_50_dark_07 (3723)",
+     "gats_bal_can_I_bas_mat_mtl_N_parkerized_100_green_06 (2336)",
+     "gats_bal_can_I_ven_1_mat_mtl_L_Plastic_01_A_02 (2285)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cm": {
+  "tris": 271193,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.7,
+    -3.5,
+    -11.8
+   ],
+   "max": [
+    7.7,
+    2.8,
+    8.6
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 11831,
+    "aussenM": 2.1,
+    "min": [
+     -10.6,
+     -2.3,
+     -0.2
+    ],
+    "max": [
+     -9.8,
+     -1.3,
+     2.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "component_master_01_mtl_Tile_Plastic_Primary_020 (1558)",
+     "GATS_MasterMaterial_bal_gat_mtl_pom_01 (1379)",
+     "GATS_MasterMaterial_bal_gat_mtl_H_parkerized_01_B_06 (1002)"
+    ]
+   },
+   {
+    "tris": 6198,
+    "aussenM": 2.2,
+    "min": [
+     9.9,
+     -2.1,
+     0.5
+    ],
+    "max": [
+     10.5,
+     -1.3,
+     3.5
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "GATS_MasterMaterial_bal_gat_mtl_H_paint_03_B_010 (1446)",
+     "GATS_MasterMaterial_bal_gat_mtl_H_paint_04_B_014 (1065)",
+     "component_master_01_mtl_Tile_Plastic_Primary_020 (818)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cm-heartseeker": {
+  "tris": 241022,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.7,
+    -3.5,
+    -11.8
+   ],
+   "max": [
+    7.7,
+    3.3,
+    8.6
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 12385,
+    "aussenM": 2.1,
+    "min": [
+     -10.6,
+     -2.3,
+     -0.2
+    ],
+    "max": [
+     -9.8,
+     -1.3,
+     2.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "component_master_01_mtl_Tile_Plastic_Primary_020 (1708)",
+     "GATS_MasterMaterial_bal_gat_mtl_pom_01 (1379)",
+     "GATS_MasterMaterial_bal_gat_mtl_H_paint_03_B_010 (1038)"
+    ]
+   },
+   {
+    "tris": 6692,
+    "aussenM": 2.2,
+    "min": [
+     9.9,
+     -2.1,
+     0.5
+    ],
+    "max": [
+     10.5,
+     -1.3,
+     3.5
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "GATS_MasterMaterial_bal_gat_mtl_H_paint_03_B_010 (1624)",
+     "GATS_MasterMaterial_bal_gat_mtl_H_paint_04_B_014 (1187)",
+     "component_master_01_mtl_Tile_Plastic_Primary_020 (900)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cm-mk2": {
+  "tris": 301688,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.4,
+    -3.6,
+    -12.3
+   ],
+   "max": [
+    11.2,
+    2.6,
+    8.3
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 47,
+    "aussenM": 1.5,
+    "min": [
+     -11.1,
+     -1.5,
+     2.4
+    ],
+    "max": [
+     -10.8,
+     -1.2,
+     2.5
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "ANVL_Hornet_f7cm_mk2_a_mtl_frosted_glass_032 (22)",
+     "ANVL_Hornet_f7cm_mk2_a_mtl_glow_09 (20)",
+     "ANVL_Hornet_f7cm_mk2_a_mtl_metal_gunmetal_06 (5)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cm-mk2-heartseeker": {
+  "tris": 257063,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.4,
+    -3.6,
+    -12.3
+   ],
+   "max": [
+    11.2,
+    2.3,
+    8.3
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 47,
+    "aussenM": 1.5,
+    "min": [
+     -11.1,
+     -1.5,
+     2.4
+    ],
+    "max": [
+     -10.8,
+     -1.2,
+     2.5
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "anvl_hornet_f7cm_mk2_valetines_mtl_frosted_glass_032 (22)",
+     "anvl_hornet_f7cm_mk2_valetines_mtl_glow_09 (20)",
+     "anvl_hornet_f7cm_mk2_valetines_mtl_metal_gunmetal_06 (5)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cr": {
+  "tris": 222121,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.7,
+    -3.5,
+    -10
+   ],
+   "max": [
+    7.7,
+    2.2,
+    8.6
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 34742,
+    "aussenM": 1.3,
+    "min": [
+     9,
+     -2.3,
+     -1.4
+    ],
+    "max": [
+     9.5,
+     -1.2,
+     1.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_gray_01_04 (9494)",
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_green_01_06 (9208)",
+     "KLWE_las_rep_s1-3_mtl_pom_decals_01 (5603)"
+    ]
+   },
+   {
+    "tris": 22453,
+    "aussenM": 1.3,
+    "min": [
+     -9.5,
+     -2.3,
+     -1.5
+    ],
+    "max": [
+     -9,
+     -1.2,
+     1.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_gray_01_04 (4908)",
+     "KLWE_las_rep_s1-3_mtl_H_painted_metal_dark_green_01_06 (4604)",
+     "KLWE_las_rep_s1-3_mtl_pom_decals_01 (2934)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cr-mk2": {
+  "tris": 236293,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.8,
+    -3.6,
+    -10.7
+   ],
+   "max": [
+    9.4,
+    2.9,
+    11.9
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 18222,
+    "aussenM": 0.9,
+    "min": [
+     -8.5,
+     -2.3,
+     -1.2
+    ],
+    "max": [
+     -7.6,
+     -0.7,
+     2
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_01_05 (3357)",
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_03_07 (3088)",
+     "APAR_BallisticGatling_S4_Material_mtl_Metal_01_04 (2446)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cs": {
+  "tris": 183969,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.7,
+    -3.5,
+    -10
+   ],
+   "max": [
+    7.7,
+    2.2,
+    8.6
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 13717,
+    "aussenM": 1.3,
+    "min": [
+     -9.5,
+     -2.2,
+     -1.1
+    ],
+    "max": [
+     -9,
+     -1.2,
+     2.2
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "amrs_las_can_s1-3_mtl_painted_metal_dark_grey_06 (2140)",
+     "amrs_las_can_s1-3_mtl_painted_metal_mid_grey_05 (2062)",
+     "component_master_01_mtl_Tile_Plastic_Primary_020 (2024)"
+    ]
+   },
+   {
+    "tris": 11580,
+    "aussenM": 1.4,
+    "min": [
+     9,
+     -2.2,
+     -1.2
+    ],
+    "max": [
+     9.5,
+     -1.2,
+     2.1
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "amrs_las_can_s1-3_mtl_painted_metal_dark_grey_06 (2325)",
+     "amrs_las_can_s1-3_mtl_painted_metal_mid_grey_05 (2172)",
+     "amrs_las_can_s1-3_mtl_decals_pom_01 (1705)"
+    ]
+   }
+  ]
+ },
+ "anvl-hornet-f7cs-mk2": {
+  "tris": 231409,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.8,
+    -3.6,
+    -10.3
+   ],
+   "max": [
+    9.4,
+    1.9,
+    8.3
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 18716,
+    "aussenM": 0.9,
+    "min": [
+     -8.5,
+     -2.3,
+     -1.2
+    ],
+    "max": [
+     -7.6,
+     -0.7,
+     2
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_01_05 (3357)",
+     "APAR_BallisticGatling_S4_Material_mtl_Paint_03_07 (3350)",
+     "APAR_BallisticGatling_S4_Material_mtl_Metal_01_04 (2446)"
+    ]
+   }
+  ]
+ },
+ "anvl-hurricane": {
+  "tris": 320947,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.1,
+    -3.4,
+    -12.9
+   ],
+   "max": [
+    9.1,
+    2.6,
+    10.4
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-lightning-f8": {
+  "tris": 330339,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.8,
+    -3.1,
+    -14.4
+   ],
+   "max": [
+    12.8,
+    3,
+    9.8
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-lightning-f8c": {
+  "tris": 259002,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.8,
+    -3.1,
+    -14.4
+   ],
+   "max": [
+    12.8,
+    3,
+    9.8
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-lightning-f8c-exec": {
+  "tris": 259006,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.8,
+    -3.1,
+    -14.4
+   ],
+   "max": [
+    12.8,
+    3,
+    9.8
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-paladin": {
+  "tris": 820299,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -18.7,
+    -7.4,
+    -26.9
+   ],
+   "max": [
+    18.7,
+    8.2,
+    26.3
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-spartan": {
+  "tris": 244544,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.2,
+    -2.5,
+    -8.4
+   ],
+   "max": [
+    3.2,
+    2.5,
+    8.2
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-terrapin": {
+  "tris": 283872,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.2,
+    -3.8,
+    -10.6
+   ],
+   "max": [
+    8.2,
+    3,
+    9.9
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-terrapin-medic": {
+  "tris": 277317,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.2,
+    -3.8,
+    -10.6
+   ],
+   "max": [
+    8.2,
+    2.5,
+    9.9
+   ]
+  },
+  "inseln": []
+ },
+ "anvl-valkyrie": {
+  "tris": 464462,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -17.3,
+    -3.1,
+    -23
+   ],
+   "max": [
+    17.3,
+    8,
+    24.5
+   ]
+  },
+  "inseln": []
+ },
+ "argo-atls": {
+  "tris": 141960,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.9,
+    0,
+    -1.3
+   ],
+   "max": [
+    1.1,
+    3,
+    0.7
+   ]
+  },
+  "inseln": []
+ },
+ "argo-atls-geo": {
+  "tris": 195239,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.9,
+    0,
+    -1.4
+   ],
+   "max": [
+    1.1,
+    3,
+    1.3
+   ]
+  },
+  "inseln": []
+ },
+ "argo-atls-geo-collector-grad01": {
+  "tris": 195239,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.9,
+    0,
+    -1.4
+   ],
+   "max": [
+    1.1,
+    3,
+    1.3
+   ]
+  },
+  "inseln": []
+ },
+ "argo-atls-geo-collector-grad03": {
+  "tris": 195239,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.9,
+    0,
+    -1.4
+   ],
+   "max": [
+    1.1,
+    3,
+    1.3
+   ]
+  },
+  "inseln": []
+ },
+ "argo-csv-cargo": {
+  "tris": 202565,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.1,
+    -1.4,
+    -2.9
+   ],
+   "max": [
+    2.1,
+    1.5,
+    3.2
+   ]
+  },
+  "inseln": []
+ },
+ "argo-mole": {
+  "tris": 459013,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.9,
+    -8.8,
+    -23.9
+   ],
+   "max": [
+    12.9,
+    5.8,
+    18.8
+   ]
+  },
+  "inseln": []
+ },
+ "argo-moth": {
+  "tris": 467377,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -12.9,
+    -8.8,
+    -26.3
+   ],
+   "max": [
+    12.9,
+    5.7,
+    18.8
+   ]
+  },
+  "inseln": []
+ },
+ "argo-mpuv": {
+  "tris": 169948,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.9,
+    -2.3,
+    -5.7
+   ],
+   "max": [
+    4.1,
+    2.1,
+    3.4
+   ]
+  },
+  "inseln": []
+ },
+ "argo-mpuv-1t": {
+  "tris": 196395,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.9,
+    -2.3,
+    -5.7
+   ],
+   "max": [
+    3.9,
+    2.1,
+    3.5
+   ]
+  },
+  "inseln": []
+ },
+ "argo-mpuv-transport": {
+  "tris": 210520,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.9,
+    -2.3,
+    -5.7
+   ],
+   "max": [
+    3.9,
+    2.1,
+    3.7
+   ]
+  },
+  "inseln": []
+ },
+ "argo-raft": {
+  "tris": 335534,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.7,
+    -7.4,
+    -20.9
+   ],
+   "max": [
+    11.7,
+    6.6,
+    19.4
+   ]
+  },
+  "inseln": []
+ },
+ "argo-srv": {
+  "tris": 279811,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10.5,
+    -4.8,
+    -15.5
+   ],
+   "max": [
+    10.5,
+    4.6,
+    15.9
+   ]
+  },
+  "inseln": []
+ },
+ "banu-defender": {
+  "tris": 225032,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.4,
+    -4.4,
+    -7.2
+   ],
+   "max": [
+    11.4,
+    4.8,
+    17.6
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-hoverquad": {
+  "tris": 125032,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.1,
+    -0.8,
+    -2.2
+   ],
+   "max": [
+    1.1,
+    1,
+    2.1
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-mustang-alpha": {
+  "tris": 231214,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.9,
+    -2.9,
+    -11.6
+   ],
+   "max": [
+    8.9,
+    2.8,
+    11.4
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-mustang-alpha-citizencon2018": {
+  "tris": 231214,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.9,
+    -2.9,
+    -11.6
+   ],
+   "max": [
+    8.9,
+    2.8,
+    11.4
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-mustang-beta": {
+  "tris": 245530,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.9,
+    -2.9,
+    -11.6
+   ],
+   "max": [
+    8.9,
+    2.8,
+    11.4
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-mustang-delta": {
+  "tris": 298706,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.9,
+    -2.9,
+    -11.6
+   ],
+   "max": [
+    8.9,
+    2.8,
+    11.4
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-mustang-gamma": {
+  "tris": 244432,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.9,
+    -2.9,
+    -9.8
+   ],
+   "max": [
+    8.9,
+    2.8,
+    11.4
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-mustang-omega": {
+  "tris": 244432,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.9,
+    -2.9,
+    -9.8
+   ],
+   "max": [
+    8.9,
+    2.8,
+    11.4
+   ]
+  },
+  "inseln": []
+ },
+ "cnou-nomad": {
+  "tris": 258913,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.1,
+    -2.9,
+    -11.9
+   ],
+   "max": [
+    9.1,
+    5,
+    14
+   ]
+  },
+  "inseln": []
+ },
+ "crus-intrepid": {
+  "tris": 385255,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10.2,
+    -2.8,
+    -14.2
+   ],
+   "max": [
+    10.2,
+    3.4,
+    8.9
+   ]
+  },
+  "inseln": []
+ },
+ "crus-spirit-a1": {
+  "tris": 569852,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -22.6,
+    -3.8,
+    -23.4
+   ],
+   "max": [
+    22.6,
+    6,
+    23.1
+   ]
+  },
+  "inseln": []
+ },
+ "crus-spirit-c1": {
+  "tris": 415334,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -22.6,
+    -3.8,
+    -23.4
+   ],
+   "max": [
+    22.6,
+    5.9,
+    23.1
+   ]
+  },
+  "inseln": []
+ },
+ "crus-star-runner": {
+  "tris": 459268,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -25,
+    -8.4,
+    -27.3
+   ],
+   "max": [
+    25,
+    9.4,
+    27.2
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 190,
+    "aussenM": 1.7,
+    "min": [
+     0,
+     -14.1,
+     -13.4
+    ],
+    "max": [
+     2.4,
+     -10.1,
+     -11.5
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "crus_star_runner_mtl_Ext_Secondary_A_025 (190)"
+    ]
+   },
+   {
+    "tris": 190,
+    "aussenM": 1.7,
+    "min": [
+     -17.1,
+     -14.1,
+     8
+    ],
+    "max": [
+     -14.7,
+     -10.1,
+     9.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "crus_star_runner_mtl_Ext_Secondary_A_025 (190)"
+    ]
+   }
+  ]
+ },
+ "crus-starfighter-inferno": {
+  "tris": 239028,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.9,
+    -3,
+    -13.2
+   ],
+   "max": [
+    14.9,
+    3,
+    13.3
+   ]
+  },
+  "inseln": []
+ },
+ "crus-starfighter-ion": {
+  "tris": 241893,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.9,
+    -3,
+    -13.3
+   ],
+   "max": [
+    14.9,
+    3,
+    13.3
+   ]
+  },
+  "inseln": []
+ },
+ "crus-starlifter-a2": {
+  "tris": 759631,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -39.3,
+    -16.3,
+    -41.7
+   ],
+   "max": [
+    39.3,
+    8.7,
+    52.6
+   ]
+  },
+  "inseln": []
+ },
+ "crus-starlifter-c2": {
+  "tris": 529696,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -39.3,
+    -16.3,
+    -41.7
+   ],
+   "max": [
+    39.3,
+    8.7,
+    52.6
+   ]
+  },
+  "inseln": []
+ },
+ "crus-starlifter-m2": {
+  "tris": 571756,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -39.3,
+    -16.3,
+    -41.7
+   ],
+   "max": [
+    39.3,
+    8.7,
+    52.6
+   ]
+  },
+  "inseln": []
+ },
+ "drak-buccaneer": {
+  "tris": 234585,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8,
+    -2.3,
+    -7.3
+   ],
+   "max": [
+    8,
+    2.8,
+    7.3
+   ]
+  },
+  "inseln": []
+ },
+ "drak-caterpillar": {
+  "tris": 929313,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -16.3,
+    -6.6,
+    -54.3
+   ],
+   "max": [
+    22.4,
+    6.8,
+    57.3
+   ]
+  },
+  "inseln": []
+ },
+ "drak-caterpillar-pirate": {
+  "tris": 929321,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -16.3,
+    -6.6,
+    -54.3
+   ],
+   "max": [
+    22.4,
+    6.8,
+    57.3
+   ]
+  },
+  "inseln": []
+ },
+ "drak-clipper": {
+  "tris": 502920,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -21.1,
+    -7.1,
+    -14.3
+   ],
+   "max": [
+    28.3,
+    6.7,
+    11
+   ]
+  },
+  "inseln": []
+ },
+ "drak-corsair": {
+  "tris": 899340,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -15.7,
+    -7.1,
+    -26.3
+   ],
+   "max": [
+    15.6,
+    20.9,
+    26.3
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutlass-black": {
+  "tris": 376166,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.1,
+    -6,
+    -14.8
+   ],
+   "max": [
+    13.1,
+    4.8,
+    20.9
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutlass-blue": {
+  "tris": 393719,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13,
+    -6,
+    -14.8
+   ],
+   "max": [
+    13,
+    4.8,
+    20.9
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutlass-red": {
+  "tris": 275282,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13,
+    -6,
+    -15.1
+   ],
+   "max": [
+    13,
+    4.6,
+    20.9
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutlass-steel": {
+  "tris": 453412,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.1,
+    -6,
+    -14.8
+   ],
+   "max": [
+    13.1,
+    4.8,
+    20.9
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutter": {
+  "tris": 325266,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.4,
+    -3.2,
+    -10.7
+   ],
+   "max": [
+    6.4,
+    2.7,
+    10.2
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutter-rambler": {
+  "tris": 347018,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.4,
+    -3.2,
+    -10.7
+   ],
+   "max": [
+    6.4,
+    3.7,
+    10.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-cutter-scout": {
+  "tris": 300757,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.4,
+    -3.2,
+    -10.7
+   ],
+   "max": [
+    6.4,
+    3.2,
+    9.7
+   ]
+  },
+  "inseln": []
+ },
+ "drak-dragonfly": {
+  "tris": 166795,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1,
+    -0.8,
+    -3.3
+   ],
+   "max": [
+    1,
+    0.8,
+    3.3
+   ]
+  },
+  "inseln": []
+ },
+ "drak-dragonfly-yellow": {
+  "tris": 166795,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1,
+    -0.8,
+    -3.3
+   ],
+   "max": [
+    1,
+    0.8,
+    3.3
+   ]
+  },
+  "inseln": []
+ },
+ "drak-golem": {
+  "tris": 364782,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.7,
+    -3.3,
+    -8.3
+   ],
+   "max": [
+    3.7,
+    2.3,
+    7.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-golem-ox": {
+  "tris": 292534,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5,
+    -2.6,
+    -8.3
+   ],
+   "max": [
+    5,
+    2.3,
+    7.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-herald": {
+  "tris": 235964,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.1,
+    -3.8,
+    -13.7
+   ],
+   "max": [
+    6.1,
+    5.1,
+    9.8
+   ]
+  },
+  "inseln": []
+ },
+ "drak-ironclad": {
+  "tris": 1807598,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -24.1,
+    -10.5,
+    -59.9
+   ],
+   "max": [
+    21.4,
+    11.8,
+    59.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-ironclad-assault": {
+  "tris": 1346119,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -24.1,
+    -10.6,
+    -59.9
+   ],
+   "max": [
+    21.4,
+    11.8,
+    59.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-mule": {
+  "tris": 206624,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.6,
+    -1.5,
+    -2.1
+   ],
+   "max": [
+    1.4,
+    1.2,
+    2.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-pitbull": {
+  "tris": 325662,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.1,
+    -1.6,
+    -3.1
+   ],
+   "max": [
+    3.1,
+    1.5,
+    3.1
+   ]
+  },
+  "inseln": []
+ },
+ "drak-vulture": {
+  "tris": 398688,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.9,
+    -4,
+    -16.3
+   ],
+   "max": [
+    7.9,
+    3.9,
+    16.7
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 140,
+    "aussenM": 2.8,
+    "min": [
+     -0.3,
+     6.7,
+     2.3
+    ],
+    "max": [
+     0.3,
+     6.8,
+     2.7
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "DRAK_Vulture_mtl_ext_dark_metal_tile_047 (52)",
+     "DRAK_Vulture_mtl_ext_atlas_040 (50)",
+     "DRAK_Vulture_mtl_int_decal_pom_012 (26)"
+    ]
+   }
+  ]
+ },
+ "espr-prowler": {
+  "tris": 339747,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -15.9,
+    -7.3,
+    -13.4
+   ],
+   "max": [
+    15.9,
+    7.2,
+    19.9
+   ]
+  },
+  "inseln": []
+ },
+ "espr-prowler-utility": {
+  "tris": 454275,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.4,
+    -7.6,
+    -13.4
+   ],
+   "max": [
+    13.4,
+    6.4,
+    19.8
+   ]
+  },
+  "inseln": []
+ },
+ "espr-talon": {
+  "tris": 239726,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.5,
+    -3.9,
+    -7.1
+   ],
+   "max": [
+    11.5,
+    3.9,
+    17.4
+   ]
+  },
+  "inseln": []
+ },
+ "espr-talon-shrike": {
+  "tris": 260930,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.5,
+    -3.9,
+    -7.1
+   ],
+   "max": [
+    11.5,
+    3.9,
+    17.4
+   ]
+  },
+  "inseln": []
+ },
+ "gama-railen": {
+  "tris": 634460,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -26.5,
+    -19,
+    -30
+   ],
+   "max": [
+    25.7,
+    18.3,
+    30.4
+   ]
+  },
+  "inseln": []
+ },
+ "gama-syulen": {
+  "tris": 318375,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.3,
+    -7.3,
+    -7.4
+   ],
+   "max": [
+    11.3,
+    12.6,
+    7.8
+   ]
+  },
+  "inseln": []
+ },
+ "gama-tyilui": {
+  "tris": 702454,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -26.5,
+    -19,
+    -30
+   ],
+   "max": [
+    25.7,
+    18.3,
+    39
+   ]
+  },
+  "inseln": []
+ },
+ "glsn-basher": {
+  "tris": 251338,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.6,
+    -1.9,
+    -8
+   ],
+   "max": [
+    5.6,
+    2.8,
+    5.7
+   ]
+  },
+  "inseln": []
+ },
+ "glsn-shiv": {
+  "tris": 384230,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.9,
+    -6,
+    -14.8
+   ],
+   "max": [
+    13.9,
+    4.8,
+    20.9
+   ]
+  },
+  "inseln": []
+ },
+ "grin-mdc": {
+  "tris": 216647,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.6,
+    -1.5,
+    -3.3
+   ],
+   "max": [
+    2.6,
+    1.8,
+    4
+   ]
+  },
+  "inseln": []
+ },
+ "grin-mtc": {
+  "tris": 244317,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.6,
+    -1.5,
+    -3.3
+   ],
+   "max": [
+    2.6,
+    2.1,
+    3.8
+   ]
+  },
+  "inseln": []
+ },
+ "grin-ptv": {
+  "tris": 29554,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.1,
+    -1.2,
+    -1.8
+   ],
+   "max": [
+    0.9,
+    0.8,
+    1.5
+   ]
+  },
+  "inseln": []
+ },
+ "grin-roc": {
+  "tris": 114591,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.4,
+    -4.8
+   ],
+   "max": [
+    1.9,
+    1.6,
+    2.7
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 558,
+    "aussenM": 1.6,
+    "min": [
+     0.9,
+     0.8,
+     -6.7
+    ],
+    "max": [
+     1,
+     1,
+     -6.4
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "grin_roc_mtl_metal_dark_semigloss_018 (558)"
+    ]
+   }
+  ]
+ },
+ "grin-roc-ds": {
+  "tris": 203680,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.4,
+    -1.4,
+    -3.7
+   ],
+   "max": [
+    2.4,
+    1.8,
+    2.9
+   ]
+  },
+  "inseln": []
+ },
+ "grin-stv": {
+  "tris": 146179,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.4,
+    -1,
+    -2.2
+   ],
+   "max": [
+    1.4,
+    1,
+    2
+   ]
+  },
+  "inseln": []
+ },
+ "grin-utv": {
+  "tris": 205618,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.3,
+    -1,
+    -1.7
+   ],
+   "max": [
+    1.3,
+    1.1,
+    2.2
+   ]
+  },
+  "inseln": []
+ },
+ "krig-l21-wolf": {
+  "tris": 344114,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.3,
+    -1.9,
+    -10.9
+   ],
+   "max": [
+    5.3,
+    1.8,
+    10.7
+   ]
+  },
+  "inseln": []
+ },
+ "krig-l22-alphawolf": {
+  "tris": 361386,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.3,
+    -1.9,
+    -10.9
+   ],
+   "max": [
+    5.3,
+    1.9,
+    10.7
+   ]
+  },
+  "inseln": []
+ },
+ "krig-p52-merlin": {
+  "tris": 244047,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.4,
+    -1.5,
+    -7.3
+   ],
+   "max": [
+    3.9,
+    1.5,
+    4.7
+   ]
+  },
+  "inseln": []
+ },
+ "krig-p72-archimedes": {
+  "tris": 304192,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -1.5,
+    -7.3
+   ],
+   "max": [
+    4.1,
+    1.5,
+    5
+   ]
+  },
+  "inseln": []
+ },
+ "krig-p72-archimedes-emerald": {
+  "tris": 304192,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -1.5,
+    -7.3
+   ],
+   "max": [
+    4.1,
+    1.5,
+    5
+   ]
+  },
+  "inseln": []
+ },
+ "krig-s65-stingray": {
+  "tris": 357629,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.5,
+    -2.7,
+    -7.3
+   ],
+   "max": [
+    7.5,
+    5.7,
+    13.1
+   ]
+  },
+  "inseln": []
+ },
+ "misc-fortune": {
+  "tris": 335849,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.6,
+    -4.4,
+    -11.8
+   ],
+   "max": [
+    7.6,
+    2.9,
+    13.4
+   ]
+  },
+  "inseln": []
+ },
+ "misc-freelancer": {
+  "tris": 301609,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.7,
+    -3.5,
+    -14.2
+   ],
+   "max": [
+    11.3,
+    5.3,
+    22.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-freelancer-dur": {
+  "tris": 260892,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.7,
+    -3.5,
+    -14.7
+   ],
+   "max": [
+    11.4,
+    5.3,
+    22.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-freelancer-max": {
+  "tris": 269110,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -16.1,
+    -3.5,
+    -14.2
+   ],
+   "max": [
+    15.8,
+    9.8,
+    22.4
+   ]
+  },
+  "inseln": []
+ },
+ "misc-freelancer-mis": {
+  "tris": 353220,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11.8,
+    -3.5,
+    -14.7
+   ],
+   "max": [
+    11.8,
+    5.3,
+    22.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-fury": {
+  "tris": 285827,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2,
+    -1.5,
+    -3.4
+   ],
+   "max": [
+    2,
+    1.6,
+    2.9
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 2,
+    "aussenM": 2,
+    "min": [
+     -0.8,
+     -1.4,
+     4.8
+    ],
+    "max": [
+     -0.8,
+     -1.4,
+     4.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "misc_fury_mtl_Glass_Cockpit_Ext_RTO_NoBlur_010 (2)"
+    ]
+   }
+  ]
+ },
+ "misc-fury-lx": {
+  "tris": 209870,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.8,
+    -1.5,
+    -3.3
+   ],
+   "max": [
+    1.8,
+    1.6,
+    3.1
+   ]
+  },
+  "inseln": []
+ },
+ "misc-fury-miru": {
+  "tris": 245779,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.8,
+    -1.5,
+    -3.2
+   ],
+   "max": [
+    1.8,
+    1.6,
+    2.9
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 2,
+    "aussenM": 2,
+    "min": [
+     -0.8,
+     -1.4,
+     4.8
+    ],
+    "max": [
+     -0.8,
+     -1.4,
+     4.8
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "misc_fury_mtl_Glass_Cockpit_Ext_RTO_NoBlur_010 (2)"
+    ]
+   }
+  ]
+ },
+ "misc-hull-a": {
+  "tris": 275719,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.2,
+    -3.7,
+    -11.9
+   ],
+   "max": [
+    5.2,
+    2.7,
+    15.1
+   ]
+  },
+  "inseln": []
+ },
+ "misc-hull-b": {
+  "tris": 661257,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.3,
+    -7.4,
+    -28.8
+   ],
+   "max": [
+    8.4,
+    4.2,
+    17.9
+   ]
+  },
+  "inseln": []
+ },
+ "misc-hull-c": {
+  "tris": 640956,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -17.8,
+    -10.9,
+    -64.2
+   ],
+   "max": [
+    17.8,
+    14.4,
+    28.8
+   ]
+  },
+  "inseln": []
+ },
+ "misc-prospector": {
+  "tris": 240581,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -7.6,
+    -4.4,
+    -14.7
+   ],
+   "max": [
+    7.6,
+    2.9,
+    13.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-razor": {
+  "tris": 232224,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4,
+    -1.3,
+    -6.7
+   ],
+   "max": [
+    4,
+    1.4,
+    4.7
+   ]
+  },
+  "inseln": []
+ },
+ "misc-razor-ex": {
+  "tris": 206888,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4,
+    -1.3,
+    -6.7
+   ],
+   "max": [
+    4,
+    1.4,
+    4.7
+   ]
+  },
+  "inseln": []
+ },
+ "misc-razor-lx": {
+  "tris": 232232,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4,
+    -1.3,
+    -6.7
+   ],
+   "max": [
+    4,
+    1.4,
+    4.7
+   ]
+  },
+  "inseln": []
+ },
+ "misc-reliant": {
+  "tris": 275454,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -15.2,
+    -2.4,
+    -6.3
+   ],
+   "max": [
+    15.1,
+    1.9,
+    9.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-reliant-mako": {
+  "tris": 229479,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.2,
+    -2.4,
+    -6.3
+   ],
+   "max": [
+    15.1,
+    1.9,
+    9.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-reliant-sen": {
+  "tris": 231102,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.2,
+    -2.4,
+    -6.3
+   ],
+   "max": [
+    15.1,
+    1.9,
+    9.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-reliant-tana": {
+  "tris": 253787,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -15.6,
+    -2.4,
+    -6.3
+   ],
+   "max": [
+    15.5,
+    1.9,
+    9.5
+   ]
+  },
+  "inseln": []
+ },
+ "misc-starfarer": {
+  "tris": 629798,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -25.3,
+    -15.7,
+    -43.6
+   ],
+   "max": [
+    23.4,
+    11.3,
+    57.4
+   ]
+  },
+  "inseln": []
+ },
+ "misc-starfarer-gemini": {
+  "tris": 669496,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -25.3,
+    -15.7,
+    -43.6
+   ],
+   "max": [
+    23.4,
+    11.3,
+    57.4
+   ]
+  },
+  "inseln": []
+ },
+ "misc-starlancer-max": {
+  "tris": 862661,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -25.6,
+    -8.1,
+    -43.2
+   ],
+   "max": [
+    25.6,
+    8.3,
+    40.3
+   ]
+  },
+  "inseln": []
+ },
+ "misc-starlancer-tac": {
+  "tris": 1117148,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -25.6,
+    -8.1,
+    -43.2
+   ],
+   "max": [
+    25.6,
+    8.3,
+    40.3
+   ]
+  },
+  "inseln": []
+ },
+ "misc-starlite": {
+  "tris": 466069,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10.1,
+    -5.3,
+    -14.9
+   ],
+   "max": [
+    10.1,
+    5.8,
+    17.4
+   ]
+  },
+  "inseln": []
+ },
+ "mrai-guardian": {
+  "tris": 538298,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.3,
+    -3.7,
+    -12.5
+   ],
+   "max": [
+    8.3,
+    5.2,
+    12.6
+   ]
+  },
+  "inseln": []
+ },
+ "mrai-guardian-mx": {
+  "tris": 723000,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10.2,
+    -3.9,
+    -11.9
+   ],
+   "max": [
+    10.2,
+    5.7,
+    13.2
+   ]
+  },
+  "inseln": []
+ },
+ "mrai-guardian-qi": {
+  "tris": 503949,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.3,
+    -3.7,
+    -12.5
+   ],
+   "max": [
+    8.3,
+    5.2,
+    12.8
+   ]
+  },
+  "inseln": []
+ },
+ "mrai-pulse": {
+  "tris": 118978,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.4,
+    -0.5,
+    -1.1
+   ],
+   "max": [
+    0.4,
+    0.4,
+    1.3
+   ]
+  },
+  "inseln": []
+ },
+ "mrai-pulse-lx": {
+  "tris": 118118,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.4,
+    -0.5,
+    -1.4
+   ],
+   "max": [
+    0.4,
+    1,
+    1.3
+   ]
+  },
+  "inseln": []
+ },
+ "orig-100i": {
+  "tris": 236214,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.8,
+    -2,
+    -10.6
+   ],
+   "max": [
+    5.8,
+    2.4,
+    9.1
+   ]
+  },
+  "inseln": []
+ },
+ "orig-125a": {
+  "tris": 241563,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.8,
+    -2,
+    -10.6
+   ],
+   "max": [
+    5.8,
+    2.4,
+    9.1
+   ]
+  },
+  "inseln": []
+ },
+ "orig-135c": {
+  "tris": 240702,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.8,
+    -2,
+    -10.6
+   ],
+   "max": [
+    5.8,
+    2.4,
+    9.1
+   ]
+  },
+  "inseln": []
+ },
+ "orig-300i": {
+  "tris": 211330,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.2,
+    -2.4,
+    -10.4
+   ],
+   "max": [
+    8.2,
+    4.8,
+    14.5
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 99,
+    "aussenM": 3.5,
+    "min": [
+     -0.5,
+     -6.1,
+     0.2
+    ],
+    "max": [
+     -0.3,
+     -5.9,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_315p_ext_mtl_metal_atlas_017 (44)",
+     "orig_315p_ext_mtl_metal_dark_015 (36)",
+     "orig_315p_ext_mtl_metal_med_016 (19)"
+    ]
+   },
+   {
+    "tris": 84,
+    "aussenM": 2,
+    "min": [
+     -0.5,
+     -4.5,
+     0.1
+    ],
+    "max": [
+     -0.2,
+     -4.3,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_315p_ext_mtl_metal_atlas_017 (48)",
+     "orig_315p_ext_mtl_metal_dark_015 (36)"
+    ]
+   }
+  ]
+ },
+ "orig-315p": {
+  "tris": 228556,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.2,
+    -2.4,
+    -10.4
+   ],
+   "max": [
+    8.2,
+    4.8,
+    14.5
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 99,
+    "aussenM": 3.5,
+    "min": [
+     -0.5,
+     -6.1,
+     0.2
+    ],
+    "max": [
+     -0.3,
+     -5.9,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_315p_ext_mtl_metal_atlas_017 (44)",
+     "orig_315p_ext_mtl_metal_dark_015 (36)",
+     "orig_315p_ext_mtl_metal_med_016 (19)"
+    ]
+   },
+   {
+    "tris": 84,
+    "aussenM": 2,
+    "min": [
+     -0.5,
+     -4.5,
+     0.1
+    ],
+    "max": [
+     -0.2,
+     -4.3,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_315p_ext_mtl_metal_atlas_017 (48)",
+     "orig_315p_ext_mtl_metal_dark_015 (36)"
+    ]
+   }
+  ]
+ },
+ "orig-325a": {
+  "tris": 240026,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.2,
+    -2.4,
+    -13.1
+   ],
+   "max": [
+    8.2,
+    4.8,
+    14.5
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 99,
+    "aussenM": 3.5,
+    "min": [
+     -0.5,
+     -6.1,
+     0.2
+    ],
+    "max": [
+     -0.3,
+     -5.9,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_325a_ext_mtl_hull_c_013 (44)",
+     "orig_325a_ext_mtl_metal_dark_015 (36)",
+     "orig_325a_ext_mtl_metal_med_016 (19)"
+    ]
+   },
+   {
+    "tris": 87,
+    "aussenM": 32,
+    "min": [
+     40.2,
+     1.2,
+     2.3
+    ],
+    "max": [
+     40.4,
+     2.6,
+     2.3
+    ],
+    "innenraum": "ja",
+    "materialien": [
+     "ORIG_300i_int_mtl_mat_dark_09 (81)",
+     "ORIG_300i_ext_mtl_pom_010 (6)"
+    ]
+   },
+   {
+    "tris": 84,
+    "aussenM": 2,
+    "min": [
+     -0.5,
+     -4.5,
+     0.1
+    ],
+    "max": [
+     -0.2,
+     -4.3,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_325a_ext_mtl_hull_c_013 (48)",
+     "orig_325a_ext_mtl_metal_dark_015 (36)"
+    ]
+   }
+  ]
+ },
+ "orig-350r": {
+  "tris": 225925,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.2,
+    -2.4,
+    -10.4
+   ],
+   "max": [
+    8.2,
+    4.8,
+    18.4
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 99,
+    "aussenM": 3.5,
+    "min": [
+     -0.5,
+     -6.1,
+     0.2
+    ],
+    "max": [
+     -0.3,
+     -5.9,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_350r_ext_mtl_metal_atlas_017 (44)",
+     "orig_350r_ext_mtl_metal_dark_015 (36)",
+     "orig_350r_ext_mtl_metal_med_016 (19)"
+    ]
+   },
+   {
+    "tris": 84,
+    "aussenM": 2,
+    "min": [
+     -0.5,
+     -4.5,
+     0.1
+    ],
+    "max": [
+     -0.2,
+     -4.3,
+     0.9
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "orig_350r_ext_mtl_metal_atlas_017 (48)",
+     "orig_350r_ext_mtl_metal_dark_015 (36)"
+    ]
+   }
+  ]
+ },
+ "orig-400i": {
+  "tris": 430911,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -17.4,
+    -6,
+    -28.8
+   ],
+   "max": [
+    15.8,
+    6,
+    30.6
+   ]
+  },
+  "inseln": []
+ },
+ "orig-600i": {
+  "tris": 524839,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -26.1,
+    -15.3,
+    -50.6
+   ],
+   "max": [
+    26.1,
+    6.8,
+    41
+   ]
+  },
+  "inseln": []
+ },
+ "orig-600i-bis2951": {
+  "tris": 524839,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -26.1,
+    -15.3,
+    -50.6
+   ],
+   "max": [
+    26.1,
+    6.8,
+    41
+   ]
+  },
+  "inseln": []
+ },
+ "orig-600i-touring": {
+  "tris": 523339,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -26.1,
+    -15.3,
+    -50.6
+   ],
+   "max": [
+    26.1,
+    6.8,
+    41
+   ]
+  },
+  "inseln": []
+ },
+ "orig-85x": {
+  "tris": 279143,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.1,
+    -2,
+    -8.1
+   ],
+   "max": [
+    5.1,
+    1.1,
+    5
+   ]
+  },
+  "inseln": []
+ },
+ "orig-890jump": {
+  "tris": 886950,
+  "voxel": 0.7,
+  "rumpf": {
+   "min": [
+    -35.5,
+    -25.9,
+    -102.8
+   ],
+   "max": [
+    40.2,
+    17.6,
+    102.8
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 1,
+    "aussenM": 5.4,
+    "min": [
+     0,
+     -31.3,
+     77.4
+    ],
+    "max": [
+     0,
+     -31.3,
+     77.4
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "ORIG_890Jump_mtl_insulation_038 (1)"
+    ]
+   }
+  ]
+ },
+ "orig-m50": {
+  "tris": 247368,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5,
+    -1.5,
+    -5.6
+   ],
+   "max": [
+    5,
+    1.6,
+    6.7
+   ]
+  },
+  "inseln": []
+ },
+ "orig-m80": {
+  "tris": 394182,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.8,
+    -3.7,
+    -15.9
+   ],
+   "max": [
+    8.8,
+    2.6,
+    16
+   ]
+  },
+  "inseln": []
+ },
+ "orig-x1": {
+  "tris": 198920,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.6,
+    -0.8,
+    -2.9
+   ],
+   "max": [
+    0.6,
+    0.8,
+    2.4
+   ]
+  },
+  "inseln": []
+ },
+ "orig-x1-force": {
+  "tris": 240148,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.6,
+    -0.8,
+    -3.7
+   ],
+   "max": [
+    0.6,
+    0.8,
+    2.4
+   ]
+  },
+  "inseln": []
+ },
+ "orig-x1-velocity": {
+  "tris": 186366,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.7,
+    -0.8,
+    -2.4
+   ],
+   "max": [
+    0.7,
+    0.8,
+    2.4
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-apollo-medivac": {
+  "tris": 725134,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -27.5,
+    -7.6,
+    -28.9
+   ],
+   "max": [
+    27.5,
+    6.7,
+    35.8
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-apollo-triage": {
+  "tris": 709208,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -27.5,
+    -7.6,
+    -28.9
+   ],
+   "max": [
+    27.5,
+    6.7,
+    35.8
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-gs-cl": {
+  "tris": 236499,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -2.5,
+    -9.4
+   ],
+   "max": [
+    4.1,
+    1.6,
+    9.2
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-gs-es": {
+  "tris": 225179,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -2.5,
+    -9.4
+   ],
+   "max": [
+    4.1,
+    1.6,
+    9.2
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-gs-ln": {
+  "tris": 286912,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -2.5,
+    -9.4
+   ],
+   "max": [
+    4.1,
+    1.8,
+    9.2
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-gs-lx": {
+  "tris": 237485,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -2.5,
+    -9.4
+   ],
+   "max": [
+    4.1,
+    1.6,
+    9.2
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-gs-mr": {
+  "tris": 236475,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -2.5,
+    -9.4
+   ],
+   "max": [
+    4.1,
+    1.6,
+    9.2
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-gs-se": {
+  "tris": 288119,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.1,
+    -2.5,
+    -9.4
+   ],
+   "max": [
+    4.1,
+    1.8,
+    9.2
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-aurora-mk2": {
+  "tris": 506729,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -5.4,
+    -2.8,
+    -12.2
+   ],
+   "max": [
+    5.4,
+    2.3,
+    15.1
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-constellation-andromeda": {
+  "tris": 957944,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.2,
+    -7.4,
+    -28.7
+   ],
+   "max": [
+    13.2,
+    9.9,
+    32.6
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-constellation-aquila": {
+  "tris": 791110,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.2,
+    -7.4,
+    -28.1
+   ],
+   "max": [
+    13.2,
+    9.9,
+    32.6
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-constellation-mk5-centaurus": {
+  "tris": 1478913,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -23.3,
+    -13.5,
+    -45.3
+   ],
+   "max": [
+    23.3,
+    7.4,
+    36.9
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-constellation-phoenix": {
+  "tris": 920480,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.2,
+    -6.9,
+    -32.2
+   ],
+   "max": [
+    14.2,
+    10.5,
+    34.6
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-constellation-phoenix-emerald": {
+  "tris": 643480,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -14.2,
+    -8.9,
+    -32.4
+   ],
+   "max": [
+    14.2,
+    10.7,
+    34.6
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-constellation-taurus": {
+  "tris": 649763,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.2,
+    -7.4,
+    -28.7
+   ],
+   "max": [
+    13.2,
+    9.9,
+    40.1
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-hermes": {
+  "tris": 767135,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -27.5,
+    -7.6,
+    -28.9
+   ],
+   "max": [
+    27.5,
+    6.7,
+    38.3
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-lynx": {
+  "tris": 221705,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.8,
+    -2,
+    -4.2
+   ],
+   "max": [
+    2.8,
+    1.2,
+    3.5
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-mantis": {
+  "tris": 211431,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.4,
+    -3.1,
+    -14.9
+   ],
+   "max": [
+    8.4,
+    4.6,
+    14.7
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-meteor": {
+  "tris": 251338,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -8.4,
+    -3,
+    -14.9
+   ],
+   "max": [
+    8.4,
+    4.6,
+    14.7
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-perseus": {
+  "tris": 1112349,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -28.4,
+    -12.2,
+    -56.5
+   ],
+   "max": [
+    28.4,
+    9.9,
+    44
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-polaris": {
+  "tris": 1225898,
+  "voxel": 0.6,
+  "rumpf": {
+   "min": [
+    -41.3,
+    -18.2,
+    -81.8
+   ],
+   "max": [
+    40.2,
+    15,
+    83.9
+   ]
+  },
+  "inseln": [
+   {
+    "tris": 4,
+    "aussenM": 1.7,
+    "min": [
+     -46.4,
+     -3,
+     71.8
+    ],
+    "max": [
+     -43,
+     -2,
+     73.5
+    ],
+    "innenraum": "nein",
+    "materialien": [
+     "rsi_polaris_ext_mtl_Glow_Thrusters_053 (4)"
+    ]
+   }
+  ]
+ },
+ "rsi-salvation": {
+  "tris": 245032,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.2,
+    -2,
+    -6.6
+   ],
+   "max": [
+    4.2,
+    1.8,
+    6.3
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-scorpius": {
+  "tris": 435003,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.7,
+    -3.8,
+    -13.4
+   ],
+   "max": [
+    6.7,
+    3.7,
+    16.6
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-scorpius-antares": {
+  "tris": 345573,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -6.7,
+    -3.8,
+    -13.4
+   ],
+   "max": [
+    6.7,
+    2.2,
+    16.6
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-skylark": {
+  "tris": 254330,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.4,
+    -1.6,
+    -4
+   ],
+   "max": [
+    2.4,
+    1,
+    3
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-ursa-medivac": {
+  "tris": 245355,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.9,
+    -1.6,
+    -5.6
+   ],
+   "max": [
+    2.7,
+    1.9,
+    3.5
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-ursa-rover": {
+  "tris": 199867,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.7,
+    -1.5,
+    -4.1
+   ],
+   "max": [
+    2.7,
+    1.7,
+    3.5
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-ursa-rover-emerald": {
+  "tris": 215145,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -2.7,
+    -1.5,
+    -4.1
+   ],
+   "max": [
+    2.7,
+    1.7,
+    3.5
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-zeus-cl": {
+  "tris": 492841,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.1,
+    -5.1,
+    -27.6
+   ],
+   "max": [
+    13.1,
+    5.2,
+    18.1
+   ]
+  },
+  "inseln": []
+ },
+ "rsi-zeus-es": {
+  "tris": 457296,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -13.1,
+    -5.1,
+    -27.6
+   ],
+   "max": [
+    13.1,
+    5.2,
+    18.1
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-cyclone": {
+  "tris": 143637,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.1,
+    -2.8
+   ],
+   "max": [
+    1.9,
+    1.2,
+    2.8
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-cyclone-aa": {
+  "tris": 165121,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.1,
+    -2.8
+   ],
+   "max": [
+    1.9,
+    1.4,
+    2.8
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-cyclone-mt": {
+  "tris": 193454,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.1,
+    -2.8
+   ],
+   "max": [
+    1.9,
+    2.8,
+    2.8
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-cyclone-rc": {
+  "tris": 148002,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.1,
+    -2.8
+   ],
+   "max": [
+    1.9,
+    1.2,
+    2.8
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-cyclone-rn": {
+  "tris": 156989,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.1,
+    -2.8
+   ],
+   "max": [
+    1.9,
+    1.3,
+    2.8
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-cyclone-tr": {
+  "tris": 162638,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -1.9,
+    -1.1,
+    -2.8
+   ],
+   "max": [
+    1.9,
+    2.8,
+    2.8
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-nova": {
+  "tris": 232773,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.6,
+    -1.2,
+    -6.8
+   ],
+   "max": [
+    3.6,
+    4.6,
+    6.5
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-storm": {
+  "tris": 221575,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.7,
+    -1.2,
+    -4.5
+   ],
+   "max": [
+    3.7,
+    2.4,
+    5.7
+   ]
+  },
+  "inseln": []
+ },
+ "tmbl-storm-aa": {
+  "tris": 481585,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -3.7,
+    -1.2,
+    -4.5
+   ],
+   "max": [
+    3.7,
+    2.5,
+    5.7
+   ]
+  },
+  "inseln": []
+ },
+ "vncl-blade": {
+  "tris": 284932,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -10.3,
+    -3.4,
+    -11.9
+   ],
+   "max": [
+    10.3,
+    3.7,
+    8.1
+   ]
+  },
+  "inseln": []
+ },
+ "vncl-glaive": {
+  "tris": 212404,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -15.4,
+    -5.8,
+    -23.4
+   ],
+   "max": [
+    15.4,
+    1.8,
+    7.3
+   ]
+  },
+  "inseln": []
+ },
+ "vncl-scythe": {
+  "tris": 202386,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -4.9,
+    -5,
+    -20.4
+   ],
+   "max": [
+    12.2,
+    3.4,
+    10.3
+   ]
+  },
+  "inseln": []
+ },
+ "vncl-stinger": {
+  "tris": 271266,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -15.6,
+    -5,
+    -13.5
+   ],
+   "max": [
+    15.6,
+    4.9,
+    21.1
+   ]
+  },
+  "inseln": []
+ },
+ "xian-nox": {
+  "tris": 128815,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.8,
+    -0.9,
+    -3.5
+   ],
+   "max": [
+    0.8,
+    0.5,
+    1.6
+   ]
+  },
+  "inseln": []
+ },
+ "xian-nox-kue": {
+  "tris": 60842,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -0.8,
+    -0.9,
+    -3.5
+   ],
+   "max": [
+    0.8,
+    0.5,
+    1.6
+   ]
+  },
+  "inseln": []
+ },
+ "xian-scout": {
+  "tris": 221484,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -9.3,
+    -13,
+    -7.6
+   ],
+   "max": [
+    9.3,
+    16.5,
+    5.2
+   ]
+  },
+  "inseln": []
+ },
+ "xnaa-santokyai": {
+  "tris": 420069,
+  "voxel": 0.5,
+  "rumpf": {
+   "min": [
+    -11,
+    -9.9,
+    -9.6
+   ],
+   "max": [
+    11,
+    12,
+    11.6
+   ]
+  },
+  "inseln": []
+ }
+}

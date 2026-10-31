@@ -1,0 +1,13 @@
+---
+// DE-Huelle, 227 Buchtdokumente. Gleich der EN-Huelle bis auf die Sprache.
+import BayDocument from '../../../components/hangar/BayDocument.astro';
+import { HANGAR_IDS, parseShipId } from '../../../lib/hangar/catalog';
+import { buildBay } from '../../../lib/hangar/bay';
+
+export function getStaticPaths() {
+  return HANGAR_IDS.map((id) => ({ params: { id } }));
+}
+const id = parseShipId(Astro.params.id);
+if (!id) throw new Error(`hangar-bay: unbekanntes Schiff ${Astro.params.id}`);
+---
+<BayDocument bay={buildBay(id, 'de')} />

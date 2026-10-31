@@ -420,6 +420,17 @@ body {
    randlos) bekommen denselben Abstand wie frueher. */
 .dp-main > .dp-keys { margin-bottom: 1.9rem; }
 
+/* Weg ins Werkzeug im Seitenkopf (Blueprint- und Kategorieseiten), zwischen
+   Einleitung und Kennzahlen. */
+.dp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin: 0 0 1.25rem;
+}
+.dp-cta .dp-note { margin: 0; }
+
 /* ---------- Abschnitte ---------- */
 
 .dp-sec { margin: 0 0 2.4rem; }

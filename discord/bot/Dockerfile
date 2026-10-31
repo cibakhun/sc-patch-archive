@@ -7,8 +7,14 @@
 #
 #  The token is NEVER baked in — it comes from the DISCORD_TOKEN env var at
 #  runtime (set it as a secret in Coolify). The SQLite DB lives on a volume.
+#
+#  Two stages: `deps` installs the npm packages (with a compiler as fallback
+#  for native modules), the runtime stage only receives the finished
+#  node_modules. No compiler, no python, no make in the image that runs.
+#  Both stages use the SAME base image, pinned by digest, so a native module
+#  built in `deps` matches the runtime exactly. Dependabot bumps the digest.
 # ─────────────────────────────────────────────────────────────────────────────
-FROM node:22-bookworm-slim
+FROM node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da AS deps
 
 # better-sqlite3 / @napi-rs/canvas ship prebuilt linux-x64 binaries; the build
 # toolchain is only a fallback in case a prebuild is ever unavailable.
@@ -20,6 +26,11 @@ WORKDIR /app
 # Install production dependencies against the bot's own manifest.
 COPY discord/bot/package.json discord/bot/package-lock.json ./
 RUN npm ci --omit=dev
+
+FROM node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
+
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 
 # Bot source (src/ + assets/fonts for the rank card). node_modules/.env/data are
 # excluded by .dockerignore, so nothing local is copied over.
@@ -49,6 +60,9 @@ COPY discord/assets/verse-bot-avatar.png ./assets/verse-bot-avatar.png
 # NICHT beim Bauen, sondern erst am laufenden Dienst: nichts prueft je den
 # Bot-Container, deshalb steht die Gegenprobe jetzt direkt darunter.
 COPY discord/blueprint.mjs /blueprint.mjs
+# Dieselbe Ebenen-Verschiebung fuer src/home-guild.mjs: `../../site-invite.mjs`
+# (die Gilden-ID, auf die die Website zeigt) liegt im Abbild unter /.
+COPY discord/site-invite.mjs /site-invite.mjs
 
 # Gegenprobe im Bau (Grundsatz 7: gegen das Artefakt pruefen, nicht gegen den
 # Quellbaum). Importiert die Datei, die den Absturz ausgeloest hat, in DIESEM
@@ -57,14 +71,28 @@ COPY discord/blueprint.mjs /blueprint.mjs
 # spaeter still niemanden, obwohl alles aufloest. role-sync.mjs hat auf
 # oberster Ebene nur Importe, eine Konstante und Funktionsdeklarationen --
 # kein Verbindungsaufbau, der Import ist im Bau unbedenklich.
+#
+# Zweite Probe seit der Heim-Gilde (src/home-guild.mjs): ohne jede Umgebung
+# muss die Gilde aus site-invite.mjs aufloesen. Sonst liefe der Bot ohne
+# HOME_GUILD_ID mit abgeschaltetem Rollenspiegel, ohne dass es jemand merkt.
 RUN node --input-type=module -e "\
 const m = await import('/app/src/role-sync.mjs');\
 if (!m.TESTER_ROLE_NAME) { console.error('FEHLER: TESTER_ROLE_NAME ist leer -- Blueprint ohne Rolle \\'tester\\'?'); process.exit(1); }\
-console.log('Gegenprobe: role-sync.mjs aufloesbar, Rolle =', m.TESTER_ROLE_NAME);"
+console.log('Gegenprobe: role-sync.mjs aufloesbar, Rolle =', m.TESTER_ROLE_NAME);\
+const h = (await import('/app/src/home-guild.mjs')).resolveHomeGuild({});\
+if (!h.id) { console.error('FEHLER: Heim-Gilde loest ohne Umgebung nicht auf --', h.error); process.exit(1); }\
+console.log('Gegenprobe: Heim-Gilde =', h.id, '(' + h.source + ')');"
 
 # Bundle the game-data snapshot + manufacturer logos read at runtime.
 COPY src/data /app/gamedata
 COPY assets/manufacturers /app/logos
+
+# Der Selbsttest im fertigen Abbild, mit genau diesen node_modules (inklusive
+# des nativen better-sqlite3 aus der deps-Stufe) und diesen Daten. Faellt er,
+# entsteht kein Image. SELFTEST_MIN ist die Sperrklinke: meldet ein Abschnitt
+# "skipped", weil hier etwas fehlt, laufen weniger Pruefungen und der Bau
+# reisst. Nur nach oben anheben.
+RUN DATA_DIR=/app/gamedata SELFTEST_MIN=77 node src/selftest.mjs
 
 ENV NODE_ENV=production \
     DATA_DIR=/app/gamedata \

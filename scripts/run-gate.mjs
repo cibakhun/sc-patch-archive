@@ -31,6 +31,7 @@ import { spawnSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CHECKS, plan, disabled } from './lib/gate-registry.mjs';
+import { hangarImArtefakt } from './lib/hangar-switch.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
@@ -57,6 +58,15 @@ if (ONLY.length) {
   }
   strecken = ONLY.map((id) => byId.get(id));
 }
+
+// Hangar-Strecken (nurMitHangar) pruefen den Hangar und laufen nur gegen
+// einen Bau, der ihn enthaelt. Der Live-Bau laesst ihn weg (Krisz
+// 31.10.2026, scripts/lib/hangar-switch.mjs); dort stehen sie als "ohne
+// Hangar" im Plan und in der Bilanz, und verify:hangar-schalter prueft,
+// dass dort wirklich nichts vom Hangar steht. Mit --only laufen sie immer.
+const MIT_HANGAR = hangarImArtefakt(resolve(ROOT, 'dist'));
+const ohneHangar = !MIT_HANGAR && !ONLY.length ? strecken.filter((c) => c.nurMitHangar) : [];
+if (ohneHangar.length) strecken = strecken.filter((c) => !ohneHangar.includes(c));
 
 // Jede Strecke in ihre Schritte aufloesen: erst der pre*-Haken (falls es
 // einen gibt), dann der Befehl selbst. Beides sichtbar im Plan.
@@ -95,7 +105,10 @@ const titel = ONLY.length
   : `npm run gate — Schiene ${RAIL} (${RAIL_NAME[RAIL] ?? '?'})`;
 console.log(`\n=== ${titel} ===`);
 console.log(`${strecken.length} Strecke(n), ${schritte.length} Schritt(e)`);
-console.log(`Artefakt: ${artefakt()}\n`);
+console.log(`Artefakt: ${artefakt()}`);
+if (ohneHangar.length)
+  console.log(`Ohne Hangar (Live-Bau): ${ohneHangar.length} Hangar-Strecke(n) entfallen — ${ohneHangar.map((c) => c.id).join(', ')}`);
+console.log('');
 
 if (LIST) {
   for (const [i, s] of schritte.entries())
@@ -135,9 +148,11 @@ for (const [i, s] of schritte.entries()) {
 console.log(`\n\n=== Bilanz Schiene ${RAIL} ===`);
 for (const e of ergebnisse)
   console.log(`  ${e.code === 0 ? '✓' : '✗'} ${e.label.padEnd(22)} ${e.sek.toFixed(1).padStart(6)}s`);
+for (const c of ohneHangar) console.log(`  – ${c.id.padEnd(22)}  ohne Hangar (Live-Bau)`);
 const gelaufen = ergebnisse.filter((e) => e.code === 0).length;
 console.log(
   `\n  ${gelaufen} von ${schritte.length} Schritten gruen · ` +
+    (ohneHangar.length ? `${ohneHangar.length} Hangar-Strecke(n) entfallen im Live-Bau · ` : '') +
     `Gesamtzeit ${((Date.now() - t0) / 1000).toFixed(1)}s`,
 );
 meldeSchulden();
@@ -174,6 +189,10 @@ function artefakt() {
     : 'Live-Build';
 }
 
+/** Enthaelt das gebaute Artefakt den Hangar? Die Antwort gibt der Stempel
+ *  (dist/build.json, `staging`), denselben Schalter wie beim Bauen. Ohne
+ *  Stempel gilt: mit Hangar — dann laufen die Hangar-Strecken und sagen
+ *  selbst, was fehlt, statt still zu entfallen. */
 /** Ausgesetzte Strecken bei JEDEM Lauf melden — ein stillgelegtes Tor,
  *  an das sich niemand erinnert, ist schlimmer als gar keins. */
 function meldeSchulden() {

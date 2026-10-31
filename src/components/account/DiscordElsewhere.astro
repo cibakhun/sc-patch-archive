@@ -1,0 +1,267 @@
+---
+// „Anderes Discord-Konto?" — Anmelden (mode login) oder Verbinden (mode
+// link) mit einem anderen Discord-Konto als dem, das in diesem Browser bei
+// Discord angemeldet ist, ohne es abzumelden. Weg und Begründung:
+// src/lib/discord-elsewhere.ts.
+//
+//  login  Anmeldeseite: Schritt 2 kopiert den Anmeldelink dieser Anmeldung
+//         (der Verifier bleibt hier), Schritt 3 nimmt den Rücklink aus dem
+//         privaten Fenster an (Feld oder Strg+V irgendwo auf der Seite).
+//  link   Kontoseite, Discord-Karte: das Verbinden hängt am angemeldeten
+//         Konto, also geschieht es ganz im privaten Fenster (dort anmelden,
+//         „Verbinden" drücken). Ein kopierter Verbindungslink wäre eine
+//         Vollmacht, irgendein Discord-Konto an DIESES Konto zu hängen; den
+//         gibt es hier bewusst nicht. Die Karte hier zieht beim Zurückkommen
+//         ins Fenster selbst nach (vb:discord-recheck).
+//
+// Aufklappbar als Schwebefeld: kein Platz im Seitenfluss, die Seiten bleiben
+// auf einem Bildschirm.
+interface Props {
+  lang: 'de' | 'en';
+  mode: 'login' | 'link';
+}
+const { lang, mode } = Astro.props;
+
+const COPY = {
+  de: {
+    login: {
+      toggle: 'Anderes Discord-Konto?',
+      s1: 'Privates Fenster öffnen',
+      s2: 'Link dort öffnen, bei Discord mit dem anderen Konto anmelden',
+      s3: 'Den Link von dort hier einfügen',
+      note: 'Dein jetziges Discord-Konto bleibt angemeldet.',
+    },
+    link: {
+      toggle: 'Anderes Konto?',
+      s1: 'Privates Fenster öffnen',
+      s2: 'Link dort öffnen und bei VerseBase anmelden',
+      s3: 'Dort „Verbinden" drücken, bei Discord das andere Konto nehmen',
+      note: 'Dein jetziges Discord-Konto bleibt angemeldet. Diese Karte zeigt danach das neue.',
+    },
+    copy: 'Link kopieren', copied: 'Kopiert', pastePh: 'Link einfügen',
+    errPaste: 'Das ist nicht der Link aus dem privaten Fenster.',
+    errOther: 'Dieser Link gehört zu einer Anmeldung in einem anderen Browser. Bitte noch einmal ab Schritt 2.',
+    errStart: 'Der Link ließ sich nicht erstellen. Bitte später noch einmal.',
+    close: 'Schließen',
+  },
+  en: {
+    login: {
+      toggle: 'Different Discord account?',
+      s1: 'Open a private window',
+      s2: 'Open the link there, sign in to Discord with the other account',
+      s3: 'Paste the link from there here',
+      note: 'Your current Discord account stays signed in.',
+    },
+    link: {
+      toggle: 'Other account?',
+      s1: 'Open a private window',
+      s2: 'Open the link there and sign in to VerseBase',
+      s3: 'Press "Connect" there, pick the other account on Discord',
+      note: 'Your current Discord account stays signed in. This card shows the new one afterwards.',
+    },
+    copy: 'Copy link', copied: 'Copied', pastePh: 'Paste link',
+    errPaste: "That's not the link from the private window.",
+    errOther: 'This link belongs to a sign-in in another browser. Please start again at step 2.',
+    errStart: 'Could not create the link. Please try again later.',
+    close: 'Close',
+  },
+}[lang];
+const T = COPY[mode];
+const uid = `dce-${mode}`;
+---
+
+<div class={`dce dce--${mode}`} data-mode={mode} data-lang={lang}
+  data-copied={COPY.copied} data-err-paste={COPY.errPaste} data-err-other={COPY.errOther} data-err-start={COPY.errStart}>
+  <button type="button" class="dce-toggle" aria-expanded="false" aria-controls={uid}>{T.toggle}</button>
+  <div class="dce-panel" id={uid} role="dialog" aria-label={T.toggle} hidden>
+    <button type="button" class="dce-x" aria-label={COPY.close}>×</button>
+    <ol class="dce-steps">
+      <li><span class="dce-n">1</span><span class="dce-t">{T.s1}</span><span class="dce-keys" data-keys="private" hidden></span></li>
+      <li><span class="dce-n">2</span><span class="dce-t">{T.s2}</span><a class="dce-copy" href="#" rel="nofollow noopener">{COPY.copy}</a></li>
+      <li><span class="dce-n">3</span><span class="dce-t">{T.s3}</span>{mode === 'login' && (
+        <span class="dce-in"><input class="dce-paste" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder={COPY.pastePh} aria-label={COPY.pastePh} /><span class="dce-keys" data-keys="paste" hidden></span></span>
+      )}</li>
+    </ol>
+    <p class="dce-note">{T.note}</p>
+    <p class="dce-status" role="status" aria-live="polite" hidden></p>
+  </div>
+</div>
+
+<style>
+  .dce { position: relative; display: flex; justify-content: center; }
+  .dce--link { justify-content: flex-end; margin-top: -4px; }
+  /* Kontoseite: nur, solange nichts verbunden ist, und nur dort, wo die
+     Discord-Karte selbst steht (schmal fällt sie außerhalb der Übersicht weg). */
+  :global(.acc-dc.is-linked + .dce--link) { display: none; }
+  @media (max-width: 1099.98px), (max-height: 599.98px) {
+    :global(.dsr .acc:has(#tab-panel-overview[hidden]) .dce--link) { display: none; }
+  }
+  .dce-toggle {
+    background: none; border: 0; padding: 4px 2px; cursor: pointer;
+    font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-6); letter-spacing: var(--ls-6);
+    color: var(--muted); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 3px;
+  }
+  .dce-toggle:hover, .dce-toggle[aria-expanded='true'] { color: var(--text); }
+  .dce-panel {
+    position: absolute; z-index: 40; top: calc(100% + 6px); width: min(23rem, calc(100vw - 32px));
+    padding: 14px 14px 12px; border-radius: 12px; text-align: left;
+    background: var(--surface, #0f1524); border: 1px solid rgba(88, 101, 242, 0.55);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  }
+  .dce--login .dce-panel { left: 50%; transform: translateX(-50%); }
+  /* In der Seitenleiste klappt das Feld in der Leiste auf, statt darüber zu
+     liegen: die Leiste schneidet alles ab, was über ihren Rand ragt, und
+     scrollt in ihrem eigenen Kasten. */
+  .dce--link { flex-wrap: wrap; }
+  .dce--link .dce-panel { position: relative; top: auto; left: auto; flex: 1 1 100%; width: auto; margin-top: 6px; box-shadow: none; }
+  .dce-x { position: absolute; top: 4px; right: 6px; background: none; border: 0; color: var(--muted); font-size: var(--fs-11); line-height: 1; padding: 4px 6px; cursor: pointer; }
+  .dce-x:hover { color: var(--text); }
+  .dce-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .dce-steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; align-items: center; }
+  .dce-n { grid-row: span 2; align-self: start; width: 1.5rem; height: 1.5rem; display: grid; place-items: center; border-radius: 50%; background: #4752c4; color: #fff; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); }
+  .dce-t { font-size: var(--fs-7); line-height: 1.35; color: var(--text); padding-right: 14px; }
+  .dce-keys { display: inline-flex; gap: 4px; }
+  .dce-keys :global(kbd) { min-width: 1.6rem; padding: 2px 6px; border-radius: 5px; border: 1px solid var(--line); border-bottom-width: 2px; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); text-align: center; color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); }
+  .dce-copy {
+    justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 7px;
+    background: #4752c4; color: #fff; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-6); text-decoration: none;
+  }
+  .dce-copy:hover { background: #5865f2; }
+  .dce-copy.is-off { opacity: 0.5; pointer-events: none; }
+  .dce-in { display: flex; gap: 8px; align-items: center; min-width: 0; }
+  .dce-paste { flex: 1 1 auto; min-width: 0; font: inherit; font-size: var(--fs-8); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--line); background: color-mix(in srgb, var(--text) 4%, transparent); color: var(--text); }
+  .dce-note { margin: 10px 0 0; font-size: var(--fs-6); color: var(--muted); line-height: 1.4; }
+  .dce-status { margin: 8px 0 0; font-size: var(--fs-6); color: var(--err, #ff8a8a); }
+  .dce-status.is-ok { color: var(--ok, #9be8a8); }
+  /* Eigene display-Regeln oben schlagen das hidden-Attribut sonst. */
+  .dce [hidden] { display: none; }
+</style>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+  import { SUPABASE } from '../../consts';
+  import { acceptReturn, pasteKeys, privateKeys } from '../../lib/discord-elsewhere';
+  import { copyText } from '../../lib/copy-text';
+
+  for (const root of document.querySelectorAll<HTMLElement>('.dce')) setup(root);
+
+  function setup(root: HTMLElement) {
+    const D = root.dataset;
+    const lang = D.lang === 'de' ? 'de' : 'en';
+    const mode = D.mode === 'link' ? 'link' : 'login';
+    const toggle = root.querySelector<HTMLButtonElement>('.dce-toggle')!;
+    const panel = root.querySelector<HTMLElement>('.dce-panel')!;
+    const copyA = root.querySelector<HTMLAnchorElement>('.dce-copy')!;
+    const pasteIn = root.querySelector<HTMLInputElement>('.dce-paste');
+    const status = root.querySelector<HTMLElement>('.dce-status')!;
+    const ua = navigator.userAgent;
+
+    for (const k of root.querySelectorAll<HTMLElement>('[data-keys]')) {
+      const keys = k.dataset.keys === 'paste' ? pasteKeys(ua, lang) : privateKeys(ua, lang);
+      k.replaceChildren(...keys.map((t) => { const b = document.createElement('kbd'); b.textContent = t; return b; }));
+      k.hidden = !keys.length;
+    }
+
+    const say = (msg: string, ok = false) => {
+      status.textContent = msg;
+      status.classList.toggle('is-ok', ok);
+      status.hidden = !msg;
+    };
+
+    // Der Link je Öffnen frisch: beim Anmelden ist es eine neue Anmeldung mit
+    // neuem Verifier (der alte gilt ohnehin nur bis zum nächsten Klick auf
+    // den Discord-Knopf), beim Verbinden die Kontoseite selbst.
+    // Ausnahme: dieselbe Anmeldung bleibt ein paar Minuten stehen. Wer das
+    // Feld nach dem Zurückkommen wieder aufklappt, darf den Verifier des
+    // schon kopierten Links nicht überschreiben (der Rücklink liefe sonst
+    // ins Leere); der Anmeldedienst nimmt den Code ohnehin nur 5 Minuten.
+    let link = '';
+    let preparedAt = 0;
+    const KEEP_MS = 4 * 60000;
+    const prepare = async () => {
+      if (mode === 'login' && link && Date.now() - preparedAt < KEEP_MS) return;
+      link = '';
+      copyA.href = '#';
+      copyA.classList.add('is-off');
+      if (mode === 'link') {
+        link = location.origin + location.pathname + '?dc=1';
+      } else {
+        try {
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'discord',
+            options: { redirectTo: location.origin + location.pathname + location.search, skipBrowserRedirect: true },
+          });
+          if (!error && data && data.url) link = data.url;
+        } catch { /* bleibt leer */ }
+        if (!link) { say(D.errStart || ''); return; }
+      }
+      preparedAt = Date.now();
+      copyA.href = link;
+      copyA.classList.remove('is-off');
+    };
+
+    const isOpen = () => !panel.hidden;
+    const open = () => {
+      panel.hidden = false;
+      toggle.setAttribute('aria-expanded', 'true');
+      if (mode === 'link') panel.scrollIntoView({ block: 'nearest' });
+      say('');
+      void prepare();
+    };
+    const close = () => {
+      panel.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+    };
+    toggle.addEventListener('click', () => (isOpen() ? close() : open()));
+    root.querySelector('.dce-x')?.addEventListener('click', () => { close(); toggle.focus(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) { close(); toggle.focus(); } });
+    document.addEventListener('pointerdown', (e) => { if (isOpen() && !root.contains(e.target as Node)) close(); });
+
+    // Klick kopiert; Rechtsklick „In privatem Fenster öffnen" geht direkt.
+    copyA.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!link) return;
+      if (await copyText(link)) {
+        const idle = copyA.textContent;
+        copyA.textContent = '✓ ' + (D.copied || '');
+        setTimeout(() => { copyA.textContent = idle; }, 1800);
+      }
+    });
+
+    if (mode === 'link') {
+      // Zurück aus dem privaten Fenster: die Karte fragt die Verbindung neu ab.
+      const recheck = () => { if (isOpen()) document.dispatchEvent(new CustomEvent('vb:discord-recheck')); };
+      addEventListener('focus', recheck);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') recheck(); });
+      document.addEventListener('vb:discord', (e) => { if ((e as CustomEvent).detail?.linked) close(); });
+      return;
+    }
+
+    // Rücklink aus dem privaten Fenster: ins Feld oder Strg+V irgendwo auf der
+    // Seite. Nur ein Link auf DIESE Seite mit code wird geöffnet, und nur,
+    // wenn dieser Browser die Anmeldung begonnen hat (Verifier da).
+    const VERIFIER = SUPABASE.storageKey + '-code-verifier';
+    const take = (text: string): boolean => {
+      const rel = acceptReturn(text, location.href);
+      if (!rel) {
+        if (/^\s*https?:\/\//i.test(text) && isOpen()) say(D.errPaste || '');
+        return false;
+      }
+      let mine = false;
+      try { mine = !!localStorage.getItem(VERIFIER); } catch { /* bleibt false */ }
+      if (!mine) { if (!isOpen()) open(); say(D.errOther || ''); return true; }
+      location.assign(rel);
+      return true;
+    };
+    pasteIn?.addEventListener('paste', (e) => {
+      const t = e.clipboardData?.getData('text') || '';
+      if (take(t)) e.preventDefault();
+      e.stopPropagation();
+    });
+    pasteIn?.addEventListener('change', () => { take(pasteIn.value); });
+    document.addEventListener('paste', (e) => {
+      const t = e.clipboardData?.getData('text') || '';
+      if (take(t)) e.preventDefault();
+    });
+  }
+</script>

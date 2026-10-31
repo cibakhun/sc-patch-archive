@@ -32,6 +32,13 @@ const slotLabel = (slot: string) => t(('slot' + slot) as never) || slot;
 // Panzerungsklasse: dieselben Schluessel wie im Finder (w<Wert> ohne Sonderzeichen)
 const weightLabel = (w: string | null) => (w ? t(('w' + w.replace(/[^A-Za-z]/g, '')) as never) || w : null);
 const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
+// Groessenangaben fuer die Hoehenschaetzung der Herstellerabschnitte
+// (content-visibility, siehe .as-mfr unten): Sets, Slot-Bloecke, Teile.
+const sizeOf = (sets: { id: string }[]) => {
+  let slots = 0, items = 0;
+  for (const s of sets) for (const [, list] of setItemsBySlot(s.id)) { slots++; items += list.length; }
+  return `--as-s:${sets.length};--as-l:${slots};--as-i:${items}`;
+};
 ---
 <DataShell
   lang={lang}
@@ -46,82 +53,10 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   updated={db.pricesAsOf}
   breit
 >
-  <h1 slot="hero">{t('setsTitle')}</h1>
-  <p class="dp-lead" slot="hero">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>
-
-  <ul class="dp-keys" slot="hero" data-help={h('armorsets.ctl.keys')}>
-    <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
-    <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
-    <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
-    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.generatedAt}</span></li>
-  </ul>
-
-  <p class="as-intro">{t('setsIntro')}</p>
-
-  {/* Kein Werkzeugleiste auf dieser Seite (Annahme A2, siehe PLAN.md
-      <rules>) — der Einstieg sitzt hier, zwischen dem beschreibenden
-      Vorspann und der einzigen echten Bedienung der Seite. Diese Setzung
-      ist eine Annahme, keine Entscheidung des Betreibers, und steht zur
-      Bestaetigung in der Abschlusspruefung der Phase (Plan 04, Task 3). */}
-  <ToolHelp tool="armorsets" lang={lang} steps={4} />
-
-  {/* Sprungmarken je Hersteller — bei 20+ Herstellern sonst endloses Scrollen */}
-  <nav class="as-jump" aria-label={t('setsBreadcrumb')} data-help={h('armorsets.ctl.jump')}>
-    {setsByManufacturer.map((g) => (
-      <a href={`#mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{g.mfr} <span>({g.sets.length})</span></a>
-    ))}
-  </nav>
-
-  {setsByManufacturer.map((g) => (
-    <section class="dp-sec" id={`mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
-      <h2>{g.mfr} <span class="dp-muted">({num(g.sets.length, lang)})</span></h2>
-
-      {g.sets.map((s) => (
-        <article class="as-set" id={s.id}>
-          <header class="as-set-h">
-            <h3>{s.name}</h3>
-            <div class="as-set-meta">
-              {s.weight && <span class="as-badge">{weightLabel(s.weight)}</span>}
-              <span class={s.coreSlots === 4 ? 'as-badge as-badge--ok' : 'as-badge as-badge--part'}>
-                {s.coreSlots === 4 ? t('setsComplete') : fill(t('setsPartial'), { n: s.coreSlots })}
-              </span>
-              <span class="dp-muted">{num(s.parts, lang)} {t('setPieces')}</span>
-            </div>
-          </header>
-
-          {/* Fehlt der Helm, ist das eine echte Aussage ueber die Spieldaten —
-              kein Datenfehler unsererseits. Deshalb benennen statt verschweigen. */}
-          {!s.slots.Helmet && <p class="as-note">{t('setsNoHelmet')}</p>}
-
-          {setItemsBySlot(s.id).map(([slot, list]) => (
-            <div class="as-slot">
-              <h4>{slotLabel(slot)} <span class="dp-muted">({num(list.length, lang)})</span></h4>
-              <ul class="as-parts">
-                {list.map((i) => (
-                  <li>
-                    {pageItemIds.has(i.id)
-                      ? <a href={href(itemPath(i), lang)}>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</a>
-                      : <span>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</span>}
-                    {i.game?.rarity && i.game.rarity !== 'Common' && (
-                      <em class={`as-rar as-rar--${i.game.rarity.toLowerCase()}`}>{rarityLabel(i.game.rarity)}</em>
-                    )}
-                    {i.game?.lootable === false && <em class="as-rar as-rar--excl">{t('notLootable')}</em>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </article>
-      ))}
-    </section>
-  ))}
-
-  <div class="dp-actions">
-    <a class="dp-btn" href={href('/item-finder.html', lang)}>{t('backToFinder')} →</a>
-    <a class="dp-btn" href={href('/items.html', lang)}>{t('breadcrumbItems')} →</a>
-  </div>
-</DataShell>
-
+  {/* Das Stilblatt steht VOR dem Markup (27.10.2026): hinter </DataShell> kam es
+      erst nach gut 320 KB Liste an, und der Browser malte die Herstellerleiste
+      vorher als rohe Linkzeile. Als erstes Kind des Inhalts landet es in <main>
+      vor der Liste; die Reihenfolge der Stilblaetter bleibt dieselbe. */}
 <style is:inline>
   /* Set-eigene Schicht. Die Formsprache (Eckklammern, Akzentschienen,
      Teko-Ziffern, Mono-Mikrolabels) kommt aus assets/data-page.css — hier
@@ -201,6 +136,30 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
   @media (min-width: 1181px) and (min-height: 801px) {
     .dp-sec[id] { scroll-margin-top: 16rem; }
   }
+
+  /* Herstellerabschnitt als Block: content-visibility:auto rechnet Stil,
+     Layout und Malen nur fuer die Abschnitte im Bild (8.127 Knoten auf der
+     Seite). Bewusst am Abschnitt, nicht an der Set-Karte: deren Eckklammer
+     (.as-set::after, top/right -1px, 2px Strich) ragt in den Rahmen, und
+     content-visibility beschneidet am Innenrand — die Klammer waere einen
+     Pixel duenner. Im Abschnitt liegt alles innerhalb.
+     Die Platzhalterhoehe schaetzt der Server-Zaehler (Sets --as-s, Slot-
+     Bloecke --as-l, Teile --as-i) mal je Breite angepasste Faktoren — an
+     der gerenderten Seite ohne content-visibility gemessen (15.10.2026,
+     DE+EN, elf Breiten 360-1440 px): Gesamthoehe der Liste je Breite auf
+     etwa +-10 % getroffen, der fruehere Pauschalwert lag am Telefon 69 %
+     zu niedrig. `auto` merkt sich danach die echte Hoehe. Sprungmarken
+     (.as-jump) funktionieren weiter: der Browser rendert das Ziel beim
+     Ansprung. */
+  .as-mfr {
+    --as-k0: 145px; --as-k1: 69px; --as-k2: 80px; --as-k3: 9px;
+    content-visibility: auto;
+    contain-intrinsic-size: auto calc(var(--as-k0) + var(--as-s, 6) * var(--as-k1) + var(--as-l, 30) * var(--as-k2) + var(--as-i, 60) * var(--as-k3));
+  }
+  @media (max-width: 1099px) { .as-mfr { --as-k0: 169px; --as-k1: 78px; --as-k2: 75px; --as-k3: 11px; } }
+  @media (max-width: 820px) { .as-mfr { --as-k0: 340px; --as-k1: 31px; --as-k2: 128px; --as-k3: 22px; } }
+  @media (max-width: 649px) { .as-mfr { --as-k0: 340px; --as-k1: 138px; --as-k2: 77px; --as-k3: 36px; } }
+  @media (max-width: 420px) { .as-mfr { --as-k0: 180px; --as-k1: 185px; --as-k2: 28px; --as-k3: 55px; } }
 
   /* Set-Karte: dieselbe Konsole wie die Kategorie-Karten, eine Stufe ruhiger. */
   .as-set {
@@ -307,3 +266,79 @@ const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
     .as-parts li { min-height: 34px; }
   }
 </style>
+
+  <h1 slot="hero">{t('setsTitle')}</h1>
+  <p class="dp-lead" slot="hero">{fill(t('setsLead'), { sets: num(armorSets.length, lang), parts: num(totalParts, lang), patch: ITEM_PATCH })}</p>
+
+  <ul class="dp-keys" slot="hero" data-help={h('armorsets.ctl.keys')}>
+    <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
+    <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
+    <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
+    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.generatedAt}</span></li>
+  </ul>
+
+  <p class="as-intro">{t('setsIntro')}</p>
+
+  {/* Kein Werkzeugleiste auf dieser Seite (Annahme A2, siehe PLAN.md
+      <rules>) — der Einstieg sitzt hier, zwischen dem beschreibenden
+      Vorspann und der einzigen echten Bedienung der Seite. Diese Setzung
+      ist eine Annahme, keine Entscheidung des Betreibers, und steht zur
+      Bestaetigung in der Abschlusspruefung der Phase (Plan 04, Task 3). */}
+  <ToolHelp tool="armorsets" lang={lang} steps={4} />
+
+  {/* Sprungmarken je Hersteller — bei 20+ Herstellern sonst endloses Scrollen */}
+  <nav class="as-jump" aria-label={t('setsBreadcrumb')} data-help={h('armorsets.ctl.jump')}>
+    {setsByManufacturer.map((g) => (
+      <a href={`#mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{g.mfr} <span>({g.sets.length})</span></a>
+    ))}
+  </nav>
+
+  {setsByManufacturer.map((g) => (
+    <section class="dp-sec as-mfr" id={`mfr-${g.mfr.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} style={sizeOf(g.sets)}>
+      <h2>{g.mfr} <span class="dp-muted">({num(g.sets.length, lang)})</span></h2>
+
+      {g.sets.map((s) => (
+        <article class="as-set" id={s.id}>
+          <header class="as-set-h">
+            <h3>{s.name}</h3>
+            <div class="as-set-meta">
+              {s.weight && <span class="as-badge">{weightLabel(s.weight)}</span>}
+              <span class={s.coreSlots === 4 ? 'as-badge as-badge--ok' : 'as-badge as-badge--part'}>
+                {s.coreSlots === 4 ? t('setsComplete') : fill(t('setsPartial'), { n: s.coreSlots })}
+              </span>
+              <span class="dp-muted">{num(s.parts, lang)} {t('setPieces')}</span>
+            </div>
+          </header>
+
+          {/* Fehlt der Helm, ist das eine echte Aussage ueber die Spieldaten —
+              kein Datenfehler unsererseits. Deshalb benennen statt verschweigen. */}
+          {!s.slots.Helmet && <p class="as-note">{t('setsNoHelmet')}</p>}
+
+          {setItemsBySlot(s.id).map(([slot, list]) => (
+            <div class="as-slot">
+              <h4>{slotLabel(slot)} <span class="dp-muted">({num(list.length, lang)})</span></h4>
+              <ul class="as-parts">
+                {list.map((i) => (
+                  <li>
+                    {pageItemIds.has(i.id)
+                      ? <a href={href(itemPath(i), lang)}>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</a>
+                      : <span>{lang === 'de' && i.game?.nameDe ? i.game.nameDe : i.name}</span>}
+                    {i.game?.rarity && i.game.rarity !== 'Common' && (
+                      <em class={`as-rar as-rar--${i.game.rarity.toLowerCase()}`}>{rarityLabel(i.game.rarity)}</em>
+                    )}
+                    {i.game?.lootable === false && <em class="as-rar as-rar--excl">{t('notLootable')}</em>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </article>
+      ))}
+    </section>
+  ))}
+
+  <div class="dp-actions">
+    <a class="dp-btn" href={href('/item-finder.html', lang)}>{t('backToFinder')} →</a>
+    <a class="dp-btn" href={href('/items.html', lang)}>{t('breadcrumbItems')} →</a>
+  </div>
+</DataShell>
