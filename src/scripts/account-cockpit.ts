@@ -244,6 +244,55 @@ function boot(root: HTMLElement) {
   document.addEventListener('vb:layouts', () => { if (thumbs) renderSaved(); });
   document.addEventListener('vb:saved', (e) => { if (me && (e as CustomEvent).detail?.changed) loadSaved(); });
 
+  /* ------------------------------------------------------- Werkzeuge --- */
+  // Refinery, Crafting und Mining mit ihrem Stand. Was noch nie benutzt wurde,
+  // steht gesammelt in einer Kachel „Noch nicht genutzt" mit Links hin.
+  // Schlägt eine Abfrage fehl, fehlt das Werkzeug lieber, als „ungenutzt" zu
+  // heißen. Den Refinery-Wert und die Timer malt account-dashboard.ts.
+  const loadTools = async () => {
+    const [ref, craft, mine] = await Promise.all([
+      supabase.from('refinery_jobs').select('id', { count: 'exact', head: true }).eq('user_id', me),
+      supabase.from('crafting_entries').select('owned, plan_qty').eq('user_id', me),
+      supabase.from('mining_sig_presets').select('name').eq('user_id', me).order('updated_at', { ascending: false }),
+    ]);
+    const unused: string[] = [];
+    if (!ref.error) {
+      const used = (ref.count || 0) > 0;
+      $('ckToolRef')!.hidden = !used;
+      if (!used) unused.push('ref');
+    }
+    if (!craft.error) {
+      const rows = (craft.data || []) as Array<{ owned: boolean; plan_qty: number }>;
+      const owned = rows.filter((r) => r.owned).length;
+      const plan = rows.filter((r) => r.plan_qty > 0).length;
+      const total = Number(root.dataset.bpTotal) || 0;
+      $('ckToolCraft')!.hidden = !rows.length;
+      if (!rows.length) unused.push('craft');
+      else {
+        // Ohne Blueprint im Besitz zählt der Planer, sonst Besitz von allen
+        $('ovCraftN')!.textContent = owned > 0 ? `${nf.format(owned)} / ${nf.format(total)}` : nf.format(plan);
+        $('ovCraftLbl')!.textContent = owned > 0 ? C.craftOwned : C.craftPlan;
+        $('ovCraftSub')!.textContent = owned > 0 && plan > 0 ? fill(C.planN, { n: nf.format(plan) }) : '';
+        const bar = $('ovCraftBar')!;
+        bar.style.width = total > 0 ? Math.max(1, (owned / total) * 100).toFixed(1) + '%' : '0';
+        bar.parentElement!.hidden = !(owned > 0 && total > 0);
+      }
+    }
+    if (!mine.error) {
+      const names = ((mine.data || []) as Array<{ name: string }>).map((r) => r.name);
+      $('ckToolMine')!.hidden = !names.length;
+      if (!names.length) unused.push('mine');
+      else {
+        $('ovMineN')!.textContent = nf.format(names.length);
+        $('ovMineLbl')!.textContent = names.length === 1 ? C.mine1 : C.mine;
+        $('ckToolMine')!.title = names.join(' · ');
+      }
+    }
+    const box = $('ckToolsNew')!;
+    box.querySelectorAll<HTMLElement>('[data-tool]').forEach((li) => { li.hidden = !unused.includes(li.dataset.tool || ''); });
+    box.hidden = !unused.length;
+  };
+
   /* ----------------------------------------------------------- Start --- */
   (async () => {
     const { data } = await supabase.auth.getSession();
@@ -252,6 +301,6 @@ function boot(root: HTMLElement) {
     me = user.id;
     if (dcLinked === null) dcLinked = !!(user.identities || []).some((i) => i.provider === 'discord');
     startLayouts();
-    await Promise.all([loadRank(), loadSaved()]);
+    await Promise.all([loadRank(), loadSaved(), loadTools()]);
   })();
 }
