@@ -33,12 +33,12 @@ const COPY = {
     tabFriends: 'Freunde & Social',
     tabFavs: 'Gespeichert',
     tabSecurity: 'Sicherheit & Konto',
-    secProfile: 'Profil-Anpassung',
+    secProfile: 'Profil',
     secDesign: 'Banner & Avatar Design',
     secRoleStatus: 'Status & Citizen-Rolle',
     secRsi: 'RSI-Account & Verifizierung',
     secTester: 'Testpilot',
-    testerConsent: 'Meinen Namen bei den Testpiloten nennen',
+    testerConsent: 'Bei den Testpiloten nennen',
     testerConsentHint: 'Ohne Zustimmung erscheint niemand auf der Liste — und die Zustimmung ist jederzeit widerrufbar.',
     secTesterOverview: 'Testpiloten-Übersicht',
     testerOverviewDesc: 'Wer die Rolle trägt und wann derjenige zuletzt auf der Vorschau war.',
@@ -53,14 +53,14 @@ const COPY = {
     name: 'Anzeigename', namePh: 'z. B. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'z. B. star_runner',
     handleHint: '3–24 Zeichen: Kleinbuchstaben, Ziffern, Unterstrich. Mit einem Handle ist deine Pilotenseite öffentlich: Anzeigename, Bilder, Bio, Status und verlinkte Profile sieht dann jeder.',
-    bio: 'Biografie / Über mich', bioPh: 'Erzähle der Flotte etwas über dich, deine Schiffe oder Missionen …',
-    bannerSelect: 'Banner-Vorlage wählen',
+    bio: 'Über mich', bioPh: 'Erzähle der Flotte etwas über dich, deine Schiffe oder Missionen …',
+    bannerSelect: 'Banner',
     bannerUrl: 'Oder eigene Banner-Bild-URL',
-    avatarSelect: 'Avatar-Icon wählen',
-    avatarColorSelect: 'Avatar-Akzentfarbe',
+    avatarSelect: 'Avatar',
+    avatarColorSelect: 'Farbe',
     avatarUrl: 'Oder eigene Avatar-Bild-URL',
-    uploadAvatar: 'Avatar-Bild hochladen',
-    uploadBanner: 'Banner-Bild hochladen',
+    uploadAvatar: 'Eigenes Bild',
+    uploadBanner: 'Eigenes Bild',
     uploadHint: 'JPG, PNG, WebP oder GIF',
     uploading: 'Lade hoch …',
     uploadRemove: '✕ Bild entfernen',
@@ -86,8 +86,8 @@ const COPY = {
     dropHint: 'oder Bild hierher ziehen',
     roleNone: '— Keine Rolle gewählt —',
     statusState: 'Präsenz-Status',
-    statusText: 'Custom Status-Text', statusTextPh: 'z. B. Mining auf Lyria',
-    roleLabel: 'Haupt-Spezialisierung / Rolle',
+    statusText: 'Status-Text', statusTextPh: 'z. B. Mining auf Lyria',
+    roleLabel: 'Rolle',
     rsiHandle: 'RSI Citizen Handle', rsiPh: 'z. B. Roberts',
     rsiVerifyBtn: 'RSI Account verifizieren',
     rsiVerifiedText: 'Dein RSI Account ist verifiziert!',
@@ -131,11 +131,11 @@ const COPY = {
     dcLinkErrTaken: 'Dieses Discord-Konto hängt schon an einem anderen Konto.',
     dcLinkErr: 'Hat nicht geklappt. Bitte später erneut versuchen.',
     dcUnlinkNeedsTwo: 'Zum Lösen brauchst du einen zweiten Anmeldeweg. Setze zuerst ein Passwort.',
-    orgName: 'Organisation & Rang', orgPh: 'z. B. VerseBase Fleet — Commander',
-    shareActivity: 'Freunde sehen, was ich gerade mache (z. B. „Im Hangar · Gladius“)', showFavs: 'Favoriten auf meiner öffentlichen Seite zeigen', socialBad: 'Dieser Name passt nicht zu %s.',
-    presenceVis: 'Wer meinen Online-Status sieht', presenceVisFriends: 'Nur Freunde (Standard)',
-    presenceVisAll: 'Alle, auch auf meinem öffentlichen Profil', presenceVisNone: 'Niemand (auch keine Aktivität)',
-    saveProfile: 'Profil Änderungen speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
+    orgName: 'Organisation', orgPh: 'z. B. VerseBase Fleet — Commander',
+    shareActivity: 'Aktivität für Freunde zeigen', showFavs: 'Favoriten auf der Pilotenseite zeigen', socialBad: 'Dieser Name passt nicht zu %s.',
+    presenceVis: 'Online-Status sichtbar für', presenceVisFriends: 'Nur Freunde (Standard)',
+    presenceVisAll: 'Alle, auch auf der Pilotenseite', presenceVisNone: 'Niemand (auch keine Aktivität)',
+    saveProfile: 'Speichern', savingProfile: 'Speichere Profil …', savedProfile: 'Profil erfolgreich gespeichert.',
     errHandleTaken: 'Dieses Handle ist schon vergeben — bitte ein anderes wählen.',
     errHandleFormat: 'Handle bitte nur mit a–z, 0–9 und _ (3–24 Zeichen).',
     errHandleReserved: 'Dieses Handle ist reserviert — bitte ein anderes wählen.',
@@ -178,6 +178,15 @@ const COPY = {
     publicPageCopy: 'Link kopieren',
     publicPageCopied: 'Kopiert! ✓',
     publicPageNoHandle: 'Setze ein Handle, um deine öffentliche Seite zu aktivieren.',
+    pfTabId: 'Steckbrief', pfTabLook: 'Aussehen', pfTabLinks: 'Links', pfTabVis: 'Sichtbarkeit',
+    pfMore: 'Mehr dazu', pfActivity: 'Aktivität',
+    pfActivityTip: 'Online, Abwesend und Offline erkennt die Seite selbst. Hier stellst du nur „Im Spiel“ oder „Auf Mission“ ein.',
+    pfShareTip: 'Deine Freunde sehen dann zum Beispiel „Im Hangar · Gladius“.',
+    pfUnsaved: 'Nicht gespeichert',
+    mpLabel: 'Vorschau deiner Pilotenseite', mpOpen: 'Pilotenseite öffnen', mpNoHandle: 'Ohne Handle nicht öffentlich',
+    mpEditBanner: 'Banner ändern', mpEditAvatar: 'Avatar ändern', mpPilot: 'Pilot', mpFavs: 'Favoriten', mpHidden: 'verborgen',
+    mpVerified: 'RSI verifiziert', mpTester: 'Testpilot', mpComplete: 'Profil komplett', mpSince: 'Seit',
+    mpHangar: 'Hangar', mpHangarGo: 'Loadouts anheften unter „Gespeichert“', mpHangarEmpty: 'Noch keine Schiffe',
     ovAtAGlance: 'Auf einen Blick',
     ovRecent: 'Letzte Aktivität',
     ovTRefValue: 'Refinery-Wert',
@@ -204,12 +213,12 @@ const COPY = {
     tabFriends: 'Friends & Social',
     tabFavs: 'Saved',
     tabSecurity: 'Security & Account',
-    secProfile: 'Profile Customization',
+    secProfile: 'Profile',
     secDesign: 'Banner & Avatar Design',
     secRoleStatus: 'Status & Citizen Role',
     secRsi: 'RSI Account & Verification',
     secTester: 'Test Pilot',
-    testerConsent: 'List my name among the Test Pilots',
+    testerConsent: 'Name me among the test pilots',
     testerConsentHint: 'Without consent nobody shows up on the list — and consent can be withdrawn at any time.',
     secTesterOverview: 'Test Pilots Overview',
     testerOverviewDesc: 'Who holds the role and when they were last on the preview.',
@@ -224,14 +233,14 @@ const COPY = {
     name: 'Display name', namePh: 'e.g. StarRunner',
     handle: 'Handle', optional: '— optional', handlePh: 'e.g. star_runner',
     handleHint: '3–24 characters: lowercase letters, digits, underscore. With a handle your pilot page is public: anyone can see your display name, images, bio, status and linked profiles.',
-    bio: 'Bio / About me', bioPh: 'Tell the fleet about yourself, your ships, or missions …',
-    bannerSelect: 'Choose banner preset',
+    bio: 'About me', bioPh: 'Tell the fleet about yourself, your ships, or missions …',
+    bannerSelect: 'Banner',
     bannerUrl: 'Or custom banner image URL',
-    avatarSelect: 'Choose avatar icon',
-    avatarColorSelect: 'Avatar accent color',
+    avatarSelect: 'Avatar',
+    avatarColorSelect: 'Color',
     avatarUrl: 'Or custom avatar image URL',
-    uploadAvatar: 'Upload avatar image',
-    uploadBanner: 'Upload banner image',
+    uploadAvatar: 'Own image',
+    uploadBanner: 'Own image',
     uploadHint: 'JPG, PNG, WebP or GIF',
     uploading: 'Uploading …',
     uploadRemove: '✕ Remove image',
@@ -257,8 +266,8 @@ const COPY = {
     dropHint: 'or drop an image here',
     roleNone: '— No role selected —',
     statusState: 'Presence Status',
-    statusText: 'Custom status text', statusTextPh: 'e.g. Mining on Lyria',
-    roleLabel: 'Primary Specialization / Role',
+    statusText: 'Status text', statusTextPh: 'e.g. Mining on Lyria',
+    roleLabel: 'Role',
     rsiHandle: 'RSI Citizen Handle', rsiPh: 'e.g. Roberts',
     rsiVerifyBtn: 'Verify RSI Account',
     rsiVerifiedText: 'Your RSI Account is verified!',
@@ -302,11 +311,11 @@ const COPY = {
     dcLinkErrTaken: 'This Discord account is already tied to another account.',
     dcLinkErr: 'Connecting did not work — please try again later.',
     dcUnlinkNeedsTwo: 'To disconnect you need a second way to sign in. Set a password first.',
-    orgName: 'Organization & Rank', orgPh: 'e.g. VerseBase Fleet — Commander',
-    shareActivity: 'Friends see what I am doing (e.g. “In the hangar · Gladius”)', showFavs: 'Show favorites on my public page', socialBad: 'That name does not fit %s.',
-    presenceVis: 'Who sees my online status', presenceVisFriends: 'Friends only (default)',
-    presenceVisAll: 'Everyone, also on my public profile', presenceVisNone: 'No one (no activity either)',
-    saveProfile: 'Save profile changes', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
+    orgName: 'Organization', orgPh: 'e.g. VerseBase Fleet — Commander',
+    shareActivity: 'Show activity to friends', showFavs: 'Show favorites on the pilot page', socialBad: 'That name does not fit %s.',
+    presenceVis: 'Online status visible to', presenceVisFriends: 'Friends only (default)',
+    presenceVisAll: 'Everyone, also on the pilot page', presenceVisNone: 'No one (no activity either)',
+    saveProfile: 'Save', savingProfile: 'Saving profile …', savedProfile: 'Profile saved successfully.',
     errHandleTaken: 'This handle is already taken — please pick another one.',
     errHandleFormat: 'Handles may only use a–z, 0–9 and _ (3–24 characters).',
     errHandleReserved: 'This handle is reserved — please pick another one.',
@@ -349,6 +358,15 @@ const COPY = {
     publicPageCopy: 'Copy link',
     publicPageCopied: 'Copied! ✓',
     publicPageNoHandle: 'Set a handle to activate your public page.',
+    pfTabId: 'Profile', pfTabLook: 'Look', pfTabLinks: 'Links', pfTabVis: 'Visibility',
+    pfMore: 'More about this', pfActivity: 'Activity',
+    pfActivityTip: 'Online, away and offline are detected automatically. Here you only set “In game” or “On a mission”.',
+    pfShareTip: 'Your friends then see, for example, “In the hangar · Gladius”.',
+    pfUnsaved: 'Not saved',
+    mpLabel: 'Preview of your pilot page', mpOpen: 'Open pilot page', mpNoHandle: 'Not public without a handle',
+    mpEditBanner: 'Change banner', mpEditAvatar: 'Change avatar', mpPilot: 'Pilot', mpFavs: 'Favorites', mpHidden: 'hidden',
+    mpVerified: 'RSI verified', mpTester: 'Test pilot', mpComplete: 'Profile complete', mpSince: 'Since',
+    mpHangar: 'Hangar', mpHangarGo: 'Pin loadouts under “Saved”', mpHangarEmpty: 'No ships yet',
     ovAtAGlance: 'At a glance',
     ovRecent: 'Recent activity',
     ovTRefValue: 'Refinery value',
@@ -562,6 +580,9 @@ const SEC = {
       <g id="ic-trash" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6"/></g>
       <g id="ic-id" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="1"/><path d="M7 10h4M7 14h7"/><circle cx="16.5" cy="10" r="1.6"/></g>
       <g id="ic-org" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6l6-2.5V21"/><path d="M10 8h8a2 2 0 0 1 2 2v11"/><path d="M13 12h3M13 16h3"/></g>
+      <g id="ic-image" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M20.5 15.5l-4.5-4.5-8.5 8"/></g>
+      <g id="ic-eye" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12s3.8-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.8 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></g>
+      <g id="ic-eyeoff" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 6.1A9.6 9.6 0 0 1 12 6c5 0 9 6 9 6a16 16 0 0 1-2.9 3.4M6.4 7.6C4.3 9.2 3 12 3 12s4 6 9 6c1.6 0 3-.4 4.3-1.1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></g>
       <g id="ic-power" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v8"/><path d="M6.4 6.9a8 8 0 1 0 11.2 0"/></g>
     </defs>
   </svg>
@@ -732,114 +753,136 @@ const SEC = {
       </section>
 
       <!-- ============================ PROFIL ============================ -->
+      <!-- Links stellt man ein (vier Reiter), rechts steht die eigene
+           Pilotenseite im Kleinen und ändert sich beim Tippen mit. Ein Klick
+           in der Vorschau öffnet das passende Feld. Erklärungen stehen hinter
+           dem (i) und erscheinen beim Drüberfahren (account-profile-view.ts). -->
       <section id="tab-panel-profile" class="acx-tab-panel" hidden>
         <div class="dsec"><h2>{COPY.secProfile}</h2></div>
-        <div class="form2">
-          <div>
+        <div class="form2 pfx">
+          <div class="pfx-edit">
+            <div class="pfx-tabs" role="tablist" aria-label={COPY.secProfile}>
+              <button type="button" class="pfx-tab" role="tab" id="pfTabId" data-pfsec="id" aria-controls="pfSecId" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-id"/></svg><span>{COPY.pfTabId}</span></button>
+              <button type="button" class="pfx-tab" role="tab" id="pfTabLook" data-pfsec="look" aria-controls="pfSecLook" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-image"/></svg><span>{COPY.pfTabLook}</span></button>
+              <button type="button" class="pfx-tab" role="tab" id="pfTabLinks" data-pfsec="links" aria-controls="pfSecLinks" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-link"/></svg><span>{COPY.pfTabLinks}</span></button>
+              <button type="button" class="pfx-tab" role="tab" id="pfTabVis" data-pfsec="vis" aria-controls="pfSecVis" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-eye"/></svg><span>{COPY.pfTabVis}</span></button>
+            </div>
             <form id="profileForm" novalidate>
-              <div class="subpanel sp-id">
-                <h3 class="subhead">{lang === 'de' ? 'Öffentliche Identität' : 'Public Identity'}</h3>
-                <div class="field">
-                  <label for="pfName">{COPY.name}</label>
-                  <input class="inp" id="pfName" name="display_name" type="text" maxlength="60" autocomplete="nickname" placeholder={COPY.namePh} />
-                </div>
-                <div class="field">
-                  <label for="pfHandle">{COPY.handle} <span class="hint">{COPY.optional}</span></label>
-                  <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} aria-describedby="pfHandleHint" /></div>
-                  <p class="acx-hint" id="pfHandleHint">{COPY.handleHint}</p>
-                </div>
-                <div class="field" style="margin-bottom:0">
-                  <label for="pfBio">{COPY.bio}</label>
-                  <textarea class="inp" id="pfBio" name="bio" rows="3" maxlength="500" placeholder={COPY.bioPh}></textarea>
-                </div>
-              </div>
-
-              <div class="subpanel sp-design">
-                <h3 class="subhead">{COPY.secDesign}</h3>
-                <div class="field">
-                  <label>{COPY.bannerSelect}</label>
-                  <div class="banner-grid-picker" id="bannerGridPicker">
-                    {BANNER_PRESETS.map((b, idx) => (
-                      <button type="button" class={`banner-thumb-card ${idx === 0 ? 'selected' : ''}`} data-banner-url={b.url} style={`background-image: url('${b.thumb}')`}>
-                        <span class="banner-thumb-title">{b.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div class="acx-upload" data-kind="banner">
-                    <input type="file" id="pfBannerFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
-                    <button type="button" class="acx-upload__btn" id="pfBannerUploadBtn"><span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadBanner}</span></button>
-                    <button type="button" class="acx-upload__remove" id="pfBannerRemove" hidden>{COPY.uploadRemove}</button>
-                    <span class="acx-upload__status" id="pfBannerUploadStatus" role="status" aria-live="polite"></span>
-                  </div>
-                  <!-- Datenträger für die Banner-URL (Picker/Upload schreiben rein); nicht sichtbar -->
-                  <input type="hidden" id="pfBannerUrl" />
-                </div>
-
-                <div class="field" style="margin-bottom:0;margin-top:1.2rem">
-                  <div class="pf-avatar-row">
-                    <div>
-                      <label>{COPY.avatarSelect}</label>
-                      <div class="avatar-grid-picker" id="avatarGridPicker">
-                        {AVATAR_PRESETS.map((a, idx) => (
-                          <button type="button" class={`avatar-thumb-card ${idx === 0 ? 'selected' : ''}`} data-avatar-icon={a.symbol} data-avatar-color={a.defaultColor} title={a.name}>
-                            <span>{a.symbol}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <div class="acx-upload" data-kind="avatar">
-                        <input type="file" id="pfAvatarFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
-                        <button type="button" class="acx-upload__btn" id="pfAvatarUploadBtn"><span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadAvatar}</span></button>
-                        <button type="button" class="acx-upload__btn acx-upload__dc" id="pfAvatarDiscord" hidden><img id="pfAvatarDiscordImg" src="" alt="" /> <span>{COPY.avatarDiscord}</span></button>
-                        <button type="button" class="acx-upload__remove" id="pfAvatarRemove" hidden>{COPY.uploadRemove}</button>
-                        <span class="acx-upload__status" id="pfAvatarUploadStatus" role="status" aria-live="polite"></span>
-                      </div>
-                      <!-- Datenträger für die Avatar-URL (Picker/Upload schreiben rein); nicht sichtbar -->
-                      <input type="hidden" id="pfAvatarUrl" />
+              <div class="pfx-body">
+                <div class="pfx-sec sp-id" id="pfSecId" role="tabpanel" aria-labelledby="pfTabId" data-pfsec="id">
+                  <div class="pfx-grid">
+                    <div class="field">
+                      <label for="pfName">{COPY.name}</label>
+                      <input class="inp" id="pfName" name="display_name" type="text" maxlength="60" autocomplete="nickname" placeholder={COPY.namePh} />
                     </div>
-                    <div>
-                      <label>{COPY.avatarColorSelect}</label>
-                      <div class="color-grid-picker" id="colorGridPicker">
-                        {ACCENT_COLORS.map((c, idx) => (
-                          <button type="button" class={`color-swatch ${idx === 0 ? 'selected' : ''}`} data-color={c.hex} style={`background: ${c.hex}; color: ${c.hex}`} title={c.name}></button>
+                    <div class="field">
+                      <label for="pfHandle">{COPY.handle} <button type="button" class="pfx-i" data-tip="pfHandleHint" aria-label={COPY.pfMore}>i</button></label>
+                      <div class="inp-affix"><span class="pre">@</span><input class="inp mono" id="pfHandle" name="handle" type="text" maxlength="24" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder={COPY.handlePh} aria-describedby="pfHandleHint" /></div>
+                      <p class="pfx-tiptext" id="pfHandleHint" hidden>{COPY.handleHint}</p>
+                    </div>
+                    <div class="field pfx-wide">
+                      <label for="pfBio">{COPY.bio}</label>
+                      <textarea class="inp" id="pfBio" name="bio" rows="3" maxlength="500" placeholder={COPY.bioPh}></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="pfRole">{COPY.roleLabel}</label>
+                      <select class="ctrl" id="pfRole">
+                        <option value="">{COPY.roleNone}</option>
+                        {CITIZEN_ROLES.map(r => (
+                          <option value={r.id}>{r.symbol} {lang === 'de' ? r.labelDe : r.labelEn}</option>
                         ))}
-                      </div>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="pfOrg">{COPY.orgName}</label>
+                      <input class="inp" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
+                    </div>
+                    <div class="field">
+                      <label for="pfStatusState">{COPY.pfActivity} <button type="button" class="pfx-i" data-tip="pfActivityTip" aria-label={COPY.pfMore}>i</button></label>
+                      <select class="ctrl" id="pfStatusState" aria-describedby="pfActivityTip">
+                        <option value="">{lang === 'de' ? '— Automatisch (Präsenz) —' : '— Automatic (presence) —'}</option>
+                        <option value="ingame">{lang === 'de' ? STATUS_STATES.ingame.labelDe : STATUS_STATES.ingame.labelEn}</option>
+                        <option value="mission">{lang === 'de' ? STATUS_STATES.mission.labelDe : STATUS_STATES.mission.labelEn}</option>
+                      </select>
+                      <p class="pfx-tiptext" id="pfActivityTip" hidden>{COPY.pfActivityTip}</p>
+                    </div>
+                    <div class="field">
+                      <label for="pfStatusText">{COPY.statusText}</label>
+                      <input class="inp" id="pfStatusText" type="text" maxlength="60" placeholder={COPY.statusTextPh} />
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="subpanel sp-status">
-                <h3 class="subhead">{COPY.secRoleStatus}</h3>
-                <div class="pf-grid2">
+                <div class="pfx-sec sp-design" id="pfSecLook" role="tabpanel" aria-labelledby="pfTabLook" data-pfsec="look" hidden>
                   <div class="field">
-                    <label for="pfStatusState">{lang === 'de' ? 'Aktivität' : 'Activity'} <span class="hint">{lang === 'de' ? 'Online/Abwesend/Offline automatisch' : 'Online/Away/Offline are automatic'}</span></label>
-                    <select class="ctrl" id="pfStatusState">
-                      <option value="">{lang === 'de' ? '— Automatisch (Präsenz) —' : '— Automatic (presence) —'}</option>
-                      <option value="ingame">{lang === 'de' ? STATUS_STATES.ingame.labelDe : STATUS_STATES.ingame.labelEn}</option>
-                      <option value="mission">{lang === 'de' ? STATUS_STATES.mission.labelDe : STATUS_STATES.mission.labelEn}</option>
-                    </select>
-                  </div>
-                  <div class="field">
-                    <label for="pfStatusText">{COPY.statusText}</label>
-                    <input class="inp" id="pfStatusText" type="text" maxlength="60" placeholder={COPY.statusTextPh} />
-                  </div>
-                  <div class="field">
-                    <label for="pfRole">{COPY.roleLabel}</label>
-                    <select class="ctrl" id="pfRole">
-                      <option value="">{COPY.roleNone}</option>
-                      {CITIZEN_ROLES.map(r => (
-                        <option value={r.id}>{r.symbol} {lang === 'de' ? r.labelDe : r.labelEn}</option>
+                    <label>{COPY.bannerSelect}</label>
+                    <div class="banner-grid-picker" id="bannerGridPicker">
+                      {BANNER_PRESETS.map((b, idx) => (
+                        <button type="button" class={`banner-thumb-card ${idx === 0 ? 'selected' : ''}`} data-banner-url={b.url} style={`background-image: url('${b.thumb}')`} title={b.name}>
+                          <span class="banner-thumb-title">{b.name}</span>
+                        </button>
                       ))}
-                    </select>
+                    </div>
+                    <div class="acx-upload" data-kind="banner">
+                      <input type="file" id="pfBannerFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+                      <button type="button" class="acx-upload__btn" id="pfBannerUploadBtn"><span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadBanner}</span></button>
+                      <button type="button" class="acx-upload__remove" id="pfBannerRemove" hidden>{COPY.uploadRemove}</button>
+                      <span class="acx-upload__status" id="pfBannerUploadStatus" role="status" aria-live="polite"></span>
+                    </div>
+                    <!-- Datenträger für die Banner-URL (Picker/Upload schreiben rein); nicht sichtbar -->
+                    <input type="hidden" id="pfBannerUrl" />
                   </div>
                   <div class="field">
-                    <label for="pfDiscord">{COPY.discordTag}</label>
-                    <input class="inp" id="pfDiscord" type="text" maxlength="40" placeholder={COPY.discordPh} />
+                    <label>{COPY.avatarSelect}</label>
+                    <div class="avatar-grid-picker" id="avatarGridPicker">
+                      {AVATAR_PRESETS.map((a, idx) => (
+                        <button type="button" class={`avatar-thumb-card ${idx === 0 ? 'selected' : ''}`} data-avatar-icon={a.symbol} data-avatar-color={a.defaultColor} title={a.name}>
+                          <span>{a.symbol}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div class="acx-upload" data-kind="avatar">
+                      <input type="file" id="pfAvatarFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+                      <button type="button" class="acx-upload__btn" id="pfAvatarUploadBtn"><span class="acx-upload__ico" aria-hidden="true">⬆</span> <span>{COPY.uploadAvatar}</span></button>
+                      <button type="button" class="acx-upload__btn acx-upload__dc" id="pfAvatarDiscord" hidden><img id="pfAvatarDiscordImg" src="" alt="" /> <span>{COPY.avatarDiscord}</span></button>
+                      <button type="button" class="acx-upload__remove" id="pfAvatarRemove" hidden>{COPY.uploadRemove}</button>
+                      <span class="acx-upload__status" id="pfAvatarUploadStatus" role="status" aria-live="polite"></span>
+                    </div>
+                    <!-- Datenträger für die Avatar-URL (Picker/Upload schreiben rein); nicht sichtbar -->
+                    <input type="hidden" id="pfAvatarUrl" />
                   </div>
                   <div class="field">
-                    <label for="pfOrg">{COPY.orgName}</label>
-                    <input class="inp" id="pfOrg" type="text" maxlength="60" placeholder={COPY.orgPh} />
+                    <label>{COPY.avatarColorSelect}</label>
+                    <div class="color-grid-picker" id="colorGridPicker">
+                      {ACCENT_COLORS.map((c, idx) => (
+                        <button type="button" class={`color-swatch ${idx === 0 ? 'selected' : ''}`} data-color={c.hex} style={`background: ${c.hex}; color: ${c.hex}`} title={c.name}></button>
+                      ))}
+                    </div>
                   </div>
+                </div>
+
+                <div class="pfx-sec sp-social" id="pfSecLinks" role="tabpanel" aria-labelledby="pfTabLinks" data-pfsec="links" hidden>
+                  <div class="pfx-grid">
+                    <div class="field">
+                      <label for="pfDiscord">{COPY.discordTag}</label>
+                      <input class="inp" id="pfDiscord" type="text" maxlength="40" placeholder={COPY.discordPh} />
+                    </div>
+                    <div class="field">
+                      <label for="pfTwitch" class="pf-soc-l pf-soc-l--tw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.3 3 3 6.4v13.1h4.5V22h2.5l2.4-2.5h3.6L21 14.6V3H4.3Zm14.9 10.7-2.8 2.8h-4.5l-2.4 2.4v-2.4H5.7V4.8h13.5v8.9ZM16.4 7.6h-1.8v5.1h1.8V7.6Zm-4.9 0H9.7v5.1h1.8V7.6Z"/></svg> Twitch</label>
+                      <div class="inp-affix"><span class="pre">twitch.tv/</span><input class="inp mono" id="pfTwitch" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
+                    </div>
+                    <div class="field">
+                      <label for="pfYoutube" class="pf-soc-l pf-soc-l--yt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg> YouTube</label>
+                      <div class="inp-affix"><span class="pre">youtube.com/@</span><input class="inp mono" id="pfYoutube" type="text" maxlength="80" autocapitalize="off" spellcheck="false" /></div>
+                    </div>
+                    <div class="field">
+                      <label for="pfX" class="pf-soc-l pf-soc-l--x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7 4.2H5l12 16Z"/></svg> X</label>
+                      <div class="inp-affix"><span class="pre">x.com/</span><input class="inp mono" id="pfX" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pfx-sec sp-status" id="pfSecVis" role="tabpanel" aria-labelledby="pfTabVis" data-pfsec="vis" hidden>
                   <div class="field">
                     <label for="pfPresenceVis">{COPY.presenceVis}</label>
                     <select class="ctrl" id="pfPresenceVis">
@@ -848,52 +891,76 @@ const SEC = {
                       <option value="none">{COPY.presenceVisNone}</option>
                     </select>
                   </div>
-                </div>
-                <label class="pf-check">
-                  <input type="checkbox" id="pfShareActivity" checked />
-                  <span>{COPY.shareActivity}</span>
-                </label>
-                <label class="pf-check">
-                  <input type="checkbox" id="pfShowFavs" checked />
-                  <span>{COPY.showFavs}</span>
-                </label>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">
-                  <button class="btn primary" type="submit" id="pfBtn"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> <span id="pfBtnTxt">{COPY.saveProfile}</span></button>
-                </div>
-                <p class="acx-status" id="pfStatus" role="status" aria-live="polite" hidden></p>
-              </div>
-
-              <!-- Testpilot-Zustimmungsschalter (D-22) — nur sichtbar fuer
-                   Konten mit is_tester=true; per JS ein/ausgeblendet, siehe
-                   account-dashboard.ts. Standard AUS (DB-Vorgabewert). -->
-              <div class="subpanel sp-social">
-                <h3 class="subhead">Socials</h3>
-                <div class="field">
-                  <label for="pfTwitch" class="pf-soc-l pf-soc-l--tw"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.3 3 3 6.4v13.1h4.5V22h2.5l2.4-2.5h3.6L21 14.6V3H4.3Zm14.9 10.7-2.8 2.8h-4.5l-2.4 2.4v-2.4H5.7V4.8h13.5v8.9ZM16.4 7.6h-1.8v5.1h1.8V7.6Zm-4.9 0H9.7v5.1h1.8V7.6Z"/></svg> Twitch</label>
-                  <div class="inp-affix"><span class="pre">twitch.tv/</span><input class="inp mono" id="pfTwitch" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
-                </div>
-                <div class="field">
-                  <label for="pfYoutube" class="pf-soc-l pf-soc-l--yt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg> YouTube</label>
-                  <div class="inp-affix"><span class="pre">youtube.com/@</span><input class="inp mono" id="pfYoutube" type="text" maxlength="80" autocapitalize="off" spellcheck="false" /></div>
-                </div>
-                <div class="field" style="margin-bottom:0">
-                  <label for="pfX" class="pf-soc-l pf-soc-l--x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7 4.2H5l12 16Z"/></svg> X</label>
-                  <div class="inp-affix"><span class="pre">x.com/</span><input class="inp mono" id="pfX" type="text" maxlength="60" autocapitalize="off" spellcheck="false" /></div>
-                </div>
-              </div>
-
-              <div class="subpanel sp-tester" id="pfTesterPanel" hidden>
-                <h3 class="subhead">{COPY.secTester}</h3>
-                <div class="field" style="margin-bottom:0">
-                  <label style="display:flex;align-items:center;gap:0.55rem;font-weight:400">
-                    <input type="checkbox" id="pfTesterCredit" />
-                    <span>{COPY.testerConsent}</span>
+                  <label class="pf-check pfx-sw">
+                    <input type="checkbox" id="pfShareActivity" checked aria-describedby="pfShareTip" />
+                    <span>{COPY.shareActivity}</span>
+                    <button type="button" class="pfx-i" data-tip="pfShareTip" aria-label={COPY.pfMore}>i</button>
                   </label>
-                  <span class="hint">{COPY.testerConsentHint}</span>
+                  <p class="pfx-tiptext" id="pfShareTip" hidden>{COPY.pfShareTip}</p>
+                  <label class="pf-check pfx-sw">
+                    <input type="checkbox" id="pfShowFavs" checked />
+                    <span>{COPY.showFavs}</span>
+                  </label>
+                  <!-- Testpilot-Zustimmung (D-22): nur für Konten mit is_tester=true;
+                       account-dashboard.ts blendet sie ein. Standard AUS. -->
+                  <div class="pfx-tester" id="pfTesterPanel" hidden>
+                    <label class="pf-check pfx-sw">
+                      <input type="checkbox" id="pfTesterCredit" aria-describedby="pfTesterTip" />
+                      <span>{COPY.testerConsent}</span>
+                      <button type="button" class="pfx-i" data-tip="pfTesterTip" aria-label={COPY.pfMore}>i</button>
+                    </label>
+                    <p class="pfx-tiptext" id="pfTesterTip" hidden>{COPY.testerConsentHint}</p>
+                  </div>
                 </div>
+              </div>
+
+              <div class="pfx-save">
+                <button class="btn primary" type="submit" id="pfBtn"><svg viewBox="0 0 24 24"><use href="#ic-check"/></svg> <span id="pfBtnTxt">{COPY.saveProfile}</span></button>
+                <span class="pfx-dirty" id="pfDirty" hidden>{COPY.pfUnsaved}</span>
+                <p class="acx-status" id="pfStatus" role="status" aria-live="polite" hidden></p>
               </div>
             </form>
           </div>
+
+          <aside class="pfx-view mp" id="mp" aria-label={COPY.mpLabel} data-lang={lang} data-copy={JSON.stringify({ noHandle: COPY.mpNoHandle, verified: COPY.mpVerified, tester: COPY.mpTester, complete: COPY.mpComplete, since: COPY.mpSince })}>
+            <div class="mp-bar">
+              <span class="mp-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="mp-url" id="mpUrl"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-lock"/></svg><span id="mpUrlTxt"></span></span>
+              <a class="mp-open" id="mpOpen" href="#" target="_blank" rel="noopener noreferrer" title={COPY.mpOpen} aria-label={COPY.mpOpen} hidden><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-ext"/></svg></a>
+            </div>
+            <div class="mp-page">
+              <div class="mp-hero">
+                <button type="button" class="mp-banner" id="mpBanner" data-goto="bannerGridPicker" title={COPY.mpEditBanner} aria-label={COPY.mpEditBanner}></button>
+                <div class="mp-chrome" aria-hidden="true"><span>UEE CITIZEN REGISTRY // VERSEBASE</span><span>REG <b id="mpReg">VB-—</b></span></div>
+                <div class="mp-body">
+                  <button type="button" class="mp-av" id="mpAv" data-goto="avatarGridPicker" title={COPY.mpEditAvatar} aria-label={COPY.mpEditAvatar}>
+                    <span class="mp-av__box" id="mpAvBox"><span id="mpAvTxt">◆</span><img id="mpAvImg" src="" alt="" hidden /></span>
+                    <i class="mp-dot" id="mpDot" aria-hidden="true"></i>
+                  </button>
+                  <div class="mp-id">
+                    <button type="button" class="mp-name" data-goto="pfName"><b id="mpName">Citizen</b><span class="mp-ver" id="mpVer" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-check"/></svg></span></button>
+                    <button type="button" class="mp-handle" id="mpHandle" data-goto="pfHandle">@citizen</button>
+                    <button type="button" class="mp-meta" data-goto="pfStatusText"><span class="mp-role" id="mpRole" hidden></span><span class="mp-state" id="mpState"></span><span class="mp-stxt" id="mpStatusTxt"></span></button>
+                    <button type="button" class="mp-bio" id="mpBio" data-goto="pfBio" hidden></button>
+                    <button type="button" class="mp-soc" id="mpSoc" data-goto="pfTwitch" hidden></button>
+                  </div>
+                </div>
+              </div>
+              <div class="mp-sec">
+                <div class="mp-k"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-id"/></svg>{COPY.mpPilot}</div>
+                <div class="mp-badges" id="mpBadges"></div>
+              </div>
+              <button type="button" class="mp-sec mp-hangar" data-tab-jump="favs" title={COPY.mpHangarGo}>
+                <span class="mp-k"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-ship"/></svg>{COPY.mpHangar} <b id="mpHangarN"></b></span>
+                <span class="mp-tiles" id="mpTiles"></span>
+                <span class="mp-off" id="mpHangarEmpty" hidden>{COPY.mpHangarEmpty}</span>
+              </button>
+              <button type="button" class="mp-sec mp-favs" id="mpFavs" data-goto="pfShowFavs">
+                <span class="mp-k"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-star"/></svg>{COPY.mpFavs} <b id="mpFavN"></b></span>
+                <span class="mp-off" id="mpFavOff" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-eyeoff"/></svg>{COPY.mpHidden}</span>
+              </button>
+            </div>
+          </aside>
 
           <aside class="livecard">
             <div class="lp-cap">{lang === 'de' ? 'Live-Vorschau deiner Karte' : 'Live preview of your card'}</div>
@@ -1246,6 +1313,7 @@ const SEC = {
 <script>
 import '../../scripts/account-dashboard';
 import '../../scripts/account-cockpit';
+import '../../scripts/account-profile-view';
 import '../../scripts/account-saved';
 import '../../scripts/account-security';
 </script>

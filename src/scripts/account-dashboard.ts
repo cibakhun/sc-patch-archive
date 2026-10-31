@@ -611,6 +611,24 @@ import { layoutList, shipLabel } from './account-layouts';
         const statBar = document.getElementById('pcStatBar') as HTMLElement | null;
         if (statBar) statBar.style.width = pct + '%';
 
+        // Mini-Pilotenseite neben dem Formular (account-profile-view.ts):
+        // dieselben Werte, wie sie ein Besucher von /pilot/<handle> sähe.
+        document.dispatchEvent(new CustomEvent('vb:profile-view', { detail: {
+          name: dName,
+          handle: handleInput.value.trim().toLowerCase(),
+          savedHandle: profileState.handle || '',
+          icon: initial, color: avColor, avatar: avUrl, banner: bUrl,
+          state: lang === 'de' ? stInfo.labelDe : stInfo.labelEn, stateColor: stInfo.color, pulse: !!stInfo.pulse,
+          statusText: cStatusText,
+          role: roleObj ? `${roleObj.symbol} ${lang === 'de' ? roleObj.labelDe : roleObj.labelEn}` : '',
+          verified: isVerified, rsi: rsiHandle, org: orgTxt, bio: bioTxt,
+          socials: Object.fromEntries(SOCIALS.map((s) => [s.key, normalizeSocial(s.key, socialInputs[s.key]?.value || '') || ''])),
+          tester: profileState.is_tester === true,
+          complete: pct === 100,
+          since: user.created_at || '',
+          showFavs: showFavsInput ? showFavsInput.checked : true,
+        } }));
+
         // ---- Übersicht spiegeln (identische Werte wie die Profilkarte) ----
         const ovTxt = (id: string, val: string) => { const el = document.getElementById(id); if (el) el.textContent = val; };
         ovTxt('ovHeadName', dName);
@@ -689,7 +707,8 @@ import { layoutList, shipLabel } from './account-layouts';
         ] }));
       };
 
-      [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput].forEach(el => {
+      [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput, ...Object.values(socialInputs), showFavsInput].forEach(el => {
+        if (!el) return;
         el.addEventListener('input', updateCard);
         el.addEventListener('change', updateCard);
       });
@@ -1391,6 +1410,10 @@ import { layoutList, shipLabel } from './account-layouts';
       const pfStatus = document.getElementById('pfStatus')!;
       const pfBtn = document.getElementById('pfBtn') as HTMLButtonElement;
 
+      // Fehler beim Speichern: zum Feld springen. Das Formular steht in
+      // Reitern, ein verdecktes Feld bekäme sonst keinen Fokus.
+      const goField = (id: string) => document.dispatchEvent(new CustomEvent('vb:tab', { detail: { tab: 'profile', el: id } }));
+
       pfForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         pfStatus.hidden = true;
@@ -1398,6 +1421,7 @@ import { layoutList, shipLabel } from './account-layouts';
         const handle = handleInput.value.trim().toLowerCase() || null;
         if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) {
           show(pfStatus as HTMLElement, D.msgHandleFormat!);
+          goField('pfHandle');
           return;
         }
         // Socials: eingefügte Adressen auf den Namen kürzen; was nicht passt,
@@ -1409,7 +1433,7 @@ import { layoutList, shipLabel } from './account-layouts';
           const v = normalizeSocial(s.key, el.value);
           if (v === null) {
             show(pfStatus as HTMLElement, (D.msgSocialBad || '%s').replace('%s', s.label));
-            el.focus();
+            goField(el.id);
             return;
           }
           el.value = v;
@@ -1527,6 +1551,7 @@ import { layoutList, shipLabel } from './account-layouts';
           if (error) {
             if (error.code === '23505') {
               show(pfStatus as HTMLElement, D.msgHandleTaken!);
+              goField('pfHandle');
               return;
             }
             // Wert ausserhalb der Regeln der Datenbank (CHECK, 23514): melden,
@@ -1557,6 +1582,7 @@ import { layoutList, shipLabel } from './account-layouts';
             : { share_activity: shareActVal },
         }));
         show(pfStatus as HTMLElement, D.msgSaved!, true);
+        document.dispatchEvent(new CustomEvent('vb:profile-saved'));
       });
 
       // Favoriten: gezeichnet (mit Filter, Suche, Rückgängig) werden sie in
