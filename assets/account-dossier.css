@@ -1235,14 +1235,6 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
   .acc-main > .acx-tab-panel{min-height:100%}
   .acc-main .metrics{gap:12px}
   .dsr .acc-main .metric{min-height:0}
-  /* Profil: drei Spalten nebeneinander (Identitaet | Status | Aussehen) */
-  .acc-main #profileForm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto auto 1fr;gap:14px;align-items:start}
-  .acc-main #profileForm .subpanel + .subpanel{margin-top:0}
-  .acc-main .sp-id{grid-column:1;grid-row:1}
-  .acc-main .sp-status{grid-column:2;grid-row:1 / span 3}
-  .acc-main .sp-design{grid-column:3;grid-row:1 / span 3}
-  .acc-main .sp-social{grid-column:1;grid-row:2}
-  .acc-main .sp-tester{grid-column:1;grid-row:3}
   .acc-main .seccols{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
@@ -1672,4 +1664,202 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
    ========================================================================== */
 @media (max-width:1099.98px), (max-height:599.98px){
   .dsr .acc:has(#tab-panel-overview[hidden]) :is(.acc-id__bio,.acc-id__chips,.acc-id__soc,.acc-id__since,.acc-dc){display:none}
+}
+
+/* ================= PROFIL MIT LIVE-VORSCHAU (31.10.2026) =================
+   Links das Formular in vier Reitern (Identität, Aussehen, Status, Links),
+   unten die Speichern-Leiste. Rechts die eigene Pilotenseite im Kleinen,
+   wie ein Besucher sie sieht; jeder Teil öffnet beim Klick sein Feld.
+   Erklärungen stehen hinter dem (i) und erscheinen als Blase. */
+#tab-panel-profile{container:pfx / inline-size}
+.dsr .pfx{grid-template-columns:minmax(0,.95fr) minmax(19rem,1.05fr);gap:clamp(12px,1vw,18px);align-items:stretch}
+.pfx-edit{min-width:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--surface) 88%,transparent);overflow:hidden}
+.pfx-tabs{display:flex;gap:4px;padding:8px 8px 0;border-bottom:1px solid var(--line-soft);overflow-x:auto;scrollbar-width:none}
+.pfx-tabs::-webkit-scrollbar{display:none}
+.dsr .pfx-tab{flex:none;display:inline-flex;align-items:center;gap:8px;padding:10px 14px 11px;border:0;border-radius:10px 10px 0 0;background:none;color:var(--muted);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-8);letter-spacing:var(--ls-4);cursor:pointer;box-shadow:inset 0 -2px 0 transparent;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.pfx-tab svg{width:17px;height:17px;flex:none}
+.dsr .pfx-tab:hover{color:var(--text);background:rgba(45,212,255,.06)}
+.dsr .pfx-tab[aria-selected=true]{color:var(--text);background:rgba(45,212,255,.1);box-shadow:inset 0 -2px 0 var(--accent)}
+.pfx-tab[aria-selected=true] svg{color:var(--accent)}
+.pfx-edit #profileForm{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.pfx-body{flex:1 1 auto;min-height:0;padding:clamp(14px,1.2vw,22px)}
+.pfx-sec[hidden]{display:none}
+/* Nebeneinander: der Formularkasten ist so hoch wie sein längster Reiter
+   (alle Reiter liegen in derselben Zelle, die verdeckten unsichtbar), und
+   endet dort, statt leer bis zum Boden zu reichen. Beim Umschalten springt
+   dadurch nichts. */
+@container pfx (min-width:900px){
+  .pfx-edit{align-self:start;max-height:100%}
+  .pfx-body{display:grid}
+  .pfx-sec{grid-area:1 / 1;min-width:0}
+  /* .dsr [hidden] setzt display:none!important; nur hier gezielt aufheben */
+  .dsr .pfx-sec[hidden]{display:block!important;visibility:hidden}
+}
+.pfx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+.pfx-wide{grid-column:1 / -1}
+.dsr .pfx .field{margin-bottom:14px}
+.dsr .pfx .field label{justify-content:flex-start;align-items:center;gap:7px}
+.dsr .pfx textarea.inp{min-height:84px}
+.dsr .pfx .banner-grid-picker{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.dsr .pfx .banner-thumb-title{display:none}
+.dsr .pfx .banner-thumb-card{height:auto;min-width:0;padding:0}
+.dsr .pfx .avatar-grid-picker{grid-template-columns:repeat(auto-fill,minmax(min(40px,100%),1fr));max-width:30rem}
+.dsr .pfx .acx-upload{margin-top:10px}
+
+/* (i) und Blase */
+.dsr .pfx-i{flex:none;width:17px;height:17px;min-height:0;display:inline-grid;place-items:center;padding:0;border:1px solid var(--line-2);border-radius:50%;background:none;color:var(--muted);font-family:var(--font-ui);font-weight:700;font-style:normal;font-size:var(--fs-1);letter-spacing:var(--ls-3);text-transform:none;line-height:1;cursor:help;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.dsr .pfx-i:hover,.dsr .pfx-i:focus-visible{color:var(--accent);border-color:var(--accent)}
+.pfx-bubble{position:fixed;z-index:9500;max-width:min(22rem,calc(100vw - 16px));padding:9px 12px;border:1px solid var(--line-2,rgba(45,212,255,.35));border-radius:10px;background:var(--surface-2,#141c30);color:var(--text,#e8eefc);font-family:var(--font-body);font-size:var(--fs-6);letter-spacing:var(--ls-3);line-height:1.45;box-shadow:0 14px 34px -12px rgba(0,0,0,.6);pointer-events:none}
+.pfx-bubble[hidden]{display:none}
+
+/* Schalter statt Kästchen */
+.dsr .pfx-sw{align-items:center;gap:10px;margin:2px 0 12px}
+.dsr .pfx-sw input{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:36px;height:20px;margin:0;border:1px solid var(--line-2);border-radius:999px;background:var(--bg-2);cursor:pointer;transition:background var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.dsr .pfx-sw input::before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.dsr .pfx-sw input:checked{background:color-mix(in srgb,var(--accent) 30%,var(--bg-2));border-color:var(--accent)}
+.dsr .pfx-sw input:checked::before{transform:translateX(16px);background:var(--accent)}
+.dsr .pfx-sw input:disabled{opacity:.45;cursor:not-allowed}
+.dsr .pfx-sw input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Speichern-Leiste */
+.pfx-save{flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:12px clamp(14px,1.2vw,22px);border-top:1px solid var(--line-soft);background:color-mix(in srgb,var(--surface) 94%,transparent)}
+.dsr .pfx-save .acx-status{margin:0}
+.pfx-dirty{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-6);color:var(--gold)}
+.pfx-dirty::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.pfx-dirty[hidden]{display:none}
+
+/* ---- Mini-Pilotenseite ---- */
+.mp{min-width:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;background:var(--bg-2);overflow:hidden}
+.mp-bar{flex:none;display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line-soft);background:color-mix(in srgb,var(--surface) 92%,transparent)}
+.mp-dots{display:flex;gap:5px}
+.mp-dots i{width:9px;height:9px;border-radius:50%;background:var(--line-2)}
+.mp-url{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:var(--bg-2);font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-3);color:var(--text)}
+.mp-url > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-url svg{flex:none;width:13px;height:13px;color:var(--ok)}
+.mp-url.is-off{color:var(--gold)}
+.mp-url.is-off svg{color:var(--gold)}
+.dsr .mp-open{flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:8px;color:var(--accent)}
+.dsr .mp-open:hover{background:rgba(45,212,255,.12)}
+.mp-open svg{width:16px;height:16px}
+.mp-page{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:10px;padding-bottom:12px;overflow:hidden}
+/* Die Teile der Vorschau sind Knöpfe (Klick öffnet das Feld), sollen aber
+   aussehen wie die Seite: ohne Knopfrahmen und ohne die 44-px-Mindesthöhe
+   für Finger (mobile-ux.css), die den Kopf am Handy auseinanderzöge. */
+.dsr .mp button{font:inherit;color:inherit;text-align:left;background:none;border:0;padding:0;min-height:0;cursor:pointer}
+
+/* Kopf: Banner (bleibt im Hellmodus dunkel), Avatar links, Name daneben */
+.mp-hero{flex:none;position:relative;isolation:isolate;display:flex;flex-direction:column;min-height:clamp(13rem,34vh,30rem);color:#e8eefc;color-scheme:dark;border-bottom:1px solid var(--line)}
+.dsr .mp .mp-banner{position:absolute;inset:0;z-index:-1;background:#0a0e18 center/cover no-repeat;-webkit-mask-image:linear-gradient(#000 35%,rgba(0,0,0,.35) 100%);mask-image:linear-gradient(#000 35%,rgba(0,0,0,.35) 100%)}
+.mp-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:#05070d;pointer-events:none}
+.mp-chrome{display:flex;justify-content:space-between;gap:10px;padding:5px 12px;border-top:2px solid #2dd4ff;border-bottom:1px solid rgba(232,238,252,.14);background:rgba(5,7,13,.6);font-family:var(--font-mono);font-size:var(--fs-1);letter-spacing:var(--ls-12);text-transform:uppercase;color:#8a99b8;pointer-events:none}
+.mp-chrome span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-chrome span:last-child{flex:none}
+.mp-chrome b{color:#2dd4ff;font-weight:400}
+.mp-body{margin-top:auto;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:14px;padding:14px 16px 14px;background:rgba(5,7,13,.55);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.dsr .mp .mp-av{position:relative;width:clamp(64px,4.6vw,88px);aspect-ratio:1;display:grid;place-items:center;border-radius:50%;color:#2dd4ff}
+.mp-av__box{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden;border:3px solid currentColor;border-radius:50%;background:#0a0e18;box-shadow:0 0 24px color-mix(in srgb,currentColor 40%,transparent);font-size:var(--fs-16);line-height:1}
+.mp-av__box img{width:100%;height:100%;object-fit:cover}
+.mp-av__box img[hidden],#mpAvTxt[hidden]{display:none}
+.mp-dot{position:absolute;right:4%;bottom:4%;width:15px;height:15px;border-radius:50%;border:3px solid #0a0e18;background:#64748b}
+.mp-dot.pulse{animation:pulse 1.9s ease-in-out infinite}
+.mp-id{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.dsr .mp .mp-name{max-width:100%;display:flex;align-items:center;gap:8px}
+.mp-name b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-display);font-weight:900;font-size:var(--fs-16);line-height:1.05;letter-spacing:var(--ls-2);color:#fff;text-shadow:0 0 22px rgba(45,212,255,.4)}
+.mp-ver{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#22c55e;color:#04121a}
+.mp-ver[hidden]{display:none}
+.mp-ver svg{width:12px;height:12px;stroke-width:3}
+.dsr .mp .mp-handle{font-family:var(--font-mono);font-size:var(--fs-7);letter-spacing:var(--ls-10);color:#7ae2ff}
+.dsr .mp .mp-meta{max-width:100%;display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-8);color:#c9d4ea}
+.mp-role{padding:3px 9px;border:1px solid rgba(45,212,255,.45);border-radius:6px;background:rgba(45,212,255,.12);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);letter-spacing:var(--ls-4);color:#7ae2ff}
+.mp-role[hidden]{display:none}
+.mp-state{font-weight:700;text-transform:uppercase;color:#2dd4ff}
+.mp-stxt:not(:empty)::before{content:"·";margin-right:10px;color:#8a99b8}
+.mp-stxt{font-style:italic}
+.dsr .mp .mp-bio{max-width:100%;padding-left:10px;border-left:2px solid #2dd4ff;font-size:var(--fs-7);line-height:1.4;color:#e8eefc;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mp-bio[hidden],.mp-soc[hidden]{display:none}
+.dsr .mp .mp-soc{display:flex;gap:6px}
+.mp-soc .soc-link{width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(232,238,252,.18);border-radius:8px;background:rgba(5,7,13,.5);color:var(--soc)}
+.mp-soc .soc-link svg{width:15px;height:15px;fill:currentColor}
+
+/* Abschnitte darunter: Pilot-Abzeichen und Favoriten */
+.dsr .mp .mp-sec{margin:0 12px;padding:11px 12px;border:1px solid var(--line-soft);border-radius:12px;background:color-mix(in srgb,var(--surface) 90%,transparent)}
+.mp-k{display:flex;align-items:center;gap:7px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--text)}
+.mp-k svg{width:14px;height:14px;color:var(--accent)}
+.mp-k b{margin-left:2px;color:var(--muted);font-weight:600}
+.mp-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.mp-badges:empty{display:none}
+.dsr .mp .mp-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--line-2);border-radius:8px;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);color:var(--text)}
+.mp-badge svg{width:12px;height:12px}
+.mp-badge--ok{border-color:color-mix(in srgb,var(--ok) 50%,transparent)!important;color:var(--ok)!important}
+.mp-badge--tester{border-color:rgba(255,94,26,.5)!important;color:#ff5e1a!important}
+.mp-badge--done{border-color:rgba(47,191,164,.5)!important;color:#2fbfa4!important}
+.mp-badge--link svg{color:var(--accent)}
+.dsr .mp .mp-favs{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mp-off{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);color:var(--muted)}
+.mp-off svg{width:15px;height:15px}
+.mp-off[hidden]{display:none}
+.mp-favs.is-off .mp-k{color:var(--muted)}
+
+.dsr .mp .mp-hangar{display:block}
+.mp-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:9px}
+.mp-tiles[hidden]{display:none}
+.mp-tile{position:relative;aspect-ratio:16/10;min-width:0;display:flex;align-items:flex-end;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(to top,rgba(5,7,13,.88),rgba(5,7,13,0) 62%),var(--img,none) center/cover no-repeat,#0f1524;overflow:hidden}
+.mp-tile b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-4);color:#fff}
+.mp-tile.is-pin{border-color:color-mix(in srgb,var(--gold) 70%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold) 35%,transparent)}
+.mp-tile.is-pin b{color:#ffe2a8}
+.mp-tile--more{align-items:center;justify-content:center;font-family:var(--font-num);font-weight:600;font-size:var(--fs-11);color:var(--muted);background:var(--surface-2)}
+.mp-hangar .mp-off{margin-top:8px}
+
+/* Klickbare Teile der Vorschau: Rahmen beim Drüberfahren */
+.dsr .mp [data-goto]{border-radius:8px;outline:1px dashed transparent;outline-offset:3px;transition:outline-color var(--dur-fast) var(--ease-ui)}
+.dsr .mp [data-goto]:focus-visible{outline-color:rgba(45,212,255,.7)}
+/* Nur mit echter Maus: auf dem Handy bliebe der Rahmen nach dem Tippen stehen */
+@media (hover:hover){.dsr .mp [data-goto]:hover{outline-color:rgba(45,212,255,.7)}}
+.dsr .mp .mp-banner[data-goto]{border-radius:0;outline-offset:-3px}
+.dsr .mp .mp-av[data-goto]{border-radius:50%}
+.mp-sec.mp-favs,.mp-sec.mp-hangar{width:calc(100% - 24px)}
+.dsr .mp .mp-hangar:hover,.dsr .mp .mp-hangar:focus-visible{border-color:rgba(45,212,255,.6)}
+
+:root[data-theme="light"] .mp-badge--tester{color:#b1330a!important;border-color:rgba(177,51,10,.45)!important}
+:root[data-theme="light"] .mp-badge--done{color:#157a68!important;border-color:rgba(21,122,104,.45)!important}
+
+/* Breite Schirme: Formular und Vorschau füllen die Mitte genau; nur der
+   Inhalt eines Reiters scrollt, wenn er nicht passt (1280×720). */
+@media (min-width:1100px) and (min-height:600px){
+  .acc-main > #tab-panel-profile:not([hidden]){height:100%;min-height:0;display:flex;flex-direction:column}
+  .acc-main #tab-panel-profile .pfx{flex:1 1 auto;min-height:0}
+  .pfx-body{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+}
+/* Schmale Mitte (1280–1440 breit, Tablet, Handy): oben der Kopf der
+   Pilotenseite über die ganze Breite, wie auf der echten Seite; darunter das
+   Formular. Abzeichen, Hangar und Favoriten zeigt dann nur die echte Seite. */
+@container pfx (max-width:899.98px){
+  .dsr .pfx{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .pfx-view{order:-1}
+  .mp-page{padding-bottom:0}
+  .dsr .mp .mp-page > :not(.mp-hero){display:none}
+  .mp-hero{min-height:clamp(8.5rem,17vh,12rem);border-bottom:0}
+  .mp-bar{padding:5px 10px}
+  .mp-dots{display:none}
+  .dsr .pfx textarea.inp{min-height:62px}
+  .dsr .pfx .field{margin-bottom:10px}
+  .pfx-body{padding:12px 16px}
+}
+@container pfx (max-width:560px){
+  .pfx-grid{grid-template-columns:minmax(0,1fr)}
+  .dsr .pfx .banner-grid-picker{grid-template-columns:repeat(3,minmax(0,1fr))}
+  /* Alle vier Reiter sichtbar statt angeschnitten: ohne Symbol, gleich breit */
+  .dsr .pfx-tab{flex:1 1 auto;justify-content:center;padding:9px 6px 10px}
+  .pfx-tab svg{display:none}
+  .mp-chrome span:first-child{display:none}
+  .mp-hero{min-height:11rem}
+  .mp-body{align-items:center;gap:12px;padding:12px}
+  .dsr .mp .mp-av{width:60px}
+  .mp-av__box{font-size:var(--fs-13)}
+  .mp-name b{font-size:var(--fs-14)}
+}
+/* Handy/Tablet: die Seite scrollt; die Speichern-Leiste klebt unten. */
+@media (max-width:1099.98px), (max-height:599.98px){
+  .pfx-edit{overflow:visible}
+  .pfx-save{position:sticky;bottom:0;z-index:4;border-radius:0 0 16px 16px}
 }
