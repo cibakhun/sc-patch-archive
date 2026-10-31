@@ -165,3 +165,15 @@ test('Tore fragen das Artefakt an EINER Stelle; ohne Stempel gilt der strenge Fa
   assert.match(read('scripts/lib/metrics-baseline.mjs'), /id: 'seitenHangarBuchten',[\s\S]{0,200}nurMitHangar: true/);
   assert.match(read('scripts/verify-metrics.mjs'), /if \(b\.nurMitHangar && !MIT_HANGAR\) \{\s*const leer = ist === 0;/);
 });
+
+test('Browser-Rauchtest: Hangar-Seiten nur mit Hangar, live muessen sie 404 sein', () => {
+  const t = read('scripts/browser-smoke.mjs');
+  // Beide Hangar-Seiten tragen das Feld, sonst liefe der Live-Lauf in 404.
+  const hangarSeiten = [...t.matchAll(/id: '(hangar[\w-]*)'[\s\S]*?\}/g)].map((m) => m[0]);
+  assert.equal(hangarSeiten.length, 2, 'hangar und hangar-layout');
+  for (const s of hangarSeiten) assert.match(s, /nurMitHangar: true/, s.slice(0, 40));
+  // Dieselbe Regel wie hangarImArtefakt(): Stempel des laufenden Artefakts, strenger Fall bei Fehlen.
+  assert.match(t, /let MIT_HANGAR = true;[\s\S]{0,200}fetch\(`\$\{BASE\}\/build\.json`[\s\S]{0,160}\.staging !== false/);
+  // Im Live-Lauf entfallen sie nicht still: jede muss 404 antworten.
+  assert.match(t, /const ok = status === 404;\s*if \(!ok\) fehler\.push\(/);
+});

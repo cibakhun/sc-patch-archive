@@ -128,11 +128,11 @@ const SEITEN = [
     // pane=ship: die Vorgabe der Tafel ist die Layout-Werkstatt, geprueft werden hier die Schiffsdaten.
     en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
     de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
-    leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
+    leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar, nurMitHangar: true,
   },
   // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
-  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt },
+  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt, nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -706,9 +706,20 @@ try {
   process.exit(2);
 }
 
+/* Hangar nur im Vorschau-Bau (Krisz 31.10.2026, scripts/lib/hangar-switch.mjs).
+   Massgeblich ist der Stempel des laufenden Artefakts (/build.json, staging),
+   dieselbe Regel wie hangarImArtefakt(): fehlt oder bricht er, gilt der
+   Hangar als da (strenger Fall). Im Live-Bau entfallen die Hangar-Seiten
+   (`nurMitHangar`) — und an ihrer Stelle muss jede davon 404 antworten. */
+let MIT_HANGAR = true;
+try {
+  const r = await fetch(`${BASE}/build.json`, { headers: GATE_BYPASS_HEADERS });
+  if (r.ok) MIT_HANGAR = (await r.json()).staging !== false;
+} catch { /* strenger Fall */ }
+
 /* ---------- Lauf ---------- */
 console.log(`\n=== Browser-Rauchtest gegen ${BASE} ===`);
-console.log(`Artefakt: ${IST_VORSCHAU ? 'Vorschau-Build (site-weit noindex)' : 'Live-Build'}`);
+console.log(`Artefakt: ${IST_VORSCHAU ? 'Vorschau-Build (site-weit noindex)' : 'Live-Build'}${MIT_HANGAR ? '' : ' ohne Hangar'}`);
 // Selbstauskunft, unter welcher Bedingung dieser Lauf gruen war (Grundsatz
 // 7) — und dieselbe Zeile macht sichtbar, wenn jemand lokal versehentlich
 // MIT Bypass misst.
@@ -716,8 +727,27 @@ console.log(`Testpilot-Tor-Bypass: ${GATE_BYPASS ? 'MIT Bypass geprueft (SMOKE_G
 console.log(`Browser: ${BROWSER}${BROWSER_ARGS.length ? ` (${BROWSER_ARGS.join(' ')})` : ''}\n`);
 
 const browser = await chromium.launch({ executablePath: BROWSER, headless: !KOPF, args: BROWSER_ARGS });
-const seiten = NUR ? SEITEN.filter((s) => s.id === NUR) : SEITEN;
-if (!seiten.length) {
+const ohneHangar = MIT_HANGAR ? [] : SEITEN.filter((s) => s.nurMitHangar && (!NUR || s.id === NUR));
+const seiten = (NUR ? SEITEN.filter((s) => s.id === NUR) : SEITEN).filter((s) => !ohneHangar.includes(s));
+if (ohneHangar.length) {
+  console.log(`\n──────── Ohne Hangar (Live-Bau): ${ohneHangar.map((s) => s.id).join(', ')} entfallen ────────`);
+  for (const s of ohneHangar) {
+    for (const [sprache, pfad] of [['en', s.en], ['de', s.de]].filter(([, p]) => p)) {
+      process.stdout.write(`  ${s.id}/${sprache} muss 404 sein … `);
+      let status = 0;
+      try {
+        status = (await fetch(BASE + pfad, { headers: GATE_BYPASS_HEADERS, redirect: 'manual' })).status;
+      } catch (e) {
+        status = `nicht erreichbar (${e.message})`;
+      }
+      geprueftePunkte++;
+      const ok = status === 404;
+      if (!ok) fehler.push(`${s.id}/${sprache} [ohne Hangar]: ${pfad} antwortet ${status} statt 404 — der Live-Bau traegt den Hangar`);
+      console.log(ok ? 'ok' : 'FEHLER');
+    }
+  }
+}
+if (!seiten.length && !ohneHangar.length) {
   console.error(`Unbekannte Seite "${NUR}". Bekannt: ${SEITEN.map((s) => s.id).join(', ')}`);
   await browser.close();
   process.exit(2);
