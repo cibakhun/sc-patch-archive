@@ -121,3 +121,45 @@ test('Datenbank ohne presence_visibility: Name und Puls laufen weiter, je Tab nu
   assert.equal(pulses(tab).length, 3, 'danach ein Puls je Takt, ohne neuen Fehlversuch');
   assert.match(pulses(tab)[2].url, /select=share_activity$/);
 });
+
+// Abwesend erst nach 15 Minuten ohne Eingabe (31.10.2026, vorher 3): der Puls
+// zieht last_active 12 Minuten nach, die Views geben 3 Minuten dazu
+// (supabase/migrations/20261030110000_presence_visibility.sql: online, solange
+// now() - last_active < 3 min). Hier gerechnet wie dort.
+const VIEW_ONLINE_MS = 3 * 60000;
+const viewSays = (pulse, now) => (now - Date.parse(pulse.body.last_active) < VIEW_ONLINE_MS ? 'online' : 'away');
+
+test('ohne Eingabe: 14 Minuten online, ab 15 Minuten abwesend, und last_active nie in der Zukunft', async () => {
+  const b = makeAccountBrowser({ expiresIn: 7200, profile: { presence_visibility: 'friends', share_activity: true } });
+  const tab = b.open();
+  await b.drain();
+  const t0 = Date.parse(pulses(tab)[0].body.last_seen);
+  const at = (min) => t0 + min * 60000;
+  await b.advance(14 * 60000);
+  let last = pulses(tab).at(-1);
+  assert.equal(Date.parse(last.body.last_seen), at(14));
+  assert.equal(viewSays(last, at(14)), 'online', 'nach 14 Minuten Lesen noch online (vorher ab 3 Minuten abwesend)');
+  assert.ok(Date.parse(last.body.last_active) <= Date.parse(last.body.last_seen), 'nie in der Zukunft');
+  await b.advance(60000);
+  last = pulses(tab).at(-1);
+  assert.equal(viewSays(last, at(15)), 'away', 'nach 15 Minuten ohne Eingabe abwesend');
+  tab.fire('mousemove');
+  await b.advance(30000);
+  assert.equal(viewSays(pulses(tab).at(-1), at(15.5)), 'online', 'eine Bewegung, und beim nächsten Puls wieder online');
+});
+
+test('zwei Tabs: der Tab im Hintergrund meldet die Eingabe des aktiven, nicht seine alte', async () => {
+  const b = makeAccountBrowser({ expiresIn: 7200, profile: { presence_visibility: 'friends', share_activity: true } });
+  const idle = b.open();
+  const busy = b.open();
+  await b.drain();
+  const t0 = Date.parse(pulses(idle)[0].body.last_seen);
+  for (let m = 1; m <= 20; m++) {
+    await b.advance(60000);
+    busy.fire('mousemove');
+  }
+  const last = pulses(idle).at(-1);
+  const now = t0 + 20 * 60000;
+  assert.equal(Date.parse(last.body.last_seen), now);
+  assert.equal(viewSays(last, now), 'online', 'der stille Tab darf den aktiven Besucher nicht auf abwesend werfen');
+});

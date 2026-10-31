@@ -4,8 +4,8 @@
 // Die AUTOMATISCHE Präsenz wird serverseitig in den Views public_profiles /
 // social_profiles aus zwei Signalen abgeleitet (Zwei-Signal-Modell):
 //   last_seen   = "Tab offen"-Ping (account-lite.js, alle 30s solange Tab offen)
-//   last_active = letzte Interaktion
-//   -> Tab offen + idle >3min = away (NIE offline); Tab zu -> ~1min away, 3min offline.
+//   last_active = letzte Interaktion, 12 min nachgezogen (account-lite.js HB_GRACE_MS)
+//   -> Tab offen + 15 min ohne Eingabe = away (NIE offline); Tab zu -> ~1min away, 3min offline.
 // Der Client liest die fertige `presence` aus der View; diese Datei macht nur
 // noch die Aktivitäts-Überlagerung fürs Label/den Punkt.
 // Wer den Status sieht, wählt jeder selbst (profiles.presence_visibility):

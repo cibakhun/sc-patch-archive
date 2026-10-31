@@ -524,11 +524,37 @@
   //               idle oder versteckt). Stoppt erst beim Schließen/Abmelden.
   // last_active = letzte Interaktion (Maus/Taste/Scroll/…). Trennt online (aktiv)
   //               von away (untätig).
-  // Die Views leiten daraus ab: Tab offen + idle >3min = away (NIE offline);
-  // Tab zu -> nach ~1min away, nach 3min offline. Läuft auf ALLEN Seiten
-  // (account-lite ist überall eingebunden), frische Session pro Write.
-  var HB_MS = 30000, hbLastActivity = Date.now(), hbStarted = false;
-  function hbMarkActivity() { hbLastActivity = Date.now(); }
+  // Die Views leiten daraus ab: Tab offen + last_active aelter als 3 min =
+  // away (NIE offline); Tab zu -> nach ~1min away, nach 3min offline. Läuft
+  // auf ALLEN Seiten (account-lite ist überall eingebunden), frische Session
+  // pro Write.
+  // Seit 31.10.2026 zaehlt eine Eingabe 12 Minuten lang als "noch aktiv"
+  // (HB_GRACE_MS): mit den 3 Minuten der Views wird man erst nach 15 Minuten
+  // ohne Maus, Taste oder Scrollen "Abwesend". Vorher reichten 3 Minuten
+  // Lesen, Zuschauen oder ein Blick in Discord (Krisz: "flags people afk to
+  // easy"). Die Schwelle liegt bewusst hier und nicht in den Views: das
+  // braucht keine Aenderung an der Datenbank, und last_active liegt so nie
+  // in der Zukunft (der Wert ist hoechstens jetzt).
+  // Mehrere Tabs: jeder pulst seine Zeile, der letzte Schreiber gewinnt. Ein
+  // Tab im Hintergrund meldete dabei SEINE alte Eingabe und warf den aktiven
+  // Besucher alle paar Sekunden auf "Abwesend" zurueck. Darum teilen sich die
+  // Tabs die letzte Eingabe ueber localStorage (hoechstens alle 5 s
+  // geschrieben, mousemove feuert sehr oft), und jeder meldet die juengste.
+  var HB_MS = 30000, HB_GRACE_MS = 12 * 60000, HB_SHARED = 'vb_hb_active';
+  var hbLastActivity = Date.now(), hbSharedAt = 0, hbStarted = false;
+  function hbMarkActivity() {
+    var t = Date.now();
+    hbLastActivity = t;
+    if (t - hbSharedAt < 5000) return;
+    hbSharedAt = t;
+    try { localStorage.setItem(HB_SHARED, String(t)); } catch (e) { /* noop */ }
+  }
+  function hbActiveIso() {
+    var now = Date.now(), last = hbLastActivity, shared = 0;
+    try { shared = parseInt(localStorage.getItem(HB_SHARED) || '0', 10) || 0; } catch (e) { /* noop */ }
+    if (shared > last && shared <= now) last = shared;
+    return new Date(Math.min(now, last + HB_GRACE_MS)).toISOString();
+  }
 
   // Rich Presence: WAS man gerade macht, als 'art|Name' (Anzeige formt
   // src/lib/presence.ts formatActivity). Nur aus der Adresse und der Seite
@@ -625,7 +651,7 @@
     var uid = sess.user.id;
     if (hbVisOf(uid) === 'none') return;
     var seen = new Date().toISOString();
-    var body = { last_seen: seen, last_active: new Date(hbLastActivity).toISOString() };
+    var body = { last_seen: seen, last_active: hbActiveIso() };
     var path = 'profiles?id=eq.' + uid;
     var level = hbLevel;
     if (level === 0) { rest(sess, 'PATCH', path, body).catch(function () { /* noop */ }); return; }
@@ -660,7 +686,7 @@
   function startHeartbeat() {
     if (hbStarted) return;
     hbStarted = true;
-    ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'pointerdown', 'wheel'].forEach(function (ev) {
+    ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'pointerdown', 'wheel', 'focus'].forEach(function (ev) {
       addEventListener(ev, hbMarkActivity, { passive: true });
     });
     // Bei Rückkehr auf den Tab sofort pingen (schnelleres Zurück-auf-online)
