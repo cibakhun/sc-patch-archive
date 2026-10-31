@@ -65,6 +65,44 @@ function boot(root: HTMLElement) {
     if (b) openForm(b, true);
   });
 
+  /* -------------------------------------------------------------- Schild --- */
+  // „3 von 4": zweiter Anmeldeweg (Passwort, Discord), bestätigte RSI-Identität
+  // und Zwei-Faktor, letzteres nur, wo die Karte dafür angeboten wird
+  // (account-mfa.ts meldet das mit 'vb:mfa'). null = (noch) nicht bekannt,
+  // der Punkt fehlt dann und zählt nicht mit.
+  const shield: Record<string, boolean | null> = { pass: null, dc: null, rsi: null, mfa: null };
+  const shieldEl = $('secShield');
+  const paintShield = () => {
+    if (!shieldEl || shield.pass === null) return;
+    let n = 0, t = 0;
+    shieldEl.querySelectorAll<HTMLButtonElement>('.sec-step').forEach((b) => {
+      const v = shield[b.dataset.step || ''] ?? null;
+      (b.parentElement as HTMLElement).hidden = v === null;
+      if (v === null) return;
+      t++;
+      if (v) n++;
+      b.classList.toggle('is-done', v);
+      b.querySelector('span')!.textContent = (v ? b.dataset.on : b.dataset.off) || '';
+    });
+    $('secShieldN')!.textContent = n === t ? C.shieldAll : C.shieldN.replace('%n%', String(n)).replace('%t%', String(t));
+    $('secShieldLevel')?.setAttribute('y', String(56 - 56 * (t ? n / t : 0)));
+    shieldEl.classList.toggle('is-full', n === t);
+    shieldEl.hidden = false;
+  };
+  // Offener Punkt: dorthin, wo man ihn erledigt (Formular klappt auf, siehe
+  // 'vb:tab' oben); erledigter Punkt: zu seiner Zeile.
+  shieldEl?.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('.sec-step');
+    if (!b) return;
+    const el = b.classList.contains('is-done') ? b.dataset.doneGo : b.dataset.go;
+    document.dispatchEvent(new CustomEvent('vb:tab', { detail: { tab: 'security', el } }));
+  });
+  document.addEventListener('vb:mfa', (e) => {
+    const d = ((e as CustomEvent).detail || {}) as { offered?: boolean; active?: boolean };
+    shield.mfa = d.offered ? !!d.active : null;
+    paintShield();
+  });
+
   /* -------------------------------------------- Konto-Daten und Discord --- */
   const when = (iso?: string | null, withTime = false) => {
     const t = iso ? Date.parse(iso) : NaN;
@@ -96,6 +134,9 @@ function boot(root: HTMLElement) {
     $('secPassRow')?.classList.toggle('is-off', !hasPass);
     $('secPassVal')!.textContent = hasPass ? '••••••••' : C.noPass;
     setLabel($('secPassBtn') as HTMLButtonElement | null, hasPass ? C.change : C.set);
+    shield.pass = hasPass;
+    shield.dc = !!dc;
+    paintShield();
   };
   $('secDcLink')?.addEventListener('click', () => ($('btnDiscordLink') as HTMLButtonElement | null)?.click());
   $('secDcUnlink')?.addEventListener('click', () => ($('btnDiscordUnlink') as HTMLButtonElement | null)?.click());
@@ -123,6 +164,8 @@ function boot(root: HTMLElement) {
     $('secRsi')?.classList.toggle('is-on', rsi.ok);
     $('secRsiVal')!.textContent = rsi.ok && handle ? '@' + handle : C.rsiNone;
     setLabel($('secRsiBtn') as HTMLButtonElement | null, rsi.ok ? C.change : C.rsiOpen);
+    shield.rsi = rsi.ok;
+    paintShield();
   });
 
   /* ---------------------------------------------------------- Sitzungen --- */
