@@ -11864,8 +11864,10 @@ void main() {
     });
     c.swapped = new Set(want.filter((f, i) => !f.stock && tpls[i]).map((f) => `${f.port}|${f.item ?? 0}`));
     innerFit(c);
-    const stockN = want.filter((f, i) => f.stock && tpls[i]).length;
-    if (stockN && !c.stockLogged) { c.stockLogged = true; console.info(`[hangar] Serienkomponenten an leeren Ankern: ${stockN} von ${want.filter((f) => f.stock).length}`); }
+    // Zeile nur, wenn sich die Bestückung ändert (die Werkstatt ruft fit() bei jeder Änderung)
+    const stockN = want.filter((f, i) => f.stock && tpls[i]).length, stockAll = want.filter((f) => f.stock).length;
+    const sig = `${c.swapped.size}/${stockN}/${stockAll}`;
+    if ((c.swapped.size || stockAll) && c.fitSig !== sig) { c.fitSig = sig; console.info(`[hangar] Tauschteile: ${c.swapped.size} getauscht, Serienkomponenten an leeren Ankern: ${stockN} von ${stockAll}`); }
     c.model.updateMatrixWorld(true);
     shadowSig = '';
     wake(800);

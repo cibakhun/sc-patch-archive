@@ -164,6 +164,8 @@
      g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
+     i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
+        loeschen (Serienteil von 36 Ankern)                         -> [13]
      j  in dist/hangar-layouts.json einen Ton auf 'rot' setzen       -> [14]
      k  in dist/hangar-layouts.json die Serienpalette der Gladius
         verstellen (Ton trifft kein Material mehr)                   -> [14]
@@ -662,16 +664,26 @@ say('\n[13] Getauschte Bordwaffen: Modelle der Werkstatt und Tauschteile der Sch
 // 112 der 125 gebauten Waffenmodelle passen in einen Werkstatt-Slot, die
 // zehn Schiffe mit Lack tragen 37 Waffen-Ports als Tauschteile.
 const TAUSCH = { modelle: 112, ports: 37 };
+// Komponenten (Kraftwerk, Kühler, Schild, Quantum, Radar) tauschen seit dem
+// 31.10.2026 wie die Bordwaffen; jeder Komponentenanker nennt in extras.stock
+// das Modell seines Serienteils, das der Viewer an leeren Ankern einsetzt
+// (.planning/notes/hangar-komponenten/probe.md). Gemessen 31.10.2026: 311
+// Komponentenmodelle in der Werkstatt, 1783 Anker mit Serienteil.
+const KOMP = { modelle: 311, serie: 1783 };
+const KOMP_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 {
   const lf = join(DIST, 'hangar-layouts.json');
   const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
   const models = Object.entries(ld.models ?? {});
   const bad = models.filter(([, u]) => !/\?v=[0-9a-f]{6,}$/.test(u) || !existsSync(join(DIST, u.replace(/\?.*$/, ''))));
   for (const [k, u] of bad.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k}: ${u} ohne ?v= oder nicht in dist/`);
-  const notGun = models.filter(([k]) => ld.items?.[k]?.[2] !== 'gun');
-  for (const [k] of notGun.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k} ist keine Bordwaffe der Werkstatt`);
+  const notGun = models.filter(([k]) => ld.items?.[k]?.[2] !== 'gun' && !KOMP_TYPES.has(ld.items?.[k]?.[2]));
+  for (const [k] of notGun.slice(0, 10)) fail(`[13] Werkstatt-Modell ${k} ist weder Bordwaffe noch Komponente der Werkstatt`);
+  const komp = models.filter(([k]) => KOMP_TYPES.has(ld.items?.[k]?.[2]));
+  const guns = models.length - komp.length;
   const shipDir = join(DIST, 'hangar', 'ships');
-  let ports = 0, nodes = 0, badAnchor = 0;
+  let ports = 0, nodes = 0, badAnchor = 0, serie = 0;
+  const serieFehlt = new Map();   // URL -> Schiffe
   const perShip = [];
   for (const f of existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')) : []) {
     const buf = readFileSync(join(shipDir, f));
@@ -684,17 +696,24 @@ const TAUSCH = { modelle: 112, ports: 37 };
       nodes++;
       mine.add(`${x.swap}|${x.item ?? 0}`);
       if (!Array.isArray(x.anchor) || x.anchor.length !== 16 || !x.anchor.every(Number.isFinite)) badAnchor++;
+      if (x.stock === undefined) continue;
+      serie++;
+      const okUrl = typeof x.stock === 'string' && /^\/hangar\/components\/[A-Za-z0-9_.-]+\.glb\?v=[0-9a-f]{6,}$/.test(x.stock) && existsSync(join(DIST, x.stock.replace(/\?.*$/, '')));
+      if (!okUrl) serieFehlt.set(String(x.stock), [...(serieFehlt.get(String(x.stock)) ?? []), f.replace(/\.glb$/, '')]);
     }
     ports += mine.size;
     perShip.push(`${f.replace(/\.glb$/, '')} ${mine.size}`);
   }
   if (badAnchor) fail(`[13] ${badAnchor} Tauschteil-Knoten ohne gueltige anchor-Matrix: der Viewer setzt die Waffe dort nicht`);
-  say(`    Werkstatt-Modelle: ${models.length} (${bad.length} ohne Datei/Version, ${notGun.length} keine Bordwaffe)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten`);
+  say(`    Werkstatt-Modelle: ${models.length} (${guns} Bordwaffen, ${komp.length} Komponenten; ${bad.length} ohne Datei/Version, ${notGun.length} weder noch)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten, davon ${serie} mit Serienteil`);
   say(`      ${perShip.join(', ')}`);
-  sollIst(`Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}`, `${models.length}, ${ports}`);
-  if (models.length < TAUSCH.modelle) fail(`[13] nur ${models.length} Waffenmodelle in der Werkstatt (Klinke ${TAUSCH.modelle}): fehlt src/data/hangar-assets.json weapons oder der Schluessel-Join in src/lib/hangar/layouts.ts?`);
+  sollIst(`Bordwaffen-Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}, Komponenten-Modelle >= ${KOMP.modelle}, Anker mit Serienteil >= ${KOMP.serie}, jedes Serienteil in dist/`, `${guns}, ${ports}, ${komp.length}, ${serie}, ${serieFehlt.size} fehlen`);
+  for (const [u, ships] of [...serieFehlt].slice(0, 10)) fail(`[13] Serienteil ${u} (${ships.length} Anker, z. B. ${ships[0]}) ohne ?v= oder nicht in dist/hangar/components: der leere Anker bleibt leer`);
+  if (guns < TAUSCH.modelle) fail(`[13] nur ${guns} Waffenmodelle in der Werkstatt (Klinke ${TAUSCH.modelle}): fehlt src/data/hangar-assets.json weapons oder der Schluessel-Join in src/lib/hangar/layouts.ts?`);
+  if (komp.length < KOMP.modelle) fail(`[13] nur ${komp.length} Komponentenmodelle in der Werkstatt (Klinke ${KOMP.modelle}): fehlt src/data/hangar-assets.json components oder COMPONENT_MODELS in src/lib/hangar/layouts.ts?`);
+  if (serie < KOMP.serie) fail(`[13] nur ${serie} Komponentenanker mit Serienteil (Klinke ${KOMP.serie}): Schiffe ohne extras.stock gebaut (scripts/build-hangar-assets.mjs)?`);
   if (ports < TAUSCH.ports) fail(`[13] nur ${ports} Waffen-Ports mit Tauschteilen (Klinke ${TAUSCH.ports}): Schiffe ohne markSwapParts gebaut (scripts/build-hangar-assets.mjs)?`);
-  ist.tauschModelle = models.length; ist.tauschPorts = ports;
+  ist.tauschModelle = guns; ist.tauschPorts = ports; ist.kompModelle = komp.length; ist.kompSerie = serie;
 }
 
 say('\n[14] Lackierungen: Daten der Werkstatt und Palettenmaterialien der Schiffe mit Lack');
@@ -1239,7 +1258,7 @@ const INNEN = { min: 217, randM: 0.5 };
 }
 
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');
