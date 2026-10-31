@@ -37,16 +37,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 /* Sperrklinken (nur nach oben; nach unten per Commit mit Begruendung). */
-/* ⚠ KLINKE GESENKT 31.08.2026 von 90 auf 85 — mit Ursache, wie CLAUDE.md
-   § 4 Punkt 5 es verlangt: dieser Zweig (live) traegt WENIGER Dateien als
-   staging. Die Komponenten der Phasen 14/16/17 (Schiffs-Kapitel, Konsole,
-   Hangar) sind auf live bewusst nicht ausgerollt, und mit ihnen fehlen
-   ihre Spaltenrezepte: gezaehlt 88 statt 95.
-   85 ist deshalb der Wert, der auf BEIDEN Zweigen traegt. Er bleibt eine
-   echte Klinke — faellt die Zahl darunter, ist entweder eine Datei weg
-   oder der Sucher greift nicht mehr. Wenn staging spaeter nach live geht,
-   kommt die staging-Fassung mit dem hoeheren Wert mit. */
-const MIN_RECIPES = 85; // gezaehlt 31.08.2026: live 88, staging 95
+const MIN_RECIPES = 90; // gezaehlt 30.08.2026: 95
 const MIN_STANDALONE = 2; // gezaehlt 30.08.2026: 2 Quelldateien
 
 const ROOTS = ['src', 'assets'];

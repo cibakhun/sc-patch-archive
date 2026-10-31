@@ -88,6 +88,7 @@ const UI = {
     'nav.deck.sub.wikelo': 'Banu-Handel',
     'nav.deck.sub.items': 'Preise & Fundorte',
     'nav.deck.sub.ships': 'Datenblätter & Specs',
+    'nav.deck.sub.hangar': 'Jedes Schiff in 3D',
     'nav.deck.sub.missions': 'Belohnungen & Ruf',
     'nav.deck.sub.archive': 'Alle Versionen',
     'nav.deck.sub.topics': 'Themen-Verzeichnis',
@@ -100,15 +101,6 @@ const UI = {
     'nav.deck.hint.nav': 'Navigieren',
     'nav.deck.hint.open': 'Öffnen',
     'nav.deck.hint.close': 'Schließen',
-    // -- Startseiten-Launchpad (großes zentrales Menü, schrumpft beim Scrollen) --
-    'home.launch.aria': 'Hauptbereiche',
-    'home.launch.hint': 'Bereiche',
-    'home.launch.ships.sub': 'Datenbank',
-    'home.launch.evolution.sub': 'Systeme × Patches',
-    'home.launch.patches.sub': 'Alle Versionen',
-    'home.launch.wikelo.sub': 'Banu-Händler',
-    'home.launch.crafting.sub': 'Blaupausen',
-    'home.launch.mining.sub': 'Mineralien',
     // -- Breadcrumbs --
     'crumbs.archive': 'Archiv',
     'crumbs.ships': 'Schiffe',
@@ -166,6 +158,8 @@ const UI = {
     'ship.view.3d': '3D-Holo',
     'ship.view.switch': 'Darstellung wechseln',
     'ship.video.play': 'Commercial abspielen',
+    // Klick-Schranke vor dem YouTube-Player (ShipDetail #holoytgate)
+    'ship.video.note': 'Der Klick lädt das Video von YouTube, also von Google.',
     'ship.video.fallback': 'Auf YouTube ansehen',
     'ship.holo.drag': '3D-Ansicht — ziehen zum Drehen',
     'ship.holo.loading': '3D-Modell lädt … %p% %',
@@ -295,10 +289,13 @@ const UI = {
     'ship.rail.rank': 'Leistung',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
-    // -- Favoriten (Konto-Feature; account-lite.js toggelt den Zustand) --
-    'fav.save': 'Merken',
-    'fav.saved': 'Gemerkt',
-    'fav.aria': 'Als Favorit merken (Konto nötig)',
+    // -- Flotte (assets/fleet.js setzt den Zustand; ohne Konto im Browser, mit Konto als Favoriten) --
+    'fleet.add': 'Zur Flotte',
+    'fleet.in': 'In der Flotte',
+    'fleet.aria': 'Zur Flotte hinzufügen (ohne Konto in diesem Browser gespeichert)',
+    'fleet.retry': 'Nicht gespeichert · erneut versuchen',
+    'fleet.resync': 'Nicht abgeglichen · erneut versuchen',
+    'ship.hangar3d': 'Im 3D-Hangar ansehen',
     // stilisierte Mono-Codes (in-universe „Register"-Kürzel)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SCHIFF',
@@ -503,6 +500,7 @@ const UI = {
     'nav.deck.sub.wikelo': 'Banu trades',
     'nav.deck.sub.items': 'Prices & locations',
     'nav.deck.sub.ships': 'Data sheets & specs',
+    'nav.deck.sub.hangar': 'Every ship in 3D',
     'nav.deck.sub.missions': 'Rewards & reputation',
     'nav.deck.sub.archive': 'All versions',
     'nav.deck.sub.topics': 'Topic directory',
@@ -515,15 +513,6 @@ const UI = {
     'nav.deck.hint.nav': 'Navigate',
     'nav.deck.hint.open': 'Open',
     'nav.deck.hint.close': 'Close',
-    // -- Home launchpad (large centered menu that shrinks on scroll) --
-    'home.launch.aria': 'Main sections',
-    'home.launch.hint': 'Sections',
-    'home.launch.ships.sub': 'Database',
-    'home.launch.evolution.sub': 'Systems × Patches',
-    'home.launch.patches.sub': 'All versions',
-    'home.launch.wikelo.sub': 'Banu trader',
-    'home.launch.crafting.sub': 'Blueprints',
-    'home.launch.mining.sub': 'Minerals',
     // -- Breadcrumbs --
     'crumbs.archive': 'Archive',
     'crumbs.ships': 'Ships',
@@ -581,6 +570,8 @@ const UI = {
     'ship.view.3d': '3D Holo',
     'ship.view.switch': 'Switch view',
     'ship.video.play': 'Play commercial',
+    // click gate in front of the YouTube player (ShipDetail #holoytgate)
+    'ship.video.note': 'The click loads the video from YouTube, i.e. from Google.',
     'ship.video.fallback': 'Watch on YouTube',
     'ship.holo.drag': '3D view — drag to rotate',
     'ship.holo.loading': 'Loading 3D model … %p% %',
@@ -698,10 +689,13 @@ const UI = {
     'ship.rail.rank': 'Profile',
     'ship.code.spec': 'SPEC',
     'ship.code.ctx': 'CTX',
-    // -- Favorites (account feature; account-lite.js toggles the state) --
-    'fav.save': 'Save',
-    'fav.saved': 'Saved',
-    'fav.aria': 'Save as favorite (account required)',
+    // -- Fleet (assets/fleet.js sets the state; in this browser without an account, as favorites with one) --
+    'fleet.add': 'Add to fleet',
+    'fleet.in': 'In fleet',
+    'fleet.aria': 'Add to fleet (kept in this browser without an account)',
+    'fleet.retry': 'Not saved · try again',
+    'fleet.resync': 'Not synced · try again',
+    'ship.hangar3d': 'View in the 3D hangar',
     // stylized mono codes (in-universe “register” tags)
     'ship.code.hangar': 'HANGAR',
     'ship.code.ship': 'SHIP',

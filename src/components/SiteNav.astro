@@ -16,6 +16,8 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { HAS_HANGAR } from '../lib/seo';
+import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
   label: string;
@@ -102,6 +104,9 @@ const backTarget = backParent ? { href: backParent.href as string, label: backPa
 const renderBack = !isAccountArea;
 // Ohne statisches Ziel startet es versteckt; der Leser fuellt href und Text.
 const backHidden = !backTarget;
+// Sichtbar schon im Server-HTML: dann stellt ein <style> vor <nav> --nav-h,
+// nicht erst das Skript hinter </nav> (das bleibt fuer die Naben).
+const backStatic = renderBack && !backHidden;
 const backLinkSrc = renderBack || crumbs.length
   ? versioned('assets/back-link.js', '/assets/back-link.js')
   : null;
@@ -195,6 +200,21 @@ const deckGroups: DeckGroup[] = [
         current: current === L('/schiffe.html') || current.startsWith(L('/schiffe/')),
         icon: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
       },
+      // Nur im Vorschau-Bau: live gibt es den Hangar nicht (HAS_HANGAR).
+      ...(HAS_HANGAR
+        ? [
+            {
+              href: L('/hangar.html'),
+              label: 'Hangar',
+              // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
+              media: THUMB('img-hammerhead'),
+              sub: t('nav.deck.sub.hangar'),
+              current: current === L('/hangar.html'),
+              // Hallentor: Bogen, Boden, Einfahrt.
+              icon: '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M2 20h20"/><path d="M8 20v-5h8v5"/>',
+            },
+          ]
+        : []),
       {
         href: L('/missionen.html'),
         label: t('nav.missions'),
@@ -323,8 +343,8 @@ const deckGroups: DeckGroup[] = [
 // Cache-Busting für /assets/account-lite.js: die Datei hat eine FESTE URL und
 // wird von Cloudflare 1 Tag gecacht (nginx-Map: application/javascript → 1d).
 // Ohne Content-Hash im Query lieferte das CDN nach einem Deploy bis zu 24 h die
-// ALTE Datei — kritisch, weil dieses Skript die Auth-Session refresht und die
-// Favoriten bedient. Gleiche Technik wie /assets/holo-viewer.js (?v=hash).
+// ALTE Datei — kritisch, weil dieses Skript die Auth-Session refresht und sie
+// an die Seiten-Skripte weiterreicht. Gleiche Technik wie /assets/holo-viewer.js (?v=hash).
 let acctLiteVer = 'x';
 try {
   acctLiteVer = createHash('sha1').update(readFileSync('assets/account-lite.js')).digest('hex').slice(0, 8);
@@ -337,6 +357,11 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     Item-Finder -> Crafting zeigte deshalb den statischen Elternteil
     „← Alpha 4.9" statt „← Item Finder". Die Notiz kostet nichts und macht
     auch Naben zu einer gueltigen Herkunft. */}
+{/* Zurueck-Marke schon im Server-HTML sichtbar -> --nav-h sofort und ohne
+    JavaScript auf 104/116 px (Werte wie bei :root.vb-has-back unten). */}
+{backStatic && (
+  <style is:inline>:root{--nav-h:104px}@media (max-width:860px){:root{--nav-h:116px}}</style>
+)}
 <nav class={heroMorph ? 'snav snav--morph' : 'snav'} id="topbar" aria-label={t('nav.main')} data-back-self={crumbs.length ? crumbs[crumbs.length - 1]?.label : undefined}>
   <div class="snav__left">
     <a
@@ -353,6 +378,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         <span class="snav__acct-dot" aria-hidden="true"></span>
       </span>
       <span class="js-nav-acct-txt">{t('nav.account.login')}</span>
+      <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
     <ThemeToggle />
@@ -399,6 +425,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       </span>
       <span class="snav__menu-txt snav__menu-txt--open">{t('nav.menu')}</span>
       <span class="snav__menu-txt snav__menu-txt--close"><kbd>Esc</kbd></span>
+      <span class="snav__badge snav__badge--menu js-nav-badge" aria-hidden="true" hidden></span>
     </button>
   </div>
   {renderBack && (
@@ -415,9 +442,8 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </a>
   )}
   <div class="snav__progress-bar" aria-hidden="true">
-    <div class="snav__progress-fill">
-      <span class="snav__progress-spark"></span>
-    </div>
+    <div class="snav__progress-fill"></div>
+    <div class="snav__progress-head"><span class="snav__progress-spark"></span></div>
   </div>
 </nav>
 {/* Herkunfts-Leser: parser-blockierend (kein defer, kein type="module"),
@@ -453,6 +479,10 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
         }
       }
     } catch (e) {}
+    // Sichtbare Marke -> html.vb-has-back (--nav-h, Holo-Abstand). Statt
+    // :root:has(): das kostete bei jeder DOM-Aenderung eine Stilrechnung
+    // des ganzen Dokuments. Die Marke wechselt danach nie mehr ihr hidden.
+    if (a && !a.hasAttribute('hidden')) document.documentElement.classList.add('vb-has-back');
   </script>
 )}
 
@@ -534,6 +564,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
                       <span class={acct ? 'snav-deck__icon snav__acct-icon' : 'snav-deck__icon'}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" set:html={item.icon} />
                         {acct && <span class="snav__acct-dot" aria-hidden="true"></span>}
+                        {acct && <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>}
                       </span>
                       <span class="snav-deck__text">
                         <span class={acct ? 'snav-deck__label js-nav-acct-txt' : 'snav-deck__label'}>{item.label}</span>
@@ -561,12 +592,13 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </footer>
   </div>
 </div>
-{crumbLd && <script type="application/ld+json" set:html={JSON.stringify(crumbLd)} />}
+{crumbLd && <script type="application/ld+json" set:html={jsonForScript(crumbLd)} />}
 {/* Nur auf Blattseiten mit Zurück-Element geladen — Naben und Startseite
     bekommen kein zusätzliches Skript. Gleiche Herkunft, CSP bleibt grün. */}
 {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
 <SearchOverlay lang={lang} />
-{/* Konto-Status + Favoriten-Sterne (leichtgewichtig, ohne supabase-js).
+{/* Konto-Status (leichtgewichtig, ohne supabase-js); die Flotte lädt
+    /assets/fleet.js nur dort, wo es Flotten-Knöpfe gibt.
     ?v=<contenthash> bricht den 1-Tag-CDN-Cache bei jeder Änderung. */}
 <script is:inline src={acctLiteSrc} defer></script>
 
@@ -608,12 +640,35 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     pointer-events: none;
     overflow: visible;
   }
+  /* Fortschritt ueber transform statt width: width ist eine Layout-
+     Eigenschaft und kostete bei jedem Scroll-Ereignis Layout + Neumalen der
+     ganzen Leiste (gemessen 15.10.2026: 62 -> 35 ms Hauptthread je
+     Scrollbild auf dem Telefon, nur durch diese eine Zeile). Die Fuellung
+     steht jetzt immer auf voller Breite und wird mit scaleX gestaucht — der
+     Verlauf staucht dabei genau so mit, wie er es vorher mit der Breite tat.
+     Der Funke darf nicht mitgestaucht werden (er waere eine Ellipse) und
+     sitzt deshalb in einer eigenen, voll breiten Huelle, die um
+     (p - 1) * 100 % ihrer eigenen Breite verschoben wird: ihre rechte Kante
+     steht damit genau dort, wo frueher das Ende der Fuellung stand.
+     will-change: beide bewegen sich auf dem Compositor, ohne die Leiste
+     (backdrop-filter) neu zu malen. Ohne JS: Fuellung leer, Funke links
+     aussen — wie vorher mit width:0%. */
+  .snav__progress-head {
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    will-change: transform;
+    pointer-events: none;
+  }
   .snav__progress-fill {
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
-    width: 0%;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    will-change: transform;
     background: linear-gradient(90deg, 
       transparent 0%, 
       color-mix(in srgb, var(--accent, #2dd4ff) 40%, transparent) 25%, 
@@ -802,6 +857,100 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
   .js-nav-acct.is-authed .snav__acct-dot {
     display: block;
   }
+  /* Zahl für offene Freundschaftsanfragen + ungelesene Nachrichten
+     (account-lite.js setzt Text und hidden). Sie ersetzt den grünen Punkt:
+     eine Zahl sagt „angemeldet" schon mit. Bernstein statt Akzent-Cyan, damit
+     sie sich vom Hover-Zustand abhebt; der Ring in Leistenfarbe trennt sie
+     vom Rahmen darunter. Am Konto-Knopf steht sie in der Zeile hinter dem
+     Namen: am Icon verdeckte sie dessen ersten Buchstaben, auf der Ecke lag
+     auf staging das Band „Vorschau — nicht live" darüber. Am Menü-Knopf
+     auf der Ecke, und nur, solange der Konto-Knopf selbst ins Menü
+     gewandert ist (≤ 860 px). */
+  .snav__badge {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #f5a623;
+    color: #1a1204;
+    font-family: var(--font-ui, sans-serif);
+    font-size: var(--fs-3);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: var(--ls-3);
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 0 0 2px var(--bg, var(--chrome-solid));
+    pointer-events: none;
+  }
+  .snav__acct .snav__badge {
+    position: static;
+    box-shadow: none;
+  }
+  .snav__badge[hidden] {
+    display: none;
+  }
+  .js-nav-acct.has-badge .snav__acct-dot {
+    display: none;
+  }
+  @media (min-width: 860.02px) {
+    .snav__badge--menu {
+      display: none;
+    }
+  }
+  :global(html.is-deck-open) .snav__badge--menu {
+    display: none;
+  }
+  /* Hinweis "Raffinerie-Auftrag fertig" (account-lite.js refToast), auf jeder Seite mit Nav. */
+  :global(.vb-toast) {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: min(22rem, calc(100vw - 32px));
+    padding: 12px 16px;
+    border: 1px solid color-mix(in srgb, #f5a623 55%, transparent);
+    border-left-width: 4px;
+    border-radius: 12px;
+    background: var(--surface, var(--chrome-solid));
+    color: var(--text);
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-ui, sans-serif);
+    text-decoration: none;
+    animation: vbToastIn var(--dur-base) var(--ease-ui);
+    transition: opacity var(--dur-slow) var(--ease-ui), transform var(--dur-slow) var(--ease-ui);
+  }
+  :global(.vb-toast b) {
+    font-size: var(--fs-8);
+    color: #f5a623;
+  }
+  :global(.vb-toast span) {
+    font-size: var(--fs-6);
+    color: var(--muted);
+  }
+  :global(.vb-toast:hover) {
+    border-color: #f5a623;
+  }
+  :global(.vb-toast.is-out) {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  @keyframes vbToastIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.vb-toast) { animation: none; transition: none; }
+  }
   /* Burger & Morphing Esc Button */
   /* Gleiches Material wie Suche und Menue — Rahmen, Fuellung, Hoehe. Ohne
      Beschriftung ist es quadratisch statt breit; der Innenabstand ist so
@@ -947,11 +1096,19 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
      unsichtbare 44-px-Fingerkuppe bis 113 px (die wuerde sonst Klicks auf der
      Filterleiste schlucken) -> 116. Trotzdem beide Male weniger als die
      107/132 px der frueheren zweiten Leistenzeile.
-     `:has()` haelt das rein strukturell — keine Seite muss etwas uebergeben. */
+     Schalter: steht die Marke schon im Server-HTML sichtbar, setzt der
+     <style> vor <nav> (backStatic, oben) die Werte, auch ohne JavaScript.
+     Macht erst der Herkunfts-Leser sie sichtbar (Naben), setzt er die
+     Klasse html.vb-has-back, direkt hinter </nav> und vor dem ersten Bild.
+     WERTE GEHOEREN ZUSAMMEN: 104/116 stehen hier und im <style> vor <nav>.
+     Bis 15.10.2026 stand hier :root:has(.snav__back:not([hidden])): damit
+     stellte JEDES Einfuegen und jedes hidden-Umschalten irgendwo auf der
+     Seite den Stil des ganzen Dokuments neu auf (Crafting-Thema, 4-fache
+     CPU-Drossel: Stilrechnung beim Laden 1 959 -> 1 053 ms). */
   :global(:root) { --nav-h: 68px; }
-  :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 104px; }
+  :global(:root.vb-has-back) { --nav-h: 104px; }
   @media (max-width: 860px) {
-    :global(:root:has(.snav__back:not([hidden]))) { --nav-h: 116px; }
+    :global(:root.vb-has-back) { --nav-h: 116px; }
   }
 
   .snav__back[hidden] { display: none; }
@@ -1733,6 +1890,14 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     top: 2px;
     right: 2px;border-color:var(--bg, var(--chrome-solid));
   }
+  .snav-deck__row .snav__badge {
+    top: -3px;
+    right: -5px;
+  }
+  /* account-lite.js schreibt hier dann „1 Anfrage · 2 Nachrichten" */
+  .snav-deck__row.has-badge .snav-deck__sub {
+    color: #f5a623;
+  }
 
   /* ---- Fuß ---- */
   .snav-deck__foot {
@@ -1876,7 +2041,12 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     .snav-deck__row::before {
       transition: none;
     }
-  }</style>
+  }
+/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"] :global(.vb-toast b){color:#794e00}
+:root[data-theme="light"] :global(.vb-toast:hover){border-color:#a16a05}
+:root[data-theme="light"] .snav-deck__row.has-badge .snav-deck__sub{color:#794e00}
+</style>
 
 <script is:inline>
   (function () {
@@ -1950,17 +2120,47 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 
     function remeasure() { measureMorph(); paintMorph(); }
 
-    addEventListener('scroll', function () {
-      var scrolled = scrollY > 40;
-      nav.classList.toggle('scrolled', scrolled);
-      var prog = nav.querySelector('.snav__progress-fill');
+    // Scroll-Fortschritt: ein Durchgang je Bild statt je Ereignis (rAF), und
+    // ohne Layout-Lesen im Scrollpfad. scrollHeight erzwang bei jedem
+    // Ereignis ein Layout, sobald irgendetwas auf der Seite schmutzig war;
+    // jetzt steht die Hoehe im Zwischenspeicher und wird nur nachgeladen,
+    // wenn sich die Dokumenthoehe oder das Fenster aendert (ResizeObserver
+    // meldet nach dem Layout — dort ist das Lesen umsonst). Auf Seiten mit
+    // content-visibility (Missionen, Crafting) waechst die Hoehe beim
+    // Scrollen, auch das kommt ueber den Beobachter herein.
+    var prog = nav.querySelector('.snav__progress-fill');
+    var progHead = nav.querySelector('.snav__progress-head');
+    var maxScroll = -1;
+    var ticking = false;
+    function measureScroll() { maxScroll = document.documentElement.scrollHeight - innerHeight; }
+    // Der Beobachter meldet nach dem Layout: dort kostet das Lesen der Hoehe
+    // nichts. Waechst die Seite ohne Scrollen (Bloecke mit content-
+    // visibility rendern nach, Bilder kommen an), zieht die Leiste nach —
+    // aber nur, wenn schon gescrollt ist: oben steht sie ohnehin auf 0, und
+    // ein eigenes Bild beim Laden erzwang auf der Schiffsliste ein
+    // zusaetzliches Layout der ganzen Seite (gemessen 15.10.2026).
+    if (window.ResizeObserver) new ResizeObserver(function () {
+      measureScroll();
+      if (scrollY > 0) queueScroll();
+    }).observe(document.documentElement);
+    addEventListener('resize', function () { maxScroll = -1; queueScroll(); }, { passive: true });
+    function onScrollFrame() {
+      ticking = false;
+      nav.classList.toggle('scrolled', scrollY > 40);
       if (prog) {
-        var h = document.documentElement.scrollHeight - innerHeight;
-        var pct = h > 0 ? Math.min(100, Math.max(0, (scrollY / h) * 100)) : 0;
-        prog.style.width = pct + '%';
+        if (maxScroll < 0 || !window.ResizeObserver) measureScroll();
+        var p = maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
+        prog.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+        if (progHead) progHead.style.transform = 'translateX(' + ((p - 1) * 100).toFixed(2) + '%)';
       }
       paintMorph();
-    }, { passive: true });
+    }
+    function queueScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(onScrollFrame);
+    }
+    addEventListener('scroll', queueScroll, { passive: true });
 
     // Dieses Skript steht im DOM VOR dem Seiteninhalt — .hero__mark gibt es
     // hier also noch nicht. Erst nachschlagen, wenn das Dokument steht,

@@ -4,9 +4,11 @@ node_modules
 dist
 .astro
 
-# VCS / CI / editor / session
+# VCS / editor / session
+# .github bleibt bewusst IM Kontext: verify:supply-chain prueft im Tor
+# (Schiene A, im Dockerfile) auch die Workflows. Ins Auslieferungs-Image
+# gelangt davon nichts — dort landet nur dist/.
 .git
-.github
 .claude
 
 # Logs
@@ -16,4 +18,6 @@ dist
 # Secrets & local runtime state — NEVER bake these into any image
 .env
 **/.env
+.env.*
+**/.env.*
 discord/bot/data

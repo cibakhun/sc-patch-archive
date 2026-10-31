@@ -9,6 +9,10 @@
   var grid = document.getElementById('mx-grid');
   var bar = document.getElementById('mx-bar');
   if (!grid || !bar) return;
+  // Die Filterleiste ist ein <form role="search">: Enter im Suchfeld laedt
+  // die Seite nicht neu. Stand frueher als onsubmit-Attribut am <form>;
+  // Inline-Handler laesst die Content-Security-Policy nicht mehr zu.
+  bar.addEventListener('submit', function (e) { e.preventDefault(); });
 
   var q = document.getElementById('mx-q');
   var selType = document.getElementById('mx-type');
@@ -31,7 +35,12 @@
   // name kommt aus dem sichtbaren <h3> (data-name entfiel als HTML-Diät);
   // search startet als sichtbarer Kartentext und wird durch den vollen Index
   // aus /missions-search.json ersetzt, sobald der Fetch unten durch ist.
-  var cards = [].slice.call(grid.children).map(function (el) {
+  // Die Karten stehen in Bloecken zu GRP (.mc-grp, content-visibility:auto —
+  // siehe MissionsApp.astro). Die Bloecke sind reine Huellen: gefiltert und
+  // sortiert wird ueber alle Karten, verteilt wird erst am Ende (place()).
+  var GRP = +grid.getAttribute('data-grp') || 60;
+  var groups = [].slice.call(grid.querySelectorAll('.mc-grp'));
+  var cards = [].slice.call(groups.length ? grid.querySelectorAll('.mc') : grid.children).map(function (el) {
     var h = el.querySelector('.mc__h');
     var link = el.querySelector('.mc__link');
     var hrefM = link ? /\/missionen\/([^/]+)\.html/.exec(link.getAttribute('href') || '') : null;
@@ -85,15 +94,109 @@
   function sort() {
     var mode = selSort.value;
     var vis = cards.filter(function (c) { return !c.el.hidden; });
+    // Feste Sortierregel 'en', wie beim Bauen (MissionsApp.astro): mit der
+    // Sprache des Browsers lagen gleichrangige Karten sonst anders.
+    var byName = function (a, b) { return a.name.localeCompare(b.name, 'en'); };
     vis.sort(function (a, b) {
-      if (mode === 'name') return a.name.localeCompare(b.name);
-      if (mode === 'reward') return (b.reward - a.reward) || a.name.localeCompare(b.name);
-      return (b.count - a.count) || a.name.localeCompare(b.name);
+      if (mode === 'name') return byName(a, b);
+      if (mode === 'reward') return (b.reward - a.reward) || byName(a, b);
+      return (b.count - a.count) || byName(a, b);
     });
-    // Reihenfolge in einem Rutsch setzen; DocumentFragment vermeidet 432 Reflows.
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < vis.length; i++) frag.appendChild(vis[i].el);
-    grid.appendChild(frag);
+    place(vis);
+  }
+
+  // Gleiche Kinder in gleicher Reihenfolge? Dann bleibt das DOM unberuehrt —
+  // beim Start ist das der Normalfall (der Server liefert die Vorgabe-
+  // Sortierung), und 1.355 umgehaengte Karten kosteten sonst einen vollen
+  // Stil- und Layoutdurchgang ueber die ganze Liste.
+  function same(parent, els) {
+    var kids = parent.children;
+    if (kids.length !== els.length) return false;
+    for (var i = 0; i < els.length; i++) if (kids[i] !== els[i]) return false;
+    return true;
+  }
+
+  function place(vis) {
+    if (!groups.length) {
+      // Reihenfolge in einem Rutsch setzen; DocumentFragment vermeidet 432 Reflows.
+      var frag0 = document.createDocumentFragment();
+      for (var i0 = 0; i0 < vis.length; i0++) frag0.appendChild(vis[i0].el);
+      grid.appendChild(frag0);
+      return;
+    }
+    // Sichtbare Karten der Reihe nach in volle Bloecke — nur so endet jeder
+    // Block mit einer vollen Rasterzeile. Ausgeblendete Karten (display:none,
+    // belegen keine Zelle) sammelt der letzte Block; ein Block ohne
+    // sichtbare Karte wird selbst ausgeblendet, sonst stuende dort sein
+    // Platzhalter (contain-intrinsic-size) als leere Flaeche.
+    var hidden = [];
+    for (var h = 0; h < cards.length; h++) if (cards[h].el.hidden) hidden.push(cards[h].el);
+    for (var g = 0; g < groups.length; g++) {
+      var want = [];
+      for (var k = g * GRP; k < Math.min(vis.length, (g + 1) * GRP); k++) want.push(vis[k].el);
+      var n = want.length;
+      if (g === groups.length - 1) want = want.concat(hidden);
+      var grp = groups[g];
+      if (!same(grp, want)) {
+        var frag = document.createDocumentFragment();
+        for (var w = 0; w < want.length; w++) frag.appendChild(want[w]);
+        grp.appendChild(frag);
+      }
+      grp.hidden = n === 0;
+      grp.__n = n;
+    }
+  }
+
+  // Platzhalterhoehe der Bloecke, die noch nie im Bild waren. Ohne gute
+  // Schaetzung stimmt die Gesamthoehe der Liste (und damit der
+  // Fortschrittsbalken) erst, wenn jeder Block einmal gerendert wurde.
+  // Ausgangspunkt ist der Median eines Blocks je Spaltenzahl (PRIOR, an der
+  // Seite ohne Bloecke gemessen, 15.10.2026, 390-1920 px); jeder echt
+  // gerenderte volle Block verschiebt den Wert zu seinem Mittel hin. Nicht
+  // einfach der erste Block: oben stehen die Missionen mit den meisten
+  // Varianten, ihre Karten sind hoeher — der erste Block liegt 13-20 % ueber
+  // dem Median, die Liste waere um so viel zu lang geschaetzt. Darum zaehlt
+  // der Median wie PRIOR_N Messungen. Ein Block im Platzhalterzustand meldet
+  // nur den Platzhalterwert — gemessen wird nur, wenn seine erste Karte
+  // wirklich gerendert ist (checkVisibility). Neue Spaltenzahl macht alte
+  // Messungen wertlos: dann von vorn. Gelesen wird nur im
+  // ResizeObserver-Rueckruf, also nach dem Layout — kein erzwungenes Layout.
+  // Browser ohne checkVisibility behalten den Schaetzwert aus dem CSS.
+  var PRIOR = [0, 17500, 8900, 6050, 4820, 3900, 3250];
+  var PRIOR_N = 3;
+  if (groups.length > 1 && window.ResizeObserver && grid.checkVisibility) {
+    var est = 0, seen = [], seenKey = '';
+    var ro = new ResizeObserver(function (es) {
+      var cols = (getComputedStyle(grid).gridTemplateColumns || '').split(' ').length || 1;
+      // Spaltenzahl UND Breite: bei gleicher Spaltenzahl aendert eine andere
+      // Kartenbreite die Umbrueche und damit die Blockhoehe.
+      var key = cols + ':' + grid.clientWidth;
+      if (key !== seenKey) { seen = []; seenKey = key; }
+      for (var i = 0; i < es.length; i++) {
+        var t = es[i].target, first = t.firstElementChild;
+        var at = seen.indexOf(t);
+        if (t.hidden || t.__n !== GRP || !first) {
+          // Nach dem Filtern kein voller Block mehr: zaehlt nicht mehr mit.
+          if (at !== -1) seen.splice(at, 1);
+          continue;
+        }
+        if (!first.checkVisibility({ contentVisibilityAuto: true })) continue;
+        var bs = es[i].borderBoxSize && es[i].borderBoxSize[0];
+        var hh = bs ? bs.blockSize : es[i].contentRect.height;
+        if (!(hh > 0)) continue;
+        t.__h = hh;
+        if (at === -1) seen.push(t);
+      }
+      var prior = PRIOR[Math.min(cols, PRIOR.length - 1)];
+      var sum = prior * PRIOR_N;
+      for (var k = 0; k < seen.length; k++) sum += seen[k].__h;
+      var val = Math.round(sum / (PRIOR_N + seen.length));
+      if (val !== est) {
+        est = val;
+        grid.style.setProperty('--mc-grp-h', val + 'px');
+      }
+    });
+    for (var gi = 0; gi < groups.length; gi++) ro.observe(groups[gi]);
   }
 
   // Voller Suchindex (Blueprint-Namen, Orte, Titel-Varianten — nichts davon

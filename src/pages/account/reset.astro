@@ -14,6 +14,7 @@ import { versioned } from '../../lib/assetVersion';
   ogImage="/assets/og-default.jpg"
   translated={true}
   noindex={true}
+  analytics={false}
 >
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <link slot="head" rel="stylesheet" href={versioned('assets/account.css', '/assets/account.css')} />
@@ -37,5 +38,5 @@ import { versioned } from '../../lib/assetVersion';
 
 <Attribution sources={[]} />
 
-<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+<script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

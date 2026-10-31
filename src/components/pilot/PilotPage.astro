@@ -11,6 +11,7 @@ import { RENDERS, stripName } from '../../lib/shipRenders';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { href } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
+import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   lang?: 'de' | 'en';
@@ -46,21 +47,29 @@ const COPY = lang === 'de'
       errorTitle: 'VERBINDUNGSFEHLER',
       errorBody: 'Die Registry ist gerade nicht erreichbar. Bitte lade die Seite neu.',
       backHome: 'Zur Startseite',
-      transmission: 'TRANSMISSION',
-      since: 'Dabei seit',
-      verified: 'RSI VERIFIED',
+      since: 'Seit',
+      verified: 'RSI verifiziert',
+      verifiedTitle: 'RSI-Konto verifiziert',
       testPilot: 'Testpilot',
-      badgeSince: 'SEIT',
-      statFavs: 'Favoriten gesamt',
-      statShips: 'Schiffe in der Flotte',
-      statMissions: 'Missionen',
-      statSince: 'Mitglied seit',
-      secFleet: 'Flotte',
-      secFavs: 'Weitere Favoriten',
-      secOrg: 'Org & Links',
-      kinds: { mission: 'Missionen', mineral: 'Mineralien', item: 'Items', patch: 'Patches', topic: 'Themen' } as Record<string, string>,
-      ctaText: 'Profil auf VerseBase — sichere dir deine eigene Piloten-Seite mit Flotte, Status und VersePass.',
-      ctaBtn: 'Eigenes Profil erstellen',
+      profileComplete: 'Profil komplett',
+      rank: 'Discord-Rang',
+      lv: 'Lv %n%',
+      next: 'Ab Lv %n%: %r%',
+      max: 'Höchster Rang',
+      secHangar: 'Hangar',
+      secPilot: 'Pilot',
+      secFavs: 'Favoriten',
+      emptyHangar: 'Noch keine Schiffe im Hangar.',
+      emptyHangarGo: 'Schiffe ansehen',
+      emptyFavs: 'Noch keine Favoriten.',
+      kinds: { mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Thema' } as Record<string, string>,
+      kindsAll: { ship: 'Schiff' },
+      loadout: 'Loadout',
+      ctaText: 'Deine eigene Pilotenseite mit Hangar, Rang und Freunden.',
+      ctaBtn: 'Profil erstellen',
+      addFriend: 'Freund hinzufügen', requested: 'Anfrage gesendet', accept: 'Anfrage annehmen',
+      message: 'Nachricht', isFriend: 'Freunde', editProfile: 'Profil bearbeiten',
+      err: 'Das hat nicht geklappt.',
       locale: 'de-DE',
     }
   : {
@@ -73,27 +82,36 @@ const COPY = lang === 'de'
       errorTitle: 'CONNECTION ERROR',
       errorBody: 'The registry is unreachable right now. Please reload the page.',
       backHome: 'Back to the homepage',
-      transmission: 'TRANSMISSION',
-      since: 'Member since',
-      verified: 'RSI VERIFIED',
+      since: 'Since',
+      verified: 'RSI verified',
+      verifiedTitle: 'RSI account verified',
       testPilot: 'Test Pilot',
-      badgeSince: 'SINCE',
-      statFavs: 'Total favorites',
-      statShips: 'Ships in fleet',
-      statMissions: 'Missions',
-      statSince: 'Member since',
-      secFleet: 'Fleet',
-      secFavs: 'More favorites',
-      secOrg: 'Org & Links',
-      kinds: { mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' } as Record<string, string>,
-      ctaText: 'Profile on VerseBase — claim your own pilot page with fleet, status and VersePass.',
-      ctaBtn: 'Create your profile',
+      profileComplete: 'Profile complete',
+      rank: 'Discord rank',
+      lv: 'Lv %n%',
+      next: 'At Lv %n%: %r%',
+      max: 'Top rank',
+      secHangar: 'Hangar',
+      secPilot: 'Pilot',
+      secFavs: 'Favorites',
+      emptyHangar: 'No ships in the hangar yet.',
+      emptyHangarGo: 'Browse ships',
+      emptyFavs: 'No favorites yet.',
+      kinds: { mission: 'Mission', mineral: 'Mineral', item: 'Item', patch: 'Patch', topic: 'Topic' } as Record<string, string>,
+      kindsAll: { ship: 'Ship' },
+      loadout: 'Loadout',
+      ctaText: 'Your own pilot page with hangar, rank and friends.',
+      ctaBtn: 'Create profile',
+      addFriend: 'Add friend', requested: 'Request sent', accept: 'Accept request',
+      message: 'Message', isFriend: 'Friends', editProfile: 'Edit profile',
+      err: 'That did not work.',
       locale: 'en-US',
     };
 
 const registerHref = href('/account/register.html', lang);
+const accountHref = lang === 'de' ? '/de/account.html' : '/account.html';
+const shipsHref = href('/schiffe.html', lang);
 const homeHref = lang === 'de' ? '/de.html' : '/';
-const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 ---
 
 <Layout
@@ -109,16 +127,14 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 <style is:inline>
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--font-mono:'Share Tech Mono',monospace;}
 /* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#025f73;--hot:#065c71;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(43,125,148,.18)}
-
-</style>
+:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#025f73;--hot:#065c71;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12);--glow:0 6px 22px rgba(43,125,148,.18)}</style>
 
 <a class="skip" href="#main">Skip to content</a>
 
 <SiteNav crumbs={[{ label: 'Pilot' }]} hasEn={true} />
 
 <main id="main" data-lang={lang}>
-  <div id="ppApp" data-register={registerHref} data-home={homeHref}>
+  <div id="ppApp" data-register={registerHref} data-home={homeHref} data-account={accountHref}>
 
     <!-- Loading-Skeleton (Kartenform, pulsierend) -->
     <div class="pp-skel" id="ppLoading" role="status" aria-label={COPY.loadingLabel}>
@@ -152,10 +168,26 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       </div>
     </section>
 
-    <!-- Profil (wird nach dem Laden eingeblendet) -->
-    <div id="ppRoot" hidden>
+    <!-- Profil (wird nach dem Laden eingeblendet). Breite Schirme: ein
+         Bildschirm wie die Kontoseite, oben der Ausweis, darunter Hangar und
+         Pilot/Favoriten; nur die Listen scrollen in ihrem Kasten. -->
+    <div id="ppRoot" class="pp-app" hidden>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <g id="pi-ship" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.4c2.9 2.2 4.6 5.9 4.6 9.6L15 17H9l-1.6-5C7.4 8.3 9.1 4.6 12 2.4z"/><path d="M9 21l3-3 3 3"/><circle cx="12" cy="10" r="1.6"/></g>
+          <g id="pi-mineral" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3L6 9l6 12 6-12-3-6"/></g>
+          <g id="pi-mission" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></g>
+          <g id="pi-item" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6l8.5 4v6.8L12 21.4 3.5 13.4V6.6z"/><path d="M3.5 6.6L12 11l8.5-4.4M12 11v10.4"/></g>
+          <g id="pi-patch" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3.5h8L21 13.5l-7.5 7.5L3.5 11.5z"/><circle cx="7.3" cy="7.8" r="1.1"/></g>
+          <g id="pi-topic" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9h15M4 15h15M10.5 3L8 21M16 3l-2.5 18"/></g>
+          <g id="pi-hex" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8.2 4.7v9.6L12 21.5l-8.2-4.7V7.2z"/></g>
+          <g id="pi-star" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.9 6.4.6-4.8 4.3 1.4 6.2L12 17.2 6.4 20.5l1.4-6.2L3 10l6.4-.6z"/></g>
+          <g id="pi-id" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.3"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14.5 10h4M14.5 13.5h3"/></g>
+          <g id="pi-discord" fill="currentColor"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21H.55A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></g>
+        </defs>
+      </svg>
 
-      <!-- Identity-Hero (dunkle Medien-Fläche, bleibt im Light-Theme dunkel) -->
+      <!-- Ausweis (dunkle Medien-Fläche, bleibt im Light-Theme dunkel) -->
       <section class="pp-hero" data-media-surface>
         <div class="pp-hero__media" aria-hidden="true">
           <div class="pp-hero__img" id="ppBannerImg"></div>
@@ -165,8 +197,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         </div>
         <span class="pp-bracket pp-bracket--tl" aria-hidden="true"></span>
         <span class="pp-bracket pp-bracket--tr" aria-hidden="true"></span>
-        <span class="pp-bracket pp-bracket--bl" aria-hidden="true"></span>
-        <span class="pp-bracket pp-bracket--br" aria-hidden="true"></span>
 
         <header class="pp-chrome">
           <span class="pp-chrome__left">{COPY.chromeLeft}</span>
@@ -196,11 +226,11 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
           <div class="pp-identity">
             <div class="pp-name-row">
               <h1 class="pp-name" id="ppName">Citizen</h1>
-              <span class="pp-verified" id="ppVerified" hidden>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+              <span class="pp-verified" id="ppVerified" title={COPY.verifiedTitle} hidden>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
                   <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-                {COPY.verified}
+                <span class="sr-only">{COPY.verifiedTitle}</span>
               </span>
             </div>
             <div class="pp-handle" id="ppHandle">@citizen</div>
@@ -209,121 +239,95 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
                 <span id="ppRoleIcon" aria-hidden="true">◆</span>
                 <span id="ppRoleText"></span>
               </span>
-              <div class="pp-transmission">
-                <span class="pp-transmission__tag">{COPY.transmission}</span>
+              <div class="pp-transmission" id="ppTransmission">
                 <span class="pp-transmission__state" id="ppStatusState"></span>
                 <span class="pp-transmission__sep" id="ppStatusSep" hidden>·</span>
                 <span class="pp-transmission__text" id="ppStatusText"></span>
               </div>
             </div>
             <p class="pp-bio" id="ppBio" hidden></p>
-            <div class="pp-since" id="ppSince"></div>
+            <div class="pp-hero__row">
+              <div class="pp-soc" id="ppSocials" hidden></div>
+              <div class="pp-acts" id="ppActs" hidden></div>
+              <!-- Nur für Gäste (paintActs blendet ihn für Angemeldete aus) -->
+              <a class="pp-act pp-cta" href={registerHref} title={COPY.ctaText}>{COPY.ctaBtn} &rarr;</a>
+            </div>
           </div>
+
+          <!-- Discord-Rang (öffentlich: Stufe, Level, Prestige; keine XP) -->
+          <article class="pp-rank" id="ppRank" style="--rc:var(--accent-media)" hidden>
+            <div class="pp-rank__badge" aria-hidden="true"><span id="ppRankIns">◆</span></div>
+            <div class="pp-rank__main">
+              <div class="pp-k"><svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#pi-discord"/></svg>{COPY.rank}</div>
+              <div class="pp-rank__title"><b id="ppRankName">—</b><span class="pp-rank__lv" id="ppRankLv"></span><span class="pp-rank__pres" id="ppRankPres" hidden></span></div>
+              <ol class="pp-ladder" id="ppLadder" aria-hidden="true"></ol>
+              <div class="pp-rank__next" id="ppRankNext"></div>
+            </div>
+          </article>
         </div>
       </section>
 
-      <div class="pp-wrap">
-        <!-- Badges-Zeile (Sammler-Chips, per JS gefüllt) -->
-        <div class="pp-badges" id="ppBadges"></div>
-
-        <!-- Stats-Readout -->
-        <dl class="pp-stats">
-          <div class="pp-stat">
-            <dt>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.05 1.1-6.5-4.7-4.6 6.5-.95z" />
-              </svg>
-              {COPY.statFavs}
-            </dt>
-            <dd id="ppStatFavs">0</dd>
-          </div>
-          <div class="pp-stat">
-            <dt>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 15l8-11 8 11-8 3z" />
-                <path d="M4 15l3 5h10l3-5" />
-                <path d="M12 4v13" />
-              </svg>
-              {COPY.statShips}
-            </dt>
-            <dd id="ppStatShips">0</dd>
-          </div>
-          <div class="pp-stat">
-            <dt>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
-              </svg>
-              {COPY.statMissions}
-            </dt>
-            <dd id="ppStatMissions">0</dd>
-          </div>
-          <div class="pp-stat">
-            <dt>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="3.5" y="5" width="17" height="16" rx="2" />
-                <path d="M3.5 9.5h17M8 2.5V6M16 2.5V6" />
-                <path d="M7.5 14h3M13.5 14h3M7.5 17.5h6" />
-              </svg>
-              {COPY.statSince}
-            </dt>
-            <dd id="ppStatSince">—</dd>
-          </div>
-        </dl>
-
-        <!-- FLEET SHOWCASE -->
-        <section class="pp-sec" id="ppFleetSec" hidden>
-          <div class="sec-head">
-            <span class="num" data-secnum></span>
-            <h2>{COPY.secFleet}</h2>
-            <span class="rule"></span>
-          </div>
-          <div class="pp-fleet" id="ppFleetGrid"></div>
-        </section>
-
-        <!-- Weitere Favoriten (gruppiert nach kind) -->
-        <section class="pp-sec" id="ppFavsSec" hidden>
-          <div class="sec-head">
-            <span class="num" data-secnum></span>
-            <h2>{COPY.secFavs}</h2>
-            <span class="rule"></span>
-          </div>
-          <div class="pp-favgroups" id="ppFavGroups"></div>
-        </section>
-
-        <!-- Org & Social -->
-        <section class="pp-sec" id="ppOrgSec" hidden>
-          <div class="sec-head">
-            <span class="num" data-secnum></span>
-            <h2>{COPY.secOrg}</h2>
-            <span class="rule"></span>
-          </div>
-          <div class="pp-links">
-            <span class="pp-chip" id="ppOrgChip" hidden>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 3l7 9-7 9-7-9z" />
-                <path d="M12 7.5l3.5 4.5L12 16.5 8.5 12z" />
-              </svg>
-              <span id="ppOrg"></span>
-            </span>
-            <a class="pp-chip" id="ppRsiLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-              <span class="pp-chip__dot" id="ppRsiDot" hidden aria-hidden="true"></span>
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3 12h18M12 3c2.8 2.6 4 5.6 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.6-4-9s1.2-6.4 4-9z" />
-              </svg>
-              <span id="ppRsiTxt"></span>
-              <span class="pp-chip__go" aria-hidden="true">&nearr;</span>
-            </a>
+      <div class="pp-board">
+        <!-- Hangar: Schiffe aus den Favoriten (später auch angeheftete Loadouts) -->
+        <section class="pp-card pp-card--hangar" aria-labelledby="ppHangarH">
+          <header class="pp-card__head">
+            <h2 id="ppHangarH"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-ship"/></svg>{COPY.secHangar}</h2>
+            <span class="pp-count" id="ppHangarCount"></span>
+          </header>
+          <div class="pp-card__body">
+            <div class="pp-tiles" id="ppHangarGrid"></div>
+            <div class="pp-empty" id="ppHangarEmpty" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-ship"/></svg>
+              <p>{COPY.emptyHangar}</p>
+              <a class="pp-empty__go" id="ppHangarGo" href={shipsHref}>{COPY.emptyHangarGo} &rarr;</a>
+            </div>
           </div>
         </section>
 
-        <!-- VerseBase-CTA-Strip -->
-        <aside class="pp-cta">
-          <span class="pp-cta__text">{COPY.ctaText}</span>
-          <a class="pp-cta__btn" href={registerHref}>{COPY.ctaBtn} &rarr;</a>
-        </aside>
+        <div class="pp-side">
+          <!-- Pilot: Abzeichen und Links -->
+          <section class="pp-card pp-card--pilot" aria-labelledby="ppPilotH">
+            <header class="pp-card__head">
+              <h2 id="ppPilotH"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-id"/></svg>{COPY.secPilot}</h2>
+            </header>
+            <div class="pp-card__body pp-card__body--auto">
+              <div class="pp-badges" id="ppBadges"></div>
+              <div class="pp-links" id="ppLinks" hidden>
+                <span class="pp-chip" id="ppOrgChip" hidden>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 3l7 9-7 9-7-9z" />
+                    <path d="M12 7.5l3.5 4.5L12 16.5 8.5 12z" />
+                  </svg>
+                  <span id="ppOrg"></span>
+                </span>
+                <a class="pp-chip" id="ppRsiLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+                  <span class="pp-chip__dot" id="ppRsiDot" hidden aria-hidden="true"></span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M3 12h18M12 3c2.8 2.6 4 5.6 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.6-4-9s1.2-6.4 4-9z" />
+                  </svg>
+                  <span id="ppRsiTxt"></span>
+                  <span class="pp-chip__go" aria-hidden="true">&nearr;</span>
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- Favoriten (ohne Schiffe; die stehen im Hangar) -->
+          <section class="pp-card pp-card--favs" aria-labelledby="ppFavsH">
+            <header class="pp-card__head">
+              <h2 id="ppFavsH"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-star"/></svg>{COPY.secFavs}</h2>
+              <span class="pp-count" id="ppFavCount"></span>
+            </header>
+            <div class="pp-card__body">
+              <ul class="pp-favlist" id="ppFavList"></ul>
+              <div class="pp-empty pp-empty--sm" id="ppFavEmpty" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#pi-star"/></svg>
+                <p>{COPY.emptyFavs}</p>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   </div>
@@ -331,9 +335,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 
 <Attribution sources={[]} />
 
-<script type="application/json" id="ppCopyData" set:html={jsonSafe(COPY)}></script>
-<script type="application/json" id="ppShipData" set:html={jsonSafe(SHIPS)}></script>
-<script is:inline src={versioned('assets/detail.js', '/assets/detail.js')}></script>
+<script type="application/json" id="ppCopyData" set:html={jsonForScript(COPY)}></script>
+<script type="application/json" id="ppShipData" set:html={jsonForScript(SHIPS)}></script>
+<script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 
 <style is:global>
   /* ---------- Skeleton ---------- */
@@ -386,21 +390,19 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-corner--bl { bottom: 5px; left: 5px; border-right: 0; border-top: 0; }
   .pp-corner--br { bottom: 5px; right: 5px; border-left: 0; border-top: 0; }
 
-  /* ---------- Identity-Hero ---------- */
+  /* ---------- Ausweis (Hero) ---------- */
   /* Eigene Polsterung statt der geerbten: detail.css gibt JEDEM globalen
-     <section>-Block clamp(3rem,7vw,5.5rem) auf allen vier Seiten (dieselbe
-     Falle, gegen die .pp-sec weiter unten padding:0 setzt). Am Hero hat das
-     drei Dinge zerlegt: die Registry-Leiste saß 64 px eingerückt statt
-     randlos, unter dem Namen klaffte ein 90 px hohes totes Feld, und der
-     Hero-Inhalt floh 14 px aus der Flucht der Inhaltsspalte darunter.
-     Oben bleibt Platz — aber ein fester statt eines mitwachsenden: die
-     Kopfleiste ist position:fixed und über ALLE Breiten 67–69 px hoch,
-     während die geerbte Polsterung unter 900 px auf 54 px schrumpfte und die
-     Registry-Leiste damit halb unter die Kopfleiste schob. Der Banner liegt
-     absolut (inset:0 = Polsterkasten) und bleibt randlos. */
+     <section>-Block clamp(3rem,7vw,5.5rem) auf allen vier Seiten. Oben bleibt
+     ein fester Platz für die Kopfleiste (position:fixed, 67–69 px hoch);
+     der Banner liegt absolut (inset:0) und bleibt randlos. */
+  .pp-app { --pp-w: min(1960px, 100%); --pp-gut: clamp(14px, 1.6vw, 32px); }
+  /* Breite Schirme machen .pp-app zum Raster; ohne diese Zeile stünde das
+     leere Profil beim Laden und neben „nicht gefunden" mit da. */
+  .pp-app[hidden] { display: none; }
+  .pp-app .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .pp-hero {
-    position: relative; min-height: 420px; padding: 5.25rem 0 0;
-    display: flex; flex-direction: column;background:var(--veil-2);
+    position: relative; min-height: 360px; padding: 5.25rem 0 0;
+    display: flex; flex-direction: column; background: var(--veil-2);
     border-bottom: 1px solid var(--line);
     overflow: hidden;
   }
@@ -444,13 +446,11 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-bracket { position: absolute; width: 12px; height: 12px; border: 2px solid var(--accent-media); opacity: 0.8; z-index: 3; pointer-events: none; }
   .pp-bracket--tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
   .pp-bracket--tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
-  .pp-bracket--bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
-  .pp-bracket--br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
 
   .pp-chrome {
     position: relative; z-index: 4;
     display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    padding: 0.45rem clamp(1.25rem, 5vw, 4rem);
+    padding: 0.4rem var(--pp-gut);
     border-top: 2px solid var(--accent-media);
     border-bottom: 1px solid rgba(232, 238, 252, 0.14);background:repeating-linear-gradient(-45deg, rgba(45, 212, 255, 0.07) 0 6px, transparent 6px 12px),
       var(--veil-2);
@@ -464,11 +464,10 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
 
   .pp-hero__body {
     position: relative; z-index: 4;
-    margin-top: auto;
-    max-width: var(--maxw); width: 100%;
-    margin-inline: auto;
-    padding: 2.4rem clamp(1.25rem, 5vw, 4rem) 1.9rem;
-    display: flex; align-items: flex-end; gap: 1.7rem;
+    margin: auto auto 0; width: var(--pp-w);
+    padding: 1.6rem var(--pp-gut) 1.5rem;
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: end;
+    gap: 1.2rem clamp(1.2rem, 2vw, 2.4rem);
   }
 
   .pp-avatar-module {
@@ -501,29 +500,27 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     box-shadow: 0 0 12px currentColor;
   }
   .pp-status-dot.pulse { animation: ppStatusPulse 2s infinite; }
+  .pp-status-dot[hidden] { display: none !important; }
   @keyframes ppStatusPulse {
     0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.8); }
     70%  { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
     100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
   }
 
-  .pp-identity { min-width: 0; display: flex; flex-direction: column; gap: 0.55rem; }
-  .pp-name-row { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
+  .pp-identity { min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .pp-name-row { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
   .pp-name {
-    margin: 0; font-family: var(--font-display); font-weight: 900;
-    font-size: clamp(1.7rem, 4.6vw, 2.6rem); line-height: 1.02; letter-spacing: var(--ls-2);
-    overflow-wrap: break-word;background:linear-gradient(180deg, var(--title-hi), var(--accent-media) 78%, color-mix(in srgb, var(--accent-media) 45%, var(--title-lo)));
+    margin: 0; min-width: 0; font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(1.7rem, 3.4vw, 3.2rem); line-height: 1.02; letter-spacing: var(--ls-2);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    background:linear-gradient(180deg, var(--title-hi), var(--accent-media) 78%, color-mix(in srgb, var(--accent-media) 45%, var(--title-lo)));
     -webkit-background-clip: text; background-clip: text; color: transparent;
     filter: drop-shadow(0 0 26px color-mix(in srgb, var(--accent-media) 42%, transparent));
   }
+  /* RSI-Haken als runde Marke neben dem Namen (wie ein Verifiziert-Häkchen) */
   .pp-verified {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.45);
-    color: #4ade80; padding: 0.2rem 0.65rem;
-    /* gerundet statt clip-path-Abschraegung: ein normaler border wird vom
-       clip-path an den Diagonalen abgeschnitten (Kontur "bricht an der Schraege ab") */
-    border-radius: 7px;
-    font-family: var(--font-ui); font-size: var(--fs-4); font-weight: 800; letter-spacing: var(--ls-10);
+    flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+    background: #22c55e; color: #04121a; box-shadow: 0 0 16px rgba(34, 197, 94, 0.55);
   }
   .pp-verified[hidden] { display: none !important; }
   .pp-handle {
@@ -534,8 +531,7 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
   .pp-role {
     display: inline-flex; align-items: center; gap: 0.4rem;
     background: rgba(45, 212, 255, 0.14); border: 1px solid rgba(45, 212, 255, 0.3);
-    color: var(--accent-media); padding: 0.24rem 0.75rem;
-    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+    color: var(--accent-media); padding: 0.24rem 0.75rem; border-radius: 8px;
     font-family: var(--font-ui); font-size: var(--fs-6); font-weight: 700;
   }
   .pp-role[hidden] { display: none !important; }
@@ -544,37 +540,163 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     font-family: var(--font-mono); font-size: var(--fs-6); letter-spacing: var(--ls-10);
     text-transform: uppercase; color: #8a99b8; hyphens: none;
   }
-  .pp-transmission__tag {
-    color: var(--accent-media); border: 1px solid rgba(45, 212, 255, 0.3);
-    padding: 0.02rem 0.4rem; font-size: var(--fs-2); letter-spacing: var(--ls-15);
-  }
+  .pp-transmission[hidden], .pp-transmission__state[hidden] { display: none !important; }
   .pp-transmission__state { color: var(--accent-2-media); font-weight: 700; }
   .pp-transmission__text { font-style: italic; text-transform: none; letter-spacing: var(--ls-5); }
   .pp-bio {
-    margin: 0.3rem 0 0; max-width: 68ch;
-    color: #c6d2e8; font-size: var(--fs-9); line-height: 1.6;
+    margin: 0.2rem 0 0; max-width: 64ch;
+    color: #c6d2e8; font-size: var(--fs-9); line-height: 1.5;
     white-space: pre-wrap;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     border-left: 2px solid var(--accent-media); padding-left: 0.9rem;
   }
   .pp-bio[hidden] { display: none !important; }
-  .pp-since {
-    font-family: var(--font-mono); font-size: var(--fs-4); letter-spacing: var(--ls-13);
-    text-transform: uppercase; color: #8a99b8;
+  .pp-hero__row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 0.35rem; }
+  .pp-hero__row:not(:has(> :not([hidden]))) { display: none; }
+  /* Socials (Kontoseite Runde 5): nur Symbole; Farbe je Netz kommt als --soc
+     aus src/lib/socials.ts, darum hier keine festen Farbwerte. */
+  .pp-soc { display: flex; gap: 8px; }
+  .pp-soc[hidden] { display: none !important; }
+  .pp-soc .soc-link {
+    width: 38px; height: 38px; display: grid; place-items: center;
+    border: 1px solid rgba(232, 238, 252, 0.18); border-radius: 10px; color: var(--soc);
+    background: rgba(5, 7, 13, 0.45);
+    transition: border-color var(--dur-fast) var(--ease-ui);
+  }
+  .pp-soc .soc-link:hover { border-color: var(--soc); }
+  .pp-soc .soc-link svg { width: 17px; height: 17px; fill: currentColor; }
+
+  /* Freund / Nachricht (nur angemeldet, Kontoseite Runde F) */
+  .pp-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+  .pp-acts[hidden] { display: none !important; }
+  .pp-act {
+    display: inline-flex; align-items: center; gap: 0.5rem; height: 40px; padding: 0 1.05rem;
+    border: 1px solid rgba(232, 238, 252, 0.22); border-radius: 10px; background: rgba(5, 7, 13, 0.55);
+    color: #e8eefc; font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-7);
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: border-color var(--dur-fast) var(--ease-ui), filter var(--dur-fast) var(--ease-ui);
+  }
+  .pp-act svg { width: 17px; height: 17px; flex: none; }
+  .pp-act:hover { border-color: var(--accent-media); }
+  .pp-act:disabled { opacity: 0.6; cursor: default; }
+  .pp-act--go { border-color: var(--accent-media); background: var(--accent-media); color: #04121a; }
+  .pp-act--go:hover { filter: brightness(1.1); }
+  .pp-act--state { cursor: default; color: #8a99b8; }
+  .pp-act--state.is-ok { color: #4ade80; border-color: rgba(34, 197, 94, 0.45); }
+  .pp-acts__msg { flex: 1 0 100%; margin: 0; font-size: var(--fs-6); color: #8a99b8; }
+  .pp-acts__msg[hidden] { display: none; }
+
+  /* ---------- Discord-Rang im Ausweis (wie die Rangkarte im Konto) ---------- */
+  .pp-k {
+    display: flex; align-items: center; gap: 7px;
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-4);
+    letter-spacing: var(--ls-12); text-transform: uppercase; color: #a6b4d2;
+  }
+  .pp-k svg { width: 16px; height: 12px; flex: none; color: #8f98f7; }
+  .pp-rank {
+    align-self: end; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
+    gap: 14px clamp(14px, 1.2vw, 22px); width: clamp(20rem, 26vw, 30rem);
+    padding: clamp(12px, 1vw, 18px) clamp(14px, 1.2vw, 22px);
+    border: 1px solid color-mix(in srgb, var(--rc) 50%, transparent); border-radius: 16px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--rc) 16%, rgba(8, 11, 20, 0.82)), rgba(8, 11, 20, 0.82) 60%);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 0 40px -18px var(--rc);
+  }
+  .pp-rank[hidden] { display: none !important; }
+  .pp-rank__badge {
+    width: clamp(64px, 4.6vw, 92px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 26%;
+    background: color-mix(in srgb, var(--rc) 16%, #0a0e18);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rc) 70%, transparent), 0 0 36px -8px var(--rc);
+    font-size: clamp(30px, 2.3vw, 46px); line-height: 1; color: #fff;
+  }
+  .pp-rank__main { min-width: 0; }
+  .pp-rank__title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 4px 0 10px; }
+  .pp-rank__title b {
+    font-family: var(--font-display); font-weight: 900; font-size: var(--fs-14); line-height: 1.05;
+    letter-spacing: var(--ls-4); color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+  .pp-rank__lv {
+    padding: 3px 10px; border-radius: 999px; background: var(--rc); color: #04121a;
+    font-family: var(--font-ui); font-weight: 800; font-size: var(--fs-6); white-space: nowrap;
+  }
+  .pp-rank__pres { color: #ff73fa; font-size: var(--fs-9); letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 115, 250, 0.6); }
+  .pp-rank__pres[hidden] { display: none; }
+  .pp-ladder { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+  .pp-ladder li { flex: 1 1 0; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--c) 20%, transparent); }
+  .pp-ladder li.is-on { background: var(--c); box-shadow: 0 0 8px -1px var(--c); }
+  .pp-rank__next { margin-top: 8px; font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-6); color: #a6b4d2; }
+
+  /* ---------- Tafel unter dem Ausweis ---------- */
+  .pp-board {
+    width: var(--pp-w); margin: 0 auto; padding: var(--pp-gut);
+    display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--pp-gut);
+  }
+  .pp-side { min-width: 0; display: flex; flex-direction: column; gap: var(--pp-gut); }
+  .pp-card {
+    min-width: 0; display: flex; flex-direction: column; padding: 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  }
+  .pp-card__head {
+    display: flex; align-items: center; gap: 10px; padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .pp-card__head h2 {
+    display: flex; align-items: center; gap: 9px; margin: 0;
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-7);
+    letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--text);
+  }
+  .pp-card__head h2 svg { width: 18px; height: 18px; color: var(--accent); }
+  .pp-count {
+    min-width: 24px; padding: 1px 8px; border-radius: 999px; text-align: center;
+    background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6);
+  }
+  .pp-count:empty { display: none; }
+  .pp-card__body { min-height: 0; padding: 14px 18px 18px; }
+
+  /* Hangar: Bildkacheln, Name unten auf dem Bild */
+  /* Spalten nach Anzahl (JS setzt --cols/--rows): wenige Schiffe werden
+     groß, bis neun füllen sie den Kasten, darüber scrollt die Liste. */
+  .pp-tiles {
+    display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    grid-auto-rows: clamp(120px, 10.5vw, 210px); gap: 12px;
+  }
+  .pp-tiles.is-many { grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr)); }
+  /* Drei Schiffe: das neueste groß links, zwei daneben übereinander */
+  .pp-tiles.is-feat > :first-child { grid-column: span 2; grid-row: span 2; }
+  .pp-tiles:empty { display: none; }
+  .pp-tile {
+    position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: #fff;
+    background: linear-gradient(0deg, rgba(5, 7, 13, 0.92) 4%, rgba(5, 7, 13, 0.4) 46%, rgba(5, 7, 13, 0) 100%), var(--img, none) center / cover no-repeat, #0d1322;
+    transition: border-color var(--dur-base) var(--ease-ui), transform var(--dur-fast) var(--ease-ui);
+  }
+  .pp-tile:hover { border-color: var(--accent-media); transform: translateY(-2px); }
+  .pp-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pp-tile.no-img { background: radial-gradient(120% 120% at 100% 0%, rgba(45, 212, 255, 0.18), transparent 62%), #0d1322; }
+  .pp-tile.no-img > svg { position: absolute; right: -8px; top: -8px; width: 58%; height: auto; color: var(--accent-media); opacity: 0.16; }
+  .pp-tile__k {
+    display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-4);
+    letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--accent-2-media);
+  }
+  .pp-tile__k svg { display: inline; width: 13px; height: 13px; margin-right: 6px; vertical-align: -2px; }
+  .pp-tile.is-lo { border-color: rgba(230, 178, 92, 0.6); box-shadow: inset 0 0 0 1px rgba(230, 178, 92, 0.25); }
+  .pp-tile.is-lo .pp-tile__k { color: #e6b25c; }
+  .pp-tile.is-lo:hover { border-color: #e6b25c; }
+  .pp-tile b {
+    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-10); line-height: 1.15;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
   }
 
-  /* ---------- Content-Wrapper ---------- */
-  .pp-wrap { max-width: var(--maxw); margin: 0 auto; padding: 1.8rem clamp(1.25rem, 5vw, 4rem) 4.5rem; }
-
-  /* ---------- Badges ---------- */
-  .pp-badges { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.6rem; }
+  /* Pilot: Abzeichen + Links */
+  .pp-card__body--auto { display: flex; flex-direction: column; gap: 12px; }
+  .pp-badges { display: flex; flex-wrap: wrap; gap: 8px; }
   .pp-badges:empty { display: none; }
   .pp-badge {
-    display: inline-flex; align-items: center; gap: 0.45rem;
-    background: var(--surface); border: 1px solid var(--line);
-    padding: 0.4rem 0.85rem;
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-family: var(--font-ui); font-size: var(--fs-5); font-weight: 700;
-    letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--text);
+    display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.38rem 0.75rem;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
+    font-family: var(--font-ui); font-size: var(--fs-6); font-weight: 700; color: var(--text);
   }
   .pp-badge svg { color: var(--accent); flex: none; }
   .pp-badge--verified { border-color: rgba(34, 197, 94, 0.5); color: #4ade80; }
@@ -584,156 +706,64 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
      dieselbe Farbe tragen (D-19). */
   .pp-badge--tester { border-color: rgba(255, 94, 26, 0.5); color: #ff5e1a; }
   .pp-badge--tester svg { color: #ff5e1a; }
+  .pp-badge--complete { border-color: rgba(47, 191, 164, 0.5); color: #2fbfa4; }
   .pp-badge--era { border-color: var(--line-soft); color: var(--muted); }
   .pp-badge--era svg { color: var(--muted); }
-
-  /* ---------- Stats-Readout ---------- */
-  .pp-stats {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem;
-    margin: 0 0 2.6rem; padding: 0;
-  }
-  .pp-stat {
-    background: var(--surface); border: 1px solid var(--line-soft);
-    border-top: 2px solid var(--accent);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-    padding: 0.95rem 1.1rem 1rem;
-    min-width: 0;
-  }
-  .pp-stat dt {
-    display: flex; align-items: center; gap: 0.5rem;
-    font-family: var(--font-ui); font-size: var(--fs-3); font-weight: 700;
-    letter-spacing: var(--ls-14); text-transform: uppercase; color: var(--muted);
-  }
-  .pp-stat dt svg { color: var(--accent); flex: none; }
-  .pp-stat dd {
-    margin: 0.35rem 0 0;
-    font-family: var(--font-mono); font-size: var(--fs-14); line-height: 1;
-    color: var(--accent);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-
-  /* ---------- Sektionen ---------- */
-  /* padding: 0 — detail.css gibt globalen <section>-Blöcken ein großes
-     Block-/Inline-Padding; hier soll allein das eigene margin-top den
-     Rhythmus steuern und die Kanten mit Stats/CTA fluchten. */
-  .pp-sec { margin-top: 2.6rem; padding: 0; }
-  .pp-sec[hidden] { display: none !important; }
-
-  /* ---------- Fleet-Showcase ---------- */
-  .pp-fleet {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(220px,100%), 1fr));
-    gap: 1rem;
-  }
-  .pp-ship {
-    position: relative; display: flex; flex-direction: column;
-    background: var(--surface); border: 1px solid var(--line-soft);
-    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-    text-decoration: none;
-    transition: border-color var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
-  }
-  .pp-ship:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent) 32%, transparent));
-  }
-  .pp-ship:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .pp-ship__media {
-    position: relative; aspect-ratio: 16 / 9; overflow: hidden;background:var(--veil-2);
-    display: grid; place-items: center;
-  }
-  .pp-ship__media img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--dur-slow) var(--ease-ui); }
-  .pp-ship:hover .pp-ship__media img { transform: scale(1.05); }
-  .pp-ship__media--logo img { width: 46%; height: 46%; object-fit: contain; opacity: 0.85; filter: grayscale(0.2); }
-  .pp-ship__media--void {background:linear-gradient(rgba(45, 212, 255, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(45, 212, 255, 0.06) 1px, transparent 1px),
-      var(--veil-2);
-    background-size: 18px 18px;
-  }
-  .pp-ship__voidname {
-    font-family: 'Teko', sans-serif; font-weight: 500; font-size: var(--fs-16);
-    letter-spacing: var(--ls-9); text-transform: uppercase;
-    color: rgba(45, 212, 255, 0.55);
-    padding: 0 0.8rem; text-align: center; line-height: 1;
-  }
-  .pp-ship__name {
-    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
-    padding: 0.6rem 0.85rem;
-    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-8);
-    letter-spacing: var(--ls-7); color: var(--text);
-    border-top: 1px solid var(--line-soft);
-  }
-  .pp-ship__go { color: var(--accent); font-size: var(--fs-6); flex: none; }
-
-  /* ---------- Weitere Favoriten ---------- */
-  .pp-favgroups { display: flex; flex-direction: column; gap: 1.3rem; }
-  .pp-favgroup__title {
-    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-5);
-    letter-spacing: var(--ls-16); text-transform: uppercase; color: var(--accent-2);
-    margin: 0 0 0.55rem;
-  }
-  .pp-favchips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .pp-favchip {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    background: var(--surface-2); border: 1px solid var(--line-soft);
-    padding: 0.34rem 0.75rem;
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-size: var(--fs-7); color: var(--text); text-decoration: none;
-    transition: border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
-  }
-  .pp-favchip:hover {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 28%, transparent));
-  }
-  .pp-favchip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  /* ---------- Org & Links ---------- */
-  .pp-links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .pp-links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pp-links[hidden] { display: none !important; }
   .pp-chip {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: var(--surface-2); border: 1px solid var(--line-soft);
-    padding: 0.42rem 0.85rem;
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    font-family: var(--font-ui); font-size: var(--fs-8); font-weight: 600; color: var(--text);
-    text-decoration: none;
-    transition: border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui), filter var(--dur-base) var(--ease-ui);
+    display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.42rem 0.8rem;
+    background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 9px;
+    font-family: var(--font-ui); font-size: var(--fs-7); font-weight: 600; color: var(--text);
+    text-decoration: none; transition: border-color var(--dur-base) var(--ease-ui);
   }
   .pp-chip svg { color: var(--accent); flex: none; }
   .pp-chip[hidden] { display: none !important; }
-  a.pp-chip:hover {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 28%, transparent));
-  }
+  a.pp-chip:hover { border-color: var(--accent); }
   a.pp-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .pp-chip__dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; flex: none; }
   .pp-chip__dot[hidden] { display: none !important; }
   .pp-chip__go { color: var(--accent); font-size: var(--fs-6); }
 
-  /* ---------- CTA-Strip ---------- */
-  .pp-cta {
-    margin-top: 3rem;
-    display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; flex-wrap: wrap;
-    padding: 1rem 1.4rem;
-    border: 1px solid var(--line-soft); border-left: 3px solid var(--accent);
-    background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  /* Werbeknopf nur für Gäste */
+  .pp-cta[hidden] { display: none; }
+
+  /* Favoriten: eine Zeile je Eintrag, Zeichen und Farbe je Art */
+  .pp-favlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .pp-favlist:empty { display: none; }
+  .pp-fav {
+    display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px;
+    color: var(--text); text-decoration: none; transition: background var(--dur-fast) var(--ease-ui);
   }
-  .pp-cta__text { color: var(--muted); font-size: var(--fs-8); }
-  .pp-cta__btn {
-    font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6);
-    letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--accent);
-    white-space: nowrap; border-bottom: 1px solid var(--line);
+  .pp-fav:hover { background: color-mix(in srgb, var(--kc) 10%, transparent); }
+  .pp-fav:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .pp-fav__ic {
+    flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px;
+    background: color-mix(in srgb, var(--kc) 14%, transparent); color: var(--kc);
   }
-  .pp-cta__btn:hover { border-color: var(--accent); }
+  .pp-fav__ic svg { width: 18px; height: 18px; }
+  .pp-fav__t { min-width: 0; display: flex; flex-direction: column; }
+  .pp-fav__t b { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pp-fav__t small { font-family: var(--font-ui); font-weight: 600; font-size: var(--fs-5); letter-spacing: var(--ls-10); text-transform: uppercase; color: var(--muted); }
+
+  /* Leerbild (wie Nachrichten/Gespeichert im Konto) */
+  .pp-empty { display: grid; place-items: center; align-content: center; gap: 10px; min-height: 180px; text-align: center; color: var(--muted); }
+  .pp-empty[hidden] { display: none; }
+  .pp-empty svg { width: 46px; height: 46px; color: var(--accent); opacity: 0.45; }
+  .pp-empty p { margin: 0; font-size: var(--fs-8); }
+  .pp-empty--sm { min-height: 120px; }
+  .pp-empty--sm svg { width: 34px; height: 34px; }
+  .pp-empty__go { font-family: var(--font-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--accent); }
+  .pp-empty__go[hidden] { display: none; }
 
   /* ---------- Light-Theme: Badges/Status kontraststark ---------- */
   :root[data-theme='light'] .pp-badge--verified { color: #15803d; border-color: rgba(21, 128, 61, 0.45); }
   :root[data-theme='light'] .pp-badge--verified svg { color: #15803d; }
   :root[data-theme='light'] .pp-badge--tester { color: #b1330a; border-color: rgba(177, 51, 10, 0.45); }
   :root[data-theme='light'] .pp-badge--tester svg { color: #b1330a; }
+  :root[data-theme='light'] .pp-badge--complete { color: #157a68; border-color: rgba(21, 122, 104, 0.45); }
   :root[data-theme='light'] .pp-chip__dot { background: #16a34a; box-shadow: 0 0 6px rgba(22, 163, 74, 0.55); }
+  :root[data-theme='light'] .pp-fav__ic { color: color-mix(in srgb, var(--kc) 60%, #000); }
   /* Light-Theme: --surface-2 auf --surface hat fast keinen Kontrast —
      die Pulse-Blöcke deutlich dunkler mischen, sonst wirkt die Seite leer. */
   :root[data-theme='light'] .pp-skel__pulse {
@@ -743,39 +773,76 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     border-color: var(--line);
   }
 
-  /* ---------- Responsive ---------- */
+  /* ---------- Breite Schirme: ein Bildschirm, nur die Kästen scrollen ---------- */
+  @media (min-width: 1100px) and (min-height: 600px) {
+    .pp-app { height: 100dvh; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+    .pp-hero { min-height: clamp(300px, 41vh, 520px); }
+    .pp-board { min-height: 0; }
+    .pp-card--hangar, .pp-side, .pp-card--favs { min-height: 0; }
+    .pp-card--favs { flex: 1 1 0; min-height: 7rem; }
+    .pp-card__body { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+    .pp-card__body--auto { flex: none; overflow: visible; }
+    .pp-card__body:not(.pp-card__body--auto) { display: flex; flex-direction: column; }
+    .pp-card__body > .pp-empty { flex: 1 1 auto; }
+    .pp-tiles.is-fit { flex: 1 1 auto; min-height: 0; grid-template-rows: repeat(var(--rows, 1), minmax(0, 1fr)); grid-auto-rows: 0; }
+  }
+  /* Niedrige Schirme (1366×768 usw.): Ausweis flacher, damit Hangar und
+     Favoriten genug Höhe behalten */
+  @media (min-width: 1100px) and (min-height: 600px) and (max-height: 820px) {
+    .pp-hero { min-height: 0; padding-top: 4.4rem; }
+    .pp-chrome { display: none; }
+    .pp-hero__body { padding-block: 0.9rem 1rem; }
+    .pp-avatar-module { width: 116px; height: 116px; }
+    .pp-avatar-box { width: 84px; height: 84px; font-size: var(--fs-16); }
+    .pp-name { font-size: clamp(1.6rem, 2.6vw, 2.3rem); }
+    .pp-identity { gap: 0.35rem; }
+    .pp-bio { -webkit-line-clamp: 1; }
+    .pp-rank { padding-block: 10px; }
+    .pp-card__head { padding-block: 10px 9px; }
+    .pp-card__body { padding-block: 10px 12px; }
+  }
+
+  /* ---------- Handy/Tablet: untereinander, die Seite scrollt ---------- */
+  @media (max-width: 1099.98px), (max-height: 599.98px) {
+    .pp-hero__body { grid-template-columns: auto minmax(0, 1fr); }
+    .pp-rank { grid-column: 1 / -1; width: auto; }
+    .pp-board { grid-template-columns: minmax(0, 1fr); }
+    .pp-card--hangar .pp-card__body { max-height: none; }
+  }
   @media (max-width: 720px) {
     .pp-hero { min-height: 0; }
-    .pp-hero__body { flex-direction: column; align-items: flex-start; gap: 1.1rem; padding-top: 5.2rem; }
-    .pp-avatar-module { width: 122px; height: 122px; }
-    .pp-avatar-box { width: 88px; height: 88px; font-size: var(--fs-17); }
-    .pp-stats { grid-template-columns: repeat(2, 1fr); }
+    .pp-hero__body { grid-template-columns: minmax(0, 1fr); padding-top: 1.2rem; }
+    .pp-avatar-module { width: 112px; height: 112px; }
+    .pp-avatar-box { width: 80px; height: 80px; font-size: var(--fs-16); }
+    .pp-name { white-space: normal; }
+    .pp-bio { -webkit-line-clamp: 4; }
     .pp-skel__cells { grid-template-columns: repeat(2, 1fr); }
     .pp-chrome { font-size: var(--fs-2); letter-spacing: var(--ls-11); }
+    .pp-tiles, .pp-tiles.is-many { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 116px; gap: 8px; }
+    .pp-tiles > :only-child, .pp-tiles.is-feat > :first-child { grid-column: 1 / -1; grid-row: auto; }
   }
 
   /* ---------- Reduced Motion ---------- */
   @media (prefers-reduced-motion: reduce) {
     .pp-hero__img, .pp-hero__sweep, .pp-ring--a, .pp-ring--b,
-    .pp-status-dot.pulse, .pp-skel__pulse, .pp-ship__media img {
+    .pp-status-dot.pulse, .pp-skel__pulse {
       animation: none !important;
       transition: none !important;
     }
     .pp-hero__sweep { display: none; }
-  }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .pp-chrome{color:#485879}
-:root[data-theme="light"] .pp-verified{color:#046a34}
-:root[data-theme="light"] .pp-transmission{color:#485879}
-:root[data-theme="light"] .pp-bio{color:#4c586f}
-:root[data-theme="light"] .pp-since{color:#485879}
-:root[data-theme="light"] .pp-ship__voidname{color:rgba(2,98,121,.73)}
-</style>
+  }</style>
 
 <script>
   import { supabase, FAV_PATH } from '../../lib/supabase';
   import { CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
   import { resolveStatusKey } from '../../lib/presence';
+  import { renderSocialLinks } from '../../lib/socials';
+  import { rankOf } from '../../lib/rankBadge';
+  import { RANKS, nextRank, prestigeStars } from '../../../discord/bot/src/ranks.mjs';
+  import { encodeLayout } from '../../../assets/hangar-layouts.js';
+  import { escapeHtml as esc } from '../../lib/escape';
+  import { cssUrl } from '../../lib/cssUrl';
+  import { HANGAR_ON } from '../../lib/hangarFlag';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -785,9 +852,6 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
     const COPY = JSON.parse($('ppCopyData')?.textContent || '{}');
     const SHIPS: Record<string, { n: string; i: string | null; m: string | null }> =
       JSON.parse($('ppShipData')?.textContent || '{}');
-
-    const esc = (s: string) =>
-      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 
     const favPath = (kind: string, slug: string) => {
       const tpl = FAV_PATH[kind] || '/index.html';
@@ -803,6 +867,14 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       if (m) handle = m[1];
     }
     handle = handle.toLowerCase();
+
+    // Gast über einen geteilten Pilotenlink: „Profil erstellen" führt nach
+    // dem Registrieren hierher zurück (AuthRegister kennt ?next=), wo dann
+    // „Freund hinzufügen" wartet.
+    const cta = document.querySelector<HTMLAnchorElement>('.pp-cta');
+    if (cta && app.dataset.register) {
+      cta.href = app.dataset.register + '?next=' + encodeURIComponent(location.pathname + location.search);
+    }
 
     const showError = (title: string, body: string, code: string) => {
       $('ppLoading')!.hidden = true;
@@ -820,9 +892,15 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         return;
       }
 
-      const [profileRes, favsRes] = await Promise.all([
+      const [profileRes, favsRes, showRes, thumbs, badgeRes] = await Promise.all([
         supabase.from('public_profiles').select('*').eq('handle', handle).maybeSingle(),
         supabase.from('public_favorites').select('*').eq('handle', handle).order('created_at', { ascending: false }),
+        // Angeheftete Loadouts (Schaufenster), in der Reihenfolge des Piloten
+        supabase.from('public_showcase').select('id, pos, entry').eq('handle', handle).order('pos'),
+        // Große Schiffsbilder wie die Kacheln im Konto; ohne Datei die kleinen.
+        fetch('/assets/ship-thumbs.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})) as Promise<Record<string, string>>,
+        // Abzeichen "Profil komplett" (Sicht profile_badges); fehlt sie, kein Abzeichen.
+        supabase.from('profile_badges').select('profile_complete').eq('handle', handle).maybeSingle(),
       ]);
       if (profileRes.error) throw profileRes.error;
       const p = profileRes.data;
@@ -831,6 +909,9 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         return;
       }
       const favs = favsRes.error ? [] : favsRes.data || [];
+      type Lo = { ship: string; name?: string; slots?: Record<string, string>; racks?: Record<string, string>; paint?: string };
+      // Angeheftete Loadouts öffnen den Hangar; ohne ihn (Live-Bau) keine.
+      const shown = HANGAR_ON ? (showRes.error ? [] : showRes.data || []).map((r: { entry: Lo }) => r.entry).filter((e: Lo) => e && e.ship) : [];
 
       const name = p.display_name || p.handle;
 
@@ -849,7 +930,8 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       // schwarz und die Seite sähe kaputt aus, obwohl nur ein Bild fehlt.
       const BANNER_FALLBACK = '/assets/t-pyro-2.jpg';
       const bannerEl = $('ppBannerImg') as HTMLElement;
-      const setBanner = (url: string) => { bannerEl.style.backgroundImage = `url('${url}')`; };
+      // cssUrl: die Adresse schreibt der Besitzer des Profils, nicht die Seite.
+      const setBanner = (url: string) => { const v = cssUrl(url); if (v) bannerEl.style.backgroundImage = v; };
       setBanner(BANNER_FALLBACK);
       if (p.banner_url && p.banner_url !== BANNER_FALLBACK) {
         const probe = new Image();
@@ -877,27 +959,44 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
       // (p.presence online/away/offline) + optionale manuelle Aktivität
       // (status_state ingame/mission überschreibt "online"). Wird per Poll live
       // aktualisiert, damit man Statuswechsel ohne Refresh sieht.
+      // presence null = der Pilot zeigt seinen Status diesem Besucher nicht
+      // (profiles.presence_visibility). Dann weder Punkt noch Wort: ein
+      // "Offline" wäre eine Aussage, die niemand gemacht hat. Der eigene
+      // Statustext bleibt, er ist öffentlich wie die Bio.
+      const statusText = p.status_text ? String(p.status_text) : '';
+      $('ppStatusText')!.textContent = statusText;
       const applyPresence = (presenceVal: string | null, activityVal: string | null) => {
-        const presence = (presenceVal === 'online' || presenceVal === 'away') ? presenceVal : 'offline';
-        const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[resolveStatusKey(presence, activityVal)]
-          || STATUS_STATES.offline;
+        const known = presenceVal === 'online' || presenceVal === 'away' || presenceVal === 'offline' ? presenceVal : null;
         const dot = $('ppStatusDot') as HTMLElement;
+        dot.hidden = !known;
+        $('ppStatusState')!.hidden = !known;
+        $('ppStatusSep')!.hidden = !(known && statusText);
+        $('ppTransmission')!.hidden = !known && !statusText;
+        if (!known) return;
+        const st = (STATUS_STATES as Record<string, { labelDe: string; labelEn: string; color: string; pulse: boolean }>)[resolveStatusKey(known, activityVal)]
+          || STATUS_STATES.offline;
         dot.style.background = st.color;
         dot.style.boxShadow = `0 0 12px ${st.color}`;
         dot.classList.toggle('pulse', st.pulse);
         $('ppStatusState')!.textContent = lang === 'de' ? st.labelDe : st.labelEn;
       };
       applyPresence(p.presence, p.status_state);
-      if (p.status_text) {
-        $('ppStatusSep')!.hidden = false;
-        $('ppStatusText')!.textContent = p.status_text;
-      }
+      // public_profiles nennt den Status nur bei "Alle". Angemeldet fragt die
+      // Seite social_profiles: dort sehen ihn auch Freunde und man selbst.
+      // Scheitert das einmal (etwa Netz, abgelaufene Sitzung), faellt nur diese
+      // Abfrage auf public_profiles zurueck; die naechste fragt wieder social_profiles.
+      let presenceView: 'public_profiles' | 'social_profiles' = 'public_profiles';
+      const pollPresence = async (view = presenceView): Promise<void> => {
+        const { data, error } = await supabase.from(view).select('presence, status_state').eq('handle', handle).maybeSingle();
+        if (error && view === 'social_profiles') return pollPresence('public_profiles');
+        if (data) applyPresence(data.presence, data.status_state);
+      };
+      supabase.auth.getSession().then(({ data: auth }) => {
+        if (auth?.session) { presenceView = 'social_profiles'; pollPresence(); }
+      }).catch(() => { /* bleibt public_profiles */ });
       // Live-Präsenz: alle 40s neu abfragen (offline entsteht durch Zeitablauf,
       // kein DB-Event -> Polling statt Realtime).
-      setInterval(async () => {
-        const { data } = await supabase.from('public_profiles').select('presence, status_state').eq('handle', handle).maybeSingle();
-        if (data) applyPresence(data.presence, data.status_state);
-      }, 40000);
+      setInterval(() => void pollPresence(), 40000);
 
       // Identity
       $('ppName')!.textContent = name;
@@ -918,91 +1017,92 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         bioEl.hidden = false;
         bioEl.textContent = p.bio;
       }
+      renderSocialLinks($('ppSocials')!, p as Record<string, unknown>);
 
-      // Dabei seit
-      let sinceYear = '';
-      if (p.created_at) {
-        const d = new Date(p.created_at);
-        sinceYear = String(d.getFullYear());
-        const sinceTxt = d.toLocaleDateString(COPY.locale, { month: 'long', year: 'numeric' });
-        $('ppSince')!.textContent = `${COPY.since} ${sinceTxt}`;
-        $('ppStatSince')!.textContent = sinceYear;
-      }
-
-      // Badges-Zeile
+      // Abzeichen: RSI, Testpilot, Org, seit wann (die Rolle steht im Ausweis)
+      const ic = (id: string, vb = '0 0 24 24') => `<svg viewBox="${vb}" width="14" height="14" aria-hidden="true"><use href="#${id}"/></svg>`;
       const badges: string[] = [];
       if (p.rsi_verified === true) {
-        badges.push(`<span class="pp-badge pp-badge--verified"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>${COPY.verified}</span>`);
+        badges.push(`<span class="pp-badge pp-badge--verified"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>${esc(COPY.verified)}</span>`);
       }
       // Testpilot-Abzeichen (D-19) -- IMMER nach dem RSI-Abzeichen, nie davor,
       // sonst verdreht sich die Rangfolge der beiden Nachweise.
       if (p.is_tester === true) {
-        badges.push(`<span class="pp-badge pp-badge--tester"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l1.9 4.3 4.6.5-3.4 3.2.9 4.6-4-2.3-4 2.3.9-4.6-3.4-3.2 4.6-.5z"/></svg>${COPY.testPilot}</span>`);
+        badges.push(`<span class="pp-badge pp-badge--tester"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l1.9 4.3 4.6.5-3.4 3.2.9 4.6-4-2.3-4 2.3.9-4.6-3.4-3.2 4.6-.5z"/></svg>${esc(COPY.testPilot)}</span>`);
       }
-      if (role) {
-        badges.push(`<span class="pp-badge"><span aria-hidden="true">${role.symbol}</span>${esc(lang === 'de' ? role.labelDe : role.labelEn)}</span>`);
+      if (badgeRes.data?.profile_complete === true) {
+        badges.push(`<span class="pp-badge pp-badge--complete"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M9.5 9l1.8 1.8L14.8 7.3M8.5 14.2L7 21.5l5-2.5 5 2.5-1.5-7.3"/></svg>${esc(COPY.profileComplete)}</span>`);
       }
-      if (sinceYear) {
-        badges.push(`<span class="pp-badge pp-badge--era"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 2.5V6M16 2.5V6"/></svg>${COPY.badgeSince} ${sinceYear}</span>`);
+      if (p.created_at) {
+        const sinceTxt = new Date(p.created_at).toLocaleDateString(COPY.locale, { month: 'long', year: 'numeric' });
+        badges.push(`<span class="pp-badge pp-badge--era"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 2.5V6M16 2.5V6"/></svg>${esc(COPY.since)} ${esc(sinceTxt)}</span>`);
       }
       $('ppBadges')!.innerHTML = badges.join('');
 
-      // Stats
+      // Discord-Rang im Ausweis (nur solange verknüpft und auf dem Server)
+      const rk = rankOf(p);
+      if (rk) {
+        const card = $('ppRank')!;
+        card.style.setProperty('--rc', rk.rank.color);
+        $('ppRankIns')!.textContent = rk.rank.insignia;
+        $('ppRankName')!.textContent = rk.rank.name;
+        $('ppRankLv')!.textContent = COPY.lv.replace('%n%', String(rk.level));
+        const pres = $('ppRankPres')!;
+        pres.textContent = prestigeStars(rk.prestige || 0);
+        pres.hidden = !pres.textContent;
+        const idx = RANKS.findIndex((r) => r.key === rk.rank.key);
+        $('ppLadder')!.innerHTML = RANKS.map((r, i) => `<li${i <= idx ? ' class="is-on"' : ''} style="--c:${r.color}"></li>`).join('');
+        const nx = nextRank(rk.level);
+        $('ppRankNext')!.textContent = nx ? COPY.next.replace('%n%', String(nx.level)).replace('%r%', `${nx.insignia} ${nx.name}`) : COPY.max;
+        card.hidden = false;
+      }
+
+      // Hangar: zuerst die angehefteten Loadouts (Gold, öffnen den Hangar mit
+      // genau diesem Layout), dann die Schiffe aus den Favoriten.
+      const pre = lang === 'de' ? '/de' : '';
+      const loTiles = shown.map((e: Lo) => {
+        const shipName = SHIPS[e.ship]?.n || e.ship;
+        let code = '';
+        try { code = encodeLayout(e); } catch { /* altes Format: nur das Schiff */ }
+        const href = `${pre}/hangar.html?ship=${encodeURIComponent(e.ship)}${code ? '&layout=' + code : ''}`;
+        // cssUrl: der Schluessel kommt aus dem Profil; ein Wert, der kein
+        // Bild ist (auch ein Prototyp-Eintrag), ergibt eine Kachel ohne Bild.
+        const img = cssUrl(thumbs[e.ship] || SHIPS[e.ship]?.i);
+        const style = img ? ` style="--img:${esc(img)}"` : '';
+        return `<a class="pp-tile is-lo${img ? '' : ' no-img'}" href="${esc(href)}"${style}>${img ? '' : ic('pi-ship')}`
+          + `<span class="pp-tile__k">${ic('pi-hex')}${esc(COPY.loadout)}${e.name ? ' · ' + esc(shipName) : ''}</span><b>${esc(e.name || shipName)}</b></a>`;
+      });
       const ships = favs.filter((f: { kind: string }) => f.kind === 'ship');
-      const missions = favs.filter((f: { kind: string }) => f.kind === 'mission');
-      $('ppStatFavs')!.textContent = String(favs.length);
-      $('ppStatShips')!.textContent = String(ships.length);
-      $('ppStatMissions')!.textContent = String(missions.length);
+      $('ppHangarGrid')!.innerHTML = loTiles.join('') + ships.map((f: { slug: string; label: string }) => {
+        const info = SHIPS[f.slug];
+        const shipName = info?.n || f.label || f.slug;
+        const img = cssUrl(thumbs[f.slug] || info?.i);
+        const style = img ? ` style="--img:${esc(img)}"` : '';
+        return `<a class="pp-tile${img ? '' : ' no-img'}" href="${favPath('ship', f.slug)}"${style}>${img ? '' : ic('pi-ship')}`
+          + `<span class="pp-tile__k">${ic('pi-ship')}${esc(COPY.kindsAll.ship)}</span><b>${esc(shipName)}</b></a>`;
+      }).join('');
+      const grid = $('ppHangarGrid')!;
+      const n = loTiles.length + ships.length;
+      const cols = n <= 2 ? n : n === 4 ? 2 : 3;
+      grid.classList.toggle('is-fit', n > 0 && n <= 9);
+      grid.classList.toggle('is-feat', n === 3);
+      grid.classList.toggle('is-many', n > 9);
+      grid.style.setProperty('--cols', String(Math.max(1, cols)));
+      grid.style.setProperty('--rows', String(n === 3 ? 2 : Math.max(1, Math.ceil(n / Math.max(1, cols)))));
+      $('ppHangarCount')!.textContent = n ? String(n) : '';
+      $('ppHangarEmpty')!.hidden = n > 0;
 
-      // Sektions-Nummerierung nur für sichtbare Sektionen
-      let secNo = 0;
-      const showSec = (id: string) => {
-        const sec = $(id)!;
-        sec.hidden = false;
-        secNo += 1;
-        const num = sec.querySelector('[data-secnum]');
-        if (num) num.textContent = String(secNo).padStart(2, '0');
-      };
+      // Favoriten ohne Schiffe: eine Zeile je Eintrag, Zeichen je Art
+      const KC: Record<string, string> = { mineral: 'var(--gold, #e6b25c)', mission: 'var(--accent-2)', item: '#a855f7', patch: '#22c55e', topic: 'var(--muted)' };
+      const rest = favs.filter((f: { kind: string }) => f.kind !== 'ship' && COPY.kinds[f.kind]);
+      $('ppFavList')!.innerHTML = rest.map((f: { kind: string; slug: string; label: string }) =>
+        `<li><a class="pp-fav" href="${favPath(f.kind, f.slug)}" style="--kc:${KC[f.kind] || 'var(--accent)'}">`
+        + `<span class="pp-fav__ic">${ic('pi-' + f.kind)}</span>`
+        + `<span class="pp-fav__t"><b>${esc(f.label || f.slug)}</b><small>${esc(COPY.kinds[f.kind])}</small></span></a></li>`).join('');
+      $('ppFavCount')!.textContent = rest.length ? String(rest.length) : '';
+      $('ppFavEmpty')!.hidden = rest.length > 0;
 
-      // FLEET SHOWCASE — slug -> Render (lokale Archive-Renders > Wiki-Thumb >
-      // Hersteller-Logo > Platzhalter-Kachel mit Name in Teko)
-      if (ships.length > 0) {
-        const cards = ships.map((f: { slug: string; label: string }) => {
-          const info = SHIPS[f.slug];
-          const shipName = info?.n || f.label || f.slug;
-          let media: string;
-          if (info?.i) {
-            media = `<span class="pp-ship__media"><img src="${esc(info.i)}" alt="${esc(shipName)}" loading="lazy"></span>`;
-          } else if (info?.m) {
-            media = `<span class="pp-ship__media pp-ship__media--logo"><img src="${esc(info.m)}" alt="" loading="lazy"></span>`;
-          } else {
-            media = `<span class="pp-ship__media pp-ship__media--void"><span class="pp-ship__voidname">${esc(shipName)}</span></span>`;
-          }
-          return `<a class="pp-ship" href="${favPath('ship', f.slug)}">${media}<span class="pp-ship__name"><span>${esc(shipName)}</span><span class="pp-ship__go" aria-hidden="true">&nearr;</span></span></a>`;
-        });
-        $('ppFleetGrid')!.innerHTML = cards.join('');
-        showSec('ppFleetSec');
-      }
-
-      // Weitere Favoriten (gruppiert nach kind, ohne Schiffe)
-      const groups: Record<string, { slug: string; label: string }[]> = {};
-      for (const f of favs) {
-        if (f.kind === 'ship') continue;
-        if (!COPY.kinds[f.kind]) continue;
-        (groups[f.kind] ||= []).push(f);
-      }
-      const groupKeys = Object.keys(groups);
-      if (groupKeys.length > 0) {
-        $('ppFavGroups')!.innerHTML = groupKeys.map((kind) => {
-          const chips = groups[kind]
-            .map((f) => `<a class="pp-favchip" href="${favPath(kind, f.slug)}">${esc(f.label || f.slug)}</a>`)
-            .join('');
-          return `<div class="pp-favgroup"><h3 class="pp-favgroup__title">${esc(COPY.kinds[kind])}</h3><div class="pp-favchips">${chips}</div></div>`;
-        }).join('');
-        showSec('ppFavsSec');
-      }
-
-      // Org & Links
+      // Org & RSI
       let hasLinks = false;
       if (p.org_name) {
         $('ppOrgChip')!.hidden = false;
@@ -1017,11 +1117,86 @@ const jsonSafe = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
         if (p.rsi_verified === true) $('ppRsiDot')!.hidden = false;
         hasLinks = true;
       }
-      if (hasLinks) showSec('ppOrgSec');
+      $('ppLinks')!.hidden = !hasLinks;
 
       // Umschalten: Skeleton raus, Profil rein
       $('ppLoading')!.hidden = true;
       $('ppRoot')!.hidden = false;
+
+      paintActs().catch(() => {});
+    };
+
+    // Freund hinzufügen / Anfrage annehmen / Nachricht (nur angemeldet). Die
+    // Konto-ID gibt es erst über social_profiles (nur für Angemeldete lesbar).
+    const ICO = {
+      add: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M15 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9" cy="7.5" r="3.5"/><path d="M19 8v6M16 11h6"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4z"/></svg>',
+      ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+    };
+    const account = app.dataset.account || '/account.html';
+    const paintActs = async () => {
+      const acts = $('ppActs')!;
+      const { data: sess } = await supabase.auth.getSession();
+      const me = sess.session?.user?.id;
+      if (!me) return;
+      // Wer schon ein Konto hat, braucht den Werbekasten unten nicht.
+      document.querySelector<HTMLElement>('.pp-cta')?.setAttribute('hidden', '');
+      const { data: sp } = await supabase.from('social_profiles').select('id').eq('handle', handle).maybeSingle();
+      if (!sp) return;
+      const them = sp.id as string;
+      const say = (msg: string) => {
+        let m = acts.querySelector<HTMLElement>('.pp-acts__msg');
+        if (!m) { m = document.createElement('p'); m.className = 'pp-acts__msg'; m.setAttribute('role', 'status'); acts.appendChild(m); }
+        m.textContent = msg;
+        m.hidden = !msg;
+      };
+      if (them === me) {
+        acts.innerHTML = `<a class="pp-act" href="${account}#profile">${ICO.edit}${esc(COPY.editProfile)}</a>`;
+        acts.hidden = false;
+        return;
+      }
+      const [fr, rq, mine] = await Promise.all([
+        // Eine Zeile je Freundschaft, Richtung je nachdem, wer angenommen hat.
+        supabase.from('friends').select('id').in('user_id', [me, them]).in('friend_id', [me, them]).limit(1),
+        supabase.from('friend_requests').select('id, sender_id').eq('status', 'pending').in('sender_id', [me, them]).in('receiver_id', [me, them]),
+        supabase.from('profiles').select('handle').eq('id', me).maybeSingle(),
+      ]);
+      // Ohne verlässliche Antwort lieber keinen Knopf als einen falschen.
+      if (fr.error || rq.error) { acts.hidden = true; return; }
+      const req = (rq.data || [])[0] as { id: string; sender_id: string } | undefined;
+      if (fr.data?.length) {
+        acts.innerHTML = `<a class="pp-act pp-act--go" href="${account}?chat=${encodeURIComponent(them)}#friends">${ICO.chat}${esc(COPY.message)}</a>`
+          + `<span class="pp-act pp-act--state is-ok">${ICO.ok}${esc(COPY.isFriend)}</span>`;
+      } else if (req && req.sender_id === me) {
+        acts.innerHTML = `<span class="pp-act pp-act--state">${ICO.ok}${esc(COPY.requested)}</span>`;
+      } else if (req) {
+        acts.innerHTML = `<button type="button" class="pp-act pp-act--go" id="ppAccept">${ICO.add}${esc(COPY.accept)}</button>`;
+        $('ppAccept')!.addEventListener('click', async (e) => {
+          const b = e.currentTarget as HTMLButtonElement;
+          b.disabled = true;
+          const { error } = await supabase.rpc('accept_friend_request', { req_id: req.id });
+          if (error) { say(COPY.err); b.disabled = false; return; }
+          paintActs().catch(() => {});
+        });
+      } else {
+        acts.innerHTML = `<button type="button" class="pp-act pp-act--go" id="ppAdd">${ICO.add}${esc(COPY.addFriend)}</button>`;
+        $('ppAdd')!.addEventListener('click', async (e) => {
+          const b = e.currentTarget as HTMLButtonElement;
+          // Ohne eigenes Handle geht keine Anfrage raus: in den Freunde-
+          // Bereich, dort steht dieser Pilot schon im Feld (?add=), und der
+          // Hinweis führt zum Handle.
+          if (!mine.data?.handle) {
+            location.href = `${account}?add=${encodeURIComponent(handle)}#friends`;
+            return;
+          }
+          b.disabled = true;
+          const { error } = await supabase.from('friend_requests').insert({ sender_id: me, receiver_id: them });
+          if (error) { say(COPY.err); b.disabled = false; return; }
+          paintActs().catch(() => {});
+        });
+      }
+      acts.hidden = false;
     };
 
     load().catch((err) => {

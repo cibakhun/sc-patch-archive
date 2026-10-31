@@ -1,0 +1,34 @@
+-- Sicherheits-Istzustand 29.10.2026: die Profil-Views waren von aussen
+-- beschreibbar. Live eingespielt am 29.10.2026 12:32 UTC (Version
+-- 20261029123218), nach Freigabe durch den Betreiber.
+--
+-- DAS LOCH: public_profiles, social_profiles und tester_credits sind einfache
+-- Views ueber genau eine Tabelle und damit in Postgres AUTOMATISCH
+-- beschreibbar. Sie laufen mit den Rechten ihres Besitzers (postgres, und der
+-- hat BYPASSRLS) statt mit denen des Aufrufers. Ueber die Standardrechte von
+-- Supabase hatten anon und authenticated auf jeder neuen View im Schema public
+-- nicht nur SELECT, sondern auch INSERT, UPDATE, DELETE und TRUNCATE. Ein
+-- PATCH oder DELETE auf /rest/v1/social_profiles?id=eq.<fremde-id> traf damit
+-- die Zeile in public.profiles AM RLS VORBEI -- mit nichts als dem
+-- oeffentlichen anon-Schluessel aus dem Seiten-JavaScript.
+--
+-- WARUM DAS NIEMAND SAH: die frueheren Migrationen schreiben
+-- "grant select ... to anon, authenticated" und lesen sich damit wie eine
+-- Beschraenkung. Sie ist keine: ein GRANT fuegt hinzu, er nimmt nichts weg,
+-- und die Standardrechte hatten schon alles vergeben.
+--
+-- NACHWEIS OHNE SCHREIBZUGRIFF (EXPLAIN als anon in einer Transaktion):
+--   update public.profiles ...        -> "One-Time Filter: false" (RLS greift)
+--   update public.social_profiles ... -> "Update on profiles", nur der
+--                                        View-Filter handle IS NOT NULL
+-- Nach dieser Migration: "permission denied for view social_profiles".
+--
+-- WAS SICH FUER DIE SEITE AENDERT: nichts. PilotPage, FriendsManager und
+-- FeedbackForm lesen diese Views nur. Geschrieben wird ausschliesslich ueber
+-- public.profiles, und dort gilt RLS (nur die eigene Zeile).
+--
+-- public_favorites ist ein Join und war nie beschreibbar; es steht trotzdem
+-- hier, damit alle vier oeffentlichen Views denselben Rechtestand tragen.
+
+revoke all on public.public_profiles, public.social_profiles, public.tester_credits, public.public_favorites from anon, authenticated, public;
+grant select on public.public_profiles, public.social_profiles, public.tester_credits, public.public_favorites to anon, authenticated;

@@ -6,7 +6,7 @@ import { itemT, fill, categoryLabel } from '../i18n/itemText';
 import {
   CRAFT_PER_PAGE, type CraftCategory, blueprintPath, craftCategoryPath, craftDb,
   craftHubPath, craftLeaf, craftPageCount, craftPatch, craftRoots, craftTime,
-  resourceNames,
+  plannerPath, resourceNames,
 } from '../lib/crafting';
 import { midCategory, num } from '../lib/items';
 
@@ -55,6 +55,12 @@ const crumbs = [
   <p class="dp-lead" slot="hero">
     {fill(t('bpListingLead'), { n: num(node.blueprints.length, lang), cat: node.cat, date: craftDb.snapshot_date })}
   </p>
+
+  {/* Wie auf der Blueprint-Seite: der Weg ins Werkzeug gehoert in den Kopf. */}
+  <div class="dp-cta" slot="hero">
+    <a class="dp-btn" href={href(plannerPath(), lang)}>{t('bpOpenPlanner')} →</a>
+    <span class="dp-note">{t('bpPlannerHint')}</span>
+  </div>
 
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('breadcrumbCrafting')}</b><span>{num(node.blueprints.length, lang)}</span></li>

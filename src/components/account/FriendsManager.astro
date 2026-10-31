@@ -1,506 +1,671 @@
 ---
-// Freunde & Piloten-Verzeichnis — echte Daten aus Supabase.
+// Freunde, Anfragen und Vorschläge — echte Daten aus Supabase.
 //
 // Tabellen: friends (eine Zeile je Freundschaft, beide Seiten sehen sie per RLS)
-// und friend_requests (pending). Anzeige-Profile kommen aus der View
-// social_profiles (nur Profile MIT Handle, nur fuer eingeloggte Nutzer).
-// Annehmen laeuft ueber die SECURITY-DEFINER-Funktion accept_friend_request(),
+// und friend_requests (pending; Clients legen an und löschen, ändern nie).
+// Anzeige-Profile kommen aus der View social_profiles (nur Profile MIT Handle,
+// nur für eingeloggte Nutzer; Präsenz und Aktivität nur unter Freunden,
+// Discord-Rang nur mit verknüpftem Konto auf dem Server).
+// presence ist dort null, wenn der andere seinen Status diesem Nutzer nicht
+// zeigt (profiles.presence_visibility, Vorgabe nur Freunde): dann kein Punkt.
+// Annehmen läuft über die SECURITY-DEFINER-Funktion accept_friend_request(),
 // damit Status-Update und Freundschaft atomar zusammen passieren.
+//
+// Runde D (29.10.2026): eine Kopfzeile (Titel, Unterbereiche als Chips,
+// Hinzufügen mit Vorschlagsliste beim Tippen), kompakte Karten mit
+// Rang-Abzeichen und Zeichen-Knöpfen, Vorschläge (gleiche Org, auch auf dem
+// Discord-Server, gleiche Rolle), Hinweise als Meldung unten statt Text oben.
 interface Props {
   lang: 'de' | 'en';
+  title: string;
 }
 
-const { lang } = Astro.props;
+const { lang, title } = Astro.props;
 
 const COPY = {
   de: {
-    title: 'Freunde & Piloten-Verzeichnis',
-    subtitle: 'Vernetze dich mit anderen VerseBase-Piloten. Gefunden wird man über das Handle.',
-    addPh: 'VerseBase-Handle eingeben (z. B. star_runner)',
-    sendReq: 'Anfrage senden',
-    searchPh: 'Freunde nach Name, Handle oder Rolle filtern …',
-    tabFriends: 'Deine Freunde',
+    tabFriends: 'Freunde',
     tabRequests: 'Anfragen',
-    emptyFriends: 'Noch keine Freunde. Füge andere Piloten über ihr Handle hinzu.',
-    emptyFiltered: 'Kein Freund passt zu diesem Filter.',
-    emptyRequests: 'Keine offenen Freundschaftsanfragen.',
+    tabSuggest: 'Vorschläge',
+    addPh: 'Pilot hinzufügen: @handle',
+    addLbl: 'Pilot per Handle oder Name suchen und anfragen',
+    send: 'Anfrage senden',
+    filterPh: 'Freunde filtern',
+    online: 'Online',
+    offline: 'Offline',
     incoming: 'Eingehend',
     outgoing: 'Gesendet',
-    accept: 'Annehmen',
-    decline: 'Ablehnen',
-    cancelReq: 'Zurückziehen',
-    removeFriend: 'Entfernen',
-    viewProfile: 'Profil ansehen',
+    emptyFriends: 'Noch keine Freunde',
+    emptyHint: 'Oben ein Handle eingeben',
+    emptyToSuggest: 'Vorschläge ansehen',
+    emptyFiltered: 'Kein Freund passt zu diesem Filter.',
+    emptyRequests: 'Keine offenen Anfragen',
+    emptySuggest: 'Gerade keine Vorschläge',
+    noMatch: 'Kein Pilot gefunden',
+    needHandle: 'Ohne Handle findet dich niemand.',
+    setHandle: 'Handle setzen',
     loading: 'Lade dein Netzwerk …',
-    needHandle: 'Setze zuerst ein Handle in „Profil & Identität" — ohne Handle können andere Piloten dich nicht finden und du kannst keine Anfragen senden.',
-    errSelf: 'Du kannst dir nicht selbst eine Anfrage senden.',
-    errNotFound: 'Kein Pilot mit diesem Handle gefunden.',
-    errAlreadyFriend: 'Ihr seid bereits Freunde.',
-    errAlreadySent: 'Du hast diesem Piloten bereits eine Anfrage gesendet.',
-    errNet: 'Das hat nicht geklappt — bitte erneut versuchen.',
-    successSent: 'Freundschaftsanfrage gesendet.',
-    successAccepted: 'Freundschaft bestätigt.',
-    acceptedTheirs: 'Der Pilot hatte dir bereits geschrieben — ihr seid jetzt Freunde.',
-    confirmRemove: 'Freundschaft mit %name% wirklich beenden?',
-    friendSince: 'Freunde seit',
-    requested: 'Angefragt',
+    inviteH: 'Freunde einladen',
+    inviteTip: 'Teile deinen Pilotenlink, zum Beispiel in Discord. Wer ihn öffnet, sieht deine Pilotenseite und kann dich mit einem Klick als Freund hinzufügen. Wer noch kein Konto hat, landet nach dem Registrieren wieder bei dir.',
+    inviteLbl: 'Dein Pilotenlink',
+    inviteCopy: 'Kopieren',
+    inviteShare: 'Teilen',
+    inviteOpen: 'Ansehen',
+    inviteDc: 'So zeigt Discord deinen Link',
+    more: 'Mehr dazu',
   },
   en: {
-    title: 'Friends & Pilot Directory',
-    subtitle: 'Connect with fellow VerseBase pilots. Your handle is how others find you.',
-    addPh: 'Enter VerseBase handle (e.g. star_runner)',
-    sendReq: 'Send request',
-    searchPh: 'Filter friends by name, handle or role …',
-    tabFriends: 'Your friends',
+    tabFriends: 'Friends',
     tabRequests: 'Requests',
-    emptyFriends: 'No friends yet. Add other pilots by their handle.',
-    emptyFiltered: 'No friend matches this filter.',
-    emptyRequests: 'No pending friend requests.',
+    tabSuggest: 'Suggestions',
+    addPh: 'Add pilot: @handle',
+    addLbl: 'Find a pilot by handle or name and send a request',
+    send: 'Send request',
+    filterPh: 'Filter friends',
+    online: 'Online',
+    offline: 'Offline',
     incoming: 'Incoming',
     outgoing: 'Sent',
-    accept: 'Accept',
-    decline: 'Decline',
-    cancelReq: 'Withdraw',
-    removeFriend: 'Remove',
-    viewProfile: 'View profile',
+    emptyFriends: 'No friends yet',
+    emptyHint: 'Enter a handle above',
+    emptyToSuggest: 'See suggestions',
+    emptyFiltered: 'No friend matches this filter.',
+    emptyRequests: 'No pending requests',
+    emptySuggest: 'No suggestions right now',
+    noMatch: 'No pilot found',
+    needHandle: 'Without a handle nobody can find you.',
+    setHandle: 'Set handle',
     loading: 'Loading your network …',
-    needHandle: 'Set a handle in “Profile & Identity” first — without one other pilots cannot find you and you cannot send requests.',
-    errSelf: 'You cannot send a friend request to yourself.',
-    errNotFound: 'No pilot found with this handle.',
-    errAlreadyFriend: 'You are already friends.',
-    errAlreadySent: 'You already sent this pilot a request.',
-    errNet: 'That did not work — please try again.',
-    successSent: 'Friend request sent.',
-    successAccepted: 'Friendship confirmed.',
-    acceptedTheirs: 'This pilot had already sent you a request — you are friends now.',
-    confirmRemove: 'Really end your friendship with %name%?',
-    friendSince: 'Friends since',
-    requested: 'Requested',
+    inviteH: 'Invite friends',
+    inviteTip: 'Share your pilot link, for example on Discord. Whoever opens it sees your pilot page and can add you as a friend with one click. Anyone without an account comes back to you after signing up.',
+    inviteLbl: 'Your pilot link',
+    inviteCopy: 'Copy',
+    inviteShare: 'Share',
+    inviteOpen: 'View',
+    inviteDc: 'How Discord shows your link',
+    more: 'More',
+  },
+}[lang];
+
+// Kurze Texte für das Skript (Knöpfe, Meldungen, Gründe)
+const JS = {
+  de: {
+    accept: 'Annehmen', decline: 'Ablehnen', withdraw: 'Zurückziehen', remove: 'Entfernen', removeQ: 'Entfernen?',
+    profile: 'Profil', chat: 'Nachricht', request: 'Anfragen', requested: 'Angefragt', friend: 'Freund',
+    sent: 'Gesendet', got: 'Angefragt', since: 'Freunde seit',
+    rsOrg: 'Gleiche Org', rsRole: 'Gleiche Rolle',
+    errSelf: 'Das bist du selbst.',
+    errNotFound: 'Kein Pilot mit diesem Handle.',
+    errNet: 'Das hat nicht geklappt. Bitte erneut versuchen.',
+    okSent: 'Anfrage an %name% gesendet',
+    isFriend: '%name% ist schon dein Freund',
+    isPending: 'Anfrage an %name% läuft schon',
+    okAccepted: '%name% ist jetzt dein Freund',
+    okRemoved: '%name% entfernt',
+    okWithdrawn: 'Anfrage zurückgezogen',
+    okDeclined: 'Anfrage abgelehnt',
+    okCopied: 'Link kopiert',
+  },
+  en: {
+    accept: 'Accept', decline: 'Decline', withdraw: 'Withdraw', remove: 'Remove', removeQ: 'Remove?',
+    profile: 'Profile', chat: 'Message', request: 'Request', requested: 'Requested', friend: 'Friend',
+    sent: 'Sent', got: 'Requested', since: 'Friends since',
+    rsOrg: 'Same org', rsRole: 'Same role',
+    errSelf: 'That is you.',
+    errNotFound: 'No pilot with this handle.',
+    errNet: 'That did not work. Please try again.',
+    okSent: 'Request sent to %name%',
+    isFriend: '%name% is already your friend',
+    isPending: 'Request to %name% is already pending',
+    okAccepted: '%name% is now your friend',
+    okRemoved: '%name% removed',
+    okWithdrawn: 'Request withdrawn',
+    okDeclined: 'Request declined',
+    okCopied: 'Link copied',
   },
 }[lang];
 
 const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 ---
 
-<div
-  class="friends-manager"
-  data-lang={lang}
-  data-pilot-base={pilotBase}
-  data-msg-self={COPY.errSelf}
-  data-msg-notfound={COPY.errNotFound}
-  data-msg-already-friend={COPY.errAlreadyFriend}
-  data-msg-already-sent={COPY.errAlreadySent}
-  data-msg-net={COPY.errNet}
-  data-msg-sent={COPY.successSent}
-  data-msg-accepted={COPY.successAccepted}
-  data-msg-accepted-theirs={COPY.acceptedTheirs}
-  data-msg-confirm-remove={COPY.confirmRemove}
-  data-lbl-accept={COPY.accept}
-  data-lbl-decline={COPY.decline}
-  data-lbl-cancel={COPY.cancelReq}
-  data-lbl-remove={COPY.removeFriend}
-  data-lbl-view={COPY.viewProfile}
-  data-lbl-since={COPY.friendSince}
-  data-lbl-requested={COPY.requested}
-  data-txt-empty-friends={COPY.emptyFriends}
-  data-txt-empty-filtered={COPY.emptyFiltered}
->
-  <div class="acx-card fm-add-card">
-    <div class="fm-add-head">
-      <div class="fm-icon">◆</div>
-      <div>
-        <h3 class="fm-title">{COPY.title}</h3>
-        <p class="acx-hint" style="margin:0">{COPY.subtitle}</p>
-      </div>
+<div class="friends-manager fm" data-lang={lang} data-pilot-base={pilotBase} data-copy={JSON.stringify(JS)}>
+  <div class="sv-bar fm-bar">
+    <h2 class="sv-h">{title}</h2>
+    <div class="sv-filter fm-seg" role="tablist">
+      <button type="button" class="sv-chip" id="fmTabBtnFriends" role="tab" aria-selected="true" aria-pressed="true">{COPY.tabFriends}<b id="fmBadgeFriends">0</b></button>
+      <button type="button" class="sv-chip" id="fmTabBtnRequests" role="tab" aria-selected="false" aria-pressed="false">{COPY.tabRequests}<b id="fmBadgeRequests" class="fm-hot" hidden>0</b></button>
+      <button type="button" class="sv-chip" id="fmTabBtnSuggest" role="tab" aria-selected="false" aria-pressed="false" hidden>{COPY.tabSuggest}<b id="fmBadgeSuggest">0</b></button>
     </div>
-
-    <p class="fm-nohandle" id="fmNoHandle" hidden>{COPY.needHandle}</p>
-
-    <form id="fmAddForm" class="fm-add-form" novalidate>
-      <div class="fm-input-group">
-        <input
-          type="text"
-          id="fmHandleInput"
-          class="acx-input"
-          placeholder={COPY.addPh}
-          maxlength="24"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-        />
-        <button type="submit" class="acx-submit" id="fmAddBtn">
-          <span aria-hidden="true">+</span> <span>{COPY.sendReq}</span>
-        </button>
-      </div>
-      <p id="fmStatusMsg" class="acx-status" role="status" aria-live="polite" hidden></p>
+    <form id="fmAddForm" class="fm-add" role="search" novalidate>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-user-plus"/></svg>
+      <input
+        type="text"
+        id="fmHandleInput"
+        class="inp"
+        placeholder={COPY.addPh}
+        aria-label={COPY.addLbl}
+        maxlength="32"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded="false"
+        aria-controls="fmLookup"
+      />
+      <button type="submit" class="fm-add__go" id="fmAddBtn" aria-label={COPY.send} title={COPY.send}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-plus"/></svg>
+      </button>
+      <ul class="fm-lookup" id="fmLookup" role="listbox" aria-label={COPY.addLbl} hidden></ul>
+      <p class="fm-lookup__none" id="fmLookupNone" hidden>{COPY.noMatch}</p>
     </form>
   </div>
 
-  <div class="fm-tabs-bar" role="tablist">
-    <button type="button" class="fm-tab-btn active" id="fmTabBtnFriends" role="tab" aria-selected="true">
-      <span>{COPY.tabFriends}</span>
-      <span class="fm-badge" id="fmBadgeFriends">0</span>
-    </button>
-    <button type="button" class="fm-tab-btn" id="fmTabBtnRequests" role="tab" aria-selected="false">
-      <span>{COPY.tabRequests}</span>
-      <span class="fm-badge fm-badge--accent" id="fmBadgeRequests" hidden>0</span>
-    </button>
-  </div>
+  <p class="fm-nohandle" id="fmNoHandle" hidden>
+    <span>{COPY.needHandle}</span>
+    <button type="button" class="fm-btn fm-btn--primary" id="fmSetHandle">{COPY.setHandle}</button>
+  </p>
 
   <p class="acx-hint" id="fmLoading">{COPY.loading}</p>
 
-  <div id="fmPanelFriends" class="fm-panel" role="tabpanel" hidden>
-    <div class="fm-search-bar">
-      <input type="search" id="fmFilterInput" class="acx-input" placeholder={COPY.searchPh} />
+  <div id="fmPanelFriends" class="fm-panel fm-panel--friends" role="tabpanel" aria-labelledby="fmTabBtnFriends" hidden>
+    <div class="fm-lists">
+      <label class="sv-search fm-filter" id="fmFilterWrap" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-search"/></svg>
+        <input type="search" id="fmFilterInput" class="inp" placeholder={COPY.filterPh} aria-label={COPY.filterPh} autocomplete="off" spellcheck="false" />
+      </label>
+      <section class="sv-sec" id="fmOnSec" hidden>
+        <h3 class="sv-sh"><span>{COPY.online}</span><b id="fmOnN"></b></h3>
+        <ul class="fm-grid" id="fmOnline"></ul>
+      </section>
+      <section class="sv-sec" id="fmOffSec" hidden>
+        <h3 class="sv-sh"><span>{COPY.offline}</span><b id="fmOffN"></b></h3>
+        <ul class="fm-grid" id="fmOffline"></ul>
+      </section>
+      <p class="sv-none" id="fmNoneFiltered" hidden>{COPY.emptyFiltered}</p>
+      <div class="ck-empty sv-empty fm-empty" id="fmFriendsEmpty" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
+        <p><b>{COPY.emptyFriends}</b><br/>{COPY.emptyHint}</p>
+        <button type="button" class="btn sm" id="fmEmptySuggest" hidden>{COPY.emptyToSuggest}</button>
+      </div>
     </div>
-    <div id="fmFriendsList" class="fm-grid"></div>
-    <div id="fmFriendsEmpty" class="fm-empty-box" hidden>
-      <div class="fm-empty-icon">◆</div>
-      <p class="acx-hint" id="fmFriendsEmptyTxt">{COPY.emptyFriends}</p>
+
+    <!-- Einladen (Runde 4): der eigene Pilotenlink, daneben bzw. darunter die
+         Karte, die Discord beim Teilen zeigt. Dieselbe Regel setzt nginx in
+         die Kopfzeilen der Pilotenseite (src/lib/pilotPreview.ts, nginx/pilot.js). -->
+    <aside class="fm-invite" id="fmInvite" aria-labelledby="fmInviteH" hidden>
+      <div class="fm-invite__in">
+        <h3 class="fm-invite__h" id="fmInviteH">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-user-plus"/></svg>
+          <span>{COPY.inviteH}</span>
+          <button type="button" class="pfx-i" data-tip="fmInviteTip" aria-label={COPY.more}>i</button>
+        </h3>
+        <p class="pfx-tiptext" id="fmInviteTip" hidden>{COPY.inviteTip}</p>
+        <div class="fm-link">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-link"/></svg>
+          <input type="text" class="inp" id="fmInviteUrl" readonly aria-label={COPY.inviteLbl} spellcheck="false" />
+        </div>
+        <div class="fm-invite__acts">
+          <button type="button" class="fm-btn fm-btn--primary fm-ibtn" id="fmInviteCopy">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-link"/></svg><span>{COPY.inviteCopy}</span>
+          </button>
+          <button type="button" class="fm-btn fm-ibtn" id="fmInviteShare" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-share"/></svg><span>{COPY.inviteShare}</span>
+          </button>
+          <a class="fm-btn fm-ibtn" id="fmInviteOpen" href={pilotBase} target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-ext"/></svg><span>{COPY.inviteOpen}</span>
+          </a>
+        </div>
+        <p class="fm-invite__k">
+          <svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#ic-discord"/></svg>{COPY.inviteDc}
+        </p>
+        <div class="fm-dc" id="fmDc">
+          <div class="fm-dc__main">
+            <span class="fm-dc__site">VerseBase</span>
+            <b class="fm-dc__title" id="fmDcTitle"></b>
+            <span class="fm-dc__desc" id="fmDcDesc"></span>
+          </div>
+          <img class="fm-dc__img" id="fmDcImg" alt="" />
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="fmPanelRequests" class="fm-panel" role="tabpanel" aria-labelledby="fmTabBtnRequests" hidden>
+    <section class="sv-sec" id="fmInSec" hidden>
+      <h3 class="sv-sh"><span>{COPY.incoming}</span><b id="fmIncomingCount"></b></h3>
+      <ul class="fm-grid" id="fmIncomingList"></ul>
+    </section>
+    <section class="sv-sec" id="fmOutSec" hidden>
+      <h3 class="sv-sh"><span>{COPY.outgoing}</span><b id="fmOutgoingCount"></b></h3>
+      <ul class="fm-grid" id="fmOutgoingList"></ul>
+    </section>
+    <div class="ck-empty sv-empty fm-empty" id="fmRequestsEmpty" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-mail"/></svg>
+      <p><b>{COPY.emptyRequests}</b></p>
     </div>
   </div>
 
-  <div id="fmPanelRequests" class="fm-panel" role="tabpanel" hidden>
-    <h4 class="fm-sec-head" id="fmIncomingHead" hidden>
-      <span>{COPY.incoming}</span><span class="fm-count" id="fmIncomingCount">0</span>
-    </h4>
-    <div id="fmIncomingList" class="fm-list"></div>
-
-    <h4 class="fm-sec-head" id="fmOutgoingHead" hidden>
-      <span>{COPY.outgoing}</span><span class="fm-count" id="fmOutgoingCount">0</span>
-    </h4>
-    <div id="fmOutgoingList" class="fm-list"></div>
-
-    <div id="fmRequestsEmpty" class="fm-empty-box" hidden>
-      <div class="fm-empty-icon">◈</div>
-      <p class="acx-hint">{COPY.emptyRequests}</p>
+  <div id="fmPanelSuggest" class="fm-panel" role="tabpanel" aria-labelledby="fmTabBtnSuggest" hidden>
+    <ul class="fm-grid" id="fmSuggestList"></ul>
+    <div class="ck-empty sv-empty fm-empty" id="fmSuggestEmpty" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-users"/></svg>
+      <p><b>{COPY.emptySuggest}</b></p>
     </div>
   </div>
+
+  <div class="sv-toast" id="fmToast" role="status" aria-live="polite" hidden><span id="fmToastMsg"></span></div>
 </div>
-
-<style is:global>
-  .friends-manager {
-    display: flex;
-    flex-direction: column;
-    gap: 1.4rem;
-  }
-
-  .fm-add-card { display: flex; flex-direction: column; gap: 1.1rem; }
-
-  .fm-add-head { display: flex; align-items: center; gap: 1.1rem; }
-
-  .fm-icon {
-    font-size: var(--fs-14);
-    width: 52px;
-    height: 52px;
-    flex: none;
-    display: grid;
-    place-items: center;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  }
-
-  .fm-title {
-    margin: 0 0 0.15rem;
-    font-family: var(--font-display, sans-serif);
-    font-size: var(--fs-11);
-    color: var(--text);
-    letter-spacing: var(--ls-5);
-  }
-
-  .fm-nohandle {
-    margin: 0;
-    font-size: var(--fs-7);
-    line-height: 1.4;
-    color: #fbbf24;
-    border-left: 2px solid #fbbf24;
-    padding-left: 0.6rem;
-  }
-
-  .fm-input-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-  .fm-input-group .acx-input { flex: 1; min-width: 200px; }
-
-  .fm-search-bar { margin-bottom: 1rem; }
-
-  .fm-tabs-bar {
-    display: flex;
-    gap: 0.6rem;
-    border-bottom: 1px solid var(--line-soft);
-    padding-bottom: 0.6rem;
-    flex-wrap: wrap;
-  }
-
-  .fm-tab-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    color: var(--muted);
-    font-family: var(--font-ui, sans-serif);
-    font-weight: 700;
-    font-size: var(--fs-8);
-    padding: 0.5rem 0.95rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui);
-  }
-  .fm-tab-btn:hover { color: var(--text); border-color: var(--line); }
-  .fm-tab-btn.active {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 14%, transparent);
-  }
-
-  .fm-badge {
-    min-width: 1.5em;
-    padding: 0.05rem 0.4rem;
-    border-radius: 999px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    font-size: var(--fs-5);
-    text-align: center;
-  }
-  .fm-badge--accent {
-    background: var(--accent);
-    border-color: var(--accent);color:var(--ink, var(--ink));
-  }
-
-  .fm-sec-head {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 1.2rem 0 0.7rem;
-    font-family: var(--font-ui, sans-serif);
-    font-size: var(--fs-4);
-    letter-spacing: var(--ls-13);
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-  .fm-sec-head:first-child { margin-top: 0; }
-  .fm-count { color: var(--muted); }
-
-  .fm-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(300px,100%), 1fr));
-    gap: 0.9rem;
-  }
-  .fm-list { display: flex; flex-direction: column; gap: 0.7rem; }
-
-  .fm-pilot-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 0.85rem 1rem;
-    background: var(--surface-2);
-    border: 1px solid var(--line-soft);
-    border-left: 3px solid var(--accent);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-    transition: border-color var(--dur-base) var(--ease-ui), transform var(--dur-base) var(--ease-ui);
-  }
-  .fm-pilot-card:hover { border-color: var(--line); transform: translateY(-1px); }
-
-  .fm-card-main { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
-
-  .fm-avatar-box {
-    position: relative;
-    width: 46px;
-    height: 46px;
-    flex: none;
-    border-radius: 50%;
-    border: 2px solid var(--accent);
-    background: var(--surface);
-    display: grid;
-    place-items: center;
-    font-size: var(--fs-11);
-    color: var(--accent);
-    overflow: hidden;
-  }
-  .fm-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-
-  .fm-dot {
-    position: absolute;
-    right: -1px;
-    bottom: -1px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--surface-2);
-  }
-
-  .fm-user-info { min-width: 0; }
-  .fm-user-name {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-weight: 700;
-    color: var(--text);
-    font-size: var(--fs-9);
-  }
-  .fm-user-handle {
-    font-family: var(--font-mono, 'Share Tech Mono', monospace);
-    font-size: var(--fs-6);
-    color: var(--accent);
-  }
-  .fm-user-status {
-    font-size: var(--fs-6);
-    color: var(--muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 26ch;
-  }
-
-  .fm-verified { color: #4ade80; font-size: var(--fs-5); }
-
-  .fm-card-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-
-  .fm-btn {
-    background: none;
-    border: 1px solid var(--line);
-    color: var(--muted);
-    font-family: var(--font-ui, sans-serif);
-    font-size: var(--fs-6);
-    font-weight: 600;
-    padding: 0.38rem 0.7rem;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: color var(--dur-base) var(--ease-ui), border-color var(--dur-base) var(--ease-ui), background var(--dur-base) var(--ease-ui);
-  }
-  .fm-btn:hover { color: var(--text); border-color: var(--accent); }
-  .fm-btn:disabled { opacity: 0.55; cursor: default; }
-
-  .fm-btn--primary {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-  }
-  .fm-btn--primary:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-
-  .fm-btn--danger:hover { border-color: #f87171; color: #f87171; }
-
-  .fm-empty-box {
-    text-align: center;
-    padding: 2rem 1rem;
-    border: 1px dashed var(--line);
-    border-radius: 10px;
-  }
-  .fm-empty-icon { font-size: var(--fs-15); color: var(--accent); opacity: 0.6; margin-bottom: 0.5rem; }
-
-  @media (max-width: 560px) {
-    .fm-pilot-card { align-items: flex-start; }
-    .fm-user-status { max-width: 18ch; }
-  }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .fm-nohandle{color:#705301}
-:root[data-theme="light"] .fm-verified{color:#046a34}
-:root[data-theme="light"] .fm-btn--danger:hover{border-color:#c84247;color:#a70323}
-</style>
 
 <script>
   import { supabase } from '../../lib/supabase';
-  import { STATUS_STATES } from '../../lib/profilePresets';
-  import { resolveStatusKey } from '../../lib/presence';
+  import { STATUS_STATES, CITIZEN_ROLES } from '../../lib/profilePresets';
+  import { resolveStatusKey, formatActivity } from '../../lib/presence';
+  import { rankBadge } from '../../lib/rankBadge';
+  import { pilotPreview, HANDLE_RE, type PreviewProfile } from '../../lib/pilotPreview';
 
   const fmWrap = document.querySelector('.friends-manager') as HTMLElement | null;
   if (fmWrap) {
-    const D = fmWrap.dataset;
-    const lang = D.lang === 'de' ? 'de' : 'en';
-    const pilotBase = D.pilotBase || '/pilot/';
+    const lang = fmWrap.dataset.lang === 'de' ? 'de' : 'en';
+    const loc = lang === 'de' ? 'de-DE' : 'en-US';
+    const pilotBase = fmWrap.dataset.pilotBase || '/pilot/';
+    const C: Record<string, string> = JSON.parse(fmWrap.dataset.copy || '{}');
 
-    const $ = (id: string) => document.getElementById(id);
-    const loadingEl = $('fmLoading')!;
-    const noHandleEl = $('fmNoHandle')!;
-    const panelFriends = $('fmPanelFriends')!;
-    const panelRequests = $('fmPanelRequests')!;
-    const tabFriendsBtn = $('fmTabBtnFriends')!;
-    const tabRequestsBtn = $('fmTabBtnRequests')!;
-    const badgeFriends = $('fmBadgeFriends')!;
-    const badgeRequests = $('fmBadgeRequests')!;
-    const listFriends = $('fmFriendsList')!;
-    const emptyFriends = $('fmFriendsEmpty')!;
-    const emptyFriendsTxt = $('fmFriendsEmptyTxt')!;
-    const listIncoming = $('fmIncomingList')!;
-    const listOutgoing = $('fmOutgoingList')!;
-    const headIncoming = $('fmIncomingHead')!;
-    const headOutgoing = $('fmOutgoingHead')!;
-    const countIncoming = $('fmIncomingCount')!;
-    const countOutgoing = $('fmOutgoingCount')!;
-    const emptyRequests = $('fmRequestsEmpty')!;
+    const $ = (id: string) => document.getElementById(id)!;
+    const NS = 'http://www.w3.org/2000/svg';
+    const icon = (id: string) => {
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('aria-hidden', 'true');
+      const use = document.createElementNS(NS, 'use');
+      use.setAttribute('href', '#' + id);
+      svg.appendChild(use);
+      return svg;
+    };
+    const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text) n.textContent = text;
+      return n;
+    };
+
+    const loadingEl = $('fmLoading');
+    const noHandleEl = $('fmNoHandle');
+    const tabs = {
+      friends: { btn: $('fmTabBtnFriends'), panel: $('fmPanelFriends') },
+      requests: { btn: $('fmTabBtnRequests'), panel: $('fmPanelRequests') },
+      suggest: { btn: $('fmTabBtnSuggest'), panel: $('fmPanelSuggest') },
+    };
+    type TabKey = keyof typeof tabs;
+    let active: TabKey = 'friends';
     const filterInput = $('fmFilterInput') as HTMLInputElement;
     const addForm = $('fmAddForm') as HTMLFormElement;
     const handleInput = $('fmHandleInput') as HTMLInputElement;
     const addBtn = $('fmAddBtn') as HTMLButtonElement;
-    const statusMsg = $('fmStatusMsg')!;
+    const lookup = $('fmLookup');
+    const lookupNone = $('fmLookupNone');
 
     type Prof = {
       id: string; handle: string; display_name: string | null;
       avatar_url: string | null; avatar_icon: string | null; avatar_color: string | null;
       role: string | null; status_state: string | null; status_text: string | null; presence: string | null;
-      rsi_verified: boolean | null;
+      rsi_verified: boolean | null; activity?: string | null; org_name?: string | null;
+      discord_level?: number | null; discord_rank?: string | null; discord_prestige?: number | null;
     };
+    type Req = { reqId: string; at: string; p: Prof };
+    type Sug = { p: Prof; score: number; why: Array<{ ic: string; t: string }> };
 
     let me = '';
     let myHandle: string | null = null;
+    let myOrg = '';
+    let myRole = '';
+    let myCard: PreviewProfile | null = null;
+    let loaded = false;
     let friends: Array<{ rowId: string; since: string; p: Prof }> = [];
-    let incoming: Array<{ reqId: string; at: string; p: Prof }> = [];
-    let outgoing: Array<{ reqId: string; at: string; p: Prof }> = [];
+    let incoming: Req[] = [];
+    let outgoing: Req[] = [];
+    let suggestions: Sug[] = [];
 
-    const say = (msg: string, ok = false) => {
-      statusMsg.textContent = msg;
-      statusMsg.classList.toggle('acx-status--ok', ok);
-      statusMsg.hidden = false;
+    /* --------------------------------------------------------- Meldung --- */
+    let toastTimer = 0;
+    const toast = (msg: string) => {
+      $('fmToastMsg').textContent = msg;
+      $('fmToast').hidden = false;
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => { $('fmToast').hidden = true; }, 3200);
+    };
+    const nameOf = (p: Prof) => p.display_name || p.handle || '—';
+    const fill = (tpl: string, p: Prof) => tpl.replace('%name%', nameOf(p));
+    const day = (iso: string) => {
+      const t = Date.parse(iso);
+      return t ? new Date(t).toLocaleDateString(loc, { day: 'numeric', month: 'short' }) : '';
+    };
+    const roleLabel = (id: string | null | undefined) => {
+      const r = CITIZEN_ROLES.find((x) => x.id === id);
+      return r ? (lang === 'de' ? r.labelDe : r.labelEn) : '';
     };
 
-    const fmtDate = (iso: string) => {
+    /* ---------------------------------------------------------- Präsenz --- */
+    const ST = STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string; pulse?: boolean }>;
+    const presOf = (p: Prof) => (p.presence === 'online' || p.presence === 'away' ? p.presence : 'offline');
+    const stOf = (p: Prof) => ST[resolveStatusKey(presOf(p), p.status_state)] || ST.offline;
+    const labelOf = (p: Prof) => { const st = stOf(p); return lang === 'de' ? st.labelDe : st.labelEn; };
+    // Wie im Dock: was der Freund gerade auf der Seite macht, vor seinem
+    // Statustext, vor dem reinen Präsenz-Wort.
+    const subOf = (p: Prof): { text: string; act: boolean } => {
+      if (presOf(p) === 'offline') return { text: labelOf(p), act: false };
+      const act = formatActivity(p.activity, lang);
+      if (act) return { text: act, act: true };
+      return { text: p.status_text || labelOf(p), act: false };
+    };
+    // presence null = Status nicht freigegeben: Punkt ausblenden statt
+    // "Offline" zu behaupten (z. B. bei Anfragen von Nicht-Freunden).
+    const applyDot = (dot: HTMLElement, p: Prof) => {
+      const shown = p.presence === 'online' || p.presence === 'away' || p.presence === 'offline';
+      dot.hidden = !shown;
+      if (!shown) { dot.title = ''; return; }
+      const st = stOf(p);
+      dot.style.background = st.color;
+      dot.title = labelOf(p);
+    };
+
+    /* ----------------------------------------------------------- Karten --- */
+    const avatarNode = (p: Prof, dot = true) => {
+      const box = el('span', 'fm-av');
+      const col = p.avatar_color || '#2dd4ff';
+      box.style.setProperty('--ac', col);
+      if (p.avatar_url) {
+        const img = document.createElement('img');
+        img.src = p.avatar_url;
+        img.alt = '';
+        img.loading = 'lazy';
+        box.appendChild(img);
+      } else {
+        box.textContent = p.avatar_icon || nameOf(p).charAt(0).toUpperCase();
+      }
+      if (dot) {
+        const d = el('i', 'fm-dot');
+        d.dataset.uid = p.id;
+        applyDot(d, p);
+        box.appendChild(d);
+      }
+      return box;
+    };
+
+    const nameLine = (p: Prof, compact = false) => {
+      const line = el('span', 'fm-name');
+      line.appendChild(el('b', '', nameOf(p)));
+      if (p.rsi_verified) {
+        const v = el('span', 'fm-ver');
+        v.title = 'RSI ✓';
+        v.appendChild(icon('ic-check'));
+        line.appendChild(v);
+      }
+      const rk = rankBadge(p, compact);
+      if (rk) line.appendChild(rk);
+      return line;
+    };
+
+    const iconBtn = (ic: string, label: string, cls = '') => {
+      const b = el('button', 'fm-ib' + (cls ? ' ' + cls : '')) as HTMLButtonElement;
+      b.type = 'button';
+      b.title = label;
+      b.setAttribute('aria-label', label);
+      b.appendChild(icon(ic));
+      return b;
+    };
+    const textBtn = (label: string, cls: string, fn: () => Promise<void> | void) => {
+      const b = el('button', 'fm-btn ' + cls, label) as HTMLButtonElement;
+      b.type = 'button';
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try { await fn(); } finally { b.disabled = false; }
+      });
+      return b;
+    };
+    const profileLink = (p: Prof) => {
+      const a = el('a', 'fm-ib') as HTMLAnchorElement;
+      a.href = pilotBase + encodeURIComponent(p.handle);
+      a.title = C.profile;
+      a.setAttribute('aria-label', `${nameOf(p)} — ${C.profile}`);
+      a.appendChild(icon('ic-id'));
+      return a;
+    };
+
+    // Bis 820 px blendet das CSS den Profil-Knopf aus; dann ist der Avatar
+    // der Weg zum Profil und muss per Tab erreichbar sein.
+    const narrow = matchMedia('(max-width: 820px)');
+    narrow.addEventListener('change', () => {
+      fmWrap.querySelectorAll<HTMLAnchorElement>('a.fm-avlink').forEach((a) => { a.tabIndex = narrow.matches ? 0 : -1; });
+    });
+
+    /** Karte: Avatar, Name + Abzeichen, Unterzeile, Aktionen rechts. */
+    // compact: Rang nur als Zeichen + Level (Karten mit Textknopf rechts).
+    const card = (p: Prof, sub: HTMLElement, acts: HTMLElement[], off = false, compact = false) => {
+      const li = el('li', 'fm-card' + (off ? ' is-off' : ''));
+      li.dataset.id = p.id;
+      const av = p.handle ? (el('a', 'fm-avlink') as HTMLAnchorElement) : el('span', 'fm-avlink');
+      if (p.handle) {
+        (av as HTMLAnchorElement).href = pilotBase + encodeURIComponent(p.handle);
+        av.setAttribute('aria-label', `${nameOf(p)} — ${C.profile}`);
+        av.tabIndex = narrow.matches ? 0 : -1;
+      }
+      av.appendChild(avatarNode(p, true));
+      const main = el('span', 'fm-main');
+      main.append(nameLine(p, compact), sub);
+      main.title = p.handle ? '@' + p.handle : '';
+      const box = el('span', 'fm-acts');
+      box.append(...acts);
+      li.append(av, main, box);
+      return li;
+    };
+
+    const friendCard = (f: { rowId: string; since: string; p: Prof }) => {
+      const p = f.p;
+      // Offline steht schon über der Gruppe: dort lieber seit wann ihr befreundet seid.
+      const so = presOf(p) === 'offline' ? { text: `${C.since} ${day(f.since)}`, act: false } : subOf(p);
+      const sub = el('small', 'fm-sub' + (so.act ? ' is-act' : ''), so.text);
+      const chat = iconBtn('ic-chat', `${C.chat}: ${nameOf(p)}`, 'fm-ib--chat');
+      // Chat öffnet in der Freundesleiste (FriendsDock), auf dem Handy als volle Fläche.
+      chat.addEventListener('click', () => document.dispatchEvent(new CustomEvent('vb:chat-open', { detail: p.id })));
+      const acts: HTMLElement[] = [chat];
+      if (p.handle) acts.push(profileLink(p));
+      // Entfernen ohne Dialog: erster Klick fragt im Knopf selbst nach,
+      // zweiter Klick (binnen 4 s) entfernt. Rückgängig ginge nicht, weil
+      // Freundschaften nur über eine angenommene Anfrage entstehen.
+      const rm = iconBtn('ic-x', `${C.remove}: ${nameOf(p)}`, 'fm-ib--rm');
+      const q = el('span', 'fm-ib__q', C.removeQ);
+      rm.appendChild(q);
+      let armed = 0;
+      rm.addEventListener('click', async () => {
+        if (!armed) {
+          rm.classList.add('is-armed');
+          armed = window.setTimeout(() => {
+            armed = 0;
+            rm.classList.remove('is-armed');
+            // Was der Präsenz-Takt währenddessen zurückgehalten hat, jetzt zeigen.
+            if (presenceStale) repaint();
+          }, 4000);
+          return;
+        }
+        clearTimeout(armed);
+        rm.disabled = true;
+        await removeFriend(f);
+      });
+      acts.push(rm);
+      return card(p, sub, acts, presOf(p) === 'offline');
+    };
+
+    const reqCard = (r: Req, kind: 'in' | 'out') => {
+      const sub = el('small', 'fm-sub', `${kind === 'in' ? C.got : C.sent} · ${day(r.at)}`);
+      const acts: HTMLElement[] = [];
+      if (kind === 'in') {
+        acts.push(textBtn(C.accept, 'fm-btn--primary', () => acceptReq(r)));
+        const no = iconBtn('ic-x', `${C.decline}: ${nameOf(r.p)}`, 'fm-ib--rm');
+        no.addEventListener('click', async () => { no.disabled = true; await dropReq(r, C.okDeclined); });
+        acts.push(no);
+      } else {
+        if (r.p.handle) acts.push(profileLink(r.p));
+        const no = iconBtn('ic-x', `${C.withdraw}: ${nameOf(r.p)}`, 'fm-ib--rm');
+        no.addEventListener('click', async () => { no.disabled = true; await dropReq(r, C.okWithdrawn); });
+        acts.push(no);
+      }
+      return card(r.p, sub, acts, false, kind === 'in');
+    };
+
+    const sugCard = (s: Sug) => {
+      if (!s.why.length) return card(s.p, el('small', 'fm-sub', '@' + s.p.handle), sugActs(s), false, true);
+      const sub = el('small', 'fm-sub fm-why');
+      for (const w of s.why) {
+        const chip = el('span', 'fm-why__c');
+        chip.append(icon(w.ic), w.t);
+        sub.appendChild(chip);
+      }
+      return card(s.p, sub, sugActs(s), false, true);
+    };
+    function sugActs(s: Sug): HTMLElement[] {
+      const acts: HTMLElement[] = [];
+      if (s.p.handle) acts.push(profileLink(s.p));
+      acts.push(textBtn(C.request, 'fm-btn--primary', () => sendTo(s.p)));
+      return acts;
+    }
+
+    /* --------------------------------------------------------- Aktionen --- */
+    const relation = (id: string): 'friend' | 'out' | 'in' | '' => {
+      if (friends.some((f) => f.p.id === id)) return 'friend';
+      if (outgoing.some((r) => r.p.id === id)) return 'out';
+      if (incoming.some((r) => r.p.id === id)) return 'in';
+      return '';
+    };
+
+    const sendTo = async (p: Prof) => {
+      if (!myHandle) { noHandleEl.hidden = false; return; }
+      if (p.id === me) { toast(C.errSelf); return; }
+      const rel = relation(p.id);
+      if (rel === 'friend' || rel === 'out') { toast(fill(rel === 'friend' ? C.isFriend : C.isPending, p)); return; }
+      if (rel === 'in') { await acceptReq(incoming.find((r) => r.p.id === p.id)!); return; }
+      const { error } = await supabase.from('friend_requests').insert({ sender_id: me, receiver_id: p.id });
+      if (error) { toast(C.errNet); return; }
+      toast(fill(C.okSent, p));
+      await loadAll();
+    };
+
+    const removeFriend = async (f: { rowId: string; p: Prof }) => {
+      const { error } = await supabase.from('friends').delete().eq('id', f.rowId);
+      if (error) { toast(C.errNet); render(); return; }
+      // Alte Anfragen zwischen beiden entfernen, damit man sich später erneut
+      // anfragen kann (unique(sender,receiver) würde sonst blockieren).
+      if (f.p.id) {
+        await supabase.from('friend_requests').delete()
+          .or(`and(sender_id.eq.${me},receiver_id.eq.${f.p.id}),and(sender_id.eq.${f.p.id},receiver_id.eq.${me})`);
+      }
+      toast(fill(C.okRemoved, f.p));
+      await loadAll();
+    };
+
+    const acceptReq = async (r: Req) => {
+      const { error } = await supabase.rpc('accept_friend_request', { req_id: r.reqId });
+      if (error) { toast(C.errNet); return; }
+      toast(fill(C.okAccepted, r.p));
+      await loadAll();
+    };
+
+    const dropReq = async (r: Req, okMsg: string) => {
+      const { error } = await supabase.from('friend_requests').delete().eq('id', r.reqId);
+      if (error) { toast(C.errNet); render(); return; }
+      toast(okMsg);
+      await loadAll();
+    };
+
+    /* ------------------------------------------------------------ Laden --- */
+    const fallback = (id: string): Prof => ({
+      id, handle: '', display_name: null, avatar_url: null, avatar_icon: null,
+      avatar_color: null, role: null, status_state: null, status_text: null, presence: null, rsi_verified: null,
+    });
+
+    /* --------------------------------------------------------- Einladen --- */
+    // Der eigene Pilotenlink zum Kopieren/Teilen und daneben die Karte, die
+    // Discord beim Teilen zeigt (gleiche Regel wie nginx/pilot.js). Erst mit
+    // gespeichertem Handle gibt es einen Link; ohne steht oben der Hinweis.
+    const MY_COLS = 'handle, org_name, role, display_name, bio, banner_url, avatar_url, avatar_color';
+    const inviteEl = $('fmInvite');
+    const inviteUrl = $('fmInviteUrl') as HTMLInputElement;
+    const shareBtn = $('fmInviteShare') as HTMLButtonElement;
+    const paintInvite = () => {
+      const pv = myCard ? pilotPreview(myCard, lang, location.origin) : null;
+      inviteEl.hidden = !pv;
+      if (!pv) return;
+      // Angezeigt ohne https://, kopiert und geteilt wird die ganze Adresse.
+      inviteUrl.dataset.url = pv.url;
+      inviteUrl.value = pv.url.replace(/^https?:\/\//, '');
+      ($('fmInviteOpen') as HTMLAnchorElement).href = pv.url;
+      $('fmDcTitle').textContent = pv.title;
+      $('fmDcDesc').textContent = pv.desc;
+      const img = $('fmDcImg') as HTMLImageElement;
+      // Ohne eigenes Bild zeigt Discord das Standardbild der Seite, breit.
+      img.src = pv.image || '/assets/og-default.jpg';
+      $('fmDc').classList.toggle('is-thumb', !!pv.image && !pv.large);
+      if (pv.color) $('fmDc').style.setProperty('--dcc', pv.color);
+      else $('fmDc').style.removeProperty('--dcc');
+    };
+    shareBtn.hidden = typeof navigator.share !== 'function';
+    $('fmInviteCopy').addEventListener('click', async () => {
       try {
-        return new Date(iso).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US',
-          { day: '2-digit', month: 'short', year: 'numeric' });
-      } catch { return ''; }
-    };
+        await navigator.clipboard.writeText(inviteUrl.dataset.url || inviteUrl.value);
+      } catch {
+        inviteUrl.value = inviteUrl.dataset.url || inviteUrl.value;
+        inviteUrl.select();
+        document.execCommand('copy');
+      }
+      toast(C.okCopied);
+    });
+    shareBtn.addEventListener('click', () => {
+      navigator.share({ title: $('fmDcTitle').textContent || '', url: inviteUrl.dataset.url || inviteUrl.value }).catch(() => {});
+    });
+    inviteUrl.addEventListener('focus', () => inviteUrl.select());
+    // Profil gespeichert (Name, Bio, Bilder): Karte neu, ohne alles neu zu laden.
+    document.addEventListener('vb:profile-saved', async () => {
+      if (!me) return;
+      const { data } = await supabase.from('profiles').select(MY_COLS).eq('id', me).maybeSingle();
+      if (data) { myCard = data as PreviewProfile; paintInvite(); }
+    });
+    // Von einer fremden Pilotenseite ohne eigenes Handle hierher geschickt
+    // (?add=<handle>): das Feld steht schon ausgefüllt bereit.
+    const addFromUrl = (new URLSearchParams(location.search).get('add') || '').trim().toLowerCase();
+    if (HANDLE_RE.test(addFromUrl)) handleInput.value = '@' + addFromUrl;
 
-    // ---- Laden ----------------------------------------------------------
     const loadAll = async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u?.user) return;
       me = u.user.id;
 
       const { data: myProf } = await supabase
-        .from('profiles').select('handle').eq('id', me).maybeSingle();
-      myHandle = (myProf as { handle?: string } | null)?.handle || null;
+        .from('profiles').select(MY_COLS).eq('id', me).maybeSingle();
+      const mp = (myProf || {}) as PreviewProfile & { role?: string };
+      myHandle = mp.handle || null;
+      myOrg = (mp.org_name || '').trim();
+      myRole = mp.role || '';
+      myCard = mp;
       noHandleEl.hidden = !!myHandle;
-      handleInput.disabled = !myHandle;
-      addBtn.disabled = !myHandle;
+      paintInvite();
 
       const [{ data: fRows }, { data: rRows }] = await Promise.all([
         supabase.from('friends').select('id, user_id, friend_id, created_at'),
         supabase.from('friend_requests')
           .select('id, sender_id, receiver_id, created_at').eq('status', 'pending'),
       ]);
-
       const fr = (fRows || []) as Array<{ id: string; user_id: string; friend_id: string; created_at: string }>;
       const rr = (rRows || []) as Array<{ id: string; sender_id: string; receiver_id: string; created_at: string }>;
 
       const ids = new Set<string>();
       fr.forEach((r) => ids.add(r.user_id === me ? r.friend_id : r.user_id));
       rr.forEach((r) => ids.add(r.sender_id === me ? r.receiver_id : r.sender_id));
-
       let byId = new Map<string, Prof>();
       if (ids.size) {
-        const { data: profs } = await supabase
-          .from('social_profiles').select('*').in('id', [...ids]);
+        const { data: profs } = await supabase.from('social_profiles').select('*').in('id', [...ids]);
         byId = new Map(((profs || []) as Prof[]).map((p) => [p.id, p]));
       }
-
-      const fallback = (id: string): Prof => ({
-        id, handle: '', display_name: null, avatar_url: null, avatar_icon: null,
-        avatar_color: null, role: null, status_state: null, status_text: null, presence: null, rsi_verified: null,
-      });
 
       friends = fr.map((r) => {
         const other = r.user_id === me ? r.friend_id : r.user_id;
@@ -511,269 +676,254 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       outgoing = rr.filter((r) => r.sender_id === me)
         .map((r) => ({ reqId: r.id, at: r.created_at, p: byId.get(r.receiver_id) || fallback(r.receiver_id) }));
 
+      loaded = true;
       loadingEl.hidden = true;
-      panelFriends.hidden = !tabFriendsBtn.classList.contains('active');
-      panelRequests.hidden = !tabRequestsBtn.classList.contains('active');
+      render();
+      loadSuggest().catch(() => {});
+    };
+
+    // Vorschläge: Piloten mit Handle, die man noch nicht kennt. Gründe:
+    // gleiche Org (stärkster Grund), auch auf dem Discord-Server (die View
+    // zeigt den Rang nur dann), gleiche Rolle. Drei kleine Abfragen statt
+    // einer Liste aller Konten.
+    const SUG_COLS = 'id, handle, display_name, avatar_url, avatar_icon, avatar_color, role, org_name, rsi_verified, discord_level, discord_rank, discord_prestige';
+    const loadSuggest = async () => {
+      const qs = [
+        supabase.from('social_profiles').select(SUG_COLS).not('discord_level', 'is', null).order('discord_level', { ascending: false }).limit(24),
+        myOrg ? supabase.from('social_profiles').select(SUG_COLS).eq('org_name', myOrg).limit(24) : null,
+        myRole ? supabase.from('social_profiles').select(SUG_COLS).eq('role', myRole).limit(24) : null,
+      ];
+      const res = await Promise.all(qs.map((q) => (q ? q : Promise.resolve({ data: [] }))));
+      const all = new Map<string, Prof>();
+      for (const r of res) for (const p of ((r as { data: Prof[] | null }).data || [])) all.set(p.id, p);
+      const out: Sug[] = [];
+      for (const p of all.values()) {
+        if (!p.handle || p.id === me || relation(p.id)) continue;
+        const why: Sug['why'] = [];
+        let score = 0;
+        if (myOrg && (p.org_name || '').trim().toLowerCase() === myOrg.toLowerCase()) { score += 3; why.push({ ic: 'ic-org', t: p.org_name || C.rsOrg }); }
+        // Auf dem Server zeigt schon das Rang-Abzeichen: kein eigener Grund-Chip.
+        if (p.discord_level != null) score += 2 + Math.min(p.discord_level, 100) / 100;
+        if (myRole && p.role === myRole) { score += 1; why.push({ ic: 'ic-hex', t: roleLabel(p.role) || C.rsRole }); }
+        if (p.rsi_verified) score += 0.3;
+        if (score > 0) out.push({ p, score, why });
+      }
+      suggestions = out.sort((a, b) => b.score - a.score || nameOf(a.p).localeCompare(nameOf(b.p))).slice(0, 12);
       render();
     };
 
-    // Präsenz-Punkt stylen (geteilt von avatarNode + Live-Poll)
-    const applyDot = (dot: HTMLElement, presence: string | null, activity: string | null) => {
-      const pres = (presence === 'online' || presence === 'away') ? presence : 'offline';
-      const st = (STATUS_STATES as Record<string, { color: string; labelDe: string; labelEn: string }>)[resolveStatusKey(pres, activity)];
-      if (!st) return;
-      dot.style.background = st.color;
-      dot.title = lang === 'de' ? st.labelDe : st.labelEn;
+    /* ----------------------------------------------------------- Malen --- */
+    // Die Freundesleiste rechts (FriendsDock) zeigt dieselben Daten: sie hört
+    // auf dieses Ereignis statt selbst zu laden, damit beide nie auseinander-
+    // laufen (Annehmen/Entfernen/Präsenz kommen sofort rechts an).
+    const announce = () => {
+      document.dispatchEvent(new CustomEvent('vb:friends', { detail: { friends, incoming, outgoing, myHandle } }));
     };
+    const presRank = (p: Prof) => (presOf(p) === 'online' ? 0 : presOf(p) === 'away' ? 1 : 2);
 
-    // ---- Karten ---------------------------------------------------------
-    const avatarNode = (p: Prof) => {
-      const box = document.createElement('div');
-      box.className = 'fm-avatar-box';
-      const col = p.avatar_color || '#2dd4ff';
-      box.style.borderColor = col;
-      box.style.color = col;
-      if (p.avatar_url) {
-        const img = document.createElement('img');
-        img.src = p.avatar_url;
-        img.alt = '';
-        box.appendChild(img);
-      } else {
-        const sp = document.createElement('span');
-        sp.textContent = p.avatar_icon || (p.display_name || p.handle || '?').charAt(0).toUpperCase();
-        box.appendChild(sp);
-      }
-      const dot = document.createElement('div');
-      dot.className = 'fm-dot';
-      dot.dataset.uid = p.id;
-      applyDot(dot, p.presence, p.status_state);
-      box.appendChild(dot);
-      return box;
-    };
-
-    const infoNode = (p: Prof, sub: string) => {
-      const info = document.createElement('div');
-      info.className = 'fm-user-info';
-
-      const nameRow = document.createElement('div');
-      nameRow.className = 'fm-user-name';
-      const nm = document.createElement('span');
-      nm.textContent = p.display_name || p.handle || '—';
-      nameRow.appendChild(nm);
-      if (p.rsi_verified) {
-        const v = document.createElement('span');
-        v.className = 'fm-verified';
-        v.textContent = '✓';
-        v.title = 'RSI verified';
-        nameRow.appendChild(v);
-      }
-
-      const hd = document.createElement('div');
-      hd.className = 'fm-user-handle';
-      hd.textContent = p.handle ? '@' + p.handle : '—';
-
-      const stt = document.createElement('div');
-      stt.className = 'fm-user-status';
-      stt.textContent = sub;
-
-      info.append(nameRow, hd, stt);
-      return info;
-    };
-
-    const mkBtn = (label: string, cls: string, fn: () => void) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'fm-btn ' + cls;
-      b.textContent = label;
-      b.addEventListener('click', async () => {
-        b.disabled = true;
-        try { await fn(); } finally { b.disabled = false; }
-      });
-      return b;
-    };
-
-    // ---- Aktionen -------------------------------------------------------
-    const removeFriend = async (rowId: string, name: string) => {
-      const q = (D.msgConfirmRemove || 'Remove %name%?').replace('%name%', name);
-      if (!window.confirm(q)) return;
-      const target = friends.find((f) => f.rowId === rowId);
-      const { error } = await supabase.from('friends').delete().eq('id', rowId);
-      if (error) { say(D.msgNet!); return; }
-      // Alte Anfragen zwischen beiden entfernen, damit man sich spaeter erneut
-      // anfragen kann (unique(sender,receiver) wuerde sonst blockieren).
-      if (target?.p.id) {
-        await supabase.from('friend_requests').delete()
-          .or(`and(sender_id.eq.${me},receiver_id.eq.${target.p.id}),and(sender_id.eq.${target.p.id},receiver_id.eq.${me})`);
-      }
-      await loadAll();
-    };
-
-    const acceptReq = async (reqId: string) => {
-      const { error } = await supabase.rpc('accept_friend_request', { req_id: reqId });
-      if (error) { say(D.msgNet!); return; }
-      say(D.msgAccepted!, true);
-      await loadAll();
-    };
-
-    const dropReq = async (reqId: string) => {
-      const { error } = await supabase.from('friend_requests').delete().eq('id', reqId);
-      if (error) { say(D.msgNet!); return; }
-      await loadAll();
-    };
-
-    // ---- Rendern --------------------------------------------------------
     const render = () => {
-      const q = (filterInput?.value || '').trim().toLowerCase();
-      const shown = friends.filter((f) => {
-        if (!q) return true;
-        const p = f.p;
-        return [p.display_name, p.handle, p.role, p.status_text]
-          .some((v) => (v || '').toLowerCase().includes(q));
-      });
+      const q = (filterInput.value || '').trim().toLowerCase();
+      const shown = friends
+        .filter((f) => !q || [f.p.display_name, f.p.handle, roleLabel(f.p.role), f.p.status_text].some((v) => (v || '').toLowerCase().includes(q)))
+        .sort((a, b) => presRank(a.p) - presRank(b.p) || nameOf(a.p).localeCompare(nameOf(b.p)));
+      const on = shown.filter((f) => presOf(f.p) !== 'offline');
+      const off = shown.filter((f) => presOf(f.p) === 'offline');
 
-      badgeFriends.textContent = String(friends.length);
-      badgeRequests.textContent = String(incoming.length + outgoing.length);
-      badgeRequests.hidden = incoming.length + outgoing.length === 0;
+      $('fmBadgeFriends').textContent = String(friends.length);
+      const nReq = incoming.length + outgoing.length;
+      const badgeReq = $('fmBadgeRequests');
+      badgeReq.textContent = String(nReq);
+      badgeReq.hidden = nReq === 0;
+      badgeReq.classList.toggle('fm-hot', incoming.length > 0);
+      $('fmBadgeSuggest').textContent = String(suggestions.length);
+      tabs.suggest.btn.hidden = suggestions.length === 0 && active !== 'suggest';
 
-      listFriends.innerHTML = '';
-      emptyFriends.hidden = shown.length > 0;
-      emptyFriendsTxt.textContent = friends.length === 0
-        ? (D.txtEmptyFriends || '') : (D.txtEmptyFiltered || '');
+      $('fmOnline').replaceChildren(...on.map(friendCard));
+      $('fmOffline').replaceChildren(...off.map(friendCard));
+      $('fmOnN').textContent = String(on.length);
+      $('fmOffN').textContent = String(off.length);
+      $('fmOnSec').hidden = !on.length;
+      $('fmOffSec').hidden = !off.length;
+      $('fmFilterWrap').hidden = friends.length < 8 && !q;
+      $('fmNoneFiltered').hidden = !(friends.length && !shown.length);
+      $('fmFriendsEmpty').hidden = !(loaded && friends.length === 0);
+      $('fmEmptySuggest').hidden = suggestions.length === 0;
 
-      shown.forEach((f) => {
-        const card = document.createElement('div');
-        card.className = 'fm-pilot-card';
-        const main = document.createElement('div');
-        main.className = 'fm-card-main';
-        const sub = f.p.status_text || f.p.role || `${D.lblSince || ''} ${fmtDate(f.since)}`.trim();
-        main.append(avatarNode(f.p), infoNode(f.p, sub));
+      $('fmIncomingList').replaceChildren(...incoming.map((r) => reqCard(r, 'in')));
+      $('fmOutgoingList').replaceChildren(...outgoing.map((r) => reqCard(r, 'out')));
+      $('fmIncomingCount').textContent = String(incoming.length);
+      $('fmOutgoingCount').textContent = String(outgoing.length);
+      $('fmInSec').hidden = !incoming.length;
+      $('fmOutSec').hidden = !outgoing.length;
+      $('fmRequestsEmpty').hidden = !(loaded && nReq === 0);
 
-        const acts = document.createElement('div');
-        acts.className = 'fm-card-actions';
-        if (f.p.handle) {
-          const a = document.createElement('a');
-          a.className = 'fm-btn fm-btn--primary';
-          a.href = pilotBase + f.p.handle;
-          a.textContent = D.lblView || 'Profile';
-          acts.appendChild(a);
-        }
-        acts.appendChild(mkBtn(D.lblRemove || 'Remove', 'fm-btn--danger',
-          () => removeFriend(f.rowId, f.p.display_name || f.p.handle || '')));
-
-        card.append(main, acts);
-        listFriends.appendChild(card);
-      });
-
-      const reqCard = (r: { reqId: string; at: string; p: Prof }, kind: 'in' | 'out') => {
-        const card = document.createElement('div');
-        card.className = 'fm-pilot-card';
-        const main = document.createElement('div');
-        main.className = 'fm-card-main';
-        main.append(avatarNode(r.p), infoNode(r.p, `${D.lblRequested || ''} ${fmtDate(r.at)}`.trim()));
-
-        const acts = document.createElement('div');
-        acts.className = 'fm-card-actions';
-        if (kind === 'in') {
-          acts.appendChild(mkBtn(D.lblAccept || 'Accept', 'fm-btn--primary', () => acceptReq(r.reqId)));
-          acts.appendChild(mkBtn(D.lblDecline || 'Decline', 'fm-btn--danger', () => dropReq(r.reqId)));
-        } else {
-          acts.appendChild(mkBtn(D.lblCancel || 'Withdraw', 'fm-btn--danger', () => dropReq(r.reqId)));
-        }
-        card.append(main, acts);
-        return card;
-      };
-
-      listIncoming.innerHTML = '';
-      listOutgoing.innerHTML = '';
-      incoming.forEach((r) => listIncoming.appendChild(reqCard(r, 'in')));
-      outgoing.forEach((r) => listOutgoing.appendChild(reqCard(r, 'out')));
-      headIncoming.hidden = incoming.length === 0;
-      headOutgoing.hidden = outgoing.length === 0;
-      countIncoming.textContent = String(incoming.length);
-      countOutgoing.textContent = String(outgoing.length);
-      emptyRequests.hidden = incoming.length + outgoing.length > 0;
+      const sug = suggestions.filter((s) => !relation(s.p.id));
+      $('fmSuggestList').replaceChildren(...sug.map(sugCard));
+      $('fmSuggestEmpty').hidden = !(loaded && sug.length === 0);
+      announce();
     };
 
-    // ---- Tabs + Filter --------------------------------------------------
-    const showTab = (which: 'friends' | 'requests') => {
-      const isF = which === 'friends';
-      tabFriendsBtn.classList.toggle('active', isF);
-      tabRequestsBtn.classList.toggle('active', !isF);
-      tabFriendsBtn.setAttribute('aria-selected', String(isF));
-      tabRequestsBtn.setAttribute('aria-selected', String(!isF));
-      panelFriends.hidden = !isF;
-      panelRequests.hidden = isF;
+    /* ------------------------------------------------- Unterbereiche --- */
+    const showTab = (which: TabKey) => {
+      active = which;
+      (Object.keys(tabs) as TabKey[]).forEach((k) => {
+        const on = k === which;
+        tabs[k].btn.setAttribute('aria-selected', String(on));
+        tabs[k].btn.setAttribute('aria-pressed', String(on));
+        tabs[k].panel.hidden = !on || !loaded;
+      });
+      if (which === 'suggest') tabs.suggest.btn.hidden = false;
     };
-    tabFriendsBtn.addEventListener('click', () => showTab('friends'));
-    tabRequestsBtn.addEventListener('click', () => showTab('requests'));
-    filterInput?.addEventListener('input', render);
+    (Object.keys(tabs) as TabKey[]).forEach((k) => tabs[k].btn.addEventListener('click', () => showTab(k)));
+    $('fmEmptySuggest').addEventListener('click', () => showTab('suggest'));
+    document.addEventListener('vb:friends-show', (e) => {
+      const w = (e as CustomEvent).detail === 'requests' ? 'requests' : 'friends';
+      showTab(w);
+      if (w === 'friends' && myHandle) handleInput.focus();
+    });
+    filterInput.addEventListener('input', render);
+    $('fmSetHandle').addEventListener('click', () =>
+      document.dispatchEvent(new CustomEvent('vb:tab', { detail: { tab: 'profile', el: 'pfHandle' } })));
+    // Handle im Profil gesetzt: Hinweis weg, Hinzufügen frei.
+    document.addEventListener('vb:profile-check', (e) => {
+      const items = ((e as CustomEvent).detail || []) as Array<{ k: string; ok: boolean }>;
+      const h = items.find((i) => i.k === 'handle');
+      if (loaded && h && h.ok !== !!myHandle) loadAll().catch(() => {});
+    });
 
-    // ---- Anfrage senden -------------------------------------------------
+    /* ---------------------------------------- Hinzufügen mit Vorschlägen --- */
+    // Beim Tippen: bis zu 6 Piloten, deren Handle oder Name so beginnt.
+    // Ein Klick (oder Enter) fragt an; Freunde und offene Anfragen zeigen
+    // ihren Stand statt eines Knopfs.
+    let hits: Prof[] = [];
+    let cursor = -1;
+    let lookTimer = 0;
+    let lookSeq = 0;
+    const closeLookup = () => {
+      lookup.hidden = true;
+      lookupNone.hidden = true;
+      handleInput.setAttribute('aria-expanded', 'false');
+      handleInput.removeAttribute('aria-activedescendant');
+      cursor = -1;
+    };
+    const paintLookup = () => {
+      lookup.replaceChildren(...hits.map((p, i) => {
+        const li = el('li', 'fm-hit' + (i === cursor ? ' is-cur' : ''));
+        li.id = 'fmHit' + i;
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', String(i === cursor));
+        li.appendChild(avatarNode(p, false));
+        const t = el('span', 'fm-main');
+        t.append(nameLine(p, true), el('small', 'fm-sub', '@' + p.handle));
+        li.appendChild(t);
+        const rel = relation(p.id);
+        const state = rel === 'friend' ? C.friend : rel === 'out' ? C.requested : rel === 'in' ? C.accept : C.request;
+        li.appendChild(el('span', 'fm-hit__st' + (rel === 'friend' || rel === 'out' ? ' is-done' : ''), state));
+        li.addEventListener('mousedown', (e) => e.preventDefault());
+        li.addEventListener('click', () => pick(p));
+        return li;
+      }));
+      lookup.hidden = !hits.length;
+      handleInput.setAttribute('aria-expanded', String(!!hits.length));
+      if (cursor >= 0) handleInput.setAttribute('aria-activedescendant', 'fmHit' + cursor);
+      else handleInput.removeAttribute('aria-activedescendant');
+    };
+    const pick = async (p: Prof) => {
+      closeLookup();
+      handleInput.value = '';
+      await sendTo(p);
+    };
+    const runLookup = async () => {
+      const raw = handleInput.value.trim().replace(/^@/, '');
+      // Nur Buchstaben, Ziffern, Leer, _ und -; % und \ wären in ILIKE Platzhalter.
+      const q = raw.replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 24);
+      if (q.length < 2) { hits = []; closeLookup(); return; }
+      const seq = ++lookSeq;
+      const pat = q.replace(/_/g, '\\_') + '%'; // _ ist in ILIKE „ein Zeichen"
+      // Zwei einfache Abfragen statt or(): Handle zuerst, dann Name.
+      const [byHandle, byName] = await Promise.all([
+        supabase.from('social_profiles').select(SUG_COLS).ilike('handle', pat).neq('id', me).limit(6),
+        supabase.from('social_profiles').select(SUG_COLS).ilike('display_name', pat).neq('id', me).limit(6),
+      ]);
+      if (seq !== lookSeq) return;
+      const seen = new Map<string, Prof>();
+      for (const p of [...((byHandle.data || []) as Prof[]), ...((byName.data || []) as Prof[])]) if (p.handle && !seen.has(p.id)) seen.set(p.id, p);
+      hits = [...seen.values()].slice(0, 6);
+      cursor = hits.length ? 0 : -1;
+      paintLookup();
+      lookupNone.hidden = hits.length > 0;
+    };
+    handleInput.addEventListener('input', () => {
+      clearTimeout(lookTimer);
+      lookTimer = window.setTimeout(() => { runLookup().catch(() => {}); }, 180);
+    });
+    handleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeLookup(); return; }
+      if (!hits.length || lookup.hidden) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); cursor = (cursor + 1) % hits.length; paintLookup(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); cursor = (cursor - 1 + hits.length) % hits.length; paintLookup(); }
+    });
+    handleInput.addEventListener('blur', () => setTimeout(closeLookup, 120));
+    handleInput.addEventListener('focus', () => { if (hits.length) paintLookup(); });
+
+    // Enter / Plus: gewählter Treffer, sonst exakt das getippte Handle.
     addForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      statusMsg.hidden = true;
+      if (!myHandle) { noHandleEl.hidden = false; return; }
+      if (cursor >= 0 && hits[cursor] && !lookup.hidden) { await pick(hits[cursor]); return; }
       const h = handleInput.value.trim().toLowerCase().replace(/^@/, '');
-      if (!h) return;
-      if (h === (myHandle || '').toLowerCase()) { say(D.msgSelf!); return; }
-
+      if (!h) { handleInput.focus(); return; }
+      if (h === (myHandle || '').toLowerCase()) { toast(C.errSelf); return; }
       addBtn.disabled = true;
       try {
-        const { data: found } = await supabase
-          .from('social_profiles').select('id, handle').eq('handle', h).maybeSingle();
-        const target = found as { id: string; handle: string } | null;
-        if (!target) { say(D.msgNotfound!); return; }
-        if (target.id === me) { say(D.msgSelf!); return; }
-        if (friends.some((f) => f.p.id === target.id)) { say(D.msgAlreadyFriend!); return; }
-        if (outgoing.some((r) => r.p.id === target.id)) { say(D.msgAlreadySent!); return; }
-
-        // Hat der andere mir schon geschrieben? Dann direkt annehmen.
-        const mine = incoming.find((r) => r.p.id === target.id);
-        if (mine) {
-          await acceptReq(mine.reqId);
-          say(D.msgAcceptedTheirs!, true);
-          handleInput.value = '';
-          return;
-        }
-
-        const { error } = await supabase.from('friend_requests')
-          .insert({ sender_id: me, receiver_id: target.id });
-        if (error) { say(D.msgNet!); return; }
-
+        const { data } = await supabase.from('social_profiles').select(SUG_COLS).eq('handle', h).maybeSingle();
+        if (!data) { toast(C.errNotFound); return; }
         handleInput.value = '';
-        say(D.msgSent!, true);
-        await loadAll();
+        closeLookup();
+        await sendTo(data as Prof);
       } catch {
-        say(D.msgNet!);
+        toast(C.errNet);
       } finally {
-        addBtn.disabled = !myHandle;
+        addBtn.disabled = false;
       }
     });
 
-    loadAll().catch(() => { loadingEl.hidden = true; say(D.msgNet!); });
+    loadAll().then(() => showTab(active)).catch(() => { loadingEl.hidden = true; toast(C.errNet); });
 
-    // Live-Präsenz: alle 40s die Präsenz der angezeigten Profile neu abfragen und
-    // NUR die Punkte aktualisieren (kein Voll-Re-Render). So sieht man Statuswechsel
-    // anderer ohne Seiten-Refresh. Der offline-Wechsel entsteht durch Zeitablauf
-    // (kein DB-Event), daher Polling statt Realtime.
+    // Live-Präsenz: alle 40 s die Präsenz der angezeigten Profile neu abfragen.
+    // Der Wechsel nach offline entsteht durch Zeitablauf (kein DB-Ereignis),
+    // daher Abfragen statt Realtime. Danach neu malen (Gruppen Online/Offline).
+    let presenceStale = false;
     const pollPresence = async () => {
-      const ids = [...new Set(
-        [...friends, ...incoming, ...outgoing].map((x) => x.p && x.p.id).filter(Boolean) as string[],
-      )];
+      const ids = [...new Set([...friends, ...incoming, ...outgoing].map((x) => x.p && x.p.id).filter(Boolean) as string[])];
       if (!ids.length) return;
-      const { data } = await supabase.from('social_profiles').select('id, presence, status_state').in('id', ids);
+      // '*' statt fester Spalten: neue Felder (Aktivität, Rang) kommen so mit.
+      const { data } = await supabase.from('social_profiles').select('*').in('id', ids);
       if (!data) return;
-      const map = new Map(
-        (data as Array<{ id: string; presence: string | null; status_state: string | null }>).map((r) => [r.id, r]),
-      );
-      const upd = (x: { p: Prof }) => {
-        const r = map.get(x.p.id);
-        if (r) { x.p.presence = r.presence; x.p.status_state = r.status_state; }
-      };
-      friends.forEach(upd); incoming.forEach(upd); outgoing.forEach(upd);
-      (fmWrap || document).querySelectorAll<HTMLElement>('.fm-dot[data-uid]').forEach((dot) => {
-        const r = map.get(dot.dataset.uid!);
-        if (r) applyDot(dot, r.presence, r.status_state);
-      });
+      const map = new Map((data as Prof[]).map((r) => [r.id, r]));
+      const all = [...friends, ...incoming, ...outgoing];
+      const before = JSON.stringify(all.map((x) => x.p));
+      const upd = (x: { p: Prof }) => { const r = map.get(x.p.id); if (r) Object.assign(x.p, r); };
+      all.forEach(upd);
+      if (JSON.stringify(all.map((x) => x.p)) === before && !presenceStale) return;
+      // Während „Entfernen?" scharf ist, nicht neu malen (der Knopf ginge
+      // verloren); die Nachfrage malt nach, sobald sie abläuft.
+      if (fmWrap.querySelector('.fm-ib--rm.is-armed')) { presenceStale = true; announce(); return; }
+      repaint();
+    };
+    // Neu malen ersetzt die Karten: den Fokus auf denselben Knopf derselben
+    // Karte zurücksetzen (Tastaturbedienung).
+    const repaint = () => {
+      presenceStale = false;
+      const f = document.activeElement as HTMLElement | null;
+      const cardEl = f && fmWrap.contains(f) ? f.closest<HTMLElement>('.fm-card') : null;
+      const key = cardEl?.dataset.id;
+      const idx = cardEl ? [...cardEl.querySelectorAll('a,button')].indexOf(f!) : -1;
+      render();
+      if (key && idx >= 0) {
+        const again = fmWrap.querySelector<HTMLElement>(`.fm-card[data-id="${CSS.escape(key)}"]`);
+        (again?.querySelectorAll<HTMLElement>('a,button')[idx])?.focus({ preventScroll: true });
+      }
     };
     setInterval(pollPresence, 40000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pollPresence(); });

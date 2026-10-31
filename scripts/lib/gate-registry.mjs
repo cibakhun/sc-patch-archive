@@ -45,6 +45,11 @@
                Wird bei JEDEM Lauf als Schuldenposten gedruckt — ein
                ausgesetztes Tor darf nicht in Vergessenheit geraten.
      why       Begruendung fuer rail: null
+     nurMitHangar  true: prueft den Hangar und laeuft nur gegen einen Bau,
+               der ihn enthaelt (Vorschau, STAGING=1). Gegen den Live-Bau
+               meldet run-gate die Strecke als "ohne Hangar" statt sie
+               auszufuehren; dass dort wirklich kein Hangar steht, prueft
+               verify:hangar-schalter (scripts/lib/hangar-switch.mjs).
    ============================================================ */
 
 export const CHECKS = [
@@ -88,14 +93,23 @@ export const CHECKS = [
     npm: 'verify:vendor',
     script: 'scripts/verify-vendor-three.mjs',
     rail: 'A',
-    checks: 'das handkopierte three.js passt zur devDependency',
+    checks: 'das handkopierte three.js passt zur devDependency und ist Datei fuer Datei (SHA-256) bitgleich zu node_modules/three, bis auf benannte Korrekturen',
+  },
+  {
+    // Direkt nach verify:vendor — beide betreffen die Herkunft fremden Codes.
+    // Liest .github/ mit: deshalb steht .github NICHT mehr in .dockerignore.
+    id: 'verify:supply-chain',
+    npm: 'verify:supply-chain',
+    script: 'scripts/verify-supply-chain.mjs',
+    rail: 'A',
+    checks: 'Pakete nur von registry.npmjs.org mit sha512, Actions per Commit-SHA und Basis-Images per Digest angeheftet, jeder Workflow mit eigenen Rechten und Checkouts ohne hinterlegtes Token, kein Compiler im Bot-Laufzeit-Image, Dependabot zieht alles nach',
   },
   {
     id: 'audit:csp',
     npm: 'audit:csp',
     script: 'scripts/audit-csp.mjs',
     rail: 'A',
-    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers',
+    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', \'unsafe-eval\', * und reine Schema-Quellen, jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), jede Seite mit data-img-fail traegt den Bild-Hoerer davor, der Zaehl-Host steht nur in connect-src, und kein add_header ausserhalb des server-Blocks oder ohne always',
   },
   {
     // Direkt nach audit:csp — beide betreffen nginx/default.conf.
@@ -104,7 +118,7 @@ export const CHECKS = [
     script: 'scripts/verify-gate.mjs',
     rail: 'A',
     checks:
-      'die Ausnahmeliste des Testpilot-Tors (nginx/default.conf, GATE-AUSNAHME-Zeilen) traegt jeden Anlass, deckt genau das, was dist/gate.html anfordert, hat keinen erfundenen Eintrag, die Torseite bleibt ungepaart und ohne /_astro/-Buendel, nginx/gate.js traegt kein eingebautes Geheimnis, und der $vb_gate_on-Schalter steht in der Form, auf die der Dockerfile-sed zielt (D-06, D-09, D-12)',
+      'die Ausnahmeliste des Testpilot-Tors (nginx/default.conf, GATE-AUSNAHME-Zeilen) traegt jeden Anlass, deckt genau das, was dist/gate.html anfordert, hat keinen erfundenen Eintrag, die Torseite bleibt ungepaart und ohne /_astro/-Buendel, nginx/gate.js traegt kein eingebautes Geheimnis, der $vb_gate_on-Schalter steht in der Form, auf die der Dockerfile-sed zielt, jeder location-Block fragt das Tor ab, ist eine benannte Ausnahme oder leitet nur weiter, und die Vorschau sendet Cache-Control private ohne eigenes add_header in einer location (D-06, D-09, D-12)',
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
     // ausschliesslich dist/ und die beiden nginx-Dateien als Text.
   },
@@ -115,7 +129,7 @@ export const CHECKS = [
     script: 'scripts/verify-redirects.mjs',
     rail: 'A',
     checks:
-      'jede Weiterleitung in nginx/default.conf bleibt auf dieser Seite: server-weiter Riegel gegen Steuerzeichen und Rueckstriche, keine roh eingesetzte Pfadvariable, jedes umleitende rewrite gegen eine Angriffsliste nachgespielt, die alte /en/-Adresse jeder gebauten Seite leitet auf sie, und $vb_next ist prozentkodiert (gate.next in node:vm ausgefuehrt)',
+      'jede Weiterleitung in nginx/default.conf bleibt auf dieser Seite: server-weiter Riegel gegen Steuerzeichen und Rueckstriche, keine roh eingesetzte Pfadvariable, jedes umleitende rewrite gegen eine Angriffsliste nachgespielt, die alte /en/-Adresse jeder gebauten Seite leitet auf sie, und $vb_next ist prozentkodiert und gibt die angefragte Adresse samt Query zurueck, auch nach einem internen rewrite wie /pilot/<handle> (gate.next in node:vm ausgefuehrt)',
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
     // dist/ (nur die Dateinamen) und die beiden nginx-Dateien als Text.
   },
@@ -178,17 +192,6 @@ export const CHECKS = [
   },
   {
     id: 'verify:shipcard',
-    disabled:
-      'AUSGESETZT auf live seit 27.08.2026, NICHT auf staging. Die Schiffs-'
-      + 'Detailseite steht auf live bewusst auf ihrem Stand vom 14.08.2026 '
-      + '(Betreiberentscheidung: der Umbau aus den Phasen 14/16/17 — vier '
-      + 'Kapitel, Konsole, Hangar — ist beta und kam nur durch drei '
-      + 'Fast-forward-Live-Pushes ungewollt nach draussen). Dieses Tor prueft '
-      + 'GENAU diesen Umbau; gegen die alte Seite meldet es zwangslaeufig rot '
-      + 'und wuerde jeden Live-Build verhindern — kein Image, alter Stand '
-      + 'bleibt online. Es bleibt auf staging scharf und ist hier nur '
-      + 'stillgelegt, bis der Entwurf abgenommen ist und live nachzieht. '
-      + 'Schuldenposten: laeuft bei JEDEM Lauf als ausgesetzt mit.',
     npm: 'verify:shipcard',
     script: 'scripts/verify-shipcard.mjs',
     rail: 'A',
@@ -205,17 +208,6 @@ export const CHECKS = [
   },
   {
     id: 'verify:shipconsole',
-    disabled:
-      'AUSGESETZT auf live seit 27.08.2026, NICHT auf staging. Die Schiffs-'
-      + 'Detailseite steht auf live bewusst auf ihrem Stand vom 14.08.2026 '
-      + '(Betreiberentscheidung: der Umbau aus den Phasen 14/16/17 — vier '
-      + 'Kapitel, Konsole, Hangar — ist beta und kam nur durch drei '
-      + 'Fast-forward-Live-Pushes ungewollt nach draussen). Dieses Tor prueft '
-      + 'GENAU diesen Umbau; gegen die alte Seite meldet es zwangslaeufig rot '
-      + 'und wuerde jeden Live-Build verhindern — kein Image, alter Stand '
-      + 'bleibt online. Es bleibt auf staging scharf und ist hier nur '
-      + 'stillgelegt, bis der Entwurf abgenommen ist und live nachzieht. '
-      + 'Schuldenposten: laeuft bei JEDEM Lauf als ausgesetzt mit.',
     npm: 'verify:shipconsole',
     script: 'scripts/verify-shipconsole.mjs',
     rail: 'A',
@@ -228,6 +220,32 @@ export const CHECKS = [
     // gelaufen (alle acht Zusicherungen, Zombie-Waechter meldet "0
     // Ausnahmen registriert" -- explizit, keine stille Leere), Praezedenz
     // verify:shipcard (14-01 -> 14-04): erst beheben/gruen, dann scharf.
+  },
+  {
+    // Neuzugang (31.10.2026, Krisz: live alles ausser dem Hangar): direkt vor
+    // den Hangar-Strecken, weil erst diese Pruefung es zulaessig macht, dass
+    // run-gate sie gegen den Live-Bau weglaesst. Liest jede gebaute Seite
+    // einmal als Text, wenige Sekunden. Kein env-Feld: kein git, kein Netz,
+    // kein Kindprozess — nur dist/.
+    id: 'verify:hangar-schalter',
+    npm: 'verify:hangar-schalter',
+    script: 'scripts/verify-hangar-schalter.mjs',
+    rail: 'A',
+    checks:
+      'der Hangar steht genau im Vorschau-Bau: live keine Hangar-Seiten, -Ordner, -Modelle und -Skripte in dist/ und keine Seite, die eine Hangar-Seite verlinkt oder etwas aus /hangar/ laedt; in der Vorschau beide Sprachen, die Buchtdokumente (Klinke) und die Modelle (Klinke), und das Menue fuehrt hin; Klinke fuer gelesene Seiten',
+  },
+  {
+    // Direkt nach den beiden Schiffstoren: dieselbe Datenfamilie, und unter
+    // einer Sekunde schnell genug, dass ein gebrochener Hangar-Join vor dem
+    // langen audit:site auffaellt. Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess — liest nur dist/.
+    id: 'verify:hangar',
+    npm: 'verify:hangar',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar.mjs',
+    rail: 'A',
+    checks:
+      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe); Bildablage der Schiffe: kein Bild mehr eingebettet, jeder Verweis liegt in dist/hangar/tex und heisst nach seinem Inhalt, Deckel fuer die Gesamtgroesse und je Datei (Klinke Schiffe mit Ablage); Schiffswahl: jede Karte mit eigenem Bild und Umriss in dist/ (Version = Inhalt, Klinke), Suchwoerter unter fold() stabil, jeder Zweck, jede Unterrolle und Groesse eine Stufe der Pillen, und Proben je Sprache durch die ausgelieferte Suche ueber die Karten aus dist/ (Spitzname, Zweck mit Crew, Fracht, Preis, Tippfehler, Unterrolle; Klinke)',
   },
   {
     id: 'verify:theme',
@@ -264,6 +282,100 @@ export const CHECKS = [
     script: 'scripts/verify-fx.mjs',
     rail: 'A',
     checks: 'der Mauszeiger-Schein ist getilgt, der FX-Umschalter-Vertrag haelt, und beide Sprachfassungen tragen ihn gleich',
+  },
+  {
+    // Neuzugang (29.10.2026), schnell (wenige Sekunden): liest src/, assets/
+    // und dist/ als Text. Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess im Skript — die Helfer aus src/lib/ werden wie bei
+    // verify:crafting mit esbuild gebuendelt und importiert.
+    id: 'verify:ausgabe',
+    npm: 'verify:ausgabe',
+    script: 'scripts/verify-ausgabe.mjs',
+    rail: 'A',
+    checks:
+      'Ausgabekodierung: JSON in <script>-Bloecken laeuft ueber jsonForScript (src/lib/safeJson.ts; maskiert <, U+2028, U+2029 und ist fuer Daten ohne diese Zeichen byte-gleich mit JSON.stringify), kein set:html-Ausdruck ruft JSON.stringify auf (benannte Ausnahmen mit Zombie-Waechter), jede HTML-Maskierer-Kopie deckt & < > " \' ab, und in dist/ ist jeder application/(ld+)json- und window.__X-Block gueltiges JSON ohne rohes < (Klinken fuer Helferstellen, Maskierer und Bloecke)',
+  },
+  {
+    // Neuzugang, vor dem langen audit:site: dekodiert die ausgelieferte
+    // Halle (gut 10 MB, wenige Sekunden). Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — liest dist/ und fuer [12] dazu das Manifest
+    // src/data/hangar-assets.json (nennt es die Werkstatt, muss die Seite
+    // sie mitgeben).
+    id: 'verify:hangar-hall',
+    npm: 'verify:hangar-hall',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-hall.mjs',
+    rail: 'A',
+    checks:
+      'jede Ausnahme der echten Halle (HALL_DROP im ausgelieferten Viewer) gehoert zur Halle der Seite, trifft in jeder ausgelieferten Hallenstufe mindestens ihre Klinke an Dreiecken, nur ganze Teile, und nimmt hoechstens 2 % der Halle; die Moebel kommen mit (Klinke), nicht doppelt, und aus der ausgelieferten vollen Stufe; die Naehte jeder Hallenstufe halten (klaffende Randecken unter ihrer Obergrenze, dichte ueber ihrer Klinke); was der leichteren Stufe an Glas und Rohren fehlt, bringt die Moebeldatei aus der vollen (Klinke), ersetzt jedes Material der leichteren Stufe unter der Regel und nichts im Bereich einer Ausnahme; was die leichtere Stufe an einer Stelle ganz weglaesst, setzt die Moebeldatei dazu (Klinke je Bereich, gegen die ausgelieferte leichtere Stufe gerechnet, nichts ganz oder teilweise auf ihr aufliegend, nichts im Bereich einer Ausnahme); Ergaenzung und Fuellung tragen je Material einen Attributsatz der leichteren Stufe; am Telefon (ohne Moebeldatei) bringt eine eigene kleine Datei aus genau der ausgelieferten Moebeldatei dieselben Teile der Ergaenzung und Fuellung (je Primitive gleich in Schluessel, Material, Attributen und Geometrie), ohne Moebel und Texturen, und der Viewer laedt sie dort; unter dem Aufzugsfeld steht der Schacht aus dem Spiel (HALL_SHAFT): die Seite gibt genau den genannten Bausatz samt Lampenliste mit, jedes Wandteil liegt in seinem Rahmen (Laenge und Hoehe ab 0), Laengs- und Querwand sind ohne Luecke bedeckt, die Randleiste reicht bis ans Ende, jede Rippe traegt genau eine Warnlampe, Dreiecke zwischen Klinke und Obergrenze, Lampen ueber ihrer Klinke, jedes Teil mit Texturkoordinaten, die Wear-Schicht (wear_0) vorhanden und genug Dreiecke mit ihrer Maske (Klinke), das Beiwerk aus SHAFT_DECO mit Knoten und genug Exemplaren (Klinke), mit seinen Dreiecken unter der Obergrenze; die Werkstatt aus anderen Spielhallen kommt mit (Seite gibt sie mit, wenn das Manifest sie nennt, Dateien in dist/, jeder Platz der Anordnung und jede Spur auf dem Feld aus WORK_FIELD hat seinen Knoten, Decals flach, Klinken fuer Geraet, Decals, Plaetze und Feldspuren, Obergrenzen fuer Dreiecke und Bytes; der Feldboden aus WORK_PAD hat Knoten und Kachel, und genug fahrende Dreiecke tragen seine Materialien); das Schachttor schliesst die Oeffnung ohne Spalt und liegt offen draussen, seine Palettenlacke tragen die Farbe des Spiels (Klinke); der feste Rand des Spiels liegt um das Feld (HALL_RAND): Stege decken jede Seite ohne Luecke und Ueberlappung buendig mit dem Boden, Ecken, Leuchten und Schriftzug im Rand, gleichnamige Schachtmaterialien mit denselben Karten, Teile ueber der Klinke, Dreiecke, Materialien und Bytes unter der Obergrenze; die Hallendeko (WORK_DEKO) gehoert zur Halle der Seite, jede Zone mit Stufe, Wand, Bezugspunkt und Herkunft aus dem Katalog, ihr Satz passt zu Block und Quellen, jedes Stueck im Raum, frei von Feld samt Rand, feste Stuecke frei voneinander (flache unter 0,35 m und Spuren duerfen sich ueberlagern; was im Fach eines Regals steht, steht auf einem aus der Geometrie gemessenen Regalboden und passt unter den naechsten), frei von Wand und Einrichtung im Grundriss, im Band und darueber bis zur eigenen Hoehe, auch in groesseren Hallen (Massstab bis 6, ohne dabei in die Stuecke anderer Zonen zu geraten), Gestapeltes liegt auf, Klinken fuer Zonen, Glieder, Spuren, Arten, Regalfaecher, Schichten und die Selbstauskunft der Grundrissprobe, Obergrenzen fuer Materialien, Dreiecke je Stufe und Bytes',
+  },
+  {
+    // Neuzugang (25.10.2026), vor dem langen audit:site: dekodiert die
+    // Geometrie-Fassungen, die die Seite aufs Fahrwerk stellt (rund 60 MB
+    // Draco). Kein env-Feld: kein git, kein Netz, kein Kindprozess — liest
+    // dist/ und fuer [4] das Manifest src/data/hangar-assets.json.
+    id: 'verify:hangar-gear',
+    npm: 'verify:hangar-gear',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-gear.mjs',
+    rail: 'A',
+    checks: 'jedes Schiff, das die Hangarseite aufs Fahrwerk stellt, steht mit der Ebene des ausgelieferten Viewers auf Ecken seiner Datei (kein Bein schwebt, kein Teil steckt tiefer als die Grenze im Boden), Fahrzeuge ohne Fahrwerk stehen waagrecht auf ihrer tiefsten Ecke, jedes andere Schiff hat einen Grund aus dem Manifest, Klinken fuer beide Arten',
+  },
+  {
+    id: 'verify:hangar-cockpit',
+    npm: 'verify:hangar-cockpit',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-cockpit.mjs',
+    rail: 'A',
+    checks: 'durch die Haube jedes Schiffs der Hangarseite sieht man nicht durch das Schiff in die Halle: Strahlen durch das Haubenglas, die hinter einer Rueckseite nichts mehr treffen, was der Viewer zeichnet, je Schiff unter seiner Klinke (Krisz 29.10.2026: Gladius von innen hohl)',
+  },
+  {
+    // Neuzugang (31.10.2026): mit Fingerabdruck-Klinke wie verify:hangar-cockpit
+    // 2 s; nach einem Neubau misst es mit allen Kernen (231 Schiffe gut 2
+    // Minuten auf 4 Kernen). Kein env-Feld: kein git, kein Netz, kein
+    // Kindprozess (Worker-Faeden) — liest dist/.
+    id: 'verify:hangar-lage',
+    npm: 'verify:hangar-lage',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-lage.mjs',
+    rail: 'A',
+    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz, und kein Rumpf hat Teile, die getrennt neben ihm haengen, ohne benannte Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen)',
+  },
+  {
+    // Neuzugang (30.10.2026), vor dem langen audit:site: entpackt die
+    // Crew-Figur (1,7 MB Draco) und laedt das ausgelieferte Crew-Modul in
+    // Node (three aus node_modules), Sekunden. Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — liest dist/ und das Manifest
+    // src/data/hangar-crew.json.
+    id: 'verify:hangar-crew',
+    npm: 'verify:hangar-crew',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-crew.mjs',
+    rail: 'A',
+    checks:
+      'die Hangarseite gibt die Crew mit Skelett mit (Figur des Manifests und Modul versioniert in dist/); die Figur ist ein Netz mit Haut, Gelenke wie die Knochenliste, jede Ecke an hoechstens 4 Knochen mit Summe 1, Teilmaterial in der Farbtafel, Texturkoordinaten im Atlas, Farbtafel passend zu Stellungen und Teilmaterialien, unter den Obergrenzen fuer Bytes, Dreiecke und Knochen; der Animationsblock ist stimmig (Clips, Spuren an Knochen, Bilder in der Dauer, Einheitsquaternionen, Bahnen der Wurzel); jeder Clip, den das Modul spielen kann, steht in der Datei, mit Dauer nur Schleifen; jeder Einhaengepunkt des Materials steht im Shader von three.js; Wege im Raster des Moduls nur ueber freie Zellen (Probelauf); die Verkabelung im ausgelieferten Viewer (Arbeitsplaetze, Aufstandspunkte, Uebergabe, Ladezweig); Klinken fuer Clips und Farbstellungen (Krisz 30.10.2026: „bau npcs komplett aus“)',
+  },
+  {
+    // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
+    // audit:site: liest jede gebaute Seite einmal als Text, wenige Sekunden.
+    // Kein env-Feld: kein git, kein Netz, kein Kindprozess — nur dist/.
+    id: 'verify:vorklick',
+    npm: 'verify:vorklick',
+    script: 'scripts/verify-vorklick.mjs',
+    rail: 'A',
+    checks:
+      'keine gebaute Seite laedt oder verbindet sich vor einem Klick mit einem Anbieter, fuer den die Datenschutzerklaerung „erst nach Klick" oder „nie" zusagt (YouTube, Google Fonts, Stripe, PayPal, Web3Forms) — weder per script/iframe/img/srcset/poster/data-src noch per link preconnect/preload/stylesheet oder CSS-url(); Inline-Skripte und JS-Dateien duerfen diese Hosts nur an benannten Klick-Bindungen nennen (mit Zombie-Waechter); Klinken fuer Seitenzahl und YouTube-Klick-Fassaden',
+  },
+  {
+    // Neuzugang (29.10.2026), vor dem langen audit:site: liest die
+    // gebauten Seiten als Text (gut 2 s). Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — node:vm fuehrt nur den Haken aus dist/ aus.
+    id: 'verify:zaehler',
+    npm: 'verify:zaehler',
+    script: 'scripts/verify-zaehler.mjs',
+    rail: 'A',
+    checks:
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen und Zaehler-Kopien; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
   },
   {
     id: 'audit:site',
@@ -354,6 +466,30 @@ export const CHECKS = [
       'flugfaehige /spaceships/- und /groundvehicles/-Records im DataCore (nach dem isVariantJunk-Filter aus datamine-vehicles.mjs) ohne Katalog-Eintrag und ohne benannte Ausnahme — WARNUNG; FEHLER nur bei Zombie-Ausnahmen oder Leser unter der Klinke',
     env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B. Anlass: Sabre Raven EX und S-65 Stingray fehlten still im zirkulaer geschlossenen Katalog (07.10.2026)',
   },
+  {
+    id: 'datamine:paints',
+    npm: 'datamine:paints',
+    script: 'scripts/datamine-ship-paints.mjs',
+    rail: 'B',
+    checks:
+      'zieht je Hangar-Schiff die Lackierungen mit ihren Palettenfarben A/B/C nach src/data/ship-paints.json und reisst, wenn der Leser kein Schiff oder keine Lackierung findet',
+    env: 'Data.p4k: oeffnet das Archiv selbst (DataCore + englische Lokalisierung) — gibt es nur auf dem Betreiber-Rechner, deshalb Schiene B',
+  },
+  {
+    // Kein Datenlauf, aber dieselbe Umgebung: Zugang, den es nur auf dem
+    // Betreiber-Rechner gibt. Anlass: 20261029123218 (Profil-Views fuer
+    // Anonyme beschreibbar, Ursache Supabase-Standardrechte) und
+    // 20261030100000 (Rechte nur nach Bedarf). Vorgefuehrt rot gegen den
+    // Live-Stand vor der Migration, gruen gegen die lokale Replik danach.
+    id: 'verify:db-rights',
+    npm: 'verify:db-rights',
+    script: 'scripts/verify-db-rights.mjs',
+    rail: 'B',
+    checks:
+      'die wirksamen Datenbankrechte von anon, authenticated und PUBLIC (Tabellen, Views, Sequenzen, Funktionen, Spalten, Schemas, Standardrechte fuer neue Objekte, Rollenattribute) gehen nicht ueber supabase/rights.expected.json hinaus (sonst FEHLER), fehlende Soll-Rechte sind WARNUNG, benannte Ausnahmen tragen ihren Anlass (Zombie-Waechter), Klinke fuer die Zahl der geprueften Objekte',
+    env:
+      'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.
@@ -370,6 +506,17 @@ export const CHECKS = [
   },
 
   {
+    id: 'check:hangar-shader',
+    npm: 'check:hangar-shader',
+    script: 'scripts/check-hangar-shader.mjs',
+    rail: 'C',
+    checks:
+      'kein Bildshader des 3D-Hangars braucht mehr als 16 Texturen (die Grenze von Chrome unter Windows; darueber linkt das Programm dort nicht und sein Material bleibt unsichtbar): auf hoch mit ganzer Hallendeko je gelinktem Programm selbst gezaehlt, kein Programm linkt nicht, die Zeile des Viewers ist da, Klinken fuer Programme und Programme mit Schichttafel',
+    env:
+      'Browser und laufender Server: laedt <base>/hangar.html in einem installierten Chromium mit Software-WebGL und vorgetaeuschter Grafikkarte (sonst zeigt die Seite ihren Rueckfall) und wartet, bis die Hallendeko steht (in Software-WebGL einige Minuten). Beides gibt es im Build-Container nicht, deshalb Schiene C. Anlass: Wartungsplatz und Hallendeko waren auf staging unter Windows unsichtbar, waehrend jede Aufnahme mit Software-WebGL (32 Texturen erlaubt) und der Rauchtest (sieht nur den Rueckfall) gruen waren (Krisz, 21.10.2026).',
+  },
+
+  {
     id: 'check:staging',
     npm: 'check:staging',
     script: 'scripts/check-deployed.mjs',
@@ -381,12 +528,23 @@ export const CHECKS = [
   },
 
   {
+    id: 'check:headers',
+    npm: 'check:headers',
+    script: 'scripts/check-headers.mjs',
+    rail: 'C',
+    checks:
+      'die AUSGELIEFERTEN Antworten (eine je location-Block, 200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), ohne \'unsafe-eval\', * und reine Schema-Quellen in script-src, mit default-src, object-src \'none\' und base-uri/frame-ancestors \'self\' oder \'none\', und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
+    env:
+      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng.',
+  },
+
+  {
     id: 'check:gate',
     npm: 'check:gate',
     script: 'scripts/check-gate.mjs',
     rail: 'C',
     checks:
-      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07), und ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57)',
+      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html mit no-store und ohne Cache-Zeit, /pilot/<handle>?probe=1 behaelt Pfad und Query als next=, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07), ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57), und mit dem echten Bypass traegt die Antwort Cache-Control private',
     env:
       'Netz: fetch() gegen <base>/…, redirect:"manual" (der 302 muss SICHTBAR bleiben, nicht gefolgt werden) — dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:staging (401/403/429), deshalb --weich im Workflow, streng vom Entwicklungsrechner aus. Sonst beruehrt es nichts ausserhalb der Umgebung: die Stichproben kommen ausschliesslich aus dist/ und aus dem Text von nginx/default.conf, nicht aus einer zweiten, handgepflegten Liste.',
   },
@@ -400,6 +558,33 @@ export const CHECKS = [
     rail: null,
     checks: 'zaehlt Schriftgrade, Laufweiten und Uebergaenge im Quellbestand',
     why: 'Erhebungswerkzeug aus Phase 2 (Grundlage der Skala), kein Pruefer — es faellt kein Urteil und hat bewusst keinen Exit-Code',
+  },
+  {
+    id: 'measure-hangar-cockpit',
+    script: 'scripts/measure-hangar-cockpit.mjs',
+    rail: null,
+    checks: 'misst je Schiffsmodell eines Ordners, wie viele Blicke durch das Haubenglas auf eine Rueckseite treffen (hohl) und wie viele dahinter in die Halle gehen (durch)',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-cockpit-hohl.md (Krisz, 29.10.2026: Gladius von innen hohl): vergleicht Rohexport und Web-Fassung auf dem PC, auch ausserhalb von dist/. ' +
+      'Dieselbe Rechnung (scripts/lib/cockpit-rays.mjs) prueft verify:hangar-cockpit als Tor gegen die ausgelieferten Modelle.',
+  },
+  {
+    id: 'measure-hangar-innenlage',
+    script: 'scripts/measure-hangar-innenlage.mjs',
+    rail: null,
+    checks: 'misst je begehbarem Innenraum (oder je Container eines Rohexports), wie viele Dreiecke ausserhalb des Rumpfs liegen, und sucht den Versatz, mit dem er hineinpasst',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-innenlage.md (Krisz, 30.10.2026: Innenraeume dabei, jedes Schiff innen und aussen ansehen): Roentgenbilder zeigten Innenraeume, die aus dem Rumpf ragen. ' +
+      'Laeuft auf dem PC auch gegen Rohexporte (--roh), um die Lage der Container zu klaeren. Dieselbe Rechnung (scripts/lib/hangar-lage.mjs) prueft verify:hangar-lage als Tor gegen die ausgelieferten Modelle.',
+  },
+  {
+    id: 'measure-hangar-inseln',
+    script: 'scripts/measure-hangar-inseln.mjs',
+    rail: null,
+    checks: 'sucht je Rumpf (oder je Rohexport) Teile, die mehr als 1 m vom Rumpf getrennt ausserhalb seines Huellquaders in der Luft haengen, und nennt Material und (roh) Knotenpfad',
+    why:
+      'Erhebungswerkzeug fuer .planning/notes/hangar-inseln.md (Krisz, 30.10.2026: jedes Schiff innen und aussen ansehen): Hornet-Fluegelwaffen, ein Feuerloescherschrank ueber dem Avenger und Kleinteile unter der 300i-Reihe hingen frei in der Luft. ' +
+      'Laeuft auf dem PC auch gegen Rohexporte (--roh, --mit-ausgeblendet), um zu sehen, ob der Bau ein verbindendes Teil weglaesst. Dieselbe Rechnung (scripts/lib/hangar-lage.mjs) prueft verify:hangar-lage als Tor gegen die ausgelieferten Modelle.',
   },
   {
     id: 'verify-hardpoints',

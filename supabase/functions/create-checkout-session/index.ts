@@ -15,12 +15,24 @@
 //     bei verify-rsi, wo das noch offen steht.
 //   * Die Rueckkehr-URL wird NICHT aus der Anfrage uebernommen, sondern aus der
 //     geprueften Herkunft gebaut. Sonst waere das eine offene Weiterleitung.
+//   * Hoechstens 10 Aufrufe je Anschluss und Stunde (rate.js), danach 429.
+//     Deploy: index.ts UND rate.js; die Migration 20261030160000 vorher live.
 //
 // Der Schluessel in STRIPE_SECRET_KEY ist ein EINGESCHRAENKTER Schluessel
 // (rk_…) mit genau einem Recht: Checkout Sessions schreiben. Ein abgegriffener
 // Secret Key koennte Rueckerstattungen ausloesen und Auszahlungen umleiten —
 // dieser kann eine Bezahlseite anlegen und sonst nichts.
-import Stripe from 'npm:stripe@^22';
+//
+// Versionen EXAKT gepinnt (vorher npm:stripe@^22): ein Bereich
+// loest beim naechsten Deploy auf die dann neueste Version auf, und diese
+// Function haelt Geheimnisse. stripe 22.4.0 war am Tag des Live-Deploys
+// (03.08.2026) die neueste 22.x (22.5.0 kam am 10.08.); ihre eingebaute
+// API-Version ist genau API_VERSION unten (ab 22.6.0 ist es 2026-08-26.dahlia,
+// dann waere API_VERSION ein Typfehler). stripe hat keine eigenen
+// Abhaengigkeiten, der Pin friert es also ganz ein. Anheben nur bewusst und
+// zusammen mit API_VERSION.
+import Stripe from 'npm:stripe@22.4.0';
+import { checkoutAllowed, RETRY_AFTER_S } from './rate.js';
 
 /** Gepinnt: ohne feste Version aendert Stripe das Antwortformat unter uns weg. */
 const API_VERSION = '2026-07-29.dahlia';
@@ -56,10 +68,10 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
-function json(body: unknown, status: number, origin: string | null) {
+function json(body: unknown, status: number, origin: string | null, extra: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json', ...extra },
   });
 }
 
@@ -77,6 +89,25 @@ Deno.serve(async (req: Request) => {
   if (!secret) {
     // Kein Schluessel hinterlegt: ehrlich scheitern statt so tun, als ginge es.
     return json({ error: 'not_configured' }, 503, origin);
+  }
+
+  // Bremse je Anschluss (rate.js, Migration 20261030160000): hoechstens 10
+  // Aufrufe je Stunde. VOR dem Lesen des Rumpfs, damit auch unbrauchbare
+  // Aufrufe zaehlen und sich die Bremse nach einem Deploy mit ungueltigen
+  // Betraegen pruefen laesst, ohne dass bei Stripe eine Bezahlseite entsteht.
+  // Faellt die Buchfuehrung aus, laeuft die Spende durch.
+  const allowed = await checkoutAllowed({
+    headers: req.headers,
+    env: {
+      SUPABASE_URL: Deno.env.get('SUPABASE_URL'),
+      SUPABASE_SERVICE_ROLE_KEY: Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+      CHECKOUT_RATE_SECRET: Deno.env.get('CHECKOUT_RATE_SECRET'),
+    },
+    fetch,
+    log: (m: string) => console.warn(m),
+  });
+  if (!allowed) {
+    return json({ error: 'rate_limited' }, 429, origin, { 'Retry-After': String(RETRY_AFTER_S) });
   }
 
   let body: { amount_cents?: unknown; lang?: unknown };

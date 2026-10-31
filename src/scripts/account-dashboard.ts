@@ -1,31 +1,33 @@
 // Account-Dashboard-Logik — ausgelagert aus AccountDashboard.astro.
 // Wird vom <script> der Komponente importiert; Astro bündelt es mit.
 
-import { supabase, FAV_PATH } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+import { escapeHtml as escHtml } from '../lib/escape';
+import { cssUrl } from '../lib/cssUrl';
+import { refineryValue, refinerySpark, jobTimers, fmtCountdown, stationShort, latestJobEvent } from '../lib/refineryJobs';
+import { mergeFeed, type FeedItem } from '../lib/activityFeed';
+import { layoutList, shipLabel } from './account-layouts';
   import { CITIZEN_ROLES, STATUS_STATES } from '../lib/profilePresets';
+  import { AUTH_URL } from '../lib/supabase';
   import { resolveStatusKey } from '../lib/presence';
+  import { SOCIALS, normalizeSocial, renderSocialLinks } from '../lib/socials';
+  import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
+  import { needsCode, needsAal2Error } from '../lib/mfa';
+  import { askCode } from '../lib/mfa-dialog';
 
   const dash = document.getElementById('dash');
   if (dash) {
     const D = (dash as HTMLElement).dataset;
     const lang = D.lang === 'de' ? 'de' : 'en';
     const loadingEl = document.getElementById('dashLoading')!;
-    const KINDS: Record<string, string> = JSON.parse(D.kinds || '{}');
 
     // Übersicht-Panel: trägt die dynamischen i18n-Templates als data-l-* Attribute
     const ovPanel = document.getElementById('tab-panel-overview');
     const ovTpl = (k: string) => (ovPanel && ovPanel.dataset[k]) || '';
-    const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
     const fmtAuec = (n: number) => {
       if (n >= 1_000_000) return (n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1) + '<small>M aUEC</small>';
       if (n >= 1000) return Math.round(n / 1000) + '<small>k aUEC</small>';
       return Math.round(n) + '<small> aUEC</small>';
-    };
-
-    const favPath = (kind: string, slug: string) => {
-      const tpl = FAV_PATH[kind] || '/index.html';
-      const p = tpl.replace('%s', encodeURIComponent(slug).replace(/%2F/gi, '/'));
-      return lang === 'de' ? '/de' + p : p;
     };
 
     const show = (el: HTMLElement, msg: string, ok = false) => {
@@ -70,18 +72,47 @@ import { supabase, FAV_PATH } from '../lib/supabase';
     const tabPanels = document.querySelectorAll<HTMLElement>('.acx-tab-panel');
     const activateSection = (target: string | undefined) => {
       if (!target) return;
+      if (!document.getElementById(`tab-panel-${target}`)) return;
       navItems.forEach(b => b.setAttribute('aria-selected', b.dataset.tab === target ? 'true' : 'false'));
       tabPanels.forEach(p => { p.hidden = p.id !== `tab-panel-${target}`; });
-      // Sanft zur Tab-Leiste scrollen, wenn man darüber steht — Inhalt sichtbar
-      // machen, ohne über dem Hero hängen zu bleiben.
-      const bar = document.querySelector('.tabsbar') as HTMLElement | null;
+      // Bereich in der Adresse merken (#friends …): Neu laden und Links von
+      // außen landen im selben Bereich.
+      try { history.replaceState(null, '', target === 'overview' ? location.pathname + location.search : '#' + target); } catch { /* egal */ }
+      // Breite Schirme: der Bereich scrollt in seinem Kasten, also dort nach
+      // oben. Handy: die Seite scrollt — zum Bereich springen, wenn man
+      // darunter steht.
+      const main = document.querySelector('.acc-main') as HTMLElement | null;
+      if (!main) return;
+      main.scrollTop = 0;
       const navH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--nav')) || 64;
-      if (bar) {
-        const y = Math.max(0, bar.getBoundingClientRect().top + window.pageYOffset - navH);
-        if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
-      }
+      const y = Math.max(0, main.getBoundingClientRect().top + window.pageYOffset - navH - 8);
+      if (window.pageYOffset > y + 4) { try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch { window.scrollTo(0, y); } }
     };
     navItems.forEach(btn => btn.addEventListener('click', () => activateSection(btn.dataset.tab)));
+    if (location.hash.length > 1) activateSection(location.hash.slice(1));
+    // Am Reiter „Freunde" steht nur, was wartet: offene Anfragen an mich und
+    // ungelesene Nachrichten (dieselbe Zahl wie am Konto-Knopf). Reine Anzahlen
+    // (Freunde, Gespeichertes) sahen wie Hinweise aus und stehen nicht mehr da.
+    let newReq = 0, newMsg = 0;
+    const paintFriendsNew = () => {
+      const el = document.getElementById('navFriendsNew');
+      if (!el) return;
+      const n = newReq + newMsg;
+      el.textContent = n > 99 ? '99+' : String(n);
+      el.hidden = n <= 0;
+    };
+    document.addEventListener('vb:chat-unread', (e) => { newMsg = Number((e as CustomEvent).detail) || 0; paintFriendsNew(); });
+    // Freundesliste merken: der Aktivitäts-Feed liest sie, wenn er so weit ist
+    type FriendSeen = { since?: string; p?: { display_name?: string | null; handle?: string | null } };
+    let friendsSeen: FriendSeen[] | null = null;
+    let onFriends: (() => void) | null = null;
+    document.addEventListener('vb:friends', (e) => {
+      const d = (e as CustomEvent).detail || {};
+      newReq = (d.incoming || []).length;
+      paintFriendsNew();
+      friendsSeen = d.friends || [];
+      onFriends?.();
+    });
 
     // Pfeil-/Home-/End-Navigation der ARIA-Tablist (a11y)
     const tablistEl = document.querySelector('[role="tablist"]');
@@ -97,6 +128,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       else if (ev.key === 'End') n = arr.length - 1;
       else return;
       ev.preventDefault(); arr[n].focus(); arr[n].click();
+    });
+
+    // Sprung aus dem Cockpit (Profil-Check): Bereich öffnen und das Feld
+    // zeigen, das fehlt. Ohne Bereich (Discord-Karte am Rand) nur hinzeigen.
+    document.addEventListener('vb:tab', (e) => {
+      const d = ((e as CustomEvent).detail || {}) as { tab?: string; el?: string };
+      if (d.tab) activateSection(d.tab);
+      const el = d.el ? document.getElementById(d.el) : null;
+      if (!el) return;
+      requestAnimationFrame(() => {
+        try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView(); }
+        const f = el.matches('input,textarea,select,button') ? el : el.querySelector<HTMLElement>('input:not([type=hidden]),textarea,select,button');
+        f?.focus({ preventScroll: true });
+        el.classList.remove('ck-flash');
+        void el.offsetWidth;
+        el.classList.add('ck-flash');
+        setTimeout(() => el.classList.remove('ck-flash'), 1600);
+      });
     });
 
     document.querySelectorAll<HTMLElement>('[data-tab-jump]').forEach(btn => {
@@ -123,6 +172,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       if (userErr) {
         const st = (userErr as { status?: number }).status;
         if (st === 401 || st === 403) {
+          clearAccountTraces(session.user.id, 'signout', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.replace(D.login!);
           return;
@@ -130,11 +180,25 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         throw userErr;
       }
       if (!userData.user) {
+        clearAccountTraces(session.user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.replace(D.login!);
         return;
       }
       const user = userData.user;
+
+      // Zweiter Faktor: hat das Konto einen bestätigten Authenticator und
+      // steht diese Sitzung noch ohne Code (z. B. nach „Mit Discord
+      // bestätigen“ oder dem Verbinden von Discord), kommt zuerst der Code.
+      // Abbruch meldet ab — wie auf der Anmeldeseite.
+      if (await needsCode(supabase, true)) {
+        if (!(await askCode(supabase))) {
+          await supabase.auth.signOut({ scope: 'local' });
+          location.replace(D.login! + '?next=' + encodeURIComponent(location.pathname + location.search));
+          return;
+        }
+        document.dispatchEvent(new CustomEvent('vb:aal2'));
+      }
 
       // Header Identity
       document.getElementById('idEmail')!.textContent = user.email || '—';
@@ -174,6 +238,12 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         org_name: '',
         is_tester: false,
         tester_credit: false,
+        share_activity: true,
+        show_favorites: true,
+        presence_visibility: 'friends',
+        social_twitch: '',
+        social_youtube: '',
+        social_x: '',
       };
 
       // Zähler für den Stats-Readout (werden nach dem jeweiligen Load gesetzt)
@@ -191,6 +261,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         } catch {}
       }
 
+      // Spalten der geladenen Zeile: daran sieht das Formular, ob die
+      // Datenbank eine neuere Einstellung (presence_visibility) schon kennt.
+      let profileCols: string[] | null = null;
       try {
         const { data: profile } = await supabase
           .from('profiles')
@@ -198,7 +271,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           .eq('id', user.id)
           .maybeSingle();
 
-        if (profile) Object.assign(profileState, profile);
+        if (profile) { Object.assign(profileState, profile); profileCols = Object.keys(profile); }
       } catch (err) {
         const { data: basicProfile } = await supabase
           .from('profiles')
@@ -221,41 +294,45 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // 'verify-rsi' — die Site ist statisch (Docker/nginx auf Coolify) und
       // kann selbst keinen Server-Code ausführen; Browser-Aufrufe auf RSI
       // werden von Cloudflare CORS/Bot-Protection blockiert. supabase-js hängt
-      // das Session-JWT automatisch an; die Function persistiert das Ergebnis
-      // serverseitig per Service Role (ein DB-Trigger verbietet Client-Writes
-      // auf rsi_verified=true).
-      // Rückgabe: { verified, error?, persisted? } oder null, wenn die
-      // Function nicht erreicht werden konnte (dann darf NICHT revokiert
-      // werden).
-      const serverVerify = async (rHandle: string, rCode: string): Promise<{ verified: boolean; error?: string; persisted?: boolean } | null> => {
+      // das Session-JWT automatisch an. Den Prüfcode stellt der Server aus
+      // ({ action: 'challenge', rsi_handle }) und bindet ihn an Konto und
+      // Handle; geprüft wird mit { action: 'verify', rsi_handle? } — Handle und
+      // Code liest die Function dann selbst aus der Datenbank, und sie hält das
+      // Ergebnis auch selbst fest (Abzeichen setzen oder entziehen).
+      // Rückgabe: HTTP-Status und JSON. status 0 = nicht erreichbar. Nur 200
+      // ist ein Prüfergebnis; alles andere (429 gedrosselt, 502/504 RSI nicht
+      // erreichbar, 409/410 kein oder abgelaufener Code) ändert nichts.
+      const RSI_HANDLE_RE = /^[A-Za-z0-9_-]{3,60}$/;
+      const cleanRsiHandle = (v: string) => v.trim().replace(/^@+/, '');
+      const rsiCall = async (body: Record<string, unknown>): Promise<{ status: number; data: any }> => {
         try {
-          const { data, error } = await supabase.functions.invoke('verify-rsi', {
-            body: { rsi_handle: rHandle, rsi_code: rCode }
-          });
-          if (!error && data && typeof data.verified === 'boolean') {
-            return { verified: data.verified, error: data.error, persisted: data.persisted };
+          const { data, error } = await supabase.functions.invoke('verify-rsi', { body, timeout: 20000 });
+          if (!error) return { status: 200, data };
+          const ctx = (error as { context?: unknown }).context;
+          if (ctx instanceof Response) {
+            let payload: any = null;
+            try { payload = await ctx.json(); } catch {}
+            return { status: ctx.status, data: payload };
           }
         } catch (efErr) {
           console.warn('verify-rsi edge function call failed:', efErr);
         }
-
-        return null;
+        return { status: 0, data: null };
       };
+      // Altlast des früheren Ablaufs (Code im Browser erzeugt) aufräumen.
+      try { localStorage.removeItem('vb_rsi_code'); } catch {}
 
-      // Silent Re-verification check if user is marked verified (Auto-Revocation)
-      if (profileState.rsi_verified === true && profileState.rsi_handle && profileState.rsi_code) {
+      // Stille Nachprüfung, wenn das Konto verifiziert ist. Nur ein eindeutiges
+      // "Code steht nicht mehr in der Bio" (200, verified:false) nimmt das
+      // Abzeichen — die Function hat es dann schon serverseitig entzogen.
+      if (profileState.rsi_verified === true && profileState.rsi_handle) {
         (async () => {
-          try {
-            const result = await serverVerify(profileState.rsi_handle, profileState.rsi_code);
-            // Nur bei einem definitiv erfolgreichen Server-Check OHNE Code-Fund revokieren —
-            // bei Netzwerk-/Server-Fehlern (result === null oder error gesetzt) bleibt das Badge.
-            if (result && result.verified === false && !result.error) {
-              console.warn('Re-verification failed: RSI bio code missing. Revoking badge.');
-              profileState.rsi_verified = false;
-              await supabase.from('profiles').update({ rsi_verified: false }).eq('id', user.id);
-              updateCard();
-            }
-          } catch (reErr) { console.warn('Background re-verify check skipped:', reErr); }
+          const r = await rsiCall({ action: 'verify' });
+          if (r.status === 200 && r.data && r.data.verified === false) {
+            console.warn('Re-verification: RSI bio code missing, badge revoked server-side.');
+            profileState.rsi_verified = false;
+            updateCard();
+          }
         })();
       }
 
@@ -271,6 +348,14 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const rsiHandleInput = document.getElementById('pfRsiHandle') as HTMLInputElement;
       const discordInput = document.getElementById('pfDiscord') as HTMLInputElement;
       const orgInput = document.getElementById('pfOrg') as HTMLInputElement;
+      const shareActInput = document.getElementById('pfShareActivity') as HTMLInputElement | null;
+      const showFavsInput = document.getElementById('pfShowFavs') as HTMLInputElement | null;
+      const presVisSelect = document.getElementById('pfPresenceVis') as HTMLSelectElement | null;
+      const socialInputs = {
+        social_twitch: document.getElementById('pfTwitch') as HTMLInputElement | null,
+        social_youtube: document.getElementById('pfYoutube') as HTMLInputElement | null,
+        social_x: document.getElementById('pfX') as HTMLInputElement | null,
+      };
 
       nameInput.value = profileState.display_name || '';
       handleInput.value = profileState.handle || '';
@@ -286,6 +371,33 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       rsiHandleInput.value = profileState.rsi_handle || '';
       discordInput.value = profileState.discord_tag || '';
       orgInput.value = profileState.org_name || '';
+      if (shareActInput) shareActInput.checked = profileState.share_activity !== false;
+      if (showFavsInput) showFavsInput.checked = profileState.show_favorites !== false;
+      // Wer den Online-Status sieht (profiles.presence_visibility); alles
+      // Unbekannte gilt als Vorgabe "Nur Freunde", wie die Spalte selbst.
+      const presVisOf = (v: unknown): string => (v === 'all' || v === 'none' ? v : 'friends');
+      // Kennt die Datenbank die Einstellung noch nicht (der geladenen Zeile
+      // fehlt die Spalte), bleibt die Auswahl verborgen und wird nicht
+      // gesendet: eine Wahl, die nichts bewirkt, darf nicht wie gespeichert
+      // aussehen.
+      let presVisKnown = !profileCols || profileCols.includes('presence_visibility');
+      // Bei "Niemand" sieht auch kein Freund die Aktivität: Schalter ausgegraut.
+      const syncShareAct = () => { if (shareActInput && presVisSelect) shareActInput.disabled = presVisKnown && presVisSelect.value === 'none'; };
+      const hidePresVis = () => {
+        presVisKnown = false;
+        const field = presVisSelect ? presVisSelect.closest<HTMLElement>('.field') : null;
+        if (field) field.style.display = 'none';
+        syncShareAct();
+      };
+      if (presVisSelect) {
+        presVisSelect.value = presVisOf(profileState.presence_visibility);
+        presVisSelect.addEventListener('change', syncShareAct);
+      }
+      if (!presVisKnown) hidePresVis();
+      syncShareAct();
+      SOCIALS.forEach((s) => { const el = socialInputs[s.key]; if (el) el.value = profileState[s.key] || ''; });
+      const ovSoc = document.getElementById('ovSocials');
+      if (ovSoc) renderSocialLinks(ovSoc, profileState);
 
       // Testpilot-Zustimmungsschalter (D-22): nur sichtbar, wenn das Konto
       // die Eigenschaft traegt. Wer die Rolle nicht hat, sieht keinen
@@ -342,7 +454,9 @@ import { supabase, FAV_PATH } from '../lib/supabase';
 
       // Live Profile Card Renderer
       const updateCard = () => {
-        const dName = nameInput.value.trim() || user.email?.split('@')[0] || 'Citizen';
+        // Wie die oeffentliche Seite (display_name, sonst Handle); nie ein
+        // Teil der Mailadresse, auch nicht in der Vorschau.
+        const dName = nameInput.value.trim() || handleInput.value.trim() || 'Citizen';
         const dHandle = handleInput.value.trim() ? `@${handleInput.value.trim()}` : '@citizen';
 
         document.getElementById('pcName')!.textContent = dName;
@@ -376,7 +490,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         // Banner Image
         const bUrl = bannerUrlInput.value.trim() || profileState.banner_url || '/assets/t-pyro-2.jpg';
         const bannerImgEl = document.getElementById('pcBannerImg');
-        if (bannerImgEl) bannerImgEl.style.backgroundImage = `url('${bUrl}')`;
+        const bCss = cssUrl(bUrl);
+        if (bannerImgEl && bCss) bannerImgEl.style.backgroundImage = bCss;
 
         // Bio
         const bioTxt = bioInput.value.trim();
@@ -475,6 +590,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         setStat('pcStatFriends', String(friendCount));
         setStat('pcStatFavs', String(favCount));
 
+        // Dieselben zehn Felder prüft die View public.profile_badges für das
+        // Abzeichen auf der Pilotenseite und auf Discord. Nur gemeinsam ändern.
         const completeFields = [
           nameInput.value.trim(),
           handleInput.value.trim(),
@@ -493,6 +610,24 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         setStat('pcStatComplete', pct + '%');
         const statBar = document.getElementById('pcStatBar') as HTMLElement | null;
         if (statBar) statBar.style.width = pct + '%';
+
+        // Mini-Pilotenseite neben dem Formular (account-profile-view.ts):
+        // dieselben Werte, wie sie ein Besucher von /pilot/<handle> sähe.
+        document.dispatchEvent(new CustomEvent('vb:profile-view', { detail: {
+          name: dName,
+          handle: handleInput.value.trim().toLowerCase(),
+          savedHandle: profileState.handle || '',
+          icon: initial, color: avColor, avatar: avUrl, banner: bUrl,
+          state: lang === 'de' ? stInfo.labelDe : stInfo.labelEn, stateColor: stInfo.color, pulse: !!stInfo.pulse,
+          statusText: cStatusText,
+          role: roleObj ? `${roleObj.symbol} ${lang === 'de' ? roleObj.labelDe : roleObj.labelEn}` : '',
+          verified: isVerified, rsi: rsiHandle, org: orgTxt, bio: bioTxt,
+          socials: Object.fromEntries(SOCIALS.map((s) => [s.key, normalizeSocial(s.key, socialInputs[s.key]?.value || '') || ''])),
+          tester: profileState.is_tester === true,
+          complete: pct === 100,
+          since: user.created_at || '',
+          showFavs: showFavsInput ? showFavsInput.checked : true,
+        } }));
 
         // ---- Übersicht spiegeln (identische Werte wie die Profilkarte) ----
         const ovTxt = (id: string, val: string) => { const el = document.getElementById(id); if (el) el.textContent = val; };
@@ -518,7 +653,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         }
 
         const ovBanner = document.getElementById('ovBanner') as HTMLElement | null;
-        if (ovBanner) ovBanner.style.backgroundImage = `url('${bUrl}')`;
+        const ovCss = cssUrl(bUrl);
+        if (ovBanner && ovCss) ovBanner.style.backgroundImage = ovCss;
 
         const ovDot = document.getElementById('ovStatusDot') as HTMLElement | null;
         if (ovDot) { ovDot.style.background = stInfo.color; ovDot.classList.toggle('pulse', !!stInfo.pulse); }
@@ -553,9 +689,26 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           ovRsi.classList.toggle('no', !isVerified);
         }
         ovTxt('ovRsiSub', rsiHandle ? '@' + rsiHandle : '');
+
+        // Profil-Check im Cockpit (account-cockpit.ts): dieselben zehn Felder
+        // wie der Ring, je mit dem Ort, an dem man es ausfüllt.
+        const ck = (k: string, i: number, tab: string, el: string) => ({ k, ok: !!completeFields[i], tab, el });
+        document.dispatchEvent(new CustomEvent('vb:profile-check', { detail: [
+          ck('handle', 1, 'profile', 'pfHandle'),
+          ck('avatar', 4, 'profile', 'avatarGridPicker'),
+          ck('bio', 2, 'profile', 'pfBio'),
+          ck('status', 9, 'profile', 'pfStatusText'),
+          ck('role', 5, 'profile', 'pfRole'),
+          ck('org', 8, 'profile', 'pfOrg'),
+          ck('rsi', 6, 'security', 'pfRsiHandle'),
+          ck('discord', 7, '', 'discordLinkCard'),
+          ck('banner', 3, 'profile', 'bannerGridPicker'),
+          ck('name', 0, 'profile', 'pfName'),
+        ] }));
       };
 
-      [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput].forEach(el => {
+      [nameInput, handleInput, bioInput, bannerUrlInput, avatarUrlInput, statusStateSelect, statusTextInput, roleSelect, rsiHandleInput, discordInput, orgInput, ...Object.values(socialInputs), showFavsInput].forEach(el => {
+        if (!el) return;
         el.addEventListener('input', updateCard);
         el.addEventListener('change', updateCard);
       });
@@ -910,13 +1063,41 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           });
         }
 
+        // Entfernen loescht die hochgeladene Datei, nicht nur den Verweis:
+        // erst die Profilzeile leeren (keine Seite zeigt dann mehr auf das
+        // Bild), dann <uid>/<art> im Bucket entfernen. Steht im Feld eine
+        // fremde Adresse (Discord-Bild, Vorlage), gibt es dort meist nichts zu
+        // loeschen; remove() meldet das nicht als Fehler.
         if (removeEl) {
-          removeEl.addEventListener('click', () => {
-            o.urlInput.value = '';
-            profileState[o.stateKey] = '';
-            updateCard();
-            syncRemove();
+          removeEl.addEventListener('click', async () => {
+            removeEl.disabled = true;
             setStatus('');
+            let cleared = false;
+            try {
+              const { error: dbErr } = await supabase.from('profiles')
+                .update({ [o.stateKey]: null }).eq('id', user.id);
+              if (dbErr) throw dbErr;
+              cleared = true;
+              o.urlInput.value = '';
+              profileState[o.stateKey] = '';
+              try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+              // change: die Discord-Bild-Auswahl (markDcAvatar) sieht das leere Feld
+              o.urlInput.dispatchEvent(new Event('change'));
+              updateCard();
+              syncRemove();
+              const { error: rmErr } = await supabase.storage.from(o.bucket).remove([`${user.id}/${o.kind}`]);
+              if (rmErr) throw rmErr;
+              setStatus('✓', 'ok');
+              setTimeout(() => setStatus(''), 1600);
+            } catch (err) {
+              console.warn('image remove failed', err);
+              // Verweis schon weg, Datei noch da: Knopf sichtbar lassen, damit
+              // "erneut versuchen" auch geht.
+              if (cleared) removeEl.hidden = false;
+              setStatus(D.msgRemoveErr || 'Could not remove the image.', 'err');
+            } finally {
+              removeEl.disabled = false;
+            }
           });
         }
       };
@@ -950,27 +1131,48 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const btnCheckRsiNow = document.getElementById('btnCheckRsiNow')!;
       const rsiVerifyMsg = document.getElementById('rsiVerifyMsg')!;
 
-      // Fester, eindeutiger Verifizierungscode pro Nutzer: DB-Wert hat Vorrang,
-      // dann localStorage; ein neu generierter Code wird sofort serverseitig
-      // persistiert, damit er geräteübergreifend und bei jedem Aufruf gleich bleibt.
-      const codeFromDb = typeof profileState.rsi_code === 'string' && profileState.rsi_code.length > 0;
-      let activeCode = codeFromDb ? profileState.rsi_code
-        : (localStorage.getItem('vb_rsi_code') || `VERSEBASE-VERIFY-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
-      try { localStorage.setItem('vb_rsi_code', activeCode); } catch {}
-      profileState.rsi_code = activeCode;
-      if (!codeFromDb) {
-        supabase.from('profiles').upsert({ id: user.id, rsi_code: activeCode })
-          .then(({ error }) => { if (error) console.warn('Could not persist rsi_code:', error); })
-          .catch(() => {});
-      }
+      // Der Prüfcode kommt vom Server und gilt für Konto + Handle. Für dasselbe
+      // Handle gibt der Server denselben Code wieder aus (bestätigt: dauerhaft,
+      // offen: 24 Stunden), damit ein schon in die Bio kopierter Code gilt.
+      let rsiChallenge: { handle: string; code: string } | null = null;
+      const rsiMsg = (text: string, kind: '' | 'ok' | 'err' = '') => {
+        rsiVerifyMsg.textContent = text;
+        rsiVerifyMsg.className = 'acx-status' + (kind ? ' acx-status--' + kind : '');
+        rsiVerifyMsg.hidden = false;
+      };
+      const rsiErrText = (r: { status: number; data: any }) =>
+        r.status === 429 ? D.msgRsiRate!
+          : (r.status === 400 && r.data && r.data.error === 'invalid_handle') ? D.msgRsiBadHandle!
+            : D.msgRsiServerErr!;
+      const loadRsiChallenge = async (handle: string): Promise<boolean> => {
+        rsiChallenge = null;
+        rsiCodeEl.textContent = '…';
+        (btnCopyRsiCode as HTMLButtonElement).disabled = true;
+        (btnCheckRsiNow as HTMLButtonElement).disabled = true;
+        const r = await rsiCall({ action: 'challenge', rsi_handle: handle });
+        if (r.status === 200 && r.data && typeof r.data.code === 'string') {
+          rsiChallenge = { handle: typeof r.data.rsi_handle === 'string' ? r.data.rsi_handle : handle, code: r.data.code };
+          rsiCodeEl.textContent = rsiChallenge.code;
+          (btnCopyRsiCode as HTMLButtonElement).disabled = false;
+          (btnCheckRsiNow as HTMLButtonElement).disabled = false;
+          return true;
+        }
+        rsiCodeEl.textContent = '—';
+        rsiMsg(rsiErrText(r), 'err');
+        return false;
+      };
 
       btnRsiVerifyModal.addEventListener('click', () => {
-        const handle = rsiHandleInput.value.trim();
+        const handle = cleanRsiHandle(rsiHandleInput.value);
         const targetHandleEl = document.getElementById('rsiModalTargetHandle');
         const profileLinkEl = document.getElementById('rsiModalProfileLink') as HTMLAnchorElement;
 
         if (!handle) {
           show(pfStatus as HTMLElement, D.msgRsiEnterHandle!);
+          return;
+        }
+        if (!RSI_HANDLE_RE.test(handle)) {
+          show(pfStatus as HTMLElement, D.msgRsiBadHandle!);
           return;
         }
 
@@ -979,10 +1181,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           profileLinkEl.href = `https://robertsspaceindustries.com/account/profile`;
         }
 
-        rsiCodeEl.textContent = activeCode;
         rsiVerifyMsg.hidden = true;
         rsiVerifyMsg.className = 'acx-status';
         if (rsiModal.showModal) rsiModal.showModal();
+        loadRsiChallenge(handle);
       });
 
       btnCloseRsiModal.addEventListener('click', () => rsiModal.close());
@@ -1116,64 +1318,62 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       }
 
       btnCopyRsiCode.addEventListener('click', () => {
-        navigator.clipboard.writeText(activeCode);
+        if (!rsiChallenge) return;
+        navigator.clipboard.writeText(rsiChallenge.code);
         btnCopyRsiCode.textContent = D.rsiCopied || 'Copied! ✓';
         setTimeout(() => btnCopyRsiCode.textContent = D.rsiCopy || 'Copy', 2000);
       });
 
       btnCheckRsiNow.addEventListener('click', async () => {
-        const rsiHandle = rsiHandleInput.value.trim();
-        if (!rsiHandle) {
-          rsiVerifyMsg.textContent = D.msgRsiNoHandle!;
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          rsiVerifyMsg.hidden = false;
+        const ch = rsiChallenge;
+        if (!ch) {
+          rsiMsg(D.msgRsiNoHandle!, 'err');
           return;
         }
 
-        btnCheckRsiNow.disabled = true;
-        rsiVerifyMsg.className = 'acx-status';
-        rsiVerifyMsg.textContent = D.msgRsiChecking!.replace('%handle%', rsiHandle);
-        rsiVerifyMsg.hidden = false;
+        (btnCheckRsiNow as HTMLButtonElement).disabled = true;
+        rsiMsg(D.msgRsiChecking!.replace('%handle%', ch.handle));
 
-        try {
-          // Ausschließlich serverseitige Prüfung (CF Function → Supabase Edge Function).
-          // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
-          // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
-          const result = await serverVerify(rsiHandle, activeCode);
-          const verified = result?.verified === true;
-          const errorMessage = result?.error || '';
+        // Ausschließlich serverseitige Prüfung (Supabase Edge Function).
+        // KEIN Client-Fallback: Browser-Fetches auf RSI werden von Cloudflare
+        // CORS/Bot-Protection blockiert bzw. liefern gecachte Seiten ohne Bio.
+        const r = await rsiCall({ action: 'verify', rsi_handle: ch.handle });
 
-          if (verified) {
-            profileState.rsi_verified = true;
-            profileState.rsi_handle = rsiHandle;
+        if (r.status === 200 && r.data && r.data.verified === true) {
+          // Gesetzt hat das Abzeichen die Function (Service Role); der Client
+          // schreibt rsi_verified NICHT selbst, ein DB-Trigger verbietet das.
+          const verifiedHandle = typeof r.data.rsi_handle === 'string' ? r.data.rsi_handle : ch.handle;
+          profileState.rsi_verified = true;
+          profileState.rsi_handle = verifiedHandle;
+          rsiHandleInput.value = verifiedHandle;
+          rsiMsg('✓ ' + D.msgRsiSuccess!, 'ok');
+          updateCard();
 
-            // DB-Persistierung läuft ausschließlich serverseitig in der Edge
-            // Function (mit Session-JWT) — der Client schreibt rsi_verified
-            // NICHT selbst, ein DB-Trigger verbietet das.
-            if (result && result.persisted === false) {
-              console.warn('RSI verify: Edge Function konnte nicht persistieren (JWT/Service-Role prüfen).');
-            }
-
-            rsiVerifyMsg.textContent = '✓ ' + D.msgRsiSuccess!;
-            rsiVerifyMsg.className = 'acx-status acx-status--ok';
-            updateCard();
-
-            setTimeout(() => {
-              rsiModal.close();
-              btnCheckRsiNow.disabled = false;
-            }, 1200);
-          } else {
-            rsiVerifyMsg.textContent = result === null
-              ? D.msgRsiServerErr!
-              : (errorMessage || D.msgRsiNotFound!.replace('%code%', activeCode).replace('%handle%', rsiHandle));
-            rsiVerifyMsg.className = 'acx-status acx-status--err';
-            btnCheckRsiNow.disabled = false;
-          }
-        } catch (err: any) {
-          rsiVerifyMsg.textContent = D.msgRsiServerErr! + ' (' + (err.message || err) + ')';
-          rsiVerifyMsg.className = 'acx-status acx-status--err';
-          btnCheckRsiNow.disabled = false;
+          setTimeout(() => {
+            rsiModal.close();
+            (btnCheckRsiNow as HTMLButtonElement).disabled = false;
+          }, 1200);
+          return;
         }
+
+        if (r.status === 200 || (r.status === 409 && r.data && r.data.error === 'code_outside_bio')) {
+          // 409 code_outside_bio: der Code steht auf der RSI-Seite, aber nicht
+          // in der Bio -- für den Nutzer dasselbe wie "nicht gefunden".
+          if (r.data && r.data.revoked === true) {
+            // Der Code, an dem das Abzeichen hing, steht nicht mehr in der Bio.
+            profileState.rsi_verified = false;
+            updateCard();
+          }
+          rsiMsg(D.msgRsiNotFound!.replace('%code%', ch.code).replace('%handle%', ch.handle), 'err');
+        } else if (r.status === 410 || (r.status === 409 && r.data
+          && (r.data.error === 'challenge_changed' || r.data.error === 'no_challenge'))) {
+          // Code abgelaufen oder inzwischen ersetzt: neuen holen und anzeigen.
+          if (await loadRsiChallenge(ch.handle)) rsiMsg(D.msgRsiNewCode!, 'err');
+          return;
+        } else {
+          rsiMsg(rsiErrText(r), 'err');
+        }
+        (btnCheckRsiNow as HTMLButtonElement).disabled = false;
       });
 
       // Reset RSI Verification Handler
@@ -1210,6 +1410,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       const pfStatus = document.getElementById('pfStatus')!;
       const pfBtn = document.getElementById('pfBtn') as HTMLButtonElement;
 
+      // Fehler beim Speichern: zum Feld springen. Das Formular steht in
+      // Reitern, ein verdecktes Feld bekäme sonst keinen Fokus.
+      const goField = (id: string) => document.dispatchEvent(new CustomEvent('vb:tab', { detail: { tab: 'profile', el: id } }));
+
       pfForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         pfStatus.hidden = true;
@@ -1217,8 +1421,27 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         const handle = handleInput.value.trim().toLowerCase() || null;
         if (handle && !/^[a-z0-9_]{3,24}$/.test(handle)) {
           show(pfStatus as HTMLElement, D.msgHandleFormat!);
+          goField('pfHandle');
           return;
         }
+        // Socials: eingefügte Adressen auf den Namen kürzen; was nicht passt,
+        // wird nicht gespeichert, sondern beim Feld gemeldet.
+        const socialVals: Record<string, string> = {};
+        for (const s of SOCIALS) {
+          const el = socialInputs[s.key];
+          if (!el) { socialVals[s.key] = profileState[s.key] || ''; continue; }
+          const v = normalizeSocial(s.key, el.value);
+          if (v === null) {
+            show(pfStatus as HTMLElement, (D.msgSocialBad || '%s').replace('%s', s.label));
+            goField(el.id);
+            return;
+          }
+          el.value = v;
+          socialVals[s.key] = v;
+        }
+        const shareActVal = shareActInput ? shareActInput.checked : profileState.share_activity !== false;
+        const showFavsVal = showFavsInput ? showFavsInput.checked : profileState.show_favorites !== false;
+        const presVisVal = presVisOf(presVisSelect ? presVisSelect.value : profileState.presence_visibility);
 
         // WICHTIG: rsi_verified UND is_tester werden hier NIEMALS mitgesendet.
         // rsi_verified darf ausschließlich nach erfolgreicher serverseitiger
@@ -1232,7 +1455,19 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         // MITgesendet.
         // Das RSI-Handle wird normal persistiert; weicht es vom verifizierten
         // Handle ab, erlischt die Verknüpfung (Revoke in Richtung false).
-        const rsiHandleVal = rsiHandleInput.value.trim() || null;
+        const rsiHandleVal = cleanRsiHandle(rsiHandleInput.value) || null;
+        if (rsiHandleVal && !RSI_HANDLE_RE.test(rsiHandleVal)) {
+          show(pfStatus as HTMLElement, D.msgRsiBadHandle!);
+          rsiHandleInput.focus();
+          return;
+        }
+        // Handle-Wechsel nimmt das Abzeichen (die Datenbank tut das selbst,
+        // guard_rsi_verified). Der Vergleich steht VOR dem Object.assign
+        // darunter, das profileState.rsi_handle überschreibt.
+        if (profileState.rsi_verified === true
+          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
+          profileState.rsi_verified = false;
+        }
         const testerCreditVal = testerCreditInput ? testerCreditInput.checked : profileState.tester_credit === true;
 
         // Alle sichtbaren Profilfelder aus Inputs + Picker-State übernehmen,
@@ -1251,6 +1486,10 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           discord_tag: discordInput.value.trim(),
           org_name: orgInput.value.trim(),
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          show_favorites: showFavsVal,
+          presence_visibility: presVisVal,
+          ...socialVals,
         });
 
         const payload: Record<string, any> = {
@@ -1269,105 +1508,89 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           org_name: profileState.org_name || null,
           rsi_handle: rsiHandleVal,
           tester_credit: testerCreditVal,
+          share_activity: shareActVal,
+          show_favorites: showFavsVal,
+          presence_visibility: presVisVal,
+          social_twitch: socialVals.social_twitch || null,
+          social_youtube: socialVals.social_youtube || null,
+          social_x: socialVals.social_x || null,
         };
-        if (profileState.rsi_verified === true
-          && (rsiHandleVal || '').toLowerCase() !== (profileState.rsi_handle || '').toLowerCase()) {
-          payload.rsi_verified = false;
-          profileState.rsi_verified = false;
-          updateCard();
-        }
+        // Abgeschaltet: die zuletzt geschriebene Angabe sofort mit leeren,
+        // nicht erst beim naechsten Puls.
+        if (!shareActVal) payload.activity = null;
+        if (!presVisKnown) delete payload.presence_visibility;
+        // Niemand: die Zeitpunkte gleich mit leeren (die Datenbank tut es bei
+        // 'none' ohnehin), damit der Status sofort verschwindet.
+        if (presVisKnown && presVisVal === 'none') Object.assign(payload, { last_seen: null, last_active: null, activity: null, activity_at: null });
 
         pfBtn.disabled = true;
         try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+        { const sb = document.getElementById('ovSocials'); if (sb) renderSocialLinks(sb, profileState); }
 
+        // stored: die volle Nutzlast ist in der Datenbank. Nur dann gilt die
+        // Einstellung als gespeichert; der Rueckfall unten rettet bloss Name
+        // und Handle.
+        let stored = false;
         try {
-          const { error } = await supabase
+          let { error } = await supabase
             .from('profiles')
             .upsert(payload);
+          // Kennt die Datenbank presence_visibility noch nicht (PGRST204:
+          // Spalte fehlt im Schema-Cache): ohne die Einstellung speichern,
+          // statt alle anderen Eingaben zu verlieren, und die Auswahl
+          // ausblenden. Jeder andere Fehler laesst die Einstellung in der
+          // Nutzlast, sonst stuende eine nie gespeicherte Wahl als gespeichert da.
+          if (error && error.code === 'PGRST204' && 'presence_visibility' in payload
+            && String(error.message || '').includes('presence_visibility')) {
+            hidePresVis();
+            delete payload.presence_visibility;
+            ({ error } = await supabase.from('profiles').upsert(payload));
+          }
           pfBtn.disabled = false;
 
           if (error) {
             if (error.code === '23505') {
               show(pfStatus as HTMLElement, D.msgHandleTaken!);
+              goField('pfHandle');
+              return;
+            }
+            // Wert ausserhalb der Regeln der Datenbank (CHECK, 23514): melden,
+            // statt still nur Name und Handle zu sichern.
+            if (error.code === '23514') {
+              show(pfStatus as HTMLElement, /profiles_handle_reserved/.test(error.message || '')
+                ? D.msgHandleReserved! : D.msgProfileInvalid!);
               return;
             }
             await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
+          } else {
+            stored = true;
           }
         } catch {
           await supabase.from('profiles').upsert({ id: user.id, display_name, handle });
           pfBtn.disabled = false;
         }
 
+        if (!stored) {
+          show(pfStatus as HTMLElement, D.msgNet!);
+          return;
+        }
+        // Der Puls (account-lite.js) in diesem Tab richtet sich sofort danach;
+        // andere Tabs erfahren es über den Profil-Cache (storage).
+        window.dispatchEvent(new CustomEvent('vb-account-prefs', {
+          detail: 'presence_visibility' in payload
+            ? { presence_visibility: presVisVal, share_activity: shareActVal }
+            : { share_activity: shareActVal },
+        }));
         show(pfStatus as HTMLElement, D.msgSaved!, true);
+        document.dispatchEvent(new CustomEvent('vb:profile-saved'));
       });
 
-      // Load Favorites
-      const favList = document.getElementById('favList')!;
-      const favEmpty = document.getElementById('favEmpty')!;
+      // Favoriten: gezeichnet (mit Filter, Suche, Rückgängig) werden sie in
+      // account-saved.ts; hier nur die Zahl und der Aktivitäts-Feed.
       const { data: favs } = await supabase
         .from('favorites')
-        .select('id, kind, slug, label')
+        .select('id, kind, slug, label, created_at')
         .order('created_at', { ascending: false });
-
-      // Schiffbild-Manifest (id -> Bild-URL) für Poster-Karten; leise/non-blocking
-      const shipThumbs: Record<string, string> = await fetch('/assets/ship-thumbs.json')
-        .then(r => (r.ok ? r.json() : {})).catch(() => ({}));
-
-      // Icon + Akzentfarbe je Favoriten-Art (Dossier-Kartendesign)
-      const FAV_ICON: Record<string, { ic: string; c: string }> = {
-        ship: { ic: 'ic-ship', c: 'var(--accent)' },
-        mineral: { ic: 'ic-gem', c: 'var(--gold)' },
-        mission: { ic: 'ic-target', c: 'var(--accent-2)' },
-        item: { ic: 'ic-item', c: '#a855f7' },
-        patch: { ic: 'ic-tag', c: 'var(--ok)' },
-        topic: { ic: 'ic-hash', c: 'var(--muted)' },
-      };
-      const renderFavs = (rows: Array<{ id: number; kind: string; slug: string; label: string | null }>) => {
-        favList.innerHTML = '';
-        favEmpty.hidden = rows.length > 0;
-        for (const f of rows) {
-          const meta = FAV_ICON[f.kind] || { ic: 'ic-star', c: 'var(--accent)' };
-          const name = f.label || f.slug;
-          const img = f.kind === 'ship' ? shipThumbs[f.slug] : null;
-          const li = document.createElement('li');
-          li.className = img ? 'fav fav--poster' : 'fav';
-          const nameBlock =
-            `<span class="fmain"><span class="fkind" style="--kc:${meta.c}">${escHtml(KINDS[f.kind] || f.kind)}</span>` +
-            `<span class="fname">${escHtml(name)}</span></span>`;
-          // Ganze Karte klickbar: Overlay-Link deckt die Karte ab (Remove-Button liegt darueber).
-          const cardLink = `<a class="fav__link" href="${favPath(f.kind, f.slug)}" aria-label="${escHtml(name)}"></a>`;
-          li.innerHTML = (img
-            ? `<span class="fav__bg" style="background-image:url('${img}')" aria-hidden="true"></span>` +
-              `<span class="fav__scrim" aria-hidden="true"></span>${nameBlock}`
-            : `<span class="fic" style="--kc:${meta.c}"><svg viewBox="0 0 24 24"><use href="#${meta.ic}"/></svg></span>${nameBlock}`) + cardLink;
-          const rm = document.createElement('button');
-          rm.className = 'frm';
-          rm.type = 'button';
-          rm.title = D.favRemove || 'Remove';
-          rm.setAttribute('aria-label', (D.favRemove || 'Remove') + ' — ' + name);
-          rm.innerHTML = '<svg viewBox="0 0 24 24"><use href="#ic-x"/></svg>';
-          rm.addEventListener('click', async () => {
-            rm.disabled = true;
-            const { error } = await supabase.from('favorites').delete().eq('id', f.id);
-            if (!error) {
-              li.classList.add('removing');
-              setTimeout(() => li.remove(), 260);
-              favCount = Math.max(0, favCount - 1);
-              const statFavsEl = document.getElementById('pcStatFavs');
-              if (statFavsEl) statFavsEl.textContent = String(favCount);
-              const ovFavsEl2 = document.getElementById('ovStatFavs');
-              if (ovFavsEl2) ovFavsEl2.textContent = String(favCount);
-              const navFav = document.getElementById('navFavCount');
-              if (navFav) { navFav.textContent = String(favCount); navFav.hidden = favCount <= 0; }
-              if (favCount <= 0) favEmpty.hidden = false;
-            }
-            else rm.disabled = false;
-          });
-          li.appendChild(rm);
-          favList.appendChild(li);
-        }
-      };
-      renderFavs(favs || []);
       favCount = (favs || []).length;
 
       // Echte Freundes-Anzahl aus der DB (ersetzt den frueheren localStorage-Zaehler)
@@ -1379,16 +1602,97 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       } catch {}
       updateCard();
 
-      // ---- Übersicht: Kennzahlen, Sidebar-Badges, Aktivitäts-Feed ----
-      const setBadge = (id: string, n: number) => { const el = document.getElementById(id); if (!el) return; el.textContent = String(n); el.hidden = n <= 0; };
-      setBadge('navFavCount', favCount);
-      setBadge('navFriendCount', friendCount);
-      const ovFavsEl = document.getElementById('ovStatFavs'); if (ovFavsEl) ovFavsEl.textContent = String(favCount);
-      const ovFriEl = document.getElementById('ovStatFriends'); if (ovFriEl) ovFriEl.textContent = String(friendCount);
+      // ---- Übersicht: Kennzahlen und Aktivitäts-Feed ----
+      document.addEventListener('vb:saved', (e) => {
+        const n = (e as CustomEvent).detail?.favs;
+        if (typeof n !== 'number') return;
+        favCount = n;
+        updateCard();
+      });
 
-      const activity: Array<{ g: string; html: string; ts: number }> = [];
+      // Mini-Timer je laufendem Refinery-Auftrag (wie im Tracker, nur kompakt).
+      // Station kommt aus refinery_jobs, also vom Konto: nur als Text ins DOM.
+      const REF_TIMERS = 3;
+      let refTick = 0;
+      const renderRefTimers = (jobs: Array<{ station: string; method: string; status: string; started_at: string; ready_at: string }>) => {
+        const list = document.getElementById('ovRefJobs');
+        if (!list) return;
+        const shown = jobTimers(jobs, Date.now()).slice(0, REF_TIMERS);
+        const more = jobs.filter((j) => j.status === 'active').length - shown.length;
+        const fmtAt = (iso: string) => {
+          const d = new Date(iso);
+          const time = d.toLocaleTimeString(lang === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+          return d.toDateString() === new Date().toDateString() ? time : d.toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: 'short' }) + ' ' + time;
+        };
+        list.replaceChildren(...shown.map(({ job }) => {
+          const li = document.createElement('li');
+          li.className = 'ck-job';
+          li.dataset.started = job.started_at;
+          li.dataset.ready = job.ready_at;
+          li.title = [job.station, job.method, ovTpl('lJobAt').replace('%t%', fmtAt(job.ready_at))].filter(Boolean).join(' · ');
+          const name = document.createElement('small');
+          name.textContent = stationShort(job.station);
+          const t = document.createElement('time');
+          t.dateTime = job.ready_at;
+          const bar = document.createElement('i');
+          bar.className = 'ck-job__bar';
+          bar.appendChild(document.createElement('i'));
+          li.append(name, t, bar);
+          return li;
+        }));
+        if (more > 0) {
+          const li = document.createElement('li');
+          li.className = 'ck-job ck-job--more';
+          li.textContent = ovTpl('lJobMore').replace('%n%', String(more));
+          list.appendChild(li);
+        }
+        list.hidden = !shown.length;
+        // Mit Timern sagt die Zeile rechts nichts Neues mehr
+        const sub = document.getElementById('ovRefSub');
+        if (sub && shown.length) sub.textContent = '';
+        const tick = () => {
+          const now = Date.now();
+          list.querySelectorAll<HTMLElement>('.ck-job[data-ready]').forEach((li) => {
+            const [{ left, pct, ready }] = jobTimers([{ status: 'active', started_at: li.dataset.started!, ready_at: li.dataset.ready! }], now);
+            li.classList.toggle('is-ready', ready);
+            const t = li.querySelector('time');
+            if (t) t.textContent = ready ? ovTpl('lJobReady') : fmtCountdown(left / 1000);
+            const fill = li.querySelector<HTMLElement>('.ck-job__bar > i');
+            if (fill) fill.style.width = pct.toFixed(1) + '%';
+          });
+        };
+        tick();
+        clearInterval(refTick);
+        if (shown.some((x) => !x.ready)) refTick = window.setInterval(() => { if (!document.hidden) tick(); }, 1000);
+      };
 
-      // Offene eingehende Freundschaftsanfragen (Zähler + Kachel-Unterzeile)
+      // Letzte Aktivität: jede Quelle legt ihre Einträge unter ihrem Namen ab,
+      // gemalt wird alles zusammen, neueste zuerst. Loadouts und Freunde kommen
+      // nach (vb:layouts, vb:friends), daher neu malen statt einmal.
+      type Act = FeedItem;
+      const ACT_MAX = 12, ACT_PER = 4;
+      const actSrc: Record<string, Act[]> = {};
+      const em = (x: string) => `<em>${escHtml(x)}</em>`;
+      const renderActivity = () => {
+        const ovAct = document.getElementById('ovActivity');
+        const ovActEmpty = document.getElementById('ovActEmpty');
+        if (!ovAct) return;
+        const all = mergeFeed(actSrc, ACT_PER, ACT_MAX);
+        ovAct.hidden = !all.length;
+        if (ovActEmpty) ovActEmpty.hidden = !!all.length;
+        const loc = lang === 'de' ? 'de-DE' : 'en-US';
+        const today = new Date().toDateString();
+        const fmtWhen = (ts: number) => {
+          if (!(ts > 0)) return '';
+          const d = new Date(ts);
+          return d.toDateString() === today ? d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString(loc, { day: 'numeric', month: 'short' });
+        };
+        ovAct.innerHTML = all.map(it =>
+          `<div class="logrow"><span class="lnode"><span class="ldot"></span></span><span class="ltext">${it.html}</span><span class="ltime">${fmtWhen(it.ts)}</span></div>`
+        ).join('');
+      };
+
+      // Offene eingehende Freundschaftsanfragen
       let pendingCount = 0;
       try {
         const { count: pc } = await supabase.from('friend_requests')
@@ -1397,74 +1701,145 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         pendingCount = pc || 0;
       } catch {}
       const pendingLbl = pendingCount === 1 ? ovTpl('lPending1') : ovTpl('lPending').replace('%n%', String(pendingCount));
-      const ovFriendsSub = document.getElementById('ovFriendsSub');
-      if (ovFriendsSub) ovFriendsSub.textContent = pendingCount <= 0 ? '' : pendingLbl;
-      if (pendingCount > 0) activity.push({ g: 'i-users', html: pendingLbl, ts: Date.now() });
+      if (pendingCount > 0) actSrc.req = [{ html: pendingLbl, ts: Date.now() }];
 
       // Refinery: Gesamtwert (verkauft, sonst geschätzt) + aktive Jobs
       try {
         const { data: rjobs } = await supabase.from('refinery_jobs')
-          .select('station, method, status, est_value, sold_value, started_at')
+          .select('station, method, status, est_value, sold_value, started_at, ready_at, collected_at')
           .order('started_at', { ascending: false });
         const jobs = rjobs || [];
-        let total = 0, active = 0;
-        for (const j of jobs) {
-          const v = j.sold_value != null ? Number(j.sold_value) : (j.est_value != null ? Number(j.est_value) : 0);
-          if (!Number.isNaN(v)) total += v;
-          if (j.status === 'active') active++;
-        }
+        const { total, active } = refineryValue(jobs);
         const ovRefValue = document.getElementById('ovRefValue');
         if (ovRefValue) ovRefValue.innerHTML = fmtAuec(total);
         const ovRefSub = document.getElementById('ovRefSub');
         if (ovRefSub) ovRefSub.textContent = active <= 0 ? ovTpl('lNoactive')
           : active === 1 ? ovTpl('lActive1') : ovTpl('lActive').replace('%n%', String(active));
+        renderRefTimers(jobs);
 
-        // Sparkline aus echten Job-Werten (alt -> neu)
         const spark = document.getElementById('ovRefSpark');
-        if (spark) {
-          const vals = jobs.slice(0, 10).map(j => {
-            const v = j.sold_value != null ? Number(j.sold_value) : (j.est_value != null ? Number(j.est_value) : 0);
-            return Number.isNaN(v) ? 0 : v;
-          }).reverse();
-          if (vals.length >= 2) {
-            const W = 120, H = 24, mx = Math.max(...vals), mn = Math.min(...vals), rng = (mx - mn) || 1;
-            const pts = vals.map((v, i) => [
-              +((i / (vals.length - 1)) * W).toFixed(1),
-              +(H - 2 - ((v - mn) / rng) * (H - 4)).toFixed(1),
-            ] as [number, number]);
-            const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
-            const area = 'M' + pts[0][0] + ',' + H + ' ' + pts.map(p => 'L' + p[0] + ',' + p[1]).join(' ') + ' L' + pts[pts.length - 1][0] + ',' + H + ' Z';
-            const end = pts[pts.length - 1];
-            spark.innerHTML =
-              '<defs><linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--gold);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--gold);stop-opacity:0"/></linearGradient></defs>' +
-              `<path d="${area}" fill="url(#sparkg)"/>` +
-              `<path d="${line}" fill="none" style="stroke:var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` +
-              `<circle cx="${end[0]}" cy="${end[1]}" r="2.2" style="fill:var(--gold)"/>`;
-          }
-        }
+        if (spark) spark.innerHTML = refinerySpark(jobs, 'sparkg');
 
-        if (jobs[0]) activity.push({ g: 'i-hex', html: ovTpl('lActJob').replace('%x%', `<em>${escHtml((jobs[0].station || '') + ' · ' + (jobs[0].method || ''))}</em>`), ts: +new Date(jobs[0].started_at) });
+        // Je Auftrag nur sein neuester Stand: abgeholt, fertig oder gestartet
+        const now = Date.now();
+        const tpl = { collected: 'lActCollected', ready: 'lActReady', started: 'lActJob' } as const;
+        actSrc.ref = jobs.map((j): Act => {
+          const { kind, ts } = latestJobEvent(j, now);
+          return { html: ovTpl(tpl[kind]).replace('%x%', em(j.station || '')), ts };
+        });
       } catch {}
 
-      // Neueste Favoriten (created_at nicht im Select → als aktuelle Ergänzungen)
-      for (const f of (favs || []).slice(0, 3)) {
-        activity.push({ g: 'i-star', html: ovTpl('lActFav').replace('%x%', `<em>${escHtml(f.label || f.slug)}</em>`), ts: 0 });
-      }
+      // Neueste Favoriten
+      actSrc.fav = (favs || []).slice(0, 5).map((f) => ({ html: ovTpl('lActFav').replace('%x%', em(f.label || f.slug)), ts: Date.parse(f.created_at) || 0 }));
 
-      // Aktivität rendern (ts absteigend; Einträge ohne ts ans Ende)
-      const ovAct = document.getElementById('ovActivity');
-      const ovActEmpty = document.getElementById('ovActEmpty');
-      if (ovAct) {
-        if (!activity.length) { if (ovActEmpty) ovActEmpty.hidden = false; }
-        else {
-          if (ovActEmpty) ovActEmpty.hidden = true;
-          activity.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-          const fmtDate = (ts: number) => ts > 0 ? new Date(ts).toLocaleDateString(lang === 'de' ? 'de-DE' : 'en-US', { day: 'numeric', month: 'short' }) : '';
-          ovAct.innerHTML = activity.slice(0, 5).map(it =>
-            `<div class="logrow"><span class="lnode"><span class="ldot"></span></span><span class="ltext">${it.html}</span><span class="ltime">${fmtDate(it.ts)}</span></div>`
-          ).join('');
+      // Gespeicherte Loadouts (Hangar-Ablage, kommt nach)
+      const layoutActs = () => {
+        actSrc.lay = layoutList().filter((e) => e.updated).map((e) => ({ html: ovTpl('lActLayout').replace('%x%', em(e.name || shipLabel(e.ship))), ts: e.updated || 0 }));
+      };
+      layoutActs();
+      document.addEventListener('vb:layouts', () => { layoutActs(); renderActivity(); });
+
+      // Neue Freunde (FriendsManager meldet die Liste samt „seit")
+      const friendActs = () => {
+        actSrc.friend = (friendsSeen || []).filter((f) => f.since && f.p).map((f) => ({
+          html: ovTpl('lActFriend').replace('%x%', em(f.p!.display_name || (f.p!.handle ? '@' + f.p!.handle : ''))),
+          ts: Date.parse(f.since!) || 0,
+        }));
+      };
+      friendActs();
+      onFriends = () => { friendActs(); renderActivity(); };
+
+      renderActivity();
+
+      // ── Erneute Bestätigung vor heiklen Änderungen ─────────────────────
+      // E-Mail-Wechsel, Passwortwechsel und Löschen verlangen das aktuelle
+      // Passwort: eine frische Anmeldung per signInWithPassword gegen die
+      // eigene Adresse (beim Passwortwechsel geht es zusätzlich als
+      // current_password mit, das prüft Supabase selbst, sobald „Require
+      // current password" eingeschaltet ist). Konten ohne Passwort (nur
+      // Discord) bestätigen stattdessen mit einer frischen Discord-Anmeldung.
+      // Gezählt wird dann der Anmelde-Zeitstempel im Token (amr), den der
+      // Server signiert hat, kein Wert aus dem Browser.
+      const hasPassword = (user.identities || []).some((i) => i.provider === 'email')
+        || ((user.app_metadata?.providers as string[] | undefined) || []).includes('email');
+      document.querySelectorAll<HTMLElement>('[data-reauth="pw"]').forEach((el) => { el.hidden = !hasPassword; });
+      document.querySelectorAll<HTMLElement>('[data-reauth="dc"]').forEach((el) => { el.hidden = hasPassword; });
+      const reauthWindow = Number(D.reauthWindow) || 600;
+      const minPass = Number(D.minPass) || 12;
+      const reauthStatus = document.getElementById('seReauthStatus') as HTMLElement | null;
+
+      const signedInRecently = (token: string): boolean => {
+        try {
+          const b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+          const claims = JSON.parse(atob(b + '='.repeat((4 - (b.length % 4)) % 4)));
+          const now = Date.now() / 1000;
+          return Array.isArray(claims.amr) &&
+            claims.amr.some((m: { timestamp?: number }) => m && now - Number(m.timestamp) < reauthWindow);
+        } catch { return false; }
+      };
+
+      /** Leerer Text = bestätigt, sonst die Meldung für den Nutzer. */
+      const confirmIdentity = async (current: string): Promise<string> => {
+        if (hasPassword) {
+          if (!current) return D.msgCurPass!;
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email: user.email || '', password: current });
+            if (error) {
+              const code = (error as { code?: string }).code || '';
+              return code === 'invalid_credentials' ? D.msgCurWrong!
+                : code.includes('rate_limit') ? D.msgRate! : D.msgNet!;
+            }
+            if (!data.user || data.user.id !== user.id) return D.msgNet!;
+          } catch { return D.msgNet!; }
+        } else {
+          const { data } = await supabase.auth.getSession();
+          const s = data.session;
+          if (!(s && s.user.id === user.id && signedInRecently(s.access_token))) return D.msgReauthNeed!;
+        }
+        // Die frische Anmeldung steht auf aal1. Für ein Konto mit
+        // Authenticator nimmt Supabase E-Mail und Passwort nur aus einer
+        // Sitzung mit Code an (insufficient_aal) — also gleich nachfragen.
+        if ((await needsCode(supabase)) && !(await askCode(supabase))) return D.msgMfaNeed!;
+        return '';
+      };
+
+      // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
+      document.querySelectorAll<HTMLButtonElement>('.js-reauth-dc').forEach((b) => {
+        b.addEventListener('click', async () => {
+          b.disabled = true;
+          b.textContent = b.dataset.busy || '';
+          try { sessionStorage.setItem('vb.reauth', user.id); } catch { /* dann ohne Hinweis */ }
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'discord',
+            options: { redirectTo: location.origin + location.pathname },
+          });
+          if (!error) return; // Weiterleitung zu Discord läuft
+          try { sessionStorage.removeItem('vb.reauth'); } catch { /* egal */ }
+          b.disabled = false;
+          b.textContent = b.dataset.idle || '';
+          if (reauthStatus) show(reauthStatus, D.msgReauthErr!);
+        });
+      });
+      // Zurück von dieser Bestätigung?
+      let reauthFor = '';
+      try { reauthFor = sessionStorage.getItem('vb.reauth') || ''; sessionStorage.removeItem('vb.reauth'); } catch { /* egal */ }
+      if (reauthFor) {
+        activateSection('security');
+        if (reauthStatus) {
+          if (AUTH_URL.error) show(reauthStatus, D.msgReauthErr!);
+          else if (reauthFor !== user.id) show(reauthStatus, D.msgReauthOther!);
+          else show(reauthStatus, D.msgReauthOk!, true);
         }
       }
+
+      const curValue = (id: string) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        return el ? el.value : '';
+      };
+      const clearValue = (id: string) => {
+        const el = document.getElementById(id) as HTMLInputElement | null;
+        if (el) el.value = '';
+      };
 
       // Security Forms
       const emailForm = document.getElementById('emailForm') as HTMLFormElement;
@@ -1477,17 +1852,21 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         if (!email || email === user.email) return;
         emailBtn.disabled = true;
         emailBtn.textContent = emailBtn.dataset.busy!;
+        const idle = () => { emailBtn.disabled = false; emailBtn.textContent = emailBtn.dataset.idle!; };
+        const why = await confirmIdentity(curValue('seEmailCur'));
+        if (why) { idle(); show(emailStatus as HTMLElement, why); return; }
         const { error } = await supabase.auth.updateUser(
           { email },
           { emailRedirectTo: location.origin + D.confirmRedirect! },
         );
-        emailBtn.disabled = false;
-        emailBtn.textContent = emailBtn.dataset.idle!;
+        idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate! : D.msgNet!);
+          show(emailStatus as HTMLElement, code.includes('rate_limit') ? D.msgRate!
+            : needsAal2Error(error) ? D.msgMfaNeed! : D.msgNet!);
           return;
         }
+        clearValue('seEmailCur');
         show(emailStatus as HTMLElement, D.msgEmailSent!, true);
       });
 
@@ -1499,28 +1878,54 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         passStatus.hidden = true;
         const p1 = (document.getElementById('sePass') as HTMLInputElement).value;
         const p2 = (document.getElementById('sePass2') as HTMLInputElement).value;
-        if (p1.length < 8) { show(passStatus as HTMLElement, D.msgShort!); return; }
+        if (p1.length < minPass) { show(passStatus as HTMLElement, D.msgShort!); return; }
         if (p1 !== p2) { show(passStatus as HTMLElement, D.msgMatch!); return; }
         passBtn.disabled = true;
         passBtn.textContent = passBtn.dataset.busy!;
-        const { error } = await supabase.auth.updateUser({ password: p1 });
-        passBtn.disabled = false;
-        passBtn.textContent = passBtn.dataset.idle!;
+        const idle = () => { passBtn.disabled = false; passBtn.textContent = passBtn.dataset.idle!; };
+        const current = curValue('sePassCur');
+        const why = await confirmIdentity(current);
+        if (why) { idle(); show(passStatus as HTMLElement, why); return; }
+        const attrs: { password: string; current_password?: string } = { password: p1 };
+        if (hasPassword) attrs.current_password = current;
+        const { error } = await supabase.auth.updateUser(attrs);
+        idle();
         if (error) {
           const code = (error as { code?: string }).code || '';
-          show(passStatus as HTMLElement, code === 'same_password' ? D.msgSame! : D.msgNet!);
+          show(passStatus as HTMLElement,
+            code === 'same_password' ? D.msgSame!
+            : code === 'weak_password' ? D.msgWeak!
+            : code.includes('current_password') ? D.msgCurWrong!
+            : code === 'reauthentication_needed' ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : needsAal2Error(error) ? D.msgMfaNeed!
+            : D.msgNet!);
           return;
         }
-        (document.getElementById('sePass') as HTMLInputElement).value = '';
-        (document.getElementById('sePass2') as HTMLInputElement).value = '';
+        clearValue('sePassCur');
+        clearValue('sePass');
+        clearValue('sePass2');
         show(passStatus as HTMLElement, D.msgPassSaved!, true);
       });
+
+      // Abmelden und Löschen räumen auch die Kopien weg, die dieses Konto im
+      // Browser ablegt: Profilzeile (samt RSI-Code und Discord-Tag), RSI-Code,
+      // Rolle, Schalterstand des Pulses und die Konto-Spiegel der Werkzeuge
+      // (Flotte, Crafting, Hangar-Layouts). Bis 29.10.2026 blieben sie nach
+      // Abmeldung UND Kontolöschung liegen — die Datenschutzerklärung (#storage)
+      // sagt, was mit dem Konto geht, ist weg. Welche Schlüssel das sind,
+      // steht an einer Stelle: src/lib/account-cleanup.ts.
+      const forgetLocalCopies = () => { clearAccountTraces(user.id, 'signout', browserStores()); };
+      // „Überall abmelden" (account-security.ts) räumt denselben Bestand weg.
+      document.addEventListener('vb:forget-local', forgetLocalCopies);
 
       // Logout — Präsenz sofort auf offline setzen (last_seen leeren), DANN abmelden.
       // So erscheint man beim expliziten Abmelden gleich offline statt erst nach
       // dem 15-min-Fenster (das nur fürs stille Verlassen/Tab-Schließen greift).
+      // Danach die Spuren des Kontos im Browser entfernen (Profil-Cache,
+      // RSI-Code, gemerkte Rolle; lib/account-cleanup.ts), fuer geteilte Geraete.
       document.getElementById('btnLogout')!.addEventListener('click', async () => {
-        try { await supabase.from('profiles').update({ last_seen: null, last_active: null }).eq('id', user.id); } catch { /* egal */ }
+        try { await supabase.from('profiles').update({ last_seen: null, last_active: null, activity: null, activity_at: null }).eq('id', user.id); } catch { /* egal */ }
+        clearAccountTraces(user.id, 'signout', browserStores());
         await supabase.auth.signOut({ scope: 'local' });
         location.href = D.home!;
       });
@@ -1539,17 +1944,36 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         delStatus.hidden = true;
         delBtn.disabled = true;
         delBtn.textContent = delBtn.dataset.busy!;
+        const why = await confirmIdentity(curValue('delCur'));
+        if (why) {
+          show(delStatus as HTMLElement, why);
+          delBtn.textContent = delBtn.dataset.idle!;
+          delBtn.disabled = false;
+          return;
+        }
         try {
           const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
           if (error) throw error;
+          clearAccountTraces(user.id, 'delete', browserStores());
           await supabase.auth.signOut({ scope: 'local' });
           location.href = D.home!;
-        } catch {
-          show(delStatus as HTMLElement, D.msgNet!);
+        } catch (err) {
+          // Verlangt delete-account serverseitig eine frische Anmeldung
+          // (401 reauth_required) oder den Code (401 mfa_required), den
+          // passenden Hinweis statt "hat nicht geklappt" zeigen.
+          let code = '';
+          const ctx = (err as { context?: Response }).context;
+          if (ctx && ctx.status === 401) {
+            try { code = ((await ctx.json()) as { error?: string }).error || ''; } catch { /* noop */ }
+          }
+          show(delStatus as HTMLElement, code === 'reauth_required'
+            ? (hasPassword ? D.msgCurPass! : D.msgReauthNeed!)
+            : code === 'mfa_required' ? D.msgMfaNeed! : D.msgNet!);
           delBtn.textContent = delBtn.dataset.idle!;
           delBtn.disabled = false;
         }
       });
+
 
       // Testpiloten-Uebersicht (D-13) — nur fuer admin-Konten. Die
       // Rechtepruefung sitzt IN tester_overview() (siehe Migration), aber der
@@ -1558,7 +1982,7 @@ import { supabase, FAV_PATH } from '../lib/supabase';
       // is-admin ausdrueckt — hier direkt gegen user_roles gepruft, weil
       // account-lite.js auf /account/-Seiten nicht laeuft (volles
       // supabase-js). Fire-and-forget, blockiert die Dashboard-Anzeige nicht.
-      (async () => {
+      const loadTesterOverview = async () => {
         const overviewCard = document.getElementById('testerOverviewCard');
         const overviewBody = document.getElementById('testerOverviewBody');
         if (!overviewCard || !overviewBody) return;
@@ -1571,8 +1995,16 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           if (!roleRow || roleRow.role !== 'admin') return; // Karte bleibt verborgen, KEIN Aufruf von tester_overview()
 
           const { data: rows, error } = await supabase.rpc('tester_overview');
-          // Schlaegt der Aufruf fehl (Rolle waehrenddessen entzogen o.ae.),
-          // bleibt die Karte verborgen statt eine Fehlermeldung zu zeigen.
+          // Admin ohne Code (seit 20261030142000_admin_second_factor): Hinweis
+          // statt Liste. Jeder andere Fehler (Rolle waehrenddessen entzogen
+          // o.ae.) laesst die Karte verborgen statt eine Meldung zu zeigen.
+          if (error && (error as { hint?: string }).hint === 'aal2') {
+            overviewBody.textContent = D.testerNeedsCode || '';
+            overviewCard.hidden = false;
+            // Code in der Zwei-Faktor-Karte eingegeben: Liste neu laden.
+            document.addEventListener('vb:aal2', () => { void loadTesterOverview(); }, { once: true });
+            return;
+          }
           if (error) return;
           const list: Array<{ handle: string; display_name: string | null; discord_user_id: string | null; last_staging_seen: string | null }> =
             Array.isArray(rows) ? rows : [];
@@ -1599,7 +2031,8 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           }
           overviewCard.hidden = false;
         } catch { /* verborgen bei jedem Fehler -- keine Fehlermeldung */ }
-      })();
+      };
+      void loadTesterOverview();
 
       // ── Discord-Verbindung (linkIdentity) ──────────────────────────────
       // Warum nicht "mit Discord anmelden": das verknuepft nur, wenn die
@@ -1646,9 +2079,85 @@ import { supabase, FAV_PATH } from '../lib/supabase';
           return String(d.user_name || d.preferred_username || d.full_name || d.name || idn.id || '?');
         };
 
+        // Eigenes Discord-Bild der Identität. Discords Standardbild
+        // (cdn.discordapp.com/embed/avatars/…) ist das blaue Logo, das jeder
+        // ohne eigenes Bild hat — als Profilbild taugt es nicht. Das Muster
+        // ist wortgleich mit der Regel profiles_avatar_url_source der
+        // Datenbank: was hier durchgeht, nimmt sie auch an, sonst scheitert
+        // der gemeinsame Patch mit dem Anzeigenamen.
+        const DC_AVATAR_RE = /^https:\/\/cdn\.discordapp\.com\/avatars\/[0-9]{5,25}\/[A-Za-z0-9_]{1,80}\.(png|jpe?g|webp|gif)(\?[A-Za-z0-9=&_-]{0,60})?$/;
+        const dcAvatarOf = (idn: any): string => {
+          const u = String(((idn && idn.identity_data) || {}).avatar_url || '');
+          return DC_AVATAR_RE.test(u) ? u : '';
+        };
+        // Discord-Benutzername (full_name in den Supabase-Rohdaten) und der
+        // Anzeigename, den man bei Discord selbst gewählt hat (global_name).
+        const dcUserOf = (idn: any): string => String(((idn && idn.identity_data) || {}).full_name || '').trim();
+        const dcGlobalOf = (idn: any): string =>
+          String((((idn && idn.identity_data) || {}).custom_claims || {}).global_name || '').trim();
+
+        // Schreibt nur die genannten Felder; derselbe Cache wie beim Speichern.
+        const dcSave = async (patch: Record<string, any>) => {
+          Object.assign(profileState, patch);
+          try { localStorage.setItem(localKey, JSON.stringify(profileState)); } catch {}
+          try { await supabase.from('profiles').update(patch).eq('id', user.id); } catch {}
+        };
+
+        const pfDcBtn = document.getElementById('pfAvatarDiscord') as HTMLButtonElement | null;
+        const pfDcImg = document.getElementById('pfAvatarDiscordImg') as HTMLImageElement | null;
+        const markDcAvatar = () => {
+          if (pfDcBtn) pfDcBtn.classList.toggle('is-on', !!pfDcImg && !!pfDcImg.src && avatarUrlInput.value.trim() === pfDcBtn.dataset.url);
+        };
+        pfDcBtn?.addEventListener('click', () => {
+          const url = pfDcBtn.dataset.url || '';
+          if (!url) return;
+          avatarUrlInput.value = url;
+          profileState.avatar_url = url;
+          const rm = document.getElementById('pfAvatarRemove');
+          if (rm) rm.hidden = false;
+          updateCard();
+          markDcAvatar();
+        });
+        avatarUrlInput.addEventListener('change', markDcAvatar);
+        document.getElementById('pfAvatarRemove')?.addEventListener('click', () => setTimeout(markDcAvatar));
+
         const dcRender = async () => {
           const ids = await dcIdentities();
           const dc = ids.find((i) => i.provider === 'discord');
+          // Discord-Bild als Profilbild anbieten (ein Klick, Speichern wie sonst).
+          const dcPic = dc ? dcAvatarOf(dc) : '';
+          if (pfDcBtn && pfDcImg) {
+            pfDcBtn.hidden = !dcPic;
+            pfDcBtn.dataset.url = dcPic;
+            if (dcPic) pfDcImg.src = dcPic;
+            markDcAvatar();
+          }
+          // Discord-Name im Profil kommt aus der Verbindung, nicht von Hand:
+          // ein getippter Name kann jeder sein, der verbundene ist bestätigt.
+          const dcUser = dc ? dcUserOf(dc) : '';
+          discordInput.readOnly = !!dcUser;
+          discordInput.classList.toggle('is-linked', !!dcUser);
+          discordInput.title = dcUser ? (D.dcFromLink || '') : '';
+          if (dcUser) {
+            const tag = '@' + dcUser;
+            const was = discordInput.value;
+            discordInput.value = tag;
+            if ((profileState.discord_tag || '') !== tag) await dcSave({ discord_tag: tag });
+            // Programmatisch gesetzt löst kein input aus: Karte, Ring und
+            // Profil-Check im Cockpit sonst erst beim nächsten Tippen aktuell.
+            if (was !== tag) updateCard();
+          }
+          // Discord-Avatar statt Logo, sobald verbunden (kommt aus den
+          // OAuth-Rohdaten, kein zusätzlicher Discord-Aufruf).
+          const dcAv = document.getElementById('dcAvatar') as HTMLImageElement | null;
+          const dcLogo = document.getElementById('dcLogo');
+          const avUrl = dc ? String((dc.identity_data || {}).avatar_url || '') : '';
+          if (dcAv && dcLogo) {
+            if (avUrl) { dcAv.src = avUrl; dcAv.hidden = false; dcLogo.hidden = true; }
+            else { dcAv.hidden = true; dcLogo.hidden = false; }
+          }
+          dcCard.classList.toggle('is-linked', !!dc);
+          document.dispatchEvent(new CustomEvent('vb:discord', { detail: { linked: !!dc } }));
           if (dc) {
             dcState.textContent = (D.dcLinkOne || 'Connected as %name%').replace('%name%', dcName(dc));
             dcBtn.hidden = true;
@@ -1661,6 +2170,63 @@ import { supabase, FAV_PATH } from '../lib/supabase';
         };
         await dcRender();
 
+        // „Anderes Konto?" (DiscordElsewhere, mode link): verbunden wird im
+        // privaten Fenster. Kommt man hierher zurück, fragt die Karte neu.
+        document.addEventListener('vb:discord-recheck', () => { void dcRender(); });
+        // Im privaten Fenster angekommen (?dc=1 aus Schritt 2): den Knopf
+        // zeigen, den man jetzt drücken soll, und den Merker aus der Adresse.
+        if (new URLSearchParams(location.search).get('dc') === '1') {
+          const u = new URL(location.href);
+          u.searchParams.delete('dc');
+          history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+          if (!dcBtn.hidden) {
+            dcCard.classList.add('is-hint');
+            dcBtn.focus({ preventScroll: true });
+            dcCard.scrollIntoView({ block: 'nearest' });
+            setTimeout(() => dcCard.classList.remove('is-hint'), 6000);
+          }
+        }
+
+        // Zurück von Discord nach dem Verbinden: Bild und Name übernehmen,
+        // aber nur dort, wo noch nichts Eigenes steht. Ein selbst
+        // hochgeladenes Bild oder ein gewählter Name bleibt unangetastet.
+        let justLinked = false;
+        try { justLinked = sessionStorage.getItem('vb.dcLinking') === '1'; sessionStorage.removeItem('vb.dcLinking'); } catch {}
+        // Abgewiesenes Verbinden: der Fehler kommt bei PKCE als ?error=… in
+        // der Query (lib/auth-url.ts hat ihn gelesen und weggeräumt).
+        if (justLinked && AUTH_URL.error) {
+          const c = AUTH_URL.errorCode.toLowerCase();
+          dcSay(c === 'identity_already_exists' ? (D.dcLinkErrTaken || '')
+            : c === 'manual_linking_disabled' ? (D.dcLinkErrDisabled || '')
+            : (D.dcLinkErr || ''), 'err');
+          justLinked = false;
+        }
+        if (justLinked) {
+          const dc = (await dcIdentities()).find((i) => i.provider === 'discord');
+          if (dc) {
+            const patch: Record<string, any> = {};
+            const pic = dcAvatarOf(dc);
+            if (pic && !(profileState.avatar_url || '').trim()) patch.avatar_url = pic;
+            const nick = dcGlobalOf(dc) || dcUserOf(dc);
+            // Vorgabename ersetzen: 'Pilot' (handle_new_user seit
+            // 20261030132000) bzw. bei aelteren Konten der Mail-Lokalteil.
+            const mailName = (user.email || '').split('@')[0];
+            const curName = (profileState.display_name || '').trim();
+            if (nick && (!curName || curName === 'Pilot' || curName === mailName)) patch.display_name = nick.slice(0, 60);
+            if (Object.keys(patch).length) {
+              await dcSave(patch);
+              if (patch.avatar_url) {
+                avatarUrlInput.value = patch.avatar_url;
+                const rm = document.getElementById('pfAvatarRemove');
+                if (rm) rm.hidden = false;
+              }
+              if (patch.display_name) nameInput.value = patch.display_name;
+              updateCard();
+              markDcAvatar();
+            }
+          }
+        }
+
         dcBtn.addEventListener('click', async () => {
           dcSay('');
           dcBusy(dcBtn, true);
@@ -1668,11 +2234,13 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der
             // Rueckweg auf der Site-URL, und der Nutzer stuende nach dem
             // Verbinden woanders als dort, wo er den Knopf gedrueckt hat.
+            try { sessionStorage.setItem('vb.dcLinking', '1'); } catch {}
             const { error } = await (supabase.auth as any).linkIdentity({
               provider: 'discord',
               options: { redirectTo: window.location.origin + window.location.pathname },
             });
             if (!error) return; // Erfolg = Weiterleitung zu Discord, hier geht es nicht weiter
+            try { sessionStorage.removeItem('vb.dcLinking'); } catch {}
             dcBusy(dcBtn, false);
             const m = String(error.message || '').toLowerCase();
             if (m.includes('manual linking') || m.includes('not enabled') || m.includes('disabled')) dcSay(D.dcLinkErrDisabled || '', 'err');
@@ -1699,6 +2267,19 @@ import { supabase, FAV_PATH } from '../lib/supabase';
             const { error } = await (supabase.auth as any).unlinkIdentity(dc);
             dcBusy(dcOff, false);
             if (error) { dcSay(D.dcLinkErr || '', 'err'); return; }
+            // Aus Discord uebernommene Felder auch im Formular leeren. Die
+            // Datenbank tut dasselbe per Trigger (trg_unsync_discord_identity);
+            // ohne das hier schriebe das naechste Speichern sie zurueck.
+            const unlinkPatch: Record<string, any> = { discord_tag: null };
+            if (/^https:\/\/cdn\.discordapp\.com\//.test(avatarUrlInput.value.trim())) unlinkPatch.avatar_url = null;
+            await dcSave(unlinkPatch);
+            discordInput.value = '';
+            if ('avatar_url' in unlinkPatch) {
+              avatarUrlInput.value = '';
+              const rm = document.getElementById('pfAvatarRemove');
+              if (rm) rm.hidden = true;
+            }
+            updateCard();
             dcSay(D.dcUnlinkDone || '', 'ok');
             await dcRender();
           } catch {

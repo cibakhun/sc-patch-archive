@@ -234,6 +234,11 @@ const vehicles = defineCollection({
       radars: z.array(fitted),
     }),
     hullHp: z.number().nullable(),
+    /** Leermasse der Huelle in kg (Summe der Bauteilmassen der
+     *  Implementierungs-XML, scripts/datamine-vehicles.mjs); die Zahl, die
+     *  CIGs Ship Matrix als „Mass“ fuehrt. .default(null): erst der Lauf ab
+     *  29.10.2026 schreibt den Schluessel. */
+    massKg: z.number().nullable().default(null),
     shieldHp: z.number().nullable(),
     qtSpeedMs: z.number().nullable(),
     qtRangeM: z.number().nullable(),

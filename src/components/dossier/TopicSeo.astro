@@ -7,6 +7,7 @@ import { getCollection } from 'astro:content';
 import { SITE } from '../../consts';
 import { HTML_LANG, localeFromPath } from '../../i18n/ui';
 import { mergePatchEn } from '../../i18n/patchText';
+import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
   /** slug of this topic page (filename under /topics/, without .html) */
@@ -45,4 +46,4 @@ const ld =
       }
     : null;
 ---
-{ld && <script type="application/ld+json" set:html={JSON.stringify(ld)} />}
+{ld && <script type="application/ld+json" set:html={jsonForScript(ld)} />}

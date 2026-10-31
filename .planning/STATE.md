@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 14
-current_phase_name: das-schiff-ist-die-navigation
-status: executing
-stopped_at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
-last_updated: "2026-08-23T18:47:25.187Z"
-last_activity: 2026-08-17
-last_activity_desc: Phase 14 execution started
+current_phase: 20
+current_phase_name: wikelos-angebote-kommen-aus-dem-bestand
+status: verifying
+stopped_at: Completed 20-04-PLAN.md -- Quellenangabe berichtigt (0 Datenherkunft-Funde), alle vier Erfolgskriterien der Phase gemessen und beziffert, Register id 57 (Sichtrunde) eroeffnet, id 51 bleibt fixed. Phase 20 technisch vollstaendig (4/4), NICHT Complete markiert -- Register ids 55/56/57 offen. Gate 23/23 gruen normal+STAGING (dreimal gelaufen).
+last_updated: "2026-08-28T12:21:00.770Z"
+last_activity: 2026-08-28
+last_activity_desc: Phase 20 execution started
 progress:
-  total_phases: 21
-  completed_phases: 15
-  total_plans: 78
-  completed_plans: 71
+  total_phases: 23
+  completed_phases: 16
+  total_plans: 82
+  completed_plans: 75
 parked_phase: 1.1
 parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 ---
@@ -25,7 +25,7 @@ parked_phase_stopped_at: Completed 01.1-02-PLAN.md
 See: .planning/PROJECT.md (updated 2026-07-28)
 
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
-**Current focus:** Phase 15 — testpilot-zugang-staging-hinter-der-discord-rolle
+**Current focus:** Phase 20 — wikelos-angebote-kommen-aus-dem-bestand
 
 **Current focus:** Phase 16 — das-schiff-ist-die-navigation
 
@@ -244,8 +244,8 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 14 (testpilot-zugang-staging-hinter-der-discord-rolle) — EXECUTING
-Plan: 12 of 12
+Phase: 20 (wikelos-angebote-kommen-aus-dem-bestand) — EXECUTING
+Plan: 4 of 4
 Status: Phase complete — ready for verification
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
 Farbmodi, 1920x1080 UND 1280x720) steht noch aus, offener Eintrag
@@ -279,7 +279,7 @@ gezeigt, dass `/support.html` bereits existiert und live ist (Commit `517a9a7`,
 abgezweigt und blind dafür. Phase 5 ist deshalb kein Neubau mehr, sondern der
 **Umbau der bestehenden Seite** auf die Gestaltungsrichtung „Instandsetzung".
 Branch: claude/donation-button-feature-98ba38 (Worktree)
-Last activity: 2026-08-17 — Phase 14 execution started
+Last activity: 2026-08-28 — Phase 20 execution started
 
 **Was der bestehenden Seite fehlt** (gemessen, nicht vermutet):
 
@@ -454,6 +454,10 @@ Progress: [█████████░] 85%
 | Phase 18 P02 | ~3h | 3 tasks | 9 files |
 | Phase 18 P03 | ~70min | 3 tasks | 7 files |
 | Phase 18 P04 | ~2h | 3 tasks | 1 files |
+| Phase 20 P01 | 25min | 3 tasks | 6 files |
+| Phase 20 P02 | 40min | 3 tasks | 6 files |
+| Phase 20 P03 | 22min | 3 tasks | 7 files |
+| Phase 20 P04 | 22min | 2 tasks | 2 files |
 
 | Phase 16 P01 | 185min | 3 tasks | 6 files |
 | Phase 16 P02 | 30min | 2 tasks | 6 files |
@@ -605,6 +609,12 @@ Recent decisions affecting current work:
 - [Phase ?]: Phase 18 Plan 03: alle sechs maschinell erzeugten Datenstaende nennen jetzt CL 12344265 (D-04) — universal-items.json gameVersion neu, dismantling-items.meta.json + wikelo-trades.meta.json als Begleitdateien statt Huelle, refinery-data.json nachgezogen
 - [Phase 14]: Rot-Vorfuehrung D (Verzug ueber Toleranz) durch Anheben statt Absenken einer Changelist umgesetzt — bei identischen Klinken-/juengste-CL-Werten war das der einzige Weg, Zusicherung 4 und 5 sauber zu trennen
 - [Phase 14]: Checksummen-Methode auf git hash-object umgestellt, nachdem die anfaengliche eigene sha1-Batch-Schleife bei 2 von 7 Dateien einen fehlerhaften vorher-Wert lieferte (vermutlich Windows fork/cygheap-Fehler)
+- [Phase 20]: Phase 20 Plan 01: Vertrags-id (nicht der Anzeigename) ist der Zusammenfuehrungs-Schluessel fuer Wikelo-Trades — drei Vertraege ohne Titel waeren sonst verloren gegangen.
+- [Phase ?]: Zuordnungssonde in drei Stufen (materialien-exakt/belohnungsname-exakt/belohnungsname-teilmenge) mit beidseitiger Eindeutigkeit -- 59 von 69 Vertraegen kuratiert, 10 Kollisionen/Reste namentlich ins Register statt geraten
+- [Phase ?]: Defekter Handbestand-Bildverweis (img: wk-l22, keine Datei) beim Schreiben von wikelo-curated.json entfernt statt uebernommen (Rule 1)
+- [Phase ?]: Wikelo-Sperrklinken lesen assets/wikelo-trades.meta.json (committet), nicht die gitignorierte Rohextraktion — Grundsatz 4
+- [Phase ?]: Register-Eintrag id 51 geschlossen: Wikelo-Kennung wandert mit dem Datenlauf (STANDS statt HANDPFLEGE), 69 Vertraege/285 Warenposten geschuetzt
+- [Phase ?]: 20-04: Fassungsangabe inline als DE/EN-Ternaer (Spielversion: Alpha {TRADES_META.patch}), nicht ueber t('ship.version') -- folgt dem bestehenden Textmuster der Datei, keine neuen i18n-Schluessel
 
 ### Pending Todos
 
@@ -662,8 +672,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-08-23T18:47:25.113Z
-Stopped at: Completed 18-04-PLAN.md -- Verzugstor vorgefuehrt rot (7 Demos), Schlussmessung aller acht Erfolgskriterien, vier Sichturteile in WINDOWS.md; Phase 18 technisch vollstaendig, Abschluss haengt an offener Sichtrunde
+Last session: 2026-08-28T12:21:00.700Z
+Stopped at: Completed 20-04-PLAN.md -- Quellenangabe berichtigt (0 Datenherkunft-Funde), alle vier Erfolgskriterien der Phase gemessen und beziffert, Register id 57 (Sichtrunde) eroeffnet, id 51 bleibt fixed. Phase 20 technisch vollstaendig (4/4), NICHT Complete markiert -- Register ids 55/56/57 offen. Gate 23/23 gruen normal+STAGING (dreimal gelaufen).
 
 Last session: 2026-08-20T15:45:30.317Z
 Stopped at: Completed 16-05-PLAN.md -- Phase 16 technisch vollstaendig (5/5), sieben offene Sichtrunden-Punkte

@@ -455,7 +455,11 @@ export async function setupMockDOM(opts = {}) {
     }
   };
 
+  // Welche Adressen die App abgerufen hat, in Reihenfolge — damit ein Test
+  // pruefen kann, dass die Rezeptdatei erst mit dem ersten Modal laedt.
+  result.fetched = [];
   const fetchMock = async (url) => {
+    result.fetched.push(url);
     if (url === '/assets/universal-items.json') {
       if (result.failDb) throw new Error('mock: db fetch failed');
       return { ok: true, json: async () => result.dbData };

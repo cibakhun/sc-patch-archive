@@ -1301,3 +1301,90 @@ live gegangen wäre.
 Plans:
 
 - [ ] TBD (run /gsd-plan-phase 19 to break down)
+
+### Phase 20: Wikelos Angebote kommen aus dem Bestand
+
+**Goal:** `scripts/datamine-wikelo.mjs` liest die Tauschangebote seit dem
+28.08.2026 aus den Spieldateien — 69 Verträge, 68 mit vollständiger
+Gegenleistung, 285 Warenposten, keiner ohne Anzeigenamen. Die Seite liest
+davon nichts: sie hängt weiter an der handgepflegten `wikelo-trades.json` mit
+63 Einträgen. Diese Phase hängt die Anzeige um.
+
+**Herkunft:** Betreiber-Rückfrage 28.08.2026 („hast du die Wikelo-Daten aus den
+Spieldaten geholt?"). Antwort war nein — und die Annahme dahinter, es gebe dort
+keine Tauschtabelle, war seit dem 23.08. im Gedächtnis festgeschrieben und
+falsch. Sie hielt sich, weil zweimal die EIGENE `missions.json` geprüft wurde
+statt des Bestands; genau das Muster aus [[verify-by-looking]].
+
+**Was die Extraktion kann:** Wikelo heißt intern `TheCollector`, die
+Gegenleistung `haulingOrders` — deshalb fand keine Namenssuche sie. Abgleich
+gegen die Gegenquelle: **57 von 59 deckungsgleich**, Titel und Mengen. Die zwei
+Abweichungen sprechen für den Bestand (bei „Clipper Fight Now" steht dort
+Metamaterial Test #152, drüben #146). Sieben Verträge kennt nur der Bestand.
+
+**Was sie NICHT kann, und warum es keine Ersetzung wird:** die Handliste trägt
+Bilder (`img`), die Komponentenlisten der Belohnungsschiffe (`comps`) und die
+Reputationsstufe als lesbaren Text (`rep`). Nichts davon steht in den
+Spieldateien. Die Phase baut also eine ZUSAMMENFÜHRUNG: Angebote und Mengen
+maschinell, Bild und Ausstattung kuratiert — mit Herkunft je Feld, wie es
+[[game-data-database]] verlangt.
+
+**D-01 — Zusammenführung statt Ersatz.** Ein Erzeuger, der die extrahierten
+Verträge mit den kuratierten Feldern der Handliste vereint. Schlüssel ist die
+Vertrags-Id, nicht der Anzeigename (⚠ [[display-name-not-a-key]]).
+
+**D-02 — Die sieben unbekannten Verträge.** „Armor with horn and string",
+„Heavy and Bright", „New Move Big Starlancer Ship", „Noxy Mod", „Too Much
+Gun", „Very Hungry", „Wikelo Arrive to System" stehen im Bestand und in
+keiner Liste — sieben, nicht acht. Der ursprünglich mitgeführte achte Name,
+„ICC Special Delivery", stammt aus dem älteren, im Register-Eintrag id 51
+selbst als überholt dokumentierten ersten Fund (Basis: `missions.json` mit
+56 Familien, vor dem Bau von `scripts/datamine-wikelo.mjs`) und kommt im
+heutigen 69-Vertrags-Bestand unter keinem Titel und keinem `debugName` vor —
+gestrichen (Phase 20, Plan 02, Register-Einträge id 55/56). Erst prüfen,
+welche der sieben ausgelieferte Angebote sind und welche Werkstattreste —
+dieselbe Trennung wie bei den neun leeren Bauplan-Seiten (Register id 53).
+
+**D-03 — Die ATLS-Farbaufträge fehlen nicht, sie tragen nur keinen
+auflösbaren Namen.** Die drei ATLS-Zusatzaufträge (`ATLS Cool Metal Color`,
+`ATLS Orange Line`, `ATLS Snowland Color`) sind NICHT entfernt oder
+umbenannt — sie existieren im 4.10-Bestand, nur ohne `Title`-Feld
+(`titel: null`), weshalb ein titelbasierter Vergleich sie übersehen hat. Die
+Frage ist nicht mehr „entfernt oder umbenannt?", sondern „welcher
+Farbauftrag trägt welchen Namen, welches Bild?" — `RedNBlue` = „ATLS GEO
+'Cool Metal'" ist bereits per exaktem Materialabgleich gelöst (Plan 01);
+`OrangeNGrey` und `WhiteNGreen` bleiben offen (Register-Eintrag id 56).
+
+**D-04 — Klinke und Verzugstor.** `wikelo-gamefiles.json` braucht eine
+Sperrklinke in `metrics-baseline.mjs` (Verträge, Warenposten) und einen Platz
+in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
+
+**Erfolgskriterien:**
+
+1. Die Wikelo-Seite zeigt Angebote und Mengen aus dem Bestand, nicht aus der
+   Handliste — und behält Bilder, Ausstattung und Reputationstext.
+
+2. Register id 51 (Wikelo-Verzug) ist geschlossen: die Kennung wandert mit dem
+   Datenlauf, nicht mit einer Sichtung.
+
+3. Eine Klinke fängt einen Rückgang der Vertragszahl.
+4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
+
+**Plans:** 4/4 plans executed
+
+Plans:
+**Wave 1**
+
+- [x] 20-01-PLAN.md — Tracer: die Zusammenführung end-to-end an einer Karte (Erzeuger, kuratierte Zulieferdatei, `sync:wikelo`, COVERAGE.md)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 20-02-PLAN.md — Kuration: die 63 Handeinträge auf Vertrags-`id`s abbilden; offene Urteile ins Register, D-02/D-03 in der ROADMAP berichtigen
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 20-03-PLAN.md — D-04: zwei Sperrklinken mit Ablesern, Wikelo von Handpflege nach maschinell im Verzugstor, dreimal vorgeführt rot, Register id 51 schließen
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register

@@ -207,7 +207,9 @@
   // =========================================================
   //  PERSISTENZ: „im Besitz" + Planer — lokal UND kontogebunden
   // =========================================================
-  // Wahrheit im Speicher: owned = {slug:true}, plan = {slug:qty}.
+  // Im Speicher steht, was die Seite zeigt: owned = {slug:true}, plan =
+  // {slug:qty}. Die Ablage im localStorage teilen sich alle Tabs dieses
+  // Browsers; jeder schreibt dort nur den Blueprint, den er gerade ändert.
   //
   // Nicht angemeldet -> localStorage (Gast-Ablage, wie bisher, nur slug-keyed).
   // Angemeldet       -> Supabase-Tabelle crafting_entries (eine Zeile je
@@ -216,17 +218,37 @@
   //                     sofort den richtigen Zustand zeigt, statt auf die
   //                     Server-Antwort zu warten.
   // Beim ersten Anmelden auf einem Gerät wandert die Gast-Ablage EINMALIG ins
-  // Konto (Vereinigung) und wird danach geleert — sonst stünde dieselbe Liste
-  // an zwei Orten und liefe still auseinander.
+  // Konto (Vereinigung) und wird geleert, sobald der Server die übernommenen
+  // Einträge bestätigt hat — sonst stünde dieselbe Liste an zwei Orten und
+  // liefe still auseinander.
   function load(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch (e) { return def; } }
   function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
   function drop(key) { try { localStorage.removeItem(key); } catch (e) {} }
 
   var LS_GUEST = 'craft.state.v2';
-  function lsKey(uid) { return uid ? LS_GUEST + '.' + uid : LS_GUEST; }
+  var LS_MIRROR = LS_GUEST + '.';
+  function lsKey(uid) { return uid ? LS_MIRROR + uid : LS_GUEST; }
   function loadState(uid) {
     var s = load(lsKey(uid), null);
-    return { owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [] };
+    return {
+      owned: (s && s.owned) || {}, plan: (s && s.plan) || {}, pending: (s && s.pending) || [],
+      // Ein rev in anderem Format (kein Objekt) zählt wie keins.
+      rev: (s && typeof s.rev === 'object' && s.rev) || {},
+      merge: (s && Array.isArray(s.merge) && s.merge) || [],
+    };
+  }
+  // `rev` steht nur in der Ablage, solange etwas offen ist, und nur für offene
+  // Slugs: ohne offene Klicks sieht sie aus wie vor seiner Einführung.
+  // `merge` ebenso: die aus der Gast-Ablage übernommenen Slugs, deren
+  // Bestätigung noch aussteht (siehe readServer).
+  function saveState(uid, m) {
+    var out = { owned: m.owned, plan: m.plan, pending: m.pending };
+    var rev = {};
+    Object.keys(m.rev).forEach(function (s) { if (m.pending.indexOf(s) >= 0) rev[s] = m.rev[s]; });
+    if (Object.keys(rev).length) out.rev = rev;
+    var merge = (m.merge || []).filter(function (s) { return m.pending.indexOf(s) >= 0; });
+    if (merge.length) out.merge = merge;
+    save(lsKey(uid), out);
   }
 
   // Einmalige Übernahme der alten, INDEX-basierten Ablage (craft.owned.v1 /
@@ -251,13 +273,52 @@
   var owned = initial.owned;             // {slug:true}
   var plan = initial.plan;               // {slug:qty}
 
-  // `pending` = Slugs, die noch nicht beim Server angekommen sind. Sie MÜSSEN
-  // mit im Spiegel stehen: wer klickt und sofort den Tab schließt (oder gerade
-  // offline ist), fände sonst beim nächsten Laden den Server-Stand vor und die
-  // Änderung wäre still weg. Beim nächsten Besuch werden sie erneut geschickt.
-  function persist() {
-    save(lsKey(acctUid), { owned: owned, plan: plan, pending: acctUid ? Object.keys(dirty) : [] });
+  // Ein Klick ändert einen Blueprint, und nur der wird geschrieben, auf den
+  // Stand, der gerade in der Ablage steht. Schriebe jeder Tab seinen ganzen
+  // Stand, überschriebe er die Klicks des anderen.
+  //
+  // `pending` = Slugs, die noch nicht beim Server angekommen sind. Sie stehen
+  // im Spiegel, bis der Server sie bestätigt, nicht nur, bis ein Zug sie
+  // mitnimmt: wer klickt und den Tab schließt (oder gerade offline ist),
+  // fände sonst beim nächsten Laden den Server-Stand vor und die Änderung wäre
+  // still weg. Jeder Tab schickt alles, was dort offen ist, auch das eines
+  // anderen, der inzwischen geschlossen ist.
+  //
+  // `rev` = je offenem Slug eine Kennung seines letzten Schreibvorgangs. Die
+  // Antwort auf einen Zug erledigt einen Slug nur, wenn er seitdem nicht neu
+  // geschrieben wurde: ändert ein anderes Gerät oder der Abschied eines
+  // anderen Tabs die Zeile, während die Antwort aussteht, und stellt der
+  // Besucher den Blueprint danach auf den gesendeten Wert zurück, ist der Wert
+  // derselbe, der Schreibvorgang nicht. Zufall statt Zähler, wie in
+  // assets/fleet.js: ein Zähler finge nach der Bestätigung von vorn an und
+  // träfe womöglich die Zahl einer Anfrage, die noch unterwegs ist.
+  function writeSlug(s) {
+    var m = loadState(acctUid);
+    if (owned[s]) m.owned[s] = true; else delete m.owned[s];
+    if (plan[s] > 0) m.plan[s] = plan[s]; else delete m.plan[s];
+    if (acctUid && m.pending.indexOf(s) < 0) m.pending.push(s);
+    m.rev[s] = token();
+    saveState(acctUid, m);
   }
+  function token() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  // Was der Server für einen Blueprint bekommt, und aus welchem Schreibvorgang.
+  // Ohne Kennung (Ablage von vor ihrer Einführung, oder zuletzt schrieb ein Tab
+  // mit älterem Skript) zählt wie bisher allein der Wert.
+  function rowOf(m, s) { return !!m.owned[s] + ':' + (m.plan[s] || 0) + ':' + (m.rev[s] || ''); }
+
+  // Ein anderer Tab hat in dieselbe Ablage geschrieben: seinen Stand
+  // übernehmen, sonst zählte dieser beim nächsten Klick auf seinem alten weiter.
+  // Steht dieser Tab auf „Nicht gespeichert" und ist nichts mehr offen, hat
+  // ein anderer Tab alles hinausgeschickt, auch was hier scheiterte: die
+  // Anzeige folgt dem gemeinsamen Stand, nicht erst bei der Rückkehr auf den
+  // Tab oder auf „Erneut versuchen".
+  addEventListener('storage', function (e) {
+    if (e.key !== lsKey(acctUid)) return;
+    var m = loadState(acctUid);
+    owned = m.owned; plan = m.plan;
+    repaintAll();
+    if (acctUid && syncState === 'error' && !m.pending.length) setSync('synced');
+  });
 
   // Slug <-> Karte/DB-Index. Alles, was noch mit Indizes hantiert (Modal,
   // Planer-Liste), geht durch diese beiden Funktionen.
@@ -271,79 +332,182 @@
   // nur die Crafting-Logik. Ohne Konto passiert nichts — die App bleibt exakt so
   // benutzbar wie vorher, nur eben lokal.
   var TABLE = 'crafting_entries';
-  var dirty = {};            // slug -> wartet auf Server
   var flushTimer = null;
   var lastPull = 0;
   var syncState = 'local';   // local | syncing | synced | error
   var VB = null;
+  // Die Gast-Ablage wandert einmal je Anmelden ins Konto, und zwar mit dem
+  // ersten Zug, der den Server erreicht, nicht unbedingt mit dem ersten Versuch.
+  var mergeOwed = false;
+  // Wiederholung ohne nutzbare Sitzung (noSession): nach 2 s, dann doppelt so
+  // lange, höchstens einmal je Minute, wie die Flotte (assets/fleet.js).
+  var BACKOFF_MS = 2000;
+  var BACKOFF_MAX_MS = 60000;
+  var backoff = 0;
+  var backoffTimer = null;
 
   function markDirty(slug) {
-    // Erst vormerken, dann speichern — persist() schreibt die offene Liste mit.
-    if (acctUid && slug) dirty[slug] = true;
-    persist();
-    if (!acctUid || !slug) return;
+    writeSlug(slug);
+    if (!acctUid) return;
     setSync('syncing');
     clearTimeout(flushTimer);
     flushTimer = setTimeout(flush, 700);
   }
 
-  function flush() {
+  // Ein Zug nach dem anderen, in diesem Tab und über alle Tabs (Web Locks, wie
+  // assets/fleet.js). Ein zweiter Klick auf denselben Blueprint ginge sonst
+  // hinaus, während der erste noch unterwegs ist, und käme womöglich vor ihm
+  // beim Server an: der Server behielte den ersten Klick, die Bestätigung des
+  // zweiten nähme den Blueprint aus `pending`, und der nächste Abgleich holte
+  // den ersten zurück. Was offen ist, liest jeder Zug erst beim Start. Ohne
+  // Web Locks (ältere Browser) reiht nur die Kette dieses Tabs.
+  var chain = Promise.resolve();
+  // Jeder Schritt eines Zugs endet spätestens nach 20 s, wie in assets/fleet.js:
+  // die Sitzungsprüfung und jede Anfrage samt Antwortkörper. fetch hat keine
+  // Frist; käme eine Antwort nie (Funkloch, halb offene Verbindung), endete
+  // der Zug nie, und die Sperre hielte jeden Zug jedes Tabs fest, auch
+  // „Erneut versuchen". Nach der Frist endet der Zug wie ohne Netz.
+  // Die Anfrage wird dabei abgebrochen (`start` bekommt das Signal), bevor
+  // der Zug die Reihe freigibt: liefe sie weiter, käme sie womöglich nach dem
+  // nächsten Zug beim Server an und überschriebe dessen neueren Stand.
+  var STEP_MS = 20000;
+  function deadline(start) {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () {
+        if (ctl) ctl.abort();
+        reject(new Error('timeout'));
+      }, STEP_MS);
+      Promise.resolve(ctl && ctl.signal).then(start).then(
+        function (v) { clearTimeout(timer); resolve(v); },
+        function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+  function session() { return deadline(function () { return VB.session(); }); }
+  // Lehnt der Browser die Sperre ab, ohne `run` je zu rufen (in einem
+  // undurchsichtigen Ursprung, SecurityError), läuft der Zug ohne sie, wie
+  // locked() in assets/fleet.js. Und die Kette selbst lehnt nie ab: sonst
+  // übersprünge sie jeden späteren Zug dieses Tabs, bis er neu lädt.
+  function locked(run) {
+    var locks = navigator.locks;
+    if (!locks || typeof locks.request !== 'function') return Promise.resolve().then(run);
+    var ran = false;
+    var p;
+    try {
+      p = locks.request('vb.crafting.sync', function () { ran = true; return run(); });
+    } catch (e) {
+      return Promise.resolve().then(run);
+    }
+    return p.then(null, function (e) { if (ran) throw e; return run(); });
+  }
+  function serial(run) {
+    return (chain = chain.then(function () { return locked(run); }).then(null, function () {}));
+  }
+  function flush() { return serial(sendPending); }
+  // Die Anzeige wechselt schon jetzt, nicht erst, wenn der Zug an der Reihe
+  // ist: wer auf den Zug eines anderen Tabs wartet, sähe sonst „Nur auf
+  // diesem Gerät" samt Anmelde-Link.
+  function pull() { if (acctUid) setSync('syncing'); return serial(readServer); }
+
+  // Jede Fortsetzung eines Zugs prüft zuerst, ob das Konto noch dasselbe ist.
+  // Nach Abmelden oder Kontowechsel gehört ihr Ergebnis niemandem mehr hier:
+  // Zeilen landeten sonst in der Gast-Ablage (und beim nächsten Anmelden im
+  // nächsten Konto), die Anzeige meldete ein Konto, das nicht mehr angemeldet ist.
+  // Eine Sitzung, die schon einem anderen Konto gehört (sein Ereignis ist noch
+  // unterwegs), zählt wie keine: mit ihr käme dessen Stand in diese Kopie.
+  function sendPending() {
     clearTimeout(flushTimer);
-    var slugs = Object.keys(dirty);
-    if (!acctUid || !VB || !slugs.length) return null;
-    dirty = {};
-    return VB.session().then(function (sess) {
-      if (!sess) { goGuest(); return; }
+    if (!acctUid || !VB) return null;
+    // Nichts mehr offen: ein anderer Zug, auch aus einem anderen Tab, hat es
+    // schon mitgenommen.
+    if (!loadState(acctUid).pending.length) { setSync('synced'); return null; }
+    var me = acctUid;
+    return session().then(function (sess) {
+      if (acctUid !== me) return;
+      if (ownerOf(sess) !== me) { noSession(); return; }
+      // Erst jetzt gelesen: Klicks aus der Wartezeit gehen gleich mit.
+      var m = loadState(me);
+      var sent = {};
       var up = [], del = [];
-      slugs.forEach(function (s) {
-        var o = !!owned[s], q = plan[s] || 0;
+      m.pending.forEach(function (s) {
+        var o = !!m.owned[s], q = m.plan[s] || 0;
+        sent[s] = rowOf(m, s);
         // Leere Zeile (weder Besitz noch Planmenge) wird gelöscht statt mit
         // Nullen gespeichert — die Tabelle bleibt so klein wie der echte Bestand.
-        if (o || q > 0) up.push({ user_id: acctUid, slug: s, owned: o, plan_qty: q });
+        if (o || q > 0) up.push({ user_id: me, slug: s, owned: o, plan_qty: q });
         else del.push(s);
       });
       var jobs = [];
       if (up.length) {
-        jobs.push(VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
-          'resolution=merge-duplicates,return=minimal'));
+        jobs.push(deadline(function (signal) {
+          return VB.rest(sess, 'POST', TABLE + '?on_conflict=user_id,slug', up,
+            'resolution=merge-duplicates,return=minimal', signal);
+        }));
       }
       if (del.length) {
-        jobs.push(VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + acctUid +
-          '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')'));
+        jobs.push(deadline(function (signal) {
+          return VB.rest(sess, 'DELETE', TABLE + '?user_id=eq.' + me +
+            '&slug=in.(' + del.map(encodeURIComponent).join(',') + ')', null, null, signal);
+        }));
       }
-      return Promise.all(jobs).then(function (rs) {
+      // Der Zug endet erst, wenn jede seiner Anfragen beantwortet ist, auch
+      // wenn eine schon scheiterte: sonst begänne der nächste, während sie
+      // noch unterwegs ist, und sie könnte ihn überholen.
+      var answered = jobs.map(function (p) { return p.then(null, function () { return null; }); });
+      return Promise.all(answered).then(function (rs) {
+        if (acctUid !== me) return;
         var ok = rs.every(function (r) { return r && r.ok; });
         if (!ok) throw new Error('rest');
-        persist();          // offene Liste im Spiegel leeren
+        // Erledigt ist ein Blueprint nur, wenn er noch so dasteht, wie er
+        // hinausging, aus demselben Schreibvorgang: ein Klick während der
+        // Anfrage, auch in einem anderen Tab, bleibt offen, auch einer, der
+        // den gesendeten Wert wiederherstellt.
+        var now = loadState(me);
+        now.pending = now.pending.filter(function (s) { return sent[s] !== rowOf(now, s); });
+        // Erst jetzt steht die übernommene Gast-Ablage im Konto: hat der
+        // Server jeden übernommenen Eintrag angenommen, wird sie geleert. Ein
+        // Eintrag, den der Besucher während der Anfrage änderte, bleibt
+        // offen, ist aber mit dem Wert aus der Gast-Ablage angekommen.
+        var merging = now.merge.length;
+        now.merge = now.merge.filter(function (s) { return !sent.hasOwnProperty(s); });
+        saveState(me, now);
+        if (merging && !now.merge.length) drop(LS_GUEST);
+        // Was offen bleibt, schrieb jemand während der Anfrage. Ein offener
+        // Tab plant seinen Zug selbst, einer, der inzwischen zu ist, nicht:
+        // ohne diesen läge der Blueprint bis zur nächsten Rückkehr herum.
+        if (now.pending.length) setTimeout(flush, 700);
         setSync('synced');
       });
     }).catch(function () {
-      // Fehlgeschlagene Slugs bleiben schmutzig -> nächster Versuch (Klick auf
-      // „Erneut versuchen", nächste Änderung, Tab-Rückkehr oder der nächste
-      // Seitenaufruf über den Spiegel) nimmt sie mit.
-      slugs.forEach(function (s) { dirty[s] = true; });
-      persist();
+      if (acctUid !== me) return;
+      // Was nicht ankam, bleibt im Spiegel offen -> nächster Versuch (Klick
+      // auf „Erneut versuchen", nächste Änderung, Tab-Rückkehr oder der
+      // nächste Seitenaufruf) nimmt es mit.
       setSync('error');
     });
   }
 
-  // Erst schreiben, dann lesen — nie gleichzeitig: ein GET, der neben einem
-  // laufenden POST eintrifft, brächte den gerade geklickten Zustand wieder weg.
-  function flushThenPull() {
-    var p = flush();
-    if (p && p.then) p.then(function () { pull(false); }, function () { /* Fehler steht schon */ });
-    else pull(false);
-  }
+  // Erst schreiben, dann lesen.
+  function flushThenPull() { flush(); pull(); }
 
-  // Server -> Client. `withMerge` nur beim ersten Zug nach dem Anmelden.
-  function pull(withMerge) {
+  // Server -> Client. Steht die Übernahme noch aus (mergeOwed), wandert die
+  // Gast-Ablage mit.
+  function readServer() {
     if (!acctUid || !VB) return Promise.resolve();
+    var me = acctUid;
     setSync('syncing');
-    return VB.session().then(function (sess) {
-      if (!sess) { goGuest(); return; }
-      return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty')
-        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    return session().then(function (sess) {
+      if (acctUid !== me) return;
+      if (ownerOf(sess) !== me) { noSession(); return; }
+      // Die Sitzung trägt: dieser Zug ist der Abgleich, den later() plante.
+      clearTimeout(backoffTimer);
+      backoff = 0;
+      return deadline(function (signal) {
+        return VB.rest(sess, 'GET', TABLE + '?select=slug,owned,plan_qty', null, null, signal)
+          .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); });
+      })
         .then(function (rows) {
+          if (acctUid !== me) return;
           var so = {}, sp = {};
           (rows || []).forEach(function (row) {
             // Blueprints, die es im aktuellen Patch nicht mehr gibt, werden nur
@@ -359,76 +523,122 @@
           // langsamer GET den frischen Klick), DANN die einmalige Übernahme der
           // Gast-Ablage. Andersherum würde der Abgleich die eben übernommenen
           // Einträge wieder wegwerfen — sie stehen ja noch in keiner der beiden
-          // Listen, gegen die er prüft.
-          Object.keys(dirty).forEach(function (s) {
-            if (owned[s]) so[s] = true; else delete so[s];
-            if (plan[s] > 0) sp[s] = plan[s]; else delete sp[s];
+          // Listen, gegen die er prüft. Der Spiegel wird erst jetzt gelesen:
+          // Klicks während des GET, auch aus einem anderen Tab, stehen schon drin.
+          var m = loadState(me);
+          var pending = {};
+          m.pending.forEach(function (s) {
+            pending[s] = true;
+            if (m.owned[s]) so[s] = true; else delete so[s];
+            if (m.plan[s] > 0) sp[s] = m.plan[s]; else delete sp[s];
           });
 
-          // Übernahme braucht KEINEN „schon erledigt"-Merker: eine erfolgreiche
-          // Übernahme leert die Gast-Ablage, es kann also nichts doppelt oder
-          // veraltet wandern. Ein Merker hätte im Gegenteil geschadet — was man
-          // abgemeldet anklickt, wäre beim nächsten Anmelden liegengeblieben.
+          // Übernahme braucht KEINEN dauerhaften „schon erledigt"-Merker: eine
+          // bestätigte Übernahme leert die Gast-Ablage, es kann also nichts
+          // doppelt oder veraltet wandern. Ein Merker hätte im Gegenteil
+          // geschadet — was man abgemeldet anklickt, wäre beim nächsten
+          // Anmelden liegengeblieben.
           var merged = 0;
-          if (withMerge) {
+          var merge = m.merge.slice();
+          if (mergeOwed) {
+            mergeOwed = false;
             var guest = loadState(null);
             // Gezählt werden BLUEPRINTS, nicht Felder: ein Blueprint, der lokal
             // „im Besitz" UND im Planer stand, ist ein Eintrag, nicht zwei.
             var touched = {};
             Object.keys(guest.owned).forEach(function (s) {
               if (indexOfSlug(s) == null || so[s]) return;
-              so[s] = true; dirty[s] = true; touched[s] = 1;
+              so[s] = true; pending[s] = true; touched[s] = 1;
             });
             Object.keys(guest.plan).forEach(function (s) {
               if (indexOfSlug(s) == null || (sp[s] || 0) >= guest.plan[s]) return;
-              sp[s] = guest.plan[s]; dirty[s] = true; touched[s] = 1;
+              sp[s] = guest.plan[s]; pending[s] = true; touched[s] = 1;
             });
             merged = Object.keys(touched).length;
-            // Gast-Ablage nach der Übernahme leeren: ab jetzt lebt der Bestand
-            // im Konto, sonst gäbe es zwei Listen, die auseinanderlaufen.
-            if (merged) { drop(LS_GUEST); toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged)); }
+            // Die Gast-Ablage bleibt stehen, bis der Server die übernommenen
+            // Einträge bestätigt hat (sendPending leert sie dann), wie die
+            // Gast-Schiffe der Flotte (assets/fleet.js). Wer sich vorher
+            // abmeldet, verliert den Konto-Spiegel samt offener Übernahme;
+            // geleert, stünden die Einträge dann nirgends mehr.
+            Object.keys(touched).forEach(function (s) { if (merge.indexOf(s) < 0) merge.push(s); });
+            if (merged) toast(tr('syncMerged', '{n} lokale Einträge in dein Konto übernommen.').replace('{n}', merged));
           }
 
           owned = so; plan = sp;
           lastPull = Date.now();
-          persist();
+          // Was offen bleibt, behält die Kennung seines letzten Schreibvorgangs.
+          saveState(me, { owned: so, plan: sp, pending: Object.keys(pending), rev: m.rev, merge: merge });
           repaintAll();
-          if (Object.keys(dirty).length) flush(); else setSync('synced');
+          if (Object.keys(pending).length) flush(); else setSync('synced');
         });
-    }).catch(function () { setSync('error'); });
+    }).catch(function () { if (acctUid === me) setSync('error'); });
+  }
+
+  // Abgemeldet: kein Konto-Spiegel bleibt in diesem Browser. Die Daten stehen
+  // im Konto — auf einem geteilten Rechner soll nach dem Abmelden niemand mehr
+  // sehen, was der Vorgänger besitzt oder plant, und ein anderes Konto sieht
+  // den Spiegel seines Vorgängers nie. Das gilt auch, wenn beim Abmelden oder
+  // Wechsel kein Planer offen war: dann räumt ihn der nächste Aufruf weg.
+  function dropMirrors(keep) {
+    var doomed = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k.indexOf(LS_MIRROR) === 0 && k !== keep) doomed.push(k);
+    }
+    doomed.forEach(drop);
   }
 
   function goGuest() {
+    dropMirrors(null);
     if (acctUid === null) { setSync('local'); return; }
-    // Abgemeldet: den Konto-Spiegel aus diesem Browser entfernen. Die Daten
-    // stehen im Konto — auf einem geteilten Rechner soll nach dem Abmelden
-    // niemand mehr sehen, was der Vorgänger besitzt oder plant.
-    drop(lsKey(acctUid));
     acctUid = null;
-    dirty = {};
     var g = loadState(null);
     owned = g.owned; plan = g.plan;
     repaintAll();
     setSync('local');
   }
 
+  // session() liefert null auch, wenn die Sitzung nur gerade nicht nutzbar
+  // ist: der Refresh eines abgelaufenen Tokens scheiterte an 5xx, 429 oder am
+  // Netz oder antwortete nicht binnen 15 s. peek() hält sie dann noch. Gehört
+  // sie diesem Konto, bleiben Spiegel und offene Änderungen stehen, und der
+  // Abgleich fragt selbst wieder, denn ein gescheiterter Refresh sendet kein
+  // Ereignis. Sonst klärt onSession(), wer jetzt gilt: abgemeldet ist nur,
+  // wer keine gespeicherte Sitzung mehr hat.
+  function noSession() {
+    if (acctUid && storedUid() === acctUid) later();
+    else onSession();
+  }
+  function ownerOf(sess) { return (sess && sess.user && sess.user.id) || null; }
+  function storedUid() { return ownerOf(VB.peek()); }
+  function later() {
+    setSync('syncing');
+    clearTimeout(backoffTimer);
+    var wait = Math.min(BACKOFF_MAX_MS, BACKOFF_MS * Math.pow(2, backoff++));
+    backoffTimer = setTimeout(function () { backoffTimer = null; pull(); }, wait);
+  }
+
+  // Der Modus folgt der gespeicherten Sitzung sofort, nicht erst der Antwort
+  // von session(): ein hängender Refresh dauert bis zu 15 s, und so lange
+  // zeigte der Planer sonst die Gast-Ablage mit Anmelde-Link, und Klicks
+  // landeten dort statt im Konto (wie die Flotte, assets/fleet.js). Ob die
+  // Sitzung trägt, klärt der Abgleich gleich danach.
   function onSession() {
-    if (!VB) return;
-    VB.session().then(function (sess) {
-      var uid = sess && sess.user && sess.user.id;
-      if (!uid) { goGuest(); return; }
-      if (uid === acctUid) { pull(false); return; }
-      acctUid = uid;
-      // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
-      // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
-      // stehen im Spiegel und gehen jetzt mit raus.
-      var m = loadState(uid);
-      owned = m.owned; plan = m.plan;
-      dirty = {};
-      m.pending.forEach(function (s) { dirty[s] = true; });
-      repaintAll();
-      pull(true);
-    });
+    var uid = storedUid();
+    if (!uid) goGuest();
+    else if (uid !== acctUid) enter(uid);
+    pull();
+  }
+  function enter(uid) {
+    dropMirrors(lsKey(uid));
+    acctUid = uid;
+    mergeOwed = true;
+    // Konto-Spiegel sofort zeigen (kein Flackern), Server-Stand zieht nach.
+    // Beim letzten Besuch nicht abgeschickte Änderungen (Tab zu, offline)
+    // stehen im Spiegel und gehen jetzt mit raus.
+    var m = loadState(uid);
+    owned = m.owned; plan = m.plan;
+    repaintAll();
   }
 
   function bootSync() {
@@ -442,15 +652,17 @@
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState !== 'visible' || !acctUid) return;
       var stale = Date.now() - lastPull > 60000;
-      if (Object.keys(dirty).length) { if (stale) flushThenPull(); else flush(); }
-      else if (stale) pull(false);
+      if (loadState(acctUid).pending.length) { if (stale) flushThenPull(); else flush(); }
+      else if (stale) pull();
     });
-    // Seite wird verlassen: letzten Stand noch rausschicken (best effort).
-    addEventListener('pagehide', function () { if (Object.keys(dirty).length) flush(); });
+    // Seite wird verlassen: letzten Stand noch rausschicken (best effort), ohne
+    // auf die Reihe zu warten. Die Sperre teilt der Browser erst in einer
+    // späteren Aufgabe zu, und die läuft nach pagehide nicht mehr: in Chrome
+    // 154 kamen über die Sperre 0 von 20 solcher Züge beim Server an, direkt
+    // 20 von 20. Läuft dabei noch ein früherer Zug, kann dieser letzte ihn
+    // überholen.
+    addEventListener('pagehide', function () { sendPending(); });
   }
-
-  if (window.VBAccount) bootSync();
-  else addEventListener('vb-account-ready', bootSync, { once: true });
 
   // ---- Sync-Statusanzeige ----
   function setSync(s) {
@@ -619,6 +831,13 @@
       });
       apply();
     });
+  });
+  // Ein Klick auf das Haekchen einer Kategorie (es sitzt in der <summary>)
+  // darf nicht bis zur Gruppe durchgehen. Stand frueher als onclick-Attribut
+  // am <label>; Inline-Handler laesst die Content-Security-Policy nicht mehr
+  // zu (script-src-attr).
+  $$('.cdb-check--top').forEach(function (l) {
+    l.addEventListener('click', function (e) { e.stopPropagation(); });
   });
   $$('.cdb-sub').forEach(function (cb) {
     cb.addEventListener('change', function () { state.subs[cb.value] = cb.checked; apply(); });
@@ -1085,12 +1304,11 @@
     // die Slugs also VOR dem Leeren einsammeln.
     var wiped = Object.keys(plan);
     plan = {};
-    persist();
     wiped.forEach(markDirty);
     renderPlanner(); syncCards();
   });
 
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // =========================================================
   //  STAR CITIZEN DISMANTLING CALCULATOR
@@ -1489,4 +1707,9 @@
 
   // initial paint
   apply();
+
+  // Zuletzt: bootSync() zeichnet den Konto-Spiegel sofort neu, und dafür muss
+  // alles darüber schon stehen (state, Planer).
+  if (window.VBAccount) bootSync();
+  else addEventListener('vb-account-ready', bootSync, { once: true });
 })();

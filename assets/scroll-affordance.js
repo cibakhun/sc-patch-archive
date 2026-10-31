@@ -24,18 +24,41 @@
   // Ziehen bekommt jeder Kasten. Die Kante nicht: die Evolutions-Matrix
   // bringt ihre eigene mit, die auf ihre klebende System-Spalte Ruecksicht
   // nimmt (src/pages/evolution.astro).
+  // .sd__jump__in stand hier bis D-01 in BEIDEN Listen. Die Kapitel-
+  // Sprungleiste gibt es nicht mehr — die Rail der Schiffskonsole ist an ihre
+  // Stelle getreten und bringt ihre eigene waagerechte Form unter 900px mit
+  // (.holo__rail in ShipDetail.astro).
   var SEL_DRAG =
     '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.evo__scroll';
+  /* ⚠⚠ .holo__rail NACHGETRAGEN 21.08.2026. Der Kommentar oben hielt fest, die
+     Rail "bringt ihre eigene waagerechte Form mit" — das stimmt (unter 900px
+     flex-wrap:nowrap + overflow-x:auto), nur bekam sie nie einen HINWEIS
+     darauf. Gemessen bei 390px: die Blende ist 1128px breit in 390px Fenster,
+     also liegen fuenf der acht Gruppen ausserhalb des Bildes — und theme.css
+     blendet mit `*{scrollbar-width:none!important}` jede Leiste aus. Die
+     Hauptnavigation der Seite war auf dem Telefon zu zwei Dritteln unsichtbar.
+     Bewusst NUR in dieser Liste und NICHT in SEL_DRAG: am Schreibtisch bricht
+     die Blende um statt zu schieben, ein Maus-Ziehen waere dort wirkungslos
+     und koennte Klicks auf die Eintraege stoeren. Auch keine sichtbare
+     Bildlaufleiste wie bei den Tabellen in mobile-ux.css 5c — eine 8px-Leiste
+     unter den Registerkarten liegt mitten im Bild der Buehne. Die weiche Kante
+     traegt hier allein. */
   var SEL_FADE =
-    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.as-jump';
+    '.do__tablewrap,.md__tblWrap,.pj-tblscroll,.uif-table-wrapper,.sd__paints,.holo__rail,.as-jump';
   // Senkrechte Kante fuer die Bildlauf-Kaesten aus Task 6/mobile-ux.css 5d.
+  // .holo__readout (Schiffskonsole) traegt die Klasse .vb-scrollbox bewusst
+  // NICHT — deren max-height:calc(100vh…) wuerde die Hoehenbindung an die
+  // Buehne zerreissen, beide sitzen in derselben Grid-Zeile —, gehoert aber in
+  // genau dieselbe Behandlung und steht deshalb hier namentlich. Zweiter
+  // Pflichteintrag dazu in mobile-ux.css Abschnitt 5d.
   // .snav-deck__frame (Hauptmenue) kam am 30.08.2026 dazu. Gemessen bei
   // 390x844: 19 Eintraege, 1361 px Inhalt in 844 px Rahmen — sechs Zeilen
   // standen unter der Kante, im Querformat (844x390) fuenfzehn. Der Rahmen
   // traegt overflow-y:auto, also WAR er scrollbar; nur sagte das niemandem
-  // etwas, weil assets/theme.css jede Bildlaufleiste ausblendet.
-  var SEL_VFADE = '.vb-scrollbox,.snav-deck__frame';
-
+  // etwas, weil assets/theme.css jede Bildlaufleiste ausblendet. Genau die
+  // Falle, die der Kopfkommentar von mobile-ux.css 5c fuer Tabellen
+  // beschreibt — hier traf sie das Menue jeder einzelnen Seite.
+  var SEL_VFADE = '.vb-scrollbox,.holo__readout,.snav-deck__frame';
 
   var faders = [];
   var vfaders = [];
@@ -205,6 +228,28 @@
     el.addEventListener('wheel', stopGlide, { passive: true });
   }
 
+  // Messen (scrollWidth & Co.) erst im naechsten Bild. scan() laeuft beim
+  // Laden VOR dem ersten Zeichnen; jede Messung dort erzwang ein komplettes
+  // Layout der halbfertigen Seite, das der Browser fuers erste Bild gleich
+  // noch einmal machte. Im rAF-Rueckruf faellt die Messung mit dem ohnehin
+  // faelligen Layout zusammen. Im Item-Modal hilft es doppelt: scan() laeuft
+  // dort, waehrend das Modal noch display:none ist — gemessen wird jetzt erst,
+  // wenn es steht.
+  var pending = [];
+  var queued = false;
+  var nextFrame = window.requestAnimationFrame || function (fn) { return setTimeout(fn, 16); };
+  function queueSync() {
+    if (queued) return;
+    queued = true;
+    nextFrame(function () {
+      queued = false;
+      var list = pending;
+      pending = [];
+      for (var i = 0; i < list.length; i++) markDraggable(list[i]);
+      syncAll();
+    });
+  }
+
   function scan() {
     var drag = document.querySelectorAll(SEL_DRAG);
     for (var i = 0; i < drag.length; i++) {
@@ -213,7 +258,7 @@
       el.setAttribute('data-dragscroll', '');
       draggables.push(el);
       enableDrag(el);
-      markDraggable(el);
+      pending.push(el);
       if (ro) {
         ro.observe(el);
         if (el.firstElementChild) ro.observe(el.firstElementChild);
@@ -242,7 +287,7 @@
         return function () { syncVFade(n); };
       })(v), { passive: true });
     }
-    syncAll();
+    queueSync();
   }
 
   window.VBScrollAffordance = scan;

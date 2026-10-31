@@ -55,6 +55,7 @@ import { blueprintsPerMineral, craftingPath } from '../lib/miningLinks';
 import { buildMiningShips } from '../lib/miningShips';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
+import { jsonForScript } from '../lib/safeJson';
 
 /* Titelstreifen der Seite ist ins Gehaeuse gewandert (15.08.2026): das Kopfband
    der Grafik traegt ihn, und dadurch faellt der separate `.hero` weg — genau
@@ -254,7 +255,7 @@ const S_DE = {
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
   tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
-  bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl',
+  bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl', allRefs: 'Alle Raffinerien vergleichen',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
   // Phase 12: Fundort-Ansicht (D-01/D-11) — Zurueck-Knopf-Beschriftung und
   // das Spur-Abzeichen fuer Erze mit hoechstens 10 % Anteil (D-07).
@@ -290,7 +291,7 @@ const S_EN = {
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
-  bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick',
+  bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick', allRefs: 'Compare all refineries',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
   // Phase 12: location view (D-01/D-11) — back-button label and the trace
   // badge for ores with at most 10% share (D-07).
@@ -323,394 +324,18 @@ const payload = {
   lang, minerals, refineries, profiles, t: S,
   rar: Object.fromEntries(Object.entries(RAR_LBL).map(([k, v]) => [k, v[lang]])),
   craftingPath: href(craftingPath, lang),
+  refineryPath: href('/refinery.html', lang),
   fracturingPath,
   shipsByMethod,
 };
 const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 ---
 
-<section class="wb" id="db" data-wb
-         style={`--wb-frame:url('${chassisFrame}');--wb-plug:url('${chassisPlug}')`}>
-  {/* ⚠ DIE WAND hinter dem Geraet (16.08.2026, auf Ansage: der Grund zwischen
-      Fensterrand und Geraetekante soll als RAUM lesen, nicht als flache
-      Flaeche). Ein ECHTES Element, kein `::before` — eine Pseudo-Selektor-
-      Familie mit Verlauf meldet `verify:layers` (Zusicherung 5) zu Recht als
-      Fund ohne Registry-Eintrag; das hat dieses Bauteil schon zweimal
-      gekostet.
-      Sie steht VOR dem Gehaeuse im Markup und liegt mit z-index 0 dahinter —
-      das Gehaeuse hebt sich mit z-index 1 darueber. */}
-  <span class="wb__wall" aria-hidden="true"></span>
-
-  {/* ───────────────────────── Gehaeuse ─────────────────────────
-      Der Rahmen ist EINE Grafik mit festem Seitenverhaeltnis, die Bildflaeche
-      ein Prozentkasten darin. KEIN `border-image`/9-Slice: das streckt die
-      Mitte jeder Kante, und genau dort hat die Vorlage ihre Zeichnung
-      (Steckerbuchse mit Lueftungsgittern unten, Seriennummer oben rechts).
-      Zuschnitt und Prozentwerte sind gemessen, nicht geschaetzt —
-      .planning/sketches/tools/make-chassis.mjs hat sie eingemessen, Belege in
-      .planning/sketches/010-chassis-asset/README.md.
-
-      ⚠ Der Titel steht als HTML IM Kopfband, nicht in der Grafik: er muss
-      uebersetzbar, suchbar und die echte <h1> der Seite bleiben. Nur die
-      aufgedruckte Seriennummer ist Dekoration.
-
-      ⚠ Kein `backdrop-filter` mehr auf den Paneelen — hinter einem deckenden
-      Gehaeuse hat Glas nichts zu spiegeln. Damit ist die Paarung clip-path
-      ueber backdrop-filter (840 ms Menue-Eintritt) baulich ausgeschlossen. */}
-  {/* EIN Symbol fuer 38 Knoepfe (37 Kacheln + der grosse am gewaehlten Erz).
-      Als <use>-Verweis statt 38-mal dasselbe Pfad-d im HTML — und als Symbol
-      statt Schriftzeichen, weil „☆/★" in jeder Schrift anders aussieht, nicht
-      zur Strichstaerke der uebrigen Symbole passt und sich nicht faerben
-      laesst wie ein Icon. Der Zustand kommt NICHT aus einem zweiten Symbol,
-      sondern aus `.is-on` am Knopf: das Skript tauscht damit kein Markup mehr
-      aus. Reissbrettnadel, nicht Stern — die Handlung heisst „Anheften". */}
-  <svg class="wb__sprite" aria-hidden="true" focusable="false" width="0" height="0">
-    <symbol id="wb-i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8" />
-    </symbol>
-    {/* Stift fuer "Umbenennen" an der Preset-Zeile (Phase 10, D-02 Form 1) —
-        dieselbe Bauform wie #wb-i-pin daneben, kein zweites Icon-Verfahren. */}
-    <symbol id="wb-i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" />
-      <path d="M13.5 6.5l4 4" />
-    </symbol>
-    {/* Muelleimer fuer "Loeschen" (Phase 10, D-01) — dasselbe Symbol, das der
-        Konto-Bereich fuer seine Gefahrenzone benutzt (#ic-trash in
-        AccountDashboard.astro). Kein neu erfundenes Zeichen, und "×" bleibt
-        dadurch eindeutig "Abbrechen/Schliessen". */}
-    <symbol id="wb-i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-      <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
-    </symbol>
-    {/* Kreispfeil — "aktualisieren mit der aktuellen Auswahl" (Phase 10, D-02
-        Form 2: Ueberschreiben). Betreiber-Befund 15.08.2026: das vorherige
-        Zeichen (Pfeil nach unten in eine offene Wanne) ist die uebliche
-        Download-Glyphe und wurde genau so gelesen — hier wird aber nichts
-        heruntergeladen, sondern der gespeicherte Inhalt mit dem Arbeitsstand
-        ersetzt. */}
-    {/* ⚠⚠ Betreiber-Befund "das icon ist nicht in der mitte", zweimal gemeldet.
-        Der erste Anlauf richtete die BOUNDING BOX am Papierkorb aus (Mitte y 12,5)
-        und lag falsch: der Pfeilsporn oben rechts zieht die Box mit, dadurch rutschte
-        der RING auf y 12,52 und hing sichtbar unter der Mitte. Bei einem Ring liest
-        das Auge den Kreismittelpunkt, nicht die Box — der Sporn darf ueberhaengen.
-        Jetzt: Ring-Mitte exakt 12/12, Aussendurchmesser 17,50. Die Nachbarn messen
-        17,80 (Papierkorb) und 17,12 (Stift); ein Kreis wirkt bei gleicher Box
-        groesser als eine eckige Form, deshalb bewusst am unteren Ende der Spanne.
-        stroke-width 2.32 gleicht die 0,861-Skalierung aus, damit der sichtbare
-        Strich wieder bei 2 landet wie bei allen anderen Symbolen.
-        ⭐ Lehre fuer das naechste Symbol: an der Form ausrichten, die die Figur
-        traegt (Ring, Korpus), nicht an der Umgrenzung samt Auslegern. */}
-    <symbol id="wb-i-update" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2.32" stroke-linecap="round" stroke-linejoin="round">
-      <g transform="translate(12,12) scale(0.861) translate(-12,-12)">
-        <path d="M21 3v6h-6" />
-        <path d="M21 12a9 9 0 1 1-3.2-6.9L21 9" />
-      </g>
-    </symbol>
-    {/* Pfeil zurueck — der Zurueck-Knopf im Fundort-Kopf (Phase 12, D-01),
-        fuehrt zur zuletzt gewaehlten Erz-Ansicht. Dieselbe Stilfamilie wie
-        jedes andere Symbol hier. */}
-    <symbol id="wb-i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M11 4 4 12l7 8M4 12h16" />
-    </symbol>
-  </svg>
-
-  <div class="wb__chassis">
-    {/* ⚠ Titel und Vorzeile standen bis 15.08.2026 sichtbar im Kopfband. Der
-        Betreiber hat sie als „ultra ugly" gestrichen — das Blech traegt seine
-        eigene Beschriftung (die aufgedruckte Seriennummer), ein zweiter
-        Schriftzug darauf war Fremdkoerper. Die <h1> BLEIBT, nur unsichtbar:
-        sie ist die Ueberschrift des Dokuments und darf fuer Suchmaschinen und
-        Vorleseprogramme nicht verschwinden. Die Vorzeile ist ersatzlos weg —
-        die Spielversion steht ohnehin in der Fusszeile. */}
-    <h1 class="wb__ctitle" set:text={title} />
-    <div class="wb__cscreen">
-      {/* ⚠ Der Schirm-Schleier ist ein ECHTES Element, kein `::before`.
-          Zwei Gruende, beide bezahlt:
-          · Er muss UEBER dem Inhalt liegen — Lichtsaum, Glasspiegelung und
-            Vignette wirken nur, wenn sie auf allem liegen. Ein `background` am
-            Schirm liegt dahinter und ist wirkungslos.
-          · `verify:layers` (Zusicherung 5) meldet jede Pseudo-Selektor-Familie
-            mit Verlauf als Fund ohne Registry-Eintrag. Eine Klasse tut das
-            nicht. */}
-      <span class="wb__glare" aria-hidden="true"></span>
-      {/* Die Vorzeile ist seit 16.08.2026 OPTIONAL und auf der Mining-Seite
-          abbestellt. Sie zaehlte „Physik, Gesteinsarten" auf — beides ist am
-          12.08. mit dem Fracturing-Rechner auf /fracturing.html gezogen, der
-          Satz versprach also seit vier Tagen Funktionen, die es hier nicht
-          mehr gibt. Ohne Vorzeile faellt auch ihr Zeilenkasten weg, statt
-          leer stehen zu bleiben. */}
-      {lead && <p class="wb__clead" set:text={lead} />}
-
-  <div class="wb__grid">
-
-    <!-- ========================================= Spalte 1: alle 37 Erze -->
-    <div class="wb__pane wb__pane--list chamf">
-      <div class="wb__filters">
-        {/* Seit 16.08.2026 SECHS Schritte. Vier beschrieben das Werkzeug nur
-            bis zur Haelfte: die Presets kamen ueberhaupt nicht vor, das
-            ausgelagerte Fenster ebenso wenig — beides Dinge, die man ohne
-            Hinweis nicht findet („erklaert es nicht zb die presets, das
-            popout undso"). Reihenfolge folgt dem Arbeitsweg: erst anheften
-            (4), dann benennen (5), dann herausloesen (6). */}
-        <ToolHelp tool="mining" lang={lang} steps={6} />
-        <div class="wb__frow">
-          <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
-          <span class="wb__c" id="wb-count">{minerals.length}</span>
-        </div>
-        {/* Der Chip „nur brechbar" stand hier bis 12.08. mit daneben — er
-            urteilte ueber eine Ausruestung, die es auf dieser Seite nicht
-            mehr gibt, und ist mit dem Rechner umgezogen. */}
-        <div class="wb__chips" data-help={hlp('system')}>
-          {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
-        </div>
-      </div>
-      {/* Kachelraster, seit 12.08.2026 in GROSS. Vorher: 79x41 px, Name auf
-          rund 54 px beschnitten, Anheft-Ziel 28 px in der Ecke ueber der
-          Signatur. Der Nutzer hat das zweimal als zu klein gemeldet — beim
-          zweiten Mal ausdruecklich mit „wir haben da genug platz".
-          Jetzt vier statt fuenf Spalten in einer breiteren Saeule: der Name
-          bekommt die volle Kachelbreite (rund 94 px), Signatur und
-          Anheft-Knopf teilen sich die zweite Zeile.
-          ⚠ Das kostet die alte Zusage „alle 37 ohne Scrollen bei 1280x720":
-          bei 1920x1080 stehen weiterhin alle 37 im Bild, bei 1280x720 scrollt
-          die Liste. Gemessen und begruendet in
-          .planning/notes/signaturliste-anheften.md. */}
-      {/* data-help sitzt am Kasten, nicht mehr an einem einzelnen Raster:
-          seit der Gruppierung gibt es mehrere .wb__tiles, und Zusicherung 3
-          von verify:help zaehlt die Anker je Sprache — ein Anker bleibt ein
-          Anker, egal wie viele Baender darunter liegen. */}
-      <div class="wb__scroll" id="wb-list" data-help={hlp('tiles')}>
-        {/* ⚠ `div`, NICHT `section`: die Seite traegt eine globale
-            `section{padding:…}`-Regel, die der Gruppe hier 99 px oben/unten
-            und 72 px seitlich verpasst hat — das Kachelraster verlor dadurch
-            eine Spalte und die Liste wurde dreimal so hoch. Dieselbe Falle
-            steckte schon im Konto-Panel. */}
-        {groups.map((g) => (
-          <div class="wb__grp" data-grp={g.id}>
-            <h3 class="wb__ghd">
-              <span class="wb__ghd__t" set:text={g.label} />
-              <span class="wb__ghd__g" set:text={g.solo ? `${g.gear} · ${g.solo}` : g.gear} />
-              <span class="wb__ghd__n num" set:text={String(g.total)} />
-            </h3>
-            {g.bands.map((b) => (
-              <div class="wb__band" data-band={b.band}>
-                {g.solo ? null : (
-                <h4 class={`wb__bhd wb__bhd--${b.band}`}>
-                  <span class="wb__bhd__t" set:text={b.label} />
-                  <i class="wb__bhd__r" aria-hidden="true"></i>
-                  <span class="wb__bhd__n num" set:text={String(b.items.length)} />
-                </h4>
-                )}
-                <div class="wb__tiles">
-                  {b.items.map((m) => {
-                    const other = methodsOf(m).filter((x) => x !== g.id).map((x) => (S as any)[x]);
-                    return (
-                      <div class={`wb__tile wb__tile--${b.band}${m.name === sel.name ? ' is-sel' : ''}`}
-                           data-min={m.name} role="button" tabindex="0"
-                           title={`${m.name} — ${S.tier}: ${b.label}${other.length ? ` · ${S.also} ${other.join(' / ')}` : ''}`}>
-                        <span class="wb__tn">
-                          <span class="wb__tn__n" set:text={m.name} />
-                          {other.length ? (<span class="wb__talso" set:text={`+${other.join('/')}`} />) : null}
-                        </span>
-                        <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
-                        <button type="button" class="wb__pin" data-pin={m.name} aria-pressed="false" aria-label={`${S.pin}: ${m.name}`}>
-                          <svg class="wb__pin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <!-- ============================================= Spalte 2: Ansicht -->
-    {/* Bis 14.08.2026 zwei Teilspalten (wb__pane--a/wb__pane--b) in
-        `.wb__mid{grid-template-columns:1fr 1fr}`. Seit der Fundort-Korrektur
-        hat ein Erz bis zu 27 Fundorte (gemessen 15.08., vorher stand „bis zu
-        21" in CONTEXT.md), die schmale Bahn reichte dafuer nicht mehr — jetzt
-        EIN Paneel, EINE Bahn: Kopf, Fundorte, Beste Stationen (D-01..D-03).
-        Physik, Qualitaetsstufen und „Steine mit diesem Erz" sind mit der
-        Detailspalte ersatzlos gestrichen, nicht verschoben. */}
-    <div class="wb__pane wb__pane--mid chamf">
-      <div class="wb__id" id="wb-orehead">
-        <div class="wb__idrow">
-          <div class="wb__idl">
-            <h2 id="wb-name" set:text={sel.name} />
-            <div class="wb__tags" id="wb-tags"></div>
-          </div>
-          <div class="wb__sigbox">
-            <span class="wb__lbl" set:text={S.signature} />
-            <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
-          </div>
-          {/* Der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
-              `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
-              erkennt ihn dadurch ohne Sonderfall. */}
-          <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
-            <svg class="wb__pinbig__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
-            <span id="wb-pinsel-txt" set:text={S.pin} />
-          </button>
-        </div>
-      </div>
-      {/* Fundort-Kopf (Phase 12, D-01/D-11) — Geschwister von wb-orehead, nicht
-          Overlay: renderLocation() in assets/mining-workbench.js schaltet
-          beide gegeneinander um. Zurueck-Knopf -> Textblock (Name + Unterzeile
-          aus Art · System · Anflugpunkten); rechts davon steht ABSICHTLICH
-          nichts -- Signaturkasten und grosser Anheft-Knopf entfallen
-          ersatzlos, kein Platzhalter. wb-locname/wb-locsub bleiben server-
-          seitig leer, weil sie erst zur Laufzeit ueber textContent befuellt
-          werden (kein Ladezustand noetig, die Daten liegen bereits inline). */}
-      <div class="wb__id wb__id--loc" id="wb-lochead" hidden>
-        <div class="wb__idrow">
-          <button type="button" class="wb__back" id="wb-back" data-back aria-label={S.backToOre} title={S.backToOre}>
-            <svg class="wb__back__i" aria-hidden="true" focusable="false"><use href="#wb-i-back" /></svg>
-          </button>
-          <div class="wb__idl">
-            <h2 id="wb-locname" />
-            <div class="wb__locsub" id="wb-locsub"></div>
-          </div>
-        </div>
-      </div>
-      <div class="wb__scroll" id="wb-oreview">
-        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
-        <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
-        <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
-      </div>
-      <div class="wb__scroll" id="wb-locview" hidden></div>
-    </div>
-
-    <!-- =========================================== Spalte 3: Signaturen -->
-    <div class="wb__pane wb__pane--sig chamf">
-      {/* AUSLAGERN (16.08.2026). Der Knopf sitzt absolut in der oberen rechten
-          Ecke der SPALTE, nicht in der Presetzeile darunter: die Presetzeile
-          (#wb-pre-pick) ist fuer Gaeste verborgen, ein Knopf darin waere ohne
-          Konto unerreichbar. Absolut positioniert, weil die Spalte sonst eine
-          vierte Kopfzeile bekaeme und die Presets ihren dokumentierten Platz
-          „an oberster Stelle" (D-04) verlieren wuerden; .wb__pane traegt
-          bereits position:relative. Die Polsterung von .wb__pre ist rechts
-          entsprechend aufgeweitet, damit das „+" nicht darunter laeuft. */}
-      <button type="button" class="wb__popb" id="wb-pop" data-help={hlp('popout')}
-              title={S.popout} aria-label={S.popout}>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
-      </button>
-      {/* Platzhalter, solange die Listen ausgelagert sind. Ohne ihn stuende
-          hier eine leere Spalte — von „ausgelagert" nicht zu unterscheiden.
-          Der Knopf darin ist der zweite Rueckweg neben dem Fensterkreuz. */}
-      <div class="wb__popslot" id="wb-pop-slot" hidden>
-        <p set:text={S.popoutOut} />
-        <button type="button" class="wb__popslot__b" id="wb-pop-back" set:text={S.popoutBack} />
-      </div>
-      {/* #wb-pop-body ist die EINE Huelle, die ins Fremdfenster wandert —
-          Presetzeile und beide Listen zusammen, damit ein Preset dort
-          aufrufbar bleibt. Sie erbt die Flex-Eigenschaften, die vorher direkt
-          an .wb__pre/.wb__stack gegen die Spalte wirkten (s. Stilblock);
-          ohne das faellt die Hoehenkette und die Listen scrollen nicht mehr. */}
-      <div class="wb__popbody" id="wb-pop-body">
-      {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
-          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst AN
-          OBERSTER STELLE der Spalte: das ist die sichtbare Form von „ein
-          gemeinsames Preset-System" (D-04). Seit Phase 10 (D-03) steht hier
-          kein Reiter mehr darueber — die Kopfpolsterung dieses Blocks ist
-          deshalb direkt auf den Spaltenrand abgestimmt (s. Stilblock).
-          ⚠ Die ANGEHEFTETEN Listen selbst bleiben im localStorage: sie sind
-          der Arbeitsstand und muessen ohne Konto funktionieren. Ans Konto
-          geht nur, was man benennt und wieder aufruft. Zwei getrennte Dinge;
-          sie in einen Topf zu werfen hiesse, Gaesten das Anheften wegzunehmen.
-          Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
-          erst der Browser (VBAccount.session()). */}
-      <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
-        <div class="wb__pre__pick" id="wb-pre-pick" hidden>
-          <div class="wb__pre__bar">
-            <span class="wb__lbl" set:text={S.presets} />
-            <button type="button" class="wb__pre__b is-go" id="wb-pre-new" title={S.presetNew} aria-label={S.presetNew}>+</button>
-          </div>
-          <div class="wb__pre__list" id="wb-preset-list"></div>
-        </div>
-        {/* Eigene Zeile statt window.prompt(): der Dialog ist in vielen
-            Browsern unterdrueckt, sieht ueberall anders aus und laesst sich
-            nicht beschriften. */}
-        <div class="wb__pre__row" id="wb-pre-edit" hidden>
-          <input class="wb__pre__in" id="wb-pre-name" type="text" maxlength="60" placeholder={S.presetName} aria-label={S.presetName} />
-          <button type="button" class="wb__pre__b is-go" id="wb-pre-ok" title={S.presetSave} aria-label={S.presetSave}>✓</button>
-          <button type="button" class="wb__pre__b" id="wb-pre-cancel" title={S.presetCancel} aria-label={S.presetCancel}>×</button>
-        </div>
-        <p class="wb__pre__msg" id="wb-pre-msg" hidden></p>
-        <p class="wb__pre__guest" id="wb-pre-guest">
-          <span set:text={S.presetGuest} /> <a id="wb-pre-login" href="#" set:text={S.presetLogin} />
-        </p>
-      </div>
-
-      {/* Signaturen und Fundort-Merkliste stehen seit Phase 10 (D-03) BEIDE
-          gleichzeitig sichtbar untereinander statt hinter einem Reiter — ein
-          Reiter zeigt zwangslaeufig immer nur eine der beiden Listen, das war
-          der eigentliche Grund fuer den teuersten Befund aus CONTEXT.md.
-          Beide Kaesten teilen sich die Resthoehe der Spalte (flex:1 1 0 mit
-          min-height:0 an .wb__sec2, s. Stilblock) und tragen je eine eigene
-          Ueberschrift mit Zaehler (Formvorbild #wb-loch in Spalte 2). Die ids
-          wb-pinsh/wb-lpinsh sind neu, weil wb-loch in Spalte 2 bereits die
-          Fundort-Ueberschrift des gewaehlten Erzes belegt. */}
-      <div class="wb__stack">
-        <div class="wb__sec2">
-          <h4 id="wb-pinsh" set:text={S.signatures} />
-          <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
-        </div>
-        <div class="wb__sec2">
-          <h4 id="wb-lpinsh" set:text={S.locations} />
-          <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
-        </div>
-      </div>
-      </div>{/* #wb-pop-body */}
-    </div>
-  </div>
-
-  {/* Aus der Rig-Leiste ist eine Fusszeile geworden: geblieben ist die
-      Station — sie gehoert zum Ertrag, nicht zum Brechen — und daneben der
-      Weg zum Rechner. Der Verweis ist kein Zierrat: die Brechbarkeit war
-      hier eine sichtbare Zusage, und wer sie sucht, muss erfahren, wohin sie
-      gegangen ist, statt sie fuer geloescht zu halten. */}
-  <div class="wb__rig chamf">
-    {/* ⚠ VERBORGEN, NICHT ENTFERNT (16.08.2026, auf Ansage: „logik dahinter
-        drinlassen aber nur dem user nicht zeigen"). Das <select> bleibt samt
-        Optionen im Dokument, `S.ref` wird weiterhin geladen, gespeichert und
-        von renderDetail() gelesen — die Rangliste markiert also unveraendert
-        eine Station als „deine Wahl". Nur waehlen kann man sie nicht mehr:
-        ohne Bedienelement bleibt es beim gespeicherten Wert, bei neuen
-        Besuchern also bei der ersten Station. Das ist die Folge der Ansage,
-        keine Nebenwirkung — wer die Markierung ganz loswerden will, muss
-        renderDetail() anfassen, nicht dieses Attribut.
-        `hidden` am <label>, nicht am <select>: sonst bliebe die
-        Beschriftung „Station" allein stehen. */}
-    <label class="wb__rgrp" hidden><span class="wb__lbl" set:text={S.station} />
-      {/* ⚠ KEIN data-help mehr: eine Erklaerung fuer ein Bedienelement, das
-          niemand sieht, ist keine Hilfe, sondern ein Eintrag im
-          Elemente-Modus, der auf nichts zeigt. Der Schluessel
-          mining.ctl.station ist mit entfallen — Zusicherung 7 in
-          verify-help.mjs haelt beides zusammen. */}
-      <select class="wb__sel" id="wb-ref">{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
-    </label>
-    <a class="wb__frac" id="wb-frac" href={fracturingPath} data-help={hlp('fracturing')}>
-      <span class="wb__frac__ico" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/></svg>
-      </span>
-      <span class="wb__frac__t"><b set:text={S.fracturing} /><span class="wb__lbl" id="wb-frac-ore" set:text={sel.name} /></span>
-      <span class="wb__frac__go" set:text={S.fracturingGo} />
-    </a>
-  </div>
-    </div>{/* .wb__cscreen */}
-  </div>{/* .wb__chassis */}
-</section>
-
-<script type="application/json" id="wb-data" set:html={JSON.stringify(payload)}></script>
-<script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>
-
+{/* Das Stilblatt steht VOR dem Markup (27.10.2026): dahinter malte der Browser
+    das Geraet erst ungestylt (riesige Stecknadeln, rohe Listen), solange er
+    auf mining-workbench.js wartete, das synchron dazwischen laedt. Gemessen
+    gut 0,6 s rohes HTML und ein Layoutsprung von 0,88 (CLS). Die Reihenfolge
+    der Stilblaetter untereinander bleibt dieselbe. */}
 <style is:inline>
 /* ⚠ Randlos (15.08.2026): das Gehaeuse soll bis an die Fensterkanten laufen.
    Die vorherigen 1560 px Deckel plus 1–2 rem Polsterung liessen es bei 1920
@@ -1891,3 +1516,385 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 :root[data-theme="light"] .wb__bhd--legendary,.wb__tile--legendary{--rar:#a7040d}
 :root[data-theme="light"] .wb__mult i{--phos:#016b24}
 </style>
+
+<section class="wb" id="db" data-wb
+         style={`--wb-frame:url('${chassisFrame}');--wb-plug:url('${chassisPlug}')`}>
+  {/* ⚠ DIE WAND hinter dem Geraet (16.08.2026, auf Ansage: der Grund zwischen
+      Fensterrand und Geraetekante soll als RAUM lesen, nicht als flache
+      Flaeche). Ein ECHTES Element, kein `::before` — eine Pseudo-Selektor-
+      Familie mit Verlauf meldet `verify:layers` (Zusicherung 5) zu Recht als
+      Fund ohne Registry-Eintrag; das hat dieses Bauteil schon zweimal
+      gekostet.
+      Sie steht VOR dem Gehaeuse im Markup und liegt mit z-index 0 dahinter —
+      das Gehaeuse hebt sich mit z-index 1 darueber. */}
+  <span class="wb__wall" aria-hidden="true"></span>
+
+  {/* ───────────────────────── Gehaeuse ─────────────────────────
+      Der Rahmen ist EINE Grafik mit festem Seitenverhaeltnis, die Bildflaeche
+      ein Prozentkasten darin. KEIN `border-image`/9-Slice: das streckt die
+      Mitte jeder Kante, und genau dort hat die Vorlage ihre Zeichnung
+      (Steckerbuchse mit Lueftungsgittern unten, Seriennummer oben rechts).
+      Zuschnitt und Prozentwerte sind gemessen, nicht geschaetzt —
+      .planning/sketches/tools/make-chassis.mjs hat sie eingemessen, Belege in
+      .planning/sketches/010-chassis-asset/README.md.
+
+      ⚠ Der Titel steht als HTML IM Kopfband, nicht in der Grafik: er muss
+      uebersetzbar, suchbar und die echte <h1> der Seite bleiben. Nur die
+      aufgedruckte Seriennummer ist Dekoration.
+
+      ⚠ Kein `backdrop-filter` mehr auf den Paneelen — hinter einem deckenden
+      Gehaeuse hat Glas nichts zu spiegeln. Damit ist die Paarung clip-path
+      ueber backdrop-filter (840 ms Menue-Eintritt) baulich ausgeschlossen. */}
+  {/* EIN Symbol fuer 38 Knoepfe (37 Kacheln + der grosse am gewaehlten Erz).
+      Als <use>-Verweis statt 38-mal dasselbe Pfad-d im HTML — und als Symbol
+      statt Schriftzeichen, weil „☆/★" in jeder Schrift anders aussieht, nicht
+      zur Strichstaerke der uebrigen Symbole passt und sich nicht faerben
+      laesst wie ein Icon. Der Zustand kommt NICHT aus einem zweiten Symbol,
+      sondern aus `.is-on` am Knopf: das Skript tauscht damit kein Markup mehr
+      aus. Reissbrettnadel, nicht Stern — die Handlung heisst „Anheften". */}
+  <svg class="wb__sprite" aria-hidden="true" focusable="false" width="0" height="0">
+    <symbol id="wb-i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9.5 3h5M11 3v6.2L7.4 13h9.2L13 9.2V3M12 13v8" />
+    </symbol>
+    {/* Stift fuer "Umbenennen" an der Preset-Zeile (Phase 10, D-02 Form 1) —
+        dieselbe Bauform wie #wb-i-pin daneben, kein zweites Icon-Verfahren. */}
+    <symbol id="wb-i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z" />
+      <path d="M13.5 6.5l4 4" />
+    </symbol>
+    {/* Muelleimer fuer "Loeschen" (Phase 10, D-01) — dasselbe Symbol, das der
+        Konto-Bereich fuer seine Gefahrenzone benutzt (#ic-trash in
+        AccountDashboard.astro). Kein neu erfundenes Zeichen, und "×" bleibt
+        dadurch eindeutig "Abbrechen/Schliessen". */}
+    <symbol id="wb-i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6" />
+    </symbol>
+    {/* Kreispfeil — "aktualisieren mit der aktuellen Auswahl" (Phase 10, D-02
+        Form 2: Ueberschreiben). Betreiber-Befund 15.08.2026: das vorherige
+        Zeichen (Pfeil nach unten in eine offene Wanne) ist die uebliche
+        Download-Glyphe und wurde genau so gelesen — hier wird aber nichts
+        heruntergeladen, sondern der gespeicherte Inhalt mit dem Arbeitsstand
+        ersetzt. */}
+    {/* ⚠⚠ Betreiber-Befund "das icon ist nicht in der mitte", zweimal gemeldet.
+        Der erste Anlauf richtete die BOUNDING BOX am Papierkorb aus (Mitte y 12,5)
+        und lag falsch: der Pfeilsporn oben rechts zieht die Box mit, dadurch rutschte
+        der RING auf y 12,52 und hing sichtbar unter der Mitte. Bei einem Ring liest
+        das Auge den Kreismittelpunkt, nicht die Box — der Sporn darf ueberhaengen.
+        Jetzt: Ring-Mitte exakt 12/12, Aussendurchmesser 17,50. Die Nachbarn messen
+        17,80 (Papierkorb) und 17,12 (Stift); ein Kreis wirkt bei gleicher Box
+        groesser als eine eckige Form, deshalb bewusst am unteren Ende der Spanne.
+        stroke-width 2.32 gleicht die 0,861-Skalierung aus, damit der sichtbare
+        Strich wieder bei 2 landet wie bei allen anderen Symbolen.
+        ⭐ Lehre fuer das naechste Symbol: an der Form ausrichten, die die Figur
+        traegt (Ring, Korpus), nicht an der Umgrenzung samt Auslegern. */}
+    <symbol id="wb-i-update" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.32" stroke-linecap="round" stroke-linejoin="round">
+      <g transform="translate(12,12) scale(0.861) translate(-12,-12)">
+        <path d="M21 3v6h-6" />
+        <path d="M21 12a9 9 0 1 1-3.2-6.9L21 9" />
+      </g>
+    </symbol>
+    {/* Pfeil zurueck — der Zurueck-Knopf im Fundort-Kopf (Phase 12, D-01),
+        fuehrt zur zuletzt gewaehlten Erz-Ansicht. Dieselbe Stilfamilie wie
+        jedes andere Symbol hier. */}
+    <symbol id="wb-i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4 4 12l7 8M4 12h16" />
+    </symbol>
+  </svg>
+
+  <div class="wb__chassis">
+    {/* ⚠ Titel und Vorzeile standen bis 15.08.2026 sichtbar im Kopfband. Der
+        Betreiber hat sie als „ultra ugly" gestrichen — das Blech traegt seine
+        eigene Beschriftung (die aufgedruckte Seriennummer), ein zweiter
+        Schriftzug darauf war Fremdkoerper. Die <h1> BLEIBT, nur unsichtbar:
+        sie ist die Ueberschrift des Dokuments und darf fuer Suchmaschinen und
+        Vorleseprogramme nicht verschwinden. Die Vorzeile ist ersatzlos weg —
+        die Spielversion steht ohnehin in der Fusszeile. */}
+    <h1 class="wb__ctitle" set:text={title} />
+    <div class="wb__cscreen">
+      {/* ⚠ Der Schirm-Schleier ist ein ECHTES Element, kein `::before`.
+          Zwei Gruende, beide bezahlt:
+          · Er muss UEBER dem Inhalt liegen — Lichtsaum, Glasspiegelung und
+            Vignette wirken nur, wenn sie auf allem liegen. Ein `background` am
+            Schirm liegt dahinter und ist wirkungslos.
+          · `verify:layers` (Zusicherung 5) meldet jede Pseudo-Selektor-Familie
+            mit Verlauf als Fund ohne Registry-Eintrag. Eine Klasse tut das
+            nicht. */}
+      <span class="wb__glare" aria-hidden="true"></span>
+      {/* Die Vorzeile ist seit 16.08.2026 OPTIONAL und auf der Mining-Seite
+          abbestellt. Sie zaehlte „Physik, Gesteinsarten" auf — beides ist am
+          12.08. mit dem Fracturing-Rechner auf /fracturing.html gezogen, der
+          Satz versprach also seit vier Tagen Funktionen, die es hier nicht
+          mehr gibt. Ohne Vorzeile faellt auch ihr Zeilenkasten weg, statt
+          leer stehen zu bleiben. */}
+      {lead && <p class="wb__clead" set:text={lead} />}
+
+  <div class="wb__grid">
+
+    <!-- ========================================= Spalte 1: alle 37 Erze -->
+    <div class="wb__pane wb__pane--list chamf">
+      <div class="wb__filters">
+        {/* Seit 16.08.2026 SECHS Schritte. Vier beschrieben das Werkzeug nur
+            bis zur Haelfte: die Presets kamen ueberhaupt nicht vor, das
+            ausgelagerte Fenster ebenso wenig — beides Dinge, die man ohne
+            Hinweis nicht findet („erklaert es nicht zb die presets, das
+            popout undso"). Reihenfolge folgt dem Arbeitsweg: erst anheften
+            (4), dann benennen (5), dann herausloesen (6). */}
+        <ToolHelp tool="mining" lang={lang} steps={6} />
+        <div class="wb__frow">
+          <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
+          <span class="wb__c" id="wb-count">{minerals.length}</span>
+        </div>
+        {/* Der Chip „nur brechbar" stand hier bis 12.08. mit daneben — er
+            urteilte ueber eine Ausruestung, die es auf dieser Seite nicht
+            mehr gibt, und ist mit dem Rechner umgezogen. */}
+        <div class="wb__chips" data-help={hlp('system')}>
+          {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
+        </div>
+      </div>
+      {/* Kachelraster, seit 12.08.2026 in GROSS. Vorher: 79x41 px, Name auf
+          rund 54 px beschnitten, Anheft-Ziel 28 px in der Ecke ueber der
+          Signatur. Der Nutzer hat das zweimal als zu klein gemeldet — beim
+          zweiten Mal ausdruecklich mit „wir haben da genug platz".
+          Jetzt vier statt fuenf Spalten in einer breiteren Saeule: der Name
+          bekommt die volle Kachelbreite (rund 94 px), Signatur und
+          Anheft-Knopf teilen sich die zweite Zeile.
+          ⚠ Das kostet die alte Zusage „alle 37 ohne Scrollen bei 1280x720":
+          bei 1920x1080 stehen weiterhin alle 37 im Bild, bei 1280x720 scrollt
+          die Liste. Gemessen und begruendet in
+          .planning/notes/signaturliste-anheften.md. */}
+      {/* data-help sitzt am Kasten, nicht mehr an einem einzelnen Raster:
+          seit der Gruppierung gibt es mehrere .wb__tiles, und Zusicherung 3
+          von verify:help zaehlt die Anker je Sprache — ein Anker bleibt ein
+          Anker, egal wie viele Baender darunter liegen. */}
+      <div class="wb__scroll" id="wb-list" data-help={hlp('tiles')}>
+        {/* ⚠ `div`, NICHT `section`: die Seite traegt eine globale
+            `section{padding:…}`-Regel, die der Gruppe hier 99 px oben/unten
+            und 72 px seitlich verpasst hat — das Kachelraster verlor dadurch
+            eine Spalte und die Liste wurde dreimal so hoch. Dieselbe Falle
+            steckte schon im Konto-Panel. */}
+        {groups.map((g) => (
+          <div class="wb__grp" data-grp={g.id}>
+            <h3 class="wb__ghd">
+              <span class="wb__ghd__t" set:text={g.label} />
+              <span class="wb__ghd__g" set:text={g.solo ? `${g.gear} · ${g.solo}` : g.gear} />
+              <span class="wb__ghd__n num" set:text={String(g.total)} />
+            </h3>
+            {g.bands.map((b) => (
+              <div class="wb__band" data-band={b.band}>
+                {g.solo ? null : (
+                <h4 class={`wb__bhd wb__bhd--${b.band}`}>
+                  <span class="wb__bhd__t" set:text={b.label} />
+                  <i class="wb__bhd__r" aria-hidden="true"></i>
+                  <span class="wb__bhd__n num" set:text={String(b.items.length)} />
+                </h4>
+                )}
+                <div class="wb__tiles">
+                  {b.items.map((m) => {
+                    const other = methodsOf(m).filter((x) => x !== g.id).map((x) => (S as any)[x]);
+                    return (
+                      <div class={`wb__tile wb__tile--${b.band}${m.name === sel.name ? ' is-sel' : ''}`}
+                           data-min={m.name} role="button" tabindex="0"
+                           title={`${m.name} — ${S.tier}: ${b.label}${other.length ? ` · ${S.also} ${other.join(' / ')}` : ''}`}>
+                        <span class="wb__tn">
+                          <span class="wb__tn__n" set:text={m.name} />
+                          {other.length ? (<span class="wb__talso" set:text={`+${other.join('/')}`} />) : null}
+                        </span>
+                        <span class="wb__ts num" set:text={m.sig ? String(m.sig) : '—'} />
+                        <button type="button" class="wb__pin" data-pin={m.name} aria-pressed="false" aria-label={`${S.pin}: ${m.name}`}>
+                          <svg class="wb__pin__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- ============================================= Spalte 2: Ansicht -->
+    {/* Bis 14.08.2026 zwei Teilspalten (wb__pane--a/wb__pane--b) in
+        `.wb__mid{grid-template-columns:1fr 1fr}`. Seit der Fundort-Korrektur
+        hat ein Erz bis zu 27 Fundorte (gemessen 15.08., vorher stand „bis zu
+        21" in CONTEXT.md), die schmale Bahn reichte dafuer nicht mehr — jetzt
+        EIN Paneel, EINE Bahn: Kopf, Fundorte, Beste Stationen (D-01..D-03).
+        Physik, Qualitaetsstufen und „Steine mit diesem Erz" sind mit der
+        Detailspalte ersatzlos gestrichen, nicht verschoben. */}
+    <div class="wb__pane wb__pane--mid chamf">
+      <div class="wb__id" id="wb-orehead">
+        <div class="wb__idrow">
+          <div class="wb__idl">
+            <h2 id="wb-name" set:text={sel.name} />
+            <div class="wb__tags" id="wb-tags"></div>
+          </div>
+          <div class="wb__sigbox">
+            <span class="wb__lbl" set:text={S.signature} />
+            <b class="num" id="wb-sig" set:text={sel.sig ? String(sel.sig) : S.none} />
+          </div>
+          {/* Der zweite, grosse Weg am gerade gewaehlten Erz. Traegt
+              `data-pin` erst zur Laufzeit; der delegierte Klick-Handler
+              erkennt ihn dadurch ohne Sonderfall. */}
+          <button type="button" class="wb__pinbig" id="wb-pinsel" aria-pressed="false" data-help={hlp('pinbtn')}>
+            <svg class="wb__pinbig__i" aria-hidden="true" focusable="false"><use href="#wb-i-pin" /></svg>
+            <span id="wb-pinsel-txt" set:text={S.pin} />
+          </button>
+        </div>
+      </div>
+      {/* Fundort-Kopf (Phase 12, D-01/D-11) — Geschwister von wb-orehead, nicht
+          Overlay: renderLocation() in assets/mining-workbench.js schaltet
+          beide gegeneinander um. Zurueck-Knopf -> Textblock (Name + Unterzeile
+          aus Art · System · Anflugpunkten); rechts davon steht ABSICHTLICH
+          nichts -- Signaturkasten und grosser Anheft-Knopf entfallen
+          ersatzlos, kein Platzhalter. wb-locname/wb-locsub bleiben server-
+          seitig leer, weil sie erst zur Laufzeit ueber textContent befuellt
+          werden (kein Ladezustand noetig, die Daten liegen bereits inline). */}
+      <div class="wb__id wb__id--loc" id="wb-lochead" hidden>
+        <div class="wb__idrow">
+          <button type="button" class="wb__back" id="wb-back" data-back aria-label={S.backToOre} title={S.backToOre}>
+            <svg class="wb__back__i" aria-hidden="true" focusable="false"><use href="#wb-i-back" /></svg>
+          </button>
+          <div class="wb__idl">
+            <h2 id="wb-locname" />
+            <div class="wb__locsub" id="wb-locsub"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wb__scroll" id="wb-oreview">
+        <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
+        <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
+        <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
+      </div>
+      <div class="wb__scroll" id="wb-locview" hidden></div>
+    </div>
+
+    <!-- =========================================== Spalte 3: Signaturen -->
+    <div class="wb__pane wb__pane--sig chamf">
+      {/* AUSLAGERN (16.08.2026). Der Knopf sitzt absolut in der oberen rechten
+          Ecke der SPALTE, nicht in der Presetzeile darunter: die Presetzeile
+          (#wb-pre-pick) ist fuer Gaeste verborgen, ein Knopf darin waere ohne
+          Konto unerreichbar. Absolut positioniert, weil die Spalte sonst eine
+          vierte Kopfzeile bekaeme und die Presets ihren dokumentierten Platz
+          „an oberster Stelle" (D-04) verlieren wuerden; .wb__pane traegt
+          bereits position:relative. Die Polsterung von .wb__pre ist rechts
+          entsprechend aufgeweitet, damit das „+" nicht darunter laeuft. */}
+      <button type="button" class="wb__popb" id="wb-pop" data-help={hlp('popout')}
+              title={S.popout} aria-label={S.popout}>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+      </button>
+      {/* Platzhalter, solange die Listen ausgelagert sind. Ohne ihn stuende
+          hier eine leere Spalte — von „ausgelagert" nicht zu unterscheiden.
+          Der Knopf darin ist der zweite Rueckweg neben dem Fensterkreuz. */}
+      <div class="wb__popslot" id="wb-pop-slot" hidden>
+        <p set:text={S.popoutOut} />
+        <button type="button" class="wb__popslot__b" id="wb-pop-back" set:text={S.popoutBack} />
+      </div>
+      {/* #wb-pop-body ist die EINE Huelle, die ins Fremdfenster wandert —
+          Presetzeile und beide Listen zusammen, damit ein Preset dort
+          aufrufbar bleibt. Sie erbt die Flex-Eigenschaften, die vorher direkt
+          an .wb__pre/.wb__stack gegen die Spalte wirkten (s. Stilblock);
+          ohne das faellt die Hoehenkette und die Listen scrollen nicht mehr. */}
+      <div class="wb__popbody" id="wb-pop-body">
+      {/* Presets — benannte Zusammenstellungen BEIDER Listen, kontogebunden
+          (Tabelle mining_sig_presets, RLS wie crafting_entries). Bewusst AN
+          OBERSTER STELLE der Spalte: das ist die sichtbare Form von „ein
+          gemeinsames Preset-System" (D-04). Seit Phase 10 (D-03) steht hier
+          kein Reiter mehr darueber — die Kopfpolsterung dieses Blocks ist
+          deshalb direkt auf den Spaltenrand abgestimmt (s. Stilblock).
+          ⚠ Die ANGEHEFTETEN Listen selbst bleiben im localStorage: sie sind
+          der Arbeitsstand und muessen ohne Konto funktionieren. Ans Konto
+          geht nur, was man benennt und wieder aufruft. Zwei getrennte Dinge;
+          sie in einen Topf zu werfen hiesse, Gaesten das Anheften wegzunehmen.
+          Serverseitig steht hier der Gast-Zustand — welcher Fall gilt, weiss
+          erst der Browser (VBAccount.session()). */}
+      <div class="wb__pre" id="wb-pre" data-help={hlp('presets')}>
+        <div class="wb__pre__pick" id="wb-pre-pick" hidden>
+          <div class="wb__pre__bar">
+            <span class="wb__lbl" set:text={S.presets} />
+            <button type="button" class="wb__pre__b is-go" id="wb-pre-new" title={S.presetNew} aria-label={S.presetNew}>+</button>
+          </div>
+          <div class="wb__pre__list" id="wb-preset-list"></div>
+        </div>
+        {/* Eigene Zeile statt window.prompt(): der Dialog ist in vielen
+            Browsern unterdrueckt, sieht ueberall anders aus und laesst sich
+            nicht beschriften. */}
+        <div class="wb__pre__row" id="wb-pre-edit" hidden>
+          <input class="wb__pre__in" id="wb-pre-name" type="text" maxlength="60" placeholder={S.presetName} aria-label={S.presetName} />
+          <button type="button" class="wb__pre__b is-go" id="wb-pre-ok" title={S.presetSave} aria-label={S.presetSave}>✓</button>
+          <button type="button" class="wb__pre__b" id="wb-pre-cancel" title={S.presetCancel} aria-label={S.presetCancel}>×</button>
+        </div>
+        <p class="wb__pre__msg" id="wb-pre-msg" hidden></p>
+        <p class="wb__pre__guest" id="wb-pre-guest">
+          <span set:text={S.presetGuest} /> <a id="wb-pre-login" href="#" set:text={S.presetLogin} />
+        </p>
+      </div>
+
+      {/* Signaturen und Fundort-Merkliste stehen seit Phase 10 (D-03) BEIDE
+          gleichzeitig sichtbar untereinander statt hinter einem Reiter — ein
+          Reiter zeigt zwangslaeufig immer nur eine der beiden Listen, das war
+          der eigentliche Grund fuer den teuersten Befund aus CONTEXT.md.
+          Beide Kaesten teilen sich die Resthoehe der Spalte (flex:1 1 0 mit
+          min-height:0 an .wb__sec2, s. Stilblock) und tragen je eine eigene
+          Ueberschrift mit Zaehler (Formvorbild #wb-loch in Spalte 2). Die ids
+          wb-pinsh/wb-lpinsh sind neu, weil wb-loch in Spalte 2 bereits die
+          Fundort-Ueberschrift des gewaehlten Erzes belegt. */}
+      <div class="wb__stack">
+        <div class="wb__sec2">
+          <h4 id="wb-pinsh" set:text={S.signatures} />
+          <div class="wb__scroll" id="wb-pins" data-help={hlp('pins')}></div>
+        </div>
+        <div class="wb__sec2">
+          <h4 id="wb-lpinsh" set:text={S.locations} />
+          <div class="wb__scroll" id="wb-locpins" data-help={hlp('shortlist')}></div>
+        </div>
+      </div>
+      </div>{/* #wb-pop-body */}
+    </div>
+  </div>
+
+  {/* Aus der Rig-Leiste ist eine Fusszeile geworden: geblieben ist die
+      Station — sie gehoert zum Ertrag, nicht zum Brechen — und daneben der
+      Weg zum Rechner. Der Verweis ist kein Zierrat: die Brechbarkeit war
+      hier eine sichtbare Zusage, und wer sie sucht, muss erfahren, wohin sie
+      gegangen ist, statt sie fuer geloescht zu halten. */}
+  <div class="wb__rig chamf">
+    {/* ⚠ VERBORGEN, NICHT ENTFERNT (16.08.2026, auf Ansage: „logik dahinter
+        drinlassen aber nur dem user nicht zeigen"). Das <select> bleibt samt
+        Optionen im Dokument, `S.ref` wird weiterhin geladen, gespeichert und
+        von renderDetail() gelesen — die Rangliste markiert also unveraendert
+        eine Station als „deine Wahl". Nur waehlen kann man sie nicht mehr:
+        ohne Bedienelement bleibt es beim gespeicherten Wert, bei neuen
+        Besuchern also bei der ersten Station. Das ist die Folge der Ansage,
+        keine Nebenwirkung — wer die Markierung ganz loswerden will, muss
+        renderDetail() anfassen, nicht dieses Attribut.
+        `hidden` am <label>, nicht am <select>: sonst bliebe die
+        Beschriftung „Station" allein stehen. */}
+    <label class="wb__rgrp" hidden><span class="wb__lbl" set:text={S.station} />
+      {/* ⚠ KEIN data-help mehr: eine Erklaerung fuer ein Bedienelement, das
+          niemand sieht, ist keine Hilfe, sondern ein Eintrag im
+          Elemente-Modus, der auf nichts zeigt. Der Schluessel
+          mining.ctl.station ist mit entfallen — Zusicherung 7 in
+          verify-help.mjs haelt beides zusammen. */}
+      <select class="wb__sel" id="wb-ref">{refineries.map((r, i) => (<option value={String(i)} set:text={r.n} />))}</select>
+    </label>
+    <a class="wb__frac" id="wb-frac" href={fracturingPath} data-help={hlp('fracturing')}>
+      <span class="wb__frac__ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/></svg>
+      </span>
+      <span class="wb__frac__t"><b set:text={S.fracturing} /><span class="wb__lbl" id="wb-frac-ore" set:text={sel.name} /></span>
+      <span class="wb__frac__go" set:text={S.fracturingGo} />
+    </a>
+  </div>
+    </div>{/* .wb__cscreen */}
+  </div>{/* .wb__chassis */}
+</section>
+
+<script type="application/json" id="wb-data" set:html={jsonForScript(payload)}></script>
+<script is:inline src={versioned('assets/mining-workbench.js', '/assets/mining-workbench.js')}></script>

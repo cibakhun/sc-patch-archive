@@ -1,0 +1,306 @@
+---
+// HANGAR — EIN Körper für DE und EN (D-12). Ein Schiff steht in einer 3D-
+// Halle (assets/hangar-viewer.js), der Besucher dreht es und wechselt über
+// das Karussell am Fuß, daneben die Kennwerte mit Balken im Flottenvergleich
+// und der Weg zum Datenblatt. Vorbild ist der Garagen-Bildschirm aus World of
+// Tanks: das Fahrzeug ist der Bildschirm, alles andere rahmt es.
+//
+// Die Modelle kommen aus demselben Export wie der Holo-Viewer der
+// Datenblätter (src/data/holo-meshes.json -> /holo/*.glb), im Hangar in der
+// Fassung mit ausgefahrenem Fahrwerk (/hangar/geo/*.glb, wo es sie gibt),
+// hier aber als massiver Metallrumpf unter Hallenlicht.
+//
+// Diese Datei ist nur die SZENE: Leinwand, Laden, Rueckfall,
+// Modellpolitik (HOLD, Halle, Crew), Seitenpalette und Import-Map. Titel,
+// Kennwerte, Werkzeuge, Dock und Controller stehen in HangarPage.astro und
+// liegen ueber den <slot /> im selben Kasten wie #hg-canvas. Vertrag:
+// src/lib/hangar/stage.ts und .planning/notes/hangar-naht.md.
+import holoMeshes from '../../data/holo-meshes.json';
+import hangarAssets from '../../data/hangar-assets.json';
+import { localeFromPath } from '../../i18n/ui';
+import { versioned } from '../../lib/assetVersion';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
+import type { StageConfig } from '../../lib/hangar/stage';
+import makerLogos from '../../data/manufacturer-logos.json';
+import { jsonForScript } from '../../lib/safeJson';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+
+const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string }> }).meshes;
+// Echte Modelle (scripts/build-hangar-assets.mjs): Schiffe mit Werkslack, die
+// Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
+type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number; gear?: boolean; pool?: { images: number; bytes: number; fresh: number } };
+type Gear = { pose: 'aus' | 'ein' | 'keins' | 'offen'; contacts?: number[][]; ground?: number; below?: { depth: number }[] };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }>; geo?: Record<string, Asset>; gear?: Record<string, Gear>; interior?: Record<string, Asset> };
+const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
+// Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
+// Schiff zeigt solange die Geometrie-Fassung.
+// Freelancer und Andromeda sind seit dem 29.10.2026 frei: Krisz schickte
+// Bilder beider Geometrie-Fassungen (grau ohne Lack, bei der Andromeda
+// zerfallene, verschobene Rumpfteile aus dem Ausdünnen). Die Werkslack-
+// Fassungen tragen das ganze Modell.
+const HOLD: Record<string, string> = {};
+const [hallKey, hallAsset] = Object.entries(real.hall ?? {})[0] ?? [];
+// Lampen der Halle aus dem Spiel (vom Build neben das GLB gelegt, Name nach
+// der Halle, nicht nach der Datei: die LOD-Fassung teilt sie); Version aus
+// dem Inhalt, sonst hielte der Jahres-Cache die alte Liste.
+const contentV = (files: string[]) => {
+  const h = createHash('sha1');
+  for (const f of files) h.update(readFileSync(f));
+  return h.digest('hex').slice(0, 8);
+};
+const hallDir = 'public/hangar/hall';
+const lightsFile = hallKey ? `${hallDir}/${hallKey}.lights.json` : '';
+const lights = lightsFile && existsSync(lightsFile) ? `/hangar/hall/${hallKey}.lights.json?v=${contentV([lightsFile])}` : null;
+// Spiegelungssonden aus dem Spiel (PC-Lauf „Hallensonden“): Liste und die
+// HDR-Karten daneben, alle im Hash.
+const probesFile = hallKey ? `${hallDir}/${hallKey}.probes.json` : '';
+const probeDir = `${hallDir}/${hallKey}.probes`;
+const probes = probesFile && existsSync(probesFile)
+  ? `/hangar/hall/${hallKey}.probes.json?v=${contentV([probesFile, ...(existsSync(probeDir) ? readdirSync(probeDir).sort().map((f) => `${probeDir}/${f}`) : [])])}`
+  : null;
+// Leichtere Stufe für Telefone (<halle>-lod1.glb, ohne Einrichtung), sobald
+// das Manifest auf die volle Stufe zeigt; Lampen und Sonden teilt sie.
+const liteFile = hallKey ? `${hallDir}/${hallKey}-lod1.glb` : '';
+const lite = liteFile && existsSync(liteFile) && hallAsset?.url !== `/hangar/hall/${hallKey}-lod1.glb`
+  ? { url: `/hangar/hall/${hallKey}-lod1.glb?v=${contentV([liteFile])}`, bytes: statSync(liteFile).size }
+  : null;
+// Einrichtung als eigene Datei (scripts/build-hall-furniture.mjs schneidet
+// sie beim Build aus der vollen Stufe): Dann ist die leichtere Stufe die
+// Halle für alle, und der Rechner lädt nur die Möbel dazu. Die Wände der
+// vollen Stufe sehen im Bild gleich aus und kosten das Vierfache an
+// Dreiecken (Vergleich 2026-10-08).
+const furnFile = hallKey ? `${hallDir}/${hallKey}.furniture.glb` : '';
+const furniture = lite && existsSync(furnFile)
+  ? { url: `/hangar/hall/${hallKey}.furniture.glb?v=${contentV([furnFile])}`, bytes: statSync(furnFile).size }
+  : null;
+// Telefone laden die Möbel nicht (641 000 Dreiecke). Was der leichteren
+// Stufe sonst fehlt, Glas, Rohre und die Füllung, bringt derselbe Build
+// als eigene kleine Datei ohne Möbel und Texturen (60 KB, 2026-10-10).
+const patchFile = hallKey ? `${hallDir}/${hallKey}.patch.glb` : '';
+const patch = furniture && existsSync(patchFile)
+  ? { url: `/hangar/hall/${hallKey}.patch.glb?v=${contentV([patchFile])}`, bytes: statSync(patchFile).size }
+  : null;
+// Aufzugsschacht aus dem Spiel (scripts/build-hangar-assets.mjs, Art lift):
+// Bausatz und Lampenliste; welcher Bausatz zur Halle gehört, sagt
+// HALL_SHAFT im Viewer, hier gibt es einen. Die Liste bekommt ihre Version
+// aus dem Inhalt wie die Lampen der Halle.
+const liftAsset = Object.values(real.lift ?? {})[0];
+const liftJson = liftAsset?.json ? `public${liftAsset.json}` : '';
+// Dazu das Schachttor (Art lift, Eintrag gate): Tor und Bahnen seiner Teile.
+const gateAsset = liftAsset?.gate;
+const gateJson = gateAsset?.json ? `public${gateAsset.json}` : '';
+const gate = gateAsset && gateJson && existsSync(gateJson)
+  ? { url: withV(gateAsset), json: `${gateAsset.json}?v=${contentV([gateJson])}`, bytes: gateAsset.bytes }
+  : null;
+// Und der feste Rand um die Öffnung (Eintrag rand): Gitterstegring mit
+// Leuchten und Schriftzug, so wie er im Spiel um den Schacht liegt.
+const randAsset = liftAsset?.rand;
+const randJson = randAsset?.json ? `public${randAsset.json}` : '';
+const rand = randAsset && randJson && existsSync(randJson)
+  ? { url: withV(randAsset), json: `${randAsset.json}?v=${contentV([randJson])}`, bytes: randAsset.bytes }
+  : null;
+// Geräusche von Plattform und Tor (scripts/build-hangar-sound.mjs): ein
+// Ordner, eine Version aus dem Inhalt aller Dateien. Der Viewer lädt sie
+// erst, wenn jemand den Ton einschaltet (hangarSound).
+const tonDir = 'public/hangar/ton';
+const tonFiles = existsSync(tonDir) ? readdirSync(tonDir).filter((f) => f.endsWith('.mp3')).sort() : [];
+const sound = tonFiles.length ? { dir: '/hangar/ton/', v: contentV(tonFiles.map((f) => `${tonDir}/${f}`)) } : null;
+const lift = liftAsset && liftJson && existsSync(liftJson)
+  ? { url: withV(liftAsset), json: `${liftAsset.json}?v=${contentV([liftJson])}`, bytes: liftAsset.bytes, gate, rand, sound }
+  : null;
+// Werkstatt aus anderen Spielhallen (scripts/build-hangar-assets.mjs, Art
+// props; PC-Auftrag .planning/notes/hangar-werkstatt.md): Requisiten,
+// Boden-Decals als eigene kleine Datei und die Anordnung um das Landefeld.
+const workAsset = real.props?.werkstatt;
+const workJson = workAsset?.json ? `public${workAsset.json}` : '';
+// Dazu der Gerätesatz für den Wartungsplatz am Schiff (scripts/build-hangar-
+// dienst.mjs packt ihn aus dem Gerätekatalog; nicht im Manifest, das der
+// Asset-Build neu schreibt).
+const dienstFile = 'public/hangar/props/dienst.glb';
+const dienst = existsSync(dienstFile) ? { url: `/hangar/props/dienst.glb?v=${contentV([dienstFile])}`, bytes: statSync(dienstFile).size } : null;
+// Und der Satz der Hallendeko (Zonen an Wänden und Stirnseiten, derselbe Packer: build-hangar-dienst.mjs deko)
+const dekoFile = 'public/hangar/props/deko.glb';
+const deko = existsSync(dekoFile) ? { url: `/hangar/props/deko.glb?v=${contentV([dekoFile])}`, bytes: statSync(dekoFile).size } : null;
+const workshop = workAsset && workJson && existsSync(workJson)
+  ? { url: withV(workAsset), json: `${workAsset.json}?v=${contentV([workJson])}`, bytes: workAsset.bytes, boden: workAsset.boden ? { url: withV(workAsset.boden), bytes: workAsset.boden.bytes } : null, dienst, deko }
+  : null;
+// Werkhalle für Bodenfahrzeuge (scripts/build-hangar-assets.mjs, Art
+// werkhalle; PC-Lauf 24.10.2026): Garage aus dem Spiel, Maße mit Tor und
+// Leuchtkörpern, Bühnen als eigene Datei. WERK im Viewer stellt sie hinter
+// die Westnische; die Seite gibt nur weiter, was im Manifest steht.
+const [werkKey, werkAsset] = Object.entries(real.werkhalle ?? {}).find(([, a]) => a.json) ?? [];
+const werkJson = werkAsset?.json ? `public${werkAsset.json}` : '';
+const buehneAsset = werkAsset?.buehne ? Object.values(real.werkhalle ?? {}).find((a) => a.url === werkAsset.buehne) : null;
+// Leitungen unter ihrer Decke (scripts/build-werkhalle-decke.mjs packt sie aus
+// dem Gerätekatalog; nicht im Manifest, wie der Gerätesatz)
+const werkDeckeFile = 'public/hangar/props/werkdecke.glb';
+const werkDecke = existsSync(werkDeckeFile) ? { url: `/hangar/props/werkdecke.glb?v=${contentV([werkDeckeFile])}`, bytes: statSync(werkDeckeFile).size } : null;
+const werk = werkAsset && werkJson && existsSync(werkJson)
+  ? { id: werkKey, url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null, decke: werkDecke }
+  : null;
+// floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
+const hall = !hallAsset?.room ? null : furniture && lite
+  ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift, workshop, werk }
+  : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift, workshop, werk };
+// Crew: mit Skelett und Spielanimationen (scripts/build-hangar-crew.mjs,
+// Modul assets/hangar-crew.js), sonst die starre Figur aus hangar-assets
+const crewRig = existsSync('src/data/hangar-crew.json') ? JSON.parse(readFileSync('src/data/hangar-crew.json', 'utf8')) : null;
+const crewAsset = Object.values(real.npc ?? {})[0];
+const crew = crewRig?.url && existsSync(`public${crewRig.url}`)
+  ? { url: `${crewRig.url}?v=${crewRig.v}`, bytes: crewRig.bytes, module: versioned('assets/hangar-crew.js', '/assets/hangar-crew.js') }
+  : crewAsset ? { url: withV(crewAsset) } : null;
+
+// Fahrwerk (PC-Lauf „Hangar-Flotte“, scripts/build-hangar-gear.mjs): Die
+// Geometrie-Fassung des Hangars (public/hangar/geo/, ohne Innenraum, im Raum
+// von public/holo/) zeigt die Beine, wie das Spiel sie beim Landen ausfährt
+// und einfedert. Worauf das Schiff steht (opts.gear, standOn im Viewer):
+// pose 'aus' auf seinen Aufstandspunkten, solange kein Teil tiefer als
+// GEAR_SINK unter ihrer Ebene hängt; 'keins' (Bodenfahrzeuge, Schweber)
+// waagrecht auf dem tiefsten Punkt der Datei, ebenso 'aus' mit nur zwei
+// Punkten (Beine mit demselben Helfer fallen zusammen: Mantis, Meteor,
+// Buccaneer) waagrecht auf der Federhöhe. Sonst wie bisher auf dem
+// tiefsten Punkt des Hüllquaders: 'ein' (die Beine der Fassung sind noch
+// eingefahren, auf der Federhöhe allein schwebte das Schiff), 'offen' (kein
+// Export) und tiefere Teile in Flugstellung (Flossen, Scharniere, Klappen;
+// gear.below). Der Werkslack (real.ships) ist bis Teil C ein anderer
+// Export mit ungefederten Beinen; trägt eine Webdatei die Beine wie die
+// Fassung, setzt der PC ships.<slug>.gear, dann steht auch sie darauf.
+// verify:hangar-gear prüft dieselbe Grenze gegen die Dateien.
+const GEAR_SINK = 0.2;
+const standFor = (g?: Gear) => {
+  const deep = Math.max(0, ...(g?.below ?? []).map((b) => b.depth)) > GEAR_SINK;
+  if (g?.pose === 'aus' && (g.contacts?.length ?? 0) >= 3 && !deep) return { contacts: g.contacts };
+  if ((g?.pose === 'keins' || (g?.pose === 'aus' && !deep)) && Number.isFinite(g.ground)) return { ground: g.ground };
+  return null;
+};
+const geo = real.geo ?? {};
+const gear = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const s = standFor(real.gear?.[id]), tex = real.ships?.[id];
+  return s ? [...(geo[id] ? [[geo[id].url, s]] : []), ...(tex?.gear === true && !HOLD[id] ? [[tex.url, s]] : [])] : [];
+}));
+
+// Bilder des Werkslacks liegen in der gemeinsamen Ablage /hangar/tex/
+// (scripts/lib/glb-texpool.mjs); ihre Summe je Datei zählt der Ladebalken mit.
+const texBytes = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const t = real.ships?.[id];
+  return t?.pool?.bytes && !HOLD[id] ? [[t.url, t.pool.bytes]] : [];
+}));
+
+// Begehbare Innenräume (PC-Lauf „Hangar-Innenleben“): je Werkslack-Datei
+// der Innenraum im selben Modellraum, dazu Lampen und Einstiegspunkte
+// (/hangar-innen/<id>.json, src/pages/hangar-innen/[id].json.ts). Beides
+// lädt der Viewer erst beim Einsteigen.
+const interior = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const t = real.ships?.[id], i = real.interior?.[id];
+  return t && i && !HOLD[id] ? [[t.url, { url: withV(i), meta: `/hangar-innen/${id}.json${i.v ? `?v=${i.v}` : ''}`, bytes: i.bytes }]] : [];
+}));
+
+// Herstellerlogo je Kürzel für das Hologramm über dem Fahrzeug (buildHolo):
+// dieselben Bilder wie im Datenblatt (ShipDetail.astro), full = mit Schriftzug
+const logos = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
+  const f = shipFacts(id, lang), l = (makerLogos as Record<string, { file: string; w: number; h: number; full?: boolean }>)[f.maker];
+  return l && f.makerCode ? [[f.makerCode, { url: `/assets/manufacturers/${l.file}`, ar: Math.round((l.w / l.h) * 1000) / 1000, full: !!l.full }]] : [];
+}));
+
+const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
+// `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
+// "</script>" darf ihn nicht beenden.
+const stage = {
+  viewer: viewerSrc,
+  opts: { hall, crew, gear, texBytes, logos, interior },
+  models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
+    withV(geo[id] ?? meshes[id]),
+    real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
+    shipFacts(id, lang).makerCode,
+    // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026), dazu die
+    // Gravlev-Räder (Dragonfly, Nox, X1, Pulse, HoverQuad), obwohl sie im
+    // Spiel als Raumschiff zählen (Krisz 25.10.2026: „dragonfly undso
+    // gehört auch zur bodenfahrzeugen“)
+    shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle',
+  ] as const])),
+} satisfies StageConfig;
+const payload = jsonForScript(stage);
+---
+<style is:inline>
+/* theme.css bringt die --font-*-Tokens nicht mit (jede Seite ihren Stapel,
+   vgl. assets/data-page.css); derselbe Stapel wie dort. */
+:root{--font-display:'Orbitron','Rajdhani',system-ui,sans-serif;--font-ui:'Rajdhani','Barlow',system-ui,sans-serif;--font-body:'Barlow',system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased}
+.hg *,.hg *::before,.hg *::after{box-sizing:border-box}
+:root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16}
+/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
+:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef8;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1c1f25;--muted:#4e586c;--accent:#7c5104;--accent-2:#49556d;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#9aa6bd;--line:rgba(148,104,38,.3);--line-soft:rgba(43,46,52,.12)}
+/* Ab 761 px fuellt die Buehne, was das Dock vom Fenster uebrig laesst
+   (HangarPage.astro: die Seite ist dort eine Spalte von Fensterhoehe). */
+.hg-stage{position:relative;flex:1 1 auto;min-height:0;background:var(--bg);overflow:hidden;color:var(--hg-on);isolation:isolate}
+.hg-canvas{position:absolute;inset:0}
+.hg-canvas::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,transparent 50%,color-mix(in srgb,var(--bg) 55%,transparent) 100%)}
+.hg-canvas canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.hg-canvas canvas:active{cursor:grabbing}
+/* Name als Hologramm ueber dem Fahrzeug (hangar-viewer.js, buildHolo): der
+   Titelblock als leuchtende Tafel. Lage und Groesse setzt der Viewer (Schrift
+   des Namens --holo-n, Breite --holo-max, Aufbau --holo-on von 0 bis 1);
+   aufgebaut wird von unten, an der Kante laeuft eine Abtastlinie (data-run).
+   Feste Farben: Licht ueber der Halle, in beiden Farbschemen gleich; die
+   Regeln mit Farbe stehen darum unter der dunklen Insel [data-media-surface]
+   (die Buehne), so laesst build-light-overrides sie stehen. */
+[data-media-surface] .hg-holo{position:absolute;left:0;top:0;z-index:1;width:max-content;max-width:var(--holo-max);padding:.3em .5em .42em;transform-origin:50% 100%;pointer-events:none;text-align:center;font-size:var(--holo-n,40px);line-height:1;color:#eef8ff;background:radial-gradient(closest-side,rgb(3 9 18/.42),rgb(3 9 18/.24) 62%,transparent);text-shadow:0 0 .3em rgb(2 6 12/.7),0 0 .5em rgb(110 205 255/.4);clip-path:inset(calc((1 - var(--holo-on,1)) * 100%) -2em -2em);-webkit-mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);will-change:transform}
+.hg-holo[hidden]{display:none}
+.hg-holo p{margin:0}
+.hg-holo p[hidden]{display:none}
+[data-media-surface] .hg-holo__k{display:flex;align-items:center;justify-content:center;gap:.26em;margin-bottom:.16em!important;color:rgb(170 232 255/.85)}
+/* links und rechts je eine Lichtlinie, die zum Logo hin aufleuchtet */
+[data-media-surface] .hg-holo__k::before,[data-media-surface] .hg-holo__k::after{content:"";flex:0 0 1.25em;height:1px;background:linear-gradient(90deg,transparent,currentColor);box-shadow:0 0 6px rgb(110 205 255/.45)}
+[data-media-surface] .hg-holo__k::after{background:linear-gradient(270deg,transparent,currentColor)}
+/* Herstellerlogo als Licht: das Bild ist nur Maske, Farbe und Glanz kommen vom Hologramm; das Glühen sitzt auf der Hülle, die Maske schnitte es sonst ab. Groß genug, dass Zeichen und Schriftzug darin lesbar sind (bei .95em war der Schriftzug nur ein Strich), dahinter ein schwacher Hof */
+[data-media-surface] .hg-holo__logo{position:relative;display:block;height:1.5em;aspect-ratio:var(--logo-ar,1);max-width:4.2em;filter:drop-shadow(0 0 .04em rgb(160 225 255/.9)) drop-shadow(0 0 .3em rgb(90 190 255/.5))}
+.hg-holo__logo[data-full]{height:1.85em;max-width:5.4em}
+[data-media-surface] .hg-holo__logo::before{content:"";position:absolute;inset:-30% -18%;border-radius:50%;background:radial-gradient(closest-side,rgb(110 205 255/.2),rgb(110 205 255/.06) 60%,transparent)}
+[data-media-surface] .hg-holo__logo span{position:relative;display:block;width:100%;height:100%;background:linear-gradient(105deg,transparent 42%,rgb(255 255 255/.9) 50%,transparent 58%) 150% 0/300% 100% no-repeat,linear-gradient(180deg,#f6fcff,#c4ebff 45%,#6cc6ff);-webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat;animation:hg-glint 7s ease-in-out infinite}
+@keyframes hg-glint{0%,64%{background-position:150% 0,0 0}100%{background-position:-50% 0,0 0}}
+.hg-holo[data-still] .hg-holo__logo span{animation:none}
+[data-media-surface] .hg-holo__m{font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-12);text-transform:uppercase;color:rgb(205 230 246/.88)}
+.hg-holo__n{margin:.06em 0 .12em!important;font-family:var(--font-display);font-weight:900;font-size:1em;line-height:1.04;text-wrap:balance;text-shadow:-.025em 0 rgb(255 80 130/.3),.025em 0 rgb(80 205 255/.45),0 0 .16em rgb(130 215 255/.65),0 0 .5em rgb(2 6 12/.55)}
+[data-media-surface] .hg-holo__r{font-size:max(13px,.31em);color:rgb(205 230 246/.85)}
+/* Austrittskante unter dem Block, Abtastlinie beim Auf- und Abbau */
+.hg-holo::before,.hg-holo::after{content:"";position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgb(160 226 255/.8),transparent)}
+.hg-holo::before{left:14%;right:14%;bottom:0;box-shadow:0 0 6px rgb(110 205 255/.5)}
+.hg-holo::after{left:3%;right:3%;top:calc((1 - var(--holo-on,1)) * 100%);height:2px;background:linear-gradient(90deg,transparent,rgb(170 232 255/.95) 18%,rgb(170 232 255/.95) 82%,transparent);box-shadow:0 0 12px 1px rgb(110 205 255/.65);opacity:0}
+.hg-holo[data-run]::after{opacity:1}
+/* weniger Bewegung: nur ein- und ausblenden */
+.hg-holo[data-still]{clip-path:none;opacity:var(--holo-on,1)}
+.hg-load{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);width:min(140px,40%);pointer-events:none;opacity:.7}
+.hg-load span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.hg-load[hidden]{display:none}
+.hg-load b{display:block;height:2px;background:var(--line-soft);border-radius:2px;overflow:hidden}
+.hg-load b i{display:block;height:100%;width:var(--p,0%);background:var(--hg-amber)}
+.hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
+.hg-fallback[hidden]{display:none}
+@media (max-width:760px){
+  .hg-stage{flex:none;height:clamp(360px,62svh,560px)}
+  /* Senkrecht wischen scrollt die Seite, waagerecht ziehen dreht das Schiff.
+     OrbitControls setzt touch-action:none als Inline-Stil, nur !important
+     schlaegt ihn. */
+  .hg-canvas canvas{touch-action:pan-y!important}
+}</style>
+
+    <section class="hg-stage" data-hg-stage aria-label={de ? '3D-Hangar' : '3D hangar'}>
+      <div class="hg-canvas" id="hg-canvas"></div>
+      <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b></div>
+      {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt */}
+      <div class="hg-fallback" id="hg-fallback" role="status" hidden
+        data-blocked={de ? 'Dein Browser lässt gerade keine 3D-Grafik zu, meist nach einem Absturz des Grafiktreibers. Dann hilft es, alle seine Fenster zu schließen und ihn neu zu öffnen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is not allowing 3D graphics right now, usually after a graphics driver crash. Closing all of its windows and opening it again fixes that. The figures and the data sheet are still available.'}
+        data-soft={de ? 'Dein Browser zeichnet gerade ohne Grafikkarte, für die Halle ist das zu langsam. Hardwarebeschleunigung einschalten oder den Browser neu starten. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is drawing without the graphics card right now, which is too slow for the hangar. Turn on hardware acceleration or restart the browser. The figures and the data sheet are still available.'}
+        data-failed={de ? 'Die 3D-Ansicht konnte nicht starten. Neu laden hilft meist. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'The 3D view could not start. Reloading the page usually helps. The figures and the data sheet are still available.'}
+        data-lost={de ? 'Die Grafikkarte hat die 3D-Ansicht verloren. Sobald sie wieder bereit ist, lädt die Seite neu; tut sie das nicht, die Seite selbst neu laden. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'The graphics card dropped the 3D view. The page reloads as soon as it is available again; if it does not, reload the page yourself. The figures and the data sheet are still available.'}
+      >{de ? 'Dein Browser kann die 3D-Ansicht nicht darstellen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser cannot show the 3D view. The figures and the data sheet are still available.'}</div>
+      <slot />
+    </section>
+<script type="application/json" id="hg-stage" set:html={payload}></script>
+<script type="importmap" is:inline>
+{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
+</script>

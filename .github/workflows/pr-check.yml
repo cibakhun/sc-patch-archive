@@ -1,0 +1,96 @@
+# Pruefung jedes Pull Requests gegen staging oder main — VOR dem Merge statt
+# erst danach im Deploy. Derselbe Baustein wie die Deploys
+# (build-site-image.yml): das Image wird gebaut, das Tor im Dockerfile
+# laeuft, Indexierbarkeit und Browser-Rauchtest am fertigen Image. Es wird
+# nichts hochgeladen und nichts veroeffentlicht.
+#
+# Absichtlich `pull_request` und NICHT `pull_request_target`: ein PR aus
+# einem Fork laeuft so ohne Secrets und mit Leserecht. pull_request_target
+# wuerde fremden Code mit den Rechten dieses Repos ausfuehren.
+#
+# Vorschau oder Live? PRs nach staging werden als Vorschau gebaut (Tor
+# scharf, check-gate laeuft mit), PRs nach main als Live-Build.
+name: PR-Pruefung
+
+on:
+  pull_request:
+    branches: [staging, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  site:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-site-image.yml
+    with:
+      staging: ${{ github.base_ref == 'staging' }}
+      tags: |
+        sc-patch-archive:pr-${{ github.event.pull_request.number }}
+
+  # Der Bot hat kein Tor im Seiten-Image; sein Selbsttest und die
+  # Importprobe laufen im Bot-Dockerfile. Gebaut wird nur, nichts geschoben.
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Bot-Image bauen (mit Selbsttest)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: discord/bot/Dockerfile
+          push: false
+          provenance: false
+          tags: verse-base-rank-bot:pr-${{ github.event.pull_request.number }}
+
+  # Neue oder angehobene Abhaengigkeiten mit bekannter Luecke ab "high"
+  # halten den PR auf.
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      # Die Pruefung braucht den Abhaengigkeitsgraphen des Repos (Settings ->
+      # Code security -> Dependency graph). Ist er aus, antwortet GitHub 403.
+      # Das ist eine Einstellung, kein Befund am PR: dann WARNUNG statt rot.
+      # Jede andere Antwort bleibt ein Fehler.
+      - name: Abhaengigkeitsgraph verfuegbar?
+        id: graph
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if OUT=$(gh api "repos/$REPO/dependency-graph/compare/$BASE...$HEAD" 2>&1 >/dev/null); then
+            echo "on=true" >> "$GITHUB_OUTPUT"
+          elif [ "$OUT" = "gh: Forbidden (HTTP 403)" ]; then
+            # Nur genau diese Antwort wird zur Warnung: so antwortet die API
+            # mit dem Job-Token, solange der Graph aus ist (beobachtet am
+            # 29.10.2026). Ratenlimit und fehlendes Recht bringen eigenen
+            # Text mit ("rate limit", "Resource not accessible") und bleiben
+            # Fehler, wie alles andere.
+            echo "::warning::Abhaengigkeitsgraph nicht verfuegbar, die Abhaengigkeitspruefung entfaellt ($OUT). Einschalten: Settings -> Code security -> Dependency graph."
+            echo "on=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Abhaengigkeitsvergleich nicht abrufbar: $OUT"
+            exit 1
+          fi
+      - if: steps.graph.outputs.on == 'true'
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        with:
+          fail-on-severity: high
