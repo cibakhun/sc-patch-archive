@@ -242,3 +242,32 @@ Branch `pc/hangar-komponenten`, auf der Probe (4839514f). Je Schiff:
   nginx/default.conf“, 36 von 36 grün (465,5 s). `STAGING=1`: „Artefakt:
   Vorschau-Build (STAGING=1) — site-weit noindex, Sitemaps absichtlich
   leer“, 36 von 36 grün (431,4 s).
+
+## Durchsicht Cloud (31.10.2026)
+
+- **Röntgenbild aller 231 Schiffe** (Rumpf durchsichtig, Komponenten farbig
+  nach Art, Serienteil am leeren Anker hell): 1 481 Ports, 647 mit Teil im
+  Rumpf, 816 Serienteile zur Laufzeit gesetzt, 18 ohne Modell (die acht
+  Klassen oben), 0 außerhalb des Rumpf-Hüllquaders. Durchgesehen: Gladius
+  (Kraftwerk mittig hinter der Kanzel, Kühler beidseitig, Quantum unten),
+  Avenger Titan, Carrack (alles im Maschinenraum hinten), Cutlass Black,
+  Idris M und die Übersichtsbögen; nichts ragt sichtbar heraus.
+- **Echte Seite** (`hangar.html?ship=…`, Grafik mittel): Zeile
+  „Tauschteile: 0 getauscht, Serienkomponenten an leeren Ankern: n von n“
+  bei Avenger Titan 7/7, Gladius 2/2, Centurion 3/3. Mit Werkstatt-Link
+  (`?layout=`) und getauschtem Kraftwerk bzw. Kühler: „1 getauscht“, das
+  Serienteil am getauschten Port entfällt (Avenger 7 → 6). Kein Seitenfehler.
+- **check:hangar-shader** gegen den gebauten Stand mit Komponenten: Avenger
+  Titan 76 Programme, Carrack 98, Idris M 77, Hull C mit `--innen`; jeweils
+  höchstens 16 Texturen ✓. (Centurion `--innen` ist kein Befund: Bodenfahrzeug
+  ohne Einsteigen-Knopf.)
+- **82 neu dezimierte Rümpfe** gegen die Basis 00fbd61d (= staging) aus sechs
+  Richtungen gerendert, je Bildpaar Pixelunterschied: Median 0,057 %, höchstens
+  Centurion 1,26 %, Wolf 0,97 %, Santok.yai 0,86 %, Sabre 0,86 %. Die
+  Differenzbilder der beiden obersten zeigen nur Kantenpixel, keine
+  fehlende oder verschobene Fläche.
+- **verify:hangar [13]** unterscheidet jetzt Bordwaffen und Komponenten:
+  Klinken Waffenmodelle 112, Ports 37, Komponentenmodelle 311,
+  Serienteil-Anker 1 783; jede `stock`-Adresse muss dem Muster folgen und als
+  Datei in `dist/` liegen. Vorgeführt rot: POWR_AEGS_S04_Idris_SCItem.glb aus
+  `dist/` gelöscht (Serienteil von 36 Ankern) → [13] FEHLER.
