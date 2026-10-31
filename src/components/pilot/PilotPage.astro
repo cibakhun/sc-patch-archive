@@ -842,6 +842,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
   import { encodeLayout } from '../../../assets/hangar-layouts.js';
   import { escapeHtml as esc } from '../../lib/escape';
   import { cssUrl } from '../../lib/cssUrl';
+  import { HANGAR_ON } from '../../lib/hangarFlag';
 
   const app = document.getElementById('ppApp');
   if (app) {
@@ -909,7 +910,8 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
       }
       const favs = favsRes.error ? [] : favsRes.data || [];
       type Lo = { ship: string; name?: string; slots?: Record<string, string>; racks?: Record<string, string>; paint?: string };
-      const shown = (showRes.error ? [] : showRes.data || []).map((r: { entry: Lo }) => r.entry).filter((e: Lo) => e && e.ship);
+      // Angeheftete Loadouts öffnen den Hangar; ohne ihn (Live-Bau) keine.
+      const shown = HANGAR_ON ? (showRes.error ? [] : showRes.data || []).map((r: { entry: Lo }) => r.entry).filter((e: Lo) => e && e.ship) : [];
 
       const name = p.display_name || p.handle;
 

@@ -30,6 +30,7 @@ import { compAttr } from '../../lib/shipComponents';
 import { patchesFor } from '../../lib/patchSpine';
 import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
+import { HAS_HANGAR } from '../../lib/seo';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
 
@@ -364,7 +365,7 @@ a{color:inherit;text-decoration:none}
     <div class="sdb__heroin">
       <div class="sdb__eyebrow">{de ? 'Registratur // Flottenkatalog' : 'Registry // Fleet Catalog'}</div>
       <h1>{de ? 'Schiffe & Fahrzeuge' : 'Ships & Vehicles'}</h1>
-      <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de ? 'Alle Schiffe im 3D-Hangar ansehen →' : 'See every ship in the 3D hangar →'}</a>
+      {HAS_HANGAR && <a class="sdb__hangar" href={de ? '/de/hangar.html' : '/hangar.html'}>{de ? 'Alle Schiffe im 3D-Hangar ansehen →' : 'See every ship in the 3D hangar →'}</a>}
     </div>
   </section>
 

@@ -16,6 +16,7 @@ import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { HAS_HANGAR } from '../lib/seo';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Crumb {
@@ -199,16 +200,21 @@ const deckGroups: DeckGroup[] = [
         current: current === L('/schiffe.html') || current.startsWith(L('/schiffe/')),
         icon: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
       },
-      {
-        href: L('/hangar.html'),
-        label: 'Hangar',
-        // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
-        media: THUMB('img-hammerhead'),
-        sub: t('nav.deck.sub.hangar'),
-        current: current === L('/hangar.html'),
-        // Hallentor: Bogen, Boden, Einfahrt.
-        icon: '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M2 20h20"/><path d="M8 20v-5h8v5"/>',
-      },
+      // Nur im Vorschau-Bau: live gibt es den Hangar nicht (HAS_HANGAR).
+      ...(HAS_HANGAR
+        ? [
+            {
+              href: L('/hangar.html'),
+              label: 'Hangar',
+              // Dasselbe Motiv, mit dem die Hangar-Seite geteilt wird (ogImage).
+              media: THUMB('img-hammerhead'),
+              sub: t('nav.deck.sub.hangar'),
+              current: current === L('/hangar.html'),
+              // Hallentor: Bogen, Boden, Einfahrt.
+              icon: '<path d="M3 20V11a9 9 0 0 1 18 0v9"/><path d="M2 20h20"/><path d="M8 20v-5h8v5"/>',
+            },
+          ]
+        : []),
       {
         href: L('/missionen.html'),
         label: t('nav.missions'),

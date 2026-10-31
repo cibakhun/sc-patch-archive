@@ -97,6 +97,12 @@ Sieben Grundsätze, ausführlich in § 4 des Konzepts:
   als benannter Punkt nach `.planning/WINDOWS.md` an den Betreiber.
 - Bei sichtbaren Ergebnissen: erst hinsehen (Screenshot/Render), dann
   berichten. Kennzahlen messen die Untergrenze, nicht die Güte.
+- Hangar nur im Vorschau-Bau (Krisz 31.10.2026): live bekommt alles von
+  staging außer dem Hangar. Seiten, Modelle, Skripte und jeder Link dorthin
+  entstehen nur mit `STAGING=1` — Hangar-Arbeit also immer als Vorschau
+  bauen und prüfen. Neue Links zum Hangar fragen `HAS_HANGAR` (Seite) bzw.
+  `HANGAR_ON` (Skript); Schalter in `scripts/lib/hangar-switch.mjs`,
+  `verify:hangar-schalter` prüft beide Richtungen.
 - 3D-Hangar: Software-WebGL (Cloud, CI) erlaubt 32 Texturen je Shader,
   Chrome unter Windows nur 16 — darüber bleibt ein Material dort
   unsichtbar, und jede Aufnahme hier sieht trotzdem gut aus. Vor der
