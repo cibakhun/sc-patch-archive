@@ -66,6 +66,15 @@ export const NOINDEX_PATHS: ReadonlySet<string> = new Set([
 export const IS_STAGING: boolean =
   typeof process !== 'undefined' && process.env?.STAGING === '1';
 
+/**
+ * Der Hangar gehoert nur in den Vorschau-Bau (Krisz 31.10.2026: live alles
+ * ausser dem Hangar). Ohne ihn fehlen seine Seiten und Dateien, also darf
+ * auch nichts dorthin verlinken: Navigation, Datenblatt, Schiffsliste,
+ * Konto und Pilotenseite fragen diesen Wert. Dieselbe Regel wie
+ * hangarImBau() in scripts/lib/hangar-switch.mjs (Begruendung dort).
+ */
+export const HAS_HANGAR: boolean = IS_STAGING;
+
 /** true, wenn dieser Pfad (DE oder EN) auf noindex stehen soll. */
 export function isNoindex(pathname: string): boolean {
   if (IS_STAGING) return true;

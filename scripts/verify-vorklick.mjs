@@ -65,9 +65,15 @@
    Schiene A: liest ausschliesslich dist/ — kein git, kein Netz, kein
    Kindprozess.                                                          */
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
+import { hangarImArtefakt } from './lib/hangar-switch.mjs';
 
 const DIST = 'dist';
-const MIN_SEITEN = 18000;    /* Stand 29.10.2026: 18222 */
+/* Seitenklinke je Artefakt. Der Live-Bau traegt die gut 450 Hangar-Seiten
+   nicht (Krisz 31.10.2026, scripts/lib/hangar-switch.mjs) — keine gesenkte
+   Klinke, sondern ein anderes Artefakt mit eigener. */
+const MIN_SEITEN = hangarImArtefakt(DIST)
+  ? 18000                    /* Vorschau-Bau, Stand 29.10.2026: 18222 */
+  : 17500;                   /* Live-Bau ohne Hangar, Stand 31.10.2026: 17756 */
 const MIN_FASSADEN = 340;    /* Stand 29.10.2026: 356 = 222× #holoytgo (Schiffsseiten) + 84× data-yt + 50× data-lb="yt:" */
 
 /* Host -> Zusage. Ein Treffer gilt fuer den Host selbst und jede Subdomain. */

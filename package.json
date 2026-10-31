@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro dev",
-    "build": "node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build && node scripts/_write-build-stamp.mjs && node scripts/_write-csp-hashes.mjs",
+    "build": "node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-fav-thumbs.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build && node scripts/_hangar-switch.mjs && node scripts/_write-build-stamp.mjs && node scripts/_write-csp-hashes.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "gate": "node scripts/run-gate.mjs",
@@ -29,6 +29,7 @@
     "verify:sync": "node scripts/verify-sync.mjs",
     "verify:shipcard": "node scripts/verify-shipcard.mjs",
     "verify:shipconsole": "node scripts/verify-shipconsole.mjs",
+    "verify:hangar-schalter": "node scripts/verify-hangar-schalter.mjs",
     "verify:hangar": "node scripts/verify-hangar.mjs",
     "verify:hangar-hall": "node scripts/verify-hangar-hall.mjs",
     "verify:hangar-gear": "node scripts/verify-hangar-gear.mjs",

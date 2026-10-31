@@ -45,6 +45,11 @@
                Wird bei JEDEM Lauf als Schuldenposten gedruckt — ein
                ausgesetztes Tor darf nicht in Vergessenheit geraten.
      why       Begruendung fuer rail: null
+     nurMitHangar  true: prueft den Hangar und laeuft nur gegen einen Bau,
+               der ihn enthaelt (Vorschau, STAGING=1). Gegen den Live-Bau
+               meldet run-gate die Strecke als "ohne Hangar" statt sie
+               auszufuehren; dass dort wirklich kein Hangar steht, prueft
+               verify:hangar-schalter (scripts/lib/hangar-switch.mjs).
    ============================================================ */
 
 export const CHECKS = [
@@ -217,12 +222,26 @@ export const CHECKS = [
     // verify:shipcard (14-01 -> 14-04): erst beheben/gruen, dann scharf.
   },
   {
+    // Neuzugang (31.10.2026, Krisz: live alles ausser dem Hangar): direkt vor
+    // den Hangar-Strecken, weil erst diese Pruefung es zulaessig macht, dass
+    // run-gate sie gegen den Live-Bau weglaesst. Liest jede gebaute Seite
+    // einmal als Text, wenige Sekunden. Kein env-Feld: kein git, kein Netz,
+    // kein Kindprozess — nur dist/.
+    id: 'verify:hangar-schalter',
+    npm: 'verify:hangar-schalter',
+    script: 'scripts/verify-hangar-schalter.mjs',
+    rail: 'A',
+    checks:
+      'der Hangar steht genau im Vorschau-Bau: live keine Hangar-Seiten, -Ordner, -Modelle und -Skripte in dist/ und keine Seite, die eine Hangar-Seite verlinkt oder etwas aus /hangar/ laedt; in der Vorschau beide Sprachen, die Buchtdokumente (Klinke) und die Modelle (Klinke), und das Menue fuehrt hin; Klinke fuer gelesene Seiten',
+  },
+  {
     // Direkt nach den beiden Schiffstoren: dieselbe Datenfamilie, und unter
     // einer Sekunde schnell genug, dass ein gebrochener Hangar-Join vor dem
     // langen audit:site auffaellt. Kein env-Feld: kein git, kein Netz, kein
     // Kindprozess — liest nur dist/.
     id: 'verify:hangar',
     npm: 'verify:hangar',
+    nurMitHangar: true,
     script: 'scripts/verify-hangar.mjs',
     rail: 'A',
     checks:
@@ -284,6 +303,7 @@ export const CHECKS = [
     // sie mitgeben).
     id: 'verify:hangar-hall',
     npm: 'verify:hangar-hall',
+    nurMitHangar: true,
     script: 'scripts/verify-hangar-hall.mjs',
     rail: 'A',
     checks:
@@ -296,6 +316,7 @@ export const CHECKS = [
     // dist/ und fuer [4] das Manifest src/data/hangar-assets.json.
     id: 'verify:hangar-gear',
     npm: 'verify:hangar-gear',
+    nurMitHangar: true,
     script: 'scripts/verify-hangar-gear.mjs',
     rail: 'A',
     checks: 'jedes Schiff, das die Hangarseite aufs Fahrwerk stellt, steht mit der Ebene des ausgelieferten Viewers auf Ecken seiner Datei (kein Bein schwebt, kein Teil steckt tiefer als die Grenze im Boden), Fahrzeuge ohne Fahrwerk stehen waagrecht auf ihrer tiefsten Ecke, jedes andere Schiff hat einen Grund aus dem Manifest, Klinken fuer beide Arten',
@@ -303,6 +324,7 @@ export const CHECKS = [
   {
     id: 'verify:hangar-cockpit',
     npm: 'verify:hangar-cockpit',
+    nurMitHangar: true,
     script: 'scripts/verify-hangar-cockpit.mjs',
     rail: 'A',
     checks: 'durch die Haube jedes Schiffs der Hangarseite sieht man nicht durch das Schiff in die Halle: Strahlen durch das Haubenglas, die hinter einer Rueckseite nichts mehr treffen, was der Viewer zeichnet, je Schiff unter seiner Klinke (Krisz 29.10.2026: Gladius von innen hohl)',
@@ -314,6 +336,7 @@ export const CHECKS = [
     // Kindprozess (Worker-Faeden) — liest dist/.
     id: 'verify:hangar-lage',
     npm: 'verify:hangar-lage',
+    nurMitHangar: true,
     script: 'scripts/verify-hangar-lage.mjs',
     rail: 'A',
     checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz, und kein Rumpf hat Teile, die getrennt neben ihm haengen, ohne benannte Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen)',
@@ -326,6 +349,7 @@ export const CHECKS = [
     // src/data/hangar-crew.json.
     id: 'verify:hangar-crew',
     npm: 'verify:hangar-crew',
+    nurMitHangar: true,
     script: 'scripts/verify-hangar-crew.mjs',
     rail: 'A',
     checks:

@@ -39,6 +39,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BASELINE } from './lib/metrics-baseline.mjs';
+import { hangarImArtefakt } from './lib/hangar-switch.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPORT = process.argv.includes('--report');
@@ -143,6 +144,11 @@ let gelesen = 0;
 
 const baselineNach = new Map(BASELINE.map((b) => [b.id, b]));
 
+// Live-Bau ohne Hangar (Krisz 31.10.2026, scripts/lib/hangar-switch.mjs):
+// Zeilen mit `nurMitHangar` gelten nur fuer den Vorschau-Bau. Im Live-Bau
+// muessen sie 0 sein — dass dort nichts steht, ist die Zusicherung.
+const MIT_HANGAR = hangarImArtefakt(DIST);
+
 for (const [id, ablesen] of Object.entries(ABLESER)) {
   const b = baselineNach.get(id);
   let ist = null;
@@ -160,6 +166,13 @@ for (const [id, ablesen] of Object.entries(ABLESER)) {
   gelesen++;
   if (!b) {
     zeilen.push({ id, soll: '—', ist, regel: '—', urteil: 'OHNE REGEL' });
+    continue;
+  }
+  if (b.nurMitHangar && !MIT_HANGAR) {
+    const leer = ist === 0;
+    zeilen.push({ id, soll: 0, ist, regel: 'ohne Hangar', urteil: leer ? 'ok' : 'GERISSEN' });
+    if (!leer && !REPORT)
+      fail.push(`${id}: ${ist} im Live-Bau — der Hangar gehoert nur in den Vorschau-Bau (scripts/lib/hangar-switch.mjs)`);
     continue;
   }
   const grenze =

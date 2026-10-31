@@ -59,6 +59,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { findPagePairs, assertMinimumPairs } from './lib/page-pairs.mjs';
+import { hangarImArtefakt } from './lib/hangar-switch.mjs';
 
 if (!(() => { try { readdirSync('dist'); return true; } catch { return false; } })()) {
   console.error(
@@ -78,6 +79,14 @@ const TOOL_IDS = [
 ];
 
 const COMPLETE = process.argv.includes('--complete');
+
+// Der Live-Bau traegt den Hangar nicht (Krisz 31.10.2026,
+// scripts/lib/hangar-switch.mjs). Dort entfaellt das Werkzeug 'hangar' aus
+// --complete und seine *.ctl.*-Texte aus [7] — und es DARF dann nicht
+// auftauchen (sonst stimmt der Schalter nicht). Im Vorschau-Bau gilt alles.
+const MIT_HANGAR = hangarImArtefakt('dist');
+const PFLICHT = MIT_HANGAR ? TOOL_IDS : TOOL_IDS.filter((id) => id !== 'hangar');
+const nurHangar = (key) => key.startsWith('hangar.');
 
 const STAGE2_BEGIN = 'HELP:STAGE2:BEGIN';
 const STAGE2_END = 'HELP:STAGE2:END';
@@ -244,7 +253,7 @@ console.log('\n[3] Sprachparitaet EN<->DE (data-tool-id=, data-help=, class="too
 }
 
 /* ---- Zusicherung 4: Werkzeugabdeckung ---- */
-console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ` — --complete: alle ${TOOL_IDS.length} verlangt` : ''}`);
+console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ` — --complete: alle ${PFLICHT.length} verlangt` : ''}${MIT_HANGAR ? '' : ' (Live-Bau: ohne hangar)'}`);
 {
   const found = new Set();
   const idRe = /data-tool-id="([^"]+)"/g;
@@ -254,12 +263,13 @@ console.log(`\n[4] Werkzeugabdeckung (DOC-07)${COMPLETE ? ` — --complete: alle
     while ((m = idRe.exec(html))) found.add(m[1]);
   }
   const unknown = [...found].filter((id) => !TOOL_IDS.includes(id));
-  const covered = TOOL_IDS.filter((id) => found.has(id));
-  console.log(`    Abgedeckt: ${covered.length} von ${TOOL_IDS.length} (${covered.join(', ') || '—'})`);
+  const covered = PFLICHT.filter((id) => found.has(id));
+  console.log(`    Abgedeckt: ${covered.length} von ${PFLICHT.length} (${covered.join(', ') || '—'})`);
   if (unknown.length) fail(`Unbekannte data-tool-id-Werte ausserhalb der festen Liste: ${unknown.join(', ')}`);
-  if (COMPLETE && covered.length !== TOOL_IDS.length) {
-    const missing = TOOL_IDS.filter((id) => !found.has(id));
-    fail(`--complete verlangt alle ${TOOL_IDS.length} Werkzeuge, es fehlen: ${missing.join(', ')}`);
+  if (!MIT_HANGAR && found.has('hangar')) fail('Live-Bau traegt das Werkzeug hangar — der Hangar gehoert nur in den Vorschau-Bau');
+  if (COMPLETE && covered.length !== PFLICHT.length) {
+    const missing = PFLICHT.filter((id) => !found.has(id));
+    fail(`--complete verlangt alle ${PFLICHT.length} Werkzeuge, es fehlen: ${missing.join(', ')}`);
   }
 }
 
@@ -373,7 +383,10 @@ console.log('\n[6] Element-Hilfe je WERKZEUG (WR-05): jedes data-tool-id verlang
     if (!html.includes('data-help=')) continue;
     for (const m of html.matchAll(/data-help="([^"]*)"/g)) anchored.add(unesc(m[1]));
   }
-  const orphans = ctlKeys.filter((k) => !anchored.has(k.text));
+  // Live-Bau: die Hangar-Texte haben dort bewusst keinen Anker (s. MIT_HANGAR).
+  const entfallen = MIT_HANGAR ? [] : ctlKeys.filter((k) => nurHangar(k.key));
+  if (entfallen.length) console.log(`    Live-Bau: ${entfallen.length} hangar.ctl.*-Schluessel entfallen (Hangar nur im Vorschau-Bau)`);
+  const orphans = ctlKeys.filter((k) => !anchored.has(k.text) && !entfallen.includes(k));
   for (const o of orphans) fail(`${HELP_SRC}: "${o.key}" beschreibt ein Bedienelement, das es im Bestand nicht gibt`);
   console.log(`    *.ctl.*-Schluessel: ${ctlKeys.length}   verschiedene Anker: ${anchored.size}   ohne Anker: ${orphans.length}   Soll: 0`);
 
@@ -388,7 +401,9 @@ console.log('\n[6] Element-Hilfe je WERKZEUG (WR-05): jedes data-tool-id verlang
     const html = htmlCache.get(f);
     if (html.includes('tool-help__')) helpHtml += unesc(html);
   }
-  const unused = bodyKeys.filter((k) => !helpHtml.includes(k.text));
+  const ohneHangarText = MIT_HANGAR ? [] : bodyKeys.filter((k) => nurHangar(k.key));
+  if (ohneHangarText.length) console.log(`    Live-Bau: ${ohneHangarText.length} hangar.*-Texte entfallen (Hangar nur im Vorschau-Bau)`);
+  const unused = bodyKeys.filter((k) => !helpHtml.includes(k.text) && !ohneHangarText.includes(k));
   for (const u of unused) fail(`${HELP_SRC}: "${u.key}" wird nirgends ausgeliefert (steps= am ToolHelp zu niedrig?)`);
   console.log(`    Schritt-/Zweck-/Titeltexte: ${bodyKeys.length}   nicht ausgeliefert: ${unused.length}   Soll: 0`);
 }

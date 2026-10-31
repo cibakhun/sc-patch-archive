@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { hangarImBau, HANGAR_ROUTES } from './scripts/lib/hangar-switch.mjs';
 
 // All-in-One SC site — static, hand-built.
 // Data is baked at BUILD time (Phase 1+); the live site never calls an API
@@ -98,6 +99,26 @@ export function blockOpenInEditor() {
   };
 }
 
+// Der Hangar nur im Vorschau-Bau (Krisz 31.10.2026: live alles ausser dem
+// Hangar). Seine Routen liegen unter src/hangar-routes/ statt src/pages/ und
+// werden nur dann eingehaengt; Begruendung in scripts/lib/hangar-switch.mjs.
+/** @returns {import('astro').AstroIntegration} */
+export function hangarRoutes(env = process.env) {
+  return {
+    name: 'vb-hangar-routes',
+    hooks: {
+      'astro:config:setup': ({ injectRoute, logger }) => {
+        if (!hangarImBau(env)) {
+          logger.info('Live-Bau: Hangar-Seiten bleiben draussen');
+          return;
+        }
+        for (const r of HANGAR_ROUTES) injectRoute({ pattern: r.pattern, entrypoint: r.entrypoint, prerender: true });
+        logger.info(`Vorschau-Bau: ${HANGAR_ROUTES.length} Hangar-Routen eingehaengt`);
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: 'https://verse-base.com',
   build: { format: 'file' },
@@ -117,7 +138,10 @@ export default defineConfig({
   server: ({ command }) => ({
     allowedHosts: TUNNEL && command === 'preview' ? TUNNEL_HOSTS : [],
   }),
+  integrations: [hangarRoutes()],
   vite: {
     plugins: [blockOpenInEditor(), devLocalOnly()],
+    // Browserseite des Hangar-Schalters (src/lib/hangarFlag.ts).
+    define: { __VB_HANGAR__: JSON.stringify(hangarImBau()) },
   },
 });

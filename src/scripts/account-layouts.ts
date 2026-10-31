@@ -5,6 +5,7 @@
 // „Gespeichert" lesen beide von hier und malen bei 'vb:layouts' neu.
 import { accountStore, encodeLayout } from '../../assets/hangar-layouts.js';
 import { FAV_PATH } from '../lib/supabase';
+import { HANGAR_ON } from '../lib/hangarFlag';
 
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { storage = null; }
@@ -20,8 +21,11 @@ export type LayoutEntry = {
   racks?: Record<string, string>; paint?: string; created: number; updated: number;
 };
 
-/** Neueste zuerst, nur Einträge mit Schiff. */
-export const layoutList = (): LayoutEntry[] => (layouts.store.list() as LayoutEntry[]).filter((e) => e && e.ship);
+/** Neueste zuerst, nur Einträge mit Schiff. Ohne Hangar (Live-Bau) keine:
+ *  jedes Loadout öffnet den Hangar, und den gibt es dort nicht. Gespeichert,
+ *  Übersicht und Profilvorschau zeigen dann nur die Favoriten. */
+export const layoutList = (): LayoutEntry[] =>
+  HANGAR_ON ? (layouts.store.list() as LayoutEntry[]).filter((e) => e && e.ship) : [];
 
 /** Schiffsname aus dem Slug, wie account-lite.js (Herstellerkürzel weg). */
 export function shipLabel(slug: string): string {
@@ -33,7 +37,7 @@ export function shipLabel(slug: string): string {
 let started = false;
 /** Einmal je Seite: Abgleich anstoßen (Gast: tut nichts). */
 export function startLayouts() {
-  if (started) return;
+  if (started || !HANGAR_ON) return;
   started = true;
   if ((window as any).VBAccount) layouts.sync();
   else window.addEventListener('vb-account-ready', () => layouts.sync(), { once: true });

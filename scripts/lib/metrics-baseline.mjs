@@ -8,6 +8,8 @@
    warum sie so hoch ist.
 
    REGELN:
+     nurMitHangar: true — gilt nur im Vorschau-Bau (STAGING=1); im Live-Bau
+             muss die Zahl 0 sein (scripts/lib/hangar-switch.mjs).
      'min'   darf wachsen, nicht fallen. `toleranzProzent` nur dort, wo
              die Zahl naturgemaess atmet (Preiszeilen kommen und gehen
              mit den Shops).
@@ -220,6 +222,9 @@ export const BASELINE = [
     id: 'seitenHangarBuchten',
     wert: 227,
     regel: 'min',
+    // Nur im Vorschau-Bau; live muss es 0 sein (Krisz 31.10.2026: live alles
+    // ausser dem Hangar, scripts/lib/hangar-switch.mjs).
+    nurMitHangar: true,
     anlass:
       'Messlauf 07.10.2026 (Build mit 17.962 Seiten): je Fahrzeug mit Hangar-Modell ein EN-Buchtdokument unter dist/hangar-bay/, das die Hangarseite beim Schiffswechsel holt. Liefert getStaticPaths bei kaputter Quelle weniger, faellt die Bucht fuer genau die fehlenden Schiffe still aus; verify:hangar prueft dieselbe Id-Menge gegen Dock und Modellliste.',
   },

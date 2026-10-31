@@ -9,6 +9,7 @@ import MfaCodeDialog from './MfaCodeDialog.astro';
 import DiscordElsewhere from './DiscordElsewhere.astro';
 import { BANNER_PRESETS, AVATAR_PRESETS, ACCENT_COLORS, CITIZEN_ROLES, STATUS_STATES } from '../../lib/profilePresets';
 import { DISCORD } from '../../consts';
+import { HAS_HANGAR } from '../../lib/seo';
 import { counts as craftCounts } from '../../../assets/crafting-db.json';
 
 interface Props {
@@ -387,7 +388,8 @@ const COPY = {
 
 const loginHref = href('/account/login.html', lang);
 const homeHref = lang === 'de' ? '/de.html' : '/';
-const hangarHref = href('/hangar.html', lang);
+// Ohne Hangar (Live-Bau) führen die leeren Kästen zu den Schiffen.
+const hangarHref = HAS_HANGAR ? href('/hangar.html', lang) : href('/schiffe.html', lang);
 const refineryHref = href('/refinery.html', lang);
 const craftingHref = href('/topics/crafting.html', lang);
 const miningHref = href('/topics/mining.html', lang);
@@ -416,6 +418,8 @@ const CK = {
     craftOwned: 'Blueprints', craftPlan: 'Blueprints planned', planN: '%n% planned', mine: 'Mining presets', mine1: 'Mining preset',
   },
 }[lang];
+// Ohne Hangar (Live-Bau): der leere Kasten führt zu den Schiffen.
+if (!HAS_HANGAR) CK.savedCta = lang === 'de' ? 'Zu den Schiffen' : 'Browse ships';
 
 // Bereich „Gespeichert" (account-saved.ts): Loadouts + Favoriten.
 const SV = {
@@ -438,6 +442,10 @@ const SV = {
     kinds: { ship: 'Ships', mission: 'Missions', mineral: 'Minerals', item: 'Items', patch: 'Patches', topic: 'Topics' },
   },
 }[lang];
+if (!HAS_HANGAR) {
+  SV.emptyHint = lang === 'de' ? 'Markiere Schiffe mit dem Stern, dann stehen sie hier.' : 'Star ships to keep them here.';
+  SV.toHangar = lang === 'de' ? 'Zu den Schiffen' : 'Browse ships';
+}
 // Bereich „Sicherheit & Konto" (account-security.ts): Zeilen statt Karten,
 // Formulare erst auf Klick.
 const SEC = {

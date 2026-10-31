@@ -16,6 +16,7 @@ import vehiclesSnapshot from '../data/vehicles.json';
 import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import { jsonForScript } from '../lib/safeJson';
+import { HAS_HANGAR } from '../lib/seo';
 import type { Visuals } from '../lib/shipVisuals';
 import { pickHero } from '../lib/shipRenders';
 import {
@@ -2122,10 +2123,12 @@ span.sd__ref{color:var(--muted)}
             <span class="js-fleet-txt">{t('fleet.add')}</span>
           </button>
           <button type="button" class="favretry" data-fleet-retry data-fleet-unsaved={t('fleet.retry')} data-fleet-unsynced={t('fleet.resync')} hidden>{t('fleet.retry')}</button>
-          <a class="favhangar" href={L(`/hangar.html?ship=${id}`)}>
-            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 20V11a9 9 0 0 1 18 0v9M2 20h20M8 20v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>{t('ship.hangar3d')}</span>
-          </a>
+          {HAS_HANGAR && (
+            <a class="favhangar" href={L(`/hangar.html?ship=${id}`)}>
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3 20V11a9 9 0 0 1 18 0v9M2 20h20M8 20v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>{t('ship.hangar3d')}</span>
+            </a>
+          )}
         </div>
         {/* id: das Skript blendet diese Zeile aus, sobald eine INHALTSgruppe
             gewaehlt ist. Sie behauptet "Komponenten-Positionen spielgetreu" —
