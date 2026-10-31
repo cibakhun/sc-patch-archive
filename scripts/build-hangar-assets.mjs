@@ -575,6 +575,22 @@ const FURNITURE = /props_|flower_|footlocker|shrub_|plant|crate|couch|chair|tabl
 const LOADOUTS = JSON.parse(readFileSync(new URL('../src/data/ship-loadouts.json', import.meta.url), 'utf8')).ships;
 const COMPONENT_CATS = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 const round5 = (m) => Array.from(m, (v) => Math.round(v * 1e5) / 1e5);
+// Standardteil eines Komponenten-Ports: URL der gebauten Komponente mit
+// Version (Manifest components), über die Klasse des Serienteils (Sidecar
+// components/<datei>.json, stem). extras.stock, damit die Laufzeit an einem
+// leeren Anker das Standardteil selbst einsetzt; ohne Modell bleibt es weg.
+let stockUrls = null;
+function stockUrl(cls) {
+  if (!stockUrls) {
+    stockUrls = new Map();
+    const dir = new URL('components/', SRC);
+    if (existsSync(dir)) for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
+      const e = prev.components?.[f.slice(0, -5)];
+      if (e?.url && e.v) stockUrls.set(JSON.parse(readFileSync(new URL(f, dir), 'utf8')).stem.toLowerCase(), `${e.url}?v=${e.v}`);
+    }
+  }
+  return (cls && stockUrls.get(cls.toLowerCase())) ?? null;
+}
 function markSwapParts(doc, slug) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
@@ -597,6 +613,7 @@ function markSwapParts(doc, slug) {
       const walk = (n) => { for (const c of n.listChildren()) { if (c.getName().toLowerCase() === want) roots.push(c); else walk(c); } };
       walk(hp);
       let tris = 0;
+      const stock = comp ? stockUrl(it.cls) : null;
       roots.forEach((r, inst) => {
         const anchor = round5(r.getWorldMatrix());
         // Komponenten: ein eigenes Item darunter (Sprungmodul am Quantenantrieb,
@@ -605,7 +622,7 @@ function markSwapParts(doc, slug) {
         r.traverse((n) => {
           if (!n.getMesh() || (comp && !own(n))) return;
           tris += n.getMesh().listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
-          n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}) });
+          n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}), ...(stock ? { stock } : {}) });
           n.setName(`swap_${nodes++}`);
           named.add(n);
           n.getMesh().setName(n.getName());
@@ -614,8 +631,8 @@ function markSwapParts(doc, slug) {
       if (roots.length) (comp ? components : ports)[key] = roots.length;
       if (!comp) return;
       const H = hp.getWorldMatrix(), R = roots[0]?.getWorldMatrix();
-      if (!roots.length) empty.push({ swap: port, item: i, inst: 0, anchor: round5(H), cat: it.cat });
-      detail.push({ port, item: i, cat: it.cat, cls: it.cls, geometry: roots.length, tris, at: [H[12], H[13], H[14]].map((v) => Math.round(v * 1000) / 1000), ...(R ? { rootOff: Math.round(Math.hypot(R[12] - H[12], R[13] - H[13], R[14] - H[14]) * 1000) / 1000 } : {}) });
+      if (!roots.length) empty.push({ swap: port, item: i, inst: 0, anchor: round5(H), cat: it.cat, ...(stock ? { stock } : {}) });
+      detail.push({ port, item: i, cat: it.cat, cls: it.cls, geometry: roots.length, tris, stock, at: [H[12], H[13], H[14]].map((v) => Math.round(v * 1000) / 1000), ...(R ? { rootOff: Math.round(Math.hypot(R[12] - H[12], R[13] - H[13], R[14] - H[14]) * 1000) / 1000 } : {}) });
     });
   }
   for (const n of root.listNodes()) if (!named.has(n) && !n.getExtras()?.interior && !n.getExtras()?.placed) n.setName('');
@@ -626,7 +643,7 @@ function markSwapParts(doc, slug) {
 // Komponenten-Ports mit der Lage ihres Helfers, solange der Rumpf noch da
 // ist (der Innenraum-Bau nimmt ihn mit keepInteriorOnly weg)
 function componentPorts(doc, slug) {
-  const ports = Object.entries(LOADOUTS[slug] ?? {}).flatMap(([port, items]) => items.map((it, item) => ({ port, item, cat: it.cat })).filter((x) => COMPONENT_CATS.has(x.cat)));
+  const ports = Object.entries(LOADOUTS[slug] ?? {}).flatMap(([port, items]) => items.map((it, item) => ({ port, item, cat: it.cat, cls: it.cls })).filter((x) => COMPONENT_CATS.has(x.cat)));
   const out = [];
   for (const p of ports) {
     const hp = doc.getRoot().listNodes().find((n) => n.getName().toLowerCase() === p.port.toLowerCase() && !inContainer(n));
@@ -654,7 +671,8 @@ function markPlacedComponents(doc, ports) {
     const W = node.getWorldMatrix();
     const hit = ports.find((p) => PLACED_PATH[p.cat].test(name) && Math.hypot(W[12] - p.H[12], W[13] - p.H[13], W[14] - p.H[14]) < 0.75);
     if (!hit) continue;
-    node.setExtras({ ...node.getExtras(), swap: hit.port, item: hit.item, inst: 0, anchor: round5(hit.H), cat: hit.cat, placed: true }).setName(`swap_placed_${n}`);
+    const stock = stockUrl(hit.cls);
+    node.setExtras({ ...node.getExtras(), swap: hit.port, item: hit.item, inst: 0, anchor: round5(hit.H), cat: hit.cat, placed: true, ...(stock ? { stock } : {}) }).setName(`swap_placed_${n}`);
     mesh.setName(node.getName());
     n++;
   }

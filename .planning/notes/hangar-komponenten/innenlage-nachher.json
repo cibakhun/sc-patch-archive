@@ -1,0 +1,4099 @@
+{
+ "aegs-avenger-stalker": {
+  "tris": 179593,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.92,
+    -7.21
+   ],
+   "nah": 5166,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 0.88,
+   "ok": true
+  }
+ },
+ "aegs-avenger-titan": {
+  "tris": 202475,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.92,
+    -7.21
+   ],
+   "nah": 5166,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 0.88,
+   "ok": true
+  }
+ },
+ "aegs-avenger-titan-renegade": {
+  "tris": 202475,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.92,
+    -7.21
+   ],
+   "nah": 5166,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 0.88,
+   "ok": true
+  }
+ },
+ "aegs-avenger-warlock": {
+  "tris": 132999,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.92,
+    -7.21
+   ],
+   "nah": 5166,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 0.88,
+   "ok": true
+  }
+ },
+ "aegs-eclipse": {
+  "tris": 28965,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.66,
+    -6.86
+   ],
+   "nah": 20733,
+   "abstand": 0.05,
+   "oben": "Rumpf",
+   "obenM": 0.81,
+   "ok": true
+  }
+ },
+ "aegs-gladius": {
+  "tris": 13234,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.77,
+    -8.37
+   ],
+   "nah": 10955,
+   "abstand": 0.1,
+   "oben": "Glas",
+   "obenM": 0.67,
+   "ok": true
+  }
+ },
+ "aegs-gladius-pir": {
+  "tris": 13234,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.77,
+    -8.37
+   ],
+   "nah": 10955,
+   "abstand": 0.1,
+   "oben": "Glas",
+   "obenM": 0.67,
+   "ok": true
+  }
+ },
+ "aegs-gladius-valiant": {
+  "tris": 13234,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.77,
+    -8.37
+   ],
+   "nah": 10955,
+   "abstand": 0.1,
+   "oben": "Glas",
+   "obenM": 0.67,
+   "ok": true
+  }
+ },
+ "aegs-hammerhead": {
+  "tris": 1459743,
+  "aussenPct": 0,
+  "maxM": 1,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.62,
+    -2.62,
+    -49.79
+   ],
+   "nah": 1399,
+   "abstand": 0.16,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "aegs-hammerhead-showdown": {
+  "tris": 1416271,
+  "aussenPct": 0,
+  "maxM": 1,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.62,
+    -2.6,
+    -49.79
+   ],
+   "nah": 1002,
+   "abstand": 0.14,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "aegs-javelin": {
+  "tris": 2123949,
+  "aussenPct": 0.06,
+  "maxM": 99,
+  "voxel": 0.43,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    26.75,
+    29.25,
+    34.59
+   ],
+   "nah": 256,
+   "abstand": 0.21,
+   "oben": "Glas",
+   "obenM": 3.17,
+   "ok": true
+  }
+ },
+ "aegs-redeemer": {
+  "tris": 507708,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.37,
+    -19.25
+   ],
+   "nah": 29252,
+   "abstand": 0.08,
+   "oben": "Glas",
+   "obenM": 0.88,
+   "ok": true
+  }
+ },
+ "aegs-retaliator": {
+  "tris": 445985,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    0.94,
+    -25.55
+   ],
+   "nah": 8817,
+   "abstand": 0.98,
+   "oben": "Glas",
+   "obenM": 1.03,
+   "ok": true
+  }
+ },
+ "aegs-sabre": {
+  "tris": 14333,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -11
+   ],
+   "nah": 13206,
+   "abstand": 0.35,
+   "oben": "Rumpf",
+   "obenM": 0.08,
+   "ok": true
+  }
+ },
+ "aegs-sabre-comet": {
+  "tris": 14333,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -11
+   ],
+   "nah": 13206,
+   "abstand": 0.35,
+   "oben": "Rumpf",
+   "obenM": 0.08,
+   "ok": true
+  }
+ },
+ "aegs-sabre-firebird": {
+  "tris": 23613,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.3,
+    -9.25
+   ],
+   "nah": 22320,
+   "abstand": 0.35,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "aegs-sabre-peregrine": {
+  "tris": 20072,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.07,
+    -8.94
+   ],
+   "nah": 15317,
+   "abstand": 0.12,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "aegs-sabre-raven": {
+  "tris": 23613,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.89,
+    -8.61
+   ],
+   "nah": 17363,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "aegs-sabre-raven-ex": {
+  "tris": 23613,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.89,
+    -8.61
+   ],
+   "nah": 17363,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "aegs-tiburon": {
+  "tris": 1438856,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.62,
+    -2.6,
+    -49.77
+   ],
+   "nah": 1382,
+   "abstand": 0.14,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "aegs-vanguard": {
+  "tris": 293766,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -12
+   ],
+   "nah": 23489,
+   "abstand": 0.36,
+   "oben": "Rumpf",
+   "obenM": 0.96,
+   "ok": true
+  }
+ },
+ "aegs-vanguard-harbinger": {
+  "tris": 307105,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -12
+   ],
+   "nah": 23489,
+   "abstand": 0.36,
+   "oben": "Rumpf",
+   "obenM": 0.96,
+   "ok": true
+  }
+ },
+ "aegs-vanguard-hoplite": {
+  "tris": 378356,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -12
+   ],
+   "nah": 23489,
+   "abstand": 0.36,
+   "oben": "Rumpf",
+   "obenM": 0.96,
+   "ok": true
+  }
+ },
+ "aegs-vanguard-sentinel": {
+  "tris": 310912,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -12
+   ],
+   "nah": 23489,
+   "abstand": 0.36,
+   "oben": "Rumpf",
+   "obenM": 0.96,
+   "ok": true
+  }
+ },
+ "anvl-arrow": {
+  "tris": 11449,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.54,
+    -5.6
+   ],
+   "nah": 10714,
+   "abstand": 0.13,
+   "oben": "Glas",
+   "obenM": 0.49,
+   "ok": true
+  }
+ },
+ "anvl-asgard": {
+  "tris": 676873,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    2.3,
+    -17.93
+   ],
+   "nah": 2741,
+   "abstand": 0.15,
+   "oben": "Rumpf",
+   "obenM": 0.52,
+   "ok": true
+  }
+ },
+ "anvl-ballista": {
+  "tris": 40632,
+  "aussenPct": 0.09,
+  "maxM": 0.6,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0,
+    -1.13,
+    0.7
+   ],
+   "nah": 3232,
+   "abstand": 0.18,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "anvl-ballista-dunestalker": {
+  "tris": 40632,
+  "aussenPct": 0.09,
+  "maxM": 0.6,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0,
+    -1.13,
+    0.7
+   ],
+   "nah": 3232,
+   "abstand": 0.18,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "anvl-ballista-snowblind": {
+  "tris": 40632,
+  "aussenPct": 0.09,
+  "maxM": 0.6,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0,
+    -1.13,
+    0.7
+   ],
+   "nah": 3232,
+   "abstand": 0.18,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "anvl-c8-pisces": {
+  "tris": 44274,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.6,
+    -3.85
+   ],
+   "nah": 1430,
+   "abstand": 0.35,
+   "oben": "Glas",
+   "obenM": 1.09,
+   "ok": true
+  }
+ },
+ "anvl-c8r-pisces": {
+  "tris": 79070,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.6,
+    -3.85
+   ],
+   "nah": 1561,
+   "abstand": 0.35,
+   "oben": "Glas",
+   "obenM": 1.09,
+   "ok": true
+  }
+ },
+ "anvl-c8x-pisces-expedition": {
+  "tris": 44274,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.6,
+    -3.85
+   ],
+   "nah": 1430,
+   "abstand": 0.35,
+   "oben": "Glas",
+   "obenM": 1.09,
+   "ok": true
+  }
+ },
+ "anvl-carrack": {
+  "tris": 2700218,
+  "aussenPct": 0,
+  "maxM": 6.8,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -6,
+    -47.25
+   ],
+   "nah": 357,
+   "abstand": 0.15,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "anvl-carrack-expedition": {
+  "tris": 2700218,
+  "aussenPct": 0,
+  "maxM": 6.8,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -6,
+    -47.25
+   ],
+   "nah": 357,
+   "abstand": 0.15,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "anvl-centurion": {
+  "tris": 35649,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_gunner",
+   "p": [
+    0,
+    -1.13,
+    0.7
+   ],
+   "nah": 1498,
+   "abstand": 0.18,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "anvl-gladiator": {
+  "tris": 8209,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.15,
+    -5.45
+   ],
+   "nah": 6867,
+   "abstand": 0.4,
+   "oben": "Glas",
+   "obenM": 0.95,
+   "ok": true
+  }
+ },
+ "anvl-hawk": {
+  "tris": 20365,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.55,
+    -3.5
+   ],
+   "nah": 14820,
+   "abstand": 0.07,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7a-mk1": {
+  "tris": 16999,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.11,
+    -5.21
+   ],
+   "nah": 15648,
+   "abstand": 0.26,
+   "oben": "Glas",
+   "obenM": 0.32,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7a-mk2": {
+  "tris": 19876,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.38,
+    -4.96
+   ],
+   "nah": 13673,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 0.52,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7c": {
+  "tris": 5775,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.11,
+    -5.21
+   ],
+   "nah": 5341,
+   "abstand": 0.36,
+   "oben": "Glas",
+   "obenM": 0.31,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7c-mk2": {
+  "tris": 19876,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.38,
+    -4.96
+   ],
+   "nah": 13673,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 0.52,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7c-wildfire": {
+  "tris": 5775,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.11,
+    -5.21
+   ],
+   "nah": 5341,
+   "abstand": 0.36,
+   "oben": "Glas",
+   "obenM": 0.31,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cm": {
+  "tris": 14674,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.2,
+    -7.27
+   ],
+   "nah": 10696,
+   "abstand": 0.35,
+   "oben": "Glas",
+   "obenM": 0.39,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cm-heartseeker": {
+  "tris": 14674,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.2,
+    -7.27
+   ],
+   "nah": 10696,
+   "abstand": 0.35,
+   "oben": "Glas",
+   "obenM": 0.39,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cm-mk2": {
+  "tris": 38785,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.25,
+    -6.25
+   ],
+   "nah": 26894,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 0.42,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cm-mk2-heartseeker": {
+  "tris": 38785,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.25,
+    -6.25
+   ],
+   "nah": 26894,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 0.42,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cr": {
+  "tris": 5775,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.11,
+    -5.21
+   ],
+   "nah": 5341,
+   "abstand": 0.36,
+   "oben": "Glas",
+   "obenM": 0.31,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cr-mk2": {
+  "tris": 19876,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.38,
+    -4.96
+   ],
+   "nah": 13673,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 0.52,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cs": {
+  "tris": 5775,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.11,
+    -5.21
+   ],
+   "nah": 5341,
+   "abstand": 0.36,
+   "oben": "Glas",
+   "obenM": 0.31,
+   "ok": true
+  }
+ },
+ "anvl-hornet-f7cs-mk2": {
+  "tris": 19876,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.38,
+    -4.96
+   ],
+   "nah": 13673,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 0.52,
+   "ok": true
+  }
+ },
+ "anvl-hurricane": {
+  "tris": 4990,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.39,
+    -7.88
+   ],
+   "nah": 3942,
+   "abstand": 0.39,
+   "oben": "Glas",
+   "obenM": 0.17,
+   "ok": true
+  }
+ },
+ "anvl-lightning-f8": {
+  "tris": 11270,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.12,
+    -12.07
+   ],
+   "nah": 7720,
+   "abstand": 0.23,
+   "oben": "Glas",
+   "obenM": 0.74,
+   "ok": true
+  }
+ },
+ "anvl-lightning-f8c": {
+  "tris": 11270,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.12,
+    -12.07
+   ],
+   "nah": 7720,
+   "abstand": 0.23,
+   "oben": "Glas",
+   "obenM": 0.74,
+   "ok": true
+  }
+ },
+ "anvl-lightning-f8c-exec": {
+  "tris": 11270,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.12,
+    -12.07
+   ],
+   "nah": 7720,
+   "abstand": 0.23,
+   "oben": "Glas",
+   "obenM": 0.74,
+   "ok": true
+  }
+ },
+ "anvl-paladin": {
+  "tris": 662245,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1,
+    -0.75,
+    -23.37
+   ],
+   "nah": 7407,
+   "abstand": 0.2,
+   "oben": "Glas",
+   "obenM": 1.33,
+   "ok": true
+  }
+ },
+ "anvl-spartan": {
+  "tris": 90773,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_weapon_seat_rack_001",
+   "p": [
+    -0.94,
+    -0.69,
+    3.19
+   ],
+   "nah": 6716,
+   "abstand": 0.09,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "anvl-terrapin": {
+  "tris": 146775,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.68,
+    -8.07
+   ],
+   "nah": 6094,
+   "abstand": 0.23,
+   "oben": "Glas",
+   "obenM": 1.64,
+   "ok": true
+  }
+ },
+ "anvl-terrapin-medic": {
+  "tris": 172971,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.68,
+    -8.07
+   ],
+   "nah": 5985,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 1.64,
+   "ok": true
+  }
+ },
+ "anvl-valkyrie": {
+  "tris": 598842,
+  "aussenPct": 0.01,
+  "maxM": 1.2,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    2.3,
+    -17.93
+   ],
+   "nah": 2741,
+   "abstand": 0.15,
+   "oben": "Rumpf",
+   "obenM": 0.51,
+   "ok": true
+  }
+ },
+ "argo-csv-cargo": {
+  "tris": 29835,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    0,
+    1.1,
+    -0.8
+   ],
+   "nah": 19926,
+   "abstand": 0.09,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "argo-mole": {
+  "tris": 600335,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1,
+    -0.62,
+    -20.25
+   ],
+   "nah": 2751,
+   "abstand": 0.03,
+   "oben": "Rumpf",
+   "obenM": 2.13,
+   "ok": true
+  }
+ },
+ "argo-moth": {
+  "tris": 526542,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1,
+    -0.62,
+    -20.25
+   ],
+   "nah": 2751,
+   "abstand": 0.03,
+   "oben": "Rumpf",
+   "obenM": 2.14,
+   "ok": true
+  }
+ },
+ "argo-mpuv": {
+  "tris": 54492,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_cargo_seat",
+   "p": [
+    0,
+    -1.78,
+    -2.37
+   ],
+   "nah": 7576,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 1.15,
+   "ok": true
+  }
+ },
+ "argo-mpuv-1t": {
+  "tris": 15270,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2
+ },
+ "argo-mpuv-transport": {
+  "tris": 73521,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_transport_seat_right_4",
+   "p": [
+    0.9,
+    -1.45,
+    -0.96
+   ],
+   "nah": 18789,
+   "abstand": 0.09,
+   "oben": "Rumpf",
+   "obenM": 0.51,
+   "ok": true
+  }
+ },
+ "argo-raft": {
+  "tris": 557740,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot_seat_access",
+   "p": [
+    -1.06,
+    -3.87,
+    -17.31
+   ],
+   "nah": 5484,
+   "abstand": 0.05,
+   "oben": "Rumpf",
+   "obenM": 2.24,
+   "ok": true
+  }
+ },
+ "argo-srv": {
+  "tris": 244096,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.1,
+    -13.37
+   ],
+   "nah": 18683,
+   "abstand": 0.02,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "banu-defender": {
+  "tris": 126727,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -2.6,
+    -0.2,
+    2.9
+   ],
+   "nah": 17877,
+   "abstand": 0.08,
+   "oben": "Rumpf",
+   "obenM": 0.19,
+   "ok": true
+  }
+ },
+ "cnou-hoverquad": {
+  "tris": 314,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.27,
+    0.92
+   ],
+   "nah": 223,
+   "abstand": 1.2,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "cnou-mustang-alpha": {
+  "tris": 21768,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.76,
+    -6.74
+   ],
+   "nah": 8352,
+   "abstand": 0.15,
+   "oben": "Glas",
+   "obenM": 0.85,
+   "ok": true
+  }
+ },
+ "cnou-mustang-alpha-citizencon2018": {
+  "tris": 21768,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.76,
+    -6.74
+   ],
+   "nah": 8352,
+   "abstand": 0.15,
+   "oben": "Glas",
+   "obenM": 0.85,
+   "ok": true
+  }
+ },
+ "cnou-mustang-beta": {
+  "tris": 43416,
+  "aussenPct": 1.48,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.76,
+    -6.74
+   ],
+   "nah": 4400,
+   "abstand": 0.15,
+   "oben": "Glas",
+   "obenM": 0.85,
+   "ok": true
+  }
+ },
+ "cnou-mustang-delta": {
+  "tris": 21768,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.76,
+    -6.74
+   ],
+   "nah": 8352,
+   "abstand": 0.15,
+   "oben": "Glas",
+   "obenM": 0.85,
+   "ok": true
+  }
+ },
+ "cnou-mustang-gamma": {
+  "tris": 21768,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.76,
+    -6.74
+   ],
+   "nah": 8352,
+   "abstand": 0.15,
+   "oben": "Glas",
+   "obenM": 0.85,
+   "ok": true
+  }
+ },
+ "cnou-mustang-omega": {
+  "tris": 21768,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.76,
+    -6.74
+   ],
+   "nah": 8352,
+   "abstand": 0.15,
+   "oben": "Glas",
+   "obenM": 0.85,
+   "ok": true
+  }
+ },
+ "cnou-nomad": {
+  "tris": 45880,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.81,
+    -10.38
+   ],
+   "nah": 2824,
+   "abstand": 0.56,
+   "oben": "Glas",
+   "obenM": 0.3,
+   "ok": true
+  }
+ },
+ "crus-intrepid": {
+  "tris": 329711,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -2,
+    0,
+    -11.25
+   ],
+   "nah": 11366,
+   "abstand": 0.57,
+   "oben": "Glas",
+   "obenM": 0.47,
+   "ok": true
+  }
+ },
+ "crus-spirit-a1": {
+  "tris": 575825,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    -0.88,
+    1.41,
+    -20
+   ],
+   "nah": 19746,
+   "abstand": 0.54,
+   "oben": "Glas",
+   "obenM": 0.46,
+   "ok": true
+  }
+ },
+ "crus-spirit-c1": {
+  "tris": 506035,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    -0.88,
+    1.41,
+    -20
+   ],
+   "nah": 19746,
+   "abstand": 0.54,
+   "oben": "Glas",
+   "obenM": 0.46,
+   "ok": true
+  }
+ },
+ "crus-star-runner": {
+  "tris": 1031603,
+  "aussenPct": 0.03,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.87,
+    -0.34,
+    -24.56
+   ],
+   "nah": 3060,
+   "abstand": 0.57,
+   "oben": "Glas",
+   "obenM": 0.4,
+   "ok": true
+  }
+ },
+ "crus-starfighter-inferno": {
+  "tris": 21112,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat",
+   "p": [
+    0,
+    0.5,
+    -10
+   ],
+   "nah": 17901,
+   "abstand": 0.3,
+   "oben": "Glas",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "crus-starfighter-ion": {
+  "tris": 21112,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat",
+   "p": [
+    0,
+    0.5,
+    -10
+   ],
+   "nah": 17901,
+   "abstand": 0.3,
+   "oben": "Glas",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "crus-starlifter-a2": {
+  "tris": 1518192,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1,
+    -1.62,
+    -37.37
+   ],
+   "nah": 17749,
+   "abstand": 0.03,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "crus-starlifter-c2": {
+  "tris": 1412084,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1,
+    -1.62,
+    -37.37
+   ],
+   "nah": 17749,
+   "abstand": 0.03,
+   "oben": "Rumpf",
+   "obenM": 1.49,
+   "ok": true
+  }
+ },
+ "crus-starlifter-m2": {
+  "tris": 1587123,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1,
+    -1.62,
+    -37.37
+   ],
+   "nah": 17749,
+   "abstand": 0.03,
+   "oben": "Rumpf",
+   "obenM": 1.51,
+   "ok": true
+  }
+ },
+ "drak-buccaneer": {
+  "tris": 21797,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -3.5
+   ],
+   "nah": 17959,
+   "abstand": 0.39,
+   "oben": "Glas",
+   "obenM": 0.11,
+   "ok": true
+  }
+ },
+ "drak-caterpillar": {
+  "tris": 1552948,
+  "aussenPct": 0,
+  "maxM": 11.8,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -8.47,
+    2.52,
+    4.88
+   ],
+   "nah": 7053,
+   "abstand": 0.44,
+   "oben": "Glas",
+   "obenM": 1.14,
+   "ok": true
+  }
+ },
+ "drak-caterpillar-pirate": {
+  "tris": 1680577,
+  "aussenPct": 2.59,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -8.47,
+    2.52,
+    4.88
+   ],
+   "nah": 7172,
+   "abstand": 0.44,
+   "oben": "Glas",
+   "obenM": 1.14,
+   "ok": true
+  }
+ },
+ "drak-clipper": {
+  "tris": 629121,
+  "aussenPct": 0,
+  "maxM": 0.4,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot_dashboard",
+   "p": [
+    0,
+    1.75,
+    -11.87
+   ],
+   "nah": 18862,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 1.44,
+   "ok": true
+  }
+ },
+ "drak-corsair": {
+  "tris": 630841,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_co_pilot_seat",
+   "p": [
+    0,
+    0.1,
+    -21.58
+   ],
+   "nah": 2918,
+   "abstand": 0.82,
+   "oben": "Rumpf",
+   "obenM": 1.27,
+   "ok": true
+  }
+ },
+ "drak-cutlass-black": {
+  "tris": 233015,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -2.39,
+    -12.36
+   ],
+   "nah": 2271,
+   "abstand": 0.39,
+   "oben": "Glas",
+   "obenM": 2.3,
+   "ok": true
+  }
+ },
+ "drak-cutlass-blue": {
+  "tris": 477580,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -2.39,
+    -12.45
+   ],
+   "nah": 2043,
+   "abstand": 0.39,
+   "oben": "Glas",
+   "obenM": 2.77,
+   "ok": true
+  }
+ },
+ "drak-cutlass-red": {
+  "tris": 319722,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -2.39,
+    -12.45
+   ],
+   "nah": 1984,
+   "abstand": 0.4,
+   "oben": "Glas",
+   "obenM": 2.24,
+   "ok": true
+  }
+ },
+ "drak-cutlass-steel": {
+  "tris": 335682,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -2.39,
+    -12.36
+   ],
+   "nah": 2320,
+   "abstand": 0.39,
+   "oben": "Glas",
+   "obenM": 2.3,
+   "ok": true
+  }
+ },
+ "drak-cutter": {
+  "tris": 303842,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.5,
+    -5.5
+   ],
+   "nah": 7841,
+   "abstand": 0.12,
+   "oben": "Rumpf",
+   "obenM": 2.49,
+   "ok": true
+  }
+ },
+ "drak-cutter-rambler": {
+  "tris": 292310,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.5,
+    -5.5
+   ],
+   "nah": 8114,
+   "abstand": 0.12,
+   "oben": "Rumpf",
+   "obenM": 2.49,
+   "ok": true
+  }
+ },
+ "drak-cutter-scout": {
+  "tris": 322265,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.5,
+    -5.5
+   ],
+   "nah": 7894,
+   "abstand": 0.12,
+   "oben": "Rumpf",
+   "obenM": 2.49,
+   "ok": true
+  }
+ },
+ "drak-dragonfly": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.14,
+    0.8
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "drak-dragonfly-yellow": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.14,
+    0.8
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "drak-golem": {
+  "tris": 333,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.54,
+    -7.14
+   ],
+   "nah": 293,
+   "abstand": 0.65,
+   "oben": "Rumpf",
+   "obenM": 0.38,
+   "ok": true
+  }
+ },
+ "drak-golem-ox": {
+  "tris": 333,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.54,
+    -7.14
+   ],
+   "nah": 293,
+   "abstand": 0.65,
+   "oben": "Rumpf",
+   "obenM": 0.38,
+   "ok": true
+  }
+ },
+ "drak-herald": {
+  "tris": 114012,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.16,
+    -9.71
+   ],
+   "nah": 15923,
+   "abstand": 0.62,
+   "oben": "Glas",
+   "obenM": 1.03,
+   "ok": true
+  }
+ },
+ "drak-mule": {
+  "tris": 17357,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    0,
+    0.02,
+    -1.37
+   ],
+   "nah": 17277,
+   "abstand": 0.39,
+   "oben": "Rumpf",
+   "obenM": 0.11,
+   "ok": true
+  }
+ },
+ "drak-pitbull": {
+  "tris": 28411,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.63,
+    -1.62
+   ],
+   "nah": 9789,
+   "abstand": 0.36,
+   "oben": "Glas",
+   "obenM": 0.98,
+   "ok": true
+  }
+ },
+ "drak-vulture": {
+  "tris": 179806,
+  "aussenPct": 0.46,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.46,
+    -0.59
+   ],
+   "nah": 11156,
+   "abstand": 0.13,
+   "oben": "Rumpf",
+   "obenM": 1.48,
+   "ok": true
+  }
+ },
+ "espr-prowler": {
+  "tris": 373129,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    0.21,
+    -11.44
+   ],
+   "nah": 18900,
+   "abstand": 0.17,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "espr-prowler-utility": {
+  "tris": 268228,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    0.21,
+    -11.44
+   ],
+   "nah": 18900,
+   "abstand": 0.17,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "espr-talon": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -5
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "espr-talon-shrike": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -5
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "gama-railen": {
+  "tris": 1037236,
+  "aussenPct": 0.11,
+  "maxM": 30,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.5,
+    3,
+    -10
+   ],
+   "nah": 5974,
+   "abstand": 0.27,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "gama-syulen": {
+  "tris": 150438,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    0
+   ],
+   "nah": 6925,
+   "abstand": 0.05,
+   "oben": "Rumpf",
+   "obenM": 2.38,
+   "ok": true
+  }
+ },
+ "gama-tyilui": {
+  "tris": 1106265,
+  "aussenPct": 0.09,
+  "maxM": 40,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.5,
+    3,
+    -10
+   ],
+   "nah": 5974,
+   "abstand": 0.27,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "glsn-basher": {
+  "tris": 19306,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.01,
+    3.64
+   ],
+   "nah": 15199,
+   "abstand": 0.32,
+   "oben": "Rumpf",
+   "obenM": 0.1,
+   "ok": true
+  }
+ },
+ "glsn-shiv": {
+  "tris": 307233,
+  "aussenPct": 0.43,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.02,
+    -2.39,
+    -12.36
+   ],
+   "nah": 1861,
+   "abstand": 0.4,
+   "oben": "Glas",
+   "obenM": 2.37,
+   "ok": true
+  }
+ },
+ "grin-mdc": {
+  "tris": 62602,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_MTC_jumpseat",
+   "p": [
+    0.8,
+    -0.6,
+    0
+   ],
+   "nah": 20036,
+   "abstand": 0.09,
+   "oben": "Rumpf",
+   "obenM": 1.51,
+   "ok": true
+  }
+ },
+ "grin-mtc": {
+  "tris": 92860,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_MTC_jumpseat",
+   "p": [
+    0.8,
+    -0.6,
+    0
+   ],
+   "nah": 13602,
+   "abstand": 0.09,
+   "oben": "Rumpf",
+   "obenM": 1.51,
+   "ok": true
+  }
+ },
+ "grin-ptv": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    -0.33,
+    -0.51,
+    0.13
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "grin-roc": {
+  "tris": 2205,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    0,
+    0.52,
+    -0.45
+   ],
+   "nah": 2205,
+   "abstand": 0.44,
+   "oben": "Glas",
+   "obenM": 0.07,
+   "ok": true
+  }
+ },
+ "grin-roc-ds": {
+  "tris": 2205,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    0,
+    0.52,
+    -0.45
+   ],
+   "nah": 2205,
+   "abstand": 0.44,
+   "oben": "Glas",
+   "obenM": 0.07,
+   "ok": true
+  }
+ },
+ "grin-stv": {
+  "tris": 628,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    -0.41,
+    -0.25,
+    0.22
+   ],
+   "nah": 124,
+   "abstand": 0.54,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "grin-utv": {
+  "tris": 1282,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.33,
+    -0.25,
+    0.12
+   ],
+   "nah": 228,
+   "abstand": 1.24,
+   "oben": "Rumpf",
+   "obenM": 0.42,
+   "ok": true
+  }
+ },
+ "krig-l21-wolf": {
+  "tris": 24126,
+  "aussenPct": 0.36,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1,
+    0.5
+   ],
+   "nah": 23226,
+   "abstand": 0.38,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "krig-l22-alphawolf": {
+  "tris": 24306,
+  "aussenPct": 0.35,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1,
+    0.5
+   ],
+   "nah": 23220,
+   "abstand": 0.38,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "krig-p52-merlin": {
+  "tris": 14291,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.16,
+    2.15
+   ],
+   "nah": 13143,
+   "abstand": 0.26,
+   "oben": "Rumpf",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "krig-p72-archimedes": {
+  "tris": 14873,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.16,
+    2.15
+   ],
+   "nah": 13610,
+   "abstand": 0.26,
+   "oben": "Rumpf",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "krig-p72-archimedes-emerald": {
+  "tris": 14873,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.16,
+    2.15
+   ],
+   "nah": 13610,
+   "abstand": 0.26,
+   "oben": "Rumpf",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "krig-s65-stingray": {
+  "tris": 44421,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.01,
+    -5.18
+   ],
+   "nah": 42625,
+   "abstand": 0.37,
+   "oben": "Glas",
+   "obenM": 0.02,
+   "ok": true
+  }
+ },
+ "misc-fortune": {
+  "tris": 155809,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.3,
+    -9.59
+   ],
+   "nah": 4262,
+   "abstand": 0.15,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "misc-freelancer": {
+  "tris": 292478,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.89,
+    0.01,
+    -11.95
+   ],
+   "nah": 6890,
+   "abstand": 0.07,
+   "oben": "Glas",
+   "obenM": 2.11,
+   "ok": true
+  }
+ },
+ "misc-freelancer-dur": {
+  "tris": 296654,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.89,
+    0.01,
+    -11.95
+   ],
+   "nah": 6890,
+   "abstand": 0.07,
+   "oben": "Glas",
+   "obenM": 2.12,
+   "ok": true
+  }
+ },
+ "misc-freelancer-max": {
+  "tris": 295686,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.89,
+    0.01,
+    -11.95
+   ],
+   "nah": 6890,
+   "abstand": 0.07,
+   "oben": "Glas",
+   "obenM": 2.12,
+   "ok": true
+  }
+ },
+ "misc-freelancer-mis": {
+  "tris": 303893,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.89,
+    0.01,
+    -11.95
+   ],
+   "nah": 6890,
+   "abstand": 0.07,
+   "oben": "Glas",
+   "obenM": 2.12,
+   "ok": true
+  }
+ },
+ "misc-fury": {
+  "tris": 44,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.09,
+    -1.48
+   ],
+   "nah": 44,
+   "abstand": 0.64,
+   "oben": "Rumpf",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "misc-fury-lx": {
+  "tris": 44,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.09,
+    -1.48
+   ],
+   "nah": 44,
+   "abstand": 0.64,
+   "oben": "Rumpf",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "misc-fury-miru": {
+  "tris": 42,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.09,
+    -1.48
+   ],
+   "nah": 42,
+   "abstand": 0.64,
+   "oben": "Rumpf",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "misc-hull-a": {
+  "tris": 139519,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.37,
+    -9.62
+   ],
+   "nah": 7659,
+   "abstand": 0.11,
+   "oben": "Rumpf",
+   "obenM": 0.49,
+   "ok": true
+  }
+ },
+ "misc-hull-b": {
+  "tris": 678114,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.94,
+    -0.63,
+    -26.62
+   ],
+   "nah": 9731,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 1.67,
+   "ok": true
+  }
+ },
+ "misc-hull-c": {
+  "tris": 626102,
+  "aussenPct": 0,
+  "maxM": 3,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.46,
+    -2.96,
+    -58.92
+   ],
+   "nah": 3756,
+   "abstand": 0.11,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "misc-prospector": {
+  "tris": 26095,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.32,
+    -9.59
+   ],
+   "nah": 767,
+   "abstand": 0.13,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "misc-razor": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.06,
+    -1.05
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "Glas",
+   "obenM": 0.3,
+   "ok": false
+  }
+ },
+ "misc-razor-ex": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.06,
+    -1.05
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "Glas",
+   "obenM": 0.3,
+   "ok": false
+  }
+ },
+ "misc-razor-lx": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.06,
+    -1.05
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "Glas",
+   "obenM": 0.3,
+   "ok": false
+  }
+ },
+ "misc-reliant": {
+  "tris": 34413,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "Hardpoint_Reliant_Pilot_Seat",
+   "p": [
+    -0.98,
+    0,
+    -2.18
+   ],
+   "nah": 688,
+   "abstand": 0.9,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "misc-reliant-mako": {
+  "tris": 47009,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "Hardpoint_Reliant_Pilot_Seat",
+   "p": [
+    -0.98,
+    0,
+    -2.18
+   ],
+   "nah": 688,
+   "abstand": 0.9,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "misc-reliant-sen": {
+  "tris": 56474,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "Hardpoint_Reliant_Pilot_Seat",
+   "p": [
+    -0.98,
+    0,
+    -2.18
+   ],
+   "nah": 688,
+   "abstand": 0.9,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "misc-reliant-tana": {
+  "tris": 41397,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "Hardpoint_Reliant_Pilot_Seat",
+   "p": [
+    -0.98,
+    0,
+    -2.18
+   ],
+   "nah": 688,
+   "abstand": 0.9,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "misc-starfarer": {
+  "tris": 740601,
+  "aussenPct": 3.12,
+  "maxM": 66.8,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_co_pilot",
+   "p": [
+    1.02,
+    -2.71,
+    -39.19
+   ],
+   "nah": 1794,
+   "abstand": 0.26,
+   "oben": "Rumpf",
+   "obenM": 2.03,
+   "ok": true
+  }
+ },
+ "misc-starfarer-gemini": {
+  "tris": 775176,
+  "aussenPct": 2.99,
+  "maxM": 66.8,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_co_pilot",
+   "p": [
+    1.02,
+    -2.71,
+    -39.19
+   ],
+   "nah": 1794,
+   "abstand": 0.26,
+   "oben": "Rumpf",
+   "obenM": 2.03,
+   "ok": true
+  }
+ },
+ "misc-starlancer-max": {
+  "tris": 1362242,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.12,
+    0,
+    -40
+   ],
+   "nah": 4880,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 1.83,
+   "ok": true
+  }
+ },
+ "misc-starlancer-tac": {
+  "tris": 1430627,
+  "aussenPct": 0,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.12,
+    0,
+    -40
+   ],
+   "nah": 4341,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 1.86,
+   "ok": true
+  }
+ },
+ "misc-starlite": {
+  "tris": 199093,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    -0.57,
+    -12.67
+   ],
+   "nah": 20480,
+   "abstand": 0.52,
+   "oben": "Rumpf",
+   "obenM": 1.21,
+   "ok": true
+  }
+ },
+ "mrai-guardian": {
+  "tris": 350718,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.51,
+    -3.34
+   ],
+   "nah": 12340,
+   "abstand": 0.1,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "mrai-guardian-mx": {
+  "tris": 288058,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.51,
+    -3.34
+   ],
+   "nah": 416,
+   "abstand": 1.08,
+   "oben": "Rumpf",
+   "obenM": 0.09,
+   "ok": true
+  }
+ },
+ "mrai-guardian-qi": {
+  "tris": 350718,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.51,
+    -3.34
+   ],
+   "nah": 12340,
+   "abstand": 0.1,
+   "oben": "Rumpf",
+   "obenM": 0.04,
+   "ok": true
+  }
+ },
+ "mrai-pulse": {
+  "tris": 525,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.2,
+    0.22
+   ],
+   "nah": 525,
+   "abstand": 1.07,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "mrai-pulse-lx": {
+  "tris": 1478,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.2,
+    0.22
+   ],
+   "nah": 1478,
+   "abstand": 1.07,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "orig-100i": {
+  "tris": 28213,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.65,
+    -3.93
+   ],
+   "nah": 1673,
+   "abstand": 0.14,
+   "oben": "Glas",
+   "obenM": 1.3,
+   "ok": true
+  }
+ },
+ "orig-125a": {
+  "tris": 28213,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.65,
+    -3.93
+   ],
+   "nah": 1673,
+   "abstand": 0.14,
+   "oben": "Glas",
+   "obenM": 1.3,
+   "ok": true
+  }
+ },
+ "orig-135c": {
+  "tris": 28213,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.65,
+    -3.93
+   ],
+   "nah": 1673,
+   "abstand": 0.14,
+   "oben": "Glas",
+   "obenM": 1.3,
+   "ok": true
+  }
+ },
+ "orig-300i": {
+  "tris": 16006,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.33,
+    -6.12
+   ],
+   "nah": 1900,
+   "abstand": 0.31,
+   "oben": "Glas",
+   "obenM": 1.16,
+   "ok": true
+  }
+ },
+ "orig-315p": {
+  "tris": 16006,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.33,
+    -6.12
+   ],
+   "nah": 1900,
+   "abstand": 0.31,
+   "oben": "Glas",
+   "obenM": 1.16,
+   "ok": true
+  }
+ },
+ "orig-325a": {
+  "tris": 15966,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.33,
+    -6.12
+   ],
+   "nah": 1900,
+   "abstand": 0.31,
+   "oben": "Glas",
+   "obenM": 1.16,
+   "ok": true
+  }
+ },
+ "orig-350r": {
+  "tris": 8962,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.33,
+    -6.12
+   ],
+   "nah": 1448,
+   "abstand": 0.18,
+   "oben": "Glas",
+   "obenM": 1.16,
+   "ok": true
+  }
+ },
+ "orig-400i": {
+  "tris": 439718,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot_seat_access",
+   "p": [
+    0,
+    2.25,
+    -1.7
+   ],
+   "nah": 2819,
+   "abstand": 0.16,
+   "oben": "Rumpf",
+   "obenM": 0.23,
+   "ok": true
+  }
+ },
+ "orig-600i": {
+  "tris": 1011428,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -45
+   ],
+   "nah": 89,
+   "abstand": 1.24,
+   "oben": "Rumpf",
+   "obenM": 0.73,
+   "ok": true
+  }
+ },
+ "orig-600i-bis2951": {
+  "tris": 1011428,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -45
+   ],
+   "nah": 89,
+   "abstand": 1.24,
+   "oben": "Rumpf",
+   "obenM": 0.73,
+   "ok": true
+  }
+ },
+ "orig-600i-touring": {
+  "tris": 879846,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -45
+   ],
+   "nah": 89,
+   "abstand": 1.24,
+   "oben": "Rumpf",
+   "obenM": 0.73,
+   "ok": true
+  }
+ },
+ "orig-85x": {
+  "tris": 20735,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    -0.7,
+    -0.3,
+    -4.37
+   ],
+   "nah": 15034,
+   "abstand": 0.25,
+   "oben": "Glas",
+   "obenM": 0.12,
+   "ok": true
+  }
+ },
+ "orig-m50": {
+  "tris": 18324,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2
+ },
+ "orig-m80": {
+  "tris": 123103,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.99,
+    -8.24
+   ],
+   "nah": 13843,
+   "abstand": 0.43,
+   "oben": "Glas",
+   "obenM": 0.01,
+   "ok": true
+  }
+ },
+ "orig-x1": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    0,
+    0
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "orig-x1-force": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    0,
+    0
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "orig-x1-velocity": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_pilot_seat",
+   "p": [
+    0,
+    0,
+    0
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "rsi-apollo-medivac": {
+  "tris": 687415,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.5,
+    -0.11,
+    -24.54
+   ],
+   "nah": 4192,
+   "abstand": 0.1,
+   "oben": "Rumpf",
+   "obenM": 0.64,
+   "ok": true
+  }
+ },
+ "rsi-apollo-triage": {
+  "tris": 687415,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.5,
+    -0.11,
+    -24.54
+   ],
+   "nah": 4192,
+   "abstand": 0.1,
+   "oben": "Rumpf",
+   "obenM": 0.64,
+   "ok": true
+  }
+ },
+ "rsi-aurora-gs-cl": {
+  "tris": 52168,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.85,
+    -7.09
+   ],
+   "nah": 11856,
+   "abstand": 0.03,
+   "oben": "Glas",
+   "obenM": 0.83,
+   "ok": true
+  }
+ },
+ "rsi-aurora-gs-es": {
+  "tris": 52168,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.85,
+    -7.09
+   ],
+   "nah": 11856,
+   "abstand": 0.03,
+   "oben": "Glas",
+   "obenM": 0.83,
+   "ok": true
+  }
+ },
+ "rsi-aurora-gs-ln": {
+  "tris": 52168,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.85,
+    -7.09
+   ],
+   "nah": 11856,
+   "abstand": 0.03,
+   "oben": "Glas",
+   "obenM": 0.83,
+   "ok": true
+  }
+ },
+ "rsi-aurora-gs-lx": {
+  "tris": 52168,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.85,
+    -7.09
+   ],
+   "nah": 11856,
+   "abstand": 0.03,
+   "oben": "Glas",
+   "obenM": 0.83,
+   "ok": true
+  }
+ },
+ "rsi-aurora-gs-mr": {
+  "tris": 52168,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.85,
+    -7.09
+   ],
+   "nah": 11856,
+   "abstand": 0.03,
+   "oben": "Glas",
+   "obenM": 0.83,
+   "ok": true
+  }
+ },
+ "rsi-aurora-gs-se": {
+  "tris": 52168,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.85,
+    -7.09
+   ],
+   "nah": 11641,
+   "abstand": 0.03,
+   "oben": "Glas",
+   "obenM": 0.83,
+   "ok": true
+  }
+ },
+ "rsi-aurora-mk2": {
+  "tris": 157808,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.89,
+    -8.84
+   ],
+   "nah": 11683,
+   "abstand": 0.05,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-constellation-andromeda": {
+  "tris": 531422,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    4.14,
+    -23.11
+   ],
+   "nah": 75,
+   "abstand": 0.72,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-constellation-aquila": {
+  "tris": 209497,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    4.14,
+    -23.11
+   ],
+   "nah": 73,
+   "abstand": 0.72,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-constellation-phoenix": {
+  "tris": 484880,
+  "aussenPct": 16.87,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    4.39,
+    -26.61
+   ],
+   "nah": 61,
+   "abstand": 0.72,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-constellation-phoenix-emerald": {
+  "tris": 403610,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    4.39,
+    -26.61
+   ],
+   "nah": 1134,
+   "abstand": 0.48,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-constellation-taurus": {
+  "tris": 410594,
+  "aussenPct": 0.03,
+  "maxM": 99,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    4.14,
+    -23.11
+   ],
+   "nah": 75,
+   "abstand": 0.72,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-hermes": {
+  "tris": 496627,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -1.5,
+    -0.11,
+    -24.54
+   ],
+   "nah": 4192,
+   "abstand": 0.1,
+   "oben": "Rumpf",
+   "obenM": 0.64,
+   "ok": true
+  }
+ },
+ "rsi-lynx": {
+  "tris": 64112,
+  "aussenPct": 0.35,
+  "maxM": 0.8,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.7,
+    -0.89,
+    -2.41
+   ],
+   "nah": 11351,
+   "abstand": 0.07,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-mantis": {
+  "tris": 80119,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.93,
+    -9.62
+   ],
+   "nah": 6373,
+   "abstand": 0.13,
+   "oben": "Rumpf",
+   "obenM": 0.24,
+   "ok": true
+  }
+ },
+ "rsi-meteor": {
+  "tris": 80123,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    1.93,
+    -9.62
+   ],
+   "nah": 6371,
+   "abstand": 0.12,
+   "oben": "Rumpf",
+   "obenM": 0.18,
+   "ok": true
+  }
+ },
+ "rsi-salvation": {
+  "tris": 7217,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -4
+   ],
+   "nah": 6315,
+   "abstand": 0.14,
+   "oben": "Rumpf",
+   "obenM": 0.15,
+   "ok": true
+  }
+ },
+ "rsi-scorpius": {
+  "tris": 28533,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -9
+   ],
+   "nah": 18907,
+   "abstand": 0.13,
+   "oben": "Glas",
+   "obenM": 0.46,
+   "ok": true
+  }
+ },
+ "rsi-scorpius-antares": {
+  "tris": 30069,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -9
+   ],
+   "nah": 18907,
+   "abstand": 0.13,
+   "oben": "Glas",
+   "obenM": 0.46,
+   "ok": true
+  }
+ },
+ "rsi-skylark": {
+  "tris": 8164,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0,
+    -2
+   ],
+   "nah": 7811,
+   "abstand": 0.47,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-ursa-medivac": {
+  "tris": 103674,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    -0.71,
+    -0.37,
+    -2.39
+   ],
+   "nah": 7609,
+   "abstand": 0.05,
+   "oben": "Glas",
+   "obenM": 1.05,
+   "ok": true
+  }
+ },
+ "rsi-ursa-rover": {
+  "tris": 33310,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    -0.71,
+    -0.37,
+    -2.39
+   ],
+   "nah": 7564,
+   "abstand": 0.04,
+   "oben": "Glas",
+   "obenM": 1.05,
+   "ok": true
+  }
+ },
+ "rsi-ursa-rover-emerald": {
+  "tris": 33310,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_driver",
+   "p": [
+    -0.71,
+    -0.37,
+    -2.39
+   ],
+   "nah": 7564,
+   "abstand": 0.04,
+   "oben": "Glas",
+   "obenM": 1.05,
+   "ok": true
+  }
+ },
+ "rsi-zeus-cl": {
+  "tris": 495845,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.94,
+    -22.63
+   ],
+   "nah": 3093,
+   "abstand": 0.07,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "rsi-zeus-es": {
+  "tris": 525449,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.94,
+    -22.63
+   ],
+   "nah": 3093,
+   "abstand": 0.07,
+   "oben": "frei",
+   "obenM": null,
+   "ok": true
+  }
+ },
+ "tmbl-cyclone": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.5,
+    -0.62,
+    -0.49
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "tmbl-cyclone-aa": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.5,
+    -0.62,
+    -0.49
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "tmbl-cyclone-mt": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.5,
+    -0.62,
+    -0.49
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "tmbl-cyclone-rc": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.5,
+    -0.62,
+    -0.49
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "tmbl-cyclone-rn": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.5,
+    -0.62,
+    -0.49
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "tmbl-cyclone-tr": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_passenger",
+   "p": [
+    0.5,
+    -0.62,
+    -0.49
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "tmbl-nova": {
+  "tris": 68921,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_co-pilot_seat",
+   "p": [
+    0.7,
+    -0.82,
+    -2.2
+   ],
+   "nah": 6260,
+   "abstand": 0.04,
+   "oben": "Rumpf",
+   "obenM": 0.15,
+   "ok": true
+  }
+ },
+ "tmbl-storm": {
+  "tris": 33536,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.12,
+    -1.41
+   ],
+   "nah": 21988,
+   "abstand": 0.29,
+   "oben": "Rumpf",
+   "obenM": 0.07,
+   "ok": true
+  }
+ },
+ "tmbl-storm-aa": {
+  "tris": 33536,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    0.12,
+    -1.41
+   ],
+   "nah": 21988,
+   "abstand": 0.29,
+   "oben": "Rumpf",
+   "obenM": 0.05,
+   "ok": true
+  }
+ },
+ "vncl-blade": {
+  "tris": 20240,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.38,
+    -5.54
+   ],
+   "nah": 12096,
+   "abstand": 0.3,
+   "oben": "Rumpf",
+   "obenM": 0.46,
+   "ok": true
+  }
+ },
+ "vncl-glaive": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.99,
+    -8.35
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "vncl-scythe": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.96,
+    -5.36
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "Rumpf",
+   "obenM": 0.97,
+   "ok": false
+  }
+ },
+ "vncl-stinger": {
+  "tris": 133923,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -1.25,
+    -9.5
+   ],
+   "nah": 12230,
+   "abstand": 0.06,
+   "oben": "Rumpf",
+   "obenM": 1.02,
+   "ok": true
+  }
+ },
+ "xian-nox": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.27,
+    -0.4
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "xian-nox-kue": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.27,
+    -0.4
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "frei",
+   "obenM": null,
+   "ok": false
+  }
+ },
+ "xian-scout": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    -0.11,
+    -4.45,
+    -3.24
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "Glas",
+   "obenM": 1.39,
+   "ok": false
+  }
+ },
+ "xnaa-santokyai": {
+  "tris": 0,
+  "aussenPct": 0,
+  "maxM": 0,
+  "voxel": 0.2,
+  "sitz": {
+   "name": "hardpoint_seat_pilot",
+   "p": [
+    0,
+    -0.47,
+    -6.33
+   ],
+   "nah": 0,
+   "abstand": null,
+   "oben": "Glas",
+   "obenM": 1.51,
+   "ok": false
+  }
+ }
+}

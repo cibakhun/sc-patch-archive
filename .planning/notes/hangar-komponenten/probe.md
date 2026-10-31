@@ -180,3 +180,65 @@ verschwinden beim Tausch nicht.
   Container (Schild, Kraftwerk, Kühler, Quantenantrieb) liegen 3,7 bis
   6,2 m von den Ports: Innenraum-Ausstattung, keine Port-Teile.
 - Neubau aller Rümpfe erst nach Rückmeldung.
+
+## Neubau
+
+Branch `pc/hangar-komponenten`, auf der Probe (4839514f). Je Schiff:
+`neubau-je-schiff.md`. Messungen: `inseln-nachher.json`,
+`innenlage-nachher.json`.
+
+- **`extras.stock`** (Nachtrag 30.10.): jeder Komponenten-Anker (Netze am
+  Anker, leere Anker, Container-Teile am Port) trägt die URL seines
+  Standardteils mit Version wie im Manifest-Abschnitt `components`
+  (`/hangar/components/<key>.glb?v=<v>`), auch für die 12 Serienklassen ohne
+  Werkstatt-Teil. Ohne Modell bleibt `stock` weg: 18 Anker der 8 Klassen
+  unten.
+- **Gebaut:** alle 231 Rümpfe, 0 Fehler (der Lauf brach bei 162 ab, als
+  meine Sitzung endete; die übrigen 69 nachgebaut), GLB 749,4 → 746,3 MB.
+  Dazu die Innenräume von Centurion, Spartan und Hull C: Das Kraftwerk
+  `powr_lplt_v01_pl03` (Centurion, Spartan) und das Radar `radr_bltr_s02_pl02`
+  (Hull C) im Container tragen dort `swap`, `item`, `inst`, `anchor`, `cat`,
+  `stock` und `placed: true` wie im Rumpf. Im Rumpf hat nur die Spartan
+  ihren Innenraum behalten (`swapPlaced` 1), Centurion und Hull C nicht.
+- **Ports:** 647 mit Serienteil am Anker (150 Schiffe), 834 leere Anker,
+  24 Ports ohne Anker. Alle 24: Der Port-Helfer fehlt im Rohexport
+  (Redeemer Kraftwerk 2 und Schilde 3–6, Hurricane Kraftwerk 2, Valkyrie
+  Schilde 3/4, MPUV Transport Scanner, Raft Schild 3, Vulture Schild hinten
+  und weitere, vollständig in `neubau-je-schiff.md`).
+- **Klassen ohne Modell** (Geometriedatei fehlt in der Data.p4k) und wer sie
+  als Standard trägt: `allegro` (QDRV_ORIG_S04_890J) und
+  SHLD_ORIG_S04_890J: 890 Jump. `radar~2` (RADR_S02_Fake): MOLE.
+  RADR_GNRP_S03_Idris_TEMP: Idris M und P. COOL/QDRV/SHLD_*_S04_Javelin:
+  Javelin. RADR_S00_Fake: ROC-DS.
+- **Gegenprobe gegen die Basis (00fbd61d, Teil 4):** Die 81 Rümpfe ohne
+  eingesetztes Teil ändern sich bei den Dreiecken um 0,000 %, die Datei um
+  0 bis 2 740 Bytes (die leeren Anker). Über 0,5 % weichen 82 Rümpfe ab,
+  alle mit eingesetzten Teilen. Grund: Die Komponenten-Netze bleiben eigene,
+  benannte Knoten, `join` legt sie nicht mehr mit Gleichem zusammen, und die
+  Dezimierung trifft das Budget anders (Starfighter Ion 36 → 41 Netze,
+  143 → 164 Primitive, −10,5 %; Sabre +5,7 %; Gladius −1,0 %). Gegen
+  staging (73369043, nur Teil 1) stehen die Zahlen in der Tabelle; dort
+  wirken auch Teil 3 und 4 mit.
+- **verify:hangar-cockpit `--nachziehen`:** verweigert zuerst, 9 Werte
+  stiegen (400i 42 → 46, Hammerhead Showdown 19 → 20, Apollo Medivac 8 → 9,
+  Guardian QI 7 → 8, Vanguard 4 → 5, Vanguard Hoplite 5 → 6, M80 0 → 1,
+  X1 Force und X1 Velocity 1 → 2), 6 sanken (Starlancer MAX 10 → 8,
+  Guardian 6 → 4, Fortune 26 → 25, Vanguard Sentinel 4 → 3, 100i und 125a
+  1 → 0); zusammen 440 → 444 von 36 287 Strahlen. Ursache: Die Messung
+  zieht ihre 160 Strahlen mit festem Startwert über die Reihenfolge der
+  Glasdreiecke; eigene Komponenten-Knoten ändern diese Reihenfolge. Beleg:
+  X1 Force hat alt wie neu dieselben 10 506 Glasdreiecke und 240 148
+  Dreiecke, nur anders geordnet, und misst 1 → 2. Bei 400i, M80 und
+  Vanguard verschiebt die Dezimierung zudem einige Glasdreiecke. Nachgezogen
+  mit `--anlass` (in der Klinke vermerkt).
+- **measure-hangar-inseln all:** 16 Rümpfe, je Schiff dieselben Inseln wie
+  nach Teil 4.
+- **measure-hangar-innenlage all:** 5 Innenräume mit mindestens 1 % außen,
+  Sitz ✓ 192 von 215, kein Wert gegen Teil 3 gestiegen.
+- **check:hangar-shader** gegen den gebauten Stand: aegs-gladius 72
+  Programme, anvl-carrack 103, aegs-idris-m 107, jeweils höchstens 16
+  Texturen ✓.
+- **Build und Tor:** Live-Build „Geprüftes Artefakt: dist/ — Live-Build mit
+  nginx/default.conf“, 36 von 36 grün (465,5 s). `STAGING=1`: „Artefakt:
+  Vorschau-Build (STAGING=1) — site-weit noindex, Sitemaps absichtlich
+  leer“, 36 von 36 grün (431,4 s).
