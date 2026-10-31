@@ -449,7 +449,12 @@ const SEC = {
     others: 'Andere Geräte abmelden', all: 'Überall abmelden',
     incl: ['Profil', 'Loadouts', 'Favoriten', 'Freunde', 'Nachrichten', 'Refinery', 'Crafting', 'Mining'],
     dl: 'Als Datei laden', dangerShort: 'Endgültig, samt allen Daten', del: 'Löschen …',
+    shield: 'Konto-Schutz',
+    shieldTip: 'Jeder Punkt macht es schwerer, dein Konto zu übernehmen, und leichter, wieder hineinzukommen: ein zweiter Anmeldeweg (Passwort und Discord), deine bestätigte RSI-Identität und ein Code aus der App bei jeder Anmeldung.',
+    stepPass: 'Passwort', stepPassOff: 'Passwort setzen', stepDc: 'Discord', stepDcOff: 'Discord verbinden',
+    stepRsi: 'RSI bestätigt', stepRsiOff: 'RSI bestätigen', stepMfa: 'Zwei-Faktor', stepMfaOff: 'Zwei-Faktor einrichten',
     js: {
+      shieldN: '%n% von %t%', shieldAll: 'Alles erledigt',
       cancel: 'Abbrechen', notLinked: 'Nicht verbunden', sure: 'Sicher?', err: 'Das hat nicht geklappt.',
       othersDone: 'Andere Geräte sind abgemeldet.', exportBusy: 'Sammle …', exportDone: 'Datei geladen.',
       exportPartial: 'Datei geladen, aber nicht vollständig: was sich nicht lesen ließ, steht darin unter „errors“.',
@@ -465,7 +470,12 @@ const SEC = {
     others: 'Sign out other devices', all: 'Sign out everywhere',
     incl: ['Profile', 'Loadouts', 'Favorites', 'Friends', 'Messages', 'Refinery', 'Crafting', 'Mining'],
     dl: 'Download file', dangerShort: 'Permanent, with all your data', del: 'Delete …',
+    shield: 'Account protection',
+    shieldTip: 'Each point makes your account harder to take over and easier to get back into: a second way to sign in (password and Discord), your verified RSI identity and a code from the app at every sign-in.',
+    stepPass: 'Password', stepPassOff: 'Set password', stepDc: 'Discord', stepDcOff: 'Connect Discord',
+    stepRsi: 'RSI verified', stepRsiOff: 'Verify RSI', stepMfa: 'Two-factor', stepMfaOff: 'Set up two-factor',
     js: {
+      shieldN: '%n% of %t%', shieldAll: 'All done',
       cancel: 'Cancel', notLinked: 'Not connected', sure: 'Sure?', err: 'That did not work.',
       othersDone: 'Other devices are signed out.', exportBusy: 'Collecting …', exportDone: 'File downloaded.',
       exportPartial: 'File downloaded, but incomplete: what could not be read is listed in it under “errors”.',
@@ -1010,6 +1020,28 @@ const SEC = {
         <div class="sec" id="sec" data-lang={lang} data-home={homeHref} data-copy={JSON.stringify(SEC.js)}>
           <div class="sv-bar"><h2 class="sv-h">{COPY.tabSecurity}</h2></div>
           <p class="acx-status" id="seReauthStatus" role="status" aria-live="polite" hidden></p>
+          <!-- Schild (Runde 3, 31.10.2026): wie gut das Konto geschützt ist, als
+               „3 von 4", und je offenem Punkt ein Knopf, der zur Stelle springt.
+               Zustände und Sprünge: account-security.ts. -->
+          <div class="sec-shield" id="secShield" hidden>
+            <svg class="sec-shield__badge" viewBox="0 0 48 56" aria-hidden="true">
+              <defs><clipPath id="secShieldClip"><rect id="secShieldLevel" x="0" y="56" width="48" height="56"/></clipPath></defs>
+              <path class="sec-shield__bg" d="M24 3 43 10v15c0 13-8 22.5-19 28C13 47.5 5 38 5 25V10Z"/>
+              <path class="sec-shield__fill" clip-path="url(#secShieldClip)" d="M24 3 43 10v15c0 13-8 22.5-19 28C13 47.5 5 38 5 25V10Z"/>
+              <path class="sec-shield__tick" d="m16 28 6 6 11-12"/>
+            </svg>
+            <div class="sec-shield__txt">
+              <span class="sec-shield__k">{SEC.shield} <button type="button" class="pfx-i" data-tip="secShieldTip" aria-label={COPY.pfMore}>i</button></span>
+              <b class="sec-shield__n" id="secShieldN" aria-live="polite">–</b>
+            </div>
+            <p class="pfx-tiptext" id="secShieldTip" hidden>{SEC.shieldTip}</p>
+            <ul class="sec-steps">
+              <li><button type="button" class="sec-step" data-step="pass" data-go="sePass" data-done-go="secPassBtn" data-on={SEC.stepPass} data-off={SEC.stepPassOff}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-lock"/></svg><span>{SEC.stepPassOff}</span></button></li>
+              <li><button type="button" class="sec-step" data-step="dc" data-go="secDcLink" data-done-go="secDcUnlink" data-on={SEC.stepDc} data-off={SEC.stepDcOff}><svg viewBox="0 0 127.14 96.36" aria-hidden="true"><use href="#ic-discord"/></svg><span>{SEC.stepDcOff}</span></button></li>
+              <li><button type="button" class="sec-step" data-step="rsi" data-go="pfRsiHandle" data-done-go="secRsiBtn" data-on={SEC.stepRsi} data-off={SEC.stepRsiOff}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-id"/></svg><span>{SEC.stepRsiOff}</span></button></li>
+              <li hidden><button type="button" class="sec-step" data-step="mfa" data-go="mfaName" data-done-go="mfaState" data-on={SEC.stepMfa} data-off={SEC.stepMfaOff}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-hash"/></svg><span>{SEC.stepMfaOff}</span></button></li>
+            </ul>
+          </div>
           <div class="sec-grid">
 
             <div class="sec-card">
@@ -1084,7 +1116,7 @@ const SEC = {
               </div>
             </div>
 
-            <div class="sec-card">
+            <div class="sec-card sec-card--data">
               <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-download"/></svg>{SEC.data}</h3>
               <ul class="sec-incl">{SEC.incl.map((x) => <li>{x}</li>)}</ul>
               <div class="sec-acts">
@@ -1314,6 +1346,7 @@ const SEC = {
 import '../../scripts/account-dashboard';
 import '../../scripts/account-cockpit';
 import '../../scripts/account-profile-view';
+import '../../scripts/account-tips';
 import '../../scripts/account-saved';
 import '../../scripts/account-security';
 </script>

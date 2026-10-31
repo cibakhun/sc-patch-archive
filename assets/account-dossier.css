@@ -1863,3 +1863,49 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
   .pfx-edit{overflow:visible}
   .pfx-save{position:sticky;bottom:0;z-index:4;border-radius:0 0 16px 16px}
 }
+
+/* ================= SICHERHEIT ALS SCHILD (31.10.2026) =================
+   Oben ein Streifen „Konto-Schutz: 3 von 4" mit Schild, das sich füllt, und
+   je Punkt einem Knopf (gelb = offen, springt zur Stelle; grün = erledigt).
+   Darunter die Karten in drei Spalten, damit alles auf einen Full-HD-
+   Bildschirm passt; „Konto löschen" bleibt als schmale Zeile ganz unten. */
+.sec-shield{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;padding:12px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+.sec-shield__badge{flex:none;width:40px;height:46px}
+.sec-shield__bg{fill:color-mix(in srgb,var(--gold) 8%,transparent);stroke:color-mix(in srgb,var(--gold) 70%,transparent);stroke-width:2.2;stroke-linejoin:round}
+.sec-shield__fill{fill:color-mix(in srgb,var(--gold) 55%,transparent)}
+#secShieldLevel{transition:y var(--dur-slow) var(--ease-ui)}
+.sec-shield__tick{fill:none;stroke:#04130c;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.sec-shield.is-full .sec-shield__bg{fill:color-mix(in srgb,var(--ok) 12%,transparent);stroke:var(--ok)}
+.sec-shield.is-full .sec-shield__fill{fill:var(--ok)}
+.sec-shield.is-full .sec-shield__tick{opacity:1}
+.sec-shield__txt{display:flex;flex-direction:column;gap:1px;min-width:8.5rem}
+.sec-shield__k{display:flex;align-items:center;gap:7px;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-4);text-transform:uppercase;color:var(--muted)}
+.sec-shield__n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-13);color:var(--gold)}
+.sec-shield.is-full .sec-shield__n{color:var(--ok)}
+.sec-steps{list-style:none;margin:0 0 0 auto;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.sec-steps li[hidden]{display:none}
+.dsr .sec-step{display:inline-flex;align-items:center;gap:8px;min-height:0;padding:7px 14px;border:1px dashed color-mix(in srgb,var(--gold) 65%,transparent);border-radius:999px;background:color-mix(in srgb,var(--gold) 8%,transparent);color:var(--gold);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-7);cursor:pointer;transition:background var(--dur-fast) var(--ease-ui)}
+.dsr .sec-step:hover{background:color-mix(in srgb,var(--gold) 16%,transparent)}
+.dsr .sec-step.is-done{border-style:solid;border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent);color:var(--ok)}
+.dsr .sec-step.is-done:hover{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.sec-step svg{flex:none;width:15px;height:15px}
+.sec-step[data-step=dc] svg{width:17px;height:13px}
+.dsr .sec-h .pfx-i{margin-left:2px}
+
+#tab-panel-security{container:secx / inline-size}
+@container secx (min-width:1000px){
+  .sec-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .dsr .sec-grid .mfa-card{grid-column:span 2}
+  /* ohne Zwei-Faktor-Karte steht „Meine Daten" allein in der Zeile: dann breit */
+  .sec-grid:not(:has(> .mfa-card:not([hidden]))) .sec-card--data{grid-column:1 / -1}
+}
+/* Breite Schirme: alles auf einem Bildschirm; reicht die Höhe nicht
+   (1280×720), scrollen nur die Karten unter dem Schild. */
+@media (min-width:1100px) and (min-height:600px){
+  .acc-main > #tab-panel-security:not([hidden]){height:100%;min-height:0;display:flex;flex-direction:column}
+  .acc-main #tab-panel-security .sec{flex:1 1 auto;min-height:0}
+  .acc-main #tab-panel-security .sec-grid{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;align-content:start}
+}
+@media (max-width:640px){
+  .sec-steps{margin-left:0}
+}

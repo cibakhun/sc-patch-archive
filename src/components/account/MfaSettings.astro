@@ -43,9 +43,10 @@ const COPY = {
     add: 'Authenticator einrichten',
     addMore: 'Weiteres Gerät hinzufügen',
     adding: 'Bereite vor …',
-    step1: 'Scanne den QR-Code mit deiner Authenticator-App.',
-    step2: 'Oder tippe den Schlüssel von Hand ab:',
-    step3: 'Gib den ersten Code aus der App ein:',
+    step1: 'QR-Code mit der App scannen',
+    step2: 'Oder Schlüssel abtippen',
+    step3: 'Ersten Code eingeben',
+    more: 'Mehr dazu',
     qrAlt: 'QR-Code für die Authenticator-App',
     codeLabel: 'Code aus der App',
     confirm: 'Bestätigen',
@@ -81,9 +82,10 @@ const COPY = {
     add: 'Set up authenticator',
     addMore: 'Add another device',
     adding: 'Preparing …',
-    step1: 'Scan the QR code with your authenticator app.',
-    step2: 'Or type the key in by hand:',
-    step3: 'Enter the first code from the app:',
+    step1: 'Scan the QR code with the app',
+    step2: 'Or type in the key',
+    step3: 'Enter the first code',
+    more: 'More',
     qrAlt: 'QR code for the authenticator app',
     codeLabel: 'Code from the app',
     confirm: 'Confirm',
@@ -111,11 +113,16 @@ const COPY = {
   data-cls-hot={K.hot}
 >
   {sec ? (
-    <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-shield"/></svg>{COPY.title}</h3>
+    <>
+      <h3 class="sec-h"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-shield"/></svg>{COPY.title} <button type="button" class="pfx-i" data-tip="mfaDescTip" aria-label={COPY.more}>i</button></h3>
+      <p class="pfx-tiptext" id="mfaDescTip" hidden>{COPY.desc}</p>
+    </>
   ) : (
-    <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span><h3>{COPY.title}</h3></div>
+    <>
+      <div class="sc-h"><span class="sci"><svg viewBox="0 0 24 24"><use href="#ic-shield"/></svg></span><h3>{COPY.title}</h3></div>
+      <p class={K.note}>{COPY.desc}</p>
+    </>
   )}
-  <p class={K.note}>{COPY.desc}</p>
   <p class="mfa-state"><strong id="mfaState">{COPY.off}</strong> <span id="mfaSession"></span>
     <button type="button" class={K.btn} id="mfaStepUp" hidden>{COPY.stepUp}</button></p>
   <ul class="mfa-list" id="mfaList"></ul>
@@ -132,7 +139,7 @@ const COPY = {
     <ol class="mfa-steps">
       <li>
         <span>{COPY.step1}</span>
-        <img class="mfa-qr" id="mfaQr" alt={COPY.qrAlt} width="184" height="184" />
+        <img class="mfa-qr" id="mfaQr" alt={COPY.qrAlt} width="148" height="148" />
       </li>
       <li>
         <span>{COPY.step2}</span>
@@ -155,20 +162,27 @@ const COPY = {
 <style>
   /* Volle Breite im Raster: QR-Code, Schluessel und Liste brauchen Platz. */
   .mfa-card { grid-column: 1 / -1; }
-  .mfa-card > p, .mfa-list, .mfa-add, .mfa-steps { max-width: 40rem; }
+  .mfa-card > p, .mfa-list, .mfa-add { max-width: 40rem; }
   .mfa-note { margin: 0.5rem 0 0; color: var(--muted); font-size: var(--fs-7); line-height: 1.55; }
-  .mfa-state { margin: 0.6rem 0 0; line-height: 1.6; }
-  .mfa-state button { margin-left: 0.5rem; }
+  .mfa-state { margin: 0.4rem 0 0; line-height: 1.6; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; }
+  /* Zustand als Marke: gelb = offen, grün = aktiv (wie die Punkte im Schild) */
+  .mfa-state strong { padding: 0.1rem 0.65rem; border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent); border-radius: 999px; color: var(--gold); font-size: var(--fs-7); }
+  .mfa-card.is-on .mfa-state strong { border-color: color-mix(in srgb, var(--ok) 55%, transparent); color: var(--ok); }
+  .mfa-state span:empty { display: none; }
   .mfa-list { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
+  .mfa-list:empty { display: none; }
   .mfa-list :global(li) { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; padding: 0.55rem 0.7rem; border: 1px solid var(--line); border-radius: 6px; }
   .mfa-list :global(.mfa-name) { font-weight: 700; }
   .mfa-list :global(.mfa-since) { color: var(--muted); font-size: var(--fs-7); }
   .mfa-list :global(button) { margin-left: auto; }
   .mfa-add { display: flex; align-items: flex-end; gap: 0.8rem; flex-wrap: wrap; margin-top: 0.9rem; }
   .mfa-add .field { margin: 0; flex: 1 1 12rem; }
-  .mfa-steps { margin: 0.9rem 0 0; padding-left: 1.2rem; display: grid; gap: 0.9rem; }
-  .mfa-steps li { display: grid; gap: 0.5rem; justify-items: start; }
-  .mfa-qr { display: block; width: 184px; height: 184px; border-radius: 6px; }
+  /* Einrichten in drei kurzen Schritten nebeneinander, je mit Nummer. */
+  .mfa-steps { margin: 0.9rem 0 0; padding: 0; list-style: none; counter-reset: mfa; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: 0.7rem; }
+  .mfa-steps li { counter-increment: mfa; display: grid; gap: 0.5rem; align-content: start; justify-items: start; min-width: 0; padding: 0.7rem 0.8rem; border: 1px solid var(--line); border-radius: 10px; }
+  .mfa-steps li > span, .mfa-steps li > label { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; }
+  .mfa-steps li > span::before, .mfa-steps li > label::before { content: counter(mfa); flex: none; width: 1.4rem; height: 1.4rem; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: #031018; font-size: var(--fs-6); }
+  .mfa-qr { display: block; width: 148px; height: 148px; border-radius: 6px; }
   .mfa-secret { word-break: break-all; letter-spacing: var(--ls-6); }
   .mfa-confirm { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
   .mfa-confirm .inp { width: 9rem; }
