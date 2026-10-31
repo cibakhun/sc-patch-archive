@@ -87,6 +87,9 @@ COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 # Der Tuersteher selbst (nginx/gate.js) — Ausfuhren `check`/`mint`, siehe
 # js_import in nginx/default.conf.
 COPY nginx/gate.js /etc/nginx/gate.js
+# Link-Vorschau je Pilot (nginx/pilot.js, Ausfuhr `page`) — ebenfalls per
+# js_import in nginx/default.conf.
+COPY nginx/pilot.js /etc/nginx/pilot.js
 # njs-Modul laden + die vier Umgebungsvariablen des Tuerstehers durchreichen.
 # Main-Kontext (vor events{}), ohne Bedingung — dieselbe Begruendung wie oben:
 # das Modul liegt in JEDEM Image, nur $vb_gate_on (Vorschau-Schalter weiter

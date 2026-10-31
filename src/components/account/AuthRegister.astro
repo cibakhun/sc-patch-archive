@@ -117,7 +117,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
   </form>
 
   <div class="acx-links" id="regFootLinks">
-    <a href={loginHref}>{COPY.toLogin}</a>
+    <a href={loginHref} id="regToLogin">{COPY.toLogin}</a>
   </div>
 </div>
 
@@ -131,6 +131,18 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { safeNext } from '../../lib/safe-next';
+
+  // ?next=/… (nur dieselbe Origin, src/lib/safe-next.ts): wer über den
+  // Pilotenlink eines Freundes kommt (/de/pilot/<handle>), landet nach dem
+  // Registrieren wieder dort und kann ihn gleich hinzufügen. Gilt für alle
+  // Ausgänge: E-Mail, Discord (über die Anmeldeseite, die ?next= kennt),
+  // schon angemeldet und „Schon ein Konto?".
+  const nextRaw = new URLSearchParams(location.search).get('next') || '';
+  const nextOk = safeNext(nextRaw, location.origin, '');
+  const withNext = (login: string) => (nextOk ? login + '?next=' + encodeURIComponent(nextOk) : login);
+  const toLogin = document.getElementById('regToLogin') as HTMLAnchorElement | null;
+  if (toLogin && nextOk) toLogin.href = withNext(toLogin.getAttribute('href') || '');
 
   const dcReg = document.getElementById('regDiscordBtn') as HTMLButtonElement | null;
   if (dcReg) {
@@ -142,7 +154,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
       // dann ist das hier einfach eine Anmeldung.
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'discord',
-        options: { redirectTo: location.origin + (dcReg.dataset.login || '/account/login.html') },
+        options: { redirectTo: location.origin + withNext(dcReg.dataset.login || '/account/login.html') },
       });
       if (error) {
         if (st) { st.textContent = dcReg.dataset.err || ''; st.hidden = false; }
@@ -160,7 +172,7 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
 
     // Eingeloggt? Dann gibt es hier nichts zu registrieren.
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) location.replace(D.dash!);
+      if (data.session) location.replace(nextOk || D.dash!);
     });
 
     const setStatus = (msg: string, ok = false) => {
@@ -207,10 +219,10 @@ const privacyHref = lang === 'de' ? '/de/datenschutz.html#accounts' : '/datensch
         const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
         if (signInErr) {
           // Konto existiert, nur der Auto-Login scheiterte -> zur Anmeldung
-          location.assign(D.login!);
+          location.assign(withNext(D.login!));
           return;
         }
-        location.replace(D.dash!);
+        location.replace(nextOk || D.dash!);
       } catch {
         setStatus(D.msgNet!);
       } finally {

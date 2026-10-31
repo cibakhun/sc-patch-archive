@@ -1909,3 +1909,50 @@ select.ctrl{appearance:none;background-image:linear-gradient(45deg,transparent 5
 @media (max-width:640px){
   .sec-steps{margin-left:0}
 }
+
+/* ============================================================
+   FREUNDE EINLADEN (31.10.2026, Runde 4 „Teilen und Einladen")
+   Breit: Freundesliste links, Einladungskarte rechts in der Spalte, die
+   neben zwei Kartenreihen sonst leer blieb. Schmal: Karte unter der Liste.
+   Die Discord-Karte bildet nach, was Discord beim Teilen des Links zeigt
+   (Randfarbe = Profilfarbe, Titelbild breit oder Profilbild als Daumen),
+   in Discords eigenen Farben für dunkel und hell.
+   ============================================================ */
+.fm{container:fmx / inline-size}
+.fm-panel--friends{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
+.fm-lists{display:flex;flex-direction:column;gap:20px;min-width:0}
+@container fmx (min-width:1000px){
+  .fm-panel--friends{grid-template-columns:minmax(0,1fr) minmax(min(18rem,100%),22rem);column-gap:24px}
+}
+.fm-invite{container:fminv / inline-size;min-width:0;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.fm-invite__in{display:flex;flex-direction:column;gap:12px}
+/* Unter der Liste (mittlere Breiten) ist die Karte breit: Link links,
+   Discord-Karte rechts daneben statt eines bildschirmhohen Bilds. */
+@container fminv (min-width:600px){
+  .fm-invite__in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,20rem);grid-template-areas:"h k" "link dc" "acts dc" ". dc";column-gap:22px;row-gap:12px;align-items:start}
+  .fm-invite__h{grid-area:h}
+  .fm-link{grid-area:link}
+  .fm-invite__acts{grid-area:acts}
+  .fm-invite__k{grid-area:k;margin:0;align-self:center}
+  .fm-dc{grid-area:dc}
+}
+.fm-invite__h{display:flex;align-items:center;gap:8px;margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text)}
+.fm-invite__h > svg{width:18px;height:18px;flex:none;color:var(--accent)}
+.fm-invite__h .pfx-i{margin-left:auto}
+.fm-link{position:relative;display:flex;align-items:center}
+.fm-link > svg{position:absolute;left:12px;width:16px;height:16px;color:var(--muted);pointer-events:none}
+.dsr .fm-link .inp{width:100%;height:38px;padding:0 12px 0 36px;border-radius:10px;font-family:var(--font-mono);font-size:var(--fs-7);color:var(--text);text-overflow:ellipsis}
+.fm-invite__acts{display:flex;flex-wrap:wrap;gap:8px}
+.dsr .fm-ibtn{display:inline-flex;align-items:center;gap:7px;min-height:0;text-decoration:none}
+.fm-ibtn svg{width:15px;height:15px;flex:none}
+.fm-invite__k{display:flex;align-items:center;gap:7px;margin:6px 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted)}
+.fm-invite__k svg{width:15px;height:12px;flex:none;color:#5865f2}
+.fm-dc{--dc-bg:#2b2d31;--dc-text:#dbdee1;--dc-muted:#b5bac1;--dc-link:#00a8fc;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:10px 14px 14px 12px;border-left:4px solid var(--dcc,#05070d);border-radius:4px;background:var(--dc-bg)}
+.fm-dc.is-thumb{grid-template-columns:minmax(0,1fr) 64px;align-items:start}
+.fm-dc__main{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fm-dc__site{font-size:var(--fs-5);color:var(--dc-muted)}
+.fm-dc__title{font-weight:600;font-size:var(--fs-9);line-height:1.3;color:var(--dc-link)}
+.fm-dc__desc{font-size:var(--fs-7);line-height:1.4;color:var(--dc-text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fm-dc__img{display:block;width:100%;aspect-ratio:1.91/1;object-fit:cover;border-radius:4px;background:color-mix(in srgb,var(--dc-bg) 70%,#000)}
+.fm-dc.is-thumb .fm-dc__img{width:64px;height:64px;aspect-ratio:auto}
+:root[data-theme="light"] .fm-dc{--dc-bg:#f2f3f5;--dc-text:#313338;--dc-muted:#4e5058;--dc-link:#006ce7}
