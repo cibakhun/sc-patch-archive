@@ -54,7 +54,7 @@ for (const url of seiten) {
        ist alles in Ordnung, weil genau dort schon jemand hingesehen hat. */
     const ab = Number(process.env.AB || 0);
     for (let i = ab; i < ab + schirme; i++) {
-      await page.evaluate((y) => window.scrollTo(0, y), i * h);
+      await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), i * h);
       await page.waitForTimeout(600);
       bilder.push('data:image/png;base64,' + (await page.screenshot()).toString('base64'));
       if (await page.evaluate((y) => y + window.innerHeight >= document.documentElement.scrollHeight - 4, i * h)) break;

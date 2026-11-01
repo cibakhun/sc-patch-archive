@@ -112,7 +112,11 @@ const PROBE = async () => {
     const r = visible(im); if (!r || !im.naturalWidth) continue;
     if (r.top > vh * 2) continue;
     const fit = getComputedStyle(im).objectFit;
-    const f = fit === 'cover' ? Math.max(r.width / im.naturalWidth, r.height / im.naturalHeight) : r.width / im.naturalWidth;
+    const fx = r.width / im.naturalWidth, fy = r.height / im.naturalHeight;
+        const f = fit === 'none' ? 1
+          : fit === 'contain' ? Math.min(fx, fy)
+          : fit === 'scale-down' ? Math.min(fx, fy, 1)
+          : Math.max(fx, fy);
     if (f > 1.3 && r.width > 320) imgs.push({ kind: 'img', sel: sel(im), src: (im.currentSrc || im.src).split('/').pop().slice(0, 50), w: Math.round(r.width), nat: im.naturalWidth, f: Math.round(f * 100) / 100 });
   }
   const bgs = [];

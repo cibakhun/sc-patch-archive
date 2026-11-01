@@ -18,3 +18,10 @@
 # unter Windows (core.autocrlf=true) und ein Commit von dort braechen sie mit
 # "$'\r': command not found".
 .github/scripts/*.sh text eol=lf
+
+# Dieselbe Falle, nur eine Ecke weiter: die Sondenlaeufe unter
+# .planning/sketches/tools/ lagen mit CRLF im Baum. Solange dort nur `cd`,
+# `echo` und Pipelines standen, fiel es nicht auf -- ein angehaengtes \r landet
+# dann im letzten Argument. Seit dem 01.11.2026 tragen sie `set -uo pipefail`,
+# eine Funktion und `exit 1`, und daran stirbt CRLF hoerbar.
+.planning/sketches/tools/*.sh text eol=lf
