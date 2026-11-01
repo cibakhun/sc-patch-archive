@@ -11,19 +11,23 @@
 import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const DIST = join(resolve(process.cwd()), 'dist');
 const OUT = join(resolve(process.cwd()), '.planning/sketches/tools/out/bogen');
-const CHROME = join(process.env.LOCALAPPDATA, 'ms-playwright', 'chromium_headless_shell-1228', 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
+const CHROME = process.env.CHROME_PATH
+  || join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium_headless_shell-1228', 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2', '.mp4': 'video/mp4' };
 const srv = createServer(async (req, res) => {
-  let p = decodeURIComponent(req.url.split('?')[0]);
+  let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
   if (p.endsWith('/')) p += 'index.html';
   let f = join(DIST, p);
+  if (f !== DIST && !f.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
   if (!existsSync(f) && existsSync(f + '.html')) f += '.html';
-  if (!existsSync(f) && existsSync(join(f, 'index.html'))) f = join(f, 'index.html');
+  if (existsSync(join(f, 'index.html'))) f = join(f, 'index.html');
   try { const b = await readFile(f); res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream' }); res.end(b); }
   catch { res.writeHead(404); res.end('x'); }
 });
