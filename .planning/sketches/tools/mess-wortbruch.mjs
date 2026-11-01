@@ -33,7 +33,7 @@ await new Promise((r) => srv.listen(PORT, '127.0.0.1', r));
 const PAGES = process.argv.slice(2).length ? process.argv.slice(2)
   : JSON.parse(await readFile(join(resolve(process.cwd()), '.planning/sketches/tools/out', process.env.PAGES_FILE || 'pages.json'), 'utf8'));
 const b = await chromium.launch({ executablePath: CHROME });
-let n = 0, schlecht = 0;
+let n = 0, schlecht = 0, uebersprungen = 0;
 const muster = {};
 for (const vp of (process.env.VP_LIST || '320x568').split(',')) {
   const [w, h] = vp.split('x').map(Number);
@@ -42,7 +42,8 @@ for (const vp of (process.env.VP_LIST || '320x568').split(',')) {
   pg.on('pageerror', () => {});
   for (const u of PAGES) {
     try {
-      await pg.goto('http://127.0.0.1:' + PORT + u, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const resp = await pg.goto('http://127.0.0.1:' + PORT + u, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      if (!resp || !resp.ok()) { uebersprungen++; process.stderr.write(`  nicht gemessen ${u} [${vp}]: HTTP ${resp ? resp.status() : 'keine Antwort'}\n`); continue; }
       await pg.waitForTimeout(400);
       const r = await pg.evaluate(() => {
         const out = [];
@@ -105,11 +106,11 @@ for (const vp of (process.env.VP_LIST || '320x568').split(',')) {
         const k = x.tag + '  „' + x.wort + '" braucht ' + x.braucht + ', hat ' + x.platz + '  [' + vp + ']';
         (muster[k] ||= []).push(u);
       }
-    } catch { /* uebersprungen */ }
+    } catch (e) { uebersprungen++; process.stderr.write(`  nicht gemessen ${u} [${vp}]: ${String(e).split('\n')[0]}\n`); }
   }
   await ctx.close();
 }
 await b.close(); srv.close();
-console.log('\nMessungen: ' + n + '   Wortbrueche: ' + schlecht + '  (' + Object.keys(muster).length + ' Muster)');
+console.log('\nMessungen: ' + n + '   nicht gemessen: ' + uebersprungen + '   Wortbrueche: ' + schlecht + '  (' + Object.keys(muster).length + ' Muster)');
 for (const [k, v] of Object.entries(muster).sort((a, b) => b[1].length - a[1].length).slice(0, 20))
   console.log('  ' + String(v.length).padStart(4) + ' Seiten  ' + k + '\n           (' + v.slice(0, 2).join('  ') + ')');

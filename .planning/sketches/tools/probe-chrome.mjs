@@ -57,6 +57,7 @@ const PROBE = () => {
 
 const browser = await chromium.launch({ executablePath: CHROME });
 const g = {};
+let uebersprungen = 0;
 for (const vp of (process.env.VP_LIST || '844x390').split(',')) {
   const [w, h] = vp.split('x').map(Number);
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: w <= 820 });
@@ -65,13 +66,14 @@ for (const vp of (process.env.VP_LIST || '844x390').split(',')) {
   let n = 0;
   for (const url of PAGES) {
     try {
-      await page.goto('http://127.0.0.1:4247' + url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const resp = await page.goto('http://127.0.0.1:4247' + url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      if (!resp || !resp.ok()) { uebersprungen++; process.stderr.write(`  nicht gemessen ${url} [${vp}]: HTTP ${resp ? resp.status() : 'keine Antwort'}\n`); continue; }
       await page.waitForTimeout(300);
       await page.evaluate(() => window.scrollTo(0, 900));
       await page.waitForTimeout(400);
       const r = await page.evaluate(PROBE);
       if (r.pct >= 30) (g[vp] ||= []).push({ url, ...r });
-    } catch { /* uebersprungen */ }
+    } catch (e) { uebersprungen++; process.stderr.write(`  nicht gemessen ${url} [${vp}]: ${String(e).split('\n')[0]}\n`); }
     if (++n % 60 === 0) process.stderr.write(`  … ${n}\n`);
   }
   await ctx.close();
@@ -79,6 +81,7 @@ for (const vp of (process.env.VP_LIST || '844x390').split(',')) {
 }
 await browser.close(); srv.close();
 
+if (uebersprungen) console.log(`\nnicht gemessen: ${uebersprungen} Seitenaufrufe (Status oder Fehler)`);
 for (const vp of Object.keys(g)) {
   const l = g[vp].sort((a, b) => b.pct - a.pct);
   console.log(`\n=== ${vp}: ${l.length} Seiten, auf denen klebendes Chrome >= 30 % des Fensters frisst`);
