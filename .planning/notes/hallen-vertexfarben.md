@@ -3,6 +3,12 @@
 Auslöser für die PC-Sitzung: **„Hallen-Vertexfarben“**. Folgt auf
 „Hallensonden“ (2bc2701, Teil A gepusht, Teil B ohne Karten, Teil C Auskunft).
 
+> **Stand 01.11.2026: erledigt.** Der Befund unten beschreibt den Stand VOR
+> der Umsetzung. HEAD trägt beides: `extract-hangar-sources.mjs` erkennt
+> `%VERTCOLORS` und setzt `vc` (um Zeile 1287), und `stripAttributes` in
+> `build-hangar-assets.mjs` behält `COLOR_0` für genau diese Materialien
+> (um Zeile 454). Die Aufgabenschritte 2 und 3 sind damit gegenstandslos.
+
 ## Befund (PC, Teil C von „Hallensonden“)
 
 - Die großen Wandmaterialien tragen im Shader `%VERTCOLORS`

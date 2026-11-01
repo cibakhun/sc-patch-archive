@@ -83,7 +83,7 @@ Bilder, Ausstattung und Reputationstext erkennbar zugeschrieben?
 
 - [ ] abgenommen
 
-## Bereits erledigt — keine Handlung nötig
+## Als offene Schuld eingetragen — Befunde bleiben offen
 
 Der Verifier hatte für die zwei Critical-Befunde aus `20-REVIEW.md` verlangt:
 *entweder beheben oder bewusst als getrackte Schuld ins Register aufnehmen —
@@ -104,7 +104,7 @@ behoben oder bewusst gewaivt sind.
 ## Summary
 
 Offen: drei Urteilsblöcke (Register id 55, 56, 57).
-Erledigt: CR-01 und CR-02 als Register id 58/59 erfasst.
+Eingetragen, aber weiter offen: CR-01 und CR-02 als Register id 58/59.
 
 ## Gaps
 
