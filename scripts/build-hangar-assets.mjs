@@ -605,6 +605,11 @@ function stockUrl(cls) {
 // Fehlt das Feld (Schiff aus einem Lauf davor), gilt es als veraltet: der
 // nächste Lauf baut das Schiff einmal neu, wie früher bei swap und palette.
 const stockFresh = (m) => !!m && Object.entries(m).every(([cls, url]) => stockLookup(cls) === url);
+// Ports und Serienteile kommen aus ship-loadouts.json, nicht aus dem
+// Rohexport; die Datei zählt beim Dateialter nicht mit. Darum trägt jedes
+// Schiff den Abdruck seines Loadouts (manifest.ships[name].loadout): ändert
+// ein Datenlauf das Loadout, baut der nächste Lauf das Schiff neu.
+const loadoutSig = (slug) => createHash('sha1').update(JSON.stringify(LOADOUTS[slug] ?? {})).digest('hex').slice(0, 12);
 function markSwapParts(doc, slug) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
@@ -2101,7 +2106,7 @@ async function buildOne(kind, name, inPath) {
     ...(swap && (Object.keys(swap.components).length || swap.empty.length) ? { swapComp: swap.components, swapEmpty: swap.empty.length } : {}),
     ...(placedComp ? { swapPlaced: placedComp } : {}),
     // jedes Schiff trägt stock, auch leer: sonst baute jeder Lauf ein Schiff ohne Komponenten neu
-    ...(stockSeen ? { stock: Object.fromEntries([...stockSeen].sort((a, b) => a[0].localeCompare(b[0]))) } : {}),
+    ...(stockSeen ? { stock: Object.fromEntries([...stockSeen].sort((a, b) => a[0].localeCompare(b[0]))), loadout: loadoutSig(name) } : {}),
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
@@ -3214,8 +3219,9 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
     // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu,
-    // ebenso eins, dessen Serienteil eine neue Version oder erst jetzt ein Modell hat
-    if (!FORCE && prev[slot]?.[name] && fresh && kind !== 'interior' && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette && stockFresh(prev[slot][name].stock)))) {
+    // ebenso eins, dessen Serienteil eine neue Version oder erst jetzt ein Modell
+    // hat oder dessen Loadout sich geändert hat
+    if (!FORCE && prev[slot]?.[name] && fresh && kind !== 'interior' && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette && stockFresh(prev[slot][name].stock) && prev[slot][name].loadout === loadoutSig(name)))) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
     try {

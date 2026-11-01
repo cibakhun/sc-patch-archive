@@ -292,8 +292,12 @@ Branch `pc/hangar-komponenten`, auf der Probe (4839514f). Je Schiff:
   gelten darum als veraltet (Review zu #286): **der nächste PC-Lauf baut alle
   Schiffe einmal neu**, wie damals beim Einführen von `swap` und `palette`.
   Jedes neu gebaute Schiff trägt `stock`, auch leer, sonst baute jeder Lauf
-  die Schiffe ohne Komponenten neu. Ungeprüft bis zum nächsten PC-Lauf (die
-  Cloud hat die Rohexporte nicht), `node --check` grün.
+  die Schiffe ohne Komponenten neu. Ports und Serienteile kommen aus
+  `src/data/ship-loadouts.json`, das beim Dateialter nicht mitzählt; darum
+  trägt jedes Schiff auch den Abdruck seines Loadouts (`ships[name].loadout`),
+  und ein Datenlauf, der das Loadout ändert, löst den Neubau aus. Ungeprüft bis
+  zum nächsten PC-Lauf (die Cloud hat die Rohexporte nicht), `node --check`
+  grün.
 - **Werkstatt-Slot ohne Anker** (Review zu #286): [13] zählte nur Ports, die
   im Modell als Knoten stehen; ein Port ohne Helfer fehlte ganz. Jetzt
   vergleicht [13] jeden Komponenten-Slot der Werkstatt
