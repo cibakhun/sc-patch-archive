@@ -4,7 +4,7 @@
 import { createServer } from 'node:http';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const ROOT = resolve(process.cwd());
@@ -29,9 +29,12 @@ const MIME = {
 
 async function serve(port) {
   const srv = createServer(async (req, res) => {
-    let p = decodeURIComponent(req.url.split('?')[0]);
+    let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
     if (p.endsWith('/')) p += 'index.html';
     let file = join(DIST, p);
+  if (file !== DIST && !file.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
     try {
       const s = await stat(file).catch(() => null);
       if (s && s.isDirectory()) file = join(file, 'index.html');
