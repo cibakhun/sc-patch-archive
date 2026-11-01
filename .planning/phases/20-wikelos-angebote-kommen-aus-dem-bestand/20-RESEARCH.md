@@ -322,8 +322,10 @@ Von den „sieben" sind also **drei bereits inhaltlich bekannt** (brauchen nur d
 ```
 ```javascript
 // Source: zu ergänzen in scripts/verify-metrics.mjs, ABLESER
-wikeloVertraege: () => rd('assets/wikelo-gamefiles.json').counts?.contracts,
-wikeloWarenposten: () => rd('assets/wikelo-gamefiles.json').counts?.orderLines,
+// NICHT die gitignorierte Rohextraktion: die fehlt auf jeder Maschine ohne
+// Spielinstallation, und Schiene A liefe dort rot. So auch umgesetzt.
+wikeloVertraege: () => rd('assets/wikelo-trades.meta.json').contractCount,
+wikeloWarenposten: () => rd('assets/wikelo-trades.meta.json').orderLineCount,
 ```
 Hinweis: `rd()` liest hier bewusst `assets/wikelo-gamefiles.json` (die maschinelle Rohausgabe, gitignored aber lokal/im CI-Datenlauf vorhanden), nicht `assets/wikelo-trades.json` — dieselbe Logik wie bei `items`/`fahrzeuge`, die ebenfalls gegen den unmittelbaren Erzeuger-Output lesen, nicht gegen ein zwischengeschaltetes UI-Format.
 

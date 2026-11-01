@@ -225,12 +225,12 @@ vor der bestehenden `mengenbereiche`-Logik ergänzen.
 **Issue:** `if (favor != null)` (Zeile 81) prüft korrekt gegen `null`/`undefined`
 und lässt `0` als gültigen Wert durch. Direkt daneben prüfen `if (cur.get)`,
 `if (cur.comps)` und `if (cur.rep)` (Zeilen 80, 84-85) nur auf Truthy — eine
-kuratierte leere Zeichenkette (`get: ""`) oder ein bewusst leeres
-Komponenten-Array (`comps: []`, um "kein Loadout" von "nicht kuratiert" zu
-unterscheiden) würde still als "nicht gesetzt" behandelt statt als kuratierter
-Wert übernommen. Aktuell tritt der Fall in `wikelo-curated.json` nicht auf,
+kuratierte leere Zeichenkette (`get: ""`) wuerde still als "nicht gesetzt"
+behandelt statt als kuratierter Wert uebernommen. Ein leeres
+Komponenten-Array (`comps: []`) ist dagegen truthy und kommt bereits durch;
+betroffen sind nur die falsy-Faelle. Aktuell tritt er in `wikelo-curated.json` nicht auf,
 aber die Inkonsistenz zur Nachbarzeile ist ein Wartungsrisiko — ein späterer
-Kurator, der `comps: []` einträgt, bekommt keine Fehlermeldung und keine
+Kurator, der `get: ""` einträgt, bekommt keine Fehlermeldung und keine
 Wirkung.
 **Fix:** Einheitlich `!= null` verwenden, z. B. `if (cur.get != null) card.get
 = cur.get;`.

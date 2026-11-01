@@ -1355,9 +1355,12 @@ Farbauftrag trägt welchen Namen, welches Bild?" — `RedNBlue` = „ATLS GEO
 'Cool Metal'" ist bereits per exaktem Materialabgleich gelöst (Plan 01);
 `OrangeNGrey` und `WhiteNGreen` bleiben offen (Register-Eintrag id 56).
 
-**D-04 — Klinke und Verzugstor.** `wikelo-gamefiles.json` braucht eine
+**D-04 — Klinke und Verzugstor.** `wikelo-trades.meta.json` braucht eine
 Sperrklinke in `metrics-baseline.mjs` (Verträge, Warenposten) und einen Platz
 in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
+Bewusst die committete Meta-Datei und nicht die gitignorierte Rohextraktion
+`wikelo-gamefiles.json`: sonst reißt Schiene A auf jeder Maschine ohne lokale
+Spielinstallation. So ist es auch umgesetzt (`scripts/verify-metrics.mjs`).
 
 **Erfolgskriterien:**
 
@@ -1370,7 +1373,12 @@ in `verify:datastand`; die Handpflege-Zeile dort wird dann überflüssig.
 3. Eine Klinke fängt einen Rückgang der Vertragszahl.
 4. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
 
-**Plans:** 4/4 plans executed
+**Plans:** 4/4 plans executed — die Phase ist damit technisch
+vollständig, aber NICHT abgeschlossen: die Prüfung steht aus
+(`human_needed`), und die Register-Einträge 55, 56 und 57 sind offen.
+Dazu kommt CR-02 aus `20-REVIEW.md`: die Vertragszahl-Klinke liest eine
+selbst gemeldete `game.counts`-Angabe, nicht eine aus den Verträgen
+nachgerechnete.
 
 Plans:
 **Wave 1**

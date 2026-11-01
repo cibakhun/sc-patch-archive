@@ -27,8 +27,6 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 **Core value:** Spielgenaue Daten, direkt aus den Spieldateien gewonnen — wenn die Zahlen nicht stimmen, ist die Seite wertlos.
 **Current focus:** Phase 20 — wikelos-angebote-kommen-aus-dem-bestand
 
-**Current focus:** Phase 16 — das-schiff-ist-die-navigation
-
 > **Nachtrag 23.08.2026 (dritter) — Phase 18 Plan 3 von mind. 3 ausgefuehrt
 > (D-04: jeder Datenstand nennt seinen Patch).**
 > `18-03-PLAN.md` ist ausgefuehrt: `assets/universal-items.json` traegt jetzt
@@ -244,7 +242,7 @@ See: .planning/PROJECT.md (updated 2026-07-28)
 
 ## Current Position
 
-Phase: 20 (wikelos-angebote-kommen-aus-dem-bestand) — EXECUTING
+Phase: 20 (wikelos-angebote-kommen-aus-dem-bestand) — VERIFYING
 Plan: 4 of 4
 Status: Phase complete — ready for verification
 Phasen 1.2/2/3/9/10: die menschliche Sichtrunde (7 Punkte, DE+EN, beide
