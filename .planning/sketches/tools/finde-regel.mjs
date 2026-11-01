@@ -42,8 +42,14 @@ const r = await pg.evaluate(([sel, prop]) => {
     try { regeln = sheet.cssRules; } catch { continue; }
     const gehe = (liste, bedingung) => {
       for (const r of liste) {
-        if (r.media && r.cssRules) { gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + r.conditionText); continue; }
-        if (r.cssRules && r.conditionText) { gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + r.conditionText); continue; }
+        if (r.media && r.cssRules) {
+                  if (r.conditionText && !matchMedia(r.conditionText).matches) continue;
+                  gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + r.conditionText); continue;
+                }
+        if (r.cssRules && r.conditionText) {
+                  if (!matchMedia(r.conditionText).matches) continue;
+                  gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + r.conditionText); continue;
+                }
         if (!r.selectorText || !r.style) continue;
         const wert = r.style.getPropertyValue(prop);
         if (!wert) continue;

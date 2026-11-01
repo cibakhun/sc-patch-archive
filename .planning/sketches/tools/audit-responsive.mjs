@@ -54,7 +54,11 @@ async function serve(port) {
   return srv;
 }
 
-const VIEWPORTS = (process.env.VP_LIST || [
+const ARGV = Object.fromEntries(process.argv.slice(2)
+  .filter((a) => a.startsWith('--'))
+  .map((a) => { const i = a.indexOf('='); return i < 0 ? [a.slice(2), ''] : [a.slice(2, i), a.slice(i + 1)]; }));
+
+const VIEWPORTS = (ARGV.vp || process.env.VP_LIST || [
   '320x568', '360x740', '390x844', '414x896',
   '768x1024', '820x1180', '1024x768', '1181x560', '1280x720', '1920x1080',
 ].join(',')).split(',').map((s) => {
@@ -62,7 +66,9 @@ const VIEWPORTS = (process.env.VP_LIST || [
   return { name: s, width: w, height: h, mobile: w <= 820 };
 });
 
-const PAGES = JSON.parse(await readFile(join(OUT, 'pages.json'), 'utf8'));
+const PAGES = ARGV.pages
+  ? ARGV.pages.split(',').filter(Boolean)
+  : JSON.parse(await readFile(join(OUT, 'pages.json'), 'utf8'));
 
 /* ---- Messung im Browser ---------------------------------------------- */
 const PROBE = () => {
