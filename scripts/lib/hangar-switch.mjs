@@ -60,5 +60,19 @@ export function hangarImArtefakt(distDir = 'dist') {
   }
 }
 
+/** Dasselbe Urteil ueber ein LAUFENDES Artefakt statt ueber dist/: Schiene C
+ *  kennt kein Dateisystem, nur eine Adresse. /build.json liegt dafuer offen
+ *  (nginx: GATE-AUSNAHME D-07, derselbe Stempel, den check:staging liest).
+ *  Gleiche Regel und gleicher strengerer Rueckfall wie oben: ist der Stempel
+ *  nicht lesbar, gilt der Hangar als da, und alle Hangar-Pruefungen laufen. */
+export async function hangarImArtefaktUeberNetz(base, kopfzeilen = {}) {
+  try {
+    const r = await fetch(`${base}/build.json`, { headers: kopfzeilen });
+    return (await r.json()).staging !== false;
+  } catch {
+    return true;
+  }
+}
+
 /** Ein Link auf eine Hangar-Seite (fuer die Linkpruefung im Live-Bau). */
 export const HANGAR_HREF = /(?:href|action)=["'](?:https:\/\/verse-base\.com)?\/(?:de\/)?hangar(?:-loadout|-bay\/[^"']*)?\.html/;

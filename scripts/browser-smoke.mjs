@@ -40,6 +40,7 @@
    ============================================================ */
 import { existsSync } from 'node:fs';
 import { chromium } from 'playwright-core';
+import { hangarImArtefaktUeberNetz } from './lib/hangar-switch.mjs';
 
 const argv = process.argv.slice(2);
 const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
@@ -129,10 +130,11 @@ const SEITEN = [
     en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
     de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
     leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
+    nurMitHangar: true,
   },
   // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
-  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt },
+  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt, nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -706,9 +708,19 @@ try {
   process.exit(2);
 }
 
+/* ---------- Traegt dieses Artefakt den Hangar? ----------
+   Der Live-Bau laesst die Hangar-Routen weg (hangar-switch.mjs: der Betreiber
+   hat am 31.10.2026 entschieden, dass live alles AUSSER dem Hangar bekommt).
+   Die zwei Hangar-Szenarien liefen trotzdem und fanden 404 — das hat am
+   01.11.2026 den Live-Deploy von 2b43b068 gerissen, nachdem Schiene A gruen
+   war: die sechs Hangar-Tore dort kennen nurMitHangar, dieser Test nicht.
+   Gefragt wird deshalb dieselbe Stelle wie dort, nur ueber das Netz. */
+const MIT_HANGAR = await hangarImArtefaktUeberNetz(BASE, GATE_BYPASS_HEADERS);
+
 /* ---------- Lauf ---------- */
 console.log(`\n=== Browser-Rauchtest gegen ${BASE} ===`);
 console.log(`Artefakt: ${IST_VORSCHAU ? 'Vorschau-Build (site-weit noindex)' : 'Live-Build'}`);
+console.log(`Hangar im Artefakt: ${MIT_HANGAR ? 'ja' : 'nein — Hangar-Szenarien entfallen'}`);
 // Selbstauskunft, unter welcher Bedingung dieser Lauf gruen war (Grundsatz
 // 7) — und dieselbe Zeile macht sichtbar, wenn jemand lokal versehentlich
 // MIT Bypass misst.
@@ -716,9 +728,18 @@ console.log(`Testpilot-Tor-Bypass: ${GATE_BYPASS ? 'MIT Bypass geprueft (SMOKE_G
 console.log(`Browser: ${BROWSER}${BROWSER_ARGS.length ? ` (${BROWSER_ARGS.join(' ')})` : ''}\n`);
 
 const browser = await chromium.launch({ executablePath: BROWSER, headless: !KOPF, args: BROWSER_ARGS });
-const seiten = NUR ? SEITEN.filter((s) => s.id === NUR) : SEITEN;
-if (!seiten.length) {
+const gewaehlt = NUR ? SEITEN.filter((s) => s.id === NUR) : SEITEN;
+if (!gewaehlt.length) {
   console.error(`Unbekannte Seite "${NUR}". Bekannt: ${SEITEN.map((s) => s.id).join(', ')}`);
+  await browser.close();
+  process.exit(2);
+}
+const seiten = gewaehlt.filter((s) => MIT_HANGAR || !s.nurMitHangar);
+const entfallen = gewaehlt.length - seiten.length;
+if (entfallen) console.log(`${entfallen} Szenario(en) entfallen: nicht im Artefakt (nurMitHangar).`);
+if (!seiten.length) {
+  // Ausdruecklich NICHT gruen: hier wurde nichts geprueft (Grundsatz 2).
+  console.error(`\n"${NUR}" gehoert zum Hangar, und dieses Artefakt traegt ihn nicht — nichts geprueft.\n`);
   await browser.close();
   process.exit(2);
 }
