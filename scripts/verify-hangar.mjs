@@ -668,8 +668,12 @@ const TAUSCH = { modelle: 112, ports: 37 };
 // 31.10.2026 wie die Bordwaffen; jeder Komponentenanker nennt in extras.stock
 // das Modell seines Serienteils, das der Viewer an leeren Ankern einsetzt
 // (.planning/notes/hangar-komponenten/probe.md). Gemessen 31.10.2026: 311
-// Komponentenmodelle in der Werkstatt, 1783 Anker mit Serienteil.
-const KOMP = { modelle: 311, serie: 1783 };
+// Komponentenmodelle in der Werkstatt. Gezählt wird je Anker (Schiff, Port,
+// Exemplar), nicht je Knoten: 1465 Anker mit Serienteil (die frühere Zahl
+// 1783 zählte jeden Teilknoten eines eingebauten Teils mit). 18 Komponenten-
+// Ports haben im Spiel kein Modell (890 Jump, MOLE, Idris M/P, Javelin,
+// ROC-DS), mehr ohne Serienteil ist ein Rückfall im Bau.
+const KOMP = { modelle: 311, serie: 1465, ohneSerie: 18 };
 const KOMP_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
 {
   const lf = join(DIST, 'hangar-layouts.json');
@@ -682,8 +686,10 @@ const KOMP_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
   const komp = models.filter(([k]) => KOMP_TYPES.has(ld.items?.[k]?.[2]));
   const guns = models.length - komp.length;
   const shipDir = join(DIST, 'hangar', 'ships');
-  let ports = 0, nodes = 0, badAnchor = 0, serie = 0;
+  let ports = 0, nodes = 0, badAnchor = 0;
   const serieFehlt = new Map();   // URL -> Schiffe
+  // Komponentenanker (Schiff|Port|Exemplar) mit Serienteil, Komponenten-Ports ohne
+  const serieAnker = new Set(), kompPorts = new Set(), kompPortsSerie = new Set();
   const perShip = [];
   for (const f of existsSync(shipDir) ? readdirSync(shipDir).filter((x) => x.endsWith('.glb')) : []) {
     const buf = readFileSync(join(shipDir, f));
@@ -696,8 +702,11 @@ const KOMP_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
       nodes++;
       mine.add(`${x.swap}|${x.item ?? 0}`);
       if (!Array.isArray(x.anchor) || x.anchor.length !== 16 || !x.anchor.every(Number.isFinite)) badAnchor++;
+      const isKomp = KOMP_TYPES.has(x.cat);
+      if (isKomp) kompPorts.add(`${f}|${x.swap}|${x.item ?? 0}`);
       if (x.stock === undefined) continue;
-      serie++;
+      if (!isKomp) fail(`[13] ${f.replace(/\.glb$/, '')} ${x.swap}: Serienteil an einem Knoten ohne Komponentenart (cat ${x.cat ?? '—'}): der Viewer setzt dort ein Kraftwerk o. ae. ein`);
+      else { serieAnker.add(`${f}|${x.swap}|${x.item ?? 0}|${x.inst ?? 0}`); kompPortsSerie.add(`${f}|${x.swap}|${x.item ?? 0}`); }
       const okUrl = typeof x.stock === 'string' && /^\/hangar\/components\/[A-Za-z0-9_.-]+\.glb\?v=[0-9a-f]{6,}$/.test(x.stock) && existsSync(join(DIST, x.stock.replace(/\?.*$/, '')));
       if (!okUrl) serieFehlt.set(String(x.stock), [...(serieFehlt.get(String(x.stock)) ?? []), f.replace(/\.glb$/, '')]);
     }
@@ -705,13 +714,16 @@ const KOMP_TYPES = new Set(['power', 'cooler', 'shield', 'quantum', 'radar']);
     perShip.push(`${f.replace(/\.glb$/, '')} ${mine.size}`);
   }
   if (badAnchor) fail(`[13] ${badAnchor} Tauschteil-Knoten ohne gueltige anchor-Matrix: der Viewer setzt die Waffe dort nicht`);
-  say(`    Werkstatt-Modelle: ${models.length} (${guns} Bordwaffen, ${komp.length} Komponenten; ${bad.length} ohne Datei/Version, ${notGun.length} weder noch)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten, davon ${serie} mit Serienteil`);
+  const serie = serieAnker.size;
+  const ohneSerie = [...kompPorts].filter((p) => !kompPortsSerie.has(p)).map((p) => p.replace(/\.glb\|/, ' ').replace(/\|\d+$/, ''));
+  say(`    Werkstatt-Modelle: ${models.length} (${guns} Bordwaffen, ${komp.length} Komponenten; ${bad.length} ohne Datei/Version, ${notGun.length} weder noch)   Tauschteile: ${ports} Ports in ${perShip.length} Schiffen, ${nodes} Knoten, Komponentenanker mit Serienteil ${serie}, Komponenten-Ports ohne ${ohneSerie.length}`);
   say(`      ${perShip.join(', ')}`);
-  sollIst(`Bordwaffen-Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}, Komponenten-Modelle >= ${KOMP.modelle}, Anker mit Serienteil >= ${KOMP.serie}, jedes Serienteil in dist/`, `${guns}, ${ports}, ${komp.length}, ${serie}, ${serieFehlt.size} fehlen`);
+  sollIst(`Bordwaffen-Modelle >= ${TAUSCH.modelle}, Ports >= ${TAUSCH.ports}, Komponenten-Modelle >= ${KOMP.modelle}, Anker mit Serienteil >= ${KOMP.serie}, Komponenten-Ports ohne Serienteil <= ${KOMP.ohneSerie}, jedes Serienteil in dist/`, `${guns}, ${ports}, ${komp.length}, ${serie}, ${ohneSerie.length}, ${serieFehlt.size} fehlen`);
   for (const [u, ships] of [...serieFehlt].slice(0, 10)) fail(`[13] Serienteil ${u} (${ships.length} Anker, z. B. ${ships[0]}) ohne ?v= oder nicht in dist/hangar/components: der leere Anker bleibt leer`);
   if (guns < TAUSCH.modelle) fail(`[13] nur ${guns} Waffenmodelle in der Werkstatt (Klinke ${TAUSCH.modelle}): fehlt src/data/hangar-assets.json weapons oder der Schluessel-Join in src/lib/hangar/layouts.ts?`);
   if (komp.length < KOMP.modelle) fail(`[13] nur ${komp.length} Komponentenmodelle in der Werkstatt (Klinke ${KOMP.modelle}): fehlt src/data/hangar-assets.json components oder COMPONENT_MODELS in src/lib/hangar/layouts.ts?`);
   if (serie < KOMP.serie) fail(`[13] nur ${serie} Komponentenanker mit Serienteil (Klinke ${KOMP.serie}): Schiffe ohne extras.stock gebaut (scripts/build-hangar-assets.mjs)?`);
+  if (ohneSerie.length > KOMP.ohneSerie) fail(`[13] ${ohneSerie.length} Komponenten-Ports ohne Serienteil (Klinke ${KOMP.ohneSerie}: ${ohneSerie.slice(0, 6).join(', ')}${ohneSerie.length > 6 ? ', …' : ''}): der Anker bleibt leer. Fehlt das Komponentenmodell im Manifest, als die Schiffe gebaut wurden (Komponenten vor den Schiffen bauen)?`);
   if (ports < TAUSCH.ports) fail(`[13] nur ${ports} Waffen-Ports mit Tauschteilen (Klinke ${TAUSCH.ports}): Schiffe ohne markSwapParts gebaut (scripts/build-hangar-assets.mjs)?`);
   ist.tauschModelle = guns; ist.tauschPorts = ports; ist.kompModelle = komp.length; ist.kompSerie = serie;
 }

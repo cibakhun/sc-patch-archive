@@ -290,3 +290,41 @@ ausserhalb des Rumpfs“, „[3] aegs-gladius: am Pilotensitz
 hardpoint_seat_pilot nur 0 Dreiecke des Innenraums bis 1.5 m (naechstes
 7.24 m)“, „[3] nur 191 Sitze mit Innenraum, Klinke 192“; Datei
 zurückgelegt → grün.
+
+## Nachgeholtes Review (01.11.2026)
+
+Das Review von #269 und #277 kam erst nach dem Merge (Kontingent bis 01.11.
+aufgebraucht). Umgesetzt:
+
+- **Sitzwahl** (`pickSeat`): `(?<!co)pilot` ließ `co_pilot` und `co-pilot`
+  durch; Corsair, Starfarer und Starfarer Gemini wurden am Kopilotensitz
+  geprüft. Jetzt Pilot (ohne jede Kopiloten-Schreibweise), dann Fahrer,
+  dann Kopilot (Nova hat nur ihn), sonst der erste Sitz. 19 Schiffe prüfen
+  damit einen anderen Sitz (16 Bodenfahrzeuge den Fahrer statt eines
+  Mitfahrers); alle bleiben am Innenraum, 192 Sitze wie zuvor.
+- **Verborgene Flächen**: Die Messung ließ nur Schadensnetze weg, der Viewer
+  auch POM-Decals und die Platzhalterwand. Der Viewer exportiert jetzt
+  `hiddenMaterial` (eine Regel für beides), Tor und Werkzeuge messen damit;
+  die Regel steht im Fingerabdruck der Klinke. Folge: Innenräume verlieren
+  innen liegende Dreiecke, der Anteil außen steigt leicht (Phoenix
+  16,87 → 17,24 %, acht weitere bis 0,22 Prozentpunkte); Klinke mit Anlass
+  angehoben.
+- **Innenraum ohne Sitz**: M50 und MPUV-1T tragen nur `hardpoint_seat_access`,
+  keinen Sitz; [3] prüfte sie stillschweigend nicht. Jetzt FEHLER ohne
+  benannte Ausnahme (`--ausnahme sitz:<schiff>=…`), beide benannt.
+- **Nachziehen** schrieb die Klinke auch bei FEHLERN, die keine Klinke heilt
+  (fehlende Datei, Innenraum neben dem Sitz, Schiff ohne Messung). Jetzt
+  bricht es ab.
+
+Vorgeführt rot: Ausnahme der M50 aus der Klinke genommen und der Gladius
+eine gegeben → „[3] orig-m50: Innenraum mit 18324 Dreiecken, aber kein Sitz
+in den Metadaten“, „[3] aegs-gladius: Ausnahme „Probe“ ohne Anlass“;
+`dist/hangar-innen/aegs-gladius.json` weggenommen und `--nachziehen` →
+„nicht nachgezogen, 1 FEHLER, die keine Klinke heilt: [1] aegs-gladius:
+hangar-innen/aegs-gladius.json fehlt in dist/“, Klinke unverändert. Alles
+zurückgelegt → grün.
+
+Abgelehnt: Die Duplikatsuche im Bau (`known` in `placeContainers`) vergleicht
+Primitiv- und Eckenzahl und den Hüllquader in der Welt auf 2 cm. Was alle drei
+teilt, ist dasselbe Teil zweimal an derselben Stelle; der Rumpf behält seine
+Kopie, sichtbar fehlt nichts.

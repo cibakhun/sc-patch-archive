@@ -579,18 +579,30 @@ const round5 = (m) => Array.from(m, (v) => Math.round(v * 1e5) / 1e5);
 // Version (Manifest components), über die Klasse des Serienteils (Sidecar
 // components/<datei>.json, stem). extras.stock, damit die Laufzeit an einem
 // leeren Anker das Standardteil selbst einsetzt; ohne Modell bleibt es weg.
+// Die Komponenten baut dieser Lauf vor den Schiffen (Schleife unten), die
+// URL kommt also aus dem Manifest dieses Laufs, sonst aus dem vorigen.
 let stockUrls = null;
-function stockUrl(cls) {
+function stockLookup(cls) {
   if (!stockUrls) {
     stockUrls = new Map();
     const dir = new URL('components/', SRC);
     if (existsSync(dir)) for (const f of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
-      const e = prev.components?.[f.slice(0, -5)];
+      const e = manifest.components?.[f.slice(0, -5)] ?? prev.components?.[f.slice(0, -5)];
       if (e?.url && e.v) stockUrls.set(JSON.parse(readFileSync(new URL(f, dir), 'utf8')).stem.toLowerCase(), `${e.url}?v=${e.v}`);
     }
   }
   return (cls && stockUrls.get(cls.toLowerCase())) ?? null;
 }
+// beim Schiffsbau: jede nachgeschlagene Klasse mit ihrer URL (auch ohne
+// Modell), als manifest.ships[name].stock. Ändert sich eine davon, baut der
+// nächste Lauf das Schiff neu, statt es mit alter Version wiederzuverwenden.
+let stockUsed = null;
+function stockUrl(cls) {
+  const url = stockLookup(cls);
+  if (stockUsed && cls) stockUsed.set(cls.toLowerCase(), url);
+  return url;
+}
+const stockFresh = (m) => !m || Object.entries(m).every(([cls, url]) => stockLookup(cls) === url);
 function markSwapParts(doc, slug) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
@@ -1965,8 +1977,11 @@ async function buildOne(kind, name, inPath) {
   // Namen); was vom Innenraum im Rumpf bleibt (ganz oder hinter dem Glas)
   const interiorMarked = kind === 'ships' ? markInterior(doc) : 0;
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
+  stockUsed = kind === 'ships' ? new Map() : null;
   const placedComp = ship ? markPlacedComponents(doc, compPorts) : 0;
   const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
+  const stockSeen = stockUsed;
+  stockUsed = null;
   // je Komponenten-Port Lage, Klasse und ob der Export ein Teil trägt (Bericht, nicht ausgeliefert)
   if (swap) { const d = new URL('../hangar-komponenten/', SRC); mkdirSync(d, { recursive: true }); writeFileSync(new URL(`${name}.json`, d), JSON.stringify(swap.detail, null, 1)); }
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || ship || werk }), weld());
@@ -2083,6 +2098,7 @@ async function buildOne(kind, name, inPath) {
     ...(swap ? { swap: swap.ports, swapNodes: swap.nodes } : {}),
     ...(swap && (Object.keys(swap.components).length || swap.empty.length) ? { swapComp: swap.components, swapEmpty: swap.empty.length } : {}),
     ...(placedComp ? { swapPlaced: placedComp } : {}),
+    ...(stockSeen?.size ? { stock: Object.fromEntries([...stockSeen].sort((a, b) => a[0].localeCompare(b[0]))) } : {}),
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
@@ -3161,7 +3177,9 @@ const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
 const manifest = { ships: {}, interior: {}, weapons: {}, components: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
 let built = 0, reused = 0;
 const webShip = (name) => !!prev.ships?.[name] || SHIPS_ARG.includes(name) || SHIPS_ARG.includes('all');
-for (const kind of Object.keys(BUDGET)) {
+// Komponenten zuerst: die Schiffe schreiben deren URL samt Version als
+// Serienteil in ihre Anker (stockUrl)
+for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'components')]) {
   // Innenraum: Quelle ist der Rohexport der Schiffe; gebaut nur auf Verlangen (--kind interior)
   const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
@@ -3192,8 +3210,9 @@ for (const kind of Object.keys(BUDGET)) {
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
-    // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu
-    if (!FORCE && prev[slot]?.[name] && fresh && kind !== 'interior' && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette))) {
+    // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu,
+    // ebenso eins, dessen Serienteil eine neue Version oder erst jetzt ein Modell hat
+    if (!FORCE && prev[slot]?.[name] && fresh && kind !== 'interior' && (kind !== 'ships' || (prev[slot][name].swap && prev[slot][name].palette && stockFresh(prev[slot][name].stock)))) {
       manifest[slot][name] = prev[slot][name]; reused++; continue;
     }
     try {

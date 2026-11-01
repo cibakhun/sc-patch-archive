@@ -36,7 +36,8 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 
-export const WERKZEUG = 'hangar-lage 1';
+// 2: Sitzwahl ohne Kopilot (co_pilot, co-pilot), Fahrer vor Mitfahrer
+export const WERKZEUG = 'hangar-lage 2';
 export const OUT_M = 0.4, SITZ_R = 1.5, SITZ_MIN = 20, KOPF = 0.8, OBEN_M = 4, GAP = 1;
 
 let ioP = null;
@@ -195,8 +196,10 @@ export function seatCheck(seat, innerNodes, hullNodes, { label = () => null, ver
   return { name: seat.name, p: seat.p.map(r2), nah, abstand: Number.isFinite(best) ? r2(best) : null, ...(label(bestNode) ? { naechster: label(bestNode) } : {}), oben, obenM: hit < OBEN_M ? r2(hit) : null, ok: nah >= SITZ_MIN };
 }
 export const seatLine = (s) => (s ? `Sitz ${s.name}: ${s.nah} Dr. bis ${SITZ_R} m (nächstes ${s.abstand ?? '—'} m${s.naechster ? `, ${s.naechster}` : ''}), oben ${s.oben}${s.obenM != null ? ` ${s.obenM} m` : ''} ${s.ok ? '✓' : '✗'}` : 'kein Pilotensitz');
-// Pilot zuerst (nicht der Kopilot), sonst der erste Sitz
-export const pickSeat = (list) => list.find((s) => /(?<!co)pilot/i.test(s.name)) ?? list.find((s) => /pilot/i.test(s.name)) ?? list[0] ?? null;
+// Pilot zuerst (nicht der Kopilot: copilot, co_pilot, co-pilot), dann der
+// Fahrer der Bodenfahrzeuge, dann der Kopilot (Nova hat nur ihn; er sitzt
+// im Cockpit, anders als ein Mitfahrer), sonst der erste Sitz
+export const pickSeat = (list) => list.find((s) => /(?<!co[_-]?)pilot/i.test(s.name)) ?? list.find((s) => /driver/i.test(s.name)) ?? list.find((s) => /pilot/i.test(s.name)) ?? list[0] ?? null;
 
 // Dreiecke in Weltkoordinaten, je Dreieck Knoten und Material
 function collect(nodes, verborgen = () => false) {

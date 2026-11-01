@@ -29,7 +29,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { readGeometry, sceneNodes, islands } from './lib/hangar-lage.mjs';
-import { isDamageMesh } from '../assets/hangar-viewer.js';
+import { hiddenMaterial } from '../assets/hangar-viewer.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2);
@@ -42,8 +42,8 @@ const slugsArg = args.filter((a) => !a.startsWith('--'));
 if (!rohFile && !slugsArg.length) { console.error('node scripts/measure-hangar-inseln.mjs [slug ...|all] [--json datei] [--alle-inseln] | --roh <rohexport.glb> [--mit-ausgeblendet]'); process.exit(2); }
 
 // Rechnung: scripts/lib/hangar-lage.mjs (dieselbe wie im Tor verify:hangar-lage).
-// Web-Fassung wie der Viewer: nur Knoten der Szene, ohne Schadensnetze.
-const verborgen = isDamageMesh;
+// Web-Fassung wie der Viewer: nur Knoten der Szene, ohne was er verbirgt (hiddenMaterial).
+const verborgen = (name) => !!hiddenMaterial(name);
 
 const fmt = (c) => `${String(c.tris).padStart(6)} Dr.  ${String(c.aussenM).padStart(5)} m außen  ${c.min.join('/')} .. ${c.max.join('/')}  ${c.innenraum === 'nein' ? '' : `Innenraum ${c.innenraum}  `}${c.materialien[0]}`;
 const result = {};

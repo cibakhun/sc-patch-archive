@@ -271,3 +271,24 @@ Branch `pc/hangar-komponenten`, auf der Probe (4839514f). Je Schiff:
   Serienteil-Anker 1 783; jede `stock`-Adresse muss dem Muster folgen und als
   Datei in `dist/` liegen. Vorgeführt rot: POWR_AEGS_S04_Idris_SCItem.glb aus
   `dist/` gelöscht (Serienteil von 36 Ankern) → [13] FEHLER.
+
+## Nachgeholtes Review (01.11.2026)
+
+- **[13] zählt je Anker**, nicht je Knoten: Ein eingebautes Teil hat oft
+  mehrere Knoten mit `stock`, die alte Zahl 1 783 zählte jeden. Jetzt
+  Komponentenanker (Schiff, Port, Exemplar) mit Serienteil: 1 465. Neu: höchstens
+  18 Komponenten-Ports ohne Serienteil (die im Spiel ohne Modell), und
+  `stock` nur an Knoten mit Komponentenart. Vorgeführt rot: `stock` an den
+  vier Kraftwerk-Knoten der Gladius in `dist/` entfernt → „nur 1464
+  Komponentenanker mit Serienteil (Klinke 1465)“, „19 Komponenten-Ports ohne
+  Serienteil (Klinke 18: aegs-gladius hardpoint_power_plant, …)“; die alte
+  Zählung wäre um vier gefallen.
+- **Bau-Reihenfolge**: Die Schiffe nahmen die Serienteil-Adressen aus dem
+  Manifest des vorigen Laufs, die Komponenten kamen erst danach. Jetzt baut
+  `build-hangar-assets` die Komponenten zuerst und liest das Manifest dieses
+  Laufs. Jedes Schiff merkt sich je Klasse die Adresse (`ships[name].stock`);
+  hat eine davon eine neue Version oder erst jetzt ein Modell, baut der nächste
+  Lauf das Schiff neu. Schiffe aus Läufen davor tragen das Feld noch nicht und
+  werden so nicht neu gebaut. Ungeprüft bis zum nächsten PC-Lauf (die Cloud
+  hat die Rohexporte nicht), `node --check` grün.
+
