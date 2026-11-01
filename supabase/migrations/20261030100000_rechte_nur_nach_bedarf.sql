@@ -26,7 +26,9 @@
 --      dieselbe Liste fuer das Tor verify:db-rights.
 --
 -- WOHER DIE SOLL-LISTE KOMMT: aus allen Aufrufstellen in src/, assets/,
--- nginx/gate.js (Stand staging bf31efe und main) -- supabase.from(..),
+-- nginx/gate.js (neu abgeleitet 01.11.2026 gegen den Stand, der mit 2b43b068
+-- live gegangen ist; die erste Ableitung stand auf staging bf31efe und war um
+-- notification_settings und profile_badges veraltet) -- supabase.from(..),
 -- .rpc(..), VBAccount.rest(..), fetch(../rest/v1/..) -- und aus den
 -- RLS-Policies (fuer jede Policy, die authenticated erreicht, das passende
 -- Recht). Ohne Anmeldung liest die Seite nur public_profiles,
@@ -72,7 +74,9 @@
 -- verify:db-rights). Spaltengenaue Rechte (profiles, support_progress) sind
 -- eine eigene Migration; sie muss NACH dieser laufen, sonst weitet Abschnitt
 -- 3 sie wieder auf. Abschnitt 0 bricht deshalb ab, wenn schon Spaltenrechte
--- fuer anon, authenticated oder PUBLIC bestehen.
+-- fuer anon, authenticated oder PUBLIC bestehen -- ausgenommen die drei
+-- Spalten von notification_settings, die Abschnitt 3 seit 01.11.2026 selbst
+-- wieder vergibt (siehe dort).
 
 -- -------------------------------------------- 0. Vorbedingung --------------
 -- Abschnitt 2 entzieht mit den Tabellenrechten auch alle Spaltenrechte, und
@@ -80,6 +84,13 @@
 -- (z. B. 20261030133000_support_progress_spaltenrechte) schon vorher, wuerde
 -- diese hier sie still wieder aufweiten. Dann lieber abbrechen: zuerst diese
 -- Migration einspielen, danach die spaltengenaue noch einmal.
+--
+-- AUSNAHME (01.11.2026): die drei Spalten von notification_settings. Sie lagen
+-- auf der Datenbank, bevor diese Migration eingespielt wurde (20261030180000
+-- kam vorher live), und Abschnitt 3 vergibt sie unten wortgleich wieder. Fuer
+-- sie ist diese Migration also keine Aufweitung. Die Ausnahme nennt die drei
+-- Spalten einzeln: kommt eine vierte Spalte dazu, oder eine Spalte an einer
+-- anderen Tabelle, bricht die Vorbedingung weiter ab.
 do $vorbedingung$
 declare
   v_spalten text;
@@ -90,7 +101,11 @@ begin
   join pg_catalog.pg_namespace n on n.oid = c.relnamespace
   cross join lateral pg_catalog.aclexplode(a.attacl) x
   where n.nspname = 'public' and a.attnum > 0 and not a.attisdropped
-    and x.grantee = any (array[0::oid, 'anon'::regrole::oid, 'authenticated'::regrole::oid]);
+    and x.grantee = any (array[0::oid, 'anon'::regrole::oid, 'authenticated'::regrole::oid])
+    and (c.relname, a.attname) not in (
+      ('notification_settings', 'refinery_site'),
+      ('notification_settings', 'refinery_discord'),
+      ('notification_settings', 'lang'));
   if v_spalten is not null then
     raise exception 'rechte_nur_nach_bedarf: es gibt schon Spaltenrechte (%) -- diese Migration muss vor den spaltengenauen laufen', v_spalten;
   end if;
@@ -115,6 +130,7 @@ grant select on public.public_favorites to anon, authenticated;  -- PilotPage
 grant select on public.public_showcase  to anon, authenticated;  -- PilotPage (Schaufenster)
 grant select on public.tester_credits   to anon, authenticated;  -- FeedbackForm
 grant select on public.support_progress to anon, authenticated;  -- SupportBody (Policy: true)
+grant select on public.profile_badges   to anon, authenticated;  -- PilotPage (Abzeichen), Konto
 
 -- Angemeldet (authenticated). RLS begrenzt jede Zeile auf das eigene Konto.
 grant select                         on public.social_profiles    to authenticated;  -- Freunde, Chat
@@ -131,7 +147,16 @@ grant select, insert, update, delete on public.hangar_layouts     to authenticat
 grant select                         on public.discord_role_state to authenticated;  -- eigene Zeile (Rang)
 grant select                         on public.donations          to authenticated;  -- Policy: nur admin
 grant insert, update                 on public.support_progress   to authenticated;  -- Policy: nur admin
+grant select                         on public.notification_settings to authenticated;  -- RefineryDashboard, account-lite, Datenexport
+-- Geschrieben wird nur spaltengenau (user_id fuellt "default auth.uid()").
+-- Wortgleich mit 20261030180000, das schon live ist; Abschnitt 0 duldet die
+-- drei Spalten deshalb.
+grant insert (refinery_site, refinery_discord, lang) on public.notification_settings to authenticated;
+grant update (refinery_site, refinery_discord, lang) on public.notification_settings to authenticated;
 -- public.tester_blocklist: kein Recht (nur gate_verdict, security definer).
+-- public.discord_profile_badges: kein Recht fuer anon/authenticated. Nur der
+-- Bot und bot-role-sync lesen sie, beide als service_role -- und Abschnitt 2
+-- entzieht service_role nichts, hier fehlt also nichts.
 -- Sequenzen: keine. Alle Schluessel sind "generated always as identity";
 -- Postgres prueft dabei kein Sequenzrecht.
 
