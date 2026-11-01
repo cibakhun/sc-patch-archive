@@ -197,8 +197,8 @@ export function seatCheck(seat, innerNodes, hullNodes, { label = () => null, ver
 }
 export const seatLine = (s) => (s ? `Sitz ${s.name}: ${s.nah} Dr. bis ${SITZ_R} m (nächstes ${s.abstand ?? '—'} m${s.naechster ? `, ${s.naechster}` : ''}), oben ${s.oben}${s.obenM != null ? ` ${s.obenM} m` : ''} ${s.ok ? '✓' : '✗'}` : 'kein Pilotensitz');
 // Pilot zuerst (nicht der Kopilot: copilot, co_pilot, co-pilot), dann der
-// Fahrer der Bodenfahrzeuge, dann der Kopilot (Nova hat nur ihn; er sitzt
-// im Cockpit, anders als ein Mitfahrer), sonst der erste Sitz
+// Fahrer der Bodenfahrzeuge, dann der Kopilot (er sitzt im Cockpit, anders
+// als ein Mitfahrer; 01.11.2026 trifft das kein Schiff), sonst der erste Sitz
 export const pickSeat = (list) => list.find((s) => /(?<!co[_-]?)pilot/i.test(s.name)) ?? list.find((s) => /driver/i.test(s.name)) ?? list.find((s) => /pilot/i.test(s.name)) ?? list[0] ?? null;
 
 // Dreiecke in Weltkoordinaten, je Dreieck Knoten und Material

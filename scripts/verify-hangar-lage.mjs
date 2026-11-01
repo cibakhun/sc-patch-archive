@@ -317,7 +317,7 @@ async function main() {
       process.exit(1);
     }
     if (steigt.length || ohne.length) {
-      console.error(`\nverify-hangar-lage: nicht nachgezogen.${steigt.length ? ` ${steigt.length} Werte stiegen (${steigt.join(', ')}): Ursache klaeren, anheben nur mit --anlass "<warum>".` : ''}${ohne.length ? ` ${ohne.length} ohne Ausnahme (${ohne.join(', ')}): ansehen, stimmt es, --ausnahme innen:<schiff>="<warum>", inseln:<schiff>="<warum>" bzw. sitz:<schiff>="<warum>".` : ''}\n`);
+      console.error(`\nverify-hangar-lage: nicht nachgezogen.${steigt.length ? ` ${steigt.length} Werte stiegen (${steigt.join(', ')}): Ursache klaeren, anheben nur mit --anlass "<warum>".` : ''}${ohne.length ? ` ${ohne.length} ohne Ausnahme (${ohne.join(', ')}): ansehen, stimmt es, --ausnahme innen:<schiff>="<warum>", --ausnahme inseln:<schiff>="<warum>" bzw. --ausnahme sitz:<schiff>="<warum>".` : ''}\n`);
       process.exit(1);
     }
     const ordered = Object.fromEntries(Object.keys(schiffe).sort().map((id) => [id, schiffe[id]]));

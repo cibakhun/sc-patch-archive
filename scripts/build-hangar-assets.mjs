@@ -602,7 +602,9 @@ function stockUrl(cls) {
   if (stockUsed && cls) stockUsed.set(cls.toLowerCase(), url);
   return url;
 }
-const stockFresh = (m) => !m || Object.entries(m).every(([cls, url]) => stockLookup(cls) === url);
+// Fehlt das Feld (Schiff aus einem Lauf davor), gilt es als veraltet: der
+// nächste Lauf baut das Schiff einmal neu, wie früher bei swap und palette.
+const stockFresh = (m) => !!m && Object.entries(m).every(([cls, url]) => stockLookup(cls) === url);
 function markSwapParts(doc, slug) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
@@ -2098,7 +2100,8 @@ async function buildOne(kind, name, inPath) {
     ...(swap ? { swap: swap.ports, swapNodes: swap.nodes } : {}),
     ...(swap && (Object.keys(swap.components).length || swap.empty.length) ? { swapComp: swap.components, swapEmpty: swap.empty.length } : {}),
     ...(placedComp ? { swapPlaced: placedComp } : {}),
-    ...(stockSeen?.size ? { stock: Object.fromEntries([...stockSeen].sort((a, b) => a[0].localeCompare(b[0]))) } : {}),
+    // jedes Schiff trägt stock, auch leer: sonst baute jeder Lauf ein Schiff ohne Komponenten neu
+    ...(stockSeen ? { stock: Object.fromEntries([...stockSeen].sort((a, b) => a[0].localeCompare(b[0]))) } : {}),
     ...(palette ? { palette } : {}),
     ...(weapon ? { key: weapon.key, anchorBy: weapon.by } : {}),
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),

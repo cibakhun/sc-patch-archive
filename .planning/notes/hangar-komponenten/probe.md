@@ -289,6 +289,22 @@ Branch `pc/hangar-komponenten`, auf der Probe (4839514f). Je Schiff:
   Laufs. Jedes Schiff merkt sich je Klasse die Adresse (`ships[name].stock`);
   hat eine davon eine neue Version oder erst jetzt ein Modell, baut der nächste
   Lauf das Schiff neu. Schiffe aus Läufen davor tragen das Feld noch nicht und
-  werden so nicht neu gebaut. Ungeprüft bis zum nächsten PC-Lauf (die Cloud
-  hat die Rohexporte nicht), `node --check` grün.
+  gelten darum als veraltet (Review zu #286): **der nächste PC-Lauf baut alle
+  Schiffe einmal neu**, wie damals beim Einführen von `swap` und `palette`.
+  Jedes neu gebaute Schiff trägt `stock`, auch leer, sonst baute jeder Lauf
+  die Schiffe ohne Komponenten neu. Ungeprüft bis zum nächsten PC-Lauf (die
+  Cloud hat die Rohexporte nicht), `node --check` grün.
+- **Werkstatt-Slot ohne Anker** (Review zu #286): [13] zählte nur Ports, die
+  im Modell als Knoten stehen; ein Port ohne Helfer fehlte ganz. Jetzt
+  vergleicht [13] jeden Komponenten-Slot der Werkstatt
+  (`dist/hangar-layouts.json`, 1349 an Schiffen mit Modell, Klinke) mit den
+  Ankern im Modell. 24 haben keinen, alle aus dem Rohexport ohne Helfer
+  (Redeemer 5, Starfarer und Gemini je 3, Hull C 3, Prospector 2, Valkyrie 2,
+  400i 2, Hurricane, MPUV Transport, Raft, Vulture), benannt in `OHNE_ANKER`
+  mit Zombie-Wächter. Vorgeführt rot: Gladius-Slot `power_plant_9` in
+  `dist/` ergänzt, Redeemer aus der Liste genommen, Gladius `power_plant`
+  hineingeschrieben → „Komponenten-Slot aegs-gladius power_plant_9: die
+  Werkstatt bietet ihn an, das Schiffsmodell hat dort keinen Anker“, dasselbe
+  für aegs-redeemer power_plant_2, „Ausnahme OHNE_ANKER aegs-gladius
+  power_plant ohne Anlass“. Zurückgelegt → grün.
 

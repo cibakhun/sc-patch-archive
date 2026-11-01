@@ -50,6 +50,9 @@ const result = {};
 const t0 = Date.now();
 if (rohFile) {
   const doc = await readGeometry(rohFile);
+  // Rohexport: Knoten, die der Bau weglässt (Schild, Kollision, LOD …), und
+  // Flächen, die der Viewer verbirgt (hiddenMaterial, je Primitiv wie in der
+  // Web-Fassung); --mit-ausgeblendet nimmt beides mit.
   const JUNK = /shield|proxy|collision|damage|nodraw|_lod[1-9]/i;
   const parent = new Map();
   const hull = [];
@@ -62,7 +65,7 @@ if (rohFile) {
     });
   }
   const pathOf = (n) => { const p = []; for (let x = n; x; x = parent.get(x)) p.unshift(x.getName()); return p.join('/'); };
-  const r = islands(hull, { pathOf, alle: ALLE });
+  const r = islands(hull, { pathOf, alle: ALLE, ...(MIT_AUS ? {} : { verborgen }) });
   if (!r) { console.error('kein Rumpf im Rohexport'); process.exit(1); }
   result[rohFile] = r;
   console.log(`${rohFile}: ${r.tris} Dr., Voxel ${r.voxel} m, ${r.inseln.length} ${ALLE ? 'Inseln' : 'Inseln außerhalb'}${MIT_AUS ? ' (mit ausgeblendeten Teilen)' : ''}`);

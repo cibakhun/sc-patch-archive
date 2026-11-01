@@ -299,8 +299,10 @@ aufgebraucht). Umgesetzt:
 - **Sitzwahl** (`pickSeat`): `(?<!co)pilot` ließ `co_pilot` und `co-pilot`
   durch; Corsair, Starfarer und Starfarer Gemini wurden am Kopilotensitz
   geprüft. Jetzt Pilot (ohne jede Kopiloten-Schreibweise), dann Fahrer,
-  dann Kopilot (Nova hat nur ihn), sonst der erste Sitz. 19 Schiffe prüfen
-  damit einen anderen Sitz (16 Bodenfahrzeuge den Fahrer statt eines
+  dann Kopilot (sitzt im Cockpit, anders als ein Mitfahrer), sonst der erste
+  Sitz. Gemessen: 186 Innenräume nehmen den Piloten, 25 den Fahrer, keiner den
+  Kopiloten, 4 den ersten Sitz (MPUV, MPUV Transport, Starfighter Inferno/Ion).
+  19 Schiffe prüfen damit einen anderen Sitz (16 Bodenfahrzeuge den Fahrer statt eines
   Mitfahrers); alle bleiben am Innenraum, 192 Sitze wie zuvor.
 - **Verborgene Flächen**: Die Messung ließ nur Schadensnetze weg, der Viewer
   auch POM-Decals und die Platzhalterwand. Der Viewer exportiert jetzt
