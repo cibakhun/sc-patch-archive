@@ -1,5 +1,5 @@
 {
- "werkzeug": "hangar-lage 1, verborgen a78ff98f",
+ "werkzeug": "hangar-lage 2, verborgen 1705547a",
  "aussen1": 5,
  "sitzOk": 192,
  "mitInseln": 16,
@@ -15,7 +15,7 @@
      }
     ],
     "innen": {
-     "tris": 179593,
+     "tris": 173530,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -42,7 +42,7 @@
      }
     ],
     "innen": {
-     "tris": 202475,
+     "tris": 199786,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -69,7 +69,7 @@
      }
     ],
     "innen": {
-     "tris": 202475,
+     "tris": 199786,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -96,7 +96,7 @@
      }
     ],
     "innen": {
-     "tris": 132999,
+     "tris": 130034,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -117,13 +117,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 28965,
+     "tris": 27290,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 20733,
+     "nah": 19454,
      "abstand": 0.05,
      "ok": true
     }
@@ -135,13 +135,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 13234,
+     "tris": 12858,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 10955,
+     "nah": 10665,
      "abstand": 0.1,
      "ok": true
     }
@@ -153,13 +153,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 13234,
+     "tris": 12858,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 10955,
+     "nah": 10665,
      "abstand": 0.1,
      "ok": true
     }
@@ -171,13 +171,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 13234,
+     "tris": 12858,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 10955,
+     "nah": 10665,
      "abstand": 0.1,
      "ok": true
     }
@@ -189,13 +189,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1459743,
+     "tris": 1174784,
      "aussenPct": 0,
      "maxM": 1
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1399,
+     "nah": 1113,
      "abstand": 0.16,
      "ok": true
     }
@@ -207,13 +207,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1416271,
+     "tris": 1319505,
      "aussenPct": 0,
      "maxM": 1
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1002,
+     "nah": 943,
      "abstand": 0.14,
      "ok": true
     }
@@ -237,13 +237,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 2123949,
+     "tris": 2056272,
      "aussenPct": 0.06,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 256,
+     "nah": 252,
      "abstand": 0.21,
      "ok": true
     }
@@ -267,13 +267,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 507708,
+     "tris": 461556,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 29252,
+     "nah": 29124,
      "abstand": 0.08,
      "ok": true
     }
@@ -285,13 +285,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 445985,
+     "tris": 432764,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 8817,
+     "nah": 8777,
      "abstand": 0.98,
      "ok": true
     }
@@ -303,13 +303,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14333,
+     "tris": 13629,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13206,
+     "nah": 12627,
      "abstand": 0.35,
      "ok": true
     }
@@ -321,13 +321,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14333,
+     "tris": 13629,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13206,
+     "nah": 12627,
      "abstand": 0.35,
      "ok": true
     }
@@ -339,13 +339,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 23613,
+     "tris": 22311,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 22320,
+     "nah": 21107,
      "abstand": 0.35,
      "ok": true
     }
@@ -357,13 +357,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 20072,
+     "tris": 19690,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 15317,
+     "nah": 14999,
      "abstand": 0.12,
      "ok": true
     }
@@ -375,13 +375,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 23613,
+     "tris": 22311,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17363,
+     "nah": 16467,
      "abstand": 0.14,
      "ok": true
     }
@@ -393,13 +393,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 23613,
+     "tris": 22311,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17363,
+     "nah": 16467,
      "abstand": 0.14,
      "ok": true
     }
@@ -411,13 +411,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1438856,
+     "tris": 1144583,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1382,
+     "nah": 1096,
      "abstand": 0.14,
      "ok": true
     }
@@ -429,13 +429,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 293766,
+     "tris": 283084,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 23489,
+     "nah": 23463,
      "abstand": 0.36,
      "ok": true
     }
@@ -447,13 +447,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 307105,
+     "tris": 295509,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 23489,
+     "nah": 23463,
      "abstand": 0.36,
      "ok": true
     }
@@ -465,13 +465,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 378356,
+     "tris": 361828,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 23489,
+     "nah": 23463,
      "abstand": 0.36,
      "ok": true
     }
@@ -483,13 +483,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 310912,
+     "tris": 300116,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 23489,
+     "nah": 23463,
      "abstand": 0.36,
      "ok": true
     }
@@ -525,13 +525,13 @@
      }
     ],
     "innen": {
-     "tris": 676873,
+     "tris": 608151,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2741,
+     "nah": 2649,
      "abstand": 0.15,
      "ok": true
     }
@@ -551,9 +551,9 @@
      "maxM": 0.6
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
-     "nah": 3232,
-     "abstand": 0.18,
+     "name": "hardpoint_seat_driver",
+     "nah": 3009,
+     "abstand": 0.1,
      "ok": true
     }
    },
@@ -569,9 +569,9 @@
      "maxM": 0.6
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
-     "nah": 3232,
-     "abstand": 0.18,
+     "name": "hardpoint_seat_driver",
+     "nah": 3009,
+     "abstand": 0.1,
      "ok": true
     }
    },
@@ -587,9 +587,9 @@
      "maxM": 0.6
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
-     "nah": 3232,
-     "abstand": 0.18,
+     "name": "hardpoint_seat_driver",
+     "nah": 3009,
+     "abstand": 0.1,
      "ok": true
     }
    },
@@ -600,13 +600,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 44274,
+     "tris": 38927,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1430,
+     "nah": 1259,
      "abstand": 0.35,
      "ok": true
     }
@@ -618,13 +618,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 79070,
+     "tris": 69293,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1561,
+     "nah": 1399,
      "abstand": 0.35,
      "ok": true
     }
@@ -636,13 +636,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 44274,
+     "tris": 38927,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1430,
+     "nah": 1259,
      "abstand": 0.35,
      "ok": true
     }
@@ -654,13 +654,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 2700218,
+     "tris": 2206758,
      "aussenPct": 0,
      "maxM": 6.8
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 357,
+     "nah": 355,
      "abstand": 0.15,
      "ok": true
     }
@@ -672,13 +672,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 2700218,
+     "tris": 2206758,
      "aussenPct": 0,
      "maxM": 6.8
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 357,
+     "nah": 355,
      "abstand": 0.15,
      "ok": true
     }
@@ -690,14 +690,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 35639,
+     "tris": 29795,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_gunner",
-     "nah": 1493,
-     "abstand": 0.18,
+     "name": "hardpoint_seat_driver",
+     "nah": 1732,
+     "abstand": 0.14,
      "ok": true
     }
    },
@@ -744,13 +744,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 16999,
+     "tris": 13522,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 15648,
+     "nah": 12732,
      "abstand": 0.26,
      "ok": true
     }
@@ -762,13 +762,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 19822,
+     "tris": 14294,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13619,
+     "nah": 9674,
      "abstand": 0.2,
      "ok": true
     }
@@ -780,7 +780,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 5775,
+     "tris": 5763,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -798,13 +798,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 19822,
+     "tris": 14294,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13619,
+     "nah": 9674,
      "abstand": 0.2,
      "ok": true
     }
@@ -816,7 +816,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 5775,
+     "tris": 5763,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -834,13 +834,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14674,
+     "tris": 13533,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 10696,
+     "nah": 9958,
      "abstand": 0.35,
      "ok": true
     }
@@ -852,13 +852,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14674,
+     "tris": 13533,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 10696,
+     "nah": 9958,
      "abstand": 0.35,
      "ok": true
     }
@@ -870,13 +870,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 38749,
+     "tris": 30171,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 26880,
+     "nah": 20986,
      "abstand": 0.2,
      "ok": true
     }
@@ -888,13 +888,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 38749,
+     "tris": 30171,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 26880,
+     "nah": 20986,
      "abstand": 0.2,
      "ok": true
     }
@@ -906,7 +906,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 5775,
+     "tris": 5763,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -924,13 +924,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 19822,
+     "tris": 14294,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13619,
+     "nah": 9674,
      "abstand": 0.2,
      "ok": true
     }
@@ -942,7 +942,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 5775,
+     "tris": 5763,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -960,13 +960,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 19822,
+     "tris": 14294,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13619,
+     "nah": 9674,
      "abstand": 0.2,
      "ok": true
     }
@@ -1050,14 +1050,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 662245,
+     "tris": 521224,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7407,
-     "abstand": 0.2,
+     "nah": 5870,
+     "abstand": 0.21,
      "ok": true
     }
    },
@@ -1068,14 +1068,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 90755,
+     "tris": 82141,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_weapon_seat_rack_001",
-     "nah": 6716,
-     "abstand": 0.09,
+     "name": "hardpoint_seat_driver",
+     "nah": 1702,
+     "abstand": 0.14,
      "ok": true
     }
    },
@@ -1086,13 +1086,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 146325,
+     "tris": 125243,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6094,
+     "nah": 5301,
      "abstand": 0.23,
      "ok": true
     }
@@ -1104,13 +1104,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 172741,
+     "tris": 152021,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 5985,
+     "nah": 5201,
      "abstand": 0.25,
      "ok": true
     }
@@ -1122,18 +1122,18 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 598842,
-     "aussenPct": 0.01,
-     "maxM": 1.2
+     "tris": 555637,
+     "aussenPct": 0,
+     "maxM": 1
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2741,
+     "nah": 2649,
      "abstand": 0.15,
      "ok": true
     }
    },
-   "aussenPct": 0.01
+   "aussenPct": 0
   },
   "argo-atls": {
    "sha": "52d6a2043e4d332b",
@@ -1164,14 +1164,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 29805,
+     "tris": 27751,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_driver",
-     "nah": 19924,
-     "abstand": 0.09,
+     "nah": 18376,
+     "abstand": 0.12,
      "ok": true
     }
    },
@@ -1182,14 +1182,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 600335,
+     "tris": 554273,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2751,
-     "abstand": 0.03,
+     "nah": 2519,
+     "abstand": 0.05,
      "ok": true
     }
    },
@@ -1200,14 +1200,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 526542,
+     "tris": 482513,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2751,
-     "abstand": 0.03,
+     "nah": 2519,
+     "abstand": 0.05,
      "ok": true
     }
    },
@@ -1218,13 +1218,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 54492,
+     "tris": 48878,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_cargo_seat",
-     "nah": 7576,
+     "nah": 7196,
      "abstand": 0.14,
      "ok": true
     }
@@ -1236,26 +1236,27 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 15270,
+     "tris": 12326,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": null
    },
-   "aussenPct": 0
+   "aussenPct": 0,
+   "ausnahmeSitz": "Spieldaten ohne Sitz-Helfer, nur hardpoint_seat_access; dort liegt der Innenraum (gemessen 01.11.2026)"
   },
   "argo-mpuv-transport": {
    "sha": "8b54dc368ef75590",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 73521,
+     "tris": 72119,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_transport_seat_right_4",
-     "nah": 18789,
+     "nah": 18117,
      "abstand": 0.09,
      "ok": true
     }
@@ -1267,13 +1268,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 557169,
+     "tris": 506021,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot_seat_access",
-     "nah": 5484,
+     "nah": 4617,
      "abstand": 0.05,
      "ok": true
     }
@@ -1285,14 +1286,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 243900,
+     "tris": 209377,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 18683,
-     "abstand": 0.02,
+     "nah": 16381,
+     "abstand": 0.13,
      "ok": true
     }
    },
@@ -1303,13 +1304,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 126727,
+     "tris": 105797,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17877,
+     "nah": 13682,
      "abstand": 0.08,
      "ok": true
     }
@@ -1339,13 +1340,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21768,
+     "tris": 19733,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 8352,
+     "nah": 7508,
      "abstand": 0.15,
      "ok": true
     }
@@ -1357,13 +1358,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21768,
+     "tris": 19733,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 8352,
+     "nah": 7508,
      "abstand": 0.15,
      "ok": true
     }
@@ -1375,32 +1376,33 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 43416,
-     "aussenPct": 1.48,
+     "tris": 37648,
+     "aussenPct": 1.7,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 4400,
+     "nah": 3556,
      "abstand": 0.15,
      "ok": true
     }
    },
-   "aussenPct": 1.48,
-   "ausnahmeInnen": "beta_int_body_main ragt so aus den Daten, Sitz am Innenraum (hangar-innenlage.md)"
+   "aussenPct": 1.7,
+   "ausnahmeInnen": "beta_int_body_main ragt so aus den Daten, Sitz am Innenraum (hangar-innenlage.md)",
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "cnou-mustang-delta": {
    "sha": "bf56209754923309",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21768,
+     "tris": 19733,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 8352,
+     "nah": 7508,
      "abstand": 0.15,
      "ok": true
     }
@@ -1412,13 +1414,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21768,
+     "tris": 19733,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 8352,
+     "nah": 7508,
      "abstand": 0.15,
      "ok": true
     }
@@ -1430,13 +1432,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21768,
+     "tris": 19733,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 8352,
+     "nah": 7508,
      "abstand": 0.15,
      "ok": true
     }
@@ -1448,7 +1450,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 45880,
+     "tris": 43930,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -1466,14 +1468,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 329687,
+     "tris": 297949,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11366,
-     "abstand": 0.57,
+     "nah": 9986,
+     "abstand": 0.58,
      "ok": true
     }
    },
@@ -1484,13 +1486,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 575763,
+     "tris": 516367,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 19746,
+     "nah": 16947,
      "abstand": 0.54,
      "ok": true
     }
@@ -1502,13 +1504,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 505973,
+     "tris": 453308,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 19746,
+     "nah": 16947,
      "abstand": 0.54,
      "ok": true
     }
@@ -1531,13 +1533,13 @@
      }
     ],
     "innen": {
-     "tris": 1031570,
+     "tris": 888250,
      "aussenPct": 0.03,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 3060,
+     "nah": 2706,
      "abstand": 0.57,
      "ok": true
     }
@@ -1552,13 +1554,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21112,
+     "tris": 16596,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat",
-     "nah": 17901,
+     "nah": 14025,
      "abstand": 0.3,
      "ok": true
     }
@@ -1570,13 +1572,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21112,
+     "tris": 16596,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat",
-     "nah": 17901,
+     "nah": 14025,
      "abstand": 0.3,
      "ok": true
     }
@@ -1588,14 +1590,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1518192,
+     "tris": 1413623,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17749,
-     "abstand": 0.03,
+     "nah": 15663,
+     "abstand": 0.04,
      "ok": true
     }
    },
@@ -1606,14 +1608,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1412084,
+     "tris": 1302656,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17749,
-     "abstand": 0.03,
+     "nah": 15663,
+     "abstand": 0.04,
      "ok": true
     }
    },
@@ -1624,14 +1626,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1587123,
+     "tris": 1482144,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17749,
-     "abstand": 0.03,
+     "nah": 15663,
+     "abstand": 0.04,
      "ok": true
     }
    },
@@ -1642,13 +1644,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 21797,
+     "tris": 19406,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 17959,
+     "nah": 16123,
      "abstand": 0.39,
      "ok": true
     }
@@ -1660,13 +1662,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1552940,
+     "tris": 1305139,
      "aussenPct": 0,
      "maxM": 11.8
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7053,
+     "nah": 6752,
      "abstand": 0.44,
      "ok": true
     }
@@ -1678,18 +1680,18 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1680569,
-     "aussenPct": 2.59,
+     "tris": 1411429,
+     "aussenPct": 2.5,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7172,
+     "nah": 6871,
      "abstand": 0.44,
      "ok": true
     }
    },
-   "aussenPct": 2.59,
+   "aussenPct": 2.5,
    "ausnahmeInnen": "Kommandomodul (command_module_interior, base_pira_int_command_geo) ragt so aus den Daten, Sitz am Innenraum (hangar-innenlage.md)"
   },
   "drak-clipper": {
@@ -1697,14 +1699,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 628725,
+     "tris": 559634,
      "aussenPct": 0,
      "maxM": 0.4
     },
     "sitz": {
      "name": "hardpoint_seat_pilot_dashboard",
-     "nah": 18862,
-     "abstand": 0.25,
+     "nah": 17140,
+     "abstand": 0.27,
      "ok": true
     }
    },
@@ -1715,14 +1717,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 630841,
+     "tris": 586396,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_co_pilot_seat",
-     "nah": 2918,
-     "abstand": 0.82,
+     "name": "hardpoint_pilot_seat",
+     "nah": 6379,
+     "abstand": 0.53,
      "ok": true
     }
    },
@@ -1733,13 +1735,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 233015,
+     "tris": 205552,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2271,
+     "nah": 2125,
      "abstand": 0.39,
      "ok": true
     }
@@ -1751,13 +1753,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 477580,
+     "tris": 436288,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2043,
+     "nah": 1732,
      "abstand": 0.39,
      "ok": true
     }
@@ -1769,13 +1771,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 319722,
+     "tris": 278259,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1984,
+     "nah": 1833,
      "abstand": 0.4,
      "ok": true
     }
@@ -1787,13 +1789,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 335682,
+     "tris": 288102,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 2320,
+     "nah": 2174,
      "abstand": 0.39,
      "ok": true
     }
@@ -1805,13 +1807,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 303774,
+     "tris": 268539,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7841,
+     "nah": 6741,
      "abstand": 0.12,
      "ok": true
     }
@@ -1823,13 +1825,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 292242,
+     "tris": 261137,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 8114,
+     "nah": 7014,
      "abstand": 0.12,
      "ok": true
     }
@@ -1841,13 +1843,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 322197,
+     "tris": 282677,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7894,
+     "nah": 6794,
      "abstand": 0.12,
      "ok": true
     }
@@ -1895,13 +1897,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 333,
+     "tris": 331,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 293,
+     "nah": 291,
      "abstand": 0.65,
      "ok": true
     }
@@ -1913,13 +1915,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 333,
+     "tris": 331,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 293,
+     "nah": 291,
      "abstand": 0.65,
      "ok": true
     }
@@ -1931,13 +1933,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 114012,
+     "tris": 93354,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 15923,
+     "nah": 12871,
      "abstand": 0.62,
      "ok": true
     }
@@ -1961,13 +1963,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 17357,
+     "tris": 15003,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_driver",
-     "nah": 17277,
+     "nah": 14923,
      "abstand": 0.39,
      "ok": true
     }
@@ -1979,14 +1981,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 28411,
+     "tris": 26519,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 9789,
-     "abstand": 0.36,
+     "nah": 8829,
+     "abstand": 0.69,
      "ok": true
     }
    },
@@ -1997,27 +1999,28 @@
    "gemessen": {
     "inseln": [
      {
-      "tris": 140,
+      "tris": 114,
       "aussenM": 2.8,
       "material": "DRAK_Vulture_mtl_ext_dark_metal_tile_047 (52)"
      }
     ],
     "innen": {
-     "tris": 179806,
-     "aussenPct": 0.46,
+     "tris": 155240,
+     "aussenPct": 0.48,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11156,
+     "nah": 9568,
      "abstand": 0.13,
      "ok": true
     }
    },
-   "aussenPct": 0.46,
+   "aussenPct": 0.48,
    "inseln": 1,
    "inselM": 2.8,
-   "ausnahmeInseln": "Tankstutzen DockingTube_Fuel_Ports hängt direkt unter der Schiffswurzel statt am hardpoint_fuel_port (hangar-inseln.md)"
+   "ausnahmeInseln": "Tankstutzen DockingTube_Fuel_Ports hängt direkt unter der Schiffswurzel statt am hardpoint_fuel_port (hangar-inseln.md)",
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "espr-prowler": {
    "sha": "8892ed8e40112206",
@@ -2096,31 +2099,31 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1031416,
-     "aussenPct": 0.11,
+     "tris": 932036,
+     "aussenPct": 0.1,
      "maxM": 45
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 5974,
-     "abstand": 0.27,
+     "nah": 3749,
+     "abstand": 0.28,
      "ok": true
     }
    },
-   "aussenPct": 0.11
+   "aussenPct": 0.1
   },
   "gama-syulen": {
    "sha": "0761daaaca3048ce",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 149638,
+     "tris": 122461,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6901,
+     "nah": 4599,
      "abstand": 0.05,
      "ok": true
     }
@@ -2132,18 +2135,18 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1097376,
-     "aussenPct": 0.09,
+     "tris": 999997,
+     "aussenPct": 0.08,
      "maxM": 52.8
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 5974,
-     "abstand": 0.27,
+     "nah": 3749,
+     "abstand": 0.28,
      "ok": true
     }
    },
-   "aussenPct": 0.09
+   "aussenPct": 0.08
   },
   "glsn-basher": {
    "sha": "55cf3b2e536e30d4",
@@ -2168,32 +2171,32 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 307233,
-     "aussenPct": 0.43,
+     "tris": 282586,
+     "aussenPct": 0.42,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1861,
+     "nah": 1741,
      "abstand": 0.4,
      "ok": true
     }
    },
-   "aussenPct": 0.43
+   "aussenPct": 0.42
   },
   "grin-mdc": {
    "sha": "5b793c844b809df1",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 61280,
+     "tris": 49772,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_MTC_jumpseat",
-     "nah": 19531,
-     "abstand": 0.09,
+     "name": "hardpoint_seat_driver",
+     "nah": 9698,
+     "abstand": 0.68,
      "ok": true
     }
    },
@@ -2204,14 +2207,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 92528,
+     "tris": 72087,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_MTC_jumpseat",
-     "nah": 13270,
-     "abstand": 0.09,
+     "name": "hardpoint_seat_driver",
+     "nah": 9810,
+     "abstand": 0.68,
      "ok": true
     }
    },
@@ -2246,13 +2249,13 @@
      }
     ],
     "innen": {
-     "tris": 2205,
+     "tris": 2109,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_driver",
-     "nah": 2205,
+     "nah": 2109,
      "abstand": 0.44,
      "ok": true
     }
@@ -2267,13 +2270,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 2205,
+     "tris": 2109,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_driver",
-     "nah": 2205,
+     "nah": 2109,
      "abstand": 0.44,
      "ok": true
     }
@@ -2303,14 +2306,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1282,
+     "tris": 1252,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
-     "nah": 228,
-     "abstand": 1.24,
+     "name": "hardpoint_seat_driver",
+     "nah": 173,
+     "abstand": 1.17,
      "ok": true
     }
    },
@@ -2321,49 +2324,51 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 24126,
-     "aussenPct": 0.36,
+     "tris": 23124,
+     "aussenPct": 0.37,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 23226,
+     "nah": 22242,
      "abstand": 0.38,
      "ok": true
     }
    },
-   "aussenPct": 0.36
+   "aussenPct": 0.37,
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "krig-l22-alphawolf": {
    "sha": "5d7e356b7280e9da",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 24306,
-     "aussenPct": 0.35,
+     "tris": 23232,
+     "aussenPct": 0.37,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 23220,
+     "nah": 22236,
      "abstand": 0.38,
      "ok": true
     }
    },
-   "aussenPct": 0.35
+   "aussenPct": 0.37,
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "krig-p52-merlin": {
    "sha": "5cb9c9ee5c61414b",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14291,
+     "tris": 13116,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13143,
+     "nah": 12068,
      "abstand": 0.26,
      "ok": true
     }
@@ -2375,13 +2380,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14873,
+     "tris": 13707,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13610,
+     "nah": 12628,
      "abstand": 0.26,
      "ok": true
     }
@@ -2393,13 +2398,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 14873,
+     "tris": 13707,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13610,
+     "nah": 12628,
      "abstand": 0.26,
      "ok": true
     }
@@ -2411,14 +2416,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 44421,
+     "tris": 40496,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 42625,
-     "abstand": 0.37,
+     "nah": 38923,
+     "abstand": 0.38,
      "ok": true
     }
    },
@@ -2429,13 +2434,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 155807,
+     "tris": 123972,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 4262,
+     "nah": 2892,
      "abstand": 0.15,
      "ok": true
     }
@@ -2447,14 +2452,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 292478,
+     "tris": 258114,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6890,
-     "abstand": 0.07,
+     "nah": 6147,
+     "abstand": 0.14,
      "ok": true
     }
    },
@@ -2465,14 +2470,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 296654,
+     "tris": 260240,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6890,
-     "abstand": 0.07,
+     "nah": 6147,
+     "abstand": 0.14,
      "ok": true
     }
    },
@@ -2483,14 +2488,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 295686,
+     "tris": 260348,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6890,
-     "abstand": 0.07,
+     "nah": 6147,
+     "abstand": 0.14,
      "ok": true
     }
    },
@@ -2501,14 +2506,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 303893,
+     "tris": 263368,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6890,
-     "abstand": 0.07,
+     "nah": 6147,
+     "abstand": 0.14,
      "ok": true
     }
    },
@@ -2591,14 +2596,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 138394,
+     "tris": 127180,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7571,
-     "abstand": 0.16,
+     "nah": 6851,
+     "abstand": 0.19,
      "ok": true
     }
    },
@@ -2609,13 +2614,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 676571,
+     "tris": 568226,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 9711,
+     "nah": 7947,
      "abstand": 0.14,
      "ok": true
     }
@@ -2627,14 +2632,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 626102,
+     "tris": 581549,
      "aussenPct": 0,
      "maxM": 3
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 3756,
-     "abstand": 0.11,
+     "nah": 3582,
+     "abstand": 0.18,
      "ok": true
     }
    },
@@ -2645,7 +2650,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 26095,
+     "tris": 25549,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -2717,13 +2722,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 34413,
+     "tris": 30703,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "Hardpoint_Reliant_Pilot_Seat",
-     "nah": 688,
+     "nah": 526,
      "abstand": 0.9,
      "ok": true
     }
@@ -2735,13 +2740,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 47009,
+     "tris": 37705,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "Hardpoint_Reliant_Pilot_Seat",
-     "nah": 688,
+     "nah": 526,
      "abstand": 0.9,
      "ok": true
     }
@@ -2753,13 +2758,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 56474,
+     "tris": 46648,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "Hardpoint_Reliant_Pilot_Seat",
-     "nah": 688,
+     "nah": 526,
      "abstand": 0.9,
      "ok": true
     }
@@ -2771,13 +2776,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 41397,
+     "tris": 33057,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "Hardpoint_Reliant_Pilot_Seat",
-     "nah": 688,
+     "nah": 526,
      "abstand": 0.9,
      "ok": true
     }
@@ -2789,18 +2794,18 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 740601,
-     "aussenPct": 3.12,
-     "maxM": 66.8
+     "tris": 732722,
+     "aussenPct": 2.98,
+     "maxM": 99
     },
     "sitz": {
-     "name": "hardpoint_seat_co_pilot",
-     "nah": 1794,
+     "name": "hardpoint_seat_pilot",
+     "nah": 1706,
      "abstand": 0.26,
      "ok": true
     }
    },
-   "aussenPct": 3.12,
+   "aussenPct": 2.98,
    "ausnahmeInnen": "Container base_int_bdall_main liegt schon im gesetzten Rohexport außen; Grund offen, im Bild prüfen (hangar-innenlage.md)"
   },
   "misc-starfarer-gemini": {
@@ -2808,18 +2813,18 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 775176,
-     "aussenPct": 2.99,
-     "maxM": 66.8
+     "tris": 768740,
+     "aussenPct": 2.85,
+     "maxM": 99
     },
     "sitz": {
-     "name": "hardpoint_seat_co_pilot",
-     "nah": 1794,
+     "name": "hardpoint_seat_pilot",
+     "nah": 1706,
      "abstand": 0.26,
      "ok": true
     }
    },
-   "aussenPct": 2.99,
+   "aussenPct": 2.85,
    "ausnahmeInnen": "Container base_int_bdall_main liegt schon im gesetzten Rohexport außen; Grund offen, im Bild prüfen (hangar-innenlage.md)"
   },
   "misc-starlancer-max": {
@@ -2827,13 +2832,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1355749,
+     "tris": 1058904,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 4870,
+     "nah": 3345,
      "abstand": 0.14,
      "ok": true
     }
@@ -2845,13 +2850,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1423921,
+     "tris": 1087049,
      "aussenPct": 0,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 4331,
+     "nah": 2806,
      "abstand": 0.14,
      "ok": true
     }
@@ -2863,13 +2868,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 198488,
+     "tris": 175570,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 20373,
+     "nah": 18235,
      "abstand": 0.52,
      "ok": true
     }
@@ -2881,13 +2886,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 350218,
+     "tris": 283175,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 12340,
+     "nah": 10356,
      "abstand": 0.1,
      "ok": true
     }
@@ -2899,13 +2904,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 287638,
+     "tris": 235842,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 416,
+     "nah": 318,
      "abstand": 1.08,
      "ok": true
     }
@@ -2917,13 +2922,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 350218,
+     "tris": 283175,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 12340,
+     "nah": 10356,
      "abstand": 0.1,
      "ok": true
     }
@@ -2971,54 +2976,57 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 28213,
-     "aussenPct": 0,
-     "maxM": 0
+     "tris": 24877,
+     "aussenPct": 0.16,
+     "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1673,
+     "nah": 1467,
      "abstand": 0.14,
      "ok": true
     }
    },
-   "aussenPct": 0
+   "aussenPct": 0.16,
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "orig-125a": {
    "sha": "6dacd1646a8df0e4",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 28213,
-     "aussenPct": 0,
-     "maxM": 0
+     "tris": 24877,
+     "aussenPct": 0.04,
+     "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1673,
+     "nah": 1467,
      "abstand": 0.14,
      "ok": true
     }
    },
-   "aussenPct": 0
+   "aussenPct": 0.04,
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "orig-135c": {
    "sha": "86de7459040b0614",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 28213,
-     "aussenPct": 0,
-     "maxM": 0
+     "tris": 24877,
+     "aussenPct": 0.16,
+     "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1673,
+     "nah": 1467,
      "abstand": 0.14,
      "ok": true
     }
    },
-   "aussenPct": 0
+   "aussenPct": 0.16,
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "orig-300i": {
    "sha": "ee5697b02106afa8",
@@ -3036,7 +3044,7 @@
      }
     ],
     "innen": {
-     "tris": 16006,
+     "tris": 15945,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -3068,7 +3076,7 @@
      }
     ],
     "innen": {
-     "tris": 16006,
+     "tris": 15945,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -3094,18 +3102,18 @@
       "material": "orig_325a_ext_mtl_hull_c_013 (44)"
      },
      {
-      "tris": 87,
-      "aussenM": 32,
-      "material": "ORIG_300i_int_mtl_mat_dark_09 (81)"
-     },
-     {
       "tris": 84,
       "aussenM": 2,
       "material": "orig_325a_ext_mtl_hull_c_013 (48)"
+     },
+     {
+      "tris": 81,
+      "aussenM": 32,
+      "material": "ORIG_300i_int_mtl_mat_dark_09 (81)"
      }
     ],
     "innen": {
-     "tris": 15966,
+     "tris": 15905,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -3137,13 +3145,13 @@
      }
     ],
     "innen": {
-     "tris": 8962,
+     "tris": 8902,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 1448,
+     "nah": 1424,
      "abstand": 0.18,
      "ok": true
     }
@@ -3158,13 +3166,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 439718,
+     "tris": 400828,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot_seat_access",
-     "nah": 2819,
+     "nah": 2715,
      "abstand": 0.16,
      "ok": true
     }
@@ -3176,13 +3184,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1011428,
+     "tris": 922544,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 89,
+     "nah": 44,
      "abstand": 1.24,
      "ok": true
     }
@@ -3194,13 +3202,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 1011428,
+     "tris": 922544,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 89,
+     "nah": 44,
      "abstand": 1.24,
      "ok": true
     }
@@ -3212,13 +3220,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 879780,
+     "tris": 809685,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 89,
+     "nah": 44,
      "abstand": 1.24,
      "ok": true
     }
@@ -3230,14 +3238,14 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 20735,
+     "tris": 20457,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_pilot_seat",
-     "nah": 15034,
-     "abstand": 0.25,
+     "nah": 14856,
+     "abstand": 0.29,
      "ok": true
     }
    },
@@ -3269,21 +3277,22 @@
     },
     "sitz": null
    },
-   "aussenPct": 0
+   "aussenPct": 0,
+   "ausnahmeSitz": "Spieldaten ohne Sitz-Helfer, nur hardpoint_seat_access 1,6 m neben dem Innenraum; der Innenraum liegt im Rumpf ([2])"
   },
   "orig-m80": {
    "sha": "dc1585ac75e9f5f0",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 123103,
+     "tris": 105750,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 13843,
-     "abstand": 0.43,
+     "nah": 11535,
+     "abstand": 0.44,
      "ok": true
     }
    },
@@ -3348,13 +3357,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 687415,
+     "tris": 539559,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 4192,
+     "nah": 3404,
      "abstand": 0.1,
      "ok": true
     }
@@ -3366,13 +3375,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 687415,
+     "tris": 539559,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 4192,
+     "nah": 3404,
      "abstand": 0.1,
      "ok": true
     }
@@ -3384,13 +3393,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 52168,
+     "tris": 44716,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11856,
+     "nah": 10607,
      "abstand": 0.03,
      "ok": true
     }
@@ -3402,13 +3411,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 52168,
+     "tris": 44716,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11856,
+     "nah": 10607,
      "abstand": 0.03,
      "ok": true
     }
@@ -3420,13 +3429,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 52168,
+     "tris": 44716,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11856,
+     "nah": 10607,
      "abstand": 0.03,
      "ok": true
     }
@@ -3438,13 +3447,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 52168,
+     "tris": 44716,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11856,
+     "nah": 10607,
      "abstand": 0.03,
      "ok": true
     }
@@ -3456,13 +3465,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 52168,
+     "tris": 44716,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11856,
+     "nah": 10607,
      "abstand": 0.03,
      "ok": true
     }
@@ -3474,13 +3483,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 52168,
+     "tris": 44716,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11641,
+     "nah": 10396,
      "abstand": 0.03,
      "ok": true
     }
@@ -3492,13 +3501,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 157808,
+     "tris": 134854,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 11683,
+     "nah": 10107,
      "abstand": 0.05,
      "ok": true
     }
@@ -3510,13 +3519,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 531422,
+     "tris": 481377,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 75,
+     "nah": 59,
      "abstand": 0.72,
      "ok": true
     }
@@ -3528,13 +3537,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 209497,
+     "tris": 192923,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 73,
+     "nah": 57,
      "abstand": 0.72,
      "ok": true
     }
@@ -3552,26 +3561,27 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 484880,
-     "aussenPct": 16.87,
+     "tris": 450658,
+     "aussenPct": 17.24,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 61,
+     "nah": 45,
      "abstand": 0.72,
      "ok": true
     }
    },
-   "aussenPct": 16.87,
-   "ausnahmeInnen": "Die Daten nennen die base-Container der Andromeda mit deren Offsets; im kürzeren Phoenix-Rumpf ragen sie heraus, die Phoenix bringt eigene Container mit. Offen für einen PC-Lauf (hangar-innenlage.md)"
+   "aussenPct": 17.24,
+   "ausnahmeInnen": "Die Daten nennen die base-Container der Andromeda mit deren Offsets; im kürzeren Phoenix-Rumpf ragen sie heraus, die Phoenix bringt eigene Container mit. Offen für einen PC-Lauf (hangar-innenlage.md)",
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "rsi-constellation-phoenix-emerald": {
    "sha": "e636bded8cc1805e",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 403500,
+     "tris": 377661,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -3589,13 +3599,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 410594,
+     "tris": 374197,
      "aussenPct": 0.03,
      "maxM": 99
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 75,
+     "nah": 59,
      "abstand": 0.72,
      "ok": true
     }
@@ -3607,13 +3617,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 496627,
+     "tris": 402006,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 4192,
+     "nah": 3404,
      "abstand": 0.1,
      "ok": true
     }
@@ -3625,31 +3635,32 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 64112,
-     "aussenPct": 0.36,
+     "tris": 51801,
+     "aussenPct": 0.42,
      "maxM": 0.8
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
-     "nah": 11351,
+     "name": "hardpoint_seat_driver",
+     "nah": 7088,
      "abstand": 0.07,
      "ok": true
     }
    },
-   "aussenPct": 0.36
+   "aussenPct": 0.42,
+   "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
   "rsi-mantis": {
    "sha": "0f9b3a60edd89b95",
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 80119,
+     "tris": 68327,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6373,
+     "nah": 4943,
      "abstand": 0.13,
      "ok": true
     }
@@ -3661,13 +3672,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 80123,
+     "tris": 68331,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6371,
+     "nah": 4941,
      "abstand": 0.12,
      "ok": true
     }
@@ -3700,13 +3711,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 7217,
+     "tris": 4818,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 6315,
+     "nah": 4151,
      "abstand": 0.14,
      "ok": true
     }
@@ -3718,13 +3729,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 28533,
+     "tris": 24675,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 18907,
+     "nah": 16431,
      "abstand": 0.13,
      "ok": true
     }
@@ -3736,13 +3747,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 30069,
+     "tris": 26211,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 18907,
+     "nah": 16431,
      "abstand": 0.13,
      "ok": true
     }
@@ -3754,13 +3765,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 8164,
+     "tris": 7201,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 7811,
+     "nah": 6888,
      "abstand": 0.47,
      "ok": true
     }
@@ -3772,7 +3783,7 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 103674,
+     "tris": 102730,
      "aussenPct": 0,
      "maxM": 0
     },
@@ -3826,13 +3837,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 495845,
+     "tris": 385175,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 3093,
+     "nah": 2886,
      "abstand": 0.07,
      "ok": true
     }
@@ -3844,13 +3855,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 525449,
+     "tris": 417778,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 3093,
+     "nah": 2886,
      "abstand": 0.07,
      "ok": true
     }
@@ -3867,7 +3878,7 @@
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
+     "name": "hardpoint_seat_driver",
      "nah": 0,
      "abstand": null,
      "ok": false
@@ -3885,7 +3896,7 @@
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
+     "name": "hardpoint_seat_driver",
      "nah": 0,
      "abstand": null,
      "ok": false
@@ -3903,7 +3914,7 @@
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
+     "name": "hardpoint_seat_driver",
      "nah": 0,
      "abstand": null,
      "ok": false
@@ -3921,7 +3932,7 @@
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
+     "name": "hardpoint_seat_driver",
      "nah": 0,
      "abstand": null,
      "ok": false
@@ -3939,7 +3950,7 @@
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
+     "name": "hardpoint_seat_driver",
      "nah": 0,
      "abstand": null,
      "ok": false
@@ -3957,7 +3968,7 @@
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_seat_passenger",
+     "name": "hardpoint_seat_driver",
      "nah": 0,
      "abstand": null,
      "ok": false
@@ -3970,13 +3981,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 68921,
+     "tris": 59412,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
-     "name": "hardpoint_co-pilot_seat",
-     "nah": 6260,
+     "name": "hardpoint_seat_driver",
+     "nah": 3686,
      "abstand": 0.04,
      "ok": true
     }
@@ -3988,13 +3999,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 33476,
+     "tris": 31658,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 21984,
+     "nah": 21382,
      "abstand": 0.29,
      "ok": true
     }
@@ -4006,13 +4017,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 33476,
+     "tris": 31658,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 21984,
+     "nah": 21382,
      "abstand": 0.29,
      "ok": true
     }
@@ -4024,13 +4035,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 20240,
+     "tris": 19870,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 12096,
+     "nah": 11756,
      "abstand": 0.3,
      "ok": true
     }
@@ -4078,13 +4089,13 @@
    "gemessen": {
     "inseln": [],
     "innen": {
-     "tris": 131643,
+     "tris": 119639,
      "aussenPct": 0,
      "maxM": 0
     },
     "sitz": {
      "name": "hardpoint_seat_pilot",
-     "nah": 12230,
+     "nah": 10640,
      "abstand": 0.06,
      "ok": true
     }
