@@ -161,9 +161,30 @@ jobs:
             --weich \
             --warte 600
 
-      # Dieselben Kopfzeilen wie im Rauchtest, jetzt durch Cloudflare hindurch:
-      # das sieht nur, wer die ausgelieferte Seite fragt. `--weich`, weil
-      # Cloudflare den Runner meist abweist (siehe oben); was durchkommt, wird
-      # streng beurteilt. Streng von Hand: node scripts/check-headers.mjs --base https://verse-base.com
-      - name: Kopfzeilen der Live-Seite pruefen
-        run: node scripts/check-headers.mjs --base https://verse-base.com --weich
+      # KEIN Kopfzeilen-Schritt hier. Er stand bis zum 01.11.2026 an dieser
+      # Stelle (check-headers.mjs --weich) und hat den Deploy von f602fb3b rot
+      # gefaerbt, OBWOHL er gelandet war: Coolify-Anstoss und der Warte-Schritt
+      # darueber waren gruen, die Seite lieferte den neuen Stand.
+      #
+      # `--weich` entschuldigt nur Stichproben, die GAR NICHT durchkommen.
+      # Cloudflare sperrt den Runner vor verse-base.com aber nicht bloss, es
+      # ANTWORTET auch selbst: in Lauf 41294060039 waren 10 von 14 Stichproben
+      # HTTP 403, und die vier mit 200 kamen vom Cloudflare-Rand, nicht von
+      # unserem nginx — ohne Permissions-Policy, ohne COOP, mit 'unsafe-inline'
+      # in der Richtlinie. Daraus machte der Pruefer die Meldung "nginx steht
+      # auf dem Rueckfall, die Hash-Dateien fehlen im Image". Alle drei Befunde
+      # waren falsch: vom Entwicklungsrechner aus trugen dieselben Adressen
+      # (/, /assets/theme.css, /robots.txt, /build.json) die Hash-Richtlinie
+      # und beide Kopfzeilen.
+      #
+      # Ein Pruefer, der sein Pruefobjekt nicht erreicht, kann darueber nicht
+      # urteilen; ein Daueralarm erzieht dazu, Rot zu uebersehen (Grundsatz 3:
+      # Fehlalarme sind teurer als Luecken). Das Urteil liegt deshalb auf
+      # Schiene C, vom Entwicklungsrechner aus und streng:
+      #     npm run check:headers:live
+      # CLAUDE.md fuehrt das als Pflicht vor der Fertig-Meldung.
+      #
+      # In deploy-staging.yml bleibt der Schritt: dort kommt der Runner durch
+      # (5 von 5 Laeufen gruen, gemessen 01.11.2026), weil staging.verse-base.com
+      # den Bot-Schutz nicht hat. Faengt er auch dort an, falsch rot zu werden,
+      # gehoert er auch dort weg — nicht auf "immer gruen" gestellt.
