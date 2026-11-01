@@ -60,7 +60,13 @@ const KLINKE = {
   workflows: 11,
   actions: 35, // fremde `uses:`-Zeilen ueber alle Workflows
   checkouts: 14,
-  runBloecke: 59, // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026)
+  // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026) = 59. Am
+  // 01.11.2026 auf 58 GESENKT: der Live-Deploy hat seine Kopfzeilen-Pruefung
+  // abgegeben, weil Cloudflare den Runner vor verse-base.com nicht nur sperrt,
+  // sondern selbst antwortet -- der Schritt faerbte einen gelandeten Deploy
+  // rot. Das Urteil liegt jetzt auf Schiene C (npm run check:headers:live).
+  // Die Pruefung nach dem Vorschau-Deploy bleibt und zaehlt weiter mit.
+  runBloecke: 58,
   basisImages: 4,
 };
 

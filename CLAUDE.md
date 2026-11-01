@@ -42,6 +42,28 @@ schon vier Stunden den Vortagsstand ausgeliefert, während alle Commits an Ort
 und Stelle lagen, und Coolify hing an anderem Tag 20 Minuten in der
 Warteschlange.
 
+**Nach einem Live-Deploy zusätzlich, beides von hier aus:**
+
+```bash
+npm run check:live
+```
+
+```bash
+npm run check:headers:live
+```
+
+Der zweite ist Pflicht, weil ihn seit dem 01.11.2026 kein Workflow mehr fährt:
+Cloudflare sperrt den Runner vor verse-base.com nicht nur, es antwortet auch
+selbst, und der Prüfer hielt die Antworten des Rands für unsere — drei falsche
+FEHLER in einem Lauf, der den Deploy rot färbte, obwohl er gelandet war. Die
+Begründung steht im Registry-Eintrag `check:headers` und an der Leerstelle in
+`deploy-image.yml`.
+
+Ein roter `deploy`-Job heißt deshalb nicht, dass der Deploy fehlschlug. Erst
+die Schrittliste lesen (`gh run view <id> --json jobs`): sind „Trigger Coolify
+redeploy" und „Warten, bis die Live-Seite den neuen Stand zeigt" grün, ist er
+gelandet.
+
 `main` bleibt tabu ohne ausdrückliche Ansage. Fertige, geprüfte Arbeit geht
 ohne Nachfrage auf `staging` — das ist der Normalabschluss.
 
