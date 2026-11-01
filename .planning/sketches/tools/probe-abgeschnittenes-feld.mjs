@@ -103,6 +103,7 @@ const PROBE = () => {
 const browser = await chromium.launch({ executablePath: CHROME });
 const g = {};
 let geprueft = 0;
+let uebersprungen = 0;
 for (const vp of (process.env.VP_LIST || '390x844').split(',')) {
   const [w, h] = vp.split('x').map(Number);
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: w <= 932 });
@@ -111,7 +112,8 @@ for (const vp of (process.env.VP_LIST || '390x844').split(',')) {
   let n = 0;
   for (const url of PAGES) {
     try {
-      await page.goto(`http://127.0.0.1:${PORT}` + url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const resp = await page.goto(`http://127.0.0.1:${PORT}` + url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      if (!resp || !resp.ok()) { uebersprungen++; process.stderr.write(`  nicht gemessen ${url} [${vp}]: HTTP ${resp ? resp.status() : 'keine Antwort'}\n`); continue; }
       await page.waitForTimeout(500);
       const r = await page.evaluate(PROBE);
       geprueft++;
@@ -121,7 +123,7 @@ for (const vp of (process.env.VP_LIST || '390x844').split(',')) {
         g[k].seiten.add(url); g[k].vps.add(vp);
         g[k].fehlt = Math.max(g[k].fehlt, x.fehlt);
       }
-    } catch { /* uebersprungen */ }
+    } catch (e) { uebersprungen++; process.stderr.write(`  nicht gemessen ${url} [${vp}]: ${String(e).split('\n')[0]}\n`); }
     if (++n % 60 === 0) process.stderr.write(`  … ${n}\n`);
   }
   await ctx.close();
@@ -130,7 +132,7 @@ for (const vp of (process.env.VP_LIST || '390x844').split(',')) {
 await browser.close(); srv.close();
 
 const e = Object.entries(g).sort((a, b) => b[1].fehlt - a[1].fehlt);
-console.log(`\nMessungen: ${geprueft}`);
+console.log(`\nMessungen: ${geprueft}   nicht gemessen: ${uebersprungen}`);
 console.log(`ABGESCHNITTENE FELDER: ${e.length} Muster`);
 if (!e.length) console.log('  keine');
 for (const [k, v] of e.slice(0, 25))

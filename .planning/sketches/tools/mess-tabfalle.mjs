@@ -41,7 +41,12 @@ for (const u of process.argv.slice(2)) {
     const [w, h] = vp.split('x').map(Number);
     const ctx = await b.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: true, isMobile: true });
     const pg = await ctx.newPage();
-    await pg.goto('http://127.0.0.1:'+PORT + u, { waitUntil: 'domcontentloaded' });
+    const resp = await pg.goto('http://127.0.0.1:'+PORT + u, { waitUntil: 'domcontentloaded' });
+    if (!resp || !resp.ok()) {
+      console.log('[' + vp + '] ' + u.padEnd(20) + '  NICHT GEMESSEN (HTTP ' + (resp ? resp.status() : 'keine Antwort') + ')');
+      await ctx.close();
+      continue;
+    }
     await pg.waitForTimeout(1300);
     let drin = 0, ausserhalb = 0, erste = null;
     for (let i = 0; i < 45; i++) {
@@ -58,7 +63,8 @@ for (const u of process.argv.slice(2)) {
       if (!r) continue;
       if (r.imPanel && !r.sichtbar) { drin++; if (!erste) erste = r; } else ausserhalb++;
     }
-    const urteil = drin ? 'TABFALLE: ' + drin + ' unsichtbare Ziele (erstes: ' + erste.nm + ' bei x=' + erste.x + ')' : 'sauber';
+    const urteil = drin ? 'TABFALLE: ' + drin + ' unsichtbare Ziele (erstes: ' + erste.nm + ' bei x=' + erste.x + ')'
+      : (ausserhalb ? 'sauber' : 'NICHT GEMESSEN (keine Fokusstation gefunden)');
     console.log('[' + vp + '] ' + u.padEnd(20) + '  ' + ausserhalb + ' sichtbare Stationen  → ' + urteil);
     await ctx.close();
   }

@@ -36,7 +36,7 @@ const PAGES = process.argv.slice(2).length ? process.argv.slice(2)
   : JSON.parse(await readFile(join(resolve(process.cwd()), '.planning/sketches/tools/out', process.env.PAGES_FILE || 'pages.json'), 'utf8'));
 const b = await chromium.launch({ executablePath: CHROME });
 const g = {};
-let n = 0;
+let n = 0, uebersprungen = 0;
 for (const vp of (process.env.VP_LIST || '360x640').split(',')) {
   const [w, h] = vp.split('x').map(Number);
   const ctx = await b.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: true });
@@ -44,7 +44,8 @@ for (const vp of (process.env.VP_LIST || '360x640').split(',')) {
   pg.on('pageerror', () => {});
   for (const u of PAGES) {
     try {
-      await pg.goto('http://127.0.0.1:' + PORT + u, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const resp = await pg.goto('http://127.0.0.1:' + PORT + u, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      if (!resp || !resp.ok()) { uebersprungen++; process.stderr.write(`  nicht gemessen ${u} [${vp}]: HTTP ${resp ? resp.status() : 'keine Antwort'}\n`); continue; }
       await pg.waitForTimeout(400);
       const r = await pg.evaluate(() => {
         const out = [];
@@ -65,11 +66,11 @@ for (const vp of (process.env.VP_LIST || '360x640').split(',')) {
         const k = x.sel + '  „' + x.txt + '"  (fehlen ' + x.fehlt + 'px)  [' + vp + ']';
         (g[k] ||= new Set()).add(u);
       }
-    } catch { /* uebersprungen */ }
+    } catch (e) { uebersprungen++; process.stderr.write(`  nicht gemessen ${u} [${vp}]: ${String(e).split('\n')[0]}\n`); }
   }
   await ctx.close();
 }
 await b.close(); srv.close();
 const e = Object.entries(g).sort((a, b) => b[1].size - a[1].size);
-console.log('\nMessungen: ' + n + '   Ellipsen, die WIRKLICH greifen: ' + e.length + ' Muster');
+console.log('\nMessungen: ' + n + '   nicht gemessen: ' + uebersprungen + '   Ellipsen, die WIRKLICH greifen: ' + e.length + ' Muster');
 for (const [k, v] of e.slice(0, 20)) console.log('  ' + String(v.size).padStart(4) + ' Seiten  ' + k + '\n           (' + [...v].slice(0, 2).join('  ') + ')');
