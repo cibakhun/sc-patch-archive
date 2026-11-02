@@ -1296,8 +1296,9 @@ function nPct(v) { var s = (Math.round(v * 10) / 10).toFixed(1).replace(/\.0$/, 
       doc.head.appendChild(base);
     }
 
-    /* Farbthema und Sprache haengen als Attribute am <html> der Seite; ohne
-       sie greifen die kopierten Regeln fuer [data-theme] drueben ins Leere. */
+    /* Sprache, Rolle, Effekte und Leichtgang haengen als Attribute bzw.
+       Klassen am <html> der Seite; ohne sie greifen die kopierten Regeln
+       drueben ins Leere. */
     function mirrorRoot(doc) {
       var a = document.documentElement.attributes;
       for (var i = 0; i < a.length; i++) {

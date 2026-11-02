@@ -55,8 +55,6 @@ const tierOf = (n: number) => (n <= 2 ? '1' : n <= 5 ? '2' : '3');
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1400px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e8eef9;--surface:#fdfdff;--surface-2:#edf3fc;--text:#1c1f25;--muted:#4d596c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-2:rgba(43,125,148,.42)}
 
 
 
@@ -190,15 +188,6 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
 .evo__cell:hover{background:color-mix(in srgb,var(--c) 55%,transparent);border-color:var(--c);transform:translateY(-1px)}
 .evo__cell.sel{background:var(--c);color:var(--ink);border-color:var(--c)}
 .evo__dot{color:var(--muted);opacity:.22}
-/* --c ist die Patch-Akzentfarbe und kommt als style="--c:…" aus den Daten —
-   eine Palette kann sie deshalb nicht überschreiben. Für Papier wird sie hier
-   zur Laufzeit abgedunkelt: Farbton bleibt (jede Ära behält ihre Farbe),
-   Helligkeit wird lesbar. In oklab gemischt, damit der Ton beim Abdunkeln
-   nicht kippt. */
-:root[data-theme="light"] .evo__cell{color:color-mix(in oklab,var(--c) 58%,#000);border-color:color-mix(in oklab,var(--c) 46%,#000)}
-:root[data-theme="light"] .evo__cell.sel{background:color-mix(in oklab,var(--c) 62%,#000);border-color:color-mix(in oklab,var(--c) 62%,#000);color:#fff}
-:root[data-theme="light"] :is(.evo__col,.evo__col a,.evo__era,.edet__sys,.edet__patch){color:color-mix(in oklab,var(--c) 58%,#000)}
-
 .evo__detail{margin-top:1.4rem}
 .edet{border:1px solid var(--line);border-top:2px solid var(--c);border-radius:12px;background:var(--surface);padding:1.4rem 1.6rem 1.5rem}
 .edet__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.6rem 1.2rem;
@@ -246,7 +235,8 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
   .evo__syshead,.evo__sys{min-width:128px;width:128px;max-width:128px}
   .evo__col{min-width:52px}
   .evo__sys{white-space:normal}
-}</style>
+}
+</style>
 
 <main class="evo">
   <header class="evo__head">

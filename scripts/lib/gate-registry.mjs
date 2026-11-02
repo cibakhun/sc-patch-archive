@@ -248,14 +248,6 @@ export const CHECKS = [
       'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe); Bildablage der Schiffe: kein Bild mehr eingebettet, jeder Verweis liegt in dist/hangar/tex und heisst nach seinem Inhalt, Deckel fuer die Gesamtgroesse und je Datei (Klinke Schiffe mit Ablage); Schiffswahl: jede Karte mit eigenem Bild und Umriss in dist/ (Version = Inhalt, Klinke), Suchwoerter unter fold() stabil, jeder Zweck, jede Unterrolle und Groesse eine Stufe der Pillen, und Proben je Sprache durch die ausgelieferte Suche ueber die Karten aus dist/ (Spitzname, Zweck mit Crew, Fracht, Preis, Tippfehler, Unterrolle; Klinke)',
   },
   {
-    id: 'verify:theme',
-    npm: 'verify:theme',
-    script: 'scripts/verify-theme-gen.mjs',
-    rail: 'A',
-    checks: 'kein erzeugter Hellmodus-Block ist von Hand veraendert; die echten Generatoren laufen dafuer gegen eine Ablagekopie unter os.tmpdir()',
-    env: 'git + Kindprozess: die Generatoren laufen per execFileSync(process.execPath, …) gegen eine tmp-Kopie (nie gegen den Arbeitsbaum); der git-Aufruf in workTreeStatus() faengt ENOENT ab und liefert null — im Build-Container gibt es weder git noch einen Arbeitsbaum, Zusicherung 3 wird dort sichtbar uebersprungen (cf58c76)',
-  },
-  {
     id: 'verify:vehicle-roles',
     npm: 'verify:vehicle-roles',
     script: 'scripts/verify-vehicle-roles.mjs',

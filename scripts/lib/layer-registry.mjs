@@ -124,7 +124,7 @@ export const SHARED_REGISTRY = [
     anchor: { xFrac: 0.18, yFrac: 0.85 },
     // Plan 05, Task 2 (Rule 1/D-04): Stopp von "scrim4 55% -> bg" auf ein
     // Plateau bis 90% verschoben -- der Ankerpunkt (yFrac 0.85) lag vorher
-    // im Interpolationsbereich Richtung --bg (im Hellmodus hell), siehe
+    // im Interpolationsbereich Richtung --bg, siehe
     // Kommentar an .hero__photo::after in assets/detail.css.
     scrim: { layers: [{ angle: 180, stops: [{ t: 0, tok: 'scrim2' }, { t: 0.55, tok: 'scrim4' }, { t: 0.9, tok: 'scrim4' }, { t: 1, tok: 'bg' }] }] },
     text: {
@@ -253,31 +253,31 @@ export const SHARED_REGISTRY = [
     label: 'A10 · footer .foot-nav / .disclaimer / .lead-p / .src (assets/detail.css) — von der Maske freigestellt',
     selectorFamilies: [],
     rationale:
-      'Diese Stellen tragen selbst KEINE Scrim/Raster-Regel (keine Selektor-Familie fuer Zusicherung 5) -- sie sind der Ort, an dem D-01s Maske vorher (unmaskiertes body::after) etwas abdunkelte und jetzt (maskiert) nichts mehr. Gemessen wird direkt --text/--muted gegen --bg/--bg-2/--surface -- dieselben Tokenpaare, die scripts/build-light-palettes.mjs (LIGHT_RULES) site-weit auf AA zielt (--text auf 0.24 Helligkeit, --muted auf 0.46, siehe theme-color.mjs-Kommentar). Eine Stichprobe ueber die 69 Seiten-Paletten wuerde nichts Neues zeigen, weil ALLE aus demselben Generator stammen -- strukturell garantiert statt Seite fuer Seite gemessen, dokumentierte Vereinfachung (Praezedenz: Vignetten-Naeherung, 03-01-SUMMARY.md).',
+      'Diese Stellen tragen selbst KEINE Scrim/Raster-Regel (keine Selektor-Familie fuer Zusicherung 5) -- sie sind der Ort, an dem D-01s Maske vorher (unmaskiertes body::after) etwas abdunkelte und jetzt (maskiert) nichts mehr. Gemessen wird direkt --text gegen --bg-2 der geteilten Rueckfallpalette (assets/detail.css) -- dokumentierte Vereinfachung statt Seite fuer Seite (Praezedenz: Vignetten-Naeherung, 03-01-SUMMARY.md).',
     kind: 'flat',
     resolve: () => sharedFallbackFlat('--text', '--bg-2'),
     images: [],
-    text: { body: { minRatio: 4.5, label: '.disclaimer/.lead-p (--text/--muted auf --bg-2, Fallback-Palette)' } },
+    text: { body: { minRatio: 4.5, label: '.disclaimer/.lead-p (--text auf --bg-2, Fallback-Palette)' } },
   },
 ];
 
 /* Aufloesungshelfer fuer die flachen A6-A10-Eintraege: liest die Fallback-
-   Palette aus assets/detail.css (:root{}) fuer dunkel und assets/theme.css
-   (:root[data-theme="light"]) fuer hell -- s.u. resolveSharedTokens(). */
+   Palette aus assets/detail.css (:root{}) -- s.u. resolveSharedFallbackPalette().
+   Seit dem 02.11.2026 gibt es nur noch den dunklen Modus (der helle ist
+   entfernt); die Form { dunkel: … } bleibt, damit ein Eintrag sagt, WELCHEN
+   Modus er misst. */
 let SHARED_FLAT_CACHE = null;
 function sharedFallbackFlat(fgTok, bgTok) {
   if (!SHARED_FLAT_CACHE) SHARED_FLAT_CACHE = resolveSharedFallbackPalette();
   return {
     dunkel: { fg: SHARED_FLAT_CACHE.dunkel[fgTok], bg: SHARED_FLAT_CACHE.dunkel[bgTok] },
-    hell: { fg: SHARED_FLAT_CACHE.hell[fgTok], bg: SHARED_FLAT_CACHE.hell[bgTok] },
   };
 }
 function stripCssComments(css) {
   return css.replace(/\/\*[\s\S]*?\*\//g, '');
 }
-/** assets/theme.css deklariert :root[data-theme='light']{} MEHRFACH (Zeile 48
- * nur color-scheme, Zeile 117 die eigentliche Palette) -- der erste Treffer
- * ist nicht immer der richtige. Sucht deshalb den ERSTEN Block, der --bg
+/** Ein Stilblatt kann :root{} MEHRFACH deklarieren -- der erste Treffer ist
+ * nicht immer der richtige. Sucht deshalb den ERSTEN Block, der --bg
  * tatsaechlich definiert, statt blind den ersten Treffer zu nehmen. */
 function findRootBlockWithBg(css, re) {
   const global = new RegExp(re.source, 'g');
@@ -289,9 +289,7 @@ function findRootBlockWithBg(css, re) {
 }
 function resolveSharedFallbackPalette() {
   const detailCss = stripCssComments(safeRead('assets/detail.css'));
-  const themeCss = stripCssComments(safeRead('assets/theme.css'));
   const darkRoot = findRootBlockWithBg(detailCss, /:root\s*\{([^}]*)\}/);
-  const lightRoot = findRootBlockWithBg(themeCss, /:root\[data-theme=['"]light['"]\]\s*\{([^}]*)\}/);
   const pick = (block, tok) => {
     const re = new RegExp(`${tok.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')}\\s*:\\s*([^;]+);`);
     const m = re.exec(block);
@@ -299,7 +297,6 @@ function resolveSharedFallbackPalette() {
   };
   return {
     dunkel: { '--text': pick(darkRoot, '--text'), '--muted': pick(darkRoot, '--muted'), '--bg': pick(darkRoot, '--bg'), '--bg-2': pick(darkRoot, '--bg-2') || pick(darkRoot, '--bg'), '--surface': pick(darkRoot, '--surface') },
-    hell: { '--text': pick(lightRoot, '--text'), '--muted': pick(lightRoot, '--muted'), '--bg': pick(lightRoot, '--bg'), '--bg-2': pick(lightRoot, '--bg-2'), '--surface': pick(lightRoot, '--surface') },
   };
 }
 function safeRead(p) {
@@ -318,7 +315,7 @@ export const OWN_BUILD_REGISTRY = [
     label: 'C1 · .pp-hero (src/components/pilot/PilotPage.astro)',
     selectorFamilies: ['.pp-hero__scrim'],
     rationale:
-      'Eigener Hero, keiner der Archetypen (03-05-PLAN.md C1). Traegt data-media-surface -- theme.css remappt --text/--bg im Hellmodus INNERHALB dieser Insel auf die Medien-Werte (--on-media/--media-void), im Dunkelmodus setzt PilotPage bereits selbst dunkle Werte. Die Insel bleibt dadurch in BEIDEN Modi de facto dunkel -- gemessen statt angenommen.',
+      'Eigener Hero, keiner der Archetypen (03-05-PLAN.md C1). Traegt data-media-surface; PilotPage setzt ihre dunklen Werte selbst (--bg == --media-void) -- gemessen statt angenommen.',
     kind: 'photo',
     images: [{ id: 'pilot-fallback-banner', path: 'public/assets/t-pyro-2.jpg', usedBy: 'src/components/pilot/PilotPage.astro (#ppBannerImg Fallback-Banner ohne RSI-Verifizierung)' }],
     anchor: { xFrac: 0.25, yFrac: 0.82 },
@@ -390,7 +387,7 @@ export const OWN_BUILD_REGISTRY = [
     rationale:
       'Korrigiert gegenueber der ersten Erhebung (Task 1): anders als bei .node--major ist .node__art bei .node--point ein FLEX-GESCHWISTER von .node__body (display:flex;align-items:stretch auf .node--point .node__card), keine absolute Ueberlagerung -- .node__tag sitzt in .node__body, NICHT ueber dem Foto-Streifen. Kontrollfall wie A6 (.split__media), registriert fuer Zusicherung 5.',
     kind: 'flat',
-    resolve: () => ({ dunkel: { fg: '#97a8ca', bg: '#04060e' }, hell: { fg: '#97a8ca', bg: '#04060e' } }),
+    resolve: () => ({ dunkel: { fg: '#97a8ca', bg: '#04060e' } }),
     images: [],
   },
 ];
@@ -479,7 +476,7 @@ export const DISCOVERED_REGISTRY = [
     label: 'D5 · .fcard (src/components/topics/4-0-1-fight-for-pyro.astro) — Rule-1-Fund',
     selectorFamilies: ['.fcard::after'],
     rationale:
-      'Von Zusicherung 5 gefunden UND als Rule-1-Bug behoben (Task 2): h3/.fk/p/.ftag benutzten --text/--accent/--accent-2 (Seitenflaechen-Tokens) ueber einem Foto, hinter einem --veil/--veil-2-Verlauf (Flaechen-Schleier, im Hellmodus absichtlich fast durchsichtig) -- im Hellmodus brach der Kontrast ein (dunkler Text auf kaum getoentem hellem Foto). Auf --scrim-*/--on-media* umgestellt, wie ueberall sonst im Bestand fuer Text-auf-Foto (vgl. D4/.tool).',
+      'Von Zusicherung 5 gefunden UND als Rule-1-Bug behoben (Task 2): h3/.fk/p/.ftag benutzten --text/--accent/--accent-2 (Seitenflaechen-Tokens) ueber einem Foto, hinter einem --veil/--veil-2-Verlauf (Flaechen-Schleier) -- im damaligen Hellmodus brach der Kontrast ein. Auf --scrim-*/--on-media* umgestellt, wie ueberall sonst im Bestand fuer Text-auf-Foto (vgl. D4/.tool).',
     kind: 'photo',
     images: [
       { id: 'ffp-card-1', path: 'public/assets/cz-facility.jpg', usedBy: "src/components/topics/4-0-1-fight-for-pyro.astro (.fcard 1/3, 'Beacon')" },
@@ -529,8 +526,8 @@ export const DISCOVERED_REGISTRY = [
     // das Glanzlicht geriet.
     // Als Hex, nicht als Token: resolveTextColor kennt nur Text-ROLLEN
     // (--on-media, --on-media-dim, ...), --accent-media ist eine Palettenfarbe.
-    // #FF5E1A ist der Wert aus src/components/topics/crafting.astro (:root und
-    // der Hellmodus-Block setzen beide --accent-media auf genau diesen Wert) —
+    // #FF5E1A ist der Wert aus src/components/topics/crafting.astro (:root
+    // setzt --accent darauf, --accent-media folgt ihm ueber theme.css) —
     // wer ihn dort aendert, muss ihn hier mitziehen.
     text: { large: { tokenKey: '#FF5E1A', minRatio: 3.0, label: 'h1, orangenes Wort (Titelverlauf endet auf --accent-media #FF5E1A)' } },
   },
@@ -590,15 +587,11 @@ function patchIdFromFile(f) {
 function extractPalette(rawIn) {
   const raw = stripCssComments(rawIn);
   const darkBlock = /:root\s*\{([^}]*)\}/.exec(raw)?.[1] ?? '';
-  const lightBlock = /:root\[data-theme=["']light["']\]\s*\{([^}]*)\}/.exec(raw)?.[1] ?? '';
   const pick = (block, tok) => new RegExp(`${tok}\\s*:\\s*(#[0-9a-fA-F]{3,8})`).exec(block)?.[1];
   return {
     bgDark: pick(darkBlock, '--bg'),
-    bgLight: pick(lightBlock, '--bg'),
     mutedDark: pick(darkBlock, '--muted'),
-    mutedLight: pick(lightBlock, '--muted'),
     bg2Dark: pick(darkBlock, '--bg-2') || pick(darkBlock, '--bg'),
-    bg2Light: pick(lightBlock, '--bg-2') || pick(lightBlock, '--bg'),
   };
 }
 
@@ -642,7 +635,7 @@ export function buildPatchRegistry(patchDir = PATCH_DIR) {
   const familyFor = (key, archKey, label, anchor, textDef, rationale) => {
     const images = perPatch
       .filter((p) => p[key])
-      .map((p) => ({ id: p.patchId, path: `public/assets${p[key].replace(/^\/assets/, '')}`, usedBy: `src/components/patches/${p.patchId}.astro`, bgDark: p.bgDark, bgLight: p.bgLight }));
+      .map((p) => ({ id: p.patchId, path: `public/assets${p[key].replace(/^\/assets/, '')}`, usedBy: `src/components/patches/${p.patchId}.astro`, bgDark: p.bgDark }));
     return {
       id: `B-${archKey}`,
       archetype: 'patch',
@@ -715,7 +708,7 @@ function buildPatchFlatEntry(perPatch) {
     rationale: 'Fliesstext auf der Seitenflaeche (--muted auf --bg-2), keine Scrim/Raster-Regel -- gemessen wie A10, je Patch-Palette (keine Stichprobe: alle 19 --bg/--bg-2-Paare werden geprueft).',
     kind: 'flat-multi',
     images: [],
-    perPatchTokens: perPatch.map((p) => ({ id: p.patchId, bg2Dark: p.bg2Dark, bg2Light: p.bg2Light, mutedDark: p.mutedDark, mutedLight: p.mutedLight })),
+    perPatchTokens: perPatch.map((p) => ({ id: p.patchId, bg2Dark: p.bg2Dark, mutedDark: p.mutedDark })),
     text: { body: { minRatio: 4.5, label: '.foot-meta / .disclaimer (--muted)' } },
   };
 }
@@ -812,10 +805,10 @@ export const EXCLUSIONS = [
    Die `text`-Rollen oben behaupten einen Token, aber nichts hat je
    nachgesehen, ob das CSS an dieser Stelle wirklich daran haengt.
    A1-hero fuehrte "grosse Schrift (.hero h1 / .thin)" als --on-media --
-   `.thin` hing im CSS jedoch an var(--text). Im Hellmodus ist --text
-   dunkel: gemessen 2,14:1 auf einem dunklen Foto, waehrend der Bericht
-   19,65:1 meldete. `.eyebrow` stand ueberhaupt nicht in der Aufzaehlung
-   und lag bei 1,26:1 bis 1,80:1 ueber acht Seiten.
+   `.thin` hing im CSS jedoch an var(--text). Im damaligen Hellmodus war
+   --text dunkel: gemessen 2,14:1 auf einem dunklen Foto, waehrend der
+   Bericht 19,65:1 meldete. `.eyebrow` stand ueberhaupt nicht in der
+   Aufzaehlung und lag bei 1,26:1 bis 1,80:1 ueber acht Seiten.
 
    Der Vollstaendigkeitswaechter (Zusicherung 5) konnte das nicht sehen:
    er zaehlt SCRIM-Selektorfamilien, also die Bauart der Schicht -- nicht
@@ -823,9 +816,7 @@ export const EXCLUSIONS = [
    Aufzaehlung, nicht in der Messung.
 
    `quelle` ist der Token bzw. die Funktion, aus der die Farbe im
-   GEBAUTEN CSS kommen MUSS. Fuer Stellen mit modusabhaengiger Herkunft
-   stehen beide da: `quelle` (Grundregel) und `hell` (die Regel in
-   assets/theme.css, die im Hellmodus gewinnt).
+   GEBAUTEN CSS kommen MUSS.
    ============================================================ */
 export const SHARED_TEXT_CLAIMS = [
   {
@@ -833,10 +824,10 @@ export const SHARED_TEXT_CLAIMS = [
     seite: 'topics/4-0-0-contested-zones.html',
     stellen: [
       { sel: '.hero .lead', quelle: '--on-media-dim', rolle: 'Fliesstext' },
-      { sel: '.hero h1 .thin', quelle: '--text', hell: '--on-media', rolle: 'Kicker im Titel' },
-      { sel: '.eyebrow', quelle: '--accent-2', hell: 'color-mix', rolle: 'Augenbrauen-Zeile' },
-      { sel: '.hero__play', quelle: '--text', hell: '--on-media', rolle: 'Trailer-Beschriftung' },
-      { sel: '.scrollcue', quelle: '--muted', hell: '--on-media-dim', rolle: 'Scroll-Hinweis' },
+      { sel: '.hero h1 .thin', quelle: '--text', rolle: 'Kicker im Titel' },
+      { sel: '.eyebrow', quelle: '--accent-2', rolle: 'Augenbrauen-Zeile' },
+      { sel: '.hero__play', quelle: '--text', rolle: 'Trailer-Beschriftung' },
+      { sel: '.scrollcue', quelle: '--muted', rolle: 'Scroll-Hinweis' },
     ],
   },
   {
@@ -870,7 +861,7 @@ export const TEXT_CLAIM_EXCLUSIONS = [
     id: 'X-text-tag',
     sel: '.tag',
     reason:
-      'Die Marken-Pillen bringen ihre eigene deckende Flaeche mit (background:var(--scrim-4) + Rahmen). Ihr Kontrast haengt an dieser Flaeche, nicht am Motiv darunter; assets/theme.css faerbt sie im Hellmodus ausdruecklich auf --on-media um (Abschnitt "Nachzuegler im Hero").',
+      'Die Marken-Pillen bringen ihre eigene deckende Flaeche mit (background:var(--scrim-4) + Rahmen). Ihr Kontrast haengt an dieser Flaeche, nicht am Motiv darunter.',
   },
 ];
 

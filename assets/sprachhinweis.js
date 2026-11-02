@@ -53,7 +53,7 @@
   }
 
   /* Maße und Schrift nur aus der Skala (theme.css § 4), Farben nur aus
-     Tokens — damit gilt der Hinweis in beiden Modi und auf jeder Seitenpalette.
+     Tokens — damit gilt der Hinweis auf jeder Seitenpalette.
      Unten links: rechts unten sitzt auf manchen Seiten „nach oben".
      Zweizeilig und schmal (≤ 22rem): einzeilig war er 584 px breit und lag
      bei 1920 px über dem Anfang einer Überschrift der meistbesuchten Seite —

@@ -52,8 +52,6 @@ const QT = {
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;
   --maxw:1280px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f0f9fe;--bg-2:#e4f0f7;--surface:#fcfefe;--surface-2:#e9f5fa;--text:#1d2021;--muted:#4c5b60;--accent:#8c4402;--accent-2:#006550;--hot:#803d02;--ink:#ffffff;--accent-media:#e8955f;--accent-2-media:#4fd8b4;--line:rgba(159,96,53,.3);--line-soft:rgba(43,46,47,.12);--glow:0 6px 22px rgba(166,91,37,.18)}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -253,13 +251,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .tag.hot{border-color:rgba(9,140,112,.73);color:#016755}
-:root[data-theme="light"] .lead b{color:#864403}
-:root[data-theme="light"] .tile.word.hot b{color:#016755}
-:root[data-theme="light"] .splitleg .k1{color:#016755}
-:root[data-theme="light"] .splitleg .k2{color:#864403}
-:root[data-theme="light"] .srflag{color:#864403}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 

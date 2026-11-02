@@ -127,8 +127,6 @@ const sigFmt = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US', { minimum
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1440px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
 
 
 
@@ -174,13 +172,8 @@ a{color:inherit;text-decoration:none}
 .sdb__hangar:hover,.sdb__hangar:focus-visible{border-color:var(--accent)}
 /* Titelgrad auf Werkzeug-Mass: 4,6rem war ein Plakat, nicht eine Kopfzeile. */
 .sdb__hero h1{font-family:var(--font-display);font-weight:900;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.05;background:linear-gradient(180deg,var(--title-hi),var(--accent-2) 66%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 24px var(--shadow-color))}
-/* Rule 1 (Plan 03-05): color war eine fixe Farbe (#dbe6ff), fuer die
-   scripts/build-light-overrides.mjs eine dunkle Hellmodus-Entsprechung
-   generiert hatte (#4d5871) -- .sdb__hero ist aber ein Foto-Hero (.sdb__hero
-   ::before), kein Flaechentext: die generierte dunkle Farbe drueckte den
-   Kontrast im Hellmodus auf 4.25:1. var(--on-media-dim) ist absichtlich in
-   beiden Modi hell (Medien-Tokens sind theme-invariant) -- der generierte
-   Hellmodus-Override unten entfaellt dadurch ersatzlos. */
+/* .sdb__hero ist ein Foto-Hero (.sdb__hero::before), kein Flaechentext:
+   deshalb das Medien-Token var(--on-media-dim) statt einer fixen Farbe. */
 .sdb__sub{max-width:56ch;color:var(--on-media-dim);margin-top:.8rem;font-size:clamp(1rem,1.4vw,1.15rem);text-shadow:0 2px 12px var(--shadow-color)}
 
 @media(max-width:640px){
@@ -241,11 +234,7 @@ a{color:inherit;text-decoration:none}
 .fcard__dot{width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:0 0 6px currentColor}
 .fcard__status.fr{color:#5ad19a}
 /* currentColor statt der Farbe ein zweites Mal hinzuschreiben: der Punkt erbt
-   sein color von .fcard__status.fr und folgt damit automatisch beiden Modi.
-   Im Dunkelmodus ist das derselbe Wert wie vorher (#5ad19a), im Hellmodus
-   nimmt er die erzeugte Hell-Entsprechung (#046945) mit, die der Generator nur
-   fuer color erzeugt, nicht fuer background — daher stand der Punkt bis
-   09.08.2026 mintgruen neben dunkelgruenem Text. Die Regel darunter benutzt
+   sein color von .fcard__status.fr (#5ad19a). Die Regel darunter benutzt
    currentColor bereits seit jeher fuer ihren Schein. */
 .fcard__status.fr .fcard__dot{background:currentColor}
 .fcard__patch{position:absolute;top:.55rem;right:.6rem;z-index:2;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-3);
@@ -345,16 +334,6 @@ a{color:inherit;text-decoration:none}
   .sdb__filter select{min-width:0}
   .sdb__count{grid-column:1/-1;margin-left:0;justify-self:start}
 }
-/* Merkposten ZUM Block darunter, bewusst DAVOR und nicht darin:
-   der .sdb__sub-Override (Plan 03-05, Rule 1) entfaellt, weil die Basisregel
-   jetzt var(--on-media-dim) benutzt — ein theme-invariantes Medien-Token ohne
-   Hellmodus-Gegenstueck. Stand bis 09.08.2026 IM erzeugten Block und war damit
-   genau die Handaenderung, die THEME-02 verbietet; die Ausnahme
-   X-shipsoverview-fcard-status-fr in scripts/verify-theme-gen.mjs hat nur
-   deshalb existiert (WINDOWS.md id 7). Hier oben ist er fuer die Generatoren
-   unsichtbar und der Block darunter bleibt zeichengleich zu ihrer Ausgabe. */
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .fcard__status.fr{color:#046945}
 </style>
 
 <SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Schiffe' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Ships' }]} hasEn={true} />

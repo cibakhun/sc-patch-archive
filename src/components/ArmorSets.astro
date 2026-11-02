@@ -65,23 +65,13 @@ const sizeOf = (sets: { id: string }[]) => {
 
      Die Seltenheitsfarben sind KEINE Palettenfarben, sondern eine Leiter mit
      eigener Bedeutung (die Spieldaten kennen Common..Legendary). Sie stehen
-     deshalb als eigene Tokens hier — und ein zweites Mal fuer den Hellmodus,
-     weil Neongruen auf Papier nicht lesbar ist. Bewusst NICHT in einem
-     :root{}-Block: scripts/build-light-palettes.mjs erzeugt genau aus solchen
-     Bloecken den hellen Zwilling und wuerde hier eine zweite Wahrheit anlegen. */
+     deshalb als eigene Tokens hier, an .dp statt in einem :root{}-Block. */
   .dp {
     --rar-uncommon: #4ec97a;
     --rar-rare: #4aa3ff;
     --rar-epic: #b07cff;
     --rar-legendary: #f0a52e;
     --rar-warn: #d7a13a;
-  }
-  :root[data-theme='light'] .dp {
-    --rar-uncommon: #1d7a44;
-    --rar-rare: #1b5fae;
-    --rar-epic: #6b39b8;
-    --rar-legendary: #8a5a02;
-    --rar-warn: #7d5504;
   }
 
   .as-intro { color: var(--muted); font-size: var(--fs-9); line-height: 1.6; margin: 0 0 1.4rem; max-width: 72ch; }

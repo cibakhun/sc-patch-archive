@@ -34,7 +34,7 @@ const BROWSER = () => ({
     'craft.state.v2': '{"owned":{}}',
     [`vb.layouts.v1.${UID}`]: '{"layouts":[]}',
     'vb.layouts.v1': '{"layouts":[]}',
-    'vb.theme': 'dark',
+    'vb.fx': 'on',
     'sb-trgjhmbnodoarnfmlcqx-auth-token': '{"access_token":"t"}',
   }),
   session: store({
@@ -53,7 +53,7 @@ test('Abmelden entfernt Profil-Caches und Werkzeug-Spiegel (auch fruehere Konten
     'craft.state.v2',
     'sb-trgjhmbnodoarnfmlcqx-auth-token',
     'vb.layouts.v1',
-    'vb.theme',
+    'vb.fx',
   ].sort(), 'Gast-Ablagen, Einstellungen und die Sitzung (signOut) bleiben; Konto-Spiegel gehen wie in der Datenschutzerklaerung #storage');
   assert.deepEqual([...b.session.map.keys()], ['vb:from']);
 });
@@ -65,7 +65,7 @@ test('Konto loeschen entfernt ebenso die Werkzeug-Spiegel des Kontos', () => {
     'craft.state.v2',
     'sb-trgjhmbnodoarnfmlcqx-auth-token',
     'vb.layouts.v1',
-    'vb.theme',
+    'vb.fx',
   ].sort(), 'Gast-Ablagen, Einstellungen und die Sitzung bleiben; die Spiegel des Kontos gehen');
   for (const k of [`vb.fleet.v1.${UID}`, `craft.state.v2.${UID}`, `vb.layouts.v1.${UID}`]) {
     assert.ok(accountKeys(UID, 'delete').local.includes(k), `${k} fehlt beim Loeschen`);

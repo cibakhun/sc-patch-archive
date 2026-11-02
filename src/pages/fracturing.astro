@@ -4,9 +4,7 @@
 //
 // Am 12.08.2026 aus der Mining-Werkbank herausgeloest (siehe
 // components/FracturingCalc.astro). Die Palette ist absichtlich Zeichen fuer
-// Zeichen die der Mining-Seite: beide gehoeren zum selben Kreislauf, und die
-// helle Entsprechung darunter ist damit dieselbe, die build-light-palettes
-// dort schon erzeugt hat.
+// Zeichen die der Mining-Seite: beide gehoeren zum selben Kreislauf.
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
@@ -29,8 +27,6 @@ const verShort = DB.game_version.split('-')[0];
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <style is:inline>
 :root{--bg:#14181a;--bg-2:#181d1f;--surface:#1e2427;--surface-2:#252c30;--accent:#2FBFA4;--accent-2:#E0A526;--hot:#A970FF;--text:#eaf2f1;--muted:#8fa3a0;--line:rgba(47,191,164,.22);--line-soft:rgba(234,242,241,.10);--glow:0 0 44px rgba(47,191,164,.26);--ink:#0e1214;--maxw:1240px;}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f3f8fb;--bg-2:#e8eff2;--surface:#fcfefe;--surface-2:#ebf4f9;--text:#1b2120;--muted:#4a5c5a;--accent:#036a5a;--accent-2:#704f00;--hot:#642aaa;--ink:#ffffff;--accent-media:#2FBFA4;--accent-2-media:#E0A526;--line:rgba(43,130,113,.3);--line-soft:rgba(41,47,46,.12);--glow:0 6px 22px rgba(43,130,113,.18)}
 
 
 /* ⚠ Der `.hero`-Block ist am 15.08.2026 ersatzlos entfallen — das Gehaeuse des

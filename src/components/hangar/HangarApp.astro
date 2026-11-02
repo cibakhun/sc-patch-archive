@@ -232,8 +232,6 @@ const payload = jsonForScript(stage);
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased}
 .hg *,.hg *::before,.hg *::after{box-sizing:border-box}
 :root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef8;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1c1f25;--muted:#4e586c;--accent:#7c5104;--accent-2:#49556d;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#9aa6bd;--line:rgba(148,104,38,.3);--line-soft:rgba(43,46,52,.12)}
 /* Ab 761 px fuellt die Buehne, was das Dock vom Fenster uebrig laesst
    (HangarPage.astro: die Seite ist dort eine Spalte von Fensterhoehe). */
 .hg-stage{position:relative;flex:1 1 auto;min-height:0;background:var(--bg);overflow:hidden;color:var(--hg-on);isolation:isolate}
@@ -245,9 +243,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
    Titelblock als leuchtende Tafel. Lage und Groesse setzt der Viewer (Schrift
    des Namens --holo-n, Breite --holo-max, Aufbau --holo-on von 0 bis 1);
    aufgebaut wird von unten, an der Kante laeuft eine Abtastlinie (data-run).
-   Feste Farben: Licht ueber der Halle, in beiden Farbschemen gleich; die
-   Regeln mit Farbe stehen darum unter der dunklen Insel [data-media-surface]
-   (die Buehne), so laesst build-light-overrides sie stehen. */
+   Feste Farben: Licht ueber der Halle; die Regeln mit Farbe stehen unter
+   der dunklen Insel [data-media-surface] (die Buehne). */
 [data-media-surface] .hg-holo{position:absolute;left:0;top:0;z-index:1;width:max-content;max-width:var(--holo-max);padding:.3em .5em .42em;transform-origin:50% 100%;pointer-events:none;text-align:center;font-size:var(--holo-n,40px);line-height:1;color:#eef8ff;background:radial-gradient(closest-side,rgb(3 9 18/.42),rgb(3 9 18/.24) 62%,transparent);text-shadow:0 0 .3em rgb(2 6 12/.7),0 0 .5em rgb(110 205 255/.4);clip-path:inset(calc((1 - var(--holo-on,1)) * 100%) -2em -2em);-webkit-mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);mask-image:repeating-linear-gradient(180deg,#000 0 2px,rgb(0 0 0/.74) 2px 3px);will-change:transform}
 .hg-holo[hidden]{display:none}
 .hg-holo p{margin:0}

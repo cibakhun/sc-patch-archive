@@ -221,8 +221,6 @@ const money = (n: number) => (lang === 'de' ? `${n} €` : `€${n}`);
    Kontaktbogen als Times-Seite aufgefallen). */
 :root{--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace}
 body{font-family:var(--font-body)}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#fbf7f0;--bg-2:#f3ede4;--surface:#fffdfa;--surface-2:#f8f1e8;--text:#231f17;--muted:#635643;--accent:#795201;--accent-2:#6f4f02;--hot:#6f4a01;--ink:#ffffff;--accent-media:#e8a83c;--accent-2-media:#ffcf7a;--line:rgba(145,105,37,.3);--line-soft:rgba(49,45,37,.12)}
 
 /* SCHRIFTEN. Am 03.08.2026 im Browser gemessen und es war schlecht: diese Seite
    lud als EINZIGE Signaturseite kein `assets/detail.css`, und dort stehen die
@@ -239,9 +237,8 @@ body{font-family:var(--font-body)}
    Gebraucht werden nur die drei Zeilen. Sie sind woertlich aus detail.css
    uebernommen — laufen sie auseinander, faellt diese Seite wieder aus der Reihe.
 
-   Bewusst auf .sup statt auf :root: die Farbtoken-Zeile darueber wird von
-   scripts/build-light-palettes.mjs erzeugt, dort haben Schriften nichts zu
-   suchen. Eigenschaften vererben sich ohnehin nach unten. */
+   Bewusst auf .sup statt auf :root: die Farbtoken-Zeile darueber traegt nur
+   Farben. Eigenschaften vererben sich ohnehin nach unten. */
 .sup{--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
 
 /* box-sizing ist hier NICHT vorsorglich: die Seite setzt keinen globalen Reset,

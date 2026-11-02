@@ -24,7 +24,8 @@
         + 19 Patch-Koerper, scharf seit Plan 04).
      4  WCAG AA SCHARF (Plan 05): jede gemessene Stelle (kind:'photo',
         'flat', 'flat-multi', NICHT controlCase) muss am unguenstigsten
-        Bildpunkt >= ihre Zielmarke erreichen, in JEDEM Farbmodus.
+        Bildpunkt >= ihre Zielmarke erreichen (dunkel; einen hellen
+        Modus gibt es seit dem 02.11.2026 nicht mehr).
         Bricht bei Unterschreitung ab und nennt die Stelle.
      5  VOLLSTAENDIGKEITSWAECHTER (Plan 05): durchsucht dist/assets/*.css,
         dist/_astro/*.css und die <style>-Bloecke aller .html unterhalb
@@ -34,7 +35,7 @@
         FAMILIE muss in irgendeinem Registry-Eintrag als selectorFamily
         auftauchen -- sonst FEHLER mit Selektor + Fundstelle.
      6  ABDECKUNG (Plan 05): jeder Registry-Eintrag wurde in diesem Lauf
-        tatsaechlich gemessen, in beiden Farbmodi, ueber alle ihm
+        tatsaechlich gemessen, ueber alle ihm
         zugeordneten Bilddateien/Paletten. Ein uebersprungener Punkt
         (fehlende Bilddatei, nicht aufloesbares Token) ist ein
         FEHLSCHLAG, kein stiller Ausfall.
@@ -45,7 +46,7 @@
      --vorher    zusaetzlicher Vorher/Nachher-Vergleich fuer den Hero
                  (Plan 01, unveraendert).
      --closure   fuehrt NUR Zusicherung 5 aus (schnelle Rueckmeldung).
-     --report    druckt die volle Werteliste (alle Stellen, beide Modi).
+     --report    druckt die volle Werteliste (alle Stellen).
      --json      gibt NACH --report zusaetzlich ein JSON-Objekt aus
                  ({entries, measurements}) -- bei --json bleibt die
                  Konsole sonst still, damit `... > datei.json` gueltiges
@@ -427,7 +428,7 @@ if (CLOSURE_ONLY) {
   process.exit(orphans.length === 0 ? 0 : 1);
 }
 
-/* ---------- Token-Extraktion (global, mode-unabhaengig laut theme.css-Kopfkommentar) ---------- */
+/* ---------- Token-Extraktion (global, aus theme.css und detail.css) ---------- */
 function allTokenValues(css, name) {
   const re = new RegExp(`${name.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')}\\s*:\\s*([^;\\r\\n]+);`, 'g');
   const out = [];
@@ -439,8 +440,9 @@ function allTokenValues(css, name) {
 const themeCssClean = stripComments(themeCss);
 const detailCssClean = stripComments(detailCss);
 
-// Medien-Tokens (--scrim-*, --on-media*): laut theme.css-Kopfkommentar
-// "Absichtlich in BEIDEN Modi dunkel" -- EIN Wert, nicht pro Modus.
+// Medien-Tokens (--scrim-*, --on-media*) und Schleier: je EIN Wert in
+// theme.css. Die Form { dunkel: … } bei --veil/--bg bleibt, damit jede
+// Messung sagt, welchen Modus sie misst -- es gibt nur noch diesen.
 const GLOBAL = {
   scrim0: parseColor(allTokenValues(themeCssClean, '--scrim-0')[0]),
   scrim1: parseColor(allTokenValues(themeCssClean, '--scrim-1')[0]),
@@ -452,18 +454,13 @@ const GLOBAL = {
   onMedia: parseColor(allTokenValues(themeCssClean, '--on-media')[0]),
   onMediaDim: parseColor(allTokenValues(themeCssClean, '--on-media-dim')[0]),
   mediaVoid: parseColor(allTokenValues(themeCssClean, '--media-void')[0]),
-  // --veil/--veil-2 SIND mode-abhaengig (anders als --scrim-*/--on-media*) --
-  // theme.css deklariert sie getrennt fuer :root{} (dunkel) und
-  // :root[data-theme="light"]{} (hell), siehe Kopfkommentar "Schleier:
-  // Richtung dreht sich um".
-  veil: { dunkel: parseColor(allTokenValues(themeCssClean, '--veil')[0]), hell: parseColor(allTokenValues(themeCssClean, '--veil')[1]) },
-  veil2: { dunkel: parseColor(allTokenValues(themeCssClean, '--veil-2')[0]), hell: parseColor(allTokenValues(themeCssClean, '--veil-2')[1]) },
-  // Geteilte Fallback-Palette (assets/detail.css :root{} + theme.css
-  // :root[data-theme="light"]) -- Rueckfall, den A1/A2/A5/A10 benutzen
-  // (Praezedenz aus Plan 01, 03-01-SUMMARY.md "Rueckfall aus detail.css").
+  veil: { dunkel: parseColor(allTokenValues(themeCssClean, '--veil')[0]) },
+  veil2: { dunkel: parseColor(allTokenValues(themeCssClean, '--veil-2')[0]) },
+  // Geteilte Fallback-Palette (assets/detail.css :root{}) -- Rueckfall, den
+  // A1/A2/A5/A10 benutzen (Praezedenz aus Plan 01, 03-01-SUMMARY.md
+  // "Rueckfall aus detail.css").
   bg: {
     dunkel: allTokenValues(detailCssClean, '--bg')[0],
-    hell: allTokenValues(themeCssClean, '--bg')[0],
   },
 };
 
@@ -489,23 +486,17 @@ function pickAny(block, tok) {
 }
 
 const indexDarkRoot = /:root\s*\{([^}]*)\}/.exec(indexAstroRaw)?.[1] ?? '';
-const indexLightRoot = /:root\[data-theme=["']light["']\]\s*\{([^}]*)\}/.exec(indexAstroRaw)?.[1] ?? '';
 const pilotDarkRoot = /:root\s*\{([^}]*)\}/.exec(pilotRaw)?.[1] ?? '';
-// PilotPage traegt data-media-surface -- theme.css remappt --text/--bg
-// NUR im Hellmodus. --veil ist im Hellmodus ebenfalls remappt (auf denselben
-// Wert wie der globale Dunkel-Rueckfall, siehe theme.css [data-media-surface]).
-const mediaSurfaceBlock = /:root\[data-theme=["']light["']\]\s*\[data-media-surface\]\s*\{([^}]*)\}/.exec(themeCssSrcRaw)?.[1] ?? '';
 const globalDarkVeilBlock = /:root\s*\{([^}]*--veil:[^}]*)\}/.exec(themeCssSrcRaw)?.[1] ?? '';
 
-// archive.css: EIN Token-Block fuer :root UND :root[data-theme='light']
-// zusammen ("THEME-INVARIANT", siehe Kopfkommentar der Datei) -- ein
-// einziger Wert fuer beide Modi.
-const archiveTokenBlock = /:root\s*,\s*:root\[data-theme=["']light["']\]\s*\{([^}]*)\}/.exec(archiveCssRaw)?.[1] ?? '';
+// archive.css: der :root-Block mit der eigenen Palette des Archivs (der
+// erste, der --text setzt; davor stehen nur @property-Regeln).
+const archiveTokenBlock = /:root\s*\{([^}]*--text\s*:[^}]*)\}/.exec(archiveCssRaw)?.[1] ?? '';
 
 const SPECIAL = {
-  homeBg: { dunkel: pickHex(indexDarkRoot, '--bg'), hell: pickHex(indexLightRoot, '--bg') },
+  homeBg: { dunkel: pickHex(indexDarkRoot, '--bg') },
   ppBg: parseColor(pickHex(pilotDarkRoot, '--bg')), // == --media-void, siehe PilotPage.astro Kommentar zu data-media-surface
-  ppVeil: parseColor(pickAny(mediaSurfaceBlock, '--veil') || pickAny(globalDarkVeilBlock, '--veil')),
+  ppVeil: parseColor(pickAny(globalDarkVeilBlock, '--veil')),
   ppTextDark: parseColor(pickHex(pilotDarkRoot, '--text')),
   archiveText: parseColor(pickHex(archiveTokenBlock, '--text')),
   archiveMuted: parseColor(pickHex(archiveTokenBlock, '--muted')),
@@ -513,9 +504,9 @@ const SPECIAL = {
 
 function buildTokensForEntry(entry, mode, imageCtx) {
   const bgHex =
-    (imageCtx && (mode === 'dunkel' ? imageCtx.bgDark : imageCtx.bgLight)) ||
-    (entry.id === 'C2-home-hero' ? (mode === 'dunkel' ? SPECIAL.homeBg.dunkel : SPECIAL.homeBg.hell) : null) ||
-    (mode === 'dunkel' ? GLOBAL.bg.dunkel : GLOBAL.bg.hell);
+    (imageCtx && imageCtx.bgDark) ||
+    (entry.id === 'C2-home-hero' ? SPECIAL.homeBg[mode] : null) ||
+    GLOBAL.bg[mode];
   return {
     scrim0: GLOBAL.scrim0,
     scrim1: GLOBAL.scrim1,
@@ -542,7 +533,7 @@ function resolveTextColor(tokenKey, mode) {
     case '--on-media-dim':
       return GLOBAL.onMediaDim;
     case 'ppText':
-      return mode === 'hell' ? GLOBAL.onMedia : SPECIAL.ppTextDark;
+      return SPECIAL.ppTextDark;
     case 'archiveText':
       return SPECIAL.archiveText;
     case 'archiveMuted':
@@ -552,7 +543,8 @@ function resolveTextColor(tokenKey, mode) {
   }
 }
 
-const MODES = ['dunkel', 'hell'];
+// Nur noch ein Farbmodus: den hellen gibt es seit dem 02.11.2026 nicht mehr.
+const MODES = ['dunkel'];
 
 /* ---------- sharp-Sampling ---------- */
 const sampleCache = new Map();
@@ -587,7 +579,7 @@ function resolveImagePath(img) {
 }
 
 /* ---------- [4]+[6]: Messen, AA scharf pruefen, Abdeckung ausweisen ---------- */
-log('\n[4]+[6] Kontrast je Registry-Eintrag x Hell/Dunkel x Bilddatei — WCAG AA scharf, Abdeckung vollstaendig');
+log('\n[4]+[6] Kontrast je Registry-Eintrag x Bilddatei (dunkel) — WCAG AA scharf, Abdeckung vollstaendig');
 
 const measurements = [];
 const entryReports = [];
@@ -679,8 +671,8 @@ function measureFlatMultiEntry(entry) {
   const role = entry.text?.body;
   for (const p of entry.perPatchTokens) {
     for (const mode of MODES) {
-      const mutedHex = mode === 'dunkel' ? p.mutedDark : p.mutedLight;
-      const bg2Hex = mode === 'dunkel' ? p.bg2Dark : p.bg2Light;
+      const mutedHex = p.mutedDark;
+      const bg2Hex = p.bg2Dark;
       if (!mutedHex || !bg2Hex) {
         fail(`Registry-Eintrag "${entry.id}" (${p.id}): ${mode}-Token nicht aufloesbar (--muted=${mutedHex}, --bg-2=${bg2Hex})`);
         entryOk = false;
@@ -695,7 +687,7 @@ function measureFlatMultiEntry(entry) {
       }
     }
   }
-  log(`    [${entry.id}] ${entry.perPatchTokens.length} Patch-Paletten x 2 Modi geprueft`);
+  log(`    [${entry.id}] ${entry.perPatchTokens.length} Patch-Paletten geprueft`);
   return entryOk;
 }
 
@@ -726,9 +718,9 @@ if (SHOW_VORHER) {
       // Vorher: Zeilenraster UND Vignette lagen in body::after (Foto+Text
       // gleichermassen). Volle Vignette (theme.css) x ambient-opacity,
       // konservativ (Praezedenz Plan 01) -- direkt aus theme.css gelesen.
-      const vignetteRaw = allTokenValues(themeCssClean, '--vignette')[mode === 'dunkel' ? 0 : 1];
-      const ambientRaw = allTokenValues(themeCssClean, '--ambient-opacity')[mode === 'dunkel' ? 0 : 1];
-      const scanlineRaw = allTokenValues(themeCssClean, '--scanline')[mode === 'dunkel' ? 0 : 1];
+      const vignetteRaw = allTokenValues(themeCssClean, '--vignette')[0];
+      const ambientRaw = allTokenValues(themeCssClean, '--ambient-opacity')[0];
+      const scanlineRaw = allTokenValues(themeCssClean, '--scanline')[0];
       const vignetteColor = parseColor(vignetteRaw);
       const ambientOpacity = parseFloat(ambientRaw);
       const scanlineColor = parseColor(scanlineRaw);
@@ -750,7 +742,7 @@ if (SHOW_VORHER) {
 }
 
 /* ---------- Zusicherung 6 zusammenfassen ---------- */
-log('\n[6] Abdeckung — jeder Registry-Eintrag gemessen, in beiden Farbmodi, ueber alle zugeordneten Bilder/Paletten');
+log('\n[6] Abdeckung — jeder Registry-Eintrag gemessen, ueber alle zugeordneten Bilder/Paletten');
 const unmeasured = entryReports.filter((e) => !e.measured);
 log(`    Registry-Eintraege: ${entryReports.length}   Vollstaendig gemessen: ${entryReports.length - unmeasured.length}   Uebersprungen/fehlgeschlagen: ${unmeasured.length}`);
 if (unmeasured.length) {
@@ -789,7 +781,6 @@ if (withoutRationale.length) {
 log('\n[7] Textstellen im geteilten System — Registry-Behauptung gegen das gebaute CSS, plus Aufzaehlung');
 {
   const detailBlocks = extractRuleBlocks(stripComments(detailCss));
-  const themeBlocks = extractRuleBlocks(stripComments(themeCssClean));
 
   // Letzte gewinnende color-Deklaration eines Blocks -> Herkunft.
   const farbQuelle = (body) => {
@@ -835,16 +826,6 @@ log('\n[7] Textstellen im geteilten System — Registry-Behauptung gegen das geb
       if (ist !== stelle.quelle) {
         fail(`[7] ${stelle.sel} (${stelle.rolle}): Registry sagt "${stelle.quelle}", das gebaute CSS nimmt "${ist}"`);
       }
-      // Modusabhaengige Stelle: die Hellmodus-Regel muss es wirklich geben.
-      if (stelle.hell) {
-        const hellBloecke = themeBlocks.filter((b) => /\[data-theme=['"]?light/.test(b.selector));
-        const trefferHell = hellBloecke.some((b) =>
-          b.selector.split(',').some((t) => normSel(t).endsWith(stelle.sel.replace(/^.*\s/, '')) || normSel(t).endsWith(stelle.sel))
-        );
-        if (!trefferHell) {
-          fail(`[7] ${stelle.sel}: Registry fuehrt eine Hellmodus-Herkunft ("${stelle.hell}"), aber assets/theme.css hat keine passende [data-theme=light]-Regel`);
-        }
-      }
     }
 
     /* (b) Aufzaehlung: welche faerbenden Klassen stecken im Container? */
@@ -872,8 +853,8 @@ log('\n[7] Textstellen im geteilten System — Registry-Behauptung gegen das geb
   }
 
   log(`    Behauptungen geprueft: ${geprueft}   im Container beansprucht: ${beansprucht}   Ausnahmen getroffen: ${benutzteAusnahmen.size}/${TEXT_CLAIM_EXCLUSIONS.length}`);
-  // Zombie-Waechter, gleiche Regel wie in verify-theme-gen: eine Ausnahme,
-  // deren Anlass entfallen ist, muss auffallen statt still stehenzubleiben.
+  // Zombie-Waechter: eine Ausnahme, deren Anlass entfallen ist, muss
+  // auffallen statt still stehenzubleiben.
   for (const x of TEXT_CLAIM_EXCLUSIONS) {
     if (!benutzteAusnahmen.has(x.id)) {
       log(`    Hinweis: Ausnahme ${x.id} (${x.sel}) hat in diesem Durchgang nicht gegriffen`);

@@ -1,7 +1,8 @@
 /* ============================================================
-   theme.css — Hell/Dunkel-Fundament für die gesamte Seite.
+   theme.css — Farb- und Skalen-Fundament für die gesamte Seite.
    Wird von Layout.astro auf JEDER Seite geladen, vor allem
-   Seiten-CSS.
+   Seiten-CSS. Die Seite ist nur dunkel; einen hellen Modus gibt
+   es seit dem 02.11.2026 nicht mehr (Krisz).
    ------------------------------------------------------------
    AUFBAU (vier Schichten, absichtlich in dieser Reihenfolge):
 
@@ -11,52 +12,25 @@
       blaugold). Hier stehen nur Rückfallwerte.
 
    2. EFFEKT-TOKENS (--veil, --vignette, --shadow-*, --chrome-*)
-      Neu. Sie ersetzen die ~1100 hartcodierten Schwarz-/Weiß-
-      werte, die bisher überall im CSS standen. Nur dadurch kann
-      ein Hellmodus überhaupt funktionieren.
+      Sie ersetzen die ~1100 hartcodierten Schwarz-/Weißwerte, die
+      früher überall im CSS standen.
 
    3. MEDIEN-TOKENS (--scrim-*, --on-media*, --title-*)
-      Absichtlich in BEIDEN Modi dunkel. Was über einem Foto oder
-      Video liegt, muss gegen das FOTO kontrastieren, nicht gegen
-      die Seite — und die Weltraum-Motive sind in beiden Modi
-      dunkel. Ein weißer Schleier über einem Ken-Burns-Hero wäscht
-      das Bild aus und macht den Text schlechter lesbar, nicht
-      besser. Die Verläufe enden ohnehin auf var(--bg) und gehen
-      damit von selbst sauber in die helle Seite über.
+      Was über einem Foto oder Video liegt, muss gegen das FOTO
+      kontrastieren, nicht gegen die Seite. Die Verläufe enden auf
+      var(--bg) und gehen damit von selbst sauber in die Seite über.
 
    4. SCHRIFT- UND BEWEGUNGSSKALA (--fs-*, --ls-*, --dur-*, --ease-ui)
-      Neu (Phase 2). Keine Farben — eine gemessene Skala für
-      Schriftgrad, Laufweite und die Dauer/Kurve von
-      Bedienübergängen. Steht bewusst auf blankem :root{} wie
-      Schicht 1+2, aus demselben Grund: die Werte muessen auch ohne
-      das Umschalt-Script gueltig sein. Fuer die drei
-      `npm run theme`-Generatoren unsichtbar (sie parsen nur Werte,
-      die als CSS-Farbe durchgehen) — siehe Kommentar dort unten.
+      Keine Farben — eine gemessene Skala für Schriftgrad,
+      Laufweite und die Dauer/Kurve von Bedienübergängen.
    ------------------------------------------------------------
-   SPEZIFITÄT: :root[data-theme="light"] (0,2,0) schlägt das
-   :root{} (0,1,0) der Seiten — die helle Palette überschreibt
-   also die dunkle, ohne dass ein einziger dunkler Wert angefasst
-   werden muss. Seiteneigene helle Paletten stehen im inline-
-   <style> und gewinnen über die Quellreihenfolge gegen diese
-   Datei.
-
-   HANDGEPFLEGT: der :root[data-theme="light"]-Block dieser Datei
-   (weiter unten, Schicht 1+2 HELL) ist von Hand abgeleitet — nach
-   denselben Regeln (LIGHT_RULES in scripts/lib/theme-color.mjs), aber
-   NICHT automatisch erzeugt. Die drei `npm run theme`-Generatoren
-   fassen ausschliesslich Dateien unter `src/**` an (jede *.astro-
-   Datei) — diese Datei liegt ausserhalb ihres Suchbereichs. Wer hier
-   einen Hellwert ändert, muss ihn selbst nachziehen; `npm run theme`
-   tut es nicht. Deshalb erfasst `npm run verify:theme`
-   (scripts/verify-theme-gen.mjs) diesen Block auch nicht — sein
-   Abdeckungs-Kommentar nennt diese Datei ausdrücklich als Lücke.
+   Seiteneigene Paletten stehen im inline-<style> der Seite und
+   gewinnen über die Quellreihenfolge gegen diese Datei.
    ============================================================ */
 
 /* Native Bedienelemente (Scrollbalken, Auswahlfelder, Datumsfelder)
-   folgen dem Modus mit. Ohne das bleibt z. B. der Scrollbalken im
-   Hellmodus schwarz. */
+   in dunkler Ausführung. */
 :root { color-scheme: dark; }
-:root[data-theme='light'] { color-scheme: light; }
 
 /* Completely hide side scrollbar visually while keeping full scrollability */
 html, body, * {
@@ -75,14 +49,7 @@ body::-webkit-scrollbar,
 }
 
 /* ============================================================
-   1 + 2 — DUNKEL
-
-   Bewusst auf blankem :root, NICHT auf [data-theme="dark"]:
-   damit sind die Effekt-Tokens auch dann definiert, wenn das
-   Umschalt-Script nicht gelaufen ist (JavaScript aus, Fehler
-   davor). Sonst wären --veil & Co. ungültig und die Seite fiele
-   sichtbar auseinander. Ohne JavaScript ist die Seite also immer
-   dunkel — ihr Ursprungszustand — statt kaputt.
+   1 + 2 — GRUND- UND EFFEKT-TOKENS (Rückfallwerte)
    ============================================================ */
 :root {
   /* Text auf einer --accent-Fläche. Muss hier stehen: mehrere Seiten
@@ -120,60 +87,7 @@ body::-webkit-scrollbar,
 }
 
 /* ============================================================
-   1 + 2 — HELL („Papier")
-   Rückfallpalette, abgeleitet aus der dunklen Rückfallpalette in
-   detail.css (Nyx-Blau). Seiten mit eigener Palette überschreiben
-   das mit ihrem eigenen hellen Zwilling.
-   ============================================================ */
-:root[data-theme='light'] {
-  /* --- Grund --- */
-  --bg: #f5f7fe;
-  --bg-2: #e9ecf4;
-  --surface: #fdfdff;
-  --surface-2: #f0f2f9;
-  --accent: #2e6992;
-  --accent-2: #6f5802;
-  --hot: #a80f06;
-  --text: #1b1f29;
-  --muted: #4d596c;
-  --line: rgba(61, 120, 161, 0.3);
-  --line-soft: rgba(27, 31, 41, 0.12);
-  --glow: 0 6px 22px rgba(61, 120, 161, 0.18);
-  /* Text AUF einer Akzentfläche kippt: der Akzent ist jetzt dunkel. */
-  --ink: #ffffff;
-
-  /* --- Schleier: Richtung dreht sich um --- */
-  --veil: rgba(20, 26, 38, 0.05); /* leichte Eintrübung statt Abdunklung */
-  --veil-2: rgba(20, 26, 38, 0.09);
-  --veil-hi: rgba(255, 255, 255, 0.8); /* aufhellend = fast Papierweiß */
-  --veil-hi-2: rgba(255, 255, 255, 0.95);
-
-  /* --- Atmosphäre: bewusst fast aus. Vignette und Scanlines sind
-         Dunkelmodus-Mittel; auf Papier wirken sie wie Schmutz. --- */
-  --vignette: rgba(20, 26, 38, 0.05);
-  --scanline: rgba(20, 26, 38, 0.028);
-  --ambient-opacity: 0.4;
-
-  /* --- Leisten --- */
-  --chrome-top: rgba(255, 255, 255, 0.92);
-  --chrome-solid: rgba(255, 255, 255, 0.96);
-  --chrome-panel: rgba(253, 253, 255, 0.96);
-
-  /* --- Schatten: auf Papier weich und zweistufig, nicht als
-         schwarzer Klotz. --- */
-  --shadow-1: 0 1px 2px rgba(20, 26, 38, 0.08), 0 2px 8px rgba(20, 26, 38, 0.05);
-  --shadow-2: 0 3px 8px rgba(20, 26, 38, 0.08), 0 12px 28px rgba(20, 26, 38, 0.07);
-  --shadow-3: 0 8px 24px rgba(20, 26, 38, 0.1), 0 28px 64px rgba(20, 26, 38, 0.09);
-  --shadow-color: rgba(20, 26, 38, 0.26);
-
-  /* --- Overlays bleiben dunkel: darunter liegen Fotos (Lightbox)
-         bzw. die Aufmerksamkeit soll auf das Panel. --- */
-  --lb-backdrop: rgba(16, 20, 30, 0.8);
-  --overlay-backdrop: rgba(16, 20, 30, 0.55);
-}
-
-/* ============================================================
-   3 — MEDIEN-TOKENS (in beiden Modi gleich, siehe Kopfkommentar)
+   3 — MEDIEN-TOKENS (siehe Kopfkommentar)
    ============================================================ */
 :root {
   --scrim-0: rgba(0, 0, 0, 0.08);
@@ -195,145 +109,11 @@ body::-webkit-scrollbar,
   --title-hi: #ffffff; /* Oberkante der Titel-Verläufe */
   --title-lo: #000000; /* Unterkante */
 
-  /* Akzent für Medien-Kontext. Im Dunkelmodus derselbe wie überall.
-     Im Hellmodus wird --accent absichtlich dunkel (damit er auf Papier
-     lesbar ist) — auf einem dunklen Weltraumfoto wäre genau das aber
-     unlesbar. Die hellen Seitenpaletten setzen deshalb --accent-media
-     auf den URSPRÜNGLICHEN hellen Akzent zurück. */
+  /* Akzent für Medien-Kontext: derselbe wie überall. Eine Seite darf
+     ihn eigens setzen, wenn ihr Akzent auf einem Foto nicht trägt. */
   --accent-media: var(--accent);
   --accent-2-media: var(--accent-2);
 }
-
-/* ============================================================
-   DUNKLE INSELN  —  [data-media-surface]
-
-   Manche Bereiche sind kein Blatt Papier, sondern ein Fenster:
-   die 3D-Holo-Ansicht eines Schiffs, eine Sternenkarte, ein
-   Videospieler. Sie zeigen ein leuchtendes Bild auf schwarzem
-   Grund. Auf Weiß umgestellt verschwinden sie schlicht — ein
-   cyanfarbenes Hologramm auf Papier ist kein Hologramm mehr.
-
-   Solche Bereiche tragen data-media-surface. Darin werden die
-   Palette-Variablen lokal auf ihre Medien-Werte gesetzt. Alles
-   darin — Beschriftungen, Schalter, Marker, Rahmen — funktioniert
-   dadurch unverändert weiter, ohne dass eine einzige der vielen
-   Regeln im Bauteil angefasst werden muss.
-
-   Nur im Hellmodus aktiv: im Dunkelmodus sind die Werte ohnehin
-   schon richtig, und so bleibt die dunkle Darstellung exakt so,
-   wie sie war.
-   ============================================================ */
-:root[data-theme='light'] [data-media-surface] {
-  color-scheme: dark;
-
-  --bg: var(--media-void);
-  --bg-2: var(--media-void);
-  --surface: rgba(255, 255, 255, 0.06);
-  --surface-2: rgba(255, 255, 255, 0.1);
-
-  --text: var(--on-media);
-  --muted: #9fb0c8;
-  --ink: var(--ink-media);
-
-  --accent: var(--accent-media);
-  --accent-2: var(--accent-2-media);
-
-  --line: var(--on-media-line);
-  --line-soft: var(--on-media-veil);
-
-  --veil: rgba(0, 0, 0, 0.4);
-  --veil-2: rgba(0, 0, 0, 0.55);
-  --veil-hi: rgba(255, 255, 255, 0.08);
-  --shadow-color: rgba(0, 0, 0, 0.9);
-  --shadow-1: 0 2px 10px rgba(0, 0, 0, 0.5);
-  --shadow-2: 0 10px 30px rgba(0, 0, 0, 0.55);
-  --shadow-3: 0 24px 60px rgba(0, 0, 0, 0.6);
-}
-
-/* ============================================================
-   Nachzügler im Hero
-
-   Die Marken-Pillen (.tag) und Kleinteile im Hero liegen über dem
-   Foto, benutzen aber die Seiten-Tokens — im Hellmodus also dunkle
-   Schrift auf dunklem Motiv. Sie hier zu korrigieren statt in jeder
-   Seite: die Patch-Seiten tragen ihr CSS inline (je eine eigene
-   Kopie), diese Datei wird dagegen überall geladen.
-   ============================================================ */
-:root[data-theme='light'] :is(.hero, .shot, .band, .tile.img) .tag {
-  background: var(--scrim-4);
-  border-color: var(--on-media-line);
-  color: var(--on-media);
-}
-:root[data-theme='light'] :is(.hero, .shot, .band) .tag.hot {
-  color: color-mix(in srgb, var(--hot) 40%, var(--on-media));
-}
-
-/* Dieselbe Sache, zwei Stockwerke höher: die Augenbrauen-Zeile (.eyebrow)
-   und der dünne Kicker im Titel (.hero h1 .thin). Beide holen ihre Farbe aus
-   den SEITEN-Tokens — .eyebrow aus --accent-2, .thin aus --text. Im Hellmodus
-   werden die absichtlich dunkel (für Papier), liegen hier aber auf einem
-   dunklen Foto. Gemessen am 09.08.2026 über acht Themen- und Patch-Heroes:
-   1,26:1 bis 1,80:1. Der Fließtext (.hero .lead) war davon nicht betroffen,
-   er hängt schon an --on-media-dim — deshalb ist es beim Entstapeln in
-   Phase 3 nicht aufgefallen (WINDOWS.md id 9).
-
-   Warum der Akzent nicht PUR genommen wird: der Hellmodus-Scrim ist heller
-   als der dunkle, gemessener Untergrund 0,06–0,15 relative Leuchtdichte. Ein
-   mittelheller Akzent (Bernstein, 0,43) kommt darauf rechnerisch nicht auf
-   4,5:1 — pur gemessen 2,27:1 im schlechtesten Fall. 40 % Akzent in
-   --on-media hält den Farbton und hebt die Leuchtdichte; die Mischung folgt
-   .tag.hot zwei Regeln weiter oben.
-
-   Der doppelte Schatten ist kein Zierrat: er trägt den engen Kern, den die
-   übrigen Hero-Texte längst haben (.lead, .sstep p, .band .big). Ohne ihn
-   bleibt sc-4-9-0 bei 4,47:1, mit ihm bei 4,76:1 — schlechtester Wert über
-   alle acht geprüften Seiten, DE wie EN.
-
-   Nur Hellmodus: im Dunkelmodus sind beide Farben richtig und bleiben
-   unangetastet (gegengeprüft, .eyebrow rgb(217,209,42) unverändert).
-   ------------------------------------------------------------ */
-:root[data-theme='light'] :is(.hero, .shot, .band, .tile.img) .eyebrow {
-  color: color-mix(in srgb, var(--accent-2-media) 40%, var(--on-media));
-  text-shadow:
-    0 1px 3px var(--on-media-shadow),
-    0 2px 14px var(--on-media-shadow);
-}
-:root[data-theme='light'] .hero h1 .thin {
-  /* h1 füllt seinen Text über einen Verlauf; .thin muss deshalb BEIDE
-     Eigenschaften setzen, sonst gewinnt die durchsichtige Füllung. */
-  color: var(--on-media);
-  -webkit-text-fill-color: var(--on-media);
-}
-/* Dritte Stelle derselben Sorte, gefunden von der nachgeschärften
-   Aufzählung (Zusicherung 7), nicht von Hand: die Trailer-Beschriftung
-   hängt ebenfalls an --text und stand im Hellmodus dunkel neben ihrem
-   Abspielknopf auf dem Hero-Foto. */
-:root[data-theme='light'] .hero .hero__play {
-  color: var(--on-media);
-  text-shadow: 0 1px 3px var(--on-media-shadow);
-}
-/* Vierte Stelle, ebenfalls von der Aufzählung gefunden: der Scroll-Hinweis
-   am unteren Hero-Rand hängt an --muted. Zweite Ebene wie .lead, also
-   --on-media-dim statt --on-media. */
-:root[data-theme='light'] .hero .scrollcue {
-  color: var(--on-media-dim);
-  text-shadow: 0 1px 3px var(--on-media-shadow);
-}
-
-/* ============================================================
-   Kein Farbübergang beim Umschalten — bewusst.
-
-   Ein Crossfade über die ganze Seite klingt hübsch, war hier aber
-   schädlich: er erzeugt auf jedem der hunderten Elemente eine
-   eigene CSSTransition. Im Test blieben diese Übergänge dauerhaft
-   im Zustand „running" hängen und froren Hintergrund und Textfarbe
-   auf halbem Weg zwischen beiden Paletten ein — die Seite war
-   danach weder hell noch dunkel. Der harte Wechsel ist zudem
-   schneller und entspricht dem, was große Seiten ohnehin tun.
-
-   Einzelne Elemente behalten ihre eigenen Übergänge (Hover usw.) —
-   die sind lokal und unkritisch.
-   ============================================================ */
 
 /* ============================================================
    4 — SCHRIFT- UND BEWEGUNGSSKALA (Phase 2)
@@ -442,8 +222,7 @@ body::-webkit-scrollbar,
    standen sie auf 3440 px bei x=36 und x=3404, gut 1100 px neben dem
    Inhalt. Unter 2240 px Fensterbreite greift der Wert nie.
 
-   Auf blankem :root{} wie Schicht 4: keine Farben, für die drei
-   `npm run theme`-Generatoren unsichtbar.
+   Auf blankem :root{} wie Schicht 4: keine Farben.
    ============================================================ */
 :root {
   --vb-breit: clamp(0px, calc((100vw - 1920px) * 0.75), 800px);

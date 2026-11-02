@@ -353,9 +353,20 @@ test('scheitert die Rollenabfrage (401, 503), fragt der nächste Seitenaufruf im
 test('der Prüfstand fährt das Kopfskript, das in dist/ ausgeliefert wird', () => {
   for (const page of ['dist/support.html', 'dist/de/support.html']) {
     const html = fs.readFileSync(path.resolve(page), 'utf8');
-    const [, dark, light] = html.match(/<meta name="theme-color" content="[^"]*" data-dark="([^"]+)" data-light="([^"]+)"/);
-    assert.ok(html.includes(headScript(light, dark)), `${page}: das Kopfskript aus Layout.astro steht dort nicht wortgleich`);
+    assert.ok(html.includes(headScript()), `${page}: das Kopfskript aus Layout.astro steht dort nicht wortgleich`);
   }
+});
+
+test('eine alte Hell-Wahl aus der Zeit vor dem 02.11.2026 räumt das Kopfskript beim ersten Seitenaufruf weg', async () => {
+  // Admins konnten bis dahin hell wählen; die Wahl lag als vb.theme im Browser.
+  const b = makeAccountBrowser({ expiresIn: 3600 });
+  b.storage.set('vb.theme', 'light');
+  b.storage.set('vb.fx', 'on');
+  const tab = b.open(remembered(b, 'user-1', 'admin', 1));
+  await b.drain();
+  assert.equal(b.storage.get('vb.theme'), null, 'vb.theme liegt nach dem Seitenaufruf noch im Browser');
+  assert.equal(b.storage.get('vb.fx'), 'on', 'das Kopfskript hat eine fremde Einstellung mitgeräumt');
+  assert.equal(tab.headAdmin(), true, 'die Admin-Klasse aus dem Rollen-Cache fehlt im ersten Bild');
 });
 
 test('ein frischer Admin-Eintrag des angemeldeten Kontos malt schon das erste Bild als Admin und fragt nicht nach der Rolle', async () => {

@@ -46,8 +46,6 @@ const REWARDS = [
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;
   --maxw:1280px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f1f9ff;--bg-2:#e5eff8;--surface:#fcfeff;--surface-2:#eaf4fb;--text:#1c2022;--muted:#495b65;--accent:#016386;--accent-2:#6a5203;--hot:#674f03;--ink:#ffffff;--accent-media:#5fb6e0;--accent-2-media:#f0c44c;--line:rgba(41,123,159,.3);--line-soft:rgba(42,47,49,.12);--glow:0 6px 22px rgba(41,123,159,.18)}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -224,10 +222,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .tag.hot{border-color:rgba(147,114,4,.73);color:#6b5503}
-:root[data-theme="light"] .lead b{color:#216078}
-:root[data-theme="light"] .tile.word.hot b{color:#6b5503}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 

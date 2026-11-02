@@ -13,8 +13,9 @@
 
    WARUM UEBERHAUPT: das UI-SPEC nennt die Startwerte der Spurenzeilen-
    Daempfung (62 %/65 %) AUSDRUECKLICH "kein Freigabewert" — sie muessen am
-   echten Bildpunkt gegen die Marke 4,5:1 gehalten werden, in BEIDEN
-   Farbmodi. `getComputedStyle()` allein reicht dafuer nicht: `.wb__row2`
+   echten Bildpunkt gegen die Marke 4,5:1 gehalten werden (damals in
+   beiden Farbmodi; den hellen gibt es seit dem 02.11.2026 nicht mehr).
+   `getComputedStyle()` allein reicht dafuer nicht: `.wb__row2`
    traegt selbst keine eigene, aufloesbare Hintergrundfarbe (die sichtbare
    Zeilenflaeche entsteht erst durch das Stapeln mehrerer halbtransparenter
    Glasflaechen uebereinander) — nur ein echter Bildschirmausschnitt zeigt
@@ -33,10 +34,12 @@
    keine WCAG-Marke nennt, sondern nur fordert, dass sich die drei Flaechen
    ueberhaupt unterscheiden lassen.
 
-   VIER LAEUFE (1280x720/1920x1080 x hell/dunkel) x DREI ORTE (meiste Erze,
+   ZWEI LAEUFE (1280x720/1920x1080, dunkel; bis 02.11.2026 zusaetzlich
+   hell) x DREI ORTE (meiste Erze,
    laengster Name, meiste Anflugpunkte, aus assets/mining-db.json selbst
    ermittelt statt fest verdrahtet — sonst veraltet die Sonde beim naechsten
-   Datenlauf still) x SECHS Messgruppen (a-f) = mindestens 72 Messpunkte.
+   Datenlauf still) x SECHS Messgruppen (a-f) = mindestens 36 Messpunkte
+   (bis 02.11.2026 mit den hellen Laeufen 72).
 
      node scripts/probes/mining-locview-messung.mjs --base http://localhost:4321
      node scripts/probes/mining-locview-messung.mjs --base http://localhost:4321 --only meiste-erze
@@ -113,30 +116,10 @@ if (!ZIELE.length) {
 const VARIANTEN = [
   { id: 'dunkel-1280', breite: 1280, hoehe: 720, schema: 'dark' },
   { id: 'dunkel-1920', breite: 1920, hoehe: 1080, schema: 'dark' },
-  { id: 'hell-1280', breite: 1280, hoehe: 720, schema: 'light' },
-  { id: 'hell-1920', breite: 1920, hoehe: 1080, schema: 'light' },
 ];
 
 const KONTRAST_MARKE = 4.5;
 const UNTERSCHEIDBARKEIT_MARKE = 8; // RGB-Abstand (0..441), siehe pixDist()
-
-/* ---------- Hellmodus erzwingen (Bauform + drei Kniffe wie browser-smoke.mjs) ----------
-   1. Die Wahl ist Admin-only. 2. addInitScript/localStorage.setItem VOR dem
-   ersten Laden trifft den leeren Ursprung -- also: laden, setzen, NEU laden.
-   3. reconcile() zieht das Theme nach kurzer Zeit an die echte Rolle zurueck
-   -- direkt vor der Messung data-theme nochmal setzen UND gegenpruefen. */
-async function hellmodusSetzen(page) {
-  await page.evaluate(() => {
-    sessionStorage.setItem('vb_user_role', '{"role":"admin"}');
-    localStorage.setItem('vb.theme', 'light');
-    localStorage.setItem('vb.help.seen', '{"all":1}');
-  });
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
-  const ist = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
-  if (ist !== 'light') return `Hellmodus liess sich nicht setzen (data-theme="${ist}")`;
-  return null;
-}
 
 function cssEsc(s) {
   return String(s).replace(/["\\]/g, '\\$&');
@@ -218,8 +201,7 @@ for (const variante of VARIANTEN) {
      NICHT unter einem Sammelschluessel "all" -- browser-smoke.mjs schreibt
      dort `{"all":1}`, was fuer KEIN Werkzeug tatsaechlich `seen[id]` trifft
      und den Zweck-Abschnitt dort ebenfalls nicht schliesst; unbemerkt, weil
-     dessen sechs Zusicherungen ein offenes Hilfe-Panel nicht pruefen. Fuer
-     BEIDE Farbmodi noetig, nicht nur fuer hell. */
+     dessen sechs Zusicherungen ein offenes Hilfe-Panel nicht pruefen. */
   await kontext.addInitScript(() => {
     try { localStorage.setItem('vb.help.seen', JSON.stringify({ mining: 1 })); } catch (e) { /* privater Modus */ }
   });
@@ -231,10 +213,6 @@ for (const variante of VARIANTEN) {
   {
     const page = await kontext.newPage();
     await page.goto(BASE + PAGE_PATH, { waitUntil: 'domcontentloaded' });
-    if (variante.schema === 'light') {
-      const err = await hellmodusSetzen(page);
-      if (err) melde(variante.id, '-', 'setup-hellmodus', false, err);
-    }
     const box = await page.locator('#wb-orehead').boundingBox();
     oreheadHoehe = box ? box.height : null;
     if (oreheadHoehe == null) melde(variante.id, '-', 'setup-orehead', false, '#wb-orehead nicht sichtbar/keine Bounding-Box');
@@ -250,10 +228,6 @@ for (const variante of VARIANTEN) {
 
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded' });
-      if (variante.schema === 'light') {
-        const err = await hellmodusSetzen(page);
-        if (err) throw new Error(err);
-      }
     } catch (e) {
       // Ein fehlgeschlagener Seitenaufruf darf die restlichen sechs
       // Messgruppen nicht STILL ueberspringen -- jede zaehlt als Fehlschlag,

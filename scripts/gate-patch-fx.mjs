@@ -16,7 +16,8 @@
    treffen. Bei jeder anderen Zahl wird NICHTS geschrieben, sondern
    die Datei mit ihren Ankerzaehlungen gemeldet, und das Skript endet
    am Ende mit einem Fehlerstatus. Lieber ein Rest von Hand als eine
-   falsche automatische Ersetzung (Vorbild: tokenize-theme-colors.mjs).
+   falsche automatische Ersetzung (Vorbild: das fruehere
+   tokenize-theme-colors.mjs, seit 02.11.2026 entfernt).
 
      Anker 1  Leinwandname   document.getElementById('<name>')
                              (nur der Treffer, dem sofort

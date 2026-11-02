@@ -896,20 +896,21 @@ je EN **und** DE: Startseite, Item-Finder, Schiffe, Crafting, Archiv, eine
 Patch-Seite, Mining-Thema, Missionen, Rüstungssets, Precision Jump, Support,
 Downloads, Refinery-Umleitung, ein Item-Detail, der 404-Fall). Zusicherungen
 Z1–Z6 wie in B6. Varianten: alles in Dunkel/1280×720; die fünf JS-schwersten
-zusätzlich in 360×740 und Hell. Hellmodus ist Admin-only — das erprobte
-Rezept der Sichtprüfungen, wörtlich:
+zusätzlich in 360×740 und mit einer alten Hell-Wahl im Browser. Den Hellmodus
+gibt es seit dem 02.11.2026 nicht mehr (Krisz); die Variante spielt nach, was
+ein früherer Admin noch im Browser liegen hat, und prüft am Ergebnis, dass
+die Seite dunkel bleibt:
 
 ```js
 await page.goto(url);                       // 1. erst echter Ursprung laden
 await page.evaluate(() => {
   sessionStorage.vb_user_role = '{"role":"admin"}';
-  localStorage['vb.theme'] = 'light';
+  localStorage['vb.theme'] = 'light';           // die alte Wahl
   localStorage['vb.help.seen'] = '{"all":1}';   // Erstbesuch-Hilfe verdeckt sonst die Messung
 });
 await page.reload();                        // 2. neu laden (addInitScript trifft sonst den leeren Ursprung)
-await page.evaluate(() =>                   // 3. reconcile() zieht sonst nach ~200 ms zurück
-  document.documentElement.setAttribute('data-theme', 'light'));
-// Pflicht-Gegenprüfung: steht data-theme wirklich auf light?
+// Gegenprüfung: vb.theme geräumt, kein data-theme, color-scheme dark,
+// Seitenfläche dunkel (alteHellwahl() in browser-smoke.mjs)
 ```
 
 Workflow-Umbau (deploy-staging.yml, deploy-image.yml analog): bauen mit

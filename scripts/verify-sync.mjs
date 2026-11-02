@@ -56,7 +56,8 @@
 
    ⚠ Der Tokenizer arbeitet NICHT zeilenweise (\s/[^<>] fassen \r
    ohnehin) — die CRLF-Vorsicht des Hauses gilt hier ausdruecklich NICHT.
-   Sie gilt fuer den zeilenweisen Hellmodus-Vergleich in Plan 03.
+   Sie galt fuer den zeilenweisen Hellmodus-Vergleich in Plan 03 (den
+   hellen Modus gibt es seit dem 02.11.2026 nicht mehr).
 
    Zwei Aufrufarten:
      node scripts/verify-sync.mjs             Tor: Exit 1 bei jeder

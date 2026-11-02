@@ -41,10 +41,10 @@ const CODE = fs.readFileSync(path.resolve('assets/account-lite.js'), 'utf8');
 export const STORE = 'sb-trgjhmbnodoarnfmlcqx-auth-token';
 const HEAD_LITERAL = (fs.readFileSync(path.resolve('src/layouts/Layout.astro'), 'utf8').match(/set:html=\{(`[^`]*vb_user_role[^`]*`)\}/) || [])[1];
 if (!HEAD_LITERAL) throw new Error('Kopfskript mit vb_user_role in src/layouts/Layout.astro nicht gefunden');
-/** Das Kopfskript, wie Astro es beim Bauen mit diesen Leistenfarben einsetzt; ein unbekannter Name im ${…} reißt. */
-export const headScript = (themeColorLight, themeColorSafe) =>
-  new Function('themeColorLight', 'themeColorSafe', 'SUPABASE', `return ${HEAD_LITERAL};`)(themeColorLight, themeColorSafe, { storageKey: STORE });
-const HEAD = headScript('#eef1f6', '#05070d');
+/** Das Kopfskript, wie Astro es beim Bauen einsetzt; ein unbekannter Name im ${…} reißt. */
+export const headScript = () =>
+  new Function('SUPABASE', `return ${HEAD_LITERAL};`)({ storageKey: STORE });
+const HEAD = headScript();
 const PEOPLE = { 'user-1': { name: 'Nova', role: 'admin' }, 'user-2': { name: 'Vega', role: 'user' } };
 
 const tick = () => new Promise((r) => setImmediate(r));

@@ -53,9 +53,9 @@
 
    Den Zaehler erkennt das Tor am Umami-Merkmal `data-website-id`, nicht
    am Host — zieht das Skript auf einen anderen Host um, bleibt das Tor
-   gueltig. Layout-Seiten erkennt es an der theme-color-Zeile mit
-   data-dark, die nur Layout.astro schreibt (dieselbe Zeile liest
-   tests/e2e/account-session.test.js).
+   gueltig. Layout-Seiten erkennt es an der theme-color-Zeile, die nur
+   Layout.astro schreibt (bis 02.11.2026 trug sie noch data-dark/
+   data-light fuer den Hellmodus; den gibt es seither nicht mehr).
 
    Kopfzeile: geprueftes Artefakt, Zahl der Seiten, Layout-Seiten,
    Zaehler-Tags, Ausnahmen und ausgefuehrten Haken-Fassungen. Untergrenzen
@@ -112,7 +112,7 @@ const KONTO_PFAD = /^(?:de\/)?account(?:\.html$|\/)/;
 // Skript mit absoluter oder protokollrelativer Adresse = fremder Host
 // (eigene Skripte bindet der Build mit /_astro/… bzw. /assets/… ein).
 const FREMDES_SKRIPT = /<script\b[^>]*\ssrc="((?:https?:)?\/\/[^"]+)"/g;
-const LAYOUT_MERKMAL = /<meta name="theme-color"[^>]*\sdata-dark="/;
+const LAYOUT_MERKMAL = /<meta name="theme-color" content="/;
 const ZAEHLER_TAG = /<script\b[^>]*\sdata-website-id="[^"]*"[^>]*>/g;
 const attr = (tag, name) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1];
 
