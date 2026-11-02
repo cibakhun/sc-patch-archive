@@ -253,11 +253,11 @@ export const SHARED_REGISTRY = [
     label: 'A10 · footer .foot-nav / .disclaimer / .lead-p / .src (assets/detail.css) — von der Maske freigestellt',
     selectorFamilies: [],
     rationale:
-      'Diese Stellen tragen selbst KEINE Scrim/Raster-Regel (keine Selektor-Familie fuer Zusicherung 5) -- sie sind der Ort, an dem D-01s Maske vorher (unmaskiertes body::after) etwas abdunkelte und jetzt (maskiert) nichts mehr. Gemessen wird direkt --text/--muted gegen --bg/--bg-2/--surface der geteilten Rueckfallpalette (assets/detail.css) -- dokumentierte Vereinfachung statt Seite fuer Seite (Praezedenz: Vignetten-Naeherung, 03-01-SUMMARY.md).',
+      'Diese Stellen tragen selbst KEINE Scrim/Raster-Regel (keine Selektor-Familie fuer Zusicherung 5) -- sie sind der Ort, an dem D-01s Maske vorher (unmaskiertes body::after) etwas abdunkelte und jetzt (maskiert) nichts mehr. Gemessen wird direkt --text gegen --bg-2 der geteilten Rueckfallpalette (assets/detail.css) -- dokumentierte Vereinfachung statt Seite fuer Seite (Praezedenz: Vignetten-Naeherung, 03-01-SUMMARY.md).',
     kind: 'flat',
     resolve: () => sharedFallbackFlat('--text', '--bg-2'),
     images: [],
-    text: { body: { minRatio: 4.5, label: '.disclaimer/.lead-p (--text/--muted auf --bg-2, Fallback-Palette)' } },
+    text: { body: { minRatio: 4.5, label: '.disclaimer/.lead-p (--text auf --bg-2, Fallback-Palette)' } },
   },
 ];
 

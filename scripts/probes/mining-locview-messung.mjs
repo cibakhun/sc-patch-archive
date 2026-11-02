@@ -38,7 +38,8 @@
    hell) x DREI ORTE (meiste Erze,
    laengster Name, meiste Anflugpunkte, aus assets/mining-db.json selbst
    ermittelt statt fest verdrahtet — sonst veraltet die Sonde beim naechsten
-   Datenlauf still) x SECHS Messgruppen (a-f) = mindestens 72 Messpunkte.
+   Datenlauf still) x SECHS Messgruppen (a-f) = mindestens 36 Messpunkte
+   (bis 02.11.2026 mit den hellen Laeufen 72).
 
      node scripts/probes/mining-locview-messung.mjs --base http://localhost:4321
      node scripts/probes/mining-locview-messung.mjs --base http://localhost:4321 --only meiste-erze

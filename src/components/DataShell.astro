@@ -16,8 +16,10 @@
 // jeder der ~14.000 Seiten multiplizieren. Eine gecachte Datei tut das nicht.
 //
 // Alles Wiederkehrende (Layoutregeln) liegt in der EINEN externen Datei
-// /assets/data-page.css; nur die Farbpalette steht inline, weil sie je
-// Seitenart wechselt (violett fuer Items, bernstein fuer Crafting).
+// /assets/data-page.css, die keinen einzigen Hex-Wert enthaelt; die eine
+// Farbpalette steht inline als :root-Block (unten). Der Ton-Tausch Items/
+// Crafting laeuft nicht ueber die Palette, sondern ueber data-tone und
+// --tone-1/--tone-2 in data-page.css.
 import Layout from '../layouts/Layout.astro';
 import { versioned } from '../lib/assetVersion';
 import { SITE } from '../consts';

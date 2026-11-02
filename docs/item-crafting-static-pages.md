@@ -62,10 +62,8 @@ Bei ~14.000 generierten Seiten sind das ~500 MB Unterschied im `dist/`. Die Hül
 trägt dieselbe Identität (Palette, Typo, Sprachumschalter,
 Rechtliches) und kommt ohne eigenes JavaScript aus.
 
-**Farbpalette liegt inline in `DataShell.astro`** — `data-page.css` enthält
-**keinen einzigen Hex-Wert**, nur Tokens. (Ursprünglich, weil der Hellmodus-
-Generator nur inline-`:root`-Blöcke sah; den Hellmodus gibt es seit dem
-02.11.2026 nicht mehr, die Trennung bleibt.)
+**Farbpalette liegt inline in `DataShell.astro`** (ein dunkler `:root`-Block) —
+`data-page.css` enthält **keinen einzigen Hex-Wert**, nur Tokens.
 
 ## Interne Verlinkung (das eigentliche SEO)
 
