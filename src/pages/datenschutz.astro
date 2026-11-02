@@ -27,8 +27,6 @@ import { IS_STAGING } from '../lib/seo';
    Dieselbe Zeile wie in 404.astro, damit beide dasselbe meinen. */
 :root{--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace}
 body{font-family:var(--font-body)}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3);--line-soft:rgba(41,46,56,.12)}
 
 
 
@@ -58,8 +56,6 @@ body{font-family:var(--font-body)}
 .lg-wrap .optout code{font-size:.85em;color:var(--accent-2)}
 .lg-wrap code{font-size:.85em;color:var(--accent-2)}
 .lg-fill{display:inline-block;background:color-mix(in srgb,#ff5b5b 14%,transparent);border:1px dashed #ff5b5b;border-radius:4px;padding:0 .45rem;color:#ffb4b4;font-weight:700}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .lg-fill{color:#893c40}
 </style>
 <SiteNav crumbs={[{ label: 'Archive', href: '/archiv.html' }, { label: 'Privacy' }]} hasEn={true} />
 <main id="main">
@@ -254,7 +250,7 @@ body{font-family:var(--font-body)}
       Some patch pages show short, muted video loops (trailer excerpts) as backgrounds. These files
       are served <strong>locally by this website</strong>; no third-party server is contacted. With
       reduced motion enabled (prefers-reduced-motion), in data-saver mode (where the browser reports
-      it), in the website's light mode or with a window narrower than 1000 pixels, only the still
+      it), in the website's lite mode or with a window narrower than 1000 pixels, only the still
       image is shown. Some ship pages have a video of their own instead of a YouTube commercial; it
       loads, also locally, only when you choose the “Video” view.
     </p>

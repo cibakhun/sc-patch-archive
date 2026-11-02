@@ -32,8 +32,6 @@ const patch = mergePatchEn('4-3-2', entry.data, lang);
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1280px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f5f8fc;--bg-2:#eaeef4;--surface:#fcfeff;--surface-2:#edf3fb;--text:#231e16;--muted:#605649;--accent:#8d4402;--accent-2:#6a5200;--hot:#9a1118;--ink:#ffffff;--accent-media:#B5642A;--accent-2-media:#E4B400;--line:rgba(159,96,54,.3);--line-soft:rgba(50,45,37,.12);--glow:0 6px 22px rgba(166,91,37,.18)}
 
 
 
@@ -173,10 +171,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-   Salvage-Orange / Gunmetal / Blutrot. */
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .tag.hot{color:#a51012}
-:root[data-theme="light"] .tile.word.hot b{color:#a51012}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 

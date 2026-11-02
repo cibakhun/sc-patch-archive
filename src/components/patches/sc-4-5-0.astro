@@ -31,8 +31,6 @@ const patch = mergePatchEn('4-5-0', entry.data, lang);
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1280px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f2f8fd;--bg-2:#e8eff5;--surface:#fcfeff;--surface-2:#ecf4fa;--text:#1c2021;--muted:#4f5a5f;--accent:#7a5201;--accent-2:#056262;--hot:#9d0223;--ink:#ffffff;--accent-media:#FFB000;--accent-2-media:#2BC4C4;--line:rgba(146,105,37,.3);--line-soft:rgba(42,47,48,.12);--glow:0 6px 22px rgba(146,105,37,.18)}
 
 
 
@@ -169,9 +167,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .tag.hot{border-color:rgba(200,65,73,.73);color:#a60030}
-:root[data-theme="light"] .tile.word.hot b{color:#a60030}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 

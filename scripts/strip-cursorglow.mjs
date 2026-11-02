@@ -3,8 +3,8 @@
 
    Tilgt den Schein um den Mauszeiger — Element, Regel und
    Zeiger-Horcher — sowie den stillen ?nofx-Not-Ausgang, restlos
-   aus dem Bestand. Vorbild: scripts/tokenize-theme-colors.mjs
-   (Kopfform, --dry, --only, Zwang auf eine feste Sollzahl, lieber
+   aus dem Bestand. Vorbild: das fruehere scripts/tokenize-theme-
+   colors.mjs (seit 02.11.2026 mit dem Hellmodus entfernt; Kopfform, --dry, --only, Zwang auf eine feste Sollzahl, lieber
    ein Rest von Hand als eine falsche automatische Ersetzung).
 
    ------------------------------------------------------------

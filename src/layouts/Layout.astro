@@ -8,7 +8,6 @@ import { SITE, SUPABASE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
 import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
-import { LIGHT_RULES } from '../../scripts/lib/theme-color.mjs';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Props {
@@ -98,18 +97,6 @@ const canon = (p: string) => (p === '/index.html' ? '/' : p);
 const deHref = base + canon(pathForLocale(Astro.url.pathname, 'de'));
 const enHref = base + canon(pathForLocale(Astro.url.pathname, 'en'));
 
-// Die Browserleisten-Farbe (Android/Safari) muss im Hellmodus mitziehen —
-// sonst rahmt eine schwarze Leiste eine weiße Seite. Der helle Wert wird
-// beim Bauen aus dem dunklen abgeleitet (gleicher Farbton, Papier-
-// Helligkeit), damit jede Seite ihre Tönung behält.
-// Beide Werte stehen am theme-color-Meta (data-dark/data-light); das
-// Kopfskript liest sie dort und traegt selbst keine Farbe. So ist es auf
-// jeder Seite wortgleich und braucht in der Content-Security-Policy genau
-// einen Hash statt einen je Seitenfarbe (scripts/_write-csp-hashes.mjs).
-// Nur echte Hex-Werte gehen in die Attribute.
-const HEX = /^#[0-9a-f]{3,8}$/i;
-const themeColorSafe = HEX.test(themeColor) ? themeColor : '#05070d';
-const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
 ---
 <!doctype html>
 <html lang={HTML_LANG[lang]}>
@@ -118,33 +105,25 @@ const themeColorLight = LIGHT_RULES['--bg'](themeColorSafe);
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{title}</title>
   <meta name="description" content={description} />
-  {/* Beide Leistenfarben hängen am Meta-Tag selbst — so kommt der Umschalter
-      in SiteNav an den zur Seite passenden Wert, ohne ihn kennen zu müssen. */}
-  <meta name="theme-color" content={themeColor} data-dark={themeColorSafe} data-light={themeColorLight} />
-  {/* Rolle (aus dem Session-Cache) UND Hell/Dunkel VOR dem ersten Paint
-      festlegen — synchron und so früh wie möglich. Läuft das später, blitzt
-      erst die dunkle und dann die helle Seite auf (bzw. der Umschalter für
-      Nicht-Admins). Die Theme-Wahl ist ein Admin-Recht: nur Admins folgen
-      ihrer gespeicherten Wahl bzw. dem Betriebssystem, alle anderen bekommen
-      fest das dunkle Standard-Design. Der Rollen-Cache (vb_user_role) wird von
-      account-lite.js gefüllt; steht er noch nicht (kalter Erstaufruf), gilt
-      man als Nicht-Admin und account-lite gleicht das Theme nach dem Laden der
-      echten Rolle an. Er zählt nur für das Konto der gespeicherten Sitzung,
-      wie in account-lite.js: nach dem Abmelden oder einem Kontowechsel bleibt
-      er im Tab liegen (ohne Sitzung wirft der Vergleich, admin bleibt aus).
-      Ohne gültigen localStorage-Wert bleibt data-theme-auto
-      gesetzt — daran erkennt der Umschalter, dass er (für Admins) weiter dem
-      System folgen darf. */}
+  <meta name="theme-color" content={themeColor} />
+  {/* Rolle (aus dem Session-Cache) VOR dem ersten Paint festlegen — synchron
+      und so früh wie möglich. Die Klasse is-admin blendet Admin-Felder ein
+      (SupportBody); läuft das später, blitzen sie erst auf. Der Rollen-Cache
+      (vb_user_role) wird von account-lite.js gefüllt; steht er noch nicht
+      (kalter Erstaufruf), gilt man als Nicht-Admin, und account-lite setzt
+      die Klasse nach dem Laden der echten Rolle. Er zählt nur für das Konto
+      der gespeicherten Sitzung, wie in account-lite.js: nach dem Abmelden
+      oder einem Kontowechsel bleibt er im Tab liegen (ohne Sitzung wirft der
+      Vergleich, admin bleibt aus).
+      Die Seite ist nur noch dunkel: den hellen Modus gibt es seit dem
+      02.11.2026 nicht mehr (Krisz). Die frühere Wahl `vb.theme` räumt dieser
+      Schnipsel aus dem Browser, damit kein Rest davon liegen bleibt. */}
   <script
     is:inline
     set:html={`(function(){var d=document.documentElement;
 var admin=false;try{var raw=sessionStorage.getItem('vb_user_role');if(raw){var pr=JSON.parse(raw);if(pr&&pr.role==='admin'&&pr.uid===JSON.parse(localStorage.getItem('${SUPABASE.storageKey}')).user.id)admin=true}}catch(e){}
 if(admin)d.classList.add('is-admin');
-var t=null;if(admin){try{t=localStorage.getItem('vb.theme')}catch(e){}}
-var auto=admin&&(t!=='light'&&t!=='dark');
-if(!admin){t='dark'}else if(auto){t=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'}
-d.setAttribute('data-theme',t==='light'?'light':'dark');if(auto)d.setAttribute('data-theme-auto','');
-var m=document.querySelector('meta[name="theme-color"]'),c=m&&m.getAttribute(t==='light'?'data-light':'data-dark');if(c)m.setAttribute('content',c)})()`}
+try{localStorage.removeItem('vb.theme')}catch(e){}})()`}
   />
   {/* Bild-Rueckfall fuer die ganze Seite: ein Bild mit data-img-fail, das
       nicht laedt, wird ausgeblendet ("hide"), nimmt seine <figure> mit
@@ -163,11 +142,10 @@ if(a==='figure'){var f=t.closest&&t.closest('figure');if(f)f.style.display='none
 t.style.display='none'},true)})()`}
   />
   {/* Partikel-Ambiente (Sterne/Embers/Staub) — data-fx als Vorgabe VOR dem
-      ersten Paint setzen, synchron, wie der Theme-Schnipsel darüber. Standard
+      ersten Paint setzen, synchron, wie der Rollen-Schnipsel darüber. Standard
       ist AUS (FX-02/D-04): nur die gespeicherte Wahl 'on' UND NICHT-reduzierte
       Bewegung schalten data-fx auf 'on'. Strenge Erlaubnisliste (T-01.1-01) —
-      jeder andere Wert faellt auf 'off'. Kein Admin-Gatter (FX-04/D-06),
-      anders als beim Theme oben. */}
+      jeder andere Wert faellt auf 'off'. Kein Admin-Gatter (FX-04/D-06). */}
   <script
     is:inline
     set:html={`(function(){var d=document.documentElement;
@@ -270,9 +248,9 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
   <link rel="preload" href="/assets/fonts/orbitron-500-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/barlow-400-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link href={versioned('assets/fonts.css', '/assets/fonts.css')} rel="stylesheet" />
-  {/* Farbfundament für beide Modi. Muss VOR dem Seiten-CSS stehen: die
-      hellen Paletten der Seiten liegen in deren inline-<style> und sollen
-      diese Rückfallwerte über die Quellreihenfolge schlagen. */}
+  {/* Farbfundament. Muss VOR dem Seiten-CSS stehen: die Paletten der Seiten
+      liegen in deren inline-<style> und sollen diese Rückfallwerte über die
+      Quellreihenfolge schlagen. */}
   {/* Content-Hash: theme.css liegt unter FESTER URL und wird von nginx mit
       `expires 1d` ausgeliefert — ohne ?v= liefert die Edge nach einem Deploy
       bis zu 24 h die alte Palette an ALLE Seiten. Siehe lib/assetVersion.ts. */}
@@ -344,11 +322,6 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
     /* Flex-Mono-Code-Zeilen (…//…): min-width:0 lässt die Ellipsis greifen,
        statt die Zeile (langer EN-System-Name) über den Rand zu drücken. */
     .tf__code, .qf__code, .do__code { min-width: 0; }
-    /* Hell/Dunkel-Umschalter ist ein Admin-Recht — für alle anderen weg
-       (Leiste + Menü). Das Verhalten ist zusätzlich in JS abgesichert. */
-    html:not(.is-admin) .js-theme-toggle {
-      display: none !important;
-    }
     /* Endlos-Animationen ausserhalb des Bildes — und im Leichtgang alle —
        ruhen. Das Merkmal setzt assets/perf.js; ohne JS laeuft alles wie
        bisher. Angehalten, nicht entfernt: das Bild bleibt auf seinem
@@ -367,7 +340,7 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
     }
     /* Die beiden Verdunkler mit nur 55 % Deckung (Suche, Item-Modal): ohne
        Weichzeichner stuende die Seite dahinter scharf durch — sie bekommen
-       den Grund der Lightbox (theme.css --lb-backdrop, 93 % bzw. 80 %). */
+       den Grund der Lightbox (theme.css --lb-backdrop, 93 %). */
     html[data-perf="lite"] .scs__back,
     html[data-perf="lite"] .uif-modal-overlay {
       background-color: var(--lb-backdrop, rgba(0, 0, 0, .93)) !important;
@@ -478,39 +451,8 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       Begruendung und Bedingungen im Kopf der Datei. Ohne Gegenstueck,
       bei internem Seitenwechsel oder nach dem Schliessen tut sie nichts. */}
   <script is:inline defer src={versioned('assets/sprachhinweis.js', '/assets/sprachhinweis.js')}></script>
-  {/* Umschalt-Verhalten. Bewusst hier und nicht in ThemeToggle.astro: der
-      Umschalter steht zweimal auf der Seite (Leiste + Menü), das Verhalten
-      soll aber nur einmal existieren. Delegierter Klick -> beliebig viele
-      Umschalter, auch nachträglich eingefügte. */}
-  <script
-    is:inline
-    set:html={`(function(){var d=document.documentElement,meta=document.querySelector('meta[name="theme-color"]');
-function isAdmin(){return d.classList.contains('is-admin');}
-function paint(t){d.setAttribute('data-theme',t);
-  if(meta&&meta.dataset.dark)meta.setAttribute('content',t==='light'?meta.dataset.light:meta.dataset.dark);
-  var b=document.querySelectorAll('.js-theme-toggle');
-  for(var i=0;i<b.length;i++)b[i].setAttribute('aria-pressed',t==='dark'?'true':'false');}
-/* Theme-Wahl ist Admin-only: Nicht-Admins sind fest auf Dunkel. reconcile()
-   gleicht das Theme an die aktuelle Rolle an und wird auch von account-lite.js
-   aufgerufen, sobald die echte Rolle vom Server feststeht. */
-function reconcile(){if(!isAdmin()){d.removeAttribute('data-theme-auto');paint('dark');return;}
-  var t=null;try{t=localStorage.getItem('vb.theme')}catch(e){}
-  if(t==='light'||t==='dark'){d.removeAttribute('data-theme-auto');paint(t);}
-  else{d.setAttribute('data-theme-auto','');paint((window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');}}
-window.__vbReconcileTheme=reconcile;reconcile();
-function choose(t){if(!isAdmin())return;try{localStorage.setItem('vb.theme',t)}catch(e){}
-  d.removeAttribute('data-theme-auto');paint(t);}
-document.addEventListener('click',function(e){
-  var b=e.target&&e.target.closest&&e.target.closest('.js-theme-toggle');
-  if(b)choose(d.getAttribute('data-theme')==='light'?'dark':'light');});
-if(window.matchMedia){var mq=matchMedia('(prefers-color-scheme: light)');
-  var os=function(){if(isAdmin()&&d.hasAttribute('data-theme-auto'))paint(mq.matches?'light':'dark')};
-  mq.addEventListener?mq.addEventListener('change',os):mq.addListener(os);}
-addEventListener('storage',function(e){if(e.key==='vb.theme'&&isAdmin()&&(e.newValue==='light'||e.newValue==='dark')){
-  d.removeAttribute('data-theme-auto');paint(e.newValue);}});})()`}
-  />
   {/* FX-Umschalt-Verhalten (Partikel-Ambiente). Kein Admin-Gatter (FX-04/D-06)
-      — jeder Besucher darf umschalten, anders als die Theme-Wahl oben. Sendet
+      — jeder Besucher darf umschalten. Sendet
       'vbfxchange' auf document, damit laufende rAF-Schleifen (detail.js,
       archive.js, Patch-Seiten-Inline-Skripte) live reagieren koennen, ohne
       dass die Seite neu laedt (FX-05/D-09). */}

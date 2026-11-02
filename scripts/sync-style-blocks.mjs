@@ -4,7 +4,7 @@
    Jede Seite existiert zweimal: src/pages/x.astro (EN) und
    src/pages/de/x.astro (DE). Bei den meisten Paaren ist der
    <style is:inline>-Block bytegleich — unterschiedlich sind nur
-   die Texte. Beim Hell-/Dunkel-Umbau müsste sonst jede CSS-
+   die Texte. Bei einem Stilumbau müsste sonst jede CSS-
    Änderung doppelt von Hand gemacht werden.
 
    ACHTUNG, und deshalb dieses Skript statt eines pauschalen
@@ -28,9 +28,7 @@ import { promisify } from 'node:util';
 
 const run = promisify(execFile);
 const STYLE = /<style\s+is:inline>([\s\S]*?)<\/style>/;
-const GENERATED = /[ \t]*\/\* Hellmodus[^*]*\*\/\s*:root\[data-theme="light"\]\{[^}]*\}\n?/g;
-
-const norm = (s) => s.replace(GENERATED, '').replace(/\r\n/g, '\n').trim();
+const norm = (s) => s.replace(/\r\n/g, '\n').trim();
 
 async function atHead(file) {
   try {
@@ -77,10 +75,7 @@ for (const { en, de } of pairs) {
     continue;
   }
 
-  // EN-Block übernehmen, aber den in DE erzeugten Hellmodus-Block behalten.
-  const deGen = (mDe[1].match(GENERATED) || []).join('');
-  const body = deGen ? mEn[1].replace(GENERATED, () => deGen) : mEn[1];
-  await writeFile(de, srcDe.slice(0, mDe.index) + `<style is:inline>${body}</style>` + srcDe.slice(mDe.index + mDe[0].length));
+  await writeFile(de, srcDe.slice(0, mDe.index) + `<style is:inline>${mEn[1]}</style>` + srcDe.slice(mDe.index + mDe[0].length));
   synced++;
 }
 

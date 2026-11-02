@@ -1,18 +1,15 @@
 /* ============================================================
-   theme-color.mjs — Farbmathematik für den Hell-/Dunkel-Umbau.
+   theme-color.mjs — Farbmathematik fuer die Kontrast-Pruefungen.
 
-   Kernidee: Der FARBTON jeder Seitenpalette ist Identität (Pyro ist
-   orange, Nyx ist blaugold, Supply-or-Die ist rostrot). Beim Wechsel
-   nach Hell bleibt der Ton erhalten; nur Helligkeit und Buntheit
-   werden pro Token-ROLLE neu abgestimmt.
+   Parsen, WCAG-Kontrast und das Uebereinanderlegen halbtransparenter
+   Schichten (verify-layers.mjs, tests/e2e/layer-compositing.test.js,
+   Messwerkzeuge unter scripts/probes/). Dazu die OKLCH-Umrechnung,
+   weil dort L wahrnehmungsnah ist: „L = 0.48" heisst auf jedem Farbton
+   gleich hell.
 
-   Gerechnet wird in OKLCH, weil dort L wahrnehmungsnah ist: „L = 0.48"
-   heißt auf jedem Farbton gleich hell — und damit gleich kontraststark.
-   In HSL wäre das nicht so (gelb bei 50% ist viel heller als blau).
-
-   Kein Laufzeit-CSS: alle Werte werden hier zu Hex/RGBA gerechnet und
-   statisch ausgegeben. Damit hängt nichts an Browser-Support für
-   relative Farbsyntax.
+   Bis zum 02.11.2026 standen hier auch die Regeln, nach denen die
+   hellen Paletten aus den dunklen abgeleitet wurden. Den hellen Modus
+   gibt es nicht mehr; die Regeln sind mit ihm gegangen.
    ============================================================ */
 
 /* ---------- sRGB <-> Linear ---------- */
@@ -150,87 +147,4 @@ export function flattenStack(base, layers) {
   let acc = { ...toColorObj(base), alpha: 1 };
   for (const layer of layers) acc = compositeOver(layer, acc);
   return acc;
-}
-
-/**
- * Dunkelt eine Farbe so weit ab (bei gleichem Farbton), bis sie das
- * geforderte Kontrastverhältnis gegen `bg` erreicht. Rettungsanker für
- * Paletten, deren Ton bei der Ziel-Helligkeit noch nicht reicht — z. B.
- * Gelb, das erst sehr dunkel genug Kontrast auf Weiß liefert.
- */
-export function ensureContrast(hex, bg, ratio, { minL = 0.12, step = 0.01 } = {}) {
-  const { C, h } = toOklch(hex);
-  let { L } = toOklch(hex);
-  let out = oklch(L, C, h);
-  while (contrast(out, bg) < ratio && L > minL) {
-    L -= step;
-    out = oklch(L, C, h);
-  }
-  return out;
-}
-
-/* ============================================================
-   Die Ableitungsregeln: dunkle Palette -> helle Palette.
-
-   Jede Rolle bekommt ihr eigenes Helligkeitsziel. Die Buntheit wird
-   bei Flächen stark gedeckelt (ein Hintergrund mit C=.15 wäre Neon-
-   Pastell), bei Akzenten dagegen gehalten oder angehoben, damit die
-   Marke nicht ausbleicht.
-   ============================================================ */
-
-/** Flächen: Ton bleibt als Hauch, Helligkeit wird gesetzt. */
-const surface = (hex, L, capC) => {
-  const { C, h } = toOklch(hex);
-  return oklch(L, Math.min(C, capC), h);
-};
-
-/** Akzente: Ton bleibt, Helligkeit auf Kontrast getrimmt, Buntheit gehalten. */
-const accentFor = (hex, L, bg, ratio) => {
-  const { C, h } = toOklch(hex);
-  // Buntheit leicht anheben: dunklere Töne wirken sonst matschig.
-  return ensureContrast(oklch(L, Math.min(C * 1.15, 0.19), h), bg, ratio);
-};
-
-export const LIGHT_RULES = {
-  /* Grundflächen — Papier. Der Farbton der dunklen Palette überlebt als
-     kaum sichtbare Tönung: Pyro-Seiten bleiben warm, Nyx-Seiten kühl. */
-  '--bg': (v) => surface(v, 0.977, 0.012),
-  '--bg-2': (v) => surface(v, 0.948, 0.016),
-  '--surface': (v) => surface(v, 0.995, 0.006),
-  '--surface-2': (v) => surface(v, 0.962, 0.014),
-
-  /* Tinte. Nicht reines Schwarz — der Seitenton bleibt spürbar. */
-  '--text': (v) => surface(v, 0.24, 0.03),
-  '--muted': (v) => surface(v, 0.46, 0.035),
-
-  /* Akzente auf Papier: gleicher Ton, aber AA-tauglich.
-     Ziel 4,9 statt 4,5 — mit Reserve: gerechnet wird gegen reines Weiß,
-     tatsächlich sitzen die Akzente aber auf leicht getönten Flächen
-     (--surface-2, halbtransparente Panels). Genau auf 4,5 gerechnet
-     landen sie dort bei ~4,1 und fallen durch. */
-  '--accent': (v) => accentFor(v, 0.47, '#ffffff', 4.9),
-  '--accent-2': (v) => accentFor(v, 0.45, '#ffffff', 4.9),
-  '--hot': (v) => accentFor(v, 0.44, '#ffffff', 4.9),
-  '--gold': (v) => accentFor(v, 0.45, '#ffffff', 4.9),
-
-  /* Text AUF Akzentflächen kippt von Fast-Schwarz auf Weiß. */
-  '--ink': () => '#ffffff',
-};
-
-/** Linien: aus dem Akzent, aber deutlich sichtbar auf Papier. */
-export function lightLine(accentHex, alpha = 0.3) {
-  const { h, C } = toOklch(accentHex);
-  return oklcha(0.55, Math.min(C, 0.1), h, alpha);
-}
-
-/** Weiche Trennlinie: aus der Tinte. */
-export function lightLineSoft(textHex, alpha = 0.12) {
-  const { h, C } = toOklch(textHex);
-  return oklcha(0.3, Math.min(C, 0.04), h, alpha);
-}
-
-/** Neon-Bloom wird auf Papier zu einem weichen, farbigen Schlagschatten. */
-export function lightGlow(accentHex) {
-  const { h, C } = toOklch(accentHex);
-  return `0 6px 22px ${oklcha(0.55, Math.min(C, 0.12), h, 0.18)}`;
 }

@@ -16,10 +16,8 @@
 //  · Astro 5.18 verschluckt das schliessende Tag, wenn ein Element auf
 //    OBERSTER Template-Ebene einen {ausdruck} als Kind hat -> set:text.
 //  · `:global()` ist in `<style is:inline>` kein CSS und wird still verworfen.
-//  · KEINE eigenen Farbtoken: build-light-palettes.mjs kennt nur eine feste
-//    Namensliste und ignoriert alles andere still. Zustandsfarben ueber
-//    `color` + `currentColor`, weil build-light-overrides.mjs zwar `color`
-//    abdeckt, aber NICHT `background`.
+//  · Keine eigenen Farbtoken: alle Flaechen kommen aus der Palette,
+//    Zustandsfarben ueber `color` + `currentColor`.
 //  · Jeder innen scrollende Kasten muss in die Selektorliste in
 //    assets/mobile-ux.css, sonst blendet theme.css seine Leiste aus.
 //    `.fc__scroll` steht dort.
@@ -437,7 +435,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 /* ⚠ Der Grund MUSS deckend sein: mit `…,transparent)` steht das Feld auf
    Alpha 0,34, und Chrome vererbt den Grund an die aufgeklappte Liste — die
    rechnet ihn ueber Weiss und wird unleserlich. Ueber Variablen gemischt,
-   weil build-light-overrides.mjs `background` NICHT abdeckt. */
+   damit er der Palette folgt. */
 .fc__sel{background:color-mix(in srgb,var(--ink) 34%,var(--surface));border:0;color:var(--text);
   font-size:var(--fs-5);padding:7px 9px;cursor:pointer;width:100%;border-radius:7px;font-family:inherit}
 .fc__sel option,.fc__slot option{background:var(--surface);color:var(--text)}
@@ -493,12 +491,6 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
   .fc__mrow{grid-template-columns:minmax(0,1fr) auto}
   .fc__mrow .s{grid-column:1/-1;text-align:right}
 }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .fc__dot.is-ok{color:#036b26}
-:root[data-theme="light"] .fc__dot.is-bad{color:#9b2a10}
-:root[data-theme="light"] .fc__gauge.is-ok{color:#036b26}
-:root[data-theme="light"] .fc__gauge.is-bad{color:#9b2a10}
-:root[data-theme="light"] .fc__slot.is-full{color:#036b26}
 </style>
 
 <section class="fc" id="calc" data-fc

@@ -42,9 +42,6 @@ a{color:inherit;text-decoration:none}
 .skip{position:absolute;left:-999px;top:0;z-index:9300;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
 
 /* ---- Ambient overlays (match patch pages) ----
-   Vignette + Scanlines sind Dunkelmodus-Mittel. Im Hellmodus sind die
-   Tokens fast auf null gesetzt (assets/theme.css) — auf Papier wirkte
-   das sonst wie Schmutz auf dem Bildschirm.
    D-01 (Phase 3, Plan 1): das Zeilenraster ist HIER RAUS — es zog nach
    .hero::before (unter den Text). Die Vignette bleibt global, wird aber
    ueber der Textspalte ausmaskiert: die Maske liest dieselbe --maxw-
@@ -82,9 +79,8 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .lead-p b{color:var(--accent)}
 .tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.3rem}
 .tag{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-4);padding:.4rem .8rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text)}
-/* Mischung Richtung --text statt Richtung #fff: im Dunkelmodus hellt das
-   den Warnton auf (wie bisher), im Hellmodus dunkelt es ihn ab. Eine Regel,
-   beide Modi. */
+/* Mischung Richtung --text statt Richtung #fff: hellt den Warnton auf und
+   bleibt dabei im Ton der Seitenpalette. */
 .tag.hot{border-color:color-mix(in srgb,var(--hot) 55%,transparent);color:color-mix(in srgb,var(--hot) 75%,var(--text))}
 
 /* ============================================================
@@ -93,16 +89,16 @@ section{position:relative;padding:clamp(3rem,7vw,5.5rem) clamp(1.25rem,5vw,4rem)
 .hero{position:relative;min-height:92svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4rem) 3.5rem;overflow:hidden}
 .hero__photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;animation:kb 32s ease-in-out infinite alternate}
 @keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
-/* Der Verlauf endet auf var(--bg) — dadurch geht das Foto in beiden Modi
+/* Der Verlauf endet auf var(--bg) — dadurch geht das Foto
    von selbst sauber in die Seitenfläche über. Nur der Schleier über dem
    Motiv bleibt dunkel, weil das Motiv dunkel ist.
    Plan 03-05 (D-04, Task 2): der Stopp "var(--scrim-4) 55%" lag zu nah an
-   .hero .lead (Ankerpunkt yFrac 0.85) -- im Hellmodus zog das Interpolieren
-   Richtung var(--bg) (hell) den Fliesstext-Kontrast auf 2,93:1. Fix ist ein
+   .hero .lead (Ankerpunkt yFrac 0.85) -- das Interpolieren Richtung
+   var(--bg) drueckte den Fliesstext-Kontrast. Fix ist ein
    VERSCHOBENER Verlauf-Stopp (nicht --ambient-opacity, nicht die Palette):
    die Stufe --scrim-4 haelt jetzt bis 90% durch, bevor sie in vier
    verbleibenden Prozentpunkten auf --bg ausblendet -- der Ankerpunkt liegt
-   damit vollstaendig auf der Plateau-Stufe. 18,34:1 in beiden Modi danach
+   damit vollstaendig auf der Plateau-Stufe. 18,34:1 danach
    (verify-layers.mjs, Registry A1-hero/B-hero). */
 .hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-2),var(--scrim-4) 55%,var(--scrim-4) 90%,var(--bg)),radial-gradient(120% 90% at 78% 18%,transparent,var(--bg) 86%)}
 /* D-01: Zeilenraster lebt jetzt hier statt in body::after — z-index:1 setzt
@@ -330,8 +326,8 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 /* ============================================================
    Lightbox
    ============================================================ */
-/* Die Lightbox zeigt Fotos — ihr Hintergrund bleibt in beiden Modi dunkel,
-   sonst blendet eine weiße Fläche rund um ein dunkles Bild. */
+/* Die Lightbox zeigt Fotos — ihr Hintergrund ist dunkel, sonst blendet
+   eine helle Fläche rund um ein dunkles Bild. */
 .lb{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;background:var(--lb-backdrop);backdrop-filter:blur(5px);padding:3vh 3vw}
 .lb.open{display:flex}.lb__body{position:relative;max-width:1180px;width:100%}
 .lb__body img{display:block;width:100%;height:auto;max-height:88vh;object-fit:contain;border:1px solid var(--line);border-radius:8px}

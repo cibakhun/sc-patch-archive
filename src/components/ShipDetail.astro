@@ -574,8 +574,6 @@ const cgOf = (gid: string) => CONTENT_GROUPS_SOURCE.find((g) => g.id === gid)!;
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
   --maxw:1100px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1b1f29;--muted:#4e586c;--accent:#05657c;--accent-2:#0850ad;--gold:#685301;--ink:#ffffff;--accent-media:#2dd4ff;--accent-2-media:#6ea8ff;--line:rgba(43,125,148,.3)}
 
 
 
@@ -978,7 +976,7 @@ a{color:inherit;text-decoration:none}
    Chips -> immer sichtbar. */
 .holo-nodes circle{fill:var(--on-media);stroke:var(--media-void);stroke-width:2.2;paint-order:stroke;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 5px rgba(216,246,255,.95));transition:r var(--dur-fast) var(--ease-ui)}
 /* Der aktive Hardpoint-Marker liegt auf der dunklen Holo-Ansicht: dunkler
-   Saum zur Abgrenzung, heller Schein darüber — in beiden Modi gleich. */
+   Saum zur Abgrenzung, heller Schein darüber. */
 .holo-nodes circle.is-active{stroke:var(--accent-media);
   filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--on-media))}
 /* --- Maßkette (Phase 17, Gruppe „Ausstattung") --------------------------------
@@ -1271,10 +1269,8 @@ a{color:inherit;text-decoration:none}
 
 /* arms/core uebernehmen ihre Unterabschnitts-Ueberschrift (.sd__sub) UND ihren
    Koerper (arm__sum/arm__list bzw. sd__slots) aus dem Kapitel-Umzug
-   UNVERAENDERT -- keine eigene Farbregel noetig: .holo traegt
-   data-media-surface (theme.css "Dunkle Inseln"), das setzt --text/--muted/
-   --line/--bg-2/--surface fuer ALLE Nachfahren bereits korrekt, auch im
-   Hellmodus, ohne dass hier etwas ueberschrieben werden muss. */
+   UNVERAENDERT -- keine eigene Farbregel noetig: die Palette der Seite
+   gilt fuer ALLE Nachfahren bereits korrekt. */
 /* HUD/Dims: z-index ueber .holo__wrap (z2) -> auch ueber Video und Bildern
    sichtbar (User-Wunsch: Titel-Chrome auch im Video-Modus). pointer-events:
    none (16-01-PLAN.md Task 2 — vorgefunden, nicht neu eingefuehrt): reines
@@ -2018,9 +2014,6 @@ span.sd__ref{color:var(--muted)}
   font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   transition:color var(--dur-fast) var(--ease-ui)}
 .favhangar:hover{color:var(--accent)}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .sd__sys.sys-pyro{border-color:rgba(192,81,3,.63);color:#903a00}
-:root[data-theme="light"] .sd__sys.sys-nyx{border-color:rgba(136,92,198,.63);color:#6a36a8}
 </style>
 
 <SiteNav
@@ -2034,8 +2027,8 @@ span.sd__ref{color:var(--muted)}
 
 <main>
   <!-- HANGAR-BÜHNE: Info links, interaktives Komponenten-Hologramm rechts -->
-  {/* data-media-surface: die Bühne zeigt Hologramm, Renderbilder und Video —
-      sie bleibt in beiden Modi dunkel. Siehe „Dunkle Inseln" in theme.css. */}
+  {/* data-media-surface: die Bühne zeigt Hologramm, Renderbilder und Video
+      auf dunklem Grund (Medienfläche). */}
   {/* --holo-ar: das Seitenverhaeltnis der HALLE, aus dem Schiff abgeleitet
       (siehe die ausfuehrliche Begruendung an .holo__wrap).
       ⚠⚠ Der Faktor ist ANGESEHEN, nicht gerechnet. Die Zahl konnte es nicht

@@ -58,7 +58,6 @@ const UI = {
     'nav.missions.long': 'Missionen — Datenbank',
     'nav.evolution.long': 'Evolution — Systeme × Patches',
     'nav.langSwitch': 'Sprache wechseln',
-    'nav.theme.dark': 'Dunkle Darstellung',
     'nav.fx': 'Partikel-Effekte',
     // Erklärung im Tooltip: WAS der Schalter tut, nicht wie er heißt. Der
     // Zustandssatz wechselt per CSS mit [data-fx] — kein JS nötig.
@@ -472,7 +471,6 @@ const UI = {
     'nav.missions.long': 'Missions — Database',
     'nav.evolution.long': 'Evolution — Systems × Patches',
     'nav.langSwitch': 'Switch language',
-    'nav.theme.dark': 'Dark appearance',
     'nav.fx': 'Particle effects',
     'nav.fx.what': 'Starfields, embers and dust drifting in the background.',
     'nav.fx.state.on': 'Currently on — click to turn them off.',

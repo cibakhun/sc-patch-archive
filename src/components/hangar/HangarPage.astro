@@ -104,8 +104,6 @@ const link = 'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5
 const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014-4z';
 ---
 <style is:inline>
-/* Die Bühne ist eine dunkle Insel (data-media-surface, theme.css): im
-   Hellmodus bleibt sie Halle, nur das Karussell darunter wird Papier. */
 .hg{display:block}
 /* Ab 761 px ist die Seite genau ein Fenster hoch und scrollt nicht: kein
    Seitenfuss (footer={false} in pages/hangar.astro), die Buehne nimmt das
@@ -131,8 +129,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hg[data-dock="closed"]{--hg-dockw:3.4rem}
 }
 /* Auf der Insel selbst deklariert, nicht an .hg: eine Variable, die auf
-   var(--text) verweist, loest dort auf, wo sie steht — an .hg waere das
-   noch der Papierwert, nicht der Inselwert. */
+   var(--text) verweist, loest dort auf, wo sie steht. */
 .hg-stagewrap{--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-panel:color-mix(in srgb,var(--bg) 90%,transparent);--hg-hair:var(--line)}
 /* Keine Unschaerfe hinter Tafel und Knoepfen: backdrop-filter ueber der
    WebGL-Leinwand kostet die Grafikkarte in jedem Bild. Die Flaechen sind
@@ -759,8 +756,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         Abschnitte und Zeilen aus COMPARE (bay.ts). Zahlen und Textzeilen
         setzt der Controller aus den Dock-Daten, die Zeilen der Bewaffnung und
         der Systeme (data-g) aus den Buchten der verglichenen Schiffe; was
-        keines der Schiffe fuehrt, blendet er aus. In der Insel, damit er auch
-        im Hellmodus dunkel bleibt wie die Halle darunter. */}
+        keines der Schiffe fuehrt, blendet er aus. */}
     <dialog class="hgx-cmp" id="hgx-cmp" aria-labelledby="hgx-cmp-title">
       <div class="hgx-cmp__head">
         <h2 id="hgx-cmp-title">{t('cmp.title')}</h2>

@@ -43,8 +43,6 @@ const link = 'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.5;-webkit-font-smoothing:antialiased}
 .lo *,.lo *::before,.lo *::after{box-sizing:border-box}
 :root{--bg:#0b0d12;--bg-2:#11141b;--surface:#151922;--surface-2:#1c212c;--accent:#f5a623;--accent-2:#9aa6bd;--hot:#ff5b6e;--text:#e9edf5;--muted:#9aa6bd;--line:rgba(233,237,245,.16);--line-soft:rgba(233,237,245,.08);--ink:#0a0d16}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f5f7fe;--bg-2:#e9eef8;--surface:#fdfdff;--surface-2:#eef2fc;--text:#1c1f25;--muted:#4e586c;--accent:#7c5104;--accent-2:#49556d;--hot:#9c002c;--ink:#ffffff;--accent-media:#f5a623;--accent-2-media:#9aa6bd;--line:rgba(148,104,38,.3);--line-soft:rgba(43,46,52,.12)}
 .lo{--lo-a:var(--accent);--lo-on:var(--text);--lo-dim:var(--muted);--lo-hair:var(--line);--lo-soft:var(--line-soft);--lo-card:var(--bg-2);--lo-good:var(--accent);--lo-bad:color-mix(in srgb,var(--hot) 70%,var(--text));
   max-width:1500px;margin:0 auto;padding:calc(var(--nav-h,68px) + 1rem) clamp(16px,3vw,40px) 3rem;color:var(--lo-on)}
 .lo-top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:1rem 1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--lo-hair)}
@@ -400,17 +398,6 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
   .lo-acts .lo-btn{flex:1 1 auto}
 }
 @media (prefers-reduced-motion:reduce){.lo-toast,.lo-slot,.lo-btn,.lo-tab,.lo-cmpbox,.lo-pick::before,.lo-cmpbox::before{transition:none}}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .lo-grp[data-g=pilot]{--lo-tc:#a01f22}
-:root[data-theme="light"] .lo-grp[data-g=manned]{--lo-tc:#8d315e}
-:root[data-theme="light"] .lo-grp[data-g=remote]{--lo-tc:#773c82}
-:root[data-theme="light"] .lo-grp[data-g=missile]{--lo-tc:#5f4598}
-:root[data-theme="light"] .lo-grp[data-g=bomb]{--lo-tc:#454f9d}
-:root[data-theme="light"] .lo-grp[data-g=power]{--lo-tc:#645902}
-:root[data-theme="light"] .lo-grp[data-g=cooler]{--lo-tc:#00656a}
-:root[data-theme="light"] .lo-grp[data-g=shield]{--lo-tc:#245995}
-:root[data-theme="light"] .lo-grp[data-g=quantum]{--lo-tc:#236833}
-:root[data-theme="light"] .lo-grp[data-g=radar]{--lo-tc:#4f5a61}
 </style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Hangar', href: '/de/hangar.html' }, { label: l('lo.title') }] : [{ label: 'Hangar', href: '/hangar.html' }, { label: l('lo.title') }]} hasEn={true} />

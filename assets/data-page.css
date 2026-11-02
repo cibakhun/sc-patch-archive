@@ -21,9 +21,8 @@
    FARBEN: ausschliesslich Tokens (--bg, --surface, --text,
    --muted, --accent, --line, --veil …) bzw. daraus abgeleitete
    color-mix()-Werte. Die Palette selbst steht inline in
-   DataShell.astro, damit scripts/build-light-palettes.mjs den
-   Hellmodus daraus erzeugen kann. Hier darf KEIN Hex-Wert stehen
-   — sonst bricht der Hellmodus.
+   DataShell.astro (je Seitenart eine). Hier steht KEIN Hex-Wert,
+   damit jede Fläche der Palette folgt.
    ============================================================ */
 
 /* ---------- Schriftschichten ----------
@@ -84,8 +83,8 @@ body {
   --tone-2: var(--accent-2);
 
   /* Abgeleitete Flaechen/Linien. Bewusst als color-mix aus den vorhandenen
-     Tokens statt als neue Paletteneintraege: so gilt jede davon in Hell UND
-     Dunkel automatisch, und build-light-palettes.mjs muss nichts lernen. */
+     Tokens statt als neue Paletteneintraege: so folgt jede davon der
+     Palette der Seite automatisch. */
   --dp-rail: color-mix(in srgb, var(--tone-1) 38%, transparent);
   --dp-rail-2: color-mix(in srgb, var(--tone-2) 52%, transparent);
   --dp-hair: color-mix(in srgb, var(--tone-1) 26%, transparent);
@@ -111,8 +110,7 @@ body {
 }
 
 /* Crafting-Zweig: bernsteiner Leitton, violett als Zweitfarbe. Beide
-   Paletteneintraege gibt es in Hell UND Dunkel — der Tausch funktioniert
-   deshalb in beiden Modi.
+   Paletteneintraege stehen in jeder DataShell-Palette.
 
    ACHTUNG, hier lag ein stiller Fehler. Frueher tauschte diese Regel auf
    DIESELBEN Namen zurueck:
@@ -155,11 +153,6 @@ body {
   -webkit-mask-image: linear-gradient(180deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.35) 46%, rgb(0 0 0 / 0) 76%);
   mask-image: linear-gradient(180deg, rgb(0 0 0) 0%, rgb(0 0 0 / 0.35) 46%, rgb(0 0 0 / 0) 76%);
 }
-
-/* Auf Papier ist Leuchten Schmutz (dieselbe Begruendung wie in theme.css:
-   Vignette und Scanlines sind Dunkelmodus-Mittel). Das Raster bleibt als
-   dezente Struktur, das Licht geht fast aus. */
-:root[data-theme='light'] .dp::before { opacity: 0.4; }
 
 .dp-bar,
 .dp-main,

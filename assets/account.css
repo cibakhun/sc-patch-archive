@@ -1,7 +1,7 @@
 /* ============================================================================
    App-Shell + Uebersicht - mobiGlas OS (Design-Durchgang)
    Ikonografie via SVG-Sprite (#i-*), Akzent sparsam, Struktur statt Neon.
-   Hellmodus laeuft ueber die Tokens; das Registry-Banner ist Medienflaeche.
+   Farben laufen ueber die Tokens; das Registry-Banner ist Medienflaeche.
    ========================================================================== */
 .ic{width:20px;height:20px;flex:none;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle}
 
@@ -824,11 +824,6 @@ button.rd,a.rd{cursor:pointer;width:100%}
     letter-spacing: var(--ls-10);
   }
   .pv-verified[hidden] { display: none !important; }
-  :root[data-theme='light'] .pv-verified {
-    background: rgba(21, 128, 61, 0.1);
-    border-color: rgba(21, 128, 61, 0.45);
-    color: #15803d;
-  }
 
   .pv-handle {
     font-family: var(--font-mono, 'Share Tech Mono', monospace);

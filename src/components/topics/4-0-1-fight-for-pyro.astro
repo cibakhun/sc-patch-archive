@@ -19,8 +19,6 @@ const de = lang === 'de';
 
 /* 4.0.1 "Stabilitaet & Save Stanton II" — Konsolen-Blau (geerbt vom Patch) */
 :root{--bg:#0c1320;--bg-2:#101a2b;--surface:#152237;--surface-2:#1c2d46;--accent:#36c5d8;--accent-2:#f0a32a;--hot:#36c5d8;--text:#e6f0fa;--muted:#8ba3bd;--line:rgba(54,197,216,.22);--line-soft:rgba(230,240,250,.10);--glow:0 0 44px rgba(54,197,216,.30);--ink:#0c1320;--maxw:1180px;}
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f8fe;--bg-2:#e8eef9;--surface:#fdfdff;--surface-2:#edf3fc;--text:#192027;--muted:#4a5a6b;--accent:#026772;--accent-2:#754b03;--hot:#055e68;--ink:#ffffff;--accent-media:#36c5d8;--accent-2-media:#f0a32a;--line:rgba(42,127,138,.3);--line-soft:rgba(39,47,54,.12);--glow:0 6px 22px rgba(42,127,138,.18)}
 
 
 
@@ -37,14 +35,10 @@ const de = lang === 'de';
 .fcard{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;min-height:340px;display:flex;flex-direction:column;justify-content:flex-end;padding:1.5rem 1.4rem;isolation:isolate}
 .fcard .fbg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transition:transform .8s;filter:saturate(.9)}
 .fcard:hover .fbg{transform:scale(1.07)}
-/* Rule 1 (Plan 03-05): --veil und --veil-2 sind Flaechen-Schleier (im
-   Hellmodus absichtlich fast durchsichtig, siehe theme.css "leichte
-   Eintruebung statt Abdunklung") -- ueber einem FOTO (.fbg) ist das der
-   falsche Tokensatz, im Hellmodus blieb das Foto darunter fast unveraendert
-   hell waehrend die Textfarbe dunkel wird (Kontrast brach ein). Auf die
-   Scrim-Skala und die on-media-Textrollen umgestellt, denselben Tokensatz
-   wie ueberall sonst in diesem Bestand fuer Text auf Foto (vgl. .tool::after
-   in src/pages/index.astro). */
+/* Rule 1 (Plan 03-05): --veil und --veil-2 sind Flaechen-Schleier -- ueber
+   einem FOTO (.fbg) ist das der falsche Tokensatz. Hier die Scrim-Skala und
+   die on-media-Textrollen, derselbe Tokensatz wie ueberall sonst in diesem
+   Bestand fuer Text auf Foto (vgl. .tool::after in src/pages/index.astro). */
 .fcard::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--scrim-6),var(--scrim-6) 45%,var(--scrim-1))}
 .fcard .fk{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-17);text-transform:uppercase;font-size:var(--fs-4);color:var(--accent-2-media)}
 .fcard h3{font-family:var(--font-display);font-weight:800;font-size:clamp(1.2rem,2.2vw,1.6rem);line-height:1.05;color:var(--on-media);margin:.35rem 0 .5rem}

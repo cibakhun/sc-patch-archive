@@ -43,9 +43,8 @@ RUN npm run build
 # Jede Strecke traegt ihre Begruendung im Verzeichnis. Das gemeinsame Muster
 # dahinter: sie alle fangen Fehler, die NICHTS sichtbar brechen — die Seite
 # baut, laedt und funktioniert, sie ist nur wieder schlechter (falsche
-# Bauteilgroesse, gerissene Skala, Kontrast-Rueckfall, halbe Sprachfassung,
-# still verworfene Hellmodus-Farbe). Ein Mensch entdeckt so etwas Wochen
-# spaeter oder nie.
+# Bauteilgroesse, gerissene Skala, Kontrast-Rueckfall, halbe Sprachfassung).
+# Ein Mensch entdeckt so etwas Wochen spaeter oder nie.
 #
 # Umgebung hier: kein git, kein Netz, keine Data.p4k. Wer eine Strecke
 # anhaengt, die eines davon braucht, gehoert auf Schiene B (gate:data) —
