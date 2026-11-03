@@ -4,8 +4,9 @@
 //  A broadcast reaches one channel, so it can't be rendered per-user the way
 //  the bot's slash-command replies are. Same answer as the patch feed
 //  (bot/src/patch-watch.mjs): ONE message carrying TWO single-language embeds
-//  — English first, German second — plus a single ping to @📢 Announcement
-//  Pings, the opt-in role. Nobody has to read a language they didn't pick.
+//  — English first, German second — plus the pings in PINGS below, all of them
+//  in the message content, since a role mention inside an embed notifies
+//  nobody. Nobody has to read a language they didn't pick.
 //
 //  Idempotent: refuses to post twice for the same milestone (it scans the
 //  channel's recent history for its own embed title). Re-runnable, so a failed
@@ -21,7 +22,7 @@
 //                                               # attachment on edit, so this
 //                                               # works with --edit too)
 // ═══════════════════════════════════════════════════════════════════════════
-import { Client, GatewayIntentBits, EmbedBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,48 +71,85 @@ const REFS = ['feedback'];
 const BODY = {
   en: {
     author: 'VerseBase · Community milestone',
-    title: '🎉 200 pilots — thank you',
+    title: '🎉 10,000 visitors — thank you',
     description:
-      'verse-base.com just crossed **200 unique visitors**.\n\n' +
-      'A few weeks ago this was a patch archive and two calculators. Since then ' +
-      '200 of you have come through — and **38 came back** for more. That second ' +
-      'number is the one I\'m proudest of.',
-    fieldsTitle: 'What you\'ve been flying with',
+      'verse-base.com just passed **10,000 visitors**.\n\n' +
+      'When it crossed 200 a few months ago, this was a patch archive and two ' +
+      'calculators. It is now 231 ships, 1,617 blueprints, a mining bench and a ' +
+      'refinery — and what I hear most often is that people keep it open on a ' +
+      'second screen while the game runs. That is exactly what it is for.\n\n' +
+      'To mark it, the two pages that had fallen furthest behind are **rebuilt ' +
+      'and live**.',
+    fieldsTitle: 'Rebuilt for the occasion',
     fields:
-      '🩹 The patch archive & evolution timeline\n' +
-      '⛏ 💰 🔧 Mining, trading & crafting databases — deep, current, cross-linked\n' +
-      '🚀 227 ships with 3D holo viewers and full data sheets\n' +
-      '🔎 5,086 items and 1,594 blueprints in the Item Finder\n' +
-      '🧭 Jordessey\'s Aaron Halo jump calculator\n' +
-      '🤖 And Verse-Bot right here — `/ship` `/price` `/item` `/patch`',
-    nextTitle: 'Next stop: 500',
-    next: 'If a tool helped you, tell a wingman. If something\'s missing, {feedback} is wide open.',
+      '👤 **Your account** — the overview is a cockpit: every tool with its ' +
+      'current state, and one history across all of them\n' +
+      '🪪 **Profile in tabs, pilot page beside it** — edit on the left, watch ' +
+      'your public pilot page change on the right. Rank, hangar and showcase included\n' +
+      '🔐 **Security at a glance** — a “3 of 4” shield up top, two-factor with any ' +
+      'authenticator app (just scan the QR code), every session and connected ' +
+      'account in one place\n' +
+      '👥 **Friends** — invite someone with your own link, chat in the sidebar\n' +
+      '⚗️ **Refinery** — yield for all 20 refineries per ore, 26 refinable ores, ' +
+      'the 9 methods, and what each ore is worth\n' +
+      '⏱ **Tracker with a countdown** — your orders with time left and value, a ' +
+      'mini timer in your account, and a ping when one finishes — on the site or ' +
+      'via Discord, your choice',
+    thanksTitle: 'A special o7 to our Test Pilots',
+    thanks:
+      'You poked at every rough edge before anyone else saw it and reported the ' +
+      'bugs that would have hit everyone — a good chunk of the polish in this ' +
+      'update is down to you.',
+    nextTitle: 'Next stop: 25,000',
+    next:
+      'If a tool helped you, tell a wingman. And if something looks wrong or ' +
+      'does not work, {feedback} is wide open — that is where most of this came from.',
     footer: 'o7 · Krisz',
   },
   de: {
     author: 'VerseBase · Community-Meilenstein',
-    title: '🎉 200 Piloten — danke',
+    title: '🎉 10.000 Besucher — danke',
     description:
-      'verse-base.com hat gerade **200 einzelne Besucher** geknackt.\n\n' +
-      'Vor ein paar Wochen war das ein Patch-Archiv und zwei Rechner. Seitdem ' +
-      'waren 200 von euch da, **38 sind wiedergekommen** — auf die zweite Zahl ' +
-      'bin ich am meisten stolz.',
-    fieldsTitle: 'Was ihr genutzt habt',
+      'verse-base.com hat gerade die **10.000 Besucher** geknackt.\n\n' +
+      'Vor ein paar Monaten, als wir die 200 erreicht haben, war das hier ein ' +
+      'Patch-Archiv und zwei Rechner. Heute sind\'s 231 Schiffe, 1.617 Baupläne, ' +
+      'eine Mining-Werkbank und eine Raffinerie — und was ich am häufigsten höre: ' +
+      'Ihr habt die Seite auf dem zweiten Bildschirm offen, während ihr zockt. ' +
+      'Genau dafür ist sie gedacht.\n\n' +
+      'Zum Anlass haben wir die zwei Seiten, die am meisten hinterherhingen, ' +
+      'komplett neu gebaut — und sie sind **live**.',
+    fieldsTitle: 'Frisch neu gebaut',
     fields:
-      '🩹 Das Patch-Archiv & die Evolutions-Zeitleiste\n' +
-      '⛏ 💰 🔧 Bergbau-, Handels- & Handwerks-Datenbanken — tief, aktuell, verlinkt\n' +
-      '🚀 227 Schiffe mit 3D-Holo-Viewer und vollen Datenblättern\n' +
-      '🔎 5.086 Items und 1.594 Baupläne im Item-Finder\n' +
-      '🧭 Jordesseys Aaron-Halo-Sprungrechner\n' +
-      '🤖 Und Verse-Bot direkt hier — `/ship` `/price` `/item` `/patch`',
-    nextTitle: 'Nächstes Ziel: 500',
-    next: 'Wenn dir ein Tool geholfen hat, erzähl\'s einem Wingman. Wenn was fehlt: {feedback} steht offen.',
+      '👤 **Dein Konto** — die Übersicht ist jetzt ein echtes Cockpit: alle Tools ' +
+      'mit ihrem aktuellen Stand und ein gemeinsamer Verlauf über alles\n' +
+      '🪪 **Profil in Reitern, Pilotenseite direkt daneben** — links bearbeiten, ' +
+      'rechts in Echtzeit zusehen, wie sich deine öffentliche Pilotenseite ' +
+      'verändert. Mit Rang, Hangar und Schaufenster\n' +
+      '🔐 **Sicherheit auf einen Blick** — oben ein „3 von 4"-Schild, Zwei-Faktor ' +
+      'mit jeder Authenticator-App (einfach den QR-Code scannen), und alle ' +
+      'Sitzungen und verbundenen Konten an einem Ort\n' +
+      '👥 **Freunde** — per eigenem Link einladen und direkt in der Seitenleiste chatten\n' +
+      '⚗️ **Raffinerie** — Ertrag aller 20 Raffinerien pro Erz, 26 raffinierbare ' +
+      'Erze, die 9 Methoden und was jedes Erz einbringt\n' +
+      '⏱ **Auftrags-Tracker mit Countdown** — alle Aufträge mit Restzeit und Wert, ' +
+      'ein Mini-Timer direkt im Konto und eine Benachrichtigung, sobald einer ' +
+      'fertig ist — auf der Seite oder per Discord, ganz wie du magst',
+    thanksTitle: 'Ein besonderes o7 an unsere Test Pilots',
+    thanks:
+      'Ihr habt jede raue Kante angefasst, bevor sie jemand anders zu sehen ' +
+      'bekam, und die Bugs gemeldet, die sonst alle erwischt hätten — ein guter ' +
+      'Teil vom Feinschliff in diesem Update geht auf euch zurück.',
+    nextTitle: 'Nächstes Ziel: 25.000',
+    next:
+      'Wenn dir eins der Tools weitergeholfen hat, erzähl\'s einem Wingman. Und ' +
+      'wenn irgendwas falsch aussieht oder hakt — {feedback} ist offen. Von da ' +
+      'kam das meiste hier überhaupt erst.',
     footer: 'o7 · Krisz',
   },
 };
 
 // Ping line. The only place both languages share a line — it's four words.
-const PING_LINE = '200 pilots · 200 Piloten 🎉';
+const PING_LINE = '10,000 visitors · 10.000 Besucher 🎉';
 
 function buildEmbed(locale, mentions, { image = false } = {}) {
   const b = BODY[locale];
@@ -123,6 +161,7 @@ function buildEmbed(locale, mentions, { image = false } = {}) {
     .setDescription(b.description)
     .addFields(
       { name: b.fieldsTitle, value: b.fields },
+      { name: b.thanksTitle, value: b.thanks },
       { name: b.nextTitle, value: next },
     )
     .setFooter({ text: b.footer });
@@ -148,8 +187,24 @@ const channel = guild.channels.cache.find(
 );
 if (!channel) { console.error('✗ No #announcements channel found.'); process.exit(1); }
 
-const role = guild.roles.cache.find((r) => /announcement\s*pings/i.test(r.name));
-if (!role) console.warn('! No "📢 Announcement Pings" role — posting without a ping.');
+// Roles the message pings, in the order they appear in the content line.
+// Both are mentionable:false by blueprint (roles[], "Notification opt-ins"), so
+// only MentionEveryone reaches them — and Discord renders a mention it won't
+// allow as inert text WITHOUT an error. So the permission is checked below and
+// a dead ping aborts the run instead of shipping a post that looks right.
+const PINGS = [
+  { label: '📢 Announcement Pings', match: /announcement\s*pings/i },
+  { label: '🧪 Test Pilots', match: /test\s*pilots/i },
+];
+const pingRoles = [];
+for (const p of PINGS) {
+  const r = guild.roles.cache.find((x) => p.match.test(x.name));
+  if (r) pingRoles.push(r);
+  else console.warn(`! No "${p.label}" role — posting without that ping.`);
+}
+
+const me = await guild.members.fetchMe().catch(() => null);
+const canMentionAll = Boolean(channel.permissionsFor(me)?.has(PermissionFlagsBits.MentionEveryone));
 
 const mentions = {};
 for (const key of REFS) {
@@ -159,8 +214,33 @@ for (const key of REFS) {
 }
 
 console.log(`Channel: #${channel.name}`);
-console.log(`Ping:    ${role ? `@${role.name}` : '(none)'}`);
 console.log(`Refs:    ${REFS.map((k) => `${k} → ${mentions[k]}`).join(', ')}`);
+console.log(`Bot:     ${me?.user.tag ?? '?'} · MentionEveryone in #${channel.name}: ${canMentionAll ? 'yes' : 'NO'}`);
+let totLos = 0;
+for (const r of pingRoles) {
+  const wirdPingen = r.mentionable || canMentionAll;
+  if (!wirdPingen) totLos++;
+  console.log(`Ping:    @${r.name}  id ${r.id}  mentionable=${r.mentionable}  pings: ${wirdPingen ? 'yes' : 'NO — inert text'}`);
+}
+if (totLos) {
+  console.error(`\n✗ ${totLos} Rolle(n) würden als Klartext erscheinen, nicht als Ping. Abbruch.`);
+  await client.destroy();
+  process.exit(1);
+}
+
+// Discord's own limits. An overlong field is a 400 at send time, which on a
+// milestone post means the ping is spent and the retry is a second message.
+const GRENZEN = { author: 256, title: 256, description: 4096, fieldsTitle: 256, fields: 1024, thanksTitle: 256, thanks: 1024, nextTitle: 256, next: 1024, footer: 2048 };
+let zuLang = 0;
+for (const [loc, b] of Object.entries(BODY)) {
+  for (const [feld, max] of Object.entries(GRENZEN)) {
+    const n = (b[feld] ?? '').length;
+    if (n > max) { zuLang++; console.error(`✗ ${loc}.${feld} ${n} / ${max}`); }
+  }
+}
+const laengste = Math.max(...Object.values(BODY).map((b) => b.fields.length));
+console.log(`Felder:  ${Object.keys(GRENZEN).length * 2} geprüft, längstes ${laengste} / 1024`);
+if (zuLang) { console.error(`\n✗ ${zuLang} Feld(er) über der Grenze. Abbruch.`); await client.destroy(); process.exit(1); }
 
 // ── idempotency ─────────────────────────────────────────────────────────────
 const recent = await channel.messages.fetch({ limit: 50 }).catch(() => null);
@@ -168,9 +248,14 @@ const already = recent && [...recent.values()].find(
   (m) => m.author?.id === client.user.id && m.embeds?.some((e) => e.title === BODY.en.title),
 );
 const payload = {
-  content: role ? `<@&${role.id}> — ${PING_LINE}` : PING_LINE,
+  content: pingRoles.length
+    ? `${pingRoles.map((r) => `<@&${r.id}>`).join(' ')} — ${PING_LINE}`
+    : PING_LINE,
   embeds: [buildEmbed('en', mentions, { image: true }), buildEmbed('de', mentions)],
-  allowedMentions: { roles: role ? [role.id] : [] },
+  // parse: [] turns off @everyone and every mention Discord would otherwise
+  // find in the text; the roles list is then the whole allowlist. A channel
+  // mention in the body is unaffected — it isn't a notification.
+  allowedMentions: { parse: [], roles: pingRoles.map((r) => r.id) },
 };
 if (IMAGE) payload.files = [{ attachment: IMAGE, name: IMAGE_NAME }];
 

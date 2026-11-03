@@ -15,11 +15,8 @@
    footer style themselves from the palette vars declared below, so the shared
    chrome joins the voyage for free.
 
-   THEME-INVARIANT: this is a media surface — a viewport into space. A hologram
-   on white paper is not a hologram, so the page stays dark in BOTH modes (the
-   site's own "media is theme-invariant" rule, cf. theme.css). The token block
-   is therefore declared for :root AND :root[data-theme='light'] with identical
-   values, which also keeps the shared nav dark and cohesive if an admin toggles.
+   A media surface — a viewport into space. The token block below sets the
+   whole palette for :root, which also keeps the shared nav dark and cohesive.
    ========================================================================== */
 
 /* --era / --era-2 are registered so the scroll-driven colour change becomes a
@@ -36,8 +33,7 @@
   initial-value: #f0a32a;
 }
 
-:root,
-:root[data-theme='light'] {
+:root {
   /* — Void & surfaces — */
   --void: #04060e; /* deep blue-black floor */
   --void-2: #070b18;

@@ -20,7 +20,8 @@
    opts.interior[pfad] mit Datei und Metadaten (Sitze) aus dist/. Die
    Rechnung steht in scripts/lib/hangar-lage.mjs (dieselbe wie in den
    Werkzeugen measure-hangar-innenlage und measure-hangar-inseln), mit der
-   Regel des ausgelieferten Viewers, was er nicht zeichnet (isDamageMesh).
+   Regel des ausgelieferten Viewers, was er nicht zeichnet (hiddenMaterial:
+   POM-Decals, Schadensnetze, Platzhalterwand).
 
    KLINKE je Schiff: scripts/lib/hangar-lage-klinke.json trägt je Schiff
    die erlaubten Werte und den Fingerabdruck der gemessenen Dateien. Gleicher
@@ -40,6 +41,9 @@
          mindestens SITZ_MIN Dreiecke bis SITZ_R (FEHLER: der Container sitzt
          neben dem Cockpit). Innenräume ohne Dreiecke (ihr Cockpit ist Teil
          des Rumpfs, die Datei trägt nur Lichter) zählen nur mit.
+         Ein Innenraum mit Dreiecken ohne Sitz in den Metadaten braucht eine
+         benannte Ausnahme (FEHLER: dann prüft nichts, ob er am Cockpit
+         liegt), eine Ausnahme mit Sitz ist ein Zombie (FEHLER).
          Sitze mit Innenraum: mindestens die Klinke sitzOk.
      [4] Lose Teile: Ein Schiff mit Teilen, die getrennt außerhalb des
          Hüllquaders seines Rumpfs hängen, braucht eine benannte Ausnahme
@@ -56,6 +60,10 @@
      node scripts/verify-hangar-lage.mjs --nachziehen --anlass "<warum>"
      node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme innen:<schiff>="<warum>"
      node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme inseln:<schiff>="<warum>"
+     node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme sitz:<schiff>="<warum>"
+   Was Nachziehen nicht heilen kann (fehlende Dateien, Klinke der Zahl der
+   Schiffe, Innenraum neben dem Sitz, Schiff ohne Messung), bricht es ab,
+   statt es in die Klinke zu schreiben.
    (Grundsatz 5: nach oben nur per Commit, dessen Botschaft die Ursache
    nennt). Danach das Tor ohne Schalter laufen lassen.
    ============================================================ */
@@ -69,7 +77,8 @@ import { WERKZEUG, SITZ_MIN, SITZ_R, readGeometry, sceneNodes, hullSpans, judge,
 
 // Hilfsfaden: misst die Schiffe aus workerData.part und meldet je Schiff
 if (!isMainThread) {
-  const { isDamageMesh: verborgen } = await import(pathToFileURL(workerData.viewer).href);
+  const { hiddenMaterial } = await import(pathToFileURL(workerData.viewer).href);
+  const verborgen = (name) => !!hiddenMaterial(name);
   for (const s of workerData.part) parentPort.postMessage({ id: s.id, r: await measureShip(s, verborgen) });
 } else await main();
 
@@ -110,15 +119,17 @@ async function main() {
   const NACHZIEHEN = argv.includes('--nachziehen');
   const anlassAt = argv.indexOf('--anlass');
   const ANLASS = anlassAt >= 0 ? argv[anlassAt + 1] : null;
-  const AUSNAHME = { innen: {}, inseln: {} };
+  const AUSNAHME = { innen: {}, inseln: {}, sitz: {} };
   argv.forEach((a, i) => {
-    const m = a === '--ausnahme' ? /^(innen|inseln):([^=]+)=(.+)$/s.exec(argv[i + 1] ?? '') : null;
+    const m = a === '--ausnahme' ? /^(innen|inseln|sitz):([^=]+)=(.+)$/s.exec(argv[i + 1] ?? '') : null;
     if (m) AUSNAHME[m[1]][m[2]] = m[3];
   });
 
-  const findings = [], warnings = [];
+  const findings = [], warnings = [], hart = [];
   const say = (s) => console.log(s);
   const fail = (s) => findings.push(s);
+  // FEHLER, die --nachziehen nicht heilen kann: es bricht dann ab
+  const failHart = (s) => { findings.push(s); hart.push(s); };
   const warn = (s) => warnings.push(s);
   const sollIst = (soll, ist) => say(`    Soll: ${soll}\n    Ist:  ${ist}`);
   const pathOf = (u) => decodeURI(String(u).split('?')[0]);
@@ -137,13 +148,13 @@ async function main() {
     console.error(`\nverify-hangar-lage: ${PAGE} ohne StageConfig (#hg-stage)\n`);
     process.exit(1);
   }
-  // Was der Viewer nicht zeichnet, zählt nicht: isDamageMesh aus dem
+  // Was der Viewer nicht zeichnet, zählt nicht: hiddenMaterial aus dem
   // ausgelieferten Viewer, dieselbe Regel wie dort
   const viewer = stage.viewer ? inDist(stage.viewer) : null;
-  let damage = null;
-  try { damage = viewer && existsSync(viewer) ? (await import(pathToFileURL(viewer).href)).isDamageMesh : null; } catch (e) { fail(`der Viewer ${stage.viewer} laedt nicht als Modul (${e.message})`); }
-  if (typeof damage !== 'function') {
-    console.error('\nverify-hangar-lage: der ausgelieferte Viewer exportiert isDamageMesh nicht: Dann zaehlt dieses Tor Schadensnetze mit, die der Viewer verbirgt\n');
+  let vm = null;
+  try { vm = viewer && existsSync(viewer) ? await import(pathToFileURL(viewer).href) : null; } catch (e) { failHart(`der Viewer ${stage.viewer} laedt nicht als Modul (${e.message})`); }
+  if (typeof vm?.hiddenMaterial !== 'function' || typeof vm?.isDamageMesh !== 'function') {
+    console.error('\nverify-hangar-lage: der ausgelieferte Viewer exportiert hiddenMaterial oder isDamageMesh nicht: Dann zaehlt dieses Tor Flaechen mit, die der Viewer verbirgt (POM-Decals, Schadensnetze, Platzhalterwand)\n');
     process.exit(1);
   }
   const klinke = existsSync(KLINKE_FILE) ? JSON.parse(readFileSync(KLINKE_FILE, 'utf8')) : { schiffe: {} };
@@ -162,10 +173,10 @@ async function main() {
   const mitInnen = ships.filter((s) => s.inner);
   sollIst(`mindestens ${KLINKE_SCHIFFE} Schiffe mit Werkslack und ${KLINKE_INNEN} Innenraeume, jede Datei in dist/, kein Innenraum ohne Schiff`,
     `${ships.length} Schiffe, ${mitInnen.length} mit Innenraum, ${fehlt.length} Dateien fehlen, ${waise.length} Innenraeume ohne Schiff`);
-  for (const f of fehlt) fail(`[1] ${f} fehlt in dist/`);
-  for (const p of waise) fail(`[1] Innenraum zu ${p}, aber kein Schiff der Seite laedt diese Datei: Der Viewer findet ihn nie (opts.interior ist nach dem Pfad der Werkslack-Datei geschluesselt)`);
-  if (ships.length < KLINKE_SCHIFFE) fail(`[1] nur ${ships.length} Schiffe mit Werkslack auf der Seite (Klinke ${KLINKE_SCHIFFE})`);
-  if (mitInnen.length < KLINKE_INNEN) fail(`[1] nur ${mitInnen.length} Innenraeume auf der Seite (Klinke ${KLINKE_INNEN})`);
+  for (const f of fehlt) failHart(`[1] ${f} fehlt in dist/`);
+  for (const p of waise) failHart(`[1] Innenraum zu ${p}, aber kein Schiff der Seite laedt diese Datei: Der Viewer findet ihn nie (opts.interior ist nach dem Pfad der Werkslack-Datei geschluesselt)`);
+  if (ships.length < KLINKE_SCHIFFE) failHart(`[1] nur ${ships.length} Schiffe mit Werkslack auf der Seite (Klinke ${KLINKE_SCHIFFE})`);
+  if (mitInnen.length < KLINKE_INNEN) failHart(`[1] nur ${mitInnen.length} Innenraeume auf der Seite (Klinke ${KLINKE_INNEN})`);
 
   // ---- Messung oder Klinke ----
   const here = ships.filter((s) => [s.hull, s.inner, s.meta].every((f) => !f || existsSync(f)));
@@ -176,7 +187,7 @@ async function main() {
   }
   // Fassung = Rechnung plus Regel des Viewers, was er verbirgt: ändert sich
   // eins, gilt kein Wert aus der Klinke mehr ohne neue Messung
-  const FASSUNG = `${WERKZEUG}, verborgen ${createHash('sha256').update(String(damage)).digest('hex').slice(0, 8)}`;
+  const FASSUNG = `${WERKZEUG}, verborgen ${createHash('sha256').update(String(vm.hiddenMaterial)).update(String(vm.isDamageMesh)).digest('hex').slice(0, 8)}`;
   const known = klinke.werkzeug === FASSUNG;
   const res = new Map();
   for (const s of here) if (known && K[s.id]?.sha === s.sha && K[s.id].gemessen) res.set(s.id, K[s.id].gemessen);
@@ -230,10 +241,13 @@ async function main() {
   const leer = mitSitz.filter((s) => !res.get(s.id).innen.tris).map((s) => s.id);
   const daneben = mitSitz.filter((s) => res.get(s.id).innen.tris && !res.get(s.id).sitz.ok);
   const sitzOk = mitSitz.filter((s) => res.get(s.id).sitz.ok).length;
-  const ohneSitz = innen.filter((s) => !res.get(s.id).sitz).map((s) => s.id);
-  sollIst(`jeder Innenraum mit Dreiecken am Pilotensitz, mindestens ${klinke.sitzOk ?? '—'} Sitze mit Innenraum`,
-    `${mitSitz.length} Innenraeume mit Sitz: ${sitzOk} am Sitz, ${daneben.length} daneben, ${leer.length} ohne Dreiecke (Cockpit im Rumpf: ${list(leer, 4)}); ohne Sitzangabe ${ohneSitz.length}${ohneSitz.length ? ` (${ohneSitz.join(', ')})` : ''}`);
-  for (const s of daneben) { const z = res.get(s.id).sitz; fail(`[3] ${s.id}: am Pilotensitz ${z.name} nur ${z.nah} Dreiecke des Innenraums bis ${SITZ_R} m (naechstes ${z.abstand ?? '—'} m): Der Container sitzt neben dem Cockpit (Gladius vor #269: 8,5 m dahinter). Lage im Bau pruefen (placeContainers), beim Einsteigen ansehen`); }
+  const ohneSitz = innen.filter((s) => !res.get(s.id).sitz && res.get(s.id).innen.tris).map((s) => s.id);
+  const ausn3 = innen.filter((s) => K[s.id]?.ausnahmeSitz).map((s) => s.id);
+  sollIst(`jeder Innenraum mit Dreiecken am Pilotensitz, ohne Sitzangabe nur mit benannter Ausnahme, mindestens ${klinke.sitzOk ?? '—'} Sitze mit Innenraum`,
+    `${mitSitz.length} Innenraeume mit Sitz: ${sitzOk} am Sitz, ${daneben.length} daneben, ${leer.length} ohne Dreiecke (Cockpit im Rumpf: ${list(leer, 4)}); mit Dreiecken ohne Sitzangabe ${ohneSitz.length}${ohneSitz.length ? ` (${ohneSitz.join(', ')})` : ''}; Ausnahmen ${ausn3.length}`);
+  for (const id of ohneSitz) if (!K[id]?.ausnahmeSitz) fail(`[3] ${id}: Innenraum mit ${res.get(id).innen.tris} Dreiecken, aber kein Sitz in den Metadaten: Dann prueft nichts, ob er am Cockpit liegt. Sitze im Bau pruefen (spots kind seat aus den Helfern hardpoint_*seat*); fehlen sie im Spiel, Ausnahme mit --nachziehen --ausnahme sitz:${id}="<warum>"`);
+  for (const id of ausn3) if (!ohneSitz.includes(id)) fail(`[3] ${id}: Ausnahme „${K[id].ausnahmeSitz}“ ohne Anlass, der Innenraum hat einen Sitz oder keine Dreiecke mehr: mit --nachziehen streichen`);
+  for (const s of daneben) { const z = res.get(s.id).sitz; failHart(`[3] ${s.id}: am Pilotensitz ${z.name} nur ${z.nah} Dreiecke des Innenraums bis ${SITZ_R} m (naechstes ${z.abstand ?? '—'} m): Der Container sitzt neben dem Cockpit (Gladius vor #269: 8,5 m dahinter). Lage im Bau pruefen (placeContainers), beim Einsteigen ansehen`); }
   if (klinke.sitzOk != null && sitzOk < klinke.sitzOk) fail(`[3] nur ${sitzOk} Sitze mit Innenraum, Klinke ${klinke.sitzOk}`);
 
   // ---- [4] ----
@@ -242,7 +256,7 @@ async function main() {
   const maxM = (r) => Math.max(0, ...r.inseln.map((c) => c.aussenM));
   for (const s of here) {
     const r = res.get(s.id), k = K[s.id];
-    if (!r) { fail(`[4] ${s.id}: keine Messung`); continue; }
+    if (!r) { failHart(`[4] ${s.id}: keine Messung`); continue; }
     const n = r.inseln.length;
     if (n && !k?.ausnahmeInseln) fail(`[4] ${s.id}: ${n} lose Teile neben dem Rumpf (${r.inseln.map((c) => `${c.tris} Dr. ${c.aussenM} m draussen, ${c.material}`).join('; ')}) ohne benannte Ausnahme: mit measure-hangar-inseln ${s.id} (am PC --roh mit Knotenpfad) suchen, welches Teil der Bau weglaesst oder falsch setzt; stimmt es, Ausnahme mit --nachziehen --ausnahme inseln:${s.id}="<warum>"`);
     if (!n && k?.ausnahmeInseln) fail(`[4] ${s.id}: Ausnahme „${k.ausnahmeInseln}“ ohne Anlass, kein loses Teil mehr: mit --nachziehen streichen`);
@@ -276,6 +290,11 @@ async function main() {
         if (!aus && k?.ausnahmeInnen) gestrichen.push(`innen:${s.id}`);
         if (aus) e.ausnahmeInnen = aus;
       }
+      if (r.innen?.tris && !r.sitz) {
+        const aus = AUSNAHME.sitz[s.id] ?? k?.ausnahmeSitz;
+        if (!aus) ohne.push(`sitz:${s.id}`);
+        else e.ausnahmeSitz = aus;
+      } else if (k?.ausnahmeSitz) gestrichen.push(`sitz:${s.id}`);
       if (r.inseln.length) {
         e.inseln = nimm('inseln', r.inseln.length, k?.inseln ?? (k ? 0 : null));
         e.inselM = nimm('inselM', maxM(r), k?.inselM ?? (k ? 0 : null));
@@ -291,13 +310,19 @@ async function main() {
     const mitInseln = sinkt('mitInseln', lose.length, klinke.mitInseln);
     let sitzK = sitzOk;
     if (klinke.sitzOk != null && sitzOk < klinke.sitzOk) { if (ANLASS) sitzK = sitzOk; else { steigt.push(`sitzOk ${klinke.sitzOk} → ${sitzOk}`); sitzK = klinke.sitzOk; } }
+    if (hart.length) {
+      console.error(`\nverify-hangar-lage: nicht nachgezogen, ${hart.length} FEHLER, die keine Klinke heilt:\n`);
+      for (const f of hart) console.error(`  · ${f}`);
+      console.error('');
+      process.exit(1);
+    }
     if (steigt.length || ohne.length) {
-      console.error(`\nverify-hangar-lage: nicht nachgezogen.${steigt.length ? ` ${steigt.length} Werte stiegen (${steigt.join(', ')}): Ursache klaeren, anheben nur mit --anlass "<warum>".` : ''}${ohne.length ? ` ${ohne.length} ohne Ausnahme (${ohne.join(', ')}): ansehen, stimmt es, --ausnahme innen:<schiff>="<warum>" bzw. inseln:<schiff>="<warum>".` : ''}\n`);
+      console.error(`\nverify-hangar-lage: nicht nachgezogen.${steigt.length ? ` ${steigt.length} Werte stiegen (${steigt.join(', ')}): Ursache klaeren, anheben nur mit --anlass "<warum>".` : ''}${ohne.length ? ` ${ohne.length} ohne Ausnahme (${ohne.join(', ')}): ansehen, stimmt es, --ausnahme innen:<schiff>="<warum>", --ausnahme inseln:<schiff>="<warum>" bzw. --ausnahme sitz:<schiff>="<warum>".` : ''}\n`);
       process.exit(1);
     }
     const ordered = Object.fromEntries(Object.keys(schiffe).sort().map((id) => [id, schiffe[id]]));
     writeFileSync(KLINKE_FILE, `${JSON.stringify({ werkzeug: FASSUNG, aussen1, sitzOk: sitzK, mitInseln, schiffe: ordered }, null, 1)}\n`);
-    say(`\nverify-hangar-lage: Klinke nachgezogen (${Object.keys(ordered).length} Schiffe, ${zombies.length} gestrichen, Ausnahmen innen ${Object.values(ordered).filter((e) => e.ausnahmeInnen).length}, lose Teile ${Object.values(ordered).filter((e) => e.ausnahmeInseln).length}${gestrichen.length ? `, Ausnahme gestrichen: ${gestrichen.join(', ')}` : ''}${ANLASS ? `, Anlass: ${ANLASS}` : ''}). Jetzt das Tor ohne Schalter laufen lassen.\n`);
+    say(`\nverify-hangar-lage: Klinke nachgezogen (${Object.keys(ordered).length} Schiffe, ${zombies.length} gestrichen, Ausnahmen innen ${Object.values(ordered).filter((e) => e.ausnahmeInnen).length}, ohne Sitz ${Object.values(ordered).filter((e) => e.ausnahmeSitz).length}, lose Teile ${Object.values(ordered).filter((e) => e.ausnahmeInseln).length}${gestrichen.length ? `, Ausnahme gestrichen: ${gestrichen.join(', ')}` : ''}${ANLASS ? `, Anlass: ${ANLASS}` : ''}). Jetzt das Tor ohne Schalter laufen lassen.\n`);
     process.exit(0);
   }
 

@@ -221,7 +221,6 @@ Daten-Refresh am Patch-Day.
 | Schiffe / Specs | `npm run sync:vehicles`, `npm run sync:ships`, `npm run sync:extras` |
 | 3D-Hologramme | `npm run extract:hardpoints`, `npm run build:holo-meshes`, `npm run calibrate:holo` |
 | Raffinerie | `npm run sync:refinery` |
-| Hell-/Dunkel-Paletten | `npm run theme` |
 
 ## Mitschreiben
 

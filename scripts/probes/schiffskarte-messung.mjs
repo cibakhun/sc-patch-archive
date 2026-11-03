@@ -39,8 +39,8 @@
        die AUSWAHL selbst bleibt berechnet, nicht die Kennung.
 
    MESSMATRIX: 3 Schiffe x 2 Sprachen (Wurzelpfad, /de/-Praefix) x 2 Breiten
-   (1280x720, 360x740) x 2 Farbmodi (data-theme am Wurzelelement gesetzt,
-   Neuzeichnen abgewartet) = 24 Laeufe, ZEHN Messgruppen (a-j, seit
+   (1280x720, 360x740) x dunkel (bis 02.11.2026 zusaetzlich hell, den
+   hellen Modus gibt es seither nicht mehr) = 12 Laeufe, ZEHN Messgruppen (a-j, seit
    16-05-PLAN.md Task 2: j-konsolen-kontrast) je Lauf.
    Gruppe i (Backstop E2, seit 14-04-PLAN.md Task 2) laeuft nur bei
    1280x720: kein Innenraster ueberschreitet die Breite seines Kapitels,
@@ -141,7 +141,8 @@ const BREITEN = [
   { id: '1280x720', breite: 1280, hoehe: 720 },
   { id: '360x740', breite: 360, hoehe: 740 },
 ];
-const FARBMODI = ['dark', 'light'];
+// Bis 02.11.2026 zusaetzlich 'light'; den hellen Modus gibt es nicht mehr.
+const FARBMODI = ['dark'];
 
 /* Hoehen-Sperrklinke, Hausform wie scripts/lib/metrics-baseline.mjs: Wert,
    Regel (wandert NUR nach unten, docs/maschinelle-validierung.md
@@ -159,24 +160,6 @@ const HOEHEN_KLINKE_CARRACK_DUNKEL_1280 = {
 const HOEHEN_MARKE_CARRACK_DUNKEL_1280 = HOEHEN_KLINKE_CARRACK_DUNKEL_1280.wert;
 const KONTRAST_MARKE = 4.5;
 const LAENGSTE_PILLE_DE = 'Ausstattung'; // 11 Zeichen, laut UI-SPEC Punkt 1 der Referenzfall fuer Umbruch/Ueberlauf
-
-/* ---------- Hellmodus setzen (Bauform + Kniffe wie mining-locview-messung.mjs):
-   Wahl ist Admin-only, addInitScript trifft den leeren Ursprung -> laden,
-   setzen, neu laden, dann data-theme direkt gegenpruefen. ---------- */
-async function farbmodusSetzen(page, schema) {
-  if (schema === 'dark') return null;
-  await page.evaluate(() => {
-    sessionStorage.setItem('vb_user_role', '{"role":"admin"}');
-    localStorage.setItem('vb.theme', 'light');
-    localStorage.setItem('vb.help.seen', '{"all":1}');
-  });
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()));
-  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
-  const ist = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
-  if (ist !== 'light') return `Hellmodus liess sich nicht setzen (data-theme="${ist}")`;
-  return null;
-}
 
 function clipFromBox(box, minW = 1, minH = 1) {
   return {
@@ -244,8 +227,6 @@ for (const ziel of ZIELE) {
           // was Messung a) undeterministisch macht. document.fonts.ready
           // ist Standard-Web-API, kein Sonderfall.
           await page.evaluate(() => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()));
-          const err = await farbmodusSetzen(page, schema);
-          if (err) throw new Error(err);
         } catch (e) {
           for (const g of ['a-seitenhoehe', 'b-sprungleiste', 'c-scroll-margin', 'd-pillen-360', 'e-umbruch', 'f-kontrast-chip', 'g-ueberlauf-360', 'h-struktur', 'i-rasterbreite-1280', 'j-konsolen-kontrast']) {
             melde(lauf, ziel.id, g, false, `Seitenaufruf fehlgeschlagen: ${e.message}`);

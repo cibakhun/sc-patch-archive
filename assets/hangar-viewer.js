@@ -5014,6 +5014,17 @@ export function albedoFloor(m, col = m.color) {
 // metal_engines_damageable, Paint_Damaged_Atlas der Ursa), bleiben.
 export const isDamageMesh = (name) => /damage/i.test(name || '') && !/nodamage|damageable|damaged/i.test(name);
 
+// Was der Viewer nach dem Materialnamen nie zeichnet, und warum:
+// 'pom' — POM-Decals sind im Spiel reine Relief-Schichten über dem Rumpf
+// (Nieten, Plattenkanten), deren Farbbild nie sichtbar ist. Als eigene
+// Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
+// 'damage' — Schadensnetze (isDamageMesh).
+// 'grid' — Platzhalterwand aus dem Rohbau des Spiels (Raster grau/pink,
+// 2,3 × 2,5 m): Bei 100i, 125a, 135c und Hull C ragt sie hinter der Haube
+// senkrecht aus dem Rumpf (Krisz 30.10.2026 mit Bild der 100i: „?“).
+// verify-hangar-lage misst mit derselben Regel.
+export const hiddenMaterial = (name) => (/(^|_)pom(_|$)|pom_?decal/i.test(name || '') ? 'pom' : isDamageMesh(name) ? 'damage' : /^template_int_a_mtl_grid_/i.test(name || '') ? 'grid' : null);
+
 // Aufstand auf dem Fahrwerk (PC-Lauf „Hangar-Flotte“, Krisz 24.10.2026:
 // „alle schiffe korrekt auf dem boden … mit deren landinggear“). contacts
 // sind die tiefsten Punkte der Räder, Füße und Kufen im Raum der Webdatei
@@ -11416,15 +11427,10 @@ void main() {
   // Bordwaffe gleich). false: das Teil bleibt unsichtbar.
   function dressTextured(n) {
     const m = n.material;
-    // POM-Decals sind im Spiel reine Relief-Schichten über dem Rumpf
-    // (Nieten, Plattenkanten), deren Farbbild nie sichtbar ist. Als
-    // eigene Fläche gezeichnet, liegen sie als weiße Splitter auf dem Lack.
-    if (/(^|_)pom(_|$)|pom_?decal/i.test(m.name || '')) { n.visible = false; return false; }
-    if (isDamageMesh(m.name)) { n.visible = false; n.userData.damage = true; return false; }
-    // Platzhalterwand aus dem Rohbau des Spiels (Raster grau/pink, 2,3 × 2,5 m):
-    // Bei 100i, 125a, 135c und Hull C ragt sie hinter der Haube senkrecht aus
-    // dem Rumpf (Krisz 30.10.2026 mit Bild der 100i: „?“).
-    if (/^template_int_a_mtl_grid_/i.test(m.name || '')) { n.visible = false; return false; }
+    // POM-Decals, Schadensnetze, Platzhalterwand (hiddenMaterial); die
+    // Selbstauskunft zählt die Schadensnetze
+    const hid = hiddenMaterial(m.name);
+    if (hid) { n.visible = false; if (hid === 'damage') n.userData.damage = true; return false; }
     // Schichtmaterialien, die der Export nicht auflösen konnte, kommen
     // ohne Bild und tiefschwarz an — als Loch im Rumpf. Dunkles Metall
     // ist im Spiel fast immer, was dort sitzt.

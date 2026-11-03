@@ -29,7 +29,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { readGeometry, sceneNodes, islands } from './lib/hangar-lage.mjs';
-import { isDamageMesh } from '../assets/hangar-viewer.js';
+import { hiddenMaterial } from '../assets/hangar-viewer.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2);
@@ -42,14 +42,17 @@ const slugsArg = args.filter((a) => !a.startsWith('--'));
 if (!rohFile && !slugsArg.length) { console.error('node scripts/measure-hangar-inseln.mjs [slug ...|all] [--json datei] [--alle-inseln] | --roh <rohexport.glb> [--mit-ausgeblendet]'); process.exit(2); }
 
 // Rechnung: scripts/lib/hangar-lage.mjs (dieselbe wie im Tor verify:hangar-lage).
-// Web-Fassung wie der Viewer: nur Knoten der Szene, ohne Schadensnetze.
-const verborgen = isDamageMesh;
+// Web-Fassung wie der Viewer: nur Knoten der Szene, ohne was er verbirgt (hiddenMaterial).
+const verborgen = (name) => !!hiddenMaterial(name);
 
 const fmt = (c) => `${String(c.tris).padStart(6)} Dr.  ${String(c.aussenM).padStart(5)} m außen  ${c.min.join('/')} .. ${c.max.join('/')}  ${c.innenraum === 'nein' ? '' : `Innenraum ${c.innenraum}  `}${c.materialien[0]}`;
 const result = {};
 const t0 = Date.now();
 if (rohFile) {
   const doc = await readGeometry(rohFile);
+  // Rohexport: Knoten, die der Bau weglässt (Schild, Kollision, LOD …), und
+  // Flächen, die der Viewer verbirgt (hiddenMaterial, je Primitiv wie in der
+  // Web-Fassung); --mit-ausgeblendet nimmt beides mit.
   const JUNK = /shield|proxy|collision|damage|nodraw|_lod[1-9]/i;
   const parent = new Map();
   const hull = [];
@@ -62,7 +65,7 @@ if (rohFile) {
     });
   }
   const pathOf = (n) => { const p = []; for (let x = n; x; x = parent.get(x)) p.unshift(x.getName()); return p.join('/'); };
-  const r = islands(hull, { pathOf, alle: ALLE });
+  const r = islands(hull, { pathOf, alle: ALLE, ...(MIT_AUS ? {} : { verborgen }) });
   if (!r) { console.error('kein Rumpf im Rohexport'); process.exit(1); }
   result[rohFile] = r;
   console.log(`${rohFile}: ${r.tris} Dr., Voxel ${r.voxel} m, ${r.inseln.length} ${ALLE ? 'Inseln' : 'Inseln außerhalb'}${MIT_AUS ? ' (mit ausgeblendeten Teilen)' : ''}`);

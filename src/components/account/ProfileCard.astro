@@ -38,7 +38,7 @@ const t = {
     <span class="vp-chrome__right">{t.idLabel} <b id="pcRegistryId">VB-••••••••</b></span>
   </header>
 
-  <!-- 2 · Banner-Zone (dunkle Medien-Insel, bleibt im Light-Theme dunkel) -->
+  <!-- 2 · Banner-Zone (dunkle Medien-Insel) -->
   <div class="vp-banner" id="pcBannerContainer">
     <div class="vp-banner__img" id="pcBannerImg"></div>
     <div class="vp-banner__grid" aria-hidden="true"></div>
@@ -780,41 +780,6 @@ const t = {
     font-weight: 700;
     margin-left: 0.2rem;
     font-size: var(--fs-5);
-  }
-
-  /* ---------- Light-Theme: Status-Grün kontraststark machen ---------- */
-  :root[data-theme='light'] .rsi-verified-badge {
-    background: rgba(21, 128, 61, 0.1);
-    --rsi-line: rgba(21, 128, 61, 0.45);
-    color: #15803d;
-  }
-  :root[data-theme='light'] .vp-copy.copied {
-    border-color: rgba(21, 128, 61, 0.5);
-  }
-  :root[data-theme='light'] .vp-copy__done {
-    color: #15803d;
-  }
-  :root[data-theme='light'] .vp-chip__dot {
-    background: #16a34a;
-    box-shadow: 0 0 6px rgba(22, 163, 74, 0.55);
-  }
-  /* Light-Theme: Scrim nicht auswaschen — die Banner-Zone bleibt eine dunkle
-     Medien-Insel, erst der unterste Übergang geht in die helle Kartenfläche. */
-  :root[data-theme='light'] .vp-banner__scrim {
-    background: linear-gradient(
-      to bottom,
-      rgba(5, 7, 13, 0.3) 0%,
-      rgba(5, 7, 13, 0.5) 55%,
-      color-mix(in srgb, var(--surface) 82%, transparent) 86%,
-      var(--surface) 100%
-    );
-  }
-  /* "Banner customized"-Badge: auf der dunklen Medien-Insel auch im Light-
-     Theme dunkel halten, statt als heller Fremdkörper zu wirken. */
-  :root[data-theme='light'] .vp-banner__badge {
-    background: rgba(13, 19, 34, 0.92);
-    color: #e8eefc;
-    border-color: rgba(45, 212, 255, 0.35);
   }
 
   /* ---------- Responsive ---------- */

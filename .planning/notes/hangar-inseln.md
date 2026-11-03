@@ -65,7 +65,7 @@ einen Fehler in den Daten einer Seite, nicht im Bau.
 Branch `pc/hangar-zweiseitig`, auf Teil 3 (84950ba1). Messung vorher:
 `hangar-inseln/vorher.json` (Rümpfe nach Teil 3), nachher: `nachher.json`.
 `measure-hangar-inseln.mjs all`: **29 → 16 Rümpfe mit losen Teilen**, davon
-4 unsichtbar klein.
+5 unsichtbar klein (Zählfehler „4“ bis 01.11.2026).
 
 **Ursache Hornet (alle 13): der Bau ließ den Außenflügel weg.** Die
 Flügelwaffe hängt im Rohexport an `WingLeft_Debris`/`wing_left_debris`

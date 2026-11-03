@@ -1,14 +1,13 @@
 ---
-// Partikel-Effekte-Umschalter (Sterne/Embers/Staub). Baulich verwandt mit
-// ThemeToggle.astro, aber ausdruecklich OHNE dessen Rollen-Gatter fuer den
-// Farbmodus (FX-04/D-06) — die Wahl steht ALLEN Besuchern offen.
+// Partikel-Effekte-Umschalter (Sterne/Embers/Staub). Ohne Rollen-Gatter
+// (FX-04/D-06) — die Wahl steht ALLEN Besuchern offen.
 //
 // Der Anfangszustand steht NICHT im HTML — er entsteht erst zur Laufzeit
 // (gespeicherte Wahl, siehe Layout.astro). aria-pressed wird deshalb dort
-// gesetzt; hier steht nur ein Platzhalter. Anders als ThemeToggle startet
-// der Platzhalter auf "false": Partikel sind per Vorgabe AUS (FX-02/D-04).
+// gesetzt; hier steht nur ein Platzhalter. Er startet auf "false":
+// Partikel sind per Vorgabe AUS (FX-02/D-04).
 //
-// GESTALT (bewusst anders als ThemeToggle): ein Symbol und daneben ein echter
+// GESTALT: ein Symbol und daneben ein echter
 // Kippschalter. Der Vorgaenger stellte ZWEI fast gleiche Funken nebeneinander,
 // deren Unterschied nur ein duenner Schraegstrich war — bei 13 px nicht
 // lesbar, und der weiche Kreis dahinter las sich als Fleck. Jetzt trennen sich

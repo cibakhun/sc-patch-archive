@@ -57,8 +57,6 @@ const DECK = [
   --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;
   --maxw:1280px;
 }
-/* Hellmodus — erzeugt von scripts/build-light-palettes.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"]{--bg:#f4f7fe;--bg-2:#e9eef9;--surface:#fdfdff;--surface-2:#edf3fc;--text:#1d1f22;--muted:#515864;--accent:#745502;--accent-2:#055e7a;--hot:#055b76;--ink:#ffffff;--accent-media:#d9b46a;--accent-2-media:#7cc6e6;--line:rgba(140,108,38,.3);--line-soft:rgba(44,46,49,.12);--glow:0 6px 22px rgba(140,108,38,.18)}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -228,11 +226,6 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 .lb__txt p{color:var(--text);font-size:var(--fs-10);line-height:1.6}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}.reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}*{animation:none!important}}
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .tag.hot{border-color:rgba(42,130,163,.73);color:#375e6e}
-:root[data-theme="light"] .lead b{color:#6d5416}
-:root[data-theme="light"] .tile.word.hot b{color:#375e6e}
-:root[data-theme="light"] .icard a,.gcard a,.lead a,.qpanel p.after a{text-decoration-color:rgba(151,112,16,.63)}
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 

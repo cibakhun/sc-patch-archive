@@ -11,7 +11,8 @@
      · assets/theme.css killt jede Scrollbar mit !important
      · stale ?v=-Cache-Busts zeigen auf Dateien, die es nicht mehr gibt
      · eine klebende Filterspalte ohne max-height macht sticky wirkungslos
-     · Kontrast 1,74:1 im Hellmodus, waehrend das Kontrast-Tor gruen meldet
+     · Kontrast 1,74:1 im (inzwischen entfernten) Hellmodus, waehrend das
+       Kontrast-Tor gruen meldete
 
    Jede dieser Fallen ist real passiert. Konzept: docs/maschinelle-
    validierung.md, Baustein B6.
@@ -146,14 +147,17 @@ const SEITEN = [
 ];
 
 /* ---------- Varianten ----------
-   Alles einmal in Dunkel bei 1280x720 (der Normalfall). Die JS-schweren
-   Seiten zusaetzlich schmal und hell — dort sitzen die dokumentierten
-   Fallen (360-px-Ueberlauf, Hellmodus-Kontrast). Der Hellmodus ist
-   Admin-only, siehe hellmodusSetzen(). */
+   Alles einmal bei 1280x720 (der Normalfall). Die JS-schweren Seiten
+   zusaetzlich schmal — dort sitzt die dokumentierte Falle (360-px-
+   Ueberlauf) — und mit einer alten Hell-Wahl im Browser: den hellen Modus
+   gibt es seit dem 02.11.2026 nicht mehr, wer ihn vorher gewaehlt hatte,
+   muss trotzdem die dunkle Seite bekommen (siehe alteHellwahl()). Das
+   Betriebssystem steht in dieser Variante auf hell, damit auch ein
+   Rueckfall auf prefers-color-scheme auffiele. */
 const VARIANTEN = [
   { id: 'dunkel-1280', breite: 1280, hoehe: 720, schema: 'dark', alle: true },
   { id: 'dunkel-360', breite: 360, hoehe: 740, schema: 'dark', alle: false },
-  { id: 'hell-1280', breite: 1280, hoehe: 720, schema: 'light', hell: true, alle: false },
+  { id: 'alte-hellwahl-1280', breite: 1280, hoehe: 720, schema: 'light', alteHellwahl: true, alle: false },
 ];
 
 /* ---------- Benannte Ausnahmen ----------
@@ -180,24 +184,42 @@ const ZAEHLER_HOST = /stats\.verse-base\.com/;
 const fehler = [];
 let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0;
 
-/* ---------- Hellmodus erzwingen ----------
-   Drei Stolpersteine, alle drei sind bei den Sichtpruefungen passiert:
-   1. Die Wahl ist Admin-only (Nicht-Admins haengen fest auf Dunkel).
-   2. addInitScript trifft beim ERSTEN Aufruf den leeren Ursprung — der
-      Speicher landet im Nirgendwo. Also: laden, setzen, NEU laden.
-   3. reconcile() zieht das Theme nach ein paar hundert ms an die echte
-      Rolle zurueck. Direkt vor der Messung data-theme nochmal setzen. */
-async function hellmodusSetzen(page) {
+/* ---------- Alte Hell-Wahl im Browser ----------
+   Bis zum 02.11.2026 konnten Admins hell waehlen; die Wahl lag als
+   vb.theme im localStorage und bleibt dort liegen, bis die Seite sie
+   raeumt (Kopfskript in Layout.astro). Nachgespielt wird genau das:
+   Admin-Rolle im Sitzungs-Cache, vb.theme=light, dann NEU laden —
+   addInitScript traefe beim ersten Aufruf den leeren Ursprung.
+   Geprueft wird am Ergebnis, nicht am Code: die Wahl ist weg, <html>
+   traegt kein data-theme, die Seite rechnet mit color-scheme dark, und
+   die Seitenflaeche ist wirklich dunkel. */
+async function alteHellwahl(page) {
   await page.evaluate(() => {
     sessionStorage.setItem('vb_user_role', '{"role":"admin"}');
     localStorage.setItem('vb.theme', 'light');
     localStorage.setItem('vb.help.seen', '{"all":1}'); // Erstbesuch-Hilfe wegraeumen
   });
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
-  // Gegenpruefen, statt es zu glauben.
-  const ist = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
-  if (ist !== 'light') return `Hellmodus liess sich nicht setzen (data-theme="${ist}")`;
+  const st = await page.evaluate(() => {
+    const deckend = (el) => {
+      const m = getComputedStyle(el).backgroundColor.match(/[\d.]+/g) || [];
+      return m.length >= 3 && (m[3] === undefined || +m[3] > 0.5) ? m.slice(0, 3).map(Number) : null;
+    };
+    return {
+      rest: localStorage.getItem('vb.theme'),
+      attr: document.documentElement.getAttribute('data-theme'),
+      schema: getComputedStyle(document.documentElement).colorScheme,
+      grund: deckend(document.body) || deckend(document.documentElement),
+    };
+  });
+  if (st.rest !== null) return `die alte Wahl vb.theme="${st.rest}" liegt nach dem Laden noch im Browser`;
+  if (st.attr !== null) return `<html> traegt data-theme="${st.attr}"`;
+  if (!/dark/.test(st.schema)) return `color-scheme ist "${st.schema}", erwartet dark`;
+  if (st.grund) {
+    const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+    const L = 0.2126 * lin(st.grund[0]) + 0.7152 * lin(st.grund[1]) + 0.0722 * lin(st.grund[2]);
+    if (L > 0.1) return `die Seitenflaeche ist hell (rgb ${st.grund.join(',')}, Leuchtdichte ${L.toFixed(2)})`;
+  }
   return null;
 }
 
@@ -597,9 +619,10 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     if (seite.erwarteterStatus && antwort?.status() !== seite.erwarteterStatus)
       melde('status', `Status ${antwort?.status()} statt ${seite.erwarteterStatus}`);
 
-    if (variante.hell) {
-      const p = await hellmodusSetzen(page);
-      if (p) melde('hell', p);
+    if (variante.alteHellwahl) {
+      geprueftePunkte++;
+      const p = await alteHellwahl(page);
+      if (p) melde('dunkel', p);
     }
 
     // [1] keine unbehandelte JS-Ausnahme

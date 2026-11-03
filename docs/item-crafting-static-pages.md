@@ -55,17 +55,15 @@ Die Massen-Seiten nutzen **nicht** `SiteNav`, sondern `DataShell.astro`.
 | | SiteNav-Seite (z. B. Mission) | DataShell-Seite |
 |---|---|---|
 | Nav-Markup | ~18 KB | ~1,5 KB |
-| inline-JS | ~19 KB | nur der Theme-Vorabgriff |
+| inline-JS | ~19 KB | nur das Kopfskript |
 | CSS | inline pro Seite | eine externe `/assets/data-page.css` |
 
 Bei ~14.000 generierten Seiten sind das ~500 MB Unterschied im `dist/`. Die Hülle
-trägt dieselbe Identität (Palette, Typo, Hell/Dunkel, Sprachumschalter,
+trägt dieselbe Identität (Palette, Typo, Sprachumschalter,
 Rechtliches) und kommt ohne eigenes JavaScript aus.
 
-**Farbpalette liegt inline in `DataShell.astro`** — `scripts/build-light-palettes.mjs`
-erzeugt den Hellmodus nur aus inline-`:root`-Blöcken in `.astro`-Dateien;
-eigenständige `.css`-Dateien sieht der Generator nicht. `data-page.css` enthält
-deshalb **keinen einzigen Hex-Wert**, nur Tokens.
+**Farbpalette liegt inline in `DataShell.astro`** (ein dunkler `:root`-Block) —
+`data-page.css` enthält **keinen einzigen Hex-Wert**, nur Tokens.
 
 ## Interne Verlinkung (das eigentliche SEO)
 

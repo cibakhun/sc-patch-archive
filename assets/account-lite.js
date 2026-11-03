@@ -482,8 +482,8 @@
   }
 
   // ---- Rolle anwenden ------------------------------------------------------
-  // Setzt nur noch die Rollen-Klasse: das einzige verbliebene Admin-Recht ist die
-  // Theme-Wahl. Archiv und Patch-Seiten waren bis 25.07.2026 admin-only (Body
+  // Setzt nur noch die Rollen-Klasse (Admin-Felder, z. B. im Support-Bereich).
+  // Archiv und Patch-Seiten waren bis 25.07.2026 admin-only (Body
   // versteckt + Redirect auf die Startseite); sie sind jetzt fuer alle offen —
   // sie standen ohnehin im Suchindex und in der Sitemap, echte Besucher wurden
   // also von genau den Seiten weggeleitet, die Google zu sehen bekam.
@@ -510,13 +510,6 @@
     var doc = document.documentElement;
     doc.classList.toggle('is-admin', isAdmin);
     keepAnalyticsOptOut(isAdmin);
-
-    // Theme-Wahl ist Admin-only. Jetzt steht die echte Rolle fest -> Theme
-    // angleichen: Nicht-Admins zurueck auf Dunkel zwingen (falls der frueh im
-    // <head> gelesene Rollen-Cache noch kalt/veraltet war), Admins ihre
-    // gespeicherte Wahl bzw. das OS-Theme geben. reconcile() lebt im Inline-
-    // Script von Layout.astro (single source of truth fuers Painting).
-    try { if (window.__vbReconcileTheme) window.__vbReconcileTheme(); } catch (e) { /* noop */ }
   }
 
   // ---- Zwei-Signal-Präsenz-Heartbeat --------------------------------------

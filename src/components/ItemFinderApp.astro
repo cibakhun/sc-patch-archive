@@ -930,8 +930,7 @@ const JS_T = ITEM_UI[lang];
   /* --- Tag-Facetten: Seltenheit + Set ------------------------------------
      Die Seltenheitsfarben sind eine reine Lesehilfe (Spiel-Konvention grau →
      grün → blau → violett → gold). Sie stehen bewusst NICHT im Theme-Token-Satz:
-     sie sollen in beiden Modi identisch bleiben, damit „Rare" nicht je nach
-     Hell/Dunkel eine andere Farbe hat. */
+     „Rare" hat auf jeder Seitenpalette dieselbe Farbe. */
   .uif-chip-n { opacity: .6; font-size: .74em; margin-left: .15rem; }
   .uif-card-tags { display: flex; gap: .35rem; margin: -0.2rem 0 .45rem; }
   .uif-rarity {
@@ -1022,14 +1021,6 @@ const JS_T = ITEM_UI[lang];
        375px wuerde der Ø-Zusatz den Ortsnamen wegdruecken. */
     .uif-card-avg { display: none; }
   }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] .uif-rarity--common{color:#4f5969}
-:root[data-theme="light"] .uif-rarity--uncommon{color:#026a35}
-:root[data-theme="light"] .uif-rarity--rare{color:#0159a0}
-:root[data-theme="light"] .uif-rarity--epic{color:#6b30b0}
-:root[data-theme="light"] .uif-rarity--legendary{color:#784e04}
-:root[data-theme="light"] .uif-setbadge{color:#735102}
-:root[data-theme="light"] .uif-setbadge.is-ok{color:#026a35}
 </style>
 
 <script is:inline set:html={`window.__UIF=${jsonForScript({ lang, dbUrl, craftUrl, itemBase: lang === 'de' ? '/de/items/' : '/items/', craftBase: lang === 'de' ? '/de/crafting/' : '/crafting/', setBase: lang === 'de' ? '/de/armor-sets.html' : '/armor-sets.html', icons: { bp: ICON_BLUEPRINT }, t: JS_T })};`} />

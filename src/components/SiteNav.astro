@@ -1,5 +1,5 @@
 ---
-// Global sticky navigation: Konto + Sprachumschalter + Theme-Toggle (links), Marke mittig,
+// Global sticky navigation: Konto + Sprachumschalter + Effekte (links), Marke mittig,
 // Suche + Burger-Menü (rechts) — eine Leiste für alle Breiten. Das Menü
 // ist ein Vollbild-Overlay („Ops-Terminal") mit vier Gruppen-Panels; alle
 // Einträge sind gleichzeitig sichtbar, mit Untertitel und Tastatur-Navigation.
@@ -11,7 +11,6 @@ import { createHash } from 'node:crypto';
 import { getCollection } from 'astro:content';
 import SearchOverlay from './SearchOverlay.astro';
 import LangSwitcher from './LangSwitcher.astro';
-import ThemeToggle from './ThemeToggle.astro';
 import FxToggle from './FxToggle.astro';
 import { SITE, DISCORD } from '../consts';
 import { localeFromPath, useTranslations, href } from '../i18n/ui';
@@ -381,7 +380,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       <span class="snav__badge js-nav-badge" aria-hidden="true" hidden></span>
     </a>
     <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
-    <ThemeToggle />
     <FxToggle place="bar" />
   </div>
   <div class="snav__center">
@@ -581,7 +579,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     </div>
 
     <footer class="snav-deck__foot">
-      <ThemeToggle />
       <FxToggle place="deck" />
       <LangSwitcher hasEn={hasEn} hasDe={hasDe} />
       <div class="snav-deck__hints" aria-hidden="true">
@@ -630,10 +627,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
     left: 0;
     right: 0;
     /* Rueckfall war `var(--chrome-solid, var(--chrome-solid))` — eine
-       Selbstreferenz und damit wertlos. Sie stammt von einem frueheren Lauf
-       von tokenize-theme-colors.mjs, das den Rueckfallwert #05070d fuer eine
-       gewoehnliche Farbe hielt und durch genau das Token ersetzte, dessen
-       Rueckfall er war. Der Generator ist am 11.08.2026 dagegen abgesichert;
+       Selbstreferenz und damit wertlos (Rest eines frueheren Farb-Codemods);
        hier steht wieder derselbe Literalwert wie in der Zeile darueber. */
     height: 3px;background:color-mix(in srgb, var(--chrome-solid, #05070d) 90%, transparent);
     border-top: 1px solid color-mix(in srgb, var(--accent, #2dd4ff) 15%, transparent);
@@ -1198,16 +1192,16 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       display: none;
     }
   }
-  /* Unter 640px reicht die Breite nicht mehr für Theme + Sprache + Wortmarke
+  /* Unter 640px reicht die Breite nicht mehr für Effekte + Sprache + Wortmarke
      + Menü + Suche — die linke Gruppe drückte Menü und Suche sonst aus dem
      Viewport heraus (bei 400px lagen sie auf x=404 bzw. x=457, also
-     unerreichbar). Theme und Sprache treten zurück: beide stehen im Fuß des
+     unerreichbar). Effekte und Sprache treten zurück: beide stehen im Fuß des
      Menü-Overlays und bleiben damit erreichbar. Menü und Suche bleiben, sie
      sind die primären Aktionen.
      Ausgeblendet werden die KINDER, nicht der Container: verschwände das
      Grid-Item selbst, rückte die Wortmarke aus der Mitte in die erste
      Spalte.
-     :global() ist nötig, weil ThemeToggle und LangSwitcher eigene
+     :global() ist nötig, weil FxToggle und LangSwitcher eigene
      Komponenten sind — deren Wurzelelemente tragen den Scope-Hash von
      SiteNav nicht, ein scoped `> *` greift dort also nicht. */
   @media (max-width: 640px) {
@@ -1281,7 +1275,7 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       display: none;
     }
     /* Rechts bleibt hier nur Platz fuer die zwei primaeren Aktionen (Suche,
-       Menue). Discord tritt zurueck wie Theme und Sprache weiter oben — es
+       Menue). Discord tritt zurueck wie Effekte und Sprache weiter oben — es
        steht im Menue unter „Konto & Service" und im Fuss jeder Seite. */
     .snav__discord {
       display: none;
@@ -2042,10 +2036,6 @@ const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
       transition: none;
     }
   }
-/* Hell-Entsprechungen — erzeugt von scripts/build-light-overrides.mjs. Nicht von Hand ändern. */
-:root[data-theme="light"] :global(.vb-toast b){color:#794e00}
-:root[data-theme="light"] :global(.vb-toast:hover){border-color:#a16a05}
-:root[data-theme="light"] .snav-deck__row.has-badge .snav-deck__sub{color:#794e00}
 </style>
 
 <script is:inline>
