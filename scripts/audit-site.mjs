@@ -151,7 +151,7 @@ const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]
 // rohe Spielplatzhalter wie „Eliminate {TargetName}", auf der Wikelo-Seite
 // „1× null". Geprueft wird jetzt jede Textstelle einzeln — Textknoten plus die
 // Attribute, die gelesen oder vorgelesen werden (alt, title, aria-label,
-// content). Bewusst eng gefasst, weil Fehlalarme teurer sind als Luecken:
+// content, placeholder). Bewusst eng gefasst, weil Fehlalarme teurer sind als Luecken:
 //   - NaN / undefined als ganzes Wort (beides ist nie Fliesstext),
 //   - null nur neben einem Vergleichs- oder Mengenzeichen — „null" allein ist
 //     im Deutschen ein Wort,
@@ -160,7 +160,7 @@ const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]
 //   - %schluessel% — eine Fuellstelle, die t()/fill() nicht ersetzt hat,
 //   - ReputationStanding_ — interne Rangschluessel ohne Anzeigenamen.
 const ROHTEXT_RE = /\b(?:NaN|undefined)\b|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_/;
-const ROHTEXT_ATTR_RE = /\s(?:alt|title|aria-label|content)="([^"]*)"/g;
+const ROHTEXT_ATTR_RE = /\s(?:alt|title|aria-label|content|placeholder)="([^"]*)"/g;
 const decodeEntities = (s) => s
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
   .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
@@ -287,11 +287,15 @@ for (const f of htmlFiles) {
   const visibleText = markup.replace(/\splaceholder="[^"]*"/gi, '');
   const ph = PLACEHOLDER_RE.exec(visibleText) ?? PLACEHOLDER_CI_RE.exec(visibleText);
   if (ph) placeholderHits.push(`${page}: "${ph[0]}"`);
-  // Rohtext je Textstelle (s. ROHTEXT_RE). Kommentare raus: Astro laesst
-  // keine stehen, aber ein auskommentierter Block waere kein sichtbarer Text.
+  // Rohtext je Textstelle (s. ROHTEXT_RE). Grundlage ist das Markup MIT
+  // placeholder= — anders als bei TODO/PLACEHOLDER oben ist ein „{TargetName}"
+  // oder „NaN" auch als Eingabehinweis ein Fehler. Kommentare raus, fuer
+  // Textknoten und Attribute gleich: Astro laesst keine stehen, aber ein
+  // auskommentierter Block waere kein sichtbarer Text.
+  const ohneKommentare = markup.replace(/<!--[\s\S]*?-->/g, ' ');
   const stellen = [];
-  for (const m of visibleText.replace(/<!--[\s\S]*?-->/g, ' ').matchAll(/>([^<]+)</g)) stellen.push(m[1]);
-  for (const m of visibleText.matchAll(ROHTEXT_ATTR_RE)) stellen.push(m[1]);
+  for (const m of ohneKommentare.matchAll(/>([^<]+)</g)) stellen.push(m[1]);
+  for (const m of ohneKommentare.matchAll(ROHTEXT_ATTR_RE)) stellen.push(m[1]);
   for (const roh of stellen) {
     if (!roh.trim()) continue;
     rohtextStellen++;

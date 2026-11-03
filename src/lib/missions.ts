@@ -168,7 +168,7 @@ export const cmpSign = (c: string | null) =>
  *
  * Getrennt wird, nicht uebersetzt (Regel aus lesbar.ts): aus dem Schluessel
  * fallen das Praefix, der Bereich (steht schon in der eigenen Spalte) und die
- * Stufenzahl weg; die Zahl ist die Schwelle und kommt aus `standingMin`, das in
+ * Stufenzahl weg, es bleibt das letzte Glied; die Zahl ist die Schwelle und kommt aus `standingMin`, das in
  * den Daten neben dem Schluessel steht. `mitSchwelle` haengt sie an, wo es
  * keine eigene Schwellen-Spalte gibt — sonst lesen sich „Neutral 0" und
  * „Neutral 1.500" beide als „≥ Neutral".
@@ -181,8 +181,11 @@ export function standingLabel(r: MissionRep, lang: Locale, mitSchwelle = true): 
   const schwelle = r.standingMin != null ? uec(r.standingMin, lang) : null;
   const m = r.standing.match(/^ReputationStanding_(.+?)(?:_(-?\d+))?$/);
   if (!m) return r.standing;
-  let stufe = m[1];
-  if (r.scope && stufe.startsWith(r.scope + '_')) stufe = stufe.slice(r.scope.length + 1);
+  // Die Stufe ist das letzte Glied: Affinity_Neutral, NPC_Fired_Fired,
+  // NPC_Reliability_Fireable. Am Bereich der Bedingung abschneiden reicht
+  // nicht — eine Mission fuehrt Bereich NPC_Fired mit einem Affinity-Schluessel
+  // (assassin-sync), und dort stand dann „Affinity Neutral".
+  const stufe = m[1].slice(m[1].lastIndexOf('_') + 1);
   const name = lesbarerBezeichner(stufe);
   return m[2] != null && mitSchwelle && schwelle != null ? `${name} (${schwelle})` : name;
 }

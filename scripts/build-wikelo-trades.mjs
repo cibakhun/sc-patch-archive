@@ -55,6 +55,11 @@ if (verwaist.length) {
 // Anlass; gibt das Spiel der Klasse spaeter einen Namen oder verschwindet sie
 // aus dem Bestand, bricht der Lauf ebenfalls (Zombie-Waechter, Grundsatz 6).
 const matNames = curated.matNames ?? {};
+// Ein Eintrag ohne Namen oder ohne Anlass ist keine benannte Ausnahme
+// (Grundsatz 6) — er bricht den Lauf genauso wie ein fehlender Name.
+const matNamesUnvollstaendig = Object.entries(matNames)
+  .filter(([, e]) => typeof e?.name !== 'string' || !e.name.trim() || typeof e?.anlass !== 'string' || !e.anlass.trim())
+  .map(([k]) => k);
 const ohneName = [];
 const matNamesBenutzt = new Set();
 const matNamesZombie = [];
@@ -107,7 +112,8 @@ const trades = game.contracts.map((c) => {
 for (const k of Object.keys(matNames)) {
   if (!matNamesBenutzt.has(k) && !matNamesZombie.some((z) => z.startsWith(k + ' '))) matNamesZombie.push(`${k} (kein namenloser Warenposten dieser Klasse mehr im Bestand)`);
 }
-if (ohneName.length || matNamesZombie.length) {
+if (ohneName.length || matNamesZombie.length || matNamesUnvollstaendig.length) {
+  for (const k of matNamesUnvollstaendig) console.error(`FEHLER: matNames-Eintrag ${k} in assets/wikelo-curated.json braucht einen nicht leeren „name" und „anlass".`);
   for (const z of ohneName) console.error(`FEHLER: Warenposten ohne Anzeigenamen — ${z}. Namen in assets/wikelo-curated.json unter matNames nachtragen (mit Anlass).`);
   for (const z of matNamesZombie) console.error(`FEHLER: kuratierter Warenposten-Name hat seinen Anlass verloren — ${z}. Eintrag aus matNames entfernen.`);
   process.exit(1);
