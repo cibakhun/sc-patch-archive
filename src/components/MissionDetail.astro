@@ -6,7 +6,7 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, missions, seoTitle, seoText, clip, phLabel } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoTitle, seoText, clip, phLabel } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { lesbarerRufBereich } from '../lib/lesbar';
@@ -53,7 +53,7 @@ const S = {
     bpP: 'Diese Mission kann Blueprints abwerfen. Welcher davon fällt, entscheidet der Zufall — du bekommst nicht die ganze Liste.',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
     srcNote: 'Es gibt zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
-    src: 'Quelle', srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Missionstexte gibt es nur auf Englisch.',
+    src: 'Quelle',
     rec: 'Datensatz',
   },
   en: {
@@ -85,7 +85,7 @@ const S = {
     bpP: 'This mission can drop blueprints. Which one drops is chance-based — you do not get the whole list.',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
     srcNote: 'There are two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
-    src: 'Source', srcP: 'Game-accurate to the current live build (patch 4.9). Mission text exists in English only.',
+    src: 'Source',
     rec: 'Record',
   },
 }[lang];
@@ -214,7 +214,7 @@ const t = useTranslations(lang);
           <p class="md__p">{S.appearsP}</p>
           <ul class="md__appear">
             {m.titleVariants.map((v) => (
-              <li><span class="md__org">{v.org}</span><span class="md__at">{v.text}</span></li>
+              <li><span class="md__org">{v.org}</span><span class="md__at">{parts(v.text).map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}</span></li>
             ))}
           </ul>
         </section>
@@ -303,7 +303,7 @@ const t = useTranslations(lang);
                     <tr>
                       <td>{r.factionName ?? S.none}</td>
                       <td class="md__dim">{r.scope ? lesbarerRufBereich(r.scope) : S.none}</td>
-                      <td><span class="md__cmp">{cmpSign(r.comparison)}</span> {r.standing ?? S.none}</td>
+                      <td>{r.standing ? <><span class="md__cmp">{cmpSign(r.comparison)}</span> {standingLabel(r, lang, false)}</> : S.none}</td>
                       <td class="md__num">{r.standingMin != null ? uec(r.standingMin, lang) : S.none}</td>
                       <td class="md__dim">{r.perk ?? S.none}</td>
                     </tr>
@@ -366,7 +366,7 @@ const t = useTranslations(lang);
                   {colPlaces && <td class="md__dim md__places">{v.places.length ? v.places.join(', ') : S.none}</td>}
                   <td class="md__num md__uec">{v.reward ? uec(v.reward, lang) : S.none}</td>
                   {colRep && <td class="md__dim">{v.rep.length
-                    ? v.rep.map((r) => `${r.factionName} ${cmpSign(r.comparison)} ${r.standing}`).join(' · ')
+                    ? v.rep.map((r) => repLine(r, lang)).join(' · ')
                     : S.none}</td>}
                 </tr>
               ))}
