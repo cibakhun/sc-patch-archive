@@ -46,6 +46,19 @@ if (verwaist.length) {
   process.exit(1);
 }
 
+// Warenposten, denen das Spiel keinen Anzeigenamen gibt. ⚠ ANLASS
+// (03.11.2026): der Monolith-Helm (kap_combat_heavy_helmet_01_01_01) hat in
+// 4.10.2 keinen Lokalisierungsnamen; das Template-Literal unten machte daraus
+// „1× null", und so stand es auf beiden Wikelo-Seiten. Ein Name kommt jetzt
+// entweder aus dem Spiel oder aus `matNames` der Kuration — sonst bricht der
+// Lauf ab, statt „null" auszuliefern. Jeder Kurationseintrag traegt seinen
+// Anlass; gibt das Spiel der Klasse spaeter einen Namen oder verschwindet sie
+// aus dem Bestand, bricht der Lauf ebenfalls (Zombie-Waechter, Grundsatz 6).
+const matNames = curated.matNames ?? {};
+const ohneName = [];
+const matNamesBenutzt = new Set();
+const matNamesZombie = [];
+
 let namensueberschreibungen = 0;
 let mengenbereiche = 0;
 let mitKuratierterKategorie = 0;
@@ -58,6 +71,11 @@ const trades = game.contracts.map((c) => {
   const mats = c.orders
     .filter((o) => o.klasse !== FAVOR_KLASSE)
     .map((o) => {
+      const kuratiert = o.klasse ? matNames[o.klasse]?.name : undefined;
+      if (o.name != null && kuratiert) matNamesZombie.push(`${o.klasse} (Spiel nennt es jetzt „${o.name}")`);
+      if (o.name == null && kuratiert) matNamesBenutzt.add(o.klasse);
+      const name = o.name ?? kuratiert ?? null;
+      if (name == null) ohneName.push(`${c.id} (${c.titel ?? c.debugName}): Klasse ${o.klasse ?? '?'}`);
       // o.max ist NIE < o.min in den heutigen Spieldaten (132/285 Zeilen
       // fuehren max:0 als Sentinel fuer "keine Bandbreite", 153/285 max===min,
       // 0/285 max>min). Ein Vergleich auf reine Ungleichheit (o.max !== o.min)
@@ -66,9 +84,9 @@ const trades = game.contracts.map((c) => {
       // pruefen, nicht auf blosse Ungleichheit.
       if (o.max != null && o.max > o.min) {
         mengenbereiche++;
-        return `${o.min}–${o.max}× ${o.name}`;
+        return `${o.min}–${o.max}× ${name}`;
       }
-      return `${o.min}× ${o.name}`; // "×" (Multiplikationszeichen), nicht "x" — bestehende Konvention
+      return `${o.min}× ${name}`; // "×" (Multiplikationszeichen), nicht "x" — bestehende Konvention
     });
 
   const fallbackName = c.rewardItems.length === 1 ? c.rewardItems[0] : (c.titel ?? c.debugName);
@@ -85,6 +103,15 @@ const trades = game.contracts.map((c) => {
   if (cur.rep) card.rep = cur.rep;
   return card;
 });
+
+for (const k of Object.keys(matNames)) {
+  if (!matNamesBenutzt.has(k) && !matNamesZombie.some((z) => z.startsWith(k + ' '))) matNamesZombie.push(`${k} (kein namenloser Warenposten dieser Klasse mehr im Bestand)`);
+}
+if (ohneName.length || matNamesZombie.length) {
+  for (const z of ohneName) console.error(`FEHLER: Warenposten ohne Anzeigenamen — ${z}. Namen in assets/wikelo-curated.json unter matNames nachtragen (mit Anlass).`);
+  for (const z of matNamesZombie) console.error(`FEHLER: kuratierter Warenposten-Name hat seinen Anlass verloren — ${z}. Eintrag aus matNames entfernen.`);
+  process.exit(1);
+}
 
 const gameVersion = game.gameVersion;
 const patch = gameVersion?.match(/\d+\.\d+\.\d+/)?.[0] ?? null;
@@ -123,4 +150,5 @@ console.log(`wikelo-trades.json: ${trades.length} Vertraege, ${game.counts?.orde
 console.log(`  Favor: ${mitFavor} Karten | Mengenbereiche (max != min): ${mengenbereiche}`);
 console.log(`  Kuration: ${mitBild} mit Bild | ${mitComps} mit comps | ${mitRep} mit rep | ${mitKuratierterKategorie} mit kuratierter Kategorie | ${aufMiscRueckfall} auf dem misc-Rueckfall`);
 console.log(`  Namensueberschreibungen durch Kuration: ${namensueberschreibungen}`);
+console.log(`  Warenposten ohne Spielnamen, kuratiert benannt: ${matNamesBenutzt.size} (ohne Namen: 0)`);
 console.log(`  kuratierte id(s) ohne Treffer im Bestand: ${verwaist.length ? verwaist.join(', ') : '—'}`);

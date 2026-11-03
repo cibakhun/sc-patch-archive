@@ -11,7 +11,7 @@
 
 import type { Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
-import { hasGradeSemantics, hasMeaningfulGrade, num, sizeLabel, type DamageMap, type Item, type ItemStats } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, num, sizeLabel, type DamageMap, type Item, type ItemStats, type ResistMap } from './items';
 
 export type Row = [label: string, value: string];
 
@@ -40,16 +40,27 @@ export function formatDamage(d: DamageMap, lang: Locale): string {
 }
 
 /**
- * Widerstaende stehen als Schadens-MULTIPLIKATOR in den Daten (0.8 = 20 %
- * weniger Schaden). Angezeigt wird die Reduktion, weil genau die im Spiel-UI
- * steht — sonst liest man 0,8 als "80 % Schutz".
+ * Widerstaende stehen bei Ruestungen als Schadens-MULTIPLIKATOR in den Daten
+ * (0.8 = 20 % weniger Schaden). Angezeigt wird die Reduktion, weil genau die im
+ * Spiel-UI steht — sonst liest man 0,8 als "80 % Schutz".
+ *
+ * Schilde tragen stattdessen eine Spanne [min, max], und die ist schon der
+ * Widerstand selbst (0.25 = 25 %). ⚠ Bis 03.11.2026 lief auch sie durch
+ * `1 - x`: ein Array minus eins ergibt NaN, und 122 Schild-Seiten (je DE/EN)
+ * zeigten „Physisch NaN% · Distortion NaN%".
  */
-export function formatResist(r: DamageMap, lang: Locale): string | null {
+export function formatResist(r: ResistMap, lang: Locale): string | null {
   const t = itemT(lang);
   const keys = DMG_ORDER.filter((k) => k !== 'stun' && r[k] != null);
   if (!keys.length) return null;
-  const pct = (k: (typeof DMG_ORDER)[number]) => `${Math.round((1 - (r[k] as number)) * 100)}%`;
-  const uniform = keys.every((k) => r[k] === r[keys[0]]);
+  const pct = (k: (typeof DMG_ORDER)[number]) => {
+    const v = r[k] as number | [number, number];
+    if (!Array.isArray(v)) return `${Math.round((1 - v) * 100)}%`;
+    const lo = Math.round(v[0] * 100);
+    const hi = Math.round(v[1] * 100);
+    return lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+  };
+  const uniform = keys.every((k) => pct(k) === pct(keys[0]));
   if (uniform) return `${t('resistAll')} ${pct(keys[0])}`;
   return keys.map((k) => `${dmgLabel(k, lang)} ${pct(k)}`).join(' · ');
 }
@@ -165,7 +176,9 @@ export function primaryStat(i: Item, lang: Locale): Row | null {
     for (const k of DMG_ORDER) tot += s.damage[k] ?? 0;
     if (tot > 0) return [t('statDamage'), n(Math.round(tot * 10) / 10)];
   }
-  if (s.resist?.physical != null)
+  // Nur der Ruestungs-Multiplikator taugt als Einzelwert; die Schild-Spanne
+  // steht in der Tabelle (Schilde haben ohnehin shieldHp als Kennwert).
+  if (typeof s.resist?.physical === 'number')
     return [t('statResist'), `${Math.round((1 - s.resist.physical) * 100)}%`];
   if (s.ndr) return [t('statNdr'), `${n(s.ndr)} NDR`];
   if (s.sensitivity) return [t('statSensitivity'), n(s.sensitivity)];

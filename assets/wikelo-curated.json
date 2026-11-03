@@ -1,6 +1,12 @@
 {
   "source": "Kuratierte Wikelo-Zusatzfelder — von Hand gepflegt, keyed by Vertrags-id, vom Erzeuger gelesen und nie überschrieben.",
   "reviewedAt": "2026-08-28",
+  "matNames": {
+    "kap_combat_heavy_helmet_01_01_01": {
+      "name": "Monolith Helmet",
+      "anlass": "Das Spiel (4.10.2) gibt dem Helm keinen Anzeigenamen; Arme, Rumpf, Beine und Rucksack derselben Klassenreihe kap_combat_heavy_*_01_01_01 heissen Monolith Armor/Backpack. Ohne Eintrag stand auf der Seite 1x null."
+    }
+  },
   "trades": {
     "a7405276a983ba2f34bc1b65f81c61b7": {
       "basis": "materialien-exakt",

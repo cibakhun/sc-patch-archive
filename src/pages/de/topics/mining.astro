@@ -4,10 +4,13 @@
 import DB from '../../../../assets/mining-db.json';
 import { versioned } from '../../../lib/assetVersion';
 const total = DB.counts.minerals;
+// Patch aus dem Datenstand ("4.10.2-live.12881860" -> "4.10.2"), wie im Koerper
+// (components/topics/mining.astro). Hier stand bis 03.11.2026 ein festes 4.9.
+const ver = String(DB.game_version).split('-')[0];
 import Layout from '../../../layouts/Layout.astro';
 import Body from '../../../components/topics/mining.astro';
 ---
-<Layout title={"Mining-Datenbank — Star Citizen 4.9 | VerseBase"} description={`Interaktive Mining-Datenbank für Star Citizen 4.9: ${total} Minerale durchsuchen, nach System, Methode & Typ filtern, echte Deposit-Regionen mit Erz-Anteil (%) ansehen, Scan-Signaturen identifizieren, Refinery-Methoden abwägen und sehen, welche Gesteinsart welches Erz führt.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
+<Layout title={`Mining-Datenbank — Star Citizen ${ver} | VerseBase`} description={`Interaktive Mining-Datenbank für Star Citizen ${ver}: ${total} Minerale durchsuchen, nach System, Methode & Typ filtern, echte Deposit-Regionen mit Erz-Anteil (%) ansehen, Scan-Signaturen identifizieren, Refinery-Methoden abwägen und sehen, welche Gesteinsart welches Erz führt.`} themeColor="#14181a" ogType="article" ogImage="/assets/img-mole.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, uec, cmpSign, bpCount, clip, phLabel } from '../lib/missions';
+import { db, missions, rewardLabel, repSummary, uec, cmpSign, standingLabel, bpCount, clip, phLabel } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -42,7 +42,7 @@ const S = {
     dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
     noReward: 'keine', calcReward: 'wird berechnet', calcRewardT: 'Der Contract fuehrt keine feste Zahl — das Spiel berechnet den Lohn zur Laufzeit aus der Schwierigkeit.',
     srcH: 'Gut zu wissen',
-    srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Nichts davon ist abgeschrieben.',
+   
     srcSys: `Zwei Systeme: das ältere <strong>Missionsbrett</strong> (${db.meta.counts.brokerLive.toLocaleString('de-DE')} Angebote) und der <strong>Contract-Manager</strong> (${db.meta.counts.contracts.toLocaleString('de-DE')}), in den CIG gerade migriert. ${db.meta.counts.legacyBridged} Angebote führen beide Systeme — die stehen hier nur einmal.`,
     srcBp: `Blueprints hängen ausschließlich am Contract-Manager: ${db.meta.counts.withBlueprints} Missionen ziehen aus ${db.meta.counts.blueprintPools} Pools. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, ist Zufall.`,
     srcGuild: 'Die Gildenzuordnung ist abgeleitet und lesbar gemacht — keine offizielle Schreibweise.',
@@ -69,7 +69,7 @@ const S = {
     dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
     noReward: 'none', calcReward: 'calculated', calcRewardT: 'The contract carries no fixed number — the game computes the payout at runtime from the difficulty.',
     srcH: 'Good to know',
-    srcP: 'Game-accurate to the current live build (patch 4.9). None of it is copied from elsewhere.',
+   
     srcSys: `Two systems: the older <strong>mission board</strong> (${db.meta.counts.brokerLive.toLocaleString('en-US')} offers) and the <strong>Contract Manager</strong> (${db.meta.counts.contracts.toLocaleString('en-US')}) that CIG is migrating to. ${db.meta.counts.legacyBridged} offers exist in both — those are listed once.`,
     srcBp: `Blueprints hang off the Contract Manager only: ${db.meta.counts.withBlueprints} missions draw from ${db.meta.counts.blueprintPools} pools. A pool is a weighted list — which blueprint drops is chance.`,
     srcGuild: 'The guild grouping is derived and made readable — not an official spelling.',
@@ -278,7 +278,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
                 title={!reward && m.calcReward ? S.calcRewardT : undefined}
               >{reward ? `${reward} aUEC` : (m.calcReward ? S.calcReward : S.noReward)}</dd></div>
               <div><dt>{S.rep}</dt><dd>{rep
-                ? <>{rep.factionName} <span class="mc__dim">{cmpSign(rep.comparison)} {rep.standing}</span>{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
+                ? <>{rep.factionName}{rep.standing && <>{' '}<span class="mc__dim">{cmpSign(rep.comparison)} {standingLabel(rep, lang)}</span></>}{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
                 : <span class="mc__dim">—</span>}</dd></div>
               <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.slice(0, 3).join(', ') : <span class="mc__dim">—</span>}</dd></div>
             </dl>

@@ -7,6 +7,7 @@
 
 import DB from '../data/missions.json';
 import type { Locale } from '../i18n/ui';
+import { lesbarerBezeichner } from './lesbar';
 
 export interface MissionRep {
   faction: string | null;
@@ -155,6 +156,46 @@ export const cmpSign = (c: string | null) =>
     : c === 'GreaterThan' ? '>' : c === 'LessThan' ? '<'
       : c === 'NotEqualTo' ? '≠' : '=';
 
+/**
+ * Ruf-Stufe einer Bedingung als lesbarer Text.
+ *
+ * ⚠ ANLASS (03.11.2026): drei Formen standen roh auf der Seite —
+ *   - Stufen ohne Anzeigenamen im Spiel kommen als interner Schluessel
+ *     („ReputationStanding_Affinity_Neutral_015", 208 Bedingungen, 73 Familien),
+ *   - Bedingungen ohne Stufe zeigten „≠ null" (Citizens For Prosperity,
+ *     Foxwell Enforcement),
+ *   - und die Variantentabelle schrieb eine fehlende Fraktion als „null".
+ *
+ * Getrennt wird, nicht uebersetzt (Regel aus lesbar.ts): aus dem Schluessel
+ * fallen das Praefix, der Bereich (steht schon in der eigenen Spalte) und die
+ * Stufenzahl weg; die Zahl ist die Schwelle und kommt aus `standingMin`, das in
+ * den Daten neben dem Schluessel steht. `mitSchwelle` haengt sie an, wo es
+ * keine eigene Schwellen-Spalte gibt — sonst lesen sich „Neutral 0" und
+ * „Neutral 1.500" beide als „≥ Neutral".
+ */
+export function standingLabel(r: MissionRep, lang: Locale, mitSchwelle = true): string {
+  // Ohne Stufe gibt es nichts zu vergleichen. `standingMin` steht dann
+  // manchmal trotzdem da (CFP: 0) — als „≠ 0" gelesen waere das eine
+  // Behauptung, die die Daten nicht machen. Die Schwellen-Spalte zeigt es.
+  if (!r.standing) return '—';
+  const schwelle = r.standingMin != null ? uec(r.standingMin, lang) : null;
+  const m = r.standing.match(/^ReputationStanding_(.+?)(?:_(-?\d+))?$/);
+  if (!m) return r.standing;
+  let stufe = m[1];
+  if (r.scope && stufe.startsWith(r.scope + '_')) stufe = stufe.slice(r.scope.length + 1);
+  const name = lesbarerBezeichner(stufe);
+  return m[2] != null && mitSchwelle && schwelle != null ? `${name} (${schwelle})` : name;
+}
+
+/**
+ * Eine Bedingung als Zeile: „Ruto ≥ Neutral (1.500)". Eine fehlende Fraktion
+ * faellt weg, eine fehlende Stufe samt Vergleichszeichen.
+ */
+export function repLine(r: MissionRep, lang: Locale): string {
+  const stufe = r.standing ? `${cmpSign(r.comparison)} ${standingLabel(r, lang)}` : null;
+  return [r.factionName, stufe].filter(Boolean).join(' ') || '—';
+}
+
 /** Eindeutige Rep-Bedingungen einer Familie (ueber alle Varianten). */
 export function repSummary(m: Mission): MissionRep[] {
   const seen = new Set<string>();
@@ -227,7 +268,11 @@ const deCamel = (s: string) =>
  * sichtbarer Marker stehen — die Ehrlichkeitsregel hinter PH_TITLE.
  */
 export function phLabel(marke: string): string {
-  const v = PH_TITLE[String(marke).toLowerCase()];
+  const k = String(marke).toLowerCase();
+  // „Token" ist Entwickler-Wort, kein Spielbegriff — die Marke zeigt die Sache
+  // (03.11.2026: „Cargo Grade Token" stand in 78 Titeln).
+  if (k === 'cargogradetoken') return 'Cargo Grade';
+  const v = PH_TITLE[k];
   return v ? v : deCamel(marke);
 }
 
