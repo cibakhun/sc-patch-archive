@@ -50,7 +50,7 @@ const DIST = opt('--dist') || resolve(ROOT, 'dist');
 const JS = opt('--js') || join(DIST, 'assets', 'item-finder-app.js');
 if (!existsSync(DIST)) { console.error(`${DIST} fehlt — erst npm run build.`); process.exit(2); }
 
-// Klinken (Grundsatz 5), gemessen am 04.11.2026: 9.412 Items, 136 Sets,
+// Klinken (Grundsatz 5), gemessen am 04.11.2026: 9.412 Items,
 // 1.594 Modals mit Crafting-Abschnitt je Sprache, 141 Sets, 823.745
 // Textstellen ueber beide Sprachen, 92 woertliche Schluessel im Skript.
 const MIN_ITEMS = 9_000;

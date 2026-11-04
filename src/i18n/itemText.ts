@@ -339,7 +339,8 @@ export function itemLabel(lang: Locale, key: string, roh: string): string {
  * Exklusiv-Zeile (Promo, Concierge, Twitch-Drop …) traegt im Feld `loc` den
  * ENGLISCHEN Satz der Datenquelle — angezeigt wird die Bezugsart aus dem
  * Katalog. Anlass 04.11.2026: die Kategorielisten nahmen `loc` direkt, und
- * 284 deutsche Seiten zeigten "Promotional item — not obtainable in-game".
+ * 54 deutsche Kategorieseiten zeigten in 625 Zeilen "Promotional item — not
+ * obtainable in-game" und die anderen englischen Bezugsarten.
  * Eine Bezugsart ohne Label bricht den Bau ab (Label in ITEM_UI ergaenzen).
  */
 export function obtainLabel(o: { kind: string; loc: string; reason?: string | null }, lang: Locale): string {
