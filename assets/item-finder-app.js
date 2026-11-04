@@ -40,7 +40,7 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function fmtNum(n) { return Number(n).toLocaleString(CFG.lang === 'de' ? 'de-DE' : 'en-US'); }
+  function fmtNum(n, maxFrac) { return Number(n).toLocaleString(CFG.lang === 'de' ? 'de-DE' : 'en-US', maxFrac == null ? undefined : { maximumFractionDigits: maxFrac }); }
   function parentCategory(cat) { return cat ? cat.split('/')[0].trim() : 'Other'; }
   function minPrice(item) {
     var p = Infinity;
@@ -115,7 +115,7 @@
     if (s.resist && typeof s.resist.physical === 'number') { var red = Math.round((1 - s.resist.physical) * 100); return { l: tr('statResist', 'Reduktion'), v: red + '%', n: red }; }
     if (s.ndr) return { l: tr('statNdr', 'NDR'), v: fmtNum(s.ndr) + ' NDR', n: s.ndr };
     if (s.sensitivity) return { l: tr('statSensitivity', 'Empfindlichkeit'), v: fmtNum(s.sensitivity), n: s.sensitivity };
-    if (s.storageScu) return { l: tr('statStorage', 'Stauraum'), v: s.storageScu + ' SCU', n: s.storageScu };
+    if (s.storageScu) return { l: tr('statStorage', 'Stauraum'), v: fmtNum(s.storageScu) + ' SCU', n: s.storageScu };
     if (s.health) return { l: tr('statHealth', 'HP'), v: fmtNum(s.health) + ' HP', n: s.health };
     return null;
   }
@@ -490,7 +490,7 @@
       var specLine = '';
       if (item.game) {
         var g = item.game, bits = [];
-        if (g.manufacturer) bits.push(g.manufacturer);
+        if (mfrName(g.manufacturer)) bits.push(mfrName(g.manufacturer));
         if (g.weight) bits.push(weightLabel(g.weight));
         if (hasGradeSemantics(item)) {
           var sl = sizeLabel(item);
@@ -730,7 +730,7 @@
     if (s.radiation) out.push([tr('statRadiation', 'Strahlungsschutz'), fmtNum(s.radiation) + ' REM']);
     if (s.ndr) out.push([tr('statNdr', 'Nährwert (NDR)'), fmtNum(s.ndr)]);
     if (s.effects && s.effects.length) out.push([tr('statEffects', 'Effekte'), s.effects.join(', ')]);
-    if (s.storageScu) out.push([tr('statStorage', 'Stauraum'), s.storageScu + ' SCU']);
+    if (s.storageScu) out.push([tr('statStorage', 'Stauraum'), fmtNum(s.storageScu) + ' SCU']);
     if (s.lifetime) out.push([tr('statLifetime', 'Flugzeit'), fmtNum(s.lifetime) + ' s']);
     if (s.health) out.push([tr('statHealth', 'Bauteil-HP'), fmtNum(s.health)]);
     return out;
@@ -779,17 +779,22 @@
     var s = itemSizes(item);
     return s.length ? s.map(function (n) { return 'S' + n; }).join(' / ') : null;
   }
+  // Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
+  // Spieldaten auf das Logo statt auf einen Hersteller, und der Name ist
+  // dann der interne Schluessel ("Paint_Defender_Silver_Red_Logo",
+  // verify:clienttext 04.11.2026). Gleiche Regel in src/lib/itemStats.ts.
+  function mfrName(m) { return m && !/^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/.test(m) ? m : null; }
   // Kopf-Chips: Hersteller / Größe / Grade / Klasse / Volumen
   function specChips(item) {
     var g = item.game; if (!g) return [];
     var eq = hasGradeSemantics(item), chips = [];
-    if (g.manufacturer) chips.push([tr('specMfr', 'Hersteller'), g.manufacturer]);
+    if (mfrName(g.manufacturer)) chips.push([tr('specMfr', 'Hersteller'), mfrName(g.manufacturer)]);
     if (g.weight) chips.push([tr('facetWeight', 'Panzerungsklasse'), weightLabel(g.weight)]);
     if (g.rarity) chips.push([tr('facetRarity', 'Seltenheit'), rarityLabel(g.rarity)]);
     if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
     if (g.grade && !g.variants && hasMeaningfulGrade(item)) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
-    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), g.volumeScu + ' SCU']);
+    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), fmtNum(g.volumeScu, 6) + ' SCU']);
     return chips;
   }
 
@@ -810,7 +815,7 @@
     if (bp.ingredients && bp.ingredients.length) {
       ingredients = '<ul>' + bp.ingredients.map(function (ing) {
         var options = (ing.options || []).map(function (opt) {
-          var qty = opt.quantity_scu !== undefined ? opt.quantity_scu + ' SCU' : (opt.quantity !== undefined ? String(opt.quantity) : '');
+          var qty = opt.quantity_scu !== undefined ? fmtNum(opt.quantity_scu) + ' SCU' : (opt.quantity !== undefined ? fmtNum(opt.quantity) : '');
           return esc(opt.name) + (qty ? ' (' + esc(qty) + ')' : '');
         }).join(' / ');
         return '<li><strong>' + esc(ing.slot || 'Material') + ':</strong> ' + options + '</li>';
@@ -853,6 +858,9 @@
     // Technische Daten (Spieldaten) — zuerst: was IST das Item, was kann es
     var chips = specChips(item), stats = statEntries(item);
     var descText = item.game ? (CFG.lang === 'de' && item.game.descDe ? item.game.descDe : item.game.desc) : null;
+    // Ohne deutsche Fassung steht auf DE der englische Spieltext: als
+    // englisch ausgezeichnet (Vorlesen, Zahlformat-Pruefung).
+    var descLang = CFG.lang === 'de' && item.game && !item.game.descDe ? ' lang="en"' : '';
     if (chips.length || stats.length || descText) {
       html += '<div class="uif-modal-section uif-specs">' +
         '<h4>' + esc(tr('sectionSpecs', 'Technische Daten')) + '</h4>' +
@@ -862,7 +870,7 @@
         (stats.length ? '<div class="uif-stat-grid">' + stats.map(function (st) {
           return '<div class="uif-stat"><span class="uif-stat-l">' + esc(st[0]) + '</span><span class="uif-stat-v">' + esc(st[1]) + '</span></div>';
         }).join('') + '</div>' : '') +
-        (descText ? '<p class="uif-item-desc">' + esc(descText) + '</p>' : '') +
+        (descText ? '<p class="uif-item-desc"' + descLang + '>' + esc(descText) + '</p>' : '') +
       '</div>';
     }
 
@@ -875,7 +883,7 @@
         '<p class="uif-variants-note">' + esc(tr('variantsNote', 'Unter diesem Namen führt das Spiel mehrere Gegenstände.')) + '</p>' +
         vars.map(function (v) {
           var vg = v.grade && hasMeaningfulGrade(item) ? v.grade : null;
-          var head = ['S' + v.size, v.manufacturer, vg ? tr('specGrade', 'Grade') + ' ' + vg : null]
+          var head = ['S' + v.size, mfrName(v.manufacturer), vg ? tr('specGrade', 'Grade') + ' ' + vg : null]
             .filter(Boolean).join(' · ');
           var rows = statEntries({ game: { stats: v.stats } });
           return '<div class="uif-variant">' +

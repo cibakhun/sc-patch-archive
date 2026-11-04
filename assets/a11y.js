@@ -2,10 +2,16 @@
    ergänzt Tastatur-Bedienbarkeit + Fokus-Management ohne die bestehenden
    Click-Handler zu ersetzen. (Topic-Seiten: gleiches Verhalten in detail.js.) */
 (function(){
+  // Vorlesetexte in der Sprache der Seite (bis 04.11.2026 fest deutsch, auch
+  // auf den englischen Patch-Seiten; verify:clienttext, Teil 2).
+  var DE=(document.documentElement.getAttribute('lang')||'').slice(0,2).toLowerCase()==='de';
+  var L=DE
+    ?{play:function(t){return t+' abspielen';},playVideo:'Video abspielen: ',openImg:'Bild öffnen: '}
+    :{play:function(t){return 'Play '+t;},playVideo:'Play video: ',openImg:'Open image: '};
   // Bessere, eindeutige Namen für die Video-Play-Buttons (Button löst per Bubbling den vorhandenen Handler aus)
   document.querySelectorAll('.video[data-yt] .play').forEach(function(b){
     var v=b.closest('.video'), l=v&&v.querySelector('.vlbl');
-    if(l) b.setAttribute('aria-label', l.textContent.trim()+' abspielen');
+    if(l) b.setAttribute('aria-label', L.play(l.textContent.trim()));
   });
 
   // Lightbox-/Info-Trigger fokussierbar + per Enter/Space bedienbar machen + benennen
@@ -15,7 +21,7 @@
       var dt=el.getAttribute('data-title');
       if(!dt){ var c=el.querySelector('figcaption,.vlbl,.lbl,h3'); dt=c?c.textContent.replace(/\s+/g,' ').trim():''; }
       var isInfo=el.hasAttribute('data-info'), isYt=(el.getAttribute('data-lb')||'').indexOf('yt:')===0;
-      el.setAttribute('aria-label',(isInfo?'Info: ':isYt?'Video abspielen: ':'Bild öffnen: ')+dt);
+      el.setAttribute('aria-label',(isInfo?'Info: ':isYt?L.playVideo:L.openImg)+dt);
     }
     el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); el.click(); } });
   });

@@ -3,6 +3,13 @@
    lightbox (img / yt / info) · themed star canvas. Theme-agnostic:
    reads --accent/--accent-2 from the page for the starfield colors. */
 (function(){
+  // Vorlesetexte in der Sprache der Seite. Bis 04.11.2026 standen sie fest
+  // deutsch da — "Bild öffnen: Asgard" auf jeder englischen Seite
+  // (verify:clienttext, Teil 2).
+  var DE=(document.documentElement.getAttribute('lang')||'').slice(0,2).toLowerCase()==='de';
+  var L=DE
+    ?{play:function(t){return t+' abspielen';},playVideo:'Video abspielen: ',openImg:'Bild öffnen: ',video:'Video',img:'Bild'}
+    :{play:function(t){return 'Play '+t;},playVideo:'Play video: ',openImg:'Open image: ',video:'Video',img:'Image'};
   var tb=document.getElementById('topbar');
   if(tb) addEventListener('scroll',function(){tb.classList.toggle('scrolled',scrollY>40);},{passive:true});
 
@@ -12,10 +19,15 @@
   // Click-to-load video — the inner .play <button> is the keyboard-accessible trigger
   document.querySelectorAll('.video[data-yt]').forEach(function(v){
     var btn=v.querySelector('.play'), lbl=v.querySelector('.vlbl');
-    if(btn&&lbl) btn.setAttribute('aria-label', lbl.textContent.trim()+' abspielen');
+    if(btn&&lbl) btn.setAttribute('aria-label', L.play(lbl.textContent.trim()));
     function load(){
-      var id=v.getAttribute('data-yt');
-      v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0" title="'+((lbl&&lbl.textContent.trim())||'Video')+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+      var f=document.createElement('iframe');
+      f.setAttribute('src','https://www.youtube-nocookie.com/embed/'+encodeURIComponent(v.getAttribute('data-yt')||'')+'?autoplay=1&rel=0');
+      f.setAttribute('title',(lbl&&lbl.textContent.trim())||L.video);
+      f.setAttribute('allow','autoplay; encrypted-media; fullscreen; picture-in-picture');
+      f.setAttribute('allowfullscreen','');
+      v.textContent='';
+      v.appendChild(f);
     }
     (btn||v).addEventListener('click',load,{once:true});
   });
@@ -39,11 +51,11 @@
     }
     document.querySelectorAll('[data-lb]').forEach(function(el){
       var isYt=(el.getAttribute('data-lb')||'').indexOf('yt:')===0;
-      if(!el.getAttribute('aria-label'))el.setAttribute('aria-label',(isYt?'Video abspielen: ':'Bild öffnen: ')+txtOf(el));
+      if(!el.getAttribute('aria-label'))el.setAttribute('aria-label',(isYt?L.playVideo:L.openImg)+txtOf(el));
       activable(el,function(){
         lastTrigger=el; var v=el.getAttribute('data-lb');
-        if(isYt){show('<div class="ratio"><iframe src="https://www.youtube-nocookie.com/embed/'+v.slice(3)+'?autoplay=1&rel=0" title="'+esc(txtOf(el)||'Video')+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>');}
-        else{show('<img src="'+v.slice(4)+'" alt="'+esc(txtOf(el)||'Bild')+'">');}
+        if(isYt){show('<div class="ratio"><iframe src="https://www.youtube-nocookie.com/embed/'+v.slice(3)+'?autoplay=1&rel=0" title="'+esc(txtOf(el)||L.video)+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></div>');}
+        else{show('<img src="'+v.slice(4)+'" alt="'+esc(txtOf(el)||L.img)+'">');}
       });
     });
     document.querySelectorAll('[data-info]').forEach(function(el){

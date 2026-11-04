@@ -191,6 +191,7 @@
       "events": [
         {
           "name": "Fight for Pyro (Save Stanton Chapter 2)",
+          "period": "Jan 28 – Feb 28, 2025",
           "desc": "A dynamic event with a permanent faction choice in Pyro. Players choose one of three factions (Citizens for Prosperity, Headhunters, Frontier Fighters) during the first mission and fight reputation-bound to the end of the campaign. A Ripper SMG reward is granted for completion before the 4.0.2 launch."
         }
       ],
@@ -689,6 +690,7 @@
       "events": [
         {
           "name": "Storm Breaker",
+          "period": "Persistent",
           "desc": "Persistent activity deep in the storm; tied to the rain-crisis story. Not a dedicated, time-limited live event."
         }
       ],
@@ -1173,6 +1175,7 @@
       "events": [
         {
           "name": "Frontier Fighters Finale",
+          "period": "October 2025",
           "desc": "Three-phase finale of the Pyro Must Burn story; server-wide hunt for a stolen Polaris in phase 3; Headhunters and Citizens for Prosperity as an allied alliance led by Amelia Boyd."
         }
       ],
@@ -1719,6 +1722,7 @@
       "events": [
         {
           "name": "Lifeline for Levski",
+          "period": "Jan 29 – Mar 17, 2026",
           "desc": "Pandemic event: the asteroid colony Levski is stricken by the Molina Mold (People's Ailment). Players carry out supply missions (Clearing the Air) while The Moraine pirates attack the convoys. The event runs for a limited time until March 17, 2026."
         }
       ],
@@ -1849,6 +1853,7 @@
       "events": [
         {
           "name": "Stella Fortuna",
+          "period": "Seasonal",
           "desc": "Seasonal luck and celebration event with Arena Commander racing, a video contest, and rewards (racing gear, cosmetics)."
         }
       ],
@@ -2403,6 +2408,7 @@
       "events": [
         {
           "name": "XenoThreat — Assault on Stanton",
+          "period": "Jul 1–15, 2026",
           "desc": "Return of the dynamic XenoThreat event as a points-based combat event. The human-supremacist, anti-alien faction attacks Stanton over its support for alien coexistence; Foxwell Enforcement calls players in to help. Across five mission types — up to the Idris frigate — players farm up to 120,000 event points for blueprint rewards."
         }
       ],
@@ -3051,6 +3057,7 @@
       "events": [
         {
           "name": "Orison Relief Support",
+          "period": "Sep 16, 2026 until 4.10.2",
           "desc": "Crusader Industries' rebuilding campaign with four contract providers and six \"SecondWind\" rewards on a personal progress track."
         }
       ],
@@ -3353,6 +3360,7 @@
       "events": [
         {
           "name": "RSI Discovery Month",
+          "period": "from Oct 9, 2026",
           "desc": "Stanton event around the new RSI ships. Defence, transport and collection earn event points and rewards on dedicated tracks."
         }
       ],

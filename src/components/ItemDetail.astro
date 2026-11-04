@@ -28,6 +28,9 @@ const seo = itemSeo(item, lang);
 const name = displayName(item, lang);
 const alt = altName(item, lang);
 const desc = description(item, lang);
+// Ohne deutsche Fassung steht auf DE der englische Spieltext — als englisch
+// ausgezeichnet (Vorlesen; verify:sprache prueft ihn dann nicht als DE-Text).
+const descLang = lang === 'de' && !item.game?.descDe ? 'en' : undefined;
 const chips = specChips(item, lang);
 const stats = statEntries(item, lang);
 const variants = item.game?.variants ?? [];
@@ -142,7 +145,7 @@ const crumbs = [
           {stats.map(([l, v]) => <li class="dp-stat"><b>{l}</b><span>{v}</span></li>)}
         </ul>
       )}
-      {desc && <p class="dp-desc">{desc}</p>}
+      {desc && <p class="dp-desc" lang={descLang}>{desc}</p>}
     </section>
   )}
 
