@@ -498,7 +498,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl mit Einheit im eigenen Format, kein Katalogschluessel als Text, kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -530,6 +530,15 @@ export const CHECKS = [
     // "Ressource suchen..."). Gruen nach der Korrektur derselben Lieferung;
     // die eine Ausnahme (Schlossstraße, Anbieteranschrift) ist in Gebrauch.
     // Positiv- und Gegenbeispiele je Ausdruck: tests/e2e/textregeln.test.js.
+    // Luecken aus der Staging-Abnahme am selben Abend: Regel 9 sah nur die
+    // ganze Stelle, Regel 11 (interner Bezeichner) gab es nicht. Erweitert
+    // VORGEFUEHRT ROT gegen den Vorschau-Bau von 0db33536: 1.275 FEHLER
+    // Dezimalzahl — 691 auf /de/schiffe ("L 20 m · B 15 m · H 6.5 m",
+    // "Grundriss 6.5 m lang", "Agilität: 97.0 °/s Ø" im aria-label), 584
+    // englische Spieltexte auf DE-Itemseiten ohne lang="en" ("Carrying
+    // Capacity: 8.0 µSCU"). Regel 11 im selben Lauf: 9.154 Stellen in genau
+    // den drei benannten offenen Klassen (Angebote-Spalte "Eintrag" 7.512,
+    // Orte als Code 1.624, Platzhalter-Bauteile 18), sonst keine.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
@@ -546,7 +555,7 @@ export const CHECKS = [
     script: 'scripts/verify-clienttext.mjs',
     rail: 'A',
     checks:
-      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format und ohne Rohschluessel; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
     // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
     // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
     // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
@@ -582,6 +591,14 @@ export const CHECKS = [
     // import(root.dataset.lib) in hangar-loadout.js), danach 6 mit <dialog>
     // ohne showModal/close — Luecken des Pruefstands, dort behoben; gruen
     // mit unveraendertem Bau.
+    // Dezimalzahl mitten im Text und interner Bezeichner (Luecken aus der
+    // Staging-Abnahme, Regeln aus scripts/lib/textregeln.mjs) VORGEFUEHRT
+    // ROT gegen den Live-Bau desselben Abends: 726 FEHLER — 100 Stellen von
+    // 25 Lackierungen mit dem Logo-Schluessel als Hersteller im Finder
+    // ("Paint_Defender_Silver_Red_Logo"), 605 englische Spieltexte im
+    // DE-Modal ohne lang="en" ("Carrying Capacity: 8.0 µSCU"), 21
+    // "Kreuzungsfaktor 0.810 · 35.9° von radial" auf /de/precision-jump.html.
+    // Gruen nach der Korrektur derselben Lieferung.
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

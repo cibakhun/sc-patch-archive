@@ -125,9 +125,17 @@ export const DATUM_EN_AUF_DE_RE = new RegExp(`(?<![\\p{L}])(?:${MONAT_EN})\\.?\\
    Patch-Seite 4.10.2 — und im Crafting-Qualitaetsrechner, den erst der
    Pruefstand bedient hat. Bewusst nur die ganze Stelle: im Fliesstext und
    ohne Einheit ist "4.10" eine Versionsnummer, und mit genau drei
-   Nachkommastellen ("1.000 m") waere es auf Deutsch eine Tausendergruppe. */
+   Nachkommastellen ("1.000 m") waere es auf Deutsch eine Tausendergruppe.
+   Mitten im Text zaehlt die Zahl nur MIT Einheit dahinter. Anlass
+   04.11.2026 (Staging-Abnahme): "L 20 m · B 15 m · H 6.5 m",
+   "Grundriss 6.5 m lang" und "Agilität: 97.0 °/s Ø" im aria-label —
+   691 Stellen auf den deutschen Schiffsseiten, die die Regel als ganze
+   Stelle nicht sah. Gemessen am selben Tag im Live- und im Vorschau-Bau:
+   sonst nur englische Spieltexte auf DE-Itemseiten ("Carrying Capacity:
+   8.0 µSCU"), und die tragen seitdem lang="en". */
 const EINHEIT = '(?:%|SCU|µSCU|cSCU|a?UEC|m\\/s²?|km\\/s|GJ|MJ|kg|t|s|ms|min|h|Std\\.?|m|km|Gm|Mm|HP|DPS|rpm|°|×)';
-const dezimal = (trenner) => new RegExp(`^[(\\[]?(?:[-−+±×≈~]\\s?\\d+${trenner}\\d{1,2}(?:\\s?${EINHEIT})?|\\d+${trenner}\\d{1,2}\\s?${EINHEIT})[)\\]]?$`, 'u');
+const EINHEIT_IM_TEXT = '(?:°\\/s²?|m\\/s²?|km\\/s|µSCU|cSCU|SCU|a?UEC|GJ|MJ|kg|km|Gm|Mm|ms|min|HP|DPS|rpm|°C|°|m|s|h|t|%)';
+const dezimal = (trenner) => new RegExp(`^[(\\[]?(?:[-−+±×≈~]\\s?\\d+${trenner}\\d{1,2}(?:\\s?${EINHEIT})?|\\d+${trenner}\\d{1,2}\\s?${EINHEIT})[)\\]]?$|(?<![\\p{L}\\d.,])\\d+${trenner}\\d{1,2}\\s?${EINHEIT_IM_TEXT}(?![\\p{L}\\d])`, 'u');
 export const DEZIMAL_EN_AUF_DE_RE = dezimal('\\.');
 export const DEZIMAL_DE_AUF_EN_RE = dezimal(',');
 
@@ -149,6 +157,19 @@ export const DEZIMAL_DE_AUF_EN_RE = dezimal(',');
    sie in der Oberflaeche stehen; "bis" und "ab" nur klein — "600i 2951 BIS"
    ist ein Schiffsname (gemessen am selben Tag: der einzige Treffer mit
    gross geschriebenem BIS). Nur Woerter, die es im Englischen nicht gibt. */
+/* Interner Bezeichner im sichtbaren Text: ein Name aus mindestens drei
+   Gliedern mit Unterstrich, das erste gross geschrieben
+   ("PU_Delivery_Local_DrugProduction_Stanton4_KlimIntro", "RR_P3_L2",
+   "RADR_GNRP_S03_Idris_TEMP"). So heissen Eintraege in den Spieldaten,
+   nicht Dinge in der Oberflaeche. Anlass 04.11.2026 (Staging-Abnahme):
+   interne Angebotsnamen unter "Angebote" auf den Missionsseiten. Gemessen
+   am selben Tag im Live- und im Vorschau-Bau: Treffer nur in den drei
+   Klassen, die verify:sprache als offene Ausnahmen benennt. Nicht
+   darunter: kleingeschriebene Namen (das Cookie vb_gate_exp in der
+   Datenschutzerklaerung ist gewollt) und Pfade (PU/PU_Missions/… steht
+   eingeklappt in "Technische Details", Krisz 04.11.2026). */
+export const INTERN_RE = /(?<![\w/.-])[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}(?![\w/.])/;
+
 export const DE_UMLAUTWORT_RE = /[\p{L}]*[äöüßÄÖÜ][\p{L}]*/u;
 export const DE_WORT_EN_RE = /(?<![\p{L}\d-])(?:abspielen|ausblenden|einblenden|entfernen|speichern|kopieren|suchen|schliessen|abbrechen|weiter|teilen|filtern|sortieren|herunterladen|anheften|Bild|Bilder|Seite|Seiten|Spieler|Schiffe|Waffen|Fehler|Ergebnis|Ergebnisse|Treffer|Januar|Februar|Juni|Juli|Oktober|Dezember|bis|ab|saisonal|dauerhaft)(?![\p{L}\d-])/u;
 
@@ -176,6 +197,7 @@ export function pruefeStelle(t, lang, M, RS) {
   hit('dezimal', (lang === 'de' ? DEZIMAL_EN_AUF_DE_RE : DEZIMAL_DE_AUF_EN_RE).exec(t));
   hit('datum', (lang === 'de' ? DATUM_EN_AUF_DE_RE : DATUM_DE_AUF_EN_RE).exec(t));
   hit('schluessel', findeRohschluessel(t, RS));
+  hit('intern', INTERN_RE.exec(t));
   return out;
 }
 
@@ -191,6 +213,7 @@ export const REGEL_TITEL = {
   dezimal: 'Dezimalzahl im Format der anderen Sprache',
   datum: 'Datum im Format der anderen Sprache',
   schluessel: 'Katalogschluessel statt Text',
+  intern: 'interner Bezeichner aus den Spieldaten statt Anzeigename',
 };
 
 export const decodeEntities = (s) => s
@@ -236,6 +259,19 @@ export function textStellen(html, { ohneAttr = false } = {}) {
   const out = [];
   for (const m of markup.matchAll(/>([^<]+)</g)) if (m[1].trim()) out.push(decodeEntities(m[1]));
   if (!ohneAttr) for (const m of markup.matchAll(ATTR_RE)) if (m[1].trim()) out.push(decodeEntities(m[1]));
+  return out;
+}
+
+/**
+ * Wie textStellen(), dazu je Stelle das Markup davor (`ort`, endet mit dem
+ * '>' des umschliessenden Tags; bei Attributen der Tag-Anfang) — fuer
+ * Ausnahmen, die an einer Stelle der Seite haengen statt an einem Wort.
+ */
+export function textStellenMitOrt(html, vor = 600) {
+  const markup = ohneNichttext(html);
+  const out = [];
+  for (const m of markup.matchAll(/>([^<]+)</g)) if (m[1].trim()) out.push({ t: decodeEntities(m[1]), ort: markup.slice(Math.max(0, m.index - vor), m.index + 1) });
+  for (const m of markup.matchAll(ATTR_RE)) if (m[1].trim()) out.push({ t: decodeEntities(m[1]), ort: markup.slice(markup.lastIndexOf('<', m.index), m.index + 1) });
   return out;
 }
 

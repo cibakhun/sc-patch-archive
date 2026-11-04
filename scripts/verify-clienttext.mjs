@@ -250,9 +250,24 @@ const ruhe = () => new Promise((r) => setTimeout(r, 0));
 
 let stellen = 0;
 function pruefeHtml(html, lang, wo) {
-  for (const roh of textStellen(html)) {
+  // Ein Blattelement mit eigenem lang-Attribut zaehlt in SEINER Sprache
+  // (englischer Spieltext im DE-Modal, lang="en") — wie im Pruefstand
+  // (texteAus) und in verify:sprache.
+  const eigen = [];
+  const rest = html.replace(/<(\w+)\b[^>]*\slang="(de|en)"[^>]*>([^<]*)<\/\1>/g, (m, tag, l, innen) => {
+    if (l === lang) return m;
+    eigen.push([innen, l]);
+    return ' ';
+  });
+  for (const roh of textStellen(rest)) {
     stellen++;
     pruefeText(norm(roh), lang, wo);
+  }
+  for (const [innen, l] of eigen) {
+    for (const roh of textStellen(`>${innen}<`)) {
+      stellen++;
+      pruefeText(norm(roh), l, wo);
+    }
   }
 }
 

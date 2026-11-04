@@ -79,7 +79,8 @@ export function specChips(i: Item, lang: Locale): Row[] {
   const eq = hasGradeSemantics(i);
   const size = sizeLabel(i);
   const out: Row[] = [];
-  if (g.manufacturer) out.push([t('specMfr'), g.manufacturer]);
+  const mfr = mfrName(g.manufacturer);
+  if (mfr) out.push([t('specMfr'), mfr]);
   if (eq && size) out.push([t('specSize'), size]);
   // Grade gilt je Ausfuehrung — bei mehreren steht er in der Variantenliste.
   // Und nur dort, wo er im Spiel etwas unterscheidet: bei Waffen, Ruestung,
@@ -101,10 +102,19 @@ export function specChips(i: Item, lang: Locale): Row[] {
  * ausnahmslos "A"; als Unterscheidungsmerkmal zwischen den Ausfuehrungen taugt
  * er dann gerade nicht.
  */
+/* Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
+   Spieldaten auf das Logo statt auf einen Hersteller, der Name ist dann der
+   interne Schluessel ("Paint_Defender_Silver_Red_Logo"; verify:clienttext
+   04.11.2026). Gleiche Regel in assets/item-finder-app.js (mfrName). */
+const INTERN_NAME = /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/;
+export function mfrName(m: string | null | undefined): string | null {
+  return m && !INTERN_NAME.test(m) ? m : null;
+}
+
 export function variantHead(i: Item, v: { size: number; manufacturer: string | null; grade: string | null }, lang: Locale): string {
   const t = itemT(lang);
   const grade = v.grade && hasMeaningfulGrade(i) ? v.grade : null;
-  return [`S${v.size}`, v.manufacturer, grade ? `${t('specGrade')} ${grade}` : null]
+  return [`S${v.size}`, mfrName(v.manufacturer), grade ? `${t('specGrade')} ${grade}` : null]
     .filter(Boolean)
     .join(' · ');
 }

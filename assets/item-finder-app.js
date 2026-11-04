@@ -490,7 +490,7 @@
       var specLine = '';
       if (item.game) {
         var g = item.game, bits = [];
-        if (g.manufacturer) bits.push(g.manufacturer);
+        if (mfrName(g.manufacturer)) bits.push(mfrName(g.manufacturer));
         if (g.weight) bits.push(weightLabel(g.weight));
         if (hasGradeSemantics(item)) {
           var sl = sizeLabel(item);
@@ -779,11 +779,16 @@
     var s = itemSizes(item);
     return s.length ? s.map(function (n) { return 'S' + n; }).join(' / ') : null;
   }
+  // Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
+  // Spieldaten auf das Logo statt auf einen Hersteller, und der Name ist
+  // dann der interne Schluessel ("Paint_Defender_Silver_Red_Logo",
+  // verify:clienttext 04.11.2026). Gleiche Regel in src/lib/itemStats.ts.
+  function mfrName(m) { return m && !/^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/.test(m) ? m : null; }
   // Kopf-Chips: Hersteller / Größe / Grade / Klasse / Volumen
   function specChips(item) {
     var g = item.game; if (!g) return [];
     var eq = hasGradeSemantics(item), chips = [];
-    if (g.manufacturer) chips.push([tr('specMfr', 'Hersteller'), g.manufacturer]);
+    if (mfrName(g.manufacturer)) chips.push([tr('specMfr', 'Hersteller'), mfrName(g.manufacturer)]);
     if (g.weight) chips.push([tr('facetWeight', 'Panzerungsklasse'), weightLabel(g.weight)]);
     if (g.rarity) chips.push([tr('facetRarity', 'Seltenheit'), rarityLabel(g.rarity)]);
     if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
@@ -853,6 +858,9 @@
     // Technische Daten (Spieldaten) — zuerst: was IST das Item, was kann es
     var chips = specChips(item), stats = statEntries(item);
     var descText = item.game ? (CFG.lang === 'de' && item.game.descDe ? item.game.descDe : item.game.desc) : null;
+    // Ohne deutsche Fassung steht auf DE der englische Spieltext: als
+    // englisch ausgezeichnet (Vorlesen, Zahlformat-Pruefung).
+    var descLang = CFG.lang === 'de' && item.game && !item.game.descDe ? ' lang="en"' : '';
     if (chips.length || stats.length || descText) {
       html += '<div class="uif-modal-section uif-specs">' +
         '<h4>' + esc(tr('sectionSpecs', 'Technische Daten')) + '</h4>' +
@@ -862,7 +870,7 @@
         (stats.length ? '<div class="uif-stat-grid">' + stats.map(function (st) {
           return '<div class="uif-stat"><span class="uif-stat-l">' + esc(st[0]) + '</span><span class="uif-stat-v">' + esc(st[1]) + '</span></div>';
         }).join('') + '</div>' : '') +
-        (descText ? '<p class="uif-item-desc">' + esc(descText) + '</p>' : '') +
+        (descText ? '<p class="uif-item-desc"' + descLang + '>' + esc(descText) + '</p>' : '') +
       '</div>';
     }
 
@@ -875,7 +883,7 @@
         '<p class="uif-variants-note">' + esc(tr('variantsNote', 'Unter diesem Namen führt das Spiel mehrere Gegenstände.')) + '</p>' +
         vars.map(function (v) {
           var vg = v.grade && hasMeaningfulGrade(item) ? v.grade : null;
-          var head = ['S' + v.size, v.manufacturer, vg ? tr('specGrade', 'Grade') + ' ' + vg : null]
+          var head = ['S' + v.size, mfrName(v.manufacturer), vg ? tr('specGrade', 'Grade') + ' ' + vg : null]
             .filter(Boolean).join(' · ');
           var rows = statEntries({ game: { stats: v.stats } });
           return '<div class="uif-variant">' +

@@ -39,12 +39,17 @@
 //      Messung in scripts/lib/textregeln.mjs.
 //   8  Datum im Format der eigenen Sprache ("9. Oktober 2026" auf einer
 //      EN-Seite, "March 26, 2026" auf einer DE-Seite).
-//   9  Dezimalzahl mit Einheit im Format der eigenen Sprache, als ganze
-//      Textstelle ("0.01 SCU", "8.75 m" auf einer DE-Seite).
+//   9  Dezimalzahl im Format der eigenen Sprache: als ganze Textstelle
+//      ("0.01 SCU", "8.75 m", "+0.5" auf einer DE-Seite) und, mit Einheit
+//      dahinter, auch mitten im Text ("L 20 m · B 15 m · H 6.5 m").
+//  11  Kein interner Bezeichner aus den Spieldaten im sichtbaren Text
+//      ("PU_Delivery_Local_…", "RR_P3_L2"). Stellen, fuer die es noch
+//      keinen Anzeigenamen gibt, stehen als benannte Ausnahmen da
+//      (INTERN_AUSNAHMEN, Zombie-Waechter) und werden je Lauf gezaehlt.
 //  10  Kein deutsches Wort mit Umlaut oder ß und kein deutsches Bedienwort
 //      ("Bild", "abspielen", "suchen") auf einer EN-Seite. Eigennamen mit
 //      Umlaut stehen als benannte Ausnahme da (Zombie-Waechter).
-//   Regeln 8-10 kamen am 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge
+//   Regeln 8-11 kamen am 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge
 //   dazu; sie stehen in scripts/lib/textregeln.mjs und gelten in
 //   verify:clienttext genauso fuer den Text, den die Skripte schreiben.
 //   Text in einem Element mit eigenem lang-Attribut der anderen Sprache
@@ -59,7 +64,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ladeKataloge, sprachMengen, textStellen, norm, rohschluesselRe, findeRohschluessel,
+  ladeKataloge, sprachMengen, textStellen, textStellenMitOrt, norm, rohschluesselRe, findeRohschluessel, INTERN_RE,
   ZAHL_EN_AUF_DE_RE, ZAHL_DE_AUF_EN_RE, DOPPELWORT_EN_RE, DE_FUNKTIONSWORT_RE,
   DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE, DE_UMLAUTWORT_RE, DE_WORT_EN_RE,
 } from './lib/textregeln.mjs';
@@ -99,6 +104,34 @@ const UMLAUT_AUSNAHMEN = [
     anlass: 'Strassenname der Anbieteranschrift in Impressum und Datenschutzerklaerung — eine Anschrift wird nicht uebersetzt.',
   },
 ];
+
+/* Regel 11, interner Bezeichner im sichtbaren Text: offene Stellen, an
+   denen die Seite bisher keinen Anzeigenamen hat (Staging-Abnahme
+   04.11.2026). Jede haengt an einem Bereich und einer Stelle im Markup;
+   wer die Anzeige behebt, streicht die Ausnahme im selben Commit (sonst
+   reisst der Zombie-Waechter). Neue Fundstellen sind FEHLER. */
+const INTERN_AUSNAHMEN = [
+  {
+    name: 'Missionen, Angebote-Spalte "Eintrag"',
+    bereich: /^\/(?:de\/)?missionen\//,
+    ort: /<td\b[^>]*>\s*<code class="md__code"[^>]*>$/,
+    anlass: 'der interne Angebotsname ist bisher die einzige Bezeichnung je Zeile; Anzeige offen (Staging-Abnahme 04.11.2026)',
+  },
+  {
+    name: 'Missionen, Orte ohne Anzeigenamen',
+    bereich: /^\/(?:de\/)?missionen\//,
+    ort: /<li class="md__tag"[^>]*>$|<td class="md__dim md__places"[^>]*>$/,
+    anlass: 'Orte, fuer die die Spieldaten nur einen internen Code haben (RR_P3_L2_CLINIC); Anzeige offen (Staging-Abnahme 04.11.2026)',
+  },
+  {
+    name: 'Schiffe, Bauteil ohne Anzeigenamen',
+    bereich: /^\/(?:de\/)?schiffe\//,
+    ort: /class="sd__slothead"[\s\S]*<div class="n"[^>]*>$/,
+    anlass: 'Platzhalter-Bauteile des Spiels ohne Namen (RADR_GNRP_S03_Idris_TEMP, Idris-M/P, Javelin); Anzeige offen (Staging-Abnahme 04.11.2026)',
+  },
+];
+const fIntern = [];
+const internOffen = new Map(INTERN_AUSNAHMEN.map((a) => [a, 0]));
 
 const fehler = [];
 const zeige = (liste, titel, cap = 12) => {
@@ -181,7 +214,15 @@ for (const f of seiten) {
     const dt = (de ? DATUM_EN_AUF_DE_RE : DATUM_DE_AUF_EN_RE).exec(t);
     if (dt) fDatum.push(`${page}: „${dt[0]}" in „${stelle(t, dt)}"`);
     const dz = (de ? DEZIMAL_EN_AUF_DE_RE : DEZIMAL_DE_AUF_EN_RE).exec(t);
-    if (dz) fDezimal.push(`${page}: „${dz[0]}"`);
+    if (dz) fDezimal.push(`${page}: „${dz[0]}"${dz[0] === t ? '' : ` in „${stelle(t, dz)}"`}`);
+  }
+  for (const { t: roh, ort } of textStellenMitOrt(html)) {
+    const t = norm(roh);
+    const i = INTERN_RE.exec(t);
+    if (!i) continue;
+    const ausn = INTERN_AUSNAHMEN.find((a) => a.bereich.test(page) && a.ort.test(ort));
+    if (ausn) internOffen.set(ausn, internOffen.get(ausn) + 1);
+    else fIntern.push(`${page}: „${i[0]}" in „${stelle(t, i, 30, 30)}"`);
   }
 }
 
@@ -227,6 +268,7 @@ if (stellen < MIN_STELLEN) fehler.push(`nur ${stellen} Textstellen (Klinke ${MIN
 if (M.mehrwortNurEn.size + M.mehrwortNurDe.size < MIN_MEHRWORT) fehler.push(`nur ${M.mehrwortNurEn.size + M.mehrwortNurDe.size} mehrwortige Katalogtexte (Klinke ${MIN_MEHRWORT})`);
 if (quellenMitSprache < MIN_QUELLEN) fehler.push(`nur ${quellenMitSprache} Quelldateien mit Sprachbezug (Klinke ${MIN_QUELLEN})`);
 for (const a of [...WORT_AUSNAHMEN, ...UMLAUT_AUSNAHMEN]) if (!benutzt.has(a)) fehler.push(`Zombie-Ausnahme „${a.wort}": trifft nichts mehr — raus damit`);
+for (const [a, n] of internOffen) if (!n) fehler.push(`Zombie-Ausnahme „${a.name}" (Regel 11): trifft nichts mehr — raus damit`);
 
 zeige(fMehrwort, '1 Katalogtext der anderen Sprache');
 if (fWort.length) {
@@ -241,9 +283,11 @@ zeige(fFunktion, '7 deutsches Funktionswort auf EN-Seite (fester Text im Markup?
 zeige(fDatum, '8 Datum im Format der anderen Sprache');
 zeige(fDezimal, '9 Dezimalzahl im Format der anderen Sprache (toLocaleString / num(v, lang))');
 zeige(fDeWort, '10 deutsches Wort auf EN-Seite (Umlaut oder Bedienwort)');
+zeige(fIntern, '11 interner Bezeichner im sichtbaren Text (Anzeigenamen statt Spieldaten-Schluessel)');
+console.log(`\n11 interne Bezeichner, offen und benannt (keine FEHLER, Schulden): ${[...internOffen].map(([a, n]) => `${a.name} ${n.toLocaleString('de-DE')}`).join(' · ')}`);
 for (const f of fehler) console.log(`\n== FEHLER ${f} ==`);
 
-const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fehler.length;
+const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fIntern.length + fehler.length;
 if (summe) {
   console.log(`\nverify:sprache ROT — ${summe} Befund(e).`);
   process.exit(1);
