@@ -76,9 +76,26 @@ export const FEEDBACK_DEMO = FEEDBACK.web3formsKey === WEB3FORMS_PLATZHALTER;
 // Browser zu stehen) — Datenzugriff schützt Row Level Security, nicht der Key.
 // Volles supabase-js wird NUR auf den /account/-Seiten gebundelt; alle anderen
 // Seiten nutzen das schlanke /assets/account-lite.js (Nav-Status, Favoriten).
+//
+// WELCHES Projekt: entscheidet der Bau (STAGING=1 -> Ziel "vorschau", sonst
+// "live"). Die Werte stehen in EINER Tabelle, scripts/lib/supabase-ziel.mjs;
+// astro.config.mjs setzt sie als __VB_SUPABASE__ fest ein — in Seiten UND
+// Client-Bundles, denn process.env gibt es im Browser nicht. Fehlt die
+// Einsetzung (Modul außerhalb des Astro-Baus gebündelt), reißt es hier,
+// statt still ein Projekt zu raten. Gegen das fertige dist/ prüft
+// verify:supabase-ziel, dass jede Seite nur das Projekt ihres Baus nennt.
+declare const __VB_SUPABASE__:
+  | { url: string; publishableKey: string; storageKey: string }
+  | undefined;
+if (typeof __VB_SUPABASE__ !== 'object' || __VB_SUPABASE__ === null) {
+  throw new Error(
+    'src/consts.ts: __VB_SUPABASE__ fehlt — das Supabase-Ziel setzt astro.config.mjs (vite.define) ein. ' +
+      'Wer das Modul selbst bündelt, gibt es per define mit: JSON.stringify(zielImBau()) aus scripts/lib/supabase-ziel.mjs.',
+  );
+}
 export const SUPABASE = {
-  url: 'https://trgjhmbnodoarnfmlcqx.supabase.co',
-  publishableKey: 'sb_publishable_AN3O0va6kEsCmHr6zDcwRQ_8sT68W3J',
+  url: __VB_SUPABASE__.url,
+  publishableKey: __VB_SUPABASE__.publishableKey,
   /** localStorage-Schlüssel der supabase-js-Session (Projekt-Ref-gebunden) */
-  storageKey: 'sb-trgjhmbnodoarnfmlcqx-auth-token',
+  storageKey: __VB_SUPABASE__.storageKey,
 } as const;

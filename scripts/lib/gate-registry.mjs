@@ -235,6 +235,18 @@ export const CHECKS = [
       'der Hangar steht genau im Vorschau-Bau: live keine Hangar-Seiten, -Ordner, -Modelle und -Skripte in dist/ und keine Seite, die eine Hangar-Seite verlinkt oder etwas aus /hangar/ laedt; in der Vorschau beide Sprachen, die Buchtdokumente (Klinke) und die Modelle (Klinke), und das Menue fuehrt hin; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach
+    // dem Hangar-Schalter, derselbe STAGING-Schalter am Artefakt. Liest jede
+    // Textdatei in dist/ einmal, wenige Sekunden. Kein env-Feld: kein git,
+    // kein Netz, kein Kindprozess — nur dist/ und die Ziel-Tabelle.
+    id: 'verify:supabase-ziel',
+    npm: 'verify:supabase-ziel',
+    script: 'scripts/verify-supabase-ziel.mjs',
+    rail: 'A',
+    checks:
+      'der Bau spricht genau ein Supabase-Projekt an, und zwar das seines Ziels (Vorschau-Bau "vorschau", sonst "live", Tabelle scripts/lib/supabase-ziel.mjs): dist/build.json nennt Ziel und Ref passend zur Tabelle, jede Textdatei in dist/ nennt nur dessen Host, Sitzungsschluessel und Publishable Key und keinen geheimen Schluessel, und account-lite.js, die CSP-Dateien, gate.html, ein Client-Bundle und die Datenschutzerklaerung tragen es; Klinken fuer gelesene und tragende Dateien',
+  },
+  {
     // Direkt nach den beiden Schiffstoren: dieselbe Datenfamilie, und unter
     // einer Sekunde schnell genug, dass ein gebrochener Hangar-Join vor dem
     // langen audit:site auffaellt. Kein env-Feld: kein git, kein Netz, kein

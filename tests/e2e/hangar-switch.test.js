@@ -21,7 +21,7 @@ test('Regel: Hangar nur mit STAGING=1, an beiden Stellen gleich', () => {
   assert.match(read('src/lib/seo.ts'), /export const HAS_HANGAR: boolean = IS_STAGING;/);
   assert.match(read('src/lib/seo.ts'), /process\.env\?\.STAGING === '1'/);
   assert.match(read('src/lib/hangarFlag.ts'), /typeof __VB_HANGAR__ === 'boolean' \? __VB_HANGAR__ : true/);
-  assert.match(read('astro.config.mjs'), /define: \{ __VB_HANGAR__: JSON\.stringify\(hangarImBau\(\)\) \}/);
+  assert.match(read('astro.config.mjs'), /define: \{\s*__VB_HANGAR__: JSON\.stringify\(hangarImBau\(\)\),/);
 });
 
 test('Routen: liegen nicht unter src/pages und haengen nur im Vorschau-Bau', () => {

@@ -3,7 +3,12 @@
 
    Schreibt dist/build.json:
      { "sha": "<Commit>", "kurz": "<7 Zeichen>", "staging": true|false,
+       "supabase": { "ziel": "live"|"vorschau", "ref": "<Projekt-Ref>" },
        "gebautAm": "<ISO>" }
+
+   `supabase` nennt das Projekt, das dieser Bau anspricht
+   (scripts/lib/supabase-ziel.mjs). verify:supabase-ziel prueft dist/
+   dagegen, check:staging kann es von aussen ablesen.
 
    WARUM ES DEN GIBT: Bis heute liess sich von aussen NICHT feststellen, ob
    die ausgelieferte Seite den neuen Stand zeigt — es sei denn, die
@@ -30,18 +35,21 @@
 import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { zielImBau } from './lib/supabase-ziel.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = resolve(ROOT, 'dist');
 if (!existsSync(DIST)) mkdirSync(DIST, { recursive: true });
 
 const sha = (process.env.GIT_SHA || '').trim() || 'dev';
+const ziel = zielImBau();
 const stempel = {
   sha,
   kurz: sha === 'dev' ? 'dev' : sha.slice(0, 7),
   staging: process.env.STAGING === '1',
+  supabase: { ziel: ziel.ziel, ref: ziel.ref },
   gebautAm: new Date().toISOString(),
 };
 
 writeFileSync(resolve(DIST, 'build.json'), JSON.stringify(stempel, null, 2) + '\n');
-console.log(`build.json: ${stempel.kurz}${stempel.staging ? ' (Vorschau)' : ''} · ${stempel.gebautAm}`);
+console.log(`build.json: ${stempel.kurz}${stempel.staging ? ' (Vorschau)' : ''} · Supabase ${ziel.ziel} (${ziel.ref}) · ${stempel.gebautAm}`);
