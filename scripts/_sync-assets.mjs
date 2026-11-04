@@ -15,8 +15,15 @@
 // public/assets — und weil public/ ungefiltert nach dist/ wandert, wurden sie
 // mit ausgeliefert (inkl. dem Data.p4k-Pfad des Rechners im Kopf). Deshalb
 // werden Altbestaende hier bei jedem Lauf entfernt statt nur uebersprungen.
-import { cp, readdir, rm } from 'node:fs/promises';
+//
+// SUPABASE-ZIEL: account-lite.js traegt Projekt-URL, Publishable Key und
+// Sitzungsschluessel als Literale im Kopf (bewusst SDK- und importfrei).
+// Die Quelle unter assets/ nennt live; hier wird beim Kopieren das Ziel
+// des Baus eingesetzt (STAGING=1 -> "vorschau", scripts/lib/supabase-ziel.mjs).
+// Weicht der Kopf ab (Zeile fehlt oder doppelt), reisst der Bau.
+import { cp, readdir, rm, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { zielImBau, liteMitZiel } from './lib/supabase-ziel.mjs';
 
 const IS_BUILD_INPUT = /-gamefiles\.json$/i;
 
@@ -31,4 +38,8 @@ for (const name of await readdir('public/assets').catch(() => [])) {
   await rm(join('public/assets', name), { force: true });
   pruned++;
 }
-console.log(`synced assets -> public/assets (ohne *-gamefiles.json${pruned ? `, ${pruned} Altbestand entfernt` : ''})`);
+const ziel = zielImBau();
+const LITE = 'public/assets/account-lite.js';
+await writeFile(LITE, liteMitZiel(await readFile(LITE, 'utf8'), ziel));
+
+console.log(`synced assets -> public/assets (ohne *-gamefiles.json${pruned ? `, ${pruned} Altbestand entfernt` : ''}; account-lite.js -> Supabase-Ziel ${ziel.ziel}, ${ziel.ref})`);

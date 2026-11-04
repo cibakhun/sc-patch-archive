@@ -1198,7 +1198,7 @@ const CLIENT = {
     // beantwortet vier verschiedene Fragen: Geht das? Ist es sicher? Wie
     // weit noch? Wie viel Spielraum habe ich?
     byId('pj-stats').innerHTML =
-      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toFixed(3), a: conf.ang.toFixed(1) }), { cls: conf.cls, score: conf.score }) +
+      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toLocaleString(loc, { minimumFractionDigits: 3, maximumFractionDigits: 3 }), a: conf.ang.toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }), { cls: conf.cls, score: conf.score }) +
       card(T.cPlane, plane.label, plane.cls, fill(T.cPlaneSub, { z: nf2.format(plane.zKm), h: nf0.format(HALF) })) +
       card(T.cDist, nf3.format(remainKm / 1e6) + ' Gm', '', fill(T.cDistSub, { k: nf0.format(remainKm) })) +
       card(T.cWidth, nf0.format(widthKm) + ' km', '', fill(T.cWidthSub, { i: nf0.format(innerToPeak), o: nf0.format(peakToOuter) }));

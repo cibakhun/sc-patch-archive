@@ -344,9 +344,13 @@ const deckGroups: DeckGroup[] = [
 // Ohne Content-Hash im Query lieferte das CDN nach einem Deploy bis zu 24 h die
 // ALTE Datei — kritisch, weil dieses Skript die Auth-Session refresht und sie
 // an die Seiten-Skripte weiterreicht. Gleiche Technik wie /assets/holo-viewer.js (?v=hash).
+// Gehasht wird die AUSGELIEFERTE Fassung unter public/assets: _sync-assets.mjs
+// setzt dort das Supabase-Ziel des Baus ein. Mit dem Hash der Quelle bliebe der
+// Schlüssel gleich, wenn sich nur das Ziel ändert — und das CDN lieferte einen
+// Tag lang das Skript mit dem alten Projekt aus.
 let acctLiteVer = 'x';
 try {
-  acctLiteVer = createHash('sha1').update(readFileSync('assets/account-lite.js')).digest('hex').slice(0, 8);
+  acctLiteVer = createHash('sha1').update(readFileSync('public/assets/account-lite.js')).digest('hex').slice(0, 8);
 } catch { /* dev-Fallback */ }
 const acctLiteSrc = `/assets/account-lite.js?v=${acctLiteVer}`;
 ---

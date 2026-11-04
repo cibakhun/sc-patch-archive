@@ -79,15 +79,28 @@ export function specChips(i: Item, lang: Locale): Row[] {
   const eq = hasGradeSemantics(i);
   const size = sizeLabel(i);
   const out: Row[] = [];
-  if (g.manufacturer) out.push([t('specMfr'), g.manufacturer]);
+  const mfr = mfrName(g.manufacturer);
+  if (mfr) out.push([t('specMfr'), mfr]);
   if (eq && size) out.push([t('specSize'), size]);
   // Grade gilt je Ausfuehrung — bei mehreren steht er in der Variantenliste.
   // Und nur dort, wo er im Spiel etwas unterscheidet: bei Waffen, Ruestung,
   // Munition und Werkzeugen traegt AttachDef.Grade den Vorgabewert 1 -> "A".
   if (g.grade && !g.variants && hasMeaningfulGrade(i)) out.push([t('specGrade'), g.grade]);
   if (g.class) out.push([t('specClass'), g.class]);
-  if (g.volumeScu) out.push([t('specVolume'), `${g.volumeScu} SCU`]);
+  // Im Zahlformat der Seite (bis 04.11.2026 roh: "0.01 SCU" auf 287
+  // deutschen Item-Seiten; verify:sprache Regel 9). Bis zu vier
+  // Nachkommastellen in den Spieldaten (2.361 Items), daher nicht auf drei kappen.
+  if (g.volumeScu) out.push([t('specVolume'), `${num(g.volumeScu, lang, 6)} SCU`]);
   return out;
+}
+
+/* Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
+   Spieldaten auf das Logo statt auf einen Hersteller, der Name ist dann der
+   interne Schluessel ("Paint_Defender_Silver_Red_Logo"; verify:clienttext
+   04.11.2026). Gleiche Regel in assets/item-finder-app.js (mfrName). */
+const INTERN_NAME = /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/;
+export function mfrName(m: string | null | undefined): string | null {
+  return m && !INTERN_NAME.test(m) ? m : null;
 }
 
 /**
@@ -102,7 +115,7 @@ export function specChips(i: Item, lang: Locale): Row[] {
 export function variantHead(i: Item, v: { size: number; manufacturer: string | null; grade: string | null }, lang: Locale): string {
   const t = itemT(lang);
   const grade = v.grade && hasMeaningfulGrade(i) ? v.grade : null;
-  return [`S${v.size}`, v.manufacturer, grade ? `${t('specGrade')} ${grade}` : null]
+  return [`S${v.size}`, mfrName(v.manufacturer), grade ? `${t('specGrade')} ${grade}` : null]
     .filter(Boolean)
     .join(' · ');
 }
@@ -151,7 +164,7 @@ export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (s.oxygen) out.push([t('statOxygen'), `${n(s.oxygen)} s`]);
   if (s.ndr) out.push([t('statNdr'), n(s.ndr)]);
   if (s.effects && s.effects.length) out.push([t('statEffects'), s.effects.join(', ')]);
-  if (s.storageScu) out.push([t('statStorage'), `${s.storageScu} SCU`]);
+  if (s.storageScu) out.push([t('statStorage'), `${n(s.storageScu)} SCU`]);
   if (s.lifetime) out.push([t('statLifetime'), `${n(s.lifetime)} s`]);
   if (s.health) out.push([t('statHealth'), n(s.health)]);
   return out;
@@ -182,7 +195,7 @@ export function primaryStat(i: Item, lang: Locale): Row | null {
     return [t('statResist'), `${Math.round((1 - s.resist.physical) * 100)}%`];
   if (s.ndr) return [t('statNdr'), `${n(s.ndr)} NDR`];
   if (s.sensitivity) return [t('statSensitivity'), n(s.sensitivity)];
-  if (s.storageScu) return [t('statStorage'), `${s.storageScu} SCU`];
+  if (s.storageScu) return [t('statStorage'), `${n(s.storageScu)} SCU`];
   if (s.health) return [t('statHealth'), `${n(s.health)} HP`];
   return null;
 }

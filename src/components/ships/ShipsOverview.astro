@@ -121,6 +121,9 @@ const sizeHint = de
   ? 'Größenklasse 1–6: sie bestimmt, auf welchen Landeplatz bzw. in welchen Hangar das Schiff passt — nicht die umgangssprachliche Größe.'
   : 'Size class 1–6: it determines which landing pad or hangar the ship fits — not the everyday size label.';
 const auecShort = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US');
+// Laenge und Fracht im Zahlformat der Seite (bis 04.11.2026 "8.75 m" auf
+// /de/schiffe.html; verify:sprache Regel 9).
+const zahl = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US');
 const sigFmt = (n: number) => n.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 ---
 <style is:inline>
@@ -483,8 +486,8 @@ a{color:inherit;text-decoration:none}
           )}
           <dl class="fcard__stats">
             <div class="fcard__stat"><dt>Crew</dt><dd>{crewFmt(d)}</dd></div>
-            <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${d.cargoSCU} SCU` : '—'}</dd></div>
-            <div class="fcard__stat"><dt>{de ? 'Länge' : 'Length'}</dt><dd>{d.lengthM != null ? `${d.lengthM} m` : '—'}</dd></div>
+            <div class="fcard__stat"><dt>{de ? 'Fracht' : 'Cargo'}</dt><dd>{d.cargoSCU != null ? `${zahl(d.cargoSCU)} SCU` : '—'}</dd></div>
+            <div class="fcard__stat"><dt>{de ? 'Länge' : 'Length'}</dt><dd>{d.lengthM != null ? `${zahl(d.lengthM)} m` : '—'}</dd></div>
           </dl>
           <dl class="fcard__prices">
             <div class="fprice fprice--pledge">

@@ -26,6 +26,11 @@
                            Hashes. Ob ein Handler sein DARF, entscheidet
                            audit:csp (benannte Ausnahmen), nicht dieser
                            Schritt — er beschreibt nur, was gebaut wurde.
+     supabase.conf,        der Supabase-Host dieses Baus (https:// fuer
+     supabase-ws.conf      img-src/connect-src, wss:// fuer den Realtime-
+                           Websocket) — Maps $vb_supabase/$vb_supabase_ws.
+                           Quelle: scripts/lib/supabase-ziel.mjs, gleiches
+                           Ziel wie Seiten und account-lite.js.
 
    Kein Netz, kein git, kein Kindprozess.
      node scripts/_write-csp-hashes.mjs
@@ -35,6 +40,7 @@ import { join } from 'node:path';
 import {
   zerlege, bloecke, CSP_ORDNER, SKRIPT_BLOECKE, skriptDatei, ATTR_DATEI, MAP_SCHLUESSEL,
 } from './lib/csp-inline.mjs';
+import { zielImBau, CSP_SUPABASE } from './lib/supabase-ziel.mjs';
 
 const DIST = 'dist';
 if (!existsSync(DIST)) { console.error('_write-csp-hashes: dist/ fehlt — erst astro build.'); process.exit(1); }
@@ -86,8 +92,17 @@ writeFileSync(
   kopf(`script-src-attr: ${handlerHashes.size} Inline-Handler-Fassung(en)`) + `${MAP_SCHLUESSEL} "${attr}";\n`,
 );
 
+const ziel = zielImBau();
+for (const { datei, wert } of CSP_SUPABASE) {
+  writeFileSync(
+    join(DIST, CSP_ORDNER, datei),
+    kopf(`Supabase-Ziel ${ziel.ziel} (${ziel.ref}), scripts/lib/supabase-ziel.mjs`) + `${MAP_SCHLUESSEL} "${wert(ziel)}";\n`,
+  );
+}
+
 const handlerGesamt = [...handlerHashes.values()].reduce((a, b) => a + b, 0);
 console.log(
   `_write-csp-hashes: ${seiten.length} Seiten, ${skripte} ausgefuehrte Inline-Skripte, ${sortiert.length} verschiedene ` +
-    `(${teile.length} von ${SKRIPT_BLOECKE} Bloecken), ${handlerGesamt} Inline-Handler in ${handlerHashes.size} Fassung(en) -> ${DIST}/${CSP_ORDNER}/`,
+    `(${teile.length} von ${SKRIPT_BLOECKE} Bloecken), ${handlerGesamt} Inline-Handler in ${handlerHashes.size} Fassung(en), ` +
+    `Supabase-Host ${ziel.ziel} -> ${DIST}/${CSP_ORDNER}/`,
 );
