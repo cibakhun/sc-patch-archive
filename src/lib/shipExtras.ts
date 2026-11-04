@@ -6,19 +6,21 @@ import pricesSnapshot from '../data/vehicle-prices.json';
 import extrasSnapshot from '../data/ship-extras.json';
 import videosSnapshot from '../data/ship-videos.json';
 import { pickThumb, pickHero } from './shipRenders';
-import { useTranslations, type Locale, type UIKey, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, assertLocale, type Locale, type UIKey } from '../i18n/ui';
 import { vType } from '../i18n/vehicleText';
 import hardpointsSnapshot from '../data/ship-hardpoints.json';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
-const numLoc = (lang: Locale) => (lang === 'en' ? 'en-US' : 'de-DE');
+// Ohne Vorgabe: eine fehlende Sprache bricht den Bau ab (assertLocale in
+// src/i18n/ui.ts — Anlass dort: deutsche Schiffsseiten mit englischen Zahlen).
+const numLoc = (lang: Locale) => (assertLocale(lang, 'shipExtras') === 'en' ? 'en-US' : 'de-DE');
 
 export type PricePlace = { price: number; shop: string; where: string; system: string };
 export type ShipPrices = { buy: PricePlace[]; rent: PricePlace[] } | null;
 
 export const pricesFetchedAt: string = (pricesSnapshot as { fetchedAt: string }).fetchedAt;
 
-export function aUEC(n: number, lang: Locale = DEFAULT_LOCALE): string {
+export function aUEC(n: number, lang: Locale): string {
   return `${n.toLocaleString(numLoc(lang))} aUEC`;
 }
 
@@ -158,7 +160,7 @@ function pctRank(sorted: number[], x: number): number {
   return Math.round((lo / sorted.length) * 100);
 }
 
-export function buildProfile(all: { data: VehicleData }[], d: VehicleData, lang: Locale = DEFAULT_LOCALE): ProfileBar[] {
+export function buildProfile(all: { data: VehicleData }[], d: VehicleData, lang: Locale): ProfileBar[] {
   const t = useTranslations(lang);
   const loc = numLoc(lang);
   const sorted = sortedValues(all);
@@ -196,7 +198,7 @@ const hullLen = (id: string): number | null => {
 export function similarShips(
   all: { id: string; data: VehicleData }[],
   self: { id: string; data: VehicleData },
-  lang: Locale = DEFAULT_LOCALE,
+  lang: Locale,
   n = 4
 ): SimilarShip[] {
   const loc = numLoc(lang);

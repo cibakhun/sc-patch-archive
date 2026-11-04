@@ -7,7 +7,7 @@
 // Woerter benutzen — sonst heisst dieselbe Zahl im Modal "Kuehlleistung" und auf
 // der Seite "Kuehlrate". Deshalb steht der Katalog jetzt hier.
 
-import type { Locale } from './ui';
+import { assertLocale, type Locale } from './ui';
 
 export const ITEM_UI = {
   de: {
@@ -307,9 +307,47 @@ export const ITEM_UI = {
 
 export type ItemUIKey = keyof (typeof ITEM_UI)['en'];
 
-/** t = itemT(lang) — Labels der Item-/Blueprint-Schicht, EN als Rueckfall. */
+/**
+ * t = itemT(lang) — Labels der Item-/Blueprint-Schicht, EN als Rueckfall.
+ * Fehlt ein Schluessel ganz, bricht der Bau ab, statt den Schluessel roh zu
+ * zeigen (wie useTranslations in ui.ts, Anlass dort). Fuer Schluessel, die aus
+ * Spieldaten zusammengesetzt werden und fehlen DUERFEN, gibt es itemLabel().
+ */
 export function itemT(lang: Locale) {
-  return (key: ItemUIKey): string => ITEM_UI[lang]?.[key] ?? ITEM_UI.en[key] ?? String(key);
+  const l = assertLocale(lang, 'itemT');
+  return (key: ItemUIKey): string => {
+    const s = ITEM_UI[l]?.[key] ?? ITEM_UI.en[key];
+    if (s == null) throw new Error(`itemText.ts: Schluessel "${String(key)}" fehlt im Katalog (DE und EN) — sonst stuende er roh auf der Seite.`);
+    return s;
+  };
+}
+
+/**
+ * Label fuer einen aus Spieldaten zusammengesetzten Schluessel ("slot" +
+ * "Torso", "w" + "Heavy", "r" + "Rare"): der Katalogwert in der Sprache der
+ * Seite, sonst der Rohwert der Spieldaten. Ersetzt das Muster
+ * `t(x as never) || roh`, dessen Rueckfall nie griff — t() gab bei einem
+ * fehlenden Schluessel den Schluessel selbst zurueck ("slotTorso").
+ */
+export function itemLabel(lang: Locale, key: string, roh: string): string {
+  const l = assertLocale(lang, 'itemLabel');
+  return (ITEM_UI[l] as Record<string, string>)[key] ?? roh;
+}
+
+/**
+ * Anzeige einer Bezugszeile. Echte Orte sind Eigennamen und bleiben; eine
+ * Exklusiv-Zeile (Promo, Concierge, Twitch-Drop …) traegt im Feld `loc` den
+ * ENGLISCHEN Satz der Datenquelle — angezeigt wird die Bezugsart aus dem
+ * Katalog. Anlass 04.11.2026: die Kategorielisten nahmen `loc` direkt, und
+ * 284 deutsche Seiten zeigten "Promotional item — not obtainable in-game".
+ * Eine Bezugsart ohne Label bricht den Bau ab (Label in ITEM_UI ergaenzen).
+ */
+export function obtainLabel(o: { kind: string; loc: string; reason?: string | null }, lang: Locale): string {
+  if (o.kind !== 'exclusive') return o.loc;
+  const key = o.reason ? 'ex' + o.reason.replace(/[^A-Za-z]/g, '') : 'notLootable';
+  const s = (ITEM_UI[assertLocale(lang, 'obtainLabel')] as Record<string, string>)[key];
+  if (s == null) throw new Error(`itemText.ts: Bezugsart "${o.reason}" hat kein Label (${key}) — in ITEM_UI fuer DE und EN ergaenzen.`);
+  return s;
 }
 
 /** Platzhalter {a} in einem Label ersetzen. */

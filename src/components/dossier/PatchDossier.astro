@@ -9,14 +9,16 @@ import { getCollection } from 'astro:content';
 import shipsSnapshot from '../../data/ships.json';
 import vehicles from '../../data/vehicles.json';
 import { stripSpine } from '../../../scripts/lib/patch-spine.mjs';
-import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../../i18n/ui';
+import { useTranslations, href, assertLocale, type Locale } from '../../i18n/ui';
 
 interface Props {
   patch: CollectionEntry<'patches'>['data'];
   num?: string;
-  lang?: Locale;
+  lang: Locale;
 }
-const { patch, num, lang = DEFAULT_LOCALE } = Astro.props;
+const { patch, num } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'PatchDossier');
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
 const hasUnverified =
@@ -130,7 +132,7 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
                       ) : (
                         s.name
                       )}
-                      {s.unverified && <abbr class="do__unv" title="unbestätigt">*</abbr>}
+                      {s.unverified && <abbr class="do__unv" title={t('common.unverified')}>*</abbr>}
                     </td>
                     <td>{s.role}</td>
                     <td class="num">{crewFmt(f)}</td>
@@ -544,4 +546,5 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
       overflow-wrap: anywhere;
       min-width: 0;
     }
-  }</style>
+  }
+</style>

@@ -12,13 +12,14 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { ITEM_UI } from '../i18n/itemText';
-import { useTranslations } from '../i18n/ui';
+import { useTranslations, assertLocale } from '../i18n/ui';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
 
-interface Props { lang?: 'de' | 'en' }
-const { lang = 'en' } = Astro.props;
+interface Props { lang: 'de' | 'en' }
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'ItemFinderApp');
 // Werkzeug-Hilfe (Phase 01.2) — Leitschuss der Phase, siehe
 // .planning/phases/01.2-werkzeuge-erklaeren/01.2-01-PLAN.md.
 const h = useHelp(lang);

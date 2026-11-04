@@ -8,11 +8,12 @@
 //
 // i18n: Chrome kommt aus t(); die zwei JS-Strings (Leer-Zustand) reicht das
 // Frontmatter via data-Attribute an das is:inline-Script durch.
-import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 interface Props {
-  lang?: Locale;
+  lang: Locale;
 }
-const { lang = DEFAULT_LOCALE } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'SearchOverlay');
 const t = useTranslations(lang);
 // Sprach-Index dieser Seite (EN präfixlos, DE unter /de/) — ans inline-Script
 // via data-Attribut, wie die übrigen i18n-Strings.

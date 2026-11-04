@@ -54,6 +54,13 @@ function kindOf(i: Item): string {
   return leafCategory(i.category);
 }
 
+/**
+ * "The <Name>" — ausser der Name traegt den Artikel schon ("The Butcher
+ * Helmet"). Anlass 04.11.2026: "The The Butcher Helmet is a …" auf drei
+ * Item-Seiten und einer Blueprint-Seite (verify:sprache, Regel 5).
+ */
+const theName = (name: string) => (/^the\s/i.test(name) ? name : `The ${name}`);
+
 /** "a"/"an" nach Anlaut — nur EN; Deutsch umgeht Artikel ueber Nominalphrasen. */
 const an = (s: string) => (/^[aeiou]/i.test(s) ? 'an' : 'a');
 
@@ -75,7 +82,7 @@ function classification(i: Item, lang: Locale, patch: string): string {
       : `${name} — ${kind}, Star Citizen Alpha ${patch}.`;
   }
   const phrase = mfr ? `${mfr} ${kind}` : kind;
-  return `The ${name} is ${an(phrase)} ${phrase} in Star Citizen Alpha ${patch}.`;
+  return `${theName(name)} is ${an(phrase)} ${phrase} in Star Citizen Alpha ${patch}.`;
 }
 
 export function itemSeo(i: Item, lang: Locale): ItemSeo {
@@ -235,7 +242,7 @@ export function blueprintSeo(
   const lead =
     lang === 'de'
       ? `Der Blueprint ${b.name} (${b.category}) braucht ${b.ingredients.length} Zutaten-Slots und ${time} Craft-Zeit.${mis ? ` ${mis} Missionen können ihn droppen.` : ''}`
-      : `The ${b.name} blueprint (${b.category}) needs ${b.ingredients.length} ingredient slots and ${time} of craft time.${mis ? ` ${mis} missions can drop it.` : ''}`;
+      : `${theName(b.name)} blueprint (${b.category}) needs ${b.ingredients.length} ingredient slots and ${time} of craft time.${mis ? ` ${mis} missions can drop it.` : ''}`;
 
   return { title, description, lead };
 }

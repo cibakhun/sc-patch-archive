@@ -9,15 +9,17 @@ interface Fact {
   value: string;
   unverified?: boolean;
 }
-import { useTranslations, type Locale, DEFAULT_LOCALE } from '../../i18n/ui';
+import { useTranslations, assertLocale, type Locale } from '../../i18n/ui';
 interface Props {
   facts: Fact[];
   /** Aktencode payload, e.g. "Alpha 4.0.0 · 19. Dez 2024" */
   stand?: string;
   title?: string;
-  lang?: Locale;
+  lang: Locale;
 }
-const { facts, stand, title, lang = DEFAULT_LOCALE } = Astro.props;
+const { facts, stand, title } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'QuickFacts');
 const t = useTranslations(lang);
 const heading = title ?? t('qf.title');
 ---
@@ -171,4 +173,5 @@ const heading = title ?? t('qf.title');
       overflow-wrap: anywhere;
       min-width: 0;
     }
-  }</style>
+  }
+</style>
