@@ -65,11 +65,12 @@ const CAT_ICON = { conv: 'favor', ship: 'ship', weapon: 'weapon', armor: 'armor'
 const COMP_LABEL = de ? { pwr: 'Antrieb', shield: 'Schild', qd: 'Quantum', cooler: 'Kühler', weapon: 'Waffen' } : { pwr: 'Power Plant', shield: 'Shield', qd: 'Quantum', cooler: 'Cooler', weapon: 'Weapons' };
 // Kategorie und Komponentenart kommen aus den Daten (build-wikelo-trades.mjs).
 // Ein Wert ohne Label bricht den Bau ab, statt "undefined" auf die Karte zu
-// schreiben; zugleich kennt tsc danach den Schluesseltyp (TS7053).
+// schreiben; zugleich kennt tsc danach den Schluesseltyp (TS7053). Eigene
+// Schluessel per Object.hasOwn: `in` liesse auch "constructor" durch.
 type TradeCat = keyof typeof CAT_ICON;
 type CompKind = keyof typeof COMP_LABEL;
-const isCat = (c: string): c is TradeCat => c in CAT_ICON;
-const isComp = (k: string): k is CompKind => k in COMP_LABEL;
+const isCat = (c: string): c is TradeCat => Object.hasOwn(CAT_ICON, c);
+const isComp = (k: string): k is CompKind => Object.hasOwn(COMP_LABEL, k);
 const catOf = (c: string): TradeCat => {
   if (!isCat(c)) throw new Error(`wikelo-emporium: Kategorie "${c}" hat kein Label (CAT_LABEL, CAT_ICON)`);
   return c;

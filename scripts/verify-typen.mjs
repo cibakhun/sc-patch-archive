@@ -14,7 +14,7 @@
 //   - Datenfelder ohne Typ (Erz-Pods, Mining-Module in BlueprintItemStats),
 //     Labels ohne Schluesseltyp (Wikelo), null in Kartenlisten;
 //   - 30 Fehler in supabase/functions — die laufen unter Deno, nicht hier
-//     (Ausnahme unten, mit `deno check` in ihrer Laufzeit gruen).
+//     (Ausnahme unten; ihr `deno check` ist kein Tor, siehe dort).
 // Und PR #292 hat gezeigt, warum das Tor fehlte: eine stille Standardsprache
 // war typgerecht, aber ohne Typcheck haette nicht einmal ein Typfehler sie
 // verraten.
@@ -56,9 +56,9 @@ const require = createRequire(import.meta.url);
 // Klinken (Grundsatz 5): gemessen am 04.11.2026 auf PR #292 plus diesem
 // Stand: 661 Dateien im Programm, davon unter src/ 255 .astro und 87 .ts.
 // Nur nach oben verschieben; nach unten nur per Commit, der die Ursache nennt.
-const MIN_DATEIEN = 640;
-const MIN_ASTRO = 250;
-const MIN_TS = 80;
+const MIN_DATEIEN = 661;
+const MIN_ASTRO = 255;
+const MIN_TS = 87;
 
 // Benannte Ausnahmen zu tsconfig.json#exclude (Grundsatz 6). `dist` ist die
 // Bauausgabe und darf fehlen (vor dem ersten Bau); jeder andere Pfad muss
@@ -67,7 +67,7 @@ const EXCLUDE_AUSNAHMEN = {
   dist: { bauausgabe: true, anlass: 'Bauausgabe von astro build, kein Quelltext' },
   'supabase/functions': {
     anlass:
-      'Supabase Edge Functions laufen unter Deno: Deno.*, jsr:- und npm:-Importe gibt es im Node-/Astro-Programm nicht (30 Fehler am 04.11.2026, alle nur daher). In ihrer eigenen Laufzeit mit `deno check` geprueft: alle sechs gruen.',
+      'Supabase Edge Functions laufen unter Deno: Deno.*, jsr:- und npm:-Importe gibt es im Node-/Astro-Programm nicht (30 Fehler am 04.11.2026, alle nur daher). Ihren Typcheck (`deno check`, braucht Netz) faehrt KEIN Tor; am 04.11.2026 einmal von Hand gelaufen, ohne Befund. Offener Posten: eigener CI-Schritt.',
   },
 };
 
