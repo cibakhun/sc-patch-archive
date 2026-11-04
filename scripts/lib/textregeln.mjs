@@ -10,9 +10,10 @@
    und clientseitig gerenderter Text (verify:clienttext) nach DENSELBEN
    Regeln geprueft werden, stehen sie hier.
 
-   Kein git, kein Netz, kein Kindprozess. ladeKataloge() buendelt die
-   i18n-Dateien aus src/i18n mit esbuild (wie verify:crafting), damit die
-   Pruefung die ECHTEN Kataloge liest und keine Abschrift.
+   Kein git, kein Netz. ladeKataloge() buendelt die i18n-Dateien aus
+   src/i18n mit esbuild (wie verify:crafting), damit die Pruefung die ECHTEN
+   Kataloge liest und keine Abschrift; esbuild startet dafuer seinen eigenen
+   Dienstprozess und schreibt einen Temp-Ordner, der danach geloescht wird.
    ============================================================ */
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -72,9 +73,11 @@ export const DOPPELWORT_EN_RE = /\b(The|A|An) \1\b/;
      - eine Tausendergruppe vor aUEC/UEC: Waehrung ist immer ganzzahlig,
        "2,335 aUEC" ist auf einer deutschen Seite also nie 2,335.
    Eine einzelne Gruppe ohne Waehrung ("1,234 m") bleibt ungeprueft — auf
-   Deutsch kann das ein Dezimalwert sein. */
-export const ZAHL_EN_AUF_DE_RE = /(?<![\d.,])\d{1,3}(?:,\d{3}){2,}(?![\d,])|(?<![\d.,])\d{1,3},\d{3}\.\d+|(?<![\d.,])[1-9]\d{0,2},\d{3}\s?a?UEC\b/;
-export const ZAHL_DE_AUF_EN_RE = /(?<![\d.,])\d{1,3}(?:\.\d{3}){2,}(?![\d.])|(?<![\d.,])\d{1,3}\.\d{3},\d+|(?<![\d.,])[1-9]\d{0,2}\.\d{3}\s?a?UEC\b/;
+   Deutsch kann das ein Dezimalwert sein. Ein Satzzeichen danach zaehlt
+   nicht als Fortsetzung ("Kosten 1.508.220." auf einer EN-Seite, Review
+   04.11.2026): gesperrt ist nur eine weitere Ziffer oder Gruppe. */
+export const ZAHL_EN_AUF_DE_RE = /(?<![\d.,])\d{1,3}(?:,\d{3}){2,}(?!\d|,\d)|(?<![\d.,])\d{1,3},\d{3}\.\d+|(?<![\d.,])[1-9]\d{0,2},\d{3}\s?a?UEC\b/;
+export const ZAHL_DE_AUF_EN_RE = /(?<![\d.,])\d{1,3}(?:\.\d{3}){2,}(?!\d|\.\d)|(?<![\d.,])\d{1,3}\.\d{3},\d+|(?<![\d.,])[1-9]\d{0,2}\.\d{3}\s?a?UEC\b/;
 
 export const decodeEntities = (s) => s
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
@@ -85,6 +88,27 @@ export const decodeEntities = (s) => s
 export const TEXT_ATTRS = ['alt', 'title', 'aria-label', 'content', 'placeholder'];
 const ATTR_RE = new RegExp(`\\s(?:${TEXT_ATTRS.join('|')})="([^"]*)"`, 'g');
 
+/* Skript-, Stil- und Vorlagenbloecke und Kommentare: kein sichtbarer Text.
+   Schliessendes Tag in jeder Schreibweise ("</script >", "</SCRIPT>"; wie
+   verify:patch-angaben), Kommentarende auch "--!>". Wiederholt bis nichts
+   mehr wegfaellt, damit ein verschachtelter Rest ("<scr<script></script>ipt>")
+   nicht als neuer Block stehen bleibt. */
+const NICHTTEXT = [
+  /<script\b[\s\S]*?<\/script(?:\s[^>]*)?>/gi,
+  /<style\b[\s\S]*?<\/style(?:\s[^>]*)?>/gi,
+  /<template\b[\s\S]*?<\/template(?:\s[^>]*)?>/gi,
+  /<!--[\s\S]*?--!?>/g,
+];
+function ohneNichttext(html) {
+  let vorher;
+  let s = html;
+  do {
+    vorher = s;
+    for (const re of NICHTTEXT) s = s.replace(re, ' ');
+  } while (s !== vorher);
+  return s;
+}
+
 /**
  * Die Textstellen eines HTML-Stuecks: jeder Textknoten und jedes gelesene
  * Attribut, Entitaeten aufgeloest. Skripte, Stile und Kommentare sind kein
@@ -92,10 +116,7 @@ const ATTR_RE = new RegExp(`\\s(?:${TEXT_ATTRS.join('|')})="([^"]*)"`, 'g');
  * meta-Tags, wenn nur der Seitenkoerper zaehlt).
  */
 export function textStellen(html, { ohneAttr = false } = {}) {
-  const markup = html
-    .replace(/<script\b[\s\S]*?<\/script>/gi, '')
-    .replace(/<style\b[\s\S]*?<\/style>/gi, '')
-    .replace(/<!--[\s\S]*?-->/g, ' ');
+  const markup = ohneNichttext(html);
   const out = [];
   for (const m of markup.matchAll(/>([^<]+)</g)) if (m[1].trim()) out.push(decodeEntities(m[1]));
   if (!ohneAttr) for (const m of markup.matchAll(ATTR_RE)) if (m[1].trim()) out.push(decodeEntities(m[1]));

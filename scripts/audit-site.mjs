@@ -8,7 +8,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, join, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ROHTEXT_RE, PLATZHALTERWERT_RE, decodeEntities } from './lib/textregeln.mjs';
+import { ROHTEXT_RE, PLATZHALTERWERT_RE, TEXT_ATTRS, decodeEntities } from './lib/textregeln.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(__dirname, '..', 'dist');
@@ -156,7 +156,7 @@ const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]
 // stehen seit 04.11.2026 in scripts/lib/textregeln.mjs, weil verify:clienttext
 // den clientseitig gerenderten Text nach DENSELBEN Regeln prueft; Begruendung
 // jeder Regel dort.
-const ROHTEXT_ATTR_RE = /\s(?:alt|title|aria-label|content|placeholder)="([^"]*)"/g;
+const ROHTEXT_ATTR_RE = new RegExp(`\\s(?:${TEXT_ATTRS.join('|')})="([^"]*)"`, 'g');
 let rohtextStellen = 0;
 const rohtextHits = [];
 const platzhalterwertHits = [];

@@ -40,8 +40,9 @@
 //   Text in einem Element mit eigenem lang-Attribut der anderen Sprache
 //   (z. B. der deutsche Zweitname auf einer EN-Item-Seite) zaehlt nicht.
 //
-// Schiene A: liest dist/, src/ und die i18n-Kataloge (esbuild). Kein git,
-// kein Netz, kein Kindprozess.
+// Schiene A: liest dist/, src/ und die i18n-Kataloge. Kein git, kein Netz;
+// einziger Kindprozess ist esbuilds Dienst beim Buendeln der Kataloge
+// (scripts/lib/textregeln.mjs).
 //
 //   node scripts/verify-sprache.mjs [--dist <ordner>]
 import { readFileSync, readdirSync, existsSync } from 'node:fs';

@@ -63,8 +63,7 @@ const closeLabel = lang === 'de' ? 'Schließen' : 'Close';
   .wkb__row b{color:var(--text);white-space:nowrap}
   .wkb__note{font-size:var(--fs-5);color:var(--muted,#93a7a1);line-height:1.5;margin:.5rem 0 0}
   .wkb__flink{display:inline-block;margin-top:.8rem;color:var(--accent-2,#E8A33D);font-weight:700;font-size:var(--fs-7);text-decoration:none;border-bottom:1px solid currentColor}
-  .wkb__flink:hover{color:var(--text)}
-</style>
+  .wkb__flink:hover{color:var(--text)}</style>
 
 <script is:inline set:html={`window.__WKB=${jsonForScript({ lang, itemsUrl: '/assets/universal-items.json', itemPage: lang === 'de' ? '/de/item-finder.html' : '/item-finder.html', t: JS_T })};`} />
 <script is:inline src={versioned('assets/wikelo-bridge.js', '/assets/wikelo-bridge.js')}></script>

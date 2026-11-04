@@ -25,11 +25,17 @@
 //   4  Katalogschluessel statt Text,
 //   5  jeder woertliche tr('schluessel', …) im Skript steht im
 //      ausgelieferten Katalog BEIDER Sprachen — sonst zeigt die EN-Seite den
-//      deutschen Rueckfalltext des Skripts.
+//      deutschen Rueckfalltext des Skripts. Dazu jeder Schluessel, den das
+//      Skript beim Rendern WIRKLICH fragt, auch zusammengesetzte wie
+//      tr('w' + klasse) oder tr('ex' + grund) (Review 04.11.2026): steht er
+//      nur in einem der beiden Kataloge, ist das ein FEHLER; fehlt er in
+//      beiden, zeigt die Seite den Rohwert der Spieldaten — WARNUNG, weil das
+//      so gewollt ist, bis jemand das Label ergaenzt.
 // Selbstauskunft und Klinken fuer Items, Modals mit Crafting, Sets,
 // Textstellen und Schluessel.
 //
-// Kein git, kein Netz, kein Kindprozess.
+// Kein git, kein Netz; einziger Kindprozess ist esbuilds Dienst beim
+// Buendeln der Kataloge (scripts/lib/textregeln.mjs).
 //
 //   node scripts/verify-clienttext.mjs [--dist <ordner>] [--js <item-finder-app.js>]
 //   (--js prueft eine andere Fassung des Skripts gegen denselben Bau — so
@@ -58,6 +64,7 @@ const MIN_SETS = 120;
 const MIN_MODAL_CRAFT = 1_400;
 const MIN_STELLEN = 800_000;
 const MIN_SCHLUESSEL = 80;
+const MIN_LAUFZEIT = 100; // gemessen 125 beim Rendern gefragte Schluessel
 
 const fehler = [];
 const funde = { roh: [], wert: [], sprache: [], funktion: [], zahl: [], schluessel: [], katalog: [] };
@@ -81,7 +88,12 @@ if (ANKER < 0 || QUELLE.slice(ANKER + 5).trim() !== '') {
   process.exit(1);
 }
 const NAHT = `
+  var __gefragt = {};
+  tr = (function (orig) {
+    return function (k) { __gefragt[k] = 1; return orig.apply(this, arguments); };
+  })(tr);
   window.__pruefnaht = {
+    gefragt: function () { return Object.keys(__gefragt); },
     laden: function () { return loadCraft(); },
     items: function () { return ALL_ITEMS; },
     sets: function () { return Object.keys(SETS).length; },
@@ -183,6 +195,7 @@ function pruefe(html, lang, wo) {
 const daten = new Map();
 const SEITEN = { en: 'item-finder.html', de: 'de/item-finder.html' };
 const katalogSchluessel = {};
+const gefragt = {};
 for (const [lang, seite] of Object.entries(SEITEN)) {
   const cfg = konfiguration(seite);
   katalogSchluessel[lang] = new Set(Object.keys(cfg.t || {}));
@@ -209,12 +222,22 @@ for (const [lang, seite] of Object.entries(SEITEN)) {
   }
   try { pruefe(naht.karten(), lang, 'Karten'); } catch (err) { fehler.push(`${lang}: Kartenraster bricht ab — ${err.message}`); }
   try { pruefe(naht.setkarten(), lang, 'Set-Karten'); } catch (err) { fehler.push(`${lang}: Set-Raster bricht ab — ${err.message}`); }
+  gefragt[lang] = new Set(naht.gefragt());
 }
 
 /* ---------- 5: woertliche Schluessel im Skript ---------- */
 const woertlich = [...new Set([...QUELLE.matchAll(/\btr\(\s*'([A-Za-z][\w.]*)'\s*,/g)].map((m) => m[1]))];
 for (const k of woertlich) for (const lang of Object.keys(SEITEN)) {
   if (!katalogSchluessel[lang]?.has(k)) funde.katalog.push(`${lang}: tr('${k}') steht nicht im ausgelieferten Katalog — die Seite zeigt den Rueckfalltext des Skripts`);
+}
+// Zur Laufzeit gefragte Schluessel (auch zusammengesetzte): Paritaet.
+const laufzeit = new Set([...(gefragt.de ?? []), ...(gefragt.en ?? [])]);
+const ohneLabel = [];
+for (const k of laufzeit) {
+  const inDe = katalogSchluessel.de?.has(k), inEn = katalogSchluessel.en?.has(k);
+  if (inDe && !inEn) funde.katalog.push(`tr('${k}') beim Rendern gefragt, steht nur im DE-Katalog — die EN-Seite zeigt den Rohwert`);
+  else if (inEn && !inDe) funde.katalog.push(`tr('${k}') beim Rendern gefragt, steht nur im EN-Katalog — die DE-Seite zeigt den Rohwert`);
+  else if (!inDe && !inEn) ohneLabel.push(k);
 }
 
 /* ---------- Bilanz ---------- */
@@ -229,6 +252,8 @@ for (const [lang, z] of Object.entries(zaehlung)) {
 for (const lang of Object.keys(SEITEN)) if (!zaehlung[lang]) fehler.push(`${lang}: nichts gerendert`);
 console.log(`Textstellen: ${stellen.toLocaleString('de-DE')} (Klinke ${MIN_STELLEN.toLocaleString('de-DE')}), woertliche Schluessel im Skript: ${woertlich.length} (Klinke ${MIN_SCHLUESSEL})`);
 if (stellen < MIN_STELLEN) fehler.push(`nur ${stellen} Textstellen geprueft (Klinke ${MIN_STELLEN})`);
+console.log(`beim Rendern gefragte Schluessel: ${laufzeit.size} (Klinke ${MIN_LAUFZEIT}), davon ohne Label in beiden Katalogen: ${ohneLabel.length}`);
+if (laufzeit.size < MIN_LAUFZEIT) fehler.push(`nur ${laufzeit.size} Schluessel beim Rendern gefragt (Klinke ${MIN_LAUFZEIT}) — greift die Pruefnaht an tr() noch?`);
 if (woertlich.length < MIN_SCHLUESSEL) fehler.push(`nur ${woertlich.length} woertliche Schluessel gefunden (Klinke ${MIN_SCHLUESSEL}) — hat sich die Form tr('…', …) geaendert?`);
 
 const zeige = (liste, titel, cap = 12) => {
@@ -246,6 +271,10 @@ zeige(funde.funktion, '2 deutsches Funktionswort im EN-Text (Rueckfalltext des S
 zeige(funde.zahl, '3 Zahl im Format der anderen Sprache');
 zeige(funde.schluessel, '4 Katalogschluessel statt Text');
 zeige(funde.katalog, '5 Schluessel fehlt im ausgelieferten Katalog');
+if (ohneLabel.length) {
+  console.log(`\n== WARNUNG Schluessel ohne Label in beiden Katalogen: ${ohneLabel.length} — die Seite zeigt den Rohwert der Spieldaten ==`);
+  for (const k of ohneLabel.slice(0, 12)) console.log(`   ${k}`);
+}
 for (const f of fehler) console.log(`\n== FEHLER ${f} ==`);
 
 const summe = Object.values(funde).reduce((s, l) => s + l.length, 0) + fehler.length;

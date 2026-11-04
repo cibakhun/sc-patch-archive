@@ -488,8 +488,11 @@ export const CHECKS = [
     // Quantum, Versicherung und Kaufpreise englisch und im englischen
     // Zahlformat, 284 deutsche Seiten insgesamt englische Oberflaechentexte;
     // verify:sync vergleicht nur die Geruestform, audit:site nur <html lang>.
-    // Kein git, kein Netz, kein Kindprozess im Skript — liest dist/, src/ und
-    // die i18n-Kataloge (mit esbuild gebuendelt wie bei verify:crafting).
+    // Kein git, kein Netz. Liest dist/, src/ und die i18n-Kataloge; die
+    // Kataloge buendelt esbuild (wie bei verify:crafting und verify:ausgabe),
+    // das ist der einzige Kindprozess (esbuilds eigener Dienst, kein
+    // node:child_process im Skript) und schreibt einen Temp-Ordner, der danach
+    // geloescht wird.
     id: 'verify:sprache',
     npm: 'verify:sprache',
     script: 'scripts/verify-sprache.mjs',
@@ -520,14 +523,15 @@ export const CHECKS = [
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
     // den Text, den der Item Finder erst im Browser baut. Kein git, kein
-    // Netz, kein Kindprozess — fuehrt das ausgelieferte Skript in node:vm aus
-    // und liest dist/.
+    // Netz — fuehrt das ausgelieferte Skript in node:vm aus und liest dist/;
+    // fuer die Kataloge wie verify:sprache esbuild (dessen Dienst ist der
+    // einzige Kindprozess, Temp-Ordner wird geloescht).
     id: 'verify:clienttext',
     npm: 'verify:clienttext',
     script: 'scripts/verify-clienttext.mjs',
     rail: 'A',
     checks:
-      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter}, "-1" als Wert), ohne Katalogtext der anderen Sprache, mit Zahlen im eigenen Format und ohne Rohschluessel; jeder woertliche tr()-Schluessel des Skripts steht im Katalog beider Sprachen; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen und Schluessel',
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter}, "-1" als Wert), ohne Katalogtext der anderen Sprache, mit Zahlen im eigenen Format und ohne Rohschluessel; jeder woertliche tr()-Schluessel des Skripts steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, woertliche und gefragte Schluessel',
     // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
     // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
     // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
@@ -536,6 +540,11 @@ export const CHECKS = [
     // deutschen Karten. Gruen nach der Korrektur. Gegenprobe gegen den
     // ganzen Stand vor PR #289 (4f4f4ddd, Skript und Bau): 719 FEHLER =
     // 122 NaN + 597 Bezugsarten.
+    // Laufzeit-Paritaet (Review 04.11.2026, zusammengesetzte Schluessel wie
+    // tr('slot' + k)): rot am gruenen Bau mit "slotTorso" aus dem EN-Katalog
+    // von dist/item-finder.html entfernt — 1 FEHLER "tr('slotTorso') beim
+    // Rendern gefragt, steht nur im DE-Katalog"; die woertliche Regel 5 sah
+    // ihn nicht. Gruen mit dem unveraenderten Bau.
   },
 
   // ---------------------------------------------------------------

@@ -37,10 +37,10 @@ export function acquisition(i: Item): 'buy' | 'loot' | 'exclusive' | 'none' {
   return 'none';
 }
 
-/** "Ballistic Cannon" — die Gattung laut Spieldaten, sonst die Kategorie. */
 /** Traegt das Item einen lesbaren Spieltyp (Weapon, Cooler …)? Sonst gilt die Kategorie. */
 const ausSpieltyp = (i: Item) => !!i.game?.gameType && !/^Char_/.test(i.game.gameType);
 
+/** "Ballistic Cannon" — die Gattung laut Spieldaten, sonst die Kategorie. */
 function kindOf(i: Item): string {
   const g = i.game;
   // `Char_Armor_Torso` & Co. sind INTERNE Typnamen und gehoeren nicht in eine
@@ -87,8 +87,8 @@ function classification(i: Item, lang: Locale, patch: string): string {
   /* Kommt die Art aus der Kategorie, ist sie oft ein Plural ("Legs", "Arms",
      "Helmets") oder ein Sammelwort ("Footwear"), und "is a Clark Defense
      Systems Legs" ist kein Englisch (Audit 04.11.2026: 2.597 der 5.369
-     EN-Item-Seiten). Dann nennt der Satz die Kategorie als Kategorie. Die Spieltypen
-     (Weapon, Cooler, Shield) sind Einzahl und bleiben im Satz. */
+     EN-Item-Seiten). Dann nennt der Satz die Kategorie als Kategorie. Die
+     Spieltypen (Weapon, Cooler, Shield) sind Einzahl und bleiben im Satz. */
   if (!ausSpieltyp(i)) {
     const wer = mfr ? `${mfr} item` : 'item';
     return `${theName(name)} is ${an(wer)} ${wer} from the ${kind} category in Star Citizen Alpha ${patch}.`;
