@@ -10,7 +10,9 @@
 //
 // Geprueft wird fuer JEDES Item der DB (keine Stichprobe, keine festen
 // Namen): nach "is a/an …" steht nie ein Plural aus den Kategorien der
-// Daten, und nie "The The".
+// Daten, und nie "The The". Seit 04.11.2026 (Wortlaut Krisz) heisst die
+// Kategorie-Form "is an item by <Hersteller> in the <Art> category, Star
+// Citizen Alpha …" — beide Satzformen werden gelesen.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -48,7 +50,7 @@ describe('Item-Einleitung EN', () => {
     let saetze = 0;
     for (const i of ITEMS) {
       const lead = M.itemSeo(i, 'en').lead;
-      const m = /\bis an? (.+?) in Star Citizen Alpha/.exec(lead);
+      const m = /\bis an? (.+?)(?: in|,) Star Citizen Alpha/.exec(lead);
       if (!m) continue;
       saetze++;
       const letztes = m[1].split(' ').pop();

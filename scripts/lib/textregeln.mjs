@@ -88,15 +88,17 @@ export const decodeEntities = (s) => s
 export const TEXT_ATTRS = ['alt', 'title', 'aria-label', 'content', 'placeholder'];
 const ATTR_RE = new RegExp(`\\s(?:${TEXT_ATTRS.join('|')})="([^"]*)"`, 'g');
 
-/* Skript-, Stil- und Vorlagenbloecke und Kommentare: kein sichtbarer Text.
-   Schliessendes Tag in jeder Schreibweise ("</script >", "</SCRIPT>"; wie
-   verify:patch-angaben), Kommentarende auch "--!>". Wiederholt bis nichts
-   mehr wegfaellt, damit ein verschachtelter Rest ("<scr<script></script>ipt>")
-   nicht als neuer Block stehen bleibt. */
+/* Skript- und Stilbloecke und Kommentare: kein sichtbarer Text. <template>
+   bleibt bewusst drin: die Seite klont ihn in sichtbare Oberflaeche
+   (Raffinerie-Formular, addOreRow), seine Texte gelten also mit
+   (Review 04.11.2026). Schliessendes Tag in jeder Schreibweise
+   ("</script >", "</SCRIPT>"; wie verify:patch-angaben), Kommentarende
+   auch "--!>". Wiederholt bis nichts mehr wegfaellt, damit ein
+   verschachtelter Rest ("<scr<script></script>ipt>") nicht als neuer Block
+   stehen bleibt. */
 const NICHTTEXT = [
   /<script\b[\s\S]*?<\/script(?:\s[^>]*)?>/gi,
   /<style\b[\s\S]*?<\/style(?:\s[^>]*)?>/gi,
-  /<template\b[\s\S]*?<\/template(?:\s[^>]*)?>/gi,
   /<!--[\s\S]*?--!?>/g,
 ];
 function ohneNichttext(html) {

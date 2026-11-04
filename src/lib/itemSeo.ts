@@ -87,11 +87,14 @@ function classification(i: Item, lang: Locale, patch: string): string {
   /* Kommt die Art aus der Kategorie, ist sie oft ein Plural ("Legs", "Arms",
      "Helmets") oder ein Sammelwort ("Footwear"), und "is a Clark Defense
      Systems Legs" ist kein Englisch (Audit 04.11.2026: 2.597 der 5.369
-     EN-Item-Seiten). Dann nennt der Satz die Kategorie als Kategorie. Die
-     Spieltypen (Weapon, Cooler, Shield) sind Einzahl und bleiben im Satz. */
+     EN-Item-Seiten). Dann nennt der Satz die Kategorie als Kategorie, im
+     Wortlaut von Krisz (04.11.2026): "an item by <Hersteller> in the <Art>
+     category" — der Patch wie im deutschen Satz nach einem Komma, sonst
+     stuende "in … in Star Citizen" doppelt. Die Spieltypen (Weapon, Cooler,
+     Shield) sind Einzahl und bleiben im Satz. */
   if (!ausSpieltyp(i)) {
-    const wer = mfr ? `${mfr} item` : 'item';
-    return `${theName(name)} is ${an(wer)} ${wer} from the ${kind} category in Star Citizen Alpha ${patch}.`;
+    const von = mfr ? ` by ${mfr}` : '';
+    return `${theName(name)} is an item${von} in the ${kind} category, Star Citizen Alpha ${patch}.`;
   }
   const phrase = mfr ? `${mfr} ${kind}` : kind;
   return `${theName(name)} is ${an(phrase)} ${phrase} in Star Citizen Alpha ${patch}.`;
