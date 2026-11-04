@@ -132,15 +132,18 @@ const workshop = workAsset && workJson && existsSync(workJson)
 // werkhalle; PC-Lauf 24.10.2026): Garage aus dem Spiel, Maße mit Tor und
 // Leuchtkörpern, Bühnen als eigene Datei. WERK im Viewer stellt sie hinter
 // die Westnische; die Seite gibt nur weiter, was im Manifest steht.
-const [werkKey, werkAsset] = Object.entries(real.werkhalle ?? {}).find(([, a]) => a.json) ?? [];
+// Eintrag als Paar behalten: aus `?? []` destrukturiert war der Schluessel
+// auch neben einem gefundenen Asset `string | undefined` (TS2322 an HallConfig.werk.id).
+const werkEntry = Object.entries(real.werkhalle ?? {}).find(([, a]) => a.json);
+const werkAsset = werkEntry?.[1];
 const werkJson = werkAsset?.json ? `public${werkAsset.json}` : '';
 const buehneAsset = werkAsset?.buehne ? Object.values(real.werkhalle ?? {}).find((a) => a.url === werkAsset.buehne) : null;
 // Leitungen unter ihrer Decke (scripts/build-werkhalle-decke.mjs packt sie aus
 // dem Gerätekatalog; nicht im Manifest, wie der Gerätesatz)
 const werkDeckeFile = 'public/hangar/props/werkdecke.glb';
 const werkDecke = existsSync(werkDeckeFile) ? { url: `/hangar/props/werkdecke.glb?v=${contentV([werkDeckeFile])}`, bytes: statSync(werkDeckeFile).size } : null;
-const werk = werkAsset && werkJson && existsSync(werkJson)
-  ? { id: werkKey, url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null, decke: werkDecke }
+const werk = werkEntry && werkAsset && werkJson && existsSync(werkJson)
+  ? { id: werkEntry[0], url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null, decke: werkDecke }
   : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
 const hall = !hallAsset?.room ? null : furniture && lite

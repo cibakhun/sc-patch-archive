@@ -558,6 +558,38 @@ export const CHECKS = [
     // Rendern gefragt, steht nur im DE-Katalog"; die woertliche Regel 5 sah
     // ihn nicht. Gruen mit dem unveraenderten Bau.
   },
+  {
+    // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
+    // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
+    // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand
+    // 93 Fehler, darunter einen sichtbaren (Suchfeld ohne Platzhalter im
+    // Zerlege-Rechner). Benannte Abweichung von Grundsatz 7 (gegen das
+    // Artefakt pruefen): Typen gibt es im gebauten Stand nicht mehr, also
+    // bleibt nur die Quelle.
+    // Kein git, kein Netz, kein Kindprozess: astro sync und der Pruefer von
+    // @astrojs/check laufen im eigenen Prozess. Speicher: bis ~3 GB, das
+    // npm-Skript hebt Nodes Grenze (Vorgabe ~2 GB, darunter bricht V8 ab).
+    id: 'verify:typen',
+    npm: 'verify:typen',
+    script: 'scripts/verify-typen.mjs',
+    rail: 'A',
+    checks:
+      'astro check ueber das Programm aus tsconfig.json (.astro samt <script>, .ts, JS mit @ts-check) meldet 0 Fehler; tsconfig.json erbt von astro/tsconfigs/strict und schaltet kein strict-Glied ab; kein @ts-ignore/@ts-nocheck/@ts-expect-error in src/ und astro.config.mjs ausser als benannte Ausnahme; jeder exclude-Eintrag ist eine benannte Ausnahme mit Zombie-Waechter (supabase/functions: Deno-Laufzeit, deren deno check kein Tor faehrt); jede .astro- und .ts-Datei unter src/ steht im geprueften Programm; Klinken fuer Dateien gesamt, .astro und .ts; Warnungen gezaehlt, nicht blockierend',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den Stand von PR #292 (8f24ff7a,
+    // Fehlerbild gleich origin/staging d76478f2) mit diesem Skript: 93 FEHLER
+    // in 21 Dateien — 30 in supabase/functions (Deno), 63 in src/, darunter
+    // das Suchfeld ohne Platzhalter (CraftingApp.astro, TS2339) und der
+    // Aufruf vor der Deklaration (account-dashboard.ts, TS2448). Dazu der
+    // Zombie "supabase/functions steht nicht in exclude". Gruen nach der
+    // Korrektur derselben Lieferung (0 Fehler, 661 Dateien).
+    // Regeln einzeln, am gruenen Stand in einem Lauf: noImplicitAny:false in
+    // tsconfig.json, ein @ts-ignore in src/lib/sitemap.ts, ein unbenanntes
+    // exclude "src/pages/de/downloads.astro", supabase/functions umbenannt und
+    // ein Typfehler in MissionDetail.astro — 6 FEHLER: abgeschaltetes strict-
+    // Glied, Unterdrueckung, unbenannte Ausnahme, Zombie-Ausnahme, 31
+    // Typfehler (1 + die 30 der nun mitgeprueften Deno-Funktionen) und die
+    // Datei, die still aus dem Programm fiel.
+  },
 
   // ---------------------------------------------------------------
   // Schiene B — der Datenlauf. Laeuft NUR lokal (npm run gate:data),

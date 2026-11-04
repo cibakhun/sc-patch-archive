@@ -62,7 +62,10 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // verify-zaehler, verify-ausgabe, verify-db-rights, audit-csp, check-headers).
 // Stand 29.10.2026 nachts: 41 — beide Zweige zusammengefuehrt (Sicherheits-
 // pakete aus staging plus verify-supply-chain.mjs).
-const MIN_SCRIPTS = 41;
+// Stand 04.11.2026: 49 — die Klinke hing bei 41, obwohl schon 48 Pruefskripte
+// im Bestand lagen (zuletzt verify-patch-angaben, verify-fahrzeugwerte,
+// verify-sprache, verify-clienttext); dazu verify-typen.mjs.
+const MIN_SCRIPTS = 49;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };

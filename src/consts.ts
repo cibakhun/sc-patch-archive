@@ -62,8 +62,13 @@ export const FEEDBACK = {
   subject: 'Neues Feedback · VerseBase',
 } as const;
 
+/** Platzhalter der Vorlage. Als `string` deklariert, weil `FEEDBACK` per
+ *  `as const` den echten Key als Literaltyp traegt: der Vergleich zweier
+ *  verschiedener Literale ist fuer tsc ein sicherer Irrtum (TS2367), obwohl
+ *  er hier genau die Frage ist, ob jemand den Platzhalter zurueckgesetzt hat. */
+const WEB3FORMS_PLATZHALTER: string = 'REPLACE_WITH_YOUR_WEB3FORMS_ACCESS_KEY';
 /** true, solange kein echter Web3Forms-Key hinterlegt ist (Demo-Modus). */
-export const FEEDBACK_DEMO = FEEDBACK.web3formsKey === 'REPLACE_WITH_YOUR_WEB3FORMS_ACCESS_KEY';
+export const FEEDBACK_DEMO = FEEDBACK.web3formsKey === WEB3FORMS_PLATZHALTER;
 
 // Benutzerkonten — Supabase (Projekt „verse-base", AWS eu-central-1/Frankfurt).
 // Die Site bleibt statisch: Auth + Profil + Favoriten laufen clientseitig gegen

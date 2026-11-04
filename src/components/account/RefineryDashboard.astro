@@ -1109,7 +1109,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     // UPDATE, und nur ohne Zeile per INSERT (die Rechte erlauben kein Upsert).
     // Discord geht nur mit verbundenem Discord; der Bot findet das Konto
     // ueber discord_role_state.
-    async function initNotify(uid: string) {
+    // Als const statt als function-Deklaration: eine Deklaration wird gehoben,
+    // und darin gilt die Pruefung `if (root)` oben fuer tsc nicht mehr (TS18047).
+    const initNotify = async (uid: string) => {
       const site = $('rfd-n-site') as HTMLInputElement;
       const dc = $('rfd-n-dc') as HTMLInputElement;
       const hint = $('rfd-n-hint');
@@ -1164,7 +1166,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       };
       site.addEventListener('change', save);
       dc.addEventListener('change', save);
-    }
+    };
 
     // ---- Start: angemeldet → Tracker, sonst Anmelde-Knopf -----------------
     const showOut = () => {

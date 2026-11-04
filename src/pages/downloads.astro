@@ -19,21 +19,21 @@ const files = fs.existsSync(assetsDir)
   ? fs.readdirSync(assetsDir).filter((f) => IMG_EXT.has(path.extname(f).toLowerCase()))
   : [];
 
-const bytesOf = (f) => fs.statSync(path.join(assetsDir, f)).size;
-const fmtSize = (b) =>
+const bytesOf = (f: string) => fs.statSync(path.join(assetsDir, f)).size;
+const fmtSize = (b: number) =>
   b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 
-const thumbOf = (f) => {
+const thumbOf = (f: string) => {
   const t = f.replace(/\.[^.]+$/, '') + '.webp';
   return fs.existsSync(path.join(thumbDir, t)) ? `/assets/thumb/${t}` : `/assets/${f}`;
 };
 
 const CATS = [
-  { id: 'ships', label: 'Ships & subjects', match: (f) => f.startsWith('img-') },
-  { id: 'video', label: 'Video stills', match: (f) => f.startsWith('vid-') },
-  { id: 'trailer', label: 'Patch trailers', match: (f) => f.startsWith('trailer-') },
-  { id: 'cz', label: 'Contested Zones', match: (f) => f.startsWith('cz-') },
-  { id: 'topics', label: 'Topics & guides', match: (f) => f.startsWith('t-') },
+  { id: 'ships', label: 'Ships & subjects', match: (f: string) => f.startsWith('img-') },
+  { id: 'video', label: 'Video stills', match: (f: string) => f.startsWith('vid-') },
+  { id: 'trailer', label: 'Patch trailers', match: (f: string) => f.startsWith('trailer-') },
+  { id: 'cz', label: 'Contested Zones', match: (f: string) => f.startsWith('cz-') },
+  { id: 'topics', label: 'Topics & guides', match: (f: string) => f.startsWith('t-') },
   { id: 'other', label: 'Other', match: () => true },
 ];
 
@@ -73,12 +73,13 @@ const ONEPAGERS = [
     desc: 'Flow, maps (Farro & Lazarus) and objectives of the Storm Breaker hunt for the Apex Valakkar.',
   },
 ]
-  .map((o) => {
+  // flatMap statt map + filter(Boolean): der Filter liess `null` im Typ stehen,
+  // und jede Karte unten war fuer tsc "possibly null" (TS18047).
+  .flatMap((o) => {
     const file = `onepager-${o.slug}.html`;
     const abs = path.join(dlDir, file);
-    return fs.existsSync(abs) ? { ...o, file, bytes: fs.statSync(abs).size } : null;
-  })
-  .filter(Boolean);
+    return fs.existsSync(abs) ? [{ ...o, file, bytes: fs.statSync(abs).size }] : [];
+  });
 
 const desc = `VerseBase downloads: grab every one of the ${totalImgs} image assets used on the site (ship renders, topic imagery, patch-trailer stills) individually — plus the visual one-pager guides as a self-contained offline HTML file.`;
 ---
