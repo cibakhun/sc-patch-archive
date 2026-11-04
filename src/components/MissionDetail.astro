@@ -6,7 +6,7 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoTitle, seoText, clip, phLabel } from '../lib/missions';
+import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoTitle, seoText, clip, phLabel, spielerJeInstanz } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { lesbarerRufBereich } from '../lib/lesbar';
@@ -233,7 +233,7 @@ const t = useTranslations(lang);
           <div><dt>{S.legal}</dt><dd>{legal}</dd></div>
           <div><dt>{S.offers}</dt><dd>{m.count}</dd></div>
           <div><dt>{S.src}</dt><dd>{srcLabel}</dd></div>
-          <div><dt>{S.players}</dt><dd>{m.maxPlayers || S.none}</dd></div>
+          <div><dt>{S.players}</dt><dd>{spielerJeInstanz(m) ?? S.none}</dd></div>
           <div><dt>{S.shareable}</dt><dd>{m.shareable ? S.yes : S.no}</dd></div>
           {v0.buyIn > 0 && <div><dt>{S.buyIn}</dt><dd>{uec(v0.buyIn, lang)} aUEC</dd></div>}
           {dur(v0.deadlineSec, lang) && <div><dt>{S.deadline}</dt><dd>{dur(v0.deadlineSec, lang)}</dd></div>}
