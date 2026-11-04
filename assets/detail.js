@@ -21,8 +21,13 @@
     var btn=v.querySelector('.play'), lbl=v.querySelector('.vlbl');
     if(btn&&lbl) btn.setAttribute('aria-label', L.play(lbl.textContent.trim()));
     function load(){
-      var id=v.getAttribute('data-yt');
-      v.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&rel=0" title="'+((lbl&&lbl.textContent.trim())||L.video)+'" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+      var f=document.createElement('iframe');
+      f.setAttribute('src','https://www.youtube-nocookie.com/embed/'+encodeURIComponent(v.getAttribute('data-yt')||'')+'?autoplay=1&rel=0');
+      f.setAttribute('title',(lbl&&lbl.textContent.trim())||L.video);
+      f.setAttribute('allow','autoplay; encrypted-media; fullscreen; picture-in-picture');
+      f.setAttribute('allowfullscreen','');
+      v.textContent='';
+      v.appendChild(f);
     }
     (btn||v).addEventListener('click',load,{once:true});
   });
