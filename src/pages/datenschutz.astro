@@ -9,6 +9,9 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import { IS_STAGING } from '../lib/seo';
+import { SUPABASE } from '../consts';
+// Host des Projekts, das DIESER Bau anspricht (Ziel je Bau, scripts/lib/supabase-ziel.mjs).
+const SUPABASE_HOST = new URL(SUPABASE.url).host;
 ---
 <Layout title={"Privacy Policy | VerseBase"} description={"Privacy policy of VerseBase: hosting and Cloudflare, cookieless reach measurement with one-click opt-out, external images, YouTube only after a click, the feedback form, user accounts with Discord, profiles, friends and online status, and donations via Stripe and PayPal."} themeColor="#05070d" translated={true}>
 <style is:inline>
@@ -236,7 +239,7 @@ body{font-family:var(--font-body)}
       <li><strong>cdn.discordapp.com</strong> (Discord Inc., USA): profile pictures taken over from
         Discord, on pilot profiles, in the friends list and chat and in the dashboard (see
         <a href="#discord">Discord</a>)</li>
-      <li><strong>trgjhmbnodoarnfmlcqx.supabase.co</strong> (Supabase, see
+      <li><strong>{SUPABASE_HOST}</strong> (Supabase, see
         <a href="#accounts">user account</a>): uploaded profile pictures and banners</li>
     </ul>
     <p>
