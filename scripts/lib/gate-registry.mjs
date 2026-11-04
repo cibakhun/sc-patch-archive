@@ -396,7 +396,7 @@ export const CHECKS = [
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',
     rail: 'A',
-    checks: 'Publish-Audit ueber alle gebauten Seiten: tote Links und Anker, Sprachumschalter-Ziele, Sitemap gegen Build, Platzhalter, Mojibake, A11y-Basics — und die Datenherkunfts-Regel, die es als einziges Tor traegt',
+    checks: 'Publish-Audit ueber alle gebauten Seiten: tote Links und Anker, Sprachumschalter-Ziele, Sitemap gegen Build, Platzhalter, Rohtext je Textstelle (NaN, undefined, null neben Vergleichs- und Mengenzeichen, rohe {Spielplatzhalter}, ungefuellte %schluessel%, interne Rangschluessel; Klinke fuer die Zahl der Textstellen), Mojibake, A11y-Basics — und die Datenherkunfts-Regel, die es als einziges Tor traegt',
   },
   {
     id: 'verify:mining',

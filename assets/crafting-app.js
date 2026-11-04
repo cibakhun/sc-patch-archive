@@ -1355,7 +1355,11 @@
   }
   function updateDataNote() {
     var note = $('#calc-datanote');
-    if (note) note.hidden = !dismantleDataIncomplete();
+    if (!note) return;
+    var bad = dismantleDataIncomplete();
+    // Text erst im Fehlerfall einsetzen (steht im data-msg, s. CraftingApp.astro)
+    if (bad && !note.textContent) note.textContent = note.getAttribute('data-msg') || '';
+    note.hidden = !bad;
   }
 
   // Aus DB.dismantle_blacklist das Set bauen. Läuft die DB nach dem Rechner ein

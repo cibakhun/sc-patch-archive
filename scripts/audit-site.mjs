@@ -143,6 +143,30 @@ function stripHiddenSubtrees(html) {
 }
 
 const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]|>undefined<|>null<|>NaN\b/;
+
+// Rohtext MITTEN im Satz. ⚠ ANLASS (03.11.2026): PLACEHOLDER_RE fing JS-
+// Leckagen nur, wenn sie einen Textknoten ganz ausfuellen (>NaN, >null<). So
+// standen unbemerkt auf 122 Schild-Seiten je Sprache „Physisch NaN% ·
+// Distortion NaN%", auf Missionsseiten „Citizens For Prosperity ≠ null" und
+// rohe Spielplatzhalter wie „Eliminate {TargetName}", auf der Wikelo-Seite
+// „1× null". Geprueft wird jetzt jede Textstelle einzeln — Textknoten plus die
+// Attribute, die gelesen oder vorgelesen werden (alt, title, aria-label,
+// content, placeholder). Bewusst eng gefasst, weil Fehlalarme teurer sind als Luecken:
+//   - NaN / undefined als ganzes Wort (beides ist nie Fliesstext),
+//   - null nur neben einem Vergleichs- oder Mengenzeichen — „null" allein ist
+//     im Deutschen ein Wort,
+//   - {GrossGeschrieben} — die Form der Spielplatzhalter (Missionen zeigen sie
+//     als gestaltete Marker, nie in Klammern),
+//   - %schluessel% — eine Fuellstelle, die t()/fill() nicht ersetzt hat,
+//   - ReputationStanding_ — interne Rangschluessel ohne Anzeigenamen.
+const ROHTEXT_RE = /\b(?:NaN|undefined)\b|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_/;
+const ROHTEXT_ATTR_RE = /\s(?:alt|title|aria-label|content|placeholder)="([^"]*)"/g;
+const decodeEntities = (s) => s
+  .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+  .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+  .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+let rohtextStellen = 0;
+const rohtextHits = [];
 const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
 
@@ -263,6 +287,25 @@ for (const f of htmlFiles) {
   const visibleText = markup.replace(/\splaceholder="[^"]*"/gi, '');
   const ph = PLACEHOLDER_RE.exec(visibleText) ?? PLACEHOLDER_CI_RE.exec(visibleText);
   if (ph) placeholderHits.push(`${page}: "${ph[0]}"`);
+  // Rohtext je Textstelle (s. ROHTEXT_RE). Grundlage ist das Markup MIT
+  // placeholder= — anders als bei TODO/PLACEHOLDER oben ist ein „{TargetName}"
+  // oder „NaN" auch als Eingabehinweis ein Fehler. Kommentare raus, fuer
+  // Textknoten und Attribute gleich: Astro laesst keine stehen, aber ein
+  // auskommentierter Block waere kein sichtbarer Text.
+  const ohneKommentare = markup.replace(/<!--[\s\S]*?-->/g, ' ');
+  const stellen = [];
+  for (const m of ohneKommentare.matchAll(/>([^<]+)</g)) stellen.push(m[1]);
+  for (const m of ohneKommentare.matchAll(ROHTEXT_ATTR_RE)) stellen.push(m[1]);
+  for (const roh of stellen) {
+    if (!roh.trim()) continue;
+    rohtextStellen++;
+    const text = decodeEntities(roh);
+    const rt = ROHTEXT_RE.exec(text);
+    if (rt) {
+      const at = Math.max(0, rt.index - 40);
+      rohtextHits.push(`${page}: "${rt[0]}" in „…${text.slice(at, rt.index + rt[0].length + 40).replace(/\s+/g, ' ').trim()}…"`);
+    }
+  }
   const mj = MOJIBAKE_RE.exec(html);
   if (mj) mojibakeHits.push(`${page}: "${mj[0]}"`);
 
@@ -654,6 +697,17 @@ if (basePrefixPages.size) {
 }
 section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
+// Selbstauskunft + Klinke (Grundsatz 2/5): ein Lauf, der kaum Textstellen
+// sieht (kaputter Extraktor, leerer Build), soll nicht als „0 Funde" gruen
+// durchgehen. Stand 03.11.2026: rund 3,2 Mio. Textstellen in 17.756 Seiten
+// (Live-Bau); die Klinke liegt mit Abstand darunter und wandert nur nach oben.
+const ROHTEXT_KLINKE = 3_000_000;
+console.log(`\nRohtext: ${htmlFiles.length} Seiten, ${rohtextStellen.toLocaleString('de-DE')} Textstellen geprueft (Klinke ${ROHTEXT_KLINKE.toLocaleString('de-DE')}), ${rohtextHits.length} Fund(e)`);
+if (rohtextStellen < ROHTEXT_KLINKE) {
+  console.log(`== FEHLER Rohtext-Pruefung sah zu wenig Text: ${rohtextStellen} < ${ROHTEXT_KLINKE} ==`);
+  errors.push(`Rohtext-Pruefung unter der Klinke (${rohtextStellen})`);
+}
+section('FEHLER Rohtext im sichtbaren Text (NaN, null, {Platzhalter}, %schluessel%)', rohtextHits, errors);
 section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
 section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
 section('FEHLER Rechnerpfad im Ausgelieferten', machinePathHits, errors);

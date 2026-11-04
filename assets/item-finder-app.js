@@ -112,7 +112,7 @@
     if (s.empRadius) return { l: tr('statEmpRadius', 'EMP'), v: fmtNum(s.empRadius) + ' m', n: s.empRadius };
     if (s.fuelCapacity) return { l: tr('statFuel', 'Treibstoff'), v: fmtNum(s.fuelCapacity), n: s.fuelCapacity };
     if (s.damage) { var tot = 0; for (var k in s.damage) tot += s.damage[k]; return { l: tr('statDamage', 'Schaden'), v: fmtNum(tot), n: tot }; }
-    if (s.resist && s.resist.physical != null) { var red = Math.round((1 - s.resist.physical) * 100); return { l: tr('statResist', 'Reduktion'), v: red + '%', n: red }; }
+    if (s.resist && typeof s.resist.physical === 'number') { var red = Math.round((1 - s.resist.physical) * 100); return { l: tr('statResist', 'Reduktion'), v: red + '%', n: red }; }
     if (s.ndr) return { l: tr('statNdr', 'NDR'), v: fmtNum(s.ndr) + ' NDR', n: s.ndr };
     if (s.sensitivity) return { l: tr('statSensitivity', 'Empfindlichkeit'), v: fmtNum(s.sensitivity), n: s.sensitivity };
     if (s.storageScu) return { l: tr('statStorage', 'Stauraum'), v: s.storageScu + ' SCU', n: s.storageScu };
@@ -685,12 +685,19 @@
     return parts.join(' · ');
   }
   function fmtResist(res) {
-    // Schadensmultiplikator -> Schadensreduktion in % (1 - Multiplikator)
+    // Ruestung: Schadensmultiplikator -> Schadensreduktion in % (1 - Multiplikator).
+    // Schild: Spanne [min, max], schon als Widerstandsanteil — bis 03.11.2026
+    // lief auch sie durch 1 - x und ergab "NaN%" (wie src/lib/itemStats.ts).
     var L = dmgLabels(), keys = ['physical', 'energy', 'distortion', 'thermal', 'biochemical'];
     var vals = keys.filter(function (k) { return res[k] != null; });
     if (!vals.length) return null;
-    var uniform = vals.every(function (k) { return res[k] === res[vals[0]]; });
-    var pct = function (k) { return Math.round((1 - res[k]) * 100) + '%'; };
+    var pct = function (k) {
+      var v = res[k];
+      if (!Array.isArray(v)) return Math.round((1 - v) * 100) + '%';
+      var lo = Math.round(v[0] * 100), hi = Math.round(v[1] * 100);
+      return lo === hi ? lo + '%' : lo + '–' + hi + '%';
+    };
+    var uniform = vals.every(function (k) { return pct(k) === pct(vals[0]); });
     if (uniform) return tr('resistAll', 'Alle') + ' ' + pct(vals[0]);
     return vals.map(function (k) { return L[k] + ' ' + pct(k); }).join(' · ');
   }

@@ -40,9 +40,16 @@ export interface DamageMap {
   stun?: number;
 }
 
+/**
+ * Widerstaende: Ruestungen tragen je Kanal einen Schadens-MULTIPLIKATOR
+ * (0.8 = 20 % weniger Schaden), Schilde eine Spanne [min, max] als ANTEIL
+ * (0.25 = 25 % Widerstand) — so liest sie auch der Hangar (layouts.ts).
+ */
+export type ResistMap = { [K in keyof DamageMap]?: number | [number, number] };
+
 export interface ItemStats {
   damage?: DamageMap;
-  resist?: DamageMap;
+  resist?: ResistMap;
   blastRadius?: number;
   fireRate?: number;
   dps?: number;
