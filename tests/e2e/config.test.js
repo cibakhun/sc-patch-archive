@@ -79,10 +79,14 @@ describe('Supabase-Ziel: eine Tabelle, alle Abnehmer', () => {
     assert.ok(!out.includes(supabaseZiel('live').ref), 'Live-Ref steht nach dem Einsetzen noch im Skript');
     const zeilenWeg = (a, b) => a.split('\n').filter((z, i) => z !== b.split('\n')[i]).length;
     assert.strictEqual(zeilenWeg(lite, out), LITE_ZEILEN.length, 'mehr als die drei Kopfzeilen geaendert');
-    // CRLF (Windows-Checkout) bleibt CRLF.
-    const crlf = liteMitZiel(lite.replace(/\n/g, '\r\n'), fremd);
+    // CRLF (Windows-Checkout) bleibt CRLF — auch wenn die Quelle hier schon
+    // mit CRLF ausgecheckt ist (deshalb erst auf LF normalisieren).
+    const crlfQuelle = lite.replace(/\r?\n/g, '\r\n');
+    const crlf = liteMitZiel(crlfQuelle, fremd);
     assert.strictEqual(fromLite(crlf, 'SB_URL'), fremd.url);
-    assert.ok(!/[^\r]\n/.test(crlf), 'Zeilenenden veraendert');
+    assert.ok(!/(^|[^\r])\n/.test(crlf), 'LF ohne CR nach dem Einsetzen');
+    assert.ok(!/\r\r/.test(crlf), 'doppeltes CR nach dem Einsetzen');
+    assert.strictEqual(crlf.split('\r\n').length, crlfQuelle.split('\r\n').length, 'Zeilenzahl veraendert');
   });
 
   test('6. Kopf weicht ab -> Bau reisst statt halb umzustellen', () => {

@@ -18,6 +18,8 @@
      [2] jede Textdatei in dist/ nennt nur dieses Projekt: jeder Host
          *.supabase.co, jeder Sitzungsschluessel sb-<ref>-auth-token und
          jeder Publishable Key gehoert zum Ziel; kein geheimer Schluessel
+         (sb_secret_… oder ein altes service_role-JWT), kein altes anon-JWT
+         eines anderen Projekts
      [3] die Pflichtstellen tragen das Ziel: account-lite.js (alle drei
          Kopfzeilen), die beiden CSP-Dateien, gate.html, ein Client-Bundle
          unter _astro/, die Datenschutzerklaerung in beiden Sprachen
@@ -82,7 +84,24 @@ const MUSTER = [
   { was: 'Sitzungsschluessel', re: /\bsb-([a-z0-9]+)-auth-token\b/g, soll: (m) => m[1] === ziel.ref },
   { was: 'Publishable Key', re: /\bsb_publishable_[A-Za-z0-9_-]+/g, soll: (m) => m[0] === ziel.publishableKey },
   { was: 'geheimer Schluessel', re: /\bsb_secret_[A-Za-z0-9_-]+/g, soll: () => false },
+  // Die alten Supabase-Schluessel sind JWTs (anon / service_role). Der
+  // Nutzlastteil sagt, wofuer: service_role ist geheim, ein anon-Schluessel
+  // eines anderen Projekts ist ein fremdes Projekt. Andere JWTs gehen das
+  // Tor nichts an (null).
+  { was: 'Supabase-JWT', re: /\beyJ[A-Za-z0-9_-]{8,}\.(eyJ[A-Za-z0-9_-]{8,})\.[A-Za-z0-9_-]*/g, soll: supabaseJwt,
+    zeige: (m) => `Supabase-JWT (role ${jwtNutzlast(m[1])?.role ?? '?'}, ref ${jwtNutzlast(m[1])?.ref ?? '?'})` },
 ];
+/** Nutzlast eines JWT-Mittelteils, oder null. */
+function jwtNutzlast(teil) {
+  try { return JSON.parse(Buffer.from(teil, 'base64url').toString('utf8')); } catch { return null; }
+}
+/** true: anon-Schluessel des Ziels · false: geheim oder fremdes Projekt · null: kein Supabase-JWT. */
+function supabaseJwt(m) {
+  const n = jwtNutzlast(m[1]);
+  if (!n || typeof n !== 'object' || (n.iss !== 'supabase' && !('role' in n && 'ref' in n))) return null;
+  if (n.role === 'service_role' || n.role === 'supabase_admin') return false;
+  return n.ref === ziel.ref ? true : false;
+}
 // Die anderen Ziele der Tabelle, nur fuer eine lesbare Meldung.
 const andereZiele = new Map(
   Object.keys(SUPABASE_ZIELE).filter((n) => n !== sollName).map((n) => [supabaseZiel(n).ref, n]),
@@ -113,11 +132,13 @@ for (const f of dateien) {
   let hatZiel = false;
   const fremd = [];
   // Schneller Vorfilter: ohne diese Teilstrings kann keines der Muster treffen.
-  if (t.includes('supabase.co') || t.includes('-auth-token') || t.includes('sb_publishable_') || t.includes('sb_secret_')) {
-    for (const { was, re, soll } of MUSTER) {
+  if (t.includes('supabase.co') || t.includes('-auth-token') || t.includes('sb_publishable_') || t.includes('sb_secret_') || t.includes('eyJ')) {
+    for (const { was, re, soll, zeige } of MUSTER) {
       for (const m of t.matchAll(re)) {
-        if (soll(m)) hatZiel = true;
-        else fremd.push(`${was} ${m[0].length > 60 ? m[0].slice(0, 57) + '…' : m[0]}${andereZiele.has(m[1]) ? ` (Ziel "${andereZiele.get(m[1])}")` : ''}`);
+        const urteil = soll(m);
+        if (urteil === true) hatZiel = true;
+        else if (urteil === false)
+          fremd.push(zeige ? zeige(m) : `${was} ${m[0].length > 60 ? m[0].slice(0, 57) + '…' : m[0]}${andereZiele.has(m[1]) ? ` (Ziel "${andereZiele.get(m[1])}")` : ''}`);
       }
     }
   }
@@ -144,7 +165,11 @@ for (const { datei, wert } of CSP_SUPABASE) {
 }
 const gate = inhalt.get('gate.html') ?? '';
 pruefe('dist/gate.html (Tor-Seite)', gate.includes(ziel.url) && gate.includes(ziel.publishableKey));
-pruefe('dist/_astro/ (Client-Bundle)', [...inhalt].some(([f, t]) => f.startsWith('_astro/') && t.includes(ziel.url)));
+// URL, Key und Sitzungsschluessel muessen im Bundle stehen; fehlt einer,
+// startet supabase-js auf den Kontoseiten nicht.
+const bundles = [...inhalt].filter(([f]) => f.startsWith('_astro/')).map(([, t]) => t);
+pruefe('dist/_astro/ (Client-Bundle: URL, Publishable Key, Sitzungsschluessel)',
+  [ziel.url, ziel.publishableKey, ziel.storageKey].every((wert) => bundles.some((t) => t.includes(wert))));
 const host = new URL(ziel.url).host;
 for (const f of ['datenschutz.html', 'de/datenschutz.html'])
   pruefe(`dist/${f}`, (inhalt.get(f) ?? '').includes(`<strong>${host}</strong>`));

@@ -11,6 +11,9 @@ import { supabaseZiel, liteMitZiel, CSP_SUPABASE } from '../../scripts/lib/supab
 
 const LITE = fs.readFileSync(path.resolve('assets/account-lite.js'), 'utf8');
 const FREMD = 'zzzzzzzzzzzzzzzzzzzz';
+/** Ein JWT der alten Supabase-Bauart (Signatur egal, das Tor liest nur die Nutzlast). */
+const jwt = (nutzlast) =>
+  [{ alg: 'HS256', typ: 'JWT' }, nutzlast].map((o) => Buffer.from(JSON.stringify(o)).toString('base64url')).join('.') + '.c2lnbmF0dXI';
 
 /** Ein Probe-dist, wie es der Bau fuer `name` schreibt (nur die Pflichtstellen). */
 function probe(name) {
@@ -68,6 +71,8 @@ test('[2] ein fremdes Projekt an einer einzigen Stelle ist rot', () => {
     ['_astro/chat.def456.js', `localStorage.getItem("sb-${FREMD}-auth-token")`, /Sitzungsschluessel sb-zzzz/],
     ['assets/daten.json', '{"k":"sb_publishable_fremderSchluessel_123"}', /Publishable Key sb_publishable_fremder/],
     ['_astro/admin.js', 'const k="sb_secret_abcdef";', /geheimer Schluessel sb_secret_/],
+    ['_astro/alt.js', `const k="${jwt({ iss: 'supabase', ref: supabaseZiel('live').ref, role: 'service_role' })}";`, /Supabase-JWT \(role service_role/],
+    ['assets/alt.js', `apikey:"${jwt({ iss: 'supabase', ref: FREMD, role: 'anon' })}"`, /Supabase-JWT \(role anon, ref zzzz/],
   ];
   for (const [datei, text, meldung] of faelle) {
     const a = probe('live');
@@ -77,6 +82,15 @@ test('[2] ein fremdes Projekt an einer einzigen Stelle ist rot', () => {
     assert.match(r.stderr, new RegExp(`\\[2\\] dist/${datei.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}: `), datei);
     assert.match(r.stderr, meldung, datei);
   }
+});
+
+test('[2] fremde JWTs gehen das Tor nichts an, das anon-JWT des Ziels zaehlt als Ziel', () => {
+  const a = probe('live');
+  a.put('_astro/anderes.js', `const t="${jwt({ sub: 'x', iss: 'https://accounts.example.com', exp: 1 })}";`);
+  a.put('assets/anon.js', `const k="${jwt({ iss: 'supabase', ref: supabaseZiel('live').ref, role: 'anon' })}";`);
+  const r = tor(a.d);
+  assert.equal(r.status, 0, r.stderr + r.stdout);
+  assert.match(r.stdout, /12 Textdateien gelesen \(Klinke 1\): 10 nennen das Ziel/);
 });
 
 test('[3] eine Pflichtstelle ohne das Ziel ist rot', () => {
@@ -97,6 +111,13 @@ test('[3] eine Pflichtstelle ohne das Ziel ist rot', () => {
   r = tor(c.d);
   assert.equal(r.status, 1);
   assert.match(r.stderr, /\[3\] dist\/de\/datenschutz\.html traegt/);
+
+  // Bundle mit URL, aber ohne Key: supabase-js startete nicht.
+  const e = probe('live');
+  e.put('_astro/supabase.abc123.js', `const e={url:${JSON.stringify(e.z.url)}};`);
+  r = tor(e.d);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /\[3\] dist\/_astro\/ \(Client-Bundle: URL, Publishable Key, Sitzungsschluessel\) traegt/);
 });
 
 test('Klinke: zu wenig gelesen ist rot, auch wenn sonst alles stimmt', () => {

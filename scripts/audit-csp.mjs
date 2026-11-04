@@ -39,7 +39,7 @@ import { join } from 'node:path';
 import {
   zerlege, zaehleScriptTagsRoh, cspHash, leseMapWert, CSP_ORDNER,
 } from './lib/csp-inline.mjs';
-import { zielImArtefakt, REF_MUSTER } from './lib/supabase-ziel.mjs';
+import { zielImArtefakt, supabaseZiel, SUPABASE_ZIELE, REF_MUSTER } from './lib/supabase-ziel.mjs';
 
 const CONF = 'nginx/default.conf';
 const DIST = 'dist';
@@ -258,6 +258,16 @@ for (const f of readdirSync('assets').filter((f) => f.endsWith('.js'))) {
 const sbZiel = zielImArtefakt(DIST);
 if (!sbZiel || !REF_MUSTER.test(sbZiel.ref)) {
   console.error('dist/build.json nennt kein Supabase-Ziel (Feld supabase.ref) — npm run build neu laufen lassen.');
+  process.exit(2);
+}
+// Der Stempel muss zur Tabelle passen, sonst gäbe dieses Tor eine Richtlinie
+// für ein Projekt frei, das kein Ziel ist (dasselbe sichert verify:supabase-ziel
+// ausführlich; hier, damit audit:csp auch allein nicht danebenliegt).
+const sbTabelle = Object.hasOwn(SUPABASE_ZIELE, sbZiel.ziel) ? supabaseZiel(sbZiel.ziel).ref : null;
+if (sbTabelle !== sbZiel.ref) {
+  console.error(
+    `dist/build.json nennt Supabase-Ziel "${sbZiel.ziel}" mit Ref ${sbZiel.ref}, die Tabelle (scripts/lib/supabase-ziel.mjs) ${sbTabelle ?? 'kennt dieses Ziel nicht'} — dist/ stammt aus einem anderen Stand; npm run build neu laufen lassen.`,
+  );
   process.exit(2);
 }
 const supabaseUrl = `https://${sbZiel.ref}.supabase.co`;
