@@ -46,6 +46,7 @@ const S = {
     calcYieldRate: 'Ausbeute-Rate', calcReset: 'Rechner zurücksetzen', calcTitle: 'Effiziente Items zum Zerlegen',
     calcTabDb: 'Blueprint-Datenbank', calcTabCalc: 'Zerlegungs-Rechner (Dismantle)',
     calcItemSearch: 'Suche: Item-Name…',
+    calcMethod: 'Rechenwert aus Rezeptmenge × Ausbeute-Rate — die tatsächliche Ausbeute im Spiel kann abweichen.',
     calcDataIncomplete: 'Zerlege-Daten unvollständig — die Seltenheits-Markierung der Materialien fehlt gerade, Ausbeuten für seltene Erze können daher zu hoch angezeigt werden. Bitte die Seite neu laden.',
   },
   en: {
@@ -65,6 +66,7 @@ const S = {
     calcYieldRate: 'Yield Rate', calcReset: 'Reset Calculator', calcTitle: 'Efficient Items to Dismantle',
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
     calcItemSearch: 'Search: item name…',
+    calcMethod: 'Calculated from recipe amount × yield rate — actual in-game yields may differ.',
     calcDataIncomplete: 'Dismantling data incomplete — the material rarity markers are currently missing, so yields for rare ores may be shown too high. Please reload the page.',
   },
 }[lang];
@@ -830,8 +832,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <div class="calc-results-wrap" style="flex:1 1 auto; min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;">
           <h2 style="display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-display,inherit);font-weight:900;font-size:var(--fs-14);color:#fff;margin:0;"><span style="display:inline-flex;color:var(--accent,#FF5E1A);" aria-hidden="true"><Fragment set:html={ICON_DISMANTLE} /></span>{S.calcTitle}</h2>
-          <span id="calc-results-count" style="font-size:var(--fs-7);color:var(--muted,#9ba2ae);">0 Items gefunden</span>
+          <span id="calc-results-count" style="font-size:var(--fs-7);color:var(--muted,#9ba2ae);">{JS_T.calcFound.replace('{count}', '0')}</span>
         </div>
+
+        {/* Unsicherheit offen benannt (Audit 04.11.2026): die Mengen sind
+            ein Rechenwert aus Rezept und Ausbeute-Rate, kein Messwert. */}
+        <p class="calc-method" style="margin:-.6rem 0 1rem;font-size:var(--fs-6);color:var(--muted,#9ba2ae);line-height:1.4;">{S.calcMethod}</p>
 
         <div class="calc-search-row">
           <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
