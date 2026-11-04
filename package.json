@@ -108,6 +108,7 @@
     "@gltf-transform/functions": "^4.4.1",
     "@types/node": "^22.20.5",
     "draco3d": "^1.5.7",
+    "linkedom": "^0.18.13",
     "meshoptimizer": "^1.2.0",
     "playwright-core": "^1.62.1",
     "three": "^0.185.1",

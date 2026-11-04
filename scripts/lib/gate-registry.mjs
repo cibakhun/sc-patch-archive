@@ -498,7 +498,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), kein Katalogschluessel als Text, kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl mit Einheit im eigenen Format, kein Katalogschluessel als Text, kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -519,19 +519,34 @@ export const CHECKS = [
     // Gegenprobe gegen den Stand vor PR #289 (4f4f4ddd, Live-Bau): 3.033
     // FEHLER, dieselben Klassen plus 5 deutsche Zweitnamen auf EN-Item-
     // Seiten ohne lang-Attribut (seitdem lang="de" am Zweitnamen).
+    // Regeln 8-10 (Datum, Dezimalzahl, deutsches Wort auf EN) kamen am
+    // 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge dazu. VORGEFUEHRT
+    // ROT gegen den Live-Bau von origin/staging 286f28c6: 460 FEHLER — 34
+    // Daten ("9. Oktober 2026" in der Zeitleiste von 31 EN-Schiffsseiten,
+    // "28. Jan – 28. Feb 2025" und "16.09.2026 bis 4.10.2" als Event-
+    // Zeitraum der EN-Patch-Seiten), 394 Dezimalzahlen auf DE-Seiten ("0.01
+    // SCU" Item-Volumen, "8.75 m" in der Schiffsliste, "0.2 s" auf 4.10.2),
+    // 32 deutsche Woerter auf EN ("Stabilität & Save Stanton II", "saisonal",
+    // "Ressource suchen..."). Gruen nach der Korrektur derselben Lieferung;
+    // die eine Ausnahme (Schlossstraße, Anbieteranschrift) ist in Gebrauch.
+    // Positiv- und Gegenbeispiele je Ausdruck: tests/e2e/textregeln.test.js.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
-    // den Text, den der Item Finder erst im Browser baut. Kein git, kein
-    // Netz — fuehrt das ausgelieferte Skript in node:vm aus und liest dist/;
-    // fuer die Kataloge wie verify:sprache esbuild (dessen Dienst ist der
-    // einzige Kindprozess, Temp-Ordner wird geloescht).
+    // den Text, den die Werkzeuge erst im Browser bauen — Teil 1 der Item
+    // Finder vollstaendig, Teil 2 (seit der Inhaltsvalidierung am selben
+    // Abend) jede Seitenart bedient, mit dem Pruefstand
+    // scripts/lib/pruefstand.mjs (linkedom-DOM, Skripte in node:vm). Kein
+    // git, kein Netz — fuehrt die ausgelieferten Skripte aus und liest
+    // dist/; fuer die Kataloge und die Astro-Module wie verify:sprache
+    // esbuild (dessen Dienst ist der einzige Kindprozess, Temp-Ordner wird
+    // geloescht). Laufzeit gut 95 s, davon 55 s der Crafting-Rechner.
     id: 'verify:clienttext',
     npm: 'verify:clienttext',
     script: 'scripts/verify-clienttext.mjs',
     rail: 'A',
     checks:
-      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter}, "-1" als Wert), ohne Katalogtext der anderen Sprache, mit Zahlen im eigenen Format und ohne Rohschluessel; jeder woertliche tr()-Schluessel des Skripts steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, woertliche und gefragte Schluessel',
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format und ohne Rohschluessel; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
     // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
     // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
     // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
@@ -545,6 +560,23 @@ export const CHECKS = [
     // von dist/item-finder.html entfernt — 1 FEHLER "tr('slotTorso') beim
     // Rendern gefragt, steht nur im DE-Katalog"; die woertliche Regel 5 sah
     // ihn nicht. Gruen mit dem unveraenderten Bau.
+    // Teil 2 VORGEFUEHRT ROT gegen den Live-Bau von origin/staging 286f28c6:
+    // 526 FEHLER — 20 Missionstitel mit Spielplatzhaltern im Blueprint-
+    // Fenster des Crafting-Rechners ("Wanted: {TargetName}"), 199 deutsche
+    // Vorlesetexte auf EN-Seiten ("Bild öffnen: Pyro", "… Trailer
+    // abspielen" aus assets/detail.js und assets/a11y.js), 297 Dezimalzahlen
+    // im Finder-Modal der DE-Seite ("4.2 SCU"), 10 Abbrueche (Pruefstand
+    // ohne document.currentScript und form.reset, ein versteckter Knopf
+    // geklickt — im Pruefstand behoben). Gruen nach der Korrektur.
+    // Rohtext-Erweiterung, Abbruch und Werkzeug-Klinke rot am gruenen Bau
+    // mit einer Hardlink-Kopie von dist/, darin eingesetzt: Qualitaetsrechner
+    // ohne Rundung, mit 1e21 und mit '${k}' in einfachen Anfuehrungszeichen,
+    // Trefferzahl ohne .replace('{count}'), und mining-workbench.js wirft
+    // beim Start: 20 FEHLER — "110.00000000000001", "1e+23", "${",
+    // "{count} kompatible Items gefunden", "-82.5" (Dezimalpunkt auf DE),
+    // 2 Abbrueche, /topics/mining.html 3 und /de/topics/mining.html 8 Texte
+    // unter der Klinke 1.000, Summe 9.464 unter 10.500. Pruefstand-Zusagen:
+    // tests/e2e/pruefstand.test.js.
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

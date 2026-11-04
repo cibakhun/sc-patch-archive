@@ -33,7 +33,21 @@ import { pathToFileURL } from 'node:url';
    Infinity NUR als Zahl (allein, mit Vorzeichen oder vor einer Einheit):
    "Infinity Custom" ist ein Hersteller in den Spieltexten (X1-Lackierungen,
    gemessen am selben Tag). */
-export const ROHTEXT_RE = /\b(?:NaN|undefined)\b|^-?Infinity$|[-−]Infinity\b|\bInfinity\s?(?:%|a?UEC|SCU|m\/s|km\/s|km|m|s|kg|HP|DPS)(?![\w])|\[object [A-Z]|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_/;
+/* Am 04.11.2026 (Inhaltsvalidierung fuer die Werkzeuge) kamen die Reste
+   dazu, die ein Skript beim Zusammensetzen hinterlaesst — dieselbe Klasse,
+   nur aus JavaScript statt aus den Spieldaten:
+     - {kleinGeschrieben} — die Form der eigenen Satzvorlagen (fill(),
+       tr('… {n} …')), wenn das Ersetzen ausbleibt,
+     - ${ und {{ — eine Vorlage in falschen Anfuehrungszeichen,
+     - Gleitkomma-Rauschen (0.30000000000000004: sieben oder mehr
+       Nachkommastellen an einer alleinstehenden Zahl) und die
+       Exponentenform von String(zahl) (1e+21, 5e-7) — beides heisst: die
+       Zahl ging ungerundet und ohne toLocaleString() auf die Seite.
+   Gemessen am selben Tag: kein Treffer auf 17.756 statischen Seiten und
+   keiner im Text, den die Werkzeuge beim Bedienen schreiben. Eine
+   Versionsnummer mit vier Gliedern (4.0.1.9428143) ist kein Rauschen: davor
+   und danach darf kein weiteres Glied stehen. */
+export const ROHTEXT_RE = /\b(?:NaN|undefined)\b|^-?Infinity$|[-−]Infinity\b|\bInfinity\s?(?:%|a?UEC|SCU|m\/s|km\/s|km|m|s|kg|HP|DPS)(?![\w])|\[object [A-Z]|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_|\{[a-z][A-Za-z0-9_]*\}|\$\{|\{\{|(?<![\d.,])\d+[.,]\d{7,}(?![\d.,])|(?<![\w.#-])\d(?:\.\d+)?e[+-]\d+\b/;
 
 /* Ein Textknoten, der NUR aus "-1" besteht, ist ein Platzhalterwert der
    Spieldaten, kein Messwert. Anlass 04.11.2026: 91 Missionen je Sprache
@@ -78,6 +92,98 @@ export const DOPPELWORT_EN_RE = /\b(The|A|An) \1\b/;
    04.11.2026): gesperrt ist nur eine weitere Ziffer oder Gruppe. */
 export const ZAHL_EN_AUF_DE_RE = /(?<![\d.,])\d{1,3}(?:,\d{3}){2,}(?!\d|,\d)|(?<![\d.,])\d{1,3},\d{3}\.\d+|(?<![\d.,])[1-9]\d{0,2},\d{3}\s?a?UEC\b/;
 export const ZAHL_DE_AUF_EN_RE = /(?<![\d.,])\d{1,3}(?:\.\d{3}){2,}(?!\d|\.\d)|(?<![\d.,])\d{1,3}\.\d{3},\d+|(?<![\d.,])[1-9]\d{0,2}\.\d{3}\s?a?UEC\b/;
+
+/* Datum im Format der ANDEREN Sprache. Anlass 04.11.2026: die Zeitleiste
+   der englischen Schiffsseiten schrieb "9. Oktober 2026", die englischen
+   Patch-Seiten "28. Jan – 28. Feb 2025" — 32 Stellen auf 31 EN-Seiten, weil
+   die Komponenten die deutsche Datumszeile der Patch-Daten (dateDisplay)
+   nahmen statt der englischen. Deutsche Form: Tag mit Punkt vor einem
+   deutschen Monatsnamen oder seiner Kurzform. Englische Form auf einer
+   DE-Seite: "March 26, 2026" (Monat, Tag, Komma, Jahr) — eng gefasst, weil
+   die Spieltexte auf deutschen Seiten englisch sind und dort Monatsnamen
+   ohne Datum vorkommen. Dazu die Ziffernform: "16.09.2026" ist deutsch,
+   "09/16/2026" amerikanisch. Gemessen am selben Tag: auf DE-Seiten kein
+   Treffer, auf EN-Seiten nur die Fehler. */
+const MONAT_DE = 'Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|Jan|Feb|Mär|Mrz|Apr|Jun|Jul|Aug|Sep|Sept|Okt|Nov|Dez';
+const MONAT_EN = 'January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec';
+export const DATUM_DE_AUF_EN_RE = new RegExp(`(?<![\\p{L}\\d.])\\d{1,2}\\.\\s?(?:${MONAT_DE})\\.?(?![\\p{L}])|(?<![\\d.])\\d{1,2}\\.\\d{1,2}\\.(?:19|20)\\d{2}(?![\\d.])`, 'u');
+export const DATUM_EN_AUF_DE_RE = new RegExp(`(?<![\\p{L}])(?:${MONAT_EN})\\.?\\s\\d{1,2}(?:st|nd|rd|th)?,\\s\\d{4}(?!\\d)|(?<![\\d/])\\d{1,2}\/\\d{1,2}\/(?:19|20)\\d{2}(?![\\d/])`, 'u');
+
+/* Dezimalzahl im Format der ANDEREN Sprache, als GANZE Textstelle mit
+   Einheit oder Vorzeichen ("0.01 SCU", "8.75 m", "+0.5"). Anlass
+   04.11.2026: 394 Stellen auf 287 deutschen Seiten — Item-Volumen
+   ("0.01 SCU" aus `${g.volumeScu} SCU` in src/lib/itemStats.ts), die
+   Schiffslaengen der Schiffsliste ("8.75 m"), "0.2 s" auf der deutschen
+   Patch-Seite 4.10.2 — und im Crafting-Qualitaetsrechner, den erst der
+   Pruefstand bedient hat. Bewusst nur die ganze Stelle: im Fliesstext und
+   ohne Einheit ist "4.10" eine Versionsnummer, und mit genau drei
+   Nachkommastellen ("1.000 m") waere es auf Deutsch eine Tausendergruppe. */
+const EINHEIT = '(?:%|SCU|µSCU|cSCU|a?UEC|m\\/s²?|km\\/s|GJ|MJ|kg|t|s|ms|min|h|Std\\.?|m|km|Gm|Mm|HP|DPS|rpm|°|×)';
+const dezimal = (trenner) => new RegExp(`^[(\\[]?(?:[-−+±×≈~]\\s?\\d+${trenner}\\d{1,2}(?:\\s?${EINHEIT})?|\\d+${trenner}\\d{1,2}\\s?${EINHEIT})[)\\]]?$`, 'u');
+export const DEZIMAL_EN_AUF_DE_RE = dezimal('\\.');
+export const DEZIMAL_DE_AUF_EN_RE = dezimal(',');
+
+/* Deutsches Wort auf einer EN-Seite, das keine der beiden anderen Regeln
+   sieht (kein Katalogtext, kein Funktionswort):
+     - ein Wort mit Umlaut oder ß ("Stabilität", "März", "öffnen") — auf
+       einer englischen Seite steht keins, ausser in Eigennamen, die als
+       benannte Ausnahme dastehen (Anschrift im Impressum);
+     - ein deutsches Wort ohne englische Entsprechung: Bedienwoerter, die
+       ein Skript in Vorlesetext und Tooltips schreibt ("Bild öffnen:
+       Asgard", "Video abspielen", Eingabehinweis "Ressource suchen..."),
+       deutsche Monatsnamen, die es englisch nicht gibt ("Oktober 2025"),
+       und Zeitangaben ("ab 09.10.2026", "16.09.2026 bis 4.10.2",
+       "saisonal").
+   Anlass 04.11.2026: assets/detail.js und assets/a11y.js schrieben ihre
+   aria-labels auf allen Seiten deutsch, der Codename von 4.0.1 stand als
+   "Stabilität & Save Stanton II" auf sieben EN-Seiten, die Event-Zeitraeume
+   der Patch-Daten deutsch auf acht EN-Patch-Seiten. Gross geschrieben, wie
+   sie in der Oberflaeche stehen; "bis" und "ab" nur klein — "600i 2951 BIS"
+   ist ein Schiffsname (gemessen am selben Tag: der einzige Treffer mit
+   gross geschriebenem BIS). Nur Woerter, die es im Englischen nicht gibt. */
+export const DE_UMLAUTWORT_RE = /[\p{L}]*[äöüßÄÖÜ][\p{L}]*/u;
+export const DE_WORT_EN_RE = /(?<![\p{L}\d-])(?:abspielen|ausblenden|einblenden|entfernen|speichern|kopieren|suchen|schliessen|abbrechen|weiter|teilen|filtern|sortieren|herunterladen|anheften|Bild|Bilder|Seite|Seiten|Spieler|Schiffe|Waffen|Fehler|Ergebnis|Ergebnisse|Treffer|Januar|Februar|Juni|Juli|Oktober|Dezember|bis|ab|saisonal|dauerhaft)(?![\p{L}\d-])/u;
+
+/**
+ * Alle Textregeln fuer EINE Textstelle `t` (schon norm()) in der Sprache
+ * `lang`. Gemeinsame Pruefung fuer Text, den ein Skript im Browser schreibt
+ * (verify:clienttext); verify:sprache und audit:site wenden dieselben
+ * Ausdruecke auf das statische HTML an.
+ * `M` aus sprachMengen(), `RS` aus rohschluesselRe().
+ * Rueckgabe: [{ regel, treffer }] — leer, wenn die Stelle sauber ist.
+ */
+export function pruefeStelle(t, lang, M, RS) {
+  const out = [];
+  const hit = (regel, m) => { if (m) out.push({ regel, treffer: m[0], index: m.index ?? 0 }); };
+  hit('roh', ROHTEXT_RE.exec(t));
+  if (PLATZHALTERWERT_RE.test(t)) out.push({ regel: 'wert', treffer: t, index: 0 });
+  const fremd = lang === 'de' ? M.mehrwortNurEn : M.mehrwortNurDe;
+  if (fremd.has(t)) out.push({ regel: 'sprache', treffer: t, index: 0 });
+  else if (lang === 'en') {
+    hit('funktionswort', DE_FUNKTIONSWORT_RE.exec(t));
+    hit('deWort', DE_UMLAUTWORT_RE.exec(t) || DE_WORT_EN_RE.exec(t));
+  }
+  if (lang === 'en') hit('doppelwort', DOPPELWORT_EN_RE.exec(t));
+  hit('zahl', (lang === 'de' ? ZAHL_EN_AUF_DE_RE : ZAHL_DE_AUF_EN_RE).exec(t));
+  hit('dezimal', (lang === 'de' ? DEZIMAL_EN_AUF_DE_RE : DEZIMAL_DE_AUF_EN_RE).exec(t));
+  hit('datum', (lang === 'de' ? DATUM_EN_AUF_DE_RE : DATUM_DE_AUF_EN_RE).exec(t));
+  hit('schluessel', findeRohschluessel(t, RS));
+  return out;
+}
+
+/** Ueberschriften der Regeln aus pruefeStelle(), fuer die Bilanz. */
+export const REGEL_TITEL = {
+  roh: 'Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter}, Vorlagenrest, ungerundete Zahl)',
+  wert: 'Platzhalterwert -1',
+  sprache: 'Katalogtext der anderen Sprache',
+  funktionswort: 'deutsches Funktionswort im EN-Text (Rueckfalltext des Skripts?)',
+  deWort: 'deutsches Wort im EN-Text (Umlaut oder Bedienwort)',
+  doppelwort: 'englisches Doppelwort aus einer Satzvorlage',
+  zahl: 'Zahl im Format der anderen Sprache',
+  dezimal: 'Dezimalzahl im Format der anderen Sprache',
+  datum: 'Datum im Format der anderen Sprache',
+  schluessel: 'Katalogschluessel statt Text',
+};
 
 export const decodeEntities = (s) => s
   .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))

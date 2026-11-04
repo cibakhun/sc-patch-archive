@@ -37,6 +37,16 @@
 //      EN-Seite — fuer Text, den kein Katalog kennt, weil er fest im Markup
 //      steht ("0 Items gefunden" auf /topics/crafting.html). Wortliste und
 //      Messung in scripts/lib/textregeln.mjs.
+//   8  Datum im Format der eigenen Sprache ("9. Oktober 2026" auf einer
+//      EN-Seite, "March 26, 2026" auf einer DE-Seite).
+//   9  Dezimalzahl mit Einheit im Format der eigenen Sprache, als ganze
+//      Textstelle ("0.01 SCU", "8.75 m" auf einer DE-Seite).
+//  10  Kein deutsches Wort mit Umlaut oder ß und kein deutsches Bedienwort
+//      ("Bild", "abspielen", "suchen") auf einer EN-Seite. Eigennamen mit
+//      Umlaut stehen als benannte Ausnahme da (Zombie-Waechter).
+//   Regeln 8-10 kamen am 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge
+//   dazu; sie stehen in scripts/lib/textregeln.mjs und gelten in
+//   verify:clienttext genauso fuer den Text, den die Skripte schreiben.
 //   Text in einem Element mit eigenem lang-Attribut der anderen Sprache
 //   (z. B. der deutsche Zweitname auf einer EN-Item-Seite) zaehlt nicht.
 //
@@ -51,6 +61,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ladeKataloge, sprachMengen, textStellen, norm, rohschluesselRe, findeRohschluessel,
   ZAHL_EN_AUF_DE_RE, ZAHL_DE_AUF_EN_RE, DOPPELWORT_EN_RE, DE_FUNKTIONSWORT_RE,
+  DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE, DE_UMLAUTWORT_RE, DE_WORT_EN_RE,
 } from './lib/textregeln.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -78,6 +89,14 @@ const WORT_AUSNAHMEN = [
   {
     wort: 'Station',
     anlass: 'auch Englisch: Spaltenkopf der Raffinerie- und Mining-Tabellen und ein Item-Name in der Liste "Other".',
+  },
+];
+
+// Benannte Ausnahmen fuer Regel 10: Eigennamen mit Umlaut auf EN-Seiten.
+const UMLAUT_AUSNAHMEN = [
+  {
+    wort: 'Schlossstraße',
+    anlass: 'Strassenname der Anbieteranschrift in Impressum und Datenschutzerklaerung — eine Anschrift wird nicht uebersetzt.',
   },
 ];
 
@@ -118,7 +137,8 @@ const walk = (d, out = []) => {
 const seiten = walk(DIST);
 const rel = (f) => '/' + f.slice(DIST.length + 1).replaceAll('\\', '/');
 
-const fMehrwort = [], fWort = [], fZahl = [], fSchluessel = [], fDoppel = [], fFunktion = [];
+const fMehrwort = [], fWort = [], fZahl = [], fSchluessel = [], fDoppel = [], fFunktion = [], fDatum = [], fDezimal = [], fDeWort = [];
+const stelle = (t, m, vor = 30, nach = 30) => t.slice(Math.max(0, m.index - vor), m.index + m[0].length + nach);
 const benutzt = new Set();
 let stellen = 0, gelesen = 0;
 for (const f of seiten) {
@@ -151,7 +171,17 @@ for (const f of seiten) {
       if (dw) fDoppel.push(`${page}: „${t.slice(Math.max(0, dw.index - 20), dw.index + dw[0].length + 40)}"`);
       const fw = DE_FUNKTIONSWORT_RE.exec(t);
       if (fw && !mehrwortFremd.has(t)) fFunktion.push(`${page}: „${fw[0]}" in „${t.slice(0, 120)}"`);
+      const dw2 = DE_UMLAUTWORT_RE.exec(t) || DE_WORT_EN_RE.exec(t);
+      if (dw2 && !mehrwortFremd.has(t)) {
+        const ausn = UMLAUT_AUSNAHMEN.find((a) => a.wort === dw2[0]);
+        if (ausn) benutzt.add(ausn);
+        else fDeWort.push(`${page}: „${dw2[0]}" in „${stelle(t, dw2, 40, 50)}"`);
+      }
     }
+    const dt = (de ? DATUM_EN_AUF_DE_RE : DATUM_DE_AUF_EN_RE).exec(t);
+    if (dt) fDatum.push(`${page}: „${dt[0]}" in „${stelle(t, dt)}"`);
+    const dz = (de ? DEZIMAL_EN_AUF_DE_RE : DEZIMAL_DE_AUF_EN_RE).exec(t);
+    if (dz) fDezimal.push(`${page}: „${dz[0]}"`);
   }
 }
 
@@ -190,13 +220,13 @@ console.log(`verify:sprache — ${DIST.slice(ROOT.length + 1) || DIST}`);
 console.log(`Seiten: ${gelesen.toLocaleString('de-DE')} gelesen (Klinke ${MIN_SEITEN.toLocaleString('de-DE')}), Textstellen: ${stellen.toLocaleString('de-DE')} (Klinke ${MIN_STELLEN.toLocaleString('de-DE')})`);
 console.log(`Kataloge: ${kat.namen.join(', ')} — ${M.mehrwortNurEn.size} mehrwortige Texte nur EN, ${M.mehrwortNurDe.size} nur DE, ${M.wortNurDe.size} Einzelwoerter nur DE, ${M.praefixe.size} Schluesselpraefixe (Klinke ${MIN_MEHRWORT} mehrwortig)`);
 console.log(`Quelle: ${quellen.length} Dateien unter src/, ${quellenMitSprache} mit Sprachbezug (Klinke ${MIN_QUELLEN})`);
-console.log(`Ausnahmen Regel 2: ${WORT_AUSNAHMEN.length} benannt, ${benutzt.size} in Gebrauch`);
+console.log(`Ausnahmen Regel 2: ${WORT_AUSNAHMEN.length} benannt, Regel 10: ${UMLAUT_AUSNAHMEN.length} benannt — ${benutzt.size} in Gebrauch`);
 
 if (gelesen < MIN_SEITEN) fehler.push(`nur ${gelesen} Seiten gelesen (Klinke ${MIN_SEITEN})`);
 if (stellen < MIN_STELLEN) fehler.push(`nur ${stellen} Textstellen (Klinke ${MIN_STELLEN})`);
 if (M.mehrwortNurEn.size + M.mehrwortNurDe.size < MIN_MEHRWORT) fehler.push(`nur ${M.mehrwortNurEn.size + M.mehrwortNurDe.size} mehrwortige Katalogtexte (Klinke ${MIN_MEHRWORT})`);
 if (quellenMitSprache < MIN_QUELLEN) fehler.push(`nur ${quellenMitSprache} Quelldateien mit Sprachbezug (Klinke ${MIN_QUELLEN})`);
-for (const a of WORT_AUSNAHMEN) if (!benutzt.has(a)) fehler.push(`Zombie-Ausnahme „${a.wort}": trifft nichts mehr — raus damit`);
+for (const a of [...WORT_AUSNAHMEN, ...UMLAUT_AUSNAHMEN]) if (!benutzt.has(a)) fehler.push(`Zombie-Ausnahme „${a.wort}": trifft nichts mehr — raus damit`);
 
 zeige(fMehrwort, '1 Katalogtext der anderen Sprache');
 if (fWort.length) {
@@ -208,11 +238,14 @@ zeige(fSchluessel, '4 Katalogschluessel statt Text');
 zeige(fDoppel, '5 englisches Doppelwort');
 zeige(fQuelle, '6 stille Standardsprache in der Quelle (assertLocale statt Vorgabe)');
 zeige(fFunktion, '7 deutsches Funktionswort auf EN-Seite (fester Text im Markup?)');
+zeige(fDatum, '8 Datum im Format der anderen Sprache');
+zeige(fDezimal, '9 Dezimalzahl im Format der anderen Sprache (toLocaleString / num(v, lang))');
+zeige(fDeWort, '10 deutsches Wort auf EN-Seite (Umlaut oder Bedienwort)');
 for (const f of fehler) console.log(`\n== FEHLER ${f} ==`);
 
-const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fehler.length;
+const summe = fMehrwort.length + fZahl.length + fSchluessel.length + fDoppel.length + fQuelle.length + fFunktion.length + fDatum.length + fDezimal.length + fDeWort.length + fehler.length;
 if (summe) {
   console.log(`\nverify:sprache ROT — ${summe} Befund(e).`);
   process.exit(1);
 }
-console.log('\nverify:sprache gruen — jede Seite in ihrer Sprache, Zahlen im eigenen Format, keine Rohschluessel, keine stille Standardsprache.');
+console.log('\nverify:sprache gruen — jede Seite in ihrer Sprache, Zahlen und Daten im eigenen Format, keine Rohschluessel, keine stille Standardsprache.');
