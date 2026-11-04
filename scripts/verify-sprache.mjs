@@ -116,12 +116,6 @@ const UMLAUT_AUSNAHMEN = [
    reisst der Zombie-Waechter). Neue Fundstellen sind FEHLER. */
 const INTERN_AUSNAHMEN = [
   {
-    name: 'Missionen, Angebote-Spalte "Eintrag"',
-    bereich: /^\/(?:de\/)?missionen\//,
-    ort: /<td\b[^>]*>\s*<code class="md__code"[^>]*>$/,
-    anlass: 'der interne Angebotsname ist bisher die einzige Bezeichnung je Zeile; Anzeige offen (Staging-Abnahme 04.11.2026)',
-  },
-  {
     name: 'Missionen, Orte ohne Anzeigenamen',
     bereich: /^\/(?:de\/)?missionen\//,
     ort: /<li class="md__tag"[^>]*>$|<td class="md__dim md__places"[^>]*>$/,
