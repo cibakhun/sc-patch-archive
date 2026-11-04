@@ -18,8 +18,12 @@ import vehiclesSnapshot from '../../data/vehicles.json';
 // Anzeigeform der Spielversion: aus "sc-alpha-4.9.0@12326004" wird "Alpha 4.9.0".
 // `split('-')[0]` stand hier vorher und ergab das nichtssagende "sc" — das fiel
 // nur niemandem auf, solange davor noch ein Wort stand.
+// 03.11.2026: das Muster verlangte "alpha-" und erkannte die Form der
+// eingefrorenen ATLS-Saetze ("4.9.0-LIVE.12232306") nicht — dort blieb die
+// Spielversion still leer (verify:patch-angaben). Jetzt zaehlt die Fassung
+// X.Y.Z, gleich in welcher Kennungsform.
 const alphaLabelOf = (v) => {
-  const m = /alpha-([\d.]+)/i.exec(v ?? '');
+  const m = /(\d+\.\d+\.\d+)/.exec(v ?? '');
   return m ? `Alpha ${m[1]}` : null;
 };
 const shipsAlphaLabel = alphaLabelOf(vehiclesSnapshot.gameVersion);

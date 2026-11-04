@@ -32,6 +32,26 @@ export const patchPageSlugs: ReadonlySet<string> = new Set(
   ),
 );
 
+/**
+ * Patch-Label aus der Kennung einer Datendatei, in jeder ihrer Formen:
+ * "4.10.2-live.12881860", "PUBLIC-4.10.2-12881860", "sc-alpha-4.10.2@12881860"
+ * -> "4.10".
+ *
+ * ANLASS (03.11.2026): Mining-Datenbank und Wikelo nannten in Titel und
+ * Vorschau "Star Citizen 4.9" bzw. "4.1", der Item Finder "Patch 4.9" —
+ * von Hand geschriebene Literale, waehrend alle Daten auf 4.10.2 standen.
+ * Ein Datenlauf hebt die Datei, nicht das Literal. Deshalb gibt es hier
+ * bewusst KEIN Rueckfall-Literal: fehlt die Fassung, bricht der Bau laut ab,
+ * statt still einen alten Stand zu behaupten. (verify:datastand sichert
+ * ohnehin zu, dass jede Kennung vorhanden ist; verify:patch-angaben prueft,
+ * was die gebauten Seiten daraus machen.)
+ */
+export function patchFromKennung(kennung: string | null | undefined): string {
+  const m = /(\d+)\.(\d+)\.\d+/.exec(kennung ?? '');
+  if (!m) throw new Error(`patchFromKennung: Kennung "${kennung}" traegt keine Fassung X.Y.Z`);
+  return `${m[1]}.${m[2]}`;
+}
+
 /** "4.10" -> "sc-4-10-0" */
 export const patchPageSlug = (patch: string) => `sc-${patch.replace(/\./g, '-')}-0`;
 

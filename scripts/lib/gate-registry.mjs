@@ -262,6 +262,28 @@ export const CHECKS = [
     checks: 'die Waffengroessen im Fahrzeug-Katalog stimmen mit dem Stock-Loadout ueberein — Join ueber die Item-Klasse, nie ueber den Anzeigenamen',
   },
   {
+    // Neuzugang 04.11.2026 — direkt nach verify:weapons, dieselbe Datei.
+    // Anlass: die Gladius Valiant stand am 29.10.2026 auf 0 kg; gefangen hat
+    // es nur die Deckungs-Klinke in verify:vehicles auf Schiene B. Bewusst
+    // KEIN Ausreisser-Test: gemessen haetten die echten Fehler der letzten
+    // Laeufe (Andromeda-Huelle, X1-Force-DPS) ihn nicht ausgeloest
+    // (z = 1,3 und -0,5), Begruendung im Skriptkopf.
+    id: 'verify:fahrzeugwerte',
+    npm: 'verify:fahrzeugwerte',
+    script: 'scripts/verify-fahrzeugwerte.mjs',
+    rail: 'A',
+    checks:
+      'im Fahrzeug-Katalog ist keine Zahl NaN oder negativ, jedes Fahrzeug hat Huelle und Masse groesser 0 (benannte Ausnahmen mit Zombie-Waechter), Piloten- und Turm-DPS sind die Summe ihrer Waffen, die Raketenzahl die Summe der Werfer und SCM nicht ueber der Hoechstgeschwindigkeit; Nullen, die Bauteile nicht erklaeren, als WARNUNG',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen eine Kopie des Katalogs mit dem
+    // Fehler vom 29.10. (Gladius Valiant 0 kg) und einem Steuerzeichen im
+    // Zahlwert (Arrow scmSpeed "2\u000030"): 2 FEHLER. Gegen den echten
+    // Katalog gruen (231 Fahrzeuge, 5.896 Zahlwerte, 572 Summen, 4 ATLS-
+    // Ausnahmen, 7 WARNUNGEN). Grenze, ehrlich vermerkt: eine doppelt
+    // gezaehlte Waffe mit mitgezaehlter DPS (X1 Force, 4.10.2-Lauf) bleibt
+    // gruen — die Summe stimmt ja; das faengt nur der Abgleich mit einer
+    // zweiten Quelle im Datenlauf.
+  },
+  {
     id: 'verify:help',
     npm: 'verify:help',
     script: 'scripts/verify-help.mjs',
@@ -427,6 +449,31 @@ export const CHECKS = [
     // gewandert — die Kennung kommt jetzt aus scripts/build-wikelo-trades.mjs
     // (Datenlauf) statt aus einer menschlichen Sichtung. Damit ist
     // Register-Eintrag id 51 aufloesbar.
+  },
+  {
+    // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
+    // Kette: verify:datastand haelt die Datendateien gegeneinander, dieses Tor
+    // haelt die GEBAUTEN SEITEN gegen ihre Datendatei (Grundsatz 7). Anlass:
+    // am 03.11.2026 war verify:datastand gruen (alles 4.10.2), waehrend die
+    // Mining-Datenbank "Star Citizen 4.9" hiess, der Item Finder "Patch 4.9"
+    // zeigte und Wikelo "Star Citizen 4.1" — von Hand geschriebene Literale,
+    // die kein Datenlauf mithebt. Kein git, kein Netz, kein Kindprozess: nur
+    // dist/ und committete JSON.
+    id: 'verify:patch-angaben',
+    npm: 'verify:patch-angaben',
+    script: 'scripts/verify-patch-angaben.mjs',
+    rail: 'A',
+    checks:
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
+    // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
+    // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
+    // "4.1" und JSON-LD "4.1.0", Crafting-JSON-LD "4.7.0", acht ATLS-
+    // Schiffsseiten ohne Spielversion. SCHARF seit derselben Lieferung, die
+    // die Seiten korrigiert hat (Angaben aus der Kennung, patchFromKennung in
+    // src/lib/patchPages.ts). Gegenprobe danach: Item-Kennung in
+    // assets/universal-items.json auf 4.11.0 gehoben, ohne neu zu bauen — rot,
+    // genau der Fall "Datenlauf hebt die Datei, die Seite bleibt".
   },
 
   // ---------------------------------------------------------------

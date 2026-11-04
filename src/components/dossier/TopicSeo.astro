@@ -8,14 +8,23 @@ import { SITE } from '../../consts';
 import { HTML_LANG, localeFromPath } from '../../i18n/ui';
 import { mergePatchEn } from '../../i18n/patchText';
 import { jsonForScript } from '../../lib/safeJson';
+import { patchFromKennung } from '../../lib/patchPages';
 
 interface Props {
   /** slug of this topic page (filename under /topics/, without .html) */
   slug: string;
   /** site-relative social image, e.g. "/assets/t-xeno-1.jpg" */
   image?: string;
+  /**
+   * Kennung der Datendatei, wenn die Seite Live-Daten zeigt (Mining,
+   * Crafting, Wikelo). Dann nennt die Ueberschrift DEREN Stand statt des
+   * Patches, mit dem das Thema kam: bis 03.11.2026 hiess die Mining-
+   * Datenbank im JSON-LD "Star Citizen Alpha 4.8.0" ueber Daten auf 4.10.2
+   * (verify:patch-angaben). datePublished bleibt das Patch-Datum.
+   */
+  dataVersion?: string;
 }
-const { slug, image } = Astro.props;
+const { slug, image, dataVersion } = Astro.props;
 
 const base = SITE.url.replace(/\/$/, '');
 const url = base + Astro.url.pathname;
@@ -34,7 +43,7 @@ const ld =
     ? {
         '@context': 'https://schema.org',
         '@type': 'Article',
-        headline: `${topic.title} — Star Citizen Alpha ${parent.version}`,
+        headline: `${topic.title} — Star Citizen Alpha ${dataVersion ? patchFromKennung(dataVersion) : parent.version}`,
         description: feat?.desc ?? parent.tagline,
         ...(image ? { image: base + image } : {}),
         url,
