@@ -170,6 +170,13 @@ export const DEZIMAL_DE_AUF_EN_RE = dezimal(',');
    eingeklappt in "Technische Details", Krisz 04.11.2026). */
 export const INTERN_RE = /(?<![\w/.-])[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}(?![\w/.])/;
 
+/* Der vereinbarte Ort fuer interne Namen ist "Technische Details"
+   (eingeklappt, <details class="md__tech">): dort steht der Modulpfad der
+   Missionen (Krisz 04.11.2026), und dorthin ziehen die Angebotskennungen.
+   Regel 11 gilt nur ausserhalb. */
+const TECHNISCHE_DETAILS_RE = /<details\b[^>]*\bclass="[^"]*\bmd__tech\b[^"]*"[^>]*>[\s\S]*?<\/details>/g;
+export const ohneTechnischeDetails = (html) => html.replace(TECHNISCHE_DETAILS_RE, ' ');
+
 export const DE_UMLAUTWORT_RE = /[\p{L}]*[äöüßÄÖÜ][\p{L}]*/u;
 export const DE_WORT_EN_RE = /(?<![\p{L}\d-])(?:abspielen|ausblenden|einblenden|entfernen|speichern|kopieren|suchen|schliessen|abbrechen|weiter|teilen|filtern|sortieren|herunterladen|anheften|Bild|Bilder|Seite|Seiten|Spieler|Schiffe|Waffen|Fehler|Ergebnis|Ergebnisse|Treffer|Januar|Februar|Juni|Juli|Oktober|Dezember|bis|ab|saisonal|dauerhaft)(?![\p{L}\d-])/u;
 

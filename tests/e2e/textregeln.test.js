@@ -12,7 +12,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ROHTEXT_RE, VORLAGE_RE, DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE,
-  DE_UMLAUTWORT_RE, DE_WORT_EN_RE, INTERN_RE, pruefeStelle, sprachMengen, rohschluesselRe,
+  DE_UMLAUTWORT_RE, DE_WORT_EN_RE, INTERN_RE, ohneTechnischeDetails, textStellen, pruefeStelle, sprachMengen, rohschluesselRe,
 } from '../../scripts/lib/textregeln.mjs';
 
 const trifft = (re, t) => re.test(t);
@@ -78,6 +78,11 @@ describe('Interner Bezeichner im sichtbaren Text', () => {
   for (const t of ['PU/PU_Missions/DeliveryMission/PU_LinearDelivery.xml', 'Cookie vb_gate_exp', 'PYAM-FARSTAT-1-5', 'A_B', 'Item_Name']) {
     test(`laesst „${t}"`, () => assert.ok(!trifft(INTERN_RE, t)));
   }
+  test('Technische Details (details.md__tech) duerfen interne Namen tragen', () => {
+    const html = '<p>Angebote</p><details class="md__tech" data-astro-cid-x><summary>Technische Details</summary><dl><dd><code>PU_Delivery_Local_X_Y</code></dd></dl></details><td><code>RR_P3_L2</code></td>';
+    const treffer = textStellen(ohneTechnischeDetails(html)).filter((t) => INTERN_RE.test(t));
+    assert.deepEqual(treffer, ['RR_P3_L2']);
+  });
 });
 
 describe('Deutsches Wort auf EN-Seite', () => {

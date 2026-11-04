@@ -46,6 +46,8 @@
 //      ("PU_Delivery_Local_…", "RR_P3_L2"). Stellen, fuer die es noch
 //      keinen Anzeigenamen gibt, stehen als benannte Ausnahmen da
 //      (INTERN_AUSNAHMEN, Zombie-Waechter) und werden je Lauf gezaehlt.
+//      Eingeklappte "Technische Details" (details.md__tech) sind der
+//      vereinbarte Ort fuer interne Namen und zaehlen nicht.
 //  10  Kein deutsches Wort mit Umlaut oder ß und kein deutsches Bedienwort
 //      ("Bild", "abspielen", "suchen") auf einer EN-Seite. Eigennamen mit
 //      Umlaut stehen als benannte Ausnahme da (Zombie-Waechter).
@@ -64,7 +66,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ladeKataloge, sprachMengen, textStellen, textStellenMitOrt, norm, rohschluesselRe, findeRohschluessel, INTERN_RE,
+  ladeKataloge, sprachMengen, textStellen, textStellenMitOrt, norm, rohschluesselRe, findeRohschluessel, INTERN_RE, ohneTechnischeDetails,
   ZAHL_EN_AUF_DE_RE, ZAHL_DE_AUF_EN_RE, DOPPELWORT_EN_RE, DE_FUNKTIONSWORT_RE,
   DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE, DE_UMLAUTWORT_RE, DE_WORT_EN_RE,
 } from './lib/textregeln.mjs';
@@ -216,7 +218,7 @@ for (const f of seiten) {
     const dz = (de ? DEZIMAL_EN_AUF_DE_RE : DEZIMAL_DE_AUF_EN_RE).exec(t);
     if (dz) fDezimal.push(`${page}: „${dz[0]}"${dz[0] === t ? '' : ` in „${stelle(t, dz)}"`}`);
   }
-  for (const { t: roh, ort } of textStellenMitOrt(html)) {
+  for (const { t: roh, ort } of textStellenMitOrt(ohneTechnischeDetails(html))) {
     const t = norm(roh);
     const i = INTERN_RE.exec(t);
     if (!i) continue;
