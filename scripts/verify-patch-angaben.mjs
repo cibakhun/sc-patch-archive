@@ -99,10 +99,11 @@ const OHNE_KENNUNG = {
 };
 
 // Fahrzeug-Datensaetze, deren Stempel bewusst vom Kopf von vehicles.json
-// abweicht. Schluessel = Fahrzeug-id.
+// abweicht. Schluessel = Fahrzeug-id, Wert = Anlass und der EINE Stempel,
+// den der Anlass erlaubt (ein anderer oder fehlender Stempel ist FEHLER).
 const ATLS_ANLASS = 'Die ATLS-Varianten haben im DataCore keinen Fahrzeug-Record (sie sind ein Power Suit) und werden seit D-13 als eingefrorener Wiki-Satz aus vehicle-external.json übernommen, samt dessen Stempel 4.9.0.';
 const STEMPEL_AUSNAHMEN = Object.fromEntries(
-  ['argo-atls', 'argo-atls-geo', 'argo-atls-geo-collector-grad01', 'argo-atls-geo-collector-grad03'].map((id) => [id, ATLS_ANLASS]),
+  ['argo-atls', 'argo-atls-geo', 'argo-atls-geo-collector-grad01', 'argo-atls-geo-collector-grad03'].map((id) => [id, { anlass: ATLS_ANLASS, stempel: '4.9.0' }]),
 );
 
 // Klinken (Grundsatz 5), Messlauf 04.11.2026 gegen den korrigierten Stand
@@ -120,10 +121,10 @@ const KLINKEN = {
   Crafting: { seiten: 3300, angaben: 16400 },
   Mining: { seiten: 4, angaben: 14 },
   Missionen: { seiten: 2700, angaben: 0 },
-  Fahrzeuge: { seiten: 460, angaben: 460 },
+  Fahrzeuge: { seiten: 464, angaben: 464 },
   Refinery: { seiten: 2, angaben: 1 },
   Wikelo: { seiten: 2, angaben: 8 },
-  'Präzisionssprung': { seiten: 2, angaben: 0 },
+  'Präzisionssprung': { seiten: 2, angaben: 2 },
 };
 
 /* ---------- Werkzeuge ---------- */
@@ -282,11 +283,18 @@ if (!existsSync(DIST)) {
   const kopf = fassung.Fahrzeuge;
   let abweichend = 0;
   const ausnahmeGetroffen = new Set();
+  const ausnahmeVerletzt = new Set();
   for (const v of vehicles) {
     const f = fassungAus(v.gameVersion);
     if (f === kopf) continue;
     abweichend++;
-    if (STEMPEL_AUSNAHMEN[v.id]) { ausnahmeGetroffen.add(v.id); continue; }
+    const ausnahme = STEMPEL_AUSNAHMEN[v.id];
+    if (ausnahme && f === ausnahme.stempel) { ausnahmeGetroffen.add(v.id); continue; }
+    if (ausnahme) {
+      ausnahmeVerletzt.add(v.id);
+      fail.push(`vehicles.json: ${v.id} traegt den Stempel ${JSON.stringify(v.gameVersion ?? null)}, die benannte Ausnahme erlaubt nur ${ausnahme.stempel} — Datensatz pruefen; ist der neue Stempel richtig, Ausnahme anpassen oder entfernen`);
+      continue;
+    }
     fail.push(`vehicles.json: ${v.id} traegt den Stempel "${v.gameVersion}", der Katalog steht auf ${kopf} — Datensatz neu erzeugen oder als benannte Ausnahme mit Anlass eintragen`);
   }
   console.log(`    Datensaetze: ${vehicles.length}   Stempel abweichend vom Kopf (${kopf}): ${abweichend}   davon benannte Ausnahmen: ${ausnahmeGetroffen.size}`);
@@ -294,9 +302,9 @@ if (!existsSync(DIST)) {
   console.log('\n[4] Ausnahmen und Zombie-Waechter');
   for (const id of Object.keys(STEMPEL_AUSNAHMEN)) {
     if (!vehicleById.has(id)) fail.push(`Stempel-Ausnahme "${id}": kein Datensatz mit dieser id — Ausnahme zeigt ins Leere, entfernen`);
-    else if (!ausnahmeGetroffen.has(id)) fail.push(`Stempel-Ausnahme "${id}": der Stempel passt wieder zum Katalog — Anlass erledigt, Ausnahme entfernen`);
+    else if (!ausnahmeGetroffen.has(id) && !ausnahmeVerletzt.has(id)) fail.push(`Stempel-Ausnahme "${id}": der Stempel passt wieder zum Katalog — Anlass erledigt, Ausnahme entfernen`);
   }
-  console.log(`    Stempel-Ausnahmen: ${Object.keys(STEMPEL_AUSNAHMEN).length}   (${ATLS_ANLASS})`);
+  console.log(`    Stempel-Ausnahmen: ${Object.keys(STEMPEL_AUSNAHMEN).length}, je mit erlaubtem Stempel ${[...new Set(Object.values(STEMPEL_AUSNAHMEN).map((a) => a.stempel))].join(', ')}   (${ATLS_ANLASS})`);
   for (const [fam, a] of Object.entries(OHNE_KENNUNG)) {
     let besteht = false;
     try { besteht = a.besteht(); } catch (e) { fail.push(`Ausnahme "${fam}": Pruefung nicht ausfuehrbar — ${e.message}`); continue; }

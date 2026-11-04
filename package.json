@@ -79,6 +79,7 @@
     "verify:db-rights": "node scripts/verify-db-rights.mjs",
     "verify:patch-ships": "node scripts/verify-patch-ships.mjs",
     "verify:weapons": "node scripts/verify-weapon-sizes.mjs",
+    "verify:fahrzeugwerte": "node scripts/verify-fahrzeugwerte.mjs",
     "verify:vehicle-roles": "node scripts/verify-vehicle-roles.mjs",
     "sync:refinery": "node scripts/fetch-uex-commodities.mjs && node scripts/build-refinery-data.mjs",
     "track:marketplace": "node scripts/track-marketplace.mjs",
