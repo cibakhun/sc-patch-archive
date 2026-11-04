@@ -537,7 +537,10 @@
         specLine +
         '<div class="uif-card-footer">' +
           '<div class="uif-card-price">' + priceHtml + '</div>' +
-          '<div class="uif-card-location" title="' + esc(item.obtain.length ? item.obtain[0].loc : '') + '">' + locHtml + '</div>' +
+          // Tooltip = derselbe Text wie sichtbar: eine Exklusiv-Zeile traegt in
+          // `loc` den englischen Satz der Datenquelle (deutsche Karten zeigten
+          // ihn bis 04.11.2026 im Tooltip; verify:clienttext).
+          '<div class="uif-card-location" title="' + esc(item.obtain.length ? (item.obtain[0].kind === 'exclusive' ? exclusiveLabel(item.obtain[0].reason) : item.obtain[0].loc) : '') + '">' + locHtml + '</div>' +
         '</div>' +
       '</div>';
     }).join('');

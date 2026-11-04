@@ -5,7 +5,7 @@
 // Stufe 2: locale-aware — Labels über t(), Freitext über vehicleText-Resolver,
 // Zahlenformat pro Locale. `key` erlaubt sprachunabhängiges Filtern.
 import type { CollectionEntry } from 'astro:content';
-import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, type Locale } from '../i18n/ui';
 import { vType, vSize, vStatus, vFoci, vTurret } from '../i18n/vehicleText';
 import { resolveGuns } from './weaponSizes';
 
@@ -30,7 +30,7 @@ export function crewFmt(d: VehicleData): string {
   return `${d.crewMin ?? d.crewMax}`;
 }
 
-export function buildFacts(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Fact[] {
+export function buildFacts(d: VehicleData, lang: Locale): Fact[] {
   const t = useTranslations(lang);
   const loc = numLoc(lang);
   const facts: Fact[] = [
@@ -165,7 +165,7 @@ const payloadMap = (t: ReturnType<typeof useTranslations>): Record<string, strin
 const namesNote = (l: readonly { name: string; count: number }[]): string =>
   l.map((w) => `${w.count}× ${w.name}`).join(' · ');
 
-export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): ArmRow[] {
+export function buildArmament(d: VehicleData, lang: Locale): ArmRow[] {
   const t = useTranslations(lang);
   const loc = numLoc(lang);
   const PAYLOAD = payloadMap(t);
@@ -240,7 +240,7 @@ export function buildArmament(d: VehicleData, lang: Locale = DEFAULT_LOCALE): Ar
  * Kopfzahlen des Panels — beantwortet "welche Waffen-Hardpoints hat das
  * Schiff?" ohne dass man Kästchen zählen muss.
  */
-export function buildArmStats(d: VehicleData, lang: Locale = DEFAULT_LOCALE): ArmStat[] {
+export function buildArmStats(d: VehicleData, lang: Locale): ArmStat[] {
   const t = useTranslations(lang);
   const stats: ArmStat[] = [];
   // Gezählt werden die Aufhängungen selbst (Pilot + Turm), nicht die Waffen:
@@ -276,7 +276,7 @@ const compFmt = (list: { name: string; size: number | null; count: number }[]): 
     )
     .join(' · ');
 
-export function buildGroups(d: VehicleData, lang: Locale = DEFAULT_LOCALE): FactGroup[] {
+export function buildGroups(d: VehicleData, lang: Locale): FactGroup[] {
   const t = useTranslations(lang);
   const loc = numLoc(lang);
   const n = (x: number | null, unit = '') => num(x, loc, unit);

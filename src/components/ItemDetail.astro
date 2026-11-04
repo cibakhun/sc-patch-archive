@@ -5,7 +5,7 @@
 // Rezept und Nachbarn.
 import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, categoryLabel } from '../i18n/itemText';
+import { itemT, itemLabel, obtainLabel, categoryLabel } from '../i18n/itemText';
 import {
   ITEM_PATCH, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
@@ -50,10 +50,8 @@ const kindLabel = (k: string) =>
   : k === 'exclusive' ? t('kindExclusive') : t('kindLoot');
 // Exklusiv-Zeilen tragen keinen Ort, sondern eine Bezugsart (Promo, Concierge,
 // Twitch-Drop …) — die wird uebersetzt. Echte Orte sind Eigennamen und bleiben.
-const locLabel = (o: { kind: string; loc: string; reason?: string }) =>
-  o.kind !== 'exclusive' ? o.loc
-    : o.reason ? (t(('ex' + o.reason.replace(/[^A-Za-z]/g, '')) as never) || o.loc)
-      : t('notLootable');
+// Dieselbe Regel gilt in der Kategorieliste (ItemListing), deshalb ein Helfer.
+const locLabel = (o: { kind: string; loc: string; reason?: string }) => obtainLabel(o, lang);
 
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
@@ -73,7 +71,7 @@ const crumbs = [
   updated={db.pricesAsOf}
 >
   <h1 slot="hero">{name}</h1>
-  {alt && <p class="dp-alt" slot="hero">{alt}</p>}
+  {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}
   <p class="dp-lead" slot="hero">{seo.lead}</p>
 
   <ul class="dp-keys" slot="hero">
@@ -176,7 +174,7 @@ const crumbs = [
       <h2>{t('setPartOf')}: {set.name}</h2>
       <ul class="dp-chips">
         {set.manufacturer && <li class="dp-chip"><b>{t('specMfr')}</b>{set.manufacturer}</li>}
-        {set.weight && <li class="dp-chip"><b>{t('facetWeight')}</b>{t(('w' + set.weight.replace(/[^A-Za-z]/g, '')) as never) || set.weight}</li>}
+        {set.weight && <li class="dp-chip"><b>{t('facetWeight')}</b>{itemLabel(lang, 'w' + set.weight.replace(/[^A-Za-z]/g, ''), set.weight)}</li>}
         <li class="dp-chip"><b>{t('setPieces')}</b>{num(set.parts, lang)}</li>
         <li class="dp-chip">
           <b>{t('setsCompleteLabel')}</b>
@@ -185,7 +183,7 @@ const crumbs = [
       </ul>
       {setSlots.map(([slot, list]) => (
         <p class="dp-desc">
-          <b>{t(('slot' + slot) as never) || slot}:</b>{' '}
+          <b>{itemLabel(lang, 'slot' + slot, slot)}:</b>{' '}
           {list.map((s, i) => (
             <>
               {i > 0 && ', '}

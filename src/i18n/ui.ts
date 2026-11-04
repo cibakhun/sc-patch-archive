@@ -848,10 +848,36 @@ const UI = {
 
 export type UIKey = keyof (typeof UI)['de'];
 
-/** t = useTranslations(lang): sichere Übersetzungsfunktion mit de-Fallback. */
+/**
+ * Prueft, dass eine Sprache wirklich angegeben ist, und gibt sie zurueck.
+ *
+ * Anlass (04.11.2026): Text-Helfer und Komponenten trugen eine stille
+ * Standardsprache (`lang: Locale = DEFAULT_LOCALE`, `const { lang = 'en' }`).
+ * Als EN zur Standardsprache wurde, kippte jeder Aufruf, der die Sprache
+ * nicht durchreichte, still ins Englische — alle 231 deutschen Schiffsseiten
+ * zeigten Leistungsprofil, Quantum, Versicherung und Kaufpreise auf Englisch
+ * und im englischen Zahlformat. Die Typen haetten es gemeldet, aber kein Tor
+ * faehrt tsc. Wer die Sprache nicht bekommt, scheitert jetzt beim Bauen.
+ * verify:sprache verbietet die stille Vorgabe in src/.
+ */
+export function assertLocale(lang: unknown, wo: string): Locale {
+  if (lang === 'de' || lang === 'en') return lang;
+  throw new Error(`${wo}: Sprache fehlt oder ist ungueltig (${String(lang)}) — lang="de" bzw. "en" durchreichen, es gibt bewusst keine Vorgabe.`);
+}
+
+/**
+ * t = useTranslations(lang). Fehlt ein Schluessel in der Sprache, gilt der
+ * englische Wert (Paritaet beider Kataloge ist Pflicht, siehe verify:sprache).
+ * Fehlt er GANZ, bricht der Bau ab: bis zum 04.11.2026 kam hier der Schluessel
+ * selbst als Text zurueck ("ship.sheet.title" als sichtbare Beschriftung), und
+ * weil kein Tor tsc faehrt, schuetzte der Typ UIKey davor nicht.
+ */
 export function useTranslations(lang: Locale) {
+  const l = assertLocale(lang, 'useTranslations');
   return function t(key: UIKey): string {
-    return UI[lang]?.[key] ?? UI[DEFAULT_LOCALE][key] ?? String(key);
+    const s = UI[l]?.[key] ?? UI[DEFAULT_LOCALE][key];
+    if (s == null) throw new Error(`ui.ts: Schluessel "${String(key)}" fehlt im Katalog (DE und EN) — sonst stuende er roh auf der Seite.`);
+    return s;
   };
 }
 

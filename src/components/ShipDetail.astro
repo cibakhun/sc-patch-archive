@@ -26,7 +26,7 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { patchesFor } from '../lib/patchSpine';
-import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
@@ -45,11 +45,13 @@ interface Props {
   similar: SimilarShip[];
   profile: ProfileBar[];
   viz: Visuals;
-  lang?: Locale;
+  lang: Locale;
   /** DE↔EN-Gegenstück existiert -> hreflang ausgeben */
   hasEn?: boolean;
 }
-const { d, id, similar, profile, viz, lang = DEFAULT_LOCALE, hasEn = false } = Astro.props;
+const { d, id, similar, profile, viz, hasEn = false } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'ShipDetail');
 
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
@@ -2610,7 +2612,7 @@ span.sd__ref{color:var(--muted)}
       {buyMin ? (
         <>
           <div class="sd__pricehero">
-            <span class="val">{aUEC(buyMin.price)}</span>
+            <span class="val">{aUEC(buyMin.price, lang)}</span>
             <span class="at">{t('ship.buy.cheapest')} {buyMin.shop}, {buyMin.where}{buyMin.system && ` · ${buyMin.system}`}</span>
           </div>
           <div class="sd__shoprows">
@@ -2618,7 +2620,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__shoprow">
                 <span class="sd__shopname">{b.shop}</span>
                 <span class="sd__shopwhere">{b.where}{b.system && <span class={`sd__sys sys-${b.system.toLowerCase()}`}>{b.system}</span>}</span>
-                <span class="sd__shopprice">{aUEC(b.price)}</span>
+                <span class="sd__shopprice">{aUEC(b.price, lang)}</span>
               </div>
             ))}
           </div>
@@ -2630,7 +2632,7 @@ span.sd__ref{color:var(--muted)}
                   <div class="sd__shoprow">
                     <span class="sd__shopname">{b.shop}</span>
                     <span class="sd__shopwhere">{b.where}{b.system && <span class={`sd__sys sys-${b.system.toLowerCase()}`}>{b.system}</span>}</span>
-                    <span class="sd__shopprice">{aUEC(b.price)}</span>
+                    <span class="sd__shopprice">{aUEC(b.price, lang)}</span>
                   </div>
                 ))}
               </div>
@@ -2648,7 +2650,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__shoprow">
                 <span class="sd__shopname">{r.shop}</span>
                 <span class="sd__shopwhere">{r.where}{r.system && <span class={`sd__sys sys-${r.system.toLowerCase()}`}>{r.system}</span>}</span>
-                <span class="sd__shopprice">{aUEC(r.price)} {t('ship.rent.perDay')}</span>
+                <span class="sd__shopprice">{aUEC(r.price, lang)} {t('ship.rent.perDay')}</span>
               </div>
             ))}
           </div>

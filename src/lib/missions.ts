@@ -94,7 +94,7 @@ export interface Mission {
   unlawful: boolean;
   tutorial: boolean;
   shareable: boolean;
-  maxPlayers: number;
+  maxPlayers: number | null;
   flow: MissionFlow;
   module: string | null;
   tags: string[];
@@ -124,6 +124,16 @@ export const missionBySlug = new Map(missions.map((m) => [m.slug, m]));
 /* ---------- Format ---------- */
 const NUM = { de: 'de-DE', en: 'en-US' } as const;
 export const uec = (n: number, lang: Locale) => n.toLocaleString(NUM[lang]);
+
+/**
+ * Spieler je Instanz, oder null, wenn die Daten keine Zahl nennen. Das Spiel
+ * schreibt -1 fuer "keine Angabe"; die Seite zeigte das bis 04.11.2026 auf 91
+ * Missionen je Sprache als "Spieler je Instanz: -1" (`m.maxPlayers || '—'`
+ * liess die -1 durch, weil sie wahr ist). audit:site faengt die nackte -1.
+ */
+export function spielerJeInstanz(m: Pick<Mission, 'maxPlayers'>): number | null {
+  return Number.isInteger(m.maxPlayers) && (m.maxPlayers as number) >= 1 ? (m.maxPlayers as number) : null;
+}
 
 /** Sekunden -> "1 h 30 min" / "45 min". 0 => null (kein Limit). */
 export function dur(sec: number, lang: Locale): string | null {

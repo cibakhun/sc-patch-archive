@@ -11,7 +11,7 @@
 // kein JavaScript, keine Nachladerei.
 import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, fill } from '../i18n/itemText';
+import { itemT, itemLabel, fill } from '../i18n/itemText';
 import {
   ITEM_PATCH, armorSets, db, itemPath, num, pageItemIds, setItemsBySlot, setsByManufacturer,
 } from '../lib/items';
@@ -28,10 +28,12 @@ const h = useHelp(lang);
 const totalParts = armorSets.reduce((n, s) => n + s.parts, 0);
 const complete = armorSets.filter((s) => s.coreSlots === 4).length;
 
-const slotLabel = (slot: string) => t(('slot' + slot) as never) || slot;
+// Aus Spieldaten zusammengesetzte Schluessel: Katalogwert oder Rohwert
+// (itemLabel; das alte `t(x as never) || roh` griff nie, siehe itemText.ts).
+const slotLabel = (slot: string) => itemLabel(lang, 'slot' + slot, slot);
 // Panzerungsklasse: dieselben Schluessel wie im Finder (w<Wert> ohne Sonderzeichen)
-const weightLabel = (w: string | null) => (w ? t(('w' + w.replace(/[^A-Za-z]/g, '')) as never) || w : null);
-const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
+const weightLabel = (w: string | null) => (w ? itemLabel(lang, 'w' + w.replace(/[^A-Za-z]/g, ''), w) : null);
+const rarityLabel = (r?: string) => (r ? itemLabel(lang, 'r' + r, r) : null);
 // Groessenangaben fuer die Hoehenschaetzung der Herstellerabschnitte
 // (content-visibility, siehe .as-mfr unten): Sets, Slot-Bloecke, Teile.
 const sizeOf = (sets: { id: string }[]) => {

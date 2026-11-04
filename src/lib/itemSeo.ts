@@ -37,12 +37,15 @@ export function acquisition(i: Item): 'buy' | 'loot' | 'exclusive' | 'none' {
   return 'none';
 }
 
+/** Traegt das Item einen lesbaren Spieltyp (Weapon, Cooler …)? Sonst gilt die Kategorie. */
+const ausSpieltyp = (i: Item) => !!i.game?.gameType && !/^Char_/.test(i.game.gameType);
+
 /** "Ballistic Cannon" — die Gattung laut Spieldaten, sonst die Kategorie. */
 function kindOf(i: Item): string {
   const g = i.game;
   // `Char_Armor_Torso` & Co. sind INTERNE Typnamen und gehoeren nicht in eine
   // Meta-Description. Fuer sie steht die lesbare Blatt-Kategorie ("Core") da.
-  if (g?.gameType && !/^Char_/.test(g.gameType)) {
+  if (g?.gameType && ausSpieltyp(i)) {
     const typ = lesbarerBezeichner(g.gameType);
     const unter = g.subType && g.subType !== g.gameType ? lesbarerBezeichner(g.subType) : '';
     /* Doppelung vermeiden: „Missile Rack Missile Launcher" liest sich
@@ -53,6 +56,13 @@ function kindOf(i: Item): string {
   }
   return leafCategory(i.category);
 }
+
+/**
+ * "The <Name>" — ausser der Name traegt den Artikel schon ("The Butcher
+ * Helmet"). Anlass 04.11.2026: "The The Butcher Helmet is a …" auf drei
+ * Item-Seiten und einer Blueprint-Seite (verify:sprache, Regel 5).
+ */
+const theName = (name: string) => (/^the\s/i.test(name) ? name : `The ${name}`);
 
 /** "a"/"an" nach Anlaut — nur EN; Deutsch umgeht Artikel ueber Nominalphrasen. */
 const an = (s: string) => (/^[aeiou]/i.test(s) ? 'an' : 'a');
@@ -74,8 +84,20 @@ function classification(i: Item, lang: Locale, patch: string): string {
       ? `${name} — ${kind} von ${mfr}, Star Citizen Alpha ${patch}.`
       : `${name} — ${kind}, Star Citizen Alpha ${patch}.`;
   }
+  /* Kommt die Art aus der Kategorie, ist sie oft ein Plural ("Legs", "Arms",
+     "Helmets") oder ein Sammelwort ("Footwear"), und "is a Clark Defense
+     Systems Legs" ist kein Englisch (Audit 04.11.2026: 2.597 der 5.369
+     EN-Item-Seiten). Dann nennt der Satz die Kategorie als Kategorie, im
+     Wortlaut von Krisz (04.11.2026): "an item by <Hersteller> in the <Art>
+     category", der Patch wie im Satz der Spieltypen mit "in" angeschlossen
+     (Review: nach einem Komma stand er grammatisch lose). Die Spieltypen
+     (Weapon, Cooler, Shield) sind Einzahl und bleiben im Satz. */
+  if (!ausSpieltyp(i)) {
+    const von = mfr ? ` by ${mfr}` : '';
+    return `${theName(name)} is an item${von} in the ${kind} category in Star Citizen Alpha ${patch}.`;
+  }
   const phrase = mfr ? `${mfr} ${kind}` : kind;
-  return `The ${name} is ${an(phrase)} ${phrase} in Star Citizen Alpha ${patch}.`;
+  return `${theName(name)} is ${an(phrase)} ${phrase} in Star Citizen Alpha ${patch}.`;
 }
 
 export function itemSeo(i: Item, lang: Locale): ItemSeo {
@@ -235,7 +257,7 @@ export function blueprintSeo(
   const lead =
     lang === 'de'
       ? `Der Blueprint ${b.name} (${b.category}) braucht ${b.ingredients.length} Zutaten-Slots und ${time} Craft-Zeit.${mis ? ` ${mis} Missionen können ihn droppen.` : ''}`
-      : `The ${b.name} blueprint (${b.category}) needs ${b.ingredients.length} ingredient slots and ${time} of craft time.${mis ? ` ${mis} missions can drop it.` : ''}`;
+      : `${theName(b.name)} blueprint (${b.category}) needs ${b.ingredients.length} ingredient slots and ${time} of craft time.${mis ? ` ${mis} missions can drop it.` : ''}`;
 
   return { title, description, lead };
 }

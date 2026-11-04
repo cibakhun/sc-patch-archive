@@ -6,10 +6,10 @@
 // Rest eine eigene, leere URL entsteht.
 import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import { itemT, obtainLabel, fill, categoryLabel } from '../i18n/itemText';
 import {
   PER_PAGE, auec, avgPrice, categoryPath, db, displayName, itemPath, itemsHubPath,
-  leafCategory, midCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode,
+  leafCategory, midCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode, type Item,
 } from '../lib/items';
 import { categorySeo } from '../lib/itemSeo';
 
@@ -35,8 +35,12 @@ const crumbs = [
   ...(page > 1 ? [{ label: `${t('page')} ${page}` }] : []),
 ];
 
-const sourceLabel = (n: number, first?: string) =>
-  first ? (n > 1 ? `${first} +${n - 1}` : first) : t('noSourceData');
+// Erste Bezugszeile wie auf dem Datenblatt beschriftet (obtainLabel): eine
+// Exklusiv-Zeile traegt im Feld `loc` den englischen Satz der Datenquelle.
+// Bis 04.11.2026 stand er hier roh — auf den deutschen Kategorielisten also
+// "Promotional item — not obtainable in-game".
+const sourceLabel = (obtain: Item['obtain']) =>
+  obtain.length ? (obtain.length > 1 ? `${obtainLabel(obtain[0], lang)} +${obtain.length - 1}` : obtainLabel(obtain[0], lang)) : t('noSourceData');
 ---
 <DataShell
   lang={lang}
@@ -82,7 +86,7 @@ const sourceLabel = (n: number, first?: string) =>
                   ? <a href={href(itemPath(i), lang)}>{displayName(i, lang)}</a>
                   : <span title={t('listingNoPage')}>{displayName(i, lang)}</span>}
               </td>
-              <td>{sourceLabel(i.obtain.length, i.obtain[0]?.loc)}</td>
+              <td>{sourceLabel(i.obtain)}</td>
               <td class="dp-num">
                 {p != null ? <span class="dp-price">{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
               </td>
