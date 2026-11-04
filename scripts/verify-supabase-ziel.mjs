@@ -98,7 +98,9 @@ function jwtNutzlast(teil) {
 /** true: anon-Schluessel des Ziels · false: geheim oder fremdes Projekt · null: kein Supabase-JWT. */
 function supabaseJwt(m) {
   const n = jwtNutzlast(m[1]);
-  if (!n || typeof n !== 'object' || (n.iss !== 'supabase' && !('role' in n && 'ref' in n))) return null;
+  // Nur echte Supabase-Schluessel (iss "supabase"): ein fremdes JWT, das
+  // zufaellig role/ref traegt, darf das Tor nicht reissen (Grundsatz 3).
+  if (!n || typeof n !== 'object' || n.iss !== 'supabase') return null;
   if (n.role === 'service_role' || n.role === 'supabase_admin') return false;
   return n.ref === ziel.ref ? true : false;
 }

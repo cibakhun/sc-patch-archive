@@ -87,10 +87,12 @@ test('[2] ein fremdes Projekt an einer einzigen Stelle ist rot', () => {
 test('[2] fremde JWTs gehen das Tor nichts an, das anon-JWT des Ziels zaehlt als Ziel', () => {
   const a = probe('live');
   a.put('_astro/anderes.js', `const t="${jwt({ sub: 'x', iss: 'https://accounts.example.com', exp: 1 })}";`);
+  // fremder Aussteller mit role/ref: kein Supabase-Schluessel, kein Befund
+  a.put('_astro/fremd-rolle.js', `const t="${jwt({ iss: 'https://auth.example.com', ref: FREMD, role: 'service_role' })}";`);
   a.put('assets/anon.js', `const k="${jwt({ iss: 'supabase', ref: supabaseZiel('live').ref, role: 'anon' })}";`);
   const r = tor(a.d);
   assert.equal(r.status, 0, r.stderr + r.stdout);
-  assert.match(r.stdout, /12 Textdateien gelesen \(Klinke 1\): 10 nennen das Ziel/);
+  assert.match(r.stdout, /13 Textdateien gelesen \(Klinke 1\): 10 nennen das Ziel \(Klinke 1\), 0 ein anderes Projekt/);
 });
 
 test('[3] eine Pflichtstelle ohne das Ziel ist rot', () => {
