@@ -577,6 +577,11 @@ export const CHECKS = [
     // 2 Abbrueche, /topics/mining.html 3 und /de/topics/mining.html 8 Texte
     // unter der Klinke 1.000, Summe 9.464 unter 10.500. Pruefstand-Zusagen:
     // tests/e2e/pruefstand.test.js.
+    // Vorschau-Bau (STAGING=1) am selben Tag: 4 Abbrueche auf den Hangar-
+    // Seiten (Import "/assets/hangar-overview.js?v=…", top-level await mit
+    // import(root.dataset.lib) in hangar-loadout.js), danach 6 mit <dialog>
+    // ohne showModal/close — Luecken des Pruefstands, dort behoben; gruen
+    // mit unveraendertem Bau.
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste

@@ -11,7 +11,9 @@
 //     Verstecktes,
 //   - ein Abbruch oder eine Endlosschleife wird Befund statt Stillstand,
 //   - umgehaengte Knoten werden nicht neu gelesen (Laufzeit), geaenderter
-//     Text in ihnen schon.
+//     Text in ihnen schon,
+//   - Module wie die Hangar-Seiten: Import mit ?v=hash, top-level await,
+//     import() mit Laufzeit-Ziel, <dialog> (geschlossen nicht bedienbar).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -93,6 +95,45 @@ test('umgehaengte Knoten nicht neu lesen, geaenderten Text schon', async () => {
   const els = p.ernte();
   assert.equal(els.length, 1);
   assert.equal(els[0].textContent, 'neu');
+  p.schliesse();
+});
+
+test('Module: ?v=hash, top-level await, import() zur Laufzeit, dialog', async () => {
+  fs.writeFileSync(path.join(dist, 'assets', 'lib.js'), "export const gruss = (n) => n + ' Layouts';\n");
+  fs.writeFileSync(path.join(dist, 'assets', 'teil.js'), "document.getElementById('teil').textContent = 'Teil da';\n");
+  fs.writeFileSync(path.join(dist, 'assets', 'modul.js'), `
+    const root = document.getElementById('m');
+    const lib = await import(root.dataset.lib);
+    root.textContent = lib.gruss(2);
+    const dlg = document.getElementById('dlg');
+    document.getElementById('auf').addEventListener('click', () => { dlg.showModal(); });
+    document.getElementById('zu').addEventListener('click', () => { dlg.close(); root.textContent = 'zu ' + dlg.open; });
+  `);
+  fs.writeFileSync(path.join(dist, 'modul.html'), seite(
+    `<div id="m" data-lib="/assets/lib.js?v=1a2b"></div><div id="teil"></div>
+     <button id="auf">Auf</button><dialog id="dlg"><button id="zu">Zu</button></dialog>`,
+    '<script type="module">import "/assets/teil.js?v=3c4d";</script><script type="module" src="/assets/modul.js?v=5e6f"></script>',
+  ));
+  const p = await oeffneSeite({ ...opts, seite: 'modul.html' });
+  await p.settle(1000);
+  const gesehen = new Set();
+  const nimm = (els) => { for (const el of els) for (const x of texteAus(el, p.seitenLang)) gesehen.add(x.t); };
+  nimm(p.ernte());
+  assert.deepEqual(p.fehler, []);
+  for (const t of ['Teil da', '2 Layouts']) assert.ok(gesehen.has(t), `${t} fehlt: ${[...gesehen].join(' | ')}`);
+  await erkunde(p, { beiErnte: nimm });
+  assert.ok(gesehen.has('zu false'), [...gesehen].join(' | '));
+  assert.deepEqual(p.fehler, []);
+  p.schliesse();
+});
+
+test('Abbruch nach top-level await wird Befund', async () => {
+  fs.writeFileSync(path.join(dist, 'assets', 'tla-kaputt.js'), "await Promise.resolve();\nnochEineUndefinedFunction();\n");
+  fs.writeFileSync(path.join(dist, 'tla.html'), seite('', '<script type="module" src="/assets/tla-kaputt.js"></script>'));
+  const p = await oeffneSeite({ ...opts, seite: 'tla.html' });
+  await p.settle(100);
+  assert.equal(p.fehler.length, 1, p.fehler.join(' | '));
+  assert.match(p.fehler[0], /nochEineUndefinedFunction is not defined/);
   p.schliesse();
 });
 

@@ -36,18 +36,26 @@ import { pathToFileURL } from 'node:url';
 /* Am 04.11.2026 (Inhaltsvalidierung fuer die Werkzeuge) kamen die Reste
    dazu, die ein Skript beim Zusammensetzen hinterlaesst — dieselbe Klasse,
    nur aus JavaScript statt aus den Spieldaten:
-     - {kleinGeschrieben} — die Form der eigenen Satzvorlagen (fill(),
-       tr('… {n} …')), wenn das Ersetzen ausbleibt,
      - ${ und {{ — eine Vorlage in falschen Anfuehrungszeichen,
      - Gleitkomma-Rauschen (0.30000000000000004: sieben oder mehr
        Nachkommastellen an einer alleinstehenden Zahl) und die
        Exponentenform von String(zahl) (1e+21, 5e-7) — beides heisst: die
        Zahl ging ungerundet und ohne toLocaleString() auf die Seite.
-   Gemessen am selben Tag: kein Treffer auf 17.756 statischen Seiten und
-   keiner im Text, den die Werkzeuge beim Bedienen schreiben. Eine
-   Versionsnummer mit vier Gliedern (4.0.1.9428143) ist kein Rauschen: davor
-   und danach darf kein weiteres Glied stehen. */
-export const ROHTEXT_RE = /\b(?:NaN|undefined)\b|^-?Infinity$|[-−]Infinity\b|\bInfinity\s?(?:%|a?UEC|SCU|m\/s|km\/s|km|m|s|kg|HP|DPS)(?![\w])|\[object [A-Z]|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_|\{[a-z][A-Za-z0-9_]*\}|\$\{|\{\{|(?<![\d.,])\d+[.,]\d{7,}(?![\d.,])|(?<![\w.#-])\d(?:\.\d+)?e[+-]\d+\b/;
+   Gemessen am selben Tag: kein Treffer auf den 17.756 Seiten des Live-Baus
+   und den 18.222 des Vorschau-Baus, und keiner im Text, den die Werkzeuge
+   beim Bedienen schreiben. Eine Versionsnummer mit vier Gliedern
+   (4.0.1.9428143) ist kein Rauschen: davor und danach darf kein weiteres
+   Glied stehen. */
+export const ROHTEXT_RE = /\b(?:NaN|undefined)\b|^-?Infinity$|[-−]Infinity\b|\bInfinity\s?(?:%|a?UEC|SCU|m\/s|km\/s|km|m|s|kg|HP|DPS)(?![\w])|\[object [A-Z]|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_|\$\{|\{\{|(?<![\d.,])\d+[.,]\d{7,}(?![\d.,])|(?<![\w.#-])\d(?:\.\d+)?e[+-]\d+\b/;
+
+/* {kleinGeschrieben} — die Form der eigenen Satzvorlagen (fill(),
+   tr('… {n} …')), wenn das Ersetzen ausbleibt ("{count} kompatible Items
+   gefunden"). NUR fuer Text, den ein Skript geschrieben hat
+   (verify:clienttext): im statischen HTML stehen solche Vorlagen zu Recht
+   ungefuellt in versteckten Textspeichern, aus denen die Skripte lesen
+   (<div id="lo-msg" hidden> der Layout-Werkstatt, 68 Stellen im
+   Vorschau-Bau am 04.11.2026) — dort waere die Regel ein Fehlalarm. */
+export const VORLAGE_RE = /\{[a-z][A-Za-z0-9_]*\}/;
 
 /* Ein Textknoten, der NUR aus "-1" besteht, ist ein Platzhalterwert der
    Spieldaten, kein Messwert. Anlass 04.11.2026: 91 Missionen je Sprache
@@ -155,7 +163,7 @@ export const DE_WORT_EN_RE = /(?<![\p{L}\d-])(?:abspielen|ausblenden|einblenden|
 export function pruefeStelle(t, lang, M, RS) {
   const out = [];
   const hit = (regel, m) => { if (m) out.push({ regel, treffer: m[0], index: m.index ?? 0 }); };
-  hit('roh', ROHTEXT_RE.exec(t));
+  hit('roh', ROHTEXT_RE.exec(t) || VORLAGE_RE.exec(t));
   if (PLATZHALTERWERT_RE.test(t)) out.push({ regel: 'wert', treffer: t, index: 0 });
   const fremd = lang === 'de' ? M.mehrwortNurEn : M.mehrwortNurDe;
   if (fremd.has(t)) out.push({ regel: 'sprache', treffer: t, index: 0 });

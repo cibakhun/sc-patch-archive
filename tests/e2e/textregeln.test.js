@@ -11,18 +11,31 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ROHTEXT_RE, DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE,
+  ROHTEXT_RE, VORLAGE_RE, DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE,
   DE_UMLAUTWORT_RE, DE_WORT_EN_RE, pruefeStelle, sprachMengen, rohschluesselRe,
 } from '../../scripts/lib/textregeln.mjs';
 
 const trifft = (re, t) => re.test(t);
 
 describe('Rohtext: Reste aus dem Zusammensetzen', () => {
-  for (const t of ['{count} items found', 'Wo abbauen: {name}', 'Hello ${name}', '{{ title }}', '0.30000000000000004', '1e+21 aUEC', 'Gewicht 5e-7 kg', 'Wanted: {TargetName}']) {
+  for (const t of ['Hello ${name}', '{{ title }}', '0.30000000000000004', '1e+21 aUEC', 'Gewicht 5e-7 kg', 'Wanted: {TargetName}']) {
     test(`faengt „${t}"`, () => assert.ok(trifft(ROHTEXT_RE, t)));
   }
-  for (const t of ['4.0.1.9428143', 'Alpha 4.10.2', '1.508.220 aUEC', 'Defend Location From Mercs', 'Infinity Custom', 'CL 12157308', '0.25 SCU', 'Item {']) {
+  for (const t of ['4.0.1.9428143', 'Alpha 4.10.2', '1.508.220 aUEC', 'Defend Location From Mercs', 'Infinity Custom', 'CL 12157308', '0.25 SCU', 'Item {', '{n} Slots']) {
     test(`laesst „${t}"`, () => assert.ok(!trifft(ROHTEXT_RE, t)));
+  }
+});
+
+// Kleingeschriebene Vorlagen ({count}, {name}) stehen im statischen HTML zu
+// Recht ungefuellt in versteckten Textspeichern (Layout-Werkstatt, 68 Stellen
+// im Vorschau-Bau 04.11.2026) — deshalb eigene Regel, nur fuer Text, den ein
+// Skript geschrieben hat (pruefeStelle).
+describe('Satzvorlage im geschriebenen Text', () => {
+  for (const t of ['{count} items found', 'Wo abbauen: {name}', '{n} Slots']) {
+    test(`faengt „${t}"`, () => assert.ok(trifft(VORLAGE_RE, t)));
+  }
+  for (const t of ['Item {', '{ }', 'a {B} c']) {
+    test(`laesst „${t}"`, () => assert.ok(!trifft(VORLAGE_RE, t)));
   }
 });
 
@@ -78,6 +91,7 @@ describe('pruefeStelle: eine Pruefung fuer beide Sprachen', () => {
   test('EN: deutsches Datum', () => assert.deepEqual(regeln('9. Oktober 2026', 'en'), ['deWort', 'datum']));
   test('EN: Rohschluessel', () => assert.deepEqual(regeln('ship.sheet.title', 'en'), ['schluessel']));
   test('EN: Platzhalter', () => assert.deepEqual(regeln('Wanted: {TargetName}', 'en'), ['roh']));
+  test('DE: Satzvorlage', () => assert.deepEqual(regeln('{count} kompatible Items gefunden', 'de'), ['roh']));
   test('saubere Stellen', () => {
     assert.deepEqual(regeln('Players per instance', 'en'), []);
     assert.deepEqual(regeln('0,01 SCU', 'de'), []);

@@ -23,7 +23,7 @@
    wenn eine Seite ein Modul laedt.
    ============================================================ */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import vm from 'node:vm';
 import { webcrypto, createHash } from 'node:crypto';
 import { parseHTML } from 'linkedom';
@@ -63,6 +63,28 @@ function ergaenze(lw) {
   if (!EP.animate) EP.animate = () => ({ finished: Promise.resolve(), cancel: noop, finish: noop, play: noop, pause: noop, onfinish: null, addEventListener: noop });
   for (const k of ['offsetWidth', 'offsetHeight', 'clientWidth', 'clientHeight', 'scrollWidth', 'scrollHeight', 'scrollTop', 'scrollLeft', 'offsetTop', 'offsetLeft']) {
     if (!(k in EP)) Object.defineProperty(EP, k, { get() { return 0; }, set() {}, configurable: true });
+  }
+  // <dialog> kennt linkedom nicht (ein schlichtes HTMLElement): showModal,
+  // show, close und open wie im Browser (Layout-Werkstatt, "Meine Layouts").
+  const OFFENBAR = /^(?:DIALOG|DETAILS)$/;
+  if (!EP.showModal) EP.showModal = function () { this.setAttribute('open', ''); };
+  if (!EP.show) EP.show = function () { this.setAttribute('open', ''); };
+  if (!EP.close) {
+    EP.close = function (wert) {
+      if (!this.hasAttribute('open')) return;
+      this.removeAttribute('open');
+      if (wert !== undefined) this.returnValue = String(wert);
+      this.dispatchEvent(new lw.Event('close'));
+    };
+  }
+  if (!('open' in EP)) {
+    Object.defineProperty(EP, 'open', {
+      get() { return OFFENBAR.test(this.tagName) ? this.hasAttribute('open') : undefined; },
+      set(v) {
+        if (OFFENBAR.test(this.tagName)) { if (v) this.setAttribute('open', ''); else this.removeAttribute('open'); } else Object.defineProperty(this, 'open', { value: v, writable: true, configurable: true, enumerable: true });
+      },
+      configurable: true,
+    });
   }
   if (!('offsetParent' in EP)) Object.defineProperty(EP, 'offsetParent', { get() { return this.parentNode; }, configurable: true });
   const FP = lw.HTMLFormElement && lw.HTMLFormElement.prototype;
@@ -366,17 +388,71 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
       (modul ? spaeter : sofort).push({ name: `${seite}#inline-${alle.indexOf(s)}`, code: s.textContent, modul, el: s });
     }
   }
+  // Module wie im Browser aufloesen: "/assets/x.js?v=hash" ist ein Pfad in
+  // dist/, der Inhalts-Hash nur fuer den Cache (Hangar-Seiten, 04.11.2026).
+  const distAufloeser = {
+    name: 'dist',
+    setup(b) {
+      b.onResolve({ filter: /^\/|[?#]/ }, (a) => {
+        if (a.kind === 'entry-point') return undefined;
+        const p = a.path.replace(/[?#].*$/, '');
+        if (p.startsWith('/')) return { path: join(resolve(dist), decodeURIComponent(p)) };
+        if (p.startsWith('.')) return { path: resolve(a.resolveDir, p) };
+        return undefined;
+      });
+    },
+  };
+  const baue = async (e, format, extra = {}) => (await esbuild.build({
+    ...(e.pfad ? { entryPoints: [e.pfad] } : { stdin: { contents: e.code, resolveDir: dist, loader: 'js' } }),
+    bundle: true, format, platform: 'browser', write: false, logLevel: 'silent', target: 'es2022', plugins: [distAufloeser], ...extra,
+  })).outputFiles[0].text;
+  // import(ausdruck) mit einem erst zur Laufzeit bekannten Ziel
+  // (hangar-loadout.js: await import(root.dataset.lib)) kann esbuild nicht
+  // mitbuendeln, und ein vm-Skript kann es nicht ausfuehren — der Pruefstand
+  // laedt es selbst nach (__pruefstandImport, unten).
+  const LAUFZEIT_IMPORT = /(?<![\w$.])import\(/g;
   const codeVon = async (e) => {
     if (!e.modul) return e.code ?? lies(e.pfad);
     const key = e.pfad || e.code;
     if (!buendel.has(key)) {
-      const r = await esbuild.build({
-        ...(e.pfad ? { entryPoints: [e.pfad] } : { stdin: { contents: e.code, resolveDir: dist, loader: 'js' } }),
-        bundle: true, format: 'iife', platform: 'browser', write: false, logLevel: 'silent', target: 'es2022',
-      });
-      buendel.set(key, r.outputFiles[0].text);
+      let c;
+      try { c = await baue(e, 'iife'); } catch (err) {
+        if (!/Top-level await/.test(err && err.message)) throw err;
+        // Top-level await gibt es nur in Modulen, vm fuehrt Skripte aus: als
+        // ESM buendeln und in eine async-Funktion legen. Ein Abbruch darin
+        // wird Befund wie jeder andere.
+        const esm = (await baue(e, 'esm')).replace(/\nexport\s*\{[^}]*\};?\s*$/, '\n');
+        c = `(async () => {\n${esm}\n})().catch((f) => __pruefstandAbbruch(f, ${JSON.stringify(`Skript ${e.name}`)}));`;
+      }
+      buendel.set(key, c.replace(LAUFZEIT_IMPORT, '__pruefstandImport('));
     }
     return buendel.get(key);
+  };
+  ctx.__pruefstandAbbruch = (f, was) => { fehler.push(`${was}: ${f && f.message}`); };
+  const module = new Map();
+  // Nachladen buendelt im esbuild-Dienst (echte Wartezeit, keine Seitenzeit):
+  // settle() wartet darauf, bevor es die Uhr weiterdreht.
+  const offen = new Set();
+  ctx.__pruefstandImport = (spec) => {
+    const pr = ladeModul(spec);
+    offen.add(pr);
+    pr.finally(() => offen.delete(pr)).catch(() => {});
+    return pr;
+  };
+  const ladeModul = async (spec) => {
+    const z = new URL(String(spec), url);
+    const pfad = join(dist, decodeURIComponent(z.pathname));
+    if (z.origin !== url.origin || !existsSync(pfad)) throw new TypeError(`Failed to fetch dynamically imported module: ${z.href}`);
+    if (!module.has(pfad)) {
+      const key = 'import|' + pfad;
+      if (!buendel.has(key)) buendel.set(key, (await baue({ pfad }, 'iife', { globalName: '__pruefstandModul' })).replace(LAUFZEIT_IMPORT, '__pruefstandImport('));
+      const c = buendel.get(key);
+      quellen.push(c);
+      let m;
+      imKontext(() => { vm.runInContext(c, ctx, { filename: z.pathname }); m = ctx.__pruefstandModul; }, `Skript ${z.pathname}`);
+      module.set(pfad, m);
+    }
+    return module.get(pfad);
   };
   st.laeuft = true;
   // document.currentScript wie im Browser: das laufende klassische Skript,
@@ -401,6 +477,7 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     const ende = jetzt + horizont;
     for (let runde = 0; runde < 50_000; runde++) {
       for (let i = 0; i < 3; i++) await ruhe();
+      while (offen.size) { await Promise.allSettled([...offen]); for (let i = 0; i < 3; i++) await ruhe(); }
       let next = null, nid = null;
       for (const [id, t] of timer) if (t.at <= ende && (!next || t.at < next.at)) { next = t; nid = id; }
       if (!next) break;
@@ -409,6 +486,7 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
       imKontext(() => next.fn(...next.a), 'Zeitgeber');
     }
     for (let i = 0; i < 3; i++) await ruhe();
+    while (offen.size) { await Promise.allSettled([...offen]); for (let i = 0; i < 3; i++) await ruhe(); }
   }
 
   const beschreibe = (el) => (el && el.tagName
@@ -532,7 +610,7 @@ export async function erkunde(p, {
     // Seitenart, ein Klick hier kostet nur Zeit (Crafting: 2,7 s je Sprache).
     // Direkt gebundene Verweise bleiben dabei.
     const schlicht = (el) => el.tagName === 'A' && artVon(el) === 'a' && !p.gebunden.has(el);
-    return [...set].filter((el) => !raus(el) && !schlicht(el) && !el.hasAttribute('disabled') && !el.closest('[inert], [hidden]'));
+    return [...set].filter((el) => !raus(el) && !schlicht(el) && !el.hasAttribute('disabled') && !el.closest('[inert], [hidden], dialog:not([open])'));
   };
   const start = Date.now();
   const erledigt = new Set();
