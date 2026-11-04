@@ -39,6 +39,7 @@
     "verify:zaehler": "node scripts/verify-zaehler.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "verify:supply-chain": "node scripts/verify-supply-chain.mjs",
+    "verify:typen": "node --max-old-space-size=6144 scripts/verify-typen.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
     "sync:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs",
@@ -101,13 +102,16 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@gltf-transform/core": "^4.4.1",
     "@gltf-transform/extensions": "^4.4.1",
     "@gltf-transform/functions": "^4.4.1",
+    "@types/node": "^22.20.5",
     "draco3d": "^1.5.7",
     "meshoptimizer": "^1.2.0",
     "playwright-core": "^1.62.1",
-    "three": "^0.185.1"
+    "three": "^0.185.1",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "ndarray-pixels": "5.0.1"
