@@ -11,12 +11,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { pilotPreview } from '../../src/lib/pilotPreview.ts';
+import { supabaseZiel } from '../../scripts/lib/supabase-ziel.mjs';
 
 const read = (p) => fs.readFileSync(path.resolve(p), 'utf8');
 const src = read('nginx/pilot.js');
 const conf = read('nginx/default.conf');
 const docker = read('Dockerfile');
-const consts = read('src/consts.ts');
 const pilotPage = read('src/components/pilot/PilotPage.astro');
 const register = read('src/components/account/AuthRegister.astro');
 const friends = read('src/components/account/FriendsManager.astro');
@@ -149,10 +149,10 @@ describe('Teilen: eigene Link-Vorschau je Pilot', () => {
       assert.match(conf, re, `location = ${loc} ohne Tor oder ohne pilot.page`);
     }
     assert.match(docker, /^COPY nginx\/pilot\.js \/etc\/nginx\/pilot\.js$/m);
-    const sb = /export const SUPABASE = \{\s*url: '([^']+)',\s*publishableKey: '([^']+)'/.exec(consts);
-    assert.ok(sb, 'SUPABASE-Block in src/consts.ts nicht gefunden');
-    const [, url, key] = sb;
-    assert.ok(src.includes(`'${url}'`) && src.includes(`'${key}'`), 'Rückfall-URL/Schlüssel in nginx/pilot.js weicht von src/consts.ts ab');
+    // Rückfall von nginx/pilot.js ist das Live-Projekt; welches Projekt ein
+    // Container wirklich fragt, setzt seine Umgebung (VB_SUPABASE_URL).
+    const { url, publishableKey: key } = supabaseZiel('live');
+    assert.ok(src.includes(`'${url}'`) && src.includes(`'${key}'`), 'Rückfall-URL/Schlüssel in nginx/pilot.js weicht vom Ziel "live" in scripts/lib/supabase-ziel.mjs ab');
     // Gleiche Handle-Regel wie die Seite selbst, sonst holt nginx andere Piloten als sie.
     assert.ok(pilotPage.includes('/^[a-z0-9_]{3,24}$/') && src.includes('/^[a-z0-9_]{3,24}$/'));
   });
