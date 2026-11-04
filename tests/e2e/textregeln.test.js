@@ -13,15 +13,16 @@ import assert from 'node:assert/strict';
 import {
   ROHTEXT_RE, VORLAGE_RE, DATUM_DE_AUF_EN_RE, DATUM_EN_AUF_DE_RE, DEZIMAL_EN_AUF_DE_RE, DEZIMAL_DE_AUF_EN_RE,
   DE_UMLAUTWORT_RE, DE_WORT_EN_RE, INTERN_RE, ohneTechnischeDetails, textStellen, pruefeStelle, sprachMengen, rohschluesselRe,
+  ZAHL_EN_AUF_DE_RE, ZAHL_DE_AUF_EN_RE, PLATZHALTERWERT_RE, DE_FUNKTIONSWORT_RE, DOPPELWORT_EN_RE,
 } from '../../scripts/lib/textregeln.mjs';
 
 const trifft = (re, t) => re.test(t);
 
 describe('Rohtext: Reste aus dem Zusammensetzen', () => {
-  for (const t of ['Hello ${name}', '{{ title }}', '0.30000000000000004', '1e+21 aUEC', 'Gewicht 5e-7 kg', 'Wanted: {TargetName}']) {
+  for (const t of ['Hello ${name}', '{{ title }}', '0.30000000000000004', '1e+21 aUEC', '-1e+21 aUEC', 'Δ −2.5e-7', 'Gewicht 5e-7 kg', 'Wanted: {TargetName}']) {
     test(`faengt „${t}"`, () => assert.ok(trifft(ROHTEXT_RE, t)));
   }
-  for (const t of ['4.0.1.9428143', 'Alpha 4.10.2', '1.508.220 aUEC', 'Defend Location From Mercs', 'Infinity Custom', 'CL 12157308', '0.25 SCU', 'Item {', '{n} Slots']) {
+  for (const t of ['4.0.1.9428143', 'Alpha 4.10.2', '1.508.220 aUEC', 'Defend Location From Mercs', 'Infinity Custom', 'CL 12157308', '0.25 SCU', 'Item {', '{n} Slots', 'id-1e-5']) {
     test(`laesst „${t}"`, () => assert.ok(!trifft(ROHTEXT_RE, t)));
   }
 });
@@ -86,12 +87,46 @@ describe('Interner Bezeichner im sichtbaren Text', () => {
 });
 
 describe('Deutsches Wort auf EN-Seite', () => {
-  for (const t of ['Bild öffnen: Asgard', 'Destination Pyro — Trailer abspielen', 'Stabilität & Save Stanton II', 'Ressource suchen...', '· Oktober 2025', '· ab 09.10.2026', '· saisonal']) {
+  for (const t of ['Bild öffnen: Asgard', 'Destination Pyro — Trailer abspielen', 'Stabilität & Save Stanton II', 'Ressource suchen...', 'Suchen', 'Speichern', 'Layout Teilen', '· Oktober 2025', '· ab 09.10.2026', '· saisonal']) {
     test(`faengt „${t}"`, () => assert.ok(trifft(DE_UMLAUTWORT_RE, t) || trifft(DE_WORT_EN_RE, t)));
   }
-  for (const t of ['600i 2951 BIS', 'Open image: Asgard', 'Search resources…', 'Seasonal', 'October 2025', 'Abyss', 'Bilder-free']) {
+  for (const t of ['600i 2951 BIS', 'Open image: Asgard', 'Search resources…', 'Seasonal', 'October 2025', 'Abyss', 'Bilder-free', 'Ab Initio', 'Bis Sector']) {
     test(`laesst „${t}"`, () => assert.ok(!trifft(DE_UMLAUTWORT_RE, t) && !trifft(DE_WORT_EN_RE, t)));
   }
+});
+
+describe('Zahl mit Tausendergruppen im Format der anderen Sprache', () => {
+  for (const t of ['1,508,220', '1,508.5', 'Preis 1,508 aUEC']) {
+    test(`DE-Seite faengt „${t}"`, () => assert.ok(trifft(ZAHL_EN_AUF_DE_RE, t)));
+  }
+  for (const t of ['1.508.220', '4,5', '1.508 aUEC', 'Alpha 4.10.2']) {
+    test(`DE-Seite laesst „${t}"`, () => assert.ok(!trifft(ZAHL_EN_AUF_DE_RE, t)));
+  }
+  for (const t of ['1.508.220', '1.508,5', 'Price 1.508 aUEC']) {
+    test(`EN-Seite faengt „${t}"`, () => assert.ok(trifft(ZAHL_DE_AUF_EN_RE, t)));
+  }
+  for (const t of ['1,508,220', '4.0.1.9428143', 'Alpha 4.10.2', '1,508 aUEC']) {
+    test(`EN-Seite laesst „${t}"`, () => assert.ok(!trifft(ZAHL_DE_AUF_EN_RE, t)));
+  }
+});
+
+describe('Platzhalterwert -1', () => {
+  for (const t of ['-1', ' -1 ']) test(`faengt „${t}"`, () => assert.ok(trifft(PLATZHALTERWERT_RE, t)));
+  for (const t of ['-10', 'Rang -1', '−1', '1']) test(`laesst „${t}"`, () => assert.ok(!trifft(PLATZHALTERWERT_RE, t)));
+});
+
+describe('Deutsches Funktionswort auf EN-Seite', () => {
+  for (const t of ['Keine Treffer', 'Schiff wählen', '3 Items gefunden', 'Laser und Waffen']) {
+    test(`faengt „${t}"`, () => assert.ok(trifft(DE_FUNKTIONSWORT_RE, t)));
+  }
+  for (const t of ['Bundle', 'Undead Order', 'Isthmus', 'Fürstenberg', 'Zurückhaltung']) {
+    test(`laesst „${t}"`, () => assert.ok(!trifft(DE_FUNKTIONSWORT_RE, t)));
+  }
+});
+
+describe('Englisches Doppelwort aus einer Satzvorlage', () => {
+  for (const t of ['Visit The The Ship', 'Buy A A Drake']) test(`faengt „${t}"`, () => assert.ok(trifft(DOPPELWORT_EN_RE, t)));
+  for (const t of ['The Ship', 'Theatre The End', 'A Ann']) test(`laesst „${t}"`, () => assert.ok(!trifft(DOPPELWORT_EN_RE, t)));
 });
 
 describe('pruefeStelle: eine Pruefung fuer beide Sprachen', () => {

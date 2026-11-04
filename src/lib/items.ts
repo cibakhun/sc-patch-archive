@@ -410,7 +410,10 @@ export const shopCount = (i: Item) =>
 /* ---------- Anzeige ---------- */
 
 const NUM = { de: 'de-DE', en: 'en-US' } as const;
-export const num = (n: number, lang: Locale) => n.toLocaleString(NUM[lang]);
+/** Zahl im Format der Seite. Ohne `maxFrac` hoechstens drei Nachkommastellen
+ *  (Vorgabe von toLocaleString); Volumen braucht mehr ("0,0001 SCU"). */
+export const num = (n: number, lang: Locale, maxFrac?: number) =>
+  n.toLocaleString(NUM[lang], maxFrac == null ? undefined : { maximumFractionDigits: maxFrac });
 export const auec = (n: number, lang: Locale) => `${num(n, lang)} aUEC`;
 
 /** Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen unterscheidet. */

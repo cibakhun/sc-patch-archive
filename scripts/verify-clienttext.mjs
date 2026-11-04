@@ -359,7 +359,7 @@ for (const seite of stichprobe) {
   pruefe(p.ernte(), { art: 'beim Laden' });
   const z = await erkunde(p, { beiErnte: pruefe });
   for (const f of new Set(p.fehler)) funde.abbruch.push(`/${seite}: ${f.slice(0, 300)}`);
-  bilanz.push({ seite, lang: p.seitenLang, texte, arten: z.arten, aktionen: z.aktionen, abgebrochen: z.abgebrochen, ms: Date.now() - tS, konsole: p.konsole.length });
+  bilanz.push({ seite, texte, arten: z.arten, aktionen: z.aktionen, abgebrochen: z.abgebrochen, ms: Date.now() - tS });
   p.schliesse();
 }
 const ms2 = Date.now() - t2;

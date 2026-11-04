@@ -88,9 +88,19 @@ export function specChips(i: Item, lang: Locale): Row[] {
   if (g.grade && !g.variants && hasMeaningfulGrade(i)) out.push([t('specGrade'), g.grade]);
   if (g.class) out.push([t('specClass'), g.class]);
   // Im Zahlformat der Seite (bis 04.11.2026 roh: "0.01 SCU" auf 287
-  // deutschen Item-Seiten; verify:sprache Regel 9).
-  if (g.volumeScu) out.push([t('specVolume'), `${num(g.volumeScu, lang)} SCU`]);
+  // deutschen Item-Seiten; verify:sprache Regel 9). Bis zu vier
+  // Nachkommastellen in den Spieldaten (2.361 Items), daher nicht auf drei kappen.
+  if (g.volumeScu) out.push([t('specVolume'), `${num(g.volumeScu, lang, 6)} SCU`]);
   return out;
+}
+
+/* Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
+   Spieldaten auf das Logo statt auf einen Hersteller, der Name ist dann der
+   interne Schluessel ("Paint_Defender_Silver_Red_Logo"; verify:clienttext
+   04.11.2026). Gleiche Regel in assets/item-finder-app.js (mfrName). */
+const INTERN_NAME = /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/;
+export function mfrName(m: string | null | undefined): string | null {
+  return m && !INTERN_NAME.test(m) ? m : null;
 }
 
 /**
@@ -102,15 +112,6 @@ export function specChips(i: Item, lang: Locale): Row[] {
  * ausnahmslos "A"; als Unterscheidungsmerkmal zwischen den Ausfuehrungen taugt
  * er dann gerade nicht.
  */
-/* Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
-   Spieldaten auf das Logo statt auf einen Hersteller, der Name ist dann der
-   interne Schluessel ("Paint_Defender_Silver_Red_Logo"; verify:clienttext
-   04.11.2026). Gleiche Regel in assets/item-finder-app.js (mfrName). */
-const INTERN_NAME = /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/;
-export function mfrName(m: string | null | undefined): string | null {
-  return m && !INTERN_NAME.test(m) ? m : null;
-}
-
 export function variantHead(i: Item, v: { size: number; manufacturer: string | null; grade: string | null }, lang: Locale): string {
   const t = itemT(lang);
   const grade = v.grade && hasMeaningfulGrade(i) ? v.grade : null;

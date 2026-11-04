@@ -236,6 +236,19 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
   const setI = (fn, ms = 0, ...a) => { const id = ++tid; const iv = Math.max(10, +ms || 10); if (typeof fn === 'function') timer.set(id, { at: jetzt + iv, fn, a, iv }); return id; };
   const clearT = (id) => { timer.delete(id); };
   const raf = (fn) => setT(() => fn(jetzt), 16);
+  // Date geht mit derselben Uhr: Startzeit beim Laden, dann + jetzt. Sonst
+  // stuende Date.now() still, waehrend settle() Minuten vorspult (Frische-
+  // pruefungen wie "letzter Abruf > 60 s" in crafting-app.js, fleet.js).
+  const basis = Date.now();
+  const EchtDate = Date;
+  function UhrDate(...a) {
+    if (!new.target) return new EchtDate(basis + jetzt).toString();
+    return a.length ? new EchtDate(...a) : new EchtDate(basis + jetzt);
+  }
+  UhrDate.prototype = EchtDate.prototype;
+  UhrDate.now = () => basis + jetzt;
+  UhrDate.parse = EchtDate.parse;
+  UhrDate.UTC = EchtDate.UTC;
 
   const speicher = () => {
     const m = new Map();
@@ -305,6 +318,7 @@ export async function oeffneSeite({ dist, seite, query = '', esbuild, buendel = 
     // Supabase baut beim Laden einen Echtzeit-Kanal: ein Sockel, der nie verbindet.
     WebSocket: class { constructor() { this.readyState = 3; } send() {} close() {} addEventListener() {} removeEventListener() {} },
     BroadcastChannel: class { postMessage() {} close() {} addEventListener() {} removeEventListener() {} },
+    Date: UhrDate,
     performance: { now: () => jetzt, timeOrigin: 0, mark: noop, measure: noop, getEntriesByType: () => [], getEntriesByName: () => [], clearMarks: noop },
     matchMedia: (q) => ({ matches: /prefers-reduced-motion:\s*reduce/.test(q), media: q, addEventListener: noop, removeEventListener: noop, addListener: noop, removeListener: noop, onchange: null }),
     getComputedStyle: () => new Proxy({}, { get: (t, k) => (k === 'getPropertyValue' ? () => '' : '') }),
@@ -661,6 +675,7 @@ export async function erkunde(p, {
         }
       }
       if (protokoll) protokoll({ art, runde, elemente: els.length, ms: Date.now() - tA });
+      if (z.abgebrochen) break;
     }
   }
   return z;
@@ -688,7 +703,7 @@ export function seitenArten(dist, { ohne = [] } = {}) {
     if (ohne.some((o) => seite.startsWith(o.pfad))) continue;
     const html = readFileSync(join(dist, seite), 'utf8');
     const teile = [];
-    for (const [, attrs, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)) {
+    for (const [, attrs, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script(?:\s[^>]*)?>/gi)) {
       const typ = (/\stype="([^"]*)"/i.exec(attrs) || [])[1] || '';
       if (NICHT_AUSFUEHREN.has(typ.toLowerCase())) continue;
       const src = (/\ssrc="([^"]+)"/i.exec(attrs) || [])[1];

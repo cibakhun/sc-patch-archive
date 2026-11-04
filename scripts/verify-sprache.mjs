@@ -100,6 +100,8 @@ const WORT_AUSNAHMEN = [
 ];
 
 // Benannte Ausnahmen fuer Regel 10: Eigennamen mit Umlaut auf EN-Seiten.
+const DE_UMLAUTWORT_G = new RegExp(DE_UMLAUTWORT_RE.source, 'gu');
+const DE_WORT_EN_G = new RegExp(DE_WORT_EN_RE.source, 'gu');
 const UMLAUT_AUSNAHMEN = [
   {
     wort: 'Schlossstraße',
@@ -206,11 +208,15 @@ for (const f of seiten) {
       if (dw) fDoppel.push(`${page}: „${t.slice(Math.max(0, dw.index - 20), dw.index + dw[0].length + 40)}"`);
       const fw = DE_FUNKTIONSWORT_RE.exec(t);
       if (fw && !mehrwortFremd.has(t)) fFunktion.push(`${page}: „${fw[0]}" in „${t.slice(0, 120)}"`);
-      const dw2 = DE_UMLAUTWORT_RE.exec(t) || DE_WORT_EN_RE.exec(t);
-      if (dw2 && !mehrwortFremd.has(t)) {
-        const ausn = UMLAUT_AUSNAHMEN.find((a) => a.wort === dw2[0]);
-        if (ausn) benutzt.add(ausn);
-        else fDeWort.push(`${page}: „${dw2[0]}" in „${stelle(t, dw2, 40, 50)}"`);
+      // Jedes Wort einzeln: eine benannte Ausnahme (Schlossstraße) deckt
+      // nur sich selbst, nicht ein zweites deutsches Wort in derselben Stelle.
+      if (!mehrwortFremd.has(t)) {
+        for (const dw2 of [...t.matchAll(DE_UMLAUTWORT_G), ...t.matchAll(DE_WORT_EN_G)]) {
+          const ausn = UMLAUT_AUSNAHMEN.find((a) => a.wort === dw2[0]);
+          if (ausn) { benutzt.add(ausn); continue; }
+          fDeWort.push(`${page}: „${dw2[0]}" in „${stelle(t, dw2, 40, 50)}"`);
+          break;
+        }
       }
     }
     const dt = (de ? DATUM_EN_AUF_DE_RE : DATUM_DE_AUF_EN_RE).exec(t);

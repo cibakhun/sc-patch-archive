@@ -40,7 +40,7 @@
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
-  function fmtNum(n) { return Number(n).toLocaleString(CFG.lang === 'de' ? 'de-DE' : 'en-US'); }
+  function fmtNum(n, maxFrac) { return Number(n).toLocaleString(CFG.lang === 'de' ? 'de-DE' : 'en-US', maxFrac == null ? undefined : { maximumFractionDigits: maxFrac }); }
   function parentCategory(cat) { return cat ? cat.split('/')[0].trim() : 'Other'; }
   function minPrice(item) {
     var p = Infinity;
@@ -794,7 +794,7 @@
     if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
     if (g.grade && !g.variants && hasMeaningfulGrade(item)) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
-    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), fmtNum(g.volumeScu) + ' SCU']);
+    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), fmtNum(g.volumeScu, 6) + ' SCU']);
     return chips;
   }
 

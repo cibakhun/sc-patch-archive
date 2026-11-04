@@ -13,7 +13,8 @@
 //   - umgehaengte Knoten werden nicht neu gelesen (Laufzeit), geaenderter
 //     Text in ihnen schon,
 //   - Module wie die Hangar-Seiten: Import mit ?v=hash, top-level await,
-//     import() mit Laufzeit-Ziel, <dialog> (geschlossen nicht bedienbar).
+//     import() mit Laufzeit-Ziel, <dialog> (geschlossen nicht bedienbar),
+//   - Date laeuft mit der Pruefstand-Uhr, das Zeitbudget beendet erkunde().
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -134,6 +135,30 @@ test('Abbruch nach top-level await wird Befund', async () => {
   await p.settle(100);
   assert.equal(p.fehler.length, 1, p.fehler.join(' | '));
   assert.match(p.fehler[0], /nochEineUndefinedFunction is not defined/);
+  p.schliesse();
+});
+
+test('Date geht mit der Pruefstand-Uhr', async () => {
+  fs.writeFileSync(path.join(dist, 'uhr.html'), seite('<div id="u"></div>', `<script>
+    var t0 = Date.now();
+    setTimeout(function () { document.getElementById('u').textContent = 'vergangen ' + Math.round((Date.now() - t0) / 1000) + ' ' + (new Date() instanceof Date) + ' ' + typeof Date(); }, 120000);
+  </script>`));
+  const p = await oeffneSeite({ ...opts, seite: 'uhr.html' });
+  await p.settle(130000);
+  const texte = p.ernte().flatMap((el) => texteAus(el, p.seitenLang).map((x) => x.t));
+  assert.ok(texte.includes('vergangen 120 true string'), texte.join(' | '));
+  assert.deepEqual(p.fehler, []);
+  p.schliesse();
+});
+
+test('Zeitbudget beendet erkunde ganz, nicht nur eine Bedienart', async () => {
+  const p = await oeffneSeite({ ...opts, seite: 'werkzeug.html' });
+  await p.settle(1000);
+  p.ernte();
+  const z = await erkunde(p, { budgetMs: -1, beiErnte: () => {} });
+  assert.equal(z.abgebrochen, true);
+  assert.equal(z.aktionen, 0);
+  assert.equal(z.arten, 1, 'nach dem Abbruch keine weitere Bedienart anfangen');
   p.schliesse();
 });
 

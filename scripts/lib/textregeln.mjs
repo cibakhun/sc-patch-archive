@@ -46,7 +46,7 @@ import { pathToFileURL } from 'node:url';
    beim Bedienen schreiben. Eine Versionsnummer mit vier Gliedern
    (4.0.1.9428143) ist kein Rauschen: davor und danach darf kein weiteres
    Glied stehen. */
-export const ROHTEXT_RE = /\b(?:NaN|undefined)\b|^-?Infinity$|[-−]Infinity\b|\bInfinity\s?(?:%|a?UEC|SCU|m\/s|km\/s|km|m|s|kg|HP|DPS)(?![\w])|\[object [A-Z]|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_|\$\{|\{\{|(?<![\d.,])\d+[.,]\d{7,}(?![\d.,])|(?<![\w.#-])\d(?:\.\d+)?e[+-]\d+\b/;
+export const ROHTEXT_RE = /\b(?:NaN|undefined)\b|^-?Infinity$|[-−]Infinity\b|\bInfinity\s?(?:%|a?UEC|SCU|m\/s|km\/s|km|m|s|kg|HP|DPS)(?![\w])|\[object [A-Z]|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_|\$\{|\{\{|(?<![\d.,])\d+[.,]\d{7,}(?![\d.,])|(?<![\w.#-])[-−]?\d(?:\.\d+)?e[+-]\d+\b/;
 
 /* {kleinGeschrieben} — die Form der eigenen Satzvorlagen (fill(),
    tr('… {n} …')), wenn das Ersetzen ausbleibt ("{count} kompatible Items
@@ -178,7 +178,7 @@ const TECHNISCHE_DETAILS_RE = /<details\b[^>]*\bclass="[^"]*\bmd__tech\b[^"]*"[^
 export const ohneTechnischeDetails = (html) => html.replace(TECHNISCHE_DETAILS_RE, ' ');
 
 export const DE_UMLAUTWORT_RE = /[\p{L}]*[äöüßÄÖÜ][\p{L}]*/u;
-export const DE_WORT_EN_RE = /(?<![\p{L}\d-])(?:abspielen|ausblenden|einblenden|entfernen|speichern|kopieren|suchen|schliessen|abbrechen|weiter|teilen|filtern|sortieren|herunterladen|anheften|Bild|Bilder|Seite|Seiten|Spieler|Schiffe|Waffen|Fehler|Ergebnis|Ergebnisse|Treffer|Januar|Februar|Juni|Juli|Oktober|Dezember|bis|ab|saisonal|dauerhaft)(?![\p{L}\d-])/u;
+export const DE_WORT_EN_RE = /(?<![\p{L}\d-])(?:[Aa]bspielen|[Aa]usblenden|[Ee]inblenden|[Ee]ntfernen|[Ss]peichern|[Kk]opieren|[Ss]uchen|[Ss]chliessen|[Aa]bbrechen|[Ww]eiter|[Tt]eilen|[Ff]iltern|[Ss]ortieren|[Hh]erunterladen|[Aa]nheften|Bild|Bilder|Seite|Seiten|Spieler|Schiffe|Waffen|Fehler|Ergebnis|Ergebnisse|Treffer|Januar|Februar|Juni|Juli|Oktober|Dezember|bis|ab|saisonal|dauerhaft)(?![\p{L}\d-])/u;
 
 /**
  * Alle Textregeln fuer EINE Textstelle `t` (schon norm()) in der Sprache

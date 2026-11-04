@@ -1029,7 +1029,8 @@
   // Gerundet UND im Zahlformat der Seite: bis 04.11.2026 gingen die
   // Simulationswerte roh in den Text ("0.5" auf der deutschen Seite;
   // verify:clienttext, Teil 2).
-  function fmtSmart(v) { return roundSmart(v).toLocaleString(LOC, { maximumFractionDigits: 2 }); }
+  // -0 (kleiner negativer Wert, auf 0 gerundet) zeigt toLocaleString als "-0".
+  function fmtSmart(v) { var r = roundSmart(v); return (r === 0 ? 0 : r).toLocaleString(LOC, { maximumFractionDigits: 2 }); }
 
   function renderBlueprint(i) {
     var b = DB.blueprints[i];
