@@ -428,6 +428,31 @@ export const CHECKS = [
     // (Datenlauf) statt aus einer menschlichen Sichtung. Damit ist
     // Register-Eintrag id 51 aufloesbar.
   },
+  {
+    // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
+    // Kette: verify:datastand haelt die Datendateien gegeneinander, dieses Tor
+    // haelt die GEBAUTEN SEITEN gegen ihre Datendatei (Grundsatz 7). Anlass:
+    // am 03.11.2026 war verify:datastand gruen (alles 4.10.2), waehrend die
+    // Mining-Datenbank "Star Citizen 4.9" hiess, der Item Finder "Patch 4.9"
+    // zeigte und Wikelo "Star Citizen 4.1" — von Hand geschriebene Literale,
+    // die kein Datenlauf mithebt. Kein git, kein Netz, kein Kindprozess: nur
+    // dist/ und committete JSON.
+    id: 'verify:patch-angaben',
+    npm: 'verify:patch-angaben',
+    script: 'scripts/verify-patch-angaben.mjs',
+    rail: 'A',
+    checks:
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
+    // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
+    // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
+    // "4.1" und JSON-LD "4.1.0", Crafting-JSON-LD "4.7.0", acht ATLS-
+    // Schiffsseiten ohne Spielversion. SCHARF seit derselben Lieferung, die
+    // die Seiten korrigiert hat (Angaben aus der Kennung, patchFromKennung in
+    // src/lib/patchPages.ts). Gegenprobe danach: Item-Kennung in
+    // assets/universal-items.json auf 4.11.0 gehoben, ohne neu zu bauen — rot,
+    // genau der Fall "Datenlauf hebt die Datei, die Seite bleibt".
+  },
 
   // ---------------------------------------------------------------
   // Schiene B — der Datenlauf. Laeuft NUR lokal (npm run gate:data),

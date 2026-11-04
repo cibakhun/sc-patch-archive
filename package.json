@@ -47,6 +47,7 @@
     "refresh:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build",
     "verify:mining": "node scripts/verify-mining.mjs",
     "verify:datastand": "node scripts/verify-datastand.mjs",
+    "verify:patch-angaben": "node scripts/verify-patch-angaben.mjs",
     "datamine:crafting": "node scripts/datamine-crafting.mjs && node scripts/verify-crafting-specs.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",

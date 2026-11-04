@@ -13,6 +13,7 @@ import type { Locale } from '../i18n/ui';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { versioned } from '../lib/assetVersion';
+import { patchFromKennung } from '../lib/patchPages';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Props { lang: Locale }
@@ -22,6 +23,10 @@ const L = (p: string) => href(p, lang);
 // .planning/phases/01.2-werkzeuge-erklaeren/01.2-03-PLAN.md.
 const h = useHelp(lang);
 
+// Stand aus der Kennung von missions.json (srcP nannte bis 03.11.2026 von Hand
+// "Patch 4.9" ueber Daten auf 4.10.2; gerendert wird der Satz derzeit nicht,
+// darum sieht verify:patch-angaben ihn nicht — er bleibt trotzdem wahr).
+const missionPatch = patchFromKennung(db.meta.patch);
 const S = {
   de: {
     eyebrow: 'Missionsdatenbank',
@@ -42,7 +47,7 @@ const S = {
     dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
     noReward: 'keine', calcReward: 'wird berechnet', calcRewardT: 'Der Contract fuehrt keine feste Zahl — das Spiel berechnet den Lohn zur Laufzeit aus der Schwierigkeit.',
     srcH: 'Gut zu wissen',
-    srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Nichts davon ist abgeschrieben.',
+    srcP: `Spielgenau zur aktuellen Live-Version (Patch ${missionPatch}). Nichts davon ist abgeschrieben.`,
     srcSys: `Zwei Systeme: das ältere <strong>Missionsbrett</strong> (${db.meta.counts.brokerLive.toLocaleString('de-DE')} Angebote) und der <strong>Contract-Manager</strong> (${db.meta.counts.contracts.toLocaleString('de-DE')}), in den CIG gerade migriert. ${db.meta.counts.legacyBridged} Angebote führen beide Systeme — die stehen hier nur einmal.`,
     srcBp: `Blueprints hängen ausschließlich am Contract-Manager: ${db.meta.counts.withBlueprints} Missionen ziehen aus ${db.meta.counts.blueprintPools} Pools. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, ist Zufall.`,
     srcGuild: 'Die Gildenzuordnung ist abgeleitet und lesbar gemacht — keine offizielle Schreibweise.',
@@ -69,7 +74,7 @@ const S = {
     dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
     noReward: 'none', calcReward: 'calculated', calcRewardT: 'The contract carries no fixed number — the game computes the payout at runtime from the difficulty.',
     srcH: 'Good to know',
-    srcP: 'Game-accurate to the current live build (patch 4.9). None of it is copied from elsewhere.',
+    srcP: `Game-accurate to the current live build (patch ${missionPatch}). None of it is copied from elsewhere.`,
     srcSys: `Two systems: the older <strong>mission board</strong> (${db.meta.counts.brokerLive.toLocaleString('en-US')} offers) and the <strong>Contract Manager</strong> (${db.meta.counts.contracts.toLocaleString('en-US')}) that CIG is migrating to. ${db.meta.counts.legacyBridged} offers exist in both — those are listed once.`,
     srcBp: `Blueprints hang off the Contract Manager only: ${db.meta.counts.withBlueprints} missions draw from ${db.meta.counts.blueprintPools} pools. A pool is a weighted list — which blueprint drops is chance.`,
     srcGuild: 'The guild grouping is derived and made readable — not an official spelling.',

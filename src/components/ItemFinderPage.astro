@@ -11,12 +11,22 @@ import ItemFinderApp from './ItemFinderApp.astro';
 import DB from '../../assets/universal-items.json';
 import { localeFromPath } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { ITEM_PATCH } from '../lib/items';
+import { patchPageHref } from '../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
 const total = DB.counts.items;
 const sourced = DB.counts.withObtain;
 const snap = DB.generatedAt;
+// Patch-Stand aus der Kennung des Katalogs, wie Item-Verzeichnis und
+// Item-Seiten. Bis 03.11.2026 standen Brotkrume und Leiste hier von Hand auf
+// "4.9", waehrend der Katalog auf 4.10.2 lag — derselbe Fehler, den
+// src/lib/items.ts am 27.08.2026 fuer die Item-Seiten behoben hatte, nur eine
+// Datei daneben (verify:patch-angaben). Den Verweis gibt es nur, wenn die
+// Patch-Seite existiert (patchPageHref).
+const patchHref = patchPageHref(ITEM_PATCH, lang);
+const patchCrumb = patchHref ? { label: `Alpha ${ITEM_PATCH}`, href: patchHref } : { label: `Alpha ${ITEM_PATCH}` };
 ---
 <style is:inline>
 /* Item finder theme — violet & amber (quartermaster catalog) */
@@ -28,7 +38,7 @@ const snap = DB.generatedAt;
 .hero__in{max-width:var(--maxw)}
 .qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-12);text-transform:uppercase;font-size:var(--fs-5);color:var(--muted)}
 .qbar b{color:var(--accent-2)}
-/* „Patch 4.9" traegt jetzt den Verweis auf die Patchseite, den frueher der
+/* „Patch <Stand>" traegt jetzt den Verweis auf die Patchseite, den frueher der
    Eyebrow im Kopf trug. Farbe erbt von .qbar b, damit die Leiste eine Zeile
    bleibt und nicht ein Wert aus der Reihe faellt. */
 .qbar a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
@@ -120,14 +130,14 @@ const snap = DB.generatedAt;
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
-<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.9', href: '/de/patches/sc-4-9-0.html' }, { label: 'Item Finder' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.9', href: '/patches/sc-4-9-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
+<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, patchCrumb, { label: 'Item Finder' }] : [{ label: 'Archive', href: '/archiv.html' }, patchCrumb, { label: 'Item Finder' }]} hasEn={true} />
 
 <main id="main">
   <section class="hero hero--tool">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      {/* Im Kopf steht nur noch der Titel. „Alpha 4.9" ist nach unten in die
+      {/* Im Kopf steht nur noch der Titel. Der Patch-Stand ist nach unten in die
           Kennzahlen gewandert — es war der einzige echte <a> von hier auf die
           Patchseite (die Brotkrume rendert SiteNav nur noch als JSON-LD), der
           Link darf also nicht verschwinden, wohl aber die Zeile im Kopf.
@@ -147,7 +157,7 @@ const snap = DB.generatedAt;
       Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
   <aside class="uf-about">
     <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
-    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}><b>4.9</b></a></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{ITEM_PATCH}</b></a> : <b>{ITEM_PATCH}</b>}</span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
     <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
     <p class="uf-about__links">
       {/* /armor-sets.html steht bewusst NICHT hier: die Sets sind jetzt eine

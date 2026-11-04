@@ -14,6 +14,7 @@ import { blueprintPath, blueprintsByMission, blueprintListLabels } from '../lib/
 import { href, useTranslations } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { patchFromKennung } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
 
 interface Props { m: Mission; lang: Locale }
@@ -21,6 +22,10 @@ const { m, lang } = Astro.props;
 const L = (p: string) => href(p, lang);
 const nf = lang === 'de' ? 'de-DE' : 'en-US';
 
+// Stand aus der Kennung von missions.json (srcP nannte bis 03.11.2026 von Hand
+// "Patch 4.9" ueber Daten auf 4.10.2; gerendert wird der Satz derzeit nicht,
+// darum sieht verify:patch-angaben ihn nicht — er bleibt trotzdem wahr).
+const missionPatch = patchFromKennung(db.meta.patch);
 const S = {
   de: {
     // titleKind nur im <title> (Suchanfrage ist „star citizen <mission>");
@@ -53,7 +58,7 @@ const S = {
     bpP: 'Diese Mission kann Blueprints abwerfen. Welcher davon fällt, entscheidet der Zufall — du bekommst nicht die ganze Liste.',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
     srcNote: 'Es gibt zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
-    src: 'Quelle', srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Missionstexte gibt es nur auf Englisch.',
+    src: 'Quelle', srcP: `Spielgenau zur aktuellen Live-Version (Patch ${missionPatch}). Missionstexte gibt es nur auf Englisch.`,
     rec: 'Datensatz',
   },
   en: {
@@ -85,7 +90,7 @@ const S = {
     bpP: 'This mission can drop blueprints. Which one drops is chance-based — you do not get the whole list.',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
     srcNote: 'There are two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
-    src: 'Source', srcP: 'Game-accurate to the current live build (patch 4.9). Mission text exists in English only.',
+    src: 'Source', srcP: `Game-accurate to the current live build (patch ${missionPatch}). Mission text exists in English only.`,
     rec: 'Record',
   },
 }[lang];
