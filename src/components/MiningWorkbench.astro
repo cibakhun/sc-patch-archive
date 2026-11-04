@@ -89,7 +89,21 @@ const rarIdx = (r: string | null) => {
 const refineries = (MODEL.refineries as any[]).map((r) => ({ n: r.name, s: r.system, p: r.profileId }));
 const profiles = MODEL.refineryProfiles as Record<string, Record<string, number>>;
 
-const minerals = (DB.minerals as any[])
+/* Form eines Erzes in assets/mining-db.json, soweit diese Seite sie liest.
+   Als Annotation, nicht als Cast: tsc prueft den Datenstand gegen diese Form,
+   und alles dahinter (methodsOf, die Kachelgruppen) ist typisiert. Bis
+   04.11.2026 lief DB.minerals als any[] herein. */
+interface MineralFundort {
+  location: string; system: string; type: string; mining: string;
+  chance: number; maxShare: number; eff: number; points?: string[];
+}
+interface MineralSatz {
+  name: string; code: string; kind: string; weight_scu: number | null;
+  method?: string; methods?: string[]; rarity: string | null; needs_refine: boolean;
+  systems?: string[]; locations?: MineralFundort[];
+}
+const mineralSaetze: MineralSatz[] = DB.minerals;
+const minerals = mineralSaetze
   .map((m) => {
     const e = elemByName[m.name] || {};
     return {
@@ -99,7 +113,7 @@ const minerals = (DB.minerals as any[])
       // ms = hoechster Massenanteil ("bis X %"), ef = Erwartungswert des Anteils.
       // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft
       // an allen Fundorten identisch ist.
-      locs: (m.locations || []).map((l: any) => ({
+      locs: (m.locations || []).map((l) => ({
         // `pt` = die realen Anflugpunkte. "Lagrange D" ist fuer sich keine
         // Ortsangabe — angeflogen werden ARC-L3, CRU-L5, MIC-L4. Das Feld lag
         // in den Daten (68 Paare) und wurde hier bisher fallen gelassen.

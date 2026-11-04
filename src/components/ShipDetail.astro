@@ -91,7 +91,7 @@ const extras: ShipExtras = extrasInfo(id);
 // eingefrorenen ATLS-Saetze ("4.9.0-LIVE.12232306") nicht — dort blieb die
 // Spielversion still leer (verify:patch-angaben). Jetzt zaehlt die Fassung
 // X.Y.Z, gleich in welcher Kennungsform.
-const alphaLabelOf = (v) => {
+const alphaLabelOf = (v: string | null | undefined) => {
   const m = /(\d+\.\d+\.\d+)/.exec(v ?? '');
   return m ? `Alpha ${m[1]}` : null;
 };
@@ -2054,7 +2054,7 @@ span.sd__ref{color:var(--muted)}
     id="holo"
     data-media-surface
     aria-label={`${d.name} — Visual`}
-    style={d.lengthM > 0 && d.heightM > 0
+    style={d.lengthM != null && d.heightM != null && d.lengthM > 0 && d.heightM > 0
       ? `--holo-ar:${Math.min(2.20, Math.max(1.55, (d.lengthM / d.heightM) * 0.49)).toFixed(2)}`
       : undefined}
   >
@@ -2266,9 +2266,9 @@ span.sd__ref{color:var(--muted)}
           .holo__grid/.holo__pad oben, hier per Bildpunkt-Audit ergaenzt). */}
       {stageModeCount > 1 && (
         <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
-          {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
-          {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
-          {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
+          {hasVideo && <button type="button" id="btnvid" aria-pressed={defaultMode === 'video' ? 'true' : 'false'}>{t('ship.view.video')}</button>}
+          {hasGallery && <button type="button" id="btnimg" aria-pressed={defaultMode === 'img' ? 'true' : 'false'}>{t('ship.view.img')}</button>}
+          {holoAvail && <button type="button" id="btn3d" aria-pressed={defaultMode === 'holo' ? 'true' : 'false'}>{t('ship.view.3d')}</button>}
         </div>
       )}
     </div>

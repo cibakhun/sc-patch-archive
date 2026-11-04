@@ -512,8 +512,12 @@ export function assertHelpParity(): void {
   }
 
   for (const key of deKeys) {
-    const de = HELP.de[key];
-    const en = HELP.en[key];
+    // Als `string` gelesen: HELP ist `as const`, die beiden Literalmengen sind
+    // heute disjunkt, und tsc hielte den Gleichheitsvergleich unten deshalb
+    // fuer einen Irrtum (TS2367). Er ist aber genau die Laufzeitwache gegen
+    // eine kuenftig vergessene Uebersetzung.
+    const de: string = HELP.de[key];
+    const en: string = HELP.en[key];
     if (!de || !de.trim()) throw new Error(`assertHelpParity: leerer DE-Wert bei Schluessel "${key}"`);
     if (!en || !en.trim()) throw new Error(`assertHelpParity: leerer EN-Wert bei Schluessel "${key}"`);
     if (de === en && !SAME_IN_BOTH.has(key)) {
