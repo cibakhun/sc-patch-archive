@@ -322,20 +322,6 @@ import { layoutList, shipLabel } from './account-layouts';
       // Altlast des früheren Ablaufs (Code im Browser erzeugt) aufräumen.
       try { localStorage.removeItem('vb_rsi_code'); } catch {}
 
-      // Stille Nachprüfung, wenn das Konto verifiziert ist. Nur ein eindeutiges
-      // "Code steht nicht mehr in der Bio" (200, verified:false) nimmt das
-      // Abzeichen — die Function hat es dann schon serverseitig entzogen.
-      if (profileState.rsi_verified === true && profileState.rsi_handle) {
-        (async () => {
-          const r = await rsiCall({ action: 'verify' });
-          if (r.status === 200 && r.data && r.data.verified === false) {
-            console.warn('Re-verification: RSI bio code missing, badge revoked server-side.');
-            profileState.rsi_verified = false;
-            updateCard();
-          }
-        })();
-      }
-
       // Populate Inputs
       const nameInput = document.getElementById('pfName') as HTMLInputElement;
       const handleInput = document.getElementById('pfHandle') as HTMLInputElement;
@@ -714,6 +700,23 @@ import { layoutList, shipLabel } from './account-layouts';
       });
 
       updateCard();
+
+      // Stille Nachprüfung, wenn das Konto verifiziert ist. Nur ein eindeutiges
+      // "Code steht nicht mehr in der Bio" (200, verified:false) nimmt das
+      // Abzeichen — die Function hat es dann schon serverseitig entzogen.
+      // Steht HINTER der Deklaration von updateCard: vorher rief der Block die
+      // Funktion vor ihrer `const`-Zeile auf (TS2448). Das ging nur gut, weil
+      // zwischen beiden Stellen kein await lag.
+      if (profileState.rsi_verified === true && profileState.rsi_handle) {
+        (async () => {
+          const r = await rsiCall({ action: 'verify' });
+          if (r.status === 200 && r.data && r.data.verified === false) {
+            console.warn('Re-verification: RSI bio code missing, badge revoked server-side.');
+            profileState.rsi_verified = false;
+            updateCard();
+          }
+        })();
+      }
 
       // ---- Preset-Highlights an den geladenen Profil-Zustand angleichen ----
       // (früher hart auf idx===0; jetzt spiegeln sie den echten gespeicherten Wert)

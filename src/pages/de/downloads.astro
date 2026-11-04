@@ -20,23 +20,23 @@ const files = fs.existsSync(assetsDir)
   ? fs.readdirSync(assetsDir).filter((f) => IMG_EXT.has(path.extname(f).toLowerCase()))
   : [];
 
-const bytesOf = (f) => fs.statSync(path.join(assetsDir, f)).size;
-const fmtSize = (b) =>
+const bytesOf = (f: string) => fs.statSync(path.join(assetsDir, f)).size;
+const fmtSize = (b: number) =>
   b >= 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
 
 // Vorschau-URL: WebP-Thumb wenn vorhanden, sonst Original (z. B. SVG).
-const thumbOf = (f) => {
+const thumbOf = (f: string) => {
   const t = f.replace(/\.[^.]+$/, '') + '.webp';
   return fs.existsSync(path.join(thumbDir, t)) ? `/assets/thumb/${t}` : `/assets/${f}`;
 };
 
 // Kategorien in Anzeige-Reihenfolge; erste passende Regel gewinnt.
 const CATS = [
-  { id: 'ships', label: 'Schiffe & Motive', match: (f) => f.startsWith('img-') },
-  { id: 'video', label: 'Video-Standbilder', match: (f) => f.startsWith('vid-') },
-  { id: 'trailer', label: 'Patch-Trailer', match: (f) => f.startsWith('trailer-') },
-  { id: 'cz', label: 'Contested Zones', match: (f) => f.startsWith('cz-') },
-  { id: 'topics', label: 'Themen & Guides', match: (f) => f.startsWith('t-') },
+  { id: 'ships', label: 'Schiffe & Motive', match: (f: string) => f.startsWith('img-') },
+  { id: 'video', label: 'Video-Standbilder', match: (f: string) => f.startsWith('vid-') },
+  { id: 'trailer', label: 'Patch-Trailer', match: (f: string) => f.startsWith('trailer-') },
+  { id: 'cz', label: 'Contested Zones', match: (f: string) => f.startsWith('cz-') },
+  { id: 'topics', label: 'Themen & Guides', match: (f: string) => f.startsWith('t-') },
   { id: 'other', label: 'Sonstige', match: () => true },
 ];
 
@@ -78,12 +78,13 @@ const ONEPAGERS = [
     desc: 'Ablauf, Karten (Farro & Lazarus) und Ziele der Storm-Breaker-Jagd auf den Apex-Valakkar.',
   },
 ]
-  .map((o) => {
+  // flatMap statt map + filter(Boolean): der Filter liess `null` im Typ stehen,
+  // und jede Karte unten war fuer tsc "possibly null" (TS18047).
+  .flatMap((o) => {
     const file = `onepager-${o.slug}.html`;
     const abs = path.join(dlDir, file);
-    return fs.existsSync(abs) ? { ...o, file, bytes: fs.statSync(abs).size } : null;
-  })
-  .filter(Boolean);
+    return fs.existsSync(abs) ? [{ ...o, file, bytes: fs.statSync(abs).size }] : [];
+  });
 
 const desc = `Download-Bereich von VerseBase: alle ${totalImgs} Bild-Medien der Seite (Schiffs-Renders, Themen-Bilder, Patch-Trailer-Standbilder) einzeln herunterladen — plus die visuellen Onepager-Guides als eigenständige Offline-HTML-Datei.`;
 ---

@@ -94,7 +94,9 @@ const minerals = (DB.minerals as any[])
     const e = elemByName[m.name] || {};
     return {
       name: m.name, code: m.code, kind: m.kind,
-      rarity: m.rarity || null, method: m.method, methods: m.methods || [],
+      // method/methods ausdruecklich typisiert: DB.minerals laeuft als any[] herein,
+      // und ohne Typ waren methodsOf() und alles dahinter ungeprueft (TS7006).
+      rarity: m.rarity || null, method: m.method as string | undefined, methods: (m.methods || []) as string[],
       refine: !!m.needs_refine, systems: m.systems || [], scu: m.weight_scu,
       // ms = hoechster Massenanteil ("bis X %"), ef = Erwartungswert des Anteils.
       // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft

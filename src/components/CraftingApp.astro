@@ -46,6 +46,9 @@ const S = {
     calcYieldRate: 'Ausbeute-Rate', calcReset: 'Rechner zurücksetzen', calcTitle: 'Effiziente Items zum Zerlegen',
     calcTabDb: 'Blueprint-Datenbank', calcTabCalc: 'Zerlegungs-Rechner (Dismantle)',
     calcItemSearch: 'Suche: Item-Name…',
+    // Stand bis 04.11.2026 in JS_T, das Feld las aber S: der Platzhalter
+    // fehlte im Zerlege-Rechner (astro check, TS2339).
+    calcSearchPlaceholder: 'Material suchen…',
     calcMethod: 'Geschätzte Ausbeute anhand der Rezeptdaten und berechneten Effizienz. Die tatsächliche Ausbeute im Spiel kann abweichen.',
     calcDataIncomplete: 'Zerlege-Daten unvollständig — die Seltenheits-Markierung der Materialien fehlt gerade, Ausbeuten für seltene Erze können daher zu hoch angezeigt werden. Bitte die Seite neu laden.',
   },
@@ -66,6 +69,7 @@ const S = {
     calcYieldRate: 'Yield Rate', calcReset: 'Reset Calculator', calcTitle: 'Efficient Items to Dismantle',
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
     calcItemSearch: 'Search: item name…',
+    calcSearchPlaceholder: 'Search material…',
     calcMethod: 'Estimated yield based on recipe data and calculated efficiency. Actual in-game yields may differ.',
     calcDataIncomplete: 'Dismantling data incomplete — the material rarity markers are currently missing, so yields for rare ores may be shown too high. Please reload the page.',
   },
@@ -85,7 +89,6 @@ const JS_T = {
     noMission: 'Keine Missions-Quelle in den Daten — evtl. über andere Wege (Shop/Reputation) erhältlich.',
     fireMode: 'Feuermodus', added: 'hinzugefügt',
     planEmpty: 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.',
-    calcSearchPlaceholder: 'Material suchen...',
     calcSelectPrompt: 'Bitte wähle mindestens ein Material aus oder suche oben nach einem Item-Namen.',
     calcNoResults: 'Keine Items für diese Auswahl gefunden.',
     calcWarningRareBycatch: 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.',
@@ -117,7 +120,6 @@ const JS_T = {
     noMission: 'No mission source in the data — may be obtainable another way (shop/reputation).',
     fireMode: 'Fire mode', added: 'added',
     planEmpty: 'No blueprints in the planner yet. Use “＋” on a card to add.',
-    calcSearchPlaceholder: 'Search material...',
     calcSelectPrompt: 'Please select at least one material or search for an item name above.',
     calcNoResults: 'No items found for this selection.',
     calcWarningRareBycatch: 'This item contains {name}, but it cannot be obtained by dismantling.',

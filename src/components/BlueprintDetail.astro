@@ -50,9 +50,11 @@ const effect = (v: number, mult: boolean) =>
 // nicht die des JSON — sonst wechselt sie mit jedem Datenlauf.
 const MIN_ORDER = ['optimal_charge_window_size', 'optimal_charge_window_rate', 'catastrophic_charge_window_rate',
   'instability', 'resistance', 'shatter_damage', 'cluster_factor', 'filter'] as const;
+// Typ-Waechter mit dem Schluessel als Literal: so prueft tsc, dass jedes Glied
+// von MIN_ORDER sein Label `bpMin_<k>` im Katalog hat.
 const minMods = MIN_ORDER
-  .map((k) => [k, (stats.mining_modifiers as Record<string, { value: number; mode: string }> | undefined)?.[k]] as const)
-  .filter((p): p is readonly [string, { value: number; mode: string }] => !!p[1]);
+  .map((k) => [k, stats.mining_modifiers?.[k]] as const)
+  .filter((p): p is readonly [(typeof MIN_ORDER)[number], { value: number; mode: string }] => !!p[1]);
 
 const tempRes = stats.temperature_resistance;
 const dmgRes = stats.damage_resistance;
@@ -178,7 +180,7 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
             Spiel nebeneinander — ohne die Unterscheidung waere "+20" gegen
             "-15,5 %" nicht lesbar. */}
         {minMods.map(([k, m]) => (
-          <li class="dp-stat"><b>{t('bpMin_' + k)}</b><span>{m.value > 0 ? '+' : ''}{num(m.value, lang)}{m.mode === 'multiplikativ' ? ' %' : ''}</span></li>
+          <li class="dp-stat"><b>{t(`bpMin_${k}`)}</b><span>{m.value > 0 ? '+' : ''}{num(m.value, lang)}{m.mode === 'multiplikativ' ? ' %' : ''}</span></li>
         ))}
         {stats.mass_kg != null && <li class="dp-stat"><b>{t('bpMass')}</b><span>{num(stats.mass_kg, lang)} kg</span></li>}
         {stats.overheat_temperature != null && <li class="dp-stat"><b>{t('bpOverheat')}</b><span>{num(stats.overheat_temperature, lang)} °C</span></li>}
