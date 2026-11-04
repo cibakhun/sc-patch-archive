@@ -8,6 +8,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, join, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ROHTEXT_RE, PLATZHALTERWERT_RE, decodeEntities } from './lib/textregeln.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(__dirname, '..', 'dist');
@@ -151,22 +152,14 @@ const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]
 // rohe Spielplatzhalter wie „Eliminate {TargetName}", auf der Wikelo-Seite
 // „1× null". Geprueft wird jetzt jede Textstelle einzeln — Textknoten plus die
 // Attribute, die gelesen oder vorgelesen werden (alt, title, aria-label,
-// content, placeholder). Bewusst eng gefasst, weil Fehlalarme teurer sind als Luecken:
-//   - NaN / undefined als ganzes Wort (beides ist nie Fliesstext),
-//   - null nur neben einem Vergleichs- oder Mengenzeichen — „null" allein ist
-//     im Deutschen ein Wort,
-//   - {GrossGeschrieben} — die Form der Spielplatzhalter (Missionen zeigen sie
-//     als gestaltete Marker, nie in Klammern),
-//   - %schluessel% — eine Fuellstelle, die t()/fill() nicht ersetzt hat,
-//   - ReputationStanding_ — interne Rangschluessel ohne Anzeigenamen.
-const ROHTEXT_RE = /\b(?:NaN|undefined)\b|[×≠≥≤<>=]\s*null\b|\bnull\s*[×≠≥≤<>=]|\{[A-Z][A-Za-z0-9]*\}|%[a-z][a-zA-Z]*%|\bReputationStanding_/;
+// content, placeholder). Die Regeln selbst (ROHTEXT_RE, PLATZHALTERWERT_RE)
+// stehen seit 04.11.2026 in scripts/lib/textregeln.mjs, weil verify:clienttext
+// den clientseitig gerenderten Text nach DENSELBEN Regeln prueft; Begruendung
+// jeder Regel dort.
 const ROHTEXT_ATTR_RE = /\s(?:alt|title|aria-label|content|placeholder)="([^"]*)"/g;
-const decodeEntities = (s) => s
-  .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
-  .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-  .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
 let rohtextStellen = 0;
 const rohtextHits = [];
+const platzhalterwertHits = [];
 const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
 
@@ -294,7 +287,13 @@ for (const f of htmlFiles) {
   // auskommentierter Block waere kein sichtbarer Text.
   const ohneKommentare = markup.replace(/<!--[\s\S]*?-->/g, ' ');
   const stellen = [];
-  for (const m of ohneKommentare.matchAll(/>([^<]+)</g)) stellen.push(m[1]);
+  for (const m of ohneKommentare.matchAll(/>([^<]+)</g)) {
+    stellen.push(m[1]);
+    if (PLATZHALTERWERT_RE.test(decodeEntities(m[1]))) {
+      const at = Math.max(0, m.index - 120);
+      platzhalterwertHits.push(`${page}: „-1" als Wert nach „${decodeEntities(ohneKommentare.slice(at, m.index + 1).replace(/^[^<]*>/, "").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim().slice(-40)}"`);
+    }
+  }
   for (const m of ohneKommentare.matchAll(ROHTEXT_ATTR_RE)) stellen.push(m[1]);
   for (const roh of stellen) {
     if (!roh.trim()) continue;
@@ -708,6 +707,7 @@ if (rohtextStellen < ROHTEXT_KLINKE) {
   errors.push(`Rohtext-Pruefung unter der Klinke (${rohtextStellen})`);
 }
 section('FEHLER Rohtext im sichtbaren Text (NaN, null, {Platzhalter}, %schluessel%)', rohtextHits, errors);
+section('FEHLER Platzhalterwert -1 als angezeigter Wert', platzhalterwertHits, errors);
 section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
 section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
 section('FEHLER Rechnerpfad im Ausgelieferten', machinePathHits, errors);

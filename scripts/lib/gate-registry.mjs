@@ -396,7 +396,12 @@ export const CHECKS = [
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',
     rail: 'A',
-    checks: 'Publish-Audit ueber alle gebauten Seiten: tote Links und Anker, Sprachumschalter-Ziele, Sitemap gegen Build, Platzhalter, Rohtext je Textstelle (NaN, undefined, null neben Vergleichs- und Mengenzeichen, rohe {Spielplatzhalter}, ungefuellte %schluessel%, interne Rangschluessel; Klinke fuer die Zahl der Textstellen), Mojibake, A11y-Basics — und die Datenherkunfts-Regel, die es als einziges Tor traegt',
+    checks: 'Publish-Audit ueber alle gebauten Seiten: tote Links und Anker, Sprachumschalter-Ziele, Sitemap gegen Build, Platzhalter, Rohtext je Textstelle (NaN, undefined, null neben Vergleichs- und Mengenzeichen, rohe {Spielplatzhalter}, ungefuellte %schluessel%, interne Rangschluessel; Klinke fuer die Zahl der Textstellen), Platzhalterwert "-1" als ganzer Textknoten, Mojibake, A11y-Basics — und die Datenherkunfts-Regel, die es als einziges Tor traegt',
+    // Platzhalterwert "-1" (Neuzugang 04.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau von origin/staging d76478f2: 182 Missionsseiten (91 je
+    // Sprache) mit "Spieler je Instanz: -1". Die erste Fassung meldete dazu
+    // 2 Raffinerie-Zellen "−1" (U+2212, bewusst gesetztes Delta neben "+2")
+    // und wurde auf den ASCII-Bindestrich verengt, den String(-1) liefert.
   },
   {
     id: 'verify:mining',
@@ -474,6 +479,63 @@ export const CHECKS = [
     // src/lib/patchPages.ts). Gegenprobe danach: Item-Kennung in
     // assets/universal-items.json auf 4.11.0 gehoben, ohne neu zu bauen — rot,
     // genau der Fall "Datenlauf hebt die Datei, die Seite bleibt".
+  },
+
+  {
+    // Neuzugang 04.11.2026 — direkt nach den Patch-Angaben: dieselbe Frage
+    // ("stimmt, was die Seite sagt?"), andere Achse (Sprache statt Stand).
+    // Anlass: alle 231 deutschen Schiffsseiten zeigten Leistungsprofil,
+    // Quantum, Versicherung und Kaufpreise englisch und im englischen
+    // Zahlformat, 284 deutsche Seiten insgesamt englische Oberflaechentexte;
+    // verify:sync vergleicht nur die Geruestform, audit:site nur <html lang>.
+    // Kein git, kein Netz, kein Kindprozess im Skript — liest dist/, src/ und
+    // die i18n-Kataloge (mit esbuild gebuendelt wie bei verify:crafting).
+    id: 'verify:sprache',
+    npm: 'verify:sprache',
+    script: 'scripts/verify-sprache.mjs',
+    rail: 'A',
+    checks:
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), kein Katalogschluessel als Text, kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
+    // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
+    // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
+    // deutsche Schiffsseiten "Claim time", "Quantum speed" …), 805 englische
+    // Zahlen auf deutschen Schiffsseiten ("1,508,220 aUEC"), 4 "The The",
+    // 16 stille Standardsprachen in src/. Gruen nach der Korrektur derselben
+    // Lieferung. Regel 4 (Rohschluessel) vorgefuehrt am gruenen Bau mit
+    // zwei eingesetzten Textknoten "ship.sheet.title" (/de/schiffe/…) und
+    // "breadcrumbItems" (/item-finder.html): 2 FEHLER, beide Formen
+    // (Punkt-Schluessel und camelCase-Katalogschluessel). Den Weg dorthin
+    // versperrt seit derselben Lieferung der Bau selbst: t()/itemT() brechen
+    // bei unbekanntem Schluessel ab (tests/e2e/i18n-strikt.test.js, gegen
+    // den alten Rueckfall rot: "Missing expected exception").
+    // Regel 7 (deutsches Funktionswort auf EN-Seite) kam in derselben
+    // Lieferung dazu, rot am eigenen Zwischenbau: 1 FEHLER, „0 Items
+    // gefunden" als Startwert des Zerlege-Rechners auf /topics/crafting.html
+    // — ueber 8.880 EN-Seiten der einzige Fund.
+    // Gegenprobe gegen den Stand vor PR #289 (4f4f4ddd, Live-Bau): 3.033
+    // FEHLER, dieselben Klassen plus 5 deutsche Zweitnamen auf EN-Item-
+    // Seiten ohne lang-Attribut (seitdem lang="de" am Zweitnamen).
+  },
+  {
+    // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
+    // den Text, den der Item Finder erst im Browser baut. Kein git, kein
+    // Netz, kein Kindprozess — fuehrt das ausgelieferte Skript in node:vm aus
+    // und liest dist/.
+    id: 'verify:clienttext',
+    npm: 'verify:clienttext',
+    script: 'scripts/verify-clienttext.mjs',
+    rail: 'A',
+    checks:
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter}, "-1" als Wert), ohne Katalogtext der anderen Sprache, mit Zahlen im eigenen Format und ohne Rohschluessel; jeder woertliche tr()-Schluessel des Skripts steht im Katalog beider Sprachen; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen und Schluessel',
+    // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
+    // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
+    // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
+    // vom 03.11.2026, den bis dahin keine Pruefung sehen konnte. Gegen
+    // origin/staging d76478f2 dazu 597 englische Bezugsarten im Tooltip der
+    // deutschen Karten. Gruen nach der Korrektur. Gegenprobe gegen den
+    // ganzen Stand vor PR #289 (4f4f4ddd, Skript und Bau): 719 FEHLER =
+    // 122 NaN + 597 Bezugsarten.
   },
 
   // ---------------------------------------------------------------
