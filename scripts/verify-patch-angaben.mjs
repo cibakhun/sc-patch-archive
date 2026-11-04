@@ -190,10 +190,12 @@ const angabenDerSeite = (html, rel) => {
   }
   const bodyStart = html.indexOf('<body');
   const body = (bodyStart >= 0 ? html.slice(bodyStart) : html)
-    .replace(/<script\b[\s\S]*?<\/script>/g, ' ')
-    .replace(/<style\b[\s\S]*?<\/style>/g, ' ')
-    .replace(/<template\b[\s\S]*?<\/template>/g, ' ')
-    .replace(/<!--[\s\S]*?-->/g, ' ');
+    // Gross/klein und Leerraum im schliessenden Tag egal, damit kein Skript-
+    // oder Stilblock als "sichtbarer Text" durchrutscht.
+    .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, ' ')
+    .replace(/<template\b[\s\S]*?<\/template\b[^>]*>/gi, ' ')
+    .replace(/<!--[\s\S]*?--!?>/g, ' ');
   const text = entities(body.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
   for (const a of angabenIn(text)) out.push({ ...a, wo: 'Text' });
   return out;
