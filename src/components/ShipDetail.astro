@@ -26,6 +26,7 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { patchesFor } from '../lib/patchSpine';
+import { mergePatchEn } from '../i18n/patchText';
 import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
@@ -103,9 +104,12 @@ const loaners = (extras?.loaners ?? []).filter((v) => v.id !== id);
 
 // patch-spine: version -> codename/page (zur Bauzeit aus src/data/patches/, src/lib/patchSpine.ts)
 const patches = await getCollection('patches');
+// In der Sprache der Seite (Codename und Datum): bis 04.11.2026 stand hier
+// auf den englischen Schiffsseiten "9. Oktober 2026" (verify:sprache Regel 8).
 const spine = patchesFor(d.name)
   .map((v) => patches.find((p) => p.data.version === v))
-  .filter(Boolean);
+  .filter(Boolean)
+  .map((p) => ({ id: p!.id, data: mergePatchEn(p!.id, p!.data, lang) }));
 
 const armament = buildArmament(d, lang);
 const armStats = buildArmStats(d, lang);

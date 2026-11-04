@@ -115,7 +115,7 @@
     if (s.resist && typeof s.resist.physical === 'number') { var red = Math.round((1 - s.resist.physical) * 100); return { l: tr('statResist', 'Reduktion'), v: red + '%', n: red }; }
     if (s.ndr) return { l: tr('statNdr', 'NDR'), v: fmtNum(s.ndr) + ' NDR', n: s.ndr };
     if (s.sensitivity) return { l: tr('statSensitivity', 'Empfindlichkeit'), v: fmtNum(s.sensitivity), n: s.sensitivity };
-    if (s.storageScu) return { l: tr('statStorage', 'Stauraum'), v: s.storageScu + ' SCU', n: s.storageScu };
+    if (s.storageScu) return { l: tr('statStorage', 'Stauraum'), v: fmtNum(s.storageScu) + ' SCU', n: s.storageScu };
     if (s.health) return { l: tr('statHealth', 'HP'), v: fmtNum(s.health) + ' HP', n: s.health };
     return null;
   }
@@ -730,7 +730,7 @@
     if (s.radiation) out.push([tr('statRadiation', 'Strahlungsschutz'), fmtNum(s.radiation) + ' REM']);
     if (s.ndr) out.push([tr('statNdr', 'Nährwert (NDR)'), fmtNum(s.ndr)]);
     if (s.effects && s.effects.length) out.push([tr('statEffects', 'Effekte'), s.effects.join(', ')]);
-    if (s.storageScu) out.push([tr('statStorage', 'Stauraum'), s.storageScu + ' SCU']);
+    if (s.storageScu) out.push([tr('statStorage', 'Stauraum'), fmtNum(s.storageScu) + ' SCU']);
     if (s.lifetime) out.push([tr('statLifetime', 'Flugzeit'), fmtNum(s.lifetime) + ' s']);
     if (s.health) out.push([tr('statHealth', 'Bauteil-HP'), fmtNum(s.health)]);
     return out;
@@ -789,7 +789,7 @@
     if (eq && sizeLabel(item)) chips.push([tr('specSize', 'Größe'), sizeLabel(item)]);
     if (g.grade && !g.variants && hasMeaningfulGrade(item)) chips.push([tr('specGrade', 'Grade'), g.grade]);
     if (g.class) chips.push([tr('specClass', 'Klasse'), g.class]);
-    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), g.volumeScu + ' SCU']);
+    if (g.volumeScu) chips.push([tr('specVolume', 'Volumen'), fmtNum(g.volumeScu) + ' SCU']);
     return chips;
   }
 
@@ -810,7 +810,7 @@
     if (bp.ingredients && bp.ingredients.length) {
       ingredients = '<ul>' + bp.ingredients.map(function (ing) {
         var options = (ing.options || []).map(function (opt) {
-          var qty = opt.quantity_scu !== undefined ? opt.quantity_scu + ' SCU' : (opt.quantity !== undefined ? String(opt.quantity) : '');
+          var qty = opt.quantity_scu !== undefined ? fmtNum(opt.quantity_scu) + ' SCU' : (opt.quantity !== undefined ? fmtNum(opt.quantity) : '');
           return esc(opt.name) + (qty ? ' (' + esc(qty) + ')' : '');
         }).join(' / ');
         return '<li><strong>' + esc(ing.slot || 'Material') + ':</strong> ' + options + '</li>';

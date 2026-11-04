@@ -86,7 +86,9 @@ export function specChips(i: Item, lang: Locale): Row[] {
   // Munition und Werkzeugen traegt AttachDef.Grade den Vorgabewert 1 -> "A".
   if (g.grade && !g.variants && hasMeaningfulGrade(i)) out.push([t('specGrade'), g.grade]);
   if (g.class) out.push([t('specClass'), g.class]);
-  if (g.volumeScu) out.push([t('specVolume'), `${g.volumeScu} SCU`]);
+  // Im Zahlformat der Seite (bis 04.11.2026 roh: "0.01 SCU" auf 287
+  // deutschen Item-Seiten; verify:sprache Regel 9).
+  if (g.volumeScu) out.push([t('specVolume'), `${num(g.volumeScu, lang)} SCU`]);
   return out;
 }
 
@@ -151,7 +153,7 @@ export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (s.oxygen) out.push([t('statOxygen'), `${n(s.oxygen)} s`]);
   if (s.ndr) out.push([t('statNdr'), n(s.ndr)]);
   if (s.effects && s.effects.length) out.push([t('statEffects'), s.effects.join(', ')]);
-  if (s.storageScu) out.push([t('statStorage'), `${s.storageScu} SCU`]);
+  if (s.storageScu) out.push([t('statStorage'), `${n(s.storageScu)} SCU`]);
   if (s.lifetime) out.push([t('statLifetime'), `${n(s.lifetime)} s`]);
   if (s.health) out.push([t('statHealth'), n(s.health)]);
   return out;
@@ -182,7 +184,7 @@ export function primaryStat(i: Item, lang: Locale): Row | null {
     return [t('statResist'), `${Math.round((1 - s.resist.physical) * 100)}%`];
   if (s.ndr) return [t('statNdr'), `${n(s.ndr)} NDR`];
   if (s.sensitivity) return [t('statSensitivity'), n(s.sensitivity)];
-  if (s.storageScu) return [t('statStorage'), `${s.storageScu} SCU`];
+  if (s.storageScu) return [t('statStorage'), `${n(s.storageScu)} SCU`];
   if (s.health) return [t('statHealth'), `${n(s.health)} HP`];
   return null;
 }

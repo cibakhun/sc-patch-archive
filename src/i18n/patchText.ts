@@ -2,7 +2,10 @@
 // Der übersetzte Patch-Content liegt in src/data/patches-en.json (index-aligned
 // zu src/data/patches/*.json). mergePatchEn() legt ihn strukturerhaltend über
 // die DE-Daten; strukturelle Felder (version/codename/palette/trailer/kind/
-// topicSlug/period/slug/unverified) bleiben aus DE.
+// topicSlug/slug/unverified) bleiben aus DE. Der Zeitraum eines Events
+// (events[].period) ist KEIN Strukturfeld: er ist deutscher Text ("28. Jan –
+// 28. Feb 2025", "saisonal") und stand bis 04.11.2026 so auf den englischen
+// Patch-Seiten (verify:sprache Regeln 8 und 10).
 import type { CollectionEntry } from 'astro:content';
 import patchesEn from '../data/patches-en.json';
 import type { Locale } from './ui';
@@ -55,6 +58,10 @@ export function mergePatchEn(id: string, data: PatchData, lang: Locale): PatchDa
   if (!en) return data;
   return {
     ...data,
+    // Ueber codenameLabel(): wer mergePatchEn() nimmt, bekommt auch den
+    // englischen Codenamen ("Stabilität & Save Stanton II" stand bis
+    // 04.11.2026 auf sieben EN-Seiten; verify:sprache Regel 10).
+    codename: codenameLabel(id, data.codename, lang),
     tagline: en.tagline ?? data.tagline,
     summary: en.summary ?? data.summary,
     dateDisplay: en.dateDisplayEn ?? data.dateDisplay,
@@ -66,7 +73,7 @@ export function mergePatchEn(id: string, data: PatchData, lang: Locale): PatchDa
       return merged;
     }),
     ships: data.ships.map((s, i) => pick(en.ships, i, s, ['role', 'status', 'notes'])),
-    events: data.events.map((e, i) => pick(en.events, i, e, ['name', 'desc'])),
+    events: data.events.map((e, i) => pick(en.events, i, e, ['name', 'period', 'desc'])),
     fixesNote: en.fixesNote ?? data.fixesNote,
     wipe: en.wipe ?? data.wipe,
     topics: data.topics.map((tp, i) => pick(en.topics, i, tp, ['title'])),

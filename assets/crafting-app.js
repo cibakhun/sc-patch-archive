@@ -134,6 +134,11 @@
   // ---- Data (async; UI works without it, enriched once loaded) ----
   var DB = null;
   var MISSIONS = null; // id -> {id,name,pool:[{i,dc}]}
+  // Anzeigename einer Mission: Titel mit Spielplatzhaltern ("Wanted:
+  // {TargetName}") kommen bereinigt aus window.__CRAFT.missionTitles (seoTitle()
+  // in lib/missions, wie die statischen Blueprint-Seiten).
+  var MISSION_TITLES = CFG.missionTitles || {};
+  function missionName(n) { return MISSION_TITLES[n] || n; }
   var pendingBpName = null; // vorgemerkter Blueprint, falls DB beim Sprung noch lädt
   fetch(CFG.dbUrl).then(function (r) { return r.json(); }).then(function (j) {
     DB = j;
@@ -1021,6 +1026,10 @@
     if (a >= 10) return Math.round(v * 10) / 10;
     return Math.round(v * 100) / 100;
   }
+  // Gerundet UND im Zahlformat der Seite: bis 04.11.2026 gingen die
+  // Simulationswerte roh in den Text ("0.5" auf der deutschen Seite;
+  // verify:clienttext, Teil 2).
+  function fmtSmart(v) { return roundSmart(v).toLocaleString(LOC, { maximumFractionDigits: 2 }); }
 
   function renderBlueprint(i) {
     var b = DB.blueprints[i];
@@ -1080,7 +1089,7 @@
       html += '<ul class="cbm__mis">';
       b.missions.forEach(function (m) {
         var dc = m.drop_chance != null ? Math.round(m.drop_chance * 100) + '%' : '';
-        html += '<li><button type="button" class="cbm__mlink" data-mkey="' + esc(missionKey(m)) + '"><span>' + esc(m.name) + '</span></button>' + (dc ? '<b>' + dc + '</b>' : '') + '</li>';
+        html += '<li><button type="button" class="cbm__mlink" data-mkey="' + esc(missionKey(m)) + '"><span>' + esc(missionName(m.name)) + '</span></button>' + (dc ? '<b>' + dc + '</b>' : '') + '</li>';
       });
       html += '</ul>';
     } else {
@@ -1127,12 +1136,12 @@
           var result = base * e.mul;
           var pct = Math.round((e.mul - 1) * 1000) / 10;
           return '<div class="cbm__ostat"><span>' + esc(k) + (indexed ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
-            '<b><span class="cbm__b0">' + roundSmart(base) + '</span> → <span class="cbm__b1">' + roundSmart(result) + '</span> ' +
-            '<em>(' + (pct >= 0 ? '+' : '') + pct + '%)</em></b></div>';
+            '<b><span class="cbm__b0">' + fmtSmart(base) + '</span> → <span class="cbm__b1">' + fmtSmart(result) + '</span> ' +
+            '<em>(' + (pct >= 0 ? '+' : '') + pct.toLocaleString(LOC) + '%)</em></b></div>';
         }
         // additive (base unbekannt) → Delta
         var d = roundSmart(e.add);
-        return '<div class="cbm__ostat"><span>' + esc(k) + '</span><b><span class="cbm__b1">' + (d >= 0 ? '+' : '') + d + '</span></b></div>';
+        return '<div class="cbm__ostat"><span>' + esc(k) + '</span><b><span class="cbm__b1">' + (d >= 0 ? '+' : '') + fmtSmart(e.add) + '</span></b></div>';
       }).join('');
       if (noteEl) {
         noteEl.innerHTML = tr('simNote', 'Absolute Werte live aus den quality_effects (Qualität 0–1000): multiplikativ = Basis × Faktor, additiv = Basis + Wert.') +
@@ -1183,7 +1192,7 @@
     if (!e) { modalBody.innerHTML = '<p class="cbm__note">—</p>'; return; }
     var html = '';
     html += '<div class="cbm__cat">' + tr('missionPoolLabel', 'Missions-Pool') + '</div>';
-    html += '<h2 class="cbm__name">' + esc(e.name) + '</h2>';
+    html += '<h2 class="cbm__name">' + esc(missionName(e.name)) + '</h2>';
     html += '<p class="cbm__note cbm__hint">' + tr('poolIntro', 'Alle Blueprints, die diese Mission droppen kann — Blueprint anklicken für Details.') + ' <span class="cbm__c">' + e.pool.length + '</span></p>';
     html += '<ul class="cbm__pool">';
     e.pool.forEach(function (p) {
