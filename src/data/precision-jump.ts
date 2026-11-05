@@ -6,22 +6,37 @@
 //
 // Herkunft (transparent, drei Ebenen):
 //  1. Aaron-Halo-HÜLLE (Innen-/Mittel-/Außenkante + vertikale Dicke) = GAME-
-//     SOURCED aus Data.p4k 4.9 (aaronhalo.socpak) via scripts/datamine-aaron-halo.mjs
+//     SOURCED aus den Spieldateien (aaronhalo.socpak) via scripts/datamine-aaron-halo.mjs
 //     -> assets/aaron-halo-gamefiles.json. Siehe AH_GAME_ENVELOPE.
 //  2. Die feinen 10 Dichtebänder = cstone.space-Community-Vermessung (~Patch 3.16).
 //     Sie liegen INNERHALB der game-sourced Hülle (validiert), sind aber selbst
 //     kein sauberer Spielwert -> Ehrlichkeitsmarker im UI.
-//  3. QT-Anker-Koordinaten (Planeten/Monde/Lagrange) = GAME-SOURCED aus Data.p4k
-//     4.9 (stantonsystem.socpak OOC_*-Platzierungen). Jordesseys Einsendung war
+//  3. QT-Anker-Koordinaten (Planeten/Monde/Lagrange) = GAME-SOURCED aus den
+//     Spieldateien (stantonsystem.socpak OOC_*-Platzierungen). Jordesseys Einsendung war
 //     die Vorlage und deckt sich fast überall auf den Meter; einzelne Punkte
 //     (z. B. MIC-L5) korrigiert der Spielwert. Stations-Aliase lösen weiterhin
 //     bewusst auf das (game-sourced) Planetenzentrum auf.
 // Alle Werte sind PATCH-VOLATIL — im Spiel gegenprüfen.
 //
+// Datenstand: beide Dateien tragen die Client-Kennung des Auslese-Laufs
+// (gameVersion). Die Seite nennt den Patch NUR aus dieser Kennung (PJ_PATCH);
+// verify:patch-angaben haelt die Angabe gegen die Daten, verify:datastand die
+// Kennung gegen die uebrigen Datenstaende. Erstmals erhoben 4.9, am 05.11.2026
+// gegen 4.10.2 (CL 12913470) nachvermessen: Werte byte-gleich.
+//
 // Geometrie-Kern (Strahl-Kugel-Schnitt) lebt bewusst NUR im Client-JS der
 // Komponente — der Server rendert Auswahl/Tabellen, der Client rechnet live.
 import halo from '../../assets/aaron-halo-gamefiles.json';
 import anchorsData from '../../assets/stanton-anchors-gamefiles.json';
+
+/** Patch des Auslese-Laufs (X.Y.Z aus der Client-Kennung der Halo-Daten). */
+export const PJ_PATCH: string = (() => {
+  const v = halo.gameVersion.match(/\d+\.\d+\.\d+/)?.[0];
+  if (!v || anchorsData.gameVersion !== halo.gameVersion) {
+    throw new Error(`Präzisionssprung: Halo (${halo.gameVersion}) und QT-Anker (${anchorsData.gameVersion}) brauchen dieselbe Client-Kennung mit Fassung X.Y.Z.`);
+  }
+  return v;
+})();
 
 export type DensityClass = 'low' | 'medium-low' | 'medium' | 'high';
 
@@ -77,7 +92,7 @@ export const ORBITAL_STATION_ANCHORS: Record<
   portTressler: { name: 'Port Tressler', canonicalAnchor: 'microTech', note: 'Uses microTech centre' },
 };
 
-// -- Körper- + Lagrange-Zentren: GAME-SOURCED aus Data.p4k 4.9 ----------------
+// -- Körper- + Lagrange-Zentren: GAME-SOURCED aus den Spieldateien ------------
 // (stantonsystem.socpak OOC_*-Container-Platzierungen, via
 //  scripts/datamine-stanton-anchors.mjs -> assets/stanton-anchors-gamefiles.json).
 // Weltkoordinaten in Metern, volle Präzision aus den Spieldateien.
@@ -87,7 +102,7 @@ export const BODY_CENTRES = anchorsData.bodies as unknown as Record<string, Body
 export const LAGRANGE_CENTRES = anchorsData.lagrange as unknown as Record<string, LagRec>;
 
 /**
- * Game-sourced Aaron-Halo-Hülle aus Data.p4k 4.9 (aaronhalo.socpak): die echten
+ * Game-sourced Aaron-Halo-Hülle aus den Spieldateien (aaronhalo.socpak): die echten
  * radialen Kanten + vertikale Dicke des Rings, wie das Spiel sie definiert. Die
  * feinen 10 Dichtebänder (cstone-Vermessung) liegen innerhalb dieser Grenzen.
  */
@@ -96,7 +111,7 @@ export const AH_GAME_ENVELOPE = {
   middleKm: halo.middleKm,
   outerEdgeKm: halo.outerEdgeKm,
   verticalHalfThicknessKm: halo.verticalHalfThicknessKm,
-  source: 'Patch 4.9',
+  source: `Patch ${PJ_PATCH}`,
 } as const;
 
 export const AH_BAND_METADATA = {
@@ -109,7 +124,7 @@ export const AH_BAND_METADATA = {
   /** die 10 feinen Dichtebänder: cstone.space-Community-Vermessung */
   bandSurveySource: 'cstone.space (~3.16)',
   /** die Ring-Hülle (Kanten + Dicke): spielgenau für den aktuellen Patch */
-  envelopeSource: 'Patch 4.9',
+  envelopeSource: `Patch ${PJ_PATCH}`,
   status: 'game-envelope + community-density-bands' as const,
 } as const;
 

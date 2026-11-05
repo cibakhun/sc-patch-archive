@@ -8,6 +8,7 @@ import {
   AH_BAND_INFO,
   AH_BAND_METADATA,
   AH_GAME_ENVELOPE,
+  PJ_PATCH,
   buildAnchorRecords,
   getBandMetrics,
   type AnchorRecord,
@@ -83,7 +84,7 @@ const S = {
     gameHalo: 'Aaron-Halo-Hülle',
     gameHaloSep: 'Innen',
     honesty:
-      'QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind spielgenau, ausgelesen in Patch 4.9 und seitdem nicht neu vermessen; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.',
+      `QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind spielgenau, ausgelesen in Patch ${PJ_PATCH}; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.`,
   },
   en: {
     solver: 'Route solver',
@@ -142,7 +143,7 @@ const S = {
     gameHalo: 'Aaron Halo envelope',
     gameHaloSep: 'inner',
     honesty:
-      'QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate, read out in patch 4.9 and not re-surveyed since; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.',
+      `QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate, read out in patch ${PJ_PATCH}; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.`,
   },
 }[lang];
 

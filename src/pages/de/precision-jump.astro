@@ -13,7 +13,7 @@ import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import PrecisionJumpApp from '../../components/PrecisionJumpApp.astro';
-import { buildAnchorRecords, AH_BAND_INFO } from '../../data/precision-jump';
+import { buildAnchorRecords, AH_BAND_INFO, PJ_PATCH } from '../../data/precision-jump';
 import { versioned } from '../../lib/assetVersion';
 
 const anchorCount = buildAnchorRecords().length;
@@ -61,7 +61,7 @@ const bandCount = bands.length;
   <header class="alm">
     <nav class="alm__series" aria-label="Brotkrumen"><a href="/de/topics/mining.html">Mining</a></nav>
     <h1 class="alm__title">Aaron Halo</h1>
-    <p class="alm__sub">Wo du den Quantenflug verlässt, um im gewünschten Asteroidenband zu landen · Stanton · Datenstand 4.9</p>
+    <p class="alm__sub">Wo du den Quantenflug verlässt, um im gewünschten Asteroidenband zu landen · Stanton · Datenstand Patch {PJ_PATCH}</p>
   </header>
 
   <PrecisionJumpApp lang="de" />
