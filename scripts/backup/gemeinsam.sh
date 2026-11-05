@@ -70,13 +70,13 @@ cli_skript() {
   local ziel="$1"; shift
   local roh="$ziel.roh"
   # ausserhalb des Repos aufrufen: die CLI legt im Arbeitsordner supabase/.temp an
-  ( cd "${TMPDIR:-/tmp}" && "$SUPABASE_BIN" db dump --db-url "$URL_OHNE_PASSWORT" --dry-run "$@" ) > "$roh" 2>/dev/null \
-    || fehler "supabase db dump --dry-run $* schlug fehl"
+  ( cd "${TMPDIR:-/tmp}" && "$SUPABASE_BIN" db dump --db-url "$URL_OHNE_PASSWORT" --dry-run "$@" ) > "$roh" 2> "$roh.err" \
+    || { tail -20 "$roh.err" >&2; fehler "supabase db dump --dry-run $* schlug fehl"; }
   grep -Eq '^(pg_dump|pg_dumpall) \\$' "$roh" || fehler "CLI-Skript ($*) ohne pg_dump-Aufruf — Format geaendert?"
   grep -Eq '^    --role "postgres" \\$' "$roh" || fehler "CLI-Skript ($*) ohne --role-Zeile — Format geaendert, Filter pruefen"
   sed -E '/^export PG[A-Z]+=/d; /^    --role "postgres" \\$/d' "$roh" > "$ziel"
   ! grep -Eq -- '--role[ =]' "$ziel" || fehler "CLI-Skript ($*) enthaelt nach dem Filtern noch --role"
-  rm -f "$roh"
+  rm -f "$roh" "$roh.err"
 }
 
 sha256() { sha256sum "$1" | cut -d' ' -f1; }

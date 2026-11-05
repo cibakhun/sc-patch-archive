@@ -26,6 +26,9 @@ source "$(dirname "${BASH_SOURCE[0]}")/gemeinsam.sh"
 ZIEL="${1:?Zielordner fehlt}"
 mkdir -p "$ZIEL"
 ZIEL="$(cd "$ZIEL" && pwd)"
+# nur in einen leeren Ordner: Reste eines frueheren Laufs (etwa eine inzwischen
+# geloeschte Storage-Datei) kaemen sonst ungeprueft mit ins Archiv
+[ -z "$(ls -A "$ZIEL")" ] || fehler "Zielordner $ZIEL ist nicht leer"
 SKRIPTE="$(mktemp -d)"
 trap 'rm -rf "$SKRIPTE"' EXIT
 

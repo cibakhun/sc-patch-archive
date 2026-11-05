@@ -1,7 +1,7 @@
 # Sonde, kein Tor (wie probe-gate-e2e.yml): fuehrt den GANZEN Backup-Lauf
 # vor — sichern, Wiederherstellung in einen abgeschotteten Stack, Vergleich,
-# Verschluesselung — gegen eine ERFUNDENE Quelle, und fuehrt den Vergleich
-# einmal absichtlich rot vor. Ablauf: docs/betrieb/datenbank-backup.md
+# Verschluesselung — gegen eine ERFUNDENE Quelle, und fuehrt jede Stufe des
+# Vergleichs einmal absichtlich rot vor. Ablauf: docs/betrieb/datenbank-backup.md
 #
 # WARUM HIER UND NICHT MIT LIVE: Dieses Repo ist oeffentlich, seine Logs auch.
 # Der echte Lauf gegen Live laeuft nur im privaten Backup-Repo, mit dessen
@@ -86,14 +86,32 @@ jobs:
           node scripts/verify-backup.mjs vergleich "$RUNNER_TEMP/offen" "$RUNNER_TEMP/lauf/probe"
           echo "Archiv mit dem Betreiber-Schluessel geoeffnet, Inhalt unversehrt"
 
-      - name: Gegenprobe — der Vergleich muss eine fehlende Zeile finden
+      # Drei Gegenproben, jede gegen eine andere Stufe des Vergleichs. Jede
+      # muss ROT werden und genau ihre Meldung bringen, sonst ist die Stufe
+      # leergelaufen. Sicherung und Probe selbst bleiben unberuehrt (Kopien).
+      - name: Gegenproben — der Vergleich muss jede Abweichung finden
         run: |
-          kopie="$RUNNER_TEMP/gegenprobe"
-          cp -r "$RUNNER_TEMP/offen" "$kopie"
-          # erste Datenzeile von public.favorites entfernen
-          awk 'f==1 {f=2; next} /^COPY "public"."favorites" /{f=1} {print}' "$RUNNER_TEMP/offen/data.sql" > "$kopie/data.sql"
-          if node scripts/verify-backup.mjs vergleich "$kopie" "$RUNNER_TEMP/lauf/probe" > "$RUNNER_TEMP/gegenprobe.log" 2>&1; then
-            cat "$RUNNER_TEMP/gegenprobe.log"; echo "Gegenprobe GRUEN — der Vergleich laeuft leer"; exit 1
-          fi
-          grep -q 'data.sql: sha256 weicht vom Manifest ab' "$RUNNER_TEMP/gegenprobe.log"
-          echo "Gegenprobe rot wie erwartet:"; grep FEHLER "$RUNNER_TEMP/gegenprobe.log"
+          zeile_weg() { awk 'f==1 {f=2; next} /^COPY "public"."favorites" /{f=1} {print}' "$1"; }
+          gegenprobe() {  # <name> <sicherung> <probe> <erwartete Meldung>
+            if node scripts/verify-backup.mjs vergleich "$2" "$3" > "$RUNNER_TEMP/$1.log" 2>&1; then
+              cat "$RUNNER_TEMP/$1.log"; echo "Gegenprobe $1 GRUEN — diese Stufe laeuft leer"; exit 1
+            fi
+            grep -qF "$4" "$RUNNER_TEMP/$1.log" || { cat "$RUNNER_TEMP/$1.log"; echo "Gegenprobe $1: Meldung \"$4\" fehlt"; exit 1; }
+            echo "Gegenprobe $1 rot wie erwartet:"; grep FEHLER "$RUNNER_TEMP/$1.log"
+          }
+          probe="$RUNNER_TEMP/lauf/probe"
+
+          # 1) Sicherung nachtraeglich veraendert -> Pruefsumme gegen das Manifest
+          cp -r "$RUNNER_TEMP/offen" "$RUNNER_TEMP/g1"
+          zeile_weg "$RUNNER_TEMP/offen/data.sql" > "$RUNNER_TEMP/g1/data.sql"
+          gegenprobe g1 "$RUNNER_TEMP/g1" "$probe" 'data.sql: sha256 weicht vom Manifest ab'
+
+          # 2) Wiederherstellung bringt eine Zeile nicht mit -> Inhaltsvergleich
+          cp -r "$probe" "$RUNNER_TEMP/g2"
+          zeile_weg "$probe/data.sql" > "$RUNNER_TEMP/g2/data.sql"
+          gegenprobe g2 "$RUNNER_TEMP/offen" "$RUNNER_TEMP/g2" 'public.favorites: Inhalt der Probe weicht ab'
+
+          # 3) Wiederherstellung bringt einen Typ nicht mit -> Katalogvergleich
+          cp -r "$probe" "$RUNNER_TEMP/g3"
+          node -e 'const f=process.argv[1],fs=require("fs"),k=JSON.parse(fs.readFileSync(f,"utf8"));k.objekte.typen=k.objekte.typen.filter(e=>!e.startsWith("private.vb_probe_stufe "));fs.writeFileSync(f,JSON.stringify(k))' "$RUNNER_TEMP/g3/katalog.json"
+          gegenprobe g3 "$RUNNER_TEMP/offen" "$RUNNER_TEMP/g3" 'typen: fehlt in der Probe oder ist dort anders: private.vb_probe_stufe'

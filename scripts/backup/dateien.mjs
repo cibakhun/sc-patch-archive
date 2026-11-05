@@ -18,13 +18,17 @@
        laedt jede Datei aus storage.json in das Ziel (upsert), holt sie
        zurueck und vergleicht die sha256. Nur gegen ein Ziel, das man
        wiederherstellen WILL (Probe-Stack oder neues Projekt) — der
-       Schluessel ist der des Ziels, nie der von Live.
+       Schluessel ist der des Ziels, nie der von Live. Die Live-Adresse
+       (scripts/lib/supabase-ziel.mjs) wird abgewiesen: ein upsert dort
+       ersetzte aktuelle Avatare und Banner durch alte. Nur mit Freigabe des
+       Betreibers und VB_LIVE_FREIGEGEBEN=1.
 
    Netz: fetch() gegen die genannte Storage-Basis, sonst nichts.
    ============================================================ */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname, resolve, sep } from 'node:path';
+import { supabaseZiel } from '../lib/supabase-ziel.mjs';
 
 const [, , befehl, ordnerArg, basisArg] = process.argv;
 if (!['holen', 'hochladen'].includes(befehl) || !ordnerArg || !basisArg) {
@@ -42,17 +46,22 @@ function sichererPfad(bucket, name) {
   return p;
 }
 
+// Wiederholt nur, was beim naechsten Mal klappen kann: Netzfehler, 429 und
+// 5xx. Ein 4xx (falscher Schluessel, fehlender Bucket) kommt sofort zurueck.
+function httpFehler(text, status) {
+  const e = new Error(`${text} HTTP ${status}`);
+  e.endgueltig = status < 500 && status !== 429;
+  return e;
+}
 async function mitWiederholung(fn, versuche = 3) {
-  let letzter;
-  for (let i = 0; i < versuche; i++) {
+  for (let i = 0; ; i++) {
     try {
       return await fn();
     } catch (e) {
-      letzter = e;
+      if (e.endgueltig || i >= versuche - 1) throw e;
       await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
     }
   }
-  throw letzter;
 }
 
 async function holen() {
@@ -67,7 +76,7 @@ async function holen() {
     try {
       const buf = await mitWiederholung(async () => {
         const r = await fetch(`${BASIS}/storage/v1/object/public/${encodeURIComponent(o.bucket)}/${pfad(o.name)}`);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        if (!r.ok) throw httpFehler('Laden', r.status);
         return Buffer.from(await r.arrayBuffer());
       });
       if (o.size != null && buf.length !== Number(o.size)) {
@@ -95,6 +104,11 @@ async function hochladen() {
     console.error('VB_ZIEL_SCHLUESSEL fehlt (Service-Schluessel des ZIELS)');
     process.exit(2);
   }
+  const live = supabaseZiel('live').ref;
+  if (new URL(BASIS).hostname.startsWith(`${live}.`) && process.env.VB_LIVE_FREIGEGEBEN !== '1') {
+    console.error(`FEHLER: ${BASIS} ist Live — nie ohne Freigabe des Betreibers zurueckspielen (dann VB_LIVE_FREIGEGEBEN=1)`);
+    process.exit(1);
+  }
   const auth = { apikey: schluessel, Authorization: `Bearer ${schluessel}` };
   const liste = JSON.parse(readFileSync(join(ORDNER, 'storage.json'), 'utf8'));
   const fehler = [];
@@ -109,11 +123,15 @@ async function hochladen() {
           headers: { ...auth, 'x-upsert': 'true', 'content-type': f.mime || 'application/octet-stream' },
           body: datei,
         });
-        if (!r.ok) throw new Error(`Hochladen HTTP ${r.status}: ${(await r.text()).slice(0, 200)}`);
+        if (!r.ok) {
+          const e = httpFehler('Hochladen', r.status);
+          e.message += `: ${(await r.text()).slice(0, 200)}`;
+          throw e;
+        }
       });
       const zurueck = await mitWiederholung(async () => {
         const r = await fetch(`${BASIS}/storage/v1/object/authenticated/${encodeURIComponent(f.bucket)}/${pfad(f.name)}`, { headers: auth });
-        if (!r.ok) throw new Error(`Zurueckholen HTTP ${r.status}`);
+        if (!r.ok) throw httpFehler('Zurueckholen', r.status);
         return Buffer.from(await r.arrayBuffer());
       });
       if (sha(zurueck) !== f.sha256) fehler.push(`${f.bucket}/${f.name}: Pruefsumme nach dem Zurueckholen anders`);

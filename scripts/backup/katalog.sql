@@ -23,8 +23,10 @@ eigen as (
   select oid, nspname from pg_namespace where nspname in ('public', 'private')
 ),
 -- Zeilen zaehlen in genau den Schemas, deren Daten der Dump der CLI
--- mitnimmt (ihre Ausschlussliste fuer --data-only, CLI 3.0.0), damit jede
--- gezaehlte Tabelle einen Datenblock haben muss und umgekehrt.
+-- mitnimmt (ihre Ausschlussliste fuer --data-only, CLI 3.0.0). Jede hier
+-- gezaehlte Tabelle muss einen Datenblock haben, ausser den Plattform-
+-- tabellen, die die CLI ausdruecklich auslaesst (NICHT_IM_DATENDUMP in
+-- scripts/verify-backup.mjs, dort mit Grund).
 tabellen as (
   select c.oid, n.nspname, c.relname, c.relkind
     from pg_class c join pg_namespace n on n.oid = c.relnamespace
@@ -74,6 +76,32 @@ eintraege(kategorie, eintrag) as (
     from pg_proc p join eigen n on n.oid = p.pronamespace
    where p.prokind in ('f', 'p', 'w')
      and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
+  union all
+  -- Aggregate (pg_get_functiondef kann sie nicht beschreiben)
+  select 'aggregate', n.nspname || '.' || p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')'
+         || ' owner=' || pg_get_userbyid(p.proowner)
+         || ' sfunc=' || a.aggtransfn::regproc::text || ' stype=' || format_type(a.aggtranstype, null)
+         || ' final=' || a.aggfinalfn::regproc::text || ' init=' || coalesce(a.agginitval, '-')
+    from pg_proc p join pg_aggregate a on a.aggfnoid = p.oid join eigen n on n.oid = p.pronamespace
+   where not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
+  union all
+  -- eigene Typen: Enum mit Werten, Domain mit Basis und Checks, Composite
+  -- mit Feldern, Range; Zeilentypen von Tabellen und Array-Typen nicht
+  select 'typen', n.nspname || '.' || t.typname || ' typtype=' || t.typtype::text
+         || ' owner=' || pg_get_userbyid(t.typowner)
+         || coalesce(' werte=' || (select string_agg(e.enumlabel, ',' order by e.enumsortorder) from pg_enum e where e.enumtypid = t.oid), '')
+         || case when t.typtype = 'd' then ' basis=' || format_type(t.typbasetype, t.typtypmod) || ' notnull=' || t.typnotnull::text
+                 || coalesce(' check=' || (select string_agg(pg_get_constraintdef(k.oid, true), ' ' order by k.conname)
+                                             from pg_constraint k where k.contypid = t.oid), '')
+                 else '' end
+         || case when t.typtype = 'c' then ' felder=' || (select string_agg(a.attname || ':' || format_type(a.atttypid, a.atttypmod), ',' order by a.attnum)
+                                                             from pg_attribute a where a.attrelid = t.typrelid and a.attnum > 0 and not a.attisdropped)
+                 else '' end
+         || ' acl=' || coalesce(t.typacl, acldefault('T'::"char", t.typowner))::text
+    from pg_type t join eigen n on n.oid = t.typnamespace
+   where t.typtype in ('e', 'd', 'c', 'r', 'm')
+     and (t.typtype <> 'c' or (select c.relkind from pg_class c where c.oid = t.typrelid) = 'c')
+     and not exists (select 1 from pg_depend d where d.classid = 'pg_type'::regclass and d.objid = t.oid and d.deptype = 'e')
   union all
   -- Trigger: in public/private alle, in auth/storage nur die auf eigene Funktionen
   select 'trigger', tn.nspname || '.' || tc.relname || '.' || t.tgname || ' enabled=' || t.tgenabled::text

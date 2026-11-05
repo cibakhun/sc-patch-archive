@@ -51,20 +51,38 @@ alter role vb_backup set statement_timeout = '10min';
 comment on role vb_backup is
   'Nur-Lese-Rolle der taeglichen Sicherung (docs/betrieb/datenbank-backup.md). LOGIN und Passwort setzt nur der Betreiber, nie eine Migration.';
 
--- Selbstpruefung: die Rolle darf nichts besitzen und in keiner schreibenden
--- Rolle stecken. Schlaegt das an, bricht die Migration als Ganzes ab.
+-- Selbstpruefung, auch fuer den Fall, dass es vb_backup vorher schon gab
+-- (dann hat "create role" oben nichts gesetzt): genau die Attribute von
+-- oben, nichts besitzen, in keiner weiteren Rolle stecken, und keine andere
+-- Rolle erbt ihre Leserechte oder kann zu ihr wechseln. Die ADMIN-Mitglied-
+-- schaft, die Postgres dem Ersteller (postgres) selbst gibt, zaehlt nicht:
+-- sie erbt nichts und ist genau das, womit der Betreiber das Passwort setzt.
+-- Schlaegt das an, bricht die Migration als Ganzes ab.
 do $$
 declare
+  r record;
   n_besitz int;
   n_rollen int;
+  n_mitglieder int;
 begin
-  select count(*) into n_besitz from pg_class c join pg_roles r on r.oid = c.relowner where r.rolname = 'vb_backup';
+  select * into r from pg_roles where rolname = 'vb_backup';
+  if r.rolsuper or r.rolcreatedb or r.rolcreaterole or r.rolreplication
+     or not r.rolbypassrls or not r.rolinherit or r.rolconnlimit <> 2 then
+    raise exception 'backup_leserolle: vb_backup hat unerwartete Attribute (super=%, createdb=%, createrole=%, replication=%, bypassrls=%, inherit=%, connlimit=%) — von Hand pruefen, nicht ueberschreiben',
+      r.rolsuper, r.rolcreatedb, r.rolcreaterole, r.rolreplication, r.rolbypassrls, r.rolinherit, r.rolconnlimit;
+  end if;
+  select (select count(*) from pg_class where relowner = r.oid)
+       + (select count(*) from pg_proc where proowner = r.oid)
+       + (select count(*) from pg_namespace where nspowner = r.oid)
+       + (select count(*) from pg_type where typowner = r.oid)
+       + (select count(*) from pg_database where datdba = r.oid)
+    into n_besitz;
   select count(*) into n_rollen
-    from pg_auth_members m
-    join pg_roles g on g.oid = m.roleid
-    join pg_roles r on r.oid = m.member
-   where r.rolname = 'vb_backup' and g.rolname <> 'pg_read_all_data';
-  if n_besitz > 0 or n_rollen > 0 then
-    raise exception 'backup_leserolle: vb_backup besitzt % Objekte und steckt in % weiteren Rollen (Soll: 0 und 0)', n_besitz, n_rollen;
+    from pg_auth_members m join pg_roles g on g.oid = m.roleid
+   where m.member = r.oid and g.rolname <> 'pg_read_all_data';
+  select count(*) into n_mitglieder from pg_auth_members
+   where roleid = r.oid and (inherit_option or set_option);
+  if n_besitz > 0 or n_rollen > 0 or n_mitglieder > 0 then
+    raise exception 'backup_leserolle: vb_backup besitzt % Objekte, steckt in % weiteren Rollen und hat % Mitglieder (Soll: 0, 0, 0)', n_besitz, n_rollen, n_mitglieder;
   end if;
 end $$;

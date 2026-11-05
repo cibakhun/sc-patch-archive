@@ -70,9 +70,26 @@ const BEWEGLICH = /^auth\.(refresh_tokens|sessions|flow_state|audit_log_entries|
 
 // Klinken (Grundsatz 5): Untergrenzen, die ein leerer oder falscher Dump
 // reisst. Der Aufrufer setzt sie je Quelle (Live-Lauf hoeher als die Sonde).
-const KLINKE_KONTEN = Number(process.env.VB_KLINKE_KONTEN ?? 1);
-const KLINKE_TABELLEN = Number(process.env.VB_KLINKE_TABELLEN ?? 20);
-const KLINKE_OBJEKTE = Number(process.env.VB_KLINKE_OBJEKTE ?? 200);
+// Ein gesetzter, aber unbrauchbarer Wert (leer, 0, "zehn") schaltet die
+// Klinke nicht still ab, sondern beendet den Lauf als NICHT GEPRUEFT.
+function klinke(name, vorgabe) {
+  const roh = process.env[name];
+  if (roh === undefined) return vorgabe;
+  if (!/^[1-9][0-9]*$/.test(roh.trim())) {
+    console.error(`verify-backup: NICHT GEPRUEFT -- ${name}="${roh}" ist keine ganze Zahl ab 1`);
+    process.exit(2);
+  }
+  return Number(roh.trim());
+}
+const KLINKE_KONTEN = klinke('VB_KLINKE_KONTEN', 1);
+const KLINKE_TABELLEN = klinke('VB_KLINKE_TABELLEN', 20);
+const KLINKE_OBJEKTE = klinke('VB_KLINKE_OBJEKTE', 200);
+
+// Name so, wie format('%I') ihn in zusatz.sql schreibt: einfache Namen
+// ohne, alle anderen mit Anfuehrungszeichen. Als Regex-Baustein.
+const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const sqlName = (n) =>
+  /^[a-z_][a-z0-9_$]*$/.test(n) ? `(?:${reEsc(n)}|"${reEsc(n)}")` : `"${reEsc(n.replace(/"/g, '""'))}"`;
 
 /* ---------- COPY-Bloecke lesen ---------- */
 
@@ -158,8 +175,9 @@ function inhalt(ordner) {
     const m = e.match(/^(auth|storage)\.([^.]+)\.(.+?) (PERMISSIVE|RESTRICTIVE) /);
     if (!m) continue;
     zusaetze++;
-    if (!zusatz.includes(`ON ${m[1]}.${m[2]} AS ${m[4]}`) || !zusatz.includes(m[3]))
-      fehler.push(`Policy ${m[1]}.${m[2]}.${m[3]}: fehlt in zusatz.sql`);
+    // genau diese Policy an genau dieser Tabelle, nicht nur der Name irgendwo
+    const satz = new RegExp(`^CREATE POLICY ${sqlName(m[3])} ON ${m[1]}\\.${sqlName(m[2])} AS ${m[4]} `, 'm');
+    if (!satz.test(zusatz)) fehler.push(`Policy ${m[1]}.${m[2]}.${m[3]}: fehlt in zusatz.sql`);
   }
   for (const e of katalog.objekte?.publikation ?? []) {
     zusaetze++;

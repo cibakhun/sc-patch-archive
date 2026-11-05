@@ -32,9 +32,17 @@ for e in ${VB_AGE_EMPFAENGER:-}; do
   anzahl=$((anzahl + 1))
 done
 [ "${#empfaenger[@]}" -gt 0 ] || { echo "FEHLER: VB_AGE_EMPFAENGER leer — ohne Empfaenger kein Archiv" >&2; exit 1; }
+[ ! -e "$ZIEL" ] || { echo "FEHLER: $ZIEL gibt es schon — nichts wird ueberschrieben" >&2; exit 1; }
 
 ARBEIT="$(mktemp -d)"
-trap 'rm -rf "$ARBEIT"' EXIT
+# Bricht ein Schritt ab, verschwindet auch das (dann ungepruefte) Archiv:
+# liegen bleibt nur, was die Probe unten bestanden hat.
+aufraeumen() {
+  local rc=$?
+  rm -rf "$ARBEIT"
+  [ "$rc" = 0 ] || rm -f "$ZIEL" "$ZIEL.sha256"
+}
+trap aufraeumen EXIT
 umask 077
 
 # reproduzierbares tar: feste Reihenfolge, Besitzer und Zeit

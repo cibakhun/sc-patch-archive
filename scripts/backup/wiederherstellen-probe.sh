@@ -51,7 +51,8 @@ aufraeumen() {
 trap aufraeumen EXIT
 
 schritt "Abgeschotteter Stack ($NAME)"
-( cd "$STACK" && "$SUPABASE_BIN" init --force >/dev/null 2>&1 )
+( cd "$STACK" && "$SUPABASE_BIN" init --force > "$PROBE/init.log" 2>&1 ) \
+  || { tail -20 "$PROBE/init.log" >&2; fehler "supabase init schlug fehl"; }
 # eigener Name und eigene Ports (553xx), damit ein Quell-Stack daneben laufen kann
 sed -i -E "s/^project_id = .*/project_id = \"$NAME\"/; s/^(port|shadow_port) = 543/\1 = 553/" "$STACK/supabase/config.toml"
 mkdir -p "$STACK/supabase/migrations"

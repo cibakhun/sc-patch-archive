@@ -28,13 +28,21 @@ umask 077
 KLAR="$ARBEIT/klar"
 PROBE="$ARBEIT/probe"
 AUS="$ARBEIT/aus"
-rm -rf "$KLAR" "$PROBE" "$AUS"
+rm -rf "$KLAR" "$PROBE"
 mkdir -p "$AUS"
+# aus/ wird nie geleert: ein frueheres Archiv bleibt, bis jemand es selbst
+# wegraeumt, und alte Dateien kommen nicht mit in den neuen Upload
+[ -z "$(ls -A "$AUS")" ] || { echo "FEHLER: $AUS ist nicht leer — fruehere Ergebnisse erst sichern oder einen neuen Arbeitsordner nehmen" >&2; exit 1; }
 STEMPEL="$(date -u +%Y%m%dT%H%M%SZ)"
 ARCHIV="$AUS/verse-base-$STEMPEL.tar.gz.age"
 T0=$(date +%s)
 
-loeschen() { [ "${VB_BEHALTEN:-}" = 1 ] || rm -rf "$KLAR" "$PROBE"; }
+loeschen() {
+  local rc=$?
+  [ "${VB_BEHALTEN:-}" = 1 ] || rm -rf "$KLAR" "$PROBE"
+  # rot = kein Archiv, auch wenn es schon geschrieben war
+  [ "$rc" = 0 ] || rm -f "$ARCHIV" "$ARCHIV.sha256" "$AUS/bericht.json" "$AUS/bericht.md"
+}
 trap loeschen EXIT
 
 echo "═══ 1/3 Sichern ═══"

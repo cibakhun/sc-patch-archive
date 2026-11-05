@@ -753,7 +753,9 @@ export const CHECKS = [
     // Anlass: Live lief auf dem Free-Plan ohne ein einziges Backup
     // (docs/betrieb/datenbank-backup.md). Vorgefuehrt rot am 05.11.2026 mit
     // sechs Gegenproben (ohne vorbereitung.sql, ohne zusatz.sql, eine Zeile
-    // entfernt, Rolle ohne BYPASSRLS, Klinke, falsches Projekt).
+    // entfernt, Rolle ohne BYPASSRLS, Klinke, falsches Projekt); die Sonde
+    // probe-backup.yml fuehrt drei davon in jedem Lauf erneut vor
+    // (Pruefsumme, Inhalt der Probe, Katalog).
     id: 'verify:backup',
     npm: 'verify:backup',
     script: 'scripts/verify-backup.mjs',

@@ -77,9 +77,13 @@ Dienste**. Diese Anleitung deckt die Datenbank und die Storage-Dateien ab.
   könnte jeder lesen. Das Live-Secret liegt nur im privaten Repo.
 - **Offizielles Verfahren**: Dump mit den Skripten der Supabase-CLI
   (`supabase db dump --dry-run`, Doku „Backup and Restore using the CLI"),
-  ausgeführt in `supabase/postgres` derselben Version wie Live. Genau eine
-  Zeile wird geändert: `--role "postgres"` fällt weg, weil die Nur-Lese-Rolle
-  nicht zu `postgres` wechseln darf (sie könnte sonst schreiben).
+  ausgeführt in `supabase/postgres` derselben Version wie Live. Die Aufrufe
+  und Ausschlüsse (etwa `-x storage.buckets_vectors -x storage.vector_indexes`
+  beim Datendump) sind die der Anleitung. Am erzeugten Skript ändern sich
+  zwei Dinge: `--role "postgres"` fällt weg, weil die Nur-Lese-Rolle nicht zu
+  `postgres` wechseln darf (sie könnte sonst schreiben), und die
+  `export PG…`-Zeilen fallen weg, weil die Verbindung samt Passwort aus der
+  Umgebung kommt (so steht das Passwort in keiner Befehlszeile).
 - **Nur-Lese-Rolle `vb_backup`** (Migration `20261105000000_backup_leserolle.sql`):
   `pg_read_all_data` plus `BYPASSRLS` (sonst bricht `pg_dump` an jeder Tabelle
   mit RLS ab), jede Sitzung read-only, höchstens 2 Verbindungen, 10 Minuten
@@ -122,8 +126,10 @@ Repo gegen eine erfundene Quelle (aus `supabase/migrations/`, drei Probekonten,
 zwei Bilder), bei jeder Änderung an den Backup-Skripten **und an den
 Migrationen**: eine neue Migration, die die Wiederherstellung bricht, fällt
 dort auf, bevor der nächste Live-Lauf es tut. Sie meldet sich zusätzlich mit
-einem Probekonto am wiederhergestellten Auth-Dienst an und führt den Vergleich
-einmal absichtlich rot vor.
+einem Probekonto am wiederhergestellten Auth-Dienst an und führt jede Stufe
+des Vergleichs einmal absichtlich rot vor (Prüfsumme der Sicherung, Inhalt
+der Probe, Katalog). Die erfundene Quelle trägt dafür auch je einen eigenen
+Enum-, Domain- und Composite-Typ und ein Aggregat.
 
 ---
 
@@ -233,6 +239,9 @@ mkdir sicherung && tar xzf klar.tar.gz -C sicherung
    VB_ZIEL_SCHLUESSEL='<key neues projekt>' \
      node scripts/backup/dateien.mjs hochladen sicherung https://<neue-ref>.supabase.co
    ```
+   Die Live-Adresse weist das Skript ab (ein upsert dort ersetzte aktuelle
+   Avatare durch alte); nur mit Freigabe des Betreibers und
+   `VB_LIVE_FREIGEGEBEN=1`.
 5. Vergleich mit der Quelle (Katalog und erneuter Dump des neuen Projekts,
    wie in `wiederherstellen-probe.sh`, dann
    `node scripts/verify-backup.mjs vergleich sicherung <probe-ordner>`).
@@ -348,8 +357,13 @@ Gegen den Nachbau, jede einmal absichtlich gebrochen:
 | 4 | `vb_backup` ohne `BYPASSRLS` | `pg_dump: … query would be affected by row-level security policy for table "audit_log_entries"` |
 | 5 | Klinke 10 Konten gegen 3 | `auth.users: 3 Konten im Dump, Klinke 10 — leere oder falsche Datenbank?` |
 | 6 | falsche Projekt-Ref | `Benutzer vb_backup gehoert nicht zum Projekt trgjhmbnodoarnfmlcqx — falsche Datenbank?` |
+| 7 | Zeile nur im Dump der Probe entfernt (Sonde, jeder Lauf) | `public.favorites: Inhalt der Probe weicht ab (2 statt 3 Zeilen oder andere Werte)` |
+| 8 | Enum nur im Katalog der Probe entfernt (Sonde, jeder Lauf) | `typen: fehlt in der Probe oder ist dort anders: private.vb_probe_stufe …` |
+| 9 | `vb_backup` mit anderer Verbindungsgrenze bzw. an `authenticated` vererbt, Migration erneut | `vb_backup hat unerwartete Attribute (… connlimit=5)` bzw. `… hat 1 Mitglieder (Soll: 0, 0, 0)` |
+| 10 | Verschlüsselung: Selbstprobe weicht ab | `entschluesseltes Archiv weicht ab …`, kein Archiv bleibt liegen |
+| 11 | `hochladen` gegen die Live-Adresse | `… ist Live — nie ohne Freigabe des Betreibers zurueckspielen` |
 
 Dazu `verify:supply-chain` mit unangehefteter Action in der Vorlage: rot.
-Grün danach: 567 Katalogobjekte in 18 Kategorien gleich, 56 Tabellen mit
+Grün danach: 572 Katalogobjekte in 20 Kategorien gleich, 56 Tabellen mit
 gleichem Inhalt, 9 Sequenzstände, 2 Dateien mit gleicher sha256, Anmeldung
-eines Probekontos am wiederhergestellten Auth-Dienst, ganzer Lauf 43 s.
+eines Probekontos am wiederhergestellten Auth-Dienst, ganzer Lauf 44 s.

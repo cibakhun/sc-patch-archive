@@ -99,7 +99,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # zuerst der Ping: scheitert das Issue, kommt die Meldung trotzdem an
+          if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/fail" > /dev/null || true; fi
           gh issue create --repo "$GITHUB_REPOSITORY" \
             --title "Live-Backup fehlgeschlagen ($(date -u +%F))" \
             --body "Lauf: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID — kein Archiv entstanden. Anleitung: https://github.com/$QUELLE_REPO/blob/staging/docs/betrieb/datenbank-backup.md#wenn-ein-lauf-rot-ist"
-          if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/fail" > /dev/null || true; fi

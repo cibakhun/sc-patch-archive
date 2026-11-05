@@ -20,7 +20,18 @@ source "$(dirname "${BASH_SOURCE[0]}")/gemeinsam.sh"
 
 ENVDATEI="${1:?env-Datei fehlt}"
 STACK="$(mktemp -d)"
-( cd "$STACK" && "$SUPABASE_BIN" init --force >/dev/null 2>&1 )
+# Bricht der Aufbau ab, wird der Stack wieder abgebaut (sonst scheitert der
+# naechste Lauf an den schon vorhandenen Probe-Konten). Im Erfolgsfall bleibt
+# er fuer lauf.sh stehen.
+fertig=0
+aufraeumen() {
+  [ "$fertig" = 1 ] && return
+  "$SUPABASE_BIN" stop --no-backup --workdir "$STACK" >/dev/null 2>&1 || true
+  rm -rf "$STACK"
+}
+trap aufraeumen EXIT
+( cd "$STACK" && "$SUPABASE_BIN" init --force > "$STACK/init.log" 2>&1 ) \
+  || { tail -20 "$STACK/init.log" >&2; fehler "supabase init schlug fehl"; }
 sed -i -E 's/^project_id = .*/project_id = "vb-probe-quelle"/' "$STACK/supabase/config.toml"
 mkdir -p "$STACK/supabase/migrations"
 cp "$REPO"/supabase/migrations/*.sql "$STACK/supabase/migrations/"
@@ -72,4 +83,5 @@ pg -c "alter role vb_backup with login password '$pw'"
   echo "VB_PROBE_ANMELDUNG=a@probe.invalid:probe-a-passwort"
   echo "QUELL_STACK=$STACK"
 } > "$ENVDATEI"
+fertig=1
 echo "  3 Konten, $(pg -c 'select count(*) from storage.objects') Dateien, Rolle vb_backup mit LOGIN"
