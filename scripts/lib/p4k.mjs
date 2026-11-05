@@ -9,11 +9,25 @@
 // StarFab validiert) — ein Refactor daran haette echtes Regressionsrisiko ohne
 // Gegenwert. Neue Extraktoren nutzen diese Lib.
 
-import { openSync, readSync, fstatSync, existsSync, closeSync } from 'node:fs';
+import { openSync, readSync, readFileSync, fstatSync, existsSync, closeSync } from 'node:fs';
 import { zstdDecompressSync } from 'node:zlib';
 import { createDecipheriv } from 'node:crypto';
 
 export const DEFAULT_P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
+
+// Client-Kennung aus build_manifest.id neben der p4k, in der Form der
+// uebrigen Datenstaende ("4.10.2-live.12913470", wie datamine-wikelo.mjs).
+// null, wenn die Datei fehlt oder Branch/Changelist nicht traegt — der
+// Aufrufer entscheidet, ob er ohne Kennung schreiben darf.
+export function clientKennung(p4kPath = DEFAULT_P4K) {
+  const bm = p4kPath.replace(/[\\/][^\\/]*$/, '') + '/build_manifest.id';
+  if (!existsSync(bm)) return null;
+  try {
+    const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
+    if (!d?.Branch || !d?.RequestedP4ChangeNum) return null;
+    return `${d.Branch.replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`;
+  } catch { return null; }
+}
 
 // unp4k-Standardschluessel, Zero-IV (CIG verschluesselt nur wenige Eintraege)
 const AES_KEY = Buffer.from([0x5e, 0x7a, 0x20, 0x02, 0x30, 0x2e, 0xeb, 0x1a, 0x3b, 0xb6, 0x17, 0xc3, 0x0f, 0xde, 0x1e, 0x47]);
