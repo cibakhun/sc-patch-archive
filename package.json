@@ -31,6 +31,7 @@
     "verify:shipconsole": "node scripts/verify-shipconsole.mjs",
     "verify:hangar-schalter": "node scripts/verify-hangar-schalter.mjs",
     "verify:supabase-ziel": "node scripts/verify-supabase-ziel.mjs",
+    "verify:backup": "node scripts/verify-backup.mjs",
     "verify:hangar": "node scripts/verify-hangar.mjs",
     "verify:hangar-hall": "node scripts/verify-hangar-hall.mjs",
     "verify:hangar-gear": "node scripts/verify-hangar-gear.mjs",

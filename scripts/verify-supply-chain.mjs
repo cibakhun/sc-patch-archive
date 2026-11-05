@@ -57,10 +57,12 @@ const REGISTRY = 'https://registry.npmjs.org/';
 // einer Workflow- oder Dockerfile-Aenderung und stehen auf dem Ist-Stand.
 const KLINKE = {
   pakete: 480, // Summe ueber alle drei Lockfiles (gemessen 402 + 25 + 75 = 502)
-  workflows: 11,
-  actions: 35, // fremde `uses:`-Zeilen ueber alle Workflows
-  checkouts: 14,
-  runBloecke: 59, // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026)
+  // 05.11.2026 angehoben: probe-backup.yml und die Vorlage des Backup-Repos
+  // (VORLAGEN) kamen dazu — 11/35/14/59 -> 13/40/16/70.
+  workflows: 13,
+  actions: 40, // fremde `uses:`-Zeilen ueber alle Workflows und Vorlagen
+  checkouts: 16,
+  runBloecke: 70, // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026) + Backup (05.11.2026)
   basisImages: 4,
 };
 
@@ -68,6 +70,12 @@ const KLINKE = {
 // Token hinterlegen. Derzeit keine — Pushes reichen das Token im
 // Push-Schritt selbst herein (siehe build.yml, track-marketplace.yml).
 const CHECKOUT_MIT_TOKEN = {};
+
+// Workflows, die in einem ANDEREN Repo laufen, deren Vorlage aber hier liegt
+// und hier geprueft wird (dieselben Regeln wie fuer .github/workflows/).
+// Anlass: das Live-Backup laeuft im privaten Backup-Repo, damit Secret, Logs
+// und Archive nicht oeffentlich sind (docs/betrieb/datenbank-backup.md).
+const VORLAGEN = ['scripts/backup/vorlage-backup-repo.yml'];
 
 const fail = [];
 const need = (ok, msg) => { if (!ok) fail.push(msg); return ok; };
@@ -249,13 +257,16 @@ for (const [soll, wozu, schritte] of [
 const wfDir = join(ROOT, WORKFLOW_DIR);
 const wfs = existsSync(wfDir) ? readdirSync(wfDir).filter((f) => /\.ya?ml$/.test(f)).sort() : [];
 need(wfs.length > 0, `${WORKFLOW_DIR}/ fehlt oder ist leer — im Docker-Build: steht .github wieder in .dockerignore?`);
-zahl.workflows = wfs.length;
+for (const f of VORLAGEN) need(existsSync(join(ROOT, f)), `Workflow-Vorlage ${f} fehlt — Eintrag in VORLAGEN entfernen oder Datei zurueck`);
+zahl.workflows = wfs.length + VORLAGEN.length;
 zahl.actions = 0; zahl.checkouts = 0; zahl.runBloecke = 0;
 const ausnahmeGebraucht = new Set();
 
-for (const f of wfs) {
-  const name = `${WORKFLOW_DIR}/${f}`;
-  const zeilen = lesen(join(wfDir, f)).split('\n');
+for (const f of [...wfs, ...VORLAGEN]) {
+  const vorlage = VORLAGEN.includes(f);
+  const name = vorlage ? f : `${WORKFLOW_DIR}/${f}`;
+  if (vorlage && !existsSync(join(ROOT, f))) continue;
+  const zeilen = lesen(vorlage ? join(ROOT, f) : join(wfDir, f)).split('\n');
   const code = zeilen.map(ohneKommentar);
 
   need(code.some((z) => /^permissions\s*:/.test(z)),
