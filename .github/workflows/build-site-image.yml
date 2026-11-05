@@ -58,6 +58,22 @@ jobs:
         with:
           persist-credentials: false
 
+      # ---- Platz auf dem Runner ------------------------------------------
+      # ANLASS 05.11.2026: der Vorschau-Bau von d77bded0 riss zweimal im
+      # Rauchtest mit "No space left on device" (Runner-Abbild ubuntu-26.04
+      # 20261018.50.1; dasselbe Abbild in 20261025.179.1 hatte gereicht).
+      # Gebaut wird hier dreimal dieselbe Seite von 2,7 GB: im Bau-Stadium,
+      # im Image und als Kopie der Webwurzel fuer check-gate, dazu das
+      # gepackte Image fuers Artefakt. Weil der volle Datentraeger auch das
+      # Protokoll des Runners abschneidet, sah man davon nur die Annotation.
+      # Deshalb: vorinstallierte Werkzeugketten, die dieser Job nie braucht,
+      # vorher weg, und der Stand steht im Protokoll (Grundsatz 2).
+      - name: Platz schaffen
+        run: |
+          df -h / | sed 's/^/vorher  /'
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h / | sed 's/^/nachher /'
+
       - name: Erstes Tag bestimmen
         run: |
           FIRST=$(printf '%s\n' "$TAGS" | sed -n '/[^[:space:]]/{s/^[[:space:]]*//;s/[[:space:]]*$//;p;q}')
@@ -101,6 +117,10 @@ jobs:
           done
           echo "id=$BUILT" >> "$GITHUB_OUTPUT"
           echo "${#ALL[@]} Tag(s) -> $BUILT"
+          # Der Bau-Cache (Stadium mit node_modules und dist/) wird nach dem
+          # Bau nicht mehr gebraucht; das getaggte Image bleibt unberuehrt.
+          docker builder prune -af >/dev/null
+          df -h / | sed 's/^/nach dem Bau /'
 
       # Gegenprobe im fertigen Image, in beide Richtungen:
       #   Vorschau — eine versehentlich indexierbare Kopie waere Duplicate
@@ -206,6 +226,8 @@ jobs:
             docker cp smoke:/usr/share/nginx/html/. image-dist/
             test -f image-dist/index.html || { echo "FEHLER: image-dist/index.html fehlt -- Webwurzel im Image geaendert?" >&2; exit 1; }
             node scripts/check-gate.mjs --base http://localhost:8080 --dist image-dist --bypass "$GATE_BYPASS" || code=$?
+            # Die Kopie der Webwurzel (2,7 GB) braucht danach niemand mehr.
+            rm -rf image-dist
           fi
           # Sicherheits-Kopfzeilen und Content-Security-Policy, wie nginx sie
           # WIRKLICH ausliefert (check-headers.mjs, Schiene C). Hier streng:
