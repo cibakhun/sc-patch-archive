@@ -31,7 +31,7 @@ import anchorsData from '../../assets/stanton-anchors-gamefiles.json';
 
 /** Patch des Auslese-Laufs (X.Y.Z aus der Client-Kennung der Halo-Daten). */
 export const PJ_PATCH: string = (() => {
-  const v = halo.gameVersion.match(/\d+\.\d+\.\d+/)?.[0];
+  const v = halo.gameVersion?.match(/\d+\.\d+\.\d+/)?.[0];
   if (!v || anchorsData.gameVersion !== halo.gameVersion) {
     throw new Error(`Präzisionssprung: Halo (${halo.gameVersion}) und QT-Anker (${anchorsData.gameVersion}) brauchen dieselbe Client-Kennung mit Fassung X.Y.Z.`);
   }

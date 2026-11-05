@@ -12,6 +12,7 @@
 import { openSync, readSync, readFileSync, fstatSync, existsSync, closeSync } from 'node:fs';
 import { zstdDecompressSync } from 'node:zlib';
 import { createDecipheriv } from 'node:crypto';
+import { dirname, resolve } from 'node:path';
 
 export const DEFAULT_P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
 
@@ -20,7 +21,9 @@ export const DEFAULT_P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCiti
 // null, wenn die Datei fehlt oder Branch/Changelist nicht traegt — der
 // Aufrufer entscheidet, ob er ohne Kennung schreiben darf.
 export function clientKennung(p4kPath = DEFAULT_P4K) {
-  const bm = p4kPath.replace(/[\\/][^\\/]*$/, '') + '/build_manifest.id';
+  // dirname statt Abschneiden am letzten Trenner: ein nackter Dateiname
+  // („--p4k Data.p4k") meint das Arbeitsverzeichnis.
+  const bm = resolve(dirname(p4kPath), 'build_manifest.id');
   if (!existsSync(bm)) return null;
   try {
     const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
