@@ -67,6 +67,10 @@ const STAENDE = {
   Fahrzeuge: { file: 'src/data/vehicles.json', get: (j) => j?.gameVersion },
   Refinery: { file: 'assets/refinery-data.json', get: (j) => j?.meta?.gameVersion },
   Wikelo: { file: 'assets/wikelo-trades.meta.json', get: (j) => j?.gameVersion },
+  // Halo und QT-Anker tragen dieselbe Kennung (src/data/precision-jump.ts bricht
+  // den Bau sonst ab, verify:datastand haelt beide); die Halo-Datei steht fuer
+  // die Familie.
+  'Präzisionssprung': { file: 'assets/aaron-halo-gamefiles.json', get: (j) => j?.gameVersion },
 };
 
 // Seitenfamilien: Pfad in dist/ ohne "de/"-Praefix -> Datenstand. Was hier
@@ -88,15 +92,11 @@ const FAMILIEN = [
 //
 // Familien ohne pruefbaren Datenstand: ihre Angaben werden gemeldet, aber
 // nicht beurteilt.
-const OHNE_KENNUNG = {
-  'Präzisionssprung': {
-    anlass: 'Die Daten des Präzisionssprungs (assets/aaron-halo-gamefiles.json, assets/stanton-anchors-gamefiles.json) tragen keine Client-Kennung, nur die editorBuildChangelist der Halo-Datei; ob die Angabe 4.9 stimmt, kann keine Maschine sagen, bis ein Datenlauf die Kennung mitschreibt.',
-    // Zombie: sobald eine der beiden Dateien eine Kennung traegt, gehoert die
-    // Familie in STAENDE und die Ausnahme hier heraus.
-    besteht: () => ['assets/aaron-halo-gamefiles.json', 'assets/stanton-anchors-gamefiles.json']
-      .every((f) => { const j = rd(f); return !j.gameVersion && !j.game_version && !j.meta?.gameVersion; }),
-  },
-};
+// Derzeit leer. Bis 05.11.2026 stand hier der Praezisionssprung („tragen keine
+// Client-Kennung … bis ein Datenlauf die Kennung mitschreibt"); die Nachvermessung
+// gegen 4.10.2 hat die Kennung geliefert, die Familie steht jetzt in STAENDE.
+// Die Mechanik bleibt fuer den naechsten Fall.
+const OHNE_KENNUNG = {};
 
 // Fahrzeug-Datensaetze, deren Stempel bewusst vom Kopf von vehicles.json
 // abweicht. Schluessel = Fahrzeug-id, Wert = Anlass und der EINE Stempel,
@@ -124,7 +124,8 @@ const KLINKEN = {
   Fahrzeuge: { seiten: 464, angaben: 464 },
   Refinery: { seiten: 2, angaben: 1 },
   Wikelo: { seiten: 2, angaben: 8 },
-  'Präzisionssprung': { seiten: 2, angaben: 2 },
+  // 05.11.2026: 2 -> 4, die Unterzeile nennt jetzt ebenfalls den Patch aus den Daten.
+  'Präzisionssprung': { seiten: 2, angaben: 4 },
 };
 
 /* ---------- Werkzeuge ---------- */
