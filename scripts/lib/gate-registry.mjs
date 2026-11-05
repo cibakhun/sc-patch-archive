@@ -698,6 +698,20 @@ export const CHECKS = [
     env:
       'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
   },
+  {
+    // Anlass: Gesamtaudit 05.11.2026. Edge Functions rollt kein Workflow aus,
+    // und Repository und Anlage wichen voneinander ab (Einzelheiten im Bericht
+    // des Audits). Vorgefuehrt rot gegen eine Momentaufnahme der Anlage (Exit 1)
+    // und gegen einen flachen Klon (Exit 2, nicht geprueft).
+    id: 'verify:functions',
+    npm: 'verify:functions',
+    script: 'scripts/verify-functions.mjs',
+    rail: 'B',
+    checks:
+      'jede Edge Function aus supabase/functions laeuft auf der Anlage, ihr letzter Commit ist nicht juenger als der letzte Deploy, und verify_jwt entspricht supabase/config.toml (Standard true) — sonst FEHLER; Functions nur auf der Anlage sind WARNUNG; Klinke fuer die Zahl der Functions',
+    env:
+      'Netz und git: fetch() gegen https://api.supabase.com (Management API, GET /v1/projects/<ref>/functions) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — dasselbe persoenliche Zugriffstoken wie verify:db-rights, das es weder im Build-Container noch in CI gibt — und git log (Kindprozess per execFileSync) fuer den letzten Commit je Function-Verzeichnis; deshalb Schiene B. Ohne Token oder ohne git: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit der Function-Liste als JSON.',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.
