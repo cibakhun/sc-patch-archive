@@ -38,7 +38,7 @@ Alle vier ROADMAP-Erfolgskriterien sind im Code und an unabhaengig selbst ausgef
 Der Status ist trotzdem `human_needed`, aus zwei unabhaengigen Gruenden:
 
 1. Die Phase selbst hat bewusst drei Sichtrunden-Punkte offen gelassen (WINDOWS.md id 55, 56, 57) — genau wie in den SUMMARYs dokumentiert, ist Phase 20 „technisch vollstaendig, aber nicht Complete markiert". Das ist kein Verifikationsfehler, sondern korrekt umgesetzte Eskalation von Sichturteilen, die kein Skript treffen darf.
-2. `20-REVIEW.md` fuehrt zwei CRITICAL-Befunde (CR-01, CR-02), die im aktuellen Code unveraendert bestaetigt sind (nachgeprueft per Quelltext-Lesen, nicht nur SUMMARY-Zitat) und weder behoben noch im Broken-Windows-Register erfasst wurden. CR-02 betrifft direkt die Datenquelle der Erfolgskriterium-3-Sperrklinke — die Klinke funktioniert nachweislich heute, ihre Grundlage ist aber nicht gegen die tatsaechlich verarbeitete Vertragsmenge abgesichert. Das faellt keinem Torlauf auf, weil `entryCount` und `contractCount` im aktuellen Datenstand zufaellig uebereinstimmen (69 = 69) — genau die Beobachtung, die der Code-Review selbst macht.
+2. `20-REVIEW.md` fuehrt zwei CRITICAL-Befunde (CR-01, CR-02), die im aktuellen Code unveraendert bestaetigt sind (nachgeprueft per Quelltext-Lesen, nicht nur SUMMARY-Zitat). Behoben sind sie nicht; erfasst sind sie als offene Schuld im Broken-Windows-Register, id 58 (CR-01) und id 59 (CR-02). CR-02 betrifft direkt die Datenquelle der Erfolgskriterium-3-Sperrklinke — die Klinke funktioniert nachweislich heute, ihre Grundlage ist aber nicht gegen die tatsaechlich verarbeitete Vertragsmenge abgesichert. Das faellt keinem Torlauf auf, weil `entryCount` und `contractCount` im aktuellen Datenstand zufaellig uebereinstimmen (69 = 69) — genau die Beobachtung, die der Code-Review selbst macht.
 
 ## Goal Achievement
 
@@ -109,8 +109,8 @@ Keine REQ-IDs fuer Phase 20 vermerkt (`REQUIREMENTS.md` fuehrt D-01..D-04 nur in
 
 | Datei | Zeile | Muster | Schwere | Wirkung |
 |---|---|---|---|---|
-| `scripts/probes/wikelo-kuration-zuordnung.mjs` | `schluesselAufloesen()`, ~Zeile 140-152 | CR-01 (Code-Review): Eindeutigkeitspruefung nur pro Schluessel, nicht ueber die gesamte Stufe — ein Vertrag mit mehreren Schluesseln (Titel + mehrere Rewardnamen) kann zwei Handeintraegen gleichzeitig zugeteilt werden, ohne als Kollision erkannt zu werden | 🛑 CRITICAL (laut Review), unbehoben, nicht im Register erfasst | Betrifft kuenftige Neu-Laeufe der Sonde, nicht den heute ausgelieferten Datenstand (read-only nachgemessen korrekt) |
-| `scripts/build-wikelo-trades.mjs` | Zeilen 98-99 | CR-02 (Code-Review): `contractCount`/`orderLineCount` ungeprueft aus `game.counts` uebernommen statt gegen `game.contracts` gegengerechnet — genau die Werte, die die Erfolgskriterium-3-Klinke absichert | 🛑 CRITICAL (laut Review), unbehoben, nicht im Register erfasst | Klinke funktioniert heute (69=69 zufaellig deckungsgleich mit `entryCount`), schuetzt aber nicht nachweisbar gegen eine kuenftige Divergenz zwischen Selbstauskunft und echter Verarbeitungsmenge |
+| `scripts/probes/wikelo-kuration-zuordnung.mjs` | `schluesselAufloesen()`, ~Zeile 140-152 | CR-01 (Code-Review): Eindeutigkeitspruefung nur pro Schluessel, nicht ueber die gesamte Stufe — ein Vertrag mit mehreren Schluesseln (Titel + mehrere Rewardnamen) kann zwei Handeintraegen gleichzeitig zugeteilt werden, ohne als Kollision erkannt zu werden | 🛑 CRITICAL (laut Review), unbehoben, als Schuld erfasst (WINDOWS.md id 58 bzw. 59) | Betrifft kuenftige Neu-Laeufe der Sonde, nicht den heute ausgelieferten Datenstand (read-only nachgemessen korrekt) |
+| `scripts/build-wikelo-trades.mjs` | Zeilen 98-99 | CR-02 (Code-Review): `contractCount`/`orderLineCount` ungeprueft aus `game.counts` uebernommen statt gegen `game.contracts` gegengerechnet — genau die Werte, die die Erfolgskriterium-3-Klinke absichert | 🛑 CRITICAL (laut Review), unbehoben, als Schuld erfasst (WINDOWS.md id 58 bzw. 59) | Klinke funktioniert heute (69=69 zufaellig deckungsgleich mit `entryCount`), schuetzt aber nicht nachweisbar gegen eine kuenftige Divergenz zwischen Selbstauskunft und echter Verarbeitungsmenge |
 | `scripts/build-wikelo-trades.mjs` | Zeilen 61-72 | WR-01 (Code-Review, Warning): keine Laufzeitpruefung `o.max >= o.min` | ⚠️ WARNING | keine unmittelbare Auswirkung, Beobachtung statt Zusicherung |
 | `scripts/build-wikelo-trades.mjs` | Zeilen 80, 84-85 | WR-02 (Code-Review, Warning): Truthy- statt `!= null`-Pruefung bei `cur.get`/`cur.comps`/`cur.rep` | ⚠️ WARNING | tritt im aktuellen Datenstand nicht auf |
 | `scripts/probes/wikelo-kuration-zuordnung.mjs` | Zeilen 170-172 | IN-01 (Code-Review, Info): STOPWORDS-only Handeintraege werden ohne Diagnosezaehler uebersprungen | ℹ️ INFO | kein Zuordnungsfehler |
@@ -119,14 +119,14 @@ Keine `TBD`/`FIXME`/`XXX`-Marker in den von dieser Phase veraenderten Dateien ge
 
 ### Human Verification Required
 
-Siehe YAML-Frontmatter `human_verification` — fuenf Punkte: die drei vom Projekt selbst bereits als offen erkannten Sichtrunden-Punkte (WINDOWS.md id 55, 56, 57) plus die zwei unbehobenen CRITICAL-Befunde aus `20-REVIEW.md` (CR-01, CR-02), die weder gefixt noch explizit als getrackte Schuld ins Register aufgenommen wurden.
+Siehe YAML-Frontmatter `human_verification` — fuenf Punkte: die drei vom Projekt selbst bereits als offen erkannten Sichtrunden-Punkte (WINDOWS.md id 55, 56, 57) plus die zwei unbehobenen CRITICAL-Befunde aus `20-REVIEW.md` (CR-01, CR-02). Gefixt sind sie nicht; als getrackte Schuld stehen sie im Register (WINDOWS.md id 58 und 59).
 
 ### Gaps Summary
 
 Keine der vier ROADMAP-Erfolgskriterien ist verfehlt — alle sind mit selbst ausgefuehrten Kommandos und Zahlen belegt, nicht nur aus SUMMARY.md uebernommen. Die Einstufung `human_needed` statt `passed` hat zwei Gruende, die beide keine Ruecknahme der Phase verlangen, sondern eine bewusste Entscheidung des Betreibers:
 
 1. Die Phase hat selbst drei Sichtrunden-Punkte offen gelassen (korrekt, plangemaess).
-2. Zwei CRITICAL-Befunde aus dem Code-Review sind im Code unveraendert vorhanden und wurden weder behoben noch im Broken-Windows-Register erfasst — das ist eine Luecke im „Liefern"-Prozess dieser Phase (Review-Status `issues_found` wurde nicht auf `resolved` gebracht und die verbleibenden Punkte auch nicht bewusst als Schuld verbucht), auch wenn die ausgelieferte Funktionalitaet dadurch heute nicht sichtbar falsch ist.
+2. Zwei CRITICAL-Befunde aus dem Code-Review sind im Code unveraendert vorhanden. Behoben sind sie nicht; als offene Schuld erfasst sind sie im Broken-Windows-Register, id 58 (CR-01) und id 59 (CR-02). Der Review-Status `issues_found` bleibt damit bewusst stehen, auch wenn die ausgelieferte Funktionalitaet dadurch heute nicht sichtbar falsch ist.
 
 ---
 

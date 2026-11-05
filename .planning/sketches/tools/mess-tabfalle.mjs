@@ -8,15 +8,19 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 const DIST = join(resolve(process.cwd()), 'dist');
-const CHROME = join(process.env.LOCALAPPDATA, 'ms-playwright', 'chromium_headless_shell-1228', 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
+const CHROME = process.env.CHROME_PATH
+  || join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium_headless_shell-1228', 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 const srv = createServer(async (req, res) => {
-  let p = decodeURIComponent(req.url.split('?')[0]);
+  let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
   if (p.endsWith('/')) p += 'index.html';
   let f = join(DIST, p);
+  if (f !== DIST && !f.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
   if (!existsSync(f) && existsSync(f + '.html')) f += '.html';
   /* ⚠ ERST lesen, DANN Header: umgekehrt stirbt der Prozess an
      ERR_HTTP_HEADERS_SENT, sobald eine Datei fehlt — mitten im Messlauf. */
@@ -37,7 +41,12 @@ for (const u of process.argv.slice(2)) {
     const [w, h] = vp.split('x').map(Number);
     const ctx = await b.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: true, isMobile: true });
     const pg = await ctx.newPage();
-    await pg.goto('http://127.0.0.1:'+PORT + u, { waitUntil: 'domcontentloaded' });
+    const resp = await pg.goto('http://127.0.0.1:'+PORT + u, { waitUntil: 'domcontentloaded' });
+    if (!resp || !resp.ok()) {
+      console.log('[' + vp + '] ' + u.padEnd(20) + '  NICHT GEMESSEN (HTTP ' + (resp ? resp.status() : 'keine Antwort') + ')');
+      await ctx.close();
+      continue;
+    }
     await pg.waitForTimeout(1300);
     let drin = 0, ausserhalb = 0, erste = null;
     for (let i = 0; i < 45; i++) {
@@ -54,7 +63,8 @@ for (const u of process.argv.slice(2)) {
       if (!r) continue;
       if (r.imPanel && !r.sichtbar) { drin++; if (!erste) erste = r; } else ausserhalb++;
     }
-    const urteil = drin ? 'TABFALLE: ' + drin + ' unsichtbare Ziele (erstes: ' + erste.nm + ' bei x=' + erste.x + ')' : 'sauber';
+    const urteil = drin ? 'TABFALLE: ' + drin + ' unsichtbare Ziele (erstes: ' + erste.nm + ' bei x=' + erste.x + ')'
+      : (ausserhalb ? 'sauber' : 'NICHT GEMESSEN (keine Fokusstation gefunden)');
     console.log('[' + vp + '] ' + u.padEnd(20) + '  ' + ausserhalb + ' sichtbare Stationen  → ' + urteil);
     await ctx.close();
   }

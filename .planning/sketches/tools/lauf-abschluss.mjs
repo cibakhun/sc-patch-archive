@@ -41,6 +41,7 @@ const SCHRITTE = [
 
 const schreib = (s) => new Promise((r) => (aus.write(s) ? r() : aus.once('drain', r)));
 
+let abgebrochen = 0;
 for (const s of SCHRITTE) {
   await schreib(`\n### ${s.titel}\n`);
   process.stderr.write(`>>> ${s.titel}\n`);
@@ -68,7 +69,9 @@ for (const s of SCHRITTE) {
   });
   /* Nur den Schluss jedes Berichts — die Sonden fassen selbst zusammen. */
   await schreib(zeilen.slice(-30).join('\n') + '\n');
-  process.stderr.write(`<<< fertig (${code})\n`);
+  if (code !== 0) abgebrochen += 1;
+    process.stderr.write(`<<< fertig (${code})\n`);
 }
-await schreib('\n=== ABSCHLUSSLAUF BEENDET ===\n');
+await schreib(`\n=== ABSCHLUSSLAUF BEENDET (${abgebrochen} von ${SCHRITTE.length} Schritten abgebrochen) ===\n`);
+if (abgebrochen) process.exitCode = 1;
 aus.end();

@@ -9,15 +9,19 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 const DIST = join(resolve(process.cwd()), 'dist');
-const CHROME = join(process.env.LOCALAPPDATA, 'ms-playwright', 'chromium_headless_shell-1228', 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
+const CHROME = process.env.CHROME_PATH
+  || join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium_headless_shell-1228', 'chrome-headless-shell-win64', 'chrome-headless-shell.exe');
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
 const srv = createServer(async (req, res) => {
-  let p = decodeURIComponent(req.url.split('?')[0]);
+  let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
   if (p.endsWith('/')) p += 'index.html';
   let f = join(DIST, p);
+  if (f !== DIST && !f.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
   if (!existsSync(f) && existsSync(f + '.html')) f += '.html';
   /* ⚠ ERST lesen, DANN Header: umgekehrt stirbt der Prozess an
      ERR_HTTP_HEADERS_SENT, sobald eine Datei fehlt — mitten im Messlauf. */
@@ -32,7 +36,7 @@ const PAGES = process.argv.slice(2).length ? process.argv.slice(2)
   : JSON.parse(await readFile(join(resolve(process.cwd()), '.planning/sketches/tools/out', process.env.PAGES_FILE || 'pages.json'), 'utf8'));
 const b = await chromium.launch({ executablePath: CHROME });
 const g = {};
-let n = 0;
+let n = 0, uebersprungen = 0;
 for (const vp of (process.env.VP_LIST || '360x640').split(',')) {
   const [w, h] = vp.split('x').map(Number);
   const ctx = await b.newContext({ viewport: { width: w, height: h }, colorScheme: 'dark', hasTouch: true });
@@ -40,7 +44,8 @@ for (const vp of (process.env.VP_LIST || '360x640').split(',')) {
   pg.on('pageerror', () => {});
   for (const u of PAGES) {
     try {
-      await pg.goto('http://127.0.0.1:' + PORT + u, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const resp = await pg.goto('http://127.0.0.1:' + PORT + u, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      if (!resp || !resp.ok()) { uebersprungen++; process.stderr.write(`  nicht gemessen ${u} [${vp}]: HTTP ${resp ? resp.status() : 'keine Antwort'}\n`); continue; }
       await pg.waitForTimeout(400);
       const r = await pg.evaluate(() => {
         const out = [];
@@ -61,11 +66,11 @@ for (const vp of (process.env.VP_LIST || '360x640').split(',')) {
         const k = x.sel + '  „' + x.txt + '"  (fehlen ' + x.fehlt + 'px)  [' + vp + ']';
         (g[k] ||= new Set()).add(u);
       }
-    } catch { /* uebersprungen */ }
+    } catch (e) { uebersprungen++; process.stderr.write(`  nicht gemessen ${u} [${vp}]: ${String(e).split('\n')[0]}\n`); }
   }
   await ctx.close();
 }
 await b.close(); srv.close();
 const e = Object.entries(g).sort((a, b) => b[1].size - a[1].size);
-console.log('\nMessungen: ' + n + '   Ellipsen, die WIRKLICH greifen: ' + e.length + ' Muster');
+console.log('\nMessungen: ' + n + '   nicht gemessen: ' + uebersprungen + '   Ellipsen, die WIRKLICH greifen: ' + e.length + ' Muster');
 for (const [k, v] of e.slice(0, 20)) console.log('  ' + String(v.size).padStart(4) + ' Seiten  ' + k + '\n           (' + [...v].slice(0, 2).join('  ') + ')');

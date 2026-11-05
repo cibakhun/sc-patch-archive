@@ -15,7 +15,7 @@
 import { createServer } from 'node:http';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const ROOT = resolve(process.cwd());
@@ -39,11 +39,14 @@ const MIME = {
 /* Erst lesen, dann Header — sonst stirbt der Prozess mitten im Lauf
    (ERR_HTTP_HEADERS_SENT, siehe Durchgang 31.08.). */
 const srv = createServer(async (req, res) => {
-  let p = decodeURIComponent(req.url.split('?')[0]);
+  let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
   if (p.endsWith('/')) p += 'index.html';
   let f = join(DIST, p);
+  if (f !== DIST && !f.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
   if (!existsSync(f) && existsSync(f + '.html')) f += '.html';
-  if (!existsSync(f) && existsSync(join(f, 'index.html'))) f = join(f, 'index.html');
+  if (existsSync(join(f, 'index.html'))) f = join(f, 'index.html');
   let buf;
   try { buf = await readFile(f); } catch { buf = null; }
   if (!buf) { res.writeHead(404, { 'content-type': 'text/plain' }); res.end('404'); return; }
@@ -109,7 +112,11 @@ const PROBE = async () => {
     const r = visible(im); if (!r || !im.naturalWidth) continue;
     if (r.top > vh * 2) continue;
     const fit = getComputedStyle(im).objectFit;
-    const f = fit === 'cover' ? Math.max(r.width / im.naturalWidth, r.height / im.naturalHeight) : r.width / im.naturalWidth;
+    const fx = r.width / im.naturalWidth, fy = r.height / im.naturalHeight;
+        const f = fit === 'none' ? 1
+          : fit === 'contain' ? Math.min(fx, fy)
+          : fit === 'scale-down' ? Math.min(fx, fy, 1)
+          : Math.max(fx, fy);
     if (f > 1.3 && r.width > 320) imgs.push({ kind: 'img', sel: sel(im), src: (im.currentSrc || im.src).split('/').pop().slice(0, 50), w: Math.round(r.width), nat: im.naturalWidth, f: Math.round(f * 100) / 100 });
   }
   const bgs = [];

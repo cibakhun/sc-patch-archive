@@ -698,6 +698,20 @@ export const CHECKS = [
     env:
       'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
   },
+  {
+    // Anlass: Gesamtaudit 05.11.2026. Edge Functions rollt kein Workflow aus,
+    // und Repository und Anlage wichen voneinander ab (Einzelheiten im Bericht
+    // des Audits). Vorgefuehrt rot gegen eine Momentaufnahme der Anlage (Exit 1)
+    // und gegen einen flachen Klon (Exit 2, nicht geprueft).
+    id: 'verify:functions',
+    npm: 'verify:functions',
+    script: 'scripts/verify-functions.mjs',
+    rail: 'B',
+    checks:
+      'jede Edge Function aus supabase/functions laeuft auf der Anlage, ihr letzter Commit ist nicht juenger als der letzte Deploy, und verify_jwt entspricht supabase/config.toml (Standard true) — sonst FEHLER; Functions nur auf der Anlage sind WARNUNG; Klinke fuer die Zahl der Functions',
+    env:
+      'Netz und git: fetch() gegen https://api.supabase.com (Management API, GET /v1/projects/<ref>/functions) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — dasselbe persoenliche Zugriffstoken wie verify:db-rights, das es weder im Build-Container noch in CI gibt — und git log (Kindprozess per execFileSync) fuer den letzten Commit je Function-Verzeichnis; deshalb Schiene B. Ohne Token oder ohne git: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit der Function-Liste als JSON.',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.
@@ -743,7 +757,7 @@ export const CHECKS = [
     checks:
       'die AUSGELIEFERTEN Antworten (eine je location-Block, 200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), ohne \'unsafe-eval\', * und reine Schema-Quellen in script-src, mit default-src, object-src \'none\' und base-uri/frame-ancestors \'self\' oder \'none\', und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
     env:
-      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng.',
+      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng. ZWEI ZIELE, wie check:staging/check:live beim selben Pruefer: npm-Skript check:headers fragt die Vorschau, check:headers:live die Live-Domain. Nur die Vorschau laeuft im Workflow mit (deploy-staging.yml, dort kommt der Runner durch). Vor verse-base.com sperrt Cloudflare den Runner nicht bloss, es antwortet auch SELBST — in Lauf 41294060039 kamen 10 von 14 Stichproben mit 403 zurueck und die vier uebrigen vom Cloudflare-Rand statt von nginx, was drei falsche FEHLER ergab. --weich deckt das nicht ab (es entschuldigt nur, was gar nicht durchkommt), deshalb ist der Schritt am 01.11.2026 aus deploy-image.yml entfernt worden und check:headers:live laeuft von Hand.',
   },
 
   {
