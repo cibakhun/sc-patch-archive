@@ -12,7 +12,7 @@
 import { createServer } from 'node:http';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const ROOT = resolve(process.cwd());
@@ -36,9 +36,12 @@ const MIME = {
 
 async function serve(port) {
   const srv = createServer(async (req, res) => {
-    let p = decodeURIComponent(req.url.split('?')[0]);
+    let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
     if (p.endsWith('/')) p += 'index.html';
     let file = join(DIST, p);
+  if (file !== DIST && !file.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
     try {
       const s = await stat(file).catch(() => null);
       if (s && s.isDirectory()) file = join(file, 'index.html');
@@ -149,9 +152,10 @@ const PROBE = (cap) => {
     const top = document.elementFromPoint(x, y);
     if (!top) continue;
     if (top === el || el.contains(top) || top.contains(el)) continue;
-    /* Ein Etikett, das SEIN eigenes Feld trifft, ist in Ordnung. */
-    if (el.tagName === 'LABEL' && (el.control === top || (el.htmlFor && document.getElementById(el.htmlFor) === top))) continue;
-    if (top.closest('label') === el) continue;
+    /* Etikett-Ausnahmen standen hier bis 01.11.2026. Sie konnten nie
+           greifen: TAP waehlt kein label aus, el ist also nie eines. */
+
+
     out.verdeckt.push({ sel: path(el), von: path(top), txt: (el.textContent || '').trim().slice(0, 26) });
   }
 
@@ -175,7 +179,7 @@ const PROBE = (cap) => {
   if (nav) {
     const nr = nav.getBoundingClientRect();
     if (getComputedStyle(nav).position === 'fixed' && nr.height > 0) {
-      const main = document.querySelector('main, .dp, body');
+      const main = document.querySelector('main') || document.querySelector('.dp') || document.body;
       if (main) {
         for (const el of main.querySelectorAll('h1,h2,p,li,td,input,button,a[href]')) {
           const r = el.getBoundingClientRect();

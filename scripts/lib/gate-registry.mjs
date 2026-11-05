@@ -510,7 +510,7 @@ export const CHECKS = [
     script: 'scripts/verify-sprache.mjs',
     rail: 'A',
     checks:
-      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), kein Katalogschluessel als Text, kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
     // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
     // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
@@ -531,19 +531,43 @@ export const CHECKS = [
     // Gegenprobe gegen den Stand vor PR #289 (4f4f4ddd, Live-Bau): 3.033
     // FEHLER, dieselben Klassen plus 5 deutsche Zweitnamen auf EN-Item-
     // Seiten ohne lang-Attribut (seitdem lang="de" am Zweitnamen).
+    // Regeln 8-10 (Datum, Dezimalzahl, deutsches Wort auf EN) kamen am
+    // 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge dazu. VORGEFUEHRT
+    // ROT gegen den Live-Bau von origin/staging 286f28c6: 460 FEHLER — 34
+    // Daten ("9. Oktober 2026" in der Zeitleiste von 31 EN-Schiffsseiten,
+    // "28. Jan – 28. Feb 2025" und "16.09.2026 bis 4.10.2" als Event-
+    // Zeitraum der EN-Patch-Seiten), 394 Dezimalzahlen auf DE-Seiten ("0.01
+    // SCU" Item-Volumen, "8.75 m" in der Schiffsliste, "0.2 s" auf 4.10.2),
+    // 32 deutsche Woerter auf EN ("Stabilität & Save Stanton II", "saisonal",
+    // "Ressource suchen..."). Gruen nach der Korrektur derselben Lieferung;
+    // die eine Ausnahme (Schlossstraße, Anbieteranschrift) ist in Gebrauch.
+    // Positiv- und Gegenbeispiele je Ausdruck: tests/e2e/textregeln.test.js.
+    // Luecken aus der Staging-Abnahme am selben Abend: Regel 9 sah nur die
+    // ganze Stelle, Regel 11 (interner Bezeichner) gab es nicht. Erweitert
+    // VORGEFUEHRT ROT gegen den Vorschau-Bau von 0db33536: 1.275 FEHLER
+    // Dezimalzahl — 691 auf /de/schiffe ("L 20 m · B 15 m · H 6.5 m",
+    // "Grundriss 6.5 m lang", "Agilität: 97.0 °/s Ø" im aria-label), 584
+    // englische Spieltexte auf DE-Itemseiten ohne lang="en" ("Carrying
+    // Capacity: 8.0 µSCU"). Regel 11 im selben Lauf: 9.154 Stellen in genau
+    // den drei benannten offenen Klassen (Angebote-Spalte "Eintrag" 7.512,
+    // Orte als Code 1.624, Platzhalter-Bauteile 18), sonst keine.
   },
   {
     // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
-    // den Text, den der Item Finder erst im Browser baut. Kein git, kein
-    // Netz — fuehrt das ausgelieferte Skript in node:vm aus und liest dist/;
-    // fuer die Kataloge wie verify:sprache esbuild (dessen Dienst ist der
-    // einzige Kindprozess, Temp-Ordner wird geloescht).
+    // den Text, den die Werkzeuge erst im Browser bauen — Teil 1 der Item
+    // Finder vollstaendig, Teil 2 (seit der Inhaltsvalidierung am selben
+    // Abend) jede Seitenart bedient, mit dem Pruefstand
+    // scripts/lib/pruefstand.mjs (linkedom-DOM, Skripte in node:vm). Kein
+    // git, kein Netz — fuehrt die ausgelieferten Skripte aus und liest
+    // dist/; fuer die Kataloge und die Astro-Module wie verify:sprache
+    // esbuild (dessen Dienst ist der einzige Kindprozess, Temp-Ordner wird
+    // geloescht). Laufzeit gut 95 s, davon 55 s der Crafting-Rechner.
     id: 'verify:clienttext',
     npm: 'verify:clienttext',
     script: 'scripts/verify-clienttext.mjs',
     rail: 'A',
     checks:
-      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter}, "-1" als Wert), ohne Katalogtext der anderen Sprache, mit Zahlen im eigenen Format und ohne Rohschluessel; jeder woertliche tr()-Schluessel des Skripts steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, woertliche und gefragte Schluessel',
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
     // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
     // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
     // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
@@ -557,6 +581,36 @@ export const CHECKS = [
     // von dist/item-finder.html entfernt — 1 FEHLER "tr('slotTorso') beim
     // Rendern gefragt, steht nur im DE-Katalog"; die woertliche Regel 5 sah
     // ihn nicht. Gruen mit dem unveraenderten Bau.
+    // Teil 2 VORGEFUEHRT ROT gegen den Live-Bau von origin/staging 286f28c6:
+    // 526 FEHLER — 20 Missionstitel mit Spielplatzhaltern im Blueprint-
+    // Fenster des Crafting-Rechners ("Wanted: {TargetName}"), 199 deutsche
+    // Vorlesetexte auf EN-Seiten ("Bild öffnen: Pyro", "… Trailer
+    // abspielen" aus assets/detail.js und assets/a11y.js), 297 Dezimalzahlen
+    // im Finder-Modal der DE-Seite ("4.2 SCU"), 10 Abbrueche (Pruefstand
+    // ohne document.currentScript und form.reset, ein versteckter Knopf
+    // geklickt — im Pruefstand behoben). Gruen nach der Korrektur.
+    // Rohtext-Erweiterung, Abbruch und Werkzeug-Klinke rot am gruenen Bau
+    // mit einer Hardlink-Kopie von dist/, darin eingesetzt: Qualitaetsrechner
+    // ohne Rundung, mit 1e21 und mit '${k}' in einfachen Anfuehrungszeichen,
+    // Trefferzahl ohne .replace('{count}'), und mining-workbench.js wirft
+    // beim Start: 20 FEHLER — "110.00000000000001", "1e+23", "${",
+    // "{count} kompatible Items gefunden", "-82.5" (Dezimalpunkt auf DE),
+    // 2 Abbrueche, /topics/mining.html 3 und /de/topics/mining.html 8 Texte
+    // unter der Klinke 1.000, Summe 9.464 unter 10.500. Pruefstand-Zusagen:
+    // tests/e2e/pruefstand.test.js.
+    // Vorschau-Bau (STAGING=1) am selben Tag: 4 Abbrueche auf den Hangar-
+    // Seiten (Import "/assets/hangar-overview.js?v=…", top-level await mit
+    // import(root.dataset.lib) in hangar-loadout.js), danach 6 mit <dialog>
+    // ohne showModal/close — Luecken des Pruefstands, dort behoben; gruen
+    // mit unveraendertem Bau.
+    // Dezimalzahl mitten im Text und interner Bezeichner (Luecken aus der
+    // Staging-Abnahme, Regeln aus scripts/lib/textregeln.mjs) VORGEFUEHRT
+    // ROT gegen den Live-Bau desselben Abends: 726 FEHLER — 100 Stellen von
+    // 25 Lackierungen mit dem Logo-Schluessel als Hersteller im Finder
+    // ("Paint_Defender_Silver_Red_Logo"), 605 englische Spieltexte im
+    // DE-Modal ohne lang="en" ("Carrying Capacity: 8.0 µSCU"), 21
+    // "Kreuzungsfaktor 0.810 · 35.9° von radial" auf /de/precision-jump.html.
+    // Gruen nach der Korrektur derselben Lieferung.
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
@@ -644,6 +698,20 @@ export const CHECKS = [
     env:
       'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
   },
+  {
+    // Anlass: Gesamtaudit 05.11.2026. Edge Functions rollt kein Workflow aus,
+    // und Repository und Anlage wichen voneinander ab (Einzelheiten im Bericht
+    // des Audits). Vorgefuehrt rot gegen eine Momentaufnahme der Anlage (Exit 1)
+    // und gegen einen flachen Klon (Exit 2, nicht geprueft).
+    id: 'verify:functions',
+    npm: 'verify:functions',
+    script: 'scripts/verify-functions.mjs',
+    rail: 'B',
+    checks:
+      'jede Edge Function aus supabase/functions laeuft auf der Anlage, ihr letzter Commit ist nicht juenger als der letzte Deploy, und verify_jwt entspricht supabase/config.toml (Standard true) — sonst FEHLER; Functions nur auf der Anlage sind WARNUNG; Klinke fuer die Zahl der Functions',
+    env:
+      'Netz und git: fetch() gegen https://api.supabase.com (Management API, GET /v1/projects/<ref>/functions) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — dasselbe persoenliche Zugriffstoken wie verify:db-rights, das es weder im Build-Container noch in CI gibt — und git log (Kindprozess per execFileSync) fuer den letzten Commit je Function-Verzeichnis; deshalb Schiene B. Ohne Token oder ohne git: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit der Function-Liste als JSON.',
+  },
 
   // ---------------------------------------------------------------
   // Schiene C — gegen das LAUFENDE Artefakt, nicht gegen Dateien.
@@ -689,7 +757,7 @@ export const CHECKS = [
     checks:
       'die AUSGELIEFERTEN Antworten (eine je location-Block, 200, 301, auf der Vorschau 302, live 404) tragen Strict-Transport-Security, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options und Referrer-Policy; die Richtlinie steht auf Hashes statt \'unsafe-inline\' (sonst ist nginx auf den Rueckfall gefallen), ohne \'unsafe-eval\', * und reine Schema-Quellen in script-src, mit default-src, object-src \'none\' und base-uri/frame-ancestors \'self\' oder \'none\', und jedes Inline-Skript der ausgelieferten HTML-Antworten hat seinen Hash in der Richtlinie genau dieser Antwort',
     env:
-      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng.',
+      'Netz: fetch() gegen <base>/… mit redirect:"manual" (die Kopfzeilen der 301/302 selbst zaehlen) — nur eine laufende Seite zeigt, was Cloudflare und nginx wirklich ausliefern, deshalb Schiene C. Dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:gate (401/403/429): --weich macht daraus eine WARNUNG, vom Entwicklungsrechner aus laeuft es streng. ZWEI ZIELE, wie check:staging/check:live beim selben Pruefer: npm-Skript check:headers fragt die Vorschau, check:headers:live die Live-Domain. Nur die Vorschau laeuft im Workflow mit (deploy-staging.yml, dort kommt der Runner durch). Vor verse-base.com sperrt Cloudflare den Runner nicht bloss, es antwortet auch SELBST — in Lauf 41294060039 kamen 10 von 14 Stichproben mit 403 zurueck und die vier uebrigen vom Cloudflare-Rand statt von nginx, was drei falsche FEHLER ergab. --weich deckt das nicht ab (es entschuldigt nur, was gar nicht durchkommt), deshalb ist der Schritt am 01.11.2026 aus deploy-image.yml entfernt worden und check:headers:live laeuft von Hand.',
   },
 
   {

@@ -58,11 +58,18 @@ const REGISTRY = 'https://registry.npmjs.org/';
 const KLINKE = {
   pakete: 480, // Summe ueber alle drei Lockfiles (gemessen 402 + 25 + 75 = 502)
   // 05.11.2026 angehoben: probe-backup.yml und die Vorlage des Backup-Repos
-  // (VORLAGEN) kamen dazu — 11/35/14/59 -> 13/40/16/70.
+  // (VORLAGEN) kamen dazu — 11/35/14/58 -> 13/40/16/69.
   workflows: 13,
   actions: 40, // fremde `uses:`-Zeilen ueber alle Workflows und Vorlagen
   checkouts: 16,
-  runBloecke: 70, // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026) + Backup (05.11.2026)
+  // 57 + Kopfzeilen-Pruefung nach beiden Deploys (29.10.2026) = 59. Am
+  // 01.11.2026 auf 58 GESENKT: der Live-Deploy hat seine Kopfzeilen-Pruefung
+  // abgegeben, weil Cloudflare den Runner vor verse-base.com nicht nur sperrt,
+  // sondern selbst antwortet -- der Schritt faerbte einen gelandeten Deploy
+  // rot. Das Urteil liegt jetzt auf Schiene C (npm run check:headers:live).
+  // Die Pruefung nach dem Vorschau-Deploy bleibt und zaehlt weiter mit.
+  // 05.11.2026 + 11 fuer die Sicherung (probe-backup.yml und Vorlage) = 69.
+  runBloecke: 69,
   basisImages: 4,
 };
 

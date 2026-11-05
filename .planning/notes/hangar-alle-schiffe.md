@@ -41,11 +41,15 @@ dem Spiel, keine Roh-Exporte, kein `.mtl`-XML und keine Rohtexturen im Repo
   (GLB 32,9 MB + Ablage 50,1 MB); nach dem ersten Schiff brachte jedes
   weitere nur 2,3 bis 5,8 MB neue Bilder.
 
-## Speicher: entschieden, keine Frage an Krisz
+## Speicher: entschieden. Nutzungsrechte: offen, Frage an Krisz
 
 Die Schiffe kommen ins Repo und werden wie bisher hinter dem Testpilot-Tor
 ausgeliefert (D-06). Eine fremde Ablage (R2, CDN) läge außerhalb des Tors,
 und über die Nutzung der Spielinhalte hat Krisz noch nicht entschieden.
+Entschieden ist hier NUR der Ablageort, nicht die Rechtefrage; die gehört dem
+Betreiber. Nachtrag 31.10.2026: er hat sie für die Auslieferung beantwortet —
+der Hangar bleibt aus dem Live-Bau draußen, solange sie offen ist
+(`scripts/lib/hangar-switch.mjs`).
 Deckel für Schiffe und Ablage zusammen: **1,6 GB** (Tor [17] reißt
 darüber), Ziel **1,3 GB**. Je Datei höchstens 50 MB (GitHub).
 

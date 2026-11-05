@@ -18,7 +18,8 @@ for (const a of auftraege) {
   const suche = a.suche.replace(/\r\n/g, '\n');
   const n = flach.split(suche).length - 1;
   if (n !== 1) { console.error(`FEHLER ${a.datei}: Suchtext ${n}x gefunden, erwartet 1x`); process.exit(1); }
-  const neu = flach.replace(suche, a.ersatz.replace(/\r\n/g, '\n'));
+  const ersatz = a.ersatz.replace(/\r\n/g, '\n');
+  const neu = flach.replace(suche, () => ersatz);
   writeFileSync(a.datei, crlf ? neu.replace(/\n/g, '\r\n') : neu, 'utf8');
   console.log(`  ok ${a.datei}  (${crlf ? 'CRLF' : 'LF'} erhalten)`);
 }

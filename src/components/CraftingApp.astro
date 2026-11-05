@@ -12,6 +12,7 @@ import { itemT } from '../i18n/itemText';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
+import { seoTitle } from '../lib/missions';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -49,6 +50,7 @@ const S = {
     // Stand bis 04.11.2026 in JS_T, das Feld las aber S: der Platzhalter
     // fehlte im Zerlege-Rechner (astro check, TS2339).
     calcSearchPlaceholder: 'Material suchen…',
+    resSearch: 'Ressource suchen…',
     calcMethod: 'Geschätzte Ausbeute anhand der Rezeptdaten und berechneten Effizienz. Die tatsächliche Ausbeute im Spiel kann abweichen.',
     calcDataIncomplete: 'Zerlege-Daten unvollständig — die Seltenheits-Markierung der Materialien fehlt gerade, Ausbeuten für seltene Erze können daher zu hoch angezeigt werden. Bitte die Seite neu laden.',
   },
@@ -70,6 +72,7 @@ const S = {
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
     calcItemSearch: 'Search: item name…',
     calcSearchPlaceholder: 'Search material…',
+    resSearch: 'Search resources…',
     calcMethod: 'Estimated yield based on recipe data and calculated efficiency. Actual in-game yields may differ.',
     calcDataIncomplete: 'Dismantling data incomplete — the material rarity markers are currently missing, so yields for rare ores may be shown too high. Please reload the page.',
   },
@@ -231,6 +234,13 @@ const total = DB.counts.blueprints;
 // eine ältere DB das Feld noch nicht führt. Zur Build-Zeit ins Markup gerendert
 // (kein Laufzeit-Race) und zusätzlich ans Client-JS durchgereicht.
 const dismantleEff = typeof DB.dismantle_efficiency === 'number' ? DB.dismantle_efficiency : 0.5;
+// Missionstitel mit Laufzeit-Platzhaltern ("Wanted: {TargetName}", 53 in der
+// Rezept-DB) zeigt das Client-JS wie die statischen Blueprint-Seiten
+// (BlueprintDetail.astro): durch seoTitle() aus lib/missions — eine Wahrheit
+// fuer beide Stellen. Bis 04.11.2026 stand im Blueprint-Fenster der Rohtitel
+// (verify:clienttext, Teil 2).
+const missionTitles: Record<string, string> = {};
+for (const b of DB.blueprints) for (const m of b.missions || []) if (m.name.includes('{')) missionTitles[m.name] = seoTitle(m.name);
 const defaultYield = Math.round(dismantleEff * 100);
 
 // Cache-Busting per Content-Hash (siehe Kommentar am Skript-Tag unten).
@@ -688,7 +698,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
-          <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder="Ressource suchen..." autocomplete="off" />
+          <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder={S.resSearch} aria-label={S.resSearch} autocomplete="off" />
         </div>
         <div class="cdb-res-list">
           {resources.map((r) => (
@@ -915,6 +925,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   dbUrl: '/assets/crafting-db.json?v=' + version,
   dismantleUrl: '/assets/dismantling-items.json?v=' + version,
   dismantleEfficiency: dismantleEff,
+  missionTitles,
   icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE },
   // Materialname (Schreibweise wie im Rezept) -> Mineral, für die Abbau-Links
   // im Detail-Modal und in der Einkaufsliste des Planers (rendert das JS).

@@ -4,7 +4,7 @@
 import { createServer } from 'node:http';
 import { readFile, writeFile, mkdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { extname, join, resolve, sep } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const ROOT = resolve(process.cwd());
@@ -29,9 +29,12 @@ const MIME = {
 
 async function serve(port) {
   const srv = createServer(async (req, res) => {
-    let p = decodeURIComponent(req.url.split('?')[0]);
+    let p;
+  try { p = decodeURIComponent(req.url.split('?')[0]); }
+  catch { res.writeHead(400); res.end('x'); return; }
     if (p.endsWith('/')) p += 'index.html';
     let file = join(DIST, p);
+  if (file !== DIST && !file.startsWith(DIST + sep)) { res.writeHead(403); res.end('x'); return; }
     try {
       const s = await stat(file).catch(() => null);
       if (s && s.isDirectory()) file = join(file, 'index.html');
@@ -51,7 +54,11 @@ async function serve(port) {
   return srv;
 }
 
-const VIEWPORTS = (process.env.VP_LIST || [
+const ARGV = Object.fromEntries(process.argv.slice(2)
+  .filter((a) => a.startsWith('--'))
+  .map((a) => { const i = a.indexOf('='); return i < 0 ? [a.slice(2), ''] : [a.slice(2, i), a.slice(i + 1)]; }));
+
+const VIEWPORTS = (ARGV.vp || process.env.VP_LIST || [
   '320x568', '360x740', '390x844', '414x896',
   '768x1024', '820x1180', '1024x768', '1181x560', '1280x720', '1920x1080',
 ].join(',')).split(',').map((s) => {
@@ -59,7 +66,9 @@ const VIEWPORTS = (process.env.VP_LIST || [
   return { name: s, width: w, height: h, mobile: w <= 820 };
 });
 
-const PAGES = JSON.parse(await readFile(join(OUT, 'pages.json'), 'utf8'));
+const PAGES = ARGV.pages
+  ? ARGV.pages.split(',').filter(Boolean)
+  : JSON.parse(await readFile(join(OUT, 'pages.json'), 'utf8'));
 
 /* ---- Messung im Browser ---------------------------------------------- */
 const PROBE = () => {
@@ -235,7 +244,10 @@ for (const vp of VIEWPORTS) {
   page.on('pageerror', () => {});
   for (const url of PAGES) {
     try {
-      await page.goto(`http://127.0.0.1:${PORT}${url}`, { waitUntil: 'load', timeout: 30000 });
+      const antwort = await page.goto(`http://127.0.0.1:${PORT}${url}`, { waitUntil: 'load', timeout: 30000 });
+      // Eine 403/404-Fehlerseite ist keine Messung der Seite (--pages nimmt
+      // jeden Pfad an): als Fehler fuehren, nicht vermessen.
+      if (!antwort || !antwort.ok()) throw new Error(`HTTP ${antwort ? antwort.status() : 'ohne Antwort'}`);
       await page.waitForTimeout(350);
       const r = await page.evaluate(PROBE);
       results.push({ url, vp: vp.name, ...r });

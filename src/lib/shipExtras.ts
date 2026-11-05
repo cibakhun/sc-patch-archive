@@ -115,7 +115,8 @@ const METRICS: MetricDef[] = [
   {
     labelKey: 'metric.agility',
     get: (d) => (d.pitch != null && d.yaw != null && d.roll != null ? (d.pitch + d.yaw + d.roll) / 3 : null),
-    fmt: (n) => `${n.toFixed(1)} °/s Ø`,
+    // Zahlformat der Seite: "97.0 °/s" stand bis 04.11.2026 auch auf DE.
+    fmt: (n, loc) => `${n.toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °/s Ø`,
   },
   {
     labelKey: 'metric.firepower',
