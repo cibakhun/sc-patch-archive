@@ -97,6 +97,9 @@ eintraege(kategorie, eintrag) as (
          || case when t.typtype = 'c' then ' felder=' || (select string_agg(a.attname || ':' || format_type(a.atttypid, a.atttypmod), ',' order by a.attnum)
                                                              from pg_attribute a where a.attrelid = t.typrelid and a.attnum > 0 and not a.attisdropped)
                  else '' end
+         || coalesce((select ' subtyp=' || format_type(rg.rngsubtype, null) || ' canonical=' || rg.rngcanonical::regproc::text
+                             || ' subdiff=' || rg.rngsubdiff::regproc::text
+                        from pg_range rg where rg.rngtypid = t.oid), '')
          || ' acl=' || coalesce(t.typacl, acldefault('T'::"char", t.typowner))::text
     from pg_type t join eigen n on n.oid = t.typnamespace
    where t.typtype in ('e', 'd', 'c', 'r', 'm')

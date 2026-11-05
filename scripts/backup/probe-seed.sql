@@ -74,9 +74,11 @@ begin
 end $$;
 
 -- Pruefobjekte ohne Gegenstueck auf Live: je ein Enum, eine Domain, ein
--- Composite-Typ und ein Aggregat im eigenen Schema, damit die Sonde auch
--- diese Katalog-Kategorien (typen, aggregate) einmal hin und zurueck traegt.
+-- Composite-Typ, ein Range-Typ und ein Aggregat im eigenen Schema, damit die
+-- Sonde auch diese Katalog-Kategorien (typen, aggregate) einmal hin und
+-- zurueck traegt.
 create type private.vb_probe_stufe as enum ('roh', 'fertig');
 create domain private.vb_probe_kennung as text not null check (value ~ '^[a-z]+$');
 create type private.vb_probe_paar as (menge int, einheit text);
+create type private.vb_probe_bereich as range (subtype = int4);
 create aggregate private.vb_probe_summe(int) (sfunc = int4pl, stype = int, initcond = '0');

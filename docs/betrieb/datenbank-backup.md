@@ -129,7 +129,7 @@ dort auf, bevor der nächste Live-Lauf es tut. Sie meldet sich zusätzlich mit
 einem Probekonto am wiederhergestellten Auth-Dienst an und führt jede Stufe
 des Vergleichs einmal absichtlich rot vor (Prüfsumme der Sicherung, Inhalt
 der Probe, Katalog). Die erfundene Quelle trägt dafür auch je einen eigenen
-Enum-, Domain- und Composite-Typ und ein Aggregat.
+Enum-, Domain-, Composite- und Range-Typ und ein Aggregat.
 
 ---
 
@@ -359,11 +359,11 @@ Gegen den Nachbau, jede einmal absichtlich gebrochen:
 | 6 | falsche Projekt-Ref | `Benutzer vb_backup gehoert nicht zum Projekt trgjhmbnodoarnfmlcqx — falsche Datenbank?` |
 | 7 | Zeile nur im Dump der Probe entfernt (Sonde, jeder Lauf) | `public.favorites: Inhalt der Probe weicht ab (2 statt 3 Zeilen oder andere Werte)` |
 | 8 | Enum nur im Katalog der Probe entfernt (Sonde, jeder Lauf) | `typen: fehlt in der Probe oder ist dort anders: private.vb_probe_stufe …` |
-| 9 | `vb_backup` mit anderer Verbindungsgrenze bzw. an `authenticated` vererbt, Migration erneut | `vb_backup hat unerwartete Attribute (… connlimit=5)` bzw. `… hat 1 Mitglieder (Soll: 0, 0, 0)` |
+| 9 | `vb_backup` mit anderer Verbindungsgrenze, an `authenticated` vererbt bzw. auf dem Umweg über `pg_read_all_data` in `authenticated` gesteckt, Migration erneut | `vb_backup hat unerwartete Attribute (… connlimit=5)`, `… hat 1 Mitglieder (Soll: 0, 0, 0)` bzw. `… steckt in 1 weiteren Rollen …` |
 | 10 | Verschlüsselung: Selbstprobe weicht ab | `entschluesseltes Archiv weicht ab …`, kein Archiv bleibt liegen |
 | 11 | `hochladen` gegen die Live-Adresse | `… ist Live — nie ohne Freigabe des Betreibers zurueckspielen` |
 
 Dazu `verify:supply-chain` mit unangehefteter Action in der Vorlage: rot.
-Grün danach: 572 Katalogobjekte in 20 Kategorien gleich, 56 Tabellen mit
+Grün danach: 584 Katalogobjekte in 20 Kategorien gleich, 56 Tabellen mit
 gleichem Inhalt, 9 Sequenzstände, 2 Dateien mit gleicher sha256, Anmeldung
 eines Probekontos am wiederhergestellten Auth-Dienst, ganzer Lauf 44 s.
