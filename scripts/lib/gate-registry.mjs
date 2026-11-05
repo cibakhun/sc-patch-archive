@@ -817,6 +817,23 @@ export const CHECKS = [
       'HEUTE ein Bericht, kein Pruefer: kein process.exit, kein npm-Skript, und der Ground-Truth-Pfad fuer Teil C zeigt in ein geloeschtes Sitzungsverzeichnis. ' +
       'Wird in Stufe 1c zum Schiene-B-Pruefer umgebaut (Exit-Logik ab Huellen-Verwechslung, Pfad nach .cache/) — die heutigen 34 Verdachtsfaelle muessen davor einzeln beurteilt werden.',
   },
+  {
+    // Anlass: Live lief auf dem Free-Plan ohne ein einziges Backup
+    // (docs/betrieb/datenbank-backup.md). Vorgefuehrt rot am 05.11.2026 mit
+    // sechs Gegenproben (ohne vorbereitung.sql, ohne zusatz.sql, eine Zeile
+    // entfernt, Rolle ohne BYPASSRLS, Klinke, falsches Projekt); die Sonde
+    // probe-backup.yml fuehrt drei davon in jedem Lauf erneut vor
+    // (Pruefsumme, Inhalt der Probe, Katalog).
+    id: 'verify:backup',
+    npm: 'verify:backup',
+    script: 'scripts/verify-backup.mjs',
+    rail: null,
+    checks:
+      'eine Datenbanksicherung ist vollstaendig (jede Tabelle der Quelle mit Datenblock, eigene Tabellen in schema.sql, eigene Trigger und Policies in auth/storage sowie die Realtime-Publikation in zusatz.sql, Klinken fuer Konten, Tabellen und Katalogobjekte) und ihre Wiederherstellung gleicht der Quelle (sha256 jeder Datei gegen das Manifest, jedes Katalogobjekt samt Rechten und Policies, Zeilenzahl und sortiert gehashter Inhalt je Tabelle, Sequenzstaende)',
+    why:
+      'Pruefer ohne Torkette: er braucht einen frischen Dump und eine wiederhergestellte Probe, die es nur im Backup-Lauf gibt (scripts/backup/lauf.sh — taeglich im privaten Backup-Repo gegen Live, bei jeder Aenderung an Skripten oder Migrationen in .github/workflows/probe-backup.yml gegen eine erfundene Quelle). ' +
+      'Dort urteilt er per Exit-Code, und ohne Gruen entsteht kein Archiv. Ohne Argumente Exit 2 "nicht geprueft". Liest nur Dateien.',
+  },
 ];
 
 /** Die Strecken einer Schiene, in Laufreihenfolge. */
