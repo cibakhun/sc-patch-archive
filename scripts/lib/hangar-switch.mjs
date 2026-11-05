@@ -67,7 +67,10 @@ export function hangarImArtefakt(distDir = 'dist') {
  *  nicht lesbar, gilt der Hangar als da, und alle Hangar-Pruefungen laufen. */
 export async function hangarImArtefaktUeberNetz(base, kopfzeilen = {}) {
   try {
-    const r = await fetch(`${base}/build.json`, { headers: kopfzeilen });
+    // Zeitgrenze: ein Server, der annimmt und nie antwortet, haelt sonst den
+    // Rauchtest an. Nur ein 2xx-Stempel darf den Hangar abwaehlen.
+    const r = await fetch(`${base}/build.json`, { headers: kopfzeilen, signal: AbortSignal.timeout(15000) });
+    if (!r.ok) return true;
     return (await r.json()).staging !== false;
   } catch {
     return true;

@@ -30,6 +30,17 @@ reviews:
       - src/data/ship-hardpoints.json
       - src/data/ship-extras.json
       - src/data/ship-loadouts.json
+      # Nachgetragen 05.11.2026 (cubic zu #299): ebenfalls Skriptausgaben.
+      - src/data/ships.json                # sync-ships
+      - src/data/vehicle-prices.json       # sync-prices
+      - src/data/commodity-prices.json     # fetch-uex-commodities (sync:refinery)
+      - src/data/ship-components.json      # datamine-ship-components
+      - src/data/vehicle-roles.json        # datamine-vehicle-roles
+      - src/data/ship-missile-racks.json   # datamine-missile-racks
+      - src/data/vehicle-external.json     # build-vehicle-external
+      - src/data/manufacturer-logos.json   # datamine-manufacturer-logos
+      - src/data/hangar-crew.json          # build-hangar-crew
+      - src/data/holo-meshes.json          # build-holo-meshes
       # Mitgelieferte three.js-Kopie
       - public/vendor/
     base_branches:

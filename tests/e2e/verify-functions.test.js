@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  pruefe, jwtSoll, repoFunktionen, leseMomentaufnahme, KLINKE_FUNKTIONEN,
+  pruefe, jwtSoll, repoFunktionen, leseMomentaufnahme, unpruefbar, KLINKE_FUNKTIONEN,
 } from '../../scripts/verify-functions.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -93,6 +93,23 @@ test('verify-functions: Klinke und Selbstauskunft gegen das Repository', () => {
   }
   const zuWenig = pruefe(REPO.slice(0, 5), frisch(), soll).fehler;
   assert.ok(zuWenig.some((f) => /^nur 5 Functions im Repository gefunden/.test(f)), zuWenig.join('\n'));
+});
+
+test('verify-functions: eine geloeschte Function (status REMOVED) zaehlt nicht als laufend', () => {
+  const anlage = frisch().map((f) => (f.slug === 'register' ? { ...f, status: 'REMOVED' } : { ...f, status: 'ACTIVE' }));
+  const { fehler, warnungen } = pruefe(REPO, anlage, soll);
+  assert.deepEqual(fehler, ['register: steht im Repository, laeuft aber nicht auf der Anlage — ausrollen']);
+  assert.deepEqual(warnungen, []);
+});
+
+test('verify-functions: ohne Commit oder am Rand eines flachen Klons gibt es kein Urteil', () => {
+  assert.deepEqual(unpruefbar(REPO), []);
+  const neu = [...REPO, { slug: 'neue-function', commit: null }];
+  assert.deepEqual(unpruefbar(neu), ['ohne Commit: neue-function — erst einchecken, dann pruefen']);
+  const rand = REPO.map((r, i) => ({ ...r, commit: { ...r.commit, voll: `voll${i}` } }));
+  const befund = unpruefbar(rand, new Set(['voll2']));
+  assert.equal(befund.length, 1);
+  assert.match(befund[0], /^flacher Klon, die Geschichte von delete-account endet am Klon-Rand/);
 });
 
 test('verify-functions: Momentaufnahme als Liste oder als { functions: [...] }', () => {

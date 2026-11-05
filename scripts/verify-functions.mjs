@@ -100,13 +100,14 @@ const alsMs = (v) => (typeof v === 'number' ? v : Date.parse(v));
 const tag = (ms) => new Date(ms).toISOString().replace('T', ' ').slice(0, 16) + ' UTC';
 
 /**
- * repo:    [{ slug, commit: { ms, kennung } | null }]
- * anlage:  Function-Liste der Management API ([{ slug, version, updated_at, verify_jwt }])
+ * repo:    [{ slug, commit: { ms, kennung } }] (ohne Commit faengt unpruefbar() vorher ab)
+ * anlage:  Function-Liste der Management API ([{ slug, version, updated_at, verify_jwt, status }])
  * soll:    Map slug -> verify_jwt aus config.toml
  */
 export function pruefe(repo, anlage, soll) {
   const fehler = [], warnungen = [], zeilen = [];
-  const live = new Map(anlage.map((f) => [f.slug, f]));
+  // Die API fuehrt auch geloeschte Functions (status REMOVED); die laufen nicht.
+  const live = new Map(anlage.filter((f) => f.status !== 'REMOVED').map((f) => [f.slug, f]));
   for (const { slug, commit } of repo) {
     const f = live.get(slug);
     if (!f) { fehler.push(`${slug}: steht im Repository, laeuft aber nicht auf der Anlage — ausrollen`); continue; }
@@ -138,6 +139,20 @@ async function holeLive(ref, token) {
   return JSON.parse(text);
 }
 
+/** Functions, deren Repository-Stand sich nicht datieren laesst: ohne Commit
+ *  (neu, noch nicht eingecheckt) oder mit einem Commit am Rand eines flachen
+ *  Klons. Fuer sie gibt es kein Urteil, nur "nicht geprueft" (Exit 2). */
+export function unpruefbar(repo, grenzen = new Set()) {
+  const ohne = repo.filter((r) => !r.commit).map((r) => r.slug);
+  const rand = repo.filter((r) => r.commit && grenzen.has(r.commit.voll)).map((r) => r.slug);
+  const out = [];
+  if (ohne.length) out.push(`ohne Commit: ${ohne.join(', ')} — erst einchecken, dann pruefen`);
+  if (rand.length) {
+    out.push(`flacher Klon, die Geschichte von ${rand.join(', ')} endet am Klon-Rand — erst vertiefen: git fetch --unshallow (oder --shallow-since=<Datum vor dem aeltesten Deploy>)`);
+  }
+  return out;
+}
+
 /** Momentaufnahme: die Liste selbst oder { functions: [...] } (Form von list_edge_functions). */
 export function leseMomentaufnahme(text) {
   const j = JSON.parse(text);
@@ -157,11 +172,11 @@ async function main() {
     console.error(`\nverify-functions: NICHT GEPRUEFT -- git nicht nutzbar (${e.message})\n`);
     return 2;
   }
-  const grenzen = flacheGrenzen();
-  const unsicher = repo.filter((r) => r.commit && grenzen.has(r.commit.voll)).map((r) => r.slug);
-  if (unsicher.length) {
-    console.error(`\nverify-functions: NICHT GEPRUEFT -- flacher Klon, die Geschichte von ${unsicher.join(', ')} endet am Klon-Rand.`);
-    console.error('  Erst vertiefen: git fetch --unshallow   (oder --shallow-since=<Datum vor dem aeltesten Deploy>)\n');
+  const offen = unpruefbar(repo, flacheGrenzen());
+  if (offen.length) {
+    console.error('\nverify-functions: NICHT GEPRUEFT');
+    for (const o of offen) console.error(`  ${o}`);
+    console.error('');
     return 2;
   }
   try {
