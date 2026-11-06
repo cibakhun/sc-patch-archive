@@ -500,7 +500,7 @@ export const CHECKS = [
     script: 'scripts/verify-patch-angaben.mjs',
     rail: 'A',
     checks:
-      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise, Fundorte, FleetYards-Teile, 3D-Hülle; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe und fuer Melde-Links',
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise, Fundorte, FleetYards-Teile, 3D-Hülle; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
     // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
     // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
@@ -543,6 +543,23 @@ export const CHECKS = [
     // Seite -> "zeigt auf ..., Soll ..."; Linktext "Report" -> "heisst
     // Report, Soll Report a wrong value"; Link auf items.html -> "auf einer
     // Seite, die keine Detailseite ist". Danach wiederhergestellt und gruen.
+    // [7] Patch-Dossier (C1b, Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen
+    // den Live-Bau der Dossier-Aenderung, je ein Eingriff in dist/: Fracht
+    // einer Zeile 2.200 -> 2.100 SCU -> "Fracht „2.100 SCU", der Datensatz
+    // ... sagt „2.200 SCU""; Wert in einer Zeile ohne eigene Schiffsseite ->
+    // "hat keine eigene Schiffsseite, zeigt aber Werte"; Quellenzeile
+    // entfernt -> "die Quellenzeile darunter fehlt"; Spielversion der
+    // Quellenzeile auf 4.10.1 -> "ohne ... 4.10.2" + "nennt ... 4.10.1, die
+    // Tabelle zeigt dazu keine Werte"; Wiki-Angabe gestrichen -> "ohne
+    // „Pledge-Preis, Höchstcrew ..."; FleetYards in die Zeile -> "nennt
+    // FleetYards" + "beginnt ..."; Etikett älterer Stand gestrichen -> "zeigt
+    // ..., Soll ... älterer Stand"; Tabelle einer Seite umbenannt -> Klinken
+    // 33 < 34, 62 < 64, 54 < 56. Danach wiederhergestellt und gruen.
+    // Nach dem Review von #308 prueft [7] auch data-stand-art (Spielversion
+    // "spiel", Wiki "schnappschuss"), VORGEFUEHRT ROT: Art der Spielversion
+    // auf "wert" -> "hat data-stand-art "wert", Soll "spiel""; Art der
+    // Wiki-Angabe entfernt -> "hat data-stand-art null, Soll
+    // "schnappschuss"". Danach wiederhergestellt und gruen.
   },
 
   {

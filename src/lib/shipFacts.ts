@@ -23,7 +23,8 @@ const num = (x: number | null, loc: string, unit = ''): string =>
       })}${unit}`
     : '—';
 
-export function crewFmt(d: VehicleData): string {
+/** Crew wie auf der Schiffsseite: „min–max“, sonst der eine bekannte Wert. Auch das Patch-Dossier nutzt sie. */
+export function crewFmt(d: { crewMin?: number | null; crewMax?: number | null }): string {
   if (d.crewMin == null && d.crewMax == null) return '—';
   if (d.crewMin != null && d.crewMax != null && d.crewMax !== d.crewMin)
     return `${d.crewMin}–${d.crewMax}`;

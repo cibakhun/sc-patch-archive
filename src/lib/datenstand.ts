@@ -81,6 +81,9 @@ const T = {
     bild: 'Bild',
     erzpreise: 'Erzpreise',
     ausbeute: 'Ausbeute je Station',
+    dossier: 'Schiffswerte wie auf den Schiffsseiten.',
+    frachtCrew: 'Fracht, Mindestcrew',
+    pledgeCrew: 'Pledge-Preis, Höchstcrew',
   },
   en: {
     titel: 'Data status',
@@ -107,6 +110,9 @@ const T = {
     bild: 'Image',
     erzpreise: 'Ore prices',
     ausbeute: 'Yield per station',
+    dossier: 'Ship values as on the ship pages.',
+    frachtCrew: 'Cargo, minimum crew',
+    pledgeCrew: 'Pledge price, maximum crew',
   },
 } as const;
 
@@ -230,6 +236,29 @@ export function standSchiff(
     });
   }
   if (o.bild) z.push({ quelle: 'bild', art: 'quelle', was: t.bild, text: o.bild, aelter: false });
+  return z;
+}
+
+/**
+ * Patch-Dossier, Schiffstabelle (C1b, Freigabe Krisz 06.11.2026 „Wie
+ * empfohlen"): Crew, Fracht und Pledge-Preis kommen aus dem eigenen Katalog,
+ * dieselben Werte wie auf der Schiffsseite. Vorher stand dort ein
+ * FleetYards-Schnappschuss, der in 27 von 88 Werten der eigenen Schiffsseite
+ * widersprach. `kennungen`: die Stempel der Datensaetze, die die Tabelle
+ * zeigt (Fracht und Mindestcrew); `wiki`: sie zeigt einen Pledge-Preis oder
+ * eine Hoechstcrew aus dem Schnappschuss. Ohne eigenen Datensatz: keine Zeile.
+ */
+export function standDossier(lang: Locale, o: { kennungen: (string | null | undefined)[]; wiki: boolean }): StandZeile[] {
+  const t = T[lang];
+  const fassungen = [...new Set(o.kennungen.map((k) => fassung(k, 'Fahrzeug-Datensatz gameVersion')))];
+  fassungen.sort((a, b) => (frueher(a, b) ? 1 : frueher(b, a) ? -1 : 0));
+  const z = fassungen.map((f) => spiel(lang, 'fahrzeug', t.frachtCrew, f, FAHRZEUG_F));
+  if (o.wiki) {
+    z.push({
+      quelle: 'wiki', art: 'schnappschuss', was: t.pledgeCrew, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
+      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+    });
+  }
   return z;
 }
 
