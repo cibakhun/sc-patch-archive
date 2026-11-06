@@ -22,7 +22,7 @@ import { vType, vSize, vFoci } from '../i18n/vehicleText';
 import { missions, repSummary, uec } from './missions';
 import { patchesFor } from './patchSpine';
 import { altName, displayName, itemPath, leafCategory, pageItems, rootCategory } from './items';
-import { blueprintPath, blueprints, craftLeaf, craftRoot, itemForBlueprint } from './crafting';
+import { blueprintListLabels, blueprintPath, blueprints, craftLeaf, craftRoot, itemForBlueprint } from './crafting';
 import { categoryLabel } from '../i18n/itemText';
 
 export type SearchEntry = { k: string; b: string; t: string; s: string; u: string; x: string };
@@ -178,16 +178,19 @@ export function buildSearchIndexMore(lang: Locale): SearchEntry[] {
       x: [altName(it, lang), categoryLabel(root, lang)].filter(Boolean).join(' '),
     });
   }
-  for (const bp of blueprints) {
+  // Gleichnamige Blueprints (11 Namen, z. B. BroadSpec) tragen dieselben
+  // Unterscheider wie in den Blueprint-Listen (Masse oder laufende Nummer).
+  const bpLabels = blueprintListLabels(blueprints, lang);
+  blueprints.forEach((bp, i) => {
     const it = itemForBlueprint(bp);
     out.push({
       k: 'bauplan',
       b: craftLeaf(bp.category),
-      t: bp.name,
+      t: bpLabels[i],
       s: categoryLabel(craftRoot(bp.category), lang),
       u: href(blueprintPath(bp), lang),
       x: it ? [displayName(it, lang), altName(it, lang)].filter((n) => n && n !== bp.name).join(' ') : '',
     });
-  }
+  });
   return out;
 }

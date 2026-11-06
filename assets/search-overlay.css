@@ -100,9 +100,12 @@
     justify-content: center;
   }
   /* 56 vh liessen unter der Liste ~240 px ungenutzt (gemessen bei 375x812).
-     Mehr Trefferhöhe = weniger Scrollen im Overlay. */
+     Mehr Trefferhöhe = weniger Scrollen im Overlay. Auf niedrigen Schirmen
+     haelt die zweite Zeile Kopf (11vh Abstand + Eingabezeile) und Fusszeile
+     im Bild; ohne dvh-Unterstuetzung gilt die erste. */
   .scs__list {
     max-height: 68vh;
+    max-height: min(68vh, calc(100dvh - 11vh - 7rem));
   }
 }
 .scs__list {

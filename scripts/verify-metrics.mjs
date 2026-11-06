@@ -91,6 +91,12 @@ function zaehleIndex(dateien, filter = () => true) {
   return n;
 }
 
+// Zwei Sprachfassungen derselben Liste: die schwaechere zaehlt doppelt.
+// null, wenn eine Seite fehlt (kaputter Ableser, keine Schrumpfung).
+const beideSprachen = (en, de) => (en == null || de == null ? null : 2 * Math.min(en, de));
+const art = (k) => (e) => e && e.k === k;
+const SUCHKNOPF = /<button[^>]*data-scs-boot/;
+
 /* ---------- Die Ableser. Jeder liefert eine Zahl oder null ---------- */
 // null heisst "Quelle nicht vorhanden" — das ist etwas anderes als 0 und
 // wird als FEHLER gemeldet, nicht als Schrumpfung. Ein Ableser, der bei
@@ -184,10 +190,18 @@ const ABLESER = {
   // Items und Blueprints stehen im zweiten Index-Teil, die Werkzeuge im
   // ersten, und die Datenseiten tragen nur einen Knopf, der die Suche
   // nachlaedt. Faellt einer der drei weg, baut die Seite weiter und die Suche
-  // findet still weniger. Gezaehlt am gebauten Stand, EN + DE.
-  sucheItemsUndBlueprints: () => zaehleIndex(['search-index-more.json', 'de/search-index-more.json']),
-  sucheWerkzeuge: () => zaehleIndex(['search-index.json', 'de/search-index.json'], (e) => e.k === 'werkzeug'),
-  datenSeitenMitSuche: () => zaehleMitMarke(['items', 'de/items', 'crafting', 'de/crafting'], /<button[^>]*data-scs-boot/),
+  // findet still weniger. Gezaehlt am gebauten Stand, je Art getrennt.
+  // Beide Sprachen entstehen aus denselben Listen und sind gleich gross;
+  // gezaehlt wird die SCHWAECHERE doppelt (beideSprachen): faellt nur eine
+  // Sprache ab, reisst die Klinke genauso, als fielen beide (Review #303).
+  sucheItems: () =>
+    beideSprachen(zaehleIndex(['search-index-more.json'], art('item')), zaehleIndex(['de/search-index-more.json'], art('item'))),
+  sucheBlueprints: () =>
+    beideSprachen(zaehleIndex(['search-index-more.json'], art('bauplan')), zaehleIndex(['de/search-index-more.json'], art('bauplan'))),
+  sucheWerkzeuge: () =>
+    beideSprachen(zaehleIndex(['search-index.json'], art('werkzeug')), zaehleIndex(['de/search-index.json'], art('werkzeug'))),
+  datenSeitenMitSuche: () =>
+    beideSprachen(zaehleMitMarke(['items', 'crafting'], SUCHKNOPF), zaehleMitMarke(['de/items', 'de/crafting'], SUCHKNOPF)),
 };
 
 /* ---------- Lesen ---------- */

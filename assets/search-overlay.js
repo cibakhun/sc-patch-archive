@@ -46,26 +46,37 @@
     });
   };
   var loading = null;
+  var moreLoading = false;
+  // Beide Teile werden erneut versucht, wenn ein Abruf fehlschlug: ein
+  // kurzer Netzaussetzer soll die Suche nicht bis zum Neuladen der Seite
+  // stilllegen. Ein Fehlschlag des ersten Teils gibt `loading` frei, einer
+  // des zweiten laesst `more` leer, damit das naechste Oeffnen neu holt.
   function load() {
-    if (loading) return loading;
     var moreUrl = root.getAttribute('data-index-more');
-    if (moreUrl) {
+    if (moreUrl && !more && !moreLoading) {
       // Der zweite Teil darf fehlen oder spaeter kommen: die Suche laeuft mit
       // dem ersten weiter, statt leer zu bleiben.
+      moreLoading = true;
       fetchJson(moreUrl)
         .then(function (j) {
           more = prep(j);
-          if (!root.hidden) render(input.value);
-        })
-        .catch(function () {
-          more = [];
+        }, function () {})
+        .then(function () {
+          moreLoading = false;
           if (!root.hidden) render(input.value);
         });
     }
-    loading = fetchJson(root.getAttribute('data-index') || '/search-index.json').then(function (j) {
-      index = prep(j);
-      return index;
-    });
+    if (loading) return loading;
+    loading = fetchJson(root.getAttribute('data-index') || '/search-index.json').then(
+      function (j) {
+        index = prep(j);
+        return index;
+      },
+      function (err) {
+        loading = null;
+        throw err;
+      },
+    );
     return loading;
   }
   function score(e, terms, whole) {
@@ -105,7 +116,7 @@
       .map(function (r) { return r.e; });
     if (!results.length) {
       // Solange der zweite Teil noch laedt, ist "nichts gefunden" verfrueht.
-      if (root.getAttribute('data-index-more') && !more) return;
+      if (moreLoading) return;
       var li = document.createElement('li');
       li.className = 'scs__empty';
       var h = document.createElement('b');
