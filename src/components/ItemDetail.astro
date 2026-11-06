@@ -7,7 +7,7 @@ import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/itemText';
 import {
-  ITEM_PATCH, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
+  ITEM_KENNUNG, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
   pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
   armorSetById, setItemsBySlot,
@@ -15,7 +15,7 @@ import {
 import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
-import { patchPageHref } from '../lib/patchPages';
+import { patchLinkFromKennung } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
 import { stockShips, inFracturingCalc, wikeloTrades } from '../lib/itemLinks';
 
@@ -23,7 +23,8 @@ interface Props { item: Item; lang: Locale }
 const { item, lang } = Astro.props;
 
 const t = itemT(lang);
-const patchHref = patchPageHref(ITEM_PATCH, lang);
+const patchLink = patchLinkFromKennung(ITEM_KENNUNG, lang);
+const patchHref = patchLink.href;
 const mentions = patchesMentioning(itemPath(item));
 const seo = itemSeo(item, lang);
 const name = displayName(item, lang);
@@ -324,7 +325,9 @@ const crumbs = [
         Fehlt sie, entfaellt der Knopf ganz: ein <span> mit Knopf-Klassen saehe
         aus wie ein Knopf und waere keiner. Die Patch-Kennung steht ohnehin im
         Seitentitel. */}
-    {patchHref && <a class="dp-btn dp-btn--ghost" href={patchHref}>Alpha {ITEM_PATCH}</a>}
+    {/* Nennt die Patch-Seite schon ein Erwaehnungs-Knopf daneben („Alpha 4.10.2 ·
+        RSI Discovery Month"), entfaellt der schlichte: zwei Knoepfe zur selben Seite. */}
+    {patchHref && !mentions.some((p) => href(p.page, lang) === patchHref) && <a class="dp-btn dp-btn--ghost" href={patchHref}>{patchLink.label}</a>}
     {mentions.map((p) => <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a>)}
   </div>
 </DataShell>

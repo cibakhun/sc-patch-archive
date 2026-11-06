@@ -13,6 +13,7 @@ import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
+import vehicleExternal from '../data/vehicle-external.json';
 import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import { jsonForScript } from '../lib/safeJson';
@@ -55,6 +56,18 @@ interface Props {
 const { d, id, similar, profile, viz, hasEn = false } = Astro.props;
 // Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
 const lang = assertLocale(Astro.props.lang, 'ShipDetail');
+// Pledge-Preis, Masse, Crew max. und Status stehen in keiner Spieldatei; sie
+// kommen aus dem eingefrorenen Wiki-Schnappschuss (vehicle-external.json). Die
+// Quellenzeile nennt ihn mit seinem eigenen Datum, statt die Werte unter dem
+// juengeren Stand der Spielwerte stehen zu lassen (Bestandsaufnahme C,
+// 06.11.2026). Das Datum steht nur im Quelltext der Datei — fehlt es dort,
+// bricht der Bau, statt ein Datum zu raten.
+const wikiStand = /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(vehicleExternal.source)?.[1];
+if (!wikiStand) throw new Error('ShipDetail: vehicle-external.json nennt kein fetchedAt-Datum im Feld source');
+const wikiEintrag =
+  (vehicleExternal.vehicles as Record<string, object>)[d.id] ??
+  (vehicleExternal.overrides as Record<string, object>)[d.id];
+const zeigtWiki = !!wikiEintrag && [d.msrpUSD, d.lengthM, d.crewMax, d.statusDe, d.statusEn].some((x) => x != null);
 
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
@@ -580,6 +593,7 @@ const cgOf = (gid: string) => CONTENT_GROUPS_SOURCE.find((g) => g.id === gid)!;
   description={metaDesc}
   themeColor="#05070d"
   footer={true}
+  footerSources={[]}
   translated={hasEn}
   ogImage={hero?.src}
   itemPage={{ modified: vehiclesSnapshot.fetchedAt }}
@@ -2886,6 +2900,7 @@ span.sd__ref{color:var(--muted)}
       {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
       {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a>
       {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}
+      {zeigtWiki && ` · ${t('ship.source.wiki')}: starcitizen.tools, ${t('ship.asof')} ${wikiStand}`}
     </p>
   </div>
 </main>

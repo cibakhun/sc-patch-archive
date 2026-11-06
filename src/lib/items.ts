@@ -605,6 +605,8 @@ export function clip(s: string, max = 160): string {
  * schrieb genau die Annahme fest, die am 27.08. zwei tote Verweise erzeugt hat.
  */
 export const ITEM_PATCH = (/(\d+\.\d+)/.exec(db.gameVersion ?? '') ?? [])[1] ?? '4.10';
+/** Volle Kennung des Item-Katalogs ("4.10.2-live.…") fuer patchLinkFromKennung(). */
+export const ITEM_KENNUNG = db.gameVersion ?? null;
 
 /* ---------- URLs (Basisform = EN-Pfad; href() praefixt DE) ---------- */
 

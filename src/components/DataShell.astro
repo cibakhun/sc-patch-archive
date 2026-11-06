@@ -192,8 +192,12 @@ const crumbLd = {
       </nav>
       {(sources.length > 0 || updated) && (
         <p class="dp-src">
-          {sources.length > 0 && <>{t('footer.sources')}: {sources.join(' · ')}</>}
-          {updated && <> · {t('footer.dataAsOf')} {updated}</>}
+          {/* Als EIN Text gesetzt: zwischen zwei Ausdruecken in einem Fragment
+              verschluckte der Bau das Leerzeichen („Daten-Stand2026-10-11"). */}
+          {[
+            sources.length > 0 ? `${t('footer.sources')}: ${sources.join(' · ')}` : '',
+            updated ? `${t('footer.dataAsOf')} ${updated}` : '',
+          ].filter(Boolean).join(' · ')}
         </p>
       )}
       <p class="dp-legal">{t('footer.disclaimer')}</p>
