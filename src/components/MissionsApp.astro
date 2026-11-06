@@ -176,38 +176,38 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
       </div>
       <div class="mx__f mx__f--grow" data-help={h('missions.ctl.search')}>
         <label for="mx-q">{S.search}</label>
-        <input type="search" id="mx-q" placeholder={S.searchPh} autocomplete="off" />
+        <input type="search" id="mx-q" data-ev-filter="suche" placeholder={S.searchPh} autocomplete="off" />
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-type">{S.fType}</label>
-        <select id="mx-type"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
+        <select id="mx-type" data-ev-filter="typ"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-giver">{S.fGiver}</label>
-        <select id="mx-giver"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+        <select id="mx-giver" data-ev-filter="auftraggeber"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-faction">{S.fFaction}</label>
-        <select id="mx-faction"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
+        <select id="mx-faction" data-ev-filter="fraktion"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-guild">{S.fGuild}</label>
-        <select id="mx-guild"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+        <select id="mx-guild" data-ev-filter="gilde"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-loc">{S.fLoc}</label>
-        <select id="mx-loc"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
+        <select id="mx-loc" data-ev-filter="ort"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.blueprint')}>
         <label for="mx-bp">{S.fBp}</label>
-        <select id="mx-bp">
+        <select id="mx-bp" data-ev-filter="bauplan">
           <option value="">{S.all}</option>
           <option value="1">{S.bpOnly}</option>
         </select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.legal')}>
         <label for="mx-legal">{S.fLegal}</label>
-        <select id="mx-legal">
+        <select id="mx-legal" data-ev-filter="legal">
           <option value="">{S.all}</option>
           <option value="lawful">{S.lawful}</option>
           <option value="unlawful">{S.unlawful}</option>
@@ -215,7 +215,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
       </div>
       <div class="mx__f" data-help={h('missions.ctl.sort')}>
         <label for="mx-sort">{S.sort}</label>
-        <select id="mx-sort">
+        <select id="mx-sort" data-ev-filter="sortierung">
           <option value="count">{S.sCount}</option>
           <option value="name">{S.sName}</option>
           <option value="reward">{S.sReward}</option>

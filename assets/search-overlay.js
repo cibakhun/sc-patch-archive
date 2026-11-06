@@ -176,8 +176,13 @@
     items[sel].scrollIntoView({ block: 'nearest' });
   }
   function go(i) {
-    var e = results[i == null ? sel : i];
-    if (e) location.href = e.u;
+    var n = i == null ? sel : i;
+    var e = results[n];
+    if (!e) return;
+    // Messereignis (assets/ereignisse.js): nur Art und Platzgruppe des
+    // Treffers, nie Suchbegriff oder Ziel.
+    if (window.vbEreignis) window.vbEreignis('suche-treffer', { art: e.k, platz: n < 3 ? '1-3' : n < 10 ? '4-10' : '11+' });
+    location.href = e.u;
   }
   function open() {
     // Der Zaehler in scroll-lock.js darf nicht doppelt hochlaufen: ein
@@ -187,6 +192,7 @@
     if (!root.hidden) { input.focus(); input.select(); return; }
     lastFocus = document.activeElement;
     root.hidden = false;
+    if (window.vbEreignis) window.vbEreignis('suche-offen');
     // Geteilte Sperre statt overflow am Wurzelelement: iOS Safari
     // uebergeht overflow:hidden dort und scrollt den Hintergrund weiter.
     // Siehe assets/scroll-lock.js.

@@ -152,6 +152,17 @@ body{font-family:var(--font-body)}
       Bildschirmgröße und Browsersprache, Gerätetyp, Browser und Betriebssystem, das aus der
       IP-Adresse abgeleitete Land mit Region und Stadt sowie Zeitpunkte und Verweildauer.
       Konto- und Anmeldeseiten zählt Umami gar nicht.
+      Außerdem zählt Umami einige Bedienschritte als Ereignis: Suche geöffnet, Suchtreffer gewählt,
+      Wechsel von einer Detailseite in ein Werkzeug oder auf eine andere Detailseite, erster Filter
+      und erste Berechnung in einem Werkzeug, Kopieren sowie der Klick auf Anmelden oder
+      Registrieren. Ein Ereignis wird wie ein Seitenaufruf übertragen (Bildschirmgröße,
+      Browsersprache, Gerät, Browser und Betriebssystem, das aus der IP-Adresse abgeleitete Land)
+      und trägt dazu nur feste Angaben wie die Seitenart, den Namen des Werkzeugs oder Filters und
+      die ungefähre Position des Treffers. Als Seite nennt es nur den Pfad, auf Item-, Blueprint-,
+      Schiffs- und Missionsseiten nur deren Bereich (etwa /items/), ohne Seitentitel und
+      Verweisquelle. Einen Suchbegriff, einen eingegebenen Wert oder ein Ergebnis überträgt es nie.
+      Pfad und Titel jeder aufgerufenen Seite, auch einer einzelnen Item- oder Schiffsseite, erfasst
+      Umami weiterhin mit dem Seitenaufruf wie oben beschrieben.
       <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert.</strong> Um
       Besuche auseinanderzuhalten, bildet der Server eine Prüfsumme aus IP-Adresse, Browserkennung
       und einem Geheimwert, der jeden Monat wechselt; die IP-Adresse selbst wird nicht gespeichert.

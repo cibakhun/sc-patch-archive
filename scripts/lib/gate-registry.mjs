@@ -401,7 +401,17 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen und Zaehler-Kopien; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, und 20 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken und Ereignis-Laeufe; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+    // [7] Messereignisse (Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Ereignis-Aenderung, je ein Eingriff in dist/:
+    // Ereignis-Skript auf support.html entfernt -> "laedt den Zaehler, aber
+    // nicht assets/ereignisse.js"; Liste in der Datei um ein Feld q erweitert
+    // -> "weicht vom SOLL ab" + Probe "0 gesendet, Soll 1"; p.title = ''
+    // gestrichen -> 8 Proben "Seitentitel geht mit"; data-ev-filter="typ-name"
+    // -> "steht nicht in FILTER"; isTrusted-Pruefung gestrichen -> Probe
+    // "Filter aus ?Parametern: 1 gesendet, Soll 0"; Rechner-Marken auf
+    // fracturing.html entfernt -> Klinke 102 < 104 (Klinke seit der
+    // Review-Korrektur 112).
   },
   {
     id: 'audit:site',
