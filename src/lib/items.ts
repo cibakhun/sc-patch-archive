@@ -28,6 +28,12 @@ export interface Obtain {
    * beweisbare Aussage darueber, ob ein Item ueberhaupt droppen kann.
    */
   reason?: string;
+  /**
+   * Nur bei Shop-Zeilen aus dem kuratierten Shop-Schnappschuss
+   * (assets/dismantling-items.json, greift nur ohne UEX-Treffer): "schnappschuss".
+   * Ohne Feld kommt eine Shop- oder Haendlerzeile von UEX.
+   */
+  src?: 'schnappschuss';
 }
 
 /** Schadens-/Widerstandswerte je Typ (nur gesetzte Kanaele stehen drin). */

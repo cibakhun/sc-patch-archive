@@ -500,7 +500,7 @@ export const CHECKS = [
     script: 'scripts/verify-patch-angaben.mjs',
     rail: 'A',
     checks:
-      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise, Fundorte, FleetYards-Teile, 3D-Hülle; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Crafting-Werkzeug, Missionen, Schiffe, Refinery, Mining, Fracturing) traegt genau einen Datenstand-Baustein und keine alte Fusszeile „Daten-Stand" am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise von UEX, Kaufpreise aus dem eigenen Shop-Schnappschuss, Fundorte, FleetYards-Teile, 3D-Hülle; jedes Item-Datenblatt markiert so viele Bezugszeilen als Shop-Schnappschuss, wie der Katalog fuehrt; mining-model.json und mining-db.json auf derselben Fassung; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
     // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
     // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
@@ -560,6 +560,22 @@ export const CHECKS = [
     // auf "wert" -> "hat data-stand-art "wert", Soll "spiel""; Art der
     // Wiki-Angabe entfernt -> "hat data-stand-art null, Soll
     // "schnappschuss"". Danach wiederhergestellt und gruen.
+    // Reste aus C1 (06.11.2026): Shop-Schnappschuss als eigene Zeile, Crafting-
+    // Werkzeug und Fracturing mit Baustein. VORGEFUEHRT ROT gegen den Live-Bau
+    // der Aenderung, je ein Eingriff: Schnappschuss-Zeilen eines Datenblatts
+    // als uex-items markiert -> "0 Bezugszeile(n) als Shop-Schnappschuss
+    // markiert, der Katalog ... fuehrt 1" + "steht im Datenstand, die Seite
+    // zeigt diese Werte aber nicht" + "Zeile uex-items fehlt"; Marke am Preis
+    // entfernt -> "die Seite zeigt Kaufpreise, die Zeile uex-items fehlt";
+    // Schnappschuss-Zeile auf einer Kategorieliste und im Finder gestrichen ->
+    // "zeigt Kaufpreise aus dem eigenen Shop-Schnappschuss, die Zeile fehlt";
+    // Text der Zeile geaendert -> "zeigt ..., Soll ..."; alte Fusszeile in
+    // fracturing.html -> "Fusszeile Daten-Stand neben dem Datenstand";
+    // Baustein auf topics/crafting.html entfernt -> "kein Datenstand-
+    // Baustein"; Ausbeute-Zeile in de/fracturing.html -> "gehoert nicht auf
+    // Fracturing"; de/fracturing.html umbenannt -> "nur 1 Seiten ..., Klinke
+    // 2"; mining-model.json auf 4.10.1 -> "steht auf 4.10.1, mining-db.json
+    // auf 4.10.2". Danach wiederhergestellt und gruen.
   },
 
   {
