@@ -939,15 +939,6 @@ a.dp-chip:hover {
 }
 .dp-foot-nav a { color: var(--muted); text-decoration: none; }
 .dp-foot-nav a:hover { color: var(--tone-1); }
-.dp-src {
-  margin: 0 auto 0.7rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-4);
-  letter-spacing: var(--ls-10);
-  text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0.9;
-}
 .dp-legal { margin: 0 auto 0.8rem; font-size: var(--fs-5); line-height: 1.5; opacity: 0.8; }
 .dp-foot-legal { margin-bottom: 0; font-size: var(--fs-7); }
 

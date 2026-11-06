@@ -14,6 +14,8 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
 import vehicleExternal from '../data/vehicle-external.json';
+import Datenstand from './Datenstand.astro';
+import { standSchiff } from '../lib/datenstand';
 import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import { jsonForScript } from '../lib/safeJson';
@@ -57,13 +59,10 @@ const { d, id, similar, profile, viz, hasEn = false } = Astro.props;
 // Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
 const lang = assertLocale(Astro.props.lang, 'ShipDetail');
 // Pledge-Preis, Masse, Crew max. und Status stehen in keiner Spieldatei; sie
-// kommen aus dem eingefrorenen Wiki-Schnappschuss (vehicle-external.json). Die
-// Quellenzeile nennt ihn mit seinem eigenen Datum, statt die Werte unter dem
-// juengeren Stand der Spielwerte stehen zu lassen (Bestandsaufnahme C,
-// 06.11.2026). Das Datum steht nur im Quelltext der Datei — fehlt es dort,
-// bricht der Bau, statt ein Datum zu raten.
-const wikiStand = /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(vehicleExternal.source)?.[1];
-if (!wikiStand) throw new Error('ShipDetail: vehicle-external.json nennt kein fetchedAt-Datum im Feld source');
+// kommen aus dem eingefrorenen Wiki-Schnappschuss (vehicle-external.json). Der
+// Datenstand am Seitenende nennt ihn mit seinem eigenen Datum und als
+// aelteren Stand (src/lib/datenstand.ts, Bestandsaufnahme C 06.11.2026) —
+// aber nur, wenn die Seite einen dieser Werte auch zeigt.
 const wikiEintrag =
   (vehicleExternal.vehicles as Record<string, object>)[d.id] ??
   (vehicleExternal.overrides as Record<string, object>)[d.id];
@@ -106,18 +105,6 @@ const MAX_ROWS = 6;
 
 const extras: ShipExtras = extrasInfo(id);
 
-// Anzeigeform der Spielversion: aus "sc-alpha-4.9.0@12326004" wird "Alpha 4.9.0".
-// `split('-')[0]` stand hier vorher und ergab das nichtssagende "sc" — das fiel
-// nur niemandem auf, solange davor noch ein Wort stand.
-// 03.11.2026: das Muster verlangte "alpha-" und erkannte die Form der
-// eingefrorenen ATLS-Saetze ("4.9.0-LIVE.12232306") nicht — dort blieb die
-// Spielversion still leer (verify:patch-angaben). Jetzt zaehlt die Fassung
-// X.Y.Z, gleich in welcher Kennungsform.
-const alphaLabelOf = (v: string | null | undefined) => {
-  const m = /(\d+\.\d+\.\d+)/.exec(v ?? '');
-  return m ? `Alpha ${m[1]}` : null;
-};
-const shipAlphaLabel = alphaLabelOf(d.gameVersion);
 const holoUrl = extras?.holo ?? null;
 const paints = extras?.paints ?? [];
 const variants = (extras?.variants ?? []).filter((v) => v.id !== id);
@@ -1944,9 +1931,6 @@ span.sd__ref{color:var(--muted)}
 .sd__links a{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   border:1px solid var(--line);padding:.45rem .9rem;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .sd__links a:hover{border-color:var(--accent);color:var(--accent)}
-.sd__src{margin-top:1.4rem;font-size:var(--fs-7);color:var(--muted)}
-.sd__src a{text-decoration:underline}
-.sd__src a:hover{color:var(--accent)}
 
 /* Die generische Gauge-Bauform (Zeile, Spur, Fuellung, Wert — Praefix
    sd__g-*) samt ihrer 640px-Medienabfrage ist mit Task 2 dieser Phase
@@ -2894,14 +2878,16 @@ span.sd__ref{color:var(--muted)}
       {extras?.fySlug && <a href={`https://www.fleetyards.net/ships/${extras.fySlug}`} target="_blank" rel="noopener">FleetYards ↗</a>}
     </div>
 
-    <p class="sd__src">
-      {t('ship.version')}{shipAlphaLabel && ` ${shipAlphaLabel}`}
-      · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
-      {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
-      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a>
-      {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}
-      {zeigtWiki && ` · ${t('ship.source.wiki')}: starcitizen.tools, ${t('ship.asof')} ${wikiStand}`}
-    </p>
+    <Datenstand lang={lang} innen zeilen={standSchiff(lang, {
+      kennung: d.gameVersion,
+      lackierungen: paints.length > 0,
+      varianten: variants.length > 0,
+      leihschiffe: loaners.length > 0,
+      // Dieselbe Rangfolge wie #holodata unten: das eigene Modell vor FleetYards.
+      huelle: holoData ? 'eigen' : holoUrl ? 'fleetyards' : null,
+      wiki: zeigtWiki,
+      bild: hero?.api ? (d.image?.source ?? 'starcitizen.tools') : null,
+    })} />
   </div>
 </main>
 

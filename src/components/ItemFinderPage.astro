@@ -7,6 +7,8 @@
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe <a class="skip">).
 import SiteNav from './SiteNav.astro';
 import Attribution from './Attribution.astro';
+import Datenstand from './Datenstand.astro';
+import { standItems, datumLang } from '../lib/datenstand';
 import ItemFinderApp from './ItemFinderApp.astro';
 import DB from '../../assets/universal-items.json';
 import { localeFromPath } from '../i18n/ui';
@@ -18,7 +20,10 @@ const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
 const total = DB.counts.items;
 const sourced = DB.counts.withObtain;
-const snap = DB.generatedAt;
+// Bis zur Review-Korrektur von C1 (06.11.2026) stand hier DB.generatedAt als
+// „Stand" in den Kennzahlen und als „Daten-Stand" in der Fusszeile: das Datum,
+// an dem die Datei gebaut wurde, nicht das der Preise (pricesAsOf) oder der
+// Spielwerte. Beides nennt jetzt der Baustein Datenstand unter dem Werkzeug.
 // Patch-Label aus dem Datenstand, nicht von Hand: hier stand bis 03.11.2026
 // ein festes „Patch 4.9", waehrend der Katalog laengst auf 4.10.2 lief — die
 // Startseite sagte 4.10.2, der Finder 4.9. ITEM_KENNUNG ist dieselbe Quelle wie
@@ -51,6 +56,9 @@ const unsourcedPct = Math.round((unsourced / total) * 100);
    display:none und nicht ausgeklappt-versteckt: Google indexiert mobil-zuerst,
    der Text soll gefunden werden. Er soll nur niemanden aufhalten, der sucht. */
 .uf-about{max-width:var(--maxw);margin:1.8rem auto 0;padding:1.3rem clamp(1rem,4vw,2rem) 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.8rem}
+/* Datenstand schliesst den Abschnitt ab; ohne Abstand stiesse er an die Fusszeile.
+   Doppelte Klasse wie in assets/datenstand.css, das spaeter geladen wird. */
+.uf-about .vb-stand.vb-stand--innen{margin-bottom:2.4rem}
 .uf-about__lead{margin:0;max-width:74ch;color:var(--muted);font-size:var(--fs-9);line-height:1.55}
 .uf-about__note{margin:0;padding-left:.7rem;border-left:2px solid var(--accent-2);color:var(--muted);font-size:var(--fs-7);line-height:1.5}
 .uf-about__note b{color:var(--text)}
@@ -161,11 +169,11 @@ const unsourcedPct = Math.round((unsourced / total) * 100);
       Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
   <aside class="uf-about">
     <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
-    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span></div>
     <p class="uf-about__note">{de
       ? <><b>{unsourced.toLocaleString('de-DE')} von {total.toLocaleString('de-DE')} Items ({unsourcedPct} %)</b> haben noch keine verifizierte Shop- oder Loot-Quelle. Ihre Karten sagen das offen, statt einen Fundort zu raten; der Filter „Nur Katalog" listet sie.</>
       : <><b>{unsourced.toLocaleString('en-US')} of {total.toLocaleString('en-US')} items ({unsourcedPct}%)</b> have no verified shop or loot source yet. Their cards say so instead of guessing a location; the "Catalog only" filter lists them.</>}</p>
-    <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
+    <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${datumLang(DB.pricesAsOf, lang)}).` : `(prices as of ${datumLang(DB.pricesAsOf, lang)}).`}</p>
     <p class="uf-about__links">
       {/* /armor-sets.html steht bewusst NICHT hier: die Sets sind jetzt eine
           Ansicht im Finder selbst. Die Seite bleibt indexierbar und ist Ziel
@@ -174,9 +182,12 @@ const unsourcedPct = Math.round((unsourced / total) * 100);
       <a href={de ? '/de/items.html' : '/items.html'}>{de ? 'Alle Items nach Kategorie →' : 'Browse every item by category →'}</a>
       <a href={de ? '/de/crafting.html' : '/crafting.html'}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
     </p>
+    {/* Der Finder zeigt alle drei Wertegruppen der Item-Seiten: Spielwerte,
+        Kaufpreise (UEX) und Loot-Fundorte (eigene Recherche). */}
+    <Datenstand lang={lang} innen zeilen={standItems(lang, { preise: true, fundorte: true })} />
   </aside>
 </main>
 
-<Attribution sources={["UEX"]} updated={snap} />
+<Attribution sources={[]} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>

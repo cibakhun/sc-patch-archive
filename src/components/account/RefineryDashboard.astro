@@ -12,6 +12,8 @@ import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
 import { REFINERY, stationsBySystem, rankStations, dataPatch } from '../../lib/refinery';
 import { ausbeuteStand } from '../../lib/refineryStand';
+import { datumLang, standRefinery } from '../../lib/datenstand';
+import Datenstand from '../Datenstand.astro';
 import { miningLink } from '../../lib/miningLinks';
 import { jsonForScript } from '../../lib/safeJson';
 
@@ -164,7 +166,9 @@ const COPY = {
   },
 }[lang];
 
-const priceDate = REFINERY.meta.priceDate ? new Date(REFINERY.meta.priceDate + 'T12:00:00Z').toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+// Gleiche Form wie im Datenstand am Seitenende (src/lib/datenstand.ts): ein
+// Datumsformat in Seitensprache, ausgeschriebener Monat.
+const priceDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, lang) : '—';
 const loginHref = href('/account/login.html', lang);
 const registerHref = href('/account/register.html', lang);
 const pct = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + ' %';
@@ -441,6 +445,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         </table>
       </div>
     </section>
+    {/* Datenstand am Ende des Inhalts, in der Inhaltsspalte .rf-in, die Breite
+        und Rinne mitbringt (src/lib/datenstand.ts). */}
+    <Datenstand lang={lang} zeilen={standRefinery(lang)} innen />
   </div>
 </div>
 
