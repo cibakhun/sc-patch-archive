@@ -523,30 +523,43 @@ for (const f of allFiles) {
 // "zur Vereinheitlichung" entfernen.
 //
 // Gegenprobe im selben Abschnitt: dieselben vier Flaechen muessen weiterhin
-// die Quellen-Zeile tragen und RSI nennen. Ohne sie waere der Befund oben
-// auch durch ersatzloses Loeschen der ganzen Fussnote erfuellbar.
+// ihre Herkunft nennen. Ohne sie waere der Befund oben auch durch
+// ersatzloses Loeschen der ganzen Fussnote erfuellbar.
+// Seit 06.11.2026 (Bestandsaufnahme C, Freigabe Krisz): die Seiten der
+// Datenhuelle (Uebersicht, Kategorie, Blueprint) nennen sie im Datenstand-
+// Baustein als Zeile „Rezepte und Drop-Chancen: Spielversion X" — RSI ist der
+// Hersteller des Spiels, nicht die Quelle der Rezepte. Erwartet wird dort
+// genau diese Zeile (data-stand="crafting"; ihren Wert haelt
+// verify:patch-angaben [6]), auf dem Planer weiter „Quellen: RSI".
 const stripTags = (s) => s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
 const SOURCES_LABEL = { en: 'Sources', de: 'Quellen' };
 const craftCategoryFirst = htmlFiles.map(rel).filter((p) => /^\/crafting\/category\/.+\.html$/.test(p)).sort()[0];
 const craftBlueprintFirst = htmlFiles.map(rel)
   .filter((p) => /^\/crafting\/[^/]+\.html$/.test(p) && p !== '/crafting/index.html')
   .sort()[0];
+// [Pfad, Sprache, erwartet]: 'stand' = Datenstand-Zeile crafting, 'rsi' = „Quellen: RSI".
 const craftProbePages = [
-  ['/crafting.html', 'en'], ['/de/crafting.html', 'de'],
-  ['/topics/crafting.html', 'en'], ['/de/topics/crafting.html', 'de'],
-  ...(craftCategoryFirst ? [[craftCategoryFirst, 'en'], ['/de' + craftCategoryFirst, 'de']] : []),
-  ...(craftBlueprintFirst ? [[craftBlueprintFirst, 'en'], ['/de' + craftBlueprintFirst, 'de']] : []),
+  ['/crafting.html', 'en', 'stand'], ['/de/crafting.html', 'de', 'stand'],
+  ['/topics/crafting.html', 'en', 'rsi'], ['/de/topics/crafting.html', 'de', 'rsi'],
+  ...(craftCategoryFirst ? [[craftCategoryFirst, 'en', 'stand'], ['/de' + craftCategoryFirst, 'de', 'stand']] : []),
+  ...(craftBlueprintFirst ? [[craftBlueprintFirst, 'en', 'stand'], ['/de' + craftBlueprintFirst, 'de', 'stand']] : []),
 ];
+const STAND_CRAFT_RE = /<li\b[^>]*\bdata-stand="crafting"[^>]*>/;
 let craftProbeChecked = 0;
-for (const [p, lang] of craftProbePages) {
+for (const [p, lang, erwartet] of craftProbePages) {
   const abs = join(DIST, p.slice(1));
   if (!existsSync(abs)) { foreignSourceHits.push(`${p}: Gegenprobe — Seite fehlt im Build`); continue; }
   craftProbeChecked++;
-  const text = stripTags(readFileSync(abs, 'utf8'));
+  const html = readFileSync(abs, 'utf8');
+  if (erwartet === 'stand') {
+    const block = /<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/.exec(html)?.[1] ?? '';
+    if (!STAND_CRAFT_RE.test(block)) foreignSourceHits.push(`${p}: Datenstand mit der Zeile „Rezepte und Drop-Chancen" fehlt`);
+    continue;
+  }
   const re = new RegExp(`${SOURCES_LABEL[lang]}:\\s*RSI`);
-  if (!re.test(text)) foreignSourceHits.push(`${p}: Quellen-Zeile mit RSI fehlt`);
+  if (!re.test(stripTags(html))) foreignSourceHits.push(`${p}: Quellen-Zeile mit RSI fehlt`);
 }
-console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Quellen-Zeile mit RSI erwartet)`);
+console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Datenstand-Zeile bzw. Quellen-Zeile mit RSI erwartet)`);
 
 // --- Datenherkunft im sichtbaren Text ---------------------------------------
 // Hausregel: die Seite nennt NIRGENDS, woher die Spieldaten technisch stammen.

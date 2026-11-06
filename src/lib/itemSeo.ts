@@ -16,6 +16,7 @@ import { primaryStat } from './itemStats';
 import { lesbarerBezeichner } from './lesbar';
 import type { BlueprintEntry } from './crafting';
 import { craftTime, resourceNames } from './crafting';
+import { datumLang } from './datenstand';
 
 /* ---------- Items ---------- */
 
@@ -136,7 +137,7 @@ export function itemSeo(i: Item, lang: Locale): ItemSeo {
     else parts.push(`${name} — ${kindOf(i)} in Star Citizen ${ITEM_PATCH}.`);
     if (vendors > 1) parts.push(`${vendors} Verkaufsstellen im Vergleich.`);
     if (stat) parts.push(`${stat[0]}: ${stat[1]}.`);
-    parts.push(`Stand ${db.pricesAsOf}.`);
+    parts.push(`Stand ${datumLang(db.pricesAsOf, lang)}.`);
   } else {
     if (mode === 'buy' && lo != null && cheapest)
       parts.push(
@@ -149,7 +150,7 @@ export function itemSeo(i: Item, lang: Locale): ItemSeo {
     else parts.push(`${name} — ${kindOf(i)} in Star Citizen ${ITEM_PATCH}.`);
     if (vendors > 1) parts.push(`${vendors} vendors compared.`);
     if (stat) parts.push(`${stat[0]}: ${stat[1]}.`);
-    parts.push(`As of ${db.pricesAsOf}.`);
+    parts.push(`As of ${datumLang(db.pricesAsOf, lang)}.`);
   }
 
   /* Einleitung auf der Seite — darf laenger sein als die Meta-Description und
@@ -213,14 +214,14 @@ export function categorySeo(
     ? {
         title: `${label}${countPart}${pageSuffix} | Star Citizen ${ITEM_PATCH} | VerseBase`,
         description: clip(
-          `Alle ${num(count, lang)} ${leaf}-Items in Star Citizen ${ITEM_PATCH} mit Kaufpreis, Verkaufsstelle und Spielwerten. Stand ${db.pricesAsOf}.`,
+          `Alle ${num(count, lang)} ${leaf}-Items in Star Citizen ${ITEM_PATCH} mit Kaufpreis, Verkaufsstelle und Spielwerten. Stand ${datumLang(db.pricesAsOf, lang)}.`,
           158
         ),
       }
     : {
         title: `${label}${countPart}${pageSuffix} | Star Citizen ${ITEM_PATCH} | VerseBase`,
         description: clip(
-          `All ${num(count, lang)} ${leaf} items in Star Citizen ${ITEM_PATCH} with buy price, vendor location and game stats. As of ${db.pricesAsOf}.`,
+          `All ${num(count, lang)} ${leaf} items in Star Citizen ${ITEM_PATCH} with buy price, vendor location and game stats. As of ${datumLang(db.pricesAsOf, lang)}.`,
           158
         ),
       };
@@ -246,11 +247,11 @@ export function blueprintSeo(
   const description =
     lang === 'de'
       ? clip(
-          `${b.name} craften in Star Citizen ${patch}: ${b.ingredients.length} Zutaten-Slots (${res.slice(0, 3).join(', ')}), Craft-Zeit ${time}${mis ? `, ${mis} Missionen droppen den Blueprint` : ''}. Stand ${snapshot}.`,
+          `${b.name} craften in Star Citizen ${patch}: ${b.ingredients.length} Zutaten-Slots (${res.slice(0, 3).join(', ')}), Craft-Zeit ${time}${mis ? `, ${mis} Missionen droppen den Blueprint` : ''}. Stand ${datumLang(snapshot, lang)}.`,
           158
         )
       : clip(
-          `Craft ${b.name} in Star Citizen ${patch}: ${b.ingredients.length} ingredient slots (${res.slice(0, 3).join(', ')}), craft time ${time}${mis ? `, dropped by ${mis} missions` : ''}. As of ${snapshot}.`,
+          `Craft ${b.name} in Star Citizen ${patch}: ${b.ingredients.length} ingredient slots (${res.slice(0, 3).join(', ')}), craft time ${time}${mis ? `, dropped by ${mis} missions` : ''}. As of ${datumLang(snapshot, lang)}.`,
           158
         );
 

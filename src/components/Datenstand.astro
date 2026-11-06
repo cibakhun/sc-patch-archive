@@ -1,0 +1,40 @@
+---
+// Datenstand am Seitenende: je Wertegruppe Herkunft und Stand (src/lib/datenstand.ts).
+//
+// Reines HTML, kein Skript. Das Aussehen steht in EINER externen, gecachten
+// Datei (assets/datenstand.css): dieser Baustein sitzt auch auf den rund
+// 14.000 Seiten der Datenhuelle, und ein <style> hier landete auf jeder
+// davon inline. Der <link> steht direkt vor dem Block; am Seitenende haelt
+// er nichts auf, und jede Seite laedt die Datei nur einmal.
+//
+// Jede Zeile traegt data-stand (Quelle), data-stand-art und data-stand-wert:
+// verify:patch-angaben [6] liest sie im gebauten Stand und haelt sie gegen
+// die Datendateien. Die Attribute sind fuer das Tor, nicht fuer Skripte.
+import type { Locale } from '../i18n/ui';
+import { standTexte, type StandZeile } from '../lib/datenstand';
+import { versioned } from '../lib/assetVersion';
+
+interface Props {
+  lang: Locale;
+  zeilen: StandZeile[];
+  /** sitzt in einer Inhaltsspalte, die Breite und Rinne schon mitbringt */
+  innen?: boolean;
+}
+const { lang, zeilen, innen = false } = Astro.props;
+if (!zeilen.length) throw new Error('Datenstand: keine Zeilen — eine Datenseite ohne Stand waere stumm');
+const t = standTexte(lang);
+const css = versioned('assets/datenstand.css', '/assets/datenstand.css');
+---
+<link rel="stylesheet" href={css} />
+<section class:list={['vb-stand', innen && 'vb-stand--innen']} aria-labelledby="vb-stand-h">
+  <h2 id="vb-stand-h" class="vb-stand__h">{t.titel}</h2>
+  <ul class="vb-stand__zeilen">
+    {zeilen.map((z) => (
+      <li data-stand={z.quelle} data-stand-art={z.art} data-stand-wert={z.wert}>
+        <span class="vb-stand__was">{z.was}:</span>{' '}
+        {z.name && (z.link ? <a href={z.link} target="_blank" rel="noopener">{z.name}</a> : z.name)}{z.text}
+        {z.aelter && <>{' '}<span class="vb-stand__alt">{t.aelter}</span></>}
+      </li>
+    ))}
+  </ul>
+</section>

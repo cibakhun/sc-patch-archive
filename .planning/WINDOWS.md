@@ -1876,6 +1876,18 @@ last_updated: 2026-10-31T03:40:00.000Z
     "reason": "",
     "recorded_at": "2026-10-31T03:40:00.000Z",
     "resolved_at": null
+  },
+  {
+    "id": 145,
+    "kind": "unrun-verify",
+    "phase": "datenvertrauen",
+    "file": "src/components/Datenstand.astro",
+    "line": null,
+    "description": "Sichturteil offen (Datenvertrauen C1, Baustein „Datenstand“ am Seitenende, nach Krisz 06.11.2026 11:47 „Wie empfohlen“): Jede Datenseite trägt am Ende einen Block „Datenstand“ mit einer Zeile je Wertegruppe, Herkunft und Stand: Spielversion für Spielwerte, Stand in Seitensprache für UEX und FleetYards, „Schnappschuss vom“ für das Wiki, „von Hand gepflegt“ für die Ausbeute je Station. Die kleine Marke „älterer Stand“ steht nur, wo eine Zeile belegt hinter den Spielwerten derselben Seite liegt: Wiki-Schnappschuss auf Schiffsseiten, Ausbeute 4.10.1 neben Spielwerten 4.10.2 (Refinery, Mining), Fahrzeugstempel älter als der Katalog. Der Block ersetzt die bisherigen Quellenzeilen (Fuß der Item- und Blueprint-Seiten, Quellen auf Schiffsseiten, Quellen auf Refinery). Seiten: 11 044 Items, 3 342 Blueprints, 2 774 Missionen, 462 Schiffe, Refinery und Mining je DE/EN. Maschinell: verify:patch-angaben [6] hält jede Zeile gegen ihre Datendatei (Art, Wert, sichtbarer Text, Marke; vorgeführt rot), Aufnahmen Item, Blueprint, Mission, Schiff, Refinery, Mining bei 390 und 1280 px ohne Querscrollen. Zu beurteilen: (1) Auf dem Handy, Item- und Schiffsseite: Ist der Block am Ende gut lesbar, aber nicht lauter als der Inhalt? (2) Liest sich „älterer Stand“ als Hinweis und nicht als Warnung? (3) Passen Breite und Linie oben zur Spalte darüber (Mission, Refinery)?",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-11-06T15:00:00.000Z",
+    "resolved_at": null
   }
 ]
 ````

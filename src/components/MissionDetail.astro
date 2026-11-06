@@ -6,6 +6,8 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
+import Datenstand from './Datenstand.astro';
+import { standMission } from '../lib/datenstand';
 import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoTitle, seoText, clip, phLabel, spielerJeInstanz } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
@@ -444,11 +446,13 @@ const t = useTranslations(lang);
         </section>
       )}
 
+      <Datenstand lang={lang} zeilen={standMission(lang)} innen />
     </div>
   </main>
 
-  {/* Keine Quellen-Zeile: die Missionsdaten sind eigene Aufbereitung, und die
-      Vorgabe von Attribution (Wiki, RSI, YouTube) stimmte hier nicht. */}
+  {/* Keine Quellen-Zeile im Fuss: die Missionsdaten sind eigene Aufbereitung,
+      und die Vorgabe von Attribution (Wiki, RSI, YouTube) stimmte hier nicht.
+      Ihren Stand nennt der Datenstand am Ende des Inhalts. */}
   <Attribution sources={[]} />
   <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

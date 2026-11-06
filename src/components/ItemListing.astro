@@ -5,6 +5,7 @@
 // jeder Item-Name irgendwo im HTML auffindbar, ohne dass fuer jeden Katalog-
 // Rest eine eigene, leere URL entsteht.
 import DataShell from './DataShell.astro';
+import { standItems, datumLang } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, obtainLabel, fill, categoryLabel } from '../i18n/itemText';
 import {
@@ -49,19 +50,18 @@ const sourceLabel = (obtain: Item['obtain']) =>
   crumbs={crumbs}
   eyebrow={[categoryLabel(node.root, lang), midCategory(node.cat), t('sectionCategory')].filter(Boolean).join(' · ')}
   modified={db.generatedAt}
-  sources={['UEX Corp']}
-  updated={db.pricesAsOf}
+  stand={standItems(lang, { preise: buyable > 0, fundorte: false })}
 >
   <h1 slot="hero">{leafCategory(node.cat)}</h1>
   <p class="dp-lead" slot="hero">
-    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: db.pricesAsOf })}
+    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: datumLang(db.pricesAsOf, lang) })}
   </p>
 
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('entries')}</b><span>{num(node.items.length, lang)}</span></li>
     <li class="dp-key"><b>{t('kindBuy')}</b><span>{num(buyable, lang)}</span></li>
     {cheapest != null && <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
-    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.pricesAsOf}</span></li>
+    <li class="dp-key"><b>{t('pricesAsOf')}</b><span>{datumLang(db.pricesAsOf, lang)}</span></li>
   </ul>
 
   <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>

@@ -25,6 +25,8 @@ import { versioned } from '../lib/assetVersion';
 import { SITE } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 import { jsonForScript } from '../lib/safeJson';
+import Datenstand from './Datenstand.astro';
+import type { StandZeile } from '../lib/datenstand';
 
 export interface Crumb {
   label: string;
@@ -48,9 +50,12 @@ interface Props {
   ldName?: string;
   /** zusaetzliche JSON-LD-Knoten (z. B. Product) */
   jsonLd?: Record<string, unknown>[];
-  /** Quellenzeile im Fuss */
-  sources?: string[];
-  updated?: string;
+  /**
+   * Datenstand am Seitenende (src/lib/datenstand.ts): je Wertegruppe Herkunft
+   * und Stand. Pflicht — seit 06.11.2026 ersetzt er die Quellen-Zeile im
+   * Fuss, die nur eine Quelle und das Preisdatum kannte.
+   */
+  stand: StandZeile[];
   /**
    * Uebersicht mit Kachel-/Chip-Raster: die Spalte darf auf breiten Schirmen
    * mitwachsen (theme.css § 5, --vb-breit). Nur fuer Seiten, deren Breite in
@@ -62,7 +67,7 @@ interface Props {
 
 const {
   lang, title, description, crumbs, eyebrow, tone = 'items',
-  ogImage, modified, ldName, jsonLd = [], sources = [], updated, breit = false,
+  ogImage, modified, ldName, jsonLd = [], stand, breit = false,
 } = Astro.props;
 
 const t = useTranslations(lang);
@@ -179,6 +184,7 @@ const crumbLd = {
         <slot name="hero" />
       </header>
       <slot />
+      <Datenstand lang={lang} zeilen={stand} innen />
     </main>
 
     <footer class="dp-foot">
@@ -190,16 +196,6 @@ const crumbLd = {
         <a href={href('/missionen.html', lang)}>{t('nav.missions')}</a>
         <a href={href('/index.html', lang)}>{t('nav.home')}</a>
       </nav>
-      {(sources.length > 0 || updated) && (
-        <p class="dp-src">
-          {/* Als EIN Text gesetzt: zwischen zwei Ausdruecken in einem Fragment
-              verschluckte der Bau das Leerzeichen („Daten-Stand2026-10-11"). */}
-          {[
-            sources.length > 0 ? `${t('footer.sources')}: ${sources.join(' · ')}` : '',
-            updated ? `${t('footer.dataAsOf')} ${updated}` : '',
-          ].filter(Boolean).join(' · ')}
-        </p>
-      )}
       <p class="dp-legal">{t('footer.disclaimer')}</p>
       <p class="dp-foot-nav dp-foot-legal">
         <a href={href('/impressum.html', lang)}>{t('footer.imprint')}</a>

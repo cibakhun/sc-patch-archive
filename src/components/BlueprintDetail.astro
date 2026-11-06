@@ -4,6 +4,7 @@
 // Missionen, die den Blueprint droppen. Verlinkt in beide Richtungen: zum
 // Item-Datenblatt, zu den Missions-Seiten und zurueck in den Planer.
 import DataShell from './DataShell.astro';
+import { standCrafting } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
 import {
@@ -72,8 +73,7 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
   ogImage="/assets/t-craft-1.jpg"
   modified={craftDb.snapshot_date}
   ldName={bp.name}
-  sources={['RSI']}
-  updated={craftDb.snapshot_date}
+  stand={standCrafting(lang)}
 >
   <h1 slot="hero">{bp.name}</h1>
   <p class="dp-lead" slot="hero">{seo.lead}</p>

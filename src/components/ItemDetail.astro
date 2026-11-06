@@ -4,6 +4,7 @@
 // erst "was kostet das und wo", dann "was kann das", dann Fundort-Guide,
 // Rezept und Nachbarn.
 import DataShell from './DataShell.astro';
+import { standItems, datumLang } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/itemText';
 import {
@@ -91,8 +92,7 @@ const crumbs = [
   eyebrow={`${categoryLabel(root, lang)} · ${t('pageEyebrow')}`}
   modified={db.generatedAt}
   ldName={name}
-  sources={['UEX Corp']}
-  updated={db.pricesAsOf}
+  stand={standItems(lang, { preise: vendors > 0, fundorte: loot > 0 })}
 >
   <h1 slot="hero">{name}</h1>
   {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}
@@ -145,7 +145,7 @@ const crumbs = [
             </tbody>
           </table>
         </div>
-        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {db.pricesAsOf}{avg != null && <> · {t('avgNote')}</>}</p>
+        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}{avg != null && <> · {t('avgNote')}</>}</p>
       </>
     ) : (
       <p class="dp-callout">{t('catalogNote')}</p>

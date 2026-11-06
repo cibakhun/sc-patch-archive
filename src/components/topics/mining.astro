@@ -6,6 +6,8 @@
 import SiteNav from '../../components/SiteNav.astro';
 import RelatedTopics from '../../components/RelatedTopics.astro';
 import Attribution from '../../components/Attribution.astro';
+import Datenstand from '../../components/Datenstand.astro';
+import { standMining } from '../../lib/datenstand';
 import MiningWorkbench from '../../components/MiningWorkbench.astro';
 import DB from '../../../assets/mining-db.json';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
@@ -14,7 +16,6 @@ import { localeFromPath } from '../../i18n/ui';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
-const snap = DB.snapshot_date;
 const ver = DB.game_version;
 const verShort = ver.split('-')[0]; // "4.9.0-live.12248363" -> "4.9.0"
 ---
@@ -118,6 +119,7 @@ main > .wb{padding-top:4.4rem}
 </main>
 
 <RelatedTopics topicSlug="mining" />
-<Attribution sources={[]} updated={snap} />
+<Datenstand lang={lang} zeilen={standMining(lang)} />
+<Attribution sources={[]} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>

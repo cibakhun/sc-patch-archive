@@ -10,6 +10,7 @@
 // Alles hier ist statisches HTML mit echten Links auf die Item-Datenblaetter —
 // kein JavaScript, keine Nachladerei.
 import DataShell from './DataShell.astro';
+import { standItems, STAND } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, itemLabel, fill } from '../i18n/itemText';
 import {
@@ -51,8 +52,7 @@ const sizeOf = (sets: { id: string }[]) => {
   crumbs={[{ label: t('breadcrumbItems'), href: '/items.html' }, { label: t('setsBreadcrumb') }]}
   eyebrow={`Star Citizen ${ITEM_PATCH}`}
   modified={db.generatedAt}
-  sources={['UEX Corp']}
-  updated={db.pricesAsOf}
+  stand={standItems(lang, { preise: false, fundorte: false })}
   breit
 >
   {/* Das Stilblatt steht VOR dem Markup (27.10.2026): hinter </DataShell> kam es
@@ -266,7 +266,7 @@ const sizeOf = (sets: { id: string }[]) => {
     <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
     <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
     <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
-    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.generatedAt}</span></li>
+    <li class="dp-key"><b>{t('gameVersion')}</b><span>{STAND.items}</span></li>
   </ul>
 
   <p class="as-intro">{t('setsIntro')}</p>

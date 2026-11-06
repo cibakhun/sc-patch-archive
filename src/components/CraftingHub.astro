@@ -1,6 +1,7 @@
 ---
 // Blueprint-Verzeichnis — krabbelbarer Einstieg in die 1.594 Rezepte.
 import DataShell from './DataShell.astro';
+import { standCrafting, STAND } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
 import { itemT, fill, categoryLabel } from '../i18n/itemText';
 import {
@@ -26,8 +27,7 @@ const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch }
   tone="craft"
   ogImage="/assets/t-craft-1.jpg"
   modified={craftDb.snapshot_date}
-  sources={['RSI']}
-  updated={craftDb.snapshot_date}
+  stand={standCrafting(lang)}
   breit
 >
   <h1 slot="hero">{t('bpHubTitle')}</h1>
@@ -36,7 +36,7 @@ const lead = fill(t('bpHubLead'), { total: num(total, lang), patch: craftPatch }
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('breadcrumbCrafting')}</b><span>{num(total, lang)}</span></li>
     <li class="dp-key"><b>{t('craftMaterials')}</b><span>{num(craftDb.counts.resources, lang)}</span></li>
-    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{craftDb.snapshot_date}</span></li>
+    <li class="dp-key"><b>{t('gameVersion')}</b><span>{STAND.crafting}</span></li>
   </ul>
 
   {craftRoots.map((r) => (
