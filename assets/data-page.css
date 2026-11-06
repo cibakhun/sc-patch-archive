@@ -248,6 +248,36 @@ body {
 }
 .dp-lang:hover { color: var(--tone-1); border-color: var(--tone-1); background: var(--dp-tint); }
 
+/* Suchknopf (06.11.2026): gleiche Kastenform wie der Sprachumschalter, damit
+   die Leiste ruhig bleibt. Das Overlay dahinter laedt assets/data-search.js
+   erst beim Antippen (DataShell.astro). */
+.dp-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2rem;
+  height: 1.75rem;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), background-color var(--dur-fast) var(--ease-ui);
+}
+.dp-search svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.dp-search:hover { color: var(--tone-1); border-color: var(--tone-1); background: var(--dp-tint); }
+.dp-search:focus-visible { outline: 2px solid var(--tone-1); outline-offset: 2px; }
+.dp-search[aria-busy='true'] { color: var(--tone-1); border-color: var(--tone-1); }
+
 /* ---------- Rumpf ---------- */
 
 .dp-main {
@@ -1011,6 +1041,7 @@ a.dp-chip:hover {
     min-height: 44px;
   }
   .dp-lang { min-width: 44px; justify-content: center; }
+  .dp-search { width: 44px; height: 44px; }
 
   .dp-btn { min-height: 44px; }
   a.dp-chip,
@@ -1073,6 +1104,7 @@ a.dp-card:active { border-left-color: var(--tone-1); transform: translateY(0); }
 .dp-pager a:active { background: color-mix(in srgb, var(--tone-1) 20%, transparent); color: var(--tone-1); }
 .dp-home:active,
 .dp-lang:active,
+.dp-search:active,
 .dp-foot-nav a:active,
 .dp-crumbs a:active,
 .dp-table a:active { color: var(--tone-1); }
@@ -1083,6 +1115,7 @@ a.dp-card:active { border-left-color: var(--tone-1); transform: translateY(0); }
   .dp-card,
   .dp-card::after,
   a.dp-chip,
+  .dp-search,
   .dp-btn,
   .dp-pager a,
   .dp-card--cat em { transition: none; }

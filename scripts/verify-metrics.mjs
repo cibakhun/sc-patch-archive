@@ -72,6 +72,25 @@ function zaehleMitMarke(ordner, marke) {
   return n;
 }
 
+// Eintraege der Suchindex-Dateien in dist/ (EN + DE), optional gefiltert.
+// null, wenn eine Datei fehlt oder kein Array ist.
+function zaehleIndex(dateien, filter = () => true) {
+  let n = 0;
+  for (const f of dateien) {
+    const p = join(DIST, f);
+    if (!existsSync(p)) return null;
+    let j;
+    try {
+      j = JSON.parse(readFileSync(p, 'utf8'));
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(j)) return null;
+    n += j.filter(filter).length;
+  }
+  return n;
+}
+
 /* ---------- Die Ableser. Jeder liefert eine Zahl oder null ---------- */
 // null heisst "Quelle nicht vorhanden" — das ist etwas anderes als 0 und
 // wird als FEHLER gemeldet, nicht als Schrumpfung. Ein Ableser, der bei
@@ -160,6 +179,15 @@ const ABLESER = {
   schiffsSeitenMitTeileLinks: () => zaehleMitMarke(['schiffe', 'de/schiffe'], /href="(?:\/de)?\/items\/[^"]+\.html"/),
   missionsSeitenMitSuchLinks: () =>
     zaehleMitMarke(['missionen', 'de/missionen'], /href="(?:\/de)?\/missionen\.html\?(?:type|giver|loc|guild)=/),
+
+  // --- Suche (assets/search-overlay.js, src/lib/searchIndex.ts) ---
+  // Items und Blueprints stehen im zweiten Index-Teil, die Werkzeuge im
+  // ersten, und die Datenseiten tragen nur einen Knopf, der die Suche
+  // nachlaedt. Faellt einer der drei weg, baut die Seite weiter und die Suche
+  // findet still weniger. Gezaehlt am gebauten Stand, EN + DE.
+  sucheItemsUndBlueprints: () => zaehleIndex(['search-index-more.json', 'de/search-index-more.json']),
+  sucheWerkzeuge: () => zaehleIndex(['search-index.json', 'de/search-index.json'], (e) => e.k === 'werkzeug'),
+  datenSeitenMitSuche: () => zaehleMitMarke(['items', 'de/items', 'crafting', 'de/crafting'], /<button[^>]*data-scs-boot/),
 };
 
 /* ---------- Lesen ---------- */

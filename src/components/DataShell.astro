@@ -91,6 +91,17 @@ const otherHref = pathForLocale(Astro.url.pathname, other);
 // markiert. Gemessen: 4200 px vorher, 4200 px nachher.
 const backLinkSrc = crumbs.some((c) => c.href) ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
 
+// Suche (seit 06.11.2026): ein Knopf in der Kopfleiste, sonst nichts im HTML.
+// assets/data-search.js (klein, gecacht) baut das Overlay erst beim Antippen
+// und laedt dann Logik und Aussehen nach — dieselben Dateien wie die Seiten
+// mit voller Navigation (assets/search-overlay.js/.css). Texte und Index-
+// Adressen holt es dann aus /search-ui.json (src/lib/searchUi.ts) — am Knopf
+// stehen nur drei Adressen, damit jede Seite so wenig wie moeglich mehr traegt.
+const searchBoot = versioned('assets/data-search.js', '/assets/data-search.js');
+const searchJs = versioned('assets/search-overlay.js', '/assets/search-overlay.js');
+const searchCss = versioned('assets/search-overlay.css', '/assets/search-overlay.css');
+const searchUi = href('/search-ui.json', lang);
+
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
 // URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
 const crumbLd = {
@@ -144,6 +155,16 @@ const crumbLd = {
           </>
         ))}
       </nav>
+      <button
+        type="button"
+        class="dp-search"
+        data-scs-boot
+        data-js={searchJs}
+        data-css={searchCss}
+        data-ui={searchUi}
+        aria-label={t('search.button')}
+        aria-keyshortcuts="Control+K"
+      ><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></button>
       <a class="dp-lang" href={otherHref} hreflang={HTML_LANG[other]} rel="alternate">{LOCALE_SHORT[other]}</a>
     </header>
 
@@ -185,4 +206,5 @@ const crumbLd = {
     </footer>
   </div>
   {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
+  <script is:inline src={searchBoot} defer></script>
 </Layout>

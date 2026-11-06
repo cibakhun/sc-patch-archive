@@ -276,4 +276,28 @@ export const BASELINE = [
     anlass:
       'Messlauf 06.11.2026: alle 1.387 Missionsseiten je Sprache fuehren ueber Typ, Auftraggeber, Region oder Gilde in die vorgefilterte Missionssuche (/missionen.html?type=… usw.). Link entsteht nur, wenn die Kennung eine Option der Suche ist. Toleranz 3 %: der Missionsbestand schwankt je Patch.',
   },
+  {
+    id: 'sucheItemsUndBlueprints',
+    wert: 13954,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026: der zweite Suchindex-Teil (/search-index-more.json, /de/…) fuehrt je Sprache 6.977 Eintraege, 5.368 Items mit Datenblatt und 1.609 Blueprints, dieselben Listen, aus denen die Seiten entstehen. Faellt der Teil weg oder schrumpft er, findet die Suche still keine Items mehr. Toleranz 3 %: der Katalog waechst und schrumpft mit dem Patch.',
+  },
+  {
+    id: 'sucheWerkzeuge',
+    wert: 22,
+    regel: 'min',
+    toleranzProzent: 0,
+    anlass:
+      'Messlauf 06.11.2026: elf Werkzeuge je Sprache im ersten Suchindex-Teil (toolEntries in src/lib/searchIndex.ts: Item Finder, Missionen, Crafting, Fracturing, Refinery, Mining, Precision Jump, Wikelo, Schiffe, Patch-Archiv, Evolution; der Hangar fehlt mit Absicht). Ohne Toleranz: jedes fehlende Werkzeug ist eine Entscheidung und braucht einen Commit mit Anlass.',
+  },
+  {
+    id: 'datenSeitenMitSuche',
+    wert: 13954,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026: alle Item- und Blueprint-Seiten (je Sprache 5.368 + 1.609, Datenhuelle) tragen den Suchknopf, der die Suche erst beim Antippen nachlaedt (assets/data-search.js). Toleranz 3 % wie die Seitenzahlen selbst.',
+  },
 ];
