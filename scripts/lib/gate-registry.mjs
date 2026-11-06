@@ -410,7 +410,8 @@ export const CHECKS = [
     // gestrichen -> 8 Proben "Seitentitel geht mit"; data-ev-filter="typ-name"
     // -> "steht nicht in FILTER"; isTrusted-Pruefung gestrichen -> Probe
     // "Filter aus ?Parametern: 1 gesendet, Soll 0"; Rechner-Marken auf
-    // fracturing.html entfernt -> Klinke 102 < 104.
+    // fracturing.html entfernt -> Klinke 102 < 104 (Klinke seit der
+    // Review-Korrektur 112).
   },
   {
     id: 'audit:site',

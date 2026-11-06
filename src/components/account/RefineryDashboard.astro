@@ -267,9 +267,12 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
 
           <section class="ck-col" aria-labelledby="rfd-new-h">
             <h2 class="ck-h" id="rfd-new-h">{COPY.newTitle}</h2>
-            <form id="rfd-form" data-ev-rechnung class="rf-form" novalidate>
+            <form id="rfd-form" class="rf-form" novalidate>
               <p class="rf-note">{COPY.fromTerminal}</p>
-              <div class="rf-grid2">
+              {/* Messung: data-ev-rechnung nur an den Feldern, die die Vorschau
+                  neu rechnen (Station, Methode, Erze, Dauer, Kosten) — nicht am
+                  ganzen Formular, sonst zaehlte schon die Notiz als Rechnung. */}
+              <div class="rf-grid2" data-ev-rechnung>
                 <div class="field">
                   <label for="rfd-station">{COPY.fStation}</label>
                   <select class="inp ctrl" id="rfd-station" name="station" required data-help={h('refinerytracker.ctl.station')}>
@@ -291,7 +294,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
                 </div>
               </div>
 
-              <div class="field">
+              <div class="field" data-ev-rechnung>
                 <label>{COPY.fOresLbl}</label>
                 <div id="rfd-ores" class="rf-ores" data-help={h('refinerytracker.ctl.ores')}></div>
                 <button type="button" class="btn sm ghost rf-addore" id="rfd-addore"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-plus"/></svg>{COPY.addOre}</button>
@@ -300,14 +303,14 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
               <div class="rf-grid3">
                 <div class="field">
                   <label for="rfd-hours">{COPY.fDuration}</label>
-                  <div class="rf-dur" data-help={h('refinerytracker.ctl.duration')}>
+                  <div class="rf-dur" data-ev-rechnung data-help={h('refinerytracker.ctl.duration')}>
                     <input class="inp rf-num" id="rfd-hours" name="hours" type="number" min="0" max="240" step="1" inputmode="numeric" placeholder="0" />
                     <span>{COPY.hLbl}</span>
                     <input class="inp rf-num" id="rfd-mins" name="mins" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0" />
                     <span>{COPY.mLbl}</span>
                   </div>
                 </div>
-                <div class="field">
+                <div class="field" data-ev-rechnung>
                   <label for="rfd-cost">{COPY.fCost}</label>
                   <input class="inp rf-num" id="rfd-cost" name="cost" type="number" min="0" step="1" inputmode="numeric" placeholder={COPY.fCostPh} />
                 </div>
@@ -372,13 +375,14 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     </section>
 
     <!-- ===== Ertrag je Raffinerie ===== -->
-    <section id="ertrag" data-ev-rechnung class="ck-col rf-sec" aria-labelledby="rf-yield-h">
+    <section id="ertrag" class="ck-col rf-sec" aria-labelledby="rf-yield-h">
       <h2 class="ck-h" id="rf-yield-h">{COPY.yieldTitle}<span class="rf-n">{REFINERY.stations.length}</span></h2>
       <div class="rf-pad">
         <p class="rf-lead">{COPY.yieldLead} {COPY.yieldStand.replace('%v', yieldStand)}</p>
         <div class="field rf-oresel">
           <label for="rf-yield-ore">{COPY.yieldOre}</label>
-          <select class="inp ctrl" id="rf-yield-ore">
+          {/* Messung: nur die Erzwahl rechnet die Rangliste neu; Erz- und Systemlinks im Abschnitt sind keine Rechnung. */}
+          <select class="inp ctrl" id="rf-yield-ore" data-ev-rechnung>
             {ores.map((o) => (<option value={o.name} selected={o.name === defaultOre}>{o.name}</option>))}
           </select>
           <a class="rf-orelink" id="rf-yield-link" href={oreHref[defaultOre] ?? '#'}>{defaultOre}</a>

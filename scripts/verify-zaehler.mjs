@@ -83,11 +83,14 @@ const MIN_ZAEHLER_SEITEN = 17000;
 const MIN_HAKEN_FASSUNGEN = 1;
 const MIN_ZAEHLER_KOPIEN = 1;
 // [7] Messereignisse, Stand 06.11.2026 (Build der Ereignis-Aenderung):
-// 17.741 Seiten laden assets/ereignisse.js (= alle mit Zaehler), 104 Marken
-// in 10 Werkzeugen (88 Filter, 14 Rechner, 2 Kopieren; Evolution hat keine
-// Bedienelemente), 21 Laeufe (Liste gegen SOLL + 20 Proben).
+// 17.741 Seiten laden assets/ereignisse.js (= alle mit Zaehler), 112 Marken
+// in 10 Werkzeugen (88 Filter, 22 Rechner, 2 Kopieren; Evolution hat keine
+// Bedienelemente), 21 Laeufe (Liste gegen SOLL + 20 Proben). Rechner-Marken
+// 14 -> 22 mit der Review-Korrektur: in der Raffinerie sitzen sie an den
+// Feldern, die die Vorschau neu rechnen, statt am ganzen Formular, dazu der
+// Zuruecksetzen-Knopf im Precision-Jump-Rechner.
 const MIN_EREIGNIS_SEITEN = 17000;
-const MIN_EREIGNIS_MARKEN = 104;
+const MIN_EREIGNIS_MARKEN = 112;
 const MIN_EREIGNIS_PROBEN = 21;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
