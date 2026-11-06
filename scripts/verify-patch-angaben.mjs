@@ -489,7 +489,9 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     const nachher = html.slice(bloecke[0].index + bloecke[0][0].length);
     const fussAb = nachher.search(/<footer\b|<\/body>/);
     const rest = sichtbar((fussAb >= 0 ? nachher.slice(0, fussAb) : nachher)
-      .replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ').replace(/<template\b[\s\S]*?<\/template>/gi, ' '));
+      // Endtags auch mit Leerraum oder Attributen („</script >"), sonst
+      // bliebe ein so geschlossenes Skript als sichtbarer Text stehen.
+      .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, ' ').replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, ' ').replace(/<template\b[\s\S]*?<\/template\b[^>]*>/gi, ' '));
     if (rest) standFehler.push(`${rel}: nach dem Datenstand steht noch Inhalt („${rest.slice(0, 60)}") — der Baustein gehoert ans Ende des Inhalts`);
     const text = sichtbar(innen);
     const iso = /\b\d{4}-\d{2}-\d{2}\b/.exec(text);
