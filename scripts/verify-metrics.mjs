@@ -72,6 +72,31 @@ function zaehleMitMarke(ordner, marke) {
   return n;
 }
 
+// Eintraege der Suchindex-Dateien in dist/ (EN + DE), optional gefiltert.
+// null, wenn eine Datei fehlt oder kein Array ist.
+function zaehleIndex(dateien, filter = () => true) {
+  let n = 0;
+  for (const f of dateien) {
+    const p = join(DIST, f);
+    if (!existsSync(p)) return null;
+    let j;
+    try {
+      j = JSON.parse(readFileSync(p, 'utf8'));
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(j)) return null;
+    n += j.filter(filter).length;
+  }
+  return n;
+}
+
+// Zwei Sprachfassungen derselben Liste: die schwaechere zaehlt doppelt.
+// null, wenn eine Seite fehlt (kaputter Ableser, keine Schrumpfung).
+const beideSprachen = (en, de) => (en == null || de == null ? null : 2 * Math.min(en, de));
+const art = (k) => (e) => e && e.k === k;
+const SUCHKNOPF = /<button[^>]*data-scs-boot/;
+
 /* ---------- Die Ableser. Jeder liefert eine Zahl oder null ---------- */
 // null heisst "Quelle nicht vorhanden" — das ist etwas anderes als 0 und
 // wird als FEHLER gemeldet, nicht als Schrumpfung. Ein Ableser, der bei
@@ -160,6 +185,23 @@ const ABLESER = {
   schiffsSeitenMitTeileLinks: () => zaehleMitMarke(['schiffe', 'de/schiffe'], /href="(?:\/de)?\/items\/[^"]+\.html"/),
   missionsSeitenMitSuchLinks: () =>
     zaehleMitMarke(['missionen', 'de/missionen'], /href="(?:\/de)?\/missionen\.html\?(?:type|giver|loc|guild)=/),
+
+  // --- Suche (assets/search-overlay.js, src/lib/searchIndex.ts) ---
+  // Items und Blueprints stehen im zweiten Index-Teil, die Werkzeuge im
+  // ersten, und die Datenseiten tragen nur einen Knopf, der die Suche
+  // nachlaedt. Faellt einer der drei weg, baut die Seite weiter und die Suche
+  // findet still weniger. Gezaehlt am gebauten Stand, je Art getrennt.
+  // Beide Sprachen entstehen aus denselben Listen und sind gleich gross;
+  // gezaehlt wird die SCHWAECHERE doppelt (beideSprachen): faellt nur eine
+  // Sprache ab, reisst die Klinke genauso, als fielen beide (Review #303).
+  sucheItems: () =>
+    beideSprachen(zaehleIndex(['search-index-more.json'], art('item')), zaehleIndex(['de/search-index-more.json'], art('item'))),
+  sucheBlueprints: () =>
+    beideSprachen(zaehleIndex(['search-index-more.json'], art('bauplan')), zaehleIndex(['de/search-index-more.json'], art('bauplan'))),
+  sucheWerkzeuge: () =>
+    beideSprachen(zaehleIndex(['search-index.json'], art('werkzeug')), zaehleIndex(['de/search-index.json'], art('werkzeug'))),
+  datenSeitenMitSuche: () =>
+    beideSprachen(zaehleMitMarke(['items', 'crafting'], SUCHKNOPF), zaehleMitMarke(['de/items', 'de/crafting'], SUCHKNOPF)),
 };
 
 /* ---------- Lesen ---------- */

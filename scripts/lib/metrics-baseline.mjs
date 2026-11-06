@@ -276,4 +276,36 @@ export const BASELINE = [
     anlass:
       'Messlauf 06.11.2026: alle 1.387 Missionsseiten je Sprache fuehren ueber Typ, Auftraggeber, Region oder Gilde in die vorgefilterte Missionssuche (/missionen.html?type=… usw.). Link entsteht nur, wenn die Kennung eine Option der Suche ist. Toleranz 3 %: der Missionsbestand schwankt je Patch.',
   },
+  {
+    id: 'sucheItems',
+    wert: 10738,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026: der zweite Suchindex-Teil (/search-index-more.json, /de/…) fuehrt je Sprache 5.369 Items mit Datenblatt, dieselbe Liste, aus der die Item-Seiten entstehen; gezaehlt die schwaechere Sprache doppelt (2 x 5.369). Faellt der Teil weg oder schrumpft er in einer Sprache, findet die Suche dort still keine Items mehr. Toleranz 3 %: der Katalog waechst und schrumpft mit dem Patch. Getrennt von den Blueprints seit Review #303.',
+  },
+  {
+    id: 'sucheBlueprints',
+    wert: 3216,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026: 1.608 Blueprints je Sprache im zweiten Suchindex-Teil, dieselbe Liste wie die Blueprint-Seiten; die schwaechere Sprache doppelt (2 x 1.608). Eigene Klinke, damit der Verlust aller Blueprints nicht in der Summe mit den Items untergeht (Review #303). Toleranz 3 % wie die Seitenzahlen.',
+  },
+  {
+    id: 'sucheWerkzeuge',
+    wert: 22,
+    regel: 'min',
+    toleranzProzent: 0,
+    anlass:
+      'Messlauf 06.11.2026: elf Werkzeuge je Sprache im ersten Suchindex-Teil, die schwaechere Sprache doppelt (toolEntries in src/lib/searchIndex.ts: Item Finder, Missionen, Crafting, Fracturing, Refinery, Mining, Precision Jump, Wikelo, Schiffe, Patch-Archiv, Evolution; der Hangar fehlt mit Absicht). Ohne Toleranz: jedes fehlende Werkzeug ist eine Entscheidung und braucht einen Commit mit Anlass.',
+  },
+  {
+    id: 'datenSeitenMitSuche',
+    wert: 13954,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026: alle Item- und Blueprint-Seiten (je Sprache 5.369 + 1.608, Datenhuelle; gezaehlt die schwaechere Sprache doppelt) tragen den Suchknopf, der die Suche erst beim Antippen nachlaedt (assets/data-search.js). Toleranz 3 % wie die Seitenzahlen selbst.',
+  },
 ];
