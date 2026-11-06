@@ -65,6 +65,7 @@ const T = {
     hand: 'von Hand gepflegt',
     schnappschuss: 'Schnappschuss vom',
     recherche: 'eigene Recherche',
+    shopSchnappschuss: 'eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt',
     aufbereitung: 'eigene Aufbereitung',
     spielwerte: 'Spielwerte',
     kaufpreise: 'Kaufpreise',
@@ -94,6 +95,7 @@ const T = {
     hand: 'maintained by hand',
     schnappschuss: 'snapshot of',
     recherche: 'own research',
+    shopSchnappschuss: 'own shop snapshot, undated, only where UEX does not list the item',
     aufbereitung: 'processed in-house',
     spielwerte: 'Game values',
     kaufpreise: 'Purchase prices',
@@ -185,11 +187,16 @@ export const STAND = { items: ITEM_F, itemPreise: ITEM_PREISE, crafting: CRAFT_F
 
 const UEX = { name: 'UEX Corp', link: 'https://uexcorp.space' };
 
-/** Item-Datenblatt, Item-Listen, Rüstungs-Sets. `preise`: die Seite zeigt Kaufpreise; `fundorte`: sie zeigt Loot-Fundorte. */
-export function standItems(lang: Locale, o: { preise: boolean; fundorte: boolean }): StandZeile[] {
+/**
+ * Item-Datenblatt, Item-Listen, Rüstungs-Sets. `preise`: die Seite zeigt Kaufpreise von UEX;
+ * `schnappschuss`: sie zeigt Kaufpreise aus dem eigenen Shop-Schnappschuss (Bezugszeilen mit
+ * src "schnappschuss", nur fuer Items, die UEX nicht fuehrt); `fundorte`: sie zeigt Loot-Fundorte.
+ */
+export function standItems(lang: Locale, o: { preise: boolean; schnappschuss?: boolean; fundorte: boolean }): StandZeile[] {
   const t = T[lang];
   const z = [spiel(lang, 'items', t.spielwerte, ITEM_F)];
   if (o.preise) z.push(fremd(lang, 'uex-items', t.kaufpreise, UEX.name, UEX.link, ITEM_PREISE));
+  if (o.schnappschuss) z.push({ quelle: 'shop-schnappschuss', art: 'quelle', was: t.kaufpreise, text: t.shopSchnappschuss, aelter: false });
   if (o.fundorte) z.push({ quelle: 'fundorte', art: 'quelle', was: t.fundorte, text: t.recherche, aelter: false });
   return z;
 }
@@ -270,6 +277,15 @@ export function standRefinery(lang: Locale): StandZeile[] {
     fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE),
     hand(lang, 'ausbeute', t.ausbeute, AUSBEUTE_F, REFINERY_F),
   ];
+}
+
+/**
+ * Fracturing-Rechner: nur Spielwerte (Erze aus mining-db.json, Laser, Module,
+ * Gadgets und Erzwerte aus mining-model.json). Ausbeute je Station zeigt er
+ * nicht. verify:patch-angaben [6] haelt beide Dateien auf derselben Fassung.
+ */
+export function standFracturing(lang: Locale): StandZeile[] {
+  return [spiel(lang, 'mining', T[lang].spielwerte, MINING_F)];
 }
 
 /** Mining-Datenbank. */

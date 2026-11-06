@@ -43,12 +43,20 @@ const lo = minPrice(item);
 const hi = maxPrice(item);
 const avg = avgPrice(item);
 const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
+// Datenstand: Verkaufsstellen von UEX und aus dem eigenen Shop-Schnappschuss
+// (src, nur wo UEX das Item nicht fuehrt) getrennt nennen.
+const snapVendors = item.obtain.filter((o) => o.kind === 'shop' && o.src === 'schnappschuss').length;
+const uexVendors = vendors - snapVendors;
 const loot = item.obtain.filter((o) => o.kind === 'loot').length;
-const mitPreis = rows.some((o) => o.price != null);
+// Der UEX-Preisstand gehoert nur unter Preise, die von UEX kommen.
+const mitUexPreis = rows.some((o) => o.price != null && o.src !== 'schnappschuss');
 // Welche Zeile des Datenstands diese Bezugszeile belegt (verify:patch-angaben
 // [6] haelt beides gegeneinander): Shop und Schiffshaendler kommen von UEX,
-// Loot aus der eigenen Recherche; Exklusiv-Zeilen sind Spielwerte.
-const standQ = (k: string) => (k === 'shop' || k === 'vehicle' ? 'uex-items' : k === 'loot' ? 'fundorte' : undefined);
+// ausser Shop-Zeilen aus dem eigenen Schnappschuss (src), Loot aus der eigenen
+// Recherche; Exklusiv-Zeilen sind Spielwerte.
+const standQ = (o: { kind: string; src?: string }) =>
+  o.src === 'schnappschuss' ? 'shop-schnappschuss'
+  : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items' : o.kind === 'loot' ? 'fundorte' : undefined;
 const schwankend = rows.some((o) => o.kind !== 'exclusive');
 const bp = blueprintForItem(item);
 const related = relatedItems(item, 12);
@@ -98,7 +106,7 @@ const crumbs = [
   eyebrow={`${categoryLabel(root, lang)} · ${t('pageEyebrow')}`}
   modified={db.generatedAt}
   ldName={name}
-  stand={standItems(lang, { preise: vendors > 0, fundorte: loot > 0 })}
+  stand={standItems(lang, { preise: uexVendors > 0, schnappschuss: snapVendors > 0, fundorte: loot > 0 })}
   melden
 >
   <h1 slot="hero">{name}</h1>
@@ -138,11 +146,11 @@ const crumbs = [
             </thead>
             <tbody>
               {rows.map((o, idx) => (
-                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined} data-stand-q={standQ(o.kind)}>
+                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined} data-stand-q={standQ(o)}>
                   <td>{locLabel(o)}</td>
                   <td>{kindLabel(o.kind)}</td>
                   <td class="dp-num">
-                    {o.price != null ? <span class="dp-price">{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
+                    {o.price != null ? <span class="dp-price" data-stand-q={standQ(o)}>{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
                   </td>
                   <td class="dp-num">
                     <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>
@@ -157,7 +165,7 @@ const crumbs = [
             keine Kaufpreise. Der Hinweis auf schwankende Preise und Orte nur,
             wo es Shop- oder Loot-Zeilen gibt. */}
         {schwankend && (
-          <p class="dp-note">{t('volatileNote')}{mitPreis && <> · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}</p>
+          <p class="dp-note">{t('volatileNote')}{mitUexPreis && <> · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}</p>
         )}
       </>
     ) : (

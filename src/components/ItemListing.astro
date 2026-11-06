@@ -30,12 +30,32 @@ const prices = node.items.map(minPrice).filter((p): p is number => p != null);
 const buyable = prices.length;
 const cheapest = prices.length > 0 ? Math.min(...prices) : null;
 
+// Woher ein gezeigter Preis kommt: UEX, ausser bei Shop-Zeilen aus dem eigenen
+// Schnappschuss (src, nur wo UEX das Item nicht fuehrt). Jede Preisangabe
+// traegt ihre Marke, der Datenstand nennt genau die Quellen der Seite.
+type Bezug = Item['obtain'][number];
+const preisQ = (o: Bezug) => (o.src === 'schnappschuss' ? 'shop-schnappschuss' : 'uex-items');
+// Die Zeile hinter minPrice: niedrigster Preis > 0, bei Gleichstand die erste.
+const minZeile = (i: Item): Bezug | undefined => {
+  let best: Bezug | undefined;
+  for (const o of i.obtain) if (o.price != null && o.price > 0 && (best?.price == null || o.price < best.price)) best = o;
+  return best;
+};
+const cheapestZeile = node.items.map(minZeile).find((o) => o?.price === cheapest);
+const zeigtPreisQ = new Set([
+  ...(cheapestZeile ? [preisQ(cheapestZeile)] : []),
+  ...slice.map(minZeile).filter((o): o is Bezug => !!o).map(preisQ),
+]);
+
 // Die Bezugsspalte zeigt je Item die erste Bezugszeile. Ist das ein Loot-Ort,
 // stammt er aus der eigenen Recherche, und der Datenstand nennt die Fundorte
 // (bis zur Review-Korrektur stand hier pauschal `fundorte: false`). Die Marke
 // data-stand-q haelt verify:patch-angaben [6] gegen die Zeilen des Bausteins.
-const standQ = (k: string | undefined) => (k === 'shop' || k === 'vehicle' ? 'uex-items' : k === 'loot' ? 'fundorte' : undefined);
+const standQ = (o: Bezug | undefined) =>
+  !o ? undefined : o.src === 'schnappschuss' ? 'shop-schnappschuss'
+  : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items' : o.kind === 'loot' ? 'fundorte' : undefined;
 const lootZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot');
+const bezugQ = new Set(slice.map((i) => standQ(i.obtain[0])));
 
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
@@ -57,7 +77,11 @@ const sourceLabel = (obtain: Item['obtain']) =>
   crumbs={crumbs}
   eyebrow={[categoryLabel(node.root, lang), midCategory(node.cat), t('sectionCategory')].filter(Boolean).join(' · ')}
   modified={db.generatedAt}
-  stand={standItems(lang, { preise: buyable > 0, fundorte: lootZuerst })}
+  stand={standItems(lang, {
+    preise: zeigtPreisQ.has('uex-items') || bezugQ.has('uex-items'),
+    schnappschuss: zeigtPreisQ.has('shop-schnappschuss') || bezugQ.has('shop-schnappschuss'),
+    fundorte: lootZuerst,
+  })}
 >
   <h1 slot="hero">{leafCategory(node.cat)}</h1>
   <p class="dp-lead" slot="hero">
@@ -67,7 +91,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('entries')}</b><span>{num(node.items.length, lang)}</span></li>
     <li class="dp-key"><b>{t('kindBuy')}</b><span>{num(buyable, lang)}</span></li>
-    {cheapest != null && <li class="dp-key" data-stand-q="uex-items"><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
+    {cheapest != null && cheapestZeile && <li class="dp-key" data-stand-q={preisQ(cheapestZeile)}><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
     <li class="dp-key"><b>{t('pricesAsOf')}</b><span>{datumLang(db.pricesAsOf, lang)}</span></li>
   </ul>
 
@@ -84,6 +108,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
       <tbody>
         {slice.map((i) => {
           const p = minPrice(i);
+          const pz = minZeile(i);
           const avg = avgPrice(i);
           const linked = pageItemIds.has(i.id);
           return (
@@ -93,9 +118,9 @@ const sourceLabel = (obtain: Item['obtain']) =>
                   ? <a href={href(itemPath(i), lang)}>{displayName(i, lang)}</a>
                   : <span title={t('listingNoPage')}>{displayName(i, lang)}</span>}
               </td>
-              <td data-stand-q={standQ(i.obtain[0]?.kind)}>{sourceLabel(i.obtain)}</td>
+              <td data-stand-q={standQ(i.obtain[0])}>{sourceLabel(i.obtain)}</td>
               <td class="dp-num">
-                {p != null ? <span class="dp-price">{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
+                {p != null && pz ? <span class="dp-price" data-stand-q={preisQ(pz)}>{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
               </td>
               <td class="dp-num">
                 <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>

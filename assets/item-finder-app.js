@@ -944,7 +944,7 @@
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
         '<div class="uif-table-wrapper"><table class="uif-locations-table">' +
-        '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th><th>' + esc(tr('thAvg', 'Ø UEX')) + '</th></tr></thead>' +
+        '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th><th>' + esc(tr('thAvg', 'Ø Preis')) + '</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
         '<p class="uif-volatile-note">' + esc(tr('volatileNote', 'Preise und Fundorte sind Patch-volatil — ingame prüfen.')) + '</p>' +
       '</div>';
