@@ -401,7 +401,7 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, und 20 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken und Ereignis-Laeufe; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, jede Detailseite (Item, Blueprint, Schiff, Mission) traegt genau einen Link „Falschen Wert melden" mit data-ev-melden auf das Formular ihrer Sprache mit ihrem eigenen Pfad (?wert=) und keine andere Seite einen, und 23 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken, Ereignis-Laeufe und Melde-Links; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
     // [7] Messereignisse (Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
     // Live-Bau der Ereignis-Aenderung, je ein Eingriff in dist/:
     // Ereignis-Skript auf support.html entfernt -> "laedt den Zaehler, aber
@@ -412,6 +412,15 @@ export const CHECKS = [
     // "Filter aus ?Parametern: 1 gesendet, Soll 0"; Rechner-Marken auf
     // fracturing.html entfernt -> Klinke 102 < 104 (Klinke seit der
     // Review-Korrektur 112).
+    // Melde-Links (C2, Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Melde-Aenderung, je ein Eingriff in dist/: Link einer
+    // Item-Seite auf den Pfad einer anderen Item-Seite -> "Melde-Link zeigt
+    // auf ..., Soll ... eigener Pfad"; data-ev-melden auf items.html -> "auf
+    // einer Seite, die keine Detailseite ist"; Ereignis in
+    // assets/ereignisse.js umbenannt (wert-meldung) -> "weicht vom SOLL ab";
+    // Detailseiten-Pruefung vor senden('wert-melden') gestrichen -> Probe
+    // "Wert melden von einer Werkzeugseite (keine Detailseite): 1
+    // Ereignis(se) gesendet, Soll 0". Danach wiederhergestellt und gruen.
   },
   {
     id: 'audit:site',
@@ -491,7 +500,7 @@ export const CHECKS = [
     script: 'scripts/verify-patch-angaben.mjs',
     rail: 'A',
     checks:
-      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise, Fundorte, FleetYards-Teile, 3D-Hülle; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt); Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie und je Seitengruppe',
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise, Fundorte, FleetYards-Teile, 3D-Hülle; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe und fuer Melde-Links',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
     // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
     // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
@@ -528,6 +537,12 @@ export const CHECKS = [
     // "heisst variants:, Soll Paints, variants:"; Fundorte-Zeile im Item
     // Finder gestrichen -> "Pflichtzeile fehlt". Danach wiederhergestellt und
     // gruen.
+    // Melde-Link im Baustein (C2, 06.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Melde-Aenderung: Link auf einer Item-Seite entfernt -> "0
+    // Links ... (Soll: genau einer auf Detailseiten)"; Link auf eine fremde
+    // Seite -> "zeigt auf ..., Soll ..."; Linktext "Report" -> "heisst
+    // Report, Soll Report a wrong value"; Link auf items.html -> "auf einer
+    // Seite, die keine Detailseite ist". Danach wiederhergestellt und gruen.
   },
 
   {

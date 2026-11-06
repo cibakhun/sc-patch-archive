@@ -1,4 +1,4 @@
-// ereignisse.js — acht Messereignisse mit festen Werten (Umami).
+// ereignisse.js — neun Messereignisse mit festen Werten (Umami).
 //
 // Laedt auf jeder Seite, die auch den Zaehler laedt (src/layouts/Layout.astro,
 // direkt nach ihm), und schickt ueber umami.track — also durch denselben
@@ -20,7 +20,9 @@
 //  - Klick auf einen Link im Seiteninhalt (nicht Kopf, Navigation, Fuss) einer
 //    Detailseite zu einer anderen Detailseite (weiter-detail) oder in ein
 //    Werkzeug (weiter-werkzeug); Klick auf Anmelden/Registrieren von jeder
-//    gezaehlten Seite (anmeldung-einstieg).
+//    gezaehlten Seite (anmeldung-einstieg); Klick auf „Falschen Wert melden“
+//    (Link mit data-ev-melden im Datenstand) einer Detailseite (wert-melden,
+//    nur mit der Seitenart, ohne Pfad).
 //  - Erste Bedienung eines Elements mit data-ev-filter="<name>" (filter) bzw.
 //    in einem Bereich mit data-ev-rechnung (rechnung) je Seitenaufruf, Klick
 //    auf data-ev-kopieren (kopieren-teilen). Nur echte Bedienung
@@ -46,6 +48,7 @@
     rechnung: { werkzeug: WZ },
     'kopieren-teilen': { werkzeug: WZ },
     'anmeldung-einstieg': { von: DETAIL + ' sonst ' + WZ, ziel: 'anmelden registrieren' },
+    'wert-melden': { seite: DETAIL },
   };
   var EINMAL = { 'suche-offen': 1, filter: 1, rechnung: 1 };
   var WERKZEUG_SEITEN = {
@@ -161,6 +164,10 @@
     var ziel = rein(u.pathname);
     if (KONTO[ziel]) {
       senden('anmeldung-einstieg', { von: hierWz || hierDetail || 'sonst', ziel: KONTO[ziel] });
+      return;
+    }
+    if (a.hasAttribute('data-ev-melden')) {
+      if (hierDetail) senden('wert-melden', { seite: hierDetail });
       return;
     }
     if (!hierDetail || a.closest('header, nav, footer')) return;

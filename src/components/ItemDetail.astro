@@ -99,6 +99,7 @@ const crumbs = [
   modified={db.generatedAt}
   ldName={name}
   stand={standItems(lang, { preise: vendors > 0, fundorte: loot > 0 })}
+  melden
 >
   <h1 slot="hero">{name}</h1>
   {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}

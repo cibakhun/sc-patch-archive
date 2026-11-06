@@ -60,6 +60,8 @@ export const FEEDBACK = {
   endpoint: 'https://api.web3forms.com/submit',
   /** landet im Betreff der Mail an das Zielkonto */
   subject: 'Neues Feedback · VerseBase',
+  /** Betreff, wenn jemand ueber „Falschen Wert melden“ kommt (im Postfach filterbar) */
+  subjectWert: 'Wert melden · VerseBase',
 } as const;
 
 /** Platzhalter der Vorlage. Als `string` deklariert, weil `FEEDBACK` per

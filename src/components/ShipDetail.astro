@@ -2878,7 +2878,7 @@ span.sd__ref{color:var(--muted)}
       {extras?.fySlug && <a href={`https://www.fleetyards.net/ships/${extras.fySlug}`} target="_blank" rel="noopener">FleetYards ↗</a>}
     </div>
 
-    <Datenstand lang={lang} innen zeilen={standSchiff(lang, {
+    <Datenstand lang={lang} innen melden zeilen={standSchiff(lang, {
       kennung: d.gameVersion,
       lackierungen: paints.length > 0,
       varianten: variants.length > 0,

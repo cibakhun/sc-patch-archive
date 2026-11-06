@@ -61,6 +61,12 @@
 }
 .vb-stand a:hover { color: var(--accent, inherit); }
 
+/* „Falschen Wert melden“ (nur Detailseiten): eine eigene Zeile unter den
+   Staenden, schlicht wie die Quellenlinks. */
+.vb-stand__melden {
+  margin: 0.6rem 0 0;
+}
+
 /* „älterer Stand": eine kleine Marke, kein Warnschild. Sie sagt, dass diese
    Zeile hinter den Spielwerten derselben Seite liegt — nicht, dass sie
    falsch ist. */

@@ -91,7 +91,12 @@ const MIN_ZAEHLER_KOPIEN = 1;
 // Zuruecksetzen-Knopf im Precision-Jump-Rechner.
 const MIN_EREIGNIS_SEITEN = 17000;
 const MIN_EREIGNIS_MARKEN = 112;
-const MIN_EREIGNIS_PROBEN = 21;
+const MIN_EREIGNIS_PROBEN = 24;
+// Melde-Links (data-ev-melden, „Falschen Wert melden“ im Datenstand), Stand
+// 06.11.2026 (Build der Melde-Aenderung): 17.190 Detailseiten (Items,
+// Blueprints, Schiffe, Missionen, je DE und EN). Knapp darunter, ein Datenlauf
+// darf ein paar Seiten streichen.
+const MIN_MELDE_MARKEN = 17000;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
 // traegt die Seite hier ein; faellt der Anlass weg, reisst [2]. Auch
@@ -166,6 +171,11 @@ const INLINE_SKRIPT = /<script\b(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g;
 const EREIGNIS_TAG = /<script\b[^>]*\ssrc="(\/assets\/ereignisse\.js[^"]*)"/;
 const EREIGNIS_MARKE = /\sdata-ev-(filter|rechnung|kopieren)(?:="([^"]*)")?/g;
 const EREIGNIS_AUFRUF = /vbEreignis\(\s*['"]([^'"]*)['"]/g;
+// „Falschen Wert melden“: <a … data-ev-melden> im Datenstand der Detailseiten.
+const MELDE_MARKE = /<a\b[^>]*\sdata-ev-melden\b[^>]*>/g;
+// Detailseiten wie DETAIL_PFADE in assets/ereignisse.js (Pfad ohne /de).
+const DETAIL_SEITE = /^(?:items|crafting|schiffe|missionen)\/[^/]+\.html$/;
+const meldeMarken = [];
 let ereignisSeiten = 0;
 const zaehlerOhneEreignis = [];
 const ereignisOhneZaehler = [];
@@ -196,6 +206,8 @@ for (const s of seiten) {
   if (evTag && !ereignisSkripte.has(evTag[1].split('?')[0])) ereignisSkripte.set(evTag[1].split('?')[0], s);
   for (const m of html.matchAll(EREIGNIS_MARKE)) ereignisMarken.push({ seite: s, art: m[1], wert: m[2] ?? null, gezaehlt: tags.length > 0 });
   for (const m of html.matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: s, name: m[1] });
+  // href wie der Browser ihn liest: Astro schreibt & als &#38;, andere als &amp;.
+  for (const m of html.matchAll(MELDE_MARKE)) meldeMarken.push({ seite: s, href: (/\shref="([^"]*)"/.exec(m[0])?.[1] ?? null)?.replace(/&(?:amp|#38|#x26);/gi, '&') ?? null, gezaehlt: tags.length > 0 });
 
   for (const tag of tags) {
     const maengel = [];
@@ -431,6 +443,21 @@ for (const m of ereignisMarken) {
 const ungenutzt = FILTER.filter((f) => !benutzteFilter.has(f));
 for (const f of ungenutzt) fail(`FILTER "${f}" steht in der Liste, aber an keinem Bedienelement — Eintrag ohne Anlass entfernen (Zombie)`);
 console.log(`    Marken: ${ereignisMarken.length} (${ereignisMarken.filter((m) => m.art === 'filter').length} Filter, ${ereignisMarken.filter((m) => m.art === 'rechnung').length} Rechnung, ${ereignisMarken.filter((m) => m.art === 'kopieren').length} Kopieren)   Werkzeuge mit Marke: ${werkzeugeMitMarke.size} von ${Object.keys(WERKZEUG_SEITEN).length}   Filternamen in Gebrauch: ${benutzteFilter.size} von ${FILTER.length}   fehlerhaft — Soll: 0   Ist: ${markenFehler}`);
+// 7.2b Melde-Links: nur auf Detailseiten (sonst schickt ereignisse.js nichts,
+// die Marke waere tot), href auf das Feedback-Formular derselben Sprache mit
+// genau dem eigenen Pfad als ?wert= (das Formular nimmt nur solche Pfade).
+let meldeFehler = 0;
+const meldeSeiten = new Set();
+for (const m of meldeMarken) {
+  const ohneDe = m.seite.replace(/^de\//, '');
+  const soll = `${m.seite.startsWith('de/') ? '/de' : ''}/feedback.html?wert=/${m.seite}`;
+  if (!DETAIL_SEITE.test(ohneDe)) { meldeFehler++; if (meldeFehler <= 10) fail(`${m.seite}: data-ev-melden auf einer Seite, die keine Detailseite ist — assets/ereignisse.js sendet wert-melden nur von Item-, Blueprint-, Schiffs- und Missionsseiten`); continue; }
+  if (!m.gezaehlt) { meldeFehler++; if (meldeFehler <= 10) fail(`${m.seite}: Melde-Link auf einer Seite ohne Zaehler`); continue; }
+  if (meldeSeiten.has(m.seite)) { meldeFehler++; if (meldeFehler <= 10) fail(`${m.seite}: mehr als ein Melde-Link`); continue; }
+  meldeSeiten.add(m.seite);
+  if (m.href !== soll) { meldeFehler++; if (meldeFehler <= 10) fail(`${m.seite}: Melde-Link zeigt auf ${JSON.stringify(m.href)}, Soll ${JSON.stringify(soll)} — eigener Pfad, Formular derselben Sprache`); }
+}
+console.log(`    Melde-Links: ${meldeMarken.length} auf ${meldeSeiten.size} Detailseiten   fehlerhaft — Soll: 0   Ist: ${meldeFehler}`);
 // Jede Werkzeugseite gibt es (beide Sprachen) und sie zaehlt.
 for (const p of Object.keys(WERKZEUG_SEITEN)) {
   for (const s of [p.slice(1), `de${p}`]) {
@@ -549,6 +576,12 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
     ['Klick auf eine Auswahlliste im Rechner (noch keine Bedienung)', { pfad: '/fracturing.html', html: MAIN('<div data-ev-rechnung><select id="s"></select></div>') }, (p) => p.ereignis('click', p.doc.getElementById('s')), []],
     ['Kopieren', { pfad: '/precision-jump.html', html: MAIN('<button id="k" data-ev-kopieren>Kopieren</button>') }, (p) => p.ereignis('click', p.doc.getElementById('k')),
       [{ name: 'kopieren-teilen', data: { werkzeug: 'sprung' }, url: '/precision-jump.html' }]],
+    ['Wert melden von einer Item-Seite', { pfad: '/de/items/probe-item.html', html: MAIN('<a id="m" href="/de/feedback.html?wert=/de/items/probe-item.html" data-ev-melden>Falschen Wert melden</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('m')), [{ name: 'wert-melden', data: { seite: 'item' }, url: '/de/items/' }]],
+    ['Wert melden von einer Werkzeugseite (keine Detailseite)', { pfad: '/refinery.html', html: MAIN('<a id="m" href="/feedback.html?wert=/refinery.html" data-ev-melden>Report</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('m')), []],
+    ['Feedback-Link ohne Melde-Marke von einer Detailseite', { pfad: '/schiffe/aegs-gladius.html', html: MAIN('<a id="m" href="/feedback.html">Feedback</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('m')), []],
     ['Widerspruchs-Cookie', { pfad: '/items/probe-item.html', cookie: 'vb_noanalytics=1', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') },
       (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); }, []],
     ['fremder Hostname (Vorschau)', { pfad: '/items/probe-item.html', host: 'staging.verse-base.com', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') },
@@ -596,11 +629,13 @@ if (hakenGeprueft < MIN_HAKEN_FASSUNGEN)
   fail(`keine Fassung des Hakens ausgefuehrt — ohne Probe ist [5] nicht gelaufen`);
 if (kopienGeprueft < MIN_ZAEHLER_KOPIEN)
   fail(`keine Zaehler-Kopie ausgefuehrt — ohne Lauf ist [6] nicht gelaufen`);
-console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten} (Klinke ${MIN_EREIGNIS_SEITEN})   Ereignis-Marken: ${ereignisMarken.length} (Klinke ${MIN_EREIGNIS_MARKEN})   Ereignis-Laeufe: ${probenGelaufen} (Klinke ${MIN_EREIGNIS_PROBEN})`);
+console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten} (Klinke ${MIN_EREIGNIS_SEITEN})   Ereignis-Marken: ${ereignisMarken.length} (Klinke ${MIN_EREIGNIS_MARKEN})   Ereignis-Laeufe: ${probenGelaufen} (Klinke ${MIN_EREIGNIS_PROBEN})   Melde-Links: ${meldeSeiten.size} (Klinke ${MIN_MELDE_MARKEN})`);
 if (ereignisSeiten < MIN_EREIGNIS_SEITEN)
   fail(`nur ${ereignisSeiten} Seiten laden assets/ereignisse.js, Klinke ${MIN_EREIGNIS_SEITEN} — der Tag in Layout.astro ist verloren gegangen`);
 if (ereignisMarken.length < MIN_EREIGNIS_MARKEN)
   fail(`nur ${ereignisMarken.length} Ereignis-Marken (data-ev-*) im gebauten Stand, Klinke ${MIN_EREIGNIS_MARKEN} — ein Werkzeug hat seine Filter- oder Rechner-Marken verloren; Ursache klaeren, nicht die Klinke senken`);
+if (meldeSeiten.size < MIN_MELDE_MARKEN)
+  fail(`nur ${meldeSeiten.size} Detailseiten mit Melde-Link, Klinke ${MIN_MELDE_MARKEN} — der Link „Falschen Wert melden“ ist im Datenstand verloren gegangen; Ursache klaeren, nicht die Klinke senken`);
 if (probenGelaufen < MIN_EREIGNIS_PROBEN)
   fail(`nur ${probenGelaufen} Ereignis-Laeufe, Klinke ${MIN_EREIGNIS_PROBEN} — [7] ist nicht vollstaendig gelaufen`);
 
