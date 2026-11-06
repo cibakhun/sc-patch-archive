@@ -30,6 +30,13 @@ const prices = node.items.map(minPrice).filter((p): p is number => p != null);
 const buyable = prices.length;
 const cheapest = prices.length > 0 ? Math.min(...prices) : null;
 
+// Die Bezugsspalte zeigt je Item die erste Bezugszeile. Ist das ein Loot-Ort,
+// stammt er aus der eigenen Recherche, und der Datenstand nennt die Fundorte
+// (bis zur Review-Korrektur stand hier pauschal `fundorte: false`). Die Marke
+// data-stand-q haelt verify:patch-angaben [6] gegen die Zeilen des Bausteins.
+const standQ = (k: string | undefined) => (k === 'shop' || k === 'vehicle' ? 'uex-items' : k === 'loot' ? 'fundorte' : undefined);
+const lootZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot');
+
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
   { label: leafCategory(node.cat), href: pages > 1 && page > 1 ? categoryPath(node) : undefined },
@@ -50,7 +57,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
   crumbs={crumbs}
   eyebrow={[categoryLabel(node.root, lang), midCategory(node.cat), t('sectionCategory')].filter(Boolean).join(' · ')}
   modified={db.generatedAt}
-  stand={standItems(lang, { preise: buyable > 0, fundorte: false })}
+  stand={standItems(lang, { preise: buyable > 0, fundorte: lootZuerst })}
 >
   <h1 slot="hero">{leafCategory(node.cat)}</h1>
   <p class="dp-lead" slot="hero">
@@ -60,7 +67,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('entries')}</b><span>{num(node.items.length, lang)}</span></li>
     <li class="dp-key"><b>{t('kindBuy')}</b><span>{num(buyable, lang)}</span></li>
-    {cheapest != null && <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
+    {cheapest != null && <li class="dp-key" data-stand-q="uex-items"><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
     <li class="dp-key"><b>{t('pricesAsOf')}</b><span>{datumLang(db.pricesAsOf, lang)}</span></li>
   </ul>
 
@@ -86,7 +93,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
                   ? <a href={href(itemPath(i), lang)}>{displayName(i, lang)}</a>
                   : <span title={t('listingNoPage')}>{displayName(i, lang)}</span>}
               </td>
-              <td>{sourceLabel(i.obtain)}</td>
+              <td data-stand-q={standQ(i.obtain[0]?.kind)}>{sourceLabel(i.obtain)}</td>
               <td class="dp-num">
                 {p != null ? <span class="dp-price">{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
               </td>

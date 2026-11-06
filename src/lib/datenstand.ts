@@ -64,6 +64,7 @@ const T = {
     hand: 'von Hand gepflegt',
     schnappschuss: 'Schnappschuss vom',
     recherche: 'eigene Recherche',
+    aufbereitung: 'eigene Aufbereitung',
     spielwerte: 'Spielwerte',
     kaufpreise: 'Kaufpreise',
     fundorte: 'Fundorte',
@@ -88,6 +89,7 @@ const T = {
     hand: 'maintained by hand',
     schnappschuss: 'snapshot of',
     recherche: 'own research',
+    aufbereitung: 'processed in-house',
     spielwerte: 'Game values',
     kaufpreise: 'Purchase prices',
     fundorte: 'Loot locations',
@@ -199,16 +201,21 @@ export function standMission(lang: Locale): StandZeile[] {
  * den Kopf 4.10.2 also älterer Stand). `fleetyards`: was die Seite von dort
  * zeigt; `wiki`: Pledge/Maße/Crew/Status aus dem Schnappschuss; `bild`: Quelle
  * des Kopfbilds.
+ * `huelle`: woher die 3D-Hülle stammt, die die Seite zeigt. 'eigen' ist das
+ * eigene Hüllenmodell (holoData), es hat Vorrang; nur ohne es zeigt die Seite
+ * die Hülle von FleetYards (extras.holo). Bis zur Review-Korrektur stand
+ * FleetYards auch dort, wo die Seite gar nicht dessen Hülle zeigte.
  */
 export function standSchiff(
   lang: Locale,
-  o: { kennung: string | null | undefined; lackierungen: boolean; varianten: boolean; leihschiffe: boolean; huelle: boolean; wiki: boolean; bild: string | null },
+  o: { kennung: string | null | undefined; lackierungen: boolean; varianten: boolean; leihschiffe: boolean; huelle: 'eigen' | 'fleetyards' | null; wiki: boolean; bild: string | null },
 ): StandZeile[] {
   const t = T[lang];
   const z = [spiel(lang, 'fahrzeug', t.schiffswerte, fassung(o.kennung, 'Fahrzeug-Datensatz gameVersion'), FAHRZEUG_F)];
   z.push(fremd(lang, 'uex-schiffe', t.ingamePreise, UEX.name, UEX.link, SCHIFF_PREISE));
+  if (o.huelle === 'eigen') z.push({ quelle: 'huelle', art: 'quelle', was: t.huelle, text: t.aufbereitung, aelter: false });
   const teile = [
-    o.lackierungen && t.lackierungen, o.varianten && t.varianten, o.leihschiffe && t.leihschiffe, o.huelle && t.huelle,
+    o.lackierungen && t.lackierungen, o.varianten && t.varianten, o.leihschiffe && t.leihschiffe, o.huelle === 'fleetyards' && t.huelle,
   ].filter((x): x is NonNullable<typeof x> => !!x) as string[];
   if (teile.length) {
     const was = teile.join(', ');

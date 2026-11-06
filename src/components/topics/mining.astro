@@ -91,6 +91,18 @@ main > .wb{padding-top:4.4rem}
      soll das Gerät die Fensterhöhe füllen, sonst stünde unter einer nicht
      scrollbaren Seite ein Streifen Leere. */
   main .wb__chassis{height:auto;flex:1;min-height:0}
+  /* Datenstand (C1, 06.11.2026) im Fensterbudget statt darunter: hinter der
+     Sperre oben war er unerreichbar (Review zu #306, gemessen 1280×800: Block
+     bei y 847 in einer 800 hohen, nicht scrollbaren Seite). Er steht deshalb
+     IN main als eine Zeile unter dem Gerät; das Gehäuse gibt dafür 30 px ab
+     (gemessen 1280×800: 696 → 666; die Polsterung unter dem Gerät schrumpft,
+     damit die Zeile nicht ihre ganze Höhe kostet). Die Sperre selbst bleibt (Ansage
+     18.08.2026). Unterhalb von 1181 px steht der Block normal unter dem
+     Werkzeug, die Seite scrollt dort ohnehin. */
+  main > .wb{padding-bottom:.6rem}
+  main > .vb-stand{flex:none;width:auto;margin:0 clamp(16px,2.6vw,56px) .7rem;padding:.4rem 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.15rem 1.4rem}
+  main > .vb-stand .vb-stand__h{margin:0}
+  main > .vb-stand .vb-stand__zeilen{display:flex;flex-wrap:wrap;gap:.15rem 1.4rem}
 }</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
@@ -116,10 +128,10 @@ main > .wb{padding-top:4.4rem}
     title="Mining"
     eyebrow={`Alpha ${verShort}${de ? ' · Live-Daten' : ' · live data'}`} />
 
+  <Datenstand lang={lang} zeilen={standMining(lang)} />
 </main>
 
 <RelatedTopics topicSlug="mining" />
-<Datenstand lang={lang} zeilen={standMining(lang)} />
 <Attribution sources={[]} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>

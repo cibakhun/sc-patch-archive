@@ -348,8 +348,17 @@ for (const fam of Object.keys(KLINKEN)) if (!zaehler[fam]) fail.push(`Klinke "${
 //
 // FEHLER (Handlung immer richtig: neu bauen bzw. Zeile aus der Datei ableiten):
 //   · eine Seite der Liste traegt den Baustein nicht oder doppelt,
+//   · nach dem Baustein steht bis zur naechsten Fusszeile noch sichtbarer
+//     Inhalt (er gehoert ans Ende des Inhalts),
 //   · eine Pflichtzeile fehlt, eine fremde Zeile steht drin,
-//   · Art, Wert oder sichtbarer Text einer Zeile passen nicht zur Datei,
+//   · eine Wertegruppe steht auf der Seite, ihre Zeile fehlt (oder umgekehrt):
+//     Kaufpreise und Fundorte an den Marken data-stand-q bzw. den Preisfeldern,
+//     auf Schiffsseiten Lackierungen, Varianten, Leihschiffe und 3D-Huelle an
+//     ihrem Markup. Nicht nachgerechnet: Wiki-Zeile und Bildquelle der
+//     Schiffsseiten (beide haengen an Feldern, die nur der Seitencode
+//     zusammenfuehrt; ihre Form wird trotzdem geprueft),
+//   · Art, Wert oder sichtbarer Text einer Zeile passen nicht zur Datei —
+//     Wertegruppe, Quellname, Link und Wortlaut je Sprache, wortgleich,
 //   · „älterer Stand" steht ohne Tatsache da oder fehlt trotz Tatsache,
 //   · ein ISO-Datum steht im sichtbaren Text (Datum in Seitensprache).
 // NIE FEHLER: das Alter einer Fremdquelle (Grundsatz 3) — es wird nur
@@ -371,10 +380,12 @@ const vor = (a, b) => {
 const isoDatum = (v) => (typeof v === 'string' ? /^\d{4}-\d{2}-\d{2}/.exec(v)?.[0] ?? null : null);
 
 const STAND_GRUPPEN = [
-  { name: 'Item-Seiten', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html', pflicht: ['items'], erlaubt: ['items', 'uex-items', 'fundorte'] },
+  { name: 'Item-Seiten', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html', pflicht: ['items'], erlaubt: ['items', 'uex-items', 'fundorte'], bedingt: ['uex-items', 'fundorte'] },
+  // Der Finder rendert seine Karten im Browser; er zeigt alle drei Gruppen.
+  { name: 'Item-Finder', match: (p) => p === 'item-finder.html', pflicht: ['items', 'uex-items', 'fundorte'], erlaubt: ['items', 'uex-items', 'fundorte'] },
   { name: 'Blueprint-Seiten', match: (p) => p === 'crafting.html' || p.startsWith('crafting/'), pflicht: ['crafting'], erlaubt: ['crafting'] },
   { name: 'Missionsseiten', match: (p) => p.startsWith('missionen/'), pflicht: ['missionen'], erlaubt: ['missionen'] },
-  { name: 'Schiffsseiten', match: (p) => p.startsWith('schiffe/'), pflicht: ['fahrzeug', 'uex-schiffe'], erlaubt: ['fahrzeug', 'uex-schiffe', 'fleetyards', 'wiki', 'bild'] },
+  { name: 'Schiffsseiten', match: (p) => p.startsWith('schiffe/'), pflicht: ['fahrzeug', 'uex-schiffe'], erlaubt: ['fahrzeug', 'uex-schiffe', 'huelle', 'fleetyards', 'wiki', 'bild'], bedingt: ['huelle', 'fleetyards'] },
   { name: 'Refinery', match: (p) => p === 'refinery.html', pflicht: ['refinery', 'uex-erze', 'ausbeute'], erlaubt: ['refinery', 'uex-erze', 'ausbeute'] },
   { name: 'Mining-Datenbank', match: (p) => p === 'topics/mining.html', pflicht: ['mining', 'ausbeute'], erlaubt: ['mining', 'ausbeute'] },
 ];
@@ -382,10 +393,30 @@ const STAND_GRUPPEN = [
 // Baustein-Aenderung. Nur nach OBEN; nach unten nur per Commit mit Ursache.
 const STAND_KLINKEN = {
   // Gemessen: Items 11.044, Blueprints 3.342, Missionen 2.774, Schiffe 462,
-  // Refinery 2, Mining 2. Grosse Gruppen knapp darunter (ein Datenlauf darf
-  // ein paar Seiten streichen), kleine genau auf dem Messwert.
-  'Item-Seiten': 11000, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
+  // Refinery 2, Mining 2, Item-Finder 2 (seit der Review-Korrektur). Grosse
+  // Gruppen knapp darunter (ein Datenlauf darf ein paar Seiten streichen),
+  // kleine genau auf dem Messwert.
+  'Item-Seiten': 11000, 'Item-Finder': 2, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
 };
+
+// Wortlaut je Zeile und Sprache, unabhaengig von src/lib/datenstand.ts
+// gefuehrt: das Tor soll eine falsch etikettierte Zeile fangen, nicht den
+// Seitencode noch einmal ausfuehren. [de, en].
+const STAND_WAS = {
+  items: ['Spielwerte', 'Game values'], 'uex-items': ['Kaufpreise', 'Purchase prices'], fundorte: ['Fundorte', 'Loot locations'],
+  crafting: ['Rezepte und Drop-Chancen', 'Recipes and drop chances'], missionen: ['Missionsdaten', 'Mission data'],
+  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
+  huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
+  refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
+  'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
+};
+// FleetYards-Zeile: die Wertegruppe zaehlt auf, was die Seite von dort zeigt.
+const FY_TEILE = [['lackierungen', 'Lackierungen', 'paints'], ['varianten', 'Varianten', 'variants'], ['leihschiffe', 'Leihschiffe', 'loaners'], ['huelle', '3D-Hülle', '3D hull']];
+const UEX_NAME = ['UEX Corp', 'https://uexcorp.space'];
+const STAND_NAME = { 'uex-items': UEX_NAME, 'uex-schiffe': UEX_NAME, 'uex-erze': UEX_NAME, fleetyards: ['FleetYards', 'https://fleetyards.net'], wiki: ['starcitizen.tools', 'https://starcitizen.tools'] };
+// Zeilen ohne Stand: fester Text (bild nennt die Bildquelle des Datensatzes).
+const STAND_QUELLTEXT = { fundorte: ['eigene Recherche', 'own research'], huelle: ['eigene Aufbereitung', 'processed in-house'] };
+const SERIE_TITEL = { varianten: ['Varianten der Baureihe', 'Variants of the series'], leihschiffe: ['Loaner (bis zur Flugfreigabe)', 'Loaners (until flight-ready)'] };
 
 console.log('\n[6] Datenstand-Baustein: jede Zeile gegen ihre Datendatei');
 const standSoll = {};
@@ -410,6 +441,7 @@ try {
     wiki: { art: 'schnappschuss', wert: /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(ext.source ?? '')?.[1] ?? null, datei: 'src/data/vehicle-external.json source', name: 'Wiki-Schnappschuss' },
     ausbeute: { art: 'hand', wert: fassungAus(rd('assets/mining-frozen.json').frozen_from), datei: 'assets/mining-frozen.json frozen_from' },
     fundorte: { art: 'quelle', wert: null },
+    huelle: { art: 'quelle', wert: null },
     bild: { art: 'quelle', wert: null },
   };
   for (const [k, q] of Object.entries(quellen)) {
@@ -424,7 +456,18 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   const vehicles = rd('src/data/vehicles.json');
   const kopfFahrzeug = fassungAus(vehicles.gameVersion);
   const stempel = new Map(vehicles.vehicles.map((v) => [v.id, fassungAus(v.gameVersion)]));
-  const sichtbar = (h) => entities(h.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+  // Tags weg, bis nichts mehr wegfaellt: ein verschachtelter Rest wie
+  // "<scr<b></b>ipt>" bliebe nach einem einzigen Durchgang stehen.
+  const ohneTags = (h) => {
+    let s = h;
+    let vorher;
+    do {
+      vorher = s;
+      s = s.replace(/<[^>]+>/g, '');
+    } while (s !== vorher);
+    return s;
+  };
+  const sichtbar = (h) => entities(ohneTags(h)).replace(/\s+/g, ' ').trim();
   for (const file of htmlDateien(DIST)) {
     const rel = relative(DIST, file).split(sep).join('/');
     const pfad = rel.replace(/^de\//, '');
@@ -438,6 +481,16 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     const bloecke = [...html.matchAll(/<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/g)];
     if (bloecke.length !== 1) { standFehler.push(`${rel}: ${bloecke.length === 0 ? 'kein' : bloecke.length + '×'} Datenstand-Baustein (Soll: genau einer)`); continue; }
     const innen = bloecke[0][1];
+    const L = lang === 'de';
+    const sp = L ? 0 : 1;
+    // Lage: der Baustein schliesst den Inhalt ab. Bis zur naechsten
+    // Fusszeile (Datenhuelle: ihr eigener Fuss, sonst footer.site-attr) steht
+    // nichts Sichtbares mehr; Skripte und Daten zaehlen nicht.
+    const nachher = html.slice(bloecke[0].index + bloecke[0][0].length);
+    const fussAb = nachher.search(/<footer\b|<\/body>/);
+    const rest = sichtbar((fussAb >= 0 ? nachher.slice(0, fussAb) : nachher)
+      .replace(/<script\b[\s\S]*?<\/script>/gi, ' ').replace(/<style\b[\s\S]*?<\/style>/gi, ' ').replace(/<template\b[\s\S]*?<\/template>/gi, ' '));
+    if (rest) standFehler.push(`${rel}: nach dem Datenstand steht noch Inhalt („${rest.slice(0, 60)}") — der Baustein gehoert ans Ende des Inhalts`);
     const text = sichtbar(innen);
     const iso = /\b\d{4}-\d{2}-\d{2}\b/.exec(text);
     if (iso) standFehler.push(`${rel}: ISO-Datum ${iso[0]} im sichtbaren Datenstand — Datum in Seitensprache setzen`);
@@ -445,8 +498,33 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       quelle: /\bdata-stand="([^"]*)"/.exec(m[1])?.[1] ?? null,
       art: /\bdata-stand-art="([^"]*)"/.exec(m[1])?.[1] ?? null,
       wert: /\bdata-stand-wert="([^"]*)"/.exec(m[1])?.[1] ?? null,
+      was: sichtbar(/<span class="vb-stand__was"[^>]*>([\s\S]*?)<\/span>/.exec(m[2])?.[1] ?? ''),
+      link: /<a\b[^>]*\shref="([^"]*)"[^>]*>([\s\S]*?)<\/a>/.exec(m[2]),
       text: sichtbar(m[2]),
     }));
+    // Welche bedingten Zeilen die Seite braucht, aus dem, was sie zeigt.
+    const aussen = html.slice(0, bloecke[0].index) + nachher;
+    const soll = new Set();
+    let fyTeile = [];
+    if (g.bedingt?.includes('uex-items')) {
+      if (/\sdata-stand-q="uex-items"/.test(aussen) || /class="dp-price"/.test(aussen)) soll.add('uex-items');
+      if (/\sdata-stand-q="fundorte"/.test(aussen)) soll.add('fundorte');
+    }
+    if (g.bedingt?.includes('fleetyards')) {
+      let holo = null;
+      const hj = /<script type="application\/json" id="holodata"[^>]*>([\s\S]*?)<\/script>/.exec(html);
+      if (hj) { try { holo = JSON.parse(hj[1]); } catch { standFehler.push(`${rel}: #holodata nicht lesbar`); } }
+      const zeigt = {
+        lackierungen: /class="sd__paints"/.test(aussen),
+        varianten: aussen.includes(`<h4 class="sd__sub">${SERIE_TITEL.varianten[sp]}</h4>`),
+        leihschiffe: aussen.includes(`<h4 class="sd__sub">${SERIE_TITEL.leihschiffe[sp]}</h4>`),
+        // ohne eigenes Modell (mesh) zeigt die Bühne die Hülle von FleetYards
+        huelle: !!holo?.url && !holo.mesh,
+      };
+      if (holo?.mesh) soll.add('huelle');
+      fyTeile = FY_TEILE.filter(([k]) => zeigt[k]).map((t) => t[1 + sp]);
+      if (fyTeile.length) soll.add('fleetyards');
+    }
     const gesehen = new Set();
     const spielWert = zeilen.find((z) => standSoll[z.quelle]?.art === 'spiel')?.wert ?? null;
     for (const z of zeilen) {
@@ -456,33 +534,48 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (!g.erlaubt.includes(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" gehoert nicht auf ${g.name}`);
       if (gesehen.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" doppelt`);
       gesehen.add(z.quelle);
+      if (g.bedingt?.includes(z.quelle) && !soll.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" steht im Datenstand, die Seite zeigt diese Werte aber nicht`);
       if (z.art !== q.art) standFehler.push(`${rel}: Zeile „${z.quelle}" ist als ${z.art} ausgezeichnet, Soll ${q.art}`);
-      let soll = q.wert;
-      if (z.quelle === 'fahrzeug') soll = stempel.get(pfad.slice('schiffe/'.length, -'.html'.length)) ?? null;
-      const L = lang === 'de';
-      let erwarteText = null;
+      let sollWert = q.wert;
+      if (z.quelle === 'fahrzeug') sollWert = stempel.get(pfad.slice('schiffe/'.length, -'.html'.length)) ?? null;
       let aelterSoll = false;
+      // Wertegruppe, Quellname und Link
+      let was = STAND_WAS[z.quelle]?.[sp] ?? null;
+      if (z.quelle === 'fleetyards') { const w = fyTeile.join(', '); was = w.charAt(0).toUpperCase() + w.slice(1); }
+      if (was && z.was !== `${was}:`) standFehler.push(`${rel}: Zeile „${z.quelle}" heisst „${z.was}", Soll „${was}:"`);
+      const name = STAND_NAME[z.quelle] ?? null;
+      if (name) {
+        const istName = z.link ? sichtbar(z.link[2]) : null;
+        if (istName !== name[0] || z.link?.[1] !== name[1]) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt die Quelle ${JSON.stringify(istName)} → ${JSON.stringify(z.link?.[1] ?? null)}, Soll „${name[0]}" → ${name[1]}`);
+      } else if (z.link) standFehler.push(`${rel}: Zeile „${z.quelle}" traegt einen Link, Soll ohne`);
+      // Wortlaut nach der Wertegruppe
+      let kern = null;
       if (q.art === 'spiel') {
-        erwarteText = `${L ? 'Spielversion' : 'Game version'} ${soll}`;
-        aelterSoll = z.quelle === 'fahrzeug' && !!soll && !!kopfFahrzeug && vor(soll, kopfFahrzeug);
+        kern = `${L ? 'Spielversion' : 'Game version'} ${sollWert}`;
+        aelterSoll = z.quelle === 'fahrzeug' && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
       } else if (q.art === 'fremd') {
-        erwarteText = soll ? `${L ? 'Stand' : 'as of'} ${datumIn(soll, lang)}` : null;
+        kern = sollWert ? `${name?.[0]}, ${L ? 'Stand' : 'as of'} ${datumIn(sollWert, lang)}` : null;
       } else if (q.art === 'schnappschuss') {
-        erwarteText = soll ? `${L ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(soll, lang)}` : null;
+        kern = sollWert ? `${name?.[0]}, ${L ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(sollWert, lang)}` : null;
         aelterSoll = true;
       } else if (q.art === 'hand') {
-        erwarteText = `${L ? 'von Hand gepflegt, Stand' : 'maintained by hand, as of'} ${soll}`;
-        aelterSoll = !!spielWert && !!soll && vor(soll, spielWert);
+        kern = `${L ? 'von Hand gepflegt, Stand' : 'maintained by hand, as of'} ${sollWert}`;
+        aelterSoll = !!spielWert && !!sollWert && vor(sollWert, spielWert);
+      } else if (STAND_QUELLTEXT[z.quelle]) {
+        kern = STAND_QUELLTEXT[z.quelle][sp];
       }
       if (q.art !== 'quelle') {
-        if (soll == null) { standFehler.push(`${rel}: Zeile „${z.quelle}" ohne Sollwert (${q.datei})`); continue; }
-        if (z.wert !== soll) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt ${JSON.stringify(z.wert)}, ${q.datei} steht auf ${soll}`);
-        if (erwarteText && !z.text.includes(erwarteText)) standFehler.push(`${rel}: Zeile „${z.quelle}" zeigt „${z.text}", Soll enthaelt „${erwarteText}"`);
+        if (sollWert == null) { standFehler.push(`${rel}: Zeile „${z.quelle}" ohne Sollwert (${q.datei})`); continue; }
+        if (z.wert !== sollWert) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt ${JSON.stringify(z.wert)}, ${q.datei} steht auf ${sollWert}`);
       }
-      const aelterIst = z.text.endsWith(L ? 'älterer Stand' : 'older data');
+      const marke = L ? 'älterer Stand' : 'older data';
+      const aelterIst = z.text.endsWith(marke);
       if (aelterIst !== aelterSoll) standFehler.push(`${rel}: Zeile „${z.quelle}" ${aelterIst ? 'traegt „älterer Stand" ohne Tatsache' : 'liegt hinter den Spielwerten der Seite, das Etikett „älterer Stand" fehlt'} — „${z.text}"`);
+      const istKern = (aelterIst ? z.text.slice(0, -marke.length) : z.text).trim().slice(z.was.length).trim();
+      if (kern != null ? istKern !== kern : !istKern) standFehler.push(`${rel}: Zeile „${z.quelle}" zeigt „${z.text}", Soll „${z.was} ${kern ?? '(Bildquelle)'}"`);
     }
     for (const p of g.pflicht) if (!gesehen.has(p)) standFehler.push(`${rel}: Pflichtzeile „${p}" fehlt im Datenstand`);
+    for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
   }
   for (const f of standFehler.slice(0, 40)) fail.push(`[6] ${f}`);
   if (standFehler.length > 40) fail.push(`[6] … und ${standFehler.length - 40} weitere Befunde derselben Art`);

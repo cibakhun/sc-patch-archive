@@ -491,7 +491,7 @@ export const CHECKS = [
     script: 'scripts/verify-patch-angaben.mjs',
     rail: 'A',
     checks:
-      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein, dessen Zeilen nach Quelle, Art, Wert, sichtbarem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt); Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie und je Seitengruppe',
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Missionen, Schiffe, Refinery, Mining) traegt genau einen Datenstand-Baustein am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise, Fundorte, FleetYards-Teile, 3D-Hülle; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt); Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie und je Seitengruppe',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
     // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
     // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
@@ -513,6 +513,21 @@ export const CHECKS = [
     // ISO-Datum in den Text -> "ISO-Datum 2026-10-11 im sichtbaren
     // Datenstand"; Bild-Zeile doppelt -> "doppelt". Danach wiederhergestellt
     // und gruen.
+    // Nachgeschaerft nach dem Review zu #306 (06.11.2026), VORGEFUEHRT ROT
+    // gegen den Live-Bau der Korrektur: Absatz nach dem Baustein -> "nach dem
+    // Datenstand steht noch Inhalt"; Fundorte-Zeile auf einer Liste mit
+    // Loot-Ort gestrichen -> "die Seite zeigt Loot-Fundorte, die Zeile
+    // fundorte fehlt"; Fundorte-Zeile auf einer Seite ohne Loot -> "steht im
+    // Datenstand, die Seite zeigt diese Werte aber nicht"; Wertegruppe
+    // umbenannt -> "heisst Prices:, Soll Purchase prices:"; UEX-Link
+    // umgebogen -> "nennt die Quelle ... Soll UEX Corp -> uexcorp.space";
+    // UEX-Datum auf 12. Oktober -> "zeigt ..., Soll ... October 11, 2026"
+    // (jetzt wortgleich statt enthaelt); Huellen-Zeile auf einer Schiffsseite
+    // mit eigenem Modell gestrichen -> "zeigt die eigene 3D-Hülle, die Zeile
+    // huelle fehlt"; Lackierungen aus der FleetYards-Zeile gestrichen ->
+    // "heisst variants:, Soll Paints, variants:"; Fundorte-Zeile im Item
+    // Finder gestrichen -> "Pflichtzeile fehlt". Danach wiederhergestellt und
+    // gruen.
   },
 
   {

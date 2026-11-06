@@ -2883,7 +2883,8 @@ span.sd__ref{color:var(--muted)}
       lackierungen: paints.length > 0,
       varianten: variants.length > 0,
       leihschiffe: loaners.length > 0,
-      huelle: !!holoUrl,
+      // Dieselbe Rangfolge wie #holodata unten: das eigene Modell vor FleetYards.
+      huelle: holoData ? 'eigen' : holoUrl ? 'fleetyards' : null,
       wiki: zeigtWiki,
       bild: hero?.api ? (d.image?.source ?? 'starcitizen.tools') : null,
     })} />

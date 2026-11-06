@@ -44,6 +44,12 @@ const hi = maxPrice(item);
 const avg = avgPrice(item);
 const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
 const loot = item.obtain.filter((o) => o.kind === 'loot').length;
+const mitPreis = rows.some((o) => o.price != null);
+// Welche Zeile des Datenstands diese Bezugszeile belegt (verify:patch-angaben
+// [6] haelt beides gegeneinander): Shop und Schiffshaendler kommen von UEX,
+// Loot aus der eigenen Recherche; Exklusiv-Zeilen sind Spielwerte.
+const standQ = (k: string) => (k === 'shop' || k === 'vehicle' ? 'uex-items' : k === 'loot' ? 'fundorte' : undefined);
+const schwankend = rows.some((o) => o.kind !== 'exclusive');
 const bp = blueprintForItem(item);
 const related = relatedItems(item, 12);
 const set = item.game?.setId ? armorSetById.get(item.game.setId) ?? null : null;
@@ -131,7 +137,7 @@ const crumbs = [
             </thead>
             <tbody>
               {rows.map((o, idx) => (
-                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined}>
+                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined} data-stand-q={standQ(o.kind)}>
                   <td>{locLabel(o)}</td>
                   <td>{kindLabel(o.kind)}</td>
                   <td class="dp-num">
@@ -145,7 +151,13 @@ const crumbs = [
             </tbody>
           </table>
         </div>
-        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}{avg != null && <> · {t('avgNote')}</>}</p>
+        {/* Preisdatum nur, wo ein Preis steht: ein Item nur mit Exklusiv-Zeilen
+            (Promo, Concierge …) hat keinen, und der Datenstand nennt dann auch
+            keine Kaufpreise. Der Hinweis auf schwankende Preise und Orte nur,
+            wo es Shop- oder Loot-Zeilen gibt. */}
+        {schwankend && (
+          <p class="dp-note">{t('volatileNote')}{mitPreis && <> · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}</p>
+        )}
       </>
     ) : (
       <p class="dp-callout">{t('catalogNote')}</p>
