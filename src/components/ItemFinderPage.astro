@@ -11,8 +11,8 @@ import ItemFinderApp from './ItemFinderApp.astro';
 import DB from '../../assets/universal-items.json';
 import { localeFromPath } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
-import { ITEM_PATCH } from '../lib/items';
-import { patchPageHref } from '../lib/patchPages';
+import { ITEM_KENNUNG } from '../lib/items';
+import { patchLinkFromKennung } from '../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -21,10 +21,11 @@ const sourced = DB.counts.withObtain;
 const snap = DB.generatedAt;
 // Patch-Label aus dem Datenstand, nicht von Hand: hier stand bis 03.11.2026
 // ein festes „Patch 4.9", waehrend der Katalog laengst auf 4.10.2 lief — die
-// Startseite sagte 4.10.2, der Finder 4.9. ITEM_PATCH ist dieselbe Quelle wie
+// Startseite sagte 4.10.2, der Finder 4.9. ITEM_KENNUNG ist dieselbe Quelle wie
 // auf allen Item-Seiten; der Verweis faellt weg, wenn es keine Patchseite gibt.
-const patchHref = patchPageHref(ITEM_PATCH, lang);
-const crumbPatch = patchHref ? [{ label: `Alpha ${ITEM_PATCH}`, href: patchHref }] : [];
+const patchLink = patchLinkFromKennung(ITEM_KENNUNG, lang);
+const patchHref = patchLink.href;
+const crumbPatch = patchHref ? [{ label: patchLink.label, href: patchHref }] : [];
 // Abdeckungsluecke offen benennen: rund die Haelfte des Katalogs hat (noch)
 // keine verifizierte Shop- oder Loot-Quelle. Die Karten sagen das je Item
 // („Kein Fundort bekannt"), die Kennzahlen aber nannten nur die Treffer.
@@ -160,7 +161,7 @@ const unsourcedPct = Math.round((unsourced / total) * 100);
       Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
   <aside class="uf-about">
     <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
-    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{ITEM_PATCH}</b></a> : <b>{ITEM_PATCH}</b>}</span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
     <p class="uf-about__note">{de
       ? <><b>{unsourced.toLocaleString('de-DE')} von {total.toLocaleString('de-DE')} Items ({unsourcedPct} %)</b> haben noch keine verifizierte Shop- oder Loot-Quelle. Ihre Karten sagen das offen, statt einen Fundort zu raten; der Filter „Nur Katalog" listet sie.</>
       : <><b>{unsourced.toLocaleString('en-US')} of {total.toLocaleString('en-US')} items ({unsourcedPct}%)</b> have no verified shop or loot source yet. Their cards say so instead of guessing a location; the "Catalog only" filter lists them.</>}</p>

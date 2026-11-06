@@ -447,7 +447,9 @@ const t = useTranslations(lang);
     </div>
   </main>
 
-  <Attribution />
+  {/* Keine Quellen-Zeile: die Missionsdaten sind eigene Aufbereitung, und die
+      Vorgabe von Attribution (Wiki, RSI, YouTube) stimmte hier nicht. */}
+  <Attribution sources={[]} />
   <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>
 

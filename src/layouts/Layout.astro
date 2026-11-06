@@ -17,6 +17,12 @@ interface Props {
   themeColor?: string;
   /** inject the shared Attribution footer (pages with a bespoke footer pass false) */
   footer?: boolean;
+  /**
+   * Quellen-Zeile des Fusses. Ohne Angabe die Vorgabe von Attribution; `[]`
+   * fuer Seiten, die ihre Quellen schon im Inhalt nennen (Schiffsseiten),
+   * damit nicht zwei Quellen-Zeilen untereinander stehen.
+   */
+  footerSources?: string[];
   /** social preview image, site-relative (e.g. "/assets/trailer-4-4-0.jpg") */
   ogImage?: string;
   /** og:type — patch/topic pages pass "article" */
@@ -63,6 +69,7 @@ const {
   description: descriptionProp,
   themeColor = '#05070d',
   footer = false,
+  footerSources,
   ogImage,
   ogType = 'website',
   noindex = false,
@@ -429,7 +436,7 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
     >VORSCHAU — NICHT LIVE</div>
   )}
   <slot />
-  {footer && <Attribution />}
+  {footer && <Attribution sources={footerSources} />}
   {/* Ausfahrende Panels (Filterspalten, Planer): Verdunkler, Scroll-Sperre,
       Esc, Tippen-daneben, Wischen — einmal fuer die ganze Seite. `defer`,
       weil das Skript nur auf spaetere Klassenwechsel reagiert und nichts
