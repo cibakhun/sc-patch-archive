@@ -57,6 +57,21 @@ function zaehleHtml(dir) {
   return n;
 }
 
+// Seiten eines Bereichs (EN + DE, je nicht rekursiv), deren HTML die Marke
+// traegt. null, wenn einer der Ordner fehlt — kein Artefakt ist keine 0.
+function zaehleMitMarke(ordner, marke) {
+  let n = 0;
+  for (const o of ordner) {
+    const dir = join(DIST, o);
+    if (!existsSync(dir)) return null;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      if (!e.isFile() || !e.name.endsWith('.html')) continue;
+      if (marke.test(readFileSync(join(dir, e.name), 'utf8'))) n++;
+    }
+  }
+  return n;
+}
+
 /* ---------- Die Ableser. Jeder liefert eine Zahl oder null ---------- */
 // null heisst "Quelle nicht vorhanden" — das ist etwas anderes als 0 und
 // wird als FEHLER gemeldet, nicht als Schrumpfung. Ein Ableser, der bei
@@ -135,6 +150,16 @@ const ABLESER = {
   seitenThemen: () => zaehleHtml(join(DIST, 'topics')),
   sitemaps: () =>
     existsSync(DIST) ? readdirSync(DIST).filter((n) => /^sitemap.*\.xml$/.test(n)).length : null,
+
+  // --- Querverweise zwischen den Detailseiten (src/lib/itemLinks.ts) ---
+  // Die Verweise entstehen aus einem Namens-Join (Name + Groesse) zwischen
+  // Serienbelegung, Schiffsdaten und Item-Katalog. Bricht er bei einem
+  // Datenlauf, bauen die Seiten weiter und sehen vollstaendig aus — nur die
+  // Wege zwischen ihnen sind weg. Gezaehlt wird am gebauten Stand, EN + DE.
+  itemSeitenMitSerie: () => zaehleMitMarke(['items', 'de/items'], /<section class="dp-sec" id="serie"/),
+  schiffsSeitenMitTeileLinks: () => zaehleMitMarke(['schiffe', 'de/schiffe'], /href="(?:\/de)?\/items\/[^"]+\.html"/),
+  missionsSeitenMitSuchLinks: () =>
+    zaehleMitMarke(['missionen', 'de/missionen'], /href="(?:\/de)?\/missionen\.html\?(?:type|giver|loc|guild)=/),
 };
 
 /* ---------- Lesen ---------- */

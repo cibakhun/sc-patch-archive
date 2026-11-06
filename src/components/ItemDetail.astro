@@ -5,7 +5,7 @@
 // Rezept und Nachbarn.
 import DataShell from './DataShell.astro';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, itemLabel, obtainLabel, categoryLabel } from '../i18n/itemText';
+import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/itemText';
 import {
   ITEM_PATCH, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
@@ -17,6 +17,7 @@ import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
 import { patchPageHref } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
+import { stockShips, inFracturingCalc, wikeloTrades } from '../lib/itemLinks';
 
 interface Props { item: Item; lang: Locale }
 const { item, lang } = Astro.props;
@@ -45,6 +46,22 @@ const bp = blueprintForItem(item);
 const related = relatedItems(item, 12);
 const set = item.game?.setId ? armorSetById.get(item.game.setId) ?? null : null;
 const setSlots = set ? setItemsBySlot(set.id) : [];
+// Serienbelegung: auf welchen Schiffen das Teil ab Werk sitzt. Die ersten
+// STOCK_SHOWN stehen offen, der Rest im eingeklappten Block — als echte
+// Links im HTML, ohne Skript (die Huelle traegt bewusst keins).
+const STOCK_SHOWN = 12;
+const stock = stockShips(item);
+const stockLead = stock.length === 1
+  ? (stock[0].spaceship ? t('stockOneShip') : t('stockOneVehicle'))
+  : fill(stock.every((s) => s.spaceship) ? t('stockShips') : t('stockMixed'), { n: num(stock.length, lang) });
+// Werkzeuge, die genau dieses Item kennen — nichts Generisches: der
+// Bruchrechner nur fuer Teile, die er zur Auswahl hat, Wikelo nur, wenn ein
+// Tauschgeschaeft das Item nennt.
+const fracturing = inFracturingCalc(item);
+const wikelo = wikeloTrades(item);
+const wikeloHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(item.name)}`;
+const plural = (n: number, one: Parameters<typeof t>[0], many: Parameters<typeof t>[0]) =>
+  n === 1 ? t(one) : fill(t(many), { n: num(n, lang) });
 
 const root = rootCategory(item.category);
 const catSlug = categorySlug(item.category);
@@ -170,6 +187,30 @@ const crumbs = [
     </section>
   )}
 
+  {/* -- Serienbelegung: von der Item-Seite zu den Schiffen, die das Teil
+         ab Werk tragen (src/lib/itemLinks.ts, Zuordnung ueber Name + Groesse). -- */}
+  {stock.length > 0 && (
+    <section class="dp-sec" id="serie">
+      <h2>{t('sectionStock')}</h2>
+      <p class="dp-lead-s">{stockLead}</p>
+      <ul class="dp-chips dp-chips--links">
+        {stock.slice(0, STOCK_SHOWN).map((s) => (
+          <li><a class="dp-chip" href={href(`/schiffe/${s.id}.html`, lang)}>{s.name}</a></li>
+        ))}
+      </ul>
+      {stock.length > STOCK_SHOWN && (
+        <details class="dp-more">
+          <summary>{fill(t('stockMore'), { n: num(stock.length - STOCK_SHOWN, lang) })}</summary>
+          <ul class="dp-chips dp-chips--links">
+            {stock.slice(STOCK_SHOWN).map((s) => (
+              <li><a class="dp-chip" href={href(`/schiffe/${s.id}.html`, lang)}>{s.name}</a></li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  )}
+
   {/* -- Set-Zugehoerigkeit: beantwortet "was fehlt mir noch" und haelt den
          Crawler auf den Geschwisterteilen statt nur in der Kategorie. -- */}
   {set && (
@@ -224,6 +265,22 @@ const crumbs = [
       </ul>
       <div class="dp-actions">
         <a class="dp-btn" href={href(blueprintPath(bp), lang)}>{t('breadcrumbCrafting')}: {bp.name} →</a>
+      </div>
+    </section>
+  )}
+
+  {/* -- Werkzeuge, die genau dieses Item kennen (src/lib/itemLinks.ts) -- */}
+  {(fracturing || wikelo) && (
+    <section class="dp-sec" id="werkzeuge">
+      <h2>{t('sectionTools')}</h2>
+      <div class="dp-actions dp-actions--tight">
+        {fracturing && <a class="dp-btn" href={href('/fracturing.html', lang)}>{t('toolFracturing')} →</a>}
+        {wikelo && wikelo.material > 0 && (
+          <a class="dp-btn" href={wikeloHref}>{plural(wikelo.material, 'toolWikeloMaterialOne', 'toolWikeloMaterial')} →</a>
+        )}
+        {wikelo && wikelo.reward > 0 && (
+          <a class="dp-btn" href={wikeloHref}>{plural(wikelo.reward, 'toolWikeloRewardOne', 'toolWikeloReward')} →</a>
+        )}
       </div>
     </section>
   )}

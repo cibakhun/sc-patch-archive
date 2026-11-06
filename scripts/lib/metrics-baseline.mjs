@@ -248,4 +248,32 @@ export const BASELINE = [
     anlass:
       'Messlauf 09.08.2026: sitemap.xml als Index plus fuenf Teile (pages, items, crafting, missions, ships). Exakt, weil eine verschwundene Teil-Sitemap ganze Seitenbereiche aus dem Index nimmt, ohne dass die Seite selbst etwas merkt.',
   },
+
+  // ---------------- Querverweise zwischen Detailseiten ----------------
+  // Angelegt 06.11.2026 mit src/lib/itemLinks.ts (Thread "Detailseiten mit
+  // Werkzeugen vernetzen"). Gezaehlt im gebauten Stand, EN + DE zusammen.
+  {
+    id: 'itemSeitenMitSerie',
+    wert: 534,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026 (Stand 8e2b6499 + itemLinks): 267 Item-Seiten je Sprache nennen die Schiffe, auf denen das Teil ab Werk sitzt. Die Zuordnung laeuft ueber Name + Groesse zwischen src/data/ship-loadouts.json und dem Item-Katalog (keine gemeinsame Kennung). Bricht dieser Join bei einem Datenlauf, verschwindet der Abschnitt still von allen Seiten. Toleranz 3 %: Serienbelegungen wechseln mit dem Patch, ein gebrochener Join faellt dagegen auf nahe 0.',
+  },
+  {
+    id: 'schiffsSeitenMitTeileLinks',
+    wert: 460,
+    regel: 'min',
+    toleranzProzent: 2,
+    anlass:
+      'Messlauf 06.11.2026: 230 von 231 Schiffsseiten je Sprache verlinken mindestens eine Waffe oder ein Bauteil auf sein Item-Datenblatt (Waffen 598 von 599, Bauteile 1.072 von 1.082 eindeutig zugeordnet). Join ueber Name + Groesse zwischen src/data/vehicles.json und dem Item-Katalog; faellt er, stehen die Namen wieder nur als Text da.',
+  },
+  {
+    id: 'missionsSeitenMitSuchLinks',
+    wert: 2774,
+    regel: 'min',
+    toleranzProzent: 3,
+    anlass:
+      'Messlauf 06.11.2026: alle 1.387 Missionsseiten je Sprache fuehren ueber Typ, Auftraggeber, Region oder Gilde in die vorgefilterte Missionssuche (/missionen.html?type=… usw.). Link entsteht nur, wenn die Kennung eine Option der Suche ist. Toleranz 3 %: der Missionsbestand schwankt je Patch.',
+  },
 ];
