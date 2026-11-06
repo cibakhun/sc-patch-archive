@@ -37,6 +37,9 @@
 //   5  Selbstauskunft und Klinken je Familie (Grundsatz 2 und 5).
 //   6  Datenstand-Baustein am Seitenende: jede Zeile gegen ihre Datendatei
 //      (seit 06.11.2026, Erlaeuterung beim Block).
+//   7  Patch-Dossier: die Schiffstabelle zeigt die Werte der eigenen
+//      Schiffsseite, die Quellenzeile darunter nennt deren Stand (seit
+//      06.11.2026, Erlaeuterung beim Block).
 //
 // Eine Stand-Angabe ist eine Versionsnummer hinter einem Wort, das den
 // Spielstand meint: "Star Citizen", "Patch", "Spielversion", "Game version".
@@ -621,6 +624,152 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     if (!q.name || !q.wert) continue;
     const tage = Math.round((Date.parse(bezug) - Date.parse(q.wert)) / 864e5);
     console.log(`    Stand ${q.name.padEnd(18)} ${q.wert}, ${tage} Tage vor ${gebaut ? 'dem Bau' : 'heute'} (nur zur Kenntnis)`);
+  }
+}
+
+/* ---------- [7] Patch-Dossier: Schiffswerte wie auf der Schiffsseite ---------- */
+//
+// Seit 06.11.2026 (C1b, Freigabe Krisz „Wie empfohlen"): die Schiffstabelle im
+// Dossier der Patch-Seiten zeigt Crew, Fracht und Pledge-Preis aus dem eigenen
+// Katalog (src/data/vehicles.json), formatiert wie auf der Schiffsseite. Davor
+// kamen sie aus einem FleetYards-Schnappschuss und widersprachen der eigenen
+// Schiffsseite in 27 von 88 Werten (Hammerhead 40 gegen 64 SCU, MOTH 32 gegen
+// 224 SCU, Idris-M Mindestcrew 8 gegen 28).
+//
+// FEHLER (Handlung immer richtig: Wert aus vehicles.json ableiten, neu bauen):
+//   · eine Zeile mit eigener Schiffsseite zeigt einen anderen Wert als der
+//     Datensatz dieser Seite (Crew „min–max", Fracht in Seitensprache, Pledge
+//     in Dollar),
+//   · eine Zeile ohne eigene Schiffsseite zeigt einen Wert (eine Tabelle, eine
+//     Quelle — fuer sie bleibt nur der Link),
+//   · die Quellenzeile unter der Tabelle fehlt, obwohl die Tabelle eigene
+//     Werte zeigt, oder steht ohne sie da; sie nennt eine andere Spielversion
+//     als die Stempel der gezeigten Datensaetze, die Wiki-Zeile fehlt, obwohl
+//     ein Pledge-Preis oder eine Hoechstcrew dasteht (oder umgekehrt), ein
+//     Wortlaut, Datum oder Etikett weicht ab, oder FleetYards steht als
+//     Quelle der Werte da.
+const DOSSIER_SEITE = /^(?:de\/)?patches\/[^/]+\.html$/;
+// Klinken, Messlauf 06.11.2026 im Live-Bau der Aenderung: 34 Patch-Seiten
+// mit Schiffstabelle (17 je Sprache), 64 Zeilen, davon 56 mit eigener
+// Schiffsseite. Nur nach OBEN; nach unten nur per Commit mit Ursache.
+const DOSSIER_KLINKEN = { seiten: 34, zeilen: 64, eigene: 56 };
+const DOSSIER_TEXT = {
+  vorsatz: ['Schiffswerte wie auf den Schiffsseiten.', 'Ship values as on the ship pages.'],
+  fahrzeug: ['Fracht, Mindestcrew', 'Cargo, minimum crew'],
+  wiki: ['Pledge-Preis, Höchstcrew', 'Pledge price, maximum crew'],
+};
+console.log('\n[7] Patch-Dossier: Schiffswerte gegen den eigenen Katalog');
+if (existsSync(DIST)) {
+  const dz = { seiten: 0, zeilen: 0, eigene: 0 };
+  const dFehler = [];
+  try {
+    const vehicles = rd('src/data/vehicles.json');
+    const kopf = fassungAus(vehicles.gameVersion);
+    const byId = new Map(vehicles.vehicles.map((v) => [v.id, v]));
+    const ext = rd('src/data/vehicle-external.json');
+    const wikiDatum = /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(ext.source ?? '')?.[1] ?? null;
+    if (!wikiDatum) dFehler.push('src/data/vehicle-external.json nennt kein fetchedAt — die Wiki-Zeile liefe gegen nichts');
+    const nackt = (h) => {
+      let x = h;
+      let vorher;
+      do { vorher = x; x = x.replace(/<[^>]+>/g, ''); } while (x !== vorher);
+      return entities(x).replace(/\s+/g, ' ').trim();
+    };
+    const crew = (v) => (v.crewMin == null && v.crewMax == null ? '—'
+      : v.crewMin != null && v.crewMax != null && v.crewMax !== v.crewMin ? `${v.crewMin}–${v.crewMax}` : `${v.crewMin ?? v.crewMax}`);
+    for (const file of htmlDateien(DIST)) {
+      const rel = relative(DIST, file).split(sep).join('/');
+      if (!DOSSIER_SEITE.test(rel)) continue;
+      const html = readFileSync(file, 'utf8');
+      const tab = /<table class="do__table"[^>]*>([\s\S]*?)<\/table>/.exec(html);
+      if (!tab) continue;
+      dz.seiten++;
+      const lang = rel.startsWith('de/') ? 'de' : 'en';
+      const sp = lang === 'de' ? 0 : 1;
+      const loc = lang === 'de' ? 'de-DE' : 'en-US';
+      const body = /<tbody[^>]*>([\s\S]*?)<\/tbody>/.exec(tab[1])?.[1] ?? '';
+      const gezeigt = [];
+      let wikiGezeigt = false;
+      for (const tr of body.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/g)) {
+        dz.zeilen++;
+        const td = [...tr[1].matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/g)].map((m) => m[1]);
+        if (td.length !== 6) { dFehler.push(`${rel}: Tabellenzeile mit ${td.length} Zellen, Soll 6`); continue; }
+        const name = nackt(td[0]).replace(/[↗*]/g, '').trim();
+        const ist = [nackt(td[2]), nackt(td[3]), nackt(td[4])];
+        const eigen = /<a class="do__shiplink" href="(?:\/de)?\/schiffe\/([^"/]+)\.html"/.exec(td[0]);
+        if (!eigen) {
+          if (ist.some((x) => x !== '—')) dFehler.push(`${rel}: ${name} hat keine eigene Schiffsseite, zeigt aber Werte (${ist.join(' / ')}) — Soll „—", nur der Link`);
+          continue;
+        }
+        const v = byId.get(eigen[1]);
+        if (!v) { dFehler.push(`${rel}: ${name} verlinkt /schiffe/${eigen[1]}.html, den vehicles.json nicht kennt`); continue; }
+        dz.eigene++;
+        gezeigt.push(v);
+        if (v.msrpUSD != null || v.crewMax != null) wikiGezeigt = true;
+        const soll = [
+          crew(v),
+          v.cargoSCU != null ? `${v.cargoSCU.toLocaleString(loc)} SCU` : '—',
+          v.msrpUSD != null ? `$${v.msrpUSD.toLocaleString('en-US')}` : '—',
+        ];
+        ['Crew', 'Fracht', 'Pledge'].forEach((was, i) => {
+          if (ist[i] !== soll[i]) dFehler.push(`${rel}: ${name} ${was} „${ist[i]}", der Datensatz ${v.id} (wie die Schiffsseite) sagt „${soll[i]}"`);
+        });
+      }
+      // Quellenzeile unter der Tabelle
+      const nachTab = html.slice(tab.index + tab[0].length, tab.index + tab[0].length + 4000);
+      const src = /^\s*(?:<\/div>\s*)?<p class="do__specsrc"[^>]*>([\s\S]*?)<\/p>/.exec(nachTab);
+      if (!gezeigt.length) {
+        if (src) dFehler.push(`${rel}: Quellenzeile unter einer Tabelle ohne eigene Werte`);
+        continue;
+      }
+      if (!src) { dFehler.push(`${rel}: die Tabelle zeigt eigene Werte, die Quellenzeile darunter fehlt`); continue; }
+      const text = nackt(src[1]);
+      if (/fleetyards/i.test(text)) dFehler.push(`${rel}: Quellenzeile nennt FleetYards — die Werte kommen aus dem eigenen Katalog`);
+      if (!text.startsWith(DOSSIER_TEXT.vorsatz[sp])) dFehler.push(`${rel}: Quellenzeile beginnt „${text.slice(0, 40)}", Soll „${DOSSIER_TEXT.vorsatz[sp]}"`);
+      const iso = /\b\d{4}-\d{2}-\d{2}\b/.exec(text);
+      if (iso) dFehler.push(`${rel}: ISO-Datum ${iso[0]} in der Quellenzeile — Datum in Seitensprache setzen`);
+      // Je Angabe ein <span data-stand…>; ihr Text reicht bis zur naechsten
+      // Angabe (Trenner „·" faellt weg) bzw. bis zum Ende der Zeile.
+      const starts = [...src[1].matchAll(/<span\b([^>]*\bdata-stand="[^"]*"[^>]*)>/g)];
+      const teile = starts.map((m, i) => {
+        const stueck = src[1].slice(m.index + m[0].length, i + 1 < starts.length ? starts[i + 1].index : undefined);
+        return {
+          quelle: /\bdata-stand="([^"]*)"/.exec(m[1])?.[1],
+          wert: /\bdata-stand-wert="([^"]*)"/.exec(m[1])?.[1] ?? null,
+          link: /<a\b[^>]*\shref="([^"]*)"/.exec(stueck)?.[1] ?? null,
+          text: nackt(stueck).replace(/\s*·\s*$/, ''),
+        };
+      });
+      const fassungen = [...new Set(gezeigt.map((v) => fassungAus(v.gameVersion)))];
+      const marke = sp === 0 ? 'älterer Stand' : 'older data';
+      const sollTeile = fassungen.map((f) => ({
+        quelle: 'fahrzeug', wert: f, link: null,
+        text: `${DOSSIER_TEXT.fahrzeug[sp]}: ${sp === 0 ? 'Spielversion' : 'Game version'} ${f}${kopf && vor(f, kopf) ? ` ${marke}` : ''}`,
+      }));
+      if (wikiGezeigt && wikiDatum) sollTeile.push({
+        quelle: 'wiki', wert: wikiDatum, link: 'https://starcitizen.tools',
+        text: `${DOSSIER_TEXT.wiki[sp]}: starcitizen.tools, ${sp === 0 ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(wikiDatum, lang)} ${marke}`,
+      });
+      const key = (x) => `${x.quelle}|${x.wert}`;
+      const istMap = new Map(teile.map((x) => [key(x), x]));
+      if (teile.length !== istMap.size) dFehler.push(`${rel}: Quellenzeile nennt eine Angabe doppelt`);
+      for (const sx of sollTeile) {
+        const ix = istMap.get(key(sx));
+        if (!ix) { dFehler.push(`${rel}: Quellenzeile ohne „${sx.text}" (${sx.quelle} ${sx.wert})`); continue; }
+        if (ix.text !== sx.text) dFehler.push(`${rel}: Quellenzeile zeigt „${ix.text}", Soll „${sx.text}"`);
+        if (ix.link !== sx.link) dFehler.push(`${rel}: Quellenzeile ${sx.quelle} verlinkt ${JSON.stringify(ix.link)}, Soll ${JSON.stringify(sx.link)}`);
+        istMap.delete(key(sx));
+      }
+      for (const ix of istMap.values()) dFehler.push(`${rel}: Quellenzeile nennt „${ix.text}" (${ix.quelle} ${ix.wert}), die Tabelle zeigt dazu keine Werte`);
+    }
+  } catch (e) {
+    dFehler.push(`Datendateien nicht lesbar — ${e.message}`);
+  }
+  for (const f of dFehler.slice(0, 30)) fail.push(`[7] ${f}`);
+  if (dFehler.length > 30) fail.push(`[7] … und ${dFehler.length - 30} weitere Befunde derselben Art`);
+  console.log(`    Patch-Seiten mit Schiffstabelle ${dz.seiten} (Klinke ${DOSSIER_KLINKEN.seiten})   Zeilen ${dz.zeilen} (Klinke ${DOSSIER_KLINKEN.zeilen})   davon mit eigener Schiffsseite ${dz.eigene} (Klinke ${DOSSIER_KLINKEN.eigene})`);
+  for (const [k, n] of Object.entries(DOSSIER_KLINKEN)) {
+    if (dz[k] < n) fail.push(`[7] Patch-Dossier: nur ${dz[k]} ${k === 'seiten' ? 'Seiten' : k === 'zeilen' ? 'Zeilen' : 'Zeilen mit eigener Schiffsseite'} geprueft, Klinke ${n} — Zuordnung oder Build kaputt; Ursache klaeren, nicht die Klinke senken`);
   }
 }
 
