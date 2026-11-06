@@ -192,11 +192,11 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
           ><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg
         >
         <label class="sr" for="q">{t('arch.filter.label')}</label>
-        <input id="q" type="search" autocomplete="off" placeholder={t('arch.filter.placeholder')} />
+        <input id="q" type="search" data-ev-filter="suche" autocomplete="off" placeholder={t('arch.filter.placeholder')} />
         <button id="qx" class="cbar__x" type="button" hidden aria-label={t('arch.filter.clear')}>×</button>
       </div>
 
-      <div class="cbar__chips" role="group" aria-label={t('arch.filter.label')} data-help={h('archive.ctl.chips')}>
+      <div class="cbar__chips" data-ev-filter="typ" role="group" aria-label={t('arch.filter.label')} data-help={h('archive.ctl.chips')}>
         <button class="chipbtn" type="button" data-type="all" aria-pressed="true">{t('arch.filter.all')}</button>
         <button class="chipbtn" type="button" data-type="major" aria-pressed="false">{t('arch.filter.major')}</button>
         <button class="chipbtn" type="button" data-type="point" aria-pressed="false">{t('arch.filter.point')}</button>

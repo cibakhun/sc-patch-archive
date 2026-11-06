@@ -633,11 +633,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div class="cdb-bar">
     <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
     <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
-      <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
+      <input type="search" id="cdb-search" data-ev-filter="suche" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
     <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
       <span class="cdb-sr">{S.sort}</span>
-      <select id="cdb-sort">
+      <select id="cdb-sort" data-ev-filter="sortierung">
         <option value="name">{S.sortName}</option>
         <option value="name-desc">{S.sortNameDesc}</option>
         <option value="time-asc">{S.sortTimeAsc}</option>
@@ -673,7 +673,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')} data-ev-filter="kategorie">
         <h4>{S.category}</h4>
         {catList.map((c) => (
           <details class="cdb-cat-details">
@@ -695,7 +695,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')} data-ev-filter="ressource">
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
           <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder={S.resSearch} aria-label={S.resSearch} autocomplete="off" />
@@ -710,7 +710,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         </div>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')} data-ev-filter="groesse">
         <h4>{it('specSize')}</h4>
         {sizeList.map((sz) => (
           <label class="cdb-check">
@@ -720,7 +720,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')} data-ev-filter="qualitaet">
         <h4>{it('specGrade')}</h4>
         {gradeList.map((gr) => (
           <label class="cdb-check">
@@ -730,7 +730,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')} data-ev-filter="merkmal">
         <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
         <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
       </div>
@@ -805,7 +805,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div id="cdb-tab-dismantle-content" hidden>
     <div class="calc-layout">
       <!-- Inputs sidebar -->
-      <aside class="calc-sidebar">
+      <aside class="calc-sidebar" data-ev-rechnung>
         <h4>{S.calcSelectMats}</h4>
         
         <!-- Material search & list -->
@@ -852,7 +852,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <p class="calc-method" style="margin:-.6rem 0 1rem;font-size:var(--fs-6);color:var(--muted,#9ba2ae);line-height:1.4;">{S.calcMethod}</p>
 
         <div class="calc-search-row">
-          <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
+          <input type="search" id="calc-item-search" data-ev-filter="suche" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
         </div>
 
         {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,

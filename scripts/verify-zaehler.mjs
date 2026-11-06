@@ -67,6 +67,8 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
+import { parseHTML } from 'linkedom';
+import { EREIGNISSE, WERKZEUG_SEITEN, EINMAL, FILTER } from './lib/ereignisse.mjs';
 
 const DIST = 'dist';
 
@@ -80,6 +82,13 @@ const MIN_LAYOUT_SEITEN = 17000;
 const MIN_ZAEHLER_SEITEN = 17000;
 const MIN_HAKEN_FASSUNGEN = 1;
 const MIN_ZAEHLER_KOPIEN = 1;
+// [7] Messereignisse, Stand 06.11.2026 (Build der Ereignis-Aenderung):
+// 17.741 Seiten laden assets/ereignisse.js (= alle mit Zaehler), 104 Marken
+// in 10 Werkzeugen (88 Filter, 14 Rechner, 2 Kopieren; Evolution hat keine
+// Bedienelemente), 21 Laeufe (Liste gegen SOLL + 20 Proben).
+const MIN_EREIGNIS_SEITEN = 17000;
+const MIN_EREIGNIS_MARKEN = 104;
+const MIN_EREIGNIS_PROBEN = 21;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
 // traegt die Seite hier ein; faellt der Anlass weg, reisst [2]. Auch
@@ -151,6 +160,16 @@ const kontoFremdeSkripte = [];
 const tagMaengel = [];
 
 const INLINE_SKRIPT = /<script\b(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g;
+const EREIGNIS_TAG = /<script\b[^>]*\ssrc="(\/assets\/ereignisse\.js[^"]*)"/;
+const EREIGNIS_MARKE = /\sdata-ev-(filter|rechnung|kopieren)(?:="([^"]*)")?/g;
+const EREIGNIS_AUFRUF = /vbEreignis\(\s*['"]([^'"]*)['"]/g;
+let ereignisSeiten = 0;
+const zaehlerOhneEreignis = [];
+const ereignisOhneZaehler = [];
+const ereignisVorZaehler = [];
+const ereignisSkripte = new Map(); // src ohne Abfrage -> erste Seite
+const ereignisMarken = [];
+const ereignisAufrufe = [];
 
 for (const s of seiten) {
   const html = readFileSync(join(DIST, s), 'utf8');
@@ -164,6 +183,16 @@ for (const s of seiten) {
   if (tags.length && KONTO_PFAD.test(s)) kontoMitZaehler.push(s);
   if (KONTO_PFAD.test(s))
     for (const [, src] of html.matchAll(FREMDES_SKRIPT)) kontoFremdeSkripte.push(`${s}: ${src}`);
+
+  // [7] Messereignisse: Skript-Tag, Markierungen, Aufrufe
+  const evTag = EREIGNIS_TAG.exec(html);
+  if (evTag) ereignisSeiten++;
+  if (tags.length && !evTag) zaehlerOhneEreignis.push(s);
+  if (evTag && !tags.length) ereignisOhneZaehler.push(s);
+  if (evTag && tags.length && html.indexOf(tags[0]) > evTag.index) ereignisVorZaehler.push(s);
+  if (evTag && !ereignisSkripte.has(evTag[1].split('?')[0])) ereignisSkripte.set(evTag[1].split('?')[0], s);
+  for (const m of html.matchAll(EREIGNIS_MARKE)) ereignisMarken.push({ seite: s, art: m[1], wert: m[2] ?? null, gezaehlt: tags.length > 0 });
+  for (const m of html.matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: s, name: m[1] });
 
   for (const tag of tags) {
     const maengel = [];
@@ -370,6 +399,189 @@ for (const [src, { seite, tag, haken }] of zaehlerKopien) {
 }
 console.log(`    Zaehler-Kopien geprueft: ${kopienGeprueft}   je 3 Laeufe`);
 
+/* ---- [7] Messereignisse: Liste, Markierungen, Lauf in node:vm ---- */
+console.log('\n[7] Messereignisse: nur die freigegebene Liste, nur feste Werte (scripts/lib/ereignisse.mjs)');
+// 7.1 Jede gezaehlte Seite laedt assets/ereignisse.js, nach dem Zaehler; keine andere.
+console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten}   Zaehler ohne Ereignis-Skript — Soll: 0   Ist: ${zaehlerOhneEreignis.length}   Ereignis-Skript ohne Zaehler — Soll: 0   Ist: ${ereignisOhneZaehler.length}   vor dem Zaehler — Soll: 0   Ist: ${ereignisVorZaehler.length}`);
+for (const s of zaehlerOhneEreignis.slice(0, 10)) fail(`${s}: laedt den Zaehler, aber nicht assets/ereignisse.js — Layout.astro bindet beide gemeinsam ein`);
+for (const s of ereignisOhneZaehler.slice(0, 10)) fail(`${s}: laedt assets/ereignisse.js ohne Zaehler — auf Seiten ohne Zaehler (Konto, Anmeldung) laeuft auch keine Messung`);
+for (const s of ereignisVorZaehler.slice(0, 10)) fail(`${s}: assets/ereignisse.js steht vor dem Zaehler-Tag — beide laden mit defer in Reihenfolge, window.umami muss zuerst da sein`);
+
+// 7.2 Markierungen: nur freigegebene Filternamen, nur auf Werkzeugseiten, jeder Name in Gebrauch.
+const seiteZuWerkzeug = (s) => WERKZEUG_SEITEN['/' + s.replace(/^de\//, '')] ?? null;
+const filterSet = new Set(FILTER);
+const benutzteFilter = new Set();
+const werkzeugeMitMarke = new Set();
+let markenFehler = 0;
+for (const m of ereignisMarken) {
+  const wz = seiteZuWerkzeug(m.seite);
+  if (!m.gezaehlt) continue; // Konto-Seiten laden kein Ereignis-Skript: die Marke ist dort stumm, und das ist gewollt
+  if (!wz) { markenFehler++; if (markenFehler <= 10) fail(`${m.seite}: data-ev-${m.art} auf einer Seite, die kein Werkzeug ist — assets/ereignisse.js beachtet Marken nur auf den Seiten aus WERKZEUG_SEITEN, die Marke waere tot`); continue; }
+  werkzeugeMitMarke.add(wz);
+  if (m.art === 'filter') {
+    if (!m.wert || !filterSet.has(m.wert)) { markenFehler++; if (markenFehler <= 10) fail(`${m.seite}: data-ev-filter="${m.wert ?? ''}" steht nicht in FILTER (scripts/lib/ereignisse.mjs) — das Ereignis wuerde verworfen; Namen nur mit Freigabe ergaenzen`); continue; }
+    benutzteFilter.add(m.wert);
+  } else if (m.wert !== null && m.wert !== '') {
+    markenFehler++; if (markenFehler <= 10) fail(`${m.seite}: data-ev-${m.art}="${m.wert}" — diese Marke traegt keinen Wert`);
+  }
+}
+const ungenutzt = FILTER.filter((f) => !benutzteFilter.has(f));
+for (const f of ungenutzt) fail(`FILTER "${f}" steht in der Liste, aber an keinem Bedienelement — Eintrag ohne Anlass entfernen (Zombie)`);
+console.log(`    Marken: ${ereignisMarken.length} (${ereignisMarken.filter((m) => m.art === 'filter').length} Filter, ${ereignisMarken.filter((m) => m.art === 'rechnung').length} Rechnung, ${ereignisMarken.filter((m) => m.art === 'kopieren').length} Kopieren)   Werkzeuge mit Marke: ${werkzeugeMitMarke.size} von ${Object.keys(WERKZEUG_SEITEN).length}   Filternamen in Gebrauch: ${benutzteFilter.size} von ${FILTER.length}   fehlerhaft — Soll: 0   Ist: ${markenFehler}`);
+// Jede Werkzeugseite gibt es (beide Sprachen) und sie zaehlt.
+for (const p of Object.keys(WERKZEUG_SEITEN)) {
+  for (const s of [p.slice(1), `de${p}`]) {
+    const datei = join(DIST, s);
+    if (!existsSync(datei)) { fail(`WERKZEUG_SEITEN nennt ${p}, aber ${s} fehlt in dist/ — Eintrag ohne Anlass (Zombie) oder verlorene Seite`); continue; }
+    if (!EREIGNIS_TAG.test(readFileSync(datei, 'utf8'))) fail(`${s}: Werkzeugseite ohne assets/ereignisse.js`);
+  }
+}
+
+// 7.3 Jeder Aufruf von vbEreignis im gebauten Stand nennt ein freigegebenes Ereignis.
+const assetsDir = join(DIST, 'assets');
+if (existsSync(assetsDir))
+  for (const f of readdirSync(assetsDir).filter((f) => f.endsWith('.js') && f !== 'ereignisse.js'))
+    for (const m of readFileSync(join(assetsDir, f), 'utf8').matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: `assets/${f}`, name: m[1] });
+const fremdeAufrufe = ereignisAufrufe.filter((a) => !Object.prototype.hasOwnProperty.call(EREIGNISSE, a.name));
+const aufrufNamen = new Set(ereignisAufrufe.map((a) => a.name));
+console.log(`    Aufrufe von vbEreignis: ${ereignisAufrufe.length} an ${new Set(ereignisAufrufe.map((a) => a.wo)).size} Stellen (${[...aufrufNamen].sort().join(', ') || '—'})   nicht freigegeben — Soll: 0   Ist: ${fremdeAufrufe.length}`);
+for (const a of fremdeAufrufe.slice(0, 10)) fail(`${a.wo}: vbEreignis('${a.name}') — kein freigegebenes Ereignis`);
+for (const n of ['suche-offen', 'suche-treffer']) if (!aufrufNamen.has(n)) fail(`kein Aufruf von vbEreignis('${n}') im gebauten Stand — die Suche meldet ihr Ereignis nicht mehr`);
+
+// 7.4 Die ausgelieferte Datei, ausgefuehrt mit dem gepinnten Zaehler und dem Haken der Seite.
+let probenGelaufen = 0;
+const [zSrc, zKopie] = [...zaehlerKopien][0] ?? [];
+const [eSrc] = [...ereignisSkripte][0] ?? [];
+if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
+  fail(`[7] ohne Lauf: ${!zSrc ? 'keine Zaehler-Kopie' : `assets/ereignisse.js fehlt in dist/ (${eSrc ?? 'kein Tag'})`}`);
+} else {
+  const zText = readFileSync(join(DIST, zSrc), 'utf8').replace(/\r\n?/g, '\n');
+  const zTeil = zText.indexOf(KOPF_ENDE);
+  const zRumpf = zTeil < 0 ? zText : zText.slice(zTeil + KOPF_ENDE.length);
+  const eQuelle = readFileSync(join(DIST, eSrc), 'utf8');
+  const zAttrs = new Map([...zKopie.tag.matchAll(/\s([a-z][a-z0-9-]*)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+  const STANDARD = new Set(['website', 'screen', 'language', 'title', 'hostname', 'url', 'referrer', 'tag', 'id', 'name', 'data']);
+
+  async function seite({ pfad, html = '', cookie = '', host = 'verse-base.com' }) {
+    const u = new URL(`https://${host}${pfad}?code=geheim#access_token=x`);
+    const { window: lw, document: doc } = parseHTML(`<!doctype html><html><head><title>Gladius Probe-Item</title></head><body>${html}</body></html>`);
+    const posts = [];
+    const ctx = {
+      navigator: { webdriver: false, userAgent: UA, language: 'de-DE' },
+      screen: { width: 1920, height: 1080 },
+      location: { hostname: u.hostname, href: u.href, origin: u.origin, pathname: u.pathname },
+      history: { pushState() {}, replaceState() {} },
+      localStorage: { getItem: () => null },
+      URL, setTimeout, clearTimeout, Promise, Object, JSON,
+    };
+    Object.defineProperty(doc, 'cookie', { value: cookie, configurable: true });
+    Object.defineProperty(doc, 'referrer', { value: 'https://example.org/suche?q=gladius', configurable: true });
+    // 'loading': kein automatischer Seitenaufruf, nur die Ereignisse zaehlen
+    Object.defineProperty(doc, 'readyState', { value: 'loading', configurable: true });
+    Object.defineProperty(doc, 'currentScript', { value: { src: `${u.origin}${zSrc}`, getAttribute: (n) => zAttrs.get(n) ?? null }, configurable: true });
+    ctx.document = doc;
+    ctx.window = ctx;
+    ctx.top = ctx;
+    ctx.fetch = async (ziel, opts) => { posts.push({ ziel: String(ziel), opts }); return { json: async () => ({}) }; };
+    vm.createContext(ctx);
+    vm.runInContext(zKopie.haken, ctx, { timeout: 1000 });
+    vm.runInContext(zRumpf, ctx, { timeout: 1000 });
+    Object.defineProperty(doc, 'currentScript', { value: null, configurable: true });
+    vm.runInContext(eQuelle, ctx, { timeout: 1000 });
+    const ereignis = (typ, el, echt = true) => {
+      const ev = new lw.Event(typ, { bubbles: true });
+      if (echt) Object.defineProperty(ev, 'isTrusted', { value: true });
+      el.dispatchEvent(ev);
+    };
+    const warte = () => new Promise((r) => setTimeout(r, 20));
+    const gesendet = () => posts.map((p) => { try { return JSON.parse(p.opts?.body ?? ''); } catch { return null; } });
+    return { ctx, doc, posts, ereignis, warte, gesendet };
+  }
+
+  // Die Liste in der Datei gegen das SOLL
+  {
+    const { ctx } = await seite({ pfad: '/support.html' });
+    const liste = ctx.vbEreignis?.liste;
+    const wzs = ctx.vbEreignis?.werkzeugSeiten;
+    probenGelaufen++;
+    if (!liste) fail(`${eSrc}: window.vbEreignis.liste fehlt — die Liste ist nicht pruefbar`);
+    else {
+      const istObj = Object.fromEntries(Object.keys(liste).sort().map((n) => [n, Object.fromEntries(Object.keys(liste[n]).sort().map((k) => [k, liste[n][k].split(/\s+/).filter(Boolean).sort()]))]));
+      const sollObj = Object.fromEntries(Object.keys(EREIGNISSE).sort().map((n) => [n, Object.fromEntries(Object.keys(EREIGNISSE[n]).sort().map((k) => [k, [...EREIGNISSE[n][k]].sort()]))]));
+      if (JSON.stringify(istObj) !== JSON.stringify(sollObj)) {
+        for (const n of new Set([...Object.keys(istObj), ...Object.keys(sollObj)]))
+          if (JSON.stringify(istObj[n]) !== JSON.stringify(sollObj[n]))
+            fail(`${eSrc}: Ereignis "${n}" weicht vom SOLL ab — Datei ${JSON.stringify(istObj[n] ?? null)}, SOLL ${JSON.stringify(sollObj[n] ?? null)} (scripts/lib/ereignisse.mjs)`);
+      }
+    }
+    if (JSON.stringify(wzs ?? null) !== JSON.stringify(WERKZEUG_SEITEN)) fail(`${eSrc}: WERKZEUG_SEITEN weicht vom SOLL ab — Datei ${JSON.stringify(wzs ?? null)}`);
+  }
+
+  // Proben: [Titel, Seite, Handlung, erwartete Ereignisse]
+  const MAIN = (inner) => `<header><nav><a id="nav" href="/schiffe/aegs-gladius.html">Gladius</a><a id="login" href="/account/login.html">Login</a></nav></header><main>${inner}</main>`;
+  const PROBEN = [
+    ['suche-offen auf einer Item-Seite, zweimal', { pfad: '/items/probe-item.html' }, (p) => { p.ctx.vbEreignis('suche-offen'); p.ctx.vbEreignis('suche-offen'); },
+      [{ name: 'suche-offen', data: { seite: 'item' }, url: '/items/' }]],
+    ['suche-treffer auf /de/schiffe.html', { pfad: '/de/schiffe.html' }, (p) => p.ctx.vbEreignis('suche-treffer', { art: 'item', platz: '4-10' }),
+      [{ name: 'suche-treffer', data: { art: 'item', platz: '4-10' }, url: '/de/schiffe.html' }]],
+    ['suche-treffer mit fremder Art (Name statt Art)', { pfad: '/schiffe.html' }, (p) => p.ctx.vbEreignis('suche-treffer', { art: 'Gladius', platz: '1-3' }), []],
+    ['suche-treffer mit Zusatzfeld Suchbegriff', { pfad: '/schiffe.html' }, (p) => p.ctx.vbEreignis('suche-treffer', { art: 'item', platz: '1-3', q: 'gladius' }), []],
+    ['suche-treffer ohne Platz', { pfad: '/schiffe.html' }, (p) => p.ctx.vbEreignis('suche-treffer', { art: 'item' }), []],
+    ['unbekanntes Ereignis', { pfad: '/schiffe.html' }, (p) => p.ctx.vbEreignis('suche-begriff', { q: 'gladius' }), []],
+    ['Klick Item -> Schiff im Inhalt', { pfad: '/items/probe-item.html', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html"><span id="t">Gladius</span></a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('t')), [{ name: 'weiter-detail', data: { seite: 'item', ziel: 'schiff' }, url: '/items/' }]],
+    ['Klick Schiff -> Werkzeug mit ?Parameter', { pfad: '/de/schiffe/aegs-gladius.html', html: MAIN('<a id="z" href="/de/fracturing.html?mineral=quantainium">Bruch</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('z')), [{ name: 'weiter-werkzeug', data: { seite: 'schiff', werkzeug: 'fracturing' }, url: '/de/schiffe/' }]],
+    ['Klick in der Navigation einer Detailseite', { pfad: '/items/probe-item.html', html: MAIN('') }, (p) => p.ereignis('click', p.doc.getElementById('nav')), []],
+    ['Klick ohne echte Bedienung (programmatisch)', { pfad: '/items/probe-item.html', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') }, (p) => p.ereignis('click', p.doc.getElementById('z'), false), []],
+    ['Anmelden aus der Navigation eines Werkzeugs', { pfad: '/missionen.html', html: MAIN('') }, (p) => p.ereignis('click', p.doc.getElementById('login')),
+      [{ name: 'anmeldung-einstieg', data: { von: 'missionen', ziel: 'anmelden' }, url: '/missionen.html' }]],
+    ['Filter: zwei Bedienungen, ein Ereignis', { pfad: '/missionen.html', html: MAIN('<select id="a" data-ev-filter="typ"></select><input id="b" data-ev-filter="suche">') },
+      (p) => { p.ereignis('change', p.doc.getElementById('a')); p.ereignis('input', p.doc.getElementById('b')); }, [{ name: 'filter', data: { werkzeug: 'missionen', filter: 'typ' }, url: '/missionen.html' }]],
+    ['Filter aus ?Parametern (programmatisch)', { pfad: '/missionen.html', html: MAIN('<select id="a" data-ev-filter="typ"></select>') }, (p) => p.ereignis('change', p.doc.getElementById('a'), false), []],
+    ['Filtername ausserhalb der Liste', { pfad: '/missionen.html', html: MAIN('<select id="a" data-ev-filter="auftraggeber-name"></select>') }, (p) => p.ereignis('change', p.doc.getElementById('a')), []],
+    ['Filter-Marke auf einer Detailseite', { pfad: '/items/probe-item.html', html: MAIN('<select id="a" data-ev-filter="typ"></select>') }, (p) => p.ereignis('change', p.doc.getElementById('a')), []],
+    ['Rechnung: Klick in den Rechner, zweimal', { pfad: '/fracturing.html', html: MAIN('<div data-ev-rechnung><button id="b">S</button><select id="s"></select></div>') },
+      (p) => { p.ereignis('click', p.doc.getElementById('b')); p.ereignis('change', p.doc.getElementById('s')); }, [{ name: 'rechnung', data: { werkzeug: 'fracturing' }, url: '/fracturing.html' }]],
+    ['Klick auf eine Auswahlliste im Rechner (noch keine Bedienung)', { pfad: '/fracturing.html', html: MAIN('<div data-ev-rechnung><select id="s"></select></div>') }, (p) => p.ereignis('click', p.doc.getElementById('s')), []],
+    ['Kopieren', { pfad: '/precision-jump.html', html: MAIN('<button id="k" data-ev-kopieren>Kopieren</button>') }, (p) => p.ereignis('click', p.doc.getElementById('k')),
+      [{ name: 'kopieren-teilen', data: { werkzeug: 'sprung' }, url: '/precision-jump.html' }]],
+    ['Widerspruchs-Cookie', { pfad: '/items/probe-item.html', cookie: 'vb_noanalytics=1', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') },
+      (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); }, []],
+    ['fremder Hostname (Vorschau)', { pfad: '/items/probe-item.html', host: 'staging.verse-base.com', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') },
+      (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); }, []],
+  ];
+  for (const [titel, opt, handlung, soll] of PROBEN) {
+    let p;
+    try {
+      p = await seite(opt);
+      handlung(p);
+      await p.warte();
+    } catch (e) { fail(`[7] Probe "${titel}": laeuft nicht (${e.message})`); continue; }
+    probenGelaufen++;
+    const ist = p.gesendet();
+    if (ist.length !== soll.length) {
+      fail(`[7] Probe "${titel}": ${ist.length} Ereignis(se) gesendet, Soll ${soll.length}${ist.length ? ` — ${ist.map((b) => b?.payload?.name).join(', ')}` : ''}`);
+      continue;
+    }
+    soll.forEach((e, i) => {
+      const b = ist[i] ?? {};
+      const pl = b.payload ?? {};
+      const m = [];
+      if (b.type !== 'event') m.push(`Typ "${b.type}"`);
+      if (pl.name !== e.name) m.push(`Name "${pl.name}" statt "${e.name}"`);
+      if (JSON.stringify(pl.data) !== JSON.stringify(e.data)) m.push(`Daten ${JSON.stringify(pl.data)} statt ${JSON.stringify(e.data)}`);
+      if (pl.url !== e.url) m.push(`url "${pl.url}" statt "${e.url}"`);
+      if (pl.title !== '') m.push(`Seitentitel "${pl.title}" geht mit`);
+      if (pl.referrer !== '') m.push(`Herkunft "${pl.referrer}" geht mit`);
+      const fremd = Object.keys(pl).filter((k) => !STANDARD.has(k));
+      if (fremd.length) m.push(`fremde Felder ${fremd.join(', ')}`);
+      if (m.length) fail(`[7] Probe "${titel}": ${m.join('; ')}`);
+    });
+  }
+  console.log(`    ${eSrc} mit ${zSrc} ausgefuehrt: ${probenGelaufen} Laeufe (Liste gegen SOLL + ${PROBEN.length} Proben, davon ${PROBEN.filter((x) => !x[3].length).length} mit Soll 0)   EINMAL je Seitenaufruf: ${EINMAL.join(', ')}`);
+}
+
 /* ---- Selbstauskunft + Klinken ---- */
 console.log('\nSelbstauskunft');
 console.log(`    Layout-Seiten: ${layoutSeiten} (Klinke ${MIN_LAYOUT_SEITEN})   mit Zaehler: ${zaehlerSeiten} (Klinke ${MIN_ZAEHLER_SEITEN})   Haken-Fassungen: ${hakenGeprueft} (Klinke ${MIN_HAKEN_FASSUNGEN})   Zaehler-Kopien: ${kopienGeprueft} (Klinke ${MIN_ZAEHLER_KOPIEN})`);
@@ -381,6 +593,13 @@ if (hakenGeprueft < MIN_HAKEN_FASSUNGEN)
   fail(`keine Fassung des Hakens ausgefuehrt — ohne Probe ist [5] nicht gelaufen`);
 if (kopienGeprueft < MIN_ZAEHLER_KOPIEN)
   fail(`keine Zaehler-Kopie ausgefuehrt — ohne Lauf ist [6] nicht gelaufen`);
+console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten} (Klinke ${MIN_EREIGNIS_SEITEN})   Ereignis-Marken: ${ereignisMarken.length} (Klinke ${MIN_EREIGNIS_MARKEN})   Ereignis-Laeufe: ${probenGelaufen} (Klinke ${MIN_EREIGNIS_PROBEN})`);
+if (ereignisSeiten < MIN_EREIGNIS_SEITEN)
+  fail(`nur ${ereignisSeiten} Seiten laden assets/ereignisse.js, Klinke ${MIN_EREIGNIS_SEITEN} — der Tag in Layout.astro ist verloren gegangen`);
+if (ereignisMarken.length < MIN_EREIGNIS_MARKEN)
+  fail(`nur ${ereignisMarken.length} Ereignis-Marken (data-ev-*) im gebauten Stand, Klinke ${MIN_EREIGNIS_MARKEN} — ein Werkzeug hat seine Filter- oder Rechner-Marken verloren; Ursache klaeren, nicht die Klinke senken`);
+if (probenGelaufen < MIN_EREIGNIS_PROBEN)
+  fail(`nur ${probenGelaufen} Ereignis-Laeufe, Klinke ${MIN_EREIGNIS_PROBEN} — [7] ist nicht vollstaendig gelaufen`);
 
 if (fehler.length) {
   console.error(`\nverify-zaehler: ${fehler.length} FEHLER\n`);

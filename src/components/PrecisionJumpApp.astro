@@ -720,7 +720,7 @@ const CLIENT = {
         <button type="button" class="pj-reset" id="pj-reset" data-help={h('precisionjump.ctl.reset')}>{S.reset}</button>
       </div>
 
-      <div class="pj-route" data-help={h('precisionjump.ctl.route')}>
+      <div class="pj-route" data-ev-rechnung data-help={h('precisionjump.ctl.route')}>
         <div class="pj-field">
           <label class="pj-label" for="pj-start">{S.start}</label>
           <select id="pj-start" class="pj-select">
@@ -754,7 +754,7 @@ const CLIENT = {
         </div>
       </div>
 
-      <div class="pj-band" data-help={h('precisionjump.ctl.band')}>
+      <div class="pj-band" data-ev-rechnung data-help={h('precisionjump.ctl.band')}>
         <div class="pj-field">
           <label class="pj-label" for="pj-bandsel">{S.band}</label>
           <select id="pj-bandsel" class="pj-select">
@@ -814,7 +814,7 @@ const CLIENT = {
         <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
         <div class="pj-trigger__val" id="pj-trigval">0</div>
         <div class="pj-trigger__sub" id="pj-trigsub"></div>
-        <button type="button" class="pj-copy" id="pj-copy">{JS_T.copy}</button>
+        <button type="button" class="pj-copy" id="pj-copy" data-ev-kopieren>{JS_T.copy}</button>
       </div>
 
       <div class="pj-stats" id="pj-stats"></div>
@@ -871,7 +871,7 @@ const CLIENT = {
         <span class="pj-tbl__chev" aria-hidden="true">▾</span>
       </summary>
       <div class="pj-tbl__body">
-        <input type="search" id="pj-anchorfilter" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
+        <input type="search" id="pj-anchorfilter" data-ev-filter="suche" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
         <div class="pj-tblscroll">
           <table>
             <thead>

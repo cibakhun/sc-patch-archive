@@ -1648,13 +1648,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
             (4), dann benennen (5), dann herausloesen (6). */}
         <ToolHelp tool="mining" lang={lang} steps={6} />
         <div class="wb__frow">
-          <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
+          <input class="wb__search" id="wb-q" data-ev-filter="suche" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
           <span class="wb__c" id="wb-count">{minerals.length}</span>
         </div>
         {/* Der Chip „nur brechbar" stand hier bis 12.08. mit daneben — er
             urteilte ueber eine Ausruestung, die es auf dieser Seite nicht
             mehr gibt, und ist mit dem Rechner umgezogen. */}
-        <div class="wb__chips" data-help={hlp('system')}>
+        <div class="wb__chips" data-help={hlp('system')} data-ev-filter="system">
           {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
         </div>
       </div>

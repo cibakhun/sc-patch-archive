@@ -312,7 +312,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
 
     <ToolHelp tool="wikelo" lang={lang} steps={4} />
 
-    <div class="wk-filters reveal" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'} data-help={h('wikelo.ctl.filter')}>
+    <div class="wk-filters reveal" data-ev-filter="kategorie" role="group" aria-label={de ? 'Trades nach Kategorie filtern' : 'Filter trades by category'} data-help={h('wikelo.ctl.filter')}>
       {TCATS.map((f, i) => (
         <button type="button" class="wk-pill" data-filter={f.key} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>
       ))}

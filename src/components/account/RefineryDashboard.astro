@@ -267,7 +267,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
 
           <section class="ck-col" aria-labelledby="rfd-new-h">
             <h2 class="ck-h" id="rfd-new-h">{COPY.newTitle}</h2>
-            <form id="rfd-form" class="rf-form" novalidate>
+            <form id="rfd-form" data-ev-rechnung class="rf-form" novalidate>
               <p class="rf-note">{COPY.fromTerminal}</p>
               <div class="rf-grid2">
                 <div class="field">
@@ -372,7 +372,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     </section>
 
     <!-- ===== Ertrag je Raffinerie ===== -->
-    <section id="ertrag" class="ck-col rf-sec" aria-labelledby="rf-yield-h">
+    <section id="ertrag" data-ev-rechnung class="ck-col rf-sec" aria-labelledby="rf-yield-h">
       <h2 class="ck-h" id="rf-yield-h">{COPY.yieldTitle}<span class="rf-n">{REFINERY.stations.length}</span></h2>
       <div class="rf-pad">
         <p class="rf-lead">{COPY.yieldLead} {COPY.yieldStand.replace('%v', yieldStand)}</p>
