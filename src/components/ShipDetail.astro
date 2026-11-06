@@ -38,6 +38,8 @@ import manufacturerLogos from '../data/manufacturer-logos.json';
 import { itemInfo } from '../lib/holoItems';
 import { HOLO_GRP_ICON, HOLO_ICON } from '../lib/holoIcons';
 import { versioned } from '../lib/assetVersion';
+import { itemForPart } from '../lib/itemLinks';
+import { itemPath } from '../lib/items';
 import { fanOut, hullBox, toGltf, type Cry, type Vec3 } from '../lib/hangar/ports';
 
 interface Props {
@@ -56,6 +58,12 @@ const lang = assertLocale(Astro.props.lang, 'ShipDetail');
 
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
+// Waffen und Bauteile verlinken auf ihr Item-Datenblatt, wenn Name + Groesse
+// genau eine Seite treffen (src/lib/itemLinks.ts). Sonst bleibt der Name Text.
+const partHref = (name: string | null | undefined, size: number | null | undefined): string | null => {
+  const it = itemForPart(name, size);
+  return it ? L(itemPath(it)) : null;
+};
 const loc = lang === 'en' ? 'en-US' : 'de-DE';
 
 const hero = pickHero(d);
@@ -1837,6 +1845,10 @@ span.sd__ref{color:var(--muted)}
 .arm__grp--g .arm__size::before{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 20%,transparent),color-mix(in srgb,var(--gold) 45%,transparent))}
 .arm__grp--g .arm__size em{color:var(--gold)}
 .arm__name{min-width:0;font-size:var(--fs-10);color:var(--text)}
+/* Teile mit Item-Datenblatt (src/lib/itemLinks.ts): dezent unterstrichen, damit
+   die Liste ruhig bleibt und trotzdem sichtbar ist, was weiterfuehrt. */
+.arm__name a,.sd__slot .n a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent);text-underline-offset:3px;text-decoration-thickness:1px}
+.arm__name a:hover,.sd__slot .n a:hover{color:var(--accent);text-decoration-color:var(--accent)}
 .arm__anon{color:var(--muted)}
 .arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
   color:var(--muted);white-space:nowrap}
@@ -2387,7 +2399,11 @@ span.sd__ref{color:var(--muted)}
                             <span class="arm__size arm__size--n"><em>?</em></span>
                           )}
                           <span class="arm__name">
-                            {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
+                            {l.name
+                              ? (partHref(l.name, l.size)
+                                  ? <a href={partHref(l.name, l.size)}>{l.name}</a>
+                                  : l.name)
+                              : <span class="arm__anon">{t('arm.weapon')}</span>}
                           </span>
                           {l.mount != null && l.size != null && (
                             l.mount > l.size ? (
@@ -2435,7 +2451,7 @@ span.sd__ref{color:var(--muted)}
                       {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
                     </span>
                   </div>
-                  <div class="n">{it.name}</div>
+                  <div class="n">{partHref(it.name, it.size) ? <a href={partHref(it.name, it.size)}>{it.name}</a> : it.name}</div>
                 </div>
               ))
             )}

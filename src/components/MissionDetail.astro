@@ -21,6 +21,28 @@ const { m, lang } = Astro.props;
 const L = (p: string) => href(p, lang);
 const nf = lang === 'de' ? 'de-DE' : 'en-US';
 
+// Eckdaten fuehren in die Missionssuche: Typ, Auftraggeber, Region und Gilde
+// oeffnen /missionen.html mit genau diesem Filter (assets/missions-app.js,
+// fromUrl — der Wert muss eine Option des Filters sein, sonst setzt die Suche
+// ihn nicht). Link wird nur, was eine Kennung hat: giverNames fuehrt auch
+// Organisationsnamen aus dem Auftragstext ohne eigenen Auftraggeber-Eintrag,
+// die bleiben Text.
+const missionSearch = (param: string, id: string) => `${L('/missionen.html')}?${param}=${encodeURIComponent(id)}`;
+type FactLink = { n: string; href: string | null };
+const factLinks = (names: string[], ids: string[], list: { id: string; name: string }[], param: string): FactLink[] => {
+  const known = new Map(list.map((r) => [r.id, r.name]));
+  const idByName = new Map<string, string>();
+  for (const id of ids) {
+    const n = known.get(id);
+    if (n && !idByName.has(n)) idByName.set(n, id);
+  }
+  return names.map((n) => ({ n, href: idByName.has(n) ? missionSearch(param, idByName.get(n)!) : null }));
+};
+const typeLinks = factLinks(m.typeNames, m.types, db.types, 'type');
+const giverLinks = factLinks(m.giverNames, m.givers, db.givers, 'giver');
+const regionLinks = factLinks(m.localityNames, m.localities, db.localities, 'loc');
+const guildLinks = factLinks(m.guilds, db.guilds.filter((g) => m.guilds.includes(g.name)).map((g) => g.id), db.guilds, 'guild');
+
 const S = {
   de: {
     // titleKind nur im <title> (Suchanfrage ist „star citizen <mission>");
@@ -228,10 +250,10 @@ const t = useTranslations(lang);
         <h2 class="md__h2">{S.facts}</h2>
         <dl class="md__facts">
           <div><dt>{m.rewardMin === m.rewardMax ? S.reward : S.rewardR}</dt><dd class="md__uec">{rewardTxt}</dd></div>
-          <div><dt>{S.type}</dt><dd>{m.typeNames.join(', ') || S.none}</dd></div>
-          <div><dt>{S.giver}</dt><dd>{m.giverNames.length ? m.giverNames.join(', ') : S.none}</dd></div>
-          <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.join(', ') : S.none}</dd></div>
-          {m.guilds.length > 0 && <div><dt>{S.guild}</dt><dd>{m.guilds.join(', ')}{m.orgs.length > 0 && <span class="md__dim"> · {m.orgs.join(', ')}</span>}</dd></div>}
+          <div><dt>{S.type}</dt><dd>{typeLinks.length ? <Fragment>{typeLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
+          <div><dt>{S.giver}</dt><dd>{giverLinks.length ? <Fragment>{giverLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
+          <div><dt>{S.region}</dt><dd>{regionLinks.length ? <Fragment>{regionLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
+          {m.guilds.length > 0 && <div><dt>{S.guild}</dt><dd>{guildLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}{m.orgs.length > 0 && <span class="md__dim"> · {m.orgs.join(', ')}</span>}</dd></div>}
           {m.ranks.length > 0 && <div><dt>{S.rank}</dt><dd>{m.ranks.join(' – ')}</dd></div>}
           <div><dt>{S.legal}</dt><dd>{legal}</dd></div>
           <div><dt>{S.offers}</dt><dd>{m.count}</dd></div>
@@ -550,6 +572,12 @@ const t = useTranslations(lang);
     color: var(--muted); margin-bottom: .25rem;
   }
   .md__facts dd { font-size: var(--fs-8); overflow-wrap: anywhere; }
+  /* Eckdaten als Einstieg in die vorgefilterte Missionssuche */
+  .md__fact {
+    color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .md__fact:hover { color: var(--accent); text-decoration-color: var(--accent); }
   .md__tech { margin-top: 1.2rem; }
   .md__tech > summary {
     cursor: pointer; width: fit-content; font-family: var(--font-ui); text-transform: uppercase;
