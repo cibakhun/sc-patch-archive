@@ -141,7 +141,8 @@ body{font-family:var(--font-body)}
       and times and time on page. Account and sign-in pages are not counted at all.
       Umami also counts a few interactions as events: opening the search, picking a search result,
       moving from a detail page to a tool or to another detail page, the first filter and the first
-      calculation in a tool, copying, and clicking sign in or create account. An event is sent like a
+      calculation in a tool, copying, clicking “Report a wrong value”, and clicking sign in or
+      create account. An event is sent like a
       page view (screen size, browser language, device, browser and operating system, the country
       derived from the IP address) and carries only fixed details on top, such as the page type, the
       name of the tool or filter and the rough position of the result. As the page it names only the
@@ -302,6 +303,8 @@ body{font-family:var(--font-body)}
       <li><strong>rating</strong> (1–5 stars, optional)</li>
       <li><strong>e-mail address</strong> (optional, only if you want a reply; it is set as the
         reply-to address)</li>
+      <li><strong>the page whose value you report</strong> (only its path, such as /items/…; only
+        when you come via “Report a wrong value”, and you can remove it before sending)</li>
       <li>fixed form details (form key, subject, sender name, a field for spam protection)</li>
       <li>technically, your IP address, browser identifier and language setting, the origin
         verse-base.com and the time of submission</li>

@@ -360,7 +360,10 @@ for (const fam of Object.keys(KLINKEN)) if (!zaehler[fam]) fail.push(`Klinke "${
 //   · Art, Wert oder sichtbarer Text einer Zeile passen nicht zur Datei —
 //     Wertegruppe, Quellname, Link und Wortlaut je Sprache, wortgleich,
 //   · „älterer Stand" steht ohne Tatsache da oder fehlt trotz Tatsache,
-//   · ein ISO-Datum steht im sichtbaren Text (Datum in Seitensprache).
+//   · ein ISO-Datum steht im sichtbaren Text (Datum in Seitensprache),
+//   · eine Detailseite (Item, Blueprint, Mission, Schiff) traegt nicht genau
+//     einen Link „Falschen Wert melden“ auf das Formular ihrer Sprache mit
+//     ihrem eigenen Pfad, oder eine andere Seite traegt einen.
 // NIE FEHLER: das Alter einer Fremdquelle (Grundsatz 3) — es wird nur
 // genannt. Eine Altersgrenze waere eine erfundene Schwelle.
 
@@ -398,6 +401,13 @@ const STAND_KLINKEN = {
   // kleine genau auf dem Messwert.
   'Item-Seiten': 11000, 'Item-Finder': 2, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
 };
+// Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
+// Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
+// EN). Knapp darunter, ein Datenlauf darf ein paar Seiten streichen.
+const MELDE_KLINKE = 17000;
+const MELDE_DETAIL = /^(?:items|crafting|schiffe|missionen)\/[^/]+\.html$/;
+const MELDE_TEXT = { de: 'Falschen Wert melden', en: 'Report a wrong value' };
+let meldeSeiten = 0;
 
 // Wortlaut je Zeile und Sprache, unabhaengig von src/lib/datenstand.ts
 // gefuehrt: das Tor soll eine falsch etikettierte Zeile fangen, nicht den
@@ -578,6 +588,19 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     }
     for (const p of g.pflicht) if (!gesehen.has(p)) standFehler.push(`${rel}: Pflichtzeile „${p}" fehlt im Datenstand`);
     for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
+    // Link „Falschen Wert melden“: genau einer auf Detailseiten, sonst keiner.
+    const melde = [...innen.matchAll(/<a\b[^>]*\sdata-ev-melden\b[^>]*>([\s\S]*?)<\/a>/g)];
+    if (MELDE_DETAIL.test(pfad)) {
+      if (melde.length !== 1) standFehler.push(`${rel}: ${melde.length} Links „Falschen Wert melden" im Datenstand (Soll: genau einer auf Detailseiten)`);
+      else {
+        meldeSeiten++;
+        // href wie der Browser ihn liest: Astro schreibt & als &#38;.
+        const ziel = (/\shref="([^"]*)"/.exec(melde[0][0])?.[1] ?? null)?.replace(/&(?:amp|#38|#x26);/gi, '&') ?? null;
+        const sollZiel = `${lang === 'de' ? '/de' : ''}/feedback.html?wert=/${rel}`;
+        if (ziel !== sollZiel) standFehler.push(`${rel}: Link „Falschen Wert melden" zeigt auf ${JSON.stringify(ziel)}, Soll ${JSON.stringify(sollZiel)}`);
+        if (sichtbar(melde[0][1]) !== MELDE_TEXT[lang]) standFehler.push(`${rel}: Link „Falschen Wert melden" heisst „${sichtbar(melde[0][1])}", Soll „${MELDE_TEXT[lang]}"`);
+      }
+    } else if (melde.length) standFehler.push(`${rel}: Link „Falschen Wert melden" auf einer Seite, die keine Detailseite ist`);
   }
   for (const f of standFehler.slice(0, 40)) fail.push(`[6] ${f}`);
   if (standFehler.length > 40) fail.push(`[6] … und ${standFehler.length - 40} weitere Befunde derselben Art`);
@@ -587,6 +610,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     console.log(`    ${g.name.padEnd(17)} Seiten ${String(standSeiten[g.name]).padStart(6)} (Klinke ${k})`);
     if (standSeiten[g.name] < k) fail.push(`[6] ${g.name}: nur ${standSeiten[g.name]} Seiten mit Datenstand geprueft, Klinke ${k} — Zuordnung oder Build kaputt; Ursache klaeren, nicht die Klinke senken`);
   }
+  console.log(`    Detailseiten mit Link „Falschen Wert melden": ${meldeSeiten} (Klinke ${MELDE_KLINKE})`);
+  if (meldeSeiten < MELDE_KLINKE) fail.push(`[6] nur ${meldeSeiten} Detailseiten mit Link „Falschen Wert melden", Klinke ${MELDE_KLINKE} — Ursache klaeren, nicht die Klinke senken`);
   console.log(`    Zeilen je Quelle: ${Object.entries(standZeilen).map(([q, n]) => `${q} ${n}`).join(', ') || '—'}`);
   // Alter der Fremdquellen: nur genannt, nie bewertet (Grundsatz 3).
   let gebaut = null;

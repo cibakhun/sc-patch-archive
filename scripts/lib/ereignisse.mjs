@@ -4,6 +4,9 @@
 // „VerseBase: Produktphase Vernetzung, Messung, Datenvertrauen", Abschnitt
 // Messung). Acht Ereignisse, jedes Feld nur mit festen Werten: kein
 // Suchbegriff, keine Item-Kennung, kein Name, keine Zahl aus einer Rechnung.
+// Das neunte, wert-melden (Klick auf „Falschen Wert melden“ einer
+// Detailseite, nur die Seitenart), kam mit dem Vorschlag Datenvertrauen
+// (Schritt C2), freigegeben 06.11.2026 11:47 („Wie empfohlen").
 //
 // Diese Datei ist das SOLL. assets/ereignisse.js traegt dieselbe Liste als
 // Ist (es laeuft im Browser und kann nichts importieren); verify:zaehler [7]
@@ -40,6 +43,7 @@ export const EREIGNISSE = {
   rechnung: { werkzeug: WERKZEUGE },
   'kopieren-teilen': { werkzeug: WERKZEUGE },
   'anmeldung-einstieg': { von: VON, ziel: KONTO },
+  'wert-melden': { seite: DETAIL },
 };
 
 // Seiten der Werkzeuge (ohne /de-Vorsatz) -> Wert im Feld werkzeug. Dieselben

@@ -56,6 +56,8 @@ interface Props {
    * Fuss, die nur eine Quelle und das Preisdatum kannte.
    */
   stand: StandZeile[];
+  /** Detailseite: im Datenstand der Link „Falschen Wert melden“ */
+  melden?: boolean;
   /**
    * Uebersicht mit Kachel-/Chip-Raster: die Spalte darf auf breiten Schirmen
    * mitwachsen (theme.css § 5, --vb-breit). Nur fuer Seiten, deren Breite in
@@ -67,7 +69,7 @@ interface Props {
 
 const {
   lang, title, description, crumbs, eyebrow, tone = 'items',
-  ogImage, modified, ldName, jsonLd = [], stand, breit = false,
+  ogImage, modified, ldName, jsonLd = [], stand, melden = false, breit = false,
 } = Astro.props;
 
 const t = useTranslations(lang);
@@ -184,7 +186,7 @@ const crumbLd = {
         <slot name="hero" />
       </header>
       <slot />
-      <Datenstand lang={lang} zeilen={stand} innen />
+      <Datenstand lang={lang} zeilen={stand} innen melden={melden} />
     </main>
 
     <footer class="dp-foot">

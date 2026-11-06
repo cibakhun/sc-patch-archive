@@ -6,7 +6,15 @@
 // Kein Backend: POST an Web3Forms (s. src/consts.ts). Reply-To = die optionale
 // User-Mail. Progressive Enhancement: nativer POST ohne JS, mit JS Inline-UI.
 // Demo-Modus (Platzhalter-Key): validiert + zeigt Erfolgs-UI, sendet nichts.
-import { FEEDBACK, FEEDBACK_DEMO } from '../consts';
+//
+// „Falschen Wert melden“ (seit 06.11.2026): Detailseiten verlinken hierher mit
+// ?wert=<eigener Pfad> (ein Parameter: ein zweiter braeuchte ein & im href,
+// das Astro als &#38; schreibt und audit:site als Anker liest). Das Skript
+// unten nimmt den Pfad nur, wenn er eine eigene Detailseite ist (Muster
+// SEITE_OK), setzt ihn nur als Text, zeigt „Betrifft: …“ mit Knopf zum
+// Entfernen und schickt ihn als Feld Seite/Page mit. Ohne Skript bleibt das
+// Formular wie es war, nur ohne Seitenangabe.
+import { FEEDBACK, FEEDBACK_DEMO, DISCORD } from '../consts';
 
 interface Props {
   lang: 'de' | 'en';
@@ -33,6 +41,10 @@ const COPY = {
     errFail: 'Senden fehlgeschlagen. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
     errNet: 'Netzwerkfehler — Senden nicht möglich. Bitte später erneut versuchen oder per E-Mail an krysx141@gmail.com.',
     ratingField: 'Bewertung',
+    seiteField: 'Seite',
+    about: 'Betrifft', aboutRemove: 'entfernen',
+    msgPhWert: 'Welcher Wert ist falsch, und was zeigt das Spiel?',
+    discordPre: 'Lieber mit Screenshot?', discordLink: 'Im Discord', discordPost: ' im Forum #bug-reports, Tag „Data error“.',
     testersHeading: 'Testpiloten',
     testersLede: 'Diese Leute sehen die Seite, bevor sie fertig ist, und melden, was kaputt ist.',
   },
@@ -54,6 +66,10 @@ const COPY = {
     errFail: 'Sending failed. Please try again later or e-mail krysx141@gmail.com.',
     errNet: 'Network error — could not send. Please try again later or e-mail krysx141@gmail.com.',
     ratingField: 'Rating',
+    seiteField: 'Page',
+    about: 'Regarding', aboutRemove: 'remove',
+    msgPhWert: 'Which value is wrong, and what does the game show?',
+    discordPre: 'Prefer to send a screenshot?', discordLink: 'On Discord', discordPost: ' in the #bug-reports forum, tag “Data error”.',
     testersHeading: 'Test Pilots',
     testersLede: 'These people see the site before it is finished, and report what is broken.',
   },
@@ -76,6 +92,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     data-endpoint={FEEDBACK.endpoint}
     data-demo={FEEDBACK_DEMO ? '1' : '0'}
     data-field-rating={COPY.ratingField}
+    data-field-seite={COPY.seiteField}
+    data-subject-wert={FEEDBACK.subjectWert}
+    data-ph-wert={COPY.msgPhWert}
     data-msg-short={COPY.errShort}
     data-msg-fail={COPY.errFail}
     data-msg-net={COPY.errNet}
@@ -105,9 +124,15 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       </div>
     </div>
 
+    <p class="fbx-about" id="fbAbout" hidden>
+      <span class="fbx-about__k">{COPY.about}:</span> <code class="fbx-about__p" id="fbAboutPath"></code>
+      <button type="button" class="fbx-clear" id="fbAboutX">{COPY.aboutRemove}</button>
+    </p>
+
     <div class="fbx-field">
       <label class="fbx-label" for="fbMsg">{COPY.msg} <span class="reqm" title={COPY.req}>*</span></label>
       <textarea class="fbx-input fbx-textarea" id="fbMsg" name="message" required minlength="5" placeholder={COPY.msgPh}></textarea>
+      <p class="fbx-hint" id="fbDiscord" hidden>{COPY.discordPre} <a href={DISCORD.invite} target="_blank" rel="noopener">{COPY.discordLink}</a>{COPY.discordPost}</p>
     </div>
 
     <div class="fbx-field">
@@ -177,6 +202,15 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
   .fbx-label .opt { color: var(--muted); font-weight: 600; letter-spacing: var(--ls-7); text-transform: none; }
   .fbx-label .reqm { color: var(--accent); }
   .fbx-hint { font-size: var(--fs-7); color: var(--muted); margin: 0.45rem 0 0; line-height: 1.5; }
+  .fbx-hint a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .fbx-about {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.6rem;
+    margin: 0 0 1.5rem; padding: 0.7rem 0.9rem; border: 1px solid var(--line-soft);
+    font-size: var(--fs-7); color: var(--muted); line-height: 1.5;
+  }
+  .fbx-about[hidden] { display: none; }
+  .fbx-about__k { color: var(--text); font-weight: 600; }
+  .fbx-about__p { color: var(--text); overflow-wrap: anywhere; }
 
   .fbx-clear {
     background: none; border: none; cursor: pointer; color: var(--muted);
@@ -285,6 +319,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     var endpoint = form.getAttribute('data-endpoint');
     var D = {
       field: form.getAttribute('data-field-rating'),
+      seite: form.getAttribute('data-field-seite'),
       short: form.getAttribute('data-msg-short'),
       fail: form.getAttribute('data-msg-fail'),
       net: form.getAttribute('data-msg-net'),
@@ -316,6 +351,35 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     });
 
     function setStatus(msg) { status.textContent = msg || ''; status.hidden = !msg; }
+
+    // „Falschen Wert melden“: ?wert=<Pfad> von einer Detailseite.
+    // Nur eigene Detailseiten (Muster wie die Seiten selbst: Kleinbuchstaben,
+    // Ziffern, Bindestrich), nur als Text gesetzt, nie als HTML.
+    var SEITE_OK = /^\/(?:de\/)?(?:items|crafting|schiffe|missionen)\/[a-z0-9][a-z0-9-]{0,150}\.html$/;
+    var about = document.getElementById('fbAbout');
+    var aboutPath = document.getElementById('fbAboutPath');
+    var discord = document.getElementById('fbDiscord');
+    var msgEl = document.getElementById('fbMsg');
+    // Feld ueber querySelector statt form.subject: benannter Zugriff fehlt im
+    // Pruefstand von verify:clienttext, und so liest es sich eindeutig.
+    var subjectEl = form.querySelector('input[name=subject]');
+    var subjectStd = subjectEl ? subjectEl.value : '';
+    var phStd = msgEl.getAttribute('placeholder');
+    var seite = '';
+    function setSeite(p) {
+      seite = p || '';
+      about.hidden = !seite;
+      discord.hidden = !seite;
+      aboutPath.textContent = seite;
+      if (subjectEl) subjectEl.value = seite ? form.getAttribute('data-subject-wert') : subjectStd;
+      msgEl.setAttribute('placeholder', seite ? form.getAttribute('data-ph-wert') : phStd);
+    }
+    try {
+      var q = new URLSearchParams(location.search);
+      var vonSeite = q.get('wert') || '';
+      if (SEITE_OK.test(vonSeite)) setSeite(vonSeite);
+    } catch (e) {}
+    document.getElementById('fbAboutX').addEventListener('click', function () { setSeite(''); msgEl.focus(); });
 
     function showDone(email) {
       form.hidden = true;
@@ -353,6 +417,7 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
       };
       if (email) payload.email = email;
       if (v) payload[D.field] = v + '/5';
+      if (seite) payload[D.seite] = seite;
 
       btn.disabled = true;
       btnTxt.textContent = D.sending;

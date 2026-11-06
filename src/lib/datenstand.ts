@@ -59,6 +59,7 @@ const T = {
   de: {
     titel: 'Datenstand',
     aelter: 'älterer Stand',
+    melden: 'Falschen Wert melden',
     spielversion: 'Spielversion',
     stand: 'Stand',
     hand: 'von Hand gepflegt',
@@ -84,6 +85,7 @@ const T = {
   en: {
     titel: 'Data status',
     aelter: 'older data',
+    melden: 'Report a wrong value',
     spielversion: 'Game version',
     stand: 'as of',
     hand: 'maintained by hand',
