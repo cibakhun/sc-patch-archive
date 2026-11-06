@@ -354,8 +354,10 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
 
     // „Falschen Wert melden“: ?wert=<Pfad> von einer Detailseite.
     // Nur eigene Detailseiten (Muster wie die Seiten selbst: Kleinbuchstaben,
-    // Ziffern, Bindestrich), nur als Text gesetzt, nie als HTML.
-    var SEITE_OK = /^\/(?:de\/)?(?:items|crafting|schiffe|missionen)\/[a-z0-9][a-z0-9-]{0,150}\.html$/;
+    // Ziffern, Bindestrich, ohne Laengengrenze: die laengste Seite hat heute
+    // 102 Zeichen, eine Grenze haette nur kuenftige Seiten abgeschnitten),
+    // nur als Text gesetzt, nie als HTML.
+    var SEITE_OK = /^\/(?:de\/)?(?:items|crafting|schiffe|missionen)\/[a-z0-9][a-z0-9-]*\.html$/;
     var about = document.getElementById('fbAbout');
     var aboutPath = document.getElementById('fbAboutPath');
     var discord = document.getElementById('fbDiscord');
@@ -392,6 +394,9 @@ const pilotBase = lang === 'de' ? '/de/pilot/' : '/pilot/';
     again.addEventListener('click', function () {
       done.hidden = true;
       form.reset();
+      // reset() setzt den Betreff auf den Standard zurueck; die Seite bleibt
+      // gewaehlt (mit Knopf zum Entfernen), also Betreff und Hinweis wieder dazu.
+      setSeite(seite);
       render();
       setStatus('');
       form.hidden = false;

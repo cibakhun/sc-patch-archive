@@ -2,11 +2,12 @@
 //
 // Freigabe: Krisz, 06.11.2026 11:48 („Beides wie empfohlen", Plan
 // „VerseBase: Produktphase Vernetzung, Messung, Datenvertrauen", Abschnitt
-// Messung). Acht Ereignisse, jedes Feld nur mit festen Werten: kein
+// Messung). Neun Ereignisse, jedes Feld nur mit festen Werten: kein
 // Suchbegriff, keine Item-Kennung, kein Name, keine Zahl aus einer Rechnung.
-// Das neunte, wert-melden (Klick auf „Falschen Wert melden“ einer
-// Detailseite, nur die Seitenart), kam mit dem Vorschlag Datenvertrauen
-// (Schritt C2), freigegeben 06.11.2026 11:47 („Wie empfohlen").
+// Acht davon aus dieser Freigabe; das neunte, wert-melden (Klick auf
+// „Falschen Wert melden“ einer Detailseite, nur die Seitenart), kam mit dem
+// Vorschlag Datenvertrauen (Schritt C2), freigegeben 06.11.2026 11:47
+// („Wie empfohlen").
 //
 // Diese Datei ist das SOLL. assets/ereignisse.js traegt dieselbe Liste als
 // Ist (es laeuft im Browser und kann nichts importieren); verify:zaehler [7]
