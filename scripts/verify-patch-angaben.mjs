@@ -735,6 +735,7 @@ if (existsSync(DIST)) {
         const stueck = src[1].slice(m.index + m[0].length, i + 1 < starts.length ? starts[i + 1].index : undefined);
         return {
           quelle: /\bdata-stand="([^"]*)"/.exec(m[1])?.[1],
+          art: /\bdata-stand-art="([^"]*)"/.exec(m[1])?.[1] ?? null,
           wert: /\bdata-stand-wert="([^"]*)"/.exec(m[1])?.[1] ?? null,
           link: /<a\b[^>]*\shref="([^"]*)"/.exec(stueck)?.[1] ?? null,
           text: nackt(stueck).replace(/\s*·\s*$/, ''),
@@ -743,11 +744,11 @@ if (existsSync(DIST)) {
       const fassungen = [...new Set(gezeigt.map((v) => fassungAus(v.gameVersion)))];
       const marke = sp === 0 ? 'älterer Stand' : 'older data';
       const sollTeile = fassungen.map((f) => ({
-        quelle: 'fahrzeug', wert: f, link: null,
+        quelle: 'fahrzeug', art: 'spiel', wert: f, link: null,
         text: `${DOSSIER_TEXT.fahrzeug[sp]}: ${sp === 0 ? 'Spielversion' : 'Game version'} ${f}${kopf && vor(f, kopf) ? ` ${marke}` : ''}`,
       }));
       if (wikiGezeigt && wikiDatum) sollTeile.push({
-        quelle: 'wiki', wert: wikiDatum, link: 'https://starcitizen.tools',
+        quelle: 'wiki', art: 'schnappschuss', wert: wikiDatum, link: 'https://starcitizen.tools',
         text: `${DOSSIER_TEXT.wiki[sp]}: starcitizen.tools, ${sp === 0 ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(wikiDatum, lang)} ${marke}`,
       });
       const key = (x) => `${x.quelle}|${x.wert}`;
@@ -757,6 +758,7 @@ if (existsSync(DIST)) {
         const ix = istMap.get(key(sx));
         if (!ix) { dFehler.push(`${rel}: Quellenzeile ohne „${sx.text}" (${sx.quelle} ${sx.wert})`); continue; }
         if (ix.text !== sx.text) dFehler.push(`${rel}: Quellenzeile zeigt „${ix.text}", Soll „${sx.text}"`);
+        if (ix.art !== sx.art) dFehler.push(`${rel}: Quellenzeile ${sx.quelle} ${sx.wert} hat data-stand-art ${JSON.stringify(ix.art)}, Soll "${sx.art}"`);
         if (ix.link !== sx.link) dFehler.push(`${rel}: Quellenzeile ${sx.quelle} verlinkt ${JSON.stringify(ix.link)}, Soll ${JSON.stringify(sx.link)}`);
         istMap.delete(key(sx));
       }
