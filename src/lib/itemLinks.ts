@@ -99,13 +99,6 @@ export function stockShips(item: Item): StockShip[] {
     .sort((a, b) => a.name.localeCompare(b.name, 'en'));
 }
 
-/** Für das Tor: wie viele Item-Seiten Schiffe nennen, wie viele Paare es gibt. */
-export function stockStats(): { items: number; pairs: number } {
-  let pairs = 0;
-  for (const s of stockByItem.values()) pairs += s.size;
-  return { items: stockByItem.size, pairs };
-}
-
 /* ---------- Werkzeuge, die zu einem Item passen ---------- */
 
 // Bergbau-Ausruestung: Laserkoepfe, Module und Gadgets rechnet der
@@ -115,10 +108,16 @@ export function stockStats(): { items: number; pairs: number } {
 // Rechner wirklich zur Auswahl hat (dieselbe Datei, aus der er seine Listen
 // baut) — die Kategorie allein reicht nicht: unter "Utility / Gadgets"
 // stehen auch Feuerloescher und Traktorstrahler.
+// Laser filtert der Rechner wie hier: fest verbaute (builtIn, z. B. der
+// Pitman am Golem) und solche ohne Abbauwert fehlen in seiner Auswahl.
+type MiningEntry = { name: string; builtIn?: boolean; mining?: { dps?: number } };
+const MM = MINING_MODEL as unknown as Record<'lasers' | 'modules' | 'gadgets', MiningEntry[] | undefined>;
 const fracturingNames = new Set(
-  (['lasers', 'modules', 'gadgets'] as const).flatMap((k) =>
-    ((MINING_MODEL as unknown as Record<string, { name: string }[]>)[k] ?? []).map((g) => norm(g.name)),
-  ),
+  [
+    ...(MM.lasers ?? []).filter((l) => !l.builtIn && l.mining && l.mining.dps),
+    ...(MM.modules ?? []),
+    ...(MM.gadgets ?? []),
+  ].map((g) => norm(g.name)),
 );
 export const inFracturingCalc = (item: Item): boolean => fracturingNames.has(norm(item.name));
 

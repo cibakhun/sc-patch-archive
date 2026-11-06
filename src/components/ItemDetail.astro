@@ -53,7 +53,10 @@ const STOCK_SHOWN = 12;
 const stock = stockShips(item);
 const stockLead = stock.length === 1
   ? (stock[0].spaceship ? t('stockOneShip') : t('stockOneVehicle'))
-  : fill(stock.every((s) => s.spaceship) ? t('stockShips') : t('stockMixed'), { n: num(stock.length, lang) });
+  : fill(
+      stock.every((s) => s.spaceship) ? t('stockShips') : stock.every((s) => !s.spaceship) ? t('stockVehicles') : t('stockMixed'),
+      { n: num(stock.length, lang) },
+    );
 // Werkzeuge, die genau dieses Item kennen — nichts Generisches: der
 // Bruchrechner nur fuer Teile, die er zur Auswahl hat, Wikelo nur, wenn ein
 // Tauschgeschaeft das Item nennt.
