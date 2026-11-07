@@ -913,6 +913,37 @@ test('steht ein Tab auf „Nicht gespeichert" und schickt ein anderer danach all
   assert.deepEqual(one.sync(), { state: 'synced', text: 'Synced to your account', login: false, retry: false });
 });
 
+// „Nicht gespeichert" heißt: ein Klick hat das Konto nicht erreicht. Scheitert
+// nur das Lesen des Server-Stands, ist alles gespeichert, und die Anzeige sagt
+// „Nicht abgeglichen". Beide Fehler bieten „Erneut versuchen" an, keiner den
+// Anmelde-Link: das Konto ist angemeldet (Meldung von Krisz, 07.11.2026, dort
+// stand „Synced to your account" neben „Sign in" und „Retry").
+test('ein Fehler beim Lesen meldet „Nicht abgeglichen", einer beim Schreiben „Nicht gespeichert", beide nur mit „Erneut versuchen"', async () => {
+  const lesen = makeBrowser({ session: 'user-1' });
+  lesen.server.hold('GET');
+  const a = lesen.open();
+  await lesen.settle();
+  lesen.server.release(503);
+  await lesen.settle();
+  assert.equal(lesen.storage.get(MIRROR), null, 'Voraussetzung: nichts offen, der Spiegel ist noch leer');
+  assert.deepEqual(a.sync(), { state: 'error', text: 'Not synced', login: false, retry: true });
+
+  const schreiben = makeBrowser({ session: 'user-1' });
+  const t = schreiben.open();
+  await schreiben.settle();
+  schreiben.server.hold('POST');
+  t.clickOwn('karna-rifle');
+  await schreiben.settle();
+  schreiben.server.release(503);
+  await schreiben.settle();
+  assert.deepEqual(mirror(schreiben).pending, ['karna-rifle'], 'Voraussetzung: der Klick ist offen');
+  assert.deepEqual(t.sync(), { state: 'error', text: 'Not saved', login: false, retry: true });
+
+  t.clickRetry();
+  await schreiben.settle();
+  assert.deepEqual(t.sync(), { state: 'synced', text: 'Synced to your account', login: false, retry: false });
+});
+
 // Eine Anfrage, deren Frist abläuft, wird abgebrochen, nicht nur nicht mehr
 // abgewartet: sonst gäbe der Zug die Reihe frei, während sie noch unterwegs
 // ist, und käme sie nach dem nächsten Zug beim Server an, überschriebe sie

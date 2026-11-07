@@ -415,4 +415,214 @@ describe('Werkstatt: Ablage im Konto', () => {
     sess = null;
     assert.deepEqual(acct.store.list().map((e) => e.name), ['Gast']);
   });
+  // Die Anzeige „In deinem Konto gespeichert" (Werkstatt, Kontoseite) liest
+  // state(). Sie darf es nur sagen, wenn der letzte Abgleich jede Aenderung
+  // mitnahm (Pruefung der Konto-Anzeigen, 07.11.2026).
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  test('ist die Sitzung gerade nicht nutzbar, meldet der Abgleich keinen Kontostand, der nicht stimmt', async () => {
+    const mem = memory();
+    const srv = server();
+    let usable = true;
+    const sess = { user: { id: UID } };
+    const seen = [];
+    const account = { peek: () => sess, session: async () => (usable ? sess : null), rest: (_sess, ...a) => srv.rest(...a) };
+    const acct = accountStore({ storage: mem, account, onChange() { seen.push(acct.state()); }, win: {} });
+    await acct.sync();
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+
+    usable = false; // Refresh scheitert an 5xx oder am Netz, die Sitzung bleibt gespeichert
+    acct.store.save(lay('aaaa1111', 'Neu'));
+    assert.equal(acct.state(), 'pending');
+    await wait(450);
+    await acct.sync();
+    assert.equal(srv.rows.size, 0, 'Voraussetzung: nichts kam an');
+    assert.equal(acct.state(), 'error', 'nicht „gespeichert": das Layout liegt nur in diesem Browser');
+    assert.equal(seen.at(-1), 'error', 'die Seite malt die Anzeige neu');
+
+    usable = true;
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('wer speichert, waehrend ein Abgleich laeuft, sieht erst „gespeichert", wenn auch sein Layout angekommen ist', async () => {
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'POST' && !hold) await new Promise((r) => { hold = r; });
+      return srv.rest(method, ...a);
+    };
+    const seen = [];
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() { seen.push([acct.state(), [...srv.rows.keys()].sort().join()]); }, win: {} });
+    acct.store.save(lay('aaaa1111', 'Erstes'));
+    const first = acct.sync(); // der Upsert von aaaa1111 haengt
+    await wait(10);
+    acct.store.save(lay('bbbb2222', 'Zweites'));
+    await wait(450); // touched() stoesst den naechsten Abgleich an, er wartet auf den laufenden
+    hold();
+    await first;
+    await wait(10);
+    assert.deepEqual(srv.rows.has('bbbb2222'), true, 'Voraussetzung: der zweite Lauf brachte es');
+    assert.deepEqual(seen.filter(([st]) => st === 'synced').map(([, rows]) => rows), ['aaaa1111,bbbb2222'],
+      '„gespeichert" erst, als beide Layouts beim Server lagen');
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('solange das Gespeicherte noch unterwegs ist, sagt die Anzeige nicht „gespeichert"', async () => {
+    // cubic zu PR #310: zwischen dem Ablauf der 400-ms-Frist und der Antwort
+    // des Servers lag die Aenderung weder im Zeitgeber noch in `again`, und
+    // state() gab den VORIGEN Erfolg zurueck. Jede Neuzeichnung in diesem
+    // Fenster sagte „In deinem Konto gespeichert" ueber ein Layout, dessen
+    // Upsert noch lief (und scheitern konnte).
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    let halten = false;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'POST' && halten) { halten = false; await new Promise((r) => { hold = r; }); }
+      return srv.rest(method, ...a);
+    };
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    await acct.sync();
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+
+    halten = true;
+    acct.store.save(lay('aaaa1111', 'Neu'));
+    await wait(450); // die Frist ist um, der Upsert haengt
+    assert.equal(typeof hold, 'function', 'Voraussetzung: der Upsert laeuft');
+    assert.equal(srv.rows.size, 0, 'Voraussetzung: noch nichts angekommen');
+    assert.equal(acct.state(), 'pending', 'nicht „gespeichert", solange der Upsert laeuft');
+
+    srv.setFail(true); // und er scheitert
+    hold();
+    await wait(10);
+    assert.equal(acct.state(), 'error');
+
+    srv.setFail(false);
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('speichert ein anderer Tab, sagt dieser Tab erst „gespeichert", wenn es im Konto liegt', async () => {
+    // cubic zu PR #310 (zweiter Lauf): Tab A speichert, Tab B (Kontoseite,
+    // Werkstatt) bekommt das storage-Ereignis und malte neu, sagte aber
+    // weiter „gespeichert" aus SEINEM letzten Lauf. Scheitert A beim
+    // Hochschicken oder schliesst vor der Frist, lag das Layout nur im
+    // gemeinsamen Spiegel. Jetzt zaehlt die fremde Aenderung wie eine eigene,
+    // und B bringt sie selbst hoch.
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let aScheitert = false;
+    const restA = async (_sess, method, ...a) => (method === 'POST' && aScheitert ? { ok: false, json: async () => ({}) } : srv.rest(method, ...a));
+    const tabA = accountStore({ storage: mem, account: { peek: () => sess, session: async () => sess, rest: restA }, onChange() {}, win: {} });
+    let ereignis = null;
+    const winB = { addEventListener(typ, f) { if (typ === 'storage') ereignis = f; } };
+    const seenB = [];
+    const tabB = accountStore({
+      storage: mem,
+      account: { peek: () => sess, session: async () => sess, rest: (_sess, ...a) => srv.rest(...a) },
+      onChange() { seenB.push([tabB.state(), [...srv.rows.keys()].join()]); },
+      win: winB,
+    });
+    await tabA.sync();
+    await tabB.sync();
+    assert.equal(tabB.state(), 'synced', 'Voraussetzung');
+    assert.equal(typeof ereignis, 'function', 'B hoert auf storage');
+    ereignis({ key: 'sb-x-auth-token' });
+    ereignis({ key: layoutKey(null) });
+    assert.equal(tabB.state(), 'synced', 'fremde Schluessel aendern am Kontostand nichts');
+
+    aScheitert = true;
+    tabA.store.save(lay('aaaa1111', 'Aus Tab A'));
+    ereignis({ key: layoutKey(UID) }); // so meldet der Browser B die Aenderung
+    assert.equal(tabB.state(), 'pending', 'nicht „gespeichert": A hat noch nichts hochgeschickt');
+
+    await wait(450); // A scheitert beim Hochschicken, B gleicht selbst ab
+    await wait(20);
+    assert.equal(tabA.state(), 'error', 'Voraussetzung: A brachte es nicht hoch');
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111'], 'B hat es hochgebracht');
+    assert.equal(tabB.state(), 'synced');
+    assert.ok(seenB.filter(([st]) => st === 'synced').every(([, rows]) => rows === '' || rows === 'aaaa1111'));
+    assert.deepEqual(seenB.at(-1), ['synced', 'aaaa1111'], '„gespeichert" erst, als es beim Server lag');
+  });
+
+  test('zwei Tabs schaukeln sich ueber storage-Ereignisse nicht auf', async (t) => {
+    // Jeder Abgleich schreibt den Spiegel, jeder Schreibvorgang weckt den
+    // anderen Tab. Wie im Browser: Ereignis nur bei geaendertem Wert, nur im
+    // ANDEREN Tab, asynchron. Nach dem Speichern muss Ruhe einkehren.
+    const raw = new Map();
+    const hoerer = { A: null, B: null };
+    let offen = true; // am Ende schliessen beide Tabs, sonst hielte ein Aufschaukeln den Lauf am Leben
+    const speicher = (ich) => ({
+      getItem: (k) => (raw.has(k) ? raw.get(k) : null),
+      setItem(k, v) {
+        v = String(v);
+        if (raw.get(k) === v) return;
+        raw.set(k, v);
+        const anderer = hoerer[ich === 'A' ? 'B' : 'A'];
+        if (anderer) setTimeout(() => { if (offen) anderer({ key: k }); }, 0);
+      },
+    });
+    const srv = server();
+    let anfragen = 0;
+    const sess = { user: { id: UID } };
+    const account = { peek: () => sess, session: async () => sess, rest: (_sess, ...a) => { anfragen++; return srv.rest(...a); } };
+    const win = (ich) => ({ addEventListener(typ, f) { if (typ === 'storage') hoerer[ich] = f; } });
+    const tabA = accountStore({ storage: speicher('A'), account, onChange() {}, win: win('A') });
+    const tabB = accountStore({ storage: speicher('B'), account, onChange() {}, win: win('B') });
+    try {
+      await tabA.sync();
+      await tabB.sync();
+      tabA.store.save(lay('aaaa1111', 'Eins'));
+      await wait(1500);
+      const nachEinsPunktFuenf = anfragen;
+      await wait(900);
+      t.diagnostic(`${anfragen} Anfragen fuer Anmelden zweier Tabs und eine Speicherung`);
+      assert.equal(anfragen, nachEinsPunktFuenf, `nach dem Speichern laufen weiter Abgleiche (${anfragen} Anfragen)`);
+      assert.ok(anfragen <= 8, `zu viele Anfragen fuer eine Speicherung: ${anfragen}`);
+      assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+      assert.equal(tabA.state(), 'synced');
+      assert.equal(tabB.state(), 'synced');
+    } finally {
+      offen = false;
+    }
+  });
+
+  test('ein Abgleich ohne eigene Aenderung laesst „gespeichert" stehen', async () => {
+    // Gegenstueck: der Abgleich beim Zurueckkehren in den Tab holt nur fremde
+    // Aenderungen. Was dieser Browser hatte, liegt schon im Konto; ein
+    // „Synchronisiere…" bei jedem Tab-Wechsel waere Flackern ohne Inhalt.
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    let halten = false;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'GET' && halten) { halten = false; await new Promise((r) => { hold = r; }); }
+      return srv.rest(method, ...a);
+    };
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    acct.store.save(lay('aaaa1111', 'Alt'));
+    await wait(450); // die Frist stoesst den Abgleich an
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111'], 'Voraussetzung');
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+    halten = true;
+    const lauf = acct.sync();
+    await wait(10);
+    assert.equal(typeof hold, 'function', 'Voraussetzung: der Abgleich laeuft');
+    assert.equal(acct.state(), 'synced');
+    hold();
+    await lauf;
+    assert.equal(acct.state(), 'synced');
+  });
 });
