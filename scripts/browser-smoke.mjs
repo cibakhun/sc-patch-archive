@@ -685,7 +685,18 @@ async function probeCraftingSync(page) {
         await p.locator('#cdb-planner-open').click({ timeout: 15000 });
         await p.waitForTimeout(400);
         const anzeigen = await p.evaluate(() => [...document.querySelectorAll('.cdb-sync')].map((h) => {
-          const zu = (el) => !!el && el.getClientRects().length > 0 && el.checkVisibility({ visibilityProperty: true, opacityProperty: true });
+          // checkVisibility gibt es erst ab Chrome 105 (die Optionsnamen ab
+          // 121, davor checkVisibilityCSS/checkOpacity); ohne es entscheidet
+          // der berechnete Stil des Elements und seiner Vorfahren.
+          const zu = (el) => {
+            if (!el || el.getClientRects().length === 0) return false;
+            if (typeof el.checkVisibility === 'function') {
+              return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
+            }
+            if (getComputedStyle(el).visibility === 'hidden') return false;
+            for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).opacity === '0') return false;
+            return true;
+          };
           return {
             wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
             state: h.dataset.state,

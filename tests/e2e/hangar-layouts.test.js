@@ -471,4 +471,72 @@ describe('Werkstatt: Ablage im Konto', () => {
       '„gespeichert" erst, als beide Layouts beim Server lagen');
     assert.equal(acct.state(), 'synced');
   });
+
+  test('solange das Gespeicherte noch unterwegs ist, sagt die Anzeige nicht „gespeichert"', async () => {
+    // cubic zu PR #310: zwischen dem Ablauf der 400-ms-Frist und der Antwort
+    // des Servers lag die Aenderung weder im Zeitgeber noch in `again`, und
+    // state() gab den VORIGEN Erfolg zurueck. Jede Neuzeichnung in diesem
+    // Fenster sagte „In deinem Konto gespeichert" ueber ein Layout, dessen
+    // Upsert noch lief (und scheitern konnte).
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    let halten = false;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'POST' && halten) { halten = false; await new Promise((r) => { hold = r; }); }
+      return srv.rest(method, ...a);
+    };
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    await acct.sync();
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+
+    halten = true;
+    acct.store.save(lay('aaaa1111', 'Neu'));
+    await wait(450); // die Frist ist um, der Upsert haengt
+    assert.equal(typeof hold, 'function', 'Voraussetzung: der Upsert laeuft');
+    assert.equal(srv.rows.size, 0, 'Voraussetzung: noch nichts angekommen');
+    assert.equal(acct.state(), 'pending', 'nicht „gespeichert", solange der Upsert laeuft');
+
+    srv.setFail(true); // und er scheitert
+    hold();
+    await wait(10);
+    assert.equal(acct.state(), 'error');
+
+    srv.setFail(false);
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('ein Abgleich ohne eigene Aenderung laesst „gespeichert" stehen', async () => {
+    // Gegenstueck: der Abgleich beim Zurueckkehren in den Tab holt nur fremde
+    // Aenderungen. Was dieser Browser hatte, liegt schon im Konto; ein
+    // „Synchronisiere…" bei jedem Tab-Wechsel waere Flackern ohne Inhalt.
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    let halten = false;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'GET' && halten) { halten = false; await new Promise((r) => { hold = r; }); }
+      return srv.rest(method, ...a);
+    };
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    acct.store.save(lay('aaaa1111', 'Alt'));
+    await wait(450); // die Frist stoesst den Abgleich an
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111'], 'Voraussetzung');
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+    halten = true;
+    const lauf = acct.sync();
+    await wait(10);
+    assert.equal(typeof hold, 'function', 'Voraussetzung: der Abgleich laeuft');
+    assert.equal(acct.state(), 'synced');
+    hold();
+    await lauf;
+    assert.equal(acct.state(), 'synced');
+  });
 });

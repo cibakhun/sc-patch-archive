@@ -106,6 +106,7 @@ test('kein Stilblatt zeichnet ein [hidden]-Element mit eigenem !important, auße
   const offen = funde.filter((f) => !AUSNAHMEN.some((a) => a.datei === f.datei && a.selektor === f.selektor));
   assert.deepEqual(offen, [], 'ein Element mit hidden-Attribut bleibt dort sichtbar: als Ausnahme mit Anlass eintragen oder die Regel lassen');
   for (const a of AUSNAHMEN) {
-    assert.ok(funde.some((f) => f.datei === a.datei && f.selektor === a.selektor), `Ausnahme ohne Anlass (Zombie): ${a.datei} ${a.selektor} — Zeile entfernen`);
+    assert.ok(typeof a.anlass === 'string' && a.anlass.trim().length >= 20, `Ausnahme ohne Anlass: ${a.datei} ${a.selektor} — jede Ausnahme nennt, wozu sie da ist`);
+    assert.ok(funde.some((f) => f.datei === a.datei && f.selektor === a.selektor), `Ausnahme ohne Befund (Zombie): ${a.datei} ${a.selektor} — die Regel ist weg, Zeile entfernen`);
   }
 });

@@ -505,10 +505,18 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
   let last = null; // Ergebnis des letzten Abgleichs dieses Kontos
   let lastUid = null;
   let timer = 0;
+  // Aenderungen dieses Browsers, gezaehlt; `bestaetigt` = so viele hat ein
+  // gelungener Abgleich mitgenommen. Was dazwischen liegt, ist noch unterwegs
+  // (Frist, wartender oder LAUFENDER Abgleich) und nicht „gespeichert".
+  let aenderungen = 0;
+  let bestaetigt = 0;
   const run = async () => {
     const a = acct();
     const id = uid();
     if (!a || !id) return null;
+    // Vor dem Lesen der Ablage gezaehlt: was danach kommt, nimmt dieser Lauf
+    // vielleicht mit, zaehlt aber erst beim naechsten (lieber zu lange offen).
+    const bis = aenderungen;
     const sess = await a.session();
     if (!sessionUid(sess) || sessionUid(sess) !== id) {
       // Die gespeicherte Sitzung gehoert noch diesem Konto, ist aber gerade
@@ -527,6 +535,7 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
     const res = await syncLayouts({ storage, uid: id, rest: (method, path, body, prefer) => a.rest(sess, method, path, body, prefer) });
     last = res.ok;
     lastUid = id;
+    if (res.ok) bestaetigt = Math.max(bestaetigt, bis);
     onChange();
     return res;
   };
@@ -549,22 +558,28 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
     return running;
   };
   function touched() {
+    aenderungen++;
     clearTimeout(timer);
     timer = 0;
     if (uid()) timer = setTimeout(() => { timer = 0; sync(); }, 400);
   }
   /**
    * 'guest' | 'synced' (letzter Abgleich ok und seither nichts offen)
-   * | 'pending' (angemeldet, Abgleich laeuft oder steht aus) | 'error'.
+   * | 'pending' (angemeldet, eine Aenderung ist noch unterwegs) | 'error'.
    * `again`: waehrend des laufenden Abgleichs wurde gespeichert, und was
    * danach kam, nimmt erst der naechste mit. Bis der durch ist, ist das
    * Konto nicht auf dem Stand, auch wenn der laufende gelang.
+   * `bestaetigt < aenderungen` ohne Frist und ohne `again`: der Abgleich mit
+   * der Aenderung laeuft gerade. Ein Abgleich OHNE eigene Aenderung (Tab
+   * kehrt zurueck) laesst „gespeichert" stehen: was dieser Browser hatte,
+   * liegt schon im Konto; scheitert er, zeigt die Anzeige „error".
    */
   const state = () => {
     const id = uid();
     if (!id) return 'guest';
     if (lastUid !== id || last === null || timer || again) return 'pending';
-    return last ? 'synced' : 'error';
+    if (!last) return 'error';
+    return bestaetigt < aenderungen ? 'pending' : 'synced';
   };
   return { store, signedIn: () => !!uid(), state, sync, touched };
 }
