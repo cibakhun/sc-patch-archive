@@ -138,19 +138,26 @@ function boot(lang, plan) {
   doc.createElement = (t) => new El(t);
   doc.activeElement = null;
   const n = netz(plan);
+  // Eigene Uhr statt der echten (Review #312): die Sperrfrist fuer den
+  // Neuversuch beim Tippen (RETRY_MS) haengt an Date.now(). Mit der echten
+  // Uhr loeste ein CI-Rechner, der zwischen Oeffnen und Tippen laenger als
+  // 2,5 s haengt, den Neuversuch selbst aus, und der Fehlertest saehe
+  // Treffer statt der Fehlerzeile. Die Uhr steht, bis ein Test sie stellt.
+  const uhr = { t: 1_000_000 };
   const win = {
     document: doc,
     fetch: n.fetch,
     requestAnimationFrame: (fn) => setTimeout(fn, 0),
     location: { href: '' },
-    setTimeout, clearTimeout, Date,
+    setTimeout, clearTimeout,
+    Date: { now: () => uhr.t },
   };
   win.window = win;
   vm.runInContext(CODE, vm.createContext(win));
   assert.equal(typeof win.__scsOpen, 'function', 'das Skript hat sich nicht angemeldet');
   const tippe = (s) => { input.value = s; input.fire('input'); };
   const zeilen = () => list.children.map((c) => c.className);
-  return { win, root, input, list, n, tippe, zeilen, rd: searchRootData(lang) };
+  return { win, root, input, list, n, uhr, tippe, zeilen, rd: searchRootData(lang) };
 }
 
 for (const lang of ['de', 'en']) {
@@ -228,10 +235,6 @@ for (const lang of ['de', 'en']) {
 
     test('Tippen holt einen gescheiterten Teil von selbst neu, aber nicht je Buchstabe', async () => {
       const s = boot(lang, { more: ['tor', 'ok'] });
-      let jetzt = Date.now();
-      // Das Skript liest Date erst beim Aufruf aus seinem Kontext; die Uhr
-      // dort laesst sich deshalb nachtraeglich stellen.
-      s.win.Date = { now: () => jetzt };
       s.win.__scsOpen();
       await flush();
       s.tippe('P');
@@ -239,7 +242,7 @@ for (const lang of ['de', 'en']) {
       s.tippe('Pan');
       await flush();
       assert.equal(s.n.abrufe.filter((u) => /more/.test(u)).length, 1, 'innerhalb der Sperrfrist kein neuer Abruf');
-      jetzt += 3000;
+      s.uhr.t += 3000;
       s.tippe('Panther');
       await flush();
       assert.equal(s.n.abrufe.filter((u) => /more/.test(u)).length, 2, 'nach der Sperrfrist genau ein neuer Abruf');

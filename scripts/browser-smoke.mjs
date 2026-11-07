@@ -300,8 +300,10 @@ async function probeSuche(page) {
   if (desktop) return desktop;
 
   // Eigener Kontext fuer das Telefon: isMobile/hasTouch lassen sich an einem
-  // bestehenden nicht umstellen. Tor-Kopfzeile und Fremdhost-Sperre wie im
-  // Hauptlauf.
+  // bestehenden nicht umstellen. Tor-Kopfzeile, Fremdhost-Sperre und die
+  // Grundpruefungen [1]-[3] von pruefe() (JS-Ausnahme, eigene Ressource
+  // >= 400, CSP) wie im Hauptlauf (Review #312): sonst ginge ein Fehler, der
+  // nur auf Touch auftritt, durch, solange die Suche selbst noch findet.
   const kontext = await page.context().browser().newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 1,
@@ -314,10 +316,28 @@ async function probeSuche(page) {
   await kontext.route('**/*', (route) => {
     route.request().url().startsWith(BASE) ? route.continue() : route.abort();
   });
+  await kontext.addInitScript(() => {
+    window.__cspVerstoesse = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+      window.__cspVerstoesse.push(`${e.violatedDirective} ${e.blockedURI || ''}`.trim());
+    });
+  });
   try {
     const p = await kontext.newPage();
+    const befunde = [];
+    p.on('pageerror', (e) => befunde.push(`JS-Ausnahme: ${e.message.split('\n')[0]}`));
+    p.on('response', (r) => {
+      if (r.url().startsWith(BASE) && r.status() >= 400) befunde.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+    });
     await p.goto(page.url(), { waitUntil: 'load', timeout: 60000 });
-    return await pruefen(p, true);
+    const such = await pruefen(p, true);
+    if (such) return such;
+    // Der Zaehl-Host folgt seiner eigenen, artefakt-abhaengigen Regel in
+    // pruefe() [3] und wird dort schon fuer diese Seite beurteilt.
+    const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []))].filter((v) => !ZAEHLER_HOST.test(v));
+    if (csp.length) befunde.push(`CSP-Verstoss: ${csp.slice(0, 3).join(', ')}`);
+    if (befunde.length) return `Telefon: ${befunde.slice(0, 3).join(' | ')}`;
+    return null;
   } finally {
     await kontext.close();
   }
