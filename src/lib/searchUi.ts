@@ -28,6 +28,13 @@ export function searchRootData(lang: Locale): Record<string, string> {
     'data-empty-title': t('search.empty.title'),
     'data-empty-query': t('search.empty.query'),
     'data-empty-hint': t('search.empty.hint'),
+    // Statuszeilen (07.11.2026): Laden und Scheitern der Index-Teile.
+    'data-loading': t('search.loading'),
+    'data-loading-more': t('search.loadingMore'),
+    'data-failed-title': t('search.failed.title'),
+    'data-failed-hint': t('search.failed.hint'),
+    'data-failed-more': t('search.failed.more'),
+    'data-retry': t('search.retry'),
   };
   for (const k of SEARCH_KINDS) out[`data-k-${k}`] = t(`search.kind.${k}` as Parameters<typeof t>[0]);
   return out;

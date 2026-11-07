@@ -101,7 +101,7 @@ if (!BROWSER) {
    Kopfleisten-Element: die Kopfleiste steht auch auf einer Seite, deren
    Inhalt gar nicht geladen hat. */
 const SEITEN = [
-  { id: 'start', en: '/', de: '/de.html', leit: 'main', schwer: true },
+  { id: 'start', en: '/', de: '/de.html', leit: 'main', schwer: true, probe: probeSuche },
   {
     id: 'item-finder', en: '/item-finder.html', de: '/de/item-finder.html',
     leit: '#uif-search-input', schwer: true, probe: probeItemFinder,
@@ -253,6 +253,74 @@ async function probeSchiffe(page) {
   if (nachher >= vorher) return `Rollenfilter "${wahl}" senkte die Trefferzahl nicht (${vorher} -> ${nachher})`;
   if (nachher === 0) return `Rollenfilter "${wahl}" liess 0 Schiffe uebrig`;
   return null;
+}
+
+/* Die Suche (Strg+K) von der Startseite aus, zweimal: am Desktop und auf
+   einem Telefon mit Touch (isMobile setzt hover:none + pointer:coarse).
+   Anlass 07.11.2026: Krisz tippte am iPhone auf staging "Panther" und sah
+   nur einen leeren Streifen und Tastenhinweise (Pfeile, Enter, Esc), die es
+   dort nicht gibt. "Panther" steht nur im ZWEITEN Index-Teil (Items) — ein
+   Treffer der Art Item belegt, dass beide Teile durch die echte Auslieferung
+   (nginx, CSP, Tor) ankommen und durchsucht werden. Auf Touch muessen die
+   Fusszeile mit den Tastenhinweisen weg sein und der Schliessen-Knopf ein
+   Wort statt "Esc" zeigen; am Desktop bleibt beides. Wie die Liste Laden und Scheitern zeigt,
+   prueft tests/e2e/suche-status.test.js. */
+async function probeSuche(page) {
+  const WORT = 'Panther';
+  const pruefen = async (p, touch) => {
+    const wo = touch ? 'Telefon' : 'Desktop';
+    await (touch ? p.tap('.hero__search') : p.click('.hero__search'));
+    await p.locator('#scs-in').fill(WORT);
+    const item = p.locator('#scs-list .scs__hit--item');
+    await item.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+    if (!(await item.count())) {
+      const liste = ((await p.locator('#scs-list').innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+      return `${wo}: Suche "${WORT}" zeigte keinen Item-Treffer (Liste: "${liste.slice(0, 120) || 'leer'}")`;
+    }
+    const fuss = await p.locator('.scs__foot').isVisible();
+    if (touch && fuss) return `${wo}: Tastenhinweise (↑↓ ↵ Esc) stehen auf einem Touch-Geraet`;
+    if (!touch && !fuss) return `${wo}: Tastenhinweise der Suche fehlen`;
+    const x = p.locator('.scs__x');
+    const kasten = await x.boundingBox();
+    if (!kasten) return `${wo}: Schliessen-Knopf der Suche nicht sichtbar`;
+    // Sichtbarer Text (innerText laesst display:none weg): "Esc" nur mit
+    // Tastatur, auf Touch das Wort fuer Schliessen.
+    const aufschrift = ((await x.innerText().catch(() => '')) || '').trim();
+    if (touch) {
+      if (!aufschrift || /\besc\b/i.test(aufschrift)) return `${wo}: Schliessen-Knopf zeigt "${aufschrift}" statt eines Worts fuer Schliessen`;
+      if (kasten.width < 44 || kasten.height < 44)
+        return `${wo}: Schliessen-Knopf nur ${Math.round(kasten.width)}x${Math.round(kasten.height)} px (Ziel 44x44)`;
+    } else if (!/^esc$/i.test(aufschrift)) return `${wo}: Schliessen-Knopf zeigt "${aufschrift}" statt "Esc"`;
+    await (touch ? x.tap() : x.click());
+    if (!(await p.locator('#scs').isHidden())) return `${wo}: Suche schliesst nicht ueber den Knopf`;
+    return null;
+  };
+
+  const desktop = await pruefen(page, false);
+  if (desktop) return desktop;
+
+  // Eigener Kontext fuer das Telefon: isMobile/hasTouch lassen sich an einem
+  // bestehenden nicht umstellen. Tor-Kopfzeile und Fremdhost-Sperre wie im
+  // Hauptlauf.
+  const kontext = await page.context().browser().newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1,
+    isMobile: true,
+    hasTouch: true,
+    colorScheme: 'dark',
+    ignoreHTTPSErrors: true,
+    extraHTTPHeaders: GATE_BYPASS_HEADERS,
+  });
+  await kontext.route('**/*', (route) => {
+    route.request().url().startsWith(BASE) ? route.continue() : route.abort();
+  });
+  try {
+    const p = await kontext.newPage();
+    await p.goto(page.url(), { waitUntil: 'load', timeout: 60000 });
+    return await pruefen(p, true);
+  } finally {
+    await kontext.close();
+  }
 }
 
 /* Der Hangar: der tiefe Link landet im Waffen-Tab mit offener Zeile und
