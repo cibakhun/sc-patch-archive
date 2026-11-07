@@ -415,4 +415,60 @@ describe('Werkstatt: Ablage im Konto', () => {
     sess = null;
     assert.deepEqual(acct.store.list().map((e) => e.name), ['Gast']);
   });
+  // Die Anzeige „In deinem Konto gespeichert" (Werkstatt, Kontoseite) liest
+  // state(). Sie darf es nur sagen, wenn der letzte Abgleich jede Aenderung
+  // mitnahm (Pruefung der Konto-Anzeigen, 07.11.2026).
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  test('ist die Sitzung gerade nicht nutzbar, meldet der Abgleich keinen Kontostand, der nicht stimmt', async () => {
+    const mem = memory();
+    const srv = server();
+    let usable = true;
+    const sess = { user: { id: UID } };
+    const seen = [];
+    const account = { peek: () => sess, session: async () => (usable ? sess : null), rest: (_sess, ...a) => srv.rest(...a) };
+    const acct = accountStore({ storage: mem, account, onChange() { seen.push(acct.state()); }, win: {} });
+    await acct.sync();
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+
+    usable = false; // Refresh scheitert an 5xx oder am Netz, die Sitzung bleibt gespeichert
+    acct.store.save(lay('aaaa1111', 'Neu'));
+    assert.equal(acct.state(), 'pending');
+    await wait(450);
+    await acct.sync();
+    assert.equal(srv.rows.size, 0, 'Voraussetzung: nichts kam an');
+    assert.equal(acct.state(), 'error', 'nicht „gespeichert": das Layout liegt nur in diesem Browser');
+    assert.equal(seen.at(-1), 'error', 'die Seite malt die Anzeige neu');
+
+    usable = true;
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('wer speichert, waehrend ein Abgleich laeuft, sieht erst „gespeichert", wenn auch sein Layout angekommen ist', async () => {
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'POST' && !hold) await new Promise((r) => { hold = r; });
+      return srv.rest(method, ...a);
+    };
+    const seen = [];
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() { seen.push([acct.state(), [...srv.rows.keys()].sort().join()]); }, win: {} });
+    acct.store.save(lay('aaaa1111', 'Erstes'));
+    const first = acct.sync(); // der Upsert von aaaa1111 haengt
+    await wait(10);
+    acct.store.save(lay('bbbb2222', 'Zweites'));
+    await wait(450); // touched() stoesst den naechsten Abgleich an, er wartet auf den laufenden
+    hold();
+    await first;
+    await wait(10);
+    assert.deepEqual(srv.rows.has('bbbb2222'), true, 'Voraussetzung: der zweite Lauf brachte es');
+    assert.deepEqual(seen.filter(([st]) => st === 'synced').map(([, rows]) => rows), ['aaaa1111,bbbb2222'],
+      '„gespeichert" erst, als beide Layouts beim Server lagen');
+    assert.equal(acct.state(), 'synced');
+  });
 });

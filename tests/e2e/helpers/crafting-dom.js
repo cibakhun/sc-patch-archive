@@ -49,6 +49,7 @@ export const BLUEPRINTS = [
 const STRINGS = {
   owned: 'Owned', addPlan: 'Add to planner',
   syncLocal: 'This device only', syncBusy: 'Syncing…', syncOn: 'Synced to your account', syncErr: 'Not saved',
+  syncStale: 'Not synced',
   syncMerged: '{n} local entries moved into your account.',
 };
 
