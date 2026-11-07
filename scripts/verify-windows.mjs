@@ -52,6 +52,10 @@ console.log(`Datei: ${LEDGER}   ${raw.length} Zeichen, ${raw.split('\n').length}
 const require = createRequire(import.meta.url);
 const KANDIDATEN = [
   join(homedir(), '.claude', 'gsd-core', 'bin', 'lib', 'broken-windows.cjs'),
+  // Ohne GSD unter ~/.claude bleibt das globale npm-Paket, das auch `gsd-tools` stellt.
+  ...(process.env.APPDATA
+    ? [join(process.env.APPDATA, 'npm', 'node_modules', '@opengsd', 'gsd-core', 'gsd-core', 'bin', 'lib', 'broken-windows.cjs')]
+    : []),
 ];
 const parserPfad = KANDIDATEN.find((p) => existsSync(p));
 
@@ -62,6 +66,7 @@ if (parserPfad) {
     const led = bw.parseLedger(raw);
     eintraege = led.entries.length;
     console.log(`\n[1] gsd-cores eigener Parser`);
+    console.log(`    Fundort: ${parserPfad}`);
     console.log(`    parseLedger() gelesen — Soll: ohne Ausnahme   Ist: ${eintraege} Eintraege`);
     const kinds = [...new Set(led.entries.map((e) => e.kind))].sort();
     console.log(`    verwendete kind-Werte: ${kinds.join(', ')}`);
