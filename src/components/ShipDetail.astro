@@ -13,6 +13,9 @@ import SiteNav from './SiteNav.astro';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import vehiclesSnapshot from '../data/vehicles.json';
+import vehicleExternal from '../data/vehicle-external.json';
+import Datenstand from './Datenstand.astro';
+import { standSchiff } from '../lib/datenstand';
 import { buildArmament, buildArmStats, crewFmt } from '../lib/shipFacts';
 import { buildVisuals } from '../lib/shipVisuals';
 import { jsonForScript } from '../lib/safeJson';
@@ -26,7 +29,8 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { patchesFor } from '../lib/patchSpine';
-import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { mergePatchEn } from '../i18n/patchText';
+import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
@@ -37,6 +41,8 @@ import manufacturerLogos from '../data/manufacturer-logos.json';
 import { itemInfo } from '../lib/holoItems';
 import { HOLO_GRP_ICON, HOLO_ICON } from '../lib/holoIcons';
 import { versioned } from '../lib/assetVersion';
+import { itemForPart } from '../lib/itemLinks';
+import { itemPath } from '../lib/items';
 import { fanOut, hullBox, toGltf, type Cry, type Vec3 } from '../lib/hangar/ports';
 
 interface Props {
@@ -45,14 +51,31 @@ interface Props {
   similar: SimilarShip[];
   profile: ProfileBar[];
   viz: Visuals;
-  lang?: Locale;
+  lang: Locale;
   /** DE↔EN-Gegenstück existiert -> hreflang ausgeben */
   hasEn?: boolean;
 }
-const { d, id, similar, profile, viz, lang = DEFAULT_LOCALE, hasEn = false } = Astro.props;
+const { d, id, similar, profile, viz, hasEn = false } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'ShipDetail');
+// Pledge-Preis, Masse, Crew max. und Status stehen in keiner Spieldatei; sie
+// kommen aus dem eingefrorenen Wiki-Schnappschuss (vehicle-external.json). Der
+// Datenstand am Seitenende nennt ihn mit seinem eigenen Datum und als
+// aelteren Stand (src/lib/datenstand.ts, Bestandsaufnahme C 06.11.2026) —
+// aber nur, wenn die Seite einen dieser Werte auch zeigt.
+const wikiEintrag =
+  (vehicleExternal.vehicles as Record<string, object>)[d.id] ??
+  (vehicleExternal.overrides as Record<string, object>)[d.id];
+const zeigtWiki = !!wikiEintrag && [d.msrpUSD, d.lengthM, d.crewMax, d.statusDe, d.statusEn].some((x) => x != null);
 
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
+// Waffen und Bauteile verlinken auf ihr Item-Datenblatt, wenn Name + Groesse
+// genau eine Seite treffen (src/lib/itemLinks.ts). Sonst bleibt der Name Text.
+const partHref = (name: string | null | undefined, size: number | null | undefined): string | null => {
+  const it = itemForPart(name, size);
+  return it ? L(itemPath(it)) : null;
+};
 const loc = lang === 'en' ? 'en-US' : 'de-DE';
 
 const hero = pickHero(d);
@@ -82,14 +105,6 @@ const MAX_ROWS = 6;
 
 const extras: ShipExtras = extrasInfo(id);
 
-// Anzeigeform der Spielversion: aus "sc-alpha-4.9.0@12326004" wird "Alpha 4.9.0".
-// `split('-')[0]` stand hier vorher und ergab das nichtssagende "sc" — das fiel
-// nur niemandem auf, solange davor noch ein Wort stand.
-const alphaLabelOf = (v) => {
-  const m = /alpha-([\d.]+)/i.exec(v ?? '');
-  return m ? `Alpha ${m[1]}` : null;
-};
-const shipAlphaLabel = alphaLabelOf(d.gameVersion);
 const holoUrl = extras?.holo ?? null;
 const paints = extras?.paints ?? [];
 const variants = (extras?.variants ?? []).filter((v) => v.id !== id);
@@ -97,9 +112,12 @@ const loaners = (extras?.loaners ?? []).filter((v) => v.id !== id);
 
 // patch-spine: version -> codename/page (zur Bauzeit aus src/data/patches/, src/lib/patchSpine.ts)
 const patches = await getCollection('patches');
+// In der Sprache der Seite (Codename und Datum): bis 04.11.2026 stand hier
+// auf den englischen Schiffsseiten "9. Oktober 2026" (verify:sprache Regel 8).
 const spine = patchesFor(d.name)
   .map((v) => patches.find((p) => p.data.version === v))
-  .filter(Boolean);
+  .filter(Boolean)
+  .map((p) => ({ id: p!.id, data: mergePatchEn(p!.id, p!.data, lang) }));
 
 const armament = buildArmament(d, lang);
 const armStats = buildArmStats(d, lang);
@@ -133,7 +151,7 @@ const slots: [string, { name: string; size: number | null; count: number }[]][] 
    NUR fuer Masse und Tempo: 0 SCU Fracht ist bei 124 Fahrzeugen ECHT (ein
    Jaeger hat keinen Frachtraum) und bleibt deshalb unangetastet. */
 const dims = [d.lengthM, d.widthM, d.heightM].every((x) => x != null && x > 0)
-  ? `${t('ship.abbr.l')} ${d.lengthM} m · ${t('ship.abbr.w')} ${d.widthM} m · ${t('ship.abbr.h')} ${d.heightM} m`
+  ? `${t('ship.abbr.l')} ${Number(d.lengthM).toLocaleString(loc)} m · ${t('ship.abbr.w')} ${Number(d.widthM).toLocaleString(loc)} m · ${t('ship.abbr.h')} ${Number(d.heightM).toLocaleString(loc)} m`
   : null;
 const stageStats: { label: string; value: string }[] = [
   // 0 m ist kein Schiff — siehe Begruendung an `dims` oben.
@@ -562,6 +580,7 @@ const cgOf = (gid: string) => CONTENT_GROUPS_SOURCE.find((g) => g.id === gid)!;
   description={metaDesc}
   themeColor="#05070d"
   footer={true}
+  footerSources={[]}
   translated={hasEn}
   ogImage={hero?.src}
   itemPage={{ modified: vehiclesSnapshot.fetchedAt }}
@@ -1827,6 +1846,10 @@ span.sd__ref{color:var(--muted)}
 .arm__grp--g .arm__size::before{background:linear-gradient(90deg,color-mix(in srgb,var(--gold) 20%,transparent),color-mix(in srgb,var(--gold) 45%,transparent))}
 .arm__grp--g .arm__size em{color:var(--gold)}
 .arm__name{min-width:0;font-size:var(--fs-10);color:var(--text)}
+/* Teile mit Item-Datenblatt (src/lib/itemLinks.ts): dezent unterstrichen, damit
+   die Liste ruhig bleibt und trotzdem sichtbar ist, was weiterfuehrt. */
+.arm__name a,.sd__slot .n a{color:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent);text-underline-offset:3px;text-decoration-thickness:1px}
+.arm__name a:hover,.sd__slot .n a:hover{color:var(--accent);text-decoration-color:var(--accent)}
 .arm__anon{color:var(--muted)}
 .arm__bdg{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
   color:var(--muted);white-space:nowrap}
@@ -1908,9 +1931,6 @@ span.sd__ref{color:var(--muted)}
 .sd__links a{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
   border:1px solid var(--line);padding:.45rem .9rem;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .sd__links a:hover{border-color:var(--accent);color:var(--accent)}
-.sd__src{margin-top:1.4rem;font-size:var(--fs-7);color:var(--muted)}
-.sd__src a{text-decoration:underline}
-.sd__src a:hover{color:var(--accent)}
 
 /* Die generische Gauge-Bauform (Zeile, Spur, Fuellung, Wert — Praefix
    sd__g-*) samt ihrer 640px-Medienabfrage ist mit Task 2 dieser Phase
@@ -2048,7 +2068,7 @@ span.sd__ref{color:var(--muted)}
     id="holo"
     data-media-surface
     aria-label={`${d.name} — Visual`}
-    style={d.lengthM > 0 && d.heightM > 0
+    style={d.lengthM != null && d.heightM != null && d.lengthM > 0 && d.heightM > 0
       ? `--holo-ar:${Math.min(2.20, Math.max(1.55, (d.lengthM / d.heightM) * 0.49)).toFixed(2)}`
       : undefined}
   >
@@ -2260,9 +2280,9 @@ span.sd__ref{color:var(--muted)}
           .holo__grid/.holo__pad oben, hier per Bildpunkt-Audit ergaenzt). */}
       {stageModeCount > 1 && (
         <div class="holo__toggle" role="group" aria-label={t('ship.view.switch')}>
-          {hasVideo && <button type="button" id="btnvid" aria-pressed={String(defaultMode === 'video')}>{t('ship.view.video')}</button>}
-          {hasGallery && <button type="button" id="btnimg" aria-pressed={String(defaultMode === 'img')}>{t('ship.view.img')}</button>}
-          {holoAvail && <button type="button" id="btn3d" aria-pressed={String(defaultMode === 'holo')}>{t('ship.view.3d')}</button>}
+          {hasVideo && <button type="button" id="btnvid" aria-pressed={defaultMode === 'video' ? 'true' : 'false'}>{t('ship.view.video')}</button>}
+          {hasGallery && <button type="button" id="btnimg" aria-pressed={defaultMode === 'img' ? 'true' : 'false'}>{t('ship.view.img')}</button>}
+          {holoAvail && <button type="button" id="btn3d" aria-pressed={defaultMode === 'holo' ? 'true' : 'false'}>{t('ship.view.3d')}</button>}
         </div>
       )}
     </div>
@@ -2377,7 +2397,11 @@ span.sd__ref{color:var(--muted)}
                             <span class="arm__size arm__size--n"><em>?</em></span>
                           )}
                           <span class="arm__name">
-                            {l.name ?? <span class="arm__anon">{t('arm.weapon')}</span>}
+                            {l.name
+                              ? (partHref(l.name, l.size)
+                                  ? <a href={partHref(l.name, l.size)}>{l.name}</a>
+                                  : l.name)
+                              : <span class="arm__anon">{t('arm.weapon')}</span>}
                           </span>
                           {l.mount != null && l.size != null && (
                             l.mount > l.size ? (
@@ -2425,7 +2449,7 @@ span.sd__ref{color:var(--muted)}
                       {it.count > 1 && <span class="sd__hpmore">×{it.count}</span>}
                     </span>
                   </div>
-                  <div class="n">{it.name}</div>
+                  <div class="n">{partHref(it.name, it.size) ? <a href={partHref(it.name, it.size)}>{it.name}</a> : it.name}</div>
                 </div>
               ))
             )}
@@ -2483,7 +2507,7 @@ span.sd__ref{color:var(--muted)}
               <>
                 <div class="sd__glabel">{t('ship.dims.top')}</div>
                 <div class="sd__footbox" style={`width:${viz.dims.footWidthPct}%;aspect-ratio:${viz.dims.footAspect}`} role="img"
-                  aria-label={t('ship.dims.aria').replace('%l%', String(viz.dims.l)).replace('%w%', String(viz.dims.w))}></div>
+                  aria-label={t('ship.dims.aria').replace('%l%', viz.dims.l.toLocaleString(loc)).replace('%w%', viz.dims.w.toLocaleString(loc))}></div>
                 <div class="sd__footcap">{t('ship.abbr.l')} {viz.dims.l.toLocaleString(loc)} m · {t('ship.abbr.w')} {viz.dims.w.toLocaleString(loc)} m · {t('ship.abbr.h')} {viz.dims.h.toLocaleString(loc)} m</div>
                 <!-- Die drei Masse-Balken (Laenge/Breite/Hoehe) entfallen ERSATZLOS
                      (D-02): ein Balken, der drei Groessen gegeneinanderstellt, die
@@ -2606,7 +2630,7 @@ span.sd__ref{color:var(--muted)}
       {buyMin ? (
         <>
           <div class="sd__pricehero">
-            <span class="val">{aUEC(buyMin.price)}</span>
+            <span class="val">{aUEC(buyMin.price, lang)}</span>
             <span class="at">{t('ship.buy.cheapest')} {buyMin.shop}, {buyMin.where}{buyMin.system && ` · ${buyMin.system}`}</span>
           </div>
           <div class="sd__shoprows">
@@ -2614,7 +2638,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__shoprow">
                 <span class="sd__shopname">{b.shop}</span>
                 <span class="sd__shopwhere">{b.where}{b.system && <span class={`sd__sys sys-${b.system.toLowerCase()}`}>{b.system}</span>}</span>
-                <span class="sd__shopprice">{aUEC(b.price)}</span>
+                <span class="sd__shopprice">{aUEC(b.price, lang)}</span>
               </div>
             ))}
           </div>
@@ -2626,7 +2650,7 @@ span.sd__ref{color:var(--muted)}
                   <div class="sd__shoprow">
                     <span class="sd__shopname">{b.shop}</span>
                     <span class="sd__shopwhere">{b.where}{b.system && <span class={`sd__sys sys-${b.system.toLowerCase()}`}>{b.system}</span>}</span>
-                    <span class="sd__shopprice">{aUEC(b.price)}</span>
+                    <span class="sd__shopprice">{aUEC(b.price, lang)}</span>
                   </div>
                 ))}
               </div>
@@ -2644,7 +2668,7 @@ span.sd__ref{color:var(--muted)}
               <div class="sd__shoprow">
                 <span class="sd__shopname">{r.shop}</span>
                 <span class="sd__shopwhere">{r.where}{r.system && <span class={`sd__sys sys-${r.system.toLowerCase()}`}>{r.system}</span>}</span>
-                <span class="sd__shopprice">{aUEC(r.price)} {t('ship.rent.perDay')}</span>
+                <span class="sd__shopprice">{aUEC(r.price, lang)} {t('ship.rent.perDay')}</span>
               </div>
             ))}
           </div>
@@ -2854,13 +2878,16 @@ span.sd__ref{color:var(--muted)}
       {extras?.fySlug && <a href={`https://www.fleetyards.net/ships/${extras.fySlug}`} target="_blank" rel="noopener">FleetYards ↗</a>}
     </div>
 
-    <p class="sd__src">
-      {t('ship.version')}{shipAlphaLabel && ` ${shipAlphaLabel}`}
-      · {t('ship.asof')} {vehiclesSnapshot.fetchedAt}
-      {hero?.api && ` · ${t('ship.source.image')}: ${d.image?.source ?? 'starcitizen.tools'}`}
-      {' '}· {t('ship.source.ingame')}: <a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a>
-      {extras && ` · ${t('ship.source.extras')}: `}{extras && <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a>}
-    </p>
+    <Datenstand lang={lang} innen melden zeilen={standSchiff(lang, {
+      kennung: d.gameVersion,
+      lackierungen: paints.length > 0,
+      varianten: variants.length > 0,
+      leihschiffe: loaners.length > 0,
+      // Dieselbe Rangfolge wie #holodata unten: das eigene Modell vor FleetYards.
+      huelle: holoData ? 'eigen' : holoUrl ? 'fleetyards' : null,
+      wiki: zeigtWiki,
+      bild: hero?.api ? (d.image?.source ?? 'starcitizen.tools') : null,
+    })} />
   </div>
 </main>
 

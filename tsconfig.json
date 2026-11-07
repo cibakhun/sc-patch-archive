@@ -1,5 +1,12 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  // supabase/functions sind Supabase Edge Functions und laufen unter Deno, nicht
+  // unter Node oder Astro: `Deno.*`, `jsr:`- und `npm:`-Importe gibt es in
+  // diesem Programm nicht, und tsc meldete dort 30 Fehler, die alle nur daher
+  // kamen. Ihr Typcheck gehoert in ihre eigene Laufzeit (`deno check`, braucht
+  // Netz fuer jsr/npm) und laeuft in KEINEM Tor: am 04.11.2026 einmal von Hand,
+  // ohne Befund; ein CI-Schritt dafuer ist ein offener Posten. verify:typen
+  // fuehrt diese Ausnahme mit Anlass und reisst, wenn das Verzeichnis wegfaellt.
+  "exclude": ["dist", "supabase/functions"]
 }

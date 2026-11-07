@@ -9,14 +9,15 @@ import Attribution from '../Attribution.astro';
 import { getCollection } from 'astro:content';
 import { RENDERS, stripName } from '../../lib/shipRenders';
 import makerLogos from '../../data/manufacturer-logos.json';
-import { href } from '../../i18n/ui';
+import { href, assertLocale, useTranslations } from '../../i18n/ui';
 import { versioned } from '../../lib/assetVersion';
 import { jsonForScript } from '../../lib/safeJson';
 
 interface Props {
-  lang?: 'de' | 'en';
+  lang: 'de' | 'en';
 }
-const { lang = 'en' } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'PilotPage');
 
 // slug (= vehicles-Collection-ID, so speichern die Fav-Buttons) -> Render-Daten
 // für das clientseitige Fleet-Showcase. Render-System der Schiffs-DB:
@@ -128,7 +129,7 @@ const homeHref = lang === 'de' ? '/de.html' : '/';
 :root{--bg:#05070d;--bg-2:#0a0e18;--surface:#0d1322;--surface-2:#131b30;--accent:#2dd4ff;--accent-2:#7ae2ff;--hot:#2dd4ff;--text:#e8eefc;--muted:#8a99b8;--line:rgba(45,212,255,.22);--line-soft:rgba(232,238,252,.10);--glow:0 0 46px rgba(45,212,255,.18);--ink:#04121a;--maxw:1180px;--accent-media:#2dd4ff;--accent-2-media:#7ae2ff;--font-mono:'Share Tech Mono',monospace;}
 </style>
 
-<a class="skip" href="#main">Skip to content</a>
+<a class="skip" href="#main">{useTranslations(lang)('skip.toContent')}</a>
 
 <SiteNav crumbs={[{ label: 'Pilot' }]} hasEn={true} />
 

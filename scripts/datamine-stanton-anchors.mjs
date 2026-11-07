@@ -19,7 +19,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'assets', 'stanton-anchors-gamefiles.json');
@@ -57,7 +57,8 @@ const MOON = {
   '4a': { key: 'calliope', name: 'Calliope' }, '4b': { key: 'clio', name: 'Clio' }, '4c': { key: 'euterpe', name: 'Euterpe' },
 };
 
-const p4k = openP4k(argOf('--p4k') ?? DEFAULT_P4K);
+const p4kPath = argOf('--p4k') ?? DEFAULT_P4K;
+const p4k = openP4k(p4kPath);
 const t0 = Date.now();
 const files = readSocpak(p4k.read(/objectcontainers[\\/]pu[\\/]system[\\/]stanton[\\/]stantonsystem\.socpak$/i));
 p4k.close();
@@ -91,8 +92,20 @@ for (const n of Object.keys(files)) {
   }
 }
 
+// Client-Kennung (gameVersion) — ohne sie koennen verify:datastand und
+// verify:patch-angaben die Patch-Angabe der Seite nicht pruefen; bis
+// 05.11.2026 stand dort deshalb eine ungepruefte „4.9". Fehlt
+// build_manifest.id neben der p4k, bricht der Lauf ab, statt einen
+// Datenstand ohne Kennung zu schreiben.
+const gameVersion = clientKennung(p4kPath);
+if (!gameVersion) {
+  console.error(`FEHLER: keine Client-Kennung — build_manifest.id neben ${p4kPath} fehlt oder traegt Branch/RequestedP4ChangeNum nicht.`);
+  process.exit(1);
+}
+
 const out = {
   source: 'Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/stantonsystem.socpak (OOC_* Object-Container-Platzierungen) — eigene Extraktion',
+  gameVersion,
   system: 'Stanton',
   units: 'm',
   counts: { bodies: Object.keys(bodies).length, lagrange: Object.keys(lagrange).length },

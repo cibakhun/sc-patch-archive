@@ -235,6 +235,18 @@ export const CHECKS = [
       'der Hangar steht genau im Vorschau-Bau: live keine Hangar-Seiten, -Ordner, -Modelle und -Skripte in dist/ und keine Seite, die eine Hangar-Seite verlinkt oder etwas aus /hangar/ laedt; in der Vorschau beide Sprachen, die Buchtdokumente (Klinke) und die Modelle (Klinke), und das Menue fuehrt hin; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach
+    // dem Hangar-Schalter, derselbe STAGING-Schalter am Artefakt. Liest jede
+    // Textdatei in dist/ einmal, wenige Sekunden. Kein env-Feld: kein git,
+    // kein Netz, kein Kindprozess — nur dist/ und die Ziel-Tabelle.
+    id: 'verify:supabase-ziel',
+    npm: 'verify:supabase-ziel',
+    script: 'scripts/verify-supabase-ziel.mjs',
+    rail: 'A',
+    checks:
+      'der Bau spricht genau ein Supabase-Projekt an, und zwar das seines Ziels (Vorschau-Bau "vorschau", sonst "live", Tabelle scripts/lib/supabase-ziel.mjs): dist/build.json nennt Ziel und Ref passend zur Tabelle, jede Textdatei in dist/ nennt nur dessen Host, Sitzungsschluessel und Publishable Key und keinen geheimen Schluessel, und account-lite.js, die CSP-Dateien, gate.html, ein Client-Bundle und die Datenschutzerklaerung tragen es; Klinken fuer gelesene und tragende Dateien',
+  },
+  {
     // Direkt nach den beiden Schiffstoren: dieselbe Datenfamilie, und unter
     // einer Sekunde schnell genug, dass ein gebrochener Hangar-Join vor dem
     // langen audit:site auffaellt. Kein env-Feld: kein git, kein Netz, kein
@@ -260,6 +272,28 @@ export const CHECKS = [
     script: 'scripts/verify-weapon-sizes.mjs',
     rail: 'A',
     checks: 'die Waffengroessen im Fahrzeug-Katalog stimmen mit dem Stock-Loadout ueberein — Join ueber die Item-Klasse, nie ueber den Anzeigenamen',
+  },
+  {
+    // Neuzugang 04.11.2026 — direkt nach verify:weapons, dieselbe Datei.
+    // Anlass: die Gladius Valiant stand am 29.10.2026 auf 0 kg; gefangen hat
+    // es nur die Deckungs-Klinke in verify:vehicles auf Schiene B. Bewusst
+    // KEIN Ausreisser-Test: gemessen haetten die echten Fehler der letzten
+    // Laeufe (Andromeda-Huelle, X1-Force-DPS) ihn nicht ausgeloest
+    // (z = 1,3 und -0,5), Begruendung im Skriptkopf.
+    id: 'verify:fahrzeugwerte',
+    npm: 'verify:fahrzeugwerte',
+    script: 'scripts/verify-fahrzeugwerte.mjs',
+    rail: 'A',
+    checks:
+      'im Fahrzeug-Katalog ist keine Zahl NaN oder negativ, jedes Fahrzeug hat Huelle und Masse groesser 0 (benannte Ausnahmen mit Zombie-Waechter), Piloten- und Turm-DPS sind die Summe ihrer Waffen, die Raketenzahl die Summe der Werfer und SCM nicht ueber der Hoechstgeschwindigkeit; Nullen, die Bauteile nicht erklaeren, als WARNUNG',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen eine Kopie des Katalogs mit dem
+    // Fehler vom 29.10. (Gladius Valiant 0 kg) und einem Steuerzeichen im
+    // Zahlwert (Arrow scmSpeed "2\u000030"): 2 FEHLER. Gegen den echten
+    // Katalog gruen (231 Fahrzeuge, 5.896 Zahlwerte, 572 Summen, 4 ATLS-
+    // Ausnahmen, 7 WARNUNGEN). Grenze, ehrlich vermerkt: eine doppelt
+    // gezaehlte Waffe mit mitgezaehlter DPS (X1 Force, 4.10.2-Lauf) bleibt
+    // gruen — die Summe stimmt ja; das faengt nur der Abgleich mit einer
+    // zweiten Quelle im Datenlauf.
   },
   {
     id: 'verify:help',
@@ -367,14 +401,38 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen und Zaehler-Kopien; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, jede Detailseite (Item, Blueprint, Schiff, Mission) traegt genau einen Link „Falschen Wert melden" mit data-ev-melden auf das Formular ihrer Sprache mit ihrem eigenen Pfad (?wert=) und keine andere Seite einen, und 23 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken, Ereignis-Laeufe und Melde-Links; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+    // [7] Messereignisse (Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Ereignis-Aenderung, je ein Eingriff in dist/:
+    // Ereignis-Skript auf support.html entfernt -> "laedt den Zaehler, aber
+    // nicht assets/ereignisse.js"; Liste in der Datei um ein Feld q erweitert
+    // -> "weicht vom SOLL ab" + Probe "0 gesendet, Soll 1"; p.title = ''
+    // gestrichen -> 8 Proben "Seitentitel geht mit"; data-ev-filter="typ-name"
+    // -> "steht nicht in FILTER"; isTrusted-Pruefung gestrichen -> Probe
+    // "Filter aus ?Parametern: 1 gesendet, Soll 0"; Rechner-Marken auf
+    // fracturing.html entfernt -> Klinke 102 < 104 (Klinke seit der
+    // Review-Korrektur 112).
+    // Melde-Links (C2, Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Melde-Aenderung, je ein Eingriff in dist/: Link einer
+    // Item-Seite auf den Pfad einer anderen Item-Seite -> "Melde-Link zeigt
+    // auf ..., Soll ... eigener Pfad"; data-ev-melden auf items.html -> "auf
+    // einer Seite, die keine Detailseite ist"; Ereignis in
+    // assets/ereignisse.js umbenannt (wert-meldung) -> "weicht vom SOLL ab";
+    // Detailseiten-Pruefung vor senden('wert-melden') gestrichen -> Probe
+    // "Wert melden von einer Werkzeugseite (keine Detailseite): 1
+    // Ereignis(se) gesendet, Soll 0". Danach wiederhergestellt und gruen.
   },
   {
     id: 'audit:site',
     npm: 'audit:site',
     script: 'scripts/audit-site.mjs',
     rail: 'A',
-    checks: 'Publish-Audit ueber alle gebauten Seiten: tote Links und Anker, Sprachumschalter-Ziele, Sitemap gegen Build, Platzhalter, Mojibake, A11y-Basics — und die Datenherkunfts-Regel, die es als einziges Tor traegt',
+    checks: 'Publish-Audit ueber alle gebauten Seiten: tote Links und Anker, Sprachumschalter-Ziele, Sitemap gegen Build, Platzhalter, Rohtext je Textstelle (NaN, undefined, null neben Vergleichs- und Mengenzeichen, rohe {Spielplatzhalter}, ungefuellte %schluessel%, interne Rangschluessel; Klinke fuer die Zahl der Textstellen), Platzhalterwert "-1" als ganzer Textknoten, Mojibake, A11y-Basics — und die Datenherkunfts-Regel, die es als einziges Tor traegt',
+    // Platzhalterwert "-1" (Neuzugang 04.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau von origin/staging d76478f2: 182 Missionsseiten (91 je
+    // Sprache) mit "Spieler je Instanz: -1". Die erste Fassung meldete dazu
+    // 2 Raffinerie-Zellen "−1" (U+2212, bewusst gesetztes Delta neben "+2")
+    // und wurde auf den ASCII-Bindestrich verengt, den String(-1) liefert.
   },
   {
     id: 'verify:mining',
@@ -427,6 +485,249 @@ export const CHECKS = [
     // gewandert — die Kennung kommt jetzt aus scripts/build-wikelo-trades.mjs
     // (Datenlauf) statt aus einer menschlichen Sichtung. Damit ist
     // Register-Eintrag id 51 aufloesbar.
+  },
+  {
+    // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
+    // Kette: verify:datastand haelt die Datendateien gegeneinander, dieses Tor
+    // haelt die GEBAUTEN SEITEN gegen ihre Datendatei (Grundsatz 7). Anlass:
+    // am 03.11.2026 war verify:datastand gruen (alles 4.10.2), waehrend die
+    // Mining-Datenbank "Star Citizen 4.9" hiess, der Item Finder "Patch 4.9"
+    // zeigte und Wikelo "Star Citizen 4.1" — von Hand geschriebene Literale,
+    // die kein Datenlauf mithebt. Kein git, kein Netz, kein Kindprozess: nur
+    // dist/ und committete JSON.
+    id: 'verify:patch-angaben',
+    npm: 'verify:patch-angaben',
+    script: 'scripts/verify-patch-angaben.mjs',
+    rail: 'A',
+    checks:
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Crafting-Werkzeug, Missionen, Schiffe, Refinery, Mining, Fracturing) traegt genau einen Datenstand-Baustein und keine alte Fusszeile „Daten-Stand" am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise von UEX, Kaufpreise aus dem eigenen Shop-Schnappschuss, Fundorte, FleetYards-Teile, 3D-Hülle; jedes Item-Datenblatt markiert so viele Bezugszeilen als Shop-Schnappschuss, wie der Katalog fuehrt; mining-model.json und mining-db.json auf derselben Fassung; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
+    // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
+    // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
+    // "4.1" und JSON-LD "4.1.0", Crafting-JSON-LD "4.7.0", acht ATLS-
+    // Schiffsseiten ohne Spielversion. SCHARF seit derselben Lieferung, die
+    // die Seiten korrigiert hat (Angaben aus der Kennung, patchFromKennung in
+    // src/lib/patchPages.ts). Gegenprobe danach: Item-Kennung in
+    // assets/universal-items.json auf 4.11.0 gehoben, ohne neu zu bauen — rot,
+    // genau der Fall "Datenlauf hebt die Datei, die Seite bleibt".
+    // [6] Datenstand-Baustein (Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen
+    // den Live-Bau der Baustein-Aenderung, je ein Eingriff in dist/:
+    // Baustein auf einer Item-Seite entfernt -> "kein Datenstand-Baustein";
+    // UEX-Datum im Text auf 12. Oktober -> "zeigt ..., Soll enthaelt as of
+    // October 11, 2026"; Spielversion einer Schiffsseite auf 4.10.1 ->
+    // "nennt 4.10.1, Stempel ... steht auf 4.10.2" + Textbefund; Etikett am
+    // Wiki-Schnappschuss gestrichen -> "das Etikett älterer Stand fehlt";
+    // Etikett an die Spielwerte-Zeile gesetzt -> "traegt älterer Stand ohne
+    // Tatsache"; Pflichtzeile items gestrichen -> "Pflichtzeile fehlt";
+    // ISO-Datum in den Text -> "ISO-Datum 2026-10-11 im sichtbaren
+    // Datenstand"; Bild-Zeile doppelt -> "doppelt". Danach wiederhergestellt
+    // und gruen.
+    // Nachgeschaerft nach dem Review zu #306 (06.11.2026), VORGEFUEHRT ROT
+    // gegen den Live-Bau der Korrektur: Absatz nach dem Baustein -> "nach dem
+    // Datenstand steht noch Inhalt"; Fundorte-Zeile auf einer Liste mit
+    // Loot-Ort gestrichen -> "die Seite zeigt Loot-Fundorte, die Zeile
+    // fundorte fehlt"; Fundorte-Zeile auf einer Seite ohne Loot -> "steht im
+    // Datenstand, die Seite zeigt diese Werte aber nicht"; Wertegruppe
+    // umbenannt -> "heisst Prices:, Soll Purchase prices:"; UEX-Link
+    // umgebogen -> "nennt die Quelle ... Soll UEX Corp -> uexcorp.space";
+    // UEX-Datum auf 12. Oktober -> "zeigt ..., Soll ... October 11, 2026"
+    // (jetzt wortgleich statt enthaelt); Huellen-Zeile auf einer Schiffsseite
+    // mit eigenem Modell gestrichen -> "zeigt die eigene 3D-Hülle, die Zeile
+    // huelle fehlt"; Lackierungen aus der FleetYards-Zeile gestrichen ->
+    // "heisst variants:, Soll Paints, variants:"; Fundorte-Zeile im Item
+    // Finder gestrichen -> "Pflichtzeile fehlt". Danach wiederhergestellt und
+    // gruen.
+    // Melde-Link im Baustein (C2, 06.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Melde-Aenderung: Link auf einer Item-Seite entfernt -> "0
+    // Links ... (Soll: genau einer auf Detailseiten)"; Link auf eine fremde
+    // Seite -> "zeigt auf ..., Soll ..."; Linktext "Report" -> "heisst
+    // Report, Soll Report a wrong value"; Link auf items.html -> "auf einer
+    // Seite, die keine Detailseite ist". Danach wiederhergestellt und gruen.
+    // [7] Patch-Dossier (C1b, Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen
+    // den Live-Bau der Dossier-Aenderung, je ein Eingriff in dist/: Fracht
+    // einer Zeile 2.200 -> 2.100 SCU -> "Fracht „2.100 SCU", der Datensatz
+    // ... sagt „2.200 SCU""; Wert in einer Zeile ohne eigene Schiffsseite ->
+    // "hat keine eigene Schiffsseite, zeigt aber Werte"; Quellenzeile
+    // entfernt -> "die Quellenzeile darunter fehlt"; Spielversion der
+    // Quellenzeile auf 4.10.1 -> "ohne ... 4.10.2" + "nennt ... 4.10.1, die
+    // Tabelle zeigt dazu keine Werte"; Wiki-Angabe gestrichen -> "ohne
+    // „Pledge-Preis, Höchstcrew ..."; FleetYards in die Zeile -> "nennt
+    // FleetYards" + "beginnt ..."; Etikett älterer Stand gestrichen -> "zeigt
+    // ..., Soll ... älterer Stand"; Tabelle einer Seite umbenannt -> Klinken
+    // 33 < 34, 62 < 64, 54 < 56. Danach wiederhergestellt und gruen.
+    // Nach dem Review von #308 prueft [7] auch data-stand-art (Spielversion
+    // "spiel", Wiki "schnappschuss"), VORGEFUEHRT ROT: Art der Spielversion
+    // auf "wert" -> "hat data-stand-art "wert", Soll "spiel""; Art der
+    // Wiki-Angabe entfernt -> "hat data-stand-art null, Soll
+    // "schnappschuss"". Danach wiederhergestellt und gruen.
+    // Reste aus C1 (06.11.2026): Shop-Schnappschuss als eigene Zeile, Crafting-
+    // Werkzeug und Fracturing mit Baustein. VORGEFUEHRT ROT gegen den Live-Bau
+    // der Aenderung, je ein Eingriff: Schnappschuss-Zeilen eines Datenblatts
+    // als uex-items markiert -> "0 Bezugszeile(n) als Shop-Schnappschuss
+    // markiert, der Katalog ... fuehrt 1" + "steht im Datenstand, die Seite
+    // zeigt diese Werte aber nicht" + "Zeile uex-items fehlt"; Marke am Preis
+    // entfernt -> "die Seite zeigt Kaufpreise, die Zeile uex-items fehlt";
+    // Schnappschuss-Zeile auf einer Kategorieliste und im Finder gestrichen ->
+    // "zeigt Kaufpreise aus dem eigenen Shop-Schnappschuss, die Zeile fehlt";
+    // Text der Zeile geaendert -> "zeigt ..., Soll ..."; alte Fusszeile in
+    // fracturing.html -> "Fusszeile Daten-Stand neben dem Datenstand";
+    // Baustein auf topics/crafting.html entfernt -> "kein Datenstand-
+    // Baustein"; Ausbeute-Zeile in de/fracturing.html -> "gehoert nicht auf
+    // Fracturing"; de/fracturing.html umbenannt -> "nur 1 Seiten ..., Klinke
+    // 2"; mining-model.json auf 4.10.1 -> "steht auf 4.10.1, mining-db.json
+    // auf 4.10.2". Danach wiederhergestellt und gruen.
+  },
+
+  {
+    // Neuzugang 04.11.2026 — direkt nach den Patch-Angaben: dieselbe Frage
+    // ("stimmt, was die Seite sagt?"), andere Achse (Sprache statt Stand).
+    // Anlass: alle 231 deutschen Schiffsseiten zeigten Leistungsprofil,
+    // Quantum, Versicherung und Kaufpreise englisch und im englischen
+    // Zahlformat, 284 deutsche Seiten insgesamt englische Oberflaechentexte;
+    // verify:sync vergleicht nur die Geruestform, audit:site nur <html lang>.
+    // Kein git, kein Netz. Liest dist/, src/ und die i18n-Kataloge; die
+    // Kataloge buendelt esbuild (wie bei verify:crafting und verify:ausgabe),
+    // das ist der einzige Kindprozess (esbuilds eigener Dienst, kein
+    // node:child_process im Skript) und schreibt einen Temp-Ordner, der danach
+    // geloescht wird.
+    id: 'verify:sprache',
+    npm: 'verify:sprache',
+    script: 'scripts/verify-sprache.mjs',
+    rail: 'A',
+    checks:
+      'jede gebaute Seite spricht ihre Sprache: kein mehrwortiger Katalogtext der anderen Sprache, Zahlen im eigenen Format (eindeutige Formen), Datum und Dezimalzahl (als ganze Stelle oder mit Einheit mitten im Text) im eigenen Format, kein Katalogschluessel als Text, kein interner Bezeichner aus den Spieldaten im sichtbaren Text (offene Stellen als benannte Ausnahmen mit Zombie-Waechter), kein "The The" aus einer Satzvorlage, kein deutsches Funktionswort, kein Wort mit Umlaut und kein deutsches Bedien-/Zeitwort auf EN-Seiten (fester Text im Markup, den kein Katalog kennt; Eigennamen als benannte Ausnahme), und in src/ keine stille Standardsprache (lang = \'en\' / = DEFAULT_LOCALE; assertLocale statt Vorgabe); deutsches Katalog-Einzelwort auf EN-Seiten als WARNUNG mit benannten Ausnahmen; Klinken fuer Seiten, Textstellen, Katalogtexte und Quelldateien',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den Live-Bau von origin/staging
+    // d76478f2: 3.027 Befunde — 2.202 Katalogtexte der anderen Sprache
+    // (deutsche Kategorielisten "Promotional item — not obtainable in-game",
+    // deutsche Schiffsseiten "Claim time", "Quantum speed" …), 805 englische
+    // Zahlen auf deutschen Schiffsseiten ("1,508,220 aUEC"), 4 "The The",
+    // 16 stille Standardsprachen in src/. Gruen nach der Korrektur derselben
+    // Lieferung. Regel 4 (Rohschluessel) vorgefuehrt am gruenen Bau mit
+    // zwei eingesetzten Textknoten "ship.sheet.title" (/de/schiffe/…) und
+    // "breadcrumbItems" (/item-finder.html): 2 FEHLER, beide Formen
+    // (Punkt-Schluessel und camelCase-Katalogschluessel). Den Weg dorthin
+    // versperrt seit derselben Lieferung der Bau selbst: t()/itemT() brechen
+    // bei unbekanntem Schluessel ab (tests/e2e/i18n-strikt.test.js, gegen
+    // den alten Rueckfall rot: "Missing expected exception").
+    // Regel 7 (deutsches Funktionswort auf EN-Seite) kam in derselben
+    // Lieferung dazu, rot am eigenen Zwischenbau: 1 FEHLER, „0 Items
+    // gefunden" als Startwert des Zerlege-Rechners auf /topics/crafting.html
+    // — ueber 8.880 EN-Seiten der einzige Fund.
+    // Gegenprobe gegen den Stand vor PR #289 (4f4f4ddd, Live-Bau): 3.033
+    // FEHLER, dieselben Klassen plus 5 deutsche Zweitnamen auf EN-Item-
+    // Seiten ohne lang-Attribut (seitdem lang="de" am Zweitnamen).
+    // Regeln 8-10 (Datum, Dezimalzahl, deutsches Wort auf EN) kamen am
+    // 04.11.2026 mit der Inhaltsvalidierung der Werkzeuge dazu. VORGEFUEHRT
+    // ROT gegen den Live-Bau von origin/staging 286f28c6: 460 FEHLER — 34
+    // Daten ("9. Oktober 2026" in der Zeitleiste von 31 EN-Schiffsseiten,
+    // "28. Jan – 28. Feb 2025" und "16.09.2026 bis 4.10.2" als Event-
+    // Zeitraum der EN-Patch-Seiten), 394 Dezimalzahlen auf DE-Seiten ("0.01
+    // SCU" Item-Volumen, "8.75 m" in der Schiffsliste, "0.2 s" auf 4.10.2),
+    // 32 deutsche Woerter auf EN ("Stabilität & Save Stanton II", "saisonal",
+    // "Ressource suchen..."). Gruen nach der Korrektur derselben Lieferung;
+    // die eine Ausnahme (Schlossstraße, Anbieteranschrift) ist in Gebrauch.
+    // Positiv- und Gegenbeispiele je Ausdruck: tests/e2e/textregeln.test.js.
+    // Luecken aus der Staging-Abnahme am selben Abend: Regel 9 sah nur die
+    // ganze Stelle, Regel 11 (interner Bezeichner) gab es nicht. Erweitert
+    // VORGEFUEHRT ROT gegen den Vorschau-Bau von 0db33536: 1.275 FEHLER
+    // Dezimalzahl — 691 auf /de/schiffe ("L 20 m · B 15 m · H 6.5 m",
+    // "Grundriss 6.5 m lang", "Agilität: 97.0 °/s Ø" im aria-label), 584
+    // englische Spieltexte auf DE-Itemseiten ohne lang="en" ("Carrying
+    // Capacity: 8.0 µSCU"). Regel 11 im selben Lauf: 9.154 Stellen in genau
+    // den drei benannten offenen Klassen (Angebote-Spalte "Eintrag" 7.512,
+    // Orte als Code 1.624, Platzhalter-Bauteile 18), sonst keine.
+  },
+  {
+    // Neuzugang 04.11.2026, gleich danach: dieselben Textregeln, aber fuer
+    // den Text, den die Werkzeuge erst im Browser bauen — Teil 1 der Item
+    // Finder vollstaendig, Teil 2 (seit der Inhaltsvalidierung am selben
+    // Abend) jede Seitenart bedient, mit dem Pruefstand
+    // scripts/lib/pruefstand.mjs (linkedom-DOM, Skripte in node:vm). Kein
+    // git, kein Netz — fuehrt die ausgelieferten Skripte aus und liest
+    // dist/; fuer die Kataloge und die Astro-Module wie verify:sprache
+    // esbuild (dessen Dienst ist der einzige Kindprozess, Temp-Ordner wird
+    // geloescht). Laufzeit gut 95 s, davon 55 s der Crafting-Rechner.
+    id: 'verify:clienttext',
+    npm: 'verify:clienttext',
+    script: 'scripts/verify-clienttext.mjs',
+    rail: 'A',
+    checks:
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
+    // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
+    // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
+    // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
+    // vom 03.11.2026, den bis dahin keine Pruefung sehen konnte. Gegen
+    // origin/staging d76478f2 dazu 597 englische Bezugsarten im Tooltip der
+    // deutschen Karten. Gruen nach der Korrektur. Gegenprobe gegen den
+    // ganzen Stand vor PR #289 (4f4f4ddd, Skript und Bau): 719 FEHLER =
+    // 122 NaN + 597 Bezugsarten.
+    // Laufzeit-Paritaet (Review 04.11.2026, zusammengesetzte Schluessel wie
+    // tr('slot' + k)): rot am gruenen Bau mit "slotTorso" aus dem EN-Katalog
+    // von dist/item-finder.html entfernt — 1 FEHLER "tr('slotTorso') beim
+    // Rendern gefragt, steht nur im DE-Katalog"; die woertliche Regel 5 sah
+    // ihn nicht. Gruen mit dem unveraenderten Bau.
+    // Teil 2 VORGEFUEHRT ROT gegen den Live-Bau von origin/staging 286f28c6:
+    // 526 FEHLER — 20 Missionstitel mit Spielplatzhaltern im Blueprint-
+    // Fenster des Crafting-Rechners ("Wanted: {TargetName}"), 199 deutsche
+    // Vorlesetexte auf EN-Seiten ("Bild öffnen: Pyro", "… Trailer
+    // abspielen" aus assets/detail.js und assets/a11y.js), 297 Dezimalzahlen
+    // im Finder-Modal der DE-Seite ("4.2 SCU"), 10 Abbrueche (Pruefstand
+    // ohne document.currentScript und form.reset, ein versteckter Knopf
+    // geklickt — im Pruefstand behoben). Gruen nach der Korrektur.
+    // Rohtext-Erweiterung, Abbruch und Werkzeug-Klinke rot am gruenen Bau
+    // mit einer Hardlink-Kopie von dist/, darin eingesetzt: Qualitaetsrechner
+    // ohne Rundung, mit 1e21 und mit '${k}' in einfachen Anfuehrungszeichen,
+    // Trefferzahl ohne .replace('{count}'), und mining-workbench.js wirft
+    // beim Start: 20 FEHLER — "110.00000000000001", "1e+23", "${",
+    // "{count} kompatible Items gefunden", "-82.5" (Dezimalpunkt auf DE),
+    // 2 Abbrueche, /topics/mining.html 3 und /de/topics/mining.html 8 Texte
+    // unter der Klinke 1.000, Summe 9.464 unter 10.500. Pruefstand-Zusagen:
+    // tests/e2e/pruefstand.test.js.
+    // Vorschau-Bau (STAGING=1) am selben Tag: 4 Abbrueche auf den Hangar-
+    // Seiten (Import "/assets/hangar-overview.js?v=…", top-level await mit
+    // import(root.dataset.lib) in hangar-loadout.js), danach 6 mit <dialog>
+    // ohne showModal/close — Luecken des Pruefstands, dort behoben; gruen
+    // mit unveraendertem Bau.
+    // Dezimalzahl mitten im Text und interner Bezeichner (Luecken aus der
+    // Staging-Abnahme, Regeln aus scripts/lib/textregeln.mjs) VORGEFUEHRT
+    // ROT gegen den Live-Bau desselben Abends: 726 FEHLER — 100 Stellen von
+    // 25 Lackierungen mit dem Logo-Schluessel als Hersteller im Finder
+    // ("Paint_Defender_Silver_Red_Logo"), 605 englische Spieltexte im
+    // DE-Modal ohne lang="en" ("Carrying Capacity: 8.0 µSCU"), 21
+    // "Kreuzungsfaktor 0.810 · 35.9° von radial" auf /de/precision-jump.html.
+    // Gruen nach der Korrektur derselben Lieferung.
+  },
+  {
+    // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
+    // Strecke, und sie braucht dist/ nicht. Anlass: tsconfig.json stand seit
+    // Beginn auf strict, aber kein Tor fuhr einen Typcheck; der erste Lauf fand
+    // 93 Fehler, darunter einen sichtbaren (Suchfeld ohne Platzhalter im
+    // Zerlege-Rechner). Benannte Abweichung von Grundsatz 7 (gegen das
+    // Artefakt pruefen): Typen gibt es im gebauten Stand nicht mehr, also
+    // bleibt nur die Quelle.
+    // Kein git, kein Netz, kein Kindprozess: astro sync und der Pruefer von
+    // @astrojs/check laufen im eigenen Prozess. Speicher: bis ~3 GB, das
+    // npm-Skript hebt Nodes Grenze (Vorgabe ~2 GB, darunter bricht V8 ab).
+    id: 'verify:typen',
+    npm: 'verify:typen',
+    script: 'scripts/verify-typen.mjs',
+    rail: 'A',
+    checks:
+      'astro check ueber das Programm aus tsconfig.json (.astro samt <script>, .ts, JS mit @ts-check) meldet 0 Fehler; tsconfig.json erbt von astro/tsconfigs/strict und schaltet kein strict-Glied ab; kein @ts-ignore/@ts-nocheck/@ts-expect-error in src/ und astro.config.mjs ausser als benannte Ausnahme; jeder exclude-Eintrag ist eine benannte Ausnahme mit Zombie-Waechter (supabase/functions: Deno-Laufzeit, deren deno check kein Tor faehrt); jede .astro- und .ts-Datei unter src/ steht im geprueften Programm; Klinken fuer Dateien gesamt, .astro und .ts; Warnungen gezaehlt, nicht blockierend',
+    // VORGEFUEHRT ROT am 04.11.2026 gegen den Stand von PR #292 (8f24ff7a,
+    // Fehlerbild gleich origin/staging d76478f2) mit diesem Skript: 93 FEHLER
+    // in 21 Dateien — 30 in supabase/functions (Deno), 63 in src/, darunter
+    // das Suchfeld ohne Platzhalter (CraftingApp.astro, TS2339) und der
+    // Aufruf vor der Deklaration (account-dashboard.ts, TS2448). Dazu der
+    // Zombie "supabase/functions steht nicht in exclude". Gruen nach der
+    // Korrektur derselben Lieferung (0 Fehler, 661 Dateien).
+    // Regeln einzeln, am gruenen Stand in einem Lauf: noImplicitAny:false in
+    // tsconfig.json, ein @ts-ignore in src/lib/sitemap.ts, ein unbenanntes
+    // exclude "src/pages/de/downloads.astro", supabase/functions umbenannt und
+    // ein Typfehler in MissionDetail.astro — 6 FEHLER: abgeschaltetes strict-
+    // Glied, Unterdrueckung, unbenannte Ausnahme, Zombie-Ausnahme, 31
+    // Typfehler (1 + die 30 der nun mitgeprueften Deno-Funktionen) und die
+    // Datei, die still aus dem Programm fiel.
   },
 
   // ---------------------------------------------------------------
@@ -481,6 +782,20 @@ export const CHECKS = [
       'die wirksamen Datenbankrechte von anon, authenticated und PUBLIC (Tabellen, Views, Sequenzen, Funktionen, Spalten, Schemas, Standardrechte fuer neue Objekte, Rollenattribute) gehen nicht ueber supabase/rights.expected.json hinaus (sonst FEHLER), fehlende Soll-Rechte sind WARNUNG, benannte Ausnahmen tragen ihren Anlass (Zombie-Waechter), Klinke fuer die Zahl der geprueften Objekte',
     env:
       'Netz: fetch() gegen https://api.supabase.com (Management API, POST /v1/projects/<ref>/database/query/read-only, Abfrage aus supabase/rights.snapshot.sql) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — ein persoenliches Zugriffstoken des Betreibers, das es weder im Build-Container noch in CI gibt, deshalb Schiene B. Ohne Token: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit dem JSON-Ergebnis derselben Abfrage.',
+  },
+  {
+    // Anlass: Gesamtaudit 05.11.2026. Edge Functions rollt kein Workflow aus,
+    // und Repository und Anlage wichen voneinander ab (Einzelheiten im Bericht
+    // des Audits). Vorgefuehrt rot gegen eine Momentaufnahme der Anlage (Exit 1)
+    // und gegen einen flachen Klon (Exit 2, nicht geprueft).
+    id: 'verify:functions',
+    npm: 'verify:functions',
+    script: 'scripts/verify-functions.mjs',
+    rail: 'B',
+    checks:
+      'jede Edge Function aus supabase/functions laeuft auf der Anlage, ihr letzter Commit ist nicht juenger als der letzte Deploy, und verify_jwt entspricht supabase/config.toml (Standard true) — sonst FEHLER; Functions nur auf der Anlage sind WARNUNG; Klinke fuer die Zahl der Functions',
+    env:
+      'Netz und git: fetch() gegen https://api.supabase.com (Management API, GET /v1/projects/<ref>/functions) mit SUPABASE_ACCESS_TOKEN aus der Umgebung — dasselbe persoenliche Zugriffstoken wie verify:db-rights, das es weder im Build-Container noch in CI gibt — und git log (Kindprozess per execFileSync) fuer den letzten Commit je Function-Verzeichnis; deshalb Schiene B. Ohne Token oder ohne git: Exit 2 "nicht geprueft", nie still gruen. Offline: --snapshot <datei> mit der Function-Liste als JSON.',
   },
 
   // ---------------------------------------------------------------
@@ -586,6 +901,23 @@ export const CHECKS = [
     why:
       'HEUTE ein Bericht, kein Pruefer: kein process.exit, kein npm-Skript, und der Ground-Truth-Pfad fuer Teil C zeigt in ein geloeschtes Sitzungsverzeichnis. ' +
       'Wird in Stufe 1c zum Schiene-B-Pruefer umgebaut (Exit-Logik ab Huellen-Verwechslung, Pfad nach .cache/) — die heutigen 34 Verdachtsfaelle muessen davor einzeln beurteilt werden.',
+  },
+  {
+    // Anlass: Live lief auf dem Free-Plan ohne ein einziges Backup
+    // (docs/betrieb/datenbank-backup.md). Vorgefuehrt rot am 05.11.2026 mit
+    // sechs Gegenproben (ohne vorbereitung.sql, ohne zusatz.sql, eine Zeile
+    // entfernt, Rolle ohne BYPASSRLS, Klinke, falsches Projekt); die Sonde
+    // probe-backup.yml fuehrt drei davon in jedem Lauf erneut vor
+    // (Pruefsumme, Inhalt der Probe, Katalog).
+    id: 'verify:backup',
+    npm: 'verify:backup',
+    script: 'scripts/verify-backup.mjs',
+    rail: null,
+    checks:
+      'eine Datenbanksicherung ist vollstaendig (jede Tabelle der Quelle mit Datenblock, eigene Tabellen in schema.sql, eigene Trigger und Policies in auth/storage sowie die Realtime-Publikation in zusatz.sql, Klinken fuer Konten, Tabellen und Katalogobjekte) und ihre Wiederherstellung gleicht der Quelle (sha256 jeder Datei gegen das Manifest, jedes Katalogobjekt samt Rechten und Policies, Zeilenzahl und sortiert gehashter Inhalt je Tabelle, Sequenzstaende)',
+    why:
+      'Pruefer ohne Torkette: er braucht einen frischen Dump und eine wiederhergestellte Probe, die es nur im Backup-Lauf gibt (scripts/backup/lauf.sh — taeglich im privaten Backup-Repo gegen Live, bei jeder Aenderung an Skripten oder Migrationen in .github/workflows/probe-backup.yml gegen eine erfundene Quelle). ' +
+      'Dort urteilt er per Exit-Code, und ohne Gruen entsteht kein Archiv. Ohne Argumente Exit 2 "nicht geprueft". Liest nur Dateien.',
   },
 ];
 

@@ -8,6 +8,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, join, dirname, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ROHTEXT_RE, PLATZHALTERWERT_RE, TEXT_ATTRS, decodeEntities } from './lib/textregeln.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(__dirname, '..', 'dist');
@@ -143,6 +144,22 @@ function stripHiddenSubtrees(html) {
 }
 
 const PLACEHOLDER_RE = /\bTODO\b|\bFIXME\b|PLACEHOLDER|\bTBD\b|\[object Object\]|>undefined<|>null<|>NaN\b/;
+
+// Rohtext MITTEN im Satz. ⚠ ANLASS (03.11.2026): PLACEHOLDER_RE fing JS-
+// Leckagen nur, wenn sie einen Textknoten ganz ausfuellen (>NaN, >null<). So
+// standen unbemerkt auf 122 Schild-Seiten je Sprache „Physisch NaN% ·
+// Distortion NaN%", auf Missionsseiten „Citizens For Prosperity ≠ null" und
+// rohe Spielplatzhalter wie „Eliminate {TargetName}", auf der Wikelo-Seite
+// „1× null". Geprueft wird jetzt jede Textstelle einzeln — Textknoten plus die
+// Attribute, die gelesen oder vorgelesen werden (alt, title, aria-label,
+// content, placeholder). Die Regeln selbst (ROHTEXT_RE, PLATZHALTERWERT_RE)
+// stehen seit 04.11.2026 in scripts/lib/textregeln.mjs, weil verify:clienttext
+// den clientseitig gerenderten Text nach DENSELBEN Regeln prueft; Begruendung
+// jeder Regel dort.
+const ROHTEXT_ATTR_RE = new RegExp(`\\s(?:${TEXT_ATTRS.join('|')})="([^"]*)"`, 'g');
+let rohtextStellen = 0;
+const rohtextHits = [];
+const platzhalterwertHits = [];
 const PLACEHOLDER_CI_RE = /lorem ipsum/i;
 const MOJIBAKE_RE = /Ã[¤¶¼Ÿ„–©¨]|â€“|â€ž|â€œ|â€¦|Â°|Ã¢/;
 
@@ -263,6 +280,31 @@ for (const f of htmlFiles) {
   const visibleText = markup.replace(/\splaceholder="[^"]*"/gi, '');
   const ph = PLACEHOLDER_RE.exec(visibleText) ?? PLACEHOLDER_CI_RE.exec(visibleText);
   if (ph) placeholderHits.push(`${page}: "${ph[0]}"`);
+  // Rohtext je Textstelle (s. ROHTEXT_RE). Grundlage ist das Markup MIT
+  // placeholder= — anders als bei TODO/PLACEHOLDER oben ist ein „{TargetName}"
+  // oder „NaN" auch als Eingabehinweis ein Fehler. Kommentare raus, fuer
+  // Textknoten und Attribute gleich: Astro laesst keine stehen, aber ein
+  // auskommentierter Block waere kein sichtbarer Text.
+  const ohneKommentare = markup.replace(/<!--[\s\S]*?-->/g, ' ');
+  const stellen = [];
+  for (const m of ohneKommentare.matchAll(/>([^<]+)</g)) {
+    stellen.push(m[1]);
+    if (PLATZHALTERWERT_RE.test(decodeEntities(m[1]))) {
+      const at = Math.max(0, m.index - 120);
+      platzhalterwertHits.push(`${page}: „-1" als Wert nach „${decodeEntities(ohneKommentare.slice(at, m.index + 1).replace(/^[^<]*>/, "").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim().slice(-40)}"`);
+    }
+  }
+  for (const m of ohneKommentare.matchAll(ROHTEXT_ATTR_RE)) stellen.push(m[1]);
+  for (const roh of stellen) {
+    if (!roh.trim()) continue;
+    rohtextStellen++;
+    const text = decodeEntities(roh);
+    const rt = ROHTEXT_RE.exec(text);
+    if (rt) {
+      const at = Math.max(0, rt.index - 40);
+      rohtextHits.push(`${page}: "${rt[0]}" in „…${text.slice(at, rt.index + rt[0].length + 40).replace(/\s+/g, ' ').trim()}…"`);
+    }
+  }
   const mj = MOJIBAKE_RE.exec(html);
   if (mj) mojibakeHits.push(`${page}: "${mj[0]}"`);
 
@@ -481,30 +523,43 @@ for (const f of allFiles) {
 // "zur Vereinheitlichung" entfernen.
 //
 // Gegenprobe im selben Abschnitt: dieselben vier Flaechen muessen weiterhin
-// die Quellen-Zeile tragen und RSI nennen. Ohne sie waere der Befund oben
-// auch durch ersatzloses Loeschen der ganzen Fussnote erfuellbar.
+// ihre Herkunft nennen. Ohne sie waere der Befund oben auch durch
+// ersatzloses Loeschen der ganzen Fussnote erfuellbar.
+// Seit 06.11.2026 (Bestandsaufnahme C, Freigabe Krisz): die Seiten der
+// Datenhuelle (Uebersicht, Kategorie, Blueprint) nennen sie im Datenstand-
+// Baustein als Zeile „Rezepte und Drop-Chancen: Spielversion X" — RSI ist der
+// Hersteller des Spiels, nicht die Quelle der Rezepte. Erwartet wird dort
+// genau diese Zeile (data-stand="crafting"; ihren Wert haelt
+// verify:patch-angaben [6]), auf dem Planer weiter „Quellen: RSI".
 const stripTags = (s) => s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
 const SOURCES_LABEL = { en: 'Sources', de: 'Quellen' };
 const craftCategoryFirst = htmlFiles.map(rel).filter((p) => /^\/crafting\/category\/.+\.html$/.test(p)).sort()[0];
 const craftBlueprintFirst = htmlFiles.map(rel)
   .filter((p) => /^\/crafting\/[^/]+\.html$/.test(p) && p !== '/crafting/index.html')
   .sort()[0];
+// [Pfad, Sprache, erwartet]: 'stand' = Datenstand-Zeile crafting, 'rsi' = „Quellen: RSI".
 const craftProbePages = [
-  ['/crafting.html', 'en'], ['/de/crafting.html', 'de'],
-  ['/topics/crafting.html', 'en'], ['/de/topics/crafting.html', 'de'],
-  ...(craftCategoryFirst ? [[craftCategoryFirst, 'en'], ['/de' + craftCategoryFirst, 'de']] : []),
-  ...(craftBlueprintFirst ? [[craftBlueprintFirst, 'en'], ['/de' + craftBlueprintFirst, 'de']] : []),
+  ['/crafting.html', 'en', 'stand'], ['/de/crafting.html', 'de', 'stand'],
+  ['/topics/crafting.html', 'en', 'rsi'], ['/de/topics/crafting.html', 'de', 'rsi'],
+  ...(craftCategoryFirst ? [[craftCategoryFirst, 'en', 'stand'], ['/de' + craftCategoryFirst, 'de', 'stand']] : []),
+  ...(craftBlueprintFirst ? [[craftBlueprintFirst, 'en', 'stand'], ['/de' + craftBlueprintFirst, 'de', 'stand']] : []),
 ];
+const STAND_CRAFT_RE = /<li\b[^>]*\bdata-stand="crafting"[^>]*>/;
 let craftProbeChecked = 0;
-for (const [p, lang] of craftProbePages) {
+for (const [p, lang, erwartet] of craftProbePages) {
   const abs = join(DIST, p.slice(1));
   if (!existsSync(abs)) { foreignSourceHits.push(`${p}: Gegenprobe — Seite fehlt im Build`); continue; }
   craftProbeChecked++;
-  const text = stripTags(readFileSync(abs, 'utf8'));
+  const html = readFileSync(abs, 'utf8');
+  if (erwartet === 'stand') {
+    const block = /<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/.exec(html)?.[1] ?? '';
+    if (!STAND_CRAFT_RE.test(block)) foreignSourceHits.push(`${p}: Datenstand mit der Zeile „Rezepte und Drop-Chancen" fehlt`);
+    continue;
+  }
   const re = new RegExp(`${SOURCES_LABEL[lang]}:\\s*RSI`);
-  if (!re.test(text)) foreignSourceHits.push(`${p}: Quellen-Zeile mit RSI fehlt`);
+  if (!re.test(stripTags(html))) foreignSourceHits.push(`${p}: Quellen-Zeile mit RSI fehlt`);
 }
-console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Quellen-Zeile mit RSI erwartet)`);
+console.log(`\nCrafting-Gegenprobe: ${craftProbeChecked}/${craftProbePages.length} Flaechen geprueft (Datenstand-Zeile bzw. Quellen-Zeile mit RSI erwartet)`);
 
 // --- Datenherkunft im sichtbaren Text ---------------------------------------
 // Hausregel: die Seite nennt NIRGENDS, woher die Spieldaten technisch stammen.
@@ -654,6 +709,18 @@ if (basePrefixPages.size) {
 }
 section('FEHLER Sitemap widerspricht dem Build', sitemapIssues, errors, 20);
 section('FEHLER Platzhalter im HTML', placeholderHits, errors);
+// Selbstauskunft + Klinke (Grundsatz 2/5): ein Lauf, der kaum Textstellen
+// sieht (kaputter Extraktor, leerer Build), soll nicht als „0 Funde" gruen
+// durchgehen. Stand 03.11.2026: rund 3,2 Mio. Textstellen in 17.756 Seiten
+// (Live-Bau); die Klinke liegt mit Abstand darunter und wandert nur nach oben.
+const ROHTEXT_KLINKE = 3_000_000;
+console.log(`\nRohtext: ${htmlFiles.length} Seiten, ${rohtextStellen.toLocaleString('de-DE')} Textstellen geprueft (Klinke ${ROHTEXT_KLINKE.toLocaleString('de-DE')}), ${rohtextHits.length} Fund(e)`);
+if (rohtextStellen < ROHTEXT_KLINKE) {
+  console.log(`== FEHLER Rohtext-Pruefung sah zu wenig Text: ${rohtextStellen} < ${ROHTEXT_KLINKE} ==`);
+  errors.push(`Rohtext-Pruefung unter der Klinke (${rohtextStellen})`);
+}
+section('FEHLER Rohtext im sichtbaren Text (NaN, null, {Platzhalter}, %schluessel%)', rohtextHits, errors);
+section('FEHLER Platzhalterwert -1 als angezeigter Wert', platzhalterwertHits, errors);
 section('FEHLER Fremdquelle im Ausgelieferten', foreignSourceHits, errors);
 section('FEHLER Datenherkunft im sichtbaren Text', provenanceHits, errors);
 section('FEHLER Rechnerpfad im Ausgelieferten', machinePathHits, errors);

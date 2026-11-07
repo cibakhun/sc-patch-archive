@@ -5,11 +5,12 @@ import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import FracturingCalc from '../../components/FracturingCalc.astro';
+import Datenstand from '../../components/Datenstand.astro';
+import { standFracturing } from '../../lib/datenstand';
 import DB from '../../../assets/mining-db.json';
 import { versioned } from '../../lib/assetVersion';
 
 const total = DB.counts.minerals;
-const snap = DB.snapshot_date;
 const verShort = DB.game_version.split('-')[0];
 ---
 <Layout
@@ -41,9 +42,12 @@ main > .fc{padding-top:4.4rem}
     title="Fracturing"
     eyebrow={`Alpha ${verShort} · Live-Daten`}
     lead="Ausrüstung einstellen, Erz wählen — der Rechner sagt, ob der Brocken bricht, und zeigt jeden Schritt der Rechnung." />
+  {/* Datenstand statt der alten Fusszeile „Daten-Stand: <Datum des Datenlaufs>“
+      (bis 06.11.2026): die Werte sind Spielwerte, ihr Stand ist die Spielversion. */}
+  <Datenstand lang="de" zeilen={standFracturing('de')} />
 </main>
 
-<Attribution sources={[]} updated={snap} />
+<Attribution sources={[]} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>

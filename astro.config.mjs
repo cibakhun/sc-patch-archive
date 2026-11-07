@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { hangarImBau, HANGAR_ROUTES } from './scripts/lib/hangar-switch.mjs';
+import { zielImBau } from './scripts/lib/supabase-ziel.mjs';
 
 // All-in-One SC site — static, hand-built.
 // Data is baked at BUILD time (Phase 1+); the live site never calls an API
@@ -119,6 +120,12 @@ export function hangarRoutes(env = process.env) {
   };
 }
 
+/** Was Seiten und Client-Bundles vom Supabase-Ziel brauchen — nicht mehr. */
+function supabaseFuerSeite() {
+  const { url, publishableKey, storageKey } = zielImBau();
+  return { url, publishableKey, storageKey };
+}
+
 export default defineConfig({
   site: 'https://verse-base.com',
   build: { format: 'file' },
@@ -141,7 +148,11 @@ export default defineConfig({
   integrations: [hangarRoutes()],
   vite: {
     plugins: [blockOpenInEditor(), devLocalOnly()],
-    // Browserseite des Hangar-Schalters (src/lib/hangarFlag.ts).
-    define: { __VB_HANGAR__: JSON.stringify(hangarImBau()) },
+    // Browserseite des Hangar-Schalters (src/lib/hangarFlag.ts) und das
+    // Supabase-Ziel des Baus (src/consts.ts, scripts/lib/supabase-ziel.mjs).
+    define: {
+      __VB_HANGAR__: JSON.stringify(hangarImBau()),
+      __VB_SUPABASE__: JSON.stringify(supabaseFuerSeite()),
+    },
   },
 });

@@ -1,5 +1,6 @@
 {
  "source": "Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/stantonsystem.socpak (OOC_* Object-Container-Platzierungen) — eigene Extraktion",
+ "gameVersion": "4.10.2-live.12913470",
  "system": "Stanton",
  "units": "m",
  "counts": {

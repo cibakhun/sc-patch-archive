@@ -1,0 +1,106 @@
+# ============================================================
+# VORLAGE — gehoert NICHT in dieses Repo, sondern als
+#   .github/workflows/live-backup.yml
+# in das PRIVATE Backup-Repo (cibakhun/verse-base-backup).
+# Einrichtung Schritt fuer Schritt: docs/betrieb/datenbank-backup.md
+#
+# Warum ein eigenes privates Repo: dieses Repo ist oeffentlich, seine
+# Workflow-Logs und Artefakte sind fuer jeden lesbar. Das Backup-Repo haelt
+# das einzige Live-Secret (VB_BACKUP_DB_URL, Nur-Lese-Rolle vb_backup), die
+# Laufprotokolle und die verschluesselten Archive — sichtbar nur fuer den
+# Betreiber. Die Skripte kommen aus diesem Repo, angeheftet auf einen Commit
+# (QUELLE_SHA), damit niemand die Sicherung durch einen Push auf staging
+# veraendert. QUELLE_SHA wird nur bewusst angehoben, nach einem gruenen Lauf
+# von probe-backup.yml auf genau diesem Commit.
+#
+# Haengt nicht an einem Website-Deploy, nicht am VerseBase-Server und nicht
+# an Coolify: eigener Zeitplan, eigene Laeufer, Ablage bei GitHub.
+# ============================================================
+name: Live-Datenbank sichern
+
+on:
+  schedule:
+    - cron: '17 2 * * 1-6'   # Mo–Sa 02:17 UTC, 30 Tage aufbewahrt
+    - cron: '17 2 * * 0'     # So 02:17 UTC, 90 Tage aufbewahrt
+  workflow_dispatch:
+    inputs:
+      aufbewahrung:
+        description: 'Tage aufbewahren (vor einer Live-Migration: 90)'
+        required: true
+        default: '90'
+
+permissions:
+  contents: read
+  issues: write   # nur fuer die Fehlermeldung als Issue
+
+concurrency:
+  group: live-backup
+  cancel-in-progress: false
+
+env:
+  QUELLE_REPO: cibakhun/sc-patch-archive
+  QUELLE_SHA: 0000000000000000000000000000000000000000   # Commit der Skripte (siehe Kopf)
+  SUPABASE_CLI: '3.0.0'                                    # wie in probe-backup.yml
+  LIVE_REF: trgjhmbnodoarnfmlcqx
+
+jobs:
+  sichern:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}   # optional, siehe Anleitung
+    steps:
+      - name: Lebenszeichen Start
+        if: env.HEALTHCHECK_URL != ''
+        run: curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/start" > /dev/null || true
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: ${{ env.QUELLE_REPO }}
+          ref: ${{ env.QUELLE_SHA }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Werkzeuge (age, Supabase-CLI)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq age
+          npm install --no-save --ignore-scripts --prefix "$RUNNER_TEMP/sbcli" "supabase@$SUPABASE_CLI"
+          echo "SUPABASE_BIN=$RUNNER_TEMP/sbcli/node_modules/.bin/supabase" >> "$GITHUB_ENV"
+
+      - name: Sichern, Probe-Wiederherstellung, Verschluesseln
+        env:
+          VB_DB_URL: ${{ secrets.VB_BACKUP_DB_URL }}
+          VB_AGE_EMPFAENGER: ${{ vars.VB_AGE_EMPFAENGER }}
+          VB_STORAGE_URL: https://${{ env.LIVE_REF }}.supabase.co
+          VB_ERWARTETE_REF: ${{ env.LIVE_REF }}
+          VB_KLINKE_KONTEN: '10'
+        run: scripts/backup/lauf.sh "$RUNNER_TEMP/backup"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: live-backup-${{ github.run_number }}
+          path: ${{ runner.temp }}/backup/aus/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: ${{ inputs.aufbewahrung || (github.event.schedule == '17 2 * * 0' && 90 || 30) }}
+
+      - name: Bericht
+        run: cat "$RUNNER_TEMP/backup/aus/bericht.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Lebenszeichen Erfolg
+        if: env.HEALTHCHECK_URL != ''
+        run: curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" > /dev/null || true
+
+      - name: Fehler melden (Issue)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # zuerst der Ping: scheitert das Issue, kommt die Meldung trotzdem an
+          if [ -n "$HEALTHCHECK_URL" ]; then curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/fail" > /dev/null || true; fi
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Live-Backup fehlgeschlagen ($(date -u +%F))" \
+            --body "Lauf: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID — kein Archiv entstanden. Anleitung: https://github.com/$QUELLE_REPO/blob/staging/docs/betrieb/datenbank-backup.md#wenn-ein-lauf-rot-ist"

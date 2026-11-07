@@ -6,17 +6,20 @@
 // No motion beyond ≤150ms color/border hovers.
 import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
-import shipsSnapshot from '../../data/ships.json';
 import vehicles from '../../data/vehicles.json';
+import { crewFmt } from '../../lib/shipFacts';
+import { standDossier, standTexte } from '../../lib/datenstand';
 import { stripSpine } from '../../../scripts/lib/patch-spine.mjs';
-import { useTranslations, href, type Locale, DEFAULT_LOCALE } from '../../i18n/ui';
+import { useTranslations, href, assertLocale, type Locale } from '../../i18n/ui';
 
 interface Props {
   patch: CollectionEntry<'patches'>['data'];
   num?: string;
-  lang?: Locale;
+  lang: Locale;
 }
-const { patch, num, lang = DEFAULT_LOCALE } = Astro.props;
+const { patch, num } = Astro.props;
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'PatchDossier');
 const t = useTranslations(lang);
 const L = (p: string) => href(p, lang);
 const hasUnverified =
@@ -24,27 +27,33 @@ const hasUnverified =
   patch.ships.some((s) => s.unverified) ||
   patch.keyFacts.some((x) => x.unverified);
 
-// FleetYards specs (validated snapshot; join key = the patch-data ship name)
+// FleetYards (Schnappschuss, Schluessel = Schiffsname der Patch-Daten) nur
+// noch als Link: fuer Schiffe ohne eigene Seite und als ↗ daneben.
 const fy = await getCollection('ships');
 const specs = new Map(fy.map((s) => [s.data.matchedFrom.toLowerCase(), s.data]));
 const spec = (name: string) => specs.get(name.toLowerCase().replace(/\s+/g, ' ').trim());
-const crewFmt = (s?: (typeof fy)[number]['data']) =>
-  s && (s.crewMin != null || s.crewMax != null)
-    ? s.crewMin != null && s.crewMax != null && s.crewMax !== s.crewMin
-      ? `${s.crewMin}–${s.crewMax}`
-      : `${s.crewMin ?? s.crewMax}`
-    : '—';
-const scuFmt = (s?: (typeof fy)[number]['data']) =>
-  s?.cargoSCU != null ? `${Number.isInteger(s.cargoSCU) ? s.cargoSCU : s.cargoSCU.toFixed(1)} SCU` : '—';
-const priceFmt = (s?: (typeof fy)[number]['data']) =>
-  s?.priceUSD != null ? `$${s.priceUSD}` : '—';
-const anySpecs = patch.ships.some((s) => spec(s.name));
+// Crew, Fracht und Pledge-Preis aus dem eigenen Katalog, formatiert wie auf
+// der Schiffsseite (C1b, src/lib/datenstand.ts standDossier). Ein Schiff ohne
+// eigenen Datensatz zeigt keine Werte, nur den Link zu FleetYards: eine
+// Tabelle, eine Quelle.
 // Gleiche Join-Regel wie das Patch-Rückgrat der Schiffsseiten: Patch -> Schiff und Schiff -> Patch treffen dieselben Paare.
-const vehicleIds = new Map(vehicles.vehicles.map((v) => [stripSpine(v.name), v.id]));
+const vehicleByName = new Map(vehicles.vehicles.map((v) => [stripSpine(v.name), v]));
+const ownShip = (name: string) => vehicleByName.get(stripSpine(name)) ?? null;
 const shipPage = (name: string) => {
-  const id = vehicleIds.get(stripSpine(name));
-  return id ? L(`/schiffe/${id}.html`) : null;
+  const v = ownShip(name);
+  return v ? L(`/schiffe/${v.id}.html`) : null;
 };
+const loc = lang === 'en' ? 'en-US' : 'de-DE';
+type Own = ReturnType<typeof ownShip>;
+const crewCell = (v: Own) => (v ? crewFmt(v) : '—');
+const scuCell = (v: Own) => (v?.cargoSCU != null ? `${v.cargoSCU.toLocaleString(loc)} SCU` : '—');
+const priceCell = (v: Own) => (v?.msrpUSD != null ? `$${v.msrpUSD.toLocaleString('en-US')}` : '—');
+const ownRows = patch.ships.map((s) => ownShip(s.name)).filter((v): v is NonNullable<Own> => !!v);
+const standZeilen = standDossier(lang, {
+  kennungen: ownRows.map((v) => v.gameVersion),
+  wiki: ownRows.some((v) => v.msrpUSD != null || v.crewMax != null),
+});
+const st = standTexte(lang);
 const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
 ---
 <section class="do" id="dossier" aria-label={t('do.aria').replace('%v%', patch.version)}>
@@ -114,6 +123,7 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
             <tbody>
               {patch.ships.map((s) => {
                 const f = spec(s.name);
+                const v = ownShip(s.name);
                 const own = shipPage(s.name);
                 return (
                   <tr>
@@ -130,12 +140,12 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
                       ) : (
                         s.name
                       )}
-                      {s.unverified && <abbr class="do__unv" title="unbestätigt">*</abbr>}
+                      {s.unverified && <abbr class="do__unv" title={t('common.unverified')}>*</abbr>}
                     </td>
                     <td>{s.role}</td>
-                    <td class="num">{crewFmt(f)}</td>
-                    <td class="num">{scuFmt(f)}</td>
-                    <td class="num">{priceFmt(f)}</td>
+                    <td class="num">{crewCell(v)}</td>
+                    <td class="num">{scuCell(v)}</td>
+                    <td class="num">{priceCell(v)}</td>
                     <td>{s.status ?? '—'}{s.notes && <span class="do__shipnote"> · {s.notes}</span>}</td>
                   </tr>
                 );
@@ -143,9 +153,19 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
             </tbody>
           </table>
         </div>
-        {anySpecs && (
+        {standZeilen.length > 0 && (
           <p class="do__specsrc">
-            {t('do.specs')}: <a href="https://fleetyards.net" target="_blank" rel="noopener">FleetYards.net</a> ({t('do.specsNote')}) · {t('ship.asof')} {shipsSnapshot.fetchedAt}
+            {st.dossier}
+            {standZeilen.map((z, i) => (
+              <>
+                {i > 0 ? ' · ' : ' '}
+                <span data-stand={z.quelle} data-stand-art={z.art} data-stand-wert={z.wert}>
+                  <span class="do__standwas">{z.was}:</span>{' '}
+                  {z.name && (z.link ? <a href={z.link} target="_blank" rel="noopener">{z.name}</a> : z.name)}{z.text}
+                  {z.aelter && <>{' '}<span class="do__alt">{st.aelter}</span></>}
+                </span>
+              </>
+            ))}
           </p>
         )}
       </>
@@ -443,6 +463,23 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
   .do__specsrc a {
     text-decoration: underline;
   }
+  .do__standwas {
+    color: var(--text, inherit);
+    font-weight: 600;
+  }
+  /* „älterer Stand": dieselbe kleine Marke wie im Datenstand-Baustein */
+  .do__alt {
+    display: inline-block;
+    padding: 0 0.45rem;
+    border: 1px solid var(--accent-2, currentColor);
+    border-radius: 999px;
+    color: var(--accent-2, inherit);
+    font-size: var(--fs-4);
+    font-weight: 600;
+    letter-spacing: var(--ls-6);
+    line-height: 1.5;
+    white-space: nowrap;
+  }
   .do__specsrc a:hover {
     color: var(--accent, #2dd4ff);
   }
@@ -544,4 +581,5 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
       overflow-wrap: anywhere;
       min-width: 0;
     }
-  }</style>
+  }
+</style>

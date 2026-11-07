@@ -81,7 +81,11 @@ const SIZE_REP: Record<string, string> = { fahrzeug: 'tmbl-cyclone', beiboot: 'k
 const repW = (id: string) => { const l = cards[id]?.l ?? 20; return Math.round(18 + 50 * Math.log(Math.max(l, 6) / 6) / Math.log(250 / 6)); };
 const cmpFmt = new Intl.NumberFormat(loc, { notation: 'compact', maximumFractionDigits: 1 });
 const fill = (tpl: string, n: string) => tpl.replace('{n}', n);
-const FACETS = [
+// Ein gemeinsamer Optionstyp: als Vereinigung von sechs Literalformen kannte
+// nur die Zweckwahl `icon`, und `'icon' in o` ergab dort `unknown` (TS2345).
+interface FacetOption { v: string; label: string; rep: string; icon?: string }
+interface Facet { key: string; label: string; multi: boolean; options: FacetOption[] }
+const FACETS: Facet[] = [
   { key: 'pur', label: t('find.purpose'), multi: false, options: PURPOSES.map((p) => ({ v: p.key, label: L(p.label), rep: '', icon: p.icon })) },
   { key: 'size', label: t('find.size'), multi: true, options: SIZES.map((z) => ({ v: z.key, label: L(z.label), rep: SIZE_REP[z.key] })) },
   { key: 'crew', label: t('find.crew'), multi: false, options: CREW.map((c) => ({ v: c.key, label: L(c.label), rep: '' })) },
@@ -837,7 +841,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
           {f.options.map((o) => (
             <button type="button" class="hgx-opt" data-f={f.key} data-v={o.v} aria-pressed="false">
               {o.rep && <i class="hgx-sil" style={`--w:${repW(o.rep)}px;--m:url(/hangar/cards/top/${o.rep}.webp)`} aria-hidden="true"></i>}
-              {'icon' in o && o.icon && <Fragment set:html={icon(o.icon, 18)} />}
+              {o.icon && <Fragment set:html={icon(o.icon, 18)} />}
               <span>{o.label}</span>
               <i class="hgx-n"></i>
             </button>

@@ -14,9 +14,9 @@ export async function getStaticPaths() {
     props: {
       d: v.data,
       id: v.id,
-      similar: similarShips(vs, v),
-      profile: buildProfile(vs, v.data),
-      viz: buildVisuals(vs, v.data),
+      similar: similarShips(vs, v, 'de'),
+      profile: buildProfile(vs, v.data, 'de'),
+      viz: buildVisuals(vs, v.data, 'de'),
     },
   }));
 }

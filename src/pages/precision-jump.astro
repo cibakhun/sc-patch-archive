@@ -12,7 +12,7 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import PrecisionJumpApp from '../components/PrecisionJumpApp.astro';
-import { buildAnchorRecords, AH_BAND_INFO } from '../data/precision-jump';
+import { buildAnchorRecords, AH_BAND_INFO, PJ_PATCH } from '../data/precision-jump';
 import { versioned } from '../lib/assetVersion';
 
 const anchorCount = buildAnchorRecords().length;
@@ -64,7 +64,7 @@ const bandCount = bands.length;
   <header class="alm">
     <nav class="alm__series" aria-label="Breadcrumb"><a href="/topics/mining.html">Mining</a></nav>
     <h1 class="alm__title">Aaron Halo</h1>
-    <p class="alm__sub">Where to leave quantum to land in the asteroid band you want · Stanton · 4.9</p>
+    <p class="alm__sub">Where to leave quantum to land in the asteroid band you want · Stanton · data from patch {PJ_PATCH}</p>
   </header>
 
   <PrecisionJumpApp lang="en" />

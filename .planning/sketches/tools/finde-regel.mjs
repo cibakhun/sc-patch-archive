@@ -47,8 +47,13 @@ const r = await pg.evaluate(([sel, prop]) => {
                   gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + r.conditionText); continue;
                 }
         if (r.cssRules && r.conditionText) {
-                  if (!matchMedia(r.conditionText).matches) continue;
-                  gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + r.conditionText); continue;
+                  // @supports und @container sind keine Medienabfragen:
+                  // @supports fragt CSS.supports, @container haengt am
+                  // Elternelement und wird hier nur benannt, nicht entschieden.
+                  const art = r.constructor.name;
+                  if (art === 'CSSSupportsRule' && !CSS.supports(r.conditionText)) continue;
+                  const text = art === 'CSSContainerRule' ? `@container ${r.conditionText} (nicht ausgewertet)` : r.conditionText;
+                  gehe(r.cssRules, (bedingung ? bedingung + ' && ' : '') + text); continue;
                 }
         if (!r.selectorText || !r.style) continue;
         const wert = r.style.getPropertyValue(prop);

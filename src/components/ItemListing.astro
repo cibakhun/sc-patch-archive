@@ -5,11 +5,12 @@
 // jeder Item-Name irgendwo im HTML auffindbar, ohne dass fuer jeden Katalog-
 // Rest eine eigene, leere URL entsteht.
 import DataShell from './DataShell.astro';
+import { standItems, datumLang } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, fill, categoryLabel } from '../i18n/itemText';
+import { itemT, obtainLabel, fill, categoryLabel } from '../i18n/itemText';
 import {
   PER_PAGE, auec, avgPrice, categoryPath, db, displayName, itemPath, itemsHubPath,
-  leafCategory, midCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode,
+  leafCategory, midCategory, minPrice, num, pageCount, pageItemIds, roots, type CategoryNode, type Item,
 } from '../lib/items';
 import { categorySeo } from '../lib/itemSeo';
 
@@ -29,14 +30,45 @@ const prices = node.items.map(minPrice).filter((p): p is number => p != null);
 const buyable = prices.length;
 const cheapest = prices.length > 0 ? Math.min(...prices) : null;
 
+// Woher ein gezeigter Preis kommt: UEX, ausser bei Shop-Zeilen aus dem eigenen
+// Schnappschuss (src, nur wo UEX das Item nicht fuehrt). Jede Preisangabe
+// traegt ihre Marke, der Datenstand nennt genau die Quellen der Seite.
+type Bezug = Item['obtain'][number];
+const preisQ = (o: Bezug) => (o.src === 'schnappschuss' ? 'shop-schnappschuss' : 'uex-items');
+// Die Zeile hinter minPrice: niedrigster Preis > 0, bei Gleichstand die erste.
+const minZeile = (i: Item): Bezug | undefined => {
+  let best: Bezug | undefined;
+  for (const o of i.obtain) if (o.price != null && o.price > 0 && (best?.price == null || o.price < best.price)) best = o;
+  return best;
+};
+const cheapestZeile = node.items.map(minZeile).find((o) => o?.price === cheapest);
+const zeigtPreisQ = new Set([
+  ...(cheapestZeile ? [preisQ(cheapestZeile)] : []),
+  ...slice.map(minZeile).filter((o): o is Bezug => !!o).map(preisQ),
+]);
+
+// Die Bezugsspalte zeigt je Item die erste Bezugszeile. Ist das ein Loot-Ort,
+// stammt er aus der eigenen Recherche, und der Datenstand nennt die Fundorte
+// (bis zur Review-Korrektur stand hier pauschal `fundorte: false`). Die Marke
+// data-stand-q haelt verify:patch-angaben [6] gegen die Zeilen des Bausteins.
+const standQ = (o: Bezug | undefined) =>
+  !o ? undefined : o.src === 'schnappschuss' ? 'shop-schnappschuss'
+  : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items' : o.kind === 'loot' ? 'fundorte' : undefined;
+const lootZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot');
+const bezugQ = new Set(slice.map((i) => standQ(i.obtain[0])));
+
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
   { label: leafCategory(node.cat), href: pages > 1 && page > 1 ? categoryPath(node) : undefined },
   ...(page > 1 ? [{ label: `${t('page')} ${page}` }] : []),
 ];
 
-const sourceLabel = (n: number, first?: string) =>
-  first ? (n > 1 ? `${first} +${n - 1}` : first) : t('noSourceData');
+// Erste Bezugszeile wie auf dem Datenblatt beschriftet (obtainLabel): eine
+// Exklusiv-Zeile traegt im Feld `loc` den englischen Satz der Datenquelle.
+// Bis 04.11.2026 stand er hier roh — auf den deutschen Kategorielisten also
+// "Promotional item — not obtainable in-game".
+const sourceLabel = (obtain: Item['obtain']) =>
+  obtain.length ? (obtain.length > 1 ? `${obtainLabel(obtain[0], lang)} +${obtain.length - 1}` : obtainLabel(obtain[0], lang)) : t('noSourceData');
 ---
 <DataShell
   lang={lang}
@@ -45,19 +77,22 @@ const sourceLabel = (n: number, first?: string) =>
   crumbs={crumbs}
   eyebrow={[categoryLabel(node.root, lang), midCategory(node.cat), t('sectionCategory')].filter(Boolean).join(' · ')}
   modified={db.generatedAt}
-  sources={['UEX Corp']}
-  updated={db.pricesAsOf}
+  stand={standItems(lang, {
+    preise: zeigtPreisQ.has('uex-items') || bezugQ.has('uex-items'),
+    schnappschuss: zeigtPreisQ.has('shop-schnappschuss') || bezugQ.has('shop-schnappschuss'),
+    fundorte: lootZuerst,
+  })}
 >
   <h1 slot="hero">{leafCategory(node.cat)}</h1>
   <p class="dp-lead" slot="hero">
-    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: db.pricesAsOf })}
+    {fill(t('listingLead'), { n: num(node.items.length, lang), cat: node.cat, date: datumLang(db.pricesAsOf, lang) })}
   </p>
 
   <ul class="dp-keys" slot="hero">
     <li class="dp-key"><b>{t('entries')}</b><span>{num(node.items.length, lang)}</span></li>
     <li class="dp-key"><b>{t('kindBuy')}</b><span>{num(buyable, lang)}</span></li>
-    {cheapest != null && <li class="dp-key"><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
-    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.pricesAsOf}</span></li>
+    {cheapest != null && cheapestZeile && <li class="dp-key" data-stand-q={preisQ(cheapestZeile)}><b>{t('cheapest')}</b><span>{auec(cheapest, lang)}</span></li>}
+    <li class="dp-key"><b>{t('pricesAsOf')}</b><span>{datumLang(db.pricesAsOf, lang)}</span></li>
   </ul>
 
   <div class="dp-tablewrap vb-scrollbox" tabindex="0" role="region" aria-label={t('tableRegion')}>
@@ -73,6 +108,7 @@ const sourceLabel = (n: number, first?: string) =>
       <tbody>
         {slice.map((i) => {
           const p = minPrice(i);
+          const pz = minZeile(i);
           const avg = avgPrice(i);
           const linked = pageItemIds.has(i.id);
           return (
@@ -82,9 +118,9 @@ const sourceLabel = (n: number, first?: string) =>
                   ? <a href={href(itemPath(i), lang)}>{displayName(i, lang)}</a>
                   : <span title={t('listingNoPage')}>{displayName(i, lang)}</span>}
               </td>
-              <td>{sourceLabel(i.obtain.length, i.obtain[0]?.loc)}</td>
+              <td data-stand-q={standQ(i.obtain[0])}>{sourceLabel(i.obtain)}</td>
               <td class="dp-num">
-                {p != null ? <span class="dp-price">{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
+                {p != null && pz ? <span class="dp-price" data-stand-q={preisQ(pz)}>{auec(p, lang)}</span> : <span class="dp-muted">—</span>}
               </td>
               <td class="dp-num">
                 <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>

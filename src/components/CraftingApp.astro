@@ -12,6 +12,7 @@ import { itemT } from '../i18n/itemText';
 import { useHelp } from '../i18n/help';
 import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
+import { seoTitle } from '../lib/missions';
 
 interface Props { lang: 'de' | 'en'; }
 const { lang } = Astro.props;
@@ -46,6 +47,11 @@ const S = {
     calcYieldRate: 'Ausbeute-Rate', calcReset: 'Rechner zurücksetzen', calcTitle: 'Effiziente Items zum Zerlegen',
     calcTabDb: 'Blueprint-Datenbank', calcTabCalc: 'Zerlegungs-Rechner (Dismantle)',
     calcItemSearch: 'Suche: Item-Name…',
+    // Stand bis 04.11.2026 in JS_T, das Feld las aber S: der Platzhalter
+    // fehlte im Zerlege-Rechner (astro check, TS2339).
+    calcSearchPlaceholder: 'Material suchen…',
+    resSearch: 'Ressource suchen…',
+    calcMethod: 'Geschätzte Ausbeute anhand der Rezeptdaten und berechneten Effizienz. Die tatsächliche Ausbeute im Spiel kann abweichen.',
     calcDataIncomplete: 'Zerlege-Daten unvollständig — die Seltenheits-Markierung der Materialien fehlt gerade, Ausbeuten für seltene Erze können daher zu hoch angezeigt werden. Bitte die Seite neu laden.',
   },
   en: {
@@ -65,6 +71,9 @@ const S = {
     calcYieldRate: 'Yield Rate', calcReset: 'Reset Calculator', calcTitle: 'Efficient Items to Dismantle',
     calcTabDb: 'Blueprint Database', calcTabCalc: 'Dismantling Calculator',
     calcItemSearch: 'Search: item name…',
+    calcSearchPlaceholder: 'Search material…',
+    resSearch: 'Search resources…',
+    calcMethod: 'Estimated yield based on recipe data and calculated efficiency. Actual in-game yields may differ.',
     calcDataIncomplete: 'Dismantling data incomplete — the material rarity markers are currently missing, so yields for rare ores may be shown too high. Please reload the page.',
   },
 }[lang];
@@ -83,7 +92,6 @@ const JS_T = {
     noMission: 'Keine Missions-Quelle in den Daten — evtl. über andere Wege (Shop/Reputation) erhältlich.',
     fireMode: 'Feuermodus', added: 'hinzugefügt',
     planEmpty: 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.',
-    calcSearchPlaceholder: 'Material suchen...',
     calcSelectPrompt: 'Bitte wähle mindestens ein Material aus oder suche oben nach einem Item-Namen.',
     calcNoResults: 'Keine Items für diese Auswahl gefunden.',
     calcWarningRareBycatch: 'Dieses Item enthält {name}, dieser kann jedoch nicht durch Zerlegen gewonnen werden.',
@@ -115,7 +123,6 @@ const JS_T = {
     noMission: 'No mission source in the data — may be obtainable another way (shop/reputation).',
     fireMode: 'Fire mode', added: 'added',
     planEmpty: 'No blueprints in the planner yet. Use “＋” on a card to add.',
-    calcSearchPlaceholder: 'Search material...',
     calcSelectPrompt: 'Please select at least one material or search for an item name above.',
     calcNoResults: 'No items found for this selection.',
     calcWarningRareBycatch: 'This item contains {name}, but it cannot be obtained by dismantling.',
@@ -227,6 +234,13 @@ const total = DB.counts.blueprints;
 // eine ältere DB das Feld noch nicht führt. Zur Build-Zeit ins Markup gerendert
 // (kein Laufzeit-Race) und zusätzlich ans Client-JS durchgereicht.
 const dismantleEff = typeof DB.dismantle_efficiency === 'number' ? DB.dismantle_efficiency : 0.5;
+// Missionstitel mit Laufzeit-Platzhaltern ("Wanted: {TargetName}", 53 in der
+// Rezept-DB) zeigt das Client-JS wie die statischen Blueprint-Seiten
+// (BlueprintDetail.astro): durch seoTitle() aus lib/missions — eine Wahrheit
+// fuer beide Stellen. Bis 04.11.2026 stand im Blueprint-Fenster der Rohtitel
+// (verify:clienttext, Teil 2).
+const missionTitles: Record<string, string> = {};
+for (const b of DB.blueprints) for (const m of b.missions || []) if (m.name.includes('{')) missionTitles[m.name] = seoTitle(m.name);
 const defaultYield = Math.round(dismantleEff * 100);
 
 // Cache-Busting per Content-Hash (siehe Kommentar am Skript-Tag unten).
@@ -619,11 +633,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div class="cdb-bar">
     <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
     <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
-      <input type="search" id="cdb-search" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
+      <input type="search" id="cdb-search" data-ev-filter="suche" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
     <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
       <span class="cdb-sr">{S.sort}</span>
-      <select id="cdb-sort">
+      <select id="cdb-sort" data-ev-filter="sortierung">
         <option value="name">{S.sortName}</option>
         <option value="name-desc">{S.sortNameDesc}</option>
         <option value="time-asc">{S.sortTimeAsc}</option>
@@ -659,7 +673,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')} data-ev-filter="kategorie">
         <h4>{S.category}</h4>
         {catList.map((c) => (
           <details class="cdb-cat-details">
@@ -681,10 +695,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')} data-ev-filter="ressource">
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
-          <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder="Ressource suchen..." autocomplete="off" />
+          <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder={S.resSearch} aria-label={S.resSearch} autocomplete="off" />
         </div>
         <div class="cdb-res-list">
           {resources.map((r) => (
@@ -696,7 +710,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         </div>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')} data-ev-filter="groesse">
         <h4>{it('specSize')}</h4>
         {sizeList.map((sz) => (
           <label class="cdb-check">
@@ -706,7 +720,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')} data-ev-filter="qualitaet">
         <h4>{it('specGrade')}</h4>
         {gradeList.map((gr) => (
           <label class="cdb-check">
@@ -716,7 +730,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')} data-ev-filter="merkmal">
         <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
         <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
       </div>
@@ -791,7 +805,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div id="cdb-tab-dismantle-content" hidden>
     <div class="calc-layout">
       <!-- Inputs sidebar -->
-      <aside class="calc-sidebar">
+      <aside class="calc-sidebar" data-ev-rechnung>
         <h4>{S.calcSelectMats}</h4>
         
         <!-- Material search & list -->
@@ -830,17 +844,26 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <div class="calc-results-wrap" style="flex:1 1 auto; min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap;">
           <h2 style="display:inline-flex;align-items:center;gap:.55rem;font-family:var(--font-display,inherit);font-weight:900;font-size:var(--fs-14);color:#fff;margin:0;"><span style="display:inline-flex;color:var(--accent,#FF5E1A);" aria-hidden="true"><Fragment set:html={ICON_DISMANTLE} /></span>{S.calcTitle}</h2>
-          <span id="calc-results-count" style="font-size:var(--fs-7);color:var(--muted,#9ba2ae);">0 Items gefunden</span>
+          <span id="calc-results-count" style="font-size:var(--fs-7);color:var(--muted,#9ba2ae);">{JS_T.calcFound.replace('{count}', '0')}</span>
         </div>
 
+        {/* Unsicherheit offen benannt (Audit 04.11.2026): die Mengen sind
+            ein Rechenwert aus Rezept und Ausbeute-Rate, kein Messwert. */}
+        <p class="calc-method" style="margin:-.6rem 0 1rem;font-size:var(--fs-6);color:var(--muted,#9ba2ae);line-height:1.4;">{S.calcMethod}</p>
+
         <div class="calc-search-row">
-          <input type="search" id="calc-item-search" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
+          <input type="search" id="calc-item-search" data-ev-filter="suche" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
         </div>
 
         {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,
             dass die Blacklist-Daten fehlen (alte JSON / DB-Fetch gescheitert) —
-            dann kann der Rechner Seltenheit nicht garantieren. Normal hidden. */}
-        <p id="calc-datanote" role="alert" hidden style="margin:0 0 1rem;padding:.7rem .9rem;border:1px solid #ff5b5b;border-left-width:3px;border-radius:6px;background:rgba(255,91,91,.09);color:var(--text,#eef1f5);font-size:var(--fs-7);line-height:1.45;">{S.calcDataIncomplete}</p>
+            dann kann der Rechner Seltenheit nicht garantieren. Normal hidden.
+            Der Text steht im data-msg, nicht als Inhalt: als versteckter
+            Fliesstext lasen Crawler ihn als Dauerzustand („Seltenheit fehlt,
+            Ausbeuten zu hoch"), obwohl die Daten vollstaendig sind (03.11.2026,
+            eine KI-Wettbewerbsanalyse hat ihn so zitiert). Das JS setzt ihn
+            erst ein, wenn der Fall wirklich eintritt. */}
+        <p id="calc-datanote" role="alert" hidden data-msg={S.calcDataIncomplete} style="margin:0 0 1rem;padding:.7rem .9rem;border:1px solid #ff5b5b;border-left-width:3px;border-radius:6px;background:rgba(255,91,91,.09);color:var(--text,#eef1f5);font-size:var(--fs-7);line-height:1.45;"></p>
 
         <div id="calc-results" class="calc-grid vb-scrollbox">
           <!-- Results rendered dynamically via JS -->
@@ -902,6 +925,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   dbUrl: '/assets/crafting-db.json?v=' + version,
   dismantleUrl: '/assets/dismantling-items.json?v=' + version,
   dismantleEfficiency: dismantleEff,
+  missionTitles,
   icons: { bp: ICON_BLUEPRINT, dis: ICON_DISMANTLE },
   // Materialname (Schreibweise wie im Rezept) -> Mineral, für die Abbau-Links
   // im Detail-Modal und in der Einkaufsliste des Planers (rendert das JS).
