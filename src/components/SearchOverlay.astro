@@ -42,7 +42,7 @@ const rootData = searchRootData(lang);
         aria-label={t('search.term')}
       />
       <span class="scs__sys" aria-hidden="true" set:html={t('search.sys')}></span>
-      <button class="scs__x" data-scs-close aria-label={t('search.close')}>Esc</button>
+      <button class="scs__x" data-scs-close aria-label={t('search.close')}><span class="scs__x-key">Esc</span><span class="scs__x-tap">{t('search.dismiss')}</span></button>
     </div>
     <ul class="scs__list" id="scs-list" role="listbox" aria-label={t('search.results')}></ul>
     <div class="scs__foot">
