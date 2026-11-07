@@ -510,6 +510,92 @@ describe('Werkstatt: Ablage im Konto', () => {
     assert.equal(acct.state(), 'synced');
   });
 
+  test('speichert ein anderer Tab, sagt dieser Tab erst „gespeichert", wenn es im Konto liegt', async () => {
+    // cubic zu PR #310 (zweiter Lauf): Tab A speichert, Tab B (Kontoseite,
+    // Werkstatt) bekommt das storage-Ereignis und malte neu, sagte aber
+    // weiter „gespeichert" aus SEINEM letzten Lauf. Scheitert A beim
+    // Hochschicken oder schliesst vor der Frist, lag das Layout nur im
+    // gemeinsamen Spiegel. Jetzt zaehlt die fremde Aenderung wie eine eigene,
+    // und B bringt sie selbst hoch.
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let aScheitert = false;
+    const restA = async (_sess, method, ...a) => (method === 'POST' && aScheitert ? { ok: false, json: async () => ({}) } : srv.rest(method, ...a));
+    const tabA = accountStore({ storage: mem, account: { peek: () => sess, session: async () => sess, rest: restA }, onChange() {}, win: {} });
+    let ereignis = null;
+    const winB = { addEventListener(typ, f) { if (typ === 'storage') ereignis = f; } };
+    const seenB = [];
+    const tabB = accountStore({
+      storage: mem,
+      account: { peek: () => sess, session: async () => sess, rest: (_sess, ...a) => srv.rest(...a) },
+      onChange() { seenB.push([tabB.state(), [...srv.rows.keys()].join()]); },
+      win: winB,
+    });
+    await tabA.sync();
+    await tabB.sync();
+    assert.equal(tabB.state(), 'synced', 'Voraussetzung');
+    assert.equal(typeof ereignis, 'function', 'B hoert auf storage');
+    ereignis({ key: 'sb-x-auth-token' });
+    ereignis({ key: layoutKey(null) });
+    assert.equal(tabB.state(), 'synced', 'fremde Schluessel aendern am Kontostand nichts');
+
+    aScheitert = true;
+    tabA.store.save(lay('aaaa1111', 'Aus Tab A'));
+    ereignis({ key: layoutKey(UID) }); // so meldet der Browser B die Aenderung
+    assert.equal(tabB.state(), 'pending', 'nicht „gespeichert": A hat noch nichts hochgeschickt');
+
+    await wait(450); // A scheitert beim Hochschicken, B gleicht selbst ab
+    await wait(20);
+    assert.equal(tabA.state(), 'error', 'Voraussetzung: A brachte es nicht hoch');
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111'], 'B hat es hochgebracht');
+    assert.equal(tabB.state(), 'synced');
+    assert.ok(seenB.filter(([st]) => st === 'synced').every(([, rows]) => rows === '' || rows === 'aaaa1111'));
+    assert.deepEqual(seenB.at(-1), ['synced', 'aaaa1111'], '„gespeichert" erst, als es beim Server lag');
+  });
+
+  test('zwei Tabs schaukeln sich ueber storage-Ereignisse nicht auf', async (t) => {
+    // Jeder Abgleich schreibt den Spiegel, jeder Schreibvorgang weckt den
+    // anderen Tab. Wie im Browser: Ereignis nur bei geaendertem Wert, nur im
+    // ANDEREN Tab, asynchron. Nach dem Speichern muss Ruhe einkehren.
+    const raw = new Map();
+    const hoerer = { A: null, B: null };
+    let offen = true; // am Ende schliessen beide Tabs, sonst hielte ein Aufschaukeln den Lauf am Leben
+    const speicher = (ich) => ({
+      getItem: (k) => (raw.has(k) ? raw.get(k) : null),
+      setItem(k, v) {
+        v = String(v);
+        if (raw.get(k) === v) return;
+        raw.set(k, v);
+        const anderer = hoerer[ich === 'A' ? 'B' : 'A'];
+        if (anderer) setTimeout(() => { if (offen) anderer({ key: k }); }, 0);
+      },
+    });
+    const srv = server();
+    let anfragen = 0;
+    const sess = { user: { id: UID } };
+    const account = { peek: () => sess, session: async () => sess, rest: (_sess, ...a) => { anfragen++; return srv.rest(...a); } };
+    const win = (ich) => ({ addEventListener(typ, f) { if (typ === 'storage') hoerer[ich] = f; } });
+    const tabA = accountStore({ storage: speicher('A'), account, onChange() {}, win: win('A') });
+    const tabB = accountStore({ storage: speicher('B'), account, onChange() {}, win: win('B') });
+    try {
+      await tabA.sync();
+      await tabB.sync();
+      tabA.store.save(lay('aaaa1111', 'Eins'));
+      await wait(1500);
+      const nachEinsPunktFuenf = anfragen;
+      await wait(900);
+      t.diagnostic(`${anfragen} Anfragen fuer Anmelden zweier Tabs und eine Speicherung`);
+      assert.equal(anfragen, nachEinsPunktFuenf, `nach dem Speichern laufen weiter Abgleiche (${anfragen} Anfragen)`);
+      assert.ok(anfragen <= 8, `zu viele Anfragen fuer eine Speicherung: ${anfragen}`);
+      assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+      assert.equal(tabA.state(), 'synced');
+      assert.equal(tabB.state(), 'synced');
+    } finally {
+      offen = false;
+    }
+  });
+
   test('ein Abgleich ohne eigene Aenderung laesst „gespeichert" stehen', async () => {
     // Gegenstueck: der Abgleich beim Zurueckkehren in den Tab holt nur fremde
     // Aenderungen. Was dieser Browser hatte, liegt schon im Konto; ein

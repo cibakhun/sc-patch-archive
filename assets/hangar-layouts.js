@@ -563,6 +563,15 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
     timer = 0;
     if (uid()) timer = setTimeout(() => { timer = 0; sync(); }, 400);
   }
+  // Ein anderer Tab hat den Spiegel dieses Kontos geaendert (gespeichert,
+  // geloescht, abgeglichen). Ob das schon im Konto liegt, weiss nur er, und
+  // schliesst er vor seinem Abgleich, laege es nur in diesem Browser. Also wie
+  // eine eigene Aenderung: offen, bis ein Abgleich HIER es bestaetigt. Steht
+  // vor den Ereignissen der Seite (die malt danach neu und liest schon
+  // 'pending'); der Abgleich ist idempotent, ein zweiter Tab kostet ein GET.
+  if (typeof win.addEventListener === 'function') {
+    win.addEventListener('storage', (e) => { if (e?.key && uid() && e.key === base.key()) touched(); });
+  }
   /**
    * 'guest' | 'synced' (letzter Abgleich ok und seither nichts offen)
    * | 'pending' (angemeldet, eine Aenderung ist noch unterwegs) | 'error'.
