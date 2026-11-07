@@ -16,6 +16,14 @@
 //                   Trefferliste zeigt den ersten Teil sofort und rechnet neu,
 //                   sobald der zweite da ist.
 // Keine Abhaengigkeiten, kein Netz ausser den beiden Index-Dateien.
+//
+// Laden und Scheitern sind SICHTBAR (07.11.2026): Bis dahin blieb die Liste
+// leer, solange ein Teil unterwegs war, und ebenso leer, wenn der erste Teil
+// gar nicht ankam — auf dem Telefon sah das aus wie "die Suche findet nichts"
+// (Krisz, staging, "Panther": der Treffer steht nur im zweiten Teil). Jetzt
+// steht dort eine Statuszeile: "wird geladen" oder "nicht erreichbar" mit
+// einem Knopf zum erneuten Versuch; ein gescheiterter Teil wird beim naechsten
+// Tippen auch von selbst neu geholt.
 (function () {
   if (window.__scsInit) return;
   var root = document.getElementById('scs');
@@ -42,31 +50,45 @@
   var fetchJson = function (url) {
     return fetch(url).then(function (r) {
       if (!r.ok) throw new Error('index ' + r.status);
+      // Eine Umleitung auf eine HTML-Seite (auf staging das Testpilot-Tor,
+      // wenn der Ausweis gerade ablief) antwortet mit 200 — r.json() wirft
+      // dann, und das zaehlt wie jeder andere Fehlschlag.
       return r.json();
     });
   };
   var loading = null;
   var moreLoading = false;
+  // Fehlschlag je Teil merken: render() zeigt ihn an, statt die Liste leer zu
+  // lassen, und das naechste Tippen holt neu (nicht oefter als RETRY_MS).
+  var failed = false;
+  var moreFailed = false;
+  var lastTry = 0;
+  var RETRY_MS = 2500;
   // Beide Teile werden erneut versucht, wenn ein Abruf fehlschlug: ein
   // kurzer Netzaussetzer soll die Suche nicht bis zum Neuladen der Seite
   // stilllegen. Ein Fehlschlag des ersten Teils gibt `loading` frei, einer
-  // des zweiten laesst `more` leer, damit das naechste Oeffnen neu holt.
+  // des zweiten laesst `more` leer, damit der naechste Versuch neu holt.
   function load() {
+    lastTry = Date.now();
     var moreUrl = root.getAttribute('data-index-more');
     if (moreUrl && !more && !moreLoading) {
       // Der zweite Teil darf fehlen oder spaeter kommen: die Suche laeuft mit
       // dem ersten weiter, statt leer zu bleiben.
       moreLoading = true;
+      moreFailed = false;
       fetchJson(moreUrl)
         .then(function (j) {
           more = prep(j);
-        }, function () {})
+        }, function () {
+          moreFailed = true;
+        })
         .then(function () {
           moreLoading = false;
           if (!root.hidden) render(input.value);
         });
     }
     if (loading) return loading;
+    failed = false;
     loading = fetchJson(root.getAttribute('data-index') || '/search-index.json').then(
       function (j) {
         index = prep(j);
@@ -74,10 +96,51 @@
       },
       function (err) {
         loading = null;
+        failed = true;
         throw err;
       },
     );
     return loading;
+  }
+  // Holt, was fehlt (beim Oeffnen beide Teile, danach nur einen
+  // gescheiterten), zeigt sofort den Stand ("wird geladen" oder die Treffer
+  // aus dem Speicher) und rechnet neu, sobald der erste Teil da ist ODER
+  // scheiterte — vorher blieb die Liste bei einem Fehlschlag einfach leer.
+  function refresh() {
+    var again = function () {
+      if (!root.hidden) render(input.value);
+    };
+    load().then(again, again);
+    render(input.value);
+  }
+  // Eine Statuszeile in der Liste: Laden, Scheitern (mit Knopf) oder der
+  // Hinweis unter den Treffern, dass Items und Blueprints noch kommen.
+  function status(kind, title, hint, withRetry) {
+    var li = document.createElement('li');
+    li.className = 'scs__empty scs__status scs__status--' + kind;
+    if (title) {
+      var h = document.createElement('b');
+      h.textContent = title;
+      li.appendChild(h);
+    }
+    if (hint) {
+      var p = document.createElement('span');
+      p.textContent = hint;
+      li.appendChild(p);
+    }
+    if (withRetry) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'scs__retry';
+      btn.textContent = root.dataset.retry || 'Erneut versuchen';
+      btn.addEventListener('click', function (ev) {
+        if (ev && ev.preventDefault) ev.preventDefault();
+        refresh();
+        input.focus();
+      });
+      li.appendChild(btn);
+    }
+    list.appendChild(li);
   }
   function score(e, terms, whole) {
     var total = 0;
@@ -106,7 +169,15 @@
     var terms = whole.split(/\s+/).filter(Boolean);
     list.innerHTML = '';
     sel = 0;
-    if (!terms.length || !index) { results = []; return; }
+    results = [];
+    if (!index) {
+      // Erster Teil fehlt: kam er nicht an (das zeigt die Suche gleich beim
+      // Oeffnen), oder laedt er noch (das erst, wenn schon getippt wurde)?
+      if (failed) status('fehler', root.dataset.failedTitle || 'Register nicht erreichbar', root.dataset.failedHint || '', true);
+      else if (terms.length) status('laedt', '', root.dataset.loading || 'Register wird geladen …', false);
+      return;
+    }
+    if (!terms.length) return;
     var pool = more ? index.concat(more) : index;
     results = pool
       .map(function (e, i) { return { e: e, sc: score(e, terms, whole), i: i }; })
@@ -115,18 +186,14 @@
       .slice(0, 20)
       .map(function (r) { return r.e; });
     if (!results.length) {
-      // Solange der zweite Teil noch laedt, ist "nichts gefunden" verfrueht.
-      if (moreLoading) return;
-      var li = document.createElement('li');
-      li.className = 'scs__empty';
-      var h = document.createElement('b');
-      h.textContent = root.dataset.emptyTitle || 'Kein Eintrag im Register';
-      var p = document.createElement('span');
+      // Solange der zweite Teil noch laedt, ist "nichts gefunden" verfrueht —
+      // aber eine leere Liste ist es auch: sie sah aus wie "kein Treffer".
+      if (moreLoading) { status('laedt', '', root.dataset.loadingMore || 'Items und Blueprints werden geladen …', false); return; }
       var qpre = (root.dataset.emptyQuery || 'Anfrage »%q%« ').replace('%q%', q);
-      p.textContent = qpre + (root.dataset.emptyHint || 'ergab keine Treffer.');
-      li.appendChild(h);
-      li.appendChild(p);
-      list.appendChild(li);
+      // Kam der zweite Teil nicht an, ist "kein Treffer" nur die halbe
+      // Wahrheit: Items und Blueprints wurden gar nicht durchsucht.
+      if (moreFailed) status('fehler', root.dataset.emptyTitle || 'Kein Eintrag im Register', root.dataset.failedMore || '', true);
+      else status('leer', root.dataset.emptyTitle || 'Kein Eintrag im Register', qpre + (root.dataset.emptyHint || 'ergab keine Treffer.'), false);
       return;
     }
     results.forEach(function (e, i) {
@@ -165,6 +232,10 @@
       li.addEventListener('click', function () { go(i); });
       list.appendChild(li);
     });
+    // Treffer aus dem ersten Teil stehen schon da; dass Items und Blueprints
+    // noch fehlen (oder nicht ankamen), sagt eine Zeile darunter.
+    if (moreLoading) status('laedt', '', root.dataset.loadingMore || 'Items und Blueprints werden geladen …', false);
+    else if (moreFailed) status('fehler', '', root.dataset.failedMore || '', true);
   }
   function move(d) {
     if (!results.length) return;
@@ -197,7 +268,7 @@
     // uebergeht overflow:hidden dort und scrollt den Hintergrund weiter.
     // Siehe assets/scroll-lock.js.
     if (window.VBScrollLock) window.VBScrollLock.lock();
-    load().then(function () { render(input.value); }, function () {});
+    refresh();
     requestAnimationFrame(function () { input.focus(); input.select(); });
   }
   function close() {
@@ -227,7 +298,13 @@
     else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
     else if (e.key === 'Enter') { e.preventDefault(); go(); }
   });
-  input.addEventListener('input', function () { render(input.value); });
+  input.addEventListener('input', function () {
+    // Ein gescheiterter Teil wird beim Tippen von selbst neu geholt, aber
+    // nicht bei jedem Buchstaben (RETRY_MS) — offline waere das sonst eine
+    // Anfrage je Tastendruck.
+    if ((failed || moreFailed) && Date.now() - lastTry > RETRY_MS) refresh();
+    else render(input.value);
+  });
   root.querySelectorAll('[data-scs-close]').forEach(function (el) {
     el.addEventListener('click', close);
   });

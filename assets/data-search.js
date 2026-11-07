@@ -58,7 +58,11 @@
     input.setAttribute('aria-label', L.term || '');
     var sys = el('span', 'scs__sys', (L.sys || '').replace(/&nbsp;/g, '\u00a0'));
     sys.setAttribute('aria-hidden', 'true');
-    var x = el('button', 'scs__x', 'Esc');
+    // Zwei Beschriftungen, CSS waehlt: "Esc" mit Tastatur, das Wort auf
+    // Touch (assets/search-overlay.css, 07.11.2026).
+    var x = el('button', 'scs__x');
+    x.appendChild(el('span', 'scs__x-key', 'Esc'));
+    x.appendChild(el('span', 'scs__x-tap', L.dismiss || ''));
     x.type = 'button';
     x.setAttribute('data-scs-close', '');
     x.setAttribute('aria-label', L.close || '');
