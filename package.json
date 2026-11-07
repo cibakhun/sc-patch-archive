@@ -31,6 +31,8 @@
     "verify:shipcard": "node scripts/verify-shipcard.mjs",
     "verify:shipconsole": "node scripts/verify-shipconsole.mjs",
     "verify:hangar-schalter": "node scripts/verify-hangar-schalter.mjs",
+    "verify:supabase-ziel": "node scripts/verify-supabase-ziel.mjs",
+    "verify:backup": "node scripts/verify-backup.mjs",
     "verify:hangar": "node scripts/verify-hangar.mjs",
     "verify:hangar-hall": "node scripts/verify-hangar-hall.mjs",
     "verify:hangar-gear": "node scripts/verify-hangar-gear.mjs",
@@ -40,6 +42,7 @@
     "verify:zaehler": "node scripts/verify-zaehler.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "verify:supply-chain": "node scripts/verify-supply-chain.mjs",
+    "verify:typen": "node --max-old-space-size=6144 scripts/verify-typen.mjs",
     "sync:ships": "node scripts/sync-ships.mjs",
     "sync:prices": "node scripts/sync-prices.mjs",
     "sync:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs",
@@ -48,6 +51,9 @@
     "refresh:mining": "node scripts/datamine-mining.mjs && node scripts/datamine-locations.mjs && node scripts/datamine-gear.mjs && node scripts/build-mining-model.mjs && node scripts/build-mining-db.mjs && node scripts/_sync-assets.mjs && node scripts/build-hall-furniture.mjs && node scripts/build-thumbs.mjs && node scripts/build-avif.mjs && node scripts/build-downloads.mjs && astro build",
     "verify:mining": "node scripts/verify-mining.mjs",
     "verify:datastand": "node scripts/verify-datastand.mjs",
+    "verify:patch-angaben": "node scripts/verify-patch-angaben.mjs",
+    "verify:sprache": "node scripts/verify-sprache.mjs",
+    "verify:clienttext": "node scripts/verify-clienttext.mjs",
     "datamine:crafting": "node scripts/datamine-crafting.mjs && node scripts/verify-crafting-specs.mjs",
     "datamine:mining": "node scripts/datamine-mining.mjs",
     "datamine:locations": "node scripts/datamine-locations.mjs",
@@ -77,8 +83,10 @@
     "verify:vehicles": "node scripts/verify-vehicles.mjs",
     "verify:vehicle-gap": "node scripts/verify-vehicle-gap.mjs",
     "verify:db-rights": "node scripts/verify-db-rights.mjs",
+    "verify:functions": "node scripts/verify-functions.mjs",
     "verify:patch-ships": "node scripts/verify-patch-ships.mjs",
     "verify:weapons": "node scripts/verify-weapon-sizes.mjs",
+    "verify:fahrzeugwerte": "node scripts/verify-fahrzeugwerte.mjs",
     "verify:vehicle-roles": "node scripts/verify-vehicle-roles.mjs",
     "sync:refinery": "node scripts/fetch-uex-commodities.mjs && node scripts/build-refinery-data.mjs",
     "track:marketplace": "node scripts/track-marketplace.mjs",
@@ -98,13 +106,17 @@
     "astro": "^5.0.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@gltf-transform/core": "^4.4.1",
     "@gltf-transform/extensions": "^4.4.1",
     "@gltf-transform/functions": "^4.4.1",
+    "@types/node": "^22.20.5",
     "draco3d": "^1.5.7",
+    "linkedom": "^0.18.13",
     "meshoptimizer": "^1.2.0",
     "playwright-core": "^1.62.1",
-    "three": "^0.185.1"
+    "three": "^0.185.1",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "ndarray-pixels": "5.0.1"

@@ -35,7 +35,8 @@
      node scripts/verify-db-rights.mjs --print-sql         nur die Abfrage ausgeben
    Live braucht SUPABASE_ACCESS_TOKEN (persoenliches Zugriffstoken aus dem
    Supabase-Dashboard, Account > Access Tokens) in der Umgebung, optional
-   SUPABASE_PROJECT_REF bzw. --ref; Vorgabe ist das Projekt aus src/consts.ts.
+   SUPABASE_PROJECT_REF bzw. --ref; Vorgabe ist das Live-Projekt aus
+   scripts/lib/supabase-ziel.mjs (Ziel "live").
    Der Aufruf geht an den read-only-Endpunkt der Management API (Abfrage als
    supabase_read_only_user). Eine Momentaufnahme ist das JSON-Ergebnis von
    supabase/rights.snapshot.sql, z. B. aus dem SQL-Editor oder von --save.
@@ -47,6 +48,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import { supabaseZiel } from './lib/supabase-ziel.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const SOLL_DATEI = 'supabase/rights.expected.json';
@@ -222,10 +224,7 @@ export function pruefe(rows, soll) {
 function projektRef(argRef) {
   if (argRef) return argRef;
   if (process.env.SUPABASE_PROJECT_REF) return process.env.SUPABASE_PROJECT_REF.trim();
-  const consts = readFileSync(resolve(ROOT, 'src/consts.ts'), 'utf8');
-  const m = consts.match(/https:\/\/([a-z0-9]{20})\.supabase\.co/);
-  if (!m) throw new Error('Projekt-Ref weder in --ref, SUPABASE_PROJECT_REF noch src/consts.ts gefunden');
-  return m[1];
+  return supabaseZiel('live').ref;
 }
 
 async function holeLive(ref, token, sql) {

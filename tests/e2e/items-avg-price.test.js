@@ -86,7 +86,7 @@ describe('Ø-Spalte im Datenblatt — gebautes dist/ (DE+EN)', () => {
     const html = fs.readFileSync(distEnPath, 'utf8');
     const table = extractDpTable(html);
     assert.ok(table, 'dp-table nicht gefunden');
-    assert.ok(table.includes('UEX avg'), 'EN-Spaltenkopf fehlt');
+    assert.ok(table.includes('Avg price'), 'EN-Spaltenkopf fehlt');
 
     const it = itemById.get('10-series-greatsword-cannon');
     const avg = refAvg(it);
@@ -101,7 +101,7 @@ describe('Ø-Spalte im Datenblatt — gebautes dist/ (DE+EN)', () => {
     const html = fs.readFileSync(distDePath, 'utf8');
     const table = extractDpTable(html);
     assert.ok(table, 'dp-table nicht gefunden');
-    assert.ok(table.includes('Ø UEX'), 'DE-Spaltenkopf fehlt');
+    assert.ok(table.includes('Ø Preis'), 'DE-Spaltenkopf fehlt');
 
     const it = itemById.get('10-series-greatsword-cannon');
     const avg = refAvg(it);
@@ -121,7 +121,7 @@ describe('Ø-Spalte im Datenblatt — gebautes dist/ (DE+EN)', () => {
       const html = fs.readFileSync(p, 'utf8');
       const table = extractDpTable(html);
       assert.ok(table, `dp-table fehlt in ${p}`);
-      assert.ok(table.includes('UEX avg') || table.includes('Ø UEX'), `Spaltenkopf fehlt in ${p}`);
+      assert.ok(table.includes('Avg price') || table.includes('Ø Preis'), `Spaltenkopf fehlt in ${p}`);
       const rows = extractTbodyRows(table);
       assert.ok(rows.length > 0, `keine Zeilen in ${p}`);
       for (const row of rows) {
@@ -147,8 +147,8 @@ describe('Ø-Spalte in der Kategorie-Liste — gebautes dist/ (DE+EN)', () => {
     const it = itemById.get('10-series-greatsword-cannon');
     const avg = refAvg(it);
     for (const [p, header, locale] of [
-      [path.resolve('dist/items/category/vehiclegear-weapons-guns.html'), 'UEX avg', 'en-US'],
-      [path.resolve('dist/de/items/category/vehiclegear-weapons-guns.html'), 'Ø UEX', 'de-DE'],
+      [path.resolve('dist/items/category/vehiclegear-weapons-guns.html'), 'Avg price', 'en-US'],
+      [path.resolve('dist/de/items/category/vehiclegear-weapons-guns.html'), 'Ø Preis', 'de-DE'],
     ]) {
       assert.ok(fs.existsSync(p), `${p} fehlt — npm run build ausfuehren`);
       const html = fs.readFileSync(p, 'utf8');
@@ -241,7 +241,7 @@ describe('Ø-Spalte im Finder-Modal — Mock-DOM (DE-Rueckfaelle)', () => {
 
     openCard(dom, 'beta-helmet');
     const body = dom.elements['uif-modal-body-content'];
-    assert.ok(body.textContent.includes('Ø UEX'), 'Ø-Kopf fehlt im Modal (deutscher Rueckfall)');
+    assert.ok(body.textContent.includes('Ø Preis'), 'Ø-Kopf fehlt im Modal (deutscher Rueckfall)');
     const rows = body.querySelectorAll('.uif-obtain-row');
     assert.strictEqual(rows.length, 2);
     for (const row of rows) {
@@ -268,8 +268,8 @@ describe('Ø-Spalte im Finder-Modal — Mock-DOM (DE-Rueckfaelle)', () => {
 describe('Ø-Label im Client-Konfigurationsblock — gebautes dist/ (DE+EN)', () => {
   test('12. dist/item-finder.html und dist/de/item-finder.html transportieren thAvg in window.__UIF', () => {
     for (const [p, expected] of [
-      [path.resolve('dist/item-finder.html'), 'UEX avg'],
-      [path.resolve('dist/de/item-finder.html'), 'Ø UEX'],
+      [path.resolve('dist/item-finder.html'), 'Avg price'],
+      [path.resolve('dist/de/item-finder.html'), 'Ø Preis'],
     ]) {
       assert.ok(fs.existsSync(p), `${p} fehlt — npm run build ausfuehren`);
       const html = fs.readFileSync(p, 'utf8');

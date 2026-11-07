@@ -17,6 +17,12 @@ interface Props {
   themeColor?: string;
   /** inject the shared Attribution footer (pages with a bespoke footer pass false) */
   footer?: boolean;
+  /**
+   * Quellen-Zeile des Fusses. Ohne Angabe die Vorgabe von Attribution; `[]`
+   * fuer Seiten, die ihre Quellen schon im Inhalt nennen (Schiffsseiten),
+   * damit nicht zwei Quellen-Zeilen untereinander stehen.
+   */
+  footerSources?: string[];
   /** social preview image, site-relative (e.g. "/assets/trailer-4-4-0.jpg") */
   ogImage?: string;
   /** og:type — patch/topic pages pass "article" */
@@ -63,6 +69,7 @@ const {
   description: descriptionProp,
   themeColor = '#05070d',
   footer = false,
+  footerSources,
   ogImage,
   ogType = 'website',
   noindex = false,
@@ -410,6 +417,11 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
         })();
       </script>
       <script is:inline defer src={versioned('public/vendor/umami/script.js', '/vendor/umami/script.js')} data-host-url="https://stats.verse-base.com" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-exclude-search="true" data-exclude-hash="true" data-before-send="vbZaehlen"></script>
+      {/* Messereignisse (seit 06.11.2026, Freigabe Krisz): neun Ereignisse mit
+          festen Werten ueber umami.track, also durch denselben Haken. Liste,
+          Ausloeser und was NICHT rausgeht: assets/ereignisse.js; SOLL in
+          scripts/lib/ereignisse.mjs, geprueft von verify:zaehler [7]. */}
+      <script is:inline defer src={versioned('assets/ereignisse.js', '/assets/ereignisse.js')}></script>
     </>
   )}
   <slot name="head" />
@@ -419,14 +431,17 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       Staging frueher oder spaeter mit Live und wundert sich, warum eine
       Aenderung „schon draussen" ist. Inline gestylt, damit die Marke auch
       dann steht, wenn das Seiten-CSS kaputt ist — genau der Fall, den man
-      auf einer Vorschau sehen will. */}
+      auf einer Vorschau sehen will. Die Marke ist deutsch, auch auf EN-
+      Seiten (Betreiber-Hinweis, kein Seitentext): lang="de" sagt das
+      Screenreadern und verify:sprache (Regel 7). */}
   {IS_STAGING && (
     <div
+      lang="de"
       style="position:fixed;top:0;left:0;z-index:2147483647;background:#b4342a;color:#fff;font:700 11px/1 system-ui,sans-serif;letter-spacing:var(--ls-10);padding:5px 9px;border-bottom-right-radius:4px;pointer-events:none"
     >VORSCHAU — NICHT LIVE</div>
   )}
   <slot />
-  {footer && <Attribution />}
+  {footer && <Attribution sources={footerSources} />}
   {/* Ausfahrende Panels (Filterspalten, Planer): Verdunkler, Scroll-Sperre,
       Esc, Tippen-daneben, Wischen — einmal fuer die ganze Seite. `defer`,
       weil das Skript nur auf spaetere Klassenwechsel reagiert und nichts

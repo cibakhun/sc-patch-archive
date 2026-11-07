@@ -1080,7 +1080,11 @@ for (const list of famKeys.map((k) => famMap.get(k))) {
     unlawful: list.some((e) => !e.lawful),
     tutorial: list.every((e) => e.tutorial),
     shareable: list.some((e) => e.shareable),
-    maxPlayers: Math.max(...list.map((e) => e.maxPlayers ?? 1)),
+    // -1 steht im Spiel fuer "keine Angabe" und ist keine Spielerzahl
+    // (04.11.2026: 91 Missionen zeigten "-1"); ohne echte Zahl bleibt das Feld
+    // leer. Auch null (Vertragseintraege ohne Angabe) wird nicht zu 1: eine
+    // Familie nur aus solchen Eintraegen zeigte sonst "1 Spieler" ohne Beleg.
+    maxPlayers: ((sp) => (sp.length ? Math.max(...sp) : null))(list.map((e) => e.maxPlayers).filter((n) => Number.isInteger(n) && n >= 1)),
     flow: flowSrc.flow,
     module: head.module,
     tags: uniq(list.flatMap((e) => e.missionTags)),

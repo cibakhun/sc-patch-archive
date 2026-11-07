@@ -11,7 +11,7 @@
 
 import type { Locale } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
-import { hasGradeSemantics, hasMeaningfulGrade, num, sizeLabel, type DamageMap, type Item, type ItemStats } from './items';
+import { hasGradeSemantics, hasMeaningfulGrade, num, sizeLabel, type DamageMap, type Item, type ItemStats, type ResistMap } from './items';
 
 export type Row = [label: string, value: string];
 
@@ -40,16 +40,27 @@ export function formatDamage(d: DamageMap, lang: Locale): string {
 }
 
 /**
- * Widerstaende stehen als Schadens-MULTIPLIKATOR in den Daten (0.8 = 20 %
- * weniger Schaden). Angezeigt wird die Reduktion, weil genau die im Spiel-UI
- * steht — sonst liest man 0,8 als "80 % Schutz".
+ * Widerstaende stehen bei Ruestungen als Schadens-MULTIPLIKATOR in den Daten
+ * (0.8 = 20 % weniger Schaden). Angezeigt wird die Reduktion, weil genau die im
+ * Spiel-UI steht — sonst liest man 0,8 als "80 % Schutz".
+ *
+ * Schilde tragen stattdessen eine Spanne [min, max], und die ist schon der
+ * Widerstand selbst (0.25 = 25 %). ⚠ Bis 03.11.2026 lief auch sie durch
+ * `1 - x`: ein Array minus eins ergibt NaN, und 122 Schild-Seiten (je DE/EN)
+ * zeigten „Physisch NaN% · Distortion NaN%".
  */
-export function formatResist(r: DamageMap, lang: Locale): string | null {
+export function formatResist(r: ResistMap, lang: Locale): string | null {
   const t = itemT(lang);
   const keys = DMG_ORDER.filter((k) => k !== 'stun' && r[k] != null);
   if (!keys.length) return null;
-  const pct = (k: (typeof DMG_ORDER)[number]) => `${Math.round((1 - (r[k] as number)) * 100)}%`;
-  const uniform = keys.every((k) => r[k] === r[keys[0]]);
+  const pct = (k: (typeof DMG_ORDER)[number]) => {
+    const v = r[k] as number | [number, number];
+    if (!Array.isArray(v)) return `${Math.round((1 - v) * 100)}%`;
+    const lo = Math.round(v[0] * 100);
+    const hi = Math.round(v[1] * 100);
+    return lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+  };
+  const uniform = keys.every((k) => pct(k) === pct(keys[0]));
   if (uniform) return `${t('resistAll')} ${pct(keys[0])}`;
   return keys.map((k) => `${dmgLabel(k, lang)} ${pct(k)}`).join(' · ');
 }
@@ -68,15 +79,28 @@ export function specChips(i: Item, lang: Locale): Row[] {
   const eq = hasGradeSemantics(i);
   const size = sizeLabel(i);
   const out: Row[] = [];
-  if (g.manufacturer) out.push([t('specMfr'), g.manufacturer]);
+  const mfr = mfrName(g.manufacturer);
+  if (mfr) out.push([t('specMfr'), mfr]);
   if (eq && size) out.push([t('specSize'), size]);
   // Grade gilt je Ausfuehrung — bei mehreren steht er in der Variantenliste.
   // Und nur dort, wo er im Spiel etwas unterscheidet: bei Waffen, Ruestung,
   // Munition und Werkzeugen traegt AttachDef.Grade den Vorgabewert 1 -> "A".
   if (g.grade && !g.variants && hasMeaningfulGrade(i)) out.push([t('specGrade'), g.grade]);
   if (g.class) out.push([t('specClass'), g.class]);
-  if (g.volumeScu) out.push([t('specVolume'), `${g.volumeScu} SCU`]);
+  // Im Zahlformat der Seite (bis 04.11.2026 roh: "0.01 SCU" auf 287
+  // deutschen Item-Seiten; verify:sprache Regel 9). Bis zu vier
+  // Nachkommastellen in den Spieldaten (2.361 Items), daher nicht auf drei kappen.
+  if (g.volumeScu) out.push([t('specVolume'), `${num(g.volumeScu, lang, 6)} SCU`]);
   return out;
+}
+
+/* Hersteller nur mit Anzeigenamen: bei 25 Lackierungen verweisen die
+   Spieldaten auf das Logo statt auf einen Hersteller, der Name ist dann der
+   interne Schluessel ("Paint_Defender_Silver_Red_Logo"; verify:clienttext
+   04.11.2026). Gleiche Regel in assets/item-finder-app.js (mfrName). */
+const INTERN_NAME = /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+){2,}$/;
+export function mfrName(m: string | null | undefined): string | null {
+  return m && !INTERN_NAME.test(m) ? m : null;
 }
 
 /**
@@ -91,7 +115,7 @@ export function specChips(i: Item, lang: Locale): Row[] {
 export function variantHead(i: Item, v: { size: number; manufacturer: string | null; grade: string | null }, lang: Locale): string {
   const t = itemT(lang);
   const grade = v.grade && hasMeaningfulGrade(i) ? v.grade : null;
-  return [`S${v.size}`, v.manufacturer, grade ? `${t('specGrade')} ${grade}` : null]
+  return [`S${v.size}`, mfrName(v.manufacturer), grade ? `${t('specGrade')} ${grade}` : null]
     .filter(Boolean)
     .join(' · ');
 }
@@ -140,7 +164,7 @@ export function statRows(s: ItemStats | null | undefined, lang: Locale): Row[] {
   if (s.oxygen) out.push([t('statOxygen'), `${n(s.oxygen)} s`]);
   if (s.ndr) out.push([t('statNdr'), n(s.ndr)]);
   if (s.effects && s.effects.length) out.push([t('statEffects'), s.effects.join(', ')]);
-  if (s.storageScu) out.push([t('statStorage'), `${s.storageScu} SCU`]);
+  if (s.storageScu) out.push([t('statStorage'), `${n(s.storageScu)} SCU`]);
   if (s.lifetime) out.push([t('statLifetime'), `${n(s.lifetime)} s`]);
   if (s.health) out.push([t('statHealth'), n(s.health)]);
   return out;
@@ -165,11 +189,13 @@ export function primaryStat(i: Item, lang: Locale): Row | null {
     for (const k of DMG_ORDER) tot += s.damage[k] ?? 0;
     if (tot > 0) return [t('statDamage'), n(Math.round(tot * 10) / 10)];
   }
-  if (s.resist?.physical != null)
+  // Nur der Ruestungs-Multiplikator taugt als Einzelwert; die Schild-Spanne
+  // steht in der Tabelle (Schilde haben ohnehin shieldHp als Kennwert).
+  if (typeof s.resist?.physical === 'number')
     return [t('statResist'), `${Math.round((1 - s.resist.physical) * 100)}%`];
   if (s.ndr) return [t('statNdr'), `${n(s.ndr)} NDR`];
   if (s.sensitivity) return [t('statSensitivity'), n(s.sensitivity)];
-  if (s.storageScu) return [t('statStorage'), `${s.storageScu} SCU`];
+  if (s.storageScu) return [t('statStorage'), `${n(s.storageScu)} SCU`];
   if (s.health) return [t('statHealth'), `${n(s.health)} HP`];
   return null;
 }

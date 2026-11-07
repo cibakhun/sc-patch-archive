@@ -2,7 +2,7 @@
 // fuel/speed/agility/defense gauges (catalog percentiles), quantum chips and
 // insurance timers. Plain TS module — page frontmatter stays thin.
 import type { CollectionEntry } from 'astro:content';
-import { useTranslations, type Locale, DEFAULT_LOCALE } from '../i18n/ui';
+import { useTranslations, type Locale } from '../i18n/ui';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 const nfL = (n: number, loc: string, d = 0) =>
@@ -67,7 +67,7 @@ function ensure(all: { data: VehicleData }[]): Cache {
 const fmtMin = (m: number, loc: string) =>
   m >= 60 ? `${Math.floor(m / 60)} h ${nfL(Math.round(m % 60), loc)} min` : `${nfL(Math.round(m), loc)} min`;
 
-export function buildVisuals(all: { data: VehicleData }[], d: VehicleData, lang: Locale = DEFAULT_LOCALE): Visuals {
+export function buildVisuals(all: { data: VehicleData }[], d: VehicleData, lang: Locale): Visuals {
   const c = ensure(all);
   const t = useTranslations(lang);
   const loc = lang === 'en' ? 'en-US' : 'de-DE';

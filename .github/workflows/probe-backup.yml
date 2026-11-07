@@ -1,0 +1,117 @@
+# Sonde, kein Tor (wie probe-gate-e2e.yml): fuehrt den GANZEN Backup-Lauf
+# vor — sichern, Wiederherstellung in einen abgeschotteten Stack, Vergleich,
+# Verschluesselung — gegen eine ERFUNDENE Quelle, und fuehrt jede Stufe des
+# Vergleichs einmal absichtlich rot vor. Ablauf: docs/betrieb/datenbank-backup.md
+#
+# WARUM HIER UND NICHT MIT LIVE: Dieses Repo ist oeffentlich, seine Logs auch.
+# Der echte Lauf gegen Live laeuft nur im privaten Backup-Repo, mit dessen
+# Secrets (Vorlage: scripts/backup/vorlage-backup-repo.yml). Hier gibt es
+# kein Secret und keinen Live-Zugang: die Quelle ist ein lokaler Supabase-
+# Stack aus supabase/migrations/ mit drei erfundenen Konten
+# (scripts/backup/probe-quelle.sh, probe-seed.sql).
+#
+# WANN: bei jeder Aenderung an den Backup-Skripten UND an den Migrationen —
+# eine neue Migration kann die Wiederherstellung brechen (neues Schema, neue
+# Rolle, ein Trigger in auth), lange bevor der naechste Live-Lauf es merkt.
+name: Sonde — Datenbank-Backup und Wiederherstellung
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/probe-backup.yml'
+      - 'scripts/backup/**'
+      - 'scripts/verify-backup.mjs'
+      - 'supabase/migrations/**'
+  push:
+    branches: [staging]
+    paths:
+      - '.github/workflows/probe-backup.yml'
+      - 'scripts/backup/**'
+      - 'scripts/verify-backup.mjs'
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probe-backup-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # dieselbe CLI-Version wie in scripts/backup/vorlage-backup-repo.yml
+  SUPABASE_CLI: '3.0.0'
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Werkzeuge (age, Supabase-CLI)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq age
+          npm install --no-save --ignore-scripts --prefix "$RUNNER_TEMP/sbcli" "supabase@$SUPABASE_CLI"
+          echo "SUPABASE_BIN=$RUNNER_TEMP/sbcli/node_modules/.bin/supabase" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/sbcli/node_modules/.bin/supabase" --version
+          age --version
+
+      - name: Erfundene Quelle aus den Migrationen
+        run: scripts/backup/probe-quelle.sh "$RUNNER_TEMP/quelle.env"
+
+      - name: Backup-Lauf (sichern, Wiederherstellungsprobe, verschluesseln)
+        run: |
+          set -a; source "$RUNNER_TEMP/quelle.env"; set +a
+          age-keygen -o "$RUNNER_TEMP/betreiber.key"
+          export VB_AGE_EMPFAENGER="$(age-keygen -y "$RUNNER_TEMP/betreiber.key")"
+          export VB_KLINKE_KONTEN=3 VB_BEHALTEN=1 VB_BERICHT_TITEL="Sonde (erfundene Daten)"
+          scripts/backup/lauf.sh "$RUNNER_TEMP/lauf"
+          cat "$RUNNER_TEMP/lauf/aus/bericht.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Archiv mit dem Betreiber-Schluessel oeffnen
+        run: |
+          a="$(ls "$RUNNER_TEMP"/lauf/aus/*.tar.gz.age)"
+          soll="$(sed -n 2p "$a.sha256" | cut -d' ' -f1)"
+          ist="$(age -d -i "$RUNNER_TEMP/betreiber.key" "$a" | sha256sum | cut -d' ' -f1)"
+          [ "$soll" = "$ist" ] || { echo "Klartext-sha256 $ist, erwartet $soll"; exit 1; }
+          mkdir "$RUNNER_TEMP/offen"
+          age -d -i "$RUNNER_TEMP/betreiber.key" "$a" | tar xz -C "$RUNNER_TEMP/offen"
+          node scripts/verify-backup.mjs vergleich "$RUNNER_TEMP/offen" "$RUNNER_TEMP/lauf/probe"
+          echo "Archiv mit dem Betreiber-Schluessel geoeffnet, Inhalt unversehrt"
+
+      # Drei Gegenproben, jede gegen eine andere Stufe des Vergleichs. Jede
+      # muss ROT werden und genau ihre Meldung bringen, sonst ist die Stufe
+      # leergelaufen. Sicherung und Probe selbst bleiben unberuehrt (Kopien).
+      - name: Gegenproben — der Vergleich muss jede Abweichung finden
+        run: |
+          zeile_weg() { awk 'f==1 {f=2; next} /^COPY "public"."favorites" /{f=1} {print}' "$1"; }
+          gegenprobe() {  # <name> <sicherung> <probe> <erwartete Meldung>
+            if node scripts/verify-backup.mjs vergleich "$2" "$3" > "$RUNNER_TEMP/$1.log" 2>&1; then
+              cat "$RUNNER_TEMP/$1.log"; echo "Gegenprobe $1 GRUEN — diese Stufe laeuft leer"; exit 1
+            fi
+            grep -qF "$4" "$RUNNER_TEMP/$1.log" || { cat "$RUNNER_TEMP/$1.log"; echo "Gegenprobe $1: Meldung \"$4\" fehlt"; exit 1; }
+            echo "Gegenprobe $1 rot wie erwartet:"; grep FEHLER "$RUNNER_TEMP/$1.log"
+          }
+          probe="$RUNNER_TEMP/lauf/probe"
+
+          # 1) Sicherung nachtraeglich veraendert -> Pruefsumme gegen das Manifest
+          cp -r "$RUNNER_TEMP/offen" "$RUNNER_TEMP/g1"
+          zeile_weg "$RUNNER_TEMP/offen/data.sql" > "$RUNNER_TEMP/g1/data.sql"
+          gegenprobe g1 "$RUNNER_TEMP/g1" "$probe" 'data.sql: sha256 weicht vom Manifest ab'
+
+          # 2) Wiederherstellung bringt eine Zeile nicht mit -> Inhaltsvergleich
+          cp -r "$probe" "$RUNNER_TEMP/g2"
+          zeile_weg "$probe/data.sql" > "$RUNNER_TEMP/g2/data.sql"
+          gegenprobe g2 "$RUNNER_TEMP/offen" "$RUNNER_TEMP/g2" 'public.favorites: Inhalt der Probe weicht ab'
+
+          # 3) Wiederherstellung bringt einen Typ nicht mit -> Katalogvergleich
+          cp -r "$probe" "$RUNNER_TEMP/g3"
+          node -e 'const f=process.argv[1],fs=require("fs"),k=JSON.parse(fs.readFileSync(f,"utf8"));k.objekte.typen=k.objekte.typen.filter(e=>!e.startsWith("private.vb_probe_stufe "));fs.writeFileSync(f,JSON.stringify(k))' "$RUNNER_TEMP/g3/katalog.json"
+          gegenprobe g3 "$RUNNER_TEMP/offen" "$RUNNER_TEMP/g3" 'typen: fehlt in der Probe oder ist dort anders: private.vb_probe_stufe'

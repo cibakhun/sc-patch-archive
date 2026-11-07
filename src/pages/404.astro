@@ -9,10 +9,23 @@
 // Standardsprache der Site), mit JavaScript wechselt sie unter /de/ auf
 // Deutsch und zieht lang + Titel + Heimweg-Link mit.
 import Layout from '../layouts/Layout.astro';
+import { patchPageSlugs } from '../lib/patchPages';
+
+// Spanne der Patch-Seiten aus dem Dateibestand, nicht als Literal: hier stand
+// bis zum 06.11.2026 fest „Alpha 4.0.0 to 4.8.2", waehrend die Patch-Seiten
+// laengst bis 4.10.2 reichten.
+const fassungen = [...patchPageSlugs]
+  .map((s) => /^sc-(\d+)-(\d+)-(\d+)$/.exec(s))
+  .filter((m): m is RegExpExecArray => !!m)
+  .map((m) => [Number(m[1]), Number(m[2]), Number(m[3])])
+  .sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2])
+  .map((v) => v.join('.'));
+if (fassungen.length === 0) throw new Error('404: keine Patch-Seite gefunden');
+const spanne = `Alpha ${fassungen[0]} to ${fassungen[fassungen.length - 1]}`;
 ---
 <Layout
   title="404 — Lost in the Verse | VerseBase"
-  description="This page doesn't exist on VerseBase. Back to the start: every Star Citizen patch from Alpha 4.0.0 to 4.8.2, the ship database, the evolution matrix and the tools."
+  description={`This page doesn't exist on VerseBase. Back to the start: every Star Citizen patch from ${spanne}, the ship database, the evolution matrix and the tools.`}
   themeColor="#05070d"
   noindex={true}
 >

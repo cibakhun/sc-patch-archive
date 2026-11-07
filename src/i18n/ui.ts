@@ -106,7 +106,7 @@ const UI = {
     'crumbs.missions': 'Missionen',
     // -- Suche (Overlay) --
     'search.dialog': 'Archiv durchsuchen',
-    'search.placeholder': 'Patches, Themen, Schiffe, Features…',
+    'search.placeholder': 'Items, Schiffe, Missionen, Blueprints…',
     'search.term': 'Suchbegriff',
     'search.sys': 'Archiv&nbsp;//&nbsp;Suche',
     'search.close': 'Suche schließen',
@@ -116,13 +116,17 @@ const UI = {
     'search.dismiss': 'schließen',
     'search.empty.title': 'Kein Eintrag im Register',
     'search.empty.query': 'Anfrage »%q%« ',
-    'search.empty.hint': 'ergab keine Treffer — Version oder Codename versuchen.',
+    'search.empty.hint': 'ergab keine Treffer — einen kürzeren Begriff oder den englischen Namen versuchen.',
     'search.kind.schiff': 'Schiff',
     'search.kind.mission': 'Mission',
     'search.kind.patch': 'Patch',
     'search.kind.thema': 'Thema',
     'search.kind.feature': 'Feature',
     'search.kind.event': 'Event',
+    'search.kind.item': 'Item',
+    'search.kind.bauplan': 'Blueprint',
+    'search.kind.werkzeug': 'Werkzeug',
+    'search.button': 'Suche öffnen',
     // -- Pager --
     'pager.older': '← Älter',
     'pager.newer': 'Neuer →',
@@ -264,10 +268,6 @@ const UI = {
     'ship.similar.noimg': 'KEIN BILD',
     'ship.links.all': '← Alle Schiffe',
     'ship.source': 'Quelle:',
-    'ship.version': 'Spielversion:',
-    'ship.source.image': 'Bild',
-    'ship.source.ingame': 'Ingame-Preise',
-    'ship.source.extras': '3D-Modell, Lackierungen & Serien-Daten',
     'ship.asof': 'Stand',
     'ship.meta.desc': '%name% von %maker% — Star-Citizen-Schiff: 3D-Ansicht, Specs, Ingame-Preis & Kauforte, Lackierungen, Varianten und Patch-Historie.',
     'ship.maker.unknown': 'unbekannt',
@@ -392,8 +392,6 @@ const UI = {
     'do.th.cargo': 'Fracht',
     'do.th.price': 'Preis',
     'do.th.status': 'Status',
-    'do.specs': 'Specs',
-    'do.specsNote': 'Fan-Projekt, basiert auf der offiziellen Ship Matrix',
     'do.events': 'Events',
     'do.sources': 'Quellen: starcitizen.tools, RSI Comm-Links, Patch Notes',
     'do.notesRsi': 'Offizielle Patch Notes (RSI)',
@@ -517,7 +515,7 @@ const UI = {
     'crumbs.missions': 'Missions',
     // -- Search (overlay) --
     'search.dialog': 'Search the archive',
-    'search.placeholder': 'Patches, topics, ships, features…',
+    'search.placeholder': 'Items, ships, missions, blueprints…',
     'search.term': 'Search term',
     'search.sys': 'Archive&nbsp;//&nbsp;Search',
     'search.close': 'Close search',
@@ -527,13 +525,17 @@ const UI = {
     'search.dismiss': 'close',
     'search.empty.title': 'No entry in the register',
     'search.empty.query': 'Query “%q%” ',
-    'search.empty.hint': 'returned no matches — try a version or codename.',
+    'search.empty.hint': 'returned no matches — try a shorter term or another name.',
     'search.kind.schiff': 'Ship',
     'search.kind.mission': 'Mission',
     'search.kind.patch': 'Patch',
     'search.kind.thema': 'Topic',
     'search.kind.feature': 'Feature',
     'search.kind.event': 'Event',
+    'search.kind.item': 'Item',
+    'search.kind.bauplan': 'Blueprint',
+    'search.kind.werkzeug': 'Tool',
+    'search.button': 'Open search',
     // -- Pager --
     'pager.older': '← Older',
     'pager.newer': 'Newer →',
@@ -666,10 +668,6 @@ const UI = {
     'ship.similar.noimg': 'NO IMAGE',
     'ship.links.all': '← All ships',
     'ship.source': 'Source:',
-    'ship.version': 'Game version:',
-    'ship.source.image': 'Image',
-    'ship.source.ingame': 'In-game prices',
-    'ship.source.extras': '3D model, paints & series data',
     'ship.asof': 'as of',
     'ship.meta.desc': '%name% by %maker% — Star Citizen ship: 3D view, specs, in-game price & locations, paints, variants and patch history.',
     'ship.maker.unknown': 'unknown',
@@ -791,8 +789,6 @@ const UI = {
     'do.th.cargo': 'Cargo',
     'do.th.price': 'Price',
     'do.th.status': 'Status',
-    'do.specs': 'Specs',
-    'do.specsNote': 'fan project, based on the official Ship Matrix',
     'do.events': 'Events',
     'do.sources': 'Sources: starcitizen.tools, RSI Comm-Links, patch notes',
     'do.notesRsi': 'Official patch notes (RSI)',
@@ -848,10 +844,36 @@ const UI = {
 
 export type UIKey = keyof (typeof UI)['de'];
 
-/** t = useTranslations(lang): sichere Übersetzungsfunktion mit de-Fallback. */
+/**
+ * Prueft, dass eine Sprache wirklich angegeben ist, und gibt sie zurueck.
+ *
+ * Anlass (04.11.2026): Text-Helfer und Komponenten trugen eine stille
+ * Standardsprache (`lang: Locale = DEFAULT_LOCALE`, `const { lang = 'en' }`).
+ * Als EN zur Standardsprache wurde, kippte jeder Aufruf, der die Sprache
+ * nicht durchreichte, still ins Englische — alle 231 deutschen Schiffsseiten
+ * zeigten Leistungsprofil, Quantum, Versicherung und Kaufpreise auf Englisch
+ * und im englischen Zahlformat. Die Typen haetten es gemeldet, aber kein Tor
+ * faehrt tsc. Wer die Sprache nicht bekommt, scheitert jetzt beim Bauen.
+ * verify:sprache verbietet die stille Vorgabe in src/.
+ */
+export function assertLocale(lang: unknown, wo: string): Locale {
+  if (lang === 'de' || lang === 'en') return lang;
+  throw new Error(`${wo}: Sprache fehlt oder ist ungueltig (${String(lang)}) — lang="de" bzw. "en" durchreichen, es gibt bewusst keine Vorgabe.`);
+}
+
+/**
+ * t = useTranslations(lang). Fehlt ein Schluessel in der Sprache, gilt der
+ * englische Wert (Paritaet beider Kataloge ist Pflicht, siehe verify:sprache).
+ * Fehlt er GANZ, bricht der Bau ab: bis zum 04.11.2026 kam hier der Schluessel
+ * selbst als Text zurueck ("ship.sheet.title" als sichtbare Beschriftung), und
+ * weil kein Tor tsc faehrt, schuetzte der Typ UIKey davor nicht.
+ */
 export function useTranslations(lang: Locale) {
+  const l = assertLocale(lang, 'useTranslations');
   return function t(key: UIKey): string {
-    return UI[lang]?.[key] ?? UI[DEFAULT_LOCALE][key] ?? String(key);
+    const s = UI[l]?.[key] ?? UI[DEFAULT_LOCALE][key];
+    if (s == null) throw new Error(`ui.ts: Schluessel "${String(key)}" fehlt im Katalog (DE und EN) — sonst stuende er roh auf der Seite.`);
+    return s;
   };
 }
 

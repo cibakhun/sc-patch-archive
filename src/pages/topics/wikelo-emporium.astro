@@ -2,10 +2,16 @@
 // Hülle (EN). Körper: components/topics/wikelo-emporium.astro — geteilt mit der
 // anderen Sprache, damit die beiden nicht auseinanderlaufen können.
 import { versioned } from '../../lib/assetVersion';
+import { patchFromKennung } from '../../lib/patchPages';
+import META from '../../../assets/wikelo-trades.meta.json';
+// Der Titel nennt den Stand der Trade-Liste, nicht den Patch, mit dem Wikelo
+// kam ("since Alpha 4.1" bleibt in der Beschreibung). Bis 03.11.2026 stand hier
+// "Star Citizen 4.1" ueber einer Liste auf 4.10.2 (verify:patch-angaben).
+const patch = patchFromKennung(META.gameVersion);
 import Layout from '../../layouts/Layout.astro';
 import Body from '../../components/topics/wikelo-emporium.astro';
 ---
-<Layout title={"Wikelo's Emporium — Star Citizen 4.1 | VerseBase"} description={"Wikelo's Emporium: the Banu trader Wikelo — the first playable alien NPC in Star Citizen. Barter instead of money: deliver items, earn Wikelo Favor, trade for rewards from his stock. Three asteroid stations in Stanton, since Alpha 4.1."} themeColor="#0d1513" ogType="article" ogImage="/assets/wk-hero.jpg" translated={true}>
+<Layout title={`Wikelo's Emporium — Star Citizen ${patch} | VerseBase`} description={"Wikelo's Emporium: the Banu trader Wikelo — the first playable alien NPC in Star Citizen. Barter instead of money: deliver items, earn Wikelo Favor, trade for rewards from his stock. Three asteroid stations in Stanton, since Alpha 4.1."} themeColor="#0d1513" ogType="article" ogImage="/assets/wk-hero.jpg" translated={true}>
 <link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
 <Body />
 </Layout>

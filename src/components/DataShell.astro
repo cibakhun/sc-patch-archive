@@ -25,6 +25,8 @@ import { versioned } from '../lib/assetVersion';
 import { SITE } from '../consts';
 import { href, pathForLocale, useTranslations, LOCALE_SHORT, HTML_LANG, type Locale } from '../i18n/ui';
 import { jsonForScript } from '../lib/safeJson';
+import Datenstand from './Datenstand.astro';
+import type { StandZeile } from '../lib/datenstand';
 
 export interface Crumb {
   label: string;
@@ -48,9 +50,14 @@ interface Props {
   ldName?: string;
   /** zusaetzliche JSON-LD-Knoten (z. B. Product) */
   jsonLd?: Record<string, unknown>[];
-  /** Quellenzeile im Fuss */
-  sources?: string[];
-  updated?: string;
+  /**
+   * Datenstand am Seitenende (src/lib/datenstand.ts): je Wertegruppe Herkunft
+   * und Stand. Pflicht — seit 06.11.2026 ersetzt er die Quellen-Zeile im
+   * Fuss, die nur eine Quelle und das Preisdatum kannte.
+   */
+  stand: StandZeile[];
+  /** Detailseite: im Datenstand der Link „Falschen Wert melden“ */
+  melden?: boolean;
   /**
    * Uebersicht mit Kachel-/Chip-Raster: die Spalte darf auf breiten Schirmen
    * mitwachsen (theme.css § 5, --vb-breit). Nur fuer Seiten, deren Breite in
@@ -62,7 +69,7 @@ interface Props {
 
 const {
   lang, title, description, crumbs, eyebrow, tone = 'items',
-  ogImage, modified, ldName, jsonLd = [], sources = [], updated, breit = false,
+  ogImage, modified, ldName, jsonLd = [], stand, melden = false, breit = false,
 } = Astro.props;
 
 const t = useTranslations(lang);
@@ -90,6 +97,17 @@ const otherHref = pathForLocale(Astro.url.pathname, other);
 // ganz oben. Beschriftungen werden dabei NIE umgeschrieben, nur breiter
 // markiert. Gemessen: 4200 px vorher, 4200 px nachher.
 const backLinkSrc = crumbs.some((c) => c.href) ? versioned('assets/back-link.js', '/assets/back-link.js') : null;
+
+// Suche (seit 06.11.2026): ein Knopf in der Kopfleiste, sonst nichts im HTML.
+// assets/data-search.js (klein, gecacht) baut das Overlay erst beim Antippen
+// und laedt dann Logik und Aussehen nach — dieselben Dateien wie die Seiten
+// mit voller Navigation (assets/search-overlay.js/.css). Texte und Index-
+// Adressen holt es dann aus /search-ui.json (src/lib/searchUi.ts) — am Knopf
+// stehen nur drei Adressen, damit jede Seite so wenig wie moeglich mehr traegt.
+const searchBoot = versioned('assets/data-search.js', '/assets/data-search.js');
+const searchJs = versioned('assets/search-overlay.js', '/assets/search-overlay.js');
+const searchCss = versioned('assets/search-overlay.css', '/assets/search-overlay.css');
+const searchUi = href('/search-ui.json', lang);
 
 // Breadcrumb-JSON-LD: gibt der Trefferzeile in Google den Pfad statt der nackten
 // URL — und macht die Kategorie-Ebene als eigenes Ziel sichtbar.
@@ -144,6 +162,16 @@ const crumbLd = {
           </>
         ))}
       </nav>
+      <button
+        type="button"
+        class="dp-search"
+        data-scs-boot
+        data-js={searchJs}
+        data-css={searchCss}
+        data-ui={searchUi}
+        aria-label={t('search.button')}
+        aria-keyshortcuts="Control+K"
+      ><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></button>
       <a class="dp-lang" href={otherHref} hreflang={HTML_LANG[other]} rel="alternate">{LOCALE_SHORT[other]}</a>
     </header>
 
@@ -158,6 +186,7 @@ const crumbLd = {
         <slot name="hero" />
       </header>
       <slot />
+      <Datenstand lang={lang} zeilen={stand} innen melden={melden} />
     </main>
 
     <footer class="dp-foot">
@@ -169,12 +198,6 @@ const crumbLd = {
         <a href={href('/missionen.html', lang)}>{t('nav.missions')}</a>
         <a href={href('/index.html', lang)}>{t('nav.home')}</a>
       </nav>
-      {(sources.length > 0 || updated) && (
-        <p class="dp-src">
-          {sources.length > 0 && <>{t('footer.sources')}: {sources.join(' · ')}</>}
-          {updated && <> · {t('footer.dataAsOf')} {updated}</>}
-        </p>
-      )}
       <p class="dp-legal">{t('footer.disclaimer')}</p>
       <p class="dp-foot-nav dp-foot-legal">
         <a href={href('/impressum.html', lang)}>{t('footer.imprint')}</a>
@@ -185,4 +208,5 @@ const crumbLd = {
     </footer>
   </div>
   {backLinkSrc && <script is:inline src={backLinkSrc} defer></script>}
+  <script is:inline src={searchBoot} defer></script>
 </Layout>

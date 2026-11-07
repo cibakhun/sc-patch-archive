@@ -5,9 +5,11 @@
 // ?item=<Name> hebt passende Trades hervor. Logik: assets/wikelo-bridge.js.
 import { versioned } from '../lib/assetVersion';
 import { jsonForScript } from '../lib/safeJson';
+import { assertLocale } from '../i18n/ui';
 
-interface Props { lang?: 'de' | 'en' }
-const { lang = 'en' } = Astro.props;
+interface Props { lang: 'de' | 'en' }
+// Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
+const lang = assertLocale(Astro.props.lang, 'WikeloBridge');
 
 const JS_T = {
   de: {

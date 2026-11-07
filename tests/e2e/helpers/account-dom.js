@@ -36,9 +36,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { supabaseZiel } from '../../../scripts/lib/supabase-ziel.mjs';
 
 const CODE = fs.readFileSync(path.resolve('assets/account-lite.js'), 'utf8');
-export const STORE = 'sb-trgjhmbnodoarnfmlcqx-auth-token';
+// Die Quelle von account-lite.js traegt die Live-Werte (scripts/lib/supabase-ziel.mjs).
+export const STORE = supabaseZiel('live').storageKey;
 const HEAD_LITERAL = (fs.readFileSync(path.resolve('src/layouts/Layout.astro'), 'utf8').match(/set:html=\{(`[^`]*vb_user_role[^`]*`)\}/) || [])[1];
 if (!HEAD_LITERAL) throw new Error('Kopfskript mit vb_user_role in src/layouts/Layout.astro nicht gefunden');
 /** Das Kopfskript, wie Astro es beim Bauen einsetzt; ein unbekannter Name im ${…} reißt. */

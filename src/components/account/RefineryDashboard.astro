@@ -11,6 +11,9 @@ import { href } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
 import { REFINERY, stationsBySystem, rankStations, dataPatch } from '../../lib/refinery';
+import { ausbeuteStand } from '../../lib/refineryStand';
+import { datumLang, standRefinery } from '../../lib/datenstand';
+import Datenstand from '../Datenstand.astro';
 import { miningLink } from '../../lib/miningLinks';
 import { jsonForScript } from '../../lib/safeJson';
 
@@ -26,6 +29,7 @@ const stationGroups = stationsBySystem();
 const methods = REFINERY.methods;
 const ores = REFINERY.ores;
 const patch = dataPatch();
+const yieldStand = ausbeuteStand();
 
 const COPY = {
   de: {
@@ -86,6 +90,7 @@ const COPY = {
     noBonus: 'überall ±0 %',
     yieldTitle: 'Ertrag je Raffinerie',
     yieldLead: 'Aufschlag jeder Station auf die Ausbeute, je Erz.',
+    yieldStand: 'Von Hand gepflegt, Stand %v.',
     yieldOre: 'Erz', showTable: 'Alle Aufschläge als Tabelle',
     tblStation: 'Station',
     methodsTitle: 'Methoden',
@@ -151,6 +156,7 @@ const COPY = {
     noBonus: '±0 % everywhere',
     yieldTitle: 'Yield by refinery',
     yieldLead: 'Each station’s bonus or penalty on yield, per ore.',
+    yieldStand: 'Maintained by hand, as of %v.',
     yieldOre: 'Ore', showTable: 'All bonuses as a table',
     tblStation: 'Station',
     methodsTitle: 'Methods',
@@ -160,7 +166,9 @@ const COPY = {
   },
 }[lang];
 
-const priceDate = REFINERY.meta.priceDate ? new Date(REFINERY.meta.priceDate + 'T12:00:00Z').toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+// Gleiche Form wie im Datenstand am Seitenende (src/lib/datenstand.ts): ein
+// Datumsformat in Seitensprache, ausgeschriebener Monat.
+const priceDate = REFINERY.meta.priceDate ? datumLang(REFINERY.meta.priceDate, lang) : '—';
 const loginHref = href('/account/login.html', lang);
 const registerHref = href('/account/register.html', lang);
 const pct = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + ' %';
@@ -265,7 +273,10 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
             <h2 class="ck-h" id="rfd-new-h">{COPY.newTitle}</h2>
             <form id="rfd-form" class="rf-form" novalidate>
               <p class="rf-note">{COPY.fromTerminal}</p>
-              <div class="rf-grid2">
+              {/* Messung: data-ev-rechnung nur an den Feldern, die die Vorschau
+                  neu rechnen (Station, Methode, Erze, Dauer, Kosten) — nicht am
+                  ganzen Formular, sonst zaehlte schon die Notiz als Rechnung. */}
+              <div class="rf-grid2" data-ev-rechnung>
                 <div class="field">
                   <label for="rfd-station">{COPY.fStation}</label>
                   <select class="inp ctrl" id="rfd-station" name="station" required data-help={h('refinerytracker.ctl.station')}>
@@ -287,7 +298,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
                 </div>
               </div>
 
-              <div class="field">
+              <div class="field" data-ev-rechnung>
                 <label>{COPY.fOresLbl}</label>
                 <div id="rfd-ores" class="rf-ores" data-help={h('refinerytracker.ctl.ores')}></div>
                 <button type="button" class="btn sm ghost rf-addore" id="rfd-addore"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#rf-ic-plus"/></svg>{COPY.addOre}</button>
@@ -296,14 +307,14 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
               <div class="rf-grid3">
                 <div class="field">
                   <label for="rfd-hours">{COPY.fDuration}</label>
-                  <div class="rf-dur" data-help={h('refinerytracker.ctl.duration')}>
+                  <div class="rf-dur" data-ev-rechnung data-help={h('refinerytracker.ctl.duration')}>
                     <input class="inp rf-num" id="rfd-hours" name="hours" type="number" min="0" max="240" step="1" inputmode="numeric" placeholder="0" />
                     <span>{COPY.hLbl}</span>
                     <input class="inp rf-num" id="rfd-mins" name="mins" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="0" />
                     <span>{COPY.mLbl}</span>
                   </div>
                 </div>
-                <div class="field">
+                <div class="field" data-ev-rechnung>
                   <label for="rfd-cost">{COPY.fCost}</label>
                   <input class="inp rf-num" id="rfd-cost" name="cost" type="number" min="0" step="1" inputmode="numeric" placeholder={COPY.fCostPh} />
                 </div>
@@ -371,10 +382,11 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     <section id="ertrag" class="ck-col rf-sec" aria-labelledby="rf-yield-h">
       <h2 class="ck-h" id="rf-yield-h">{COPY.yieldTitle}<span class="rf-n">{REFINERY.stations.length}</span></h2>
       <div class="rf-pad">
-        <p class="rf-lead">{COPY.yieldLead}</p>
+        <p class="rf-lead">{COPY.yieldLead} {COPY.yieldStand.replace('%v', yieldStand)}</p>
         <div class="field rf-oresel">
           <label for="rf-yield-ore">{COPY.yieldOre}</label>
-          <select class="inp ctrl" id="rf-yield-ore">
+          {/* Messung: nur die Erzwahl rechnet die Rangliste neu; Erz- und Systemlinks im Abschnitt sind keine Rechnung. */}
+          <select class="inp ctrl" id="rf-yield-ore" data-ev-rechnung>
             {ores.map((o) => (<option value={o.name} selected={o.name === defaultOre}>{o.name}</option>))}
           </select>
           <a class="rf-orelink" id="rf-yield-link" href={oreHref[defaultOre] ?? '#'}>{defaultOre}</a>
@@ -433,6 +445,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
         </table>
       </div>
     </section>
+    {/* Datenstand am Ende des Inhalts, in der Inhaltsspalte .rf-in, die Breite
+        und Rinne mitbringt (src/lib/datenstand.ts). */}
+    <Datenstand lang={lang} zeilen={standRefinery(lang)} innen />
   </div>
 </div>
 
@@ -1109,7 +1124,9 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
     // UPDATE, und nur ohne Zeile per INSERT (die Rechte erlauben kein Upsert).
     // Discord geht nur mit verbundenem Discord; der Bot findet das Konto
     // ueber discord_role_state.
-    async function initNotify(uid: string) {
+    // Als const statt als function-Deklaration: eine Deklaration wird gehoben,
+    // und darin gilt die Pruefung `if (root)` oben fuer tsc nicht mehr (TS18047).
+    const initNotify = async (uid: string) => {
       const site = $('rfd-n-site') as HTMLInputElement;
       const dc = $('rfd-n-dc') as HTMLInputElement;
       const hint = $('rfd-n-hint');
@@ -1164,7 +1181,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       };
       site.addEventListener('change', save);
       dc.addEventListener('change', save);
-    }
+    };
 
     // ---- Start: angemeldet → Tracker, sonst Anmelde-Knopf -----------------
     const showOut = () => {

@@ -28,6 +28,12 @@ export interface Obtain {
    * beweisbare Aussage darueber, ob ein Item ueberhaupt droppen kann.
    */
   reason?: string;
+  /**
+   * Nur bei Shop-Zeilen aus dem kuratierten Shop-Schnappschuss
+   * (assets/dismantling-items.json, greift nur ohne UEX-Treffer): "schnappschuss".
+   * Ohne Feld kommt eine Shop- oder Haendlerzeile von UEX.
+   */
+  src?: 'schnappschuss';
 }
 
 /** Schadens-/Widerstandswerte je Typ (nur gesetzte Kanaele stehen drin). */
@@ -40,9 +46,16 @@ export interface DamageMap {
   stun?: number;
 }
 
+/**
+ * Widerstaende: Ruestungen tragen je Kanal einen Schadens-MULTIPLIKATOR
+ * (0.8 = 20 % weniger Schaden), Schilde eine Spanne [min, max] als ANTEIL
+ * (0.25 = 25 % Widerstand) — so liest sie auch der Hangar (layouts.ts).
+ */
+export type ResistMap = { [K in keyof DamageMap]?: number | [number, number] };
+
 export interface ItemStats {
   damage?: DamageMap;
-  resist?: DamageMap;
+  resist?: ResistMap;
   blastRadius?: number;
   fireRate?: number;
   dps?: number;
@@ -403,7 +416,10 @@ export const shopCount = (i: Item) =>
 /* ---------- Anzeige ---------- */
 
 const NUM = { de: 'de-DE', en: 'en-US' } as const;
-export const num = (n: number, lang: Locale) => n.toLocaleString(NUM[lang]);
+/** Zahl im Format der Seite. Ohne `maxFrac` hoechstens drei Nachkommastellen
+ *  (Vorgabe von toLocaleString); Volumen braucht mehr ("0,0001 SCU"). */
+export const num = (n: number, lang: Locale, maxFrac?: number) =>
+  n.toLocaleString(NUM[lang], maxFrac == null ? undefined : { maximumFractionDigits: maxFrac });
 export const auec = (n: number, lang: Locale) => `${num(n, lang)} aUEC`;
 
 /** Deutscher Item-Name aus den Spieldaten, falls er sich vom englischen unterscheidet. */
@@ -595,6 +611,8 @@ export function clip(s: string, max = 160): string {
  * schrieb genau die Annahme fest, die am 27.08. zwei tote Verweise erzeugt hat.
  */
 export const ITEM_PATCH = (/(\d+\.\d+)/.exec(db.gameVersion ?? '') ?? [])[1] ?? '4.10';
+/** Volle Kennung des Item-Katalogs ("4.10.2-live.…") fuer patchLinkFromKennung(). */
+export const ITEM_KENNUNG = db.gameVersion ?? null;
 
 /* ---------- URLs (Basisform = EN-Pfad; href() praefixt DE) ---------- */
 

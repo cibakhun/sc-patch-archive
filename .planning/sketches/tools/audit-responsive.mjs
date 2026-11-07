@@ -244,7 +244,10 @@ for (const vp of VIEWPORTS) {
   page.on('pageerror', () => {});
   for (const url of PAGES) {
     try {
-      await page.goto(`http://127.0.0.1:${PORT}${url}`, { waitUntil: 'load', timeout: 30000 });
+      const antwort = await page.goto(`http://127.0.0.1:${PORT}${url}`, { waitUntil: 'load', timeout: 30000 });
+      // Eine 403/404-Fehlerseite ist keine Messung der Seite (--pages nimmt
+      // jeden Pfad an): als Fehler fuehren, nicht vermessen.
+      if (!antwort || !antwort.ok()) throw new Error(`HTTP ${antwort ? antwort.status() : 'ohne Antwort'}`);
       await page.waitForTimeout(350);
       const r = await page.evaluate(PROBE);
       results.push({ url, vp: vp.name, ...r });

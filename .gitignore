@@ -81,3 +81,6 @@ skills-lock.json
 **/.env
 **/.env.*
 !**/.env.example
+
+# Arbeitsdateien der Supabase-CLI (legt sie im Arbeitsordner an, etwa bei start)
+supabase/.temp/
