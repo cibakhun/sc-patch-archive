@@ -1396,3 +1396,67 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register
+
+### Phase 21: Detail Pages 2.0
+
+**Status:** Konzept, wartet auf die visuelle Freigabe des Betreibers. Kein
+Seiten-Code vor der Richtungswahl.
+
+**Goal:** Die rund 17.600 generierten Datenseiten (5.369 Items, 1.608
+Baupläne, 1.387 Missionen, 213 Kategorien je Sprache) bekommen eine
+vollständige visuelle Aufwertung: eine gemeinsame Hülle in der Sprache aus
+Skizze 006 („Baujahr 2026“), alle vorhandenen Spielwerte statt einer Auswahl,
+und eine Richtung, die vorgibt, was jede Seite zuerst beantwortet.
+
+**Herkunft:** Betreiber-Prioritäten vom 08.11.2026 — „Detail Pages 2.0 als
+vollständige visuelle Aufwertung der generierten Datenseiten“, zunächst nur
+konzeptionell, keine umfangreiche Implementierung ohne visuelle Freigabe.
+
+**Konzept:** https://claude.ai/artifact/P5oGDrQ4v7sSLwR6VY3fWt
+**Entwürfe:** `.planning/sketches/015-detailseiten-2-0/` — drei Richtungen am
+echten Attrition-3-Repetierer: A „Schaustück“ (Spielmodell führt), B
+„Einordnung“ (Klassenvergleich führt, empfohlen), C „Beschaffung“ (Wege zum
+Item führen).
+
+**Abgrenzung:** Die 231 Schiffsseiten und alles, was ein Loadout rechnet
+(DPS/TTK, Komponenten, Flotte), gehören zum Vorhaben „Hangar als zentrale
+Plattform“ (Phase 22). Die Vernetzung aus der Produktphase (Werkzeug-Links,
+Suche, Datenstand, „Falschen Wert melden“) bleibt und bekommt nur eine neue
+Form.
+
+**Geteilt mit Phase 22:** Klassenvergleich, Rangstreifen, Datenstand-Zeile,
+Farben und Schriftgrade entstehen als wiederverwendbare Bausteine und Tokens.
+Der Hangar zeigt denselben Vergleich in der Teileauswahl des Loadouts, und die
+Schiffsseiten erscheinen in derselben Sprache.
+
+**Offen beim Betreiber:**
+
+1. Welche Richtung führt (A, B oder C)?
+2. Tauschen die Missionsseiten ihre eigene Navigation gegen die Kopfleiste der
+   Datenseiten?
+3. Bleiben die Schiffsseiten ganz beim Hangar-Vorhaben?
+
+**Reihenfolge nach der Freigabe** (jeder Schritt einzeln auf staging und
+einzeln abgenommen):
+
+1. Zweite Entwurfsrunde: gewählte Richtung auf Bauplan, Mission, Kategorie,
+   dazu eine Rüstung als Gegenprobe ohne Modell.
+2. Leitschuss: neue Hülle und Klassenvergleich auf den 117 Schiffswaffen-Seiten
+   mit Modell, Ende zu Ende, mit neuem Tor.
+3. Alle Itemseiten.
+4. Baupläne und Kategorien, dann Missionen.
+5. Bilder für Rüstung, Kleidung, Handwaffen nach dem Komplett-Lauf am PC.
+
+**Erfolgskriterien (Entwurf, werden mit der Richtung festgeschrieben):**
+
+1. Jede Itemseite zeigt alle Spielwerte ihres Items, gruppiert.
+2. Jeder vergleichende Satz („Platz 16 von 26“) wird von einem Tor aus den
+   Daten nachgerechnet; das Tor druckt die Zahl geprüfter Seiten, reißt unter
+   einer Klinke und ist einmal vorgeführt rot.
+3. Klassen kommen aus Spielfeldern (Art, Größe, Kategoriepfad), nie aus
+   Anzeigenamen; Klassen unter einer Mindestgröße bekommen keine Einordnung.
+4. Das Seitengewicht der DataShell-Seiten steht unter einer Klinke; kein
+   eigenes Skript je Seite.
+5. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
+
+**Plans:** noch keine.

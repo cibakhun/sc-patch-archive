@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 015 A — Schaustück</title>
+<link rel="stylesheet" href="basis.css">
+<style>
+/* A — SCHAUSTUECK: das Item ist ein Gegenstand. Die Seite fuehrt mit dem
+   gerenderten Spielmodell, wie eine Produktseite. Alle Zahlen sind die
+   echten des Attrition-3-Repetierers (assets/universal-items.json, 4.10.2). */
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 70% at 66% 62%, rgba(167, 139, 250, 0.20), transparent 70%),
+    radial-gradient(40% 30% at 66% 86%, rgba(0, 0, 0, 0.55), transparent 70%),
+    linear-gradient(180deg, #100e17 0%, #0d0b13 62%, var(--s0) 100%);
+}
+.stage::after { /* Bodenlinie, auf der das Modell steht */
+  content: ''; position: absolute; left: 0; right: 0; bottom: 92px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08) 30%, rgba(255,255,255,.08) 70%, transparent);
+}
+.stage .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 430px) 1fr; min-height: 590px; align-items: center; }
+.stage-text { position: relative; z-index: 2; padding: 56px 0 60px; }
+.maker { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; color: var(--muted); font-weight: 500; }
+.maker .mono { width: 34px; height: 34px; border-radius: var(--r2); background: var(--s3); display: grid; place-items: center; font: 700 12px var(--head); color: var(--text); letter-spacing: .04em; }
+.stage-img { position: relative; z-index: 1; margin: 0 -8% 0 -6%; }
+.stage-img img { width: 100%; filter: drop-shadow(0 40px 34px rgba(0,0,0,.55)); }
+.price-hero { margin: 30px 0 0; display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap; }
+.price-hero .big { font: 600 40px/1 var(--font); letter-spacing: -0.02em; }
+.price-hero .big small { font-size: 18px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+.price-hero p { margin: 0; color: var(--muted); font-size: 15px; }
+.cta { display: flex; gap: 10px; margin: 26px 0 0; flex-wrap: wrap; }
+
+/* Kennzahlen unter dem Modell */
+.keys { position: absolute; z-index: 3; right: var(--gut); bottom: 22px; display: flex; gap: 10px; }
+.key { background: rgba(26, 23, 34, 0.86); backdrop-filter: blur(6px); border-radius: var(--r2); padding: 10px 16px; min-width: 132px; }
+.key span { display: block; font: 600 24px/1.1 var(--font); letter-spacing: -0.01em; }
+.key b { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+
+/* Baureihe: die Familie als Groessenleiter */
+.ladder { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.rung { background: var(--s1); border-radius: var(--r1); padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px; min-height: 176px; }
+.rung .pic { height: 70px; display: grid; place-items: center; }
+.rung .pic img { max-height: 64px; width: auto; }
+.rung .pic .none { color: var(--faint); font-size: 13px; }
+.rung h3 { font-size: 15px; margin: auto 0 0; }
+.rung p { margin: 0; color: var(--muted); font-size: 14px; }
+.rung.on { background: var(--s2); outline: 2px solid var(--acc); outline-offset: -2px; }
+.rung .sz { font: 700 13px var(--head); color: var(--faint); }
+.rung.on .sz { color: var(--acc); }
+
+/* Datenblatt + Bezug nebeneinander */
+.two { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; align-items: start; }
+.groups { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.groups .card h3 { color: var(--muted); font-weight: 500; font-size: 14px; margin: 0 0 2px; }
+.lore { margin: 14px 0 0; color: var(--muted); font-size: 15px; max-width: 68ch; }
+.lore::before { content: '„'; }
+.lore::after { content: '“'; }
+
+.buy .sys { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.buy .sys:last-of-type { border-bottom: 0; }
+.buy .sys-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.buy .sys-h h3 { margin: 0; }
+.buy .sys-h .num { font-weight: 600; }
+.buy .sys p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.buy .best { color: var(--acc); }
+.badge { display: inline-block; font: 600 12px var(--font); color: #120f1c; background: var(--acc); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+
+.ships { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 0; }
+.ship { background: var(--s2); border-radius: var(--r2); padding: 10px 12px 12px; }
+.ship img { width: 100%; aspect-ratio: 16/8; object-fit: contain; }
+.ship span { display: block; font-weight: 500; font-size: 14px; margin-top: 4px; }
+
+.rel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.rel a { background: var(--s1); border-radius: var(--r1); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.rel .pic { height: 78px; display: grid; place-items: center; }
+.rel .pic img { max-height: 70px; width: auto; }
+.rel p { margin: 0; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 980px) {
+  .stage .wrap { grid-template-columns: 1fr; min-height: 0; }
+  .stage-text { padding: 32px 0 0; }
+  .stage-img { margin: 0; order: -1; padding-top: 22px; }
+  .stage::after { display: none; }
+  .keys { position: static; margin: 4px 0 24px; flex-wrap: wrap; }
+  .key { min-width: 0; flex: 1 1 30%; padding: 8px 12px; }
+  .key span { font-size: 20px; }
+  .two { grid-template-columns: 1fr; }
+  .ladder { grid-template-columns: repeat(6, 132px); overflow-x: auto; padding-bottom: 6px; }
+  .rel { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .groups { grid-template-columns: 1fr; }
+  .price-hero .big { font-size: 32px; }
+  .stage-wrap-keys { display: block; }
+}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="logo" href="#">VerseBase</a>
+  <nav class="crumbs"><span>Items</span><i>›</i><span>Schiffswaffen</span><i>›</i><span>Attrition-3-Repetierer</span></nav>
+  <div class="tools">
+    <span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></span>
+    <span class="ibtn">EN</span>
+  </div>
+</div></header>
+
+<section class="stage">
+  <div class="wrap">
+    <div class="stage-text">
+      <p class="maker"><span class="mono">HRST</span>Hurston Dynamics</p>
+      <p class="eyebrow">Schiffswaffe · Laser-Repetierer</p>
+      <h1>Attrition-3-Repetierer</h1>
+      <ul class="pills">
+        <li class="pill"><b>Größe</b> 3</li>
+        <li class="pill"><b>Klasse</b> A</li>
+        <li class="pill"><b>Schaden</b> Energie</li>
+      </ul>
+      <div class="price-hero">
+        <div class="big num">51.851<small>aUEC</small></div>
+        <p>günstigster Preis, in Lorville<br>an 13 Orten in 3 Systemen erhältlich</p>
+      </div>
+      <div class="cta">
+        <a class="btn" href="#kaufen">Wo kaufen</a>
+        <a class="btn ghost" href="#">Im Hangar ansehen</a>
+      </div>
+    </div>
+    <div class="stage-img"><img src="img/attrition-3.webp" alt="Attrition-3-Repetierer, Spielmodell"></div>
+    <div class="keys">
+    <div class="key"><span class="num">501,67</span><b>DPS</b></div>
+    <div class="key"><span class="num">1.924 m</span><b>Reichweite</b></div>
+    <div class="key"><span class="num">1.480 m/s</span><b>Projektil</b></div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <section class="sec">
+    <div class="sec-head"><h2>Attrition-Baureihe</h2><p>Dieselbe Waffe in sechs Größen</p></div>
+    <div class="ladder">
+      <a class="rung" href="#"><span class="sz">Gr. 1</span><div class="pic"><img src="img/attrition-1-repeater.webp" alt=""></div><h3>Attrition-1</h3><p class="num">198,33 DPS · ab 10.241</p></a>
+      <a class="rung" href="#"><span class="sz">Gr. 2</span><div class="pic"><img src="img/attrition-2-repeater.webp" alt=""></div><h3>Attrition-2</h3><p class="num">320,83 DPS · ab 23.047</p></a>
+      <span class="rung on"><span class="sz">Gr. 3 · diese Seite</span><div class="pic"><img src="img/attrition-3.webp" alt=""></div><h3>Attrition-3</h3><p class="num">501,67 DPS · ab 51.851</p></span>
+      <a class="rung" href="#"><span class="sz">Gr. 4</span><div class="pic"><img src="img/attrition-4-repeater.webp" alt=""></div><h3>Attrition-4</h3><p class="num">583,33 DPS · ab 116.665</p></a>
+      <a class="rung" href="#"><span class="sz">Gr. 5</span><div class="pic"><img src="img/attrition-5-repeater.webp" alt=""></div><h3>Attrition-5</h3><p class="num">875 DPS · ab 262.495</p></a>
+      <a class="rung" href="#"><span class="sz">Gr. 6</span><div class="pic"><span class="none">noch kein Modell</span></div><h3>Attrition-6</h3><p class="num">2.947,88 DPS · ab 590.615</p></a>
+    </div>
+  </section>
+
+  <section class="sec two">
+    <div>
+      <div class="sec-head"><h2>Datenblatt</h2><p>Alle 15 Spielwerte (die Seite zeigt heute 5)</p></div>
+      <div class="groups">
+        <div class="card"><h3>Feuerkraft</h3><dl class="kv">
+          <dt>Schaden je Schuss</dt><dd class="num">86 <small>Energie</small></dd>
+          <dt>Feuerrate</dt><dd class="num">350 <small>/min</small></dd>
+          <dt>DPS</dt><dd class="num">501,67</dd>
+        </dl></div>
+        <div class="card"><h3>Flugbahn</h3><dl class="kv">
+          <dt>Projektil</dt><dd class="num">1.480 <small>m/s</small></dd>
+          <dt>Flugzeit</dt><dd class="num">1,3 <small>s</small></dd>
+          <dt>Reichweite</dt><dd class="num">1.924 <small>m</small></dd>
+          <dt>Streuung</dt><dd class="num">0,5</dd>
+        </dl></div>
+        <div class="card"><h3>Munition und Wärme</h3><dl class="kv">
+          <dt>Munition</dt><dd class="num">75</dd>
+          <dt>Regeneration</dt><dd class="num">15 <small>/s nach 0,73 s</small></dd>
+          <dt>Wärme je Schuss</dt><dd class="num">1.800</dd>
+        </dl></div>
+        <div class="card"><h3>Bauteil</h3><dl class="kv">
+          <dt>Strombedarf</dt><dd class="num">0,75</dd>
+          <dt>EM-Signatur</dt><dd class="num">278</dd>
+          <dt>Bauteil-HP</dt><dd class="num">1.024</dd>
+          <dt>Volumen</dt><dd class="num">0,756 <small>SCU</small></dd>
+        </dl></div>
+      </div>
+      <p class="lore">Anstatt die Leistung der Waffe automatisch zugunsten ihrer Stabilität einzuschränken, liegt dank der Kaskadentechnologie von Hurston Dynamics die Wahl ganz bei dir.</p>
+    </div>
+
+    <aside id="kaufen">
+      <div class="sec-head"><h2>Kaufen</h2><p>Stand 11.10.2026</p></div>
+      <div class="card buy">
+        <div class="sys"><div class="sys-h"><h3>Stanton <span class="badge">günstigster</span></h3><span class="num best">51.851</span></div><p>Hurston Dynamics Showcase, Lorville</p></div>
+        <div class="sys"><div class="sys-h"><h3>Pyro</h3><span class="num">54.580</span></div><p>Ship Parts auf 11 Stationen: Checkmate, Dudley &amp; Daughters, Endgame, Gaslight, Megumi Refueling, Orbituary, Patch City, Rat's Nest, Rod's Fuel 'N Supplies, Ruin Station, Starlight Service</p></div>
+        <div class="sys"><div class="sys-h"><h3>Nyx</h3><span class="num">54.580</span></div><p>Teach's Item Shop, Levski</p></div>
+      </div>
+      <div class="sec-head" style="margin-top:26px"><h2>Ab Werk verbaut</h2></div>
+      <div class="ships">
+        <a class="ship" href="#"><img src="img/anvl-centurion.webp" alt=""><span>Centurion</span></a>
+        <a class="ship" href="#"><img src="img/misc-freelancer-dur.webp" alt=""><span>MISC Freelancer DUR</span></a>
+      </div>
+      <div class="card" style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; gap:12px">
+        <div><h3 style="margin:0">Selbst herstellen</h3><p class="muted" style="margin:2px 0 0;font-size:14px">28 min · Agricium, Hadanite, Pressurized Ice</p></div>
+        <a class="btn ghost" href="#">Bauplan</a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Ähnliche Waffen</h2><p>Größe 3, Energie, gleiche Reichweite</p></div>
+    <div class="rel">
+      <a href="#"><div class="pic"><img src="img/cf-337-panther-repeater.webp" alt=""></div><h3>CF-337-Panther-Repetierer</h3><p class="num">545,63 DPS · ab 36.308</p></a>
+      <a href="#"><div class="pic"><img src="img/yeng-tu-repeater.webp" alt=""></div><h3>Yeng'tu-Repetierer</h3><p class="num">512,5 DPS · kein Kaufort bekannt</p></a>
+      <a href="#"><div class="pic"><img src="img/ardor-3-salvaged-repeater.webp" alt=""></div><h3>Ardor-3 Salvaged Repeater</h3><p class="num">536,67 DPS · kein Kaufort bekannt</p></a>
+      <a href="#"><div class="pic"><img src="img/attrition-4-repeater.webp" alt=""></div><h3>Attrition-4-Repetierer</h3><p class="num">583,33 DPS · ab 116.665</p></a>
+    </div>
+  </section>
+
+  <div class="stand"><span><b>Spielwerte:</b> Spielversion 4.10.2</span><span><b>Kaufpreise:</b> UEX Corp, Stand 11. Oktober 2026</span><a href="#">Falschen Wert melden</a></div>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <nav><span>Item Finder</span><span>Preise &amp; Fundorte</span><span>Baupläne</span><span>Schiffe</span><span>Missionen</span></nav>
+  <p>Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd.</p>
+</div></footer>
+<div class="skizze">Entwurf A · Schaustück</div>
+</body>
+</html>
