@@ -1478,8 +1478,10 @@ unabhängige Stränge.
    das heutige `?pane=ship` bleibt lesbar.
 2. Dauer-DPS stimmt für drei Referenzschiffe mit einer Handrechnung überein;
    die Zahl gerechneter Waffen steht unter einer Klinke.
-3. Datenblatt und Hangar zeigen für denselben Kennwert dieselbe Zahl (eine
-   Quelle, heute `src/lib/hangar/bay.ts`).
+3. Datenblatt und Hangar zeigen für denselben Kennwert dieselbe Zahl. Heute
+   rechnen beide getrennt (Datenblatt: `src/lib/shipFacts.ts`, Hangar:
+   `src/lib/hangar/bay.ts` mit `catalog.ts`); vor dem Bau von H8 wird die
+   gemeinsame Quelle festgelegt, und beide lesen danach nur noch aus ihr.
 4. Jede Teilphase hat eigene Torpunkte in `verify:hangar`, einmal vorgeführt
    rot, und eine Sichtrunde in `.planning/WINDOWS.md`; vor jeder
    Fertig-Meldung `check:hangar-shader` gegen den gebauten Stand.
