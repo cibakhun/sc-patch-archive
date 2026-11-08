@@ -71,9 +71,9 @@ Streudiagramm, direkter Vergleich mit drei Nachbarn.
 ## C — „Beschaffung“ (`c-beschaffung.html`)
 
 Das Item ist ein Ziel. Vier Wege als Kacheln (kaufen, ab Werk, herstellen,
-Bauplan), Kaufen als drei Systeme nebeneinander (ohne Sprungpunkte oder Lage:
-die kennt die Seite nicht), Herstellen als Kette Mission → Material →
-Fabricator → Item.
+Bauplan), Kaufen als drei Systeme nebeneinander (mit den bekannten Orten,
+aber ohne Sprungpunkte oder Reisewege: die kennt die Seite nicht), Herstellen
+als Kette Mission → Material → Fabricator → Item.
 
 - **Stärke:** macht Item, Bauplan und Mission zu einem Netz.
 - **Kostet:** wird dünn bei Items mit einem Kaufort und ohne Bauplan.
