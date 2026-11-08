@@ -1452,8 +1452,8 @@ Vorhaben ordnet das neu, statt es neu zu bauen.
 | H2 Kampfwerte | Kampf-Station mit Dauer-DPS und Zeitleiste | Daten wie heute |
 | H3 Komponenten | Bilanz-Leiste im Loadout | Blick auf die Stromdaten am PC |
 | H4 TTK | Ziel wählen, TTK-Balken mit Annahmen | PC-Lauf Panzerung und Teil-HP |
-| H5 Flottenbrett | Flotte maßstäblich, Summen, Lücken, Link; Besitz und Merkliste getrennt | Favoriten wie heute als Merkliste |
-| H6 Flotte im Konto | Besitz mit Anzahl, Namen, Layout je Schiff | neue Tabelle, nur im separaten Staging-Projekt der Datenbank |
+| H5 Flottenbrett | Flotte maßstäblich, Summen, Lücken, Link; Besitz und Merkliste getrennt | Merkliste aus den Favoriten wie heute; Besitz bis H6 ohne Konto im Browser und im Link wie die Layouts (Vorschlag, im Plan zu H5 zu bestätigen) |
+| H6 Flotte im Konto | Besitz mit Anzahl, Namen, Layout je Schiff | neue Tabelle, nur im separaten Staging-Projekt der Datenbank; übernimmt den Besitz aus H5 |
 | H8 Schiffsseiten | Datenblatt mit den Stationen als Abschnitten | H2, Bausteine aus Detail Pages 2.0 |
 | H7 Live-Gang | Stationen auf verse-base.com | Entscheidung des Betreibers |
 
