@@ -45,8 +45,10 @@
 //
 // DER STAND (Kostenrahmen 120 € mit Teilung, „Stand x / 120 €", das Admin-Feld
 // für PayPal-Eingänge und der Abruf aus der Tabelle support_progress) ist am
-// 08.11.2026 mit dem Ziel von der Seite gegangen. Die Seite liest beim Öffnen
-// nichts mehr aus der Datenbank; Supabase erreicht sie erst über den Knopf.
+// 08.11.2026 mit dem Ziel von der Seite gegangen. Der Code dieser Seite liest
+// beim Öffnen nichts mehr aus der Datenbank; er erreicht Supabase erst über
+// den Knopf. Unabhängig davon fragt das gemeinsame Menü (assets/account-lite.js)
+// bei angemeldeten Besuchern auf jeder Seite ab, auch hier.
 // Die Datenbank bleibt, wie sie ist: der Webhook zählt Stripe-Zahlungen
 // weiter in support_progress.stripe_cents (Zeile „netzteil"), damit die Summe
 // nachvollziehbar bleibt. Die Datenschutzerklärung (#support) sagt das so.
