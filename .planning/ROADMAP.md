@@ -1396,3 +1396,93 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 
 - [x] 20-04-PLAN.md — Anzeige: Quellenangabe berichtigen, Schlussmessung der vier Erfolgskriterien, Sichtrunde ins Register
+
+### Phase 22: Hangar als zentrale Schiffsplattform
+
+**Stand:** Konzept, noch kein Bau. Gebaut wird erst nach der visuellen
+Freigabe durch den Betreiber; jede Teilphase geht einzeln auf staging und wird
+dort abgenommen. Live ändert sich nichts ohne ausdrückliche Freigabe.
+
+**Goal:** Der Hangar wird der eine Ort für alles, was man mit einem Schiff tut:
+ansehen, ausrüsten, durchrechnen, vergleichen und in die eigene Flotte
+stellen. Das Schiff bleibt in der Halle stehen; rechts wechseln vier
+Stationen (Übersicht, Loadout, Kampf, Flotte) statt heute zwei Tafeln, einer
+Extraseite (`/hangar-loadout`) und einer Favoritenliste.
+
+**Herkunft:** Produktprioritäten des Betreibers vom 08.11.2026, Punkt 3:
+„Hangar als zentrale Plattform für alle Schiffsfunktionen, einschließlich
+Loadouts, Komponenten, DPS/TTK und Flottenmanager", zunächst nur
+konzeptionell. Phase 21 ist für Detail Pages 2.0 vergeben; die
+Schiffs-Datenblätter gehören nach Absprache vom selben Tag zu dieser Phase
+(H8), Klassenvergleich, Rangbalken und Datenstand-Zeile sind gemeinsame
+Bausteine beider Vorhaben.
+
+**Konzept und Entwürfe:** Konzeptdokument und vier Entwurfstafeln (Loadout,
+Kampf, Flotte, Handy) liegen im Projekt:
+[Konzept](https://claude.ai/artifact/5NWbahn1JcNdqQKkVRYswk),
+[Entwürfe](https://claude.ai/artifact/XbQdEijMCUZFWavQPgBWa8). Die Zahlen
+darin sind Entwurfsrechnungen mit heutigen Daten.
+
+**Was schon steht:** Werkstatt mit Waffen, Raketen, fünf Komponentenarten und
+Lackierungen; Advanced Loadout; Vergleichskorb; Layouts im Browser, im Konto
+(`hangar_layouts`) und als Link; Flotte als Favoriten (`kind = 'ship'`). Das
+Vorhaben ordnet das neu, statt es neu zu bauen.
+
+**Was neu ist:**
+
+- **Kampfwerte:** Dauer-DPS über 30 s und 60 s aus einer Simulation in
+  0,1-s-Schritten (Hitze, Energieladung, Magazin), Feuerdauer, Zeitleiste,
+  Schadensarten. Jede Zahl heißt „Rechenwert", die Annahmen stehen darunter.
+- **Bilanz-Leiste im Loadout:** Strom, Kühlung, Signatur EM/IR. Rot nur bei
+  belegtem Engpass; das Segment-Modell seit 4.0 wird vor dem Bau am PC
+  geprüft, sonst nur Summen mit Hinweis.
+- **Flottenbrett:** alle eigenen Schiffe maßstäblich von oben, Summen (Crew,
+  SCU, Feuerkraft, Wert), Rollen-Abdeckung nach den elf Zwecken der
+  Schiffswahl, Teilen als Link.
+- **TTK gegen ein Zielschiff:** erst mit Panzerung und HP je Rumpfteil. Diese
+  Daten fehlen der Seite ganz; sie brauchen einen PC-Lauf.
+
+**Teilphasen:**
+
+| Teilphase | Sichtbar auf staging | Braucht |
+|-----------|----------------------|---------|
+| H1 Gerüst | Stationen-Leiste, „Alle Werte" breit über der Halle, Leiste am Handy, `?station=` | nichts Neues |
+| H2 Kampfwerte | Kampf-Station mit Dauer-DPS und Zeitleiste | Daten wie heute |
+| H3 Komponenten | Bilanz-Leiste im Loadout | Blick auf die Stromdaten am PC |
+| H4 TTK | Ziel wählen, TTK-Balken mit Annahmen | PC-Lauf Panzerung und Teil-HP |
+| H5 Flottenbrett | Flotte maßstäblich, Summen, Lücken, Link | Favoriten wie heute |
+| H6 Flotte im Konto | Anzahl, Namen, Layout je Schiff | neue Tabelle, erst im Staging-Projekt der Datenbank |
+| H8 Schiffsseiten | Datenblatt mit den Stationen als Abschnitten | H2, Bausteine aus Detail Pages 2.0 |
+| H7 Live-Gang | Stationen auf verse-base.com | Entscheidung des Betreibers |
+
+Nach H1 laufen Kampf (H2, H4), Komponenten (H3) und Flotte (H5, H6) als
+unabhängige Stränge.
+
+**Offene Entscheidungen (Betreiber):**
+
+1. Entwürfe freigeben oder ändern.
+2. Live-Gang: Stationen ohne 3D-Halle live, mit dem Hologramm der Datenblätter
+   (Empfehlung), oder alles wartet auf die Rechtefrage der Spielmodelle.
+3. TTK erst nach dem PC-Lauf zeigen (Empfehlung) oder vorher, deutlich als
+   „ohne Panzerung" markiert.
+4. Flotte mit Konto: neue Tabelle, erst gegen das Staging-Projekt
+   (Empfehlung: ja, nach H5).
+5. `/hangar-loadout` bleibt als 3D-freie Fassung (Empfehlung) oder geht im
+   Hangar auf.
+6. Zielliste der TTK-Schnellwahl (Vorschlag: Gladius, Arrow, F7C Hornet Mk II,
+   Cutlass Black, Constellation Andromeda, Hammerhead).
+
+**Erfolgskriterien (je Teilphase vor dem Bau zu schärfen):**
+
+1. Jede Station ist im gebauten Hangar erreichbar, `?station=` hin und zurück,
+   das heutige `?pane=ship` bleibt lesbar.
+2. Dauer-DPS stimmt für drei Referenzschiffe mit einer Handrechnung überein;
+   die Zahl gerechneter Waffen steht unter einer Klinke.
+3. Datenblatt und Hangar zeigen für denselben Kennwert dieselbe Zahl (eine
+   Quelle, heute `src/lib/hangar/bay.ts`).
+4. Jede Teilphase hat eigene Torpunkte in `verify:hangar`, einmal vorgeführt
+   rot, und eine Sichtrunde in `.planning/WINDOWS.md`; vor jeder
+   Fertig-Meldung `check:hangar-shader` gegen den gebauten Stand.
+5. `npm run build && npm run gate` grün, normal UND mit `STAGING=1`.
+
+**Plans:** noch keine. Sie entstehen nach der Freigabe, je Teilphase.
