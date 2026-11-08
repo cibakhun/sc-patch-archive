@@ -18,7 +18,7 @@
 
    Stichproben (fest, weil jede Antwortart ihren eigenen Weg durch nginx
    nimmt): je eine Adresse fuer JEDEN location-Block mit eigenem Inhalt
-   (Wurzel, robots.txt, gate.html, build.json, theme.css, /assets/fonts/,
+   (Wurzel, robots.txt, gate.html, build.json, build.txt, theme.css, /assets/fonts/,
    /_astro/, /holo/, /hangar/, /pilot/, /en/), feste Weiterleitungen und
    eine Adresse, die es nicht gibt — genau dort verloere ein add_header in
    der location die Kopfzeilen. Dazu ein echtes Buendel unter /_astro/,
@@ -93,6 +93,7 @@ const STICHPROBEN = [
   { pfad: '/robots.txt', art: 'Ausnahme des Tors, immer 200' },
   { pfad: '/gate.html', art: 'Torseite, eigenes Dokument, 200' },
   { pfad: '/build.json', art: 'Baukennung, eigene location, immer 200' },
+  { pfad: '/build.txt', art: 'Baukennung als Text fuer den Runner, eigene location, immer 200' },
   { pfad: '/assets/theme.css', art: 'Ausnahme des Tors, eigene location, 200' },
   { pfad: '/patches', art: 'feste Weiterleitung, 301' },
   { pfad: '/en.html', art: 'feste Weiterleitung, 301' },

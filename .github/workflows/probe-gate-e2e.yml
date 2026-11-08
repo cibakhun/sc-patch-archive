@@ -239,6 +239,7 @@ jobs:
           echo "--- D-06/D-07: Ausnahmeliste bleibt offen (Plan 08: jetzt 7 gemessene Eintraege) ---"
           check "/gate.html" 200 "$(code http://localhost:8099/gate.html)"
           check "/build.json" 200 "$(code http://localhost:8099/build.json)"
+          check "/build.txt" 200 "$(code http://localhost:8099/build.txt)"
           check "/robots.txt" 200 "$(code http://localhost:8099/robots.txt)"
           check "/assets/theme.css" 200 "$(code http://localhost:8099/assets/theme.css)"
           check "/assets/fonts.css" 200 "$(code http://localhost:8099/assets/fonts.css)"

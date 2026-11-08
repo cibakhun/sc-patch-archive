@@ -152,6 +152,13 @@ jobs:
       # Zustand, und wenn die Sperre je faellt, misst er wieder wirklich.
       # Die belastbare Antwort gibt `npm run check:staging` vom
       # Entwicklungsrechner aus — dort ist sie streng.
+      #
+      # Seit dem 08.11.2026: Cloudflare sperrt .json, HTML und Pfade ohne
+      # Endung, laesst aber Endungen durch, die es als statisch fuehrt
+      # (gemessen .css, .js, .woff2, robots.txt). Ist /build.json gesperrt,
+      # liest der Schritt denselben Stempel aus /build.txt und misst damit
+      # wieder; "NICHT geprueft" meldet er erst, wenn auch das gesperrt ist
+      # oder aus Cloudflares Zwischenspeicher kommt.
       - name: Warten, bis die Vorschau den neuen Stand zeigt
         run: |
           node scripts/check-deployed.mjs \

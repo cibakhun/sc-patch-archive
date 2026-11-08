@@ -700,6 +700,19 @@ die Lieferung auf `staging` liegt.
 > check:staging` vom Entwicklungsrechner aus.** Das ist keine Einschränkung
 > des Verfahrens, sondern seine ehrliche Reichweite: Schiene C ist eine
 > Betreiber-Schiene, keine CI-Schiene.
+>
+> **Nachtrag 08.11.2026 — die Sperre trifft nicht jede Endung.** Seit
+> mindestens 01.11. bekommt der Runner auf staging *und* live 403 für HTML,
+> `.json`, `.glb` und Pfade ohne Endung; `.css`, `.js`, `.woff2` und
+> `robots.txt` kommen durch. Das passt zu Cloudflares Liste statischer
+> Dateien, auf der `.txt` steht und `.json` nicht. `_write-build-stamp.mjs`
+> schreibt den Stempel deshalb Byte für Byte gleich auch als
+> `dist/build.txt` (`location = /build.txt { expires -1; }`, Ausnahme vom
+> Testpilot-Tor wie `/build.json`), und `check-deployed.mjs` liest ihn, wenn
+> `/build.json` gesperrt ist — mit Wegwerf-Parameter, und eine Antwort aus
+> Cloudflares Zwischenspeicher (`cf-cache-status` HIT/STALE/UPDATING) zählt
+> nicht. Damit misst der Warte-Schritt wieder. Gewählt vom Betreiber statt
+> einer Ausnahme in Cloudflare: keine Sicherheitseinstellung geändert.
 > - `CLAUDE.md` (neu, im Wurzelverzeichnis) trägt die Lieferregeln, damit sie
 >   jede Sitzung erreichen statt nur diese.
 >

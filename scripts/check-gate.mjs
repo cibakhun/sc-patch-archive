@@ -40,7 +40,9 @@
         hier ist FEHLER — die Torseite wuerde sich selbst aussperren.
      3  /build.json lebt und traegt gueltiges JSON mit einer
         Commit-Kennung (D-07) — sonst koennte `npm run check:staging`
-        still verstummen.
+        still verstummen. /build.txt traegt denselben Stempel (dieselbe
+        Kennung): ihn liest der Warte-Schritt der Deploy-Laeufe, wenn
+        Cloudflare den Runner von /build.json fernhaelt.
      4  Der Bypass ist kein Dauerschluessel (T-14-56/T-14-57): ein je
         Lauf gewuerfelter Wert in der Bypass-Kopfzeile (X-VB-Gate-
         Bypass, siehe nginx/gate.js und .github/workflows/
@@ -312,9 +314,10 @@ for (const eintrag of offeneStichproben) {
 }
 console.log(`    Gepruefte offene Stichproben: ${offeneStichproben.length}   erwartetes Ergebnis erreicht — Soll: ${offeneStichproben.length}   Ist: ${offenOk}`);
 
-/* ---- [3] /build.json lebt (D-07) ---- */
-console.log('\n[3] /build.json lebt und traegt eine Commit-Kennung (D-07)');
+/* ---- [3] /build.json lebt (D-07), /build.txt traegt denselben Stempel ---- */
+console.log('\n[3] /build.json lebt und traegt eine Commit-Kennung (D-07), /build.txt dieselbe');
 {
+  let jsonSha = null;
   try {
     const r = await holen('/build.json');
     if (r.status !== 200) {
@@ -325,9 +328,27 @@ console.log('\n[3] /build.json lebt und traegt eine Commit-Kennung (D-07)');
       const kennung = body && typeof body.sha === 'string' && body.sha.length >= 7 ? body.sha.slice(0, 7) : null;
       console.log(`    /build.json erreichbar, gueltiges JSON mit Commit-Kennung — Soll: ja   Ist: ${kennung ? `ja (${kennung})` : 'NEIN'}`);
       if (!kennung) fail('/build.json: kein lesbares JSON mit Commit-Kennung (Feld "sha") — npm run check:staging koennte still verstummen');
+      else jsonSha = body.sha;
     }
   } catch (e) {
     fail(`/build.json: Anfrage fehlgeschlagen (${e.message})`);
+  }
+  try {
+    const r = await holen('/build.txt');
+    const body = r.status === 200 ? await r.text().then((t) => JSON.parse(t)).catch(() => null) : null;
+    const txtSha = body && typeof body.sha === 'string' ? body.sha : null;
+    const cc = r.headers.get('cache-control') ?? '';
+    console.log(
+      `    /build.txt — Soll: 200, dieselbe Kennung, no-cache   Ist: ${r.status}, ${txtSha ? txtSha.slice(0, 7) : 'keine Kennung'}, Cache-Control "${cc}"`
+    );
+    if (r.status !== 200)
+      fail(`/build.txt: Soll 200, Ist ${r.status} — der Warte-Schritt der Deploy-Laeufe meldet dann wieder nur "NICHT geprueft"`);
+    else if (!txtSha || (jsonSha && txtSha !== jsonSha))
+      fail(`/build.txt: Kennung ${txtSha ?? 'unlesbar'}, /build.json ${jsonSha ?? 'unlesbar'} — beide schreibt _write-build-stamp.mjs aus demselben Text`);
+    else if (!/\bno-cache\b/i.test(cc))
+      fail(`/build.txt: Cache-Control "${cc}" ohne no-cache — Cloudflare koennte den Stempel des Vorgaengers ausliefern (location = /build.txt { expires -1; })`);
+  } catch (e) {
+    fail(`/build.txt: Anfrage fehlgeschlagen (${e.message})`);
   }
 }
 

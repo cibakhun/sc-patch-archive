@@ -151,7 +151,8 @@ jobs:
 
       # Wie in deploy-staging.yml: warten, bis die LIVE-Seite den frisch
       # gebauten Stand wirklich ausliefert. "CI gruen" ist keine Antwort
-      # darauf — siehe die Begruendung dort.
+      # darauf — siehe die Begruendung dort. Sperrt Cloudflare /build.json,
+      # liest der Schritt denselben Stempel aus /build.txt.
       - name: Warten, bis die Live-Seite den neuen Stand zeigt
         run: |
           node scripts/check-deployed.mjs \
@@ -184,7 +185,10 @@ jobs:
       #     npm run check:headers:live
       # CLAUDE.md fuehrt das als Pflicht vor der Fertig-Meldung.
       #
-      # In deploy-staging.yml bleibt der Schritt: dort kommt der Runner durch
-      # (5 von 5 Laeufen gruen, gemessen 01.11.2026), weil staging.verse-base.com
-      # den Bot-Schutz nicht hat. Faengt er auch dort an, falsch rot zu werden,
-      # gehoert er auch dort weg — nicht auf "immer gruen" gestellt.
+      # In deploy-staging.yml bleibt der Schritt (5 von 5 Laeufen gruen,
+      # gemessen 01.11.2026). Der Grund stand hier bis zum 08.11.2026 falsch:
+      # staging.verse-base.com hat denselben Bot-Schutz, auch dort bekommt der
+      # Runner fuer HTML und .json 403 (Protokoll vom 01.11. ebenso). Durch
+      # kommen nur Stichproben mit statischer Endung, und die tragen dort die
+      # Kopfzeilen des Ursprungs. Faengt er auch dort an, falsch rot zu
+      # werden, gehoert er auch dort weg — nicht auf "immer gruen" gestellt.
