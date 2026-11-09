@@ -670,8 +670,18 @@
   }
 
   // ---- Sync-Statusanzeige ----
+  // Text und Aktionen beider Pillen (Kopfleiste und Planer) kommen aus EINEM
+  // Zustand: „Anmelden" nur bei local, „Erneut versuchen" nur bei error.
+  // Ausgeblendet wird über das hidden-Attribut; dass es im Browser auch
+  // gewinnt, sichert assets/theme.css (bis 07.11.2026 hob mobile-ux.css es
+  // unter 821 px auf, und am Handy stand „Mit Konto synchronisiert" neben
+  // „Anmelden" und „Erneut versuchen").
+  // error heißt zweierlei: liegt etwas offen, kam ein Klick nicht an („Nicht
+  // gespeichert"); ist nichts offen, scheiterte nur das Lesen des
+  // Server-Stands („Nicht abgeglichen"), gespeichert ist dann alles.
   function setSync(s) {
     syncState = s;
+    var unsaved = s === 'error' && !!acctUid && loadState(acctUid).pending.length > 0;
     $$('.cdb-sync').forEach(function (host) {
       host.dataset.state = s;
       var txt = $('.cdb-sync__txt', host);
@@ -681,7 +691,7 @@
         txt.textContent =
           s === 'syncing' ? tr('syncBusy', 'Synchronisiere…') :
           s === 'synced' ? tr('syncOn', 'Mit Konto synchronisiert') :
-          s === 'error' ? tr('syncErr', 'Nicht gespeichert') :
+          s === 'error' ? (unsaved ? tr('syncErr', 'Nicht gespeichert') : tr('syncStale', 'Nicht abgeglichen')) :
           tr('syncLocal', 'Nur auf diesem Gerät');
       }
       if (login) {
