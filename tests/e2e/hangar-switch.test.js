@@ -10,7 +10,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { hangarImBau, hangarImArtefakt, HANGAR_ROUTES, HANGAR_DIST_FILES, HANGAR_HREF } from '../../scripts/lib/hangar-switch.mjs';
-import { hangarRoutes } from '../../astro.config.mjs';
+import { hangarRoutes, vorschauRoutes } from '../../astro.config.mjs';
+import { VORSCHAU_ROUTES, VORSCHAU_HREF } from '../../scripts/lib/vorschau-seiten.mjs';
 
 const read = (p) => fs.readFileSync(path.resolve(p), 'utf8');
 
@@ -106,6 +107,39 @@ test('Tor: Vorschau-Bau ohne Hangar ist rot', () => {
   const r = run(['scripts/verify-hangar-schalter.mjs', '--dist', a.d, '--klinke-seiten', '1']);
   assert.equal(r.status, 1);
   assert.match(r.stderr, /\[3\] dist\/hangar\.html fehlt im Vorschau-Bau/);
+});
+
+// Prototypen (scripts/lib/vorschau-seiten.mjs, seit 09.11.2026 die
+// Crafting-Werkbank): dieselbe Regel, eigene Liste, eigene Punkte [4]/[5].
+test('Prototypen: Routen nur im Vorschau-Bau, Muster trifft nur sie', () => {
+  for (const r of VORSCHAU_ROUTES) assert.ok(fs.existsSync(path.resolve(r.entrypoint)), r.entrypoint);
+  const haenge = (env) => {
+    const got = [];
+    vorschauRoutes(env).hooks['astro:config:setup']({ injectRoute: (r) => got.push(r.pattern), logger: { info() {} } });
+    return got;
+  };
+  assert.deepEqual(haenge({ STAGING: '1' }), VORSCHAU_ROUTES.map((r) => r.pattern));
+  assert.deepEqual(haenge({}), []);
+  assert.ok(VORSCHAU_HREF.test('<a href="/de/topics/crafting-werkbank.html?bp=x&#38;bpi=1">'));
+  assert.ok(VORSCHAU_HREF.test("<a href='/topics/crafting-werkbank.html'>"));
+  assert.ok(!VORSCHAU_HREF.test('<a href="/de/topics/crafting.html?bp=x">'));
+});
+
+test('Tor: Live-Bau mit Prototyp-Seite oder -Link ist rot', () => {
+  const tor = (d) => run(['scripts/verify-hangar-schalter.mjs', '--dist', d, '--klinke-seiten', '1']);
+  const a = probe();
+  a.put('build.json', JSON.stringify({ staging: false }));
+  run(['scripts/_hangar-switch.mjs', '--dist', a.d]);
+  assert.equal(tor(a.d).status, 0);
+  a.put('de/topics/crafting-werkbank.html', '<p>x</p>');
+  let r = tor(a.d);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /\[4\] dist\/de\/topics\/crafting-werkbank\.html gehoert nicht in den Live-Bau/);
+  fs.rmSync(path.join(a.d, 'de/topics'), { recursive: true });
+  a.put('de/schiffe.html', '<a href="/de/topics/crafting-werkbank.html?bp=x">Herstellen</a>');
+  r = tor(a.d);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /\[4\] dist\/de\/schiffe\.html: href="\/de\/topics\/crafting-werkbank\.html/);
 });
 
 test('Muster: Dateien und Links', () => {

@@ -13,6 +13,12 @@
        [3] die Hangar-Seiten in beiden Sprachen, die Buchtdokumente und
            die Modelle sind da, und das Menue fuehrt zum Hangar
 
+   Dieselbe Regel fuer die Prototypen (scripts/lib/vorschau-seiten.mjs,
+   seit 09.11.2026 die Crafting-Werkbank):
+       [4] Live-Bau: keine Prototyp-Seite, keine Seite verlinkt eine
+       [5] Vorschau-Bau: die Prototyp-Seiten in beiden Sprachen sind da,
+           und die bisherige Crafting-Seite fuehrt hin
+
    Erst [1] und [2] machen es zulaessig, dass run-gate die Hangar-Strecken
    (nurMitHangar) gegen den Live-Bau weglaesst: was nicht da ist, muss
    nicht geprueft werden — aber dass es nicht da ist, wird geprueft.
@@ -26,6 +32,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HANGAR_DIST_DIRS, HANGAR_DIST_FILES, HANGAR_HREF } from './lib/hangar-switch.mjs';
+import { VORSCHAU_DIST_FILES, VORSCHAU_HREF } from './lib/vorschau-seiten.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // --dist <Ordner> und --klinke-seiten <n>: nur fuer
@@ -82,6 +89,19 @@ if (!vorschau) {
   }
   if (treffer > 10) fail(`[2] … und ${treffer - 10} weitere Seiten mit Hangar-Verweis`);
   console.log(`  [2] ${html.length} Seiten gelesen: ${treffer} mit Verweis auf den Hangar`);
+
+  // [4]
+  const proto = VORSCHAU_DIST_FILES.filter((f) => existsSync(resolve(DIST, f)));
+  for (const f of proto) fail(`[4] dist/${f} gehoert nicht in den Live-Bau (Prototyp)`);
+  let protoLinks = 0;
+  for (const f of html) {
+    const m = VORSCHAU_HREF.exec(readFileSync(resolve(DIST, f), 'utf8'));
+    if (!m) continue;
+    protoLinks++;
+    if (protoLinks <= 10) fail(`[4] dist/${f}: ${m[0]}`);
+  }
+  if (protoLinks > 10) fail(`[4] … und ${protoLinks - 10} weitere Seiten mit Verweis auf einen Prototyp`);
+  console.log(`  [4] ${VORSCHAU_DIST_FILES.length} Prototyp-Seiten gesucht, ${proto.length} gefunden; ${html.length} Seiten gelesen: ${protoLinks} mit Verweis`);
 } else {
   // [3]
   for (const f of ['hangar.html', 'de/hangar.html', 'hangar-loadout.html', 'de/hangar-loadout.html', 'hangar-layouts.json']) {
@@ -96,6 +116,14 @@ if (!vorschau) {
   const nav = existsSync(resolve(DIST, 'schiffe.html')) && /href="\/hangar\.html"/.test(readFileSync(resolve(DIST, 'schiffe.html'), 'utf8'));
   if (!nav) fail('[3] dist/schiffe.html fuehrt nicht zum Hangar (Menue oder Schiffsliste)');
   console.log(`  [3] Seiten in beiden Sprachen, ${en} + ${de} Buchtdokumente, ${modelle} Dateien unter dist/hangar/, Menue ${nav ? 'mit' : 'OHNE'} Hangar`);
+
+  // [5]
+  const fehlt = VORSCHAU_DIST_FILES.filter((f) => !existsSync(resolve(DIST, f)));
+  for (const f of fehlt) fail(`[5] dist/${f} fehlt im Vorschau-Bau (Prototyp)`);
+  const alt = resolve(DIST, 'de/topics/crafting.html');
+  const hin = existsSync(alt) && VORSCHAU_HREF.test(readFileSync(alt, 'utf8'));
+  if (!hin) fail('[5] dist/de/topics/crafting.html fuehrt nicht zur Werkbank (Prototyp-Zeile)');
+  console.log(`  [5] ${VORSCHAU_DIST_FILES.length - fehlt.length} von ${VORSCHAU_DIST_FILES.length} Prototyp-Seiten da, Crafting-Seite ${hin ? 'mit' : 'OHNE'} Weg dorthin`);
 }
 
 if (html.length < MIN_SEITEN) fail(`gelesen: ${html.length} Seiten, Klinke ${MIN_SEITEN} — unvollstaendiger Bau?`);

@@ -117,6 +117,13 @@ const SEITEN = [
     id: 'schiffe', en: '/schiffe.html', de: '/de/schiffe.html',
     leit: '#sf-q', schwer: true, probe: probeSchiffe,
   },
+  // Die Crafting-Werkbank, ein Prototyp nur im Vorschau-Bau (Skizze 016-3).
+  // Sie steht unter demselben Schalter wie der Hangar (hangarImBau), daher
+  // nurMitHangar; verify:hangar-schalter [4]/[5] prueft beide Richtungen.
+  {
+    id: 'crafting-werkbank', en: '/topics/crafting-werkbank.html', de: '/de/topics/crafting-werkbank.html',
+    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeWerkbank, nurMitHangar: true,
+  },
   { id: 'crafting', en: '/crafting.html', de: '/de/crafting.html', leit: '.dp-card--cat', minAnzahl: 50, schwer: true },
   // Der Crafting-Planer mit seiner Konto-Anzeige. Am Handy stand dort
   // „Synced to your account" neben „Sign in" und „Retry" (Krisz, 07.11.2026):
@@ -871,6 +878,129 @@ async function probeCraftingSync(page) {
     probleme.push(`verschiedene Zustaende teilen sich einen Text (${[...texte].map(([k, v]) => `${k}=„${v}"`).join(', ')})`);
   if (!probleme.length) return null;
   return `Crafting-Planer, ${probleme.length} Abweichung(en): ${probleme.join(' | ')}`;
+}
+
+/* Die Crafting-Werkbank (Prototyp, Skizze 016-3, nur im Vorschau-Bau):
+   dasselbe Werkzeug wie der Planer, anders gestellt. Am Schreibtisch steht
+   das Rezept als feste Mitte neben der Liste und der Planer als Spalte
+   rechts; Waehlen, Schliessen und ein tiefer Link muessen dort ohne Dialog
+   gehen. Am Telefon ist die Mitte zu, ein Antippen legt das Rezept als
+   ganze Ebene ueber die Liste, „← Liste“ fuehrt zurueck, und der Planer
+   sitzt als Leiste unten. Gemessen an Lage und Inhalt, nicht am Markup. */
+async function probeWerkbank(page) {
+  const kasten = (p, sel) => p.locator(sel).first().boundingBox();
+  const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
+  const bpi = (p) => new URL(p.url()).searchParams.get('bpi');
+  const wahl = (p) => p.$$eval('#cdb-grid .cbp.is-sel', (c) => c.map((x) => x.dataset.i));
+  const titel = async (p) => ((await p.locator('#cdb-modal .cbm__name').first().innerText().catch(() => '')) || '').trim();
+
+  // 1. Schreibtisch (1280 px): Liste | leere Mitte | Planer.
+  if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: die leere Mitte („Rezept waehlen“) ist nicht zu sehen';
+  const liste = await kasten(page, '#cdb-grid');
+  const mitte = await kasten(page, '#cdb-modal .cdb-modal__box');
+  const planer = await kasten(page, '#cdb-planner');
+  if (!liste || !mitte || !planer) return `Werkbank 1280 px: Spalten fehlen (Liste ${!!liste}, Mitte ${!!mitte}, Planer ${!!planer})`;
+  if (!(liste.x + liste.width <= mitte.x + 1 && mitte.x + mitte.width <= planer.x + 1))
+    return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
+  if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
+  if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+
+  // Waehlen: die zweite Karte (die erste koennte zufaellig schon passen).
+  const karte = page.locator('#cdb-grid .cbp').nth(1);
+  const i = await karte.getAttribute('data-i');
+  const name = ((await karte.locator('.cbp__name').textContent()) || '').trim();
+  await karte.scrollIntoViewIfNeeded();
+  const y0 = await page.evaluate(() => window.scrollY);
+  await karte.locator('.cbp__name').click();
+  await page.waitForTimeout(250);
+  const y1 = await page.evaluate(() => window.scrollY);
+  if (Math.abs(y1 - y0) > 2) return `Werkbank 1280 px: das Waehlen schiebt die Seite um ${Math.round(y1 - y0)} px`;
+  if (await page.locator('#cdb-modal [aria-modal="true"]').count())
+    return 'Werkbank 1280 px: das Rezept steht als Dialog statt als Mitte (aria-modal)';
+  const t1 = await titel(page);
+  if (t1 !== name) return `Werkbank 1280 px: nach Klick auf „${name}“ zeigt die Mitte „${t1 || 'nichts'}“`;
+  if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return `Werkbank 1280 px: markiert sind Karten ${JSON.stringify(await wahl(page))}, erwartet ["${i}"]`;
+  if (bpi(page) !== i) return `Werkbank 1280 px: die Adresse traegt bpi=${bpi(page)}, erwartet ${i}`;
+  const gesperrt = await page.evaluate(() => getComputedStyle(document.body).overflow === 'hidden' || document.body.style.position === 'fixed' || document.documentElement.classList.contains('is-locked'));
+  if (gesperrt) return 'Werkbank 1280 px: mit gewaehltem Rezept laesst sich die Seite nicht mehr scrollen';
+  // Zum Planer: die Spalte rechnet sofort mit.
+  await page.locator('#cdb-modal .cbm__plan').first().click();
+  const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
+  if (!imPlaner.map((s) => s.trim()).includes(name)) return `Werkbank 1280 px: „Zum Planer“ zeigt „${name}“ nicht in der Planer-Spalte (dort: ${JSON.stringify(imPlaner)})`;
+  // Schliessen: zurueck zur leeren Mitte, Adresse und Markierung frei.
+  await page.locator('#cdb-modal .cdb-modal__x').first().click();
+  if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: nach ✕ kommt die leere Mitte nicht zurueck';
+  if (bpi(page) !== null || (await wahl(page)).length) return 'Werkbank 1280 px: nach ✕ bleiben Adresse oder Markierung stehen';
+  if (!(await zuSehen(page, '#cdb-planner'))) return 'Werkbank 1280 px: ✕ hat die Planer-Spalte mit geschlossen';
+  // Tiefer Link: dieselbe Wahl in einer frischen Seite.
+  const tief = new URL(page.url());
+  tief.searchParams.set('bp', name);
+  tief.searchParams.set('bpi', i);
+  await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  const t2 = await titel(page);
+  if (t2 !== name) return `Werkbank 1280 px: der tiefe Link ?bpi=${i} zeigt „${t2 || 'nichts'}“ statt „${name}“`;
+  if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return 'Werkbank 1280 px: der tiefe Link markiert die Karte nicht';
+  // Ein Rezept weit unten in der Liste: die Liste rollt zu ihm, die Seite nicht.
+  const weit = await page.$$eval('#cdb-grid .cbp', (c) => {
+    const k = c[Math.floor(c.length * 0.6)];
+    // textContent: die Karte liegt ausserhalb des Bildes, content-visibility
+    // laesst sie ungerendert, und innerText gaebe dann "".
+    return { i: k.dataset.i, name: k.querySelector('.cbp__name').textContent.trim() };
+  });
+  tief.searchParams.set('bp', weit.name);
+  tief.searchParams.set('bpi', weit.i);
+  await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  const lage = await page.evaluate((n) => {
+    const g = document.querySelector('#cdb-grid').getBoundingClientRect();
+    const k = document.querySelector(`#cdb-grid .cbp[data-i="${n}"]`).getBoundingClientRect();
+    return { y: window.scrollY, drin: k.top >= g.top - 1 && k.bottom <= g.bottom + 1 };
+  }, weit.i);
+  if ((await titel(page)) !== weit.name) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ zeigt „${await titel(page)}“`;
+  if (lage.y > 2) return `Werkbank 1280 px: der tiefe Link auf ein Rezept weit unten schiebt die Seite um ${Math.round(lage.y)} px`;
+  if (!lage.drin) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
+
+  // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
+  const kontext = await page.context().browser().newContext({
+    viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true,
+    colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+  });
+  await kontext.route('**/*', (route) => { route.request().url().startsWith(BASE) ? route.continue() : route.abort(); });
+  await kontext.addInitScript(() => { try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Ablage nur die Hilfe */ } });
+  try {
+    const p = await kontext.newPage();
+    const befunde = [];
+    p.on('pageerror', (e) => befunde.push(`JS-Ausnahme: ${e.message.split('\n')[0]}`));
+    const leer = new URL(page.url());
+    leer.search = '';
+    await p.goto(leer.href, { waitUntil: 'load', timeout: 60000 });
+    await p.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
+    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: die Rezept-Ebene liegt schon ohne Wahl ueber der Liste';
+    const leiste = await kasten(p, '#cdb-planner-open');
+    if (!leiste || leiste.y + leiste.height < 844 - 40 || leiste.height < 44)
+      return `Werkbank 390 px: die Planer-Leiste sitzt nicht unten (${leiste ? `y=${Math.round(leiste.y)}, h=${Math.round(leiste.height)}` : 'fehlt'})`;
+    const k = p.locator('#cdb-grid .cbp').nth(1);
+    const n2 = ((await k.locator('.cbp__name').textContent()) || '').trim();
+    await k.locator('.cbp__name').tap();
+    await p.waitForTimeout(300);
+    const ebene = await kasten(p, '#cdb-modal .cdb-modal__box');
+    if (!ebene || ebene.y > 2 || ebene.width < 380) return `Werkbank 390 px: das Rezept liegt nicht als ganze Ebene ueber der Liste (${ebene ? `y=${Math.round(ebene.y)}, b=${Math.round(ebene.width)}` : 'nicht zu sehen'})`;
+    if ((await titel(p)) !== n2) return `Werkbank 390 px: nach Antippen von „${n2}“ zeigt die Ebene „${await titel(p)}“`;
+    const zur = await kasten(p, '#cdb-modal .cdb-wb-zur');
+    if (!zur || zur.height < 44) return `Werkbank 390 px: „← Liste“ fehlt oder ist nur ${zur ? Math.round(zur.height) : 0} px hoch`;
+    if (await zuSehen(p, '#cdb-modal .cdb-modal__back')) return 'Werkbank 390 px: neben „← Liste“ steht noch der kleine Zurueck-Pfeil';
+    await p.locator('#cdb-modal .cdb-wb-zur').tap();
+    await p.waitForTimeout(300);
+    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: „← Liste“ fuehrt nicht zur Liste zurueck';
+    if (bpi(p) !== null) return 'Werkbank 390 px: nach „← Liste“ traegt die Adresse noch bpi';
+    const breit = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    if (breit > 1) return `Werkbank 390 px: die Seite laeuft ${breit} px seitlich ueber`;
+    if (befunde.length) return `Werkbank 390 px: ${befunde.slice(0, 3).join(' | ')}`;
+    return null;
+  } finally {
+    await kontext.close();
+  }
 }
 
 /* ---------- Ein Seitenaufruf ---------- */

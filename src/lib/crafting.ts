@@ -9,6 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
+import { HAS_WERKBANK } from './seo';
 import { hasGradeSemantics, hasMeaningfulGrade, itemSizes, items, type Item, type ItemVariant } from './items';
 
 /* ---------- Typen (Spiegel von scripts/datamine-crafting.mjs) ---------- */
@@ -577,6 +578,11 @@ export const plannerPath = (b?: BlueprintEntry) =>
  * Heute das Werkzeug mit vorgewaehltem Rezept. Nach der Abnahme des
  * Crafting-Prototyps (Option A, Krisz 09.11.2026) zeigt die Bauplan-Adresse
  * /crafting/<slug>.html selbst das Werkzeug — dann aendert sich nur diese
- * Zeile.
+ * Zeile. Bis dahin fuehrt der Vorschau-Bau in den Prototyp (die Werkbank,
+ * nur auf staging, HAS_WERKBANK), damit Krisz den ganzen Weg ausprobiert:
+ * Suche oder Item-Kopf -> Herstellen -> Werkbank mit diesem Rezept.
  */
-export const craftEntryPath = (b: BlueprintEntry) => plannerPath(b);
+export const craftEntryPath = (b: BlueprintEntry) =>
+  HAS_WERKBANK
+    ? `/topics/crafting-werkbank.html?bp=${encodeURIComponent(b.name)}&bpi=${b.index}`
+    : plannerPath(b);

@@ -1,0 +1,44 @@
+---
+// Prototyp-Zeile ueber dem Crafting-Werkzeug — nur im Vorschau-Bau
+// (HAS_WERKBANK, scripts/lib/vorschau-seiten.mjs). Live gibt es die
+// Werkbank-Seite nicht, also auch keinen Weg dorthin; verify:hangar-schalter
+// [4] prueft das am Live-Artefakt.
+//   werkbank=false  (bisherige Seite)  Hinweis + „Ausprobieren“
+//   werkbank=true   (Prototyp)         Hinweis + „Bisherige Ansicht“
+import { HAS_WERKBANK } from '../lib/seo';
+import { href } from '../i18n/ui';
+interface Props {
+  werkbank: boolean;
+  lang: 'de' | 'en';
+}
+const { werkbank, lang } = Astro.props;
+const de = lang === 'de';
+// Eine ruhige Zeile ueber dem Werkzeug, Kantenfarbe Blau wie .cr-note,
+// damit sie nicht wie eine Warnung liest.
+const CSS = `.cr-proto{max-width:calc(var(--maxw,1180px) + var(--vb-breit,0px));margin:.9rem auto 0;padding:.55rem clamp(1rem,4vw,2rem);display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem .8rem;font-size:var(--fs-7);color:var(--muted)}
+.cr-proto b{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-4);color:#061320;background:var(--accent-2);padding:.1rem .45rem;border-radius:3px}
+.cr-proto a{color:var(--accent-2);text-decoration:none;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+.cr-proto a:hover{border-color:var(--accent-2)}`;
+---
+{HAS_WERKBANK && (
+  <>
+    {/* Stil nur mit der Zeile: der Live-Bau soll ihn nicht mitschleppen. */}
+    <style is:inline set:html={CSS} />
+
+    <p class="cr-proto">
+      {werkbank ? (
+        <>
+          <b>{de ? 'Prototyp' : 'Prototype'}</b>
+          <span>{de ? 'Liste, Rezept und Planer nebeneinander. Daten, Besitz und Planer sind dieselben wie in der bisherigen Ansicht.' : 'List, recipe and planner side by side. Data, owned items and planner are the same as in the current view.'}</span>
+          <a href={href('/topics/crafting.html', lang)}>{de ? 'Bisherige Ansicht' : 'Current view'} →</a>
+        </>
+      ) : (
+        <>
+          <b>{de ? 'Neu' : 'New'}</b>
+          <span>{de ? 'Die Werkbank als Prototyp: Liste, Rezept und Planer nebeneinander.' : 'The workbench as a prototype: list, recipe and planner side by side.'}</span>
+          <a href={href('/topics/crafting-werkbank.html', lang)}>{de ? 'Ausprobieren' : 'Try it'} →</a>
+        </>
+      )}
+    </p>
+  </>
+)}
