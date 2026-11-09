@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 016-4 — Seitenstruktur: ein Ort je Frage</title>
+<link rel="stylesheet" href="basis.css">
+<style>
+/* Wegwerf-Entwurf. Zeigt die empfohlene Struktur: je Bereich EIN Werkzeug
+   (arbeiten) und EIN Datenblatt (nachschlagen), die Suche davor, und die
+   Querverweise, die einen Ablauf ohne Umweg tragen. Zahlen: Vorschau-Bau
+   staging 44938189 (Seiten je Sprache). */
+:root { --acc: #2dd4ff; --craft: #ff5e1a; }
+body { background: #070910; }
+.wrap { max-width: 1240px; }
+h1 { font-size: 40px; margin: 34px 0 6px; }
+.lead { color: var(--muted); margin: 0 0 22px; max-width: 80ch; }
+
+.flow { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 26px; }
+.flow .card h2 { font-size: 20px; margin: 0 0 12px; display: flex; gap: 10px; align-items: baseline; }
+.flow .card h2 small { font: 500 14px var(--font); color: var(--muted); }
+.steps { display: flex; align-items: stretch; gap: 0; }
+@media (max-width: 900px) { .steps { flex-wrap: wrap; } .flow, .links { grid-template-columns: 1fr; } .areas { grid-template-columns: 1fr 1fr; } }
+.st { flex: 1 1 0; min-width: 0; background: var(--s2); border-radius: var(--r2); padding: 10px 12px; font-size: 14.5px; line-height: 1.35; }
+.st b { display: block; font-weight: 600; font-size: 15px; }
+.st span { color: var(--muted); font-size: 13px; }
+.ar { align-self: center; padding: 0 6px; color: var(--faint); font-size: 18px; }
+
+.nachher .st.c { box-shadow: inset 0 0 0 1px rgba(255,94,26,.6); background: linear-gradient(160deg, rgba(255,94,26,.14), var(--s2)); }
+.tally { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+.tally b { color: var(--text); }
+.bad { color: #f19494; } .good { color: #6fd6a4; }
+
+.search { background: var(--s1); border-radius: var(--r1); padding: 14px 18px; display: flex; gap: 18px; align-items: center; margin: 0 0 14px; }
+.search b { font: 700 16px var(--head); letter-spacing: .02em; }
+.search span { color: var(--muted); font-size: 14.5px; }
+.search .pill { margin-left: auto; }
+
+.areas { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 10px; }
+.area { background: var(--s1); border-radius: var(--r1); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.area h3 { font: 700 17px var(--head); margin: 2px 2px 2px; }
+.box { border-radius: var(--r2); padding: 9px 10px; background: var(--s2); font-size: 14px; line-height: 1.35; }
+.box i { display: block; font-style: normal; font: 500 12px var(--font); color: var(--faint); margin-bottom: 2px; }
+.box b { font-weight: 600; }
+.box span { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.box.tool { box-shadow: inset 3px 0 0 var(--acc); }
+.box.sheet { box-shadow: inset 3px 0 0 #a78bfa; }
+.box.craft { box-shadow: inset 3px 0 0 var(--craft); }
+.box.stage { opacity: .75; border: 1px dashed rgba(255,255,255,.18); background: transparent; }
+.down { text-align: center; color: var(--faint); font-size: 13px; line-height: 1; }
+
+.links { margin: 16px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.link { background: var(--s1); border-radius: var(--r2); padding: 10px 12px; font-size: 14px; }
+.link b { font-weight: 600; }
+.link span { display: block; color: var(--muted); font-size: 13px; }
+.legend { display: flex; gap: 18px; color: var(--muted); font-size: 13px; margin: 14px 0 40px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Ein Ort je Frage</h1>
+  <p class="lead">Jede Frage hat genau einen Ort: arbeiten im Werkzeug, nachschlagen im Datenblatt. Wo ein Ablauf mehrere Schritte hat (Bergbau), reicht jedes Werkzeug ans nächste weiter; wo Arbeiten und Nachschlagen zusammenfallen (Crafting), ist es ein Ort. Die Suche führt zu allen, und die Querverweise tragen den Ablauf weiter, ohne dass dieselbe Sache ein zweites Mal gezeigt wird.</p>
+
+  <section class="flow">
+    <div class="card vorher">
+      <h2>Heute <small>Item → herstellen</small></h2>
+      <div class="steps">
+        <div class="st"><b>Item-Datenblatt</b><span>Rezept in Abschnitt 4, 3,6 Bildschirme tief (Handy 6,7)</span></div><div class="ar">→</div>
+        <div class="st"><b>Blueprint-Seite</b><span>andere Farbe, dieselben Zutaten als Tabelle</span></div><div class="ar">→</div>
+        <div class="st"><b>Crafting-Seite</b><span>lädt 966 KB, dann öffnet ein Modal</span></div>
+      </div>
+      <p class="tally"><b class="bad">3 Seitenwechsel</b>, das Rezept in <b>4 Ansichten</b> (Datenblatt, Blueprint-Seite, Crafting-Modal, Item-Finder-Modal), <b>3 Farbwelten</b></p>
+    </div>
+    <div class="card nachher">
+      <h2>Vorschlag <small>Item → herstellen</small></h2>
+      <div class="steps">
+        <div class="st"><b>Item-Datenblatt</b><span>„Herstellen“ im Kopf, neben Kaufen und Ab Werk</span></div><div class="ar">→</div>
+        <div class="st c"><b>Crafting-Werkzeug</b><span>Rezept schon gewählt, Planer daneben, Adresse /crafting/&lt;rezept&gt;.html wie bisher</span></div>
+      </div>
+      <p class="tally"><b class="good">1 Seitenwechsel</b>, das Rezept in <b>1 Ansicht</b>, Werkzeug-Identität bleibt</p>
+    </div>
+  </section>
+
+  <div class="search"><b>Suche</b><span>Startseite: Feld mit Treffern darunter · Kopfleiste: derselbe Dialog wie heute · eine Logik, ein Register, gruppiert nach Werkzeugen, Schiffen, Items, Missionen, Rezepten, Patches</span><span class="pill">Strg K · /</span></div>
+
+  <section class="areas">
+    <div class="area"><h3>Schiffe</h3>
+      <div class="box tool"><i>Arbeiten</i><b>Hangar</b><span>Loadout, Vergleich, Flotte</span></div>
+      <div class="down">↕</div>
+      <div class="box sheet"><i>Nachschlagen</i><b>Schiffs-Datenblatt</b><span>231 · mit Kaufen im Spiel</span></div>
+      <div class="box stage"><i>Liste</i><b>Schiffsdatenbank</b><span>Filter, führt zum Datenblatt</span></div>
+    </div>
+    <div class="area"><h3>Ausrüstung</h3>
+      <div class="box tool"><i>Arbeiten</i><b>Item Finder</b><span>Liste, Filter, Preise · Detail = Datenblatt</span></div>
+      <div class="down">↕</div>
+      <div class="box sheet"><i>Nachschlagen</i><b>Item-Datenblatt</b><span>5.369 · Kaufen, Herstellen, Ab Werk</span></div>
+      <div class="box stage"><i>Ableger</i><b>Rüstungssets · Wikelo</b></div>
+    </div>
+    <div class="area"><h3>Crafting</h3>
+      <div class="box craft"><i>Arbeiten und Nachschlagen</i><b>Crafting-Werkzeug</b><span>Rezepte, Planer, Zerlegen · 1.608 Rezept-Adressen</span></div>
+      <div class="down">↕</div>
+      <div class="box stage"><i>Verzeichnis</i><b>Kategorien</b><span>bleiben als Einstieg, führen ins Werkzeug</span></div>
+    </div>
+    <div class="area"><h3>Bergbau</h3>
+      <div class="box tool"><i>Arbeiten und Nachschlagen</i><b>Mining</b><span>Erze, Fundorte, beste Stationen</span></div>
+      <div class="down">↓ Erz mitnehmen</div>
+      <div class="box tool"><b>Fracturing</b><span>bricht der Brocken?</span></div>
+      <div class="down">↓</div>
+      <div class="box tool"><b>Raffinerie</b><span>Ertrag, Tracker</span></div>
+    </div>
+    <div class="area"><h3>Missionen</h3>
+      <div class="box tool"><i>Arbeiten</i><b>Missionsliste</b><span>Filter nach Typ, Geber, Ort, Bauplan</span></div>
+      <div class="down">↕</div>
+      <div class="box sheet"><i>Nachschlagen</i><b>Missions-Datenblatt</b><span>1.387 · Belohnung, Ruf, Baupläne</span></div>
+      <div class="box stage"><i>Reisen</i><b>Precision Jump</b></div>
+    </div>
+    <div class="area"><h3>Archiv</h3>
+      <div class="box sheet"><i>Nachschlagen</i><b>Patches</b><span>22 · Dossiers</span></div>
+      <div class="box sheet"><b>Themen</b><span>19</span></div>
+      <div class="box tool"><b>Evolution</b><span>Systeme × Patches</span></div>
+    </div>
+  </section>
+
+  <section class="links">
+    <div class="link"><b>Item → Crafting</b><span>„Herstellen“ öffnet das Werkzeug mit diesem Rezept</span></div>
+    <div class="link"><b>Crafting → Item</b><span>„Preise &amp; Werte“ statt heute „Im Item Finder öffnen“</span></div>
+    <div class="link"><b>Crafting → Mission → Crafting</b><span>„Bauplan bekommen“ und zurück über die Belohnung</span></div>
+    <div class="link"><b>Rezept-Material → Mining</b><span>„Wo abbauen“ mit dem Erz gewählt (gibt es schon)</span></div>
+    <div class="link"><b>Schiffsteil → Schiff → Hangar</b><span>„Ab Werk“ und „Im Hangar ansehen“ (Hangar nur Vorschau)</span></div>
+    <div class="link"><b>Schiff als Item → Schiff</b><span>169 Fahrzeug-Itemseiten verweisen heute nicht aufs Schiff</span></div>
+  </section>
+  <p class="legend"><span><i style="background:#2dd4ff"></i>Werkzeug</span><span><i style="background:#a78bfa"></i>Datenblatt</span><span><i style="background:#ff5e1a"></i>Crafting (eigene Identität)</span><span><i style="border:1px dashed rgba(255,255,255,.4)"></i>Liste, Verzeichnis, Ableger</span></p>
+</main>
+</body>
+</html>

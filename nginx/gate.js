@@ -85,6 +85,7 @@ import crypto from 'crypto';
 const EXEMPT_PATHS = [
   '/gate.html',
   '/build.json',
+  '/build.txt',
   '/robots.txt',
   '/assets/theme.css',
   '/assets/fonts.css',

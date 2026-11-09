@@ -146,10 +146,17 @@
     buildDismantleBlacklist(); // Zerlege-Rechner: Blacklist/Rarity aus DB + Ehrlichkeits-Guard
     buildMissionIndex();
     renderPlanner();
-    // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
+    // Deep-Link (Suche „Herstellen“, Item-Kopf, Item Finder): ?bp=<Blueprint-
+    // Name> öffnet direkt das Modal. &bpi=<Stelle> macht ihn eindeutig, wo
+    // mehrere Rezepte denselben Namen tragen (plannerPath in
+    // src/lib/crafting.ts); gilt nur, solange dort noch dasselbe Rezept steht.
     try {
-      var wantBp = new URLSearchParams(location.search).get('bp');
-      if (wantBp) openModalByName(wantBp);
+      var qs = new URLSearchParams(location.search);
+      var wantBp = qs.get('bp');
+      var wantI = qs.get('bpi');
+      var atI = wantI != null && /^\d+$/.test(wantI) ? DB.blueprints[+wantI] : null;
+      if (wantBp && atI && (atI.name || '').toLowerCase() === wantBp.trim().toLowerCase()) openModal(+wantI);
+      else if (wantBp) openModalByName(wantBp);
     } catch (e) {}
     if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
   }).catch(function () {
@@ -670,8 +677,18 @@
   }
 
   // ---- Sync-Statusanzeige ----
+  // Text und Aktionen beider Pillen (Kopfleiste und Planer) kommen aus EINEM
+  // Zustand: „Anmelden" nur bei local, „Erneut versuchen" nur bei error.
+  // Ausgeblendet wird über das hidden-Attribut; dass es im Browser auch
+  // gewinnt, sichert assets/theme.css (bis 07.11.2026 hob mobile-ux.css es
+  // unter 821 px auf, und am Handy stand „Mit Konto synchronisiert" neben
+  // „Anmelden" und „Erneut versuchen").
+  // error heißt zweierlei: liegt etwas offen, kam ein Klick nicht an („Nicht
+  // gespeichert"); ist nichts offen, scheiterte nur das Lesen des
+  // Server-Stands („Nicht abgeglichen"), gespeichert ist dann alles.
   function setSync(s) {
     syncState = s;
+    var unsaved = s === 'error' && !!acctUid && loadState(acctUid).pending.length > 0;
     $$('.cdb-sync').forEach(function (host) {
       host.dataset.state = s;
       var txt = $('.cdb-sync__txt', host);
@@ -681,7 +698,7 @@
         txt.textContent =
           s === 'syncing' ? tr('syncBusy', 'Synchronisiere…') :
           s === 'synced' ? tr('syncOn', 'Mit Konto synchronisiert') :
-          s === 'error' ? tr('syncErr', 'Nicht gespeichert') :
+          s === 'error' ? (unsaved ? tr('syncErr', 'Nicht gespeichert') : tr('syncStale', 'Nicht abgeglichen')) :
           tr('syncLocal', 'Nur auf diesem Gerät');
       }
       if (login) {
@@ -1032,6 +1049,22 @@
   // -0 (kleiner negativer Wert, auf 0 gerundet) zeigt toLocaleString als "-0".
   function fmtSmart(v) { var r = roundSmart(v); return (r === 0 ? 0 : r).toLocaleString(LOC, { maximumFractionDigits: 2 }); }
 
+  // Adresse des Item-Datenblatts zu Rezept i, oder null. CFG.items (aus
+  // CraftingApp.astro) traegt nur Abweichungen: sonst ist die Item-Adresse
+  // der Slug, den die Karte des Rezepts verlinkt (/crafting/<slug>.html).
+  function itemSheetUrl(i) {
+    var L = CFG.items;
+    var n = +i;
+    if (!L || !L.base || isNaN(n) || (L.none || []).indexOf(n) >= 0) return null;
+    var id = L.diff && L.diff[n];
+    if (!id) {
+      var card = grid.querySelector('.cbp[data-i="' + n + '"] .cbp__name a');
+      var m = card && /\/crafting\/([^\/?#]+)\.html$/.exec(card.getAttribute('href') || '');
+      id = m && m[1];
+    }
+    return id ? L.base + id + '.html' : null;
+  }
+
   function renderBlueprint(i) {
     var b = DB.blueprints[i];
     var html = '';
@@ -1041,8 +1074,12 @@
     html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
     if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
+    // Zum Item-Datenblatt, wo es eines gibt (09.11.2026, Skizze 016: Preise,
+    // Fundorte und Werte stehen dort); sonst wie bisher in den Item Finder.
     // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
-    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
+    var itemUrl = itemSheetUrl(i);
+    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + tr('openItem', 'Item-Datenblatt öffnen') + ' →</a>';
+    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
       html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + ' →</button>';

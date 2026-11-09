@@ -230,6 +230,10 @@ function walk(dir) {
       if (/application\/ld\+json/.test(s[0])) continue;   // JSON-LD lädt nichts
       for (const u of s[1].matchAll(/https?:\/\/[a-z0-9.-]+[^\s'"`,)]*/gi)) {
         if (/schema\.org/.test(u[0])) continue;
+        // XML-Namensraum (createElementNS fuer SVG-Symbole, Suche seit
+        // 09.11.2026): ein Bezeichner, den der Browser nie abruft. Nur genau
+        // diese drei Adressen; jede andere w3.org-Adresse zaehlt weiter.
+        if (/^http:\/\/www\.w3\.org\/(?:2000\/svg|1999\/xlink|1999\/xhtml)$/.test(u[0])) continue;
         note('(inline-js)', u[0], p);
       }
     }

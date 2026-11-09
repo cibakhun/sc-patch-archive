@@ -146,12 +146,22 @@ jobs:
       # ⚠ GEMESSEN am 09.08.2026: Cloudflare weist den GitHub-Runner mit 403
       # ab — dieselbe Sperre gegen Rechenzentren wie bei UEX. Der Schritt
       # kann die Frage von hier aus also NICHT beantworten und bricht bei 403
+      # (seit 09.11.2026: auf /build.json UND /build.txt, siehe unten)
       # sofort ab (statt sein Fenster auszusitzen); `--weich` haelt ihn dabei
       # gruen, weil "ich komme nicht hin" kein Befund ueber den Deploy ist.
       # Er bleibt trotzdem stehen: er kostet eine Sekunde, protokolliert den
       # Zustand, und wenn die Sperre je faellt, misst er wieder wirklich.
       # Die belastbare Antwort gibt `npm run check:staging` vom
       # Entwicklungsrechner aus — dort ist sie streng.
+      #
+      # Seit dem 08.11.2026: Cloudflare sperrt .json, HTML und Pfade ohne
+      # Endung, laesst aber Endungen durch, die es als statisch fuehrt
+      # (gemessen .css, .js, .woff2, robots.txt). Ist /build.json gesperrt,
+      # liest der Schritt denselben Stempel aus /build.txt. "NICHT geprueft"
+      # meldet er, wenn er keinen gueltigen Stempel lesen kann: beide Wege
+      # gesperrt, /build.txt aus Cloudflares Zwischenspeicher, oder bis zum
+      # Ende seines Fensters fehlend oder unlesbar. Ob Cloudflare /build.txt
+      # dem Runner wirklich durchlaesst, zeigt erst der erste Lauf damit.
       - name: Warten, bis die Vorschau den neuen Stand zeigt
         run: |
           node scripts/check-deployed.mjs \

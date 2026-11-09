@@ -18,7 +18,7 @@
 
    Stichproben (fest, weil jede Antwortart ihren eigenen Weg durch nginx
    nimmt): je eine Adresse fuer JEDEN location-Block mit eigenem Inhalt
-   (Wurzel, robots.txt, gate.html, build.json, theme.css, /assets/fonts/,
+   (Wurzel, robots.txt, gate.html, build.json, build.txt, theme.css, /assets/fonts/,
    /_astro/, /holo/, /hangar/, /pilot/, /en/), feste Weiterleitungen und
    eine Adresse, die es nicht gibt — genau dort verloere ein add_header in
    der location die Kopfzeilen. Dazu ein echtes Buendel unter /_astro/,
@@ -71,11 +71,12 @@ const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
 const BASE = flag('--base', 'https://staging.verse-base.com').replace(/\/$/, '');
 const WEICH = argv.includes('--weich');
 
-// Untergrenzen (Stand 29.10.2026, gegen nginx mit diesem Stand gemessen):
-// 14 feste Stichproben (live kommt das /_astro/-Buendel dazu), davon live
-// 8 HTML-Antworten mit Inline-Skripten (Wurzel, gate.html, Pilotenseite,
-// fuenfmal 404), auf der Vorschau 1 (gate.html).
-const MIN_ANTWORTEN = 14;
+// Untergrenzen (Stand 09.11.2026, gegen nginx mit diesem Stand gemessen):
+// 15 feste Stichproben, seit /build.txt dazukam (live kommt das
+// /_astro/-Buendel dazu), davon live 8 HTML-Antworten mit Inline-Skripten
+// (Wurzel, gate.html, Pilotenseite, fuenfmal 404), auf der Vorschau 1
+// (gate.html).
+const MIN_ANTWORTEN = 15;
 const MIN_HTML = 1;
 // Ein Jahr, wie nginx/default.conf es setzt. Darunter laesst ein Browser
 // die HTTPS-Pflicht zu frueh fallen.
@@ -93,6 +94,7 @@ const STICHPROBEN = [
   { pfad: '/robots.txt', art: 'Ausnahme des Tors, immer 200' },
   { pfad: '/gate.html', art: 'Torseite, eigenes Dokument, 200' },
   { pfad: '/build.json', art: 'Baukennung, eigene location, immer 200' },
+  { pfad: '/build.txt', art: 'Baukennung als Text fuer den Runner, eigene location, immer 200' },
   { pfad: '/assets/theme.css', art: 'Ausnahme des Tors, eigene location, 200' },
   { pfad: '/patches', art: 'feste Weiterleitung, 301' },
   { pfad: '/en.html', art: 'feste Weiterleitung, 301' },

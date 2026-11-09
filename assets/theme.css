@@ -32,6 +32,27 @@
    in dunkler Ausführung. */
 :root { color-scheme: dark; }
 
+/* [hidden] gewinnt IMMER, auf jeder Seite.
+   Die UA-Regel [hidden]{display:none} verliert gegen jede Autor-Regel,
+   die display setzt, egal wie schwach. Genau das stand auf dem Handy:
+   mobile-ux.css hebt unter 821 px jeden <button> und den Anmelde-Link des
+   Crafting-Planers auf display:inline-flex (44-px-Fingerkuppe), und der
+   Planer zeigte „Mit Konto synchronisiert" samt „Anmelden" und „Erneut
+   versuchen" (07.11.2026). Dieselbe Falle hielt den Zähler „0" am leeren
+   Planer, das Löschkreuz im leeren Archiv-Suchfeld und das im
+   Feedback-Formular sichtbar; einzelne Komponenten hatten sich schon je
+   eine eigene [hidden]-Regel gebaut (.dsr [hidden], .wb__pre__pick[hidden],
+   .favretry[hidden] …). Hier einmal für alle.
+   Wer ein Element mit hidden-Attribut bewusst zeichnen will, sagt es
+   ausdrücklich und spezifischer, mit !important (wie .dsr .pfx-sec[hidden]
+   in account-dossier.css). hidden="until-found" bleibt ausgenommen: der
+   Browser blendet es selbst über content-visibility aus, und die Suche im
+   Text soll es finden können.
+   Geprüft im echten Browser: scripts/browser-smoke.mjs [6] (kein
+   gezeichnetes [hidden] auf den Leitseiten) und die Probe des
+   Crafting-Planers (Status und Aktionen je Zustand, 360 und 1280 px). */
+[hidden]:not([hidden='until-found']) { display: none !important; }
+
 /* Completely hide side scrollbar visually while keeping full scrollability */
 html, body, * {
   scrollbar-width: none !important;

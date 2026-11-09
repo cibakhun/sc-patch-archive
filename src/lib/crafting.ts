@@ -451,6 +451,40 @@ export function blueprintForItem(i: Item): BlueprintEntry | null {
   return blueprintByName.get(i.name.toLowerCase()) ?? null;
 }
 
+/** Item-id -> erstes Rezept, das genau dieses Item herstellt (itemForBlueprint). */
+const recipeByItemId = (() => {
+  const m = new Map<string, BlueprintEntry>();
+  for (const b of blueprints) {
+    const it = itemForBlueprint(b);
+    if (it && !m.has(it.id)) m.set(it.id, b);
+  }
+  return m;
+})();
+
+/**
+ * Das Rezept, mit dem man DIESES Item herstellt — fuer „Herstellen“ in der
+ * Suche und im Kopf des Item-Datenblatts (Skizze 016, 09.11.2026).
+ *
+ * Zuerst die Gegenrichtung von itemForBlueprint() (guid des Rezepts, der
+ * echte Schluessel), erst danach der Name. blueprintForItem() allein lag bei
+ * elf Items daneben: bei zwei gleichnamigen Rezepten behaelt die Namens-Map
+ * das letzte (BroadSpec -> broadspec-2, obwohl broadspec per guid dieses Item
+ * herstellt), und neun Items mit eigenem Rezept fand sie gar nicht
+ * (Arrowhead Pathfinder, Hellion Scattergun der zweiten Ausfuehrung …).
+ */
+export function recipeForItem(i: Item): BlueprintEntry | null {
+  const exakt = recipeByItemId.get(i.id);
+  if (exakt) return exakt;
+  // Der Name nur, wenn das Rezept nicht nachweislich ein ANDERES Item baut:
+  // sechs gleichnamige Items (Hellion Scattergun, Lynx Legs, Oracle Helmet,
+  // drei P8-SC) haben selbst kein Rezept, ihr Namensvetter mit "-2" schon.
+  // Lieber kein „Herstellen“ als eines, das etwas anderes herstellt
+  // (Review #324).
+  const b = blueprintForItem(i);
+  const baut = b ? itemForBlueprint(b) : null;
+  return b && (!baut || baut.id === i.id) ? b : null;
+}
+
 /**
  * Missions-Slug -> Blueprints, die diese Mission als Quelle nennen.
  *
@@ -526,6 +560,23 @@ export const craftCategoryPath = (c: CraftCategory | string, page = 1) => {
 };
 
 export const craftHubPath = '/crafting.html';
-/** Der interaktive Planer (Deep-Link auf einen Blueprint). */
+/**
+ * Der interaktive Planer (Deep-Link auf einen Blueprint).
+ *
+ * `bpi` ist die Stelle des Rezepts in crafting-db.json — derselben Datei, die
+ * das Werkzeug im Browser laedt. Der Name allein war nicht eindeutig: elf
+ * Namen tragen mehrere Rezepte (BroadSpec 590 kg und 220 kg), und der Planer
+ * oeffnete immer das erste. Das Werkzeug nimmt die Stelle nur, wenn dort
+ * noch dasselbe Rezept steht, sonst den Namen (assets/crafting-app.js).
+ */
 export const plannerPath = (b?: BlueprintEntry) =>
-  b ? `/topics/crafting.html?bp=${encodeURIComponent(b.name)}` : '/topics/crafting.html';
+  b ? `/topics/crafting.html?bp=${encodeURIComponent(b.name)}&bpi=${b.index}` : '/topics/crafting.html';
+
+/**
+ * Der EINE Weg von einem Item ins Crafting (Suche „Herstellen“, Item-Kopf).
+ * Heute das Werkzeug mit vorgewaehltem Rezept. Nach der Abnahme des
+ * Crafting-Prototyps (Option A, Krisz 09.11.2026) zeigt die Bauplan-Adresse
+ * /crafting/<slug>.html selbst das Werkzeug — dann aendert sich nur diese
+ * Zeile.
+ */
+export const craftEntryPath = (b: BlueprintEntry) => plannerPath(b);

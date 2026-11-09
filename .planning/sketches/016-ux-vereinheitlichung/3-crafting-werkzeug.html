@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 016-3 — Crafting: Rezept und Planer in einer Oberfläche</title>
+<style>
+/* Wegwerf-Entwurf. Das Crafting-Werkzeug behaelt seine Identitaet (Graphit,
+   Orange #FF5E1A, Blau #1FA2FF, Orbitron-Namen, Versal-Kleinlabels, Karten
+   mit Akzentkante) — neu ist nur der Aufbau: Liste links, das gewaehlte
+   Rezept als feste Mitte statt Modal, der Planer rechts immer sichtbar.
+   Adresse dieses Zustands: /de/crafting/cf-337-panther-repeater.html.
+   Werte: crafting-db.json PUBLIC-4.10.2 (Stand 11.10.2026). */
+@font-face { font-family: 'Orbitron'; font-weight: 400 900; src: url(../../../assets/fonts/orbitron-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 600; src: url(../../../assets/fonts/rajdhani-600-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 700; src: url(../../../assets/fonts/rajdhani-700-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 400; src: url(../../../assets/fonts/barlow-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 500; src: url(../../../assets/fonts/barlow-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 600; src: url(../../../assets/fonts/barlow-600-latin.woff2) format('woff2'); }
+:root {
+  --bg: #16161a; --bg-2: #1d1d22; --surface: #232329; --surface-2: #2c2c34;
+  --accent: #FF5E1A; --accent-2: #1FA2FF; --text: #eef1f5; --muted: #9ba2ae;
+  --line: rgba(255,94,26,.22); --line-soft: rgba(238,241,245,.10);
+  --ui: 'Rajdhani', sans-serif; --body: 'Barlow', system-ui, sans-serif; --disp: 'Orbitron', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+.num { font-variant-numeric: tabular-nums; }
+.lbl { font: 700 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; }
+
+/* Kopfleiste der Seite (wie heute) */
+.nav { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 45px; border-bottom: 1px solid rgba(255,94,26,.18); background: rgba(10,10,12,.9); position: sticky; top: 0; z-index: 9; }
+.nav .grp { display: flex; gap: 12px; font: 700 13px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: rgba(238,241,245,.82); }
+.nav .b { height: 36px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--line-soft); border-radius: 3px; }
+.logo { font: 600 18px var(--disp); letter-spacing: .22em; }
+.logo i { font-style: normal; color: var(--accent); margin-right: 8px; }
+
+/* Werkzeugband: das Foto bleibt, nur schmal */
+.band { position: relative; height: 104px; overflow: hidden; border-bottom: 1px solid var(--line); }
+.band img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; filter: brightness(.45) saturate(.9); }
+.band::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--bg) 0%, rgba(22,22,26,.55) 45%, rgba(22,22,26,.85) 100%); }
+.band__in { position: relative; z-index: 1; max-width: 1280px; height: 100%; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; gap: 28px; }
+.band h1 { font: 900 34px/1 var(--disp); background: linear-gradient(180deg, #ffb08c, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.band h1 small { display: block; font: 700 12px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); -webkit-text-fill-color: var(--muted); margin-bottom: 4px; }
+.tabs { display: flex; gap: 6px; margin-left: 12px; }
+.tab { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border-radius: 6px; font: 700 15px var(--ui); color: var(--muted); border: 1px solid transparent; }
+.tab.on { color: var(--text); border-color: var(--accent); background: rgba(255,94,26,.12); }
+.tab .c { min-width: 22px; height: 20px; border-radius: 10px; background: var(--accent-2); color: #061320; font-size: 12px; display: inline-grid; place-items: center; padding: 0 6px; }
+.sync { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border: 1px solid var(--line-soft); border-radius: 17px; font: 500 13px var(--body); color: var(--muted); background: rgba(0,0,0,.35); }
+.sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+.sync a { color: var(--accent-2); text-decoration: underline; }
+
+/* Drei Spalten */
+.grid { max-width: 1280px; margin: 0 auto; padding: 20px 32px 40px; display: grid; grid-template-columns: 272px minmax(0,1fr) 288px; gap: 18px; align-items: start; }
+.side { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; position: sticky; top: 84px; }
+.side__q { padding: 12px; border-bottom: 1px solid var(--line-soft); display: grid; gap: 8px; }
+.inp { height: 40px; display: flex; align-items: center; padding: 0 12px; background: var(--bg-2); border: 1px solid rgba(255,94,26,.3); border-radius: 6px; color: var(--muted); font: 500 15px var(--body); }
+.inp b { color: var(--text); font-weight: 500; }
+.fil { display: flex; flex-wrap: wrap; gap: 6px; }
+.fil span { height: 28px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid var(--line-soft); border-radius: 4px; font: 600 13px var(--ui); letter-spacing: .04em; color: var(--muted); }
+.fil span.on { border-color: var(--accent); color: var(--text); }
+.cnt { padding: 8px 14px 4px; font: 500 13px var(--body); color: var(--muted); }
+.cnt b { color: var(--accent); font: 700 15px var(--ui); }
+.list { list-style: none; padding: 4px 6px 8px; }
+.list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 8px 10px; border-radius: 4px; border-left: 2px solid transparent; }
+.list li .n { font: 600 14.5px/1.25 var(--body); }
+.list li .m { grid-column: 1; font: 600 12.5px var(--ui); color: var(--muted); letter-spacing: .03em; }
+.list li .m em { font-style: normal; color: var(--accent-2); }
+.list li .p { grid-row: 1 / span 2; grid-column: 2; align-self: center; color: var(--accent-2); font: 700 12px var(--ui); }
+.list li.sel { background: rgba(255,94,26,.12); border-left-color: var(--accent); }
+.list li.sel .n { color: #fff; }
+.list .grp { padding: 10px 10px 4px; border: 0; color: var(--accent); }
+
+/* Mitte: das Rezept */
+.bp { background: var(--surface); border: 1px solid var(--line); border-top: 2px solid var(--accent); border-radius: 4px; padding: 22px 26px 26px; }
+.bp__top { display: grid; grid-template-columns: 1fr 200px; gap: 20px; align-items: start; }
+.bp__cat { color: var(--accent); margin-bottom: 6px; }
+.bp h2 { font: 800 30px/1.1 var(--disp); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font: 600 15px var(--ui); color: var(--muted); letter-spacing: .02em; }
+.meta b { color: var(--text); }
+.xl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.xl a { height: 34px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid var(--accent-2); border-radius: 4px; color: var(--accent-2); font: 700 14px var(--ui); letter-spacing: .03em; }
+.thumb { background: radial-gradient(70% 70% at 50% 60%, rgba(255,94,26,.14), transparent 70%), var(--bg-2); border-radius: 6px; padding: 18px 10px; }
+.thumb img { width: 100%; display: block; }
+.acts { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 20px 0 4px; padding: 14px 0 0; border-top: 1px solid var(--line-soft); }
+.step { display: inline-flex; align-items: center; height: 42px; border: 1px solid var(--line-soft); border-radius: 6px; overflow: hidden; }
+.step span { width: 40px; height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 20px; }
+.step b { min-width: 46px; text-align: center; font: 700 18px var(--ui); }
+.step small { padding: 0 10px 0 12px; color: var(--muted); font: 700 11px var(--ui); letter-spacing: .14em; text-transform: uppercase; border-right: 1px solid var(--line-soft); height: 100%; display: grid; place-items: center; }
+.btn { height: 42px; display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 6px; font: 700 15.5px var(--ui); letter-spacing: .03em; }
+.btn.blue { background: var(--accent-2); color: #04121f; }
+.btn.out { border: 1px solid var(--accent-2); color: var(--accent-2); }
+.btn.own { border: 1px solid var(--line-soft); color: var(--muted); }
+.h { margin: 24px 0 10px; display: flex; align-items: baseline; gap: 10px; color: var(--accent); }
+.h em { font-style: normal; color: var(--muted); letter-spacing: .04em; }
+.ings { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.ing { background: var(--bg-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 12px 14px 14px; }
+.ing .slot { color: var(--accent-2); margin-bottom: 6px; }
+.ing .mat { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ing .mat a { font: 600 17px var(--body); border-bottom: 1px solid var(--line-soft); }
+.ing .mat a::after { content: ' ⛏'; font-size: 12px; color: var(--muted); }
+.ing .q { font: 700 15px var(--ui); color: var(--accent); }
+.ing .mq { font: 600 13px var(--ui); color: var(--muted); }
+.ing .tot { display: block; font: 600 13px var(--ui); color: var(--muted); margin-top: 2px; }
+.qrow { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.qrow .lbl { color: var(--muted); }
+.qrow .box { margin-left: auto; width: 62px; height: 30px; border: 1px solid var(--line-soft); border-radius: 4px; background: var(--bg); display: grid; place-items: center; font: 700 15px var(--ui); color: var(--accent); }
+.slider { position: relative; height: 6px; border-radius: 3px; background: rgba(238,241,245,.18); margin-top: 12px; }
+.slider i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
+.slider b { position: absolute; top: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid var(--surface); transform: translateX(-9px); }
+.ing .eff { margin-top: 10px; font: 600 13px var(--ui); color: var(--muted); }
+.ing .eff b { color: var(--text); }
+.out { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.o { background: var(--bg-2); border: 1px solid var(--line-soft); border-radius: 6px; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.o .k { color: var(--muted); font: 600 14px var(--body); }
+.o .v { font: 700 20px var(--ui); }
+.o .v.up { color: #6fd6a4; }
+.o small { grid-column: 1 / -1; color: var(--muted); font-size: 13px; }
+.mis { list-style: none; border: 1px solid var(--line-soft); border-radius: 6px; overflow: hidden; }
+.mis li { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--line-soft); }
+.mis li:first-child { border-top: 0; }
+.mis li span { font: 500 15px var(--body); }
+.mis li b { font: 700 15px var(--ui); color: var(--accent-2); }
+.mis li em { font-style: normal; color: var(--muted); }
+.rel { display: flex; flex-wrap: wrap; gap: 8px; }
+.rel a { height: 32px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--line-soft); border-radius: 4px; font: 600 14px var(--body); }
+
+/* Rechts: der Planer, immer offen */
+.plan { background: var(--surface); border: 1px solid var(--line); border-top: 2px solid var(--accent-2); border-radius: 4px; padding: 16px; position: sticky; top: 84px; }
+.plan h3 { display: flex; justify-content: space-between; align-items: baseline; color: var(--accent-2); }
+.plan h3 em { font-style: normal; color: var(--muted); }
+.pl { list-style: none; margin: 10px 0 0; }
+.pl li { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; padding: 8px 8px; border-radius: 4px; }
+.pl li.cur { background: rgba(31,162,255,.10); box-shadow: inset 2px 0 0 var(--accent-2); }
+.pl li b { font: 600 14.5px/1.3 var(--body); }
+.pl li span { color: var(--muted); font: 600 13px var(--ui); }
+.pl li i { font-style: normal; grid-row: 1 / span 2; grid-column: 2; align-self: center; font: 700 16px var(--ui); color: var(--text); }
+.sum { margin: 8px 0 0; padding: 10px 8px 0; border-top: 1px solid var(--line-soft); display: flex; justify-content: space-between; font: 700 15px var(--ui); }
+.sum span { color: var(--muted); }
+.shop { margin-top: 16px; }
+.shop h4 { color: var(--accent-2); margin-bottom: 6px; }
+.shop dl { display: grid; grid-template-columns: 1fr auto; }
+.shop dt, .shop dd { padding: 5px 0; border-bottom: 1px solid var(--line-soft); font-size: 14.5px; }
+.shop dd { text-align: right; font: 700 15px var(--ui); }
+.shop dt::after { content: ' ⛏'; font-size: 11px; color: var(--muted); }
+.pbtns { display: flex; gap: 8px; margin-top: 14px; }
+.pbtns a { flex: 1; height: 38px; display: grid; place-items: center; border: 1px solid var(--accent-2); border-radius: 4px; color: var(--accent-2); font: 700 14px var(--ui); }
+.pbtns a.g { border-color: var(--line-soft); color: var(--muted); flex: 0 0 auto; padding: 0 12px; }
+
+.back { display: none; }
+.bar-m { display: none; }
+
+/* Mittlere Breiten: Liste und Rezept nebeneinander, der Planer rueckt unter
+   beide, statt das Rezept zwischen zwei festen Spalten zu zerquetschen. */
+@media (max-width: 1180px) and (min-width: 761px) {
+  .grid { grid-template-columns: 240px minmax(0,1fr); padding: 16px 20px 32px; }
+  .plan { grid-column: 1 / -1; }
+  .bp__top { grid-template-columns: 1fr 160px; }
+}
+@media (max-width: 960px) and (min-width: 761px) {
+  .ings, .out { grid-template-columns: 1fr; }
+  .bp__top { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .nav { height: 56px; padding: 0 14px; } .nav .grp .b:not(:first-child) { display: none; } .logo { font-size: 14px; letter-spacing: .16em; }
+  .band { height: auto; }
+  .band__in { padding: 12px 14px; flex-wrap: wrap; gap: 10px; }
+  .band h1 { font-size: 22px; } .band h1 small { display: none; }
+  .tabs { margin: 0; width: 100%; } .tab { flex: 1; justify-content: center; height: 38px; padding: 0 8px; font-size: 14px; }
+  .sync { display: none; }
+  .grid { grid-template-columns: 1fr; padding: 10px 10px 110px; gap: 12px; }
+  .side, .plan { display: none; }
+  .back { display: inline-flex; align-items: center; gap: 6px; font: 700 14px var(--ui); color: var(--accent-2); letter-spacing: .03em; margin: 2px 4px 0; }
+  .bp { padding: 16px 14px 18px; }
+  .bp__top { grid-template-columns: 1fr; gap: 12px; }
+  .thumb { order: -1; padding: 10px 30px; }
+  .bp h2 { font-size: 23px; }
+  .acts { display: none; }
+  .ings, .out { grid-template-columns: 1fr; }
+  .mis li { grid-template-columns: 1fr auto; } .mis li em { display: none; }
+  .bar-m { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; gap: 10px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: rgba(22,22,26,.96); border-top: 1px solid var(--line); backdrop-filter: blur(8px); }
+  .bar-m .step { height: 46px; } .bar-m .step small { display: none; }
+  .bar-m .btn { flex: 1; justify-content: center; height: 46px; }
+}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="grp"><span class="b">Login</span><span class="b">DE / EN</span></div>
+  <div class="logo"><i>⬡</i>VERSE·BASE</div>
+  <div class="grp"><span class="b">⌕ Suche</span><span class="b">☰ Menü</span></div>
+</header>
+
+<section class="band">
+  <img src="../../../assets/t-craft-1.jpg" alt="">
+  <div class="band__in">
+    <h1><small>Blueprint-Datenbank</small>Crafting</h1>
+    <nav class="tabs">
+      <a class="tab on">Rezepte</a>
+      <a class="tab">Planer <span class="c">3</span></a>
+      <a class="tab">Zerlegen</a>
+    </nav>
+    <span class="sync"><i></i>Nur auf diesem Gerät · <a>Anmelden</a></span>
+  </div>
+</section>
+
+<main class="grid">
+  <aside class="side" aria-label="Rezepte">
+    <div class="side__q">
+      <div class="inp"><b>repeater</b></div>
+      <div class="fil"><span class="on">Waffen ▾</span><span>Material ▾</span><span>Mit Mission</span><span>Besitze ich</span></div>
+    </div>
+    <p class="cnt"><b>17</b> von 1.608 Rezepten</p>
+    <ul class="list">
+      <li class="grp lbl">Laser · Repeater</li>
+      <li><span class="n">Attrition-3 Repeater</span><span class="m">28m · 1 Mission</span></li>
+      <li><span class="n">Attrition-4 Repeater</span><span class="m">49m · <em>3 Missionen</em></span></li>
+      <li><span class="n">CF-117 Bulldog Repeater</span><span class="m">9m · <em>3 Missionen</em></span></li>
+      <li><span class="n">CF-227 Badger Repeater</span><span class="m">16m · <em>3 Missionen</em></span><span class="p">×1</span></li>
+      <li><span class="n">CF-337 Panther „Hazard-Zone“</span><span class="m">28m · <em>10 Missionen</em></span></li>
+      <li class="sel"><span class="n">CF-337 Panther Repeater</span><span class="m">28m · <em>3 Missionen</em></span><span class="p">×2</span></li>
+      <li><span class="n">CF-447 Rhino Repeater</span><span class="m">49m · <em>3 Missionen</em></span></li>
+      <li><span class="n">CF-557 Galdereen Repeater</span><span class="m">1h 26m · <em>3 Missionen</em></span></li>
+      <li><span class="n">CF-667 Mammoth Repeater</span><span class="m">2h 31m · <em>3 Missionen</em></span></li>
+      <li><span class="n">GVSR Repeater</span><span class="m">16m · keine Mission</span></li>
+      <li><span class="n">Reign-3 Repeater</span><span class="m">28m · keine Mission</span></li>
+    </ul>
+  </aside>
+
+  <section>
+    <a class="back">← Alle Rezepte</a>
+    <article class="bp">
+      <div class="bp__top">
+        <div>
+          <p class="bp__cat lbl">Vehiclegear / Weapons / Laser / Repeater</p>
+          <h2>CF-337 Panther Repeater</h2>
+          <p class="meta"><span>⏱ Craft-Zeit <b>28m</b></span><span>◆ Tier <b>1</b></span><span>3 Zutaten · <b>24,62 SCU</b></span></p>
+          <div class="xl"><a>Item-Datenblatt: Preise &amp; Werte →</a><a>Zerlegen →</a></div>
+        </div>
+        <div class="thumb"><img src="img/cf-337-panther-repeater.webp" alt=""></div>
+      </div>
+
+      <div class="acts">
+        <span class="step"><small>Menge</small><span>−</span><b>2</b><span>+</span></span>
+        <a class="btn blue">✓ Im Planer</a>
+        <a class="btn own">☆ Bauplan besitze ich</a>
+      </div>
+
+      <h3 class="h lbl">Zutaten <em>für 2 Stück</em></h3>
+      <div class="ings">
+        <div class="ing">
+          <p class="slot lbl">Reinforced Frame</p>
+          <p class="mat"><a>Agricium</a><span class="q num">2,32 SCU</span><span class="mq">min. Q 1</span></p>
+          <span class="tot">1,16 SCU je Stück</span>
+          <div class="qrow"><span class="lbl">Qualität</span><span class="box num">700</span></div>
+          <div class="slider"><i style="width:70%"></i><b style="left:70%"></b></div>
+          <p class="eff">Integrität <b>× 1,04</b></p>
+        </div>
+        <div class="ing">
+          <p class="slot lbl">Emitter</p>
+          <p class="mat"><a>Hadanite</a><span class="q num">46 SCU</span><span class="mq">min. Q 1</span></p>
+          <span class="tot">23 SCU je Stück</span>
+          <div class="qrow"><span class="lbl">Qualität</span><span class="box num">500</span></div>
+          <div class="slider"><i style="width:50%"></i><b style="left:50%"></b></div>
+          <p class="eff">Aufprallkraft <b>× 1,00</b></p>
+        </div>
+        <div class="ing">
+          <p class="slot lbl">Thermal Sink</p>
+          <p class="mat"><a>Pressurized Ice</a><span class="q num">0,92 SCU</span><span class="mq">min. Q 1</span></p>
+          <span class="tot">0,46 SCU je Stück</span>
+          <div class="qrow"><span class="lbl">Qualität</span><span class="box num">500</span></div>
+          <div class="slider"><i style="width:50%"></i><b style="left:50%"></b></div>
+          <p class="eff">Aufprallkraft <b>× 1,00</b></p>
+        </div>
+      </div>
+
+      <h3 class="h lbl">Ergebnis bei dieser Qualität</h3>
+      <div class="out">
+        <div class="o"><span class="k">Integrität</span><span class="v up num">× 1,04</span><small>Agricium Q 700 · Spanne × 0,90 bis × 1,10</small></div>
+        <div class="o"><span class="k">Aufprallkraft</span><span class="v num">× 1,00</span><small>Emitter und Thermal Sink je Q 500 · Spanne × 0,90 bis × 1,10</small></div>
+      </div>
+
+      <h3 class="h lbl">Bauplan bekommen <em>3 Missionen</em></h3>
+      <ul class="mis">
+        <li><span>Foxwell Defend Entities And Escort Nyx Hard</span><b>100 %</b><em>Datenblatt →</em></li>
+        <li><span>Foxwell Defend Entities And Escort Nyx Very Hard</span><b>100 %</b><em>Datenblatt →</em></li>
+        <li><span>Foxwell Defend Entities And Escort Nyx Super</span><b>100 %</b><em>Datenblatt →</em></li>
+      </ul>
+
+      <h3 class="h lbl">Gleiche Baureihe</h3>
+      <div class="rel"><a>CF-117 Bulldog</a><a>CF-227 Badger</a><a>CF-447 Rhino</a><a>CF-557 Galdereen</a><a>CF-667 Mammoth</a></div>
+    </article>
+  </section>
+
+  <aside class="plan" aria-label="Planer">
+    <h3 class="lbl">Planer <em>3 Rezepte</em></h3>
+    <ul class="pl">
+      <li class="cur"><b>CF-337 Panther Repeater</b><span>56m</span><i>×2</i></li>
+      <li><b>CF-227 Badger Repeater</b><span>16m</span><i>×1</i></li>
+      <li><b>Lawson Mining Laser</b><span>4m</span><i>×1</i></li>
+    </ul>
+    <p class="sum"><span>Craft-Zeit gesamt</span>1h 16m</p>
+    <div class="shop">
+      <h4 class="lbl">Einkaufsliste</h4>
+      <dl class="num">
+        <dt>Hadanite</dt><dd>59 SCU</dd>
+        <dt>Sadaryx</dt><dd>4 SCU</dd>
+        <dt>Agricium</dt><dd>2,96 SCU</dd>
+        <dt>Pressurized Ice</dt><dd>1,18 SCU</dd>
+        <dt>Iron</dt><dd>0,2 SCU</dd>
+        <dt>Copper</dt><dd>0,06 SCU</dd>
+      </dl>
+    </div>
+    <div class="pbtns"><a>Liste kopieren</a><a class="g">Leeren</a></div>
+  </aside>
+</main>
+
+<div class="bar-m">
+  <span class="step"><span>−</span><b>2</b><span>+</span></span>
+  <a class="btn blue">✓ Im Planer · 3</a>
+</div>
+</body>
+</html>

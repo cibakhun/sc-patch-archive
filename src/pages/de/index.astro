@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
+import HomeSearch from '../../components/HomeSearch.astro';
 import DiscordCard from '../../components/DiscordCard.astro';
 import { getCollection } from 'astro:content';
 import { avifDa, avifSet } from '../../../scripts/lib/avif.mjs';
@@ -66,7 +67,11 @@ const tools = [
      Achse und das Motiv bleibt darunter frei.
      flex-start statt center, weil die Hoehe unten ueber die Innenkante
      gerechnet wird — siehe .hero__inner. */
-  .hero{position:relative;min-height:94svh;display:flex;align-items:flex-start;overflow:hidden;isolation:isolate}
+  .hero{position:relative;min-height:94svh;display:flex;align-items:flex-start;isolation:isolate}
+  /* Das Bild schneidet sich selbst zu, nicht der Hero (09.11.2026): die
+     Treffer des Suchfelds klappen unter dem Feld auf und duerfen ueber den
+     unteren Rand des Hero hinaus reichen (src/components/HomeSearch.astro). */
+  .hero__media{position:absolute;inset:0;z-index:-1;overflow:hidden}
   .hero__img{position:absolute;inset:0;z-index:-2;background:var(--media-void);
     transform:scale(1.06);animation:kenburns 34s ease-in-out infinite alternate}
   .hero__img img{display:block;width:100%;height:100%;object-fit:cover;object-position:center right}
@@ -349,17 +354,15 @@ const tools = [
       und Anzeige entscheiden so nach derselben Frage, ob der Browser AVIF kann.
       Mit image-set() luden Browser mit AVIF, aber ohne type() (Safari 16,
       Chrome vor 113), das vorgeladene AVIF UND danach das JPG. */}
-  <picture class="hero__img" aria-hidden="true">
-    {HERO_AVIF && <source srcset={HERO_AVIF} type="image/avif" />}
-    <img src={HERO_IMG} alt="" fetchpriority="high" />
-  </picture>
-  <div class="hero__scrim" aria-hidden="true"></div>
+  <div class="hero__media" aria-hidden="true">
+    <picture class="hero__img" aria-hidden="true">
+      {HERO_AVIF && <source srcset={HERO_AVIF} type="image/avif" />}
+      <img src={HERO_IMG} alt="" fetchpriority="high" />
+    </picture>
+    <div class="hero__scrim" aria-hidden="true"></div>
+  </div>
   <div class="hero__inner">
-    <button class="hero__search" type="button" data-scs-open aria-label="Suche öffnen">
-      <span class="p" aria-hidden="true">&gt;_</span>
-      <span class="h">Items, Schiffe, Patches durchsuchen…</span>
-      <span class="k" aria-hidden="true"><kbd>Strg</kbd><kbd>K</kbd></span>
-    </button>
+    <HomeSearch lang="de" />
   </div>
   <a class="hero__cue" href="#tools" aria-label="Zu den Werkzeugen">
     {[0, 1, 2, 3, 4].map(() => (

@@ -27,8 +27,8 @@
         eine ihrer eigenen, ebenfalls ausgenommenen .css-Dateien — die
         vier .woff2-Anker kommen aus assets/fonts.css, nicht direkt aus
         gate.html, ein echter Browser laedt sie trotzdem) noch zu den
-        vier festen Eintraegen gehoert (/gate.html, /_gate/,
-        /build.json, /robots.txt), hat ihren Anlass verloren. Der Test
+        fuenf festen Eintraegen gehoert (/gate.html, /_gate/,
+        /build.json, /build.txt, /robots.txt), hat ihren Anlass verloren. Der Test
         der Enge: ein erfundener Eintrag muss hier reissen.
      4  Die Torseite bleibt eigenstaendig: kein /_astro/-Buendel (D-11
         — ein content-gehashter Name waere in der Liste nicht
@@ -213,7 +213,7 @@ for (const r of ressourcen) {
   transitiv.push(...extractCssUrls(css).map(normalizePfad).filter(Boolean));
 }
 const erlaubtBasis = new Set([...ressourcen, ...transitiv]);
-const FESTE_EXAKT = new Set(['/gate.html', '/build.json', '/robots.txt']);
+const FESTE_EXAKT = new Set(['/gate.html', '/build.json', '/build.txt', '/robots.txt']);
 const FESTE_PRAEFIXE = ['/_gate/'];
 
 function hatDeckung(a) {
@@ -224,11 +224,11 @@ function hatDeckung(a) {
 }
 const zombies = ausnahmen.filter((a) => !hatDeckung(a));
 console.log(
-  `    Ausnahmen geprueft: ${ausnahmen.length}   ohne Deckung (weder Torseite noch einer der vier festen Eintraege) — Soll: 0   Ist: ${zombies.length}`
+  `    Ausnahmen geprueft: ${ausnahmen.length}   ohne Deckung (weder Torseite noch einer der fuenf festen Eintraege) — Soll: 0   Ist: ${zombies.length}`
 );
 for (const z of zombies)
   fail(
-    `GATE-AUSNAHME "${z.pfad}": weder von der Torseite (direkt oder ueber eine ihrer .css-Dateien) angefordert noch einer der vier festen Eintraege (/gate.html, /_gate/, /build.json, /robots.txt) — Anlass verloren, Eintrag entfernen`
+    `GATE-AUSNAHME "${z.pfad}": weder von der Torseite (direkt oder ueber eine ihrer .css-Dateien) angefordert noch einer der fuenf festen Eintraege (/gate.html, /_gate/, /build.json, /build.txt, /robots.txt) — Anlass verloren, Eintrag entfernen`
   );
 
 /* ---- [4] Die Torseite bleibt eigenstaendig ---- */
