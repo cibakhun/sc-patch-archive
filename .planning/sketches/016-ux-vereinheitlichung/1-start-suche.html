@@ -101,7 +101,7 @@ body.dialog { background: #0d0c14 url(img/hinter-datenblatt.png) top center / 12
 body.dialog::before { content: ''; position: fixed; inset: 0; background: rgba(2,3,8,.78); backdrop-filter: blur(2px); }
 body.dialog .search { top: 88px; width: min(660px, calc(100% - 40px)); }
 body.dialog .field { height: 60px; font-size: 18px; border-color: var(--accent); background: var(--panel); border-radius: 4px 4px 0 0; }
-body.dialog .res { border-radius: 0 0 4px 4px; max-height: 600px; }
+body.dialog .res { border-radius: 0 0 4px 4px; max-height: min(600px, calc(100vh - 88px - 60px - 24px)); }
 body.dialog .field .p { font-size: 15px; }
 
 /* ---- Handy ---- */
