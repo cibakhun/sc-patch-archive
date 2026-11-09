@@ -52,8 +52,11 @@ export const WERKBANK_CSS = `
      kommen von offcanvas.js (data-offcanvas-immer am Panel). */
   .cdb--wb .cdb-layout{grid-template-columns:1fr}
   .cdb--wb .cdb-filter-toggle{display:inline-block}
-  .cdb--wb .cdb-sidebar{position:fixed;top:0;left:0;z-index:9250;width:min(340px,88%);height:100%;max-height:none;border-radius:0;transform:translateX(-100%)}
+  .cdb--wb .cdb-sidebar{position:fixed;top:0;left:0;z-index:9650;width:min(340px,88%);height:100%;max-height:none;border-radius:0;transform:translateX(-100%)}
   .cdb--wb .cdb-sidebar.is-open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.6)}
+  /* Kopf mit ✕ wie am Telefon: ohne ihn hatte die Schublade am Schreibtisch
+     keinen sichtbaren Weg zu (nur Esc und Klick daneben). */
+  .cdb--wb .cdb-side-hd{display:flex}
   html.cdb-ready .cdb--wb .cdb-sidebar{transition:transform var(--dur-slow) var(--ease-ui)}
   /* Mitte: das Rezept steht im Fluss und klebt unter der Kopfleiste.
      inset VOR top: die Kurzform setzt top sonst wieder auf auto. */

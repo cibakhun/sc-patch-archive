@@ -592,7 +592,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
     .cdb-bar{position:static}
     .cdb-layout{grid-template-columns:1fr}
     .cdb-filter-toggle{display:inline-block}
-    .cdb-sidebar{position:fixed;top:0;left:0;z-index:9250;width:min(320px,88%);height:100%;max-height:none;border-radius:0;transform:translateX(-100%)}
+    /* z 9650 wie die anderen App-Ebenen (Rezept 9650, Planer 9660): ueber der
+       Site-Nav (9600). Mit 9250 lag die Leiste ueber dem Kopf der Schublade,
+       ihr ✕ war nicht antippbar (gemessen 09.11.2026, 390 px). */
+    .cdb-sidebar{position:fixed;top:0;left:0;z-index:9650;width:min(320px,88%);height:100%;max-height:none;border-radius:0;transform:translateX(-100%)}
     .cdb-sidebar.is-open{transform:translateX(0)}
     html.cdb-ready .cdb-sidebar{transition:transform var(--dur-slow) var(--ease-ui)}
     .cdb-side-hd{display:flex}

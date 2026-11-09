@@ -880,6 +880,22 @@ async function probeCraftingSync(page) {
   return `Crafting-Planer, ${probleme.length} Abweichung(en): ${probleme.join(' | ')}`;
 }
 
+/* Liegt etwas ueber dem ✕ der offenen Filter-Schublade? Gibt null zurueck,
+   wenn das ✕ an seiner Mitte das oberste Element ist, sonst den Verdecker
+   (Anlass 09.11.2026: die Site-Nav, z 9600, lag ueber der Schublade, 9250). */
+async function kreuzVerdeckt(page) {
+  return page.evaluate(() => {
+    const x = document.querySelector('#cdb-filter-close');
+    if (!x) return 'nichts (✕ fehlt)';
+    const r = x.getBoundingClientRect();
+    if (!r.width || !r.height) return 'nichts (✕ unsichtbar)';
+    const oben = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    if (!oben || x.contains(oben)) return null;
+    const nav = oben.closest('#topbar');
+    return nav ? 'der Site-Nav' : `${oben.tagName}${oben.id ? '#' + oben.id : ''}${oben.className && typeof oben.className === 'string' ? '.' + oben.className.split(' ')[0] : ''}`;
+  });
+}
+
 /* Die Crafting-Werkbank (Prototyp, Skizze 016-3, nur im Vorschau-Bau):
    dasselbe Werkzeug wie der Planer, anders gestellt. Am Schreibtisch steht
    das Rezept als feste Mitte neben der Liste und der Planer als Spalte
@@ -912,6 +928,15 @@ async function probeWerkbank(page) {
   await page.waitForTimeout(400);
   const fk = await kasten(page, '#cdb-sidebar');
   if ((await inert()) || !fk || fk.x < -1) return `Werkbank 1280 px: die Filter-Schublade oeffnet nicht (x=${fk ? Math.round(fk.x) : '?'}, inert ${await inert()})`;
+  // Der Fokus geht mit hinein (offcanvas.js setup); blieb er auf dem Knopf
+  // hinter dem Verdunkler, lief inert noch, als fokussiert wurde.
+  const fokus = await page.evaluate(() => {
+    const a = document.activeElement;
+    return { drin: !!document.querySelector('#cdb-sidebar')?.contains(a), wo: a ? a.tagName + (a.id ? '#' + a.id : '') : '-' };
+  });
+  if (!fokus.drin) return `Werkbank 1280 px: beim Oeffnen der Filter bleibt der Fokus draussen (${fokus.wo})`;
+  const deckt = await kreuzVerdeckt(page);
+  if (deckt) return `Werkbank 1280 px: das ✕ der Filter-Schublade liegt unter ${deckt}`;
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   if (!(await inert())) return 'Werkbank 1280 px: Esc schliesst die Filter-Schublade nicht';
@@ -1032,6 +1057,16 @@ async function probeWerkbank(page) {
     await p.waitForTimeout(300);
     if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: „← Liste“ fuehrt nicht zur Liste zurueck';
     if (bpi(p) !== null) return 'Werkbank 390 px: nach „← Liste“ traegt die Adresse noch bpi';
+    // Filter-Schublade: das ✕ oben muss antippbar sein (nicht unter der
+    // Site-Nav) und schliesst. Gilt fuer die klassische Seite genauso, die
+    // Werkbank erbt die Telefon-Regel von CraftingApp.
+    await p.locator('#cdb-filter-toggle').tap();
+    await p.waitForTimeout(400);
+    const deckt = await kreuzVerdeckt(p);
+    if (deckt) return `Werkbank 390 px: das ✕ der Filter-Schublade liegt unter ${deckt}`;
+    await p.locator('#cdb-filter-close').tap();
+    await p.waitForTimeout(400);
+    if (!(await p.$eval('#cdb-sidebar', (el) => el.inert === true))) return 'Werkbank 390 px: ✕ schliesst die Filter-Schublade nicht';
     const breit = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     if (breit > 1) return `Werkbank 390 px: die Seite laeuft ${breit} px seitlich ueber`;
     const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []))].filter((v) => !ZAEHLER_HOST.test(v));
