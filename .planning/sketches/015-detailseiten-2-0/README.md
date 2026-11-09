@@ -16,7 +16,8 @@ umfangreiche Implementierung ohne visuelle Freigabe.
 Konzept (Claude Doc): https://claude.ai/artifact/P5oGDrQ4v7sSLwR6VY3fWt
 
 **Rahmen seit 09.11.2026:** 2.0 baut auf Skizze 016 „Bedienung
-vereinheitlichen“ auf. Bauplan-Seiten werden zum Crafting-Werkzeug, 2.0
+vereinheitlichen“ auf (auf staging unter `.planning/sketches/016-ux-vereinheitlichung/`,
+Konzept: https://claude.ai/artifact/AZJ5P7oGg3Xw8ygFZnbQ46). Bauplan-Seiten werden zum Crafting-Werkzeug, 2.0
 entwirft keine eigene Bauplan-Seite; das Item-Datenblatt führt unter dem Kopf
 die drei Wege Kaufen, Herstellen, Ab Werk. Die Herstellkette in Entwurf C ist
 damit Sache des Werkzeugs, nicht der Itemseite.
