@@ -15,7 +15,8 @@ import {
 } from '../lib/items';
 import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
-import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
+import { blueprintPath, craftEntryPath, craftTime, recipeForItem, resourceNames } from '../lib/crafting';
+import { shipIdForVehicleItem } from '../lib/vehicleItems';
 import { patchLinkFromKennung } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
 import { stockShips, inFracturingCalc, wikeloTrades } from '../lib/itemLinks';
@@ -58,7 +59,12 @@ const standQ = (o: { kind: string; src?: string }) =>
   o.src === 'schnappschuss' ? 'shop-schnappschuss'
   : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items' : o.kind === 'loot' ? 'fundorte' : undefined;
 const schwankend = rows.some((o) => o.kind !== 'exclusive');
-const bp = blueprintForItem(item);
+// Rezept dieses Items: zuerst ueber die guid des Rezepts, dann ueber den
+// Namen (recipeForItem, src/lib/crafting.ts) — dasselbe Rezept, auf das
+// „Herstellen“ in der Suche zeigt.
+const bp = recipeForItem(item);
+// Fahrzeug-Item -> Schiffsdatenblatt (Skizze 016, 09.11.2026).
+const shipId = await shipIdForVehicleItem(item);
 const related = relatedItems(item, 12);
 const set = item.game?.setId ? armorSetById.get(item.game.setId) ?? null : null;
 const setSlots = set ? setItemsBySlot(set.id) : [];
@@ -112,6 +118,14 @@ const crumbs = [
   <h1 slot="hero">{name}</h1>
   {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}
   <p class="dp-lead" slot="hero">{seo.lead}</p>
+  {/* Direkte Wege (Skizze 016, 09.11.2026): vom Item ins Crafting-Werkzeug
+      mit diesem Rezept, und vom Fahrzeug-Item auf sein Schiffsdatenblatt. */}
+  {(bp || shipId) && (
+    <div class="dp-cta" slot="hero">
+      {bp && <a class="dp-btn" href={href(craftEntryPath(bp), lang)} data-weg="herstellen">{t('headCraft')} →</a>}
+      {shipId && <a class="dp-btn" href={href(`/schiffe/${shipId}.html`, lang)} data-weg="schiff">{t('headShip')} →</a>}
+    </div>
+  )}
 
   <ul class="dp-keys" slot="hero">
     {lo != null && (

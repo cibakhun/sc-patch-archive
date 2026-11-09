@@ -282,15 +282,67 @@ async function probeSchiffe(page) {
    prueft tests/e2e/suche-status.test.js. */
 async function probeSuche(page) {
   const WORT = 'Panther';
+  // Sichtbare Zeilen einer Trefferliste als Text: so vergleicht der
+  // Rauchtest Startseiten-Feld und Dialog (ein Suchkern, Skizze 016).
+  const zeilenText = (p, liste) =>
+    p.$$eval(`${liste} > li[role="option"]`, (ls) => ls.map((l) => `${l.className.replace(/\s*\bsel\b/, '')} | ${l.innerText.replace(/\s+/g, ' ').trim()}`));
   const pruefen = async (p, touch) => {
     const wo = touch ? 'Telefon' : 'Desktop';
-    await (touch ? p.tap('.hero__search') : p.click('.hero__search'));
+    // 1. Das grosse Feld der Startseite sucht selbst — kein zweites Fenster.
+    await (touch ? p.tap('#hs-in') : p.click('#hs-in'));
+    if (!(await p.locator('#hs.is-open').count())) return `${wo}: das Startseiten-Feld klappt beim Antippen keine Treffer auf`;
+    if (!(await p.locator('#scs').isHidden())) return `${wo}: das Startseiten-Feld oeffnete den Dialog statt selbst zu suchen`;
+    await p.locator('#hs-in').fill(WORT);
+    const feldItem = p.locator('#hs-list .scs__hit--item');
+    await feldItem.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+    if (!(await feldItem.count())) {
+      const liste = ((await p.locator('#hs-list').innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+      return `${wo}: Startseiten-Feld, "${WORT}" zeigte keinen Item-Treffer (Liste: "${liste.slice(0, 120) || 'leer'}")`;
+    }
+    // Liegt die Liste im Bild? (Der Hero schneidet sein Bild zu, nicht die
+    // Treffer; ein abgeschnittenes Panel saehe aus wie "nur eine Zeile".)
+    const panel = await p.locator('.hs__panel').boundingBox();
+    if (!panel || panel.height < 120) return `${wo}: die Trefferliste unter dem Feld ist nur ${panel ? Math.round(panel.height) : 0} px hoch`;
+    const tasten = await p.locator('#hs-list .scs__keys').isVisible().catch(() => false);
+    if (touch && tasten) return `${wo}: Tastenhinweise im Startseiten-Feld stehen auf einem Touch-Geraet`;
+    if (!touch && !tasten) return `${wo}: Tastenhinweise im Startseiten-Feld fehlen`;
+    if (touch) {
+      // Auf dem Telefon steht das Feld oben, die Kopfleiste ist weg.
+      await p.waitForTimeout(700);
+      const feld = await p.locator('#hs-field').boundingBox();
+      if (!feld || feld.y > 40) return `${wo}: das Feld rueckt beim Suchen nicht nach oben (y=${feld ? Math.round(feld.y) : '?'})`;
+      const leiste = await p.locator('#topbar').boundingBox();
+      if (leiste && leiste.y + leiste.height > 4) return `${wo}: die Kopfleiste liegt beim Suchen ueber dem Feld`;
+    }
+    const feldZeilen = await zeilenText(p, '#hs-list');
+    const hx = p.locator('.hs__x');
+    const hk = await hx.boundingBox();
+    if (!hk) return `${wo}: Schliessen-Knopf des Startseiten-Felds nicht sichtbar`;
+    const haufschrift = ((await hx.innerText().catch(() => '')) || '').trim();
+    if (touch) {
+      if (!haufschrift || /\besc\b/i.test(haufschrift)) return `${wo}: Schliessen im Startseiten-Feld zeigt "${haufschrift}" statt eines Worts`;
+      if (hk.width < 44 || hk.height < 44) return `${wo}: Schliessen im Startseiten-Feld nur ${Math.round(hk.width)}x${Math.round(hk.height)} px (Ziel 44x44)`;
+    } else if (!/^esc$/i.test(haufschrift)) return `${wo}: Schliessen im Startseiten-Feld zeigt "${haufschrift}" statt "Esc"`;
+    await (touch ? hx.tap() : hx.click());
+    if (await p.locator('#hs.is-open').count()) return `${wo}: das Startseiten-Feld schliesst nicht ueber den Knopf`;
+
+    // 2. Weiter unten auf der Seite oeffnet der Knopf der Kopfleiste den
+    //    Dialog — mit DERSELBEN Liste fuer dasselbe Wort.
+    await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await p.waitForTimeout(400);
+    await (touch ? p.tap('.snav__search') : p.click('.snav__search'));
+    if (await p.locator('#scs').isHidden()) return `${wo}: der Suchknopf der Kopfleiste oeffnet unten auf der Startseite keinen Dialog`;
     await p.locator('#scs-in').fill(WORT);
     const item = p.locator('#scs-list .scs__hit--item');
     await item.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
     if (!(await item.count())) {
       const liste = ((await p.locator('#scs-list').innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
       return `${wo}: Suche "${WORT}" zeigte keinen Item-Treffer (Liste: "${liste.slice(0, 120) || 'leer'}")`;
+    }
+    const dialogZeilen = await zeilenText(p, '#scs-list');
+    if (JSON.stringify(dialogZeilen) !== JSON.stringify(feldZeilen)) {
+      const i = dialogZeilen.findIndex((z, n) => z !== feldZeilen[n]);
+      return `${wo}: Dialog und Startseiten-Feld zeigen fuer "${WORT}" verschiedene Listen (Zeile ${i + 1}: Feld "${feldZeilen[i] ?? '—'}", Dialog "${dialogZeilen[i] ?? '—'}")`;
     }
     const fuss = await p.locator('.scs__foot').isVisible();
     if (touch && fuss) return `${wo}: Tastenhinweise (↑↓ ↵ Esc) stehen auf einem Touch-Geraet`;

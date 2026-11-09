@@ -278,11 +278,11 @@ export const BASELINE = [
   },
   {
     id: 'sucheItems',
-    wert: 10738,
+    wert: 10400,
     regel: 'min',
     toleranzProzent: 3,
     anlass:
-      'Messlauf 06.11.2026: der zweite Suchindex-Teil (/search-index-more.json, /de/…) fuehrt je Sprache 5.369 Items mit Datenblatt, dieselbe Liste, aus der die Item-Seiten entstehen; gezaehlt die schwaechere Sprache doppelt (2 x 5.369). Faellt der Teil weg oder schrumpft er in einer Sprache, findet die Suche dort still keine Items mehr. Toleranz 3 %: der Katalog waechst und schrumpft mit dem Patch. Getrennt von den Blueprints seit Review #303.',
+      'Messlauf 06.11.2026: der zweite Suchindex-Teil (/search-index-more.json, /de/…) fuehrt je Sprache 5.369 Items mit Datenblatt, dieselbe Liste, aus der die Item-Seiten entstehen; gezaehlt die schwaechere Sprache doppelt (2 x 5.369). Faellt der Teil weg oder schrumpft er in einer Sprache, findet die Suche dort still keine Items mehr. Toleranz 3 %: der Katalog waechst und schrumpft mit dem Patch. Getrennt von den Blueprints seit Review #303. Gesenkt 09.11.2026 auf 2 x 5.200 (Skizze 016, freigegeben): die 169 Fahrzeug-Items, deren Name genau ein Schiff trifft, stehen nicht mehr zusaetzlich im Register — der Schiffstreffer im ersten Teil fuehrt aufs Datenblatt mit Kaufpreisen (src/lib/searchIndex.ts, src/lib/vehicleItems.ts).',
   },
   {
     id: 'sucheBlueprints',
@@ -290,7 +290,7 @@ export const BASELINE = [
     regel: 'min',
     toleranzProzent: 3,
     anlass:
-      'Messlauf 06.11.2026: 1.608 Blueprints je Sprache im zweiten Suchindex-Teil, dieselbe Liste wie die Blueprint-Seiten; die schwaechere Sprache doppelt (2 x 1.608). Eigene Klinke, damit der Verlust aller Blueprints nicht in der Summe mit den Items untergeht (Review #303). Toleranz 3 % wie die Seitenzahlen.',
+      'Messlauf 06.11.2026: 1.608 Blueprints je Sprache im zweiten Suchindex-Teil, dieselbe Liste wie die Blueprint-Seiten; die schwaechere Sprache doppelt (2 x 1.608). Eigene Klinke, damit der Verlust aller Blueprints nicht in der Summe mit den Items untergeht (Review #303). Toleranz 3 % wie die Seitenzahlen. Seit 09.11.2026 (Skizze 016) gezaehlt als VERSCHIEDENE Rezepte, zu denen die Suche fuehrt (Feld c, "Herstellen"): 1.561 stehen als Item mit Rezept im Register, 47 ohne Item-Datenblatt oder als zweites Rezept eines Items weiter als Blueprint-Treffer — zusammen wieder alle 1.608.',
   },
   {
     id: 'sucheWerkzeuge',

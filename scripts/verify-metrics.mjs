@@ -95,6 +95,24 @@ function zaehleIndex(dateien, filter = () => true) {
 // null, wenn eine Seite fehlt (kaputter Ableser, keine Schrumpfung).
 const beideSprachen = (en, de) => (en == null || de == null ? null : 2 * Math.min(en, de));
 const art = (k) => (e) => e && e.k === k;
+
+// Verschiedene Rezepte, zu denen die Suche fuehrt: jeder Eintrag mit c
+// ("Herstellen", Skizze 016) — Items mit Rezept und die Blueprints, die
+// keinem Item mit Datenblatt zugeordnet sind. Gezaehlt wird jedes Ziel
+// einmal (zwei gleichnamige Items koennen auf dasselbe Rezept zeigen).
+// null wie zaehleIndex, wenn die Datei fehlt oder kein Array ist.
+function rezepteImIndex(datei) {
+  const p = join(DIST, datei);
+  if (!existsSync(p)) return null;
+  let j;
+  try {
+    j = JSON.parse(readFileSync(p, 'utf8'));
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(j)) return null;
+  return new Set(j.filter((e) => e && typeof e.c === 'string' && e.c).map((e) => e.c)).size;
+}
 const SUCHKNOPF = /<button[^>]*data-scs-boot/;
 
 /* ---------- Die Ableser. Jeder liefert eine Zahl oder null ---------- */
@@ -196,8 +214,12 @@ const ABLESER = {
   // Sprache ab, reisst die Klinke genauso, als fielen beide (Review #303).
   sucheItems: () =>
     beideSprachen(zaehleIndex(['search-index-more.json'], art('item')), zaehleIndex(['de/search-index-more.json'], art('item'))),
-  sucheBlueprints: () =>
-    beideSprachen(zaehleIndex(['search-index-more.json'], art('bauplan')), zaehleIndex(['de/search-index-more.json'], art('bauplan'))),
+  // Seit 09.11.2026 (Skizze 016) steht ein Rezept, dessen Item ein
+  // Datenblatt hat, nicht mehr als eigener Treffer im Register, sondern als
+  // "Herstellen" am Item. Gezaehlt werden deshalb die verschiedenen Rezepte,
+  // zu denen die Suche fuehrt — faellt die Zusammenfuehrung aus oder verliert
+  // ein Teil seine c-Felder, reisst die Klinke wie vorher.
+  sucheBlueprints: () => beideSprachen(rezepteImIndex('search-index-more.json'), rezepteImIndex('de/search-index-more.json')),
   sucheWerkzeuge: () =>
     beideSprachen(zaehleIndex(['search-index.json'], art('werkzeug')), zaehleIndex(['de/search-index.json'], art('werkzeug'))),
   datenSeitenMitSuche: () =>

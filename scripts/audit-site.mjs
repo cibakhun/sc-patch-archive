@@ -324,7 +324,10 @@ for (const f of htmlFiles) {
 
   // --- interne Links + Anker (ohne Inline-Script-Inhalte) ---
   for (const m of markup.matchAll(/(?:href|src)="([^"]+)"/g)) {
-    let url = m[1];
+    // Wie der Browser: Entitaeten im Attribut zuerst aufloesen. Astro
+    // schreibt "&" als "&#38;"; roh gelesen hielt die Pruefung ab dem "#"
+    // den Rest einer Abfrage fuer einen Anker (?bp=…&bpi=…, 09.11.2026).
+    let url = decodeEntities(m[1]);
     if (/^(https?:|mailto:|tel:|data:|javascript:|#$)/.test(url)) continue;
     if (url.startsWith('#')) {
       if (!idsOf(page).has(url.slice(1))) anchorErrors.push(`${page}: Anker ${url} existiert nicht auf der Seite`);

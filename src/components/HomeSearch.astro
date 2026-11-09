@@ -1,0 +1,194 @@
+---
+// Das grosse Suchfeld der Startseite (Skizze 016, freigegeben 09.11.2026).
+//
+// Ein echtes Eingabefeld statt eines Knopfs, der ein zweites Fenster mit
+// einem zweiten Feld oeffnete. Getippt wird hier, die Treffer klappen direkt
+// darunter in der Seite auf; beim Antippen rueckt das Feld unter die
+// Kopfleiste. Auf dem Telefon weicht die Kopfleiste, solange gesucht wird.
+//
+// Logik: assets/search-overlay.js — derselbe Suchkern wie der Dialog (Strg+K)
+// auf allen anderen Seiten; er findet dieses Markup ueber die ids hs, hs-in,
+// hs-list und hs-field. Zeilen und Gruppen sehen aus wie im Dialog
+// (assets/search-overlay.css), hier steht nur der Rahmen.
+//
+// Ohne Skript bleibt ein Feld, das nichts tut — wie vorher der Knopf.
+import { useTranslations, assertLocale, type Locale } from '../i18n/ui';
+interface Props {
+  lang: Locale;
+}
+const lang = assertLocale(Astro.props.lang, 'HomeSearch');
+const t = useTranslations(lang);
+---
+<div class="hs" id="hs">
+  <div class="hero__search hs__field" id="hs-field">
+    <span class="p" aria-hidden="true">&gt;_</span>
+    <input
+      id="hs-in"
+      class="hs__in"
+      type="search"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls="hs-list"
+      aria-autocomplete="list"
+      aria-label={t('search.term')}
+      placeholder={t('search.hero')}
+      autocomplete="off"
+      spellcheck="false"
+      enterkeyhint="search"
+    />
+    <span class="k" aria-hidden="true"><kbd>{lang === 'de' ? 'Strg' : 'Ctrl'}</kbd><kbd>K</kbd></span>
+    <button class="hs__x" type="button" data-hs-close aria-label={t('search.close')}>
+      <span class="hs__x-key">Esc</span><span class="hs__x-tap">{t('search.dismiss')}</span>
+    </button>
+  </div>
+  <div class="hs__panel">
+    <ul class="scs__list hs__list" id="hs-list" role="listbox" aria-label={t('search.results')}></ul>
+  </div>
+</div>
+
+<style is:global>
+  /* Rahmen des Startseiten-Felds. Die Feldoptik selbst (.hero__search:
+     Schleier, Haarlinie, Schrift) steht im Seiten-Stylesheet der Startseite;
+     hier nur, was das Eingabefeld und die aufgeklappten Treffer brauchen.
+     Doppelte Klasse (.hs .hs__field), weil das Seiten-Stylesheet spaeter
+     kommt und bei gleicher Gewichtung gewaenne. */
+  .hs {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .hs .hs__field {
+    cursor: text;
+  }
+  .hs .hs__field:focus-within {
+    border-color: var(--accent-media);
+    background: var(--scrim-6);
+    box-shadow: var(--shadow-2);
+  }
+  .hs__in {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: 0;
+    padding: 0;
+    color: var(--on-media);
+    caret-color: var(--accent-media);
+    font: inherit;
+    letter-spacing: inherit;
+    text-overflow: ellipsis;
+  }
+  .hs__in::placeholder {
+    color: var(--on-media-dim);
+    opacity: 1;
+  }
+  /* Der Fokus zeigt sich am Feldrahmen (:focus-within oben), nicht als
+     zweites Rechteck um das Eingabefeld darin. */
+  .hs__in:focus-visible {
+    outline: none;
+  }
+  /* Das Loeschkreuz des Browsers bleibt (Feld leeren); das eigene Schliessen
+     steht rechts daneben, nur solange die Treffer offen sind. */
+  .hs__x {
+    display: none;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid var(--on-media-line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: var(--scrim-6);
+    color: var(--on-media);
+    font-family: var(--font-ui);
+    font-size: var(--fs-6);
+    font-weight: 700;
+    letter-spacing: var(--ls-9);
+    cursor: pointer;
+  }
+  .hs__x:hover,
+  .hs__x:focus-visible {
+    border-color: var(--accent-media);
+    outline: none;
+  }
+  .hs__x-tap {
+    display: none;
+  }
+  .hs.is-open .hs__x {
+    display: inline-flex;
+  }
+  .hs.is-open .hero__search .k {
+    display: none;
+  }
+
+  /* Offen: Feld und Treffer sind EIN Kasten — oben das Feld, darunter ohne
+     Fuge die Liste. Kein Schleier ueber der Seite, kein zweites Feld. */
+  .hs.is-open .hs__field {
+    border-color: var(--accent-media);
+    background: var(--bg-2);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: var(--shadow-2);
+  }
+  .hs__panel {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 2;
+    /* Deckend: auf dem Telefon schien sonst die Seite darunter (Ueberschrift,
+       Kacheln) durch die Trefferzeilen. */
+    background: var(--bg-2);
+    border: 1px solid var(--accent-media);
+    border-top: 1px solid var(--line-2, var(--line-soft));
+    border-radius: 0 0 11px 11px;
+    box-shadow: var(--shadow-2);
+    text-align: left;
+  }
+  .hs.is-open .hs__panel {
+    display: block;
+  }
+  .hs .hs__list {
+    max-height: var(--hs-max, 60vh);
+    border-radius: 0 0 11px 11px;
+  }
+  /* Der Hero schneidet sein Bild selbst zu (.hero__media); die Liste darf
+     ueber seinen Rand hinaus in die Seite reichen und liegt dann ueber den
+     Kacheln darunter. */
+  :root.hs-open .hero {
+    z-index: 3;
+  }
+
+  /* Touch: kein Esc, kein Strg+K — das Wort statt der Taste, wie im Dialog. */
+  @media (hover: none) and (pointer: coarse) {
+    .hs__x-key {
+      display: none;
+    }
+    .hs__x-tap {
+      display: inline;
+    }
+    .hs__x {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+
+  /* Telefon: solange gesucht wird, weicht die Kopfleiste, und das Feld steht
+     ganz oben (assets/search-overlay.js, dockTop). So bleibt zwischen Feld
+     und Tastatur Platz fuer die Treffer. */
+  @media (max-width: 760px) {
+    :root.hs-open #topbar {
+      transform: translateY(-110%);
+      transition: transform var(--dur-fast, 150ms) var(--ease-ui, ease);
+    }
+    .hs.is-open .hs__field {
+      border-radius: 10px 10px 0 0;
+    }
+    .hs__panel {
+      border-radius: 0 0 10px 10px;
+    }
+  }
+</style>
