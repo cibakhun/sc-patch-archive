@@ -72,7 +72,8 @@ Sie bestimmen, was „Einordnung“ je Seitenart heißen kann.
    mit Chance 100 %: 14 Ausrüstungs-Baupläne und 3 Schiffswaffen. Die heutige
    Missionsseite zeigt alle 17 als eine Liste, Entwurf C aus Runde 1 schrieb
    „zufällig einen von 17“. Lesart dieser Runde: je Abschluss einer aus jeder
-   Gruppe. **Im Spiel zu bestätigen**, bevor eine Seite „1 aus 3“ verspricht.
+   Gruppe. **Im Spiel zu bestätigen**, bevor eine Seite „1 aus 3“ verspricht;
+   die Entwürfe tragen deshalb die Marke „im Spiel zu prüfen“.
 5. **Laden → System** steht nur im Namenszusatz („(Pyro)“) oder muss aus
    bekannten Ortsnamen erschlossen werden (Lorville, ARC-L1 …). Für „Kaufen
    nach System“ braucht es ein Datenfeld.
@@ -92,5 +93,7 @@ Sie bestimmen, was „Einordnung“ je Seitenart heißen kann.
   einverstanden?
 - Soll „1 aus 3“ auf Missionsseiten erst nach einer Spielprüfung erscheinen?
 
-Gerenderte Bilder (Desktop 1440 und Handy 390, je Falz und ganze Seite) liegen
-in den Projektdateien unter `detailseiten-2-0/runde-2/`.
+Die gerenderten Bilder (Desktop 1440 und Handy 390, je Falz und ganze Seite)
+sind nicht im Repo eingecheckt. Sie liegen beim Betreiber in den
+Projektdateien unter `detailseiten-2-0/runde-2/`; wer sie neu braucht, öffnet
+die vier HTML-Entwürfe dieses Ordners im Browser.

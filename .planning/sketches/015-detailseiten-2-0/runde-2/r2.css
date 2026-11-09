@@ -45,6 +45,7 @@
 .btn-craft { display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 18px; border-radius: var(--r2); background: var(--craft-tool); color: #1a0d05; font: 600 15.5px var(--font); }
 .btn-craft svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chips li:has(> a) { padding: 0; background: none; }
 .chips li, .chips a { height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border-radius: 99px; background: var(--s3); font: 500 14px var(--font); white-space: nowrap; }
 .chips .num { color: var(--muted); }
 
@@ -164,3 +165,6 @@ details.more[open] summary { margin-bottom: 10px; }
 @media (max-width: 720px) {
   .skizze { position: fixed; top: auto; bottom: 10px; right: 10px; }
 }
+
+/* Vorbehalt-Marke im Fließtext */
+p .tag { margin-left: 4px; vertical-align: 1px; }
