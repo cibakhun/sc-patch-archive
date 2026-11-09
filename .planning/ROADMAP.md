@@ -1399,8 +1399,9 @@ Plans:
 
 ### Phase 21: Detail Pages 2.0
 
-**Status:** Konzept, Rahmen seit 09.11.2026 festgelegt (siehe unten), die
-Richtungswahl A/B/C steht noch aus. Kein Seiten-Code vor der Richtungswahl.
+**Status:** Konzept. Richtung B „Einordnung“ gewählt (Betreiber, 09.11.2026),
+Rahmen seit 09.11.2026 festgelegt (siehe unten). Als Nächstes die zweite
+Entwurfsrunde; Seiten-Code erst nach deren Abnahme.
 
 **Goal:** Die generierten Datenseiten (5.369 Items, 1.387 Missionen, 213
 Kategorien je Sprache; die 1.608 Bauplan-Seiten siehe „Rahmen“) bekommen eine
@@ -1432,8 +1433,12 @@ Blueprint-Detailansicht mehr entwickeln.“ Folgen für 2.0:
 **Konzept:** https://claude.ai/artifact/P5oGDrQ4v7sSLwR6VY3fWt
 **Entwürfe:** `.planning/sketches/015-detailseiten-2-0/` — drei Richtungen am
 echten Attrition-3-Repetierer: A „Schaustück“ (Spielmodell führt), B
-„Einordnung“ (Klassenvergleich führt, empfohlen), C „Beschaffung“ (Wege zum
-Item führen).
+„Einordnung“ (Klassenvergleich führt), C „Beschaffung“ (Wege zum Item führen).
+
+**Richtung (Betreiber, 09.11.2026): B „Einordnung“.** Jeder Wert steht neben
+seiner Klasse (Rang, Median, Nachbarn), dazu aus A das Spielmodell als Bild, wo
+es eines gibt, und aus C die Kaufübersicht nach System, die im Rahmen als
+Karte „Kaufen“ der drei Wege erscheint.
 
 **Abgrenzung:** Die 231 Schiffsseiten und alles, was ein Loadout rechnet
 (DPS/TTK, Komponenten, Flotte), gehören zum Vorhaben „Hangar als zentrale
@@ -1450,7 +1455,7 @@ Schiffsseiten erscheinen in derselben Sprache.
 
 **Offen beim Betreiber:**
 
-1. Welche Richtung führt (A, B oder C)?
+1. ~~Welche Richtung führt (A, B oder C)?~~ B, entschieden am 09.11.2026.
 2. Tauschen die Missionsseiten ihre eigene Navigation gegen die Kopfleiste der
    Datenseiten?
 3. Bleiben die Schiffsseiten ganz beim Hangar-Vorhaben?

@@ -2,7 +2,7 @@
 sketch: 015
 name: detailseiten-2-0
 question: "Was soll eine generierte Datenseite zuerst beantworten: wie das Item aussieht, ob es gut ist, oder wie man drankommt?"
-winner: null
+winner: b-einordnung
 tags: [design, detailseiten, items, bauplaene, missionen, konzept]
 ---
 
@@ -61,7 +61,7 @@ Werten in vier Gruppen, Kaufen nach System, Ab Werk mit Fahrzeugbildern.
 - **Kostet:** trägt heute nur auf 8 % der Itemseiten. Rüstung, Kleidung,
   Handwaffen brauchen erst Modelle aus einem PC-Lauf.
 
-## B — „Einordnung“ (`b-einordnung.html`) — empfohlen
+## B — „Einordnung“ (`b-einordnung.html`) — gewählt am 09.11.2026
 
 Das Item ist ein Platz in einem Feld. Jeder Wert als Streifen über alle 26
 Schiffswaffen der Größe 3 (gleiche Werte ein Punkt mit Anzahl, Median
