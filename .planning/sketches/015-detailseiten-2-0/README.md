@@ -22,6 +22,9 @@ entwirft keine eigene Bauplan-Seite; das Item-Datenblatt führt unter dem Kopf
 die drei Wege Kaufen, Herstellen, Ab Werk. Die Herstellkette in Entwurf C ist
 damit Sache des Werkzeugs, nicht der Itemseite.
 
+**Runde 2 (09.11.2026):** B im neuen Rahmen auf vier Seitenarten (Waffe,
+Rüstung ohne Modell, Mission, Kategorie), siehe [`runde-2/`](runde-2/README.md).
+
 Öffnen: die drei HTML-Dateien direkt aus dem Repo im Browser. Schriften kommen
 relativ aus `assets/fonts/`, Bilder aus `img/`. Keine externen Anfragen.
 

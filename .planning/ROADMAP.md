@@ -1400,8 +1400,9 @@ Plans:
 ### Phase 21: Detail Pages 2.0
 
 **Status:** Konzept. Richtung B „Einordnung“ gewählt (Betreiber, 09.11.2026),
-Rahmen seit 09.11.2026 festgelegt (siehe unten). Als Nächstes die zweite
-Entwurfsrunde; Seiten-Code erst nach deren Abnahme.
+Rahmen seit 09.11.2026 festgelegt (siehe unten). Die zweite Entwurfsrunde
+liegt vor (`.planning/sketches/015-detailseiten-2-0/runde-2/`) und wartet auf
+die Abnahme; Seiten-Code erst danach.
 
 **Goal:** Die generierten Datenseiten (5.369 Items, 1.387 Missionen, 213
 Kategorien je Sprache; die 1.608 Bauplan-Seiten siehe „Rahmen“) bekommen eine
@@ -1465,7 +1466,7 @@ einzeln abgenommen):
 
 1. Zweite Entwurfsrunde: gewählte Richtung auf das Item-Datenblatt mit den
    drei Wegen, auf Mission und Kategorie, dazu eine Rüstung als Gegenprobe
-   ohne Modell.
+   ohne Modell. Liegt vor (09.11.2026), Abnahme offen.
 2. Leitschuss: neue Hülle und Klassenvergleich auf den 117 Schiffswaffen-Seiten
    mit Modell, Ende zu Ende, mit neuem Tor.
 3. Alle Itemseiten.

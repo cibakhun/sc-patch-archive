@@ -1,0 +1,170 @@
+/* ============================================================================
+   SKIZZE 015, RUNDE 2 — gemeinsame Bausteine der vier Seiten
+   Wegwerf-Entwurf. Kein Produktionscode. Keine externen Anfragen.
+
+   Grundsprache: ../basis.css (Skizze 015, „Baujahr 2026“). Gewählt ist
+   Richtung B „Einordnung“; der Rahmen kommt aus Skizze 016 „Bedienung
+   vereinheitlichen“: unter dem Kopf stehen die Wege zum Item, Herstellen
+   führt in einem Schritt ins Crafting-Werkzeug.
+
+   Neu gegenüber Runde 1: die Streifen sind HTML mit Punkten an Prozent-
+   Positionen statt eines gestreckten SVG. Die Punkte bleiben am Handy rund,
+   die Zahlen darüber lesbar.
+   ============================================================================ */
+
+:root {
+  --craft-tool: #ff5e1a;
+  --craft-tool-weak: rgba(255, 94, 26, 0.12);
+  --cold: #7cc0ff;
+  --heat: #ffa37a;
+}
+
+/* ---------- Kopf ---------- */
+.head { display: grid; grid-template-columns: 1fr 400px; gap: 32px; align-items: center; padding: 40px 0 6px; }
+.head .thumb { background: radial-gradient(70% 70% at 50% 60%, rgba(167,139,250,.16), transparent 70%), var(--s1); border-radius: var(--r1); padding: 22px 16px; }
+.head .thumb img { width: 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.5)); }
+.alt { color: var(--faint); margin: 6px 0 0; font-size: 15px; }
+.summary { margin: 18px 0 0; font-size: 18px; color: var(--muted); max-width: 62ch; }
+.summary b { color: var(--text); font-weight: 600; }
+
+/* ---------- Wege zum Item (aus Skizze 016) ---------- */
+.ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 28px 0 0; }
+.way { background: var(--s1); border-radius: var(--r1); padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--lift); min-width: 0; }
+.way h2 { font: 600 15px var(--font); color: var(--muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+.way h2 svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.way .big { font: 600 24px/1.15 var(--font); }
+.way .big small { font-size: 15px; color: var(--muted); font-weight: 500; }
+.way p { margin: 0; color: var(--muted); font-size: 15px; }
+.way p b { color: var(--text); font-weight: 500; }
+.way p a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.3); }
+.way .go { margin-top: auto; padding-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+.lnk { display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: var(--r2); background: var(--s3); font: 600 15px var(--font); }
+.way.craft { background: linear-gradient(160deg, var(--craft-tool-weak), var(--s1) 55%); box-shadow: inset 0 0 0 1px rgba(255,94,26,.32), var(--lift); }
+.way.craft h2 { color: #ffb08c; }
+.way.plain { background: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.btn-craft { display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 18px; border-radius: var(--r2); background: var(--craft-tool); color: #1a0d05; font: 600 15.5px var(--font); }
+.btn-craft svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chips li:has(> a) { padding: 0; background: none; }
+.chips li, .chips a { height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border-radius: 99px; background: var(--s3); font: 500 14px var(--font); white-space: nowrap; }
+.chips .num { color: var(--muted); }
+
+/* ---------- Auf einen Blick (aus B) ---------- */
+.glance { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.glance .card h3 { font-size: 15px; color: var(--muted); font-weight: 500; margin: 0 0 10px; }
+.glance ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.glance li { padding-left: 18px; position: relative; }
+.glance li::before { content: ''; position: absolute; left: 0; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.plus li::before { background: var(--good); }
+.minus li::before { background: var(--bad); }
+.tip { background: linear-gradient(160deg, rgba(167,139,250,.16), var(--s1) 60%); }
+.tip p { margin: 0; }
+.tip .delta { display: flex; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
+.tip .delta span { background: var(--s3); border-radius: 99px; padding: 3px 10px; font-size: 14px; }
+.up { color: var(--good); } .down { color: var(--bad); }
+
+/* ---------- Streifen: jede Einheit ein Punkt, diese groß und violett ---------- */
+.strips { background: var(--s1); border-radius: var(--r1); padding: 8px 22px; box-shadow: var(--lift); }
+.row { display: grid; grid-template-columns: 200px 120px 1fr 210px; column-gap: 20px; align-items: center; padding: 14px 0 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.row:last-child { border-bottom: 0; }
+.row .lab b { display: block; font-weight: 500; }
+.row .lab small { color: var(--faint); font-size: 13px; }
+.row .val { font-weight: 600; font-size: 18px; text-align: right; }
+.row .rank { color: var(--muted); font-size: 14px; }
+.row .ends { grid-column: 3; display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; margin-top: 2px; gap: 8px; }
+.track { position: relative; height: 40px; margin: 0 8px; }
+.track::before { content: ''; position: absolute; left: -8px; right: -8px; top: 26px; height: 2px; background: rgba(255,255,255,.10); }
+.track .med { position: absolute; top: 19px; height: 17px; left: calc(var(--x) * 1%); border-left: 1.5px dashed rgba(255,255,255,.35); }
+.track .p { position: absolute; left: calc(var(--x) * 1%); top: 27px; width: var(--d, 7px); height: var(--d, 7px); border-radius: 50%; background: #5d5a70; transform: translate(-50%, -50%); }
+.track .p[data-n]::after { content: attr(data-n); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); font: 500 11px/1 var(--font); color: var(--faint); }
+.track .p.me { --d: 14px; background: var(--acc); box-shadow: 0 0 0 3px var(--s1); z-index: 2; }
+.track .p.me[data-n]::after { color: var(--acc); font-weight: 600; }
+.strip-note { margin: 10px 0 0; color: var(--faint); font-size: 13px; }
+
+/* ---------- Leiter: dieselbe Reihe in Größen oder Gewichtsklassen ---------- */
+.ladder { display: grid; grid-template-columns: repeat(var(--n, 6), 1fr); gap: 10px; }
+.rung { background: var(--s1); border-radius: var(--r1); padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rung .pic { height: 70px; display: grid; place-items: center; }
+.rung .pic img { max-height: 64px; width: auto; }
+.rung .pic .none { color: var(--faint); font-size: 13px; }
+.rung h3 { font-size: 15px; margin: auto 0 0; }
+.rung p { margin: 0; color: var(--muted); font-size: 14px; }
+.rung.on { background: var(--s2); outline: 2px solid var(--acc); outline-offset: -2px; }
+.rung .sz { font: 700 13px var(--head); color: var(--faint); }
+.rung.on .sz { color: var(--acc); }
+
+/* ---------- Temperaturbereich als Balken ---------- */
+.tbar { position: relative; height: 8px; border-radius: 99px; background: rgba(255,255,255,.06); }
+.tbar i { position: absolute; top: 0; bottom: 0; left: calc(var(--a) * 1%); right: calc((100 - var(--b)) * 1%); border-radius: 99px; background: linear-gradient(90deg, var(--cold), #c9c3e6 50%, var(--heat)); }
+.tbar.me i { box-shadow: 0 0 0 2px var(--s1), 0 0 0 3px var(--acc); }
+.tbar .zero { position: absolute; top: -4px; bottom: -4px; left: calc(var(--z) * 1%); border-left: 1px solid rgba(255,255,255,.25); }
+
+/* ---------- Tabellen ---------- */
+.cmp { width: 100%; border-collapse: collapse; font-size: 15px; }
+.cmp th, .cmp td { padding: 9px 10px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.06); white-space: nowrap; }
+.cmp th:first-child, .cmp td:first-child { text-align: left; color: var(--muted); }
+.cmp thead th { font-weight: 600; color: var(--text); vertical-align: bottom; font-size: 14px; }
+.cmp thead th.me { color: var(--acc); }
+.cmp td.me { font-weight: 600; background: rgba(167,139,250,.07); }
+.cmp small { display: block; font-size: 12px; }
+.cmp tr:last-child td { border-bottom: 0; }
+.tablewrap { overflow-x: auto; }
+
+/* ---------- Kaufen nach System (aus C) ---------- */
+.systems { display: grid; grid-template-columns: repeat(var(--n, 3), 1fr); gap: 14px; }
+.system { background: var(--s1); border-radius: var(--r1); padding: 18px 20px 16px; position: relative; overflow: hidden; min-width: 0; }
+.system::before { content: ''; position: absolute; right: -40px; top: -40px; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, var(--star, #ffd59a) 0 18%, color-mix(in srgb, var(--star, #ffd59a) 30%, transparent) 19% 34%, transparent 60%); opacity: .55; }
+.system h3 { font: 700 22px/1.1 var(--head); margin: 0; }
+.system .meta { color: var(--muted); font-size: 14px; margin: 2px 0 14px; }
+.place { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 10px 12px; border-radius: var(--r2); background: var(--s2); }
+.place + .place { margin-top: 6px; }
+.place span { font-size: 15px; }
+.place .num { font-weight: 600; white-space: nowrap; }
+.place.best { background: rgba(167,139,250,.16); }
+.place.best .num { color: var(--acc); }
+.stations { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.stations li { background: var(--s2); border-radius: var(--r3); padding: 4px 9px; font-size: 14px; }
+.spread { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+
+/* ---------- Ab Werk ---------- */
+.works { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 14px; align-items: stretch; }
+.ship { background: var(--s1); border-radius: var(--r1); padding: 14px 16px 16px; }
+.ship img { width: 100%; height: 120px; object-fit: contain; margin: 0 0 8px; }
+.ship p { margin: 0; color: var(--muted); font-size: 14px; }
+.works .note { border-radius: var(--r1); padding: 16px 18px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); color: var(--muted); font-size: 15px; }
+.works .note b { color: var(--text); font-weight: 500; }
+
+/* ---------- Kleine Helfer ---------- */
+.two { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+.two > div { min-width: 0; }
+.lede { color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+.lede b { color: var(--text); font-weight: 500; }
+.tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 99px; background: var(--s3); color: var(--muted); font: 500 12.5px var(--font); white-space: nowrap; }
+.tag.craft { background: var(--craft-tool-weak); color: #ffb08c; }
+.tag.acc { background: var(--acc-weak); color: var(--acc); }
+details.more { margin: 14px 0 0; }
+details.more summary { cursor: pointer; color: var(--muted); font-size: 15px; }
+details.more[open] summary { margin-bottom: 10px; }
+
+@media (max-width: 980px) {
+  .head { grid-template-columns: 1fr; gap: 14px; padding-top: 22px; }
+  .head .thumb { order: -1; padding: 10px 24px; max-width: 360px; }
+  .ways { grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+  .way { padding: 16px; }
+  .glance, .two, .works { grid-template-columns: 1fr; }
+  .systems { grid-template-columns: 1fr; }
+  .strips { padding: 4px 16px; }
+  .row { grid-template-columns: 1fr auto; row-gap: 2px; }
+  .row .track { grid-column: 1 / -1; }
+  .row .rank { grid-column: 1 / -1; font-size: 13px; }
+  .row .ends { grid-column: 1 / -1; }
+  .ladder { grid-template-columns: repeat(var(--n, 6), minmax(132px, 1fr)); overflow-x: auto; padding-bottom: 6px; }
+}
+
+/* Entwurfsmarke am Handy unten statt über der Überschrift */
+@media (max-width: 720px) {
+  .skizze { position: fixed; top: auto; bottom: 10px; right: 10px; }
+}
+
+/* Vorbehalt-Marke im Fließtext */
+p .tag { margin-left: 4px; vertical-align: 1px; }
