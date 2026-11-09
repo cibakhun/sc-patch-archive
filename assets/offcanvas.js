@@ -47,9 +47,14 @@
      als Schublade. Als Opt-in, nicht pauschal: der Crafting-Planer ist auch am
      Schreibtisch fixed und bringt Esc und Klick-daneben selbst mit — er darf
      nicht ploetzlich ein zweites Mal verdunkelt und geschlossen werden. */
+  /* NACHTRAG 09.11.2026: die Crafting-Werkbank (Prototyp) faehrt ihre Filter
+     auch am Schreibtisch als Schublade aus. `data-offcanvas-immer` sagt:
+     wenn fixed, dann Schublade, bei jeder Breite. Sonst blieb das
+     weggeschobene Panel dort fokussierbar und vorlesbar (kein inert). */
   function isDrawerMode(panel) {
     if (getComputedStyle(panel).position !== 'fixed') return false;
     if (window.innerWidth <= 820) return true;
+    if (panel.hasAttribute('data-offcanvas-immer')) return true;
     return panel.hasAttribute('data-offcanvas-flach') && window.innerHeight <= 600;
   }
 

@@ -47,14 +47,17 @@ export const WERKBANK_CSS = `
   .cdb--wb > .cdb-toast{grid-column:1/-1}
   .cdb--wb:has(#cdb-tab-dismantle-content:not([hidden])) > .cdb-modal,
   .cdb--wb:has(#cdb-tab-dismantle-content:not([hidden])) > .cdb-drawer{display:none}
-  /* Filter als Schublade von links (wie am Telefon), die Liste bekommt die Breite */
+  /* Filter als Schublade von links (wie am Telefon), die Liste bekommt die
+     Breite. Verdunkler, Esc, Sperre und inert im geschlossenen Zustand
+     kommen von offcanvas.js (data-offcanvas-immer am Panel). */
   .cdb--wb .cdb-layout{grid-template-columns:1fr}
   .cdb--wb .cdb-filter-toggle{display:inline-block}
   .cdb--wb .cdb-sidebar{position:fixed;top:0;left:0;z-index:9250;width:min(340px,88%);height:100%;max-height:none;border-radius:0;transform:translateX(-100%)}
   .cdb--wb .cdb-sidebar.is-open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.6)}
   html.cdb-ready .cdb--wb .cdb-sidebar{transition:transform var(--dur-slow) var(--ease-ui)}
-  /* Mitte: das Rezept steht im Fluss und klebt unter der Kopfleiste */
-  .cdb--wb > .cdb-modal{grid-area:bp;position:sticky;top:var(--wb-top);inset:auto;z-index:auto;display:block;padding:0;background:none;overflow:visible;margin-top:.7rem}
+  /* Mitte: das Rezept steht im Fluss und klebt unter der Kopfleiste.
+     inset VOR top: die Kurzform setzt top sonst wieder auf auto. */
+  .cdb--wb > .cdb-modal{grid-area:bp;position:sticky;inset:auto;top:var(--wb-top);z-index:auto;display:block;padding:0;background:none;overflow:visible;margin-top:.7rem}
   .cdb--wb > .cdb-modal .cdb-modal__box{max-width:none;max-height:calc(100dvh - var(--wb-top) - 1rem);overflow:auto;overscroll-behavior:contain;background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.22));border-top:2px solid var(--accent,#FF5E1A);border-radius:6px}
   .cdb--wb .cdb-modal__back{top:.6rem;left:auto;right:3.1rem;width:32px;height:32px}
 }

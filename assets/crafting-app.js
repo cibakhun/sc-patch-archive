@@ -968,19 +968,8 @@
     });
     var closeF = $('#cdb-filter-close');
     if (closeF) closeF.addEventListener('click', function () { sidebar.classList.remove('is-open'); filtToggle.setAttribute('aria-expanded', 'false'); });
-    // Werkbank: die Filter fahren auch am Schreibtisch von links aus.
-    // offcanvas.js greift erst unter 821 px, also Esc und Klick daneben hier.
-    if (WB) {
-      var zuF = function () { sidebar.classList.remove('is-open'); filtToggle.setAttribute('aria-expanded', 'false'); };
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && wbMitte() && sidebar.classList.contains('is-open')) zuF();
-      });
-      document.addEventListener('click', function (e) {
-        if (!wbMitte() || !sidebar.classList.contains('is-open')) return;
-        if (sidebar.contains(e.target) || filtToggle.contains(e.target)) return;
-        zuF();
-      });
-    }
+    // Werkbank: die Filter fahren auch am Schreibtisch von links aus;
+    // Verdunkler, Esc und inert bringt offcanvas.js (data-offcanvas-immer).
   }
 
   // =========================================================

@@ -713,7 +713,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
     <!-- Filter sidebar -->
     {/* data-offcanvas: assets/offcanvas.js ergaenzt Verdunkler, Scroll-Sperre,
         Esc, Tippen-daneben und Wischen — einmal fuer alle Panels der Seite. */}
-    <aside class="cdb-sidebar" id="cdb-sidebar" aria-label={S.filters} data-offcanvas>
+    <aside class="cdb-sidebar" id="cdb-sidebar" aria-label={S.filters} data-offcanvas data-offcanvas-immer={werkbank ? '' : undefined}>
       <div class="cdb-side-hd">
         <span>{S.filters}</span>
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>

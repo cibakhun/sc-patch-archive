@@ -904,6 +904,17 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
   if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
   if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Filter: Schublade von links. Geschlossen weder fokussierbar noch
+  // vorlesbar (inert), offen bedienbar, Esc schliesst.
+  const inert = () => page.$eval('#cdb-sidebar', (el) => el.inert === true);
+  if (!(await inert())) return 'Werkbank 1280 px: die geschlossene Filter-Schublade ist nicht inert (per Tab erreichbar)';
+  await page.locator('#cdb-filter-toggle').click();
+  await page.waitForTimeout(400);
+  const fk = await kasten(page, '#cdb-sidebar');
+  if ((await inert()) || !fk || fk.x < -1) return `Werkbank 1280 px: die Filter-Schublade oeffnet nicht (x=${fk ? Math.round(fk.x) : '?'}, inert ${await inert()})`;
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  if (!(await inert())) return 'Werkbank 1280 px: Esc schliesst die Filter-Schublade nicht';
 
   // Waehlen: die zweite Karte (die erste koennte zufaellig schon passen).
   const karte = page.locator('#cdb-grid .cbp').nth(1);
@@ -923,6 +934,22 @@ async function probeWerkbank(page) {
   if (bpi(page) !== i) return `Werkbank 1280 px: die Adresse traegt bpi=${bpi(page)}, erwartet ${i}`;
   const gesperrt = await page.evaluate(() => getComputedStyle(document.body).overflow === 'hidden' || document.body.style.position === 'fixed' || document.documentElement.classList.contains('is-locked'));
   if (gesperrt) return 'Werkbank 1280 px: mit gewaehltem Rezept laesst sich die Seite nicht mehr scrollen';
+  // Die Mitte klebt unter der Kopfleiste, wenn die Seite weiter rollt:
+  // so weit rollen, dass sie ohne Kleben 30 px ueber ihrer Klebelinie
+  // stuende (Raum dafuer hat die Spalte, die Liste ist hoeher als die Mitte).
+  const klebt = await page.evaluate(async () => {
+    const m = document.querySelector('#cdb-modal');
+    const soll = parseFloat(getComputedStyle(m).top);
+    const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // instant: die Seite rollt sonst weich, und gemessen wuerde mitten im Lauf.
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    await bild();
+    window.scrollTo({ top: m.getBoundingClientRect().top - soll + 30, behavior: 'instant' });
+    await bild();
+    return { soll, ist: m.getBoundingClientRect().top };
+  });
+  if (!Number.isFinite(klebt.soll) || Math.abs(klebt.ist - klebt.soll) > 4)
+    return `Werkbank 1280 px: die Mitte klebt nicht unter der Kopfleiste (oben ${Math.round(klebt.ist)} px, ${Number.isFinite(klebt.soll) ? `soll ${Math.round(klebt.soll)} px` : 'top ist auto, steht eine Kurzform wie inset danach?'})`;
   // Zum Planer: die Spalte rechnet sofort mit.
   await page.locator('#cdb-modal .cbm__plan').first().click();
   const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
@@ -967,11 +994,22 @@ async function probeWerkbank(page) {
     colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
   });
   await kontext.route('**/*', (route) => { route.request().url().startsWith(BASE) ? route.continue() : route.abort(); });
-  await kontext.addInitScript(() => { try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Ablage nur die Hilfe */ } });
+  await kontext.addInitScript(() => {
+    try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Ablage nur die Hilfe */ }
+    window.__cspVerstoesse = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+      window.__cspVerstoesse.push(`${e.violatedDirective} ${e.blockedURI || ''}`.trim());
+    });
+  });
   try {
     const p = await kontext.newPage();
     const befunde = [];
+    // Grundpruefungen [1]-[3] von pruefe() wie in probeSuche: JS-Ausnahme,
+    // eigene Ressource >= 400, CSP (der Zaehl-Host folgt dort seiner Regel).
     p.on('pageerror', (e) => befunde.push(`JS-Ausnahme: ${e.message.split('\n')[0]}`));
+    p.on('response', (r) => {
+      if (r.url().startsWith(BASE) && r.status() >= 400) befunde.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+    });
     const leer = new URL(page.url());
     leer.search = '';
     await p.goto(leer.href, { waitUntil: 'load', timeout: 60000 });
@@ -996,6 +1034,8 @@ async function probeWerkbank(page) {
     if (bpi(p) !== null) return 'Werkbank 390 px: nach „← Liste“ traegt die Adresse noch bpi';
     const breit = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     if (breit > 1) return `Werkbank 390 px: die Seite laeuft ${breit} px seitlich ueber`;
+    const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []))].filter((v) => !ZAEHLER_HOST.test(v));
+    if (csp.length) befunde.push(`CSP-Verstoss: ${csp.slice(0, 3).join(', ')}`);
     if (befunde.length) return `Werkbank 390 px: ${befunde.slice(0, 3).join(' | ')}`;
     return null;
   } finally {

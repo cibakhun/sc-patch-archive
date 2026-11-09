@@ -27,3 +27,7 @@ export const VORSCHAU_DIST_FILES = ['topics/crafting-werkbank.html', 'de/topics/
 
 /** Ein Link auf eine dieser Seiten (Linkpruefung im Live-Bau). */
 export const VORSCHAU_HREF = /href=["'](?:https:\/\/verse-base\.com)?\/(?:de\/)?topics\/crafting-werkbank\.html/;
+
+/** Der blosse Pfad, fuer Daten ohne href (Suchregister: Feld c aus
+ *  craftEntryPath). Live darf auch dort kein Weg zum Prototyp stehen. */
+export const VORSCHAU_PFAD = /\/(?:de\/)?topics\/crafting-werkbank\.html/;

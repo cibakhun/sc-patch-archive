@@ -140,6 +140,39 @@ test('Tor: Live-Bau mit Prototyp-Seite oder -Link ist rot', () => {
   r = tor(a.d);
   assert.equal(r.status, 1);
   assert.match(r.stderr, /\[4\] dist\/de\/schiffe\.html: href="\/de\/topics\/crafting-werkbank\.html/);
+  // Auch ohne href: das Suchregister traegt den Weg als blossen Pfad (Feld c).
+  a.put('de/schiffe.html', '<a href="/de/schiffe.html">Schiffe</a>');
+  a.put('search-index-more.json', JSON.stringify([{ t: 'BroadSpec', c: '/topics/crafting-werkbank.html?bp=BroadSpec&bpi=323' }]));
+  r = tor(a.d);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /\[4\] dist\/search-index-more\.json: \/topics\/crafting-werkbank\.html/);
+  a.put('search-index-more.json', JSON.stringify([{ t: 'BroadSpec', c: '/topics/crafting.html?bp=BroadSpec&bpi=323' }]));
+  r = tor(a.d);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /\[4\] .* und 2 Daten-Dateien gelesen: 0 mit Verweis/);
+});
+
+test('Tor: Vorschau-Bau braucht die Werkbank und den Weg dorthin in beiden Sprachen', () => {
+  const a = probe();
+  a.put('build.json', JSON.stringify({ staging: true }));
+  a.put('schiffe.html', '<a href="/hangar.html">Hangar</a>');
+  for (let i = 0; i < 200; i++) { a.put(`hangar-bay/s${i}.html`); a.put(`de/hangar-bay/s${i}.html`); }
+  for (let i = 0; i < 500; i++) a.put(`hangar/m${i}.glb`);
+  a.put('de/hangar.html');
+  a.put('hangar-loadout.html');
+  const weg = (de) => `<a href="${de ? '/de' : ''}/topics/crafting-werkbank.html">Ausprobieren</a>`;
+  a.put('topics/crafting-werkbank.html');
+  a.put('de/topics/crafting-werkbank.html');
+  a.put('topics/crafting.html', weg(false));
+  a.put('de/topics/crafting.html', weg(true));
+  const tor = () => run(['scripts/verify-hangar-schalter.mjs', '--dist', a.d, '--klinke-seiten', '1']);
+  let r = tor();
+  assert.equal(r.status, 0, r.stderr + r.stdout);
+  assert.match(r.stdout, /\[5\] 2 von 2 Prototyp-Seiten da, 2 von 2 Crafting-Seiten mit Weg dorthin/);
+  a.put('topics/crafting.html', '<p>ohne Weg</p>');
+  r = tor();
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /\[5\] dist\/topics\/crafting\.html fuehrt nicht zur Werkbank/);
 });
 
 test('Muster: Dateien und Links', () => {
