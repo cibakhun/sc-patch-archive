@@ -16,8 +16,10 @@
 //   - Vorschau-Versionen (Tag staging-<40 Hex>, kein Live-Tag): die STAGING
 //     neuesten bleiben.
 //   - Was latest oder staging traegt, bleibt immer; ebenso der Tag aus
-//     --schonen (der eben gebaute Commit) und jede Version mit einem Tag, das
-//     keiner der beiden Sorten folgt (unbekannt heisst: nicht anfassen).
+//     --schonen (der eben gebaute Commit) und jede Version, die irgendein
+//     Tag traegt, das keiner der beiden Sorten folgt, auch neben einem
+//     Commit-Tag (unbekannt heisst: nicht anfassen; ein von Hand gesetzter
+//     Rueckweg-Tag schuetzt sein Image).
 //   - Versionen ohne Tag fallen nur, wenn sie mehr als eine Stunde aelter
 //     sind als die aelteste bleibende Version. Teile eines Multi-Arch-Index
 //     entstehen mit ihm im selben Push und bleiben so mit ihm stehen.
@@ -31,9 +33,10 @@
 // Die Auswahl selbst ist auswahl() und in tests/e2e/ghcr-aufraeumen.test.js
 // an Beispiellisten geprueft.
 
+import { pathToFileURL } from 'node:url';
+
 export const LIVE_TAG = /^[0-9a-f]{40}$/;
 export const STAGING_TAG = /^staging-[0-9a-f]{40}$/;
-const FEST = new Set(['latest', 'staging']);
 export const MAX_LOESCHEN = 100;
 const STUNDE = 3600e3;
 
@@ -55,7 +58,9 @@ export function auswahl(versionen, { live = 5, staging = 10, schonen = [] } = {}
 
   if (!liveV.length) return { abbruch: 'keine Live-Version in der Liste — nichts geloescht', zahlen };
 
-  const geschont = (v) => tagsVon(v).some((t) => FEST.has(t) || schonen.includes(t));
+  // latest und staging folgen keiner der beiden Sorten und sind damit hier
+  // mit erfasst, ebenso jedes andere Tag, das jemand von Hand setzt.
+  const geschont = (v) => tagsVon(v).some((t) => schonen.includes(t) || !(LIVE_TAG.test(t) || STAGING_TAG.test(t)));
   const bleibt = new Set([
     ...liveV.slice(0, live),
     ...stagingV.slice(0, staging),
@@ -130,7 +135,7 @@ async function main() {
   if (!trocken) console.log(`  geloescht: ${geloescht} von ${a.weg.length}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((e) => {
     console.log(`::warning::GHCR-Aufraeumen abgebrochen: ${e.message}`);
     process.exitCode = 1;

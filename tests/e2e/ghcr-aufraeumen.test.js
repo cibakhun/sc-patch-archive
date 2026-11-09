@@ -101,3 +101,16 @@ test('hoechstens MAX_LOESCHEN je Lauf, die aeltesten zuerst', () => {
   assert.ok(!a.bleibt.some((v) => a.weg.includes(v)));
   assert.equal(a.bleibt.length, 11, 'bleibt zaehlt nur, was wirklich bleibt');
 });
+
+test('ein zusaetzliches Tag schuetzt auch ein altes Live- oder Vorschau-Image', () => {
+  const liste = [];
+  liste.push(version([hash(0x200), 'rueckweg'], 0));
+  liste.push(version([`staging-${hash(0x201)}`, 'pruefen'], 0, 1));
+  for (let i = 0; i < 3; i++) liste.push(version([hash(0x210 + i)], 1 + i));
+  for (let i = 0; i < 3; i++) liste.push(version([`staging-${hash(0x220 + i)}`], 1 + i, 1));
+  const a = auswahl(liste, { live: 1, staging: 1 });
+  const weg = tagsAus(a.weg);
+  assert.ok(!weg.includes(`${hash(0x200)},rueckweg`), 'Live-Image mit Zusatz-Tag bleibt');
+  assert.ok(!weg.includes(`staging-${hash(0x201)},pruefen`), 'Vorschau-Image mit Zusatz-Tag bleibt');
+  assert.deepEqual(weg.sort(), [hash(0x210), hash(0x211), `staging-${hash(0x220)}`, `staging-${hash(0x221)}`].sort());
+});
