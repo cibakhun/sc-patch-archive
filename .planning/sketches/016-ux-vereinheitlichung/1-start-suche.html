@@ -60,7 +60,7 @@ body.offen .mark { opacity: 0; }
 body.offen .field { border-color: var(--accent); border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--panel); }
 
 /* ---- Trefferliste ---- */
-.res { display: none; background: var(--panel); border: 1px solid var(--accent); border-top: 1px solid var(--line-2); border-radius: 0 0 11px 11px; backdrop-filter: blur(10px); max-height: calc(100vh - 92px - 72px - 24px); overflow: hidden; }
+.res { display: none; background: var(--panel); border: 1px solid var(--accent); border-top: 1px solid var(--line-2); border-radius: 0 0 11px 11px; backdrop-filter: blur(10px); max-height: calc(100vh - 92px - 72px - 24px); overflow-y: auto; overscroll-behavior: contain; }
 body.offen .res { display: block; }
 .res__head { display: flex; justify-content: space-between; align-items: center; padding: 10px 22px 6px; font: 600 13px var(--body); color: var(--muted); }
 .res__head .keys { display: flex; gap: 14px; }

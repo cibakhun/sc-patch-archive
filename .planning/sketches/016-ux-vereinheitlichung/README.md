@@ -22,7 +22,7 @@ Keine externen Anfragen. Alle Werte stammen aus dem Vorschau-Bau von staging
 | Datei | Zeigt | Zustände |
 |---|---|---|
 | `1-start-suche.html` | Startseite: Suche direkt im großen Feld, Treffer gruppiert darunter, Item und Bauplan als ein Treffer mit „Herstellen“ | `?z=leer`, `?z=mining`, `?z=panther`, `?z=gladius`; `&rahmen=dialog` zeigt dieselben Treffer im Dialog der Kopfleiste |
-| `2-item-herstellen.html` | Item-Datenblatt (Sprache aus Skizze 015) mit den drei Wegen Kaufen, Herstellen, Ab Werk | Desktop und Handy über die Fensterbreite |
+| `2-item-herstellen.html` | Item-Datenblatt (Sprache aus Skizze 015 „Detail Pages 2.0“, liegt bis zu deren Freigabe nur auf dem Branch von PR #313; `basis.css` ist daraus kopiert) mit den drei Wegen Kaufen, Herstellen, Ab Werk | Desktop und Handy über die Fensterbreite |
 | `3-crafting-werkzeug.html` | Crafting-Werkzeug mit Rezeptliste, gewähltem Rezept und Planer-Leiste; Crafting-Identität bleibt | Desktop drei Spalten, Handy als Ebenen mit fester Leiste |
 | `4-seitenstruktur.html` | Übersicht „Ein Ort je Frage“: Werkzeug und Datenblatt je Bereich, Querverweise | eine Tafel |
 
@@ -34,8 +34,9 @@ den Projektdateien unter `ux-vereinheitlichung/`.
 
 ## Kernpunkte des Konzepts
 
-- Je Bereich ein Werkzeug zum Arbeiten und ein Datenblatt zum Nachschlagen;
-  Listen und Kategorien bleiben als Einstieg.
+- Jede Frage hat genau einen Ort: arbeiten im Werkzeug, nachschlagen im
+  Datenblatt. Mehrstufige Abläufe (Bergbau) reichen von Werkzeug zu Werkzeug
+  weiter, Crafting vereint beides. Listen und Kategorien bleiben als Einstieg.
 - Startseite: kein zweites Popup, das große Feld sucht selbst. Kopfleiste
   behält den Dialog. Ein Suchkern, ein Register.
 - Item → Crafting in einem Schritt; das Rezept lebt im Werkzeug.
