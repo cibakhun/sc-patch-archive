@@ -28,13 +28,14 @@
    in CI den frisch gebauten Container vor dem Push, lokal `astro preview`
    oder eine beliebige URL.
 
-   Sechs Zusicherungen je Seitenaufruf:
+   Sieben Zusicherungen je Seitenaufruf:
      1  keine unbehandelte JS-Ausnahme (pageerror)
      2  keine eigene Ressource antwortet mit >= 400 (faengt tote ?v=-Verweise)
      3  kein CSP-Verstoss (securitypolicyviolation am Dokument)
      4  das Leitelement der Seite ist WIRKLICH sichtbar, nicht nur im DOM
      5  kein waagerechter Ueberlauf (die wiederkehrende 360-px-Falle)
-     6  Selbstauskunft + Klinke: wie viele Aufrufe wurden wirklich gefahren
+     6  kein Element mit hidden-Attribut wird gezeichnet
+     7  Selbstauskunft + Klinke: wie viele Aufrufe wurden wirklich gefahren
 
      node scripts/browser-smoke.mjs --base http://localhost:4321
      node scripts/browser-smoke.mjs --base https://staging.verse-base.com
@@ -64,7 +65,13 @@ const GATE_BYPASS_HEADERS = GATE_BYPASS ? { 'X-VB-Gate-Bypass': GATE_BYPASS } : 
 // Untergrenze der Aufrufe. Wie ueberall im Projekt: darf nur nach OBEN
 // wandern. Ohne sie waere eine leergeraeumte Seitenliste von einem
 // vollstaendigen Lauf nicht zu unterscheiden — beide melden gruen.
-const MIN_AUFRUFE = 34;
+const MIN_AUFRUFE = 40;
+// [6] Wie viele Elemente mit hidden-Attribut der Lauf je angesehen hat.
+// Gemessen 07.11.2026: 1128 im Vorschau-Bau, davon 790 auf den beiden
+// Hangar-Szenarien; ohne sie (Live-Bau) bleiben 338. Die Untergrenze gilt
+// fuer beide Artefakte. Ohne Klinke waere ein Lauf, dessen Abfrage still
+// nichts findet, von einem echten nicht zu unterscheiden.
+const MIN_HIDDEN = 300;
 
 /* ---------- Browser finden ---------- */
 // playwright-core bringt bewusst KEINEN Browser mit (~5 MB statt ~300).
@@ -111,6 +118,14 @@ const SEITEN = [
     leit: '#sf-q', schwer: true, probe: probeSchiffe,
   },
   { id: 'crafting', en: '/crafting.html', de: '/de/crafting.html', leit: '.dp-card--cat', minAnzahl: 50, schwer: true },
+  // Der Crafting-Planer mit seiner Konto-Anzeige. Am Handy stand dort
+  // „Synced to your account" neben „Sign in" und „Retry" (Krisz, 07.11.2026):
+  // die Logik setzte hidden richtig, mobile-ux.css hob es auf. Die Probe
+  // spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
+  {
+    id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
+    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeCraftingSync,
+  },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   { id: 'missionen', en: '/missionen.html', de: '/de/missionen.html', leit: 'main' },
   { id: 'armor-sets', en: '/armor-sets.html', de: '/de/armor-sets.html', leit: 'main' },
@@ -182,7 +197,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0;
 
 /* ---------- Alte Hell-Wahl im Browser ----------
    Bis zum 02.11.2026 konnten Admins hell waehlen; die Wahl lag als
@@ -267,15 +282,67 @@ async function probeSchiffe(page) {
    prueft tests/e2e/suche-status.test.js. */
 async function probeSuche(page) {
   const WORT = 'Panther';
+  // Sichtbare Zeilen einer Trefferliste als Text: so vergleicht der
+  // Rauchtest Startseiten-Feld und Dialog (ein Suchkern, Skizze 016).
+  const zeilenText = (p, liste) =>
+    p.$$eval(`${liste} > li[role="option"]`, (ls) => ls.map((l) => `${l.className.replace(/\s*\bsel\b/, '')} | ${l.innerText.replace(/\s+/g, ' ').trim()}`));
   const pruefen = async (p, touch) => {
     const wo = touch ? 'Telefon' : 'Desktop';
-    await (touch ? p.tap('.hero__search') : p.click('.hero__search'));
+    // 1. Das grosse Feld der Startseite sucht selbst — kein zweites Fenster.
+    await (touch ? p.tap('#hs-in') : p.click('#hs-in'));
+    if (!(await p.locator('#hs.is-open').count())) return `${wo}: das Startseiten-Feld klappt beim Antippen keine Treffer auf`;
+    if (!(await p.locator('#scs').isHidden())) return `${wo}: das Startseiten-Feld oeffnete den Dialog statt selbst zu suchen`;
+    await p.locator('#hs-in').fill(WORT);
+    const feldItem = p.locator('#hs-list .scs__hit--item');
+    await feldItem.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
+    if (!(await feldItem.count())) {
+      const liste = ((await p.locator('#hs-list').innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+      return `${wo}: Startseiten-Feld, "${WORT}" zeigte keinen Item-Treffer (Liste: "${liste.slice(0, 120) || 'leer'}")`;
+    }
+    // Liegt die Liste im Bild? (Der Hero schneidet sein Bild zu, nicht die
+    // Treffer; ein abgeschnittenes Panel saehe aus wie "nur eine Zeile".)
+    const panel = await p.locator('.hs__panel').boundingBox();
+    if (!panel || panel.height < 120) return `${wo}: die Trefferliste unter dem Feld ist nur ${panel ? Math.round(panel.height) : 0} px hoch`;
+    const tasten = await p.locator('#hs-list .scs__keys').isVisible().catch(() => false);
+    if (touch && tasten) return `${wo}: Tastenhinweise im Startseiten-Feld stehen auf einem Touch-Geraet`;
+    if (!touch && !tasten) return `${wo}: Tastenhinweise im Startseiten-Feld fehlen`;
+    if (touch) {
+      // Auf dem Telefon steht das Feld oben, die Kopfleiste ist weg.
+      await p.waitForTimeout(700);
+      const feld = await p.locator('#hs-field').boundingBox();
+      if (!feld || feld.y > 40) return `${wo}: das Feld rueckt beim Suchen nicht nach oben (y=${feld ? Math.round(feld.y) : '?'})`;
+      const leiste = await p.locator('#topbar').boundingBox();
+      if (leiste && leiste.y + leiste.height > 4) return `${wo}: die Kopfleiste liegt beim Suchen ueber dem Feld`;
+    }
+    const feldZeilen = await zeilenText(p, '#hs-list');
+    const hx = p.locator('.hs__x');
+    const hk = await hx.boundingBox();
+    if (!hk) return `${wo}: Schliessen-Knopf des Startseiten-Felds nicht sichtbar`;
+    const haufschrift = ((await hx.innerText().catch(() => '')) || '').trim();
+    if (touch) {
+      if (!haufschrift || /\besc\b/i.test(haufschrift)) return `${wo}: Schliessen im Startseiten-Feld zeigt "${haufschrift}" statt eines Worts`;
+      if (hk.width < 44 || hk.height < 44) return `${wo}: Schliessen im Startseiten-Feld nur ${Math.round(hk.width)}x${Math.round(hk.height)} px (Ziel 44x44)`;
+    } else if (!/^esc$/i.test(haufschrift)) return `${wo}: Schliessen im Startseiten-Feld zeigt "${haufschrift}" statt "Esc"`;
+    await (touch ? hx.tap() : hx.click());
+    if (await p.locator('#hs.is-open').count()) return `${wo}: das Startseiten-Feld schliesst nicht ueber den Knopf`;
+
+    // 2. Weiter unten auf der Seite oeffnet der Knopf der Kopfleiste den
+    //    Dialog — mit DERSELBEN Liste fuer dasselbe Wort.
+    await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await p.waitForTimeout(400);
+    await (touch ? p.tap('.snav__search') : p.click('.snav__search'));
+    if (await p.locator('#scs').isHidden()) return `${wo}: der Suchknopf der Kopfleiste oeffnet unten auf der Startseite keinen Dialog`;
     await p.locator('#scs-in').fill(WORT);
     const item = p.locator('#scs-list .scs__hit--item');
     await item.first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
     if (!(await item.count())) {
       const liste = ((await p.locator('#scs-list').innerText().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
       return `${wo}: Suche "${WORT}" zeigte keinen Item-Treffer (Liste: "${liste.slice(0, 120) || 'leer'}")`;
+    }
+    const dialogZeilen = await zeilenText(p, '#scs-list');
+    if (JSON.stringify(dialogZeilen) !== JSON.stringify(feldZeilen)) {
+      const i = dialogZeilen.findIndex((z, n) => z !== feldZeilen[n]);
+      return `${wo}: Dialog und Startseiten-Feld zeigen fuer "${WORT}" verschiedene Listen (Zeile ${i + 1}: Feld "${feldZeilen[i] ?? '—'}", Dialog "${dialogZeilen[i] ?? '—'}")`;
     }
     const fuss = await p.locator('.scs__foot').isVisible();
     if (touch && fuss) return `${wo}: Tastenhinweise (↑↓ ↵ Esc) stehen auf einem Touch-Geraet`;
@@ -676,6 +743,136 @@ async function probeWerkstatt(page) {
   return null;
 }
 
+/* ---------- Konto-Anzeige des Crafting-Planers ----------
+   Text und Aktionen beider Anzeigen (Kopfleiste und Planer) muessen zu
+   EINEM Zustand passen: „Anmelden" nur ohne Konto, „Erneut versuchen" nur
+   nach einem Fehler. Jeder Zustand bekommt einen eigenen Kontext mit
+   gefaelschter Sitzung und einem Supabase, das hier im Browser antwortet:
+     local    keine Sitzung
+     syncing  Sitzung, das Lesen haengt
+     synced   Sitzung, das Lesen liefert eine leere Liste
+     error    Sitzung, das Lesen scheitert (503)
+   Bei 360 px (dort sass der Fehler) und 1280 px. Gefragt wird, was der
+   Browser zeichnet, nicht das hidden-Attribut: das stand auch im Fehlerfall
+   richtig (tests/e2e/crafting-sync.test.js sah ihn deshalb nie).
+   Sitzungsschluessel und Supabase-Adresse kommen aus dem ausgelieferten
+   account-lite.js: Vorschau und live sprechen mit verschiedenen Projekten. */
+const SYNC_ZUSTAENDE = [
+  { state: 'local', sitzung: false, lesen: 200, login: true, retry: false },
+  { state: 'syncing', sitzung: true, lesen: 'haengt', login: false, retry: false },
+  { state: 'synced', sitzung: true, lesen: 200, login: false, retry: false },
+  { state: 'error', sitzung: true, lesen: 503, login: false, retry: true },
+];
+const SYNC_BREITEN = [360, 1280];
+async function probeCraftingSync(page) {
+  const pfad = new URL(page.url()).pathname;
+  const ziel = await page.evaluate(async () => {
+    const src = document.querySelector('script[src*="account-lite"]')?.src;
+    if (!src) return null;
+    const t = await (await fetch(src)).text();
+    const key = t.match(/STORE\s*=\s*'(sb-[a-z0-9]+-auth-token)'/);
+    const url = t.match(/SB_URL\s*=\s*'(https:\/\/[a-z0-9.-]+)'/);
+    return key && url ? { key: key[1], url: url[1] } : null;
+  });
+  if (!ziel) return 'Crafting-Planer: account-lite.js nennt keinen Sitzungsschluessel';
+  const texte = new Map();
+  // Alle Abweichungen sammeln, nicht nur die erste: der gemeldete Fall
+  // (synced mit beiden Aktionen) soll im Protokoll stehen, auch wenn schon
+  // local scheitert.
+  const probleme = [];
+  for (const breite of SYNC_BREITEN) {
+    for (const z of SYNC_ZUSTAENDE) {
+      const ctx = await page.context().browser().newContext({
+        viewport: { width: breite, height: 740 }, colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+      });
+      try {
+        await ctx.route('**/*', (route) => {
+          const u = route.request().url();
+          if (u.startsWith(BASE)) return route.continue();
+          if (!u.startsWith(ziel.url)) return route.abort();
+          if (/\/rest\/v1\/crafting_entries/.test(u)) {
+            if (z.lesen === 'haengt') return undefined; // nie beantwortet: der Abgleich laeuft
+            return route.fulfill({ status: z.lesen, contentType: 'application/json', body: z.lesen === 200 ? '[]' : '{}' });
+          }
+          // Profil, Rolle, Puls, Zaehler am Konto-Knopf: leer und gut.
+          return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+        });
+        await ctx.addInitScript(([key, mit]) => {
+          try {
+            localStorage.setItem('vb.help.seen', '{"all":1}'); // Erstbesuch-Hilfe wegraeumen
+            if (mit) {
+              localStorage.setItem(key, JSON.stringify({
+                access_token: 'smoke', refresh_token: 'smoke', token_type: 'bearer',
+                expires_at: Math.floor(Date.now() / 1000) + 3600,
+                user: { id: '00000000-0000-4000-8000-00000000c0de' },
+              }));
+            }
+          } catch { /* ohne Ablage bleibt der Planer lokal, und die Probe sagt es */ }
+        }, [ziel.key, z.sitzung]);
+        const p = await ctx.newPage();
+        await p.goto(BASE + pfad, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        const da = await p.waitForFunction((st) => {
+          const h = [...document.querySelectorAll('.cdb-sync')];
+          return h.length > 0 && h.every((x) => x.dataset.state === st);
+        }, z.state, { timeout: 15000 }).then(() => true, () => false);
+        const wo = `${breite} px, ${z.state}`;
+        if (!da) {
+          const st = await p.evaluate(() => [...document.querySelectorAll('.cdb-sync')].map((x) => x.dataset.state).join('/'));
+          probleme.push(`${wo}: die Konto-Anzeige erreicht den Zustand nicht (steht auf "${st}")`);
+          continue;
+        }
+        // Den Planer oeffnen: seine Anzeige soll so gemessen werden, wie man sie sieht.
+        await p.locator('#cdb-planner-open').click({ timeout: 15000 });
+        await p.waitForTimeout(400);
+        const anzeigen = await p.evaluate(() => [...document.querySelectorAll('.cdb-sync')].map((h) => {
+          // checkVisibility gibt es erst ab Chrome 105 (die Optionsnamen ab
+          // 121, davor checkVisibilityCSS/checkOpacity); ohne es entscheidet
+          // der berechnete Stil des Elements und seiner Vorfahren.
+          const zu = (el) => {
+            if (!el || el.getClientRects().length === 0) return false;
+            if (typeof el.checkVisibility === 'function') {
+              return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
+            }
+            if (getComputedStyle(el).visibility === 'hidden') return false;
+            for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).opacity === '0') return false;
+            return true;
+          };
+          return {
+            wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
+            state: h.dataset.state,
+            text: (h.querySelector('.cdb-sync__txt')?.textContent ?? '').trim(),
+            zu: zu(h),
+            login: zu(h.querySelector('.cdb-sync__login')),
+            retry: zu(h.querySelector('.cdb-sync__retry')),
+          };
+        }));
+        if (anzeigen.length !== 2) { probleme.push(`${wo}: ${anzeigen.length} Konto-Anzeigen statt 2 (Kopfleiste und Planer)`); continue; }
+        for (const a of anzeigen) {
+          const hier = `${wo}, ${a.wo}`;
+          if (!a.zu) { probleme.push(`${hier}: die Konto-Anzeige ist nicht zu sehen`); continue; }
+          if (!a.text) { probleme.push(`${hier}: die Konto-Anzeige hat keinen Text`); continue; }
+          if (a.login !== z.login || a.retry !== z.retry) {
+            const zeigt = [a.login && '„Anmelden"', a.retry && '„Erneut versuchen"'].filter(Boolean).join(' und ') || 'keine Aktion';
+            const soll = [z.login && '„Anmelden"', z.retry && '„Erneut versuchen"'].filter(Boolean).join(' und ') || 'keine Aktion';
+            probleme.push(`${hier}: „${a.text}" zeigt ${zeigt}, erwartet ${soll}`);
+            continue;
+          }
+          const vorher = texte.get(z.state);
+          if (vorher && vorher !== a.text) { probleme.push(`${hier}: Text „${a.text}", an anderer Stelle im selben Zustand „${vorher}"`); continue; }
+          texte.set(z.state, a.text);
+          syncAnzeigen++;
+        }
+      } finally {
+        await ctx.close();
+      }
+    }
+  }
+  if (!probleme.length && new Set(texte.values()).size !== SYNC_ZUSTAENDE.length)
+    probleme.push(`verschiedene Zustaende teilen sich einen Text (${[...texte].map(([k, v]) => `${k}=„${v}"`).join(', ')})`);
+  if (!probleme.length) return null;
+  return `Crafting-Planer, ${probleme.length} Abweichung(en): ${probleme.join(' | ')}`;
+}
+
 /* ---------- Ein Seitenaufruf ---------- */
 async function pruefe(kontext, variante, seite, pfad, sprache) {
   const page = await kontext.newPage();
@@ -790,6 +987,33 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     );
     if (ueber > 4) melde('ueberlauf', `waagerechter Ueberlauf: ${ueber}px breiter als das Fenster`);
 
+    // [6] Kein Element mit hidden-Attribut wird gezeichnet.
+    //
+    // Die UA-Regel [hidden]{display:none} verliert gegen JEDE Autor-Regel,
+    // die display setzt. mobile-ux.css hebt unter 821 px jeden <button> auf
+    // inline-flex, und der Crafting-Planer zeigte am Handy „Synced to your
+    // account" neben „Sign in" und „Retry" (07.11.2026): die Skripte setzten
+    // hidden richtig, der Browser zeichnete trotzdem. Seitdem gewinnt
+    // [hidden] in assets/theme.css mit !important; diese Zusicherung haelt
+    // das fest, auf jeder Leitseite und in jeder Variante, egal welches
+    // Skript gerade was versteckt. Gemeldet wird nur das oberste gezeichnete
+    // [hidden]-Element einer Kette. hidden="until-found" ist ausgenommen.
+    geprueftePunkte++;
+    const versteckt = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('[hidden]:not([hidden="until-found"])')];
+      const gezeichnet = alle
+        .filter((el) => el.getClientRects().length > 0 && !el.parentElement?.closest('[hidden]:not([hidden="until-found"])'))
+        .map((el) => {
+          const name = el.tagName.toLowerCase() + (el.id ? `#${el.id}` : '') +
+            (typeof el.className === 'string' && el.className.trim() ? `.${el.className.trim().split(/\s+/).join('.')}` : '');
+          return `${name} („${(el.textContent || '').trim().slice(0, 30)}", display:${getComputedStyle(el).display})`;
+        });
+      return { n: alle.length, gezeichnet };
+    });
+    hiddenGeprueft += versteckt.n;
+    if (versteckt.gezeichnet.length)
+      melde('hidden', `${versteckt.gezeichnet.length} Element(e) mit hidden-Attribut gezeichnet: ${versteckt.gezeichnet.slice(0, 4).join(', ')}`);
+
     // Interaktionsprobe nur im Normalfall — sie soll das Verhalten belegen,
     // nicht dreimal dasselbe.
     if (seite.probe && variante.id === 'dunkel-1280') {
@@ -897,6 +1121,14 @@ await browser.close();
 console.log(`\n=== Bilanz ===`);
 console.log(`  Seitenaufrufe: ${aufrufe}   Untergrenze: ${MIN_AUFRUFE}`);
 console.log(`  gepruefte Einzelpunkte: ${geprueftePunkte}`);
+console.log(`  [6] Elemente mit hidden-Attribut angesehen: ${hiddenGeprueft}   Untergrenze: ${MIN_HIDDEN}`);
+const SYNC_SOLL = SYNC_BREITEN.length * SYNC_ZUSTAENDE.length * 2 * 2; // je Breite und Zustand zwei Anzeigen, zwei Sprachen
+const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
+if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
+if (hiddenGeprueft < MIN_HIDDEN && !NUR)
+  fehler.push(`[6] nur ${hiddenGeprueft} Elemente mit hidden-Attribut angesehen, Untergrenze ist ${MIN_HIDDEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
+if (mitPlaner && syncAnzeigen < SYNC_SOLL && !fehler.some((f) => f.includes('Crafting-Planer')))
+  fehler.push(`Crafting-Planer: nur ${syncAnzeigen} von ${SYNC_SOLL} Konto-Anzeigen geprueft`);
 if (IST_VORSCHAU)
   console.log(`  erwartete CSP-Verstoesse (Zaehl-Host, im Vorschau-Build gewollt): ${erwarteteCsp}`);
 if (aufrufe < MIN_AUFRUFE && !NUR)

@@ -20,8 +20,21 @@
    befragt — hier laeuft das Skript auf dem Entwicklungsrechner, wo es git
    gibt (anders als im Build-Container, siehe _write-build-stamp.mjs).
 
+   Weist der Bot-Schutz vor der Domain /build.json ab (401/403/429), liest
+   das Skript denselben Stempel aus <base>/build.txt — gemessen 08.11.2026:
+   Cloudflare sperrt den GitHub-Runner seit mindestens 01.11. fuer .json,
+   HTML und Pfade ohne Endung, laesst aber Endungen durch, die es als
+   statisch fuehrt (.css, .js, robots.txt; .txt steht auf seiner Liste).
+   So soll der Warte-Schritt der Deploy-Laeufe wieder messen, statt nach
+   einer Sekunde "NICHT geprueft" zu melden (ob Cloudflare /build.txt dem
+   Runner durchlaesst, zeigt erst der erste Lauf damit). Kommt /build.txt
+   aus Cloudflares Zwischenspeicher (cf-cache-status HIT/STALE/UPDATING),
+   zaehlt die Antwort nicht: sie
+   sagt nichts ueber den Deploy, und ein alter Stempel daraus waere ein
+   falscher FEHLER.
+
    Vier Zusicherungen:
-     1  <base>/build.json ist erreichbar und lesbar
+     1  <base>/build.json (bei Sperre <base>/build.txt) ist erreichbar und lesbar
      2  die ausgelieferte Kennung entspricht der erwarteten
      3  Vorschau/Live passt zum Ziel (eine Live-Domain darf keinen
         Vorschau-Build ausliefern und umgekehrt)
@@ -77,21 +90,52 @@ const istSoll = (ist) => !!ist && String(ist).toLowerCase().startsWith(SOLL);
 // Genau so passiert am 09.08.2026 im ersten scharfen Lauf: der Schritt stand
 // noch, als der Deploy laengst durch war. Ein Tor, das haengt, ist schlimmer
 // als eins, das rot wird.
-async function hole() {
-  const r = await fetch(`${BASE}/build.json`, {
+const SPERRE = new Set([401, 403, 429]);
+const anfrage = (url) =>
+  fetch(url, {
     cache: 'no-store',
+    redirect: 'manual', // die Vorschau leitet ohne Ausweis auf /gate.html um — das ist kein Stempel
     signal: AbortSignal.timeout(15000),
     headers: { 'cache-control': 'no-cache' },
   });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
+/** Fehler mit Grund: `gesperrt` = Bot-Schutz, `zwischenspeicher` = Antwort
+ *  aus Cloudflares Cache. Beides ist keine Aussage ueber den Deploy, und
+ *  Weiterpollen aendert daran nichts. */
+const fehler = (msg, art) => Object.assign(new Error(msg), art ? { [art]: true } : {});
+
+let quelle = 'build.json';
+async function hole() {
+  const r = await anfrage(`${BASE}/build.json`);
+  if (r.ok) {
+    quelle = 'build.json';
+    return r.json();
+  }
+  if (!SPERRE.has(r.status)) throw fehler(`HTTP ${r.status}`);
+  // build.json gesperrt: derselbe Stempel als build.txt. Wegwerf-Parameter
+  // je Anfrage, damit Cloudflare jede beim Ursprung holt (er gehoert zum
+  // Cache-Schluessel, nginx ignoriert ihn fuer die location-Wahl).
+  const t = await anfrage(`${BASE}/build.txt?vbst=${Date.now().toString(36)}`);
+  const vorne = `build.json HTTP ${r.status}, build.txt`;
+  if (SPERRE.has(t.status)) throw fehler(`HTTP ${r.status} (build.json), HTTP ${t.status} (build.txt)`, 'gesperrt');
+  // 404 oder die Umleitung des Tors: das laufende Image ist aelter als
+  // build.txt — waehrend eines Deploys genau der Zustand vor dem Wechsel.
+  if (!t.ok) throw fehler(`${vorne} HTTP ${t.status}`);
+  const cache = (t.headers.get('cf-cache-status') ?? '').toUpperCase();
+  if (['HIT', 'STALE', 'UPDATING'].includes(cache))
+    throw fehler(`${vorne} kam aus Cloudflares Zwischenspeicher (cf-cache-status ${cache})`, 'zwischenspeicher');
+  let body = null;
+  try { body = JSON.parse(await t.text()); } catch { /* unten */ }
+  if (!body || typeof body.sha !== 'string' || !/^[0-9a-f]{7,40}$|^dev$/i.test(body.sha))
+    throw fehler(`${vorne} traegt keinen lesbaren Stempel`);
+  quelle = `build.txt (build.json: HTTP ${r.status})`;
+  return body;
 }
 
 console.log(`\n=== Ausgelieferter Stand von ${BASE} ===`);
 console.log(`Soll-Kennung: ${kurz(SOLL)}${SOLL ? '' : ' (kein git — es wird nur berichtet)'}\n`);
 
 const bis = Date.now() + WARTE * 1000;
-let stempel = null, letzterFehler = null, gesperrt = false;
+let stempel = null, letzterFehler = null, gesperrt = false, zwischenspeicher = false;
 for (;;) {
   try {
     stempel = await hole();
@@ -102,13 +146,14 @@ for (;;) {
     // build.json fehlt: entweder laeuft der Deploy noch, oder der Stand ist
     // aelter als dieses Verfahren (dann ist genau das die Antwort).
     //
-    // 403/401/429 ist etwas ANDERES: das ist der Bot-Schutz vor der Domain,
-    // keine Aussage ueber den Deploy. Weiterzupollen bringt dann nichts —
-    // gemessen am 09.08.2026: der GitHub-Runner bekommt von Cloudflare
-    // durchgehend 403, der Schritt lief zehn Minuten fuer nichts. Dieselbe
-    // Sperre wie bei UEX. Also sofort abbrechen statt das Fenster
-    // auszusitzen.
-    if (/HTTP (401|403|429)/.test(e.message)) { gesperrt = true; break; }
+    // 403/401/429 auf BEIDEN Wegen ist etwas ANDERES: das ist der Bot-
+    // Schutz vor der Domain, keine Aussage ueber den Deploy. Weiterzupollen
+    // bringt dann nichts — gemessen am 09.08.2026: der GitHub-Runner bekommt
+    // von Cloudflare durchgehend 403, der Schritt lief zehn Minuten fuer
+    // nichts. Dieselbe Sperre wie bei UEX. Also sofort abbrechen statt das
+    // Fenster auszusitzen. Ebenso bei einer Antwort aus dem Zwischenspeicher.
+    if (e.gesperrt) { gesperrt = true; break; }
+    if (e.zwischenspeicher) { zwischenspeicher = true; break; }
   }
   if (Date.now() >= bis) break;
   process.stdout.write('.');
@@ -117,19 +162,21 @@ for (;;) {
 if (WARTE) console.log('');
 if (gesperrt)
   console.log(`Abgebrochen: die Domain weist diesen Rechner ab (${letzterFehler}) — Bot-Schutz, keine Aussage ueber den Deploy.\n`);
+if (zwischenspeicher)
+  console.log(`Abgebrochen: ${letzterFehler} — keine Aussage ueber den Deploy.\n`);
 
 const fail = [];
 
-console.log('[1] build.json erreichbar');
+console.log('[1] Stempel erreichbar (build.json, bei Sperre build.txt)');
 if (!stempel) {
   console.log(`    Ist: nein (${letzterFehler})`);
   const satz =
-    `${BASE}/build.json ist nicht abrufbar (${letzterFehler}). Entweder laeuft der Deploy noch, ` +
+    `Der Stempel von ${BASE} ist nicht abrufbar (${letzterFehler}). Entweder laeuft der Deploy noch, ` +
     `oder die ausgelieferte Fassung ist aelter als der Build-Stempel — dann ist sie in jedem Fall nicht der aktuelle Stand.`;
   if (WEICH) {
     console.log(`    WARNUNG (--weich): ${satz}`);
-    if (gesperrt) {
-      console.log('    Grund ist der Bot-Schutz vor der Domain, nicht der Deploy — von hier aus');
+    if (gesperrt || zwischenspeicher) {
+      console.log(`    Grund ist ${gesperrt ? 'der Bot-Schutz vor der Domain' : 'Cloudflares Zwischenspeicher'}, nicht der Deploy — von hier aus`);
       console.log('    ist die Frage nicht beantwortbar. Auf dem Entwicklungsrechner geht es:');
     } else {
       console.log('    Blockiert nicht — von hier aus laesst sich nicht unterscheiden, ob die Seite');
@@ -140,7 +187,7 @@ if (!stempel) {
     fail.push(satz);
   }
 } else {
-  console.log(`    Ist: ja   Kennung ${stempel.kurz}   gebaut ${stempel.gebautAm}`);
+  console.log(`    Ist: ja   Kennung ${stempel.kurz}   gebaut ${stempel.gebautAm}   Quelle ${quelle}`);
 }
 
 if (stempel) {
@@ -181,4 +228,4 @@ if (!stempel) {
   console.log('\ncheck-deployed: NICHT geprueft — der Stempel war nicht erreichbar (--weich)\n');
   process.exit(0);
 }
-console.log('\ncheck-deployed: die Seite liefert den erwarteten Stand aus ✓\n');
+console.log(`\ncheck-deployed: die Seite liefert den erwarteten Stand aus ✓ (gelesen aus ${quelle})\n`);

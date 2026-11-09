@@ -35,6 +35,22 @@ export function searchRootData(lang: Locale): Record<string, string> {
     'data-failed-hint': t('search.failed.hint'),
     'data-failed-more': t('search.failed.more'),
     'data-retry': t('search.retry'),
+    // Gruppierte Treffer (09.11.2026, Skizze 016) — fuer Dialog und
+    // Startseiten-Feld dieselben Texte.
+    'data-count': t('search.count'),
+    'data-g-tools': t('search.group.tools'),
+    'data-g-ships': t('search.group.ships'),
+    'data-g-items': t('search.group.items'),
+    'data-g-recipes': t('search.group.recipes'),
+    'data-g-missions': t('search.group.missions'),
+    'data-g-patches': t('search.group.patches'),
+    'data-more': t('search.more'),
+    'data-craft': t('search.craft'),
+    'data-jump': t('search.jump'),
+    'data-start-hint': t('search.startHint'),
+    'data-hint-pick': t('search.pick'),
+    'data-hint-open': t('search.open'),
+    'data-hint-craft': t('search.craftHint'),
   };
   for (const k of SEARCH_KINDS) out[`data-k-${k}`] = t(`search.kind.${k}` as Parameters<typeof t>[0]);
   return out;
@@ -53,6 +69,7 @@ export function searchChromeLabels(lang: Locale): Record<string, string> {
     pick: t('search.pick'),
     open: t('search.open'),
     dismiss: t('search.dismiss'),
+    craft: t('search.craftHint'),
   };
 }
 
