@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 016-1 — Startseite: Suche direkt im Feld</title>
+<style>
+/* Wegwerf-Entwurf. Startseite wie heute (Foto, Wortmarke, Kopfleiste),
+   nur das Suchfeld ist ein echtes Eingabefeld, und die Treffer stehen
+   darunter, nach Art gruppiert. Treffer und Zahlen: echter Index des
+   Vorschau-Baus von staging 44938189 (DE), Gruppierung nach Vorschlag.
+   Zustand per ?z=leer | mining | panther | gladius */
+@font-face { font-family: 'Orbitron'; font-weight: 400 900; src: url(../../../assets/fonts/orbitron-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 600; src: url(../../../assets/fonts/rajdhani-600-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 700; src: url(../../../assets/fonts/rajdhani-700-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 400; src: url(../../../assets/fonts/barlow-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 500; src: url(../../../assets/fonts/barlow-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 600; src: url(../../../assets/fonts/barlow-600-latin.woff2) format('woff2'); }
+:root {
+  --bg: #04060c; --text: #eef3fb; --muted: #8ea0be; --accent: #2dd4ff;
+  --line: rgba(150,180,220,.14); --line-2: rgba(150,180,220,.26);
+  --craft: #ff5e1a;
+  --panel: rgba(6,9,16,.94);
+  --row-h: rgba(45,212,255,.10);
+  --ui: 'Rajdhani', sans-serif; --body: 'Barlow', system-ui, sans-serif; --disp: 'Orbitron', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--body); -webkit-font-smoothing: antialiased; overflow: hidden; height: 100vh; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+/* ---- Kopfleiste wie heute ---- */
+.nav { position: fixed; inset: 0 0 auto; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 45px; z-index: 5;
+  font: 700 13px var(--ui); letter-spacing: .14em; text-transform: uppercase; color: rgba(238,243,251,.82); }
+.nav .grp { display: flex; gap: 12px; }
+.nav .b { height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 3px; background: rgba(0,0,0,.35); }
+.nav kbd { font: 700 10px var(--ui); border: 1px solid var(--line-2); padding: 2px 6px; border-radius: 3px; }
+
+/* ---- Hero ---- */
+.hero { position: fixed; inset: 0; }
+.hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center right; transform: scale(1.06); }
+.hero::after { content: ''; position: absolute; inset: 0; background:
+  linear-gradient(90deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.58) 40%, rgba(0,0,0,.08) 78%, transparent),
+  linear-gradient(0deg, var(--bg) 1%, rgba(0,0,0,.35) 24%, transparent 58%); }
+.mark { position: fixed; top: 96px; left: 0; right: 0; text-align: center; z-index: 2; font: 900 clamp(2.9rem,12vw,8.5rem)/.92 var(--disp); letter-spacing: -.02em; text-shadow: 0 10px 60px rgba(0,0,0,.85); transition: opacity .2s; }
+
+/* ---- Suchfeld: jetzt ein Eingabefeld ---- */
+.search { position: fixed; z-index: 3; left: 50%; transform: translateX(-50%); width: min(720px, calc(100% - 40px)); top: 338px; transition: top .22s cubic-bezier(.2,.7,.2,1); }
+.field { display: flex; align-items: center; gap: 14px; height: 72px; padding: 0 22px 0 26px; background: rgba(0,0,0,.72); border: 1px solid rgba(255,255,255,.28); border-radius: 11px; backdrop-filter: blur(8px); font: 600 19.8px var(--ui); }
+.field .p { color: var(--accent); font-weight: 800; }
+.field .in { flex: 1; min-width: 0; color: #fff; display: flex; align-items: center; }
+.field .in .ph { color: rgba(244,247,255,.62); }
+.field .caret { display: inline-block; width: 2px; height: 26px; background: var(--accent); margin-left: 2px; }
+.field .x { width: 30px; height: 30px; border-radius: 6px; display: grid; place-items: center; color: rgba(255,255,255,.7); font-size: 20px; }
+.field kbd { font: 700 13px var(--ui); letter-spacing: .08em; color: #fff; border: 1px solid rgba(255,255,255,.28); border-bottom-width: 2px; border-radius: 5px; padding: 3px 9px; background: rgba(0,0,0,.92); }
+
+/* Treffer offen: Feld steigt unter die Kopfleiste, Wortmarke tritt zurueck */
+body.offen .search { top: 92px; }
+body.offen .mark { opacity: 0; }
+body.offen .field { border-color: var(--accent); border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--panel); }
+
+/* ---- Trefferliste ---- */
+.res { display: none; background: var(--panel); border: 1px solid var(--accent); border-top: 1px solid var(--line-2); border-radius: 0 0 11px 11px; backdrop-filter: blur(10px); max-height: calc(100vh - 92px - 72px - 24px); overflow: hidden; }
+body.offen .res { display: block; }
+.res__head { display: flex; justify-content: space-between; align-items: center; padding: 10px 22px 6px; font: 600 13px var(--body); color: var(--muted); }
+.res__head .keys { display: flex; gap: 14px; }
+.res__head kbd { font: 700 11px var(--ui); border: 1px solid var(--line-2); border-radius: 3px; padding: 0 5px; margin-right: 4px; color: var(--text); }
+.g { padding: 4px 0 6px; border-top: 1px solid var(--line); }
+.g:first-of-type { border-top: 0; }
+.g h3 { display: flex; align-items: baseline; gap: 8px; padding: 8px 22px 4px; font: 600 13px var(--body); color: var(--muted); }
+.g h3 b { color: var(--text); font-weight: 600; }
+.row { display: grid; grid-template-columns: 26px 1fr auto; align-items: center; gap: 12px; min-height: 46px; padding: 5px 14px 5px 18px; margin: 0 6px; border-radius: 8px; }
+.row.sel { background: var(--row-h); box-shadow: inset 3px 0 0 var(--accent); }
+.row .ic { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,.06); display: grid; place-items: center; color: var(--muted); }
+.row .ic svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.row .t { min-width: 0; }
+.row .t b { display: block; font-weight: 600; font-size: 16px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+mark { background: none; color: var(--accent); }
+.row .t span { display: block; font-size: 13.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .act { display: flex; gap: 8px; align-items: center; }
+.craft { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 6px; border: 1px solid rgba(255,94,26,.45); color: #ffb08c; font: 600 13.5px var(--body); white-space: nowrap; }
+.craft svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+.row.sel .craft { border-color: var(--craft); color: #fff; background: rgba(255,94,26,.18); }
+.go { color: var(--muted); font-size: 15px; }
+.more { display: block; margin: 2px 6px 0; padding: 7px 18px 7px 56px; border-radius: 8px; font: 500 14px var(--body); color: var(--accent); }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 22px 10px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px 0 10px; border-radius: 8px; background: rgba(255,255,255,.06); font: 600 14.5px var(--body); }
+.chip.sel { background: var(--row-h); box-shadow: inset 0 0 0 1px var(--accent); }
+.chip svg { width: 16px; height: 16px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chip span { color: var(--muted); font-weight: 500; }
+.hint { padding: 8px 22px 14px; font-size: 14px; color: var(--muted); }
+
+.cue { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); width: min(1180px, 92%); display: flex; justify-content: space-between; z-index: 1; }
+.cue svg { width: 40px; height: 78px; } .cue path { fill: none; stroke: var(--accent); stroke-width: 4.5; }
+body.offen .cue { display: none; }
+
+
+/* ---- Rahmen „Dialog“: dieselbe Liste, aufgerufen ueber die Kopfleiste einer Datenseite ---- */
+body.dialog .hero, body.dialog .mark, body.dialog .cue, body.dialog .nav { display: none; }
+body.dialog { background: #0d0c14 url(img/hinter-datenblatt.png) top center / 1280px auto no-repeat; }
+body.dialog::before { content: ''; position: fixed; inset: 0; background: rgba(2,3,8,.78); backdrop-filter: blur(2px); }
+body.dialog .search { top: 88px; width: min(660px, calc(100% - 40px)); }
+body.dialog .field { height: 60px; font-size: 18px; border-color: var(--accent); background: var(--panel); border-radius: 4px 4px 0 0; }
+body.dialog .res { border-radius: 0 0 4px 4px; max-height: 600px; }
+body.dialog .field .p { font-size: 15px; }
+
+/* ---- Handy ---- */
+.kbd-area { display: none; }
+@media (max-width: 600px) {
+  .nav { padding: 0 14px; height: 56px; } .nav .grp:first-child .b:not(:first-child), .nav .lbl { display: none; }
+  .search { top: 46vh; width: calc(100% - 32px); }
+  .field { height: 60px; padding: 0 12px 0 16px; font-size: 18px; }
+  .field kbd { display: none; }
+  body.offen .nav { display: none; }
+  body.offen .search { top: 10px; width: calc(100% - 20px); }
+  body.offen .field { height: 54px; border-radius: 10px; }
+  body.offen .res { border-radius: 0 0 10px 10px; max-height: calc(100vh - 10px - 54px - 292px); }
+  .res__head .keys { display: none; }
+  .row { grid-template-columns: 24px 1fr auto; gap: 10px; padding: 6px 8px 6px 10px; margin: 0 4px; min-height: 50px; }
+  .row .t b { white-space: normal; font-size: 15.5px; }
+  .craft { height: 34px; padding: 0 10px; }
+  .craft { font-size: 13px; gap: 5px; }
+  .go { display: none; }
+  .tools { padding: 4px 12px 10px; }
+  .g h3 { padding: 8px 14px 4px; }
+  .res__head { padding: 10px 14px 4px; }
+  .more { padding-left: 46px; }
+  .kbd-area { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 284px; background: #2b2e36; z-index: 6; }
+  .kbd-area::before { content: 'Bildschirmtastatur'; position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.35); font: 500 14px var(--body); }
+  body:not(.offen):not(.leer) .kbd-area { display: none; }
+  body.leer .nav { display: none; }
+  body.leer .search { top: 10px; width: calc(100% - 20px); }
+  body.leer .mark { opacity: 0; }
+  body.leer .res { display: block; border-color: var(--accent); }
+  body.leer .field { border-color: var(--accent); border-radius: 10px 10px 0 0; height: 54px; background: var(--panel); }
+}
+</style>
+</head>
+<body>
+<div class="hero"><img src="../../../assets/t-polaris-5.jpg" alt=""></div>
+<header class="nav">
+  <div class="grp"><span class="b">Login</span><span class="b">DE / EN</span></div>
+  <div class="grp"><span class="b">⌕ <span class="lbl">Suche</span> <kbd class="lbl">Strg K</kbd></span><span class="b">☰ <span class="lbl">Menü</span></span></div>
+</header>
+<div class="mark">VerseBase</div>
+
+<div class="search" role="combobox" aria-expanded="true">
+  <div class="field">
+    <span class="p">&gt;_</span>
+    <span class="in" id="in"></span>
+    <span class="x" id="x" aria-label="Leeren">×</span>
+    <kbd id="esc">Esc</kbd>
+  </div>
+  <div class="res" id="res" role="listbox"></div>
+</div>
+<div class="cue">
+  <svg viewBox="0 0 46 90"><path d="M3 3 23 31 43 3"/><path d="M3 21 23 49 43 21" opacity=".74"/><path d="M3 39 23 67 43 39" opacity=".52"/><path d="M3 57 23 85 43 57" opacity=".34"/></svg>
+  <svg viewBox="0 0 46 90"><path d="M3 3 23 31 43 3"/><path d="M3 21 23 49 43 21" opacity=".74"/><path d="M3 39 23 67 43 39" opacity=".52"/><path d="M3 57 23 85 43 57" opacity=".34"/></svg>
+  <svg viewBox="0 0 46 90"><path d="M3 3 23 31 43 3"/><path d="M3 21 23 49 43 21" opacity=".74"/><path d="M3 39 23 67 43 39" opacity=".52"/><path d="M3 57 23 85 43 57" opacity=".34"/></svg>
+  <svg viewBox="0 0 46 90"><path d="M3 3 23 31 43 3"/><path d="M3 21 23 49 43 21" opacity=".74"/><path d="M3 39 23 67 43 39" opacity=".52"/><path d="M3 57 23 85 43 57" opacity=".34"/></svg>
+  <svg viewBox="0 0 46 90"><path d="M3 3 23 31 43 3"/><path d="M3 21 23 49 43 21" opacity=".74"/><path d="M3 39 23 67 43 39" opacity=".52"/><path d="M3 57 23 85 43 57" opacity=".34"/></svg>
+</div>
+<div class="kbd-area" aria-hidden="true"></div>
+
+<script>
+// Icons der Arten (dieselben Striche wie im Menue der Seite)
+const I = {
+  tool: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
+  ship: '<path d="M12 2L2 22h9l1-6 1 6h9L12 2z"/>',
+  item: '<path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/>',
+  mission: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
+  patch: '<path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>',
+  pick: '<path d="M8 5a14 14 0 0 1 11 11"/><path d="M4.2 20.2 15.4 9"/>',
+  bolt: '<path d="M13 2 4.5 13H11l-1 9 9.5-12H13z"/>',
+  flask: '<path d="M9 3h6M10 3v5.5L4.6 19A1.4 1.4 0 0 0 5.8 21h12.4a1.4 1.4 0 0 0 1.2-2L14 8.5V3"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/>',
+  wrench: '<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
+};
+const svg = (k) => '<svg viewBox="0 0 24 24">' + I[k] + '</svg>';
+const CRAFT = '<span class="craft">' + svg('wrench') + '<span class="lab">Herstellen</span></span>';
+const hl = (t, q) => q ? t.replace(new RegExp('(' + q + ')', 'i'), '<mark>$1</mark>') : t;
+
+// Treffer: echter DE-Index, Reihenfolge = Punktzahl, Gruppen nach Vorschlag
+const Z = {
+  mining: { n: 37, groups: [
+    { name: 'Werkzeuge', n: 2, tools: [['pick','Mining','Mineralien & Scans'],['bolt','Fracturing','Bricht der Brocken?']] },
+    { name: 'Missionen', n: 9, more: 6, rows: [
+      ['mission','Mining and Data Collection','Search'],
+      ['mission','Mining and MOLE','Search'],
+      ['mission','Minor Mining Job','Search · 2 Angebote'] ] },
+    { name: 'Items', n: 18, more: 15, rows: [
+      ['item','Lawson Mining Laser','Shubin Interstellar · Bergbaulaser', 1],
+      ['item','Pitman Mining Laser','Drake Interplanetary · Bergbaulaser', 1],
+      ['item','Arbor-MH1-Bergbaulaser','Musashi Industrial · Bergbaulaser', 1] ] },
+    { name: 'Schiffe', n: 1, rows: [ ['ship','Golem','Drake Interplanetary · Industrie · Klein'] ] },
+    { name: 'Patches & Themen', n: 7, more: 6, rows: [ ['patch','Mining & Scanning','Alpha 4.9.0 · Laserleistung aller Schiffs-Mining-Laser +20 %'] ] },
+  ] },
+  panther: { n: 2, groups: [
+    { name: 'Items', n: 2, rows: [
+      ['item','CF-337-Panther-Repetierer','Klaus & Werner · Größe 3 · Schiffswaffe', 1],
+      ['item','CF-337 Panther „Hazard-Zone“ Repeater','Klaus & Werner · Größe 3 · Schiffswaffe', 1] ] },
+  ] },
+  gladius: { n: 8, groups: [
+    { name: 'Schiffe', n: 3, rows: [
+      ['ship','Gladius','Aegis Dynamics · Leichter Jäger · ab 2.262.330 aUEC im Spiel'],
+      ['ship','Gladius Pirate','Aegis Dynamics · Leichter Jäger'],
+      ['ship','Gladius Valiant','Aegis Dynamics · Leichter Jäger'] ] },
+    { name: 'Items', n: 5, more: 2, rows: [
+      ['item','Gladius: Schiffspanzerung','Aegis Dynamics · Panzerung'],
+      ['item','Gladius PHB Flight Blade','Flight Blade'],
+      ['item','Gladius TSB Flight Blade','Flight Blade'] ] },
+  ] },
+};
+
+const P = new URLSearchParams(location.search);
+const z = P.get('z') || 'mining';
+if (P.get('rahmen') === 'dialog') document.body.classList.add('dialog');
+const res = document.getElementById('res');
+const inEl = document.getElementById('in');
+if (z === 'leer') {
+  document.body.classList.add('leer');
+  inEl.innerHTML = '<span class="caret"></span><span class="ph">Items, Schiffe, Missionen …</span>';
+  res.innerHTML = '<div class="res__head"><span>Direkt zu</span></div><div class="tools">' +
+    [['search','Item Finder','Preise & Fundorte'],['wrench','Crafting','Rezepte & Planer'],['ship','Schiffe',''],['mission','Missionen',''],['pick','Mining',''],['flask','Raffinerie','']]
+      .map(([i,t,s]) => '<span class="chip">' + svg(i) + t + (s ? ' <span>' + s + '</span>' : '') + '</span>').join('') +
+    '</div><p class="hint">Tippen sucht in Items, Rezepten, Schiffen, Missionen, Werkzeugen und Patches.</p>';
+} else {
+  document.body.classList.add('offen');
+  const d = Z[z];
+  inEl.innerHTML = z + '<span class="caret"></span>';
+  let first = true;
+  let html = '<div class="res__head"><span>' + d.n + ' Treffer</span><span class="keys"><span><kbd>↑↓</kbd>wählen</span><span><kbd>↵</kbd>öffnen</span><span><kbd>→</kbd>Herstellen</span></span></div>';
+  for (const g of d.groups) {
+    html += '<div class="g"><h3><b>' + g.name + '</b>' + g.n + '</h3>';
+    if (g.tools) html += '<div class="tools">' + g.tools.map(([i,t,s]) => '<span class="chip' + (first ? ' sel' : '') + '">' + svg(i) + hl(t, z) + ' <span>' + s + '</span></span>').join('') + '</div>', first = false;
+    for (const r of g.rows || []) {
+      html += '<div class="row' + (first ? ' sel' : '') + '"><span class="ic">' + svg(r[0]) + '</span><span class="t"><b>' + hl(r[1], z) + '</b><span>' + r[2] + '</span></span><span class="act">' + (r[3] ? CRAFT : '') + '<span class="go">→</span></span></div>';
+      first = false;
+    }
+    if (g.more) html += '<a class="more">+ ' + g.more + ' weitere ' + g.name + '</a>';
+    html += '</div>';
+  }
+  if (d.hint) html += '<p class="hint">' + d.hint + '</p>';
+  res.innerHTML = html;
+}
+</script>
+</body>
+</html>
