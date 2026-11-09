@@ -25,9 +25,11 @@
    Cloudflare sperrt den GitHub-Runner seit mindestens 01.11. fuer .json,
    HTML und Pfade ohne Endung, laesst aber Endungen durch, die es als
    statisch fuehrt (.css, .js, robots.txt; .txt steht auf seiner Liste).
-   Damit misst der Warte-Schritt der Deploy-Laeufe wieder, statt nach
-   einer Sekunde "NICHT geprueft" zu melden. Eine Antwort aus Cloudflares
-   Zwischenspeicher (cf-cache-status HIT/STALE/UPDATING) zaehlt nicht: sie
+   So soll der Warte-Schritt der Deploy-Laeufe wieder messen, statt nach
+   einer Sekunde "NICHT geprueft" zu melden (ob Cloudflare /build.txt dem
+   Runner durchlaesst, zeigt erst der erste Lauf damit). Kommt /build.txt
+   aus Cloudflares Zwischenspeicher (cf-cache-status HIT/STALE/UPDATING),
+   zaehlt die Antwort nicht: sie
    sagt nichts ueber den Deploy, und ein alter Stempel daraus waere ein
    falscher FEHLER.
 

@@ -71,11 +71,12 @@ const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
 const BASE = flag('--base', 'https://staging.verse-base.com').replace(/\/$/, '');
 const WEICH = argv.includes('--weich');
 
-// Untergrenzen (Stand 29.10.2026, gegen nginx mit diesem Stand gemessen):
-// 14 feste Stichproben (live kommt das /_astro/-Buendel dazu), davon live
-// 8 HTML-Antworten mit Inline-Skripten (Wurzel, gate.html, Pilotenseite,
-// fuenfmal 404), auf der Vorschau 1 (gate.html).
-const MIN_ANTWORTEN = 14;
+// Untergrenzen (Stand 09.11.2026, gegen nginx mit diesem Stand gemessen):
+// 15 feste Stichproben, seit /build.txt dazukam (live kommt das
+// /_astro/-Buendel dazu), davon live 8 HTML-Antworten mit Inline-Skripten
+// (Wurzel, gate.html, Pilotenseite, fuenfmal 404), auf der Vorschau 1
+// (gate.html).
+const MIN_ANTWORTEN = 15;
 const MIN_HTML = 1;
 // Ein Jahr, wie nginx/default.conf es setzt. Darunter laesst ein Browser
 // die HTTPS-Pflicht zu frueh fallen.

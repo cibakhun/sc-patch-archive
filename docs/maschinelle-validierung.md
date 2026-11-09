@@ -711,7 +711,9 @@ die Lieferung auf `staging` liegt.
 > Testpilot-Tor wie `/build.json`), und `check-deployed.mjs` liest ihn, wenn
 > `/build.json` gesperrt ist — mit Wegwerf-Parameter, und eine Antwort aus
 > Cloudflares Zwischenspeicher (`cf-cache-status` HIT/STALE/UPDATING) zählt
-> nicht. Damit misst der Warte-Schritt wieder. Gewählt vom Betreiber statt
+> nicht. Ob der Warte-Schritt damit wieder misst, zeigt erst der erste
+> Deploy-Lauf danach: gemessen ist bis dahin nur, dass `robots.txt` den
+> Runner erreicht, nicht `/build.txt` selbst. Gewählt vom Betreiber statt
 > einer Ausnahme in Cloudflare: keine Sicherheitseinstellung geändert.
 > - `CLAUDE.md` (neu, im Wurzelverzeichnis) trägt die Lieferregeln, damit sie
 >   jede Sitzung erreichen statt nur diese.

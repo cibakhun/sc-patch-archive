@@ -831,7 +831,7 @@ export const CHECKS = [
     checks:
       'die Vorschau-Domain liefert wirklich den zuletzt gebauten Stand aus (dist/build.json gegen origin/staging) und traegt einen Vorschau-Build, keinen Live-Build',
     env:
-      'Netz: fetch() gegen <base>/build.json; weist der Bot-Schutz das ab (401/403/429), gegen <base>/build.txt (derselbe Stempel unter einer Endung, die Cloudflare als statisch durchlaesst), eine Antwort aus Cloudflares Zwischenspeicher zaehlt nicht. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
+      'Netz: fetch() gegen <base>/build.json; weist der Bot-Schutz das ab (401/403/429), gegen <base>/build.txt (derselbe Stempel unter einer Endung, die Cloudflare als statisch fuehrt); kommt /build.txt aus Cloudflares Zwischenspeicher, zaehlt die Antwort nicht. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
   },
 
   {
