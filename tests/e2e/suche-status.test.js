@@ -59,6 +59,8 @@ class El {
     this.className = '';
     this.textContent = '';
     this.value = '';
+    this.style = { setProperty() {} };
+    this.offsetHeight = 70;
     const self = this;
     this.classList = {
       add(c) { const s = new Set(self.className.split(' ').filter(Boolean)); s.add(c); self.className = [...s].join(' '); },
@@ -70,6 +72,9 @@ class El {
     if (k.startsWith('data-')) this.dataset[k.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = String(v);
   }
   getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; }
+  removeAttribute(k) { delete this.attrs[k]; }
+  getBoundingClientRect() { return { top: 300, bottom: 370, left: 0, right: 720, width: 720, height: 70 }; }
+  contains(x) { return x === this || this.children.some((c) => c.contains && c.contains(x)); }
   appendChild(c) { this.children.push(c); return c; }
   set innerHTML(v) { if (v === '') this.children = []; else throw new Error('innerHTML nur zum Leeren'); }
   addEventListener(t, fn) { (this.listeners[t] ||= []).push(fn); }
@@ -78,7 +83,7 @@ class El {
   select() {}
   querySelectorAll(sel) {
     if (sel === 'li[role="option"]') return this.children.filter((c) => c.attrs.role === 'option');
-    if (sel === '[data-scs-close]') return [];
+    if (sel === '[data-scs-close]' || sel === '[data-hs-close]') return [];
     throw new Error(`Selektor nicht nachgebaut: ${sel}`);
   }
   // Text der Zeile wie im Browser: eigene Worte plus die der Kinder.
@@ -126,16 +131,28 @@ function netz(plan) {
   return { fetch, abrufe, loese: (teil) => { offen[teil](); delete offen[teil]; } };
 }
 
-function boot(lang, plan) {
+function boot(lang, plan, { feld = false } = {}) {
   const root = new El('div');
   root.hidden = true;
   for (const [k, v] of Object.entries(searchRootData(lang))) root.setAttribute(k, v);
   const input = new El('input');
   const list = new El('ul');
   const byId = { scs: root, 'scs-in': input, 'scs-list': list };
+  // Das Feld der Startseite (src/components/HomeSearch.astro): dieselben ids
+  // wie dort. Ohne `feld` gibt es es nicht — wie auf jeder anderen Seite.
+  if (feld) {
+    byId.hs = new El('div');
+    byId['hs-in'] = new El('input');
+    byId['hs-list'] = new El('ul');
+    byId['hs-field'] = new El('div');
+  }
   const doc = new El('#document');
   doc.getElementById = (id) => byId[id] || null;
   doc.createElement = (t) => new El(t);
+  doc.createElementNS = (_ns, t) => new El(t);
+  doc.createTextNode = (t) => { const n = new El('#text'); n.textContent = String(t); return n; };
+  doc.documentElement = new El('html');
+  doc.readyState = 'complete';
   doc.activeElement = null;
   const n = netz(plan);
   // Eigene Uhr statt der echten (Review #312): die Sperrfrist fuer den
@@ -151,13 +168,21 @@ function boot(lang, plan) {
     location: { href: '' },
     setTimeout, clearTimeout,
     Date: { now: () => uhr.t },
+    innerHeight: 800,
+    scrollY: 0,
+    scrollTo() {},
+    addEventListener() {},
   };
   win.window = win;
   vm.runInContext(CODE, vm.createContext(win));
   assert.equal(typeof win.__scsOpen, 'function', 'das Skript hat sich nicht angemeldet');
   const tippe = (s) => { input.value = s; input.fire('input'); };
   const zeilen = () => list.children.map((c) => c.className);
-  return { win, root, input, list, n, uhr, tippe, zeilen, rd: searchRootData(lang) };
+  // Nur die waehlbaren Zeilen (Treffer, "+ N weitere"), ohne Kopf, Gruppen-
+  // ueberschriften und Statuszeilen.
+  const optionen = (l = list) => l.children.filter((c) => c.attrs.role === 'option');
+  const feldTippe = (s) => { byId['hs-in'].value = s; byId['hs-in'].fire('input'); };
+  return { win, root, input, list, n, uhr, tippe, zeilen, optionen, feldTippe, feld: byId['hs-list'], rd: searchRootData(lang) };
 }
 
 for (const lang of ['de', 'en']) {
@@ -206,7 +231,7 @@ for (const lang of ['de', 'en']) {
       s.tippe('Arrow');
       await flush();
       const z = s.zeilen();
-      assert.ok(z[0].includes('scs__hit--schiff'), `Schiff zuerst: ${z}`);
+      assert.ok(s.optionen()[0].className.includes('scs__hit--schiff'), `Schiff zuerst: ${z}`);
       assert.ok(z.at(-1).includes('scs__status--laedt'), `Ladehinweis als letzte Zeile: ${z}`);
     });
 
@@ -262,6 +287,111 @@ for (const lang of ['de', 'en']) {
       assert.match(z.className, /scs__empty/);
       assert.ok(z.text.includes(s.rd['data-empty-title']));
       assert.equal(z.find('scs__retry'), null, 'bei echtem "kein Treffer" gibt es nichts zu wiederholen');
+    });
+  });
+}
+
+/* ---------- Ein Suchkern, zwei Oberflaechen (09.11.2026, Skizze 016) ----------
+   Das grosse Feld der Startseite sucht selbst; der Dialog (Strg+K) bleibt auf
+   allen anderen Seiten. Beide muessen fuer dieselbe Eingabe dieselben Zeilen
+   in derselben Reihenfolge zeigen — sonst gaebe es doch wieder zwei Suchen. */
+const VIEL = [
+  ...['Mining', 'Fracturing'].map((t) => ({ k: 'werkzeug', b: '', t, s: 'Werkzeug', u: `/${t.toLowerCase()}.html`, x: 'mining bergbau' })),
+  ...Array.from({ length: 5 }, (_, i) => ({ k: 'mission', b: 'Search', t: `Mining Job ${i + 1}`, s: '', u: `/missionen/m${i}.html`, x: '' })),
+  { k: 'schiff', b: 'Drake', t: 'Golem', s: 'Drake · Mining', u: '/schiffe/golem.html', x: 'mining' },
+];
+const VIEL_MORE = [
+  ...Array.from({ length: 6 }, (_, i) => ({ k: 'item', b: 'Mining Laser', t: `Mining Laser ${i + 1}`, s: 'Shubin', u: `/items/ml${i}.html`, x: '', ...(i % 2 ? {} : { c: `/topics/crafting.html?bp=ML${i}&bpi=${i}` }) })),
+  { k: 'bauplan', b: 'Mining', t: 'Mining Gadget', s: 'Vehiclegear', u: '/crafting/mg.html', x: '', c: '/topics/crafting.html?bp=MG&bpi=9' },
+];
+function bootViel(lang) {
+  ERSTER.splice(0, ERSTER.length, ...VIEL);
+  ITEMS.splice(0, ITEMS.length, ...VIEL_MORE);
+  return boot(lang, {}, { feld: true });
+}
+const ERSTER_ALT = ERSTER.slice();
+const ITEMS_ALT = ITEMS.slice();
+function zurueck() {
+  ERSTER.splice(0, ERSTER.length, ...ERSTER_ALT);
+  ITEMS.splice(0, ITEMS.length, ...ITEMS_ALT);
+}
+const bild = (l) => l.children.map((c) => `${c.attrs.role === 'option' ? 'o' : '-'} ${c.className.replace(/\s*\bsel\b/, '')} | ${c.text}`);
+
+for (const lang of ['de', 'en']) {
+  describe(`Ein Suchkern fuer Dialog und Startseiten-Feld (${lang})`, () => {
+    test('dieselbe Eingabe ergibt in Feld und Dialog dieselbe Liste', async () => {
+      const s = bootViel(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('mining');
+        s.feldTippe('mining');
+        await flush();
+        const dialog = bild(s.list).filter((z) => !z.includes('scs__head'));
+        const feld = bild(s.feld).filter((z) => !z.includes('scs__head'));
+        assert.ok(dialog.length > 5, `zu wenige Zeilen im Dialog: ${dialog.join(' / ')}`);
+        assert.deepEqual(feld, dialog);
+      } finally { zurueck(); }
+    });
+
+    test('Gruppen in der Reihenfolge ihres besten Treffers, je drei Zeilen und "+ N weitere"', async () => {
+      const s = bootViel(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('mining');
+        await flush();
+        const gruppen = s.list.children.filter((c) => c.className.includes('scs__grp')).map((c) => c.className.split('--')[1]);
+        // Werkzeuge (+20) zuerst, dann Missionen (Titel beginnt mit "Mining"),
+        // die Items, das Schiff (nur ueber x), der Bauplan.
+        assert.deepEqual(gruppen, ['tools', 'missions', 'items', 'recipes', 'ships']);
+        const mehr = s.list.children.filter((c) => c.className.includes('scs__more'));
+        assert.equal(mehr.length, 2, 'Missionen (5) und Items (6) brauchen je "+ N weitere"');
+        assert.ok(mehr[0].text.includes('2') && mehr[0].text.includes(s.rd['data-g-missions']), `Text: ${mehr[0].text}`);
+        // Der Klick klappt auf, und die erste neue Zeile ist gewaehlt.
+        mehr[0].fire('click');
+        const ops = s.optionen();
+        const gewaehlt = ops.find((c) => c.className.includes('sel'));
+        assert.ok(gewaehlt && /\bJob 4\b/.test(gewaehlt.text), `gewaehlt: ${gewaehlt && gewaehlt.text}`);
+        assert.equal(s.list.children.filter((c) => c.className.includes('scs__more')).length, 1);
+      } finally { zurueck(); }
+    });
+
+    test('Item mit Rezept: ein Treffer mit "Herstellen", Pfeil rechts fuehrt ins Werkzeug', async () => {
+      const s = bootViel(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        s.tippe('mining laser 1');
+        await flush();
+        const z = s.optionen()[0];
+        assert.ok(z.className.includes('scs__hit--item'), z.className);
+        const knopf = z.find('scs__craft');
+        assert.ok(knopf, 'Item mit c braucht den Knopf "Herstellen"');
+        assert.ok(knopf.text.includes(s.rd['data-craft']), knopf.text);
+        // Pfeil rechts am Ende der Eingabe = Herstellen.
+        const ev = { key: 'ArrowRight', preventDefault() {}, target: s.input };
+        s.input.selectionStart = s.input.selectionEnd = s.input.value.length;
+        for (const fn of s.win.document.listeners.keydown || []) fn(ev);
+        assert.equal(s.win.location.href, '/topics/crafting.html?bp=ML0&bpi=0');
+        // Ohne c kein Knopf.
+        s.tippe('mining laser 2');
+        await flush();
+        assert.equal(s.optionen()[0].find('scs__craft'), null);
+      } finally { zurueck(); }
+    });
+
+    test('leeres Feld: Werkzeuge als Kacheln, nichts vorgewaehlt', async () => {
+      const s = bootViel(lang);
+      try {
+        s.win.__scsOpen();
+        await flush();
+        const ops = s.optionen();
+        assert.equal(ops.length, 2);
+        assert.ok(ops.every((c) => c.className.includes('scs__chip')));
+        assert.ok(!ops.some((c) => c.className.includes('sel')), 'Enter darf im leeren Feld nichts oeffnen');
+        assert.ok(s.list.children.some((c) => c.className.includes('scs__hint')));
+      } finally { zurueck(); }
     });
   });
 }

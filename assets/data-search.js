@@ -56,6 +56,10 @@
     input.autocomplete = 'off';
     input.spellcheck = false;
     input.setAttribute('aria-label', L.term || '');
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-expanded', 'true');
+    input.setAttribute('aria-controls', 'scs-list');
+    input.setAttribute('aria-autocomplete', 'list');
     var sys = el('span', 'scs__sys', (L.sys || '').replace(/&nbsp;/g, '\u00a0'));
     sys.setAttribute('aria-hidden', 'true');
     // Zwei Beschriftungen, CSS waehlt: "Esc" mit Tastatur, das Wort auf
@@ -77,6 +81,7 @@
     var foot = el('div', 'scs__foot');
     foot.appendChild(kbdLine('↑↓', L.pick));
     foot.appendChild(kbdLine('↵', L.open));
+    foot.appendChild(kbdLine('→', L.craft));
     foot.appendChild(kbdLine('Esc', L.dismiss));
     panel.appendChild(bar);
     panel.appendChild(list);

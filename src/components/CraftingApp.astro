@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import DB from '../../assets/crafting-db.json';
 import { ICON_BLUEPRINT, ICON_DISMANTLE } from '../lib/icons';
-import { blueprints, blueprintPath, blueprintSpecs } from '../lib/crafting';
+import { blueprints, blueprintPath, blueprintSpecs, itemForBlueprint } from '../lib/crafting';
+import { pageItemIds } from '../lib/items';
 import { mineralByMaterial, miningPath } from '../lib/miningLinks';
 import { href, useTranslations } from '../i18n/ui';
 import { itemT } from '../i18n/itemText';
@@ -100,6 +101,7 @@ const JS_T = {
     calcFound: '{count} kompatible Items gefunden',
     calcRareLabel: '(selten)',
     openInFinder: 'Im Item Finder öffnen',
+    openItem: 'Item-Datenblatt öffnen',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
     whereToMine: 'Wo abbauen: {name}',
@@ -132,6 +134,7 @@ const JS_T = {
     calcFound: '{count} compatible items found',
     calcRareLabel: '(rare)',
     openInFinder: 'Open in Item Finder',
+    openItem: 'Open item data sheet',
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
     whereToMine: 'Where to mine: {name}',
@@ -196,6 +199,22 @@ function fmtT(sec: number | null) {
 // Reihenfolge und Index kommen aus lib/crafting (identisch mit DB.blueprints) —
 // von dort stammt auch der Slug, damit der Kartenname auf dieselbe URL zeigt
 // wie Sitemap und Blueprint-Seite.
+// Rezept -> Item-Datenblatt fuer den Link im Rezept-Fenster (09.11.2026,
+// Skizze 016: vom Rezept zum Datenblatt statt in den Item Finder). Kompakt:
+// bei 1.551 von 1.572 Rezepten mit Datenblatt ist die Item-Adresse gleich dem
+// Rezept-Slug, den die Karte ohnehin verlinkt; mitgeschickt werden nur die
+// Abweichungen und die Rezepte ohne Datenblatt (dort bleibt der Finder).
+const itemLinks: { base: string; diff: Record<number, string>; none: number[] } = {
+  base: href('/items/', lang),
+  diff: {},
+  none: [],
+};
+for (const b of blueprints) {
+  const it = itemForBlueprint(b);
+  if (!it || !pageItemIds.has(it.id)) itemLinks.none.push(b.index);
+  else if (it.id !== b.slug) itemLinks.diff[b.index] = it.id;
+}
+
 const cardsData = blueprints.map((b) => {
   const p = (b.category || '').split(' / ');
   const top = p[0] || '—';
@@ -939,6 +958,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   // Materialname (Schreibweise wie im Rezept) -> Mineral, für die Abbau-Links
   // im Detail-Modal und in der Einkaufsliste des Planers (rendert das JS).
   mine: { url: miningUrl, names: mineralOf },
+  items: itemLinks,
   t: JS_T,
 })};`} />
 {/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe

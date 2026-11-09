@@ -111,136 +111,251 @@
 .scs__list {
   list-style: none;
   margin: 0;
-  padding: 0.5rem;
+  padding: 0.35rem 0.4rem 0.55rem;
   max-height: 56vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Zeilen ueber die volle Breite, Werkzeug-Kacheln nebeneinander: eine
+     flache Liste (jede Zeile ein <li>), damit Pfeiltasten und Vorlesen der
+     Reihe nach gehen, ohne verschachtelte Listen. */
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-content: flex-start;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--accent, #2dd4ff) 45%, transparent) transparent;
 }
-/* one result = one clearly bounded card row (badge · body · arrow) */
-.scs__hit {
-  --c: var(--accent, #2dd4ff);
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
+.scs__list > li {
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
+/* Kopf: Trefferzahl, im Startseiten-Feld dazu die Tasten (der Dialog hat
+   seine Fusszeile). */
+.scs__head {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  column-gap: 0.9rem;
-  row-gap: 0.1rem;
-  padding: 0.7rem 0.85rem 0.7rem 0.75rem;border:1px solid var(--line, var(--line-soft));
-  border-left: 3px solid transparent;
-  border-radius: 3px;background:color-mix(in srgb, var(--surface, var(--veil-2)) 55%, transparent);
-  cursor: pointer;
-  scroll-margin: 0.5rem;
-  transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui);
+  gap: 1rem;
+  padding: 0.45rem 0.85rem 0.15rem;
+  font-size: var(--fs-6);
+  color: var(--muted, #8a99b8);
 }
-/* hover AND keyboard selection share one unmistakable highlighted state —
-   kept as two self-contained rules (not a shared selector list) so the
-   keyboard `.sel` row always gets the full highlight, not just part of it */
-.scs__hit:hover {background:color-mix(in srgb, var(--c) 16%, var(--surface, var(--veil-2))) !important;
-  border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
-  border-left-color: var(--c) !important;
-  transform: translateX(2px);
+.scs__keys {
+  display: flex;
+  gap: 0.9rem;
 }
-/* Touch kennt kein Hover: der Druckzustand ist die einzige Rückmeldung,
-   dass die Zeile getroffen wurde, bevor die neue Seite lädt. */
-.scs__hit:active {background:color-mix(in srgb, var(--c) 26%, var(--surface, var(--veil-2))) !important;
-  border-color: var(--c) !important;
-  transform: scale(0.99);
+.scs__keys > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
-.scs__hit.sel {background:color-mix(in srgb, var(--c) 18%, var(--surface, var(--veil-2))) !important;
-  border-color: color-mix(in srgb, var(--c) 45%, transparent) !important;
-  border-left-color: var(--c) !important;
-  transform: translateX(2px);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent);
-}
-.scs__badge {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  align-self: center;
+.scs__keys kbd {
   font-family: var(--font-ui, sans-serif);
   font-weight: 700;
   font-size: var(--fs-4);
-  letter-spacing: var(--ls-13);
-  text-transform: uppercase;
-  color: var(--c);
-  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
-  background: color-mix(in srgb, var(--c) 12%, transparent);
-  border-radius: 2px;
-  padding: 0.2rem 0.45rem;
-  white-space: nowrap;
-  min-width: 4.6rem;
-  text-align: center;
+  color: var(--text, #e8eefc);
+  border: 1px solid var(--line, var(--line-soft));
+  border-radius: 3px;
+  padding: 0 0.3rem;
 }
-/* type colour-coding — instantly tells ships from patches from topics */
+
+/* Gruppenkopf: Name und Anzahl, eine Haarlinie zur Gruppe davor. */
+.scs__grp {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  padding: 0.55rem 0.85rem 0.2rem;
+  border-top: 1px solid var(--line, var(--line-soft));
+  font-size: var(--fs-6);
+  color: var(--muted, #8a99b8);
+}
+.scs__head + .scs__grp,
+.scs__list > .scs__grp:first-child {
+  margin-top: 0;
+  border-top: 0;
+}
+.scs__grp b {
+  font-weight: 600;
+  color: var(--text, #e8eefc);
+}
+
+/* Ein Treffer: Symbol der Art · Titel und Unterzeile · Herstellen und Pfeil.
+   Ueberfahren ist leise, die Tastatur-Auswahl deutlich (Balken links) — die
+   beiden sahen bis zum 09.11.2026 gleich aus, und man wusste nicht, welche
+   Zeile Enter oeffnet. */
+.scs__hit {
+  --c: var(--accent, #2dd4ff);
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 46px;
+  padding: 0.3rem 0.7rem 0.3rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  scroll-margin: 0.4rem;
+  transition: background-color var(--dur-fast) var(--ease-ui);
+}
+.scs__hit:hover {
+  background: color-mix(in srgb, var(--text, #e8eefc) 5%, transparent);
+}
+.scs__hit:active {
+  background: color-mix(in srgb, var(--accent, #2dd4ff) 16%, transparent);
+}
+.scs__hit.sel {
+  background: color-mix(in srgb, var(--accent, #2dd4ff) 11%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent, #2dd4ff);
+}
+.scs__ic {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text, #e8eefc) 6%, transparent);
+  display: grid;
+  place-items: center;
+  color: var(--c);
+}
+.scs__ic svg,
+.scs__craft svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Art an der Farbe des Symbols: Items violett wie ihre Seiten, Blueprints
+   bernstein wie die Crafting-Seiten, Werkzeuge im Akzent. */
 .scs__hit--schiff { --c: var(--accent, #2dd4ff); }
 .scs__hit--mission { --c: #f5a524; }
 .scs__hit--patch { --c: var(--gold, #d4af37); }
 .scs__hit--thema { --c: var(--accent-2, #6ea8ff); }
 .scs__hit--feature { --c: #5ad19a; }
 .scs__hit--event { --c: #ff8a50; }
-/* Datenschicht und Werkzeuge (06.11.2026): Items violett wie ihre Seiten,
-   Bauplaene bernstein wie die Crafting-Seiten, Werkzeuge im Akzent. */
 .scs__hit--item { --c: #a78bfa; }
 .scs__hit--bauplan { --c: #ffb84d; }
 .scs__hit--werkzeug { --c: #5eead4; }
+.scs__tx {
+  min-width: 0;
+}
 .scs__t {
-  grid-column: 2;
-  grid-row: 1;
-  font-family: var(--font-ui, sans-serif);
-  font-weight: 700;
-  font-size: var(--fs-10);
-  line-height: 1.25;
+  display: block;
+  font-weight: 600;
+  font-size: var(--fs-8);
+  line-height: 1.3;
   color: var(--text, #e8eefc);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.scs__t mark {
+  background: none;
+  color: var(--accent, #2dd4ff);
+}
 .scs__s {
-  grid-column: 2;
-  grid-row: 2;
-  font-size: var(--fs-7);
+  display: block;
+  font-size: var(--fs-6);
   line-height: 1.35;
   color: var(--muted, #8a99b8);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.scs__meta {
-  grid-column: 3;
-  grid-row: 1 / span 2;
+.scs__act {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-ui, sans-serif);
-  font-weight: 700;
-  font-size: var(--fs-5);
-  letter-spacing: var(--ls-9);
-  color: var(--muted, #8a99b8);
+  gap: 0.55rem;
+}
+/* "Herstellen" in der Farbe des Crafting-Werkzeugs, wohin er fuehrt. */
+.scs__craft {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 30px;
+  padding: 0 0.65rem;
+  border: 1px solid rgba(255, 94, 26, 0.45);
+  border-radius: 6px;
+  background: none;
+  color: #ffb08c;
+  font-family: var(--font-body, inherit);
+  font-weight: 600;
+  font-size: var(--fs-6);
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-ui), border-color var(--dur-fast) var(--ease-ui), color var(--dur-fast) var(--ease-ui);
+}
+.scs__craft:hover,
+.scs__hit.sel .scs__craft {
+  border-color: #ff5e1a;
+  background: rgba(255, 94, 26, 0.18);
+  color: #fff;
 }
 .scs__go {
-  color: var(--c);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity var(--dur-fast) var(--ease-ui), transform var(--dur-fast) var(--ease-ui);
+  color: var(--muted, #8a99b8);
+  opacity: 0.55;
 }
-.scs__hit:hover .scs__go {
-  opacity: 1;
-  transform: none;
-}
+.scs__hit:hover .scs__go,
 .scs__hit.sel .scs__go {
+  color: var(--accent, #2dd4ff);
   opacity: 1;
-  transform: none;
 }
-.scs__hit:hover .scs__meta {
-  color: var(--text, #e8eefc);
+
+/* Werkzeuge als Kacheln in einer Reihe. */
+.scs__list > li.scs__chip {
+  flex: 0 0 auto;
+  max-width: 100%;
 }
-.scs__hit.sel .scs__meta {
-  color: var(--text, #e8eefc);
+.scs__chip {
+  grid-template-columns: auto auto;
+  gap: 0.5rem;
+  min-height: 40px;
+  margin: 0.2rem 0.25rem 0.2rem 0;
+  padding: 0.25rem 0.8rem 0.25rem 0.5rem;
+  background: color-mix(in srgb, var(--text, #e8eefc) 6%, transparent);
+}
+.scs__grp + .scs__chip {
+  margin-left: 0.5rem;
+}
+.scs__chip .scs__ic {
+  width: auto;
+  height: auto;
+  background: none;
+}
+.scs__chip .scs__tx {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+.scs__chip .scs__s {
+  max-width: 14rem;
+}
+.scs__chip.sel {
+  box-shadow: inset 0 0 0 1px var(--accent, #2dd4ff);
+}
+
+/* "+ N weitere Items" */
+.scs__more {
+  margin: 0.1rem 0 0;
+  padding: 0.5rem 0.75rem 0.5rem 3.25rem;
+  border-radius: 8px;
+  color: var(--accent, #2dd4ff);
+  font-size: var(--fs-7);
+  font-weight: 500;
+  cursor: pointer;
+}
+.scs__more:hover {
+  background: color-mix(in srgb, var(--text, #e8eefc) 5%, transparent);
+}
+.scs__more.sel {
+  background: color-mix(in srgb, var(--accent, #2dd4ff) 11%, transparent);
+  box-shadow: inset 3px 0 0 var(--accent, #2dd4ff);
+}
+.scs__hint {
+  padding: 0.55rem 0.85rem 0.8rem;
+  font-size: var(--fs-7);
+  color: var(--muted, #8a99b8);
 }
 .scs__empty {
   padding: 1.2rem 1.4rem;
@@ -357,7 +472,8 @@
   display: none;
 }
 @media (hover: none) and (pointer: coarse) {
-  .scs__foot {
+  .scs__foot,
+  .scs__keys {
     display: none;
   }
   .scs__x-key {
@@ -375,17 +491,27 @@
   .scs__panel {
     margin: 6vh 4vw 0;
   }
-  .scs__badge {
-    min-width: 3.9rem;
-    font-size: var(--fs-3);
-    letter-spacing: var(--ls-11);
+  .scs__hit {
+    gap: 0.6rem;
+    min-height: 50px;
+    padding: 0.35rem 0.5rem 0.35rem 0.55rem;
   }
-  /* drop the right-hand version meta on narrow screens — the badge + title
-     carry the identity, and the arrow alone signals the active row */
-  .scs__meta-ver {
+  /* Auf schmalen Schirmen darf der Titel umbrechen, statt abgeschnitten zu
+     werden; der Pfeil faellt weg, die ganze Zeile ist der Knopf. */
+  .scs__t {
+    white-space: normal;
+  }
+  .scs__go {
     display: none;
   }
-  .scs__hit {
-    column-gap: 0.7rem;
+  .scs__craft {
+    height: 36px;
+    padding: 0 0.6rem;
+  }
+  .scs__keys {
+    display: none;
+  }
+  .scs__more {
+    padding-left: 2.9rem;
   }
 }

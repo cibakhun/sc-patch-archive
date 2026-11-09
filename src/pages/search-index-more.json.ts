@@ -4,7 +4,7 @@
 import type { APIRoute } from 'astro';
 import { buildSearchIndexMore } from '../lib/searchIndex';
 
-export const GET: APIRoute = () =>
-  new Response(JSON.stringify(buildSearchIndexMore('en')), {
+export const GET: APIRoute = async () =>
+  new Response(JSON.stringify(await buildSearchIndexMore('en')), {
     headers: { 'Content-Type': 'application/json; charset=utf-8' },
   });
