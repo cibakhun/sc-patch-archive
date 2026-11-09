@@ -72,6 +72,9 @@ const MIN_AUFRUFE = 40;
 // fuer beide Artefakte. Ohne Klinke waere ein Lauf, dessen Abfrage still
 // nichts findet, von einem echten nicht zu unterscheiden.
 const MIN_HIDDEN = 300;
+// [7] Filter-Schubladen am Telefon: Crafting-Planer und Missionen je EN/DE
+// (der Vorschau-Bau hat mit der Werkbank zwei mehr).
+const MIN_SCHUBLADEN = 4;
 
 /* ---------- Browser finden ---------- */
 // playwright-core bringt bewusst KEINEN Browser mit (~5 MB statt ~300).
@@ -134,7 +137,8 @@ const SEITEN = [
     leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeCraftingSync,
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
-  { id: 'missionen', en: '/missionen.html', de: '/de/missionen.html', leit: 'main' },
+  // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
+  { id: 'missionen', en: '/missionen.html', de: '/de/missionen.html', leit: 'main', schwer: true },
   { id: 'armor-sets', en: '/armor-sets.html', de: '/de/armor-sets.html', leit: 'main' },
   { id: 'precision-jump', en: '/precision-jump.html', de: '/de/precision-jump.html', leit: 'main' },
   { id: 'support', en: '/support.html', de: '/de/support.html', leit: 'main' },
@@ -204,7 +208,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0;
 
 /* ---------- Alte Hell-Wahl im Browser ----------
    Bis zum 02.11.2026 konnten Admins hell waehlen; die Wahl lag als
@@ -1219,6 +1223,55 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     if (versteckt.gezeichnet.length)
       melde('hidden', `${versteckt.gezeichnet.length} Element(e) mit hidden-Attribut gezeichnet: ${versteckt.gezeichnet.slice(0, 4).join(', ')}`);
 
+    // [7] Filter-Schubladen am Telefon (assets/offcanvas.js). Gemessen
+    // 09.11.2026: der Fokus blieb beim Oeffnen auf dem Knopf (inert lief noch),
+    // und die Site-Nav (z 9600) lag ueber dem Kopf der Schublade (9250), ihr ✕
+    // war nicht antippbar. Jede sichtbare Schublade auf jeder Leitseite: offen
+    // geht der Fokus hinein, das erste Bedienelement liegt oben, Esc schliesst
+    // und macht sie wieder inert.
+    if (variante.breite <= 820) {
+      const knoepfe = page.locator('[data-offcanvas-toggle]');
+      for (let i = 0; i < (await knoepfe.count()); i++) {
+        const knopf = knoepfe.nth(i);
+        if (!(await knopf.isVisible())) continue;
+        const id = await knopf.getAttribute('data-offcanvas-toggle');
+        geprueftePunkte++;
+        schubladen++;
+        await knopf.click();
+        await page.waitForTimeout(450);
+        const offen = await page.evaluate((id) => {
+          const panel = document.getElementById(id);
+          if (!panel) return { fehlt: true };
+          const a = document.activeElement;
+          const erstes = [...panel.querySelectorAll('button, [href], input, select, textarea')].find((el) => el.getClientRects().length);
+          let oben = null;
+          if (erstes) {
+            const r = erstes.getBoundingClientRect();
+            const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+            if (el && !erstes.contains(el)) oben = el.closest('#topbar') ? 'der Site-Nav' : el.tagName + (el.id ? `#${el.id}` : '');
+          }
+          return {
+            offen: panel.classList.contains('is-open') && !panel.inert,
+            fokusDrin: panel.contains(a),
+            fokus: a ? a.tagName + (a.id ? `#${a.id}` : '') : '-',
+            erstes: erstes ? erstes.tagName + (erstes.id ? `#${erstes.id}` : '') : null,
+            oben,
+          };
+        }, id);
+        if (offen.fehlt) { melde('schublade', `#${id}: Panel zum Knopf fehlt`); continue; }
+        if (!offen.offen) { melde('schublade', `#${id} oeffnet nicht (is-open/inert)`); continue; }
+        if (!offen.fokusDrin) melde('schublade', `#${id}: beim Oeffnen bleibt der Fokus draussen (${offen.fokus})`);
+        if (offen.oben) melde('schublade', `#${id}: ${offen.erstes} liegt unter ${offen.oben}`);
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(450);
+        const zu = await page.evaluate((id) => {
+          const panel = document.getElementById(id);
+          return !panel.classList.contains('is-open') && panel.inert === true;
+        }, id);
+        if (!zu) melde('schublade', `#${id}: Esc schliesst nicht oder laesst sie bedienbar (inert fehlt)`);
+      }
+    }
+
     // Interaktionsprobe nur im Normalfall — sie soll das Verhalten belegen,
     // nicht dreimal dasselbe.
     if (seite.probe && variante.id === 'dunkel-1280') {
@@ -1330,6 +1383,9 @@ console.log(`  [6] Elemente mit hidden-Attribut angesehen: ${hiddenGeprueft}   U
 const SYNC_SOLL = SYNC_BREITEN.length * SYNC_ZUSTAENDE.length * 2 * 2; // je Breite und Zustand zwei Anzeigen, zwei Sprachen
 const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
 if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
+console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Untergrenze: ${MIN_SCHUBLADEN}`);
+if (schubladen < MIN_SCHUBLADEN && !NUR)
+  fehler.push(`[7] nur ${schubladen} Filter-Schubladen geprueft, Untergrenze ist ${MIN_SCHUBLADEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (hiddenGeprueft < MIN_HIDDEN && !NUR)
   fehler.push(`[6] nur ${hiddenGeprueft} Elemente mit hidden-Attribut angesehen, Untergrenze ist ${MIN_HIDDEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (mitPlaner && syncAnzeigen < SYNC_SOLL && !fehler.some((f) => f.includes('Crafting-Planer')))
