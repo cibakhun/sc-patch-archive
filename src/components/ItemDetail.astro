@@ -4,10 +4,11 @@
 // erst "was kostet das und wo", dann "was kann das", dann Fundort-Guide,
 // Rezept und Nachbarn.
 import DataShell from './DataShell.astro';
+import { standItems, datumLang } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, categoryLabel } from '../i18n/itemText';
+import { itemT, itemLabel, obtainLabel, categoryLabel, fill } from '../i18n/itemText';
 import {
-  ITEM_PATCH, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
+  ITEM_KENNUNG, altName, auec, avgPrice, categoryPath, categorySlug, db, description,
   displayName, itemPath, itemsHubPath, leafCategory, maxPrice, minPrice, num,
   pageItemIds, relatedItems, rootCategory, sortedObtain, type Item,
   armorSetById, setItemsBySlot,
@@ -15,19 +16,24 @@ import {
 import { specChips, statEntries, statRows, primaryStat, variantHead } from '../lib/itemStats';
 import { itemSeo } from '../lib/itemSeo';
 import { blueprintForItem, blueprintPath, craftTime, resourceNames } from '../lib/crafting';
-import { patchPageHref } from '../lib/patchPages';
+import { patchLinkFromKennung } from '../lib/patchPages';
 import { patchesMentioning } from '../lib/patchMentions';
+import { stockShips, inFracturingCalc, wikeloTrades } from '../lib/itemLinks';
 
 interface Props { item: Item; lang: Locale }
 const { item, lang } = Astro.props;
 
 const t = itemT(lang);
-const patchHref = patchPageHref(ITEM_PATCH, lang);
+const patchLink = patchLinkFromKennung(ITEM_KENNUNG, lang);
+const patchHref = patchLink.href;
 const mentions = patchesMentioning(itemPath(item));
 const seo = itemSeo(item, lang);
 const name = displayName(item, lang);
 const alt = altName(item, lang);
 const desc = description(item, lang);
+// Ohne deutsche Fassung steht auf DE der englische Spieltext — als englisch
+// ausgezeichnet (Vorlesen; verify:sprache prueft ihn dann nicht als DE-Text).
+const descLang = lang === 'de' && !item.game?.descDe ? 'en' : undefined;
 const chips = specChips(item, lang);
 const stats = statEntries(item, lang);
 const variants = item.game?.variants ?? [];
@@ -37,11 +43,44 @@ const lo = minPrice(item);
 const hi = maxPrice(item);
 const avg = avgPrice(item);
 const vendors = item.obtain.filter((o) => o.kind === 'shop' || o.kind === 'vehicle').length;
+// Datenstand: Verkaufsstellen von UEX und aus dem eigenen Shop-Schnappschuss
+// (src, nur wo UEX das Item nicht fuehrt) getrennt nennen.
+const snapVendors = item.obtain.filter((o) => o.kind === 'shop' && o.src === 'schnappschuss').length;
+const uexVendors = vendors - snapVendors;
 const loot = item.obtain.filter((o) => o.kind === 'loot').length;
+// Der UEX-Preisstand gehoert nur unter Preise, die von UEX kommen.
+const mitUexPreis = rows.some((o) => o.price != null && o.src !== 'schnappschuss');
+// Welche Zeile des Datenstands diese Bezugszeile belegt (verify:patch-angaben
+// [6] haelt beides gegeneinander): Shop und Schiffshaendler kommen von UEX,
+// ausser Shop-Zeilen aus dem eigenen Schnappschuss (src), Loot aus der eigenen
+// Recherche; Exklusiv-Zeilen sind Spielwerte.
+const standQ = (o: { kind: string; src?: string }) =>
+  o.src === 'schnappschuss' ? 'shop-schnappschuss'
+  : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items' : o.kind === 'loot' ? 'fundorte' : undefined;
+const schwankend = rows.some((o) => o.kind !== 'exclusive');
 const bp = blueprintForItem(item);
 const related = relatedItems(item, 12);
 const set = item.game?.setId ? armorSetById.get(item.game.setId) ?? null : null;
 const setSlots = set ? setItemsBySlot(set.id) : [];
+// Serienbelegung: auf welchen Schiffen das Teil ab Werk sitzt. Die ersten
+// STOCK_SHOWN stehen offen, der Rest im eingeklappten Block — als echte
+// Links im HTML, ohne Skript (die Huelle traegt bewusst keins).
+const STOCK_SHOWN = 12;
+const stock = stockShips(item);
+const stockLead = stock.length === 1
+  ? (stock[0].spaceship ? t('stockOneShip') : t('stockOneVehicle'))
+  : fill(
+      stock.every((s) => s.spaceship) ? t('stockShips') : stock.every((s) => !s.spaceship) ? t('stockVehicles') : t('stockMixed'),
+      { n: num(stock.length, lang) },
+    );
+// Werkzeuge, die genau dieses Item kennen — nichts Generisches: der
+// Bruchrechner nur fuer Teile, die er zur Auswahl hat, Wikelo nur, wenn ein
+// Tauschgeschaeft das Item nennt.
+const fracturing = inFracturingCalc(item);
+const wikelo = wikeloTrades(item);
+const wikeloHref = `${href('/topics/wikelo-emporium.html', lang)}?item=${encodeURIComponent(item.name)}`;
+const plural = (n: number, one: Parameters<typeof t>[0], many: Parameters<typeof t>[0]) =>
+  n === 1 ? t(one) : fill(t(many), { n: num(n, lang) });
 
 const root = rootCategory(item.category);
 const catSlug = categorySlug(item.category);
@@ -50,10 +89,8 @@ const kindLabel = (k: string) =>
   : k === 'exclusive' ? t('kindExclusive') : t('kindLoot');
 // Exklusiv-Zeilen tragen keinen Ort, sondern eine Bezugsart (Promo, Concierge,
 // Twitch-Drop …) — die wird uebersetzt. Echte Orte sind Eigennamen und bleiben.
-const locLabel = (o: { kind: string; loc: string; reason?: string }) =>
-  o.kind !== 'exclusive' ? o.loc
-    : o.reason ? (t(('ex' + o.reason.replace(/[^A-Za-z]/g, '')) as never) || o.loc)
-      : t('notLootable');
+// Dieselbe Regel gilt in der Kategorieliste (ItemListing), deshalb ein Helfer.
+const locLabel = (o: { kind: string; loc: string; reason?: string }) => obtainLabel(o, lang);
 
 const crumbs = [
   { label: t('breadcrumbItems'), href: itemsHubPath },
@@ -69,11 +106,11 @@ const crumbs = [
   eyebrow={`${categoryLabel(root, lang)} · ${t('pageEyebrow')}`}
   modified={db.generatedAt}
   ldName={name}
-  sources={['UEX Corp']}
-  updated={db.pricesAsOf}
+  stand={standItems(lang, { preise: uexVendors > 0, schnappschuss: snapVendors > 0, fundorte: loot > 0 })}
+  melden
 >
   <h1 slot="hero">{name}</h1>
-  {alt && <p class="dp-alt" slot="hero">{alt}</p>}
+  {alt && <p class="dp-alt" slot="hero" lang={lang === 'de' ? 'en' : 'de'}>{alt}</p>}
   <p class="dp-lead" slot="hero">{seo.lead}</p>
 
   <ul class="dp-keys" slot="hero">
@@ -109,11 +146,11 @@ const crumbs = [
             </thead>
             <tbody>
               {rows.map((o, idx) => (
-                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined}>
+                <tr class={idx === 0 && o.price != null ? 'dp-best' : undefined} data-stand-q={standQ(o)}>
                   <td>{locLabel(o)}</td>
                   <td>{kindLabel(o.kind)}</td>
                   <td class="dp-num">
-                    {o.price != null ? <span class="dp-price">{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
+                    {o.price != null ? <span class="dp-price" data-stand-q={standQ(o)}>{auec(o.price, lang)}</span> : <span class="dp-muted">—</span>}
                   </td>
                   <td class="dp-num">
                     <span class="dp-muted">{avg != null ? auec(avg, lang) : '—'}</span>
@@ -123,7 +160,13 @@ const crumbs = [
             </tbody>
           </table>
         </div>
-        <p class="dp-note">{t('volatileNote')} · {t('pricesAsOf')} {db.pricesAsOf}{avg != null && <> · {t('avgNote')}</>}</p>
+        {/* Preisdatum nur, wo ein Preis steht: ein Item nur mit Exklusiv-Zeilen
+            (Promo, Concierge …) hat keinen, und der Datenstand nennt dann auch
+            keine Kaufpreise. Der Hinweis auf schwankende Preise und Orte nur,
+            wo es Shop- oder Loot-Zeilen gibt. */}
+        {schwankend && (
+          <p class="dp-note">{t('volatileNote')}{mitUexPreis && <> · {t('pricesAsOf')} {datumLang(db.pricesAsOf, lang)}</>}{avg != null && <> · {t('avgNote')}</>}</p>
+        )}
       </>
     ) : (
       <p class="dp-callout">{t('catalogNote')}</p>
@@ -144,7 +187,7 @@ const crumbs = [
           {stats.map(([l, v]) => <li class="dp-stat"><b>{l}</b><span>{v}</span></li>)}
         </ul>
       )}
-      {desc && <p class="dp-desc">{desc}</p>}
+      {desc && <p class="dp-desc" lang={descLang}>{desc}</p>}
     </section>
   )}
 
@@ -169,6 +212,30 @@ const crumbs = [
     </section>
   )}
 
+  {/* -- Serienbelegung: von der Item-Seite zu den Schiffen, die das Teil
+         ab Werk tragen (src/lib/itemLinks.ts, Zuordnung ueber Name + Groesse). -- */}
+  {stock.length > 0 && (
+    <section class="dp-sec" id="serie">
+      <h2>{t('sectionStock')}</h2>
+      <p class="dp-lead-s">{stockLead}</p>
+      <ul class="dp-chips dp-chips--links">
+        {stock.slice(0, STOCK_SHOWN).map((s) => (
+          <li><a class="dp-chip" href={href(`/schiffe/${s.id}.html`, lang)}>{s.name}</a></li>
+        ))}
+      </ul>
+      {stock.length > STOCK_SHOWN && (
+        <details class="dp-more">
+          <summary>{fill(t('stockMore'), { n: num(stock.length - STOCK_SHOWN, lang) })}</summary>
+          <ul class="dp-chips dp-chips--links">
+            {stock.slice(STOCK_SHOWN).map((s) => (
+              <li><a class="dp-chip" href={href(`/schiffe/${s.id}.html`, lang)}>{s.name}</a></li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  )}
+
   {/* -- Set-Zugehoerigkeit: beantwortet "was fehlt mir noch" und haelt den
          Crawler auf den Geschwisterteilen statt nur in der Kategorie. -- */}
   {set && (
@@ -176,7 +243,7 @@ const crumbs = [
       <h2>{t('setPartOf')}: {set.name}</h2>
       <ul class="dp-chips">
         {set.manufacturer && <li class="dp-chip"><b>{t('specMfr')}</b>{set.manufacturer}</li>}
-        {set.weight && <li class="dp-chip"><b>{t('facetWeight')}</b>{t(('w' + set.weight.replace(/[^A-Za-z]/g, '')) as never) || set.weight}</li>}
+        {set.weight && <li class="dp-chip"><b>{t('facetWeight')}</b>{itemLabel(lang, 'w' + set.weight.replace(/[^A-Za-z]/g, ''), set.weight)}</li>}
         <li class="dp-chip"><b>{t('setPieces')}</b>{num(set.parts, lang)}</li>
         <li class="dp-chip">
           <b>{t('setsCompleteLabel')}</b>
@@ -185,7 +252,7 @@ const crumbs = [
       </ul>
       {setSlots.map(([slot, list]) => (
         <p class="dp-desc">
-          <b>{t(('slot' + slot) as never) || slot}:</b>{' '}
+          <b>{itemLabel(lang, 'slot' + slot, slot)}:</b>{' '}
           {list.map((s, i) => (
             <>
               {i > 0 && ', '}
@@ -227,6 +294,22 @@ const crumbs = [
     </section>
   )}
 
+  {/* -- Werkzeuge, die genau dieses Item kennen (src/lib/itemLinks.ts) -- */}
+  {(fracturing || wikelo) && (
+    <section class="dp-sec" id="werkzeuge">
+      <h2>{t('sectionTools')}</h2>
+      <div class="dp-actions dp-actions--tight">
+        {fracturing && <a class="dp-btn" href={href('/fracturing.html', lang)}>{t('toolFracturing')} →</a>}
+        {wikelo && wikelo.material > 0 && (
+          <a class="dp-btn" href={wikeloHref}>{plural(wikelo.material, 'toolWikeloMaterialOne', 'toolWikeloMaterial')} →</a>
+        )}
+        {wikelo && wikelo.reward > 0 && (
+          <a class="dp-btn" href={wikeloHref}>{plural(wikelo.reward, 'toolWikeloRewardOne', 'toolWikeloReward')} →</a>
+        )}
+      </div>
+    </section>
+  )}
+
   {/* -- Nachbarn: haelt den Crawler in der Kategorie und den Klickpfad kurz -- */}
   {related.length > 0 && (
     <section class="dp-sec">
@@ -263,7 +346,9 @@ const crumbs = [
         Fehlt sie, entfaellt der Knopf ganz: ein <span> mit Knopf-Klassen saehe
         aus wie ein Knopf und waere keiner. Die Patch-Kennung steht ohnehin im
         Seitentitel. */}
-    {patchHref && <a class="dp-btn dp-btn--ghost" href={patchHref}>Alpha {ITEM_PATCH}</a>}
+    {/* Nennt die Patch-Seite schon ein Erwaehnungs-Knopf daneben („Alpha 4.10.2 ·
+        RSI Discovery Month"), entfaellt der schlichte: zwei Knoepfe zur selben Seite. */}
+    {patchHref && !mentions.some((p) => href(p.page, lang) === patchHref) && <a class="dp-btn dp-btn--ghost" href={patchHref}>{patchLink.label}</a>}
     {mentions.map((p) => <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a>)}
   </div>
 </DataShell>

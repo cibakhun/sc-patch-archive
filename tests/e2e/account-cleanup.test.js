@@ -9,6 +9,11 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { clearAccountTraces, accountKeys } from '../../src/lib/account-cleanup.ts';
+import { supabaseZiel } from '../../scripts/lib/supabase-ziel.mjs';
+
+// localStorage-Schluessel der supabase-js-Sitzung; Abmelden laesst ihn stehen
+// (das erledigt signOut selbst).
+const SITZUNG = supabaseZiel('live').storageKey;
 
 const UID = '11111111-1111-4111-8111-111111111111';
 const OLD = '22222222-2222-4222-8222-222222222222';
@@ -35,7 +40,7 @@ const BROWSER = () => ({
     [`vb.layouts.v1.${UID}`]: '{"layouts":[]}',
     'vb.layouts.v1': '{"layouts":[]}',
     'vb.fx': 'on',
-    'sb-trgjhmbnodoarnfmlcqx-auth-token': '{"access_token":"t"}',
+    [SITZUNG]: '{"access_token":"t"}',
   }),
   session: store({
     vb_user_role: JSON.stringify({ uid: UID, role: 'admin', ts: 1 }),
@@ -51,7 +56,7 @@ test('Abmelden entfernt Profil-Caches und Werkzeug-Spiegel (auch fruehere Konten
   clearAccountTraces(UID, 'signout', b);
   assert.deepEqual([...b.local.map.keys()].sort(), [
     'craft.state.v2',
-    'sb-trgjhmbnodoarnfmlcqx-auth-token',
+    SITZUNG,
     'vb.layouts.v1',
     'vb.fx',
   ].sort(), 'Gast-Ablagen, Einstellungen und die Sitzung (signOut) bleiben; Konto-Spiegel gehen wie in der Datenschutzerklaerung #storage');
@@ -63,7 +68,7 @@ test('Konto loeschen entfernt ebenso die Werkzeug-Spiegel des Kontos', () => {
   clearAccountTraces(UID, 'delete', b);
   assert.deepEqual([...b.local.map.keys()].sort(), [
     'craft.state.v2',
-    'sb-trgjhmbnodoarnfmlcqx-auth-token',
+    SITZUNG,
     'vb.layouts.v1',
     'vb.fx',
   ].sort(), 'Gast-Ablagen, Einstellungen und die Sitzung bleiben; die Spiegel des Kontos gehen');

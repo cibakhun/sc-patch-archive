@@ -518,18 +518,18 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       <div class="fc__filters">
         <ToolHelp tool="fracturing" lang={lang} steps={4} />
         <div class="fc__frow">
-          <input class="fc__search" id="fc-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
+          <input class="fc__search" id="fc-q" data-ev-filter="suche" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
           <span class="fc__c" id="fc-count">{minerals.length}</span>
         </div>
-        <div class="fc__chips" data-help={hlp('system')}>
+        <div class="fc__chips" data-help={hlp('system')} data-ev-filter="system">
           {systems.map((s) => (<button type="button" class="fc__chip" data-sys={s} set:text={s} />))}
-          <button type="button" class="fc__chip" data-only="break" data-help={hlp('breakable')} set:text={S.onlyBreakable} />
+          <button type="button" class="fc__chip" data-only="break" data-ev-filter="brechbar" data-help={hlp('breakable')} set:text={S.onlyBreakable} />
         </div>
       </div>
       {/* Jede Kachel traegt ihr Verhaeltnis. Der Punkt allein sagt nur „geht /
           geht nicht"; die Zahl sagt, wie knapp — und genau darum geht es hier. */}
       <div class="fc__scroll" id="fc-list">
-        <div class="fc__tiles" data-help={hlp('tiles')}>
+        <div class="fc__tiles" data-help={hlp('tiles')} data-ev-rechnung>
           {minerals.map((m) => {
             const v = ssr(m);
             return (
@@ -579,7 +579,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
 
     <!-- ========================================== Spalte 3: Ausruestung -->
     <div class="fc__pane fc__pane--rig chamf">
-      <div class="fc__rig">
+      <div class="fc__rig" data-ev-rechnung>
         <label class="fc__rgrp"><span class="fc__lbl" set:text={S.laser} />
           <select class="fc__sel" id="fc-laser" data-help={hlp('laser')}>{lasers.map((l, i) => (<option value={String(i)} set:text={`${l.n.replace(' Mining Laser', '')} · S${l.size}`} />))}</select>
         </label>

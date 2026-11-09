@@ -10,8 +10,9 @@
 // Alles hier ist statisches HTML mit echten Links auf die Item-Datenblaetter —
 // kein JavaScript, keine Nachladerei.
 import DataShell from './DataShell.astro';
+import { standItems, STAND } from '../lib/datenstand';
 import { href, type Locale } from '../i18n/ui';
-import { itemT, fill } from '../i18n/itemText';
+import { itemT, itemLabel, fill } from '../i18n/itemText';
 import {
   ITEM_PATCH, armorSets, db, itemPath, num, pageItemIds, setItemsBySlot, setsByManufacturer,
 } from '../lib/items';
@@ -28,10 +29,12 @@ const h = useHelp(lang);
 const totalParts = armorSets.reduce((n, s) => n + s.parts, 0);
 const complete = armorSets.filter((s) => s.coreSlots === 4).length;
 
-const slotLabel = (slot: string) => t(('slot' + slot) as never) || slot;
+// Aus Spieldaten zusammengesetzte Schluessel: Katalogwert oder Rohwert
+// (itemLabel; das alte `t(x as never) || roh` griff nie, siehe itemText.ts).
+const slotLabel = (slot: string) => itemLabel(lang, 'slot' + slot, slot);
 // Panzerungsklasse: dieselben Schluessel wie im Finder (w<Wert> ohne Sonderzeichen)
-const weightLabel = (w: string | null) => (w ? t(('w' + w.replace(/[^A-Za-z]/g, '')) as never) || w : null);
-const rarityLabel = (r?: string) => (r ? t(('r' + r) as never) || r : null);
+const weightLabel = (w: string | null) => (w ? itemLabel(lang, 'w' + w.replace(/[^A-Za-z]/g, ''), w) : null);
+const rarityLabel = (r?: string) => (r ? itemLabel(lang, 'r' + r, r) : null);
 // Groessenangaben fuer die Hoehenschaetzung der Herstellerabschnitte
 // (content-visibility, siehe .as-mfr unten): Sets, Slot-Bloecke, Teile.
 const sizeOf = (sets: { id: string }[]) => {
@@ -49,8 +52,7 @@ const sizeOf = (sets: { id: string }[]) => {
   crumbs={[{ label: t('breadcrumbItems'), href: '/items.html' }, { label: t('setsBreadcrumb') }]}
   eyebrow={`Star Citizen ${ITEM_PATCH}`}
   modified={db.generatedAt}
-  sources={['UEX Corp']}
-  updated={db.pricesAsOf}
+  stand={standItems(lang, { preise: false, fundorte: false })}
   breit
 >
   {/* Das Stilblatt steht VOR dem Markup (27.10.2026): hinter </DataShell> kam es
@@ -264,7 +266,7 @@ const sizeOf = (sets: { id: string }[]) => {
     <li class="dp-key"><b>{t('setsCountLabel')}</b><span>{num(armorSets.length, lang)}</span></li>
     <li class="dp-key"><b>{t('setsPartsLabel')}</b><span>{num(totalParts, lang)}</span></li>
     <li class="dp-key"><b>{t('setsCompleteLabel')}</b><span>{num(complete, lang)}</span></li>
-    <li class="dp-key"><b>{t('dataAsOf')}</b><span>{db.generatedAt}</span></li>
+    <li class="dp-key"><b>{t('gameVersion')}</b><span>{STAND.items}</span></li>
   </ul>
 
   <p class="as-intro">{t('setsIntro')}</p>

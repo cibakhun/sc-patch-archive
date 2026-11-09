@@ -15,7 +15,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'assets', 'aaron-halo-gamefiles.json');
@@ -70,8 +70,20 @@ const uniq = [...new Set(edges)].sort((a, b) => a - b);
 const [innerEdgeM, middleM, outerEdgeM] = uniq;
 
 const km = (m) => Math.round(m / 1000);
+// Client-Kennung (gameVersion) — ohne sie koennen verify:datastand und
+// verify:patch-angaben die Patch-Angabe der Seite nicht pruefen; bis
+// 05.11.2026 stand dort deshalb eine ungepruefte „4.9". Fehlt
+// build_manifest.id neben der p4k, bricht der Lauf ab, statt einen
+// Datenstand ohne Kennung zu schreiben.
+const gameVersion = clientKennung(p4kPath);
+if (!gameVersion) {
+  console.error(`FEHLER: keine Client-Kennung — build_manifest.id neben ${p4kPath} fehlt oder traegt Branch/RequestedP4ChangeNum nicht.`);
+  process.exit(1);
+}
+
 const out = {
   source: 'Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/aaronhalo.socpak (aaronhalo.xml bounds + gotopoint) — eigene Extraktion',
+  gameVersion,
   editorBuildChangelist: clInfo,
   units: 'km',
   innerEdgeKm: km(innerEdgeM),

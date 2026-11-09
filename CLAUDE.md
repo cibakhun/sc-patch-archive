@@ -62,7 +62,10 @@ Begründung steht im Registry-Eintrag `check:headers` und an der Leerstelle in
 Ein roter `deploy`-Job heißt deshalb nicht, dass der Deploy fehlschlug. Erst
 die Schrittliste lesen (`gh run view <id> --json jobs`): sind „Trigger Coolify
 redeploy" und „Warten, bis die Live-Seite den neuen Stand zeigt" grün, ist er
-gelandet.
+angestoßen. Gelandet ist er erst, wenn das Protokoll des Warte-Schritts den
+neuen Stand nennt: der Schritt läuft mit `--weich` und bleibt auch grün, wenn
+Cloudflare den Runner sperrt und er „NICHT geprüft" meldet. Im Zweifel
+entscheidet `npm run check:live` von hier aus.
 
 `main` bleibt tabu ohne ausdrückliche Ansage. Fertige, geprüfte Arbeit geht
 ohne Nachfrage auf `staging` — das ist der Normalabschluss.

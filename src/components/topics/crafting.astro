@@ -6,17 +6,18 @@
 import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import CraftingApp from '../../components/CraftingApp.astro';
+import Datenstand from '../../components/Datenstand.astro';
+import { standCrafting } from '../../lib/datenstand';
 import DB from '../../../assets/crafting-db.json';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
-import { patchPageHref } from '../../lib/patchPages';
+import { patchLinkFromKennung } from '../../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
 const total = DB.counts.blueprints;
 const nRes = DB.counts.resources;
-const snap = DB.snapshot_date;
 const ver = DB.version;
 // Patch label derived from the database version ("LIVE-4.9.0-12232306" -> "4.9")
 // so title/breadcrumbs follow every regeneration automatically.
@@ -25,10 +26,13 @@ const patch = (ver.match(/(\d+\.\d+)/) ?? [])[1] ?? '4.9';
 // Patch-Seiten sind handgeschrieben. Nach dem 4.10-Lauf zeigte er ins Leere
 // (npm run verify, 27.08.2026: 2 tote Verweise). patchPageHref liefert `null`,
 // wenn die Seite fehlt — dann bleibt das Label als reiner Text stehen.
-const patchHref = patchPageHref(patch, lang);
-const patchCrumb = patchHref ? { label: `Alpha ${patch}`, href: patchHref } : { label: `Alpha ${patch}` };
+// Der Verweis fuehrt auf die Seite der vollen Fassung der Daten (4.10.2), wenn
+// es sie gibt, sonst auf die Hauptfassung (src/lib/patchPages.ts).
+const patchLink = patchLinkFromKennung(ver, lang);
+const patchHref = patchLink.href;
+const patchCrumb = patchHref ? { label: patchLink.label, href: patchHref } : { label: patchLink.label };
 ---
-<TopicSeo slug="crafting" image="/assets/t-craft-1.jpg" />
+<TopicSeo slug="crafting" image="/assets/t-craft-1.jpg" dataVersion={ver} />
 <style is:inline>
 :root{--bg:#16161a;--bg-2:#1d1d22;--surface:#232329;--surface-2:#2c2c34;--accent:#FF5E1A;--accent-2:#1FA2FF;--hot:#FF5E1A;--text:#eef1f5;--muted:#9ba2ae;--line:rgba(255,94,26,.22);--line-soft:rgba(238,241,245,.10);--glow:0 0 44px rgba(255,94,26,.28);--ink:#16161a;--maxw:1240px;}
 
@@ -148,9 +152,9 @@ const patchCrumb = patchHref ? { label: `Alpha ${patch}`, href: patchHref } : { 
       dafuer egal, ihr Vorhandensein nicht. */}
   <aside class="cr-about">
     <p class="cr-about__lead">{de ? 'Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer.' : 'Blueprints, ingredients, quality simulator, fabricator planner.'}</p>
-    <div class="qbar"><span>Blueprints <b>{total}</b></span><span>{de ? 'Ressourcen ' : 'Resources '}<b>{nRes}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patch}</b></a> : <b>{patch}</b>}</span><span>{de ? 'Stand ' : 'As of '}<b>{snap}</b></span></div>
+    <div class="qbar"><span>Blueprints <b>{total}</b></span><span>{de ? 'Ressourcen ' : 'Resources '}<b>{nRes}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span></div>
     <div class="cr-note">
-      <span>Patch <b>{ver}</b>{de ? ', Stand ' : ', as of '}<b>{snap}</b> — <b>{de ? 'patch-volatil, ingame prüfen' : 'patch-volatile, verify in-game'}</b><Fragment set:html={de ? '. „Im Besitz"-Markierungen &amp; der Planer werden im Konto gespeichert, wenn du angemeldet bist — sonst nur lokal in diesem Browser.' : '. “Owned” marks &amp; the planner are saved to your account when you’re signed in — otherwise only locally in this browser.'} /></span>
+      <span><b>{de ? 'Patch-volatil, ingame prüfen' : 'Patch-volatile, verify in-game'}</b><Fragment set:html={de ? '. „Im Besitz"-Markierungen &amp; der Planer werden im Konto gespeichert, wenn du angemeldet bist — sonst nur lokal in diesem Browser.' : '. “Owned” marks &amp; the planner are saved to your account when you’re signed in — otherwise only locally in this browser.'} /></span>
     </div>
     {/* Statischer Einstieg in dieselbe Datenschicht — der Planer selbst rendert
         Zutaten & Missionen erst im Browser. */}
@@ -158,10 +162,14 @@ const patchCrumb = patchHref ? { label: `Alpha ${patch}`, href: patchHref } : { 
       <a href={de ? '/de/crafting.html' : '/crafting.html'}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
       <a href={de ? '/de/items.html' : '/items.html'}>{de ? 'Item-Verzeichnis →' : 'Item directory →'}</a>
     </p>
+    {/* Datenstand statt „Stand <Datum des Datenlaufs>“ in Kennzahlen, Hinweis
+        und Fusszeile (bis 06.11.2026): Rezepte sind Spielwerte, ihr Stand ist
+        die Spielversion — wie auf den Blueprint-Seiten. */}
+    <Datenstand lang={lang} innen zeilen={standCrafting(lang)} />
   </aside>
 
 </main>
 
-<Attribution sources={["RSI"]} updated={snap} />
+<Attribution sources={["RSI"]} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>

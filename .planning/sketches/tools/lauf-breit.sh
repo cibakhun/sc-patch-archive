@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+# Braucht Bash (PIPESTATUS, pipefail); ein Aufruf mit `sh` startet sich unter Bash neu.
+if [ -z "${BASH_VERSION:-}" ]; then exec bash "$0" "$@"; fi
 # Vier Sonden des Breitbild-Durchgangs nacheinander, Kurzbericht je Sonde.
 #
 # Bis zum 01.11.2026 stand hier ein fester Worktree-Pfad eines einzelnen

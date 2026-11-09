@@ -6,7 +6,9 @@
 import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
-import { db, uec, dur, mins, cmpSign, repSummary, missions, seoTitle, seoText, clip, phLabel } from '../lib/missions';
+import Datenstand from './Datenstand.astro';
+import { standMission } from '../lib/datenstand';
+import { db, uec, dur, mins, cmpSign, repSummary, repLine, standingLabel, missions, seoTitle, seoText, clip, phLabel, spielerJeInstanz } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { ICON_BLUEPRINT } from '../lib/icons';
 import { lesbarerRufBereich } from '../lib/lesbar';
@@ -20,6 +22,28 @@ interface Props { m: Mission; lang: Locale }
 const { m, lang } = Astro.props;
 const L = (p: string) => href(p, lang);
 const nf = lang === 'de' ? 'de-DE' : 'en-US';
+
+// Eckdaten fuehren in die Missionssuche: Typ, Auftraggeber, Region und Gilde
+// oeffnen /missionen.html mit genau diesem Filter (assets/missions-app.js,
+// fromUrl — der Wert muss eine Option des Filters sein, sonst setzt die Suche
+// ihn nicht). Link wird nur, was eine Kennung hat: giverNames fuehrt auch
+// Organisationsnamen aus dem Auftragstext ohne eigenen Auftraggeber-Eintrag,
+// die bleiben Text.
+const missionSearch = (param: string, id: string) => `${L('/missionen.html')}?${param}=${encodeURIComponent(id)}`;
+type FactLink = { n: string; href: string | null };
+const factLinks = (names: string[], ids: string[], list: { id: string; name: string }[], param: string): FactLink[] => {
+  const known = new Map(list.map((r) => [r.id, r.name]));
+  const idByName = new Map<string, string>();
+  for (const id of ids) {
+    const n = known.get(id);
+    if (n && !idByName.has(n)) idByName.set(n, id);
+  }
+  return names.map((n) => ({ n, href: idByName.has(n) ? missionSearch(param, idByName.get(n)!) : null }));
+};
+const typeLinks = factLinks(m.typeNames, m.types, db.types, 'type');
+const giverLinks = factLinks(m.giverNames, m.givers, db.givers, 'giver');
+const regionLinks = factLinks(m.localityNames, m.localities, db.localities, 'loc');
+const guildLinks = factLinks(m.guilds, db.guilds.filter((g) => m.guilds.includes(g.name)).map((g) => g.id), db.guilds, 'guild');
 
 const S = {
   de: {
@@ -46,14 +70,13 @@ const S = {
     flow: 'Ablauf', flowNote: 'Achtung: Das ist nicht der Zieltext aus dem mobiGlas.',
     flowP: 'Der Spielertext der Missionsziele ist nicht verfügbar — die Missionslogik läuft serverseitig. Was hier steht, sind die Schritte und Ablaufregeln, wie die Entwickler sie benannt haben.',
     steps: 'Schritte', rules: 'Ablaufregeln', flowNone: 'Kein Ablauf im Spiel hinterlegt.',
-    tblKey: 'Eintrag', tblGiver: 'Auftraggeber', tblLoc: 'Region', tblReward: 'Belohnung', tblRep: 'Reputation', tblPlaces: 'Orte',
-    module: 'Missionsmodul', tags: 'Tags', none: '—', noReward: 'keine',
+    tblGiver: 'Auftraggeber', tblLoc: 'Region', tblReward: 'Belohnung', tblRep: 'Reputation', tblPlaces: 'Orte',
+    module: 'Missionsmodul', entries: 'Angebots-Einträge', tech: 'Technische Details', tags: 'Tags', none: '—', noReward: 'keine',
     guild: 'Gilde', rank: 'Karrierestufe', src: 'Quelle', calcReward: 'wird zur Laufzeit berechnet',
     bpH: 'Blueprints', bpChance: 'Chance',
     bpP: 'Diese Mission kann Blueprints abwerfen. Welcher davon fällt, entscheidet der Zufall — du bekommst nicht die ganze Liste.',
     srcBroker: 'Missionsbrett', srcContract: 'Contract-Manager',
     srcNote: 'Es gibt zwei Missionssysteme: das ältere Missionsbrett und den Contract-Manager, in den CIG gerade migriert. Blueprints und Gilden gibt es nur im zweiten.',
-    src: 'Quelle', srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Missionstexte gibt es nur auf Englisch.',
     rec: 'Datensatz',
   },
   en: {
@@ -78,14 +101,13 @@ const S = {
     flow: 'Flow', flowNote: 'Note: this is not the objective text from your mobiGlas.',
     flowP: 'The player-facing objective text is not available — mission logic runs server-side. What follows are the steps and flow rules as the developers named them.',
     steps: 'Steps', rules: 'Flow rules', flowNone: 'No flow recorded in the game.',
-    tblKey: 'Entry', tblGiver: 'Contractor', tblLoc: 'Region', tblReward: 'Reward', tblRep: 'Reputation', tblPlaces: 'Locations',
-    module: 'Mission module', tags: 'Tags', none: '—', noReward: 'none',
+    tblGiver: 'Contractor', tblLoc: 'Region', tblReward: 'Reward', tblRep: 'Reputation', tblPlaces: 'Locations',
+    module: 'Mission module', entries: 'Offer entries', tech: 'Technical details', tags: 'Tags', none: '—', noReward: 'none',
     guild: 'Guild', rank: 'Career rank', src: 'Source', calcReward: 'calculated at runtime',
     bpH: 'Blueprints', bpChance: 'Chance',
     bpP: 'This mission can drop blueprints. Which one drops is chance-based — you do not get the whole list.',
     srcBroker: 'Mission board', srcContract: 'Contract Manager',
     srcNote: 'There are two mission systems: the older mission board and the Contract Manager that CIG is migrating to. Blueprints and guilds exist only in the latter.',
-    src: 'Source', srcP: 'Game-accurate to the current live build (patch 4.9). Mission text exists in English only.',
     rec: 'Record',
   },
 }[lang];
@@ -124,6 +146,11 @@ const colGiver = m.variants.some((v) => v.giver);
 const colLoc = m.variants.some((v) => v.locality);
 const colPlaces = m.variants.some((v) => v.places.length);
 const colRep = m.variants.some((v) => v.rep.length);
+// Ist die ganze Mission legal oder illegal, steht das schon in den Eckdaten.
+const colLegal = m.lawful && m.unlawful;
+// Bei 96 Missionen bliebe sonst nur die Spalte Belohnung: 87 Einzelangebote, die
+// die Eckdaten wiederholen, und 9 mit mehreren Angeboten und ueberall „—“.
+const offerTable = colGiver || colLoc || colPlaces || colRep || colLegal;
 const related = missions
   .filter((o) => o.slug !== m.slug && o.types.some((t) => m.types.includes(t)))
   .sort((a, b) => b.count - a.count).slice(0, 6);
@@ -214,7 +241,7 @@ const t = useTranslations(lang);
           <p class="md__p">{S.appearsP}</p>
           <ul class="md__appear">
             {m.titleVariants.map((v) => (
-              <li><span class="md__org">{v.org}</span><span class="md__at">{v.text}</span></li>
+              <li><span class="md__org">{v.org}</span><span class="md__at">{parts(v.text).map((p) => (p.ph ? <i class="md__ph md__ph--sm">{p.t}</i> : <span>{p.t}</span>))}</span></li>
             ))}
           </ul>
         </section>
@@ -225,22 +252,21 @@ const t = useTranslations(lang);
         <h2 class="md__h2">{S.facts}</h2>
         <dl class="md__facts">
           <div><dt>{m.rewardMin === m.rewardMax ? S.reward : S.rewardR}</dt><dd class="md__uec">{rewardTxt}</dd></div>
-          <div><dt>{S.type}</dt><dd>{m.typeNames.join(', ') || S.none}</dd></div>
-          <div><dt>{S.giver}</dt><dd>{m.giverNames.length ? m.giverNames.join(', ') : S.none}</dd></div>
-          <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.join(', ') : S.none}</dd></div>
-          {m.guilds.length > 0 && <div><dt>{S.guild}</dt><dd>{m.guilds.join(', ')}{m.orgs.length > 0 && <span class="md__dim"> · {m.orgs.join(', ')}</span>}</dd></div>}
+          <div><dt>{S.type}</dt><dd>{typeLinks.length ? <Fragment>{typeLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
+          <div><dt>{S.giver}</dt><dd>{giverLinks.length ? <Fragment>{giverLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
+          <div><dt>{S.region}</dt><dd>{regionLinks.length ? <Fragment>{regionLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}</Fragment> : S.none}</dd></div>
+          {m.guilds.length > 0 && <div><dt>{S.guild}</dt><dd>{guildLinks.map((f, i) => <>{i > 0 && ', '}{f.href ? <a class="md__fact" href={f.href}>{f.n}</a> : f.n}</>)}{m.orgs.length > 0 && <span class="md__dim"> · {m.orgs.join(', ')}</span>}</dd></div>}
           {m.ranks.length > 0 && <div><dt>{S.rank}</dt><dd>{m.ranks.join(' – ')}</dd></div>}
           <div><dt>{S.legal}</dt><dd>{legal}</dd></div>
           <div><dt>{S.offers}</dt><dd>{m.count}</dd></div>
           <div><dt>{S.src}</dt><dd>{srcLabel}</dd></div>
-          <div><dt>{S.players}</dt><dd>{m.maxPlayers || S.none}</dd></div>
+          <div><dt>{S.players}</dt><dd>{spielerJeInstanz(m) ?? S.none}</dd></div>
           <div><dt>{S.shareable}</dt><dd>{m.shareable ? S.yes : S.no}</dd></div>
           {v0.buyIn > 0 && <div><dt>{S.buyIn}</dt><dd>{uec(v0.buyIn, lang)} aUEC</dd></div>}
           {dur(v0.deadlineSec, lang) && <div><dt>{S.deadline}</dt><dd>{dur(v0.deadlineSec, lang)}</dd></div>}
           {mins(v0.lifetimeMin, lang) && <div><dt>{S.lifetime}</dt><dd>{mins(v0.lifetimeMin, lang)}</dd></div>}
           {mins(v0.cooldownMin, lang) && <div><dt>{S.cooldown}</dt><dd>{mins(v0.cooldownMin, lang)}</dd></div>}
           {v0.wantedMax != null && <div><dt>{S.wanted}</dt><dd>{v0.wantedMax}</dd></div>}
-          {m.module && <div><dt>{S.module}</dt><dd><code class="md__code">{m.module}</code></dd></div>}
         </dl>
         {m.places.length > 0 && (
           <>
@@ -248,6 +274,16 @@ const t = useTranslations(lang);
             <ul class="md__tags">{m.places.map((p) => <li class="md__tag">{p}</li>)}</ul>
           </>
         )}
+        {/* Der interne Pfad des Missionsmoduls (PU/PU_Missions/…) und die internen
+            Kennungen der Angebote sind fuer die Fehlersuche nuetzlich, aber nichts
+            fuer Spieler — deshalb eingeklappt (Krisz 04.11.2026). */}
+        <details class="md__tech">
+          <summary>{S.tech}</summary>
+          <dl class="md__facts">
+            {m.module && <div><dt>{S.module}</dt><dd><code class="md__code">{m.module}</code></dd></div>}
+            <div><dt>{S.entries}</dt><dd><ul class="md__tags">{m.variants.map((v) => <li><code class="md__code">{v.key}</code></li>)}</ul></dd></div>
+          </dl>
+        </details>
       </section>
 
       {/* Blueprints — die Antwort auf "wirft die was ab?"
@@ -303,7 +339,7 @@ const t = useTranslations(lang);
                     <tr>
                       <td>{r.factionName ?? S.none}</td>
                       <td class="md__dim">{r.scope ? lesbarerRufBereich(r.scope) : S.none}</td>
-                      <td><span class="md__cmp">{cmpSign(r.comparison)}</span> {r.standing ?? S.none}</td>
+                      <td>{r.standing ? <><span class="md__cmp">{cmpSign(r.comparison)}</span> {standingLabel(r, lang, false)}</> : S.none}</td>
                       <td class="md__num">{r.standingMin != null ? uec(r.standingMin, lang) : S.none}</td>
                       <td class="md__dim">{r.perk ?? S.none}</td>
                     </tr>
@@ -347,32 +383,34 @@ const t = useTranslations(lang);
         {m.count > 1 ? (
           <p class="md__p" set:html={S.offersP.replace('%n%', String(m.count))} />
         ) : <p class="md__p md__dim">{S.single}</p>}
-        <div class="md__tblWrap">
-          <table class="md__tbl md__tbl--var">
-            <thead><tr>
-              <th>{S.tblKey}</th>
-              {colGiver && <th>{S.tblGiver}</th>}
-              {colLoc && <th>{S.tblLoc}</th>}
-              {colPlaces && <th>{S.tblPlaces}</th>}
-              <th>{S.tblReward}</th>
-              {colRep && <th>{S.tblRep}</th>}
-            </tr></thead>
-            <tbody>
-              {m.variants.map((v) => (
-                <tr>
-                  <td><code class="md__code">{v.key}</code>{!v.lawful && <span class="md__badge md__badge--il">{S.unlawful}</span>}</td>
-                  {colGiver && <td>{v.giver ?? S.none}</td>}
-                  {colLoc && <td>{v.locality ?? S.none}</td>}
-                  {colPlaces && <td class="md__dim md__places">{v.places.length ? v.places.join(', ') : S.none}</td>}
-                  <td class="md__num md__uec">{v.reward ? uec(v.reward, lang) : S.none}</td>
-                  {colRep && <td class="md__dim">{v.rep.length
-                    ? v.rep.map((r) => `${r.factionName} ${cmpSign(r.comparison)} ${r.standing}`).join(' · ')
-                    : S.none}</td>}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {offerTable && (
+          <div class="md__tblWrap">
+            <table class="md__tbl md__tbl--var">
+              <thead><tr>
+                {colGiver && <th>{S.tblGiver}</th>}
+                {colLoc && <th>{S.tblLoc}</th>}
+                {colPlaces && <th>{S.tblPlaces}</th>}
+                {colLegal && <th>{S.legal}</th>}
+                <th>{S.tblReward}</th>
+                {colRep && <th>{S.tblRep}</th>}
+              </tr></thead>
+              <tbody>
+                {m.variants.map((v) => (
+                  <tr>
+                    {colGiver && <td>{v.giver ?? S.none}</td>}
+                    {colLoc && <td>{v.locality ?? S.none}</td>}
+                    {colPlaces && <td class="md__dim md__places">{v.places.length ? v.places.join(', ') : S.none}</td>}
+                    {colLegal && <td>{v.lawful ? S.lawful : <span class="md__badge md__badge--il">{S.unlawful}</span>}</td>}
+                    <td class="md__num md__uec">{v.reward ? uec(v.reward, lang) : S.none}</td>
+                    {colRep && <td class="md__dim">{v.rep.length
+                      ? v.rep.map((r) => repLine(r, lang)).join(' · ')
+                      : S.none}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {mentions.length > 0 && (
@@ -408,10 +446,14 @@ const t = useTranslations(lang);
         </section>
       )}
 
+      <Datenstand lang={lang} zeilen={standMission(lang)} innen melden />
     </div>
   </main>
 
-  <Attribution />
+  {/* Keine Quellen-Zeile im Fuss: die Missionsdaten sind eigene Aufbereitung,
+      und die Vorgabe von Attribution (Wiki, RSI, YouTube) stimmte hier nicht.
+      Ihren Stand nennt der Datenstand am Ende des Inhalts. */}
+  <Attribution sources={[]} />
   <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>
 </Layout>
 
@@ -536,6 +578,20 @@ const t = useTranslations(lang);
     color: var(--muted); margin-bottom: .25rem;
   }
   .md__facts dd { font-size: var(--fs-8); overflow-wrap: anywhere; }
+  /* Eckdaten als Einstieg in die vorgefilterte Missionssuche */
+  .md__fact {
+    color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .md__fact:hover { color: var(--accent); text-decoration-color: var(--accent); }
+  .md__tech { margin-top: 1.2rem; }
+  .md__tech > summary {
+    cursor: pointer; width: fit-content; font-family: var(--font-ui); text-transform: uppercase;
+    letter-spacing: var(--ls-14); font-size: var(--fs-4); color: var(--muted);
+  }
+  .md__tech > summary:hover { color: var(--accent-2); }
+  .md__tech[open] > summary { margin-bottom: .6rem; }
+  .md__tech .md__facts { grid-template-columns: minmax(0, 1fr); }
   .md__uec { font-family: var(--font-display); font-weight: 700; color: var(--accent-2); }
 
   .md__appear { display: grid; gap: .4rem; }
@@ -560,8 +616,8 @@ const t = useTranslations(lang);
   .md__tbl tbody tr:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
   .md__num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .md__cmp { color: var(--accent); font-weight: 700; }
-  .md__places { max-width: 22rem; font-size: var(--fs-6); }
-  .md__tbl--var { min-width: 44rem; }
+  .md__places { min-width: 11rem; max-width: 22rem; font-size: var(--fs-6); }
+  .md__tbl .md__badge { margin-left: 0; }
   /* 470 Zeilen: Tabelle deckeln, sonst scrollt die Seite ewig */
   .md__tbl--var { display: table; }
   .md__sec .md__tblWrap:has(.md__tbl--var) { max-height: 32rem; overflow-y: auto; }
@@ -584,7 +640,7 @@ const t = useTranslations(lang);
 
   .md__steps { display: grid; gap: .3rem; padding-left: 1.2rem; }
   .md__steps li { font-size: var(--fs-7); }
-  .md__rules { display: grid; gap: .35rem; }
+  .md__rules { display: grid; gap: .35rem; list-style: none; }
   .md__rules li {
     font-size: var(--fs-7); color: var(--muted); padding: .45rem .7rem; border-radius: 8px; background: var(--surface);
     border-left: 2px solid var(--line); overflow-wrap: anywhere;
@@ -601,7 +657,7 @@ const t = useTranslations(lang);
     border: 1px solid var(--line-soft); background: var(--surface);
   }
 
-  .md__rel { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(15rem,100%), 1fr)); gap: .6rem; }
+  .md__rel { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(15rem,100%), 1fr)); gap: .6rem; list-style: none; }
   .md__rel a {
     display: block; padding: .7rem .8rem; border: 1px solid var(--line-soft); border-radius: 10px;
     background: var(--surface); transition: border-color var(--dur-fast) var(--ease-ui);

@@ -239,7 +239,9 @@ for (const it of shopItems) {
   const e = entry(it.name);
   setCategory(e, it.category, 0);
   if (it.purchaseLocation && Number(it.purchasePrice_aUEC) > 0) {
-    e.shopSnap.push({ kind: 'shop', loc: it.purchaseLocation, price: Number(it.purchasePrice_aUEC) });
+    // src markiert die Herkunft: die Seiten nennen fuer diese Zeilen nicht UEX,
+    // sondern den eigenen Shop-Schnappschuss (Datenstand, verify:patch-angaben [6]).
+    e.shopSnap.push({ kind: 'shop', loc: it.purchaseLocation, price: Number(it.purchasePrice_aUEC), src: 'schnappschuss' });
     snapRows++;
   }
 }
@@ -400,7 +402,7 @@ const db = {
   sources: {
     gamefiles: 'Eigene Aufbereitung (Kategorie, Size/Grade/Hersteller, Stats)',
     prices: `src/data/item-prices.json — UEX Corp, Stand ${uexDb.fetchedAt}; identisch mit den Kaufpreis-Tabellen auf starcitizen.tools`,
-    shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer',
+    shopsFallback: 'assets/dismantling-items.json — kuratierter Shop-Snapshot, greift nur ohne UEX-Treffer; diese Zeilen tragen src: "schnappschuss"',
     loot: 'src/data/loot-items.json — eigene Loot-Recherche (Fundorte + Guides)',
     vehicles: 'src/data/vehicles.json + vehicle-prices.json — UEX Corp (uexcorp.space)',
     catalog: 'Katalog der Item-Namen',

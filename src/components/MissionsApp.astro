@@ -6,7 +6,7 @@
 //
 // Spieldaten (Titel, Fraktionen, Orte) bleiben englisch: die deutsche global.ini
 // enthaelt keine Missionstexte. Uebersetzt wird nur die Bedienoberflaeche.
-import { db, missions, rewardLabel, repSummary, uec, cmpSign, bpCount, clip, phLabel } from '../lib/missions';
+import { db, missions, rewardLabel, repSummary, uec, cmpSign, standingLabel, bpCount, clip, phLabel } from '../lib/missions';
 import type { Mission } from '../lib/missions';
 import { href } from '../i18n/ui';
 import type { Locale } from '../i18n/ui';
@@ -42,7 +42,7 @@ const S = {
     dynamic: 'Titel variiert', dynamicT: 'Der Titel wird im Spiel zur Laufzeit gefüllt; die Platzhalter stehen für Werte wie Rang oder Ziel.',
     noReward: 'keine', calcReward: 'wird berechnet', calcRewardT: 'Der Contract fuehrt keine feste Zahl — das Spiel berechnet den Lohn zur Laufzeit aus der Schwierigkeit.',
     srcH: 'Gut zu wissen',
-    srcP: 'Spielgenau zur aktuellen Live-Version (Patch 4.9). Nichts davon ist abgeschrieben.',
+   
     srcSys: `Zwei Systeme: das ältere <strong>Missionsbrett</strong> (${db.meta.counts.brokerLive.toLocaleString('de-DE')} Angebote) und der <strong>Contract-Manager</strong> (${db.meta.counts.contracts.toLocaleString('de-DE')}), in den CIG gerade migriert. ${db.meta.counts.legacyBridged} Angebote führen beide Systeme — die stehen hier nur einmal.`,
     srcBp: `Blueprints hängen ausschließlich am Contract-Manager: ${db.meta.counts.withBlueprints} Missionen ziehen aus ${db.meta.counts.blueprintPools} Pools. Ein Pool ist eine gewichtete Liste — welcher Blueprint fällt, ist Zufall.`,
     srcGuild: 'Die Gildenzuordnung ist abgeleitet und lesbar gemacht — keine offizielle Schreibweise.',
@@ -69,7 +69,7 @@ const S = {
     dynamic: 'Title varies', dynamicT: 'The title is filled in at runtime; the placeholders stand for values like rank or target.',
     noReward: 'none', calcReward: 'calculated', calcRewardT: 'The contract carries no fixed number — the game computes the payout at runtime from the difficulty.',
     srcH: 'Good to know',
-    srcP: 'Game-accurate to the current live build (patch 4.9). None of it is copied from elsewhere.',
+   
     srcSys: `Two systems: the older <strong>mission board</strong> (${db.meta.counts.brokerLive.toLocaleString('en-US')} offers) and the <strong>Contract Manager</strong> (${db.meta.counts.contracts.toLocaleString('en-US')}) that CIG is migrating to. ${db.meta.counts.legacyBridged} offers exist in both — those are listed once.`,
     srcBp: `Blueprints hang off the Contract Manager only: ${db.meta.counts.withBlueprints} missions draw from ${db.meta.counts.blueprintPools} pools. A pool is a weighted list — which blueprint drops is chance.`,
     srcGuild: 'The guild grouping is derived and made readable — not an official spelling.',
@@ -176,38 +176,38 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
       </div>
       <div class="mx__f mx__f--grow" data-help={h('missions.ctl.search')}>
         <label for="mx-q">{S.search}</label>
-        <input type="search" id="mx-q" placeholder={S.searchPh} autocomplete="off" />
+        <input type="search" id="mx-q" data-ev-filter="suche" placeholder={S.searchPh} autocomplete="off" />
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-type">{S.fType}</label>
-        <select id="mx-type"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
+        <select id="mx-type" data-ev-filter="typ"><option value="">{S.all}</option>{db.types.map((t) => <option value={t.id}>{t.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-giver">{S.fGiver}</label>
-        <select id="mx-giver"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+        <select id="mx-giver" data-ev-filter="auftraggeber"><option value="">{S.all}</option>{db.givers.map((g) => <option value={g.id}>{g.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-faction">{S.fFaction}</label>
-        <select id="mx-faction"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
+        <select id="mx-faction" data-ev-filter="fraktion"><option value="">{S.all}</option>{db.factions.map((f) => <option value={f.id}>{f.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-guild">{S.fGuild}</label>
-        <select id="mx-guild"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
+        <select id="mx-guild" data-ev-filter="gilde"><option value="">{S.all}</option>{db.guilds.map((g) => <option value={g.id}>{g.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.select')}>
         <label for="mx-loc">{S.fLoc}</label>
-        <select id="mx-loc"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
+        <select id="mx-loc" data-ev-filter="ort"><option value="">{S.all}</option>{db.localities.map((l) => <option value={l.id}>{l.name}</option>)}</select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.blueprint')}>
         <label for="mx-bp">{S.fBp}</label>
-        <select id="mx-bp">
+        <select id="mx-bp" data-ev-filter="bauplan">
           <option value="">{S.all}</option>
           <option value="1">{S.bpOnly}</option>
         </select>
       </div>
       <div class="mx__f" data-help={h('missions.ctl.legal')}>
         <label for="mx-legal">{S.fLegal}</label>
-        <select id="mx-legal">
+        <select id="mx-legal" data-ev-filter="legal">
           <option value="">{S.all}</option>
           <option value="lawful">{S.lawful}</option>
           <option value="unlawful">{S.unlawful}</option>
@@ -215,7 +215,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
       </div>
       <div class="mx__f" data-help={h('missions.ctl.sort')}>
         <label for="mx-sort">{S.sort}</label>
-        <select id="mx-sort">
+        <select id="mx-sort" data-ev-filter="sortierung">
           <option value="count">{S.sCount}</option>
           <option value="name">{S.sName}</option>
           <option value="reward">{S.sReward}</option>
@@ -278,7 +278,7 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
                 title={!reward && m.calcReward ? S.calcRewardT : undefined}
               >{reward ? `${reward} aUEC` : (m.calcReward ? S.calcReward : S.noReward)}</dd></div>
               <div><dt>{S.rep}</dt><dd>{rep
-                ? <>{rep.factionName} <span class="mc__dim">{cmpSign(rep.comparison)} {rep.standing}</span>{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
+                ? <>{rep.factionName}{rep.standing && <>{' '}<span class="mc__dim">{cmpSign(rep.comparison)} {standingLabel(rep, lang)}</span></>}{repMore > 0 && <span class="mc__dim"> +{repMore}</span>}</>
                 : <span class="mc__dim">—</span>}</dd></div>
               <div><dt>{S.region}</dt><dd>{m.localityNames.length ? m.localityNames.slice(0, 3).join(', ') : <span class="mc__dim">—</span>}</dd></div>
             </dl>

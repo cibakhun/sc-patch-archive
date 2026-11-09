@@ -39,6 +39,7 @@ import { join } from 'node:path';
 import {
   zerlege, zaehleScriptTagsRoh, cspHash, leseMapWert, CSP_ORDNER,
 } from './lib/csp-inline.mjs';
+import { zielImArtefakt, supabaseZiel, SUPABASE_ZIELE, REF_MUSTER } from './lib/supabase-ziel.mjs';
 
 const CONF = 'nginx/default.conf';
 const DIST = 'dist';
@@ -248,15 +249,28 @@ for (const f of readdirSync('assets').filter((f) => f.endsWith('.js'))) {
 // Blob-Worker und WebAssembly tauchen in keinem Attribut auf, brauchen aber
 // eigene Einträge. Quelle ist der Code, der sie benutzt.
 
-// Der Supabase-Host steht in src/consts.ts — von dort liest ihn auch die Seite.
-// Abschreiben würde die Prüfung von der Wirklichkeit lösen, sobald das Projekt
-// umzieht. Der Block MUSS mitgematcht werden: `url:` steht in consts.ts
-// zweimal, und die erste Fundstelle ist SITE.url (verse-base.com). Ohne den
-// Blockanker prüfte das Tor auf den falschen Host — und wäre damit dauerhaft
-// rot. Genau das hat die Gegenprobe am 17.08.2026 aufgedeckt.
-const constsSrc = existsSync('src/consts.ts') ? readFileSync('src/consts.ts', 'utf8') : '';
-const supabaseUrl = /export const SUPABASE\s*=\s*\{[^}]*?\burl:\s*'(https:\/\/[^']+)'/.exec(constsSrc)?.[1];
-if (!supabaseUrl) { console.error('SUPABASE.url in src/consts.ts nicht gefunden.'); process.exit(2); }
+// Der Supabase-Host ist der des Projekts, das DIESER Bau anspricht — laut
+// Stempel dist/build.json (scripts/lib/supabase-ziel.mjs, STAGING=1 ->
+// "vorschau"). Bis 04.11.2026 stand er wörtlich in src/consts.ts und wurde
+// von dort gelesen; seit das Ziel je Bau wählbar ist, gilt das Artefakt.
+// Abschreiben würde die Prüfung von der Wirklichkeit lösen, sobald das
+// Projekt umzieht.
+const sbZiel = zielImArtefakt(DIST);
+if (!sbZiel || !REF_MUSTER.test(sbZiel.ref)) {
+  console.error('dist/build.json nennt kein Supabase-Ziel (Feld supabase.ref) — npm run build neu laufen lassen.');
+  process.exit(2);
+}
+// Der Stempel muss zur Tabelle passen, sonst gäbe dieses Tor eine Richtlinie
+// für ein Projekt frei, das kein Ziel ist (dasselbe sichert verify:supabase-ziel
+// ausführlich; hier, damit audit:csp auch allein nicht danebenliegt).
+const sbTabelle = Object.hasOwn(SUPABASE_ZIELE, sbZiel.ziel) ? supabaseZiel(sbZiel.ziel).ref : null;
+if (sbTabelle !== sbZiel.ref) {
+  console.error(
+    `dist/build.json nennt Supabase-Ziel "${sbZiel.ziel}" mit Ref ${sbZiel.ref}, die Tabelle (scripts/lib/supabase-ziel.mjs) ${sbTabelle ?? 'kennt dieses Ziel nicht'} — dist/ stammt aus einem anderen Stand; npm run build neu laufen lassen.`,
+  );
+  process.exit(2);
+}
+const supabaseUrl = `https://${sbZiel.ref}.supabase.co`;
 
 const capChecks = [
   { files: ['public/vendor/three/addons/loaders/DRACOLoader.js'], pattern: /new Worker\(/,
@@ -411,7 +425,8 @@ if (missing.length) {
   console.log('\nAlles, was die Seite lädt, deckt die Richtlinie ab ✓');
 }
 
-console.log('\nInline-Skripte per Hash (dist/_csp/ -> nginx include)');
+console.log(`\nSupabase-Ziel laut dist/build.json: ${sbZiel.ziel} (${sbZiel.ref}) — img-src/connect-src müssen ${supabaseUrl} tragen`);
+console.log('\nAus dist/_csp/ eingelesen (nginx include)');
 for (const [name, h] of hashMaps)
   console.log(`    $${name.padEnd(19)} ${h.wert !== null ? `${h.datei} — ${h.wert ? h.wert.split(/\s+/).length : 0} Quellausdruck/-ausdrücke` : `FEHLT, Rückfall "${h.rueckfall}"`}`);
 console.log(`    Seiten: ${inline.seiten} (Klinke ${MIN_SEITEN})   ausgeführte Inline-Skripte: ${inline.ausgefuehrt} (Klinke ${MIN_INLINE_SKRIPTE}) in ${inline.hashes.size} Fassung(en)   Datenblöcke: ${inline.daten}   externe: ${inline.extern}`);

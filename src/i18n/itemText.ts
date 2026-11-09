@@ -7,7 +7,7 @@
 // Woerter benutzen — sonst heisst dieselbe Zahl im Modal "Kuehlleistung" und auf
 // der Seite "Kuehlrate". Deshalb steht der Katalog jetzt hier.
 
-import type { Locale } from './ui';
+import { assertLocale, type Locale } from './ui';
 
 export const ITEM_UI = {
   de: {
@@ -92,9 +92,23 @@ export const ITEM_UI = {
     soldAtOne: 'Verkaufsstelle',
     lootSources: 'Loot-Fundorte',
     noPurchase: 'An keinem bekannten Ingame-Terminal kaufbar.',
-    pricesAsOf: 'Preisstand',
-    dataAsOf: 'Datenstand',
+    pricesAsOf: 'Stand der Preise',
+    gameVersion: 'Spielversion',
     sectionRelated: 'Ähnliche Items',
+    /* Serienbelegung und passende Werkzeuge (src/lib/itemLinks.ts) */
+    sectionStock: 'Ab Werk verbaut',
+    stockOneShip: 'Serienmäßig auf einem Schiff verbaut.',
+    stockOneVehicle: 'Serienmäßig auf einem Fahrzeug verbaut.',
+    stockShips: 'Serienmäßig auf {n} Schiffen verbaut.',
+    stockVehicles: 'Serienmäßig auf {n} Fahrzeugen verbaut.',
+    stockMixed: 'Serienmäßig auf {n} Schiffen und Fahrzeugen verbaut.',
+    stockMore: '{n} weitere',
+    sectionTools: 'In den Werkzeugen',
+    toolFracturing: 'Im Bruchrechner durchrechnen',
+    toolWikeloMaterial: 'Wikelo verlangt es in {n} Tauschgeschäften',
+    toolWikeloMaterialOne: 'Wikelo verlangt es in einem Tauschgeschäft',
+    toolWikeloReward: 'Wikelo gibt es als Belohnung in {n} Tauschgeschäften',
+    toolWikeloRewardOne: 'Wikelo gibt es als Belohnung in einem Tauschgeschäft',
     sectionCategory: 'Kategorie',
     allInCategory: 'Alle Items dieser Kategorie',
     backToFinder: 'Zum Item Finder',
@@ -105,11 +119,11 @@ export const ITEM_UI = {
     withDataSheet: 'Mit Datenblatt',
     /* Kennzahl im Seitenkopf der Kategorie-Listen */
     entries: 'Einträge',
-    listingLead: '{n} Einträge in {cat}. Kaufpreise und Verkaufsstellen aus dem Snapshot vom {date}.',
+    listingLead: '{n} Einträge in {cat}. Kaufpreise und Verkaufsstellen mit Stand {date}.',
     listingNoPage: 'Kein Datenblatt: für diesen Eintrag liegen weder Bezugsquellen noch Spielwerte vor.',
     thItem: 'Item', thSources: 'Bezugsquellen', thFrom: 'ab',
-    thAvg: 'Ø UEX',
-    avgNote: 'Ø UEX = Mittelwert über alle gelisteten Kaufpreise dieses Items.',
+    thAvg: 'Ø Preis',
+    avgNote: 'Ø Preis = Mittelwert über alle gelisteten Kaufpreise dieses Items.',
     tableRegion: 'Tabelle, scrollbar',
     pagination: 'Seiten',
     page: 'Seite',
@@ -154,7 +168,7 @@ export const ITEM_UI = {
     bpTotalScu: 'Materialbedarf gesamt',
     bpHubTitle: 'Blueprint-Verzeichnis',
     bpHubLead: 'Alle {total} Crafting-Blueprints aus Star Citizen {patch} nach Kategorie — mit Zutaten, Craft-Zeit und Missions-Quellen.',
-    bpListingLead: '{n} Blueprints in {cat}. Zutaten und Craft-Zeiten aus dem Snapshot vom {date}.',
+    bpListingLead: '{n} Blueprints in {cat}. Zutaten und Craft-Zeiten aus Spielversion {v}.',
     thBlueprint: 'Blueprint', thTime: 'Craft-Zeit', thMaterials: 'Materialien',
     bpCraftedItem: 'Gecraftetes Item',
   },
@@ -241,8 +255,22 @@ export const ITEM_UI = {
     lootSources: 'loot locations',
     noPurchase: 'Not sold at any known in-game terminal.',
     pricesAsOf: 'Prices as of',
-    dataAsOf: 'Data as of',
+    gameVersion: 'Game version',
     sectionRelated: 'Similar items',
+    /* Stock fitment and matching tools (src/lib/itemLinks.ts) */
+    sectionStock: 'Fitted as standard',
+    stockOneShip: 'Comes fitted on one ship.',
+    stockOneVehicle: 'Comes fitted on one vehicle.',
+    stockShips: 'Comes fitted on {n} ships.',
+    stockVehicles: 'Comes fitted on {n} vehicles.',
+    stockMixed: 'Comes fitted on {n} ships and vehicles.',
+    stockMore: '{n} more',
+    sectionTools: 'In the tools',
+    toolFracturing: 'Work it out in the fracturing calculator',
+    toolWikeloMaterial: 'Wikelo asks for it in {n} trades',
+    toolWikeloMaterialOne: 'Wikelo asks for it in one trade',
+    toolWikeloReward: 'Wikelo hands it out in {n} trades',
+    toolWikeloRewardOne: 'Wikelo hands it out in one trade',
     sectionCategory: 'Category',
     allInCategory: 'All items in this category',
     backToFinder: 'To the Item Finder',
@@ -252,11 +280,11 @@ export const ITEM_UI = {
     hubItemsWithPage: '{n} with a data sheet',
     withDataSheet: 'With data sheet',
     entries: 'Entries',
-    listingLead: '{n} entries in {cat}. Buy prices and vendors from the {date} snapshot.',
+    listingLead: '{n} entries in {cat}. Buy prices and vendors as of {date}.',
     listingNoPage: 'No data sheet: this entry has neither a known source nor game stats.',
     thItem: 'Item', thSources: 'Sources', thFrom: 'from',
-    thAvg: 'UEX avg',
-    avgNote: 'UEX avg = mean of all listed buy prices for this item.',
+    thAvg: 'Avg price',
+    avgNote: 'Avg price = mean of all listed buy prices for this item.',
     tableRegion: 'Table, scrollable',
     pagination: 'Pages',
     page: 'Page',
@@ -299,7 +327,7 @@ export const ITEM_UI = {
     bpTotalScu: 'Total material need',
     bpHubTitle: 'Blueprint directory',
     bpHubLead: 'All {total} Star Citizen {patch} crafting blueprints by category — with ingredients, craft time and mission sources.',
-    bpListingLead: '{n} blueprints in {cat}. Ingredients and craft times from the {date} snapshot.',
+    bpListingLead: '{n} blueprints in {cat}. Ingredients and craft times from game version {v}.',
     thBlueprint: 'Blueprint', thTime: 'Craft time', thMaterials: 'Materials',
     bpCraftedItem: 'Crafted item',
   },
@@ -307,9 +335,48 @@ export const ITEM_UI = {
 
 export type ItemUIKey = keyof (typeof ITEM_UI)['en'];
 
-/** t = itemT(lang) — Labels der Item-/Blueprint-Schicht, EN als Rueckfall. */
+/**
+ * t = itemT(lang) — Labels der Item-/Blueprint-Schicht, EN als Rueckfall.
+ * Fehlt ein Schluessel ganz, bricht der Bau ab, statt den Schluessel roh zu
+ * zeigen (wie useTranslations in ui.ts, Anlass dort). Fuer Schluessel, die aus
+ * Spieldaten zusammengesetzt werden und fehlen DUERFEN, gibt es itemLabel().
+ */
 export function itemT(lang: Locale) {
-  return (key: ItemUIKey): string => ITEM_UI[lang]?.[key] ?? ITEM_UI.en[key] ?? String(key);
+  const l = assertLocale(lang, 'itemT');
+  return (key: ItemUIKey): string => {
+    const s = ITEM_UI[l]?.[key] ?? ITEM_UI.en[key];
+    if (s == null) throw new Error(`itemText.ts: Schluessel "${String(key)}" fehlt im Katalog (DE und EN) — sonst stuende er roh auf der Seite.`);
+    return s;
+  };
+}
+
+/**
+ * Label fuer einen aus Spieldaten zusammengesetzten Schluessel ("slot" +
+ * "Torso", "w" + "Heavy", "r" + "Rare"): der Katalogwert in der Sprache der
+ * Seite, sonst der Rohwert der Spieldaten. Ersetzt das Muster
+ * `t(x as never) || roh`, dessen Rueckfall nie griff — t() gab bei einem
+ * fehlenden Schluessel den Schluessel selbst zurueck ("slotTorso").
+ */
+export function itemLabel(lang: Locale, key: string, roh: string): string {
+  const l = assertLocale(lang, 'itemLabel');
+  return (ITEM_UI[l] as Record<string, string>)[key] ?? roh;
+}
+
+/**
+ * Anzeige einer Bezugszeile. Echte Orte sind Eigennamen und bleiben; eine
+ * Exklusiv-Zeile (Promo, Concierge, Twitch-Drop …) traegt im Feld `loc` den
+ * ENGLISCHEN Satz der Datenquelle — angezeigt wird die Bezugsart aus dem
+ * Katalog. Anlass 04.11.2026: die Kategorielisten nahmen `loc` direkt, und
+ * 54 deutsche Kategorieseiten zeigten in 625 Zeilen "Promotional item — not
+ * obtainable in-game" und die anderen englischen Bezugsarten.
+ * Eine Bezugsart ohne Label bricht den Bau ab (Label in ITEM_UI ergaenzen).
+ */
+export function obtainLabel(o: { kind: string; loc: string; reason?: string | null }, lang: Locale): string {
+  if (o.kind !== 'exclusive') return o.loc;
+  const key = o.reason ? 'ex' + o.reason.replace(/[^A-Za-z]/g, '') : 'notLootable';
+  const s = (ITEM_UI[assertLocale(lang, 'obtainLabel')] as Record<string, string>)[key];
+  if (s == null) throw new Error(`itemText.ts: Bezugsart "${o.reason}" hat kein Label (${key}) — in ITEM_UI fuer DE und EN ergaenzen.`);
+  return s;
 }
 
 /** Platzhalter {a} in einem Label ersetzen. */

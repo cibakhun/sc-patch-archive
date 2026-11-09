@@ -7,16 +7,38 @@
 // Astro 5.18 verschluckt sonst dessen schließendes Tag (siehe <a class="skip">).
 import SiteNav from './SiteNav.astro';
 import Attribution from './Attribution.astro';
+import Datenstand from './Datenstand.astro';
+import { standItems, datumLang } from '../lib/datenstand';
 import ItemFinderApp from './ItemFinderApp.astro';
 import DB from '../../assets/universal-items.json';
 import { localeFromPath } from '../i18n/ui';
 import { versioned } from '../lib/assetVersion';
+import { ITEM_KENNUNG, db } from '../lib/items';
+import { patchLinkFromKennung } from '../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
 const total = DB.counts.items;
 const sourced = DB.counts.withObtain;
-const snap = DB.generatedAt;
+// Bis zur Review-Korrektur von C1 (06.11.2026) stand hier DB.generatedAt als
+// „Stand" in den Kennzahlen und als „Daten-Stand" in der Fusszeile: das Datum,
+// an dem die Datei gebaut wurde, nicht das der Preise (pricesAsOf) oder der
+// Spielwerte. Beides nennt jetzt der Baustein Datenstand unter dem Werkzeug.
+// Patch-Label aus dem Datenstand, nicht von Hand: hier stand bis 03.11.2026
+// ein festes „Patch 4.9", waehrend der Katalog laengst auf 4.10.2 lief — die
+// Startseite sagte 4.10.2, der Finder 4.9. ITEM_KENNUNG ist dieselbe Quelle wie
+// auf allen Item-Seiten; der Verweis faellt weg, wenn es keine Patchseite gibt.
+const patchLink = patchLinkFromKennung(ITEM_KENNUNG, lang);
+const patchHref = patchLink.href;
+const crumbPatch = patchHref ? [{ label: patchLink.label, href: patchHref }] : [];
+// Abdeckungsluecke offen benennen: rund die Haelfte des Katalogs hat (noch)
+// keine verifizierte Shop- oder Loot-Quelle. Die Karten sagen das je Item
+// („Kein Fundort bekannt"), die Kennzahlen aber nannten nur die Treffer.
+const unsourced = total - sourced;
+const unsourcedPct = Math.round((unsourced / total) * 100);
+// Shop-Zeilen aus dem eigenen Schnappschuss (src) zeigt der Finder wie alle
+// anderen Preise; der Datenstand nennt sie dann eigens.
+const mitSchnappschuss = db.items.some((i) => i.obtain.some((o) => o.src === 'schnappschuss'));
 ---
 <style is:inline>
 /* Item finder theme — violet & amber (quartermaster catalog) */
@@ -28,7 +50,7 @@ const snap = DB.generatedAt;
 .hero__in{max-width:var(--maxw)}
 .qbar{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-12);text-transform:uppercase;font-size:var(--fs-5);color:var(--muted)}
 .qbar b{color:var(--accent-2)}
-/* „Patch 4.9" traegt jetzt den Verweis auf die Patchseite, den frueher der
+/* Das Patch-Label traegt jetzt den Verweis auf die Patchseite, den frueher der
    Eyebrow im Kopf trug. Farbe erbt von .qbar b, damit die Leiste eine Zeile
    bleibt und nicht ein Wert aus der Reihe faellt. */
 .qbar a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
@@ -37,6 +59,9 @@ const snap = DB.generatedAt;
    display:none und nicht ausgeklappt-versteckt: Google indexiert mobil-zuerst,
    der Text soll gefunden werden. Er soll nur niemanden aufhalten, der sucht. */
 .uf-about{max-width:var(--maxw);margin:1.8rem auto 0;padding:1.3rem clamp(1rem,4vw,2rem) 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.8rem}
+/* Datenstand schliesst den Abschnitt ab; ohne Abstand stiesse er an die Fusszeile.
+   Doppelte Klasse wie in assets/datenstand.css, das spaeter geladen wird. */
+.uf-about .vb-stand.vb-stand--innen{margin-bottom:2.4rem}
 .uf-about__lead{margin:0;max-width:74ch;color:var(--muted);font-size:var(--fs-9);line-height:1.55}
 .uf-about__note{margin:0;padding-left:.7rem;border-left:2px solid var(--accent-2);color:var(--muted);font-size:var(--fs-7);line-height:1.5}
 .uf-about__note b{color:var(--text)}
@@ -120,14 +145,14 @@ const snap = DB.generatedAt;
 </style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
-<SiteNav crumbs={de ? [{ label: 'Archiv', href: '/de/archiv.html' }, { label: 'Alpha 4.9', href: '/de/patches/sc-4-9-0.html' }, { label: 'Item Finder' }] : [{ label: 'Archive', href: '/archiv.html' }, { label: 'Alpha 4.9', href: '/patches/sc-4-9-0.html' }, { label: 'Item Finder' }]} hasEn={true} />
+<SiteNav crumbs={[{ label: de ? 'Archiv' : 'Archive', href: de ? '/de/archiv.html' : '/archiv.html' }, ...crumbPatch, { label: 'Item Finder' }]} hasEn={true} />
 
 <main id="main">
   <section class="hero hero--tool">
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/cz-loot.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      {/* Im Kopf steht nur noch der Titel. „Alpha 4.9" ist nach unten in die
+      {/* Im Kopf steht nur noch der Titel. Das Patch-Label ist nach unten in die
           Kennzahlen gewandert — es war der einzige echte <a> von hier auf die
           Patchseite (die Brotkrume rendert SiteNav nur noch als JSON-LD), der
           Link darf also nicht verschwinden, wohl aber die Zeile im Kopf.
@@ -147,8 +172,11 @@ const snap = DB.generatedAt;
       Phase 01.2 haengt hier spaeter die aufklappbare Bedienungshilfe an. */}
   <aside class="uf-about">
     <p class="uf-about__lead">{de ? 'Jedes Item in Star Citizen: Kaufpreise, Shop-Orte und Loot-Guides — ein universeller Finder.' : 'Every item in Star Citizen: buy prices, shop locations and loot guides — one universal finder.'}</p>
-    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch <a href={de ? '/de/patches/sc-4-9-0.html' : '/patches/sc-4-9-0.html'}><b>4.9</b></a></span><span>{de ? 'Stand' : 'As of'} <b>{snap}</b></span></div>
-    <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${DB.pricesAsOf}).` : `(prices as of ${DB.pricesAsOf}).`}</p>
+    <div class="qbar"><span>Items <b>{total.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>{de ? 'Mit Quellen' : 'With sources'} <b>{sourced.toLocaleString(de ? 'de-DE' : 'en-US')}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span></div>
+    <p class="uf-about__note">{de
+      ? <><b>{unsourced.toLocaleString('de-DE')} von {total.toLocaleString('de-DE')} Items ({unsourcedPct} %)</b> haben noch keine verifizierte Shop- oder Loot-Quelle. Ihre Karten sagen das offen, statt einen Fundort zu raten; der Filter „Nur Katalog" listet sie.</>
+      : <><b>{unsourced.toLocaleString('en-US')} of {total.toLocaleString('en-US')} items ({unsourcedPct}%)</b> have no verified shop or loot source yet. Their cards say so instead of guessing a location; the "Catalog only" filter lists them.</>}</p>
+    <p class="uf-about__note">{de ? 'Preise ' : 'Prices '}&amp;{de ? ' Fundorte sind ' : ' locations are '}<b>{de ? 'Patch-volatil — ingame prüfen' : 'patch-volatile — verify in game'}</b> {de ? `(Preisstand: ${datumLang(DB.pricesAsOf, lang)}).` : `(prices as of ${datumLang(DB.pricesAsOf, lang)}).`}</p>
     <p class="uf-about__links">
       {/* /armor-sets.html steht bewusst NICHT hier: die Sets sind jetzt eine
           Ansicht im Finder selbst. Die Seite bleibt indexierbar und ist Ziel
@@ -157,9 +185,13 @@ const snap = DB.generatedAt;
       <a href={de ? '/de/items.html' : '/items.html'}>{de ? 'Alle Items nach Kategorie →' : 'Browse every item by category →'}</a>
       <a href={de ? '/de/crafting.html' : '/crafting.html'}>{de ? 'Blueprint-Verzeichnis →' : 'Blueprint directory →'}</a>
     </p>
+    {/* Der Finder zeigt alle Wertegruppen der Item-Seiten: Spielwerte,
+        Kaufpreise (UEX, dazu der eigene Shop-Schnappschuss, wo der Katalog
+        solche Zeilen fuehrt) und Loot-Fundorte (eigene Recherche). */}
+    <Datenstand lang={lang} innen zeilen={standItems(lang, { preise: true, schnappschuss: mitSchnappschuss, fundorte: true })} />
   </aside>
 </main>
 
-<Attribution sources={["UEX"]} updated={snap} />
+<Attribution sources={[]} />
 
 <script is:inline defer src={versioned('assets/detail.js', '/assets/detail.js')}></script>

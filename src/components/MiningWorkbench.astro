@@ -53,6 +53,7 @@ import { buildMiningShips } from '../lib/miningShips';
 import { href } from '../i18n/ui';
 import { useHelp, type HelpKey } from '../i18n/help';
 import { jsonForScript } from '../lib/safeJson';
+import { ausbeuteStand } from '../lib/refineryStand';
 
 /* Titelstreifen der Seite ist ins Gehaeuse gewandert (15.08.2026): das Kopfband
    der Grafik traegt ihn, und dadurch faellt der separate `.hero` weg — genau
@@ -89,7 +90,21 @@ const rarIdx = (r: string | null) => {
 const refineries = (MODEL.refineries as any[]).map((r) => ({ n: r.name, s: r.system, p: r.profileId }));
 const profiles = MODEL.refineryProfiles as Record<string, Record<string, number>>;
 
-const minerals = (DB.minerals as any[])
+/* Form eines Erzes in assets/mining-db.json, soweit diese Seite sie liest.
+   Als Annotation, nicht als Cast: tsc prueft den Datenstand gegen diese Form,
+   und alles dahinter (methodsOf, die Kachelgruppen) ist typisiert. Bis
+   04.11.2026 lief DB.minerals als any[] herein. */
+interface MineralFundort {
+  location: string; system: string; type: string; mining: string;
+  chance: number; maxShare: number; eff: number; points?: string[];
+}
+interface MineralSatz {
+  name: string; code: string; kind: string; weight_scu: number | null;
+  method?: string; methods?: string[]; rarity: string | null; needs_refine: boolean;
+  systems?: string[]; locations?: MineralFundort[];
+}
+const mineralSaetze: MineralSatz[] = DB.minerals;
+const minerals = mineralSaetze
   .map((m) => {
     const e = elemByName[m.name] || {};
     return {
@@ -99,7 +114,7 @@ const minerals = (DB.minerals as any[])
       // ms = hoechster Massenanteil ("bis X %"), ef = Erwartungswert des Anteils.
       // ef rangiert die Fundorte; ms allein taugt dafuer nicht, weil es je Erz oft
       // an allen Fundorten identisch ist.
-      locs: (m.locations || []).map((l: any) => ({
+      locs: (m.locations || []).map((l) => ({
         // `pt` = die realen Anflugpunkte. "Lagrange D" ist fuer sich keine
         // Ortsangabe — angeflogen werden ARC-L3, CRU-L5, MIC-L4. Das Feld lag
         // in den Daten (68 Paare) und wurde hier bisher fallen gelassen.
@@ -252,7 +267,7 @@ const S_DE = {
   chance: 'Chance', upTo: 'bis', yieldAvg: 'Ø-Anteil',
   tPlanet: 'Planet', tMoon: 'Mond', tBelt: 'Gürtel', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Höhle', tEvent: 'Event', tSpecial: 'Sonderort',
-  bestRef: 'Beste Stationen', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl', allRefs: 'Alle Raffinerien vergleichen',
+  bestRef: 'Beste Stationen', bestRefStand: 'Stand %v, von Hand', yieldMod: 'Ertrag', worst: 'schlechteste', yourPick: 'deine Wahl', allRefs: 'Alle Raffinerien vergleichen',
   usedIn: 'Blueprints', ships: 'Schiffe', openCrafting: 'Crafting öffnen',
   // Phase 12: Fundort-Ansicht (D-01/D-11) — Zurueck-Knopf-Beschriftung und
   // das Spur-Abzeichen fuer Erze mit hoechstens 10 % Anteil (D-07).
@@ -288,7 +303,7 @@ const S_EN = {
   chance: 'chance', upTo: 'up to', yieldAvg: 'avg share',
   tPlanet: 'Planet', tMoon: 'Moon', tBelt: 'Belt', tLagrange: 'Lagrange', tCluster: 'Cluster',
   tCave: 'Cave', tEvent: 'Event', tSpecial: 'Special',
-  bestRef: 'Best stations', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick', allRefs: 'Compare all refineries',
+  bestRef: 'Best stations', bestRefStand: 'as of %v, by hand', yieldMod: 'Yield', worst: 'worst', yourPick: 'your pick', allRefs: 'Compare all refineries',
   usedIn: 'Blueprints', ships: 'Ships', openCrafting: 'Open crafting',
   // Phase 12: location view (D-01/D-11) — back-button label and the trace
   // badge for ores with at most 10% share (D-07).
@@ -1633,13 +1648,13 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
             (4), dann benennen (5), dann herausloesen (6). */}
         <ToolHelp tool="mining" lang={lang} steps={6} />
         <div class="wb__frow">
-          <input class="wb__search" id="wb-q" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
+          <input class="wb__search" id="wb-q" data-ev-filter="suche" type="search" placeholder={S.search} aria-label={S.search} data-help={hlp('search')} />
           <span class="wb__c" id="wb-count">{minerals.length}</span>
         </div>
         {/* Der Chip „nur brechbar" stand hier bis 12.08. mit daneben — er
             urteilte ueber eine Ausruestung, die es auf dieser Seite nicht
             mehr gibt, und ist mit dem Rechner umgezogen. */}
-        <div class="wb__chips" data-help={hlp('system')}>
+        <div class="wb__chips" data-help={hlp('system')} data-ev-filter="system">
           {systems.map((s) => (<button type="button" class="wb__chip" data-sys={s} set:text={s} />))}
         </div>
       </div>
@@ -1755,7 +1770,7 @@ const systems = [...new Set(minerals.flatMap((m) => m.systems))].sort();
       </div>
       <div class="wb__scroll" id="wb-oreview">
         <div class="wb__sec"><h4 id="wb-loch" set:text={S.locations} /><div class="wb__locs" id="wb-locs" data-help={hlp('locpin')}></div></div>
-        <div class="wb__sec"><h4 set:text={S.bestRef} /><div class="wb__refs" id="wb-refs"></div></div>
+        <div class="wb__sec"><h4 set:text={`${S.bestRef} · ${S.bestRefStand.replace('%v', ausbeuteStand())}`} /><div class="wb__refs" id="wb-refs"></div></div>
         <div class="wb__sec"><div class="wb__links" id="wb-links"></div></div>
       </div>
       <div class="wb__scroll" id="wb-locview" hidden></div>

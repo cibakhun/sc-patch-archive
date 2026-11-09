@@ -32,6 +32,26 @@ export const patchPageSlugs: ReadonlySet<string> = new Set(
   ),
 );
 
+/**
+ * Patch-Label aus der Kennung einer Datendatei, in jeder ihrer Formen:
+ * "4.10.2-live.12881860", "PUBLIC-4.10.2-12881860", "sc-alpha-4.10.2@12881860"
+ * -> "4.10".
+ *
+ * ANLASS (03.11.2026): Mining-Datenbank und Wikelo nannten in Titel und
+ * Vorschau "Star Citizen 4.9" bzw. "4.1", der Item Finder "Patch 4.9" —
+ * von Hand geschriebene Literale, waehrend alle Daten auf 4.10.2 standen.
+ * Ein Datenlauf hebt die Datei, nicht das Literal. Deshalb gibt es hier
+ * bewusst KEIN Rueckfall-Literal: fehlt die Fassung, bricht der Bau laut ab,
+ * statt still einen alten Stand zu behaupten. (verify:datastand sichert
+ * ohnehin zu, dass jede Kennung vorhanden ist; verify:patch-angaben prueft,
+ * was die gebauten Seiten daraus machen.)
+ */
+export function patchFromKennung(kennung: string | null | undefined): string {
+  const m = /(\d+)\.(\d+)\.\d+/.exec(kennung ?? '');
+  if (!m) throw new Error(`patchFromKennung: Kennung "${kennung}" traegt keine Fassung X.Y.Z`);
+  return `${m[1]}.${m[2]}`;
+}
+
 /** "4.10" -> "sc-4-10-0" */
 export const patchPageSlug = (patch: string) => `sc-${patch.replace(/\./g, '-')}-0`;
 
@@ -42,4 +62,27 @@ export const patchPageSlug = (patch: string) => `sc-${patch.replace(/\./g, '-')}
 export function patchPageHref(patch: string, lang: Locale): string | null {
   const slug = patchPageSlug(patch);
   return patchPageSlugs.has(slug) ? href(`/patches/${slug}.html`, lang) : null;
+}
+
+/**
+ * Verweis auf die Patch-Seite der VOLLEN Fassung einer Kennung
+ * ("4.10.2-live.12881860" -> sc-4-10-2, Label "Alpha 4.10.2"). Fehlt diese
+ * Seite, die Hauptfassung (sc-4-10-0, Label "Alpha 4.10"); fehlt auch die,
+ * `null` — Aufrufer zeigen dann nur das Label oder nichts.
+ *
+ * ANLASS (Bestandsaufnahme C, 06.11.2026): Item-Seiten, Item Finder und
+ * Crafting nannten „Alpha 4.10" und fuehrten auf die Seite 4.10.0, waehrend
+ * ihre Werte aus 4.10.2 stammen und die Seite 4.10.2 existiert.
+ */
+export function patchLinkFromKennung(
+  kennung: string | null | undefined,
+  lang: Locale,
+): { version: string; label: string; href: string | null } {
+  const m = /(\d+)\.(\d+)\.(\d+)/.exec(kennung ?? '');
+  if (!m) throw new Error(`patchLinkFromKennung: Kennung "${kennung}" traegt keine Fassung X.Y.Z`);
+  const voll = `${m[1]}.${m[2]}.${m[3]}`;
+  const vollSlug = `sc-${m[1]}-${m[2]}-${m[3]}`;
+  if (patchPageSlugs.has(vollSlug)) return { version: voll, label: `Alpha ${voll}`, href: href(`/patches/${vollSlug}.html`, lang) };
+  const haupt = `${m[1]}.${m[2]}`;
+  return { version: haupt, label: `Alpha ${haupt}`, href: patchPageHref(haupt, lang) };
 }

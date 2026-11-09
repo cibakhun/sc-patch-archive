@@ -57,6 +57,11 @@ export interface BlueprintItemStats {
   fire_modes?: { name: string }[];
   max_ammo?: number;
   max_restock?: number;
+  /** Erz-Pods: Fassungsvermoegen in SCU */
+  cargo_capacity_scu?: number;
+  health?: number;
+  /** Mining-Module: Modifikator je Kennwert (BlueprintDetail.astro, MIN_ORDER) */
+  mining_modifiers?: Record<string, { value: number; mode: string }>;
   [k: string]: unknown;
 }
 

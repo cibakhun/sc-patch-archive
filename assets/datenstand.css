@@ -1,0 +1,84 @@
+/* datenstand.css — Baustein „Datenstand" am Seitenende
+   (src/components/Datenstand.astro, Zeilen aus src/lib/datenstand.ts).
+
+   Eine externe Datei statt <style> im Baustein: er sitzt auch auf den rund
+   14.000 Seiten der Datenhuelle, ein Stilblock dort waere 14.000-mal inline.
+
+   Keine Farbwerte: nur die Tokens der Seite (--muted, --text, --line-soft,
+   --accent, --accent-2). Jede Seitenart setzt sie in ihrer eigenen Palette;
+   fehlt einer, erbt die Zeile die Textfarbe statt einer fremden Farbe. */
+
+/* Eigenstaendig (zwischen Inhalt und Fuss): Breite und Rinne wie die
+   Inhaltsspalten der Seite, die Linie oben so breit wie der Text. */
+.vb-stand {
+  box-sizing: border-box;
+  width: min(100% - 2 * clamp(1.25rem, 5vw, 3rem), 1080px);
+  margin: 2.6rem auto 1.4rem;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--line-soft, currentColor);
+  font-size: var(--fs-6);
+  line-height: 1.55;
+  color: var(--muted, inherit);
+}
+
+/* Innerhalb einer Inhaltsspalte (Datenhuelle, Schiffs-, Missionsseite,
+   Refinery): die Spalte bringt Breite und Rinne schon mit. Doppelte Klasse,
+   weil manche Seiten ihre Abschnitte pauschal auf margin/padding 0 setzen
+   (.rf section) und das sonst den Abstand nach oben schluckte. */
+.vb-stand.vb-stand--innen {
+  width: auto;
+  margin: 2.4rem 0 0;
+  padding: 1rem 0 0;
+}
+
+.vb-stand__h {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-ui, inherit);
+  font-size: var(--fs-6);
+  font-weight: 700;
+  letter-spacing: var(--ls-10);
+  text-transform: uppercase;
+  color: var(--muted, inherit);
+}
+
+.vb-stand__zeilen {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.vb-stand__was {
+  color: var(--text, inherit);
+  font-weight: 600;
+}
+
+.vb-stand a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.vb-stand a:hover { color: var(--accent, inherit); }
+
+/* „Falschen Wert melden“ (nur Detailseiten): eine eigene Zeile unter den
+   Staenden, schlicht wie die Quellenlinks. */
+.vb-stand__melden {
+  margin: 0.6rem 0 0;
+}
+
+/* „älterer Stand": eine kleine Marke, kein Warnschild. Sie sagt, dass diese
+   Zeile hinter den Spielwerten derselben Seite liegt — nicht, dass sie
+   falsch ist. */
+.vb-stand__alt {
+  display: inline-block;
+  padding: 0 0.45rem;
+  border: 1px solid var(--accent-2, currentColor);
+  border-radius: 999px;
+  color: var(--accent-2, inherit);
+  font-size: var(--fs-4);
+  font-weight: 600;
+  letter-spacing: var(--ls-6);
+  line-height: 1.5;
+  white-space: nowrap;
+}

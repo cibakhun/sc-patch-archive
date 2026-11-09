@@ -163,7 +163,7 @@ export const HELP = {
     'armorsets.step2': 'Jedes Set zeigt seine Teile nach Körperzone gegliedert.',
     'armorsets.step3': 'Ein unterstrichener Teilname führt zum Item-Datenblatt.',
     'armorsets.step4': 'Die Kennzahlen oben zeigen Gesamtzahl, Teile und vollständige Sets.',
-    'armorsets.ctl.keys': 'Zählt Sets, Teile, vollständige Sets und den Datenstand.',
+    'armorsets.ctl.keys': 'Zählt Sets, Teile und vollständige Sets und nennt die Spielversion der Daten.',
     'armorsets.ctl.jump': 'Springt direkt zu den Sets eines Herstellers.',
 
     // -- Wikelo's Emporium --
@@ -378,7 +378,7 @@ export const HELP = {
     'armorsets.step2': 'Each set shows its parts grouped by body slot.',
     'armorsets.step3': 'An underlined part name links to its item page.',
     'armorsets.step4': 'The figures at the top show total count, parts and complete sets.',
-    'armorsets.ctl.keys': 'Counts sets, parts, complete sets and the data date.',
+    'armorsets.ctl.keys': 'Counts sets, parts and complete sets and names the game version of the data.',
     'armorsets.ctl.jump': 'Jumps straight to a manufacturer’s sets.',
 
     // -- Wikelo's Emporium --
@@ -512,8 +512,12 @@ export function assertHelpParity(): void {
   }
 
   for (const key of deKeys) {
-    const de = HELP.de[key];
-    const en = HELP.en[key];
+    // Als `string` gelesen: HELP ist `as const`, die beiden Literalmengen sind
+    // heute disjunkt, und tsc hielte den Gleichheitsvergleich unten deshalb
+    // fuer einen Irrtum (TS2367). Er ist aber genau die Laufzeitwache gegen
+    // eine kuenftig vergessene Uebersetzung.
+    const de: string = HELP.de[key];
+    const en: string = HELP.en[key];
     if (!de || !de.trim()) throw new Error(`assertHelpParity: leerer DE-Wert bei Schluessel "${key}"`);
     if (!en || !en.trim()) throw new Error(`assertHelpParity: leerer EN-Wert bei Schluessel "${key}"`);
     if (de === en && !SAME_IN_BOTH.has(key)) {

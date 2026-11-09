@@ -8,6 +8,7 @@ import {
   AH_BAND_INFO,
   AH_BAND_METADATA,
   AH_GAME_ENVELOPE,
+  PJ_PATCH,
   buildAnchorRecords,
   getBandMetrics,
   type AnchorRecord,
@@ -83,7 +84,7 @@ const S = {
     gameHalo: 'Aaron-Halo-Hülle',
     gameHaloSep: 'Innen',
     honesty:
-      'QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind spielgenau für Patch 4.9; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.',
+      `QT-Anker (Planeten/Monde/Lagrange) + Halo-Hülle sind spielgenau, ausgelesen in Patch ${PJ_PATCH}; nur die 10 feinen Dichtebänder sind cstone-Community-Vermessung (liegen innerhalb der Hülle). Alles <b>patch-volatil — im Spiel gegenprüfen</b>.`,
   },
   en: {
     solver: 'Route solver',
@@ -142,7 +143,7 @@ const S = {
     gameHalo: 'Aaron Halo envelope',
     gameHaloSep: 'inner',
     honesty:
-      'QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate for patch 4.9; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.',
+      `QT anchors (planets/moons/Lagrange) + the Halo envelope are game-accurate, read out in patch ${PJ_PATCH}; only the 10 finer density bands are a cstone community survey (inside the envelope). All <b>patch-volatile — verify in game</b>.`,
   },
 }[lang];
 
@@ -716,10 +717,10 @@ const CLIENT = {
     <div class="pj-console">
       <div class="pj-console__head">
         <span class="pj-console__title">{S.solver}</span>
-        <button type="button" class="pj-reset" id="pj-reset" data-help={h('precisionjump.ctl.reset')}>{S.reset}</button>
+        <button type="button" class="pj-reset" id="pj-reset" data-ev-rechnung data-help={h('precisionjump.ctl.reset')}>{S.reset}</button>
       </div>
 
-      <div class="pj-route" data-help={h('precisionjump.ctl.route')}>
+      <div class="pj-route" data-ev-rechnung data-help={h('precisionjump.ctl.route')}>
         <div class="pj-field">
           <label class="pj-label" for="pj-start">{S.start}</label>
           <select id="pj-start" class="pj-select">
@@ -753,7 +754,7 @@ const CLIENT = {
         </div>
       </div>
 
-      <div class="pj-band" data-help={h('precisionjump.ctl.band')}>
+      <div class="pj-band" data-ev-rechnung data-help={h('precisionjump.ctl.band')}>
         <div class="pj-field">
           <label class="pj-label" for="pj-bandsel">{S.band}</label>
           <select id="pj-bandsel" class="pj-select">
@@ -813,7 +814,7 @@ const CLIENT = {
         <div class="pj-trigger__axis" id="pj-trigaxis">{JS_T.monitor} X</div>
         <div class="pj-trigger__val" id="pj-trigval">0</div>
         <div class="pj-trigger__sub" id="pj-trigsub"></div>
-        <button type="button" class="pj-copy" id="pj-copy">{JS_T.copy}</button>
+        <button type="button" class="pj-copy" id="pj-copy" data-ev-kopieren>{JS_T.copy}</button>
       </div>
 
       <div class="pj-stats" id="pj-stats"></div>
@@ -870,7 +871,7 @@ const CLIENT = {
         <span class="pj-tbl__chev" aria-hidden="true">▾</span>
       </summary>
       <div class="pj-tbl__body">
-        <input type="search" id="pj-anchorfilter" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
+        <input type="search" id="pj-anchorfilter" data-ev-filter="suche" class="pj-filter" placeholder={S.filterAnchor} aria-label={S.filterAnchor} autocomplete="off" />
         <div class="pj-tblscroll">
           <table>
             <thead>
@@ -1198,7 +1199,7 @@ const CLIENT = {
     // beantwortet vier verschiedene Fragen: Geht das? Ist es sicher? Wie
     // weit noch? Wie viel Spielraum habe ich?
     byId('pj-stats').innerHTML =
-      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toFixed(3), a: conf.ang.toFixed(1) }), { cls: conf.cls, score: conf.score }) +
+      card(T.cConf, conf.label, conf.cls, fill(T.cConfSub, { f: conf.f.toLocaleString(loc, { minimumFractionDigits: 3, maximumFractionDigits: 3 }), a: conf.ang.toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }), { cls: conf.cls, score: conf.score }) +
       card(T.cPlane, plane.label, plane.cls, fill(T.cPlaneSub, { z: nf2.format(plane.zKm), h: nf0.format(HALF) })) +
       card(T.cDist, nf3.format(remainKm / 1e6) + ' Gm', '', fill(T.cDistSub, { k: nf0.format(remainKm) })) +
       card(T.cWidth, nf0.format(widthKm) + ' km', '', fill(T.cWidthSub, { i: nf0.format(innerToPeak), o: nf0.format(peakToOuter) }));
