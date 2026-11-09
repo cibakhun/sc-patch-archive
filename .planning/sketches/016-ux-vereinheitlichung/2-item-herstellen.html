@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 016-2 — Item-Datenblatt mit Einstieg „Herstellen“</title>
+<link rel="stylesheet" href="basis.css">
+<style>
+/* Wegwerf-Entwurf. Grundsprache = Skizze 015 (Detail Pages 2.0, „Baujahr
+   2026“). Gezeigt wird NUR, was das UX-Konzept am Datenblatt festlegt: die
+   drei Wege zum Item stehen im Kopf, und „Herstellen“ fuehrt in einem
+   Schritt in die Crafting-Werkbank — mit diesem Rezept schon ausgewaehlt.
+   Werte: CF-337 Panther Repeater, Vorschau-Bau staging 44938189. */
+:root { --craft-tool: #ff5e1a; --craft-tool-weak: rgba(255,94,26,.12); }
+.head { display: grid; grid-template-columns: 1fr 380px; gap: 32px; align-items: center; padding: 40px 0 6px; }
+.head .thumb { background: radial-gradient(70% 70% at 50% 60%, rgba(167,139,250,.16), transparent 70%), var(--s1); border-radius: var(--r1); padding: 22px 16px; }
+.alt { color: var(--faint); margin: 6px 0 0; font-size: 15px; }
+
+/* Wege zum Item: drei gleichrangige Karten, je eine Antwort + ein Schritt */
+.ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 28px 0 0; }
+.way { background: var(--s1); border-radius: var(--r1); padding: 18px 20px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--lift); }
+.way h2 { font: 600 15px var(--font); color: var(--muted); margin: 0; display: flex; align-items: center; gap: 8px; }
+.way h2 svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.way .big { font: 600 24px/1.15 var(--font); }
+.way .big small { font-size: 15px; color: var(--muted); font-weight: 500; }
+.way p { margin: 0; color: var(--muted); font-size: 15px; }
+.way p b { color: var(--text); font-weight: 500; }
+.way .go { margin-top: auto; padding-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+.lnk { display: inline-flex; align-items: center; height: 40px; padding: 0 14px; border-radius: var(--r2); background: var(--s3); font: 600 15px var(--font); }
+.way.craft { background: linear-gradient(160deg, var(--craft-tool-weak), var(--s1) 55%); box-shadow: inset 0 0 0 1px rgba(255,94,26,.32), var(--lift); }
+.way.craft h2 { color: #ffb08c; }
+.btn-craft { display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 18px; border-radius: var(--r2); background: var(--craft-tool); color: #1a0d05; font: 600 15.5px var(--font); }
+.btn-craft svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; }
+.mats { display: flex; flex-wrap: wrap; gap: 6px; }
+.mat { height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border-radius: 99px; background: var(--s3); font: 500 14px var(--font); }
+.mat .num { color: var(--muted); }
+.ships { display: flex; flex-wrap: wrap; gap: 6px; }
+.ships span { height: 28px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 99px; background: var(--s3); font: 500 14px var(--font); }
+
+.next { margin: 44px 0 0; }
+.next .ghost { border: 1px dashed rgba(255,255,255,.12); border-radius: var(--r1); padding: 22px; color: var(--faint); font-size: 15px; }
+.anno { position: absolute; z-index: 9; font: 500 13px var(--font); color: #1a0d05; background: #ffd27a; padding: 5px 9px; border-radius: 6px; }
+
+@media (max-width: 980px) {
+  .head { grid-template-columns: 1fr; gap: 14px; padding-top: 22px; }
+  .head .thumb { order: -1; padding: 10px 24px; max-width: 360px; }
+  .ways { grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+  .way { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="logo">VerseBase</a>
+  <nav class="crumbs"><span>Items</span><i>›</i><span>Schiffswaffen</span><i>›</i><span>CF-337-Panther-Repetierer</span></nav>
+  <div class="tools">
+    <span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></span>
+    <span class="ibtn">EN</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <section class="head">
+    <div>
+      <p class="eyebrow">Schiffswaffe · Laser-Repetierer · Klaus &amp; Werner</p>
+      <h1>CF-337-Panther-Repetierer</h1>
+      <p class="alt">CF-337 Panther Repeater</p>
+      <ul class="pills">
+        <li class="pill"><b>Größe</b> 3</li>
+        <li class="pill"><b>Schaden</b> Energie</li>
+        <li class="pill"><b>DPS</b> 545,63</li>
+        <li class="pill"><b>Bauteil-HP</b> 1.500</li>
+      </ul>
+    </div>
+    <div class="thumb"><img src="img/cf-337-panther-repeater.webp" alt="CF-337 Panther Repeater, Spielmodell"></div>
+  </section>
+
+  <section class="ways" aria-label="Wege zum Item">
+    <div class="way">
+      <h2><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>Kaufen</h2>
+      <div class="big num">ab 36.308 <small>aUEC</small></div>
+      <p><b>29 Shops</b> in Stanton und Pyro · am günstigsten in Area 18 und New Babbage</p>
+      <div class="go"><a class="lnk">Alle Kauforte ↓</a></div>
+    </div>
+    <div class="way craft">
+      <h2><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Herstellen</h2>
+      <div class="big num">28 min <small>· Bauplan aus 3 Missionen</small></div>
+      <div class="mats"><span class="mat">Hadanite <span class="num">23 SCU</span></span><span class="mat">Agricium <span class="num">1,16</span></span><span class="mat">Pressurized Ice <span class="num">0,46</span></span></div>
+      <div class="go"><a class="btn-craft"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Im Crafting öffnen</a></div>
+    </div>
+    <div class="way">
+      <h2><svg viewBox="0 0 24 24"><path d="M12 2 2 22h9l1-6 1 6h9L12 2z"/></svg>Ab Werk verbaut</h2>
+      <div class="big num">59 <small>Schiffe</small></div>
+      <div class="ships"><span>100i</span><span>125a</span><span>135c</span><span>350r</span><span>400i</span><span>+ 54</span></div>
+      <div class="go"><a class="lnk">Alle Schiffe ↓</a></div>
+    </div>
+  </section>
+
+  <section class="next">
+    <div class="ghost">Darunter weiter wie in Detail Pages 2.0: Werte und Einordnung, Kauforte nach System, Ab Werk, Ähnliche Items, Datenstand. Die Rezept-Tabelle steht nicht mehr hier und nicht mehr auf einer eigenen Seite: sie lebt im Crafting-Werkzeug, unter der bisherigen Adresse des Bauplans.</div>
+  </section>
+</main>
+</body>
+</html>
