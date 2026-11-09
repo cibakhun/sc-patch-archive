@@ -15,6 +15,12 @@ umfangreiche Implementierung ohne visuelle Freigabe.
 
 Konzept (Claude Doc): https://claude.ai/artifact/P5oGDrQ4v7sSLwR6VY3fWt
 
+**Rahmen seit 09.11.2026:** 2.0 baut auf Skizze 016 „Bedienung
+vereinheitlichen“ auf. Bauplan-Seiten werden zum Crafting-Werkzeug, 2.0
+entwirft keine eigene Bauplan-Seite; das Item-Datenblatt führt unter dem Kopf
+die drei Wege Kaufen, Herstellen, Ab Werk. Die Herstellkette in Entwurf C ist
+damit Sache des Werkzeugs, nicht der Itemseite.
+
 Öffnen: die drei HTML-Dateien direkt aus dem Repo im Browser. Schriften kommen
 relativ aus `assets/fonts/`, Bilder aus `img/`. Keine externen Anfragen.
 

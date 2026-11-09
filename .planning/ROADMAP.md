@@ -1399,11 +1399,11 @@ Plans:
 
 ### Phase 21: Detail Pages 2.0
 
-**Status:** Konzept, wartet auf die visuelle Freigabe des Betreibers. Kein
-Seiten-Code vor der Richtungswahl.
+**Status:** Konzept, Rahmen seit 09.11.2026 festgelegt (siehe unten), die
+Richtungswahl A/B/C steht noch aus. Kein Seiten-Code vor der Richtungswahl.
 
-**Goal:** Die rund 17.600 generierten Datenseiten (5.369 Items, 1.608
-Baupläne, 1.387 Missionen, 213 Kategorien je Sprache) bekommen eine
+**Goal:** Die generierten Datenseiten (5.369 Items, 1.387 Missionen, 213
+Kategorien je Sprache; die 1.608 Bauplan-Seiten siehe „Rahmen“) bekommen eine
 vollständige visuelle Aufwertung: eine gemeinsame Hülle in der Sprache aus
 Skizze 006 („Baujahr 2026“), alle vorhandenen Spielwerte statt einer Auswahl,
 und eine Richtung, die vorgibt, was jede Seite zuerst beantwortet.
@@ -1411,6 +1411,23 @@ und eine Richtung, die vorgibt, was jede Seite zuerst beantwortet.
 **Herkunft:** Betreiber-Prioritäten vom 08.11.2026 — „Detail Pages 2.0 als
 vollständige visuelle Aufwertung der generierten Datenseiten“, zunächst nur
 konzeptionell, keine umfangreiche Implementierung ohne visuelle Freigabe.
+
+**Rahmen (Betreiber, 09.11.2026):** 2.0 baut auf dem freigegebenen Konzept
+„Bedienung vereinheitlichen“ auf (Skizze 016,
+https://claude.ai/artifact/AZJ5P7oGg3Xw8ygFZnbQ46): ein Ort je Frage,
+nachschlagen im Datenblatt, arbeiten im Werkzeug. „Keine separate
+Blueprint-Detailansicht mehr entwickeln.“ Folgen für 2.0:
+
+- Die Bauplan-Adressen `/crafting/<rezept>.html` werden zum Crafting-Werkzeug
+  mit Rezept und Planer (Option A, dort Schritt 3, erst nach einer
+  Prototyp-Abnahme auf staging). 2.0 entwirft keine eigene Bauplan-Seite.
+- Das Item-Datenblatt bekommt unter dem 2.0-Kopf drei gleichrangige Karten
+  „Wege zum Item“: Kaufen, Herstellen (als einzige in Crafting-Orange, Knopf
+  „Im Crafting öffnen“ mit vorgewähltem Rezept) und Ab Werk. Die volle
+  Rezept-Tabelle und die Herstellkette aus Entwurf C gehören ins Werkzeug.
+- 2.0 ist dort Schritt 5 („im neuen Rahmen: Item, Mission, Kategorie,
+  Rüstung“) und baut auf Suche, kurzen Wegen und Crafting-Werkzeug auf. Die
+  zweite Entwurfsrunde darf vorher laufen.
 
 **Konzept:** https://claude.ai/artifact/P5oGDrQ4v7sSLwR6VY3fWt
 **Entwürfe:** `.planning/sketches/015-detailseiten-2-0/` — drei Richtungen am
@@ -1420,7 +1437,9 @@ Item führen).
 
 **Abgrenzung:** Die 231 Schiffsseiten und alles, was ein Loadout rechnet
 (DPS/TTK, Komponenten, Flotte), gehören zum Vorhaben „Hangar als zentrale
-Plattform“ (Phase 22). Die Vernetzung aus der Produktphase (Werkzeug-Links,
+Plattform“ (Phase 22). Rezept, Planer, Materialqualität und die Missionen, die
+einen Bauplan abwerfen, gehören ins Crafting-Werkzeug (Skizze 016). Die
+Vernetzung aus der Produktphase (Werkzeug-Links,
 Suche, Datenstand, „Falschen Wert melden“) bleibt und bekommt nur eine neue
 Form.
 
@@ -1439,12 +1458,13 @@ Schiffsseiten erscheinen in derselben Sprache.
 **Reihenfolge nach der Freigabe** (jeder Schritt einzeln auf staging und
 einzeln abgenommen):
 
-1. Zweite Entwurfsrunde: gewählte Richtung auf Bauplan, Mission, Kategorie,
-   dazu eine Rüstung als Gegenprobe ohne Modell.
+1. Zweite Entwurfsrunde: gewählte Richtung auf das Item-Datenblatt mit den
+   drei Wegen, auf Mission und Kategorie, dazu eine Rüstung als Gegenprobe
+   ohne Modell.
 2. Leitschuss: neue Hülle und Klassenvergleich auf den 117 Schiffswaffen-Seiten
    mit Modell, Ende zu Ende, mit neuem Tor.
 3. Alle Itemseiten.
-4. Baupläne und Kategorien, dann Missionen.
+4. Kategorien, dann Missionen.
 5. Bilder für Rüstung, Kleidung, Handwaffen nach dem Komplett-Lauf am PC.
 
 **Erfolgskriterien (Entwurf, werden mit der Richtung festgeschrieben):**
