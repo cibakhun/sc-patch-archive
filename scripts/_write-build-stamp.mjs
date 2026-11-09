@@ -5,6 +5,17 @@
      { "sha": "<Commit>", "kurz": "<7 Zeichen>", "staging": true|false,
        "supabase": { "ziel": "live"|"vorschau", "ref": "<Projekt-Ref>" },
        "gebautAm": "<ISO>" }
+   und denselben Inhalt Byte fuer Byte noch einmal als dist/build.txt.
+
+   WARUM ZWEIMAL (08.11.2026): Cloudflare antwortet dem GitHub-Runner
+   seit mindestens 01.11. auf staging UND live mit 403 fuer HTML, .json
+   und Pfade ohne Endung; .css, .js, .woff2 und robots.txt kommen durch.
+   Das passt zu Cloudflares Liste statischer Dateien, in der .txt steht,
+   .json nicht. Der Warte-Schritt der Deploy-Laeufe meldete deshalb nur
+   noch "NICHT geprueft". build.txt ist derselbe Stempel unter einer
+   Endung, die Cloudflare durchlaesst; check-deployed.mjs liest ihn, wenn
+   build.json gesperrt ist. build.json bleibt der Hauptweg (D-07,
+   check:staging vom Entwicklungsrechner aus).
 
    `supabase` nennt das Projekt, das dieser Bau anspricht
    (scripts/lib/supabase-ziel.mjs). verify:supabase-ziel prueft dist/
@@ -51,5 +62,7 @@ const stempel = {
   gebautAm: new Date().toISOString(),
 };
 
-writeFileSync(resolve(DIST, 'build.json'), JSON.stringify(stempel, null, 2) + '\n');
-console.log(`build.json: ${stempel.kurz}${stempel.staging ? ' (Vorschau)' : ''} · Supabase ${ziel.ziel} (${ziel.ref}) · ${stempel.gebautAm}`);
+const text = JSON.stringify(stempel, null, 2) + '\n';
+writeFileSync(resolve(DIST, 'build.json'), text);
+writeFileSync(resolve(DIST, 'build.txt'), text);
+console.log(`build.json + build.txt: ${stempel.kurz}${stempel.staging ? ' (Vorschau)' : ''} · Supabase ${ziel.ziel} (${ziel.ref}) · ${stempel.gebautAm}`);

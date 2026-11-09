@@ -92,10 +92,17 @@ jobs:
           docker push ghcr.io/cibakhun/sc-patch-archive:latest
           docker push ghcr.io/cibakhun/sc-patch-archive:${{ github.sha }}
 
-  # Aufbewahrung begrenzen: jeder Push auf main legt eine neue Paketversion
-  # an, und jede haelt ihre Layer (~700 MB unkomprimiert) fest. Ohne
-  # Aufraeumen waechst das Paket unbegrenzt. Die 10 neuesten bleiben — das
-  # deckt einen Rollback ueber mehrere Deploys ab.
+  # Aufbewahrung begrenzen: jede Paketversion haelt ihre Layer (~700 MB
+  # unkomprimiert) fest, ohne Aufraeumen waechst das Paket unbegrenzt.
+  # Im selben Paket liegen Live-Images (Tag = Commit) und die Vorschau-Images
+  # aus deploy-staging.yml (Tag staging-<Commit>). Bis 09.11.2026 hiess die
+  # Regel "die 10 neuesten Versionen bleiben"; zwischen zwei Releases
+  # entstehen aber mehr als zehn Vorschau-Images, und Lauf 42553428500
+  # loeschte das vorige Live-Image 6bb4ade6 in derselben Minute, in der
+  # 6c134200 live ging. Jetzt getrennt: die 5 neuesten Live-Images und die
+  # 10 neuesten Vorschau-Images bleiben, latest und staging immer.
+  # Regeln und Gruende: .github/scripts/ghcr-aufraeumen.mjs, Beispiele in
+  # tests/e2e/ghcr-aufraeumen.test.js.
   # continue-on-error: das Aufraeumen darf einen erfolgreichen Deploy nie
   # nachtraeglich rot faerben.
   prune:
@@ -104,14 +111,30 @@ jobs:
     timeout-minutes: 10
     continue-on-error: true
     permissions:
+      contents: read
       packages: write
     steps:
-      - name: Prune old GHCR versions
-        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5.0.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          package-name: sc-patch-archive
-          package-type: container
-          min-versions-to-keep: 10
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/scripts/ghcr-aufraeumen.mjs
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Alte Paketversionen aufraeumen (Live-Images getrennt gezaehlt)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node .github/scripts/ghcr-aufraeumen.mjs \
+            --owner ${{ github.repository_owner }} \
+            --paket sc-patch-archive \
+            --live 5 \
+            --staging 10 \
+            --schonen ${{ github.sha }}
 
   deploy:
     needs: publish
@@ -151,7 +174,8 @@ jobs:
 
       # Wie in deploy-staging.yml: warten, bis die LIVE-Seite den frisch
       # gebauten Stand wirklich ausliefert. "CI gruen" ist keine Antwort
-      # darauf — siehe die Begruendung dort.
+      # darauf — siehe die Begruendung dort. Sperrt Cloudflare /build.json,
+      # liest der Schritt denselben Stempel aus /build.txt.
       - name: Warten, bis die Live-Seite den neuen Stand zeigt
         run: |
           node scripts/check-deployed.mjs \
@@ -184,7 +208,10 @@ jobs:
       #     npm run check:headers:live
       # CLAUDE.md fuehrt das als Pflicht vor der Fertig-Meldung.
       #
-      # In deploy-staging.yml bleibt der Schritt: dort kommt der Runner durch
-      # (5 von 5 Laeufen gruen, gemessen 01.11.2026), weil staging.verse-base.com
-      # den Bot-Schutz nicht hat. Faengt er auch dort an, falsch rot zu werden,
-      # gehoert er auch dort weg — nicht auf "immer gruen" gestellt.
+      # In deploy-staging.yml bleibt der Schritt (5 von 5 Laeufen gruen,
+      # gemessen 01.11.2026). Der Grund stand hier bis zum 08.11.2026 falsch:
+      # staging.verse-base.com hat denselben Bot-Schutz, auch dort bekommt der
+      # Runner fuer HTML und .json 403 (Protokoll vom 01.11. ebenso). Durch
+      # kommen nur Stichproben mit statischer Endung, und die tragen dort die
+      # Kopfzeilen des Ursprungs. Faengt er auch dort an, falsch rot zu
+      # werden, gehoert er auch dort weg — nicht auf "immer gruen" gestellt.
