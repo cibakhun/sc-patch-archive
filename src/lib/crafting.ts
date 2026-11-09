@@ -473,7 +473,16 @@ const recipeByItemId = (() => {
  * (Arrowhead Pathfinder, Hellion Scattergun der zweiten Ausfuehrung …).
  */
 export function recipeForItem(i: Item): BlueprintEntry | null {
-  return recipeByItemId.get(i.id) ?? blueprintForItem(i);
+  const exakt = recipeByItemId.get(i.id);
+  if (exakt) return exakt;
+  // Der Name nur, wenn das Rezept nicht nachweislich ein ANDERES Item baut:
+  // sechs gleichnamige Items (Hellion Scattergun, Lynx Legs, Oracle Helmet,
+  // drei P8-SC) haben selbst kein Rezept, ihr Namensvetter mit "-2" schon.
+  // Lieber kein „Herstellen“ als eines, das etwas anderes herstellt
+  // (Review #324).
+  const b = blueprintForItem(i);
+  const baut = b ? itemForBlueprint(b) : null;
+  return b && (!baut || baut.id === i.id) ? b : null;
 }
 
 /**

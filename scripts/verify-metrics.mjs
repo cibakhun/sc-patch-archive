@@ -217,8 +217,11 @@ const ABLESER = {
   // Seit 09.11.2026 (Skizze 016) steht ein Rezept, dessen Item ein
   // Datenblatt hat, nicht mehr als eigener Treffer im Register, sondern als
   // "Herstellen" am Item. Gezaehlt werden deshalb die verschiedenen Rezepte,
-  // zu denen die Suche fuehrt — faellt die Zusammenfuehrung aus oder verliert
-  // ein Teil seine c-Felder, reisst die Klinke wie vorher.
+  // zu denen die Suche fuehrt (Feld c, ob am Item oder am Blueprint-Treffer):
+  // verliert ein Teil seine c-Felder oder faellt ein Rezept ganz heraus,
+  // reisst die Klinke wie vorher. Eine ausgefallene Zusammenfuehrung sieht
+  // sie NICHT — dann steht das Rezept wieder als eigener Treffer da, mit
+  // demselben Ziel; das ist doppelt, aber nicht verloren (Review #324).
   sucheBlueprints: () => beideSprachen(rezepteImIndex('search-index-more.json'), rezepteImIndex('de/search-index-more.json')),
   sucheWerkzeuge: () =>
     beideSprachen(zaehleIndex(['search-index.json'], art('werkzeug')), zaehleIndex(['de/search-index.json'], art('werkzeug'))),
