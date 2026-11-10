@@ -16,6 +16,7 @@ discord/
 ├─ build.mjs       ← the engine (validate + build)
 ├─ order-roles.mjs ← sorts the role hierarchy (npm run order)
 ├─ audit.mjs       ← read-only health check of the live server (npm run audit)
+├─ vorschlaege.mjs ← reads open suggestions from the #feedback forum, read-only (VORSCHLAEGE.md)
 ├─ make-icon.mjs   ← generates the server icon (zero deps)
 ├─ make-avatar.mjs ← generates the bot's profile picture (zero deps, 3 variants)
 ├─ set-avatar.mjs  ← puts it on the bot + application (npm run avatar:apply)
