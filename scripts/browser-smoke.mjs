@@ -142,9 +142,10 @@ const SEITEN = [
   // ist: die Ausstattung kommt dann als Buchtdokument per Abruf.
   {
     id: 'hangar',
-    // pane=ship: die Vorgabe der Tafel ist die Layout-Werkstatt, geprueft werden hier die Schiffsdaten.
-    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
-    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&pane=ship',
+    // station=uebersicht&tafel=1: die Vorgabe ist die Station Loadout (Werkstatt), geprueft werden hier
+    // die Schiffsdaten als Tafel; ohne tafel=1 stuende die Uebersicht ab 761 px als Hologramm in der Halle.
+    en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&station=uebersicht&tafel=1',
+    de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&station=uebersicht&tafel=1',
     leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
     nurMitHangar: true,
   },
@@ -487,7 +488,7 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
   // ohne WebGL). Danach zweimal Leerlauf: die Halle laedt noch nach und blockiert
   // den Hauptfaden sekundenlang, und jeder Fall misst Zeitgeber von 150 ms.
   const frisch = async (q = '') => {
-    await page.goto(hangar + (q ? `${q}&pane=ship` : '?pane=ship'), { waitUntil: 'domcontentloaded' });
+    await page.goto(hangar + (q ? `${q}&station=uebersicht&tafel=1` : '?station=uebersicht&tafel=1'), { waitUntil: 'domcontentloaded' });
     await warte(() => document.querySelector('.hgx-marks')?.hasAttribute('data-live') || !document.getElementById('hg-fallback').hidden, 45000);
     await page.evaluate(() => new Promise((ok) => requestIdleCallback(() => requestIdleCallback(ok, { timeout: 5000 }), { timeout: 5000 })));
     return page.evaluate(() => document.getElementById('hg-fallback').hidden);
@@ -606,7 +607,7 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
       return !mitGl || balken === '7%' ? null : `das Modell von ${kaputt} lud neu (Balken ${balken}), es soll nur die Bucht kommen`;
     }],
     ['zweimal Schliessen des Vergleichs', async () => {
-      const korb = '?cmp=aegs-gladius,drak-cutlass-black&pane=ship';
+      const korb = '?cmp=aegs-gladius,drak-cutlass-black&station=uebersicht&tafel=1';
       await page.goto(hangar + korb, { waitUntil: 'domcontentloaded' });
       await page.locator('#hgx-cmp-open').click(KLICK);
       if (!(await warte(() => document.getElementById('hgx-cmp').open, 30000))) return 'der Vergleich oeffnete nicht';
@@ -642,7 +643,7 @@ async function probeHangarRennen(page, hangar, KLICK, warte) {
     ['tiefer Link mit langsamer Bucht', async () => {
       // Die Bucht kommt nach dem Modell; hp haelt, bis sie da ist.
       await halte(buchtPfad('anvl-arrow'), async (r) => { await new Promise((ok) => setTimeout(ok, 2500)); await r.continue(); });
-      await page.goto(hangar + '?ship=anvl-arrow&tab=weapons&hp=hardpoint_weapon_wing_left&pane=ship', { waitUntil: 'domcontentloaded' });
+      await page.goto(hangar + '?ship=anvl-arrow&tab=weapons&hp=hardpoint_weapon_wing_left&station=uebersicht&tafel=1', { waitUntil: 'domcontentloaded' });
       const kam = await warte(() => document.querySelector('[data-bay="panel"]')?.dataset.id === 'anvl-arrow', 30000);
       await gibFrei();
       if (!kam) return 'die Bucht der Arrow kam nicht';

@@ -215,6 +215,25 @@ const DE = {
   'msg.qv.here': '{name} (in der Halle)',
   'qv.go': 'In die Halle',
   'qv.cmp': '+ Vergleich',
+  // Stationen (ROADMAP Phase 22): Leiste am Bühnenfuß und die Übersicht als
+  // Hologramm in der Halle (assets/hangar-holo3d.js zeichnet, was hier steht)
+  'st.label': 'Stationen',
+  'st.uebersicht': 'Übersicht',
+  'st.loadout': 'Loadout',
+  'st.flat': 'Als Tafel',
+  'holo.speed': 'Tempo',
+  'holo.fire': 'Feuerkraft',
+  'holo.shield': 'Schild',
+  'holo.hull': 'Rumpf',
+  'msg.holo.rank': '{n}. von {of}',
+  'msg.holo.cls': 'Rang in der Klasse: {cls}',
+  'msg.holo.size': 'Rang in der Größe: {cls}',
+  'holo.none': 'Zu wenige vergleichbare Schiffe für einen Rang',
+  'holo.cmp': '+ Vergleich',
+  'holo.cmpOn': 'Im Vergleich',
+  'holo.all': 'Alle Werte ›',
+  'holo.sys': 'Systeme',
+  'msg.holo.more': '+ {n} weitere unter „Alle Werte“',
 } as const;
 
 export type HangarKey = keyof typeof DE;
@@ -408,6 +427,23 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'msg.qv.here': '{name} (in the hall)',
   'qv.go': 'Into the hall',
   'qv.cmp': '+ Compare',
+  'st.label': 'Stations',
+  'st.uebersicht': 'Overview',
+  'st.loadout': 'Loadout',
+  'st.flat': 'As panel',
+  'holo.speed': 'Speed',
+  'holo.fire': 'Firepower',
+  'holo.shield': 'Shield',
+  'holo.hull': 'Hull',
+  'msg.holo.rank': '#{n} of {of}',
+  'msg.holo.cls': 'Rank in class: {cls}',
+  'msg.holo.size': 'Rank in size: {cls}',
+  'holo.none': 'Too few comparable ships for a rank',
+  'holo.cmp': '+ Compare',
+  'holo.cmpOn': 'In compare',
+  'holo.all': 'All values ›',
+  'holo.sys': 'Systems',
+  'msg.holo.more': '+ {n} more under “All values”',
 };
 
 const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> = { de: DE, en: EN };
@@ -415,7 +451,7 @@ const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> =
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname, ein
 // Fachkürzel oder ein Wort ist, das beide Sprachen gleich schreiben (Name,
 // Filter); jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status', 'st.loadout']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];

@@ -8,7 +8,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   parseState, serializeState, fillMessage, figuresOf, fleetSummary, compareCell, figureText, dockOrder, pickRandom,
-  fold, editDistance, parseQuery, findWords, wordScore, dockSearch,
+  fold, editDistance, parseQuery, findWords, wordScore, dockSearch, shipClass, rankIn,
 } from '../../assets/hangar-overview.js';
 
 const ctx = {
@@ -30,7 +30,7 @@ describe('Hangar: URL-Zustand', () => {
   test('eine nackte Seite ist das Startschiff im Ueberblick', () => {
     assert.equal(url(''), '');
     assert.deepEqual(parseState('', '', ctx), {
-      ship: 'aegs-gladius', tab: 'overview', hp: null, cmp: [], view: 'stage', lo: null, pane: 'layout',
+      ship: 'aegs-gladius', tab: 'overview', hp: null, cmp: [], view: 'stage', lo: null, station: 'loadout', flat: false,
       fleetOnly: false, sort: 'name', q: '', pur: '', grp: '', size: [], crew: '', cargo: 0, price: 0, maker: '',
     });
   });
@@ -250,5 +250,35 @@ describe('Hangar: Schiffssuche', () => {
     assert.deepEqual(find('', { grp: 'fracht:mittel' }), ['drak-cutlass-black']);
     assert.deepEqual(find('', { maker: 'Drake Interplanetary', only: new Set(['drak-mule', 'aegs-gladius']) }), ['drak-mule']);
     assert.deepEqual(find('xyzzy'), []);
+  });
+});
+
+describe('Hangar: Rang in der Klasse (Station Uebersicht)', () => {
+  // Wie die Dock-Abbildung: find traegt Unterrollen und Groesse der Karte
+  const ship = (id, grp, size, stat) => [id, { id, find: { grp, size }, stat }];
+  const fighters = ['a', 'b', 'c', 'd', 'e'].map((id, i) => ship(id, ['kampf:leicht'], 'klein', { scm: [200, 230, 230, 180, null][i], dps: 100 + i }));
+  const ships = new Map([
+    ...fighters,
+    ship('f', ['kampf:schwer'], 'klein', { scm: 150, dps: 900 }),
+    ship('g', [], 'gross', { scm: 90, dps: 10 }),
+  ]);
+
+  test('Klasse ist die erste Unterrolle, mit zu wenigen Schiffen die Groesse, sonst keine', () => {
+    assert.deepEqual(shipClass(ships, 'a'), { kind: 'grp', key: 'kampf:leicht', ids: ['a', 'b', 'c', 'd', 'e'] });
+    // nur ein schwerer Jaeger: die Groesse (sechs kleine Schiffe)
+    assert.deepEqual(shipClass(ships, 'f'), { kind: 'size', key: 'klein', ids: ['a', 'b', 'c', 'd', 'e', 'f'] });
+    assert.equal(shipClass(ships, 'g'), null);
+    assert.equal(shipClass(ships, 'nope'), null);
+  });
+
+  test('Platz: groesser ist besser, Gleichstand teilt, unbekannte Werte zaehlen nicht', () => {
+    const ids = ['a', 'b', 'c', 'd', 'e', 'f'];
+    assert.deepEqual(rankIn(ships, ids, 'b', 'scm'), { n: 1, of: 5 });
+    assert.deepEqual(rankIn(ships, ids, 'c', 'scm'), { n: 1, of: 5 });
+    assert.deepEqual(rankIn(ships, ids, 'a', 'scm'), { n: 3, of: 5 });
+    assert.deepEqual(rankIn(ships, ids, 'f', 'dps'), { n: 1, of: 6 });
+    // ohne eigenen Wert und unter fuenf Werten kein Platz
+    assert.equal(rankIn(ships, ids, 'e', 'scm'), null);
+    assert.equal(rankIn(ships, ['a', 'b', 'c', 'd'], 'a', 'dps'), null);
   });
 });

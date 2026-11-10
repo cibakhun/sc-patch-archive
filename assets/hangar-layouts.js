@@ -604,7 +604,7 @@ export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '01
  *   shipName(id)   Name des Schiffs von seiner Dock-Karte
  *   say(text)      hoefliche Live-Region der Seite
  * Liefert render(state); der Controller ruft es nach jeder Aenderung von
- * ship, hp, lo oder pane. lo null ist Serie ohne Namen (EMPTY_CODE).
+ * ship, hp, lo oder station. lo null ist Serie ohne Namen (EMPTY_CODE).
  * @param {Document} doc
  */
 export function initWorkshop(doc, bridge) {
@@ -1026,7 +1026,7 @@ export function initWorkshop(doc, bridge) {
     const byPort = new Map();
     for (const s of slots) {
       if (tabOf(s) !== cat) continue;
-      const sel = `#main.hg[data-pane="layout"] .hgx-mk[data-tab="${cat}"][data-port="${CSS.escape(portOf(s.key))}"]`;
+      const sel = `#main.hg[data-station="loadout"] .hgx-mk[data-tab="${cat}"][data-port="${CSS.escape(portOf(s.key))}"]`;
       const p = byPort.get(sel) ?? { gun: false, names: [] };
       byPort.set(sel, p);
       if (s.type !== 'gun') continue;
@@ -1427,7 +1427,7 @@ export function initWorkshop(doc, bridge) {
 
   /* ---- Takt des Controllers ---- */
   function render(state) {
-    const open = state.pane === 'layout';
+    const open = state.station === 'loadout';
     aside.hidden = !open;
     if (!open) {
       hot(null);
