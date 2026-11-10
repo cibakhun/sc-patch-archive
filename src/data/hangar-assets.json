@@ -13966,10 +13966,10 @@
     },
     "rsi-ursa-medivac": {
       "url": "/hangar/ships/rsi-ursa-medivac.glb",
-      "v": "bd50cb8d",
-      "tris": 214969,
+      "v": "3249c2e2",
+      "tris": 201698,
       "trisRaw": 275205,
-      "textures": 223,
+      "textures": 219,
       "attached": 0,
       "swap": {
         "hardpoint_turret_mount": 2
@@ -13995,7 +13995,7 @@
         "byOffset": 0,
         "byHelper": 2
       },
-      "interiorMarked": 23,
+      "interiorMarked": 22,
       "gearCheck": {
         "ok": false,
         "why": "Fahrwerk keins: kein Landesystem im Spiel (setzt auf Rumpf, Kufen oder Rädern auf)"
@@ -14014,11 +14014,18 @@
         "bits": 20,
         "degenerate": 2.3
       },
-      "bytes": 2350528,
+      "bytes": 2191836,
       "pool": {
-        "images": 223,
-        "bytes": 7270700,
+        "images": 219,
+        "bytes": 7236336,
         "fresh": 0
+      },
+      "bodyCopies": {
+        "nodes": 1,
+        "tris": 13271,
+        "files": [
+          "objects/spaceships/ships/rsi/ursa/rsi_ursa_rover.cga"
+        ]
       }
     },
     "rsi-ursa-rover-emerald": {

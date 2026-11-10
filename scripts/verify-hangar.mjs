@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   NEUNZEHN ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   EINUNDZWANZIG ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -150,6 +150,22 @@
         JSON-Teil beider GLB, Rand 0,5 m), der Knopf #hgx-walk steht auf der
         Seite. Ohne Einstiegspunkte: WARNUNG. Klinke: Innenraeume. [17]
         zaehlt die Innenraeume in Ablage und Deckel mit.
+    21  Stationen (seit 10.11.2026, ROADMAP Phase 22 H1, Krisz: „okay baus
+        mal“). Je Hangarseite: die Leiste #hgx-st traegt genau die Stationen
+        des ausgelieferten Controllers (STATIONS) als Reiter, in seiner
+        Folge, und den Knopf „Als Tafel“; opts.holo.module ist
+        /assets/hangar-holo3d.js?v= mit dem Inhalt als Version, und das
+        Modul exportiert holoLayer; der Viewer liefert station, canStation
+        und onStation. Proben durch parseState/serializeState: jede Station
+        hin und zurueck, mit ?tafel=1 und beim Teilen (bleibt daheim), das
+        alte ?pane=ship als Uebersicht, Unsinn faellt auf die Vorgabe.
+        Tafel „Ausruestung“ (Krisz 10.11.2026: Loadout in die Uebersicht,
+        „eine zentrale Bedieneroberflaeche“): die Werkstatt gibt board und
+        act heraus, der Controller reicht beides an die Halle, das Modul
+        zeichnet sie; und jedes Wort, das die Werkstatt mit m('…') holt,
+        steht auf beiden Seiten in #hgl-msg. Fehlt eines, zeigt die
+        gezeichnete Tafel den rohen Schluessel, und kein Textpruefer sieht
+        ihn. Klinken: Stationen, Proben, Woerter.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -202,6 +218,21 @@
     bb  dist/hangar-innen/drak-cutlass-black.json loeschen           -> [20]
     cc  Bau mit 5 statt 26 Innenraeumen (30.10.2026, vor dem
         zweiten Stapel des PCs: Klinke 26)                          -> [20]
+    dd  in dist/assets/hangar-overview.js ?pane=ship nicht mehr als
+        Uebersicht lesen                                            -> [21]
+    ee  dist/assets/hangar-holo3d.js nach dem Bauen aendern (Version
+        passt nicht mehr zum Inhalt)                                -> [21]
+    ff  den Schluessel station, aus dem Rueckgabeobjekt von
+        dist/assets/hangar-viewer.js streichen (Kommentare nennen ihn
+        weiter; bis cubic auf PR #327 hielten sie die Pruefung gruen) -> [21]
+    gg  in dist/assets/hangar-holo3d.js beim Material der Tafel
+        depthTest: false streichen (10.11.2026: Halle schnitt die
+        Ironclad-Tafel an)                                          -> [21]
+    hh  in dist/hangar.html das Wort data-m="holo.title" aus #hgl-msg
+        streichen (10.11.2026: vor dem Neubau stand „HOLO.TITLE“ als
+        Kopf der Tafel)                                             -> [21]
+    ii  in dist/assets/hangar-layouts.js board aus der Rueckgabe von
+        initWorkshop streichen                                      -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1313,8 +1344,114 @@ const INNEN = { min: 217, randM: 0.5 };
   ist.innen = innen; ist.innenLampen = lampen;
 }
 
+say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Version, Viewer-Naht, ?station= hin und zurueck, ?pane=ship lesbar');
+// Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 10.11.2026:
+// zwei Stationen (Uebersicht, Loadout; Kampf kommt mit H2), 14 Proben der
+// Adresse je Seite.
+const STATIONEN = { stationen: 2, proben: 28, woerter: 47 };
+{
+  let mod = null;
+  try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  for (const fn of ['parseState', 'serializeState', 'shipClass', 'rankIn']) if (mod && typeof mod[fn] !== 'function') { fail(`[21] der Controller exportiert ${fn} nicht mehr`); mod = null; }
+  const list = Array.isArray(mod?.STATIONS) ? mod.STATIONS : [];
+  const vor = mod?.STATION_DEFAULT;
+  if (mod && (!list.length || !list.includes(vor))) fail(`[21] STATIONS (${list.join(', ') || '—'}) nennt die Vorgabe STATION_DEFAULT (${vor}) nicht`);
+  // Viewer-Naht und Modul
+  const VNAHT = ['station', 'canStation', 'onStation'];
+  // als Schluessel des Rueckgabeobjekts (station, / canStation: / onStation(),
+  // ohne Zeilenkommentare: die nennen die Namen auch (wie [16])
+  const apiOhneK = api.replace(/\/\/[^\n]*/g, '');
+  const vfehlt = VNAHT.filter((n) => !new RegExp(`(?:^|[\\s,{])${n}\\s*(?:[(:,]|$)`, 'm').test(apiOhneK));
+  if (vfehlt.length) fail(`[21] dist/assets/hangar-viewer.js liefert ${vfehlt.join(', ')} nicht: die Seite bleibt bei der Tafel, die Halle zeigt nie eine Station`);
+  const holoFile = join(DIST, 'assets', 'hangar-holo3d.js');
+  const holoSrc = existsSync(holoFile) ? readFileSync(holoFile) : null;
+  if (!holoSrc) fail('[21] dist/assets/hangar-holo3d.js fehlt: Stationen in der Halle laden nicht');
+  else if (!/export function holoLayer\(/.test(holoSrc.toString('utf8'))) fail('[21] dist/assets/hangar-holo3d.js exportiert holoLayer nicht mehr (Naht zum Viewer, station())');
+  // Tafeln liegen im Bild immer über Halle, Deko und Schiff (Krisz 10.11.2026
+  // zur Ironclad-Tafel, die eine Kante durchstieß: „das soll nicht passieren“)
+  let ueber = '—';
+  if (holoSrc) {
+    const hs = holoSrc.toString('utf8');
+    const an = /P\.mesh = new THREE\.Mesh\([^\n]*depthTest: false/.test(hs), zurueck = /P\.mesh\.material\.depthTest\s*=/.test(hs);
+    if (!an) fail('[21] dist/assets/hangar-holo3d.js: das Material der Tafel (P.mesh) zeichnet nicht ohne Tiefentest: Wände, Decke oder Rumpf schneiden sie an');
+    else if (zurueck) fail('[21] dist/assets/hangar-holo3d.js setzt P.mesh.material.depthTest nachträglich: die Tafel kann wieder angeschnitten werden');
+    else ueber = 'ohne Tiefentest';
+  }
+  // Tafel „Ausruestung“ in der Halle: Werkstatt, Controller und Modul halten
+  // dieselbe Naht (board hin, act zurueck)
+  const wsFile = join(DIST, 'assets', 'hangar-layouts.js');
+  const ohneK = (t) => t.replace(/\/\/[^\n]*/g, '');
+  const ws = existsSync(wsFile) ? ohneK(readFileSync(wsFile, 'utf8')) : '';
+  const wsAus = /return\s*\{([^{}]*)\};?\s*\}\s*$/.exec(ws)?.[1] ?? '';
+  const nahtFehlt = [
+    [/\bboard\b/.test(wsAus) && /\bact\b/.test(wsAus), 'dist/assets/hangar-layouts.js gibt board und act nicht mehr heraus'],
+    [/workshop\?\.board\(\)/.test(ohneK(ctrl)) && /workshop\?\.act\(/.test(ohneK(ctrl)), 'dist/assets/hangar-overview.js reicht board und act der Werkstatt nicht mehr an die Halle'],
+    [!!holoSrc && /function drawLoadout\(/.test(holoSrc.toString('utf8')) && /act: 'lo'/.test(holoSrc.toString('utf8')), 'dist/assets/hangar-holo3d.js zeichnet die Tafel nicht mehr (drawLoadout) oder meldet ihre Klicks nicht (act lo)'],
+  ].filter(([ok]) => !ok).map(([, text]) => text);
+  for (const text of nahtFehlt) fail(`[21] ${text}: die Tafel „Ausrüstung“ in der Halle bleibt leer oder stumm`);
+  // Woerter der Werkstatt: jedes m('…') des Skripts steht in #hgl-msg
+  const wsKeys = [...new Set([...ws.matchAll(/\bm\('([A-Za-z0-9_.]+)'/g)].map((m) => m[1]))];
+  let woerterSeiten = 0;
+  for (const page of PAGES) {
+    const box = /id="hgl-msg"[^>]*>([\s\S]*?)<\/div>/.exec(page.html)?.[1] ?? '';
+    const da = new Set([...box.matchAll(/<span[^>]*\bdata-m="([^"]+)"[^>]*>([^<]*)</g)].filter((m) => m[2].trim()).map((m) => m[1]));
+    const ohne = wsKeys.filter((k) => !da.has(k));
+    if (ohne.length) fail(`[21] ${page.file}: #hgl-msg fehlt ${ohne.length === 1 ? 'das Wort' : 'Wörter'} ${ohne.join(', ')}: die Werkstatt zeigt den rohen Schlüssel (LAYOUT_MSG in src/components/hangar/LayoutWorkshop.astro)`);
+    else woerterSeiten++;
+  }
+  const holoV = holoSrc ? createHash('sha1').update(holoSrc).digest('hex').slice(0, 8) : '';
+  let proben = 0, leisten = 0;
+  for (const page of PAGES) {
+    // Leiste: genau die Stationen des Controllers als Reiter, in seiner Folge, dazu „Als Tafel“
+    const bar = /id="hgx-st"[\s\S]*?id="hgx-tafel"[^>]*>/.exec(page.html)?.[0] ?? '';
+    const tabs = [...bar.matchAll(/data-station="([a-z]+)"/g)].map((m) => m[1]);
+    if (!bar) fail(`[21] ${page.file}: keine Stationen-Leiste #hgx-st mit dem Knopf „Als Tafel“ (#hgx-tafel)`);
+    else if (tabs.join() !== list.join()) fail(`[21] ${page.file}: Reiter der Leiste (${tabs.join(', ') || '—'}) sind nicht die Stationen des Controllers (${list.join(', ')})`);
+    else leisten++;
+    // Modul der Halle: versionierte URL, Version ist der Inhalt
+    const cfgRaw = /<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html)?.[1];
+    let mUrl = '';
+    try { mUrl = JSON.parse(cfgRaw ?? '{}').opts?.holo?.module ?? ''; } catch { mUrl = ''; }
+    const v = /^\/assets\/hangar-holo3d\.js\?v=([0-9a-f]{8})$/.exec(mUrl)?.[1];
+    if (!v) fail(`[21] ${page.file}: opts.holo.module ist keine versionierte URL von /assets/hangar-holo3d.js (${mUrl || '—'})`);
+    else if (holoV && v !== holoV) fail(`[21] ${page.file}: Version des Hologramm-Moduls ${v}, Inhalt ${holoV}: der Cache hielte den alten Stand`);
+    // Adresse: jede Station hin und zurueck, die alte Form, „Als Tafel“, Teilen
+    if (!mod) continue;
+    const ids = dockIds(page.html);
+    const def = /data-default-ship="([^"]+)"/.exec(page.html)?.[1] ?? ids[0];
+    const ctx = { ids: new Set(ids), defaultShip: def, tabs: ['overview'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
+    const rund = (q, scope = 'location') => mod.serializeState(mod.parseState(q, '', ctx), ctx, scope);
+    const probe = (q, soll, scope) => {
+      proben++;
+      const ist = rund(q, scope);
+      if (ist !== soll) fail(`[21] ${page.file}: ${q || '(leer)'}${scope ? ` (${scope})` : ''} ergibt ${ist || '(leer)'}, erwartet ${soll || '(leer)'}`);
+    };
+    for (const st of list) {
+      probe(`?station=${st}`, st === vor ? '' : `?station=${st}`);
+      probe(`?station=${st}&tafel=1`, st === vor ? '?tafel=1' : `?station=${st}&tafel=1`);
+      probe(`?ship=${def}&station=${st}`, `?ship=${def}`, 'share');
+    }
+    probe('', '');
+    probe('?station=nope', '');
+    probe('?pane=ship', list.includes('uebersicht') ? '?station=uebersicht' : '');
+    probe('?pane=layout', '');
+    probe('?pane=ship&station=loadout', list.includes('loadout') && vor === 'loadout' ? '' : '?station=loadout');
+    probe('?tafel=ja', '');
+    probe('?tafel=1', '?tafel=1');
+    probe(`?ship=${def}&station=uebersicht&tafel=1`, `?ship=${def}`, 'share');
+  }
+  sollIst(`Stationen >= ${STATIONEN.stationen}, Leiste mit genau ihnen auf beiden Seiten, Modul ${holoV || '—'} versioniert, Viewer liefert ${VNAHT.join(', ')}, Tafeln ohne Tiefentest, Proben der Adresse >= ${STATIONEN.proben}`,
+    `${list.length} Stationen (${list.join(', ') || '—'}, Vorgabe ${vor ?? '—'}), Leiste auf ${leisten} von ${PAGES.length} Seiten, Tafeln ${ueber}, ${proben} Proben`);
+  sollIst(`Tafel „Ausrüstung“: Naht Werkstatt, Controller, Modul ganz; Wörter der Werkstatt >= ${STATIONEN.woerter}, alle in #hgl-msg auf beiden Seiten`,
+    `Naht ${nahtFehlt.length ? `mit ${nahtFehlt.length === 1 ? 'einer Lücke' : `${nahtFehlt.length} Lücken`}` : 'ganz'}, ${wsKeys.length} Wörter, vollständig auf ${woerterSeiten} von ${PAGES.length} Seiten`);
+  if (wsKeys.length < STATIONEN.woerter) fail(`[21] nur ${wsKeys.length} Wörter im Skript der Werkstatt gefunden (Klinke ${STATIONEN.woerter}): heisst m() dort anders, prüft diese Stelle nichts mehr`);
+  if (list.length < STATIONEN.stationen) fail(`[21] nur ${list.length} Stationen im Controller (Klinke ${STATIONEN.stationen})`);
+  if (proben < STATIONEN.proben) fail(`[21] nur ${proben} Proben der Adresse (Klinke ${STATIONEN.proben}): der Controller laedt nicht oder STATIONS ist kuerzer geworden`);
+  ist.stationen = list.length; ist.stationenProben = proben; ist.werkstattWoerter = wsKeys.length;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

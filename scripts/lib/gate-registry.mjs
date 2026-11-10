@@ -359,13 +359,15 @@ export const CHECKS = [
     // Neuzugang (31.10.2026): mit Fingerabdruck-Klinke wie verify:hangar-cockpit
     // 2 s; nach einem Neubau misst es mit allen Kernen (231 Schiffe gut 2
     // Minuten auf 4 Kernen). Kein env-Feld: kein git, kein Netz, kein
-    // Kindprozess (Worker-Faeden) — liest dist/.
+    // Kindprozess (Worker-Faeden) — liest dist/. [5] seit 10.11.2026,
+    // vorgefuehrt rot mit dem alten Medivac (interior_part_23, 1,5 m ueber
+    // der Huelle, ohne Ausnahme; dazu die Klinke mitRagt 6 statt 5).
     id: 'verify:hangar-lage',
     npm: 'verify:hangar-lage',
     nurMitHangar: true,
     script: 'scripts/verify-hangar-lage.mjs',
     rail: 'A',
-    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz (ohne Sitzangabe nur mit benannter Ausnahme), und kein Rumpf hat Teile, die getrennt neben ihm haengen, ohne benannte Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen)',
+    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz (ohne Sitzangabe nur mit benannter Ausnahme), kein Rumpf hat Teile, die getrennt neben ihm haengen, und kein Innenraumteil im Rumpf ragt mehr als 0,5 m ueber dessen Huelle, beides nur mit benannter Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen; 10.11.2026: Ursa Medivac mit zweiter Huelle aus dem Innenraum-Container)',
   },
   {
     // Neuzugang (30.10.2026), vor dem langen audit:site: entpackt die
@@ -401,7 +403,11 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, jede Detailseite (Item, Blueprint, Schiff, Mission) traegt genau einen Link „Falschen Wert melden" mit data-ev-melden auf das Formular ihrer Sprache mit ihrem eigenen Pfad (?wert=) und keine andere Seite einen, und 23 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken, Ereignis-Laeufe und Melde-Links; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen, und kein Mess-Skript (Zaehler-Kopie, Ereignis-Skript) liegt unter einem Pfad, den Werbeblocker-Standardlisten sperren (Wort umami, EasyPrivacy); und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, jede Detailseite (Item, Blueprint, Schiff, Mission) traegt genau einen Link „Falschen Wert melden" mit data-ev-melden auf das Formular ihrer Sprache mit ihrem eigenen Pfad (?wert=) und keine andere Seite einen, und 23 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken, Ereignis-Laeufe und Melde-Links; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+    // [6] Werbeblocker-Muster (Neuzugang 10.11.2026), VORGEFUEHRT ROT gegen
+    // den Live-Bau der Umbenennung: support.html zeigt in dist/ wieder auf
+    // /vendor/umami/script.js (Datei dorthin kopiert) -> "Pfad trifft das
+    // Werbeblocker-Muster /umami/i … gesperrt — Soll: 0 Ist: 1", exit 1.
     // [7] Messereignisse (Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
     // Live-Bau der Ereignis-Aenderung, je ein Eingriff in dist/:
     // Ereignis-Skript auf support.html entfernt -> "laedt den Zaehler, aber

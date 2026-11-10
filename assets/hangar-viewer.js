@@ -43,12 +43,13 @@
 // begehbaren Innenraum im selben Modellraum (url) und seine Lampen und
 // Einstiegspunkte (meta, JSON { lights, spots }); enter() lädt beides.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, interior?: { [pfad]: { url, meta, bytes? } }, sound?: false }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, interior?: { [pfad]: { url, meta, bytes? } }, holo?: { module }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
 //         project(points) -> [{ x, y, d } | null], focus(point | null), setCover(px), onFrame(fn),
-//         enter() -> Promise<bool>, leave(), onWalk(fn) }>
+//         enter() -> Promise<bool>, leave(), onWalk(fn),
+//         station({ name, data } | null) -> bool, canStation() -> bool, onStation(fn) }>
 // project/focus/setCover/onFrame sind die Naht zur Oberfläche um die Szene
 // (Hardpoint-Marker der Ausstattungs-Tabs, src/components/hangar/): Punkte im
 // Modellraum der .glb, siehe .planning/notes/hangar-naht.md.
@@ -13124,13 +13125,53 @@ void main() {
     renderer.setClearColor(0x000000, 0);
     renderer.setRenderTarget(mirrorRT);
     renderer.clear();
+    stLayer?.mirror(true);
     renderer.render(scene, mirrorCam);
+    stLayer?.mirror(false);
     renderer.setRenderTarget(null);
     renderer.setClearColor(mClear, alpha);
     model.visible = true; crew.visible = crewOn; scene.background = bg;
     for (const n of clear) n.visible = true;
     hallRefl.tex.value = mirrorRT.texture;
     hallRefl.on.value = 1;
+  }
+
+  // Stationen als Hologramme in der Halle (ROADMAP Phase 22, H1): Tafeln,
+  // Maße am Boden und Nummern an den Ports aus assets/hangar-holo3d.js
+  // (opts.holo.module), geladen erst, wenn die Seite eine Station in 3D
+  // zeigt. Nur in der echten Halle und nicht am Telefon (dort bleibt die
+  // Tafel der Seite). Sie stehen, wenn das Schiff ruht: kein Wechsel, keine
+  // Fahrt, der Aufzug oben, nicht drinnen und nicht in der Werkhalle.
+  const ST_OK = REAL && !SMALL && !!opts.holo?.module;
+  let stWant = null, stLayer = null, stLoad = null, stAct = null, stSafe = null;
+  // Ruhe heißt auch: die Lage des Modells hat sich 400 ms nicht geändert.
+  // Aufzug und Einfahrt allein reichten nicht, die Gladius stand beim
+  // ersten Bau noch 4 m tiefer (Maße und Nummern landeten unter dem Boden).
+  const stLast = new Float64Array(4).fill(NaN);
+  let stStill = 0;
+  function stRest() {
+    const c = current;
+    if (!c || !revealed || trip || walk || leaving || c.werk || ort === 'werk') return null;
+    const now = performance.now();
+    if (c.lift ? lift.dur || Math.abs(lift.y) > 1e-4 : !reduceMotion && now - c.born < 1300) return null;
+    const e = c.model.matrixWorld.elements, at = [e[0], e[12], e[13], e[14]];
+    if (at.some((x, i) => !(Math.abs(x - stLast[i]) < 1e-3))) { stLast.set(at); stStill = now; }
+    if (!reduceMotion && now - stStill < 400) { wake(300); return null; }
+    return { model: c.model, group: c.group, key: c.born };
+  }
+  function station(w) {
+    if (!ST_OK) return false;
+    stWant = w ?? null;
+    if (stLayer) stLayer.set(stWant);
+    else if (stWant && !stLoad) {
+      stLoad = import(opts.holo.module).then((m) => {
+        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a) });
+        if (stSafe) stLayer.safe(stSafe);
+        stLayer.set(stWant);
+      }).catch((e) => { stLoad = null; console.warn('[hangar] Stationen nicht geladen', e); });
+    }
+    wake(400);
+    return true;
   }
 
   // Name als Hologramm (buildHolo): steht, wenn das Fahrzeug steht, kein
@@ -13390,6 +13431,8 @@ void main() {
     camLast.copy(camera.position);
     camRef = camera.position.distanceTo(controls.target);
     adapt(now, cap);
+    // Stationen vor dem Spiegelbild stellen: es zeigt sie schon an ihrem Platz
+    if (stLayer?.tick(now)) wake(300);
     // drinnen sieht niemand den Hallenboden glänzen
     if (!walk) renderMirror();
     renderer.shadowMap.needsUpdate = shadowsDue();
@@ -13484,7 +13527,16 @@ void main() {
     // setSafe({ l, t, r }): px am Rand der Bühne, die die Oberfläche verdeckt
     label(id, t) { holo.text(id, t); wake(300); },
     onHolo(fn) { holo.onShow = fn; },
-    setSafe(s) { holo.safe(s); wake(300); },
+    setSafe(s) { holo.safe(s); stSafe = s; stLayer?.safe(s); wake(300); },
+    // Stationen in 3D: station({ name, data }) zeigt sie (data von der Seite,
+    // assets/hangar-overview.js holoData), station(null) blendet sie aus;
+    // false heißt, diese Bühne kann es nicht (Telefon, ohne echte Halle),
+    // die Seite zeigt dann ihre Tafel. canStation() fragt das vorab.
+    // onStation(fn): fn({ act, row?, href? }) bei einem Knopf auf einer
+    // Tafel, einer Zeile der Systeme oder einer Nummer am Schiff.
+    station,
+    canStation: () => ST_OK,
+    onStation(fn) { stAct = fn; },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
@@ -13504,6 +13556,7 @@ void main() {
       sound.dispose();
       steam?.dispose();
       holo.dispose();
+      stLayer?.dispose(); stLayer = null; stWant = null;
       ro.disconnect(); io.disconnect();
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('focus', onFocus);

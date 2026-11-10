@@ -8,8 +8,8 @@
 // data-m, damit audit:site und verify:sync sie sehen.
 //
 // Welche Tafel steht und welches Layout darin, sagt der Zustand des
-// Controllers (assets/hangar-overview.js, Schluessel pane und lo, URL-Form
-// ?pane=ship und ?layout=).
+// Controllers (assets/hangar-overview.js, Schluessel station und lo, URL-Form
+// ?station=uebersicht und ?layout=).
 import { layoutT, type LayoutKey } from '../../i18n/layoutText';
 import { hangarT, type HangarKey } from '../../i18n/hangarText';
 import { useHelp } from '../../i18n/help';
@@ -33,6 +33,7 @@ const LAYOUT_MSG: LayoutKey[] = [
   'msg.dropped.one', 'msg.dropped.other', 'msg.full',
   'saved.empty', 'saved.account', 'saved.guest', 'saved.login', 'saved.pending', 'saved.error', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
   'grp.paint', 'paint.stock', 'paint.pattern', 'pick.head',
+  'holo.title', 'holo.rename', 'holo.saveNew', 'holo.moreSaved',
 ];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
@@ -44,7 +45,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 <style is:inline>
 /* Die Werkstatt fuellt die Spalte der Tafel (.hg-side in HangarPage.astro)
    bis zum Buehnenfuss. Die Insel-Variablen (--hg-*) setzt .hg-stagewrap. */
-.hgl{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:0 0 12px 12px;color:var(--hg-on);overflow:hidden;box-shadow:var(--hg-lift)}
+.hgl{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:12px;color:var(--hg-on);overflow:hidden;box-shadow:var(--hg-lift)}
 .hgl[hidden]{display:none}
 .hgl-head{padding:.85rem 1rem .6rem;border-bottom:1px solid var(--hg-hair)}
 .hgl-namebox{display:flex;align-items:center;gap:.4rem}
@@ -225,11 +226,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    in der Auswahl; die Hardpoints mit Slot im gewaehlten Reiter (Waffen oder
    Systeme) setzt paintMods in #hgl-mods darueber, getauschte Bordwaffen samt
    Namen, Raketen und Komponenten nur als Punkt. Fracht hat hier keinen Slot. */
-.hg[data-pane="layout"] .hgx-mk{display:none}
-.hg[data-pane="layout"] .hgx-mk.is-hot[data-tab],.hg[data-pane="layout"] .hgx-mk.is-sel[data-tab]{display:block}
+.hg[data-station="loadout"] .hgx-mk{display:none}
+.hg[data-station="loadout"] .hgx-mk.is-hot[data-tab],.hg[data-station="loadout"] .hgx-mk.is-sel[data-tab]{display:block}
 /* Getauschte Waffen: Marker und Name des neuen Teils setzt
    assets/hangar-layouts.js als Regeln in #hgl-mods (content je Port). */
-.hg[data-pane="layout"] .hgx-mk::after{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .5rem;border-radius:4px;background:color-mix(in srgb,var(--bg) 88%,transparent);box-shadow:inset 2px 0 0 var(--hg-amber);color:var(--hg-amber);font-size:var(--fs-5);font-weight:700;white-space:nowrap;pointer-events:none}
+.hg[data-station="loadout"] .hgx-mk::after{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);padding:.15rem .5rem;border-radius:4px;background:color-mix(in srgb,var(--bg) 88%,transparent);box-shadow:inset 2px 0 0 var(--hg-amber);color:var(--hg-amber);font-size:var(--fs-5);font-weight:700;white-space:nowrap;pointer-events:none}
 /* Weg zur eigenen Seite Advanced Loadout */
 .hgl-allbtn{appearance:none;display:flex;align-items:center;justify-content:center;gap:.45rem;width:100%;height:2.3rem;margin:.55rem 0 0;border:1px solid var(--hg-hair);border-radius:10px;background:color-mix(in srgb,var(--bg) 45%,transparent);color:var(--hg-on);font:inherit;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;text-decoration:none;cursor:pointer;transition:border-color var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui)}
 .hgl-allbtn:hover,.hgl-allbtn:focus-visible{border-color:var(--hg-amber);color:var(--hg-amber);outline:0}
@@ -251,7 +252,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 @media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash,.hgl-slot.is-open .hgl-pick{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock,.hgl-allbtn{transition:none}}
 </style>
 
-<aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hg-pane-layout" data-lang={lang} data-src={layoutDataHref()} data-lo={loHref}>
+<aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hgx-st-loadout" data-lang={lang} data-src={layoutDataHref()} data-lo={loHref}>
   <div class="hgl-head">
     <div class="hgl-namebox" data-help={h('hangar.ctl.layoutName')}>
       <input class="hgl-name" id="hgl-name" type="text" maxlength="60" autocomplete="off" spellcheck="false" aria-label={l('name.label')} />

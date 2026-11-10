@@ -210,11 +210,14 @@ const logos = Object.fromEntries(HANGAR_IDS.flatMap((id) => {
 }));
 
 const viewerSrc = versioned('assets/hangar-viewer.js', '/assets/hangar-viewer.js');
+// Stationen als Hologramme in der Halle (ROADMAP Phase 22): der Viewer lädt
+// das Modul erst, wenn die Seite eine Station in 3D zeigt
+const holo = { module: versioned('assets/hangar-holo3d.js', '/assets/hangar-holo3d.js') };
 // `<` maskiert: der Block steht in einem <script>, ein Schiffsname mit
 // "</script>" darf ihn nicht beenden.
 const stage = {
   viewer: viewerSrc,
-  opts: { hall, crew, gear, texBytes, logos, interior },
+  opts: { hall, crew, gear, texBytes, logos, interior, holo },
   models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
     withV(geo[id] ?? meshes[id]),
     real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,

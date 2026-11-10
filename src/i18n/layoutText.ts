@@ -12,9 +12,6 @@ import type { Locale } from './ui';
 
 const DE = {
   'title': 'Layout-Werkstatt',
-  'pane.label': 'Tafel rechts',
-  'pane.layout': 'Layout',
-  'pane.ship': 'Schiffsdaten',
   'name.label': 'Name des Layouts',
   'name.placeholder': '{ship} · Mein Layout',
   'name.dice': 'Zufälligen Namen würfeln',
@@ -85,6 +82,11 @@ const DE = {
   'noslots': 'Dieses Schiff hat keine tauschbaren Bauteile.',
   'hint.swap': 'Ein Bauteil anklicken, um es zu tauschen.',
   'pick.head': 'Ersetzen durch',
+  // Die Werkstatt als Tafel „Ausrüstung“ in der Halle (assets/hangar-holo3d.js)
+  'holo.title': 'Ausrüstung',
+  'holo.rename': 'Umbenennen',
+  'holo.saveNew': 'Als neues Layout speichern',
+  'holo.moreSaved': '{n} weitere: „Als Tafel“ zeigt alle',
   'dt.t': 'Thermisch',
   'win.open': 'Advanced Loadout',
   'win.openHint': 'Eigene Seite: jedes Bauteil tauschen und jeden Wert sehen',
@@ -231,9 +233,6 @@ export type LayoutKey = keyof typeof DE;
 
 const EN: Readonly<Record<LayoutKey, string>> = {
   'title': 'Loadout workshop',
-  'pane.label': 'Side panel',
-  'pane.layout': 'Loadout',
-  'pane.ship': 'Ship data',
   'name.label': 'Loadout name',
   'name.placeholder': '{ship} · My loadout',
   'name.dice': 'Roll a random name',
@@ -304,6 +303,10 @@ const EN: Readonly<Record<LayoutKey, string>> = {
   'noslots': 'This ship has no swappable components.',
   'hint.swap': 'Click a component to swap it.',
   'pick.head': 'Replace with',
+  'holo.title': 'Loadout',
+  'holo.rename': 'Rename',
+  'holo.saveNew': 'Save as a new loadout',
+  'holo.moreSaved': '{n} more: “As panel” shows all',
   'dt.t': 'Thermal',
   'win.open': 'Advanced loadout',
   'win.openHint': 'Own page: swap every component and see every stat',
@@ -462,7 +465,7 @@ function assertParity(): void {
 }
 assertParity();
 
-/** layoutT('de')('pane.ship') === 'Schiffsdaten'; Platzhalter bleiben fuer den Client stehen. */
+/** layoutT('de')('title') === 'Layout-Werkstatt'; Platzhalter bleiben fuer den Client stehen. */
 export function layoutT(lang: Locale): (key: LayoutKey) => string {
   const dict = LAYOUT_UI[lang];
   return (key) => dict[key];

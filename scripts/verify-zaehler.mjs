@@ -33,7 +33,7 @@
         und dieselbe Seite definiert ihn inline (window.<name> = …).
         Fehlt der Haken, schickt Umami ungefiltert. Seit 29.10.2026
         ausserdem: das Skript kommt vom EIGENEN Ursprung (src beginnt mit
-        "/", die gepinnte Kopie unter public/vendor/umami/), und
+        "/", die gepinnte Kopie unter public/vendor/zaehler/), und
         data-host-url nennt das https-Ziel der Zaehlung.
      5  Jede verschiedene Fassung des Hakens aus dem gebauten Stand laeuft
         in node:vm: Abfrage und Fragment verschwinden aus url und
@@ -49,7 +49,11 @@
         Haken der Seite: genau ein POST an <data-host-url>/api/send mit
         der Website-Kennung und einer Adresse ohne Abfrage und Fragment;
         kein einziger mit Widerspruchs-Cookie und keiner auf einem
-        fremden Hostnamen (Vorschau, data-domains).
+        fremden Hostnamen (Vorschau, data-domains). Seit 10.11.2026
+        ausserdem: kein Skript der Messung (Zaehler-Kopie, Ereignis-
+        Skript) liegt unter einem Pfad, den eine Werbeblocker-Standardliste
+        sperrt (BLOCKER_MUSTER) — sonst laedt es bei deren Nutzern gar
+        nicht, und die Zahlen fehlen still.
 
    Den Zaehler erkennt das Tor am Umami-Merkmal `data-website-id`, nicht
    am Host — zieht das Skript auf einen anderen Host um, bleibt das Tor
@@ -82,6 +86,16 @@ const MIN_LAYOUT_SEITEN = 17000;
 const MIN_ZAEHLER_SEITEN = 17000;
 const MIN_HAKEN_FASSUNGEN = 1;
 const MIN_ZAEHLER_KOPIEN = 1;
+// Pfadmuster, die verbreitete Werbeblocker-Listen fuer Umami fuehren
+// (EasyPrivacy, Stand 10.11.2026: `/umami/script.js`, `/umami.js`,
+// `||umami.*/script.js`). Anlass: Bis 10.11.2026 lag die Kopie unter
+// /vendor/umami/script.js; bei Nutzern von uBlock Origin, AdGuard und Co.
+// lud der Zaehler seit dem Live-Gang am 31.10. gar nicht. Geprueft wird
+// das Wort im ganzen Pfad, nicht nur die heutigen Muster: jede Liste, die
+// Umami kennt, sucht nach ihm. Gilt fuer Zaehler-Kopie und Ereignis-Skript.
+const BLOCKER_MUSTER = [
+  { re: /umami/i, liste: 'EasyPrivacy sperrt /umami/script.js und /umami.js (Standardliste von uBlock Origin, AdGuard und Co.)' },
+];
 // [7] Messereignisse, Stand 06.11.2026 (Build der Ereignis-Aenderung):
 // 17.741 Seiten laden assets/ereignisse.js (= alle mit Zaehler), 112 Marken
 // in 10 Werkzeugen (88 Filter, 22 Rechner, 2 Kopieren; Evolution hat keine
@@ -222,7 +236,7 @@ for (const s of seiten) {
       else if (!hakenFassungen.has(quelle)) hakenFassungen.set(quelle, { seite: s, name: haken });
       const src = attr(tag, 'src') ?? '';
       if (!/^\/(?!\/)/.test(src))
-        maengel.push(`src="${src}" — das Zaehlskript kommt vom eigenen Ursprung (gepinnte Kopie public/vendor/umami/script.js, siehe scripts/vendor-umami.mjs), nicht von einem fremden Host`);
+        maengel.push(`src="${src}" — das Zaehlskript kommt vom eigenen Ursprung (gepinnte Kopie public/vendor/zaehler/zaehler.js, siehe scripts/vendor-umami.mjs), nicht von einem fremden Host`);
       else if (quelle && !zaehlerKopien.has(src.split('?')[0])) zaehlerKopien.set(src.split('?')[0], { seite: s, tag, haken: quelle });
     }
     if (!/^https:\/\/[^/"]+\/?$/.test(attr(tag, 'data-host-url') ?? ''))
@@ -413,6 +427,13 @@ for (const [src, { seite, tag, haken }] of zaehlerKopien) {
   }
 }
 console.log(`    Zaehler-Kopien geprueft: ${kopienGeprueft}   je 3 Laeufe`);
+// Pfade der Messung gegen Werbeblocker-Muster: ein gesperrter Pfad laesst
+// den Zaehler bei deren Nutzern gar nicht laden, keine Seite merkt etwas.
+const messPfade = [...new Set([...zaehlerKopien.keys(), ...ereignisSkripte.keys()])];
+const gesperrt = messPfade.flatMap((pfad) => BLOCKER_MUSTER.filter((m) => m.re.test(pfad)).map((m) => ({ pfad, m })));
+console.log(`    Mess-Skripte gegen Werbeblocker-Muster: ${messPfade.length} Pfad(e) (${messPfade.join(', ') || '—'}), ${BLOCKER_MUSTER.length} Muster   gesperrt — Soll: 0   Ist: ${gesperrt.length}`);
+for (const { pfad, m } of gesperrt)
+  fail(`${pfad}: Pfad trifft das Werbeblocker-Muster ${m.re} (${m.liste}) — bei deren Nutzern laedt das Skript nicht, Seitenaufrufe und Ereignisse fehlen still; Datei neutral benennen (Zaehler: ZIEL in scripts/vendor-umami.mjs und der Tag in Layout.astro)`);
 
 /* ---- [7] Messereignisse: Liste, Markierungen, Lauf in node:vm ---- */
 console.log('\n[7] Messereignisse: nur die freigegebene Liste, nur feste Werte (scripts/lib/ereignisse.mjs)');

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 015 Runde 2 — Rüstung ohne Modell</title>
+<link rel="stylesheet" href="../basis.css">
+<link rel="stylesheet" href="r2.css">
+<style>
+.swatchbox { background: var(--s1); border-radius: var(--r1); padding: 20px 22px; display: grid; gap: 12px; justify-items: start; }
+.swatchbox p { margin: 0; color: var(--muted); font-size: 14px; }
+.swatchbox .sbh { font-size: 15px; } .swatchbox .sbh b { color: var(--text); font-weight: 500; }
+.swatches { display: grid; grid-template-columns: repeat(10, 1fr); gap: 7px; width: 100%; }
+.sw { display: block; aspect-ratio: 1; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+.sw.on { box-shadow: 0 0 0 2px var(--s1), 0 0 0 4px var(--acc); }
+.sw.ed { background: repeating-linear-gradient(135deg, #8a8d94 0 4px, #5d5a70 4px 8px); }
+.ladder.wl .rung { gap: 10px; }
+.pct { font: 700 34px/1 var(--head); }
+.pct small { display: block; font: 500 13px var(--font); color: var(--muted); margin-top: 4px; }
+.rung.on .pct { color: var(--acc); }
+.vars { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px; }
+.var { display: grid; grid-template-columns: 22px 1fr; grid-template-areas: "sw vn" "sw w"; align-items: center; column-gap: 10px; row-gap: 1px; padding: 9px 12px; border-radius: var(--r2); background: var(--s1); }
+.var .sw { grid-area: sw; width: 22px; height: 22px; }
+.var .vn { grid-area: vn; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.var .w { grid-area: w; font-size: 13.5px; color: var(--muted); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.var .w.bp { color: #ffb08c; }
+.var .hb svg { width: 13px; height: 13px; fill: none; stroke: #ff8a55; stroke-width: 2.2; display: block; }
+.var .w.loot { color: #9fd3b8; } .var .w.excl { color: #e8c37a; } .var .w.none { color: var(--faint); }
+.var.on { outline: 2px solid var(--acc); outline-offset: -2px; background: var(--s2); }
+@media (max-width: 980px) { .swatchbox { order: 1; } .swatches { grid-template-columns: repeat(10, 1fr); } .ladder.wl { grid-template-columns: 1fr; overflow: visible; } }
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="logo" href="#">VerseBase</a>
+  <nav class="crumbs"><span>Items</span><i>›</i><span>Rüstung</span><i>›</i><span>Arme</span><i>›</i><span>PAB-1-Arme</span></nav>
+  <div class="tools">
+    <span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></span>
+    <span class="ibtn">EN</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+  <section class="head">
+    <div>
+      <p class="eyebrow">Rüstung · Arme · Leicht · Clark Defense Systems</p>
+      <h1>PAB-1-Arme</h1>
+      <p class="alt">PAB-1 Arms</p>
+      <ul class="pills">
+        <li class="pill"><b>Schaden</b> −20 %</li>
+        <li class="pill"><b>Temperatur</b> −37 bis 67 °C</li>
+        <li class="pill"><b>Strahlung</b> 26.000 REM</li>
+        <li class="pill"><b>Gewicht</b> 2 kg</li>
+      </ul>
+      <p class="summary">Unter den <b>16 leichten Arm-Baureihen</b> schützt sie wie alle anderen. Temperatur und Preis unterscheiden sich nur wenig. Mehr Schutz gibt es erst <b>eine Gewichtsklasse höher</b>.</p>
+    </div>
+    <div class="swatchbox">
+      <p class="sbh"><b>26 Ausführungen</b> dieser Arme</p>
+      <div class="swatches"><i class="sw on" style="--c:#8a8d94" title="Standard"></i><i class="sw" style="--c:#c8b08a" title="Beige"></i><i class="sw" style="--c:#3b6fd8" title="Blau"></i><i class="sw" style="--c:#2f5a3a" title="Dunkelgrün"></i><i class="sw" style="--c:#7a2630" title="Dunkelrot"></i><i class="sw" style="--c:#e2c234" title="Gelb"></i><i class="sw" style="--c:#8a8d94" title="Grau"></i><i class="sw" style="--c:#4f9a52" title="Grün"></i><i class="sw" style="--c:#5b3f95" title="Imperial"></i><i class="sw" style="--c:#7d4bb5" title="Lila"></i><i class="sw" style="--c:#2e8b74" title="Meergrün"></i><i class="sw" style="--c:#e07a2e" title="Orange"></i><i class="sw" style="--c:#c23b3b" title="Rot"></i><i class="sw" style="--c:#1d1d22" title="Schwarz"></i><i class="sw" style="--c:#a0522d" title="Siena"></i><i class="sw" style="--c:#3fb6b0" title="Türkis"></i><i class="sw" style="--c:#8a5cc7" title="Violett"></i><i class="sw" style="--c:#e8e8ec" title="Weiß"></i><i class="sw" style="--c:#c9a46b" title="Wüste"></i><i class="sw" style="--c:#3f3d66" title="Zwielicht"></i></div>
+      <p class="sbf">20 Farben, dazu 6 Editionen: Covalex, Crusader, Cry-Astro, Executive, Greycat, Sakura Sun</p>
+      <a class="lnk" href="#ausfuehrungen">Alle Ausführungen ↓</a>
+    </div>
+  </section>
+
+  <section class="ways" aria-label="Wege zum Item">
+    <div class="way">
+      <h2><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>Kaufen</h2>
+      <div class="big num">ab 555 <small>aUEC</small></div>
+      <p><b>18 Läden</b> · Stanton 14 · Pyro 2 · Nyx 2<br>günstigste Farbe: <a href="#">Dunkelrot</a> ab 497</p>
+      <div class="go"><a class="lnk" href="#kaufen">Alle Kauforte ↓</a></div>
+    </div>
+    <div class="way craft">
+      <h2><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Herstellen</h2>
+      <div class="big num">2 min 10 s <small>· Bauplan aus 6 Missionen</small></div>
+      <ul class="chips"><li>Ouratite <span class="num">0,03 SCU</span></li><li>Aslarite <span class="num">0,02 SCU</span></li><li>Agricium <span class="num">0,03 SCU</span></li></ul>
+      <div class="go"><a class="btn-craft" href="#"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Im Crafting öffnen</a></div>
+    </div>
+    <div class="way plain">
+      <h2><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke-dasharray="3 2"/></svg>Baureihe PAB-1</h2>
+      <div class="big num">ab 2.996 <small>aUEC für alle 3 Teile</small></div>
+      <ul class="chips"><li><a href="#">Torso <span class="num">1.447</span></a></li><li>Arme <span class="num">555</span></li><li><a href="#">Beine <span class="num">994</span></a></li></ul>
+      <p>Einen PAB-1-Helm gibt es nicht.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Im Feld der leichten Arme</h2><p>Jeder Punkt ein Wert, je größer, desto mehr Baureihen liegen dort gleichauf (Zahl darüber, wo Platz ist); der farbige ist diese, die Strichlinie der Median</p></div>
+    <div class="strips">
+      <div class="row">
+        <div class="lab"><b>Schadensreduktion</b></div>
+        <div class="val num">20 %</div>
+        <div class="track" role="img" aria-label="Schadensreduktion: 20 %, gleichauf mit allen 15"><span class="p me" style="--x:50.0" data-n="16" title="16 Einträge: 20 %"></span></div>
+        <div class="rank num">gleichauf mit allen 15</div>
+        <div class="ends num"><span>alle 20 %</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Kälteschutz bis</b><small>tiefer ist besser</small></div>
+        <div class="val num">−37 °C</div>
+        <div class="track" role="img" aria-label="Kälteschutz bis: −37 °C, Platz 6 von 16, gleichauf mit 2"><span class="med" style="--x:14.7"></span><span class="p" style="--x:20.6;--d:10.2px" title="Arden-SL, Aztalan, TrueDef-Pro: −38 °C"></span><span class="p" style="--x:23.5;--d:7.0px" title="Calico: −39 °C"></span><span class="p" style="--x:11.8;--d:13.4px" data-n="5" title="Chiron, FBL-8a, Aufklärung, Geist, Piecemeal: −35 °C"></span><span class="p" style="--x:0.0;--d:8.6px" data-n="2" title="Luchs, Xy'kara: −31 °C"></span><span class="p" style="--x:5.9;--d:7.0px" title="Microid-Kampfrüstung: −33 °C"></span><span class="p" style="--x:100.0;--d:7.0px" title="Outback: −65 °C"></span><span class="p me" style="--x:17.6" data-n="3" title="MacFlex, PAB-1, Wagnis: −37 °C"></span></div>
+        <div class="rank num">Platz 6 von 16, gleichauf mit 2</div>
+        <div class="ends num"><span>−31</span><span>Median −36</span><span>−65</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Hitzeschutz bis</b></div>
+        <div class="val num">67 °C</div>
+        <div class="track" role="img" aria-label="Hitzeschutz bis: 67 °C, Platz 5 von 16, gleichauf mit 2"><span class="med" style="--x:50.0"></span><span class="p" style="--x:87.5;--d:10.2px" data-n="3" title="Arden-SL, Aztalan, TrueDef-Pro: 68 °C"></span><span class="p" style="--x:100.0;--d:7.0px" title="Calico: 69 °C"></span><span class="p" style="--x:50.0;--d:13.4px" data-n="5" title="Chiron, FBL-8a, Aufklärung, Geist, Piecemeal: 65 °C"></span><span class="p" style="--x:0.0;--d:10.2px" data-n="3" title="Luchs, Outback, Xy'kara: 61 °C"></span><span class="p" style="--x:25.0;--d:7.0px" title="Microid-Kampfrüstung: 63 °C"></span><span class="p me" style="--x:75.0" data-n="3" title="MacFlex, PAB-1, Wagnis: 67 °C"></span></div>
+        <div class="rank num">Platz 5 von 16, gleichauf mit 2</div>
+        <div class="ends num"><span>61</span><span>Median 65</span><span>69</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Preis ab</b><small>günstigste Farbe je Baureihe</small></div>
+        <div class="val num">497</div>
+        <div class="track" role="img" aria-label="Preis ab: 497, Platz 6 von 10"><span class="med" style="--x:47.1"></span><span class="p" style="--x:0.0;--d:7.0px" title="Arden-SL: 675"></span><span class="p" style="--x:53.1;--d:7.0px" title="Calico: 472"></span><span class="p" style="--x:42.1;--d:7.0px" title="FBL-8a: 514"></span><span class="p" style="--x:47.6;--d:7.0px" title="Aufklärung: 493"></span><span class="p" style="--x:70.2;--d:8.6px" data-n="2" title="Luchs, Microid-Kampfrüstung: 407"></span><span class="p" style="--x:31.4;--d:7.0px" title="MacFlex: 555"></span><span class="p" style="--x:30.9;--d:7.0px" title="TrueDef-Pro: 557"></span><span class="p" style="--x:100.0;--d:7.0px" title="Wagnis: 293"></span><span class="p me" style="--x:46.6" title="PAB-1: 497"></span></div>
+        <div class="rank num">Platz 6 von 10</div>
+        <div class="ends num"><span>675</span><span>Median 495</span><span>293</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Ausführungen</b></div>
+        <div class="val num">26</div>
+        <div class="track" role="img" aria-label="Ausführungen: 26, Platz 3 von 16"><span class="med" style="--x:19.4"></span><span class="p" style="--x:22.6;--d:7.0px" title="Arden-SL: 8"></span><span class="p" style="--x:6.5;--d:10.2px" data-n="3" title="Aztalan, Calico, Piecemeal: 3"></span><span class="p" style="--x:19.4;--d:8.6px" data-n="2" title="Chiron, FBL-8a: 7"></span><span class="p" style="--x:0.0;--d:8.6px" data-n="2" title="Aufklärung, Xy'kara: 1"></span><span class="p" style="--x:29.0;--d:7.0px" title="Geist: 10"></span><span class="p" style="--x:100.0;--d:7.0px" title="Luchs: 32"></span><span class="p" style="--x:64.5;--d:7.0px" title="MacFlex: 21"></span><span class="p" style="--x:16.1;--d:7.0px" title="Microid-Kampfrüstung: 6"></span><span class="p" style="--x:12.9;--d:7.0px" title="Outback: 5"></span><span class="p" style="--x:61.3;--d:7.0px" title="TrueDef-Pro: 20"></span><span class="p" style="--x:93.5;--d:7.0px" title="Wagnis: 30"></span><span class="p me" style="--x:80.6" title="PAB-1: 26"></span></div>
+        <div class="rank num">3. größte Auswahl von 16</div>
+        <div class="ends num"><span>1</span><span>Median 7</span><span>32</span></div>
+      </div>
+    </div>
+    <p class="strip-note">Gezählt wird je Baureihe, nicht je Farbe: 183 leichte Arme in 16 Baureihen. 6 Baureihen sind nirgends käuflich. Weichen Farben einer Reihe ab, zählt die schwächste.</p>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Eine Klasse höher</h2><p>Gleicher Hersteller, drei Gewichtsklassen</p></div>
+    <p class="lede">Innerhalb einer Gewichtsklasse schützen <b>alle 451 Arme</b> gleich. Mehr Schutz und ein weiterer Temperaturbereich kosten Gewicht und Geld:</p>
+    <div class="ladder wl" style="--n:3">
+      <div class="rung on" aria-current="page"><span class="sz">Leicht · diese Seite</span><div class="pct num">20 %<small>weniger Schaden</small></div><div class="tbar me"><span class="zero" style="--z:44.4"></span><i style="--a:28.0;--b:74.2"></i></div><p class="num">−37 bis 67 °C</p><h3>PAB-1-Arme</h3><p class="num">2 kg · ab 555 aUEC</p></div>
+      <a class="rung" href="#"><span class="sz">Mittel</span><div class="pct num">30 %<small>weniger Schaden</small></div><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:20.0;--b:82.2"></i></div><p class="num">−55 bis 85 °C</p><h3>ORC-MK-V-Arme</h3><p class="num">4 kg · ab 896 aUEC</p></a>
+      <a class="rung" href="#"><span class="sz">Schwer</span><div class="pct num">40 %<small>weniger Schaden</small></div><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:11.1;--b:91.1"></i></div><p class="num">−75 bis 105 °C</p><h3>ADP-Arme (Türkis)</h3><p class="num">6 kg · ab 1.326 aUEC</p></a>
+    </div>
+  </section>
+
+  <section class="sec" id="ausfuehrungen">
+    <div class="sec-head"><h2>Ausführungen</h2><p>19 im Laden · 5 als Beute · 1 exklusiv · 1 nur herstellbar</p></div>
+    <div class="vars">
+      <div class="var on" aria-current="page"><i class="sw" style="--c:#8a8d94"></i><span class="vn">Standard</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></div>
+      <a class="var" href="#"><i class="sw" style="--c:#c8b08a"></i><span class="vn">Beige</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#3b6fd8"></i><span class="vn">Blau</span><span class="w bp">nur herstellbar</span></a>
+      <a class="var" href="#"><i class="sw ed"></i><span class="vn">Covalex</span><span class="w loot">Beute</span></a>
+      <a class="var" href="#"><i class="sw ed"></i><span class="vn">Crusader</span><span class="w loot">Beute</span></a>
+      <a class="var" href="#"><i class="sw ed"></i><span class="vn">Cry-Astro</span><span class="w loot">Beute</span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#2f5a3a"></i><span class="vn">Dunkelgrün</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#7a2630"></i><span class="vn">Dunkelrot</span><span class="w shop">ab 497 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw ed"></i><span class="vn">Executive</span><span class="w excl">exklusiv</span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#e2c234"></i><span class="vn">Gelb</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#8a8d94"></i><span class="vn">Grau</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw ed"></i><span class="vn">Greycat</span><span class="w loot">Beute</span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#4f9a52"></i><span class="vn">Grün</span><span class="w shop">ab 584 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#5b3f95"></i><span class="vn">Imperial</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#7d4bb5"></i><span class="vn">Lila</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#2e8b74"></i><span class="vn">Meergrün</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#e07a2e"></i><span class="vn">Orange</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#c23b3b"></i><span class="vn">Rot</span><span class="w shop">ab 584 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw ed"></i><span class="vn">Sakura Sun</span><span class="w loot">Beute</span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#1d1d22"></i><span class="vn">Schwarz</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#a0522d"></i><span class="vn">Siena</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#3fb6b0"></i><span class="vn">Türkis</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#8a5cc7"></i><span class="vn">Violett</span><span class="w shop">ab 584 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#e8e8ec"></i><span class="vn">Weiß</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#c9a46b"></i><span class="vn">Wüste</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+      <a class="var" href="#"><i class="sw" style="--c:#3f3d66"></i><span class="vn">Zwielicht</span><span class="w shop">ab 555 <i class="hb" title="auch herstellbar"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i></span></a>
+    </div>
+    <p class="strip-note">Das Werkzeug-Zeichen heißt: auch herstellbar. Alle 26 haben dieselben Werte und behalten ihre eigene Seite. Die Farbfelder sind Näherungen nach dem Farbnamen.</p>
+  </section>
+
+  <section class="sec" id="kaufen">
+    <div class="sec-head"><h2>Kaufen</h2><p>Diese Farbe, nach System, Preise Stand 11.10.2026</p></div>
+    <div class="systems" style="--n:3"><div class="system" style="--star:#ffd59a"><h3>Stanton</h3><p class="meta">14 Orte · am günstigsten</p><div class="place best"><span>Pyro Gateway</span><span class="num">555</span></div><div class="place best"><span>Tammany and Sons, Lorville</span><span class="num">555</span></div><div style="margin-top:12px"><div class="place"><span>12 weitere Orte</span><span class="num">584</span></div><ul class="stations"><li>ARC-L1</li><li>ARC-L4</li><li>CRU-L1</li><li>CRU-L4</li><li>Cubby Blast, Area 18</li><li>HUR-L1</li><li>MIC-L1</li><li>MIC-L4</li><li>Nyx Gateway</li><li>Port Tressler</li><li>Seraphim</li><li>Terra Gateway</li></ul></div></div><div class="system" style="--star:#ff9a6b"><h3>Pyro</h3><p class="meta">2 Orte</p><div class="place"><span>Nyx Gateway</span><span class="num">584</span></div><div class="place"><span>Stanton Gateway</span><span class="num">584</span></div></div><div class="system" style="--star:#b9c6ff"><h3>Nyx</h3><p class="meta">2 Orte</p><div class="place"><span>Pyro Gateway</span><span class="num">584</span></div><div class="place"><span>Stanton Gateway</span><span class="num">584</span></div></div></div><p class="spread">Zwischen dem günstigsten und dem teuersten Ort liegen 29 aUEC (5 %).</p>
+  </section>
+
+  <div class="stand"><span><b>Spielwerte:</b> Spielversion 4.10.2</span><span><b>Kaufpreise:</b> UEX Corp, Stand 11. Oktober 2026</span><a href="#">Falschen Wert melden</a></div>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <nav><span>Item Finder</span><span>Preise &amp; Fundorte</span><span>Crafting</span><span>Schiffe</span><span>Missionen</span></nav>
+  <p>Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd.</p>
+</div></footer>
+<div class="skizze">Runde 2 · Rüstung</div>
+</body>
+</html>

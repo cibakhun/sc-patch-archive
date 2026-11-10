@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 015 C — Beschaffung</title>
+<link rel="stylesheet" href="basis.css">
+<style>
+/* C — BESCHAFFUNG: das Item ist ein Ziel. Die Seite fuehrt mit den Wegen
+   dorthin: kaufen (nach System), ab Werk, herstellen (Mission -> Material
+   -> Fabricator). Item-, Bauplan- und Missionsseite werden so EIN Netz.
+   Alle Angaben sind die echten (Item, Bauplan, Mission aus dem Build von
+   staging 21c2cd9e). Die Systeme stehen nebeneinander, OHNE Sprungpunkte
+   oder Lage dazwischen: die kennt die Seite nicht. */
+
+.head { padding: 44px 0 0; }
+.head .lead { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: end; }
+.head .thumb img { width: 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.5)); }
+.head h1 { margin: 0 0 6px; }
+.head .sub { font-size: 18px; }
+
+.routes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 26px 0 0; }
+.route { background: var(--s1); border-radius: var(--r1); padding: 16px 18px; display: grid; gap: 4px; box-shadow: var(--lift); }
+.route .k { color: var(--muted); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.route .k svg { width: 18px; height: 18px; fill: none; stroke: var(--acc); stroke-width: 1.8; }
+.route .v { font: 600 24px/1.15 var(--font); letter-spacing: -0.01em; }
+.route .d { color: var(--muted); font-size: 14px; }
+.route.best { background: linear-gradient(160deg, rgba(167,139,250,.20), var(--s1) 65%); }
+
+/* Kaufen: drei Systeme nebeneinander */
+.systems { display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 14px; }
+.system { background: var(--s1); border-radius: var(--r1); padding: 18px 20px 16px; position: relative; overflow: hidden; }
+.system::before { /* Stern als ruhiger Kreis oben rechts */
+  content: ''; position: absolute; right: -40px; top: -40px; width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, var(--star, #ffd59a) 0 18%, color-mix(in srgb, var(--star, #ffd59a) 30%, transparent) 19% 34%, transparent 60%);
+  opacity: .55;
+}
+.system h3 { font: 700 22px/1.1 var(--head); margin: 0; }
+.system .meta { color: var(--muted); font-size: 14px; margin: 2px 0 14px; }
+.place { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 10px 12px; border-radius: var(--r2); background: var(--s2); }
+.place + .place { margin-top: 6px; }
+.place span { font-size: 15px; }
+.place .num { font-weight: 600; white-space: nowrap; }
+.place.best { background: rgba(167,139,250,.16); }
+.place.best .num { color: var(--acc); }
+.stations { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.stations li { background: var(--s2); border-radius: var(--r3); padding: 4px 9px; font-size: 14px; }
+.spread { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+
+/* Herstellen: Kette aus vier Gliedern */
+.chain { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+.link { background: var(--s1); border-radius: var(--r1); padding: 18px 20px; margin-right: 34px; position: relative; display: flex; flex-direction: column; gap: 8px; }
+.link:last-child { margin-right: 0; background: linear-gradient(160deg, rgba(167,139,250,.18), var(--s1) 65%); }
+.link:not(:last-child)::after { /* Pfeil zum naechsten Glied */
+  content: ''; position: absolute; right: -27px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%);
+  background: no-repeat center/20px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
+}
+.link .step { font: 700 13px var(--head); color: var(--acc); }
+.link h3 { margin: 0; }
+.link p { margin: 0; color: var(--muted); font-size: 14px; }
+.link .mats { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.link .mats li { display: flex; justify-content: space-between; gap: 10px; background: var(--s2); border-radius: var(--r3); padding: 6px 10px; font-size: 14px; }
+.link .mats .num { font-weight: 600; }
+.link a.more { color: var(--acc); font-size: 14px; font-weight: 500; margin-top: auto; }
+.link img { width: 100%; }
+
+.works { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 14px; align-items: stretch; }
+.ship { background: var(--s1); border-radius: var(--r1); padding: 14px 16px 16px; }
+.ship img { width: 100%; aspect-ratio: 16/8; object-fit: contain; }
+.ship h3 { margin: 6px 0 0; }
+.ship p { margin: 0; color: var(--muted); font-size: 14px; }
+.works .note { background: var(--s1); border-radius: var(--r1); padding: 18px 20px; color: var(--muted); }
+.works .note b { color: var(--text); font-weight: 500; }
+
+.specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 28px; background: var(--s1); border-radius: var(--r1); padding: 8px 22px; }
+.specs .kv dt, .specs .kv dd { font-size: 15px; }
+.specs .kv > :nth-last-child(-n + 2) { border-bottom: 1px solid rgba(255,255,255,.06); }
+
+@media (max-width: 980px) {
+  .head { padding-top: 26px; }
+  .head .lead { grid-template-columns: 1fr; gap: 10px; }
+  .head .thumb { order: -1; max-width: 360px; }
+  .routes { grid-template-columns: 1fr 1fr; }
+  .route .v { font-size: 20px; }
+  .systems, .works { grid-template-columns: 1fr; }
+  .chain { grid-template-columns: 1fr; gap: 30px; }
+  .link { margin-right: 0; }
+  .link:not(:last-child)::after { right: auto; left: 50%; top: auto; bottom: -26px; transform: translateX(-50%) rotate(90deg); }
+  .specs { grid-template-columns: 1fr; }
+}
+.sec[id] { scroll-margin-top: 72px; }
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="logo" href="#">VerseBase</a>
+  <nav class="crumbs"><span>Items</span><i>›</i><span>Schiffswaffen</span><i>›</i><span>Attrition-3-Repetierer</span></nav>
+  <div class="tools">
+    <span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></span>
+    <span class="ibtn">EN</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <section class="head">
+    <div class="lead">
+      <div>
+        <p class="eyebrow">Schiffswaffe · Laser-Repetierer · Größe 3 · Hurston Dynamics</p>
+        <h1>Attrition-3-Repetierer</h1>
+        <p class="sub">Drei Wege führen zu dieser Waffe: kaufen, mit einem Fahrzeug ab Werk bekommen oder selbst herstellen.</p>
+      </div>
+      <div class="thumb"><img src="img/attrition-3.webp" alt="Attrition-3-Repetierer, Spielmodell"></div>
+    </div>
+    <div class="routes">
+      <a class="route best" href="#kaufen"><span class="k"><svg viewBox="0 0 24 24"><path d="M4 6h16l-1.5 9h-13z"/><circle cx="9" cy="19" r="1.4"/><circle cx="16" cy="19" r="1.4"/></svg>Kaufen</span><span class="v num">ab 51.851</span><span class="d">13 Orte in Stanton, Pyro, Nyx</span></a>
+      <a class="route" href="#werk"><span class="k"><svg viewBox="0 0 24 24"><path d="M3 15l3-6h12l3 6z"/><path d="M7 15v3M17 15v3"/></svg>Ab Werk</span><span class="v">2 Fahrzeuge</span><span class="d">Centurion, Freelancer DUR</span></a>
+      <a class="route" href="#herstellen"><span class="k"><svg viewBox="0 0 24 24"><path d="M14 4l6 6-9 9H5v-6z"/></svg>Herstellen</span><span class="v num">28 min</span><span class="d">3 Materialien, 24,62 SCU</span></a>
+      <a class="route" href="#herstellen"><span class="k"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6"/></svg>Bauplan</span><span class="v">1 Mission</span><span class="d">Nyx, Zufall aus 17 Bauplänen</span></a>
+    </div>
+  </section>
+
+  <section class="sec" id="kaufen">
+    <div class="sec-head"><h2>Kaufen</h2><p>Nach System, Preise Stand 11.10.2026</p></div>
+    <div class="systems">
+      <div class="system">
+        <h3>Stanton</h3><p class="meta">1 Ort · der günstigste</p>
+        <div class="place best"><span>Hurston Dynamics Showcase, Lorville</span><span class="num">51.851</span></div>
+      </div>
+      <div class="system" style="--star:#ff9a6b">
+        <h3>Pyro</h3><p class="meta">11 Stationen · je 54.580 bei Ship Parts</p>
+        <ul class="stations"><li>Checkmate</li><li>Dudley &amp; Daughters</li><li>Endgame</li><li>Gaslight</li><li>Megumi Refueling</li><li>Orbituary</li><li>Patch City</li><li>Rat's Nest</li><li>Rod's Fuel 'N Supplies</li><li>Ruin Station</li><li>Starlight Service</li></ul>
+      </div>
+      <div class="system" style="--star:#b9c6ff">
+        <h3>Nyx</h3><p class="meta">1 Ort</p>
+        <div class="place"><span>Teach's Item Shop, Levski</span><span class="num">54.580</span></div>
+      </div>
+    </div>
+    <p class="spread">Zwischen dem günstigsten und dem teuersten Ort liegen 2.729 aUEC (5 %).</p>
+  </section>
+
+  <section class="sec" id="herstellen">
+    <div class="sec-head"><h2>Selbst herstellen</h2><p>Vom Bauplan bis zur fertigen Waffe</p></div>
+    <div class="chain">
+      <div class="link">
+        <span class="step">1 · Bauplan erspielen</span>
+        <h3>Retrieve Additional Smuggler Intel</h3>
+        <p>Investigation für InterSec Defense Solutions in Nyx, Karrierestufe Jr. bis Elite Contractor.</p>
+        <p>Die Mission wirft sicher einen Bauplan ab, aber zufällig einen von 17.</p>
+        <a class="more" href="#">Zur Mission</a>
+      </div>
+      <div class="link">
+        <span class="step">2 · Material beschaffen</span>
+        <ul class="mats">
+          <li><span>Hadanite</span><span class="num">23 SCU</span></li>
+          <li><span>Agricium</span><span class="num">1,16 SCU</span></li>
+          <li><span>Pressurized Ice</span><span class="num">0,46 SCU</span></li>
+        </ul>
+        <p>Mindestqualität jeweils 1</p>
+        <a class="more" href="#">Fundorte in der Mining-Datenbank</a>
+      </div>
+      <div class="link">
+        <span class="step">3 · Fabricator</span>
+        <h3 class="num">28 min</h3>
+        <p>Die Materialqualität verschiebt Integrität (× 0,9 bis × 1,1) und Aufprallkraft (× 0,95 bis × 1,05).</p>
+        <a class="more" href="#">Im Planer durchspielen</a>
+      </div>
+      <div class="link">
+        <span class="step">4 · Ergebnis</span>
+        <img src="img/attrition-3.webp" alt="">
+        <h3>Attrition-3-Repetierer</h3>
+        <p>statt 51.851 aUEC im Laden</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="werk">
+    <div class="sec-head"><h2>Ab Werk verbaut</h2><p>Wer eines dieser Fahrzeuge hat, hat die Waffe schon</p></div>
+    <div class="works">
+      <a class="ship" href="#"><img src="img/anvl-centurion.webp" alt=""><h3>Centurion</h3><p>Anvil Aerospace · Kampf</p></a>
+      <a class="ship" href="#"><img src="img/misc-freelancer-dur.webp" alt=""><h3>MISC Freelancer DUR</h3><p>MISC · Erkundung</p></a>
+      <div class="note"><b>Im Hangar ausprobieren:</b> die Waffe auf ein Schiff mit Steckplatz der Größe 3 setzen und das Layout teilen. Der Link erscheint nur, wo der Hangar die Waffe kennt.</div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Technische Daten</h2><p>Alle 15 Spielwerte</p></div>
+    <div class="specs">
+      <dl class="kv"><dt>Schaden je Schuss</dt><dd class="num">86 <small>Energie</small></dd><dt>Feuerrate</dt><dd class="num">350 <small>/min</small></dd><dt>DPS</dt><dd class="num">501,67</dd><dt>Bauteil-HP</dt><dd class="num">1.024</dd></dl>
+      <dl class="kv"><dt>Projektil</dt><dd class="num">1.480 <small>m/s</small></dd><dt>Flugzeit</dt><dd class="num">1,3 <small>s</small></dd><dt>Reichweite</dt><dd class="num">1.924 <small>m</small></dd><dt>Streuung</dt><dd class="num">0,5</dd></dl>
+      <dl class="kv"><dt>Munition</dt><dd class="num">75</dd><dt>Regeneration</dt><dd class="num">15 <small>/s</small></dd><dt>Pause vor Regeneration</dt><dd class="num">0,73 <small>s</small></dd><dt>Wärme je Schuss</dt><dd class="num">1.800</dd></dl>
+      <dl class="kv"><dt>Strombedarf</dt><dd class="num">0,75</dd><dt>EM-Signatur</dt><dd class="num">278</dd><dt>Volumen</dt><dd class="num">0,756 <small>SCU</small></dd><dt>Größe · Klasse</dt><dd class="num">3 · A</dd></dl>
+    </div>
+  </section>
+
+  <div class="stand"><span><b>Spielwerte, Rezept, Mission:</b> Spielversion 4.10.2</span><span><b>Kaufpreise:</b> UEX Corp, Stand 11. Oktober 2026</span><a href="#">Falschen Wert melden</a></div>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <nav><span>Item Finder</span><span>Preise &amp; Fundorte</span><span>Baupläne</span><span>Schiffe</span><span>Missionen</span></nav>
+  <p>Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd.</p>
+</div></footer>
+<div class="skizze">Entwurf C · Beschaffung</div>
+</body>
+</html>
