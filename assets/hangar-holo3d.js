@@ -9,8 +9,10 @@
 //
 // Wie es gebaut ist (aus den Aufnahmen vom 09.11. übernommen):
 // - Tafeln sind Canvas-Bilder auf Ebenen im Raum. Sie stehen auf einem
-//   Projektor am Boden (Leiste, Lichtvorhang bis zur Tafel, Lichtfleck), das
-//   Schiff verdeckt sie, der Boden spiegelt sie (hohe Stufe). Ihre Größe
+//   Projektor am Boden (Leiste, Lichtvorhang bis zur Tafel, Lichtfleck).
+//   Nichts verdeckt sie: Rumpf, Wände, Decke und Deko liegen im Bild immer
+//   unter ihnen (Krisz 10.11.2026, Ironclad-Tafel von der Geometrie
+//   angeschnitten: „das soll nicht passieren“). Ihre Größe
 //   folgt dem Abstand: am Bild bleibt eine Tafel so breit wie entworfen, die
 //   Schrift also lesbar, ob man nah oder weit steht.
 // - Sie schauen in Blickrichtung, je 0,12 rad zur Mitte gedreht und 0,1 rad
@@ -41,6 +43,10 @@ const PAD = 24;           // Rand der Tafelbilder für den Schein (CSS-Pixel)
 const S = 2;              // Bildpunkte je CSS-Pixel
 const LIFT = 0.45;        // Unterkante der Tafel über dem Projektor (m)
 const TILT = 0.1;         // nach hinten geneigt (rad)
+// Blickt die Kamera steiler als so nach unten (rad; Startansicht etwa 0,22),
+// schweben die Tafeln wie über dem Rumpf fest im Bild: am Boden lagen sie von
+// oben flach, schief und halb unter der Seitenleiste (Ironclad, 10.11.2026)
+const STEEP = 0.55;
 const YAW_IN = 0.12;      // zur Bildmitte gedreht (rad)
 // Schleier über der Halle, Ziel wie in den Entwürfen: etwa 72 % Helligkeit
 // am fertigen Bild. Auf „hoch“ liegt er vor Tonabbildung und Ausgabe (linear,
@@ -423,7 +429,7 @@ export function holoLayer(ctx) {
     P.tex.minFilter = THREE.LinearMipmapLinearFilter; P.tex.generateMipmaps = true;
     P.group = new THREE.Group();                       // am Boden, gedreht
     P.pivot = new THREE.Group(); P.pivot.position.y = LIFT; P.pivot.rotation.x = -TILT; P.group.add(P.pivot);
-    P.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: P.tex, side: THREE.FrontSide }, 1, P));
+    P.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: P.tex, side: THREE.FrontSide, depthTest: false }, 1, P));
     P.mesh.renderOrder = RO.panel; P.mesh.userData.panel = P; P.pivot.add(P.mesh);
     // Projektor: Leiste, Lichtstreifen, Fleck, Vorhang
     P.proj = new THREE.Group(); P.group.add(P.proj);
@@ -646,11 +652,11 @@ export function holoLayer(ctx) {
 
   // Platz einer Tafel am Boden aus dem Bild: unten links bzw. rechts, frei
   // von Seitenleiste und Knöpfen; nicht im Fußabdruck des Schiffs und nicht
-  // hinter ihm
-  function target(P) {
+  // hinter ihm. shift: um so viele Pixel zur Bildmitte gerückt
+  function target(P, shift = 0) {
     const W = ctx.W(), H = ctx.H(), k = 1;
     const w = P.cssW * k, h = P.cssH * k;
-    const x = P.side === 'left' ? safe.l + 18 + w / 2 : W - safe.r - 18 - w / 2;
+    const x = P.side === 'left' ? safe.l + 18 + w / 2 + shift : W - safe.r - 18 - w / 2 - shift;
     const x0 = x - w / 2, x1 = x + w / 2;
     // tiefste freie Höhe unter der Tafel: über Knöpfen der Seite in ihrem Streifen
     let bottom = H - 22;
@@ -661,11 +667,14 @@ export function holoLayer(ctx) {
     P.anchor = [x, bottom];
     const B = built.box, m = 1.4;
     const inFoot = (t) => t.x > B.min.x - m && t.x < B.max.x + m && t.z > B.min.z - m && t.z < B.max.z + m;
-    const floating = () => { P.float = true; P.rect.t = bottom - h; return aheadPx(x, bottom, floatM()); };
+    const floating = () => {
+      P.float = true; P.rect = { l: x0, r: x1, t: bottom - h, b: bottom }; P.anchor = [x, bottom];
+      return aheadPx(x, bottom, floatM());
+    };
     P.float = false;
     const p = floorPx(x, bottom);
-    // kein Boden unter der Stelle oder Kamera über dem Rumpf: schweben
-    if (!p || (inFoot(p) && inFoot(camera.position))) return floating();
+    // kein Boden unter der Stelle, Kamera über dem Rumpf oder steil von oben: schweben
+    if (!p || (inFoot(p) && inFoot(camera.position)) || -camF().y > Math.sin(STEEP)) return floating();
     // Fuß und Oberkante der Tafel frei sichtbar
     const top = (t) => { const d = Math.max(1, depthOf(t)); return t.clone().setY(LIFT + (h * d) / ppm()); };
     const blocked = (t) => inFoot(t) || behindShip(t) || behindShip(top(t));
@@ -686,7 +695,35 @@ export function holoLayer(ctx) {
       const q = toPx(p);
       if (!q || q[1] > bottom + 24 || depthOf(p) < floatM()) return floating();
     }
+    // ganz im freien Bild: von schräg oben kippt die Tafel am Bildrand und
+    // lag halb unter der Seitenleiste (Ironclad, 10.11.2026). Ragt sie seitlich
+    // hinaus, rückt sie einmal um das Stück zur Mitte; reicht das nicht oder
+    // ragt sie oben oder unten hinaus: schweben
+    const o = overhang(P, p, bottom + 24);
+    if (o > 0 && o < 200 && !shift) { const t = target(P, o + 8); if (t && !P.float) return t; }
+    if (o !== 0) return floating();
     return p;
+  }
+  // Wie weit ragt die Tafel, stünde sie am Bodenpunkt t (wie place() sie
+  // stellt), seitlich über Seitenleiste oder Rand (Pixel, 0 = gar nicht)?
+  // Infinity, wenn eine Ecke über dem Kopf, unter yMax oder hinter der Kamera läge.
+  const probe = new THREE.Object3D(), probeIn = new THREE.Object3D(), corner = new THREE.Vector3();
+  probe.add(probeIn);
+  function overhang(P, t, yMax) {
+    const f = camF();
+    probe.position.copy(t);
+    probe.rotation.set(0, Math.atan2(-f.x, -f.z) + (P.side === 'left' ? -YAW_IN : YAW_IN), 0);
+    probeIn.position.set(0, LIFT, 0); probeIn.rotation.set(-TILT, 0, 0);
+    probe.updateMatrixWorld(true);
+    const d = Math.max(1, depthOf(t)), wm = (P.cssW * d) / ppm(), hm = (P.cssH * d) / ppm();
+    const L = (safe.l ?? 0) - 4, R = ctx.W() - (safe.r ?? 0) + 4;
+    let over = 0;
+    for (const [cx, cy] of [[-0.5, 0], [0.5, 0], [-0.5, 1], [0.5, 1]]) {
+      const px = toPx(probeIn.localToWorld(corner.set(cx * wm, cy * hm, 0)));
+      if (!px || px[1] < (safe.t ?? 0) - 4 || px[1] > yMax) return Infinity;
+      over = Math.max(over, L - px[0], px[0] - R);
+    }
+    return Math.ceil(over);
   }
 
   // je Bild: Drehung, Größe, Projektor, Gleiten
@@ -720,8 +757,6 @@ export function holoLayer(ctx) {
     if (P.proj.visible === fl) {
       P.proj.visible = P.glow.visible = !fl;
       P.pivot.position.y = fl ? 0 : LIFT; P.pivot.rotation.x = fl ? 0 : -TILT;
-      // vor der Kamera kann Rumpf zwischen Tafel und Boden liegen: nicht verdecken lassen
-      P.mesh.material.depthTest = !fl;
     }
     const d = Math.max(1, depthOf(P.pos));
     const wm = ((P.cssW + 2 * PAD) * d) / ppm(), hm = wm * (P.cssH + 2 * PAD) / (P.cssW + 2 * PAD);

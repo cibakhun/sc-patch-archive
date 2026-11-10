@@ -219,6 +219,9 @@
     ff  den Schluessel station, aus dem Rueckgabeobjekt von
         dist/assets/hangar-viewer.js streichen (Kommentare nennen ihn
         weiter; bis cubic auf PR #327 hielten sie die Pruefung gruen) -> [21]
+    gg  in dist/assets/hangar-holo3d.js beim Material der Tafel
+        depthTest: false streichen (10.11.2026: Halle schnitt die
+        Ironclad-Tafel an)                                          -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1353,6 +1356,16 @@ const STATIONEN = { stationen: 2, proben: 28 };
   const holoSrc = existsSync(holoFile) ? readFileSync(holoFile) : null;
   if (!holoSrc) fail('[21] dist/assets/hangar-holo3d.js fehlt: Stationen in der Halle laden nicht');
   else if (!/export function holoLayer\(/.test(holoSrc.toString('utf8'))) fail('[21] dist/assets/hangar-holo3d.js exportiert holoLayer nicht mehr (Naht zum Viewer, station())');
+  // Tafeln liegen im Bild immer über Halle, Deko und Schiff (Krisz 10.11.2026
+  // zur Ironclad-Tafel, die eine Kante durchstieß: „das soll nicht passieren“)
+  let ueber = '—';
+  if (holoSrc) {
+    const hs = holoSrc.toString('utf8');
+    const an = /P\.mesh = new THREE\.Mesh\([^\n]*depthTest: false/.test(hs), zurueck = /P\.mesh\.material\.depthTest\s*=/.test(hs);
+    if (!an) fail('[21] dist/assets/hangar-holo3d.js: das Material der Tafel (P.mesh) zeichnet nicht ohne Tiefentest: Wände, Decke oder Rumpf schneiden sie an');
+    else if (zurueck) fail('[21] dist/assets/hangar-holo3d.js setzt P.mesh.material.depthTest nachträglich: die Tafel kann wieder angeschnitten werden');
+    else ueber = 'ohne Tiefentest';
+  }
   const holoV = holoSrc ? createHash('sha1').update(holoSrc).digest('hex').slice(0, 8) : '';
   let proben = 0, leisten = 0;
   for (const page of PAGES) {
@@ -1394,8 +1407,8 @@ const STATIONEN = { stationen: 2, proben: 28 };
     probe('?tafel=1', '?tafel=1');
     probe(`?ship=${def}&station=uebersicht&tafel=1`, `?ship=${def}`, 'share');
   }
-  sollIst(`Stationen >= ${STATIONEN.stationen}, Leiste mit genau ihnen auf beiden Seiten, Modul ${holoV || '—'} versioniert, Viewer liefert ${VNAHT.join(', ')}, Proben der Adresse >= ${STATIONEN.proben}`,
-    `${list.length} Stationen (${list.join(', ') || '—'}, Vorgabe ${vor ?? '—'}), Leiste auf ${leisten} von ${PAGES.length} Seiten, ${proben} Proben`);
+  sollIst(`Stationen >= ${STATIONEN.stationen}, Leiste mit genau ihnen auf beiden Seiten, Modul ${holoV || '—'} versioniert, Viewer liefert ${VNAHT.join(', ')}, Tafeln ohne Tiefentest, Proben der Adresse >= ${STATIONEN.proben}`,
+    `${list.length} Stationen (${list.join(', ') || '—'}, Vorgabe ${vor ?? '—'}), Leiste auf ${leisten} von ${PAGES.length} Seiten, Tafeln ${ueber}, ${proben} Proben`);
   if (list.length < STATIONEN.stationen) fail(`[21] nur ${list.length} Stationen im Controller (Klinke ${STATIONEN.stationen})`);
   if (proben < STATIONEN.proben) fail(`[21] nur ${proben} Proben der Adresse (Klinke ${STATIONEN.proben}): der Controller laedt nicht oder STATIONS ist kuerzer geworden`);
   ist.stationen = list.length; ist.stationenProben = proben;
