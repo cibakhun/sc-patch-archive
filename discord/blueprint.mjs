@@ -239,7 +239,40 @@ export const categories = [
       //   ist Absicht: build.mjs loescht keine Kanaele, und Loeschen naehme die
       //   Beitraege mit. Stilllegen (sperren + Wegweiser) ist Handarbeit,
       //   nachzulesen im Abschluss dieser Aenderung.
-      { key: 'feedback', name: 'feedback', type: 'text', topic: 'Ideas, questions, anything about verse-base.com — one topic per post · Ideen, Fragen, alles zu verse-base.com — ein Thema pro Post', slowmode: 30 },
+      //
+      // 10.11.2026 (Krisz): #feedback wird ein FORUM in Kachelansicht wie
+      // #bug-reports, und Vorschlaege bekommen darin einen eigenen Tag. Im
+      // Textkanal rutschte jede Idee unter der naechsten weg; als Forum ist
+      // jeder Vorschlag eine Kachel mit eigenem Verlauf, abstimmbar per 👍/👎
+      // und nach Tag filterbar.
+      //
+      // ⚠ Discord kann einen Textkanal nicht in ein Forum umwandeln. build.mjs
+      //   stellt den alten Textkanal deshalb beim ersten Lauf als
+      //   #feedback-alt beiseite (Verlauf bleibt, fuer Mitglieder unsichtbar)
+      //   und legt das Forum neu an. Siehe „Typwechsel" in build.mjs.
+      // ⚠ Tag-Namen nie umbenennen: der Builder ordnet bestehende Tags ueber den
+      //   Namen zu, ein neuer Name waere ein neuer Tag, und markierte Posts
+      //   verloren ihren alten.
+      // ⚠ 📌 Planned und ✅ Done sind moderiert: nur das Team (Threads
+      //   verwalten) kann sie setzen, sonst markiert sich jeder Vorschlag
+      //   selbst als geplant.
+      {
+        key: 'feedback', name: 'feedback', type: 'forum',
+        topic: 'Ideas, questions, stuck on something? One post per topic, pick a tag · Ideen, Fragen, festgefahren? Ein Post pro Thema, Tag wählen',
+        tags: [
+          { name: 'Suggestion', emoji: '💡' }, { name: 'Question', emoji: '❓' },
+          { name: 'Help', emoji: '🛟' },
+          { name: 'Item Finder', emoji: '🔎' }, { name: 'Ships', emoji: '🚀' },
+          { name: 'Crafting', emoji: '🔧' }, { name: 'Mining', emoji: '⛏' },
+          { name: 'Missions', emoji: '📜' }, { name: 'Account', emoji: '👤' },
+          { name: 'Discord bot', emoji: '🤖' }, { name: 'Mobile', emoji: '📱' },
+          { name: 'Planned', emoji: '📌', moderated: true },
+          { name: 'Done', emoji: '✅', moderated: true },
+        ],
+        layout: 'gallery',
+        sort: 'activity',
+        slowmode: 30,
+      },
       // 17.08.2026 (D-18): private room for the Test Pilots role — deploy
       // pings for the staging preview and talk about half-finished things.
       // No category of its own: a lone room for a group that doesn't exist
@@ -597,24 +630,31 @@ export const seed = {
     buttons: [{ label: 'Feedback-Formular', url: `${SITE}/feedback.html` }],
     embeds: [
     {
-      title: 'Feedback · Rückmeldung',
+      // 10.11.2026: #feedback ist jetzt ein Forum. Der Titel wird zum Namen des
+      // angehefteten Bot-Posts (build.mjs, Forum-Seed), deshalb eine Anleitung
+      // statt nur „Feedback".
+      title: 'How to post here · So postest du hier',
       color: C.cyan,
       description: [
-        'Ideas, questions, stuck on something — it all goes here. **One topic per post**, so others can react to vote: 👍 for yes, 👎 for no.',
+        'Ideas, questions, stuck on something — it all goes here. **One post per topic**: give it a clear title and pick a tag, so it stays findable.',
         '',
-        '**Got an idea?** The most useful ones say what you were *trying to do* when you wanted it, not just the feature name. Half the tools on the site started as a sentence in a channel like this one.',
+        '💡 **Suggestion** — an idea for the site, a tool or the bot. The most useful ones say what you were *trying to do* when you wanted it, not just the feature name.',
+        '❓ **Question** — how something works, or where a number comes from.',
+        '🛟 **Help** — stuck? Say what you tried, and add a screenshot if you can.',
         '',
-        '**Stuck instead?** Say what you tried, and add a screenshot if you can — the site and its tools, your account, or the bot.',
+        'Add the area tag too (Item Finder, Ships, Crafting …). Vote on posts with 👍 / 👎. **📌 Planned** and **✅ Done** are set by the team, so you can see what is happening with an idea.',
         '',
         'Something **broken** rather than missing? That’s <#bug-reports>.',
         '',
         `Prefer the website? The [feedback form](${SITE}/feedback.html) reaches the same inbox.`,
         DIV,
-        'Ideen, Fragen, Festgefahrenes — alles kommt hier rein. **Ein Thema pro Post**, damit andere per Reaktion abstimmen können: 👍 für ja, 👎 für nein.',
+        'Ideen, Fragen, Festgefahrenes — alles kommt hier rein. **Ein Post pro Thema**: gib ihm einen klaren Titel und wähl einen Tag, damit er auffindbar bleibt.',
         '',
-        '**Eine Idee?** Die nützlichsten Vorschläge sagen, *was du gerade vorhattest*, als du sie gebraucht hast — nicht nur den Namen der Funktion. Die Hälfte der Tools auf der Seite begann als ein Satz in einem Kanal wie diesem.',
+        '💡 **Suggestion** — eine Idee für die Seite, ein Tool oder den Bot. Die nützlichsten Vorschläge sagen, *was du gerade vorhattest*, als du sie gebraucht hast — nicht nur den Namen der Funktion.',
+        '❓ **Question** — wie etwas funktioniert oder woher eine Zahl kommt.',
+        '🛟 **Help** — hängst du fest? Schreib, was du versucht hast, ein Screenshot hilft.',
         '',
-        '**Hängst du fest?** Schreib, was du versucht hast, und ein Screenshot hilft — ob Seite und Tools, dein Konto oder der Bot.',
+        'Nimm auch den Bereich als Tag dazu (Item Finder, Ships, Crafting …). Abgestimmt wird per 👍 / 👎. **📌 Planned** und **✅ Done** setzt das Team, so siehst du, was aus einer Idee wird.',
         '',
         'Etwas **kaputt** statt fehlend? Das gehört nach <#bug-reports>.',
         '',
