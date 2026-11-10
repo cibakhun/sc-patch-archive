@@ -360,7 +360,7 @@ for (const z of kurz(inline.imgFailOhneHoerer))
 for (const z of kurz(inline.svg)) fehler.push(`${z}: ausgeführtes Inline-Skript in <svg> — dort löst der Parser Zeichenreferenzen auf, der Hash ließe sich nicht sicher rechnen; Skript aus dem <svg> nehmen`);
 for (const [host, seite] of zaehlHosts) {
   if (srcFor('script-src').some((q) => q === `https://${host}` || q === host))
-    fehler.push(`script-src führt den Zähl-Host ${host} (data-host-url, z. B. ${seite}) — das Zählskript kommt vom eigenen Ursprung (public/vendor/umami/), der Host gehört nur nach connect-src`);
+    fehler.push(`script-src führt den Zähl-Host ${host} (data-host-url, z. B. ${seite}) — das Zählskript kommt vom eigenen Ursprung (public/vendor/zaehler/), der Host gehört nur nach connect-src`);
 }
 
 // add_header-Vererbung: nginx erbt add_header nur, solange ein Block
