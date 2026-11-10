@@ -15,7 +15,9 @@
     "audit": "node audit.mjs",
     "prune": "node prune.mjs",
     "verify:invite": "node verify-invite.mjs",
-    "prune:invite": "node prune-invite.mjs"
+    "prune:invite": "node prune-invite.mjs",
+    "vorschlaege": "node vorschlaege.mjs",
+    "test:vorschlaege": "node --test vorschlaege.test.mjs"
   },
   "engines": {
     "node": ">=20.6"
