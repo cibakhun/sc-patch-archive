@@ -36,6 +36,7 @@ import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
+import { repairSwapped } from './lib/hangar-netztausch.mjs';
 import { initGear, poseShip, underInterior, worldOf } from './lib/landing-gear.mjs';
 import { gearPlane, GEAR_TILT_MAX, palettePbr } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
@@ -1968,6 +1969,9 @@ async function buildOne(kind, name, inPath) {
   // Innenraum (kind 'interior'): derselbe Rohexport und dieselbe Strecke wie
   // der Rumpf, nur die Auswahl umgekehrt; Quelle und Nachtrag aus ships/
   const inner = kind === 'interior', ship = kind === 'ships' || inner, srcKind = inner ? 'ships' : kind;
+  // vertauschte Netze bei mehrfach gesetzten Teilen (scripts/lib/hangar-netztausch.mjs):
+  // zuerst, damit Fahrwerk, Container und Innenraum die richtigen Teile sehen
+  const swapFix = ship ? repairSwapped(doc) : null;
   const gearPose = ship ? shipGear(doc, name) : null;
   if (ship) dropUnreachable(doc);
   const bodyCopy = ship ? dropBodyCopies(doc) : null;
@@ -2137,6 +2141,7 @@ async function buildOne(kind, name, inPath) {
     ...(interior?.keptNodes && interior.dropped ? { interiorKept: { nodes: interior.keptNodes, tris: Math.round(interior.keptTris) } } : {}),
     ...(bareInterior ? { interiorBare: bareInterior } : {}),
     ...(bodyCopy?.nodes ? { bodyCopies: bodyCopy } : {}),
+    ...(swapFix?.nodes ? { swapFix: { nodes: swapFix.nodes, fixed: swapFix.fixed, dropped: swapFix.dropped, trisWrong: swapFix.trisWrong } } : {}),
     ...(placement?.placed || placement?.unplaced.length ? { containerPlace: { placed: placement.placed, moved: placement.moved, byOffset: placement.byOffset, byHelper: placement.byHelper, ...(placement.unplaced.length ? { unplaced: placement.unplaced } : {}), ...(placement.dup ? { dup: placement.dup, dupTris: Math.round(placement.dupTris) } : {}) } } : {}),
     // gezählt in der geschriebenen Datei (prune nimmt leer gewordene Netze heraus)
     ...(interiorMarked ? { interiorMarked: written.getRoot().listNodes().filter((n) => n.getExtras()?.interior).length } : {}),
@@ -3259,6 +3264,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       if (r.swapComp) console.log(`    Komponenten: ${Object.keys(r.swapComp).length} Ports mit Serienteil, ${r.swapEmpty} leere Anker`);
       if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
       if (kind === 'ships') console.log(`    Quelle: ${r.record ?? 'Rohexport ohne Sidecar'}${r.game ? ` (CL ${r.game})` : ''}, Innenraum ${r.interiorDropped ? `${r.interiorDropped} Container entfernt${r.interiorKept ? `, hinter Glas behalten ${r.interiorKept.nodes} Knoten mit ${r.interiorKept.tris} Dreiecken` : ''}` : 'behalten'}`);
+      if (r.swapFix) console.log(`    Vertauschte Netze: ${r.swapFix.nodes} Knoten, ${r.swapFix.fixed} aus Geschwister-Exemplar ersetzt, ${r.swapFix.dropped} ohne Ersatz abgenommen (${r.swapFix.trisWrong.toLocaleString()} falsch gesetzte Dreiecke)`);
       if (r.bodyCopies) console.log(`    Hüllkopien in Containern entfernt: ${r.bodyCopies.nodes} Knoten mit ${r.bodyCopies.tris.toLocaleString()} Dreiecken (${r.bodyCopies.files.join(', ')})`);
       if (kind === 'ships' && r.matfix) console.log(`    Materialnachtrag: ${r.matfix.fixed} Primitive (${r.matfix.reused} auf Materialien des Exports, ${r.matfix.created} neue Materialien, ${r.matfix.layered ?? 0} mit Schichtkarten), ${r.matfix.dropped} NoDraw entfernt; ohne Material ${r.cover.before.trisOhneMaterial} -> ${r.cover.after.trisOhneMaterial} Dreiecke`);
       const pr = r.paintReport;

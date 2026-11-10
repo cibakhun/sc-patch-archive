@@ -62,9 +62,23 @@ Screenshot. Grund: Wird dieselbe .cga mehrfach gesetzt (sechs Radaufhängungen),
 tragen im Rohexport einzelne Knoten das Netz des nächsten Exemplars, um
 eins verschoben. Beim Ursa tragen die `tyre`-Knoten von wheel4 und wheel5 das
 `bottom_arm`-Netz. Über alle 231 Rohexporte sind 217 Schiffe betroffen,
-mit 4 892 Knoten. 3 970 davon lassen sich aus einem Geschwisterexemplar
-derselben Datei richtig besetzen.
+mit 4 892 Knoten.
 
-Das braucht eine eigene Bauregel und einen Neubau am PC (Spieldaten),
-nicht in diesem Schritt. Entscheidung bei Krisz: erst die drei Ursa, dann
-alle, oder später.
+**Bauregel** `repairSwapped` in `scripts/build-hangar-assets.mjs`, Rechnung
+in `scripts/lib/hangar-netztausch.mjs`. Sie läuft für Rumpf und Innenraum
+als erster Schritt, vor Fahrwerk und Containern. Erkennt sie ein Netz, das
+zwei verschieden benannte Knoten benutzen und das den Namen des einen trägt,
+gibt der andere Knoten es ab. Ersatz liefert ein heiler Knoten gleichen
+Namens mit der längsten gleichen Ahnenkette, beim Ursa wheel6 für wheel4 und
+wheel3 für wheel5. Ohne Ersatz wird das falsche Netz abgenommen. Das Manifest
+trägt `swapFix` (Knoten, ersetzt, abgenommen, falsch gesetzte Dreiecke).
+
+Geprüft am PC gegen den Rohexport des Medivac: 4 Knoten (zwei Reifen,
+barrel_03 und pitch_part am Geschütz), alle 4 ersetzt. Danach stehen alle
+sechs Reifen an ihrem Rad, je 0,74 × 1,87 × 1,87 m. Über alle 231
+Rohexporte haben 3 538 der 4 892 Knoten einen Ersatz, 1 354 nicht (vor allem
+Raketen und ihre Zünder, Schubdüsen, Läufe).
+
+Wirksam wird die Regel erst mit einem Neubau am PC (Spieldaten). Ob zuerst
+die drei Ursa, gleich alle oder später, entscheidet Krisz. Die Web-Modelle in
+diesem Stand sind ohne sie gebaut.
