@@ -102,3 +102,10 @@ export function kurz(text, max = 220) {
   const einzeilig = String(text ?? '').replace(/\s+/g, ' ').trim();
   return einzeilig.length > max ? einzeilig.slice(0, max - 1) + '…' : einzeilig;
 }
+
+// NODE_USE_ENV_PROXY (fetch über HTTPS_PROXY) gibt es ab Node 22.21 in der
+// 22er-Reihe und ab 24.5; 23.x und ältere gingen am Proxy vorbei.
+export function proxyFaehig(version) {
+  const [a, b] = String(version).replace(/^v/, '').split('.').map(Number);
+  return (a === 22 && b >= 21) || (a === 24 && b >= 5) || a >= 25;
+}

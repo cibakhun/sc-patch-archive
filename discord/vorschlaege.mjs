@@ -29,7 +29,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  FORUM_TYP, filtereOffene, stimmen, autorName, inhaltFehlt, kurz, tagKarte,
+  FORUM_TYP, filtereOffene, stimmen, autorName, inhaltFehlt, kurz, tagKarte, proxyFaehig,
 } from './lib/forum-lesen.mjs';
 
 const DIESE_DATEI = fileURLToPath(import.meta.url);
@@ -38,6 +38,10 @@ const DIESE_DATEI = fileURLToPath(import.meta.url);
 //    gesetzt ist (Node ≥ 22.21). In der Cloud geht jeder Abruf über den Proxy,
 //    also startet sich das Skript dort einmal mit gesetzter Variable neu.
 const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
+if (proxy && process.env.NODE_USE_ENV_PROXY !== '1' && !proxyFaehig(process.versions.node)) {
+  console.error(`✗ Node ${process.versions.node} leitet fetch nicht über HTTPS_PROXY. Nötig: Node ≥ 22.21 (22er-Reihe) oder ≥ 24.5.`);
+  process.exit(2);
+}
 if (proxy && process.env.NODE_USE_ENV_PROXY !== '1') {
   const flags = process.allowedNodeEnvironmentFlags.has('--disable-warning') ? ['--disable-warning=UNDICI-EHPA'] : [];
   const r = spawnSync(process.execPath, [...flags, DIESE_DATEI, ...process.argv.slice(2)], {
@@ -86,6 +90,7 @@ const KOPF = { 'User-Agent': 'DiscordBot (https://verse-base.com, 1.0) vorschlae
 if (TOKEN) KOPF.Authorization = TOKEN.startsWith('Bot ') ? TOKEN : `Bot ${TOKEN}`;
 
 class Zugangsfehler extends Error {}
+const KEIN_INHALT = (wer) => `${wer} ohne Text. Beim Lese-Bot ist der „Message Content Intent" aus (Developer Portal → Bot).`;
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 let anfragen = 0;
 
@@ -138,27 +143,33 @@ async function gildeFinden() {
 async function archivierteThreads(forumId) {
   const alle = [];
   let vor = '';
-  for (let seite = 0; seite < 20; seite++) {
+  // Bis has_more aus ist. Die Grenze fängt nur eine Endlosschleife ab und
+  // bricht laut ab, statt ältere Vorschläge still wegzulassen.
+  for (let seite = 0; ; seite++) {
+    if (seite >= 500) throw new Error(`Mehr als 50.000 archivierte Posts in #${FORUM}: Abbruch statt unvollständiger Liste.`);
     const j = await api(`/channels/${forumId}/threads/archived/public?limit=100${vor}`);
     alle.push(...j.threads);
-    if (!j.has_more || !j.threads.length) break;
+    if (!j.has_more || !j.threads.length) return alle;
     const letzte = j.threads[j.threads.length - 1].thread_metadata.archive_timestamp;
     vor = `&before=${encodeURIComponent(letzte)}`;
   }
-  return alle;
 }
 
 async function antwortenVon(threadId) {
   const alle = [];
   let vor = '';
-  for (let seite = 0; seite < 5; seite++) {
+  let abgeschnitten = false;
+  for (let seite = 0; ; seite++) {
+    if (seite >= 50) { abgeschnitten = true; break; } // 5.000 Antworten reichen zum Lesen; der Rest wird gemeldet
     const j = await api(`/channels/${threadId}/messages?limit=100${vor}`);
     alle.push(...j);
     if (j.length < 100) break;
     vor = `&before=${j[j.length - 1].id}`;
   }
   // Discord liefert neueste zuerst; der Startbeitrag hat die ID des Threads.
-  return alle.filter((m) => m.id !== threadId).reverse();
+  const liste = alle.filter((m) => m.id !== threadId).reverse();
+  liste.abgeschnitten = abgeschnitten;
+  return liste;
 }
 
 // ── Ausgabe
@@ -201,6 +212,7 @@ function druckeGanz(p, antworten) {
   console.log(p.startGeloescht ? '(Startbeitrag gelöscht)' : (p.text || '(kein Text)'));
   for (const a of p.anhaenge) console.log(`   📎 ${a.name}  ${a.url}`);
   console.log(`\n── Antworten (${antworten.length}) ─────────────────────────────────────────`);
+  if (antworten.abgeschnitten) console.log(`(nur die neuesten ${antworten.length}; ältere Antworten nicht geladen)`);
   for (const m of antworten) {
     console.log(`[${datum(m.timestamp)}] ${autorName(m.author)}${m.author?.bot ? ' (Bot)' : ''}:`);
     console.log('   ' + (m.content || '(kein Text)').replace(/\n/g, '\n   '));
@@ -227,11 +239,12 @@ try {
     const th = await api(`/channels/${EINE_ID}`, { fehlendErlaubt: true });
     if (!th || th.parent_id !== forum.id) throw new Zugangsfehler(`Kein Post ${EINE_ID} in #${FORUM}.`);
     const start = await api(`/channels/${th.id}/messages/${th.id}`, { fehlendErlaubt: true });
+    if (inhaltFehlt(start)) throw new Zugangsfehler(KEIN_INHALT('Der Startbeitrag kam'));
     const [eintrag] = filtereOffene([th], forum, { tag: null, alle: true });
     const p = postAlsDaten(eintrag, start, gildeId);
     const antworten = await antwortenVon(th.id);
     if (JSON_AUS) {
-      console.log(JSON.stringify({ forum: FORUM, post: p, antwortenListe: antworten.map((m) => ({ zeit: m.timestamp, autor: autorName(m.author), bot: Boolean(m.author?.bot), text: m.content, anhaenge: (m.attachments ?? []).map((a) => a.url) })) }, null, 2));
+      console.log(JSON.stringify({ forum: FORUM, post: p, antwortenAbgeschnitten: antworten.abgeschnitten, antwortenListe: antworten.map((m) => ({ zeit: m.timestamp, autor: autorName(m.author), bot: Boolean(m.author?.bot), text: m.content, anhaenge: (m.attachments ?? []).map((a) => a.url) })) }, null, 2));
     } else {
       console.log(`#${FORUM} · Post ${th.id} · ${anfragen} Anfragen\n${HINWEIS}\n`);
       druckeGanz(p, antworten);
@@ -261,7 +274,7 @@ try {
   // Leitfaden. Null gelesene Posts heißt also nicht „leer", sondern „blind".
   if (gesamt === 0) throw new Zugangsfehler(`0 Posts in #${FORUM} gelesen. Der Leitfaden-Post fehlt also auch: der Lese-Bot sieht das Forum vermutlich nicht.`);
   if (mitStart && ohneInhalt === mitStart) {
-    throw new Zugangsfehler(`Alle ${mitStart} Startbeiträge kamen ohne Text. Beim Lese-Bot ist der „Message Content Intent" aus (Developer Portal → Bot).`);
+    throw new Zugangsfehler(KEIN_INHALT(`Alle ${mitStart} Startbeiträge kamen`));
   }
 
   if (JSON_AUS) {

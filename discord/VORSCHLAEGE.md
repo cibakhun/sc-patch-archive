@@ -77,11 +77,14 @@ und `prune` lassen verwaltete Rollen ohnehin in Ruhe.
 
 ## Woran man einen kaputten Zugang erkennt
 
-Jeder Lauf nennt, wie viele Posts er gelesen hat (aktiv + archiviert). Das
-Forum hat immer mindestens den angehefteten Leitfaden; **0 gelesene Posts** ist
-deshalb ein Fehler und kein leeres Forum. Kommen **alle** Startbeiträge ohne
-Text, fehlt der Message Content Intent; auch das ist ein Fehler statt einer
-Liste leerer Posts.
+Jede Liste (auch `--naechster`) nennt, wie viele Posts sie gelesen hat
+(aktiv + archiviert). Das Forum hat immer mindestens den angehefteten
+Leitfaden; **0 gelesene Posts** ist deshalb ein Fehler und kein leeres Forum.
+Kommen **alle** Startbeiträge ohne Text, fehlt der Message Content Intent; auch
+das ist ein Fehler statt einer Liste leerer Posts. `--id` zählt nichts, bricht
+aber genauso ab, wenn sein Startbeitrag ohne Text kommt.
 
-Die Regeln für „offen“ und die Reihenfolge prüft
-`node --test discord/vorschlaege.test.mjs` offline.
+`node --test discord/vorschlaege.test.mjs` prüft offline die Regeln für
+„offen“ und die Reihenfolge und fährt das Skript gegen einen lokalen Nachbau
+der Discord-API: Seitenwechsel, Drosselung (429), falscher Schlüssel, „blind“,
+fehlender Content Intent, gelöschter Startbeitrag und `--id`.
