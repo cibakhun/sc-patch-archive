@@ -132,8 +132,11 @@ after(() => server.close());
 
 function lauf(modus, ...args) {
   const env = { ...process.env, DISCORD_API_BASIS: basis, DISCORD_LESER_TOKEN: modus, DISCORD_TOKEN: BAUMEISTER };
-  for (const k of ['HTTPS_PROXY', 'https_proxy', 'GUILD_ID']) delete env[k];
-  if (modus === null) delete env.DISCORD_LESER_TOKEN;
+  for (const k of ['HTTPS_PROXY', 'https_proxy']) delete env[k];
+  // Leer statt gelöscht: das Skript füllt fehlende Variablen aus discord/.env
+  // nach, und eine echte lokale .env darf die Probe nicht umlenken.
+  env.GUILD_ID = '';
+  if (modus === null) env.DISCORD_LESER_TOKEN = '';
   return new Promise((resolve) => {
     const kind = spawn(process.execPath, [SKRIPT, ...args], { env });
     let aus = '';
