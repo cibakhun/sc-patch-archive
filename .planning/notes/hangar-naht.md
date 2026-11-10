@@ -158,3 +158,27 @@ prüft die Form der `StageConfig`, dazu den Ort: `'werk'` genau für die
 Bodenfahrzeuge (Klinke `werkhalle`). Zusicherung 7 prüft, dass der ausgelieferte
 Viewer `project`, `focus`, `setCover` und `onFrame` liefert. Zusicherung 8 prüft die
 Import-Map vor dem ersten Modul-Skript. Eine rote Zeile nennt diese Notiz.
+
+### Stationen als Hologramme (seit 10.11.2026, ROADMAP Phase 22 H1)
+
+Die Seite hält, welche Station steht (`?station=uebersicht|loadout`, das
+alte `?pane=ship` heißt Übersicht) und ob als Tafel (`?tafel=1`). Kann die
+Bühne Stationen in die Halle stellen (`canStation()`: echte Halle, kein
+Telefon, `opts.holo.module` gesetzt) und steht kein Bodenfahrzeug in der
+Werkhalle, weicht die Spalte rechts (`data-st3d` an `#main`) und die Seite
+reicht dem Viewer `station({ name, data })`. `data` ist fertig gesetzt
+(`holoData` im Controller): Kacheln mit Wert, Einheit, Platz in der Klasse
+und Balken, Systemzeilen mit den Punkten ihrer Ports im Modellraum der .glb
+(Region `marks`, wie `project()`), der Hüllquader aus `data-box` und die
+Maße als Text. Der Viewer lädt `assets/hangar-holo3d.js` erst dann und
+stellt die Tafeln nur am ruhenden Schiff auf (`stRest`: kein Wechsel, keine
+Fahrt, Aufzug oben, nicht drinnen, nicht in der Werkhalle). Knöpfe auf den
+Tafeln kommen als `onStation(({ act }) => …)` zurück (`cmp`, `flat`).
+`setSafe()` gilt für Namen und Stationen. Zusicherung 21 von verify:hangar
+hält Leiste, Modul, Naht und Adresse.
+
+Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
+außerhalb des Fußabdrucks. Findet sich dort kein Boden vor der Kamera (großes
+Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne Projektor
+3 m vor der Kamera und folgen ihr. Maßschilder ohne freien Platz entfallen.
+Der Bodenspiegel („hoch“) zeigt die Ebene nicht.

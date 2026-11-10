@@ -23,7 +23,7 @@
  * Schluessel hat eine URL-Form, Vorgaben fehlen in der URL.
  * @typedef {{
  *   ship: string, tab: string, hp: string|null, cmp: string[], view: 'stage'|'compare',
- *   lo: string|null, pane: 'layout'|'ship', fleetOnly: boolean, sort: string, q: string,
+ *   lo: string|null, station: 'uebersicht'|'loadout', flat: boolean, fleetOnly: boolean, sort: string, q: string,
  *   pur: string, grp: string, size: string[], crew: string, cargo: number, price: number, maker: string,
  * }} HangarState
  */
@@ -45,10 +45,15 @@ const PORT_RE = /^[a-z0-9_]{1,100}$/;
 // Link-Code; null heisst Serie ohne Namen. Welche Slots und Bauteile der Code
 // nennt, prueft erst die Werkstatt mit ihren Daten. EMPTY_LAYOUT ist dort
 // EMPTY_CODE und faellt hier auf null, damit Serie keine Adresse kostet; der
-// Test haelt beide gleich. pane waehlt die Tafel rechts: die Werkstatt ist die
-// Vorgabe, die Schiffsdaten (Kennwerte und Ausstattung) die zweite Ansicht.
+// Test haelt beide gleich.
 const LAYOUT_RE = /^[A-Za-z0-9_-]{1,4000}$/;
 export const EMPTY_LAYOUT = 'WzEsIiIse31d';
+// Stationen (ROADMAP Phase 22) in der Folge ihrer Leiste; die Werkstatt
+// (Loadout) bleibt die Vorgabe wie vor den Stationen. Die Uebersicht steht ab
+// 761 px als Hologramm in der Halle, flat (?tafel=1, „Als Tafel“) legt sie
+// rechts als Tafel ab wie am Telefon. Das alte ?pane=ship heisst Uebersicht.
+export const STATIONS = ['uebersicht', 'loadout'];
+export const STATION_DEFAULT = 'loadout';
 
 /**
  * Bringt einen beliebigen Zustandsentwurf in die gueltige Form. Unbekannte Ids
@@ -69,7 +74,8 @@ export function normalize(s, ctx) {
     cmp,
     view: s.view === 'compare' && cmp.length >= 2 ? 'compare' : 'stage',
     lo: typeof s.lo === 'string' && LAYOUT_RE.test(s.lo) && s.lo !== EMPTY_LAYOUT ? s.lo : null,
-    pane: s.pane === 'ship' ? 'ship' : 'layout',
+    station: STATIONS.includes(s.station) ? s.station : STATION_DEFAULT,
+    flat: s.flat === true,
     fleetOnly: s.fleetOnly === true,
     sort: ctx.sorts.includes(s.sort) ? s.sort : ctx.sorts[0],
     q: String(s.q ?? '').trim().slice(0, 80),
@@ -103,7 +109,8 @@ export function parseState(search, hash, ctx) {
     cmp: (p.get('cmp') ?? '').split(','),
     view: p.get('view'),
     lo: p.get('layout'),
-    pane: p.get('pane'),
+    station: p.get('station') ?? (p.get('pane') === 'ship' ? 'uebersicht' : null),
+    flat: p.get('tafel') === '1',
     fleetOnly: p.get('fleet') === '1',
     sort: p.get('sort'),
     q: p.get('q') ?? '',
@@ -119,7 +126,7 @@ export function parseState(search, hash, ctx) {
 
 /**
  * HangarState nach '?…', Vorgaben weggelassen, feste Schluesselfolge (ship,
- * tab, hp, cmp, view, layout, pane, fleet, sort, q, pur, grp, size, crew,
+ * tab, hp, cmp, view, layout, station, tafel, fleet, sort, q, pur, grp, size, crew,
  * cargo, price, maker): gleiche Zustaende
  * ergeben gleiche URLs. scope 'share' (Link kopieren) nennt immer das Schiff
  * und laesst die persoenlichen Dock-Filter weg; der Empfaenger hat eine andere
@@ -141,7 +148,8 @@ export function serializeState(s, ctx, scope = 'location') {
   if (s.lo) out.push(`layout=${s.lo}`);
   if (!share) {
     // Wer ein Layout teilt, teilt die Werkstatt: die Ansicht bleibt beim Empfaenger Vorgabe.
-    if (s.pane !== 'layout') put('pane', s.pane);
+    if (s.station !== STATION_DEFAULT) put('station', s.station);
+    if (s.flat) put('tafel', '1');
     if (s.fleetOnly) put('fleet', '1');
     if (s.sort !== ctx.sorts[0]) put('sort', s.sort);
     if (s.q) put('q', s.q);
@@ -263,6 +271,45 @@ const withUnit = (s, unit) => (unit ? `${s} ${unit}` : s);
  */
 export function figureText(x, row, loc) {
   return x == null ? '–' : withUnit(new Intl.NumberFormat(loc).format(roundTo(x, row.digits)), row.unit);
+}
+
+/**
+ * Die Klasse eines Schiffs fuer den Rang der Uebersicht: seine erste
+ * Unterrolle der Schiffswahl ('kampf:leicht'), mit weniger als min Schiffen
+ * seine Groesse, darunter keine (dann steht kein Rang). Klassen kommen aus
+ * den Daten der Karten (data-g, data-sz), nie aus Anzeigenamen.
+ *   shipClass(dock, 'aegs-gladius') -> { kind: 'grp', key: 'kampf:leicht', ids: [...] }
+ * @param {ReadonlyMap<string, { id: string, find: { grp: readonly string[], size: string } }>} ships
+ * @param {string} id @param {number} [min]
+ * @returns {{ kind: 'grp'|'size', key: string, ids: string[] }|null}
+ */
+export function shipClass(ships, id, min = 5) {
+  const me = ships.get(id);
+  if (!me) return null;
+  const all = [...ships.values()];
+  for (const [kind, key, has] of [['grp', me.find.grp[0], (s) => s.find.grp.includes(me.find.grp[0])], ['size', me.find.size, (s) => s.find.size === me.find.size]]) {
+    if (!key) continue;
+    const ids = all.filter(has).map((s) => s.id);
+    if (ids.length >= min) return { kind, key, ids };
+  }
+  return null;
+}
+
+/**
+ * Platz eines Schiffs unter ids fuer einen Kennwert, groesser ist besser;
+ * Gleichstand teilt den Platz. Nur Schiffe mit bekanntem Wert zaehlen, unter
+ * min von ihnen gibt es keinen Platz.
+ *   rankIn(dock, ['a', 'b', 'c', 'd', 'e'], 'b', 'scm') -> { n: 2, of: 5 }
+ * @param {ReadonlyMap<string, { stat: Record<string, number|null> }>} ships
+ * @param {readonly string[]} ids @param {string} id @param {string} key @param {number} [min]
+ * @returns {{ n: number, of: number }|null}
+ */
+export function rankIn(ships, ids, id, key, min = 5) {
+  const x = ships.get(id)?.stat[key];
+  if (x == null) return null;
+  const vals = ids.map((i) => ships.get(i)?.stat[key]).filter((v) => v != null);
+  if (vals.length < min) return null;
+  return { n: 1 + vals.filter((v) => v > x).length, of: vals.length };
 }
 
 /**
@@ -653,8 +700,9 @@ export function boot(doc) {
       rail.scrollTop = 0;
     } else if (prev.sort !== state.sort) applySort();
     if (prev.ship !== state.ship && !finding) paintRandom();
-    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.pane !== state.pane) paintWorkshop();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
+    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.station !== state.station || prev.flat !== state.flat) paintStation();
+    else if (cmpChanged) paintHolo();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
   }
@@ -742,6 +790,7 @@ export function boot(doc) {
       title.classList.add('is-swap');
       viewer?.label?.(id, labelOf(id));
       say(regionNow('head').dataset.announce);
+      paintHolo();
       prefetchNeighbours(id);
     } catch {
       if (my !== selTok) return;
@@ -1543,7 +1592,6 @@ export function boot(doc) {
   function paintTray() {
     const m = msg('cmp');
     tray.hidden = !state.cmp.length;
-    $('hgx-stagebar').hidden = tray.hidden;
     trayMsg.hidden = true;
     $('hgx-tray-list').replaceChildren(...state.cmp.map((id) => el('li', {}, el('span', {}, dock.get(id).name), removeBtn(id, m))));
     $('hgx-tray-hint').hidden = state.cmp.length !== 1;
@@ -1735,7 +1783,8 @@ export function boot(doc) {
   // laedt ihre Datei erst, wenn sie zu sehen ist, ueber ihre versionierte URL
   // wie der Viewer. Sie bekommt eine schmale Bruecke statt des Speichers:
   // lesen, aendern, Schiffsnamen, Ansage.
-  const paneBtns = [...doc.querySelectorAll('[data-pane-to]')];
+  const stBtns = [...doc.querySelectorAll('#hgx-st [data-station]')];
+  const tafelBtn = $('hgx-tafel');
   let workshop = null;
   let workshopLoad = null;
   const bridge = {
@@ -1767,26 +1816,124 @@ export function boot(doc) {
     paintKey = key;
     viewer.paint(painting.p);
   }
-  function paintWorkshop() {
-    main.dataset.pane = state.pane;
-    for (const b of paneBtns) {
-      const on = b.dataset.paneTo === state.pane;
+  // Stationen: die Leiste am Buehnenfuss waehlt, was rechts steht (Loadout:
+  // die Werkstatt, Uebersicht: die Schiffsdaten). Kann die Buehne die
+  // Uebersicht als Hologramm in die Halle stellen (viewer.canStation: echte
+  // Halle, ab 761 px), weicht die Tafel rechts, bis jemand „Als Tafel“ waehlt;
+  // Bodenfahrzeuge in der Werkhalle bekommen immer die Tafel.
+  let stage3d = false;
+  const holoOn = () => stage3d && state.station === 'uebersicht' && !state.flat && stageCfg.models[state.ship]?.[3] !== 'werk';
+  let stageSafe = null;
+  function paintStation() {
+    main.dataset.station = state.station;
+    for (const b of stBtns) {
+      const on = b.dataset.station === state.station;
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     }
+    tafelBtn.hidden = !(stage3d && state.station === 'uebersicht' && stageCfg.models[state.ship]?.[3] !== 'werk');
+    tafelBtn.setAttribute('aria-pressed', String(state.flat));
+    const was = main.dataset.st3d === '1';
+    if (holoOn()) main.dataset.st3d = '1';
+    else delete main.dataset.st3d;
+    if (was !== holoOn()) stageSafe?.();
+    paintHolo();
     if (workshop) { workshop.render(state); return; }
-    if (state.pane !== 'layout') return;
+    if (state.station !== 'loadout') return;
     workshopLoad ??= import(main.dataset.layoutJs).then((m) => { workshop = m.initWorkshop(doc, bridge); });
     workshopLoad.then(() => workshop.render(state), () => { workshopLoad = null; });
   }
-  for (const b of paneBtns) b.addEventListener('click', () => setState({ pane: b.dataset.paneTo, hp: null }));
-  paneBtns[0]?.parentElement.addEventListener('keydown', (e) => {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    e.preventDefault();
-    const to = paneBtns.find((b) => b.dataset.paneTo !== state.pane);
-    setState({ pane: to.dataset.paneTo, hp: null });
-    to.focus();
+  stBtns[0]?.parentElement.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-station]');
+    if (b) setState({ station: b.dataset.station, hp: null });
   });
+  stBtns[0]?.parentElement.addEventListener('keydown', (e) => {
+    const i = stBtns.findIndex((b) => b.dataset.station === state.station), n = stBtns.length;
+    const to = { ArrowLeft: (i - 1 + n) % n, ArrowRight: (i + 1) % n, Home: 0, End: n - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    setState({ station: stBtns[to].dataset.station, hp: null });
+    stBtns[to].focus();
+  });
+  tafelBtn.addEventListener('click', () => setState({ flat: !state.flat }));
+
+  // Die Uebersicht als Hologramm (viewer.station): Woerter und Zahlen aus der
+  // eingesetzten Bucht und den Dock-Karten, fertig gesetzt; der Viewer
+  // zeichnet nur. null, solange die Bucht des Schiffs fehlt. Kacheln wie in
+  // den Entwuerfen (Tafel 7): Tempo, Feuerkraft, Schild, Rumpf mit dem Platz
+  // in der Klasse; links die Systeme mit Nummern, die am Port wiederkehren.
+  const HOLO_TILES = [['scm', 'speed'], ['dps', 'fire'], ['shield', 'shield'], ['hull', 'hull']];
+  const HOLO_SYS_MAX = 8;
+  const textOf = (n) => (n?.nodeType === 3 ? n.textContent.trim() : '');
+  const nums = (v) => String(v ?? '').trim().split(/\s+/).map(Number);
+  function holoData() {
+    const id = state.ship, me = dock.get(id);
+    const head = regionNow('head'), panel = regionNow('panel'), marks = regionNow('marks');
+    if (!me || [head, panel, marks].some((r) => r?.dataset.id !== id) || panel.hidden) return null;
+    const m = msg('holo');
+    const cls = shipClass(dock, id);
+    const tiles = HOLO_TILES.map(([k, w]) => {
+      const row = rowOf.get(k) ?? { digits: 0, unit: '' };
+      const x = me.stat[k];
+      const r = cls && rankIn(dock, cls.ids, id, k);
+      return {
+        label: m[w], value: figureText(x, { digits: row.digits, unit: '' }, loc), unit: x == null ? '' : row.unit,
+        rank: r ? fillMessage({ other: m.rank }, r, loc) : '', pct: r ? (r.of - r.n + 1) / r.of : 0,
+      };
+    });
+    const maker = head.querySelector('.hg-maker')?.textContent ?? '', role = head.querySelector('.hg-role')?.textContent ?? '';
+    const sheet = {
+      name: head.querySelector('.hg-name')?.textContent ?? me.name,
+      line: [maker, role].filter(Boolean).join(' · '),
+      tiles,
+      note: cls ? fillMessage({ other: cls.kind === 'grp' ? m.cls : m.size }, { cls: vocabLabel(cls.kind, cls.key) }, loc) : m.none,
+      buttons: [
+        { label: state.cmp.includes(id) ? m.cmpOn : m.cmp, act: 'cmp' },
+        { label: m.all, act: 'flat', main: true },
+      ],
+    };
+    // Komponenten der Systeme, je Zeile die Punkte ihrer Ports (Region marks)
+    const at = new Map();
+    for (const mk of marks.querySelectorAll('.hgx-mk[data-tab="systems"]')) {
+      const p = nums(mk.dataset.p);
+      if (p.length !== 3 || !p.every(Number.isFinite)) continue;
+      for (const r of (mk.dataset.rows ?? '').split(' ')) if (r) at.set(r, [...(at.get(r) ?? []), p]);
+    }
+    const slots = [...panel.querySelectorAll('#hgx-tp-systems .hgx-slot')];
+    const systems = {
+      title: m.sys,
+      rows: slots.slice(0, HOLO_SYS_MAX).map((li, i) => {
+        const nm = li.querySelector('.hgx-nm'), v = li.querySelector('.hgx-v');
+        return {
+          n: i + 1, name: textOf(nm?.firstChild), kind: nm?.querySelector('small')?.textContent ?? '',
+          size: li.querySelector('.hgx-sz')?.textContent ?? '', figure: textOf(v?.firstChild), unit: v?.querySelector('small')?.textContent ?? '',
+          ps: at.get(li.dataset.row) ?? [],
+        };
+      }),
+      more: slots.length > HOLO_SYS_MAX ? fillMessage({ other: m.more }, { n: slots.length - HOLO_SYS_MAX }, loc) : '',
+    };
+    const dim = (k) => {
+      const t = panel.querySelector(`#hgx-tp-overview .hgx-tile[data-k="${k}"] dd`)?.textContent ?? '';
+      return t === '–' ? '' : t;
+    };
+    const b = nums(marks.dataset.box);
+    const box = b.length === 6 && b.every(Number.isFinite) ? [b.slice(0, 3), b.slice(3)] : null;
+    return { key: id, sheet, systems, dims: { box, len: dim('len'), wid: dim('wid'), hgt: dim('hgt') } };
+  }
+  let holoKey = '';
+  function paintHolo() {
+    if (!viewer?.station) return;
+    const data = holoOn() ? holoData() : null;
+    const key = data ? JSON.stringify(data) : '';
+    if (key === holoKey) return;
+    holoKey = key;
+    viewer.station(data ? { name: 'uebersicht', data } : null);
+  }
+  // Knoepfe auf den Tafeln in der Halle
+  function onStationAct({ act }) {
+    if (act === 'cmp') toggleCompare(state.ship);
+    else if (act === 'flat') setState({ flat: true });
+  }
 
   let viewer = null;
   const loadEl = $('hg-load');
@@ -2021,7 +2168,7 @@ export function boot(doc) {
         // Ab 761 px liegt links die Schiffsauswahl ueber der Buehne, offen oder
         // als schmale Spalte; schmal steht sie unter der Tafel und zaehlt nicht.
         const side = doc.querySelector('.hg-side'), dockEl = doc.querySelector('.hg-dock'), nav = $('topbar'), acts = title?.querySelector('.hgx-actions');
-        const hint = $('hg-hint'), keep = [$('hg-tools'), hint, $('hgx-tray')];
+        const hint = $('hg-hint'), keep = [$('hg-tools'), hint, $('hgx-tray'), $('hgx-st')];
         const safe = () => {
           const c = canvas.getBoundingClientRect();
           const on = (el) => {
@@ -2042,6 +2189,7 @@ export function boot(doc) {
           else delete main.dataset.holo;
           safe();
         });
+        stageSafe = safe;
         for (const el of [side, dockEl, canvas, title, ...keep]) if (el) new ResizeObserver(safe).observe(el);
         window.addEventListener('scroll', safe, { passive: true });
         // der Bedienhinweis geht nach dem ersten Anfassen aus (data-hint)
@@ -2054,7 +2202,11 @@ export function boot(doc) {
         grafikSchalter(v);
         tonSchalter(v);
         walkSchalter(v);
+        // Stationen in 3D, wenn die Buehne sie kann
+        stage3d = v.canStation?.() === true;
+        v.onStation?.(onStationAct);
         viewerShow(state.ship);
+        paintStation();
       })
       .catch((e) => noStage('failed', e));
   }
@@ -2069,7 +2221,7 @@ export function boot(doc) {
   if (window.VBFleet) window.VBFleet.subscribe(onFleet);
   else window.addEventListener('vb-fleet-ready', () => window.VBFleet.subscribe(onFleet), { once: true });
   paintTray();
-  paintWorkshop();
+  paintStation();
   if (state.view === 'compare') paintView();
   applyDock();
   // Mit einem Filter aus der Adresse steht das gezeigte Schiff oft weiter

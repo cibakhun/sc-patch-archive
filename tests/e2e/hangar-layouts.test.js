@@ -5,7 +5,7 @@
 // gesperrten Speicher, ohne die Seite mitzureissen. Dazu die Naht zum
 // Controller: der leere Code ist in beiden Dateien derselbe und kostet keine
 // Adresse, ?layout= reist durch parseState/serializeState unveraendert, auch
-// beim Teilen, und die Ansicht der Tafel (?pane=) bleibt beim Teilen daheim.
+// beim Teilen, und die Station (?station=, frueher ?pane=) bleibt beim Teilen daheim.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -93,15 +93,32 @@ describe('Werkstatt: Link-Code', () => {
     assert.equal(parseState('?layout=<script>', '', ctx).lo, null);
   });
 
-  test('Serie kostet keine Adresse; die Schiffsdaten stehen als ?pane=ship, geteilt nie', () => {
+  test('Serie kostet keine Adresse; die Uebersicht steht als ?station=uebersicht, geteilt nie', () => {
     const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
     assert.equal(parseState(`?layout=${EMPTY_CODE}`, '', ctx).lo, null);
-    assert.equal(parseState('', '', ctx).pane, 'layout');
-    assert.equal(parseState('?pane=nope', '', ctx).pane, 'layout');
-    const s = parseState('?ship=anvl-arrow&pane=ship', '', ctx);
-    assert.equal(s.pane, 'ship');
-    assert.equal(serializeState(s, ctx), '?ship=anvl-arrow&pane=ship');
+    assert.equal(parseState('', '', ctx).station, 'loadout');
+    assert.equal(parseState('?station=nope', '', ctx).station, 'loadout');
+    const s = parseState('?ship=anvl-arrow&station=uebersicht', '', ctx);
+    assert.equal(s.station, 'uebersicht');
+    assert.equal(serializeState(s, ctx), '?ship=anvl-arrow&station=uebersicht');
     assert.equal(serializeState(s, ctx, 'share'), '?ship=anvl-arrow');
+  });
+
+  test('das alte ?pane=ship bleibt lesbar und wird zur Uebersicht', () => {
+    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
+    assert.equal(serializeState(parseState('?ship=anvl-arrow&pane=ship', '', ctx), ctx), '?ship=anvl-arrow&station=uebersicht');
+    assert.equal(parseState('?pane=layout', '', ctx).station, 'loadout');
+    // die neue Form gewinnt, wenn beide dastehen
+    assert.equal(parseState('?pane=ship&station=loadout', '', ctx).station, 'loadout');
+  });
+
+  test('„Als Tafel“ reist als ?tafel=1 mit, geteilt nie', () => {
+    const ctx = { ids: new Set(['aegs-gladius']), defaultShip: 'aegs-gladius', tabs: ['overview'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
+    const s = parseState('?station=uebersicht&tafel=1', '', ctx);
+    assert.equal(s.flat, true);
+    assert.equal(serializeState(s, ctx), '?station=uebersicht&tafel=1');
+    assert.equal(serializeState(s, ctx, 'share'), '?ship=aegs-gladius');
+    assert.equal(parseState('?tafel=ja', '', ctx).flat, false);
   });
 });
 
