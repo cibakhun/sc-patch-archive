@@ -72,6 +72,9 @@ const MIN_AUFRUFE = 40;
 // fuer beide Artefakte. Ohne Klinke waere ein Lauf, dessen Abfrage still
 // nichts findet, von einem echten nicht zu unterscheiden.
 const MIN_HIDDEN = 300;
+// [7] Filter-Schubladen am Telefon: Crafting-Planer und Missionen je EN/DE
+// (der Vorschau-Bau hat mit der Werkbank zwei mehr).
+const MIN_SCHUBLADEN = 4;
 
 /* ---------- Browser finden ---------- */
 // playwright-core bringt bewusst KEINEN Browser mit (~5 MB statt ~300).
@@ -117,6 +120,13 @@ const SEITEN = [
     id: 'schiffe', en: '/schiffe.html', de: '/de/schiffe.html',
     leit: '#sf-q', schwer: true, probe: probeSchiffe,
   },
+  // Die Crafting-Werkbank, ein Prototyp nur im Vorschau-Bau (Skizze 016-3).
+  // Sie steht unter demselben Schalter wie der Hangar (hangarImBau), daher
+  // nurMitHangar; verify:hangar-schalter [4]/[5] prueft beide Richtungen.
+  {
+    id: 'crafting-werkbank', en: '/topics/crafting-werkbank.html', de: '/de/topics/crafting-werkbank.html',
+    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeWerkbank, nurMitHangar: true,
+  },
   { id: 'crafting', en: '/crafting.html', de: '/de/crafting.html', leit: '.dp-card--cat', minAnzahl: 50, schwer: true },
   // Der Crafting-Planer mit seiner Konto-Anzeige. Am Handy stand dort
   // „Synced to your account" neben „Sign in" und „Retry" (Krisz, 07.11.2026):
@@ -127,7 +137,8 @@ const SEITEN = [
     leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeCraftingSync,
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
-  { id: 'missionen', en: '/missionen.html', de: '/de/missionen.html', leit: 'main' },
+  // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
+  { id: 'missionen', en: '/missionen.html', de: '/de/missionen.html', leit: 'main', schwer: true },
   { id: 'armor-sets', en: '/armor-sets.html', de: '/de/armor-sets.html', leit: 'main' },
   { id: 'precision-jump', en: '/precision-jump.html', de: '/de/precision-jump.html', leit: 'main' },
   { id: 'support', en: '/support.html', de: '/de/support.html', leit: 'main' },
@@ -200,7 +211,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0;
 
 /* ---------- Alte Hell-Wahl im Browser ----------
    Bis zum 02.11.2026 konnten Admins hell waehlen; die Wahl lag als
@@ -876,6 +887,204 @@ async function probeCraftingSync(page) {
   return `Crafting-Planer, ${probleme.length} Abweichung(en): ${probleme.join(' | ')}`;
 }
 
+/* Liegt etwas ueber dem ✕ der offenen Filter-Schublade? Gibt null zurueck,
+   wenn das ✕ an seiner Mitte das oberste Element ist, sonst den Verdecker
+   (Anlass 09.11.2026: die Site-Nav, z 9600, lag ueber der Schublade, 9250). */
+async function kreuzVerdeckt(page) {
+  return page.evaluate(() => {
+    const x = document.querySelector('#cdb-filter-close');
+    if (!x) return 'nichts (✕ fehlt)';
+    const r = x.getBoundingClientRect();
+    if (!r.width || !r.height) return 'nichts (✕ unsichtbar)';
+    const oben = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    if (!oben || x.contains(oben)) return null;
+    const nav = oben.closest('#topbar');
+    return nav ? 'der Site-Nav' : `${oben.tagName}${oben.id ? '#' + oben.id : ''}${oben.className && typeof oben.className === 'string' ? '.' + oben.className.split(' ')[0] : ''}`;
+  });
+}
+
+/* Die Crafting-Werkbank (Prototyp, Skizze 016-3, nur im Vorschau-Bau):
+   dasselbe Werkzeug wie der Planer, anders gestellt. Am Schreibtisch steht
+   das Rezept als feste Mitte neben der Liste und der Planer als Spalte
+   rechts; Waehlen, Schliessen und ein tiefer Link muessen dort ohne Dialog
+   gehen. Am Telefon ist die Mitte zu, ein Antippen legt das Rezept als
+   ganze Ebene ueber die Liste, „← Liste“ fuehrt zurueck, und der Planer
+   sitzt als Leiste unten. Gemessen an Lage und Inhalt, nicht am Markup. */
+async function probeWerkbank(page) {
+  const kasten = (p, sel) => p.locator(sel).first().boundingBox();
+  const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
+  const bpi = (p) => new URL(p.url()).searchParams.get('bpi');
+  const wahl = (p) => p.$$eval('#cdb-grid .cbp.is-sel', (c) => c.map((x) => x.dataset.i));
+  const titel = async (p) => ((await p.locator('#cdb-modal .cbm__name').first().innerText().catch(() => '')) || '').trim();
+
+  // 1. Schreibtisch (1280 px): Liste | leere Mitte | Planer.
+  if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: die leere Mitte („Rezept waehlen“) ist nicht zu sehen';
+  const liste = await kasten(page, '#cdb-grid');
+  const mitte = await kasten(page, '#cdb-modal .cdb-modal__box');
+  const planer = await kasten(page, '#cdb-planner');
+  if (!liste || !mitte || !planer) return `Werkbank 1280 px: Spalten fehlen (Liste ${!!liste}, Mitte ${!!mitte}, Planer ${!!planer})`;
+  if (!(liste.x + liste.width <= mitte.x + 1 && mitte.x + mitte.width <= planer.x + 1))
+    return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
+  if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
+  if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Filter: Schublade von links. Geschlossen weder fokussierbar noch
+  // vorlesbar (inert), offen bedienbar, Esc schliesst.
+  const inert = () => page.$eval('#cdb-sidebar', (el) => el.inert === true);
+  if (!(await inert())) return 'Werkbank 1280 px: die geschlossene Filter-Schublade ist nicht inert (per Tab erreichbar)';
+  await page.locator('#cdb-filter-toggle').click();
+  await page.waitForTimeout(400);
+  const fk = await kasten(page, '#cdb-sidebar');
+  if ((await inert()) || !fk || fk.x < -1) return `Werkbank 1280 px: die Filter-Schublade oeffnet nicht (x=${fk ? Math.round(fk.x) : '?'}, inert ${await inert()})`;
+  // Der Fokus geht mit hinein (offcanvas.js setup); blieb er auf dem Knopf
+  // hinter dem Verdunkler, lief inert noch, als fokussiert wurde.
+  const fokus = await page.evaluate(() => {
+    const a = document.activeElement;
+    return { drin: !!document.querySelector('#cdb-sidebar')?.contains(a), wo: a ? a.tagName + (a.id ? '#' + a.id : '') : '-' };
+  });
+  if (!fokus.drin) return `Werkbank 1280 px: beim Oeffnen der Filter bleibt der Fokus draussen (${fokus.wo})`;
+  const deckt = await kreuzVerdeckt(page);
+  if (deckt) return `Werkbank 1280 px: das ✕ der Filter-Schublade liegt unter ${deckt}`;
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  if (!(await inert())) return 'Werkbank 1280 px: Esc schliesst die Filter-Schublade nicht';
+
+  // Waehlen: die zweite Karte (die erste koennte zufaellig schon passen).
+  const karte = page.locator('#cdb-grid .cbp').nth(1);
+  const i = await karte.getAttribute('data-i');
+  const name = ((await karte.locator('.cbp__name').textContent()) || '').trim();
+  await karte.scrollIntoViewIfNeeded();
+  const y0 = await page.evaluate(() => window.scrollY);
+  await karte.locator('.cbp__name').click();
+  await page.waitForTimeout(250);
+  const y1 = await page.evaluate(() => window.scrollY);
+  if (Math.abs(y1 - y0) > 2) return `Werkbank 1280 px: das Waehlen schiebt die Seite um ${Math.round(y1 - y0)} px`;
+  if (await page.locator('#cdb-modal [aria-modal="true"]').count())
+    return 'Werkbank 1280 px: das Rezept steht als Dialog statt als Mitte (aria-modal)';
+  const t1 = await titel(page);
+  if (t1 !== name) return `Werkbank 1280 px: nach Klick auf „${name}“ zeigt die Mitte „${t1 || 'nichts'}“`;
+  if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return `Werkbank 1280 px: markiert sind Karten ${JSON.stringify(await wahl(page))}, erwartet ["${i}"]`;
+  if (bpi(page) !== i) return `Werkbank 1280 px: die Adresse traegt bpi=${bpi(page)}, erwartet ${i}`;
+  const gesperrt = await page.evaluate(() => getComputedStyle(document.body).overflow === 'hidden' || document.body.style.position === 'fixed' || document.documentElement.classList.contains('is-locked'));
+  if (gesperrt) return 'Werkbank 1280 px: mit gewaehltem Rezept laesst sich die Seite nicht mehr scrollen';
+  // Die Mitte klebt unter der Kopfleiste, wenn die Seite weiter rollt:
+  // so weit rollen, dass sie ohne Kleben 30 px ueber ihrer Klebelinie
+  // stuende (Raum dafuer hat die Spalte, die Liste ist hoeher als die Mitte).
+  const klebt = await page.evaluate(async () => {
+    const m = document.querySelector('#cdb-modal');
+    const soll = parseFloat(getComputedStyle(m).top);
+    const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // instant: die Seite rollt sonst weich, und gemessen wuerde mitten im Lauf.
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    await bild();
+    window.scrollTo({ top: m.getBoundingClientRect().top - soll + 30, behavior: 'instant' });
+    await bild();
+    return { soll, ist: m.getBoundingClientRect().top };
+  });
+  if (!Number.isFinite(klebt.soll) || Math.abs(klebt.ist - klebt.soll) > 4)
+    return `Werkbank 1280 px: die Mitte klebt nicht unter der Kopfleiste (oben ${Math.round(klebt.ist)} px, ${Number.isFinite(klebt.soll) ? `soll ${Math.round(klebt.soll)} px` : 'top ist auto, steht eine Kurzform wie inset danach?'})`;
+  // Zum Planer: die Spalte rechnet sofort mit.
+  await page.locator('#cdb-modal .cbm__plan').first().click();
+  const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
+  if (!imPlaner.map((s) => s.trim()).includes(name)) return `Werkbank 1280 px: „Zum Planer“ zeigt „${name}“ nicht in der Planer-Spalte (dort: ${JSON.stringify(imPlaner)})`;
+  // Schliessen: zurueck zur leeren Mitte, Adresse und Markierung frei.
+  await page.locator('#cdb-modal .cdb-modal__x').first().click();
+  if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: nach ✕ kommt die leere Mitte nicht zurueck';
+  if (bpi(page) !== null || (await wahl(page)).length) return 'Werkbank 1280 px: nach ✕ bleiben Adresse oder Markierung stehen';
+  if (!(await zuSehen(page, '#cdb-planner'))) return 'Werkbank 1280 px: ✕ hat die Planer-Spalte mit geschlossen';
+  // Tiefer Link: dieselbe Wahl in einer frischen Seite.
+  const tief = new URL(page.url());
+  tief.searchParams.set('bp', name);
+  tief.searchParams.set('bpi', i);
+  await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  const t2 = await titel(page);
+  if (t2 !== name) return `Werkbank 1280 px: der tiefe Link ?bpi=${i} zeigt „${t2 || 'nichts'}“ statt „${name}“`;
+  if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return 'Werkbank 1280 px: der tiefe Link markiert die Karte nicht';
+  // Ein Rezept weit unten in der Liste: die Liste rollt zu ihm, die Seite nicht.
+  const weit = await page.$$eval('#cdb-grid .cbp', (c) => {
+    const k = c[Math.floor(c.length * 0.6)];
+    // textContent: die Karte liegt ausserhalb des Bildes, content-visibility
+    // laesst sie ungerendert, und innerText gaebe dann "".
+    return { i: k.dataset.i, name: k.querySelector('.cbp__name').textContent.trim() };
+  });
+  tief.searchParams.set('bp', weit.name);
+  tief.searchParams.set('bpi', weit.i);
+  await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  const lage = await page.evaluate((n) => {
+    const g = document.querySelector('#cdb-grid').getBoundingClientRect();
+    const k = document.querySelector(`#cdb-grid .cbp[data-i="${n}"]`).getBoundingClientRect();
+    return { y: window.scrollY, drin: k.top >= g.top - 1 && k.bottom <= g.bottom + 1 };
+  }, weit.i);
+  if ((await titel(page)) !== weit.name) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ zeigt „${await titel(page)}“`;
+  if (lage.y > 2) return `Werkbank 1280 px: der tiefe Link auf ein Rezept weit unten schiebt die Seite um ${Math.round(lage.y)} px`;
+  if (!lage.drin) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
+
+  // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
+  const kontext = await page.context().browser().newContext({
+    viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true,
+    colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+  });
+  await kontext.route('**/*', (route) => { route.request().url().startsWith(BASE) ? route.continue() : route.abort(); });
+  await kontext.addInitScript(() => {
+    try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Ablage nur die Hilfe */ }
+    window.__cspVerstoesse = [];
+    document.addEventListener('securitypolicyviolation', (e) => {
+      window.__cspVerstoesse.push(`${e.violatedDirective} ${e.blockedURI || ''}`.trim());
+    });
+  });
+  try {
+    const p = await kontext.newPage();
+    const befunde = [];
+    // Grundpruefungen [1]-[3] von pruefe() wie in probeSuche: JS-Ausnahme,
+    // eigene Ressource >= 400, CSP (der Zaehl-Host folgt dort seiner Regel).
+    p.on('pageerror', (e) => befunde.push(`JS-Ausnahme: ${e.message.split('\n')[0]}`));
+    p.on('response', (r) => {
+      if (r.url().startsWith(BASE) && r.status() >= 400) befunde.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+    });
+    const leer = new URL(page.url());
+    leer.search = '';
+    await p.goto(leer.href, { waitUntil: 'load', timeout: 60000 });
+    await p.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
+    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: die Rezept-Ebene liegt schon ohne Wahl ueber der Liste';
+    const leiste = await kasten(p, '#cdb-planner-open');
+    if (!leiste || leiste.y + leiste.height < 844 - 40 || leiste.height < 44)
+      return `Werkbank 390 px: die Planer-Leiste sitzt nicht unten (${leiste ? `y=${Math.round(leiste.y)}, h=${Math.round(leiste.height)}` : 'fehlt'})`;
+    const k = p.locator('#cdb-grid .cbp').nth(1);
+    const n2 = ((await k.locator('.cbp__name').textContent()) || '').trim();
+    await k.locator('.cbp__name').tap();
+    await p.waitForTimeout(300);
+    const ebene = await kasten(p, '#cdb-modal .cdb-modal__box');
+    if (!ebene || ebene.y > 2 || ebene.width < 380) return `Werkbank 390 px: das Rezept liegt nicht als ganze Ebene ueber der Liste (${ebene ? `y=${Math.round(ebene.y)}, b=${Math.round(ebene.width)}` : 'nicht zu sehen'})`;
+    if ((await titel(p)) !== n2) return `Werkbank 390 px: nach Antippen von „${n2}“ zeigt die Ebene „${await titel(p)}“`;
+    const zur = await kasten(p, '#cdb-modal .cdb-wb-zur');
+    if (!zur || zur.height < 44) return `Werkbank 390 px: „← Liste“ fehlt oder ist nur ${zur ? Math.round(zur.height) : 0} px hoch`;
+    if (await zuSehen(p, '#cdb-modal .cdb-modal__back')) return 'Werkbank 390 px: neben „← Liste“ steht noch der kleine Zurueck-Pfeil';
+    await p.locator('#cdb-modal .cdb-wb-zur').tap();
+    await p.waitForTimeout(300);
+    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: „← Liste“ fuehrt nicht zur Liste zurueck';
+    if (bpi(p) !== null) return 'Werkbank 390 px: nach „← Liste“ traegt die Adresse noch bpi';
+    // Filter-Schublade: das ✕ oben muss antippbar sein (nicht unter der
+    // Site-Nav) und schliesst. Gilt fuer die klassische Seite genauso, die
+    // Werkbank erbt die Telefon-Regel von CraftingApp.
+    await p.locator('#cdb-filter-toggle').tap();
+    await p.waitForTimeout(400);
+    const deckt = await kreuzVerdeckt(p);
+    if (deckt) return `Werkbank 390 px: das ✕ der Filter-Schublade liegt unter ${deckt}`;
+    await p.locator('#cdb-filter-close').tap();
+    await p.waitForTimeout(400);
+    if (!(await p.$eval('#cdb-sidebar', (el) => el.inert === true))) return 'Werkbank 390 px: ✕ schliesst die Filter-Schublade nicht';
+    const breit = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    if (breit > 1) return `Werkbank 390 px: die Seite laeuft ${breit} px seitlich ueber`;
+    const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []))].filter((v) => !ZAEHLER_HOST.test(v));
+    if (csp.length) befunde.push(`CSP-Verstoss: ${csp.slice(0, 3).join(', ')}`);
+    if (befunde.length) return `Werkbank 390 px: ${befunde.slice(0, 3).join(' | ')}`;
+    return null;
+  } finally {
+    await kontext.close();
+  }
+}
+
 /* ---------- Ein Seitenaufruf ---------- */
 async function pruefe(kontext, variante, seite, pfad, sprache) {
   const page = await kontext.newPage();
@@ -1017,6 +1226,55 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     if (versteckt.gezeichnet.length)
       melde('hidden', `${versteckt.gezeichnet.length} Element(e) mit hidden-Attribut gezeichnet: ${versteckt.gezeichnet.slice(0, 4).join(', ')}`);
 
+    // [7] Filter-Schubladen am Telefon (assets/offcanvas.js). Gemessen
+    // 09.11.2026: der Fokus blieb beim Oeffnen auf dem Knopf (inert lief noch),
+    // und die Site-Nav (z 9600) lag ueber dem Kopf der Schublade (9250), ihr ✕
+    // war nicht antippbar. Jede sichtbare Schublade auf jeder Leitseite: offen
+    // geht der Fokus hinein, das erste Bedienelement liegt oben, Esc schliesst
+    // und macht sie wieder inert.
+    if (variante.breite <= 820) {
+      const knoepfe = page.locator('[data-offcanvas-toggle]');
+      for (let i = 0; i < (await knoepfe.count()); i++) {
+        const knopf = knoepfe.nth(i);
+        if (!(await knopf.isVisible())) continue;
+        const id = await knopf.getAttribute('data-offcanvas-toggle');
+        geprueftePunkte++;
+        schubladen++;
+        await knopf.click();
+        await page.waitForTimeout(450);
+        const offen = await page.evaluate((id) => {
+          const panel = document.getElementById(id);
+          if (!panel) return { fehlt: true };
+          const a = document.activeElement;
+          const erstes = [...panel.querySelectorAll('button, [href], input, select, textarea')].find((el) => el.getClientRects().length);
+          let oben = null;
+          if (erstes) {
+            const r = erstes.getBoundingClientRect();
+            const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+            if (el && !erstes.contains(el)) oben = el.closest('#topbar') ? 'der Site-Nav' : el.tagName + (el.id ? `#${el.id}` : '');
+          }
+          return {
+            offen: panel.classList.contains('is-open') && !panel.inert,
+            fokusDrin: panel.contains(a),
+            fokus: a ? a.tagName + (a.id ? `#${a.id}` : '') : '-',
+            erstes: erstes ? erstes.tagName + (erstes.id ? `#${erstes.id}` : '') : null,
+            oben,
+          };
+        }, id);
+        if (offen.fehlt) { melde('schublade', `#${id}: Panel zum Knopf fehlt`); continue; }
+        if (!offen.offen) { melde('schublade', `#${id} oeffnet nicht (is-open/inert)`); continue; }
+        if (!offen.fokusDrin) melde('schublade', `#${id}: beim Oeffnen bleibt der Fokus draussen (${offen.fokus})`);
+        if (offen.oben) melde('schublade', `#${id}: ${offen.erstes} liegt unter ${offen.oben}`);
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(450);
+        const zu = await page.evaluate((id) => {
+          const panel = document.getElementById(id);
+          return !panel.classList.contains('is-open') && panel.inert === true;
+        }, id);
+        if (!zu) melde('schublade', `#${id}: Esc schliesst nicht oder laesst sie bedienbar (inert fehlt)`);
+      }
+    }
+
     // Interaktionsprobe nur im Normalfall — sie soll das Verhalten belegen,
     // nicht dreimal dasselbe.
     if (seite.probe && variante.id === 'dunkel-1280') {
@@ -1128,6 +1386,9 @@ console.log(`  [6] Elemente mit hidden-Attribut angesehen: ${hiddenGeprueft}   U
 const SYNC_SOLL = SYNC_BREITEN.length * SYNC_ZUSTAENDE.length * 2 * 2; // je Breite und Zustand zwei Anzeigen, zwei Sprachen
 const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
 if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
+console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Untergrenze: ${MIN_SCHUBLADEN}`);
+if (schubladen < MIN_SCHUBLADEN && !NUR)
+  fehler.push(`[7] nur ${schubladen} Filter-Schubladen geprueft, Untergrenze ist ${MIN_SCHUBLADEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (hiddenGeprueft < MIN_HIDDEN && !NUR)
   fehler.push(`[6] nur ${hiddenGeprueft} Elemente mit hidden-Attribut angesehen, Untergrenze ist ${MIN_HIDDEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (mitPlaner && syncAnzeigen < SYNC_SOLL && !fehler.some((f) => f.includes('Crafting-Planer')))

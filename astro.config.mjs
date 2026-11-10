@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import { hangarImBau, HANGAR_ROUTES } from './scripts/lib/hangar-switch.mjs';
+import { VORSCHAU_ROUTES } from './scripts/lib/vorschau-seiten.mjs';
 import { zielImBau } from './scripts/lib/supabase-ziel.mjs';
 
 // All-in-One SC site — static, hand-built.
@@ -120,6 +121,23 @@ export function hangarRoutes(env = process.env) {
   };
 }
 
+// Prototypen nur im Vorschau-Bau (Skizze 016, 09.11.2026: die Crafting-
+// Werkbank, bis Krisz sie abnimmt). Gleiche Regel wie der Hangar, eigene
+// Liste; Begruendung in scripts/lib/vorschau-seiten.mjs.
+/** @returns {import('astro').AstroIntegration} */
+export function vorschauRoutes(env = process.env) {
+  return {
+    name: 'vb-vorschau-routes',
+    hooks: {
+      'astro:config:setup': ({ injectRoute, logger }) => {
+        if (!hangarImBau(env)) return;
+        for (const r of VORSCHAU_ROUTES) injectRoute({ pattern: r.pattern, entrypoint: r.entrypoint, prerender: true });
+        logger.info(`Vorschau-Bau: ${VORSCHAU_ROUTES.length} Prototyp-Routen eingehaengt`);
+      },
+    },
+  };
+}
+
 /** Was Seiten und Client-Bundles vom Supabase-Ziel brauchen — nicht mehr. */
 function supabaseFuerSeite() {
   const { url, publishableKey, storageKey } = zielImBau();
@@ -145,7 +163,7 @@ export default defineConfig({
   server: ({ command }) => ({
     allowedHosts: TUNNEL && command === 'preview' ? TUNNEL_HOSTS : [],
   }),
-  integrations: [hangarRoutes()],
+  integrations: [hangarRoutes(), vorschauRoutes()],
   vite: {
     plugins: [blockOpenInEditor(), devLocalOnly()],
     // Browserseite des Hangar-Schalters (src/lib/hangarFlag.ts) und das

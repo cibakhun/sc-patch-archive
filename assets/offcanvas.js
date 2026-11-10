@@ -47,9 +47,14 @@
      als Schublade. Als Opt-in, nicht pauschal: der Crafting-Planer ist auch am
      Schreibtisch fixed und bringt Esc und Klick-daneben selbst mit — er darf
      nicht ploetzlich ein zweites Mal verdunkelt und geschlossen werden. */
+  /* NACHTRAG 09.11.2026: die Crafting-Werkbank (Prototyp) faehrt ihre Filter
+     auch am Schreibtisch als Schublade aus. `data-offcanvas-immer` sagt:
+     wenn fixed, dann Schublade, bei jeder Breite. Sonst blieb das
+     weggeschobene Panel dort fokussierbar und vorlesbar (kein inert). */
   function isDrawerMode(panel) {
     if (getComputedStyle(panel).position !== 'fixed') return false;
     if (window.innerWidth <= 820) return true;
+    if (panel.hasAttribute('data-offcanvas-immer')) return true;
     return panel.hasAttribute('data-offcanvas-flach') && window.innerHeight <= 600;
   }
 
@@ -101,7 +106,7 @@
     // z-index eine Stufe unter dem Panel: der Verdunkler deckt die Seite,
     // nie das Panel selbst.
     var z = parseInt(getComputedStyle(panel).zIndex, 10);
-    scrim.style.zIndex = (isNaN(z) ? 9250 : z) - 1;
+    scrim.style.zIndex = (isNaN(z) ? 9650 : z) - 1;
     lock();
     // Schlichtes Setzen der Klasse — bewusst ohne den `void
     // scrim.offsetWidth`, der hier vorher stand, und bewusst ohne
@@ -139,7 +144,13 @@
     if (t) t.setAttribute('aria-expanded', 'true');
     // Fokus ins Panel, damit Tastatur und Screenreader nicht hinter dem
     // Verdunkler weiterlaufen.
-    var first = panel.querySelector('button, [href], input, select, textarea');
+    // Das erste SICHTBARE Bedienelement: ein verstecktes (display:none)
+    // nimmt keinen Fokus, und der blieb dann auf dem Knopf.
+    var kandidaten = panel.querySelectorAll('button, [href], input, select, textarea');
+    var first = null;
+    for (var i = 0; i < kandidaten.length && !first; i++) {
+      if (kandidaten[i].getClientRects().length) first = kandidaten[i];
+    }
     if (first) try { first.focus({ preventScroll: true }); } catch (e) {}
   }
 
@@ -178,10 +189,14 @@
   function watch(panel) {
     inertPflegen(panel);
     new MutationObserver(function () {
+      // ZUERST inert pflegen, dann setup: setup() setzt den Fokus ins Panel,
+      // und auf ein Element in einem inert-Panel geht kein Fokus. Stand es
+      // umgekehrt, blieb der Fokus beim Oeffnen auf dem Knopf hinter dem
+      // Verdunkler (gemessen 09.11.2026 auf Crafting und Missionen, 390 px).
+      inertPflegen(panel);
       var open = panel.classList.contains(OPEN) && isDrawerMode(panel);
       if (open && active !== panel) setup(panel);
       else if (!open && active === panel) teardown(panel);
-      inertPflegen(panel);
     }).observe(panel, { attributes: true, attributeFilter: ['class'] });
   }
 

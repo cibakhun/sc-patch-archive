@@ -1,0 +1,15 @@
+---
+// Prototyp der Crafting-Werkbank (DE), nur im Vorschau-Bau
+// (scripts/lib/vorschau-seiten.mjs). Koerper wie /de/topics/crafting.html,
+// nur mit der Werkbank statt Raster, Modal und Schublade.
+import DB from '../../../assets/crafting-db.json';
+import { versioned } from '../../lib/assetVersion';
+const total = DB.counts.blueprints;
+const patch = (DB.version.match(/(\d+\.\d+)/) ?? [])[1] ?? '4.9';
+import Layout from '../../layouts/Layout.astro';
+import Body from '../../components/topics/crafting.astro';
+---
+<Layout title={`Crafting-Werkbank (Prototyp) — Star Citizen ${patch} | VerseBase`} description={`Prototyp der Crafting-Werkbank für Star Citizen ${patch}: ${total} Blueprints, das gewählte Rezept und der Fabricator-Planer nebeneinander.`} themeColor="#16161a" ogType="article" ogImage="/assets/t-craft-1.jpg" translated={true} noindex={true}>
+<link slot="head" rel="stylesheet" href={versioned('assets/detail.css', '/assets/detail.css')} />
+<Body werkbank={true} />
+</Layout>

@@ -546,7 +546,9 @@ for (let i = 0; i < cards.length; i += GRP) groups.push(cards.slice(i, i + GRP))
        Crafting-Seite, damit offcanvas.js (isDrawerMode prueft auf
        position:fixed unter 821 px) sie erkennt. */
     .mx__bar {
-      position: fixed; top: 0; left: 0; z-index: 9250;
+      /* z 9650: ueber der Site-Nav (9600), sonst verdeckt sie den Kopf
+         mit ✕ (gemessen 09.11.2026, 390 px). Wie .cdb-sidebar. */
+      position: fixed; top: 0; left: 0; z-index: 9650;
       width: min(340px, 90%); height: 100%; max-height: none;
       border-radius: 0; margin-bottom: 0;
       overflow-y: auto; overscroll-behavior: contain;

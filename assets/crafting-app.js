@@ -10,6 +10,18 @@
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
 
+  // ---- Werkbank (Prototyp, Skizze 016-3, nur /topics/crafting-werkbank.html) ----
+  // Dasselbe Werkzeug, anders gestellt: das Rezept steht als feste Mitte
+  // statt im Modal, der Planer ab 1180 px als rechte Spalte statt Schublade.
+  // Unter 821 px bleibt das Rezept eine Ebene ueber der Liste. Alles andere
+  // (Daten, Besitz, Planer, Konto-Sync) ist unveraendert derselbe Code.
+  var WB = CFG.werkbank === true;
+  var mm = function (q) { return window.matchMedia ? window.matchMedia(q) : { matches: true }; };
+  var mqMitte = mm('(min-width: 821px)');
+  var mqPlaner = mm('(min-width: 1180px)');
+  function wbMitte() { return WB && mqMitte.matches; }
+  function wbPlaner() { return WB && mqPlaner.matches; }
+
   // ---- DOM ----
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -956,6 +968,8 @@
     });
     var closeF = $('#cdb-filter-close');
     if (closeF) closeF.addEventListener('click', function () { sidebar.classList.remove('is-open'); filtToggle.setAttribute('aria-expanded', 'false'); });
+    // Werkbank: die Filter fahren auch am Schreibtisch von links aus;
+    // Verdunkler, Esc und inert bringt offcanvas.js (data-offcanvas-immer).
   }
 
   // =========================================================
@@ -999,12 +1013,78 @@
   var modalBody = $('#cdb-modal-body');
   var modalStack = [];      // history of entries (for back navigation)
   var currentEntry = null;  // {t:'bp',i} | {t:'pool',key}
-  function closeModal() { if (modal) { modal.hidden = true; document.body.style.overflow = ''; modalStack = []; currentEntry = null; } }
-  function showModal() { modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0; }
+  // Werkbank: die leere Mitte (Hinweis „Rezept waehlen“) steht im Markup;
+  // sie kommt zurueck, wenn die Auswahl geschlossen wird.
+  var WB_LEER = WB && modalBody ? modalBody.innerHTML : '';
+  var wbBox = modal ? $('.cdb-modal__box', modal) : null;
+  function closeModal() {
+    if (!modal) return;
+    modalStack = []; currentEntry = null;
+    if (WB) {
+      modal.classList.add('is-leer');
+      if (modalBody) modalBody.innerHTML = WB_LEER;
+      document.body.style.overflow = '';
+      markSel(null);
+      wbAdresse(null);
+      return;
+    }
+    modal.hidden = true; document.body.style.overflow = '';
+  }
+  function showModal() {
+    if (WB) {
+      modal.classList.remove('is-leer');
+      // Am Schreibtisch steht das Rezept im Fluss: nichts sperren.
+      document.body.style.overflow = wbMitte() ? '' : 'hidden';
+      if (wbBox) wbBox.scrollTop = 0;
+      modal.scrollTop = 0;
+      return;
+    }
+    modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0;
+  }
+  // Werkbank: gewaehlte Karte in der Liste markieren und ins Bild holen.
+  var selCard = null;
+  function markSel(i) {
+    if (selCard) selCard.classList.remove('is-sel');
+    selCard = i == null ? null : grid.querySelector('.cbp[data-i="' + i + '"]');
+    if (!selCard) return;
+    selCard.classList.add('is-sel');
+    // Ins Bild holen, aber nur die Liste selbst: am Schreibtisch ist sie ein
+    // eigenes Scrollfeld (.vb-scrollbox). scrollIntoView zoege das Fenster
+    // mit und schoebe die Werkbank unter die Kopfleiste.
+    if (wbMitte() && grid.scrollHeight > grid.clientHeight + 1) {
+      var gr = grid.getBoundingClientRect(), cr = selCard.getBoundingClientRect();
+      if (cr.top < gr.top || cr.bottom > gr.bottom) grid.scrollTop += (cr.top - gr.top) - (grid.clientHeight - cr.height) / 2;
+    }
+  }
+  // Werkbank: die Adresse traegt das gewaehlte Rezept (teilbar; per
+  // replaceState, also kein Verlaufseintrag je Klick).
+  function wbAdresse(i) {
+    if (!WB || !window.history || !history.replaceState) return;
+    try {
+      var q = new URLSearchParams(location.search);
+      if (i == null) { q['delete']('bp'); q['delete']('bpi'); }
+      else { q.set('bp', DB.blueprints[i].name); q.set('bpi', String(i)); }
+      var qs = q.toString();
+      history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+    } catch (e) {}
+  }
   if (modal) {
     $$('[data-close]', modal).forEach(function (b) { b.addEventListener('click', closeModal); });
-    modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+    modal.addEventListener('click', function (e) { if (e.target === modal && !wbMitte()) closeModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (WB) { if (!wbMitte() && !modal.classList.contains('is-leer')) closeModal(); return; }
+      if (!modal.hidden) closeModal();
+    });
+    if (WB && wbBox) {
+      // Schreibtisch: die Mitte ist kein Dialog, nur ueber der Liste (Telefon) einer.
+      var wbRolle = function () {
+        if (wbMitte()) { wbBox.removeAttribute('aria-modal'); wbBox.setAttribute('role', 'region'); document.body.style.overflow = ''; }
+        else { wbBox.setAttribute('aria-modal', 'true'); wbBox.setAttribute('role', 'dialog'); }
+      };
+      wbRolle();
+      if (mqMitte.addEventListener) mqMitte.addEventListener('change', wbRolle);
+    }
   }
 
   // Navigation
@@ -1013,6 +1093,7 @@
     else renderPool(entry.key);
     showModal();
     injectBack();
+    if (WB && entry.t === 'bp') { markSel(entry.i); wbAdresse(entry.i); }
   }
   function go(entry) { if (currentEntry) modalStack.push(currentEntry); currentEntry = entry; renderEntry(entry); }
   function back() { var prev = modalStack.pop(); if (prev) { currentEntry = prev; renderEntry(prev); } }
@@ -1275,7 +1356,16 @@
   var drawer = $('#cdb-planner');
   var plannerBtn = $('#cdb-planner-open');
   var plannerBadge = $('#cdb-planner-badge');
-  function closeDrawer() { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }
+  function closeDrawer() { if (wbPlaner()) return; drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }
+  // Werkbank ab 1180 px: der Planer ist eine feste Spalte, keine Schublade.
+  if (WB && drawer) {
+    var wbPlanerStand = function () {
+      if (wbPlaner()) { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'false'); }
+      else if (!drawer.classList.contains('is-open')) drawer.setAttribute('aria-hidden', 'true');
+    };
+    wbPlanerStand();
+    if (mqPlaner.addEventListener) mqPlaner.addEventListener('change', wbPlanerStand);
+  }
   if (plannerBtn && drawer) {
     plannerBtn.addEventListener('click', function () { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); });
     $$('[data-planner-close]', drawer).forEach(function (b) { b.addEventListener('click', closeDrawer); });
@@ -1286,7 +1376,7 @@
     // mehr im DOM, contains() meldete fälschlich „außerhalb" und der Planer ging zu.
     // Der Event-Pfad ist beim Dispatch eingefroren und kennt den Drawer trotzdem noch.
     document.addEventListener('click', function (e) {
-      if (!drawer.classList.contains('is-open')) return;
+      if (wbPlaner() || !drawer.classList.contains('is-open')) return;
       var path = e.composedPath ? e.composedPath() : [e.target];
       if (path.indexOf(drawer) === -1 && path.indexOf(plannerBtn) === -1) closeDrawer();
     });
