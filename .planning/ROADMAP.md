@@ -1401,8 +1401,8 @@ Plans:
 
 **Status:** Konzept. Richtung B „Einordnung“ gewählt (Betreiber, 09.11.2026),
 Rahmen seit 09.11.2026 festgelegt (siehe unten). Die zweite Entwurfsrunde
-liegt vor (`.planning/sketches/015-detailseiten-2-0/runde-2/`) und wartet auf
-die Abnahme; Seiten-Code erst danach.
+(`.planning/sketches/015-detailseiten-2-0/runde-2/`) ist am 10.11.2026
+abgenommen. Seiten-Code beginnt mit dem Leitschuss (Reihenfolge, Schritt 2).
 
 **Goal:** Die generierten Datenseiten (5.369 Items, 1.387 Missionen, 213
 Kategorien je Sprache; die 1.608 Bauplan-Seiten siehe „Rahmen“) bekommen eine
@@ -1466,7 +1466,10 @@ einzeln abgenommen):
 
 1. Zweite Entwurfsrunde: gewählte Richtung auf das Item-Datenblatt mit den
    drei Wegen, auf Mission und Kategorie, dazu eine Rüstung als Gegenprobe
-   ohne Modell. Liegt vor (09.11.2026), Abnahme offen.
+   ohne Modell. Abgenommen am 10.11.2026: Die Rüstungsseite trägt ohne Bild
+   (Farbfelder im Kopf), die Kategorie listet Baureihen statt Farben (alle
+   Farbseiten bleiben), und „1 aus 3“ je Abschluss erscheint nach den Daten,
+   ohne vorherige Spielprüfung.
 2. Leitschuss: neue Hülle und Klassenvergleich auf den 117 Schiffswaffen-Seiten
    mit Modell, Ende zu Ende, mit neuem Tor.
 3. Alle Itemseiten.

@@ -3,7 +3,7 @@ sketch: 015
 round: 2
 name: detailseiten-2-0-runde-2
 question: "Trägt Richtung B „Einordnung“ im Rahmen von Skizze 016 auch dort, wo es kein Modell, keine Kaufpreise oder keinen Lohn zum Vergleichen gibt?"
-winner: null
+winner: "abgenommen 10.11.2026 — „Ja, ja, nein.“"
 tags: [detailseiten, items, ruestung, missionen, kategorien, einordnung]
 ---
 
@@ -72,8 +72,9 @@ Sie bestimmen, was „Einordnung“ je Seitenart heißen kann.
    mit Chance 100 %: 14 Ausrüstungs-Baupläne und 3 Schiffswaffen. Die heutige
    Missionsseite zeigt alle 17 als eine Liste, Entwurf C aus Runde 1 schrieb
    „zufällig einen von 17“. Lesart dieser Runde: je Abschluss einer aus jeder
-   Gruppe. **Im Spiel zu bestätigen**, bevor eine Seite „1 aus 3“ verspricht;
-   die Entwürfe tragen deshalb die Marke „im Spiel zu prüfen“.
+   Gruppe. Der Betreiber hat am 10.11.2026 entschieden, dass „1 aus 3“ ohne
+   vorherige Spielprüfung erscheinen darf; die Entwürfe zeigen es deshalb ohne
+   Vorbehalt.
 5. **Laden → System** steht nur im Namenszusatz („(Pyro)“) oder muss aus
    bekannten Ortsnamen erschlossen werden (Lorville, ARC-L1 …). Für „Kaufen
    nach System“ braucht es ein Datenfeld.
@@ -86,12 +87,15 @@ Sie bestimmen, was „Einordnung“ je Seitenart heißen kann.
 8. **Farbfelder** sind Näherungen nach dem Farbnamen (`game.color`); für den
    Bau bräuchte es echte Farbwerte oder Bilder je Ausführung.
 
-## Offen für den Betreiber
+## Entscheidungen des Betreibers (10.11.2026)
 
-- Trägt die Rüstungsseite ohne Bild, mit den Farbfeldern im Kopf?
+Antwort „Ja, ja, nein.“ auf die drei offenen Fragen:
+
+- Trägt die Rüstungsseite ohne Bild, mit den Farbfeldern im Kopf? **Ja.**
 - Kategorie als Liste der Baureihen, Farben dahinter (alle Farbseiten bleiben):
-  einverstanden?
+  einverstanden? **Ja.**
 - Soll „1 aus 3“ auf Missionsseiten erst nach einer Spielprüfung erscheinen?
+  **Nein**, es erscheint nach den Daten.
 
 Die gerenderten Bilder (Desktop 1440 und Handy 390, je Falz und ganze Seite)
 sind nicht im Repo eingecheckt. Sie liegen beim Betreiber in den
