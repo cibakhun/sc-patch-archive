@@ -1495,9 +1495,14 @@ einzeln abgenommen):
 
 ### Phase 22: Hangar als zentrale Schiffsplattform
 
-**Stand:** Konzept vom Betreiber am 08.11.2026 grundsätzlich freigegeben,
-noch kein Bau. Die Entwürfe sieht er vor dem Bau selbst durch und passt sie
-gegebenenfalls an; H1 beginnt erst nach dieser visuellen Abnahme. Jede
+**Stand:** Konzept vom Betreiber am 08.11.2026 grundsätzlich freigegeben.
+H1 steht seit dem 10.11.2026 auf staging (Betreiber zu den 3D-Tafeln: „okay
+baus mal“): die Stationen-Leiste und die Übersicht als Hologramm in der Halle.
+Seit demselben Tag trägt die Übersicht die Werkstatt in sich, als Tafel
+„Ausrüstung“ (Betreiber: „loadouts in das ui von overview direkt einbauen,
+damit haben wir eine zentrale bedieneroberfläche“); eine eigene Station
+Loadout gibt es in der Halle nicht mehr, sie bleibt für „Als Tafel“, das
+Handy und den Hangar ohne 3D. Sichturteile dazu: WINDOWS #149 und #151. Jede
 Teilphase geht einzeln auf staging und wird dort abgenommen. Live ändert sich
 nichts ohne eigene, ausdrückliche Freigabe.
 
@@ -1544,7 +1549,7 @@ Vorhaben ordnet das neu, statt es neu zu bauen.
 
 | Teilphase | Sichtbar auf staging | Braucht |
 |-----------|----------------------|---------|
-| H1 Gerüst | Stationen-Leiste, „Alle Werte" breit über der Halle, Leiste am Handy, `?station=` | nichts Neues |
+| H1 Gerüst | Stationen-Leiste, Übersicht als Hologramm in der Halle mit der Werkstatt als Tafel „Ausrüstung", Leiste am Handy, `?station=` | nichts Neues |
 | H2 Kampfwerte | Kampf-Station mit Dauer-DPS und Zeitleiste | Daten wie heute |
 | H3 Komponenten | Bilanz-Leiste im Loadout | Blick auf die Stromdaten am PC |
 | H4 TTK | Ziel wählen, TTK-Balken mit Annahmen | PC-Lauf Panzerung und Teil-HP |

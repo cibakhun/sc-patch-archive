@@ -48,10 +48,13 @@ const PORT_RE = /^[a-z0-9_]{1,100}$/;
 // Test haelt beide gleich.
 const LAYOUT_RE = /^[A-Za-z0-9_-]{1,4000}$/;
 export const EMPTY_LAYOUT = 'WzEsIiIse31d';
-// Stationen (ROADMAP Phase 22) in der Folge ihrer Leiste; die Werkstatt
-// (Loadout) bleibt die Vorgabe wie vor den Stationen. Die Uebersicht steht ab
-// 761 px als Hologramm in der Halle, flat (?tafel=1, „Als Tafel“) legt sie
-// rechts als Tafel ab wie am Telefon. Das alte ?pane=ship heisst Uebersicht.
+// Stationen (ROADMAP Phase 22) in der Folge ihrer Leiste. Ab 761 px steht
+// die Uebersicht als Hologramm in der Halle und traegt die Werkstatt in sich
+// (Tafel „Ausruestung“, Krisz 10.11.2026: „eine zentrale bedieneroberflaeche“);
+// welche Station gewaehlt ist, zaehlt dann nicht. flat (?tafel=1, „Als
+// Tafel“) legt die Tafeln rechts ab wie am Telefon: dort waehlt station
+// zwischen Schiffsdaten und Werkstatt, die Werkstatt (Loadout) bleibt die
+// Vorgabe wie vor den Stationen. Das alte ?pane=ship heisst Uebersicht.
 export const STATIONS = ['uebersicht', 'loadout'];
 export const STATION_DEFAULT = 'loadout';
 
@@ -1797,6 +1800,10 @@ export function boot(doc) {
     fit: (ship, list) => { fitting = { ship, list }; applyFit(); },
     // Lackierung ans Modell ({ cols, base } oder null), ebenso je Schiff
     paint: (ship, p) => { painting = { ship, p }; applyPaintSel(); },
+    // Steht die Uebersicht als Hologramm, zeichnet die Halle die Werkstatt
+    // (holoData liest workshop.board()); changed: ihr Stand ist neu
+    holo: () => holoOn(),
+    changed: () => paintHolo(),
   };
   let fitting = { ship: '', list: [] };
   let fitKey = '';
@@ -1816,46 +1823,58 @@ export function boot(doc) {
     paintKey = key;
     viewer.paint(painting.p);
   }
-  // Stationen: die Leiste am Buehnenfuss waehlt, was rechts steht (Loadout:
-  // die Werkstatt, Uebersicht: die Schiffsdaten). Kann die Buehne die
-  // Uebersicht als Hologramm in die Halle stellen (viewer.canStation: echte
-  // Halle, ab 761 px), weicht die Tafel rechts, bis jemand „Als Tafel“ waehlt;
-  // Bodenfahrzeuge in der Werkhalle bekommen immer die Tafel.
-  let stage3d = false;
+  // Stationen: kann die Buehne die Uebersicht als Hologramm in die Halle
+  // stellen (viewer.canStation: echte Halle, ab 761 px), ist sie die eine
+  // Oberflaeche: Datenblatt rechts, links die Werkstatt als Tafel
+  // „Ausruestung“. Die Tafeln der Seite weichen, die Station Loadout faellt
+  // aus der Leiste. Mit „Als Tafel“, am Telefon, ohne 3D, drinnen und bei
+  // Bodenfahrzeugen in der Werkhalle waehlt die Leiste wie bisher, was rechts
+  // steht (Loadout: die Werkstatt, Uebersicht: die Schiffsdaten).
+  // Bis die Buehne antwortet, gilt die Vorhersage (dieselben Bedingungen wie
+  // im Viewer): sonst stuende beim Laden erst die flache Werkstatt da und
+  // wiche nach Sekunden dem Hologramm. Ohne Buehne (noStage) gilt die Tafel.
+  let stage3d = null;
+  const guess3d = () => !!(stageCfg.opts?.hall?.url && stageCfg.opts.hall.room && stageCfg.opts.holo?.module)
+    && !doc.defaultView.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   // Drinnen (data-walk) stellt der Viewer keine Station auf: dann die Tafel
-  const canHolo = () => stage3d && state.station === 'uebersicht' && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on';
+  const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on';
   const holoOn = () => canHolo() && !state.flat;
   let stageSafe = null;
   function paintStation() {
     main.dataset.station = state.station;
+    const holo = holoOn();
     for (const b of stBtns) {
-      const on = b.dataset.station === state.station;
+      const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
+      b.hidden = holo && !on;
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     }
     tafelBtn.hidden = !canHolo();
     tafelBtn.setAttribute('aria-pressed', String(state.flat));
     const was = main.dataset.st3d === '1';
-    if (holoOn()) main.dataset.st3d = '1';
+    if (holo) main.dataset.st3d = '1';
     else delete main.dataset.st3d;
-    if (was !== holoOn()) stageSafe?.();
+    if (was !== holo) stageSafe?.();
+    // erst die Werkstatt, dann die Halle: holoData liest ihren Stand
+    if (workshop) workshop.render(state);
+    else if (state.station === 'loadout' || holo) {
+      workshopLoad ??= import(main.dataset.layoutJs).then((m) => { workshop = m.initWorkshop(doc, bridge); });
+      workshopLoad.then(() => { workshop.render(state); paintHolo(); }, () => { workshopLoad = null; });
+    }
     paintHolo();
-    if (workshop) { workshop.render(state); return; }
-    if (state.station !== 'loadout') return;
-    workshopLoad ??= import(main.dataset.layoutJs).then((m) => { workshop = m.initWorkshop(doc, bridge); });
-    workshopLoad.then(() => workshop.render(state), () => { workshopLoad = null; });
   }
   stBtns[0]?.parentElement.addEventListener('click', (e) => {
     const b = e.target.closest('[data-station]');
     if (b) setState({ station: b.dataset.station, hp: null });
   });
   stBtns[0]?.parentElement.addEventListener('keydown', (e) => {
-    const i = stBtns.findIndex((b) => b.dataset.station === state.station), n = stBtns.length;
+    const vis = stBtns.filter((b) => !b.hidden);
+    const i = vis.findIndex((b) => b.getAttribute('aria-selected') === 'true'), n = vis.length;
     const to = { ArrowLeft: (i - 1 + n) % n, ArrowRight: (i + 1) % n, Home: 0, End: n - 1 }[e.key];
     if (to === undefined) return;
     e.preventDefault();
-    setState({ station: stBtns[to].dataset.station, hp: null });
-    stBtns[to].focus();
+    setState({ station: vis[to].dataset.station, hp: null });
+    vis[to].focus();
   });
   tafelBtn.addEventListener('click', () => setState({ flat: !state.flat }));
 
@@ -1865,6 +1884,8 @@ export function boot(doc) {
   // den Entwuerfen (Tafel 7): Tempo, Feuerkraft, Schild, Rumpf mit dem Platz
   // in der Klasse; links die Systeme mit Nummern, die am Port wiederkehren.
   const HOLO_TILES = [['scm', 'speed'], ['dps', 'fire'], ['shield', 'shield'], ['hull', 'hull']];
+  // Kachel -> Gruppe der Werkstatt, deren Summe sie zeigt (groupTotals)
+  const HOLO_LAYOUT = { dps: 'pilot', shield: 'shield' };
   const HOLO_SYS_MAX = 8, HOLO_DETAIL_MAX = 6;
   const textOf = (n) => (n?.nodeType === 3 ? n.textContent.trim() : '');
   const nums = (v) => String(v ?? '').trim().split(/\s+/).map(Number);
@@ -1874,10 +1895,26 @@ export function boot(doc) {
     if (!me || [head, panel, marks].some((r) => r?.dataset.id !== id) || panel.hidden) return null;
     const m = msg('holo');
     const cls = shipClass(dock, id);
+    // Die Werkstatt auf der Tafel „Ausruestung“; null, solange sie laedt oder
+    // ihre Daten fehlen: dann stehen links wie zuvor die Systeme.
+    const lo = workshop?.board() ?? null;
+    const nf = new Intl.NumberFormat(loc);
     const tiles = HOLO_TILES.map(([k, w]) => {
       const row = rowOf.get(k) ?? { digits: 0, unit: '' };
       const x = me.stat[k];
       const r = cls && rankIn(dock, cls.ids, id, k);
+      // Was das Layout aendert: Feuerkraft (Pilotenwaffen) und Schild mit
+      // dem Abstand zur Serie statt des Rangs, der nur fuer die Serie gilt
+      const t = lo?.totals[HOLO_LAYOUT[k]];
+      const d = t && Number.isFinite(x) ? Math.round(t.now) - Math.round(t.stock) : 0;
+      if (d) {
+        const p = x > 0 ? Math.round((Math.abs(d) / x) * 100) : 0;
+        return {
+          label: m[w], value: figureText(x + d, { digits: row.digits, unit: '' }, loc), unit: row.unit,
+          rank: `${d > 0 ? '▲' : '▼'} ${p ? `${nf.format(p)} %` : nf.format(Math.abs(d))}`, tone: d > 0 ? 'up' : 'down',
+          pct: r ? (r.of - r.n + 1) / r.of : 0,
+        };
+      }
       return {
         label: m[w], value: figureText(x, { digits: row.digits, unit: '' }, loc), unit: x == null ? '' : row.unit,
         rank: r ? fillMessage({ other: m.rank }, r, loc) : '', pct: r ? (r.of - r.n + 1) / r.of : 0,
@@ -1929,7 +1966,25 @@ export function boot(doc) {
     };
     const b = nums(marks.dataset.box);
     const box = b.length === 6 && b.every(Number.isFinite) ? [b.slice(0, 3), b.slice(3)] : null;
-    return { key: id, sheet, systems, dims: { box, len: dim('len'), wid: dim('wid'), hgt: dim('hgt') } };
+    return { key: id, sheet, systems, loadout: lo && holoLoadout(lo, panel, marks), dims: { box, len: dim('len'), wid: dim('wid'), hgt: dim('hgt') } };
+  }
+  // Die Tafel „Ausruestung“: der Stand der Werkstatt, dazu je Zeile der Punkt
+  // ihres Ports am Schiff (Region marks) und am offenen Serienteil die Links
+  // seiner Zeile in der Bucht (Item Finder, Item-Seite).
+  function holoLoadout(lo, panel, marks) {
+    const { totals, ...out } = lo;
+    const at = new Map();
+    for (const mk of marks.querySelectorAll(`.hgx-mk[data-tab="${lo.cat}"]`)) {
+      const p = nums(mk.dataset.p);
+      if (p.length === 3 && p.every(Number.isFinite)) at.set(mk.dataset.port, p);
+    }
+    out.groups = lo.groups.map((g) => ({ ...g, rows: g.rows.map((r) => ({ ...r, ps: at.has(r.port) ? [at.get(r.port)] : [] })) }));
+    const open = lo.pick && lo.groups.flatMap((g) => g.rows).find((r) => r.key === lo.pick.key);
+    if (open && !open.changed) {
+      const li = [...panel.querySelectorAll(`#hgx-tp-${lo.cat} .hgx-slot`)].find((el) => (el.dataset.ports ?? '').split(' ').includes(open.port));
+      out.pick = { ...lo.pick, links: [...(li?.querySelectorAll('.hgx-links a') ?? [])].map((a) => ({ label: `${a.textContent.trim()} ›`, href: a.getAttribute('href') })) };
+    }
+    return out;
   }
   let holoKey = '';
   function paintHolo() {
@@ -1943,15 +1998,50 @@ export function boot(doc) {
   // Knoepfe auf den Tafeln in der Halle. sys: eine Zeile der Systeme oder
   // ihre Nummer am Schiff, wie ein Klick auf die Zeile der Tafel (auf- und
   // zuklappen, state.hp im Reiter Systeme); go: ein Link der offenen Zeile.
-  function onStationAct({ act, row, href }) {
+  function onStationAct({ act, row, href, a }) {
     if (act === 'cmp') toggleCompare(state.ship);
-    else if (act === 'flat') setState({ flat: true });
-    else if (act === 'sys') {
+    // „Alle Werte“: die Schiffsdaten als Tafel
+    else if (act === 'flat') setState({ flat: true, station: 'uebersicht' });
+    // ein Klick auf der Tafel „Ausruestung“: die Werkstatt fuehrt ihn aus
+    else if (act === 'lo') {
+      if (a?.[0] === 'rename') startRename();
+      else workshop?.act(a);
+    } else if (act === 'sys') {
       const li = [...regionNow('panel').querySelectorAll('#hgx-tp-systems .hgx-slot')].find((el) => el.dataset.row === row);
       if (!li) return;
       const open = state.tab === 'systems' && !!state.hp && li.dataset.ports.split(' ').includes(state.hp);
       setState(open ? { hp: null } : { tab: 'systems', hp: portFor(li, 'systems') });
     } else if (act === 'go' && href) doc.defaultView.location.assign(href);
+  }
+
+  // Name des Layouts auf der Tafel tippen: ein echtes Eingabefeld ausserhalb
+  // des Bilds nimmt die Tasten (auch Einfuegen und Eingabehilfen), die Tafel
+  // zeigt den Text. Enter, Escape oder ein Klick daneben beenden.
+  let nameBox = null;
+  function startRename() {
+    if (!workshop) return;
+    if (!nameBox) {
+      nameBox = doc.createElement('input');
+      nameBox.type = 'text';
+      nameBox.maxLength = 60;
+      nameBox.autocomplete = 'off';
+      nameBox.spellcheck = false;
+      nameBox.tabIndex = -1;
+      nameBox.setAttribute('aria-label', $('hgl-name')?.getAttribute('aria-label') ?? '');
+      Object.assign(nameBox.style, { position: 'absolute', left: '0', top: '0', width: '1px', height: '1px', padding: '0', border: '0', opacity: '0', pointerEvents: 'none', fontSize: '16px' });
+      nameBox.addEventListener('input', () => workshop.act(['name', nameBox.value]));
+      nameBox.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== 'Escape') return;
+        e.preventDefault();
+        nameBox.blur();
+      });
+      nameBox.addEventListener('blur', () => workshop.act(['nameEdit', false]));
+      $('hg-canvas').parentElement.append(nameBox);
+    }
+    nameBox.value = workshop.board()?.name ?? '';
+    workshop.act(['nameEdit', 'all']);
+    nameBox.focus({ preventScroll: true });
+    nameBox.select();
   }
 
   let viewer = null;
@@ -1999,6 +2089,8 @@ export function boot(doc) {
   function noStage(why, detail) {
     loadEl.hidden = true;
     delete main.dataset.holo;
+    // ohne Buehne keine Stationen in der Halle: die Tafeln der Seite gelten
+    if (stage3d !== false) { stage3d = false; queueMicrotask(paintStation); }
     if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
     fallback.hidden = false;
     $('hg-reset').hidden = true;

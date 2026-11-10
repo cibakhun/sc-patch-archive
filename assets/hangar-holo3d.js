@@ -95,6 +95,13 @@ function fit(g, s, max, o) {
   while (t.length > 1 && measure(g, `${t}…`, o) > max) t = t.slice(0, -1);
   return `${t.trimEnd()}…`;
 }
+// Kürzt vorn: beim Tippen bleibt das Ende mit der Schreibmarke sichtbar
+function fitTail(g, s, max, o) {
+  if (measure(g, s, o) <= max) return s;
+  let t = s;
+  while (t.length > 1 && measure(g, `…${t}`, o) > max) t = t.slice(1);
+  return `…${t.trimStart()}`;
+}
 // Bricht in höchstens zwei Zeilen
 function wrap2(g, s, max, o) {
   const words = s.split(' ');
@@ -147,8 +154,9 @@ function sheetCanvas(w, h) {
 }
 
 // Übersicht rechts: Name, Steckbrief, vier Kacheln mit Rang, Knöpfe; d =
-// { name, line, tiles: [{ label, value, unit, rank, pct }], note, buttons: [{ label, act, main? }] }
+// { name, line, tiles: [{ label, value, unit, rank, tone?, pct }], note, buttons: [{ label, act, main? }] }
 const TILES_W = 370;
+drawTiles.W = TILES_W;
 function drawTiles(g, d, hover) {
   const W = TILES_W, p = 14, gap = 8, tw = (W - 2 * p - gap) / 2, th = 77;
   const nameSt = { f: ORB, w: 900, s: 21, ls: '0.06em', glow: GLOW };
@@ -177,7 +185,8 @@ function drawTiles(g, d, hover) {
     const x = p + (i % 2) * (tw + gap), y = yt + Math.floor(i / 2) * (th + gap);
     g.save(); rr(g, x, y, tw, th, 6); g.fillStyle = 'rgba(143,211,255,.07)'; g.fill(); g.lineWidth = 1; g.strokeStyle = 'rgba(143,211,255,.22)'; g.stroke(); g.restore();
     text(g, t.label.toLocaleUpperCase(), x + 12, y + 21, { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' });
-    if (t.rank) text(g, t.rank, x + tw - 12, y + 21, { f: BAR, s: 12.5, c: C.mut, al: 'right' });
+    // Rang in der Klasse, oder was das Layout ändert (tone: Bernstein mehr, Rot weniger)
+    if (t.rank) text(g, t.rank, x + tw - 12, y + 21, t.tone ? { f: RAJ, w: 700, s: 13, c: toneOf(t.tone === 'up' ? 1 : -1), al: 'right' } : { f: BAR, s: 12.5, c: C.mut, al: 'right' });
     // Zahl und Einheit in einer Zeile; zu lang wird die Zahl kleiner, nie gekürzt
     const uSt = { f: RAJ, w: 700, s: 14, c: C.sub }, uw = t.unit ? measure(g, t.unit, uSt) + 5 : 0;
     const vSt = { f: ORB, w: 900, s: 27, glow: GLOW };
@@ -204,6 +213,7 @@ function drawTiles(g, d, hover) {
 // Zeilen, die den Port state.hp führen (trägt ein Port mehrere Teile, alle).
 // Sie klappen mit ihren Werten und Links (go:<id>:<i>) auf.
 const SYS_W = 320;
+drawSystems.W = SYS_W;
 const SYS = { p: 12, rh: 38, y0: 30, lh: 19 };
 const kSt = { f: BAR, s: 12.5, c: C.mut }, vSt = { f: RAJ, w: 700, s: 14, c: C.txt };
 const lSt = { f: RAJ, w: 700, s: 13.5 };
@@ -285,6 +295,402 @@ function drawSystems(g, d, hover) {
   return hits;
 }
 
+// ─── Ausrüstung: die Layout-Werkstatt auf der Tafel ──────────────────────
+// Krisz 10.11.2026: Loadout direkt in die Übersicht, „eine zentrale
+// Bedienoberfläche“, mit dem, was die Werkstatt schon kann: Zeichen je
+// Bauteilart im Sockel mit Größe, leichter Farbton je Art, Bernstein für
+// Getauschtes, ▲▼ zum eingebauten Teil, Wertbalken. Was zu sehen ist, liefert
+// die Werkstatt selbst (assets/hangar-layouts.js, board()), die Seite ergänzt
+// je Zeile den Punkt ihres Ports (ps) und Links (holoLoadout); geklickt wird
+// als lo|<was>|<womit>, und die Werkstatt führt es aus (act()).
+// d = { title, chip, name, nameEdit, icons: { art: Pfad }, cats: [{ id, label, n, on }], cat,
+//   groups: [{ title, total, delta, dir, rows: [{ key, n, type, dt, size, name, sub, was, figure, unit, delta, dir, changed, ps }] }],
+//   pick: { key, head, count, racks: { label, info, list: [{ id, top, sub, tag, on }] } | null,
+//           opts: [{ id, name, sub, type, dt, figure, delta, dir, bar, tag, on }], revert, links } | null,
+//   paints: { title, list: [{ id, name, cols, note, on }] } | null, empty,
+//   state: { s, text, sub }, note, toast, btns: [{ id, label, main, off }],
+//   menu: [{ label, sub, on, act } | { head } | { note } | { sep } | { label, href }] }
+// ui = { scroll, pscroll, menu, maxH, reveal, pReveal } gehört der Tafel:
+// was gerollt ist und ob das Menü der Layouts offen steht.
+const LO_W = 356;
+const LO = { p: 12, top: 40, tabs: 34, gh: 26, rh: 42, was: 14, foot: 68, oh: 36, opts: 6, ch: 60 };
+const AMBER = '#f5a623', DOWN = '#ff9b8a', INK = '#04121d';
+// Farbton je Bauteilart: Energiewaffen blauviolett, ballistische sandhell,
+// Raketen und Bomben glutrot, Schild blau, Generator gelb, Kühler eisig,
+// Quantum violett, Radar grün. Nur ein Unterton; Bernstein bleibt dem
+// Getauschten vorbehalten.
+const TINT = {
+  'gun.e': '#9aa6ff', 'gun.p': '#e9dcbd', gun: '#c4d4e6',
+  missile: '#ff9d7c', torpedo: '#ff9d7c', gmissile: '#ff9d7c', bomb: '#ff9d7c',
+  shield: '#78b6ff', power: '#f0e384', cooler: '#a2ecf5', quantum: '#c8a4ff', radar: '#8fe3b3',
+};
+const tintOf = (type, dt) => TINT[`${type}.${dt}`] ?? TINT[type] ?? C.cy;
+const rgba = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const toneOf = (dir) => (dir > 0 ? AMBER : dir < 0 ? DOWN : C.mut);
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+const paths = new Map();
+// Zeichen der Werkstatt (Pfad im 24er-Raster) in ein Feld der Kante size
+function icon(g, d, x, y, size, color) {
+  if (!d) return;
+  let p = paths.get(d);
+  if (!p) { p = new Path2D(d); paths.set(d, p); }
+  g.save(); g.translate(x, y); g.scale(size / 24, size / 24);
+  g.lineWidth = 1.8; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = color;
+  g.stroke(p); g.restore();
+}
+const RK1 = { f: RAJ, w: 700, s: 13 }, RK2 = { f: BAR, s: 11 };
+const MI = { f: RAJ, w: 700, s: 14 }, MS = { f: BAR, s: 11.5 }, MN = { f: BAR, s: 12 };
+// Auswahl unter der offenen Zeile: Kopf, Halterungen, Liste, Knöpfe
+function loPick(g, pk, y0) {
+  const x0 = LO.p + 6, x1 = LO_W - LO.p - 4;
+  const out = { y: y0, x0, x1 };
+  let y = y0 + 22;
+  if (pk.racks) {
+    out.rackLabel = y + 10; y += 18;
+    out.racks = [];
+    let x = x0, row = 0;
+    for (const r of pk.racks.list) {
+      const sub = [r.sub, r.tag].filter(Boolean).join(' · ');
+      const w = Math.max(58, Math.ceil(Math.max(measure(g, r.top, RK1), measure(g, sub, RK2))) + 18);
+      if (x > x0 && x + w > x1) { x = x0; row += 1; }
+      out.racks.push({ x, y: y + row * 40, w, h: 35, r, sub });
+      x += w + 6;
+    }
+    y += (row + 1) * 40;
+    out.rackInfo = y + 9; y += 20;
+  }
+  const n = pk.opts.length, vis = Math.min(n, LO.opts);
+  out.opts = { x: x0, y, w: x1 - x0, h: vis * LO.oh, total: n * LO.oh };
+  y += vis * LO.oh + 6;
+  out.pills = [];
+  let x = x0, row = 0;
+  const add = (label, act) => {
+    const w = Math.ceil(measure(g, label, lSt)) + 24;
+    if (x > x0 && x + w > x1) { x = x0; row += 1; }
+    out.pills.push({ x, w, row, label, act });
+    x += w + 6;
+  };
+  if (pk.revert) add(pk.revert, `lo|revert|${pk.key}`);
+  for (const l of pk.links ?? []) add(l.label, `href|${l.href}`);
+  if (out.pills.length) { out.pillY = y; y += (row + 1) * 34; }
+  out.h = y - y0 + 4;
+  return out;
+}
+// Menü der Layouts unter dem Namensknopf
+function loMenu(g, items) {
+  const w = 256, x = LO_W - LO.p - w, y0 = 38;
+  let y = y0 + 6;
+  const rows = [];
+  for (const it of items) {
+    if (it.sep) { rows.push({ y, h: 9, it }); y += 9; continue; }
+    if (it.head) { rows.push({ y, h: 22, it }); y += 22; continue; }
+    if (it.note) { const lines = wrap2(g, it.note, w - 28, MN); rows.push({ y, h: lines.length * 15 + 8, it, lines }); y += lines.length * 15 + 8; continue; }
+    rows.push({ y, h: 30, it }); y += 30;
+  }
+  return { x, y: y0, w, h: y - y0 + 6, rows };
+}
+function loLayout(g, d, ui) {
+  const W = LO_W, { p } = LO;
+  const yBody = LO.top + (d.cats.length ? LO.tabs : 0) + 4;
+  const items = [];
+  let y = 0, pick = null;
+  for (const gr of d.groups) {
+    items.push({ t: 'group', y, h: LO.gh, gr }); y += LO.gh;
+    for (const r of gr.rows) {
+      const it = { t: 'row', y, h: LO.rh + (r.changed ? LO.was : 0), r, open: d.pick?.key === r.key };
+      items.push(it); y += it.h;
+      if (it.open) { pick = loPick(g, d.pick, y); pick.row = it; y += pick.h; }
+    }
+    y += 4;
+  }
+  if (d.paints) {
+    items.push({ t: 'group', y, h: LO.gh, gr: { title: d.paints.title } }); y += LO.gh;
+    const cw = (W - 2 * p - 8) / 2;
+    d.paints.list.forEach((pt, i) => items.push({ t: 'paint', x: p + (i % 2) * (cw + 8), y: y + Math.floor(i / 2) * (LO.ch + 8), w: cw, h: LO.ch, pt }));
+    y += Math.ceil(d.paints.list.length / 2) * (LO.ch + 8);
+  }
+  if (d.empty) { items.push({ t: 'empty', y, h: 44 }); y += 44; }
+  const contentH = y + 2;
+  const menu = ui.menu ? loMenu(g, d.menu) : null;
+  let H = yBody + Math.min(contentH, Math.max(150, (ui.maxH ?? 640) - yBody - LO.foot)) + LO.foot;
+  if (menu) H = Math.max(H, menu.y + menu.h + 10);
+  const hBody = H - yBody - LO.foot, max = Math.max(0, contentH - hBody);
+  // eine frisch geöffnete Zeile samt Auswahl ins Bild rollen, die eingebaute Zeile in die Mitte ihrer Liste
+  if (ui.reveal && pick && pick.row.r.key === ui.reveal) {
+    const top = pick.row.y - 2, bottom = pick.y + pick.h + 4;
+    if (top < ui.scroll || bottom > ui.scroll + hBody) ui.scroll = Math.min(top, Math.max(ui.scroll, bottom - hBody));
+  }
+  ui.scroll = clamp(ui.scroll ?? 0, 0, max);
+  if (pick) {
+    const pmax = Math.max(0, pick.opts.total - pick.opts.h);
+    // das eingebaute Teil in die Mitte, auf ganze Zeilen
+    if (ui.pReveal) { const i = d.pick.opts.findIndex((o) => o.on); ui.pscroll = i < 0 ? 0 : Math.max(0, i - Math.floor((LO.opts - 1) / 2)) * LO.oh; }
+    ui.pscroll = clamp(ui.pscroll ?? 0, 0, pmax);
+    pick.pmax = pmax;
+  }
+  return { W, H, yBody, hBody, contentH, max, items, pick, menu, footY: H - LO.foot };
+}
+function drawLoadout(g, d, hover, ui = {}) {
+  const L = loLayout(g, d, ui), W = LO_W, { p } = LO;
+  if (!g.canvas.dataset.h) return L.H;
+  ui.reveal = null; ui.pReveal = false; ui.zones = { body: null, opts: null };
+  const hits = [];
+  card(g, W, L.H);
+  head(g, d.title, p, 24);
+  // Name des Layouts oben rechts: öffnet das Menü; beim Umbenennen ein Eingabefeld
+  {
+    const st = { f: RAJ, w: 700, s: 13.5, c: d.nameEdit && !d.name ? C.mut : C.txt };
+    const label = d.nameEdit ? fitTail(g, d.name, 176, st) : fit(g, d.chip, 176, st);
+    const lw = Math.max(74, Math.ceil(measure(g, label, st)) + (d.nameEdit ? 26 : 40)), x = W - p - lw, y = 8, on = hover === 'ui|menu' || ui.menu;
+    g.save(); rr(g, x, y, lw, 26, 6);
+    g.fillStyle = on ? 'rgba(143,211,255,.18)' : 'rgba(143,211,255,.08)'; g.fill();
+    g.lineWidth = d.nameEdit ? 1.5 : 1; g.strokeStyle = d.nameEdit ? AMBER : on ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.35)'; g.stroke(); g.restore();
+    // ganz markiert, solange noch nichts getippt ist: die erste Taste ersetzt den Namen
+    if (d.nameEdit === 'all' && label) { g.save(); g.fillStyle = rgba(AMBER, 0.28); g.fillRect(x + 10, y + 5, Math.ceil(measure(g, label, st)) + 4, 16); g.restore(); }
+    const tw = text(g, label, x + 12, y + 18, st);
+    if (d.nameEdit) { g.save(); g.fillStyle = AMBER; g.fillRect(x + 13 + tw, y + 6, 1.5, 14); g.restore(); }
+    else { g.save(); g.strokeStyle = C.cy; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x + lw - 20, y + 11); g.lineTo(x + lw - 15, y + 16); g.lineTo(x + lw - 10, y + 11); g.stroke(); g.restore(); }
+    hits.push({ x, y, w: lw, h: 26, act: 'ui|menu' });
+  }
+  // Reiter wie im Spiel: Waffen, Systeme, Lackierung; die Zahl nennt die Tausche darin
+  if (d.cats.length) {
+    const y = LO.top, tw = (W - 2 * p) / d.cats.length;
+    d.cats.forEach((c, i) => {
+      const x = p + i * tw, act = `lo|cat|${c.id}`, hot = hover === act && !c.on;
+      const st = { f: RAJ, w: 700, s: 13, ls: '0.12em', c: c.on || hot ? C.txt : C.mut, al: 'center' };
+      if (c.on) st.glow = 'rgba(110,200,255,.6)';
+      const lab = c.label.toLocaleUpperCase(), lw = measure(g, lab, st), bw = c.n ? 20 : 0;
+      text(g, lab, x + tw / 2 - bw / 2, y + 19, st);
+      if (c.n) {
+        const bx = x + tw / 2 - bw / 2 + lw / 2 + 12;
+        g.save(); g.beginPath(); g.arc(bx, y + 14, 7.5, 0, Math.PI * 2); g.fillStyle = AMBER; g.shadowColor = AMBER; g.shadowBlur = 5 * S; g.fill(); g.restore();
+        text(g, String(c.n), bx, y + 18, { f: RAJ, w: 700, s: 11, c: INK, al: 'center' });
+      }
+      g.save(); rr(g, x + 6, y + 28, tw - 12, c.on ? 2.5 : 1, 1); g.fillStyle = c.on ? C.cy : hot ? 'rgba(212,241,255,.6)' : 'rgba(143,211,255,.25)';
+      if (c.on) { g.shadowColor = C.cy; g.shadowBlur = 8 * S; }
+      g.fill(); g.restore();
+      hits.push({ x, y, w: tw, h: LO.tabs - 2, act });
+    });
+  }
+  // ── Liste: rollt zwischen Reitern und Fuß ──
+  const yB = L.yBody, hB = L.hBody, oy = yB - ui.scroll;
+  // Knopf in der Liste: nur, was im Fenster liegt
+  const hit = (x, y, w, h, act, y0 = yB, y1 = yB + hB) => {
+    const t = Math.max(y, y0), b = Math.min(y + h, y1);
+    if (b - t > 4) hits.push({ x, y: t, w, h: b - t, act });
+  };
+  g.save(); g.beginPath(); g.rect(0, yB, W, hB); g.clip();
+  for (const it of L.items) {
+    const y = oy + it.y;
+    if (y > yB + hB || y + it.h + (it.open ? L.pick.h : 0) < yB) continue;
+    if (it.t === 'group') {
+      text(g, it.gr.title.toLocaleUpperCase(), p, y + 18, { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' });
+      let rx = W - p;
+      if (it.gr.delta) rx -= text(g, it.gr.delta, rx, y + 18, { f: RAJ, w: 700, s: 12.5, c: toneOf(it.gr.dir), al: 'right' }) + 8;
+      if (it.gr.total) text(g, it.gr.total, rx, y + 18, { f: RAJ, w: 700, s: 13.5, c: C.txt, al: 'right' });
+    } else if (it.t === 'row') {
+      const r = it.r, act = `lo|slot|${r.key}`, hot = hover === act, tint = tintOf(r.type, r.dt), mark = r.changed ? AMBER : tint;
+      if (r.changed) { g.save(); rr(g, 4, y + 1, W - 8, it.h - 2, 6); g.fillStyle = 'rgba(245,166,35,.07)'; g.fill(); g.restore(); }
+      if (it.open || hot) {
+        g.save(); rr(g, 4, y + 1, W - 8, it.h - 2 + (it.open ? L.pick.h : 0), 6);
+        g.fillStyle = it.open ? 'rgba(143,211,255,.11)' : 'rgba(143,211,255,.15)'; g.fill();
+        if (it.open) { g.lineWidth = 1; g.strokeStyle = 'rgba(143,211,255,.5)'; g.stroke(); }
+        g.restore();
+      }
+      // getauscht: Bernsteinkante links wie in der Werkstatt
+      if (r.changed) { g.save(); rr(g, 4, y + 6, 3, it.h - 12, 1.5); g.fillStyle = AMBER; g.shadowColor = AMBER; g.shadowBlur = 5 * S; g.fill(); g.restore(); }
+      else if (hot) { g.save(); rr(g, 4, y + 8, 3, it.h - 16, 1.5); g.fillStyle = '#d4f1ff'; g.shadowColor = C.cy; g.shadowBlur = 6 * S; g.fill(); g.restore(); }
+      // Nummer wie am Port
+      const cy = y + 21;
+      g.save(); g.beginPath(); g.arc(p + 12, cy, 9.5, 0, Math.PI * 2);
+      if (it.open) { g.fillStyle = C.cy; g.shadowColor = C.cy; g.shadowBlur = 8 * S; g.fill(); }
+      else { g.lineWidth = hot ? 2.2 : 1.4; g.strokeStyle = hot ? '#ffffff' : C.cy; g.stroke(); }
+      g.restore();
+      text(g, String(r.n), p + 12, cy + 4.5, { f: RAJ, w: 700, s: 12, al: 'center', c: it.open ? INK : C.txt });
+      // Sockel: Zeichen der Art im Farbton, darunter die Größe
+      const sx = p + 28, sy = y + 5;
+      g.save(); rr(g, sx, sy, 30, 30, 7);
+      const sg = g.createRadialGradient(sx + 15, sy + 9, 0, sx + 15, sy + 9, 22);
+      sg.addColorStop(0, rgba(mark, 0.2)); sg.addColorStop(1, rgba(mark, 0.05));
+      g.fillStyle = sg; g.fill();
+      if (r.changed) { g.shadowColor = AMBER; g.shadowBlur = 5 * S; }
+      g.lineWidth = 1; g.strokeStyle = rgba(mark, r.changed ? 0.8 : 0.5); g.stroke(); g.restore();
+      icon(g, d.icons?.[r.type] ?? d.icons?.gun, sx + 6, sy + 4, 18, mark);
+      {
+        const st = { f: RAJ, w: 700, s: 9.5 }, w = Math.ceil(measure(g, r.size, st)) + 8;
+        g.save(); rr(g, sx + 15 - w / 2, sy + 24, w, 12, 3); g.fillStyle = '#071c30'; g.fill(); g.lineWidth = 1; g.strokeStyle = rgba(mark, 0.6); g.stroke(); g.restore();
+        text(g, r.size, sx + 15, sy + 33.5, { ...st, c: r.changed ? AMBER : C.sub, al: 'center' });
+      }
+      const tx = p + 66, fw = Math.max(measure(g, r.figure, { f: RAJ, w: 700, s: 15 }), measure(g, r.unit, { f: BAR, s: 11.5 }));
+      const nSt = { f: RAJ, w: 700, s: 15 }, room = W - p - tx - fw - 10;
+      text(g, fit(g, r.name, room, nSt), tx, y + 18, nSt);
+      text(g, fit(g, r.sub, room, { f: BAR, s: 12 }), tx, y + 33, { f: BAR, s: 12, c: C.mut });
+      text(g, r.figure, W - p, y + 18, { f: RAJ, w: 700, s: 15, al: 'right', glow: GLOW });
+      text(g, r.unit, W - p, y + 33, { f: BAR, s: 11.5, c: C.mut, al: 'right' });
+      if (r.changed) {
+        const dw = r.delta ? text(g, r.delta, W - p, y + 47, { f: RAJ, w: 700, s: 12, c: toneOf(r.dir), al: 'right' }) + 8 : 0;
+        text(g, fit(g, r.was, W - p - tx - dw, { f: BAR, s: 11.5 }), tx, y + 47, { f: BAR, s: 11.5, c: '#cfae74' });
+      }
+      hit(4, y, W - 8, it.h, act);
+      if (!it.open) continue;
+      // Auswahl: was hier passt, das eingebaute und das Serienteil benannt
+      const P = L.pick, pk = d.pick, py = oy;
+      text(g, `${pk.head} · ${pk.count}`.toLocaleUpperCase(), P.x0, py + P.y + 15, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.12em' });
+      if (P.racks) {
+        text(g, pk.racks.label.toLocaleUpperCase(), P.x0, py + P.rackLabel, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.12em' });
+        for (const b of P.racks) {
+          const ract = `lo|rack|${pk.key}|${b.r.id}`, rh = hover === ract, by = py + b.y;
+          g.save(); rr(g, b.x, by, b.w, b.h, 6);
+          g.fillStyle = b.r.on ? 'rgba(143,211,255,.18)' : rh ? 'rgba(143,211,255,.10)' : 'rgba(143,211,255,.04)'; g.fill();
+          g.lineWidth = 1; g.strokeStyle = b.r.on ? '#d4f1ff' : rh ? 'rgba(212,241,255,.6)' : 'rgba(143,211,255,.3)'; g.stroke(); g.restore();
+          text(g, b.r.top, b.x + 9, by + 15, { ...RK1, c: b.r.on ? C.txt : C.sub });
+          text(g, b.sub, b.x + 9, by + 28, { ...RK2, c: C.mut });
+          if (!b.r.on) hit(b.x, by, b.w, b.h, ract);
+        }
+        text(g, fit(g, pk.racks.info, P.x1 - P.x0, { f: BAR, s: 11.5 }), P.x0, py + P.rackInfo, { f: BAR, s: 11.5, c: C.mut });
+      }
+      const O = P.opts, oy0 = py + O.y, v0 = Math.max(yB, oy0), v1 = Math.min(yB + hB, oy0 + O.h);
+      ui.zones.opts = v1 > v0 ? { x: O.x, y: v0, w: O.w, h: v1 - v0, max: P.pmax } : null;
+      g.save(); g.beginPath(); g.rect(O.x - 2, oy0, O.w + 4, O.h); g.clip();
+      pk.opts.forEach((o, i) => {
+        const yy = oy0 + i * LO.oh - ui.pscroll;
+        if (yy + LO.oh < oy0 || yy > oy0 + O.h) return;
+        const oact = `lo|opt|${pk.key}|${o.id}`, oh = hover === oact, ot = tintOf(o.type, o.dt);
+        if (o.on || oh) {
+          g.save(); rr(g, O.x, yy + 1, O.w - (P.pmax ? 6 : 0), LO.oh - 3, 5);
+          g.fillStyle = o.on ? 'rgba(143,211,255,.16)' : 'rgba(143,211,255,.10)'; g.fill();
+          if (oh) { g.lineWidth = 1; g.strokeStyle = 'rgba(212,241,255,.7)'; g.stroke(); }
+          g.restore();
+        }
+        const right = O.x + O.w - (P.pmax ? 12 : 6), nx = O.x + 20;
+        g.save(); g.beginPath(); g.arc(O.x + 10, yy + 11, 3.5, 0, Math.PI * 2); g.fillStyle = ot; g.shadowColor = ot; g.shadowBlur = 4 * S; g.fill(); g.restore();
+        if (o.delta) text(g, o.delta, right, yy + 15, { f: RAJ, w: 700, s: 12, al: 'right', c: toneOf(o.dir) });
+        text(g, o.figure, right - 56, yy + 15, { f: RAJ, w: 700, s: 13.5, al: 'right', c: C.txt });
+        const nmSt = { f: RAJ, w: 700, s: 13.5, c: o.on ? C.txt : C.sub };
+        const tagW = o.tag ? measure(g, o.tag, { f: BAR, s: 10.5 }) + 16 : 0;
+        const nameRoom = right - 56 - measure(g, o.figure, { f: RAJ, w: 700, s: 13.5 }) - 8 - nx;
+        const nw = text(g, fit(g, o.name, nameRoom - tagW, nmSt), nx, yy + 15, nmSt);
+        if (o.tag) {
+          const tw = tagW - 6, tgx = nx + nw + 6;
+          g.save(); rr(g, tgx, yy + 4, tw, 14, 7); g.lineWidth = 1; g.strokeStyle = o.on ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.35)'; g.stroke(); g.restore();
+          text(g, o.tag, tgx + tw / 2, yy + 14.5, { f: BAR, s: 10.5, c: o.on ? C.txt : C.mut, al: 'center' });
+        }
+        text(g, fit(g, o.sub, right - nx, { f: BAR, s: 11 }), nx, yy + 28, { f: BAR, s: 11, c: C.mut });
+        // Wertbalken bis zum stärksten passenden Teil
+        g.save(); g.fillStyle = 'rgba(143,211,255,.14)'; g.fillRect(nx, yy + LO.oh - 4.5, right - nx, 2);
+        g.fillStyle = rgba(ot, 0.85); g.fillRect(nx, yy + LO.oh - 4.5, Math.max(2, (right - nx) * clamp(o.bar, 0, 1)), 2); g.restore();
+        if (!o.on) hit(O.x, yy, O.w, LO.oh, oact, v0, v1);
+      });
+      g.restore();
+      if (P.pmax) {
+        const th = Math.max(18, O.h * (O.h / O.total)), ty = oy0 + (O.h - th) * (ui.pscroll / P.pmax);
+        g.save(); rr(g, O.x + O.w - 3, oy0, 3, O.h, 1.5); g.fillStyle = 'rgba(143,211,255,.12)'; g.fill();
+        rr(g, O.x + O.w - 3, ty, 3, th, 1.5); g.fillStyle = 'rgba(143,211,255,.6)'; g.fill(); g.restore();
+      }
+      for (const b of P.pills) {
+        const by = py + P.pillY + b.row * 34, rev = b.act.startsWith('lo|revert');
+        const r2 = pill(g, b.x + b.w, by, b.label, { c: rev ? AMBER : C.cy, border: rev ? rgba(AMBER, 0.55) : 'rgba(143,211,255,.45)', hover: hover === b.act });
+        hit(r2.x, r2.y, r2.w, r2.h, b.act);
+      }
+    } else if (it.t === 'paint') {
+      // Lackierung: drei Töne (Haupt, Zweit, Akzent) als Farbfeld, die gewählte mit Rahmen und Haken
+      const pt = it.pt, act = `lo|paint|${pt.id}`, hot = hover === act;
+      g.save(); rr(g, it.x, y, it.w, it.h, 7);
+      g.fillStyle = pt.on ? 'rgba(143,211,255,.16)' : hot ? 'rgba(143,211,255,.10)' : 'rgba(143,211,255,.04)'; g.fill();
+      g.lineWidth = pt.on ? 1.5 : 1; g.strokeStyle = pt.on ? '#d4f1ff' : hot ? 'rgba(212,241,255,.6)' : 'rgba(143,211,255,.25)'; g.stroke(); g.restore();
+      const sx = it.x + 7, sw = it.w - 14, sy = y + 7, sh = 24;
+      g.save(); rr(g, sx, sy, sw, sh, 4); g.clip();
+      g.fillStyle = pt.cols[0]; g.fillRect(sx, sy, sw / 2, sh);
+      g.fillStyle = pt.cols[1]; g.fillRect(sx + sw / 2, sy, sw / 4, sh);
+      g.fillStyle = pt.cols[2]; g.fillRect(sx + sw * 0.75, sy, sw / 4 + 1, sh);
+      g.restore();
+      g.save(); rr(g, sx, sy, sw, sh, 4); g.lineWidth = 1; g.strokeStyle = 'rgba(230,246,255,.22)'; g.stroke(); g.restore();
+      const nSt = { f: RAJ, w: 700, s: 12.5, c: pt.on ? C.txt : C.sub };
+      text(g, fit(g, pt.name, sw - (pt.on ? 14 : 0), nSt), sx, y + 46, nSt);
+      if (pt.note) text(g, fit(g, pt.note, sw, { f: BAR, s: 10 }), sx, y + 56, { f: BAR, s: 10, c: C.mut });
+      if (pt.on) text(g, '✓', it.x + it.w - 8, y + 46, { f: RAJ, w: 700, s: 13, c: C.cy, al: 'right' });
+      else hit(it.x, y, it.w, it.h, act);
+    } else if (it.t === 'empty') {
+      wrap2(g, d.empty, W - 2 * p, { f: BAR, s: 13 }).forEach((l, i) => text(g, l, p, y + 20 + i * 17, { f: BAR, s: 13, c: C.mut }));
+    }
+  }
+  g.restore();
+  ui.zones.body = { x: 0, y: yB, w: W, h: hB, max: L.max };
+  if (L.max) {
+    const th = Math.max(24, hB * (hB / L.contentH)), ty = yB + (hB - th) * (ui.scroll / L.max);
+    g.save(); rr(g, W - 5, ty, 3, th, 1.5); g.fillStyle = 'rgba(143,211,255,.55)'; g.fill(); g.restore();
+    // weiche Kanten, wo die Liste weiterläuft
+    for (const [on, y0, y1] of [[ui.scroll > 1, yB, yB + 14], [ui.scroll < L.max - 1, yB + hB, yB + hB - 14]]) {
+      if (!on) continue;
+      const f = g.createLinearGradient(0, y0, 0, y1); f.addColorStop(0, 'rgba(6,24,42,.92)'); f.addColorStop(1, 'rgba(6,24,42,0)');
+      g.save(); g.fillStyle = f; g.fillRect(2, Math.min(y0, y1), W - 4, 14); g.restore();
+    }
+  }
+  // Meldung der Werkstatt (Gespeichert, Link kopiert) oder der Hinweis am geteilten Layout
+  const msgTxt = d.toast || d.note;
+  if (msgTxt) {
+    const st = { f: BAR, s: 12.5, c: C.txt }, lines = wrap2(g, msgTxt, W - 2 * p - 20, st), h = lines.length * 16 + 12, y = L.footY - h - 6;
+    g.save(); rr(g, p, y, W - 2 * p, h, 6); g.shadowColor = 'rgba(0,0,0,.55)'; g.shadowBlur = 10 * S; g.fillStyle = 'rgba(8,26,44,.98)'; g.fill();
+    g.shadowBlur = 0; g.lineWidth = 1.2; g.strokeStyle = d.toast ? AMBER : rgba(AMBER, 0.55); g.stroke(); g.restore();
+    lines.forEach((l, i) => text(g, l, p + 10, y + 18 + i * 16, st));
+  }
+  // ── Fuß: Stand des Layouts, Speichern, Teilen, Serie ──
+  {
+    const y = L.footY, s = d.state;
+    g.save(); g.fillStyle = 'rgba(143,211,255,.22)'; g.fillRect(p, y + 2, W - 2 * p, 1); g.restore();
+    let x = p;
+    if (s.s === 'saved') x += text(g, '✓', x, y + 22, { f: RAJ, w: 700, s: 13, c: AMBER }) + 5;
+    else { g.save(); g.beginPath(); g.arc(x + 4, y + 17.5, 3.5, 0, Math.PI * 2); g.fillStyle = s.s === 'changed' ? AMBER : C.mut; if (s.s === 'changed') { g.shadowColor = AMBER; g.shadowBlur = 5 * S; } g.fill(); g.restore(); x += 14; }
+    const st = { f: BAR, w: 500, s: 12.5, c: C.txt };
+    x += text(g, fit(g, s.text, W - p - x, st), x, y + 22, st);
+    if (s.sub) text(g, fit(g, ` · ${s.sub}`, W - p - x, { f: BAR, s: 12.5 }), x, y + 22, { f: BAR, s: 12.5, c: s.s === 'saved' ? AMBER : C.mut });
+    // Knöpfe von links: Speichern trägt die Fläche
+    const bSt = { f: RAJ, w: 700, s: 13.5 };
+    let total = -6;
+    for (const b of d.btns) total += Math.ceil(measure(g, b.label, bSt)) + 24 + 6;
+    while (total > W - 2 * p && bSt.s > 11) { bSt.s -= 0.5; total = -6; for (const b of d.btns) total += Math.ceil(measure(g, b.label, bSt)) + 24 + 6; }
+    let bx = p;
+    const by = y + 31;
+    for (const b of d.btns) {
+      const w = Math.ceil(measure(g, b.label, bSt)) + 24, act = `lo|${b.id}`, hot = hover === act && !b.off;
+      g.save(); if (b.off) g.globalAlpha = 0.4;
+      rr(g, bx, by, w, 28, 14);
+      if (b.main) { g.fillStyle = hot ? '#d4f1ff' : C.cy; g.shadowColor = C.cy; g.shadowBlur = (hot ? 12 : 7) * S; g.fill(); }
+      else { if (hot) { g.fillStyle = 'rgba(143,211,255,.16)'; g.fill(); } g.lineWidth = 1; g.strokeStyle = hot ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.38)'; g.stroke(); }
+      g.restore();
+      g.save(); if (b.off) g.globalAlpha = 0.4;
+      text(g, b.label, bx + w / 2, by + 19, { ...bSt, c: b.main ? INK : hot ? C.txt : C.sub, al: 'center' });
+      g.restore();
+      if (!b.off) hits.push({ x: bx, y: by, w, h: 28, act });
+      bx += w + 6;
+    }
+  }
+  // ── Menü der Layouts, über allem ──
+  if (L.menu) {
+    const M = L.menu;
+    hits.push({ x: 0, y: 0, w: W, h: L.H, act: 'ui|shut' });
+    hits.push({ x: W - p - 200, y: 8, w: 200, h: 26, act: 'ui|menu' });
+    g.save(); rr(g, M.x, M.y, M.w, M.h, 7); g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 18 * S;
+    g.fillStyle = 'rgba(6,24,42,.98)'; g.fill(); g.shadowBlur = 0; g.lineWidth = 1.2; g.strokeStyle = 'rgba(143,211,255,.6)'; g.stroke(); g.restore();
+    M.rows.forEach((row, i) => {
+      const it = row.it, y = row.y;
+      if (it.sep) { g.save(); g.fillStyle = 'rgba(143,211,255,.22)'; g.fillRect(M.x + 10, y + 4, M.w - 20, 1); g.restore(); return; }
+      if (it.head) { text(g, it.head.toLocaleUpperCase(), M.x + 14, y + 16, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.14em' }); return; }
+      if (it.note) { row.lines.forEach((l, j) => text(g, l, M.x + 14, y + 15 + j * 15, { ...MN, c: C.mut })); return; }
+      const act = it.href ? `href|${it.href}` : it.act[0] === 'rename' ? 'ui|rename' : `lo|${it.act.join('|')}`, hot = hover === act;
+      if (it.on || hot) { g.save(); rr(g, M.x + 5, y, M.w - 10, row.h - 2, 5); g.fillStyle = hot ? 'rgba(143,211,255,.18)' : 'rgba(143,211,255,.11)'; g.fill(); g.restore(); }
+      if (it.on) text(g, '✓', M.x + 14, y + 19, { f: RAJ, w: 700, s: 13, c: C.cy });
+      const sw = it.sub ? measure(g, it.sub, MS) + 10 : 0;
+      const st = { ...MI, c: it.href || it.act?.[0] === 'saveNew' ? C.cy : C.txt };
+      text(g, fit(g, it.label, M.w - 44 - sw, st), M.x + 30, y + 19, st);
+      if (it.sub) text(g, it.sub, M.x + M.w - 12, y + 19, { ...MS, c: C.mut, al: 'right' });
+      hits.push({ x: M.x + 5, y, w: M.w - 10, h: row.h - 2, act });
+    });
+  }
+  return hits;
+}
+drawLoadout.W = LO_W;
+
 // kleines Schild (Maß, Nummer): Text in einem Rahmen, ohne Knöpfe
 function drawLabel(g, s, o = {}) {
   const st = { f: RAJ, w: 700, s: o.s ?? 16, glow: GLOW };
@@ -302,16 +708,19 @@ function drawLabel(g, s, o = {}) {
 // Nummer am Port; mode: '' ruhig, 'hot' unter dem Zeiger (hier oder an der
 // Zeile), 'sel' gewählt (gefüllt wie der Kreis der Zeile), 'dim' die übrigen,
 // solange eine Zeile gemeint ist. Feste Bildgröße: der Mittelpunkt springt nicht.
-function drawNumber(g, n, mode = '') {
+// changed: der Slot weicht von der Serie ab, der Ring ist bernsteinfarben wie
+// die Marke seiner Zeile auf der Tafel
+function drawNumber(g, n, mode = '', changed = false) {
   const big = mode === 'hot' || mode === 'sel', r = big ? 14 : 12, c = 16;
   if (!g.canvas.dataset.h) return [32, 32];
   g.save();
   if (mode === 'dim') g.globalAlpha = 0.45;
   g.beginPath(); g.arc(c, c, r, 0, Math.PI * 2);
-  g.shadowColor = 'rgba(110,200,255,.8)'; g.shadowBlur = (big ? 16 : 10) * S;
+  g.shadowColor = changed ? rgba(AMBER, 0.85) : 'rgba(110,200,255,.8)'; g.shadowBlur = (big ? 16 : 10) * S;
   g.fillStyle = mode === 'sel' ? C.cy : mode === 'hot' ? 'rgba(16,52,82,.96)' : 'rgba(8,25,43,.92)'; g.fill();
   g.shadowBlur = 0;
-  if (mode !== 'sel') { g.lineWidth = big ? 2.5 : 2; g.strokeStyle = big ? '#d4f1ff' : C.cy; g.stroke(); }
+  if (changed) { g.lineWidth = 2.5; g.strokeStyle = AMBER; g.stroke(); }
+  else if (mode !== 'sel') { g.lineWidth = big ? 2.5 : 2; g.strokeStyle = big ? '#d4f1ff' : C.cy; g.stroke(); }
   g.restore();
   g.save(); if (mode === 'dim') g.globalAlpha = 0.45;
   text(g, String(n), c, c + 5, { f: RAJ, w: 700, s: big ? 15 : 14, al: 'center', c: mode === 'sel' ? '#04121d' : C.txt });
@@ -423,7 +832,7 @@ export function holoLayer(ctx) {
   // ── Tafel ──
   function makePanel(draw, data, side) {
     const cv = sheetCanvas(1, 1), g = cv.getContext('2d');
-    const P = { draw, data, side, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null };
+    const P = { draw, data, side, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null, ui: { scroll: 0, pscroll: 0, menu: false } };
     P.tex = new THREE.CanvasTexture(cv); P.tex.colorSpace = THREE.SRGBColorSpace;
     P.tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() ?? 1);
     P.tex.minFilter = THREE.LinearMipmapLinearFilter; P.tex.generateMipmaps = true;
@@ -449,8 +858,10 @@ export function holoLayer(ctx) {
   function redraw(P) {
     const g = P.g;
     delete P.canvas.dataset.h;
-    const H = P.draw(g, P.data, null);
-    const w = P.draw === drawTiles ? TILES_W : SYS_W;
+    // so hoch, wie über ihrem Platz frei ist; was nicht passt, rollt (Ausrüstung)
+    const w = P.draw.W, room = roomOf(P, w);
+    P.ui.maxH = room.bottom - 40 - room.top - 6;
+    const H = P.draw(g, P.data, null, P.ui);
     P.cssW = w; P.cssH = H;
     const cw = Math.ceil((w + 2 * PAD) * S), ch = Math.ceil((H + 2 * PAD) * S);
     if (P.canvas.width !== cw || P.canvas.height !== ch) {
@@ -463,27 +874,45 @@ export function holoLayer(ctx) {
     P.canvas.dataset.h = String(H);
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cw, ch);
     g.setTransform(S, 0, 0, S, PAD * S, PAD * S);
-    P.hits = P.draw(g, P.data, P.hover ?? null) || [];
+    P.hits = P.draw(g, P.data, P.hover ?? null, P.ui) || [];
     P.tex.needsUpdate = true;
+  }
+  // Freier Streifen einer Tafel der Breite w im Bild: Mitte, Ränder, tiefste
+  // Unterkante (über Knöpfen der Seite) und höchste Oberkante (unter Kopfzeile
+  // und Knöpfen am Titel). shift: um so viele Pixel zur Bildmitte gerückt
+  function roomOf(P, w, shift = 0) {
+    const W = ctx.W(), H = ctx.H();
+    const x = P.side === 'left' ? safe.l + 18 + w / 2 + shift : W - safe.r - 18 - w / 2 - shift;
+    const x0 = x - w / 2, x1 = x + w / 2;
+    let bottom = H - 22, top = safe.t ?? 0;
+    for (const r of safe.rects ?? []) {
+      if (r.r <= x0 || r.l >= x1) continue;
+      if (r.t > H * 0.45) bottom = Math.min(bottom, r.t - 14);
+      else if ((r.b ?? 0) < H * 0.45) top = Math.max(top, r.b + 10);
+    }
+    return { x, x0, x1, bottom, top };
   }
   function redrawAll() { for (const P of built?.panels ?? []) redraw(P); for (const s of built?.sprites ?? []) s.redraw?.(); }
   // Zeiger und Wahl auf Tafeln und Nummern: die Zeile unter dem Zeiger
   // leuchtet an beiden Stellen, die gewählte bleibt gefüllt
   function applyHover() {
     if (!built) return;
-    const sysH = hoverAct && /^(sys|go):/.test(hoverAct) ? hoverAct : null;
-    const sheetH = hoverAct && !sysH ? hoverAct : null;
-    if ((built.sys.hover ?? null) !== sysH) { built.sys.hover = sysH; redraw(built.sys); }
+    const leftH = hoverAct && /^(sys:|go:|lo\||ui\||href\|)/.test(hoverAct) ? hoverAct : null;
+    const sheetH = hoverAct && !leftH ? hoverAct : null;
+    if ((built.left.hover ?? null) !== leftH) { built.left.hover = leftH; redraw(built.left); }
     if ((built.sheet.hover ?? null) !== sheetH) { built.sheet.hover = sheetH; redraw(built.sheet); }
     updateMarks();
   }
+  // Nummern am Schiff: gewählt ist die offene Zeile (Ausrüstung) bzw. sind
+  // die aufgeklappten (Systeme), heiß die unter dem Zeiger
   function updateMarks() {
     if (!built) return;
-    const d = built.sys.data, sel = new Set((d.sel ?? []).filter((id) => d.detail?.[id] && d.rows.some((r) => r.id === id)));
-    const hot = hoverAct?.startsWith('sys:') ? hoverAct.slice(4) : null;
+    const d = built.left.data, lo = built.left.draw === drawLoadout;
+    const sel = new Set(lo ? (d.open ? [`lo|slot|${d.open}`] : []) : (d.sel ?? []).filter((id) => d.detail?.[id] && d.rows.some((r) => r.id === id)).map((id) => `sys:${id}`));
+    const hot = hoverAct && /^(sys:|lo\|slot\|)/.test(hoverAct) ? hoverAct : null;
     for (const sp of built.sprites) {
       if (sp.kind !== 'num') continue;
-      const mode = sel.has(sp.row) ? 'sel' : sp.row === hot ? 'hot' : sel.size || hot ? 'dim' : '';
+      const mode = sel.has(sp.act) ? 'sel' : sp.act === hot ? 'hot' : sel.size || hot ? 'dim' : '';
       if (mode === sp.st.mode) continue;
       sp.st.mode = mode; sp.redraw();
       sp.obj.renderOrder = RO.sprite + (mode === 'sel' || mode === 'hot' ? 1 : 0);
@@ -553,12 +982,32 @@ export function holoLayer(ctx) {
   }
 
   // ── Übersicht bauen ──
+  // Links die Ausrüstung (Werkstatt), solange sie fehlt die Systeme der Bucht
+  const leftOf = (d) => (d.loadout ? [drawLoadout, d.loadout] : [drawSystems, d.systems]);
   function buildShip(rest, d) {
-    const sys = makePanel(drawSystems, d.systems, 'left'), sheet = makePanel(drawTiles, d.sheet, 'right');
-    const panels = [sys, sheet];
-    const sprites = [];
-    const M = rest.model.matrixWorld;
-    for (const r of d.systems.rows) {
+    const left = makePanel(...leftOf(d), 'left'), sheet = makePanel(drawTiles, d.sheet, 'right');
+    const b = { key: d.key, panels: [left, sheet], left, sheet, sprites: [], box: worldBox(rest, d.dims.box), dims: d.dims, lines: null, model: rest.model, numKey: '' };
+    return b;
+  }
+  // Nummern an den Ports der Zeilen links; neu, wenn Reiter oder Zeilen wechseln
+  function syncNums(d) {
+    const rows = d.loadout
+      ? d.loadout.groups.flatMap((g) => g.rows.map((r) => ({ act: `lo|slot|${r.key}`, n: r.n, ps: r.ps, ch: !!r.changed })))
+      : d.systems.rows.map((r) => ({ act: `sys:${r.id}`, n: r.n, ps: r.ps }));
+    const key = JSON.stringify(rows);
+    if (key === built.numKey) return;
+    built.numKey = key;
+    for (const sp of built.sprites) {
+      if (sp.kind !== 'num') continue;
+      root.remove(sp.obj);
+      sp.obj.material.map?.dispose();
+      const i = mats.findIndex(([m]) => m === sp.obj.material);
+      if (i >= 0) mats.splice(i, 1);
+      sp.obj.material.dispose();
+    }
+    built.sprites = built.sprites.filter((sp) => sp.kind !== 'num');
+    const M = built.model.matrixWorld, all = [];
+    for (const r of rows) {
       const seen = [];
       for (const p of r.ps ?? []) {
         const local = new THREE.Vector3(p[0], p[1], p[2]);
@@ -566,14 +1015,17 @@ export function holoLayer(ctx) {
         // 0,34 m): eine Nummer, sonst liegen zwei Kreise übereinander
         if (seen.some((q) => q.distanceTo(local) < 1)) continue;
         seen.push(local);
+        // Ports verschiedener Zeilen am selben Fleck: die Nummern nebeneinander
+        const near = all.filter((q) => q.distanceTo(local) < 0.6).length;
+        all.push(local);
         const st = { mode: '' };
-        const sp = makeSprite((g) => drawNumber(g, r.n, st.mode), local.clone().applyMatrix4(M), { xray: true, kind: 'num' });
-        sp.local = local; sp.row = r.id; sp.st = st;
-        sprites.push(sp);
+        const sp = makeSprite((g) => drawNumber(g, r.n, st.mode, r.ch), local.clone().applyMatrix4(M), { xray: true, kind: 'num' });
+        sp.local = local; sp.act = r.act; sp.st = st; sp.dx = near * 27;
+        sp.obj.center.x = 0.5 - sp.dx / sp.px;
+        sp.obj.material.opacity = alpha;
+        built.sprites.push(sp);
       }
     }
-    const box = worldBox(rest, d.dims.box);
-    return { key: d.key, panels, sys, sheet, sprites, box, dims: d.dims, lines: null, model: rest.model };
   }
 
   // Maßlinien an den beiden Seiten, die zur Kamera zeigen; neu, wenn die
@@ -654,13 +1106,9 @@ export function holoLayer(ctx) {
   // von Seitenleiste und Knöpfen; nicht im Fußabdruck des Schiffs und nicht
   // hinter ihm. shift: um so viele Pixel zur Bildmitte gerückt
   function target(P, shift = 0) {
-    const W = ctx.W(), H = ctx.H(), k = 1;
-    const w = P.cssW * k, h = P.cssH * k;
-    const x = P.side === 'left' ? safe.l + 18 + w / 2 + shift : W - safe.r - 18 - w / 2 - shift;
-    const x0 = x - w / 2, x1 = x + w / 2;
+    const w = P.cssW, h = P.cssH;
     // tiefste freie Höhe unter der Tafel: über Knöpfen der Seite in ihrem Streifen
-    let bottom = H - 22;
-    for (const r of safe.rects ?? []) if (r.r > x0 && r.l < x1 && r.t > H * 0.45) bottom = Math.min(bottom, r.t - 14);
+    const { x, x0, x1, bottom } = roomOf(P, w, shift);
     if (bottom - h - 40 < (safe.t ?? 0)) return null;
     // Bildfläche der Tafel mit Projektor, für die Schilder (placeLabels)
     P.rect = { l: x0, r: x1, t: bottom - h - 40, b: bottom };
@@ -813,7 +1261,8 @@ export function holoLayer(ctx) {
   // ── Zeiger: Knöpfe auf den Tafeln, Zeilen der Systeme, Nummern am Schiff ──
   // liefert den Knopf unter dem Zeiger (act) oder null; eine Tafel deckt,
   // was hinter ihr liegt, ihr durchsichtiger Rand nicht
-  function pick(e) {
+  // Tafel unter dem Zeiger mit dem Punkt in ihren CSS-Pixeln, oder null
+  function panelAt(e) {
     if (!built || alpha < 0.5) return null;
     const r = el.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
@@ -825,33 +1274,57 @@ export function holoLayer(ctx) {
       const P = h.object.userData.panel;
       const x = h.uv.x * (P.cssW + 2 * PAD) - PAD, y = (1 - h.uv.y) * (P.cssH + 2 * PAD) - PAD;
       if (x < 0 || y < 0 || x > P.cssW || y > P.cssH) continue;
-      return P.hits.find((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)?.act ?? null;
+      return { P, x, y };
     }
+    return null;
+  }
+  function pick(e) {
+    if (!built || alpha < 0.5) return null;
+    const at = panelAt(e);
+    if (at) {
+      // der zuletzt gezeichnete Knopf liegt oben (Menü über der Liste)
+      for (let i = at.P.hits.length - 1; i >= 0; i--) {
+        const b = at.P.hits[i];
+        if (at.x >= b.x && at.x <= b.x + b.w && at.y >= b.y && at.y <= b.y + b.h) return b.act;
+      }
+      return null;
+    }
+    const r = el.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
     // Nummern: die dem Zeiger nächste unter den getroffenen (sie liegen am
     // Rumpf oft dicht beieinander)
     const nums = built.sprites.filter((sp) => sp.kind === 'num' && sp.obj.visible);
     let best = null, bd = Infinity;
     for (const h of ray.intersectObjects(nums.map((sp) => sp.obj), false)) {
       const sp = nums.find((n) => n.obj === h.object), px = sp && toPx(sp.pos);
-      const d = px ? Math.hypot(px[0] - mx * (ctx.W() / r.width), px[1] - my * (ctx.H() / r.height)) : Infinity;
+      const d = px ? Math.hypot(px[0] + (sp.dx ?? 0) - mx * (ctx.W() / r.width), px[1] - my * (ctx.H() / r.height)) : Infinity;
       if (d < bd) { bd = d; best = sp; }
     }
-    return best ? `sys:${best.row}` : null;
+    return best ? best.act : null;
   }
   let downAt = null;
   const onDown = (e) => { downAt = [e.clientX, e.clientY]; };
   const onClick = (e) => {
     if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
     const act = pick(e);
+    // das Menü der Layouts schließt mit jedem Klick, auch daneben
+    const ui = built?.left.ui, menu = !!ui?.menu;
+    if (menu) { ui.menu = false; redraw(built.left); settledAt = 0; ctx.wake(300); }
     if (!act) return;
-    if (act.startsWith('sys:')) ctx.act({ act: 'sys', row: act.slice(4) });
+    if (act === 'ui|menu') { if (!menu) { ui.menu = true; redraw(built.left); settledAt = 0; ctx.wake(300); } }
+    else if (act === 'ui|rename') ctx.act({ act: 'lo', a: ['rename'] });
+    else if (act.startsWith('ui|')) return;
+    else if (act.startsWith('lo|')) ctx.act({ act: 'lo', a: act.split('|').slice(1) });
+    else if (act.startsWith('href|')) ctx.act({ act: 'go', href: act.slice(5) });
+    else if (act.startsWith('sys:')) ctx.act({ act: 'sys', row: act.slice(4) });
     else if (act.startsWith('go:')) {
       const rest = act.slice(3), j = rest.lastIndexOf(':');
-      const l = built.sys.data.detail?.[rest.slice(0, j)]?.links?.[Number(rest.slice(j + 1))];
+      const l = built.left.data.detail?.[rest.slice(0, j)]?.links?.[Number(rest.slice(j + 1))];
       if (l?.href) ctx.act({ act: 'go', href: l.href });
     } else ctx.act({ act });
   };
   const hoverTo = (act) => {
+    if (act === 'ui|shut') act = null;
     if (act === hoverAct) return;
     hoverAct = act;
     applyHover();
@@ -860,10 +1333,45 @@ export function holoLayer(ctx) {
   };
   const onMove = (e) => { if (!e.buttons) hoverTo(pick(e)); };
   const onLeave = () => hoverTo(null);
+  // Rad über der Ausrüstung rollt ihre Liste (über der Auswahl zuerst die),
+  // statt die Kamera zu fahren. Vor dem Viewer: der hört am Canvas selbst.
+  const wheelHost = el.parentElement ?? el;
+  const onWheel = (e) => {
+    if (e.target !== el) return;
+    const at = panelAt(e);
+    if (!at || at.P.draw !== drawLoadout) return;
+    e.preventDefault(); e.stopPropagation();
+    const ui = at.P.ui, z = ui.zones ?? {}, dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+    const inOpts = z.opts && at.x >= z.opts.x && at.x <= z.opts.x + z.opts.w && at.y >= z.opts.y && at.y <= z.opts.y + z.opts.h;
+    const to = clamp(ui.pscroll + dy, 0, z.opts?.max ?? 0);
+    if (inOpts && to !== ui.pscroll) ui.pscroll = to;
+    else if (z.body?.max) ui.scroll = clamp(ui.scroll + dy, 0, z.body.max);
+    else return;
+    redraw(at.P);
+    hoverTo(pick(e));
+    ctx.wake(300);
+  };
   el.addEventListener('pointerdown', onDown);
   el.addEventListener('click', onClick);
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerleave', onLeave);
+  wheelHost.addEventListener('wheel', onWheel, { capture: true, passive: false });
+
+  // Neue Wörter für dieselbe Station. Links wechselt die Tafel zur
+  // Ausrüstung, sobald die Werkstatt geladen hat; ein neuer Reiter beginnt
+  // oben, eine frisch geöffnete Zeile rollt mit ihrer Auswahl ins Bild.
+  function applyData(d) {
+    const L = built.left, [draw, data] = leftOf(d);
+    if (draw === drawLoadout) {
+      const was = L.draw === drawLoadout ? L.data : null;
+      if (was?.cat !== data.cat) { L.ui.scroll = 0; L.ui.menu = false; }
+      if (data.open && data.open !== was?.open) { L.ui.reveal = data.open; L.ui.pReveal = true; }
+      else if (data.pick && was?.pick && data.pick.opts.length !== was.pick.opts.length) L.ui.pReveal = true;
+    }
+    L.draw = draw; L.data = data;
+    built.sheet.data = d.sheet;
+    syncNums(d);
+  }
 
   return {
     set(w) {
@@ -871,16 +1379,18 @@ export function holoLayer(ctx) {
       alphaFrom = alpha; alphaTo = want ? 1 : 0; fadeAt = performance.now();
       if (built && want && (built.key !== want.data.key)) { alphaTo = 0; }
       else if (built && want) {
-        // dieselbe Station, neue Wörter (Vergleich an/aus, gewählte Zeile):
-        // neu zeichnen; die Tafel wächst nach oben, ihr Platz wird neu geprüft
-        built.sys.data = want.data.systems; built.sheet.data = want.data.sheet;
+        // dieselbe Station, neue Wörter (Vergleich an/aus, gewählte Zeile,
+        // ein Tausch in der Ausrüstung): neu zeichnen; die Tafel wächst nach
+        // oben, ihr Platz wird neu geprüft
+        applyData(want.data);
         redrawAll();
         updateMarks();
         settledAt = 0;
       }
       ctx.wake(FADE_MS + 100);
     },
-    safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; settledAt = 0; ctx.wake(300); },
+    // neues freies Bild: die Ausrüstung richtet ihre Höhe danach
+    safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; if (built) redraw(built.left); settledAt = 0; ctx.wake(300); },
     // Spiegelbild des Bodens („hoch“): ohne Hologramme, ihre Nummern lagen
     // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026)
     mirror(on) { const vis = !on && alpha > 0.001; dim.visible = vis; root.visible = vis; },
@@ -896,6 +1406,7 @@ export function holoLayer(ctx) {
       if (!built && want && ready) {
         built = buildShip(rest, want.data);
         restKey = rest.key;
+        syncNums(want.data);
         updateMarks();
         retarget(now, true);
         alphaFrom = 0; alphaTo = 1; fadeAt = now;
@@ -925,6 +1436,7 @@ export function holoLayer(ctx) {
       el.removeEventListener('click', onClick);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerleave', onLeave);
+      wheelHost.removeEventListener('wheel', onWheel, { capture: true });
       clear(); scene.remove(root); scene.remove(dim);
       dim.geometry.dispose(); dimMat.dispose(); softTex.dispose(); beamTex.dispose(); bandTex.dispose();
     },

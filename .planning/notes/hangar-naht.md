@@ -20,7 +20,7 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `setSafe({ l, t, r, rects })` | Freie Fläche der Bühne in CSS-Pixeln (Ränder links, oben, rechts und Rechtecke der Knöpfe). Gilt für den Namen als Hologramm und die Stationen. |
 | `canStation()` | `true`, wenn die Bühne Stationen in die Halle stellen kann (echte Halle, kein Telefon, `opts.holo.module`). Sonst bleibt die Tafel der Seite. |
 | `station(s)` | `s = { name: 'uebersicht', data }` stellt die Station am ruhenden Schiff auf (lädt `assets/hangar-holo3d.js` beim ersten Mal), `null` nimmt sie weg. `data` ist fertig gesetzt (`holoData` im Controller). Liefert `false`, wenn die Bühne es nicht kann. |
-| `onStation(fn)` | `fn({ act, row?, href? })` bei einem Knopf auf einer Tafel in der Halle (`cmp`, `flat`), einer Zeile der Systeme oder ihrer Nummer am Schiff (`sys` mit `row`) und einem Link der offenen Zeile (`go` mit `href`). Ein Aufruf ersetzt den vorigen. |
+| `onStation(fn)` | `fn({ act, row?, href?, a? })` bei einem Knopf auf einer Tafel in der Halle (`cmp`, `flat`), allem auf der Tafel „Ausrüstung“ und ihren Nummern am Schiff (`lo` mit `a`, der Handlung für `act()` der Werkstatt), einer Zeile der Systeme ohne Werkstatt (`sys` mit `row`) und einem Link (`go` mit `href`). Ein Aufruf ersetzt den vorigen. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
 `(x, z, -y)` (CryEngine → glTF), für `/holo/*.glb` UND `/hangar/ships/*.glb`.
@@ -187,6 +187,35 @@ zurück); wie auf der Tafel klappen alle Zeilen, die diesen Port führen, im
 Hologramm mit Werten und Links auf.
 `setSafe()` gilt für Namen und Stationen. Zusicherung 21 von verify:hangar
 hält Leiste, Modul, Naht und Adresse.
+
+Die linke Tafel ist seit 10.11.2026 die Werkstatt selbst (Krisz: „loadouts
+in das ui von overview direkt einbauen, damit haben wir eine zentrale
+bedieneroberfläche“). Steht die Übersicht in der Halle, zählt `station`
+nicht: die Leiste zeigt nur „Übersicht“ und „Als Tafel“, und `holoData`
+trägt unter `loadout`, was `board()` der Werkstatt
+(`assets/hangar-layouts.js`) liefert: fertige Wörter und Zahlen für Kopf
+(Name des Layouts, Menü), Reiter mit Zahl der Tausche, Gruppen, Zeilen
+(Symbol der Werkstatt als Pfad, Art für den Farbton, Größe, Wert, Abstand
+zur Serie), die offene Auswahl (Halterungen, passende Bauteile mit Marke,
+Abstand und Balken), Lackierungen und den Fuß (Stand, Speichern, Link
+teilen, Alles auf Serie). Der Controller ergänzt je Zeile die Punkte ihres
+Ports (`ps`, aus der Region `marks`) und für unveränderte Slots die Links
+der Buchtzeile. Das Modul zeichnet nur; was geklickt wird, geht als
+`{ act: 'lo', a: [...] }` an `act()` der Werkstatt und läuft dort über
+dieselben Wege wie ihre Knöpfe (`cat`, `slot`, `opt`, `rack`, `revert`,
+`paint`, `save`, `saveNew`, `share`, `reset`, `stock`, `open`, `dice`,
+`name`, `nameEdit`). Die Werkstatt meldet jede Änderung über
+`bridge.changed()`, der Controller reicht dann frische Daten nach. Zustand,
+der nur das Bild betrifft (Rollstand der Tafel und der Auswahlliste, offenes
+Menü), hält das Modul selbst; das Mausrad über der Tafel rollt sie und
+zoomt die Kamera nicht. Umbenennen tippt in ein echtes, unsichtbares
+Eingabefeld der Seite (Einfügen und Eingabehilfen bleiben), die Tafel
+zeigt den Text. Bernstein heißt auf der Tafel nur „weicht von der Serie
+ab“. Wer Tasten oder einen Vorleser braucht, nimmt „Als Tafel“: dort steht
+die Werkstatt als Knöpfe, mit der Wahl „Übersicht | Loadout“ wie zuvor.
+Zusicherung 21 hält die Naht (board, act, drawLoadout) und dass jedes Wort
+der Werkstatt in `#hgl-msg` steht: die gezeichnete Tafel zeigte sonst den
+rohen Schlüssel, und kein Textprüfer sähe ihn.
 
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
