@@ -499,7 +499,9 @@ async function build() {
       // endete in „skipped" — der Kanal bliebe fuer immer ein Textkanal.
       // Also: den alten Kanal unter <name>-alt beiseitestellen (Verlauf bleibt,
       // fuer Mitglieder unsichtbar, Admins sehen ihn weiter) und den neuen
-      // anlegen. Danach raeumt `node prune.mjs --archive` ihn ins Archiv.
+      // anlegen. Ins Archiv kommt er mit prune.mjs — erst den Probelauf lesen:
+      // --archive nimmt JEDEN Kanal, den der Blueprint nicht mehr nennt (z. B.
+      // auch #support), nicht nur diesen.
       // Beim zweiten Lauf traegt nur noch der neue Kanal den Namen, der Schritt
       // greift nicht mehr.
       if (channel && kindOf(channel.type) !== kindOf(TYPE[ch.type])) {
@@ -507,7 +509,7 @@ async function build() {
         try {
           await channel.edit({ name: aside, reason: `VerseBase: #${wantName} wird ${ch.type}` });
           await channel.permissionOverwrites.edit(everyoneId, { ViewChannel: false }, { reason: 'VerseBase: alter Kanal beiseite' });
-          warn(`#${wantName} war kein ${ch.type} — als #${aside} beiseitegestellt (Verlauf bleibt, fuer Mitglieder unsichtbar). Ins Archiv: node prune.mjs --archive`);
+          warn(`#${wantName} war kein ${ch.type} — als #${aside} beiseitegestellt (Verlauf bleibt, fuer Mitglieder unsichtbar). Ins Archiv: erst node prune.mjs (Probelauf, archiviert alles Verwaiste), dann --archive`);
         } catch (e) {
           warn(`channel #${wantName} skipped: alter Kanal liess sich nicht beiseitestellen: ${e.message}`);
           continue;

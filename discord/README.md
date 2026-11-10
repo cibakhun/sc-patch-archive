@@ -201,8 +201,9 @@ Everything lives in [`blueprint.mjs`](./blueprint.mjs):
   to a tag (e.g. `{ name: 'Done', emoji: '✅', moderated: true }`) so only the team can set it.
 - **Change a channel's type** (e.g. text → forum, as #feedback on 10.11.2026) → just change
   `type`. Discord can't convert text into a forum, so the next build renames the old channel
-  to `<name>-alt`, hides it from members (history kept) and creates the new one. Then
-  `node prune.mjs --archive` moves the old one into the archive.
+  to `<name>-alt`, hides it from members (history kept) and creates the new one. To file it
+  away, run the dry run `node prune.mjs` first and read the whole list: `--archive` moves
+  EVERY channel the blueprint no longer names (e.g. #support too), not just the old one.
 - **The permanent invite** → `guild.inviteChannel`. Hand-made invites expire after 30 days,
   which quietly kills any link on the website; the builder keeps one never-expiring invite
   alive and prints it.
