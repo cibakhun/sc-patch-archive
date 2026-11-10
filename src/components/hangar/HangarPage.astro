@@ -207,12 +207,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-gfx select{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:var(--fs-8);cursor:pointer}
 .hgx-gfx select option{background:var(--bg-2);color:var(--text)}
 .hgx-gfx:focus-within{border-color:var(--hg-amber)}
-/* Bedienhinweis neben den drei Zeichen der Ansicht, bis zum ersten Anfassen. */
-.hg-hint{position:absolute;left:calc(var(--hg-left) + 9.4rem);bottom:22px;margin:0;max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 9.9rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+/* Bedienhinweis bis zum ersten Anfassen: mittig ueber der Stationen-Leiste
+   (die steht seit Phase 22 immer am Buehnenfuss; daneben lag er auf ihr). */
+.hg-hint{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:80px;width:fit-content;margin:0 auto;padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
 .hg[data-hint="seen"] .hg-hint{opacity:0;visibility:hidden}
-/* Einsteigen: ein Zeichen mehr unten links, der Hinweis rueckt nach; drinnen
-   steht statt des Bedienhinweises der zum Gehen */
-.hg:has(#hgx-walk:not([hidden])) .hg-hint{left:calc(var(--hg-left) + 12.3rem);max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 12.8rem)}
+/* Drinnen steht statt des Bedienhinweises der zum Gehen */
 .hg .hgx-walkhint{opacity:0;visibility:hidden}
 .hg[data-walk="on"] .hgx-walkhint{opacity:1;visibility:visible;transition:opacity var(--dur-slow) var(--ease-ui)}
 .hg[data-walk="on"] #hg-hint{display:none}

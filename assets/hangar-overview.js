@@ -1822,7 +1822,9 @@ export function boot(doc) {
   // Halle, ab 761 px), weicht die Tafel rechts, bis jemand „Als Tafel“ waehlt;
   // Bodenfahrzeuge in der Werkhalle bekommen immer die Tafel.
   let stage3d = false;
-  const holoOn = () => stage3d && state.station === 'uebersicht' && !state.flat && stageCfg.models[state.ship]?.[3] !== 'werk';
+  // Drinnen (data-walk) stellt der Viewer keine Station auf: dann die Tafel
+  const canHolo = () => stage3d && state.station === 'uebersicht' && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on';
+  const holoOn = () => canHolo() && !state.flat;
   let stageSafe = null;
   function paintStation() {
     main.dataset.station = state.station;
@@ -1831,7 +1833,7 @@ export function boot(doc) {
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     }
-    tafelBtn.hidden = !(stage3d && state.station === 'uebersicht' && stageCfg.models[state.ship]?.[3] !== 'werk');
+    tafelBtn.hidden = !canHolo();
     tafelBtn.setAttribute('aria-pressed', String(state.flat));
     const was = main.dataset.st3d === '1';
     if (holoOn()) main.dataset.st3d = '1';
@@ -2099,8 +2101,10 @@ export function boot(doc) {
       btn.hidden = !s.can && !s.on;
       btn.setAttribute('aria-pressed', s.on ? 'true' : 'false');
       txt.textContent = s.busy ? btn.dataset.load : s.on ? btn.dataset.out : btn.dataset.in;
+      const was = main.dataset.walk === 'on';
       if (s.on) main.dataset.walk = 'on';
       else delete main.dataset.walk;
+      if (was !== !!s.on) paintStation();
     });
     btn.addEventListener('click', () => {
       if (btn.getAttribute('aria-pressed') === 'true') v.leave();

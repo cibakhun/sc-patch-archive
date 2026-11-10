@@ -216,6 +216,9 @@
         Uebersicht lesen                                            -> [21]
     ee  dist/assets/hangar-holo3d.js nach dem Bauen aendern (Version
         passt nicht mehr zum Inhalt)                                -> [21]
+    ff  den Schluessel station, aus dem Rueckgabeobjekt von
+        dist/assets/hangar-viewer.js streichen (Kommentare nennen ihn
+        weiter; bis cubic auf PR #327 hielten sie die Pruefung gruen) -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1341,7 +1344,10 @@ const STATIONEN = { stationen: 2, proben: 28 };
   if (mod && (!list.length || !list.includes(vor))) fail(`[21] STATIONS (${list.join(', ') || '—'}) nennt die Vorgabe STATION_DEFAULT (${vor}) nicht`);
   // Viewer-Naht und Modul
   const VNAHT = ['station', 'canStation', 'onStation'];
-  const vfehlt = VNAHT.filter((n) => !new RegExp(`\\b${n}\\b`).test(api));
+  // als Schluessel des Rueckgabeobjekts (station, / canStation: / onStation(),
+  // ohne Zeilenkommentare: die nennen die Namen auch (wie [16])
+  const apiOhneK = api.replace(/\/\/[^\n]*/g, '');
+  const vfehlt = VNAHT.filter((n) => !new RegExp(`(?:^|[\\s,{])${n}\\s*(?:[(:,]|$)`, 'm').test(apiOhneK));
   if (vfehlt.length) fail(`[21] dist/assets/hangar-viewer.js liefert ${vfehlt.join(', ')} nicht: die Seite bleibt bei der Tafel, die Halle zeigt nie eine Station`);
   const holoFile = join(DIST, 'assets', 'hangar-holo3d.js');
   const holoSrc = existsSync(holoFile) ? readFileSync(holoFile) : null;

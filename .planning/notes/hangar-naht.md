@@ -17,6 +17,10 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `fit(list)` | Layout-Werkstatt: `list` = `[{ port, item, url }]`, je getauschte Bordwaffe der Port (`hardpoint_…`), der Index im Port und die URL ihres Modells (`/hangar/weapons/*.glb?v=`). Blendet die Serienwaffe dieser Ports aus und setzt das Modell an jede ihrer Wurzeln; `[]` stellt die Serie her. Gilt für das stehende Schiff; die Oberfläche ruft es nach jedem `show()` erneut. Ports ohne Tauschteile in der `.glb` und fehlende Modelle bleiben still in Serie. Liefert die Zahl gesetzter Waffen. |
 | `paint(p)` | Lackierung der Layout-Werkstatt am geladenen Schiff. `p = { cols, base }`, je `[Haupt, Zweit, Akzent]` als `#rrggbb` (`base` = Serienpalette), oder `null` = Serienlack. Echter Lack: Materialien, deren Grundfarbe ein Ton der Serienpalette ist (bestätigt durch `extras.palette_tint`, wo vorhanden), bekommen den neuen Ton; Geometrie-Fassung: Shader-Lack. Gilt nur für das geladene Schiff; die Oberfläche ruft es nach jedem `show()` erneut (applyPaintSel). Liefert die Zahl umgefärbter Materialien. |
 | `onProgress(fn)` | Meldet Schiff und Halle zusammen bis 90 %, dann 100, wenn das jüngste `show()` steht. Ein überholtes `show()` lädt still zu Ende (`fetchGltf(…, my)`), damit der Balken nur das gewählte Schiff zeigt. |
+| `setSafe({ l, t, r, rects })` | Freie Fläche der Bühne in CSS-Pixeln (Ränder links, oben, rechts und Rechtecke der Knöpfe). Gilt für den Namen als Hologramm und die Stationen. |
+| `canStation()` | `true`, wenn die Bühne Stationen in die Halle stellen kann (echte Halle, kein Telefon, `opts.holo.module`). Sonst bleibt die Tafel der Seite. |
+| `station(s)` | `s = { name: 'uebersicht', data }` stellt die Station am ruhenden Schiff auf (lädt `assets/hangar-holo3d.js` beim ersten Mal), `null` nimmt sie weg. `data` ist fertig gesetzt (`holoData` im Controller). Liefert `false`, wenn die Bühne es nicht kann. |
+| `onStation(fn)` | `fn({ act })` bei einem Knopf auf einer Tafel in der Halle (`cmp`, `flat`). Ein Aufruf ersetzt den vorigen. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
 `(x, z, -y)` (CryEngine → glTF), für `/holo/*.glb` UND `/hangar/ships/*.glb`.
@@ -36,7 +40,9 @@ Gemessen am 07.10.: Gladius x ±8,69, Cutlass Black x ±13,06 und z −14,81…2
 
 Sie greift nicht in Szene, Licht, Modelle oder Kamera ein, außer über
 `focus()`, `resetView()` und `setCover()`. Marker sind HTML-Elemente über der Leinwand,
-nicht Teil der Szene.
+nicht Teil der Szene. Die Stationen in der Halle zeichnet der Viewer; die
+Oberfläche reicht nur Wörter und Zahlen (`station()`) und die freie Fläche
+(`setSafe()`).
 
 ## Seitenvertrag seit dem Schnitt
 
