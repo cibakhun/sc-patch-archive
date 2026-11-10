@@ -379,9 +379,11 @@ for (const cat of bp.categories) {
     if (ch.tags) {
       // Blueprint tags are a bare string or { name, emoji } — compare name AND
       // emoji, so a dropped emoji is a visible drift and not a silent one.
-      const fmt = (name, emoji) => `${emoji ?? ''}${name}`;
-      const liveTags = (live.availableTags ?? []).map((t) => fmt(t.name, t.emoji?.name));
-      const wantTags = ch.tags.map((t) => (typeof t === 'string' ? fmt(t, null) : fmt(t.name, t.emoji)));
+      // A moderated (team-only) tag carries a trailing 🔒, so a status tag
+      // that anyone can set shows up as drift too.
+      const fmt = (name, emoji, moderated) => `${emoji ?? ''}${name}${moderated ? '🔒' : ''}`;
+      const liveTags = (live.availableTags ?? []).map((t) => fmt(t.name, t.emoji?.name, t.moderated));
+      const wantTags = ch.tags.map((t) => (typeof t === 'string' ? fmt(t, null, false) : fmt(t.name, t.emoji, t.moderated === true)));
       if (liveTags.join('|') !== wantTags.join('|')) issues.push(`forum tags [${liveTags.join(', ') || '—'}] ≠ [${wantTags.join(', ')}]`);
       const layoutWant = ch.layout === 'gallery' ? 2 : ch.layout === 'list' ? 1 : null;
       if (layoutWant !== null && live.defaultForumLayout !== layoutWant) issues.push(`forum layout ${live.defaultForumLayout} ≠ ${ch.layout}`);

@@ -195,6 +195,7 @@ function validate() {
       const name = typeof t === 'string' ? t : t?.name;
       if (!name) errors.push(`Channel ${ch.key}: a forum tag has no name`);
       else if (name.length > 20) errors.push(`Channel ${ch.key}: forum tag "${name}" is ${name.length} chars (Discord allows 20)`);
+      if (typeof t === 'object' && t?.moderated !== undefined && typeof t.moderated !== 'boolean') errors.push(`Channel ${ch.key}: forum tag "${name}" — moderated must be true or false`);
     }
   }
 
@@ -261,6 +262,10 @@ async function build() {
     voice: ChannelType.GuildVoice, stage: ChannelType.GuildStageVoice, forum: ChannelType.GuildForum,
   };
   const TEXTLIKE = new Set(['text', 'announcement', 'forum']);
+  // Kanal-Art fuer den Typwechsel-Schritt: Text und Ankuendigung gelten als
+  // gleich, weil Discord zwischen beiden selbst umwandeln kann (siehe
+  // pendingAnnouncement); alles andere muss neu angelegt werden.
+  const kindOf = (t) => (t === ChannelType.GuildText || t === ChannelType.GuildAnnouncement ? 'text' : t);
 
   const perms = (names) => {
     const b = new PermissionsBitField();
@@ -454,8 +459,10 @@ async function build() {
       if (ch.type === 'forum') {
         // Tags accept a bare string or { name, emoji }. A filter row is scanned,
         // not read — this is the one place an emoji earns its keep.
+        // `moderated: true` = only members who can manage threads (the team)
+        // may set the tag — for status tags like Planned/Done.
         if (ch.tags) edit.availableTags = ch.tags.map((t) => {
-          const tag = { name: typeof t === 'string' ? t : t.name, moderated: false };
+          const tag = { name: typeof t === 'string' ? t : t.name, moderated: typeof t === 'object' && t.moderated === true };
           const emoji = typeof t === 'string' ? null : t.emoji;
           if (emoji) tag.emoji = { id: null, name: emoji };
           return tag;
@@ -486,6 +493,29 @@ async function build() {
         }
       }
       if (channel) claimed.add(channel.id);
+      // Typwechsel (10.11.2026, #feedback Text → Forum). Discord wandelt nur
+      // Text ↔ Ankündigung um, nie Text → Forum. Ohne diesen Schritt bekaeme
+      // der alte Textkanal die Forum-Felder (Tags, Kachelansicht) und der Lauf
+      // endete in „skipped" — der Kanal bliebe fuer immer ein Textkanal.
+      // Also: den alten Kanal unter <name>-alt beiseitestellen (Verlauf bleibt,
+      // fuer Mitglieder unsichtbar, Admins sehen ihn weiter) und den neuen
+      // anlegen. Ins Archiv kommt er mit prune.mjs — erst den Probelauf lesen:
+      // --archive nimmt JEDEN Kanal, den der Blueprint nicht mehr nennt (z. B.
+      // auch #support), nicht nur diesen.
+      // Beim zweiten Lauf traegt nur noch der neue Kanal den Namen, der Schritt
+      // greift nicht mehr.
+      if (channel && kindOf(channel.type) !== kindOf(TYPE[ch.type])) {
+        const aside = `${wantName}-alt`;
+        try {
+          await channel.edit({ name: aside, reason: `VerseBase: #${wantName} wird ${ch.type}` });
+          await channel.permissionOverwrites.edit(everyoneId, { ViewChannel: false }, { reason: 'VerseBase: alter Kanal beiseite' });
+          warn(`#${wantName} war kein ${ch.type} — als #${aside} beiseitegestellt (Verlauf bleibt, fuer Mitglieder unsichtbar). Ins Archiv: erst node prune.mjs (Probelauf, archiviert alles Verwaiste), dann --archive`);
+        } catch (e) {
+          warn(`channel #${wantName} skipped: alter Kanal liess sich nicht beiseitestellen: ${e.message}`);
+          continue;
+        }
+        channel = null;
+      }
       try {
         if (channel) {
           // Reuse existing tag ids (matched by name) so already-tagged posts keep them.
