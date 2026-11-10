@@ -48,7 +48,7 @@ const YAW_IN = 0.12;      // zur Bildmitte gedreht (rad)
 // Stufen zeichnet er direkt ins fertige Bild: dort sind es 0,28. Gemessen
 // 10.11.2026: 0,5 halbierten auf „niedrig“ die Helligkeit.
 const DIM_LIN = 0.5, DIM_OUT = 0.28;
-const FADE_MS = 360, GLIDE_MS = 420, REST_MS = 280;
+const FADE_MS = 360, GLIDE_MS = 420, REST_MS = 280, HOP_MS = 180;
 // Steht die Kamera über dem Rumpf (Carrack, Idris: kein freier Boden in den
 // unteren Bildecken), schwebt die Tafel ohne Projektor so weit vor der Kamera
 // und folgt ihr wie eine Anzeige im Helm (gesehen 10.11.2026: ohne das
@@ -192,18 +192,55 @@ function drawTiles(g, d, hover) {
 }
 
 // Übersicht links: Komponenten mit Nummer, Art, Größe und Kennwert; d =
-// { title, rows: [{ n, name, kind, size, figure, unit, ps }], more }
+// { title, rows: [{ id, n, name, kind, size, figure, unit, ps }], more,
+//   sel, detail: { lines: [[k, v]], links: [{ label, href }] } }
+// Jede Zeile ist ein Knopf (sys:<id>); die gewählte (sel) klappt mit ihren
+// Werten und Links (go:<i>) auf, wie die Zeile der Tafel.
 const SYS_W = 320;
+const SYS = { p: 12, rh: 38, y0: 30, lh: 19 };
+const kSt = { f: BAR, s: 12.5, c: C.mut }, vSt = { f: RAJ, w: 700, s: 14, c: C.txt };
+const lSt = { f: RAJ, w: 700, s: 13.5 };
+// Werte und Links der gewählten Zeile: Höhe und Lage der Knöpfe
+function detailBox(g, det) {
+  const { p, lh } = SYS, x0 = p + 30, x1 = SYS_W - p;
+  let h = det.lines.length ? 4 + det.lines.length * lh : 0;
+  const pills = [];
+  let x = x0, row = 0;
+  for (const l of det.links) {
+    const w = Math.ceil(measure(g, l.label, lSt)) + 24;
+    if (x > x0 && x + w > x1) { x = x0; row += 1; }
+    pills.push({ x, w, row });
+    x += w + 6;
+  }
+  if (pills.length) h += 6 + (row + 1) * 34;
+  return { h: h + 8, pills };
+}
 function drawSystems(g, d, hover) {
-  const W = SYS_W, p = 12, rh = 38, y0 = 30;
-  const H = y0 + d.rows.length * rh + (d.more ? 24 : 0) + 8;
+  const W = SYS_W, { p, rh, y0, lh } = SYS;
+  const sel = d.rows.some((r) => r.id === d.sel) && d.detail ? d.sel : null;
+  const det = sel ? detailBox(g, d.detail) : null;
+  const H = y0 + d.rows.length * rh + (det ? det.h : 0) + (d.more ? 24 : 0) + 8;
   if (!g.canvas.dataset.h) return H;
   card(g, W, H);
   head(g, d.title, p + 30, 22);
-  d.rows.forEach((r, i) => {
-    const y = y0 + i * rh, cy = y + rh / 2;
-    g.save(); g.beginPath(); g.arc(p + 11, cy, 10.5, 0, Math.PI * 2); g.lineWidth = 1.5; g.strokeStyle = C.cy; g.stroke(); g.restore();
-    text(g, String(r.n), p + 11, cy + 4.5, { f: RAJ, w: 700, s: 12.5, al: 'center' });
+  const hits = [];
+  let y = y0;
+  for (const r of d.rows) {
+    const cy = y + rh / 2, on = r.id === sel, hot = hover === `sys:${r.id}`;
+    // Fläche: gewählt mit Rahmen um Zeile und Werte, unter dem Zeiger heller
+    if (on || hot) {
+      g.save(); rr(g, 4, y + 1, W - 8, rh - 2 + (on ? det.h : 0), 6);
+      g.fillStyle = on ? 'rgba(143,211,255,.13)' : 'rgba(143,211,255,.17)'; g.fill();
+      if (on) { g.lineWidth = 1; g.strokeStyle = 'rgba(143,211,255,.5)'; g.stroke(); }
+      g.restore();
+      // unter dem Zeiger (hier oder an der Nummer am Schiff): Leiste am Rand
+      if (hot) { g.save(); rr(g, 4, y + 7, 3, rh - 14, 1.5); g.fillStyle = '#d4f1ff'; g.shadowColor = C.cy; g.shadowBlur = 6 * S; g.fill(); g.restore(); }
+    }
+    g.save(); g.beginPath(); g.arc(p + 11, cy, 10.5, 0, Math.PI * 2);
+    if (on) { g.fillStyle = C.cy; g.shadowColor = C.cy; g.shadowBlur = 8 * S; g.fill(); }
+    else { g.lineWidth = hot ? 2.4 : 1.5; g.strokeStyle = hot ? '#ffffff' : C.cy; g.stroke(); }
+    g.restore();
+    text(g, String(r.n), p + 11, cy + 4.5, { f: RAJ, w: 700, s: 12.5, al: 'center', c: on ? '#04121d' : C.txt });
     const nSt = { f: RAJ, w: 700, s: 15 };
     const right = r.figure ? 96 : 40;
     text(g, fit(g, r.name, W - 2 * p - 30 - right, nSt), p + 30, cy - 1, nSt);
@@ -216,10 +253,28 @@ function drawSystems(g, d, hover) {
       const sx = W - p - (r.figure ? Math.max(measure(g, r.figure, { f: RAJ, w: 700, s: 15 }), r.unit ? measure(g, r.unit, { f: BAR, s: 11.5 }) : 0) + 10 : 0);
       text(g, r.size, sx, cy + 5, { f: RAJ, w: 600, s: 13, c: C.mut, al: 'right' });
     }
-  });
-  if (d.more) text(g, fit(g, d.more, W - 2 * p, { f: BAR, s: 12.5 }), p, y0 + d.rows.length * rh + 16, { f: BAR, s: 12.5, c: C.mut });
-  void hover;
-  return [];
+    hits.push({ x: 4, y, w: W - 8, h: rh, act: `sys:${r.id}` });
+    y += rh;
+    if (!on) continue;
+    // Werte zweispaltig, darunter die Links als Knöpfe
+    let yl = y + 4;
+    for (const [k, v] of d.detail.lines) {
+      const vw = text(g, fit(g, v, 150, vSt), W - p, yl + 13, { ...vSt, al: 'right' });
+      text(g, fit(g, k, W - 2 * p - 30 - vw - 10, kSt), p + 30, yl + 13, kSt);
+      yl += lh;
+    }
+    if (det.pills.length) {
+      const top = (d.detail.lines.length ? yl : y) + 6;
+      det.pills.forEach((b, i) => {
+        const act = `go:${i}`, by = top + b.row * 34;
+        const hit = pill(g, b.x + b.w, by, d.detail.links[i].label, { c: C.cy, border: 'rgba(143,211,255,.45)', hover: hover === act });
+        hits.push({ ...hit, act });
+      });
+    }
+    y += det.h;
+  }
+  if (d.more) text(g, fit(g, d.more, W - 2 * p, { f: BAR, s: 12.5 }), p, y + 16, { f: BAR, s: 12.5, c: C.mut });
+  return hits;
 }
 
 // kleines Schild (Maß, Nummer): Text in einem Rahmen, ohne Knöpfe
@@ -236,17 +291,24 @@ function drawLabel(g, s, o = {}) {
   text(g, s, w / 2, h / 2 + (o.s ?? 16) * 0.36, { ...st, al: 'center' });
   return [w, h];
 }
-function drawNumber(g, n) {
-  const r = 12;
-  if (!g.canvas.dataset.h) return [2 * r + 4, 2 * r + 4];
+// Nummer am Port; mode: '' ruhig, 'hot' unter dem Zeiger (hier oder an der
+// Zeile), 'sel' gewählt (gefüllt wie der Kreis der Zeile), 'dim' die übrigen,
+// solange eine Zeile gemeint ist. Feste Bildgröße: der Mittelpunkt springt nicht.
+function drawNumber(g, n, mode = '') {
+  const big = mode === 'hot' || mode === 'sel', r = big ? 14 : 12, c = 16;
+  if (!g.canvas.dataset.h) return [32, 32];
   g.save();
-  g.beginPath(); g.arc(r + 2, r + 2, r, 0, Math.PI * 2);
-  g.shadowColor = 'rgba(110,200,255,.8)'; g.shadowBlur = 10 * S;
-  g.fillStyle = 'rgba(8,25,43,.92)'; g.fill();
-  g.shadowBlur = 0; g.lineWidth = 2; g.strokeStyle = C.cy; g.stroke();
+  if (mode === 'dim') g.globalAlpha = 0.45;
+  g.beginPath(); g.arc(c, c, r, 0, Math.PI * 2);
+  g.shadowColor = 'rgba(110,200,255,.8)'; g.shadowBlur = (big ? 16 : 10) * S;
+  g.fillStyle = mode === 'sel' ? C.cy : mode === 'hot' ? 'rgba(16,52,82,.96)' : 'rgba(8,25,43,.92)'; g.fill();
+  g.shadowBlur = 0;
+  if (mode !== 'sel') { g.lineWidth = big ? 2.5 : 2; g.strokeStyle = big ? '#d4f1ff' : C.cy; g.stroke(); }
   g.restore();
-  text(g, String(n), r + 2, r + 7, { f: RAJ, w: 700, s: 14, al: 'center' });
-  return [2 * r + 4, 2 * r + 4];
+  g.save(); if (mode === 'dim') g.globalAlpha = 0.45;
+  text(g, String(n), c, c + 5, { f: RAJ, w: 700, s: big ? 15 : 14, al: 'center', c: mode === 'sel' ? '#04121d' : C.txt });
+  g.restore();
+  return [32, 32];
 }
 
 // ─── Szene ───────────────────────────────────────────────────────────────
@@ -270,9 +332,10 @@ export function holoLayer(ctx) {
   scene.add(root);
   const mats = [];   // [material, Grunddeckkraft]: alle blenden mit
   const own = [];    // Geometrien, Texturen zum Aufräumen beim Wechsel
-  const basic = (o, base = o.opacity ?? 1) => {
+  // owner: die Tafel, deren eigene Blende (P.k) mitwirkt
+  const basic = (o, base = o.opacity ?? 1, owner = null) => {
     const m = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, ...o });
-    mats.push([m, base]); return m;
+    mats.push([m, base, owner]); return m;
   };
   const softTex = radial([[0, 0.9], [0.5, 0.35], [1, 0]]);
   // quer zur Linie: außen 0, in der Mitte voll
@@ -304,9 +367,23 @@ export function holoLayer(ctx) {
   let built = null;      // { key, panels, sprites, lines, box }
   let safe = { l: 0, t: 0, r: 0, rects: [] };
   let alpha = 0, alphaTo = 0, fadeAt = 0, alphaFrom = 0;
-  let restKey = null, lastCam = new THREE.Vector3(), camMoved = 0, settledAt = 0;
+  let restKey = null, camMoved = 0, settledAt = 0;
+  // Lage und Linse der Kamera im letzten Bild: die Shift-Optik (setViewOffset)
+  // gleitet nach einer Drehung weiter, ohne dass sich die Kamera rührt, und
+  // schob die Tafeln aus ihrem Platz (Ironclad, 10.11.2026)
+  const camSig = new Float64Array(32);
+  const camChanged = () => {
+    camera.updateMatrixWorld();
+    const a = camera.matrixWorld.elements, b = camera.projectionMatrix.elements;
+    let moved = false;
+    for (let i = 0; i < 16; i++) {
+      if (Math.abs(a[i] - camSig[i]) > 1e-4) { camSig[i] = a[i]; moved = true; }
+      if (Math.abs(b[i] - camSig[16 + i]) > 1e-4) { camSig[16 + i] = b[i]; moved = true; }
+    }
+    return moved;
+  };
   let fontsOk = false;
-  let hover = null;      // { panel, act }
+  let hoverAct = null;   // Knopf unter dem Zeiger: cmp, flat, sys:<Zeile>, go:<Link>
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const v = new THREE.Vector3(), q = new THREE.Vector3();
 
@@ -338,23 +415,23 @@ export function holoLayer(ctx) {
   // ── Tafel ──
   function makePanel(draw, data, side) {
     const cv = sheetCanvas(1, 1), g = cv.getContext('2d');
-    const P = { draw, data, side, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0 };
+    const P = { draw, data, side, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null };
     P.tex = new THREE.CanvasTexture(cv); P.tex.colorSpace = THREE.SRGBColorSpace;
     P.tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() ?? 1);
     P.tex.minFilter = THREE.LinearMipmapLinearFilter; P.tex.generateMipmaps = true;
     P.group = new THREE.Group();                       // am Boden, gedreht
     P.pivot = new THREE.Group(); P.pivot.position.y = LIFT; P.pivot.rotation.x = -TILT; P.group.add(P.pivot);
-    P.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: P.tex, side: THREE.FrontSide }));
+    P.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: P.tex, side: THREE.FrontSide }, 1, P));
     P.mesh.renderOrder = RO.panel; P.mesh.userData.panel = P; P.pivot.add(P.mesh);
     // Projektor: Leiste, Lichtstreifen, Fleck, Vorhang
     P.proj = new THREE.Group(); P.group.add(P.proj);
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(1, 0.08, 0.45), basic({ color: 0x0b1622, transparent: true }, 1));
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(1, 0.08, 0.45), basic({ color: 0x0b1622, transparent: true }, 1, P));
     bar.position.y = 0.04; bar.renderOrder = RO.floor; P.proj.add(bar);
-    const lite = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 0.12), basic({ color: C.cy, blending: THREE.AdditiveBlending }));
+    const lite = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 0.12), basic({ color: C.cy, blending: THREE.AdditiveBlending }, 1, P));
     lite.rotation.x = -Math.PI / 2; lite.position.y = 0.085; lite.renderOrder = RO.floor + 1; P.proj.add(lite);
-    P.glow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: softTex, color: C.cy, opacity: 0.25, blending: THREE.AdditiveBlending }, 0.25));
+    P.glow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: softTex, color: C.cy, opacity: 0.25, blending: THREE.AdditiveBlending }, 0.25, P));
     P.glow.rotation.x = -Math.PI / 2; P.glow.position.y = 0.02; P.glow.renderOrder = RO.glow; P.group.add(P.glow);
-    P.beam = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 1), basic({ map: beamTex, color: C.cy, opacity: 0.4, blending: THREE.AdditiveBlending }, 0.4));
+    P.beam = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 1), basic({ map: beamTex, color: C.cy, opacity: 0.4, blending: THREE.AdditiveBlending }, 0.4, P));
     P.beam.renderOrder = RO.beam; P.proj.add(P.beam);
     P.group.visible = false;
     root.add(P.group);
@@ -382,6 +459,28 @@ export function holoLayer(ctx) {
     P.tex.needsUpdate = true;
   }
   function redrawAll() { for (const P of built?.panels ?? []) redraw(P); for (const s of built?.sprites ?? []) s.redraw?.(); }
+  // Zeiger und Wahl auf Tafeln und Nummern: die Zeile unter dem Zeiger
+  // leuchtet an beiden Stellen, die gewählte bleibt gefüllt
+  function applyHover() {
+    if (!built) return;
+    const sysH = hoverAct && /^(sys|go):/.test(hoverAct) ? hoverAct : null;
+    const sheetH = hoverAct && !sysH ? hoverAct : null;
+    if ((built.sys.hover ?? null) !== sysH) { built.sys.hover = sysH; redraw(built.sys); }
+    if ((built.sheet.hover ?? null) !== sheetH) { built.sheet.hover = sheetH; redraw(built.sheet); }
+    updateMarks();
+  }
+  function updateMarks() {
+    if (!built) return;
+    const d = built.sys.data, sel = d.detail && d.rows.some((r) => r.id === d.sel) ? d.sel : null;
+    const hot = hoverAct?.startsWith('sys:') ? hoverAct.slice(4) : null;
+    for (const sp of built.sprites) {
+      if (sp.kind !== 'num') continue;
+      const mode = sp.row === sel ? 'sel' : sp.row === hot ? 'hot' : sel || hot ? 'dim' : '';
+      if (mode === sp.st.mode) continue;
+      sp.st.mode = mode; sp.redraw();
+      sp.obj.renderOrder = RO.sprite + (mode === 'sel' || mode === 'hot' ? 1 : 0);
+    }
+  }
 
   // ── Schild als Sprite (Maße, Nummern): bleibt am Bild gleich groß ──
   function makeSprite(drawFn, pos, o = {}) {
@@ -433,7 +532,7 @@ export function holoLayer(ctx) {
   function clear() {
     if (!built) return;
     root.traverse((o) => { if (o.isMesh || o.isSprite) { o.geometry?.dispose?.(); if (o.material?.map && o.material.map !== softTex && o.material.map !== beamTex && o.material.map !== bandTex) o.material.map.dispose(); o.material?.dispose?.(); } });
-    root.clear(); mats.length = 0; built = null; hover = null; el.style.cursor = '';
+    root.clear(); mats.length = 0; built = null; hoverAct = null; el.style.cursor = '';
   }
 
   // Hüllquader des Schiffs in Weltkoordinaten (aus der Bucht, Modellraum)
@@ -459,8 +558,9 @@ export function holoLayer(ctx) {
         // 0,34 m): eine Nummer, sonst liegen zwei Kreise übereinander
         if (seen.some((q) => q.distanceTo(local) < 1)) continue;
         seen.push(local);
-        const sp = makeSprite((g) => drawNumber(g, r.n), local.clone().applyMatrix4(M), { xray: true, kind: 'num' });
-        sp.local = local;
+        const st = { mode: '' };
+        const sp = makeSprite((g) => drawNumber(g, r.n, st.mode), local.clone().applyMatrix4(M), { xray: true, kind: 'num' });
+        sp.local = local; sp.row = r.id; sp.st = st;
         sprites.push(sp);
       }
     }
@@ -530,8 +630,21 @@ export function holoLayer(ctx) {
     }
   }
 
+  // Liegt der Punkt von der Kamera aus hinter dem Schiff (Sehlinie durch
+  // seinen Hüllquader)? Dort verdeckte der Rumpf die Tafel (Ironclad,
+  // Aufnahme von Krisz 10.11.2026: Systeme halb hinter dem Rumpf).
+  const sight = new THREE.Ray(), hitV = new THREE.Vector3();
+  const behindShip = (pt) => {
+    const c = camera.position, len = v.copy(pt).sub(c).length();
+    if (len < 1e-3) return false;
+    sight.set(c, v.divideScalar(len));
+    const h = sight.intersectBox(built.box, hitV);
+    return !!h && h.distanceTo(c) < len - 0.3;
+  };
+
   // Platz einer Tafel am Boden aus dem Bild: unten links bzw. rechts, frei
-  // von Seitenleiste und Knöpfen; nicht im Fußabdruck des Schiffs
+  // von Seitenleiste und Knöpfen; nicht im Fußabdruck des Schiffs und nicht
+  // hinter ihm
   function target(P) {
     const W = ctx.W(), H = ctx.H(), k = 1;
     const w = P.cssW * k, h = P.cssH * k;
@@ -551,20 +664,25 @@ export function holoLayer(ctx) {
     const p = floorPx(x, bottom);
     // kein Boden unter der Stelle oder Kamera über dem Rumpf: schweben
     if (!p || (inFoot(p) && inFoot(camera.position))) return floating();
-    // aus dem Fußabdruck heraus zur Kamera hin
-    if (inFoot(p)) {
+    // Fuß und Oberkante der Tafel frei sichtbar
+    const top = (t) => { const d = Math.max(1, depthOf(t)); return t.clone().setY(LIFT + (h * d) / ppm()); };
+    const blocked = (t) => inFoot(t) || behindShip(t) || behindShip(top(t));
+    // aus Fußabdruck und Schatten des Schiffs heraus zur Kamera hin
+    if (blocked(p)) {
       const c = camera.position, dir = p.clone().sub(c); dir.y = 0;
       const n = dir.length(); dir.normalize();
       let lo = 0, hi = n;
       for (let i = 0; i < 20; i++) {
-        const mid = (lo + hi) / 2, t = c.clone().add(dir.clone().multiplyScalar(mid));
-        if (inFoot(t)) hi = mid; else lo = mid;
+        const mid = (lo + hi) / 2, t = c.clone().add(dir.clone().multiplyScalar(mid)).setY(0);
+        if (blocked(t)) hi = mid; else lo = mid;
       }
       p.copy(c).add(dir.multiplyScalar(lo)); p.y = 0;
-      // der freie Boden liegt unter dem Bildrand oder hinter der Kamera
-      // (Carrack: Kamera knapp neben dem Rumpf): schweben
+      // der freie Boden liegt hinter der Kamera (Carrack: Kamera knapp neben
+      // dem Rumpf) oder so viel tiefer im Bild, dass die Tafel über die
+      // Knöpfe am Bühnenfuß rutschte (Ironclad nach dem Drehen: Fuß 70 px
+      // unter dem Platz, am Bildrand): schweben
       const q = toPx(p);
-      if (!q || q[1] > H - 4 || depthOf(p) < floatM()) return floating();
+      if (!q || q[1] > bottom + 24 || depthOf(p) < floatM()) return floating();
     }
     return p;
   }
@@ -583,6 +701,13 @@ export function holoLayer(ctx) {
         const t = reduceMotion ? 1 : ease((now - P.glideAt) / GLIDE_MS);
         P.pos.lerpVectors(P.from, P.to, t);
         if (t >= 1) P.from = null;
+      }
+      // Sprung: erst aus, dann am neuen Platz ein
+      if (P.hop) {
+        const t = (now - P.hop.at) / HOP_MS;
+        if (t >= 1 && P.hop.to) { P.pos.copy(P.hop.to); P.hop.to = null; }
+        setK(P, t < 1 ? 1 - ease(t) : ease(t - 1));
+        if (t >= 2) { P.hop = null; setK(P, 1); }
       }
       const f = camF();
       const yaw = Math.atan2(-f.x, -f.z) + (P.side === 'left' ? -YAW_IN : YAW_IN);
@@ -616,57 +741,91 @@ export function holoLayer(ctx) {
 
   function retarget(now, first) {
     for (const P of built.panels) {
+      const wasFloat = P.float, wasShown = P.group.visible;
       const t = target(P);
       P.group.visible = !!t;
-      if (!t) continue;
-      if (first || !P.pos || P.float) { P.pos = t.clone(); P.from = null; P.to = t; continue; }
+      if (!t) { P.hop = null; setK(P, 1); continue; }
+      if (first || !P.pos || P.float) { P.pos = t.clone(); P.from = null; P.to = t; P.hop = null; setK(P, 1); continue; }
       // nur zurück, wenn sie spürbar aus ihrem Platz geraten ist
       const a = toPx(P.pos), b = toPx(t);
-      if (a && b && Math.hypot(a[0] - b[0], a[1] - b[1]) < 70) continue;
-      P.from = P.pos.clone(); P.to = t; P.glideAt = now;
+      const off = a && b ? Math.hypot(a[0] - b[0], a[1] - b[1]) : Infinity;
+      if (off < 70 && wasShown && !wasFloat) continue;
+      P.to = t;
+      if (reduceMotion) { P.pos = t.clone(); P.from = null; P.hop = null; setK(P, 1); continue; }
+      // kam sie aus dem Schweben, war sie weg, steht sie hinter dem Schiff
+      // oder quer durchs Bild: dort aus-, am neuen Platz einblenden, statt
+      // durch den Rumpf zu gleiten
+      if (wasFloat || !wasShown) { P.pos = t.clone(); P.from = null; P.hop = { at: now - HOP_MS, to: null }; }
+      else if (!a || behindShip(P.pos) || off > ctx.W() * 0.4) { P.from = null; P.hop = { at: now, to: t.clone() }; }
+      else { P.from = P.pos.clone(); P.glideAt = now; P.hop = null; setK(P, 1); }
     }
     layDims();
     placeLabels();
   }
 
   function setAlpha(a) {
-    for (const [m, base] of mats) m.opacity = base * a;
+    for (const [m, base, P] of mats) m.opacity = base * a * (P ? P.k : 1);
     root.visible = a > 0.001; dim.visible = a > 0.001;
   }
+  function setK(P, k) {
+    if (P.k === k) return;
+    P.k = k;
+    for (const [m, base, o] of mats) if (o === P) m.opacity = base * alpha * k;
+  }
 
-  // ── Zeiger: Knöpfe auf den Tafeln ──
+  // ── Zeiger: Knöpfe auf den Tafeln, Zeilen der Systeme, Nummern am Schiff ──
+  // liefert den Knopf unter dem Zeiger (act) oder null; eine Tafel deckt,
+  // was hinter ihr liegt, ihr durchsichtiger Rand nicht
   function pick(e) {
     if (!built || alpha < 0.5) return null;
     const r = el.getBoundingClientRect();
-    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    ndc.set((mx / r.width) * 2 - 1, -(my / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hits = ray.intersectObjects(built.panels.filter((P) => P.group.visible).map((P) => P.mesh), false);
-    if (!hits.length || !hits[0].uv) return null;
-    const P = hits[0].object.userData.panel, uv = hits[0].uv;
-    const x = uv.x * (P.cssW + 2 * PAD) - PAD, y = (1 - uv.y) * (P.cssH + 2 * PAD) - PAD;
-    const b = P.hits.find((h) => x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h);
-    return b ? { P, act: b.act } : { P, act: null };
+    const shown = built.panels.filter((P) => P.group.visible && P.k > 0.5);
+    for (const h of ray.intersectObjects(shown.map((P) => P.mesh), false)) {
+      if (!h.uv) continue;
+      const P = h.object.userData.panel;
+      const x = h.uv.x * (P.cssW + 2 * PAD) - PAD, y = (1 - h.uv.y) * (P.cssH + 2 * PAD) - PAD;
+      if (x < 0 || y < 0 || x > P.cssW || y > P.cssH) continue;
+      return P.hits.find((b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h)?.act ?? null;
+    }
+    // Nummern: die dem Zeiger nächste unter den getroffenen (sie liegen am
+    // Rumpf oft dicht beieinander)
+    const nums = built.sprites.filter((sp) => sp.kind === 'num' && sp.obj.visible);
+    let best = null, bd = Infinity;
+    for (const h of ray.intersectObjects(nums.map((sp) => sp.obj), false)) {
+      const sp = nums.find((n) => n.obj === h.object), px = sp && toPx(sp.pos);
+      const d = px ? Math.hypot(px[0] - mx * (ctx.W() / r.width), px[1] - my * (ctx.H() / r.height)) : Infinity;
+      if (d < bd) { bd = d; best = sp; }
+    }
+    return best ? `sys:${best.row}` : null;
   }
   let downAt = null;
   const onDown = (e) => { downAt = [e.clientX, e.clientY]; };
   const onClick = (e) => {
     if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 6) return;
-    const h = pick(e);
-    if (h?.act) ctx.act({ act: h.act });
+    const act = pick(e);
+    if (!act) return;
+    if (act.startsWith('sys:')) ctx.act({ act: 'sys', row: act.slice(4) });
+    else if (act.startsWith('go:')) {
+      const l = built.sys.data.detail?.links?.[Number(act.slice(3))];
+      if (l?.href) ctx.act({ act: 'go', href: l.href });
+    } else ctx.act({ act });
   };
-  const onMove = (e) => {
-    if (e.buttons) return;
-    const h = pick(e);
-    const now = h?.act ? h : null;
-    if ((now?.P ?? null) === (hover?.P ?? null) && (now?.act ?? null) === (hover?.act ?? null)) return;
-    const prev = hover; hover = now;
-    for (const P of new Set([prev?.P, now?.P].filter(Boolean))) { P.hover = hover?.P === P ? hover.act : null; redraw(P); }
-    el.style.cursor = now ? 'pointer' : '';
+  const hoverTo = (act) => {
+    if (act === hoverAct) return;
+    hoverAct = act;
+    applyHover();
+    el.style.cursor = act ? 'pointer' : '';
     ctx.wake(300);
   };
+  const onMove = (e) => { if (!e.buttons) hoverTo(pick(e)); };
+  const onLeave = () => hoverTo(null);
   el.addEventListener('pointerdown', onDown);
   el.addEventListener('click', onClick);
   el.addEventListener('pointermove', onMove);
+  el.addEventListener('pointerleave', onLeave);
 
   return {
     set(w) {
@@ -674,14 +833,16 @@ export function holoLayer(ctx) {
       alphaFrom = alpha; alphaTo = want ? 1 : 0; fadeAt = performance.now();
       if (built && want && (built.key !== want.data.key)) { alphaTo = 0; }
       else if (built && want) {
-        // dieselbe Station, neue Wörter (Vergleich an/aus): nur neu zeichnen
+        // dieselbe Station, neue Wörter (Vergleich an/aus, gewählte Zeile):
+        // neu zeichnen; die Tafel wächst nach oben, ihr Platz wird neu geprüft
         built.sys.data = want.data.systems; built.sheet.data = want.data.sheet;
         redrawAll();
+        updateMarks();
+        settledAt = 0;
       }
       ctx.wake(FADE_MS + 100);
     },
     safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; settledAt = 0; ctx.wake(300); },
-    // Spiegelbild des Bodens: ohne Schleier
     // Spiegelbild des Bodens („hoch“): ohne Hologramme, ihre Nummern lagen
     // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026)
     mirror(on) { const vis = !on && alpha > 0.001; dim.visible = vis; root.visible = vis; },
@@ -697,16 +858,21 @@ export function holoLayer(ctx) {
       if (!built && want && ready) {
         built = buildShip(rest, want.data);
         restKey = rest.key;
+        updateMarks();
         retarget(now, true);
         alphaFrom = 0; alphaTo = 1; fadeAt = now;
       }
       // Größe und Drehung je Bild; neuer Platz erst, wenn die Kamera ruht
       let busy = false;
       if (built) {
-        if (lastCam.distanceToSquared(camera.position) > 1e-6) { camMoved = now; lastCam.copy(camera.position); }
+        if (camChanged()) camMoved = now;
         if (now - camMoved > REST_MS && settledAt < camMoved) { retarget(now, false); settledAt = now; }
         if (!settledAt) { retarget(now, false); settledAt = now; }
-        for (const P of built.panels) { place(P, now); if (P.from) busy = true; }
+        // Bilder weiter, bis die Tafeln nach der Fahrt ihren neuen Platz
+        // haben: sonst hielt der Viewer an, bevor REST_MS um war, und die
+        // Tafel blieb, wo die Drehung sie gelassen hatte (hinter dem Rumpf)
+        if (settledAt < camMoved) busy = true;
+        for (const P of built.panels) { place(P, now); if (P.from || P.hop) busy = true; }
         for (const sp of built.sprites) placeSprite(sp);
       }
       const t = reduceMotion ? 1 : Math.min(1, (now - fadeAt) / FADE_MS);
@@ -720,6 +886,7 @@ export function holoLayer(ctx) {
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('click', onClick);
       el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
       clear(); scene.remove(root); scene.remove(dim);
       dim.geometry.dispose(); dimMat.dispose(); softTex.dispose(); beamTex.dispose(); bandTex.dispose();
     },

@@ -13532,7 +13532,8 @@ void main() {
     // assets/hangar-overview.js holoData), station(null) blendet sie aus;
     // false heißt, diese Bühne kann es nicht (Telefon, ohne echte Halle),
     // die Seite zeigt dann ihre Tafel. canStation() fragt das vorab.
-    // onStation(fn): fn({ act }) bei einem Knopf auf einer Tafel.
+    // onStation(fn): fn({ act, row?, href? }) bei einem Knopf auf einer
+    // Tafel, einer Zeile der Systeme oder einer Nummer am Schiff.
     station,
     canStation: () => ST_OK,
     onStation(fn) { stAct = fn; },

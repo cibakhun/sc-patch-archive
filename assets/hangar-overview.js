@@ -880,9 +880,9 @@ export function boot(doc) {
     if (r.top < h.top || r.bottom > h.bottom) host.scrollTop += r.top - h.top - 8;
   }
   // Das Fokusziel einer Zeile ist ihr erster Port mit Punkt in diesem Tab.
-  function portFor(li) {
+  function portFor(li, tab = state.tab) {
     const ports = li.dataset.ports.split(' ');
-    const marked = new Set([...regionNow('marks').querySelectorAll(`.hgx-mk[data-tab="${state.tab}"]`)].map((el) => el.dataset.port));
+    const marked = new Set([...regionNow('marks').querySelectorAll(`.hgx-mk[data-tab="${tab}"]`)].map((el) => el.dataset.port));
     return ports.find((p) => marked.has(p)) ?? ports[0];
   }
   host.addEventListener('click', (e) => {
@@ -1865,7 +1865,7 @@ export function boot(doc) {
   // den Entwuerfen (Tafel 7): Tempo, Feuerkraft, Schild, Rumpf mit dem Platz
   // in der Klasse; links die Systeme mit Nummern, die am Port wiederkehren.
   const HOLO_TILES = [['scm', 'speed'], ['dps', 'fire'], ['shield', 'shield'], ['hull', 'hull']];
-  const HOLO_SYS_MAX = 8;
+  const HOLO_SYS_MAX = 8, HOLO_DETAIL_MAX = 6;
   const textOf = (n) => (n?.nodeType === 3 ? n.textContent.trim() : '');
   const nums = (v) => String(v ?? '').trim().split(/\s+/).map(Number);
   function holoData() {
@@ -1902,12 +1902,21 @@ export function boot(doc) {
       for (const r of (mk.dataset.rows ?? '').split(' ')) if (r) at.set(r, [...(at.get(r) ?? []), p]);
     }
     const slots = [...panel.querySelectorAll('#hgx-tp-systems .hgx-slot')];
+    const shown = slots.slice(0, HOLO_SYS_MAX);
+    // gewählt wie auf der Tafel: die Zeile, die den Port state.hp führt;
+    // aufgeklappt mit ihren Werten und Links
+    const selLi = state.tab === 'systems' && state.hp ? shown.find((li) => li.dataset.ports.split(' ').includes(state.hp)) : null;
     const systems = {
       title: m.sys,
-      rows: slots.slice(0, HOLO_SYS_MAX).map((li, i) => {
+      sel: selLi?.dataset.row ?? null,
+      detail: selLi ? {
+        lines: [...selLi.querySelectorAll('.hgx-d dl > dt')].slice(0, HOLO_DETAIL_MAX).map((dt) => [dt.textContent.trim(), dt.nextElementSibling?.textContent.trim() ?? '']),
+        links: [...selLi.querySelectorAll('.hgx-links a')].map((a) => ({ label: `${a.textContent.trim()} ›`, href: a.getAttribute('href') })),
+      } : null,
+      rows: shown.map((li, i) => {
         const nm = li.querySelector('.hgx-nm'), v = li.querySelector('.hgx-v');
         return {
-          n: i + 1, name: textOf(nm?.firstChild), kind: nm?.querySelector('small')?.textContent ?? '',
+          id: li.dataset.row, n: i + 1, name: textOf(nm?.firstChild), kind: nm?.querySelector('small')?.textContent ?? '',
           size: li.querySelector('.hgx-sz')?.textContent ?? '', figure: textOf(v?.firstChild), unit: v?.querySelector('small')?.textContent ?? '',
           ps: at.get(li.dataset.row) ?? [],
         };
@@ -1931,10 +1940,18 @@ export function boot(doc) {
     holoKey = key;
     viewer.station(data ? { name: 'uebersicht', data } : null);
   }
-  // Knoepfe auf den Tafeln in der Halle
-  function onStationAct({ act }) {
+  // Knoepfe auf den Tafeln in der Halle. sys: eine Zeile der Systeme oder
+  // ihre Nummer am Schiff, wie ein Klick auf die Zeile der Tafel (auf- und
+  // zuklappen, state.hp im Reiter Systeme); go: ein Link der offenen Zeile.
+  function onStationAct({ act, row, href }) {
     if (act === 'cmp') toggleCompare(state.ship);
     else if (act === 'flat') setState({ flat: true });
+    else if (act === 'sys') {
+      const li = [...regionNow('panel').querySelectorAll('#hgx-tp-systems .hgx-slot')].find((el) => el.dataset.row === row);
+      if (!li) return;
+      const open = state.tab === 'systems' && !!state.hp && li.dataset.ports.split(' ').includes(state.hp);
+      setState(open ? { hp: null } : { tab: 'systems', hp: portFor(li, 'systems') });
+    } else if (act === 'go' && href) doc.defaultView.location.assign(href);
   }
 
   let viewer = null;

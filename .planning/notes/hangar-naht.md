@@ -20,7 +20,7 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `setSafe({ l, t, r, rects })` | Freie Fläche der Bühne in CSS-Pixeln (Ränder links, oben, rechts und Rechtecke der Knöpfe). Gilt für den Namen als Hologramm und die Stationen. |
 | `canStation()` | `true`, wenn die Bühne Stationen in die Halle stellen kann (echte Halle, kein Telefon, `opts.holo.module`). Sonst bleibt die Tafel der Seite. |
 | `station(s)` | `s = { name: 'uebersicht', data }` stellt die Station am ruhenden Schiff auf (lädt `assets/hangar-holo3d.js` beim ersten Mal), `null` nimmt sie weg. `data` ist fertig gesetzt (`holoData` im Controller). Liefert `false`, wenn die Bühne es nicht kann. |
-| `onStation(fn)` | `fn({ act })` bei einem Knopf auf einer Tafel in der Halle (`cmp`, `flat`). Ein Aufruf ersetzt den vorigen. |
+| `onStation(fn)` | `fn({ act, row?, href? })` bei einem Knopf auf einer Tafel in der Halle (`cmp`, `flat`), einer Zeile der Systeme oder ihrer Nummer am Schiff (`sys` mit `row`) und einem Link der offenen Zeile (`go` mit `href`). Ein Aufruf ersetzt den vorigen. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
 `(x, z, -y)` (CryEngine → glTF), für `/holo/*.glb` UND `/hangar/ships/*.glb`.
@@ -179,12 +179,19 @@ und Balken, Systemzeilen mit den Punkten ihrer Ports im Modellraum der .glb
 Maße als Text. Der Viewer lädt `assets/hangar-holo3d.js` erst dann und
 stellt die Tafeln nur am ruhenden Schiff auf (`stRest`: kein Wechsel, keine
 Fahrt, Aufzug oben, nicht drinnen, nicht in der Werkhalle). Knöpfe auf den
-Tafeln kommen als `onStation(({ act }) => …)` zurück (`cmp`, `flat`).
+Tafeln kommen als `onStation(({ act, row, href }) => …)` zurück (`cmp`,
+`flat`, `sys`, `go`). Systemzeilen und ihre Nummern am Schiff wirken wie die
+Zeilen der Tafel: Zeiger darüber hebt Zeile und Nummern zusammen hervor, ein
+Klick setzt `tab=systems` und `hp` auf den Port der Zeile (oder nimmt `hp`
+zurück); die gewählte Zeile klappt im Hologramm mit Werten und Links auf.
 `setSafe()` gilt für Namen und Stationen. Zusicherung 21 von verify:hangar
 hält Leiste, Modul, Naht und Adresse.
 
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
-außerhalb des Fußabdrucks. Findet sich dort kein Boden vor der Kamera (großes
-Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne Projektor
-3 m vor der Kamera und folgen ihr. Maßschilder ohne freien Platz entfallen.
-Der Bodenspiegel („hoch“) zeigt die Ebene nicht.
+außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
+Oberkante frei vom Hüllquader). Findet sich dort kein Boden vor der Kamera
+(großes Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne
+Projektor 3 m vor der Kamera und folgen ihr. Nach einer Kamerafahrt rücken
+sie an den neuen Platz: kurze Wege gleitend, quer durchs Bild oder hinter
+dem Rumpf hervor aus- und wieder eingeblendet. Maßschilder ohne freien Platz
+entfallen. Der Bodenspiegel („hoch“) zeigt die Ebene nicht.
