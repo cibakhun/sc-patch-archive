@@ -31,7 +31,7 @@ import { parseHTML } from 'linkedom';
 const NICHT_AUSFUEHREN = new Set(['application/ld+json', 'application/json', 'importmap', 'text/template', 'speculationrules']);
 /* Skripte, die der Pruefstand bewusst NICHT ausfuehrt (benannt, Grundsatz 6). */
 export const AUSGELASSEN = [
-  { pfad: '/vendor/umami/', anlass: 'Besucherzaehler: sendet nur an den Zaehl-Host, schreibt keinen sichtbaren Text' },
+  { pfad: '/vendor/zaehler/', anlass: 'Besucherzaehler (Umami): sendet nur an den Zaehl-Host, schreibt keinen sichtbaren Text' },
 ];
 /* Zeitlimit fuer jeden synchronen Lauf (Skriptstart, Ereignis, Zeitgeber):
    eine Endlosschleife ist ein Befund, kein haengendes Tor. */

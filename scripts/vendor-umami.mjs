@@ -1,6 +1,12 @@
 /* ============================================================
    vendor-umami.mjs — erneuert die gepinnte Kopie des Umami-Zaehlers
-   unter public/vendor/umami/script.js. Werkzeug, kein Pruefer.
+   unter public/vendor/zaehler/zaehler.js. Werkzeug, kein Pruefer.
+
+   WARUM DER PFAD NICHT „umami“ HEISST (10.11.2026): Bis dahin lag die
+   Kopie unter /vendor/umami/script.js. Genau dieses Muster fuehrt
+   EasyPrivacy, die Standardliste von uBlock Origin, AdGuard und Co.; bei
+   deren Nutzern lud der Zaehler gar nicht. verify:zaehler [6] reisst,
+   wenn der Pfad wieder „umami“ traegt.
 
    WARUM ES EINE KOPIE GIBT (29.10.2026): Der Zaehler lief als Skript von
    stats.verse-base.com auf jeder Seite, und die Content-Security-Policy
@@ -20,7 +26,7 @@
         steht in Umami unter Einstellungen → Ueber (oder im Image-Tag des
         Containers auf dem Statistik-Server).
      2. node scripts/vendor-umami.mjs v3.4.1        (Tag aus GitHub)
-     3. git diff public/vendor/umami/script.js lesen — das ist die
+     3. git diff public/vendor/zaehler/zaehler.js lesen — das ist die
         Pruefung. Neue data-Attribute, neue Kopfzeilen, ein anderer
         Endpunkt? Dann Layout.astro bzw. CSP nachziehen.
      4. npm run build && npm run gate (verify:zaehler faehrt die neue
@@ -46,7 +52,7 @@ import { fileURLToPath } from 'node:url';
 import { transform, version as esbuildVersion } from 'esbuild';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ZIEL = resolve(ROOT, 'public/vendor/umami/script.js');
+const ZIEL = resolve(ROOT, 'public/vendor/zaehler/zaehler.js');
 const TAG = process.argv[2];
 if (!/^v\d+\.\d+\.\d+$/.test(TAG ?? '')) {
   console.error('Aufruf: node scripts/vendor-umami.mjs v<major>.<minor>.<patch>   (z. B. v3.4.1)');
@@ -122,5 +128,5 @@ const kopf = `/* Umami-Zaehler — gepinnte Kopie, NICHT von Hand aendern.
 
 mkdirSync(dirname(ZIEL), { recursive: true });
 writeFileSync(ZIEL, kopf + rumpf);
-console.log(`public/vendor/umami/script.js geschrieben: ${TAG} (${quelle.pfad}), Rumpf ${rumpf.length} Zeichen, Rumpf-sha256 ${sha256(rumpf)}`);
+console.log(`public/vendor/zaehler/zaehler.js geschrieben: ${TAG} (${quelle.pfad}), Rumpf ${rumpf.length} Zeichen, Rumpf-sha256 ${sha256(rumpf)}`);
 console.log('Jetzt: git diff lesen, dann npm run build && npm run gate.');
