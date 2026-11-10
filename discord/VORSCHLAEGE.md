@@ -16,7 +16,9 @@ Post statt nur Suggestion), `--forum bug-reports --tag alle` (das Bug-Forum).
 Keine Abhängigkeiten, kein `npm install` nötig.
 
 **Offen** heißt: trägt Suggestion, nicht Done, nicht gesperrt. Planned bleibt
-offen und ist markiert, denn zugesagt ist noch nicht gebaut. Die Reihenfolge
+offen und ist markiert, denn zugesagt ist noch nicht gebaut. Planned und Done
+setzt nur das Team, und zwar auf Ideen: Ein Post mit einem davon zählt als
+Vorschlag, auch wenn der 💡-Tag fehlt. Die Reihenfolge
 ist die Warteschlange, also der älteste Post zuerst; 👍/👎 stehen daneben.
 
 ## Regeln für Claude-Sitzungen

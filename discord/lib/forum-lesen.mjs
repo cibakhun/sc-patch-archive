@@ -11,6 +11,7 @@ export const FORUM_TYP = 15;
 
 // Tag-Namen so, wie blueprint.mjs sie anlegt. Der Builder ordnet Tags über den
 // Namen zu und benennt sie nie um (Kommentar dort), also tragen die Namen.
+export const TAG_VORSCHLAG = 'Suggestion';
 export const TAG_ERLEDIGT = 'Done';
 export const TAG_GEPLANT = 'Planned';
 
@@ -43,6 +44,10 @@ export function tagsVon(thread, karte) {
 //   alle   true: auch erledigte (Done) und gesperrte Posts.
 // Offen heißt: trägt den Tag, nicht „Done", nicht gesperrt. „Planned" bleibt
 // offen — das Team hat zugesagt, gebaut ist es noch nicht.
+// „Planned" und „Done" setzt nur das Team, und zwar auf Ideen. Ein Post mit
+// einem davon zählt deshalb als Vorschlag, auch wenn 💡 Suggestion fehlt —
+// sonst fiele eine angenommene Idee aus der Liste, sobald jemand den Tag
+// tauscht (so am 10.11.2026 beim ersten echten Lauf).
 // Reihenfolge: älteste zuerst (Warteschlange), bei Gleichstand nach ID.
 export function filtereOffene(threads, forum, { tag = 'Suggestion', alle = false } = {}) {
   const karte = tagKarte(forum);
@@ -53,9 +58,10 @@ export function filtereOffene(threads, forum, { tag = 'Suggestion', alle = false
     if (gesehen.has(th.id)) continue; // aktive + archivierte Liste können sich überschneiden
     gesehen.add(th.id);
     const tags = tagsVon(th, karte);
-    if (tag && !tags.includes(tag)) continue;
     const gesperrt = Boolean(th.thread_metadata?.locked);
     const erledigt = tags.includes(TAG_ERLEDIGT);
+    const teamMarke = erledigt || tags.includes(TAG_GEPLANT);
+    if (tag && !tags.includes(tag) && !(tag === TAG_VORSCHLAG && teamMarke)) continue;
     if (!alle && (erledigt || gesperrt)) continue;
     treffer.push({
       id: th.id,

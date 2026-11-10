@@ -37,6 +37,19 @@ test('offen = Suggestion, nicht Done, nicht gesperrt; älteste zuerst', () => {
   assert.equal(offen[0].antworten, 3, 'message_count zählt den Startbeitrag nicht mit');
 });
 
+test('Planned oder Done ohne Suggestion-Tag zählt als Vorschlag', () => {
+  // Erster echter Lauf 10.11.2026: der einzige offene Vorschlag trug nur
+  // 📌 Planned und fehlte in der Standardliste.
+  const threads = [
+    th('100', ['t-plan'], '2026-11-09T12:00:00Z'),
+    th('200', ['t-done'], '2026-11-08T12:00:00Z'),
+    th('300', ['t-q'], '2026-11-07T12:00:00Z'),
+  ];
+  assert.deepEqual(filtereOffene(threads, forum).map((p) => p.id), ['100']);
+  assert.deepEqual(filtereOffene(threads, forum, { alle: true }).map((p) => p.id), ['200', '100']);
+  assert.deepEqual(filtereOffene(threads, forum, { tag: 'Question' }).map((p) => p.id), ['300'], 'nur Suggestion erbt von Planned/Done');
+});
+
 test('aktive und archivierte Liste doppelt: jeder Post nur einmal', () => {
   const a = th('100', ['t-sug'], '2026-11-09T12:00:00Z');
   const b = th('100', ['t-sug'], '2026-11-09T12:00:00Z', { archived: true });
