@@ -1,8 +1,9 @@
 {
- "werkzeug": "hangar-lage 2, verborgen 1705547a",
+ "werkzeug": "hangar-lage 3, verborgen 1705547a",
  "aussen1": 5,
  "sitzOk": 192,
  "mitInseln": 16,
+ "mitRagt": 5,
  "schiffe": {
   "aegs-avenger-stalker": {
    "sha": "308e394fa149a22c",
@@ -12,6 +13,14 @@
       "tris": 1540,
       "aussenM": 0.7,
       "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (520)"
+     }
+    ],
+    "ragt": [
+     {
+      "teil": "interior_part_34",
+      "tris": 1540,
+      "m": 1.52,
+      "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010"
      }
     ],
     "innen": {
@@ -29,7 +38,10 @@
    "aussenPct": 0,
    "inseln": 1,
    "inselM": 0.7,
-   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)"
+   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)",
+   "ragt": 1,
+   "ragtM": 1.52,
+   "ausnahmeRagt": "Feuerlöscherschrank über dem Dach (extinguisher_cabinet_1_a, 1,5 m über der Hülle): Die Container-Daten setzen ihn zweimal, einmal über dem Dach; liegt so in den Daten, dieselbe Stelle wie die Ausnahme der losen Teile (hangar-inseln.md)"
   },
   "aegs-avenger-titan": {
    "sha": "c415df1ade16abdf",
@@ -41,31 +53,12 @@
       "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (520)"
      }
     ],
-    "innen": {
-     "tris": 199786,
-     "aussenPct": 0,
-     "maxM": 0
-    },
-    "sitz": {
-     "name": "hardpoint_seat_pilot",
-     "nah": 5166,
-     "abstand": 0.25,
-     "ok": true
-    }
-   },
-   "aussenPct": 0,
-   "inseln": 1,
-   "inselM": 0.7,
-   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)"
-  },
-  "aegs-avenger-titan-renegade": {
-   "sha": "1798fec7b807abfc",
-   "gemessen": {
-    "inseln": [
+    "ragt": [
      {
-      "tris": 1560,
-      "aussenM": 0.7,
-      "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (528)"
+      "teil": "interior_part_34",
+      "tris": 1534,
+      "m": 1.52,
+      "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010"
      }
     ],
     "innen": {
@@ -83,7 +76,48 @@
    "aussenPct": 0,
    "inseln": 1,
    "inselM": 0.7,
-   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)"
+   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)",
+   "ragt": 1,
+   "ragtM": 1.52,
+   "ausnahmeRagt": "Feuerlöscherschrank über dem Dach (extinguisher_cabinet_1_a, 1,5 m über der Hülle): Die Container-Daten setzen ihn zweimal, einmal über dem Dach; liegt so in den Daten, dieselbe Stelle wie die Ausnahme der losen Teile (hangar-inseln.md)"
+  },
+  "aegs-avenger-titan-renegade": {
+   "sha": "1798fec7b807abfc",
+   "gemessen": {
+    "inseln": [
+     {
+      "tris": 1560,
+      "aussenM": 0.7,
+      "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (528)"
+     }
+    ],
+    "ragt": [
+     {
+      "teil": "interior_part_34",
+      "tris": 1560,
+      "m": 1.52,
+      "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010"
+     }
+    ],
+    "innen": {
+     "tris": 199786,
+     "aussenPct": 0,
+     "maxM": 0
+    },
+    "sitz": {
+     "name": "hardpoint_seat_pilot",
+     "nah": 5166,
+     "abstand": 0.25,
+     "ok": true
+    }
+   },
+   "aussenPct": 0,
+   "inseln": 1,
+   "inselM": 0.7,
+   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)",
+   "ragt": 1,
+   "ragtM": 1.52,
+   "ausnahmeRagt": "Feuerlöscherschrank über dem Dach (extinguisher_cabinet_1_a, 1,5 m über der Hülle): Die Container-Daten setzen ihn zweimal, einmal über dem Dach; liegt so in den Daten, dieselbe Stelle wie die Ausnahme der losen Teile (hangar-inseln.md)"
   },
   "aegs-avenger-warlock": {
    "sha": "68ac450e54cf2ba8",
@@ -93,6 +127,14 @@
       "tris": 1530,
       "aussenM": 0.7,
       "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010 (520)"
+     }
+    ],
+    "ragt": [
+     {
+      "teil": "interior_part_34",
+      "tris": 1530,
+      "m": 1.52,
+      "material": "extinguisher_cabinet_1_a_mtl_tint_tertiary_010"
      }
     ],
     "innen": {
@@ -110,12 +152,16 @@
    "aussenPct": 0,
    "inseln": 1,
    "inselM": 0.7,
-   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)"
+   "ausnahmeInseln": "Feuerlöscherschrank über dem Dach: Die Container-Daten setzen extinguisher_cabinet_1_a zweimal, einmal über dem Dach; liegt so in den Daten (hangar-inseln.md, Befund vom PC)",
+   "ragt": 1,
+   "ragtM": 1.52,
+   "ausnahmeRagt": "Feuerlöscherschrank über dem Dach (extinguisher_cabinet_1_a, 1,5 m über der Hülle): Die Container-Daten setzen ihn zweimal, einmal über dem Dach; liegt so in den Daten, dieselbe Stelle wie die Ausnahme der losen Teile (hangar-inseln.md)"
   },
   "aegs-eclipse": {
    "sha": "e864e7e208516eae",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 27290,
      "aussenPct": 0,
@@ -134,6 +180,7 @@
    "sha": "40c7f2fde8dc668e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 12858,
      "aussenPct": 0,
@@ -152,6 +199,7 @@
    "sha": "792ea81dec042b7f",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 12858,
      "aussenPct": 0,
@@ -170,6 +218,7 @@
    "sha": "3b2ea1b3c1f44d7c",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 12858,
      "aussenPct": 0,
@@ -188,6 +237,7 @@
    "sha": "18c5cd521831300e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1174784,
      "aussenPct": 0,
@@ -206,6 +256,7 @@
    "sha": "5f0a5a42f09bec5a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1319505,
      "aussenPct": 0,
@@ -223,19 +274,22 @@
   "aegs-idris-m": {
    "sha": "7e6bc97deef81511",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "aegs-idris-p": {
    "sha": "9d2313723cfc8fee",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "aegs-javelin": {
    "sha": "a79d7a0bc4c5d8f6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 2056272,
      "aussenPct": 0.06,
@@ -253,19 +307,22 @@
   "aegs-reclaimer": {
    "sha": "c3f1813db09d6e7f",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "aegs-reclaimer-showdown": {
    "sha": "125b8fc287396baa",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "aegs-redeemer": {
    "sha": "5555b9cde32be918",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 461556,
      "aussenPct": 0,
@@ -284,6 +341,7 @@
    "sha": "2e786c3e9b9180a0",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 432764,
      "aussenPct": 0,
@@ -302,6 +360,7 @@
    "sha": "e2f588b0d901d0fe",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13629,
      "aussenPct": 0,
@@ -320,6 +379,7 @@
    "sha": "74c7f358461bc70c",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13629,
      "aussenPct": 0,
@@ -338,6 +398,7 @@
    "sha": "229601af3c8c6b29",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 22311,
      "aussenPct": 0,
@@ -356,6 +417,7 @@
    "sha": "030d8d321fb0d096",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19690,
      "aussenPct": 0,
@@ -374,6 +436,7 @@
    "sha": "71ccb96e7940a715",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 22311,
      "aussenPct": 0,
@@ -392,6 +455,7 @@
    "sha": "00ed2fa4eff866ee",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 22311,
      "aussenPct": 0,
@@ -410,6 +474,7 @@
    "sha": "5b9775b1c5e640d3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1144583,
      "aussenPct": 0,
@@ -428,6 +493,7 @@
    "sha": "632d3daa23dde0db",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 283084,
      "aussenPct": 0,
@@ -446,6 +512,7 @@
    "sha": "895f5c9125a649d7",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 295509,
      "aussenPct": 0,
@@ -464,6 +531,7 @@
    "sha": "09f4fa9b7c6eb337",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 361828,
      "aussenPct": 0,
@@ -482,6 +550,7 @@
    "sha": "fc10f1f8c49513e4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 300116,
      "aussenPct": 0,
@@ -500,6 +569,7 @@
    "sha": "30cc24ae0d87b5d6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 11449,
      "aussenPct": 0,
@@ -524,6 +594,7 @@
       "material": "anvl_asgard_ext_mtl_Primairy_painted_tile_03 (11)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 608151,
      "aussenPct": 0,
@@ -545,6 +616,7 @@
    "sha": "32ca826f1a6c435e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 40632,
      "aussenPct": 0.09,
@@ -563,6 +635,7 @@
    "sha": "eb683afc7440df40",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 40632,
      "aussenPct": 0.09,
@@ -581,6 +654,7 @@
    "sha": "f7aa8871d48e2bbe",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 40632,
      "aussenPct": 0.09,
@@ -599,6 +673,7 @@
    "sha": "8262d9bc59c71856",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 38927,
      "aussenPct": 0,
@@ -617,6 +692,7 @@
    "sha": "58dbabb1f9371910",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 69293,
      "aussenPct": 0,
@@ -635,6 +711,7 @@
    "sha": "756ef8f7207a4e36",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 38927,
      "aussenPct": 0,
@@ -653,6 +730,7 @@
    "sha": "9ee90530ef4d47b4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 2206758,
      "aussenPct": 0,
@@ -671,6 +749,7 @@
    "sha": "a3e06226c69631f1",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 2206758,
      "aussenPct": 0,
@@ -689,6 +768,7 @@
    "sha": "42d9e99613b17237",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 29795,
      "aussenPct": 0,
@@ -707,6 +787,7 @@
    "sha": "bb1549cba434c45b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 8209,
      "aussenPct": 0,
@@ -725,6 +806,7 @@
    "sha": "8584e0015814f272",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 20365,
      "aussenPct": 0,
@@ -743,6 +825,7 @@
    "sha": "91043309580f4ad7",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13522,
      "aussenPct": 0,
@@ -761,6 +844,7 @@
    "sha": "46bc80f14c732215",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 14294,
      "aussenPct": 0,
@@ -779,6 +863,7 @@
    "sha": "d30e1348d4513ff2",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 5763,
      "aussenPct": 0,
@@ -797,6 +882,7 @@
    "sha": "b15438b9cdc7058e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 14294,
      "aussenPct": 0,
@@ -815,6 +901,7 @@
    "sha": "be932f6f7d2708a2",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 5763,
      "aussenPct": 0,
@@ -833,6 +920,7 @@
    "sha": "fcd69068fcf65756",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13533,
      "aussenPct": 0,
@@ -851,6 +939,7 @@
    "sha": "d748a5b5f2af02d9",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13533,
      "aussenPct": 0,
@@ -869,6 +958,7 @@
    "sha": "3baf875294e7363a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 30171,
      "aussenPct": 0,
@@ -887,6 +977,7 @@
    "sha": "59992ce20e091c37",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 30171,
      "aussenPct": 0,
@@ -905,6 +996,7 @@
    "sha": "1ef5c5bf76ab1817",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 5763,
      "aussenPct": 0,
@@ -923,6 +1015,7 @@
    "sha": "815eb3069bda35e1",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 14294,
      "aussenPct": 0,
@@ -941,6 +1034,7 @@
    "sha": "68dda529fac1abb4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 5763,
      "aussenPct": 0,
@@ -959,6 +1053,7 @@
    "sha": "4168f24656cad54a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 14294,
      "aussenPct": 0,
@@ -977,6 +1072,7 @@
    "sha": "2cc559f33c7d3c71",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 4990,
      "aussenPct": 0,
@@ -995,6 +1091,7 @@
    "sha": "0fd9709c2defdf74",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 11270,
      "aussenPct": 0,
@@ -1013,6 +1110,7 @@
    "sha": "b8583c4c0f2b0946",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 11270,
      "aussenPct": 0,
@@ -1031,6 +1129,7 @@
    "sha": "dfc071100fd464fd",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 11270,
      "aussenPct": 0,
@@ -1049,6 +1148,7 @@
    "sha": "6c32ae8f2eebb3de",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 521224,
      "aussenPct": 0,
@@ -1067,6 +1167,7 @@
    "sha": "498ab4799c606ad9",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 82141,
      "aussenPct": 0,
@@ -1085,6 +1186,7 @@
    "sha": "40beac349d206eee",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 125243,
      "aussenPct": 0,
@@ -1103,6 +1205,7 @@
    "sha": "0d885f855e8ef810",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 152021,
      "aussenPct": 0,
@@ -1121,6 +1224,7 @@
    "sha": "1483a6100a48df88",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 555637,
      "aussenPct": 0,
@@ -1138,31 +1242,36 @@
   "argo-atls": {
    "sha": "52d6a2043e4d332b",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "argo-atls-geo": {
    "sha": "2396f267c98ca399",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "argo-atls-geo-collector-grad01": {
    "sha": "f14319f5adbcba52",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "argo-atls-geo-collector-grad03": {
    "sha": "54cc3231c28082b2",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "argo-csv-cargo": {
    "sha": "490a11b1af5ac76c",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 27751,
      "aussenPct": 0,
@@ -1181,6 +1290,7 @@
    "sha": "951f71e5b0f9693a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 554273,
      "aussenPct": 0,
@@ -1199,6 +1309,7 @@
    "sha": "cd11b400cea37ca1",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 482513,
      "aussenPct": 0,
@@ -1217,6 +1328,7 @@
    "sha": "cd2521d3586e43ae",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 48878,
      "aussenPct": 0,
@@ -1235,6 +1347,7 @@
    "sha": "6002a0dee6be945b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 12326,
      "aussenPct": 0,
@@ -1249,6 +1362,7 @@
    "sha": "8b54dc368ef75590",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 72119,
      "aussenPct": 0,
@@ -1267,6 +1381,7 @@
    "sha": "83de2b41c9f2fc70",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 506021,
      "aussenPct": 0,
@@ -1285,6 +1400,7 @@
    "sha": "93ad1b84abb3d827",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 209377,
      "aussenPct": 0,
@@ -1303,6 +1419,7 @@
    "sha": "9b95b0fedb345521",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 105797,
      "aussenPct": 0,
@@ -1321,6 +1438,7 @@
    "sha": "f2d3658fa8f4ecc1",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 314,
      "aussenPct": 0,
@@ -1339,6 +1457,7 @@
    "sha": "7e182eeacadf8b0d",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19733,
      "aussenPct": 0,
@@ -1357,6 +1476,7 @@
    "sha": "bf69d79b7119e681",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19733,
      "aussenPct": 0,
@@ -1375,6 +1495,7 @@
    "sha": "7428cef3644c8899",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 37648,
      "aussenPct": 1.7,
@@ -1395,6 +1516,7 @@
    "sha": "bf56209754923309",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19733,
      "aussenPct": 0,
@@ -1413,6 +1535,7 @@
    "sha": "317fd64bb2a2149f",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19733,
      "aussenPct": 0,
@@ -1431,6 +1554,7 @@
    "sha": "a549f922fcb3e36b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19733,
      "aussenPct": 0,
@@ -1449,6 +1573,7 @@
    "sha": "7f9f7087afec0468",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 43930,
      "aussenPct": 0,
@@ -1467,6 +1592,7 @@
    "sha": "b53eedfbddf302bb",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 297949,
      "aussenPct": 0,
@@ -1485,6 +1611,7 @@
    "sha": "effb9a4b0db26433",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 516367,
      "aussenPct": 0,
@@ -1503,6 +1630,7 @@
    "sha": "967a34061d96c38e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 453308,
      "aussenPct": 0,
@@ -1532,6 +1660,7 @@
       "material": "crus_star_runner_mtl_Ext_Secondary_A_025 (190)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 888250,
      "aussenPct": 0.03,
@@ -1553,6 +1682,7 @@
    "sha": "4841032c00190d76",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 16596,
      "aussenPct": 0,
@@ -1571,6 +1701,7 @@
    "sha": "d94d873cf75cbdf3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 16596,
      "aussenPct": 0,
@@ -1589,6 +1720,7 @@
    "sha": "26decfb8b49d0b21",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1413623,
      "aussenPct": 0,
@@ -1607,6 +1739,7 @@
    "sha": "6b7ee0bcba06f964",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1302656,
      "aussenPct": 0,
@@ -1625,6 +1758,7 @@
    "sha": "8436850758ad28f3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1482144,
      "aussenPct": 0,
@@ -1643,6 +1777,7 @@
    "sha": "3af822c9fbd0bd35",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19406,
      "aussenPct": 0,
@@ -1661,6 +1796,7 @@
    "sha": "a06916aeeb839d2a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1305139,
      "aussenPct": 0,
@@ -1679,6 +1815,7 @@
    "sha": "01f1e2542d50c611",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1411429,
      "aussenPct": 2.5,
@@ -1698,6 +1835,7 @@
    "sha": "087ebc8c59aeca5a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 559634,
      "aussenPct": 0,
@@ -1716,6 +1854,7 @@
    "sha": "0a4e8f4c6950e55a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 586396,
      "aussenPct": 0,
@@ -1734,6 +1873,7 @@
    "sha": "df526b0c2195a716",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 205552,
      "aussenPct": 0,
@@ -1752,6 +1892,7 @@
    "sha": "bd1fb5e447f84dd7",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 436288,
      "aussenPct": 0,
@@ -1770,6 +1911,7 @@
    "sha": "6dba32843fc30e42",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 278259,
      "aussenPct": 0,
@@ -1788,6 +1930,7 @@
    "sha": "6ba0fcd6ff0126cc",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 288102,
      "aussenPct": 0,
@@ -1806,6 +1949,7 @@
    "sha": "ddddbede2d08c2db",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 268539,
      "aussenPct": 0,
@@ -1824,6 +1968,7 @@
    "sha": "da6ef06b8c114568",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 261137,
      "aussenPct": 0,
@@ -1842,6 +1987,7 @@
    "sha": "aab3d79148f2b6d5",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 282677,
      "aussenPct": 0,
@@ -1860,6 +2006,7 @@
    "sha": "aa2e902236b66f79",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -1878,6 +2025,7 @@
    "sha": "e931644386038d8c",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -1896,6 +2044,7 @@
    "sha": "5d834940767c45dd",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 331,
      "aussenPct": 0,
@@ -1914,6 +2063,7 @@
    "sha": "06084b1abfe2447b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 331,
      "aussenPct": 0,
@@ -1932,6 +2082,7 @@
    "sha": "c36f9c8f140e8d9b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 93354,
      "aussenPct": 0,
@@ -1949,19 +2100,22 @@
   "drak-ironclad": {
    "sha": "93b0bf481d659196",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "drak-ironclad-assault": {
    "sha": "9830f24ce627750b",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "drak-mule": {
    "sha": "97598eda7f80283e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 15003,
      "aussenPct": 0,
@@ -1980,6 +2134,7 @@
    "sha": "cc4e275eb1b959ea",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 26519,
      "aussenPct": 0,
@@ -2004,6 +2159,7 @@
       "material": "DRAK_Vulture_mtl_ext_dark_metal_tile_047 (52)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 155240,
      "aussenPct": 0.48,
@@ -2026,6 +2182,7 @@
    "sha": "8892ed8e40112206",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 373129,
      "aussenPct": 0,
@@ -2044,6 +2201,7 @@
    "sha": "f577098eaa4da179",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 268228,
      "aussenPct": 0,
@@ -2062,6 +2220,7 @@
    "sha": "6207c3ad81f3a674",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -2080,6 +2239,7 @@
    "sha": "96ccd78c774bb9fd",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -2098,6 +2258,7 @@
    "sha": "ce90bf24a4acc613",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 932036,
      "aussenPct": 0.1,
@@ -2116,6 +2277,7 @@
    "sha": "0761daaaca3048ce",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 122461,
      "aussenPct": 0,
@@ -2134,6 +2296,7 @@
    "sha": "a0f4cff67d3040a4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 999997,
      "aussenPct": 0.08,
@@ -2152,6 +2315,7 @@
    "sha": "55cf3b2e536e30d4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19306,
      "aussenPct": 0,
@@ -2170,6 +2334,7 @@
    "sha": "7ef59f3a1a00a9ed",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 282586,
      "aussenPct": 0.42,
@@ -2188,6 +2353,7 @@
    "sha": "5b793c844b809df1",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 49772,
      "aussenPct": 0,
@@ -2206,6 +2372,7 @@
    "sha": "b8a66553a263ca68",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 72087,
      "aussenPct": 0,
@@ -2224,6 +2391,7 @@
    "sha": "089c9109ea61a5a8",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -2248,6 +2416,7 @@
       "material": "grin_roc_mtl_metal_dark_semigloss_018 (558)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 2109,
      "aussenPct": 0,
@@ -2269,6 +2438,7 @@
    "sha": "a7982046f0c636f0",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 2109,
      "aussenPct": 0,
@@ -2287,6 +2457,7 @@
    "sha": "afaae91761fb5393",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 628,
      "aussenPct": 0,
@@ -2305,6 +2476,7 @@
    "sha": "cd3c6ec78d4169ce",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1252,
      "aussenPct": 0,
@@ -2323,6 +2495,7 @@
    "sha": "703de4b9907060c8",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 23124,
      "aussenPct": 0.37,
@@ -2342,6 +2515,7 @@
    "sha": "5d7e356b7280e9da",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 23232,
      "aussenPct": 0.37,
@@ -2361,6 +2535,7 @@
    "sha": "5cb9c9ee5c61414b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13116,
      "aussenPct": 0,
@@ -2379,6 +2554,7 @@
    "sha": "ff40ce001b065f67",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13707,
      "aussenPct": 0,
@@ -2397,6 +2573,7 @@
    "sha": "2ab380771b8fbbfe",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 13707,
      "aussenPct": 0,
@@ -2415,6 +2592,7 @@
    "sha": "0bfe16a08d73561a",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 40496,
      "aussenPct": 0,
@@ -2433,6 +2611,7 @@
    "sha": "14d5f33fa93165d6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 123972,
      "aussenPct": 0,
@@ -2451,6 +2630,7 @@
    "sha": "ea87046d8e77db13",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 258114,
      "aussenPct": 0,
@@ -2469,6 +2649,7 @@
    "sha": "61d368df27ab79f0",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 260240,
      "aussenPct": 0,
@@ -2487,6 +2668,7 @@
    "sha": "02166f126da5bd51",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 260348,
      "aussenPct": 0,
@@ -2505,6 +2687,7 @@
    "sha": "e03a4f761f621633",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 263368,
      "aussenPct": 0,
@@ -2529,6 +2712,7 @@
       "material": "misc_fury_mtl_Glass_Cockpit_Ext_RTO_NoBlur_010 (2)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 44,
      "aussenPct": 0,
@@ -2550,6 +2734,7 @@
    "sha": "751a98dd9ca1cddf",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44,
      "aussenPct": 0,
@@ -2574,6 +2759,7 @@
       "material": "misc_fury_mtl_Glass_Cockpit_Ext_RTO_NoBlur_010 (2)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 42,
      "aussenPct": 0,
@@ -2595,6 +2781,7 @@
    "sha": "257aafc3067f2917",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 127180,
      "aussenPct": 0,
@@ -2613,6 +2800,7 @@
    "sha": "0e7f28969e1783f8",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 568226,
      "aussenPct": 0,
@@ -2631,6 +2819,7 @@
    "sha": "f3324ed5bda747b8",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 581549,
      "aussenPct": 0,
@@ -2649,6 +2838,7 @@
    "sha": "77db7b441a52fc03",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 25549,
      "aussenPct": 0,
@@ -2667,6 +2857,7 @@
    "sha": "865168c11fe78100",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -2685,6 +2876,7 @@
    "sha": "3daa7391969c4973",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -2703,6 +2895,7 @@
    "sha": "176ded69eb9bcb62",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -2721,6 +2914,7 @@
    "sha": "b4aa0f6cba288cf7",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 30703,
      "aussenPct": 0,
@@ -2739,6 +2933,7 @@
    "sha": "6cc0607dbb003bdc",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 37705,
      "aussenPct": 0,
@@ -2757,6 +2952,7 @@
    "sha": "bcfefbc790005033",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 46648,
      "aussenPct": 0,
@@ -2775,6 +2971,7 @@
    "sha": "ce97b590eeb3b04c",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 33057,
      "aussenPct": 0,
@@ -2793,6 +2990,7 @@
    "sha": "5c2afbbb1568fe65",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 732722,
      "aussenPct": 2.98,
@@ -2812,6 +3010,7 @@
    "sha": "ebc94b3ce1fd76b8",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 768740,
      "aussenPct": 2.85,
@@ -2831,6 +3030,7 @@
    "sha": "0970e131a19d8af6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1058904,
      "aussenPct": 0,
@@ -2849,6 +3049,7 @@
    "sha": "35defe9692373182",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1087049,
      "aussenPct": 0,
@@ -2867,6 +3068,7 @@
    "sha": "80bf0862e80e6381",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 175570,
      "aussenPct": 0,
@@ -2885,6 +3087,7 @@
    "sha": "12d2a258c80ad8ed",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 283175,
      "aussenPct": 0,
@@ -2903,6 +3106,7 @@
    "sha": "9f33f89f4d0f9a52",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 235842,
      "aussenPct": 0,
@@ -2921,6 +3125,7 @@
    "sha": "7597594b2e31e22b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 283175,
      "aussenPct": 0,
@@ -2939,6 +3144,7 @@
    "sha": "eebc11b28b27cbb1",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 525,
      "aussenPct": 0,
@@ -2957,6 +3163,7 @@
    "sha": "f621b56c97aba3f3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 1478,
      "aussenPct": 0,
@@ -2975,6 +3182,7 @@
    "sha": "8ef97670fda24f1d",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 24877,
      "aussenPct": 0.16,
@@ -2994,6 +3202,7 @@
    "sha": "6dacd1646a8df0e4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 24877,
      "aussenPct": 0.04,
@@ -3013,6 +3222,7 @@
    "sha": "86de7459040b0614",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 24877,
      "aussenPct": 0.16,
@@ -3043,6 +3253,7 @@
       "material": "orig_315p_ext_mtl_metal_atlas_017 (48)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 15945,
      "aussenPct": 0,
@@ -3075,6 +3286,7 @@
       "material": "orig_315p_ext_mtl_metal_atlas_017 (48)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 15945,
      "aussenPct": 0,
@@ -3112,6 +3324,14 @@
       "material": "ORIG_300i_int_mtl_mat_dark_09 (81)"
      }
     ],
+    "ragt": [
+     {
+      "teil": "interior_part_2",
+      "tris": 81,
+      "m": 32.29,
+      "material": "ORIG_300i_int_mtl_mat_dark_09"
+     }
+    ],
     "innen": {
      "tris": 15905,
      "aussenPct": 0,
@@ -3127,7 +3347,10 @@
    "aussenPct": 0,
    "inseln": 3,
    "inselM": 32,
-   "ausnahmeInseln": "Bugfahrwerk-Scharnier links (nose/lg_hinge_front_left) liegt im Rohexport in einem anderen Rahmen als das rechte, 2 und 3,5 m unter dem Bug (hangar-inseln.md); dazu ein Innenraumteil 32 m seitlich aus einem behaltenen Container"
+   "ausnahmeInseln": "Bugfahrwerk-Scharnier links (nose/lg_hinge_front_left) liegt im Rohexport in einem anderen Rahmen als das rechte, 2 und 3,5 m unter dem Bug (hangar-inseln.md); dazu ein Innenraumteil 32 m seitlich aus einem behaltenen Container",
+   "ragt": 1,
+   "ragtM": 32.29,
+   "ausnahmeRagt": "Innenraumteil 32 m seitlich (ORIG_300i_int_mtl_mat_dark_09, 81 Dreiecke) aus einem behaltenen Container; dieselbe Stelle wie die Ausnahme der losen Teile (hangar-inseln.md)"
   },
   "orig-350r": {
    "sha": "ae631ab258d864bd",
@@ -3144,6 +3367,7 @@
       "material": "orig_350r_ext_mtl_metal_atlas_017 (48)"
      }
     ],
+    "ragt": [],
     "innen": {
      "tris": 8902,
      "aussenPct": 0,
@@ -3165,6 +3389,7 @@
    "sha": "09af31e80093e7f6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 400828,
      "aussenPct": 0,
@@ -3183,6 +3408,7 @@
    "sha": "91cf2a5cc5fe6287",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 922544,
      "aussenPct": 0,
@@ -3201,6 +3427,7 @@
    "sha": "49d33f0935b3dbf6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 922544,
      "aussenPct": 0,
@@ -3219,6 +3446,7 @@
    "sha": "18b4808981d4e983",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 809685,
      "aussenPct": 0,
@@ -3237,6 +3465,7 @@
    "sha": "edb0d400ce59425e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 20457,
      "aussenPct": 0,
@@ -3260,7 +3489,8 @@
       "aussenM": 5.4,
       "material": "ORIG_890Jump_mtl_insulation_038 (1)"
      }
-    ]
+    ],
+    "ragt": []
    },
    "inseln": 1,
    "inselM": 5.4,
@@ -3270,6 +3500,7 @@
    "sha": "fecbeee41c1d1d9d",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 18324,
      "aussenPct": 0,
@@ -3284,6 +3515,7 @@
    "sha": "dc1585ac75e9f5f0",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 105750,
      "aussenPct": 0,
@@ -3302,6 +3534,7 @@
    "sha": "6e6c10885d5cdc54",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3320,6 +3553,7 @@
    "sha": "72cfffb947b02feb",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3338,6 +3572,7 @@
    "sha": "1e9cab4f88c726e0",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3356,6 +3591,7 @@
    "sha": "cc1da923ccf2533e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 539559,
      "aussenPct": 0,
@@ -3374,6 +3610,7 @@
    "sha": "d43fc680612a709d",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 539559,
      "aussenPct": 0,
@@ -3392,6 +3629,7 @@
    "sha": "0f923499f9e05ebb",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44716,
      "aussenPct": 0,
@@ -3410,6 +3648,7 @@
    "sha": "682e8320e4a28797",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44716,
      "aussenPct": 0,
@@ -3428,6 +3667,7 @@
    "sha": "98e7669ab78263a4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44716,
      "aussenPct": 0,
@@ -3446,6 +3686,7 @@
    "sha": "631861beb27618ec",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44716,
      "aussenPct": 0,
@@ -3464,6 +3705,7 @@
    "sha": "5f8820a7407d490b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44716,
      "aussenPct": 0,
@@ -3482,6 +3724,7 @@
    "sha": "299266a86808a509",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 44716,
      "aussenPct": 0,
@@ -3500,6 +3743,7 @@
    "sha": "2b8fffdfae48ed1d",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 134854,
      "aussenPct": 0,
@@ -3518,6 +3762,7 @@
    "sha": "7e70033c4e00cf22",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 481377,
      "aussenPct": 0,
@@ -3536,6 +3781,7 @@
    "sha": "77fd30f045b188d7",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 192923,
      "aussenPct": 0,
@@ -3553,13 +3799,15 @@
   "rsi-constellation-mk5-centaurus": {
    "sha": "a359849a5c5d71cc",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "rsi-constellation-phoenix": {
    "sha": "1be5cb7142e2065d",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 450658,
      "aussenPct": 17.24,
@@ -3580,6 +3828,7 @@
    "sha": "e636bded8cc1805e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 377661,
      "aussenPct": 0,
@@ -3598,6 +3847,7 @@
    "sha": "ffc13d3a267f85d3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 374197,
      "aussenPct": 0.03,
@@ -3616,6 +3866,7 @@
    "sha": "10033f4731618432",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 402006,
      "aussenPct": 0,
@@ -3634,6 +3885,7 @@
    "sha": "2e75bfbd6afe3eef",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 51801,
      "aussenPct": 0.42,
@@ -3653,6 +3905,7 @@
    "sha": "0f9b3a60edd89b95",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 68327,
      "aussenPct": 0,
@@ -3671,6 +3924,7 @@
    "sha": "7344e1a57c14ee47",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 68331,
      "aussenPct": 0,
@@ -3688,7 +3942,8 @@
   "rsi-perseus": {
    "sha": "bb2e11812b456770",
    "gemessen": {
-    "inseln": []
+    "inseln": [],
+    "ragt": []
    }
   },
   "rsi-polaris": {
@@ -3700,7 +3955,8 @@
       "aussenM": 1.7,
       "material": "rsi_polaris_ext_mtl_Glow_Thrusters_053 (4)"
      }
-    ]
+    ],
+    "ragt": []
    },
    "inseln": 1,
    "inselM": 1.7,
@@ -3710,6 +3966,7 @@
    "sha": "f28c5efaea15f8ad",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 4818,
      "aussenPct": 0,
@@ -3728,6 +3985,7 @@
    "sha": "bd519818c22c037b",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 24675,
      "aussenPct": 0,
@@ -3746,6 +4004,7 @@
    "sha": "1963d55cac6636d3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 26211,
      "aussenPct": 0,
@@ -3764,6 +4023,7 @@
    "sha": "9cec8461ef928058",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 7201,
      "aussenPct": 0,
@@ -3779,9 +4039,10 @@
    "aussenPct": 0
   },
   "rsi-ursa-medivac": {
-   "sha": "79c77b8f3cd6b3ef",
+   "sha": "4b96e2ca11adb41c",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 102730,
      "aussenPct": 0,
@@ -3800,6 +4061,7 @@
    "sha": "5c4ae3ce4cc14896",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 33310,
      "aussenPct": 0,
@@ -3818,6 +4080,7 @@
    "sha": "53648c725b412fe3",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 33310,
      "aussenPct": 0,
@@ -3836,6 +4099,7 @@
    "sha": "c50833e0bca8e9c2",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 385175,
      "aussenPct": 0,
@@ -3854,6 +4118,7 @@
    "sha": "81b4a3f5e7b7a394",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 417778,
      "aussenPct": 0,
@@ -3872,6 +4137,7 @@
    "sha": "7b43640072f6f11f",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3890,6 +4156,7 @@
    "sha": "58d2c59504a30297",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3908,6 +4175,7 @@
    "sha": "ec97b192024dc7d2",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3926,6 +4194,7 @@
    "sha": "2d3595538fa47d1e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3944,6 +4213,7 @@
    "sha": "8c942eee53b32485",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3962,6 +4232,7 @@
    "sha": "29df0334761ef0b4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -3980,6 +4251,7 @@
    "sha": "a053f5a7177143e5",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 59412,
      "aussenPct": 0,
@@ -3998,6 +4270,7 @@
    "sha": "810f6f797240fe35",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 31658,
      "aussenPct": 0,
@@ -4016,6 +4289,7 @@
    "sha": "9bd6f19bbf445c94",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 31658,
      "aussenPct": 0,
@@ -4034,6 +4308,7 @@
    "sha": "c9bd8c5daeca34a6",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 19870,
      "aussenPct": 0,
@@ -4052,6 +4327,7 @@
    "sha": "bf5e6a1fb4d5c000",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -4070,6 +4346,7 @@
    "sha": "6e5ca30f1b219f41",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -4088,6 +4365,7 @@
    "sha": "69c2021478511bc4",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 119639,
      "aussenPct": 0,
@@ -4106,6 +4384,7 @@
    "sha": "fab3f19757935ea0",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -4124,6 +4403,7 @@
    "sha": "ddf8cdc131ecc124",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -4142,6 +4422,7 @@
    "sha": "30dc1976cc65b494",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,
@@ -4160,6 +4441,7 @@
    "sha": "83065ba37edcb97e",
    "gemessen": {
     "inseln": [],
+    "ragt": [],
     "innen": {
      "tris": 0,
      "aussenPct": 0,

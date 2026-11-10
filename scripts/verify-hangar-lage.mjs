@@ -1,7 +1,7 @@
 /* ============================================================
    verify-hangar-lage.mjs — Tor gegen Innenräume außerhalb des Rumpfs,
-   Innenräume neben dem Pilotensitz und lose Teile neben dem Rumpf
-   (Schiene A).
+   Innenräume neben dem Pilotensitz, lose Teile neben dem Rumpf und
+   Innenraumteile, die über die Hülle ragen (Schiene A).
 
    WARUM ES DEN GIBT: Krisz, 30.10.2026: „am ende sollen innenräüme auch
    dabei sein, und jedes schiff soll komplett angeschaut werden, innen und
@@ -50,6 +50,16 @@
          (FEHLER); mehr Inseln oder weiter draußen als seine Klinke ist
          FEHLER, eine Ausnahme ohne Insel ein Zombie (FEHLER). Schiffe mit
          losen Teilen: höchstens die Klinke mitInseln.
+     [5] Innenraumteile im Rumpf (extras.interior), die mehr als RAGT_M über
+         den Hüllquader des übrigen Rumpfs ragen, brauchen eine benannte
+         Ausnahme (FEHLER); mehr solche Teile oder weiter draußen als die
+         Klinke des Schiffs ist FEHLER, eine Ausnahme ohne ein solches Teil
+         ein Zombie (FEHLER). Schiffe mit solchen Teilen: höchstens die
+         Klinke mitRagt. Anlass: Krisz, 10.11.2026, Ursa Medivac „komplett
+         broken“, die eigene Hülle stand als Kopie aus dem Container
+         medivac_int 1,5 m versetzt neben der echten. Sie hängt an der
+         echten (für [4] keine Insel), und [2] misst nur den begehbaren
+         Innenraum (.planning/notes/hangar-huellkopie.md).
 
    NACHZIEHEN (nach einem Neubau, damit das Tor wieder ohne Messung
    auskommt):
@@ -61,6 +71,7 @@
      node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme innen:<schiff>="<warum>"
      node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme inseln:<schiff>="<warum>"
      node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme sitz:<schiff>="<warum>"
+     node scripts/verify-hangar-lage.mjs --nachziehen --ausnahme ragt:<schiff>="<warum>"
    Was Nachziehen nicht heilen kann (fehlende Dateien, Klinke der Zahl der
    Schiffe, Innenraum neben dem Sitz, Schiff ohne Messung), bricht es ab,
    statt es in die Klinke zu schreiben.
@@ -73,7 +84,7 @@ import { availableParallelism } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
-import { WERKZEUG, SITZ_MIN, SITZ_R, readGeometry, sceneNodes, hullSpans, judge, seatCheck, pickSeat, islands } from './lib/hangar-lage.mjs';
+import { WERKZEUG, SITZ_MIN, SITZ_R, RAGT_M, readGeometry, sceneNodes, hullSpans, judge, seatCheck, pickSeat, islands, overhang } from './lib/hangar-lage.mjs';
 
 // Hilfsfaden: misst die Schiffe aus workerData.part und meldet je Schiff
 if (!isMainThread) {
@@ -85,7 +96,7 @@ if (!isMainThread) {
 async function measureShip({ hull, inner, meta }, verborgen) {
   const nodes = sceneNodes(await readGeometry(hull));
   const isl = islands(nodes, { verborgen });
-  const r = { inseln: (isl?.inseln ?? []).map((c) => ({ tris: c.tris, aussenM: c.aussenM, material: c.materialien[0] ?? '?' })) };
+  const r = { inseln: (isl?.inseln ?? []).map((c) => ({ tris: c.tris, aussenM: c.aussenM, material: c.materialien[0] ?? '?' })), ragt: overhang(nodes, verborgen) };
   if (!inner) return r;
   // den groben Innenraum im Rumpf (extras.interior) nicht als Rumpf zählen
   const hullNodes = nodes.filter((n) => !n.getExtras()?.interior);
@@ -119,9 +130,9 @@ async function main() {
   const NACHZIEHEN = argv.includes('--nachziehen');
   const anlassAt = argv.indexOf('--anlass');
   const ANLASS = anlassAt >= 0 ? argv[anlassAt + 1] : null;
-  const AUSNAHME = { innen: {}, inseln: {}, sitz: {} };
+  const AUSNAHME = { innen: {}, inseln: {}, sitz: {}, ragt: {} };
   argv.forEach((a, i) => {
-    const m = a === '--ausnahme' ? /^(innen|inseln|sitz):([^=]+)=(.+)$/s.exec(argv[i + 1] ?? '') : null;
+    const m = a === '--ausnahme' ? /^(innen|inseln|sitz|ragt):([^=]+)=(.+)$/s.exec(argv[i + 1] ?? '') : null;
     if (m) AUSNAHME[m[1]][m[2]] = m[3];
   });
 
@@ -267,8 +278,27 @@ async function main() {
     `${here.length} Ruempfe, ${lose.length} mit losen Teilen (${lose.map((s) => `${s.id} ${res.get(s.id).inseln.length}`).join(', ') || 'keins'}); Ausnahmen ${ausn4.length}`);
   if (klinke.mitInseln != null && lose.length > klinke.mitInseln) fail(`[4] ${lose.length} Schiffe mit losen Teilen, Klinke ${klinke.mitInseln}`);
 
+  // ---- [5] ----
+  say(`\n[5] Innenraumteile im Rumpf ragen hoechstens ${RAGT_M} m ueber den Huellquader des uebrigen Rumpfs, je Schiff gegen seine Klinke`);
+  const ragend = here.filter((s) => res.get(s.id)?.ragt?.length);
+  const ragtMax = (r) => Math.max(0, ...r.ragt.map((t) => t.m));
+  const teile5 = here.reduce((a, s) => a + (res.get(s.id)?.ragt?.length ?? 0), 0);
+  for (const s of here) {
+    const r = res.get(s.id), k = K[s.id];
+    if (!r) continue;
+    if (!Array.isArray(r.ragt)) { failHart(`[5] ${s.id}: Messung ohne Innenraumteile (ragt): Rechnung ${WERKZEUG} pruefen`); continue; }
+    const n = r.ragt.length;
+    if (n && !k?.ausnahmeRagt) fail(`[5] ${s.id}: ${n} Innenraumteile ragen ueber die Huelle (${r.ragt.map((t) => `${t.teil} ${t.tris} Dr. ${t.m} m, ${t.material}`).join('; ')}) ohne benannte Ausnahme: Steht eine Fahrzeughuelle im Innenraum-Container (Medivac 10.11.2026, Bauregel dropBodyCopies in build-hangar-assets, hangar-huellkopie.md)? Im Bild ansehen; stimmt es, Ausnahme mit --nachziehen --ausnahme ragt:${s.id}="<warum>"`);
+    if (!n && k?.ausnahmeRagt) fail(`[5] ${s.id}: Ausnahme „${k.ausnahmeRagt}“ ohne Anlass, kein Innenraumteil ragt mehr ueber die Huelle: mit --nachziehen streichen`);
+    if (n && k?.ragt != null && (n > k.ragt || ragtMax(r) > (k.ragtM ?? 0) + TOL_M)) fail(`[5] ${s.id}: ${n} Innenraumteile bis ${ragtMax(r)} m ueber der Huelle, Klinke ${k.ragt} bis ${k.ragtM} m: neues Teil beim Neubau? Ansehen; begruendet anheben nur mit --nachziehen --anlass`);
+  }
+  const ausn5 = here.filter((s) => K[s.id]?.ausnahmeRagt).map((s) => s.id);
+  sollIst(`kein Innenraumteil mehr als ${RAGT_M} m ueber der Huelle ohne benannte Ausnahme, keins ueber der Klinke seines Schiffs, hoechstens ${klinke.mitRagt ?? '—'} Schiffe mit solchen Teilen`,
+    `${here.length} Ruempfe, ${teile5} Teile an ${ragend.length} Schiffen (${ragend.map((s) => `${s.id} ${ragtMax(res.get(s.id))} m`).join(', ') || 'keins'}); Ausnahmen ${ausn5.length}`);
+  if (klinke.mitRagt != null && ragend.length > klinke.mitRagt) fail(`[5] ${ragend.length} Schiffe mit Innenraumteilen ueber der Huelle, Klinke ${klinke.mitRagt}`);
+
   say('\n[Selbstauskunft]');
-  say(`    Schiffe: ${here.length}   Innenraeume: ${innen.length}   gemessen: ${todo.length}   aus der Klinke: ${here.length - todo.length}   Innenraum-Dreiecke: ${triIn}   Sitze am Innenraum: ${sitzOk}   lose Teile: ${lose.reduce((a, s) => a + res.get(s.id).inseln.length, 0)} an ${lose.length} Schiffen`);
+  say(`    Schiffe: ${here.length}   Innenraeume: ${innen.length}   gemessen: ${todo.length}   aus der Klinke: ${here.length - todo.length}   Innenraum-Dreiecke: ${triIn}   Sitze am Innenraum: ${sitzOk}   lose Teile: ${lose.reduce((a, s) => a + res.get(s.id).inseln.length, 0)} an ${lose.length} Schiffen   Innenraumteile ueber der Huelle: ${teile5} an ${ragend.length} Schiffen`);
 
   if (NACHZIEHEN) {
     const steigt = [], ohne = [], gestrichen = [];
@@ -302,12 +332,20 @@ async function main() {
         if (!aus) ohne.push(`inseln:${s.id} ${r.inseln.length}`);
         else e.ausnahmeInseln = aus;
       } else if (k?.ausnahmeInseln) gestrichen.push(`inseln:${s.id}`);
+      if (r.ragt?.length) {
+        e.ragt = nimm('ragt', r.ragt.length, k?.ragt ?? (k?.gemessen?.ragt ? 0 : null));
+        e.ragtM = nimm('ragtM', ragtMax(r), k?.ragtM ?? (k?.gemessen?.ragt ? 0 : null));
+        const aus = AUSNAHME.ragt[s.id] ?? k?.ausnahmeRagt;
+        if (!aus) ohne.push(`ragt:${s.id} ${r.ragt.length}`);
+        else e.ausnahmeRagt = aus;
+      } else if (k?.ausnahmeRagt) gestrichen.push(`ragt:${s.id}`);
       if (angehoben) e.angehoben = angehoben;
       schiffe[s.id] = e;
     }
     const sinkt = (feld, ist, alt) => { if (alt == null || ist <= alt) return ist; if (ANLASS) return ist; steigt.push(`${feld} ${alt} → ${ist}`); return alt; };
     const aussen1 = sinkt('aussen1', ab1.length, klinke.aussen1);
     const mitInseln = sinkt('mitInseln', lose.length, klinke.mitInseln);
+    const mitRagt = sinkt('mitRagt', ragend.length, klinke.mitRagt);
     let sitzK = sitzOk;
     if (klinke.sitzOk != null && sitzOk < klinke.sitzOk) { if (ANLASS) sitzK = sitzOk; else { steigt.push(`sitzOk ${klinke.sitzOk} → ${sitzOk}`); sitzK = klinke.sitzOk; } }
     if (hart.length) {
@@ -317,12 +355,12 @@ async function main() {
       process.exit(1);
     }
     if (steigt.length || ohne.length) {
-      console.error(`\nverify-hangar-lage: nicht nachgezogen.${steigt.length ? ` ${steigt.length} Werte stiegen (${steigt.join(', ')}): Ursache klaeren, anheben nur mit --anlass "<warum>".` : ''}${ohne.length ? ` ${ohne.length} ohne Ausnahme (${ohne.join(', ')}): ansehen, stimmt es, --ausnahme innen:<schiff>="<warum>", --ausnahme inseln:<schiff>="<warum>" bzw. --ausnahme sitz:<schiff>="<warum>".` : ''}\n`);
+      console.error(`\nverify-hangar-lage: nicht nachgezogen.${steigt.length ? ` ${steigt.length} Werte stiegen (${steigt.join(', ')}): Ursache klaeren, anheben nur mit --anlass "<warum>".` : ''}${ohne.length ? ` ${ohne.length} ohne Ausnahme (${ohne.join(', ')}): ansehen, stimmt es, --ausnahme innen:<schiff>="<warum>", --ausnahme inseln:<schiff>="<warum>", --ausnahme sitz:<schiff>="<warum>" bzw. --ausnahme ragt:<schiff>="<warum>".` : ''}\n`);
       process.exit(1);
     }
     const ordered = Object.fromEntries(Object.keys(schiffe).sort().map((id) => [id, schiffe[id]]));
-    writeFileSync(KLINKE_FILE, `${JSON.stringify({ werkzeug: FASSUNG, aussen1, sitzOk: sitzK, mitInseln, schiffe: ordered }, null, 1)}\n`);
-    say(`\nverify-hangar-lage: Klinke nachgezogen (${Object.keys(ordered).length} Schiffe, ${zombies.length} gestrichen, Ausnahmen innen ${Object.values(ordered).filter((e) => e.ausnahmeInnen).length}, ohne Sitz ${Object.values(ordered).filter((e) => e.ausnahmeSitz).length}, lose Teile ${Object.values(ordered).filter((e) => e.ausnahmeInseln).length}${gestrichen.length ? `, Ausnahme gestrichen: ${gestrichen.join(', ')}` : ''}${ANLASS ? `, Anlass: ${ANLASS}` : ''}). Jetzt das Tor ohne Schalter laufen lassen.\n`);
+    writeFileSync(KLINKE_FILE, `${JSON.stringify({ werkzeug: FASSUNG, aussen1, sitzOk: sitzK, mitInseln, mitRagt, schiffe: ordered }, null, 1)}\n`);
+    say(`\nverify-hangar-lage: Klinke nachgezogen (${Object.keys(ordered).length} Schiffe, ${zombies.length} gestrichen, Ausnahmen innen ${Object.values(ordered).filter((e) => e.ausnahmeInnen).length}, ohne Sitz ${Object.values(ordered).filter((e) => e.ausnahmeSitz).length}, lose Teile ${Object.values(ordered).filter((e) => e.ausnahmeInseln).length}, ueber der Huelle ${Object.values(ordered).filter((e) => e.ausnahmeRagt).length}${gestrichen.length ? `, Ausnahme gestrichen: ${gestrichen.join(', ')}` : ''}${ANLASS ? `, Anlass: ${ANLASS}` : ''}). Jetzt das Tor ohne Schalter laufen lassen.\n`);
     process.exit(0);
   }
 
