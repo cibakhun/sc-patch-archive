@@ -603,8 +603,13 @@ export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '01
  *   set(patch)     aendert ihn (und damit die Adresse)
  *   shipName(id)   Name des Schiffs von seiner Dock-Karte
  *   say(text)      hoefliche Live-Region der Seite
+ *   holo()         steht die Uebersicht als Hologramm in der Halle? Dann
+ *                  arbeitet die Werkstatt weiter, gezeichnet wird sie dort
+ *   changed()      der Stand der Tafel hat sich geaendert (neu zeichnen)
  * Liefert render(state); der Controller ruft es nach jeder Aenderung von
  * ship, hp, lo oder station. lo null ist Serie ohne Namen (EMPTY_CODE).
+ * Dazu board() und act(a) fuer die Tafel in der Halle (siehe unten): EINE
+ * Werkstatt, ein Layout, zwei Ansichten.
  * @param {Document} doc
  */
 export function initWorkshop(doc, bridge) {
@@ -780,15 +785,18 @@ export function initWorkshop(doc, bridge) {
   });
   nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
   nameIn.addEventListener('blur', () => { nameIn.value = draft.name; });
-  $('hgl-dice').addEventListener('click', (e) => {
+  function rollName() {
     const names = m('name.fun').split('|').filter((x) => x && x !== draft.name);
     draft.name = names[Math.floor(Math.random() * names.length)] ?? draft.name;
     nameIn.value = draft.name;
+    commit();
+  }
+  $('hgl-dice').addEventListener('click', (e) => {
+    rollName();
     const b = e.currentTarget;
     b.classList.remove('is-roll');
     void b.offsetWidth;
     b.classList.add('is-roll');
-    commit();
   });
 
   /* ---- Slots ---- */
@@ -943,9 +951,10 @@ export function initWorkshop(doc, bridge) {
     const open = openKey && slots.find((s) => s.key === openKey);
     $('hgl-hint').hidden = cat === 'paint' || !slots.length || (!!open && tabOf(open) === cat);
   }
+  const catCount = (c) => (c === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === c && isChanged(s)).length);
   function paintCatCounts() {
     for (const b of catBtns) {
-      const n = b.dataset.cat === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === b.dataset.cat && isChanged(s)).length;
+      const n = catCount(b.dataset.cat);
       b.querySelector('[data-cat-n]').textContent = n ? nf.format(n) : '';
     }
   }
@@ -1049,15 +1058,15 @@ export function initWorkshop(doc, bridge) {
     bridge.fit?.(draft.ship, fits);
   }
 
+  const groupUnit = (g) => (g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : g === 'missile' || g === 'bomb' ? dmg() : UNIT[g]());
   function paintTotals() {
     paintMods();
     paintModel();
     paintCatCounts();
     const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
     for (const [g, t] of totals) {
-      const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : g === 'missile' || g === 'bomb' ? dmg() : UNIT[g]();
       const b = slotsHost.querySelector(`[data-total="${g}"]`);
-      if (b) b.textContent = `${nf.format(Math.round(t.now))} ${unit}`;
+      if (b) b.textContent = `${nf.format(Math.round(t.now))} ${groupUnit(g)}`;
       const gd = slotsHost.querySelector(`[data-gd="${g}"]`);
       if (!gd) continue;
       const d = Math.round(t.now - t.stock);
@@ -1119,21 +1128,20 @@ export function initWorkshop(doc, bridge) {
   // Raketen, darunter Name und Preis der gewaehlten; die Serie traegt ihr Etikett.
   function rackBar(slot) {
     const on = draft.racks?.[slot.key] ?? slot.racks[0];
-    // kleine Raketen zuerst, bei gleicher Groesse die mit mehr Plaetzen
-    const order = [...slot.racks].sort((a, b) => data.racks[a][4] - data.racks[b][4] || data.racks[b][3] - data.racks[a][3]);
-    const btns = order.map((k) => {
+    const btns = rackOrder(slot).map((k) => {
       const r = data.racks[k];
       const tags = [k === slot.racks[0] && k !== on ? el('em', {}, m('slot.stock')) : null];
       return el('button', { type: 'button', class: 'hgl-rack', 'data-rack': k, 'aria-pressed': String(k === on), title: rackName(k) },
         el('b', {}, `${r[3]}× S${r[4]}`), el('small', {}, rackShort(k)), ...tags);
     });
-    const r = data.racks[on];
-    const info = [rackName(on), r?.[7] ? fill(m('pick.price'), { n: nf.format(r[7]) }) : m('pick.noshop')].join(' · ');
     return el('div', { class: 'hgl-racks', role: 'group', 'aria-label': m('rack.label') },
       el('span', { class: 'hgl-racks__h' }, m('rack.label')),
       el('div', { class: 'hgl-racks__row' }, ...btns),
-      el('small', { class: 'hgl-racks__info' }, info));
+      el('small', { class: 'hgl-racks__info' }, rackInfo(on)));
   }
+  // kleine Raketen zuerst, bei gleicher Groesse die mit mehr Plaetzen
+  const rackOrder = (slot) => [...slot.racks].sort((a, b) => data.racks[a][4] - data.racks[b][4] || data.racks[b][3] - data.racks[a][3]);
+  const rackInfo = (k) => [rackName(k), data.racks[k]?.[7] ? fill(m('pick.price'), { n: nf.format(data.racks[k][7]) }) : m('pick.noshop')].join(' · ');
   // Kurzname einer Halterung fuer die Taste: ohne Art, Bauweise und Belegung ("MSD-322", "Gatac").
   const rackShort = (k) => (data.racks[k]?.[0] ?? '')
     .replace(/\b\d+\s*x\s*S?\d+\b/gi, '')
@@ -1247,6 +1255,10 @@ export function initWorkshop(doc, bridge) {
     if (!btn) return;
     const slot = slots.find((s) => s.key === btn.dataset.key);
     if (!slot) return;
+    toggleSlot(slot);
+    if (openKey === slot.key) slotEls.get(slot.key).querySelector('.hgl-q')?.focus({ preventScroll: true });
+  });
+  function toggleSlot(slot) {
     if (openKey === slot.key) {
       openKey = null;
       bridge.set({ hp: null });
@@ -1255,8 +1267,7 @@ export function initWorkshop(doc, bridge) {
       bridge.set({ tab: tabOf(slot), hp: portOf(slot.key) });
     }
     syncOpen();
-    if (openKey === slot.key) slotEls.get(slot.key).querySelector('.hgl-q')?.focus({ preventScroll: true });
-  });
+  }
   // Pfeile in der Auswahl: Suche -> erste Zeile, dann Zeile fuer Zeile.
   slotsHost.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
@@ -1315,7 +1326,7 @@ export function initWorkshop(doc, bridge) {
   }
   $('hgl-share').addEventListener('click', (e) => share(draft, e.currentTarget));
 
-  $('hgl-reset').addEventListener('click', () => {
+  function reset() {
     draft.slots = {};
     delete draft.racks;
     delete draft.paint;
@@ -1326,7 +1337,8 @@ export function initWorkshop(doc, bridge) {
     paintTotals();
     syncOpen();
     showToast(m('msg.reset'));
-  });
+  }
+  $('hgl-reset').addEventListener('click', reset);
 
   function done(btn) {
     btn.classList.add('is-done');
@@ -1334,19 +1346,23 @@ export function initWorkshop(doc, bridge) {
   }
   let toastTimer = 0;
   let undo = null;
+  let toastTxt = '';
+  const toastOff = () => { toast.classList.remove('is-on'); undo = null; toastTxt = ''; bridge.changed?.(); };
   function showToast(text, onUndo = null) {
     $('hgl-toast-txt').textContent = text;
     undo = onUndo;
     undoBtn.hidden = !onUndo;
     toast.classList.add('is-on');
+    toastTxt = text;
     bridge.say(text);
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.classList.remove('is-on'); undo = null; }, onUndo ? 6000 : 2600);
+    toastTimer = setTimeout(toastOff, onUndo ? 6000 : 2600);
+    bridge.changed?.();
   }
   undoBtn.addEventListener('click', () => {
     const f = undo;
-    undo = null;
-    toast.classList.remove('is-on');
+    clearTimeout(toastTimer);
+    toastOff();
     f?.();
   });
 
@@ -1415,6 +1431,7 @@ export function initWorkshop(doc, bridge) {
     if (!data) return;
     paintSaved();
     paintHead();
+    bridge.changed?.();
   }
   window.addEventListener('storage', (e) => {
     if (e.key === store.key()) repaint();
@@ -1425,17 +1442,154 @@ export function initWorkshop(doc, bridge) {
   else window.addEventListener('vb-account-ready', () => acct.sync(), { once: true });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acct.sync(); });
 
+  /* ---- Tafel in der Halle ---- */
+  // Steht die Uebersicht als Hologramm in der Halle, zeichnet der Viewer die
+  // Werkstatt dort auf die Tafel „Ausruestung“ (assets/hangar-holo3d.js,
+  // Krisz 10.11.2026: Loadout direkt in die Uebersicht, „eine zentrale
+  // Bedienoberflaeche“, mit den Zeichen und Farben von hier). board() liefert,
+  // was zu sehen ist, als fertige Woerter und Zahlen; act() fuehrt aus, was
+  // dort geklickt wird, ueber dieselben Wege wie die Knoepfe dieser Tafel.
+  const MENU_SAVED = 8;
+  let nameEdit = false;
+  const txtOf = (id) => ($(id).querySelector('span') ?? $(id)).textContent.trim();
+  // Abstand in Prozent als „▲ 12 %“; flat: auch 0 % nennen (Auswahlliste)
+  function pctOf(value, base, flat = false) {
+    const d = deltaPct(value, base);
+    if (d == null || (!d && !flat)) return { delta: '', dir: 0 };
+    return { delta: `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`, dir: Math.sign(d) };
+  }
+  function board() {
+    if (!data || !draft.ship || draft.ship !== bridge.state().ship || !cat) return null;
+    const n = changedCount();
+    const saved = savedId ? store.get(savedId) : null;
+    const isSaved = !!saved && sameLayout(saved, draft);
+    const present = new Set(slots.map(tabOf));
+    if (hasPaints()) present.add('paint');
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
+    let num = 0;
+    const groups = cat === 'paint' ? [] : GROUPS.map((gid) => {
+      const mine = slots.filter((s) => s.group === gid && tabOf(s) === cat);
+      if (!mine.length) return null;
+      const t = SUMMED.has(gid) ? totals.get(gid) : null;
+      return {
+        id: gid, title: m(`grp.${gid}`),
+        total: t ? `${nf.format(Math.round(t.now))} ${groupUnit(gid)}` : '',
+        ...(t ? pctOf(Math.round(t.now), Math.round(t.stock)) : { delta: '', dir: 0 }),
+        rows: mine.map((s) => {
+          const now = current(s), it = data.items[now], st = s.stock ? data.items[s.stock] : null;
+          const e = eff(s), changed = isChanged(s), rk = draft.racks?.[s.key];
+          return {
+            key: s.key, n: ++num, port: portOf(s.key), type: e.type, dt: it?.[8]?.dt ?? '', size: `S${e.size}`,
+            name: `${times(e.count)}${itemName(now)}`,
+            sub: [rk ? rackShort(rk) || rackName(rk) : null, subLine(now, false)].filter(Boolean).join(' · '),
+            was: changed ? fill(m('slot.was'), { name: s.stock ? `${times(s.count)}${itemName(s.stock)}` : m('slot.unknown') }) : '',
+            figure: it ? nf.format(it[7]) : '–', unit: UNIT[e.type](),
+            ...(changed && it && st ? pctOf(it[7] * e.count, st[7] * s.count) : { delta: '', dir: 0 }),
+            changed,
+          };
+        }),
+      };
+    }).filter(Boolean);
+    const os = openKey && cat !== 'paint' ? slots.find((s) => s.key === openKey && tabOf(s) === cat) : null;
+    let pick = null;
+    if (os) {
+      const keys = candidates(eff(os), data.items), now = current(os), base = data.items[now]?.[7] ?? null;
+      const max = Math.max(1, ...keys.map((k) => data.items[k][7]));
+      const rackOn = os.racks ? draft.racks?.[os.key] ?? os.racks[0] : null;
+      pick = {
+        key: os.key, head: m('pick.head'), count: plural('pick.count', keys.length),
+        racks: os.racks ? {
+          label: m('rack.label'), info: rackInfo(rackOn),
+          list: rackOrder(os).map((k) => ({ id: k, top: `${data.racks[k][3]}× S${data.racks[k][4]}`, sub: rackShort(k), on: k === rackOn, tag: k === os.racks[0] && k !== rackOn ? m('slot.stock') : '' })),
+        } : null,
+        opts: keys.map((k) => {
+          const it = data.items[k];
+          return {
+            id: k, name: itemName(k), sub: subLine(k, true), type: it[2], dt: it[8]?.dt ?? '', figure: nf.format(it[7]),
+            ...(k === now ? { delta: '', dir: 0 } : pctOf(it[7], base, true)), bar: it[7] / max,
+            tag: k === now ? m('slot.fitted') : k === os.stock ? m('slot.stock') : '', on: k === now,
+          };
+        }),
+        revert: isChanged(os) && os.stock ? m('slot.revert') : '',
+      };
+    }
+    const sp = data.paints?.[draft.ship];
+    const paints = cat === 'paint' && sp ? {
+      title: m('grp.paint'),
+      list: [['', m('paint.stock'), ...sp.base, 0], ...sp.list].map(([id, name, a, b, c, pattern]) => ({ id, name, cols: [a, b, c], note: pattern ? m('paint.pattern') : '', on: id === (draft.paint ?? '') })),
+    } : null;
+    const none = !slots.length && !hasPaints();
+    const mine = store.list().filter((e) => e.ship === draft.ship);
+    const stateTxt = (k) => (k ? plural('state.changed', k) : m('saved.stock'));
+    return {
+      title: m('holo.title'), icons: ICON,
+      // Name des Layouts: getippt, sonst der, unter dem Speichern es ablegt, sonst Serie
+      chip: draft.name || (n ? placeholder() : m('saved.stock')), nameEdit, name: draft.name,
+      cats: present.size > 1 ? catBtns.filter((b) => present.has(b.dataset.cat)).map((b) => ({ id: b.dataset.cat, label: b.firstChild.textContent.trim(), n: catCount(b.dataset.cat), on: b.dataset.cat === cat })) : [],
+      cat, groups, open: os?.key ?? null, pick, paints,
+      empty: !slots.length && cat !== 'paint' ? m('noslots') : '',
+      state: { s: isSaved ? 'saved' : n ? 'changed' : 'stock', text: n ? plural('state.changed', n) : m('state.stock'), sub: isSaved ? m('state.saved') : n || draft.name ? m('state.unsaved') : '' },
+      note: $('hgl-shared').hidden ? '' : $('hgl-shared').textContent.trim(),
+      btns: [
+        { id: 'save', label: txtOf('hgl-save'), main: true, off: none },
+        { id: 'share', label: txtOf('hgl-share'), off: none },
+        { id: 'reset', label: txtOf('hgl-reset'), off: none || n === 0 },
+      ],
+      menu: [
+        { label: m('state.stock'), on: !n && !draft.name, act: ['stock'] },
+        { head: txtOf('hgl-v-saved') },
+        ...(mine.length
+          ? mine.slice(0, MENU_SAVED).map((e) => ({ label: e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), sub: stateTxt(changeCount(e)), on: e.id === savedId && isSaved, act: ['open', e.id] }))
+          : [{ note: m('saved.empty') }]),
+        ...(mine.length > MENU_SAVED ? [{ note: fill(m('holo.moreSaved'), { n: nf.format(mine.length - MENU_SAVED) }) }] : []),
+        { sep: true },
+        { label: m('holo.rename'), act: ['rename'] },
+        { label: $('hgl-dice').title, act: ['dice'] },
+        ...(savedId && store.get(savedId) && !none ? [{ label: m('holo.saveNew'), act: ['saveNew'] }] : []),
+        { label: `${txtOf('hgl-allbtn')} ›`, href: $('hgl-allbtn').getAttribute('href') },
+      ],
+      toast: toastTxt,
+      totals: { pilot: totals.get('pilot') ?? null, shield: totals.get('shield') ?? null },
+    };
+  }
+  /** Ein Klick auf der Tafel in der Halle: a = [was, womit, …]. Unbekanntes und Unpassendes faellt still weg. */
+  function act(a) {
+    if (!data || !Array.isArray(a)) return;
+    const [what, x, y] = a;
+    const slot = typeof x === 'string' ? slots.find((s) => s.key === x) : null;
+    if (what === 'cat' && catBtns.some((b) => b.dataset.cat === x && !b.hidden)) pickCat(x);
+    else if (what === 'slot' && slot) toggleSlot(slot);
+    else if (what === 'opt' && slot && fits(data.items[y], eff(slot))) equip(slot, y);
+    else if (what === 'rack' && slot?.racks?.includes(y)) equipRack(slot, y);
+    else if (what === 'revert' && slot?.stock) equip(slot, slot.stock, slot.racks?.[0]);
+    else if (what === 'paint' && hasPaints() && (x === '' || data.paints[draft.ship].list.some((r) => r[0] === x))) pickPaint(x);
+    else if (what === 'save') save();
+    else if (what === 'saveNew') { savedId = null; save(); }
+    else if (what === 'share') share(draft, $('hgl-share'));
+    else if (what === 'reset') reset();
+    else if (what === 'stock') { openKey = null; bridge.set({ lo: null, hp: null }); }
+    else if (what === 'open') {
+      const entry = store.get(x);
+      if (entry) { pendingSaved = entry.id; openKey = null; bridge.set({ ship: entry.ship, lo: encodeLayout(entry), hp: null }); }
+    } else if (what === 'dice') rollName();
+    else if (what === 'name') { draft.name = cleanName(typeof x === 'string' ? x : ''); if (nameEdit) nameEdit = true; commit({ soon: true }); }
+    else if (what === 'nameEdit') nameEdit = x === 'all' ? 'all' : !!x;
+    bridge.changed?.();
+  }
+
   /* ---- Takt des Controllers ---- */
   function render(state) {
+    // Als Hologramm (bridge.holo) bleibt die Tafel hier zu, die Werkstatt
+    // arbeitet aber: board() liest denselben Entwurf.
     const open = state.station === 'loadout';
     aside.hidden = !open;
-    if (!open) {
+    if (!open && !bridge.holo?.()) {
       hot(null);
       return;
     }
     if (!data) {
       loLink(state.ship, state.lo);
-      ensureData().then(() => render(bridge.state())).catch(() => {});
+      ensureData().then(() => { render(bridge.state()); bridge.changed?.(); }).catch(() => {});
       return;
     }
     // Ein neuer tab (Klick am Schiff, Slot, Reiter) beendet den Reiter Lackierung.
@@ -1450,5 +1604,5 @@ export function initWorkshop(doc, bridge) {
     }
   }
 
-  return { render };
+  return { render, board, act };
 }

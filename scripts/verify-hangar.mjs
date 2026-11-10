@@ -159,7 +159,13 @@
         und onStation. Proben durch parseState/serializeState: jede Station
         hin und zurueck, mit ?tafel=1 und beim Teilen (bleibt daheim), das
         alte ?pane=ship als Uebersicht, Unsinn faellt auf die Vorgabe.
-        Klinken: Stationen, Proben.
+        Tafel „Ausruestung“ (Krisz 10.11.2026: Loadout in die Uebersicht,
+        „eine zentrale Bedieneroberflaeche“): die Werkstatt gibt board und
+        act heraus, der Controller reicht beides an die Halle, das Modul
+        zeichnet sie; und jedes Wort, das die Werkstatt mit m('…') holt,
+        steht auf beiden Seiten in #hgl-msg. Fehlt eines, zeigt die
+        gezeichnete Tafel den rohen Schluessel, und kein Textpruefer sieht
+        ihn. Klinken: Stationen, Proben, Woerter.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -222,6 +228,11 @@
     gg  in dist/assets/hangar-holo3d.js beim Material der Tafel
         depthTest: false streichen (10.11.2026: Halle schnitt die
         Ironclad-Tafel an)                                          -> [21]
+    hh  in dist/hangar.html das Wort data-m="holo.title" aus #hgl-msg
+        streichen (10.11.2026: vor dem Neubau stand „HOLO.TITLE“ als
+        Kopf der Tafel)                                             -> [21]
+    ii  in dist/assets/hangar-layouts.js board aus der Rueckgabe von
+        initWorkshop streichen                                      -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1337,7 +1348,7 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 10.11.2026:
 // zwei Stationen (Uebersicht, Loadout; Kampf kommt mit H2), 14 Proben der
 // Adresse je Seite.
-const STATIONEN = { stationen: 2, proben: 28 };
+const STATIONEN = { stationen: 2, proben: 28, woerter: 47 };
 {
   let mod = null;
   try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
@@ -1365,6 +1376,28 @@ const STATIONEN = { stationen: 2, proben: 28 };
     if (!an) fail('[21] dist/assets/hangar-holo3d.js: das Material der Tafel (P.mesh) zeichnet nicht ohne Tiefentest: Wände, Decke oder Rumpf schneiden sie an');
     else if (zurueck) fail('[21] dist/assets/hangar-holo3d.js setzt P.mesh.material.depthTest nachträglich: die Tafel kann wieder angeschnitten werden');
     else ueber = 'ohne Tiefentest';
+  }
+  // Tafel „Ausruestung“ in der Halle: Werkstatt, Controller und Modul halten
+  // dieselbe Naht (board hin, act zurueck)
+  const wsFile = join(DIST, 'assets', 'hangar-layouts.js');
+  const ohneK = (t) => t.replace(/\/\/[^\n]*/g, '');
+  const ws = existsSync(wsFile) ? ohneK(readFileSync(wsFile, 'utf8')) : '';
+  const wsAus = /return\s*\{([^{}]*)\};?\s*\}\s*$/.exec(ws)?.[1] ?? '';
+  const nahtFehlt = [
+    [/\bboard\b/.test(wsAus) && /\bact\b/.test(wsAus), 'dist/assets/hangar-layouts.js gibt board und act nicht mehr heraus'],
+    [/workshop\?\.board\(\)/.test(ohneK(ctrl)) && /workshop\?\.act\(/.test(ohneK(ctrl)), 'dist/assets/hangar-overview.js reicht board und act der Werkstatt nicht mehr an die Halle'],
+    [!!holoSrc && /function drawLoadout\(/.test(holoSrc.toString('utf8')) && /act: 'lo'/.test(holoSrc.toString('utf8')), 'dist/assets/hangar-holo3d.js zeichnet die Tafel nicht mehr (drawLoadout) oder meldet ihre Klicks nicht (act lo)'],
+  ].filter(([ok]) => !ok).map(([, text]) => text);
+  for (const text of nahtFehlt) fail(`[21] ${text}: die Tafel „Ausrüstung“ in der Halle bleibt leer oder stumm`);
+  // Woerter der Werkstatt: jedes m('…') des Skripts steht in #hgl-msg
+  const wsKeys = [...new Set([...ws.matchAll(/\bm\('([A-Za-z0-9_.]+)'/g)].map((m) => m[1]))];
+  let woerterSeiten = 0;
+  for (const page of PAGES) {
+    const box = /id="hgl-msg"[^>]*>([\s\S]*?)<\/div>/.exec(page.html)?.[1] ?? '';
+    const da = new Set([...box.matchAll(/<span[^>]*\bdata-m="([^"]+)"[^>]*>([^<]*)</g)].filter((m) => m[2].trim()).map((m) => m[1]));
+    const ohne = wsKeys.filter((k) => !da.has(k));
+    if (ohne.length) fail(`[21] ${page.file}: #hgl-msg fehlt ${ohne.length === 1 ? 'das Wort' : 'Wörter'} ${ohne.join(', ')}: die Werkstatt zeigt den rohen Schlüssel (LAYOUT_MSG in src/components/hangar/LayoutWorkshop.astro)`);
+    else woerterSeiten++;
   }
   const holoV = holoSrc ? createHash('sha1').update(holoSrc).digest('hex').slice(0, 8) : '';
   let proben = 0, leisten = 0;
@@ -1409,13 +1442,16 @@ const STATIONEN = { stationen: 2, proben: 28 };
   }
   sollIst(`Stationen >= ${STATIONEN.stationen}, Leiste mit genau ihnen auf beiden Seiten, Modul ${holoV || '—'} versioniert, Viewer liefert ${VNAHT.join(', ')}, Tafeln ohne Tiefentest, Proben der Adresse >= ${STATIONEN.proben}`,
     `${list.length} Stationen (${list.join(', ') || '—'}, Vorgabe ${vor ?? '—'}), Leiste auf ${leisten} von ${PAGES.length} Seiten, Tafeln ${ueber}, ${proben} Proben`);
+  sollIst(`Tafel „Ausrüstung“: Naht Werkstatt, Controller, Modul ganz; Wörter der Werkstatt >= ${STATIONEN.woerter}, alle in #hgl-msg auf beiden Seiten`,
+    `Naht ${nahtFehlt.length ? `mit ${nahtFehlt.length === 1 ? 'einer Lücke' : `${nahtFehlt.length} Lücken`}` : 'ganz'}, ${wsKeys.length} Wörter, vollständig auf ${woerterSeiten} von ${PAGES.length} Seiten`);
+  if (wsKeys.length < STATIONEN.woerter) fail(`[21] nur ${wsKeys.length} Wörter im Skript der Werkstatt gefunden (Klinke ${STATIONEN.woerter}): heisst m() dort anders, prüft diese Stelle nichts mehr`);
   if (list.length < STATIONEN.stationen) fail(`[21] nur ${list.length} Stationen im Controller (Klinke ${STATIONEN.stationen})`);
   if (proben < STATIONEN.proben) fail(`[21] nur ${proben} Proben der Adresse (Klinke ${STATIONEN.proben}): der Controller laedt nicht oder STATIONS ist kuerzer geworden`);
-  ist.stationen = list.length; ist.stationenProben = proben;
+  ist.stationen = list.length; ist.stationenProben = proben; ist.werkstattWoerter = wsKeys.length;
 }
 
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

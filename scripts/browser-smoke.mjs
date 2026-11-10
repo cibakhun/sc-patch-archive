@@ -151,7 +151,9 @@ const SEITEN = [
   },
   // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
-  { id: 'hangar-layout', en: '/hangar.html', de: '/de/hangar.html', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt, nurMitHangar: true },
+  // tafel=1: ohne steht die Ausruestung ab 761 px als Hologramm in der Halle
+  // (dieselbe Werkstatt, gezeichnet statt als Knoepfe), und #hgl-slots bleibt zu.
+  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt, nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
