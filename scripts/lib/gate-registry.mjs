@@ -359,13 +359,15 @@ export const CHECKS = [
     // Neuzugang (31.10.2026): mit Fingerabdruck-Klinke wie verify:hangar-cockpit
     // 2 s; nach einem Neubau misst es mit allen Kernen (231 Schiffe gut 2
     // Minuten auf 4 Kernen). Kein env-Feld: kein git, kein Netz, kein
-    // Kindprozess (Worker-Faeden) — liest dist/.
+    // Kindprozess (Worker-Faeden) — liest dist/. [5] seit 10.11.2026,
+    // vorgefuehrt rot mit dem alten Medivac (interior_part_23, 1,5 m ueber
+    // der Huelle, ohne Ausnahme; dazu die Klinke mitRagt 6 statt 5).
     id: 'verify:hangar-lage',
     npm: 'verify:hangar-lage',
     nurMitHangar: true,
     script: 'scripts/verify-hangar-lage.mjs',
     rail: 'A',
-    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz (ohne Sitzangabe nur mit benannter Ausnahme), und kein Rumpf hat Teile, die getrennt neben ihm haengen, ohne benannte Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen)',
+    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz (ohne Sitzangabe nur mit benannter Ausnahme), kein Rumpf hat Teile, die getrennt neben ihm haengen, und kein Innenraumteil im Rumpf ragt mehr als 0,5 m ueber dessen Huelle, beides nur mit benannter Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen; 10.11.2026: Ursa Medivac mit zweiter Huelle aus dem Innenraum-Container)',
   },
   {
     // Neuzugang (30.10.2026), vor dem langen audit:site: entpackt die
