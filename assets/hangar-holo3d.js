@@ -193,9 +193,10 @@ function drawTiles(g, d, hover) {
 
 // Übersicht links: Komponenten mit Nummer, Art, Größe und Kennwert; d =
 // { title, rows: [{ id, n, name, kind, size, figure, unit, ps }], more,
-//   sel, detail: { lines: [[k, v]], links: [{ label, href }] } }
-// Jede Zeile ist ein Knopf (sys:<id>); die gewählte (sel) klappt mit ihren
-// Werten und Links (go:<i>) auf, wie die Zeile der Tafel.
+//   sel: [id], detail: { id: { lines: [[k, v]], links: [{ label, href }] } } }
+// Jede Zeile ist ein Knopf (sys:<id>); gewählt sind wie auf der Tafel alle
+// Zeilen, die den Port state.hp führen (trägt ein Port mehrere Teile, alle).
+// Sie klappen mit ihren Werten und Links (go:<id>:<i>) auf.
 const SYS_W = 320;
 const SYS = { p: 12, rh: 38, y0: 30, lh: 19 };
 const kSt = { f: BAR, s: 12.5, c: C.mut }, vSt = { f: RAJ, w: 700, s: 14, c: C.txt };
@@ -217,16 +218,16 @@ function detailBox(g, det) {
 }
 function drawSystems(g, d, hover) {
   const W = SYS_W, { p, rh, y0, lh } = SYS;
-  const sel = d.rows.some((r) => r.id === d.sel) && d.detail ? d.sel : null;
-  const det = sel ? detailBox(g, d.detail) : null;
-  const H = y0 + d.rows.length * rh + (det ? det.h : 0) + (d.more ? 24 : 0) + 8;
+  const boxes = new Map(d.rows.filter((r) => d.sel?.includes(r.id) && d.detail?.[r.id]).map((r) => [r.id, detailBox(g, d.detail[r.id])]));
+  let H = y0 + d.rows.length * rh + (d.more ? 24 : 0) + 8;
+  for (const b of boxes.values()) H += b.h;
   if (!g.canvas.dataset.h) return H;
   card(g, W, H);
   head(g, d.title, p + 30, 22);
   const hits = [];
   let y = y0;
   for (const r of d.rows) {
-    const cy = y + rh / 2, on = r.id === sel, hot = hover === `sys:${r.id}`;
+    const cy = y + rh / 2, det = boxes.get(r.id), on = !!det, hot = hover === `sys:${r.id}`;
     // Fläche: gewählt mit Rahmen um Zeile und Werte, unter dem Zeiger heller
     if (on || hot) {
       g.save(); rr(g, 4, y + 1, W - 8, rh - 2 + (on ? det.h : 0), 6);
@@ -257,17 +258,18 @@ function drawSystems(g, d, hover) {
     y += rh;
     if (!on) continue;
     // Werte zweispaltig, darunter die Links als Knöpfe
+    const info = d.detail[r.id];
     let yl = y + 4;
-    for (const [k, v] of d.detail.lines) {
+    for (const [k, v] of info.lines) {
       const vw = text(g, fit(g, v, 150, vSt), W - p, yl + 13, { ...vSt, al: 'right' });
       text(g, fit(g, k, W - 2 * p - 30 - vw - 10, kSt), p + 30, yl + 13, kSt);
       yl += lh;
     }
     if (det.pills.length) {
-      const top = (d.detail.lines.length ? yl : y) + 6;
+      const top = (info.lines.length ? yl : y) + 6;
       det.pills.forEach((b, i) => {
-        const act = `go:${i}`, by = top + b.row * 34;
-        const hit = pill(g, b.x + b.w, by, d.detail.links[i].label, { c: C.cy, border: 'rgba(143,211,255,.45)', hover: hover === act });
+        const act = `go:${r.id}:${i}`, by = top + b.row * 34;
+        const hit = pill(g, b.x + b.w, by, info.links[i].label, { c: C.cy, border: 'rgba(143,211,255,.45)', hover: hover === act });
         hits.push({ ...hit, act });
       });
     }
@@ -383,7 +385,7 @@ export function holoLayer(ctx) {
     return moved;
   };
   let fontsOk = false;
-  let hoverAct = null;   // Knopf unter dem Zeiger: cmp, flat, sys:<Zeile>, go:<Link>
+  let hoverAct = null;   // Knopf unter dem Zeiger: cmp, flat, sys:<Zeile>, go:<Zeile>:<Link>
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const v = new THREE.Vector3(), q = new THREE.Vector3();
 
@@ -471,11 +473,11 @@ export function holoLayer(ctx) {
   }
   function updateMarks() {
     if (!built) return;
-    const d = built.sys.data, sel = d.detail && d.rows.some((r) => r.id === d.sel) ? d.sel : null;
+    const d = built.sys.data, sel = new Set((d.sel ?? []).filter((id) => d.detail?.[id] && d.rows.some((r) => r.id === id)));
     const hot = hoverAct?.startsWith('sys:') ? hoverAct.slice(4) : null;
     for (const sp of built.sprites) {
       if (sp.kind !== 'num') continue;
-      const mode = sp.row === sel ? 'sel' : sp.row === hot ? 'hot' : sel || hot ? 'dim' : '';
+      const mode = sel.has(sp.row) ? 'sel' : sp.row === hot ? 'hot' : sel.size || hot ? 'dim' : '';
       if (mode === sp.st.mode) continue;
       sp.st.mode = mode; sp.redraw();
       sp.obj.renderOrder = RO.sprite + (mode === 'sel' || mode === 'hot' ? 1 : 0);
@@ -809,7 +811,8 @@ export function holoLayer(ctx) {
     if (!act) return;
     if (act.startsWith('sys:')) ctx.act({ act: 'sys', row: act.slice(4) });
     else if (act.startsWith('go:')) {
-      const l = built.sys.data.detail?.links?.[Number(act.slice(3))];
+      const rest = act.slice(3), j = rest.lastIndexOf(':');
+      const l = built.sys.data.detail?.[rest.slice(0, j)]?.links?.[Number(rest.slice(j + 1))];
       if (l?.href) ctx.act({ act: 'go', href: l.href });
     } else ctx.act({ act });
   };

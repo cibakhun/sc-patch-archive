@@ -1903,16 +1903,16 @@ export function boot(doc) {
     }
     const slots = [...panel.querySelectorAll('#hgx-tp-systems .hgx-slot')];
     const shown = slots.slice(0, HOLO_SYS_MAX);
-    // gewählt wie auf der Tafel: die Zeile, die den Port state.hp führt;
-    // aufgeklappt mit ihren Werten und Links
-    const selLi = state.tab === 'systems' && state.hp ? shown.find((li) => li.dataset.ports.split(' ').includes(state.hp)) : null;
+    // gewählt wie auf der Tafel (applyHp): alle Zeilen, die den Port
+    // state.hp führen; aufgeklappt mit ihren Werten und Links
+    const selLis = state.tab === 'systems' && state.hp ? shown.filter((li) => li.dataset.ports.split(' ').includes(state.hp)) : [];
     const systems = {
       title: m.sys,
-      sel: selLi?.dataset.row ?? null,
-      detail: selLi ? {
-        lines: [...selLi.querySelectorAll('.hgx-d dl > dt')].slice(0, HOLO_DETAIL_MAX).map((dt) => [dt.textContent.trim(), dt.nextElementSibling?.textContent.trim() ?? '']),
-        links: [...selLi.querySelectorAll('.hgx-links a')].map((a) => ({ label: `${a.textContent.trim()} ›`, href: a.getAttribute('href') })),
-      } : null,
+      sel: selLis.map((li) => li.dataset.row),
+      detail: Object.fromEntries(selLis.map((li) => [li.dataset.row, {
+        lines: [...li.querySelectorAll('.hgx-d dl > dt')].slice(0, HOLO_DETAIL_MAX).map((dt) => [dt.textContent.trim(), dt.nextElementSibling?.textContent.trim() ?? '']),
+        links: [...li.querySelectorAll('.hgx-links a')].map((a) => ({ label: `${a.textContent.trim()} ›`, href: a.getAttribute('href') })),
+      }])),
       rows: shown.map((li, i) => {
         const nm = li.querySelector('.hgx-nm'), v = li.querySelector('.hgx-v');
         return {

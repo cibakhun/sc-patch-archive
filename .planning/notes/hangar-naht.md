@@ -183,7 +183,8 @@ Tafeln kommen als `onStation(({ act, row, href }) => …)` zurück (`cmp`,
 `flat`, `sys`, `go`). Systemzeilen und ihre Nummern am Schiff wirken wie die
 Zeilen der Tafel: Zeiger darüber hebt Zeile und Nummern zusammen hervor, ein
 Klick setzt `tab=systems` und `hp` auf den Port der Zeile (oder nimmt `hp`
-zurück); die gewählte Zeile klappt im Hologramm mit Werten und Links auf.
+zurück); wie auf der Tafel klappen alle Zeilen, die diesen Port führen, im
+Hologramm mit Werten und Links auf.
 `setSafe()` gilt für Namen und Stationen. Zusicherung 21 von verify:hangar
 hält Leiste, Modul, Naht und Adresse.
 
