@@ -92,13 +92,18 @@ const SEITE1 = Array.from({ length: 100 }, (_, i) => faden(String(20000000000000
 const ALT = faden('100000000000000001', ['tS', 'tP'], '2026-09-01T10:00:00Z', true, 1);
 const GELOESCHT = SEITE1[5].id;
 const ALLE_FAEDEN = [LEITFADEN, NEU, ...SEITE1, ALT];
-let server, basis, gedrosselt = false;
+// Der Builder-Schlüssel darf nie gesendet werden: jeder Lauf bekommt diesen
+// Platzhalter als DISCORD_TOKEN, und der Nachbau merkt sich, ob er je ankommt.
+const BAUMEISTER = 'baumeister-darf-nie-ankommen';
+let server, basis, gedrosselt = false, baumeisterGesehen = 0, ohneSchluessel = 0;
 
 before(async () => {
   server = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://x');
     const p = u.pathname.replace(/^\/api\/v10/, '');
     const modus = (req.headers.authorization ?? '').replace(/^Bot /, '');
+    if (JSON.stringify(req.headers).includes(BAUMEISTER)) baumeisterGesehen++;
+    if (!req.headers.authorization) ohneSchluessel++;
     const send = (code, body) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
     if (!['gut', 'blind', 'stumm', 'drossel'].includes(modus)) return send(401, { message: '401: Unauthorized', code: 0 });
     if (modus === 'drossel' && !gedrosselt) { gedrosselt = true; return send(429, { retry_after: 0.05 }); }
@@ -126,8 +131,9 @@ before(async () => {
 after(() => server.close());
 
 function lauf(modus, ...args) {
-  const env = { ...process.env, DISCORD_API_BASIS: basis, DISCORD_LESER_TOKEN: modus };
+  const env = { ...process.env, DISCORD_API_BASIS: basis, DISCORD_LESER_TOKEN: modus, DISCORD_TOKEN: BAUMEISTER };
   for (const k of ['HTTPS_PROXY', 'https_proxy', 'GUILD_ID']) delete env[k];
+  if (modus === null) delete env.DISCORD_LESER_TOKEN;
   return new Promise((resolve) => {
     const kind = spawn(process.execPath, [SKRIPT, ...args], { env });
     let aus = '';
@@ -191,4 +197,13 @@ test('Selbstauskunft: falscher Schlüssel, blind, Content Intent aus, unbekannte
   assert.match(fremd.aus, /Kein Post 999999999999999999 in #feedback/);
   const kaputt = await lauf('gut', '--id', '../guilds');
   assert.equal(kaputt.code, 2);
+});
+
+test('DISCORD_TOKEN (Builder-Bot) wird nie gesendet, auch ohne Lese-Schlüssel nicht', async () => {
+  const vorher = ohneSchluessel;
+  const { code, aus } = await lauf(null);
+  assert.equal(code, 2, aus);
+  assert.match(aus, /Netzwerk-Geheimnis für discord\.com fehlt/, 'ohne Lese-Schlüssel kein eigener Header: in der Cloud setzt ihn der Proxy');
+  assert.ok(ohneSchluessel > vorher, 'die Anfrage ging ohne Authorization-Header raus');
+  assert.equal(baumeisterGesehen, 0, 'der Builder-Schlüssel kam in keinem Lauf beim Nachbau an');
 });
