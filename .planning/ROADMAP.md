@@ -1402,7 +1402,9 @@ Plans:
 **Status:** Konzept. Richtung B „Einordnung“ gewählt (Betreiber, 09.11.2026),
 Rahmen seit 09.11.2026 festgelegt (siehe unten). Die zweite Entwurfsrunde
 (`.planning/sketches/015-detailseiten-2-0/runde-2/`) ist am 10.11.2026
-abgenommen. Seiten-Code beginnt mit dem Leitschuss (Reihenfolge, Schritt 2).
+abgenommen. Seiten-Code beginnt mit dem Leitschuss (Reihenfolge, Schritt 2),
+und zwar erst nach dem Crafting-Umbau (Betreiber, 10.11.2026): Werkbank
+abgenommen und Option A gebaut.
 
 **Goal:** Die generierten Datenseiten (5.369 Items, 1.387 Missionen, 213
 Kategorien je Sprache; die 1.608 Bauplan-Seiten siehe „Rahmen“) bekommen eine
@@ -1471,7 +1473,8 @@ einzeln abgenommen):
    Farbseiten bleiben), und „1 aus 3“ je Abschluss erscheint nach den Daten,
    ohne vorherige Spielprüfung.
 2. Leitschuss: neue Hülle und Klassenvergleich auf den 117 Schiffswaffen-Seiten
-   mit Modell, Ende zu Ende, mit neuem Tor.
+   mit Modell, Ende zu Ende, mit neuem Tor. Beginnt erst nach dem
+   Crafting-Umbau (Betreiber, 10.11.2026).
 3. Alle Itemseiten.
 4. Kategorien, dann Missionen.
 5. Bilder für Rüstung, Kleidung, Handwaffen nach dem Komplett-Lauf am PC.
