@@ -192,7 +192,14 @@ Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
 Oberkante frei vom Hüllquader). Findet sich dort kein Boden vor der Kamera
 (großes Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne
-Projektor 3 m vor der Kamera und folgen ihr. Nach einer Kamerafahrt rücken
-sie an den neuen Platz: kurze Wege gleitend, quer durchs Bild oder hinter
-dem Rumpf hervor aus- und wieder eingeblendet. Maßschilder ohne freien Platz
+Projektor 3 m vor der Kamera und folgen ihr. Im Bild liegen die Tafeln
+immer über Halle, Deko und Schiff (ohne Tiefentest; Krisz 10.11.2026: eine
+Kante schnitt die Ironclad-Tafel an). Ragte eine Tafel am Boden seitlich aus
+dem freien Bild (von schräg oben kippt sie am Bildrand; `overhang`), rückt sie
+einmal um das Stück zur Mitte. Reicht das nicht, ragt sie oben oder unten
+hinaus oder blickt die Kamera steiler als `STEEP` nach unten, schwebt sie
+ebenso fest im Bild; am Boden lag sie von oben flach, schief und halb unter
+der Seitenleiste. Nach
+einer Kamerafahrt rücken sie an den neuen Platz: kurze Wege gleitend, quer
+durchs Bild oder hinter dem Rumpf hervor aus- und wieder eingeblendet. Maßschilder ohne freien Platz
 entfallen. Der Bodenspiegel („hoch“) zeigt die Ebene nicht.
