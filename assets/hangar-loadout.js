@@ -16,7 +16,7 @@ const doc = document;
 const $ = (id) => doc.getElementById(id);
 const root = $('lo');
 const lib = await import(root.dataset.lib);
-const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES } = lib;
+const { encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, rackSlot, rackMissile, cleanSlots, candidates, deltaPct, sameLayout, changeCount, accountStore, newId, WEAPON_TYPES, LOWER } = lib;
 
 const loc = root.dataset.loc;
 const de = root.dataset.lang === 'de';
@@ -88,9 +88,10 @@ function subLine(k) {
 
 /* ---------------------------------------------------------- Werte --- */
 
-// Werte, bei denen weniger besser ist: der Pfeil zeigt die Richtung, die Farbe das Urteil.
-const LOWER = new Set(['sp.spread', 'sp.heat', 'sp.ovf', 'sp.chd', 'sp.lkT', 'sp.pw', 'sp.em', 'sp.ir', 'sp.spool',
-  'sp.arm', 'sp.ign', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.full', 'sp.price']);
+// Werte, bei denen weniger besser ist (LOWER): eine Liste mit dem Datenblatt
+// des Bauteils im Hangar, aus assets/hangar-layouts.js.
+// Zwei Nachkommastellen, wo die Daten sie tragen (kleine Zeiten, Streuung, Hitze)
+const FINE = new Set(['sp.spread', 'sp.heat', 'sp.chd', 'sp.dly', 'sp.lkT']);
 const DT = [['dP', 'dt.p'], ['dE', 'dt.e'], ['dD', 'dt.d'], ['dT', 'dt.t']];
 const alphaOf = (x) => DT.reduce((a, [k]) => a + (x?.[k] ?? 0), 0);
 const COL_ORDER = ['sp.alpha', 'dP', 'dE', 'dD', 'dT', 'sp.rate', 'sp.speed', 'sp.range', 'sp.spread', 'sp.mag', 'sp.empty',
@@ -162,12 +163,12 @@ function specs(k) {
     add('sp.life', x.life, 's');
     add('sp.mspeed', x.spd, 'm/s');
     add('sp.lkR', x.lkR, 'm');
-    add('sp.lkT', x.lkT, 's');
+    add('sp.lkT', x.lkT, 's', m('sp.lkT'), f2);
     add('sp.lkA', x.lkA, '°');
   } else if (it[2] === 'shield') {
     add('sp.regen', x.regen, 'HP/s');
     if (x.regen) add('sp.full', it[7] / x.regen, 's');
-    add('sp.dly', x.dly, 's');
+    add('sp.dly', x.dly, 's', m('sp.dly'), f2);
     add('sp.down', x.down, 's');
     for (const [t, lk] of [['P', 'dt.p'], ['E', 'dt.e'], ['D', 'dt.d']]) span(`sp.r${t}`, x[`r${t}`], fill(m('sp.res'), { t: m(lk) }));
     for (const [t, lk] of [['P', 'dt.p'], ['E', 'dt.e'], ['D', 'dt.d']]) span(`sp.a${t}`, x[`a${t}`], fill(m('sp.abs'), { t: m(lk) }));
@@ -384,7 +385,7 @@ function compareTable(slot, a, b, headA, headB) {
     const rb = sb.find((r) => r[0] === id);
     const r = ra ?? rb;
     if (id === 'sp.price' && !(ra?.[4] > 0) && !(rb?.[4] > 0)) continue;
-    const fmt = id === 'sp.spread' || id === 'sp.heat' || id === 'sp.chd' ? f2 : f1;
+    const fmt = FINE.has(id) ? f2 : f1;
     rows.push([r[1], r[3], exOf(id), ra ? ra[2] : '–', rb ? rb[2] : '–', ra?.[4], rb?.[4], LOWER.has(id), fmt]);
   }
   // Erst was sich aendert, gleiche Werte hinter einem Klick: weniger Zahlen auf einmal.
