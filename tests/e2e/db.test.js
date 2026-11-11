@@ -28,7 +28,9 @@ describe('Universal Items DB — Provenance & Header', () => {
 
   test('3. counts sind konsistent mit den Items', () => {
     assert.strictEqual(db.counts.items, items.length);
-    const withObtain = items.filter((i) => i.obtain.length > 0).length;
+    // Bezugsquelle = eine obtain-Zeile ODER ein bestaetigtes Fundort-Profil
+    // (`fund`, aufgeloest erst beim Laden — scripts/apply-loot-fundorte.mjs).
+    const withObtain = items.filter((i) => i.obtain.length > 0 || i.fund != null).length;
     assert.strictEqual(db.counts.withObtain, withObtain);
     assert.strictEqual(db.counts.catalogOnly, items.length - withObtain);
   });
@@ -114,7 +116,7 @@ describe('Universal Items DB — Integrität der Einträge', () => {
   });
 
   test('12. Katalog-Einträge haben KEINE Pseudo-Daten (obtain leer = ehrlich leer)', () => {
-    const catalog = items.filter((i) => i.obtain.length === 0);
+    const catalog = items.filter((i) => i.obtain.length === 0 && i.fund == null);
     assert.strictEqual(catalog.length, db.counts.catalogOnly);
     for (const it of catalog) {
       assert.strictEqual(it.guide, undefined, `${it.id}: Katalog mit Guide?`);
