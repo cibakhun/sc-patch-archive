@@ -805,8 +805,24 @@ async function probeWerkstatt(page) {
   if (zurueck.fokus !== wahl.item) return `Werkstatt: nach „Zur Auswahl“ liegt der Fokus nicht auf dem i derselben Zeile (Fokus: ${zurueck.fokus ?? 'kein i einer sichtbaren Zeile'}, erwartet ${wahl.item}; erster Treffer der Suche: ${wahl.treffer[0]})`;
   await page.click(IT, KLICK);
   await page.click(`${OFFEN} .hgl-sheet__fit`, KLICK);
-  const gebaut = await page.evaluate(() => ({ offen: !!document.querySelector('#hgl-slots .hgl-slot.is-open'), neu: document.querySelectorAll('#hgl-slots .hgl-slot[data-changed]').length }));
+  const gebaut = await page.evaluate(() => {
+    const neu = [...document.querySelectorAll('#hgl-slots .hgl-slot[data-changed]')];
+    // Lage der Zeile des getauschten Slots (das prueft SICHTBAR nicht): im
+    // Fenster der Liste unter den klebenden Reitern, am Telefon im Fenster
+    // der Seite. Der echte Klick hat „Einbauen“ erst ins Bild gerollt.
+    const r = neu[0]?.querySelector('.hgl-slot__btn')?.getBoundingClientRect();
+    const host = document.getElementById('hgl-scroll'), cats = document.getElementById('hgl-cats');
+    const rollt = !!host && host.scrollHeight > host.clientHeight, h = host?.getBoundingClientRect();
+    const oben = rollt ? h.top + (cats && !cats.hidden ? cats.offsetHeight : 0) : (cats && !cats.hidden ? cats.getBoundingClientRect().bottom : 0);
+    const unten = rollt ? h.bottom : innerHeight;
+    return {
+      offen: !!document.querySelector('#hgl-slots .hgl-slot.is-open'), neu: neu.length,
+      zeile: r ? [Math.round(r.top), Math.round(r.bottom)] : null, fenster: [Math.round(oben), Math.round(unten)],
+      imBlick: !!r && r.height > 0 && r.top >= oben - 1 && r.bottom <= unten + 1,
+    };
+  });
   if (gebaut.offen || gebaut.neu !== 1) return `Werkstatt: „Einbauen“ auf dem Datenblatt tauscht nicht (Slot offen: ${gebaut.offen}, getauschte Slots: ${gebaut.neu}, erwartet zu und 1)`;
+  if (!gebaut.imBlick) return `Werkstatt: nach „Einbauen“ auf dem Datenblatt steht die Zeile des getauschten Slots nicht im sichtbaren Teil der Liste (Zeile ${gebaut.zeile?.join('–') ?? 'fehlt'} px, sichtbar ${gebaut.fenster.join('–')} px): man sieht nicht, was nun eingebaut ist`;
   await tausche('systems');
   for (const c of ['systems', 'weapons']) {
     await page.click(`#hgl-cats [data-cat="${c}"]`, KLICK);

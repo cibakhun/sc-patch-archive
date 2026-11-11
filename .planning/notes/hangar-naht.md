@@ -275,7 +275,11 @@ Skripts (Kasten mit Fläche, `checkVisibility` mit `visibility` und Opazität
 über alle Vorfahren), statt einer eigenen. Lage, Beschnitt und Überdeckung
 prüft sie nicht. Verglichen werden die Teile der sichtbaren Zeilen mit den
 erwarteten Treffern, nicht ihre Zahl (Befunde von CodeRabbit an #341 und
-#345).
+#345). Nach „Einbauen“ bleibt die Zeile des Slots im Blick (`keepSlot`, wie
+beim Öffnen des Blatts: in der Spalte rollt die Liste, am Telefon die Seite).
+„Einbauen“ steht auf dem Blatt weit unten; schloss die Auswahl, blieb die
+Zeile sonst oberhalb des Sichtbaren (Test vom 11.11.2026). Die Probe misst
+dafür die Lage der Zeile im Fenster der Liste unter den klebenden Reitern.
 
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
