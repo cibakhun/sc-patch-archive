@@ -279,7 +279,21 @@ erwarteten Treffern, nicht ihre Zahl (Befunde von CodeRabbit an #341 und
 
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
-Oberkante frei vom Hüllquader). Findet sich dort kein Boden vor der Kamera
+Oberkante frei vom Hüllquader). Sie schauen zur Kamera (Krisz 11.11.2026:
+„die sollen richtung kamera schauen“): im Grundriss dreht sich jede zum
+Kamerapunkt hin. Im Bild ist dann die äußere Kante die höhere, die Zeilen
+laufen zur Bildmitte hin zusammen. Ganz zugewandt liefen sie am Rand eines
+breiten Fensters so schräg, dass die kleine Schrift litt und die Tafel aus
+ihrem Streifen ragte. Die Grenze ist deshalb, was man sieht: die äußere
+Kante steht im Bild um höchstens `FACE_RISE` (6,5 %) höher als die innere.
+Das sind am Gladius 0,22 rad, am weiten Blick der großen Schiffe (64 Grad)
+0,14 rad, und eine kleine Tafel dürfte sich ganz zuwenden. Bis dahin drehte
+ein verkehrtes Vorzeichen die Tafeln um 0,12 rad von der Bildmitte weg. Was
+sich der Kamera zuwendet, zieht die Projektion neben der Blickachse in die
+Breite; `panelSpread` nimmt das heraus, damit die Tafel im Bild so breit
+bleibt wie gezeichnet. `panelYaw` und `panelSpread` rechnen ohne Szene,
+`verify:hangar` [21] rechnet beide am ausgelieferten Modul nach.
+Findet sich dort kein Boden vor der Kamera
 (großes Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne
 Projektor 3 m vor der Kamera und folgen ihr. Im Bild liegen die Tafeln
 immer über Halle, Deko und Schiff (ohne Tiefentest; Krisz 10.11.2026: eine
@@ -290,5 +304,8 @@ hinaus oder blickt die Kamera steiler als `STEEP` nach unten, schwebt sie
 ebenso fest im Bild; am Boden lag sie von oben flach, schief und halb unter
 der Seitenleiste. Nach
 einer Kamerafahrt rücken sie an den neuen Platz: kurze Wege gleitend, quer
-durchs Bild oder hinter dem Rumpf hervor aus- und wieder eingeblendet. Maßschilder ohne freien Platz
+durchs Bild oder hinter dem Rumpf hervor aus- und wieder eingeblendet. Liegt
+der neue Platz keine 70 Pixel neben dem alten, bleibt die Tafel stehen,
+solange sie dort ganz im Bild steht; wird sie höher (Datenblatt statt
+Schiffswerte), ragte ihre äußere obere Ecke sonst über den Rand. Maßschilder ohne freien Platz
 entfallen. Der Bodenspiegel („hoch“) zeigt die Ebene nicht.
