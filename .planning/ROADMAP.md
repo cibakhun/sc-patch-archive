@@ -1517,6 +1517,9 @@ Datenblatt seines Bauteils (Betreiber: „man könnte die itemdatenblatt seite
 direkt in das hangar reinbauen für komponente und waffen“, zur Skizze: „ja so
 ungefähr einbauen“): die Einordnung aus Detail Pages 2.0, die Wege zum Teil
 und das Teil selbst als Hologramm über der Tafel; Sichturteil WINDOWS #152.
+Dasselbe Blatt steht seit dem 11.11.2026 auch in der flachen Werkstatt („Als
+Tafel“, Handy, ohne 3D): ein i an jeder Zeile der Auswahl stellt es an die
+Stelle der Liste; Sichturteil WINDOWS #153.
 Jede Teilphase geht einzeln auf staging und wird dort abgenommen. Live ändert
 sich nichts ohne eigene, ausdrückliche Freigabe.
 

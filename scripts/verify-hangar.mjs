@@ -1374,8 +1374,9 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 10.11.2026:
 // zwei Stationen (Uebersicht, Loadout; Kampf kommt mit H2), 14 Proben der
 // Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
-// 116 seit dem Datenblatt des Bauteils (11.11.2026).
-const STATIONEN = { stationen: 2, proben: 28, woerter: 116 };
+// 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
+// der flachen Werkstatt (sheet.open, sheet.back).
+const STATIONEN = { stationen: 2, proben: 28, woerter: 118 };
 {
   let mod = null;
   try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
