@@ -7108,7 +7108,7 @@
     },
     "crus-starlifter-a2": {
       "url": "/hangar/ships/crus-starlifter-a2.glb",
-      "v": "5c1a7654",
+      "v": "f25e609c",
       "tris": 482762,
       "trisRaw": 1562658,
       "textures": 209,
@@ -7132,7 +7132,7 @@
         "hardpoint_power_plant_r": 1,
         "hardpoint_quantum_drive": 1
       },
-      "swapEmpty": 4,
+      "swapEmpty": 6,
       "stock": {
         "cool_aegs_s03_mercury_scitem": "/hangar/components/mercury.glb?v=51ea7a31",
         "powr_amrs_s03_superdrive_scitem": "/hangar/components/superdrive.glb?v=b4c6b475",
@@ -7187,7 +7187,7 @@
         "bits": 22,
         "degenerate": 4.2
       },
-      "bytes": 5017604,
+      "bytes": 5018028,
       "pool": {
         "images": 209,
         "bytes": 8536326,
@@ -7196,7 +7196,7 @@
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
-      "v": "82148e56",
+      "v": "b85f526a",
       "tris": 437489,
       "trisRaw": 1221469,
       "textures": 206,
@@ -7215,7 +7215,7 @@
         "hardpoint_power_plant_r": 1,
         "hardpoint_quantum_drive": 1
       },
-      "swapEmpty": 3,
+      "swapEmpty": 5,
       "stock": {
         "cool_just_s03_thermalcore_scitem": "/hangar/components/thermalcore.glb?v=012e71a2",
         "powr_just_s03_ginzel_scitem": "/hangar/components/ginzel.glb?v=c3e4911e",
@@ -7270,7 +7270,7 @@
         "bits": 22,
         "degenerate": 3.8
       },
-      "bytes": 4303192,
+      "bytes": 4303608,
       "pool": {
         "images": 206,
         "bytes": 9047078,
@@ -7279,7 +7279,7 @@
     },
     "crus-starlifter-m2": {
       "url": "/hangar/ships/crus-starlifter-m2.glb",
-      "v": "8477f658",
+      "v": "6028ea8e",
       "tris": 439652,
       "trisRaw": 1296598,
       "textures": 190,
@@ -7299,7 +7299,7 @@
         "hardpoint_power_plant_r": 1,
         "hardpoint_quantum_drive": 1
       },
-      "swapEmpty": 3,
+      "swapEmpty": 5,
       "stock": {
         "cool_aegs_s03_mercury_scitem": "/hangar/components/mercury.glb?v=51ea7a31",
         "powr_amrs_s03_superdrive_scitem": "/hangar/components/superdrive.glb?v=b4c6b475",
@@ -7354,7 +7354,7 @@
         "bits": 22,
         "degenerate": 4.1
       },
-      "bytes": 4332700,
+      "bytes": 4333124,
       "pool": {
         "images": 190,
         "bytes": 8107936,
@@ -13400,7 +13400,7 @@
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
-      "v": "24738c24",
+      "v": "61b791f3",
       "tris": 176147,
       "trisRaw": 179288,
       "textures": 164,
@@ -13444,7 +13444,7 @@
       },
       "swapNodes": 24,
       "swapComp": {},
-      "swapEmpty": 7,
+      "swapEmpty": 8,
       "stock": {
         "cool_lplt_s01_arcticstorm_scitem": "/hangar/components/arcticstorm.glb?v=2818181e",
         "powr_lplt_s01_powerbolt_scitem": "/hangar/components/powerbolt.glb?v=b0d3b96b",
@@ -13494,7 +13494,7 @@
         "bits": 19,
         "degenerate": 3.3
       },
-      "bytes": 1552860,
+      "bytes": 1553012,
       "pool": {
         "images": 164,
         "bytes": 6194730,
@@ -13709,7 +13709,7 @@
     },
     "orig-350r": {
       "url": "/hangar/ships/orig-350r.glb",
-      "v": "fef94d72",
+      "v": "1cb6c6a6",
       "tris": 188521,
       "trisRaw": 194412,
       "textures": 138,
@@ -13753,7 +13753,7 @@
       },
       "swapNodes": 8,
       "swapComp": {},
-      "swapEmpty": 7,
+      "swapEmpty": 8,
       "stock": {
         "cool_acom_s01_quickcool_scitem": "/hangar/components/quikcool.glb?v=25754e07",
         "powr_acom_s01_sunflare_scitem": "/hangar/components/sunflare.glb?v=7e0cae69",
@@ -13803,7 +13803,7 @@
         "bits": 20,
         "degenerate": 3.1
       },
-      "bytes": 1637072,
+      "bytes": 1637228,
       "pool": {
         "images": 138,
         "bytes": 5665224,

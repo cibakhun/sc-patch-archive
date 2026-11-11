@@ -77,11 +77,12 @@ function cloneMesh(doc, mesh, name) {
 // Netz abnehmen. Liefert Zahlen für Manifest und Protokoll.
 export function repairSwapped(doc) {
   const hits = findSwapped(doc);
-  const out = { nodes: hits.length, fixed: 0, dropped: 0, trisWrong: 0, names: {} };
+  // abgenommen: die Knoten ohne Ersatz, für markSwapParts (leerer Anker)
+  const out = { nodes: hits.length, fixed: 0, dropped: 0, trisWrong: 0, names: {}, abgenommen: new Set() };
   for (const h of hits) {
     out.trisWrong += triCount(h.mesh);
     if (h.fix) { h.node.setMesh(cloneMesh(doc, h.fix.getMesh(), nameOf(h.node))); out.fixed++; }
-    else { h.node.setMesh(null); out.dropped++; }
+    else { h.node.setMesh(null); out.abgenommen.add(h.node); out.dropped++; }
     out.names[nameOf(h.node)] = (out.names[nameOf(h.node)] ?? 0) + 1;
   }
   out.trisWrong = Math.round(out.trisWrong);

@@ -259,6 +259,9 @@
         auf der Tafel saehe richtig aus und waere falsch            -> [22]
     mm  in dist/hangar.html data-item von #hgl streichen (der Knopf
         „Item-Seite“ fehlte auf der englischen Tafel)               -> [22]
+    nn  Neubau mit der Reparatur vertauschter Netze ohne leeren
+        Anker (11.11.2026: Starlifter-Kraftwerke, Bugwaffe 300i und
+        350r, 2212 statt 2220 Tausch-Ports)                         -> [13]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -720,7 +723,12 @@ say('\n[13] Getauschte Bordwaffen: Modelle der Werkstatt und Tauschteile der Sch
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 18.10.2026:
 // 112 der 125 gebauten Waffenmodelle passen in einen Werkstatt-Slot, die
 // zehn Schiffe mit Lack tragen 37 Waffen-Ports als Tauschteile.
-const TAUSCH = { modelle: 112, ports: 37 };
+// ports nachgezogen am 11.11.2026 auf 2220 (Waffen und Komponenten, je
+// Schiff, Port und Item; 231 Schiffe): Der Neubau mit der Reparatur
+// vertauschter Netze nahm acht Ports den Anker, weil ihre Wurzel kein Netz
+// mehr trug (Starlifter A2, C2, M2: beide Kraftwerke; 300i und 350r:
+// Bugwaffe). Die alte Klinke von 37 sah das nicht.
+const TAUSCH = { modelle: 112, ports: 2220 };
 // Komponenten (Kraftwerk, Kühler, Schild, Quantum, Radar) tauschen seit dem
 // 31.10.2026 wie die Bordwaffen; jeder Komponentenanker nennt in extras.stock
 // das Modell seines Serienteils, das der Viewer an leeren Ankern einsetzt
@@ -825,7 +833,7 @@ const OHNE_ANKER = new Set([
   if (ohneAnkerNeu.length > 10) fail(`[13] … und ${ohneAnkerNeu.length - 10} weitere Komponenten-Slots ohne Anker`);
   for (const k of ohneAnkerZombie) fail(`[13] Ausnahme OHNE_ANKER ${k} ohne Anlass: der Slot hat jetzt einen Anker oder es gibt ihn nicht mehr, Eintrag streichen`);
   if (kompSlots < KOMP.slots) fail(`[13] nur ${kompSlots} Komponenten-Slots der Werkstatt an Schiffen mit Modell (Klinke ${KOMP.slots}): fehlt dist/hangar-layouts.json ships, oder bietet die Werkstatt Komponenten nicht mehr an (src/lib/hangar/layouts.ts)?`);
-  if (ports < TAUSCH.ports) fail(`[13] nur ${ports} Waffen-Ports mit Tauschteilen (Klinke ${TAUSCH.ports}): Schiffe ohne markSwapParts gebaut (scripts/build-hangar-assets.mjs)?`);
+  if (ports < TAUSCH.ports) fail(`[13] nur ${ports} Tausch-Ports mit Anker, Waffen und Komponenten (Klinke ${TAUSCH.ports}): Schiffe ohne markSwapParts gebaut, oder eine Wurzel ohne Netz ohne leeren Anker (markSwapParts, scripts/build-hangar-assets.mjs)?`);
   ist.tauschModelle = guns; ist.tauschPorts = ports; ist.kompModelle = komp.length; ist.kompSerie = serie;
 }
 
