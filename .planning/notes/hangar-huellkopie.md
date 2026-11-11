@@ -68,17 +68,45 @@ mit 4 892 Knoten.
 in `scripts/lib/hangar-netztausch.mjs`. Sie läuft für Rumpf und Innenraum
 als erster Schritt, vor Fahrwerk und Containern. Erkennt sie ein Netz, das
 zwei verschieden benannte Knoten benutzen und das den Namen des einen trägt,
-gibt der andere Knoten es ab. Ersatz liefert ein heiler Knoten gleichen
-Namens mit der längsten gleichen Ahnenkette, beim Ursa wheel6 für wheel4 und
-wheel3 für wheel5. Ohne Ersatz wird das falsche Netz abgenommen. Das Manifest
-trägt `swapFix` (Knoten, ersetzt, abgenommen, falsch gesetzte Dreiecke).
+gibt der andere Knoten es ab. Ersatz liefert ein Knoten gleichen Namens,
+dessen Netz seinen Namen trägt, mit der längsten gleichen Ahnenkette, beim
+Ursa wheel6 für wheel4 und wheel3 für wheel5. Ohne Ersatz wird das falsche
+Netz abgenommen. Das Manifest trägt `swapFix` (Knoten, ersetzt, abgenommen,
+falsch gesetzte Dreiecke).
 
 Geprüft am PC gegen den Rohexport des Medivac: 4 Knoten (zwei Reifen,
 barrel_03 und pitch_part am Geschütz), alle 4 ersetzt. Danach stehen alle
-sechs Reifen an ihrem Rad, je 0,74 × 1,87 × 1,87 m. Über alle 231
-Rohexporte haben 3 538 der 4 892 Knoten einen Ersatz, 1 354 nicht (vor allem
-Raketen und ihre Zünder, Schubdüsen, Läufe).
+sechs Reifen an ihrem Rad, je 0,74 × 1,87 × 1,87 m.
 
-Wirksam wird die Regel erst mit einem Neubau am PC (Spieldaten). Ob zuerst
-die drei Ursa, gleich alle oder später, entscheidet Krisz. Die Web-Modelle in
-diesem Stand sind ohne sie gebaut.
+**Ersatz auch bei mitbenutztem Netz (11.11.2026).** Die erste Fassung nahm
+als Ersatz nur einen Knoten, dessen Netz kein anders benannter Knoten
+mitbenutzt. Der erste Neubau aller Schiffe zeigte, was das kostet: Beim
+Gladius trägt die Rakete im ersten Werfer den Werferkörper des zweiten
+(`missile` mit Netz `bodye`). Die Rakete im zweiten Werfer trägt ihr eigenes
+Netz, das dort aber auch der verschobene `bone1b_s3s2` benutzt. Sie fiel als
+Ersatz aus, die erste Rakete verlor ihr falsches Netz und blieb leer. Ein
+Netz, das den Namen seines Knotens trägt, gehört ihm aber, auch wenn ein
+verschobener Nachbar es mitbenutzt. Über alle 231 Rohexporte:
+
+| Fassung | ersetzt | ohne Ersatz | davon Raketen |
+|---|---|---|---|
+| streng (kein Mitbenutzer) | 3 538 | 1 354 | 284 auf 61 Schiffen |
+| Name gleich | 4 157 | 735 | 26 |
+
+Was ohne Ersatz bleibt, sind vor allem dritte Leitflossen (`fin03` der
+Storm AA, 63 Stück, trugen je einen zweiten Raketenkörper), Zünderleuchten,
+Schubdüsen und Läufe, deren richtiges Netz nirgends in der Datei steht.
+
+**Neubau aller Schiffe (Krisz 10.11.2026: „Gleich alle 231 Schiffe“).** Am PC
+im eigenen Arbeitsbaum, Rümpfe und Innenräume. Rümpfe: 231 gebaut, 0 Fehler,
+keine neuen Bilder in der Ablage, 2,30 Mio. Dreiecke und 21,7 MB weniger.
+14 Schiffe bestehen jetzt die Fahrwerksprobe, die sie vorher nicht bestanden
+(Sabre-Reihe, Constellation Aquila, Phoenix und Taurus, Starfarer und
+Gemini, MOLE, MOTH, Star Runner, Golem, Redeemer). Ihre Landebeine waren
+verschobene Teile. Bei Andromeda und Phoenix Emerald sinkt die Abweichung
+der Aufstandspunkte von 2,1 auf 0,17 m und von 4,1 auf 0,67 m. Keins fiel
+zurück. Angesehen, alt gegen neu: Gladius (Raketen links und unter dem
+Rumpf wieder da, wo vorher graue Werferkörper hingen), Ironclad Assault
+(Triebwerke heil statt zerknüllt), Sabre Raven (Landebeine), Scorpius
+(sieben doppelte Geschützkörper an den Kardanaufhängungen weg), Storm AA,
+Idris-M, Starlifter A2, Sabre Comet, Cutlass Blue.
