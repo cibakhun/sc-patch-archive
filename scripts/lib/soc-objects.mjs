@@ -22,6 +22,9 @@ export function readZip(buf) {
   const files = new Map();
   let eocd = buf.length - 22;
   while (eocd > 0 && buf.readUInt32LE(eocd) !== 0x06054b50) eocd--;
+  // Ohne Endsignatur ist es kein ZIP: werfen statt einer leeren Liste, sonst
+  // zaehlt ein Scan das Archiv als gelesen und verliert seinen Inhalt still.
+  if (eocd < 0 || buf.readUInt32LE(eocd) !== 0x06054b50) throw new Error(`readZip: keine ZIP-Endsignatur (${buf.length} Bytes)`);
   let p = buf.readUInt32LE(eocd + 16);
   const n = buf.readUInt16LE(eocd + 10);
   for (let i = 0; i < n; i++) {
