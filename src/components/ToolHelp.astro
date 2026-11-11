@@ -40,7 +40,7 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
 ---
 
 <details class="tool-help" data-tool-id={tool}>
-  <summary class="tool-help__summary">{h(`${tool}.title` as HelpKey)}</summary>
+  <summary class="tool-help__summary" data-ev-hilfe="anleitung">{h(`${tool}.title` as HelpKey)}</summary>
   <div class="tool-help__body">
     <p class="tool-help__purpose">{h(`${tool}.purpose` as HelpKey)}</p>
     <ol class="tool-help__steps">
@@ -52,6 +52,7 @@ const stepKeys: HelpKey[] = Array.from({ length: steps }, (_, i) => `${tool}.ste
       type="button"
       class="tool-help__elbtn js-tool-help"
       data-tool-id={tool}
+      data-ev-hilfe="elemente"
       aria-pressed="false"
       data-label-off={h('ui.elements')}
       data-label-on={h('ui.elementsOff')}

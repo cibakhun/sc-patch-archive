@@ -897,8 +897,11 @@ body{font-family:var(--font-body)}
           <p class="sup__err" id="supErr" role="status" hidden set:text={T.err}></p>
           {/* Ein <button>, kein <a>: die Zieladresse existiert beim Rendern noch
               gar nicht — sie entsteht erst, wenn Stripe die Bezahlseite anlegt.
-              Ein href waere entweder falsch oder eine Attrappe. */}
-          <button class="sup__cta" id="supCta" type="button" data-cents={String(PRESELECT * 100)}>
+              Ein href waere entweder falsch oder eine Attrappe. Deshalb nennt
+              data-ev-extern das Ziel fuer das Messereignis extern selbst
+              (assets/ereignisse.js); der PayPal-Link darunter zaehlt ueber
+              seinen Host. */}
+          <button class="sup__cta" id="supCta" type="button" data-cents={String(PRESELECT * 100)} data-ev-extern="spende">
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5l7 7-7 7"></path></svg>
             <span id="supCtaTxt" set:text={ctaInitial}></span>
           </button>

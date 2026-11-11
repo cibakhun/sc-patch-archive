@@ -261,8 +261,12 @@
     if (!el || typeof el.closest !== 'function') return;
     var btn = el.closest('[data-fleet-ship]');
     if (btn) {
+      // Vor dem Umschalten lesen: nur das Hinzufuegen zaehlt als Messereignis
+      // merken (assets/ereignisse.js), das Entfernen nicht.
+      var neu = btn.getAttribute('aria-pressed') !== 'true';
       // Ship und Name zum Klickzeitpunkt lesen: der Hangar tauscht sie am selben Knopf.
       toggle(btn.getAttribute('data-fleet-ship'), btn.getAttribute('data-fleet-label'));
+      if (neu && e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'flotte' });
       return;
     }
     if (el.closest('[data-fleet-retry]')) request(true);

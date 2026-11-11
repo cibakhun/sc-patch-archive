@@ -795,7 +795,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <div class="cdb-count-row">
         <span><b id="cdb-count">{total}</b> / {total} {S.results}</span>
       </div>
-      <div class="cdb-grid vb-scrollbox" id="cdb-grid">
+      {/* data-ev-treffer: Messereignis treffer-offen (assets/ereignisse.js), nur
+          auf dem Werkzeug selbst — die Werkbank ist keine gezaehlte Werkzeugseite. */}
+      <div class="cdb-grid vb-scrollbox" id="cdb-grid" data-ev-treffer={werkbank ? undefined : ''}>
         {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
             waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
             mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js

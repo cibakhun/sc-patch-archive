@@ -1108,6 +1108,10 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       }).select().single();
       submitBtn.disabled = false; submitTxt.textContent = C.submit;
       if (error || !data) { formStatus.textContent = C.errNet; formStatus.hidden = false; return; }
+      // Messereignis merken (assets/ereignisse.js): erst wenn der Auftrag
+      // wirklich gespeichert ist, nur die Art, nichts aus dem Formular.
+      const wEv = window as Window & { vbEreignis?: (name: string, felder?: Record<string, string>) => boolean };
+      if (e.isTrusted && wEv.vbEreignis) wEv.vbEreignis('merken', { was: 'auftrag' });
 
       jobs.unshift(data as RefineryJob);
       renderAll();
