@@ -1176,6 +1176,15 @@ export function initWorkshop(doc, bridge) {
     const cats = $('hgl-cats'), top = h.top + (cats.hidden ? 0 : cats.offsetHeight);
     if (r.top < top || r.bottom > h.bottom) host.scrollTop += r.top - top - 8;
   }
+  // Der Slot bleibt im Blick: in der Spalte rollt die Liste, am Telefon die Seite.
+  function keepSlot(li) {
+    const host = $('hgl-scroll');
+    if (host.scrollHeight > host.clientHeight) revealSlot(li);
+    else {
+      const cats = $('hgl-cats'), top = cats.hidden ? 0 : cats.getBoundingClientRect().bottom, r = li.getBoundingClientRect();
+      if (r.top < top) window.scrollBy(0, r.top - top - 8);
+    }
+  }
 
   // Halterungen eines Raketenports: je eine Taste mit Anzahl und Groesse der
   // Raketen, darunter Name und Preis der gewaehlten; die Serie traegt ihr Etikett.
@@ -1293,7 +1302,13 @@ export function initWorkshop(doc, bridge) {
     commit({ patch: { hp: null } });
     paintSlot(slot, true);
     paintTotals();
-    slotEls.get(slot.key)?.querySelector('.hgl-slot__btn').focus({ preventScroll: true });
+    const li = slotEls.get(slot.key);
+    if (!li) return;
+    li.querySelector('.hgl-slot__btn').focus({ preventScroll: true });
+    // Vom Datenblatt aus steht „Einbauen“ weit unten: schliesst die Auswahl,
+    // blieb die Zeile des Slots oberhalb des Sichtbaren, und man sah nicht,
+    // was nun eingebaut ist (Test 11.11.2026).
+    keepSlot(li);
   }
 
   slotsHost.addEventListener('click', (e) => {
@@ -1743,13 +1758,7 @@ export function initWorkshop(doc, bridge) {
         b.focus({ preventScroll: true });
       }
     }
-    // Der Slot bleibt im Blick: in der Spalte rollt die Liste, am Telefon die Seite.
-    const host = $('hgl-scroll');
-    if (host.scrollHeight > host.clientHeight) revealSlot(li);
-    else {
-      const cats = $('hgl-cats'), top = cats.hidden ? 0 : cats.getBoundingClientRect().bottom, r = li.getBoundingClientRect();
-      if (r.top < top) window.scrollBy(0, r.top - top - 8);
-    }
+    keepSlot(li);
   }
   /** Das Datenblatt des Teils k an der Stelle der Auswahlliste des offenen Slots; false, wenn es keines gibt. */
   function sheetView(slot, pick, k) {

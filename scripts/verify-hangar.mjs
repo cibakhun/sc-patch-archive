@@ -165,7 +165,19 @@
         zeichnet sie; und jedes Wort, das die Werkstatt mit m('…') holt,
         steht auf beiden Seiten in #hgl-msg. Fehlt eines, zeigt die
         gezeichnete Tafel den rohen Schluessel, und kein Textpruefer sieht
-        ihn. Klinken: Stationen, Proben, Woerter.
+        ihn. Tafeln am Boden schauen zur Kamera (Krisz 11.11.2026: „die
+        sollen richtung kamera schauen“; ein verkehrtes Vorzeichen drehte
+        sie bis dahin von der Bildmitte weg): panelYaw und panelSpread des
+        ausgelieferten Moduls werden geladen und fuer drei Linsen (Jaeger,
+        grosses Schiff mit weitem Blick, kleine Tafel) in vier
+        Blickrichtungen je links, rechts und in der Mitte nachgerechnet.
+        Die aeussere Kante steht naeher an der Kamera als die innere, im
+        Bild um hoechstens FACE_RISE hoeher und um genau so viel, solange
+        die Tafel der Kamera nicht ganz zugewandt ist; geradeaus dreht sie
+        sich gar nicht, und die Breite im Bild stimmt mit einer eigenen
+        Projektion ueberein. FACE_RISE selbst steht auf der angesehenen
+        und abgenommenen Staerke (KANTE_ANGESEHEN). Klinken: Stationen,
+        Proben, Woerter, Stellungen.
     22  Datenblatt des Bauteils (seit 11.11.2026, Krisz: „man koennte die
         itemdatenblatt seite direkt in das hangar reinbauen fuer komponente
         und waffen“). Steht ein Slot offen, zeigt die rechte Tafel sein
@@ -262,6 +274,17 @@
     nn  Neubau mit der Reparatur vertauschter Netze ohne leeren
         Anker (11.11.2026: Starlifter-Kraftwerke, Bugwaffe 300i und
         350r, 2212 statt 2220 Tausch-Ports)                         -> [13]
+    oo  in dist/assets/hangar-holo3d.js panelYaw zur falschen Seite
+        drehen (flat - statt flat +): die aeussere Kante stuende
+        -7,6 % hoeher, die Tafel schaute weg                        -> [21]
+    pp  dort den Export von panelYaw streichen: 0 statt 36
+        Stellungen nachgerechnet                                    -> [21]
+    qq  dort panelSpread immer 1 liefern lassen: die Tafel wuerde
+        im Bild breiter als gezeichnet (1,0865)                     -> [21]
+    ss  dort die Grenze aus panelYaw nehmen (immer ganz zur
+        Kamera): 14,6 % am Jaeger, 30,4 % am grossen Schiff         -> [21]
+    tt  dort FACE_RISE auf 0.08 setzen: die Stellungen bestuenden,
+        die abgenommene Staerke gaelte nicht mehr                   -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -271,7 +294,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -682,7 +705,7 @@ const CHIPS_MIN = 25;
 const LEVELS = ['niedrig', 'mittel', 'hoch'];
 {
   let mod = null;
-  try { mod = await import(new URL(`file://${viewerFile}`).href); } catch (e) { fail(`[12] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
+  try { mod = await import(pathToFileURL(viewerFile).href); } catch (e) { fail(`[12] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
   let checked = 0;
   const wrong = [];
   if (mod) {
@@ -1205,7 +1228,7 @@ const WAHL = { karten: 231, proben: 12 };
   const ent = (v) => v.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
   let mod = null;
-  try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[19] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  try { mod = await import(pathToFileURL(ctrlFile).href); } catch (e) { fail(`[19] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
   for (const fn of ['fold', 'parseQuery', 'findShip', 'dockSearch', 'figuresOf']) if (mod && typeof mod[fn] !== 'function') { fail(`[19] der Controller exportiert ${fn} nicht mehr`); mod = null; }
   // Proben je Sprache: Suchtext und was jeder Treffer erfuellen muss. Wer
   // die Suche bewusst aendert, aendert sie hier mit.
@@ -1384,10 +1407,16 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
 // 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
 // der flachen Werkstatt (sheet.open, sheet.back).
-const STATIONEN = { stationen: 2, proben: 28, woerter: 118 };
+const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36 };
+// Keine Klinke, ein Sichturteil (WINDOWS #156): wie stark sich die Tafeln zur
+// Kamera drehen, ist am 11.11.2026 gerendert verglichen und so abgenommen.
+// Die Stellungen unten rechnen gegen den Wert des Moduls; ohne diese Zahl
+// bestuenden sie auch mit 0.3. Wer FACE_RISE aendert, rendert neu, sieht hin
+// und zieht sie im selben Commit nach.
+const KANTE_ANGESEHEN = 0.065;
 {
   let mod = null;
-  try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  try { mod = await import(pathToFileURL(ctrlFile).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
   for (const fn of ['parseState', 'serializeState', 'shipClass', 'rankIn']) if (mod && typeof mod[fn] !== 'function') { fail(`[21] der Controller exportiert ${fn} nicht mehr`); mod = null; }
   const list = Array.isArray(mod?.STATIONS) ? mod.STATIONS : [];
   const vor = mod?.STATION_DEFAULT;
@@ -1412,6 +1441,61 @@ const STATIONEN = { stationen: 2, proben: 28, woerter: 118 };
     if (!an) fail('[21] dist/assets/hangar-holo3d.js: das Material der Tafel (P.mesh) zeichnet nicht ohne Tiefentest: Wände, Decke oder Rumpf schneiden sie an');
     else if (zurueck) fail('[21] dist/assets/hangar-holo3d.js setzt P.mesh.material.depthTest nachträglich: die Tafel kann wieder angeschnitten werden');
     else ueber = 'ohne Tiefentest';
+  }
+  // Tafeln am Boden schauen zur Kamera (Krisz 11.11.2026: „die sollen
+  // richtung kamera schauen“). Nachgerechnet am ausgelieferten Modul, mit
+  // eigener Geometrie statt seiner Winkel: was das Auge sieht, ist, welche
+  // Kante der Tafel naeher an der Kamera steht und um wie viel.
+  let schaut = '—', stellungen = 0;
+  if (holoSrc) {
+    let hm = null;
+    try { hm = await import(pathToFileURL(holoFile).href); } catch (e) { fail(`[21] dist/assets/hangar-holo3d.js laedt nicht als Modul (${e.message})`); }
+    if (hm && (typeof hm.panelYaw !== 'function' || typeof hm.panelSpread !== 'function' || !(hm.FACE_RISE > 0))) {
+      fail('[21] dist/assets/hangar-holo3d.js exportiert panelYaw, panelSpread oder FACE_RISE nicht mehr: wohin die Tafeln schauen, prueft dann nichts');
+    } else if (hm) {
+      if (Math.abs(hm.FACE_RISE - KANTE_ANGESEHEN) > 1e-9) fail(`[21] dist/assets/hangar-holo3d.js: FACE_RISE ist ${hm.FACE_RISE}, angesehen und abgenommen sind ${KANTE_ANGESEHEN} (WINDOWS #156): erst rendern und hinsehen, dann die Zahl im Tor nachziehen`);
+      const NEIG = 0.22, WEIT = 14, EPS = 1e-4, c = { x: 3, y: 5, z: -7 };
+      // Linsen: halbe Tafelbreite im Bild je Bildweite (reach) und wie weit die
+      // Tafel neben der Blickachse steht. Startansicht eines Jaegers, weiter
+      // Blick eines grossen Schiffs (64 Grad), und eine kleine Tafel, die sich
+      // ganz zuwenden darf.
+      const LINSEN = [['Jäger', 0.162, 0.55], ['großes Schiff', 0.264, 0.88], ['kleine Tafel', 0.02, 0.5]];
+      const falsch = [];
+      for (const [linse, reach, seitlich] of LINSEN) for (const kurs of [0, 1.1, 2.6, -2]) {
+        const fh = { x: Math.sin(kurs), z: -Math.cos(kurs) }, r = { x: -fh.z, z: fh.x };   // Blick und rechts im Grundriss
+        const f = { x: fh.x * Math.cos(NEIG), y: -Math.sin(NEIG), z: fh.z * Math.cos(NEIG) };
+        const tiefe = (q) => (q.x - c.x) * f.x + (q.y - c.y) * f.y + (q.z - c.z) * f.z;
+        const quer = (q) => (q.x - c.x) * r.x + (q.z - c.z) * r.z;
+        const bildX = (q) => quer(q) / tiefe(q);
+        for (const seite of [-1, 0, 1]) {
+          stellungen++;
+          const at = { x: c.x + fh.x * WEIT + r.x * WEIT * seitlich * seite, y: 0, z: c.z + fh.z * WEIT + r.z * WEIT * seitlich * seite };
+          const yaw = hm.panelYaw(f, c, at, reach), flach = Math.atan2(-f.x, -f.z);
+          const wo = `${linse}, Blick ${kurs} rad, Tafel ${seite < 0 ? 'links' : seite > 0 ? 'rechts' : 'mittig'}`;
+          if (!Number.isFinite(yaw)) { falsch.push(`${wo}: panelYaw liefert ${yaw}`); continue; }
+          const dreh = Math.atan2(Math.sin(yaw - flach), Math.cos(yaw - flach));
+          const u = { x: Math.cos(yaw), z: -Math.sin(yaw) };                 // Breite der Tafel
+          const kante = (k) => ({ x: at.x + u.x * k, y: 0, z: at.z + u.z * k });
+          // Breite im Bild gegen eine eigene Projektion: Steigung von bildX entlang der Tafel, gemessen an einer Tafel quer zum Blick
+          const mass = ((bildX(kante(EPS)) - bildX(kante(-EPS))) / (2 * EPS)) * tiefe(at), spr = hm.panelSpread(f, c, at, yaw);
+          if (!(Math.abs(spr - mass) < 1e-3)) { falsch.push(`${wo}: panelSpread ${Number(spr).toFixed(4)}, die Projektion ergibt ${mass.toFixed(4)}: die Tafel stünde breiter oder schmaler im Bild als gezeichnet`); continue; }
+          if (seite === 0) {
+            if (Math.abs(dreh) > 1e-9) falsch.push(`${wo}: um ${dreh.toFixed(3)} rad gedreht, obwohl sie vor der Kamera steht`);
+            continue;
+          }
+          // so breit, wie place() sie stellt; aussen = weiter von der Blickachse
+          const halb = (reach * tiefe(at)) / spr;
+          const a = kante(halb), b = kante(-halb), aussen = Math.abs(quer(a)) > Math.abs(quer(b)) ? a : b, innen = aussen === a ? b : a;
+          const hoeher = tiefe(innen) / tiefe(aussen) - 1;                    // um so viel steht die aeussere Kante im Bild hoeher
+          const ganz = Math.atan2(c.x - at.x, c.z - at.z), bisGanz = Math.abs(Math.atan2(Math.sin(ganz - yaw), Math.cos(ganz - yaw)));
+          if (!(hoeher > 0.01)) falsch.push(`${wo}: die äußere Kante steht im Bild ${(hoeher * 100).toFixed(1)} % höher als die innere, sie schaut nicht zur Kamera`);
+          else if (hoeher > hm.FACE_RISE + 1e-6) falsch.push(`${wo}: die äußere Kante steht ${(hoeher * 100).toFixed(1)} % höher als die innere, mehr als FACE_RISE ${hm.FACE_RISE}: die Zeilen laufen zu schräg`);
+          else if (hoeher < hm.FACE_RISE - 1e-6 && bisGanz > 1e-6) falsch.push(`${wo}: die äußere Kante steht nur ${(hoeher * 100).toFixed(1)} % höher, obwohl die Tafel der Kamera noch ${bisGanz.toFixed(3)} rad abgewandt ist und FACE_RISE ${hm.FACE_RISE} erlaubt`);
+        }
+      }
+      for (const t of falsch) fail(`[21] Tafel am Boden, ${t}`);
+      schaut = falsch.length ? `${falsch.length} von ${stellungen} Stellungen falsch` : `zur Kamera in ${stellungen} Stellungen (äußere Kante höchstens ${hm.FACE_RISE * 100} % höher)`;
+    }
   }
   // Tafel „Ausruestung“ in der Halle: Werkstatt, Controller und Modul halten
   // dieselbe Naht (board hin, act zurueck)
@@ -1476,13 +1560,14 @@ const STATIONEN = { stationen: 2, proben: 28, woerter: 118 };
     probe('?tafel=1', '?tafel=1');
     probe(`?ship=${def}&station=uebersicht&tafel=1`, `?ship=${def}`, 'share');
   }
-  sollIst(`Stationen >= ${STATIONEN.stationen}, Leiste mit genau ihnen auf beiden Seiten, Modul ${holoV || '—'} versioniert, Viewer liefert ${VNAHT.join(', ')}, Tafeln ohne Tiefentest, Proben der Adresse >= ${STATIONEN.proben}`,
-    `${list.length} Stationen (${list.join(', ') || '—'}, Vorgabe ${vor ?? '—'}), Leiste auf ${leisten} von ${PAGES.length} Seiten, Tafeln ${ueber}, ${proben} Proben`);
+  sollIst(`Stationen >= ${STATIONEN.stationen}, Leiste mit genau ihnen auf beiden Seiten, Modul ${holoV || '—'} versioniert, Viewer liefert ${VNAHT.join(', ')}, Tafeln ohne Tiefentest und zur Kamera in >= ${STATIONEN.stellungen} Stellungen, Proben der Adresse >= ${STATIONEN.proben}`,
+    `${list.length} Stationen (${list.join(', ') || '—'}, Vorgabe ${vor ?? '—'}), Leiste auf ${leisten} von ${PAGES.length} Seiten, Tafeln ${ueber}, ${schaut}, ${proben} Proben`);
   sollIst(`Tafel „Ausrüstung“: Naht Werkstatt, Controller, Modul ganz; Wörter der Werkstatt >= ${STATIONEN.woerter}, alle in #hgl-msg auf beiden Seiten`,
     `Naht ${nahtFehlt.length ? `mit ${nahtFehlt.length === 1 ? 'einer Lücke' : `${nahtFehlt.length} Lücken`}` : 'ganz'}, ${wsKeys.length} Wörter, vollständig auf ${woerterSeiten} von ${PAGES.length} Seiten`);
   if (wsKeys.length < STATIONEN.woerter) fail(`[21] nur ${wsKeys.length} Wörter im Skript der Werkstatt gefunden (Klinke ${STATIONEN.woerter}): heisst m() dort anders, prüft diese Stelle nichts mehr`);
   if (list.length < STATIONEN.stationen) fail(`[21] nur ${list.length} Stationen im Controller (Klinke ${STATIONEN.stationen})`);
   if (proben < STATIONEN.proben) fail(`[21] nur ${proben} Proben der Adresse (Klinke ${STATIONEN.proben}): der Controller laedt nicht oder STATIONS ist kuerzer geworden`);
+  if (stellungen < STATIONEN.stellungen) fail(`[21] nur ${stellungen} Stellungen der Tafeln nachgerechnet (Klinke ${STATIONEN.stellungen}): das Modul laedt nicht oder exportiert die Rechnung nicht mehr`);
   ist.stationen = list.length; ist.stationenProben = proben; ist.werkstattWoerter = wsKeys.length;
 }
 
@@ -1514,7 +1599,7 @@ const BLATT = { kauf: 250, rezept: 300, seite: 450, proben: 9 };
   // besser, Lage auf dem Streifen
   let proben = 0;
   let lib = null;
-  try { lib = await import(new URL(`file://${wsFile}`).href); } catch (e) { fail(`[22] dist/assets/hangar-layouts.js laedt nicht als Modul (${e.message})`); }
+  try { lib = await import(pathToFileURL(wsFile).href); } catch (e) { fail(`[22] dist/assets/hangar-layouts.js laedt nicht als Modul (${e.message})`); }
   if (lib && (typeof lib.classRank !== 'function' || typeof lib.classStrip !== 'function' || !(lib.LOWER instanceof Set))) { fail('[22] dist/assets/hangar-layouts.js exportiert classRank, classStrip oder LOWER nicht mehr: Datenblatt und Advanced Loadout rechnen ohne sie nicht'); lib = null; }
   if (lib) {
     const gleich = (was, ist2, soll) => { proben++; if (JSON.stringify(ist2) !== JSON.stringify(soll)) fail(`[22] Rang-Rechnung: ${was} ergibt ${JSON.stringify(ist2)}, erwartet ${JSON.stringify(soll)}`); };
