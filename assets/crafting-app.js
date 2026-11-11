@@ -21,6 +21,18 @@
   var mqPlaner = mm('(min-width: 1180px)');
   function wbMitte() { return WB && mqMitte.matches; }
   function wbPlaner() { return WB && mqPlaner.matches; }
+  // Werkbank, vierte Runde (Gestaltung: src/lib/werkbankDesign.ts). Texte nur
+  // dieses Zweigs, Zeichen als Maske (.wi Bedienzeichen, .wg Bauteilart) und
+  // eine Klasse neu ansetzen, damit ihre Bewegung noch einmal laeuft. Was der
+  // Stil bewegt, schaltet er bei prefers-reduced-motion selbst ab; mqRuhig
+  // gilt dem, was das Skript bewegt (der Punkt, der in den Planer fliegt).
+  var WBT = CFG.wbT || {};
+  var mqRuhig = mm('(prefers-reduced-motion: reduce)');
+  function wbNeu(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function wi(n) { return '<i class="wi wi--' + n + '" aria-hidden="true"></i>'; }
+  function wg(g) { return '<i class="wg" data-g="' + (g || 'bp') + '" aria-hidden="true"></i>'; }
+  var WB_RING = '<svg class="wb-ring" viewBox="0 0 120 120" fill="none" aria-hidden="true"><circle class="wb-ring__a" cx="60" cy="60" r="56"/>' +
+    '<circle class="wb-ring__b" cx="60" cy="60" r="44"/><path class="wb-ring__c" d="M60 0v10M60 110v10M0 60h10M110 60h10"/></svg>';
 
   // ---- DOM ----
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -56,6 +68,19 @@
       }
     };
     wbMiss();
+    // Der Auftakt (Klasse wb-auftakt steht im Markup, damit nichts erst
+    // erscheint und dann noch einmal einfliegt) laeuft genau einmal. Danach
+    // weg damit: umgehaengte Kacheln (Sortieren) und wieder eingeblendete
+    // (Filter) setzten ihre Animation sonst jedes Mal neu an.
+    if (wbRoot) setTimeout(function () { wbRoot.classList.remove('wb-auftakt'); }, 1300);
+    // Rollt die Liste (am Schreibtisch ihr eigenes Feld), laeuft ihre
+    // Oberkante weich aus statt die oberste Kachel hart abzuschneiden.
+    var wbObenWartet = false;
+    grid.addEventListener('scroll', function () {
+      if (wbObenWartet) return;
+      wbObenWartet = true;
+      requestAnimationFrame(function () { wbObenWartet = false; grid.classList.toggle('is-oben', grid.scrollTop > 6); });
+    }, { passive: true });
     if (window.ResizeObserver && wbBar) {
       // Im naechsten Bild messen: --wb-y aendert die Hoehe der Spalten und
       // damit die von <body>; im selben Durchlauf meldete der Beobachter
@@ -81,7 +106,15 @@
         var knopf = el && el.closest('.js-tool-help');
         if (knopf) {
           // tool-help.js schaltet im selben Klick um; danach nachsehen.
-          setTimeout(function () { if (knopf.getAttribute('aria-pressed') === 'true') wbHilfe.open = false; }, 0);
+          // Hatte der Knopf den Fokus (Tastatur), geht der vorher auf die
+          // Zeile der Hilfe: mit der Tafel verschwindet der Knopf, und der
+          // Fokus fiele auf <body> (Hinweis von CodeRabbit an #349).
+          setTimeout(function () {
+            if (knopf.getAttribute('aria-pressed') !== 'true') return;
+            var zeile = wbHilfe.querySelector('summary');
+            if (zeile && document.activeElement === knopf) zeile.focus();
+            wbHilfe.open = false;
+          }, 0);
         } else if (!el || !wbHilfe.contains(el)) {
           wbHilfe.open = false;
         }
@@ -130,6 +163,7 @@
   // ohnehin ein Link auf genau diese Seite.
   var SLUG_BY_I = {};
   var I_BY_SLUG = {};
+  var KARTE_BY_I = {}; // Werkbank: Karte je Rezept (Zeichen der Bauteilart, Gruppe, Kennwerte)
 
   // =========================================================
   //  MATERIAL -> FUNDORT (Mining-DB)
@@ -160,6 +194,7 @@
   cards.forEach(function (card, pos) {
     var d = card.dataset;
     if (d.i == null || d.i === '') d.i = String(pos);
+    KARTE_BY_I[d.i] = card;
     var nameEl = $('.cbp__name', card);
     var linkEl = nameEl && nameEl.querySelector('a');
     var m = linkEl && /([^/]+)\.html(?:[?#]|$)/.exec(linkEl.getAttribute('href') || '');
@@ -171,9 +206,15 @@
     d.cat = catEl && catEl.firstChild ? String(catEl.firstChild.nodeValue || '').trim() : '';
     d.mis = $('.cbp__mis', card) ? '1' : '0';
     var ings = 0;
-    $$('.cbp__meta span', card).forEach(function (s) {
-      if (s.textContent.indexOf('◆') >= 0) ings = parseInt(s.textContent.replace(/\D+/g, ''), 10) || 0;
-    });
+    if (WB) {
+      // Werkbank: die Zahl steht ohne Schriftzeichen in .cbp__n.
+      var nEl = $('.cbp__n', card);
+      ings = nEl ? parseInt(nEl.textContent, 10) || 0 : 0;
+    } else {
+      $$('.cbp__meta span', card).forEach(function (s) {
+        if (s.textContent.indexOf('◆') >= 0) ings = parseInt(s.textContent.replace(/\D+/g, ''), 10) || 0;
+      });
+    }
     d.ings = String(ings);
     var res = [];
     $$('.cbp__res li', card).forEach(function (li) {
@@ -220,6 +261,9 @@
         btns.innerHTML =
           '<button class="cbp__own" aria-pressed="false" title="' + tr('owned', 'Im Besitz') + '">★</button>' +
           '<button class="cbp__add" title="' + tr('addPlan', 'Zum Planer') + '">＋</button>';
+        // Werkbank: Stern und Plus kommen als Maske aus dem Stil; der Name
+        // des Knopfs steht dann im aria-label statt im Schriftzeichen.
+        if (WB) $$('button', btns).forEach(function (bt) { bt.type = 'button'; bt.setAttribute('aria-label', bt.title); bt.textContent = ''; });
         top.appendChild(btns);
       }
     }
@@ -893,8 +937,28 @@
       cards[i].hidden = !vis;
       if (vis) shown++;
     }
-    if (countEl) countEl.textContent = shown.toLocaleString(LOC);
+    var zahl = shown.toLocaleString(LOC);
+    if (countEl) {
+      // Werkbank: die Zahl ruckt kurz, wenn sie sich aendert.
+      if (WB && countEl.textContent !== zahl) wbNeu(countEl, 'is-tick');
+      countEl.textContent = zahl;
+    }
     if (emptyEl) emptyEl.hidden = shown !== 0;
+    if (WB) wbFilterZahl();
+  }
+  // Werkbank: der Filterknopf zeigt, wie viele Filter gesetzt sind. Die
+  // Schublade ist zu, sobald man die Liste ansieht; ohne die Zahl saehe man
+  // einer kurzen Liste nicht an, warum sie kurz ist.
+  function wbFilterZahl() {
+    var knopf = $('#cdb-filter-toggle');
+    if (!knopf) return;
+    var n = 0;
+    ['cats', 'subs', 'res', 'sizes', 'grades'].forEach(function (k) {
+      Object.keys(state[k]).forEach(function (x) { if (state[k][x]) n++; });
+    });
+    if (state.missionOnly) n++;
+    if (state.ownedOnly) n++;
+    if (n) knopf.setAttribute('data-n', String(n)); else knopf.removeAttribute('data-n');
   }
 
   function sortCards() {
@@ -1083,8 +1147,8 @@
     // Ohne Slug (Karte ohne Namenslink) gäbe es keinen stabilen Schlüssel —
     // dann lieber nur das Detail öffnen als Müll speichern.
     if (!s && (ownBtn || addBtn)) { e.stopPropagation(); return; }
-    if (ownBtn) { e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (state.ownedOnly) apply(); return; }
-    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); renderPlanner(); flashPlan(); if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' }); return; }
+    if (ownBtn) { e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (WB) wbNeu(ownBtn, 'is-knall'); if (state.ownedOnly) apply(); return; }
+    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); if (WB) { wbNeu(addBtn, 'is-knall'); wbFlug(addBtn); } renderPlanner(); flashPlan(); if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' }); return; }
     openModal(+i);
   });
   cards.forEach(refreshCardState);
@@ -1105,6 +1169,7 @@
     modalStack = []; currentEntry = null;
     if (WB) {
       modal.classList.add('is-leer');
+      if (wbBox) wbBox.classList.remove('is-rollt');
       if (modalBody) modalBody.innerHTML = WB_LEER;
       document.body.style.overflow = '';
       markSel(null);
@@ -1118,7 +1183,7 @@
       modal.classList.remove('is-leer');
       // Am Schreibtisch steht das Rezept im Fluss: nichts sperren.
       document.body.style.overflow = wbMitte() ? '' : 'hidden';
-      if (wbBox) wbBox.scrollTop = 0;
+      if (wbBox) { wbBox.scrollTop = 0; wbBox.classList.remove('is-rollt'); }
       modal.scrollTop = 0;
       return;
     }
@@ -1167,6 +1232,26 @@
       };
       wbRolle();
       if (mqMitte.addEventListener) mqMitte.addEventListener('change', wbRolle);
+      // Ist der Rezeptkopf aus dem Bild gerollt, bleibt oben eine kleine
+      // Leiste stehen: Name und „Zum Planer“ (.wbr-fest, werkbankDesign.ts).
+      // Am Schreibtisch rollt die Mitte selbst, am Telefon das Fenster darum.
+      // Solange die Leiste weg ist, ist sie inert: sonst liefe die
+      // Tabulatortaste ueber einen Knopf, den niemand sieht.
+      if (modalBody) modalBody.classList.add('is-neu');
+      var wbRolltAn = false, wbRolltWartet = false;
+      var wbRollt = function () {
+        wbRolltWartet = false;
+        var kopf = $('.wbr-kopf', modalBody), leiste = $('.wbr-fest__in', modalBody);
+        var oben = wbMitte() ? wbBox.getBoundingClientRect().top : 0;
+        var an = !!kopf && !!leiste && !modal.classList.contains('is-leer') && kopf.getBoundingClientRect().bottom < oben + 4;
+        if (leiste) leiste.inert = !an;
+        if (an === wbRolltAn) return;
+        wbRolltAn = an;
+        wbBox.classList.toggle('is-rollt', an);
+      };
+      var wbRolltBald = function () { if (wbRolltWartet) return; wbRolltWartet = true; requestAnimationFrame(wbRollt); };
+      wbBox.addEventListener('scroll', wbRolltBald, { passive: true });
+      modal.addEventListener('scroll', wbRolltBald, { passive: true });
     }
   }
 
@@ -1186,6 +1271,9 @@
       btn.className = 'cbm__back'; btn.type = 'button';
       btn.innerHTML = '← ' + tr('back', 'Zurück');
       btn.addEventListener('click', back);
+      // Werkbank: der Kopf des Rezepts bleibt oben, „Zurueck“ steht darunter.
+      var inh = WB ? $('.wbr-inh', modalBody) : null;
+      if (inh) { btn.innerHTML = wi('back') + '<span>' + tr('back', 'Zurück') + '</span>'; inh.insertBefore(btn, inh.firstChild); return; }
       modalBody.insertBefore(btn, modalBody.firstChild);
     }
   }
@@ -1229,24 +1317,72 @@
     return id ? L.base + id + '.html' : null;
   }
 
+  // Werkbank: Kopf des Rezepts. Eine kleine Leiste fuer das Rollen, das
+  // Emblem der Bauteilart, Pfad und Name, darunter die Kennwerte als Felder.
+  // Zeichen, Gruppe und Marken (Groesse, Grade, Ton) kommen von der Karte:
+  // dort stehen sie im Markup, das Rezept in der DB kennt sie nicht.
+  // Endet mit dem offenen .wbr-inh, das der Aufrufer schliesst.
+  function wbRezeptKopf(b, i) {
+    var karte = KARTE_BY_I[i];
+    var g = karte ? karte.getAttribute('data-g') : null;
+    var gruppe = esc(karte ? karte.dataset.cat : String(b.category || '').split(' / ')[0]);
+    var marken = karte ? $$('.cbp__spec li', karte).map(function (li) {
+      return '<li' + (li.classList.contains('tone') ? ' class="tone"' : '') + '>' + esc(li.textContent.trim()) + '</li>';
+    }).join('') : '';
+    var feld = function (zeichen, name, wert) { return '<div><span>' + wi(zeichen) + esc(name) + '</span><b>' + esc(wert) + '</b></div>'; };
+    return '<div class="wbr-fest"><div class="wbr-fest__in" data-cat="' + gruppe + '" inert>' + wg(g) +
+        '<span class="wbr-fest__n">' + esc(b.name) + '</span>' +
+        '<button type="button" class="wbr-fest__p" data-plan="' + i + '">' + wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span></button></div></div>' +
+      '<div class="wbr-kopf" data-cat="' + gruppe + '"><div class="wbr-emb" aria-hidden="true">' + WB_RING + wg(g) + '</div>' +
+        '<div class="wbr-kopf__t"><div class="cbm__cat">' + esc(b.category || '') + '</div><h2 class="cbm__name">' + esc(b.name) + '</h2>' +
+        (marken ? '<ul class="wbr-chips">' + marken + '</ul>' : '') + '</div></div>' +
+      '<div class="wbr-kenn">' + feld('clock', tr('craftTime', 'Craft-Zeit'), fmtTime(b.craft_time_seconds)) +
+        (b.tiers != null ? feld('tier', tr('tier', 'Tier'), b.tiers) : '') +
+        feld('parts', tr('ingredients', 'Zutaten'), (b.ingredients || []).length) +
+        feld('mission', WBT.missions || 'Missions', (b.missions || []).length) + '</div>' +
+      '<div class="wbr-inh">';
+  }
+  // Werkbank: „Zum Planer“ bestaetigt kurz und steht dann wieder bereit
+  // (bisher blieb „hinzugefuegt“ stehen, bis man ein anderes Rezept waehlte).
+  var wbOkUhr = null;
+  function wbPlanOk(btn) {
+    if (!btn) return;
+    wbNeu(btn, 'is-ok');
+    btn.innerHTML = wi('check') + '<span>' + tr('added', 'hinzugefügt') + '</span>';
+    clearTimeout(wbOkUhr);
+    wbOkUhr = setTimeout(function () {
+      if (!btn.isConnected) return;
+      btn.classList.remove('is-ok');
+      btn.innerHTML = wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span>';
+    }, 1600);
+  }
+
   function renderBlueprint(i) {
     var b = DB.blueprints[i];
     var html = '';
-    html += '<div class="cbm__cat">' + esc(b.category || '') + '</div>';
-    html += '<h2 class="cbm__name">' + esc(b.name) + '</h2>';
-    html += '<div class="cbm__meta">';
-    html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
-    if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
-    html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
+    // Werkbank: Pfeile als Zeichen (Maske) statt als Schriftzeichen.
+    var pfeil = WB ? wi('arrow') : ' →';
+    if (WB) {
+      html += wbRezeptKopf(b, i);
+      html += '<div class="cbm__meta">';
+      html += '<button type="button" class="cbm__plan" data-plan="' + i + '">' + wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span></button>';
+    } else {
+      html += '<div class="cbm__cat">' + esc(b.category || '') + '</div>';
+      html += '<h2 class="cbm__name">' + esc(b.name) + '</h2>';
+      html += '<div class="cbm__meta">';
+      html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
+      if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
+      html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
+    }
     // Zum Item-Datenblatt, wo es eines gibt (09.11.2026, Skizze 016: Preise,
     // Fundorte und Werte stehen dort); sonst wie bisher in den Item Finder.
     // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
     var itemUrl = itemSheetUrl(i);
-    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + tr('openItem', 'Item-Datenblatt öffnen') + ' →</a>';
-    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
+    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + tr('openItem', 'Item-Datenblatt öffnen') + pfeil + '</a>';
+    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + pfeil + '</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
-      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + ' →</button>';
+      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + pfeil + '</button>';
     }
     html += '</div>';
 
@@ -1255,7 +1391,14 @@
       html += '<div class="cbm__ings">';
       b.ingredients.forEach(function (ing, gi) {
         html += '<div class="cbm__ing">';
-        html += '<div class="cbm__slot">' + esc(ing.slot || '') + '</div>';
+        if (WB) {
+          // Neben dem Bauteil steht, welche Werte seine Qualitaet bewegt:
+          // man sieht vor dem Ziehen, welcher Regler wofuer ist.
+          var wirk = [];
+          (ing.quality_effects || []).forEach(function (qe) { if (qe.stat && wirk.indexOf(qe.stat) < 0) wirk.push(qe.stat); });
+          html += '<div class="wbi-kopf"><div class="cbm__slot">' + esc(ing.slot || '') + '</div>' +
+            (wirk.length ? '<span class="wbi-wirk">' + wirk.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</span>' : '') + '</div>';
+        } else html += '<div class="cbm__slot">' + esc(ing.slot || '') + '</div>';
         (ing.options || []).forEach(function (o) {
           // Zutatenname ist der Sprung zum Fundort — genau hier steht man, wenn
           // man wissen will, wo das Zeug herkommt.
@@ -1267,7 +1410,11 @@
         if (ing.quality_effects && ing.quality_effects.length) {
           // Editierbares Zahlenfeld statt reiner Anzeige + Slider in 1er-Schritten
           // (vorher step=10): feinere Kontrolle per Ziehen UND direkte Eingabe.
-          html += '<div class="cbm__sim">' +
+          if (WB) html += '<div class="cbm__sim"><span class="wbq-l">' + tr('quality', 'Qualität') + '</span>' +
+            '<input type="range" class="cbm__slider" data-ing="' + gi + '" min="0" max="1000" step="1" value="500" aria-label="' + esc(tr('quality', 'Qualität') + ': ' + (ing.slot || '')) + '">' +
+            '<input type="number" class="cbm__qnum" data-num="' + gi + '" min="0" max="1000" step="1" value="500" inputmode="numeric" aria-label="' + esc(tr('quality', 'Qualität') + ' 0–1000: ' + (ing.slot || '')) + '">' +
+            '</div>';
+          else html += '<div class="cbm__sim">' +
             '<label>' + tr('quality', 'Qualität') + ' <input type="number" class="cbm__qnum" data-num="' + gi + '" min="0" max="1000" step="1" value="500" inputmode="numeric" aria-label="' + tr('quality', 'Qualität') + ' 0–1000"></label>' +
             '<input type="range" class="cbm__slider" data-ing="' + gi + '" min="0" max="1000" step="1" value="500">' +
             '</div>';
@@ -1297,6 +1444,7 @@
     } else {
       html += '<p class="cbm__note">' + tr('noMission', 'Keine Missions-Quelle in den Daten — evtl. über andere Wege (Shop/Reputation) erhältlich.') + '</p>';
     }
+    if (WB) html += '</div>';
 
     modalBody.innerHTML = html;
 
@@ -1310,13 +1458,18 @@
         // der User gerade dort tippt (sonst springt der Cursor / die Eingabe).
         var num = $('[data-num="' + gi + '"]', modalBody);
         if (num && document.activeElement !== num) num.value = q;
+        // Werkbank: gefuellte Spur bis zum Griff (werkbankDesign.ts, --v).
+        if (WB) sl.style.setProperty('--v', (q / 1000).toFixed(3));
         var ing = b.ingredients[gi];
         (ing.quality_effects || []).forEach(function (qe) {
           var span = (qe.quality_max - qe.quality_min) || 1;
           var t = clamp((q - qe.quality_min) / span, 0, 1);
           var mod = qe.modifier_at_min + (qe.modifier_at_max - qe.modifier_at_min) * t;
           var e = perStat[qe.stat];
-          if (!e) { e = perStat[qe.stat] = { mul: 1, add: 0, hasMul: false, hasAdd: false, base: resolveBase(qe.stat, b.item_stats) }; }
+          if (!e) { e = perStat[qe.stat] = { mul: 1, add: 0, hasMul: false, hasAdd: false, base: resolveBase(qe.stat, b.item_stats), mulLo: 1, mulHi: 1, addLo: 0, addHi: 0 }; }
+          // Spanne ueber den ganzen Regler (Werkbank: Balken je Wert).
+          var mLo = Math.min(qe.modifier_at_min, qe.modifier_at_max), mHi = Math.max(qe.modifier_at_min, qe.modifier_at_max);
+          if (qe.multiplicative) { e.mulLo += mLo - 1; e.mulHi += mHi - 1; } else { e.addLo += mLo; e.addHi += mHi; }
           // Gleichartige %-Boni additiv stapeln (Bonus-Anteile summieren), nicht
           // kompoundieren: zwei 5% -> +10%, nicht +10,25%. e.mul bleibt der
           // kombinierte Faktor (1 + Summe der Anteile).
@@ -1329,7 +1482,47 @@
       if (!oc) return;
       if (!keys.length) { oc.innerHTML = '<span class="cbm__muted">—</span>'; return; }
       var anyIndexed = false;
-      oc.innerHTML = keys.map(function (k) {
+      if (WB) {
+        // Zeilen einmal bauen, danach nur Werte und Balken nachfuehren: beim
+        // Ziehen bleibt so jedes Element stehen (der Balken gleitet, statt
+        // bei jedem Schritt neu zu entstehen). Der Balken reicht ueber die
+        // ganze Spanne aller Regler dieses Werts, die Marke steht beim
+        // Grundwert. Eine Farbe fuer beide Richtungen: mehr ist nicht bei
+        // jedem Wert besser (Rueckstoss, Verbrauch).
+        if (oc.getAttribute('data-z') !== keys.join('|')) {
+          oc.innerHTML = keys.map(function (k) {
+            var e = perStat[k];
+            return '<div class="wbo"><span class="wbo__k">' + esc(k) + (e.hasMul && e.base == null ? '<i class="cbm__idx">†</i>' : '') + '</span>' +
+              '<span class="wbo__v">' + (e.hasMul ? '<span class="cbm__b0"></span>' + wi('arrow') : '') + '<span class="cbm__b1"></span>' + (e.hasMul ? '<em></em>' : '') + '</span>' +
+              '<div class="wbo__bar" aria-hidden="true"><i class="wbo__fill"></i><i class="wbo__null"></i></div></div>';
+          }).join('');
+          oc.setAttribute('data-z', keys.join('|'));
+        }
+        keys.forEach(function (k, n) {
+          var e = perStat[k], z = oc.children[n];
+          var wert, grund, lo, hi;
+          if (e.hasMul) {
+            var basis = e.base == null ? 100 : e.base;
+            if (e.base == null) anyIndexed = true;
+            var proz = Math.round((e.mul - 1) * 1000) / 10;
+            $('.cbm__b0', z).textContent = fmtSmart(basis);
+            $('.cbm__b1', z).textContent = fmtSmart(basis * e.mul);
+            var em = $('em', z);
+            em.textContent = (proz > 0 ? '+' : proz < 0 ? '−' : '±') + Math.abs(proz).toLocaleString(LOC) + '%';
+            em.classList.toggle('is-null', proz === 0);
+            wert = e.mul; grund = 1; lo = Math.min(e.mulLo, 1); hi = Math.max(e.mulHi, 1);
+          } else {
+            $('.cbm__b1', z).textContent = (roundSmart(e.add) >= 0 ? '+' : '') + fmtSmart(e.add);
+            wert = e.add; grund = 0; lo = Math.min(e.addLo, 0); hi = Math.max(e.addHi, 0);
+          }
+          var bar = $('.wbo__bar', z), spanne = hi - lo;
+          if (!(spanne > 0)) { bar.hidden = true; return; }
+          var g0 = (grund - lo) / spanne, c = clamp((wert - lo) / spanne, 0, 1);
+          bar.style.setProperty('--n', (g0 * 100).toFixed(2) + '%');
+          bar.style.setProperty('--a', (Math.min(g0, c) * 100).toFixed(2) + '%');
+          bar.style.setProperty('--w', (Math.abs(c - g0) * 100).toFixed(2) + '%');
+        });
+      } else oc.innerHTML = keys.map(function (k) {
         var e = perStat[k];
         if (e.hasMul) {
           var indexed = e.base == null;
@@ -1373,13 +1566,18 @@
     });
     recompute();
 
-    var pb = $('[data-plan]', modalBody);
-    if (pb) pb.addEventListener('click', function (ev) {
-      var s = slugOfIndex(i);
-      if (!s) return;
-      plan[s] = (plan[s] || 0) + 1; markDirty(s);
-      if (ev.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' });
-      syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
+    // Die Werkbank hat den Knopf zweimal: im Rezept und in der kleinen
+    // Leiste, die beim Rollen oben stehen bleibt.
+    $$('[data-plan]', modalBody).forEach(function (pb) {
+      pb.addEventListener('click', function (ev) {
+        var s = slugOfIndex(i);
+        if (!s) return;
+        plan[s] = (plan[s] || 0) + 1; markDirty(s);
+        if (ev.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' });
+        if (WB) wbFlug(pb);
+        syncCards(); renderPlanner(); flashPlan();
+        if (WB) wbPlanOk($('.cbm__plan', modalBody)); else pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
+      });
     });
 
     var gd = $('[data-goto-dismantle]', modalBody);
@@ -1394,19 +1592,32 @@
     var e = MISSIONS && MISSIONS[key];
     if (!e) { modalBody.innerHTML = '<p class="cbm__note">—</p>'; return; }
     var html = '';
-    html += '<div class="cbm__cat">' + tr('missionPoolLabel', 'Missions-Pool') + '</div>';
-    html += '<h2 class="cbm__name">' + esc(missionName(e.name)) + '</h2>';
+    if (WB) {
+      // Werkbank: derselbe Kopf wie beim Rezept, mit dem Missionszeichen.
+      html += '<div class="wbr-kopf wbr-kopf--pool"><div class="wbr-emb" aria-hidden="true">' + WB_RING + wi('mission') + '</div>' +
+        '<div class="wbr-kopf__t"><div class="cbm__cat">' + tr('missionPoolLabel', 'Missions-Pool') + '</div>' +
+        '<h2 class="cbm__name">' + esc(missionName(e.name)) + '</h2></div></div><div class="wbr-inh">';
+    } else {
+      html += '<div class="cbm__cat">' + tr('missionPoolLabel', 'Missions-Pool') + '</div>';
+      html += '<h2 class="cbm__name">' + esc(missionName(e.name)) + '</h2>';
+    }
     html += '<p class="cbm__note cbm__hint">' + tr('poolIntro', 'Alle Blueprints, die diese Mission droppen kann — Blueprint anklicken für Details.') + ' <span class="cbm__c">' + e.pool.length + '</span></p>';
     html += '<ul class="cbm__pool">';
     e.pool.forEach(function (p) {
       var b = DB.blueprints[p.i];
       var dc = p.dc != null ? Math.round(p.dc * 100) + '%' : '';
       var cat = (b.category || '').split(' / ').slice(0, 2).join(' / ');
-      html += '<li><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
+      var karte = WB ? KARTE_BY_I[p.i] : null;
+      if (WB) html += '<li data-cat="' + esc(karte ? karte.dataset.cat : '') + '"><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
+        wg(karte ? karte.getAttribute('data-g') : null) +
+        '<span class="pt"><span class="pn">' + esc(b.name) + '</span><span class="pc">' + esc(cat) + '</span></span></button>' +
+        (dc ? '<b>' + dc + '</b>' : '') + '</li>';
+      else html += '<li><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
         '<span class="pn">' + esc(b.name) + '</span><span class="pc">' + esc(cat) + '</span></button>' +
         (dc ? '<b>' + dc + '</b>' : '') + '</li>';
     });
     html += '</ul>';
+    if (WB) html += '</div>';
     modalBody.innerHTML = html;
     $$('.cbm__blink', modalBody).forEach(function (btn) {
       btn.addEventListener('click', function () { go({ t: 'bp', i: +btn.dataset.bp }); });
@@ -1472,6 +1683,47 @@
     document.documentElement.classList.add('cdb-ready');
   }); });
 
+  // Werkbank: ein Punkt fliegt vom Knopf in den Planer (oder, wo der Planer
+  // eine Schublade ist, zu seinem Knopf) und zeigt, wohin das Stueck gegangen
+  // ist. Reine Zierde: der Planer ist schon gefuellt, bevor der Punkt
+  // ankommt; seine neue Zeile wartet nur so lange mit dem Einblenden
+  // (is-spaet). Entfaellt bei prefers-reduced-motion.
+  var wbFlugBis = 0;
+  function wbFlug(von) {
+    if (!WB || mqRuhig.matches || !von || !von.animate) return;
+    // Telefon mit offenem Rezept: der Planer-Knopf liegt unter dem Fenster.
+    if (!wbMitte() && modal && !modal.classList.contains('is-leer')) return;
+    var ziel = wbPlaner() ? $('.wbp-t', drawer) : plannerBtn;
+    if (!ziel) return;
+    var a = von.getBoundingClientRect(), z = ziel.getBoundingClientRect();
+    if (!a.width || !z.width) return;
+    var x0 = a.left + a.width / 2, y0 = a.top + a.height / 2;
+    var x1 = wbPlaner() ? z.left + 11 : z.left + z.width / 2, y1 = z.top + z.height / 2;
+    // Bogen (quadratische Kurve) in Stuetzpunkten; eine gerade Linie saehe
+    // nach einem Strich aus, nicht nach einem Wurf.
+    var cx = x0 + (x1 - x0) * 0.4, cy = Math.min(y0, y1) - 70;
+    var bild = [], n = 16;
+    for (var k = 0; k <= n; k++) {
+      var t = k / n, u = 1 - t;
+      var x = u * u * x0 + 2 * u * t * cx + t * t * x1, y = u * u * y0 + 2 * u * t * cy + t * t * y1;
+      var gr = t < 0.15 ? 0.5 + t / 0.15 * 0.5 : 1 - Math.max(0, t - 0.6) / 0.4 * 0.55;
+      bild.push({ transform: 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + gr.toFixed(2) + ')', opacity: t < 0.1 ? t * 10 : t > 0.92 ? (1 - t) / 0.08 : 1 });
+    }
+    var p = document.createElement('i');
+    p.className = 'wb-flug';
+    p.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(p);
+    wbFlugBis = performance.now() + 400;
+    var lauf = p.animate(bild, { duration: 620, easing: 'cubic-bezier(.4,0,.25,1)' });
+    var weg = function () { if (p.parentNode) p.parentNode.removeChild(p); };
+    lauf.onfinish = weg; lauf.oncancel = weg;
+  }
+  // Werkbank: Stand des Planers beim letzten Zeichnen ({slug: Stueck} und
+  // {Material: 1}). Daraus ergibt sich, welche Zeile neu ist und wo sich die
+  // Stueckzahl geaendert hat. null bis zum ersten Zeichnen mit Daten: ein
+  // gespeicherter Plan soll beim Laden nicht einfliegen.
+  var wbPlanStand = null, wbShopStand = null;
+
   function flashPlan() { if (plannerBtn) { plannerBtn.classList.remove('flash'); void plannerBtn.offsetWidth; plannerBtn.classList.add('flash'); } }
 
   function renderPlanner() {
@@ -1479,18 +1731,33 @@
     var slugs = Object.keys(plan).filter(function (k) { return plan[k] > 0; });
     var totalItems = slugs.reduce(function (a, k) { return a + plan[k]; }, 0);
     if (plannerBadge) { plannerBadge.textContent = totalItems; plannerBadge.hidden = totalItems === 0; }
+    var wbZahl = WB ? $('#wbp-n') : null;
+    if (wbZahl) {
+      if (wbPlanStand && totalItems && wbZahl.textContent !== String(totalItems)) wbNeu(wbZahl, 'is-tick');
+      wbZahl.textContent = totalItems; wbZahl.hidden = totalItems === 0;
+    }
     var listEl = $('#cdb-plan-list');
     var shopEl = $('#cdb-plan-shop');
     var timeEl = $('#cdb-plan-time');
     if (!listEl) return;
     if (!DB || !slugs.length) {
-      listEl.innerHTML = '<li class="cdb-plan-empty">' + tr('planEmpty', 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.') + '</li>';
+      // Werkbank: drei leere Plaetze ueber dem Hinweis (werkbankDesign.ts).
+      listEl.innerHTML = '<li class="cdb-plan-empty">' + (WB ? '<span class="wbp-leer" aria-hidden="true"><i></i><i></i><i></i></span>' : '') +
+        tr('planEmpty', 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.') + '</li>';
       if (shopEl) shopEl.innerHTML = '';
       if (timeEl) timeEl.textContent = '—';
+      if (WB && DB) { wbPlanStand = {}; wbShopStand = {}; }
       return;
     }
     var totalTime = 0;
     var shop = {}; // resource -> total cSCU
+    var vorher = WB ? wbPlanStand : null;
+    var spaet = WB && performance.now() < wbFlugBis ? ' is-spaet' : '';
+    // Werkbank: die Liste wird neu geschrieben; stand der Fokus auf einem
+    // ihrer Knoepfe, bekommt ihn derselbe Knopf der neuen Liste zurueck.
+    var fokus = WB && document.activeElement && listEl.contains(document.activeElement) ? document.activeElement : null;
+    var fokusWo = fokus ? ['inc', 'dec', 'rm'].filter(function (a) { return fokus.dataset[a] != null; })[0] : null;
+    var fokusSlug = fokusWo ? fokus.dataset[fokusWo] : null;
     listEl.innerHTML = slugs.map(function (k) {
       var idx = indexOfSlug(k);
       var b = idx != null ? DB.blueprints[idx] : null; if (!b) return '';
@@ -1500,6 +1767,16 @@
         var o = (ing.options || [])[0];
         if (o) shop[o.name] = (shop[o.name] || 0) + (o.quantity_scu || 0) * qty;
       });
+      if (WB) {
+        var karte = KARTE_BY_I[idx];
+        var art = !vorher ? '' : vorher[k] == null ? ' is-neu' + spaet : vorher[k] !== qty ? ' is-puls' + spaet : '';
+        return '<li class="cdb-plan-item' + art + '" data-cat="' + esc(karte ? karte.dataset.cat : '') + '">' + wg(karte ? karte.getAttribute('data-g') : null) +
+          '<div class="pi__n">' + esc(b.name) + '</div>' +
+          '<div class="pi__z" title="' + esc(tr('craftTime', 'Craft-Zeit')) + '">' + fmtTime((b.craft_time_seconds || 0) * qty) + '</div>' +
+          '<button type="button" data-rm="' + k + '" class="pi__rm" aria-label="' + esc((WBT.remove || 'Remove') + ': ' + b.name) + '"></button>' +
+          '<div class="pi__ctrl"><button type="button" data-dec="' + k + '" aria-label="' + esc((WBT.less || 'Less') + ': ' + b.name) + '"></button><span>' + qty + '</span>' +
+          '<button type="button" data-inc="' + k + '" aria-label="' + esc((WBT.more || 'More') + ': ' + b.name) + '"></button></div></li>';
+      }
       return '<li class="cdb-plan-item"><div class="pi__n">' + esc(b.name) + '</div>' +
         '<div class="pi__ctrl"><button data-dec="' + k + '">–</button><span>' + qty + '</span><button data-inc="' + k + '">+</button>' +
         '<button data-rm="' + k + '" class="pi__rm" aria-label="remove">✕</button></div></li>';
@@ -1509,10 +1786,23 @@
       // Fundorten, statt dass man die Namen in die Mining-Suche tippt.
       var names = Object.keys(shop).sort();
       shopEl.innerHTML = names.length ? names.map(function (n) {
-        return '<div class="ps__row">' + mineNameHtml(n, 'ps__n') + '<b>' + fmtNum(shop[n] * 100) + ' cSCU</b></div>';
+        return '<div class="ps__row' + (WB && wbShopStand && !wbShopStand[n] ? ' is-neu' : '') + '">' + mineNameHtml(n, 'ps__n') + '<b>' + fmtNum(shop[n] * 100) + ' cSCU</b></div>';
       }).join('') : '';
+      if (WB) { wbShopStand = {}; names.forEach(function (n) { wbShopStand[n] = 1; }); }
     }
-    if (timeEl) timeEl.textContent = fmtTime(totalTime);
+    if (timeEl) {
+      var zeit = fmtTime(totalTime);
+      if (WB && vorher && timeEl.textContent !== zeit) wbNeu(timeEl, 'is-tick');
+      timeEl.textContent = zeit;
+    }
+    if (WB) {
+      wbPlanStand = {};
+      slugs.forEach(function (k) { wbPlanStand[k] = plan[k]; });
+      if (fokusSlug) {
+        var wieder = $$('[data-' + fokusWo + ']', listEl).filter(function (bt) { return bt.dataset[fokusWo] === fokusSlug; })[0];
+        if (wieder) wieder.focus();
+      }
+    }
     // wire qty buttons
     $$('[data-inc]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.inc; plan[k]++; markDirty(k); renderPlanner(); syncCards(); }); });
     $$('[data-dec]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.dec; plan[k]--; if (plan[k] <= 0) delete plan[k]; markDirty(k); renderPlanner(); syncCards(); }); });
@@ -1846,10 +2136,18 @@
 
     var yieldSlider = $('#calc-yield-rate');
     var yieldVal = $('#calc-yield-val');
+    // Werkbank: gefuellte Spur bis zum Griff wie bei den Qualitaetsreglern.
+    var wbSpur = function () {
+      if (!WB || !yieldSlider) return;
+      var lo = +yieldSlider.min || 0, hi = +yieldSlider.max || 100;
+      yieldSlider.style.setProperty('--v', ((+yieldSlider.value - lo) / ((hi - lo) || 1)).toFixed(3));
+    };
+    wbSpur();
     if (yieldSlider && yieldVal) {
       yieldSlider.addEventListener('input', function () {
         calcState.yieldRate = parseInt(this.value) || DEFAULT_YIELD;
         yieldVal.textContent = calcState.yieldRate + '%';
+        wbSpur();
         calcApply();
       });
     }
@@ -1866,6 +2164,7 @@
         if (targetInput) targetInput.value = '1.0';
         if (yieldSlider) yieldSlider.value = String(DEFAULT_YIELD);
         if (yieldVal) yieldVal.textContent = DEFAULT_YIELD + '%';
+        wbSpur();
         $$('.calc-mat-cb').forEach(function (cb) {
           cb.checked = false;
           var label = cb.closest('.calc-check');

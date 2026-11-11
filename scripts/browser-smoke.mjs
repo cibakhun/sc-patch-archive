@@ -1065,7 +1065,14 @@ async function kreuzVerdeckt(page) {
    seite füllt, überschrift und sowas brauchen wir eig gar nicht“) steht
    kein Kopfband mehr darueber, die Werkbank nimmt die Breite, die Spalten
    reichen bis an den unteren Rand, und die Hilfe ist eine Tafel, die
-   nichts schiebt. Gemessen an Lage und Inhalt, nicht am Markup. */
+   nichts schiebt. Gemessen an Lage und Inhalt, nicht am Markup.
+   Vierte Runde (Krisz 11.11.2026: „das design auf dem höchsten niveou“,
+   „grafik ui animations“): jede Kachel traegt das Zeichen ihrer Bauteilart,
+   das Rezept hat einen Kopf mit Emblem und Kennwerten, der Regler bewegt
+   Wert und Balken an Ort und Stelle, beim Rollen bleibt eine kleine Leiste
+   mit dem Namen stehen, und der Planer zaehlt mit. Der Auftakt beim Laden
+   muss enden, bevor gemessen wird. */
+const WB_MIN_ZEICHEN = 20; // verschiedene Zeichen der Bauteilart, gemessen 26 am 11.11.2026
 async function probeWerkbank(page) {
   const kasten = (p, sel) => p.locator(sel).first().boundingBox();
   const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
@@ -1073,6 +1080,11 @@ async function probeWerkbank(page) {
   const wahl = (p) => p.$$eval('#cdb-grid .cbp.is-sel', (c) => c.map((x) => x.dataset.i));
   const titel = async (p) => ((await p.locator('#cdb-modal .cbm__name').first().innerText().catch(() => '')) || '').trim();
 
+  // Der Auftakt verschiebt Leiste, Kacheln und Spalten fuer eine gute
+  // Sekunde um wenige Pixel; gemessen wird danach. Bleibt die Klasse
+  // haengen, spielte er bei jedem Sortieren und Filtern neu.
+  const auftaktEndet = await page.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false);
+  if (!auftaktEndet) return 'Werkbank 1280 px: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)';
   // 1. Schreibtisch (1280 px): Liste | leere Mitte | Planer.
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: die leere Mitte („Rezept waehlen“) ist nicht zu sehen';
   const liste = await kasten(page, '#cdb-grid');
@@ -1109,6 +1121,36 @@ async function probeWerkbank(page) {
   const kurz = fuellt.unten.filter(([, u]) => u < fuellt.hoehe - 40 || u > fuellt.hoehe + 1);
   if (fuellt.rollt === 0 && kurz.length)
     return `Werkbank 1280 px: die Spalten enden nicht am unteren Rand (${fuellt.hoehe} px): ${kurz.map(([n, u]) => `${n} bei ${u}`).join(', ')}`;
+  // Bei 1280 px bliebe eine Breitengrenze oberhalb von etwa 1200 px
+  // unbemerkt (Hinweis von CodeRabbit an #349): dieselbe Messung noch einmal
+  // bei 1920 px, danach zurueck auf die Groesse der Variante.
+  const fenster = page.viewportSize();
+  const zweiBilder = () => page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  await page.setViewportSize({ width: 1920, height: fenster.height });
+  await zweiBilder();
+  const breit = await page.evaluate(() => {
+    const c = document.querySelector('#cdb').getBoundingClientRect();
+    return [Math.round(c.left), Math.round(document.documentElement.clientWidth - c.right)];
+  });
+  await page.setViewportSize(fenster);
+  await zweiBilder();
+  if (breit[0] > 40 || breit[1] > 40) return `Werkbank 1920 px: die Werkbank nutzt die Breite nicht (Rand links ${breit[0]} px, rechts ${breit[1]} px)`;
+  // Jede Kachel traegt das Zeichen ihrer Bauteilart (data-g), und der Stil
+  // kennt zu jeder Art ein Bild (Maske am Kopf der Kachel).
+  const zeichen = await page.evaluate(() => {
+    const k = [...document.querySelectorAll('#cdb-grid .cbp')];
+    const mit = k.filter((c) => c.dataset.g);
+    const arten = [...new Set(mit.map((c) => c.dataset.g))];
+    const ohneBild = arten.filter((g) => {
+      const kopf = mit.find((c) => c.dataset.g === g).querySelector('.cbp__top');
+      const st = kopf ? getComputedStyle(kopf, '::after') : null;
+      return !st || !/^url\(/.test(st.maskImage || st.webkitMaskImage || '');
+    });
+    return { alle: k.length, mit: mit.length, arten: arten.length, ohneBild };
+  });
+  if (zeichen.mit < zeichen.alle) return `Werkbank 1280 px: ${zeichen.alle - zeichen.mit} von ${zeichen.alle} Kacheln tragen kein Zeichen der Bauteilart (data-g)`;
+  if (zeichen.arten < WB_MIN_ZEICHEN) return `Werkbank 1280 px: nur ${zeichen.arten} verschiedene Zeichen der Bauteilart (Klinke ${WB_MIN_ZEICHEN})`;
+  if (zeichen.ohneBild.length) return `Werkbank 1280 px: zu ${zeichen.ohneBild.length} Bauteilart(en) fehlt das Bild im Stil (${zeichen.ohneBild.slice(0, 5).join(', ')})`;
   // Die Hilfe ist eine Tafel ueber den Spalten: sie schiebt nichts, und ein
   // Klick daneben schliesst sie. Beim ersten Besuch steht sie schon offen
   // (tool-help.js), sonst oeffnet die Probe sie selbst.
@@ -1121,6 +1163,23 @@ async function probeWerkbank(page) {
   await page.locator('.cdb-count-row').click();
   if (await page.$eval(hilfe, (d) => d.open)) return 'Werkbank 1280 px: ein Klick neben die Hilfe schliesst sie nicht';
   if ((await mitteOben()) !== mitHilfe) return `Werkbank 1280 px: die offene Hilfe schiebt die Spalten (Mitte offen bei ${mitHilfe}, zu bei ${await mitteOben()} px)`;
+  // „Elemente erklaeren“ per Tastatur: die Tafel schliesst sich und nimmt
+  // den Knopf mit. Der Fokus muss dann auf der Zeile der Hilfe stehen, nicht
+  // auf <body> (Hinweis von CodeRabbit an #349). Esc beendet den Modus
+  // wieder, damit die weiteren Schritte ohne Erklaerblasen laufen.
+  await page.locator(`${hilfe} > summary`).click();
+  await page.locator(`${hilfe} .js-tool-help`).focus();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(80);
+  const erkl = await page.$eval(hilfe, (d) => ({
+    offen: d.open, an: d.querySelector('.js-tool-help').getAttribute('aria-pressed'),
+    fokus: document.activeElement === d.querySelector('summary') ? 'summary' : (document.activeElement ? document.activeElement.tagName.toLowerCase() : 'nichts'),
+  }));
+  await page.keyboard.press('Escape');
+  const erklAus = await page.$eval(`${hilfe} .js-tool-help`, (b) => b.getAttribute('aria-pressed'));
+  if (erkl.an !== 'true' || erkl.offen) return `Werkbank 1280 px: „Elemente erklaeren“ per Tastatur schaltet nicht um oder laesst die Tafel offen (aria-pressed ${erkl.an}, offen ${erkl.offen})`;
+  if (erkl.fokus !== 'summary') return `Werkbank 1280 px: nach „Elemente erklaeren“ per Tastatur steht der Fokus auf <${erkl.fokus}> statt auf der Zeile der Hilfe`;
+  if (erklAus !== 'false') return `Werkbank 1280 px: Esc beendet „Elemente erklaeren“ nicht (aria-pressed ${erklAus})`;
   // Bedienleiste wie auf der bisherigen Seite: eine Zeile ueber allen
   // Spalten, mit Raster/Liste-Umschalter; die Liste zeigt Kacheln.
   const leiste = await kasten(page, '.cdb-bar');
@@ -1211,6 +1270,42 @@ async function probeWerkbank(page) {
   await page.locator('#cdb-modal .cbm__plan').first().click();
   const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
   if (!imPlaner.map((s) => s.trim()).includes(name)) return `Werkbank 1280 px: „Zum Planer“ zeigt „${name}“ nicht in der Planer-Spalte (dort: ${JSON.stringify(imPlaner)})`;
+  // Die Zeile traegt das Zeichen der Bauteilart, und der Zaehler am Kopf des
+  // Planers nennt die Stueckzahl.
+  const zeile = await page.evaluate(() => {
+    const z = [...document.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+    const n = document.querySelector('#wbp-n');
+    return {
+      ohneZeichen: z.filter((x) => !(x.querySelector('.wg') && x.querySelector('.wg').dataset.g)).length,
+      stueck: z.reduce((s, x) => s + (parseInt(x.querySelector('.pi__ctrl span')?.textContent ?? '', 10) || 0), 0),
+      zahl: n && !n.hidden && n.getBoundingClientRect().width > 0 ? n.textContent.trim() : '',
+    };
+  });
+  if (zeile.ohneZeichen) return `Werkbank 1280 px: ${zeile.ohneZeichen} Zeile(n) im Planer ohne Zeichen der Bauteilart`;
+  if (zeile.zahl !== String(zeile.stueck)) return `Werkbank 1280 px: der Zaehler am Planer-Kopf zeigt „${zeile.zahl}“, im Planer liegen ${zeile.stueck} Stueck`;
+  // Rollt das Rezept, bleibt oben eine kleine Leiste mit Name und „Zum
+  // Planer“ stehen; solange sie weg ist, ist sie inert (kein Tabulator-Halt
+  // auf einem Knopf, den niemand sieht).
+  const fest = await page.evaluate(async () => {
+    const warte = () => new Promise((r) => setTimeout(r, 500));
+    const box = document.querySelector('#cdb-modal .cdb-modal__box'), l = document.querySelector('#cdb-modal .wbr-fest__in');
+    if (!l) return { fehlt: true };
+    if (box.scrollHeight < box.clientHeight + 300) return { kurz: box.scrollHeight - box.clientHeight };
+    const stand = () => ({ inert: l.inert === true, rollt: box.classList.contains('is-rollt'), deckt: +getComputedStyle(l).opacity, oben: Math.round(l.getBoundingClientRect().top - box.getBoundingClientRect().top) });
+    const vor = stand();
+    box.scrollTop = 300; await warte();
+    const an = stand();
+    const knopf = !!l.querySelector('[data-plan]'), text = (l.querySelector('.wbr-fest__n')?.textContent ?? '').trim();
+    box.scrollTop = 0; await warte();
+    return { vor, an, nach: stand(), knopf, text };
+  });
+  if (fest.fehlt) return 'Werkbank 1280 px: dem Rezept fehlt die kleine Leiste fuer das Rollen (.wbr-fest)';
+  if (fest.kurz != null) return `Werkbank 1280 px: das Rezept „${name}“ rollt nur ${fest.kurz} px, die Probe braucht ein laengeres`;
+  if (!fest.vor.inert || fest.vor.rollt) return 'Werkbank 1280 px: die kleine Leiste ist schon ohne Rollen aktiv';
+  if (fest.an.inert || !fest.an.rollt || fest.an.deckt < 0.95 || fest.an.oben < -2 || fest.an.oben > 8)
+    return `Werkbank 1280 px: nach dem Rollen steht die kleine Leiste nicht oben in der Mitte (${JSON.stringify(fest.an)})`;
+  if (fest.text !== name || !fest.knopf) return `Werkbank 1280 px: die kleine Leiste zeigt „${fest.text}“ statt „${name}“ oder traegt keinen Planer-Knopf`;
+  if (!fest.nach.inert || fest.nach.rollt) return 'Werkbank 1280 px: zurueckgerollt bleibt die kleine Leiste stehen';
   // Schliessen: zurueck zur leeren Mitte, Adresse und Markierung frei.
   await page.locator('#cdb-modal .cdb-modal__x').first().click();
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: nach ✕ kommt die leere Mitte nicht zurueck';
@@ -1225,6 +1320,54 @@ async function probeWerkbank(page) {
   const t2 = await titel(page);
   if (t2 !== name) return `Werkbank 1280 px: der tiefe Link ?bpi=${i} zeigt „${t2 || 'nichts'}“ statt „${name}“`;
   if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return 'Werkbank 1280 px: der tiefe Link markiert die Karte nicht';
+  // Kopf des Rezepts: Emblem der Bauteilart (dasselbe Zeichen wie auf der
+  // gewaehlten Kachel) und die Kennwerte als Felder.
+  const kopf = await page.evaluate(() => {
+    const e = document.querySelector('#cdb-modal .wbr-emb .wg'), r = e ? e.getBoundingClientRect() : null;
+    const st = e ? getComputedStyle(e) : null;
+    const karte = document.querySelector('#cdb-grid .cbp.is-sel');
+    return {
+      emblem: r ? Math.round(Math.min(r.width, r.height)) : 0, art: e ? e.dataset.g : '', karte: karte ? karte.dataset.g : '',
+      bild: !!st && /^url\(/.test(st.maskImage || st.webkitMaskImage || ''),
+      felder: document.querySelectorAll('#cdb-modal .wbr-kenn > div').length,
+    };
+  });
+  if (kopf.emblem < 28 || !kopf.bild) return `Werkbank 1280 px: der Rezeptkopf zeigt kein Emblem (${kopf.emblem} px, Bild ${kopf.bild})`;
+  if (kopf.art !== kopf.karte) return `Werkbank 1280 px: das Emblem zeigt „${kopf.art}“, die gewaehlte Kachel „${kopf.karte}“`;
+  if (kopf.felder < 3) return `Werkbank 1280 px: der Rezeptkopf hat nur ${kopf.felder} Kennwert-Felder`;
+  // Der Regler bewegt Wert und Balken, und die Zeile bleibt dabei dieselbe
+  // (ein neu geschriebener Balken spraenge, statt zu gleiten). Hat dieses
+  // Rezept keinen Regler, nimmt die Probe das naechste mit einem.
+  let regler = null;
+  for (let versuch = 0; versuch < 12 && !regler; versuch++) {
+    regler = await page.evaluate(async () => {
+      const s = document.querySelector('#cdb-modal .cbm__slider');
+      if (!s) return null;
+      const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+      const zeilen = () => [...document.querySelectorAll('#cbm-out .wbo')];
+      const stand = () => zeilen().map((z) => [z.querySelector('.cbm__b1')?.textContent ?? '', Math.round(z.querySelector('.wbo__fill')?.getBoundingClientRect().width ?? -1)]);
+      const erste = zeilen()[0], vorher = stand();
+      s.value = s.max;
+      s.dispatchEvent(new Event('input', { bubbles: true }));
+      await warte(450);
+      const nachher = stand();
+      return {
+        zeilen: vorher.length, text: vorher.some((v, n) => v[0] !== nachher[n]?.[0]), balken: vorher.some((v, n) => Math.abs(v[1] - (nachher[n]?.[1] ?? v[1])) > 2),
+        steht: !!erste && zeilen()[0] === erste, spur: s.style.getPropertyValue('--v').trim(),
+      };
+    });
+    if (!regler) {
+      const weiter = page.locator('#cdb-grid .cbp:not([hidden])').nth(versuch + 2).locator('.cbp__name');
+      if (!(await weiter.count())) break;
+      await weiter.click();
+      await page.waitForTimeout(250);
+    }
+  }
+  if (!regler) return 'Werkbank 1280 px: unter den ersten Rezepten hat keines einen Qualitaetsregler, die Probe kann ihn nicht messen';
+  if (!regler.zeilen) return 'Werkbank 1280 px: das Rezept zeigt keine simulierten Werte (#cbm-out .wbo)';
+  if (!regler.text || !regler.balken) return `Werkbank 1280 px: der Regler bewegt ${regler.text ? '' : 'den Wert '}${regler.balken ? '' : 'den Balken '}nicht`;
+  if (!regler.steht) return 'Werkbank 1280 px: beim Ziehen des Reglers entstehen die Wertezeilen neu (der Balken springt statt zu gleiten)';
+  if (regler.spur !== '1.000') return `Werkbank 1280 px: die Spur des Reglers folgt dem Griff nicht (--v „${regler.spur}“ bei vollem Ausschlag)`;
   // Ein Rezept weit unten in der Liste: die Liste rollt zu ihm, die Seite nicht.
   const weit = await page.$$eval('#cdb-grid .cbp', (c) => {
     const k = c[Math.floor(c.length * 0.6)];
@@ -1248,6 +1391,10 @@ async function probeWerkbank(page) {
   // unter Kopfbild und Hilfe), und die Liste rollt zur Karte.
   if (!lage.mitte) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ bringt das Rezept nicht ins Bild`;
   if (!lage.drin || !lage.imBild) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
+
+  // Zweiter Reiter: der Zerlege-Rechner staucht seine Ergebniskarten nicht.
+  const zerlegen = await probeZerlegen(page, 'Werkbank 1280 px');
+  if (zerlegen) return zerlegen;
 
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
