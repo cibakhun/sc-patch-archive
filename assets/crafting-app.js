@@ -35,8 +35,14 @@
   // Werkbank: Hoehe der Bedienleiste und der Zaehlzeile als CSS-Werte, damit
   // die drei Spalten genau unter die Leiste passen (src/lib/werkbankCss.ts,
   // --wb-bar/--wb-count). Die Leiste bricht je nach Breite in zwei Zeilen um.
+  // --wb-y ist die Oberkante der Spalten auf der Seite: von dort reichen sie
+  // auf hohen Fenstern bis an den unteren Rand (die Werkbank fuellt die
+  // Seite, Krisz 11.11.2026). Die Liste klebt nie, ihre Lage auf der Seite
+  // haengt also nicht am Rollen. Gemessen wird auch, wenn sich die Seite
+  // ueber der Werkbank aendert (Kopfleiste, Reiterzeile bricht um).
   if (WB) {
     var wbRoot = $('#cdb'), wbBar = $('.cdb-bar'), wbCount = $('.cdb-count-row');
+    var wbLay = $('#cdb-tab-db-content > .cdb-layout');
     var wbMiss = function () {
       if (!wbRoot) return;
       if (wbBar && wbBar.offsetHeight) wbRoot.style.setProperty('--wb-bar', wbBar.offsetHeight + 'px');
@@ -44,17 +50,63 @@
         var mb = parseFloat(getComputedStyle(wbCount).marginBottom) || 0;
         wbRoot.style.setProperty('--wb-count', Math.ceil(wbCount.offsetHeight + mb) + 'px');
       }
+      if (wbLay && wbLay.offsetHeight) {
+        var y = Math.round(wbLay.getBoundingClientRect().top + window.scrollY);
+        if (y > 0) wbRoot.style.setProperty('--wb-y', y + 'px');
+      }
     };
     wbMiss();
-    if (window.ResizeObserver && wbBar) new ResizeObserver(wbMiss).observe(wbBar);
-    else window.addEventListener('resize', wbMiss);
+    if (window.ResizeObserver && wbBar) {
+      // Im naechsten Bild messen: --wb-y aendert die Hoehe der Spalten und
+      // damit die von <body>; im selben Durchlauf meldete der Beobachter
+      // sonst eine Schleife (ResizeObserver loop) als Fehler.
+      var wbRo = new ResizeObserver(function () { requestAnimationFrame(wbMiss); });
+      wbRo.observe(wbBar);
+      var wbTabs = $('.cdb-tabs');
+      if (wbTabs) wbRo.observe(wbTabs);
+      wbRo.observe(document.body, { box: 'border-box' });
+    }
+    window.addEventListener('resize', wbMiss);
+    window.addEventListener('load', wbMiss);
+    // Ab 821 px ist die Hilfe eine Tafel ueber den Spalten (werkbankCss.ts).
+    // Klick daneben und Esc schliessen sie. „Elemente erklaeren“ schliesst
+    // sie ebenfalls, sonst laege sie ueber den Elementen, die sie erklaert
+    // (aus geht der Modus mit Esc oder ueber denselben Knopf).
+    var wbHilfe = $('#cdb-tab-db-content > .tool-help');
+    if (wbHilfe) {
+      var wbTafel = function () { return wbHilfe.open && window.matchMedia('(min-width:821px)').matches; };
+      document.addEventListener('click', function (e) {
+        if (!wbTafel()) return;
+        var el = e.target && e.target.closest ? e.target : null;
+        var knopf = el && el.closest('.js-tool-help');
+        if (knopf) {
+          // tool-help.js schaltet im selben Klick um; danach nachsehen.
+          setTimeout(function () { if (knopf.getAttribute('aria-pressed') === 'true') wbHilfe.open = false; }, 0);
+        } else if (!el || !wbHilfe.contains(el)) {
+          wbHilfe.open = false;
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape' || !wbTafel()) return;
+        // Stand der Fokus in der Tafel, geht er auf ihre Zeile zurueck
+        // (sonst faellt er mit dem Schliessen auf <body>).
+        var drin = wbHilfe.contains(document.activeElement);
+        wbHilfe.open = false;
+        var zeile = wbHilfe.querySelector('summary');
+        if (drin && zeile) zeile.focus();
+      });
+    }
   }
   // Werkbank: ein tiefer Link (Suche „Herstellen“, Item-Kopf) bringt die
   // Werkbank ins Bild, Leiste direkt unter die Kopfleiste. Das Fenster der
-  // bisherigen Seite lag ueber allem; die Mitte steht im Fluss und laege
-  // sonst unter Kopfbild und Hilfe. Nur, solange noch niemand gerollt hat.
+  // bisherigen Seite lag ueber allem; die Mitte steht im Fluss und lag unter
+  // Kopfbild und Hilfe. Seit die Werkbank die Seite fuellt (kein Kopfband),
+  // steht die Mitte schon oben im Bild, dann bleibt die Seite, wo sie ist.
+  // Nur, solange noch niemand gerollt hat.
   function wbInsBild() {
     if (!wbMitte() || window.scrollY > 40) return;
+    var box = $('#cdb-modal .cdb-modal__box');
+    if (box && box.getBoundingClientRect().top < window.innerHeight * 0.5) return;
     var bar = $('.cdb-bar');
     if (!bar) return;
     var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;

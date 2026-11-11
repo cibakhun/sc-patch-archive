@@ -677,6 +677,8 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div class="cdb-tabs">
     <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
     <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
+    {/* Werkbank: Prototyp-Zeile in der Reiterzeile (crafting.astro). */}
+    <slot name="kopf" />
   </div>
 
   <div id="cdb-tab-db-content">

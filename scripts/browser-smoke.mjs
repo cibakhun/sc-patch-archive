@@ -1014,7 +1014,11 @@ async function kreuzVerdeckt(page) {
    darunter ins Bild, ohne dass beim Weiterrollen etwas ueberdeckt wird.
    Am Telefon ist die Mitte zu, ein Antippen oeffnet das Fenster der
    bisherigen Seite, ✕ fuehrt zurueck, und der Planer sitzt als Leiste
-   unten. Gemessen an Lage und Inhalt, nicht am Markup. */
+   unten. Seit der dritten Runde (Krisz 11.11.2026: „das tool die ganze
+   seite füllt, überschrift und sowas brauchen wir eig gar nicht“) steht
+   kein Kopfband mehr darueber, die Werkbank nimmt die Breite, die Spalten
+   reichen bis an den unteren Rand, und die Hilfe ist eine Tafel, die
+   nichts schiebt. Gemessen an Lage und Inhalt, nicht am Markup. */
 async function probeWerkbank(page) {
   const kasten = (p, sel) => p.locator(sel).first().boundingBox();
   const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
@@ -1032,6 +1036,44 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
   if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
   if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Die Werkbank fuellt die Seite: kein Kopfband (die Ueberschrift bleibt
+  // fuer Vorleser im Dokument), die Reiterzeile direkt unter der Kopfleiste,
+  // die Werkbank ueber die Breite, und Liste, Mitte und Planer enden am
+  // unteren Rand des Fensters (hohes Fenster, nichts gerollt).
+  const fuellt = await page.evaluate(() => {
+    const r = (sel) => { const e = document.querySelector(sel); return e ? e.getBoundingClientRect() : null; };
+    const kopf = r('main .hero'), h1 = document.querySelector('main h1'), tabs = r('.cdb-tabs'), cdb = r('#cdb');
+    const spalten = { Liste: r('#cdb-grid'), Mitte: r('#cdb-modal .cdb-modal__box'), Planer: r('#cdb-planner') };
+    return {
+      rollt: Math.round(window.scrollY), hoehe: innerHeight, breite: document.documentElement.clientWidth,
+      nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68,
+      kopf: kopf ? Math.round(kopf.width * kopf.height) : 0,
+      foto: !!document.querySelector('main .hero__photo[style*="background-image"]'),
+      h1: h1 ? h1.textContent.trim() : '',
+      tabsOben: tabs ? Math.round(tabs.top) : -1,
+      rand: cdb ? [Math.round(cdb.left), Math.round(document.documentElement.clientWidth - cdb.right)] : [-1, -1],
+      unten: Object.entries(spalten).map(([n, k]) => [n, k ? Math.round(k.bottom) : -1]),
+    };
+  });
+  if (fuellt.kopf > 4 || fuellt.foto) return `Werkbank 1280 px: das Kopfband steht noch ueber dem Werkzeug (Flaeche ${fuellt.kopf} px², Foto ${fuellt.foto})`;
+  if (!/Crafting/.test(fuellt.h1)) return `Werkbank 1280 px: die Ueberschrift fehlt im Dokument (h1 „${fuellt.h1}“), Vorleser haetten keinen Seitentitel`;
+  if (fuellt.rollt === 0 && fuellt.tabsOben > fuellt.nav + 24) return `Werkbank 1280 px: zwischen Kopfleiste (${fuellt.nav} px) und Werkzeug (Reiter bei ${fuellt.tabsOben} px) liegt noch etwas`;
+  if (fuellt.rand[0] > 40 || fuellt.rand[1] > 40) return `Werkbank 1280 px: die Werkbank nutzt die Breite nicht (Rand links ${fuellt.rand[0]} px, rechts ${fuellt.rand[1]} px)`;
+  const kurz = fuellt.unten.filter(([, u]) => u < fuellt.hoehe - 40 || u > fuellt.hoehe + 1);
+  if (fuellt.rollt === 0 && kurz.length)
+    return `Werkbank 1280 px: die Spalten enden nicht am unteren Rand (${fuellt.hoehe} px): ${kurz.map(([n, u]) => `${n} bei ${u}`).join(', ')}`;
+  // Die Hilfe ist eine Tafel ueber den Spalten: sie schiebt nichts, und ein
+  // Klick daneben schliesst sie. Beim ersten Besuch steht sie schon offen
+  // (tool-help.js), sonst oeffnet die Probe sie selbst.
+  const hilfe = '#cdb-tab-db-content > .tool-help';
+  const mitteOben = async () => Math.round((await kasten(page, '#cdb-modal .cdb-modal__box')).y);
+  if (!(await page.$eval(hilfe, (d) => d.open))) await page.locator(`${hilfe} > summary`).click();
+  const tafel = await page.$eval(hilfe, (d) => ({ offen: d.open, hoehe: Math.round(d.querySelector('.tool-help__body').getBoundingClientRect().height) }));
+  if (!tafel.offen || tafel.hoehe < 60) return `Werkbank 1280 px: die Hilfe geht nicht auf (offen ${tafel.offen}, ${tafel.hoehe} px hoch)`;
+  const mitHilfe = await mitteOben();
+  await page.locator('.cdb-count-row').click();
+  if (await page.$eval(hilfe, (d) => d.open)) return 'Werkbank 1280 px: ein Klick neben die Hilfe schliesst sie nicht';
+  if ((await mitteOben()) !== mitHilfe) return `Werkbank 1280 px: die offene Hilfe schiebt die Spalten (Mitte offen bei ${mitHilfe}, zu bei ${await mitteOben()} px)`;
   // Bedienleiste wie auf der bisherigen Seite: eine Zeile ueber allen
   // Spalten, mit Raster/Liste-Umschalter; die Liste zeigt Kacheln.
   const leiste = await kasten(page, '.cdb-bar');
