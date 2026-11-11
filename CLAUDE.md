@@ -70,6 +70,18 @@ entscheidet `npm run check:live` von hier aus.
 `main` bleibt tabu ohne ausdrückliche Ansage. Fertige, geprüfte Arbeit geht
 ohne Nachfrage auf `staging` — das ist der Normalabschluss.
 
+**KI-Reviews vor jedem Merge:** Zwei Prüfer kommentieren jede PR, cubic
+(`cubic-dev-ai`) und CodeRabbit (`coderabbitai`). Vor dem Merge jeden ihrer
+Kommentare lesen und abarbeiten: beheben oder begründet ablehnen, auf den
+Kommentar antworten, den Thread schließen. Beide prüfen nach jedem Push neu;
+gemergt wird erst, wenn beide auf dem letzten Stand fertig sind. Kommt ein
+Review erst nach dem Merge, wird es genauso abgearbeitet, echte Fehler per
+Folge-PR. Ein Befund ist eine Behauptung, kein Befehl: erst nachmessen. Die
+Einstellungen: `cubic.yaml` wirkt nur von `main` aus, `.coderabbit.yaml` aus
+dem Zweig der PR (deshalb liegt sie auf `staging`). Ist ein Kontingent
+aufgebraucht, wird ohne diesen Prüfer nur mit Krisz' Ja für die jeweilige PR
+gemergt, und das Review wird nachgeholt.
+
 ## Prüfungen bauen
 
 Wer ein neues Prüfskript anlegt, trägt es in

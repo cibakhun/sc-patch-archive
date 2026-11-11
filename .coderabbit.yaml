@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# KI-Review durch CodeRabbit (https://docs.coderabbit.ai), zweiter Prüfer
+# neben cubic (cubic.yaml liegt nur auf main). Krisz 11.11.2026: „mach mal
+# beides“ (Review auf staging-PRs einschalten und in die Merge-Regel nehmen).
+#
+# CodeRabbit liest diese Datei aus dem Zweig der PR (Feature-Zweig), nicht
+# von main. Sie muss also auf staging liegen, damit jeder neue Zweig sie
+# mitbringt. Ohne sie prüft CodeRabbit nur PRs auf den Standard-Zweig main
+# und übersprang alle staging-PRs („Auto reviews are disabled on base/target
+# branches other than the default branch“, gesehen an #339).
+#
+# Vor jedem Merge werden alle Review-Kommentare abgearbeitet, auch die von
+# CodeRabbit (CLAUDE.md, Abschnitt Liefern).
+language: de-DE
+
+reviews:
+  profile: chill
+  auto_review:
+    enabled: true
+    drafts: false
+    # Jede PR geht nach staging; main ist ohnehin dabei (Standard-Zweig).
+    base_branches:
+      - "staging"
+    # Nach jedem Push neu prüfen, damit auch der letzte Stand vor dem Merge
+    # gesehen wird.
+    auto_incremental_review: true
+  # Wie cubic.yaml: Von Skripten geschriebene Daten nicht prüfen; geprüft
+  # wird das Skript, nicht seine Ausgabe. Dazu fremder Code und die
+  # Lock-Datei. NICHT hier: von Hand gepflegte Daten (vehicle-external.json,
+  # loot-items.json, dismantling-items.json, die Lack-Baupläne unter
+  # public/hangar/paints/, in denen cubic echte Fehler fand: #215, #216).
+  path_filters:
+    - "!src/data/ship-paints.json"
+    - "!src/data/hangar-assets.json"
+    - "!src/data/hangar-cards.json"
+    - "!src/data/missions.json"
+    - "!src/data/item-prices.json"
+    - "!src/data/vehicles.json"
+    - "!src/data/ship-hardpoints.json"
+    - "!src/data/ship-extras.json"
+    - "!src/data/ship-loadouts.json"
+    - "!src/data/ships.json"
+    - "!src/data/vehicle-prices.json"
+    - "!src/data/commodity-prices.json"
+    - "!src/data/ship-components.json"
+    - "!src/data/vehicle-roles.json"
+    - "!src/data/ship-missile-racks.json"
+    - "!src/data/manufacturer-logos.json"
+    - "!src/data/hangar-crew.json"
+    - "!src/data/holo-meshes.json"
+    - "!src/data/loot-fundorte.json"       # datamine-loot
+    - "!assets/universal-items.json"       # build-universal-db
+    - "!assets/crafting-db.json"           # datamine-crafting
+    - "!assets/mining-model.json"          # build-mining-model
+    - "!public/vendor/**"
+    - "!package-lock.json"
