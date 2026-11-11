@@ -19,20 +19,29 @@
 import { inflateRawSync } from 'node:zlib';
 
 // Minimaler ZIP-Leser fuer socpaks. Er prueft die Struktur, statt still eine
-// leere oder gekuerzte Liste zu liefern: ein Scan (datamine:loot) zaehlt jeden
-// Wurf als Lesefehler, und eine still leere Liste saehe aus wie ein gelesenes
-// Archiv ohne Treffer (Befunde von CodeRabbit an #347). Gueltige ZIPs ohne
-// Eintraege bleiben eine leere Liste. Kein ZIP64.
+// leere, gekuerzte oder vertauschte Liste zu liefern: ein Scan (datamine:loot)
+// zaehlt jeden Wurf als Lesefehler, und eine still leere Liste saehe aus wie
+// ein gelesenes Archiv ohne Treffer (Befunde von CodeRabbit an #347). Gueltige
+// ZIPs ohne Eintraege bleiben eine leere Liste. Kein ZIP64: ein Zip64-Locator
+// vor dem Endrecord wird nur uebersprungen, die 32-Bit-Felder muessen stimmen.
 export function readZip(buf) {
   const files = new Map();
   const kaputt = (was) => { throw new Error(`readZip: ${was} (${buf.length} Bytes)`); };
-  let eocd = buf.length - 22;
-  while (eocd > 0 && buf.readUInt32LE(eocd) !== 0x06054b50) eocd--;
-  if (eocd < 0 || buf.readUInt32LE(eocd) !== 0x06054b50) kaputt('keine ZIP-Endsignatur');
-  const n = buf.readUInt16LE(eocd + 10);
-  const cdGroesse = buf.readUInt32LE(eocd + 12), cdAb = buf.readUInt32LE(eocd + 16);
-  const cdEnde = cdAb + cdGroesse;
-  if (cdEnde > eocd) kaputt(`Zentralverzeichnis ${cdAb}+${cdGroesse} reicht ueber den Endrecord bei ${eocd}`);
+  // Endrecord von hinten suchen. Die Signatur kann auch im Kommentar stehen,
+  // deshalb gilt ein Kandidat erst, wenn sein Kommentar ins Archiv passt und
+  // das Zentralverzeichnis direkt vor ihm endet; sonst weitersuchen.
+  let eocd = -1, n = 0, cdAb = 0, cdEnde = 0, grund = null;
+  for (let k = buf.length - 22; k >= Math.max(0, buf.length - 22 - 0xffff); k--) {
+    if (buf.readUInt32LE(k) !== 0x06054b50) continue;
+    const kl = buf.readUInt16LE(k + 20);
+    if (k + 22 + kl > buf.length) { grund ??= `Endrecord bei ${k}: Kommentar (${kl} Bytes) reicht ueber das Dateiende`; continue; }
+    const ab = buf.readUInt32LE(k + 16), ende = ab + buf.readUInt32LE(k + 12);
+    const z64 = k >= 20 && buf.readUInt32LE(k - 20) === 0x07064b50;
+    if (ende !== k && !(z64 && ende <= k - 20)) { grund ??= `Endrecord bei ${k}: Zentralverzeichnis ${ab}+${ende - ab} endet nicht davor`; continue; }
+    eocd = k; n = buf.readUInt16LE(k + 10); cdAb = ab; cdEnde = ende;
+    break;
+  }
+  if (eocd < 0) kaputt(grund ?? 'keine ZIP-Endsignatur');
   let p = cdAb;
   for (let i = 0; i < n; i++) {
     if (p + 46 > cdEnde || buf.readUInt32LE(p) !== 0x02014b50) kaputt(`Eintrag ${i + 1} von ${n} fehlt im Zentralverzeichnis`);
@@ -42,10 +51,20 @@ export function readZip(buf) {
     if (naechster > cdEnde) kaputt(`Eintrag ${i + 1} von ${n} reicht ueber das Zentralverzeichnis`);
     const local = buf.readUInt32LE(p + 42), name = buf.toString('utf8', p + 46, p + 46 + nl);
     if (local + 30 > cdAb || buf.readUInt32LE(local) !== 0x04034b50) kaputt(`${name}: kein lokaler Kopf bei ${local}`);
-    const data = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+    const lnl = buf.readUInt16LE(local + 26), data = local + 30 + lnl + buf.readUInt16LE(local + 28);
+    // Die Signatur allein belegt nicht, dass der Kopf zu diesem Eintrag gehoert.
+    if (local + 30 + lnl > cdAb || !buf.subarray(local + 30, local + 30 + lnl).equals(buf.subarray(p + 46, p + 46 + nl))) {
+      kaputt(`${name}: lokaler Kopf bei ${local} gehoert zu „${buf.toString('utf8', local + 30, Math.min(local + 30 + lnl, cdAb))}“`);
+    }
     if (data + csize > cdAb) kaputt(`${name}: abgeschnitten (${data}+${csize}, Daten enden bei ${cdAb})`);
     const raw = buf.subarray(data, data + csize);
-    files.set(name, () => (method === 8 ? inflateRawSync(raw) : raw));
+    // Unbekannte Methode erst beim Lesen werfen: ein socpak mit einem solchen
+    // Eintrag bleibt fuer seine uebrigen Dateien lesbar.
+    files.set(name, () => {
+      if (method === 8) return inflateRawSync(raw);
+      if (method === 0) return raw;
+      throw new Error(`readZip: ${name}: Kompressionsmethode ${method} nicht unterstuetzt`);
+    });
     p = naechster;
   }
   // Auch ein Endrecord mit zu kleiner Zahl (z. B. 0 bei vollem Verzeichnis)
