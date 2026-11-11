@@ -973,6 +973,20 @@ async function probeWerkbank(page) {
   if (!leiste || leiste.x > liste.x + 1 || leiste.x + leiste.width < planer.x + planer.width - 1 || leiste.y + leiste.height > mitte.y + 1)
     return `Werkbank 1280 px: die Bedienleiste steht nicht ueber allen Spalten (${leiste ? `x=${Math.round(leiste.x)}, b=${Math.round(leiste.width)}, unten ${Math.round(leiste.y + leiste.height)}, Mitte oben ${Math.round(mitte.y)}` : 'fehlt'})`;
   if (!(await zuSehen(page, '.cdb-viewtog'))) return 'Werkbank 1280 px: der Raster/Liste-Umschalter fehlt';
+  // Der Umschalter muss auch schalten (Hinweis von CodeRabbit an #339):
+  // Liste, dann Raster, danach der Stand von vorher (er wird gespeichert).
+  const ansicht = () => page.evaluate(() => ({
+    liste: !!document.querySelector('#cdb-grid')?.classList.contains('is-list'),
+    gedrueckt: [...document.querySelectorAll('.cdb-view')].filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.dataset.view).join(','),
+  }));
+  const vorher = await ansicht();
+  for (const v of ['list', 'grid']) {
+    await page.locator(`.cdb-view[data-view="${v}"]`).click();
+    const a = await ansicht();
+    if (a.liste !== (v === 'list') || a.gedrueckt !== v)
+      return `Werkbank 1280 px: der Raster/Liste-Umschalter schaltet nicht auf ${v === 'list' ? 'Liste' : 'Raster'} (is-list ${a.liste}, gedrueckt „${a.gedrueckt}“)`;
+  }
+  if (vorher.liste) await page.locator('.cdb-view[data-view="list"]').click();
   if (!(await zuSehen(page, '#cdb-grid .cbp >> nth=0 >> .cbp__res'))) return 'Werkbank 1280 px: die Kacheln zeigen keine Ressourcen (kompakte Zeilen statt Kacheln?)';
   // Filter: Schublade von links. Geschlossen weder fokussierbar noch
   // vorlesbar (inert), offen bedienbar, Esc schliesst.
