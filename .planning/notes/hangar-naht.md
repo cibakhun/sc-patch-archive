@@ -296,7 +296,8 @@ ein verkehrtes Vorzeichen die Tafeln um 0,12 rad von der Bildmitte weg. Was
 sich der Kamera zuwendet, zieht die Projektion neben der Blickachse in die
 Breite; `panelSpread` nimmt das heraus, damit die Tafel im Bild so breit
 bleibt wie gezeichnet. `panelYaw` und `panelSpread` rechnen ohne Szene,
-`verify:hangar` [21] rechnet beide am ausgelieferten Modul nach.
+`verify:hangar` [21] rechnet beide am ausgelieferten Modul nach und hält
+die abgenommene Stärke fest (`KANTE_ANGESEHEN`, Sichturteil WINDOWS #156).
 Findet sich dort kein Boden vor der Kamera
 (großes Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne
 Projektor 3 m vor der Kamera und folgen ihr. Im Bild liegen die Tafeln

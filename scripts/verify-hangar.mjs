@@ -175,8 +175,9 @@
         Bild um hoechstens FACE_RISE hoeher und um genau so viel, solange
         die Tafel der Kamera nicht ganz zugewandt ist; geradeaus dreht sie
         sich gar nicht, und die Breite im Bild stimmt mit einer eigenen
-        Projektion ueberein. Klinken: Stationen, Proben, Woerter,
-        Stellungen.
+        Projektion ueberein. FACE_RISE selbst steht auf der angesehenen
+        und abgenommenen Staerke (KANTE_ANGESEHEN). Klinken: Stationen,
+        Proben, Woerter, Stellungen.
     22  Datenblatt des Bauteils (seit 11.11.2026, Krisz: „man koennte die
         itemdatenblatt seite direkt in das hangar reinbauen fuer komponente
         und waffen“). Steht ein Slot offen, zeigt die rechte Tafel sein
@@ -282,6 +283,8 @@
         im Bild breiter als gezeichnet (1,0865)                     -> [21]
     ss  dort die Grenze aus panelYaw nehmen (immer ganz zur
         Kamera): 14,6 % am Jaeger, 30,4 % am grossen Schiff         -> [21]
+    tt  dort FACE_RISE auf 0.08 setzen: die Stellungen bestuenden,
+        die abgenommene Staerke gaelte nicht mehr                   -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -291,7 +294,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -702,7 +705,7 @@ const CHIPS_MIN = 25;
 const LEVELS = ['niedrig', 'mittel', 'hoch'];
 {
   let mod = null;
-  try { mod = await import(new URL(`file://${viewerFile}`).href); } catch (e) { fail(`[12] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
+  try { mod = await import(pathToFileURL(viewerFile).href); } catch (e) { fail(`[12] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
   let checked = 0;
   const wrong = [];
   if (mod) {
@@ -1225,7 +1228,7 @@ const WAHL = { karten: 231, proben: 12 };
   const ent = (v) => v.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n))).replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
   let mod = null;
-  try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[19] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  try { mod = await import(pathToFileURL(ctrlFile).href); } catch (e) { fail(`[19] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
   for (const fn of ['fold', 'parseQuery', 'findShip', 'dockSearch', 'figuresOf']) if (mod && typeof mod[fn] !== 'function') { fail(`[19] der Controller exportiert ${fn} nicht mehr`); mod = null; }
   // Proben je Sprache: Suchtext und was jeder Treffer erfuellen muss. Wer
   // die Suche bewusst aendert, aendert sie hier mit.
@@ -1405,9 +1408,15 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
 // der flachen Werkstatt (sheet.open, sheet.back).
 const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36 };
+// Keine Klinke, ein Sichturteil (WINDOWS #156): wie stark sich die Tafeln zur
+// Kamera drehen, ist am 11.11.2026 gerendert verglichen und so abgenommen.
+// Die Stellungen unten rechnen gegen den Wert des Moduls; ohne diese Zahl
+// bestuenden sie auch mit 0.3. Wer FACE_RISE aendert, rendert neu, sieht hin
+// und zieht sie im selben Commit nach.
+const KANTE_ANGESEHEN = 0.065;
 {
   let mod = null;
-  try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  try { mod = await import(pathToFileURL(ctrlFile).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
   for (const fn of ['parseState', 'serializeState', 'shipClass', 'rankIn']) if (mod && typeof mod[fn] !== 'function') { fail(`[21] der Controller exportiert ${fn} nicht mehr`); mod = null; }
   const list = Array.isArray(mod?.STATIONS) ? mod.STATIONS : [];
   const vor = mod?.STATION_DEFAULT;
@@ -1440,10 +1449,11 @@ const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36 };
   let schaut = '—', stellungen = 0;
   if (holoSrc) {
     let hm = null;
-    try { hm = await import(new URL(`file://${holoFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-holo3d.js laedt nicht als Modul (${e.message})`); }
+    try { hm = await import(pathToFileURL(holoFile).href); } catch (e) { fail(`[21] dist/assets/hangar-holo3d.js laedt nicht als Modul (${e.message})`); }
     if (hm && (typeof hm.panelYaw !== 'function' || typeof hm.panelSpread !== 'function' || !(hm.FACE_RISE > 0))) {
       fail('[21] dist/assets/hangar-holo3d.js exportiert panelYaw, panelSpread oder FACE_RISE nicht mehr: wohin die Tafeln schauen, prueft dann nichts');
     } else if (hm) {
+      if (Math.abs(hm.FACE_RISE - KANTE_ANGESEHEN) > 1e-9) fail(`[21] dist/assets/hangar-holo3d.js: FACE_RISE ist ${hm.FACE_RISE}, angesehen und abgenommen sind ${KANTE_ANGESEHEN} (WINDOWS #156): erst rendern und hinsehen, dann die Zahl im Tor nachziehen`);
       const NEIG = 0.22, WEIT = 14, EPS = 1e-4, c = { x: 3, y: 5, z: -7 };
       // Linsen: halbe Tafelbreite im Bild je Bildweite (reach) und wie weit die
       // Tafel neben der Blickachse steht. Startansicht eines Jaegers, weiter
@@ -1589,7 +1599,7 @@ const BLATT = { kauf: 250, rezept: 300, seite: 450, proben: 9 };
   // besser, Lage auf dem Streifen
   let proben = 0;
   let lib = null;
-  try { lib = await import(new URL(`file://${wsFile}`).href); } catch (e) { fail(`[22] dist/assets/hangar-layouts.js laedt nicht als Modul (${e.message})`); }
+  try { lib = await import(pathToFileURL(wsFile).href); } catch (e) { fail(`[22] dist/assets/hangar-layouts.js laedt nicht als Modul (${e.message})`); }
   if (lib && (typeof lib.classRank !== 'function' || typeof lib.classStrip !== 'function' || !(lib.LOWER instanceof Set))) { fail('[22] dist/assets/hangar-layouts.js exportiert classRank, classStrip oder LOWER nicht mehr: Datenblatt und Advanced Loadout rechnen ohne sie nicht'); lib = null; }
   if (lib) {
     const gleich = (was, ist2, soll) => { proben++; if (JSON.stringify(ist2) !== JSON.stringify(soll)) fail(`[22] Rang-Rechnung: ${was} ergibt ${JSON.stringify(ist2)}, erwartet ${JSON.stringify(soll)}`); };
