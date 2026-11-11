@@ -39,6 +39,9 @@ const unsourcedPct = Math.round((unsourced / total) * 100);
 // Shop-Zeilen aus dem eigenen Schnappschuss (src) zeigt der Finder wie alle
 // anderen Preise; der Datenstand nennt sie dann eigens.
 const mitSchnappschuss = db.items.some((i) => i.obtain.some((o) => o.src === 'schnappschuss'));
+// Bestaetigte Fundorte (Loot-Belegungen des Spiels) nennt der Datenstand mit
+// dem Spielstand ihres Datenlaufs, sobald der Katalog sie fuehrt.
+const mitFundortSpiel = db.items.some((i) => i.fund != null);
 ---
 <style is:inline>
 /* Item finder theme — violet & amber (quartermaster catalog) */
@@ -188,7 +191,7 @@ const mitSchnappschuss = db.items.some((i) => i.obtain.some((o) => o.src === 'sc
     {/* Der Finder zeigt alle Wertegruppen der Item-Seiten: Spielwerte,
         Kaufpreise (UEX, dazu der eigene Shop-Schnappschuss, wo der Katalog
         solche Zeilen fuehrt) und Loot-Fundorte (eigene Recherche). */}
-    <Datenstand lang={lang} innen zeilen={standItems(lang, { preise: true, schnappschuss: mitSchnappschuss, fundorte: true })} />
+    <Datenstand lang={lang} innen zeilen={standItems(lang, { preise: true, schnappschuss: mitSchnappschuss, fundorte: true, fundorteSpiel: mitFundortSpiel })} />
   </aside>
 </main>
 

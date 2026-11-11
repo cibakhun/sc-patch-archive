@@ -9,9 +9,9 @@
 // AUSSCHLIESSLICH committete JSON-Dateien und haelt ihre Kennungen gegeneinander —
 // und wirkt damit genau dort, wo ueber das Auslieferungsbild entschieden wird.
 //
-// Geprueft werden neun maschinell erzeugte Datenstaende (Missionen, Mining,
+// Geprueft werden zehn maschinell erzeugte Datenstaende (Missionen, Mining,
 // Crafting, Item-Katalog, Refinery, Zerlegung, Wikelo, Aaron-Halo,
-// Stanton-Anker) und derzeit kein
+// Stanton-Anker, Loot-Fundorte) und derzeit kein
 // handgepflegter — Wikelo ist die 20-03-PLAN.md (D-04) aus der Handpflege
 // in die maschinellen Staende gewandert, weil seine Kennung jetzt aus dem
 // Datenlauf (scripts/build-wikelo-trades.mjs) statt aus einer menschlichen
@@ -88,6 +88,10 @@ const STANDS = [
   // sie hier wie jeder andere Datenstand.
   { id: 'Aaron-Halo', file: 'assets/aaron-halo-gamefiles.json', get: (j) => j?.gameVersion },
   { id: 'Stanton-Anker', file: 'assets/stanton-anchors-gamefiles.json', get: (j) => j?.gameVersion },
+  // Bestaetigte Fundorte (10.11.2026, datamine:loot): die Kennung sitzt im
+  // Kopf der kompakten Lauf-Datei; verify:loot-fundorte haelt den Katalog
+  // gegen dieselbe Datei.
+  { id: 'Loot-Fundorte', file: 'src/data/loot-fundorte.json', get: (j) => j?.meta?.patch },
 ];
 
 // Derzeit KEIN handgepflegter Datenstand. Wikelo war bis Phase 20 (D-04) der
@@ -114,7 +118,10 @@ const HANDPFLEGE = [];
 // 05.11.2026, Nachvermessung Praezisionssprung gegen sc-alpha-4.10.2 (Client
 // CL 12913470): Aaron-Halo und Stanton-Anker neu aufgenommen, Klinke auf ihrem
 // ersten gekennzeichneten Stand.
+// 10.11.2026, erster Lauf datamine:loot gegen sc-alpha-4.10.2 (Client CL
+// 12913470): Loot-Fundorte neu aufgenommen, Klinke auf diesem Stand.
 const KLINKEN = {
+  'Loot-Fundorte': 12913470,
   'Aaron-Halo': 12913470,
   'Stanton-Anker': 12913470,
   Missionen: 12881860,
@@ -162,11 +169,12 @@ const handReads = HANDPFLEGE.map((h) => ({ ...h, data: read(h.file) }));
 console.log('\n[1] Bestand und Selbstauskunft');
 const maschinellGelesen = standReads.filter((s) => s.data.ok).length;
 const handpflegeGelesen = handReads.filter((h) => h.data.ok).length;
-console.log(`    maschinelle Datenstaende gelesen — Soll: 9   Ist: ${maschinellGelesen}`);
+console.log(`    maschinelle Datenstaende gelesen — Soll: 10   Ist: ${maschinellGelesen}`);
 console.log(`    handgepflegte Datenstaende gelesen — Soll: 0   Ist: ${handpflegeGelesen}`);
 // 7 statt 6: Wikelo ist Phase 20 (D-04) aus HANDPFLEGE in STANDS gewandert.
 // 9 statt 7 (05.11.2026): Aaron-Halo und Stanton-Anker tragen jetzt eine Kennung.
-need(maschinellGelesen >= 9, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 9) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
+// 10 statt 9 (10.11.2026): Loot-Fundorte (datamine:loot) kam dazu.
+need(maschinellGelesen >= 10, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 10) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
 // 0 statt 1: es gibt derzeit keinen handgepflegten Datenstand mehr, weil der
 // einzige (Wikelo) jetzt maschinell erzeugt wird. Die Mechanik bleibt fuer
 // den naechsten handgepflegten Fall stehen (>= 0 ist immer wahr, aber die

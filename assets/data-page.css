@@ -1124,3 +1124,30 @@ a.dp-card:active { border-left-color: var(--tone-1); transform: translateY(0); }
   }
   .dp::before { display: none; }
 }
+
+/* ---------- Fundort-Status (Bezugsquellen) ----------
+   Unter dem Ort die Himmelskoerper, neben der Art der Status. „bestätigt“
+   traegt die Akzentfarbe, „unbestätigt“ bleibt gedaempft. */
+.dp-wo {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: var(--fs-5);
+  line-height: 1.45;
+  color: var(--muted);
+}
+.dp-fund {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.05rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-4);
+  letter-spacing: var(--ls-8);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--muted);
+  border: 1px solid var(--line-soft);
+}
+.dp-fund--ok {
+  color: var(--tone-1);
+  border-color: color-mix(in srgb, var(--tone-1) 45%, transparent);
+}

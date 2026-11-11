@@ -34,6 +34,17 @@ export interface Obtain {
    * Ohne Feld kommt eine Shop- oder Haendlerzeile von UEX.
    */
   src?: 'schnappschuss';
+  /**
+   * Nur bei Loot-Zeilen mit bestaetigtem Fundort: Schluessel der Ortsart
+   * (db.fundorte.arten, scripts/lib/loot-orte.mjs). Solche Zeilen stehen NICHT
+   * in der Datei, sondern entstehen beim Laden aus `item.fund` (lootZeilen).
+   * Loot-Zeilen ohne `ort` stammen aus der eigenen Recherche: unbestaetigt.
+   */
+  ort?: string;
+  /** zu `ort`: deutscher Name der Ortsart (`loc` traegt den englischen) */
+  locDe?: string;
+  /** zu `ort`: System -> Himmelskoerper; '*' = im All, an keinem Koerper */
+  wo?: Record<string, string[]>;
 }
 
 /** Schadens-/Widerstandswerte je Typ (nur gesetzte Kanaele stehen drin). */
@@ -165,6 +176,18 @@ export interface Item {
   /** eigene Fundort-Recherche (Prosa) */
   guide?: string;
   game?: ItemGame;
+  /** Index in db.fundorte.profile: bestaetigte Fundorte (scripts/apply-loot-fundorte.mjs) */
+  fund?: number;
+}
+
+/** Bestaetigte Fundorte (scripts/lib/loot-orte.mjs wendeFundorteAn). */
+export interface Fundorte {
+  /** Spielstand des Datenlaufs, z. B. "sc-alpha-4.10.2@12913470" */
+  patch: string;
+  arten: Record<string, { de: string; en: string }>;
+  systeme: Record<string, string>;
+  /** je Profil: [Ortsart, {System: [Koerper…]}] in Anzeige-Reihenfolge */
+  profile: Array<Array<[string, Record<string, string[]>]>>;
 }
 
 export interface ItemsDb {
@@ -180,11 +203,55 @@ export interface ItemsDb {
   sources?: unknown;
   counts: Record<string, number>;
   sets?: ArmorSet[];
+  fundorte?: Fundorte;
   items: Item[];
 }
 
 export const db = DB as unknown as ItemsDb;
 export const items = db.items;
+export const fundorte: Fundorte | null = db.fundorte ?? null;
+
+/* ---------- Bestaetigte Fundorte ---------- */
+
+/**
+ * Loot-Zeilen eines Fundort-Profils. `loc` traegt den englischen Namen der
+ * Ortsart (Suche, Sortierung, Dedupe); angezeigt wird ueber obtainLabel() in
+ * der Seitensprache. Zwilling: lootZeilen() in assets/item-finder-app.js.
+ */
+export function lootZeilen(fund: number | undefined): Obtain[] {
+  const p = fund == null ? null : fundorte?.profile[fund];
+  if (!p) return [];
+  return p.map(([ort, wo]) => {
+    const art = fundorte!.arten[ort];
+    if (!art) throw new Error(`items.ts: Ortsart "${ort}" fehlt in db.fundorte.arten — npm run apply:loot-fundorte`);
+    return { kind: 'loot' as const, loc: art.en, locDe: art.de, ort, wo };
+  });
+}
+
+/**
+ * Himmelskoerper einer bestaetigten Zeile als Text: „Stanton: Hurston,
+ * microTech · Pyro: Pyro I". '*' wird zu `imAll` (Seitensprache).
+ */
+export function woText(wo: Record<string, string[]> | undefined, imAll: string): string {
+  if (!wo) return '';
+  return Object.entries(wo)
+    .map(([sys, ks]) => `${fundorte?.systeme[sys] ?? sys}: ${ks.map((k) => (k === '*' ? imAll : k)).join(', ')}`)
+    .join(' · ');
+}
+
+// Einmal beim Laden: bestaetigte Zeilen hinter die Kaufzeilen und VOR die
+// uebrigen (Recherche, Exklusiv). So zeigen Karte, Kategorieliste und
+// Datenblatt als erste Fundzeile immer die belegte.
+// Idempotent: teilen sich zwei Bundle-Teile dasselbe JSON-Objekt, laeuft das
+// hier zweimal ueber dieselben Items.
+for (const i of items) {
+  if (i.fund == null || i.obtain.some((o) => o.ort)) continue;
+  const neu = lootZeilen(i.fund);
+  if (!neu.length) continue;
+  const preis = i.obtain.filter((o) => o.price != null);
+  const rest = i.obtain.filter((o) => o.price == null);
+  i.obtain = [...preis, ...neu, ...rest];
+}
 export const itemById = new Map(items.map((i) => [i.id, i]));
 
 /* ---------- Ruestungs-Sets ---------- */
@@ -398,12 +465,20 @@ export function avgPrice(i: Item): number | null {
   return n === 0 ? null : Math.round(sum / n);
 }
 
-/** Bezugsquellen fuer die Tabelle: guenstigste zuerst, Loot ans Ende. */
+/**
+ * Bezugsquellen fuer die Tabelle: guenstigste zuerst, dann bestaetigte
+ * Fundorte in der Reihenfolge der Ortsarten, dann der Rest alphabetisch.
+ */
 export function sortedObtain(i: Item): Obtain[] {
+  const reihe = new Map(i.obtain.map((o, n) => [o, n]));
   return [...i.obtain].sort((a, b) => {
     const pa = a.price ?? null;
     const pb = b.price ?? null;
-    if (pa == null && pb == null) return a.loc.localeCompare(b.loc, 'en');
+    if (pa == null && pb == null) {
+      if (a.ort && b.ort) return reihe.get(a)! - reihe.get(b)!;
+      if (a.ort || b.ort) return a.ort ? -1 : 1;
+      return a.loc.localeCompare(b.loc, 'en');
+    }
     if (pa == null) return 1;
     if (pb == null) return -1;
     return pa - pb || a.loc.localeCompare(b.loc, 'en');

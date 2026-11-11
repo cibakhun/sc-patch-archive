@@ -70,6 +70,7 @@ const T = {
     spielwerte: 'Spielwerte',
     kaufpreise: 'Kaufpreise',
     fundorte: 'Fundorte',
+    fundorteSpiel: 'Bestätigte Fundorte',
     rezepte: 'Rezepte und Drop-Chancen',
     missionen: 'Missionsdaten',
     schiffswerte: 'Werte und Bewaffnung',
@@ -100,6 +101,7 @@ const T = {
     spielwerte: 'Game values',
     kaufpreise: 'Purchase prices',
     fundorte: 'Loot locations',
+    fundorteSpiel: 'Confirmed loot locations',
     rezepte: 'Recipes and drop chances',
     missionen: 'Mission data',
     schiffswerte: 'Stats and loadout',
@@ -170,6 +172,8 @@ function hand(lang: Locale, quelle: string, was: string, f: string, bezug: strin
 /* ---------- Staende aus den Datendateien ---------- */
 
 const ITEM_F = fassung((ITEMS as { gameVersion?: string }).gameVersion, 'assets/universal-items.json gameVersion');
+// Erst bei Bedarf: ohne bestaetigte Fundorte im Katalog braucht keine Seite den Stand.
+const fundortF = () => fassung((ITEMS as { fundorte?: { patch?: string } }).fundorte?.patch, 'assets/universal-items.json fundorte.patch');
 const ITEM_PREISE = isoAus((ITEMS as { pricesAsOf?: string }).pricesAsOf, 'assets/universal-items.json pricesAsOf');
 const CRAFT_F = fassung((CRAFT as { version?: string }).version, 'assets/crafting-db.json version');
 const MISSION_F = fassung((MISSIONS as { meta?: { patch?: string } }).meta?.patch, 'src/data/missions.json meta.patch');
@@ -190,13 +194,16 @@ const UEX = { name: 'UEX Corp', link: 'https://uexcorp.space' };
 /**
  * Item-Datenblatt, Item-Listen, Rüstungs-Sets. `preise`: die Seite zeigt Kaufpreise von UEX;
  * `schnappschuss`: sie zeigt Kaufpreise aus dem eigenen Shop-Schnappschuss (Bezugszeilen mit
- * src "schnappschuss", nur fuer Items, die UEX nicht fuehrt); `fundorte`: sie zeigt Loot-Fundorte.
+ * src "schnappschuss", nur fuer Items, die UEX nicht fuehrt); `fundorte`: sie zeigt Loot-Fundorte
+ * aus der eigenen Recherche; `fundorteSpiel`: sie zeigt bestaetigte Fundorte (Zeilen mit `ort`,
+ * Spielstand aus assets/universal-items.json fundorte.patch, eigener Datenlauf datamine:loot).
  */
-export function standItems(lang: Locale, o: { preise: boolean; schnappschuss?: boolean; fundorte: boolean }): StandZeile[] {
+export function standItems(lang: Locale, o: { preise: boolean; schnappschuss?: boolean; fundorte: boolean; fundorteSpiel?: boolean }): StandZeile[] {
   const t = T[lang];
   const z = [spiel(lang, 'items', t.spielwerte, ITEM_F)];
   if (o.preise) z.push(fremd(lang, 'uex-items', t.kaufpreise, UEX.name, UEX.link, ITEM_PREISE));
   if (o.schnappschuss) z.push({ quelle: 'shop-schnappschuss', art: 'quelle', was: t.kaufpreise, text: t.shopSchnappschuss, aelter: false });
+  if (o.fundorteSpiel) z.push(spiel(lang, 'fundorte-spiel', t.fundorteSpiel, fundortF(), ITEM_F));
   if (o.fundorte) z.push({ quelle: 'fundorte', art: 'quelle', was: t.fundorte, text: t.recherche, aelter: false });
   return z;
 }
