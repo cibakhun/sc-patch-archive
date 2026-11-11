@@ -213,6 +213,34 @@ const ZAEHLER_HOST = /stats\.verse-base\.com/;
 const fehler = [];
 let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0;
 
+/* ---------- Was „sichtbar“ heisst ----------
+   EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
+   eigene, schwaechere schreibt (Anlass: drei Review-Runden an #345, jede fand
+   an der eigenen Fassung der Werkstatt-Probe eine Luecke weiter:
+   hidden-Attribut, visibility, Opazitaet). Sichtbar ist ein Element mit
+   Kasten, das der Browser selbst als sichtbar ausweist:
+   Element.checkVisibility mit visibility und Opazitaet, beides ueber alle
+   Vorfahren. checkVisibility gibt es erst ab Chrome 105 (die Optionsnamen ab
+   121, davor checkVisibilityCSS/checkOpacity); ohne es entscheidet der
+   berechnete Stil des Elements und seiner Vorfahren.
+   NICHT geprueft sind Lage, Beschnitt und Ueberdeckung (aus dem Bild
+   geschoben, clip-path, etwas liegt darueber). Das ist eine andere Frage und
+   bekommt, wo sie zaehlt, eine eigene Probe wie kreuzVerdeckt.
+   SICHTBAR laeuft im Browser und darf nichts von hier draussen benutzen. */
+const SICHTBAR = (el) => {
+  if (!el || el.getClientRects().length === 0) return false;
+  if (typeof el.checkVisibility === 'function') {
+    return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
+  }
+  if (getComputedStyle(el).visibility !== 'visible') return false;
+  for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).opacity === '0') return false;
+  return true;
+};
+/* fn laeuft im Browser und bekommt SICHTBAR als zweites Argument. Eine
+   Funktion laesst sich einer Seite nicht als Argument mitgeben, deshalb reist
+   ihr Quelltext im Ausdruck mit. */
+const mitSichtbar = (page, fn, arg = null) => page.evaluate(`(${fn})(${JSON.stringify(arg)}, ${SICHTBAR})`);
+
 /* ---------- Alte Hell-Wahl im Browser ----------
    Bis zum 02.11.2026 konnten Admins hell waehlen; die Wahl lag als
    vb.theme im localStorage und bleibt dort liegen, bis die Seite sie
@@ -724,14 +752,14 @@ async function probeWerkstatt(page) {
   });
   if (!wahl.gefunden) return `Werkstatt: keine der ${wahl.alle} Zeilen der Auswahl taugt fuer die Probe des Rueckwegs (gesucht: nicht eingebaut, mit einem Suchwort ab 3 Zeichen, das mindestens zwei und nicht alle Zeilen trifft und dessen erster Treffer eine andere Zeile ist)`;
   const IT = `${OFFEN} .hgl-info[data-info=${JSON.stringify(wahl.item)}]`;
-  // sichtbar nennt die Zeilen, die der Browser zeichnet (Kasten vorhanden,
-  // visibility sichtbar), nicht die ohne hidden-Attribut: eine Stilregel mit
-  // display kann [hidden] schlagen, dann stuende die ganze Liste da, obwohl
-  // jede verborgene Zeile ihr Attribut traegt. Verglichen werden die Teile,
-  // nicht ihre Zahl: zwei falsche Zeilen sind auch zwei.
-  const liste = () => page.evaluate((offen) => {
+  // sichtbar nennt die Zeilen, die zu sehen sind (SICHTBAR, oben: die eine
+  // Bestimmung dieses Skripts, dieselbe wie beim Crafting-Planer), nicht die
+  // ohne hidden-Attribut: eine Stilregel mit display kann [hidden] schlagen,
+  // dann stuende die ganze Liste da, obwohl jede verborgene Zeile ihr
+  // Attribut traegt. Verglichen werden die Teile, nicht ihre Zahl: zwei
+  // falsche Zeilen sind auch zwei.
+  const liste = () => mitSichtbar(page, (offen, da) => {
     const slot = document.querySelector(offen), a = document.activeElement;
-    const da = (e) => e.getClientRects().length > 0 && getComputedStyle(e).visibility === 'visible';
     return {
       zeilen: slot?.querySelectorAll('.hgl-opt').length ?? 0,
       sichtbar: slot ? [...slot.querySelectorAll('.hgl-opts > li')].filter(da).map((li) => li.querySelector('.hgl-opt')?.dataset.item ?? '') : [],
@@ -920,28 +948,15 @@ async function probeCraftingSync(page) {
         // Den Planer oeffnen: seine Anzeige soll so gemessen werden, wie man sie sieht.
         await p.locator('#cdb-planner-open').click({ timeout: 15000 });
         await p.waitForTimeout(400);
-        const anzeigen = await p.evaluate(() => [...document.querySelectorAll('.cdb-sync')].map((h) => {
-          // checkVisibility gibt es erst ab Chrome 105 (die Optionsnamen ab
-          // 121, davor checkVisibilityCSS/checkOpacity); ohne es entscheidet
-          // der berechnete Stil des Elements und seiner Vorfahren.
-          const zu = (el) => {
-            if (!el || el.getClientRects().length === 0) return false;
-            if (typeof el.checkVisibility === 'function') {
-              return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
-            }
-            if (getComputedStyle(el).visibility === 'hidden') return false;
-            for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).opacity === '0') return false;
-            return true;
-          };
-          return {
-            wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
-            state: h.dataset.state,
-            text: (h.querySelector('.cdb-sync__txt')?.textContent ?? '').trim(),
-            zu: zu(h),
-            login: zu(h.querySelector('.cdb-sync__login')),
-            retry: zu(h.querySelector('.cdb-sync__retry')),
-          };
-        }));
+        // zu ist SICHTBAR (oben), die eine Bestimmung dieses Skripts.
+        const anzeigen = await mitSichtbar(p, (_, zu) => [...document.querySelectorAll('.cdb-sync')].map((h) => ({
+          wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
+          state: h.dataset.state,
+          text: (h.querySelector('.cdb-sync__txt')?.textContent ?? '').trim(),
+          zu: zu(h),
+          login: zu(h.querySelector('.cdb-sync__login')),
+          retry: zu(h.querySelector('.cdb-sync__retry')),
+        })));
         if (anzeigen.length !== 2) { probleme.push(`${wo}: ${anzeigen.length} Konto-Anzeigen statt 2 (Kopfleiste und Planer)`); continue; }
         for (const a of anzeigen) {
           const hier = `${wo}, ${a.wo}`;
