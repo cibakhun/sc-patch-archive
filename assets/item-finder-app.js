@@ -14,6 +14,7 @@
   var CRAFTING_MAP = {};
   var SETS = {};   // setId -> Set-Datensatz (aus universal-items.json)
   var META = null;
+  var FUNDORTE = null; // bestaetigte Fundorte (db.fundorte, scripts/lib/loot-orte.mjs)
 
   var filteredItems = [];
   var currentPage = 1;
@@ -97,6 +98,40 @@
     if (!reason) return tr('notLootable', 'Nicht als Loot erhältlich');
     return tr('ex' + reason.replace(/[^A-Za-z]/g, ''), reason);
   }
+  // Anzeige einer Bezugszeile: Exklusiv-Zeilen tragen eine Bezugsart, bestaetigte
+  // Fundorte eine Ortsart in beiden Sprachen, alle anderen einen Eigennamen.
+  // Zwilling von obtainLabel() in src/i18n/itemText.ts.
+  function obtainText(o) {
+    if (o.kind === 'exclusive') return exclusiveLabel(o.reason);
+    if (o.ort) return CFG.lang === 'de' ? (o.locDe || o.loc) : o.loc;
+    return o.loc;
+  }
+  // Himmelskoerper einer bestaetigten Zeile („Stanton: Hurston, microTech").
+  // Zwilling von woText() in src/lib/items.ts.
+  function woText(wo) {
+    if (!wo) return '';
+    var sys = (FUNDORTE && FUNDORTE.systeme) || {};
+    return Object.keys(wo).map(function (k) {
+      return (sys[k] || k) + ': ' + wo[k].map(function (n) { return n === '*' ? tr('inSpace', 'im All') : n; }).join(', ');
+    }).join(' · ');
+  }
+  // Bestaetigte Fundorte als Loot-Zeilen, hinter die Kaufzeilen und vor die
+  // uebrigen. Zwilling von lootZeilen() + Ladeschleife in src/lib/items.ts —
+  // laufen die beiden auseinander, widerspricht das Modal der Detailseite.
+  function lootZeilen(item) {
+    var p = FUNDORTE && item.fund != null ? FUNDORTE.profile[item.fund] : null;
+    if (!p) return;
+    var neu = [];
+    for (var i = 0; i < p.length; i++) {
+      var art = FUNDORTE.arten[p[i][0]];
+      if (!art) continue;
+      neu.push({ kind: 'loot', loc: art.en, locDe: art.de, ort: p[i][0], wo: p[i][1] });
+    }
+    if (!neu.length) return;
+    var preis = item.obtain.filter(function (o) { return o.price != null; });
+    var rest = item.obtain.filter(function (o) { return o.price == null; });
+    item.obtain = preis.concat(neu, rest);
+  }
   function setOf(item) { return item.game && item.game.setId ? SETS[item.game.setId] || null : null; }
 
   // Schlüssel-Stat je Item (Badge auf der Karte + Wert-Sortierung). n = Zahl zum Sortieren.
@@ -167,6 +202,7 @@
       }
       for (var i = 0; i < item.obtain.length; i++) {
         if (item.obtain[i].loc.toLowerCase().indexOf(term) !== -1) return true;
+        if (item.obtain[i].locDe && item.obtain[i].locDe.toLowerCase().indexOf(term) !== -1) return true;
       }
       return false;
     });
@@ -481,7 +517,7 @@
         // eigenem span kuerzt nur der Name, das `+N` bleibt als nicht
         // schrumpfender Nachbar stehen.
         locHtml = '<span class="uif-loc-name">' +
-          esc(o0.kind === 'exclusive' ? exclusiveLabel(o0.reason) : o0.loc) + '</span>' +
+          esc(obtainText(o0)) + '</span>' +
           (extra > 0 ? '<span class="uif-loc-more">+' + extra + '</span>' : '');
       } else {
         locHtml = '<span class="uif-loc-none">' + esc(tr('noSourceData', 'Kein Fundort bekannt')) + '</span>';
@@ -540,7 +576,7 @@
           // Tooltip = derselbe Text wie sichtbar: eine Exklusiv-Zeile traegt in
           // `loc` den englischen Satz der Datenquelle (deutsche Karten zeigten
           // ihn bis 04.11.2026 im Tooltip; verify:clienttext).
-          '<div class="uif-card-location" title="' + esc(item.obtain.length ? (item.obtain[0].kind === 'exclusive' ? exclusiveLabel(item.obtain[0].reason) : item.obtain[0].loc) : '') + '">' + locHtml + '</div>' +
+          '<div class="uif-card-location" title="' + esc(item.obtain.length ? obtainText(item.obtain[0]) : '') + '">' + locHtml + '</div>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -933,10 +969,16 @@
       var rows = item.obtain.map(function (o) {
         // Exklusiv-Zeilen tragen keinen ORT, sondern eine Bezugsart — die wird
         // uebersetzt. Alle anderen `loc` sind Eigennamen und bleiben, wie sie sind.
-        var locText = o.kind === 'exclusive' ? exclusiveLabel(o.reason) : o.loc;
+        var locText = obtainText(o);
+        var status = '';
+        if (o.kind === 'loot') {
+          status = o.ort
+            ? '<span class="uif-fund uif-fund--ok" title="' + esc(tr('lootConfirmedTitle', '')) + '">' + esc(tr('lootConfirmed', 'bestätigt')) + '</span>'
+            : '<span class="uif-fund" title="' + esc(tr('lootUnconfirmedTitle', '')) + '">' + esc(tr('lootUnconfirmed', 'unbestätigt')) + '</span>';
+        }
         return '<tr class="uif-obtain-row">' +
-          '<td>' + esc(locText) + '</td>' +
-          '<td class="uif-td-kind">' + esc(kindLabel(o.kind)) + '</td>' +
+          '<td>' + esc(locText) + (o.wo ? '<span class="uif-wo">' + esc(woText(o.wo)) + '</span>' : '') + '</td>' +
+          '<td class="uif-td-kind">' + esc(kindLabel(o.kind)) + status + '</td>' +
           '<td class="uif-td-price">' + (o.price != null ? fmtNum(o.price) + ' aUEC' : '&mdash;') + '</td>' +
           '<td class="uif-td-avg">' + avgCell + '</td>' +
         '</tr>';
@@ -946,12 +988,15 @@
         '<div class="uif-table-wrapper"><table class="uif-locations-table">' +
         '<thead><tr><th>' + esc(tr('thLocation', 'Ort')) + '</th><th>' + esc(tr('thKind', 'Art')) + '</th><th>' + esc(tr('thPrice', 'Preis')) + '</th><th>' + esc(tr('thAvg', 'Ø Preis')) + '</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table></div>' +
-        '<p class="uif-volatile-note">' + esc(tr('volatileNote', 'Preise und Fundorte sind Patch-volatil — ingame prüfen.')) + '</p>' +
+        '<p class="uif-volatile-note">' + esc(tr('volatileNote', 'Preise und Fundorte sind Patch-volatil — ingame prüfen.')) +
+          (item.obtain.some(function (o) { return !!o.ort; }) ? ' · ' + esc(tr('lootStatusNote', '')) : '') + '</p>' +
       '</div>';
     } else {
       html += '<div class="uif-modal-section">' +
         '<h4>' + esc(tr('sectionObtain', 'Bezugsquellen')) + '</h4>' +
-        '<p class="uif-catalog-note">' + esc(tr('catalogNote', 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.')) + '</p>' +
+        '<p class="uif-catalog-note">' + esc(item.game && item.game.lootable === true
+          ? tr('lootUnknown', 'Fundort unbekannt.')
+          : tr('catalogNote', 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.')) + '</p>' +
       '</div>';
     }
 
@@ -1076,6 +1121,8 @@
       db = db || {};
       META = db.counts || null;
       ALL_ITEMS = db.items || [];
+      FUNDORTE = db.fundorte || null;
+      if (FUNDORTE) ALL_ITEMS.forEach(lootZeilen);
       SETS = {};
       (db.sets || []).forEach(function (s) { SETS[s.id] = s; });
 

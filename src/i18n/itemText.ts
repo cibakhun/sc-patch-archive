@@ -55,6 +55,13 @@ export const ITEM_UI = {
     sectionObtain: 'Bezugsquellen', thLocation: 'Ort', thKind: 'Art', thPrice: 'Preis',
     volatileNote: 'Preise und Fundorte sind Patch-volatil — ingame prüfen.',
     catalogNote: 'Katalog-Eintrag: Für dieses Item liegen keine verifizierten Shop- oder Loot-Daten vor.',
+    /* Fundort-Status (Discord-Vorschlag „Loot-only Items", 10.11.2026) */
+    lootConfirmed: 'bestätigt', lootUnconfirmed: 'unbestätigt',
+    lootConfirmedTitle: 'Bestätigt: An diesen Orten stehen Behälter oder Ablagen, aus denen das Item entstehen kann.',
+    lootUnconfirmedTitle: 'Unbestätigt: aus eigener Recherche, im Spiel noch nicht nachgewiesen.',
+    lootStatusNote: '„Bestätigt“ heißt: kann dort liegen, nicht: liegt oft dort.',
+    lootUnknown: 'Fundort unbekannt: Das Spiel schließt Loot für dieses Item nicht aus, eine Fundstelle ist aber nicht belegt.',
+    inSpace: 'im All',
     sectionGuide: 'Fundort-Guide', sectionCrafting: 'Crafting-Rezept',
     craftTime: 'Dauer', craftTiers: 'Stufen', craftMaterials: 'Materialien',
     openInCrafting: 'Im Crafting-Planer öffnen',
@@ -219,6 +226,13 @@ export const ITEM_UI = {
     sectionObtain: 'Where to get it', thLocation: 'Location', thKind: 'Kind', thPrice: 'Price',
     volatileNote: 'Prices and locations are patch-volatile — verify in game.',
     catalogNote: 'Catalog entry: no verified shop or loot data is available for this item.',
+    /* Loot status (Discord suggestion "Loot-only Items", 10.11.2026) */
+    lootConfirmed: 'confirmed', lootUnconfirmed: 'unconfirmed',
+    lootConfirmedTitle: 'Confirmed: these places have containers or spots that can spawn this item.',
+    lootUnconfirmedTitle: 'Unconfirmed: from our own research, not yet verified in the game.',
+    lootStatusNote: '“Confirmed” means it can spawn there, not that it spawns often.',
+    lootUnknown: 'Location unknown: the game does not rule out loot for this item, but no location is confirmed.',
+    inSpace: 'in space',
     sectionGuide: 'Loot guide', sectionCrafting: 'Crafting recipe',
     craftTime: 'Time', craftTiers: 'Tiers', craftMaterials: 'Materials',
     openInCrafting: 'Open in crafting planner',
@@ -375,7 +389,10 @@ export function itemLabel(lang: Locale, key: string, roh: string): string {
  * obtainable in-game" und die anderen englischen Bezugsarten.
  * Eine Bezugsart ohne Label bricht den Bau ab (Label in ITEM_UI ergaenzen).
  */
-export function obtainLabel(o: { kind: string; loc: string; reason?: string | null }, lang: Locale): string {
+export function obtainLabel(o: { kind: string; loc: string; reason?: string | null; ort?: string; locDe?: string }, lang: Locale): string {
+  // Bestaetigter Fundort: die Ortsart ist eine Gattung („Verteilzentren"),
+  // kein Eigenname — sie steht in beiden Sprachen an der Zeile (src/lib/items.ts).
+  if (o.ort) return assertLocale(lang, 'obtainLabel') === 'de' ? o.locDe ?? o.loc : o.loc;
   if (o.kind !== 'exclusive') return o.loc;
   const key = o.reason ? 'ex' + o.reason.replace(/[^A-Za-z]/g, '') : 'notLootable';
   const s = (ITEM_UI[assertLocale(lang, 'obtainLabel')] as Record<string, string>)[key];

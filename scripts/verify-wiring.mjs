@@ -65,7 +65,10 @@ const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
 // Stand 04.11.2026: 49 — die Klinke hing bei 41, obwohl schon 48 Pruefskripte
 // im Bestand lagen (zuletzt verify-patch-angaben, verify-fahrzeugwerte,
 // verify-sprache, verify-clienttext); dazu verify-typen.mjs.
-const MIN_SCRIPTS = 49;
+// Stand 10.11.2026: 53 — Zugang verify-loot-fundorte.mjs (bestaetigte Fundorte);
+// die Klinke stand bei 49, der Bestand (mit den vier Pruefern ausser der
+// Reihe) bei 52, sie steht jetzt auf dem Ist-Stand.
+const MIN_SCRIPTS = 53;
 
 const fail = [];
 const need = (cond, msg) => { if (!cond) fail.push(msg); };

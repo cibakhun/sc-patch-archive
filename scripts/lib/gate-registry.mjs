@@ -493,6 +493,32 @@ export const CHECKS = [
     // Register-Eintrag id 51 aufloesbar.
   },
   {
+    // Neuzugang 10.11.2026, neben verify:datastand (dieselbe Familie: eine
+    // Datendatei gegen ihre Verwendung). Anlass: Vorschlag aus #feedback
+    // „Loot-only Items – Find Locations" — Item-Seiten und Item Finder zeigen
+    // seit dieser Lieferung bestaetigte Fundorte (Ortsart + Himmelskoerper).
+    // Die Kette Datenlauf -> Ortsarten-Zuordnung -> Katalog kann an jedem
+    // Glied still reissen und sieht dann aus wie „kein Fundort".
+    // Kein git, kein Netz, kein Kindprozess: committete JSON und dist/.
+    id: 'verify:loot-fundorte',
+    npm: 'verify:loot-fundorte',
+    script: 'scripts/verify-loot-fundorte.mjs',
+    rail: 'A',
+    checks:
+      'jede Belegung aus src/data/loot-fundorte.json hat eine Ortsart mit Spielernamen oder steht benannt unter VERSTECKT, jede Zuordnung in scripts/lib/loot-orte.mjs kommt in den Daten noch vor (Zombie-Waechter), jeder Himmelskoerper hat einen Namen; assets/universal-items.json steht auf dem Stand der Rechnung (Kopf fundorte, fund je Item, Kennzahlen), kein Fundort an einem Item, das laut Spiel kein Loot ist, und dist/ traegt denselben Stand; Klinken fuer Belegungen, Spiel-Items, Katalog-Items mit Fundort und Ortsarten',
+    // VORGEFUEHRT ROT am 10./11.11.2026 am Stand dieser Lieferung, drei
+    // Gegenproben, je Datei zurueckgespielt und per sha256 geprueft:
+    // (1) vor dem Bau gegen das alte dist/: 1 FEHLER „dist/assets/universal-
+    //     items.json weicht ab" (dist/: 0 Items mit Profil, assets/: 3.068);
+    // (2) Belegung V3SlotPreset_Loot_Military in den Daten umbenannt (wie ein
+    //     Patch es taete): 3 FEHLER — neue Belegung ohne Ortsart, Zuordnung
+    //     bunker zeigt ins Leere, Ortsart bunker ohne Belegung;
+    // (3) im Katalog `fund` an Gamma LL entfernt und an einem Item mit
+    //     lootable false gesetzt: 2 FEHLER — 2 Items weichen von der Rechnung
+    //     ab, 1 Fundort an einem Item, das laut Spiel kein Loot ist.
+    // Gruen danach: 54 Belegungen, 3.068 Katalog-Items, 20 Ortsarten.
+  },
+  {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
     // Kette: verify:datastand haelt die Datendateien gegeneinander, dieses Tor
     // haelt die GEBAUTEN SEITEN gegen ihre Datendatei (Grundsatz 7). Anlass:

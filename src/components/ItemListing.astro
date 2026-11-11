@@ -53,8 +53,10 @@ const zeigtPreisQ = new Set([
 // data-stand-q haelt verify:patch-angaben [6] gegen die Zeilen des Bausteins.
 const standQ = (o: Bezug | undefined) =>
   !o ? undefined : o.src === 'schnappschuss' ? 'shop-schnappschuss'
-  : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items' : o.kind === 'loot' ? 'fundorte' : undefined;
-const lootZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot');
+  : o.kind === 'shop' || o.kind === 'vehicle' ? 'uex-items'
+  : o.kind === 'loot' ? (o.ort ? 'fundorte-spiel' : 'fundorte') : undefined;
+const lootZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot' && !i.obtain[0].ort);
+const lootBestaetigtZuerst = slice.some((i) => i.obtain[0]?.kind === 'loot' && !!i.obtain[0].ort);
 const bezugQ = new Set(slice.map((i) => standQ(i.obtain[0])));
 
 const crumbs = [
@@ -81,6 +83,7 @@ const sourceLabel = (obtain: Item['obtain']) =>
     preise: zeigtPreisQ.has('uex-items') || bezugQ.has('uex-items'),
     schnappschuss: zeigtPreisQ.has('shop-schnappschuss') || bezugQ.has('shop-schnappschuss'),
     fundorte: lootZuerst,
+    fundorteSpiel: lootBestaetigtZuerst,
   })}
 >
   <h1 slot="hero">{leafCategory(node.cat)}</h1>
