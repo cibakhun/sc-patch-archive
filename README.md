@@ -171,8 +171,9 @@ die sha256 aller Inline-Skripte nach `dist/_csp/`, nginx liest sie per
 und kein Inline-Handler (`onclick=…`) ohne benannte Ausnahme im Build steht —
 neue Handler gehören als Listener nach `assets/`, Bild-Rückfälle als
 `data-img-fail` ans `<img>`. Der Umami-Zähler kommt als gepinnte Kopie vom
-eigenen Ursprung (`public/vendor/umami/script.js`, erneuern mit
-`node scripts/vendor-umami.mjs <tag>`, Anleitung im Kopf der Datei).
+eigenen Ursprung (`public/vendor/zaehler/zaehler.js`, erneuern mit
+`node scripts/vendor-umami.mjs <tag>`, Anleitung im Kopf der Datei). Der Pfad
+trägt bewusst nicht „umami“: Werbeblocker-Listen sperren `/umami/script.js`.
 
 ## Ausliefern
 

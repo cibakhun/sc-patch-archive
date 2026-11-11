@@ -230,6 +230,10 @@ function walk(dir) {
       if (/application\/ld\+json/.test(s[0])) continue;   // JSON-LD lädt nichts
       for (const u of s[1].matchAll(/https?:\/\/[a-z0-9.-]+[^\s'"`,)]*/gi)) {
         if (/schema\.org/.test(u[0])) continue;
+        // XML-Namensraum (createElementNS fuer SVG-Symbole, Suche seit
+        // 09.11.2026): ein Bezeichner, den der Browser nie abruft. Nur genau
+        // diese drei Adressen; jede andere w3.org-Adresse zaehlt weiter.
+        if (/^http:\/\/www\.w3\.org\/(?:2000\/svg|1999\/xlink|1999\/xhtml)$/.test(u[0])) continue;
         note('(inline-js)', u[0], p);
       }
     }
@@ -356,7 +360,7 @@ for (const z of kurz(inline.imgFailOhneHoerer))
 for (const z of kurz(inline.svg)) fehler.push(`${z}: ausgeführtes Inline-Skript in <svg> — dort löst der Parser Zeichenreferenzen auf, der Hash ließe sich nicht sicher rechnen; Skript aus dem <svg> nehmen`);
 for (const [host, seite] of zaehlHosts) {
   if (srcFor('script-src').some((q) => q === `https://${host}` || q === host))
-    fehler.push(`script-src führt den Zähl-Host ${host} (data-host-url, z. B. ${seite}) — das Zählskript kommt vom eigenen Ursprung (public/vendor/umami/), der Host gehört nur nach connect-src`);
+    fehler.push(`script-src führt den Zähl-Host ${host} (data-host-url, z. B. ${seite}) — das Zählskript kommt vom eigenen Ursprung (public/vendor/zaehler/), der Host gehört nur nach connect-src`);
 }
 
 // add_header-Vererbung: nginx erbt add_header nur, solange ein Block

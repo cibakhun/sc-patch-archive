@@ -1,201 +1,201 @@
 {
  "werkzeug": "cockpit-rays 1, verborgen a78ff98f",
- "ueber10": 7,
+ "ueber10": 6,
  "schiffe": {
   "aegs-avenger-stalker": {
-   "sha": "adc24c918a602af8",
+   "sha": "a68802f8afc39c99",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 6,
+    "glas": 686
+   }
+  },
+  "aegs-avenger-titan": {
+   "sha": "776bb93dcd758f51",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 454
+   }
+  },
+  "aegs-avenger-titan-renegade": {
+   "sha": "ce02c4c94699e4c8",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 0,
+    "glas": 476
+   }
+  },
+  "aegs-avenger-warlock": {
+   "sha": "6b05ad838a4842ba",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 4,
-    "glas": 676
-   }
-  },
-  "aegs-avenger-titan": {
-   "sha": "49b0659b85b58c6a",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 1,
-    "glas": 450
-   }
-  },
-  "aegs-avenger-titan-renegade": {
-   "sha": "dc69bd869ed7181d",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 1,
-    "glas": 472
-   }
-  },
-  "aegs-avenger-warlock": {
-   "sha": "f90c3ec21c41e9c4",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 5,
-    "glas": 578
+    "glas": 586
    }
   },
   "aegs-eclipse": {
-   "sha": "783607f8f891495d",
+   "sha": "618d24f111767d54",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 269
+    "glas": 273
    }
   },
   "aegs-gladius": {
-   "sha": "b19e1c95a0536188",
+   "sha": "9c620cdda42ecf75",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 130
+    "glas": 134
    }
   },
   "aegs-gladius-pir": {
-   "sha": "f6dfd1695668fa3d",
+   "sha": "fb2721bfdac4a164",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 9,
-    "glas": 602
+    "hohl": 15,
+    "glas": 430
    }
   },
   "aegs-gladius-valiant": {
-   "sha": "cf0f1c79ca109e57",
+   "sha": "beca6bd1fcc1c862",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 12,
-    "glas": 646
+    "hohl": 11,
+    "glas": 464
    }
   },
   "aegs-hammerhead": {
-   "sha": "b694f2bd621572a8",
-   "durch": 15,
+   "sha": "3df97168fcc24e81",
+   "durch": 14,
    "gemessen": {
     "rays": 160,
-    "durch": 15,
-    "hohl": 35,
-    "glas": 3404
+    "durch": 14,
+    "hohl": 28,
+    "glas": 3651
    }
   },
   "aegs-hammerhead-showdown": {
-   "sha": "3e188a74ab725291",
-   "durch": 20,
+   "sha": "278c3512cdadec73",
+   "durch": 19,
    "gemessen": {
     "rays": 160,
-    "durch": 20,
-    "hohl": 43,
-    "glas": 3402
+    "durch": 19,
+    "hohl": 41,
+    "glas": 3392
    },
-   "ausnahme": "Bruecke: Blick durch das Bugglas nach hinten unten in die Halle, unter den Sitzen fehlt der Boden; vor dem Fix gleich (11 %), Hammerhead ohne Showdown 9 %; Folgeauftrag PC (.planning/notes/hangar-cockpit-hohl.md, offen)",
-   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
+   "ausnahme": "Bruecke: Blick durch das Bugglas nach hinten unten in die Halle, unter den Sitzen fehlt der Boden; vor dem Fix gleich (11 %), Hammerhead ohne Showdown 9 %; Folgeauftrag PC (.planning/notes/hangar-cockpit-hohl.md, offen)"
   },
   "aegs-idris-m": {
-   "sha": "7e6bc97deef81511",
+   "sha": "da4742031014af9c",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
-    "hohl": 40,
-    "glas": 7352
+    "hohl": 37,
+    "glas": 6402
    }
   },
   "aegs-idris-p": {
-   "sha": "9d2313723cfc8fee",
-   "durch": 1,
+   "sha": "0627e81b988b1be2",
+   "durch": 2,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 30,
-    "glas": 8158
-   }
+    "durch": 2,
+    "hohl": 39,
+    "glas": 6876
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "aegs-javelin": {
-   "sha": "a0585f1b63b93f0a",
+   "sha": "470d4b6e6f5b8b00",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
+    "hohl": 1,
     "glas": 2650
    }
   },
   "aegs-reclaimer": {
-   "sha": "c3f1813db09d6e7f",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 17,
-    "glas": 1440
-   }
-  },
-  "aegs-reclaimer-showdown": {
-   "sha": "125b8fc287396baa",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 17,
-    "glas": 1440
-   }
-  },
-  "aegs-redeemer": {
-   "sha": "d86b5c4aab29b37b",
+   "sha": "b056ccc883dd9548",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1391
+    "hohl": 26,
+    "glas": 1480
    }
   },
-  "aegs-retaliator": {
-   "sha": "719e654ee150d6a8",
+  "aegs-reclaimer-showdown": {
+   "sha": "91da652df6131081",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 26,
+    "glas": 1480
+   }
+  },
+  "aegs-redeemer": {
+   "sha": "8d379a4c524e052b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
-    "glas": 4046
+    "glas": 1055
+   }
+  },
+  "aegs-retaliator": {
+   "sha": "d8c627e55f054704",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 4328
    }
   },
   "aegs-sabre": {
-   "sha": "2cf9f2c41ff89159",
+   "sha": "3efcd855cc881ae8",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 4,
-    "glas": 611
+    "glas": 621
    }
   },
   "aegs-sabre-comet": {
-   "sha": "e90cf10c520baede",
+   "sha": "91f7cb627df9cf16",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 581
+    "glas": 641
    }
   },
   "aegs-sabre-firebird": {
-   "sha": "e484e351411c74fc",
+   "sha": "c87ffd3328ae24d0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -205,37 +205,37 @@
    }
   },
   "aegs-sabre-peregrine": {
-   "sha": "da71962bb8aec907",
+   "sha": "87f089276fae3d29",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 628
+    "hohl": 0,
+    "glas": 702
    }
   },
   "aegs-sabre-raven": {
-   "sha": "3915f9295c5af194",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 7,
-    "glas": 723
-   }
-  },
-  "aegs-sabre-raven-ex": {
-   "sha": "73b769baddac883a",
+   "sha": "d2e1e03b55dc9f3d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 4,
-    "glas": 615
+    "glas": 755
+   }
+  },
+  "aegs-sabre-raven-ex": {
+   "sha": "40aee06832b86f00",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 697
    }
   },
   "aegs-tiburon": {
-   "sha": "9fa5344efa302ee4",
+   "sha": "7e7185d66b1045f5",
    "durch": 4,
    "gemessen": {
     "rays": 160,
@@ -245,49 +245,49 @@
    }
   },
   "aegs-vanguard": {
-   "sha": "0e5d3893ff3b9110",
-   "durch": 5,
-   "gemessen": {
-    "rays": 160,
-    "durch": 5,
-    "hohl": 21,
-    "glas": 626
-   },
-   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
-  },
-  "aegs-vanguard-harbinger": {
-   "sha": "faffb5282c28bc8d",
-   "durch": 5,
-   "gemessen": {
-    "rays": 160,
-    "durch": 5,
-    "hohl": 18,
-    "glas": 697
-   }
-  },
-  "aegs-vanguard-hoplite": {
-   "sha": "c2d93ae0deb6450f",
-   "durch": 6,
-   "gemessen": {
-    "rays": 160,
-    "durch": 6,
-    "hohl": 15,
-    "glas": 824
-   },
-   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
-  },
-  "aegs-vanguard-sentinel": {
-   "sha": "e23fe83dbda1ffb2",
+   "sha": "c7b88f387bdd9f70",
    "durch": 3,
    "gemessen": {
     "rays": 160,
     "durch": 3,
-    "hohl": 21,
-    "glas": 586
+    "hohl": 18,
+    "glas": 722
    }
   },
+  "aegs-vanguard-harbinger": {
+   "sha": "0e2561f20a9ced27",
+   "durch": 5,
+   "gemessen": {
+    "rays": 160,
+    "durch": 5,
+    "hohl": 14,
+    "glas": 783
+   }
+  },
+  "aegs-vanguard-hoplite": {
+   "sha": "9211857dac982624",
+   "durch": 7,
+   "gemessen": {
+    "rays": 160,
+    "durch": 7,
+    "hohl": 18,
+    "glas": 870
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
+  },
+  "aegs-vanguard-sentinel": {
+   "sha": "acd42671cb380d30",
+   "durch": 4,
+   "gemessen": {
+    "rays": 160,
+    "durch": 4,
+    "hohl": 25,
+    "glas": 586
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
+  },
   "anvl-arrow": {
-   "sha": "ea5fc14f47eb2c5e",
+   "sha": "195db2c4608c97af",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -297,7 +297,7 @@
    }
   },
   "anvl-asgard": {
-   "sha": "9279ebc623344313",
+   "sha": "8e88dde2ea739a16",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -307,127 +307,128 @@
    }
   },
   "anvl-ballista": {
-   "sha": "9b176c148e33073f",
+   "sha": "9e12d09ef497e615",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 31,
-    "glas": 933
+    "hohl": 29,
+    "glas": 955
    }
   },
   "anvl-ballista-dunestalker": {
-   "sha": "af3daabf61e26de1",
+   "sha": "7c4bead8da20970b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 31,
-    "glas": 933
+    "hohl": 29,
+    "glas": 955
    }
   },
   "anvl-ballista-snowblind": {
-   "sha": "7f57ea2e07c7d4f7",
+   "sha": "a99da6d8c15af959",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 31,
-    "glas": 933
+    "hohl": 29,
+    "glas": 955
    }
   },
   "anvl-c8-pisces": {
-   "sha": "0109248b02106f24",
+   "sha": "7d6ca0262932b266",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 6,
-    "glas": 584
+    "glas": 442
    }
   },
   "anvl-c8r-pisces": {
-   "sha": "f603a9c5671f7c7b",
+   "sha": "499c557bb0af9c3a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 5,
-    "glas": 1869
+    "glas": 1773
    }
   },
   "anvl-c8x-pisces-expedition": {
-   "sha": "4590ea8a80434fdd",
+   "sha": "0e0e7995131859c1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 6,
-    "glas": 584
+    "glas": 442
    }
   },
   "anvl-carrack": {
-   "sha": "644e0fa6c71ffe5a",
+   "sha": "40651dd19d5f7b1a",
    "durch": 3,
    "gemessen": {
     "rays": 160,
     "durch": 3,
     "hohl": 10,
-    "glas": 1706
+    "glas": 1704
    }
   },
   "anvl-carrack-expedition": {
-   "sha": "ce6609ff40fc9be1",
-   "durch": 2,
+   "sha": "0b869d43f8e707e6",
+   "durch": 6,
    "gemessen": {
     "rays": 160,
-    "durch": 2,
-    "hohl": 7,
-    "glas": 1720
-   }
+    "durch": 6,
+    "hohl": 12,
+    "glas": 1716
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "anvl-centurion": {
-   "sha": "a10f09888e21ec5d",
+   "sha": "59d2ef4216f8a8da",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 18,
+    "hohl": 12,
     "glas": 370
    }
   },
   "anvl-gladiator": {
-   "sha": "e308c13fc0fd9632",
+   "sha": "7a46b0bfd02c958a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 631
+   }
+  },
+  "anvl-hawk": {
+   "sha": "a2b0d95bc1ed9eb6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 4,
-    "glas": 621
-   }
-  },
-  "anvl-hawk": {
-   "sha": "16262f8a7be1c4b1",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 8,
-    "glas": 844
+    "glas": 874
    }
   },
   "anvl-hornet-f7a-mk1": {
-   "sha": "82131d78a3c56dbe",
+   "sha": "16301d6ba1641244",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1500
+    "glas": 1076
    }
   },
   "anvl-hornet-f7a-mk2": {
-   "sha": "d1c5b232aa8495f0",
+   "sha": "71459061392c2830",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -437,47 +438,47 @@
    }
   },
   "anvl-hornet-f7c": {
-   "sha": "d62faa2c171f279a",
+   "sha": "566281974ee9b9c1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 1058
+    "hohl": 2,
+    "glas": 632
    }
   },
   "anvl-hornet-f7c-mk2": {
-   "sha": "ebe4dd2637f2e20f",
+   "sha": "19510e70f9ff8714",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2529
+    "glas": 1851
    }
   },
   "anvl-hornet-f7c-wildfire": {
-   "sha": "116f95bf5a4544dd",
+   "sha": "34f5a24aec0aa8a6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 1058
+    "hohl": 2,
+    "glas": 632
    }
   },
   "anvl-hornet-f7cm": {
-   "sha": "5a174cd947bfe34d",
+   "sha": "d9b9b4e18cb72ffb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
-    "glas": 1695
+    "glas": 995
    }
   },
   "anvl-hornet-f7cm-heartseeker": {
-   "sha": "6cef42bf8a057f8a",
+   "sha": "3f69b98f7c13f9a3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -487,17 +488,17 @@
    }
   },
   "anvl-hornet-f7cm-mk2": {
-   "sha": "0027131f813ebcee",
+   "sha": "4b213519f75bfe94",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1062
+    "glas": 1108
    }
   },
   "anvl-hornet-f7cm-mk2-heartseeker": {
-   "sha": "4645dad9424b5348",
+   "sha": "31c21562b1fe30a3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -507,99 +508,98 @@
    }
   },
   "anvl-hornet-f7cr": {
-   "sha": "b203010b45d1b467",
+   "sha": "ca3c9bffdba5cf19",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 1058
+    "hohl": 2,
+    "glas": 632
    }
   },
   "anvl-hornet-f7cr-mk2": {
-   "sha": "f6026754699f4673",
+   "sha": "cb6578ccb88dfdef",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2279
+    "glas": 1629
    }
   },
   "anvl-hornet-f7cs": {
-   "sha": "7cf5df63c292fb9a",
+   "sha": "aa412e383c868a3c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 1058
+    "hohl": 2,
+    "glas": 632
    }
   },
   "anvl-hornet-f7cs-mk2": {
-   "sha": "71e99ea58217f55c",
+   "sha": "4675e3c76b38e1d0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2391
+    "glas": 1803
    }
   },
   "anvl-hurricane": {
-   "sha": "8dcaf3f5b20d7711",
+   "sha": "4eb75a87ac8f5a6c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 18,
-    "glas": 1028
+    "glas": 1024
    }
   },
   "anvl-lightning-f8": {
-   "sha": "5b464b41ca5d3bbc",
+   "sha": "83411cb48093db3a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 27,
-    "glas": 819
+    "hohl": 24,
+    "glas": 861
    }
   },
   "anvl-lightning-f8c": {
-   "sha": "e84439ed005b275f",
+   "sha": "fc0cb96253fc8ded",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 24,
-    "glas": 617
+    "hohl": 26,
+    "glas": 765
    }
   },
   "anvl-lightning-f8c-exec": {
-   "sha": "cfb350e84794b7f2",
+   "sha": "6ac86a3b12cc6e08",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 24,
-    "glas": 617
+    "hohl": 26,
+    "glas": 765
    }
   },
   "anvl-paladin": {
-   "sha": "06edc7fa811fe5c2",
-   "durch": 44,
+   "sha": "90651a287f87ceda",
+   "durch": 27,
    "gemessen": {
     "rays": 160,
-    "durch": 44,
-    "hohl": 58,
-    "glas": 434
+    "durch": 27,
+    "hohl": 79,
+    "glas": 418
    },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen"
   },
   "anvl-spartan": {
-   "sha": "ec446ee2fd067114",
+   "sha": "69481186f1c65ddc",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -609,7 +609,7 @@
    }
   },
   "anvl-terrapin": {
-   "sha": "db2b7d8209e81a41",
+   "sha": "6ffc318675171935",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -619,7 +619,7 @@
    }
   },
   "anvl-terrapin-medic": {
-   "sha": "3d7d5c155f8152cd",
+   "sha": "7a7533b8a22ebee7",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -629,7 +629,7 @@
    }
   },
   "anvl-valkyrie": {
-   "sha": "4ee9d97e148b1514",
+   "sha": "8f109fa9d245ae76",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -649,7 +649,7 @@
    }
   },
   "argo-atls-geo": {
-   "sha": "2396f267c98ca399",
+   "sha": "00a4d84788773eb9",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -659,7 +659,7 @@
    }
   },
   "argo-atls-geo-collector-grad01": {
-   "sha": "f14319f5adbcba52",
+   "sha": "eca61d26b17f06e1",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -669,7 +669,7 @@
    }
   },
   "argo-atls-geo-collector-grad03": {
-   "sha": "54cc3231c28082b2",
+   "sha": "59786f19da301e09",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -689,27 +689,27 @@
    }
   },
   "argo-mole": {
-   "sha": "821ae9d04f3409dd",
+   "sha": "ebcf47d9a0f6cdf4",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
-    "glas": 617
+    "hohl": 7,
+    "glas": 625
    }
   },
   "argo-moth": {
-   "sha": "19b8368c14b53abd",
+   "sha": "09b6f917012b77ed",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 11,
+    "hohl": 8,
     "glas": 1107
    }
   },
   "argo-mpuv": {
-   "sha": "67abad7da093da78",
+   "sha": "d3d6caf437fd746f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -719,7 +719,7 @@
    }
   },
   "argo-mpuv-1t": {
-   "sha": "732694491d1afab3",
+   "sha": "7ad533dc1e6dd136",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -729,7 +729,7 @@
    }
   },
   "argo-mpuv-transport": {
-   "sha": "eeb8c9e4ea7a1cdb",
+   "sha": "a6d09af4537a3407",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -739,7 +739,7 @@
    }
   },
   "argo-raft": {
-   "sha": "ee63bf2276da1292",
+   "sha": "1ca3c50d37bd7534",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -749,7 +749,7 @@
    }
   },
   "argo-srv": {
-   "sha": "7cbcb80e9436ea3b",
+   "sha": "771055ff1a6a3e72",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -759,13 +759,13 @@
    }
   },
   "banu-defender": {
-   "sha": "b3ef42e9498a5c8c",
-   "durch": 7,
+   "sha": "dddea9964a566f94",
+   "durch": 6,
    "gemessen": {
     "rays": 160,
-    "durch": 7,
-    "hohl": 16,
-    "glas": 1415
+    "durch": 6,
+    "hohl": 11,
+    "glas": 1483
    }
   },
   "cnou-hoverquad": {
@@ -779,7 +779,7 @@
    }
   },
   "cnou-mustang-alpha": {
-   "sha": "7802ee7b2647dfbb",
+   "sha": "fee561ad74e4bfa4",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -789,7 +789,7 @@
    }
   },
   "cnou-mustang-alpha-citizencon2018": {
-   "sha": "a8e9231beef9e491",
+   "sha": "4d460c20f94975e7",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -799,7 +799,7 @@
    }
   },
   "cnou-mustang-beta": {
-   "sha": "511df77de3f2a19a",
+   "sha": "c561f067082398c7",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -809,7 +809,7 @@
    }
   },
   "cnou-mustang-delta": {
-   "sha": "20f6810f29ccf888",
+   "sha": "f2b735029c6de066",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -819,7 +819,7 @@
    }
   },
   "cnou-mustang-gamma": {
-   "sha": "26b30795968e3387",
+   "sha": "c59f773db771a4f4",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -829,7 +829,7 @@
    }
   },
   "cnou-mustang-omega": {
-   "sha": "b68c0d779d422fd1",
+   "sha": "03e76eb77f55a41d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -839,7 +839,7 @@
    }
   },
   "cnou-nomad": {
-   "sha": "ca3e0343763f142a",
+   "sha": "c645e791f7262eff",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -849,67 +849,69 @@
    }
   },
   "crus-intrepid": {
-   "sha": "043133575fa72070",
+   "sha": "96a124e104ef3698",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
     "hohl": 2,
-    "glas": 1040
+    "glas": 1044
    }
   },
   "crus-spirit-a1": {
-   "sha": "3f2ac9ecbe6444b1",
+   "sha": "a67ca71936e427a9",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 33,
+    "hohl": 35,
     "glas": 167
    }
   },
   "crus-spirit-c1": {
-   "sha": "f744f62f80278622",
-   "durch": 1,
+   "sha": "61e1593171d88162",
+   "durch": 2,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
+    "durch": 2,
     "hohl": 46,
     "glas": 370
-   }
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "crus-star-runner": {
-   "sha": "18e3fb7f0d23ecf5",
+   "sha": "9ba93aff5a02b8e8",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
-    "glas": 572
+    "hohl": 1,
+    "glas": 584
    }
   },
   "crus-starfighter-inferno": {
-   "sha": "83352b1f6a86536e",
-   "durch": 1,
+   "sha": "429c5b07a511c3f8",
+   "durch": 2,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
+    "durch": 2,
     "hohl": 23,
-    "glas": 885
-   }
+    "glas": 893
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "crus-starfighter-ion": {
-   "sha": "30b041d57db759d5",
+   "sha": "b75ee13aa85ad28e",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 22,
-    "glas": 869
+    "hohl": 20,
+    "glas": 877
    }
   },
   "crus-starlifter-a2": {
-   "sha": "4d67a6b243fde443",
+   "sha": "bc1dd3680fdee3c9",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -919,37 +921,37 @@
    }
   },
   "crus-starlifter-c2": {
-   "sha": "0c61adbb4a09c7ec",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 2,
-    "glas": 90
-   }
-  },
-  "crus-starlifter-m2": {
-   "sha": "36fe502b5fc5c7a2",
+   "sha": "1e8f1d3b64d71338",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
-    "glas": 84
+    "glas": 100
+   }
+  },
+  "crus-starlifter-m2": {
+   "sha": "f689452e60dc2f33",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 90
    }
   },
   "drak-buccaneer": {
-   "sha": "8e8eb1efc45aefaf",
+   "sha": "85ce5aac337fcfc0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 6,
-    "glas": 708
+    "glas": 706
    }
   },
   "drak-caterpillar": {
-   "sha": "42124e19fef79bfc",
+   "sha": "9232fded2c67db09",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -959,7 +961,7 @@
    }
   },
   "drak-caterpillar-pirate": {
-   "sha": "31d2935a02f5f49a",
+   "sha": "decba85e5c8fcb10",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -969,17 +971,17 @@
    }
   },
   "drak-clipper": {
-   "sha": "fb31565a10bd7e68",
+   "sha": "ab15828d966cb92d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1146
+    "glas": 836
    }
   },
   "drak-corsair": {
-   "sha": "ac969be188a97387",
+   "sha": "f684976f16bd855a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -989,77 +991,77 @@
    }
   },
   "drak-cutlass-black": {
-   "sha": "1f6094cbc27dcca3",
+   "sha": "2f1aa4527a751a8f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
-    "glas": 622
+    "hohl": 4,
+    "glas": 664
    }
   },
   "drak-cutlass-blue": {
-   "sha": "2171aac34d502533",
+   "sha": "6bf83820cc6f4245",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 6,
-    "glas": 1242
+    "hohl": 9,
+    "glas": 1456
    }
   },
   "drak-cutlass-red": {
-   "sha": "fc9482fc32ea691b",
+   "sha": "4138633f0c3225d6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 1,
-    "glas": 990
+    "hohl": 0,
+    "glas": 870
    }
   },
   "drak-cutlass-steel": {
-   "sha": "ba08f648a7eb0304",
+   "sha": "1205604697baa46c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 2,
-    "glas": 446
+    "glas": 488
    }
   },
   "drak-cutter": {
-   "sha": "9e67fd872e0cab7c",
+   "sha": "5535241267bb7fbf",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 50,
-    "glas": 574
+    "hohl": 53,
+    "glas": 612
    }
   },
   "drak-cutter-rambler": {
-   "sha": "a046e465bd1c6657",
+   "sha": "abdad6ac2737c7ac",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 50,
-    "glas": 652
+    "glas": 690
    }
   },
   "drak-cutter-scout": {
-   "sha": "cfa41460b409120a",
+   "sha": "70b1bf474a24e371",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 54,
-    "glas": 502
+    "hohl": 53,
+    "glas": 448
    }
   },
   "drak-dragonfly": {
-   "sha": "7fffc0619c110f42",
+   "sha": "abb5de4b169c91eb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1069,7 +1071,7 @@
    }
   },
   "drak-dragonfly-yellow": {
-   "sha": "2f117f412f854f3b",
+   "sha": "9d27f24f50cb3a8c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1079,77 +1081,78 @@
    }
   },
   "drak-golem": {
-   "sha": "b083c62c91ab4571",
+   "sha": "a9694d8bf51036e2",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1169
+    "glas": 1165
    }
   },
   "drak-golem-ox": {
-   "sha": "dc51208a01d2a2dc",
-   "durch": 0,
+   "sha": "eb8761e5c782e3a7",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 0,
-    "hohl": 0,
-    "glas": 1317
-   }
+    "durch": 1,
+    "hohl": 1,
+    "glas": 1315
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "drak-herald": {
-   "sha": "bd4dd02054c509ac",
+   "sha": "325df9d1876757ce",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 2,
-    "glas": 212
+    "glas": 218
    }
   },
   "drak-ironclad": {
-   "sha": "93b0bf481d659196",
+   "sha": "89160788c470ce6f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 3,
-    "glas": 1828
+    "glas": 1806
    }
   },
   "drak-ironclad-assault": {
-   "sha": "9830f24ce627750b",
+   "sha": "257da56069456267",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 40,
-    "glas": 726
+    "hohl": 1,
+    "glas": 1375
    }
   },
   "drak-mule": {
-   "sha": "1883498516d85be8",
+   "sha": "6ffedf3494db4483",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 3,
-    "glas": 2465
+    "glas": 2471
    }
   },
   "drak-pitbull": {
-   "sha": "44416187d5dac6ad",
+   "sha": "cb7e1bdfcf9f8d91",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 445
+    "glas": 299
    }
   },
   "drak-vulture": {
-   "sha": "5bf087ca59e4cd82",
+   "sha": "efdbb497fc8067ad",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1159,99 +1162,99 @@
    }
   },
   "espr-prowler": {
-   "sha": "4563cfd67d955594",
+   "sha": "aa12402929de5b4b",
    "durch": 3,
    "gemessen": {
     "rays": 160,
     "durch": 3,
     "hohl": 39,
-    "glas": 550
+    "glas": 522
    }
   },
   "espr-prowler-utility": {
-   "sha": "7d0783d757ef9a5d",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 49,
-    "glas": 1019
-   }
-  },
-  "espr-talon": {
-   "sha": "b30909bbb991176e",
+   "sha": "7984a63dc482a84f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
-    "glas": 198
+    "hohl": 46,
+    "glas": 991
+   }
+  },
+  "espr-talon": {
+   "sha": "0a7f8a2850dbb4fa",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 200
    }
   },
   "espr-talon-shrike": {
-   "sha": "d4d34e0238b29f98",
+   "sha": "18d5f4da99aee532",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 3,
+    "glas": 86
+   }
+  },
+  "gama-railen": {
+   "sha": "81281b38535d61e8",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 5,
+    "glas": 1276
+   }
+  },
+  "gama-syulen": {
+   "sha": "30ae731863068659",
+   "durch": 26,
+   "gemessen": {
+    "rays": 160,
+    "durch": 26,
+    "hohl": 50,
+    "glas": 174
+   },
+   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
+  },
+  "gama-tyilui": {
+   "sha": "7d1232b1ea415d9c",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 13,
+    "glas": 826
+   }
+  },
+  "glsn-basher": {
+   "sha": "943ebf903130de30",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
-    "glas": 114
-   }
-  },
-  "gama-railen": {
-   "sha": "9d1931354779223e",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 27,
-    "glas": 1216
-   }
-  },
-  "gama-syulen": {
-   "sha": "15b204dd98b29570",
-   "durch": 23,
-   "gemessen": {
-    "rays": 160,
-    "durch": 23,
-    "hohl": 51,
-    "glas": 170
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "gama-tyilui": {
-   "sha": "33e9815dff1425ec",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 42,
-    "glas": 798
-   }
-  },
-  "glsn-basher": {
-   "sha": "b2bdca847f948592",
-   "durch": 1,
-   "gemessen": {
-    "rays": 160,
-    "durch": 1,
-    "hohl": 3,
-    "glas": 603
+    "glas": 555
    }
   },
   "glsn-shiv": {
-   "sha": "c8bfeddbc2a614dd",
+   "sha": "05003e3d4b825da2",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 15,
-    "glas": 739
+    "hohl": 16,
+    "glas": 781
    }
   },
   "grin-mdc": {
-   "sha": "7db289db52eb998a",
+   "sha": "2b3fba684221b6b1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1261,17 +1264,17 @@
    }
   },
   "grin-mtc": {
-   "sha": "1c45432f6dd0a7c7",
+   "sha": "85add5efc0d07d2e",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 10,
-    "glas": 363
+    "hohl": 8,
+    "glas": 367
    }
   },
   "grin-ptv": {
-   "sha": "f14a781bd1b6c3df",
+   "sha": "b912a738b8dd89d1",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -1281,7 +1284,7 @@
    }
   },
   "grin-roc": {
-   "sha": "d3964ddd7acdc037",
+   "sha": "b824f45d933c1b30",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1321,149 +1324,148 @@
    }
   },
   "krig-l21-wolf": {
-   "sha": "75c7373584476dac",
+   "sha": "a59334a1fc9e84c5",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 1,
-    "glas": 1922
+    "glas": 1720
    }
   },
   "krig-l22-alphawolf": {
-   "sha": "b03a304b81d0f36d",
+   "sha": "2fd312f20845710b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1214
+    "glas": 1220
    }
   },
   "krig-p52-merlin": {
-   "sha": "92f488b668b9ad27",
+   "sha": "3ddd63a46c9ccb28",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 11,
-    "glas": 915
+    "hohl": 8,
+    "glas": 941
    }
   },
   "krig-p72-archimedes": {
-   "sha": "5a912d3b8e525e5d",
+   "sha": "1585d6c41b80c3e2",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 34,
-    "glas": 919
+    "hohl": 30,
+    "glas": 923
    }
   },
   "krig-p72-archimedes-emerald": {
-   "sha": "9842d4749ac521de",
+   "sha": "2ad982cf05efbcf4",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 34,
-    "glas": 919
+    "hohl": 30,
+    "glas": 923
    }
   },
   "krig-s65-stingray": {
-   "sha": "aafe7bab6e01fcb9",
-   "durch": 1,
+   "sha": "66360f1078cd7bdc",
+   "durch": 0,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 56,
-    "glas": 461
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 0,
+    "hohl": 67,
+    "glas": 463
+   }
   },
   "misc-fortune": {
-   "sha": "fc508a8be5a7cbe0",
+   "sha": "acb005f6333d6662",
    "durch": 25,
    "gemessen": {
     "rays": 160,
     "durch": 25,
     "hohl": 36,
-    "glas": 896
+    "glas": 900
    },
    "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen"
   },
   "misc-freelancer": {
-   "sha": "3358ba8a1c555112",
+   "sha": "26a92cd52045d082",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 44,
-    "glas": 160
+    "glas": 152
    }
   },
   "misc-freelancer-dur": {
-   "sha": "8c52708c460fc18d",
+   "sha": "44a4908a71692a57",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 42,
-    "glas": 208
+    "hohl": 38,
+    "glas": 216
    }
   },
   "misc-freelancer-max": {
-   "sha": "02918a9e56ec61e5",
+   "sha": "94e608c8bb09a78a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 54,
-    "glas": 240
+    "hohl": 57,
+    "glas": 260
    }
   },
   "misc-freelancer-mis": {
-   "sha": "c948f9c7ce16d498",
+   "sha": "3a9e2cd07b3af3f3",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 41,
-    "glas": 156
+    "glas": 150
    }
   },
   "misc-fury": {
-   "sha": "832c543d158655fd",
+   "sha": "4a7433e20fc602c8",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 1,
+    "glas": 2800
+   }
+  },
+  "misc-fury-lx": {
+   "sha": "6ef14dc996be6e5c",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 2,
-    "glas": 2776
-   }
-  },
-  "misc-fury-lx": {
-   "sha": "b47f51587ecd2d37",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 3,
-    "glas": 3596
+    "glas": 3456
    }
   },
   "misc-fury-miru": {
-   "sha": "697688ed6785e6ee",
+   "sha": "9121879520d7336b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 5,
-    "glas": 3214
+    "glas": 3222
    }
   },
   "misc-hull-a": {
-   "sha": "c13a27dba699d4d1",
+   "sha": "fbddee51182eb769",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1473,157 +1475,157 @@
    }
   },
   "misc-hull-b": {
-   "sha": "429ab0be2e4566bf",
+   "sha": "3501a55f3c4de7fd",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 3,
-    "glas": 2248
+    "hohl": 2,
+    "glas": 2254
    }
   },
   "misc-hull-c": {
-   "sha": "1a38edcd933aba40",
+   "sha": "8d87b0e181384e92",
    "durch": 2,
    "gemessen": {
     "rays": 160,
     "durch": 2,
     "hohl": 5,
-    "glas": 972
+    "glas": 1036
    }
   },
   "misc-prospector": {
-   "sha": "861a715a6272b9d7",
+   "sha": "8f70edd59f619f42",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
-    "hohl": 71,
-    "glas": 1181
+    "hohl": 70,
+    "glas": 1191
    }
   },
   "misc-razor": {
-   "sha": "167bb708b427caeb",
+   "sha": "d5e908a38081330b",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1620
+    "hohl": 1,
+    "glas": 1520
    }
   },
   "misc-razor-ex": {
-   "sha": "ae6c29f89b6b243e",
+   "sha": "4d195c06c9cd12ce",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 1266
+    "glas": 1254
    }
   },
   "misc-razor-lx": {
-   "sha": "0c38aefda9dcc352",
+   "sha": "ff910b7e29c6bffd",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1620
+    "hohl": 1,
+    "glas": 1520
    }
   },
   "misc-reliant": {
-   "sha": "562c888de78fd13e",
+   "sha": "79e3f0e9e8ccfd94",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 4,
-    "glas": 1103
+    "glas": 1113
    }
   },
   "misc-reliant-mako": {
-   "sha": "ab8c81172539601e",
+   "sha": "186884bfe6be0aa4",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
-    "glas": 843
+    "hohl": 1,
+    "glas": 879
    }
   },
   "misc-reliant-sen": {
-   "sha": "0b75ea29f76ab102",
+   "sha": "8f2259de8cc518eb",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
-    "glas": 973
+    "hohl": 1,
+    "glas": 1003
    }
   },
   "misc-reliant-tana": {
-   "sha": "edcb1fc505e25ad8",
+   "sha": "5c023659b83750c0",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 4,
-    "glas": 625
+    "hohl": 5,
+    "glas": 639
    }
   },
   "misc-starfarer": {
-   "sha": "9fa4e4dd524891c1",
-   "durch": 14,
+   "sha": "b93301be11d0d93c",
+   "durch": 11,
    "gemessen": {
     "rays": 160,
-    "durch": 14,
-    "hohl": 22,
-    "glas": 457
+    "durch": 11,
+    "hohl": 17,
+    "glas": 407
    }
   },
   "misc-starfarer-gemini": {
-   "sha": "91f8fb6fcaec0663",
-   "durch": 12,
+   "sha": "28bfc37532de9432",
+   "durch": 11,
    "gemessen": {
     "rays": 160,
-    "durch": 12,
-    "hohl": 20,
-    "glas": 423
+    "durch": 11,
+    "hohl": 16,
+    "glas": 367
    }
   },
   "misc-starlancer-max": {
-   "sha": "5a7f21b7cdcf4620",
+   "sha": "61e9893d6e7b4ee0",
    "durch": 8,
    "gemessen": {
     "rays": 160,
     "durch": 8,
-    "hohl": 14,
-    "glas": 1301
+    "hohl": 13,
+    "glas": 1313
    }
   },
   "misc-starlancer-tac": {
-   "sha": "44f465ff03bb3b01",
-   "durch": 8,
+   "sha": "59dd73820fd7df2f",
+   "durch": 4,
    "gemessen": {
     "rays": 160,
-    "durch": 8,
-    "hohl": 8,
-    "glas": 2235
+    "durch": 4,
+    "hohl": 5,
+    "glas": 2249
    }
   },
   "misc-starlite": {
-   "sha": "15ca5e673a67ade0",
+   "sha": "6d0d71718bb96b52",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 26,
-    "glas": 999
+    "hohl": 24,
+    "glas": 967
    }
   },
   "mrai-guardian": {
-   "sha": "f0cd2f7420a525f2",
+   "sha": "396801194dab3c78",
    "durch": 4,
    "gemessen": {
     "rays": 160,
@@ -1633,17 +1635,17 @@
    }
   },
   "mrai-guardian-mx": {
-   "sha": "f2bf08a009d267ad",
+   "sha": "3e977db528ff5188",
    "durch": 4,
    "gemessen": {
-    "rays": 60,
+    "rays": 61,
     "durch": 4,
-    "hohl": 12,
-    "glas": 2575
+    "hohl": 15,
+    "glas": 2571
    }
   },
   "mrai-guardian-qi": {
-   "sha": "8c3e175751c5e06e",
+   "sha": "9515301af76af97e",
    "durch": 8,
    "gemessen": {
     "rays": 160,
@@ -1674,37 +1676,38 @@
    }
   },
   "orig-100i": {
-   "sha": "9c32a15fd7ca0753",
+   "sha": "d5cf632e53366975",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
-    "glas": 2569
+    "hohl": 1,
+    "glas": 2627
    }
   },
   "orig-125a": {
-   "sha": "2ef5a60a8fb5d77c",
-   "durch": 0,
+   "sha": "8e283494eaccd7c7",
+   "durch": 1,
    "gemessen": {
     "rays": 160,
-    "durch": 0,
-    "hohl": 4,
-    "glas": 2395
-   }
+    "durch": 1,
+    "hohl": 3,
+    "glas": 2471
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "orig-135c": {
-   "sha": "c235254ea1fd195e",
+   "sha": "4df78e38cff8fecd",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
-    "glas": 3357
+    "hohl": 6,
+    "glas": 3433
    }
   },
   "orig-300i": {
-   "sha": "c8aa0ac08644ccbc",
+   "sha": "8baf52a6e55da7c6",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1714,17 +1717,17 @@
    }
   },
   "orig-315p": {
-   "sha": "a8945b768940c15a",
+   "sha": "4c52baee52c238ad",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 16,
+    "hohl": 13,
     "glas": 1438
    }
   },
   "orig-325a": {
-   "sha": "1113119ff8290dd1",
+   "sha": "8d47066cc9bb9729",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -1734,7 +1737,7 @@
    }
   },
   "orig-350r": {
-   "sha": "28000382e7bd3cdf",
+   "sha": "4251ef4dabc1d530",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1744,52 +1747,51 @@
    }
   },
   "orig-400i": {
-   "sha": "2817796bfd992624",
-   "durch": 46,
+   "sha": "96cbb96f1ee71063",
+   "durch": 62,
    "gemessen": {
     "rays": 160,
-    "durch": 46,
-    "hohl": 54,
-    "glas": 1219
+    "durch": 62,
+    "hohl": 69,
+    "glas": 814
    },
    "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "orig-600i": {
-   "sha": "47eca97d4914cfe7",
-   "durch": 4,
+   "sha": "32a1295ea994525e",
+   "durch": 5,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 55,
-    "glas": 3154
+    "durch": 5,
+    "hohl": 76,
+    "glas": 3620
    },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "orig-600i-bis2951": {
-   "sha": "0b22422f60265e14",
-   "durch": 4,
+   "sha": "2b64e8502ee1c38b",
+   "durch": 5,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 55,
-    "glas": 3154
+    "durch": 5,
+    "hohl": 76,
+    "glas": 3620
    },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "orig-600i-touring": {
-   "sha": "d674de75c6182b11",
-   "durch": 12,
+   "sha": "3b810f17f3a65d5f",
+   "durch": 8,
    "gemessen": {
     "rays": 160,
-    "durch": 12,
-    "hohl": 46,
-    "glas": 2432
-   },
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
+    "durch": 8,
+    "hohl": 69,
+    "glas": 3396
+   }
   },
   "orig-85x": {
-   "sha": "3e2ce1d50d4f2e33",
+   "sha": "0612590622a200c9",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1799,35 +1801,35 @@
    }
   },
   "orig-890jump": {
-   "sha": "59c7ef8ea5d431b7",
+   "sha": "8497e030f5da1e96",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 2847
+    "glas": 3016
    }
   },
   "orig-m50": {
-   "sha": "33c580e028806364",
+   "sha": "b95c220f4da9131d",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 4676
+    "glas": 4534
    }
   },
   "orig-m80": {
-   "sha": "7cb6f84ad3130d46",
-   "durch": 1,
+   "sha": "5f3394594f54fa89",
+   "durch": 4,
    "gemessen": {
     "rays": 160,
-    "durch": 1,
-    "hohl": 32,
-    "glas": 1690
+    "durch": 4,
+    "hohl": 61,
+    "glas": 1242
    },
-   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
   },
   "orig-x1": {
    "sha": "a522c81303370fe2",
@@ -1840,7 +1842,7 @@
    }
   },
   "orig-x1-force": {
-   "sha": "5b74422bc92ee717",
+   "sha": "4e14bf9fb1a7e71b",
    "durch": 2,
    "gemessen": {
     "rays": 160,
@@ -1851,7 +1853,7 @@
    "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
   },
   "orig-x1-velocity": {
-   "sha": "9640cc7a5818191a",
+   "sha": "07fe6595ba9370a6",
    "durch": 2,
    "gemessen": {
     "rays": 160,
@@ -1862,28 +1864,28 @@
    "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
   },
   "rsi-apollo-medivac": {
-   "sha": "0f16cf128344131b",
-   "durch": 9,
-   "gemessen": {
-    "rays": 160,
-    "durch": 9,
-    "hohl": 47,
-    "glas": 2361
-   },
-   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
-  },
-  "rsi-apollo-triage": {
-   "sha": "e7518cef56de5e2c",
+   "sha": "67628b34069d8661",
    "durch": 9,
    "gemessen": {
     "rays": 160,
     "durch": 9,
     "hohl": 41,
+    "glas": 2363
+   },
+   "angehoben": "Komponenten-Anker (pc/hangar-komponenten): Komponenten-Netze bleiben eigene Knoten, die Reihenfolge der Glasdreiecke im GLB aendert sich und die Stichprobe (fester Startwert ueber die Dreiecksreihenfolge) trifft andere Punkte; X1 Force mit gleichen Glas- und Gesamtdreiecken 1 -> 2, sonst +1 und 400i +4 (Dezimierung -5,45 %)"
+  },
+  "rsi-apollo-triage": {
+   "sha": "8e29f6ec07c0b6a5",
+   "durch": 8,
+   "gemessen": {
+    "rays": 160,
+    "durch": 8,
+    "hohl": 41,
     "glas": 2365
    }
   },
   "rsi-aurora-gs-cl": {
-   "sha": "41d25bf0672ad5c5",
+   "sha": "624112106923d3b1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1893,17 +1895,17 @@
    }
   },
   "rsi-aurora-gs-es": {
-   "sha": "a4ecb70b61922b1e",
+   "sha": "abbfa95c8803d598",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 592
+    "glas": 563
    }
   },
   "rsi-aurora-gs-ln": {
-   "sha": "ec7578e1644ec01d",
+   "sha": "b689a2ea0bec0bae",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -1913,107 +1915,107 @@
    }
   },
   "rsi-aurora-gs-lx": {
-   "sha": "c02132bd1e4f98ec",
+   "sha": "aba17540e77a6428",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 571
+    "glas": 573
    }
   },
   "rsi-aurora-gs-mr": {
-   "sha": "0fc25696b1d70421",
+   "sha": "ea95c2c925a320d5",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 869
+    "glas": 749
    }
   },
   "rsi-aurora-gs-se": {
-   "sha": "1761706251d6987a",
+   "sha": "d931b8611927bbd1",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 493
+    "glas": 495
    }
   },
   "rsi-aurora-mk2": {
-   "sha": "51be4a149f4c8165",
-   "durch": 4,
+   "sha": "9c624985c58b8685",
+   "durch": 2,
    "gemessen": {
     "rays": 160,
-    "durch": 4,
-    "hohl": 13,
-    "glas": 996
+    "durch": 2,
+    "hohl": 11,
+    "glas": 774
    }
   },
   "rsi-constellation-andromeda": {
-   "sha": "4503c26a40675084",
+   "sha": "559f3f0cc5422290",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
     "hohl": 15,
-    "glas": 3293
+    "glas": 2509
    }
   },
   "rsi-constellation-aquila": {
-   "sha": "fcf7e2282e586e4b",
+   "sha": "6a7fd0617ff1fa29",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
     "hohl": 19,
-    "glas": 1963
+    "glas": 1971
    }
   },
   "rsi-constellation-mk5-centaurus": {
-   "sha": "a359849a5c5d71cc",
+   "sha": "584b188866cef089",
    "durch": 12,
    "gemessen": {
     "rays": 160,
     "durch": 12,
-    "hohl": 55,
-    "glas": 1550
+    "hohl": 53,
+    "glas": 1274
    }
   },
   "rsi-constellation-phoenix": {
-   "sha": "9fbac3a628f4e83f",
-   "durch": 0,
-   "gemessen": {
-    "rays": 160,
-    "durch": 0,
-    "hohl": 16,
-    "glas": 3566
-   }
-  },
-  "rsi-constellation-phoenix-emerald": {
-   "sha": "8d2b06c48352ca5a",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 35,
-    "glas": 3779
-   }
-  },
-  "rsi-constellation-taurus": {
-   "sha": "d946aea9f3ad0c71",
+   "sha": "a8d9b3cb2de7442a",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 14,
-    "glas": 1846
+    "glas": 2794
+   }
+  },
+  "rsi-constellation-phoenix-emerald": {
+   "sha": "b5301490bab1aff8",
+   "durch": 2,
+   "gemessen": {
+    "rays": 160,
+    "durch": 2,
+    "hohl": 32,
+    "glas": 3037
+   }
+  },
+  "rsi-constellation-taurus": {
+   "sha": "d24b040442c8b0e5",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 14,
+    "glas": 1862
    }
   },
   "rsi-hermes": {
-   "sha": "734349e12a45ab20",
+   "sha": "74559855afb8acde",
    "durch": 1,
    "gemessen": {
     "rays": 160,
@@ -2023,7 +2025,7 @@
    }
   },
   "rsi-lynx": {
-   "sha": "d080fd9641db60e3",
+   "sha": "61aa97a33e828484",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2033,111 +2035,110 @@
    }
   },
   "rsi-mantis": {
-   "sha": "065350e9b7c586df",
+   "sha": "04cf0c765249f4a5",
    "durch": 37,
    "gemessen": {
     "rays": 160,
     "durch": 37,
-    "hohl": 66,
+    "hohl": 67,
     "glas": 69
    },
    "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
    "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
   },
   "rsi-meteor": {
-   "sha": "ad2419d8b476608f",
-   "durch": 17,
+   "sha": "37be70573de8737a",
+   "durch": 5,
    "gemessen": {
     "rays": 160,
-    "durch": 17,
-    "hohl": 35,
-    "glas": 134
-   },
-   "ausnahme": "Rücknahme #257 am 30.10.2026: Modell wieder vom Stand davor (einseitig wie aus dem Export), weil der Innenraum hinter dem Glas in #257 falsch lag (Krisz 10:33). Bis zum Neubau nur mit twoSided offen",
-   "angehoben": "Rücknahme #257: Schiffsmodelle auf den Stand davor (Krisz 30.10.2026 10:33, Innenraum hinter Glas lag falsch: 100i-Platte, zerlegte große Schiffe)"
-  },
-  "rsi-perseus": {
-   "sha": "bb2e11812b456770",
-   "durch": 10,
-   "gemessen": {
-    "rays": 160,
-    "durch": 10,
-    "hohl": 71,
-    "glas": 1416
+    "durch": 5,
+    "hohl": 25,
+    "glas": 194
    }
   },
+  "rsi-perseus": {
+   "sha": "62f4754f5ff2276b",
+   "durch": 14,
+   "gemessen": {
+    "rays": 160,
+    "durch": 14,
+    "hohl": 63,
+    "glas": 1435
+   },
+   "angehoben": "Neubau mit der Reparatur vertauschter Netze (11.11.2026): die Stichprobe der Haube verwirft Startpunkte, die von außen verdeckt sind; mit den geänderten Teilen zieht sie andere Strahlen. Dieselben 160 Strahlen des Stands davor treffen im neuen Rumpf gleich: 400i zu 97 → 96, Perseus 82 → 88, Carrack Expedition 123 → 122"
+  },
   "rsi-polaris": {
-   "sha": "f603c92409d6bbeb",
+   "sha": "af59e3708e8214e7",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 945
+    "glas": 948
    }
   },
   "rsi-salvation": {
-   "sha": "b00e70b807d3e405",
+   "sha": "c5b983cc83c12db0",
    "durch": 0,
    "gemessen": {
-    "rays": 7,
+    "rays": 6,
     "durch": 0,
     "hohl": 1,
-    "glas": 110
+    "glas": 112
    }
   },
   "rsi-scorpius": {
-   "sha": "76855f88c10daa20",
+   "sha": "bce58c27404eeed9",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 2,
-    "glas": 643
+    "hohl": 1,
+    "glas": 585
    }
   },
   "rsi-scorpius-antares": {
-   "sha": "0146d158ccdfa14b",
+   "sha": "1ae194750eed84ac",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
     "hohl": 0,
-    "glas": 643
+    "glas": 589
    }
   },
   "rsi-skylark": {
-   "sha": "69e0c551ab754ef9",
-   "durch": 11,
+   "sha": "3088cea68694b2b0",
+   "durch": 8,
    "gemessen": {
     "rays": 160,
-    "durch": 11,
-    "hohl": 25,
-    "glas": 1726
+    "durch": 8,
+    "hohl": 24,
+    "glas": 1138
    }
   },
   "rsi-ursa-medivac": {
-   "sha": "1cf0064557d7e3d6",
+   "sha": "b8351779ceb9ff86",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 5,
-    "glas": 2381
+    "hohl": 9,
+    "glas": 2045
    }
   },
   "rsi-ursa-rover": {
-   "sha": "75919890dd3e95fd",
+   "sha": "2fe85020d45f15fc",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 8,
+    "hohl": 9,
     "glas": 784
    }
   },
   "rsi-ursa-rover-emerald": {
-   "sha": "9a3de2e4e5db8083",
+   "sha": "d68e4c863f0820d2",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2147,7 +2148,7 @@
    }
   },
   "rsi-zeus-cl": {
-   "sha": "658d57ffa290d2c0",
+   "sha": "05320612ec69fe63",
    "durch": 2,
    "gemessen": {
     "rays": 160,
@@ -2157,7 +2158,7 @@
    }
   },
   "rsi-zeus-es": {
-   "sha": "bd62bbd3d4311f1a",
+   "sha": "4a6a87bfc73070df",
    "durch": 3,
    "gemessen": {
     "rays": 160,
@@ -2177,7 +2178,7 @@
    }
   },
   "tmbl-cyclone-aa": {
-   "sha": "11b9576d76bf8f6a",
+   "sha": "2ab75e00417fefac",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2187,7 +2188,7 @@
    }
   },
   "tmbl-cyclone-mt": {
-   "sha": "11b87bda7553fd98",
+   "sha": "9e915b3c3a68fe41",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2227,47 +2228,47 @@
    }
   },
   "tmbl-nova": {
-   "sha": "7bfd7c4ff1e86867",
+   "sha": "2d1a77f747f00c99",
    "durch": 0,
    "gemessen": {
-    "rays": 2,
+    "rays": 3,
     "durch": 0,
     "hohl": 0,
-    "glas": 68
+    "glas": 52
    }
   },
   "tmbl-storm": {
-   "sha": "2f8d1e9acd8783ba",
+   "sha": "0d6aad3d72e299ab",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 132,
+    "hohl": 111,
     "glas": 106
    }
   },
   "tmbl-storm-aa": {
-   "sha": "ccfd3c23b64c8a0b",
+   "sha": "d395049f39cabc26",
    "durch": 0,
    "gemessen": {
-    "rays": 118,
+    "rays": 160,
     "durch": 0,
-    "hohl": 82,
-    "glas": 4104
+    "hohl": 123,
+    "glas": 2094
    }
   },
   "vncl-blade": {
-   "sha": "b7112c10ec4e9108",
+   "sha": "eb0c680a43557ce0",
    "durch": 1,
    "gemessen": {
     "rays": 160,
     "durch": 1,
     "hohl": 12,
-    "glas": 711
+    "glas": 725
    }
   },
   "vncl-glaive": {
-   "sha": "410624d9cb34dd10",
+   "sha": "6500dfe41d0b89b0",
    "durch": 0,
    "gemessen": {
     "rays": 0,
@@ -2277,27 +2278,27 @@
    }
   },
   "vncl-scythe": {
-   "sha": "b9f168a349de0a53",
+   "sha": "5b082267da0ad85f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 0,
-    "glas": 1809
+    "hohl": 1,
+    "glas": 1786
    }
   },
   "vncl-stinger": {
-   "sha": "f39dcbdeab8f4754",
+   "sha": "93933597207bc4e3",
    "durch": 0,
    "gemessen": {
-    "rays": 101,
+    "rays": 66,
     "durch": 0,
-    "hohl": 12,
-    "glas": 256
+    "hohl": 21,
+    "glas": 144
    }
   },
   "xian-nox": {
-   "sha": "724e6fb701360169",
+   "sha": "a90c6c5a60a30583",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2317,7 +2318,7 @@
    }
   },
   "xian-scout": {
-   "sha": "decc1638a048aab3",
+   "sha": "7469919d609a7c2f",
    "durch": 0,
    "gemessen": {
     "rays": 160,
@@ -2327,13 +2328,13 @@
    }
   },
   "xnaa-santokyai": {
-   "sha": "0e04a0f31b4cdf34",
+   "sha": "22e6e06a056a7c0e",
    "durch": 0,
    "gemessen": {
     "rays": 160,
     "durch": 0,
-    "hohl": 6,
-    "glas": 7454
+    "hohl": 2,
+    "glas": 7446
    }
   }
  }

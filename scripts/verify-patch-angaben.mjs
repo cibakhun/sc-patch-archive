@@ -76,6 +76,10 @@ const STAENDE = {
   // den Bau sonst ab, verify:datastand haelt beide); die Halo-Datei steht fuer
   // die Familie.
   'Präzisionssprung': { file: 'assets/aaron-halo-gamefiles.json', get: (j) => j?.gameVersion },
+  // Bestaetigte Fundorte (10.11.2026): die Seiten lesen den Stand aus dem
+  // Kopf `fundorte` des Katalogs, nicht aus src/data/loot-fundorte.json —
+  // dass beide gleich sind, haelt verify:loot-fundorte.
+  'Loot-Fundorte': { file: 'assets/universal-items.json', get: (j) => j?.fundorte?.patch },
 };
 
 // Seitenfamilien: Pfad in dist/ ohne "de/"-Praefix -> Datenstand. Was hier
@@ -386,10 +390,11 @@ const vor = (a, b) => {
 const isoDatum = (v) => (typeof v === 'string' ? /^\d{4}-\d{2}-\d{2}/.exec(v)?.[0] ?? null : null);
 
 const STAND_GRUPPEN = [
-  { name: 'Item-Seiten', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html', pflicht: ['items'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte'], bedingt: ['uex-items', 'shop-schnappschuss', 'fundorte'] },
+  { name: 'Item-Seiten', match: (p) => p === 'items.html' || p.startsWith('items/') || p === 'armor-sets.html', pflicht: ['items'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'], bedingt: ['uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'] },
   // Der Finder rendert seine Karten im Browser; er zeigt alle Gruppen, den
-  // eigenen Shop-Schnappschuss genau dann, wenn der Katalog solche Zeilen hat.
-  { name: 'Item-Finder', match: (p) => p === 'item-finder.html', pflicht: ['items', 'uex-items', 'fundorte'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte'], bedingt: ['shop-schnappschuss'] },
+  // eigenen Shop-Schnappschuss genau dann, wenn der Katalog solche Zeilen hat,
+  // die bestaetigten Fundorte genau dann, wenn ein Item ein Fundort-Profil traegt.
+  { name: 'Item-Finder', match: (p) => p === 'item-finder.html', pflicht: ['items', 'uex-items', 'fundorte'], erlaubt: ['items', 'uex-items', 'shop-schnappschuss', 'fundorte-spiel', 'fundorte'], bedingt: ['shop-schnappschuss', 'fundorte-spiel'] },
   { name: 'Blueprint-Seiten', match: (p) => p === 'crafting.html' || p.startsWith('crafting/'), pflicht: ['crafting'], erlaubt: ['crafting'] },
   { name: 'Missionsseiten', match: (p) => p.startsWith('missionen/'), pflicht: ['missionen'], erlaubt: ['missionen'] },
   { name: 'Schiffsseiten', match: (p) => p.startsWith('schiffe/'), pflicht: ['fahrzeug', 'uex-schiffe'], erlaubt: ['fahrzeug', 'uex-schiffe', 'huelle', 'fleetyards', 'wiki', 'bild'], bedingt: ['huelle', 'fleetyards'] },
@@ -425,6 +430,7 @@ let meldeSeiten = 0;
 // Seitencode noch einmal ausfuehren. [de, en].
 const STAND_WAS = {
   items: ['Spielwerte', 'Game values'], 'uex-items': ['Kaufpreise', 'Purchase prices'], 'shop-schnappschuss': ['Kaufpreise', 'Purchase prices'], fundorte: ['Fundorte', 'Loot locations'],
+  'fundorte-spiel': ['Bestätigte Fundorte', 'Confirmed loot locations'],
   crafting: ['Rezepte und Drop-Chancen', 'Recipes and drop chances'], missionen: ['Missionsdaten', 'Mission data'],
   fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
   huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
@@ -446,6 +452,10 @@ console.log('\n[6] Datenstand-Baustein: jede Zeile gegen ihre Datendatei');
 // Bezugszeilen aus dem eigenen Shop-Schnappschuss (src: "schnappschuss", nur
 // wo UEX das Item nicht fuehrt), je Item-ID gezaehlt.
 const schnappKatalog = new Map();
+// Items mit bestaetigtem Fundort-Profil (`fund`, aufgeloest beim Laden zu
+// Loot-Zeilen mit `ort`). Der Finder muss die Zeile dann fuehren.
+let fundKatalog = 0;
+let fundSeiten = 0;
 let schnappSeiten = 0;
 let schnappZeilen = 0;
 const standSoll = {};
@@ -457,11 +467,13 @@ try {
   for (const it of items.items ?? []) {
     const n = (it.obtain ?? []).filter((o) => o.src === 'schnappschuss').length;
     if (n) schnappKatalog.set(it.id, n);
+    if (it.fund != null) fundKatalog++;
   }
   const ext = rd('src/data/vehicle-external.json');
   const ref = rd('assets/refinery-data.json');
   const quellen = {
     items: { art: 'spiel', wert: fassung['Item-Katalog'], datei: 'assets/universal-items.json gameVersion' },
+    'fundorte-spiel': { art: 'spiel', wert: fassung['Loot-Fundorte'], datei: 'assets/universal-items.json fundorte.patch' },
     crafting: { art: 'spiel', wert: fassung.Crafting, datei: 'assets/crafting-db.json version' },
     missionen: { art: 'spiel', wert: fassung.Missionen, datei: 'src/data/missions.json meta.patch' },
     fahrzeug: { art: 'spiel', wert: null, datei: 'Stempel des Fahrzeug-Datensatzes (src/data/vehicles.json)' },
@@ -558,8 +570,10 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (/\sdata-stand-q="uex-items"/.test(aussen) || preisOhneMarke) soll.add('uex-items');
       if (/\sdata-stand-q="shop-schnappschuss"/.test(aussen)) soll.add('shop-schnappschuss');
       if (/\sdata-stand-q="fundorte"/.test(aussen)) soll.add('fundorte');
+      if (/\sdata-stand-q="fundorte-spiel"/.test(aussen)) { soll.add('fundorte-spiel'); fundSeiten++; }
     }
     if (g.name === 'Item-Finder' && schnappKatalog.size) soll.add('shop-schnappschuss');
+    if (g.name === 'Item-Finder' && fundKatalog) soll.add('fundorte-spiel');
     // Gegen den Katalog: das Datenblatt eines Items markiert genau so viele
     // Bezugszeilen als Shop-Schnappschuss, wie der Katalog fuehrt. Sonst
     // stuende ein Schnappschuss-Preis unter UEX (so bis 06.11.2026).
@@ -613,6 +627,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (q.art === 'spiel') {
         kern = `${L ? 'Spielversion' : 'Game version'} ${sollWert}`;
         aelterSoll = z.quelle === 'fahrzeug' && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
+        // Fundorte aus einem frueheren Lauf als die Spielwerte des Katalogs
+        if (z.quelle === 'fundorte-spiel') aelterSoll = !!sollWert && !!fassung['Item-Katalog'] && vor(sollWert, fassung['Item-Katalog']);
       } else if (q.art === 'fremd') {
         kern = sollWert ? `${name?.[0]}, ${L ? 'Stand' : 'as of'} ${datumIn(sollWert, lang)}` : null;
       } else if (q.art === 'schnappschuss') {
@@ -635,7 +651,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (kern != null ? istKern !== kern : !istKern) standFehler.push(`${rel}: Zeile „${z.quelle}" zeigt „${z.text}", Soll „${z.was} ${kern ?? '(Bildquelle)'}"`);
     }
     for (const p of g.pflicht) if (!gesehen.has(p)) standFehler.push(`${rel}: Pflichtzeile „${p}" fehlt im Datenstand`);
-    for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'shop-schnappschuss' ? 'Kaufpreise aus dem eigenen Shop-Schnappschuss' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
+    for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'shop-schnappschuss' ? 'Kaufpreise aus dem eigenen Shop-Schnappschuss' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'fundorte-spiel' ? 'bestätigte Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
     // Link „Falschen Wert melden“: genau einer auf Detailseiten, sonst keiner.
     const melde = [...innen.matchAll(/<a\b[^>]*\sdata-ev-melden\b[^>]*>([\s\S]*?)<\/a>/g)];
     if (MELDE_DETAIL.test(pfad)) {
@@ -666,6 +682,10 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   const schnappMitSeite = [...schnappKatalog.keys()].filter((id) => existsSync(join(DIST, 'items', `${id}.html`))).length;
   console.log(`    Shop-Schnappschuss: ${schnappKatalog.size} Items im Katalog, davon ${schnappMitSeite} mit Datenblatt; ${schnappSeiten} Seiten (DE+EN) mit ${schnappZeilen} Zeilen geprueft`);
   if (schnappMitSeite && schnappSeiten < 2 * schnappMitSeite) fail.push(`[6] Shop-Schnappschuss: nur ${schnappSeiten} von ${2 * schnappMitSeite} Datenblaettern (DE+EN) geprueft — Zuordnung kaputt`);
+  // Selbstauskunft bestaetigte Fundorte: jedes Item mit Profil hat eine
+  // Detailseite (isIndexable), also muessen DE+EN sie zeigen.
+  console.log(`    Bestätigte Fundorte: ${fundKatalog} Items im Katalog, ${fundSeiten} Item-Seiten (DE+EN, mit Listen) zeigen sie`);
+  if (fundKatalog && fundSeiten < 2 * fundKatalog) fail.push(`[6] Bestätigte Fundorte: nur ${fundSeiten} Item-Seiten zeigen sie, der Katalog fuehrt ${fundKatalog} Items mit Profil (Soll mindestens ${2 * fundKatalog}, DE+EN) — Aufloesung in src/lib/items.ts kaputt?`);
   console.log(`    Zeilen je Quelle: ${Object.entries(standZeilen).map(([q, n]) => `${q} ${n}`).join(', ') || '—'}`);
   // Alter der Fremdquellen: nur genannt, nie bewertet (Grundsatz 3).
   let gebaut = null;

@@ -1,0 +1,118 @@
+/* ============================================================================
+   SKIZZE 015 — Detailseiten 2.0, gemeinsame Grundsprache aller drei Richtungen
+   Wegwerf-Entwurf. Kein Produktionscode. Keine externen Anfragen.
+
+   Die Grundsprache ist die, die der Betreiber in Skizze 006 gewaehlt hat
+   („Baujahr 2026", Variante A): Radius 12/8/6, Satzschreibung statt
+   Versal-Mono, Flaechenstufen statt Rahmen, fast monochrom, Farbe nur fuer
+   Bedeutung. Die drei Richtungen unterscheiden sich NICHT darin, sondern in
+   dem, was die Seite anfuehrt: Bild (A), Einordnung (B), Weg (C).
+   ============================================================================ */
+
+@font-face { font-family: 'Barlow'; font-weight: 400; font-display: swap; src: url(../../../assets/fonts/barlow-400-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 500; font-display: swap; src: url(../../../assets/fonts/barlow-500-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Barlow'; font-weight: 600; font-display: swap; src: url(../../../assets/fonts/barlow-600-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 600; font-display: swap; src: url(../../../assets/fonts/rajdhani-600-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Rajdhani'; font-weight: 700; font-display: swap; src: url(../../../assets/fonts/rajdhani-700-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Orbitron'; font-weight: 500; font-display: swap; src: url(../../../assets/fonts/orbitron-500-latin.woff2) format('woff2'); }
+
+:root {
+  --s0: #0b0a10;
+  --s1: #131119;
+  --s2: #1a1722;
+  --s3: #23202d;
+  --s4: #2e2a3b;
+  --text: #eeeef4;
+  --muted: #a7a5b9;
+  --faint: #7c7a90;
+  --acc: #a78bfa;
+  --acc-weak: rgba(167, 139, 250, 0.14);
+  --acc-line: rgba(167, 139, 250, 0.45);
+  --good: #6fd6a4;
+  --bad: #f19494;
+  --craft: #ffb84d;
+  --r1: 12px;
+  --r2: 8px;
+  --r3: 6px;
+  --maxw: 1160px;
+  --gut: clamp(16px, 4vw, 32px);
+  --lift: 0 28px 60px -36px rgba(0, 0, 0, 0.85);
+  --font: 'Barlow', system-ui, sans-serif;
+  --head: 'Rajdhani', 'Barlow', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--s0);
+  color: var(--text);
+  font: 400 16px/1.55 var(--font);
+  font-variant-numeric: tabular-nums;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+.wrap { max-width: calc(var(--maxw) + 2 * var(--gut)); margin: 0 auto; padding: 0 var(--gut); }
+.num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+
+/* ---------- Kopfleiste (wie DataShell: Brotkrume, Suche, Sprache) ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 5;
+  background: color-mix(in srgb, var(--s0) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.bar .wrap { display: flex; align-items: center; gap: 18px; height: 56px; }
+.logo { font: 500 15px/1 'Orbitron', var(--font); letter-spacing: 0.04em; white-space: nowrap; }
+.logo::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 2px; background: var(--acc); margin-right: 9px; transform: translateY(-2px) rotate(45deg); }
+.crumbs { display: flex; gap: 8px; font-size: 14px; color: var(--muted); min-width: 0; overflow: hidden; white-space: nowrap; }
+.crumbs span:last-child { color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+.crumbs i { font-style: normal; color: var(--faint); }
+.bar .tools { margin-left: auto; display: flex; gap: 8px; }
+.ibtn { width: 36px; height: 36px; border-radius: var(--r2); background: var(--s2); display: grid; place-items: center; color: var(--muted); font: 600 13px var(--font); }
+.ibtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+/* ---------- Bausteine ---------- */
+.eyebrow { font: 500 14px/1.3 var(--font); color: var(--acc); margin: 0 0 10px; }
+h1 { font: 700 clamp(34px, 6vw, 58px)/1.02 var(--head); letter-spacing: -0.01em; margin: 0; }
+h2 { font: 700 26px/1.15 var(--head); margin: 0 0 6px; }
+h3 { font: 600 17px/1.3 var(--font); margin: 0 0 4px; }
+.sub { color: var(--muted); font-size: 16px; margin: 8px 0 0; }
+.sec { margin: 56px 0 0; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin: 0 0 18px; flex-wrap: wrap; }
+.sec-head p { margin: 0; color: var(--muted); font-size: 15px; }
+.card { background: var(--s1); border-radius: var(--r1); padding: 18px 20px; box-shadow: var(--lift); }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 99px; background: var(--s3); color: var(--text); font: 500 14px var(--font); white-space: nowrap; }
+.pill b { font-weight: 500; color: var(--muted); }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: var(--r2); background: var(--acc); color: #120f1c; font: 600 15px var(--font); }
+.btn.ghost { background: var(--s3); color: var(--text); }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--acc); }
+
+/* Wertetabelle: Label links, Zahl rechts, Haarlinie zwischen den Zeilen */
+.kv { margin: 0; display: grid; grid-template-columns: 1fr auto; }
+.kv dt, .kv dd { margin: 0; padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.kv dt { color: var(--muted); }
+.kv dd { text-align: right; font-weight: 500; }
+.kv dd small { color: var(--faint); font-weight: 400; font-size: 14px; }
+.kv > :nth-last-child(-n + 2) { border-bottom: 0; }
+
+/* ---------- Datenstand + Fuss (Inhalt wie heute, Sprache neu) ---------- */
+.stand { margin: 64px 0 0; padding: 20px 0 0; border-top: 1px solid rgba(255, 255, 255, 0.07); color: var(--muted); font-size: 14px; display: flex; gap: 8px 28px; flex-wrap: wrap; }
+.stand b { color: var(--text); font-weight: 500; }
+.stand a { text-decoration: underline; text-underline-offset: 3px; }
+.foot { margin: 40px 0 0; padding: 28px 0 40px; background: var(--s1); color: var(--faint); font-size: 13px; }
+.foot nav { display: flex; gap: 22px; flex-wrap: wrap; color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+.foot p { margin: 0; max-width: 90ch; }
+
+/* Markierung „Entwurf“ — nur in der Skizze */
+.skizze { position: absolute; right: 12px; top: 64px; z-index: 9; background: var(--s3); color: var(--muted); font: 500 12px var(--font); padding: 6px 10px; border-radius: var(--r3); }
+
+@media (max-width: 720px) {
+  body { font-size: 15px; }
+  .crumbs span:not(:last-child), .crumbs i { display: none; }
+  .sec { margin-top: 44px; }
+  h2 { font-size: 23px; }
+}

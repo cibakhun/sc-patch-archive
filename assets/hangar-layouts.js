@@ -211,6 +211,49 @@ export function deltaPct(value, base) {
   return Math.round(((value - base) / base) * 100);
 }
 
+/**
+ * Werte, bei denen weniger besser ist (Schluessel wie ihre Woerter sp.*): der
+ * Pfeil zeigt die Richtung, die Farbe das Urteil. EINE Liste fuer Advanced
+ * Loadout (assets/hangar-loadout.js) und das Datenblatt des Bauteils.
+ */
+export const LOWER = new Set(['sp.spread', 'sp.heat', 'sp.ovf', 'sp.chd', 'sp.lkT', 'sp.pw', 'sp.em', 'sp.ir', 'sp.spool',
+  'sp.arm', 'sp.ign', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.full', 'sp.price']);
+
+/**
+ * Platz eines Werts in seiner Klasse (Detail Pages 2.0, Richtung B
+ * „Einordnung“): values = die Werte aller Teile der Klasse samt dem eigenen,
+ * v der eigene. Platz 1 hat der beste Wert (lower: der kleinste); Teile mit
+ * demselben Wert teilen den Platz, der naechste Wert steht entsprechend
+ * weiter hinten (1, 1, 3). null ohne eigenen Wert.
+ * classRank([5, 9, 9, 2], 9) -> { rank: 1, of: 4, same: 1, worse: 2 }
+ * @returns {{ rank: number, of: number, same: number, worse: number } | null}
+ */
+export function classRank(values, v, lower = false) {
+  const vs = values.filter(Number.isFinite);
+  if (!Number.isFinite(v) || !vs.includes(v)) return null;
+  const better = vs.filter((o) => (lower ? o < v : o > v)).length;
+  const same = vs.filter((o) => o === v).length - 1;
+  return { rank: better + 1, of: vs.length, same, worse: vs.length - better - same - 1 };
+}
+
+/**
+ * Die Klasse als Streifen: x(v) legt einen Wert auf 0 (schlechtester) bis 100
+ * (bester), bei lower gespiegelt, damit rechts immer besser ist; haben alle
+ * denselben Wert, liegt er in der Mitte. med: Lage des Medians. dots: je
+ * verschiedenem Wert ein Punkt [Lage, Anzahl der Teile], von links.
+ * @returns {{ x: (v: number) => number, med: number, dots: [number, number][] } | null}
+ */
+export function classStrip(values, lower = false) {
+  const vs = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (!vs.length) return null;
+  const lo = vs[0], hi = vs[vs.length - 1];
+  const x = (v) => (hi === lo ? 50 : Math.round(((lower ? hi - v : v - lo) / (hi - lo)) * 1000) / 10);
+  const mid = vs.length >> 1, med = vs.length % 2 ? vs[mid] : (vs[mid - 1] + vs[mid]) / 2;
+  const n = new Map();
+  for (const v of vs) n.set(v, (n.get(v) ?? 0) + 1);
+  return { x, med: x(med), dots: [...n].map(([v, k]) => [x(v), k]).sort((a, b) => a[0] - b[0]) };
+}
+
 /** Gruppen, deren Summe etwas sagt: Feuerkraft, Raketenschaden, Leistung, Kuehlung, Schild. */
 export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield']);
 /** Arten im Reiter Waffen: Bordwaffen und alles, was eine Halterung abfeuert. */
@@ -505,15 +548,37 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
   let last = null; // Ergebnis des letzten Abgleichs dieses Kontos
   let lastUid = null;
   let timer = 0;
+  // Aenderungen dieses Browsers, gezaehlt; `bestaetigt` = so viele hat ein
+  // gelungener Abgleich mitgenommen. Was dazwischen liegt, ist noch unterwegs
+  // (Frist, wartender oder LAUFENDER Abgleich) und nicht „gespeichert".
+  let aenderungen = 0;
+  let bestaetigt = 0;
   const run = async () => {
     const a = acct();
     const id = uid();
     if (!a || !id) return null;
+    // Vor dem Lesen der Ablage gezaehlt: was danach kommt, nimmt dieser Lauf
+    // vielleicht mit, zaehlt aber erst beim naechsten (lieber zu lange offen).
+    const bis = aenderungen;
     const sess = await a.session();
-    if (!sessionUid(sess) || sessionUid(sess) !== id) return null;
+    if (!sessionUid(sess) || sessionUid(sess) !== id) {
+      // Die gespeicherte Sitzung gehoert noch diesem Konto, ist aber gerade
+      // nicht nutzbar (Refresh scheiterte an 5xx, am Netz oder an der Frist):
+      // nichts kam an. Ohne diesen Zweig blieb das Ergebnis des VORIGEN Laufs
+      // stehen, und die Anzeige sagte „In deinem Konto gespeichert" ueber ein
+      // Layout, das nur in diesem Browser lag. Ein Kontowechsel, der gerade
+      // passiert, malt die Seite ueber vb-account-session selbst neu.
+      if (uid() === id) {
+        last = false;
+        lastUid = id;
+        onChange();
+      }
+      return null;
+    }
     const res = await syncLayouts({ storage, uid: id, rest: (method, path, body, prefer) => a.rest(sess, method, path, body, prefer) });
     last = res.ok;
     lastUid = id;
+    if (res.ok) bestaetigt = Math.max(bestaetigt, bis);
     onChange();
     return res;
   };
@@ -536,19 +601,37 @@ export function accountStore({ storage, account, onChange, win = globalThis }) {
     return running;
   };
   function touched() {
+    aenderungen++;
     clearTimeout(timer);
     timer = 0;
     if (uid()) timer = setTimeout(() => { timer = 0; sync(); }, 400);
   }
+  // Ein anderer Tab hat den Spiegel dieses Kontos geaendert (gespeichert,
+  // geloescht, abgeglichen). Ob das schon im Konto liegt, weiss nur er, und
+  // schliesst er vor seinem Abgleich, laege es nur in diesem Browser. Also wie
+  // eine eigene Aenderung: offen, bis ein Abgleich HIER es bestaetigt. Steht
+  // vor den Ereignissen der Seite (die malt danach neu und liest schon
+  // 'pending'); der Abgleich ist idempotent, ein zweiter Tab kostet ein GET.
+  if (typeof win.addEventListener === 'function') {
+    win.addEventListener('storage', (e) => { if (e?.key && uid() && e.key === base.key()) touched(); });
+  }
   /**
    * 'guest' | 'synced' (letzter Abgleich ok und seither nichts offen)
-   * | 'pending' (angemeldet, Abgleich laeuft oder steht aus) | 'error'.
+   * | 'pending' (angemeldet, eine Aenderung ist noch unterwegs) | 'error'.
+   * `again`: waehrend des laufenden Abgleichs wurde gespeichert, und was
+   * danach kam, nimmt erst der naechste mit. Bis der durch ist, ist das
+   * Konto nicht auf dem Stand, auch wenn der laufende gelang.
+   * `bestaetigt < aenderungen` ohne Frist und ohne `again`: der Abgleich mit
+   * der Aenderung laeuft gerade. Ein Abgleich OHNE eigene Aenderung (Tab
+   * kehrt zurueck) laesst „gespeichert" stehen: was dieser Browser hatte,
+   * liegt schon im Konto; scheitert er, zeigt die Anzeige „error".
    */
   const state = () => {
     const id = uid();
     if (!id) return 'guest';
-    if (lastUid !== id || last === null || timer) return 'pending';
-    return last ? 'synced' : 'error';
+    if (lastUid !== id || last === null || timer || again) return 'pending';
+    if (!last) return 'error';
+    return bestaetigt < aenderungen ? 'pending' : 'synced';
   };
   return { store, signedIn: () => !!uid(), state, sync, touched };
 }
@@ -563,8 +646,13 @@ export const newId = (rnd = Math.random) => Array.from({ length: 10 }, () => '01
  *   set(patch)     aendert ihn (und damit die Adresse)
  *   shipName(id)   Name des Schiffs von seiner Dock-Karte
  *   say(text)      hoefliche Live-Region der Seite
+ *   holo()         steht die Uebersicht als Hologramm in der Halle? Dann
+ *                  arbeitet die Werkstatt weiter, gezeichnet wird sie dort
+ *   changed()      der Stand der Tafel hat sich geaendert (neu zeichnen)
  * Liefert render(state); der Controller ruft es nach jeder Aenderung von
- * ship, hp, lo oder pane. lo null ist Serie ohne Namen (EMPTY_CODE).
+ * ship, hp, lo oder station. lo null ist Serie ohne Namen (EMPTY_CODE).
+ * Dazu board() und act(a) fuer die Tafel in der Halle (siehe unten): EINE
+ * Werkstatt, ein Layout, zwei Ansichten.
  * @param {Document} doc
  */
 export function initWorkshop(doc, bridge) {
@@ -574,6 +662,8 @@ export function initWorkshop(doc, bridge) {
   const loc = main.dataset.loc;
   const de = aside.dataset.lang === 'de';
   const nf = new Intl.NumberFormat(loc);
+  const f1 = new Intl.NumberFormat(loc, { maximumFractionDigits: 1 });
+  const f2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
   const pr = new Intl.PluralRules(loc);
   const m = (k) => doc.querySelector(`#hgl-msg [data-m="${k}"]`)?.textContent ?? k;
   const fill = (tpl, vals) => tpl.replace(/\{(\w+)\}/g, (x, k) => (k in vals ? String(vals[k]) : x));
@@ -601,6 +691,9 @@ export function initWorkshop(doc, bridge) {
   let savedId = null;
   let pendingSaved = null;
   let openKey = null;
+  // Datenblatt in der flachen Werkstatt: { slot, item, q }, solange es statt
+  // der Auswahlliste im offenen Slot steht (sheetView); q ist deren Suchwort
+  let detail = null;
   let firstAdopt = true;
   let view = 'build';
 
@@ -683,6 +776,7 @@ export function initWorkshop(doc, bridge) {
     const paint = raw.paint && data.paints?.[state.ship]?.list.some((r) => r[0] === raw.paint) ? raw.paint : null;
     const dropped = lost + (raw.paint && !paint ? 1 : 0);
     draft = { ship: state.ship, name: raw.name, slots: clean, ...(Object.keys(rk).length ? { racks: rk } : {}), ...(paint ? { paint } : {}) };
+    detail = null;
     code = encodeLayout(draft);
     const pending = pendingSaved ? store.get(pendingSaved) : null;
     const match = pending && sameLayout(pending, draft) ? pending : store.list().find((e) => sameLayout(e, draft));
@@ -740,15 +834,18 @@ export function initWorkshop(doc, bridge) {
   });
   nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
   nameIn.addEventListener('blur', () => { nameIn.value = draft.name; });
-  $('hgl-dice').addEventListener('click', (e) => {
+  function rollName() {
     const names = m('name.fun').split('|').filter((x) => x && x !== draft.name);
     draft.name = names[Math.floor(Math.random() * names.length)] ?? draft.name;
     nameIn.value = draft.name;
+    commit();
+  }
+  $('hgl-dice').addEventListener('click', (e) => {
+    rollName();
     const b = e.currentTarget;
     b.classList.remove('is-roll');
     void b.offsetWidth;
     b.classList.add('is-roll');
-    commit();
   });
 
   /* ---- Slots ---- */
@@ -767,16 +864,19 @@ export function initWorkshop(doc, bridge) {
     radar: 'M4 13a8 8 0 0116 0M7.5 13a4.5 4.5 0 019 0M12 13l4-6M12 14.5a1.5 1.5 0 100-3',
   };
   const SVG = 'http://www.w3.org/2000/svg';
-  function ico(type) {
+  function pathIco(d, cls) {
     const svg = doc.createElementNS(SVG, 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('class', 'hgl-ico');
+    svg.setAttribute('class', cls);
     const path = doc.createElementNS(SVG, 'path');
-    path.setAttribute('d', ICON[type] ?? ICON.gun);
+    path.setAttribute('d', d);
     svg.append(path);
     return svg;
   }
+  const ico = (type) => pathIco(ICON[type] ?? ICON.gun, 'hgl-ico');
+  // i im Kreis: der Weg zum Datenblatt eines Teils der Auswahl
+  const infoIco = () => pathIco('M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM12 11v5.5M12 7.5v.2', 'hgl-info__i');
   function buildSlots() {
     slotEls.clear();
     // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
@@ -903,9 +1003,10 @@ export function initWorkshop(doc, bridge) {
     const open = openKey && slots.find((s) => s.key === openKey);
     $('hgl-hint').hidden = cat === 'paint' || !slots.length || (!!open && tabOf(open) === cat);
   }
+  const catCount = (c) => (c === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === c && isChanged(s)).length);
   function paintCatCounts() {
     for (const b of catBtns) {
-      const n = b.dataset.cat === 'paint' ? (draft.paint ? 1 : 0) : slots.filter((s) => tabOf(s) === b.dataset.cat && isChanged(s)).length;
+      const n = catCount(b.dataset.cat);
       b.querySelector('[data-cat-n]').textContent = n ? nf.format(n) : '';
     }
   }
@@ -986,7 +1087,7 @@ export function initWorkshop(doc, bridge) {
     const byPort = new Map();
     for (const s of slots) {
       if (tabOf(s) !== cat) continue;
-      const sel = `#main.hg[data-pane="layout"] .hgx-mk[data-tab="${cat}"][data-port="${CSS.escape(portOf(s.key))}"]`;
+      const sel = `#main.hg[data-station="loadout"] .hgx-mk[data-tab="${cat}"][data-port="${CSS.escape(portOf(s.key))}"]`;
       const p = byPort.get(sel) ?? { gun: false, names: [] };
       byPort.set(sel, p);
       if (s.type !== 'gun') continue;
@@ -1009,15 +1110,15 @@ export function initWorkshop(doc, bridge) {
     bridge.fit?.(draft.ship, fits);
   }
 
+  const groupUnit = (g) => (g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : g === 'missile' || g === 'bomb' ? dmg() : UNIT[g]());
   function paintTotals() {
     paintMods();
     paintModel();
     paintCatCounts();
     const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
     for (const [g, t] of totals) {
-      const unit = g === 'pilot' || g === 'manned' || g === 'remote' ? 'DPS' : g === 'missile' || g === 'bomb' ? dmg() : UNIT[g]();
       const b = slotsHost.querySelector(`[data-total="${g}"]`);
-      if (b) b.textContent = `${nf.format(Math.round(t.now))} ${unit}`;
+      if (b) b.textContent = `${nf.format(Math.round(t.now))} ${groupUnit(g)}`;
       const gd = slotsHost.querySelector(`[data-gd="${g}"]`);
       if (!gd) continue;
       const d = Math.round(t.now - t.stock);
@@ -1050,6 +1151,7 @@ export function initWorkshop(doc, bridge) {
     const hp = bridge.state().hp;
     if (!hp) openKey = null;
     else if (!openKey || portOf(openKey) !== hp) openKey = slots.find((s) => portOf(s.key) === hp)?.key ?? null;
+    if (detail && detail.slot !== openKey) detail = null;
     for (const s of slots) {
       const li = slotEls.get(s.key);
       const on = s.key === openKey;
@@ -1079,21 +1181,20 @@ export function initWorkshop(doc, bridge) {
   // Raketen, darunter Name und Preis der gewaehlten; die Serie traegt ihr Etikett.
   function rackBar(slot) {
     const on = draft.racks?.[slot.key] ?? slot.racks[0];
-    // kleine Raketen zuerst, bei gleicher Groesse die mit mehr Plaetzen
-    const order = [...slot.racks].sort((a, b) => data.racks[a][4] - data.racks[b][4] || data.racks[b][3] - data.racks[a][3]);
-    const btns = order.map((k) => {
+    const btns = rackOrder(slot).map((k) => {
       const r = data.racks[k];
       const tags = [k === slot.racks[0] && k !== on ? el('em', {}, m('slot.stock')) : null];
       return el('button', { type: 'button', class: 'hgl-rack', 'data-rack': k, 'aria-pressed': String(k === on), title: rackName(k) },
         el('b', {}, `${r[3]}× S${r[4]}`), el('small', {}, rackShort(k)), ...tags);
     });
-    const r = data.racks[on];
-    const info = [rackName(on), r?.[7] ? fill(m('pick.price'), { n: nf.format(r[7]) }) : m('pick.noshop')].join(' · ');
     return el('div', { class: 'hgl-racks', role: 'group', 'aria-label': m('rack.label') },
       el('span', { class: 'hgl-racks__h' }, m('rack.label')),
       el('div', { class: 'hgl-racks__row' }, ...btns),
-      el('small', { class: 'hgl-racks__info' }, info));
+      el('small', { class: 'hgl-racks__info' }, rackInfo(on)));
   }
+  // kleine Raketen zuerst, bei gleicher Groesse die mit mehr Plaetzen
+  const rackOrder = (slot) => [...slot.racks].sort((a, b) => data.racks[a][4] - data.racks[b][4] || data.racks[b][3] - data.racks[a][3]);
+  const rackInfo = (k) => [rackName(k), data.racks[k]?.[7] ? fill(m('pick.price'), { n: nf.format(data.racks[k][7]) }) : m('pick.noshop')].join(' · ');
   // Kurzname einer Halterung fuer die Taste: ohne Art, Bauweise und Belegung ("MSD-322", "Gatac").
   const rackShort = (k) => (data.racks[k]?.[0] ?? '')
     .replace(/\b\d+\s*x\s*S?\d+\b/gi, '')
@@ -1101,6 +1202,8 @@ export function initWorkshop(doc, bridge) {
     .replace(/\s+-\s*$/, '').replace(/\s{2,}/g, ' ').trim();
 
   function buildPicker(slot, pick) {
+    if (detail?.slot === slot.key && sheetView(slot, pick, detail.item)) return;
+    detail = null;
     const keys = candidates(eff(slot), data.items);
     const now = current(slot);
     const base = data.items[now]?.[7] ?? null;
@@ -1114,12 +1217,15 @@ export function initWorkshop(doc, bridge) {
       const d = k === now ? null : deltaPct(it[7], base);
       const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
       const b = el('button', { type: 'button', class: 'hgl-opt', 'data-item': k, 'aria-pressed': String(k === now) },
-        el('span', { class: 'hgl-opt__nm' }, itemName(k), ...tags),
+        el('span', { class: 'hgl-opt__nm' }, el('span', {}, itemName(k)), ...tags),
         el('span', { class: 'hgl-opt__sub' }, subLine(k, true)),
         el('span', { class: 'hgl-opt__fig' }, nf.format(it[7])),
         el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`),
         el('span', { class: 'hgl-opt__bar', 'aria-hidden': 'true' }, el('i', { style: `--w:${Math.round((it[7] / max) * 100)}%` })));
-      const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b);
+      // daneben der Weg zum Datenblatt des Teils: die Zeile selbst baut weiter ein
+      const label = fill(m('sheet.open'), { name: itemName(k) });
+      const info = el('button', { type: 'button', class: 'hgl-info', 'data-info': k, 'aria-label': label, title: label }, infoIco());
+      const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b, info);
       return li;
     });
     ul.append(...opts);
@@ -1182,6 +1288,8 @@ export function initWorkshop(doc, bridge) {
     bridge.say(fill(m('msg.fitted'), { item: itemName(item) }));
     // Zu: die Auswahl schliesst, die Kamera faehrt zurueck, der Slot leuchtet.
     openKey = null;
+    peek = null;
+    detail = null;
     commit({ patch: { hp: null } });
     paintSlot(slot, true);
     paintTotals();
@@ -1203,10 +1311,25 @@ export function initWorkshop(doc, bridge) {
       if (slot) equip(slot, opt.dataset.item);
       return;
     }
+    // Datenblatt: auf (i an der Zeile), zu (zurueck zur Auswahl), einbauen
+    const sb = e.target.closest('.hgl-info,.hgl-sheet__back,.hgl-sheet__fit');
+    if (sb) {
+      const slot = slots.find((s) => s.key === sb.closest('.hgl-slot').dataset.key);
+      if (!slot) return;
+      if (sb.classList.contains('hgl-sheet__fit')) equip(slot, sb.dataset.item);
+      else showSheet(slot, sb.classList.contains('hgl-info') ? sb.dataset.info : null);
+      return;
+    }
     const btn = e.target.closest('.hgl-slot__btn');
     if (!btn) return;
     const slot = slots.find((s) => s.key === btn.dataset.key);
     if (!slot) return;
+    toggleSlot(slot);
+    if (openKey === slot.key) slotEls.get(slot.key).querySelector('.hgl-q')?.focus({ preventScroll: true });
+  });
+  function toggleSlot(slot) {
+    peek = null;
+    detail = null;
     if (openKey === slot.key) {
       openKey = null;
       bridge.set({ hp: null });
@@ -1215,17 +1338,18 @@ export function initWorkshop(doc, bridge) {
       bridge.set({ tab: tabOf(slot), hp: portOf(slot.key) });
     }
     syncOpen();
-    if (openKey === slot.key) slotEls.get(slot.key).querySelector('.hgl-q')?.focus({ preventScroll: true });
-  });
+  }
   // Pfeile in der Auswahl: Suche -> erste Zeile, dann Zeile fuer Zeile.
   slotsHost.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     const pick = e.target.closest('.hgl-pick');
     if (!pick) return;
-    const opts = [...pick.querySelectorAll('li:not([hidden]) .hgl-opt')];
+    // nur die Zeilen, die die Suche stehen laesst (li allein traefe auch den Slot darueber)
+    const opts = [...pick.querySelectorAll('.hgl-opts li:not([hidden]) .hgl-opt')];
     if (!opts.length) return;
     e.preventDefault();
-    const i = opts.indexOf(e.target);
+    // vom i einer Zeile aus zaehlt ihre Zeile
+    const i = opts.indexOf(e.target.closest('.hgl-opts li')?.querySelector('.hgl-opt') ?? e.target);
     const to = e.key === 'ArrowDown' ? (i < 0 ? 0 : Math.min(opts.length - 1, i + 1)) : i <= 0 ? -1 : i - 1;
     (to < 0 ? pick.querySelector('.hgl-q') : opts[to]).focus();
   });
@@ -1275,7 +1399,7 @@ export function initWorkshop(doc, bridge) {
   }
   $('hgl-share').addEventListener('click', (e) => share(draft, e.currentTarget));
 
-  $('hgl-reset').addEventListener('click', () => {
+  function reset() {
     draft.slots = {};
     delete draft.racks;
     delete draft.paint;
@@ -1286,7 +1410,8 @@ export function initWorkshop(doc, bridge) {
     paintTotals();
     syncOpen();
     showToast(m('msg.reset'));
-  });
+  }
+  $('hgl-reset').addEventListener('click', reset);
 
   function done(btn) {
     btn.classList.add('is-done');
@@ -1294,19 +1419,23 @@ export function initWorkshop(doc, bridge) {
   }
   let toastTimer = 0;
   let undo = null;
+  let toastTxt = '';
+  const toastOff = () => { toast.classList.remove('is-on'); undo = null; toastTxt = ''; bridge.changed?.(); };
   function showToast(text, onUndo = null) {
     $('hgl-toast-txt').textContent = text;
     undo = onUndo;
     undoBtn.hidden = !onUndo;
     toast.classList.add('is-on');
+    toastTxt = text;
     bridge.say(text);
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.classList.remove('is-on'); undo = null; }, onUndo ? 6000 : 2600);
+    toastTimer = setTimeout(toastOff, onUndo ? 6000 : 2600);
+    bridge.changed?.();
   }
   undoBtn.addEventListener('click', () => {
     const f = undo;
-    undo = null;
-    toast.classList.remove('is-on');
+    clearTimeout(toastTimer);
+    toastOff();
     f?.();
   });
 
@@ -1375,6 +1504,7 @@ export function initWorkshop(doc, bridge) {
     if (!data) return;
     paintSaved();
     paintHead();
+    bridge.changed?.();
   }
   window.addEventListener('storage', (e) => {
     if (e.key === store.key()) repaint();
@@ -1385,17 +1515,425 @@ export function initWorkshop(doc, bridge) {
   else window.addEventListener('vb-account-ready', () => acct.sync(), { once: true });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') acct.sync(); });
 
+  /* ---- Tafel in der Halle ---- */
+  // Steht die Uebersicht als Hologramm in der Halle, zeichnet der Viewer die
+  // Werkstatt dort auf die Tafel „Ausruestung“ (assets/hangar-holo3d.js,
+  // Krisz 10.11.2026: Loadout direkt in die Uebersicht, „eine zentrale
+  // Bedienoberflaeche“, mit den Zeichen und Farben von hier). board() liefert,
+  // was zu sehen ist, als fertige Woerter und Zahlen; act() fuehrt aus, was
+  // dort geklickt wird, ueber dieselben Wege wie die Knoepfe dieser Tafel.
+  const MENU_SAVED = 8;
+  let nameEdit = false;
+  const txtOf = (id) => ($(id).querySelector('span') ?? $(id)).textContent.trim();
+  // Abstand in Prozent als „▲ 12 %“; flat: auch 0 % nennen (Auswahlliste)
+  function pctOf(value, base, flat = false) {
+    const d = deltaPct(value, base);
+    if (d == null || (!d && !flat)) return { delta: '', dir: 0 };
+    return { delta: `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`, dir: Math.sign(d) };
+  }
+
+  /* ---- Datenblatt des Bauteils (rechte Tafel der Halle) ---- */
+  // Krisz 10.11.2026: das Item-Datenblatt fuer Waffen und Komponenten direkt
+  // in den Hangar; Freigabe der Skizze 11.11. („ja so ungefaehr einbauen“).
+  // Solange ein Slot offen steht, zeigt die rechte Tafel statt des Schiffs
+  // das Bauteil: das unter dem Zeiger in der Auswahl (peek), sonst das
+  // eingebaute. Inhalt ist die Einordnung aus Detail Pages 2.0 (Richtung B):
+  // jeder Wert gegen seine Klasse, hier die Teile, die in diesen Slot passen
+  // (dieselbe Art und Groesse, also genau die Auswahlliste). Der Platz wird
+  // hier gerechnet (classRank, classStrip) und gilt spaeter auch fuer die
+  // Item-Seiten. Dazu die Wege, die es gibt (Kaufen, Herstellen, Ab Werk),
+  // und was der Tausch an der Summe der Gruppe aendert.
+  let peek = null;   // { slot, item }: bleibt, bis ein anderes Teil gemeint ist oder der Slot schliesst
+  const itemTpl = aside.dataset.item ?? '';
+  const sitePre = aside.dataset.pre ?? '';
+  const xv = (k) => (it) => it[8]?.[k];
+  // Streifen je Art: [Schluessel fuer LOWER, Wort, Wert, Einheit, Nachkommastellen]; der erste ist der Kennwert
+  const ORD_STRIPS = [
+    ['main', () => m('unit.damage'), (it) => it[7], '', 0],
+    ['sp.mspeed', () => m('sheet.s.tempo'), xv('spd'), 'm/s', 0],
+    ['sp.lkR', () => m('sheet.s.lkR'), xv('lkR'), 'm', 0],
+    ['sp.lkT', () => m('sp.lkT'), xv('lkT'), 's', 2],
+  ];
+  const STRIPS = {
+    gun: [
+      ['main', () => m('tot.fire'), (it) => it[8]?.dps ?? it[7], 'DPS', 1],
+      ['sp.range', () => m('sp.range'), xv('rng'), 'm', 0],
+      ['sp.speed', () => m('sheet.s.speed'), xv('spd'), 'm/s', 0],
+      ['sp.rate', () => m('sp.rate'), xv('rate'), '/min', 0],
+    ],
+    missile: ORD_STRIPS, torpedo: ORD_STRIPS, gmissile: ORD_STRIPS,
+    bomb: [
+      ['main', () => m('unit.damage'), (it) => it[7], '', 0],
+      ['sp.blast', () => m('sheet.s.blast'), xv('blast'), 'm', 1],
+      ['sp.arm', () => m('sp.arm'), xv('arm'), 's', 1],
+    ],
+    shield: [
+      ['main', () => m('tot.shield'), (it) => it[7], 'HP', 0],
+      ['sp.regen', () => m('sp.regen'), xv('regen'), 'HP/s', 0],
+      ['sp.dly', () => m('sheet.s.dly'), xv('dly'), 's', 2],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+    ],
+    power: [
+      ['main', () => m('unit.power'), (it) => it[7], '', 0],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+      ['sp.hp', () => m('sp.hp'), xv('hp'), 'HP', 0],
+    ],
+    cooler: [
+      ['main', () => m('unit.cooling'), (it) => it[7], '', 0],
+      ['sp.pw', () => m('sp.pw'), xv('pw'), '', 0],
+      ['sp.ir', () => m('sp.ir'), xv('ir'), '', 0],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+    ],
+    quantum: [
+      ['main', () => m('sheet.s.tempo'), (it) => it[7], 'Mm/s', 0],
+      ['sp.spool', () => m('sp.spool'), xv('spool'), 's', 1],
+      ['sp.cd', () => m('sp.cd'), xv('cd'), 's', 1],
+      ['sp.fuel', () => m('sheet.s.fuel'), xv('fuel'), '', 1],
+    ],
+    radar: [
+      ['main', () => m('unit.sensitivity'), (it) => it[7], '', 0],
+      ['sp.pw', () => m('sp.pw'), xv('pw'), '', 0],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+      ['sp.hp', () => m('sp.hp'), xv('hp'), 'HP', 0],
+    ],
+  };
+  // Die Klasse im Satz („Unter den 26 Schiffswaffen der Groesse 3“) und der Kennwert darin („bei der Feuerkraft“)
+  const CLASS_WORD = {
+    gun: () => m('sheet.cls.gun'), missile: () => m('sheet.cls.missile'), torpedo: () => m('sheet.cls.torpedo'), gmissile: () => m('sheet.cls.gmissile'),
+    bomb: () => m('sheet.cls.bomb'), power: () => m('sheet.cls.power'), cooler: () => m('sheet.cls.cooler'), shield: () => m('sheet.cls.shield'),
+    quantum: () => m('sheet.cls.quantum'), radar: () => m('sheet.cls.radar'),
+  };
+  const ordAt = () => m('sheet.at.ord');
+  const AT_WORD = {
+    gun: () => m('sheet.at.gun'), missile: ordAt, torpedo: ordAt, gmissile: ordAt, bomb: ordAt, power: () => m('sheet.at.power'),
+    cooler: () => m('sheet.at.cooler'), shield: () => m('sheet.at.shield'), quantum: () => m('sheet.at.quantum'), radar: () => m('sheet.at.radar'),
+  };
+  // Einzahl oder Mehrzahl, beide Woerter woertlich genannt (verify:hangar [21] liest sie hier)
+  const one = (n) => pr.select(n) === 'one';
+  const placesTxt = (n) => fill(one(n) ? m('sheet.places.one') : m('sheet.places.other'), { n: nf.format(n) });
+  const planTxt = (n) => (n ? fill(one(n) ? m('sheet.bp.one') : m('sheet.bp.other'), { n: nf.format(n) }) : m('sheet.bp.none'));
+  // Vorlage mit {platz} in Stuecke [Text, fett] zerlegen; vals: { platz: [Text, fett] }
+  const segs = (tpl, vals) => tpl.split(/(\{\w+\})/).filter(Boolean).map((part) => {
+    const k = /^\{(\w+)\}$/.exec(part)?.[1];
+    return k && k in vals ? vals[k] : [part, 0];
+  });
+  // Fahrzeuge, die ein Teil ab Werk tragen (jedes Schiff der Datei, je Teil einmal)
+  let stockOn = null;
+  function shipsWith(k) {
+    if (!stockOn) {
+      stockOn = new Map();
+      for (const [ship, rows] of Object.entries(data.ships)) for (const r of rows) if (r[3]) stockOn.set(r[3], (stockOn.get(r[3]) ?? new Set()).add(ship));
+    }
+    return [...(stockOn.get(k) ?? [])];
+  }
+  const waysCount = (k) => (data.items[k]?.[9] ? 1 : 0) + (data.items[k]?.[8]?.ct ? 1 : 0) + (shipsWith(k).length ? 1 : 0);
+  // Bauzeit als [Zahl, Einheit]: unter einer Stunde Minuten, sonst Stunden und Minuten
+  function craftTime(sec) {
+    const min = Math.max(1, Math.round(sec / 60));
+    if (min < 60) return [nf.format(min), 'min'];
+    return min % 60 ? [`${nf.format(Math.floor(min / 60))} h ${min % 60}`, 'min'] : [nf.format(min / 60), 'h'];
+  }
+  /**
+   * Das Datenblatt des Teils k am offenen Slot os (Zeile n der Tafel), als
+   * fertige Woerter und Zahlen fuer drawItem (assets/hangar-holo3d.js).
+   * Verglichen wird mit dem eingebauten Teil; ist k selbst eingebaut und der
+   * Slot getauscht, mit dem Serienteil.
+   */
+  function sheetOf(os, k, n, totals) {
+    const it = data.items[k];
+    const e = eff(os);
+    if (!it || !fits(it, e) || !STRIPS[it[2]]) return null;
+    const now = current(os), peeked = k !== now, x = it[8] ?? {};
+    const keys = candidates(e, data.items), klass = keys.map((id) => data.items[id]);
+    const refKey = peeked ? now : isChanged(os) && os.stock && os.stock !== now ? os.stock : null;
+    const ref = refKey && fits(data.items[refKey], e) ? data.items[refKey] : null;
+    const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
+    const strips = STRIPS[it[2]].map(([id, label, get, unit, digits]) => {
+      const lower = LOWER.has(id), v = num(get(it));
+      const vals = klass.map((o) => num(get(o))).filter((o) => o != null);
+      const rank = v == null ? null : classRank(vals, v, lower), st = rank ? classStrip(vals, lower) : null;
+      if (!rank) return { label: label(), value: '–', unit: '', short: '', hint: '', med: null, dots: [], me: null, fit: null, delta: '', dir: 0, rank: null };
+      const rv = ref ? num(get(ref)) : null;
+      let delta = '', dir = 0;
+      if (rv != null) {
+        const d = deltaPct(v, rv);
+        if (v === rv) delta = m('sheet.same');
+        else { delta = `${v > rv ? '▲' : '▼'} ${d ? nf.format(Math.abs(d)) : '<1'} %`; dir = (v > rv) !== lower ? 1 : -1; }
+      }
+      return {
+        // der Kennwert steht wie in seiner Zeile links (Radar 0,8), die uebrigen auf ihre Stellen gerundet
+        label: label(), value: digits === 2 ? f2.format(v) : digits === 1 ? f1.format(v) : nf.format(id === 'main' ? v : Math.round(v)), unit,
+        // ein Platz nur, wo sich die Klasse unterscheidet: haben alle denselben Wert, steht der Punkt allein in der Mitte
+        short: rank.same < rank.of - 1 ? fill(m('sheet.nth'), { r: nf.format(rank.rank), n: nf.format(rank.of) }) : '', hint: lower && rank.same < rank.of - 1 ? m('sheet.lower') : '',
+        med: st.med, dots: st.dots, me: st.x(v), fit: rv != null ? st.x(rv) : null, delta, dir, rank,
+      };
+    });
+    // Einordnung in einem Satz: Platz des Kennwerts, dazu jeder weitere Wert, bei dem das Teil vorn liegt
+    const main = strips[0].rank;
+    const cls = [fill(CLASS_WORD[it[2]](), { n: nf.format(klass.length), s: e.size }), 1];
+    let lead;
+    if (!main || main.of < 2) lead = [[m('sheet.only'), 0]];
+    else if (main.same === main.of - 1) lead = segs(m('sheet.even'), { cls, at: [AT_WORD[it[2]](), 0] });
+    else {
+      const f = (main.rank - 1) / (main.of - 1);
+      const pos = main.rank === 1 ? m('sheet.pos.top') : !main.worse ? m('sheet.pos.last') : f < 1 / 3 ? m('sheet.pos.high') : f > 2 / 3 ? m('sheet.pos.low') : m('sheet.pos.mid');
+      lead = segs(m('sheet.lead'), { cls, at: [AT_WORD[it[2]](), 0], pos: [pos, 0], rank: [fill(m('sheet.rank'), { r: nf.format(main.rank) }) + (main.same ? `, ${m('sheet.shared')}` : ''), 1] });
+    }
+    const best = strips.slice(1).filter((s) => s.rank && s.rank.rank === 1 && s.rank.worse > 0);
+    if (best.length && main && main.of > 1) {
+      const [a, b] = m('sheet.best').split('{list}');
+      lead.push([` ${a}`, 0]);
+      best.forEach((s, i) => { lead.push([s.label, 1]); if (s.rank.same) lead.push([` (${m('sheet.shared')})`, 0]); if (i < best.length - 1) lead.push([', ', 0]); });
+      lead.push([b ?? '', 0]);
+    }
+    // Wege: nur, die es gibt
+    const ways = [];
+    if (it[9]) ways.push({ k: m('sheet.way.buy'), v: fill(m('sheet.way.from'), { n: nf.format(it[9]) }), u: 'aUEC', s: [x.sl || null, x.sn ? placesTxt(x.sn) : null].filter(Boolean).join(' · '), s2: x.sn ? placesTxt(x.sn) : '' });
+    if (x.ct) {
+      const [v, u] = craftTime(x.ct);
+      ways.push({ k: m('sheet.way.craft'), v, u, s: planTxt(x.cm ?? 0), tone: 'craft', href: x.cu ? sitePre + x.cu : '' });
+    }
+    const on = shipsWith(k).map((id) => bridge.shipName(id)).sort((p, q) => p.localeCompare(q, loc));
+    if (on.length) ways.push({ k: m('sheet.way.stock'), v: nf.format(on.length), u: one(on.length) ? m('sheet.veh.one') : m('sheet.veh.other'), s: on.join(', ') });
+    // Am Schiff: die Summe der Gruppe mit diesem Teil gegen die mit dem eingebauten; am eingebauten Teil ihr Stand gegen die Serie
+    let effect = null;
+    const t = SUMMED.has(os.group) ? totals.get(os.group) : null;
+    if (t) {
+      const unit = groupUnit(os.group), title = m(`grp.${os.group}`);
+      if (peeked) {
+        const to = groupTotals(slots, { ...draft.slots, [os.key]: k }, data.items, draft.racks, data.racks).get(os.group);
+        effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} → ${nf.format(Math.round(to.now))} ${unit}`, ...pctOf(Math.round(to.now), Math.round(t.now), true) };
+      } else effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} ${unit}`, ...pctOf(Math.round(t.now), Math.round(t.stock)) };
+    }
+    const buttons = [];
+    if (peeked) buttons.push({ label: m('lo.fit'), main: true, a: ['opt', os.key, k] });
+    if (x.cu) buttons.push({ label: m('sheet.craftOpen'), craft: true, href: sitePre + x.cu });
+    if (x.pg && itemTpl) buttons.push({ label: `${m('slot.page')} ›`, href: itemTpl.replace('ITEMID', encodeURIComponent(k.split('~')[0])) });
+    return {
+      key: `${os.key}|${k}`, head: fill(m('sheet.head'), { n: nf.format(n) }),
+      tag: peeked ? (k === os.stock ? m('slot.stock') : m('sheet.preview')) : m('slot.fitted'),
+      type: it[2], dt: x.dt ?? '', size: `S${e.size}`, icon: ICON[it[2]] ?? ICON.gun, name: itemName(k),
+      line: (WEAPON_TYPES.has(it[2]) ? [subLine(k, false)] : [it[4] || null, subLine(k, false)]).filter(Boolean).join(' · '),
+      lead, strips: strips.map(({ rank, ...s }) => s),
+      legend: { me: m('sheet.me'), fit: ref ? (peeked ? m('slot.fitted') : m('slot.stock')) : '', all: fill(m('sheet.all'), { n: nf.format(klass.length), s: e.size }) },
+      ways, rows: Math.max(0, ...keys.map(waysCount)), effect, buttons,
+      model: data.models?.[k] ?? '',
+    };
+  }
+
+  /* ---- Datenblatt in der flachen Werkstatt („Als Tafel“, Telefon, ohne 3D) ---- */
+  // Dort gibt es keine zweite Tafel und am Telefon keinen Zeiger: das i an
+  // einer Zeile der Auswahl stellt das Datenblatt des Teils an die Stelle der
+  // Liste, „Zur Auswahl“ fuehrt zurueck. Die Zeile selbst baut weiter ein.
+  // Woerter und Zahlen sind dieselben wie an der Tafel der Halle (sheetOf).
+  function showSheet(slot, item) {
+    const li = slotEls.get(slot.key), was = detail;
+    if (!li || openKey !== slot.key) return;
+    const pick = li.querySelector('.hgl-pick');
+    detail = item ? { slot: slot.key, item, q: pick.querySelector('.hgl-q')?.value ?? '' } : null;
+    buildPicker(slot, pick);
+    if (detail) pick.querySelector('.hgl-sheet__back')?.focus({ preventScroll: true });
+    else if (was) {
+      // zurueck in der Liste: ihr Suchwort wieder da, die Zeile des Teils in Sicht, der Fokus auf ihrem i
+      const q = pick.querySelector('.hgl-q');
+      if (was.q) { q.value = was.q; q.dispatchEvent(new Event('input')); }
+      const b = pick.querySelector(`.hgl-info[data-info="${CSS.escape(was.item)}"]`), ul = pick.querySelector('.hgl-opts');
+      if (b) {
+        ul.scrollTop = b.parentElement.offsetTop - ul.clientHeight / 2 + b.parentElement.offsetHeight / 2;
+        b.focus({ preventScroll: true });
+      }
+    }
+    // Der Slot bleibt im Blick: in der Spalte rollt die Liste, am Telefon die Seite.
+    const host = $('hgl-scroll');
+    if (host.scrollHeight > host.clientHeight) revealSlot(li);
+    else {
+      const cats = $('hgl-cats'), top = cats.hidden ? 0 : cats.getBoundingClientRect().bottom, r = li.getBoundingClientRect();
+      if (r.top < top) window.scrollBy(0, r.top - top - 8);
+    }
+  }
+  /** Das Datenblatt des Teils k an der Stelle der Auswahlliste des offenen Slots; false, wenn es keines gibt. */
+  function sheetView(slot, pick, k) {
+    const d = sheetOf(slot, k, 0, groupTotals(slots, draft.slots, data.items, draft.racks, data.racks));
+    if (!d) return false;
+    const tone = (dir) => (dir > 0 ? 'is-up' : dir < 0 ? 'is-down' : 'is-flat');
+    // Streifen der Klasse: Lage in Prozent, rechts ist besser (classStrip)
+    const at = (x, more = '') => `--x:${x}%${more}`;
+    const strips = d.strips.map((s) => el('li', { class: 'hgl-strip' },
+      el('span', { class: 'hgl-strip__l' }, s.label),
+      el('small', { class: 'hgl-strip__r' }, [s.short, s.hint].filter(Boolean).join(' · ')),
+      el('span', { class: 'hgl-strip__v' }, el('b', {}, s.value), s.unit ? ` ${s.unit}` : null),
+      s.delta ? el('em', { class: `hgl-strip__d ${tone(s.dir)}` }, s.delta) : null,
+      el('span', { class: 'hgl-strip__t', 'aria-hidden': 'true' }, ...(s.me == null ? [] : [
+        el('i', { class: 'is-med', style: at(s.med) }),
+        ...s.dots.map(([x, n]) => el('i', { class: 'is-dot', style: at(x, `;--d:${5 + Math.min(4, n - 1) * 1.2}px`) })),
+        s.fit == null ? null : el('i', { class: 'is-ring', style: at(s.fit) }),
+        el('i', { class: 'is-me', style: at(s.me) }),
+      ]))));
+    const ways = d.ways.map((w) => el('li', {}, el(w.href ? 'a' : 'div', { class: `hgl-way${w.tone === 'craft' ? ' is-craft' : ''}`, href: w.href || null },
+      el('span', { class: 'hgl-way__k' }, w.k),
+      el('span', { class: 'hgl-way__v' }, el('b', {}, w.v), w.u ? ` ${w.u}` : null),
+      w.href ? el('span', { class: 'hgl-way__go', 'aria-hidden': 'true' }, '›') : null,
+      w.s ? el('small', {}, w.s) : null)));
+    const btns = d.buttons.map((b) => (b.a
+      ? el('button', { type: 'button', class: 'hgl-mini hgl-sheet__fit', 'data-item': k }, b.label)
+      : el('a', { class: `hgl-mini${b.craft ? ' is-craft' : ''}`, href: b.href }, b.label)));
+    pick.replaceChildren(el('section', { class: 'hgl-sheet', 'aria-label': fill(m('sheet.open'), { name: d.name }) },
+      el('button', { type: 'button', class: 'hgl-sheet__back' }, `‹ ${m('sheet.back')}`),
+      el('div', { class: 'hgl-sheet__top' }, el('strong', {}, d.name), el('em', { class: 'hgl-sheet__tag' }, d.tag), el('small', {}, d.line)),
+      el('p', { class: 'hgl-sheet__lead' }, ...d.lead.map(([t, b]) => (b ? el('b', {}, t) : t))),
+      el('ul', { class: 'hgl-strips' }, ...strips),
+      el('p', { class: 'hgl-sheet__leg', 'aria-hidden': 'true' },
+        el('span', {}, el('i', { class: 'is-me' }), d.legend.me),
+        d.legend.fit ? el('span', {}, el('i', { class: 'is-ring' }), d.legend.fit) : null,
+        el('span', {}, el('i', { class: 'is-dot' }), d.legend.all)),
+      ways.length ? el('ul', { class: 'hgl-ways' }, ...ways) : null,
+      d.effect ? el('p', { class: 'hgl-sheet__eff' }, el('span', {}, d.effect.label), el('b', {}, d.effect.text), d.effect.delta ? el('em', { class: tone(d.effect.dir) }, d.effect.delta) : null) : null,
+      btns.length ? el('div', { class: 'hgl-sheet__btns' }, ...btns) : null));
+    return true;
+  }
+
+  function board() {
+    if (!data || !draft.ship || draft.ship !== bridge.state().ship || !cat) return null;
+    const n = changedCount();
+    const saved = savedId ? store.get(savedId) : null;
+    const isSaved = !!saved && sameLayout(saved, draft);
+    const present = new Set(slots.map(tabOf));
+    if (hasPaints()) present.add('paint');
+    const totals = groupTotals(slots, draft.slots, data.items, draft.racks, data.racks);
+    let num = 0;
+    const groups = cat === 'paint' ? [] : GROUPS.map((gid) => {
+      const mine = slots.filter((s) => s.group === gid && tabOf(s) === cat);
+      if (!mine.length) return null;
+      const t = SUMMED.has(gid) ? totals.get(gid) : null;
+      return {
+        id: gid, title: m(`grp.${gid}`),
+        total: t ? `${nf.format(Math.round(t.now))} ${groupUnit(gid)}` : '',
+        ...(t ? pctOf(Math.round(t.now), Math.round(t.stock)) : { delta: '', dir: 0 }),
+        rows: mine.map((s) => {
+          const now = current(s), it = data.items[now], st = s.stock ? data.items[s.stock] : null;
+          const e = eff(s), changed = isChanged(s), rk = draft.racks?.[s.key];
+          return {
+            key: s.key, n: ++num, port: portOf(s.key), type: e.type, dt: it?.[8]?.dt ?? '', size: `S${e.size}`,
+            name: `${times(e.count)}${itemName(now)}`,
+            sub: [rk ? rackShort(rk) || rackName(rk) : null, subLine(now, false)].filter(Boolean).join(' · '),
+            was: changed ? fill(m('slot.was'), { name: s.stock ? `${times(s.count)}${itemName(s.stock)}` : m('slot.unknown') }) : '',
+            figure: it ? nf.format(it[7]) : '–', unit: UNIT[e.type](),
+            ...(changed && it && st ? pctOf(it[7] * e.count, st[7] * s.count) : { delta: '', dir: 0 }),
+            changed,
+          };
+        }),
+      };
+    }).filter(Boolean);
+    const os = openKey && cat !== 'paint' ? slots.find((s) => s.key === openKey && tabOf(s) === cat) : null;
+    let pick = null;
+    if (os) {
+      const keys = candidates(eff(os), data.items), now = current(os), base = data.items[now]?.[7] ?? null;
+      const max = Math.max(1, ...keys.map((k) => data.items[k][7]));
+      const rackOn = os.racks ? draft.racks?.[os.key] ?? os.racks[0] : null;
+      pick = {
+        key: os.key, head: m('pick.head'), count: plural('pick.count', keys.length),
+        racks: os.racks ? {
+          label: m('rack.label'), info: rackInfo(rackOn),
+          list: rackOrder(os).map((k) => ({ id: k, top: `${data.racks[k][3]}× S${data.racks[k][4]}`, sub: rackShort(k), on: k === rackOn, tag: k === os.racks[0] && k !== rackOn ? m('slot.stock') : '' })),
+        } : null,
+        opts: keys.map((k) => {
+          const it = data.items[k];
+          return {
+            id: k, name: itemName(k), sub: subLine(k, true), type: it[2], dt: it[8]?.dt ?? '', figure: nf.format(it[7]),
+            ...(k === now ? { delta: '', dir: 0 } : pctOf(it[7], base, true)), bar: it[7] / max,
+            tag: k === now ? m('slot.fitted') : k === os.stock ? m('slot.stock') : '', on: k === now,
+          };
+        }),
+        revert: isChanged(os) && os.stock ? m('slot.revert') : '',
+      };
+    }
+    // Datenblatt: das Teil unter dem Zeiger, sonst das eingebaute. Ein
+    // gemerktes Teil gilt nur, solange sein Slot offen steht (er schliesst
+    // auch ueber die Adresse, den Reiter oder ein geladenes Layout).
+    if (peek && peek.slot !== os?.key) peek = null;
+    const peekOn = peek && fits(data.items[peek.item], eff(os)) ? peek.item : null;
+    const sheet = os ? sheetOf(os, peekOn ?? current(os), groups.flatMap((g) => g.rows).find((r) => r.key === os.key)?.n ?? 0, totals) : null;
+    const sp = data.paints?.[draft.ship];
+    const paints = cat === 'paint' && sp ? {
+      title: m('grp.paint'),
+      list: [['', m('paint.stock'), ...sp.base, 0], ...sp.list].map(([id, name, a, b, c, pattern]) => ({ id, name, cols: [a, b, c], note: pattern ? m('paint.pattern') : '', on: id === (draft.paint ?? '') })),
+    } : null;
+    const none = !slots.length && !hasPaints();
+    const mine = store.list().filter((e) => e.ship === draft.ship);
+    const stateTxt = (k) => (k ? plural('state.changed', k) : m('saved.stock'));
+    return {
+      title: m('holo.title'), icons: ICON,
+      // Name des Layouts: getippt, sonst der, unter dem Speichern es ablegt, sonst Serie
+      chip: draft.name || (n ? placeholder() : m('saved.stock')), nameEdit, name: draft.name,
+      cats: present.size > 1 ? catBtns.filter((b) => present.has(b.dataset.cat)).map((b) => ({ id: b.dataset.cat, label: b.firstChild.textContent.trim(), n: catCount(b.dataset.cat), on: b.dataset.cat === cat })) : [],
+      cat, groups, open: os?.key ?? null, pick, paints, sheet,
+      empty: !slots.length && cat !== 'paint' ? m('noslots') : '',
+      state: { s: isSaved ? 'saved' : n ? 'changed' : 'stock', text: n ? plural('state.changed', n) : m('state.stock'), sub: isSaved ? m('state.saved') : n || draft.name ? m('state.unsaved') : '' },
+      note: $('hgl-shared').hidden ? '' : $('hgl-shared').textContent.trim(),
+      btns: [
+        { id: 'save', label: txtOf('hgl-save'), main: true, off: none },
+        { id: 'share', label: txtOf('hgl-share'), off: none },
+        { id: 'reset', label: txtOf('hgl-reset'), off: none || n === 0 },
+      ],
+      menu: [
+        { label: m('state.stock'), on: !n && !draft.name, act: ['stock'] },
+        { head: txtOf('hgl-v-saved') },
+        ...(mine.length
+          ? mine.slice(0, MENU_SAVED).map((e) => ({ label: e.name || fill(m('name.placeholder'), { ship: bridge.shipName(e.ship) }), sub: stateTxt(changeCount(e)), on: e.id === savedId && isSaved, act: ['open', e.id] }))
+          : [{ note: m('saved.empty') }]),
+        ...(mine.length > MENU_SAVED ? [{ note: fill(m('holo.moreSaved'), { n: nf.format(mine.length - MENU_SAVED) }) }] : []),
+        { sep: true },
+        { label: m('holo.rename'), act: ['rename'] },
+        { label: $('hgl-dice').title, act: ['dice'] },
+        ...(savedId && store.get(savedId) && !none ? [{ label: m('holo.saveNew'), act: ['saveNew'] }] : []),
+        { label: `${txtOf('hgl-allbtn')} ›`, href: $('hgl-allbtn').getAttribute('href') },
+      ],
+      toast: toastTxt,
+      totals: { pilot: totals.get('pilot') ?? null, shield: totals.get('shield') ?? null },
+    };
+  }
+  /** Ein Klick auf der Tafel in der Halle: a = [was, womit, …]. Unbekanntes und Unpassendes faellt still weg. */
+  function act(a) {
+    if (!data || !Array.isArray(a)) return;
+    const [what, x, y] = a;
+    const slot = typeof x === 'string' ? slots.find((s) => s.key === x) : null;
+    if (what === 'cat' && catBtns.some((b) => b.dataset.cat === x && !b.hidden)) pickCat(x);
+    else if (what === 'slot' && slot) toggleSlot(slot);
+    else if (what === 'peek') {
+      // der Zeiger steht auf einem Teil der offenen Auswahl: sein Datenblatt zeigen
+      if (!slot || slot.key !== openKey || !fits(data.items[y], eff(slot)) || (peek?.slot === x && peek.item === y)) return;
+      peek = { slot: x, item: y };
+    } else if (what === 'opt' && slot && fits(data.items[y], eff(slot))) equip(slot, y);
+    else if (what === 'rack' && slot?.racks?.includes(y)) equipRack(slot, y);
+    else if (what === 'revert' && slot?.stock) equip(slot, slot.stock, slot.racks?.[0]);
+    else if (what === 'paint' && hasPaints() && (x === '' || data.paints[draft.ship].list.some((r) => r[0] === x))) pickPaint(x);
+    else if (what === 'save') save();
+    else if (what === 'saveNew') { savedId = null; save(); }
+    else if (what === 'share') share(draft, $('hgl-share'));
+    else if (what === 'reset') reset();
+    else if (what === 'stock') { openKey = null; bridge.set({ lo: null, hp: null }); }
+    else if (what === 'open') {
+      const entry = store.get(x);
+      if (entry) { pendingSaved = entry.id; openKey = null; bridge.set({ ship: entry.ship, lo: encodeLayout(entry), hp: null }); }
+    } else if (what === 'dice') rollName();
+    else if (what === 'name') { draft.name = cleanName(typeof x === 'string' ? x : ''); if (nameEdit) nameEdit = true; commit({ soon: true }); }
+    else if (what === 'nameEdit') nameEdit = x === 'all' ? 'all' : !!x;
+    bridge.changed?.();
+  }
+
   /* ---- Takt des Controllers ---- */
   function render(state) {
-    const open = state.pane === 'layout';
+    // Als Hologramm (bridge.holo) bleibt die Tafel hier zu, die Werkstatt
+    // arbeitet aber: board() liest denselben Entwurf.
+    const open = state.station === 'loadout';
     aside.hidden = !open;
-    if (!open) {
+    if (!open && !bridge.holo?.()) {
       hot(null);
       return;
     }
     if (!data) {
       loLink(state.ship, state.lo);
-      ensureData().then(() => render(bridge.state())).catch(() => {});
+      ensureData().then(() => { render(bridge.state()); bridge.changed?.(); }).catch(() => {});
       return;
     }
     // Ein neuer tab (Klick am Schiff, Slot, Reiter) beendet den Reiter Lackierung.
@@ -1410,5 +1948,5 @@ export function initWorkshop(doc, bridge) {
     }
   }
 
-  return { render };
+  return { render, board, act };
 }

@@ -35,6 +35,8 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
+import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
+import { repairSwapped } from './lib/hangar-netztausch.mjs';
 import { initGear, poseShip, underInterior, worldOf } from './lib/landing-gear.mjs';
 import { gearPlane, GEAR_TILT_MAX, palettePbr } from '../assets/hangar-viewer.js';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
@@ -610,7 +612,11 @@ const stockFresh = (m) => !!m && Object.entries(m).every(([cls, url]) => stockLo
 // Schiff den Abdruck seines Loadouts (manifest.ships[name].loadout): ändert
 // ein Datenlauf das Loadout, baut der nächste Lauf das Schiff neu.
 const loadoutSig = (slug) => createHash('sha1').update(JSON.stringify(LOADOUTS[slug] ?? {})).digest('hex').slice(0, 12);
-function markSwapParts(doc, slug) {
+// abgenommen: Knoten, denen repairSwapped das falsche Netz ohne Ersatz nahm.
+// Bleibt eine Wurzel dadurch ganz ohne Netz (Starlifter: Kraftwerke, 300i
+// und 350r: Bugwaffe), behält ihr Port einen leeren Anker an der Wurzel wie
+// ein Port ohne Teil im Export; sonst verlöre die Werkstatt dort den Tausch.
+function markSwapParts(doc, slug, abgenommen = new Set()) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
   const named = new Set();
@@ -638,14 +644,18 @@ function markSwapParts(doc, slug) {
         // Komponenten: ein eigenes Item darunter (Sprungmodul am Quantenantrieb,
         // aus dem Loadout des Schiffs) gehört nicht zum Tauschteil
         const own = (n) => { for (let p = n; p && p !== r; p = p.getParentNode()) if (/_SCItem$/i.test(p.getName())) return false; return true; };
+        let marked = 0, leer = false;
         r.traverse((n) => {
+          if (abgenommen.has(n) && (!comp || own(n))) leer = true;
           if (!n.getMesh() || (comp && !own(n))) return;
+          marked++;
           tris += n.getMesh().listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
           n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}), ...(stock ? { stock } : {}) });
           n.setName(`swap_${nodes++}`);
           named.add(n);
           n.getMesh().setName(n.getName());
         });
+        if (!marked && leer) empty.push({ swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}), ...(stock ? { stock } : {}) });
       });
       if (roots.length) (comp ? components : ports)[key] = roots.length;
       if (!comp) return;
@@ -990,6 +1000,28 @@ function placeContainers(doc, slug) {
     for (const n of hull) if (n.getMesh() && wanted.has(key(n.getMesh()))) known(n);
     for (const n of inner) if (known(n)) { out.dup++; out.dupTris += trisOf(n.getMesh()); n.setMesh(null); }
   }
+  return out;
+}
+// Hüllkopien (scripts/lib/hangar-huellkopie.mjs, .planning/notes/hangar-huellkopie.md):
+// Ein Container, der die Rumpfdatei eines Fahrzeugs setzt, bringt im
+// Rohexport die ganze Hülle mit; mit dem Versatz des Containers stand sie
+// beim Ursa Medivac als zweite, braune Karosserie 1,5 m vor der echten.
+// Weg vor placeContainers, sonst prüft dessen Doppel-Abgleich sie als Teil
+// des Innenraums. trisRaw zählt sie weiter mit (gezählt vor allem anderen),
+// damit dropInterior bei den neun betroffenen Schiffen gleich entscheidet.
+let BODY_FILES = null;
+function dropBodyCopies(doc) {
+  BODY_FILES ??= bodyFiles(
+    existsSync(new URL('index.json', PAINT_DEC)) ? JSON.parse(readFileSync(new URL('index.json', PAINT_DEC), 'utf8')) : {},
+    (pkg) => { const f = new URL(`Packages/${pkg}/scene.json`, PAINT_DEC); return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null; },
+  );
+  const hits = findBodyCopies(doc, BODY_FILES);
+  const out = { nodes: hits.length, tris: 0, files: [...new Set(hits.map((h) => h.file))] };
+  for (const h of hits) {
+    out.tris += h.node.getMesh().listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
+    h.node.setMesh(null);
+  }
+  out.tris = Math.round(out.tris);
   return out;
 }
 // Budget für die Nähe: 500 000 Dreiecke, ab 60 m Länge 1 000 000; Stufen
@@ -1945,8 +1977,12 @@ async function buildOne(kind, name, inPath) {
   // Innenraum (kind 'interior'): derselbe Rohexport und dieselbe Strecke wie
   // der Rumpf, nur die Auswahl umgekehrt; Quelle und Nachtrag aus ships/
   const inner = kind === 'interior', ship = kind === 'ships' || inner, srcKind = inner ? 'ships' : kind;
+  // vertauschte Netze bei mehrfach gesetzten Teilen (scripts/lib/hangar-netztausch.mjs):
+  // zuerst, damit Fahrwerk, Container und Innenraum die richtigen Teile sehen
+  const swapFix = ship ? repairSwapped(doc) : null;
   const gearPose = ship ? shipGear(doc, name) : null;
   if (ship) dropUnreachable(doc);
+  const bodyCopy = ship ? dropBodyCopies(doc) : null;
   const placement = ship ? placeContainers(doc, name) : null;
   const compPorts = ship ? componentPorts(doc, name) : [];
   const b = inner ? interiorBudget(name) : kind === 'ships' ? shipBudget(name) : BUDGET[kind];
@@ -1986,7 +2022,7 @@ async function buildOne(kind, name, inPath) {
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   stockUsed = kind === 'ships' ? new Map() : null;
   const placedComp = ship ? markPlacedComponents(doc, compPorts) : 0;
-  const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
+  const swap = kind === 'ships' ? markSwapParts(doc, name, swapFix?.abgenommen) : null;
   const stockSeen = stockUsed;
   stockUsed = null;
   // je Komponenten-Port Lage, Klasse und ob der Export ein Teil trägt (Bericht, nicht ausgeliefert)
@@ -2112,6 +2148,8 @@ async function buildOne(kind, name, inPath) {
     ...(kind === 'ships' ? shipSource(name, interior.dropped) : {}),
     ...(interior?.keptNodes && interior.dropped ? { interiorKept: { nodes: interior.keptNodes, tris: Math.round(interior.keptTris) } } : {}),
     ...(bareInterior ? { interiorBare: bareInterior } : {}),
+    ...(bodyCopy?.nodes ? { bodyCopies: bodyCopy } : {}),
+    ...(swapFix?.nodes ? { swapFix: { nodes: swapFix.nodes, fixed: swapFix.fixed, dropped: swapFix.dropped, trisWrong: swapFix.trisWrong } } : {}),
     ...(placement?.placed || placement?.unplaced.length ? { containerPlace: { placed: placement.placed, moved: placement.moved, byOffset: placement.byOffset, byHelper: placement.byHelper, ...(placement.unplaced.length ? { unplaced: placement.unplaced } : {}), ...(placement.dup ? { dup: placement.dup, dupTris: Math.round(placement.dupTris) } : {}) } } : {}),
     // gezählt in der geschriebenen Datei (prune nimmt leer gewordene Netze heraus)
     ...(interiorMarked ? { interiorMarked: written.getRoot().listNodes().filter((n) => n.getExtras()?.interior).length } : {}),
@@ -3234,6 +3272,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       if (r.swapComp) console.log(`    Komponenten: ${Object.keys(r.swapComp).length} Ports mit Serienteil, ${r.swapEmpty} leere Anker`);
       if (r.palette) console.log(`    Lackfarben: ${r.palette[1] + r.palette[2] + r.palette[3]} Materialien (A ${r.palette[1]}, B ${r.palette[2]}, C ${r.palette[3]})`);
       if (kind === 'ships') console.log(`    Quelle: ${r.record ?? 'Rohexport ohne Sidecar'}${r.game ? ` (CL ${r.game})` : ''}, Innenraum ${r.interiorDropped ? `${r.interiorDropped} Container entfernt${r.interiorKept ? `, hinter Glas behalten ${r.interiorKept.nodes} Knoten mit ${r.interiorKept.tris} Dreiecken` : ''}` : 'behalten'}`);
+      if (r.swapFix) console.log(`    Vertauschte Netze: ${r.swapFix.nodes} Knoten, ${r.swapFix.fixed} aus Geschwister-Exemplar ersetzt, ${r.swapFix.dropped} ohne Ersatz abgenommen (${r.swapFix.trisWrong.toLocaleString()} falsch gesetzte Dreiecke)`);
+      if (r.bodyCopies) console.log(`    Hüllkopien in Containern entfernt: ${r.bodyCopies.nodes} Knoten mit ${r.bodyCopies.tris.toLocaleString()} Dreiecken (${r.bodyCopies.files.join(', ')})`);
       if (kind === 'ships' && r.matfix) console.log(`    Materialnachtrag: ${r.matfix.fixed} Primitive (${r.matfix.reused} auf Materialien des Exports, ${r.matfix.created} neue Materialien, ${r.matfix.layered ?? 0} mit Schichtkarten), ${r.matfix.dropped} NoDraw entfernt; ohne Material ${r.cover.before.trisOhneMaterial} -> ${r.cover.after.trisOhneMaterial} Dreiecke`);
       const pr = r.paintReport;
       delete r.paintReport;

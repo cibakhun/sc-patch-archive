@@ -10,6 +10,15 @@
 > Neu: `scripts/lib/tags.mjs`, `scripts/lib/armor-sets.mjs`, Tag-Facetten + Set-Auflösung in `datamine-items.mjs`, Durchreichen in `build-universal-db.mjs`, Filter „Panzerungsklasse"/„Seltenheit" + Set-Block im Finder, Set-Sektion auf den Item-Datenblättern, neue Seite `/armor-sets.html` (DE+EN, 136 Sets).
 > Ebenfalls in diesem Zug: die **289 widerlegten Fundort-Zeilen entfernt** (§4.2) und durch die echte Bezugsart ersetzt. **Stufe 3 (Träger + Loot-Kette) steht noch aus.**
 
+> **Nachtrag 10.11.2026 — Loot-Kette aus Stufe 3 GEBAUT** (Vorschlag aus #feedback „Loot-only Items – Find Locations & How to Get Them"). Die Träger (NPC-Loadouts) stehen weiter aus.
+> - Datenlauf `npm run datamine:loot` (PC, braucht die lokale Installation): `scripts/datamine-loot.mjs` löst Ort (socpak) → Belegung (SubHarvestable-Config) → Slot → Loot-Tabelle → Archetyp → Tags → Items auf und schreibt `src/data/loot-fundorte.json` (eine Zeile je Belegung, Profil, Item). Himmelskörper per socpak-Baum ab `pu/system/<system>/<körper>.socpak`; die System-Wurzel zählt nur dort, wo kein Körper hinreicht („im All").
+> - Benennung bewusst außerhalb des Laufs: `scripts/lib/loot-orte.mjs` bündelt die Belegungen zu 21 Ortsarten mit DE/EN-Namen und nennt die Himmelskörper. Umbenennen geht ohne neuen Datenlauf: danach `npm run apply:loot-fundorte`.
+> - `apply:loot-fundorte` trägt Kopf `fundorte` und je Item `fund` (Profil-Index) in `assets/universal-items.json` ein; es hängt hinter `sync:items`, `sync:item-prices` und `datamine:loot`. `src/lib/items.ts` und `assets/item-finder-app.js` machen daraus Loot-Zeilen mit Status **bestätigt**; die kuratierten Zeilen heißen **unbestätigt**; `game.lootable === true` ohne jede Zeile zeigt **Fundort unbekannt**.
+> - Aussage: „kann dort entstehen", nicht „fällt oft" — Gewichte sind nicht mitgeführt. Items mit `lootable === false` bekommen keine Zeile (643 im ersten Lauf), die Exklusiv-Aussage gewinnt.
+> - Tor `verify:loot-fundorte` (Schiene A), Stand in `verify:datastand` (Loot-Fundorte) und im Datenstand-Baustein („Bestätigte Fundorte", `verify:patch-angaben`).
+> - Erster Lauf sc-alpha-4.10.2@12913470: 54 Belegungen, 4.398 Spiel-Items, 3.068 Katalog-Items mit bestätigtem Fundort.
+> - Offen: „was man braucht" (Keycards, Zugang) und Missions-/Crafting-Quellen als eigene Zeilenart.
+
 ---
 
 ## 0. Kurzverdikt

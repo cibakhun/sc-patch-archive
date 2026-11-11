@@ -5,13 +5,13 @@
 // gesperrten Speicher, ohne die Seite mitzureissen. Dazu die Naht zum
 // Controller: der leere Code ist in beiden Dateien derselbe und kostet keine
 // Adresse, ?layout= reist durch parseState/serializeState unveraendert, auch
-// beim Teilen, und die Ansicht der Tafel (?pane=) bleibt beim Teilen daheim.
+// beim Teilen, und die Station (?station=, frueher ?pane=) bleibt beim Teilen daheim.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
   sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
-  syncLayouts, layoutKey, sessionUid, accountStore,
+  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -93,15 +93,32 @@ describe('Werkstatt: Link-Code', () => {
     assert.equal(parseState('?layout=<script>', '', ctx).lo, null);
   });
 
-  test('Serie kostet keine Adresse; die Schiffsdaten stehen als ?pane=ship, geteilt nie', () => {
+  test('Serie kostet keine Adresse; die Uebersicht steht als ?station=uebersicht, geteilt nie', () => {
     const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
     assert.equal(parseState(`?layout=${EMPTY_CODE}`, '', ctx).lo, null);
-    assert.equal(parseState('', '', ctx).pane, 'layout');
-    assert.equal(parseState('?pane=nope', '', ctx).pane, 'layout');
-    const s = parseState('?ship=anvl-arrow&pane=ship', '', ctx);
-    assert.equal(s.pane, 'ship');
-    assert.equal(serializeState(s, ctx), '?ship=anvl-arrow&pane=ship');
+    assert.equal(parseState('', '', ctx).station, 'loadout');
+    assert.equal(parseState('?station=nope', '', ctx).station, 'loadout');
+    const s = parseState('?ship=anvl-arrow&station=uebersicht', '', ctx);
+    assert.equal(s.station, 'uebersicht');
+    assert.equal(serializeState(s, ctx), '?ship=anvl-arrow&station=uebersicht');
     assert.equal(serializeState(s, ctx, 'share'), '?ship=anvl-arrow');
+  });
+
+  test('das alte ?pane=ship bleibt lesbar und wird zur Uebersicht', () => {
+    const ctx = { ids: new Set(['aegs-gladius', 'anvl-arrow']), defaultShip: 'aegs-gladius', tabs: ['overview', 'weapons'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
+    assert.equal(serializeState(parseState('?ship=anvl-arrow&pane=ship', '', ctx), ctx), '?ship=anvl-arrow&station=uebersicht');
+    assert.equal(parseState('?pane=layout', '', ctx).station, 'loadout');
+    // die neue Form gewinnt, wenn beide dastehen
+    assert.equal(parseState('?pane=ship&station=loadout', '', ctx).station, 'loadout');
+  });
+
+  test('„Als Tafel“ reist als ?tafel=1 mit, geteilt nie', () => {
+    const ctx = { ids: new Set(['aegs-gladius']), defaultShip: 'aegs-gladius', tabs: ['overview'], sorts: ['name'], purs: new Set(), grps: new Set(), sizes: [], crews: new Set(), cargos: new Set(), prices: new Set(), makers: new Set() };
+    const s = parseState('?station=uebersicht&tafel=1', '', ctx);
+    assert.equal(s.flat, true);
+    assert.equal(serializeState(s, ctx), '?station=uebersicht&tafel=1');
+    assert.equal(serializeState(s, ctx, 'share'), '?ship=aegs-gladius');
+    assert.equal(parseState('?tafel=ja', '', ctx).flat, false);
   });
 });
 
@@ -414,5 +431,263 @@ describe('Werkstatt: Ablage im Konto', () => {
     assert.ok(mem.raw.has(layoutKey(UID)));
     sess = null;
     assert.deepEqual(acct.store.list().map((e) => e.name), ['Gast']);
+  });
+  // Die Anzeige „In deinem Konto gespeichert" (Werkstatt, Kontoseite) liest
+  // state(). Sie darf es nur sagen, wenn der letzte Abgleich jede Aenderung
+  // mitnahm (Pruefung der Konto-Anzeigen, 07.11.2026).
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  test('ist die Sitzung gerade nicht nutzbar, meldet der Abgleich keinen Kontostand, der nicht stimmt', async () => {
+    const mem = memory();
+    const srv = server();
+    let usable = true;
+    const sess = { user: { id: UID } };
+    const seen = [];
+    const account = { peek: () => sess, session: async () => (usable ? sess : null), rest: (_sess, ...a) => srv.rest(...a) };
+    const acct = accountStore({ storage: mem, account, onChange() { seen.push(acct.state()); }, win: {} });
+    await acct.sync();
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+
+    usable = false; // Refresh scheitert an 5xx oder am Netz, die Sitzung bleibt gespeichert
+    acct.store.save(lay('aaaa1111', 'Neu'));
+    assert.equal(acct.state(), 'pending');
+    await wait(450);
+    await acct.sync();
+    assert.equal(srv.rows.size, 0, 'Voraussetzung: nichts kam an');
+    assert.equal(acct.state(), 'error', 'nicht „gespeichert": das Layout liegt nur in diesem Browser');
+    assert.equal(seen.at(-1), 'error', 'die Seite malt die Anzeige neu');
+
+    usable = true;
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('wer speichert, waehrend ein Abgleich laeuft, sieht erst „gespeichert", wenn auch sein Layout angekommen ist', async () => {
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'POST' && !hold) await new Promise((r) => { hold = r; });
+      return srv.rest(method, ...a);
+    };
+    const seen = [];
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() { seen.push([acct.state(), [...srv.rows.keys()].sort().join()]); }, win: {} });
+    acct.store.save(lay('aaaa1111', 'Erstes'));
+    const first = acct.sync(); // der Upsert von aaaa1111 haengt
+    await wait(10);
+    acct.store.save(lay('bbbb2222', 'Zweites'));
+    await wait(450); // touched() stoesst den naechsten Abgleich an, er wartet auf den laufenden
+    hold();
+    await first;
+    await wait(10);
+    assert.deepEqual(srv.rows.has('bbbb2222'), true, 'Voraussetzung: der zweite Lauf brachte es');
+    assert.deepEqual(seen.filter(([st]) => st === 'synced').map(([, rows]) => rows), ['aaaa1111,bbbb2222'],
+      '„gespeichert" erst, als beide Layouts beim Server lagen');
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('solange das Gespeicherte noch unterwegs ist, sagt die Anzeige nicht „gespeichert"', async () => {
+    // cubic zu PR #310: zwischen dem Ablauf der 400-ms-Frist und der Antwort
+    // des Servers lag die Aenderung weder im Zeitgeber noch in `again`, und
+    // state() gab den VORIGEN Erfolg zurueck. Jede Neuzeichnung in diesem
+    // Fenster sagte „In deinem Konto gespeichert" ueber ein Layout, dessen
+    // Upsert noch lief (und scheitern konnte).
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    let halten = false;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'POST' && halten) { halten = false; await new Promise((r) => { hold = r; }); }
+      return srv.rest(method, ...a);
+    };
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    await acct.sync();
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+
+    halten = true;
+    acct.store.save(lay('aaaa1111', 'Neu'));
+    await wait(450); // die Frist ist um, der Upsert haengt
+    assert.equal(typeof hold, 'function', 'Voraussetzung: der Upsert laeuft');
+    assert.equal(srv.rows.size, 0, 'Voraussetzung: noch nichts angekommen');
+    assert.equal(acct.state(), 'pending', 'nicht „gespeichert", solange der Upsert laeuft');
+
+    srv.setFail(true); // und er scheitert
+    hold();
+    await wait(10);
+    assert.equal(acct.state(), 'error');
+
+    srv.setFail(false);
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+    assert.equal(acct.state(), 'synced');
+  });
+
+  test('speichert ein anderer Tab, sagt dieser Tab erst „gespeichert", wenn es im Konto liegt', async () => {
+    // cubic zu PR #310 (zweiter Lauf): Tab A speichert, Tab B (Kontoseite,
+    // Werkstatt) bekommt das storage-Ereignis und malte neu, sagte aber
+    // weiter „gespeichert" aus SEINEM letzten Lauf. Scheitert A beim
+    // Hochschicken oder schliesst vor der Frist, lag das Layout nur im
+    // gemeinsamen Spiegel. Jetzt zaehlt die fremde Aenderung wie eine eigene,
+    // und B bringt sie selbst hoch.
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let aScheitert = false;
+    const restA = async (_sess, method, ...a) => (method === 'POST' && aScheitert ? { ok: false, json: async () => ({}) } : srv.rest(method, ...a));
+    const tabA = accountStore({ storage: mem, account: { peek: () => sess, session: async () => sess, rest: restA }, onChange() {}, win: {} });
+    let ereignis = null;
+    const winB = { addEventListener(typ, f) { if (typ === 'storage') ereignis = f; } };
+    const seenB = [];
+    const tabB = accountStore({
+      storage: mem,
+      account: { peek: () => sess, session: async () => sess, rest: (_sess, ...a) => srv.rest(...a) },
+      onChange() { seenB.push([tabB.state(), [...srv.rows.keys()].join()]); },
+      win: winB,
+    });
+    await tabA.sync();
+    await tabB.sync();
+    assert.equal(tabB.state(), 'synced', 'Voraussetzung');
+    assert.equal(typeof ereignis, 'function', 'B hoert auf storage');
+    ereignis({ key: 'sb-x-auth-token' });
+    ereignis({ key: layoutKey(null) });
+    assert.equal(tabB.state(), 'synced', 'fremde Schluessel aendern am Kontostand nichts');
+
+    aScheitert = true;
+    tabA.store.save(lay('aaaa1111', 'Aus Tab A'));
+    ereignis({ key: layoutKey(UID) }); // so meldet der Browser B die Aenderung
+    assert.equal(tabB.state(), 'pending', 'nicht „gespeichert": A hat noch nichts hochgeschickt');
+
+    await wait(450); // A scheitert beim Hochschicken, B gleicht selbst ab
+    await wait(20);
+    assert.equal(tabA.state(), 'error', 'Voraussetzung: A brachte es nicht hoch');
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111'], 'B hat es hochgebracht');
+    assert.equal(tabB.state(), 'synced');
+    assert.ok(seenB.filter(([st]) => st === 'synced').every(([, rows]) => rows === '' || rows === 'aaaa1111'));
+    assert.deepEqual(seenB.at(-1), ['synced', 'aaaa1111'], '„gespeichert" erst, als es beim Server lag');
+  });
+
+  test('zwei Tabs schaukeln sich ueber storage-Ereignisse nicht auf', async (t) => {
+    // Jeder Abgleich schreibt den Spiegel, jeder Schreibvorgang weckt den
+    // anderen Tab. Wie im Browser: Ereignis nur bei geaendertem Wert, nur im
+    // ANDEREN Tab, asynchron. Nach dem Speichern muss Ruhe einkehren.
+    const raw = new Map();
+    const hoerer = { A: null, B: null };
+    let offen = true; // am Ende schliessen beide Tabs, sonst hielte ein Aufschaukeln den Lauf am Leben
+    const speicher = (ich) => ({
+      getItem: (k) => (raw.has(k) ? raw.get(k) : null),
+      setItem(k, v) {
+        v = String(v);
+        if (raw.get(k) === v) return;
+        raw.set(k, v);
+        const anderer = hoerer[ich === 'A' ? 'B' : 'A'];
+        if (anderer) setTimeout(() => { if (offen) anderer({ key: k }); }, 0);
+      },
+    });
+    const srv = server();
+    let anfragen = 0;
+    const sess = { user: { id: UID } };
+    const account = { peek: () => sess, session: async () => sess, rest: (_sess, ...a) => { anfragen++; return srv.rest(...a); } };
+    const win = (ich) => ({ addEventListener(typ, f) { if (typ === 'storage') hoerer[ich] = f; } });
+    const tabA = accountStore({ storage: speicher('A'), account, onChange() {}, win: win('A') });
+    const tabB = accountStore({ storage: speicher('B'), account, onChange() {}, win: win('B') });
+    try {
+      await tabA.sync();
+      await tabB.sync();
+      tabA.store.save(lay('aaaa1111', 'Eins'));
+      await wait(1500);
+      const nachEinsPunktFuenf = anfragen;
+      await wait(900);
+      t.diagnostic(`${anfragen} Anfragen fuer Anmelden zweier Tabs und eine Speicherung`);
+      assert.equal(anfragen, nachEinsPunktFuenf, `nach dem Speichern laufen weiter Abgleiche (${anfragen} Anfragen)`);
+      assert.ok(anfragen <= 8, `zu viele Anfragen fuer eine Speicherung: ${anfragen}`);
+      assert.deepEqual([...srv.rows.keys()], ['aaaa1111']);
+      assert.equal(tabA.state(), 'synced');
+      assert.equal(tabB.state(), 'synced');
+    } finally {
+      offen = false;
+    }
+  });
+
+  test('ein Abgleich ohne eigene Aenderung laesst „gespeichert" stehen', async () => {
+    // Gegenstueck: der Abgleich beim Zurueckkehren in den Tab holt nur fremde
+    // Aenderungen. Was dieser Browser hatte, liegt schon im Konto; ein
+    // „Synchronisiere…" bei jedem Tab-Wechsel waere Flackern ohne Inhalt.
+    const mem = memory();
+    const srv = server();
+    const sess = { user: { id: UID } };
+    let hold = null;
+    let halten = false;
+    const rest = async (_sess, method, ...a) => {
+      if (method === 'GET' && halten) { halten = false; await new Promise((r) => { hold = r; }); }
+      return srv.rest(method, ...a);
+    };
+    const account = { peek: () => sess, session: async () => sess, rest };
+    const acct = accountStore({ storage: mem, account, onChange() {}, win: {} });
+    acct.store.save(lay('aaaa1111', 'Alt'));
+    await wait(450); // die Frist stoesst den Abgleich an
+    await acct.sync();
+    assert.deepEqual([...srv.rows.keys()], ['aaaa1111'], 'Voraussetzung');
+    assert.equal(acct.state(), 'synced', 'Voraussetzung');
+    halten = true;
+    const lauf = acct.sync();
+    await wait(10);
+    assert.equal(typeof hold, 'function', 'Voraussetzung: der Abgleich laeuft');
+    assert.equal(acct.state(), 'synced');
+    hold();
+    await lauf;
+    assert.equal(acct.state(), 'synced');
+  });
+});
+
+// Datenblatt des Bauteils in der Halle: der Platz eines Werts in seiner
+// Klasse (Detail Pages 2.0, Richtung B). dps: die Feuerkraft der 28 Bordwaffen,
+// die am 11.11.2026 in einen Slot der Groesse 3 passen; der Attrition-3
+// (501,67) liegt dort auf Platz 17. Die Skizze der Item-Seite nannte Platz 16
+// von 26: ihr fehlten die beiden Waffen, die es in mehreren Groessen gibt
+// (Revenant Gatling 1054, Tarantula GT-870 Mark 3 455,4).
+describe('Werkstatt: Platz in der Klasse', () => {
+  const dps = [2041.67, 1518.75, 1054, 877.5, 853.33, 712.5, 683.63, 683.63, 562.5, 551.75, 546.75, 546.75, 545.63, 545.63, 536.67, 512.5, 501.67, 493.75, 461.71, 461.71, 455.4, 455.25, 375.67, 375, 116.25, 105, 105, 34.67];
+  test('Platz 1 hat der beste Wert, gleiche Werte teilen den Platz', () => {
+    assert.deepEqual(classRank(dps, 501.67), { rank: 17, of: 28, same: 0, worse: 11 });
+    assert.deepEqual(classRank(dps, 683.63), { rank: 7, of: 28, same: 1, worse: 20 });
+    // nach zwei Teilen auf Platz 7 kommt Platz 9, nicht 8
+    assert.equal(classRank(dps, 562.5).rank, 9);
+    // 455,40 und 455,25 sind zwei Plaetze: der gerundete Kennwert (455) haette sie gleichgestellt
+    assert.equal(classRank(dps, 455.4).rank + 1, classRank(dps, 455.25).rank);
+    assert.deepEqual(classRank([5, 9, 9, 2], 9), { rank: 1, of: 4, same: 1, worse: 2 });
+  });
+  test('weniger ist besser: der kleinste Wert steht vorn', () => {
+    assert.deepEqual(classRank([3.85, 3.86, 2.1, 5], 2.1, true), { rank: 1, of: 4, same: 0, worse: 3 });
+    assert.deepEqual(classRank([3.85, 3.86, 2.1, 5], 5, true), { rank: 4, of: 4, same: 0, worse: 0 });
+    // zwei Stellen trennen, was auf eine Stelle gerundet gleichauf laege
+    assert.equal(classRank([3.85, 3.86], 3.86, true).rank, 2);
+    assert.ok(LOWER.has('sp.dly') && LOWER.has('sp.lkT') && LOWER.has('sp.em') && !LOWER.has('sp.regen'));
+  });
+  test('ohne eigenen Wert kein Platz; fremde Eintraege zaehlen nicht mit', () => {
+    assert.equal(classRank([1, 2, 3], undefined), null);
+    assert.equal(classRank([1, 2, 3], 7), null);
+    assert.deepEqual(classRank([1, NaN, null, 3, undefined], 3), { rank: 1, of: 2, same: 0, worse: 1 });
+  });
+  test('Streifen: rechts ist besser, je verschiedenem Wert ein Punkt mit Anzahl', () => {
+    const s = classStrip([10, 20, 20, 50]);
+    assert.equal(s.x(10), 0);
+    assert.equal(s.x(50), 100);
+    assert.equal(s.x(20), 25);
+    assert.equal(s.med, 25);
+    assert.deepEqual(s.dots, [[0, 1], [25, 2], [100, 1]]);
+    const low = classStrip([10, 20, 20, 50], true);
+    assert.equal(low.x(10), 100);
+    assert.equal(low.x(50), 0);
+    assert.deepEqual(low.dots, [[0, 1], [75, 2], [100, 1]]);
+  });
+  test('Streifen: haben alle denselben Wert, liegt er in der Mitte; leer gibt es keinen', () => {
+    assert.deepEqual(classStrip([7, 7, 7]).dots, [[50, 3]]);
+    assert.equal(classStrip([7, 7, 7]).med, 50);
+    assert.equal(classStrip([]), null);
   });
 });

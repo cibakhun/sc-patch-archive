@@ -10,6 +10,18 @@
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
 
+  // ---- Werkbank (Prototyp, Skizze 016-3, nur /topics/crafting-werkbank.html) ----
+  // Dasselbe Werkzeug, anders gestellt: das Rezept steht als feste Mitte
+  // statt im Modal, der Planer ab 1180 px als rechte Spalte statt Schublade.
+  // Unter 821 px bleibt es das Fenster der bisherigen Seite. Alles andere
+  // (Daten, Besitz, Planer, Konto-Sync) ist unveraendert derselbe Code.
+  var WB = CFG.werkbank === true;
+  var mm = function (q) { return window.matchMedia ? window.matchMedia(q) : { matches: true }; };
+  var mqMitte = mm('(min-width: 821px)');
+  var mqPlaner = mm('(min-width: 1180px)');
+  function wbMitte() { return WB && mqMitte.matches; }
+  function wbPlaner() { return WB && mqPlaner.matches; }
+
   // ---- DOM ----
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -19,6 +31,36 @@
   var countEl = $('#cdb-count');
   var emptyEl = $('#cdb-empty');
   var resSearch = $('#cdb-res-search');
+
+  // Werkbank: Hoehe der Bedienleiste und der Zaehlzeile als CSS-Werte, damit
+  // die drei Spalten genau unter die Leiste passen (src/lib/werkbankCss.ts,
+  // --wb-bar/--wb-count). Die Leiste bricht je nach Breite in zwei Zeilen um.
+  if (WB) {
+    var wbRoot = $('#cdb'), wbBar = $('.cdb-bar'), wbCount = $('.cdb-count-row');
+    var wbMiss = function () {
+      if (!wbRoot) return;
+      if (wbBar && wbBar.offsetHeight) wbRoot.style.setProperty('--wb-bar', wbBar.offsetHeight + 'px');
+      if (wbCount && wbCount.offsetHeight) {
+        var mb = parseFloat(getComputedStyle(wbCount).marginBottom) || 0;
+        wbRoot.style.setProperty('--wb-count', Math.ceil(wbCount.offsetHeight + mb) + 'px');
+      }
+    };
+    wbMiss();
+    if (window.ResizeObserver && wbBar) new ResizeObserver(wbMiss).observe(wbBar);
+    else window.addEventListener('resize', wbMiss);
+  }
+  // Werkbank: ein tiefer Link (Suche „Herstellen“, Item-Kopf) bringt die
+  // Werkbank ins Bild, Leiste direkt unter die Kopfleiste. Das Fenster der
+  // bisherigen Seite lag ueber allem; die Mitte steht im Fluss und laege
+  // sonst unter Kopfbild und Hilfe. Nur, solange noch niemand gerollt hat.
+  function wbInsBild() {
+    if (!wbMitte() || window.scrollY > 40) return;
+    var bar = $('.cdb-bar');
+    if (!bar) return;
+    var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+    var ziel = Math.max(0, Math.round(bar.getBoundingClientRect().top + window.scrollY - nav));
+    try { window.scrollTo({ top: ziel, behavior: 'instant' }); } catch (e) { window.scrollTo(0, ziel); }
+  }
 
   // ---- HTML-Diät: Karten tragen im Markup nur noch data-i + data-time ----
   // Die übrigen Filter-Metadaten (name/cat/sub/res/mis/ings) standen als
@@ -146,10 +188,18 @@
     buildDismantleBlacklist(); // Zerlege-Rechner: Blacklist/Rarity aus DB + Ehrlichkeits-Guard
     buildMissionIndex();
     renderPlanner();
-    // Deep-Link aus dem Item Finder: ?bp=<Blueprint-Name> öffnet direkt das Modal.
+    // Deep-Link (Suche „Herstellen“, Item-Kopf, Item Finder): ?bp=<Blueprint-
+    // Name> öffnet direkt das Modal. &bpi=<Stelle> macht ihn eindeutig, wo
+    // mehrere Rezepte denselben Namen tragen (plannerPath in
+    // src/lib/crafting.ts); gilt nur, solange dort noch dasselbe Rezept steht.
     try {
-      var wantBp = new URLSearchParams(location.search).get('bp');
-      if (wantBp) openModalByName(wantBp);
+      var qs = new URLSearchParams(location.search);
+      var wantBp = qs.get('bp');
+      var wantI = qs.get('bpi');
+      var atI = wantI != null && /^\d+$/.test(wantI) ? DB.blueprints[+wantI] : null;
+      if (wantBp && atI && (atI.name || '').toLowerCase() === wantBp.trim().toLowerCase()) openModal(+wantI);
+      else if (wantBp) openModalByName(wantBp);
+      if (wantBp && WB) wbInsBild();
     } catch (e) {}
     if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
   }).catch(function () {
@@ -670,8 +720,18 @@
   }
 
   // ---- Sync-Statusanzeige ----
+  // Text und Aktionen beider Pillen (Kopfleiste und Planer) kommen aus EINEM
+  // Zustand: „Anmelden" nur bei local, „Erneut versuchen" nur bei error.
+  // Ausgeblendet wird über das hidden-Attribut; dass es im Browser auch
+  // gewinnt, sichert assets/theme.css (bis 07.11.2026 hob mobile-ux.css es
+  // unter 821 px auf, und am Handy stand „Mit Konto synchronisiert" neben
+  // „Anmelden" und „Erneut versuchen").
+  // error heißt zweierlei: liegt etwas offen, kam ein Klick nicht an („Nicht
+  // gespeichert"); ist nichts offen, scheiterte nur das Lesen des
+  // Server-Stands („Nicht abgeglichen"), gespeichert ist dann alles.
   function setSync(s) {
     syncState = s;
+    var unsaved = s === 'error' && !!acctUid && loadState(acctUid).pending.length > 0;
     $$('.cdb-sync').forEach(function (host) {
       host.dataset.state = s;
       var txt = $('.cdb-sync__txt', host);
@@ -681,7 +741,7 @@
         txt.textContent =
           s === 'syncing' ? tr('syncBusy', 'Synchronisiere…') :
           s === 'synced' ? tr('syncOn', 'Mit Konto synchronisiert') :
-          s === 'error' ? tr('syncErr', 'Nicht gespeichert') :
+          s === 'error' ? (unsaved ? tr('syncErr', 'Nicht gespeichert') : tr('syncStale', 'Nicht abgeglichen')) :
           tr('syncLocal', 'Nur auf diesem Gerät');
       }
       if (login) {
@@ -939,6 +999,8 @@
     });
     var closeF = $('#cdb-filter-close');
     if (closeF) closeF.addEventListener('click', function () { sidebar.classList.remove('is-open'); filtToggle.setAttribute('aria-expanded', 'false'); });
+    // Werkbank: die Filter fahren auch am Schreibtisch von links aus;
+    // Verdunkler, Esc und inert bringt offcanvas.js (data-offcanvas-immer).
   }
 
   // =========================================================
@@ -970,7 +1032,7 @@
     // dann lieber nur das Detail öffnen als Müll speichern.
     if (!s && (ownBtn || addBtn)) { e.stopPropagation(); return; }
     if (ownBtn) { e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (state.ownedOnly) apply(); return; }
-    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); renderPlanner(); flashPlan(); return; }
+    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); renderPlanner(); flashPlan(); if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' }); return; }
     openModal(+i);
   });
   cards.forEach(refreshCardState);
@@ -982,12 +1044,78 @@
   var modalBody = $('#cdb-modal-body');
   var modalStack = [];      // history of entries (for back navigation)
   var currentEntry = null;  // {t:'bp',i} | {t:'pool',key}
-  function closeModal() { if (modal) { modal.hidden = true; document.body.style.overflow = ''; modalStack = []; currentEntry = null; } }
-  function showModal() { modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0; }
+  // Werkbank: die leere Mitte (Hinweis „Rezept waehlen“) steht im Markup;
+  // sie kommt zurueck, wenn die Auswahl geschlossen wird.
+  var WB_LEER = WB && modalBody ? modalBody.innerHTML : '';
+  var wbBox = modal ? $('.cdb-modal__box', modal) : null;
+  function closeModal() {
+    if (!modal) return;
+    modalStack = []; currentEntry = null;
+    if (WB) {
+      modal.classList.add('is-leer');
+      if (modalBody) modalBody.innerHTML = WB_LEER;
+      document.body.style.overflow = '';
+      markSel(null);
+      wbAdresse(null);
+      return;
+    }
+    modal.hidden = true; document.body.style.overflow = '';
+  }
+  function showModal() {
+    if (WB) {
+      modal.classList.remove('is-leer');
+      // Am Schreibtisch steht das Rezept im Fluss: nichts sperren.
+      document.body.style.overflow = wbMitte() ? '' : 'hidden';
+      if (wbBox) wbBox.scrollTop = 0;
+      modal.scrollTop = 0;
+      return;
+    }
+    modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0;
+  }
+  // Werkbank: gewaehlte Karte in der Liste markieren und ins Bild holen.
+  var selCard = null;
+  function markSel(i) {
+    if (selCard) selCard.classList.remove('is-sel');
+    selCard = i == null ? null : grid.querySelector('.cbp[data-i="' + i + '"]');
+    if (!selCard) return;
+    selCard.classList.add('is-sel');
+    // Ins Bild holen, aber nur die Liste selbst: am Schreibtisch ist sie ein
+    // eigenes Scrollfeld (.vb-scrollbox). scrollIntoView zoege das Fenster
+    // mit und schoebe die Werkbank unter die Kopfleiste.
+    if (wbMitte() && grid.scrollHeight > grid.clientHeight + 1) {
+      var gr = grid.getBoundingClientRect(), cr = selCard.getBoundingClientRect();
+      if (cr.top < gr.top || cr.bottom > gr.bottom) grid.scrollTop += (cr.top - gr.top) - (grid.clientHeight - cr.height) / 2;
+    }
+  }
+  // Werkbank: die Adresse traegt das gewaehlte Rezept (teilbar; per
+  // replaceState, also kein Verlaufseintrag je Klick).
+  function wbAdresse(i) {
+    if (!WB || !window.history || !history.replaceState) return;
+    try {
+      var q = new URLSearchParams(location.search);
+      if (i == null) { q['delete']('bp'); q['delete']('bpi'); }
+      else { q.set('bp', DB.blueprints[i].name); q.set('bpi', String(i)); }
+      var qs = q.toString();
+      history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+    } catch (e) {}
+  }
   if (modal) {
     $$('[data-close]', modal).forEach(function (b) { b.addEventListener('click', closeModal); });
-    modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+    modal.addEventListener('click', function (e) { if (e.target === modal && !wbMitte()) closeModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (WB) { if (!wbMitte() && !modal.classList.contains('is-leer')) closeModal(); return; }
+      if (!modal.hidden) closeModal();
+    });
+    if (WB && wbBox) {
+      // Schreibtisch: die Mitte ist kein Dialog, nur ueber der Liste (Telefon) einer.
+      var wbRolle = function () {
+        if (wbMitte()) { wbBox.removeAttribute('aria-modal'); wbBox.setAttribute('role', 'region'); document.body.style.overflow = ''; }
+        else { wbBox.setAttribute('aria-modal', 'true'); wbBox.setAttribute('role', 'dialog'); }
+      };
+      wbRolle();
+      if (mqMitte.addEventListener) mqMitte.addEventListener('change', wbRolle);
+    }
   }
 
   // Navigation
@@ -996,6 +1124,7 @@
     else renderPool(entry.key);
     showModal();
     injectBack();
+    if (WB && entry.t === 'bp') { markSel(entry.i); wbAdresse(entry.i); }
   }
   function go(entry) { if (currentEntry) modalStack.push(currentEntry); currentEntry = entry; renderEntry(entry); }
   function back() { var prev = modalStack.pop(); if (prev) { currentEntry = prev; renderEntry(prev); } }
@@ -1032,6 +1161,22 @@
   // -0 (kleiner negativer Wert, auf 0 gerundet) zeigt toLocaleString als "-0".
   function fmtSmart(v) { var r = roundSmart(v); return (r === 0 ? 0 : r).toLocaleString(LOC, { maximumFractionDigits: 2 }); }
 
+  // Adresse des Item-Datenblatts zu Rezept i, oder null. CFG.items (aus
+  // CraftingApp.astro) traegt nur Abweichungen: sonst ist die Item-Adresse
+  // der Slug, den die Karte des Rezepts verlinkt (/crafting/<slug>.html).
+  function itemSheetUrl(i) {
+    var L = CFG.items;
+    var n = +i;
+    if (!L || !L.base || isNaN(n) || (L.none || []).indexOf(n) >= 0) return null;
+    var id = L.diff && L.diff[n];
+    if (!id) {
+      var card = grid.querySelector('.cbp[data-i="' + n + '"] .cbp__name a');
+      var m = card && /\/crafting\/([^\/?#]+)\.html$/.exec(card.getAttribute('href') || '');
+      id = m && m[1];
+    }
+    return id ? L.base + id + '.html' : null;
+  }
+
   function renderBlueprint(i) {
     var b = DB.blueprints[i];
     var html = '';
@@ -1041,8 +1186,12 @@
     html += '<span>' + tr('craftTime', 'Craft-Zeit') + ': <b>' + fmtTime(b.craft_time_seconds) + '</b></span>';
     if (b.tiers != null) html += '<span>' + tr('tier', 'Tier') + ': <b>' + b.tiers + '</b></span>';
     html += '<button class="cbm__plan" data-plan="' + i + '">＋ ' + tr('addPlan', 'Zum Planer') + '</button>';
+    // Zum Item-Datenblatt, wo es eines gibt (09.11.2026, Skizze 016: Preise,
+    // Fundorte und Werte stehen dort); sonst wie bisher in den Item Finder.
     // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
-    html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
+    var itemUrl = itemSheetUrl(i);
+    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + tr('openItem', 'Item-Datenblatt öffnen') + ' →</a>';
+    else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + ' →</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
       html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + ' →</button>';
@@ -1173,10 +1322,11 @@
     recompute();
 
     var pb = $('[data-plan]', modalBody);
-    if (pb) pb.addEventListener('click', function () {
+    if (pb) pb.addEventListener('click', function (ev) {
       var s = slugOfIndex(i);
       if (!s) return;
       plan[s] = (plan[s] || 0) + 1; markDirty(s);
+      if (ev.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' });
       syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
     });
 
@@ -1238,7 +1388,16 @@
   var drawer = $('#cdb-planner');
   var plannerBtn = $('#cdb-planner-open');
   var plannerBadge = $('#cdb-planner-badge');
-  function closeDrawer() { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }
+  function closeDrawer() { if (wbPlaner()) return; drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); }
+  // Werkbank ab 1180 px: der Planer ist eine feste Spalte, keine Schublade.
+  if (WB && drawer) {
+    var wbPlanerStand = function () {
+      if (wbPlaner()) { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'false'); }
+      else if (!drawer.classList.contains('is-open')) drawer.setAttribute('aria-hidden', 'true');
+    };
+    wbPlanerStand();
+    if (mqPlaner.addEventListener) mqPlaner.addEventListener('change', wbPlanerStand);
+  }
   if (plannerBtn && drawer) {
     plannerBtn.addEventListener('click', function () { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); });
     $$('[data-planner-close]', drawer).forEach(function (b) { b.addEventListener('click', closeDrawer); });
@@ -1249,7 +1408,7 @@
     // mehr im DOM, contains() meldete fälschlich „außerhalb" und der Planer ging zu.
     // Der Event-Pfad ist beim Dispatch eingefroren und kennt den Drawer trotzdem noch.
     document.addEventListener('click', function (e) {
-      if (!drawer.classList.contains('is-open')) return;
+      if (wbPlaner() || !drawer.classList.contains('is-open')) return;
       var path = e.composedPath ? e.composedPath() : [e.target];
       if (path.indexOf(drawer) === -1 && path.indexOf(plannerBtn) === -1) closeDrawer();
     });

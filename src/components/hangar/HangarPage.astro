@@ -20,7 +20,6 @@ import ToolHelp from '../ToolHelp.astro';
 import HangarApp from './HangarApp.astro';
 import ShipBay from './ShipBay.astro';
 import LayoutWorkshop from './LayoutWorkshop.astro';
-import { layoutT } from '../../i18n/layoutText';
 import { localeFromPath, href, useTranslations } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
@@ -102,7 +101,6 @@ const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overvi
 const fleetSrc = versioned('assets/fleet.js', '/assets/fleet.js');
 // Die Werkstatt laedt der Controller erst bei Bedarf, ueber diese URL.
 const layoutSrc = versioned('assets/hangar-layouts.js', '/assets/hangar-layouts.js');
-const lt = layoutT(lang);
 const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z';
 const link = 'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1';
 const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014-4z';
@@ -165,19 +163,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    wo die Spalte leer ist, gehen Klicks zur Leinwand durch. */
 .hg-side{position:absolute;right:var(--hg-gut);top:calc(var(--hg-top) + 12px);bottom:16px;width:var(--hg-panelw);display:flex;flex-direction:column;pointer-events:none}
 .hg-side>*{pointer-events:auto}
-/* Der Schalter ist der Kopf der Tafel, eine Karte statt zweier. Gewaehlt
-   heisst Unterstrich: Bernstein als Flaeche bleibt den Reitern der Werkstatt
-   und dem Speichern, sonst stehen zwei gelbe Balken uebereinander. */
-.hg-pane{flex:0 0 auto;display:flex;gap:.3rem;padding:.45rem;border:1px solid var(--hg-hair);border-bottom:0;border-radius:12px 12px 0 0;background:var(--hg-panel);box-shadow:var(--hg-rim)}
-.hg-pane button{appearance:none;flex:1 1 0;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;padding:.55rem .6rem;border:0;border-radius:8px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
-.hg-pane button:hover,.hg-pane button:focus-visible{color:var(--hg-on)}
-.hg-pane button:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
-.hg-pane button:hover{background:color-mix(in srgb,var(--hg-on) 5%,transparent)}
-.hg-pane button[aria-selected="true"]{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 10%,transparent)}
-.hg-pane button[aria-selected="true"] svg{color:var(--hg-amber)}
-.hg-pane svg{flex:0 0 auto}
-.hg[data-pane="layout"] .hg-stats,.hg[data-pane="ship"] .hgl{display:none}
-.hg-stats{position:relative;flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:0 0 12px 12px;padding:.3rem 1.1rem 1rem;box-shadow:var(--hg-lift)}
+.hg[data-station="loadout"] .hg-stats,.hg[data-station="uebersicht"] .hgl{display:none}
+.hg-stats{position:relative;flex:0 1 auto;min-height:0;display:flex;flex-direction:column;background:var(--hg-panel);border:1px solid var(--hg-hair);border-radius:12px;padding:.3rem 1.1rem 1rem;box-shadow:var(--hg-lift)}
 .hgx-stats{margin:0;display:grid;gap:.55rem}
 .hg-row{display:grid;grid-template-columns:1fr auto;gap:.15rem .6rem;font-size:var(--fs-7)}
 .hg-row dt{color:var(--hg-dim)}
@@ -220,12 +207,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-gfx select{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:var(--fs-8);cursor:pointer}
 .hgx-gfx select option{background:var(--bg-2);color:var(--text)}
 .hgx-gfx:focus-within{border-color:var(--hg-amber)}
-/* Bedienhinweis neben den drei Zeichen der Ansicht, bis zum ersten Anfassen. */
-.hg-hint{position:absolute;left:calc(var(--hg-left) + 9.4rem);bottom:22px;margin:0;max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 9.9rem);padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+/* Bedienhinweis bis zum ersten Anfassen: mittig ueber der Stationen-Leiste
+   (die steht seit Phase 22 immer am Buehnenfuss; daneben lag er auf ihr). */
+.hg-hint{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:80px;width:fit-content;margin:0 auto;padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);font-size:var(--fs-5);color:color-mix(in srgb,var(--hg-on) 85%,transparent);text-align:center;pointer-events:none;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
 .hg[data-hint="seen"] .hg-hint{opacity:0;visibility:hidden}
-/* Einsteigen: ein Zeichen mehr unten links, der Hinweis rueckt nach; drinnen
-   steht statt des Bedienhinweises der zum Gehen */
-.hg:has(#hgx-walk:not([hidden])) .hg-hint{left:calc(var(--hg-left) + 12.3rem);max-width:calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px - 12.8rem)}
+/* Drinnen steht statt des Bedienhinweises der zum Gehen */
 .hg .hgx-walkhint{opacity:0;visibility:hidden}
 .hg[data-walk="on"] .hgx-walkhint{opacity:1;visibility:visible;transition:opacity var(--dur-slow) var(--ease-ui)}
 .hg[data-walk="on"] #hg-hint{display:none}
@@ -237,11 +223,26 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-act.is-done,.hgx-act[aria-pressed="true"]{border-color:var(--hg-amber);color:var(--hg-amber)}
 .hgx-act svg,.hgx-chip svg{flex:0 0 auto}
 .hgx-act[aria-pressed="true"] path,.hgx-chip[aria-pressed="true"] path{fill:currentColor}
-/* Leiste am Buehnenfuss, nur fuer den Korb des Vergleichs. Sie spart links
-   die Zeichen der Ansicht (.hg-tools) und rechts die Spalte der Tafel aus;
-   unter 760 px steht sie zwischen Buehne und Tafel. */
-.hgx-stagebar{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:16px;display:flex;justify-content:flex-end;pointer-events:none}
-.hgx-stagebar[hidden]{display:none}
+/* Leiste am Buehnenfuss: die Stationen in der Mitte, rechts der Korb des
+   Vergleichs. Sie spart links die Zeichen der Ansicht (.hg-tools) und rechts
+   die Spalte der Tafel aus; unter 760 px steht sie zwischen Buehne und Tafel. */
+.hgx-stagebar{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:16px;display:flex;align-items:flex-end;gap:.6rem;pointer-events:none}
+/* Stationen (ROADMAP Phase 22): Reiter wie die der Werkstatt, gewaehlt hell
+   mit Bernstein am Zeichen; „Als Tafel“ daneben, nur wenn die Station in der
+   Halle steht. Steht die Uebersicht als Hologramm in der Halle (data-st3d),
+   weicht die Spalte rechts und mit ihr die Marker der Seite. */
+.hgx-st{display:flex;align-items:center;gap:.3rem;margin-inline:auto;padding:.3rem;border:1px solid var(--hg-hair);border-radius:12px;background:var(--hg-panel);box-shadow:var(--hg-rim);pointer-events:auto}
+.hgx-st__tabs{display:flex;gap:.25rem}
+.hgx-st button{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:40px;padding:.45rem .85rem;border:0;border-radius:8px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-st button:hover,.hgx-st button:focus-visible{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 5%,transparent)}
+.hgx-st button:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
+.hgx-st button[aria-selected="true"],.hgx-st button[aria-pressed="true"]{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 10%,transparent)}
+.hgx-st button[aria-selected="true"] svg,.hgx-st button[aria-pressed="true"] svg{color:var(--hg-amber)}
+.hgx-st svg{flex:0 0 auto}
+.hgx-st__flat{border-left:1px solid var(--hg-hair)!important;border-radius:0 8px 8px 0!important;margin-left:.15rem}
+.hgx-st__flat[hidden]{display:none}
+.hg[data-st3d]{--hg-panelw:0px}
+.hg[data-st3d] .hg-side,.hg[data-st3d] .hgx-marks{display:none}
 /* Die Flottenzeile steht im Dock (eigene Insel): dieselben Insel-Woerter dort. */
 .hg-dock{--hg-amber:var(--accent);--hg-on:var(--text);--hg-dim:var(--muted);--hg-hair:var(--line)}
 .hgx-fleetline{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .9rem;margin:-.25rem 0 .7rem;font-size:var(--fs-6);color:var(--hg-on)}
@@ -255,6 +256,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-x{appearance:none;border:1px solid var(--hg-hair);border-radius:3px;background:none;color:var(--hg-on);font:inherit;line-height:1;padding:.15rem .45rem;cursor:pointer}
 .hgx-x:hover,.hgx-x:focus-visible{border-color:var(--hg-amber)}
 /* Korb des Vergleichs, rechts in der Leiste. */
+.hgx-tray[hidden]{display:none}
 .hgx-tray{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .6rem;max-width:100%;margin-left:auto;padding:.35rem .5rem .35rem .65rem;border:1px solid var(--hg-hair);border-radius:10px;background:var(--hg-panel);box-shadow:var(--hg-rim);font-size:var(--fs-6);color:var(--hg-on);pointer-events:auto}
 .hgx-tray__title{font-family:var(--font-ui);font-weight:700;color:var(--hg-amber)}
 .hgx-tray__list{display:flex;flex-wrap:wrap;gap:.35rem;margin:0;padding:0;list-style:none}
@@ -610,12 +612,14 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   /* Die Aktionen brechen hier in zwei Zeilen um: Meldungen an den Buehnenfuss. */
   .hgx-modelerr,.hg-stagewrap .hg-fallback{left:50%;top:auto;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px)}
   .hg-side{position:static;width:auto;display:block}
-  .hg-pane{margin:0;padding:.5rem 16px;border-width:1px 0 0;border-radius:0;background:var(--bg-2);box-shadow:none}
   .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);box-shadow:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
   .hgx-foot{position:static;background:none}
   .hgx-mk{width:12px;height:12px;margin:-6px 0 0 -6px}
-  .hgx-stagebar{position:static;justify-content:flex-start;padding:.8rem 16px;background:var(--bg-2);border-top:1px solid var(--hg-hair)}
+  .hgx-stagebar{position:static;flex-direction:column;align-items:stretch;padding:.6rem 16px;background:var(--bg-2);border-top:1px solid var(--hg-hair)}
+  .hgx-st{margin:0;padding:0;border:0;background:none;box-shadow:none}
+  .hgx-st__tabs{flex:1 1 auto}
+  .hgx-st__tabs button{flex:1 1 0}
   .hgx-tray{margin-left:0}
   .hg-tools{left:16px;bottom:12px}
   .hgx-cmp{width:100%;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}
@@ -644,7 +648,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
-<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-layout-js={layoutSrc} data-tab-active="overview" data-pane="layout">
+<main class="hg" id="main" data-loc={loc} data-default-ship={HANGAR_DEFAULT_SHIP} data-bay-base={href('/hangar-bay/', lang)} data-layout-js={layoutSrc} data-tab-active="overview" data-station="loadout">
   {/* Das Dock ist zu, bis jemand es aufklappt; die Halle bekommt seinen Platz.
       Vor der Buehne entschieden, damit ihre Hoehe nicht nach dem ersten Bild
       springt. Ohne Skript bleibt es offen. Ebenso vorab: ob der Bedienhinweis
@@ -714,9 +718,26 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       <p class="hg-hint" id="hg-hint">{t('act.hint')}</p>
       <p class="hg-hint hgx-walkhint" id="hgx-walkhint">{t('walk.hint')}</p>
     </HangarApp>
-    {/* Die Leiste am Buehnenfuss traegt nur noch den Korb des Vergleichs; sie
-        laesst links den Platz der beiden Zeichen frei. */}
+    {/* Die Leiste am Buehnenfuss: die Stationen und der Korb des Vergleichs;
+        sie laesst links den Platz der Zeichen frei. Welche Station steht und
+        ob als Tafel, sagt der Zustand des Controllers (?station=, ?tafel=1). */}
     <div class="hgx-stagebar" id="hgx-stagebar">
+      <div class="hgx-st" id="hgx-st" data-help={h('hangar.ctl.stations')}>
+        <div class="hgx-st__tabs" role="tablist" aria-label={t('st.label')}>
+          <button type="button" role="tab" id="hgx-st-uebersicht" data-station="uebersicht" aria-controls="hg-stats" aria-selected="false" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            <span>{t('st.uebersicht')}</span>
+          </button>
+          <button type="button" role="tab" id="hgx-st-loadout" data-station="loadout" aria-controls="hgl" aria-selected="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.6 17.2a1.5 1.5 0 002.1 2.1l5.7-5.7a4 4 0 005.2-5.4l-2.4 2.4-2.1-.4-.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            <span>{t('st.loadout')}</span>
+          </button>
+        </div>
+        <button type="button" class="hgx-st__flat" id="hgx-tafel" aria-pressed="false" data-help={h('hangar.ctl.tafel')} hidden>
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4.5 5h15v14h-15zM8 9h8M8 12.5h8M8 16h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          <span>{t('st.flat')}</span>
+        </button>
+      </div>
       {/* Der Korb des Vergleichs; das erste Schiff ist die Basis. */}
       <div class="hgx-tray" id="hgx-tray" role="group" aria-labelledby="hgx-tray-title" data-help={h('hangar.ctl.tray')} hidden>
         <b class="hgx-tray__title" id="hgx-tray-title">{t('cmp.tray')}</b>
@@ -726,19 +747,10 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <p class="hgx-tray__msg" id="hgx-tray-msg" hidden>{t('cmp.full')}</p>
       </div>
     </div>
-    {/* Die Tafel rechts: oben der Schalter, darunter Werkstatt (Vorgabe) oder
-        Schiffsdaten. Ohne Skript gibt es nur die Schiffsdaten (noscript unten). */}
+    {/* Die Tafel rechts: Werkstatt (Station Loadout, Vorgabe) oder
+        Schiffsdaten (Station Uebersicht). Ohne Skript gibt es nur die
+        Schiffsdaten (noscript unten). */}
     <div class="hg-side">
-    <div class="hg-pane" role="tablist" aria-label={lt('pane.label')} data-help={h('hangar.ctl.layout')}>
-      <button type="button" role="tab" id="hg-pane-layout" data-pane-to="layout" aria-controls="hgl" aria-selected="true">
-        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.6 17.2a1.5 1.5 0 002.1 2.1l5.7-5.7a4 4 0 005.2-5.4l-2.4 2.4-2.1-.4-.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
-        <span>{lt('pane.layout')}</span>
-      </button>
-      <button type="button" role="tab" id="hg-pane-ship" data-pane-to="ship" aria-controls="hg-stats" aria-selected="false" tabindex="-1">
-        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-        <span>{lt('pane.ship')}</span>
-      </button>
-    </div>
     <aside class="hg-stats" id="hg-stats" aria-label={t('panel.label')}>
       <div class="hgx-tabs" role="tablist" aria-label={t('panel.tabs')} data-help={h('hangar.ctl.tabs')}>
         {TABS.map((k) => (
@@ -755,7 +767,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     </aside>
     <LayoutWorkshop lang={lang} />
     </div>
-    <noscript><style>.hg .hg-stats{display:flex!important}.hg .hgl,.hg .hg-pane,.hg .hgx-docktog,.hg .hgx-find{display:none!important}</style></noscript>
+    <noscript><style>.hg .hg-stats{display:flex!important}.hg .hgl,.hg .hgx-st,.hg .hgx-docktog,.hg .hgx-find{display:none!important}</style></noscript>
     {/* Modal ueber der Buehne (showModal: Fokus bleibt drin, Escape ist "cancel").
         Abschnitte und Zeilen aus COMPARE (bay.ts). Zahlen und Textzeilen
         setzt der Controller aus den Dock-Daten, die Zeilen der Bewaffnung und
@@ -970,6 +982,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     <span data-msg="cmp-open" data-other={t('msg.cmp.open')}></span>
     <span data-msg="find-hits" data-one={t('msg.find.hits.one')} data-other={t('msg.find.hits.other')}></span>
     <span data-msg="find" data-remove={t('msg.find.remove')} data-cargo={t('msg.find.cargo')} data-price={t('msg.find.price')} data-here={t('msg.qv.here')}></span>
+    <span data-msg="holo" data-speed={t('holo.speed')} data-fire={t('holo.fire')} data-shield={t('holo.shield')} data-hull={t('holo.hull')} data-rank={t('msg.holo.rank')} data-cls={t('msg.holo.cls')} data-size={t('msg.holo.size')} data-none={t('holo.none')} data-cmp={t('holo.cmp')} data-cmp-on={t('holo.cmpOn')} data-all={t('holo.all')} data-sys={t('holo.sys')} data-more={t('msg.holo.more')}></span>
     <span data-msg="cmp" data-show={t('cmp.show')} data-base={t('cmp.base')} data-better={t('cmp.better')} data-worse={t('cmp.worse')} data-remove={t('msg.cmp.remove')} data-loading={t('cmp.loading')}></span>
   </div>
 </main>

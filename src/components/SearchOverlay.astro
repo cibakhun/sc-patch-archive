@@ -36,6 +36,10 @@ const rootData = searchRootData(lang);
       <input
         id="scs-in"
         type="search"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls="scs-list"
+        aria-autocomplete="list"
         placeholder={t('search.placeholder')}
         autocomplete="off"
         spellcheck="false"
@@ -48,6 +52,7 @@ const rootData = searchRootData(lang);
     <div class="scs__foot">
       <span><kbd>↑↓</kbd> {t('search.pick')}</span>
       <span><kbd>↵</kbd> {t('search.open')}</span>
+      <span><kbd>→</kbd> {t('search.craftHint')}</span>
       <span><kbd>Esc</kbd> {t('search.dismiss')}</span>
     </div>
   </div>

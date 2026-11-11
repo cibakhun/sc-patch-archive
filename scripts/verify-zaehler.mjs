@@ -33,7 +33,7 @@
         und dieselbe Seite definiert ihn inline (window.<name> = …).
         Fehlt der Haken, schickt Umami ungefiltert. Seit 29.10.2026
         ausserdem: das Skript kommt vom EIGENEN Ursprung (src beginnt mit
-        "/", die gepinnte Kopie unter public/vendor/umami/), und
+        "/", die gepinnte Kopie unter public/vendor/zaehler/), und
         data-host-url nennt das https-Ziel der Zaehlung.
      5  Jede verschiedene Fassung des Hakens aus dem gebauten Stand laeuft
         in node:vm: Abfrage und Fragment verschwinden aus url und
@@ -49,7 +49,11 @@
         Haken der Seite: genau ein POST an <data-host-url>/api/send mit
         der Website-Kennung und einer Adresse ohne Abfrage und Fragment;
         kein einziger mit Widerspruchs-Cookie und keiner auf einem
-        fremden Hostnamen (Vorschau, data-domains).
+        fremden Hostnamen (Vorschau, data-domains). Seit 10.11.2026
+        ausserdem: kein Skript der Messung (Zaehler-Kopie, Ereignis-
+        Skript) liegt unter einem Pfad, den eine Werbeblocker-Standardliste
+        sperrt (BLOCKER_MUSTER) — sonst laedt es bei deren Nutzern gar
+        nicht, und die Zahlen fehlen still.
 
    Den Zaehler erkennt das Tor am Umami-Merkmal `data-website-id`, nicht
    am Host — zieht das Skript auf einen anderen Host um, bleibt das Tor
@@ -68,7 +72,7 @@ import { join } from 'node:path';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
 import { parseHTML } from 'linkedom';
-import { EREIGNISSE, WERKZEUG_SEITEN, EINMAL, FILTER } from './lib/ereignisse.mjs';
+import { EREIGNISSE, WERKZEUG_SEITEN, EINMAL, FILTER, EXTERN, EXTERN_HOSTS, MERKEN, HILFE_ART } from './lib/ereignisse.mjs';
 
 const DIST = 'dist';
 
@@ -82,6 +86,16 @@ const MIN_LAYOUT_SEITEN = 17000;
 const MIN_ZAEHLER_SEITEN = 17000;
 const MIN_HAKEN_FASSUNGEN = 1;
 const MIN_ZAEHLER_KOPIEN = 1;
+// Pfadmuster, die verbreitete Werbeblocker-Listen fuer Umami fuehren
+// (EasyPrivacy, Stand 10.11.2026: `/umami/script.js`, `/umami.js`,
+// `||umami.*/script.js`). Anlass: Bis 10.11.2026 lag die Kopie unter
+// /vendor/umami/script.js; bei Nutzern von uBlock Origin, AdGuard und Co.
+// lud der Zaehler seit dem Live-Gang am 31.10. gar nicht. Geprueft wird
+// das Wort im ganzen Pfad, nicht nur die heutigen Muster: jede Liste, die
+// Umami kennt, sucht nach ihm. Gilt fuer Zaehler-Kopie und Ereignis-Skript.
+const BLOCKER_MUSTER = [
+  { re: /umami/i, liste: 'EasyPrivacy sperrt /umami/script.js und /umami.js (Standardliste von uBlock Origin, AdGuard und Co.)' },
+];
 // [7] Messereignisse, Stand 06.11.2026 (Build der Ereignis-Aenderung):
 // 17.741 Seiten laden assets/ereignisse.js (= alle mit Zaehler), 112 Marken
 // in 10 Werkzeugen (88 Filter, 22 Rechner, 2 Kopieren; Evolution hat keine
@@ -91,12 +105,26 @@ const MIN_ZAEHLER_KOPIEN = 1;
 // Zuruecksetzen-Knopf im Precision-Jump-Rechner.
 const MIN_EREIGNIS_SEITEN = 17000;
 const MIN_EREIGNIS_MARKEN = 112;
-const MIN_EREIGNIS_PROBEN = 24;
+// 11.11.2026 (Ereignis extern): 8 Proben mehr, 32 Laeufe; Bedienung auf
+// der Seite: 13 Proben mehr, 45 Laeufe; Review: Pilotenprofil und mittlere
+// Taste, 3 Proben mehr, 48 Laeufe.
+const MIN_EREIGNIS_PROBEN = 48;
 // Melde-Links (data-ev-melden, „Falschen Wert melden“ im Datenstand), Stand
 // 06.11.2026 (Build der Melde-Aenderung): 17.190 Detailseiten (Items,
 // Blueprints, Schiffe, Missionen, je DE und EN). Knapp darunter, ein Datenlauf
 // darf ein paar Seiten streichen.
 const MIN_MELDE_MARKEN = 17000;
+// Ziel-Marken data-ev-extern (Ereignis extern), Stand 11.11.2026: der
+// Stripe-Knopf der Unterstuetzen-Seite, DE und EN.
+const MIN_EXTERN_MARKEN = 2;
+// Bedienung auf der Seite (11.11.2026, Build der Aenderung, Live-Bau): 44
+// Hilfe-Marken (2 je ToolHelp, 22 Hilfen), 4 Trefferbereiche (Item Finder +
+// Crafting je Sprache), 356 Video-Fassaden (Klinke wie verify:vorklick 340),
+// 960 Bild-Ausloeser auf Patch-, Themen- und Schiffsseiten.
+const MIN_HILFE_MARKEN = 44;
+const MIN_TREFFER_BEREICHE = 4;
+const MIN_VIDEO_FASSADEN = 340;
+const MIN_BILD_AUSLOESER = 900;
 
 // Seiten OHNE Zaehler, je mit Anlass. Wer `analytics={false}` setzt,
 // traegt die Seite hier ein; faellt der Anlass weg, reisst [2]. Auch
@@ -176,6 +204,26 @@ const MELDE_MARKE = /<a\b[^>]*\sdata-ev-melden\b[^>]*>/g;
 // Detailseiten wie DETAIL_PFADE in assets/ereignisse.js (Pfad ohne /de).
 const DETAIL_SEITE = /^(?:items|crafting|schiffe|missionen)\/[^/]+\.html$/;
 const meldeMarken = [];
+// Ereignis extern: Ziel-Marken und Links nach draussen (Host wie der Browser
+// ihn liest, ohne www.) auf gezaehlten Seiten.
+const EXTERN_MARKE = /\sdata-ev-extern(?:="([^"]*)")?/g;
+const EXTERN_LINK = /<a\b[^>]*?\shref="(?:https?:)?\/\/([^/"?#:]+)/gi;
+const externMarken = [];
+// Bedienung auf der Seite: Marken data-ev-hilfe / data-ev-treffer, dazu die
+// Ausloeser, die assets/ereignisse.js an vorhandenen Attributen erkennt
+// (Video-Fassaden, Leuchtkasten-Bilder, Umschalter „Bilder“).
+const HILFE_MARKE = /\sdata-ev-hilfe(?:="([^"]*)")?/g;
+const TREFFER_MARKE = /\sdata-ev-treffer(?:="([^"]*)")?(?=[\s>\/])/g;
+const VIDEO_AUSLOESER = /\sdata-yt="|\sdata-lb="yt:|\sid="holoytgo"/g;
+const BILD_AUSLOESER = /\sdata-lb="(?!yt:)|\sid="btnimg"/g;
+const hilfeMarken = [];
+const trefferMarken = [];
+let videoFassaden = 0, bildAusloeser = 0;
+// merken: was-Werte in den Aufrufen von vbEreignis('merken', { was: … }).
+const MERKEN_AUFRUF = /vbEreignis\(\s*['"]merken['"]\s*,\s*\{\s*was\s*:\s*['"]([^'"]*)['"]/g;
+const merkenAufrufe = [];
+const externLinks = new Map(); // Host ohne www. -> Zahl der Links
+let externLinksGesamt = 0;
 let ereignisSeiten = 0;
 const zaehlerOhneEreignis = [];
 const ereignisOhneZaehler = [];
@@ -206,6 +254,20 @@ for (const s of seiten) {
   if (evTag && !ereignisSkripte.has(evTag[1].split('?')[0])) ereignisSkripte.set(evTag[1].split('?')[0], s);
   for (const m of html.matchAll(EREIGNIS_MARKE)) ereignisMarken.push({ seite: s, art: m[1], wert: m[2] ?? null, gezaehlt: tags.length > 0 });
   for (const m of html.matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: s, name: m[1] });
+  for (const m of html.matchAll(EXTERN_MARKE)) externMarken.push({ seite: s, wert: m[1] ?? null, gezaehlt: tags.length > 0 });
+  for (const m of html.matchAll(HILFE_MARKE)) hilfeMarken.push({ seite: s, wert: m[1] ?? null, gezaehlt: tags.length > 0 });
+  for (const m of html.matchAll(TREFFER_MARKE)) trefferMarken.push({ seite: s, wert: m[1] ?? null, gezaehlt: tags.length > 0 });
+  if (tags.length) {
+    videoFassaden += (html.match(VIDEO_AUSLOESER) ?? []).length;
+    bildAusloeser += (html.match(BILD_AUSLOESER) ?? []).length;
+  }
+  for (const m of html.matchAll(MERKEN_AUFRUF)) merkenAufrufe.push({ wo: s, was: m[1] });
+  if (tags.length)
+    for (const m of html.matchAll(EXTERN_LINK)) {
+      const h = m[1].toLowerCase().replace(/^www\./, '');
+      externLinks.set(h, (externLinks.get(h) ?? 0) + 1);
+      externLinksGesamt++;
+    }
   // href wie der Browser ihn liest: Astro schreibt & als &#38;, andere als &amp;.
   for (const m of html.matchAll(MELDE_MARKE)) meldeMarken.push({ seite: s, href: (/\shref="([^"]*)"/.exec(m[0])?.[1] ?? null)?.replace(/&(?:amp|#38|#x26);/gi, '&') ?? null, gezaehlt: tags.length > 0 });
 
@@ -222,7 +284,7 @@ for (const s of seiten) {
       else if (!hakenFassungen.has(quelle)) hakenFassungen.set(quelle, { seite: s, name: haken });
       const src = attr(tag, 'src') ?? '';
       if (!/^\/(?!\/)/.test(src))
-        maengel.push(`src="${src}" — das Zaehlskript kommt vom eigenen Ursprung (gepinnte Kopie public/vendor/umami/script.js, siehe scripts/vendor-umami.mjs), nicht von einem fremden Host`);
+        maengel.push(`src="${src}" — das Zaehlskript kommt vom eigenen Ursprung (gepinnte Kopie public/vendor/zaehler/zaehler.js, siehe scripts/vendor-umami.mjs), nicht von einem fremden Host`);
       else if (quelle && !zaehlerKopien.has(src.split('?')[0])) zaehlerKopien.set(src.split('?')[0], { seite: s, tag, haken: quelle });
     }
     if (!/^https:\/\/[^/"]+\/?$/.test(attr(tag, 'data-host-url') ?? ''))
@@ -413,6 +475,13 @@ for (const [src, { seite, tag, haken }] of zaehlerKopien) {
   }
 }
 console.log(`    Zaehler-Kopien geprueft: ${kopienGeprueft}   je 3 Laeufe`);
+// Pfade der Messung gegen Werbeblocker-Muster: ein gesperrter Pfad laesst
+// den Zaehler bei deren Nutzern gar nicht laden, keine Seite merkt etwas.
+const messPfade = [...new Set([...zaehlerKopien.keys(), ...ereignisSkripte.keys()])];
+const gesperrt = messPfade.flatMap((pfad) => BLOCKER_MUSTER.filter((m) => m.re.test(pfad)).map((m) => ({ pfad, m })));
+console.log(`    Mess-Skripte gegen Werbeblocker-Muster: ${messPfade.length} Pfad(e) (${messPfade.join(', ') || '—'}), ${BLOCKER_MUSTER.length} Muster   gesperrt — Soll: 0   Ist: ${gesperrt.length}`);
+for (const { pfad, m } of gesperrt)
+  fail(`${pfad}: Pfad trifft das Werbeblocker-Muster ${m.re} (${m.liste}) — bei deren Nutzern laedt das Skript nicht, Seitenaufrufe und Ereignisse fehlen still; Datei neutral benennen (Zaehler: ZIEL in scripts/vendor-umami.mjs und der Tag in Layout.astro)`);
 
 /* ---- [7] Messereignisse: Liste, Markierungen, Lauf in node:vm ---- */
 console.log('\n[7] Messereignisse: nur die freigegebene Liste, nur feste Werte (scripts/lib/ereignisse.mjs)');
@@ -458,6 +527,42 @@ for (const m of meldeMarken) {
   if (m.href !== soll) { meldeFehler++; if (meldeFehler <= 10) fail(`${m.seite}: Melde-Link zeigt auf ${JSON.stringify(m.href)}, Soll ${JSON.stringify(soll)} — eigener Pfad, Formular derselben Sprache`); }
 }
 console.log(`    Melde-Links: ${meldeMarken.length} auf ${meldeSeiten.size} Detailseiten   fehlerhaft — Soll: 0   Ist: ${meldeFehler}`);
+// 7.2c Ereignis extern: Ziel-Marken nur mit freigegebenem Ziel und nur auf
+// gezaehlten Seiten; jeder Host in EXTERN_HOSTS hat einen Link im gebauten
+// Stand (sonst Eintrag ohne Anlass), und jedes Ziel ausser „sonst“ ist ueber
+// einen Host oder eine Marke erreichbar.
+const externSet = new Set(EXTERN);
+let externFehler = 0;
+for (const m of externMarken) {
+  if (!m.wert || !externSet.has(m.wert) || m.wert === 'sonst') { externFehler++; if (externFehler <= 10) fail(`${m.seite}: data-ev-extern="${m.wert ?? ''}" ist kein freigegebenes Ziel (EXTERN in scripts/lib/ereignisse.mjs, ohne „sonst“) — das Ereignis wuerde verworfen`); continue; }
+  if (!m.gezaehlt) { externFehler++; if (externFehler <= 10) fail(`${m.seite}: data-ev-extern auf einer Seite ohne Zaehler — die Marke waere tot`); }
+}
+const hostOhneLink = Object.keys(EXTERN_HOSTS).filter((h) => !externLinks.has(h));
+for (const h of hostOhneLink) fail(`EXTERN_HOSTS nennt ${h}, aber keine gezaehlte Seite verlinkt dorthin — Eintrag ohne Anlass entfernen (Zombie) oder der Link ist verloren gegangen`);
+for (const [h, z] of Object.entries(EXTERN_HOSTS)) {
+  if (h !== h.toLowerCase() || /^www\./.test(h)) fail(`EXTERN_HOSTS: "${h}" — Hosts klein und ohne www. eintragen, assets/ereignisse.js vergleicht so`);
+  if (!externSet.has(z) || z === 'sonst') fail(`EXTERN_HOSTS: ${h} -> "${z}" ist kein Ziel aus EXTERN (ohne „sonst“)`);
+}
+const erreichbar = new Set([...Object.values(EXTERN_HOSTS), ...externMarken.map((m) => m.wert)]);
+for (const z of EXTERN.filter((z) => z !== 'sonst' && !erreichbar.has(z))) fail(`EXTERN nennt das Ziel "${z}", aber kein Host und keine Marke fuehrt dorthin — Eintrag ohne Anlass (Zombie)`);
+const proZiel = {};
+for (const [h, n] of externLinks) { const z = EXTERN_HOSTS[h] ?? 'sonst'; proZiel[z] = (proZiel[z] ?? 0) + n; }
+// 7.2d Bedienung auf der Seite: Hilfe-Marken nur mit freigegebener Art, auf
+// gezaehlten Seiten; Trefferbereiche ohne Wert und nur auf Werkzeugseiten
+// (assets/ereignisse.js beachtet sie nur dort, sonst waeren sie tot).
+const hilfeArt = new Set(HILFE_ART);
+let bedienFehler = 0;
+for (const m of hilfeMarken) {
+  if (!m.wert || !hilfeArt.has(m.wert)) { bedienFehler++; if (bedienFehler <= 10) fail(`${m.seite}: data-ev-hilfe="${m.wert ?? ''}" ist keine freigegebene Art (HILFE_ART in scripts/lib/ereignisse.mjs)`); continue; }
+  if (!m.gezaehlt && !KONTO_PFAD.test(m.seite)) { bedienFehler++; if (bedienFehler <= 10) fail(`${m.seite}: data-ev-hilfe auf einer Seite ohne Zaehler — die Marke waere tot`); }
+}
+for (const a of HILFE_ART) if (!hilfeMarken.some((m) => m.wert === a)) fail(`HILFE_ART "${a}" steht in der Liste, aber an keiner Hilfe — Eintrag ohne Anlass (Zombie) oder ToolHelp hat die Marke verloren`);
+for (const m of trefferMarken) {
+  if (m.wert) { bedienFehler++; if (bedienFehler <= 10) fail(`${m.seite}: data-ev-treffer="${m.wert}" — diese Marke traegt keinen Wert`); continue; }
+  if (!m.gezaehlt || !seiteZuWerkzeug(m.seite)) { bedienFehler++; if (bedienFehler <= 10) fail(`${m.seite}: data-ev-treffer auf einer Seite, die kein gezaehltes Werkzeug ist — assets/ereignisse.js sendet treffer-offen nur auf den Seiten aus WERKZEUG_SEITEN, die Marke waere tot`); }
+}
+console.log(`    Bedienung: Hilfe-Marken ${hilfeMarken.length} (${HILFE_ART.map((a) => `${a} ${hilfeMarken.filter((m) => m.wert === a).length}`).join(', ')})   Trefferbereiche ${trefferMarken.length}   Video-Fassaden ${videoFassaden}   Bild-Ausloeser ${bildAusloeser}   fehlerhafte Marken — Soll: 0   Ist: ${bedienFehler}`);
+console.log(`    Links nach draussen auf gezaehlten Seiten: ${externLinksGesamt} (${EXTERN.map((z) => `${z} ${proZiel[z] ?? 0}`).join(', ')})   Ziel-Marken data-ev-extern: ${externMarken.length}   Hosts ohne Link — Soll: 0   Ist: ${hostOhneLink.length}   fehlerhafte Marken — Soll: 0   Ist: ${externFehler}`);
 // Jede Werkzeugseite gibt es (beide Sprachen) und sie zaehlt.
 for (const p of Object.keys(WERKZEUG_SEITEN)) {
   for (const s of [p.slice(1), `de${p}`]) {
@@ -468,15 +573,30 @@ for (const p of Object.keys(WERKZEUG_SEITEN)) {
 }
 
 // 7.3 Jeder Aufruf von vbEreignis im gebauten Stand nennt ein freigegebenes Ereignis.
-const assetsDir = join(DIST, 'assets');
-if (existsSync(assetsDir))
-  for (const f of readdirSync(assetsDir).filter((f) => f.endsWith('.js') && f !== 'ereignisse.js'))
-    for (const m of readFileSync(join(assetsDir, f), 'utf8').matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: `assets/${f}`, name: m[1] });
+// Seit 11.11.2026 auch die gebuendelten Skripte unter _astro/ (Refinery-Tracker).
+for (const dir of ['assets', '_astro']) {
+  const voll = join(DIST, dir);
+  if (!existsSync(voll)) continue;
+  for (const f of readdirSync(voll).filter((f) => f.endsWith('.js') && f !== 'ereignisse.js')) {
+    const text = readFileSync(join(voll, f), 'utf8');
+    for (const m of text.matchAll(EREIGNIS_AUFRUF)) ereignisAufrufe.push({ wo: `${dir}/${f}`, name: m[1] });
+    for (const m of text.matchAll(MERKEN_AUFRUF)) merkenAufrufe.push({ wo: `${dir}/${f}`, was: m[1] });
+  }
+}
 const fremdeAufrufe = ereignisAufrufe.filter((a) => !Object.prototype.hasOwnProperty.call(EREIGNISSE, a.name));
 const aufrufNamen = new Set(ereignisAufrufe.map((a) => a.name));
 console.log(`    Aufrufe von vbEreignis: ${ereignisAufrufe.length} an ${new Set(ereignisAufrufe.map((a) => a.wo)).size} Stellen (${[...aufrufNamen].sort().join(', ') || '—'})   nicht freigegeben — Soll: 0   Ist: ${fremdeAufrufe.length}`);
 for (const a of fremdeAufrufe.slice(0, 10)) fail(`${a.wo}: vbEreignis('${a.name}') — kein freigegebenes Ereignis`);
 for (const n of ['suche-offen', 'suche-treffer']) if (!aufrufNamen.has(n)) fail(`kein Aufruf von vbEreignis('${n}') im gebauten Stand — die Suche meldet ihr Ereignis nicht mehr`);
+// merken: jeder was-Wert aus MERKEN hat einen Aufruf, und jeder Aufruf nennt einen aus MERKEN.
+const merkenSet = new Set(MERKEN);
+const merkenFremd = merkenAufrufe.filter((a) => !merkenSet.has(a.was));
+for (const a of merkenFremd.slice(0, 10)) fail(`${a.wo}: vbEreignis('merken', { was: '${a.was}' }) — kein Wert aus MERKEN, das Ereignis wuerde verworfen`);
+const merkenNamen = new Set(merkenAufrufe.map((a) => a.was));
+for (const w of MERKEN) if (!merkenNamen.has(w)) fail(`MERKEN "${w}": kein Aufruf vbEreignis('merken', { was: '${w}' }) im gebauten Stand — die App meldet es nicht mehr, oder der Eintrag ist ohne Anlass (Zombie)`);
+const merkenUngelesen = ereignisAufrufe.filter((a) => a.name === 'merken').length - merkenAufrufe.length;
+if (merkenUngelesen > 0) fail(`${merkenUngelesen} Aufruf(e) von vbEreignis('merken') ohne lesbares { was: '…' } — der Wert muss als fester Text im Aufruf stehen`);
+console.log(`    merken-Aufrufe: ${merkenAufrufe.length} (${MERKEN.map((w) => `${w} ${merkenAufrufe.filter((a) => a.was === w).length}`).join(', ')})   fremde Werte — Soll: 0   Ist: ${merkenFremd.length}`);
 
 // 7.4 Die ausgelieferte Datei, ausgefuehrt mit dem gepinnten Zaehler und dem Haken der Seite.
 let probenGelaufen = 0;
@@ -518,9 +638,10 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
     vm.runInContext(zRumpf, ctx, { timeout: 1000 });
     Object.defineProperty(doc, 'currentScript', { value: null, configurable: true });
     vm.runInContext(eQuelle, ctx, { timeout: 1000 });
-    const ereignis = (typ, el, echt = true) => {
+    const ereignis = (typ, el, echt = true, extra = {}) => {
       const ev = new lw.Event(typ, { bubbles: true });
       if (echt) Object.defineProperty(ev, 'isTrusted', { value: true });
+      for (const [k, v] of Object.entries(extra)) Object.defineProperty(ev, k, { value: v });
       el.dispatchEvent(ev);
     };
     const warte = () => new Promise((r) => setTimeout(r, 20));
@@ -545,10 +666,14 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
       }
     }
     if (JSON.stringify(wzs ?? null) !== JSON.stringify(WERKZEUG_SEITEN)) fail(`${eSrc}: WERKZEUG_SEITEN weicht vom SOLL ab — Datei ${JSON.stringify(wzs ?? null)}`);
+    const exh = ctx.vbEreignis?.externHosts;
+    if (JSON.stringify(exh ?? null) !== JSON.stringify(EXTERN_HOSTS)) fail(`${eSrc}: EXTERN_HOSTS weicht vom SOLL ab — Datei ${JSON.stringify(exh ?? null)}`);
   }
 
   // Proben: [Titel, Seite, Handlung, erwartete Ereignisse]
   const MAIN = (inner) => `<header><nav><a id="nav" href="/schiffe/aegs-gladius.html">Gladius</a><a id="login" href="/account/login.html">Login</a></nav></header><main>${inner}</main>`;
+  const KARTEN = '<div id="g" data-ev-treffer><div id="k1" class="uif-card" role="button" tabindex="0"><a id="l1" href="/items/probe-item.html">Probe</a><span id="s1">Preis</span><button id="b1" type="button">★</button><a id="m1" href="/topics/mining.html">Erz</a></div></div>';
+  const HILFE = (offen, an) => `<details class="tool-help"${offen ? ' open' : ''}><summary id="h" data-ev-hilfe="anleitung">Wie funktioniert …?</summary><button id="e" type="button" data-ev-hilfe="elemente" aria-pressed="${an}">Elemente erklaeren</button></details>`;
   const PROBEN = [
     ['suche-offen auf einer Item-Seite, zweimal', { pfad: '/items/probe-item.html' }, (p) => { p.ctx.vbEreignis('suche-offen'); p.ctx.vbEreignis('suche-offen'); },
       [{ name: 'suche-offen', data: { seite: 'item' }, url: '/items/' }]],
@@ -582,10 +707,67 @@ if (!zSrc || !eSrc || !existsSync(join(DIST, eSrc))) {
       (p) => p.ereignis('click', p.doc.getElementById('m')), []],
     ['Feedback-Link ohne Melde-Marke von einer Detailseite', { pfad: '/schiffe/aegs-gladius.html', html: MAIN('<a id="m" href="/feedback.html">Feedback</a>') },
       (p) => p.ereignis('click', p.doc.getElementById('m')), []],
-    ['Widerspruchs-Cookie', { pfad: '/items/probe-item.html', cookie: 'vb_noanalytics=1', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') },
-      (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); }, []],
-    ['fremder Hostname (Vorschau)', { pfad: '/items/probe-item.html', host: 'staging.verse-base.com', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a>') },
-      (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); }, []],
+    ['Discord-Einladung im Fuss einer Item-Seite', { pfad: '/de/items/probe-item.html', html: MAIN('') + '<footer><a id="d" href="https://discord.gg/abc"><span id="t">Discord</span></a></footer>' },
+      (p) => p.ereignis('click', p.doc.getElementById('t')), [{ name: 'extern', data: { seite: 'item', ziel: 'discord' }, url: '/de/items/' }]],
+    ['YouTube mit www. und Pfad von einer Patch-Seite', { pfad: '/patches/sc-4-0-0.html', html: MAIN('<a id="y" href="https://www.youtube.com/watch?v=geheim" target="_blank">Video</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('y')), [{ name: 'extern', data: { seite: 'sonst', ziel: 'youtube' }, url: '/patches/sc-4-0-0.html' }]],
+    ['UEX aus einem Werkzeug', { pfad: '/item-finder.html', html: MAIN('<a id="x" href="https://uexcorp.space/items/info/name/probe">UEX</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('x')), [{ name: 'extern', data: { seite: 'werkzeug', ziel: 'uex' }, url: '/item-finder.html' }]],
+    ['unbekannter Host (nur „sonst“, keine Adresse)', { pfad: '/datenschutz.html', html: MAIN('<a id="x" href="https://policies.example.org/privacy">P</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('x')), [{ name: 'extern', data: { seite: 'sonst', ziel: 'sonst' }, url: '/datenschutz.html' }]],
+    ['Stripe-Knopf mit Ziel-Marke', { pfad: '/de/support.html', html: MAIN('<button id="s" type="button" data-ev-extern="spende"><span id="t">Mit 5 € unterstützen</span></button>') },
+      (p) => p.ereignis('click', p.doc.getElementById('t')), [{ name: 'extern', data: { seite: 'sonst', ziel: 'spende' }, url: '/de/support.html' }]],
+    ['Ziel-Marke mit fremdem Ziel', { pfad: '/support.html', html: MAIN('<button id="s" type="button" data-ev-extern="stripe">Pay</button>') },
+      (p) => p.ereignis('click', p.doc.getElementById('s')), []],
+    ['mailto-Link', { pfad: '/support.html', html: MAIN('<a id="m" href="mailto:info@example.org">Mail</a>') }, (p) => p.ereignis('click', p.doc.getElementById('m')), []],
+    ['Link nach draussen ohne echte Bedienung (programmatisch)', { pfad: '/support.html', html: MAIN('<a id="d" href="https://discord.gg/abc">D</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('d'), false), []],
+    ['Hilfe oeffnen und Elemente einschalten in den Missionen', { pfad: '/missionen.html', html: MAIN(HILFE(false, 'false')) },
+      (p) => { p.ereignis('click', p.doc.getElementById('h')); p.ereignis('click', p.doc.getElementById('e')); },
+      [{ name: 'hilfe', data: { werkzeug: 'missionen', art: 'anleitung' }, url: '/missionen.html' }, { name: 'hilfe', data: { werkzeug: 'missionen', art: 'elemente' }, url: '/missionen.html' }]],
+    ['Hilfe schliessen und Elemente ausschalten', { pfad: '/missionen.html', html: MAIN(HILFE(true, 'true')) },
+      (p) => { p.ereignis('click', p.doc.getElementById('h')); p.ereignis('click', p.doc.getElementById('e')); }, []],
+    ['Hilfe auf einer Seite ohne Werkzeug (Ruestungs-Sets)', { pfad: '/de/armor-sets.html', html: MAIN(HILFE(false, 'false')) },
+      (p) => p.ereignis('click', p.doc.getElementById('h')), [{ name: 'hilfe', data: { werkzeug: 'sonst', art: 'anleitung' }, url: '/de/armor-sets.html' }]],
+    ['Video: Knopf in der Fassade einer Patch-Seite', { pfad: '/patches/sc-4-0-0.html', html: MAIN('<div class="video" data-yt="abc"><button id="v" class="play">Abspielen</button></div>') },
+      (p) => p.ereignis('click', p.doc.getElementById('v')), [{ name: 'video', data: { seite: 'sonst' }, url: '/patches/sc-4-0-0.html' }]],
+    ['Video auf einer Schiffsseite', { pfad: '/de/schiffe/aegs-gladius.html', html: MAIN('<button id="holoytgo" type="button">▶</button>') },
+      (p) => p.ereignis('click', p.doc.getElementById('holoytgo')), [{ name: 'video', data: { seite: 'schiff' }, url: '/de/schiffe/' }]],
+    ['Leuchtkasten: Bild und Video in einem Werkzeug', { pfad: '/topics/wikelo-emporium.html', html: MAIN('<figure id="b" data-lb="/assets/x.jpg">B</figure><div id="y" data-lb="yt:abc">Y</div>') },
+      (p) => { p.ereignis('click', p.doc.getElementById('b')); p.ereignis('click', p.doc.getElementById('y')); },
+      [{ name: 'bilder', data: { seite: 'werkzeug' }, url: '/topics/wikelo-emporium.html' }, { name: 'video', data: { seite: 'werkzeug' }, url: '/topics/wikelo-emporium.html' }]],
+    ['Umschalter „Bilder“ der Schiffsseite einschalten', { pfad: '/schiffe/aegs-gladius.html', html: MAIN('<button id="btnimg" type="button" aria-pressed="false">Bilder</button>') },
+      (p) => p.ereignis('click', p.doc.getElementById('btnimg')), [{ name: 'bilder', data: { seite: 'schiff' }, url: '/schiffe/' }]],
+    ['Umschalter „Bilder“, schon an', { pfad: '/schiffe/aegs-gladius.html', html: MAIN('<button id="btnimg" type="button" aria-pressed="true">Bilder</button>') },
+      (p) => p.ereignis('click', p.doc.getElementById('btnimg')), []],
+    ['Trefferkarte im Item Finder: Flaeche, Titel-Link, Knopf, Link auf andere Seite', { pfad: '/item-finder.html', html: MAIN(KARTEN) },
+      (p) => { for (const id of ['s1', 'l1', 'b1', 'm1']) p.ereignis('click', p.doc.getElementById(id)); },
+      [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }, { name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }]],
+    ['Treffer-Link der Missionsliste, nicht aus Fenster oder Navigation', { pfad: '/de/missionen.html', html: MAIN('<ul><li><a id="a" href="/de/missionen/probe.html">M</a></li></ul><div role="dialog"><a id="d" href="/de/missionen/probe-2.html">M2</a></div>') },
+      (p) => { p.ereignis('click', p.doc.getElementById('a')); p.ereignis('click', p.doc.getElementById('d')); p.ereignis('click', p.doc.getElementById('nav')); },
+      [{ name: 'treffer-offen', data: { werkzeug: 'missionen' }, url: '/de/missionen.html' }]],
+    ['Trefferbereich auf einer Detailseite (kein Werkzeug)', { pfad: '/items/probe-item.html', html: MAIN(KARTEN) }, (p) => p.ereignis('click', p.doc.getElementById('s1')), []],
+    ['merken aus der App, fremder Wert, Zusatzfeld', { pfad: '/de/schiffe/aegs-gladius.html' },
+      (p) => { p.ctx.vbEreignis('merken', { was: 'flotte' }); p.ctx.vbEreignis('merken', { was: 'favorit' }); p.ctx.vbEreignis('merken', { was: 'planer', name: 'Gladius' }); },
+      [{ name: 'merken', data: { was: 'flotte' }, url: '/de/schiffe/' }]],
+    ['Pilotenprofil: Link nach draussen ohne Handle', { pfad: '/de/pilot/probe-handle', html: MAIN('<a id="y" href="https://www.youtube.com/@probe">YT</a>') },
+      (p) => p.ereignis('click', p.doc.getElementById('y')), [{ name: 'extern', data: { seite: 'sonst', ziel: 'youtube' }, url: '/de/pilot/' }]],
+    ['Mittlere Taste: Link nach draussen und Treffer-Link zaehlen, Knopf und rechte Taste nicht', { pfad: '/missionen.html', html: MAIN('<a id="d" href="https://discord.gg/abc">D</a><button id="s" type="button" data-ev-extern="spende">S</button><a id="a" href="/missionen/probe.html">M</a>') },
+      (p) => {
+        p.ereignis('auxclick', p.doc.getElementById('d'), true, { button: 1 });
+        p.ereignis('auxclick', p.doc.getElementById('s'), true, { button: 1 });
+        p.ereignis('auxclick', p.doc.getElementById('a'), true, { button: 2 });
+        p.ereignis('auxclick', p.doc.getElementById('a'), true, { button: 1 });
+      },
+      [{ name: 'extern', data: { seite: 'werkzeug', ziel: 'discord' }, url: '/missionen.html' }, { name: 'treffer-offen', data: { werkzeug: 'missionen' }, url: '/missionen.html' }]],
+    ['Mittlere Taste auf der Flaeche einer Trefferkarte (oeffnet nichts)', { pfad: '/item-finder.html', html: MAIN(KARTEN) },
+      (p) => { p.ereignis('auxclick', p.doc.getElementById('s1'), true, { button: 1 }); p.ereignis('auxclick', p.doc.getElementById('l1'), true, { button: 1 }); },
+      [{ name: 'treffer-offen', data: { werkzeug: 'finder' }, url: '/item-finder.html' }]],
+    ['treffer-offen per Aufruf ausserhalb eines Werkzeugs', { pfad: '/support.html' }, (p) => p.ctx.vbEreignis('treffer-offen'), []],
+    ['Widerspruchs-Cookie', { pfad: '/items/probe-item.html', cookie: 'vb_noanalytics=1', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a><a id="d" href="https://discord.gg/abc">D</a>') },
+      (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); p.ereignis('click', p.doc.getElementById('d')); }, []],
+    ['fremder Hostname (Vorschau)', { pfad: '/items/probe-item.html', host: 'staging.verse-base.com', html: MAIN('<a id="z" href="/schiffe/aegs-gladius.html">G</a><a id="d" href="https://discord.gg/abc">D</a>') },
+      (p) => { p.ctx.vbEreignis('suche-offen'); p.ereignis('click', p.doc.getElementById('z')); p.ereignis('click', p.doc.getElementById('d')); }, []],
   ];
   for (const [titel, opt, handlung, soll] of PROBEN) {
     let p;
@@ -629,7 +811,14 @@ if (hakenGeprueft < MIN_HAKEN_FASSUNGEN)
   fail(`keine Fassung des Hakens ausgefuehrt — ohne Probe ist [5] nicht gelaufen`);
 if (kopienGeprueft < MIN_ZAEHLER_KOPIEN)
   fail(`keine Zaehler-Kopie ausgefuehrt — ohne Lauf ist [6] nicht gelaufen`);
-console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten} (Klinke ${MIN_EREIGNIS_SEITEN})   Ereignis-Marken: ${ereignisMarken.length} (Klinke ${MIN_EREIGNIS_MARKEN})   Ereignis-Laeufe: ${probenGelaufen} (Klinke ${MIN_EREIGNIS_PROBEN})   Melde-Links: ${meldeSeiten.size} (Klinke ${MIN_MELDE_MARKEN})`);
+console.log(`    Seiten mit Ereignis-Skript: ${ereignisSeiten} (Klinke ${MIN_EREIGNIS_SEITEN})   Ereignis-Marken: ${ereignisMarken.length} (Klinke ${MIN_EREIGNIS_MARKEN})   Ereignis-Laeufe: ${probenGelaufen} (Klinke ${MIN_EREIGNIS_PROBEN})   Melde-Links: ${meldeSeiten.size} (Klinke ${MIN_MELDE_MARKEN})   Ziel-Marken extern: ${externMarken.length} (Klinke ${MIN_EXTERN_MARKEN})`);
+console.log(`    Hilfe-Marken: ${hilfeMarken.length} (Klinke ${MIN_HILFE_MARKEN})   Trefferbereiche: ${trefferMarken.length} (Klinke ${MIN_TREFFER_BEREICHE})   Video-Fassaden: ${videoFassaden} (Klinke ${MIN_VIDEO_FASSADEN})   Bild-Ausloeser: ${bildAusloeser} (Klinke ${MIN_BILD_AUSLOESER})`);
+if (hilfeMarken.length < MIN_HILFE_MARKEN) fail(`nur ${hilfeMarken.length} Hilfe-Marken data-ev-hilfe, Klinke ${MIN_HILFE_MARKEN} — ToolHelp hat die Marke verloren oder Werkzeuge ihre Hilfe; Ursache klaeren, nicht die Klinke senken`);
+if (trefferMarken.length < MIN_TREFFER_BEREICHE) fail(`nur ${trefferMarken.length} Trefferbereiche data-ev-treffer, Klinke ${MIN_TREFFER_BEREICHE} — Item Finder oder Crafting haben die Marke am Ergebnisraster verloren`);
+if (videoFassaden < MIN_VIDEO_FASSADEN) fail(`nur ${videoFassaden} Video-Fassaden auf gezaehlten Seiten, Klinke ${MIN_VIDEO_FASSADEN} — das Ereignis video erkennt sie an data-yt, data-lb="yt:…" und #holoytgo; haben sie ein neues Merkmal?`);
+if (bildAusloeser < MIN_BILD_AUSLOESER) fail(`nur ${bildAusloeser} Bild-Ausloeser auf gezaehlten Seiten, Klinke ${MIN_BILD_AUSLOESER} — das Ereignis bilder erkennt sie an data-lb und #btnimg; haben sie ein neues Merkmal?`);
+if (externMarken.length < MIN_EXTERN_MARKEN)
+  fail(`nur ${externMarken.length} Ziel-Marken data-ev-extern, Klinke ${MIN_EXTERN_MARKEN} — der Stripe-Knopf der Unterstuetzen-Seite hat seine Marke verloren, Spenden ueber Stripe zaehlen dann nicht; Ursache klaeren, nicht die Klinke senken`);
 if (ereignisSeiten < MIN_EREIGNIS_SEITEN)
   fail(`nur ${ereignisSeiten} Seiten laden assets/ereignisse.js, Klinke ${MIN_EREIGNIS_SEITEN} — der Tag in Layout.astro ist verloren gegangen`);
 if (ereignisMarken.length < MIN_EREIGNIS_MARKEN)

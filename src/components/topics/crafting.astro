@@ -13,6 +13,14 @@ import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 import { patchLinkFromKennung } from '../../lib/patchPages';
+import CraftingProtoNote from '../CraftingProtoNote.astro';
+
+interface Props {
+  /** Prototyp der Werkbank (Skizze 016): nur die Vorschau-Seite
+   *  /topics/crafting-werkbank.html setzt das (scripts/lib/vorschau-seiten.mjs). */
+  werkbank?: boolean;
+}
+const werkbank = Astro.props.werkbank === true;
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -137,11 +145,16 @@ const patchCrumb = patchHref ? { label: patchLink.label, href: patchHref } : { l
     <div class="hero__photo" data-par="0.10" style="background-image:url('/assets/t-craft-1.jpg')" aria-hidden="true"></div>
     <canvas id="stars" aria-hidden="true"></canvas>
     <div class="hero__in">
-      <div class="cr-mark"><h1><span class="thin">{de ? 'Blueprint-Datenbank' : 'Blueprint database'}</span>Crafting</h1></div>
+      <div class="cr-mark"><h1><span class="thin">{werkbank ? (de ? 'Werkbank' : 'Workbench') : (de ? 'Blueprint-Datenbank' : 'Blueprint database')}</span>Crafting</h1></div>
     </div>
   </section>
 
-  <CraftingApp lang={de ? 'de' : 'en'} />
+  {/* Prototyp-Hinweis und Umschalter (nur Vorschau-Bau), siehe
+      CraftingProtoNote.astro. Als Komponente, nicht als {ausdruck}: <main>
+      steht hier auf oberster Ebene (Kopfkommentar). */}
+  <CraftingProtoNote werkbank={werkbank} lang={de ? 'de' : 'en'} />
+
+  <CraftingApp lang={de ? 'de' : 'en'} werkbank={werkbank} />
 
   {/* Unter dem Werkzeug, nicht davor: Lead, Kennzahlen, Volatilitaets-/
       Speicherhinweis und die beiden Verzeichnis-Verweise. Nichts davon

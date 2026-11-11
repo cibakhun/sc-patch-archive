@@ -16,6 +16,7 @@ discord/
 ├─ build.mjs       ← the engine (validate + build)
 ├─ order-roles.mjs ← sorts the role hierarchy (npm run order)
 ├─ audit.mjs       ← read-only health check of the live server (npm run audit)
+├─ vorschlaege.mjs ← reads open suggestions from the #feedback forum, read-only (VORSCHLAEGE.md)
 ├─ make-icon.mjs   ← generates the server icon (zero deps)
 ├─ make-avatar.mjs ← generates the bot's profile picture (zero deps, 3 variants)
 ├─ set-avatar.mjs  ← puts it on the bot + application (npm run avatar:apply)
@@ -197,7 +198,13 @@ Everything lives in [`blueprint.mjs`](./blueprint.mjs):
   same as anyone holding it: without this the hoisted staff group is empty, the private
   Flight Deck has no humans in it and the AutoMod exemptions apply to nobody.
 - **Forum tags** → `tags: [...]` on a forum channel. Existing tags keep their id (matched by
-  name), so posts already filed under a tag don't lose it on a re-run.
+  name), so posts already filed under a tag don't lose it on a re-run. Add `moderated: true`
+  to a tag (e.g. `{ name: 'Done', emoji: '✅', moderated: true }`) so only the team can set it.
+- **Change a channel's type** (e.g. text → forum, as #feedback on 10.11.2026) → just change
+  `type`. Discord can't convert text into a forum, so the next build renames the old channel
+  to `<name>-alt`, hides it from members (history kept) and creates the new one. To file it
+  away, run the dry run `node prune.mjs` first and read the whole list: `--archive` moves
+  EVERY channel the blueprint no longer names (e.g. #support too), not just the old one.
 - **The permanent invite** → `guild.inviteChannel`. Hand-made invites expire after 30 days,
   which quietly kills any link on the website; the builder keeps one never-expiring invite
   alive and prints it.

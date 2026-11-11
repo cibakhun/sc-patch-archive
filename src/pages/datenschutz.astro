@@ -141,13 +141,17 @@ body{font-family:var(--font-body)}
       and times and time on page. Account and sign-in pages are not counted at all.
       Umami also counts a few interactions as events: opening the search, picking a search result,
       moving from a detail page to a tool or to another detail page, the first filter and the first
-      calculation in a tool, copying, clicking “Report a wrong value”, and clicking sign in or
-      create account. An event is sent like a
+      calculation in a tool, opening an entry from a tool's result list, adding a ship to the fleet,
+      a blueprint to the planner or a refinery job (only which of these three), starting a video,
+      opening images or a tool's help, copying, clicking “Report a wrong value”, clicking sign in or
+      create account, and clicking a link to another website or the button to the payment page
+      (only the kind of destination, such as Discord, donation, wiki or UEX, never the address).
+      An event is sent like a
       page view (screen size, browser language, device, browser and operating system, the country
       derived from the IP address) and carries only fixed details on top, such as the page type, the
       name of the tool or filter and the rough position of the result. As the page it names only the
       path, and on item, blueprint, ship and mission pages only their section (such as /items/),
-      without page title or referrer. It never carries a search term, a value you entered or a
+      on pilot profiles only /pilot/, without page title or referrer. It never carries a search term, a value you entered or a
       result. The path and title of every page visited, including a single item or ship page, are
       still recorded with the page view as described above.
       <strong>No cookies are set and nothing is stored on your
@@ -422,15 +426,16 @@ body{font-family:var(--font-body)}
     </p>
     <p class="muted">
       When you are not signed in, the website only connects to Supabase when you use account
-      features (sign-in, password reset) and on three kinds of pages that read public data: a public
+      features (sign-in, password reset), on two kinds of pages that read public data — a public
       pilot profile (that pilot's profile, favorites and pinned loadouts when opened, then that pilot's online status
-      every 40 seconds while the page is open; uploaded images come from Supabase's storage), the
-      Feedback page (the list of credited <a href="#testpilots">test pilots</a>) and the Support
-      page (the <a href="#support">donation status</a>; the button there also creates the Stripe
-      payment page via Supabase, sending only the amount you chose and the page language). Nothing
-      that identifies you is sent; as with any request, Supabase technically learns your IP address.
-      The legal basis for these requests is Art. 6 (1) (f) GDPR (legitimate interest in showing
-      public profiles, the test pilot list and the donation status).
+      every 40 seconds while the page is open; uploaded images come from Supabase's storage) and the
+      Feedback page (the list of credited <a href="#testpilots">test pilots</a>) — and on the Support
+      page once you press the button there (it creates the Stripe payment page via Supabase,
+      sending only the amount you chose and the page language). Nothing that identifies you is
+      sent; as with any request, Supabase technically learns your IP address. The legal basis for
+      the profile and Feedback requests is Art. 6 (1) (f) GDPR (legitimate interest in showing
+      public profiles and the test pilot list); for the button, see
+      <a href="#support">Voluntary support</a>.
     </p>
     <p class="muted">
       While you are signed in, the pages with the site menu connect to Supabase to renew your
@@ -759,9 +764,10 @@ body{font-family:var(--font-body)}
       (legitimate interest in a traceable total).
     </p>
     <p>
-      When opened, the Support page reads the <strong>donation status</strong>: the goal, the
-      subtotals via Stripe and via PayPal and the time of the last change; the total is displayed.
-      This status is readable by anyone. Because the Stripe subtotal and the time change with every
+      We keep the <strong>donation status</strong> in the database: the former goal, the subtotals
+      via Stripe and via PayPal and the time of the last change. The Support page no longer
+      displays it, but it remains readable by anyone who queries the database directly. Because
+      the Stripe subtotal and the time change with every
       Stripe payment stored this way, it reveals when the last Stripe donation was made and how much; it
       contains no names. After a completed payment Stripe sends you back with the suffix
       <code>?danke=1</code>, after a cancellation without it. It carries no amount; the page removes

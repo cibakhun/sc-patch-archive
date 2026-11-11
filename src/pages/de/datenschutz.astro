@@ -154,13 +154,18 @@ body{font-family:var(--font-body)}
       Konto- und Anmeldeseiten zählt Umami gar nicht.
       Außerdem zählt Umami einige Bedienschritte als Ereignis: Suche geöffnet, Suchtreffer gewählt,
       Wechsel von einer Detailseite in ein Werkzeug oder auf eine andere Detailseite, erster Filter
-      und erste Berechnung in einem Werkzeug, Kopieren, der Klick auf „Falschen Wert melden“ sowie
-      der Klick auf Anmelden oder Registrieren. Ein Ereignis wird wie ein Seitenaufruf übertragen (Bildschirmgröße,
+      und erste Berechnung in einem Werkzeug, ein Eintrag aus der Trefferliste eines Werkzeugs
+      geöffnet, ein Schiff zur Flotte, ein Bauplan in den Planer oder ein Raffinerie-Auftrag
+      hinzugefügt (nur welche dieser drei Arten), ein Video gestartet, Bilder oder die Hilfe eines
+      Werkzeugs geöffnet, Kopieren, der Klick auf „Falschen Wert melden“, der
+      Klick auf Anmelden oder Registrieren sowie der Klick auf einen Link zu einer anderen Website
+      oder auf den Knopf zur Bezahlseite (nur die Art des Ziels, etwa Discord, Spende, Wiki oder
+      UEX, nie die Adresse). Ein Ereignis wird wie ein Seitenaufruf übertragen (Bildschirmgröße,
       Browsersprache, Gerät, Browser und Betriebssystem, das aus der IP-Adresse abgeleitete Land)
       und trägt dazu nur feste Angaben wie die Seitenart, den Namen des Werkzeugs oder Filters und
       die ungefähre Position des Treffers. Als Seite nennt es nur den Pfad, auf Item-, Blueprint-,
-      Schiffs- und Missionsseiten nur deren Bereich (etwa /items/), ohne Seitentitel und
-      Verweisquelle. Einen Suchbegriff, einen eingegebenen Wert oder ein Ergebnis überträgt es nie.
+      Schiffs- und Missionsseiten nur deren Bereich (etwa /items/), auf Pilotenprofilen nur /pilot/,
+      ohne Seitentitel und Verweisquelle. Einen Suchbegriff, einen eingegebenen Wert oder ein Ergebnis überträgt es nie.
       Pfad und Titel jeder aufgerufenen Seite, auch einer einzelnen Item- oder Schiffsseite, erfasst
       Umami weiterhin mit dem Seitenaufruf wie oben beschrieben.
       <strong>Es werden keine Cookies gesetzt und nichts auf deinem Gerät gespeichert.</strong> Um
@@ -447,17 +452,17 @@ body{font-family:var(--font-body)}
     </p>
     <p class="muted">
       Ohne Anmeldung verbindet sich die Website mit Supabase nur, wenn du Konto-Funktionen nutzt
-      (Anmeldung, Passwort zurücksetzen), und auf drei Arten von Seiten, die öffentliche Daten
+      (Anmeldung, Passwort zurücksetzen), auf zwei Arten von Seiten, die öffentliche Daten
       lesen: ein öffentliches Piloten-Profil (Profil, Favoriten und angeheftete Loadouts dieses Piloten beim Öffnen,
       danach alle 40 Sekunden sein Online-Status, solange die Seite offen ist; hochgeladene Bilder
-      kommen aus dem Speicher von Supabase), die Seite Feedback (die Liste der genannten
-      <a href="#testpilots">Testpiloten</a>) und die Seite Unterstützen (der
-      <a href="#support">Spendenstand</a>; auch die Stripe-Bezahlseite legt der Knopf dort über
-      Supabase an und schickt dafür nur den gewählten Betrag und die Seitensprache). Nichts, was
-      dich erkennbar macht, wird dabei gesendet; technisch bedingt erfährt Supabase wie bei jedem
-      Abruf deine IP-Adresse. Rechtsgrundlage dieser Abrufe ist Art. 6 Abs. 1 lit. f DSGVO
-      (berechtigtes Interesse, öffentliche Profile, die Testpiloten-Liste und den Spendenstand zu
-      zeigen).
+      kommen aus dem Speicher von Supabase) und die Seite Feedback (die Liste der genannten
+      <a href="#testpilots">Testpiloten</a>), und auf der Seite Unterstützen, sobald du dort den
+      Knopf drückst (er legt die Stripe-Bezahlseite über Supabase an und schickt dafür nur den
+      gewählten Betrag und die Seitensprache). Nichts, was dich erkennbar macht, wird dabei
+      gesendet; technisch bedingt erfährt Supabase wie bei jedem Abruf deine IP-Adresse.
+      Rechtsgrundlage der Abrufe für Profil und Feedback ist Art. 6 Abs. 1 lit. f DSGVO
+      (berechtigtes Interesse, öffentliche Profile und die Testpiloten-Liste zu zeigen); für den
+      Knopf gilt, was unter <a href="#support">Freiwillige Unterstützung</a> steht.
     </p>
     <p class="muted">
       Bist du angemeldet, verbinden sich die Seiten mit dem Menü der Website mit Supabase, um
@@ -803,9 +808,10 @@ body{font-family:var(--font-body)}
       nachvollziehbaren Summe).
     </p>
     <p>
-      Beim Öffnen liest die Seite Unterstützen den <strong>Spendenstand</strong>: das Ziel, die
-      Teilsummen über Stripe und über PayPal und den Zeitpunkt der letzten Änderung; angezeigt wird
-      die Gesamtsumme. Dieser Stand ist für jeden lesbar. Weil sich die Stripe-Teilsumme und der
+      Den <strong>Spendenstand</strong> führen wir in der Datenbank weiter: das frühere Ziel, die
+      Teilsummen über Stripe und über PayPal und den Zeitpunkt der letzten Änderung. Die Seite
+      Unterstützen zeigt ihn nicht mehr an, lesbar ist er aber weiterhin für jeden, der die
+      Datenbank direkt abfragt. Weil sich die Stripe-Teilsumme und der
       Zeitpunkt mit jeder so gespeicherten Stripe-Zahlung ändern, lässt sich daraus ablesen, wann zuletzt
       über Stripe gespendet wurde und wie viel; Namen enthält er nicht. Nach einer abgeschlossenen
       Zahlung schickt Stripe dich mit dem Zusatz <code>?danke=1</code> zurück, nach einem Abbruch

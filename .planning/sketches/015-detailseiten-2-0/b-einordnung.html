@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 015 B — Einordnung</title>
+<link rel="stylesheet" href="basis.css">
+<style>
+/* B — EINORDNUNG: das Item ist ein Platz in einem Feld. Jede Zahl steht
+   neben allen 26 Schiffswaffen der Groesse 3, damit man sieht, ob sie gut
+   ist. Punkte, Raenge und Mediane sind aus assets/universal-items.json
+   gerechnet (4.10.2), nichts davon geschaetzt. Texte im Kasten „Auf einen
+   Blick“ entstehen aus Raengen und Medianen, nicht aus Meinung. */
+
+.head { display: grid; grid-template-columns: 1fr 420px; gap: 32px; align-items: center; padding: 44px 0 8px; }
+.head .thumb { background: radial-gradient(70% 70% at 50% 60%, rgba(167,139,250,.16), transparent 70%), var(--s1); border-radius: var(--r1); padding: 26px 18px; }
+.head .thumb img { width: 100%; filter: drop-shadow(0 18px 18px rgba(0,0,0,.5)); }
+.summary { margin: 18px 0 0; font-size: 18px; color: var(--muted); max-width: 60ch; }
+.summary b { color: var(--text); font-weight: 600; }
+
+.glance { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.glance .card h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--muted); font-weight: 500; margin: 0 0 10px; }
+.glance ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.glance li { padding-left: 18px; position: relative; }
+.glance li::before { content: ''; position: absolute; left: 0; top: 9px; width: 8px; height: 8px; border-radius: 50%; }
+.plus li::before { background: var(--good); }
+.minus li::before { background: var(--bad); }
+.tip { background: linear-gradient(160deg, rgba(167,139,250,.16), var(--s1) 60%); }
+.tip p { margin: 0; }
+.tip .num { font-weight: 600; }
+.tip .delta { display: flex; gap: 8px; margin: 12px 0 0; flex-wrap: wrap; }
+.tip .delta span { background: var(--s3); border-radius: 99px; padding: 3px 10px; font-size: 14px; }
+.up { color: var(--good); } .down { color: var(--bad); }
+
+/* Streifen: jede Waffe ein Punkt, diese eine gross und violett */
+.strips { background: var(--s1); border-radius: var(--r1); padding: 8px 22px; box-shadow: var(--lift); }
+.row { display: grid; grid-template-columns: 190px 120px 1fr 210px; grid-template-rows: auto auto; column-gap: 20px; align-items: center; padding: 14px 0 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.row:last-child { border-bottom: 0; }
+.row .lab b { display: block; font-weight: 500; }
+.row .lab small { color: var(--faint); font-size: 13px; }
+.row .val { font-weight: 600; font-size: 18px; text-align: right; }
+.row .strip { width: 100%; height: 40px; overflow: visible; }
+.row .rank { color: var(--muted); font-size: 14px; }
+.row .ends { grid-column: 3; display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; margin-top: -2px; }
+.strip .ax { stroke: rgba(255,255,255,.10); stroke-width: 2; }
+.strip .o { fill: #5d5a70; }
+.strip .med { stroke: rgba(255,255,255,.35); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.strip .me { fill: var(--acc); stroke: var(--s1); stroke-width: 3; }
+.strip .cnt { fill: var(--faint); font: 500 11px var(--font); }
+.strip .me-c { fill: var(--acc); }
+
+.pair { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+.pair > div { min-width: 0; }
+.scatter { width: 100%; height: auto; }
+.scatter text { fill: var(--faint); font: 400 12px var(--font); }
+.scatter .axl { fill: var(--muted); font-size: 13px; }
+.scatter .grid { stroke: rgba(255,255,255,.06); }
+.scatter .o { fill: #6b6880; }
+.scatter .ph { fill: none; stroke: #8e8ba3; stroke-width: 1.6; }
+.scatter .me { fill: var(--acc); stroke: var(--s1); stroke-width: 3; }
+.scatter .pl { fill: var(--text); font-size: 13px; font-weight: 500; }
+.scatter .me-l { fill: var(--acc); font-weight: 600; }
+.legend { display: flex; gap: 18px; color: var(--muted); font-size: 13px; margin: 8px 0 0; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #6b6880; margin-right: 6px; vertical-align: -1px; }
+.legend i.ph { background: none; border: 1.6px solid #8e8ba3; }
+.legend i.me { background: var(--acc); }
+
+.cmp { width: 100%; border-collapse: collapse; font-size: 15px; }
+.cmp th, .cmp td { padding: 9px 10px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.06); white-space: nowrap; }
+.cmp th:first-child, .cmp td:first-child { text-align: left; color: var(--muted); }
+.cmp thead th { font-weight: 600; color: var(--text); vertical-align: bottom; font-size: 14px; }
+.cmp thead th.me { color: var(--acc); }
+.cmp td.me { font-weight: 600; background: rgba(167,139,250,.07); }
+.cmp small { display: block; font-size: 12px; }
+.cmp tr:last-child td { border-bottom: 0; }
+.tablewrap { overflow-x: auto; }
+
+.buyline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.buyline .card p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.buyline .num { font-size: 22px; font-weight: 600; }
+
+@media (max-width: 980px) {
+  .head { grid-template-columns: 1fr; gap: 18px; padding-top: 28px; }
+  .head .thumb { order: -1; padding: 14px; }
+  .glance, .pair, .buyline { grid-template-columns: 1fr; }
+  .strips { padding: 4px 16px; }
+  .row { grid-template-columns: 1fr auto; row-gap: 2px; }
+  .row .strip { grid-column: 1 / -1; }
+  .row .rank { grid-column: 1 / -1; font-size: 13px; }
+  .row .ends { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="logo" href="#">VerseBase</a>
+  <nav class="crumbs"><span>Items</span><i>›</i><span>Schiffswaffen</span><i>›</i><span>Attrition-3-Repetierer</span></nav>
+  <div class="tools">
+    <span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></span>
+    <span class="ibtn">EN</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <section class="head">
+    <div>
+      <p class="eyebrow">Schiffswaffe · Laser-Repetierer · Hurston Dynamics</p>
+      <h1>Attrition-3-Repetierer</h1>
+      <ul class="pills">
+        <li class="pill"><b>Größe</b> 3</li>
+        <li class="pill"><b>Klasse</b> A</li>
+        <li class="pill"><b>Schaden</b> Energie</li>
+        <li class="pill"><b>ab</b> 51.851 aUEC</li>
+      </ul>
+      <p class="summary">Unter den <b>26 Schiffswaffen der Größe 3</b> liegt er bei der Feuerkraft im Mittelfeld (<b>Platz 16</b>), hat aber das <b>schnellste Projektil</b> seiner Größe.</p>
+    </div>
+    <div class="thumb"><img src="img/attrition-3.webp" alt="Attrition-3-Repetierer, Spielmodell"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Auf einen Blick</h2><p>Aus Rängen und Medianen der Größe 3 abgeleitet</p></div>
+    <div class="glance">
+      <div class="card plus"><h3>Stärker als die meisten</h3><ul>
+        <li>Schnellstes Projektil: <span class="num">1.480 m/s</span>, gleichauf mit 7 anderen</li>
+        <li>Feuerrate <span class="num">350 /min</span>, Median <span class="num">200</span></li>
+        <li>EM-Signatur <span class="num">278</span>, Median <span class="num">341</span></li>
+      </ul></div>
+      <div class="card minus"><h3>Schwächer als die meisten</h3><ul>
+        <li>DPS <span class="num">501,67</span>, Median <span class="num">541,15</span></li>
+        <li>Reichweite <span class="num">1.924 m</span>, Median <span class="num">2.398 m</span></li>
+      </ul></div>
+      <div class="card tip"><h3>Günstiger und stärker</h3>
+        <p><b>CF-337-Panther-Repetierer</b>, gleiche Größe und Reichweite, ab <span class="num">36.308 aUEC</span> in Area 18 und New Babbage.</p>
+        <div class="delta"><span class="up num">+9 % DPS</span><span class="up num">−30 % Preis</span><span class="faint">EM-Signatur unbekannt</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Im Feld der Größe 3</h2><p>Jeder Punkt eine Waffe, der große ist diese, die Strichlinie der Median</p></div>
+    <div class="strips">
+
+      <div class="row">
+        <div class="lab"><b>DPS</b></div>
+        <div class="val num">501,67</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="160.4" x2="160.4" y1="8" y2="36" class="med"/><circle cx="261.6" cy="22" r="3.4" class="o"><title>WARLORD-Kanone: 877,5</title></circle><circle cx="134.6" cy="22" r="3.4" class="o"><title>11er-Serie Breitschwertkanone: 455,25</title></circle><circle cx="159.1" cy="22" r="3.4" class="o"><title>Ardor-3 Salvaged Repeater: 536,67</title></circle><circle cx="161.8" cy="22" r="4.3" class="o"><title>CF-337 Panther "Hazard-Zone" Repeater, CF-337-Panther-Repetierer: 545,63</title></circle><text x="161.8" y="8" class="cnt" text-anchor="middle">2</text><circle cx="110.6" cy="22" r="3.4" class="o"><title>Deadbolt-III-Kanone: 375,67</title></circle><circle cx="32.6" cy="22" r="3.4" class="o"><title>Dominance-3-Laserflinte: 116,25</title></circle><circle cx="136.5" cy="22" r="4.3" class="o"><title>FL-33-Kanone, Lightstrike-III-Kanone: 461,71</title></circle><text x="136.5" y="8" class="cnt" text-anchor="middle">2</text><circle cx="203.3" cy="22" r="4.3" class="o"><title>M5A-Kanone, M5A Cannon Defense Division: 683,63</title></circle><text x="203.3" y="8" class="cnt" text-anchor="middle">2</text><circle cx="254.4" cy="22" r="3.4" class="o"><title>Mantis-GT-220-Gatling: 853,33</title></circle><circle cx="212.0" cy="22" r="3.4" class="o"><title>NDB-30-Repetierer: 712,5</title></circle><circle cx="163.6" cy="22" r="3.4" class="o"><title>NN-15 Cannon: 551,75</title></circle><circle cx="162.1" cy="22" r="4.3" class="o"><title>Omnisky-IX-Kanone, Zänker-Kanone: 546,75</title></circle><text x="162.1" y="8" class="cnt" text-anchor="middle">2</text><circle cx="29.2" cy="22" r="4.3" class="o"><title>Predator-Schrotflinte, Predator-Schrotflinte (Haimaul): 105</title></circle><text x="29.2" y="8" class="cnt" text-anchor="middle">2</text><circle cx="8.0" cy="22" r="3.4" class="o"><title>PyroBurst-Schrotflinte: 34,67</title></circle><circle cx="612.0" cy="22" r="3.4" class="o"><title>Reign-3 Repeater: 2.041,67</title></circle><circle cx="454.6" cy="22" r="3.4" class="o"><title>Singe-Kanone Gr. 3: 1.518,75</title></circle><circle cx="166.8" cy="22" r="3.4" class="o"><title>Sledge-III-Massentreiberkanone: 562,5</title></circle><circle cx="110.4" cy="22" r="3.4" class="o"><title>SW16BR3-Schredder-Repetierer: 375</title></circle><circle cx="146.2" cy="22" r="3.4" class="o"><title>Tormenter S3 Repeater: 493,75</title></circle><circle cx="151.8" cy="22" r="3.4" class="o"><title>Yeng'tu-Repetierer: 512,5</title></circle><circle cx="148.5" cy="22" r="7" class="me"/>
+        </svg>
+        <div class="rank num">Platz 16 von 26</div>
+        <div class="ends num"><span>34,67</span><span>Median 541,15</span><span>2.041,67</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Reichweite</b></div>
+        <div class="val num">1.924 m</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="309.5" x2="309.5" y1="8" y2="36" class="med"/><circle cx="385.4" cy="22" r="3.4" class="o"><title>WARLORD-Kanone: 2.700 m</title></circle><circle cx="459.9" cy="22" r="4.3" class="o"><title>11er-Serie Breitschwertkanone, Deadbolt-III-Kanone: 2.996 m</title></circle><text x="459.9" y="8" class="cnt" text-anchor="middle">2</text><circle cx="8.0" cy="22" r="3.4" class="o"><title>Dominance-3-Laserflinte: 1.199 m</title></circle><circle cx="311.0" cy="22" r="7.0" class="o"><title>FL-33-Kanone, Lightstrike-III-Kanone, M5A-Kanone, M5A Cannon Defense Division, Omnisky-IX-Kanone, Zänker-Kanone: 2.404 m</title></circle><text x="311.0" y="8" class="cnt" text-anchor="middle">6</text><circle cx="309.5" cy="22" r="4.3" class="o"><title>Mantis-GT-220-Gatling, SW16BR3-Schredder-Repetierer: 2.398 m</title></circle><text x="309.5" y="8" class="cnt" text-anchor="middle">2</text><circle cx="310.8" cy="22" r="3.4" class="o"><title>NDB-30-Repetierer: 2.403 m</title></circle><circle cx="84.2" cy="22" r="3.4" class="o"><title>NN-15 Cannon: 1.502 m</title></circle><circle cx="83.9" cy="22" r="4.3" class="o"><title>Predator-Schrotflinte, Predator-Schrotflinte (Haimaul): 1.501 m</title></circle><text x="83.9" y="8" class="cnt" text-anchor="middle">2</text><circle cx="46.0" cy="22" r="3.4" class="o"><title>PyroBurst-Schrotflinte: 1.350 m</title></circle><circle cx="610.5" cy="22" r="3.4" class="o"><title>Singe-Kanone Gr. 3: 3.595 m</title></circle><circle cx="612.0" cy="22" r="3.4" class="o"><title>Sledge-III-Massentreiberkanone: 3.601 m</title></circle><circle cx="190.3" cy="22" r="7" class="me"/><text x="190.3" y="8" class="cnt me-c" text-anchor="middle">7</text>
+        </svg>
+        <div class="rank num">Platz 15 von 26, gleichauf mit 6</div>
+        <div class="ends num"><span>1.199</span><span>Median 2.398</span><span>3.601</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Projektilgeschwindigkeit</b></div>
+        <div class="val num">1.480 m/s</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="365.5" x2="365.5" y1="8" y2="36" class="med"/><circle cx="316.2" cy="22" r="3.4" class="o"><title>WARLORD-Kanone: 1.124,8 m/s</title></circle><circle cx="365.5" cy="22" r="7.0" class="o"><title>11er-Serie Breitschwertkanone, Deadbolt-III-Kanone, FL-33-Kanone, Lightstrike-III-Kanone, M5A-Kanone, M5A Cannon Defense Division, Omnisky-IX-Kanone, Zänker-Kanone: 1.184 m/s</title></circle><text x="365.5" y="8" class="cnt" text-anchor="middle">8</text><circle cx="118.9" cy="22" r="5.2" class="o"><title>Dominance-3-Laserflinte, Predator-Schrotflinte, Predator-Schrotflinte (Haimaul): 888 m/s</title></circle><text x="118.9" y="8" class="cnt" text-anchor="middle">3</text><circle cx="488.7" cy="22" r="3.4" class="o"><title>Mantis-GT-220-Gatling: 1.332 m/s</title></circle><circle cx="427.1" cy="22" r="3.4" class="o"><title>NDB-30-Repetierer: 1.258 m/s</title></circle><circle cx="8.0" cy="22" r="3.4" class="o"><title>NN-15 Cannon: 754,8 m/s</title></circle><circle cx="82.0" cy="22" r="3.4" class="o"><title>PyroBurst-Schrotflinte: 843,6 m/s</title></circle><circle cx="242.2" cy="22" r="3.4" class="o"><title>Singe-Kanone Gr. 3: 1.036 m/s</title></circle><circle cx="328.5" cy="22" r="3.4" class="o"><title>Sledge-III-Massentreiberkanone: 1.139,6 m/s</title></circle><circle cx="612.0" cy="22" r="7" class="me"/><text x="612.0" y="8" class="cnt me-c" text-anchor="middle">8</text>
+        </svg>
+        <div class="rank num">Platz 1 von 26, gleichauf mit 7</div>
+        <div class="ends num"><span>754,8</span><span>Median 1.184</span><span>1.480</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Feuerrate</b></div>
+        <div class="val num">350 /min</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="73.4" x2="73.4" y1="8" y2="36" class="med"/><circle cx="34.9" cy="22" r="6.1" class="o"><title>WARLORD-Kanone, Deadbolt-III-Kanone, M5A-Kanone, M5A Cannon Defense Division: 100 /min</title></circle><text x="34.9" y="8" class="cnt" text-anchor="middle">4</text><circle cx="92.6" cy="22" r="5.2" class="o"><title>11er-Serie Breitschwertkanone, FL-33-Kanone, Lightstrike-III-Kanone: 250 /min</title></circle><text x="92.6" y="8" class="cnt" text-anchor="middle">3</text><circle cx="285.0" cy="22" r="6.1" class="o"><title>CF-337 Panther "Hazard-Zone" Repeater, CF-337-Panther-Repetierer, Tormenter S3 Repeater, Yeng'tu-Repetierer: 750 /min</title></circle><text x="285.0" y="8" class="cnt" text-anchor="middle">4</text><circle cx="15.7" cy="22" r="3.4" class="o"><title>Dominance-3-Laserflinte: 50 /min</title></circle><circle cx="612.0" cy="22" r="3.4" class="o"><title>Mantis-GT-220-Gatling: 1.600 /min</title></circle><circle cx="188.8" cy="22" r="4.3" class="o"><title>NDB-30-Repetierer, SW16BR3-Schredder-Repetierer: 500 /min</title></circle><text x="188.8" y="8" class="cnt" text-anchor="middle">2</text><circle cx="54.2" cy="22" r="5.2" class="o"><title>NN-15 Cannon, Omnisky-IX-Kanone, Zänker-Kanone: 150 /min</title></circle><text x="54.2" y="8" class="cnt" text-anchor="middle">3</text><circle cx="19.5" cy="22" r="4.3" class="o"><title>Predator-Schrotflinte, Predator-Schrotflinte (Haimaul): 60 /min</title></circle><text x="19.5" y="8" class="cnt" text-anchor="middle">2</text><circle cx="11.8" cy="22" r="3.4" class="o"><title>PyroBurst-Schrotflinte: 40 /min</title></circle><circle cx="31.1" cy="22" r="3.4" class="o"><title>Singe-Kanone Gr. 3: 90 /min</title></circle><circle cx="8.0" cy="22" r="3.4" class="o"><title>Sledge-III-Massentreiberkanone: 30 /min</title></circle><circle cx="131.1" cy="22" r="7" class="me"/><text x="131.1" y="8" class="cnt me-c" text-anchor="middle">3</text>
+        </svg>
+        <div class="rank num">Platz 8 von 26, gleichauf mit 2</div>
+        <div class="ends num"><span>30</span><span>Median 200</span><span>1.600</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Bauteil-HP</b></div>
+        <div class="val num">1.024</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="122.5" x2="122.5" y1="8" y2="36" class="med"/><circle cx="563.7" cy="22" r="4.3" class="o"><title>11er-Serie Breitschwertkanone, Zänker-Kanone: 2.850</title></circle><text x="563.7" y="8" class="cnt" text-anchor="middle">2</text><circle cx="237.5" cy="22" r="5.2" class="o"><title>CF-337 Panther "Hazard-Zone" Repeater, CF-337-Panther-Repetierer, Mantis-GT-220-Gatling: 1.500</title></circle><text x="237.5" y="8" class="cnt" text-anchor="middle">3</text><circle cx="8.0" cy="22" r="4.3" class="o"><title>Deadbolt-III-Kanone, Lightstrike-III-Kanone: 550</title></circle><text x="8.0" y="8" class="cnt" text-anchor="middle">2</text><circle cx="249.6" cy="22" r="6.1" class="o"><title>Dominance-3-Laserflinte, Predator-Schrotflinte, Predator-Schrotflinte (Haimaul), PyroBurst-Schrotflinte: 1.550</title></circle><text x="249.6" y="8" class="cnt" text-anchor="middle">4</text><circle cx="80.5" cy="22" r="3.4" class="o"><title>NN-15 Cannon: 850</title></circle><circle cx="612.0" cy="22" r="3.4" class="o"><title>Sledge-III-Massentreiberkanone: 3.050</title></circle><circle cx="165.0" cy="22" r="3.4" class="o"><title>Tormenter S3 Repeater: 1.200</title></circle><circle cx="122.5" cy="22" r="7" class="me"/><text x="122.5" y="8" class="cnt me-c" text-anchor="middle">12</text>
+        </svg>
+        <div class="rank num">Platz 12 von 26, gleichauf mit 11</div>
+        <div class="ends num"><span>550</span><span>Median 1.024</span><span>3.050</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>EM-Signatur</b><small>weniger ist besser</small></div>
+        <div class="val num">278</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="418.9" x2="418.9" y1="8" y2="36" class="med"/><circle cx="203.6" cy="22" r="4.3" class="o"><title>WARLORD-Kanone, FL-33-Kanone: 681</title></circle><text x="203.6" y="8" class="cnt" text-anchor="middle">2</text><circle cx="611.1" cy="22" r="3.4" class="o"><title>11er-Serie Breitschwertkanone: 37,5</title></circle><circle cx="608.6" cy="22" r="5.2" class="o"><title>Deadbolt-III-Kanone, Predator-Schrotflinte, Predator-Schrotflinte (Haimaul): 41,3</title></circle><text x="608.6" y="8" class="cnt" text-anchor="middle">3</text><circle cx="373.3" cy="22" r="3.4" class="o"><title>Dominance-3-Laserflinte: 413</title></circle><circle cx="242.9" cy="22" r="3.4" class="o"><title>Lightstrike-III-Kanone: 619</title></circle><circle cx="227.1" cy="22" r="4.3" class="o"><title>M5A-Kanone, M5A Cannon Defense Division: 644</title></circle><text x="227.1" y="8" class="cnt" text-anchor="middle">2</text><circle cx="612.0" cy="22" r="3.4" class="o"><title>Mantis-GT-220-Gatling: 36</title></circle><circle cx="489.2" cy="22" r="3.4" class="o"><title>NDB-30-Repetierer: 230</title></circle><circle cx="418.9" cy="22" r="3.4" class="o"><title>NN-15 Cannon: 341</title></circle><circle cx="164.4" cy="22" r="3.4" class="o"><title>Omnisky-IX-Kanone: 743</title></circle><circle cx="349.9" cy="22" r="3.4" class="o"><title>PyroBurst-Schrotflinte: 450</title></circle><circle cx="223.9" cy="22" r="3.4" class="o"><title>Zänker-Kanone: 649</title></circle><circle cx="432.2" cy="22" r="3.4" class="o"><title>Reign-3 Repeater: 320</title></circle><circle cx="8.0" cy="22" r="3.4" class="o"><title>Singe-Kanone Gr. 3: 990</title></circle><circle cx="65.0" cy="22" r="3.4" class="o"><title>Sledge-III-Massentreiberkanone: 900</title></circle><circle cx="609.2" cy="22" r="3.4" class="o"><title>SW16BR3-Schredder-Repetierer: 40,5</title></circle><circle cx="481.6" cy="22" r="3.4" class="o"><title>Yeng'tu-Repetierer: 242</title></circle><circle cx="458.8" cy="22" r="7" class="me"/><text x="458.8" y="8" class="cnt me-c" text-anchor="middle">2</text>
+        </svg>
+        <div class="rank num">Platz 9 von 23, gleichauf mit 1</div>
+        <div class="ends num"><span>990</span><span>Median 341</span><span>36</span></div>
+      </div>
+      <div class="row">
+        <div class="lab"><b>Strombedarf</b><small>weniger ist besser</small></div>
+        <div class="val num">0,75</div>
+        <svg class="strip" viewBox="0 -12 620 48" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="8" x2="612" y1="22" y2="22" class="ax"/><line x1="325.9" x2="325.9" y1="8" y2="36" class="med"/><circle cx="166.9" cy="22" r="6.1" class="o"><title>WARLORD-Kanone, FL-33-Kanone, Lightstrike-III-Kanone, Omnisky-IX-Kanone: 1,5</title></circle><text x="166.9" y="8" class="cnt" text-anchor="middle">4</text><circle cx="612.0" cy="22" r="7.0" class="o"><title>11er-Serie Breitschwertkanone, Deadbolt-III-Kanone, Mantis-GT-220-Gatling, Predator-Schrotflinte, Predator-Schrotflinte (Haimaul), SW16BR3-Schredder-Repetierer: 0,1</title></circle><text x="612.0" y="8" class="cnt" text-anchor="middle">6</text><circle cx="325.9" cy="22" r="7.0" class="o"><title>CF-337 Panther "Hazard-Zone" Repeater, CF-337-Panther-Repetierer, Dominance-3-Laserflinte, NN-15 Cannon, PyroBurst-Schrotflinte, Tormenter S3 Repeater: 1</title></circle><text x="325.9" y="8" class="cnt" text-anchor="middle">6</text><circle cx="230.5" cy="22" r="4.3" class="o"><title>M5A-Kanone, M5A Cannon Defense Division: 1,3</title></circle><text x="230.5" y="8" class="cnt" text-anchor="middle">2</text><circle cx="93.8" cy="22" r="3.4" class="o"><title>Zänker-Kanone: 1,73</title></circle><circle cx="370.4" cy="22" r="3.4" class="o"><title>Reign-3 Repeater: 0,86</title></circle><circle cx="8.0" cy="22" r="4.3" class="o"><title>Singe-Kanone Gr. 3, Sledge-III-Massentreiberkanone: 2</title></circle><text x="8.0" y="8" class="cnt" text-anchor="middle">2</text><circle cx="437.2" cy="22" r="3.4" class="o"><title>Yeng'tu-Repetierer: 0,65</title></circle><circle cx="405.4" cy="22" r="7" class="me"/><text x="405.4" y="8" class="cnt me-c" text-anchor="middle">3</text>
+        </svg>
+        <div class="rank num">Platz 8 von 26, gleichauf mit 2</div>
+        <div class="ends num"><span>2</span><span>Median 1</span><span>0,1</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec pair">
+    <div>
+      <div class="sec-head"><h2>Preis und Feuerkraft</h2><p>16 käufliche Waffen der Größe 3</p></div>
+      <div class="card"><svg class="scatter" viewBox="0 0 640 340" role="img" aria-label="Preis gegen DPS aller käuflichen Schiffswaffen der Größe 3"><line x1="64" x2="620" y1="296" y2="296" class="grid"/><text x="54" y="300" text-anchor="end">0</text><line x1="64" x2="620" y1="226" y2="226" class="grid"/><text x="54" y="230" text-anchor="end">25.000</text><line x1="64" x2="620" y1="156" y2="156" class="grid"/><text x="54" y="160" text-anchor="end">50.000</text><line x1="64" x2="620" y1="86" y2="86" class="grid"/><text x="54" y="90" text-anchor="end">75.000</text><line x1="64" x2="620" y1="16" y2="16" class="grid"/><text x="54" y="20" text-anchor="end">100.000</text><text x="64" y="318" text-anchor="middle">0</text><text x="249.33333333333334" y="318" text-anchor="middle">300</text><text x="434.6666666666667" y="318" text-anchor="middle">600</text><text x="620" y="318" text-anchor="middle">900</text><text x="352" y="334" text-anchor="middle" class="axl">DPS →</text><text x="14" y="20" class="axl" transform="rotate(-90 14 20)" text-anchor="end">Preis aUEC</text><circle cx="345.2" cy="145.4" r="5" class="ph"><title>11er-Serie Breitschwertkanone: 455,25 DPS, 53.790 aUEC</title></circle><circle cx="373.9" cy="150.8" r="8" class="me"><title>Attrition-3-Repetierer: 501,67 DPS, 51.851 aUEC</title></circle><text x="361.9" y="170.8" class="pl me-l" text-anchor="end">Attrition-3</text><circle cx="401.1" cy="194.3" r="5" class="o"><title>CF-337-Panther-Repetierer: 545,63 DPS, 36.308 aUEC</title></circle><text x="411.1" y="184.3" class="pl" text-anchor="start">CF-337 Panther</text><circle cx="296.1" cy="136.5" r="5" class="ph"><title>Deadbolt-III-Kanone: 375,67 DPS, 56.955 aUEC</title></circle><circle cx="135.8" cy="102.4" r="5" class="o"><title>Dominance-3-Laserflinte: 116,25 DPS, 69.137 aUEC</title></circle><circle cx="349.2" cy="74.5" r="5" class="o"><title>FL-33-Kanone: 461,71 DPS, 79.100 aUEC</title></circle><circle cx="349.2" cy="96.7" r="5" class="o"><title>Lightstrike-III-Kanone: 461,71 DPS, 71.190 aUEC</title></circle><circle cx="486.3" cy="85.6" r="5" class="o"><title>M5A-Kanone: 683,63 DPS, 75.145 aUEC</title></circle><circle cx="591.2" cy="228.7" r="5" class="ph"><title>Mantis-GT-220-Gatling: 853,33 DPS, 24.045 aUEC</title></circle><text x="583.2" y="216.7" class="pl" text-anchor="end">Mantis GT-220</text><circle cx="404.9" cy="41.3" r="5" class="o"><title>NN-15 Cannon: 551,75 DPS, 90.970 aUEC</title></circle><circle cx="401.8" cy="85.6" r="5" class="o"><title>Omnisky-IX-Kanone: 546,75 DPS, 75.145 aUEC</title></circle><circle cx="128.9" cy="154.3" r="5" class="ph"><title>Predator-Schrotflinte: 105 DPS, 50.625 aUEC</title></circle><circle cx="85.4" cy="127.7" r="5" class="o"><title>PyroBurst-Schrotflinte: 34,67 DPS, 60.115 aUEC</title></circle><circle cx="401.8" cy="75.1" r="5" class="o"><title>Zänker-Kanone: 546,75 DPS, 78.903 aUEC</title></circle><circle cx="411.5" cy="133.3" r="5" class="ph"><title>Sledge-III-Massentreiberkanone: 562,5 DPS, 58.094 aUEC</title></circle><circle cx="295.7" cy="195.0" r="5" class="ph"><title>SW16BR3-Schredder-Repetierer: 375 DPS, 36.070 aUEC</title></circle><text x="285.7" y="211.0" class="pl" text-anchor="end">SW16BR3</text></svg>
+        <div class="legend"><span><i class="me"></i>diese Waffe</span><span><i></i>Energie</span><span><i class="ph"></i>ballistisch</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec-head"><h2>Direkt verglichen</h2><p>Gleiche Größe, gleiche Reichweite</p></div>
+      <div class="card tablewrap">
+        <table class="cmp">
+          <thead><tr><th></th><th class="me">Attrition-3</th><th>CF-337 Panther</th><th>Yeng'tu</th><th>Ardor-3</th></tr></thead>
+          <tbody>
+            <tr><td>DPS</td><td class="me num">501,67</td><td class="num">545,63<small class="up">+9 %</small></td><td class="num">512,5<small class="up">+2 %</small></td><td class="num">536,67<small class="up">+7 %</small></td></tr>
+            <tr><td>Feuerrate</td><td class="me num">350</td><td class="num">750<small class="up">+114 %</small></td><td class="num">750<small class="up">+114 %</small></td><td class="num">350<small class="faint">gleich</small></td></tr>
+            <tr><td>EM-Signatur</td><td class="me num">278</td><td class="num faint">—</td><td class="num">242<small class="up">−13 %</small></td><td class="num">278<small class="faint">gleich</small></td></tr>
+            <tr><td>Strombedarf</td><td class="me num">0,75</td><td class="num">1<small class="down">+33 %</small></td><td class="num">0,65<small class="up">−13 %</small></td><td class="num">0,75<small class="faint">gleich</small></td></tr>
+            <tr><td>Bauteil-HP</td><td class="me num">1.024</td><td class="num">1.500<small class="up">+46 %</small></td><td class="num">1.024<small class="faint">gleich</small></td><td class="num">1.024<small class="faint">gleich</small></td></tr>
+            <tr><td>Preis ab</td><td class="me num">51.851</td><td class="num">36.308<small class="up">−30 %</small></td><td class="num faint">kein Kaufort</td><td class="num faint">kein Kaufort</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Bezug</h2><p>Kaufpreise Stand 11.10.2026</p></div>
+    <div class="buyline">
+      <div class="card"><h3>Kaufen</h3><div class="num">ab 51.851</div><p>Lorville (Stanton); 12 weitere Orte zu 54.580: 11 Stationen in Pyro und Levski (Nyx)</p></div>
+      <div class="card"><h3>Ab Werk</h3><div class="num">2 Fahrzeuge</div><p>Centurion, MISC Freelancer DUR</p></div>
+      <div class="card"><h3>Herstellen</h3><div class="num">28 min</div><p>Agricium, Hadanite, Pressurized Ice · Bauplan aus einer Nyx-Mission</p></div>
+    </div>
+  </section>
+
+  <div class="stand"><span><b>Spielwerte:</b> Spielversion 4.10.2</span><span><b>Kaufpreise:</b> UEX Corp, Stand 11. Oktober 2026</span><a href="#">Falschen Wert melden</a></div>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <nav><span>Item Finder</span><span>Preise &amp; Fundorte</span><span>Baupläne</span><span>Schiffe</span><span>Missionen</span></nav>
+  <p>Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd.</p>
+</div></footer>
+<div class="skizze">Entwurf B · Einordnung</div>
+</body>
+</html>

@@ -123,7 +123,7 @@ const JS_T = ITEM_UI[lang];
       </div>
     </div>
 
-    <div class="uif-results vb-scrollbox" id="uif-results-grid"><!-- Items via JS --></div>
+    <div class="uif-results vb-scrollbox" id="uif-results-grid" data-ev-treffer><!-- Items via JS; data-ev-treffer: Messereignis treffer-offen (assets/ereignisse.js) --></div>
 
     <div class="uif-pagination" id="uif-pagination-container"><!-- Pagination via JS --></div>
   </div>
@@ -699,6 +699,28 @@ const JS_T = ITEM_UI[lang];
   }
 
   .uif-td-kind { white-space: nowrap; }
+  /* Fundort-Status: Himmelskoerper unter dem Ort, Status neben der Art */
+  .uif-wo {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: var(--fs-6);
+    line-height: 1.45;
+    color: var(--muted, #9ba2ae);
+  }
+  .uif-fund {
+    display: inline-block;
+    margin-left: 0.45rem;
+    padding: 0.05rem 0.4rem;
+    font-size: var(--fs-5);
+    letter-spacing: var(--ls-8);
+    text-transform: uppercase;
+    color: var(--muted, #9ba2ae);
+    border: 1px solid var(--line-soft);
+  }
+  .uif-fund--ok {
+    color: var(--accent, #ff5e1a);
+    border-color: var(--line, rgba(255, 94, 26, 0.22));
+  }
   .uif-td-price { white-space: nowrap; font-weight: 700; color: var(--accent, #ff5e1a); }
   .uif-td-avg { white-space: nowrap; color: var(--muted, #9ba2ae); }
 

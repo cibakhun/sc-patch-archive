@@ -257,7 +257,7 @@ export const CHECKS = [
     script: 'scripts/verify-hangar.mjs',
     rail: 'A',
     checks:
-      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe); Bildablage der Schiffe: kein Bild mehr eingebettet, jeder Verweis liegt in dist/hangar/tex und heisst nach seinem Inhalt, Deckel fuer die Gesamtgroesse und je Datei (Klinke Schiffe mit Ablage); Schiffswahl: jede Karte mit eigenem Bild und Umriss in dist/ (Version = Inhalt, Klinke), Suchwoerter unter fold() stabil, jeder Zweck, jede Unterrolle und Groesse eine Stufe der Pillen, und Proben je Sprache durch die ausgelieferte Suche ueber die Karten aus dist/ (Spitzname, Zweck mit Crew, Fracht, Preis, Tippfehler, Unterrolle; Klinke)',
+      'die 454 Hangar-Buchten sind vollstaendig und stimmig: eine Id-Menge in Dock, Modellliste und beiden Sprachen, Marker auf dem Rumpf und die Achsregel gegen die Schiffslaenge, Zeilen mit Kennwerten ueber ihren Klinken, Groessendeckel, die Viewer-Naht und die Import-Map vor dem ersten Modul-Skript; getauschte Bordwaffen: jedes Werkstatt-Modell liegt versioniert in dist/, die Schiffs-GLBs tragen ihre Serienwaffen als Tauschteile mit Befestigungsmatrix (Klinken fuer Modelle und Ports); Lackierungen: Form und Toene je Schiff, und die Palettenmaterialien der Schiffe mit Lack tragen die Serienpalette, sonst faerbt eine Lackierung nichts um (Klinken fuer Schiffe, Lackierungen, umfaerbbare Schiffe); Bildablage der Schiffe: kein Bild mehr eingebettet, jeder Verweis liegt in dist/hangar/tex und heisst nach seinem Inhalt, Deckel fuer die Gesamtgroesse und je Datei (Klinke Schiffe mit Ablage); Schiffswahl: jede Karte mit eigenem Bild und Umriss in dist/ (Version = Inhalt, Klinke), Suchwoerter unter fold() stabil, jeder Zweck, jede Unterrolle und Groesse eine Stufe der Pillen, und Proben je Sprache durch die ausgelieferte Suche ueber die Karten aus dist/ (Spitzname, Zweck mit Crew, Fracht, Preis, Tippfehler, Unterrolle; Klinke); Datenblatt des Bauteils in der Halle: Naht zwischen Werkstatt, Controller, Modul und Viewer, die Rang-Rechnung des ausgelieferten Werkstatt-Skripts besteht feste Proben, und jeder Weg des Blatts (Herstellen, Item-Seite) zeigt in beiden Sprachen auf eine gebaute Seite (Klinken fuer Teile mit Laden, Rezept, Item-Seite und fuer die Proben)',
   },
   {
     id: 'verify:vehicle-roles',
@@ -359,13 +359,15 @@ export const CHECKS = [
     // Neuzugang (31.10.2026): mit Fingerabdruck-Klinke wie verify:hangar-cockpit
     // 2 s; nach einem Neubau misst es mit allen Kernen (231 Schiffe gut 2
     // Minuten auf 4 Kernen). Kein env-Feld: kein git, kein Netz, kein
-    // Kindprozess (Worker-Faeden) — liest dist/.
+    // Kindprozess (Worker-Faeden) — liest dist/. [5] seit 10.11.2026,
+    // vorgefuehrt rot mit dem alten Medivac (interior_part_23, 1,5 m ueber
+    // der Huelle, ohne Ausnahme; dazu die Klinke mitRagt 6 statt 5).
     id: 'verify:hangar-lage',
     npm: 'verify:hangar-lage',
     nurMitHangar: true,
     script: 'scripts/verify-hangar-lage.mjs',
     rail: 'A',
-    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz (ohne Sitzangabe nur mit benannter Ausnahme), und kein Rumpf hat Teile, die getrennt neben ihm haengen, ohne benannte Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen)',
+    checks: 'jeder begehbare Innenraum der Hangarseite liegt im Rumpf (Anteil der Dreiecke ausserhalb je Schiff unter seiner Klinke, ab 1 % nur mit benannter Ausnahme) und mit Dreiecken am Pilotensitz (ohne Sitzangabe nur mit benannter Ausnahme), kein Rumpf hat Teile, die getrennt neben ihm haengen, und kein Innenraumteil im Rumpf ragt mehr als 0,5 m ueber dessen Huelle, beides nur mit benannter Ausnahme (Krisz 30.10.2026: jedes Schiff innen und aussen ansehen; 10.11.2026: Ursa Medivac mit zweiter Huelle aus dem Innenraum-Container)',
   },
   {
     // Neuzugang (30.10.2026), vor dem langen audit:site: entpackt die
@@ -401,7 +403,11 @@ export const CHECKS = [
     script: 'scripts/verify-zaehler.mjs',
     rail: 'A',
     checks:
-      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen; und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, jede Detailseite (Item, Blueprint, Schiff, Mission) traegt genau einen Link „Falschen Wert melden" mit data-ev-melden auf das Formular ihrer Sprache mit ihrem eigenen Pfad (?wert=) und keine andere Seite einen, und 23 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken, Ereignis-Laeufe und Melde-Links; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+      'die Reichweitenmessung laeuft auf jeder Layout-Seite ausser den benannten Konto- und Anmeldeseiten (Ausnahmeliste mit Anlass und Zombie-Waechter: jede Ausnahme existiert und laedt den Zaehler nicht), keine Seite unter account/ laedt ihn, jeder Zaehler-Tag schliesst Fragment und Abfrage aus und hat seinen Haken auf der Seite, und der ausgelieferte Haken schneidet Abfrage und Fragment von Adresse und Herkunft ab, als volle Adresse wie als Pfad und liefert mit dem Widerspruchs-Cookie null (in node:vm ausgefuehrt); das Zaehlskript kommt als gepinnte Kopie vom eigenen Ursprung (Pruefsumme im Kopf) und schickt in node:vm genau einen POST an data-host-url, mit Widerspruchs-Cookie oder auf fremdem Hostnamen keinen, und kein Mess-Skript (Zaehler-Kopie, Ereignis-Skript) liegt unter einem Pfad, den Werbeblocker-Standardlisten sperren (Wort umami, EasyPrivacy); und [7] die Messereignisse: jede gezaehlte Seite laedt assets/ereignisse.js nach dem Zaehler und keine andere, die Liste in der Datei gleicht dem SOLL in scripts/lib/ereignisse.mjs (Freigabe 06.11.2026), Marken data-ev-* nur auf Werkzeugseiten und nur mit freigegebenen Filternamen (jeder Name in Gebrauch), jeder Aufruf von vbEreignis nennt ein freigegebenes Ereignis, jede Detailseite (Item, Blueprint, Schiff, Mission) traegt genau einen Link „Falschen Wert melden" mit data-ev-melden auf das Formular ihrer Sprache mit ihrem eigenen Pfad (?wert=) und keine andere Seite einen, das Ereignis extern (Klick nach draussen) kennt nur Hosts, auf die der gebaute Stand verlinkt (Zombie-Waechter), und Ziel-Marken data-ev-extern nur mit freigegebenem Ziel, Hilfe-Marken data-ev-hilfe nur mit freigegebener Art, Trefferbereiche data-ev-treffer nur auf Werkzeugseiten, jeder Aufruf von vbEreignis mit merken (auch in _astro/) nur mit einem Wert aus MERKEN und jeder Wert in Gebrauch, und 47 Proben in node:vm mit Zaehler und Haken (feste Werte, kein Titel, keine Herkunft, keine Einzelseiten-Adresse, bei Links nach draussen nur die Art des Ziels, nur echte Bedienung, einmal je Aufruf, nichts mit Widerspruchs-Cookie oder auf fremdem Host); Klinken fuer Layout-Seiten, Zaehler-Seiten, Haken-Fassungen, Zaehler-Kopien, Ereignis-Seiten, Ereignis-Marken, Ereignis-Laeufe, Melde-Links, Ziel-Marken, Hilfe-Marken, Trefferbereiche, Video-Fassaden und Bild-Ausloeser; Skripte fremder Hosts auf Kontoseiten als WARNUNG',
+    // [6] Werbeblocker-Muster (Neuzugang 10.11.2026), VORGEFUEHRT ROT gegen
+    // den Live-Bau der Umbenennung: support.html zeigt in dist/ wieder auf
+    // /vendor/umami/script.js (Datei dorthin kopiert) -> "Pfad trifft das
+    // Werbeblocker-Muster /umami/i … gesperrt — Soll: 0 Ist: 1", exit 1.
     // [7] Messereignisse (Neuzugang 06.11.2026), VORGEFUEHRT ROT gegen den
     // Live-Bau der Ereignis-Aenderung, je ein Eingriff in dist/:
     // Ereignis-Skript auf support.html entfernt -> "laedt den Zaehler, aber
@@ -421,6 +427,27 @@ export const CHECKS = [
     // Detailseiten-Pruefung vor senden('wert-melden') gestrichen -> Probe
     // "Wert melden von einer Werkzeugseite (keine Detailseite): 1
     // Ereignis(se) gesendet, Soll 0". Danach wiederhergestellt und gruen.
+    // Ereignis extern (Neuzugang 11.11.2026), VORGEFUEHRT ROT gegen den
+    // Live-Bau der Aenderung, je ein Eingriff: data-ev-extern am Stripe-Knopf
+    // in dist/support.html gestrichen -> "nur 1 Ziel-Marken data-ev-extern,
+    // Klinke 2"; dist/assets/ereignisse.js schickt den Host statt der Art ->
+    // 4 Proben "0 Ereignis(se) gesendet, Soll 1" (die Liste verwirft jede
+    // Adresse); discord.gg in der Datei auf „sonst“ -> "EXTERN_HOSTS weicht
+    // vom SOLL ab" + Probe "Daten … ziel sonst statt discord"; youtu.be ins
+    // SOLL ohne Link im Bau -> "nennt youtu.be, aber keine gezaehlte Seite
+    // verlinkt dorthin (Zombie)". Danach wiederhergestellt und gruen.
+    // Bedienung auf der Seite (Neuzugang 11.11.2026, treffer-offen, merken,
+    // video, bilder, hilfe), VORGEFUEHRT ROT gegen den Live-Bau, je ein
+    // Eingriff: Hilfe-Marke auf de/missionen.html gestrichen -> Klinke 43 <
+    // 44; Knopf in der Trefferkarte zaehlt mit -> Probe "3 gesendet, Soll 2";
+    // Schliessen der Hilfe zaehlt mit -> Probe "1 gesendet, Soll 0";
+    // fleet.js meldet was: 'flotten' -> "kein Wert aus MERKEN" + "MERKEN
+    // flotte: kein Aufruf"; data-ev-treffer auf support.html -> "kein
+    // gezaehltes Werkzeug, die Marke waere tot". Danach gruen.
+    // Review-Korrektur (CodeRabbit, 11.11.2026), VORGEFUEHRT ROT: Kuerzung
+    // der Pilotenprofile gestrichen -> Probe "url /de/pilot/probe-handle
+    // statt /de/pilot/"; auxclick-Horcher gestrichen -> 2 Proben "0
+    // gesendet". Danach gruen.
   },
   {
     id: 'audit:site',
@@ -485,6 +512,32 @@ export const CHECKS = [
     // gewandert — die Kennung kommt jetzt aus scripts/build-wikelo-trades.mjs
     // (Datenlauf) statt aus einer menschlichen Sichtung. Damit ist
     // Register-Eintrag id 51 aufloesbar.
+  },
+  {
+    // Neuzugang 10.11.2026, neben verify:datastand (dieselbe Familie: eine
+    // Datendatei gegen ihre Verwendung). Anlass: Vorschlag aus #feedback
+    // „Loot-only Items – Find Locations" — Item-Seiten und Item Finder zeigen
+    // seit dieser Lieferung bestaetigte Fundorte (Ortsart + Himmelskoerper).
+    // Die Kette Datenlauf -> Ortsarten-Zuordnung -> Katalog kann an jedem
+    // Glied still reissen und sieht dann aus wie „kein Fundort".
+    // Kein git, kein Netz, kein Kindprozess: committete JSON und dist/.
+    id: 'verify:loot-fundorte',
+    npm: 'verify:loot-fundorte',
+    script: 'scripts/verify-loot-fundorte.mjs',
+    rail: 'A',
+    checks:
+      'jede Belegung aus src/data/loot-fundorte.json hat eine Ortsart mit Spielernamen oder steht benannt unter VERSTECKT, jede Zuordnung in scripts/lib/loot-orte.mjs kommt in den Daten noch vor (Zombie-Waechter), jeder Himmelskoerper hat einen Namen; assets/universal-items.json steht auf dem Stand der Rechnung (Kopf fundorte, fund je Item, Kennzahlen), kein Fundort an einem Item, das laut Spiel kein Loot ist, und dist/ traegt denselben Stand; Klinken fuer Belegungen, Spiel-Items, Katalog-Items mit Fundort und Ortsarten',
+    // VORGEFUEHRT ROT am 10./11.11.2026 am Stand dieser Lieferung, drei
+    // Gegenproben, je Datei zurueckgespielt und per sha256 geprueft:
+    // (1) vor dem Bau gegen das alte dist/: 1 FEHLER „dist/assets/universal-
+    //     items.json weicht ab" (dist/: 0 Items mit Profil, assets/: 3.068);
+    // (2) Belegung V3SlotPreset_Loot_Military in den Daten umbenannt (wie ein
+    //     Patch es taete): 3 FEHLER — neue Belegung ohne Ortsart, Zuordnung
+    //     bunker zeigt ins Leere, Ortsart bunker ohne Belegung;
+    // (3) im Katalog `fund` an Gamma LL entfernt und an einem Item mit
+    //     lootable false gesetzt: 2 FEHLER — 2 Items weichen von der Rechnung
+    //     ab, 1 Fundort an einem Item, das laut Spiel kein Loot ist.
+    // Gruen danach: 54 Belegungen, 3.068 Katalog-Items, 20 Ortsarten.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
@@ -831,7 +884,7 @@ export const CHECKS = [
     checks:
       'die Vorschau-Domain liefert wirklich den zuletzt gebauten Stand aus (dist/build.json gegen origin/staging) und traegt einen Vorschau-Build, keinen Live-Build',
     env:
-      'Netz: fetch() gegen <base>/build.json. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
+      'Netz: fetch() gegen <base>/build.json; weist der Bot-Schutz das ab (401/403/429), gegen <base>/build.txt (derselbe Stempel unter einer Endung, die Cloudflare als statisch fuehrt); kommt /build.txt aus Cloudflares Zwischenspeicher, zaehlt die Antwort nicht. Kindprozess + git: execFileSync("git", ["rev-parse", …]) ermittelt die Soll-Kennung — das laeuft auf dem Entwicklungsrechner, NICHT im Build-Container (dort gibt es weder git noch ein Repository, siehe cf58c76). Faellt der Aufruf aus, wird nur berichtet statt geurteilt.',
   },
 
   {
@@ -851,7 +904,7 @@ export const CHECKS = [
     script: 'scripts/check-gate.mjs',
     rail: 'C',
     checks:
-      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html mit no-store und ohne Cache-Zeit, /pilot/<handle>?probe=1 behaelt Pfad und Query als next=, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07), ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57), und mit dem echten Bypass traegt die Antwort Cache-Control private',
+      'die AUSGELIEFERTE Zugriffskontrolle des Testpilot-Tors: gesperrte Stichproben aus dist/ antworten ohne Cookie mit 302 auf /gate.html mit no-store und ohne Cache-Zeit, /pilot/<handle>?probe=1 behaelt Pfad und Query als next=, jeder Eintrag der Ausnahmeliste aus nginx/default.conf antwortet mit 200, /build.json traegt eine Commit-Kennung (D-07) und /build.txt dieselbe mit Cache-Control no-cache, ein gewuerfelter Wert in der Bypass-Kopfzeile oeffnet das Tor NICHT (T-14-56/T-14-57), und mit dem echten Bypass traegt die Antwort Cache-Control private',
     env:
       'Netz: fetch() gegen <base>/…, redirect:"manual" (der 302 muss SICHTBAR bleiben, nicht gefolgt werden) — dieselbe Cloudflare-Sperre gegen Rechenzentrums-IPs wie bei check:staging (401/403/429), deshalb --weich im Workflow, streng vom Entwicklungsrechner aus. Sonst beruehrt es nichts ausserhalb der Umgebung: die Stichproben kommen ausschliesslich aus dist/ und aus dem Text von nginx/default.conf, nicht aus einer zweiten, handgepflegten Liste.',
   },

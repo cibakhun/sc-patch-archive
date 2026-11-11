@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Skizze 015 Runde 2 — Kategorie Rüstung · Arme</title>
+<link rel="stylesheet" href="../basis.css">
+<link rel="stylesheet" href="r2.css">
+<style>
+.head.solo { grid-template-columns: 1fr; }
+.classes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.cls { background: var(--s1); border-radius: var(--r1); padding: 16px 18px; display: grid; gap: 10px; box-shadow: var(--lift); }
+.cls .sz { font: 700 15px var(--head); color: var(--acc); }
+.cls p { margin: 0; color: var(--muted); font-size: 14px; }
+.pct { font: 700 34px/1 var(--head); }
+.pct small { display: block; font: 500 13px var(--font); color: var(--muted); margin-top: 4px; }
+.filters { position: sticky; top: 56px; z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 40px 0 0; padding: 10px 0; background: color-mix(in srgb, var(--s0) 92%, transparent); backdrop-filter: blur(8px); }
+.chip { height: 34px; display: inline-flex; align-items: center; padding: 0 12px; border-radius: 99px; background: var(--s2); color: var(--muted); font: 500 14px var(--font); }
+.chip.on { background: var(--acc-weak); color: var(--acc); box-shadow: inset 0 0 0 1px var(--acc-line); }
+.sep { width: 1px; height: 20px; background: rgba(255,255,255,.1); margin: 0 4px; }
+.sort { color: var(--muted); font-size: 14px; } .sort b { color: var(--text); font-weight: 500; }
+.filters + .sec { margin-top: 28px; }
+.sec-head h2 .faint { font: 500 16px var(--font); }
+.slist { background: var(--s1); border-radius: var(--r1); padding: 4px 18px; box-shadow: var(--lift); }
+.shead, .srow { display: grid; grid-template-columns: minmax(170px, 1.2fr) minmax(220px, 1.5fr) 110px 120px minmax(200px, 1.3fr); column-gap: 18px; align-items: center; }
+.shead span:nth-child(3), .shead span:nth-child(4) { text-align: right; }
+.shead { padding: 10px 0; color: var(--faint); font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.srow { padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.srow:last-child { border-bottom: 0; }
+.srow.hl { background: linear-gradient(90deg, var(--acc-weak), transparent 70%); margin: 0 -18px; padding-left: 18px; padding-right: 18px; }
+.sn b { display: block; font-weight: 600; } .sn small { color: var(--faint); font-size: 13px; }
+.st { display: grid; gap: 4px; } .st .tt { font-size: 13px; color: var(--muted); }
+.sp { font-weight: 600; text-align: right; } .sv { color: var(--muted); font-size: 14px; text-align: right; }
+.sw2 { display: flex; flex-wrap: wrap; gap: 5px; }
+@media (max-width: 980px) {
+  .classes { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .cls { padding: 12px; gap: 6px; }
+  .cls .tbar, .cls p { display: none; }
+  .cls .pct { font-size: 26px; }
+  .cls .pct small { font-size: 12px; }
+  .filters { top: 56px; flex-wrap: nowrap; overflow-x: auto; margin-left: calc(-1 * var(--gut)); margin-right: calc(-1 * var(--gut)); padding-left: var(--gut); padding-right: var(--gut); }
+  .chip, .sort { flex: none; white-space: nowrap; }
+  .shead { display: none; }
+  .slist { padding: 0 14px; }
+  .srow { grid-template-columns: 1fr auto; grid-template-areas: "sn sp" "st st" "sw2 sv"; row-gap: 8px; padding: 13px 0; }
+  .srow.hl { margin: 0 -14px; padding-left: 14px; padding-right: 14px; }
+  .sn { grid-area: sn; } .sp { grid-area: sp; } .st { grid-area: st; } .sv { grid-area: sv; align-self: end; } .sw2 { grid-area: sw2; }
+}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="logo" href="#">VerseBase</a>
+  <nav class="crumbs"><span>Items</span><i>›</i><span>Rüstung</span><i>›</i><span>Arme</span></nav>
+  <div class="tools">
+    <span class="ibtn"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/></svg></span>
+    <span class="ibtn">EN</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+  <section class="head solo">
+    <div>
+      <p class="eyebrow">Kategorie · Rüstung</p>
+      <h1>Arme</h1>
+      <p class="summary"><b>453 Arm-Teile</b> in <b>48 Baureihen</b>. Innerhalb einer Gewichtsklasse schützen alle gleich; es unterscheiden sich Temperaturbereich, Preis und wie man sie bekommt. Jede Baureihe steht hier einmal, ihre Farben und Editionen liegen dahinter.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="classes">
+      <a class="cls" href="#leicht"><span class="sz">Leicht</span><div class="pct num">20 %<small>weniger Schaden · 2 kg</small></div><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.4;--b:73.3"></i></div><p class="num">typisch −36 bis 65 °C</p><p class="num">16 Baureihen · 183 Arme<br>käuflich ab 293 aUEC</p></a>
+      <a class="cls" href="#mittel"><span class="sz">Mittel</span><div class="pct num">30 %<small>weniger Schaden · 4 kg</small></div><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.6;--b:84.7"></i></div><p class="num">typisch −60 bis 91 °C</p><p class="num">14 Baureihen · 131 Arme<br>käuflich ab 826 aUEC</p></a>
+      <a class="cls" href="#schwer"><span class="sz">Schwer</span><div class="pct num">40 %<small>weniger Schaden · 6 kg</small></div><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:10.7;--b:90.4"></i></div><p class="num">typisch −76 bis 104 °C</p><p class="num">18 Baureihen · 137 Arme<br>käuflich ab 1.229 aUEC</p></a>
+    </div>
+  </section>
+
+  <div class="filters" aria-label="Filter und Sortierung">
+    <span class="chip on">Alle 48</span><span class="chip">Leicht 16</span><span class="chip">Mittel 14</span><span class="chip">Schwer 18</span>
+    <span class="sep"></span><span class="chip">Nur käuflich</span><span class="chip">Herstellbar</span>
+    <span class="sep"></span><span class="sort">Sortieren: <b>Preis</b> · Kälte · Hitze · Name</span>
+  </div>
+
+  <section class="sec" id="leicht">
+    <div class="sec-head"><h2>Leicht <span class="faint">· 20 % weniger Schaden · 2 kg</span></h2><p>16 Baureihen, nach Preis</p></div>
+    <div class="slist">
+        <div class="shead"><span>Baureihe</span><span>Temperatur</span><span>Preis</span><span>Auswahl</span><span>Bezug</span></div>
+        <a class="srow" href="#"><span class="sn"><b>Wagnis</b><small>Roberts Space Industries</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.0;--b:74.2"></i></div><span class="num tt">−37 bis 67 °C <span class="faint">mindestens</span></span></span><span class="sp num">ab 293</span><span class="sv num">30 Ausführungen</span><span class="sw2"><span class="tag">Laden 20</span><span class="tag">Beute 6</span><span class="tag">exklusiv 7</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Luchs</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:30.7;--b:71.6"></i></div><span class="num tt">−31 bis 61 °C</span></span><span class="sp num">ab 407</span><span class="sv num">32 Ausführungen</span><span class="sw2"><span class="tag">Laden 5</span><span class="tag">Beute 27</span><span class="tag craft">herstellbar 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Microid-Kampfrüstung</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:29.8;--b:72.4"></i></div><span class="num tt">−33 bis 63 °C</span></span><span class="sp num">ab 407</span><span class="sv num">6 Ausführungen</span><span class="sw2"><span class="tag">Laden 6</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Calico</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:27.1;--b:75.1"></i></div><span class="num tt">−39 bis 69 °C</span></span><span class="sp num">ab 472</span><span class="sv num">3 Ausführungen</span><span class="sw2"><span class="tag">Laden 2</span><span class="tag craft">herstellbar 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Aufklärung</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.9;--b:73.3"></i></div><span class="num tt">−35 bis 65 °C</span></span><span class="sp num">ab 493</span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">Laden 1</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="2-ruestung.html"><span class="sn"><b>PAB-1</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.0;--b:74.2"></i></div><span class="num tt">−37 bis 67 °C</span></span><span class="sp num">ab 497</span><span class="sv num">26 Ausführungen</span><span class="sw2"><span class="tag">Laden 19</span><span class="tag">Beute 5</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 20</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>FBL-8a</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.9;--b:73.3"></i></div><span class="num tt">−35 bis 65 °C</span></span><span class="sp num">ab 514</span><span class="sv num">7 Ausführungen</span><span class="sw2"><span class="tag">Laden 3</span><span class="tag">Beute 3</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>MacFlex</b><small>Roberts Space Industries</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.0;--b:74.2"></i></div><span class="num tt">−37 bis 67 °C</span></span><span class="sp num">ab 555</span><span class="sv num">21 Ausführungen</span><span class="sw2"><span class="tag">Laden 20</span><span class="tag">Beute 1</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>TrueDef-Pro</b><small>Virgil</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:27.6;--b:74.7"></i></div><span class="num tt">−38 bis 68 °C</span></span><span class="sp num">ab 557</span><span class="sv num">20 Ausführungen</span><span class="sw2"><span class="tag">Laden 18</span><span class="tag">Beute 6</span><span class="tag craft">herstellbar 19</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Arden-SL</b><small>Roussimoff Rehabilitation Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:27.6;--b:74.7"></i></div><span class="num tt">−38 bis 68 °C</span></span><span class="sp num">ab 675</span><span class="sv num">8 Ausführungen</span><span class="sw2"><span class="tag">Laden 1</span><span class="tag">Beute 2</span><span class="tag">exklusiv 5</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Aztalan</b><small>Tehachapi</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:27.6;--b:74.7"></i></div><span class="num tt">−38 bis 68 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">3 Ausführungen</span><span class="sw2"><span class="tag">Beute 3</span><span class="tag craft">herstellbar 3</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Chiron</b><small>Virgil</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.9;--b:73.3"></i></div><span class="num tt">−35 bis 65 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">7 Ausführungen</span><span class="sw2"><span class="tag">Beute 1</span><span class="tag">exklusiv 4</span><span class="tag craft">herstellbar 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Geist</b><small>Kilgore and Poole</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.9;--b:73.3"></i></div><span class="num tt">−35 bis 65 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">10 Ausführungen</span><span class="sw2"><span class="tag">Beute 6</span><span class="tag">exklusiv 4</span><span class="tag craft">herstellbar 7</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Outback</b><small>Hersteller unbekannt</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:15.6;--b:71.6"></i></div><span class="num tt">−65 bis 61 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">5 Ausführungen</span><span class="sw2"></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Piecemeal</b><small>Hersteller unbekannt</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:28.9;--b:73.3"></i></div><span class="num tt">−35 bis 65 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">3 Ausführungen</span><span class="sw2"><span class="tag">Beute 3</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Xy'kara</b><small>Syang Fabrication</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:30.7;--b:71.6"></i></div><span class="num tt">−31 bis 61 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">exklusiv 1</span></span></a>
+    </div>
+  </section>
+  <section class="sec" id="mittel">
+    <div class="sec-head"><h2>Mittel <span class="faint">· 30 % weniger Schaden · 4 kg</span></h2><p>14 Baureihen, nach Preis</p></div>
+    <div class="slist">
+        <div class="shead"><span>Baureihe</span><span>Temperatur</span><span>Preis</span><span>Auswahl</span><span>Bezug</span></div>
+        <a class="srow" href="#"><span class="sn"><b>ORC-MK-X</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C</span></span><span class="sp num">ab 826</span><span class="sv num">15 Ausführungen</span><span class="sw2"><span class="tag">Laden 8</span><span class="tag">Beute 6</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 7</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>DustUp</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.8;--b:84.4"></i></div><span class="num tt">−60 bis 90 °C</span></span><span class="sp num">ab 859</span><span class="sv num">5 Ausführungen</span><span class="sw2"><span class="tag">Laden 2</span><span class="tag">Beute 2</span><span class="tag craft">herstellbar 3</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Aril</b><small>Greycat Industrial</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C</span></span><span class="sp num">ab 877</span><span class="sv num">7 Ausführungen</span><span class="sw2"><span class="tag">Laden 2</span><span class="tag">Beute 2</span><span class="tag">exklusiv 3</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>ORC-MK-V</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:20.0;--b:82.2"></i></div><span class="num tt">−55 bis 85 °C</span></span><span class="sp num">ab 896</span><span class="sv num">28 Ausführungen</span><span class="sw2"><span class="tag">Laden 17</span><span class="tag">Beute 8</span><span class="tag craft">herstellbar 25</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Flickwerk</b><small>Doomsday</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:21.3;--b:80.9"></i></div><span class="num tt">−52 bis 82 °C</span></span><span class="sp num">ab 928</span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">Laden 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Inquisitor</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:19.6;--b:82.7"></i></div><span class="num tt">−56 bis 86 °C</span></span><span class="sp num">ab 952</span><span class="sv num">30 Ausführungen</span><span class="sw2"><span class="tag">Laden 3</span><span class="tag">Beute 27</span><span class="tag craft">herstellbar 20</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Carrion</b><small>Hersteller unbekannt</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:22.2;--b:80.0"></i></div><span class="num tt">−50 bis 80 °C</span></span><span class="sp num">ab 1.039</span><span class="sv num">5 Ausführungen</span><span class="sw2"><span class="tag">Laden 1</span><span class="tag">Beute 3</span><span class="tag">exklusiv 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Strata</b><small>Greycat Industrial</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C</span></span><span class="sp num">ab 1.916</span><span class="sv num">14 Ausführungen</span><span class="sw2"><span class="tag">Laden 1</span><span class="tag">Beute 1</span><span class="tag">exklusiv 9</span><span class="tag craft">herstellbar 5</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Artimex</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C <span class="faint">mindestens</span></span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">11 Ausführungen</span><span class="sw2"><span class="tag">Beute 3</span><span class="tag">exklusiv 8</span><span class="tag craft">herstellbar 10</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Aves</b><small>CCC</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">4 Ausführungen</span><span class="sw2"><span class="tag">exklusiv 4</span><span class="tag craft">herstellbar 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Aves Shrike</b><small>CCC</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">Beute 1</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>ORC-MK-X modifiziert</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:17.3;--b:84.9"></i></div><span class="num tt">−61 bis 91 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">exklusiv 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Testudo</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:22.2;--b:80.0"></i></div><span class="num tt">−50 bis 80 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">8 Ausführungen</span><span class="sw2"><span class="tag">Beute 6</span><span class="tag">exklusiv 2</span><span class="tag craft">herstellbar 6</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Tetsudo</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:22.2;--b:80.0"></i></div><span class="num tt">−50 bis 80 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">exklusiv 1</span></span></a>
+    </div>
+  </section>
+  <section class="sec" id="schwer">
+    <div class="sec-head"><h2>Schwer <span class="faint">· 40 % weniger Schaden · 6 kg</span></h2><p>18 Baureihen, nach Preis</p></div>
+    <div class="slist">
+        <div class="shead"><span>Baureihe</span><span>Temperatur</span><span>Preis</span><span>Auswahl</span><span>Bezug</span></div>
+        <a class="srow" href="#"><span class="sn"><b>Widerstand</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:12.4;--b:89.8"></i></div><span class="num tt">−72 bis 102 °C</span></span><span class="sp num">ab 1.229</span><span class="sv num">7 Ausführungen</span><span class="sw2"><span class="tag">Laden 1</span><span class="tag">Beute 6</span><span class="tag craft">herstellbar 7</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>ADP-MK-IV</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C <span class="faint">mindestens</span></span></span><span class="sp num">ab 1.293</span><span class="sv num">8 Ausführungen</span><span class="sw2"><span class="tag">Laden 1</span><span class="tag">Beute 4</span><span class="tag">exklusiv 3</span><span class="tag craft">herstellbar 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>ADP</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:11.1;--b:91.1"></i></div><span class="num tt">−75 bis 105 °C</span></span><span class="sp num">ab 1.326</span><span class="sv num">25 Ausführungen</span><span class="sw2"><span class="tag">Laden 20</span><span class="tag">Beute 5</span><span class="tag craft">herstellbar 23</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Morozov-SH</b><small>Roussimoff Rehabilitation Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:4.4;--b:95.6"></i></div><span class="num tt">−90 bis 115 °C <span class="faint">mindestens</span></span></span><span class="sp num">ab 2.376</span><span class="sv num">15 Ausführungen</span><span class="sw2"><span class="tag">Laden 7</span><span class="tag">Beute 7</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 6</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Ana</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:2.2;--b:97.8"></i></div><span class="num tt">−95 bis 120 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">2 Ausführungen</span><span class="sw2"><span class="tag">Beute 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Antium</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:2.2;--b:97.8"></i></div><span class="num tt">−95 bis 120 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">7 Ausführungen</span><span class="sw2"><span class="tag">Beute 5</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 7</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Bokto</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:2.2;--b:97.8"></i></div><span class="num tt">−95 bis 120 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">1 Ausführung</span><span class="sw2"><span class="tag">exklusiv 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Corbel</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">5 Ausführungen</span><span class="sw2"><span class="tag">Beute 4</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 5</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>DCP</b><small>Clark Defense Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">6 Ausführungen</span><span class="sw2"><span class="tag">Beute 3</span><span class="tag">exklusiv 3</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Dust Devil</b><small>Hersteller unbekannt</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:6.7;--b:95.6"></i></div><span class="num tt">−85 bis 115 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">2 Ausführungen</span><span class="sw2"><span class="tag">Beute 1</span><span class="tag">exklusiv 1</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Monde</b><small>Kilgore and Poole</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C <span class="faint">mindestens</span></span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">10 Ausführungen</span><span class="sw2"><span class="tag">exklusiv 5</span><span class="tag craft">herstellbar 7</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Monolith</b><small>Kilgore and Poole</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:10.2;--b:88.9"></i></div><span class="num tt">−77 bis 100 °C <span class="faint">mindestens</span></span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">8 Ausführungen</span><span class="sw2"><span class="tag">exklusiv 2</span><span class="tag craft">herstellbar 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Morozov-SH-I</b><small>Roussimoff Rehabilitation Systems</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C <span class="faint">mindestens</span></span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">4 Ausführungen</span><span class="sw2"><span class="tag">Beute 2</span><span class="tag">exklusiv 2</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Overlord</b><small>Doomsday</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:10.2;--b:92.0"></i></div><span class="num tt">−77 bis 107 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">13 Ausführungen</span><span class="sw2"><span class="tag">Beute 11</span><span class="tag craft">herstellbar 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Palatino</b><small>Quirinus Tech</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C <span class="faint">mindestens</span></span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">9 Ausführungen</span><span class="sw2"><span class="tag">Beute 6</span><span class="tag">exklusiv 3</span><span class="tag craft">herstellbar 6</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Wrecker</b><small>Hersteller unbekannt</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:13.3;--b:88.9"></i></div><span class="num tt">−70 bis 100 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">3 Ausführungen</span><span class="sw2"><span class="tag">Beute 1</span><span class="tag">exklusiv 1</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Zitadelle</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:8.9;--b:93.3"></i></div><span class="num tt">−80 bis 110 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">9 Ausführungen</span><span class="sw2"><span class="tag">Beute 9</span><span class="tag craft">herstellbar 3</span></span></a>
+        <a class="srow" href="#"><span class="sn"><b>Zitadelle SE</b><small>Kastak Arms</small></span><span class="st"><div class="tbar"><span class="zero" style="--z:44.4"></span><i style="--a:8.9;--b:93.3"></i></div><span class="num tt">−80 bis 110 °C</span></span><span class="sp num"><span class="faint">nicht käuflich</span></span><span class="sv num">3 Ausführungen</span><span class="sw2"><span class="tag">Beute 3</span></span></a>
+    </div>
+  </section>
+  <p class="strip-note">Bei 40 von 48 Baureihen haben alle Farben dieselben Temperaturwerte; bei den übrigen 8 steht der Bereich, den jede Farbe mindestens schafft. 2 Einträge der Kategorie haben keine Spielwerte und stehen in keiner Baureihe (Lynx Arms Base, TrueDef-Pro Arms White/Silver/Gray).</p>
+
+  <div class="stand"><span><b>Spielwerte:</b> Spielversion 4.10.2</span><a href="#">Falschen Wert melden</a></div>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <nav><span>Item Finder</span><span>Preise &amp; Fundorte</span><span>Crafting</span><span>Schiffe</span><span>Missionen</span></nav>
+  <p>Inoffizielles Fan-Projekt zu Dokumentationszwecken. Star Citizen® und alle zugehörigen Marken gehören der Cloud Imperium Rights LLC &amp; Ltd.</p>
+</div></footer>
+<div class="skizze">Runde 2 · Kategorie</div>
+</body>
+</html>

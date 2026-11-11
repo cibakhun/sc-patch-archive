@@ -17,6 +17,10 @@ Waffen, Systeme, Fracht, Vergleich, Flotte in `src/components/hangar/`).
 | `fit(list)` | Layout-Werkstatt: `list` = `[{ port, item, url }]`, je getauschte Bordwaffe der Port (`hardpoint_…`), der Index im Port und die URL ihres Modells (`/hangar/weapons/*.glb?v=`). Blendet die Serienwaffe dieser Ports aus und setzt das Modell an jede ihrer Wurzeln; `[]` stellt die Serie her. Gilt für das stehende Schiff; die Oberfläche ruft es nach jedem `show()` erneut. Ports ohne Tauschteile in der `.glb` und fehlende Modelle bleiben still in Serie. Liefert die Zahl gesetzter Waffen. |
 | `paint(p)` | Lackierung der Layout-Werkstatt am geladenen Schiff. `p = { cols, base }`, je `[Haupt, Zweit, Akzent]` als `#rrggbb` (`base` = Serienpalette), oder `null` = Serienlack. Echter Lack: Materialien, deren Grundfarbe ein Ton der Serienpalette ist (bestätigt durch `extras.palette_tint`, wo vorhanden), bekommen den neuen Ton; Geometrie-Fassung: Shader-Lack. Gilt nur für das geladene Schiff; die Oberfläche ruft es nach jedem `show()` erneut (applyPaintSel). Liefert die Zahl umgefärbter Materialien. |
 | `onProgress(fn)` | Meldet Schiff und Halle zusammen bis 90 %, dann 100, wenn das jüngste `show()` steht. Ein überholtes `show()` lädt still zu Ende (`fetchGltf(…, my)`), damit der Balken nur das gewählte Schiff zeigt. |
+| `setSafe({ l, t, r, rects })` | Freie Fläche der Bühne in CSS-Pixeln (Ränder links, oben, rechts und Rechtecke der Knöpfe). Gilt für den Namen als Hologramm und die Stationen. |
+| `canStation()` | `true`, wenn die Bühne Stationen in die Halle stellen kann (echte Halle, kein Telefon, `opts.holo.module`). Sonst bleibt die Tafel der Seite. |
+| `station(s)` | `s = { name: 'uebersicht', data }` stellt die Station am ruhenden Schiff auf (lädt `assets/hangar-holo3d.js` beim ersten Mal), `null` nimmt sie weg. `data` ist fertig gesetzt (`holoData` im Controller). Liefert `false`, wenn die Bühne es nicht kann. |
+| `onStation(fn)` | `fn({ act, row?, href?, a? })` bei einem Knopf auf einer Tafel in der Halle (`cmp`, `flat`), allem auf der Tafel „Ausrüstung“ und ihren Nummern am Schiff (`lo` mit `a`, der Handlung für `act()` der Werkstatt), einer Zeile der Systeme ohne Werkstatt (`sys` mit `row`) und einem Link (`go` mit `href`). Ein Aufruf ersetzt den vorigen. |
 
 Der Raum ist derselbe wie `src/data/ship-hardpoints.json` nach der Achstausch
 `(x, z, -y)` (CryEngine → glTF), für `/holo/*.glb` UND `/hangar/ships/*.glb`.
@@ -36,7 +40,9 @@ Gemessen am 07.10.: Gladius x ±8,69, Cutlass Black x ±13,06 und z −14,81…2
 
 Sie greift nicht in Szene, Licht, Modelle oder Kamera ein, außer über
 `focus()`, `resetView()` und `setCover()`. Marker sind HTML-Elemente über der Leinwand,
-nicht Teil der Szene.
+nicht Teil der Szene. Die Stationen in der Halle zeichnet der Viewer; die
+Oberfläche reicht nur Wörter und Zahlen (`station()`) und die freie Fläche
+(`setSafe()`).
 
 ## Seitenvertrag seit dem Schnitt
 
@@ -158,3 +164,119 @@ prüft die Form der `StageConfig`, dazu den Ort: `'werk'` genau für die
 Bodenfahrzeuge (Klinke `werkhalle`). Zusicherung 7 prüft, dass der ausgelieferte
 Viewer `project`, `focus`, `setCover` und `onFrame` liefert. Zusicherung 8 prüft die
 Import-Map vor dem ersten Modul-Skript. Eine rote Zeile nennt diese Notiz.
+
+### Stationen als Hologramme (seit 10.11.2026, ROADMAP Phase 22 H1)
+
+Die Seite hält, welche Station steht (`?station=uebersicht|loadout`, das
+alte `?pane=ship` heißt Übersicht) und ob als Tafel (`?tafel=1`). Kann die
+Bühne Stationen in die Halle stellen (`canStation()`: echte Halle, kein
+Telefon, `opts.holo.module` gesetzt) und steht kein Bodenfahrzeug in der
+Werkhalle, weicht die Spalte rechts (`data-st3d` an `#main`) und die Seite
+reicht dem Viewer `station({ name, data })`. `data` ist fertig gesetzt
+(`holoData` im Controller): Kacheln mit Wert, Einheit, Platz in der Klasse
+und Balken, Systemzeilen mit den Punkten ihrer Ports im Modellraum der .glb
+(Region `marks`, wie `project()`), der Hüllquader aus `data-box` und die
+Maße als Text. Der Viewer lädt `assets/hangar-holo3d.js` erst dann und
+stellt die Tafeln nur am ruhenden Schiff auf (`stRest`: kein Wechsel, keine
+Fahrt, Aufzug oben, nicht drinnen, nicht in der Werkhalle). Knöpfe auf den
+Tafeln kommen als `onStation(({ act, row, href }) => …)` zurück (`cmp`,
+`flat`, `sys`, `go`). Systemzeilen und ihre Nummern am Schiff wirken wie die
+Zeilen der Tafel: Zeiger darüber hebt Zeile und Nummern zusammen hervor, ein
+Klick setzt `tab=systems` und `hp` auf den Port der Zeile (oder nimmt `hp`
+zurück); wie auf der Tafel klappen alle Zeilen, die diesen Port führen, im
+Hologramm mit Werten und Links auf.
+`setSafe()` gilt für Namen und Stationen. Zusicherung 21 von verify:hangar
+hält Leiste, Modul, Naht und Adresse.
+
+Die linke Tafel ist seit 10.11.2026 die Werkstatt selbst (Krisz: „loadouts
+in das ui von overview direkt einbauen, damit haben wir eine zentrale
+bedieneroberfläche“). Steht die Übersicht in der Halle, zählt `station`
+nicht: die Leiste zeigt nur „Übersicht“ und „Als Tafel“, und `holoData`
+trägt unter `loadout`, was `board()` der Werkstatt
+(`assets/hangar-layouts.js`) liefert: fertige Wörter und Zahlen für Kopf
+(Name des Layouts, Menü), Reiter mit Zahl der Tausche, Gruppen, Zeilen
+(Symbol der Werkstatt als Pfad, Art für den Farbton, Größe, Wert, Abstand
+zur Serie), die offene Auswahl (Halterungen, passende Bauteile mit Marke,
+Abstand und Balken), Lackierungen und den Fuß (Stand, Speichern, Link
+teilen, Alles auf Serie). Der Controller ergänzt je Zeile die Punkte ihres
+Ports (`ps`, aus der Region `marks`) und für unveränderte Slots die Links
+der Buchtzeile. Das Modul zeichnet nur; was geklickt wird, geht als
+`{ act: 'lo', a: [...] }` an `act()` der Werkstatt und läuft dort über
+dieselben Wege wie ihre Knöpfe (`cat`, `slot`, `opt`, `rack`, `revert`,
+`paint`, `save`, `saveNew`, `share`, `reset`, `stock`, `open`, `dice`,
+`name`, `nameEdit`). Die Werkstatt meldet jede Änderung über
+`bridge.changed()`, der Controller reicht dann frische Daten nach. Zustand,
+der nur das Bild betrifft (Rollstand der Tafel und der Auswahlliste, offenes
+Menü), hält das Modul selbst; das Mausrad über der Tafel rollt sie und
+zoomt die Kamera nicht. Umbenennen tippt in ein echtes, unsichtbares
+Eingabefeld der Seite (Einfügen und Eingabehilfen bleiben), die Tafel
+zeigt den Text. Bernstein heißt auf der Tafel nur „weicht von der Serie
+ab“. Wer Tasten oder einen Vorleser braucht, nimmt „Als Tafel“: dort steht
+die Werkstatt als Knöpfe, mit der Wahl „Übersicht | Loadout“ wie zuvor.
+Zusicherung 21 hält die Naht (board, act, drawLoadout) und dass jedes Wort
+der Werkstatt in `#hgl-msg` steht: die gezeichnete Tafel zeigte sonst den
+rohen Schlüssel, und kein Textprüfer sähe ihn.
+
+Steht auf der linken Tafel ein Slot offen, zeigt die rechte seit 11.11.2026
+statt des Schiffs das Datenblatt seines Bauteils (Krisz 10.11.2026: „man
+könnte die itemdatenblatt seite direkt in das hangar reinbauen für
+komponente und waffen“; Skizze freigegeben 11.11.). `board()` trägt es
+unter `sheet`, der Controller reicht es als `item` weiter, und das Modul
+zeichnet es mit `drawItem`; schließt der Slot, steht wieder das Schiff da.
+Inhalt ist Richtung B der Detailseiten 2.0 („Einordnung“): ein Satz zum
+Platz in der Klasse, je Kennwert ein Streifen (jedes Teil der Klasse ein
+Punkt, dieses hell, das eingebaute als Ring, Strich am Median, „17. von
+28“), die Wege, die es gibt (Kaufen, Herstellen, Ab Werk), was der Tausch
+am Schiff ändert, und Knöpfe (Einbauen, Im Crafting öffnen, Item-Seite).
+Die Klasse ist die Auswahlliste des Slots: alle Teile, die dort passen,
+also auch Waffen, die es in mehreren Größen gibt. `classRank` und
+`classStrip` (Export der Werkstatt) rechnen Platz und Streifen; rechts
+heißt besser, bei „weniger ist besser“ (`LOWER`, dieselbe Menge wie im
+Advanced Loadout) gespiegelt. Gerechnet wird mit den genauen Werten
+(`dps`, `lkT`, `dly` auf zwei Stellen in `/hangar-layouts.json`): auf
+ganze Zahlen gerundet teilten sich Teile einen Platz, die keiner teilt.
+Die Wege stehen je Teil in denselben Daten (`sn` Zahl der Läden, `sl` Ort
+des günstigsten, `ct` Bauzeit, `cm` Missionen mit dem Bauplan, `cu` Weg in
+die Werkbank, `pg` hat eine Item-Seite); „Ab Werk“ zählt die Werkstatt aus
+der Serienausstattung aller Schiffe.
+Der Zeiger über einer Zeile der Auswahlliste schaut das Teil nur an: das
+Modul schickt `['peek', slot, item]`, die Werkstatt merkt es sich bis zum
+nächsten Tausch oder Slotwechsel, und das Blatt vergleicht dann mit dem
+eingebauten Teil (▲▼ je Streifen, „Am Schiff“ mit der Summe davor und
+danach). Klicks auf dem Blatt tragen die Vorsilbe `it|` (Wege mit Ziel,
+Knöpfe); `Einbauen` läuft als `opt` durch die Werkstatt, Links als `go`.
+Über dem Blatt schwebt das Teil selbst: `ctx.part` (Viewer: `loadPartRaw`)
+lädt das Modell roh, das Modul gibt ihm ein eigenes Material (dunkler
+Körper, Kantenschein, Zeilen), zeichnet es vor allem anderen und hält
+höchstens sechs Modelle vor. Bleibt über der Tafel zu wenig Platz, fehlt
+es, das Blatt steht trotzdem. Zusicherung 22 hält Naht, Rang-Rechnung
+(Proben gegen das gebaute Skript), dass jeder Weg auf eine gebaute Seite
+zeigt, und die Vorlagen der Links auf beiden Seiten.
+
+Die flache Werkstatt („Als Tafel“, Telefon, Hangar ohne 3D, Bodenfahrzeuge)
+hat keine zweite Tafel und am Telefon keinen Zeiger. Dort trägt jede Zeile
+der Auswahl ein i (`.hgl-info`): es stellt dasselbe Datenblatt an die Stelle
+der Liste (`sheetView` zeichnet, was `sheetOf` liefert, es gibt keine zweite
+Rechnung), „Zur Auswahl“ führt zurück, Suchwort und Zeile bleiben. Der Klick
+auf die Zeile baut weiter sofort ein; „Einbauen“ auf dem Blatt läuft durch
+dasselbe `equip`. Was offen steht, merkt sich die Werkstatt in `detail`,
+getrennt von `peek` der Halle, und vergisst es mit dem Slot. Damit das i
+Platz hat, stehen Zahl und Abstand in der Zeile rechts untereinander. Die
+Browser-Probe der Werkstatt (smoke, `hangar-layout`) geht den Weg einmal:
+i, Blatt mit Streifen und Satz, kein rohes Wort, zurück, einbauen.
+
+Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
+außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
+Oberkante frei vom Hüllquader). Findet sich dort kein Boden vor der Kamera
+(großes Schiff, Kamera knapp neben oder über dem Rumpf), schweben sie ohne
+Projektor 3 m vor der Kamera und folgen ihr. Im Bild liegen die Tafeln
+immer über Halle, Deko und Schiff (ohne Tiefentest; Krisz 10.11.2026: eine
+Kante schnitt die Ironclad-Tafel an). Ragte eine Tafel am Boden seitlich aus
+dem freien Bild (von schräg oben kippt sie am Bildrand; `overhang`), rückt sie
+einmal um das Stück zur Mitte. Reicht das nicht, ragt sie oben oder unten
+hinaus oder blickt die Kamera steiler als `STEEP` nach unten, schwebt sie
+ebenso fest im Bild; am Boden lag sie von oben flach, schief und halb unter
+der Seitenleiste. Nach
+einer Kamerafahrt rücken sie an den neuen Platz: kurze Wege gleitend, quer
+durchs Bild oder hinter dem Rumpf hervor aus- und wieder eingeblendet. Maßschilder ohne freien Platz
+entfallen. Der Bodenspiegel („hoch“) zeigt die Ebene nicht.

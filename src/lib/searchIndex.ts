@@ -14,18 +14,29 @@
 //
 // Eintrag (kurze Keys, ~35 KB): k = kind (stabiler Schlüssel, Anzeige-Label
 // mappt das Overlay über data-k-*), b = badge, t = title, s = snippet,
-// u = url, x = extra keywords.
+// u = url, x = extra keywords, c = Weg ins Crafting-Werkzeug („Herstellen“,
+// nur bei Items mit Rezept; seit 09.11.2026, Skizze 016).
+//
+// Ein Ding, ein Treffer (Skizze 016, freigegeben 09.11.2026): ein Item mit
+// Rezept steht EINMAL im Register, mit „Herstellen“ daneben — vorher standen
+// Item und Bauplan als zwei gleich klingende Treffer untereinander (1.547 von
+// 1.608 Bauplaenen). Ebenso ein Fahrzeug: der Treffer fuehrt aufs
+// Schiffsdatenblatt, nicht zusaetzlich auf das gleichnamige Item.
 import { getCollection } from 'astro:content';
 import { href, useTranslations, type Locale } from '../i18n/ui';
 import { mergePatchEn, eraLabel } from '../i18n/patchText';
 import { vType, vSize, vFoci } from '../i18n/vehicleText';
 import { missions, repSummary, uec } from './missions';
 import { patchesFor } from './patchSpine';
-import { altName, displayName, itemPath, leafCategory, pageItems, rootCategory } from './items';
-import { blueprintListLabels, blueprintPath, blueprints, craftLeaf, craftRoot, itemForBlueprint } from './crafting';
+import { altName, displayName, itemPath, leafCategory, pageItemIds, pageItems, rootCategory } from './items';
+import {
+  blueprintListLabels, blueprintPath, blueprints, craftEntryPath, craftLeaf, craftRoot, itemForBlueprint, recipeForItem,
+} from './crafting';
 import { categoryLabel } from '../i18n/itemText';
+import { priceInfo, aUEC } from './shipExtras';
+import { shipIdForVehicleItem } from './vehicleItems';
 
-export type SearchEntry = { k: string; b: string; t: string; s: string; u: string; x: string };
+export type SearchEntry = { k: string; b: string; t: string; s: string; u: string; x: string; c?: string };
 
 // Werkzeuge: dieselben Ziele und Unterzeilen wie im Navigationsdeck
 // (src/components/SiteNav.astro), ohne Konto/Service. Der Hangar fehlt mit
@@ -106,18 +117,22 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
   }
 
   // full vehicle catalog (wiki-API snapshot) — canonical ship entries
+  // Der guenstigste Kaufpreis im Spiel steht mit im Treffer (Skizze 016):
+  // dieselbe Zahl wie oben im Schiffsdatenblatt, das auch ihr Datum nennt.
   const vehicles = await getCollection('vehicles');
-  for (const v of vehicles)
+  for (const v of vehicles) {
+    const buy = priceInfo(v.id)?.buy[0];
     out.push({
       k: 'schiff',
       b: v.data.manufacturer ?? v.data.makerCode ?? t('search.kind.schiff'),
       t: v.data.name,
-      s: [v.data.manufacturer, vType(v.data, lang), vSize(v.data, lang)]
+      s: [v.data.manufacturer, vType(v.data, lang), vSize(v.data, lang), buy ? t('search.ship.from').replace('%p%', aUEC(buy.price, lang)) : null]
         .filter(Boolean)
         .join(' · '),
       u: href(`/schiffe/${v.id}.html`, lang),
       x: [...vFoci(v.data, lang), ...patchesFor(v.data.name).map((p) => `alpha ${p}`)].join(' '),
     });
+  }
 
   // mission families (DataCore snapshot) — one entry per mission, not per offer.
   // Titel/Typen/Geber sind Spieldaten (englisch) und in beiden Sprachen
@@ -157,11 +172,25 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
 // entstehen. Groesse nur bei Schiffsteilen und Waffen; bei Kleidung und
 // Ruestung sagt "S1" nichts. x traegt den Namen der anderen Sprache, damit die
 // deutsche Suche auch den englischen Namen findet und umgekehrt.
+//
+// Zusammengefuehrt (09.11.2026, Skizze 016):
+//  - Ein Item mit Rezept traegt c (Weg ins Crafting-Werkzeug, craftEntryPath)
+//    und im x den Rezeptnamen. Das Rezept steht dann nicht noch einmal als
+//    eigener Treffer da — ausser es ist nicht das Rezept, auf das c zeigt
+//    (zwei Rezepte fuer ein Item, elf Faelle), oder sein Item hat kein
+//    Datenblatt. Jedes Rezept bleibt so ueber die Suche erreichbar.
+//  - Fahrzeug-Items (Kategorie Vehicle), deren Name genau ein Schiff trifft,
+//    entfallen: der Schiffstreffer im ersten Teil fuehrt aufs Datenblatt mit
+//    Kaufpreisen und Kauforten. Das Item-Datenblatt verlinkt seinerseits das
+//    Schiff (ItemDetail.astro).
 const SIZED_ROOTS = new Set(['Vehiclegear', 'Weapons']);
 
-export function buildSearchIndexMore(lang: Locale): SearchEntry[] {
+export async function buildSearchIndexMore(lang: Locale): Promise<SearchEntry[]> {
   const out: SearchEntry[] = [];
+  const bpLabels = blueprintListLabels(blueprints, lang);
+  const bpLabel = new Map(blueprints.map((b, i) => [b.slug, bpLabels[i]]));
   for (const it of pageItems) {
+    if (await shipIdForVehicleItem(it)) continue;
     const g = it.game;
     const root = rootCategory(it.category);
     const sizes = SIZED_ROOTS.has(root)
@@ -169,20 +198,24 @@ export function buildSearchIndexMore(lang: Locale): SearchEntry[] {
           (n): n is number => typeof n === 'number',
         )
       : [];
+    const bp = recipeForItem(it);
+    const name = displayName(it, lang);
+    const rezept = bp ? bpLabel.get(bp.slug) : null;
     out.push({
       k: 'item',
       b: leafCategory(it.category),
-      t: displayName(it, lang),
+      t: name,
       s: [g?.manufacturer, sizes.length ? sizes.map((n) => `S${n}`).join('/') : null].filter(Boolean).join(' · '),
       u: href(itemPath(it), lang),
-      x: [altName(it, lang), categoryLabel(root, lang)].filter(Boolean).join(' '),
+      x: [altName(it, lang), categoryLabel(root, lang), rezept && rezept !== name ? rezept : null].filter(Boolean).join(' '),
+      ...(bp ? { c: href(craftEntryPath(bp), lang) } : {}),
     });
   }
   // Gleichnamige Blueprints (11 Namen, z. B. BroadSpec) tragen dieselben
   // Unterscheider wie in den Blueprint-Listen (Masse oder laufende Nummer).
-  const bpLabels = blueprintListLabels(blueprints, lang);
   blueprints.forEach((bp, i) => {
     const it = itemForBlueprint(bp);
+    if (it && pageItemIds.has(it.id) && recipeForItem(it)?.slug === bp.slug) return;
     out.push({
       k: 'bauplan',
       b: craftLeaf(bp.category),
@@ -190,6 +223,7 @@ export function buildSearchIndexMore(lang: Locale): SearchEntry[] {
       s: categoryLabel(craftRoot(bp.category), lang),
       u: href(blueprintPath(bp), lang),
       x: it ? [displayName(it, lang), altName(it, lang)].filter((n) => n && n !== bp.name).join(' ') : '',
+      c: href(craftEntryPath(bp), lang),
     });
   });
   return out;

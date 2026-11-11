@@ -27,6 +27,14 @@
    Der größte Verbund ist der Rumpf, jeder andere eine Insel; gemeldet
    wird eine Insel außerhalb des Hüllquaders des Rumpfs (mit alle: jede).
 
+   overhang: Teile des groben Innenraums im Rumpf (extras.interior), die
+   mehr als RAGT_M über den Hüllquader des übrigen Rumpfs hinausragen.
+   Anlass: Krisz, 10.11.2026, Ursa Medivac „komplett broken“: Der Container
+   medivac_int setzte die Rumpfdatei des Fahrzeugs selbst, und die ganze
+   Hülle stand als zweite Karosserie 1,5 m versetzt neben der echten
+   (.planning/notes/hangar-huellkopie.md). Sie hängt an der echten, ist
+   also keine Insel, und die Spannen messen nur den begehbaren Innenraum.
+
    WERKZEUG nennt die Fassung der Rechnung. Wer an Voxeln, Grenzen oder
    Regeln dreht, zählt sie hoch: Das Tor misst dann jedes Schiff neu,
    statt Werte einer anderen Rechnung wiederzuverwenden.
@@ -37,8 +45,9 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 
 // 2: Sitzwahl ohne Kopilot (co_pilot, co-pilot), Fahrer vor Mitfahrer
-export const WERKZEUG = 'hangar-lage 2';
-export const OUT_M = 0.4, SITZ_R = 1.5, SITZ_MIN = 20, KOPF = 0.8, OBEN_M = 4, GAP = 1;
+// 3: overhang (Innenraumteile im Rumpf, die über die Hülle ragen)
+export const WERKZEUG = 'hangar-lage 3';
+export const OUT_M = 0.4, SITZ_R = 1.5, SITZ_MIN = 20, KOPF = 0.8, OBEN_M = 4, GAP = 1, RAGT_M = 0.5;
 
 let ioP = null;
 const io = () => (ioP ??= draco3d.createDecoderModule().then((d) => new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': d })));
@@ -164,6 +173,29 @@ export function judge(spans, nodes, { versatz = false, verborgen } = {}) {
     r.mitVersatzPct = r2(best[3] * 100);
   }
   return r;
+}
+
+// Innenraumteile im Rumpf (extras.interior), die mehr als RAGT_M über den
+// Hüllquader der übrigen gezeichneten Dreiecke hinausragen: je Teil Name,
+// Dreiecke, Meter auf der schlechtesten Achse und das häufigste Material
+export function overhang(nodes, verborgen) {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  const parts = new Map();
+  for (const [node, a, b, c, prim] of worldTris(nodes, verborgen)) {
+    if (!node.getExtras()?.interior) { for (const p of [a, b, c]) for (let k = 0; k < 3; k++) { if (p[k] < lo[k]) lo[k] = p[k]; if (p[k] > hi[k]) hi[k] = p[k]; } continue; }
+    let t = parts.get(node);
+    if (!t) parts.set(node, t = { lo: [Infinity, Infinity, Infinity], hi: [-Infinity, -Infinity, -Infinity], tris: 0, mats: new Map() });
+    t.tris++;
+    const mat = prim.getMaterial()?.getName() || '?';
+    t.mats.set(mat, (t.mats.get(mat) || 0) + 1);
+    for (const p of [a, b, c]) for (let k = 0; k < 3; k++) { if (p[k] < t.lo[k]) t.lo[k] = p[k]; if (p[k] > t.hi[k]) t.hi[k] = p[k]; }
+  }
+  if (!Number.isFinite(lo[0])) return [];
+  return [...parts].map(([node, t]) => ({
+    teil: node.getName() || '?', tris: t.tris,
+    m: r2(Math.max(...[0, 1, 2].map((k) => Math.max(lo[k] - t.lo[k], t.hi[k] - hi[k])))),
+    material: [...t.mats].sort((x, y) => y[1] - x[1])[0][0],
+  })).filter((p) => p.m > RAGT_M).sort((x, y) => y.m - x.m);
 }
 
 const isGlass = (m) => { const name = m?.getName() || ''; return (m?.getExtras()?.is_glass || /glass|canopy|window/i.test(name)) && !/headlight|light_glass|lamp|lens|bulb/i.test(name); };
