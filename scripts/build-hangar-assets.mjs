@@ -612,7 +612,11 @@ const stockFresh = (m) => !!m && Object.entries(m).every(([cls, url]) => stockLo
 // Schiff den Abdruck seines Loadouts (manifest.ships[name].loadout): ändert
 // ein Datenlauf das Loadout, baut der nächste Lauf das Schiff neu.
 const loadoutSig = (slug) => createHash('sha1').update(JSON.stringify(LOADOUTS[slug] ?? {})).digest('hex').slice(0, 12);
-function markSwapParts(doc, slug) {
+// abgenommen: Knoten, denen repairSwapped das falsche Netz ohne Ersatz nahm.
+// Bleibt eine Wurzel dadurch ganz ohne Netz (Starlifter: Kraftwerke, 300i
+// und 350r: Bugwaffe), behält ihr Port einen leeren Anker an der Wurzel wie
+// ein Port ohne Teil im Export; sonst verlöre die Werkstatt dort den Tausch.
+function markSwapParts(doc, slug, abgenommen = new Set()) {
   const root = doc.getRoot();
   const stock = new Map(Object.entries(LOADOUTS[slug] ?? {}).map(([k, v]) => [k.toLowerCase(), [k, v]]));
   const named = new Set();
@@ -640,14 +644,18 @@ function markSwapParts(doc, slug) {
         // Komponenten: ein eigenes Item darunter (Sprungmodul am Quantenantrieb,
         // aus dem Loadout des Schiffs) gehört nicht zum Tauschteil
         const own = (n) => { for (let p = n; p && p !== r; p = p.getParentNode()) if (/_SCItem$/i.test(p.getName())) return false; return true; };
+        let marked = 0, leer = false;
         r.traverse((n) => {
+          if (abgenommen.has(n) && (!comp || own(n))) leer = true;
           if (!n.getMesh() || (comp && !own(n))) return;
+          marked++;
           tris += n.getMesh().listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
           n.setExtras({ ...n.getExtras(), swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}), ...(stock ? { stock } : {}) });
           n.setName(`swap_${nodes++}`);
           named.add(n);
           n.getMesh().setName(n.getName());
         });
+        if (!marked && leer) empty.push({ swap: port, item: i, inst, anchor, ...(comp ? { cat: it.cat } : {}), ...(stock ? { stock } : {}) });
       });
       if (roots.length) (comp ? components : ports)[key] = roots.length;
       if (!comp) return;
@@ -2014,7 +2022,7 @@ async function buildOne(kind, name, inPath) {
   const furnitureNodes = kind === 'hall' ? markFurniture(doc) : null;
   stockUsed = kind === 'ships' ? new Map() : null;
   const placedComp = ship ? markPlacedComponents(doc, compPorts) : 0;
-  const swap = kind === 'ships' ? markSwapParts(doc, name) : null;
+  const swap = kind === 'ships' ? markSwapParts(doc, name, swapFix?.abgenommen) : null;
   const stockSeen = stockUsed;
   stockUsed = null;
   // je Komponenten-Port Lage, Klasse und ob der Export ein Teil trägt (Bericht, nicht ausgeliefert)
