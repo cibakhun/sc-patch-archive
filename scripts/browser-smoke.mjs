@@ -217,18 +217,22 @@ let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, sync
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
    eigene, schwaechere schreibt (Anlass: drei Review-Runden an #345, jede fand
    an der eigenen Fassung der Werkstatt-Probe eine Luecke weiter:
-   hidden-Attribut, visibility, Opazitaet). Sichtbar ist ein Element mit
-   Kasten, das der Browser selbst als sichtbar ausweist:
-   Element.checkVisibility mit visibility und Opazitaet, beides ueber alle
-   Vorfahren. checkVisibility gibt es erst ab Chrome 105 (die Optionsnamen ab
-   121, davor checkVisibilityCSS/checkOpacity); ohne es entscheidet der
-   berechnete Stil des Elements und seiner Vorfahren.
+   hidden-Attribut, visibility, Opazitaet, dann an dieser hier der Kasten
+   ohne Flaeche). Sichtbar ist ein Element, das einen Kasten MIT FLAECHE hat
+   (Breite und Hoehe ueber null: transform:scale(0) oder eine auf null
+   zusammengeschobene Zeile behalten ihren Kasten) und das der Browser selbst
+   als sichtbar ausweist: Element.checkVisibility mit visibility und
+   Opazitaet, beides ueber alle Vorfahren. checkVisibility gibt es erst ab
+   Chrome 105 (die Optionsnamen ab 121, davor checkVisibilityCSS/
+   checkOpacity); ohne es entscheidet der berechnete Stil des Elements und
+   seiner Vorfahren.
    NICHT geprueft sind Lage, Beschnitt und Ueberdeckung (aus dem Bild
-   geschoben, clip-path, etwas liegt darueber). Das ist eine andere Frage und
-   bekommt, wo sie zaehlt, eine eigene Probe wie kreuzVerdeckt.
+   geschoben, clip-path, von einem Vorfahren abgeschnitten, etwas liegt
+   darueber). Das ist eine andere Frage und bekommt, wo sie zaehlt, eine
+   eigene Probe wie kreuzVerdeckt.
    SICHTBAR laeuft im Browser und darf nichts von hier draussen benutzen. */
 const SICHTBAR = (el) => {
-  if (!el || el.getClientRects().length === 0) return false;
+  if (!el || ![...el.getClientRects()].some((r) => r.width > 0 && r.height > 0)) return false;
   if (typeof el.checkVisibility === 'function') {
     return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
   }

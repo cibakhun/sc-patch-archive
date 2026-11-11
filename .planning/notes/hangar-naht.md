@@ -271,7 +271,7 @@ der Rückweg Suchwort oder Zeile verliert; mit nur einem Treffer bestünde ein
 Rückweg, der stets das erste sichtbare i ansteuert. Sichtbar ist, was der
 Browser selbst als sichtbar ausweist, nicht was kein `hidden`-Attribut trägt:
 die Probe nimmt `SICHTBAR` aus `browser-smoke.mjs`, die eine Bestimmung des
-Skripts (Kasten vorhanden, `checkVisibility` mit `visibility` und Opazität
+Skripts (Kasten mit Fläche, `checkVisibility` mit `visibility` und Opazität
 über alle Vorfahren), statt einer eigenen. Lage, Beschnitt und Überdeckung
 prüft sie nicht. Verglichen werden die Teile der sichtbaren Zeilen mit den
 erwarteten Treffern, nicht ihre Zahl (Befunde von CodeRabbit an #341 und
