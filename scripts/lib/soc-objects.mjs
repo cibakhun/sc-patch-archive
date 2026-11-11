@@ -22,14 +22,26 @@ import { inflateRawSync } from 'node:zlib';
 // leere, gekuerzte oder vertauschte Liste zu liefern: ein Scan (datamine:loot)
 // zaehlt jeden Wurf als Lesefehler, und eine still leere Liste saehe aus wie
 // ein gelesenes Archiv ohne Treffer (Befunde von CodeRabbit an #347). Gueltige
-// ZIPs ohne Eintraege bleiben eine leere Liste. Kein ZIP64: ein Zip64-Locator
-// vor dem Endrecord wird nur uebersprungen, die 32-Bit-Felder muessen stimmen.
+// ZIPs ohne Eintraege bleiben eine leere Liste. Kein ZIP64: ein Zip64-Endrecord
+// wird nur geprueft und uebersprungen, die 32-Bit-Felder muessen stimmen.
 export function readZip(buf) {
   const files = new Map();
   const kaputt = (was) => { throw new Error(`readZip: ${was} (${buf.length} Bytes)`); };
+  // Zip64: Der Locator direkt vor dem Endrecord zeigt auf den Zip64-Endrecord.
+  // Der muss direkt hinter dem Verzeichnis beginnen, bis zum Locator reichen
+  // und dieselbe Zahl, Groesse und Lage des Verzeichnisses tragen.
+  const zip64Passt = (loc, n, ab, groesse) => {
+    const z = Number(buf.readBigUInt64LE(loc + 8));
+    if (z !== ab + groesse || z + 56 > loc || buf.readUInt32LE(z) !== 0x06064b50) return false;
+    return z + 12 + Number(buf.readBigUInt64LE(z + 4)) === loc
+      && Number(buf.readBigUInt64LE(z + 32)) === n
+      && Number(buf.readBigUInt64LE(z + 40)) === groesse
+      && Number(buf.readBigUInt64LE(z + 48)) === ab;
+  };
   // Endrecord von hinten suchen. Die Signatur kann auch im Kommentar stehen,
   // deshalb gilt ein Kandidat erst, wenn sein Kommentar ins Archiv passt und
-  // das Zentralverzeichnis direkt vor ihm endet; sonst weitersuchen.
+  // das Zentralverzeichnis direkt vor ihm endet (bzw. vor einem stimmigen
+  // Zip64-Endrecord); sonst weitersuchen.
   let eocd = -1, n = 0, cdAb = 0, cdEnde = 0, grund = null;
   for (let k = buf.length - 22; k >= Math.max(0, buf.length - 22 - 0xffff); k--) {
     if (buf.readUInt32LE(k) !== 0x06054b50) continue;
@@ -37,7 +49,14 @@ export function readZip(buf) {
     if (k + 22 + kl > buf.length) { grund ??= `Endrecord bei ${k}: Kommentar (${kl} Bytes) reicht ueber das Dateiende`; continue; }
     const ab = buf.readUInt32LE(k + 16), ende = ab + buf.readUInt32LE(k + 12);
     const z64 = k >= 20 && buf.readUInt32LE(k - 20) === 0x07064b50;
-    if (ende !== k && !(z64 && ende <= k - 20)) { grund ??= `Endrecord bei ${k}: Zentralverzeichnis ${ab}+${ende - ab} endet nicht davor`; continue; }
+    if (z64 ? !zip64Passt(k - 20, buf.readUInt16LE(k + 10), ab, ende - ab) : ende !== k) {
+      grund ??= z64 ? `Endrecord bei ${k}: Zip64-Endrecord fehlt oder passt nicht zum Verzeichnis ${ab}+${ende - ab}`
+        : `Endrecord bei ${k}: Zentralverzeichnis ${ab}+${ende - ab} endet nicht davor`;
+      continue;
+    }
+    // Ein leeres Verzeichnis kann nur ein leeres Archiv beschreiben: liegen
+    // Bytes davor, ist der Kandidat ein falscher Endrecord (etwa im Kommentar).
+    if (ende === ab && ab !== 0) { grund ??= `Endrecord bei ${k}: leeres Verzeichnis, aber ${ab} Bytes davor`; continue; }
     eocd = k; n = buf.readUInt16LE(k + 10); cdAb = ab; cdEnde = ende;
     break;
   }
