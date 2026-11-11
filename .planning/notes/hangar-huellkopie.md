@@ -110,3 +110,39 @@ Rumpf wieder da, wo vorher graue Werferkörper hingen), Ironclad Assault
 (Triebwerke heil statt zerknüllt), Sabre Raven (Landebeine), Scorpius
 (sieben doppelte Geschützkörper an den Kardanaufhängungen weg), Storm AA,
 Idris-M, Starlifter A2, Sabre Comet, Cutlass Blue.
+
+Innenräume: 217 gebaut, Dateien byte-gleich zum alten Stand; im Manifest
+ändern sich nur die Kennzahlen.
+
+**Lage-Tor nach dem Neubau.** Drei benannte Ausnahmen in [4] (Star Runner,
+Polaris, Roc) verloren ihren Anlass: ihre losen Teile waren verschobene
+Netze. Gestrichen. Gestiegen ist der Anteil des Innenraums außerhalb des
+Rumpfs bei Starfarer (2,98 → 5,12 %), Starfarer Gemini (2,85 → 4,8 %) und
+Mustang Beta (1,7 → 1,88 %), bei byte-gleichem Innenraum. Ursache bei der
+Starfarer: In fünf der sechs Tankkapseln trug die Zierlinie `DEC_LINE_004`
+das ganze Netz der Kapsel (13 329 Dreiecke). Diese fünf Kapseln lagen
+doppelt auf der Mittellinie im Rumpf (x 0, y −4 bis 0, z 20 bis 45) und
+schlossen dort die Spannen des Rumpfs über dem Mittelgang. Die Außenhaut des
+Mittelgangs steckt im Innenraum-Container. Ohne die Kapseln zählen
+16 320 Dreiecke dieses Containers als außen. Bei der Mustang Beta steht ohne
+das ersetzte Netz ein Feuerlöscherschrank 1,4 m über. Klinke mit Anlass
+nachgezogen.
+
+**Dock-Bilder.** 217 neu gerendert. Die alten stammten vom 31.10. und waren
+damit älter als die Rümpfe in der Halle. Vorher/nachher angesehen:
+Hornet F7C-Reihe mit Flügeln statt loser Teile neben dem Schiff, Star Runner
+ohne Teile unter dem Rumpf, Ursa Rover geschlossen, Freelancer MAX ohne das
+gestreifte Teil auf dem Rücken. Starfarer und L-21 Wolf sind jetzt hell wie
+in der Halle.
+
+**Leere Anker (verify:hangar [13]).** Der Neubau nahm acht Ports den
+Tauschanker: Ihre Wurzel trug nur ein falsches Netz, und ohne Ersatz blieb
+sie ganz leer (Starlifter A2, C2, M2: beide Kraftwerke trugen `Stand_B`;
+300i und 350r: die Bugwaffe `BEHR_LaserCannon_S3` trug die Kardanhalterung).
+markSwapParts setzt an eine Wurzel ohne Netz keinen Anker, die Werkstatt
+verlor dort den Tausch. Jetzt gibt repairSwapped die abgenommenen Knoten
+mit, und eine Wurzel, die dadurch leer wird, behält einen leeren Anker wie
+ein Port ohne Teil im Export (Kraftwerk: Serienteil an seiner Stelle). Die
+Klinke der Tausch-Ports stand noch auf 37 vom 18.10. und sah den Verlust
+nicht; jetzt 2220, vorgeführt rot mit dem Stand davor (2212). Gemerkt hat
+es nur die Klinke der Komponentenanker mit Serienteil (1465 → 1459).
