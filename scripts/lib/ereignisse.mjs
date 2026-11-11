@@ -2,7 +2,7 @@
 //
 // Freigabe: Krisz, 06.11.2026 11:48 („Beides wie empfohlen", Plan
 // „VerseBase: Produktphase Vernetzung, Messung, Datenvertrauen", Abschnitt
-// Messung). Zehn Ereignisse, jedes Feld nur mit festen Werten: kein
+// Messung). Fuenfzehn Ereignisse, jedes Feld nur mit festen Werten: kein
 // Suchbegriff, keine Item-Kennung, kein Name, keine Zahl aus einer Rechnung.
 // Acht davon aus dieser Freigabe; das neunte, wert-melden (Klick auf
 // „Falschen Wert melden“ einer Detailseite, nur die Seitenart), kam mit dem
@@ -11,7 +11,12 @@
 // anderen Website oder auf den Bezahlknopf der Unterstuetzen-Seite, nur die
 // Art des Ziels und die Seitenart), kam am 11.11.2026 dazu: Klicks nach
 // draussen (Discord beitreten, Spende, Wiki, UEX) waren bis dahin gar nicht
-// messbar.
+// messbar. Freigabe: Krisz, 11.11.2026 11:10 UTC („Erst extern-Event, dann
+// live"). Am selben Tag (11:11 UTC, „Mehr Events auf der Seite selbst") die
+// Bedienung auf der Seite: treffer-offen (Eintrag aus der Trefferliste eines
+// Werkzeugs geoeffnet), merken (Schiff zur Flotte, Bauplan in den Planer,
+// Raffinerie-Auftrag gestartet), video (Video gestartet), bilder (Bilder
+// geoeffnet) und hilfe („Wie funktioniert …?" bzw. „Elemente erklaeren").
 //
 // Diese Datei ist das SOLL. assets/ereignisse.js traegt dieselbe Liste als
 // Ist (es laeuft im Browser und kann nichts importieren); verify:zaehler [7]
@@ -55,6 +60,11 @@ export const EXTERN_HOSTS = {
   'youtube.com': 'youtube',
 };
 export const VON = [...DETAIL, 'sonst', ...WERKZEUGE];
+export const MERKEN = ['flotte', 'planer', 'auftrag'];
+// Hilfe gibt es auch ausserhalb der Werkzeugseiten (Ruestungs-Sets, Werkbank,
+// Hangar im Vorschau-Bau): dort heisst das Werkzeug „sonst“.
+export const HILFE_WZ = [...WERKZEUGE, 'sonst'];
+export const HILFE_ART = ['anleitung', 'elemente'];
 
 export const EREIGNISSE = {
   'suche-offen': { seite: SEITEN },
@@ -67,6 +77,11 @@ export const EREIGNISSE = {
   'anmeldung-einstieg': { von: VON, ziel: KONTO },
   'wert-melden': { seite: DETAIL },
   extern: { seite: SEITEN, ziel: EXTERN },
+  'treffer-offen': { werkzeug: WERKZEUGE },
+  merken: { was: MERKEN },
+  video: { seite: SEITEN },
+  bilder: { seite: SEITEN },
+  hilfe: { werkzeug: HILFE_WZ, art: HILFE_ART },
 };
 
 // Seiten der Werkzeuge (ohne /de-Vorsatz) -> Wert im Feld werkzeug. Dieselben

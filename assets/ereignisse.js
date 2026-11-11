@@ -1,4 +1,4 @@
-// ereignisse.js — zehn Messereignisse mit festen Werten (Umami).
+// ereignisse.js — fuenfzehn Messereignisse mit festen Werten (Umami).
 //
 // Laedt auf jeder Seite, die auch den Zaehler laedt (src/layouts/Layout.astro,
 // direkt nach ihm), und schickt ueber umami.track — also durch denselben
@@ -29,6 +29,23 @@
 //    nennt sein Ziel selbst (der Stripe-Knopf der Unterstuetzen-Seite: ein
 //    <button>, seine Adresse gibt es erst nach dem Klick). Umami schickt mit
 //    keepalive, die Zaehlung ueberlebt also das Verlassen der Seite.
+//  - Bedienung auf der Seite (seit 11.11.2026):
+//    treffer-offen: in einem Werkzeug ein Eintrag der Trefferliste geoeffnet —
+//      Klick in eine Karte eines Bereichs mit data-ev-treffer (Item Finder,
+//      Crafting: das Fenster zum Eintrag; Knoepfe und Links auf andere Seiten
+//      in der Karte zaehlen nicht) oder auf einen Link im Inhalt eines
+//      Werkzeugs zu einer Detailseite (Missionen, Schiffe …), nicht in einem
+//      offenen Fenster (role="dialog") und nicht in Kopf, Navigation, Fuss.
+//    hilfe: „Wie funktioniert …?“ geoeffnet (data-ev-hilfe="anleitung" an der
+//      summary, nur wenn sie zu ist) bzw. „Elemente erklaeren“ eingeschaltet
+//      (data-ev-hilfe="elemente", nur wenn aria-pressed nicht true ist).
+//    video: Klick auf eine Video-Fassade ([data-yt], [data-lb^="yt:"],
+//      #holoytgo — dieselben, die verify:vorklick zaehlt).
+//    bilder: Klick auf ein Bild mit Leuchtkasten ([data-lb] ohne yt:) oder
+//      den Umschalter „Bilder“ der Schiffsseite (#btnimg, nur wenn er nicht
+//      schon an ist).
+//    merken: ruft die App selbst ueber vbEreignis, wenn wirklich etwas
+//      dazukommt (assets/fleet.js, assets/crafting-app.js, Refinery-Tracker).
 //  - Erste Bedienung eines Elements mit data-ev-filter="<name>" (filter) bzw.
 //    in einem Bereich mit data-ev-rechnung (rechnung) je Seitenaufruf, Klick
 //    auf data-ev-kopieren (kopieren-teilen). Nur echte Bedienung
@@ -56,6 +73,11 @@
     'anmeldung-einstieg': { von: DETAIL + ' sonst ' + WZ, ziel: 'anmelden registrieren' },
     'wert-melden': { seite: DETAIL },
     extern: { seite: SEITE, ziel: 'discord spende wiki uex rsi fleetyards youtube sonst' },
+    'treffer-offen': { werkzeug: WZ },
+    merken: { was: 'flotte planer auftrag' },
+    video: { seite: SEITE },
+    bilder: { seite: SEITE },
+    hilfe: { werkzeug: WZ + ' sonst', art: 'anleitung elemente' },
   };
   var EINMAL = { 'suche-offen': 1, filter: 1, rechnung: 1 };
   var WERKZEUG_SEITEN = {
@@ -99,8 +121,10 @@
   var hierDetail = detailArt(hier);
   var hierWz = WERKZEUG_SEITEN[hier] || null;
   var hierArt = hierDetail || (hierWz ? 'werkzeug' : 'sonst');
-  // Detailseiten melden nur ihren Bereich (/items/, /de/crafting/ …).
-  var adresse = hierDetail ? pfad.replace(/[^/]*$/, '') : pfad;
+  // Detailseiten melden nur ihren Bereich (/items/, /de/crafting/ …),
+  // oeffentliche Pilotenprofile (/pilot/<handle>) nur /pilot/ — der Handle
+  // ist ein Name.
+  var adresse = hierDetail ? pfad.replace(/[^/]*$/, '') : pfad.replace(/^(\/(?:de\/)?pilot\/)[^/]+\/?$/, '$1');
   var schon = {};
 
   function erlaubt(werte, v) {
@@ -135,12 +159,14 @@
     return true;
   }
 
-  // Oeffentlich fuer die Suche. Die Felder seite (suche-offen) setzt diese
-  // Datei selbst; Aufrufer geben nur, was sie wissen.
+  // Oeffentlich fuer die Suche und die Apps (merken). Die Felder seite bzw.
+  // werkzeug setzt diese Datei selbst; Aufrufer geben nur, was sie wissen.
   window.vbEreignis = function (name, felder) {
     var f = {};
     for (var k in felder || {}) f[k] = felder[k];
-    if (name === 'suche-offen') f.seite = hierArt;
+    if (name === 'suche-offen' || name === 'video' || name === 'bilder') f.seite = hierArt;
+    if (name === 'treffer-offen') f.werkzeug = hierWz;
+    if (name === 'hilfe') f.werkzeug = hierWz || 'sonst';
     return senden(name, f);
   };
 
@@ -167,11 +193,52 @@
 
   function klick(e) {
     if (!e.isTrusted) return;
+    // Mittlere Taste (auxclick) oeffnet nur Links in einem neuen Tab; Knoepfe,
+    // Hilfe, Video und Bilder reagieren darauf nicht.
+    var mitte = e.type === 'auxclick';
+    if (mitte && e.button !== 1) return;
     var t = e.target;
     if (!t || !t.closest) return;
-    var mx = t.closest('[data-ev-extern]');
+    var mx = mitte ? null : t.closest('[data-ev-extern]');
     if (mx) {
       senden('extern', { seite: hierArt, ziel: mx.getAttribute('data-ev-extern') });
+      return;
+    }
+    var hx = mitte ? null : t.closest('[data-ev-hilfe]');
+    if (hx) {
+      var art = hx.getAttribute('data-ev-hilfe');
+      var dt = art === 'anleitung' ? hx.closest('details') : null;
+      var zu = art === 'anleitung' ? !(dt && dt.hasAttribute('open')) : hx.getAttribute('aria-pressed') !== 'true';
+      if (zu) senden('hilfe', { werkzeug: hierWz || 'sonst', art: art });
+      return;
+    }
+    if (!mitte && t.closest('[data-yt], [data-lb^="yt:"], #holoytgo')) {
+      senden('video', { seite: hierArt });
+      return;
+    }
+    var bx = mitte ? null : t.closest('[data-lb], #btnimg');
+    if (bx) {
+      if (bx.getAttribute('aria-pressed') !== 'true') senden('bilder', { seite: hierArt });
+      return;
+    }
+    var tr = hierWz ? t.closest('[data-ev-treffer]') : null;
+    if (tr) {
+      // Die Karte: das Kind des Bereichs, in dem der Klick liegt.
+      var karte = t;
+      while (karte && karte.parentNode !== tr) karte = karte.parentNode;
+      if (!karte) return;
+      var bed = t.closest('a[href], button, input, select, textarea, label, summary, [role="button"]');
+      if (bed && bed !== karte && karte.contains(bed)) {
+        if (bed.tagName !== 'A') return;
+        var bu;
+        try {
+          bu = new URL(bed.getAttribute('href'), location.href);
+        } catch (x) {
+          return;
+        }
+        if (bu.origin !== location.origin || !detailArt(rein(bu.pathname))) return;
+      } else if (mitte) return;
+      senden('treffer-offen', { werkzeug: hierWz });
       return;
     }
     var a = t.closest('a[href]');
@@ -198,6 +265,10 @@
       if (hierDetail) senden('wert-melden', { seite: hierDetail });
       return;
     }
+    if (hierWz) {
+      if (detailArt(ziel) && !a.closest('header, nav, footer, [role="dialog"], dialog')) senden('treffer-offen', { werkzeug: hierWz });
+      return;
+    }
     if (!hierDetail || a.closest('header, nav, footer')) return;
     var d = detailArt(ziel);
     if (d) senden('weiter-detail', { seite: hierDetail, ziel: d });
@@ -205,6 +276,7 @@
   }
 
   document.addEventListener('click', klick, true);
+  document.addEventListener('auxclick', klick, true);
   document.addEventListener('click', bedienung, true);
   document.addEventListener('change', bedienung, true);
   document.addEventListener('input', bedienung, true);

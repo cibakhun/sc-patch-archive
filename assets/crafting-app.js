@@ -1032,7 +1032,7 @@
     // dann lieber nur das Detail öffnen als Müll speichern.
     if (!s && (ownBtn || addBtn)) { e.stopPropagation(); return; }
     if (ownBtn) { e.stopPropagation(); if (owned[s]) delete owned[s]; else owned[s] = true; markDirty(s); refreshCardState(card); if (state.ownedOnly) apply(); return; }
-    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); renderPlanner(); flashPlan(); return; }
+    if (addBtn) { e.stopPropagation(); plan[s] = (plan[s] || 0) + 1; markDirty(s); refreshCardState(card); renderPlanner(); flashPlan(); if (e.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' }); return; }
     openModal(+i);
   });
   cards.forEach(refreshCardState);
@@ -1322,10 +1322,11 @@
     recompute();
 
     var pb = $('[data-plan]', modalBody);
-    if (pb) pb.addEventListener('click', function () {
+    if (pb) pb.addEventListener('click', function (ev) {
       var s = slugOfIndex(i);
       if (!s) return;
       plan[s] = (plan[s] || 0) + 1; markDirty(s);
+      if (ev.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' });
       syncCards(); renderPlanner(); flashPlan(); pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
     });
 

@@ -141,7 +141,9 @@ body{font-family:var(--font-body)}
       and times and time on page. Account and sign-in pages are not counted at all.
       Umami also counts a few interactions as events: opening the search, picking a search result,
       moving from a detail page to a tool or to another detail page, the first filter and the first
-      calculation in a tool, copying, clicking “Report a wrong value”, clicking sign in or
+      calculation in a tool, opening an entry from a tool's result list, adding a ship to the fleet,
+      a blueprint to the planner or a refinery job (only which of these three), starting a video,
+      opening images or a tool's help, copying, clicking “Report a wrong value”, clicking sign in or
       create account, and clicking a link to another website or the button to the payment page
       (only the kind of destination, such as Discord, donation, wiki or UEX, never the address).
       An event is sent like a
@@ -149,7 +151,7 @@ body{font-family:var(--font-body)}
       derived from the IP address) and carries only fixed details on top, such as the page type, the
       name of the tool or filter and the rough position of the result. As the page it names only the
       path, and on item, blueprint, ship and mission pages only their section (such as /items/),
-      without page title or referrer. It never carries a search term, a value you entered or a
+      on pilot profiles only /pilot/, without page title or referrer. It never carries a search term, a value you entered or a
       result. The path and title of every page visited, including a single item or ship page, are
       still recorded with the page view as described above.
       <strong>No cookies are set and nothing is stored on your
