@@ -23,8 +23,11 @@ reviews:
     base_branches:
       - "staging"
     # Nach jedem Push neu prüfen, damit auch der letzte Stand vor dem Merge
-    # gesehen wird.
+    # gesehen wird. Ohne die zweite Zeile pausiert CodeRabbit nach fünf
+    # geprüften Commits (Vorgabe 5), und der letzte Stand bliebe ungeprüft
+    # (Hinweis von CodeRabbit selbst an #339).
     auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 0
   # Wie cubic.yaml: Von Skripten geschriebene Daten nicht prüfen; geprüft
   # wird das Skript, nicht seine Ausgabe. Dazu fremder Code und die
   # Lock-Datei. NICHT hier: von Hand gepflegte Daten (vehicle-external.json,
