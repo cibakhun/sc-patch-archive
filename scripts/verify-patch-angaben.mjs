@@ -454,8 +454,12 @@ console.log('\n[6] Datenstand-Baustein: jede Zeile gegen ihre Datendatei');
 const schnappKatalog = new Map();
 // Items mit bestaetigtem Fundort-Profil (`fund`, aufgeloest beim Laden zu
 // Loot-Zeilen mit `ort`). Der Finder muss die Zeile dann fuehren.
-let fundKatalog = 0;
+// id -> Zahl bestaetigter Zeilen, die das Datenblatt fuehren muss (Laenge des
+// Profils; src/lib/items.ts bricht ab, wenn eine Ortsart fehlt).
+const fundKatalog = new Map();
 let fundSeiten = 0;
+let fundBlaetter = 0;
+let fundZeilen = 0;
 let schnappSeiten = 0;
 let schnappZeilen = 0;
 const standSoll = {};
@@ -467,7 +471,7 @@ try {
   for (const it of items.items ?? []) {
     const n = (it.obtain ?? []).filter((o) => o.src === 'schnappschuss').length;
     if (n) schnappKatalog.set(it.id, n);
-    if (it.fund != null) fundKatalog++;
+    if (it.fund != null) fundKatalog.set(it.id, items.fundorte?.profile?.[it.fund]?.length ?? 0);
   }
   const ext = rd('src/data/vehicle-external.json');
   const ref = rd('assets/refinery-data.json');
@@ -573,7 +577,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (/\sdata-stand-q="fundorte-spiel"/.test(aussen)) { soll.add('fundorte-spiel'); fundSeiten++; }
     }
     if (g.name === 'Item-Finder' && schnappKatalog.size) soll.add('shop-schnappschuss');
-    if (g.name === 'Item-Finder' && fundKatalog) soll.add('fundorte-spiel');
+    if (g.name === 'Item-Finder' && fundKatalog.size) soll.add('fundorte-spiel');
     // Gegen den Katalog: das Datenblatt eines Items markiert genau so viele
     // Bezugszeilen als Shop-Schnappschuss, wie der Katalog fuehrt. Sonst
     // stuende ein Schnappschuss-Preis unter UEX (so bis 06.11.2026).
@@ -583,6 +587,13 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const istN = (aussen.match(/<tr\b[^>]*\sdata-stand-q="shop-schnappschuss"/g) ?? []).length;
       if (istN !== sollN) standFehler.push(`${rel}: ${istN} Bezugszeile(n) als Shop-Schnappschuss markiert, der Katalog (assets/universal-items.json, src) fuehrt ${sollN} — eine Schnappschuss-Zeile stuende sonst unter UEX`);
       if (sollN) { schnappSeiten++; schnappZeilen += istN; }
+      // Ebenso die bestaetigten Fundorte: je Datenblatt genau so viele Zeilen,
+      // wie das Profil des Items im Katalog hat. Kategorielisten zaehlen hier
+      // nicht mit; die Datenstand-Zeile verlangt der Abgleich weiter oben.
+      const fundSoll = fundKatalog.get(itemBlatt[1]) ?? 0;
+      const fundIst = (aussen.match(/<tr\b[^>]*\sdata-stand-q="fundorte-spiel"/g) ?? []).length;
+      if (fundIst !== fundSoll) standFehler.push(`${rel}: ${fundIst} Zeile(n) als bestätigter Fundort, der Katalog (assets/universal-items.json, fund) fuehrt ${fundSoll} — Aufloesung in src/lib/items.ts kaputt?`);
+      if (fundSoll) { fundBlaetter++; fundZeilen += fundIst; }
     }
     if (g.bedingt?.includes('fleetyards')) {
       let holo = null;
@@ -682,10 +693,13 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   const schnappMitSeite = [...schnappKatalog.keys()].filter((id) => existsSync(join(DIST, 'items', `${id}.html`))).length;
   console.log(`    Shop-Schnappschuss: ${schnappKatalog.size} Items im Katalog, davon ${schnappMitSeite} mit Datenblatt; ${schnappSeiten} Seiten (DE+EN) mit ${schnappZeilen} Zeilen geprueft`);
   if (schnappMitSeite && schnappSeiten < 2 * schnappMitSeite) fail.push(`[6] Shop-Schnappschuss: nur ${schnappSeiten} von ${2 * schnappMitSeite} Datenblaettern (DE+EN) geprueft — Zuordnung kaputt`);
-  // Selbstauskunft bestaetigte Fundorte: jedes Item mit Profil hat eine
-  // Detailseite (isIndexable), also muessen DE+EN sie zeigen.
-  console.log(`    Bestätigte Fundorte: ${fundKatalog} Items im Katalog, ${fundSeiten} Item-Seiten (DE+EN, mit Listen) zeigen sie`);
-  if (fundKatalog && fundSeiten < 2 * fundKatalog) fail.push(`[6] Bestätigte Fundorte: nur ${fundSeiten} Item-Seiten zeigen sie, der Katalog fuehrt ${fundKatalog} Items mit Profil (Soll mindestens ${2 * fundKatalog}, DE+EN) — Aufloesung in src/lib/items.ts kaputt?`);
+  // Selbstauskunft bestaetigte Fundorte: jedes Item mit Profil hat ein
+  // Datenblatt (isIndexable), und DE+EN wurden je Item gegen den Katalog
+  // abgeglichen. Listen zeigen die Zeilen auch, zaehlen aber nicht als Nachweis.
+  const fundMitSeite = [...fundKatalog.keys()].filter((id) => existsSync(join(DIST, 'items', `${id}.html`))).length;
+  console.log(`    Bestätigte Fundorte: ${fundKatalog.size} Items im Katalog, davon ${fundMitSeite} mit Datenblatt; ${fundBlaetter} Datenblaetter (DE+EN) mit ${fundZeilen} Zeilen je Item geprueft, ${fundSeiten} Seiten insgesamt (mit Listen) zeigen sie`);
+  if (fundMitSeite < fundKatalog.size) fail.push(`[6] Bestätigte Fundorte: ${fundKatalog.size - fundMitSeite} Item(s) mit Profil ohne Datenblatt (dist/items/<id>.html) — Items mit Fundort sind indexierbar, die Seite muss es geben`);
+  if (fundMitSeite && fundBlaetter < 2 * fundMitSeite) fail.push(`[6] Bestätigte Fundorte: nur ${fundBlaetter} von ${2 * fundMitSeite} Datenblaettern (DE+EN) geprueft — Zuordnung kaputt`);
   console.log(`    Zeilen je Quelle: ${Object.entries(standZeilen).map(([q, n]) => `${q} ${n}`).join(', ') || '—'}`);
   // Alter der Fremdquellen: nur genannt, nie bewertet (Grundsatz 3).
   let gebaut = null;

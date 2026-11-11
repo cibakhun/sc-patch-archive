@@ -37,6 +37,12 @@
 //          node scripts/datamine-loot.mjs --out <datei>     (anderer Zielpfad)
 //          node scripts/datamine-loot.mjs --roh <datei>     (zusaetzlich die volle
 //                                          Kette mit Stufen, Behaeltern, Tabellen)
+//          node scripts/datamine-loot.mjs --trotz-lesefehler (schreibt auch, wenn
+//                                          socpaks nicht lesbar waren; ihre Zahl
+//                                          steht dann in meta.counts.scanFehler)
+// Abbruch ohne Ausgabe: keine Patch-Kennung mit Changelist neben dem p4k, oder
+// Lesefehler im Scan (ohne --trotz-lesefehler). Beides ergaebe einen Stand, der
+// nicht zuzuordnen bzw. still lueckenhaft ist; geschrieben wird dann nichts.
 // Ausgabe: src/data/loot-fundorte.json (getrackter Schnappschuss; die Seite liest
 //          nie das p4k): je Item die platzierten Belegungen, je Belegung die
 //          Himmelskoerper. Die lesbaren Ortsnamen stehen NICHT hier, sondern
@@ -72,6 +78,13 @@ let patch = null;
       patch = d?.Branch && d?.RequestedP4ChangeNum ? `${d.Branch}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? d?.Version ?? null);
     } catch { /* bleibt null */ }
   }
+}
+// Ohne Changelist ist der Stand keinem Patch zuzuordnen; verify:loot-fundorte
+// verwirft ihn ohnehin. Abbrechen, bevor etwas geschrieben oder in den Katalog
+// getragen wird (npm run datamine:loot haengt apply mit && an).
+if (!patch || !/@\d{6,}$/.test(patch)) {
+  console.error(`Abbruch: keine Patch-Kennung mit Changelist (${patch ?? 'build_manifest.id fehlt oder ist nicht lesbar'}) neben ${p4k.path} — nichts geschrieben.`);
+  process.exit(1);
 }
 const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
 const TAGS = buildTagIndex(db);
@@ -274,14 +287,15 @@ const platziert = new Map(); // record id -> Map(socpakPfad -> n)
 const kindSoc = new Map();   // socpakPfad -> Set(kindPfad)
 const hatEltern = new Set();
 let dateien = 0, fehler = 0, i = 0;
+const fehlerOrte = []; // die ersten unlesbaren socpaks/Dateien fuer die Abbruchmeldung
 for (const e of socs) {
   if (++i % 1000 === 0) console.log(`  ${i}/${socs.length} socpaks (${sek()})`);
   const pfad = normPfad(e.name);
-  let files; try { files = readZip(p4k.extract(e)); } catch { fehler++; continue; }
+  let files; try { files = readZip(p4k.extract(e)); } catch { fehler++; if (fehlerOrte.length < 5) fehlerOrte.push(pfad); continue; }
   const kids = new Set();
   for (const [name, get] of files) {
     if (/\.(cgf|cga|cgam|cgfm|dds|\d+|skin|chr|cdf|mtl|png|tif)$/i.test(name)) continue;
-    let s; try { s = get().toString('latin1'); } catch { fehler++; continue; }
+    let s; try { s = get().toString('latin1'); } catch { fehler++; if (fehlerOrte.length < 5) fehlerOrte.push(`${pfad}:${name}`); continue; }
     dateien++;
     const treffer = (id) => {
       if (!platziert.has(id)) platziert.set(id, new Map());
@@ -296,6 +310,13 @@ for (const e of socs) {
 }
 p4k.close();
 console.log(`Scan fertig: ${dateien} Dateien, ${fehler} Fehler, ${platziert.size} Belegungen platziert (${sek()})`);
+// Ein unlesbares socpak nimmt seine Belegungen und Kind-socpaks still mit; die
+// Klinken in verify:loot-fundorte sehen den Verlust einzelner Orte nicht.
+if (fehler && !argv.includes('--trotz-lesefehler')) {
+  console.error(`Abbruch: ${fehler} Lesefehler im Scan, z. B. ${fehlerOrte.join(', ')}${fehler > fehlerOrte.length ? ' …' : ''} — nichts geschrieben.`);
+  console.error('Erst den Leser reparieren. Bewusst trotzdem schreiben: node scripts/datamine-loot.mjs --trotz-lesefehler, danach npm run apply:loot-fundorte (die Zahl steht dann in meta.counts.scanFehler).');
+  process.exit(1);
+}
 
 // Wurzeln der Welt: Himmelskoerper und Systeme, Levski, Stationen.
 // Arena-Commander-/Star-Marine-Karten (ea/) und Editor-Setups zaehlen nicht.
