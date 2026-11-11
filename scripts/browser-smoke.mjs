@@ -135,7 +135,7 @@ const SEITEN = [
   {
     id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
     leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true,
-    probe: async (page) => (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
+    probe: async (page) => (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeRezeptDialog(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
@@ -955,6 +955,46 @@ async function probeZerlegen(page, wo) {
   return null;
 }
 
+/* Das Rezept als Dialog (bisherige Seite: immer; Werkbank: unter 821 px).
+   Die Box sagt aria-modal="true", der Fokus blieb aber auf der Karte hinter
+   dem Fenster, und die Tabulatortaste lief dort weiter (Hinweis von
+   CodeRabbit an #349, 11.11.2026). Gemessen mit echten Tasten: Enter auf dem
+   Namen einer Karte oeffnet, der Fokus steht im Fenster, Tab bleibt darin
+   (einmal ganz herum und weiter), Esc schliesst und gibt ihn dem Namen
+   zurueck. */
+async function probeRezeptDialog(p, wo) {
+  const NAME = '#cdb-grid .cbp:nth-of-type(3) .cbp__name a';
+  if (!(await p.locator(NAME).count())) return `${wo}: die dritte Karte hat keinen Namenslink, die Probe kann das Rezept nicht per Tastatur oeffnen`;
+  const stand = () => p.evaluate((sel) => {
+    const a = document.activeElement, m = document.querySelector('#cdb-modal'), box = m?.querySelector('.cdb-modal__box');
+    return {
+      offen: !!m && !m.hidden && !m.classList.contains('is-leer') && m.getBoundingClientRect().height > 0,
+      drin: !!box && box.contains(a),
+      amNamen: a === document.querySelector(sel),
+      halte: box ? box.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),summary').length : 0,
+      auf: !a || a === document.body ? '<body>' : `<${a.tagName.toLowerCase()}${a.className && typeof a.className === 'string' ? '.' + a.className.split(' ')[0] : ''}>`,
+    };
+  }, NAME);
+  await p.locator(NAME).focus();
+  await p.keyboard.press('Enter');
+  await p.waitForTimeout(300);
+  const auf = await stand();
+  if (!auf.offen) return `${wo}: Enter auf dem Namen einer Karte oeffnet das Rezept nicht`;
+  if (!auf.drin) return `${wo}: per Tastatur geoeffnet steht der Fokus auf ${auf.auf} statt im Rezeptfenster`;
+  const schritte = Math.min(Math.max(auf.halte + 3, 6), 60);
+  for (let k = 1; k <= schritte; k++) {
+    await p.keyboard.press('Tab');
+    const s = await stand();
+    if (!s.drin) return `${wo}: die Tabulatortaste verlaesst das offene Rezeptfenster (nach ${k} von ${schritte} Schritten auf ${s.auf})`;
+  }
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(200);
+  const zu = await stand();
+  if (zu.offen) return `${wo}: Esc schliesst das Rezeptfenster nicht`;
+  if (!zu.amNamen) return `${wo}: nach Esc steht der Fokus auf ${zu.auf} statt auf dem Namen der Karte, die das Rezept geoeffnet hat`;
+  return null;
+}
+
 async function probeCraftingSync(page) {
   const pfad = new URL(page.url()).pathname;
   const ziel = await page.evaluate(async () => {
@@ -1311,9 +1351,16 @@ async function probeWerkbank(page) {
     const vor = stand();
     box.scrollTop = 300; await warte();
     const an = stand();
-    const knopf = !!l.querySelector('[data-plan]'), text = (l.querySelector('.wbr-fest__n')?.textContent ?? '').trim();
+    const kn = l.querySelector('[data-plan]');
+    const knopf = !!kn, text = (l.querySelector('.wbr-fest__n')?.textContent ?? '').trim();
+    // „Zum Planer“ in der Leiste: die Bestaetigung steht am gedrueckten
+    // Knopf, der im Rezept darunter ist weggerollt (Hinweis von CodeRabbit
+    // an #349).
+    if (kn) kn.click();
+    await new Promise((r) => setTimeout(r, 60));
+    const ok = !!kn && kn.classList.contains('is-ok');
     box.scrollTop = 0; await warte();
-    return { vor, an, nach: stand(), knopf, text };
+    return { vor, an, nach: stand(), knopf, text, ok };
   });
   if (fest.fehlt) return 'Werkbank 1280 px: dem Rezept fehlt die kleine Leiste fuer das Rollen (.wbr-fest)';
   if (fest.kurz != null) return `Werkbank 1280 px: das Rezept „${name}“ rollt nur ${fest.kurz} px, die Probe braucht ein laengeres`;
@@ -1322,6 +1369,38 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: nach dem Rollen steht die kleine Leiste nicht oben in der Mitte (${JSON.stringify(fest.an)})`;
   if (fest.text !== name || !fest.knopf) return `Werkbank 1280 px: die kleine Leiste zeigt „${fest.text}“ statt „${name}“ oder traegt keinen Planer-Knopf`;
   if (!fest.nach.inert || fest.nach.rollt) return 'Werkbank 1280 px: zurueckgerollt bleibt die kleine Leiste stehen';
+  if (!fest.ok) return 'Werkbank 1280 px: „Zum Planer“ in der kleinen Leiste bestaetigt nicht am gedrueckten Knopf (der im Rezept ist weggerollt)';
+  // Planer per Tastatur: nach dem Neuzeichnen bleibt der Fokus auf demselben
+  // Knopf. Verschwindet dessen Zeile (entfernt, oder von eins auf null
+  // gezaehlt), geht er auf die nachgerueckte Zeile, im leeren Planer auf den
+  // Hinweis, nie auf <body> (Hinweis von CodeRabbit an #349). Dazu kommen
+  // zwei weitere Rezepte in den Planer; am Ende ist er leer.
+  await page.$$eval('#cdb-grid .cbp .cbp__add', (b) => b.slice(3, 5).forEach((x) => x.click()));
+  const planerFokus = () => page.evaluate(() => {
+    const a = document.activeElement, z = [...document.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+    const auf = !a || a === document.body ? '<body>'
+      : a.matches('#cdb-plan-list .cdb-plan-empty') ? 'Hinweis'
+        : a.matches('#cdb-plan-list .cdb-plan-item') ? `Zeile ${z.indexOf(a) + 1}`
+          : a.closest('#cdb-plan-list') ? `Knopf ${Object.keys(a.dataset)[0] ?? '?'} in Zeile ${z.indexOf(a.closest('.cdb-plan-item')) + 1}`
+            : `<${a.tagName.toLowerCase()}>`;
+    return { zeilen: z.length, auf };
+  });
+  const druecke = async (sel) => {
+    await page.locator(sel).first().focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(80);
+    return planerFokus();
+  };
+  const pf0 = await planerFokus();
+  if (pf0.zeilen < 3) return `Werkbank 1280 px: die Probe braucht drei Zeilen im Planer, es sind ${pf0.zeilen}`;
+  const pfMehr = await druecke('#cdb-plan-list .cdb-plan-item:nth-child(2) [data-inc]');
+  if (pfMehr.auf !== 'Knopf inc in Zeile 2') return `Werkbank 1280 px: nach „mehr“ per Tastatur steht der Fokus auf ${pfMehr.auf} statt auf demselben Knopf`;
+  const pfWeg = await druecke('#cdb-plan-list .cdb-plan-item:nth-child(1) [data-rm]');
+  if (pfWeg.zeilen !== 2 || pfWeg.auf !== 'Zeile 1') return `Werkbank 1280 px: nach dem Entfernen der ersten Planer-Zeile per Tastatur (${pfWeg.zeilen} uebrig) steht der Fokus auf ${pfWeg.auf} statt auf der nachgerueckten Zeile`;
+  const pfNull = await druecke('#cdb-plan-list .cdb-plan-item:nth-child(2) [data-dec]');
+  if (pfNull.zeilen !== 1 || pfNull.auf !== 'Zeile 1') return `Werkbank 1280 px: nach „weniger“ von eins auf null per Tastatur (${pfNull.zeilen} uebrig) steht der Fokus auf ${pfNull.auf} statt auf der letzten Zeile`;
+  const pfLeer = await druecke('#cdb-plan-list .cdb-plan-item [data-rm]');
+  if (pfLeer.zeilen !== 0 || pfLeer.auf !== 'Hinweis') return `Werkbank 1280 px: nach dem Entfernen der letzten Planer-Zeile per Tastatur steht der Fokus auf ${pfLeer.auf} statt auf dem Hinweis des leeren Planers`;
   // Schliessen: zurueck zur leeren Mitte, Adresse und Markierung frei.
   await page.locator('#cdb-modal .cdb-modal__x').first().click();
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: nach ✕ kommt die leere Mitte nicht zurueck';
@@ -1455,6 +1534,10 @@ async function probeWerkbank(page) {
     await p.waitForTimeout(300);
     if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: ✕ fuehrt nicht zur Liste zurueck';
     if (bpi(p) !== null) return 'Werkbank 390 px: nach ✕ traegt die Adresse noch bpi';
+    // Unter 821 px ist das Rezept ein Dialog: Fokus hinein, Tab bleibt
+    // darin, Esc gibt ihn zurueck (probeRezeptDialog).
+    const dialog = await probeRezeptDialog(p, 'Werkbank 390 px');
+    if (dialog) return dialog;
     // Filter-Schublade: das ✕ oben muss antippbar sein (nicht unter der
     // Site-Nav) und schliesst. Gilt fuer die klassische Seite genauso, die
     // Werkbank erbt die Telefon-Regel von CraftingApp.

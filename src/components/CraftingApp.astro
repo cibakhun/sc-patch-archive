@@ -496,6 +496,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb-modal{position:fixed;inset:0;z-index:9650;background:var(--veil-2);display:flex;align-items:flex-start;justify-content:center;padding:clamp(.5rem,4vw,3rem) 1rem;overflow:auto}
   .cdb-modal[hidden]{display:none}
   .cdb-modal__box{position:relative;max-width:640px;width:100%;background:var(--bg-2,var(--veil-2));border:1px solid var(--accent,#FF5E1A);border-radius:8px;padding:clamp(1.2rem,4vw,2rem)}
+  /* Die Box nimmt beim Oeffnen den Fokus (crafting-app.js, dlgFokus): sie ist
+     kein Bedienelement, ein Ring um das ganze Fenster sagte nichts. */
+  .cdb-modal__box:focus{outline:none}
   .cdb-modal__x{position:absolute;top:.6rem;right:.6rem;background:var(--veil);border:1px solid var(--line,rgba(255,94,26,.3));color:var(--text,#eef1f5);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:var(--fs-10)}
   /* Rund und im Akzent = „woanders hin", eckiges farbloses X = „hier zu".
      Steht NEBEN der Karte. Siehe MiningApp fuer die Begruendung. */

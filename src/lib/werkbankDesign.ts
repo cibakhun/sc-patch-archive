@@ -224,9 +224,9 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbm__meta{gap:.5rem;margin:0}
 .cdb--wb .cbm__plan{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;order:-1;flex:1 1 100%;height:2.7rem;margin:0;padding:0 1.1rem;border-radius:8px;background:var(--b);color:#041019;font-size:var(--fs-7);letter-spacing:var(--ls-4);box-shadow:0 10px 24px -12px color-mix(in srgb,var(--b) 80%,transparent);transition:background-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cbm__plan:hover{background:color-mix(in srgb,var(--b) 86%,#fff);box-shadow:0 14px 28px -12px color-mix(in srgb,var(--b) 90%,transparent)}
-.cdb--wb .cbm__plan.is-ok{background:color-mix(in srgb,var(--b) 20%,var(--e2));color:var(--b);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--b) 60%,transparent)}
+.cdb--wb .cbm__plan.is-ok,.cdb--wb .wbr-fest__p.is-ok{background:color-mix(in srgb,var(--b) 20%,var(--e2));color:var(--b);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--b) 60%,transparent)}
 .cdb--wb .cbm__plan .wi{width:1.05em;height:1.05em}
-.cdb--wb .cbm__plan.is-ok .wi{animation:wb-knall .42s var(--feder)}
+.cdb--wb .cbm__plan.is-ok .wi,.cdb--wb .wbr-fest__p.is-ok .wi{animation:wb-knall .42s var(--feder)}
 .cdb--wb .cbm__xlink{flex:1 1 9.5rem;justify-content:space-between;gap:.6rem;min-height:2.4rem;padding:.3rem .8rem .3rem .9rem;border-color:var(--hl2);border-radius:8px;color:var(--tx);font-size:var(--fs-5);line-height:1.25;text-align:left;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cbm__xlink .wi{margin-left:auto;color:var(--b);transition:transform var(--dur-base) var(--out)}
 .cdb--wb .cbm__xlink .cic{flex:none;color:var(--mu)}
@@ -374,7 +374,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-plan-item.is-spaet,.cdb--wb .cdb-plan-item.is-spaet .pi__ctrl span{animation-delay:.32s}
 /* Leerer Planer: drei leere Plaetze, die nach unten ausblenden, darunter
    der Hinweis. */
-.cdb--wb .cdb-plan-empty{display:grid;gap:.9rem;padding:.1rem 0 0;font-size:var(--fs-6);line-height:1.5;text-align:center;color:var(--mu)}
+.cdb--wb .cdb-plan-empty{display:grid;gap:.9rem;padding:.1rem 0 0;border-radius:10px;outline-offset:4px;font-size:var(--fs-6);line-height:1.5;text-align:center;color:var(--mu)}
 .cdb--wb .wbp-leer{display:grid;gap:.4rem}
 .cdb--wb .wbp-leer i{display:block;height:3rem;border:1px dashed var(--hl2);border-radius:8px}
 .cdb--wb .wbp-leer i:first-child{background:var(--bi-plus) center/1rem no-repeat}

@@ -1164,8 +1164,30 @@
   // sie kommt zurueck, wenn die Auswahl geschlossen wird.
   var WB_LEER = WB && modalBody ? modalBody.innerHTML : '';
   var wbBox = modal ? $('.cdb-modal__box', modal) : null;
+  // Das Rezept als Dialog: auf der bisherigen Seite immer, in der Werkbank
+  // nur unter 821 px (am Schreibtisch ist die Mitte eine Region im Fluss).
+  // Der Fokus geht beim Oeffnen in das Fenster, die Tabulatortaste bleibt
+  // darin, und beim Schliessen kehrt er zum Ausloeser zurueck. Ohne das
+  // blieb er auf der Karte hinter dem Fenster, und Tab lief dort weiter
+  // (Hinweis von CodeRabbit an #349; die Box sagt aria-modal="true").
+  var dlgVon = null;
+  function dlgAn() { return !!modal && !!wbBox && (WB ? !wbMitte() && !modal.classList.contains('is-leer') : !modal.hidden); }
+  function dlgHalte() {
+    return $$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])', wbBox)
+      .filter(function (el) { return !el.closest('[inert],[hidden]') && el.getClientRects().length > 0; });
+  }
+  // neu: das Fenster war zu (dann den Ausloeser merken), sonst wurde nur
+  // sein Inhalt gewechselt (Rezept → Missions-Pool); der gedrueckte Knopf
+  // ist dabei mit dem alten Inhalt verschwunden.
+  function dlgFokus(neu) {
+    if (!dlgAn()) return;
+    if (neu) dlgVon = document.activeElement;
+    if (!wbBox.contains(document.activeElement)) wbBox.focus({ preventScroll: true });
+  }
   function closeModal() {
     if (!modal) return;
+    var von = dlgAn() ? dlgVon : null;
+    dlgVon = null;
     modalStack = []; currentEntry = null;
     if (WB) {
       modal.classList.add('is-leer');
@@ -1174,20 +1196,23 @@
       document.body.style.overflow = '';
       markSel(null);
       wbAdresse(null);
-      return;
+    } else {
+      modal.hidden = true; document.body.style.overflow = '';
     }
-    modal.hidden = true; document.body.style.overflow = '';
+    if (von && von !== document.body && von.isConnected && von.focus) von.focus({ preventScroll: true });
   }
   function showModal() {
+    var neu = !dlgAn();
     if (WB) {
       modal.classList.remove('is-leer');
       // Am Schreibtisch steht das Rezept im Fluss: nichts sperren.
       document.body.style.overflow = wbMitte() ? '' : 'hidden';
       if (wbBox) { wbBox.scrollTop = 0; wbBox.classList.remove('is-rollt'); }
       modal.scrollTop = 0;
-      return;
+    } else {
+      modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0;
     }
-    modal.hidden = false; document.body.style.overflow = 'hidden'; if (modalBody) modalBody.scrollTop = 0;
+    dlgFokus(neu);
   }
   // Werkbank: gewaehlte Karte in der Liste markieren und ins Bild holen.
   var selCard = null;
@@ -1224,11 +1249,25 @@
       if (WB) { if (!wbMitte() && !modal.classList.contains('is-leer')) closeModal(); return; }
       if (!modal.hidden) closeModal();
     });
+    // Tabulator im offenen Dialog: am Ende wieder vorn anfangen, und von
+    // draussen (Fokus auf <body> nach einem Wechsel des Inhalts) hinein.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Tab' || !dlgAn()) return;
+      var halte = dlgHalte(), jetzt = document.activeElement;
+      if (!halte.length) { e.preventDefault(); wbBox.focus({ preventScroll: true }); return; }
+      var erster = halte[0], letzter = halte[halte.length - 1];
+      if (!wbBox.contains(jetzt)) { e.preventDefault(); (e.shiftKey ? letzter : erster).focus(); }
+      else if (e.shiftKey && (jetzt === erster || jetzt === wbBox)) { e.preventDefault(); letzter.focus(); }
+      else if (!e.shiftKey && jetzt === letzter) { e.preventDefault(); erster.focus(); }
+    });
+    // Die Box nimmt den Fokus selbst an (kein Tabulator-Halt), solange sie
+    // ein Dialog ist.
+    if (wbBox && !WB) wbBox.setAttribute('tabindex', '-1');
     if (WB && wbBox) {
       // Schreibtisch: die Mitte ist kein Dialog, nur ueber der Liste (Telefon) einer.
       var wbRolle = function () {
-        if (wbMitte()) { wbBox.removeAttribute('aria-modal'); wbBox.setAttribute('role', 'region'); document.body.style.overflow = ''; }
-        else { wbBox.setAttribute('aria-modal', 'true'); wbBox.setAttribute('role', 'dialog'); }
+        if (wbMitte()) { wbBox.removeAttribute('aria-modal'); wbBox.removeAttribute('tabindex'); wbBox.setAttribute('role', 'region'); document.body.style.overflow = ''; }
+        else { wbBox.setAttribute('aria-modal', 'true'); wbBox.setAttribute('role', 'dialog'); wbBox.setAttribute('tabindex', '-1'); }
       };
       wbRolle();
       if (mqMitte.addEventListener) mqMitte.addEventListener('change', wbRolle);
@@ -1344,13 +1383,14 @@
   }
   // Werkbank: „Zum Planer“ bestaetigt kurz und steht dann wieder bereit
   // (bisher blieb „hinzugefuegt“ stehen, bis man ein anderes Rezept waehlte).
-  var wbOkUhr = null;
+  // Die Uhr haengt am Knopf: das Rezept hat ihn zweimal (unten im Kopf und
+  // in der kleinen Leiste), und jeder bestaetigt fuer sich.
   function wbPlanOk(btn) {
     if (!btn) return;
     wbNeu(btn, 'is-ok');
     btn.innerHTML = wi('check') + '<span>' + tr('added', 'hinzugefügt') + '</span>';
-    clearTimeout(wbOkUhr);
-    wbOkUhr = setTimeout(function () {
+    clearTimeout(btn.wbOkUhr);
+    btn.wbOkUhr = setTimeout(function () {
       if (!btn.isConnected) return;
       btn.classList.remove('is-ok');
       btn.innerHTML = wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span>';
@@ -1576,7 +1616,10 @@
         if (ev.isTrusted && window.vbEreignis) window.vbEreignis('merken', { was: 'planer' });
         if (WB) wbFlug(pb);
         syncCards(); renderPlanner(); flashPlan();
-        if (WB) wbPlanOk($('.cbm__plan', modalBody)); else pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
+        // Die Bestaetigung steht am gedrueckten Knopf: ist das Rezept
+        // weggerollt, ist das der in der kleinen Leiste (Hinweis von
+        // CodeRabbit an #349; der im Rezept ist dann nicht zu sehen).
+        if (WB) wbPlanOk(pb); else pb.textContent = '✓ ' + tr('added', 'hinzugefügt');
       });
     });
 
@@ -1740,6 +1783,27 @@
     var shopEl = $('#cdb-plan-shop');
     var timeEl = $('#cdb-plan-time');
     if (!listEl) return;
+    // Werkbank: die Liste wird neu geschrieben; stand der Fokus auf einem
+    // ihrer Knoepfe, bekommt ihn derselbe Knopf der neuen Liste zurueck.
+    // Ist dessen Zeile weg (entfernt, oder von eins auf null gezaehlt), geht
+    // er auf die Zeile, die an ihre Stelle gerueckt ist, und im leeren Planer
+    // auf den Hinweis: sonst fiele er auf <body>, und die Tastatur verloere
+    // ihren Platz im Planer (Hinweis von CodeRabbit an #349). Die Zeile, kein
+    // Knopf darin: ein zweites Enter soll nicht das naechste Stueck loeschen.
+    var fokus = WB && document.activeElement && listEl.contains(document.activeElement) ? document.activeElement : null;
+    var fokusWo = fokus ? ['inc', 'dec', 'rm'].filter(function (a) { return fokus.dataset[a] != null; })[0] : null;
+    var fokusSlug = fokusWo ? fokus.dataset[fokusWo] : null;
+    var fokusPos = fokusSlug ? $$('.cdb-plan-item', listEl).indexOf(fokus.closest('.cdb-plan-item')) : -1;
+    var fokusZurueck = function () {
+      if (!fokusSlug) return;
+      var wieder = $$('[data-' + fokusWo + ']', listEl).filter(function (bt) { return bt.dataset[fokusWo] === fokusSlug; })[0];
+      if (!wieder) {
+        var zeilen = $$('.cdb-plan-item', listEl);
+        wieder = zeilen[Math.min(Math.max(fokusPos, 0), zeilen.length - 1)] || $('.cdb-plan-empty', listEl);
+        if (wieder) wieder.setAttribute('tabindex', '-1');
+      }
+      if (wieder) wieder.focus({ preventScroll: true });
+    };
     if (!DB || !slugs.length) {
       // Werkbank: drei leere Plaetze ueber dem Hinweis (werkbankDesign.ts).
       listEl.innerHTML = '<li class="cdb-plan-empty">' + (WB ? '<span class="wbp-leer" aria-hidden="true"><i></i><i></i><i></i></span>' : '') +
@@ -1747,17 +1811,13 @@
       if (shopEl) shopEl.innerHTML = '';
       if (timeEl) timeEl.textContent = '—';
       if (WB && DB) { wbPlanStand = {}; wbShopStand = {}; }
+      fokusZurueck();
       return;
     }
     var totalTime = 0;
     var shop = {}; // resource -> total cSCU
     var vorher = WB ? wbPlanStand : null;
     var spaet = WB && performance.now() < wbFlugBis ? ' is-spaet' : '';
-    // Werkbank: die Liste wird neu geschrieben; stand der Fokus auf einem
-    // ihrer Knoepfe, bekommt ihn derselbe Knopf der neuen Liste zurueck.
-    var fokus = WB && document.activeElement && listEl.contains(document.activeElement) ? document.activeElement : null;
-    var fokusWo = fokus ? ['inc', 'dec', 'rm'].filter(function (a) { return fokus.dataset[a] != null; })[0] : null;
-    var fokusSlug = fokusWo ? fokus.dataset[fokusWo] : null;
     listEl.innerHTML = slugs.map(function (k) {
       var idx = indexOfSlug(k);
       var b = idx != null ? DB.blueprints[idx] : null; if (!b) return '';
@@ -1798,10 +1858,7 @@
     if (WB) {
       wbPlanStand = {};
       slugs.forEach(function (k) { wbPlanStand[k] = plan[k]; });
-      if (fokusSlug) {
-        var wieder = $$('[data-' + fokusWo + ']', listEl).filter(function (bt) { return bt.dataset[fokusWo] === fokusSlug; })[0];
-        if (wieder) wieder.focus();
-      }
+      fokusZurueck();
     }
     // wire qty buttons
     $$('[data-inc]', listEl).forEach(function (btn) { btn.addEventListener('click', function () { var k = btn.dataset.inc; plan[k]++; markDirty(k); renderPlanner(); syncCards(); }); });
