@@ -691,6 +691,9 @@ export function initWorkshop(doc, bridge) {
   let savedId = null;
   let pendingSaved = null;
   let openKey = null;
+  // Datenblatt in der flachen Werkstatt: { slot, item, q }, solange es statt
+  // der Auswahlliste im offenen Slot steht (sheetView); q ist deren Suchwort
+  let detail = null;
   let firstAdopt = true;
   let view = 'build';
 
@@ -773,6 +776,7 @@ export function initWorkshop(doc, bridge) {
     const paint = raw.paint && data.paints?.[state.ship]?.list.some((r) => r[0] === raw.paint) ? raw.paint : null;
     const dropped = lost + (raw.paint && !paint ? 1 : 0);
     draft = { ship: state.ship, name: raw.name, slots: clean, ...(Object.keys(rk).length ? { racks: rk } : {}), ...(paint ? { paint } : {}) };
+    detail = null;
     code = encodeLayout(draft);
     const pending = pendingSaved ? store.get(pendingSaved) : null;
     const match = pending && sameLayout(pending, draft) ? pending : store.list().find((e) => sameLayout(e, draft));
@@ -860,16 +864,19 @@ export function initWorkshop(doc, bridge) {
     radar: 'M4 13a8 8 0 0116 0M7.5 13a4.5 4.5 0 019 0M12 13l4-6M12 14.5a1.5 1.5 0 100-3',
   };
   const SVG = 'http://www.w3.org/2000/svg';
-  function ico(type) {
+  function pathIco(d, cls) {
     const svg = doc.createElementNS(SVG, 'svg');
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('class', 'hgl-ico');
+    svg.setAttribute('class', cls);
     const path = doc.createElementNS(SVG, 'path');
-    path.setAttribute('d', ICON[type] ?? ICON.gun);
+    path.setAttribute('d', d);
     svg.append(path);
     return svg;
   }
+  const ico = (type) => pathIco(ICON[type] ?? ICON.gun, 'hgl-ico');
+  // i im Kreis: der Weg zum Datenblatt eines Teils der Auswahl
+  const infoIco = () => pathIco('M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17zM12 11v5.5M12 7.5v.2', 'hgl-info__i');
   function buildSlots() {
     slotEls.clear();
     // Ohne tauschbare Bauteile (Bodenfahrzeuge, Frachtmodule) bleibt die
@@ -1144,6 +1151,7 @@ export function initWorkshop(doc, bridge) {
     const hp = bridge.state().hp;
     if (!hp) openKey = null;
     else if (!openKey || portOf(openKey) !== hp) openKey = slots.find((s) => portOf(s.key) === hp)?.key ?? null;
+    if (detail && detail.slot !== openKey) detail = null;
     for (const s of slots) {
       const li = slotEls.get(s.key);
       const on = s.key === openKey;
@@ -1194,6 +1202,8 @@ export function initWorkshop(doc, bridge) {
     .replace(/\s+-\s*$/, '').replace(/\s{2,}/g, ' ').trim();
 
   function buildPicker(slot, pick) {
+    if (detail?.slot === slot.key && sheetView(slot, pick, detail.item)) return;
+    detail = null;
     const keys = candidates(eff(slot), data.items);
     const now = current(slot);
     const base = data.items[now]?.[7] ?? null;
@@ -1207,12 +1217,15 @@ export function initWorkshop(doc, bridge) {
       const d = k === now ? null : deltaPct(it[7], base);
       const tags = [k === now ? el('em', { class: 'is-fit' }, m('slot.fitted')) : null, k === slot.stock && k !== now ? el('em', {}, m('slot.stock')) : null];
       const b = el('button', { type: 'button', class: 'hgl-opt', 'data-item': k, 'aria-pressed': String(k === now) },
-        el('span', { class: 'hgl-opt__nm' }, itemName(k), ...tags),
+        el('span', { class: 'hgl-opt__nm' }, el('span', {}, itemName(k)), ...tags),
         el('span', { class: 'hgl-opt__sub' }, subLine(k, true)),
         el('span', { class: 'hgl-opt__fig' }, nf.format(it[7])),
         el('span', { class: `hgl-opt__d ${d == null ? '' : d > 0 ? 'is-up' : d < 0 ? 'is-down' : 'is-flat'}` }, d == null ? '' : `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`),
         el('span', { class: 'hgl-opt__bar', 'aria-hidden': 'true' }, el('i', { style: `--w:${Math.round((it[7] / max) * 100)}%` })));
-      const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b);
+      // daneben der Weg zum Datenblatt des Teils: die Zeile selbst baut weiter ein
+      const label = fill(m('sheet.open'), { name: itemName(k) });
+      const info = el('button', { type: 'button', class: 'hgl-info', 'data-info': k, 'aria-label': label, title: label }, infoIco());
+      const li = el('li', { 'data-q': `${it[0]} ${it[1] || ''} ${it[4] || ''}`.toLowerCase() }, b, info);
       return li;
     });
     ul.append(...opts);
@@ -1276,6 +1289,7 @@ export function initWorkshop(doc, bridge) {
     // Zu: die Auswahl schliesst, die Kamera faehrt zurueck, der Slot leuchtet.
     openKey = null;
     peek = null;
+    detail = null;
     commit({ patch: { hp: null } });
     paintSlot(slot, true);
     paintTotals();
@@ -1297,6 +1311,15 @@ export function initWorkshop(doc, bridge) {
       if (slot) equip(slot, opt.dataset.item);
       return;
     }
+    // Datenblatt: auf (i an der Zeile), zu (zurueck zur Auswahl), einbauen
+    const sb = e.target.closest('.hgl-info,.hgl-sheet__back,.hgl-sheet__fit');
+    if (sb) {
+      const slot = slots.find((s) => s.key === sb.closest('.hgl-slot').dataset.key);
+      if (!slot) return;
+      if (sb.classList.contains('hgl-sheet__fit')) equip(slot, sb.dataset.item);
+      else showSheet(slot, sb.classList.contains('hgl-info') ? sb.dataset.info : null);
+      return;
+    }
     const btn = e.target.closest('.hgl-slot__btn');
     if (!btn) return;
     const slot = slots.find((s) => s.key === btn.dataset.key);
@@ -1306,6 +1329,7 @@ export function initWorkshop(doc, bridge) {
   });
   function toggleSlot(slot) {
     peek = null;
+    detail = null;
     if (openKey === slot.key) {
       openKey = null;
       bridge.set({ hp: null });
@@ -1320,10 +1344,12 @@ export function initWorkshop(doc, bridge) {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     const pick = e.target.closest('.hgl-pick');
     if (!pick) return;
-    const opts = [...pick.querySelectorAll('li:not([hidden]) .hgl-opt')];
+    // nur die Zeilen, die die Suche stehen laesst (li allein traefe auch den Slot darueber)
+    const opts = [...pick.querySelectorAll('.hgl-opts li:not([hidden]) .hgl-opt')];
     if (!opts.length) return;
     e.preventDefault();
-    const i = opts.indexOf(e.target);
+    // vom i einer Zeile aus zaehlt ihre Zeile
+    const i = opts.indexOf(e.target.closest('.hgl-opts li')?.querySelector('.hgl-opt') ?? e.target);
     const to = e.key === 'ArrowDown' ? (i < 0 ? 0 : Math.min(opts.length - 1, i + 1)) : i <= 0 ? -1 : i - 1;
     (to < 0 ? pick.querySelector('.hgl-q') : opts[to]).focus();
   });
@@ -1693,6 +1719,77 @@ export function initWorkshop(doc, bridge) {
       ways, rows: Math.max(0, ...keys.map(waysCount)), effect, buttons,
       model: data.models?.[k] ?? '',
     };
+  }
+
+  /* ---- Datenblatt in der flachen Werkstatt („Als Tafel“, Telefon, ohne 3D) ---- */
+  // Dort gibt es keine zweite Tafel und am Telefon keinen Zeiger: das i an
+  // einer Zeile der Auswahl stellt das Datenblatt des Teils an die Stelle der
+  // Liste, „Zur Auswahl“ fuehrt zurueck. Die Zeile selbst baut weiter ein.
+  // Woerter und Zahlen sind dieselben wie an der Tafel der Halle (sheetOf).
+  function showSheet(slot, item) {
+    const li = slotEls.get(slot.key), was = detail;
+    if (!li || openKey !== slot.key) return;
+    const pick = li.querySelector('.hgl-pick');
+    detail = item ? { slot: slot.key, item, q: pick.querySelector('.hgl-q')?.value ?? '' } : null;
+    buildPicker(slot, pick);
+    if (detail) pick.querySelector('.hgl-sheet__back')?.focus({ preventScroll: true });
+    else if (was) {
+      // zurueck in der Liste: ihr Suchwort wieder da, die Zeile des Teils in Sicht, der Fokus auf ihrem i
+      const q = pick.querySelector('.hgl-q');
+      if (was.q) { q.value = was.q; q.dispatchEvent(new Event('input')); }
+      const b = pick.querySelector(`.hgl-info[data-info="${CSS.escape(was.item)}"]`), ul = pick.querySelector('.hgl-opts');
+      if (b) {
+        ul.scrollTop = b.parentElement.offsetTop - ul.clientHeight / 2 + b.parentElement.offsetHeight / 2;
+        b.focus({ preventScroll: true });
+      }
+    }
+    // Der Slot bleibt im Blick: in der Spalte rollt die Liste, am Telefon die Seite.
+    const host = $('hgl-scroll');
+    if (host.scrollHeight > host.clientHeight) revealSlot(li);
+    else {
+      const cats = $('hgl-cats'), top = cats.hidden ? 0 : cats.getBoundingClientRect().bottom, r = li.getBoundingClientRect();
+      if (r.top < top) window.scrollBy(0, r.top - top - 8);
+    }
+  }
+  /** Das Datenblatt des Teils k an der Stelle der Auswahlliste des offenen Slots; false, wenn es keines gibt. */
+  function sheetView(slot, pick, k) {
+    const d = sheetOf(slot, k, 0, groupTotals(slots, draft.slots, data.items, draft.racks, data.racks));
+    if (!d) return false;
+    const tone = (dir) => (dir > 0 ? 'is-up' : dir < 0 ? 'is-down' : 'is-flat');
+    // Streifen der Klasse: Lage in Prozent, rechts ist besser (classStrip)
+    const at = (x, more = '') => `--x:${x}%${more}`;
+    const strips = d.strips.map((s) => el('li', { class: 'hgl-strip' },
+      el('span', { class: 'hgl-strip__l' }, s.label),
+      el('small', { class: 'hgl-strip__r' }, [s.short, s.hint].filter(Boolean).join(' · ')),
+      el('span', { class: 'hgl-strip__v' }, el('b', {}, s.value), s.unit ? ` ${s.unit}` : null),
+      s.delta ? el('em', { class: `hgl-strip__d ${tone(s.dir)}` }, s.delta) : null,
+      el('span', { class: 'hgl-strip__t', 'aria-hidden': 'true' }, ...(s.me == null ? [] : [
+        el('i', { class: 'is-med', style: at(s.med) }),
+        ...s.dots.map(([x, n]) => el('i', { class: 'is-dot', style: at(x, `;--d:${5 + Math.min(4, n - 1) * 1.2}px`) })),
+        s.fit == null ? null : el('i', { class: 'is-ring', style: at(s.fit) }),
+        el('i', { class: 'is-me', style: at(s.me) }),
+      ]))));
+    const ways = d.ways.map((w) => el('li', {}, el(w.href ? 'a' : 'div', { class: `hgl-way${w.tone === 'craft' ? ' is-craft' : ''}`, href: w.href || null },
+      el('span', { class: 'hgl-way__k' }, w.k),
+      el('span', { class: 'hgl-way__v' }, el('b', {}, w.v), w.u ? ` ${w.u}` : null),
+      w.href ? el('span', { class: 'hgl-way__go', 'aria-hidden': 'true' }, '›') : null,
+      w.s ? el('small', {}, w.s) : null)));
+    const btns = d.buttons.map((b) => (b.a
+      ? el('button', { type: 'button', class: 'hgl-mini hgl-sheet__fit', 'data-item': k }, b.label)
+      : el('a', { class: `hgl-mini${b.craft ? ' is-craft' : ''}`, href: b.href }, b.label)));
+    pick.replaceChildren(el('section', { class: 'hgl-sheet', 'aria-label': fill(m('sheet.open'), { name: d.name }) },
+      el('button', { type: 'button', class: 'hgl-sheet__back' }, `‹ ${m('sheet.back')}`),
+      el('div', { class: 'hgl-sheet__top' }, el('strong', {}, d.name), el('em', { class: 'hgl-sheet__tag' }, d.tag), el('small', {}, d.line)),
+      el('p', { class: 'hgl-sheet__lead' }, ...d.lead.map(([t, b]) => (b ? el('b', {}, t) : t))),
+      el('ul', { class: 'hgl-strips' }, ...strips),
+      el('p', { class: 'hgl-sheet__leg', 'aria-hidden': 'true' },
+        el('span', {}, el('i', { class: 'is-me' }), d.legend.me),
+        d.legend.fit ? el('span', {}, el('i', { class: 'is-ring' }), d.legend.fit) : null,
+        el('span', {}, el('i', { class: 'is-dot' }), d.legend.all)),
+      ways.length ? el('ul', { class: 'hgl-ways' }, ...ways) : null,
+      d.effect ? el('p', { class: 'hgl-sheet__eff' }, el('span', {}, d.effect.label), el('b', {}, d.effect.text), d.effect.delta ? el('em', { class: tone(d.effect.dir) }, d.effect.delta) : null) : null,
+      btns.length ? el('div', { class: 'hgl-sheet__btns' }, ...btns) : null));
+    return true;
   }
 
   function board() {

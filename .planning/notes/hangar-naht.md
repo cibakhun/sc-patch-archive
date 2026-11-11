@@ -253,6 +253,18 @@ es, das Blatt steht trotzdem. Zusicherung 22 hält Naht, Rang-Rechnung
 (Proben gegen das gebaute Skript), dass jeder Weg auf eine gebaute Seite
 zeigt, und die Vorlagen der Links auf beiden Seiten.
 
+Die flache Werkstatt („Als Tafel“, Telefon, Hangar ohne 3D, Bodenfahrzeuge)
+hat keine zweite Tafel und am Telefon keinen Zeiger. Dort trägt jede Zeile
+der Auswahl ein i (`.hgl-info`): es stellt dasselbe Datenblatt an die Stelle
+der Liste (`sheetView` zeichnet, was `sheetOf` liefert, es gibt keine zweite
+Rechnung), „Zur Auswahl“ führt zurück, Suchwort und Zeile bleiben. Der Klick
+auf die Zeile baut weiter sofort ein; „Einbauen“ auf dem Blatt läuft durch
+dasselbe `equip`. Was offen steht, merkt sich die Werkstatt in `detail`,
+getrennt von `peek` der Halle, und vergisst es mit dem Slot. Damit das i
+Platz hat, stehen Zahl und Abstand in der Zeile rechts untereinander. Die
+Browser-Probe der Werkstatt (smoke, `hangar-layout`) geht den Weg einmal:
+i, Blatt mit Streifen und Satz, kein rohes Wort, zurück, einbauen.
+
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
 Oberkante frei vom Hüllquader). Findet sich dort kein Boden vor der Kamera
