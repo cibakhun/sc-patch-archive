@@ -53,7 +53,51 @@ const TILT = 0.1;         // nach hinten geneigt (rad)
 // schweben die Tafeln wie über dem Rumpf fest im Bild: am Boden lagen sie von
 // oben flach, schief und halb unter der Seitenleiste (Ironclad, 10.11.2026)
 const STEEP = 0.55;
-const YAW_IN = 0.12;      // zur Bildmitte gedreht (rad)
+// Eine Tafel am Boden schaut zur Kamera: im Grundriss dreht sie sich zum
+// Kamerapunkt hin (Krisz 11.11.2026: „die sollen richtung kamera schauen“).
+// Bis dahin drehte sie sich um 0,12 rad zur falschen Seite, von der Bildmitte
+// weg: im Bild war die innere Kante die höhere, die Tafel schaute am
+// Betrachter vorbei. Ganz zugewandt wird sie am Bildrand nicht: dort steht sie
+// 30 Grad und mehr neben der Blickachse, ihre Zeilen liefen so schräg
+// zusammen, dass die kleine Schrift litt, und sie ragte aus ihrem Streifen
+// (Bilder vom 11.11.2026). Die Grenze ist deshalb, was man sieht: im Bild darf
+// die äußere Kante um höchstens FACE_RISE höher stehen als die innere. Das
+// sind am Gladius 0,22 rad und am weiten Blick der großen Schiffe (Ironclad,
+// 64 Grad) 0,14 rad, mit denselben schrägen Zeilen.
+export const FACE_RISE = 0.065;
+// Drehung um die Hochachse für eine Tafel am Bodenpunkt at. f: Blickrichtung
+// der Kamera, c: ihr Ort, reach: halbe Breite der Tafel im Bild, geteilt durch
+// die Bildweite (Pixel je Meter in einem Meter Abstand). Ohne Szene gerechnet,
+// damit verify:hangar [21] die Richtung am ausgelieferten Modul nachrechnet.
+export function panelYaw(f, c, at, reach) {
+  const flat = Math.atan2(-f.x, -f.z);
+  const to = Math.atan2(c.x - at.x, c.z - at.z);
+  const turn = Math.atan2(Math.sin(to - flat), Math.cos(to - flat));
+  // Die Kanten einer um t gedrehten Tafel stehen in der Tiefe 1 ± e vor der
+  // Kamera, e = reach * n * sin t / Breite(t), Breite(t) = cos t + side * sin t
+  // (panelSpread), n = Anteil des Blicks am Boden. Im Bild verhalten sich ihre
+  // Höhen wie (1 + e) / (1 - e); das soll 1 + FACE_RISE nicht übersteigen.
+  // Nach t aufgelöst:
+  const n = Math.hypot(f.x, f.z) || 1;
+  const px = at.x - c.x, py = at.y - c.y, pz = at.z - c.z;
+  const depth = Math.max(1, px * f.x + py * f.y + pz * f.z);
+  const side = Math.abs(pz * f.x - px * f.z) / depth;
+  const k = reach > 0 ? FACE_RISE / ((2 + FACE_RISE) * reach * n) : Infinity;
+  const max = k * side < 1 ? Math.atan(k / (1 - k * side)) : Math.PI / 2;
+  return flat + Math.max(-max, Math.min(max, turn));
+}
+// Um wie viel breiter zeigt das Bild eine so gedrehte Fläche als eine quer
+// zum Blick? Neben der Blickachse zieht die Projektion alles, was sich der
+// Kamera zuwendet, in die Breite. Durch diesen Wert geteilt, bleibt die Tafel
+// im Bild so breit wie gezeichnet und in ihrem Streifen; ihre Höhe bleibt.
+export function panelSpread(f, c, at, yaw) {
+  const n = Math.hypot(f.x, f.z) || 1;
+  const rx = -f.z / n, rz = f.x / n;                // rechts im Bild, am Boden
+  const ux = Math.cos(yaw), uz = -Math.sin(yaw);    // Breite der Tafel
+  const px = at.x - c.x, py = at.y - c.y, pz = at.z - c.z;
+  const depth = Math.max(1, px * f.x + py * f.y + pz * f.z);
+  return Math.max(0.5, ux * rx + uz * rz - ((px * rx + pz * rz) / depth) * (ux * f.x + uz * f.z));
+}
 // Schleier über der Halle, Ziel wie in den Entwürfen: etwa 72 % Helligkeit
 // am fertigen Bild. Auf „hoch“ liegt er vor Tonabbildung und Ausgabe (linear,
 // dort sind 0,5 etwa die 72 %; 0,28 sahen kaum dunkler aus), auf den kleineren
@@ -1509,18 +1553,22 @@ export function holoLayer(ctx) {
     if (o !== 0) return floating();
     return p;
   }
+  // Stellung einer Tafel am Bodenpunkt at. Eine Stelle für place() und
+  // overhang(): die Probe muss die Tafel so stellen, wie sie nachher steht.
+  const yawOf = (P, at) => panelYaw(camF(), camera.position, at, P.cssW / 2 / ppm());
+  const spread = (at, yaw) => panelSpread(camF(), camera.position, at, yaw);
   // Wie weit ragt die Tafel, stünde sie am Bodenpunkt t (wie place() sie
   // stellt), seitlich über Seitenleiste oder Rand (Pixel, 0 = gar nicht)?
   // Infinity, wenn eine Ecke über dem Kopf, unter yMax oder hinter der Kamera läge.
   const probe = new THREE.Object3D(), probeIn = new THREE.Object3D(), corner = new THREE.Vector3();
   probe.add(probeIn);
   function overhang(P, t, yMax) {
-    const f = camF();
+    const yaw = yawOf(P, t);
     probe.position.copy(t);
-    probe.rotation.set(0, Math.atan2(-f.x, -f.z) + (P.side === 'left' ? -YAW_IN : YAW_IN), 0);
+    probe.rotation.set(0, yaw, 0);
     probeIn.position.set(0, LIFT, 0); probeIn.rotation.set(-TILT, 0, 0);
     probe.updateMatrixWorld(true);
-    const d = Math.max(1, depthOf(t)), wm = (P.cssW * d) / ppm(), hm = (P.cssH * d) / ppm();
+    const d = Math.max(1, depthOf(t)), wm = (P.cssW * d) / ppm() / spread(t, yaw), hm = (P.cssH * d) / ppm();
     const L = (safe.l ?? 0) - 4, R = ctx.W() - (safe.r ?? 0) + 4;
     let over = 0;
     for (const [cx, cy] of [[-0.5, 0], [0.5, 0], [-0.5, 1], [0.5, 1]]) {
@@ -1553,10 +1601,8 @@ export function holoLayer(ctx) {
         setK(P, t < 1 ? 1 - ease(t) : ease(t - 1));
         if (t >= 2) { P.hop = null; setK(P, 1); }
       }
-      const f = camF();
-      const yaw = Math.atan2(-f.x, -f.z) + (P.side === 'left' ? -YAW_IN : YAW_IN);
       P.group.position.copy(P.pos);
-      P.group.rotation.set(0, yaw, 0);
+      P.group.rotation.set(0, yawOf(P, P.pos), 0);
     }
     const fl = !!P.float;
     if (P.proj.visible === fl) {
@@ -1564,11 +1610,13 @@ export function holoLayer(ctx) {
       P.pivot.position.y = fl ? 0 : LIFT; P.pivot.rotation.x = fl ? 0 : -TILT;
     }
     const d = Math.max(1, depthOf(P.pos));
-    const wm = ((P.cssW + 2 * PAD) * d) / ppm(), hm = wm * (P.cssH + 2 * PAD) / (P.cssW + 2 * PAD);
+    // schwebend steht sie quer zum Blick; am Boden gleicht kx die Breite aus (spread)
+    const kx = fl ? 1 : 1 / spread(P.pos, P.group.rotation.y);
+    const wm = ((P.cssW + 2 * PAD) * d) / ppm() * kx, hm = ((P.cssH + 2 * PAD) * d) / ppm();
     P.mesh.scale.set(wm, hm, 1);
     // Unterkante des Bilds (mit Rand) knapp unter der Hubhöhe: die Tafel selbst steht auf LIFT
     P.mesh.position.y = hm / 2 - (PAD / (P.cssH + 2 * PAD)) * hm;
-    const fw = (P.cssW * d) / ppm() * 0.86;
+    const fw = (P.cssW * d) / ppm() * 0.86 * kx;
     P.proj.scale.set(fw, 1, 1);
     P.beam.scale.set(1, LIFT + 0.02, 1); P.beam.position.y = (LIFT + 0.02) / 2;
     P.glow.scale.set(fw * 1.45, fw * 0.64, 1);
@@ -1589,10 +1637,12 @@ export function holoLayer(ctx) {
       P.group.visible = !!t;
       if (!t) { P.hop = null; setK(P, 1); continue; }
       if (first || !P.pos || P.float) { P.pos = t.clone(); P.from = null; P.to = t; P.hop = null; setK(P, 1); continue; }
-      // nur zurück, wenn sie spürbar aus ihrem Platz geraten ist
+      // nur zurück, wenn sie spürbar aus ihrem Platz geraten ist oder dort
+      // nicht mehr ganz im Bild steht: wird sie höher (Datenblatt statt
+      // Schiffswerte), ragt ihre äußere obere Ecke sonst über den Rand
       const a = toPx(P.pos), b = toPx(t);
       const off = a && b ? Math.hypot(a[0] - b[0], a[1] - b[1]) : Infinity;
-      if (off < 70 && wasShown && !wasFloat) continue;
+      if (off < 70 && wasShown && !wasFloat && overhang(P, P.pos, P.anchor[1] + 24) === 0) continue;
       P.to = t;
       if (reduceMotion) { P.pos = t.clone(); P.from = null; P.hop = null; setK(P, 1); continue; }
       // kam sie aus dem Schweben, war sie weg, steht sie hinter dem Schiff
