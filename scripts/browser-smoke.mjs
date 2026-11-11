@@ -907,9 +907,13 @@ async function kreuzVerdeckt(page) {
    dasselbe Werkzeug wie der Planer, anders gestellt. Am Schreibtisch steht
    das Rezept als feste Mitte neben der Liste und der Planer als Spalte
    rechts; Waehlen, Schliessen und ein tiefer Link muessen dort ohne Dialog
-   gehen. Am Telefon ist die Mitte zu, ein Antippen legt das Rezept als
-   ganze Ebene ueber die Liste, „← Liste“ fuehrt zurueck, und der Planer
-   sitzt als Leiste unten. Gemessen an Lage und Inhalt, nicht am Markup. */
+   gehen. Seit der zweiten Runde (11.11.2026) traegt sie Kacheln,
+   Bedienleiste und Rezeptfenster der bisherigen Seite: die Leiste steht
+   ueber allen Spalten, und auf hohen Fenstern passen die drei Spalten
+   darunter ins Bild, ohne dass beim Weiterrollen etwas ueberdeckt wird.
+   Am Telefon ist die Mitte zu, ein Antippen oeffnet das Fenster der
+   bisherigen Seite, ✕ fuehrt zurueck, und der Planer sitzt als Leiste
+   unten. Gemessen an Lage und Inhalt, nicht am Markup. */
 async function probeWerkbank(page) {
   const kasten = (p, sel) => p.locator(sel).first().boundingBox();
   const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
@@ -927,6 +931,13 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
   if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
   if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Bedienleiste wie auf der bisherigen Seite: eine Zeile ueber allen
+  // Spalten, mit Raster/Liste-Umschalter; die Liste zeigt Kacheln.
+  const leiste = await kasten(page, '.cdb-bar');
+  if (!leiste || leiste.x > liste.x + 1 || leiste.x + leiste.width < planer.x + planer.width - 1 || leiste.y + leiste.height > mitte.y + 1)
+    return `Werkbank 1280 px: die Bedienleiste steht nicht ueber allen Spalten (${leiste ? `x=${Math.round(leiste.x)}, b=${Math.round(leiste.width)}, unten ${Math.round(leiste.y + leiste.height)}, Mitte oben ${Math.round(mitte.y)}` : 'fehlt'})`;
+  if (!(await zuSehen(page, '.cdb-viewtog'))) return 'Werkbank 1280 px: der Raster/Liste-Umschalter fehlt';
+  if (!(await zuSehen(page, '#cdb-grid .cbp >> nth=0 >> .cbp__res'))) return 'Werkbank 1280 px: die Kacheln zeigen keine Ressourcen (kompakte Zeilen statt Kacheln?)';
   // Filter: Schublade von links. Geschlossen weder fokussierbar noch
   // vorlesbar (inert), offen bedienbar, Esc schliesst.
   const inert = () => page.$eval('#cdb-sidebar', (el) => el.inert === true);
@@ -966,22 +977,32 @@ async function probeWerkbank(page) {
   if (bpi(page) !== i) return `Werkbank 1280 px: die Adresse traegt bpi=${bpi(page)}, erwartet ${i}`;
   const gesperrt = await page.evaluate(() => getComputedStyle(document.body).overflow === 'hidden' || document.body.style.position === 'fixed' || document.documentElement.classList.contains('is-locked'));
   if (gesperrt) return 'Werkbank 1280 px: mit gewaehltem Rezept laesst sich die Seite nicht mehr scrollen';
-  // Die Mitte klebt unter der Kopfleiste, wenn die Seite weiter rollt:
-  // so weit rollen, dass sie ohne Kleben 30 px ueber ihrer Klebelinie
-  // stuende (Raum dafuer hat die Spalte, die Liste ist hoeher als die Mitte).
-  const klebt = await page.evaluate(async () => {
-    const m = document.querySelector('#cdb-modal');
-    const soll = parseFloat(getComputedStyle(m).top);
+  // Passform (hohes Fenster, die Liste rollt fuer sich): steht die Leiste
+  // direkt unter der Kopfleiste, liegen Liste, Mitte und Planer ganz im
+  // Bild. Rollt die Seite weiter, wandert alles gemeinsam; die Leiste legt
+  // sich nicht ueber die Mitte (so sah es aus, als sie klebte).
+  const passt = await page.evaluate(async () => {
     const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+    const bar = document.querySelector('.cdb-bar');
     // instant: die Seite rollt sonst weich, und gemessen wuerde mitten im Lauf.
+    window.scrollTo({ top: bar.getBoundingClientRect().top + window.scrollY - nav, behavior: 'instant' });
+    await bild();
+    const r = (sel) => document.querySelector(sel).getBoundingClientRect();
+    const unten = r('.cdb-bar').bottom;
+    const spalten = { Liste: r('#cdb-grid'), Mitte: r('#cdb-modal .cdb-modal__box'), Planer: r('#cdb-planner') };
+    const raus = Object.entries(spalten).filter(([, k]) => k.top < unten - 1 || k.bottom > innerHeight + 1)
+      .map(([n, k]) => `${n} ${Math.round(k.top)}–${Math.round(k.bottom)}`);
+    window.scrollTo({ top: window.scrollY + 240, behavior: 'instant' });
+    await bild();
+    const deckt = r('.cdb-bar').bottom > r('#cdb-modal .cdb-modal__box').top + 1;
     window.scrollTo({ top: 0, behavior: 'instant' });
     await bild();
-    window.scrollTo({ top: m.getBoundingClientRect().top - soll + 30, behavior: 'instant' });
-    await bild();
-    return { soll, ist: m.getBoundingClientRect().top };
+    return { raus, unten: Math.round(unten), hoehe: innerHeight, deckt };
   });
-  if (!Number.isFinite(klebt.soll) || Math.abs(klebt.ist - klebt.soll) > 4)
-    return `Werkbank 1280 px: die Mitte klebt nicht unter der Kopfleiste (oben ${Math.round(klebt.ist)} px, ${Number.isFinite(klebt.soll) ? `soll ${Math.round(klebt.soll)} px` : 'top ist auto, steht eine Kurzform wie inset danach?'})`;
+  if (passt.raus.length)
+    return `Werkbank 1280 px: unter der Leiste (unten ${passt.unten} px) passen nicht alle Spalten ins Bild (${passt.hoehe} px hoch): ${passt.raus.join(', ')}`;
+  if (passt.deckt) return 'Werkbank 1280 px: beim Weiterrollen legt sich die Bedienleiste ueber die Mitte';
   // Zum Planer: die Spalte rechnet sofort mit.
   await page.locator('#cdb-modal .cbm__plan').first().click();
   const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
@@ -1011,14 +1032,18 @@ async function probeWerkbank(page) {
   tief.searchParams.set('bpi', weit.i);
   await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(150);
   const lage = await page.evaluate((n) => {
     const g = document.querySelector('#cdb-grid').getBoundingClientRect();
     const k = document.querySelector(`#cdb-grid .cbp[data-i="${n}"]`).getBoundingClientRect();
-    return { y: window.scrollY, drin: k.top >= g.top - 1 && k.bottom <= g.bottom + 1 };
+    const m = document.querySelector('#cdb-modal .cdb-modal__box').getBoundingClientRect();
+    return { drin: k.top >= g.top - 1 && k.bottom <= g.bottom + 1, imBild: k.top >= 0 && k.bottom <= innerHeight, mitte: m.top >= 0 && m.top < innerHeight / 2 };
   }, weit.i);
   if ((await titel(page)) !== weit.name) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ zeigt „${await titel(page)}“`;
-  if (lage.y > 2) return `Werkbank 1280 px: der tiefe Link auf ein Rezept weit unten schiebt die Seite um ${Math.round(lage.y)} px`;
-  if (!lage.drin) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
+  // Der tiefe Link bringt die Werkbank ins Bild (sonst laege das Rezept
+  // unter Kopfbild und Hilfe), und die Liste rollt zur Karte.
+  if (!lage.mitte) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ bringt das Rezept nicht ins Bild`;
+  if (!lage.drin || !lage.imBild) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
 
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
@@ -1046,7 +1071,7 @@ async function probeWerkbank(page) {
     leer.search = '';
     await p.goto(leer.href, { waitUntil: 'load', timeout: 60000 });
     await p.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
-    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: die Rezept-Ebene liegt schon ohne Wahl ueber der Liste';
+    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: das Rezeptfenster liegt schon ohne Wahl ueber der Liste';
     const leiste = await kasten(p, '#cdb-planner-open');
     if (!leiste || leiste.y + leiste.height < 844 - 40 || leiste.height < 44)
       return `Werkbank 390 px: die Planer-Leiste sitzt nicht unten (${leiste ? `y=${Math.round(leiste.y)}, h=${Math.round(leiste.height)}` : 'fehlt'})`;
@@ -1054,16 +1079,15 @@ async function probeWerkbank(page) {
     const n2 = ((await k.locator('.cbp__name').textContent()) || '').trim();
     await k.locator('.cbp__name').tap();
     await p.waitForTimeout(300);
-    const ebene = await kasten(p, '#cdb-modal .cdb-modal__box');
-    if (!ebene || ebene.y > 2 || ebene.width < 380) return `Werkbank 390 px: das Rezept liegt nicht als ganze Ebene ueber der Liste (${ebene ? `y=${Math.round(ebene.y)}, b=${Math.round(ebene.width)}` : 'nicht zu sehen'})`;
-    if ((await titel(p)) !== n2) return `Werkbank 390 px: nach Antippen von „${n2}“ zeigt die Ebene „${await titel(p)}“`;
-    const zur = await kasten(p, '#cdb-modal .cdb-wb-zur');
-    if (!zur || zur.height < 44) return `Werkbank 390 px: „← Liste“ fehlt oder ist nur ${zur ? Math.round(zur.height) : 0} px hoch`;
-    if (await zuSehen(p, '#cdb-modal .cdb-modal__back')) return 'Werkbank 390 px: neben „← Liste“ steht noch der kleine Zurueck-Pfeil';
-    await p.locator('#cdb-modal .cdb-wb-zur').tap();
+    // Das Fenster der bisherigen Seite: ueber der Liste, im Bild, mit ✕.
+    const fenster = await kasten(p, '#cdb-modal .cdb-modal__box');
+    if (!fenster || fenster.x < 0 || fenster.x + fenster.width > 390 || fenster.width < 300 || fenster.y > 120)
+      return `Werkbank 390 px: das Rezeptfenster liegt nicht im Bild (${fenster ? `x=${Math.round(fenster.x)}, y=${Math.round(fenster.y)}, b=${Math.round(fenster.width)}` : 'nicht zu sehen'})`;
+    if ((await titel(p)) !== n2) return `Werkbank 390 px: nach Antippen von „${n2}“ zeigt das Fenster „${await titel(p)}“`;
+    await p.locator('#cdb-modal .cdb-modal__x').first().tap();
     await p.waitForTimeout(300);
-    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: „← Liste“ fuehrt nicht zur Liste zurueck';
-    if (bpi(p) !== null) return 'Werkbank 390 px: nach „← Liste“ traegt die Adresse noch bpi';
+    if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: ✕ fuehrt nicht zur Liste zurueck';
+    if (bpi(p) !== null) return 'Werkbank 390 px: nach ✕ traegt die Adresse noch bpi';
     // Filter-Schublade: das ✕ oben muss antippbar sein (nicht unter der
     // Site-Nav) und schliesst. Gilt fuer die klassische Seite genauso, die
     // Werkbank erbt die Telefon-Regel von CraftingApp.
