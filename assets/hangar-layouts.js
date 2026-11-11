@@ -211,6 +211,49 @@ export function deltaPct(value, base) {
   return Math.round(((value - base) / base) * 100);
 }
 
+/**
+ * Werte, bei denen weniger besser ist (Schluessel wie ihre Woerter sp.*): der
+ * Pfeil zeigt die Richtung, die Farbe das Urteil. EINE Liste fuer Advanced
+ * Loadout (assets/hangar-loadout.js) und das Datenblatt des Bauteils.
+ */
+export const LOWER = new Set(['sp.spread', 'sp.heat', 'sp.ovf', 'sp.chd', 'sp.lkT', 'sp.pw', 'sp.em', 'sp.ir', 'sp.spool',
+  'sp.arm', 'sp.ign', 'sp.dly', 'sp.down', 'sp.cd', 'sp.fuel', 'sp.full', 'sp.price']);
+
+/**
+ * Platz eines Werts in seiner Klasse (Detail Pages 2.0, Richtung B
+ * „Einordnung“): values = die Werte aller Teile der Klasse samt dem eigenen,
+ * v der eigene. Platz 1 hat der beste Wert (lower: der kleinste); Teile mit
+ * demselben Wert teilen den Platz, der naechste Wert steht entsprechend
+ * weiter hinten (1, 1, 3). null ohne eigenen Wert.
+ * classRank([5, 9, 9, 2], 9) -> { rank: 1, of: 4, same: 1, worse: 2 }
+ * @returns {{ rank: number, of: number, same: number, worse: number } | null}
+ */
+export function classRank(values, v, lower = false) {
+  const vs = values.filter(Number.isFinite);
+  if (!Number.isFinite(v) || !vs.includes(v)) return null;
+  const better = vs.filter((o) => (lower ? o < v : o > v)).length;
+  const same = vs.filter((o) => o === v).length - 1;
+  return { rank: better + 1, of: vs.length, same, worse: vs.length - better - same - 1 };
+}
+
+/**
+ * Die Klasse als Streifen: x(v) legt einen Wert auf 0 (schlechtester) bis 100
+ * (bester), bei lower gespiegelt, damit rechts immer besser ist; haben alle
+ * denselben Wert, liegt er in der Mitte. med: Lage des Medians. dots: je
+ * verschiedenem Wert ein Punkt [Lage, Anzahl der Teile], von links.
+ * @returns {{ x: (v: number) => number, med: number, dots: [number, number][] } | null}
+ */
+export function classStrip(values, lower = false) {
+  const vs = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (!vs.length) return null;
+  const lo = vs[0], hi = vs[vs.length - 1];
+  const x = (v) => (hi === lo ? 50 : Math.round(((lower ? hi - v : v - lo) / (hi - lo)) * 1000) / 10);
+  const mid = vs.length >> 1, med = vs.length % 2 ? vs[mid] : (vs[mid - 1] + vs[mid]) / 2;
+  const n = new Map();
+  for (const v of vs) n.set(v, (n.get(v) ?? 0) + 1);
+  return { x, med: x(med), dots: [...n].map(([v, k]) => [x(v), k]).sort((a, b) => a[0] - b[0]) };
+}
+
 /** Gruppen, deren Summe etwas sagt: Feuerkraft, Raketenschaden, Leistung, Kuehlung, Schild. */
 export const SUMMED = new Set(['pilot', 'manned', 'remote', 'missile', 'bomb', 'power', 'cooler', 'shield']);
 /** Arten im Reiter Waffen: Bordwaffen und alles, was eine Halterung abfeuert. */
@@ -619,6 +662,8 @@ export function initWorkshop(doc, bridge) {
   const loc = main.dataset.loc;
   const de = aside.dataset.lang === 'de';
   const nf = new Intl.NumberFormat(loc);
+  const f1 = new Intl.NumberFormat(loc, { maximumFractionDigits: 1 });
+  const f2 = new Intl.NumberFormat(loc, { maximumFractionDigits: 2 });
   const pr = new Intl.PluralRules(loc);
   const m = (k) => doc.querySelector(`#hgl-msg [data-m="${k}"]`)?.textContent ?? k;
   const fill = (tpl, vals) => tpl.replace(/\{(\w+)\}/g, (x, k) => (k in vals ? String(vals[k]) : x));
@@ -1230,6 +1275,7 @@ export function initWorkshop(doc, bridge) {
     bridge.say(fill(m('msg.fitted'), { item: itemName(item) }));
     // Zu: die Auswahl schliesst, die Kamera faehrt zurueck, der Slot leuchtet.
     openKey = null;
+    peek = null;
     commit({ patch: { hp: null } });
     paintSlot(slot, true);
     paintTotals();
@@ -1259,6 +1305,7 @@ export function initWorkshop(doc, bridge) {
     if (openKey === slot.key) slotEls.get(slot.key).querySelector('.hgl-q')?.focus({ preventScroll: true });
   });
   function toggleSlot(slot) {
+    peek = null;
     if (openKey === slot.key) {
       openKey = null;
       bridge.set({ hp: null });
@@ -1458,6 +1505,196 @@ export function initWorkshop(doc, bridge) {
     if (d == null || (!d && !flat)) return { delta: '', dir: 0 };
     return { delta: `${d > 0 ? '▲ ' : d < 0 ? '▼ ' : ''}${nf.format(Math.abs(d))} %`, dir: Math.sign(d) };
   }
+
+  /* ---- Datenblatt des Bauteils (rechte Tafel der Halle) ---- */
+  // Krisz 10.11.2026: das Item-Datenblatt fuer Waffen und Komponenten direkt
+  // in den Hangar; Freigabe der Skizze 11.11. („ja so ungefaehr einbauen“).
+  // Solange ein Slot offen steht, zeigt die rechte Tafel statt des Schiffs
+  // das Bauteil: das unter dem Zeiger in der Auswahl (peek), sonst das
+  // eingebaute. Inhalt ist die Einordnung aus Detail Pages 2.0 (Richtung B):
+  // jeder Wert gegen seine Klasse, hier die Teile, die in diesen Slot passen
+  // (dieselbe Art und Groesse, also genau die Auswahlliste). Der Platz wird
+  // hier gerechnet (classRank, classStrip) und gilt spaeter auch fuer die
+  // Item-Seiten. Dazu die Wege, die es gibt (Kaufen, Herstellen, Ab Werk),
+  // und was der Tausch an der Summe der Gruppe aendert.
+  let peek = null;   // { slot, item }: bleibt, bis ein anderes Teil gemeint ist oder der Slot schliesst
+  const itemTpl = aside.dataset.item ?? '';
+  const sitePre = aside.dataset.pre ?? '';
+  const xv = (k) => (it) => it[8]?.[k];
+  // Streifen je Art: [Schluessel fuer LOWER, Wort, Wert, Einheit, Nachkommastellen]; der erste ist der Kennwert
+  const ORD_STRIPS = [
+    ['main', () => m('unit.damage'), (it) => it[7], '', 0],
+    ['sp.mspeed', () => m('sheet.s.tempo'), xv('spd'), 'm/s', 0],
+    ['sp.lkR', () => m('sheet.s.lkR'), xv('lkR'), 'm', 0],
+    ['sp.lkT', () => m('sp.lkT'), xv('lkT'), 's', 2],
+  ];
+  const STRIPS = {
+    gun: [
+      ['main', () => m('tot.fire'), (it) => it[8]?.dps ?? it[7], 'DPS', 1],
+      ['sp.range', () => m('sp.range'), xv('rng'), 'm', 0],
+      ['sp.speed', () => m('sheet.s.speed'), xv('spd'), 'm/s', 0],
+      ['sp.rate', () => m('sp.rate'), xv('rate'), '/min', 0],
+    ],
+    missile: ORD_STRIPS, torpedo: ORD_STRIPS, gmissile: ORD_STRIPS,
+    bomb: [
+      ['main', () => m('unit.damage'), (it) => it[7], '', 0],
+      ['sp.blast', () => m('sheet.s.blast'), xv('blast'), 'm', 1],
+      ['sp.arm', () => m('sp.arm'), xv('arm'), 's', 1],
+    ],
+    shield: [
+      ['main', () => m('tot.shield'), (it) => it[7], 'HP', 0],
+      ['sp.regen', () => m('sp.regen'), xv('regen'), 'HP/s', 0],
+      ['sp.dly', () => m('sheet.s.dly'), xv('dly'), 's', 2],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+    ],
+    power: [
+      ['main', () => m('unit.power'), (it) => it[7], '', 0],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+      ['sp.hp', () => m('sp.hp'), xv('hp'), 'HP', 0],
+    ],
+    cooler: [
+      ['main', () => m('unit.cooling'), (it) => it[7], '', 0],
+      ['sp.pw', () => m('sp.pw'), xv('pw'), '', 0],
+      ['sp.ir', () => m('sp.ir'), xv('ir'), '', 0],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+    ],
+    quantum: [
+      ['main', () => m('sheet.s.tempo'), (it) => it[7], 'Mm/s', 0],
+      ['sp.spool', () => m('sp.spool'), xv('spool'), 's', 1],
+      ['sp.cd', () => m('sp.cd'), xv('cd'), 's', 1],
+      ['sp.fuel', () => m('sheet.s.fuel'), xv('fuel'), '', 1],
+    ],
+    radar: [
+      ['main', () => m('unit.sensitivity'), (it) => it[7], '', 0],
+      ['sp.pw', () => m('sp.pw'), xv('pw'), '', 0],
+      ['sp.em', () => m('sp.em'), xv('em'), '', 0],
+      ['sp.hp', () => m('sp.hp'), xv('hp'), 'HP', 0],
+    ],
+  };
+  // Die Klasse im Satz („Unter den 26 Schiffswaffen der Groesse 3“) und der Kennwert darin („bei der Feuerkraft“)
+  const CLASS_WORD = {
+    gun: () => m('sheet.cls.gun'), missile: () => m('sheet.cls.missile'), torpedo: () => m('sheet.cls.torpedo'), gmissile: () => m('sheet.cls.gmissile'),
+    bomb: () => m('sheet.cls.bomb'), power: () => m('sheet.cls.power'), cooler: () => m('sheet.cls.cooler'), shield: () => m('sheet.cls.shield'),
+    quantum: () => m('sheet.cls.quantum'), radar: () => m('sheet.cls.radar'),
+  };
+  const ordAt = () => m('sheet.at.ord');
+  const AT_WORD = {
+    gun: () => m('sheet.at.gun'), missile: ordAt, torpedo: ordAt, gmissile: ordAt, bomb: ordAt, power: () => m('sheet.at.power'),
+    cooler: () => m('sheet.at.cooler'), shield: () => m('sheet.at.shield'), quantum: () => m('sheet.at.quantum'), radar: () => m('sheet.at.radar'),
+  };
+  // Einzahl oder Mehrzahl, beide Woerter woertlich genannt (verify:hangar [21] liest sie hier)
+  const one = (n) => pr.select(n) === 'one';
+  const placesTxt = (n) => fill(one(n) ? m('sheet.places.one') : m('sheet.places.other'), { n: nf.format(n) });
+  const planTxt = (n) => (n ? fill(one(n) ? m('sheet.bp.one') : m('sheet.bp.other'), { n: nf.format(n) }) : m('sheet.bp.none'));
+  // Vorlage mit {platz} in Stuecke [Text, fett] zerlegen; vals: { platz: [Text, fett] }
+  const segs = (tpl, vals) => tpl.split(/(\{\w+\})/).filter(Boolean).map((part) => {
+    const k = /^\{(\w+)\}$/.exec(part)?.[1];
+    return k && k in vals ? vals[k] : [part, 0];
+  });
+  // Fahrzeuge, die ein Teil ab Werk tragen (jedes Schiff der Datei, je Teil einmal)
+  let stockOn = null;
+  function shipsWith(k) {
+    if (!stockOn) {
+      stockOn = new Map();
+      for (const [ship, rows] of Object.entries(data.ships)) for (const r of rows) if (r[3]) stockOn.set(r[3], (stockOn.get(r[3]) ?? new Set()).add(ship));
+    }
+    return [...(stockOn.get(k) ?? [])];
+  }
+  const waysCount = (k) => (data.items[k]?.[9] ? 1 : 0) + (data.items[k]?.[8]?.ct ? 1 : 0) + (shipsWith(k).length ? 1 : 0);
+  // Bauzeit als [Zahl, Einheit]: unter einer Stunde Minuten, sonst Stunden und Minuten
+  function craftTime(sec) {
+    const min = Math.max(1, Math.round(sec / 60));
+    if (min < 60) return [nf.format(min), 'min'];
+    return min % 60 ? [`${nf.format(Math.floor(min / 60))} h ${min % 60}`, 'min'] : [nf.format(min / 60), 'h'];
+  }
+  /**
+   * Das Datenblatt des Teils k am offenen Slot os (Zeile n der Tafel), als
+   * fertige Woerter und Zahlen fuer drawItem (assets/hangar-holo3d.js).
+   * Verglichen wird mit dem eingebauten Teil; ist k selbst eingebaut und der
+   * Slot getauscht, mit dem Serienteil.
+   */
+  function sheetOf(os, k, n, totals) {
+    const it = data.items[k];
+    const e = eff(os);
+    if (!it || !fits(it, e) || !STRIPS[it[2]]) return null;
+    const now = current(os), peeked = k !== now, x = it[8] ?? {};
+    const keys = candidates(e, data.items), klass = keys.map((id) => data.items[id]);
+    const refKey = peeked ? now : isChanged(os) && os.stock && os.stock !== now ? os.stock : null;
+    const ref = refKey && fits(data.items[refKey], e) ? data.items[refKey] : null;
+    const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
+    const strips = STRIPS[it[2]].map(([id, label, get, unit, digits]) => {
+      const lower = LOWER.has(id), v = num(get(it));
+      const vals = klass.map((o) => num(get(o))).filter((o) => o != null);
+      const rank = v == null ? null : classRank(vals, v, lower), st = rank ? classStrip(vals, lower) : null;
+      if (!rank) return { label: label(), value: '–', unit: '', short: '', hint: '', med: null, dots: [], me: null, fit: null, delta: '', dir: 0, rank: null };
+      const rv = ref ? num(get(ref)) : null;
+      let delta = '', dir = 0;
+      if (rv != null) {
+        const d = deltaPct(v, rv);
+        if (v === rv) delta = m('sheet.same');
+        else { delta = `${v > rv ? '▲' : '▼'} ${d ? nf.format(Math.abs(d)) : '<1'} %`; dir = (v > rv) !== lower ? 1 : -1; }
+      }
+      return {
+        // der Kennwert steht wie in seiner Zeile links (Radar 0,8), die uebrigen auf ihre Stellen gerundet
+        label: label(), value: digits === 2 ? f2.format(v) : digits === 1 ? f1.format(v) : nf.format(id === 'main' ? v : Math.round(v)), unit,
+        // ein Platz nur, wo sich die Klasse unterscheidet: haben alle denselben Wert, steht der Punkt allein in der Mitte
+        short: rank.same < rank.of - 1 ? fill(m('sheet.nth'), { r: nf.format(rank.rank), n: nf.format(rank.of) }) : '', hint: lower && rank.same < rank.of - 1 ? m('sheet.lower') : '',
+        med: st.med, dots: st.dots, me: st.x(v), fit: rv != null ? st.x(rv) : null, delta, dir, rank,
+      };
+    });
+    // Einordnung in einem Satz: Platz des Kennwerts, dazu jeder weitere Wert, bei dem das Teil vorn liegt
+    const main = strips[0].rank;
+    const cls = [fill(CLASS_WORD[it[2]](), { n: nf.format(klass.length), s: e.size }), 1];
+    let lead;
+    if (!main || main.of < 2) lead = [[m('sheet.only'), 0]];
+    else if (main.same === main.of - 1) lead = segs(m('sheet.even'), { cls, at: [AT_WORD[it[2]](), 0] });
+    else {
+      const f = (main.rank - 1) / (main.of - 1);
+      const pos = main.rank === 1 ? m('sheet.pos.top') : !main.worse ? m('sheet.pos.last') : f < 1 / 3 ? m('sheet.pos.high') : f > 2 / 3 ? m('sheet.pos.low') : m('sheet.pos.mid');
+      lead = segs(m('sheet.lead'), { cls, at: [AT_WORD[it[2]](), 0], pos: [pos, 0], rank: [fill(m('sheet.rank'), { r: nf.format(main.rank) }) + (main.same ? `, ${m('sheet.shared')}` : ''), 1] });
+    }
+    const best = strips.slice(1).filter((s) => s.rank && s.rank.rank === 1 && s.rank.worse > 0);
+    if (best.length && main && main.of > 1) {
+      const [a, b] = m('sheet.best').split('{list}');
+      lead.push([` ${a}`, 0]);
+      best.forEach((s, i) => { lead.push([s.label, 1]); if (s.rank.same) lead.push([` (${m('sheet.shared')})`, 0]); if (i < best.length - 1) lead.push([', ', 0]); });
+      lead.push([b ?? '', 0]);
+    }
+    // Wege: nur, die es gibt
+    const ways = [];
+    if (it[9]) ways.push({ k: m('sheet.way.buy'), v: fill(m('sheet.way.from'), { n: nf.format(it[9]) }), u: 'aUEC', s: [x.sl || null, x.sn ? placesTxt(x.sn) : null].filter(Boolean).join(' · '), s2: x.sn ? placesTxt(x.sn) : '' });
+    if (x.ct) {
+      const [v, u] = craftTime(x.ct);
+      ways.push({ k: m('sheet.way.craft'), v, u, s: planTxt(x.cm ?? 0), tone: 'craft', href: x.cu ? sitePre + x.cu : '' });
+    }
+    const on = shipsWith(k).map((id) => bridge.shipName(id)).sort((p, q) => p.localeCompare(q, loc));
+    if (on.length) ways.push({ k: m('sheet.way.stock'), v: nf.format(on.length), u: one(on.length) ? m('sheet.veh.one') : m('sheet.veh.other'), s: on.join(', ') });
+    // Am Schiff: die Summe der Gruppe mit diesem Teil gegen die mit dem eingebauten; am eingebauten Teil ihr Stand gegen die Serie
+    let effect = null;
+    const t = SUMMED.has(os.group) ? totals.get(os.group) : null;
+    if (t) {
+      const unit = groupUnit(os.group), title = m(`grp.${os.group}`);
+      if (peeked) {
+        const to = groupTotals(slots, { ...draft.slots, [os.key]: k }, data.items, draft.racks, data.racks).get(os.group);
+        effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} → ${nf.format(Math.round(to.now))} ${unit}`, ...pctOf(Math.round(to.now), Math.round(t.now), true) };
+      } else effect = { label: m('sheet.effect'), text: `${title} ${nf.format(Math.round(t.now))} ${unit}`, ...pctOf(Math.round(t.now), Math.round(t.stock)) };
+    }
+    const buttons = [];
+    if (peeked) buttons.push({ label: m('lo.fit'), main: true, a: ['opt', os.key, k] });
+    if (x.cu) buttons.push({ label: m('sheet.craftOpen'), craft: true, href: sitePre + x.cu });
+    if (x.pg && itemTpl) buttons.push({ label: `${m('slot.page')} ›`, href: itemTpl.replace('ITEMID', encodeURIComponent(k.split('~')[0])) });
+    return {
+      key: `${os.key}|${k}`, head: fill(m('sheet.head'), { n: nf.format(n) }),
+      tag: peeked ? (k === os.stock ? m('slot.stock') : m('sheet.preview')) : m('slot.fitted'),
+      type: it[2], dt: x.dt ?? '', size: `S${e.size}`, icon: ICON[it[2]] ?? ICON.gun, name: itemName(k),
+      line: (WEAPON_TYPES.has(it[2]) ? [subLine(k, false)] : [it[4] || null, subLine(k, false)]).filter(Boolean).join(' · '),
+      lead, strips: strips.map(({ rank, ...s }) => s),
+      legend: { me: m('sheet.me'), fit: ref ? (peeked ? m('slot.fitted') : m('slot.stock')) : '', all: fill(m('sheet.all'), { n: nf.format(klass.length), s: e.size }) },
+      ways, rows: Math.max(0, ...keys.map(waysCount)), effect, buttons,
+      model: data.models?.[k] ?? '',
+    };
+  }
+
   function board() {
     if (!data || !draft.ship || draft.ship !== bridge.state().ship || !cat) return null;
     const n = changedCount();
@@ -1513,6 +1750,12 @@ export function initWorkshop(doc, bridge) {
         revert: isChanged(os) && os.stock ? m('slot.revert') : '',
       };
     }
+    // Datenblatt: das Teil unter dem Zeiger, sonst das eingebaute. Ein
+    // gemerktes Teil gilt nur, solange sein Slot offen steht (er schliesst
+    // auch ueber die Adresse, den Reiter oder ein geladenes Layout).
+    if (peek && peek.slot !== os?.key) peek = null;
+    const peekOn = peek && fits(data.items[peek.item], eff(os)) ? peek.item : null;
+    const sheet = os ? sheetOf(os, peekOn ?? current(os), groups.flatMap((g) => g.rows).find((r) => r.key === os.key)?.n ?? 0, totals) : null;
     const sp = data.paints?.[draft.ship];
     const paints = cat === 'paint' && sp ? {
       title: m('grp.paint'),
@@ -1526,7 +1769,7 @@ export function initWorkshop(doc, bridge) {
       // Name des Layouts: getippt, sonst der, unter dem Speichern es ablegt, sonst Serie
       chip: draft.name || (n ? placeholder() : m('saved.stock')), nameEdit, name: draft.name,
       cats: present.size > 1 ? catBtns.filter((b) => present.has(b.dataset.cat)).map((b) => ({ id: b.dataset.cat, label: b.firstChild.textContent.trim(), n: catCount(b.dataset.cat), on: b.dataset.cat === cat })) : [],
-      cat, groups, open: os?.key ?? null, pick, paints,
+      cat, groups, open: os?.key ?? null, pick, paints, sheet,
       empty: !slots.length && cat !== 'paint' ? m('noslots') : '',
       state: { s: isSaved ? 'saved' : n ? 'changed' : 'stock', text: n ? plural('state.changed', n) : m('state.stock'), sub: isSaved ? m('state.saved') : n || draft.name ? m('state.unsaved') : '' },
       note: $('hgl-shared').hidden ? '' : $('hgl-shared').textContent.trim(),
@@ -1559,7 +1802,11 @@ export function initWorkshop(doc, bridge) {
     const slot = typeof x === 'string' ? slots.find((s) => s.key === x) : null;
     if (what === 'cat' && catBtns.some((b) => b.dataset.cat === x && !b.hidden)) pickCat(x);
     else if (what === 'slot' && slot) toggleSlot(slot);
-    else if (what === 'opt' && slot && fits(data.items[y], eff(slot))) equip(slot, y);
+    else if (what === 'peek') {
+      // der Zeiger steht auf einem Teil der offenen Auswahl: sein Datenblatt zeigen
+      if (!slot || slot.key !== openKey || !fits(data.items[y], eff(slot)) || (peek?.slot === x && peek.item === y)) return;
+      peek = { slot: x, item: y };
+    } else if (what === 'opt' && slot && fits(data.items[y], eff(slot))) equip(slot, y);
     else if (what === 'rack' && slot?.racks?.includes(y)) equipRack(slot, y);
     else if (what === 'revert' && slot?.stock) equip(slot, slot.stock, slot.racks?.[0]);
     else if (what === 'paint' && hasPaints() && (x === '' || data.paints[draft.ship].list.some((r) => r[0] === x))) pickPaint(x);

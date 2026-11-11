@@ -20,10 +20,17 @@
 // Neben dem Kennwert traegt jedes Bauteil seine weiteren Zahlen (Schaden je
 // Art, Feuerrate, Magazin, Schildaufladung, Haltbarkeit, Preis); die Ansicht
 // "Alle Werte" der Werkstatt zeigt sie je Teil und summiert sie je Layout.
+//
+// Dazu die Wege zum Bauteil (waysOf): wie viele Laeden es fuehren und wo es
+// am guenstigsten ist, sein Rezept mit Bauzeit und der Adresse ins Crafting,
+// und ob es eine eigene Item-Seite hat. Daraus setzt die Werkstatt das
+// Datenblatt des Bauteils in der Halle (assets/hangar-layouts.js, sheetOf);
+// den Platz in seiner Klasse rechnet sie selbst aus den Zahlen dieser Datei.
 
 import { createHash } from 'node:crypto';
 import hangarAssets from '../../data/hangar-assets.json';
-import { items, type Item, type ItemStats } from '../items';
+import { craftEntryPath, recipeForItem } from '../crafting';
+import { items, pageItemIds, type Item, type ItemStats } from '../items';
 import { HANGAR_IDS } from './catalog';
 import { shipGeometry, type StockItem } from './ports';
 
@@ -58,7 +65,11 @@ function itemType(it: Item): LayoutType | null {
  *   [nameEn, nameDe|0, art, groesse, hersteller|0, klasse|0, grade|0, kennwert|0, extra, preis|0]
  * kennwert: DPS (Waffe), Schaden (Rakete, Torpedo, Bombe), Leistung, Kuehlrate,
  * Schild-HP, Quantum Mm/s, Empfindlichkeit.
- * extra: zusaetzliche Zahlen fuer spaetere Kennwerte, nur gesetzte Schluessel.
+ * extra: zusaetzliche Zahlen fuer spaetere Kennwerte, nur gesetzte Schluessel;
+ * dazu die Wege zum Bauteil: sn Zahl der Laeden, sl Ort des guenstigsten,
+ * ct Bauzeit des Rezepts in Sekunden, cm Missionen, die seinen Bauplan
+ * vergeben, cu Adresse ins Crafting (Basisform, ohne Sprachpraefix), pg 1 =
+ * das Bauteil hat eine Item-Seite (/items/<id>.html, id = Schluessel ohne ~Groesse).
  * preis: niedrigster Ladenpreis in aUEC.
  */
 export type LayoutItem = readonly [
@@ -211,7 +222,9 @@ function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: 
       put('ign', s.igniteTime);
       put('life', s.lifetime);
       put('spd', s.speed);
-      put('lkR', s.lockRange); put('lkT', s.lockTime); put('lkA', s.lockAngle);
+      // Aufschaltzeit auf zwei Stellen: auf eine gerundet fielen 0,80 s und
+      // 0,84 s zusammen, und der Rang im Datenblatt stimmte nicht mehr
+      put('lkR', s.lockRange); put2('lkT', s.lockTime); put('lkA', s.lockAngle);
       return { f: Math.round(totalDamage(s)), x };
     }
     case 'gun': {
@@ -219,6 +232,9 @@ function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: 
       const ch = (['physical', 'energy', 'distortion'] as const).filter((k) => (d[k] ?? 0) > 0)
         .sort((a, b) => (d[b] ?? 0) - (d[a] ?? 0))[0];
       if (ch) x.dt = ch === 'physical' ? 'p' : ch === 'energy' ? 'e' : 'd';
+      // DPS genau: der Kennwert ist gerundet (455,25 und 455,40 waeren
+      // gleichauf), der Rang im Datenblatt zaehlt mit dieser Zahl
+      put2('dps', s.dps);
       put('rate', s.fireRate);
       put('mag', s.magazine);
       put('spd', s.speed); put('rng', s.range);
@@ -231,7 +247,8 @@ function figures(type: LayoutType, s: ItemStats, it: Item): { f: number | 0; x: 
     case 'power': return { f: s.powerOutput ?? 0, x };
     case 'cooler': return { f: s.coolingRate ?? 0, x };
     case 'shield':
-      put('regen', s.regen); put('dly', s.damagedRegenDelay); put('down', s.downedRegenDelay);
+      // Pause nach Treffer auf zwei Stellen (3,85 s und 3,86 s sind zwei Raenge)
+      put('regen', s.regen); put2('dly', s.damagedRegenDelay); put('down', s.downedRegenDelay);
       // Widerstand und Absorption je Art als Spanne in Prozent, "min|max"
       for (const [key, src] of [['r', s.resist], ['a', s.absorb]] as const) {
         for (const [k, short] of [['physical', 'P'], ['energy', 'E'], ['distortion', 'D']] as const) {
@@ -256,6 +273,26 @@ const shopPrice = (it: Item): number | 0 => {
   return p.length ? Math.min(...p) : 0;
 };
 
+/** Die Wege zum Bauteil als Schluessel fuer extra (siehe LayoutItem); nur, was es gibt. */
+function waysOf(it: Item): Record<string, number | string> {
+  const w: Record<string, number | string> = {};
+  const shops = it.obtain.filter((o) => o.kind === 'shop' && typeof o.price === 'number' && o.price > 0);
+  if (shops.length) {
+    const min = shops.reduce((a, b) => ((b.price as number) < (a.price as number) ? b : a));
+    w.sn = shops.length;
+    // "Laden - Bereich - Ort": der Ort steht hinten
+    w.sl = min.loc.split(' - ').pop()!.trim();
+  }
+  const recipe = recipeForItem(it);
+  if (recipe) {
+    w.ct = recipe.craft_time_seconds;
+    w.cm = recipe.missions?.length ?? 0;
+    w.cu = craftEntryPath(recipe);
+  }
+  if (pageItemIds.has(it.id)) w.pg = 1;
+  return w;
+}
+
 let memo: { data: LayoutData; json: string; hash: string } | null = null;
 
 function build(): LayoutData {
@@ -267,6 +304,7 @@ function build(): LayoutData {
     const type = itemType(it);
     if (!type || PLACEHOLDER.test(it.name)) continue;
     const g = it.game ?? {};
+    const ways = waysOf(it);
     const variants = g.variants?.length
       ? g.variants.map((v) => ({ size: v.size, grade: v.grade, maker: v.manufacturer, stats: v.stats, key: `${it.id}~${v.size}` }))
       : [{ size: g.size, grade: g.grade ?? null, maker: g.manufacturer ?? null, stats: g.stats ?? null, key: it.id }];
@@ -276,7 +314,7 @@ function build(): LayoutData {
       const { f, x } = figures(type, v.stats, it);
       if (!f) continue;
       const de = g.nameDe?.trim();
-      out[v.key] = [it.name, de && de !== it.name ? de : 0, type, v.size, v.maker || 0, g.class || 0, v.grade || 0, f, x, shopPrice(it), it.obtain.length || g.lootable ? 1 : 0];
+      out[v.key] = [it.name, de && de !== it.name ? de : 0, type, v.size, v.maker || 0, g.class || 0, v.grade || 0, f, { ...x, ...ways }, shopPrice(it), it.obtain.length || g.lootable ? 1 : 0];
       const n = norm(it.name);
       const sizes = byName.get(n) ?? new Map<number, string>();
       if (!sizes.has(v.size)) sizes.set(v.size, v.key);

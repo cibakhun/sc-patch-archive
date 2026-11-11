@@ -217,6 +217,42 @@ Zusicherung 21 hält die Naht (board, act, drawLoadout) und dass jedes Wort
 der Werkstatt in `#hgl-msg` steht: die gezeichnete Tafel zeigte sonst den
 rohen Schlüssel, und kein Textprüfer sähe ihn.
 
+Steht auf der linken Tafel ein Slot offen, zeigt die rechte seit 11.11.2026
+statt des Schiffs das Datenblatt seines Bauteils (Krisz 10.11.2026: „man
+könnte die itemdatenblatt seite direkt in das hangar reinbauen für
+komponente und waffen“; Skizze freigegeben 11.11.). `board()` trägt es
+unter `sheet`, der Controller reicht es als `item` weiter, und das Modul
+zeichnet es mit `drawItem`; schließt der Slot, steht wieder das Schiff da.
+Inhalt ist Richtung B der Detailseiten 2.0 („Einordnung“): ein Satz zum
+Platz in der Klasse, je Kennwert ein Streifen (jedes Teil der Klasse ein
+Punkt, dieses hell, das eingebaute als Ring, Strich am Median, „17. von
+28“), die Wege, die es gibt (Kaufen, Herstellen, Ab Werk), was der Tausch
+am Schiff ändert, und Knöpfe (Einbauen, Im Crafting öffnen, Item-Seite).
+Die Klasse ist die Auswahlliste des Slots: alle Teile, die dort passen,
+also auch Waffen, die es in mehreren Größen gibt. `classRank` und
+`classStrip` (Export der Werkstatt) rechnen Platz und Streifen; rechts
+heißt besser, bei „weniger ist besser“ (`LOWER`, dieselbe Menge wie im
+Advanced Loadout) gespiegelt. Gerechnet wird mit den genauen Werten
+(`dps`, `lkT`, `dly` auf zwei Stellen in `/hangar-layouts.json`): auf
+ganze Zahlen gerundet teilten sich Teile einen Platz, die keiner teilt.
+Die Wege stehen je Teil in denselben Daten (`sn` Zahl der Läden, `sl` Ort
+des günstigsten, `ct` Bauzeit, `cm` Missionen mit dem Bauplan, `cu` Weg in
+die Werkbank, `pg` hat eine Item-Seite); „Ab Werk“ zählt die Werkstatt aus
+der Serienausstattung aller Schiffe.
+Der Zeiger über einer Zeile der Auswahlliste schaut das Teil nur an: das
+Modul schickt `['peek', slot, item]`, die Werkstatt merkt es sich bis zum
+nächsten Tausch oder Slotwechsel, und das Blatt vergleicht dann mit dem
+eingebauten Teil (▲▼ je Streifen, „Am Schiff“ mit der Summe davor und
+danach). Klicks auf dem Blatt tragen die Vorsilbe `it|` (Wege mit Ziel,
+Knöpfe); `Einbauen` läuft als `opt` durch die Werkstatt, Links als `go`.
+Über dem Blatt schwebt das Teil selbst: `ctx.part` (Viewer: `loadPartRaw`)
+lädt das Modell roh, das Modul gibt ihm ein eigenes Material (dunkler
+Körper, Kantenschein, Zeilen), zeichnet es vor allem anderen und hält
+höchstens sechs Modelle vor. Bleibt über der Tafel zu wenig Platz, fehlt
+es, das Blatt steht trotzdem. Zusicherung 22 hält Naht, Rang-Rechnung
+(Proben gegen das gebaute Skript), dass jeder Weg auf eine gebaute Seite
+zeigt, und die Vorlagen der Links auf beiden Seiten.
+
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
 Oberkante frei vom Hüllquader). Findet sich dort kein Boden vor der Kamera
