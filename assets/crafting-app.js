@@ -13,7 +13,7 @@
   // ---- Werkbank (Prototyp, Skizze 016-3, nur /topics/crafting-werkbank.html) ----
   // Dasselbe Werkzeug, anders gestellt: das Rezept steht als feste Mitte
   // statt im Modal, der Planer ab 1180 px als rechte Spalte statt Schublade.
-  // Unter 821 px bleibt das Rezept eine Ebene ueber der Liste. Alles andere
+  // Unter 821 px bleibt es das Fenster der bisherigen Seite. Alles andere
   // (Daten, Besitz, Planer, Konto-Sync) ist unveraendert derselbe Code.
   var WB = CFG.werkbank === true;
   var mm = function (q) { return window.matchMedia ? window.matchMedia(q) : { matches: true }; };
@@ -31,6 +31,36 @@
   var countEl = $('#cdb-count');
   var emptyEl = $('#cdb-empty');
   var resSearch = $('#cdb-res-search');
+
+  // Werkbank: Hoehe der Bedienleiste und der Zaehlzeile als CSS-Werte, damit
+  // die drei Spalten genau unter die Leiste passen (src/lib/werkbankCss.ts,
+  // --wb-bar/--wb-count). Die Leiste bricht je nach Breite in zwei Zeilen um.
+  if (WB) {
+    var wbRoot = $('#cdb'), wbBar = $('.cdb-bar'), wbCount = $('.cdb-count-row');
+    var wbMiss = function () {
+      if (!wbRoot) return;
+      if (wbBar && wbBar.offsetHeight) wbRoot.style.setProperty('--wb-bar', wbBar.offsetHeight + 'px');
+      if (wbCount && wbCount.offsetHeight) {
+        var mb = parseFloat(getComputedStyle(wbCount).marginBottom) || 0;
+        wbRoot.style.setProperty('--wb-count', Math.ceil(wbCount.offsetHeight + mb) + 'px');
+      }
+    };
+    wbMiss();
+    if (window.ResizeObserver && wbBar) new ResizeObserver(wbMiss).observe(wbBar);
+    else window.addEventListener('resize', wbMiss);
+  }
+  // Werkbank: ein tiefer Link (Suche „Herstellen“, Item-Kopf) bringt die
+  // Werkbank ins Bild, Leiste direkt unter die Kopfleiste. Das Fenster der
+  // bisherigen Seite lag ueber allem; die Mitte steht im Fluss und laege
+  // sonst unter Kopfbild und Hilfe. Nur, solange noch niemand gerollt hat.
+  function wbInsBild() {
+    if (!wbMitte() || window.scrollY > 40) return;
+    var bar = $('.cdb-bar');
+    if (!bar) return;
+    var nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68;
+    var ziel = Math.max(0, Math.round(bar.getBoundingClientRect().top + window.scrollY - nav));
+    try { window.scrollTo({ top: ziel, behavior: 'instant' }); } catch (e) { window.scrollTo(0, ziel); }
+  }
 
   // ---- HTML-Diät: Karten tragen im Markup nur noch data-i + data-time ----
   // Die übrigen Filter-Metadaten (name/cat/sub/res/mis/ings) standen als
@@ -169,6 +199,7 @@
       var atI = wantI != null && /^\d+$/.test(wantI) ? DB.blueprints[+wantI] : null;
       if (wantBp && atI && (atI.name || '').toLowerCase() === wantBp.trim().toLowerCase()) openModal(+wantI);
       else if (wantBp) openModalByName(wantBp);
+      if (wantBp && WB) wbInsBild();
     } catch (e) {}
     if (pendingBpName) { openModalByName(pendingBpName); pendingBpName = null; }
   }).catch(function () {

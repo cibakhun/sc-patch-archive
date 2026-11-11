@@ -280,12 +280,12 @@ try {
 // dazu, und verify:zaehler haelt tote Marken fuer FEHLER. Gemessen wird erst,
 // was abgenommen ist.
 const evF = (name: string) => (werkbank ? undefined : name);
-// Werkbank-Prototyp: Texte der leeren Mitte und des Zurueck-Knopfs.
+// Werkbank-Prototyp: Texte der leeren Mitte.
 const WB = lang === 'de'
-  ? { back: 'Liste', emptyKicker: 'Werkbank', emptyTitle: 'Rezept wählen',
-      emptyText: 'Links ein Blueprint antippen: Zutaten, Qualität und Bezugsquellen stehen dann hier, der Planer rechts rechnet mit.' }
-  : { back: 'List', emptyKicker: 'Workbench', emptyTitle: 'Pick a recipe',
-      emptyText: 'Tap a blueprint on the left: ingredients, quality and sources show up here, the planner on the right adds it up.' };
+  ? { emptyKicker: 'Werkbank', emptyTitle: 'Rezept wählen',
+      emptyText: 'Links einen Blueprint anklicken: Zutaten, Qualität und Werte erscheinen hier. Mit ＋ kommt er in den Planer.' }
+  : { emptyKicker: 'Workbench', emptyTitle: 'Pick a recipe',
+      emptyText: 'Click a blueprint on the left: ingredients, quality and stats show up here. ＋ adds it to the planner.' };
 const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 ---
 
@@ -494,7 +494,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   @media (max-width:860px){
     .cdb-modal__back{top:.6rem;left:.6rem;width:32px;height:32px}
   }
-  .cbm__cat{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-2);color:var(--accent,#FF5E1A)}
+  /* padding-right: lange Kategoriezeilen („VEHICLEGEAR / WEAPONS / BALLISTIC /
+     CANNON“) liefen am Telefon unter das ✕ oben rechts (gesehen 11.11.2026,
+     390 px). */
+  .cbm__cat{font-family:var(--font-ui,inherit);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;font-size:var(--fs-2);color:var(--accent,#FF5E1A);padding-right:2.6rem}
   .cbm__name{font-family:var(--font-display,inherit);font-weight:800;font-size:clamp(1.3rem,4vw,1.8rem);color:var(--text);margin:.2rem 0 .6rem;line-height:1.1}
   .cbm__meta{display:flex;flex-wrap:wrap;gap:.7rem 1.2rem;align-items:center;font-size:var(--fs-7);color:var(--muted,#9ba2ae);margin-bottom:.4rem}
   .cbm__meta b{color:var(--text,#eef1f5)}
@@ -922,12 +925,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   </div>
 
   <!-- Detail modal -->
-  {/* Werkbank: dieselbe Box steht als feste Mitte; leer zeigt sie den
-      Hinweis unten (Klasse is-leer statt hidden: am Schreibtisch ist sie
-      immer zu sehen, am Telefon nur mit gewaehltem Rezept). */}
+  {/* Werkbank: dieselbe Box steht ab 821 px als feste Mitte; leer zeigt sie
+      den Hinweis unten (Klasse is-leer statt hidden: am Schreibtisch ist sie
+      immer zu sehen). Am Telefon ist sie das Fenster der bisherigen Seite. */}
   <div class:list={['cdb-modal', werkbank && 'is-leer']} id="cdb-modal" hidden={!werkbank}>
     <div class="cdb-modal__box" role="dialog" aria-modal="true">
-      {werkbank && (<button type="button" class="cdb-wb-zur" data-close>← {WB.back}</button>)}
       {/* Siehe MiningApp: Zurueck-Pfeil nur bei nachgewiesener Herkunft von
           aussen (Deep-Link ?bp= / ?res=), sonst waere er ein zweites X. */}
       <button class="cdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
@@ -936,6 +938,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <button class="cdb-modal__x" data-close aria-label={S.close}>✕</button>
       <div class="cdb-modal__body" id="cdb-modal-body">{werkbank && (
         <div class="cdb-wb-leer">
+          <span class="cdb-wb-leer__i" aria-hidden="true"><Fragment set:html={ICON_BLUEPRINT} /></span>
           <p class="cdb-wb-leer__k">{WB.emptyKicker}</p>
           <p class="cdb-wb-leer__t">{WB.emptyTitle}</p>
           <p class="cdb-wb-leer__x">{WB.emptyText}</p>
