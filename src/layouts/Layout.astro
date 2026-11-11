@@ -425,8 +425,9 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
         })();
       </script>
       <script is:inline defer src={versioned('public/vendor/zaehler/zaehler.js', '/vendor/zaehler/zaehler.js')} data-host-url="https://stats.verse-base.com" data-website-id="7f863f38-b4d8-4de1-8a92-cbdd78667920" data-domains="verse-base.com" data-exclude-search="true" data-exclude-hash="true" data-before-send="vbZaehlen"></script>
-      {/* Messereignisse (seit 06.11.2026, Freigabe Krisz): neun Ereignisse mit
-          festen Werten ueber umami.track, also durch denselben Haken. Liste,
+      {/* Messereignisse (seit 06.11.2026, Freigabe Krisz): zehn Ereignisse mit
+          festen Werten ueber umami.track, also durch denselben Haken (das
+          zehnte, extern fuer Klicks nach draussen, seit 11.11.2026). Liste,
           Ausloeser und was NICHT rausgeht: assets/ereignisse.js; SOLL in
           scripts/lib/ereignisse.mjs, geprueft von verify:zaehler [7]. */}
       <script is:inline defer src={versioned('assets/ereignisse.js', '/assets/ereignisse.js')}></script>

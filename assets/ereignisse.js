@@ -1,4 +1,4 @@
-// ereignisse.js — neun Messereignisse mit festen Werten (Umami).
+// ereignisse.js — zehn Messereignisse mit festen Werten (Umami).
 //
 // Laedt auf jeder Seite, die auch den Zaehler laedt (src/layouts/Layout.astro,
 // direkt nach ihm), und schickt ueber umami.track — also durch denselben
@@ -23,6 +23,12 @@
 //    gezaehlten Seite (anmeldung-einstieg); Klick auf „Falschen Wert melden“
 //    (Link mit data-ev-melden im Datenstand) einer Detailseite (wert-melden,
 //    nur mit der Seitenart, ohne Pfad).
+//  - Klick auf einen Link zu einer anderen Website, auch in Kopf und Fuss
+//    (extern): nur die Art des Ziels aus EXTERN_HOSTS (unbekannte Hosts als
+//    „sonst“), nie Adresse oder Pfad. Ein Element mit data-ev-extern="<ziel>"
+//    nennt sein Ziel selbst (der Stripe-Knopf der Unterstuetzen-Seite: ein
+//    <button>, seine Adresse gibt es erst nach dem Klick). Umami schickt mit
+//    keepalive, die Zaehlung ueberlebt also das Verlassen der Seite.
 //  - Erste Bedienung eines Elements mit data-ev-filter="<name>" (filter) bzw.
 //    in einem Bereich mit data-ev-rechnung (rechnung) je Seitenaufruf, Klick
 //    auf data-ev-kopieren (kopieren-teilen). Nur echte Bedienung
@@ -49,6 +55,7 @@
     'kopieren-teilen': { werkzeug: WZ },
     'anmeldung-einstieg': { von: DETAIL + ' sonst ' + WZ, ziel: 'anmelden registrieren' },
     'wert-melden': { seite: DETAIL },
+    extern: { seite: SEITE, ziel: 'discord spende wiki uex rsi fleetyards youtube sonst' },
   };
   var EINMAL = { 'suche-offen': 1, filter: 1, rechnung: 1 };
   var WERKZEUG_SEITEN = {
@@ -65,6 +72,15 @@
     '/evolution.html': 'evolution',
   };
   var KONTO = { '/account/login.html': 'anmelden', '/account/register.html': 'registrieren' };
+  var EXTERN_HOSTS = {
+    'discord.gg': 'discord',
+    'paypal.me': 'spende',
+    'starcitizen.tools': 'wiki',
+    'uexcorp.space': 'uex',
+    'robertsspaceindustries.com': 'rsi',
+    'fleetyards.net': 'fleetyards',
+    'youtube.com': 'youtube',
+  };
   var DETAIL_PFADE = [
     [/^\/items\/[^/]+\.html$/, 'item'],
     [/^\/crafting\/[^/]+\.html$/, 'blueprint'],
@@ -152,7 +168,13 @@
   function klick(e) {
     if (!e.isTrusted) return;
     var t = e.target;
-    var a = t && t.closest && t.closest('a[href]');
+    if (!t || !t.closest) return;
+    var mx = t.closest('[data-ev-extern]');
+    if (mx) {
+      senden('extern', { seite: hierArt, ziel: mx.getAttribute('data-ev-extern') });
+      return;
+    }
+    var a = t.closest('a[href]');
     if (!a) return;
     var u;
     try {
@@ -160,7 +182,13 @@
     } catch (x) {
       return;
     }
-    if (u.origin !== location.origin) return;
+    if (u.origin !== location.origin) {
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return;
+      var h = u.hostname.toLowerCase().replace(/^www\./, '');
+      var z = Object.prototype.hasOwnProperty.call(EXTERN_HOSTS, h) ? EXTERN_HOSTS[h] : 'sonst';
+      senden('extern', { seite: hierArt, ziel: z });
+      return;
+    }
     var ziel = rein(u.pathname);
     if (KONTO[ziel]) {
       senden('anmeldung-einstieg', { von: hierWz || hierDetail || 'sonst', ziel: KONTO[ziel] });
@@ -183,4 +211,5 @@
   // Fuer verify:zaehler [7]: die Liste, wie diese Datei sie anwendet.
   window.vbEreignis.liste = LISTE;
   window.vbEreignis.werkzeugSeiten = WERKZEUG_SEITEN;
+  window.vbEreignis.externHosts = EXTERN_HOSTS;
 })();

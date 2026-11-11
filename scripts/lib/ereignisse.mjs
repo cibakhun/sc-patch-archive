@@ -2,12 +2,16 @@
 //
 // Freigabe: Krisz, 06.11.2026 11:48 („Beides wie empfohlen", Plan
 // „VerseBase: Produktphase Vernetzung, Messung, Datenvertrauen", Abschnitt
-// Messung). Neun Ereignisse, jedes Feld nur mit festen Werten: kein
+// Messung). Zehn Ereignisse, jedes Feld nur mit festen Werten: kein
 // Suchbegriff, keine Item-Kennung, kein Name, keine Zahl aus einer Rechnung.
 // Acht davon aus dieser Freigabe; das neunte, wert-melden (Klick auf
 // „Falschen Wert melden“ einer Detailseite, nur die Seitenart), kam mit dem
 // Vorschlag Datenvertrauen (Schritt C2), freigegeben 06.11.2026 11:47
-// („Wie empfohlen").
+// („Wie empfohlen"). Das zehnte, extern (Klick auf einen Link zu einer
+// anderen Website oder auf den Bezahlknopf der Unterstuetzen-Seite, nur die
+// Art des Ziels und die Seitenart), kam am 11.11.2026 dazu: Klicks nach
+// draussen (Discord beitreten, Spende, Wiki, UEX) waren bis dahin gar nicht
+// messbar.
 //
 // Diese Datei ist das SOLL. assets/ereignisse.js traegt dieselbe Liste als
 // Ist (es laeuft im Browser und kann nichts importieren); verify:zaehler [7]
@@ -33,6 +37,23 @@ export const FILTER = [
   'ressource', 'qualitaet', 'system', 'brechbar',
 ];
 export const KONTO = ['anmelden', 'registrieren'];
+// Ziele nach draussen: nur die Art, nie Adresse oder Pfad. „spende“ deckt
+// PayPal.me und den Stripe-Knopf (<button data-ev-extern="spende">, seine
+// Zieladresse entsteht erst beim Klick).
+export const EXTERN = ['discord', 'spende', 'wiki', 'uex', 'rsi', 'fleetyards', 'youtube', 'sonst'];
+// Host (ohne www.) -> Ziel. Alle anderen Hosts zaehlen als „sonst“. Nur Hosts,
+// auf die der gebaute Stand wirklich verlinkt: verify:zaehler [7] reisst bei
+// einem Eintrag ohne Link (Zombie). Bewusst NICHT hier: discord.com und
+// paypal.com — dorthin zeigen nur die Datenschutz-Links der Anbieter.
+export const EXTERN_HOSTS = {
+  'discord.gg': 'discord',
+  'paypal.me': 'spende',
+  'starcitizen.tools': 'wiki',
+  'uexcorp.space': 'uex',
+  'robertsspaceindustries.com': 'rsi',
+  'fleetyards.net': 'fleetyards',
+  'youtube.com': 'youtube',
+};
 export const VON = [...DETAIL, 'sonst', ...WERKZEUGE];
 
 export const EREIGNISSE = {
@@ -45,6 +66,7 @@ export const EREIGNISSE = {
   'kopieren-teilen': { werkzeug: WERKZEUGE },
   'anmeldung-einstieg': { von: VON, ziel: KONTO },
   'wert-melden': { seite: DETAIL },
+  extern: { seite: SEITEN, ziel: EXTERN },
 };
 
 // Seiten der Werkzeuge (ohne /de-Vorsatz) -> Wert im Feld werkzeug. Dieselben

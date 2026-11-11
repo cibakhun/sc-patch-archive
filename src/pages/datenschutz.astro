@@ -141,8 +141,10 @@ body{font-family:var(--font-body)}
       and times and time on page. Account and sign-in pages are not counted at all.
       Umami also counts a few interactions as events: opening the search, picking a search result,
       moving from a detail page to a tool or to another detail page, the first filter and the first
-      calculation in a tool, copying, clicking “Report a wrong value”, and clicking sign in or
-      create account. An event is sent like a
+      calculation in a tool, copying, clicking “Report a wrong value”, clicking sign in or
+      create account, and clicking a link to another website or the button to the payment page
+      (only the kind of destination, such as Discord, donation, wiki or UEX, never the address).
+      An event is sent like a
       page view (screen size, browser language, device, browser and operating system, the country
       derived from the IP address) and carries only fixed details on top, such as the page type, the
       name of the tool or filter and the rough position of the result. As the page it names only the

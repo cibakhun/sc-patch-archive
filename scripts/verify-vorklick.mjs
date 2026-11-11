@@ -109,6 +109,9 @@ const KLICK_GEBUNDEN = [
   { datei: /^_astro\/[^/]+\.js$/, host: 'www.youtube.com', umfeld: /url:\s*["']https:\/\/www\.youtube\.com\/@["']/,
     anlass: 'src/lib/socials.ts: Profil-Link https://www.youtube.com/@Name — wird nur als <a href> gesetzt, kein Abruf. '
       + 'Der Baustein hiess socials.*.js, seit 29.10.2026 (Pilotenseite + Konto teilen ihn mit hangar-layouts) hangar-layouts.*.js' },
+  { datei: /^assets\/ereignisse\.js$/, host: 'youtube.com', umfeld: /'youtube\.com':\s*'youtube'/,
+    anlass: 'EXTERN_HOSTS des Messereignisses extern (11.11.2026): der Host steht nur als Vergleichswert fuer einen '
+      + 'angeklickten Link (Art des Ziels), kein Abruf — die Datei laedt nichts von YouTube' },
 ];
 const HOST_IM_CODE = new RegExp(String.raw`(?<![a-z0-9.-])((?:[a-z0-9-]+\.)*(?:` +
   ZUSAGEN.flatMap((z) => z.hosts).map((h) => h.replace(/\./g, '\\.')).join('|') + String.raw`))(?![a-z0-9-])`, 'gi');
