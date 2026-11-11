@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {
   encodeLayout, decodeLayout, EMPTY_CODE, shipSlots, cleanSlots, candidates, deltaPct, groupTotals,
   sameLayout, createStore, STORE_KEY, MAX_NAME, rackSlot, rackMissile, changeCount,
-  syncLayouts, layoutKey, sessionUid, accountStore,
+  syncLayouts, layoutKey, sessionUid, accountStore, classRank, classStrip, LOWER,
 } from '../../assets/hangar-layouts.js';
 import { EMPTY_LAYOUT, parseState, serializeState } from '../../assets/hangar-overview.js';
 
@@ -641,5 +641,53 @@ describe('Werkstatt: Ablage im Konto', () => {
     hold();
     await lauf;
     assert.equal(acct.state(), 'synced');
+  });
+});
+
+// Datenblatt des Bauteils in der Halle: der Platz eines Werts in seiner
+// Klasse (Detail Pages 2.0, Richtung B). dps: die Feuerkraft der 28 Bordwaffen,
+// die am 11.11.2026 in einen Slot der Groesse 3 passen; der Attrition-3
+// (501,67) liegt dort auf Platz 17. Die Skizze der Item-Seite nannte Platz 16
+// von 26: ihr fehlten die beiden Waffen, die es in mehreren Groessen gibt
+// (Revenant Gatling 1054, Tarantula GT-870 Mark 3 455,4).
+describe('Werkstatt: Platz in der Klasse', () => {
+  const dps = [2041.67, 1518.75, 1054, 877.5, 853.33, 712.5, 683.63, 683.63, 562.5, 551.75, 546.75, 546.75, 545.63, 545.63, 536.67, 512.5, 501.67, 493.75, 461.71, 461.71, 455.4, 455.25, 375.67, 375, 116.25, 105, 105, 34.67];
+  test('Platz 1 hat der beste Wert, gleiche Werte teilen den Platz', () => {
+    assert.deepEqual(classRank(dps, 501.67), { rank: 17, of: 28, same: 0, worse: 11 });
+    assert.deepEqual(classRank(dps, 683.63), { rank: 7, of: 28, same: 1, worse: 20 });
+    // nach zwei Teilen auf Platz 7 kommt Platz 9, nicht 8
+    assert.equal(classRank(dps, 562.5).rank, 9);
+    // 455,40 und 455,25 sind zwei Plaetze: der gerundete Kennwert (455) haette sie gleichgestellt
+    assert.equal(classRank(dps, 455.4).rank + 1, classRank(dps, 455.25).rank);
+    assert.deepEqual(classRank([5, 9, 9, 2], 9), { rank: 1, of: 4, same: 1, worse: 2 });
+  });
+  test('weniger ist besser: der kleinste Wert steht vorn', () => {
+    assert.deepEqual(classRank([3.85, 3.86, 2.1, 5], 2.1, true), { rank: 1, of: 4, same: 0, worse: 3 });
+    assert.deepEqual(classRank([3.85, 3.86, 2.1, 5], 5, true), { rank: 4, of: 4, same: 0, worse: 0 });
+    // zwei Stellen trennen, was auf eine Stelle gerundet gleichauf laege
+    assert.equal(classRank([3.85, 3.86], 3.86, true).rank, 2);
+    assert.ok(LOWER.has('sp.dly') && LOWER.has('sp.lkT') && LOWER.has('sp.em') && !LOWER.has('sp.regen'));
+  });
+  test('ohne eigenen Wert kein Platz; fremde Eintraege zaehlen nicht mit', () => {
+    assert.equal(classRank([1, 2, 3], undefined), null);
+    assert.equal(classRank([1, 2, 3], 7), null);
+    assert.deepEqual(classRank([1, NaN, null, 3, undefined], 3), { rank: 1, of: 2, same: 0, worse: 1 });
+  });
+  test('Streifen: rechts ist besser, je verschiedenem Wert ein Punkt mit Anzahl', () => {
+    const s = classStrip([10, 20, 20, 50]);
+    assert.equal(s.x(10), 0);
+    assert.equal(s.x(50), 100);
+    assert.equal(s.x(20), 25);
+    assert.equal(s.med, 25);
+    assert.deepEqual(s.dots, [[0, 1], [25, 2], [100, 1]]);
+    const low = classStrip([10, 20, 20, 50], true);
+    assert.equal(low.x(10), 100);
+    assert.equal(low.x(50), 0);
+    assert.deepEqual(low.dots, [[0, 1], [75, 2], [100, 1]]);
+  });
+  test('Streifen: haben alle denselben Wert, liegt er in der Mitte; leer gibt es keinen', () => {
+    assert.deepEqual(classStrip([7, 7, 7]).dots, [[50, 3]]);
+    assert.equal(classStrip([7, 7, 7]).med, 50);
+    assert.equal(classStrip([]), null);
   });
 });

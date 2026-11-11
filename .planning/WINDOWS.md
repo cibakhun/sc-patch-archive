@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 106
+open_count: 107
 waived_count: 3
 fixed_count: 41
-total_count: 150
-last_updated: 2026-11-10T21:00:00.000Z
+total_count: 151
+last_updated: 2026-11-11T01:30:00.000Z
 ---
 
 # Broken Windows Ledger
@@ -1966,6 +1966,18 @@ last_updated: 2026-11-10T21:00:00.000Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-11-10T21:00:00.000Z",
+    "resolved_at": null
+  },
+  {
+    "id": 152,
+    "kind": "unrun-verify",
+    "phase": "hangar",
+    "file": "assets/hangar-holo3d.js",
+    "line": null,
+    "description": "Sichturteil offen (Hangar als Schiffsplattform, Datenblatt des Bauteils in der Halle, nach Krisz 10.11.2026 22:39: „man könnte die itemdatenblatt seite direkt in das hangar reinbauen für komponente und waffen undso irgendwie oder?“ und 11.11.2026 00:20 zur Skizze: „ja so ungefähr einbauen“): Steht auf der Tafel „Ausrüstung“ ein Slot offen, zeigt die rechte Tafel statt des Schiffs das Datenblatt seines Bauteils; schließt der Slot, steht wieder das Schiff da. Der Zeiger über einer Zeile der Auswahlliste zeigt dieses Teil als „Vorschau“ und vergleicht es mit dem eingebauten (Ring im Streifen, ▲▼ in Prozent je Wert, „Am Schiff“ mit der Summe der Gruppe davor und danach); der Knopf „Einbauen“ auf dem Blatt tauscht es. Inhalt ist die Einordnung aus Detail Pages 2.0 (Richtung B): Kopf mit Symbol, Farbton und Größe, ein Satz zum Platz in der Klasse („Unter den 28 Schiffswaffen der Größe 3 liegt dieses Teil bei der Feuerkraft im Mittelfeld (Platz 17)“), je Kennwert ein Streifen (jedes Teil der Klasse ein Punkt, dieses hell, Strich am Median, „17. von 28“; bei Strombedarf, Signatur, Ladepause und ähnlichen steht „weniger ist besser“, und der Streifen ist gespiegelt, sodass rechts immer besser ist), die Wege, die es gibt (Kaufen mit günstigstem Ort und Zahl der Orte, Herstellen mit Bauzeit und Herkunft des Bauplans im Orange des Craftings, Ab Werk mit den Fahrzeugen), und die Knöpfe „Im Crafting öffnen“ und „Item-Seite“. Über der Tafel schwebt das Teil selbst als Hologramm (Waffen von der Seite mit dem Lauf zum Schiff, Komponenten schräg); Raketen haben kein eigenes Modell, und bleibt über der Tafel zu wenig Platz (niedriges Fenster), fehlt es. Die Klasse ist die Auswahlliste des Slots, also alle Teile, die dort passen, auch Waffen, die es in mehreren Größen gibt: deshalb 28 Bordwaffen der Größe 3 und der Attrition-3 auf Platz 17 statt 16 von 26 wie in der Skizze der Item-Seite (ihr fehlten Revenant Gatling und Tarantula GT-870 Mark 3). Teilen sich mehrere den Platz, steht „geteilt“ dabei; haben alle denselben Wert, steht kein Platz da. Noch nicht gebaut: dasselbe Blatt in der flachen Werkstatt („Als Tafel“, Handy, ohne 3D), das folgt als eigener Schritt. Nebenwirkung: Advanced Loadout zeigt Ladepause und Aufschaltzeit jetzt mit zwei Nachkommastellen, weil der Rang mit den genauen Werten rechnet. Maschinell: verify:hangar [22] hält die Naht, prüft die Rang-Rechnung des ausgelieferten Skripts mit festen Proben und dass jeder Weg des Blatts auf eine gebaute Seite zeigt (vorgeführt rot, jj bis mm); Unit-Tests für Platz und Streifen mit den 28 echten Werten; im Browser bei 1440×900 an der Gladius durchgespielt (Deutsch und Englisch): Waffe, Schild, Kraftwerk, Kühler, Quantenantrieb, Radar, Raketen, Vorschau, Einbauen und der Weg ins Crafting; niedriges Fenster (700 px); Ironclad mit schwebenden Tafeln; Grafik „hoch“; check:hangar-shader. Zu beurteilen: (1) Liest man den Platz in der Klasse an Satz und Streifen sofort, oder ist das Blatt zu dicht? (2) Trägt das Hologramm des Bauteils über der Tafel (Größe, Blickwinkel, Helligkeit), oder lenkt es ab? (3) Ist es richtig, dass das Datenblatt das Schiffsblatt verdrängt, solange ein Slot offen steht? (4) Stimmt die Vorschau beim Überfahren der Liste (Tempo, Ruhe der Tafel), und findet man „Einbauen“ rechts? (5) Fehlt ein Wert oder Weg, den du von der Item-Seite erwartest (Fundorte, Missionen, Preisspanne)? Bilder /mnt/project-files/hangar-stationen/item-datenblatt/.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-11-11T01:30:00.000Z",
     "resolved_at": null
   }
 ]

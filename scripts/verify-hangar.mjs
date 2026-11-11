@@ -12,7 +12,7 @@
    gebrochenem Join oder unter einer Klinke. Kein git, kein Netz, keine
    Data.p4k, kein Kindprozess — schienenfaehig fuer Schiene A.
 
-   EINUNDZWANZIG ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
+   ZWEIUNDZWANZIG ZUSICHERUNGEN, jede mit Soll-/Ist-Zeile:
      1  Eine Id-Menge an vier Stellen, je Hangarseite: das Dock
         (li[data-id]), die Modellliste der Szene (#hg-stage, Form der
         StageConfig aus src/lib/hangar/stage.ts), die EN-Buchten, die
@@ -166,6 +166,22 @@
         steht auf beiden Seiten in #hgl-msg. Fehlt eines, zeigt die
         gezeichnete Tafel den rohen Schluessel, und kein Textpruefer sieht
         ihn. Klinken: Stationen, Proben, Woerter.
+    22  Datenblatt des Bauteils (seit 11.11.2026, Krisz: „man koennte die
+        itemdatenblatt seite direkt in das hangar reinbauen fuer komponente
+        und waffen“). Steht ein Slot offen, zeigt die rechte Tafel sein
+        Bauteil. Naht: die Werkstatt liefert sheet und nimmt peek, der
+        Controller reicht item weiter, das Modul zeichnet drawItem, schickt
+        peek und bekommt vom Viewer das Modell (part). Rang-Rechnung: das
+        ausgelieferte Skript der Werkstatt wird geladen, und classRank,
+        classStrip und LOWER bestehen Proben mit festen Zahlen (Platz mit
+        Gleichstand, weniger ist besser, fehlender Wert, Streifen). Ein
+        falscher Platz saehe auf der Tafel so glaubwuerdig aus wie ein
+        richtiger. Wege: jedes Ziel von „Herstellen“ (cu) und jede
+        Item-Seite (pg) liegt in dist/, in beiden Sprachen; sn und sl
+        stehen genau an den Teilen mit Ladenpreis. Die Vorlagen der Links
+        (data-item, data-pre) stehen an #hgl beider Seiten in ihrer
+        Sprache. Klinken: Teile mit Laden, mit Rezept, mit Item-Seite,
+        Proben.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -233,6 +249,16 @@
         Kopf der Tafel)                                             -> [21]
     ii  in dist/assets/hangar-layouts.js board aus der Rueckgabe von
         initWorkshop streichen                                      -> [21]
+    jj  in dist/hangar-layouts.json dem Attrition-3 als Weg ins
+        Crafting (cu) eine Seite geben, die es nicht gibt           -> [22]
+    kk  in dist/assets/hangar-holo3d.js drawItem umbenennen (die
+        rechte Tafel bliebe beim Schiff; [21] reisst mit, weil die
+        Version nicht mehr zum Inhalt passt)                        -> [22]
+    ll  in dist/assets/hangar-layouts.js classRank um eins
+        verschieben (rank: better statt better + 1): jeder Platz
+        auf der Tafel saehe richtig aus und waere falsch            -> [22]
+    mm  in dist/hangar.html data-item von #hgl streichen (der Knopf
+        „Item-Seite“ fehlte auf der englischen Tafel)               -> [22]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1347,8 +1373,9 @@ const INNEN = { min: 217, randM: 0.5 };
 say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Version, Viewer-Naht, ?station= hin und zurueck, ?pane=ship lesbar');
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 10.11.2026:
 // zwei Stationen (Uebersicht, Loadout; Kampf kommt mit H2), 14 Proben der
-// Adresse je Seite.
-const STATIONEN = { stationen: 2, proben: 28, woerter: 47 };
+// Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
+// 116 seit dem Datenblatt des Bauteils (11.11.2026).
+const STATIONEN = { stationen: 2, proben: 28, woerter: 116 };
 {
   let mod = null;
   try { mod = await import(new URL(`file://${ctrlFile}`).href); } catch (e) { fail(`[21] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
@@ -1450,8 +1477,97 @@ const STATIONEN = { stationen: 2, proben: 28, woerter: 47 };
   ist.stationen = list.length; ist.stationenProben = proben; ist.werkstattWoerter = wsKeys.length;
 }
 
+say('\n[22] Datenblatt des Bauteils in der Halle: Naht Werkstatt, Controller, Modul, Viewer; Rang-Rechnung am ausgelieferten Skript; Wege mit Zielen in dist/');
+// Sperrklinken (Grundsatz 5). Erster Bau am 11.11.2026: 499 Bauteile, 340
+// mit Laden, 388 mit Rezept, 499 mit Item-Seite. Laeden und Rezepte kommen
+// aus Fremddaten und duerfen nach einem Datenlauf schwanken (Grundsatz 3),
+// darum liegen ihre Klinken mit Abstand darunter: sie fangen, dass layouts.ts
+// die Felder nicht mehr schreibt, nicht jeden Laden, der schliesst. Die
+// Proben der Rang-Rechnung zaehlen genau.
+const BLATT = { kauf: 250, rezept: 300, seite: 450, proben: 9 };
+{
+  const ohneK = (t) => t.replace(/\/\/[^\n]*/g, '');
+  const wsFile = join(DIST, 'assets', 'hangar-layouts.js');
+  const ws = existsSync(wsFile) ? ohneK(readFileSync(wsFile, 'utf8')) : '';
+  const holoFile = join(DIST, 'assets', 'hangar-holo3d.js');
+  const holo = existsSync(holoFile) ? ohneK(readFileSync(holoFile, 'utf8')) : '';
+  // Naht: Werkstatt liefert das Blatt (board().sheet), der Controller reicht
+  // es als item weiter, das Modul zeichnet es rechts und holt das Modell
+  // des Bauteils beim Viewer (ctx.part)
+  const naht = [
+    [/function sheetOf\(/.test(ws) && /\bpaints, sheet,/.test(ws) && /what === 'peek'/.test(ws), 'dist/assets/hangar-layouts.js baut das Datenblatt nicht mehr (sheetOf), gibt es mit board() nicht heraus (sheet) oder nimmt das Teil unter dem Zeiger nicht an (act peek)'],
+    [/item:\s*lo\?\.sheet/.test(ohneK(ctrl)), 'dist/assets/hangar-overview.js reicht das Datenblatt der Werkstatt nicht mehr an die Halle (item: lo?.sheet)'],
+    [/function drawItem\(/.test(holo) && /d\.item\s*\?\s*\[drawItem/.test(holo) && /\['peek',/.test(holo), 'dist/assets/hangar-holo3d.js zeichnet das Datenblatt nicht mehr (drawItem), stellt es nicht rechts auf (rightOf) oder meldet das Teil unter dem Zeiger nicht (peek)'],
+    [/ctx\.part\(/.test(holo) && /part:\s*loadPartRaw/.test(ohneK(viewer)), 'das Modell des Bauteils kommt nicht mehr an: dist/assets/hangar-holo3d.js fragt ctx.part nicht oder dist/assets/hangar-viewer.js reicht loadPartRaw nicht hinein'],
+  ].filter(([ok]) => !ok).map(([, text]) => text);
+  for (const text of naht) fail(`[22] ${text}: die rechte Tafel bleibt beim Schiff oder das Bauteil-Hologramm fehlt`);
+  // Rang-Rechnung am ausgelieferten Skript: Platz, Gleichstand, weniger ist
+  // besser, Lage auf dem Streifen
+  let proben = 0;
+  let lib = null;
+  try { lib = await import(new URL(`file://${wsFile}`).href); } catch (e) { fail(`[22] dist/assets/hangar-layouts.js laedt nicht als Modul (${e.message})`); }
+  if (lib && (typeof lib.classRank !== 'function' || typeof lib.classStrip !== 'function' || !(lib.LOWER instanceof Set))) { fail('[22] dist/assets/hangar-layouts.js exportiert classRank, classStrip oder LOWER nicht mehr: Datenblatt und Advanced Loadout rechnen ohne sie nicht'); lib = null; }
+  if (lib) {
+    const gleich = (was, ist2, soll) => { proben++; if (JSON.stringify(ist2) !== JSON.stringify(soll)) fail(`[22] Rang-Rechnung: ${was} ergibt ${JSON.stringify(ist2)}, erwartet ${JSON.stringify(soll)}`); };
+    const v = [2041.67, 877.5, 683.63, 683.63, 562.5, 501.67, 455.25, 105, 105, 34.67];
+    gleich('classRank(v, 501.67)', lib.classRank(v, 501.67), { rank: 6, of: 10, same: 0, worse: 4 });
+    gleich('classRank(v, 683.63)', lib.classRank(v, 683.63), { rank: 3, of: 10, same: 1, worse: 6 });
+    gleich('classRank(v, 562.5) nach zwei Teilen auf Platz 3', lib.classRank(v, 562.5)?.rank, 5);
+    gleich('classRank(v, 34.67, lower)', lib.classRank(v, 34.67, true), { rank: 1, of: 10, same: 0, worse: 9 });
+    gleich('classRank ohne eigenen Wert', lib.classRank(v, 7), null);
+    const st = lib.classStrip([10, 20, 20, 50]), lo = lib.classStrip([10, 20, 20, 50], true);
+    gleich('classStrip Punkte', st?.dots, [[0, 1], [25, 2], [100, 1]]);
+    gleich('classStrip Lage des Besten', [st?.x(50), lo?.x(10)], [100, 100]);
+    gleich('classStrip Median', st?.med, 25);
+    gleich('LOWER', ['sp.dly', 'sp.lkT', 'sp.em', 'sp.regen'].map((k) => lib.LOWER.has(k)), [true, true, true, false]);
+  }
+  // Wege: was das Blatt nennt, gibt es. Jede Adresse ins Crafting und jede
+  // Item-Seite liegt in dist/, in beiden Sprachen (die Seite setzt /de davor)
+  const lf = join(DIST, 'hangar-layouts.json');
+  const ld = existsSync(lf) ? JSON.parse(readFileSync(lf, 'utf8')) : {};
+  let kauf = 0, rezept = 0, seite = 0;
+  const tot = [];
+  const da = (pfad) => existsSync(join(DIST, pfad.replace(/^\//, '').replace(/[?#].*$/, '')));
+  for (const [k, it] of Object.entries(ld.items ?? {})) {
+    const x = it[8] ?? {};
+    if (it[9]) {
+      if (Number.isInteger(x.sn) && x.sn > 0 && typeof x.sl === 'string' && x.sl.trim()) kauf++;
+      else tot.push(`${k}: Ladenpreis ohne Zahl der Läden (sn) oder Ort (sl)`);
+    } else if (x.sn || x.sl) tot.push(`${k}: Läden genannt (sn, sl), aber kein Ladenpreis`);
+    if (x.ct || x.cu) {
+      if (!(x.ct > 0) || typeof x.cu !== 'string' || !x.cu.startsWith('/')) tot.push(`${k}: Rezept ohne Bauzeit (ct) oder ohne Adresse (cu)`);
+      else if (!da(x.cu) || !da(`/de${x.cu}`)) tot.push(`${k}: Adresse ins Crafting ${x.cu} liegt nicht in dist/ (EN und DE)`);
+      else rezept++;
+    }
+    if (x.pg) {
+      const id = k.split('~')[0];
+      if (!da(`/items/${id}.html`) || !da(`/de/items/${id}.html`)) tot.push(`${k}: Item-Seite /items/${id}.html liegt nicht in dist/ (EN und DE)`);
+      else seite++;
+    }
+  }
+  for (const t of tot.slice(0, 10)) fail(`[22] ${t}: das Datenblatt zeigt einen Weg, der ins Leere führt`);
+  if (tot.length > 10) fail(`[22] … und ${tot.length - 10} weitere Wege ins Leere`);
+  // Vorlagen der Seite: Adresse der Item-Seite mit Platzhalter, Sprachpräfix
+  let vorlagen = 0;
+  for (const page of PAGES) {
+    const tag = /<aside[^>]*\bid="hgl"[^>]*>/.exec(page.html)?.[0] ?? '';
+    const item = /\bdata-item="([^"]*)"/.exec(tag)?.[1], pre = /\bdata-pre(?:="([^"]*)")?/.exec(tag);
+    const soll = page.lang === 'de' ? '/de/items/ITEMID.html' : '/items/ITEMID.html', sollPre = page.lang === 'de' ? '/de' : '';
+    if (item !== soll) fail(`[22] ${page.file}: data-item an #hgl ist ${item ?? 'nicht gesetzt'}, erwartet ${soll}: der Knopf „Item-Seite“ fehlt oder führt in die falsche Sprache`);
+    else if (!pre || (pre[1] ?? '') !== sollPre) fail(`[22] ${page.file}: data-pre an #hgl ist ${pre ? `„${pre[1] ?? ''}“` : 'nicht gesetzt'}, erwartet „${sollPre}“: „Herstellen“ führt in die falsche Sprache`);
+    else vorlagen++;
+  }
+  sollIst(`Naht ganz; Bauteile mit Laden >= ${BLATT.kauf}, mit Rezept >= ${BLATT.rezept}, mit Item-Seite >= ${BLATT.seite}, jedes Ziel in dist/; Proben der Rang-Rechnung >= ${BLATT.proben}; Vorlagen auf beiden Seiten`,
+    `Naht ${naht.length ? `mit ${naht.length === 1 ? 'einer Lücke' : `${naht.length} Lücken`}` : 'ganz'}, ${Object.keys(ld.items ?? {}).length} Bauteile, ${kauf} mit Laden, ${rezept} mit Rezept, ${seite} mit Item-Seite, ${tot.length} Wege ins Leere, ${proben} Proben, Vorlagen auf ${vorlagen} von ${PAGES.length} Seiten`);
+  if (kauf < BLATT.kauf) fail(`[22] nur ${kauf} Bauteile mit Laden (Klinke ${BLATT.kauf}): schreibt layouts.ts sn und sl nicht mehr?`);
+  if (rezept < BLATT.rezept) fail(`[22] nur ${rezept} Bauteile mit Rezept (Klinke ${BLATT.rezept}): findet recipeForItem die Rezepte der Schiffsteile nicht mehr?`);
+  if (seite < BLATT.seite) fail(`[22] nur ${seite} Bauteile mit Item-Seite (Klinke ${BLATT.seite})`);
+  if (proben < BLATT.proben) fail(`[22] nur ${proben} Proben der Rang-Rechnung (Klinke ${BLATT.proben}): das Skript der Werkstatt lädt nicht`);
+  ist.blattKauf = kauf; ist.blattRezept = rezept; ist.blattSeite = seite; ist.blattProben = proben;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

@@ -29,6 +29,12 @@
 //   Hüllquaders, die zur Kamera zeigen; Komponenten als Nummern am Port,
 //   durch den Rumpf sichtbar.
 //
+// - Steht in der Ausrüstung ein Slot offen, zeigt die rechte Tafel statt des
+//   Schiffs das Datenblatt des Bauteils (drawItem; Krisz 11.11.2026: „ja so
+//   ungefähr einbauen“): das Teil unter dem Zeiger in der Auswahl, sonst das
+//   eingebaute. Über ihr schwebt das Bauteil selbst als Hologramm (partHolo),
+//   aus demselben Modell, das die Werkstatt ans Schiff setzt.
+//
 // Knöpfe auf den Tafeln (Vergleich, Alle Werte) gibt es auch als Knöpfe der
 // Seite; für Tastatur und Vorleser zählt die Seite, die Tafeln sind Bild.
 
@@ -579,7 +585,8 @@ function drawLoadout(g, d, hover, ui = {}) {
         // Wertbalken bis zum stärksten passenden Teil
         g.save(); g.fillStyle = 'rgba(143,211,255,.14)'; g.fillRect(nx, yy + LO.oh - 4.5, right - nx, 2);
         g.fillStyle = rgba(ot, 0.85); g.fillRect(nx, yy + LO.oh - 4.5, Math.max(2, (right - nx) * clamp(o.bar, 0, 1)), 2); g.restore();
-        if (!o.on) hit(O.x, yy, O.w, LO.oh, oact, v0, v1);
+        // das eingebaute Teil ist kein Knopf, meldet sich aber unter dem Zeiger: sein Datenblatt (lo|peek)
+        hit(O.x, yy, O.w, LO.oh, o.on ? `lo|peek|${pk.key}|${o.id}` : oact, v0, v1);
       });
       g.restore();
       if (P.pmax) {
@@ -691,6 +698,178 @@ function drawLoadout(g, d, hover, ui = {}) {
 }
 drawLoadout.W = LO_W;
 
+// ─── Datenblatt des Bauteils: rechte Tafel, solange ein Slot offen steht ──
+// Einordnung wie in Detail Pages 2.0 (Richtung B): jeder Wert als Streifen
+// seiner Klasse. Jedes Teil der Klasse ein Punkt (mehrere mit demselben Wert:
+// ein größerer), dieses hell, das Vergleichsteil als Ring, der Strich ist der
+// Median; rechts ist immer besser. Darunter die Wege, die es gibt (Herstellen
+// im Orange des Craftings), und was der Tausch am Schiff ändert. Wörter und
+// Zahlen kommen fertig von der Werkstatt (assets/hangar-layouts.js, sheetOf).
+// d = { key, head, tag, type, dt, size, icon, name, line, lead: [[text, fett]],
+//   strips: [{ label, value, unit, short, hint, med, dots: [[x, n]], me, fit, delta, dir }],
+//   legend: { me, fit, all }, ways: [{ k, v, u, s, s2, tone, href }], rows,
+//   effect: { label, text, delta, dir } | null, buttons: [{ label, main, craft, a, href }], model }
+// rows: so viele Wege hat das reichste Teil der Auswahl; die Tafel hält den
+// Platz frei, damit sie beim Blättern durch die Liste nicht springt.
+// Knöpfe: it|b|<i> (buttons), it|w|<i> (Weg mit Adresse).
+const ITEM_W = 370;
+const CRAFT = '#ff9a55';
+const IT = { p: 14, yHead: 23, ySock: 36, yLead: 100, lh: 17, lead: 3, sh: 40, wr: 28 };
+// Text aus Stücken [text, fett] umbrechen; dry: nur zählen
+function rich(g, segs, x, y, max, lh, st, dry) {
+  let cx = x, cy = y, lines = 1;
+  for (const [t, b] of segs) {
+    const o = b ? { ...st, w: 600, c: C.txt } : st;
+    for (const word of String(t).match(/\S+\s*|\s+/g) ?? []) {
+      if (cx > x && cx + measure(g, word.trimEnd(), o) > x + max) { cx = x; cy += lh; lines++; }
+      if (!dry && (cx > x || word.trim())) text(g, word, cx, cy, o);
+      cx += cx === x && !word.trim() ? 0 : measure(g, word, o);
+    }
+  }
+  return lines;
+}
+// Der Satz der Einordnung, höchstens IT.lead Zeilen: passt er nicht, endet er nach dem ersten Punkt
+function leadOf(g, d, st) {
+  const max = ITEM_W - 2 * IT.p;
+  if (rich(g, d.lead, 0, 0, max, IT.lh, st, true) <= IT.lead) return d.lead;
+  const i = d.lead.findIndex(([t]) => /[.!?]\s*$/.test(t) || /[.!?]\s/.test(t));
+  return i < 0 ? d.lead : d.lead.slice(0, i + 1).map(([t, b], j, a) => (j === a.length - 1 ? [t.replace(/([.!?])\s.*$/, '$1'), b] : [t, b]));
+}
+function drawItem(g, d, hover, ui = {}) {
+  const W = ITEM_W, { p, yHead, ySock, yLead, lh, sh, wr } = IT;
+  const leadSt = { f: BAR, w: 400, s: 13, c: C.sub };
+  const rows = Math.max(d.rows ?? 0, d.ways.length);
+  // Höhe: voll, oder knapper, wenn über dem Platz der Tafel nicht genug frei ist
+  // (1: ohne den Satz, 2: auch ohne Legende und „Am Schiff“)
+  const plan = (lv) => {
+    const yStr = lv ? yLead - 8 : yLead + (IT.lead - 1) * lh + 14;
+    const yLeg = yStr + d.strips.length * sh + 2;
+    const yWay = yLeg + (lv < 2 ? 20 : 4);
+    const yEff = yWay + rows * wr + (rows ? 4 : 0);
+    const yBtn = yEff + (d.effect && lv < 2 ? 34 : 6);
+    return { lv, yStr, yLeg, yWay, yEff, yBtn, H: yBtn + 28 + 13 };
+  };
+  let L = plan(0);
+  for (let lv = 1; lv <= 2 && L.H > (ui.maxH ?? Infinity); lv++) L = plan(lv);
+  if (!g.canvas.dataset.h) return L.H;
+  const hits = [];
+  card(g, W, L.H);
+  const tint = tintOf(d.type, d.dt);
+  // Kopf: wessen Datenblatt, und sein Stand am Slot
+  head(g, d.head, p, yHead);
+  if (d.tag) {
+    const st = { f: BAR, w: 500, s: 11, c: C.sub }, w = Math.ceil(measure(g, d.tag, st)) + 16;
+    g.save(); rr(g, W - p - w, yHead - 14, w, 19, 9.5); g.lineWidth = 1; g.strokeStyle = 'rgba(143,211,255,.45)'; g.stroke(); g.restore();
+    text(g, d.tag, W - p - w / 2, yHead - 0.5, { ...st, al: 'center' });
+  }
+  // Sockel wie in der Liste links, eine Nummer größer
+  const sx = p, sy = ySock;
+  g.save(); rr(g, sx, sy, 42, 42, 9);
+  const sg = g.createRadialGradient(sx + 21, sy + 13, 0, sx + 21, sy + 13, 30);
+  sg.addColorStop(0, rgba(tint, 0.26)); sg.addColorStop(1, rgba(tint, 0.06));
+  g.fillStyle = sg; g.fill(); g.lineWidth = 1; g.strokeStyle = rgba(tint, 0.6); g.stroke(); g.restore();
+  icon(g, d.icon, sx + 9, sy + 6, 24, tint);
+  {
+    const st = { f: RAJ, w: 700, s: 10.5 }, w = Math.ceil(measure(g, d.size, st)) + 10;
+    g.save(); rr(g, sx + 21 - w / 2, sy + 33, w, 14, 3.5); g.fillStyle = '#071c30'; g.fill(); g.lineWidth = 1; g.strokeStyle = rgba(tint, 0.6); g.stroke(); g.restore();
+    text(g, d.size, sx + 21, sy + 44, { ...st, c: C.sub, al: 'center' });
+  }
+  const nx = p + 54, nSt = { f: ORB, w: 900, s: 16, ls: '0.04em', glow: GLOW };
+  const nm = d.name.toLocaleUpperCase();
+  while (nSt.s > 11.5 && measure(g, nm, nSt) > W - p - nx) nSt.s -= 0.5;
+  text(g, fit(g, nm, W - p - nx, nSt), nx, sy + 19, nSt);
+  text(g, fit(g, d.line, W - p - nx, { f: BAR, s: 13 }), nx, sy + 38, { f: BAR, s: 13, c: C.sub });
+  // Einordnung in einem Satz
+  if (!L.lv) rich(g, leadOf(g, d, leadSt), p, yLead, W - 2 * p, lh, leadSt, false);
+  // Streifen
+  const tx0 = p + 5, tx1 = W - p - 5, tw = tx1 - tx0;
+  d.strips.forEach((s, i) => {
+    const y = L.yStr + i * sh;
+    const lw = text(g, s.label.toLocaleUpperCase(), p, y + 13, { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' });
+    // rechts: Abstand zum Vergleichsteil, davor Zahl und Einheit
+    const dSt = s.dir ? { f: RAJ, w: 700, s: 12.5, c: toneOf(s.dir), al: 'right' } : { f: BAR, s: 11.5, c: C.mut, al: 'right' };
+    const dw = s.delta ? text(g, s.delta, W - p, y + 13, dSt) + 10 : 0;
+    const uSt = { f: BAR, s: 11.5, c: C.mut, al: 'right' };
+    const uw = s.unit ? text(g, s.unit, W - p - dw, y + 13, uSt) + 4 : 0;
+    const vw = text(g, s.value, W - p - dw - uw, y + 13, { f: RAJ, w: 700, s: 15, al: 'right', glow: GLOW });
+    // dazwischen der Platz in der Klasse; „weniger ist besser“ nur, wo es Platz hat
+    const room = W - p - dw - uw - vw - 10 - (p + lw + 9), rSt = { f: BAR, s: 11.5, c: C.mut };
+    const full = [s.short, s.hint].filter(Boolean).join(' · ');
+    const note = measure(g, full, rSt) <= room ? full : s.hint && !s.short ? s.hint : measure(g, `${s.short} ↓`, rSt) <= room && s.hint ? `${s.short} ↓` : s.short;
+    if (note) text(g, fit(g, note, Math.max(0, room), rSt), p + lw + 9, y + 13, rSt);
+    const ty = y + 27;
+    g.save();
+    g.fillStyle = 'rgba(143,211,255,.20)'; rr(g, tx0 - 5, ty - 1.5, tw + 10, 3, 1.5); g.fill();
+    if (s.me != null) {
+      g.fillStyle = 'rgba(190,230,255,.55)'; g.fillRect(tx0 + tw * s.med / 100 - 0.75, ty - 6, 1.5, 12);
+      for (const [x, n] of s.dots) { g.beginPath(); g.arc(tx0 + tw * x / 100, ty, 2.5 + Math.min(4, n - 1) * 0.6, 0, Math.PI * 2); g.fillStyle = 'rgba(143,211,255,.62)'; g.fill(); }
+      const mx = tx0 + tw * s.me / 100;
+      if (s.fit != null) {
+        const fx = tx0 + tw * s.fit / 100, same = Math.abs(fx - mx) < 1;
+        g.beginPath(); g.arc(fx, ty, same ? 8 : 6, 0, Math.PI * 2); g.lineWidth = 1.5; g.strokeStyle = '#d4f1ff'; g.stroke();
+      }
+      g.beginPath(); g.arc(mx, ty, 4.6, 0, Math.PI * 2); g.fillStyle = '#f2fbff'; g.shadowColor = C.cy; g.shadowBlur = 8 * S; g.fill();
+    }
+    g.restore();
+  });
+  // Legende: dieses Teil, das Vergleichsteil (falls es eines gibt), die Klasse
+  if (L.lv < 2) {
+    const st = { f: BAR, s: 11, c: C.mut }; let x = p + 4; const y = L.yLeg + 9;
+    g.save(); g.beginPath(); g.arc(x, y - 4, 4, 0, Math.PI * 2); g.fillStyle = '#f2fbff'; g.shadowColor = C.cy; g.shadowBlur = 6 * S; g.fill(); g.restore();
+    x += 9; x += text(g, d.legend.me, x, y, st) + 14;
+    if (d.legend.fit) {
+      g.save(); g.beginPath(); g.arc(x + 1, y - 4, 4.6, 0, Math.PI * 2); g.lineWidth = 1.4; g.strokeStyle = '#d4f1ff'; g.stroke(); g.restore();
+      x += 10; x += text(g, d.legend.fit, x, y, st) + 14;
+    }
+    g.save(); g.beginPath(); g.arc(x, y - 4, 2.4, 0, Math.PI * 2); g.fillStyle = 'rgba(143,211,255,.6)'; g.fill(); g.restore();
+    x += 7; text(g, fit(g, d.legend.all, W - p - x, st), x, y, st);
+  }
+  // Wege zum Bauteil; ein Weg mit Adresse ist ein Knopf
+  d.ways.forEach((w, i) => {
+    const y = L.yWay + i * wr, craft = w.tone === 'craft', col = craft ? CRAFT : C.cy, act = `it|w|${i}`, hot = !!w.href && hover === act;
+    g.save(); rr(g, p, y, W - 2 * p, wr - 4, 5);
+    g.fillStyle = craft ? `rgba(255,154,85,${hot ? 0.2 : 0.1})` : 'rgba(143,211,255,.06)'; g.fill();
+    g.lineWidth = 1; g.strokeStyle = craft ? `rgba(255,154,85,${hot ? 0.85 : 0.5})` : 'rgba(143,211,255,.2)'; g.stroke(); g.restore();
+    text(g, w.k.toLocaleUpperCase(), p + 10, y + 17, { f: RAJ, w: 700, s: 11, c: col, ls: '0.13em', glow: craft ? 'rgba(255,154,85,.5)' : 'rgba(110,200,255,.6)' });
+    const vw = text(g, w.v, p + 104, y + 17.5, { f: RAJ, w: 700, s: 15, c: C.txt });
+    const uw = w.u ? text(g, w.u, p + 104 + vw + 4, y + 17.5, { f: BAR, s: 11.5, c: C.sub }) + 4 : 0;
+    const arrow = w.href ? 14 : 0, sx0 = p + 104 + vw + uw + 12;
+    // passt der Zusatz nicht ganz, steht seine kurze Fassung da (Kaufen: die Zahl der Orte ohne den Ortsnamen)
+    const sSt = { f: BAR, s: 11.5 }, sMax = Math.max(0, W - p - 10 - arrow - sx0);
+    const sub = w.s2 && measure(g, w.s, sSt) > sMax ? w.s2 : w.s;
+    if (sub) text(g, fit(g, sub, sMax, sSt), W - p - 10 - arrow, y + 17.5, { ...sSt, c: C.mut, al: 'right' });
+    if (w.href) { text(g, '›', W - p - 9, y + 18, { f: RAJ, w: 700, s: 15, c: col, al: 'right' }); hits.push({ x: p, y, w: W - 2 * p, h: wr - 4, act }); }
+  });
+  // Was der Tausch am Schiff ändert
+  if (d.effect && L.lv < 2) {
+    const y = L.yEff;
+    g.save(); g.fillStyle = 'rgba(143,211,255,.20)'; g.fillRect(p, y, W - 2 * p, 1); g.restore();
+    const lw = text(g, d.effect.label.toLocaleUpperCase(), p, y + 20, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.13em' });
+    const dw = d.effect.delta ? text(g, d.effect.delta, W - p, y + 20, { f: RAJ, w: 700, s: 12.5, c: toneOf(d.effect.dir), al: 'right' }) : 0;
+    text(g, fit(g, d.effect.text, W - 2 * p - lw - dw - 18, { f: BAR, w: 500, s: 12.5 }), p + lw + 9, y + 20, { f: BAR, w: 500, s: 12.5, c: C.txt });
+  }
+  // Knöpfe: Einbauen trägt die Fläche, das Crafting sein Orange
+  const bSt = { f: RAJ, w: 700, s: 13.5 };
+  const widths = () => d.buttons.map((b) => Math.ceil(measure(g, b.label, bSt)) + 26);
+  while (bSt.s > 11 && widths().reduce((a, b) => a + b + 6, -6) > W - 2 * p) bSt.s -= 0.5;
+  let bx = p;
+  d.buttons.forEach((b, i) => {
+    const w = widths()[i], act = `it|b|${i}`, hot = hover === act;
+    g.save(); rr(g, bx, L.yBtn, w, 28, 14);
+    if (b.main) { g.fillStyle = hot ? '#d4f1ff' : C.cy; g.shadowColor = C.cy; g.shadowBlur = (hot ? 12 : 7) * S; g.fill(); }
+    else {
+      if (hot) { g.fillStyle = b.craft ? 'rgba(255,154,85,.16)' : 'rgba(143,211,255,.16)'; g.fill(); }
+      g.lineWidth = 1; g.strokeStyle = b.craft ? `rgba(255,154,85,${hot ? 0.9 : 0.6})` : hot ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.38)'; g.stroke();
+    }
+    g.restore();
+    text(g, b.label, bx + w / 2, L.yBtn + 19, { ...bSt, c: b.main ? INK : b.craft ? CRAFT : hot ? C.txt : C.sub, al: 'center' });
+    hits.push({ x: bx, y: L.yBtn, w, h: 28, act });
+    bx += w + 6;
+  });
+  return hits;
+}
+drawItem.W = ITEM_W;
+
 // kleines Schild (Maß, Nummer): Text in einem Rahmen, ohne Knöpfe
 function drawLabel(g, s, o = {}) {
   const st = { f: RAJ, w: 700, s: o.s ?? 16, glow: GLOW };
@@ -727,6 +906,44 @@ function drawNumber(g, n, mode = '', changed = false) {
   g.restore();
   return [32, 32];
 }
+
+// ─── Bauteil als Hologramm über dem Datenblatt ───────────────────────────
+// Das Modell des Teils (dieselbe .glb, die die Werkstatt ans Schiff setzt),
+// dunkel mit hellem Rand und Scanlinien statt mit Lack: Form zählt, nicht
+// Farbe. Es liegt im Bild über allem (Tiefenbereich ganz vorn, siehe
+// partMesh), verdeckt sich aber selbst richtig (Vorlauf nur in die Tiefe).
+// Helligkeit aus dem Farbbild des Teils, damit Platten und Fugen lesbar bleiben.
+const PART_VERT = `
+uniform mat3 uvT;
+varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+void main() {
+  vUv = (uvT * vec3(uv, 1.0)).xy;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz);
+  gl_Position = projectionMatrix * mv;
+}`;
+const PART_FRAG = `
+uniform sampler2D map; uniform float hasMap; uniform vec3 uC; uniform float uA;
+varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+void main() {
+  vec3 n = normalize(vN);
+  float f = pow(1.0 - abs(dot(n, normalize(vV))), 2.2);
+  float lum = 0.12;
+  if (hasMap > 0.5) lum = dot(texture2D(map, vUv).rgb, vec3(0.299, 0.587, 0.114));
+  lum = clamp(lum * 1.8, 0.0, 1.0);
+  float scan = 0.78 + 0.22 * step(0.5, fract(gl_FragCoord.y / 3.0));
+  float top = 0.5 + 0.5 * n.y;
+  vec3 col = vec3(0.003, 0.014, 0.034) + uC * (0.02 + 0.13 * lum + 0.06 * top) * scan + uC * f * 0.9 + vec3(1.0) * pow(f, 6.0) * 0.45;
+  gl_FragColor = vec4(col, 0.96 * uA);
+  #include <colorspace_fragment>
+}`;
+const PART_PRE = 'void main() { gl_FragColor = vec4(0.0); }';
+// Lage im Bild: Bordwaffen leicht von vorn oben, der Lauf zur Bildmitte;
+// Komponenten (Kästen) etwas steiler, damit Deckel und zwei Seiten zu sehen sind
+const PART_POSE = { gun: [0.16, 0.45], box: [0.3, 0.6] };
+const PART_KEEP = 6;      // so viele Modelle bleiben geladen (zuletzt gezeigte)
+const PART_WAIT = 140;    // erst laden, wenn der Zeiger so lange (ms) auf einem Teil ruht
+const PART_IN = 220;      // Einblenden (ms)
 
 // ─── Szene ───────────────────────────────────────────────────────────────
 function texFrom(draw, size) {
@@ -968,6 +1185,8 @@ export function holoLayer(ctx) {
 
   function clear() {
     if (!built) return;
+    // das Bauteil-Hologramm gehört dem Vorrat (partStore), nicht der Tafel: vor dem Aufräumen abnehmen
+    partOff(); partWant = null;
     root.traverse((o) => { if (o.isMesh || o.isSprite) { o.geometry?.dispose?.(); if (o.material?.map && o.material.map !== softTex && o.material.map !== beamTex && o.material.map !== bandTex) o.material.map.dispose(); o.material?.dispose?.(); } });
     root.clear(); mats.length = 0; built = null; hoverAct = null; el.style.cursor = '';
   }
@@ -984,10 +1203,148 @@ export function holoLayer(ctx) {
   // ── Übersicht bauen ──
   // Links die Ausrüstung (Werkstatt), solange sie fehlt die Systeme der Bucht
   const leftOf = (d) => (d.loadout ? [drawLoadout, d.loadout] : [drawSystems, d.systems]);
+  // Rechts das Schiff; steht in der Ausrüstung ein Slot offen, sein Bauteil
+  const rightOf = (d) => (d.loadout && d.item ? [drawItem, d.item] : [drawTiles, d.sheet]);
   function buildShip(rest, d) {
-    const left = makePanel(...leftOf(d), 'left'), sheet = makePanel(drawTiles, d.sheet, 'right');
+    const left = makePanel(...leftOf(d), 'left'), sheet = makePanel(...rightOf(d), 'right');
     const b = { key: d.key, panels: [left, sheet], left, sheet, sprites: [], box: worldBox(rest, d.dims.box), dims: d.dims, lines: null, model: rest.model, numKey: '' };
+    // Schein hinter dem Bauteil-Hologramm, mit der Tafel gebaut und aufgeräumt
+    b.partGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: softTex, color: C.cy, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false }, 0, sheet));
+    b.partGlow.renderOrder = RO.panel; b.partGlow.visible = false; b.partGlow.position.z = -0.02;
+    sheet.pivot.add(b.partGlow);
     return b;
+  }
+
+  // ── Bauteil als Hologramm über dem Datenblatt (siehe PART_VERT) ──
+  // Vorrat der zuletzt gezeigten Modelle: url -> { url, p, turn, size, own, used }.
+  // Jedes Modell wird einmal hergerichtet (Mitte, Drehung, eigenes Material)
+  // und hängt, solange es gezeigt wird, an der rechten Tafel.
+  const partStore = new Map();
+  const partA = { value: 0 };                       // Deckkraft, für alle Materialien dieselbe
+  const partC = { value: new THREE.Color(0x86d4ff) };
+  const glc = renderer.getContext();
+  let part = null;        // { e: Eintrag, at: Beginn des Einblendens }
+  let partWant = null;    // { url, pose } der Tafel, oder null
+  let partTimer = 0;
+  // Vor allem im Bild: Tiefenbereich ganz vorn, danach wieder der ganze
+  const partFront = () => glc.depthRange(0, 0.02), partBack = () => glc.depthRange(0, 1);
+  function partPrep(scene, pose) {
+    const own = { geo: new Set(), tex: new Set(), mat: [] };
+    const keep = new Set(), drop = [], meshes = [];
+    scene.traverse((o) => { if (o.isMesh) (o.visible ? meshes : drop).push(o); });
+    for (const o of drop) o.removeFromParent();
+    const texOf = (m) => Object.values(m).filter((t) => t?.isTexture);
+    for (const o of meshes) for (const m of [].concat(o.material)) if (m.map) keep.add(m.map.source);
+    const pre = new THREE.ShaderMaterial({ vertexShader: PART_VERT, fragmentShader: PART_PRE, uniforms: { uvT: { value: new THREE.Matrix3() } }, colorWrite: false, transparent: true, depthWrite: true, depthTest: true, fog: false });
+    own.mat.push(pre);
+    const made = new Map();
+    for (const o of meshes) {
+      const src = [].concat(o.material)[0];
+      own.geo.add(o.geometry);
+      if (!made.has(src)) {
+        const map = src?.map ?? null;
+        if (map) { map.updateMatrix(); own.tex.add(map); }
+        // Bilder, die das Hologramm nicht braucht (Normalen, Glanz), gleich freigeben
+        for (const m of [].concat(o.material)) { for (const t of texOf(m)) if (t !== map && !keep.has(t.source)) { t.dispose(); t.source?.data?.close?.(); } m.dispose(); }
+        const mat = new THREE.ShaderMaterial({
+          vertexShader: PART_VERT, fragmentShader: PART_FRAG, transparent: true, depthWrite: false, depthTest: true, fog: false, side: THREE.FrontSide,
+          uniforms: { map: { value: map }, hasMap: { value: map ? 1 : 0 }, uvT: { value: map ? map.matrix.clone() : new THREE.Matrix3() }, uC: partC, uA: partA },
+        });
+        own.mat.push(mat); made.set(src, mat);
+      }
+      o.material = made.get(src);
+      o.renderOrder = RO.panel + 2; o.castShadow = false; o.receiveShadow = false;
+      const dm = new THREE.Mesh(o.geometry, pre); dm.renderOrder = RO.panel + 1; o.add(dm);
+      for (const x of [o, dm]) { x.frustumCulled = false; x.onBeforeRender = partFront; x.onAfterRender = partBack; }
+    }
+    // Mitte in den Ursprung. Die Teile liegen in den Achsen des Spiels (x quer,
+    // y nach vorn, z nach oben; so setzt sie auch der Anker am Schiff): oben
+    // bleibt oben, und die längere der beiden liegenden Seiten kommt quer ins
+    // Bild, bei einer Waffe der Lauf nach links zum Schiff. Darauf die Pose.
+    scene.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(scene), c = box.getCenter(new THREE.Vector3()), s0 = box.getSize(new THREE.Vector3());
+    scene.position.sub(c);
+    const up = new THREE.Group(); up.add(scene); up.rotation.x = -Math.PI / 2;
+    const inner = new THREE.Group(); inner.add(up); inner.rotation.y = s0.y > s0.x ? Math.PI / 2 : 0;
+    const turn = new THREE.Group(); turn.add(inner); turn.rotation.set(pose[0], pose[1], 0);
+    turn.updateMatrixWorld(true);
+    const size = new THREE.Box3().setFromObject(turn).getSize(new THREE.Vector3());
+    return { turn, size, own, n: meshes.length };
+  }
+  function partFree(e) {
+    if (!e.own) return;
+    for (const gm of e.own.geo) gm.dispose();
+    for (const t of e.own.tex) { t.dispose(); t.source?.data?.close?.(); }
+    for (const m of e.own.mat) m.dispose();
+    e.own = null; e.turn = null;
+  }
+  function partLoad(url, pose) {
+    let e = partStore.get(url);
+    if (!e) {
+      e = { url, turn: null, size: null, own: null, used: 0, dead: false };
+      e.p = Promise.resolve().then(() => ctx.part(url)).then((scene) => {
+        const r = partPrep(scene, pose);
+        if (e.dead) { e.own = r.own; partFree(e); return e; }
+        Object.assign(e, r);
+        return e;
+      });
+      // ein Modell, das nicht lädt, bleibt weg (die Tafel steht ohne es), und der nächste Versuch beginnt neu
+      e.p.catch((err) => { partStore.delete(url); console.warn('[hangar] Bauteil-Hologramm nicht geladen', url, err); });
+      partStore.set(url, e);
+    }
+    e.used = performance.now();
+    // Vorrat klein halten: die am längsten nicht gezeigten gehen
+    const rest = [...partStore.values()].filter((o) => o !== e && o !== part?.e).sort((a, b) => a.used - b.used);
+    while (partStore.size > PART_KEEP && rest.length) { const o = rest.shift(); o.dead = true; partStore.delete(o.url); partFree(o); }
+    return e;
+  }
+  function partOff() {
+    clearTimeout(partTimer); partTimer = 0;
+    if (part?.e.turn) part.e.turn.removeFromParent();
+    part = null;
+    if (built?.partGlow) built.partGlow.visible = false;
+  }
+  // Was die rechte Tafel zeigt, bestimmt das Bauteil: nach jedem neuen Stand
+  function partSync() {
+    const d = built?.sheet.draw === drawItem ? built.sheet.data : null;
+    const want = d?.model && ctx.part ? { url: d.model, pose: PART_POSE[d.type === 'gun' ? 'gun' : 'box'] } : null;
+    if (want?.url === partWant?.url) return;
+    partWant = want;
+    partOff();
+    if (!want) return;
+    const show = () => {
+      partTimer = 0;
+      const e = partLoad(want.url, want.pose);
+      e.p.then(() => {
+        if (partWant?.url !== e.url || !built || !e.turn) return;
+        partOff();
+        part = { e, at: performance.now() };
+        built.sheet.pivot.add(e.turn);
+        ctx.wake(PART_IN + 200);
+      }, () => {});
+    };
+    // schon geladen: sofort; sonst erst, wenn der Zeiger kurz ruht (beim Überfahren der Liste lädt nichts)
+    if (partStore.get(want.url)?.turn) show(); else partTimer = setTimeout(show, PART_WAIT);
+  }
+  // je Bild: Größe und Platz über der Tafel; d = Tiefe der Tafel, ch = ihre Höhe (m)
+  function partPlace(P, d, now) {
+    if (!part || P !== built.sheet) return false;
+    const e = part.e, glow = built.partGlow, mpp = d / ppm();
+    // frei über der Tafel bis unter Kopfzeile und Knöpfe der Seite
+    const free = (P.rect ? P.rect.t : 0) - roomOf(P, P.cssW).top - 14;
+    const bw = P.cssW * 0.84, bh = Math.min(P.cssW * 0.42, free - 12);
+    const ok = bh >= 56 && P.group.visible;
+    e.turn.visible = ok; glow.visible = ok;
+    if (!ok) return false;
+    const k = Math.min(bw / e.size.x, bh / e.size.y) * mpp;
+    const t = reduceMotion ? 1 : ease((now - part.at) / PART_IN);
+    e.turn.scale.setScalar(k * (0.94 + 0.06 * t));
+    const y = P.cssH * mpp + 12 * mpp + (e.size.y * k) / 2;
+    e.turn.position.set(-P.cssW * 0.05 * mpp, y, 0);
+    glow.position.set(e.turn.position.x, y, -0.02);
+    glow.scale.set(e.size.x * k * 1.5, Math.max(e.size.y * k * 1.9, e.size.x * k * 0.5), 1);
+    part.t = t;
+    return t < 1;
   }
   // Nummern an den Ports der Zeilen links; neu, wenn Reiter oder Zeilen wechseln
   function syncNums(d) {
@@ -1215,6 +1572,7 @@ export function holoLayer(ctx) {
     P.proj.scale.set(fw, 1, 1);
     P.beam.scale.set(1, LIFT + 0.02, 1); P.beam.position.y = (LIFT + 0.02) / 2;
     P.glow.scale.set(fw * 1.45, fw * 0.64, 1);
+    if (partPlace(P, d, now)) P.partBusy = true; else P.partBusy = false;
   }
   function placeSprite(sp) {
     // Nummern hängen am Port: aus dem Modellraum, falls das Schiff sich noch rührt
@@ -1251,6 +1609,12 @@ export function holoLayer(ctx) {
   function setAlpha(a) {
     for (const [m, base, P] of mats) m.opacity = base * a * (P ? P.k : 1);
     root.visible = a > 0.001; dim.visible = a > 0.001;
+  }
+  // Deckkraft des Bauteil-Hologramms: mit der Station, seiner Tafel und dem eigenen Einblenden
+  function partAlpha() {
+    const k = part && built ? alpha * built.sheet.k * (part.t ?? 0) : 0;
+    partA.value = k;
+    if (built?.partGlow) built.partGlow.material.opacity = 0.2 * k;
   }
   function setK(P, k) {
     if (P.k === k) return;
@@ -1314,7 +1678,13 @@ export function holoLayer(ctx) {
     if (act === 'ui|menu') { if (!menu) { ui.menu = true; redraw(built.left); settledAt = 0; ctx.wake(300); } }
     else if (act === 'ui|rename') ctx.act({ act: 'lo', a: ['rename'] });
     else if (act.startsWith('ui|')) return;
-    else if (act.startsWith('lo|')) ctx.act({ act: 'lo', a: act.split('|').slice(1) });
+    else if (act.startsWith('it|')) {
+      // Datenblatt des Bauteils: Knopf (Einbauen, Crafting, Item-Seite) oder Weg mit Adresse
+      const [, kind, i] = act.split('|'), d = built.sheet.draw === drawItem ? built.sheet.data : null;
+      const t = kind === 'b' ? d?.buttons?.[Number(i)] : d?.ways?.[Number(i)];
+      if (t?.a) ctx.act({ act: 'lo', a: t.a });
+      else if (t?.href) ctx.act({ act: 'go', href: t.href });
+    } else if (act.startsWith('lo|')) ctx.act({ act: 'lo', a: act.split('|').slice(1) });
     else if (act.startsWith('href|')) ctx.act({ act: 'go', href: act.slice(5) });
     else if (act.startsWith('sys:')) ctx.act({ act: 'sys', row: act.slice(4) });
     else if (act.startsWith('go:')) {
@@ -1328,7 +1698,11 @@ export function holoLayer(ctx) {
     if (act === hoverAct) return;
     hoverAct = act;
     applyHover();
-    el.style.cursor = act ? 'pointer' : '';
+    // das eingebaute Teil der Auswahl meldet sich nur (lo|peek), es ist kein Knopf
+    const pk = act ? /^lo\|(opt|peek)\|([^|]+)\|(.+)$/.exec(act) : null;
+    el.style.cursor = act && pk?.[1] !== 'peek' ? 'pointer' : '';
+    // Zeiger auf einem Teil der offenen Auswahl: sein Datenblatt auf die rechte Tafel
+    if (pk) ctx.act({ act: 'lo', a: ['peek', pk[2], pk[3]] });
     ctx.wake(300);
   };
   const onMove = (e) => { if (!e.buttons) hoverTo(pick(e)); };
@@ -1369,7 +1743,9 @@ export function holoLayer(ctx) {
       else if (data.pick && was?.pick && data.pick.opts.length !== was.pick.opts.length) L.ui.pReveal = true;
     }
     L.draw = draw; L.data = data;
-    built.sheet.data = d.sheet;
+    const R = built.sheet;
+    [R.draw, R.data] = rightOf(d);
+    partSync();
     syncNums(d);
   }
 
@@ -1406,6 +1782,7 @@ export function holoLayer(ctx) {
       if (!built && want && ready) {
         built = buildShip(rest, want.data);
         restKey = rest.key;
+        partWant = null; partSync();
         syncNums(want.data);
         updateMarks();
         retarget(now, true);
@@ -1421,12 +1798,13 @@ export function holoLayer(ctx) {
         // haben: sonst hielt der Viewer an, bevor REST_MS um war, und die
         // Tafel blieb, wo die Drehung sie gelassen hatte (hinter dem Rumpf)
         if (settledAt < camMoved) busy = true;
-        for (const P of built.panels) { place(P, now); if (P.from || P.hop) busy = true; }
+        for (const P of built.panels) { place(P, now); if (P.from || P.hop || P.partBusy) busy = true; }
         for (const sp of built.sprites) placeSprite(sp);
       }
       const t = reduceMotion ? 1 : Math.min(1, (now - fadeAt) / FADE_MS);
       const a = alphaFrom + (alphaTo - alphaFrom) * ease(t);
       if (Math.abs(a - alpha) > 1e-4 || (built && alpha === 0 && a === 0 && alphaTo === 1)) { alpha = a; setAlpha(alpha); }
+      partAlpha();
       if (t < 1) busy = true;
       if (built && alphaTo === 0 && alpha <= 0.001 && want === null) { clear(); dimCorner = ''; }
       return busy;
@@ -1438,6 +1816,8 @@ export function holoLayer(ctx) {
       el.removeEventListener('pointerleave', onLeave);
       wheelHost.removeEventListener('wheel', onWheel, { capture: true });
       clear(); scene.remove(root); scene.remove(dim);
+      for (const e of partStore.values()) { e.dead = true; partFree(e); }
+      partStore.clear();
       dim.geometry.dispose(); dimMat.dispose(); softTex.dispose(); beamTex.dispose(); bandTex.dispose();
     },
   };

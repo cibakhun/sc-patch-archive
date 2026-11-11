@@ -15,6 +15,7 @@ import { hangarT, type HangarKey } from '../../i18n/hangarText';
 import { useHelp } from '../../i18n/help';
 import { href, type Locale } from '../../i18n/ui';
 import { layoutDataHref } from '../../lib/hangar/layouts';
+import { itemPath } from '../../lib/items';
 
 interface Props { lang: Locale }
 const { lang } = Astro.props;
@@ -22,6 +23,10 @@ const l = layoutT(lang);
 const t = hangarT(lang);
 const h = useHelp(lang);
 const loHref = href('/hangar-loadout.html', lang);
+// Fuer das Datenblatt des Bauteils: Adresse einer Item-Seite als Vorlage und
+// das Sprachpraefix vor den Adressen ins Crafting (extra.cu in layouts.ts)
+const itemTpl = href(itemPath('ITEMID'), lang);
+const sitePre = href('/x', lang).slice(0, -2);
 
 // Vorlagen fuer den Client: Werkstatt-Woerter und die geteilten Woerter der Bucht.
 const LAYOUT_MSG: LayoutKey[] = [
@@ -34,11 +39,21 @@ const LAYOUT_MSG: LayoutKey[] = [
   'saved.empty', 'saved.account', 'saved.guest', 'saved.login', 'saved.pending', 'saved.error', 'saved.here', 'saved.open', 'saved.share', 'saved.delete', 'saved.deleteLabel', 'saved.stock', 'noslots',
   'grp.paint', 'paint.stock', 'paint.pattern', 'pick.head',
   'holo.title', 'holo.rename', 'holo.saveNew', 'holo.moreSaved',
+  // Datenblatt des Bauteils auf der rechten Tafel der Halle (sheetOf)
+  'sheet.head', 'sheet.preview',
+  'sheet.cls.gun', 'sheet.cls.missile', 'sheet.cls.torpedo', 'sheet.cls.gmissile', 'sheet.cls.bomb', 'sheet.cls.power', 'sheet.cls.cooler', 'sheet.cls.shield', 'sheet.cls.quantum', 'sheet.cls.radar',
+  'sheet.at.gun', 'sheet.at.ord', 'sheet.at.power', 'sheet.at.cooler', 'sheet.at.shield', 'sheet.at.quantum', 'sheet.at.radar',
+  'sheet.lead', 'sheet.even', 'sheet.only', 'sheet.pos.top', 'sheet.pos.high', 'sheet.pos.mid', 'sheet.pos.low', 'sheet.pos.last', 'sheet.rank', 'sheet.best', 'sheet.shared',
+  'sheet.nth', 'sheet.lower', 'sheet.same', 'sheet.me', 'sheet.all',
+  'sheet.s.speed', 'sheet.s.tempo', 'sheet.s.lkR', 'sheet.s.blast', 'sheet.s.dly', 'sheet.s.fuel',
+  'sheet.way.buy', 'sheet.way.from', 'sheet.places.one', 'sheet.places.other', 'sheet.way.craft', 'sheet.bp.one', 'sheet.bp.other', 'sheet.bp.none',
+  'sheet.way.stock', 'sheet.veh.one', 'sheet.veh.other', 'sheet.effect', 'sheet.craftOpen',
+  'tot.fire', 'tot.shield', 'sp.range', 'sp.rate', 'sp.lkT', 'sp.arm', 'sp.regen', 'sp.em', 'sp.ir', 'sp.pw', 'sp.hp', 'sp.spool', 'sp.cd', 'lo.fit',
 ];
 const BAY_MSG: HangarKey[] = [
   'grp.pilot', 'grp.manned', 'grp.remote', 'grp.missile', 'grp.bomb', 'grp.power', 'grp.cooler', 'grp.shield', 'grp.quantum', 'grp.radar',
   'cls.military', 'cls.civilian', 'cls.industrial', 'cls.stealth', 'cls.competition', 'grade',
-  'unit.damage', 'unit.power', 'unit.cooling', 'unit.sensitivity',
+  'unit.damage', 'unit.power', 'unit.cooling', 'unit.sensitivity', 'slot.page',
 ];
 const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014-4z';
 ---
@@ -252,7 +267,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 @media (prefers-reduced-motion:reduce){.hgl-dice.is-roll,.hgl-slot.is-flash,.hgl-slot.is-open .hgl-pick{animation:none}.hgl-toast,.hgl-chev,.hgl-slot,.hgl-btn,.hgl-sock,.hgl-allbtn{transition:none}}
 </style>
 
-<aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hgx-st-loadout" data-lang={lang} data-src={layoutDataHref()} data-lo={loHref}>
+<aside class="hgl" id="hgl" role="tabpanel" aria-labelledby="hgx-st-loadout" data-lang={lang} data-src={layoutDataHref()} data-lo={loHref} data-item={itemTpl} data-pre={sitePre}>
   <div class="hgl-head">
     <div class="hgl-namebox" data-help={h('hangar.ctl.layoutName')}>
       <input class="hgl-name" id="hgl-name" type="text" maxlength="60" autocomplete="off" spellcheck="false" aria-label={l('name.label')} />
