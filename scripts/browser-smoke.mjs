@@ -697,11 +697,38 @@ async function probeWerkstatt(page) {
   // zurueck, sein Knopf baut ein. Platz und Streifen rechnet die Werkstatt
   // (verify:hangar [22] prueft sie am gebauten Skript); hier zaehlt, dass der
   // Weg im Browser traegt und kein rohes Wort auf dem Blatt steht.
-  const I = '#hgl-slots .hgl-slot.is-open li:has(.hgl-opt[aria-pressed="false"]) .hgl-info';
+  // Das Blatt oeffnet sich aus einer GEFILTERTEN Liste: nur so faellt auf,
+  // wenn „Zur Auswahl“ das Suchwort oder die Zeile verliert. Das Suchwort ist
+  // das Wort der Zeile, das die wenigsten Zeilen trifft.
+  const OFFEN = '#hgl-slots .hgl-slot.is-open';
+  const I = `${OFFEN} li:has(.hgl-opt[aria-pressed="false"]) .hgl-info`;
   await page.click('#hgl-cats [data-cat="weapons"]', KLICK);
   await page.click('#hgl-slots .hgl-grp:not([hidden]) .hgl-slot__btn', KLICK);
   if (!(await page.locator(I).count())) return 'Werkstatt: die Zeilen der Auswahl tragen kein i zum Datenblatt (.hgl-info)';
-  await page.click(I, KLICK);
+  const wahl = await page.locator(I).first().evaluate((i) => {
+    const zeilen = [...i.closest('.hgl-opts').children];
+    const trifft = (w) => zeilen.filter((li) => li.dataset.q.includes(w)).length;
+    const woerter = [...new Set(i.parentElement.dataset.q.split(/\s+/).filter((w) => w.length >= 3))];
+    const suche = woerter.sort((x, y) => trifft(x) - trifft(y))[0] ?? '';
+    return { item: i.dataset.info, suche, treffer: suche ? trifft(suche) : 0, alle: zeilen.length };
+  });
+  if (!wahl.suche) return `Werkstatt: die Zeile von ${wahl.item} traegt kein Suchwort von mindestens 3 Zeichen (data-q)`;
+  if (wahl.treffer >= wahl.alle) return `Werkstatt: das Suchwort "${wahl.suche}" trifft alle ${wahl.alle} Zeilen der Auswahl, die Probe des Rueckwegs braucht eine gefilterte Liste`;
+  const IT = `${OFFEN} .hgl-info[data-info=${JSON.stringify(wahl.item)}]`;
+  const liste = () => page.evaluate((offen) => {
+    const slot = document.querySelector(offen), a = document.activeElement;
+    return {
+      zeilen: slot?.querySelectorAll('.hgl-opt').length ?? 0,
+      sichtbar: slot ? [...slot.querySelectorAll('.hgl-opts > li')].filter((li) => !li.hidden).length : 0,
+      suche: slot?.querySelector('.hgl-q')?.value ?? null,
+      fokus: a?.classList.contains('hgl-info') && !a.parentElement.hidden ? a.dataset.info : null,
+      blatt: !!document.querySelector('#hgl-slots .hgl-sheet'),
+    };
+  }, OFFEN);
+  await page.fill(`${OFFEN} .hgl-q`, wahl.suche, KLICK);
+  const gefiltert = await liste();
+  if (gefiltert.sichtbar !== wahl.treffer) return `Werkstatt: die Suche "${wahl.suche}" zeigt ${gefiltert.sichtbar} Zeilen, erwartet ${wahl.treffer} von ${wahl.alle}`;
+  await page.click(IT, KLICK);
   const blatt = await page.evaluate(() => {
     const s = document.querySelector('#hgl-slots .hgl-slot.is-open .hgl-sheet');
     if (!s) return null;
@@ -722,11 +749,13 @@ async function probeWerkstatt(page) {
   const roh = /\{\w+\}|\b(?:sheet|slot|sp|tot|unit|grp|lo)\.[a-z][\w.]*/.exec(blatt.text);
   if (roh) return `Werkstatt: auf dem Datenblatt steht ein rohes Wort ("${roh[0]}"): fehlt sein Schluessel in LAYOUT_MSG (LayoutWorkshop.astro)?`;
   if (!blatt.bau) return 'Werkstatt: dem Datenblatt eines nicht eingebauten Teils fehlt der Knopf zum Einbauen (.hgl-sheet__fit)';
-  await page.click('#hgl-slots .hgl-slot.is-open .hgl-sheet__back', KLICK);
-  const zurueck = await page.evaluate(() => ({ zeilen: document.querySelectorAll('#hgl-slots .hgl-slot.is-open .hgl-opt').length, blatt: !!document.querySelector('#hgl-slots .hgl-sheet') }));
+  await page.click(`${OFFEN} .hgl-sheet__back`, KLICK);
+  const zurueck = await liste();
   if (!zurueck.zeilen || zurueck.blatt) return 'Werkstatt: „Zur Auswahl“ fuehrt vom Datenblatt nicht zurueck in die Liste';
-  await page.click(I, KLICK);
-  await page.click('#hgl-slots .hgl-slot.is-open .hgl-sheet__fit', KLICK);
+  if (zurueck.suche !== wahl.suche || zurueck.sichtbar !== wahl.treffer) return `Werkstatt: „Zur Auswahl“ stellt das Suchwort der Liste nicht wieder her (Feld: "${zurueck.suche}", erwartet "${wahl.suche}"; sichtbare Zeilen: ${zurueck.sichtbar}, erwartet ${wahl.treffer})`;
+  if (zurueck.fokus !== wahl.item) return `Werkstatt: nach „Zur Auswahl“ liegt der Fokus nicht auf dem i derselben Zeile (Fokus: ${zurueck.fokus ?? 'kein i einer sichtbaren Zeile'}, erwartet ${wahl.item})`;
+  await page.click(IT, KLICK);
+  await page.click(`${OFFEN} .hgl-sheet__fit`, KLICK);
   const gebaut = await page.evaluate(() => ({ offen: !!document.querySelector('#hgl-slots .hgl-slot.is-open'), neu: document.querySelectorAll('#hgl-slots .hgl-slot[data-changed]').length }));
   if (gebaut.offen || gebaut.neu !== 1) return `Werkstatt: „Einbauen“ auf dem Datenblatt tauscht nicht (Slot offen: ${gebaut.offen}, getauschte Slots: ${gebaut.neu}, erwartet zu und 1)`;
   await tausche('systems');
