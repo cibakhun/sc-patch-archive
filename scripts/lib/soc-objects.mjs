@@ -18,24 +18,39 @@
 // (Box-Mitte = Lage + Versatz).
 import { inflateRawSync } from 'node:zlib';
 
+// Minimaler ZIP-Leser fuer socpaks. Er prueft die Struktur, statt still eine
+// leere oder gekuerzte Liste zu liefern: ein Scan (datamine:loot) zaehlt jeden
+// Wurf als Lesefehler, und eine still leere Liste saehe aus wie ein gelesenes
+// Archiv ohne Treffer (Befunde von CodeRabbit an #347). Gueltige ZIPs ohne
+// Eintraege bleiben eine leere Liste. Kein ZIP64.
 export function readZip(buf) {
   const files = new Map();
+  const kaputt = (was) => { throw new Error(`readZip: ${was} (${buf.length} Bytes)`); };
   let eocd = buf.length - 22;
   while (eocd > 0 && buf.readUInt32LE(eocd) !== 0x06054b50) eocd--;
-  // Ohne Endsignatur ist es kein ZIP: werfen statt einer leeren Liste, sonst
-  // zaehlt ein Scan das Archiv als gelesen und verliert seinen Inhalt still.
-  if (eocd < 0 || buf.readUInt32LE(eocd) !== 0x06054b50) throw new Error(`readZip: keine ZIP-Endsignatur (${buf.length} Bytes)`);
-  let p = buf.readUInt32LE(eocd + 16);
+  if (eocd < 0 || buf.readUInt32LE(eocd) !== 0x06054b50) kaputt('keine ZIP-Endsignatur');
   const n = buf.readUInt16LE(eocd + 10);
+  const cdGroesse = buf.readUInt32LE(eocd + 12), cdAb = buf.readUInt32LE(eocd + 16);
+  const cdEnde = cdAb + cdGroesse;
+  if (cdEnde > eocd) kaputt(`Zentralverzeichnis ${cdAb}+${cdGroesse} reicht ueber den Endrecord bei ${eocd}`);
+  let p = cdAb;
   for (let i = 0; i < n; i++) {
+    if (p + 46 > cdEnde || buf.readUInt32LE(p) !== 0x02014b50) kaputt(`Eintrag ${i + 1} von ${n} fehlt im Zentralverzeichnis`);
     const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20);
     const nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32);
+    const naechster = p + 46 + nl + xl + cl;
+    if (naechster > cdEnde) kaputt(`Eintrag ${i + 1} von ${n} reicht ueber das Zentralverzeichnis`);
     const local = buf.readUInt32LE(p + 42), name = buf.toString('utf8', p + 46, p + 46 + nl);
+    if (local + 30 > cdAb || buf.readUInt32LE(local) !== 0x04034b50) kaputt(`${name}: kein lokaler Kopf bei ${local}`);
     const data = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+    if (data + csize > cdAb) kaputt(`${name}: abgeschnitten (${data}+${csize}, Daten enden bei ${cdAb})`);
     const raw = buf.subarray(data, data + csize);
     files.set(name, () => (method === 8 ? inflateRawSync(raw) : raw));
-    p += 46 + nl + xl + cl;
+    p = naechster;
   }
+  // Auch ein Endrecord mit zu kleiner Zahl (z. B. 0 bei vollem Verzeichnis)
+  // faellt hier auf: die Eintraege muessen das Verzeichnis genau fuellen.
+  if (p !== cdEnde) kaputt(`${n} Eintraege, aber ${cdEnde - p} Bytes Zentralverzeichnis uebrig`);
   return files;
 }
 
