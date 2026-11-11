@@ -526,7 +526,7 @@ export const CHECKS = [
     script: 'scripts/verify-loot-fundorte.mjs',
     rail: 'A',
     checks:
-      'jede Belegung aus src/data/loot-fundorte.json hat eine Ortsart mit Spielernamen oder steht benannt unter VERSTECKT, jede Zuordnung in scripts/lib/loot-orte.mjs kommt in den Daten noch vor (Zombie-Waechter), jeder Himmelskoerper hat einen Namen; assets/universal-items.json steht auf dem Stand der Rechnung (Kopf fundorte, fund je Item, Kennzahlen), kein Fundort an einem Item, das laut Spiel kein Loot ist, und dist/ traegt denselben Stand; Klinken fuer Belegungen, Spiel-Items, Katalog-Items mit Fundort und Ortsarten',
+      'jede Belegung aus src/data/loot-fundorte.json hat eine Ortsart mit Spielernamen oder steht benannt unter VERSTECKT, jede Zuordnung in scripts/lib/loot-orte.mjs kommt in den Daten noch vor (Zombie-Waechter), jeder Himmelskoerper hat einen Namen; assets/universal-items.json steht auf dem Stand der Rechnung (Kopf fundorte, fund je Item, Kennzahlen), kein Fundort an einem Item, das laut Spiel kein Loot ist, und dist/ traegt denselben Stand (Kopf, Zahl und `fund` je Item); Klinken fuer Belegungen, Spiel-Items, Katalog-Items mit Fundort und Ortsarten',
     // VORGEFUEHRT ROT am 10./11.11.2026 am Stand dieser Lieferung, drei
     // Gegenproben, je Datei zurueckgespielt und per sha256 geprueft:
     // (1) vor dem Bau gegen das alte dist/: 1 FEHLER „dist/assets/universal-
@@ -538,6 +538,12 @@ export const CHECKS = [
     //     lootable false gesetzt: 2 FEHLER — 2 Items weichen von der Rechnung
     //     ab, 1 Fundort an einem Item, das laut Spiel kein Loot ist.
     // Gruen danach: 54 Belegungen, 3.068 Katalog-Items, 20 Ortsarten.
+    // [7] je Item (Nachpruefung von #338 durch CodeRabbit, PR #343,
+    // 11.11.2026): Kopf und Zahl allein liessen ein vertauschtes Profil
+    // durch. VORGEFUEHRT ROT: in dist/ `fund` von quantainium-water-bottle
+    // (0) und a03-sniper-rifle (1) getauscht, Kopf und Zahl gleich: 1 FEHLER
+    // „2 Item(s) mit anderem Fundort-Profil". Zurueckgespielt, gruen: 9.412
+    // Items je Item verglichen, 0 abweichend.
   },
   {
     // Direkt nach verify:datastand — dasselbe Thema, die andere Seite der
@@ -553,7 +559,7 @@ export const CHECKS = [
     script: 'scripts/verify-patch-angaben.mjs',
     rail: 'A',
     checks:
-      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Crafting-Werkzeug, Missionen, Schiffe, Refinery, Mining, Fracturing) traegt genau einen Datenstand-Baustein und keine alte Fusszeile „Daten-Stand" am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise von UEX, Kaufpreise aus dem eigenen Shop-Schnappschuss, Fundorte, FleetYards-Teile, 3D-Hülle; jedes Item-Datenblatt markiert so viele Bezugszeilen als Shop-Schnappschuss, wie der Katalog fuehrt; mining-model.json und mining-db.json auf derselben Fassung; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
+      'jede Stand-Angabe ("Star Citizen X", "Patch X", "Spielversion X") in Titel, Beschreibung, Vorschau-Tags, JSON-LD und Text der Datenseiten (Items, Crafting, Mining, Missionen, Schiffe, Refinery, Wikelo) passt zur Kennung ihrer Datendatei, jede Schiffsseite zeigt die Spielversion ihres Datensatzes, und jeder Fahrzeug-Stempel passt zum Katalogkopf; jede Datenseite (Items, Item Finder, Blueprints, Crafting-Werkzeug, Missionen, Schiffe, Refinery, Mining, Fracturing) traegt genau einen Datenstand-Baustein und keine alte Fusszeile „Daten-Stand" am Ende ihres Inhalts, dessen Zeilen nach Quelle, Art, Wert, Wertegruppe, Quellname und Link, wortgleichem Text und Etikett „älterer Stand" zur Datendatei passen (Pflichtzeilen, bedingte Zeilen genau dort, wo die Seite die Werte zeigt: Kaufpreise von UEX, Kaufpreise aus dem eigenen Shop-Schnappschuss, Fundorte, FleetYards-Teile, 3D-Hülle; jedes Item-Datenblatt markiert so viele Bezugszeilen als Shop-Schnappschuss und so viele als bestaetigten Fundort, wie der Katalog fuehrt, und jedes Item mit Fundort-Profil hat ein Datenblatt; mining-model.json und mining-db.json auf derselben Fassung; keine fremden oder doppelten Zeilen, kein ISO-Datum im Text; Alter der Fremdquellen nur genannt), und auf Item-, Blueprint-, Missions- und Schiffsseiten genau ein Link „Falschen Wert melden" im Baustein auf das Formular ihrer Sprache mit dem eigenen Pfad, auf allen anderen Datenseiten keiner; und [7] die Schiffstabelle im Patch-Dossier: jede Zeile mit eigener Schiffsseite zeigt Crew, Fracht und Pledge-Preis ihres Datensatzes in vehicles.json (formatiert wie die Schiffsseite), Zeilen ohne eigene Seite zeigen keine Werte, und die Quellenzeile darunter nennt genau die Spielversion der gezeigten Datensaetze und den Wiki-Schnappschuss (je mit Art, Wert, Text und Link) (nur wo Pledge-Preis oder Hoechstcrew dastehen), nie FleetYards; Ausnahmen benannt mit Zombie-Waechter, Klinken je Familie, je Seitengruppe, fuer Melde-Links und fuer das Dossier',
     // VORGEFUEHRT ROT am 04.11.2026 gegen den ausgelieferten Stand 4f4f4ddd
     // (Live-Bau): 35 FEHLER — Mining-Titel/Beschreibung/Vorschau "4.9" und
     // JSON-LD "4.8.0" (DE+EN), Item Finder "Patch 4.9" (DE+EN), Wikelo-Titel
@@ -590,6 +596,14 @@ export const CHECKS = [
     // "heisst variants:, Soll Paints, variants:"; Fundorte-Zeile im Item
     // Finder gestrichen -> "Pflichtzeile fehlt". Danach wiederhergestellt und
     // gruen.
+    // Bestaetigte Fundorte je Datenblatt (Nachpruefung von #338 durch
+    // CodeRabbit, PR #343, 11.11.2026): vorher nur Seiten gezaehlt, und die
+    // Kategorielisten fuellten die Zahl auf. VORGEFUEHRT ROT gegen den
+    // Live-Bau: auf de/items/gamma-ll-1x-holographic.html eine von 9
+    // bestaetigten Zeilen ohne Marke -> „8 Zeile(n) als bestätigter Fundort,
+    // der Katalog ... fuehrt 9" (die alte Zaehlung blieb dabei gruen: 6.276
+    // Seiten gegen Soll 6.136). Zurueckgespielt, gruen: 3.068 Items, 6.136
+    // Datenblaetter, 66.830 Zeilen.
     // Melde-Link im Baustein (C2, 06.11.2026), VORGEFUEHRT ROT gegen den
     // Live-Bau der Melde-Aenderung: Link auf einer Item-Seite entfernt -> "0
     // Links ... (Soll: genau einer auf Detailseiten)"; Link auf eine fremde

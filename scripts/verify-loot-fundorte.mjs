@@ -31,7 +31,8 @@
 //   6  Kein `fund` an einem Item, das laut Spiel nicht als Loot entsteht
 //      (game.lootable === false) — die Exklusiv-Aussage gewinnt.
 //   7  Gegen das Artefakt (Grundsatz 7): dist/assets/universal-items.json
-//      traegt denselben Kopf und dieselbe Zahl Profile-Traeger wie assets/.
+//      traegt denselben Kopf, dieselbe Zahl Profile-Traeger und je Item
+//      dasselbe `fund` wie assets/.
 //
 // Schiene A: kein git, kein Netz, keine Data.p4k — nur committete JSON und dist/.
 //
@@ -155,6 +156,12 @@ if (db) {
     console.log(`    assets/: ${n(db)} Items mit Profil, Patch ${db.fundorte?.patch ?? '—'}   dist/: ${n(dist)}, Patch ${dist.fundorte?.patch ?? '—'}`);
     need(JSON.stringify(dist.fundorte) === JSON.stringify(db.fundorte) && n(dist) === n(db),
       `${DIST_DB} weicht von ${DB} ab (Kopf oder Zahl der Items mit Profil) — neu bauen`);
+    // Je Item: gleicher Kopf und gleiche Zahl reichen nicht, ein vertauschtes
+    // Profil zeigte dem Item einen anderen Fundort.
+    const distFund = new Map(dist.items.map((i) => [i.id, i.fund ?? null]));
+    const anders = db.items.filter((i) => (i.fund ?? null) !== (distFund.has(i.id) ? distFund.get(i.id) : null)).map((i) => i.id);
+    console.log(`    je Item verglichen: ${db.items.length}, abweichend: ${anders.length}`);
+    need(!anders.length, `${DIST_DB}: ${anders.length} Item(s) mit anderem Fundort-Profil als ${DB} — neu bauen — ${liste(anders)}`);
   }
 }
 

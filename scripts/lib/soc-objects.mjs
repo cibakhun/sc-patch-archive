@@ -18,20 +18,96 @@
 // (Box-Mitte = Lage + Versatz).
 import { inflateRawSync } from 'node:zlib';
 
+// Minimaler ZIP-Leser fuer socpaks. Er prueft die Struktur, statt still eine
+// leere, gekuerzte oder vertauschte Liste zu liefern: ein Scan (datamine:loot)
+// zaehlt jeden Wurf als Lesefehler, und eine still leere Liste saehe aus wie
+// ein gelesenes Archiv ohne Treffer (Befunde von CodeRabbit an #347). Gueltige
+// ZIPs ohne Eintraege bleiben eine leere Liste. Kein ZIP64: ein Zip64-Endrecord
+// wird nur geprueft und uebersprungen, die 32-Bit-Felder muessen stimmen.
 export function readZip(buf) {
-  const files = new Map();
-  let eocd = buf.length - 22;
-  while (eocd > 0 && buf.readUInt32LE(eocd) !== 0x06054b50) eocd--;
-  let p = buf.readUInt32LE(eocd + 16);
-  const n = buf.readUInt16LE(eocd + 10);
-  for (let i = 0; i < n; i++) {
-    const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20);
-    const nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32);
-    const local = buf.readUInt32LE(p + 42), name = buf.toString('utf8', p + 46, p + 46 + nl);
-    const data = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
-    const raw = buf.subarray(data, data + csize);
-    files.set(name, () => (method === 8 ? inflateRawSync(raw) : raw));
-    p += 46 + nl + xl + cl;
+  const kaputt = (was) => { throw new Error(`readZip: ${was} (${buf.length} Bytes)`); };
+  // Zip64: Der Locator direkt vor dem Endrecord zeigt auf den Zip64-Endrecord.
+  // Der muss direkt hinter dem Verzeichnis beginnen, bis zum Locator reichen
+  // und dieselbe Zahl, Groesse und Lage des Verzeichnisses tragen.
+  const zip64Passt = (loc, n, ab, groesse) => {
+    const z = Number(buf.readBigUInt64LE(loc + 8));
+    if (z !== ab + groesse || z + 56 > loc || buf.readUInt32LE(z) !== 0x06064b50) return false;
+    return z + 12 + Number(buf.readBigUInt64LE(z + 4)) === loc
+      && Number(buf.readBigUInt64LE(z + 32)) === n
+      && Number(buf.readBigUInt64LE(z + 40)) === groesse
+      && Number(buf.readBigUInt64LE(z + 48)) === ab;
+  };
+  // Prueft einen Endrecord-Kandidaten bei k: Sein Kommentar muss ins Archiv
+  // passen, das Zentralverzeichnis direkt vor ihm enden (bzw. vor einem
+  // stimmigen Zip64-Endrecord), und ein leeres Verzeichnis gilt nur ohne Bytes
+  // davor (ein leeres Archiv beginnt mit seinem Endrecord).
+  const kandidat = (k) => {
+    const kl = buf.readUInt16LE(k + 20);
+    if (k + 22 + kl > buf.length) return { grund: `Endrecord bei ${k}: Kommentar (${kl} Bytes) reicht ueber das Dateiende` };
+    const n = buf.readUInt16LE(k + 10), ab = buf.readUInt32LE(k + 16), ende = ab + buf.readUInt32LE(k + 12);
+    const z64 = k >= 20 && buf.readUInt32LE(k - 20) === 0x07064b50;
+    if (z64 ? !zip64Passt(k - 20, n, ab, ende - ab) : ende !== k) {
+      return { grund: z64 ? `Endrecord bei ${k}: Zip64-Endrecord fehlt oder passt nicht zum Verzeichnis ${ab}+${ende - ab}`
+        : `Endrecord bei ${k}: Zentralverzeichnis ${ab}+${ende - ab} endet nicht davor` };
+    }
+    if (ende === ab && ab !== 0) return { grund: `Endrecord bei ${k}: leeres Verzeichnis, aber ${ab} Bytes davor` };
+    return { k, n, ab, ende };
+  };
+  // Liest das Zentralverzeichnis eines Kandidaten. Wirft, wenn es nicht genau
+  // aus gueltigen Eintraegen mit passenden lokalen Koepfen davor besteht.
+  const verzeichnis = ({ n, ab: cdAb, ende: cdEnde }) => {
+    const files = new Map();
+    let p = cdAb;
+    for (let i = 0; i < n; i++) {
+      if (p + 46 > cdEnde || buf.readUInt32LE(p) !== 0x02014b50) kaputt(`Eintrag ${i + 1} von ${n} fehlt im Zentralverzeichnis`);
+      const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20);
+      const nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32);
+      const naechster = p + 46 + nl + xl + cl;
+      if (naechster > cdEnde) kaputt(`Eintrag ${i + 1} von ${n} reicht ueber das Zentralverzeichnis`);
+      const local = buf.readUInt32LE(p + 42), name = buf.toString('utf8', p + 46, p + 46 + nl);
+      if (local + 30 > cdAb || buf.readUInt32LE(local) !== 0x04034b50) kaputt(`${name}: kein lokaler Kopf bei ${local}`);
+      const lnl = buf.readUInt16LE(local + 26), data = local + 30 + lnl + buf.readUInt16LE(local + 28);
+      // Die Signatur allein belegt nicht, dass der Kopf zu diesem Eintrag gehoert.
+      if (local + 30 + lnl > cdAb || !buf.subarray(local + 30, local + 30 + lnl).equals(buf.subarray(p + 46, p + 46 + nl))) {
+        kaputt(`${name}: lokaler Kopf bei ${local} gehoert zu „${buf.toString('utf8', local + 30, Math.min(local + 30 + lnl, cdAb))}“`);
+      }
+      if (data + csize > cdAb) kaputt(`${name}: abgeschnitten (${data}+${csize}, Daten enden bei ${cdAb})`);
+      const raw = buf.subarray(data, data + csize);
+      // Unbekannte Methode erst beim Lesen werfen: ein socpak mit einem solchen
+      // Eintrag bleibt fuer seine uebrigen Dateien lesbar.
+      files.set(name, () => {
+        if (method === 8) return inflateRawSync(raw);
+        if (method === 0) return raw;
+        throw new Error(`readZip: ${name}: Kompressionsmethode ${method} nicht unterstuetzt`);
+      });
+      p = naechster;
+    }
+    // Auch ein Endrecord mit zu kleiner Zahl (z. B. 0 bei vollem Verzeichnis)
+    // faellt hier auf: die Eintraege muessen das Verzeichnis genau fuellen.
+    if (p !== cdEnde) kaputt(`${n} Eintraege, aber ${cdEnde - p} Bytes Zentralverzeichnis uebrig`);
+    return files;
+  };
+  // Alle Signaturen im Suchfenster (Endrecord + hoechstens 65.535 Bytes
+  // Kommentar) pruefen, samt Verzeichnis. Die Signatur kann auch im Kommentar
+  // oder in Daten stehen; ungueltige Kandidaten werden uebergangen. Ergeben
+  // zwei ein vollstaendig gueltiges Archiv, ist es mehrdeutig, und readZip
+  // wirft, statt einen zu waehlen und die Eintraege des anderen still zu
+  // verlieren. Ohne gueltigen Kandidaten wirft es den Fehler des ersten
+  // Verzeichnisses, sonst den ersten Grund am Endrecord.
+  const SIG = Buffer.from([0x50, 0x4b, 0x05, 0x06]);
+  const unten = Math.max(0, buf.length - 22 - 0xffff);
+  let treffer = null, files = null, grund = null, verzeichnisFehler = null;
+  for (let k = buf.length >= 22 ? buf.lastIndexOf(SIG, buf.length - 22) : -1; k >= unten; k = k > 0 ? buf.lastIndexOf(SIG, k - 1) : -1) {
+    const c = kandidat(k);
+    if (c.grund) { grund ??= c.grund; continue; }
+    let f;
+    try { f = verzeichnis(c); } catch (e) { verzeichnisFehler ??= e; continue; }
+    if (treffer) kaputt(`mehrdeutig: gueltige Endrecords bei ${k} und ${treffer.k}`);
+    treffer = c; files = f;
+  }
+  if (!treffer) {
+    if (verzeichnisFehler) throw verzeichnisFehler;
+    kaputt(grund ?? 'keine ZIP-Endsignatur');
   }
   return files;
 }
