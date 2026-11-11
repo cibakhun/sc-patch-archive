@@ -25,7 +25,6 @@ import { inflateRawSync } from 'node:zlib';
 // ZIPs ohne Eintraege bleiben eine leere Liste. Kein ZIP64: ein Zip64-Endrecord
 // wird nur geprueft und uebersprungen, die 32-Bit-Felder muessen stimmen.
 export function readZip(buf) {
-  const files = new Map();
   const kaputt = (was) => { throw new Error(`readZip: ${was} (${buf.length} Bytes)`); };
   // Zip64: Der Locator direkt vor dem Endrecord zeigt auf den Zip64-Endrecord.
   // Der muss direkt hinter dem Verzeichnis beginnen, bis zum Locator reichen
@@ -54,50 +53,62 @@ export function readZip(buf) {
     if (ende === ab && ab !== 0) return { grund: `Endrecord bei ${k}: leeres Verzeichnis, aber ${ab} Bytes davor` };
     return { k, n, ab, ende };
   };
+  // Liest das Zentralverzeichnis eines Kandidaten. Wirft, wenn es nicht genau
+  // aus gueltigen Eintraegen mit passenden lokalen Koepfen davor besteht.
+  const verzeichnis = ({ n, ab: cdAb, ende: cdEnde }) => {
+    const files = new Map();
+    let p = cdAb;
+    for (let i = 0; i < n; i++) {
+      if (p + 46 > cdEnde || buf.readUInt32LE(p) !== 0x02014b50) kaputt(`Eintrag ${i + 1} von ${n} fehlt im Zentralverzeichnis`);
+      const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20);
+      const nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32);
+      const naechster = p + 46 + nl + xl + cl;
+      if (naechster > cdEnde) kaputt(`Eintrag ${i + 1} von ${n} reicht ueber das Zentralverzeichnis`);
+      const local = buf.readUInt32LE(p + 42), name = buf.toString('utf8', p + 46, p + 46 + nl);
+      if (local + 30 > cdAb || buf.readUInt32LE(local) !== 0x04034b50) kaputt(`${name}: kein lokaler Kopf bei ${local}`);
+      const lnl = buf.readUInt16LE(local + 26), data = local + 30 + lnl + buf.readUInt16LE(local + 28);
+      // Die Signatur allein belegt nicht, dass der Kopf zu diesem Eintrag gehoert.
+      if (local + 30 + lnl > cdAb || !buf.subarray(local + 30, local + 30 + lnl).equals(buf.subarray(p + 46, p + 46 + nl))) {
+        kaputt(`${name}: lokaler Kopf bei ${local} gehoert zu „${buf.toString('utf8', local + 30, Math.min(local + 30 + lnl, cdAb))}“`);
+      }
+      if (data + csize > cdAb) kaputt(`${name}: abgeschnitten (${data}+${csize}, Daten enden bei ${cdAb})`);
+      const raw = buf.subarray(data, data + csize);
+      // Unbekannte Methode erst beim Lesen werfen: ein socpak mit einem solchen
+      // Eintrag bleibt fuer seine uebrigen Dateien lesbar.
+      files.set(name, () => {
+        if (method === 8) return inflateRawSync(raw);
+        if (method === 0) return raw;
+        throw new Error(`readZip: ${name}: Kompressionsmethode ${method} nicht unterstuetzt`);
+      });
+      p = naechster;
+    }
+    // Auch ein Endrecord mit zu kleiner Zahl (z. B. 0 bei vollem Verzeichnis)
+    // faellt hier auf: die Eintraege muessen das Verzeichnis genau fuellen.
+    if (p !== cdEnde) kaputt(`${n} Eintraege, aber ${cdEnde - p} Bytes Zentralverzeichnis uebrig`);
+    return files;
+  };
   // Alle Signaturen im Suchfenster (Endrecord + hoechstens 65.535 Bytes
-  // Kommentar) pruefen. Die Signatur kann auch im Kommentar oder in Daten
-  // stehen; ungueltige Kandidaten werden uebergangen. Bestehen zwei die
-  // Pruefung, ist das Archiv mehrdeutig, und readZip wirft, statt einen zu
-  // waehlen und die Eintraege des anderen still zu verlieren.
+  // Kommentar) pruefen, samt Verzeichnis. Die Signatur kann auch im Kommentar
+  // oder in Daten stehen; ungueltige Kandidaten werden uebergangen. Ergeben
+  // zwei ein vollstaendig gueltiges Archiv, ist es mehrdeutig, und readZip
+  // wirft, statt einen zu waehlen und die Eintraege des anderen still zu
+  // verlieren. Ohne gueltigen Kandidaten wirft es den Fehler des ersten
+  // Verzeichnisses, sonst den ersten Grund am Endrecord.
   const SIG = Buffer.from([0x50, 0x4b, 0x05, 0x06]);
   const unten = Math.max(0, buf.length - 22 - 0xffff);
-  let treffer = null, grund = null;
+  let treffer = null, files = null, grund = null, verzeichnisFehler = null;
   for (let k = buf.length >= 22 ? buf.lastIndexOf(SIG, buf.length - 22) : -1; k >= unten; k = k > 0 ? buf.lastIndexOf(SIG, k - 1) : -1) {
     const c = kandidat(k);
     if (c.grund) { grund ??= c.grund; continue; }
-    if (treffer) kaputt(`mehrdeutig: stimmige Endrecords bei ${k} und ${treffer.k}`);
-    treffer = c;
+    let f;
+    try { f = verzeichnis(c); } catch (e) { verzeichnisFehler ??= e; continue; }
+    if (treffer) kaputt(`mehrdeutig: gueltige Endrecords bei ${k} und ${treffer.k}`);
+    treffer = c; files = f;
   }
-  if (!treffer) kaputt(grund ?? 'keine ZIP-Endsignatur');
-  const { n, ab: cdAb, ende: cdEnde } = treffer;
-  let p = cdAb;
-  for (let i = 0; i < n; i++) {
-    if (p + 46 > cdEnde || buf.readUInt32LE(p) !== 0x02014b50) kaputt(`Eintrag ${i + 1} von ${n} fehlt im Zentralverzeichnis`);
-    const method = buf.readUInt16LE(p + 10), csize = buf.readUInt32LE(p + 20);
-    const nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32);
-    const naechster = p + 46 + nl + xl + cl;
-    if (naechster > cdEnde) kaputt(`Eintrag ${i + 1} von ${n} reicht ueber das Zentralverzeichnis`);
-    const local = buf.readUInt32LE(p + 42), name = buf.toString('utf8', p + 46, p + 46 + nl);
-    if (local + 30 > cdAb || buf.readUInt32LE(local) !== 0x04034b50) kaputt(`${name}: kein lokaler Kopf bei ${local}`);
-    const lnl = buf.readUInt16LE(local + 26), data = local + 30 + lnl + buf.readUInt16LE(local + 28);
-    // Die Signatur allein belegt nicht, dass der Kopf zu diesem Eintrag gehoert.
-    if (local + 30 + lnl > cdAb || !buf.subarray(local + 30, local + 30 + lnl).equals(buf.subarray(p + 46, p + 46 + nl))) {
-      kaputt(`${name}: lokaler Kopf bei ${local} gehoert zu „${buf.toString('utf8', local + 30, Math.min(local + 30 + lnl, cdAb))}“`);
-    }
-    if (data + csize > cdAb) kaputt(`${name}: abgeschnitten (${data}+${csize}, Daten enden bei ${cdAb})`);
-    const raw = buf.subarray(data, data + csize);
-    // Unbekannte Methode erst beim Lesen werfen: ein socpak mit einem solchen
-    // Eintrag bleibt fuer seine uebrigen Dateien lesbar.
-    files.set(name, () => {
-      if (method === 8) return inflateRawSync(raw);
-      if (method === 0) return raw;
-      throw new Error(`readZip: ${name}: Kompressionsmethode ${method} nicht unterstuetzt`);
-    });
-    p = naechster;
+  if (!treffer) {
+    if (verzeichnisFehler) throw verzeichnisFehler;
+    kaputt(grund ?? 'keine ZIP-Endsignatur');
   }
-  // Auch ein Endrecord mit zu kleiner Zahl (z. B. 0 bei vollem Verzeichnis)
-  // faellt hier auf: die Eintraege muessen das Verzeichnis genau fuellen.
-  if (p !== cdEnde) kaputt(`${n} Eintraege, aber ${cdEnde - p} Bytes Zentralverzeichnis uebrig`);
   return files;
 }
 
