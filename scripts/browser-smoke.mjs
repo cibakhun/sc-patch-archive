@@ -213,6 +213,38 @@ const ZAEHLER_HOST = /stats\.verse-base\.com/;
 const fehler = [];
 let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0;
 
+/* ---------- Was „sichtbar“ heisst ----------
+   EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
+   eigene, schwaechere schreibt (Anlass: drei Review-Runden an #345, jede fand
+   an der eigenen Fassung der Werkstatt-Probe eine Luecke weiter:
+   hidden-Attribut, visibility, Opazitaet, dann an dieser hier der Kasten
+   ohne Flaeche). Sichtbar ist ein Element, das einen Kasten MIT FLAECHE hat
+   (Breite und Hoehe ueber null: transform:scale(0) oder eine auf null
+   zusammengeschobene Zeile behalten ihren Kasten) und das der Browser selbst
+   als sichtbar ausweist: Element.checkVisibility mit visibility und
+   Opazitaet, beides ueber alle Vorfahren. checkVisibility gibt es erst ab
+   Chrome 105 (die Optionsnamen ab 121, davor checkVisibilityCSS/
+   checkOpacity); ohne es entscheidet der berechnete Stil des Elements und
+   seiner Vorfahren.
+   NICHT geprueft sind Lage, Beschnitt und Ueberdeckung (aus dem Bild
+   geschoben, clip-path, von einem Vorfahren abgeschnitten, etwas liegt
+   darueber). Das ist eine andere Frage und bekommt, wo sie zaehlt, eine
+   eigene Probe wie kreuzVerdeckt.
+   SICHTBAR laeuft im Browser und darf nichts von hier draussen benutzen. */
+const SICHTBAR = (el) => {
+  if (!el || ![...el.getClientRects()].some((r) => r.width > 0 && r.height > 0)) return false;
+  if (typeof el.checkVisibility === 'function') {
+    return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
+  }
+  if (getComputedStyle(el).visibility !== 'visible') return false;
+  for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).opacity === '0') return false;
+  return true;
+};
+/* fn laeuft im Browser und bekommt SICHTBAR als zweites Argument. Eine
+   Funktion laesst sich einer Seite nicht als Argument mitgeben, deshalb reist
+   ihr Quelltext im Ausdruck mit. */
+const mitSichtbar = (page, fn, arg = null) => page.evaluate(`(${fn})(${JSON.stringify(arg)}, ${SICHTBAR})`);
+
 /* ---------- Alte Hell-Wahl im Browser ----------
    Bis zum 02.11.2026 konnten Admins hell waehlen; die Wahl lag als
    vb.theme im localStorage und bleibt dort liegen, bis die Seite sie
@@ -697,11 +729,55 @@ async function probeWerkstatt(page) {
   // zurueck, sein Knopf baut ein. Platz und Streifen rechnet die Werkstatt
   // (verify:hangar [22] prueft sie am gebauten Skript); hier zaehlt, dass der
   // Weg im Browser traegt und kein rohes Wort auf dem Blatt steht.
-  const I = '#hgl-slots .hgl-slot.is-open li:has(.hgl-opt[aria-pressed="false"]) .hgl-info';
+  // Das Blatt oeffnet sich aus einer GEFILTERTEN Liste: nur so faellt auf,
+  // wenn „Zur Auswahl“ das Suchwort oder die Zeile verliert. Das Suchwort
+  // trifft mindestens zwei Zeilen, und geoeffnet wird NICHT die erste davon:
+  // ein Rueckweg, der stets das erste sichtbare i ansteuert, bestuende sonst.
+  // Unter den Paaren aus Zeile und Wort gewinnt das mit den wenigsten Treffern.
+  const OFFEN = '#hgl-slots .hgl-slot.is-open';
+  const I = `${OFFEN} li:has(.hgl-opt[aria-pressed="false"]) .hgl-info`;
   await page.click('#hgl-cats [data-cat="weapons"]', KLICK);
   await page.click('#hgl-slots .hgl-grp:not([hidden]) .hgl-slot__btn', KLICK);
   if (!(await page.locator(I).count())) return 'Werkstatt: die Zeilen der Auswahl tragen kein i zum Datenblatt (.hgl-info)';
-  await page.click(I, KLICK);
+  const wahl = await page.locator(`${OFFEN} .hgl-opts`).evaluate((ul) => {
+    const zeilen = [...ul.children];
+    const teil = (li) => li.querySelector('.hgl-opt')?.dataset.item ?? '';
+    const trifft = (w) => zeilen.filter((li) => li.dataset.q.includes(w));
+    let wahl = null;
+    for (const li of zeilen) {
+      if (!li.querySelector('.hgl-info') || li.querySelector('.hgl-opt')?.getAttribute('aria-pressed') !== 'false') continue;
+      for (const w of new Set(li.dataset.q.split(/\s+/).filter((x) => x.length >= 3))) {
+        const t = trifft(w);
+        if (t.length < 2 || t.length >= zeilen.length || t[0] === li) continue;
+        if (!wahl || t.length < wahl.treffer.length) wahl = { item: teil(li), suche: w, treffer: t.map(teil) };
+      }
+    }
+    return { ...wahl, gefunden: !!wahl, alle: zeilen.length };
+  });
+  if (!wahl.gefunden) return `Werkstatt: keine der ${wahl.alle} Zeilen der Auswahl taugt fuer die Probe des Rueckwegs (gesucht: nicht eingebaut, mit einem Suchwort ab 3 Zeichen, das mindestens zwei und nicht alle Zeilen trifft und dessen erster Treffer eine andere Zeile ist)`;
+  const IT = `${OFFEN} .hgl-info[data-info=${JSON.stringify(wahl.item)}]`;
+  // sichtbar nennt die Zeilen, die zu sehen sind (SICHTBAR, oben: die eine
+  // Bestimmung dieses Skripts, dieselbe wie beim Crafting-Planer), nicht die
+  // ohne hidden-Attribut: eine Stilregel mit display kann [hidden] schlagen,
+  // dann stuende die ganze Liste da, obwohl jede verborgene Zeile ihr
+  // Attribut traegt. Verglichen werden die Teile, nicht ihre Zahl: zwei
+  // falsche Zeilen sind auch zwei.
+  const liste = () => mitSichtbar(page, (offen, da) => {
+    const slot = document.querySelector(offen), a = document.activeElement;
+    return {
+      zeilen: slot?.querySelectorAll('.hgl-opt').length ?? 0,
+      sichtbar: slot ? [...slot.querySelectorAll('.hgl-opts > li')].filter(da).map((li) => li.querySelector('.hgl-opt')?.dataset.item ?? '') : [],
+      suche: slot?.querySelector('.hgl-q')?.value ?? null,
+      fokus: a?.classList.contains('hgl-info') && da(a) ? a.dataset.info : null,
+      blatt: !!document.querySelector('#hgl-slots .hgl-sheet'),
+    };
+  }, OFFEN);
+  const gleich = (a, b) => a.length === b.length && a.every((x, k) => x === b[k]);
+  const kurz = (a) => `${a.length} (${a.slice(0, 4).join(', ')}${a.length > 4 ? ', …' : ''})`;
+  await page.fill(`${OFFEN} .hgl-q`, wahl.suche, KLICK);
+  const gefiltert = await liste();
+  if (!gleich(gefiltert.sichtbar, wahl.treffer)) return `Werkstatt: die Suche "${wahl.suche}" zeigt nicht genau ihre Treffer (sichtbar: ${kurz(gefiltert.sichtbar)}; erwartet: ${kurz(wahl.treffer)} von ${wahl.alle} Zeilen)`;
+  await page.click(IT, KLICK);
   const blatt = await page.evaluate(() => {
     const s = document.querySelector('#hgl-slots .hgl-slot.is-open .hgl-sheet');
     if (!s) return null;
@@ -722,11 +798,13 @@ async function probeWerkstatt(page) {
   const roh = /\{\w+\}|\b(?:sheet|slot|sp|tot|unit|grp|lo)\.[a-z][\w.]*/.exec(blatt.text);
   if (roh) return `Werkstatt: auf dem Datenblatt steht ein rohes Wort ("${roh[0]}"): fehlt sein Schluessel in LAYOUT_MSG (LayoutWorkshop.astro)?`;
   if (!blatt.bau) return 'Werkstatt: dem Datenblatt eines nicht eingebauten Teils fehlt der Knopf zum Einbauen (.hgl-sheet__fit)';
-  await page.click('#hgl-slots .hgl-slot.is-open .hgl-sheet__back', KLICK);
-  const zurueck = await page.evaluate(() => ({ zeilen: document.querySelectorAll('#hgl-slots .hgl-slot.is-open .hgl-opt').length, blatt: !!document.querySelector('#hgl-slots .hgl-sheet') }));
+  await page.click(`${OFFEN} .hgl-sheet__back`, KLICK);
+  const zurueck = await liste();
   if (!zurueck.zeilen || zurueck.blatt) return 'Werkstatt: „Zur Auswahl“ fuehrt vom Datenblatt nicht zurueck in die Liste';
-  await page.click(I, KLICK);
-  await page.click('#hgl-slots .hgl-slot.is-open .hgl-sheet__fit', KLICK);
+  if (zurueck.suche !== wahl.suche || !gleich(zurueck.sichtbar, wahl.treffer)) return `Werkstatt: „Zur Auswahl“ stellt das Suchwort der Liste nicht wieder her (Feld: "${zurueck.suche}", erwartet "${wahl.suche}"; sichtbar: ${kurz(zurueck.sichtbar)}; erwartet: ${kurz(wahl.treffer)})`;
+  if (zurueck.fokus !== wahl.item) return `Werkstatt: nach „Zur Auswahl“ liegt der Fokus nicht auf dem i derselben Zeile (Fokus: ${zurueck.fokus ?? 'kein i einer sichtbaren Zeile'}, erwartet ${wahl.item}; erster Treffer der Suche: ${wahl.treffer[0]})`;
+  await page.click(IT, KLICK);
+  await page.click(`${OFFEN} .hgl-sheet__fit`, KLICK);
   const gebaut = await page.evaluate(() => ({ offen: !!document.querySelector('#hgl-slots .hgl-slot.is-open'), neu: document.querySelectorAll('#hgl-slots .hgl-slot[data-changed]').length }));
   if (gebaut.offen || gebaut.neu !== 1) return `Werkstatt: „Einbauen“ auf dem Datenblatt tauscht nicht (Slot offen: ${gebaut.offen}, getauschte Slots: ${gebaut.neu}, erwartet zu und 1)`;
   await tausche('systems');
@@ -874,28 +952,15 @@ async function probeCraftingSync(page) {
         // Den Planer oeffnen: seine Anzeige soll so gemessen werden, wie man sie sieht.
         await p.locator('#cdb-planner-open').click({ timeout: 15000 });
         await p.waitForTimeout(400);
-        const anzeigen = await p.evaluate(() => [...document.querySelectorAll('.cdb-sync')].map((h) => {
-          // checkVisibility gibt es erst ab Chrome 105 (die Optionsnamen ab
-          // 121, davor checkVisibilityCSS/checkOpacity); ohne es entscheidet
-          // der berechnete Stil des Elements und seiner Vorfahren.
-          const zu = (el) => {
-            if (!el || el.getClientRects().length === 0) return false;
-            if (typeof el.checkVisibility === 'function') {
-              return el.checkVisibility({ visibilityProperty: true, opacityProperty: true, checkVisibilityCSS: true, checkOpacity: true });
-            }
-            if (getComputedStyle(el).visibility === 'hidden') return false;
-            for (let n = el; n; n = n.parentElement) if (getComputedStyle(n).opacity === '0') return false;
-            return true;
-          };
-          return {
-            wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
-            state: h.dataset.state,
-            text: (h.querySelector('.cdb-sync__txt')?.textContent ?? '').trim(),
-            zu: zu(h),
-            login: zu(h.querySelector('.cdb-sync__login')),
-            retry: zu(h.querySelector('.cdb-sync__retry')),
-          };
-        }));
+        // zu ist SICHTBAR (oben), die eine Bestimmung dieses Skripts.
+        const anzeigen = await mitSichtbar(p, (_, zu) => [...document.querySelectorAll('.cdb-sync')].map((h) => ({
+          wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
+          state: h.dataset.state,
+          text: (h.querySelector('.cdb-sync__txt')?.textContent ?? '').trim(),
+          zu: zu(h),
+          login: zu(h.querySelector('.cdb-sync__login')),
+          retry: zu(h.querySelector('.cdb-sync__retry')),
+        })));
         if (anzeigen.length !== 2) { probleme.push(`${wo}: ${anzeigen.length} Konto-Anzeigen statt 2 (Kopfleiste und Planer)`); continue; }
         for (const a of anzeigen) {
           const hier = `${wo}, ${a.wo}`;
