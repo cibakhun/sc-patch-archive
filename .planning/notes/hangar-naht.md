@@ -268,9 +268,11 @@ das i einer Zeile, die nicht der erste Treffer ist, Blatt mit Streifen und
 Satz, kein rohes Wort, zurück (Suchwort, Trefferzahl und der Fokus auf dem i
 derselben Zeile stehen wieder), einbauen. Ohne Suchwort bliebe sie grün, wenn
 der Rückweg Suchwort oder Zeile verliert; mit nur einem Treffer bestünde ein
-Rückweg, der stets das erste sichtbare i ansteuert. Treffer zählt sie nach
-dem, was der Browser zeichnet, nicht nach dem `hidden`-Attribut (Befunde von
-CodeRabbit an #341 und #345).
+Rückweg, der stets das erste sichtbare i ansteuert. Sichtbar ist, was der
+Browser zeichnet (Kasten vorhanden, `visibility` sichtbar), nicht was kein
+`hidden`-Attribut trägt; verglichen werden die Teile der sichtbaren Zeilen
+mit den erwarteten Treffern, nicht ihre Zahl (Befunde von CodeRabbit an #341
+und #345).
 
 Die Tafeln stehen auf Projektoren am Boden unter den unteren Bildecken,
 außerhalb des Fußabdrucks und nicht hinter dem Schiff (Sehlinie zu Fuß und
