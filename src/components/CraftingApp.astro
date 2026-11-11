@@ -108,6 +108,10 @@ const JS_T = {
     calcRareLabel: '(selten)',
     openInFinder: 'Im Item Finder öffnen',
     openItem: 'Item-Datenblatt öffnen',
+    // Bis 11.11.2026 fehlten diese zwei: die Ergebniskarten des Zerlege-
+    // Rechners zeigten auf der englischen Seite den deutschen Rueckfalltext
+    // des Skripts („Kategorie: … · Kaufort: …“).
+    category: 'Kategorie', calcLocation: 'Kaufort',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
     openBlueprint: 'Blueprint öffnen',
     whereToMine: 'Wo abbauen: {name}',
@@ -141,6 +145,7 @@ const JS_T = {
     calcRareLabel: '(rare)',
     openInFinder: 'Open in Item Finder',
     openItem: 'Open item data sheet',
+    category: 'Category', calcLocation: 'Sold at',
     openInDismantle: 'Open in Dismantling Calculator',
     openBlueprint: 'Open blueprint',
     whereToMine: 'Where to mine: {name}',
@@ -652,6 +657,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .calc-card__yield-tag{background:var(--bg,var(--veil-2));border:1px solid var(--line-soft,var(--line-soft));padding:.2rem .5rem;border-radius:4px;color:var(--text,#eef1f5)}
   .calc-card__yield-tag.target{border-color:rgba(31,162,255,.4);color:var(--accent-2,#1FA2FF)}
   .calc-card__warning{margin-top:.6rem;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);color:#ff5b5b;padding:.4rem .6rem;border-radius:4px;font-size:var(--fs-6);font-weight:600}
+  /* Die Karten duerfen nicht schrumpfen: .calc-grid ist eine Flex-Spalte mit
+     begrenzter Hoehe (.vb-scrollbox), und overflow:hidden nimmt der Karte
+     ihre Mindesthoehe. Ab etwa fuenf Treffern drueckte der Kasten sonst
+     jede Karte auf einen Streifen zusammen (gemessen 11.11.2026 bei
+     1440x900: 17 Treffer, jede Karte 45 px hoch statt 180). */
+  .calc-card{flex:none}
   .calc-card__right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;text-align:right;border-left:1px solid var(--line-soft,var(--line-soft));padding-left:1.2rem;min-width:140px;flex:none}
   .calc-card__cost{font-family:var(--font-display,inherit);font-weight:900;font-size:var(--fs-13);color:var(--accent,#FF5E1A)}
   .calc-card__cost-unit{font-size:var(--fs-5);color:var(--muted,#9ba2ae);margin-top:-.2rem}

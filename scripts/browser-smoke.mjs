@@ -134,7 +134,8 @@ const SEITEN = [
   // spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
   {
     id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
-    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeCraftingSync,
+    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true,
+    probe: async (page) => (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
@@ -892,6 +893,52 @@ const SYNC_ZUSTAENDE = [
   { state: 'error', sitzung: true, lesen: 503, login: false, retry: true },
 ];
 const SYNC_BREITEN = [360, 1280];
+
+/* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
+   und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.
+   Anlass 11.11.2026: #calc-results ist eine Flex-Spalte mit begrenzter Hoehe
+   (.vb-scrollbox), die Karten tragen overflow:hidden und durften deshalb
+   schrumpfen. Ab etwa fuenf Treffern drueckte der Kasten jede Karte auf
+   einen Streifen zusammen (1440x900, 17 Treffer: 45 px hoch, der Inhalt
+   braucht 180). Kein Tor sah das: der Text stand ja im Dokument. Gemessen
+   wird deshalb, was der Browser zeichnet. Die Probe sucht sich selbst ein
+   Material mit mindestens acht Treffern, damit sie nicht an einem Namen
+   aus den Spieldaten haengt. */
+const ZERLEGEN_MIN_TREFFER = 8;
+async function probeZerlegen(page, wo) {
+  const reiter = page.locator('.cdb-tab-btn[data-tab="dismantle"]').first();
+  if (!(await reiter.count())) return `${wo}: der Reiter des Zerlege-Rechners fehlt`;
+  await reiter.click();
+  await page.locator('.calc-mat-list .calc-mat-cb').first().waitFor({ state: 'attached', timeout: 20000 }).catch(() => {});
+  const bild = await page.evaluate(async (min) => {
+    const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+    const haken = [...document.querySelectorAll('.calc-mat-list .calc-mat-cb')];
+    let fund = null;
+    for (const h of haken.slice(0, 20)) {
+      h.click();
+      await warte(150);
+      const karten = [...document.querySelectorAll('#calc-results .calc-card')];
+      if (karten.length >= min) {
+        fund = {
+          treffer: karten.length,
+          gestaucht: karten.slice(0, min).filter((k) => k.clientHeight < k.scrollHeight - 2).length,
+          hoehe: karten[0].clientHeight, braucht: karten[0].scrollHeight,
+        };
+      }
+      h.click();
+      await warte(60);
+      if (fund) break;
+    }
+    return { stoffe: haken.length, fund };
+  }, ZERLEGEN_MIN_TREFFER);
+  await page.locator('.cdb-tab-btn[data-tab="db"]').first().click();
+  if (!bild.stoffe) return `${wo}: der Zerlege-Rechner listet keine Materialien`;
+  if (!bild.fund) return `${wo}: unter den ersten 20 von ${bild.stoffe} Materialien hat keines ${ZERLEGEN_MIN_TREFFER} Treffer, die Probe kann die Ergebniskarten nicht messen`;
+  if (bild.fund.gestaucht)
+    return `${wo}: der Zerlege-Rechner staucht seine Ergebniskarten (${bild.fund.treffer} Treffer, ${bild.fund.gestaucht} der ersten ${ZERLEGEN_MIN_TREFFER} abgeschnitten, die erste ${bild.fund.hoehe} px hoch bei ${bild.fund.braucht} px Inhalt)`;
+  return null;
+}
+
 async function probeCraftingSync(page) {
   const pfad = new URL(page.url()).pathname;
   const ziel = await page.evaluate(async () => {
