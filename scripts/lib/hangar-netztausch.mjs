@@ -18,9 +18,15 @@
 //
 // Reparieren: Ein heiles Geschwister-Exemplar derselben Datei trägt das
 // richtige Netz, beim Ursa wheel6 für wheel4 (beide wheelRR_medivac). Gesucht
-// wird ein Knoten gleichen Namens mit eigenem Netz (Name gleich, von keinem
-// anders benannten Knoten benutzt) und der längsten gleichen Ahnenkette,
-// mindestens dem gleichen Elternknoten. Er gibt eine Kopie seines Netzes ab.
+// wird ein Knoten gleichen Namens, dessen Netz seinen Namen trägt, mit der
+// längsten gleichen Ahnenkette, mindestens dem gleichen Elternknoten. Er gibt
+// eine Kopie seines Netzes ab. Dass ein verschobener Nachbar dasselbe Netz
+// mitbenutzt, schließt ihn nicht aus: Das Netz gehört trotzdem ihm. Beispiel
+// Gladius: Die Rakete im ersten Werfer trägt den Werferkörper des zweiten,
+// die Rakete im zweiten Werfer ihr eigenes Netz, das dort auch bone1b
+// mitbenutzt. Mit dem strengeren Maßstab (kein Mitbenutzer) blieben über alle
+// Rohexporte 1 354 Knoten ohne Ersatz, darunter 284 Raketen auf 61 Schiffen.
+// So sind es 735, davon 26 Raketen (Stand 4.10.2, 11.11.2026).
 // Fehlt ein solcher Knoten, verliert das Opfer sein falsches Netz: Ein
 // fremdes Teil an falscher Stelle ist immer falsch, ein fehlendes Kleinteil
 // fällt meist nicht auf.
@@ -33,7 +39,7 @@ export function findSwapped(doc) {
   const nodes = doc.getRoot().listNodes();
   const byName = new Map();
   for (const n of nodes) { const k = nameOf(n); if (!byName.has(k)) byName.set(k, []); byName.get(k).push(n); }
-  const healthy = (n) => { const m = n.getMesh(); return !!m && nameOf(m) === nameOf(n) && nodeUsers(m).every((u) => nameOf(u) === nameOf(n)); };
+  const healthy = (n) => { const m = n.getMesh(); return !!m && nameOf(m) === nameOf(n); };
   const hits = [];
   for (const mesh of doc.getRoot().listMeshes()) {
     const users = nodeUsers(mesh);
@@ -71,11 +77,12 @@ function cloneMesh(doc, mesh, name) {
 // Netz abnehmen. Liefert Zahlen für Manifest und Protokoll.
 export function repairSwapped(doc) {
   const hits = findSwapped(doc);
-  const out = { nodes: hits.length, fixed: 0, dropped: 0, trisWrong: 0, names: {} };
+  // abgenommen: die Knoten ohne Ersatz, für markSwapParts (leerer Anker)
+  const out = { nodes: hits.length, fixed: 0, dropped: 0, trisWrong: 0, names: {}, abgenommen: new Set() };
   for (const h of hits) {
     out.trisWrong += triCount(h.mesh);
     if (h.fix) { h.node.setMesh(cloneMesh(doc, h.fix.getMesh(), nameOf(h.node))); out.fixed++; }
-    else { h.node.setMesh(null); out.dropped++; }
+    else { h.node.setMesh(null); out.abgenommen.add(h.node); out.dropped++; }
     out.names[nameOf(h.node)] = (out.names[nameOf(h.node)] ?? 0) + 1;
   }
   out.trisWrong = Math.round(out.trisWrong);
