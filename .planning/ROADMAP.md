@@ -1456,6 +1456,15 @@ Farben und Schriftgrade entstehen als wiederverwendbare Bausteine und Tokens.
 Der Hangar zeigt denselben Vergleich in der Teileauswahl des Loadouts, und die
 Schiffsseiten erscheinen in derselben Sprache.
 
+**Stand 11.11.2026:** Platz und Streifen rechnet zuerst der Hangar
+(`classRank`, `classStrip` in `assets/hangar-layouts.js`, Datenblatt des
+Bauteils an der rechten Tafel); die Item-Seiten übernehmen diese Rechnung,
+statt eine zweite zu bauen. Die Klasse zählt dort jedes Teil, das in den Slot
+passt, also auch Waffen, die es in mehreren Größen gibt: 28 Bordwaffen der
+Größe 3, der Attrition-3 bei der Feuerkraft auf Platz 17. Die freigegebene
+Skizze der Waffenseite nannte Platz 16 von 26, ihr fehlten die Revenant
+Gatling und die Tarantula GT-870 Mark 3.
+
 **Offen beim Betreiber:**
 
 1. ~~Welche Richtung führt (A, B oder C)?~~ B, entschieden am 09.11.2026.
@@ -1502,9 +1511,17 @@ Seit demselben Tag trägt die Übersicht die Werkstatt in sich, als Tafel
 „Ausrüstung“ (Betreiber: „loadouts in das ui von overview direkt einbauen,
 damit haben wir eine zentrale bedieneroberfläche“); eine eigene Station
 Loadout gibt es in der Halle nicht mehr, sie bleibt für „Als Tafel“, das
-Handy und den Hangar ohne 3D. Sichturteile dazu: WINDOWS #149 und #151. Jede
-Teilphase geht einzeln auf staging und wird dort abgenommen. Live ändert sich
-nichts ohne eigene, ausdrückliche Freigabe.
+Handy und den Hangar ohne 3D. Sichturteile dazu: WINDOWS #149 und #151. Seit
+dem 11.11.2026 zeigt die rechte Tafel, solange ein Slot offen steht, das
+Datenblatt seines Bauteils (Betreiber: „man könnte die itemdatenblatt seite
+direkt in das hangar reinbauen für komponente und waffen“, zur Skizze: „ja so
+ungefähr einbauen“): die Einordnung aus Detail Pages 2.0, die Wege zum Teil
+und das Teil selbst als Hologramm über der Tafel; Sichturteil WINDOWS #152.
+Dasselbe Blatt steht seit dem 11.11.2026 auch in der flachen Werkstatt („Als
+Tafel“, Handy, ohne 3D): ein i an jeder Zeile der Auswahl stellt es an die
+Stelle der Liste; Sichturteil WINDOWS #153.
+Jede Teilphase geht einzeln auf staging und wird dort abgenommen. Live ändert
+sich nichts ohne eigene, ausdrückliche Freigabe.
 
 **Goal:** Der Hangar wird der eine Ort für alles, was man mit einem Schiff tut:
 ansehen, ausrüsten, durchrechnen, vergleichen und in die eigene Flotte

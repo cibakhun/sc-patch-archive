@@ -692,7 +692,43 @@ async function probeWerkstatt(page) {
     await page.click('#hgl-slots .hgl-grp:not([hidden]) .hgl-slot__btn', KLICK);
     await page.click('#hgl-slots .hgl-slot.is-open .hgl-opt[aria-pressed="false"]', KLICK);
   }
-  await tausche('weapons');
+  // Die Waffe tauscht das Datenblatt der flachen Werkstatt: das i an einer
+  // Zeile der Auswahl stellt es an die Stelle der Liste, „Zur Auswahl“ fuehrt
+  // zurueck, sein Knopf baut ein. Platz und Streifen rechnet die Werkstatt
+  // (verify:hangar [22] prueft sie am gebauten Skript); hier zaehlt, dass der
+  // Weg im Browser traegt und kein rohes Wort auf dem Blatt steht.
+  const I = '#hgl-slots .hgl-slot.is-open li:has(.hgl-opt[aria-pressed="false"]) .hgl-info';
+  await page.click('#hgl-cats [data-cat="weapons"]', KLICK);
+  await page.click('#hgl-slots .hgl-grp:not([hidden]) .hgl-slot__btn', KLICK);
+  if (!(await page.locator(I).count())) return 'Werkstatt: die Zeilen der Auswahl tragen kein i zum Datenblatt (.hgl-info)';
+  await page.click(I, KLICK);
+  const blatt = await page.evaluate(() => {
+    const s = document.querySelector('#hgl-slots .hgl-slot.is-open .hgl-sheet');
+    if (!s) return null;
+    const streifen = [...s.querySelectorAll('.hgl-strip')];
+    return {
+      streifen: streifen.length,
+      gezeichnet: streifen.filter((li) => li.querySelectorAll('.hgl-strip__t .is-me').length === 1 && li.querySelector('.hgl-strip__t .is-dot')).length,
+      text: s.textContent.replace(/\s+/g, ' ').trim(),
+      satz: s.querySelector('.hgl-sheet__lead')?.textContent.trim() ?? '',
+      bau: !!s.querySelector('.hgl-sheet__fit'),
+      liste: !!document.querySelector('#hgl-slots .hgl-slot.is-open .hgl-opts'),
+    };
+  });
+  if (!blatt) return 'Werkstatt: das i an einer Zeile der Auswahl oeffnet kein Datenblatt (.hgl-sheet)';
+  if (blatt.liste) return 'Werkstatt: neben dem Datenblatt steht die Auswahlliste weiter';
+  if (blatt.streifen < 3 || blatt.gezeichnet < 3) return `Werkstatt: Datenblatt mit ${blatt.streifen} Streifen, davon ${blatt.gezeichnet} mit Punkten der Klasse und dem eigenen Punkt (erwartet je >= 3 bei einer Bordwaffe)`;
+  if (blatt.satz.length < 20) return `Werkstatt: dem Datenblatt fehlt der Satz der Einordnung ("${blatt.satz}")`;
+  const roh = /\{\w+\}|\b(?:sheet|slot|sp|tot|unit|grp|lo)\.[a-z][\w.]*/.exec(blatt.text);
+  if (roh) return `Werkstatt: auf dem Datenblatt steht ein rohes Wort ("${roh[0]}"): fehlt sein Schluessel in LAYOUT_MSG (LayoutWorkshop.astro)?`;
+  if (!blatt.bau) return 'Werkstatt: dem Datenblatt eines nicht eingebauten Teils fehlt der Knopf zum Einbauen (.hgl-sheet__fit)';
+  await page.click('#hgl-slots .hgl-slot.is-open .hgl-sheet__back', KLICK);
+  const zurueck = await page.evaluate(() => ({ zeilen: document.querySelectorAll('#hgl-slots .hgl-slot.is-open .hgl-opt').length, blatt: !!document.querySelector('#hgl-slots .hgl-sheet') }));
+  if (!zurueck.zeilen || zurueck.blatt) return 'Werkstatt: „Zur Auswahl“ fuehrt vom Datenblatt nicht zurueck in die Liste';
+  await page.click(I, KLICK);
+  await page.click('#hgl-slots .hgl-slot.is-open .hgl-sheet__fit', KLICK);
+  const gebaut = await page.evaluate(() => ({ offen: !!document.querySelector('#hgl-slots .hgl-slot.is-open'), neu: document.querySelectorAll('#hgl-slots .hgl-slot[data-changed]').length }));
+  if (gebaut.offen || gebaut.neu !== 1) return `Werkstatt: „Einbauen“ auf dem Datenblatt tauscht nicht (Slot offen: ${gebaut.offen}, getauschte Slots: ${gebaut.neu}, erwartet zu und 1)`;
   await tausche('systems');
   for (const c of ['systems', 'weapons']) {
     await page.click(`#hgl-cats [data-cat="${c}"]`, KLICK);

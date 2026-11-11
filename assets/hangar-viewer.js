@@ -11817,6 +11817,17 @@ void main() {
     }
     return weaponTpl.get(url);
   }
+  // Dasselbe Modell roh für das Hologramm über dem Datenblatt des Bauteils
+  // (assets/hangar-holo3d.js, partHolo): ohne Lack und ohne Hochladen, das
+  // Modul setzt sein eigenes Material und räumt selbst auf. Was die Halle an
+  // einem Teil nicht zeigt (POM-Decals, Schadensnetze: hiddenMaterial),
+  // bleibt auch dort weg.
+  function loadPartRaw(url) {
+    return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject)).then((g) => {
+      g.scene.traverse((n) => { if (n.isMesh && hiddenMaterial([].concat(n.material)[0]?.name)) n.visible = false; });
+      return g.scene;
+    });
+  }
   function swapParts(c) {
     if (c.parts) return c.parts;
     c.parts = new Map();
@@ -13165,7 +13176,7 @@ void main() {
     if (stLayer) stLayer.set(stWant);
     else if (stWant && !stLoad) {
       stLoad = import(opts.holo.module).then((m) => {
-        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a) });
+        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw });
         if (stSafe) stLayer.safe(stSafe);
         stLayer.set(stWant);
       }).catch((e) => { stLoad = null; console.warn('[hangar] Stationen nicht geladen', e); });

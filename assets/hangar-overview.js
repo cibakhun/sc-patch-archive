@@ -1966,13 +1966,15 @@ export function boot(doc) {
     };
     const b = nums(marks.dataset.box);
     const box = b.length === 6 && b.every(Number.isFinite) ? [b.slice(0, 3), b.slice(3)] : null;
-    return { key: id, sheet, systems, loadout: lo && holoLoadout(lo, panel, marks), dims: { box, len: dim('len'), wid: dim('wid'), hgt: dim('hgt') } };
+    // item: das Datenblatt des Bauteils am offenen Slot (Werkstatt, sheetOf);
+    // steht es, zeigt die rechte Tafel das Bauteil statt des Schiffs
+    return { key: id, sheet, item: lo?.sheet ?? null, systems, loadout: lo && holoLoadout(lo, panel, marks), dims: { box, len: dim('len'), wid: dim('wid'), hgt: dim('hgt') } };
   }
   // Die Tafel „Ausruestung“: der Stand der Werkstatt, dazu je Zeile der Punkt
   // ihres Ports am Schiff (Region marks) und am offenen Serienteil die Links
   // seiner Zeile in der Bucht (Item Finder, Item-Seite).
   function holoLoadout(lo, panel, marks) {
-    const { totals, ...out } = lo;
+    const { totals, sheet, ...out } = lo;
     const at = new Map();
     for (const mk of marks.querySelectorAll(`.hgx-mk[data-tab="${lo.cat}"]`)) {
       const p = nums(mk.dataset.p);
