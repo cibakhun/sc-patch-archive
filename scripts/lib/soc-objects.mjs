@@ -38,29 +38,38 @@ export function readZip(buf) {
       && Number(buf.readBigUInt64LE(z + 40)) === groesse
       && Number(buf.readBigUInt64LE(z + 48)) === ab;
   };
-  // Endrecord von hinten suchen. Die Signatur kann auch im Kommentar stehen,
-  // deshalb gilt ein Kandidat erst, wenn sein Kommentar ins Archiv passt und
-  // das Zentralverzeichnis direkt vor ihm endet (bzw. vor einem stimmigen
-  // Zip64-Endrecord); sonst weitersuchen.
-  let eocd = -1, n = 0, cdAb = 0, cdEnde = 0, grund = null;
-  for (let k = buf.length - 22; k >= Math.max(0, buf.length - 22 - 0xffff); k--) {
-    if (buf.readUInt32LE(k) !== 0x06054b50) continue;
+  // Prueft einen Endrecord-Kandidaten bei k: Sein Kommentar muss ins Archiv
+  // passen, das Zentralverzeichnis direkt vor ihm enden (bzw. vor einem
+  // stimmigen Zip64-Endrecord), und ein leeres Verzeichnis gilt nur ohne Bytes
+  // davor (ein leeres Archiv beginnt mit seinem Endrecord).
+  const kandidat = (k) => {
     const kl = buf.readUInt16LE(k + 20);
-    if (k + 22 + kl > buf.length) { grund ??= `Endrecord bei ${k}: Kommentar (${kl} Bytes) reicht ueber das Dateiende`; continue; }
-    const ab = buf.readUInt32LE(k + 16), ende = ab + buf.readUInt32LE(k + 12);
+    if (k + 22 + kl > buf.length) return { grund: `Endrecord bei ${k}: Kommentar (${kl} Bytes) reicht ueber das Dateiende` };
+    const n = buf.readUInt16LE(k + 10), ab = buf.readUInt32LE(k + 16), ende = ab + buf.readUInt32LE(k + 12);
     const z64 = k >= 20 && buf.readUInt32LE(k - 20) === 0x07064b50;
-    if (z64 ? !zip64Passt(k - 20, buf.readUInt16LE(k + 10), ab, ende - ab) : ende !== k) {
-      grund ??= z64 ? `Endrecord bei ${k}: Zip64-Endrecord fehlt oder passt nicht zum Verzeichnis ${ab}+${ende - ab}`
-        : `Endrecord bei ${k}: Zentralverzeichnis ${ab}+${ende - ab} endet nicht davor`;
-      continue;
+    if (z64 ? !zip64Passt(k - 20, n, ab, ende - ab) : ende !== k) {
+      return { grund: z64 ? `Endrecord bei ${k}: Zip64-Endrecord fehlt oder passt nicht zum Verzeichnis ${ab}+${ende - ab}`
+        : `Endrecord bei ${k}: Zentralverzeichnis ${ab}+${ende - ab} endet nicht davor` };
     }
-    // Ein leeres Verzeichnis kann nur ein leeres Archiv beschreiben: liegen
-    // Bytes davor, ist der Kandidat ein falscher Endrecord (etwa im Kommentar).
-    if (ende === ab && ab !== 0) { grund ??= `Endrecord bei ${k}: leeres Verzeichnis, aber ${ab} Bytes davor`; continue; }
-    eocd = k; n = buf.readUInt16LE(k + 10); cdAb = ab; cdEnde = ende;
-    break;
+    if (ende === ab && ab !== 0) return { grund: `Endrecord bei ${k}: leeres Verzeichnis, aber ${ab} Bytes davor` };
+    return { k, n, ab, ende };
+  };
+  // Alle Signaturen im Suchfenster (Endrecord + hoechstens 65.535 Bytes
+  // Kommentar) pruefen. Die Signatur kann auch im Kommentar oder in Daten
+  // stehen; ungueltige Kandidaten werden uebergangen. Bestehen zwei die
+  // Pruefung, ist das Archiv mehrdeutig, und readZip wirft, statt einen zu
+  // waehlen und die Eintraege des anderen still zu verlieren.
+  const SIG = Buffer.from([0x50, 0x4b, 0x05, 0x06]);
+  const unten = Math.max(0, buf.length - 22 - 0xffff);
+  let treffer = null, grund = null;
+  for (let k = buf.length >= 22 ? buf.lastIndexOf(SIG, buf.length - 22) : -1; k >= unten; k = k > 0 ? buf.lastIndexOf(SIG, k - 1) : -1) {
+    const c = kandidat(k);
+    if (c.grund) { grund ??= c.grund; continue; }
+    if (treffer) kaputt(`mehrdeutig: stimmige Endrecords bei ${k} und ${treffer.k}`);
+    treffer = c;
   }
-  if (eocd < 0) kaputt(grund ?? 'keine ZIP-Endsignatur');
+  if (!treffer) kaputt(grund ?? 'keine ZIP-Endsignatur');
+  const { n, ab: cdAb, ende: cdEnde } = treffer;
   let p = cdAb;
   for (let i = 0; i < n; i++) {
     if (p + 46 > cdEnde || buf.readUInt32LE(p) !== 0x02014b50) kaputt(`Eintrag ${i + 1} von ${n} fehlt im Zentralverzeichnis`);
