@@ -135,7 +135,7 @@ const SEITEN = [
   {
     id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
     leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true,
-    probe: async (page) => (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeRezeptDialog(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
+    probe: async (page) => (await probeZurueckMarke(page, 'Crafting-Planer')) ?? (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeRezeptDialog(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
@@ -995,6 +995,22 @@ async function probeRezeptDialog(p, wo) {
   return null;
 }
 
+/* Die Zurueck-Marke unter der Kopfleiste („← ALPHA 4.10.2“) faellt nur in der
+   Werkbank weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC „Kann weg“).
+   Auf der bisherigen Crafting-Seite, wie auf jeder anderen Blattseite, bleibt
+   sie stehen: sichtbar, mit Ziel und Text. Kippt die Vorgabe des Schalters,
+   verloeren gut hundert Seiten ihren Rueckweg, und kein anderes Tor saehe es. */
+async function probeZurueckMarke(page, wo) {
+  const m = await page.evaluate(() => {
+    const a = document.querySelector('#topbar .snav__back');
+    if (!a || a.hidden || !a.getClientRects().length) return null;
+    return { text: a.textContent.replace(/\s+/g, ' ').trim(), ziel: a.getAttribute('href') || '' };
+  });
+  if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur in der Werkbank weg)`;
+  if (!m.ziel || m.text.length < 3) return `${wo}: die Zurueck-Marke unter der Kopfleiste hat ${m.ziel ? 'keinen Text' : 'kein Ziel'} („${m.text}“)`;
+  return null;
+}
+
 async function probeCraftingSync(page) {
   const pfad = new URL(page.url()).pathname;
   const ziel = await page.evaluate(async () => {
@@ -1129,6 +1145,7 @@ async function kreuzVerdeckt(page) {
    mit dem Namen stehen, und der Planer zaehlt mit. Der Auftakt beim Laden
    muss enden, bevor gemessen wird. */
 const WB_MIN_ZEICHEN = 20; // verschiedene Zeichen der Bauteilart, gemessen 26 am 11.11.2026
+const WB_NAV_FREI = 68; // Freiraum unter der Kopfleiste ohne Zurueck-Marke (--nav-h, SiteNav.astro)
 async function probeWerkbank(page) {
   const kasten = (p, sel) => p.locator(sel).first().boundingBox();
   const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
@@ -1159,9 +1176,11 @@ async function probeWerkbank(page) {
     const r = (sel) => { const e = document.querySelector(sel); return e ? e.getBoundingClientRect() : null; };
     const kopf = r('main .hero'), h1 = document.querySelector('main h1'), tabs = r('.cdb-tabs'), cdb = r('#cdb');
     const spalten = { Liste: r('#cdb-grid'), Mitte: r('#cdb-modal .cdb-modal__box'), Planer: r('#cdb-planner') };
+    const marke = [...document.querySelectorAll('#topbar .snav__back')].find((a) => !a.hidden && a.getClientRects().length > 0);
     return {
       rollt: Math.round(window.scrollY), hoehe: innerHeight, breite: document.documentElement.clientWidth,
       nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68,
+      marke: marke ? marke.textContent.replace(/\s+/g, ' ').trim() || '←' : '',
       kopf: kopf ? Math.round(kopf.width * kopf.height) : 0,
       foto: !!document.querySelector('main .hero__photo[style*="background-image"]'),
       h1: h1 ? h1.textContent.trim() : '',
@@ -1172,6 +1191,11 @@ async function probeWerkbank(page) {
   });
   if (fuellt.kopf > 4 || fuellt.foto) return `Werkbank 1280 px: das Kopfband steht noch ueber dem Werkzeug (Flaeche ${fuellt.kopf} px², Foto ${fuellt.foto})`;
   if (!/Crafting/.test(fuellt.h1)) return `Werkbank 1280 px: die Ueberschrift fehlt im Dokument (h1 „${fuellt.h1}“), Vorleser haetten keinen Seitentitel`;
+  // Die Zurueck-Marke („← ALPHA 4.10.2“) steht in der Werkbank nicht mehr
+  // unter der Kopfleiste (Krisz 11.11.2026 23:44 UTC „Kann weg“), und ihr
+  // Platz ist nicht mehr freigehalten: --nav-h bleibt bei 68 px.
+  if (fuellt.marke) return `Werkbank 1280 px: unter der Kopfleiste steht noch die Zurueck-Marke („${fuellt.marke}“)`;
+  if (fuellt.nav > WB_NAV_FREI) return `Werkbank 1280 px: unter der Kopfleiste sind ${fuellt.nav} px freigehalten statt ${WB_NAV_FREI} (Platz der Zurueck-Marke)`;
   if (fuellt.rollt === 0 && fuellt.tabsOben > fuellt.nav + 24) return `Werkbank 1280 px: zwischen Kopfleiste (${fuellt.nav} px) und Werkzeug (Reiter bei ${fuellt.tabsOben} px) liegt noch etwas`;
   if (fuellt.rand[0] > 40 || fuellt.rand[1] > 40) return `Werkbank 1280 px: die Werkbank nutzt die Breite nicht (Rand links ${fuellt.rand[0]} px, rechts ${fuellt.rand[1]} px)`;
   const kurz = fuellt.unten.filter(([, u]) => u < fuellt.hoehe - 40 || u > fuellt.hoehe + 1);
@@ -1487,6 +1511,38 @@ async function probeWerkbank(page) {
   if (!lage.mitte) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ bringt das Rezept nicht ins Bild`;
   if (!lage.drin || !lage.imBild) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
 
+  // Wird das Fenster mit offenem Rezept schmal (Tablet gedreht, Fenster
+  // verkleinert), liegt das Rezept ab da als Fenster ueber der Liste: die
+  // Seite dahinter rollt nicht mehr, der Fokus steht im Fenster, und Esc
+  // gibt ihn der gewaehlten Karte (Hinweis von CodeRabbit an #349).
+  await page.setViewportSize({ width: 800, height: fenster.height });
+  await zweiBilder();
+  const schmal = await page.evaluate(() => {
+    const box = document.querySelector('#cdb-modal .cdb-modal__box'), a = document.activeElement;
+    return {
+      dialog: box.getAttribute('role') === 'dialog' && box.getAttribute('aria-modal') === 'true',
+      drin: box.contains(a), sperrt: getComputedStyle(document.body).overflow === 'hidden',
+      auf: !a || a === document.body ? '<body>' : `<${a.tagName.toLowerCase()}>`,
+    };
+  });
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  const schmalZu = await page.evaluate((n) => {
+    const a = document.activeElement;
+    return {
+      zu: document.querySelector('#cdb-modal').classList.contains('is-leer'), frei: getComputedStyle(document.body).overflow !== 'hidden',
+      amNamen: a === document.querySelector(`#cdb-grid .cbp[data-i="${n}"] .cbp__name a`),
+      auf: !a || a === document.body ? '<body>' : `<${a.tagName.toLowerCase()}>`,
+    };
+  }, weit.i);
+  await page.setViewportSize(fenster);
+  await zweiBilder();
+  if (!schmal.dialog) return 'Werkbank 800 px: nach dem Schmalerwerden ist das offene Rezept kein Dialog (role/aria-modal)';
+  if (!schmal.sperrt) return 'Werkbank 800 px: nach dem Schmalerwerden mit offenem Rezept rollt die Seite hinter dem Rezeptfenster weiter';
+  if (!schmal.drin) return `Werkbank 800 px: nach dem Schmalerwerden mit offenem Rezept steht der Fokus auf ${schmal.auf} statt im Rezeptfenster`;
+  if (!schmalZu.zu || !schmalZu.frei) return `Werkbank 800 px: Esc schliesst das schmal gewordene Rezeptfenster nicht sauber (zu ${schmalZu.zu}, Seite rollt ${schmalZu.frei})`;
+  if (!schmalZu.amNamen) return `Werkbank 800 px: nach Esc steht der Fokus auf ${schmalZu.auf} statt auf dem Namen der gewaehlten Karte`;
+
   // Zweiter Reiter: der Zerlege-Rechner staucht seine Ergebniskarten nicht.
   const zerlegen = await probeZerlegen(page, 'Werkbank 1280 px');
   if (zerlegen) return zerlegen;
@@ -1518,6 +1574,14 @@ async function probeWerkbank(page) {
     await p.goto(leer.href, { waitUntil: 'load', timeout: 60000 });
     await p.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
     if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: das Rezeptfenster liegt schon ohne Wahl ueber der Liste';
+    // Auch am Telefon steht die Zurueck-Marke nicht mehr unter der Kopfleiste
+    // (dort hielt sie 116 px frei).
+    const oben = await p.evaluate(() => {
+      const m = [...document.querySelectorAll('#topbar .snav__back')].find((a) => !a.hidden && a.getClientRects().length > 0);
+      return { marke: m ? m.textContent.replace(/\s+/g, ' ').trim() || '←' : '', nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68 };
+    });
+    if (oben.marke) return `Werkbank 390 px: unter der Kopfleiste steht noch die Zurueck-Marke („${oben.marke}“)`;
+    if (oben.nav > WB_NAV_FREI) return `Werkbank 390 px: unter der Kopfleiste sind ${oben.nav} px freigehalten statt ${WB_NAV_FREI} (Platz der Zurueck-Marke)`;
     const leiste = await kasten(p, '#cdb-planner-open');
     if (!leiste || leiste.y + leiste.height < 844 - 40 || leiste.height < 44)
       return `Werkbank 390 px: die Planer-Leiste sitzt nicht unten (${leiste ? `y=${Math.round(leiste.y)}, h=${Math.round(leiste.height)}` : 'fehlt'})`;

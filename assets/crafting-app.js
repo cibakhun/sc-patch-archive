@@ -1267,7 +1267,20 @@
       // Schreibtisch: die Mitte ist kein Dialog, nur ueber der Liste (Telefon) einer.
       var wbRolle = function () {
         if (wbMitte()) { wbBox.removeAttribute('aria-modal'); wbBox.removeAttribute('tabindex'); wbBox.setAttribute('role', 'region'); document.body.style.overflow = ''; }
-        else { wbBox.setAttribute('aria-modal', 'true'); wbBox.setAttribute('role', 'dialog'); wbBox.setAttribute('tabindex', '-1'); }
+        else {
+          wbBox.setAttribute('aria-modal', 'true'); wbBox.setAttribute('role', 'dialog'); wbBox.setAttribute('tabindex', '-1');
+          // Wird das Fenster mit offenem Rezept schmal (Tablet gedreht,
+          // Fenster verkleinert), liegt das Rezept ab jetzt ueber der Liste:
+          // sperren und den Fokus hineinholen wie beim Oeffnen. Stand er im
+          // Rezept oder nirgends, geht er beim Schliessen auf den Namen der
+          // gewaehlten Karte (Hinweis von CodeRabbit an #349).
+          if (!modal.classList.contains('is-leer')) {
+            var vorher = document.activeElement;
+            document.body.style.overflow = 'hidden';
+            dlgFokus(true);
+            if (!vorher || vorher === document.body || wbBox.contains(vorher)) dlgVon = selCard ? $('.cbp__name a', selCard) : null;
+          }
+        }
       };
       wbRolle();
       if (mqMitte.addEventListener) mqMitte.addEventListener('change', wbRolle);
