@@ -7,7 +7,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_P4K } from './lib/p4k.mjs';
+import { DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
 
 const A = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'assets');
 const rd = (n) => JSON.parse(readFileSync(resolve(A, n), 'utf8'));
@@ -164,8 +164,7 @@ for (const b of db.bodies) {
 const bmPath = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
 if (existsSync(bmPath)) {
   try {
-    const d = JSON.parse(readFileSync(bmPath, 'utf8'))?.Data ?? {};
-    const clientVersion = `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`;
+    const clientVersion = clientKennung();
     console.log(`  Client-Abgleich: committet ${model.game_version} · installiert ${clientVersion}`);
     if (model.game_version !== clientVersion)
       warn.push(`game_version (${model.game_version}) stimmt nicht mit dem installierten Client ueberein (${clientVersion}) — Datenlauf faellig (npm run sync:mining, danach npm run gate:data)`);

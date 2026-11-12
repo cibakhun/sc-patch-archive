@@ -53,7 +53,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
@@ -85,13 +85,8 @@ const attrCI = (attrs, key) => {
 // Phase 01.3. Ersetzt den Wiki-`v.version`-Wert (dort z. B. "4.9.0-LIVE.12232306").
 let GAME_VERSION = 'sc-alpha-4.9.0'; // Fallback, falls build_manifest.id fehlt
 {
-  const bm = resolve(dirname(argOf('--p4k') ?? DEFAULT_P4K), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
-      if (d?.Branch && d?.RequestedP4ChangeNum) GAME_VERSION = `${d.Branch}@${d.RequestedP4ChangeNum}`;
-    } catch { /* Fallback bleibt */ }
-  }
+  const d = clientManifest(argOf('--p4k') ?? DEFAULT_P4K);
+  if (d?.Branch && d?.RequestedP4ChangeNum) GAME_VERSION = `${d.Branch}@${d.RequestedP4ChangeNum}`;
 }
 
 /* ---------------------------------------------------------------- */

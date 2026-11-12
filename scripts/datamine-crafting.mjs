@@ -37,11 +37,11 @@
 //   Missionszuordnung: invertiert aus src/data/missions.json (datamine-missions.mjs),
 //   Blueprint-Schluessel = Recordname ohne BP_CRAFT_/_SCItem.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDataCore } from './lib/datacore.mjs';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DB = resolve(__dirname, '..', 'assets', 'crafting-db.json');
@@ -68,24 +68,19 @@ if (dcbArg) {
   console.log(`p4k: ${p4k.path} (${(p4k.size / 2 ** 30).toFixed(1)} GiB, ${p4k.entryCount} Eintraege)`);
   dcbBuf = p4k.read(/^Data[\\/]Game2\.dcb$/i);
   iniEn = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
-  const bm = resolve(dirname(p4k.path), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data ?? {};
-      // 4.9-Manifest: Branch "sc-alpha-4.9.0" + RequestedP4ChangeNum "12232306";
-      // aeltere Builds fuehrten stattdessen RequestedP4kVersion.
-      // Label-Wort aus `Config`, NICHT aus `Tag`: ein echter LIVE-Client traegt
-      // "Tag": "no_tag" + "Config": "live" (gemessen an build_manifest.id,
-      // Changelist 12326004) — Tag ist der Perforce-Branch-Tag (oft leer/no_tag),
-      // Config ist der tatsaechliche Build-Kanal. `d.Tag==='public'` traf bei
-      // diesem Client nie, das Label fiel auf "NO_TAG" zurueck (Phase 01.3, D-19).
-      const kanal = d.Config === 'live'
-        ? 'LIVE'
-        : (d.Tag && d.Tag !== 'no_tag' ? String(d.Tag).toUpperCase() : String(d.Config ?? 'LIVE').toUpperCase());
-      patchLabel = d.RequestedP4kVersion
-        ?? (d.Branch ? `${kanal}-${d.Branch.replace(/^sc-alpha-/, '')}-${d.RequestedP4ChangeNum ?? ''}`.replace(/-$/, '') : null);
-    } catch { /* egal */ }
-  }
+  const d = clientManifest(p4k.path) ?? {};
+  // 4.9-Manifest: Branch "sc-alpha-4.9.0" + RequestedP4ChangeNum "12232306";
+  // aeltere Builds fuehrten stattdessen RequestedP4kVersion.
+  // Label-Wort aus `Config`, NICHT aus `Tag`: ein echter LIVE-Client traegt
+  // "Tag": "no_tag" + "Config": "live" (gemessen an build_manifest.id,
+  // Changelist 12326004) — Tag ist der Perforce-Branch-Tag (oft leer/no_tag),
+  // Config ist der tatsaechliche Build-Kanal. `d.Tag==='public'` traf bei
+  // diesem Client nie, das Label fiel auf "NO_TAG" zurueck (Phase 01.3, D-19).
+  const kanal = d.Config === 'live'
+    ? 'LIVE'
+    : (d.Tag && d.Tag !== 'no_tag' ? String(d.Tag).toUpperCase() : String(d.Config ?? 'LIVE').toUpperCase());
+  patchLabel = d.RequestedP4kVersion
+    ?? (d.Branch ? `${kanal}-${d.Branch.replace(/^sc-alpha-/, '')}-${d.RequestedP4ChangeNum ?? ''}`.replace(/-$/, '') : null);
   p4k.close();
 }
 
