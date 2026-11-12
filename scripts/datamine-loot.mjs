@@ -49,10 +49,10 @@
 //          kuratiert in scripts/lib/loot-orte.mjs — so laesst sich die
 //          Benennung ohne neuen PC-Lauf verbessern, und verify:loot-fundorte
 //          prueft, dass jede Belegung einen Namen hat.
-import { writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { buildTagIndex } from './lib/tags.mjs';
 import { readZip } from './lib/soc-objects.mjs';
@@ -71,13 +71,8 @@ console.log(`p4k: ${p4k.path} (${(p4k.size / 2 ** 30).toFixed(1)} GiB)`);
 let patch = null;
 {
   // Patch-Kennung wie datamine-missions.mjs: Branch + Changelist (D-16).
-  const bm = resolve(dirname(p4k.path), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
-      patch = d?.Branch && d?.RequestedP4ChangeNum ? `${d.Branch}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? d?.Version ?? null);
-    } catch { /* bleibt null */ }
-  }
+  const d = clientManifest(p4k.path);
+  patch = d?.Branch && d?.RequestedP4ChangeNum ? `${d.Branch}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? d?.Version ?? null);
 }
 // Ohne Changelist ist der Stand keinem Patch zuzuordnen; verify:loot-fundorte
 // verwirft ihn ohnehin. Abbrechen, bevor etwas geschrieben oder in den Katalog

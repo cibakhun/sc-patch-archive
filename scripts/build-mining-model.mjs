@@ -7,10 +7,10 @@
 // game_version aus dem Client-build_manifest.id (neben der Data.p4k).
 //
 // Aufruf: node scripts/build-mining-model.mjs
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_P4K } from './lib/p4k.mjs';
+import { clientKennung } from './lib/p4k.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const A = resolve(__dirname, '..', 'assets');
@@ -22,8 +22,7 @@ const frozen = rd('mining-frozen.json');
 
 // game_version aus Client-Manifest (game-sourced)
 let game_version = frozen.frozen_from.replace(/^scmdb\s+/, '');
-const bm = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
-if (existsSync(bm)) { try { const d = JSON.parse(readFileSync(bm, 'utf8')).Data; game_version = `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`; } catch { /* Fallback bleibt */ } }
+game_version = clientKennung() ?? game_version;
 
 // GUID roh (DataCore-Bytefolge) -> scmdb/unforge mixed-endian dashed
 const toHex = (h) => { const b = String(h).match(/../g); return b && b.length === 16 ? b.slice(0, 8).reverse().join('') + b.slice(8).reverse().join('') : String(h); };

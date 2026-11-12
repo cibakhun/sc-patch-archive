@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSy
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
 import { dirname } from 'node:path';
+import { clientManifest } from './lib/p4k.mjs';
 import { fileURLToPath } from 'node:url';
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
@@ -149,9 +150,8 @@ function exportTo(file, args, common = COMMON, { log = false } = {}) {
 // Spielstand der Data.p4k (build_manifest.id daneben): steht in jeder
 // Schiffs-Sidecar, damit ein neuer Patch den Rohbestand als veraltet erkennt.
 function gameBuild() {
-  const f = `${dirname(P4K)}/build_manifest.id`;
-  if (!existsSync(f)) return null;
-  const d = JSON.parse(readFileSync(f, 'utf8')).Data ?? {};
+  const d = clientManifest(P4K);
+  if (!d) return null;
   return { branch: d.Branch ?? null, change: d.RequestedP4ChangeNum ?? null };
 }
 

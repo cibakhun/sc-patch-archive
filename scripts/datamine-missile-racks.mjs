@@ -39,10 +39,10 @@
 //   (Modulport MissileLauncher/MissileRack, Serie ist der GMRCK-Bodenhalter).
 //
 // Aufruf: node scripts/datamine-missile-racks.mjs [--p4k <Data.p4k>] [--audit] [--ship <id>]
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { preferGoldStandard } from './lib/vehicle-records.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
@@ -63,13 +63,8 @@ const findType = (o, rx) => { let r; (function w(x){ if(r!==undefined||!x||typeo
 // gameVersion wie datamine-vehicles.mjs: build_manifest.id neben der p4k.
 let GAME_VERSION = null;
 {
-  const bm = resolve(dirname(P4K), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
-      if (d?.Branch && d?.RequestedP4ChangeNum) GAME_VERSION = `${d.Branch}@${d.RequestedP4ChangeNum}`;
-    } catch { /* bleibt null */ }
-  }
+  const d = clientManifest(P4K);
+  if (d?.Branch && d?.RequestedP4ChangeNum) GAME_VERSION = `${d.Branch}@${d.RequestedP4ChangeNum}`;
 }
 
 const p4k = openP4k(P4K);

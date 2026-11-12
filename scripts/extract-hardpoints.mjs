@@ -21,6 +21,7 @@ import { openSync, readSync, fstatSync, existsSync, readFileSync } from 'node:fs
 import { writeFile } from 'node:fs/promises';
 import { zstdDecompressSync } from 'node:zlib';
 import { createDecipheriv } from 'node:crypto';
+import { clientManifest } from './lib/p4k.mjs';
 
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
 const OUT = new URL('../src/data/ship-hardpoints.json', import.meta.url);
@@ -462,13 +463,10 @@ if (ADD.length) {
 
 // Build-Kennung aus dem LIVE-Ordner, wenn greifbar
 let build = null;
-try {
-  const mf = P4K.replace(/Data\.p4k$/i, 'build_manifest.id');
-  if (existsSync(mf)) {
-    const j = JSON.parse(readFileSync(mf, 'utf8'));
-    build = j?.Data?.RequestedP4ChangeNum ? `${j.Data.Branch ?? ''}@${j.Data.RequestedP4ChangeNum}` : (j?.Data?.Branch ?? null);
-  }
-} catch { /* optional */ }
+{
+  const d = clientManifest(P4K);
+  build = d?.RequestedP4ChangeNum ? `${d.Branch ?? ''}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? null);
+}
 
 const snapshot = {
   fetchedAt: new Date().toISOString().slice(0, 10),
