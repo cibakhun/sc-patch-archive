@@ -999,11 +999,14 @@ async function probeRezeptDialog(p, wo) {
    Werkbank weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC „Kann weg“).
    Auf der bisherigen Crafting-Seite, wie auf jeder anderen Blattseite, bleibt
    sie stehen: sichtbar, mit Ziel und Text. Kippt die Vorgabe des Schalters,
-   verloeren gut hundert Seiten ihren Rueckweg, und kein anderes Tor saehe es. */
+   verloeren gut hundert Seiten ihren Rueckweg, und kein anderes Tor saehe es.
+   Sichtbar heisst hier wie ueberall im Skript SICHTBAR (oben): eine Marke
+   mit visibility:hidden oder opacity:0 hat noch ihren Kasten und gaelte
+   sonst als da (Hinweis von CodeRabbit an #349). */
 async function probeZurueckMarke(page, wo) {
-  const m = await page.evaluate(() => {
+  const m = await mitSichtbar(page, (_, da) => {
     const a = document.querySelector('#topbar .snav__back');
-    if (!a || a.hidden || !a.getClientRects().length) return null;
+    if (!da(a)) return null;
     return { text: a.textContent.replace(/\s+/g, ' ').trim(), ziel: a.getAttribute('href') || '' };
   });
   if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur in der Werkbank weg)`;
@@ -1152,6 +1155,12 @@ async function probeWerkbank(page) {
   const bpi = (p) => new URL(p.url()).searchParams.get('bpi');
   const wahl = (p) => p.$$eval('#cdb-grid .cbp.is-sel', (c) => c.map((x) => x.dataset.i));
   const titel = async (p) => ((await p.locator('#cdb-modal .cbm__name').first().innerText().catch(() => '')) || '').trim();
+  // Wartet, bis in sel nichts Endliches mehr laeuft (Auftritt, Uebergang);
+  // was endlos dreht, zaehlt nicht. false, wenn es nach ms noch laeuft.
+  const ruht = (p, sel, ms = 3000) => p.waitForFunction((s) => {
+    const e = document.querySelector(s);
+    return !!e && e.getAnimations({ subtree: true }).every((a) => a.playState !== 'running' || a.effect?.getComputedTiming().endTime === Infinity);
+  }, sel, { timeout: ms }).then(() => true, () => false);
 
   // Der Auftakt verschiebt Leiste, Kacheln und Spalten fuer eine gute
   // Sekunde um wenige Pixel; gemessen wird danach. Bleibt die Klasse
@@ -1172,11 +1181,11 @@ async function probeWerkbank(page) {
   // fuer Vorleser im Dokument), die Reiterzeile direkt unter der Kopfleiste,
   // die Werkbank ueber die Breite, und Liste, Mitte und Planer enden am
   // unteren Rand des Fensters (hohes Fenster, nichts gerollt).
-  const fuellt = await page.evaluate(() => {
+  const fuellt = await mitSichtbar(page, (_, da) => {
     const r = (sel) => { const e = document.querySelector(sel); return e ? e.getBoundingClientRect() : null; };
     const kopf = r('main .hero'), h1 = document.querySelector('main h1'), tabs = r('.cdb-tabs'), cdb = r('#cdb');
     const spalten = { Liste: r('#cdb-grid'), Mitte: r('#cdb-modal .cdb-modal__box'), Planer: r('#cdb-planner') };
-    const marke = [...document.querySelectorAll('#topbar .snav__back')].find((a) => !a.hidden && a.getClientRects().length > 0);
+    const marke = [...document.querySelectorAll('#topbar .snav__back')].find((a) => da(a));
     return {
       rollt: Math.round(window.scrollY), hoehe: innerHeight, breite: document.documentElement.clientWidth,
       nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68,
@@ -1346,7 +1355,18 @@ async function probeWerkbank(page) {
   if (passt.raus.length)
     return `Werkbank 1280 px: unter der Leiste (unten ${passt.unten} px) passen nicht alle Spalten ins Bild (${passt.hoehe} px hoch): ${passt.raus.join(', ')}`;
   if (passt.deckt) return 'Werkbank 1280 px: beim Weiterrollen legt sich die Bedienleiste ueber die Mitte';
-  // Zum Planer: die Spalte rechnet sofort mit.
+  // Zum Planer: die Spalte rechnet sofort mit. Erst den Auftritt des Rezepts
+  // abwarten: er schiebt die Zeile mit dem Knopf eine halbe Sekunde lang um
+  // 10 px. Einen Zeigerklick auf ein bewegtes Element setzt Playwright neu
+  // an und rollt es beim ersten ruhigen Versuch je nach Zaehler ans Ende,
+  // in die Mitte oder an den Anfang (scrollIntoView). Gemessen an der Probe
+  // ohne dieses Warten: nach zwei unruhigen Versuchen war die Mitte 44 px
+  // gerollt, nach dreien 266 px, der Rezeptkopf damit weg, und die Probe der
+  // kleinen Leiste weiter unten meldete sie als „schon ohne Rollen aktiv“.
+  // Ein Fehlalarm, gesehen am 12.11.2026 einmal in rund siebzig Laeufen;
+  // ein oder zwei unruhige Versuche gab es in fast jedem.
+  if (!(await ruht(page, '#cdb-modal .cdb-modal__box')))
+    return 'Werkbank 1280 px: der Auftritt des Rezepts endet nicht (nach 3 s bewegt sich in der Mitte noch etwas)';
   await page.locator('#cdb-modal .cbm__plan').first().click();
   const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
   if (!imPlaner.map((s) => s.trim()).includes(name)) return `Werkbank 1280 px: „Zum Planer“ zeigt „${name}“ nicht in der Planer-Spalte (dort: ${JSON.stringify(imPlaner)})`;
@@ -1576,8 +1596,8 @@ async function probeWerkbank(page) {
     if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: das Rezeptfenster liegt schon ohne Wahl ueber der Liste';
     // Auch am Telefon steht die Zurueck-Marke nicht mehr unter der Kopfleiste
     // (dort hielt sie 116 px frei).
-    const oben = await p.evaluate(() => {
-      const m = [...document.querySelectorAll('#topbar .snav__back')].find((a) => !a.hidden && a.getClientRects().length > 0);
+    const oben = await mitSichtbar(p, (_, da) => {
+      const m = [...document.querySelectorAll('#topbar .snav__back')].find((a) => da(a));
       return { marke: m ? m.textContent.replace(/\s+/g, ' ').trim() || '←' : '', nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68 };
     });
     if (oben.marke) return `Werkbank 390 px: unter der Kopfleiste steht noch die Zurueck-Marke („${oben.marke}“)`;
