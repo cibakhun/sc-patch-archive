@@ -48,10 +48,21 @@ interface Props {
    * zeigt die Wortmarke unverändert ab dem ersten Bildpunkt.
    */
   heroMorph?: boolean;
+  /**
+   * Zurück-Marke unter der Leiste („← ALPHA 4.10.2“). Vorgabe true. Nur die
+   * Crafting-Werkbank schaltet sie ab (Krisz 11.11.2026 23:44 UTC „Kann weg“):
+   * dort füllt das Werkzeug die Seite, und die schwebende Marke kostete eine
+   * Zeile über allen Spalten (--nav-h 104/116 statt 68 px). Die Seite
+   * hinterlässt ihre Herkunfts-Notiz weiter (assets/back-link.js hängt an den
+   * Krumen), und der Zurück-Pfeil im Rezeptfenster löst seine Herkunft selbst
+   * auf. Der Weg zur Patchseite bleibt der Verweis in den Kennzahlen unter
+   * dem Werkzeug.
+   */
+  backMark?: boolean;
 }
 // hasEn/hasDe bewusst OHNE Default: `false` als Default wuerde die
 // Aufrufstellen ohne Prop faelschlich auf die Startseite schicken.
-const { crumbs = [], hasEn, hasDe, heroMorph = false } = Astro.props;
+const { crumbs = [], hasEn, hasDe, heroMorph = false, backMark = true } = Astro.props;
 
 // Locale aus dem Pfad; t() + L() halten Chrome/Links in der aktiven Sprache.
 // Für DE liefern beide exakt die bisherigen Werte -> DE-Ausgabe unverändert.
@@ -98,9 +109,9 @@ const backTarget = backParent ? { href: backParent.href as string, label: backPa
 // gibt: auf Naben (Item-Finder, /schiffe.html, Startseite …) steht es zunaechst
 // auf `hidden` und wird vom Leser unten sichtbar gemacht, sobald eine echte
 // Herkunft vorliegt. Sonst kaeme man von einer Nabe nie zurueck, obwohl man
-// irgendwoher kam. Ausgenommen bleibt allein der Konto-Bereich — ein
-// Auth-Fluss ist keine Inhaltsnavigation.
-const renderBack = !isAccountArea;
+// irgendwoher kam. Ausgenommen bleiben der Konto-Bereich (ein Auth-Fluss ist
+// keine Inhaltsnavigation) und Seiten, die die Marke abschalten (backMark).
+const renderBack = !isAccountArea && backMark;
 // Ohne statisches Ziel startet es versteckt; der Leser fuellt href und Text.
 const backHidden = !backTarget;
 // Sichtbar schon im Server-HTML: dann stellt ein <style> vor <nav> --nav-h,

@@ -14,11 +14,21 @@
 // der bisherigen Seite. Eigene Regeln stehen hier nur noch fuer die Stellung,
 // das Aussehen kommt aus CraftingApp. Vorher: kompakte Zeilen, Leiste in der
 // schmalen Listenspalte, eigener Kasten fuer die Mitte, Vollbild am Telefon.
+//
+// Dritte Runde (Krisz 11.11.2026: „wir können das so machen das das tool die
+// ganze seite füllt, überschrift und sowas brauchen wir eig gar nicht“): kein
+// Kopfband mehr (crafting.astro), die Werkbank nimmt die volle Breite, Reiter,
+// Prototyp-Zeile und Hilfe teilen sich eine Zeile, und auf hohen Fenstern
+// reichen die drei Spalten bis an den unteren Rand.
 export const WERKBANK_CSS = `
-/* --wb-bar und --wb-count misst crafting-app.js (Hoehe der Bedienleiste,
-   der Zaehlzeile darueber); die Werte hier sind nur der Startwert. --wb-h
-   ist die Hoehe, die unter Kopfleiste und Bedienleiste bleibt. */
-.cdb--wb{--wb-bar:4.4rem;--wb-count:2.6rem;--wb-top:calc(var(--nav-h,68px) + var(--wb-bar) + .5rem);--wb-h:calc(100dvh - var(--nav-h,68px) - var(--wb-bar) - 1rem);max-width:min(1480px,100%)}
+/* --wb-bar, --wb-count und --wb-y misst crafting-app.js (Hoehe der
+   Bedienleiste, der Zaehlzeile ueber der Liste, Oberkante der Spalten auf
+   der Seite); die Werte hier sind nur der Startwert. --wb-h ist die Hoehe,
+   die unter den Spalten-Oberkanten bis zum unteren Fensterrand bleibt. */
+.cdb--wb{--wb-bar:4.4rem;--wb-count:2.6rem;--wb-top:calc(var(--nav-h,68px) + var(--wb-bar) + .5rem);--wb-h:calc(100dvh - var(--wb-y,calc(var(--nav-h,68px) + var(--wb-bar) + 3.5rem)) - .9rem);max-width:none;padding-inline:clamp(.75rem,1.6vw,1.5rem)}
+/* Reiterzeile: Reiter, dahinter die Prototyp-Zeile (CraftingProtoNote
+   kompakt); ab 821 px steht rechts daneben die Hilfe. */
+.cdb--wb > .cdb-tabs{margin-bottom:.35rem;border-bottom:0;align-items:center}
 .cdb-wb-leer{display:grid;justify-items:center;align-content:center;gap:.5rem;min-height:min(420px,calc(100dvh - var(--wb-top) - 6rem));padding:1.5rem 1rem;text-align:center}
 .cdb-wb-leer__i{display:grid;place-items:center;width:64px;height:64px;margin-bottom:.4rem;border:1px solid var(--line,rgba(255,94,26,.3));border-radius:50%;color:var(--accent,#FF5E1A);background:color-mix(in srgb,var(--accent,#FF5E1A) 8%,transparent)}
 .cdb-wb-leer__i .cic,.cdb-wb-leer__i svg{width:28px;height:28px}
@@ -39,10 +49,20 @@ export const WERKBANK_CSS = `
   /* Kopf (Hilfe, Bedienleiste) ueber die ganze Breite wie auf der
      bisherigen Seite, darunter die Spalten. display:contents hebt die
      Kinder des Reiters ins Raster; hidden gewinnt weiter (theme.css). */
-  .cdb--wb{display:grid;grid-template-columns:minmax(280px,1fr) clamp(400px,44vw,560px);grid-template-areas:"tabs tabs" "help help" "bar bar" "list bp";column-gap:1.4rem;align-items:start}
-  .cdb--wb > .cdb-tabs{grid-area:tabs}
+  .cdb--wb{display:grid;grid-template-columns:minmax(280px,1fr) clamp(400px,44vw,560px);grid-template-areas:"kopf kopf" "bar bar" "list bp";column-gap:1.4rem;align-items:start}
+  /* Reiter und Hilfe teilen sich die Kopfzeile (dieselbe Rasterzelle, links
+     und rechts). Der Innenabstand rechts haelt den Platz der Hilfe frei;
+     wird es eng, bricht die Prototyp-Zeile unter die Reiter um. */
+  .cdb--wb > .cdb-tabs{grid-area:kopf;padding-right:min(22rem,42%)}
   .cdb--wb > #cdb-tab-db-content:not([hidden]){display:contents}
-  .cdb--wb > #cdb-tab-db-content > .tool-help{grid-area:help}
+  /* Hilfe rechts in der Kopfzeile; aufgeklappt legt sie sich als Tafel
+     ueber die Spalten, statt sie nach unten zu schieben. Klick daneben und
+     Esc schliessen sie (crafting-app.js). */
+  .cdb--wb > #cdb-tab-db-content > .tool-help{grid-area:kopf;justify-self:end;align-self:start;position:relative;z-index:40;margin:.25rem 0 0;border-color:transparent;background:none;overflow:visible}
+  .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__summary{padding:.45rem .7rem;font-size:var(--fs-7);color:var(--muted,#9ba2ae);white-space:nowrap}
+  .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__summary:hover,
+  .cdb--wb > #cdb-tab-db-content > .tool-help[open] > .tool-help__summary{color:var(--text,#eef1f5)}
+  .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__body{position:absolute;top:calc(100% + .3rem);right:0;width:min(560px,calc(100vw - 2rem));max-height:calc(100dvh - var(--nav-h,68px) - 6rem);overflow:auto;background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.3));border-radius:8px;box-shadow:0 16px 40px rgba(0,0,0,.55)}
   .cdb--wb > #cdb-tab-db-content > .cdb-bar{grid-area:bar}
   .cdb--wb > #cdb-tab-db-content > .cdb-layout{grid-area:list;min-width:0}
   .cdb--wb > #cdb-tab-dismantle-content{grid-column:1/-1}
@@ -68,6 +88,10 @@ export const WERKBANK_CSS = `
   .cdb--wb .cdb-modal__back{top:.6rem;left:auto;right:3.1rem;width:32px;height:32px}
   /* Platz fuer ✕ und den Zurueck-Pfeil daneben (der steht hier rechts). */
   .cdb--wb .cbm__cat{padding-right:3.6rem}
+  /* Kacheln ab 225 px (bisherige Seite: 240): bei 1280 px passen so zwei
+     nebeneinander in die Listenspalte statt einer. Die Listenansicht
+     (.is-list, eine Spalte) bleibt, wie sie ist. */
+  .cdb--wb .cdb-grid:not(.is-list){grid-template-columns:repeat(auto-fill,minmax(min(225px,100%),1fr))}
 }
 /* Auf hohen Fenstern ist die Liste ein eigenes Scrollfeld (.vb-scrollbox,
    mobile-ux.css). Dann stehen die drei Spalten gleich hoch unter der
@@ -78,27 +102,26 @@ export const WERKBANK_CSS = `
 @media (min-width:821px) and (min-height:720px){
   .cdb--wb > #cdb-tab-db-content > .cdb-bar{position:relative;top:auto;backdrop-filter:none;background:none}
   .cdb--wb > .cdb-modal{position:relative;top:auto}
-  .cdb--wb > .cdb-modal .cdb-modal__box{max-height:var(--wb-h)}
+  /* Mitte bis an den unteren Rand, auch leer und mit kurzem Rezept. */
+  .cdb--wb > .cdb-modal .cdb-modal__box{height:var(--wb-h);max-height:none}
+  .cdb--wb > .cdb-modal.is-leer .cdb-modal__box{display:grid;align-content:center}
   .cdb--wb .cdb-grid.vb-scrollbox{max-height:calc(var(--wb-h) - var(--wb-count))}
 }
 @media (min-width:1180px){
   /* Mitte und Planer wachsen mit dem Fenster, die Liste nimmt den Rest:
      ab etwa 1400 px zwei Kacheln nebeneinander. */
-  .cdb--wb{grid-template-columns:minmax(280px,1fr) clamp(440px,34vw,580px) clamp(250px,20vw,300px);grid-template-areas:"tabs tabs tabs" "help help help" "bar bar bar" "list bp plan"}
+  .cdb--wb{grid-template-columns:minmax(280px,1fr) clamp(440px,34vw,580px) clamp(250px,20vw,300px);grid-template-areas:"kopf kopf kopf" "bar bar bar" "list bp plan"}
   .cdb--wb > .cdb-drawer{grid-area:plan;position:sticky;top:var(--wb-top);right:auto;z-index:auto;width:auto;height:auto;max-height:calc(100dvh - var(--wb-top) - 1rem);transform:none;border:1px solid var(--accent-2,#1FA2FF);border-radius:8px;transition:none}
   .cdb--wb .cdb-drawer__hd [data-planner-close]{display:none}
   .cdb--wb .cdb-planner-open{display:none}
 }
 @media (min-width:1180px) and (min-height:720px){
-  .cdb--wb > .cdb-drawer{position:relative;top:auto;max-height:var(--wb-h)}
-}
-/* Breiter als der Seitenrahmen, sobald Platz ist: die drei Spalten nutzen
-   ein grosses Fenster aus (bis 1760 px). .cdb steht mittig im vollen <main>. */
-@media (min-width:1600px){
-  .cdb--wb{max-width:1760px}
+  .cdb--wb > .cdb-drawer{position:relative;top:auto;height:var(--wb-h);max-height:none}
 }
 @media (max-width:820px){
   .cdb--wb{padding-bottom:5.2rem}
+  /* Die Hilfe steht hier als Kasten unter der Reiterzeile: etwas Luft. */
+  .cdb--wb > .cdb-tabs{margin-bottom:.9rem}
   .cdb--wb > .cdb-modal.is-leer{display:none}
   /* Offenes Rezept: die Planer-Leiste weicht, sie schien sonst durch den
      halbdurchsichtigen Hintergrund des Fensters. */

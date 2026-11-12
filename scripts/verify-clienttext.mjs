@@ -93,6 +93,11 @@ const MIN_MODAL_CRAFT = 1_400;
 const MIN_STELLEN = 800_000;
 const MIN_SCHLUESSEL = 80;
 const MIN_LAUFZEIT = 100; // gemessen 125 beim Rendern gefragte Schluessel
+// Crafting-Rechner (Regel 5 auch dort, 11.11.2026): gemessen 40 woertliche
+// Schluessel in assets/crafting-app.js, 41 Eintraege im Katalog je Sprache.
+const MIN_SCHLUESSEL_CRAFT = 34;
+const CRAFT_JS = join(DIST, 'assets', 'crafting-app.js');
+const CRAFT_SEITEN = { en: 'topics/crafting.html', de: 'de/topics/crafting.html' };
 
 // Klinken Teil 2, gemessen am 04.11.2026 auf dem Live-Bau: 102 Seitenarten
 // aus 17.752 Seiten, 4.327 Bedienschritte, 11.874 geschriebene Texte.
@@ -320,6 +325,33 @@ for (const k of laufzeit) {
   else if (inEn && !inDe) funde.katalog.push(`tr('${k}') beim Rendern gefragt, steht nur im EN-Katalog — die DE-Seite zeigt den Rohwert`);
   else if (!inDe && !inEn) ohneLabel.push(k);
 }
+
+/* ---------- 5, Crafting-Rechner: woertliche Schluessel im Skript ---------- */
+// Dieselbe Regel fuer assets/crafting-app.js gegen window.__CRAFT.t der
+// ausgelieferten Seiten. Anlass 11.11.2026: tr('category', 'Kategorie') und
+// tr('calcLocation', 'Kaufort') standen in keinem der beiden Kataloge, die
+// Ergebniskarten des Zerlege-Rechners zeigten auf der englischen Seite
+// „Kategorie: … · Kaufort: …“. Regel 2 in Teil 2 sah es nicht: die Karten
+// entstehen erst, wenn ein Material angekreuzt ist UND die Rezept-DB
+// geladen hat, und keines der beiden Woerter traegt einen Umlaut.
+const craftWoertlich = [];
+if (!existsSync(CRAFT_JS)) fehler.push(`${CRAFT_JS.slice(ROOT.length + 1)} fehlt — der Crafting-Rechner ist nicht im Bau`);
+else {
+  const quelle = readFileSync(CRAFT_JS, 'utf8');
+  craftWoertlich.push(...new Set([...quelle.matchAll(/\btr\(\s*'([A-Za-z][\w.]*)'\s*,/g)].map((m) => m[1])));
+  for (const [lang, seite] of Object.entries(CRAFT_SEITEN)) {
+    const datei = join(DIST, seite);
+    if (!existsSync(datei)) { fehler.push(`${seite} fehlt — der Katalog des Crafting-Rechners (${lang}) ist nicht pruefbar`); continue; }
+    const m = /<script[^>]*>(window\.__CRAFT\s*=[\s\S]*?)<\/script>/.exec(readFileSync(datei, 'utf8'));
+    if (!m) { fehler.push(`${seite}: kein window.__CRAFT-Block`); continue; }
+    const ctx = { window: {} };
+    vm.runInNewContext(m[1], ctx);
+    const katalog = new Set(Object.keys(ctx.window.__CRAFT?.t ?? {}));
+    for (const k of craftWoertlich) {
+      if (!katalog.has(k)) funde.katalog.push(`Crafting ${lang}: tr('${k}') steht nicht im ausgelieferten Katalog — die Seite zeigt den Rueckfalltext des Skripts`);
+    }
+  }
+}
 const ms1 = Date.now() - t1;
 
 /* ================================================================
@@ -383,6 +415,8 @@ if (stellen < MIN_STELLEN) fehler.push(`nur ${stellen} Textstellen geprueft (Kli
 console.log(`beim Rendern gefragte Schluessel: ${laufzeit.size} (Klinke ${MIN_LAUFZEIT}), davon ohne Label in beiden Katalogen: ${ohneLabel.length}`);
 if (laufzeit.size < MIN_LAUFZEIT) fehler.push(`nur ${laufzeit.size} Schluessel beim Rendern gefragt (Klinke ${MIN_LAUFZEIT}) — greift die Pruefnaht an tr() noch?`);
 if (woertlich.length < MIN_SCHLUESSEL) fehler.push(`nur ${woertlich.length} woertliche Schluessel gefunden (Klinke ${MIN_SCHLUESSEL}) — hat sich die Form tr('…', …) geaendert?`);
+console.log(`Crafting-Rechner: ${craftWoertlich.length} woertliche Schluessel im Skript (Klinke ${MIN_SCHLUESSEL_CRAFT}), gegen den Katalog beider Sprachen`);
+if (craftWoertlich.length < MIN_SCHLUESSEL_CRAFT) fehler.push(`Crafting-Rechner: nur ${craftWoertlich.length} woertliche Schluessel gefunden (Klinke ${MIN_SCHLUESSEL_CRAFT}) — hat sich die Form tr('…', …) geaendert?`);
 
 const summeT = bilanz.reduce((s, b) => s + b.texte, 0);
 const summeA = bilanz.reduce((s, b) => s + b.aktionen, 0);
@@ -407,7 +441,7 @@ const zeige = (liste, titel, cap = ALLE ? Infinity : 12) => {
   if (zaehl.size > cap) console.log(`   … +${zaehl.size - cap} weitere`);
 };
 for (const [regel, titel] of Object.entries(REGEL_TITEL)) zeige(funde[regel], titel);
-zeige(funde.katalog, 'Schluessel fehlt im ausgelieferten Katalog (Item Finder)');
+zeige(funde.katalog, 'Schluessel fehlt im ausgelieferten Katalog (Item Finder, Crafting-Rechner)');
 zeige(funde.abbruch, 'Skript bricht im Pruefstand ab (Seite oder Pruefstand reparieren)');
 if (ohneLabel.length) {
   console.log(`\n== WARNUNG Schluessel ohne Label in beiden Katalogen: ${ohneLabel.length} — die Seite zeigt den Rohwert der Spieldaten ==`);

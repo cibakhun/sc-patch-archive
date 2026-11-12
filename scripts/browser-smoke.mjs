@@ -134,7 +134,8 @@ const SEITEN = [
   // spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
   {
     id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
-    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeCraftingSync,
+    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true,
+    probe: async (page) => (await probeZurueckMarke(page, 'Crafting-Planer')) ?? (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeRezeptDialog(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
@@ -908,6 +909,111 @@ const SYNC_ZUSTAENDE = [
   { state: 'error', sitzung: true, lesen: 503, login: false, retry: true },
 ];
 const SYNC_BREITEN = [360, 1280];
+
+/* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
+   und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.
+   Anlass 11.11.2026: #calc-results ist eine Flex-Spalte mit begrenzter Hoehe
+   (.vb-scrollbox), die Karten tragen overflow:hidden und durften deshalb
+   schrumpfen. Ab etwa fuenf Treffern drueckte der Kasten jede Karte auf
+   einen Streifen zusammen (1440x900, 17 Treffer: 45 px hoch, der Inhalt
+   braucht 180). Kein Tor sah das: der Text stand ja im Dokument. Gemessen
+   wird deshalb, was der Browser zeichnet. Die Probe sucht sich selbst ein
+   Material mit mindestens acht Treffern, damit sie nicht an einem Namen
+   aus den Spieldaten haengt. */
+const ZERLEGEN_MIN_TREFFER = 8;
+async function probeZerlegen(page, wo) {
+  const reiter = page.locator('.cdb-tab-btn[data-tab="dismantle"]').first();
+  if (!(await reiter.count())) return `${wo}: der Reiter des Zerlege-Rechners fehlt`;
+  await reiter.click();
+  await page.locator('.calc-mat-list .calc-mat-cb').first().waitFor({ state: 'attached', timeout: 20000 }).catch(() => {});
+  const bild = await page.evaluate(async (min) => {
+    const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+    const haken = [...document.querySelectorAll('.calc-mat-list .calc-mat-cb')];
+    let fund = null;
+    for (const h of haken.slice(0, 20)) {
+      h.click();
+      await warte(150);
+      const karten = [...document.querySelectorAll('#calc-results .calc-card')];
+      if (karten.length >= min) {
+        fund = {
+          treffer: karten.length,
+          gestaucht: karten.slice(0, min).filter((k) => k.clientHeight < k.scrollHeight - 2).length,
+          hoehe: karten[0].clientHeight, braucht: karten[0].scrollHeight,
+        };
+      }
+      h.click();
+      await warte(60);
+      if (fund) break;
+    }
+    return { stoffe: haken.length, fund };
+  }, ZERLEGEN_MIN_TREFFER);
+  await page.locator('.cdb-tab-btn[data-tab="db"]').first().click();
+  if (!bild.stoffe) return `${wo}: der Zerlege-Rechner listet keine Materialien`;
+  if (!bild.fund) return `${wo}: unter den ersten 20 von ${bild.stoffe} Materialien hat keines ${ZERLEGEN_MIN_TREFFER} Treffer, die Probe kann die Ergebniskarten nicht messen`;
+  if (bild.fund.gestaucht)
+    return `${wo}: der Zerlege-Rechner staucht seine Ergebniskarten (${bild.fund.treffer} Treffer, ${bild.fund.gestaucht} der ersten ${ZERLEGEN_MIN_TREFFER} abgeschnitten, die erste ${bild.fund.hoehe} px hoch bei ${bild.fund.braucht} px Inhalt)`;
+  return null;
+}
+
+/* Das Rezept als Dialog (bisherige Seite: immer; Werkbank: unter 821 px).
+   Die Box sagt aria-modal="true", der Fokus blieb aber auf der Karte hinter
+   dem Fenster, und die Tabulatortaste lief dort weiter (Hinweis von
+   CodeRabbit an #349, 11.11.2026). Gemessen mit echten Tasten: Enter auf dem
+   Namen einer Karte oeffnet, der Fokus steht im Fenster, Tab bleibt darin
+   (einmal ganz herum und weiter), Esc schliesst und gibt ihn dem Namen
+   zurueck. */
+async function probeRezeptDialog(p, wo) {
+  const NAME = '#cdb-grid .cbp:nth-of-type(3) .cbp__name a';
+  if (!(await p.locator(NAME).count())) return `${wo}: die dritte Karte hat keinen Namenslink, die Probe kann das Rezept nicht per Tastatur oeffnen`;
+  const stand = () => p.evaluate((sel) => {
+    const a = document.activeElement, m = document.querySelector('#cdb-modal'), box = m?.querySelector('.cdb-modal__box');
+    return {
+      offen: !!m && !m.hidden && !m.classList.contains('is-leer') && m.getBoundingClientRect().height > 0,
+      drin: !!box && box.contains(a),
+      amNamen: a === document.querySelector(sel),
+      halte: box ? box.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),summary').length : 0,
+      auf: !a || a === document.body ? '<body>' : `<${a.tagName.toLowerCase()}${a.className && typeof a.className === 'string' ? '.' + a.className.split(' ')[0] : ''}>`,
+    };
+  }, NAME);
+  await p.locator(NAME).focus();
+  await p.keyboard.press('Enter');
+  await p.waitForTimeout(300);
+  const auf = await stand();
+  if (!auf.offen) return `${wo}: Enter auf dem Namen einer Karte oeffnet das Rezept nicht`;
+  if (!auf.drin) return `${wo}: per Tastatur geoeffnet steht der Fokus auf ${auf.auf} statt im Rezeptfenster`;
+  const schritte = Math.min(Math.max(auf.halte + 3, 6), 60);
+  for (let k = 1; k <= schritte; k++) {
+    await p.keyboard.press('Tab');
+    const s = await stand();
+    if (!s.drin) return `${wo}: die Tabulatortaste verlaesst das offene Rezeptfenster (nach ${k} von ${schritte} Schritten auf ${s.auf})`;
+  }
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(200);
+  const zu = await stand();
+  if (zu.offen) return `${wo}: Esc schliesst das Rezeptfenster nicht`;
+  if (!zu.amNamen) return `${wo}: nach Esc steht der Fokus auf ${zu.auf} statt auf dem Namen der Karte, die das Rezept geoeffnet hat`;
+  return null;
+}
+
+/* Die Zurueck-Marke unter der Kopfleiste („← ALPHA 4.10.2“) faellt nur in der
+   Werkbank weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC „Kann weg“).
+   Auf der bisherigen Crafting-Seite, wie auf jeder anderen Blattseite, bleibt
+   sie stehen: sichtbar, mit Ziel und Text. Kippt die Vorgabe des Schalters,
+   verloeren gut hundert Seiten ihren Rueckweg, und kein anderes Tor saehe es.
+   Sichtbar heisst hier wie ueberall im Skript SICHTBAR (oben): eine Marke
+   mit visibility:hidden oder opacity:0 hat noch ihren Kasten und gaelte
+   sonst als da (Hinweis von CodeRabbit an #349). */
+async function probeZurueckMarke(page, wo) {
+  const m = await mitSichtbar(page, (_, da) => {
+    const a = document.querySelector('#topbar .snav__back');
+    if (!da(a)) return null;
+    return { text: a.textContent.replace(/\s+/g, ' ').trim(), ziel: a.getAttribute('href') || '' };
+  });
+  if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur in der Werkbank weg)`;
+  if (!m.ziel || m.text.length < 3) return `${wo}: die Zurueck-Marke unter der Kopfleiste hat ${m.ziel ? 'keinen Text' : 'kein Ziel'} („${m.text}“)`;
+  return null;
+}
+
 async function probeCraftingSync(page) {
   const pfad = new URL(page.url()).pathname;
   const ziel = await page.evaluate(async () => {
@@ -1030,14 +1136,37 @@ async function kreuzVerdeckt(page) {
    darunter ins Bild, ohne dass beim Weiterrollen etwas ueberdeckt wird.
    Am Telefon ist die Mitte zu, ein Antippen oeffnet das Fenster der
    bisherigen Seite, ✕ fuehrt zurueck, und der Planer sitzt als Leiste
-   unten. Gemessen an Lage und Inhalt, nicht am Markup. */
+   unten. Seit der dritten Runde (Krisz 11.11.2026: „das tool die ganze
+   seite füllt, überschrift und sowas brauchen wir eig gar nicht“) steht
+   kein Kopfband mehr darueber, die Werkbank nimmt die Breite, die Spalten
+   reichen bis an den unteren Rand, und die Hilfe ist eine Tafel, die
+   nichts schiebt. Gemessen an Lage und Inhalt, nicht am Markup.
+   Vierte Runde (Krisz 11.11.2026: „das design auf dem höchsten niveou“,
+   „grafik ui animations“): jede Kachel traegt das Zeichen ihrer Bauteilart,
+   das Rezept hat einen Kopf mit Emblem und Kennwerten, der Regler bewegt
+   Wert und Balken an Ort und Stelle, beim Rollen bleibt eine kleine Leiste
+   mit dem Namen stehen, und der Planer zaehlt mit. Der Auftakt beim Laden
+   muss enden, bevor gemessen wird. */
+const WB_MIN_ZEICHEN = 20; // verschiedene Zeichen der Bauteilart, gemessen 26 am 11.11.2026
+const WB_NAV_FREI = 68; // Freiraum unter der Kopfleiste ohne Zurueck-Marke (--nav-h, SiteNav.astro)
 async function probeWerkbank(page) {
   const kasten = (p, sel) => p.locator(sel).first().boundingBox();
   const zuSehen = (p, sel) => p.locator(sel).first().isVisible().catch(() => false);
   const bpi = (p) => new URL(p.url()).searchParams.get('bpi');
   const wahl = (p) => p.$$eval('#cdb-grid .cbp.is-sel', (c) => c.map((x) => x.dataset.i));
   const titel = async (p) => ((await p.locator('#cdb-modal .cbm__name').first().innerText().catch(() => '')) || '').trim();
+  // Wartet, bis in sel nichts Endliches mehr laeuft (Auftritt, Uebergang);
+  // was endlos dreht, zaehlt nicht. false, wenn es nach ms noch laeuft.
+  const ruht = (p, sel, ms = 3000) => p.waitForFunction((s) => {
+    const e = document.querySelector(s);
+    return !!e && e.getAnimations({ subtree: true }).every((a) => a.playState !== 'running' || a.effect?.getComputedTiming().endTime === Infinity);
+  }, sel, { timeout: ms }).then(() => true, () => false);
 
+  // Der Auftakt verschiebt Leiste, Kacheln und Spalten fuer eine gute
+  // Sekunde um wenige Pixel; gemessen wird danach. Bleibt die Klasse
+  // haengen, spielte er bei jedem Sortieren und Filtern neu.
+  const auftaktEndet = await page.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false);
+  if (!auftaktEndet) return 'Werkbank 1280 px: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)';
   // 1. Schreibtisch (1280 px): Liste | leere Mitte | Planer.
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: die leere Mitte („Rezept waehlen“) ist nicht zu sehen';
   const liste = await kasten(page, '#cdb-grid');
@@ -1048,6 +1177,98 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
   if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
   if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Die Werkbank fuellt die Seite: kein Kopfband (die Ueberschrift bleibt
+  // fuer Vorleser im Dokument), die Reiterzeile direkt unter der Kopfleiste,
+  // die Werkbank ueber die Breite, und Liste, Mitte und Planer enden am
+  // unteren Rand des Fensters (hohes Fenster, nichts gerollt).
+  const fuellt = await mitSichtbar(page, (_, da) => {
+    const r = (sel) => { const e = document.querySelector(sel); return e ? e.getBoundingClientRect() : null; };
+    const kopf = r('main .hero'), h1 = document.querySelector('main h1'), tabs = r('.cdb-tabs'), cdb = r('#cdb');
+    const spalten = { Liste: r('#cdb-grid'), Mitte: r('#cdb-modal .cdb-modal__box'), Planer: r('#cdb-planner') };
+    const marke = [...document.querySelectorAll('#topbar .snav__back')].find((a) => da(a));
+    return {
+      rollt: Math.round(window.scrollY), hoehe: innerHeight, breite: document.documentElement.clientWidth,
+      nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68,
+      marke: marke ? marke.textContent.replace(/\s+/g, ' ').trim() || '←' : '',
+      kopf: kopf ? Math.round(kopf.width * kopf.height) : 0,
+      foto: !!document.querySelector('main .hero__photo[style*="background-image"]'),
+      h1: h1 ? h1.textContent.trim() : '',
+      tabsOben: tabs ? Math.round(tabs.top) : -1,
+      rand: cdb ? [Math.round(cdb.left), Math.round(document.documentElement.clientWidth - cdb.right)] : [-1, -1],
+      unten: Object.entries(spalten).map(([n, k]) => [n, k ? Math.round(k.bottom) : -1]),
+    };
+  });
+  if (fuellt.kopf > 4 || fuellt.foto) return `Werkbank 1280 px: das Kopfband steht noch ueber dem Werkzeug (Flaeche ${fuellt.kopf} px², Foto ${fuellt.foto})`;
+  if (!/Crafting/.test(fuellt.h1)) return `Werkbank 1280 px: die Ueberschrift fehlt im Dokument (h1 „${fuellt.h1}“), Vorleser haetten keinen Seitentitel`;
+  // Die Zurueck-Marke („← ALPHA 4.10.2“) steht in der Werkbank nicht mehr
+  // unter der Kopfleiste (Krisz 11.11.2026 23:44 UTC „Kann weg“), und ihr
+  // Platz ist nicht mehr freigehalten: --nav-h bleibt bei 68 px.
+  if (fuellt.marke) return `Werkbank 1280 px: unter der Kopfleiste steht noch die Zurueck-Marke („${fuellt.marke}“)`;
+  if (fuellt.nav > WB_NAV_FREI) return `Werkbank 1280 px: unter der Kopfleiste sind ${fuellt.nav} px freigehalten statt ${WB_NAV_FREI} (Platz der Zurueck-Marke)`;
+  if (fuellt.rollt === 0 && fuellt.tabsOben > fuellt.nav + 24) return `Werkbank 1280 px: zwischen Kopfleiste (${fuellt.nav} px) und Werkzeug (Reiter bei ${fuellt.tabsOben} px) liegt noch etwas`;
+  if (fuellt.rand[0] > 40 || fuellt.rand[1] > 40) return `Werkbank 1280 px: die Werkbank nutzt die Breite nicht (Rand links ${fuellt.rand[0]} px, rechts ${fuellt.rand[1]} px)`;
+  const kurz = fuellt.unten.filter(([, u]) => u < fuellt.hoehe - 40 || u > fuellt.hoehe + 1);
+  if (fuellt.rollt === 0 && kurz.length)
+    return `Werkbank 1280 px: die Spalten enden nicht am unteren Rand (${fuellt.hoehe} px): ${kurz.map(([n, u]) => `${n} bei ${u}`).join(', ')}`;
+  // Bei 1280 px bliebe eine Breitengrenze oberhalb von etwa 1200 px
+  // unbemerkt (Hinweis von CodeRabbit an #349): dieselbe Messung noch einmal
+  // bei 1920 px, danach zurueck auf die Groesse der Variante.
+  const fenster = page.viewportSize();
+  const zweiBilder = () => page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+  await page.setViewportSize({ width: 1920, height: fenster.height });
+  await zweiBilder();
+  const breit = await page.evaluate(() => {
+    const c = document.querySelector('#cdb').getBoundingClientRect();
+    return [Math.round(c.left), Math.round(document.documentElement.clientWidth - c.right)];
+  });
+  await page.setViewportSize(fenster);
+  await zweiBilder();
+  if (breit[0] > 40 || breit[1] > 40) return `Werkbank 1920 px: die Werkbank nutzt die Breite nicht (Rand links ${breit[0]} px, rechts ${breit[1]} px)`;
+  // Jede Kachel traegt das Zeichen ihrer Bauteilart (data-g), und der Stil
+  // kennt zu jeder Art ein Bild (Maske am Kopf der Kachel).
+  const zeichen = await page.evaluate(() => {
+    const k = [...document.querySelectorAll('#cdb-grid .cbp')];
+    const mit = k.filter((c) => c.dataset.g);
+    const arten = [...new Set(mit.map((c) => c.dataset.g))];
+    const ohneBild = arten.filter((g) => {
+      const kopf = mit.find((c) => c.dataset.g === g).querySelector('.cbp__top');
+      const st = kopf ? getComputedStyle(kopf, '::after') : null;
+      return !st || !/^url\(/.test(st.maskImage || st.webkitMaskImage || '');
+    });
+    return { alle: k.length, mit: mit.length, arten: arten.length, ohneBild };
+  });
+  if (zeichen.mit < zeichen.alle) return `Werkbank 1280 px: ${zeichen.alle - zeichen.mit} von ${zeichen.alle} Kacheln tragen kein Zeichen der Bauteilart (data-g)`;
+  if (zeichen.arten < WB_MIN_ZEICHEN) return `Werkbank 1280 px: nur ${zeichen.arten} verschiedene Zeichen der Bauteilart (Klinke ${WB_MIN_ZEICHEN})`;
+  if (zeichen.ohneBild.length) return `Werkbank 1280 px: zu ${zeichen.ohneBild.length} Bauteilart(en) fehlt das Bild im Stil (${zeichen.ohneBild.slice(0, 5).join(', ')})`;
+  // Die Hilfe ist eine Tafel ueber den Spalten: sie schiebt nichts, und ein
+  // Klick daneben schliesst sie. Beim ersten Besuch steht sie schon offen
+  // (tool-help.js), sonst oeffnet die Probe sie selbst.
+  const hilfe = '#cdb-tab-db-content > .tool-help';
+  const mitteOben = async () => Math.round((await kasten(page, '#cdb-modal .cdb-modal__box')).y);
+  if (!(await page.$eval(hilfe, (d) => d.open))) await page.locator(`${hilfe} > summary`).click();
+  const tafel = await page.$eval(hilfe, (d) => ({ offen: d.open, hoehe: Math.round(d.querySelector('.tool-help__body').getBoundingClientRect().height) }));
+  if (!tafel.offen || tafel.hoehe < 60) return `Werkbank 1280 px: die Hilfe geht nicht auf (offen ${tafel.offen}, ${tafel.hoehe} px hoch)`;
+  const mitHilfe = await mitteOben();
+  await page.locator('.cdb-count-row').click();
+  if (await page.$eval(hilfe, (d) => d.open)) return 'Werkbank 1280 px: ein Klick neben die Hilfe schliesst sie nicht';
+  if ((await mitteOben()) !== mitHilfe) return `Werkbank 1280 px: die offene Hilfe schiebt die Spalten (Mitte offen bei ${mitHilfe}, zu bei ${await mitteOben()} px)`;
+  // „Elemente erklaeren“ per Tastatur: die Tafel schliesst sich und nimmt
+  // den Knopf mit. Der Fokus muss dann auf der Zeile der Hilfe stehen, nicht
+  // auf <body> (Hinweis von CodeRabbit an #349). Esc beendet den Modus
+  // wieder, damit die weiteren Schritte ohne Erklaerblasen laufen.
+  await page.locator(`${hilfe} > summary`).click();
+  await page.locator(`${hilfe} .js-tool-help`).focus();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(80);
+  const erkl = await page.$eval(hilfe, (d) => ({
+    offen: d.open, an: d.querySelector('.js-tool-help').getAttribute('aria-pressed'),
+    fokus: document.activeElement === d.querySelector('summary') ? 'summary' : (document.activeElement ? document.activeElement.tagName.toLowerCase() : 'nichts'),
+  }));
+  await page.keyboard.press('Escape');
+  const erklAus = await page.$eval(`${hilfe} .js-tool-help`, (b) => b.getAttribute('aria-pressed'));
+  if (erkl.an !== 'true' || erkl.offen) return `Werkbank 1280 px: „Elemente erklaeren“ per Tastatur schaltet nicht um oder laesst die Tafel offen (aria-pressed ${erkl.an}, offen ${erkl.offen})`;
+  if (erkl.fokus !== 'summary') return `Werkbank 1280 px: nach „Elemente erklaeren“ per Tastatur steht der Fokus auf <${erkl.fokus}> statt auf der Zeile der Hilfe`;
+  if (erklAus !== 'false') return `Werkbank 1280 px: Esc beendet „Elemente erklaeren“ nicht (aria-pressed ${erklAus})`;
   // Bedienleiste wie auf der bisherigen Seite: eine Zeile ueber allen
   // Spalten, mit Raster/Liste-Umschalter; die Liste zeigt Kacheln.
   const leiste = await kasten(page, '.cdb-bar');
@@ -1134,10 +1355,96 @@ async function probeWerkbank(page) {
   if (passt.raus.length)
     return `Werkbank 1280 px: unter der Leiste (unten ${passt.unten} px) passen nicht alle Spalten ins Bild (${passt.hoehe} px hoch): ${passt.raus.join(', ')}`;
   if (passt.deckt) return 'Werkbank 1280 px: beim Weiterrollen legt sich die Bedienleiste ueber die Mitte';
-  // Zum Planer: die Spalte rechnet sofort mit.
+  // Zum Planer: die Spalte rechnet sofort mit. Erst den Auftritt des Rezepts
+  // abwarten: er schiebt die Zeile mit dem Knopf eine halbe Sekunde lang um
+  // 10 px. Einen Zeigerklick auf ein bewegtes Element setzt Playwright neu
+  // an und rollt es beim ersten ruhigen Versuch je nach Zaehler ans Ende,
+  // in die Mitte oder an den Anfang (scrollIntoView). Gemessen an der Probe
+  // ohne dieses Warten: nach zwei unruhigen Versuchen war die Mitte 44 px
+  // gerollt, nach dreien 266 px, der Rezeptkopf damit weg, und die Probe der
+  // kleinen Leiste weiter unten meldete sie als „schon ohne Rollen aktiv“.
+  // Ein Fehlalarm, gesehen am 12.11.2026 einmal in rund siebzig Laeufen;
+  // ein oder zwei unruhige Versuche gab es in fast jedem.
+  if (!(await ruht(page, '#cdb-modal .cdb-modal__box')))
+    return 'Werkbank 1280 px: der Auftritt des Rezepts endet nicht (nach 3 s bewegt sich in der Mitte noch etwas)';
   await page.locator('#cdb-modal .cbm__plan').first().click();
   const imPlaner = await page.locator('#cdb-plan-list .cdb-plan-item .pi__n').allInnerTexts();
   if (!imPlaner.map((s) => s.trim()).includes(name)) return `Werkbank 1280 px: „Zum Planer“ zeigt „${name}“ nicht in der Planer-Spalte (dort: ${JSON.stringify(imPlaner)})`;
+  // Die Zeile traegt das Zeichen der Bauteilart, und der Zaehler am Kopf des
+  // Planers nennt die Stueckzahl.
+  const zeile = await page.evaluate(() => {
+    const z = [...document.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+    const n = document.querySelector('#wbp-n');
+    return {
+      ohneZeichen: z.filter((x) => !(x.querySelector('.wg') && x.querySelector('.wg').dataset.g)).length,
+      stueck: z.reduce((s, x) => s + (parseInt(x.querySelector('.pi__ctrl span')?.textContent ?? '', 10) || 0), 0),
+      zahl: n && !n.hidden && n.getBoundingClientRect().width > 0 ? n.textContent.trim() : '',
+    };
+  });
+  if (zeile.ohneZeichen) return `Werkbank 1280 px: ${zeile.ohneZeichen} Zeile(n) im Planer ohne Zeichen der Bauteilart`;
+  if (zeile.zahl !== String(zeile.stueck)) return `Werkbank 1280 px: der Zaehler am Planer-Kopf zeigt „${zeile.zahl}“, im Planer liegen ${zeile.stueck} Stueck`;
+  // Rollt das Rezept, bleibt oben eine kleine Leiste mit Name und „Zum
+  // Planer“ stehen; solange sie weg ist, ist sie inert (kein Tabulator-Halt
+  // auf einem Knopf, den niemand sieht).
+  const fest = await page.evaluate(async () => {
+    const warte = () => new Promise((r) => setTimeout(r, 500));
+    const box = document.querySelector('#cdb-modal .cdb-modal__box'), l = document.querySelector('#cdb-modal .wbr-fest__in');
+    if (!l) return { fehlt: true };
+    if (box.scrollHeight < box.clientHeight + 300) return { kurz: box.scrollHeight - box.clientHeight };
+    const stand = () => ({ inert: l.inert === true, rollt: box.classList.contains('is-rollt'), deckt: +getComputedStyle(l).opacity, oben: Math.round(l.getBoundingClientRect().top - box.getBoundingClientRect().top) });
+    const vor = stand();
+    box.scrollTop = 300; await warte();
+    const an = stand();
+    const kn = l.querySelector('[data-plan]');
+    const knopf = !!kn, text = (l.querySelector('.wbr-fest__n')?.textContent ?? '').trim();
+    // „Zum Planer“ in der Leiste: die Bestaetigung steht am gedrueckten
+    // Knopf, der im Rezept darunter ist weggerollt (Hinweis von CodeRabbit
+    // an #349).
+    if (kn) kn.click();
+    await new Promise((r) => setTimeout(r, 60));
+    const ok = !!kn && kn.classList.contains('is-ok');
+    box.scrollTop = 0; await warte();
+    return { vor, an, nach: stand(), knopf, text, ok };
+  });
+  if (fest.fehlt) return 'Werkbank 1280 px: dem Rezept fehlt die kleine Leiste fuer das Rollen (.wbr-fest)';
+  if (fest.kurz != null) return `Werkbank 1280 px: das Rezept „${name}“ rollt nur ${fest.kurz} px, die Probe braucht ein laengeres`;
+  if (!fest.vor.inert || fest.vor.rollt) return 'Werkbank 1280 px: die kleine Leiste ist schon ohne Rollen aktiv';
+  if (fest.an.inert || !fest.an.rollt || fest.an.deckt < 0.95 || fest.an.oben < -2 || fest.an.oben > 8)
+    return `Werkbank 1280 px: nach dem Rollen steht die kleine Leiste nicht oben in der Mitte (${JSON.stringify(fest.an)})`;
+  if (fest.text !== name || !fest.knopf) return `Werkbank 1280 px: die kleine Leiste zeigt „${fest.text}“ statt „${name}“ oder traegt keinen Planer-Knopf`;
+  if (!fest.nach.inert || fest.nach.rollt) return 'Werkbank 1280 px: zurueckgerollt bleibt die kleine Leiste stehen';
+  if (!fest.ok) return 'Werkbank 1280 px: „Zum Planer“ in der kleinen Leiste bestaetigt nicht am gedrueckten Knopf (der im Rezept ist weggerollt)';
+  // Planer per Tastatur: nach dem Neuzeichnen bleibt der Fokus auf demselben
+  // Knopf. Verschwindet dessen Zeile (entfernt, oder von eins auf null
+  // gezaehlt), geht er auf die nachgerueckte Zeile, im leeren Planer auf den
+  // Hinweis, nie auf <body> (Hinweis von CodeRabbit an #349). Dazu kommen
+  // zwei weitere Rezepte in den Planer; am Ende ist er leer.
+  await page.$$eval('#cdb-grid .cbp .cbp__add', (b) => b.slice(3, 5).forEach((x) => x.click()));
+  const planerFokus = () => page.evaluate(() => {
+    const a = document.activeElement, z = [...document.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+    const auf = !a || a === document.body ? '<body>'
+      : a.matches('#cdb-plan-list .cdb-plan-empty') ? 'Hinweis'
+        : a.matches('#cdb-plan-list .cdb-plan-item') ? `Zeile ${z.indexOf(a) + 1}`
+          : a.closest('#cdb-plan-list') ? `Knopf ${Object.keys(a.dataset)[0] ?? '?'} in Zeile ${z.indexOf(a.closest('.cdb-plan-item')) + 1}`
+            : `<${a.tagName.toLowerCase()}>`;
+    return { zeilen: z.length, auf };
+  });
+  const druecke = async (sel) => {
+    await page.locator(sel).first().focus();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(80);
+    return planerFokus();
+  };
+  const pf0 = await planerFokus();
+  if (pf0.zeilen < 3) return `Werkbank 1280 px: die Probe braucht drei Zeilen im Planer, es sind ${pf0.zeilen}`;
+  const pfMehr = await druecke('#cdb-plan-list .cdb-plan-item:nth-child(2) [data-inc]');
+  if (pfMehr.auf !== 'Knopf inc in Zeile 2') return `Werkbank 1280 px: nach „mehr“ per Tastatur steht der Fokus auf ${pfMehr.auf} statt auf demselben Knopf`;
+  const pfWeg = await druecke('#cdb-plan-list .cdb-plan-item:nth-child(1) [data-rm]');
+  if (pfWeg.zeilen !== 2 || pfWeg.auf !== 'Zeile 1') return `Werkbank 1280 px: nach dem Entfernen der ersten Planer-Zeile per Tastatur (${pfWeg.zeilen} uebrig) steht der Fokus auf ${pfWeg.auf} statt auf der nachgerueckten Zeile`;
+  const pfNull = await druecke('#cdb-plan-list .cdb-plan-item:nth-child(2) [data-dec]');
+  if (pfNull.zeilen !== 1 || pfNull.auf !== 'Zeile 1') return `Werkbank 1280 px: nach „weniger“ von eins auf null per Tastatur (${pfNull.zeilen} uebrig) steht der Fokus auf ${pfNull.auf} statt auf der letzten Zeile`;
+  const pfLeer = await druecke('#cdb-plan-list .cdb-plan-item [data-rm]');
+  if (pfLeer.zeilen !== 0 || pfLeer.auf !== 'Hinweis') return `Werkbank 1280 px: nach dem Entfernen der letzten Planer-Zeile per Tastatur steht der Fokus auf ${pfLeer.auf} statt auf dem Hinweis des leeren Planers`;
   // Schliessen: zurueck zur leeren Mitte, Adresse und Markierung frei.
   await page.locator('#cdb-modal .cdb-modal__x').first().click();
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: nach ✕ kommt die leere Mitte nicht zurueck';
@@ -1152,6 +1459,54 @@ async function probeWerkbank(page) {
   const t2 = await titel(page);
   if (t2 !== name) return `Werkbank 1280 px: der tiefe Link ?bpi=${i} zeigt „${t2 || 'nichts'}“ statt „${name}“`;
   if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return 'Werkbank 1280 px: der tiefe Link markiert die Karte nicht';
+  // Kopf des Rezepts: Emblem der Bauteilart (dasselbe Zeichen wie auf der
+  // gewaehlten Kachel) und die Kennwerte als Felder.
+  const kopf = await page.evaluate(() => {
+    const e = document.querySelector('#cdb-modal .wbr-emb .wg'), r = e ? e.getBoundingClientRect() : null;
+    const st = e ? getComputedStyle(e) : null;
+    const karte = document.querySelector('#cdb-grid .cbp.is-sel');
+    return {
+      emblem: r ? Math.round(Math.min(r.width, r.height)) : 0, art: e ? e.dataset.g : '', karte: karte ? karte.dataset.g : '',
+      bild: !!st && /^url\(/.test(st.maskImage || st.webkitMaskImage || ''),
+      felder: document.querySelectorAll('#cdb-modal .wbr-kenn > div').length,
+    };
+  });
+  if (kopf.emblem < 28 || !kopf.bild) return `Werkbank 1280 px: der Rezeptkopf zeigt kein Emblem (${kopf.emblem} px, Bild ${kopf.bild})`;
+  if (kopf.art !== kopf.karte) return `Werkbank 1280 px: das Emblem zeigt „${kopf.art}“, die gewaehlte Kachel „${kopf.karte}“`;
+  if (kopf.felder < 3) return `Werkbank 1280 px: der Rezeptkopf hat nur ${kopf.felder} Kennwert-Felder`;
+  // Der Regler bewegt Wert und Balken, und die Zeile bleibt dabei dieselbe
+  // (ein neu geschriebener Balken spraenge, statt zu gleiten). Hat dieses
+  // Rezept keinen Regler, nimmt die Probe das naechste mit einem.
+  let regler = null;
+  for (let versuch = 0; versuch < 12 && !regler; versuch++) {
+    regler = await page.evaluate(async () => {
+      const s = document.querySelector('#cdb-modal .cbm__slider');
+      if (!s) return null;
+      const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+      const zeilen = () => [...document.querySelectorAll('#cbm-out .wbo')];
+      const stand = () => zeilen().map((z) => [z.querySelector('.cbm__b1')?.textContent ?? '', Math.round(z.querySelector('.wbo__fill')?.getBoundingClientRect().width ?? -1)]);
+      const erste = zeilen()[0], vorher = stand();
+      s.value = s.max;
+      s.dispatchEvent(new Event('input', { bubbles: true }));
+      await warte(450);
+      const nachher = stand();
+      return {
+        zeilen: vorher.length, text: vorher.some((v, n) => v[0] !== nachher[n]?.[0]), balken: vorher.some((v, n) => Math.abs(v[1] - (nachher[n]?.[1] ?? v[1])) > 2),
+        steht: !!erste && zeilen()[0] === erste, spur: s.style.getPropertyValue('--v').trim(),
+      };
+    });
+    if (!regler) {
+      const weiter = page.locator('#cdb-grid .cbp:not([hidden])').nth(versuch + 2).locator('.cbp__name');
+      if (!(await weiter.count())) break;
+      await weiter.click();
+      await page.waitForTimeout(250);
+    }
+  }
+  if (!regler) return 'Werkbank 1280 px: unter den ersten Rezepten hat keines einen Qualitaetsregler, die Probe kann ihn nicht messen';
+  if (!regler.zeilen) return 'Werkbank 1280 px: das Rezept zeigt keine simulierten Werte (#cbm-out .wbo)';
+  if (!regler.text || !regler.balken) return `Werkbank 1280 px: der Regler bewegt ${regler.text ? '' : 'den Wert '}${regler.balken ? '' : 'den Balken '}nicht`;
+  if (!regler.steht) return 'Werkbank 1280 px: beim Ziehen des Reglers entstehen die Wertezeilen neu (der Balken springt statt zu gleiten)';
+  if (regler.spur !== '1.000') return `Werkbank 1280 px: die Spur des Reglers folgt dem Griff nicht (--v „${regler.spur}“ bei vollem Ausschlag)`;
   // Ein Rezept weit unten in der Liste: die Liste rollt zu ihm, die Seite nicht.
   const weit = await page.$$eval('#cdb-grid .cbp', (c) => {
     const k = c[Math.floor(c.length * 0.6)];
@@ -1175,6 +1530,42 @@ async function probeWerkbank(page) {
   // unter Kopfbild und Hilfe), und die Liste rollt zur Karte.
   if (!lage.mitte) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ bringt das Rezept nicht ins Bild`;
   if (!lage.drin || !lage.imBild) return `Werkbank 1280 px: der tiefe Link auf „${weit.name}“ rollt die Liste nicht zu seiner Karte`;
+
+  // Wird das Fenster mit offenem Rezept schmal (Tablet gedreht, Fenster
+  // verkleinert), liegt das Rezept ab da als Fenster ueber der Liste: die
+  // Seite dahinter rollt nicht mehr, der Fokus steht im Fenster, und Esc
+  // gibt ihn der gewaehlten Karte (Hinweis von CodeRabbit an #349).
+  await page.setViewportSize({ width: 800, height: fenster.height });
+  await zweiBilder();
+  const schmal = await page.evaluate(() => {
+    const box = document.querySelector('#cdb-modal .cdb-modal__box'), a = document.activeElement;
+    return {
+      dialog: box.getAttribute('role') === 'dialog' && box.getAttribute('aria-modal') === 'true',
+      drin: box.contains(a), sperrt: getComputedStyle(document.body).overflow === 'hidden',
+      auf: !a || a === document.body ? '<body>' : `<${a.tagName.toLowerCase()}>`,
+    };
+  });
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  const schmalZu = await page.evaluate((n) => {
+    const a = document.activeElement;
+    return {
+      zu: document.querySelector('#cdb-modal').classList.contains('is-leer'), frei: getComputedStyle(document.body).overflow !== 'hidden',
+      amNamen: a === document.querySelector(`#cdb-grid .cbp[data-i="${n}"] .cbp__name a`),
+      auf: !a || a === document.body ? '<body>' : `<${a.tagName.toLowerCase()}>`,
+    };
+  }, weit.i);
+  await page.setViewportSize(fenster);
+  await zweiBilder();
+  if (!schmal.dialog) return 'Werkbank 800 px: nach dem Schmalerwerden ist das offene Rezept kein Dialog (role/aria-modal)';
+  if (!schmal.sperrt) return 'Werkbank 800 px: nach dem Schmalerwerden mit offenem Rezept rollt die Seite hinter dem Rezeptfenster weiter';
+  if (!schmal.drin) return `Werkbank 800 px: nach dem Schmalerwerden mit offenem Rezept steht der Fokus auf ${schmal.auf} statt im Rezeptfenster`;
+  if (!schmalZu.zu || !schmalZu.frei) return `Werkbank 800 px: Esc schliesst das schmal gewordene Rezeptfenster nicht sauber (zu ${schmalZu.zu}, Seite rollt ${schmalZu.frei})`;
+  if (!schmalZu.amNamen) return `Werkbank 800 px: nach Esc steht der Fokus auf ${schmalZu.auf} statt auf dem Namen der gewaehlten Karte`;
+
+  // Zweiter Reiter: der Zerlege-Rechner staucht seine Ergebniskarten nicht.
+  const zerlegen = await probeZerlegen(page, 'Werkbank 1280 px');
+  if (zerlegen) return zerlegen;
 
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
@@ -1203,6 +1594,14 @@ async function probeWerkbank(page) {
     await p.goto(leer.href, { waitUntil: 'load', timeout: 60000 });
     await p.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
     if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: das Rezeptfenster liegt schon ohne Wahl ueber der Liste';
+    // Auch am Telefon steht die Zurueck-Marke nicht mehr unter der Kopfleiste
+    // (dort hielt sie 116 px frei).
+    const oben = await mitSichtbar(p, (_, da) => {
+      const m = [...document.querySelectorAll('#topbar .snav__back')].find((a) => da(a));
+      return { marke: m ? m.textContent.replace(/\s+/g, ' ').trim() || '←' : '', nav: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 68 };
+    });
+    if (oben.marke) return `Werkbank 390 px: unter der Kopfleiste steht noch die Zurueck-Marke („${oben.marke}“)`;
+    if (oben.nav > WB_NAV_FREI) return `Werkbank 390 px: unter der Kopfleiste sind ${oben.nav} px freigehalten statt ${WB_NAV_FREI} (Platz der Zurueck-Marke)`;
     const leiste = await kasten(p, '#cdb-planner-open');
     if (!leiste || leiste.y + leiste.height < 844 - 40 || leiste.height < 44)
       return `Werkbank 390 px: die Planer-Leiste sitzt nicht unten (${leiste ? `y=${Math.round(leiste.y)}, h=${Math.round(leiste.height)}` : 'fehlt'})`;
@@ -1219,6 +1618,10 @@ async function probeWerkbank(page) {
     await p.waitForTimeout(300);
     if (await zuSehen(p, '#cdb-modal')) return 'Werkbank 390 px: ✕ fuehrt nicht zur Liste zurueck';
     if (bpi(p) !== null) return 'Werkbank 390 px: nach ✕ traegt die Adresse noch bpi';
+    // Unter 821 px ist das Rezept ein Dialog: Fokus hinein, Tab bleibt
+    // darin, Esc gibt ihn zurueck (probeRezeptDialog).
+    const dialog = await probeRezeptDialog(p, 'Werkbank 390 px');
+    if (dialog) return dialog;
     // Filter-Schublade: das ✕ oben muss antippbar sein (nicht unter der
     // Site-Nav) und schliesst. Gilt fuer die klassische Seite genauso, die
     // Werkbank erbt die Telefon-Regel von CraftingApp.

@@ -15,6 +15,8 @@ import ToolHelp from './ToolHelp.astro';
 import { jsonForScript } from '../lib/safeJson';
 import { seoTitle } from '../lib/missions';
 import { WERKBANK_CSS } from '../lib/werkbankCss';
+import { WERKBANK_DESIGN_CSS } from '../lib/werkbankDesign';
+import { wbGlyphCss, wbGlyphKey } from '../lib/werkbankGlyphs';
 
 interface Props {
   lang: 'de' | 'en';
@@ -106,6 +108,10 @@ const JS_T = {
     calcQtyBuy: '{qty}x kaufen',
     calcFound: '{count} kompatible Items gefunden',
     calcRareLabel: '(selten)',
+    // Bis 11.11.2026 fehlten diese zwei: die Ergebniskarten des Zerlege-
+    // Rechners zeigten auf der englischen Seite den deutschen Rueckfalltext
+    // des Skripts („Kategorie: … · Kaufort: …“).
+    category: 'Kategorie', calcLocation: 'Kaufort',
     openInFinder: 'Im Item Finder öffnen',
     openItem: 'Item-Datenblatt öffnen',
     openInDismantle: 'Im Zerlegungs-Rechner öffnen',
@@ -139,6 +145,7 @@ const JS_T = {
     calcQtyBuy: 'Buy {qty}x',
     calcFound: '{count} compatible items found',
     calcRareLabel: '(rare)',
+    category: 'Category', calcLocation: 'Sold at',
     openInFinder: 'Open in Item Finder',
     openItem: 'Open item data sheet',
     openInDismantle: 'Open in Dismantling Calculator',
@@ -230,6 +237,10 @@ const cardsData = blueprints.map((b) => {
   const hasMis = !!(b.missions && b.missions.length);
   const sp = blueprintSpecs(b);
   return {
+    // Werkbank: Zeichen der Bauteilart (src/lib/werkbankGlyphs.ts). Bei
+    // Ruestung nennt der Rezeptpfad Klasse und Gewicht, das Teil (Helm,
+    // Torso ...) steht in der Kategorie des Items aus dem Katalog.
+    g: werkbank ? wbGlyphKey(b, itemForBlueprint(b)?.category) : undefined,
     i: b.index, name: b.name, top, sub, resNames, nIng, hasMis, sp,
     url: href(blueprintPath(b), lang),
     time: b.craft_time_seconds || 0, timeLabel: fmtT(b.craft_time_seconds),
@@ -286,6 +297,11 @@ const WB = lang === 'de'
       emptyText: 'Links einen Blueprint anklicken: Zutaten, Qualität und Werte erscheinen hier. Mit ＋ kommt er in den Planer.' }
   : { emptyKicker: 'Workbench', emptyTitle: 'Pick a recipe',
       emptyText: 'Click a blueprint on the left: ingredients, quality and stats show up here. ＋ adds it to the planner.' };
+// Werkbank: Texte, die nur ihr Skriptzweig braucht (Kennwerte im Rezeptkopf,
+// Namen der Planer-Knoepfe fuer Vorleser).
+const WB_JS = lang === 'de'
+  ? { missions: 'Missionen', more: 'Eins mehr', less: 'Eins weniger', remove: 'Aus dem Planer nehmen', planCount: 'Stück im Planer' }
+  : { missions: 'Missions', more: 'One more', less: 'One less', remove: 'Remove from planner', planCount: 'items in the planner' };
 const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 ---
 
@@ -480,6 +496,9 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .cdb-modal{position:fixed;inset:0;z-index:9650;background:var(--veil-2);display:flex;align-items:flex-start;justify-content:center;padding:clamp(.5rem,4vw,3rem) 1rem;overflow:auto}
   .cdb-modal[hidden]{display:none}
   .cdb-modal__box{position:relative;max-width:640px;width:100%;background:var(--bg-2,var(--veil-2));border:1px solid var(--accent,#FF5E1A);border-radius:8px;padding:clamp(1.2rem,4vw,2rem)}
+  /* Die Box nimmt beim Oeffnen den Fokus (crafting-app.js, dlgFokus): sie ist
+     kein Bedienelement, ein Ring um das ganze Fenster sagte nichts. */
+  .cdb-modal__box:focus{outline:none}
   .cdb-modal__x{position:absolute;top:.6rem;right:.6rem;background:var(--veil);border:1px solid var(--line,rgba(255,94,26,.3));color:var(--text,#eef1f5);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:var(--fs-10)}
   /* Rund und im Akzent = „woanders hin", eckiges farbloses X = „hier zu".
      Steht NEBEN der Karte. Siehe MiningApp fuer die Begruendung. */
@@ -641,6 +660,12 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   .calc-search-row{margin-bottom:1.2rem}
   .calc-grid{display:flex;flex-direction:column;gap:.8rem}
   .calc-card{background:var(--surface,#232329);border:1px solid var(--line,rgba(255,94,26,.22));border-radius:8px;padding:1.2rem;display:grid;grid-template-columns:1fr auto;gap:1.2rem;position:relative;overflow:hidden;transition:transform var(--dur-base) var(--ease-ui),border-color var(--dur-base) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui)}
+  /* Die Karten duerfen nicht schrumpfen: .calc-grid ist eine Flex-Spalte mit
+     begrenzter Hoehe (.vb-scrollbox), und overflow:hidden nimmt der Karte
+     ihre Mindesthoehe. Ab etwa fuenf Treffern drueckte der Kasten sonst
+     jede Karte auf einen Streifen zusammen (gemessen 11.11.2026 bei
+     1440x900: 17 Treffer, jede Karte 45 px hoch statt 180). */
+  .calc-card{flex:none}
   .calc-card:hover{transform:translateY(-2px);border-color:var(--accent,#FF5E1A);box-shadow:0 4px 20px rgba(255,94,26,.15)}
   .calc-card.incompatible{border-color:rgba(239,68,68,.16);background:rgba(239,68,68,.02);opacity:.65}
   .calc-card.incompatible:hover{border-color:rgba(239,68,68,.4);box-shadow:0 4px 20px rgba(239,68,68,.08)}
@@ -671,19 +696,24 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   }
 </style>
 
-{werkbank && <style is:inline set:html={WERKBANK_CSS} />}
-<section class:list={['cdb', werkbank && 'cdb--wb']} id="cdb">
+{werkbank && <style is:inline set:html={WERKBANK_CSS + wbGlyphCss() + WERKBANK_DESIGN_CSS} />}
+{/* wb-auftakt: die Werkbank baut sich beim Laden einmal auf (werkbankDesign.ts,
+    Abschnitt 7). Die Klasse steht im Markup, damit nichts erst erscheint und
+    dann noch einmal einfliegt; crafting-app.js nimmt sie nach dem Auftakt weg. */}
+<section class:list={['cdb', werkbank && 'cdb--wb wb-auftakt']} id="cdb">
   <!-- Tab Switcher -->
   <div class="cdb-tabs">
     <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
     <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
+    {/* Werkbank: Prototyp-Zeile in der Reiterzeile (crafting.astro). */}
+    <slot name="kopf" />
   </div>
 
   <div id="cdb-tab-db-content">
   <ToolHelp tool="crafting" lang={lang} steps={4} />
   <!-- Toolbar -->
   <div class="cdb-bar">
-    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>☰ {S.filterBtn}</button>
+    <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>{!werkbank && '☰ '}{S.filterBtn}</button>
     <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
       <input type="search" id="cdb-search" data-ev-filter={evF('suche')} class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
@@ -698,11 +728,13 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       </select>
     </label>
     <div class="cdb-viewtog" role="group" aria-label={S.view} data-help={h('crafting.ctl.view')}>
-      <button class="cdb-view" data-view="grid" aria-pressed="true" title={S.grid}>▦</button>
-      <button class="cdb-view" data-view="list" aria-pressed="false" title={S.list}>≡</button>
+      {/* Werkbank: die Zeichen kommen als Maske aus dem Stil (werkbankGlyphs),
+          der Name steht dann im aria-label. */}
+      <button class="cdb-view" data-view="grid" aria-pressed="true" title={S.grid} aria-label={werkbank ? S.grid : undefined}>{!werkbank && '▦'}</button>
+      <button class="cdb-view" data-view="list" aria-pressed="false" title={S.list} aria-label={werkbank ? S.list : undefined}>{!werkbank && '≡'}</button>
     </div>
     <button class="cdb-planner-open" id="cdb-planner-open" title={S.plannerTitle} data-help={h('crafting.ctl.planner')}>
-      ⚙ {S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
+      {!werkbank && '⚙ '}{S.planner}<span class="cdb-badge" id="cdb-planner-badge" hidden>0</span>
     </button>
     {/* Speicher-Status für Besitz + Planer. Ohne Konto: „Nur auf diesem Gerät"
         + Anmelde-Link; angemeldet zeigt crafting-app.js hier den Sync-Zustand.
@@ -810,16 +842,28 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
             class="cbp"
             data-i={c.i}
             data-time={c.time}
+            data-g={c.g}
           >
             <div class="cbp__top">
               <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>
             </div>
             <h3 class="cbp__name"><a href={c.url}>{c.name}</a></h3>
-            <div class="cbp__meta">
-              <span title={S.craftTime}>⏱ {c.timeLabel}</span>
-              <span title={S.ings}>◆ {c.nIng}</span>
-              {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
-            </div>
+            {/* Werkbank: dieselben drei Angaben, die Zeichen davor kommen als
+                Maske aus dem Stil statt als Schriftzeichen (crafting-app.js
+                liest die Zutatenzahl dort aus .cbp__n). */}
+            {werkbank ? (
+              <div class="cbp__meta">
+                <span class="cbp__t" title={S.craftTime}>{c.timeLabel}</span>
+                <span class="cbp__n" title={S.ings}>{c.nIng}</span>
+                {c.hasMis && (<span class="cbp__mis" title={S.mission}></span>)}
+              </div>
+            ) : (
+              <div class="cbp__meta">
+                <span title={S.craftTime}>⏱ {c.timeLabel}</span>
+                <span title={S.ings}>◆ {c.nIng}</span>
+                {c.hasMis && (<span class="cbp__mis" title={S.mission}>◈</span>)}
+              </div>
+            )}
             {/* Groesse/Grade/Ton auf jeder Karte, fuer die es die Angabe gibt
                 (blueprintSpecs() liefert null bei Namenskollision D-09 oder
                 fehlender Angabe). Fehlt eine Angabe, fehlt das <li> ersatzlos
@@ -940,7 +984,16 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <button class="cdb-modal__x" data-close aria-label={S.close}>✕</button>
       <div class="cdb-modal__body" id="cdb-modal-body">{werkbank && (
         <div class="cdb-wb-leer">
-          <span class="cdb-wb-leer__i" aria-hidden="true"><Fragment set:html={ICON_BLUEPRINT} /></span>
+          {/* Zeichnung der leeren Mitte: Bauplan im Fadenkreuz, zwei Ringe
+              (der gestrichelte dreht langsam, werkbankDesign.ts). */}
+          <span class="cdb-wb-leer__i" aria-hidden="true">
+            <svg class="wb-ring" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+              <circle class="wb-ring__a" cx="60" cy="60" r="56" />
+              <circle class="wb-ring__b" cx="60" cy="60" r="44" />
+              <path class="wb-ring__c" d="M60 0v10M60 110v10M0 60h10M110 60h10" />
+            </svg>
+            <Fragment set:html={ICON_BLUEPRINT} />
+          </span>
           <p class="cdb-wb-leer__k">{WB.emptyKicker}</p>
           <p class="cdb-wb-leer__t">{WB.emptyTitle}</p>
           <p class="cdb-wb-leer__x">{WB.emptyText}</p>
@@ -955,7 +1008,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       Scroll-Sperre — ohne sie scrollte die Blueprint-Liste dahinter weg. */}
   <aside class="cdb-drawer" id="cdb-planner" aria-hidden="true" aria-label={S.plannerTitle} data-offcanvas>
     <div class="cdb-drawer__hd">
-      <span>{S.plannerTitle}</span>
+      {werkbank ? (
+        <span class="wbp-t">{S.plannerTitle}<b class="wbp-n" id="wbp-n" title={WB_JS.planCount} hidden>0</b></span>
+      ) : (
+        <span>{S.plannerTitle}</span>
+      )}
       <button class="cdb-x" data-planner-close aria-label={S.close}>✕</button>
     </div>
     <ul class="cdb-plan-list" id="cdb-plan-list"></ul>
@@ -996,6 +1053,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   mine: { url: miningUrl, names: mineralOf },
   items: itemLinks,
   werkbank,
+  wbT: werkbank ? WB_JS : undefined,
   t: JS_T,
 })};`} />
 {/* Cache-Buster jetzt als Content-Hash statt handgezähltem ?v=N (dasselbe

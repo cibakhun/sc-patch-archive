@@ -796,6 +796,11 @@ export const EXCLUSIONS = [
     selectorFamilies: ['.lo-pick.is-linked::before', '.lo-cmpbox.is-linked::before'],
     reason: 'src/components/hangar/LoadoutPage.astro: die beiden ::before sind nur ein 1px-Rahmen (border) ohne Hintergrund; die linear-gradient(#000 0 0)-Werte stehen in mask/-webkit-mask und schneiden die Kerbe heraus, an der der Rahmen in den Steg zum angeklickten Platz/Teil uebergeht. Keine Flaeche ueber Text, also kein Kontrastfall.',
   },
+  {
+    id: 'X-werkbank-streif',
+    selectorFamilies: ['.cdb--wb .cbp.is-sel::after'],
+    reason: 'src/lib/werkbankDesign.ts (Crafting-Werkbank, nur Vorschau-Bau): .cbp.is-sel::after ist ein Lichtstreif, der einmal in 0,7 s ueber die gerade gewaehlte Kachel laeuft (hoechstens 9 % Weiss, er hellt auf statt abzudunkeln). In Ruhe und bei prefers-reduced-motion steht er ausserhalb der Kachel (background-position -60 %, no-repeat), die Flaeche ist dann durchsichtig. Der Kontrast der Kacheltexte haengt an der deckenden Kachelflaeche darunter, nicht an diesem Streif.',
+  },
 ];
 
 /* ============================================================

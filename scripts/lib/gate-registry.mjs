@@ -719,7 +719,7 @@ export const CHECKS = [
     script: 'scripts/verify-clienttext.mjs',
     rail: 'A',
     checks:
-      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
+      'der Item Finder rendert aus dem ausgelieferten Skript, Katalog und Datenstand jede Karte, jedes Modal (mit Crafting-Abschnitt) und jedes Set beider Sprachen; dazu laedt der Pruefstand je Sprache eine Seite jeder Seitenart (gleiche Skripte, gleiche Inline-Form), fuehrt ihre Skripte aus und bedient Auswahllisten, Regler, Haken, Knoepfe, Reiter, Suchfelder und die Klickziele der Skripte; jeder geschriebene Text und jedes gelesene Attribut ohne Rohtext (NaN, undefined, null neben Zeichen, {Platzhalter} beider Schreibweisen, Vorlagenrest, ungerundete Zahl, "-1" als Wert), ohne Katalogtext oder deutsches Wort der anderen Sprache, mit Zahl, Dezimalzahl und Datum im eigenen Format, ohne Rohschluessel und ohne internen Bezeichner aus den Spieldaten; kein Skript bricht beim Laden oder Bedienen ab; jeder woertliche tr()-Schluessel des Item Finders und des Crafting-Rechners steht im Katalog beider Sprachen, und jeder beim Rendern gefragte (auch zusammengesetzte) Schluessel steht in beiden oder in keinem; Klinken fuer Items, Modals mit Crafting, Sets, Textstellen, Schluessel, Seitenarten, Bedienschritte, geschriebene Texte und je Werkzeug',
     // VORGEFUEHRT ROT am 04.11.2026 mit dem Skript vor dem Schild-Fix
     // (ab3ada96^:assets/item-finder-app.js) gegen den aktuellen Bau: 122
     // "Physical NaN% · Distortion NaN%" (61 Schilde je Sprache) — der Fehler
@@ -763,6 +763,14 @@ export const CHECKS = [
     // DE-Modal ohne lang="en" ("Carrying Capacity: 8.0 µSCU"), 21
     // "Kreuzungsfaktor 0.810 · 35.9° von radial" auf /de/precision-jump.html.
     // Gruen nach der Korrektur derselben Lieferung.
+    // Woertliche Schluessel des Crafting-Rechners (Regel 5 auch fuer
+    // assets/crafting-app.js gegen window.__CRAFT.t) VORGEFUEHRT ROT am
+    // 11.11.2026 gegen den Bau von a57d76df: 4 FEHLER — tr('category') und
+    // tr('calcLocation') in keinem der beiden Kataloge; die Ergebniskarten
+    // des Zerlege-Rechners zeigten auf der englischen Seite "Kategorie: … ·
+    // Kaufort: …", auch live. Teil 2 sah es nicht: die Karten entstehen erst
+    // mit angekreuztem Material und geladener Rezept-DB, und keines der
+    // Woerter traegt einen Umlaut. Gruen mit beiden Schluesseln im Katalog.
   },
   {
     // Neuzugang 04.11.2026, ans Ende von Schiene A: mit ~90 s die langsamste
