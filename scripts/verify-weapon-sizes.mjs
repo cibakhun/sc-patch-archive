@@ -84,7 +84,9 @@ let hardpointChecked = 0, hardpointSkipped = 0;
 // S3-Kanonen sitzen in zwei Fernsteuer-Tuermen unter weapon_mounts/gimbal/ und
 // zaehlen deshalb (wie bei 600i, Corsair, Zeus …) als Pilotenwaffen; die
 // Implementierungs-XML nennt nur die vier S5-Ports.
-const MAX_HARDPOINT_SKIP = 83;
+// 12.11.2026 (4.10.3-Datenlauf): 83 -> 84 — die neue RSI Galaxy, derselbe Fall: sechs
+// S5-Repeater in Fernsteuer-Tuermen, die Implementierungs-XML nennt keinen WeaponGun-Port.
+const MAX_HARDPOINT_SKIP = 84;
 
 for (const v of snapshot.vehicles) {
   const pilotGuns = v.fixedWeapons ?? [];

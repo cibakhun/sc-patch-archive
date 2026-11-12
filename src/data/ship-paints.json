@@ -6945,6 +6945,29 @@
           "pattern": true
         },
         {
+          "id": "3c420ec0c4be8863f748a999f0b3d089",
+          "name": "Aurora Mk II Deck the Hull Livery",
+          "tag": "Paint_Aurora_Mk2_Green_Green_Red",
+          "a": "#77806b",
+          "b": "#3c4339",
+          "c": "#742828",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
           "id": "314d6ab471829a4223681a6b5b952cbc",
           "name": "Aurora Mk II Foundation Fest Livery",
           "tag": "Paint_Aurora_Mk2_silver_teal_white",
@@ -6986,6 +7009,29 @@
             "c": {
               "specular": "#373737",
               "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "5e4b635dfcf5f355757c9d6cca4467ab",
+          "name": "Aurora Mk II IceBreak Livery",
+          "tag": "Paint_Aurora_Mk2_White_Blue_White",
+          "a": "#ededed",
+          "b": "#000000",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 205
+            },
+            "b": {
+              "specular": "#00a0ea",
+              "gloss": 204
+            },
+            "c": {
+              "specular": "#ededed",
+              "gloss": 212
             }
           },
           "pattern": true
@@ -13294,328 +13340,6 @@
         }
       ]
     },
-    "rsi-constellation-phoenix-emerald": {
-      "base": {
-        "a": "#000000",
-        "b": "#9b9d8b",
-        "c": "#9b9d8b",
-        "finish": {
-          "a": {
-            "specular": "#1c4e34",
-            "gloss": 180
-          },
-          "b": {
-            "specular": "#3b3b3b",
-            "gloss": 160
-          },
-          "c": {
-            "specular": "#3b3b3b",
-            "gloss": 150
-          }
-        }
-      },
-      "paints": [
-        {
-          "id": "8a4393b345ac0de1f1b76305d95ba487",
-          "name": "Constellation Mk IV 2952 Auspicious Red Monkey Livery",
-          "tag": "Paint_Constellation_Luna2951_Red",
-          "a": "#68221a",
-          "b": "#68221a",
-          "c": "#000000",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 150
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 150
-            },
-            "c": {
-              "specular": "#ac8f61",
-              "gloss": 190
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "22489f70155bc1786924327ee00ad694",
-          "name": "Constellation Mk IV ArcCorp Livery",
-          "tag": "Paint_Constellation_GoblinG_A_Red_Black",
-          "a": "#905050",
-          "b": "#636363",
-          "c": "#b38b3d",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "8f40bca48a485289e0afc8eed5d0ed9b",
-          "name": "Constellation Mk IV Black Heron Livery",
-          "tag": "Paint_Constellation_Heron_Black",
-          "a": "#000000",
-          "b": "#50564b",
-          "c": "#bb6a4b",
-          "finish": {
-            "a": {
-              "specular": "#82818b",
-              "gloss": 206
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 238
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 241
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "51406a181af1b038cd7a61c493026e96",
-          "name": "Constellation Mk IV Crusader Livery",
-          "tag": "Paint_Constellation_GoblinG_C_Blue_Black",
-          "a": "#4175b9",
-          "b": "#babbbe",
-          "c": "#babbbe",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "e846e1d576a86afaccbccc433254109f",
-          "name": "Constellation Mk IV Dark Green Livery",
-          "tag": "Paint_Constellation_Invictus_Dark_Green",
-          "a": "#434c37",
-          "b": "#292e21",
-          "c": "#1c2017",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 210
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "b943cd2af19ffc46dca25a8e59cd3687",
-          "name": "Constellation Mk IV Hurston Livery",
-          "tag": "Paint_Constellation_GoblinG_H_Black_Yellow",
-          "a": "#4c4b4b",
-          "b": "#b38b3d",
-          "c": "#b49864",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "1e4b09c7c011a8aebede31ef0dce388c",
-          "name": "Constellation Mk IV Invictus Blue and Gold Livery",
-          "tag": "Paint_Constellation_Invictus_Blue_Gold",
-          "a": "#002d56",
-          "b": "#2c2c2c",
-          "c": "#000000",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 247
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#ffdb91",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "124aa79ad8c9497f945075ce80ae0982",
-          "name": "Constellation Mk IV microTech Livery",
-          "tag": "Paint_Constellation_GoblinG_M_White_Blue",
-          "a": "#c3c3c3",
-          "b": "#43a4ba",
-          "c": "#5a5a5a",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "8245f42ff86c876417ea8f0f82017e87",
-          "name": "Constellation Mk IV Nightbreak Livery",
-          "tag": "Paint_Constellation_FW2955_Grey_Black_Red_Camo",
-          "a": "#393939",
-          "b": "#393939",
-          "c": "#090404",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 242
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 244
-            },
-            "c": {
-              "specular": "#a80919",
-              "gloss": 233
-            }
-          },
-          "pattern": true
-        },
-        {
-          "id": "5840d57bae455da1e323f7cc99a138bd",
-          "name": "Constellation Mk IV Orange Heron Livery",
-          "tag": "Paint_Constellation_Heron_Orange",
-          "a": "#df822c",
-          "b": "#c8c8c8",
-          "c": "#c8c8c8",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 193
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "794e515f8f91e3cbecf098dc8b0aad8e",
-          "name": "Constellation Mk IV Polar Livery",
-          "tag": "Paint_Constellation_IAE2951_Grey_White",
-          "a": "#e6e6e6",
-          "b": "#727e87",
-          "c": "#50575d",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 195
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 193
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 192
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "f043f1b44486aa1c616382088069f4a0",
-          "name": "Constellation Mk IV Stormbringer Livery",
-          "tag": "Paint_Constellation_IAE2951_Black_Blue",
-          "a": "#373737",
-          "b": "#0c91d2",
-          "c": "#e9eeec",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 173
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 159
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 192
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "6c4c34a76e51f0873026908bcb55d3aa",
-          "name": "Constellation Mk IV White Heron Livery",
-          "tag": "Paint_Constellation_Heron_White",
-          "a": "#cdc8c8",
-          "b": "#263046",
-          "c": "#c7462a",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 199
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 189
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 241
-            }
-          },
-          "pattern": false
-        }
-      ]
-    },
     "rsi-constellation-taurus": {
       "base": {
         "a": "#000000",
@@ -14188,6 +13912,29 @@
             }
           },
           "pattern": true
+        },
+        {
+          "id": "b9497df7e01ab011f611551758bd58b7",
+          "name": "Corsair 2956 Best In Show Livery",
+          "tag": "Paint_Corsair_Black_White_Gold",
+          "a": "#292929",
+          "b": "#9d9d9d",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3f3f3f",
+              "gloss": 148
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 174
+            },
+            "c": {
+              "specular": "#d7ae4f",
+              "gloss": 153
+            }
+          },
+          "pattern": false
         },
         {
           "id": "ac40c6f30d0560bf9dc12fbc4fcc519b",
@@ -18997,6 +18744,29 @@
       },
       "paints": [
         {
+          "id": "e944a9125ba6cf9c096ebb70c493b5a1",
+          "name": "Defender Deck the Hull Livery",
+          "tag": "Paint_Defender_Green_Green_Red",
+          "a": "#77806b",
+          "b": "#3c4339",
+          "c": "#742828",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            }
+          },
+          "pattern": false
+        },
+        {
           "id": "5f4e71030a5480a79e343ca1cf542499",
           "name": "Defender Harmony Livery",
           "tag": "Paint_Defender_Teal_Red",
@@ -19018,6 +18788,29 @@
             }
           },
           "pattern": true
+        },
+        {
+          "id": "7743f617e8ced4f344cceb789bd0deb6",
+          "name": "Defender IceBreak Livery",
+          "tag": "Paint_Defender_White_Blue_White",
+          "a": "#ededed",
+          "b": "#000000",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 205
+            },
+            "b": {
+              "specular": "#00a0ea",
+              "gloss": 204
+            },
+            "c": {
+              "specular": "#ededed",
+              "gloss": 212
+            }
+          },
+          "pattern": false
         },
         {
           "id": "ec4b61cf5c69a304edd22f30899f08a0",
@@ -26910,144 +26703,6 @@
         }
       ]
     },
-    "aegs-hammerhead-showdown": {
-      "base": {
-        "a": "#3f3f3f",
-        "b": "#7d7d7d",
-        "c": "#6b2d5a",
-        "finish": {
-          "a": {
-            "specular": "#343419",
-            "gloss": 236
-          },
-          "b": {
-            "specular": "#4a4a4a",
-            "gloss": 255
-          },
-          "c": {
-            "specular": "#3b3b3b",
-            "gloss": 255
-          }
-        }
-      },
-      "paints": [
-        {
-          "id": "1346f323a5b59213faf46af5d8978686",
-          "name": "Hammerhead 2949 Best In Show Livery",
-          "tag": "Paint_Hammerhead_Showdown",
-          "a": "#3f3f3f",
-          "b": "#7d7d7d",
-          "c": "#6b2d5a",
-          "finish": {
-            "a": {
-              "specular": "#343419",
-              "gloss": 236
-            },
-            "b": {
-              "specular": "#4a4a4a",
-              "gloss": 255
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 255
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "3c4a63785287125344054b32a66c8a85",
-          "name": "Hammerhead Fortuna Livery",
-          "tag": "Paint_Hammerhead_StellaFortuna_Green",
-          "a": "#000000",
-          "b": "#000000",
-          "c": "#000000",
-          "finish": {
-            "a": {
-              "specular": "#354b35",
-              "gloss": 133
-            },
-            "b": {
-              "specular": "#4a724a",
-              "gloss": 131
-            },
-            "c": {
-              "specular": "#354b35",
-              "gloss": 131
-            }
-          },
-          "pattern": false
-        },
-        {
-          "id": "2d448358d751be564254b174581f5787",
-          "name": "Hammerhead Nightbreak Livery",
-          "tag": "Paint_Hammerhead_FW2955_Grey_Black_Red_Camo",
-          "a": "#393939",
-          "b": "#393939",
-          "c": "#090404",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 242
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 244
-            },
-            "c": {
-              "specular": "#a80919",
-              "gloss": 233
-            }
-          },
-          "pattern": true
-        },
-        {
-          "id": "7640c90c79365e22680e413145b7bfbe",
-          "name": "Hammerhead Polar Camo Livery",
-          "tag": "Paint_Hammerhead_IAE2951_Grey_White_Camo",
-          "a": "#e6e6e6",
-          "b": "#727e87",
-          "c": "#50575d",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 195
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 193
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 192
-            }
-          },
-          "pattern": true
-        },
-        {
-          "id": "004d1e5386004216fe7341bf99397aa3",
-          "name": "Hammerhead Stormbringer Livery",
-          "tag": "Paint_Hammerhead_IAE2951_Black_Blue",
-          "a": "#373737",
-          "b": "#0c91d2",
-          "c": "#e9eeec",
-          "finish": {
-            "a": {
-              "specular": "#3b3b3b",
-              "gloss": 173
-            },
-            "b": {
-              "specular": "#3b3b3b",
-              "gloss": 159
-            },
-            "c": {
-              "specular": "#3b3b3b",
-              "gloss": 192
-            }
-          },
-          "pattern": false
-        }
-      ]
-    },
     "anvl-hawk": {
       "base": {
         "a": "#808080",
@@ -27507,6 +27162,29 @@
       },
       "paints": [
         {
+          "id": "514479f70dfd8db45e2798b506fd47b5",
+          "name": "Hurricane Deck the Hull Livery",
+          "tag": "Paint_Hurricane_Green_Green_Red",
+          "a": "#77806b",
+          "b": "#3c4339",
+          "c": "#742828",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            }
+          },
+          "pattern": false
+        },
+        {
           "id": "9549db4e734f783341e4c280a73ff598",
           "name": "Hurricane Flashfire Livery",
           "tag": "Paint_Hurricane_Fleetweek_Red_White",
@@ -27525,6 +27203,29 @@
             "c": {
               "specular": "#3b3b3b",
               "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "944666a2185c12688765780a77518a92",
+          "name": "Hurricane IceBreak Livery",
+          "tag": "Paint_Hurricane_White_Blue_White",
+          "a": "#ededed",
+          "b": "#000000",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 205
+            },
+            "b": {
+              "specular": "#00a0ea",
+              "gloss": 204
+            },
+            "c": {
+              "specular": "#ededed",
+              "gloss": 212
             }
           },
           "pattern": true
@@ -28243,6 +27944,29 @@
           "pattern": true
         },
         {
+          "id": "314cfaf8266c0c8e633aeae95e1dd1bd",
+          "name": "Ironclad Assault 2956 Best In Show Livery",
+          "tag": "Paint_Ironclad_Black_White_Gold",
+          "a": "#292929",
+          "b": "#9d9d9d",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3f3f3f",
+              "gloss": 148
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 174
+            },
+            "c": {
+              "specular": "#d7ae4f",
+              "gloss": 153
+            }
+          },
+          "pattern": true
+        },
+        {
           "id": "7f49d467d71a11f79f4cad163d78fc84",
           "name": "Ironclad Commando Livery",
           "tag": "Paint_Ironclad_Olive_Olive_Yellow",
@@ -28399,6 +28123,29 @@
             "c": {
               "specular": "#3b3b3b",
               "gloss": 212
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "314cfaf8266c0c8e633aeae95e1dd1bd",
+          "name": "Ironclad Assault 2956 Best In Show Livery",
+          "tag": "Paint_Ironclad_Black_White_Gold",
+          "a": "#292929",
+          "b": "#9d9d9d",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3f3f3f",
+              "gloss": 148
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 174
+            },
+            "c": {
+              "specular": "#d7ae4f",
+              "gloss": 153
             }
           },
           "pattern": true
@@ -28656,6 +28403,29 @@
         }
       },
       "paints": [
+        {
+          "id": "47476f9bd922670517129d71d7cb7db1",
+          "name": "Wolf \"Liberty\" Livery",
+          "tag": "Paint_Wolf_Yellow_White_Chrome",
+          "a": "#000000",
+          "b": "#40070d",
+          "c": "#d7d7d7",
+          "finish": {
+            "a": {
+              "specular": "#c5cdda",
+              "gloss": 183
+            },
+            "b": {
+              "specular": "#e93849",
+              "gloss": 130
+            },
+            "c": {
+              "specular": "#a0a0a0",
+              "gloss": 154
+            }
+          },
+          "pattern": true
+        },
         {
           "id": "5f43e6fc02e2e4095ffdc876aa6d4c9a",
           "name": "Wolf Allegro Livery",
@@ -28978,6 +28748,29 @@
         }
       },
       "paints": [
+        {
+          "id": "47476f9bd922670517129d71d7cb7db1",
+          "name": "Wolf \"Liberty\" Livery",
+          "tag": "Paint_Wolf_Yellow_White_Chrome",
+          "a": "#242426",
+          "b": "#40070d",
+          "c": "#8d5421",
+          "finish": {
+            "a": {
+              "specular": "#0a101c",
+              "gloss": 180
+            },
+            "b": {
+              "specular": "#8c1a1e",
+              "gloss": 130
+            },
+            "c": {
+              "specular": "#a94f01",
+              "gloss": 154
+            }
+          },
+          "pattern": true
+        },
         {
           "id": "5f43e6fc02e2e4095ffdc876aa6d4c9a",
           "name": "Wolf Allegro Livery",
@@ -30060,6 +29853,29 @@
       },
       "paints": [
         {
+          "id": "cc43f48dfee7df6fa779f6a46bc32791",
+          "name": "M80 2956 Best In Show Livery",
+          "tag": "Paint_M80_Black_White_Gold",
+          "a": "#292929",
+          "b": "#9d9d9d",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3f3f3f",
+              "gloss": 148
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 174
+            },
+            "c": {
+              "specular": "#d7ae4f",
+              "gloss": 153
+            }
+          },
+          "pattern": true
+        },
+        {
           "id": "95443c3fcec20b973676d682c00bacb0",
           "name": "M80 Afterglow Livery",
           "tag": "Paint_M80_black_black_orange",
@@ -30906,6 +30722,29 @@
             "c": {
               "specular": "#7c2f2f",
               "gloss": 203
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "a64a321ef6c49973b9d32bfffe2a93a2",
+          "name": "Meteor Epoque Livery",
+          "tag": "Paint_Meteor_Blue_Blue_Gold",
+          "a": "#1a2b3b",
+          "b": "#1a2b3b",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#363636",
+              "gloss": 200
+            },
+            "b": {
+              "specular": "#3e3e3e",
+              "gloss": 228
+            },
+            "c": {
+              "specular": "#bc9e55",
+              "gloss": 255
             }
           },
           "pattern": true
@@ -35281,6 +35120,29 @@
       },
       "paints": [
         {
+          "id": "214c50c9384bec2e188de6f78018f3be",
+          "name": "MOTH Braken Livery",
+          "tag": "Paint_Moth_Green_Grey_Blue",
+          "a": "#5b9060",
+          "b": "#262626",
+          "c": "#227b81",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            }
+          },
+          "pattern": false
+        },
+        {
           "id": "334a24aa7128a267a91aad8c4f1b9eb5",
           "name": "MOTH Dolomite Livery",
           "tag": "Paint_Moth_white_grey_orange",
@@ -35299,6 +35161,29 @@
             "c": {
               "specular": "#3b3b3b",
               "gloss": 240
+            }
+          },
+          "pattern": false
+        },
+        {
+          "id": "5243b9f78b41868da3e381f66d4bb0a1",
+          "name": "MOTH Downrush Livery",
+          "tag": "Paint_Moth_Navy_Grey_Orange",
+          "a": "#16222c",
+          "b": "#454545",
+          "c": "#ad5a1a",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 185
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 230
             }
           },
           "pattern": false
@@ -35371,6 +35256,52 @@
             }
           },
           "pattern": false
+        },
+        {
+          "id": "934deda5e83ebeff56b8aaff1c69cb95",
+          "name": "MOTH Skylight Livery",
+          "tag": "Paint_Moth_Yellow_Grey_Blue",
+          "a": "#917b33",
+          "b": "#262626",
+          "c": "#227b81",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            }
+          },
+          "pattern": false
+        },
+        {
+          "id": "da45587fb39025311f4c69e139b1ec85",
+          "name": "MOTH Stargazer Livery",
+          "tag": "Paint_Moth_Metal_Grey_Grey",
+          "a": "#2e2e2e",
+          "b": "#4b4b4b",
+          "c": "#292929",
+          "finish": {
+            "a": {
+              "specular": "#c8c8c8",
+              "gloss": 185
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 240
+            },
+            "c": {
+              "specular": "#c8c8c8",
+              "gloss": 230
+            }
+          },
+          "pattern": true
         },
         {
           "id": "d54a5fbafb987116cd54053fdab7ca97",
@@ -38938,6 +38869,75 @@
       },
       "paints": [
         {
+          "id": "1b46c4fc05b8f478e2c73952e2a8acb3",
+          "name": "Perseus 2956 Best In Show Livery",
+          "tag": "Paint_Perseus_Black_White_Gold",
+          "a": "#292929",
+          "b": "#9d9d9d",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3f3f3f",
+              "gloss": 148
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 174
+            },
+            "c": {
+              "specular": "#d7ae4f",
+              "gloss": 153
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "6e48492ebe530ed6603904e7631420ac",
+          "name": "Perseus Adamantine Livery",
+          "tag": "Paint_Perseus_Grey_Grey_Orange",
+          "a": "#646464",
+          "b": "#969696",
+          "c": "#ae791f",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 162
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 169
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 162
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "3449306b82b1607642d086250a0508ac",
+          "name": "Perseus Aftermath Livery",
+          "tag": "Paint_Perseus_Beige_Green_Red",
+          "a": "#79705b",
+          "b": "#474d35",
+          "c": "#821c1c",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 153
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 129
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 163
+            }
+          },
+          "pattern": true
+        },
+        {
           "id": "b64cb3d12ec5ec49f50ab919c3a7818e",
           "name": "Perseus Alliance Aid Camo Livery",
           "tag": "Paint_Perseus_Clean_Air_Black_Grey_Grey_Camo",
@@ -38956,6 +38956,29 @@
             "c": {
               "specular": "#3b3b3b",
               "gloss": 180
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "73407d04ec2a631ecc3d52032695b9b9",
+          "name": "Perseus Arenosa Livery",
+          "tag": "Paint_Perseus_Beige_Beige_Beige",
+          "a": "#8b7c5d",
+          "b": "#8b7c5d",
+          "c": "#8b7c5d",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 124
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 189
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 188
             }
           },
           "pattern": true
@@ -39053,6 +39076,29 @@
           "pattern": true
         },
         {
+          "id": "6d46b099f00708348e4a0ba012818397",
+          "name": "Perseus Mariner Camo Livery",
+          "tag": "Paint_Perseus_Blue_Blue_Black",
+          "a": "#30454e",
+          "b": "#576476",
+          "c": "#26292b",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 124
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 189
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 190
+            }
+          },
+          "pattern": true
+        },
+        {
           "id": "7f46d33f63f7f88b143019268c370ba4",
           "name": "Perseus Repute Livery",
           "tag": "Paint_Perseus_Beige_Blue_Red",
@@ -39094,6 +39140,29 @@
             "c": {
               "specular": "#3b3b3b",
               "gloss": 163
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "2d4795eaa3a14e03ea7b7a31273571bc",
+          "name": "Perseus Shoreline Camo Livery",
+          "tag": "Paint_Perseus_Beige_Blue_Brown",
+          "a": "#897256",
+          "b": "#333b43",
+          "c": "#2c1e1a",
+          "finish": {
+            "a": {
+              "specular": "#313131",
+              "gloss": 220
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 67
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 104
             }
           },
           "pattern": true
@@ -40663,6 +40732,29 @@
           "pattern": false
         },
         {
+          "id": "38421d38205eb68325d1711c045c79b3",
+          "name": "RAFT Deck the Hull Livery",
+          "tag": "Paint_RAFT_Green_Green_Red",
+          "a": "#77806b",
+          "b": "#3c4339",
+          "c": "#742828",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
           "id": "344bef437f4668caabee3d37a1176487",
           "name": "RAFT Hazard Livery",
           "tag": "Paint_RAFT_Black_Yellow",
@@ -40707,6 +40799,29 @@
             }
           },
           "pattern": false
+        },
+        {
+          "id": "4d48c3984b8343a5259883b927570bb7",
+          "name": "RAFT IceBreak Livery",
+          "tag": "Paint_RAFT_White_Blue_White",
+          "a": "#ededed",
+          "b": "#000000",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 205
+            },
+            "b": {
+              "specular": "#00a0ea",
+              "gloss": 204
+            },
+            "c": {
+              "specular": "#ededed",
+              "gloss": 212
+            }
+          },
+          "pattern": true
         },
         {
           "id": "15497e37ceb1c284bba20a4e860639ab",
@@ -51563,6 +51678,305 @@
             }
           },
           "pattern": false
+        }
+      ]
+    },
+    "rsi-galaxy": {
+      "base": {
+        "a": "#2b2b2b",
+        "b": "#4a4a4a",
+        "c": "#283e62",
+        "finish": {
+          "a": {
+            "specular": "#464646",
+            "gloss": 210
+          },
+          "b": {
+            "specular": "#464646",
+            "gloss": 210
+          },
+          "c": {
+            "specular": "#3c3c3c",
+            "gloss": 240
+          }
+        }
+      },
+      "paints": [
+        {
+          "id": "1c4cc0872cf9148b623429793a6047a6",
+          "name": "Galaxy Bravura Livery",
+          "tag": "Paint_Galaxy_Blue_Orange_White",
+          "a": "#445358",
+          "b": "#445358",
+          "c": "#445358",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "874eea30eb929371e1cf41c3ac5e19b5",
+          "name": "Galaxy Candor Livery",
+          "tag": "Paint_Galaxy_Blue_Blue_White",
+          "a": "#3d5151",
+          "b": "#3d5151",
+          "c": "#2c4773",
+          "finish": {
+            "a": {
+              "specular": "#3a3a3a",
+              "gloss": 185
+            },
+            "b": {
+              "specular": "#3a3a3a",
+              "gloss": 185
+            },
+            "c": {
+              "specular": "#3c3c3c",
+              "gloss": 231
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "76410006cb84450903bdd23bb3cab4b5",
+          "name": "Galaxy Luster Livery",
+          "tag": "Paint_Galaxy_White_Black_Brown",
+          "a": "#bebebe",
+          "b": "#bebebe",
+          "c": "#846444",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#434343",
+              "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "9548d3865fb3fc44cb59f9c54d877fb6",
+          "name": "Galaxy Magnitude Livery",
+          "tag": "Paint_Galaxy_Blue_Blue_Gold",
+          "a": "#173d70",
+          "b": "#173d70",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 255
+            },
+            "c": {
+              "specular": "#b2713f",
+              "gloss": 255
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "3f495723d45b5b0ad9904f224835b694",
+          "name": "Galaxy Protector Livery",
+          "tag": "Paint_Galaxy_Blue_White_Gold",
+          "a": "#384351",
+          "b": "#323232",
+          "c": "#000000",
+          "finish": {
+            "a": {
+              "specular": "#464646",
+              "gloss": 255
+            },
+            "b": {
+              "specular": "#464646",
+              "gloss": 222
+            },
+            "c": {
+              "specular": "#767676",
+              "gloss": 241
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "af4fb354976c0e81abe9cf5481931494",
+          "name": "Galaxy Starwalker Livery",
+          "tag": "Paint_Galaxy_Black_Black_Orange",
+          "a": "#2b2b2b",
+          "b": "#4b4b4b",
+          "c": "#af3c15",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 204
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 198
+            },
+            "c": {
+              "specular": "#b95d3e",
+              "gloss": 255
+            }
+          },
+          "pattern": true
+        }
+      ]
+    },
+    "anvl-liberator": {
+      "base": {
+        "a": "#55493f",
+        "b": "#2e2e2e",
+        "c": "#6c645c",
+        "finish": {
+          "a": {
+            "specular": "#323232",
+            "gloss": 184
+          },
+          "b": {
+            "specular": "#323232",
+            "gloss": 184
+          },
+          "c": {
+            "specular": "#3b3b3b",
+            "gloss": 150
+          }
+        }
+      },
+      "paints": [
+        {
+          "id": "524aa8d8e069f478257cfc70c8f36cb9",
+          "name": "Liberator Brigade Livery",
+          "tag": "Paint_Liberator_Green_Grey_Red",
+          "a": "#535547",
+          "b": "#37383d",
+          "c": "#6d3b3e",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 168
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 181
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 194
+            }
+          },
+          "pattern": false
+        },
+        {
+          "id": "2b48f55d08adb9f42f7f2cdf0c331881",
+          "name": "Liberator Condor Livery",
+          "tag": "Paint_Liberator_White_Red_Red_Wings",
+          "a": "#e8e8e8",
+          "b": "#883030",
+          "c": "#883338",
+          "finish": {
+            "a": {
+              "specular": "#3b3b3b",
+              "gloss": 175
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 198
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 203
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "474996c97d958698ff320540ee81769c",
+          "name": "Liberator Galahad Livery",
+          "tag": "Paint_Liberator_White_Black_Grey",
+          "a": "#747c7f",
+          "b": "#242a2c",
+          "c": "#61676a",
+          "finish": {
+            "a": {
+              "specular": "#4b4b4b",
+              "gloss": 146
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 105
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 211
+            }
+          },
+          "pattern": false
+        },
+        {
+          "id": "5a479dbfa02d025d790d6165e08c8a8f",
+          "name": "Liberator Last Light Livery",
+          "tag": "Paint_Liberator_Black_Black_Yellow_Stripe",
+          "a": "#252525",
+          "b": "#2d2d2d",
+          "c": "#c69c4d",
+          "finish": {
+            "a": {
+              "specular": "#4a4a4a",
+              "gloss": 130
+            },
+            "b": {
+              "specular": "#3b3b3b",
+              "gloss": 166
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 234
+            }
+          },
+          "pattern": true
+        },
+        {
+          "id": "6d4c533794000891a3e9bfd879ed8682",
+          "name": "Liberator Valhalla Livery",
+          "tag": "Paint_Liberator_Copper_Copper_Grey",
+          "a": "#000000",
+          "b": "#000000",
+          "c": "#272727",
+          "finish": {
+            "a": {
+              "specular": "#9a746b",
+              "gloss": 118
+            },
+            "b": {
+              "specular": "#9a746b",
+              "gloss": 111
+            },
+            "c": {
+              "specular": "#3b3b3b",
+              "gloss": 210
+            }
+          },
+          "pattern": true
         }
       ]
     },
