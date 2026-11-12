@@ -774,6 +774,18 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   const lostOk = /\babbruch\(/.test(lostFn) && neu.length === 1 && /if \(neuLaden\) neuWennSichtbar\(\)/.test(neu[0]);
   sollIst('Neuladen nach verlorenem Zeichenkontext nur ueber den Waechter', lostOk ? 'ja' : `nein (${lostFn ? `${neu.length} Neuladen im Rueckruf, erwartet eines hinter „if (neuLaden)“` : 'kein Rueckruf onLost gefunden'})`);
   if (!lostOk) fail('[12] dist/assets/hangar-overview.js: der Rueckruf von onLost zaehlt den Abbruch nicht mehr (abbruch()) oder laedt nicht mehr genau einmal und nur danach neu (if (neuLaden) neuWennSichtbar()): ungezaehltes Neuladen ist die Schleife vom 12.11.2026');
+  // Der zweite Weg, ein Abbruch beim Start (die Seite wurde beendet und neu
+  // geladen): Kann er nicht gemerkt werden, bleibt die Buehne fuer dieses
+  // Laden aus. Sonst startete sie ungezaehlt wieder, und die Schleife liefe.
+  // Dazu haelt ein Zeitgeber den Vermerk „Lauf offen“ frisch, sonst zaehlte
+  // ein Abbruch nach langem Ansehen nicht.
+  const startAt = ctrl.indexOf('async function waechterStart()');
+  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 600);
+  const startOk = /if \(!abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
+  const pulsOk = /setInterval\(offenSetzen, WAECHTER\.puls\)/.test(ctrl) && ctrlMod && ctrlMod.WAECHTER?.puls > 0 && ctrlMod.WAECHTER.puls < ctrlMod.WAECHTER.frisch;
+  sollIst('Start ohne gemerkten Abbruch bleibt ohne Buehne, Vermerk „Lauf offen“ wird frisch gehalten', startOk && pulsOk ? 'ja' : `nein (${[!startFn && 'waechterStart nicht gefunden', startFn && !startOk && 'Start prueft abbruch() nicht', !pulsOk && 'kein Zeitgeber unter der Frist'].filter(Boolean).join(', ')})`);
+  if (!startOk) fail('[12] dist/assets/hangar-overview.js: waechterStart startet die Buehne auch dann, wenn der Abbruch des vorigen Laufs nicht gemerkt wurde (erwartet „if (!abbruch(…)) return \'aus\'“): ohne Speicher zaehlte kein Abbruch, die Neu-Lade-Schleife liefe weiter');
+  if (!pulsOk) fail('[12] dist/assets/hangar-overview.js: der Vermerk „Lauf offen“ wird nicht mehr frisch gehalten (setInterval(offenSetzen, WAECHTER.puls), puls unter frisch): ein Abbruch nach langem Ansehen zaehlte nicht');
   for (const page of PAGES) {
     const sel = /<select id="hgx-gfx">([\s\S]*?)<\/select>/.exec(page.html)?.[1] ?? null;
     const vals = sel === null ? null : [...sel.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);

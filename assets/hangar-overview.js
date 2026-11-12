@@ -562,7 +562,7 @@ export function dockSearch(ships, f, crew) {
 //
 // Wird die Halle spuerbar leichter, WAECHTER.v erhoehen: alte Deckel
 // verfallen dann sofort.
-export const WAECHTER = { v: 1, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, deckel: 30 * 864e5 };
+export const WAECHTER = { v: 1, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5 };
 const DECKEL = ['aus', ...WAECHTER.stufen];
 const istZeit = (t, now, frist) => Number.isFinite(t) && t <= now && now - t < frist;
 
@@ -2226,13 +2226,21 @@ export function boot(doc) {
     sichtbarSeit = doc.hidden ? 0 : Date.now();
     if (doc.hidden) offenWeg(); else offenSetzen();
   });
+  // Der Vermerk bleibt frisch, solange der Lauf zu sehen ist: Sonst gaelte
+  // er nach WAECHTER.frisch als alt, und ein Abbruch nach langem Ansehen
+  // zaehlte nicht. offenSetzen tut ohne Lauf und im Hintergrund nichts.
+  setInterval(offenSetzen, WAECHTER.puls);
   // Deckel fuer diesen Start: null, eine Stufe oder 'aus'. Zaehlt vorher den
-  // Abbruch des vorigen Laufs, wenn dessen Vermerk noch steht.
+  // Abbruch des vorigen Laufs, wenn dessen Vermerk noch steht. Konnte er
+  // nicht gemerkt werden (der Speicher des Geraets nimmt nichts an, der der
+  // Registerkarte schon), bleibt die Buehne fuer dieses Laden aus: Sonst
+  // zaehlte kein Abbruch, und die Schleife liefe weiter. Der Knopf oder ein
+  // Neuladen von Hand versucht es wieder, einmal je Mal.
   async function waechterStart() {
     const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), Date.now());
     if (offen && !(await lebtNoch(offen.id))) {
       offenWeg();
-      abbruch(offen.stufe, 'Seite neu gestartet');
+      if (!abbruch(offen.stufe, 'Seite neu gestartet')) return 'aus';
     }
     return waechterStand(lies(() => localStorage, STAND_KEY), Date.now()).deckel;
   }
@@ -2254,8 +2262,9 @@ export function boot(doc) {
       b.type = 'button';
       b.className = 'hgx-retry';
       b.textContent = fallback.dataset.retry;
+      // Ohne Speicher laedt der Knopf trotzdem neu: ein Versuch je Druck
       b.addEventListener('click', () => {
-        if (!standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now() })) return;
+        standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now() });
         location.reload();
       });
       fallback.append(b);

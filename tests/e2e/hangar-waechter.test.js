@@ -95,6 +95,12 @@ describe('Hangar-Waechter: Vermerk „Lauf offen“', () => {
     assert.deepEqual(waechterOffen(vermerk({ stufe: 'ultra' }), T0 + MIN), { id: 'a1', stufe: null });
   });
 
+  test('der Zeitgeber haelt den Vermerk eines sichtbaren Laufs frisch', () => {
+    // der Vermerk wird alle WAECHTER.puls erneuert: Er darf dazwischen nicht alt werden
+    assert.ok(WAECHTER.puls > 0 && WAECHTER.puls * 2 <= WAECHTER.frisch);
+    assert.deepEqual(waechterOffen(vermerk({}), T0 + WAECHTER.puls), { id: 'a1', stufe: 'mittel' });
+  });
+
   test('alt, aus der Zukunft, ohne Kennung oder kaputt: kein Abbruch', () => {
     assert.equal(waechterOffen(vermerk({}), T0 + WAECHTER.frisch), null);
     assert.equal(waechterOffen(vermerk({ t: T0 + 2 * MIN }), T0 + MIN), null);
