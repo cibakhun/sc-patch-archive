@@ -1,0 +1,740 @@
+{
+  "version": "4.10.3",
+  "codename": "IAE 2956 & Vanduul Incursion",
+  "date": "2026-11-12",
+  "dateDisplay": "12. November 2026",
+  "notesUrl": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103",
+  "era": "Frontier",
+  "type": "point",
+  "tagline": "Die Vanduul greifen in Nyx an, und InterSec sucht Piloten. Dazu kommen die RSI Galaxy und die Anvil Liberator.",
+  "heroImage": "/assets/img-vanduul.jpg",
+  "summary": "Alpha 4.10.3 bringt die Vanduul nach Nyx. InterSec Defense Solutions vergibt zwölf neue Aufträge gegen Vanduul-Verbände, Mauler und die Shattered Blade, vom Abfangen einer Flotte bis zur lebenden Vanduul-Probe. Neu im Bestand sind die RSI Galaxy mit austauschbarem Mittelmodul und die Anvil Liberator, ein Träger für Schiffe und Bodenfahrzeuge. Carrack, Perseus und Starlancer tragen jetzt Radare der Größe 3. Acht bereits flugfähige Schiffe sind zum ersten Mal im Spiel für aUEC zu haben. Die Salvage-Flotte schluckt deutlich mehr Rumpfmaterial, Vanduul-KI schießt länger und härter, und die Mauler-Waffen treffen fast viermal so stark. Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Zur IAE 2956 gibt es Sammelmünzen, Kleidung und Best-in-Show-Lackierungen.",
+  "palette": {
+    "bg": "#0c0e13",
+    "accent": "#e0563f",
+    "accent2": "#8fb8d8",
+    "warm": true
+  },
+  "keyFacts": [
+    {
+      "label": "Vanduul Incursion",
+      "value": "Zwölf neue InterSec-Aufträge in Nyx gegen Vanduul und Shattered Blade"
+    },
+    {
+      "label": "Neue Schiffe",
+      "value": "RSI Galaxy mit Wechselmodul und Anvil Liberator als Träger"
+    },
+    {
+      "label": "Radar Größe 3",
+      "value": "Carrack, Perseus, Starlancer MAX und TAC"
+    },
+    {
+      "label": "Neu für aUEC",
+      "value": "Tiburon, Starlite, Ironclad, Ironclad Assault, Pitbull, Basher, M80, Tyilui"
+    },
+    {
+      "label": "Salvage",
+      "value": "Reclaimer schluckt 448 statt 240 SCU Rumpfmaterial"
+    },
+    {
+      "label": "Torpedos",
+      "value": "Größe 5 und 7 erst ab 700 m scharf"
+    },
+    {
+      "label": "Persistenz",
+      "value": "Long Term Persistence erhalten · Startkapital 20.000 aUEC"
+    }
+  ],
+  "features": [
+    {
+      "name": "Vanduul Incursion",
+      "system": "Missionen & Aktivitäten",
+      "kind": "event",
+      "desc": "Vanduul-Clans tauchen im Nyx-System auf und bedrohen die Handelsrouten. InterSec Defense Solutions sucht dafür erfahrene Kampfpiloten mit Begleitschutz. Zwölf neue Missionsfamilien stehen im Bestand. Sie reichen vom Abfangen eines Vanduul-Verbands über das Herauslocken einzelner Mauler und Kämpfe zwischen Vanduul und der Shattered Blade bis zur Rückeroberung eines geenterten Schiffs und einer lebenden Vanduul-Probe in der Kryokapsel. Die meisten Aufträge lassen sich teilen und sind für Gruppen ausgelegt.",
+      "facts": [
+        {
+          "label": "Auftraggeber",
+          "value": "InterSec Defense Solutions, Nyx"
+        },
+        {
+          "label": "Ränge",
+          "value": "Veteran Contractor bis Elite Contractor"
+        },
+        {
+          "label": "Missionsfamilien",
+          "value": "1.387 → 1.399 (+12)"
+        }
+      ],
+      "links": [
+        {
+          "label": "Intercept Vanduul Fleet",
+          "href": "/missionen/intercept-vanduul-fleet.html"
+        },
+        {
+          "label": "Vanduul Strike Group Detected",
+          "href": "/missionen/vanduul-strike-group-detected.html"
+        },
+        {
+          "label": "Counterstrike Against Vanduul Raiders",
+          "href": "/missionen/counterstrike-against-vanduul-raiders.html"
+        },
+        {
+          "label": "Draw Out Maulers",
+          "href": "/missionen/draw-out-maulers.html"
+        },
+        {
+          "label": "Interdict Vanduul Maulers",
+          "href": "/missionen/interdict-vanduul-maulers.html"
+        },
+        {
+          "label": "Seek and Destroy Super Stingers",
+          "href": "/missionen/seek-and-destroy-super-stingers.html"
+        },
+        {
+          "label": "Engage Shattered Blade and Vanduul",
+          "href": "/missionen/engage-shattered-blade-and-vanduul.html"
+        },
+        {
+          "label": "Neutralize Vanduul and Shattered Blade Threat",
+          "href": "/missionen/neutralize-vanduul-and-shattered-blade-threat.html"
+        },
+        {
+          "label": "Stop Vanduul and Shattered Blade Hostilities",
+          "href": "/missionen/stop-vanduul-and-shattered-blade-hostilities.html"
+        },
+        {
+          "label": "Retake Boarded Vessel",
+          "href": "/missionen/retake-boarded-vessel.html"
+        },
+        {
+          "label": "Living Vanduul Sample",
+          "href": "/missionen/living-vanduul-sample.html"
+        },
+        {
+          "label": "Intersec Eliminate Specific Rank1",
+          "href": "/missionen/intersec-eliminate-specific-rank1.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "RSI Galaxy",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Die Galaxy ist ein großes Mehrcrew-Schiff um ein austauschbares Mittelmodul. Das Frachtmodul hebt den Laderaum von 64 auf 720 SCU und bringt einen Industrielift und Traktorstrahl-Konsolen zum Be- und Entladen. Das Med-Bay-Modul macht den Mittelteil zum Feldlazarett mit Medbetten der Stufen 1 bis 3. Im Bestand stehen die drei Module und fünf Lackierungen.",
+      "facts": [
+        {
+          "label": "Rolle",
+          "value": "Modulschiff · groß · ab sechs Personen"
+        },
+        {
+          "label": "Hülle / Schild",
+          "value": "148.700 / 200.000 HP"
+        },
+        {
+          "label": "SCM / Höchstgeschwindigkeit",
+          "value": "145 / 950 m/s"
+        },
+        {
+          "label": "Fracht",
+          "value": "64 SCU, mit Frachtmodul 720 SCU"
+        },
+        {
+          "label": "Raketen",
+          "value": "32 × Tempest II"
+        }
+      ],
+      "links": [
+        {
+          "label": "Galaxy",
+          "href": "/schiffe/rsi-galaxy.html"
+        },
+        {
+          "label": "Galaxy Cargo Module",
+          "href": "/items/galaxy-cargo-module.html"
+        },
+        {
+          "label": "Galaxy Med Bay Module",
+          "href": "/items/galaxy-med-bay-module.html"
+        },
+        {
+          "label": "Galaxy Stock Module",
+          "href": "/items/galaxy-stock-module.html"
+        },
+        {
+          "label": "Lephari",
+          "href": "/items/lephari.html"
+        }
+      ]
+    },
+    {
+      "name": "Anvil Liberator",
+      "system": "Schiffs-Systeme",
+      "kind": "ship-system",
+      "desc": "Die Liberator ist ein schwerer Träger für Schiffe und Bodenfahrzeuge. Fahrzeuge rollen über die Heckrampe in die Fahrzeughalle. Schiffe passen in den inneren Hangar oder setzen auf den Landeflächen auf, die teils im Rumpf und teils oben auf der Außenhaut liegen. Alles, was in der Liberator steht, kann dort reparieren, aufmunitionieren und tanken.",
+      "facts": [
+        {
+          "label": "Rolle",
+          "value": "Leichter Träger · Kapitalklasse"
+        },
+        {
+          "label": "Hülle / Schild",
+          "value": "275.000 / 211.200 HP"
+        },
+        {
+          "label": "SCM / Höchstgeschwindigkeit",
+          "value": "115 / 950 m/s"
+        },
+        {
+          "label": "Fracht",
+          "value": "400 SCU"
+        },
+        {
+          "label": "Türme",
+          "value": "4 × CF-337 Panther, 2 × CF-557 Galdereen"
+        }
+      ],
+      "links": [
+        {
+          "label": "Liberator",
+          "href": "/schiffe/anvl-liberator.html"
+        }
+      ]
+    },
+    {
+      "name": "Radare der Größe 3",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Carrack, Perseus, Starlancer, Starlancer TAC, Hammerhead und Tiburon tragen jetzt Radare der Größe 3 statt 2, und ihre Standard-Loadouts sind angepasst. Die Komponentenbuchten sind dafür umgebaut. Bei der Perseus sitzt das Relais deshalb an einer Konsole, bei der Starlancer liegt das Radar jetzt im Maschinenraum. Hammerhead und Tiburon führten das Radar der Größe 3 im Bestand schon vorher.",
+      "facts": [
+        {
+          "label": "Carrack · Starlancer",
+          "value": "Surveyor (Gr. 2) → Surveyor-Max (Gr. 3)"
+        },
+        {
+          "label": "Perseus",
+          "value": "Epier (Gr. 2) → Resolu (Gr. 3)"
+        }
+      ],
+      "links": [
+        {
+          "label": "Carrack",
+          "href": "/schiffe/anvl-carrack.html"
+        },
+        {
+          "label": "Carrack Expedition",
+          "href": "/schiffe/anvl-carrack-expedition.html"
+        },
+        {
+          "label": "Perseus",
+          "href": "/schiffe/rsi-perseus.html"
+        },
+        {
+          "label": "Starlancer MAX",
+          "href": "/schiffe/misc-starlancer-max.html"
+        },
+        {
+          "label": "Starlancer TAC",
+          "href": "/schiffe/misc-starlancer-tac.html"
+        },
+        {
+          "label": "Hammerhead",
+          "href": "/schiffe/aegs-hammerhead.html"
+        },
+        {
+          "label": "Tiburon",
+          "href": "/schiffe/aegs-tiburon.html"
+        },
+        {
+          "label": "Surveyor-Max",
+          "href": "/items/surveyor-max.html"
+        },
+        {
+          "label": "Resolu",
+          "href": "/items/resolu.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "Neu für aUEC",
+      "system": "Schiffs-Systeme",
+      "kind": "gameplay",
+      "desc": "Acht Schiffe, die schon flugfähig waren, lassen sich zum ersten Mal im Spiel mit aUEC kaufen. New Deal in Lorville führt Tiburon und Starlite. Teach's Ship Shop auf Levski hat Ironclad, Pitbull und Starlite. Auf Rundown Station in Pyro stehen Ironclad Assault, Pitbull und Basher, und Astro Armada in Area18 verkauft M80 und Tyilui.",
+      "facts": [
+        {
+          "label": "Lorville · New Deal",
+          "value": "Tiburon, Starlite"
+        },
+        {
+          "label": "Levski · Teach's",
+          "value": "Ironclad, Pitbull, Starlite"
+        },
+        {
+          "label": "Pyro · Rundown Station",
+          "value": "Ironclad Assault, Pitbull, Basher"
+        },
+        {
+          "label": "Area18 · Astro Armada",
+          "value": "M80, Tyilui"
+        }
+      ],
+      "links": [
+        {
+          "label": "Tiburon",
+          "href": "/schiffe/aegs-tiburon.html"
+        },
+        {
+          "label": "Starlite",
+          "href": "/schiffe/misc-starlite.html"
+        },
+        {
+          "label": "Ironclad",
+          "href": "/schiffe/drak-ironclad.html"
+        },
+        {
+          "label": "Ironclad Assault",
+          "href": "/schiffe/drak-ironclad-assault.html"
+        },
+        {
+          "label": "Pitbull",
+          "href": "/schiffe/drak-pitbull.html"
+        },
+        {
+          "label": "Basher",
+          "href": "/schiffe/glsn-basher.html"
+        },
+        {
+          "label": "M80",
+          "href": "/schiffe/orig-m80.html"
+        },
+        {
+          "label": "Tyilui",
+          "href": "/schiffe/gama-tyilui.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "Vanduul-Kampf und Mauler",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Vanduul-KI führt mehr Munition mit und lädt sie schneller nach. In längeren Gefechten bleibt sie dadurch deutlich aggressiver. Die Waffen des Mauler sind erheblich tödlicher, und zum Ausgleich hat er weniger Lebenspunkte. Im Bestand trifft der „STRIKER\"-Repeater des Mauler mit 250 statt 64 Energieschaden pro Schuss.",
+      "facts": [
+        {
+          "label": "Mauler „STRIKER\"",
+          "value": "64 → 250 Energieschaden je Schuss"
+        },
+        {
+          "label": "DPS",
+          "value": "800 → 3.125"
+        }
+      ],
+      "links": [
+        {
+          "label": "Vanduul Mauler 'STRIKER' Repeater",
+          "href": "/items/vanduul-mauler-striker-repeater.html"
+        },
+        {
+          "label": "Draw Out Maulers",
+          "href": "/missionen/draw-out-maulers.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "Salvage mit größerem Puffer",
+      "system": "Salvage",
+      "kind": "balance",
+      "desc": "Die ganze Salvage-Flotte nimmt mehr Rumpfmaterial auf, bevor sie abladen muss. Das Zerlegungsfeld ist bei allen fünf Schiffen größer, und die Ausrichtung verzeiht mehr. Einen Schnitt auf der Hülle zu halten, ist dadurch weniger fummelig.",
+      "facts": [
+        {
+          "label": "Reclaimer",
+          "value": "240 → 448 SCU"
+        },
+        {
+          "label": "MOTH",
+          "value": "64 → 240 SCU"
+        },
+        {
+          "label": "Vulture",
+          "value": "13 → 16 SCU"
+        },
+        {
+          "label": "Fortune",
+          "value": "13 → 14 SCU"
+        },
+        {
+          "label": "Salvation",
+          "value": "6 → 8 SCU"
+        }
+      ],
+      "links": [
+        {
+          "label": "Reclaimer",
+          "href": "/schiffe/aegs-reclaimer.html"
+        },
+        {
+          "label": "MOTH",
+          "href": "/schiffe/argo-moth.html"
+        },
+        {
+          "label": "Vulture",
+          "href": "/schiffe/drak-vulture.html"
+        },
+        {
+          "label": "Fortune",
+          "href": "/schiffe/misc-fortune.html"
+        },
+        {
+          "label": "Salvation",
+          "href": "/schiffe/rsi-salvation.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "Torpedos, Bombenhalter und Kopfgeld",
+      "system": "Combat & Waffen",
+      "kind": "balance",
+      "desc": "Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Am Waffenkiosk im Crusader-Showroom in Orison gibt es jetzt Bombenhalter der Größen 1 und 3, je für links und rechts. Kopfgeldaufträge der Stufe „High Risk Target\" bringen 4.000 statt 2.000 Ruf bei der Bounty Hunters Guild und liegen damit richtig zwischen Medium Risk und Very Hard.",
+      "facts": [
+        {
+          "label": "Torpedos Gr. 5 und 7",
+          "value": "scharf ab 700 m"
+        },
+        {
+          "label": "High Risk Target",
+          "value": "2.000 → 4.000 Ruf"
+        }
+      ],
+      "links": [
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "Skarnov und Raider Camo",
+      "system": "Waffen & Ausrüstung",
+      "kind": "gameplay",
+      "desc": "Neu im Katalog ist das Energiegewehr Skarnov in sieben Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu, vor allem die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A. Dazu kommen der Schild Deterrent und das Radar Lephari. Deterrent ist der bisherige RSI-Schild der Größe 4, der bis 4.10.2 ebenfalls „Glacis\" hieß. Die Polaris trägt ihn ab Werk.",
+      "facts": [
+        {
+          "label": "Item-Katalog",
+          "value": "9.412 → 9.515 Einträge"
+        },
+        {
+          "label": "Baupläne",
+          "value": "1.606 → 1.623"
+        }
+      ],
+      "links": [
+        {
+          "label": "Skarnov Rifle",
+          "href": "/items/skarnov-rifle.html"
+        },
+        {
+          "label": "Skarnov \"Raider Camo\" Rifle",
+          "href": "/items/skarnov-raider-camo-rifle.html"
+        },
+        {
+          "label": "Skarnov Rifle Battery (30 cap)",
+          "href": "/items/skarnov-rifle-battery-30-cap.html"
+        },
+        {
+          "label": "Skarnov \"Raider Camo\" Rifle (Bauplan)",
+          "href": "/crafting/skarnov-raider-camo-rifle.html"
+        },
+        {
+          "label": "Corbel Core Raider Camo",
+          "href": "/crafting/corbel-core-raider-camo.html"
+        },
+        {
+          "label": "Palatino Core Raider Camo",
+          "href": "/crafting/palatino-core-raider-camo.html"
+        },
+        {
+          "label": "Tailwind Flight Suit Raider Camo",
+          "href": "/crafting/tailwind-flight-suit-raider-camo.html"
+        },
+        {
+          "label": "M5A Cannon Raider Camo",
+          "href": "/crafting/m5a-cannon-raider-camo.html"
+        },
+        {
+          "label": "Deterrent",
+          "href": "/crafting/deterrent.html"
+        },
+        {
+          "label": "Lephari",
+          "href": "/crafting/lephari.html"
+        },
+        {
+          "label": "Polaris",
+          "href": "/schiffe/rsi-polaris.html"
+        }
+      ]
+    },
+    {
+      "name": "Vanguard mit größeren Türmen",
+      "system": "Schiffs-Systeme",
+      "kind": "balance",
+      "desc": "Die Notes erwähnen es nicht, doch im Bestand hat die Vanguard-Reihe stärkere Heckwaffen. Warden und Hoplite tragen im Turm den SW16BR3 „Shredder\" der Größe 3 statt des „Sawbuck\" der Größe 2. Die Sentinel bekommt die Suckerpunch-XL statt der Suckerpunch-L, und die Harbinger führt drei statt zwei Turmwaffen.",
+      "facts": [
+        {
+          "label": "Warden · Hoplite",
+          "value": "Turm-DPS 400 → 750"
+        },
+        {
+          "label": "Sentinel",
+          "value": "Suckerpunch-L → Suckerpunch-XL"
+        },
+        {
+          "label": "Harbinger",
+          "value": "2 → 3 Turmwaffen"
+        }
+      ],
+      "links": [
+        {
+          "label": "Vanguard Warden",
+          "href": "/schiffe/aegs-vanguard.html"
+        },
+        {
+          "label": "Vanguard Hoplite",
+          "href": "/schiffe/aegs-vanguard-hoplite.html"
+        },
+        {
+          "label": "Vanguard Sentinel",
+          "href": "/schiffe/aegs-vanguard-sentinel.html"
+        },
+        {
+          "label": "Vanguard Harbinger",
+          "href": "/schiffe/aegs-vanguard-harbinger.html"
+        }
+      ]
+    },
+    {
+      "name": "Namen und Editionen",
+      "system": "Schiffs-Systeme",
+      "kind": "qol",
+      "desc": "Anvils Bodenfahrzeuge tragen jetzt die Plattform im Namen und heißen HM6 Ballista, HM6 Spartan und HM6 Centurion. Die Constellation Mk IV Phoenix Emerald und die Hammerhead 2949 Best In Show Edition stehen nicht mehr als eigene Fahrzeuge im Spiel. Emerald gibt es seither als Lackierung für die Mk IV. Die Constellation Mk V Centaurus fasst 32 statt 46,8 SCU Wasserstoff.",
+      "links": [
+        {
+          "label": "HM6 Ballista",
+          "href": "/schiffe/anvl-ballista.html"
+        },
+        {
+          "label": "HM6 Spartan",
+          "href": "/schiffe/anvl-spartan.html"
+        },
+        {
+          "label": "HM6 Centurion",
+          "href": "/schiffe/anvl-centurion.html"
+        },
+        {
+          "label": "Constellation Mk IV Phoenix",
+          "href": "/schiffe/rsi-constellation-phoenix.html"
+        },
+        {
+          "label": "Hammerhead",
+          "href": "/schiffe/aegs-hammerhead.html"
+        },
+        {
+          "label": "Constellation Mk V Centaurus",
+          "href": "/schiffe/rsi-constellation-mk5-centaurus.html"
+        }
+      ]
+    },
+    {
+      "name": "IAE 2956",
+      "system": "Events",
+      "kind": "event",
+      "desc": "Zur Intergalactic Aerospace Expo 2956 kommen Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, eine Kappe und ein T-Shirt. Corsair, Ironclad Assault, M80 und Perseus haben dazu je eine Lackierung „2956 Best In Show\".",
+      "links": [
+        {
+          "label": "IAE 2956 Hat",
+          "href": "/items/iae-2956-hat.html"
+        },
+        {
+          "label": "IAE 2956 T-Shirt",
+          "href": "/items/iae-2956-t-shirt.html"
+        },
+        {
+          "label": "Corsair",
+          "href": "/schiffe/drak-corsair.html"
+        },
+        {
+          "label": "Ironclad Assault",
+          "href": "/schiffe/drak-ironclad-assault.html"
+        },
+        {
+          "label": "M80",
+          "href": "/schiffe/orig-m80.html"
+        },
+        {
+          "label": "Perseus",
+          "href": "/schiffe/rsi-perseus.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    },
+    {
+      "name": "Komfort",
+      "system": "UI & Komfort",
+      "kind": "qol",
+      "desc": "Bei der Esperia Prowler Utility öffnet ein neuer Schalter an Pilot- und Copilotenkonsole nur die Frachtraumtüren, ohne die Heckrampe herunterzulassen. Die Hologramme im Schiffs-HUD sind jetzt in der Farbe des Herstellers getönt.",
+      "links": [
+        {
+          "label": "Prowler Utility",
+          "href": "/schiffe/espr-prowler-utility.html"
+        },
+        {
+          "label": "Patch Notes 4.10.3 (RSI)",
+          "href": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+        }
+      ]
+    }
+  ],
+  "ships": [
+    {
+      "name": "Galaxy",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Modulschiff",
+      "status": "neu",
+      "notes": "Austauschbares Mittelmodul für Fracht oder Medbay"
+    },
+    {
+      "name": "Liberator",
+      "manufacturer": "Anvil Aerospace",
+      "role": "Leichter Träger",
+      "status": "neu",
+      "notes": "Träger für Schiffe und Bodenfahrzeuge"
+    },
+    {
+      "name": "Carrack",
+      "manufacturer": "Anvil Aerospace",
+      "role": "Expedition",
+      "status": "geändert",
+      "notes": "Radar Größe 3"
+    },
+    {
+      "name": "Carrack Expedition",
+      "manufacturer": "Anvil Aerospace",
+      "role": "Expedition",
+      "status": "geändert",
+      "notes": "Radar Größe 3"
+    },
+    {
+      "name": "Perseus",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Schweres Kanonenschiff",
+      "status": "geändert",
+      "notes": "Radar Größe 3, Relais an einer Konsole"
+    },
+    {
+      "name": "Starlancer MAX",
+      "manufacturer": "Musashi Industrial and Starflight Concern",
+      "role": "Mittlerer Frachter",
+      "status": "geändert",
+      "notes": "Radar Größe 3 im Maschinenraum"
+    },
+    {
+      "name": "Starlancer TAC",
+      "manufacturer": "Musashi Industrial and Starflight Concern",
+      "role": "Kanonenschiff",
+      "status": "geändert",
+      "notes": "Radar Größe 3 im Maschinenraum"
+    },
+    {
+      "name": "Vanguard Warden",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Schwerer Jäger",
+      "status": "geändert",
+      "notes": "Turm Größe 3, nicht in den Notes"
+    },
+    {
+      "name": "Vanguard Hoplite",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Truppenschiff",
+      "status": "geändert",
+      "notes": "Turm Größe 3, nicht in den Notes"
+    },
+    {
+      "name": "Vanguard Sentinel",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Schwerer Jäger / Bomber",
+      "status": "geändert",
+      "notes": "Suckerpunch-XL im Turm, nicht in den Notes"
+    },
+    {
+      "name": "Vanguard Harbinger",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Schwerer Jäger / Bomber",
+      "status": "geändert",
+      "notes": "Drei Turmwaffen, nicht in den Notes"
+    },
+    {
+      "name": "Reclaimer",
+      "manufacturer": "Aegis Dynamics",
+      "role": "Schweres Bergungsschiff",
+      "status": "geändert",
+      "notes": "Salvage-Puffer 240 → 448 SCU"
+    },
+    {
+      "name": "MOTH",
+      "manufacturer": "Argo Astronautics",
+      "role": "Mittleres Bergungsschiff",
+      "status": "geändert",
+      "notes": "Salvage-Puffer 64 → 240 SCU"
+    },
+    {
+      "name": "Polaris",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Korvette",
+      "status": "geändert",
+      "notes": "Schild heißt jetzt Deterrent"
+    },
+    {
+      "name": "Constellation Mk V Centaurus",
+      "manufacturer": "Roberts Space Industries",
+      "role": "Mittlerer Frachter / Kanonenschiff",
+      "status": "geändert",
+      "notes": "Wasserstoff 46,8 → 32 SCU"
+    }
+  ],
+  "events": [
+    {
+      "name": "Vanduul Incursion",
+      "desc": "Vanduul-Verbände greifen im Nyx-System an. InterSec Defense Solutions vergibt Aufträge gegen Vanduul, Mauler und die Shattered Blade.",
+      "period": "ab 12.11.2026"
+    },
+    {
+      "name": "IAE 2956",
+      "desc": "Intergalactic Aerospace Expo mit Sammelmünzen, Kleidung und Best-in-Show-Lackierungen.",
+      "period": "ab 12.11.2026"
+    }
+  ],
+  "fixesNote": "Die offiziellen Notes führen für 4.10.3 keine eigene Fehlerliste.",
+  "wipe": "Kein Wipe. Long Term Persistence bleibt erhalten, Startkapital 20.000 aUEC.",
+  "topics": []
+}
