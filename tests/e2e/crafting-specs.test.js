@@ -33,10 +33,12 @@ const deHtml = fs.readFileSync(path.resolve('dist/de/topics/crafting.html'), 'ut
 // Zahl steht in scripts/verify-crafting-specs.mjs — sie wird hier gegen das
 // gebaute HTML geprueft, dort gegen die Datenschicht.
 // 4.10.2-Datenlauf 11.10.2026: 1540 -> 1550 (1.617 Bauplaene, Ursache in scripts/verify-crafting-specs.mjs).
-const TOTAL_SPEC_ROWS = 1550;
+// 4.10.3-Datenlauf 12.11.2026: 1550 -> 1557 (1.623 Bauplaene, Ursache in scripts/verify-crafting-specs.mjs).
+const TOTAL_SPEC_ROWS = 1557;
 // 4.10.2-Datenlauf 11.10.2026: 504 -> 506, beide aus game.class (404 -> 406,
 // s. scripts/verify-crafting-specs.mjs).
-const TOTAL_TONE_CHIPS = 506;
+// 4.10.3-Datenlauf 12.11.2026: 506 -> 511 (+2 game.class, +3 Raider-Camo-Kanonen aus dem Pfad).
+const TOTAL_TONE_CHIPS = 511;
 
 /** Schneidet das <article class="cbp" …>…</article> heraus, das den Karten-
  * Namen <name> als Linktext im h3.cbp__name traegt. Wirft, wenn keine
@@ -197,14 +199,16 @@ for (const [label, html] of [['EN', enHtml], ['DE', deHtml]]) {
       const cards = cardsWithCategoryRoot(html, 'Armour');
       // 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
       // 916 -> 926 im 4.10.2-Datenlauf 11.10.2026: das Monolith-Set ist neu.
-      assert.strictEqual(cards.length, 926, `Armour-Karten: erwartet 926, gefunden ${cards.length}`);
+      // 926 -> 937 im 4.10.3-Datenlauf 12.11.2026: Raider Camo fuer Corbel, Palatino und Tailwind.
+      assert.strictEqual(cards.length, 937, `Armour-Karten: erwartet 937, gefunden ${cards.length}`);
       const withTone = cards.filter((c) => c.includes('class="tone"'));
       assert.strictEqual(withTone.length, 0, `${withTone.length} Armour-Karten tragen dennoch einen Ton-Chip`);
     });
 
     test('keine Ammo-Karte traegt einen Ton-Chip (Gegenprobe zu SC3, je Kartenausschnitt)', () => {
       const cards = cardsWithCategoryRoot(html, 'Ammo');
-      assert.strictEqual(cards.length, 36, `Ammo-Karten: erwartet 36, gefunden ${cards.length}`);
+      // 36 -> 37 im 4.10.3-Datenlauf 12.11.2026: Skarnov Rifle Battery.
+    assert.strictEqual(cards.length, 37, `Ammo-Karten: erwartet 37, gefunden ${cards.length}`);
       const withTone = cards.filter((c) => c.includes('class="tone"'));
       assert.strictEqual(withTone.length, 0, `${withTone.length} Ammo-Karten tragen dennoch einen Ton-Chip`);
     });

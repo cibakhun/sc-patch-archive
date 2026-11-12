@@ -51,8 +51,11 @@ const ALIAS = {
   'constellation andromeda': 'constellation mk iv andromeda',
   'constellation aquila': 'constellation mk iv aquila',
   'constellation phoenix': 'constellation mk iv phoenix',
-  'constellation phoenix emerald': 'constellation mk iv phoenix emerald',
   'constellation taurus': 'constellation mk iv taurus',
+  // 4.10.3: Anvils Bodenfahrzeuge heissen im Spiel "HM6 ...", UEX ohne Praefix
+  'ballista': 'hm6 ballista',
+  'spartan': 'hm6 spartan',
+  'centurion': 'hm6 centurion',
 };
 
 const cat = JSON.parse(await readFile(new URL('../src/data/vehicles.json', import.meta.url), 'utf8'));

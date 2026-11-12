@@ -1,7 +1,7 @@
 {
-  "fetchedAt": "2026-10-11",
+  "fetchedAt": "2026-11-12",
   "source": "StarBreaker entity export (Data.p4k) -> gltf-transform/meshopt Dezimierung",
-  "count": 231,
+  "count": 233,
   "meshes": {
     "aegs-avenger-stalker": {
       "url": "/holo/aegs-avenger-stalker.glb",
@@ -1157,6 +1157,16 @@
       "url": "/holo/rsi-skylark.glb",
       "tris": 128625,
       "v": "a81e3dea"
+    },
+    "anvl-liberator": {
+      "url": "/holo/anvl-liberator.glb",
+      "tris": 106148,
+      "v": "c1966c76"
+    },
+    "rsi-galaxy": {
+      "url": "/holo/rsi-galaxy.glb",
+      "tris": 138885,
+      "v": "eeee8f5d"
     }
   }
 }
