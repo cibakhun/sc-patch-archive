@@ -157,6 +157,7 @@ export interface ShipFinder {
 const memo = new Map<string, ShipFinder>();
 const CAREER_PURPOSE: Readonly<Record<string, PurposeKey>> = {
   combat: 'kampf', transporter: 'fracht', exploration: 'erkundung', resources: 'bergbau', competition: 'rennen', ground: 'boden',
+  multirole: 'fracht',
 };
 
 export function shipFinder(id: ShipId): ShipFinder {
