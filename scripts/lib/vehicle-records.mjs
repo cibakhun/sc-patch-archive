@@ -11,8 +11,11 @@
 // diese scIdentifier).
 //
 // Regel: gibt es zu einer Id einen Record <id>-gs, gewinnt er. Die Katalog-Id
-// (und damit jede Seiten-Adresse) bleibt die alte. Lackierungen ohne eigenen
-// GS-Record (Phoenix Emerald, Hammerhead Showdown) bleiben auf ihrem Record.
+// (und damit jede Seiten-Adresse) bleibt die alte. 4.10.3 hat die Altfassungen
+// von Andromeda, Aquila und Hammerhead geloescht; deren -gs-Record steht dann
+// allein und traegt die Katalog-Id ebenso. Phoenix Emerald und Hammerhead
+// Showdown hatten keinen GS-Record und sind mit 4.10.3 ganz verschwunden
+// (Emerald ist seither eine Lackierung).
 //
 // Benutzt von datamine-vehicles, -ship-loadouts, -ship-components und
 // -vehicle-roles — dieselbe Auswahl an allen vier Stellen, sonst passen
@@ -22,9 +25,10 @@
 export function preferGoldStandard(byId) {
   const moved = [];
   for (const id of [...byId.keys()]) {
-    if (id.endsWith('-gs')) continue;
-    const gs = byId.get(`${id}-gs`);
-    if (gs) { byId.set(id, gs); moved.push(id); }
+    if (!id.endsWith('-gs')) continue;
+    const base = id.slice(0, -3);
+    byId.set(base, byId.get(id));
+    moved.push(base);
   }
   return moved;
 }
