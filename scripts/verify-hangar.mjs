@@ -700,8 +700,16 @@ const CHIPS = [
   ['Mali-G52 MC2', { small: true, forced: 'hoch' }, 'hoch'],
   ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { forced: 'niedrig' }, 'niedrig'],
   ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { forced: 'ultra', memory: 8 }, 'hoch'],
+  // cap: Deckel des Waechters der Seite (wiederholter Abbruch der Buehne,
+  // assets/hangar-overview.js). Er senkt, auch unter eine Wahl von Hand, und
+  // hebt nie.
+  ['Apple GPU', { small: true, cap: 'mittel' }, 'mittel'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { forced: 'hoch', cap: 'niedrig' }, 'niedrig'],
+  ['Mali-G52 MC2', { small: true, cap: 'hoch' }, 'niedrig'],
+  ['Adreno (TM) 640', { small: true, memory: 8, cores: 8, cap: 'mittel' }, 'mittel'],
+  ['ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0, D3D11)', { cap: 'aus' }, 'hoch'],
 ];
-const CHIPS_MIN = 25;
+const CHIPS_MIN = 30;
 const LEVELS = ['niedrig', 'mittel', 'hoch'];
 {
   let mod = null;
@@ -727,11 +735,57 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   const apiQ = ['quality', 'onQuality'].filter((n) => !new RegExp(`\\b${n}\\b`).test(api));
   sollIst('Viewer liefert quality, onQuality', apiQ.length ? `fehlt ${apiQ.join(', ')}` : 'ja');
   for (const n of apiQ) fail(`[12] dist/assets/hangar-viewer.js liefert ${n} nicht mehr: der Grafik-Schalter zeigt dann keine Stufe`);
-  const ctrl = existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
+  // Texturdeckel am Telefon (Krisz, 12.11.2026: „Auf dem Handy laedt es die
+  // ganze Zeit neu“). Ohne ihn lud die Halle im Telefonformat 905 MB
+  // Texturen, mehr als ein Telefon einer Seite gibt. Klinke: am Telefon gilt
+  // in jeder Stufe ein Deckel von hoechstens TEL_TEX px; groesser nur per
+  // Commit, der den Grafikspeicher neu misst und die Zahl nennt.
+  const TEL_TEX = { niedrig: 256, sonst: 512 };
+  const tm = /const TEX_MAX = SMALL \? \(Q0 === 'niedrig' \? (\d+) : (\d+)\) :/.exec(viewer);
+  const telWirkt = /if \(TEX_MAX\) await shrinkTextures\(/.test(viewer);
+  const telOk = !!tm && telWirkt && Number(tm[1]) > 0 && Number(tm[1]) <= TEL_TEX.niedrig && Number(tm[2]) > 0 && Number(tm[2]) <= TEL_TEX.sonst;
+  sollIst(`Texturen am Telefon hoechstens ${TEL_TEX.sonst} px, in der niedrigen Stufe ${TEL_TEX.niedrig} px`, !tm ? 'kein Deckel gefunden' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `${tm[2]} px, niedrig ${tm[1]} px`);
+  if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr oder liegt ueber ${TEL_TEX.sonst} px (niedrig ${TEL_TEX.niedrig} px): mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu`);
+  const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
   sollIst('Controller gibt gpu und quality an initHangar', passes ? 'ja' : `nein (${call.trim().slice(0, 80) || 'kein Aufruf'})`);
   if (!passes) fail('[12] dist/assets/hangar-overview.js gibt gpu und quality nicht mehr an initHangar: jedes Geraet bekaeme die Stufe ohne Chipnamen und ohne Wahl von Hand');
+  // Waechter gegen die Neu-Lade-Schleife (Krisz, 12.11.2026: „Auf dem Handy
+  // laedt es die ganze Zeit neu“): Sein Deckel muss beim Viewer ankommen,
+  // und beide muessen dieselben Stufen meinen. Ohne das zaehlte die Seite
+  // Abbrueche und luede trotzdem in derselben Stufe neu.
+  const capDa = /\bcap:/.test(call);
+  sollIst('Controller gibt den Deckel des Waechters (cap) an initHangar', capDa ? 'ja' : 'nein');
+  if (!capDa) fail('[12] dist/assets/hangar-overview.js gibt cap nicht an initHangar: der Deckel des Waechters senkte keine Stufe, die Neu-Lade-Schleife kaeme zurueck');
+  let ctrlMod = null;
+  try { ctrlMod = await import(pathToFileURL(join(DIST, 'assets', 'hangar-overview.js')).href); } catch (e) { fail(`[12] dist/assets/hangar-overview.js laedt nicht als Modul (${e.message})`); }
+  if (ctrlMod) {
+    const ws = JSON.stringify(ctrlMod.WAECHTER?.stufen ?? null);
+    sollIst(`Stufen des Waechters ${JSON.stringify(LEVELS)}`, ws);
+    if (ws !== JSON.stringify(LEVELS)) fail(`[12] WAECHTER.stufen in dist/assets/hangar-overview.js ist ${ws} statt ${JSON.stringify(LEVELS)}: Waechter und Viewer muessen dieselben Stufen nennen`);
+  }
+  // Der einzige Weg, auf dem die Seite nach verlorenem Zeichenkontext von
+  // selbst neu laedt, haengt am Waechter: im Rueckruf von onLost zaehlt
+  // abbruch(), und neu geladen wird nur hinter „if (neuLaden)“.
+  const lostAt = ctrl.indexOf('.onLost(');
+  const lostFn = lostAt < 0 ? '' : ctrl.slice(lostAt, lostAt + 2000);
+  const neu = lostFn.match(/[^\n]*(?:location\.reload\(\)|neuWennSichtbar\(\))/g) ?? [];
+  const lostOk = /\babbruch\(/.test(lostFn) && neu.length === 1 && /if \(neuLaden\) neuWennSichtbar\(\)/.test(neu[0]);
+  sollIst('Neuladen nach verlorenem Zeichenkontext nur ueber den Waechter', lostOk ? 'ja' : `nein (${lostFn ? `${neu.length} Neuladen im Rueckruf, erwartet eines hinter „if (neuLaden)“` : 'kein Rueckruf onLost gefunden'})`);
+  if (!lostOk) fail('[12] dist/assets/hangar-overview.js: der Rueckruf von onLost zaehlt den Abbruch nicht mehr (abbruch()) oder laedt nicht mehr genau einmal und nur danach neu (if (neuLaden) neuWennSichtbar()): ungezaehltes Neuladen ist die Schleife vom 12.11.2026');
+  // Der zweite Weg, ein Abbruch beim Start (die Seite wurde beendet und neu
+  // geladen): Kann er nicht gemerkt werden, bleibt die Buehne fuer dieses
+  // Laden aus. Sonst startete sie ungezaehlt wieder, und die Schleife liefe.
+  // Dazu haelt ein Zeitgeber den Vermerk „Lauf offen“ frisch, sonst zaehlte
+  // ein Abbruch nach langem Ansehen nicht.
+  const startAt = ctrl.indexOf('async function waechterStart()');
+  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 600);
+  const startOk = /if \(!abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
+  const pulsOk = /setInterval\(offenSetzen, WAECHTER\.puls\)/.test(ctrl) && ctrlMod && ctrlMod.WAECHTER?.puls > 0 && ctrlMod.WAECHTER.puls < ctrlMod.WAECHTER.frisch;
+  sollIst('Start ohne gemerkten Abbruch bleibt ohne Buehne, Vermerk „Lauf offen“ wird frisch gehalten', startOk && pulsOk ? 'ja' : `nein (${[!startFn && 'waechterStart nicht gefunden', startFn && !startOk && 'Start prueft abbruch() nicht', !pulsOk && 'kein Zeitgeber unter der Frist'].filter(Boolean).join(', ')})`);
+  if (!startOk) fail('[12] dist/assets/hangar-overview.js: waechterStart startet die Buehne auch dann, wenn der Abbruch des vorigen Laufs nicht gemerkt wurde (erwartet „if (!abbruch(…)) return \'aus\'“): ohne Speicher zaehlte kein Abbruch, die Neu-Lade-Schleife liefe weiter');
+  if (!pulsOk) fail('[12] dist/assets/hangar-overview.js: der Vermerk „Lauf offen“ wird nicht mehr frisch gehalten (setInterval(offenSetzen, WAECHTER.puls), puls unter frisch): ein Abbruch nach langem Ansehen zaehlte nicht');
   for (const page of PAGES) {
     const sel = /<select id="hgx-gfx">([\s\S]*?)<\/select>/.exec(page.html)?.[1] ?? null;
     const vals = sel === null ? null : [...sel.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);

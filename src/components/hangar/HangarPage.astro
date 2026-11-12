@@ -215,6 +215,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg .hgx-walkhint{opacity:0;visibility:hidden}
 .hg[data-walk="on"] .hgx-walkhint{opacity:1;visibility:visible;transition:opacity var(--dur-slow) var(--ease-ui)}
 .hg[data-walk="on"] #hg-hint{display:none}
+/* Zeichenkontext verloren (data-lost, assets/hangar-overview.js): die Meldung
+   steht allein, Ladebalken, Knoepfe, Bedienhinweis und die Marker am Schiff
+   gehen (die Marker stuenden sonst an ihrer letzten Stelle ueber ihr). Die
+   Zeichenflaeche wird unsichtbar: Stand das Schiff schon, blieb sie weiss
+   zurueck, mit dem Namens-Hologramm darin. Sie behaelt ihren Platz. */
+.hg[data-lost="on"] #hg-load,.hg[data-lost="on"] #hg-tools,.hg[data-lost="on"] .hg-hint,.hg[data-lost="on"] .hgx-marks{display:none}
+.hg[data-lost="on"] #hg-canvas{visibility:hidden}
 #hgx-walk[aria-pressed="true"]{color:var(--hg-amber,var(--accent))}
 /* Steht der Korb des Vergleichs unten, macht der Hinweis ihm Platz. */
 .hg:has(#hgx-tray:not([hidden])) .hg-hint{display:none}
@@ -348,6 +355,8 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    .hgx-stagebar): auf der Buehnenmitte lag bei 1100 px das letzte Drittel
    unter der Tafel. */
 .hgx-modelerr,.hg-stagewrap .hg-fallback{inset:auto;position:absolute;left:calc((100% + var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px) / 2);top:58%;transform:translate(-50%,-50%);width:min(360px,calc(100% - var(--hg-left) - var(--hg-gut) - var(--hg-panelw) - 16px));margin:0;padding:.6rem .8rem;border-radius:6px;background:var(--hg-panel);color:var(--hg-on);font-size:var(--fs-7);text-align:center}
+/* Knopf im Rueckfall (vom Waechter abgestellte Buehne): eigene Zeile, Tippflaeche 44 px */
+.hg-stagewrap .hg-fallback .hgx-retry{display:block;margin:.2rem auto 0;min-height:44px;padding:0 .6rem}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
    transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab

@@ -6525,8 +6525,16 @@ const GPU_MID = /iris|intel.*\b(xe|arc\(tm\) graphics)\b|radeon\s*(\(tm\)\s*)?(g
 const GPU_PHONE_STRONG = /apple|adreno\D*([7-9]\d\d)\b|immortalis|mali-g7\d\d|xclipse/i;
 // gpu: Name des Chips, small: Telefon (schmal oder Touch), forced: Stufe
 // aus ?grafik= oder der Einstellung, memory/cores: navigator.deviceMemory
-// und hardwareConcurrency (fehlen in Safari und Firefox).
-export function pickQuality({ gpu = '', small = false, forced = null, memory = null, cores = null } = {}) {
+// und hardwareConcurrency (fehlen in Safari und Firefox). cap: Deckel der
+// Seite, wenn die Bühne auf diesem Gerät wiederholt abbrach (Wächter in
+// assets/hangar-overview.js); er gilt auch über einer Wahl von Hand, sonst
+// lüde dieselbe Stufe wieder und bräche wieder ab.
+export function pickQuality({ cap = null, ...o } = {}) {
+  const p = pickFree(o);
+  if (!QUALITY_LEVELS.includes(cap) || QUALITY_LEVELS.indexOf(p.level) <= QUALITY_LEVELS.indexOf(cap)) return p;
+  return { level: cap, why: `nach Abbruch gedeckelt, sonst ${p.level}` };
+}
+function pickFree({ gpu = '', small = false, forced = null, memory = null, cores = null } = {}) {
   if (QUALITY_LEVELS.includes(forced)) return { level: forced, why: 'gewählt' };
   const g = String(gpu || '');
   const out = (level, why) => ({ level, why });
@@ -6561,7 +6569,7 @@ export async function initHangar(container, opts = {}) {
   // Leistungsstufe beim Start (pickQuality). Q0 legt fest, was beim Laden
   // entsteht (Lampen, Schattenkarten, Möbel, Texturgröße, Kantenglättung);
   // level kann danach nur sinken (adapt in frame()).
-  const device = { small: SMALL, forced: opts.quality, memory: navigator.deviceMemory, cores: navigator.hardwareConcurrency };
+  const device = { small: SMALL, forced: opts.quality, cap: opts.cap, memory: navigator.deviceMemory, cores: navigator.hardwareConcurrency };
   let pick = pickQuality({ ...device, gpu: opts.gpu });
   const rank = (l) => QUALITY_LEVELS.indexOf(l);
   // Bildschärfe: startet bei der Pixeldichte des Geräts, gedeckelt je Stufe,
@@ -7362,13 +7370,22 @@ export async function initHangar(container, opts = {}) {
   // verkleinert vor dem Hochladen (ein Viertel des Grafikspeichers je
   // halbierter Kante, kürzeres Hochladen). Dasselbe Bild aus dem Spiel, nur
   // kleiner; je Bildquelle einmal, auch wenn mehrere Texturen sie teilen.
-  const TEX_MAX = Q0 === 'niedrig' ? 512 : 0;
+  // Am Telefon gilt ein Deckel in jeder Stufe (Krisz, 12.11.2026: „Auf dem
+  // Handy lädt es die ganze Zeit neu“). Gemessen an dem Tag mit der Gladius
+  // im Telefonformat: ohne Deckel 905 MB Texturen (625 Stück, dazu 139 MB
+  // Netze), und ein iPhone bekam als „starker Chip“ genau das. So viel
+  // Grafikspeicher gibt ein Telefon einer Seite nicht: der Browser nimmt ihr
+  // den Zeichenkontext oder beendet sie, und sie lädt neu. Mit 512 px sind es
+  // 512 MB, mit 256 px (niedrige Stufe) 182 MB; die Bühne ist am Telefon
+  // keine 600 px breit.
+  const TEX_MAX = SMALL ? (Q0 === 'niedrig' ? 256 : 512) : Q0 === 'niedrig' ? 512 : 0;
   const shrunk = new WeakMap();
   async function shrinkTextures(tex) {
     const jobs = [];
     for (const t of tex) {
       const src = t.source, im = src?.data, w = im?.width || 0, h = im?.height || 0;
-      if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture) continue;
+      // Leinwände bleiben: ein Bild an ihrer Stelle nähme spätere Zeichnungen nicht mehr an
+      if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture || t.isCanvasTexture) continue;
       if (!shrunk.has(src)) {
         const k = TEX_MAX / Math.max(w, h), nw = Math.max(1, Math.round(w * k)), nh = Math.max(1, Math.round(h * k));
         shrunk.set(src, (async () => {
