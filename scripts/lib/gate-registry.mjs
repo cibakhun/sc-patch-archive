@@ -403,6 +403,23 @@ export const CHECKS = [
       'Orte der Halle und Terminal im Leitstand: die Hangarseite traegt in beiden Sprachen die Ortsleiste mit Schiffsfeld, Werkhalle und Leitstand samt Ansagen und das Fenster des Terminals mit versioniertem Modul und leerem Rahmen; jeder Bereich der Umschaltleiste zeigt auf eine gebaute Seite derselben Sprache, bleibt im Fenster und markiert sich selbst (Klinke Bereiche je Seite); die reinen Funktionen des ausgelieferten Terminal-Moduls bestehen feste Proben (Massstab, Wege nach innen, in einen neuen Tab und zurueck in den Hangar, Zuordnung zum Bereich); die Kamera vor dem Schirm: leitFit aus dem ausgelieferten Viewer legt den Schirm fuer ein Raster von Fenstergroessen in das freie Rechteck und bleibt mit Abstand im Raum des Leitstands (Klinke Proben); die Naht zwischen Seite, Controller, Terminal und Viewer; und die Rahmen-Dateien des Baus lassen die eigene Seite zu',
   },
   {
+    // Neuzugang (13.11.2026) hinter verify:hangar-orte: komprimierte
+    // Zwillinge der Hangar-Bilder (KTX2). Liest jedes GLB unter dist/hangar/
+    // (nur Kopf und JSON-Teil), die Bilder der Ablage und die Zwillinge,
+    // gut 15 s. Kein env-Feld: kein git, kein Netz, kein Kindprozess, kein
+    // Browser. Vorgeführt rot in neun Fällen: ein Zwilling gelöscht, eine
+    // fremde Datei im Ordner, der Zwilling eines anderen Bildes, falsche
+    // Art, falsches Rezept, Grundfarben-Karte ohne Farbmittel, abgeschnittene
+    // Datei, anderes Rezept im Viewer, Umwandler nicht in dist/.
+    id: 'verify:hangar-ktx',
+    npm: 'verify:hangar-ktx',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-ktx.mjs',
+    rail: 'A',
+    checks:
+      'komprimierte Hangar-Texturen: jedes Bild, das ein GLB unter dist/hangar/ benutzt, hat genau einen Zwilling unter dist/hangar/ktx/ und der Ordner trägt nichts anderes; jeder Zwilling ist eine lesbare KTX2-Datei im Basis-Format, so groß wie sein WebP, mit Mip-Stufen, der Art des Bestands (Normal-Karten UASTC, sonst ETC1S), dem Rezept und der Byte-Zahl seines WebP; jede Grundfarben-Karte trägt ihr Farbmittel; der ausgelieferte Viewer hängt dasselbe Rezept an die URL, liest die Schlüssel wie das Tor und findet Loader und Umwandler in dist/',
+  },
+  {
     // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
     // audit:site: liest jede gebaute Seite einmal als Text, wenige Sekunden.
     // Kein env-Feld: kein git, kein Netz, kein Kindprozess — nur dist/.

@@ -762,6 +762,10 @@ export function boot(doc) {
   // statt des gewaehlten (WORK_PAD im Viewer). Anders als ?grafik= bleibt
   // er in der Adresse (urlOf), damit Neuladen und Kopieren ihn behalten.
   const BODEN = new URLSearchParams(location.search).get('boden');
+  // Bilder zum Vergleich: ?bilder=webp laedt jede Textur aus dem WebP statt
+  // aus ihrem komprimierten Zwilling (ktxTwin im Viewer). Wie ?grafik= nur
+  // fuer diesen Aufruf, writeUrl() schreibt es nicht zurueck.
+  const BILDER = new URLSearchParams(location.search).get('bilder');
   let state = parseState(location.search, location.hash, ctx);
 
   // Auf- und Zuklappen des Docks. Gemerkt wird nur der Klick auf den Schalter
@@ -2740,7 +2744,7 @@ export function boot(doc) {
     lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, stufe: null, phase: 'laden' };
     offenSetzen();
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, sound: tonAn() }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }))
       .then((v) => {
         viewer = v;
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }

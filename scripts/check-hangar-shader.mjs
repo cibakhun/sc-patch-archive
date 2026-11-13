@@ -85,6 +85,17 @@
    steht fleckig schwarz da. FEHLER, wenn die Zeile "[hangar] Lack:" eine
    deckende Farbkarte ohne Farbmittel meldet oder weniger Materialien mit
    Mittel als die Klinke (ohne --ship und --layout, also mit der Gladius).
+   Dazu die komprimierten Texturen (13.11.2026): Am PC laedt der Viewer
+   jedes Bild aus seinem Zwilling unter /hangar/ktx/ (KTX2, bei der
+   Grafikkarte BC7: 1 Byte je Bildpunkt statt 4) und nur ohne ihn aus dem
+   WebP. Dann stimmt jedes Bild, und der Grafikspeicher ist wieder doppelt
+   so gross (Gladius, hohe Stufe: 1.507 statt 516 MB Texturen). FEHLER,
+   wenn ein Zwilling nicht laedt (Zeile "[hangar] Zwilling … nicht
+   geladen": fehlt in dist/, falsches Rezept, Umwandler oder Richtlinie),
+   wenn der Viewer den Weg ganz abstellt ("[hangar] Texturen bleiben WebP";
+   die Software-Grafik dieses Laufs kann BC7), wenn die Zeile "[hangar]
+   Texturen komprimiert:" fehlt oder weniger Bilder nennt als die Klinke
+   (ohne --ship und --layout).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
    ============================================================ */
 import { existsSync } from 'node:fs';
@@ -119,7 +130,11 @@ const GRENZE = 16;
 // geoMB: MB Geometrie der Halle, die der Viewer nach dem Hochladen freigibt
 // (Zeile "[hangar] Geometrie nach dem Hochladen freigegeben:"). Gemessen
 // 13.11.2026 auf hoch mit der Gladius: 159 MB in 1.603 Puffern.
-const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120 };
+// ktx: Bilder, die der Viewer aus ihrem komprimierten Zwilling laedt (Zeile
+// "[hangar] Texturen komprimiert:"). Gemessen 13.11.2026 auf hoch mit der
+// Gladius: 958 am Ende des Prueflaufs (969, wenn die letzten Tauschteile
+// geladen sind), keins aus dem WebP.
+const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, ktx: 850 };
 const WARTE_MS = 15 * 60 * 1000, NACHLAUF_MS = 20000;
 
 const KANDIDATEN = [
@@ -174,8 +189,8 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '';
-const verlangt = [], geoVerlangt = [];
+let deko = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '';
+const verlangt = [], geoVerlangt = [], ktxFehlt = [];
 const shaderFehler = [];
 page.on('console', (m) => {
   const t = m.text();
@@ -191,6 +206,9 @@ page.on('console', (m) => {
   if (t.startsWith('[hangar] Geometrie nach dem Hochladen freigegeben:')) geo = t;
   if (t.startsWith('[hangar] Geometrie nach der Freigabe noch einmal verlangt')) geoVerlangt.push(t.slice(9, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
+  if (t.startsWith('[hangar] Texturen komprimiert:')) ktx = t;
+  if (t.startsWith('[hangar] Texturen bleiben WebP:')) ktxAus = t;
+  if (t.startsWith('[hangar] Zwilling ')) ktxFehlt.push(t.slice(9, 200));
 });
 const bildFehler = [];
 const fehler = [];
@@ -279,6 +297,13 @@ console.log(`  Farbmittel: ${lack ? `${lackMit} Materialien des Schiffs mit geme
 if (deko && !lack) fehler.push('der Viewer meldet keine Zeile "[hangar] Lack:" mehr: ob die Farbkarten des Schiffs ihr Mittel tragen, ist ungeprueft');
 else if (deko && !(lackOhne === 0)) fehler.push(`${Number.isFinite(lackOhne) ? lackOhne : 'unbekannt viele'} deckende Farbkarten des Schiffs ohne Farbmittel: das Schiff laedt ueber einen Loader, der nicht misst (images(false), HALL_FILES), und der dunkelste Lack wird nicht mehr angehoben`);
 else if (deko && !SHIP && !LAYOUT && !(lackMit >= KLINKE.lack)) fehler.push(`nur ${lackMit} Materialien des Schiffs mit gemessener Farbkarte, Klinke ${KLINKE.lack}`);
+const ktxN = Number(/komprimiert: (\d+) /.exec(ktx)?.[1] ?? NaN), ktxOhne = Number(/aus dem WebP: (\d+)$/.exec(ktx)?.[1] ?? NaN);
+console.log(`  Komprimiert: ${ktx ? ktx.slice(9, 160) : ktxAus ? ktxAus.slice(9, 160) : 'keine Zeile zu den komprimierten Texturen'}${SHIP || LAYOUT ? '' : ` (Klinke ${KLINKE.ktx})`}`);
+for (const z of ktxFehlt.slice(0, 5)) fehler.push(z);
+if (ktxAus) fehler.push(`${ktxAus.slice(9, 200)}: jede Textur liegt unkomprimiert bei der Grafikkarte`);
+else if (deko && !ktx) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen komprimiert:": er laedt kein Bild aus seinem komprimierten Zwilling (ktxTwin in assets/hangar-viewer.js), jede Textur liegt unkomprimiert bei der Grafikkarte');
+else if (deko && !(ktxOhne === 0)) fehler.push(`${Number.isFinite(ktxOhne) ? ktxOhne : 'unbekannt viele'} Bilder ohne ladbaren Zwilling kamen aus dem WebP und liegen unkomprimiert bei der Grafikkarte (verify:hangar-ktx prueft die Dateien in dist/)`);
+else if (deko && !SHIP && !LAYOUT && !(ktxN >= KLINKE.ktx)) fehler.push(`nur ${ktxN} Bilder aus komprimierten Zwillingen, Klinke ${KLINKE.ktx}`);
 if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
@@ -290,4 +315,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel ✓\n');
+console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel, jedes Bild aus seinem komprimierten Zwilling ✓\n');

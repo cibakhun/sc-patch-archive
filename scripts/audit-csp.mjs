@@ -289,6 +289,21 @@ const capChecks = [
     need: ['script-src', "'wasm-unsafe-eval'"], why: 'Draco dekomprimiert die Meshes per WebAssembly' },
   { files: ['public/vendor/three/addons/loaders/GLTFLoader.js'], pattern: /createObjectURL/,
     need: ['img-src', 'blob:'], why: 'GLTFLoader legt Texturen als blob:-URL an' },
+  // Komprimierte Hangar-Texturen: KTX2Loader baut seine Worker aus einem Blob
+  // und lässt darin den Basis-Umwandler als WebAssembly laufen (auch die
+  // Zstandard-Stufe der UASTC-Karten). Den zweiten Zstandard-Dekoder daneben
+  // (zstddec, holt sein Modul per fetch aus einer data:-URL und bräuchte
+  // connect-src data:) ruft der Loader nur für unkomprimierte KTX2-Dateien;
+  // dass der Hangar keine solche trägt, hält verify:hangar-ktx fest.
+  // 'unsafe-eval' bekommt der Umwandler nicht (VERBOTEN_IN_SCRIPT_SRC): Wie
+  // three ihn ausliefert, baut er seine Aufrufer mit new Function und startet
+  // unter dieser Richtlinie nicht. Die Kopie trägt dafür zwei benannte
+  // Korrekturen (verify:vendor-three, PATCHED); dass sie ohne Code aus
+  // Zeichenketten läuft, prüft verify:hangar-ktx [7].
+  { files: ['public/vendor/three/addons/loaders/KTX2Loader.js'], pattern: /new Worker\(/,
+    need: ['worker-src', 'blob:'], why: 'KTX2Loader startet die Umwandler der komprimierten Texturen als Worker aus einem Blob' },
+  { files: ['public/vendor/three/addons/loaders/KTX2Loader.js'], pattern: /new Worker\(/,
+    need: ['script-src', "'wasm-unsafe-eval'"], why: 'der Basis-Umwandler der komprimierten Texturen läuft als WebAssembly' },
   { files: ['assets/hero-video.js'], pattern: /createObjectURL/,
     need: ['media-src', 'blob:'], why: 'hero-video.js spielt das Video aus einem Blob' },
   // Hochgeladene Profilbilder/Banner liegen im Supabase-Storage. Ihre URL kommt

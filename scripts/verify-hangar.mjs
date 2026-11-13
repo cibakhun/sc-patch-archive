@@ -916,7 +916,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // und gibt das grosse frei, sobald das kleine steht. Die beiden Helfer
   // rechnet das Tor am ausgelieferten Modul nach.
   const FIT_MAX = 4;
-  const ladeDeckel = /embeddedImages\(\d+, [^\n]*, SMALL \? TEX_MAX : 0\);/.test(viewer);
+  const ladeDeckel = /embeddedImages\(\d+, [^\n]*, SMALL \? TEX_MAX : 0(?:, ktxTwin)?\);/.test(viewer);   // seit 13.11.2026 folgt der Weg zu den komprimierten Zwillingen (verify:hangar-ktx)
   const fitZugleich = Number(/const FIT_AT_ONCE = (\d+);/.exec(viewer)?.[1] ?? NaN);
   const kleinPacken = /const gate = max \? limiter\(FIT_AT_ONCE\) : null;/.test(viewer)
     && /const big = await decode\(\), small = await fitImage\(big, max\);[^}]{0,160}big\.close\(\);/.test(viewer);

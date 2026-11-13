@@ -40,6 +40,7 @@
     "verify:hangar-lage": "node scripts/verify-hangar-lage.mjs",
     "verify:hangar-crew": "node scripts/verify-hangar-crew.mjs",
     "verify:hangar-orte": "node scripts/verify-hangar-orte.mjs",
+    "verify:hangar-ktx": "node scripts/verify-hangar-ktx.mjs",
     "verify:zaehler": "node scripts/verify-zaehler.mjs",
     "verify:vendor": "node scripts/verify-vendor-three.mjs",
     "verify:supply-chain": "node scripts/verify-supply-chain.mjs",
