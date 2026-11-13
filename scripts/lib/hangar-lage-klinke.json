@@ -252,25 +252,6 @@
    },
    "aussenPct": 0
   },
-  "aegs-hammerhead-showdown": {
-   "sha": "50abff02b6d618f2",
-   "gemessen": {
-    "inseln": [],
-    "ragt": [],
-    "innen": {
-     "tris": 1319505,
-     "aussenPct": 0,
-     "maxM": 1
-    },
-    "sitz": {
-     "name": "hardpoint_seat_pilot",
-     "nah": 943,
-     "abstand": 0.14,
-     "ok": true
-    }
-   },
-   "aussenPct": 0
-  },
   "aegs-idris-m": {
    "sha": "da4742031014af9c",
    "gemessen": {
@@ -1082,6 +1063,25 @@
      "name": "hardpoint_seat_pilot",
      "nah": 3942,
      "abstand": 0.39,
+     "ok": true
+    }
+   },
+   "aussenPct": 0
+  },
+  "anvl-liberator": {
+   "sha": "17c5c80663c04d6e",
+   "gemessen": {
+    "inseln": [],
+    "ragt": [],
+    "innen": {
+     "tris": 1101096,
+     "aussenPct": 0,
+     "maxM": 0
+    },
+    "sitz": {
+     "name": "hardpoint_seat_pilot",
+     "nah": 983,
+     "abstand": 0.08,
      "ok": true
     }
    },
@@ -3803,25 +3803,6 @@
    "ausnahmeInnen": "Die Daten nennen die base-Container der Andromeda mit deren Offsets; im kürzeren Phoenix-Rumpf ragen sie heraus, die Phoenix bringt eigene Container mit. Offen für einen PC-Lauf (hangar-innenlage.md)",
    "angehoben": "Regel wie im Viewer (hiddenMaterial): POM-Decals und Platzhalterwand zaehlen nicht mehr mit, der Innenraum hat weniger Dreiecke innen (Phoenix 16,87 -> 17,24 %, 8 weitere bis 0,22 Prozentpunkte); cubic-Befund zu #277, 01.11.2026"
   },
-  "rsi-constellation-phoenix-emerald": {
-   "sha": "478131bfc97bef15",
-   "gemessen": {
-    "inseln": [],
-    "ragt": [],
-    "innen": {
-     "tris": 377661,
-     "aussenPct": 0,
-     "maxM": 0
-    },
-    "sitz": {
-     "name": "hardpoint_seat_pilot",
-     "nah": 1134,
-     "abstand": 0.48,
-     "ok": true
-    }
-   },
-   "aussenPct": 0
-  },
   "rsi-constellation-taurus": {
    "sha": "26a1e345acf66c7e",
    "gemessen": {
@@ -3840,6 +3821,25 @@
     }
    },
    "aussenPct": 0.03
+  },
+  "rsi-galaxy": {
+   "sha": "fffbd0d76fe0d4fd",
+   "gemessen": {
+    "inseln": [],
+    "ragt": [],
+    "innen": {
+     "tris": 691057,
+     "aussenPct": 0,
+     "maxM": 0
+    },
+    "sitz": {
+     "name": "hardpoint_seat_pilot",
+     "nah": 819,
+     "abstand": 0.03,
+     "ok": true
+    }
+   },
+   "aussenPct": 0
   },
   "rsi-hermes": {
    "sha": "9f596fa748b49624",

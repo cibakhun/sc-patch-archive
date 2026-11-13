@@ -1,6 +1,6 @@
 {
  "werkzeug": "cockpit-rays 1, verborgen a78ff98f",
- "ueber10": 6,
+ "ueber10": 5,
  "schiffe": {
   "aegs-avenger-stalker": {
    "sha": "a68802f8afc39c99",
@@ -91,17 +91,6 @@
     "hohl": 28,
     "glas": 3651
    }
-  },
-  "aegs-hammerhead-showdown": {
-   "sha": "278c3512cdadec73",
-   "durch": 19,
-   "gemessen": {
-    "rays": 160,
-    "durch": 19,
-    "hohl": 41,
-    "glas": 3392
-   },
-   "ausnahme": "Bruecke: Blick durch das Bugglas nach hinten unten in die Halle, unter den Sitzen fehlt der Boden; vor dem Fix gleich (11 %), Hammerhead ohne Showdown 9 %; Folgeauftrag PC (.planning/notes/hangar-cockpit-hohl.md, offen)"
   },
   "aegs-idris-m": {
    "sha": "da4742031014af9c",
@@ -555,6 +544,16 @@
     "durch": 0,
     "hohl": 18,
     "glas": 1024
+   }
+  },
+  "anvl-liberator": {
+   "sha": "d1bd21a503458e8a",
+   "durch": 0,
+   "gemessen": {
+    "rays": 160,
+    "durch": 0,
+    "hohl": 28,
+    "glas": 431
    }
   },
   "anvl-lightning-f8": {
@@ -1994,16 +1993,6 @@
     "glas": 2794
    }
   },
-  "rsi-constellation-phoenix-emerald": {
-   "sha": "b5301490bab1aff8",
-   "durch": 2,
-   "gemessen": {
-    "rays": 160,
-    "durch": 2,
-    "hohl": 32,
-    "glas": 3037
-   }
-  },
   "rsi-constellation-taurus": {
    "sha": "d24b040442c8b0e5",
    "durch": 0,
@@ -2012,6 +2001,16 @@
     "durch": 0,
     "hohl": 14,
     "glas": 1862
+   }
+  },
+  "rsi-galaxy": {
+   "sha": "de27e06b0d03c3cd",
+   "durch": 5,
+   "gemessen": {
+    "rays": 160,
+    "durch": 5,
+    "hohl": 5,
+    "glas": 766
    }
   },
   "rsi-hermes": {
