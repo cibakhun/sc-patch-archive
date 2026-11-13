@@ -57,6 +57,15 @@
    meldet (Zeile "[hangar] Vollbildpässe: … erst beim Probebild
    übersetzt") oder gar keine Zeile zu den Paessen kommt (dann steht die
    Nachbearbeitung nicht).
+   Dazu das Farbmittel (13.11.2026): Der Viewer misst das Mittel einer
+   Farbkarte nur noch fuer Dateien, deren Materialien dressTextured() liest
+   (Schiff, Tauschteile, Innenraum), nicht mehr fuer die 324 Farbkarten der
+   Halle (0,35 s Rechenzeit im Hauptfaden bei jedem Laden). Geht dabei das
+   Schiff durch den Loader der Halle, traegt keine seiner Karten ein Mittel,
+   und der dunkelste Lack wird nicht mehr angehoben (albedoFloor): das Schiff
+   steht fleckig schwarz da. FEHLER, wenn die Zeile "[hangar] Lack:" eine
+   deckende Farbkarte ohne Farbmittel meldet oder weniger Materialien mit
+   Mittel als die Klinke (ohne --ship und --layout, also mit der Gladius).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
    ============================================================ */
 import { existsSync } from 'node:fs';
@@ -76,7 +85,9 @@ const GRENZE = 16;
 // Schichttafel (Halle und Grube). Klinken nur nach oben.
 // frei: Bilder, die der Viewer nach dem Hochladen freigibt. Gemessen
 // 13.11.2026 auf hoch mit der Gladius: 897 von 901 (1.054 MB).
-const KLINKE = { programme: 60, schichten: 2, frei: 600 };
+// lack: Materialien der Gladius mit gemessener Farbkarte (Zeile "[hangar]
+// Lack:"). Gemessen 13.11.2026: 118, keine Farbkarte ohne Mittel.
+const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100 };
 const WARTE_MS = 15 * 60 * 1000, NACHLAUF_MS = 20000;
 
 const KANDIDATEN = [
@@ -131,7 +142,7 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '', drinnen = '', frei = '', paesse = '';
+let deko = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '';
 const verlangt = [];
 const shaderFehler = [];
 page.on('console', (m) => {
@@ -142,6 +153,7 @@ page.on('console', (m) => {
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
   if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) frei = t;
   if (t.startsWith('[hangar] Vollbildpässe:')) paesse = t;
+  if (t.startsWith('[hangar] Lack:') && !lack) lack = t;
   if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
 });
@@ -203,6 +215,11 @@ if (deko && !(freiN >= KLINKE.frei)) fehler.push(`der Viewer gibt ${Number.isFin
 console.log(`  ${paesse ? paesse.slice(9, 160) : 'Vollbildpässe: keine Zeile'}`);
 if (/erst beim Probebild/.test(paesse)) fehler.push(`${paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
 else if (deko && !/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(paesse)) fehler.push('der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) steht nicht, oder ihre Shader werden nicht mehr vorab uebersetzt');
+const lackMit = Number(/\((\d+) mit gemessener Farbkarte/.exec(lack)?.[1] ?? NaN), lackOhne = Number(/, (\d+) ohne Farbmittel\)/.exec(lack)?.[1] ?? NaN);
+console.log(`  Farbmittel: ${lack ? `${lackMit} Materialien des Schiffs mit gemessener Farbkarte${SHIP || LAYOUT ? '' : ` (Klinke ${KLINKE.lack})`}, ${lackOhne} Farbkarten ohne Mittel` : 'keine Zeile "[hangar] Lack:"'}`);
+if (deko && !lack) fehler.push('der Viewer meldet keine Zeile "[hangar] Lack:" mehr: ob die Farbkarten des Schiffs ihr Mittel tragen, ist ungeprueft');
+else if (deko && !(lackOhne === 0)) fehler.push(`${Number.isFinite(lackOhne) ? lackOhne : 'unbekannt viele'} deckende Farbkarten des Schiffs ohne Farbmittel: das Schiff laedt ueber einen Loader, der nicht misst (images(false), HALL_FILES), und der dunkelste Lack wird nicht mehr angehoben`);
+else if (deko && !SHIP && !LAYOUT && !(lackMit >= KLINKE.lack)) fehler.push(`nur ${lackMit} Materialien des Schiffs mit gemessener Farbkarte, Klinke ${KLINKE.lack}`);
 if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
@@ -214,4 +231,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild noch einmal verlangt, Vollbildpaesse vorab uebersetzt ✓\n');
+console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel ✓\n');

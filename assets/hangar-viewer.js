@@ -262,6 +262,17 @@ const nextTask = () => new Promise((r) => setTimeout(r, 0));
 // (images[].uri ../tex/<inhalt>.webp, scripts/lib/glb-texpool.mjs). Die holt
 // fetch gleich los, dekodiert wird in derselben Reihe; jedes fertige Bild
 // meldet seine Bytes an tally(parser) (Fortschritt des Ladebalkens).
+// Seit 13.11.2026 gibt embeddedImages() eine Fabrik zurück: images(mean)
+// je Loader, alle teilen sich die eine Reihe. mean sagt, ob der Loader das
+// Mittel seiner Farbkarten misst (imageMean). Das liest nur dressTextured(),
+// also Schiff, Tauschteile und Innenraum; gemessen wurde es für jede
+// Farbkarte jeder Datei: 439 Messungen beim Laden der Gladius in der hohen
+// Stufe, davon 324 für die Halle. Jede verkleinert das Bild im Hauptfaden
+// und liest es zurück, zusammen 0,45 bis 0,5 s Rechenzeit (im Viewer
+// gestoppt, sichtbares Fenster, RTX 3070 Ti mit i5-13400F); ohne die der
+// Halle sind es 115 Messungen und 0,11 s. Am ersten Bild ändert das auf
+// dem Rechner nichts Messbares (im Wechsel, 3 Runden), der Hauptfaden hat
+// in der Phase Luft; es ist Rechenzeit, die niemand braucht.
 const pooledImage = (def) => def.bufferView === undefined && typeof def.uri === 'string' && !/^(data|blob):/.test(def.uri);
 // Mittel einer Farbkarte, linear je Kanal (für albedoFloor): auf 8 × 8
 // verkleinert (mit Mip-Stufen, nicht nur einzelne Punkte) und gemittelt.
@@ -332,7 +343,7 @@ const colourImages = (json) => {
 function embeddedImages(ms, tally = () => null) {
   const pause = slicer(ms, nextTask);
   let turn = Promise.resolve();
-  return (parser) => {
+  return (mean) => (parser) => {
     const load = parser.loadImageSource.bind(parser);
     const count = tally(parser);
     const colour = colourImages(parser.json);
@@ -354,7 +365,7 @@ function embeddedImages(ms, tally = () => null) {
           t.needsUpdate = true;
           if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
           t.userData.mimeType = def.mimeType;
-          if (colour.has(i)) t.userData.mean = await imageMean(bitmap);
+          if (mean && colour.has(i)) t.userData.mean = await imageMean(bitmap);
           return t;
         });
       if (pooled) p.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
@@ -7437,7 +7448,12 @@ export async function initHangar(container, opts = {}) {
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
-  const loader = new GLTFLoader().setDRACOLoader(draco).register(embeddedImages(8, (parser) => shipTex.count(parser)));
+  const images = embeddedImages(8, (parser) => shipTex.count(parser));
+  const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
+  // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
+  // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
+  const hallLoader = new GLTFLoader().setDRACOLoader(draco).register(images(false));
+  const HALL_FILES = new Set(['hall', 'furniture', 'lift', 'gate', 'rand', 'workshop', 'workshop-floor', 'dienst', 'werk', 'buehne', 'werkdecke', 'deko', 'crew']);
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   // Höchstens 16 Texturen je Bildshader: so viele erlaubt Chrome unter
@@ -7517,7 +7533,7 @@ export async function initHangar(container, opts = {}) {
   // my: Marke des show(), das lädt. Ein überholtes show() lädt zu Ende,
   // meldet aber keinen Fortschritt mehr: der Balken gehört dem gewählten Schiff.
   const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => new Promise((resolve, reject) => {
-    loader.load(url, resolve, (e) => {
+    (HALL_FILES.has(key) ? hallLoader : loader).load(url, resolve, (e) => {
       if (my !== null && my !== token) return;
       prog.set(key, [e.loaded, e.total || Math.max(guess, e.loaded)]);
       report();
@@ -11849,7 +11865,7 @@ void main() {
         m.userData.albT = Math.max(...mean);
         if (m.userData.albT < 5e-4) { m.map = null; m.userData.albT = 1; }
         if (albedoFloor(m)) m.userData.albLift = true;
-      }
+      } else m.userData.albOhne = true;   // Farbkarte ohne Mittel: steht in der Zeile „Lack“ (check:hangar-shader)
     }
     m.envMapIntensity = 0.9;
     for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
@@ -11908,13 +11924,17 @@ void main() {
     });
     if (textured) {
       // Selbstauskunft: Schadensnetze aus, Grundfarben angehoben (albedoFloor)
-      const mats = new Set(); let dmg = 0, tris = 0, gemessen = 0;
+      const mats = new Set(); let dmg = 0, tris = 0, gemessen = 0, ohne = 0;
       model.traverse((n) => {
         if (!n.isMesh) return;
         if (n.userData.damage) { dmg++; tris += (n.geometry.index?.count ?? n.geometry.attributes.position.count) / 3; } else mats.add(n.material);
       });
-      for (const m of mats) if (m.userData.albT != null) gemessen++;
-      console.info(`[hangar] Lack: ${[...mats].filter((m) => m.userData.albLift).length} von ${mats.size} Materialien bis zur Untergrenze angehoben (${gemessen} mit gemessener Farbkarte), ${dmg} Schadensnetze aus (${Math.round(tris)} Dreiecke)`);
+      // ohne: Materialien, deren Farbkarte kein Mittel trug, als dressTextured() danach fragte
+      for (const m of mats) {
+        if (m.userData.albT != null) gemessen++;
+        else if (m.userData.albOhne) ohne++;
+      }
+      console.info(`[hangar] Lack: ${[...mats].filter((m) => m.userData.albLift).length} von ${mats.size} Materialien bis zur Untergrenze angehoben (${gemessen} mit gemessener Farbkarte, ${ohne} ohne Farbmittel), ${dmg} Schadensnetze aus (${Math.round(tris)} Dreiecke)`);
     }
     // Die Achsdrehung Z-oben -> Y-oben steckt schon im Knoten der .glb.
     // Bug in -Z: einmal umdrehen, im Schiffsraum zeigt er nach +Z (Grundriss,

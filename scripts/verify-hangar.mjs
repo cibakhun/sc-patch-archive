@@ -921,6 +921,18 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       `dist/assets/hangar-viewer.js baut ${pmremNeu} statt 1 PMREM-Generator (pmremFor): jeder eigene uebersetzt seine Shader neu, 0,4 s Stillstand kurz nach dem ersten Bild`],
     ['Texturzaehlung ohne Rueckfrage', /const frag = p\.fragmentShader \?\? /.test(viewer),
       'dist/assets/hangar-viewer.js: texBudget() nimmt den Bildshader nicht mehr von three (p.fragmentShader): die Suche ueber den Typ fragt je Programm zweimal beim Grafikprozess nach und wartet mitten im Laden auf die Antwort'],
+    // Farbmittel nur, wo es jemand liest (13.11.2026). imageMean() lief fuer
+    // jede Farbkarte jeder Datei: 439 Messungen beim Laden der Gladius in der
+    // hohen Stufe, 324 davon fuer die Halle, zusammen 0,45 bis 0,5 s
+    // Rechenzeit im Hauptfaden (im Viewer gestoppt, sichtbares Fenster);
+    // gelesen wird das Mittel nur in dressTextured() (Schiff, Tauschteile,
+    // Innenraum). Jetzt 115 Messungen und 0,11 s. Ob das Schiff seine Mittel
+    // noch bekommt, prueft check:hangar-shader im Browser.
+    ['Farbmittel nur fuer Dateien des Schiffs', /if \(mean && colour\.has\(i\)\) t\.userData\.mean = await imageMean\(bitmap\);/.test(viewer)
+      && /const hallLoader = new GLTFLoader\(\)\.setDRACOLoader\(draco\)\.register\(images\(false\)\);/.test(viewer)
+      && /\(HALL_FILES\.has\(key\) \? hallLoader : loader\)\.load\(url, /.test(viewer)
+      && ['hall', 'furniture', 'workshop', 'workshop-floor', 'dienst', 'werk', 'werkdecke', 'deko'].every((k) => new RegExp(`const HALL_FILES = new Set\\(\\[[^\\]]*'${k}'`).test(viewer)),
+      'dist/assets/hangar-viewer.js misst das Mittel der Farbkarten wieder fuer die Dateien der Halle (hallLoader mit images(false), HALL_FILES in fetchGltf): 324 Messungen im Hauptfaden, die niemand liest, 0,35 s Rechenzeit bei jedem Laden'],
   ];
   sollIst(`Stillstand beim Laden abgestellt (${STILLSTAND.length} Stellen)`, STILLSTAND.filter((l) => l[1]).length === STILLSTAND.length ? `${STILLSTAND.length} von ${STILLSTAND.length}` : `${STILLSTAND.filter((l) => l[1]).length} von ${STILLSTAND.length}, fehlt: ${STILLSTAND.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of STILLSTAND) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
