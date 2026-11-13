@@ -28,7 +28,7 @@
    in CI den frisch gebauten Container vor dem Push, lokal `astro preview`
    oder eine beliebige URL.
 
-   Sieben Zusicherungen je Seitenaufruf:
+   Acht Zusicherungen je Seitenaufruf:
      1  keine unbehandelte JS-Ausnahme (pageerror)
      2  keine eigene Ressource antwortet mit >= 400 (faengt tote ?v=-Verweise)
      3  kein CSP-Verstoss (securitypolicyviolation am Dokument)
@@ -36,6 +36,11 @@
      5  kein waagerechter Ueberlauf (die wiederkehrende 360-px-Falle)
      6  kein Element mit hidden-Attribut wird gezeichnet
      7  Selbstauskunft + Klinke: wie viele Aufrufe wurden wirklich gefahren
+     8  1, 2 und 3 auch nach dem ersten Blick (nachgeladene Dateien, alles,
+        was eine Probe bedient, Seiten in einem Rahmen), und jedes eigene
+        Stilblatt ist geladen (ein gescheitertes meldet der Browser nie als
+        Antwort). Stilblaetter und CSP melden die Dokumente selbst, jedes in
+        jedem Rahmen und sofort: auch eines, das es am Ende nicht mehr gibt
 
      node scripts/browser-smoke.mjs --base http://localhost:4321
      node scripts/browser-smoke.mjs --base https://staging.verse-base.com
@@ -159,13 +164,18 @@ const SEITEN = [
     en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&station=uebersicht&tafel=1',
     de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&station=uebersicht&tafel=1',
     leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
+    // spieltEin: Die Probe „Wiederholen nach gescheiterter Bucht“ beantwortet
+    // einen Buchtabruf selbst mit 500. Genau so viele Fehlantworten ohne Server
+    // nimmt [8] diesem Szenario ab, keine mehr, und fehlt sie nach einer Probe
+    // ohne Befund, reisst das Tor (die Ausnahme haette ihren Anlass verloren).
+    spieltEin: 1,
     nurMitHangar: true,
   },
   // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
   // tafel=1: ohne steht die Ausruestung ab 761 px als Hologramm in der Halle
   // (dieselbe Werkstatt, gezeichnet statt als Knoepfe), und #hgl-slots bleibt zu.
-  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt, nurMitHangar: true },
+  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)) ?? (await probeFussleiste(page)) ?? (await probeLeitTastatur(page)), minRahmenAntworten: 8, minRahmenBlaetter: 8, nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -212,7 +222,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -909,6 +919,325 @@ const SYNC_ZUSTAENDE = [
   { state: 'error', sitzung: true, lesen: 503, login: false, retry: true },
 ];
 const SYNC_BREITEN = [360, 1280];
+
+/* Terminal im Leitstand (assets/hangar-terminal.js, 13.11.2026): die Seiten
+   der Website in einem Fenster der Hangarseite. Der Weg dorthin ist eine
+   Kamerafahrt der 3D-Buehne, und die laeuft nicht in jeder Umgebung (ohne
+   GPU steht der Rueckfall). Die Probe setzt das Fenster deshalb selbst auf,
+   mit demselben Kasten und demselben Modul, die der Controller naehme, und
+   prueft, was nur ein echter Browser gegen den echten Server zeigt:
+
+     · der Server laesst die eigene Seite im Rahmen zu (frame-src,
+       frame-ancestors und X-Frame-Options aus dist/_csp/, nginx/default.conf)
+       — sonst bleibt das Fenster leer, und kein Tor, das dist/ als Text
+       liest, sieht es;
+     · die Seite steht im Fenster ohne ihre eigene Kopfzeile, die schlanken
+       Datenseiten mit ihrem Pfad;
+     · ein Bereich der Leiste wechselt die Seite, ohne der Hangarseite einen
+       Eintrag im Verlauf zu geben (sonst fuehrte „Zurueck“ des Browsers durch
+       jede Seite des Fensters statt aus dem Hangar), der Pfeil fuehrt zurueck;
+     · „Suche“ oeffnet die Suche der Seite im Fenster, auf Datenseiten ueber
+       deren eigenen Knopf;
+     · ein Link zum Hangar laedt keine zweite Halle ins Fenster, einer nach
+       draussen verlaesst es nicht.
+
+   Alle Klicks kommen per Skript: der Kasten liegt hier nicht auf dem Schirm
+   der Halle, sondern ueber Tafel und Werkstatt, und ein Zeigerklick traefe,
+   was gerade darueber liegt. */
+const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
+async function probeTerminal(page) {
+  const wo = 'Terminal';
+  const warte = (fn, ms = 30000, arg = null) => page.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+  const start = await page.evaluate(async (kasten) => {
+    const box = document.getElementById('hgx-term');
+    if (!box) return { fehlt: '#hgx-term' };
+    const home = box.querySelector(`a[data-term="${box.dataset.home}"]`);
+    if (!home) return { fehlt: `der Bereich „${box.dataset.home}“ aus data-home` };
+    try { sessionStorage.removeItem('hg-term'); } catch { /* ohne Speicher gilt die Startseite */ }
+    window.__termShip = null;
+    window.__termTab = null;
+    window.open = (...a) => { window.__termTab = a; return null; };
+    const m = await import(box.dataset.js);
+    window.__term = m.initTerminal(box, { ship: (id) => { window.__termShip = id ?? '(ohne)'; } });
+    window.__term.place(kasten);
+    return {
+      home: new URL(home.href).pathname,
+      bereiche: Object.fromEntries([...box.querySelectorAll('a[data-term]')].map((a) => [a.dataset.term, new URL(a.href).pathname])),
+      verlauf: history.length,
+      hangar: location.pathname,
+    };
+  }, TERM_PROBE_KASTEN);
+  if (start.fehlt) return `${wo}: ${start.fehlt} fehlt auf der Hangarseite`;
+
+  const stand = () => page.evaluate(() => {
+    const box = document.getElementById('hgx-term'), f = document.getElementById('hgx-term-frame');
+    let d = null;
+    try { d = f.contentDocument; } catch { /* fremder Ursprung: die Fehlerseite des Browsers */ }
+    const zeigt = (el) => !!el && getComputedStyle(el).display !== 'none';
+    const r = box.getBoundingClientRect(), b = box.offsetParent?.getBoundingClientRect() ?? { left: 0, top: 0 };
+    const scs = d?.getElementById('scs');
+    return {
+      bereit: box.classList.contains('is-ready'), zu: box.hidden,
+      pfad: d ? d.location.pathname : null,
+      kleid: !!d?.documentElement.hasAttribute('data-vb-terminal'),
+      kopf: d ? zeigt(d.getElementById('topbar')) : null,
+      daten: d?.querySelector('.dp-bar')
+        ? { start: zeigt(d.querySelector('.dp-bar>.dp-home')), knopf: zeigt(d.querySelector('.dp-bar>.dp-search')), sprache: zeigt(d.querySelector('.dp-bar>.dp-lang')), pfad: zeigt(d.querySelector('.dp-bar>.dp-crumbs')) }
+        : null,
+      suche: !!scs && !scs.hidden && zeigt(scs),
+      marke: [...box.querySelectorAll('a[data-term][aria-current="page"]')].map((a) => a.dataset.term).join(' '),
+      zurueck: !document.getElementById('hgx-term-back').disabled,
+      eigen: (() => { try { return new URL(document.getElementById('hgx-term-ext').href).pathname; } catch { return null; } })(),
+      kasten: [r.left - b.left, r.top - b.top, r.right - b.left, r.bottom - b.top].map(Math.round),
+      text: document.getElementById('hgx-term-load')?.textContent.trim() ?? '',
+      verlauf: history.length, schiff: window.__termShip, tab: window.__termTab,
+      rahmenCsp: (window.__cspVerstoesse ?? []).filter((v) => /frame/.test(v)),
+    };
+  });
+  const steht = (pfad, ms = 45000) => warte((p) => {
+    const box = document.getElementById('hgx-term');
+    let d = null;
+    try { d = document.getElementById('hgx-term-frame').contentDocument; } catch { /* s. o. */ }
+    return !!d && d.location.pathname === p && d.readyState !== 'loading' && box.classList.contains('is-ready') && d.documentElement.hasAttribute('data-vb-terminal');
+  }, ms, pfad);
+  const klick = (sel) => page.evaluate((s) => document.querySelector(s).click(), sel);
+  const imFenster = (href) => page.evaluate((h) => {
+    const d = document.getElementById('hgx-term-frame').contentDocument;
+    const a = d.createElement('a');
+    a.href = h;
+    a.textContent = 'Probe';
+    d.body.append(a);
+    a.click();
+    a.remove();
+  }, href);
+
+  // 1 · die Startseite des Terminals steht im Fenster
+  if (!(await steht(start.home))) {
+    const s = await stand();
+    return `${wo}: ${start.home} steht nach 45 s nicht im Fenster (Pfad ${s.pfad}, bereit ${s.bereit}, Meldung „${s.text}“${s.rahmenCsp.length ? `, CSP ${s.rahmenCsp.join(', ')}` : ''}) — laesst der Server die eigene Seite im Rahmen zu (dist/_csp/, X-Frame-Options)?`;
+  }
+  let s = await stand();
+  if (s.zu) return `${wo}: der Kasten ist nach place() noch verborgen`;
+  if (s.kopf) return `${wo}: die Kopfzeile der Seite (#topbar) steht im Fenster unter der Leiste des Terminals`;
+  if (s.marke !== Object.keys(start.bereiche).find((k) => start.bereiche[k] === start.home)) return `${wo}: nach dem Start ist „${s.marke}“ markiert statt des Startbereichs`;
+  if (s.zurueck) return `${wo}: der Zurueck-Pfeil ist auf der ersten Seite bedienbar`;
+  const soll = [TERM_PROBE_KASTEN.l, TERM_PROBE_KASTEN.t, TERM_PROBE_KASTEN.r, TERM_PROBE_KASTEN.b];
+  if (s.kasten.some((v, i) => Math.abs(v - soll[i]) > 2)) return `${wo}: der Kasten liegt bei ${s.kasten.join(', ')} statt auf dem genannten Rechteck ${soll.join(', ')}`;
+
+  // 2 · Bereich wechseln (eine schlanke Datenseite), ohne Eintrag im Verlauf
+  if (!start.bereiche.items) return `${wo}: die Leiste nennt den Bereich „items“ nicht mehr — die Probe braucht eine Datenseite`;
+  await klick('#hgx-term a[data-term="items"]');
+  if (!(await steht(start.bereiche.items))) return `${wo}: „Items“ in der Leiste brachte ${start.bereiche.items} nicht ins Fenster (dort steht ${(await stand()).pfad})`;
+  s = await stand();
+  if (s.marke !== 'items') return `${wo}: nach dem Wechsel ist „${s.marke}“ markiert statt „items“`;
+  if (!s.zurueck) return `${wo}: nach dem Wechsel bleibt der Zurueck-Pfeil gesperrt`;
+  if (s.verlauf !== start.verlauf) return `${wo}: der Wechsel im Fenster schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+  if (!s.daten) return `${wo}: ${start.bereiche.items} traegt keine Kopfleiste .dp-bar mehr`;
+  if (s.daten.start || s.daten.knopf || s.daten.sprache || !s.daten.pfad)
+    return `${wo}: Datenseite im Fenster zeigt Startlink ${s.daten.start}, Suchknopf ${s.daten.knopf}, Sprachschalter ${s.daten.sprache}, Pfad ${s.daten.pfad} — Soll: nur der Pfad`;
+  // „In eigenem Tab öffnen“ meint die Seite im Fenster, ohne dass jemand den Link schon geklickt hat:
+  // Mittelklick und Kontextmenue kennen kein click (Review PR #355). Dasselbe fuer eine Adresse, die
+  // die Seite aendert, ohne neu zu laden: nachgezogen wird, bevor der Link ausgeloest wird.
+  if (s.eigen !== start.bereiche.items) return `${wo}: „In eigenem Tab öffnen“ zeigt nach dem Wechsel auf ${s.eigen} statt auf ${start.bereiche.items} — Mittelklick und Kontextmenue oeffneten die alte Seite`;
+  const anker = await page.evaluate(() => {
+    const w = document.getElementById('hgx-term-frame').contentWindow, a = document.getElementById('hgx-term-ext');
+    w.history.replaceState(null, '', '#probe');
+    a.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 1 }));
+    const h = new URL(a.href).hash;
+    w.history.replaceState(null, '', w.location.pathname + w.location.search);
+    return h;
+  });
+  if (anker !== '#probe') return `${wo}: „In eigenem Tab öffnen“ folgt einer Adresse nicht, die die Seite im Fenster ohne Neuladen aendert (Anker „${anker}“ statt „#probe“)`;
+
+  // 3 · Suche auf der Datenseite (holt sie erst ueber data-scs-boot)
+  await klick('#hgx-term-search');
+  if (!(await warte(() => { const x = document.getElementById('hgx-term-frame').contentDocument?.getElementById('scs'); return !!x && !x.hidden; }, 20000)))
+    return `${wo}: „Suche“ oeffnete auf der Datenseite nichts`;
+
+  // 4 · der Pfeil fuehrt zurueck
+  await klick('#hgx-term-back');
+  if (!(await steht(start.home))) return `${wo}: der Zurueck-Pfeil brachte ${start.home} nicht zurueck (dort steht ${(await stand()).pfad})`;
+  s = await stand();
+  if (s.zurueck) return `${wo}: nach dem Rueckweg auf die erste Seite ist der Pfeil noch bedienbar`;
+  if (s.verlauf !== start.verlauf) return `${wo}: der Rueckweg schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+
+  // 5 · ein Link zum Hangar holt das Schiff, statt eine zweite Halle zu laden
+  await imFenster(`${start.hangar}?ship=aegs-gladius`);
+  await page.waitForTimeout(600);
+  s = await stand();
+  if (s.schiff !== 'aegs-gladius') return `${wo}: ein Link zum Hangar im Fenster meldete das Schiff nicht (${s.schiff})`;
+  if (s.pfad !== start.home) return `${wo}: ein Link zum Hangar lud ${s.pfad} ins Fenster`;
+
+  // 6 · ein Link nach draussen geht in einen neuen Tab; danach die Suche der
+  // Seiten mit voller Navigation (data-scs-open)
+  await imFenster('https://example.org/probe');
+  await page.waitForTimeout(600);
+  s = await stand();
+  if (s.tab?.[0] !== 'https://example.org/probe' || s.tab?.[1] !== '_blank') return `${wo}: ein Link nach draussen oeffnete keinen neuen Tab (${JSON.stringify(s.tab)})`;
+  if (s.pfad !== start.home) return `${wo}: ein Link nach draussen ersetzte die Seite im Fenster (${s.pfad})`;
+  if (s.rahmenCsp.length) return `${wo}: CSP-Verstoss am Rahmen: ${s.rahmenCsp.join(', ')}`;
+  await klick('#hgx-term-search');
+  if (!(await warte(() => { const x = document.getElementById('hgx-term-frame').contentDocument?.getElementById('scs'); return !!x && !x.hidden; }, 20000)))
+    return `${wo}: „Suche“ oeffnete auf ${start.home} nichts`;
+
+  // 7 · zu: aus dem Layout, die letzte Seite gemerkt
+  await page.evaluate(() => window.__term.place(null));
+  if (!(await warte(() => document.getElementById('hgx-term').hidden, 5000))) return `${wo}: place(null) nimmt den Kasten nicht aus dem Layout`;
+  const gemerkt = await page.evaluate(() => { const v = sessionStorage.getItem('hg-term'); sessionStorage.removeItem('hg-term'); return v; });
+  if (!String(gemerkt).startsWith(start.home)) return `${wo}: die letzte Seite wurde nicht gemerkt (${gemerkt})`;
+  return null;
+}
+
+/* Fussleiste der Hangar-Buehne (Orte, Reiter, „Als Tafel“): Sie steht im
+   freien Streifen zwischen Schiffsauswahl und Tafel, rechts der Zeichen der
+   Buehne (#hg-tools: Zuruecksetzen, Einsteigen, Grafik, Ton). Anlass
+   13.11.2026: Mit den drei Orten wurde sie breiter als dieser Streifen. Bei
+   800 px lief sie neben der offenen Schiffsauswahl 132 px aus dem Fenster
+   („Als Tafel“ nicht mehr zu erreichen), mit flacher Tafel lag sie bis
+   1600 px ueber der Tafel und bei 1280 px ueber dem Ton-Knopf. Kein Tor sah
+   das: alle Knoepfe standen im Dokument. Gemessen wird deshalb, was der
+   Browser setzt. Je Breite misst die Probe selbst, wie breit die Leiste mit
+   Namen, ohne die Namen der Orte (data-eng 1) und nur mit Zeichen
+   (data-eng 2) ist, und verlangt:
+     · die Leiste traegt die groesste Form, die rechts der Zeichen in den
+       Streifen passt: nicht dauernd Zeichen, nicht mehr Namen weg als noetig;
+     · passt eine Form, steht die Leiste im Streifen und nicht ueber den
+       Zeichen der Buehne;
+     · ein Knopf, der nur sein Zeichen zeigt, behaelt seinen Namen im
+       Dokument und traegt ihn als title.
+   Die Probe oeffnet die Schiffsauswahl und zeigt die Orte und die vier
+   Zeichen selbst (ohne 3D gibt es sie nicht), damit sie in jeder Umgebung
+   die volle Besetzung misst. Wo die Leiste auch als Zeichen nicht passt
+   (beide Spalten offen im schmalen Fenster, schon vor den Orten so),
+   verlangt sie nur die kleinste Form. */
+const FUSS_BREITEN = [1920, 1600, 1440, 1280, 1100, 900];
+const FUSS_MIN_ENG = 2; // je Sprache: Breiten, an denen Namen weichen muessen und die Leiste dann passt
+const FUSS_LUFT = 12; // px zwischen den Zeichen der Buehne und der Leiste (fitBar)
+async function probeFussleiste(page) {
+  const wo = 'Fußleiste';
+  const fenster = page.viewportSize();
+  const bilder = () => page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 60)))));
+  // volle Besetzung zeigen; true, wenn dafuer etwas einzublenden war
+  const besetze = () => page.evaluate(() => {
+    let neu = false;
+    for (const e of [document.getElementById('hgx-orte'), ...document.getElementById('hg-tools').children]) if (e.hidden) { e.hidden = false; neu = true; }
+    return neu;
+  });
+  const auf = await page.evaluate(() => {
+    const need = ['hgx-st', 'hgx-stagebar', 'hgx-orte', 'hgx-docktog', 'hg-tools'].filter((id) => !document.getElementById(id));
+    if (need.length) return { fehlt: need.map((id) => `#${id}`).join(', ') };
+    const tog = document.getElementById('hgx-docktog');
+    const war = { dock: tog.getAttribute('aria-expanded'), zu: [document.getElementById('hgx-orte'), ...document.getElementById('hg-tools').children].filter((e) => e.hidden).map((e) => e.id) };
+    if (war.dock !== 'true') tog.click();
+    return { war };
+  });
+  if (auf.fehlt) return `${wo}: ${auf.fehlt} fehlt auf der Hangarseite`;
+  let befund = null, eng = 0, weit = 0, neben = 0;
+  for (const breite of FUSS_BREITEN) {
+    await page.setViewportSize({ width: breite, height: fenster.height });
+    await bilder();
+    // die Buehne darf beim Neuzeichnen wieder ausblenden, was es ohne 3D nicht gibt
+    if (await besetze()) await bilder();
+    const m = await page.evaluate((luft) => {
+      const st = document.getElementById('hgx-st'), bar = document.getElementById('hgx-stagebar'), tools = document.getElementById('hg-tools');
+      const b = bar.getBoundingClientRect(), t = tools.getBoundingClientRect(), z = st.getBoundingClientRect();
+      const ab = t.width && t.top < b.bottom && t.bottom > b.top ? Math.max(b.left, t.right + luft) : b.left;
+      const ist = st.dataset.eng ?? '';
+      const knoepfe = [...st.querySelectorAll('button')].filter((k) => k.offsetParent).map((k) => {
+        const span = k.querySelector('span');
+        return { name: k.textContent.trim(), zeichen: !!span && span.getBoundingClientRect().width <= 1, title: k.title };
+      });
+      const r = { ist, platz: Math.floor(b.right - ab), streifen: Math.round(b.width), zeichen: tools.querySelectorAll(':scope > :not([hidden])').length, links: Math.round(z.left - ab), rechts: Math.round(z.right - b.right), knoepfe, dock: document.getElementById('hgx-docktog').getAttribute('aria-expanded') };
+      // Bedarf der drei Formen: die Leiste schrumpft nicht unter ihren Inhalt
+      r.bedarf = ['', '1', '2'].map((v) => { if (v) st.dataset.eng = v; else delete st.dataset.eng; return Math.ceil(st.getBoundingClientRect().width); });
+      if (ist) st.dataset.eng = ist; else delete st.dataset.eng;
+      return r;
+    }, FUSS_LUFT);
+    fussBreiten++;
+    const passt = m.bedarf.findIndex((w) => w <= m.platz);
+    const soll = passt < 0 ? '2' : ['', '1', '2'][passt];
+    const lage = `Bedarf ${m.bedarf.join(' / ')} px mit Namen / ohne die der Orte / nur Zeichen, Platz ${m.platz} px rechts von ${m.zeichen} Zeichen der Buehne`;
+    if (m.dock !== 'true') befund = `${wo} ${breite} px: die Schiffsauswahl liess sich nicht oeffnen, gemessen wuerde der weite Streifen`;
+    else if (m.knoepfe.length < 4) befund = `${wo} ${breite} px: nur ${m.knoepfe.length} Knoepfe in der Leiste, mit den drei Orten sind es mindestens 4`;
+    else if (m.zeichen < 4) befund = `${wo} ${breite} px: nur ${m.zeichen} Zeichen der Buehne im Bild, gemessen wird mit allen vier`;
+    else if (!(m.bedarf[0] > m.bedarf[1] && m.bedarf[1] > m.bedarf[2])) befund = `${wo} ${breite} px: data-eng macht die Leiste nicht schmaler (${m.bedarf.join(' / ')} px mit Namen / Stufe 1 / Stufe 2) — die Stufen nehmen keinem Knopf den Namen aus dem Bild`;
+    else if (m.ist !== soll) befund = soll === ''
+      ? `${wo} ${breite} px: die Leiste zeigt nur Zeichen (data-eng „${m.ist}“), obwohl die Namen in den Streifen passen (${lage})`
+      : `${wo} ${breite} px: data-eng ist „${m.ist}“ statt „${soll}“ (${lage})${m.rechts > 0 ? ` — die Leiste laeuft ${m.rechts} px ueber den Streifen, sie liegt dann ueber der Tafel oder laeuft aus dem Fenster` : m.links < 0 ? ` — die Leiste liegt ${-m.links} px ueber den Zeichen der Buehne` : ' — sie gibt mehr Namen ab als noetig'}`;
+    else if (passt >= 0 && m.rechts > 0) befund = `${wo} ${breite} px: die Leiste laeuft ${m.rechts} px ueber den freien Streifen, obwohl sie mit data-eng „${m.ist}“ hineinpasst (${lage})`;
+    else if (passt >= 0 && m.links < 0) befund = `${wo} ${breite} px: die Leiste liegt ${-m.links} px ueber den Zeichen der Buehne, obwohl sie daneben passt (${lage})`;
+    else {
+      const stumm = m.knoepfe.find((k) => !k.name), ohne = m.knoepfe.find((k) => k.zeichen && k.title !== k.name), zuviel = m.knoepfe.find((k) => !k.zeichen && k.title);
+      if (stumm) befund = `${wo} ${breite} px: ein Knopf der Leiste hat keinen Namen im Dokument`;
+      else if (ohne) befund = `${wo} ${breite} px: „${ohne.name}“ zeigt nur sein Zeichen und traegt den Namen nicht als title („${ohne.title}“)`;
+      else if (zuviel) befund = `${wo} ${breite} px: „${zuviel.name}“ zeigt seinen Namen und traegt ihn noch einmal als title`;
+    }
+    if (befund) break;
+    if (soll && passt >= 0) eng++;
+    if (!soll) weit++;
+    // stuende die Leiste in der Mitte des Streifens, laege sie ueber den Zeichen: hier musste sie ruecken
+    if (passt >= 0 && (m.streifen - m.bedarf[passt]) / 2 < m.streifen - m.platz) neben++;
+  }
+  await page.evaluate((war) => {
+    for (const id of war.zu) document.getElementById(id).hidden = true;
+    const tog = document.getElementById('hgx-docktog');
+    if (tog.getAttribute('aria-expanded') !== war.dock) tog.click();
+  }, auf.war);
+  await page.setViewportSize(fenster);
+  await bilder();
+  if (befund) return befund;
+  fussEng += eng;
+  fussNeben += neben;
+  if (eng < FUSS_MIN_ENG) return `${wo}: nur an ${eng} von ${FUSS_BREITEN.length} Breiten mussten Namen weichen und passte die Leiste dann, Untergrenze ${FUSS_MIN_ENG} — die Probe misst den engen Streifen nicht mehr`;
+  if (!weit) return `${wo}: an keiner der ${FUSS_BREITEN.length} Breiten passten die Namen — die Probe sieht nicht mehr, ob die Leiste sie zeigt, wo Platz ist`;
+  if (!neben) return `${wo}: an keiner der ${FUSS_BREITEN.length} Breiten musste die Leiste neben die Zeichen der Buehne ruecken — die Probe sieht nicht mehr, ob sie ueber ihnen liegt`;
+  return null;
+}
+
+/* Im Leitstand (data-ort="leit" an #main) nimmt das Stilblatt Tafel, Marker
+   und Titelblock aus dem Bild. Der Titelblock bleibt fuer Vorleser im
+   Dokument und ist nur auf 1 px beschnitten: Seine Knopfreihe (Flotte,
+   Vergleich, Link) blieb damit in der Tab-Reihenfolge, und der Fokus stand
+   dann nirgends im Bild (Review PR #355). Die Probe setzt den Zustand am
+   Dokument, wie paintStation es tut (braucht kein 3D), und verlangt von jedem
+   Bedienelement der Hangarseite, das dann mit Tab erreichbar ist, einen Platz
+   im Bild: weder es selbst noch ein Vorfahr ist auf einen Punkt beschnitten. */
+const LEIT_MIN_KNOEPFE = 5; // je Sprache: Bedienelemente, die im Leitstand in der Tab-Reihenfolge stehen
+async function probeLeitTastatur(page) {
+  const wo = 'Leitstand';
+  const r = await page.evaluate(() => {
+    const main = document.getElementById('main');
+    if (!main) return { fehlt: '#main' };
+    const vor = main.dataset.ort;
+    main.dataset.ort = 'leit';
+    const name = (el) => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : typeof el.className === 'string' && el.className.trim() ? `.${el.className.trim().split(/\s+/)[0]}` : ''}`;
+    // auf einen Punkt beschnitten: der Kasten ist hoechstens 1 px gross und zeigt nichts darueber hinaus
+    const punkt = (n) => {
+      const cs = getComputedStyle(n), b = n.getBoundingClientRect();
+      return b.width <= 1 && b.height <= 1 && (cs.overflowX !== 'visible' || cs.clipPath !== 'none');
+    };
+    const ausDemBild = (el) => {
+      for (let n = el; n && n !== main.parentElement; n = n.parentElement) if (punkt(n)) return n;
+      return null;
+    };
+    const erreichbar = [...main.querySelectorAll('a[href],button,input:not([type="hidden"]),select,textarea,summary,[tabindex]')]
+      .filter((el) => el.tabIndex >= 0 && !el.disabled && !el.closest('[inert]') && el.checkVisibility({ visibilityProperty: true }));
+    const aus = erreichbar.map((el) => [el, ausDemBild(el)]).filter(([, n]) => n).map(([el, n]) => (n === el ? name(el) : `${name(el)} in ${name(n)}`));
+    const titel = main.querySelector('.hg-title'), h1 = titel?.querySelector('h1');
+    const out = { n: erreichbar.length, aus, titel: !!titel && punkt(titel), h1: !!h1 && h1.checkVisibility() };
+    if (vor === undefined) delete main.dataset.ort;
+    else main.dataset.ort = vor;
+    return out;
+  });
+  if (r.fehlt) return `${wo}: ${r.fehlt} fehlt auf der Hangarseite`;
+  leitKnoepfe += r.n;
+  // die Voraussetzung der Probe: der Titelblock ist im Leitstand wirklich aus dem Bild und noch im Dokument
+  if (!r.titel) return `${wo}: mit data-ort="leit" steht der Titelblock (.hg-title) noch im Bild — die Probe prueft die Tab-Reihenfolge eines Zustands, den es so nicht mehr gibt`;
+  if (!r.h1) return `${wo}: mit data-ort="leit" ist die Ueberschrift der Seite nicht mehr im Dokument (display none) — Vorleser faenden im Leitstand keine Ueberschrift`;
+  if (r.aus.length) return `${wo}: ${r.aus.length} Bedienelement(e) stehen mit data-ort="leit" in der Tab-Reihenfolge, aber nicht im Bild: ${r.aus.slice(0, 4).join(', ')} — der Fokus stuende dort nirgends sichtbar`;
+  if (r.n < LEIT_MIN_KNOEPFE) return `${wo}: nur ${r.n} Bedienelemente in der Tab-Reihenfolge gefunden, Untergrenze ${LEIT_MIN_KNOEPFE} — die Probe sieht die Hangarseite nicht mehr`;
+  return null;
+}
 
 /* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
    und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.
@@ -1649,10 +1978,34 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
   const jsFehler = [];
   const schlechteAntworten = [];
   page.on('pageerror', (e) => jsFehler.push(e.message.split('\n')[0]));
+  let eigeneAntworten = 0, rahmenAntworten = 0;
+  // wie viel der beiden Listen [1] und [2] schon ausgewertet haben; den Rest holt [8] am Ende
+  let gesehenJs = 0, gesehenHttp = 0;
+  // Eine Antwort ohne Server hat eine Probe selbst eingespielt (route.fulfill,
+  // etwa die 500 fuer „Wiederholen nach gescheiterter Bucht“): Sie sagt nichts
+  // ueber das Artefakt. [8] nimmt sie aber nur dem Szenario ab, das sie
+  // erklaert (spieltEin), und nur so viele, wie es erklaert. Die Frage nach dem
+  // Server ist asynchron, [8] wartet auf alle Antworten (herkunft).
+  const herkunft = [], eingespielt = new Set();
+  let probeOhneBefund = false;
   page.on('response', (r) => {
-    if (r.url().startsWith(BASE) && r.status() >= 400 && r.status() !== (seite.erwarteterStatus ?? -1))
-      schlechteAntworten.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+    if (!r.url().startsWith(BASE)) return;
+    eigeneAntworten++;
+    // aus einer Seite in einem Rahmen (das Terminal des Hangars); frame() wirft bei Antworten ohne Rahmen
+    try { if (r.frame() !== page.mainFrame()) rahmenAntworten++; } catch { /* zaehlt nur oben */ }
+    if (r.status() >= 400 && r.status() !== (seite.erwarteterStatus ?? -1)) {
+      const i = schlechteAntworten.push(`${r.status()} ${r.url().slice(BASE.length)}`) - 1;
+      herkunft.push(r.serverAddr().then((a) => { if (!a) eingespielt.add(i); }, () => {}));
+    }
   });
+
+  // Was der Browser nur dem Dokument sagt (ein Stilblatt ist geladen oder
+  // gescheitert, ein CSP-Verstoss), melden die Dokumente selbst heraus: ueber
+  // den Meldeweg unten, aus jedem Rahmen und in dem Augenblick, in dem es
+  // geschieht. gescheitert und csp tragen den Pfad ihres Dokuments.
+  const gehoert = { blaetter: 0, blaetterImRahmen: 0, gescheitert: [], csp: new Map() };
+  // die Verstoesse, die [3] am ersten Blick schon gewertet hat
+  let cspGesehen = new Set();
 
   const marke = `${seite.id}/${sprache} [${variante.id}]`;
   // Ein Befund ist ein FEHLER — es sei denn, genau diese Stelle steht als
@@ -1669,6 +2022,38 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
   };
 
   try {
+    // Der Meldeweg aus den Dokumenten. Ein Blick ins Dokument am Ende des
+    // Seitenaufrufs sieht nur die Dokumente, die es dann noch gibt, und darin
+    // nur die Links, die noch dastehen. Die Probe des Terminals wechselt die
+    // Seite im Rahmen aber mehrmals, und die Suche nimmt den Link ihres
+    // nachgeladenen Blatts selbst wieder heraus, wenn es scheitert
+    // (assets/data-search.js): Beides blieb gruen (Review PR #355, dritte
+    // Runde). Deshalb haengt in JEDEM Dokument jedes Rahmens ein Lauscher,
+    // bevor dort irgendetwas laedt, und meldet sofort nach draussen. Was er
+    // gehoert hat, bleibt gehoert, auch wenn Link oder Dokument danach weg
+    // sind. load und error eines Links steigen nicht auf, kommen in der
+    // Fangphase aber am Dokument vorbei. Ein Seitenwechsel mitten im Laden
+    // loest kein error aus (gemessen: 18 Wechsel zwischen 0 und 400 ms, 71
+    // load, kein error), die abgebrochenen Anfragen des Terminals sind also
+    // kein Fehlalarm.
+    await page.exposeBinding('__vbRauch', ({ frame }, art, was, wo) => {
+      const imRahmen = frame !== page.mainFrame();
+      if (art === 'blatt-load') { gehoert.blaetter++; if (imRahmen) gehoert.blaetterImRahmen++; }
+      else if (art === 'blatt-error') gehoert.gescheitert.push({ was: String(was), wo: String(wo), imRahmen });
+      else if (art === 'csp' && !gehoert.csp.has(String(was))) gehoert.csp.set(String(was), { wo: String(wo), imRahmen });
+    });
+    await page.addInitScript(() => {
+      const eigenesBlatt = (t) => t instanceof HTMLLinkElement && t.relList.contains('stylesheet') && !t.relList.contains('alternate')
+        && new URL(t.href, location.href).origin === location.origin;
+      for (const art of ['load', 'error'])
+        document.addEventListener(art, (e) => {
+          if (eigenesBlatt(e.target)) window.__vbRauch?.(`blatt-${art}`, e.target.getAttribute('href'), location.pathname);
+        }, true);
+      document.addEventListener('securitypolicyviolation', (e) => {
+        window.__vbRauch?.('csp', `${e.violatedDirective} ${e.blockedURI || ''}`.trim(), location.pathname);
+      });
+    });
+
     const antwort = await page.goto(BASE + pfad, { waitUntil: 'domcontentloaded', timeout: 30000 });
     aufrufe++;
     if (seite.erwarteterStatus && antwort?.status() !== seite.erwarteterStatus)
@@ -1683,11 +2068,13 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     // [1] keine unbehandelte JS-Ausnahme
     geprueftePunkte++;
     if (jsFehler.length) melde('js', `JS-Ausnahme: ${jsFehler.slice(0, 2).join(' | ')}`);
+    gesehenJs = jsFehler.length;
 
     // [2] keine eigene Ressource >= 400
     geprueftePunkte++;
     if (schlechteAntworten.length)
       melde('http', `${schlechteAntworten.length} eigene Ressource(n) >= 400: ${schlechteAntworten.slice(0, 3).join(', ')}`);
+    gesehenHttp = schlechteAntworten.length;
 
     // [3] CSP — und zwar artefakt-abhaengig, in BEIDE Richtungen.
     //
@@ -1705,6 +2092,7 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     const csp = [...new Set(await page.evaluate(() => window.__cspVerstoesse ?? []))];
     const erwartet = csp.filter((v) => ZAEHLER_HOST.test(v));
     const unerwartet = csp.filter((v) => !ZAEHLER_HOST.test(v));
+    cspGesehen = new Set(csp);
     if (unerwartet.length) melde('csp', `CSP-Verstoss: ${unerwartet.slice(0, 3).join(', ')}`);
     if (erwartet.length) {
       if (IST_VORSCHAU) erwarteteCsp++;
@@ -1837,9 +2225,136 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     // nicht dreimal dasselbe.
     if (seite.probe && variante.id === 'dunkel-1280') {
       geprueftePunkte++;
+      const vor = { antworten: eigeneAntworten, rahmen: rahmenAntworten };
       const p = await seite.probe(page);
       if (p) melde('probe', p);
+      else probeOhneBefund = true;
+      probenLaeufe++;
+      const imRahmen = rahmenAntworten - vor.rahmen;
+      probenAntworten += eigeneAntworten - vor.antworten;
+      probenRahmen += imRahmen;
+      // Selbstauskunft je Szenario: Laedt die Probe Seiten in einen Rahmen
+      // (minRahmenAntworten), muss der Lauscher deren Antworten gesehen haben.
+      // Sonst waere [8] fuer genau diese Seiten taub und trotzdem gruen. Nur
+      // nach einer Probe ohne Befund: Bricht sie vorher ab, hat sie die
+      // Seiten gar nicht geladen.
+      if (seite.minRahmenAntworten && !p && imRahmen < seite.minRahmenAntworten)
+        melde('probe-lauscher', `waehrend der Probe nur ${imRahmen} Antworten aus Seiten in einem Rahmen mitgelesen, Untergrenze ${seite.minRahmenAntworten} — der Lauscher hoert die Seiten im Terminal nicht mehr; Ursache klaeren, nicht die Untergrenze senken`);
     }
+
+    // [8] Nach dem ersten Blick. [1] und [2] werten aus, was beim Aufbau des
+    // Dokuments angekommen war. Was spaeter kam (nachgeladene Dateien, alles,
+    // was eine Probe bedient, im Hangar ganze Seiten im Fenster des
+    // Terminals), stand danach nur noch in den Listen und nie in der Bilanz
+    // (Review PR #355). pageerror und response melden alle Rahmen der Seite,
+    // die Seiten im Terminal zaehlen also mit.
+    geprueftePunkte++;
+    await Promise.all(herkunft);
+    const ohneServer = [...eingespielt].filter((i) => i >= gesehenHttp).sort((x, y) => x - y);
+    const abgenommen = new Set(ohneServer.slice(0, variante.id === 'dunkel-1280' ? (seite.spieltEin ?? 0) : 0));
+    probenEingespielt += abgenommen.size;
+    if (seite.spieltEin && probeOhneBefund && ohneServer.length < seite.spieltEin)
+      melde('probe-eingespielt', `das Szenario erklaert ${seite.spieltEin} selbst eingespielte Fehlantwort(en), die Probe hat ${ohneServer.length} eingespielt — die Ausnahme hat ihren Anlass verloren; spieltEin am Szenario anpassen`);
+    const jsSpaet = jsFehler.slice(gesehenJs), httpSpaet = schlechteAntworten.filter((_, i) => i >= gesehenHttp && !abgenommen.has(i));
+    if (jsSpaet.length) melde('js-spaet', `JS-Ausnahme nach dem Aufbau der Seite: ${jsSpaet.slice(0, 2).join(' | ')}`);
+    if (httpSpaet.length) melde('http-spaet', `${httpSpaet.length} eigene Ressource(n) >= 400 nach dem Aufbau der Seite: ${httpSpaet.slice(0, 3).join(', ')}`);
+    // Ein Stilblatt, das mit 404 oder 500 antwortet, taucht in [2] nie auf:
+    // Die Fehlerseite ist text/html, mit nosniff verwirft der Browser sie, und
+    // die Anfrage endet als abgebrochen statt als Antwort (gemessen am
+    // 13.11.2026 beim Rotlauf zu dieser Zusicherung; ein Skript meldet seine
+    // 404 dagegen). Abgebrochene Anfragen sind als Signal unbrauchbar, jeder
+    // Seitenwechsel im Fenster des Terminals bricht welche ab. Das Urteil
+    // kommt deshalb aus den Dokumenten, auf zwei Wegen:
+    //   · gehoert: das error, das der Meldeweg oben in irgendeinem Dokument
+    //     des Seitenaufrufs gehoert hat, wann auch immer;
+    //   · gesehen: in den Dokumenten, die es jetzt noch gibt, sind die Regeln
+    //     jedes eingebundenen eigenen Blatts lesbar. Ein Blatt (link.sheet)
+    //     bekommt auch das gescheiterte, erst der Griff nach cssRules wirft
+    //     dort (gemessen). Dieser Blick wartet zugleich auf Blaetter, die
+    //     noch unterwegs sind, und er haelt den Meldeweg ehrlich: Was er
+    //     findet, zaehlt auch dann, wenn der Meldeweg es nicht gehoert hat.
+    geprueftePunkte++;
+    const ohneBlatt = new Map(); // je Dokument die Blaetter, die dort nicht geladen sind
+    const merke = (wo, imRahmen, was) => {
+      const k = `${imRahmen ? 'rahmen' : 'oben'} ${wo}`;
+      if (!ohneBlatt.has(k)) ohneBlatt.set(k, { wo, imRahmen, was: new Set() });
+      ohneBlatt.get(k).was.add(was);
+    };
+    for (const rahmen of page.frames()) {
+      // Fehlen darf hier nur ein Dokument, das es nachweislich nicht mehr gibt
+      // (der Rahmen ist weg oder zeigt keine eigene Seite mehr). Ein Dokument,
+      // das noch da ist und sich nicht lesen laesst (nach 10 s nicht fertig
+      // geladen, oder die Abfrage wirft), wurde bis zur dritten Review-Runde
+      // von PR #355 still uebersprungen, und die Blaetter der anderen
+      // Seitenaufrufe hielten die Untergrenze trotzdem. Jetzt ist das ein
+      // Befund. Zwei Anlaeufe: Wechselt das Dokument waehrend des Lesens,
+      // gilt der zweite dem neuen.
+      let b = null, grund = '';
+      for (let anlauf = 0; anlauf < 2 && !b; anlauf++) {
+        if (rahmen.isDetached() || !rahmen.url().startsWith(BASE)) { grund = ''; break; }
+        try {
+          await rahmen.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
+          b = await rahmen.evaluate(async () => {
+            const alle = [...document.querySelectorAll('link[rel~="stylesheet"]:not([rel~="alternate"])')]
+              .filter((l) => !l.disabled && new URL(l.href, location.href).origin === location.origin);
+            // Ein Blatt, das ein Skript eben erst eingehaengt hat (die Suche laedt
+            // ihres beim ersten Oeffnen), ist noch unterwegs und hat noch kein
+            // sheet: auf sein load oder error warten, hoechstens 5 s, statt es
+            // als gescheitert zu lesen.
+            await Promise.all(alle.filter((l) => !l.sheet).map((l) => new Promise((fertig) => {
+              l.addEventListener('load', fertig, { once: true });
+              l.addEventListener('error', fertig, { once: true });
+              setTimeout(fertig, 5000);
+            })));
+            const geladen = (l) => { try { return !!l.sheet && l.sheet.cssRules.length >= 0; } catch { return false; } };
+            return { n: alle.length, ohne: alle.filter((l) => !geladen(l)).map((l) => l.getAttribute('href')), wo: location.pathname };
+          });
+        } catch (e) {
+          grund = e.message.split('\n')[0];
+        }
+      }
+      const imRahmen = rahmen !== page.mainFrame();
+      if (!b) {
+        if (grund && !rahmen.isDetached() && rahmen.url().startsWith(BASE))
+          melde('stilblatt-blick', `die Stilblaetter von ${new URL(rahmen.url()).pathname}${imRahmen ? ' (Seite im Rahmen)' : ''} liessen sich am Ende nicht lesen: ${grund} — das Dokument ist noch da, sein Blick fehlt in der Bilanz`);
+        continue;
+      }
+      stilDokumente++;
+      stilblaetter += b.n - b.ohne.length;
+      for (const was of b.ohne) merke(b.wo, imRahmen, was);
+    }
+    for (const g of gehoert.gescheitert) merke(g.wo, g.imRahmen, g.was);
+    for (const d of ohneBlatt.values())
+      melde('stilblatt', `${d.was.size} Stilblatt/Stilblaetter nicht geladen${d.imRahmen ? ` in ${d.wo} (Seite im Rahmen)` : ''}: ${[...d.was].slice(0, 3).join(', ')}`);
+    stilGehoert += gehoert.blaetter;
+    stilRahmen += gehoert.blaetterImRahmen;
+    // Selbstauskunft je Szenario, wie minRahmenAntworten oben: Laedt die Probe
+    // Seiten in einen Rahmen, muss der Meldeweg dort Blaetter laden gehoert
+    // haben. Sonst hinge er nur noch im Dokument oben und waere fuer die
+    // Seiten im Terminal taub und trotzdem gruen.
+    if (seite.minRahmenBlaetter && probeOhneBefund && gehoert.blaetterImRahmen < seite.minRahmenBlaetter)
+      melde('stil-lauscher', `nur ${gehoert.blaetterImRahmen} geladene Stilblaetter aus Seiten in einem Rahmen gehoert, Untergrenze ${seite.minRahmenBlaetter} — der Meldeweg aus den Dokumenten hoert die Seiten im Terminal nicht mehr; Ursache klaeren, nicht die Untergrenze senken`);
+
+    // CSP wie [3], fuer den Rest: [3] liest einmal, am ersten Blick, und nur
+    // im Dokument oben. Was der Meldeweg darueber hinaus gehoert hat, kam
+    // spaeter oder aus einer Seite in einem Rahmen. Gleiche Erwartung wie
+    // dort: Der Zaehl-Host darf nur im Vorschau-Bau verstossen.
+    geprueftePunkte++;
+    const cspNeu = [...gehoert.csp].filter(([v]) => !cspGesehen.has(v));
+    cspGehoertGesamt += gehoert.csp.size;
+    cspSpaetGesamt += cspNeu.length;
+    const woher = ([v, d]) => `${v}${d.imRahmen ? ` in ${d.wo} (Seite im Rahmen)` : ''}`;
+    const cspUnerwartet = cspNeu.filter(([v]) => !ZAEHLER_HOST.test(v));
+    if (cspUnerwartet.length)
+      melde('csp-spaet', `CSP-Verstoss nach dem Aufbau der Seite oder in einer Seite in einem Rahmen: ${cspUnerwartet.slice(0, 3).map(woher).join(', ')}`);
+    const cspZaehler = cspNeu.filter(([v]) => ZAEHLER_HOST.test(v));
+    if (cspZaehler.length && !IST_VORSCHAU)
+      melde('csp-spaet', `der Zaehl-Host ist auf dem LIVE-Build blockiert: ${woher(cspZaehler[0])} — die Besucherstatistik laedt nicht`);
+    // Selbstauskunft: Was [3] im Dokument gelesen hat, muss auch der Meldeweg
+    // gehoert haben, es ist dasselbe Ereignis. Sonst waere er fuer CSP taub.
+    const cspTaub = [...cspGesehen].filter((v) => !gehoert.csp.has(v));
+    if (cspTaub.length)
+      melde('csp-lauscher', `[3] hat im Dokument ${cspTaub.length} CSP-Verstoss/Verstoesse gelesen, die der Meldeweg aus den Dokumenten nicht gehoert hat (${cspTaub[0]}) — [8] waere fuer CSP taub; Ursache klaeren`);
   } catch (e) {
     melde('aufruf', `Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
   } finally {
@@ -1945,6 +2460,15 @@ const SYNC_SOLL = SYNC_BREITEN.length * SYNC_ZUSTAENDE.length * 2 * 2; // je Bre
 const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
 if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
 console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Untergrenze: ${MIN_SCHUBLADEN}`);
+if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Fussleiste des Hangars: ${fussBreiten} Breiten gemessen, an ${fussEng} wichen Namen den Zeichen (Untergrenze ${FUSS_MIN_ENG} je Sprache), an ${fussNeben} rueckte sie neben die Zeichen der Buehne (Untergrenze 1 je Sprache)`);
+if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Leitstand: ${leitKnoepfe} Bedienelemente in der Tab-Reihenfolge auf ihren Platz im Bild geprueft (Untergrenze ${LEIT_MIN_KNOEPFE} je Sprache)`);
+if (probenLaeufe) console.log(`  Proben: ${probenLaeufe} gefahren, dabei ${probenAntworten} Antworten eigener Ressourcen mitgelesen, ${probenRahmen} davon aus Seiten in einem Rahmen; ${probenEingespielt} Fehlantwort(en) hat eine Probe selbst eingespielt, wie am Szenario erklaert (nicht gewertet)`);
+console.log(`  [8] Stilblaetter: ${stilGehoert} beim Laden gehoert, ${stilRahmen} davon in Seiten in einem Rahmen; am Ende ${stilblaetter} mit lesbarem Blatt in ${stilDokumente} Dokumenten   Untergrenze beider Zaehler: eines je Seitenaufruf (${aufrufe})`);
+if (stilblaetter < aufrufe)
+  fehler.push(`[8] nur ${stilblaetter} geladene Stilblaetter bei ${aufrufe} Seitenaufrufen gezaehlt — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
+if (stilGehoert < aufrufe)
+  fehler.push(`[8] der Meldeweg aus den Dokumenten hat nur ${stilGehoert} Stilblaetter laden gehoert bei ${aufrufe} Seitenaufrufen — taub? Ursache klaeren, nicht die Untergrenze senken`);
+console.log(`  [8] CSP-Verstoesse ueber den Meldeweg aus den Dokumenten: ${cspGehoertGesamt} gehoert, ${cspSpaetGesamt} davon nach dem ersten Blick oder aus einer Seite in einem Rahmen`);
 if (schubladen < MIN_SCHUBLADEN && !NUR)
   fehler.push(`[7] nur ${schubladen} Filter-Schubladen geprueft, Untergrenze ist ${MIN_SCHUBLADEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (hiddenGeprueft < MIN_HIDDEN && !NUR)

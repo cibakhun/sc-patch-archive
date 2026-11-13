@@ -109,7 +109,7 @@ export const CHECKS = [
     npm: 'audit:csp',
     script: 'scripts/audit-csp.mjs',
     rail: 'A',
-    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', \'unsafe-eval\', * und reine Schema-Quellen, jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), jede Seite mit data-img-fail traegt den Bild-Hoerer davor, der Zaehl-Host steht nur in connect-src, und kein add_header ausserhalb des server-Blocks oder ohne always',
+    checks: 'die Content-Security-Policy in nginx/default.conf deckt alles ab, was der Build wirklich laedt — eine zu enge CSP bricht nicht beim Deploy, sondern still im Browser des Besuchers; dazu: jedes ausgefuehrte Inline-Skript aus dist/ hat seinen Hash in der Richtlinie, wie nginx sie mit den include-Dateien aus dist/_csp/ ausliefert, script-src ohne \'unsafe-inline\', \'unsafe-eval\', * und reine Schema-Quellen, jeder Inline-Handler ist eine benannte Ausnahme (Zombie-Waechter), jede Seite mit data-img-fail traegt den Bild-Hoerer davor, der Zaehl-Host steht nur in connect-src, kein add_header ausserhalb des server-Blocks oder ohne always, und die Rahmen-Regel je Bau (scripts/lib/rahmen.mjs): die drei nginx-Maps fallen ohne Datei auf zu, die Dateien aus dist/_csp/ tragen genau den Wert des geprueften Artefakts (Vorschau mit Hangar: nur die eigene Seite, Live: niemand), X-Frame-Options und frame-ancestors folgen ihnen',
   },
   {
     // Direkt nach audit:csp — beide betreffen nginx/default.conf.
@@ -382,6 +382,25 @@ export const CHECKS = [
     rail: 'A',
     checks:
       'die Hangarseite gibt die Crew mit Skelett mit (Figur des Manifests und Modul versioniert in dist/); die Figur ist ein Netz mit Haut, Gelenke wie die Knochenliste, jede Ecke an hoechstens 4 Knochen mit Summe 1, Teilmaterial in der Farbtafel, Texturkoordinaten im Atlas, Farbtafel passend zu Stellungen und Teilmaterialien, unter den Obergrenzen fuer Bytes, Dreiecke und Knochen; der Animationsblock ist stimmig (Clips, Spuren an Knochen, Bilder in der Dauer, Einheitsquaternionen, Bahnen der Wurzel); jeder Clip, den das Modul spielen kann, steht in der Datei, mit Dauer nur Schleifen; jeder Einhaengepunkt des Materials steht im Shader von three.js; Wege im Raster des Moduls nur ueber freie Zellen (Probelauf); die Verkabelung im ausgelieferten Viewer (Arbeitsplaetze, Aufstandspunkte, Uebergabe, Ladezweig); Klinken fuer Clips und Farbstellungen (Krisz 30.10.2026: „bau npcs komplett aus“)',
+  },
+  {
+    // Neuzugang (13.11.2026), nach den uebrigen Hangar-Toren: liest die
+    // gebauten Hangarseiten als Text und laedt die ausgelieferten Module
+    // (Viewer fuer die reine Rechnung leitFit, Terminal fuer seine reinen
+    // Funktionen) in Node, unter einer Sekunde. Kein env-Feld: kein git, kein
+    // Netz, kein Kindprozess — liest nur dist/. VORGEFUEHRT ROT in dreizehn
+    // Laeufen, je ein Eingriff in dist/ (Liste im Kopf des Skripts, Meldungen
+    // in der PR): unter anderem Ortsleiste ohne Werkhalle, ein Bereich der
+    // Umschaltleiste auf eine Seite, die es nicht gibt, ein Link zum Hangar,
+    // der im Fenster bliebe, die Kamera ohne Abstand zur Decke und
+    // frame-ancestors.conf auf 'none'.
+    id: 'verify:hangar-orte',
+    npm: 'verify:hangar-orte',
+    nurMitHangar: true,
+    script: 'scripts/verify-hangar-orte.mjs',
+    rail: 'A',
+    checks:
+      'Orte der Halle und Terminal im Leitstand: die Hangarseite traegt in beiden Sprachen die Ortsleiste mit Schiffsfeld, Werkhalle und Leitstand samt Ansagen und das Fenster des Terminals mit versioniertem Modul und leerem Rahmen; jeder Bereich der Umschaltleiste zeigt auf eine gebaute Seite derselben Sprache, bleibt im Fenster und markiert sich selbst (Klinke Bereiche je Seite); die reinen Funktionen des ausgelieferten Terminal-Moduls bestehen feste Proben (Massstab, Wege nach innen, in einen neuen Tab und zurueck in den Hangar, Zuordnung zum Bereich); die Kamera vor dem Schirm: leitFit aus dem ausgelieferten Viewer legt den Schirm fuer ein Raster von Fenstergroessen in das freie Rechteck und bleibt mit Abstand im Raum des Leitstands (Klinke Proben); die Naht zwischen Seite, Controller, Terminal und Viewer; und die Rahmen-Dateien des Baus lassen die eigene Seite zu',
   },
   {
     // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
@@ -882,7 +901,7 @@ export const CHECKS = [
     script: 'scripts/browser-smoke.mjs',
     rail: 'C',
     checks:
-      'die Leitseiten in einem echten Browser: keine JS-Ausnahme, keine eigene Ressource >= 400, kein CSP-Verstoss, Leitelement wirklich sichtbar, kein waagerechter Ueberlauf, und die Werkzeuge filtern wirklich',
+      'die Leitseiten in einem echten Browser: keine JS-Ausnahme, keine eigene Ressource >= 400, kein CSP-Verstoss (alle drei auch nach dem Aufbau der Seite, waehrend der Proben und in Seiten in einem Rahmen), jedes eigene Stilblatt geladen (auch in Seiten, die eine Probe im Rahmen wieder verlaesst), Leitelement wirklich sichtbar, kein waagerechter Ueberlauf, und die Werkzeuge filtern wirklich',
     env:
       'Netz: laedt die Seiten ueber http gegen das Ziel aus --base/SMOKE_BASE und holt vorab dessen robots.txt per fetch(), um Vorschau- von Live-Build zu unterscheiden. Braucht ausserdem einen laufenden Server UND einen installierten Browser — beides gibt es im Build-Container (node:22-alpine) nicht, deshalb Schiene C statt A. Laeuft im Workflow gegen den frisch gebauten Container (vor dem Push), lokal gegen astro preview oder eine URL. FREMDE Hosts werden abgebrochen und nicht gewertet: CI hat keinen verlaesslichen Weg ins Netz, und der Ausfall eines Dritten ist kein Fehler dieser Seite.',
   },

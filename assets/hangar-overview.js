@@ -58,6 +58,37 @@ export const EMPTY_LAYOUT = 'WzEsIiIse31d';
 export const STATIONS = ['uebersicht', 'loadout'];
 export const STATION_DEFAULT = 'loadout';
 
+// Orte der Halle (13.11.2026): Schiffsfeld, Werkhalle, Leitstand. Wo das
+// Fahrzeug steht, sagt es selbst (Schiff: Feld, Bodenfahrzeug: Werkhalle,
+// models[id][3]); der Zustand nennt nur, ob die Kamera im Leitstand vor dem
+// Terminal steht (?ort=leit). Das gibt es nur bei einem Schiff: Aus der
+// Werkhalle fuehrt der Weg erst zurueck aufs Feld.
+/**
+ * Der Ort, an dem die Buehne fuer diesen Zustand steht.
+ *   placeOf({ ship: 'anvl-ballista', ort: 'halle' }, new Set(['anvl-ballista'])) === 'werk'
+ * @param {{ ship: string, ort: string }} s @param {ReadonlySet<string>} werk Ids der Bodenfahrzeuge
+ * @returns {'halle'|'werk'|'leit'}
+ */
+export const placeOf = (s, werk) => (s.ort === 'leit' ? 'leit' : werk.has(s.ship) ? 'werk' : 'halle');
+/**
+ * Das Fahrzeug, das ein Ort zeigt: Wer schon passt, bleibt. Sonst das zuletzt
+ * dort gezeigte (memo), sonst das Startschiff bzw. das erste Bodenfahrzeug
+ * der Liste. null, wenn es fuer den Ort keines gibt.
+ *   placeShip('werk', 'aegs-gladius', { werk: 'anvl-ballista' }, { ids: ['aegs-gladius', 'anvl-ballista'], werk: new Set(['anvl-ballista']), defaultShip: 'aegs-gladius' }) === 'anvl-ballista'
+ * @param {'halle'|'werk'|'leit'} to @param {string} ship das gezeigte Fahrzeug
+ * @param {{ halle?: string, werk?: string }} memo
+ * @param {{ ids: readonly string[], werk: ReadonlySet<string>, defaultShip: string }} c ids in der Folge der Liste
+ * @returns {string|null}
+ */
+export function placeShip(to, ship, memo, c) {
+  const ground = to === 'werk', fits = (id) => c.ids.includes(id) && c.werk.has(id) === ground;
+  if (fits(ship)) return ship;
+  const last = ground ? memo?.werk : memo?.halle;
+  if (fits(last)) return last;
+  if (!ground && fits(c.defaultShip)) return c.defaultShip;
+  return c.ids.find(fits) ?? null;
+}
+
 /**
  * Bringt einen beliebigen Zustandsentwurf in die gueltige Form. Unbekannte Ids
  * fallen weg, cmp wird entdoppelt und auf drei gekappt, unbekannte Tabs und
@@ -70,8 +101,9 @@ export function normalize(s, ctx) {
   const tab = ctx.tabs.includes(s.tab) ? s.tab : ctx.tabs[0];
   const pur = ctx.purs.has(s.pur) ? s.pur : '';
   const cmp = [...new Set((s.cmp ?? []).filter((id) => ctx.ids.has(id)))].slice(0, MAX_COMPARE);
+  const ship = ctx.ids.has(s.ship) ? s.ship : ctx.defaultShip;
   return {
-    ship: ctx.ids.has(s.ship) ? s.ship : ctx.defaultShip,
+    ship,
     tab,
     hp: tab !== ctx.tabs[0] && typeof s.hp === 'string' && PORT_RE.test(s.hp) ? s.hp : null,
     cmp,
@@ -79,6 +111,8 @@ export function normalize(s, ctx) {
     lo: typeof s.lo === 'string' && LAYOUT_RE.test(s.lo) && s.lo !== EMPTY_LAYOUT ? s.lo : null,
     station: STATIONS.includes(s.station) ? s.station : STATION_DEFAULT,
     flat: s.flat === true,
+    // In den Leitstand nur von einem Schiff aus (ctx.werk: die Bodenfahrzeuge)
+    ort: s.ort === 'leit' && !ctx.werk?.has(ship) ? 'leit' : 'halle',
     fleetOnly: s.fleetOnly === true,
     sort: ctx.sorts.includes(s.sort) ? s.sort : ctx.sorts[0],
     q: String(s.q ?? '').trim().slice(0, 80),
@@ -114,6 +148,7 @@ export function parseState(search, hash, ctx) {
     lo: p.get('layout'),
     station: p.get('station') ?? (p.get('pane') === 'ship' ? 'uebersicht' : null),
     flat: p.get('tafel') === '1',
+    ort: p.get('ort'),
     fleetOnly: p.get('fleet') === '1',
     sort: p.get('sort'),
     q: p.get('q') ?? '',
@@ -129,7 +164,7 @@ export function parseState(search, hash, ctx) {
 
 /**
  * HangarState nach '?…', Vorgaben weggelassen, feste Schluesselfolge (ship,
- * tab, hp, cmp, view, layout, station, tafel, fleet, sort, q, pur, grp, size, crew,
+ * tab, hp, cmp, view, layout, station, tafel, ort, fleet, sort, q, pur, grp, size, crew,
  * cargo, price, maker): gleiche Zustaende
  * ergeben gleiche URLs. scope 'share' (Link kopieren) nennt immer das Schiff
  * und laesst die persoenlichen Dock-Filter weg; der Empfaenger hat eine andere
@@ -153,6 +188,8 @@ export function serializeState(s, ctx, scope = 'location') {
     // Wer ein Layout teilt, teilt die Werkstatt: die Ansicht bleibt beim Empfaenger Vorgabe.
     if (s.station !== STATION_DEFAULT) put('station', s.station);
     if (s.flat) put('tafel', '1');
+    // Wo die Kamera steht, ist Sache dessen, der schaut: nicht im geteilten Link
+    if (s.ort === 'leit') put('ort', 'leit');
     if (s.fleetOnly) put('fleet', '1');
     if (s.sort !== ctx.sorts[0]) put('sort', s.sort);
     if (s.q) put('q', s.q);
@@ -652,6 +689,8 @@ export function boot(doc) {
     cargos: new Set(opts('cargo').map(Number)),
     prices: new Set(opts('price').map(Number)),
     makers: new Set(opts('maker')),
+    // Bodenfahrzeuge stehen in der Werkhalle (StageConfig.models, Ort)
+    werk: new Set(Object.keys(stageCfg.models).filter((id) => stageCfg.models[id][3] === 'werk')),
   };
 
   // Die Dock-Karten tragen die Zahlen fuer Flotte, Vergleich und Sortierung
@@ -741,6 +780,8 @@ export function boot(doc) {
   function setState(patch, push = false) {
     // Ein Layout gehoert zu seinem Schiff: wer das Schiff wechselt, beginnt dort mit der Serie.
     if (patch.ship && patch.ship !== state.ship && !('lo' in patch)) patch = { ...patch, lo: null };
+    // Wer im Leitstand ein anderes Schiff waehlt, will es sehen: zurueck aufs Feld
+    if (patch.ship && patch.ship !== state.ship && !('ort' in patch)) patch = { ...patch, ort: 'halle' };
     commit(normalize({ ...state, ...patch }, ctx), push ? 'push' : 'replace');
   }
   /**
@@ -778,8 +819,11 @@ export function boot(doc) {
     } else if (prev.sort !== state.sort) applySort();
     if (prev.ship !== state.ship && !finding) paintRandom();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
-    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.station !== state.station || prev.flat !== state.flat) paintStation();
+    if (prev.ship !== state.ship) rememberPlace();
+    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.station !== state.station || prev.flat !== state.flat || prev.ort !== state.ort) paintStation();
     else if (cmpChanged) paintHolo();
+    // Bei einem Wechsel des Schiffs holt die Buehne die Kamera selbst zurueck (viewer.show)
+    if (prev.ort !== state.ort && prev.ship === state.ship) applyOrt();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
   }
@@ -1911,24 +1955,93 @@ export function boot(doc) {
   const guess3d = () => !!(stageCfg.opts?.hall?.url && stageCfg.opts.hall.room && stageCfg.opts.holo?.module)
     && !doc.defaultView.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   // Drinnen (data-walk) stellt der Viewer keine Station auf: dann die Tafel
-  const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on';
+  // und im Leitstand keine: dort steht das Terminal im Bild
+  const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on' && state.ort !== 'leit';
   const holoOn = () => canHolo() && !state.flat;
+  // Orte (placeOf): die Leiste nennt Schiffsfeld, Werkhalle und Leitstand,
+  // sobald die Buehne einen Leitstand hat (viewer.canPlace, bis sie
+  // antwortet die Vorhersage wie bei den Stationen); nicht drinnen. Steht
+  // die Uebersicht als Hologramm, ersetzen die Orte ihren einen Reiter; im
+  // Leitstand gibt es weder Reiter noch Tafel.
+  const ortBox = $('hgx-orte');
+  const ortBtns = [...(ortBox?.querySelectorAll('[data-ort]') ?? [])];
+  let stageOrte = null;
+  const canOrte = () => !!ortBox && (stageOrte ?? guess3d()) && main.dataset.walk !== 'on';
+  const placeNow = () => placeOf(state, ctx.werk);
+  // Fuss der Buehne: Passt die Leiste nicht in den freien Streifen zwischen
+  // Schiffsauswahl und Tafel (offene Auswahl im schmalen Fenster, flache
+  // Tafel), geben erst die Orte, dann auch Reiter und „Als Tafel“ ihre Namen
+  // ab und zeigen nur ihr Zeichen: data-eng 1 | 2 an #hgx-st. Der Name bleibt
+  // im Dokument (Vorleser) und steht als title am Knopf. Links im Streifen
+  // stehen die Zeichen der Buehne (#hg-tools, zwei bis vier): Der Platz
+  // zaehlt erst rechts von ihnen, und laege die Leiste in der Mitte des
+  // Streifens ueber ihnen, rueckt sie daneben (padding-left). Gemessen statt
+  // an Fensterbreiten geknuepft, weil Sprache, Korb, Tafel und die Zahl der
+  // Zeichen den Bedarf aendern. Passt auch die kleinste Form nicht (beide
+  // Spalten offen im schmalen Fenster), bleibt sie stehen wie zuvor.
+  // Anlass 13.11.2026: Mit den drei Orten lief die Leiste bei 800 px neben
+  // der offenen Auswahl 132 px aus dem Fenster, „Als Tafel“ war nicht mehr
+  // zu erreichen; bei 1280 px mit flacher Tafel lag sie ueber dem Ton-Knopf.
+  const stBar = $('hgx-stagebar'), stBox = $('hgx-st'), stTools = $('hg-tools');
+  function fitBar() {
+    if (!stBar || !stBox) return;
+    stBar.style.paddingLeft = '';
+    const bar = stBar.getBoundingClientRect(), t = stTools?.getBoundingClientRect();
+    const ab = t && t.width && t.top < bar.bottom && t.bottom > bar.top ? Math.max(bar.left, t.right + 12) : bar.left;
+    const pad = ab > bar.left ? `${Math.ceil(ab - bar.left)}px` : '';
+    let eng = '', passt = false;
+    for (const v of ['', '1', '2']) {
+      eng = v;
+      if (v) stBox.dataset.eng = v;
+      else delete stBox.dataset.eng;
+      stBar.style.paddingLeft = pad;
+      passt = stBar.scrollWidth <= stBar.clientWidth;
+      if (passt) break;
+    }
+    // in der Mitte des Streifens bleibt sie, solange sie dort frei steht
+    stBar.style.paddingLeft = '';
+    if (passt && pad && stBox.getBoundingClientRect().left < ab) stBar.style.paddingLeft = pad;
+    for (const b of stBox.querySelectorAll('button')) {
+      if (eng === '2' || (eng === '1' && b.closest('.hgx-st__orte'))) b.title = b.textContent.trim();
+      else b.removeAttribute('title');
+    }
+  }
+  if (stBar && stBox) {
+    // border-box: der eigene Einzug (padding-left) loest keine neue Meldung aus
+    const ro = new ResizeObserver(fitBar);
+    ro.observe(stBar, { box: 'border-box' });
+    if (stTools) ro.observe(stTools);
+    // Orte, Reiter, „Als Tafel“ und der Korb kommen und gehen ueber hidden
+    new MutationObserver(fitBar).observe(stBar, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+    doc.fonts?.ready.then(fitBar);
+  }
   let stageSafe = null;
   function paintStation() {
     main.dataset.station = state.station;
-    const holo = holoOn();
+    const holo = holoOn(), orte = canOrte(), at = placeNow(), leit = at === 'leit';
+    if (ortBox) {
+      ortBox.hidden = !orte;
+      for (const b of ortBtns) {
+        const on = b.dataset.ort === at;
+        if (on) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
+      }
+    }
+    const before = main.dataset.ort;
+    main.dataset.ort = at;
     for (const b of stBtns) {
       const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
-      b.hidden = holo && !on;
+      b.hidden = leit || (holo && (!on || orte));
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     }
+    stBtns[0].parentElement.hidden = stBtns.every((b) => b.hidden);
     tafelBtn.hidden = !canHolo();
     tafelBtn.setAttribute('aria-pressed', String(state.flat));
     const was = main.dataset.st3d === '1';
     if (holo) main.dataset.st3d = '1';
     else delete main.dataset.st3d;
-    if (was !== holo) stageSafe?.();
+    if (was !== holo || before !== at) stageSafe?.();
     // erst die Werkstatt, dann die Halle: holoData liest ihren Stand
     if (workshop) workshop.render(state);
     else if (state.station === 'loadout' || holo) {
@@ -1951,6 +2064,88 @@ export function boot(doc) {
     vis[to].focus();
   });
   tafelBtn.addEventListener('click', () => setState({ flat: !state.flat }));
+
+  // Orte: Ein Klick waehlt, was dort steht (placeShip), und ob die Kamera in
+  // den Leitstand faehrt. Je Ort merkt sich die Registerkarte das zuletzt
+  // gezeigte Fahrzeug (hg-orte): Schiffsfeld und Werkhalle fuehren dorthin
+  // zurueck, wo man war.
+  const ORTE_KEY = 'hg-orte';
+  let ortMemo = {};
+  try { ortMemo = JSON.parse(sessionStorage.getItem(ORTE_KEY) ?? '{}') ?? {}; } catch { ortMemo = {}; }
+  function rememberPlace() {
+    ortMemo = { ...ortMemo, [ctx.werk.has(state.ship) ? 'werk' : 'halle']: state.ship };
+    try { sessionStorage.setItem(ORTE_KEY, JSON.stringify(ortMemo)); } catch { /* ohne Speicher gilt das Startschiff */ }
+  }
+  // Auch das Fahrzeug, mit dem die Seite beginnt, ist ein Ort, an dem man
+  // war: Ohne diesen Eintrag fuehrte „Schiffsfeld“ nach einem Direktlink auf
+  // ein anderes Schiff und einem Abstecher in die Werkhalle zum Startschiff
+  // der Seite statt zurueck (Review PR #355).
+  rememberPlace();
+  function goPlace(to) {
+    if (to === placeNow()) return;
+    const ship = placeShip(to, state.ship, ortMemo, { ids: items.map((li) => li.dataset.id), werk: ctx.werk, defaultShip: ctx.defaultShip });
+    if (!ship) return;
+    setState({ ship, ort: to === 'leit' ? 'leit' : 'halle', hp: null });
+  }
+  ortBox?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ort]');
+    if (b) goPlace(b.dataset.ort);
+  });
+  // Escape fuehrt aus dem Leitstand zurueck aufs Feld (nicht, wenn es schon
+  // etwas anderes geschlossen hat, und nicht aus dem Fenster der Seite heraus:
+  // dort gehoert die Taste der Seite)
+  doc.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || state.ort !== 'leit' || state.view === 'compare') return;
+    setState({ ort: 'halle' });
+  });
+  // Die Kamera folgt dem Zustand: hinauf erst, wenn das Schiff steht
+  // (viewerShow ruft dann erneut), zurueck sofort. Kann die Buehne nicht
+  // (false), faellt der Zustand zurueck aufs Feld. Das darf nur die Antwort
+  // auf den juengsten Wunsch: Auch ein ueberholter loest mit false auf
+  // („Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt), und seine
+  // Antwort naehme sonst den juengeren zurueck (Review PR #355).
+  let ortTok = 0;
+  function applyOrt() {
+    if (!viewer?.place) return;
+    const my = ++ortTok;
+    if (state.ort !== 'leit') { viewer.place('halle'); return; }
+    if (placed !== state.ship) return;
+    const ship = state.ship;
+    viewer.place('leit').then((ok) => {
+      if (!ok && my === ortTok && state.ort === 'leit' && state.ship === ship) setState({ ort: 'halle' });
+    }, () => {});
+  }
+  // Das Terminal im Leitstand (assets/hangar-terminal.js): geladen, wenn die
+  // Kamera zum ersten Mal hinauffaehrt. Die Buehne nennt das Rechteck des
+  // Schirms im Bild (viewer.onPlace), das Fenster der Seite liegt genau
+  // darauf, solange die Kamera davor steht.
+  const termBox = $('hgx-term');
+  let terminal = null, terminalLoad = null, termRect = null, warOben = false;
+  function onPlace(e) {
+    if (e.ort === 'leit') main.dataset.fahrt = e.state;
+    else delete main.dataset.fahrt;
+    // Ansage fuer Vorleser, wenn die Kamera oben steht und wenn sie zurueck ist
+    const oben = e.ort === 'leit' && e.state === 'an';
+    if (oben && !warOben) say(ortBox?.dataset.anLeit ?? '');
+    else if (e.ort !== 'leit' && warOben) say(ortBox?.dataset.anHalle ?? '');
+    if (oben || e.ort !== 'leit') warOben = oben;
+    termRect = oben ? e.rect : null;
+    if (!termBox) return;
+    // Geht das Fenster zu, waehrend der Fokus in ihm steht, wandert er auf den
+    // Ort in der Leiste statt in einem verborgenen Rahmen zu bleiben.
+    if (!oben && termBox.contains(doc.activeElement)) (ortBox?.querySelector('[aria-current="true"]') ?? ortBtns[0])?.focus({ preventScroll: true });
+    if (terminal) { terminal.place(termRect); return; }
+    if (e.ort !== 'leit' || terminalLoad) return;
+    terminalLoad = import(termBox.dataset.js).then((m) => {
+      terminal = m.initTerminal(termBox, {
+        // Ein Link zum Hangar auf dem Schirm („Im Hangar ansehen“): Das Schiff
+        // kommt aufs Feld, ohne die Halle neu zu laden; ohne bekanntes Schiff
+        // fuehrt er nur zurueck aufs Feld.
+        ship: (id) => setState(id && ctx.ids.has(id) ? { ship: id, ort: 'halle', hp: null } : { ort: 'halle' }),
+      });
+      terminal.place(termRect);
+    }, () => { terminalLoad = null; });
+  }
 
   // Die Uebersicht als Hologramm (viewer.station): Woerter und Zahlen aus der
   // eingesetzten Bucht und den Dock-Karten, fertig gesetzt; der Viewer
@@ -2149,6 +2344,8 @@ export function boot(doc) {
         syncMarks();
         applyFit();
         applyPaintSel();
+        // der Leitstand aus der Adresse oder von der Werkhalle aus: jetzt steht das Schiff
+        if (state.ort === 'leit') applyOrt();
       })
       .catch(() => { if (my === showTok) modelErr.hidden = false; })
       .finally(() => {
@@ -2254,7 +2451,11 @@ export function boot(doc) {
     delete main.dataset.holo;
     laufEnde();
     // ohne Buehne keine Stationen in der Halle: die Tafeln der Seite gelten
-    if (stage3d !== false) { stage3d = false; queueMicrotask(paintStation); }
+    // und keine Orte: ein ?ort=leit aus der Adresse faellt zurueck aufs Feld
+    if (stage3d !== false || stageOrte !== false) {
+      stage3d = false; stageOrte = false;
+      queueMicrotask(() => { if (state.ort === 'leit') setState({ ort: 'halle' }); else paintStation(); });
+    }
     if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
     // Vom Waechter abgestellt: ein Knopf versucht es in der niedrigen Stufe
     if (why === 'crash' && fallback.dataset.retry) {
@@ -2526,6 +2727,10 @@ export function boot(doc) {
         // Stationen in 3D, wenn die Buehne sie kann
         stage3d = v.canStation?.() === true;
         v.onStation?.(onStationAct);
+        // Orte, wenn sie einen Leitstand hat; sonst gilt die Adresse nicht
+        stageOrte = stage3d && v.canPlace?.('leit') === true;
+        v.onPlace?.(onPlace);
+        if (!stageOrte && state.ort === 'leit') setState({ ort: 'halle' });
         viewerShow(state.ship);
         paintStation();
       })

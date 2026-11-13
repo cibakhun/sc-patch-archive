@@ -6349,6 +6349,81 @@ const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // offen, als die Kamera es erreicht (ms).
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
 const WERK_TOR_VOR = 1200;
+
+// Leitstand (13.11.2026). Krisz will die Seite nach und nach in die Halle
+// holen; der erste Ort dafür ist der Glaskasten über der Südtür, den die
+// Halle schon hat (Spielassets: Pult mit Monitorbank, Stühle, Pflanzkästen).
+// Davor steht ein Terminal, auf dem die Seite selbst läuft: Die Kamera fährt
+// hinauf und bleibt gerade davor stehen, die Seite legt ihr Fenster genau
+// über den Schirm (onPlace nennt das Rechteck). Den Ausschlag gab die Leiste
+// des Terminals: „da oben ist ein menü wo man so hin und her switchen kann
+// ohne seite nezuladen“ (Halle und Schiff bleiben geladen).
+// Maße je Halle in Hallenmetern (Feldmitte, Boden 0, Bug nach -z), gemessen
+// an der Gladius, also ohne Zuwachs; mit HALL_GROW rückt alles mit der
+// Südwand (leitAt). schirm: Mitte und Breite (er steht südlich vor der
+// Monitorbank und zeigt nach Süden, zur Tür des Leitstands); form: Höhe zu
+// Breite, in diesen Grenzen so, wie das freie Bild ist; fov, d: Wunschwinkel
+// und Grenzen des Abstands (zwischen den Stühlen und der Rückwand); rand: so
+// viel Rahmen steht im Bild um das Fenster der Seite (px); glas: Ebene der
+// Glasfront und Höhe, in der die Kamera sie kreuzt (über dem Querholm);
+// innen: Höhe unter der abgehängten Decke (Lichtbänder auf 19,0 ab z 61);
+// raum: der lichte Raum von der Glasfront bis zur Rückwand und vom Boden bis
+// unter diese Decke, in dem die Kamera vor dem Terminal bleiben muss
+// (verify:hangar-orte rechnet das für viele Fenstergrößen nach); bank: wo
+// die Monitorbank steht (leitBuild warnt, wenn das Modell sie woanders hat).
+export const HALL_LEIT = {
+  'revelyork-single': { schirm: { x: 0, y: 18.24, z: 58.5, b: 2.6 }, form: [0.5, 0.8], fov: 40, d: [2.3, 6.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
+};
+// Weiter als so öffnet sich der Bildwinkel vor dem Terminal nicht (Grad);
+// so viel Luft hält die Kamera zu Boden und Decke des Leitstands (m)
+export const LEIT_FOV_MAX = 62, LEIT_LUFT = 0.3;
+/**
+ * Stellung der Kamera vor dem Terminal: gerade vor dem Schirm (er bleibt im
+ * Bild ein Rechteck), so weit weg und so verschoben, dass er das freie
+ * Stück der Bühne füllt. Die Höhe des Schirms folgt dessen Form (L.form).
+ *   leitFit(1600, 900, { l: 132, t: 94, r: 1468, b: 790 }, HALL_LEIT['revelyork-single'])
+ *   -> { b: 2.6, h: 1.354, d: 2.41, fov: 40, dx: 0, dy: -0.016, s: 513.8, rect: { l: 132, t: 94, r: 1468, b: 790 } }
+ * @param {number} W Breite der Bühne (px) @param {number} H Höhe (px)
+ * @param {{ l: number, t: number, r: number, b: number }} frei Rechteck im Bild, das der Schirm füllen darf
+ * @param {{ schirm: { y: number, b: number }, form: number[], fov: number, d: number[], raum?: { y: number[] } }} L
+ * @returns {{ b: number, h: number, d: number, fov: number, dx: number, dy: number, s: number, rect: { l: number, t: number, r: number, b: number } }}
+ *   b, h: Schirm in Metern (b sonst L.schirm.b, kleiner nur, wo der
+ *   Bildwinkel an LEIT_FOV_MAX stößt); d: Abstand; fov: Bildwinkel (Grad,
+ *   senkrecht);
+ *   dx, dy: Kamera gegen die Schirmmitte (m, +x rechts im Bild, +y oben);
+ *   s: px je Meter; rect: der Schirm im Bild
+ */
+export function leitFit(W, H, frei, L) {
+  const fw = Math.max(1, frei.r - frei.l), fh = Math.max(1, frei.b - frei.t);
+  const form = Math.min(L.form[1], Math.max(L.form[0], fh / fw));
+  let b = L.schirm.b, h = b * form;
+  // px je Meter, bei denen der Schirm gerade hineinpasst
+  let s = Math.min(fw / b, fh / h);
+  // Abstand beim Wunschwinkel, in den Grenzen des Raums; der Winkel gleicht aus
+  const d = Math.min(L.d[1], Math.max(L.d[0], H / 2 / Math.tan((L.fov * Math.PI) / 360) / s));
+  let fov = (2 * Math.atan(H / 2 / (s * d)) * 180) / Math.PI;
+  // Ein schmales freies Stück in einem hohen Fenster verlangte am fernen Ende
+  // des Abstands einen Weitwinkel. Der Bildwinkel bleibt bei LEIT_FOV_MAX;
+  // beim engeren Winkel füllte derselbe Schirm aber mehr vom Bild, als frei
+  // ist (800 × 1500 mit offener Schiffsauswahl: 25 px über den Rand der
+  // Bühne, Review PR #355). Darum wird der Schirm dort in Metern kleiner,
+  // sein Rechteck im Bild bleibt das freie Stück.
+  if (fov > LEIT_FOV_MAX) {
+    fov = LEIT_FOV_MAX;
+    const eng = H / 2 / Math.tan((fov * Math.PI) / 360) / d;
+    b *= s / eng; h = b * form; s = eng;
+  }
+  const cx = (frei.l + frei.r) / 2;
+  // Liegt das freie Stück weit unter oder über der Bildmitte und ist es
+  // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, der
+  // Schirm rückt dafür im Bild ein Stück aus der Mitte des freien Stücks.
+  let dy = ((frei.t + frei.b) / 2 - H / 2) / s;
+  if (L.raum) dy = Math.min(L.raum.y[1] - LEIT_LUFT - L.schirm.y, Math.max(L.raum.y[0] + LEIT_LUFT - L.schirm.y, dy));
+  const cy = H / 2 + dy * s;
+  return { b, h, d, fov, dx: -(cx - W / 2) / s, dy, s, rect: { l: cx - (b * s) / 2, t: cy - (h * s) / 2, r: cx + (b * s) / 2, b: cy + (h * s) / 2 } };
+}
+// So lange blendet der Schirm zwischen Ruhe (LEIT_DIM) und voller Stärke
+const LEIT_FADE_MS = 500, LEIT_DIM = 0.5;
 // Die Bänder (WERK.reihen, je eine Lampenreihe der Garage) gehen einzeln
 // nacheinander an, von hinten nach vorn, alle abstand ms eins; der Spot
 // spot ms nach dem letzten (Krisz, 25.10.2026: „es sollen mehr lampen
@@ -6989,6 +7064,14 @@ export async function initHangar(container, opts = {}) {
   const fitFov = (now = performance.now()) => {
     // drinnen eigener Blickwinkel, ohne Shift-Optik
     if (walk?.fov) { camera.fov = walk.fov; camera.aspect = W() / H(); camera.clearViewOffset(); return; }
+    // im Leitstand der Winkel der Stellung (leitFit), unterwegs gleitet er
+    if (post) {
+      const t = post.state === 'an' || !post.ms ? 1 : THREE.MathUtils.clamp((now - post.t0) / post.ms, 0, 1);
+      camera.fov = post.state === 'an' ? post.fit.fov : THREE.MathUtils.lerp(post.fovA, post.fovB, inOut3(t));
+      camera.aspect = W() / H();
+      camera.clearViewOffset();
+      return;
+    }
     const d = wantDist(), k = 1 + lensS;
     baseFov = d > camHome ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camHome))) : 38;
     if (fovGlide) {
@@ -7043,6 +7126,12 @@ export async function initHangar(container, opts = {}) {
   // walk: Einsteigen läuft (enter, walkStep); solange ruhen OrbitControls,
   // Grenzen und Shift-Optik
   let walk = null;
+  // post: die Kamera fährt in den Leitstand, steht dort vor dem Terminal oder
+  // fährt zurück (leitGo, leitLeave); leitScreen: dessen Schirm in der Halle
+  // placeWish: zählt die Wünsche der Seite (place) und jeden Schiffswechsel;
+  // wer auf eine laufende Fahrt oder auf die Halle wartet, fährt danach nur,
+  // wenn seiner noch der letzte ist
+  let post = null, leitScreen = null, placeFn = null, placeTold = '', placeWish = 0;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
@@ -7234,6 +7323,9 @@ export async function initHangar(container, opts = {}) {
     }
     if (realHall.deko) layDeko(realHall.deko, realHall.deko.k || hallRoot.scale.x, d);
     growBounds(d);
+    // der Leitstand rückt mit der Südwand: Schirm und Kamera davor mit
+    leitLay();
+    if (post?.state === 'an') leitSet();
   }
   // Hüllen für die Sichtprüfung von three.js: je mitwachsendem Mesh der
   // Quader in Ruhe, im Raum der Halle verschoben. Geteilte Geometrie (eine
@@ -7400,6 +7492,7 @@ export async function initHangar(container, opts = {}) {
       const R = realHall.grow ? grownRoom(grow.to) : realHall.room;
       scene.fog.near = R.halfL * k * 1.2; scene.fog.far = R.halfL * k * 4;
       scaleLamps();
+      leitLay();
       if (grew) growSettled();
     }
     key.position.set(9 * S, HALL_H * S * 0.92, 12 * S);
@@ -10594,6 +10687,7 @@ void main() {
       realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk,
         grow: gsL ? { s: gsL, org: new THREE.Vector3(o[0], floorY, o[2]), cut: hallCut.value.clone(), door: hallDoor.value.clone(), list: [] } : null };
       if (realHall.grow) { growBoundsInit(); growApply(grow.d); }
+      leitBuild();
       // Dampf gleich mit übersetzen: sein erster Stoß soll nicht ruckeln
       if (steam && lift) prepare(steam.mesh).catch(() => {});
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
@@ -11453,6 +11547,7 @@ void main() {
     if (hallOn !== hallShown) {
       hallShown = hallOn;
       realHall.model.visible = hallOn;
+      if (leitScreen) leitScreen.mesh.visible = hallOn;
       if (steam) steam.mesh.visible = hallOn;
       if (hallOn) life.root.visible = !REAL || (revealed && life.isRigged());
     }
@@ -11550,12 +11645,16 @@ void main() {
     for (const e of P.ev) if (!e.ran && now >= P.t0 + e.at) { e.ran = true; e.fn(); }
     if (f < 1) return;
     trip = null;
-    controls.enabled = true;
-    controls.update();
-    // Der Abstand der Ankunft gilt: camWant stammte noch von vor der Fahrt,
-    // die Kamera glitt sonst danach auf ihn zurück (Ursa: 0,8 m hinaus)
-    camWant = camera.position.distanceTo(controls.target);
-    camRef = 0;
+    // Im Leitstand bleibt die Steuerung aus: Die Kamera steht näher am
+    // Schirm, als OrbitControls sie ans Schiff ließe (leitGo, leitLeave)
+    if (!post) {
+      controls.enabled = true;
+      controls.update();
+      // Der Abstand der Ankunft gilt: camWant stammte noch von vor der Fahrt,
+      // die Kamera glitt sonst danach auf ihn zurück (Ursa: 0,8 m hinaus)
+      camWant = camera.position.distanceTo(controls.target);
+      camRef = 0;
+    }
     P.end();
   }
   // Liegt die Strecke a-b im Quader um c (halbe Maße sx, sz, Höhe sy)?
@@ -11876,6 +11975,13 @@ void main() {
   async function showShip(url, o) {
     const my = ++token;
     if (walk) leave(true);
+    // Ein neues Schiff nimmt jeden Ortswunsch zurück, auch einen, der noch auf
+    // das Ende einer Fahrt oder auf die Halle wartet: Die Seite führt für das
+    // neue Schiff wieder das Feld, die Kamera führe sonst nach dem Warten
+    // allein hinauf, und „Schiffsfeld“ holte sie nicht zurück (Review PR #355).
+    placeWish++;
+    // aus dem Leitstand ohne Fahrt zurück: der Wechsel führt die Kamera selbst
+    if (post) leitLeave(true);
     makerCode = o.maker || '';
     prog.delete('ship'); prog.delete('ship-tex');
     // Eine Fahrt zwischen Halle und Werkhalle fährt zu Ende, dann der nächste Wechsel
@@ -12331,8 +12437,8 @@ void main() {
     return { tgt, pos, rel: onPoint ? pointRel : pos.distanceTo(tgt) / homeDist() };
   }
   function resetView() {
-    // die Fahrt zwischen Halle und Werkhalle führt die Kamera selbst
-    if (trip) return;
+    // die Fahrt zwischen Halle und Werkhalle führt die Kamera selbst, im Leitstand steht sie
+    if (trip || post) return;
     if (walk) leave(true);
     touched = false; onPoint = false;
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
@@ -12349,7 +12455,7 @@ void main() {
     out.length = points.length;
     // Im Schacht (Aufzug nicht oben), mit der Bühne der Werkhalle unten und
     // auf der Fahrt dorthin zeigt die Oberfläche keine Marker
-    const m = current && current.group.visible && !trip && !walk && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
+    const m = current && current.group.visible && !trip && !walk && !post && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
     const w = W(), h = H();
     for (let i = 0; i < points.length; i++) {
       if (!m) { out[i] = null; continue; }
@@ -12362,7 +12468,7 @@ void main() {
     return out;
   }
   function focus(p) {
-    if (!current || trip || walk) return;
+    if (!current || trip || walk || post) return;
     if (!p) { resetView(); return; }
     // Ziel aus der Ruhelage: waehrend der Einfahrt schwebt und dreht die
     // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
@@ -12410,7 +12516,7 @@ void main() {
   // deckelt beides (niedrige Stufe: 30).
   const FPS_ACTIVE = 60, FPS_IDLE = 24, BG_HOVER = 3000;
   let fpsCap = Q0 === 'niedrig' ? 30 : 0, due = 0, capNow = 0;
-  let focused = document.hasFocus(), hoverUntil = 0;
+  let focused = document.hasFocus(), hoverUntil = 0, focusAt = 0;
   const frameD = [];
   let frameSum = 0, lastNow = 0;
   // Leerlauf und Ruhe (2026-10-18, Wahl des Betreibers für „great
@@ -13251,7 +13357,7 @@ void main() {
   async function enter() {
     const c = current;
     // nicht während eines Wechsels (Aufzug unterwegs oder unten, Einfahrt)
-    if (!walkCan() || walk || trip || leaving || lift.dur || Math.abs(lift.y) > 1e-3 || performance.now() - c.born < 1600 || !revealed) return false;
+    if (!walkCan() || walk || post || trip || leaving || lift.dur || Math.abs(lift.y) > 1e-3 || performance.now() - c.born < 1600 || !revealed) return false;
     const me = walk = { c, state: 'load', saved: { t: controls.target.clone(), p: camera.position.clone() }, keys: new Set(), yaw: 0, pitch: 0, drag: null, mv: new THREE.Vector2(), fov: 0 };
     fly = null; controls.enabled = false; dragging = false;
     walkState(); wake(1000);
@@ -13595,7 +13701,7 @@ void main() {
   let stStill = 0;
   function stRest() {
     const c = current;
-    if (!c || !revealed || trip || walk || leaving || c.werk || ort === 'werk') return null;
+    if (!c || !revealed || trip || walk || post || leaving || c.werk || ort === 'werk') return null;
     const now = performance.now();
     if (c.lift ? lift.dur || Math.abs(lift.y) > 1e-4 : !reduceMotion && now - c.born < 1300) return null;
     const e = c.model.matrixWorld.elements, at = [e[0], e[12], e[13], e[14]];
@@ -13616,6 +13722,239 @@ void main() {
     }
     wake(400);
     return true;
+  }
+
+  // Leitstand (HALL_LEIT): der Schirm des Terminals steht immer in der
+  // Halle, gedimmt; place('leit') fährt die Kamera hinauf vor ihn.
+  // post { state }: 'hin' unterwegs dorthin, 'an' sie steht davor, 'weg'
+  // unterwegs zurück; solange ruhen OrbitControls, Grenzen und Shift-Optik
+  // wie beim Einsteigen (walk). Nicht am Telefon und nur in einer Halle,
+  // deren Leitstand vermessen ist.
+  const LEIT = REAL && !SMALL ? HALL_LEIT[opts.hall.id] ?? null : null;
+  // Rand des Schirms um das Fenster der Seite (m): Rahmen und Eckwinkel
+  const LEIT_RAND = 0.07, LEIT_PX = 200;
+  // ein Punkt des Leitstands dort, wo er mit dem Zuwachs der Halle steht (Hallenmeter)
+  const leitAt = (x, y, z, out = new THREE.Vector3()) => growMap(out.set(x, y, z), out);
+  // Der Schirm ohne Seite: dunkle Fläche mit feinem Raster, Rahmen und
+  // Eckwinkeln, kein Text (von der Halle aus sieht man ihn von hinten).
+  function leitDraw() {
+    const { cv, tex } = leitScreen, g = cv.getContext('2d');
+    const w = Math.round((leitScreen.b + 2 * LEIT_RAND) * LEIT_PX), h = Math.round((leitScreen.h + 2 * LEIT_RAND) * LEIT_PX), p = LEIT_RAND * LEIT_PX;
+    cv.width = w; cv.height = h;
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = 'rgba(7, 16, 30, 0.94)';
+    g.fillRect(p, p, w - 2 * p, h - 2 * p);
+    g.strokeStyle = 'rgba(120, 205, 255, 0.07)'; g.lineWidth = 1;
+    g.beginPath();
+    for (let x = p + 40; x < w - p; x += 40) { g.moveTo(x + 0.5, p); g.lineTo(x + 0.5, h - p); }
+    for (let y = p + 40; y < h - p; y += 40) { g.moveTo(p, y + 0.5); g.lineTo(w - p, y + 0.5); }
+    g.stroke();
+    g.strokeStyle = 'rgba(130, 210, 255, 0.5)'; g.lineWidth = 2;
+    g.strokeRect(p - 4, p - 4, w - 2 * p + 8, h - 2 * p + 8);
+    // Eckwinkel
+    const a = 3, L = 0.2 * LEIT_PX;
+    g.strokeStyle = 'rgba(175, 232, 255, 0.95)'; g.lineWidth = 6; g.lineCap = 'square';
+    g.beginPath();
+    for (const [x, y, dx, dy] of [[a, a, 1, 1], [w - a, a, -1, 1], [a, h - a, 1, -1], [w - a, h - a, -1, -1]]) {
+      g.moveTo(x + dx * L, y); g.lineTo(x, y); g.lineTo(x, y + dy * L);
+    }
+    g.stroke();
+    // die Leinwand hat eine neue Größe: neu anlegen statt nachladen
+    tex.dispose();
+    tex.needsUpdate = true;
+  }
+  function leitLay() {
+    if (!leitScreen) return;
+    const S = LEIT.schirm, k = hallRoot.scale.x;
+    leitAt(S.x, S.y, S.z, leitScreen.mesh.position);
+    leitScreen.mesh.scale.set((leitScreen.b + 2 * LEIT_RAND) / k, (leitScreen.h + 2 * LEIT_RAND) / k, 1);
+  }
+  function leitBuild() {
+    if (!LEIT || leitScreen) return;
+    const cv = document.createElement('canvas'), tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.generateMipmaps = false; tex.minFilter = THREE.LinearFilter;
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: LEIT_DIM, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+    mesh.name = 'leit:schirm';
+    mesh.renderOrder = 3;
+    leitScreen = { mesh, cv, tex, mat, b: LEIT.schirm.b, h: LEIT.schirm.b * LEIT.form[0], power: LEIT_DIM, at: 0 };
+    leitDraw();
+    leitLay();
+    hallRoot.add(mesh);
+    // Wo die Bank laut HALL_LEIT steht, steht sie auch im Modell? Sonst
+    // schwebte der Schirm nach einem neuen Hallenexport im Leeren.
+    const bank = realHall?.furniture?.find((f) => /monitors/i.test(f.mesh.name));
+    if (bank) {
+      const b = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = b.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
+      const want = leitAt((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
+      if (c.distanceTo(want) > 0.6) console.warn(`[hangar] Leitstand: Monitorbank bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
+    }
+  }
+  // Stellung vor dem Terminal fürs jetzige Bild: leitFit, dazu Kamera und
+  // Blickpunkt in der Welt. Frei ist die Bühne ohne das, was die Seite an
+  // den Rändern verdeckt (setSafe: Kopfzeile, Schiffsauswahl) und ohne den
+  // Fuß mit Leiste und Knöpfen.
+  function leitPose() {
+    const w = W(), h = H(), s = stSafe ?? {}, m = LEIT.rand + 6, S = LEIT.schirm, k = hallRoot.scale.x;
+    const frei = { l: (s.l || 0) + m, t: (s.t || 0) + m, r: w - (s.r || 0) - m, b: h - m };
+    for (const q of s.rects ?? []) if (q.t > h * 0.55) frei.b = Math.min(frei.b, q.t - m);
+    // Mittig im Bild, solange links und rechts nur schmale Ränder stehen
+    // (die eingeklappte Schiffsauswahl); neben der offenen Liste füllt er den Rest
+    const side = Math.max(frei.l, w - frei.r);
+    if (side <= w * 0.14) { frei.l = side; frei.r = w - side; }
+    const f = leitFit(w, h, frei, LEIT), c = leitAt(S.x, S.y, S.z).multiplyScalar(k);
+    return { ...f, pos: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z + f.d), look: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z) };
+  }
+  const leitTell = () => {
+    const on = post?.state === 'an', r = on ? post.fit.rect : null;
+    const told = `${post?.state ?? ''}|${r ? [r.l, r.t, r.r, r.b].map((v) => v.toFixed(1)) : ''}`;
+    if (told === placeTold) return;
+    placeTold = told;
+    placeFn?.({ ort: post ? 'leit' : ort, state: post?.state ?? 'an', rect: r && { ...r } });
+  };
+  // Breite und Höhe des Schirms für die Stellung f (neu gezeichnet nur, wenn
+  // sie sich ändern)
+  function leitShape(f) {
+    if (Math.abs(f.h - leitScreen.h) < 1e-3 && Math.abs(f.b - leitScreen.b) < 1e-3) return;
+    leitScreen.b = f.b; leitScreen.h = f.h;
+    leitDraw();
+    leitLay();
+  }
+  // Die Kamera genau vor den Schirm (Ankunft, neue Fenstergröße, andere Ränder)
+  function leitSet() {
+    const f = post.fit = leitPose();
+    leitShape(f);
+    camera.position.copy(f.pos);
+    camera.quaternion.identity();
+    controls.target.copy(f.look);
+    fitFov();
+    leitTell();
+    wake(400);
+  }
+  // Weg der Kamera von from in den Leitstand nach to (Hallenmeter, wie die
+  // Halle gerade steht): vor die Glasfront, über dem Querholm hindurch, über
+  // Pult und Pflanzkasten hinweg unter die abgehängte Decke und im Bogen
+  // hinter den Schirm. Auf der Seite, auf der die Kamera steht. Steht das
+  // Schiff im geraden Weg, außen an ihm entlang zum Heck.
+  function leitPath(from, to) {
+    const G = LEIT.glas, k = hallRoot.scale.x, c = current, sx = from.x < 0 ? -1 : 1, O = new THREE.Vector3();
+    const pts = [from.clone()], glas = leitAt(sx * G.x, G.y, G.z), vor = leitAt(sx * (G.x + 1.4), G.y - 0.2, G.z - 9);
+    const box = c && !c.werk && c.group.visible ? shipBox(c.info, c.group.scale.x, k) : null;
+    if (box) {
+      // der Punkt vor dem Glas liegt hinter dem Heck, nicht über ihm
+      vor.z = Math.min(glas.z - 2.5, Math.max(vor.z, box.sz + 0.5));
+      if (segHits(from, vor, O, box.sx, box.sy, box.sz)) {
+        const X = sx * (box.sx + 2.5), y = Math.min(G.y - 0.4, Math.max(from.y, 6));
+        // vor dem Bug oder über dem Rumpf: erst zur Seite hinaus
+        if (Math.abs(from.x) < box.sx + 1 && from.z < box.sz) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.3), Math.max(from.z, -box.sz - 2.5)));
+        if (pts.at(-1).z < box.sz * 0.4 - 4) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.7), box.sz * 0.4));
+        vor.x = sx * Math.max(G.x + 1.4, Math.min(Math.abs(X) * 0.5, 14));
+      }
+    }
+    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * 2.3, Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1), to.clone());
+    return pts;
+  }
+  const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
+  async function leitGo() {
+    if (!LEIT || walk) return false;
+    const wish = placeWish;
+    // Der Schirm kommt mit der Halle. An einer langsamen Leitung steht das
+    // Schiff vor ihr (showShip wartet höchstens 9 s auf sie): Der Wunsch aus
+    // der Adresse (?ort=leit) wartet dann auf die Halle, statt still aufs Feld
+    // zurückzufallen (Review PR #355). hallSettled endet auch, wenn die Halle
+    // scheitert: ohne sie gibt es keinen Schirm, und es bleibt beim Feld.
+    if (!leitScreen) {
+      await hallSettled;
+      if (!leitScreen || wish !== placeWish) return false;
+    }
+    if (post) {
+      // schon dort oder unterwegs dorthin; auf dem Rückweg erst ankommen lassen
+      if (post.state !== 'weg') return post.state === 'an' ? true : post.arrived;
+      await post.gone;
+    }
+    // eine Fahrt von oder zur Werkhalle fährt erst zu Ende
+    while (trip) await trip.done;
+    // inzwischen wollte die Seite wieder aufs Feld: dort bleibt die Kamera
+    if (wish !== placeWish) return false;
+    if (post || walk || ort !== 'halle' || !current) return false;
+    const k = hallRoot.scale.x, fit = leitPose();
+    let arrive;
+    const me = post = { state: 'hin', fit, saved: { t: controls.target.clone().divideScalar(k), p: camera.position.clone().divideScalar(k), touched, onPoint, panned }, fovA: camera.fov, fovB: fit.fov, t0: performance.now(), ms: 0, arrived: null, gone: null };
+    me.arrived = new Promise((r) => { arrive = r; });
+    leitShape(fit);
+    leitTell();
+    wake(1000);
+    if (reduceMotion) {
+      fly = null; onPoint = false; touched = false; panned = false; panLive = 0;
+      controls.enabled = false;
+    } else {
+      const plan = tripPlan(leitPath(me.saved.p, fit.pos.clone().divideScalar(k)));
+      me.ms = plan.ms;
+      console.info(`[hangar] Fahrt in den Leitstand: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s`);
+      await tripStart(plan, me.saved.t, fit.look.clone().divideScalar(k), [], me.t0);
+      if (post !== me) { arrive(false); return false; }
+    }
+    me.state = 'an';
+    leitSet();
+    arrive(true);
+    return true;
+  }
+  // now: ohne Fahrt zurück (Schiffswechsel)
+  async function leitLeave(now = false) {
+    const me = post, wish = placeWish;
+    if (!me) return false;
+    const k = hallRoot.scale.x;
+    const back = () => {
+      post = null;
+      controls.enabled = true;
+      controls.target.copy(me.saved.t).multiplyScalar(k);
+      camera.position.copy(me.saved.p).multiplyScalar(k);
+      camera.lookAt(controls.target);
+      touched = me.saved.touched; onPoint = me.saved.onPoint; panned = me.saved.panned;
+      fitFov();
+      controls.update();
+      camWant = camera.position.distanceTo(controls.target);
+      camRef = 0;
+      leitTell();
+      wake(1500);
+    };
+    if (now || reduceMotion) {
+      // eine laufende Fahrt hinauf oder herab endet hier
+      if (me.state !== 'an' && trip) { const P = trip; trip = null; P.end(); }
+      back();
+      return true;
+    }
+    if (me.state === 'weg') return me.gone;
+    if (me.state === 'hin' && !(await me.arrived)) return false;
+    // Auf der Hinfahrt erst „Schiffsfeld“, dann doch wieder „Leitstand“: Der
+    // zweite Wunsch wartete nur auf dieselbe Ankunft, und diese Rückfahrt
+    // nähme ihn zurück (Review PR #355). Der letzte Wunsch gilt.
+    if (wish !== placeWish) return false;
+    if (post !== me || me.state !== 'an') return false;
+    let gone;
+    me.gone = new Promise((r) => { gone = r; });
+    me.state = 'weg';
+    me.fovA = camera.fov; me.fovB = fovPlain();
+    leitTell();
+    const here = camera.position.clone().divideScalar(k);
+    const plan = tripPlan(leitPath(me.saved.p, here).reverse());
+    me.t0 = performance.now(); me.ms = plan.ms;
+    await tripStart(plan, controls.target.clone().divideScalar(k), me.saved.t, [], me.t0);
+    if (post === me) back();
+    gone(true);
+    return true;
+  }
+  // Bildwinkel unterwegs und Stärke des Schirms (voll, sobald die Kamera zu ihm fährt)
+  function leitStep(now, dt) {
+    if (post && post.state !== 'an') fitFov(now);
+    if (!leitScreen) return;
+    const want = post && post.state !== 'weg' ? 1 : LEIT_DIM, S = leitScreen;
+    if (S.power === want) return;
+    const step = reduceMotion ? 1 : (dt * 1000) / LEIT_FADE_MS * (1 - LEIT_DIM);
+    S.power = want > S.power ? Math.min(want, S.power + step) : Math.max(want, S.power - step);
+    S.mat.opacity = S.power;
+    wake(200);
   }
 
   // Name als Hologramm (buildHolo): steht, wenn das Fahrzeug steht, kein
@@ -13644,7 +13983,7 @@ void main() {
   }
   function holoStep(now) {
     const c = current, k = hallRoot.scale.x, B = realHall?.werk?.buehne;
-    let rest = !!c && revealed && !holoShows && !trip && !leaving;
+    let rest = !!c && revealed && !holoShows && !trip && !post && !leaving;
     if (rest && c.werk) rest = !B || (!B.dur && Math.abs(B.v) < 1e-4);
     else if (rest && c.lift) rest = !lift.dur && Math.abs(lift.y) < 1e-4;
     else if (rest) rest = reduceMotion || now - c.born > 1300;
@@ -13693,6 +14032,10 @@ void main() {
     if (!visible) { sound.hush(); return; }
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
+    // Fokus zweimal je Sekunde nachfragen: Steht er im Fenster einer
+    // eingebetteten Seite (Terminal im Leitstand), meldet dieses Fenster weder
+    // den Wechsel zu einem anderen Programm noch die Rückkehr (onBlur unten).
+    if (now - focusAt > 500) { focusAt = now; focused = document.hasFocus(); }
     if (!focused && now > hoverUntil) { sound.hush(); return; }
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate. Auch solange
     // ein Wechsel läuft (busy) und das Feld unten auf das neue Schiff wartet:
@@ -13828,10 +14171,10 @@ void main() {
       leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
-    if (freeDirty && !trip && !walk) measureFree();
+    if (freeDirty && !trip && !walk && !post) measureFree();
     // Geschoben gilt die Hülle von der Schiffsmitte aus (keepOut); die vom
     // Ziel aus wird erst nach dem Zurücksetzen wieder gebraucht
-    if (walk) { /* das Schiff steht, gemessen wird danach */ } else if (!trip && !panned && shipStale()) measureShip();
+    if (walk || post) { /* das Schiff steht, gemessen wird danach */ } else if (!trip && !panned && shipStale()) measureShip();
     else if (!trip && homeStale()) measureShip(homeTgt);
     // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
     // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
@@ -13840,7 +14183,7 @@ void main() {
     // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
     const flying = !!fly;
     if (trip) tripStep(now);
-    else if (!flying && !walk) {
+    else if (!flying && !walk && !post) {
       const r = camera.position.distanceTo(controls.target);
       if (!camRef) camWant = r;
       else if (!camera.position.equals(camLast)) {
@@ -13852,12 +14195,14 @@ void main() {
     if (fly) flyStep(now);
     if (camHold && !fly) { controls.minDistance = camHold.min; controls.maxDistance = camHold.max; camHold = null; }
     if (fovGlide) fitFov(now);
+    leitStep(now, dt);
     if (propGlide) propStep(now);
     if (grow.glide) growStep(now);
     if (now - texAt > 2000) { texAt = now; texBudget(); }
-    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep), drinnen walkStep
+    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep), drinnen
+    // walkStep; im Leitstand steht sie (leitSet)
     if (walk) walkStep(dt, now);
-    else if (!trip) {
+    else if (!trip && !post) {
       controls.update(dt);
       // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
@@ -13928,7 +14273,8 @@ void main() {
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
     fitFov();
-    if (!touched && !trip && !walk) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
+    if (post?.state === 'an') leitSet();
+    else if (!touched && !trip && !walk && !post) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
   ro.observe(container);
   const io = new IntersectionObserver((es) => { visible = es[0]?.isIntersecting ?? true; });
@@ -13936,7 +14282,10 @@ void main() {
   const onVis = () => { visible = !document.hidden; sound.pause(document.hidden); };
   document.addEventListener('visibilitychange', onVis);
   const onFocus = () => { focused = document.hasFocus(); if (focused) wake(500); };
-  const onBlur = () => { focused = false; hoverUntil = 0; };
+  // Ein Klick in die eingebettete Seite (Terminal im Leitstand) meldet blur,
+  // obwohl das Fenster vorn bleibt: document.hasFocus() gilt dann weiter.
+  // Deshalb fragt onBlur gleich nach, statt die Bühne anzuhalten.
+  const onBlur = () => { focused = false; hoverUntil = 0; setTimeout(onFocus, 0); };
   const onHover = (e) => {
     const now = performance.now();
     if (!focused) hoverUntil = now + BG_HOVER;
@@ -13972,7 +14321,7 @@ void main() {
     // setSafe({ l, t, r }): px am Rand der Bühne, die die Oberfläche verdeckt
     label(id, t) { holo.text(id, t); wake(300); },
     onHolo(fn) { holo.onShow = fn; },
-    setSafe(s) { holo.safe(s); stSafe = s; stLayer?.safe(s); wake(300); },
+    setSafe(s) { holo.safe(s); stSafe = s; stLayer?.safe(s); if (post?.state === 'an') leitSet(); wake(300); },
     // Stationen in 3D: station({ name, data }) zeigt sie (data von der Seite,
     // assets/hangar-overview.js holoData), station(null) blendet sie aus;
     // false heißt, diese Bühne kann es nicht (Telefon, ohne echte Halle),
@@ -13982,6 +14331,18 @@ void main() {
     station,
     canStation: () => ST_OK,
     onStation(fn) { stAct = fn; },
+    // Orte der Halle: place('leit') fährt die Kamera in den Leitstand vor
+    // das Terminal, place('halle') zurück; beide lösen auf, wenn sie steht
+    // (false: nicht möglich, etwa in der Werkhalle oder drinnen). Ein
+    // Schiffswechsel holt sie ohne Fahrt zurück. canPlace('leit'): diese
+    // Bühne hat einen Leitstand (echte Halle, nicht am Telefon).
+    // onPlace(fn): fn({ ort, state, rect }) bei jedem Wechsel, ort 'halle',
+    // 'werk' oder 'leit', state 'hin' | 'an' | 'weg'; rect { l, t, r, b } ist
+    // der Schirm im Bild (px der Bühne), solange die Kamera davor steht:
+    // dorthin legt die Seite ihr Fenster.
+    place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
+    canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
+    onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
