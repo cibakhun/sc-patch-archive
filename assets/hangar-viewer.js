@@ -59,6 +59,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// three r185 fragt in setProgram `object.colorTexture`, BatchedMesh führt
+// seine Farbkarte aber als `_colorsTexture`. `undefined !== null` gilt immer:
+// Für jedes BatchedMesh ohne eigene Farben (hier alle: Wartungsplatz,
+// Hallendeko, Schachttor) suchte der Renderer bei JEDEM Zeichnen das
+// Shaderprogramm neu (Parameter sammeln, Schlüssel bauen), 91 Mal je Bild auf
+// der hohen Stufe (13.11.2026, RTX 3070 Ti, Gladius). Der Name, den der
+// Renderer fragt, zeigt hier auf die Karte, die BatchedMesh führt. Bringt
+// eine spätere Fassung das Feld selbst mit, verdeckt es diesen Zugriff.
+if (!('colorTexture' in THREE.BatchedMesh.prototype)) {
+  Object.defineProperty(THREE.BatchedMesh.prototype, 'colorTexture', { configurable: true, get() { return this._colorsTexture; } });
+}
+
 // ─── Bildlook ─────────────────────────────────────────────────────────────
 // 20.10.2026, Krisz: „besseres licht (nicht mehr, qualitativ besser also
 // künstlerisch qualitativ) colorgrading“. Die Kurve bleibt ACES (three), so
@@ -275,6 +287,39 @@ async function imageMean(bitmap) {
     small?.close();
   }
 }
+// Ausgepackte Bilder nach dem Hochladen freigeben (13.11.2026, Krisz: „es
+// braucht viel zu viele Ressourcen um das Hangar laufen zu lassen“). Jede
+// Karte lag doppelt im Speicher: als Textur bei der Grafikkarte und, mit 4
+// Byte je Bildpunkt ausgepackt, als ImageBitmap in der Seite. Gemessen an
+// dem Tag (Gladius, hohe Stufe, Chrome unter Windows): 901 Bilder mit
+// 1.055 MB; die Seite hielt 2,1 GB Arbeitsspeicher, ohne die Bilder 1,0 GB.
+// three.js braucht ein Bild nach dem Hochladen nur noch in zwei Fällen:
+// wenn eine Texture derselben Quelle mit anderen Sampler-Werten (texKey,
+// sie bekommt eine eigene WebGL-Textur) zum ersten Mal gezeichnet wird, und
+// nach dispose(). Gegen den ersten Fall merkt sich texUsers je Quelle alle
+// Texturen der Datei (afterRoot des Loaders, also auch die Kopien, die der
+// Loader für weitere Sampler anlegt). freeImages() in prepare() gibt eine
+// Quelle erst frei, wenn jede davon hochgeladen ist oder ihre Sampler-Werte
+// mit einer hochgeladenen teilt; Quellen, die texUsers nicht kennt,
+// bleiben. Der zweite Fall kommt im Viewer nicht vor: dispose() trifft nur
+// Texturen, die mit ihrem Schiff gehen (release), und Tauschteile nimmt
+// unfit() vorher heraus.
+const isBitmap = (im) => typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap;
+// wie getTextureCacheKey in three.js (WebGLTextures): gleiche Quelle und
+// gleicher Schlüssel teilen sich eine WebGL-Textur
+const texKey = (t) => [t.wrapS, t.wrapT, t.wrapR || 0, t.magFilter, t.minFilter, t.anisotropy, t.internalFormat, t.format, t.type, t.generateMipmaps, t.premultiplyAlpha, t.flipY, t.unpackAlignment, t.colorSpace].join();
+const texUsers = new WeakMap();   // Source -> [WeakRef<Texture>]
+const texNoted = new WeakSet();
+function noteTextures(result) {
+  if (typeof WeakRef === 'undefined') return;   // ohne WeakRef bleibt jedes Bild
+  const note = (t) => {
+    if (!t?.isTexture || texNoted.has(t) || !isBitmap(t.source?.data)) return;
+    texNoted.add(t);
+    const u = texUsers.get(t.source);
+    if (u) u.push(new WeakRef(t)); else texUsers.set(t.source, [new WeakRef(t)]);
+  };
+  for (const sc of result.scenes ?? []) sc.traverse((n) => { for (const m of [].concat(n.material ?? [])) for (const k in m) note(m[k]); });
+}
 const colourImages = (json) => {
   const out = new Set();
   for (const m of json.materials ?? []) {
@@ -316,7 +361,7 @@ function embeddedImages(ms, tally = () => null) {
       parser.sourceCache[i] = p;
       return p;
     };
-    return { name: 'hg_embedded_images' };
+    return { name: 'hg_embedded_images', afterRoot: noteTextures };
   };
 }
 
@@ -724,7 +769,7 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
   root.updateMatrixWorld(true);
   const uses = new Map();
   root.traverse((n) => { if (n.isMesh) uses.set(n.geometry, (uses.get(n.geometry) || 0) + 1); });
-  const M = new THREE.Matrix4(), bb = new THREE.Box3(), v = new THREE.Vector3();
+  const M = new THREE.Matrix4(), bb = new THREE.Box3();
   const crosses = (b) => [0, 1, 2].some((i) => s.zones[i].some(([p, q]) => b.min.getComponent(i) < q && b.max.getComponent(i) > p));
   for (const mesh of list) {
     await pause();
@@ -737,15 +782,38 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
     if (!crosses(bb.copy(g.boundingBox).applyMatrix4(M))) continue;
     if (uses.get(g) > 1) { g = mesh.geometry = g.clone(); out.shared++; }
     const P = g.attributes.position, n = P.count, X = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) v.fromBufferAttribute(P, i).applyMatrix4(M).toArray(X, i * 3);
+    // Ecken in den Raum von root: dieselbe Rechnung wie
+    // fromBufferAttribute().applyMatrix4().toArray() (Vector3 in three.js),
+    // Glied für Glied in derselben Reihenfolge, also dieselben Werte. Die
+    // Kette über Vector3 kostete hier und in den beiden Schleifen darunter
+    // 1 s Rechenzeit bei jedem Laden (13.11.2026, CPU-Profil: toArray, die
+    // Funktion je Ecke für die Streifen, die Map der Schweißstellen); die
+    // Halle hat 1,7 Mio. Dreiecke, und wer einen Streifen kreuzt, kommt ganz
+    // hier durch.
+    {
+      const e = M.elements, e0 = e[0], e1 = e[1], e2 = e[2], e3 = e[3], e4 = e[4], e5 = e[5], e6 = e[6], e7 = e[7], e8 = e[8], e9 = e[9], e10 = e[10], e11 = e[11], e12 = e[12], e13 = e[13], e14 = e[14], e15 = e[15];
+      const plain = !P.isInterleavedBufferAttribute && !P.normalized && P.itemSize >= 3, A = P.array, sz = P.itemSize;
+      for (let i = 0; i < n; i++) {
+        let x, y, z;
+        if (plain) { x = A[i * sz]; y = A[i * sz + 1]; z = A[i * sz + 2]; } else { x = P.getX(i); y = P.getY(i); z = P.getZ(i); }
+        const w = 1 / (e3 * x + e7 * y + e11 * z + e15);
+        X[i * 3] = (e0 * x + e4 * y + e8 * z + e12) * w;
+        X[i * 3 + 1] = (e1 * x + e5 * y + e9 * z + e13) * w;
+        X[i * 3 + 2] = (e2 * x + e6 * y + e10 * z + e14) * w;
+      }
+    }
     const I = g.index ? g.index.array : null, T = I ? I.length / 3 : Math.floor(n / 3);
     const at = (t, k) => (I ? I[t * 3 + k] : t * 3 + k);
-    // je Ecke und Achse: Anteil (2 · f) und ob sie in einem Streifen liegt
+    // je Ecke und Achse: Anteil (2 · f, wie growFrac) und ob sie in einem Streifen liegt
     const C = new Int8Array(n * 3), Z = new Uint8Array(n);
-    for (let i = 0; i < n; i++) for (let a = 0; a < 3; a++) {
-      const x = X[i * 3 + a];
-      C[i * 3 + a] = Math.round(2 * growFrac(s, x, a));
-      if (s.zones[a].some(([p, q]) => x > p && x < q)) Z[i] |= 1 << a;
+    for (let a = 0; a < 3; a++) {
+      const lo = s.lo[a], hi = s.hi[a], clo = Math.round(2 * s.flo[a]), chi = Math.round(2 * s.fhi[a]), bit = 1 << a;
+      const zn = s.zones[a], nz = zn.length, zp = zn.map((r) => r[0]), zq = zn.map((r) => r[1]);
+      for (let i = 0; i < n; i++) {
+        const x = X[i * 3 + a];
+        C[i * 3 + a] = x <= lo ? clo : x >= hi ? chi : 0;
+        for (let k = 0; k < nz; k++) if (x > zp[k] && x < zq[k]) { Z[i] |= bit; break; }
+      }
     }
     // 0 bleibt, 1 über einer Ebene, 2 berührt einen Streifen, 3 starr
     const cls = new Uint8Array(T), lamp = growLamp(mesh.material);
@@ -768,15 +836,34 @@ async function hallGrowPrep(root, list, s, pause = noPause) {
       let q = 1000;
       while (q > 1 && (span[0] * q + 2) * (span[1] * q + 2) * (span[2] * q + 2) > 2 ** 52) q /= 2;
       const nx = Math.round(span[0] * q) + 2, ny = Math.round(span[1] * q) + 2;
-      const weld = new Map(), W = new Int32Array(n);
+      // Schweißstellen in der Reihenfolge ihres ersten Auftretens nummeriert,
+      // wie zuvor mit einer Map (ihre Schlüssel über 2^31 kosteten je Ecke
+      // einen Eintrag auf der Halde). Streutabelle über die drei Rasterwerte,
+      // verglichen wird der Schlüssel: solange er genau ist (das Raster oben
+      // hält ihn unter 2^52), gehört zu jedem Schlüssel genau ein Tripel. Wo
+      // nicht (NaN, unendlich, Riesenmaße), bleibt die Map.
+      const W = new Int32Array(n), exact = (span[0] * q + 2) * (span[1] * q + 2) * (span[2] * q + 2) <= 2 ** 52;
+      let cap = 16;
+      while (cap < n * 2) cap *= 2;
+      const hk = new Float64Array(cap), hv = new Int32Array(cap).fill(-1), mask = cap - 1, odd = new Map();
+      let nw = 0;
       for (let i = 0; i < n; i++) {
-        const key = Math.round((X[i * 3] - lo[0]) * q) + nx * (Math.round((X[i * 3 + 1] - lo[1]) * q) + ny * Math.round((X[i * 3 + 2] - lo[2]) * q));
-        let w = weld.get(key);
-        if (w === undefined) { w = weld.size; weld.set(key, w); }
-        W[i] = w;
+        const qx = Math.round((X[i * 3] - lo[0]) * q), qy = Math.round((X[i * 3 + 1] - lo[1]) * q), qz = Math.round((X[i * 3 + 2] - lo[2]) * q);
+        const key = qx + nx * (qy + ny * qz);
+        if (!exact || !Number.isFinite(key)) {
+          let w = odd.get(key);
+          if (w === undefined) { w = nw++; odd.set(key, w); }
+          W[i] = w;
+          continue;
+        }
+        let h = Math.imul(qx, 73856093) ^ Math.imul(qy, 19349663) ^ Math.imul(qz, 83492791);
+        h = (h ^ (h >>> 15)) & mask;
+        while (hv[h] >= 0 && hk[h] !== key) h = (h + 1) & mask;
+        if (hv[h] < 0) { hk[h] = key; hv[h] = nw++; }
+        W[i] = hv[h];
       }
       // Dreiecke je geschweißter Ecke (CSR)
-      const nw = weld.size, cnt = new Int32Array(nw + 1);
+      const cnt = new Int32Array(nw + 1);
       for (let t = 0; t < T; t++) for (let k = 0; k < 3; k++) cnt[W[at(t, k)] + 1]++;
       for (let i = 0; i < nw; i++) cnt[i + 1] += cnt[i];
       const fill = cnt.slice(0, nw), adj = new Int32Array(T * 3);
@@ -3941,6 +4028,18 @@ const starTexture = () => canvasTex(2048, 1024, (g, w, h) => {
   }
 });
 
+// Ein Generator für alle Umgebungskugeln (Ersatzhalle, Halle, Sonde aus dem
+// Spiel). Vorher baute jede Stelle ihren eigenen und gab ihn danach frei,
+// mit ihm seine Shader: Die Kugel der Halle übersetzte sie deshalb ein
+// zweites Mal, 0,4 s Stillstand kurz nach dem ersten Bild (13.11.2026 auf
+// Krisz' PC). Er behält ein Zwischenbild von 768 × 1024 (6 MB Grafikspeicher).
+const pmremOf = new WeakMap();
+function pmremFor(renderer) {
+  let pm = pmremOf.get(renderer);
+  if (!pm) pmremOf.set(renderer, pm = new THREE.PMREMGenerator(renderer));
+  return pm;
+}
+
 // Umgebungslicht für die Reflexe: kleine Ersatzhalle, einmal per PMREM.
 function buildEnvironment(renderer) {
   const env = new THREE.Scene();
@@ -3957,9 +4056,8 @@ function buildEnvironment(renderer) {
   right.scale.set(0.5, 8, 30); right.position.set(18, 5, 0); env.add(right);
   const floor = new THREE.Mesh(box, lit(0x22262e, 1));
   floor.scale.set(60, 0.2, 60); floor.position.set(0, -1, 0); env.add(floor);
-  const pm = new THREE.PMREMGenerator(renderer);
-  const rt = pm.fromScene(env, 0.04);
-  pm.dispose(); box.dispose();
+  const rt = pmremFor(renderer).fromScene(env, 0.04);
+  box.dispose();
   env.traverse((o) => o.material?.dispose?.());
   return rt;
 }
@@ -6802,6 +6900,23 @@ export async function initHangar(container, opts = {}) {
   // Im Leerlauf zeichnet die Bühne mit pixelRatio · pixelScale (frame())
   let pixelScale = 1;
   console.info(`[hangar] Leistungsstufe ${Q0} (${pick.why})`);
+  // three warnt, sobald ein Material die 17. Textureinheit belegt
+  // (allocateTextureUnit), und misst das an MAX_TEXTURE_IMAGE_UNITS: 16 unter
+  // Windows, die Grenze je Bildshader. Einheiten zählen aber über beide
+  // Shader zusammen (MAX_COMBINED_TEXTURE_IMAGE_UNITS, mindestens 32), und ein
+  // BatchedMesh liest zwei Karten im Eckenshader (Matrizen, Reihenfolge).
+  // Jede Requisite mit 15 oder 16 Karten im Bildshader löste so bei jedem
+  // Zeichnen eine Warnung aus: rund 100 je Bild, 2.500 Zeilen je Sekunde in
+  // Ruhe und 6.500 bis 7.000 beim Drehen (13.11.2026, RTX 3070 Ti und
+  // i5-13400F, hohe Stufe, sichtbares Fenster). Mit den beiden Stellen
+  // daneben (colorTexture oben, forceSinglePass in hangar-holo3d.js) waren
+  // das 3 von 13 ms Rechenzeit je Bild. Die Grenze je Bildshader prüft
+  // texBudget unten selbst und meldet sie als Fehler; three liest
+  // maxTextures nur für diese Warnung.
+  {
+    const gl = renderer.getContext(), units = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    if (units > renderer.capabilities.maxTextures) renderer.capabilities.maxTextures = units;
+  }
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(W(), H());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -7427,7 +7542,11 @@ export async function initHangar(container, opts = {}) {
     for (const p of progs) {
       if (texSeen.has(p) || (p.isReady && !p.isReady())) continue;
       texSeen.add(p); neu = true; texN++;
-      const frag = (gl.getAttachedShaders(p.program) ?? []).find((sh) => gl.getShaderParameter(sh, gl.SHADER_TYPE) === gl.FRAGMENT_SHADER);
+      // Den Bildshader kennt three (fragmentShader). Ihn über den Typ der
+      // angehängten Shader zu suchen, fragte je Programm zweimal beim
+      // Grafikprozess nach und wartete auf die Antwort: mitten im Laden bis
+      // 0,13 s je Frage (13.11.2026).
+      const frag = p.fragmentShader ?? (gl.getAttachedShaders(p.program) ?? []).find((sh) => gl.getShaderParameter(sh, gl.SHADER_TYPE) === gl.FRAGMENT_SHADER);
       const src = frag ? gl.getShaderSource(frag) ?? '' : '';
       let n = 0;
       for (let i = 0, c = gl.getProgramParameter(p.program, gl.ACTIVE_UNIFORMS); i < c; i++) {
@@ -7602,8 +7721,55 @@ export async function initHangar(container, opts = {}) {
         renderer.initTexture(t);
         if (performance.now() - t0 > 6) { await yieldToBrowser(); t0 = performance.now(); }
       }
+      freeImages(tex);
       await compiled;
     } finally { busyEnd(); }
+  }
+  // Bilder, die bei der Grafikkarte liegen, aus dem Arbeitsspeicher nehmen
+  // (Anlass, Zahlen und Regel bei texUsers oben). An die Stelle des Bildes
+  // tritt ein Platzhalter von 1 × 1. Fragt jemand dessen Größe ab, soll er
+  // hochgeladen werden: dann fehlt ein Bild. Das meldet die Konsole als
+  // Fehler (einmal je Quelle), und die Fläche zeigt eine Farbe statt ihrer
+  // Karte; die Bühne läuft weiter. Ob eine Texture hochgeladen ist, sagt
+  // three.js selbst (renderer.properties). Geht der Zeichenkontext
+  // verloren, lädt die Seite neu (onLost in hangar-overview.js); von da an
+  // wird nichts mehr freigegeben und nichts gemeldet (texQuiet).
+  const texGone = new WeakSet();   // Quellen, deren Bild freigegeben ist
+  const texStat = { n: 0, bytes: 0, held: 0, asked: 0, told: 0, timer: 0 };
+  let texQuiet = false;
+  const texUp = (t) => { const p = renderer.properties.get(t); return p.__webglTexture !== undefined && p.__version === t.version; };
+  function goneImage(label) {
+    const im = new ImageData(new Uint8ClampedArray([128, 128, 255, 255]), 1, 1);
+    let asked = false;
+    const ask = () => {
+      if (!asked && !texQuiet) {
+        asked = true; texStat.asked++;
+        console.error(`[hangar] Bild nach der Freigabe noch einmal verlangt (${label}): die Fläche zeigt eine Farbe statt ihrer Karte`);
+      }
+      return 1;
+    };
+    try { for (const k of ['width', 'height']) Object.defineProperty(im, k, { get: ask }); } catch { /* dann ohne Meldung */ }
+    return im;
+  }
+  function freeImages(tex) {
+    if (texQuiet || renderer.getContext().isContextLost()) return;
+    const srcs = new Map();
+    for (const t of tex) if (t.source && !srcs.has(t.source)) srcs.set(t.source, t);
+    for (const [src, t0] of srcs) {
+      const im = src.data, users = texUsers.get(src);
+      if (!users || !isBitmap(im)) continue;
+      const keys = new Set(), open = [];
+      for (const r of users) { const u = r.deref(); if (u) { if (texUp(u)) keys.add(texKey(u)); else open.push(u); } }
+      if (!keys.size || open.some((u) => !keys.has(texKey(u)))) { texStat.held++; continue; }
+      texStat.n++; texStat.bytes += im.width * im.height * 4;
+      im.close();
+      src.data = goneImage(t0.name || 'ohne Namen');
+      texGone.add(src);
+    }
+    if (texStat.n > texStat.told && !texStat.timer) texStat.timer = setTimeout(() => {
+      texStat.timer = 0; texStat.told = texStat.n;
+      console.info(`[hangar] Bilder nach dem Hochladen freigegeben: ${texStat.n} mit ${Math.round(texStat.bytes / 1048576)} MB, zurückgehalten ${texStat.held} Mal (eine Fassung mit anderen Sampler-Werten ist noch nicht hochgeladen)`);
+    }, 2000);
   }
   // Niedrige Stufe: Texturen höchstens TEX_MAX px an der längeren Kante,
   // verkleinert vor dem Hochladen (ein Viertel des Grafikspeichers je
@@ -7622,7 +7788,9 @@ export async function initHangar(container, opts = {}) {
   async function shrinkTextures(tex) {
     const jobs = [];
     for (const t of tex) {
-      const src = t.source, im = src?.data, w = im?.width || 0, h = im?.height || 0;
+      const src = t.source;
+      if (!src || texGone.has(src)) continue;   // schon hochgeladen und freigegeben
+      const im = src.data, w = im?.width || 0, h = im?.height || 0;
       // Leinwände bleiben: ein Bild an ihrer Stelle nähme spätere Zeichnungen nicht mehr an
       if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture || t.isCanvasTexture) continue;
       if (!shrunk.has(src)) {
@@ -8105,12 +8273,19 @@ export async function initHangar(container, opts = {}) {
     for (const m of realHall.mats) { gain.set(m, m.envMapIntensity); m.envMapIntensity = Math.min(m.envMapIntensity, 0.05); }
     scene.environment = envRT.texture;
     setHallEnv(envRT.texture);
-    const pm = new THREE.PMREMGenerator(renderer);
     // Schatten ohne Schiff und Crew, wie die Aufnahme sie sieht
     renderer.shadowMap.needsUpdate = true;
     const R = realHall.grow ? grownRoom() : realHall.room;
-    const rt = pm.fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
-    pm.dispose();
+    // Ohne die Hologramme der Stationen (wie renderMirror): Ihr Schleier ist
+    // ein Rechteck über dem ganzen Bild, vor einem Zwischenziel halb
+    // deckend, und lag damit über jeder Seite der Kugel. Standen sie beim
+    // Aufnehmen schon (das Schiff war vor der Halle fertig, langsames
+    // Laden), kam die Kugel halb so hell heraus (Mittel 0,094 statt 0,19,
+    // Wände im Bild ein Viertel dunkler), und die Halle blieb so bis zur
+    // nächsten Aufnahme (13.11.2026).
+    stLayer?.mirror(true);
+    const rt = pmremFor(renderer).fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
+    stLayer?.mirror(false);
     // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
     shadowSig = '';
     fog.near = near; fog.far = far;
@@ -8170,9 +8345,7 @@ export async function initHangar(container, opts = {}) {
     const sky = new THREE.Scene();
     sky.background = tex;
     sky.backgroundIntensity = PROBE_GAIN;
-    const pm = new THREE.PMREMGenerator(renderer);
-    const rt = pm.fromScene(sky, 0, 0.1, 10, { size: 256 });
-    pm.dispose();
+    const rt = pmremFor(renderer).fromScene(sky, 0, 0.1, 10, { size: 256 });
     tex.dispose();
     hallEnv?.dispose();
     hallEnv = rt;
@@ -9444,6 +9617,8 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
 
   // Halle steht (true) oder ist gescheitert (false); das erste Schiff wartet darauf
   let hallSettled = Promise.resolve(false);
+  // Die Halle ist gebaut und wird nur noch übersetzt und hochgeladen (showShip)
+  let hallClosing = false;
   // Werkhalle (WERK) hinter der Westnische: die Garage aus dem Spiel
   // (garage: scene, dims aus ihrer json, buehne: Bühnendatei), gedreht und
   // gerückt in die Hallenmeter, ihre Materialien im eigenen Licht
@@ -10434,6 +10609,7 @@ void main() {
       // Die Lampen stehen schon (oder kommen nie): erst übersetzen und
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
+      hallClosing = true;
       await prepare(model);
       if (werk) {
         // beide Lichter von Tor und Stirn übersetzen, sonst hakt der erste Wechsel
@@ -10631,13 +10807,27 @@ void main() {
       // (die Verdeckung ist darunter der schwerste), dann ein Probebild für
       // die übrigen kleinen. Vollbildpässe zeichnen ohne Lichter.
       const quad = new THREE.Group(), plane = new THREE.PlaneGeometry(2, 2);
-      for (const m of [ao.gtaoMaterial, ao.pdMaterial, aoMix.material, aoMix.medMaterial,
-        bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial]) {
-        if (m) quad.add(new THREE.Mesh(plane, m));
-      }
+      // Ohne Normalen, wie das Vollbild-Dreieck, mit dem die Pässe zeichnen:
+      // Ob die Geometrie Normalen hat, steht im Schlüssel eines Programms.
+      // Mit ihnen entstanden hier zwölf Zwillinge, die nie jemand benutzte,
+      // und das Probebild übersetzte die echten Programme im Stehen: 1,2 s
+      // Stillstand bei jedem ersten Besuch, davon 1 s allein der Entrauscher
+      // der Verdeckung (13.11.2026 auf Krisz' PC gemessen, jeder Aufruf am
+      // Zeichenkontext gestoppt). Die Ausgabe fehlt in der Liste: ihr Pass
+      // setzt seine Schalter erst beim ersten Bild (20 ms).
+      plane.deleteAttribute('normal');
+      const passMats = [ao.gtaoMaterial, ao.pdMaterial, aoMix.material, aoMix.medMaterial,
+        bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial].filter(Boolean);
+      for (const m of passMats) quad.add(new THREE.Mesh(plane, m));
       await compileFor(quad, rt, quad);
       plane.dispose();
+      // Wächter: Zeichnet das Probebild einen Pass mit einem Programm, das es
+      // vorher nicht gab, war das Vorab-Übersetzen umsonst (check:hangar-shader)
+      const vorab = new Set(renderer.info.programs ?? []);
       c.render();
+      const spaet = passMats.filter((m) => { const p = renderer.properties.get(m).currentProgram; return p && !vorab.has(p); }).length;
+      if (spaet) console.warn(`[hangar] Vollbildpässe: ${spaet} von ${passMats.length} Shadern erst beim Probebild übersetzt (three.js geändert?)`);
+      else console.info(`[hangar] Vollbildpässe: ${passMats.length} Shader vorab übersetzt`);
       composer = c;
     } catch {
       // ohne Verdeckung weiter, der Dampf dann wieder in der Szene
@@ -11019,7 +11209,7 @@ void main() {
   // gezeichnet wurde (Umgebungskugeln, Hallenschatten), ist im neuen Kontext
   // leer; neu aufbauen muss es die Seite.
   let lostFn = null;
-  renderer.domElement.addEventListener('webglcontextlost', () => lostFn?.(true));
+  renderer.domElement.addEventListener('webglcontextlost', () => { texQuiet = true; lostFn?.(true); });
   renderer.domElement.addEventListener('webglcontextrestored', () => lostFn?.(false));
   let token = 0;
   let liveryKey = 'werk';
@@ -11837,6 +12027,13 @@ void main() {
     if (my !== token) { drop(); return; }
     if (REAL && !revealed) {
       await Promise.race([hallSettled, sleep(6000)]);
+      // Ist die Halle da schon gebaut und wird nur noch übersetzt und
+      // hochgeladen, kommt sie gleich: darauf noch kurz warten. Seit das
+      // Schiff früher bereit ist (13.11.2026: es wartete vorher 1 bis 2 s auf
+      // das Probebild der Nachbearbeitung), lief die Frist auf einem
+      // langsamen Rechner sonst Zehntelsekunden vor der Halle ab, und die
+      // Halle sprang dem Schiff ins Bild hinterher.
+      if (hallClosing && !realHall && !hallFailed) await Promise.race([hallSettled, sleep(3000)]);
       if (my !== token) { drop(); return; }
     }
     // Maße für Halle, Tor, Aufzug und Gerät aus box.hull, um die Mitte des
@@ -14112,6 +14309,10 @@ void main() {
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
       draco.dispose();
+      // der gemeinsame Generator der Umgebungskugeln (pmremFor): sein
+      // Zwischenbild, seine Geometrien und sein Shader gehören keinem der
+      // Ziele oben
+      pmremOf.get(renderer)?.dispose(); pmremOf.delete(renderer);
       renderer.dispose();
       renderer.domElement.remove();
     },

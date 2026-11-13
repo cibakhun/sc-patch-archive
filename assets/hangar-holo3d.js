@@ -1011,8 +1011,15 @@ export function holoLayer(ctx) {
   const mats = [];   // [material, Grunddeckkraft]: alle blenden mit
   const own = [];    // Geometrien, Texturen zum Aufräumen beim Wechsel
   // owner: die Tafel, deren eigene Blende (P.k) mitwirkt
+  // forceSinglePass: Doppelseitig Durchsichtiges zeichnet three sonst in zwei
+  // Zügen (Rück-, dann Vorderseite) und sucht vor jedem Zug das
+  // Shaderprogramm neu, hier für 30 Teile zweimal je Bild (13.11.2026). Am
+  // Bild ändert ein Zug nichts: Diese Materialien sind einfarbig oder liegen
+  // auf einer Fläche, schreiben keine Tiefe, und was additiv mischt, hängt
+  // ohnehin nicht an der Reihenfolge. Ein Material mit Karte auf einem
+  // gewölbten Körper bräuchte wieder beide Züge.
   const basic = (o, base = o.opacity ?? 1, owner = null) => {
-    const m = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, ...o });
+    const m = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, forceSinglePass: true, ...o });
     mats.push([m, base, owner]); return m;
   };
   const softTex = radial([[0, 0.9], [0.5, 0.35], [1, 0]]);
@@ -1818,7 +1825,9 @@ export function holoLayer(ctx) {
     // neues freies Bild: die Ausrüstung richtet ihre Höhe danach
     safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; if (built) redraw(built.left); settledAt = 0; ctx.wake(300); },
     // Spiegelbild des Bodens („hoch“): ohne Hologramme, ihre Nummern lagen
-    // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026)
+    // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026). Ebenso die
+    // Umgebungskugel der Halle (captureHallEnv im Viewer): Der Schleier lag
+    // über jeder ihrer Seiten und halbierte sie (13.11.2026).
     mirror(on) { const vis = !on && alpha > 0.001; dim.visible = vis; root.visible = vis; },
     tick(now) {
       const rest = ctx.rest();
