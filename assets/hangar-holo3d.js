@@ -1825,7 +1825,9 @@ export function holoLayer(ctx) {
     // neues freies Bild: die Ausrüstung richtet ihre Höhe danach
     safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; if (built) redraw(built.left); settledAt = 0; ctx.wake(300); },
     // Spiegelbild des Bodens („hoch“): ohne Hologramme, ihre Nummern lagen
-    // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026)
+    // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026). Ebenso die
+    // Umgebungskugel der Halle (captureHallEnv im Viewer): Der Schleier lag
+    // über jeder ihrer Seiten und halbierte sie (13.11.2026).
     mirror(on) { const vis = !on && alpha > 0.001; dim.visible = vis; root.visible = vis; },
     tick(now) {
       const rest = ctx.rest();

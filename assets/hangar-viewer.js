@@ -8037,7 +8037,16 @@ export async function initHangar(container, opts = {}) {
     // Schatten ohne Schiff und Crew, wie die Aufnahme sie sieht
     renderer.shadowMap.needsUpdate = true;
     const R = realHall.grow ? grownRoom() : realHall.room;
+    // Ohne die Hologramme der Stationen (wie renderMirror): Ihr Schleier ist
+    // ein Rechteck über dem ganzen Bild, vor einem Zwischenziel halb
+    // deckend, und lag damit über jeder Seite der Kugel. Standen sie beim
+    // Aufnehmen schon (das Schiff war vor der Halle fertig, langsames
+    // Laden), kam die Kugel halb so hell heraus (Mittel 0,094 statt 0,19,
+    // Wände im Bild ein Viertel dunkler), und die Halle blieb so bis zur
+    // nächsten Aufnahme (13.11.2026).
+    stLayer?.mirror(true);
     const rt = pmremFor(renderer).fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
+    stLayer?.mirror(false);
     // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
     shadowSig = '';
     fog.near = near; fog.far = far;

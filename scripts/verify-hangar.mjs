@@ -296,6 +296,9 @@
     yy  dort eine Umgebungskugel wieder mit eigenem
         new THREE.PMREMGenerator(renderer) bauen                    -> [12]
     zz  dort in texBudget() p.fragmentShader streichen              -> [12]
+    aaa dort in captureHallEnv() stLayer?.mirror(true) streichen
+        (13.11.2026: die Kugel der Halle kaeme wieder mit dem
+        Schleier der Hologramme, halb so hell)                      -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -826,6 +829,18 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   ];
   sollIst(`Stillstand beim Laden abgestellt (${STILLSTAND.length} Stellen)`, STILLSTAND.filter((l) => l[1]).length === STILLSTAND.length ? `${STILLSTAND.length} von ${STILLSTAND.length}` : `${STILLSTAND.filter((l) => l[1]).length} von ${STILLSTAND.length}, fehlt: ${STILLSTAND.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of STILLSTAND) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Umgebungskugel der Halle ohne die Hologramme der Stationen (13.11.2026,
+  // beim Bildvergleich derselben Runde gefunden). Ihr Schleier ist ein
+  // Rechteck ueber dem ganzen Bild und lag ueber jeder Seite der Kugel:
+  // Standen die Hologramme beim Aufnehmen schon (das Schiff war vor der Halle
+  // fertig), kam sie halb so hell heraus (Mittel 0,094 statt 0,19), und wie
+  // hell die Halle stand, hing an der Reihenfolge, in der Schiff und Halle
+  // fertig wurden. Die Aufnahme blendet sie aus wie das Spiegelbild des
+  // Bodens (mirror() in hangar-holo3d.js).
+  const kugelOhne = /function captureHallEnv\([\s\S]{0,3000}?stLayer\?\.mirror\(true\);\s*const rt = pmremFor\(renderer\)\.fromScene\(scene,[^\n]*\n\s*stLayer\?\.mirror\(false\);/.test(viewer)
+    && /mirror\(on\) \{[^}]*dim\.visible = vis;[^}]*root\.visible = vis;/.test(holoQ);
+  sollIst('Umgebungskugel der Halle ohne Hologramme aufgenommen', kugelOhne ? 'ja' : 'nein');
+  if (!kugelOhne) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr ohne die Hologramme der Stationen auf (stLayer?.mirror um fromScene, oder mirror() in hangar-holo3d.js blendet Schleier und Tafeln nicht mehr aus): ihr Schleier halbiert die Kugel, und die Halle steht je nach Ladereihenfolge anders hell da (13.11.2026)');
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
