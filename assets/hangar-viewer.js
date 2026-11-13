@@ -7839,6 +7839,69 @@ export async function initHangar(container, opts = {}) {
     await Promise.all(jobs);
   }
 
+  // Geometrie der Halle im Arbeitsspeicher: three.js behält jeden Attribut-
+  // und Indexpuffer nach dem Hochladen (gemessen 13.11.2026, Gladius, hohe
+  // Stufe: 240 MB in 796 Geometrien, 183 MB davon in einfachen Netzen;
+  // freigegeben werden 159 MB).
+  // Gebraucht wird die Kopie nur, wenn jemand die Ecken noch einmal liest,
+  // und die Halle liest nach dem Bau niemand mehr: growApply schiebt über
+  // Uniformen, Sicht- und Schattenprüfung nehmen Kugel und Kasten, und die
+  // rechnet freeGeometry() vorher. Es gibt jeden Puffer in dem Moment frei,
+  // in dem three.js ihn hochgeladen hat (onUpload), also auch bei Netzen,
+  // die erst später sichtbar werden. Nicht für BatchedMesh (die Kugel je
+  // Teil entsteht dort erst beim ersten Zeichnen aus den Puffern), nicht
+  // für Netze mit Knochen, Instanzen oder Morphzielen, und nicht für das
+  // Schiff: Tafeln, Tauschteile und Messungen lesen es. Puffer in keep
+  // bleiben auch: die Ecken der Möbel rechnet scaleFurniture() neu, wenn
+  // die Halle mit einem größeren Schiff wächst. Wer einen
+  // freigegebenen Puffer doch liest, bekommt einen leeren und einen Fehler
+  // in der Konsole (einmal je Puffer); check:hangar-shader zählt ihn als
+  // FEHLER. Nach einem verlorenen Zeichenkontext baut niemand aus den
+  // Puffern neu auf, die Seite lädt neu (onLost in hangar-overview.js).
+  const geoStat = { n: 0, bytes: 0, asked: 0, told: 0, timer: 0 };
+  const geoArmed = new WeakSet(), geoBufs = new WeakSet();
+  function goneArray(at, label) {
+    const leer = new at.array.constructor(0);
+    let asked = false;
+    Object.defineProperty(at, 'array', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        if (!asked && !texQuiet) {
+          asked = true; geoStat.asked++;
+          console.error(`[hangar] Geometrie nach der Freigabe noch einmal verlangt (${label}): der Leser bekommt einen leeren Puffer`);
+        }
+        return leer;
+      },
+      set(v) { Object.defineProperty(at, 'array', { value: v, writable: true, configurable: true, enumerable: true }); },
+    });
+  }
+  function freeGeometry(root, keep = null) {
+    root.traverse((n) => {
+      if (!n.isMesh || n.isBatchedMesh || n.isSkinnedMesh || n.isInstancedMesh) return;
+      const g = n.geometry;
+      if (!g || !g.attributes.position || Object.keys(g.morphAttributes).length) return;
+      if (!g.boundingBox) g.computeBoundingBox();
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      const label = n.name || 'ohne Namen';
+      for (const a of [...Object.values(g.attributes), g.index]) {
+        const at = a?.isInterleavedBufferAttribute ? a.data : a;
+        if (!at?.array?.buffer || geoArmed.has(at) || keep?.has(at)) continue;
+        geoArmed.add(at);
+        at.onUpload(function () {
+          if (texQuiet) return;
+          const buf = this.array.buffer;
+          if (!geoBufs.has(buf)) { geoBufs.add(buf); geoStat.bytes += buf.byteLength; }
+          geoStat.n++;
+          goneArray(this, label);
+          if (!geoStat.timer) geoStat.timer = setTimeout(() => {
+            geoStat.timer = 0; geoStat.told = geoStat.n;
+            console.info(`[hangar] Geometrie nach dem Hochladen freigegeben: ${geoStat.n} Puffer mit ${Math.round(geoStat.bytes / 1048576)} MB`);
+          }, 2000);
+        });
+      }
+    });
+  }
   // Lampen der Halle aus dem Spiel (Licht-Entities des socpak, vom Build als
   // <halle>.lights.json neben das GLB gelegt; Richtungen dort schon nach glTF
   // gedreht, Flächenlichter an ihrer Fläche ausgerichtet). Fehlt die Datei,
@@ -10666,6 +10729,10 @@ void main() {
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
       hallClosing = true;
+      // ab hier liest niemand mehr die Ecken der Halle: Kopien nach dem Hochladen
+      // freigeben. Nur die Ecken der Möbel bleiben (scaleFurniture, furnitureBoxes).
+      freeGeometry(model, new Set(furniture.map((f) => f.mesh.geometry.attributes.position)));
+      if (werk) freeGeometry(werk.group);
       await prepare(model);
       if (werk) {
         // beide Lichter von Tor und Stirn übersetzen, sonst hakt der erste Wechsel
