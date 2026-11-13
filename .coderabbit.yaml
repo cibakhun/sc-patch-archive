@@ -56,5 +56,6 @@ reviews:
     - "!assets/universal-items.json"       # build-universal-db
     - "!assets/crafting-db.json"           # datamine-crafting
     - "!assets/mining-model.json"          # build-mining-model
+    - "!public/hangar/ktx/**"              # build-hangar-ktx (komprimierte Zwillinge der Hangar-Bilder)
     - "!public/vendor/**"
     - "!package-lock.json"

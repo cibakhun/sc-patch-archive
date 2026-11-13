@@ -38,12 +38,14 @@
 // BILDER: Schiffe im Werkslack holen ihre Bilder aus der gemeinsamen Ablage
 // /hangar/tex/ (embeddedImages); opts.texBytes nennt je Modelldatei (Pfad
 // ohne ?v=) ihre Summe, damit der Ladebalken sie mitzählt.
+// Am PC kommt jedes Bild aus seinem komprimierten Zwilling unter
+// /hangar/ktx/ (KTX_BAU); opts.bilder 'webp' stellt das ab.
 //
 // INNENRAUM: opts.interior nennt je Werkslack-Datei (Pfad ohne ?v=) den
 // begehbaren Innenraum im selben Modellraum (url) und seine Lampen und
 // Einstiegspunkte (meta, JSON { lights, spots }); enter() lädt beides.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, interior?: { [pfad]: { url, meta, bytes? } }, holo?: { module }, sound?: false }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, bilder?: 'webp', interior?: { [pfad]: { url, meta, bytes? } }, holo?: { module }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
@@ -342,6 +344,38 @@ async function fitImage(im, max) {
   };
   return (fitTurn = fitTurn.then(draw));
 }
+// Komprimierte Zwillinge der Bilder (KTX2/Basis, 13.11.2026; Anlass,
+// Zahlen und Bauweise: scripts/lib/hangar-ktx.mjs). Zu jedem Bild liegt
+// unter /hangar/ktx/<kennung>.ktx2 dasselbe Bild in einer Form, die bei der
+// Grafikkarte komprimiert bleibt (am PC BC7, 1 Byte je Bildpunkt statt 4).
+// Die Kennung ist der Inhalt des WebP: bei Bildern der Ablage steht sie im
+// Dateinamen, bei eingebetteten rechnet sie der Browser aus den Bytes im
+// GLB (SHA-256, erste 16 Hex-Zeichen). embeddedImages() fragt je Bild erst
+// den Zwilling (twin, nur am PC und nur, wenn die Grafikkarte ein
+// komprimiertes Format kann) und geht ohne ihn den Weg über das WebP.
+// KTX_BAU ist das Rezept der Zwillinge (BAU in scripts/lib/hangar-ktx.mjs,
+// verify:hangar-ktx vergleicht beide) und hängt als ?v= an jeder URL:
+// /hangar/ wird ein Jahr unveränderlich gecacht.
+export const KTX_BAU = 'd1';
+const KTX_ABLAGE = /(?:^|\/)([0-9a-f]{16})\.webp$/;
+const hex16 = (hash) => Array.from(new Uint8Array(hash, 0, 8), (v) => v.toString(16).padStart(2, '0')).join('');
+// Schlüssel-Wert-Daten einer KTX2-Datei: Offset und Länge stehen im Kopf
+// (Byte 56 und 60), jeder Eintrag ist Länge, Schlüssel, NUL, Wert, auf 4
+// Byte aufgefüllt. Eine Datei, die nicht passt, hat keine Schlüssel.
+export function ktxKv(buf) {
+  const out = {};
+  if (!buf || buf.byteLength < 80) return out;
+  const v = new DataView(buf), off = v.getUint32(56, true), len = v.getUint32(60, true);
+  if (off < 80 || off + len > buf.byteLength) return out;
+  const bytes = new Uint8Array(buf), td = new TextDecoder();
+  for (let at = off; at + 4 <= off + len;) {
+    const n = v.getUint32(at, true), body = bytes.subarray(at + 4, at + 4 + n), nul = body.indexOf(0);
+    if (n < 2 || at + 4 + n > off + len || nul < 0) break;
+    out[td.decode(body.subarray(0, nul))] = td.decode(body.subarray(nul + 1)).replace(/\0+$/, '');
+    at += 4 + n + ((4 - (n % 4)) % 4);
+  }
+  return out;
+}
 // Mittel einer Farbkarte, linear je Kanal (für albedoFloor): auf 8 × 8
 // verkleinert (mit Mip-Stufen, nicht nur einzelne Punkte) und gemittelt.
 // Nur für Bilder, die eine Farbkarte sind; ohne Erfolg undefined.
@@ -392,8 +426,13 @@ const texNoted = new WeakSet();
 function noteTextures(result) {
   if (typeof WeakRef === 'undefined') return;   // ohne WeakRef bleibt jedes Bild
   const note = (t) => {
-    if (!t?.isTexture || texNoted.has(t) || !isBitmap(t.source?.data)) return;
+    if (!t?.isTexture || texNoted.has(t) || !(isBitmap(t.source?.data) || t.isCompressedTexture)) return;
     texNoted.add(t);
+    // Ein Zwilling bringt immer Mip-Stufen mit. Eine Textur, deren Sampler
+    // keine liest (linear oder nächster Punkt), lädt nur die größte hoch:
+    // sonst läge ein Drittel mehr bei der Grafikkarte als mit dem WebP.
+    // Die Liste gehört der Textur, die Stufen teilt sie mit ihren Kopien.
+    if (t.isCompressedTexture && t.mipmaps.length > 1 && (t.minFilter === THREE.LinearFilter || t.minFilter === THREE.NearestFilter)) t.mipmaps = [t.mipmaps[0]];
     const u = texUsers.get(t.source);
     if (u) u.push(new WeakRef(t)); else texUsers.set(t.source, [new WeakRef(t)]);
   };
@@ -408,7 +447,12 @@ const colourImages = (json) => {
   }
   return out;
 };
-function embeddedImages(ms, tally = () => null, max = 0) {
+// twin (oder null): { id(bytes) -> Promise<kennung>, load(kennung) ->
+// Promise<{ t, webp, mean } | null> }, der Weg zu den komprimierten
+// Zwillingen (ktxTwin in initHangar). load() scheitert nie: ohne Zwilling
+// null, und das Bild kommt wie bisher aus dem WebP. max (Telefon) und twin
+// (PC) kommen nie zusammen: KTX_AN gilt nur ohne SMALL.
+function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
   const pause = slicer(ms, nextTask);
   const gate = max ? limiter(FIT_AT_ONCE) : null;
   let turn = Promise.resolve();
@@ -421,32 +465,50 @@ function embeddedImages(ms, tally = () => null, max = 0) {
       const pooled = pooledImage(def);
       if (parser.sourceCache[i] !== undefined || (def.bufferView === undefined && !pooled) || !loader.isImageBitmapLoader) return load(i, loader);
       const url = pooled ? THREE.LoaderUtils.resolveURL(def.uri, parser.options.path) : null;
-      const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
-        if (!r.ok) throw new Error(`${r.status} ${url}`);
-        return r.blob();
-      }).then((b) => { count?.(b.size); return b; }) : null;
-      const go = (turn = turn.then(pause));
-      const p = go
-        .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
-        .then((blob) => {
-          const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
-          if (!gate) return decode();
-          return gate(async () => {
-            const big = await decode(), small = await fitImage(big, max);
-            if (!small) return big;
-            big.close();
-            return small;
+      const dress = (t) => {
+        if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
+        t.userData.mimeType = def.mimeType;
+        return t;
+      };
+      const bild = () => {
+        const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
+          if (!r.ok) throw new Error(`${r.status} ${url}`);
+          return r.blob();
+        }).then((b) => { count?.(b.size); return b; }) : null;
+        const go = (turn = turn.then(pause));
+        const q = go
+          .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
+          .then((blob) => {
+            const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
+            if (!gate) return decode();
+            return gate(async () => {
+              const big = await decode(), small = await fitImage(big, max);
+              if (!small) return big;
+              big.close();
+              return small;
+            });
+          })
+          .then(async (bitmap) => {
+            const t = dress(new THREE.Texture(bitmap));
+            t.needsUpdate = true;
+            if (mean && colour.has(i)) t.userData.mean = await imageMean(bitmap);
+            return t;
           });
-        })
-        .then(async (bitmap) => {
-          const t = new THREE.Texture(bitmap);
-          t.needsUpdate = true;
-          if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
-          t.userData.mimeType = def.mimeType;
-          if (mean && colour.has(i)) t.userData.mean = await imageMean(bitmap);
-          return t;
-        });
-      if (pooled) p.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
+        if (pooled) q.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
+        return q;
+      };
+      // Kennung des Zwillings: aus dem Dateinamen der Ablage, sonst aus den
+      // Bytes im GLB. Der Balken zählt die Bytes des WebP (opts.texBytes kennt
+      // nur sie), das Farbmittel steht in der Datei.
+      const id = !twin ? null : pooled ? KTX_ABLAGE.exec(def.uri)?.[1] ?? null
+        : def.mimeType === 'image/webp' ? parser.getDependency('bufferView', def.bufferView).then(twin.id).catch(() => null) : null;
+      const p = id === null ? bild() : Promise.resolve(id).then((k) => (k ? twin.load(k) : null)).then((z) => {
+        if (!z) return bild();
+        const t = dress(z.t);
+        if (pooled) count?.(z.webp);
+        if (mean && colour.has(i)) t.userData.mean = z.mean;
+        return t;
+      });
       parser.sourceCache[i] = p;
       return p;
     };
@@ -7641,8 +7703,122 @@ export async function initHangar(container, opts = {}) {
   }
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
+  // Komprimierte Texturen (KTX_BAU oben; Krisz 13.11.2026: „es braucht viel
+  // zu viele Ressourcen um das Hangar laufen zu lassen“). Gemessen an dem Tag
+  // in der Probe mit Halle und Gladius, hohe Stufe, RTX 3070 Ti: Texturen am
+  // Zeichenkontext 1.507 MB, komprimiert 516 MB; Grafikspeicher im
+  // Task-Manager 2,0 GB, komprimiert 1,0 GB; Bildrate und Ladezeit gleich.
+  // Den Loader und seinen Umwandler (WebAssembly, in bis zu vier Workern)
+  // holt erst das erste Bild. Aus bleibt der Weg
+  //  - am Telefon: dort ist er auf keinem echten Gerät erprobt, und der Weg
+  //    über das WebP packt dort schon klein aus;
+  //  - ohne BC7 oder ASTC: der Umwandler packte sonst nach RGBA aus oder in
+  //    ein schwächeres Format, und nichts wäre gewonnen;
+  //  - mit ?bilder=webp (opts.bilder), zum Vergleich beider Wege;
+  //  - ohne crypto.subtle (keine sichere Herkunft): die Kennung der
+  //    eingebetteten Bilder ließe sich nicht rechnen.
+  // Fehlt ein Zwilling, kommt das Bild aus dem WebP, und die Konsole nennt
+  // es (verify:hangar-ktx hält die Zwillinge vollständig, check:hangar-shader
+  // zählt einen fehlenden als FEHLER).
+  const KTX_AN = !SMALL && opts.bilder !== 'webp' && !!globalThis.crypto?.subtle;
+  const KTX_NAMEN = { 36492: 'BC7', 36493: 'BC7', 37808: 'ASTC', 37496: 'ETC2', 37492: 'ETC2', 33776: 'BC1', 33777: 'BC1', 33779: 'BC3' };
+  const ktxStat = { n: 0, bytes: 0, miss: 0, fmt: new Map(), told: -1, timer: 0, why: null };
+  const ktxTell = () => {
+    if (ktxStat.timer) return;
+    ktxStat.timer = setTimeout(() => {
+      ktxStat.timer = 0;
+      if (ktxStat.told === ktxStat.n + ktxStat.miss) return;
+      ktxStat.told = ktxStat.n + ktxStat.miss;
+      const fmt = [...ktxStat.fmt].map(([k, n]) => `${KTX_NAMEN[k] ?? k} ${n}`).join(', ');
+      console.info(`[hangar] Texturen komprimiert: ${ktxStat.n} (${fmt || 'keine'}; ${Math.round(ktxStat.bytes / 1048576)} MB für die Grafikkarte), ohne Zwilling aus dem WebP: ${ktxStat.miss}`);
+    }, 2000);
+  };
+  let ktxLoader = null;
+  const ktxStart = () => (ktxLoader ??= import('three/addons/loaders/KTX2Loader.js').then(({ KTX2Loader }) => {
+    const L = new KTX2Loader().setTranscoderPath('/vendor/three/addons/libs/basis/').setWorkerLimit(Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))).detectSupport(renderer);
+    if (L.workerConfig.bptcSupported || L.workerConfig.astcSupported) return L;
+    L.dispose();
+    throw new Error('die Grafikkarte kann weder BC7 noch ASTC');
+  }).catch((e) => {
+    ktxStat.why = String(e?.message ?? e);
+    console.info(`[hangar] Texturen bleiben WebP: ${ktxStat.why}`);
+    return null;
+  }));
+  // Wächter des Umwandlers (13.11.2026). Der Umwandler läuft in Workern, und
+  // ein Worker, der beim Start scheitert, antwortet nie: KTX2Loader wartet
+  // dann ohne Ende, und mit ihm jede Datei der Halle. Genau so stand der
+  // Hangar unter der Richtlinie der Seite beim Laden still, bevor die Kopie
+  // des Umwandlers korrigiert war (scripts/lib/hangar-basis.mjs). Der
+  // Wächter zählt Sekunden, in denen Bilder warten und keines fertig wird.
+  // Nach KTX_STILL_S davon gilt der Umwandler als tot: Die wartenden Bilder
+  // und alle späteren kommen aus dem WebP, die Konsole nennt es, und
+  // check:hangar-shader reißt daran. Gezählt werden Takte der Uhr, nicht
+  // die Zeit: Steht der Hauptfaden selbst (Shader, große Datei), zählt das
+  // eine Sekunde, nicht die ganze Pause.
+  const KTX_STILL_S = 15;
+  const ktxWach = { offen: new Set(), fertig: 0, gesehen: 0, still: 0, timer: 0 };
+  const ktxTot = (why) => {
+    ktxStat.why = why;
+    console.info(`[hangar] Texturen bleiben WebP: ${why}`);
+    const alt = ktxLoader;
+    ktxLoader = Promise.resolve(null);
+    alt?.then((L) => L?.dispose()).catch(() => {});
+    const offen = [...ktxWach.offen];
+    ktxWach.offen.clear();
+    for (const nein of offen) nein(new Error(why));
+  };
+  const ktxWandle = (L, buf) => new Promise((ja, nein) => {
+    // Eine Antwort nach dem Aus gilt nicht mehr; ihr Bild wird verworfen.
+    const fertig = (f, v) => { if (!ktxWach.offen.delete(nein)) { if (f === ja) v?.dispose?.(); return; } ktxWach.fertig++; f(v); };
+    ktxWach.offen.add(nein);
+    ktxWach.timer ||= setInterval(() => {
+      if (!ktxWach.offen.size) { clearInterval(ktxWach.timer); ktxWach.timer = 0; ktxWach.still = 0; return; }
+      if (ktxWach.fertig !== ktxWach.gesehen) { ktxWach.gesehen = ktxWach.fertig; ktxWach.still = 0; return; }
+      if (++ktxWach.still >= KTX_STILL_S) ktxTot(`der Umwandler antwortet seit ${KTX_STILL_S} s nicht`);
+    }, 1000);
+    L.parse(buf, (t) => fertig(ja, t), (e) => fertig(nein, e));
+  });
+  const ktxTwin = !KTX_AN ? null : {
+    id: (view) => crypto.subtle.digest('SHA-256', view).then(hex16),
+    async load(id) {
+      const L = await ktxStart();
+      if (!L) return null;
+      let stage = 'Datei';
+      try {
+        const r = await fetch(`/hangar/ktx/${id}.ktx2?v=${KTX_BAU}`, { credentials: 'same-origin' });
+        if (!r.ok) throw new Error(`Antwort ${r.status}`);
+        const buf = await r.arrayBuffer();
+        // vor dem Umwandeln lesen: parse() gibt den Puffer an den Worker ab
+        const kv = ktxKv(buf);
+        if (kv.HGbau !== KTX_BAU) throw new Error(`Rezept ${kv.HGbau ?? 'fehlt'} statt ${KTX_BAU}`);
+        stage = 'Umwandeln';
+        const t = await ktxWandle(L, buf);
+        if (!t?.isCompressedTexture || !t.mipmaps?.length) { t?.dispose?.(); throw new Error('kein komprimiertes Bild'); }
+        // Der Loader liest den Farbraum aus der Datei (sRGB oder linear). Wie
+        // beim WebP soll ihn allein der Platz im Material bestimmen, den der
+        // GLTFLoader danach setzt: eine Karte, die als Farbe und als Daten
+        // dient, läse sonst an beiden Plätzen als Farbe.
+        t.colorSpace = THREE.NoColorSpace;
+        // Deckel der Stufe (TEX_MAX, shrinkTextures): die größeren Stufen
+        // gehen gar nicht erst zur Grafikkarte
+        if (TEX_MAX) while (t.mipmaps.length > 1 && Math.max(t.mipmaps[0].width, t.mipmaps[0].height) > TEX_MAX) t.mipmaps.shift();
+        t.image.width = t.mipmaps[0].width; t.image.height = t.mipmaps[0].height;
+        const mean = (kv.HGmittel ?? '').split(',').map(Number);
+        ktxStat.n++;
+        ktxStat.fmt.set(t.format, (ktxStat.fmt.get(t.format) ?? 0) + 1);
+        for (const mm of t.mipmaps) ktxStat.bytes += mm.data.byteLength;
+        ktxTell();
+        return { t, webp: Number(kv.HGwebp) || 0, mean: mean.length === 3 && mean.every((v) => Number.isFinite(v) && v >= 0) ? mean : undefined };
+      } catch (e) {
+        ktxStat.miss++;
+        if (ktxStat.miss <= 5) console.warn(`[hangar] Zwilling ${id} nicht geladen (${stage}: ${e?.message ?? e}): das Bild kommt aus dem WebP`);
+        ktxTell();
+        return null;
+      }
+    },
+  };
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
-  const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0);
+  const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0, ktxTwin);
   const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
   // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
   // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
@@ -7858,6 +8034,7 @@ export async function initHangar(container, opts = {}) {
   // verloren, lädt die Seite neu (onLost in hangar-overview.js); von da an
   // wird nichts mehr freigegeben und nichts gemeldet (texQuiet).
   const texGone = new WeakSet();   // Quellen, deren Bild freigegeben ist
+  const KTX_LEER = new Uint8Array(0);
   const texStat = { n: 0, bytes: 0, held: 0, asked: 0, told: 0, timer: 0 };
   let texQuiet = false;
   const texUp = (t) => { const p = renderer.properties.get(t); return p.__webglTexture !== undefined && p.__version === t.version; };
@@ -7879,14 +8056,38 @@ export async function initHangar(container, opts = {}) {
     const srcs = new Map();
     for (const t of tex) if (t.source && !srcs.has(t.source)) srcs.set(t.source, t);
     for (const [src, t0] of srcs) {
-      const im = src.data, users = texUsers.get(src);
-      if (!users || !isBitmap(im)) continue;
-      const keys = new Set(), open = [];
-      for (const r of users) { const u = r.deref(); if (u) { if (texUp(u)) keys.add(texKey(u)); else open.push(u); } }
+      const im = src.data, users = texUsers.get(src), comp = t0.isCompressedTexture === true;
+      if (!users || texGone.has(src) || !(comp || isBitmap(im))) continue;
+      const keys = new Set(), open = [], live = [];
+      for (const r of users) { const u = r.deref(); if (u) { live.push(u); if (texUp(u)) keys.add(texKey(u)); else open.push(u); } }
       if (!keys.size || open.some((u) => !keys.has(texKey(u)))) { texStat.held++; continue; }
-      texStat.n++; texStat.bytes += im.width * im.height * 4;
-      im.close();
-      src.data = goneImage(t0.name || 'ohne Namen');
+      texStat.n++;
+      if (comp) {
+        // Komprimierte Textur: ihre Bytes liegen je Mip-Stufe an der Textur,
+        // und die Kopien einer Quelle teilen sich die Stufen. An die Stelle
+        // der Bytes tritt ein leeres Feld, das meldet, wenn es doch noch
+        // jemand hochladen will (wie goneImage).
+        const label = t0.name || 'ohne Namen';
+        let asked = false;
+        const ask = () => {
+          if (!asked && !texQuiet) {
+            asked = true; texStat.asked++;
+            console.error(`[hangar] Bild nach der Freigabe noch einmal verlangt (${label}): die Fläche zeigt eine Farbe statt ihrer Karte`);
+          }
+          return KTX_LEER;
+        };
+        const seen = new Set();
+        for (const u of live) for (const mm of u.mipmaps ?? []) {
+          if (seen.has(mm)) continue;
+          seen.add(mm);
+          texStat.bytes += mm.data?.byteLength ?? 0;
+          try { Object.defineProperty(mm, 'data', { get: ask, configurable: true }); } catch { mm.data = KTX_LEER; }
+        }
+      } else {
+        texStat.bytes += im.width * im.height * 4;
+        im.close();
+        src.data = goneImage(t0.name || 'ohne Namen');
+      }
       texGone.add(src);
     }
     if (texStat.n > texStat.told && !texStat.timer) texStat.timer = setTimeout(() => {
