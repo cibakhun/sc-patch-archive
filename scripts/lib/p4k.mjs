@@ -16,20 +16,47 @@ import { dirname, resolve } from 'node:path';
 
 export const DEFAULT_P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
 
-// Client-Kennung aus build_manifest.id neben der p4k, in der Form der
-// uebrigen Datenstaende ("4.10.2-live.12913470", wie datamine-wikelo.mjs).
-// null, wenn die Datei fehlt oder Branch/Changelist nicht traegt — der
-// Aufrufer entscheidet, ob er ohne Kennung schreiben darf.
-export function clientKennung(p4kPath = DEFAULT_P4K) {
+// Data-Block aus build_manifest.id neben der p4k, oder null. Einzige Stelle,
+// die das Manifest liest: 4.10.3 (CL 13165946) kam mit "Branch":
+// "sc-alpha-4.10.0" — jeder Datenstand haette sich als 4.10.0 ausgegeben.
+// Der Launcher protokolliert die echte Fassung je Changelist; passt dessen
+// Eintrag zur Changelist des Manifests, gilt seine Fassung.
+export function clientManifest(p4kPath = DEFAULT_P4K) {
   // dirname statt Abschneiden am letzten Trenner: ein nackter Dateiname
   // („--p4k Data.p4k") meint das Arbeitsverzeichnis.
   const bm = resolve(dirname(p4kPath), 'build_manifest.id');
   if (!existsSync(bm)) return null;
-  try {
-    const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
-    if (!d?.Branch || !d?.RequestedP4ChangeNum) return null;
-    return `${d.Branch.replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`;
-  } catch { return null; }
+  let d;
+  try { d = JSON.parse(readFileSync(bm, 'utf8'))?.Data; } catch { return null; }
+  if (!d) return null;
+  const fassung = launcherFassung(d.RequestedP4ChangeNum);
+  if (fassung && d.Branch && d.Branch !== `sc-alpha-${fassung}`) {
+    if (!warnedBranch) console.error(`Hinweis: build_manifest.id nennt ${d.Branch}, der Launcher hat CL ${d.RequestedP4ChangeNum} als ${fassung} installiert. Es gilt sc-alpha-${fassung}.`);
+    warnedBranch = true;
+    return { ...d, Branch: `sc-alpha-${fassung}` };
+  }
+  return d;
+}
+let warnedBranch = false;
+
+function launcherFassung(cl) {
+  if (!cl || !process.env.APPDATA) return null;
+  const log = resolve(process.env.APPDATA, 'rsilauncher', 'logs', 'log.log');
+  if (!existsSync(log)) return null;
+  const re = new RegExp(`Star Citizen LIVE (\\d+\\.\\d+\\.\\d+)-live\\.${cl}\\b`, 'g');
+  let fassung = null;
+  for (const m of readFileSync(log, 'utf8').matchAll(re)) fassung = m[1];
+  return fassung;
+}
+
+// Client-Kennung in der Form der uebrigen Datenstaende
+// ("4.10.2-live.12913470", wie datamine-wikelo.mjs). null, wenn das Manifest
+// fehlt oder Branch/Changelist nicht traegt — der Aufrufer entscheidet, ob er
+// ohne Kennung schreiben darf.
+export function clientKennung(p4kPath = DEFAULT_P4K) {
+  const d = clientManifest(p4kPath);
+  if (!d?.Branch || !d?.RequestedP4ChangeNum) return null;
+  return `${d.Branch.replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`;
 }
 
 // unp4k-Standardschluessel, Zero-IV (CIG verschluesselt nur wenige Eintraege)

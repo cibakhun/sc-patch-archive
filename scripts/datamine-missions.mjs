@@ -22,7 +22,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDataCore } from './lib/datacore.mjs';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'src', 'data', 'missions.json');
@@ -49,13 +49,8 @@ if (dcbArg) {
   // Branch allein (z.B. "sc-alpha-4.9.0") wiederholt sich ueber mehrere Builds
   // hinweg — die Changelist-Nummer gehoert zwingend mit rein (D-16), sonst
   // liesse sich ein veralteter gegen einen frischen Lauf nicht unterscheiden.
-  const bm = resolve(dirname(p4k.path), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
-      patchLabel = d?.Branch && d?.RequestedP4ChangeNum ? `${d.Branch}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? d?.Version ?? null);
-    } catch { /* egal */ }
-  }
+  const d = clientManifest(p4k.path);
+  patchLabel = d?.Branch && d?.RequestedP4ChangeNum ? `${d.Branch}@${d.RequestedP4ChangeNum}` : (d?.Branch ?? d?.Version ?? null);
   p4k.close();
 }
 

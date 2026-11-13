@@ -41,6 +41,7 @@ const ART: Record<string, string> = {
   '4-10-0': 'trailer-4-10-0',
   '4-10-1': 'trailer-4-10-1',
   '4-10-2': 'trailer-4-10-2',
+  '4-10-3': 'img-vanduul',
 };
 
 /**

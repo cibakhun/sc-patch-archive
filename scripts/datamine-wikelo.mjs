@@ -26,10 +26,10 @@
 //
 //   node scripts/datamine-wikelo.mjs            schreibt assets/wikelo-gamefiles.json
 //   node scripts/datamine-wikelo.mjs --report   nur zaehlen, nichts schreiben
-import { writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, clientKennung } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -172,11 +172,7 @@ console.log(`  mit Titel: ${out.filter((x) => x.titel).length}`);
 
 if (!REPORT) {
   const ziel = resolve(ROOT, 'assets', 'wikelo-gamefiles.json');
-  const bm = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
-  let gameVersion = null;
-  if (existsSync(bm)) {
-    try { const d = JSON.parse(readFileSync(bm, 'utf8')).Data; gameVersion = `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}`; } catch { /* bleibt null */ }
-  }
+  const gameVersion = clientKennung();
   writeFileSync(ziel, JSON.stringify({
     generator: 'scripts/datamine-wikelo.mjs',
     generatedAt: new Date().toISOString(),

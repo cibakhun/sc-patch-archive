@@ -247,7 +247,8 @@ console.log(`   Armour-Blueprints geprueft: ${armourBps.length} | mit Ton: ${arm
 // 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
 // 916 -> 926 im 4.10.2-Datenlauf 11.10.2026: das Monolith-Set (Helm, Torso, Arme, Beine,
 // Rucksack, je normal und "Shadowflux") ist neu.
-need(armourBps.length === 926, `Armour-Blueprints: erwartet 926, gemessen ${armourBps.length}`);
+// 926 -> 937 im 4.10.3-Datenlauf 12.11.2026: "Raider Camo" fuer Corbel, Palatino und Tailwind (11 Teile).
+need(armourBps.length === 937, `Armour-Blueprints: erwartet 937, gemessen ${armourBps.length}`);
 need(armourWithTone === 0, `${armourWithTone} Armour-Blueprints mit Ton`);
 
 /* ---------- 6) Abdeckung ---------- */
@@ -266,8 +267,8 @@ const COVERAGE_EXPECTED = {
   // 4.10.2-Datenlauf 11.10.2026: +1 Kraftwerk, der neue Bauplan "DayBreak".
   Powerplant: { n: 75, leer: 0, size: 75, grade: 75, tone: 73 },
   Cooler: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
-  Shield: { n: 61, leer: 0, size: 61, grade: 61, tone: 60 },
-  Radar: { n: 60, leer: 3, size: 57, grade: 57, tone: 57 },
+  Shield: { n: 62, leer: 0, size: 62, grade: 62, tone: 60 }, // 4.10.3: +Deterrent, ohne Ton
+  Radar: { n: 60, leer: 2, size: 58, grade: 58, tone: 58 }, // 4.10.3: "Radr Wlop S03 Lephari" heisst jetzt Lephari
   Quantumdrive: { n: 57, leer: 0, size: 57, grade: 57, tone: 56 },
 };
 for (const [type, exp] of Object.entries(COVERAGE_EXPECTED)) {
@@ -309,7 +310,8 @@ for (const b of weaponBps) {
   }
 }
 console.log(`   Schiffswaffen geprueft: ${weaponChecked} | Abweichungen: ${weaponBad}`);
-need(weaponChecked === 96, `Schiffswaffen: erwartet 96 geprueft, gemessen ${weaponChecked}`);
+// 96 -> 99 im 4.10.3-Datenlauf: M3A, M4A und M5A Cannon Raider Camo.
+need(weaponChecked === 99, `Schiffswaffen: erwartet 99 geprueft, gemessen ${weaponChecked}`);
 need(weaponBad === 0, `Schiffswaffen-Ton: ${weaponBad} Abweichungen`);
 
 /* ---------- 8) Gesamtabdeckung nach der Sperre (Plan 05-02) ---------- */
@@ -349,20 +351,23 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // sync:items): neu mit Angabe sind DayBreak, Goliath, F55 "Shadowflux" LMG,
 // acht Monolith-Teile und die zwei umbenannten Antium-Bauplaene; die zwei
 // alten Antium-Namen entfallen.
-need(totalWithSpec === 1550, `Chip-Reihen: erwartet 1550, gemessen ${totalWithSpec}`);
+// 1550 -> 1557 im 4.10.3-Datenlauf 12.11.2026 (1.623 statt 1.606 Bauplaene): drei Raider-Camo-
+// Kanonen, Skarnov "Raider Camo", Deterrent, Lephari und die Skarnov-Batterie; zehn
+// der neuen Baupläne tragen keine Chip-Angabe (ohne jede Angabe 67 -> 77).
+need(totalWithSpec === 1557, `Chip-Reihen: erwartet 1557, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.
 // Damit tragen auch die mehrdeutigen Anzeigenamen ihre Groessen — GVSR
 // Repeater "S2 / S10", Revenant Gatling "S3 / S4 / S6", Tarantula GT-870
 // "S3 / S7 / S8". Die beiden BroadSpec-Karten bleiben gesperrt (Kollision),
 // deshalb +3 und nicht +5.
-need(totalSize === 1550, `Groesse: erwartet 1550, gemessen ${totalSize}`);
+need(totalSize === 1557, `Groesse: erwartet 1557, gemessen ${totalSize}`);
 // 315 statt 1509 seit dem 07.08.2026: der Grade erscheint nur noch bei den
 // fuenf Bauteilarten, bei denen er im Spiel etwas unterscheidet (Kraftwerk 71,
 // Kuehler 70, Schild 62, Radar 55, Quantenantrieb 57 = 315). Zuvor trugen 1194
 // Karten ein "Grade A", das nur der Vorgabewert aus AttachDef.Grade war —
 // aufgefallen an einer Dominance-1 Scattergun. Siehe GRADE_BEARING_TYPES.
-need(totalGrade === 323, `Grade: erwartet 323, gemessen ${totalGrade}`);
+need(totalGrade === 325, `Grade: erwartet 325, gemessen ${totalGrade}`);
 need(
   ['PowerPlant', 'Cooler', 'Shield', 'Radar', 'QuantumDrive'].every((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes deckt die fuenf Bauteilarten nicht ab: [${[...gradeBearingTypes].sort().join(', ')}]`,
@@ -371,14 +376,14 @@ need(
   !['WeaponGun', 'WeaponPersonal', 'Char_Armor_Helmet', 'Paints'].some((t) => gradeBearingTypes.has(t)),
   `gradeBearingTypes laesst eine Art mit konstantem Grade durch: [${[...gradeBearingTypes].sort().join(', ')}]`,
 );
-need(totalTone === 506, `Ton: erwartet 506, gemessen ${totalTone}`);
-need(toneFromClass === 406, `Ton aus game.class: erwartet 406, gemessen ${toneFromClass}`);
-need(toneFromPath === 100, `Ton aus dem Pfad: erwartet 100, gemessen ${toneFromPath}`);
+need(totalTone === 511, `Ton: erwartet 511, gemessen ${totalTone}`);
+need(toneFromClass === 408, `Ton aus game.class: erwartet 408, gemessen ${toneFromClass}`);
+need(toneFromPath === 103, `Ton aus dem Pfad: erwartet 103, gemessen ${toneFromPath}`);
 // 62 -> 65 im 4.10-Datenlauf 27.08.2026. Zusammen mit 1540 Chip-Reihen ergibt
 // das genau die 1.605 Bauplaene — die Selbstprobe eine Zeile tiefer haelt beide
 // Zahlen aneinander, eine allein koennte still auseinanderlaufen.
 // 65 -> 67 im 4.10.2-Datenlauf 11.10.2026: die zwei neuen Monolith-Helme tragen keine Chip-Angabe.
-need(totalNone === 67, `ohne jede Angabe: erwartet 67, gemessen ${totalNone}`);
+need(totalNone === 77, `ohne jede Angabe: erwartet 77, gemessen ${totalNone}`);
 need(totalWithSpec + totalNone === craftDb.blueprints.length, `Selbstkonsistenz: ${totalWithSpec} + ${totalNone} != ${craftDb.blueprints.length}`);
 
 /* ---------- 10) Zwei gleiche Chips nebeneinander ---------- */

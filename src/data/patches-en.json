@@ -3366,6 +3366,351 @@
       ],
       "fixesNote": "71 closed issues (13 from the Issue Council, 5 crash and stability issues), plus 20 hotfixes delivered during 4.10.1.",
       "wipe": "No wipe. Long Term Persistence preserved, starting funds 20,000 aUEC."
+    },
+    "4-10-3": {
+      "dateDisplayEn": "November 12, 2026",
+      "tagline": "The Vanduul strike Nyx and InterSec is hiring pilots. The RSI Galaxy and the Anvil Liberator arrive with them.",
+      "summary": "Alpha 4.10.3 brings the Vanduul to Nyx. InterSec Defense Solutions offers twelve new contracts against Vanduul strike groups, Maulers and the Shattered Blade, from intercepting a fleet to a living Vanduul sample. New in the catalogue are the RSI Galaxy with its swappable central module and the Anvil Liberator, a carrier for ships and ground vehicles. Carrack, Perseus and Starlancer now carry size 3 radars. Eight ships that were already flyable can be bought in game for aUEC for the first time. The salvage fleet holds far more hull material, Vanduul AI fights longer and harder, and the Mauler's weapons hit almost four times as hard. Size 5 and 7 torpedoes only arm from 700 m. For IAE 2956 there are collector coins, clothing and Best in Show liveries.",
+      "keyFacts": [
+        {
+          "label": "Vanduul Incursion",
+          "value": "Twelve new InterSec contracts in Nyx against the Vanduul and the Shattered Blade"
+        },
+        {
+          "label": "New ships",
+          "value": "RSI Galaxy with a swappable module and the Anvil Liberator carrier"
+        },
+        {
+          "label": "Size 3 radar",
+          "value": "Carrack, Perseus, Starlancer MAX and TAC"
+        },
+        {
+          "label": "New for aUEC",
+          "value": "Tiburon, Starlite, Ironclad, Ironclad Assault, Pitbull, Basher, M80, Tyilui"
+        },
+        {
+          "label": "Salvage",
+          "value": "Reclaimer holds 448 instead of 240 SCU of hull material"
+        },
+        {
+          "label": "Torpedoes",
+          "value": "Size 5 and 7 only arm from 700 m"
+        },
+        {
+          "label": "Persistence",
+          "value": "Long Term Persistence preserved · starting funds 20,000 aUEC"
+        }
+      ],
+      "features": [
+        {
+          "name": "Vanduul Incursion",
+          "system": "Missions & Activities",
+          "desc": "Vanduul clans appear in the Nyx system and threaten the trade routes. InterSec Defense Solutions is looking for experienced combat pilots with backup. Twelve new mission families are in the catalogue. They range from intercepting a Vanduul strike group, drawing out individual Maulers and fights between the Vanduul and the Shattered Blade to retaking a boarded vessel and a living Vanduul sample in a cryopod. Most contracts can be shared and are built for groups.",
+          "facts": [
+            {
+              "label": "Contractor",
+              "value": "InterSec Defense Solutions, Nyx"
+            },
+            {
+              "label": "Ranks",
+              "value": "Veteran Contractor to Elite Contractor"
+            },
+            {
+              "label": "Mission families",
+              "value": "1,387 → 1,399 (+12)"
+            }
+          ]
+        },
+        {
+          "name": "RSI Galaxy",
+          "system": "Ship systems",
+          "desc": "The Galaxy is a large multi-crew ship built around a swappable central module. The cargo module takes the hold from 64 to 720 SCU and adds an industrial lift and tractor beam consoles for loading. The med bay module turns the midsection into a field hospital with tier 1 to 3 medbeds. The catalogue carries the three modules and five liveries.",
+          "facts": [
+            {
+              "label": "Role",
+              "value": "Modular ship · large · from six crew"
+            },
+            {
+              "label": "Hull / shield",
+              "value": "148,700 / 200,000 HP"
+            },
+            {
+              "label": "SCM / top speed",
+              "value": "145 / 950 m/s"
+            },
+            {
+              "label": "Cargo",
+              "value": "64 SCU, 720 SCU with the cargo module"
+            },
+            {
+              "label": "Missiles",
+              "value": "32 × Tempest II"
+            }
+          ]
+        },
+        {
+          "name": "Anvil Liberator",
+          "system": "Ship systems",
+          "desc": "The Liberator is a heavy carrier for ships and ground vehicles. Vehicles roll up the rear ramp into the vehicle bay. Ships fit in the interior hangar or set down on the landing pads, some inside the hull and some along the top. Anything parked in the Liberator can repair, rearm and refuel there.",
+          "facts": [
+            {
+              "label": "Role",
+              "value": "Light carrier · capital"
+            },
+            {
+              "label": "Hull / shield",
+              "value": "275,000 / 211,200 HP"
+            },
+            {
+              "label": "SCM / top speed",
+              "value": "115 / 950 m/s"
+            },
+            {
+              "label": "Cargo",
+              "value": "400 SCU"
+            },
+            {
+              "label": "Turrets",
+              "value": "4 × CF-337 Panther, 2 × CF-557 Galdereen"
+            }
+          ]
+        },
+        {
+          "name": "Size 3 radars",
+          "system": "Ship systems",
+          "desc": "Carrack, Perseus, Starlancer, Starlancer TAC, Hammerhead and Tiburon now carry size 3 radars instead of size 2, with updated default loadouts. The component bays were reworked for it. The Perseus relay therefore sits on a console, and the Starlancer radar now lives in engineering. Hammerhead and Tiburon already carried the size 3 radar in the catalogue.",
+          "facts": [
+            {
+              "label": "Carrack · Starlancer",
+              "value": "Surveyor (S2) → Surveyor-Max (S3)"
+            },
+            {
+              "label": "Perseus",
+              "value": "Epier (S2) → Resolu (S3)"
+            }
+          ]
+        },
+        {
+          "name": "New for aUEC",
+          "system": "Ship systems",
+          "desc": "Eight ships that were already flyable can be bought in game with aUEC for the first time. New Deal in Lorville stocks the Tiburon and Starlite. Teach's Ship Shop on Levski has the Ironclad, Pitbull and Starlite. Rundown Station in Pyro sells the Ironclad Assault, Pitbull and Basher, and Astro Armada in Area18 sells the M80 and Tyilui.",
+          "facts": [
+            {
+              "label": "Lorville · New Deal",
+              "value": "Tiburon, Starlite"
+            },
+            {
+              "label": "Levski · Teach's",
+              "value": "Ironclad, Pitbull, Starlite"
+            },
+            {
+              "label": "Pyro · Rundown Station",
+              "value": "Ironclad Assault, Pitbull, Basher"
+            },
+            {
+              "label": "Area18 · Astro Armada",
+              "value": "M80, Tyilui"
+            }
+          ]
+        },
+        {
+          "name": "Vanduul combat and the Mauler",
+          "system": "Combat & Weapons",
+          "desc": "Vanduul AI carries more ammunition and regenerates it faster, which keeps it far more aggressive in long fights. The Mauler's weapons are considerably more deadly, and its health has been reduced to balance that. In the catalogue the Mauler's \"STRIKER\" repeater hits for 250 instead of 64 energy damage per shot.",
+          "facts": [
+            {
+              "label": "Mauler \"STRIKER\"",
+              "value": "64 → 250 energy damage per shot"
+            },
+            {
+              "label": "DPS",
+              "value": "800 → 3,125"
+            }
+          ]
+        },
+        {
+          "name": "Salvage with a bigger buffer",
+          "system": "Salvage",
+          "desc": "The whole salvage fleet takes in more hull material before it has to unload. The disintegration field is larger on all five ships, and alignment is more forgiving. Holding a cut on a hull is less fiddly as a result.",
+          "facts": [
+            {
+              "label": "Reclaimer",
+              "value": "240 → 448 SCU"
+            },
+            {
+              "label": "MOTH",
+              "value": "64 → 240 SCU"
+            },
+            {
+              "label": "Vulture",
+              "value": "13 → 16 SCU"
+            },
+            {
+              "label": "Fortune",
+              "value": "13 → 14 SCU"
+            },
+            {
+              "label": "Salvation",
+              "value": "6 → 8 SCU"
+            }
+          ]
+        },
+        {
+          "name": "Torpedoes, bomb racks and bounties",
+          "system": "Combat & Weapons",
+          "desc": "Size 5 and 7 torpedoes only arm from 700 m. The weaponry kiosk in the Crusader showroom at Orison now sells size 1 and size 3 bomb racks in left and right mountings. \"High Risk Target\" bounty contracts award 4,000 instead of 2,000 Bounty Hunters Guild reputation, which puts them correctly between Medium Risk and Very Hard.",
+          "facts": [
+            {
+              "label": "Size 5 and 7 torpedoes",
+              "value": "armed from 700 m"
+            },
+            {
+              "label": "High Risk Target",
+              "value": "2,000 → 4,000 reputation"
+            }
+          ]
+        },
+        {
+          "name": "Skarnov and Raider Camo",
+          "system": "Weapons & Gear",
+          "desc": "New in the catalogue is the Skarnov energy rifle in seven versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Intersec Eliminate Specific Rank1\" in Nyx. The workbench gains 17 blueprints, mostly the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons. The Deterrent shield and the Lephari radar join them. Deterrent is the former RSI size 4 shield that was also called \"Glacis\" up to 4.10.2. The Polaris carries it from the factory.",
+          "facts": [
+            {
+              "label": "Item catalogue",
+              "value": "9,412 → 9,515 entries"
+            },
+            {
+              "label": "Blueprints",
+              "value": "1,606 → 1,623"
+            }
+          ]
+        },
+        {
+          "name": "Vanguard with bigger turrets",
+          "system": "Ship systems",
+          "desc": "The notes do not mention it, but in the catalogue the Vanguard line has stronger rear guns. Warden and Hoplite carry the size 3 SW16BR3 \"Shredder\" in the turret instead of the size 2 \"Sawbuck\". The Sentinel gets the Suckerpunch-XL instead of the Suckerpunch-L, and the Harbinger carries three turret guns instead of two.",
+          "facts": [
+            {
+              "label": "Warden · Hoplite",
+              "value": "Turret DPS 400 → 750"
+            },
+            {
+              "label": "Sentinel",
+              "value": "Suckerpunch-L → Suckerpunch-XL"
+            },
+            {
+              "label": "Harbinger",
+              "value": "2 → 3 turret guns"
+            }
+          ]
+        },
+        {
+          "name": "Names and editions",
+          "system": "Ship systems",
+          "desc": "Anvil's ground vehicles now carry their platform in the name and are called HM6 Ballista, HM6 Spartan and HM6 Centurion. The Constellation Mk IV Phoenix Emerald and the Hammerhead 2949 Best In Show Edition are no longer separate vehicles in the game. Emerald is now a livery for the Mk IV. The Constellation Mk V Centaurus holds 32 instead of 46.8 SCU of hydrogen."
+        },
+        {
+          "name": "IAE 2956",
+          "system": "Events",
+          "desc": "For the Intergalactic Aerospace Expo 2956 there are collector coins of the Best in Show ships with a display case, a cap and a T-shirt. Corsair, Ironclad Assault, M80 and Perseus each get a \"2956 Best In Show\" livery."
+        },
+        {
+          "name": "Comfort",
+          "system": "UI & Comfort",
+          "desc": "On the Esperia Prowler Utility a new control on the pilot and copilot dashboards opens only the cargo bay doors without lowering the rear ramp. Ship HUD holograms are now tinted in the manufacturer's colour."
+        }
+      ],
+      "ships": [
+        {
+          "role": "Modular ship",
+          "status": "new",
+          "notes": "Swappable central module for cargo or a med bay"
+        },
+        {
+          "role": "Light carrier",
+          "status": "new",
+          "notes": "Carrier for ships and ground vehicles"
+        },
+        {
+          "role": "Expedition",
+          "status": "changed",
+          "notes": "Size 3 radar"
+        },
+        {
+          "role": "Expedition",
+          "status": "changed",
+          "notes": "Size 3 radar"
+        },
+        {
+          "role": "Heavy gunship",
+          "status": "changed",
+          "notes": "Size 3 radar, relay on a console"
+        },
+        {
+          "role": "Medium freight",
+          "status": "changed",
+          "notes": "Size 3 radar in engineering"
+        },
+        {
+          "role": "Gunship",
+          "status": "changed",
+          "notes": "Size 3 radar in engineering"
+        },
+        {
+          "role": "Heavy fighter",
+          "status": "changed",
+          "notes": "Size 3 turret, not in the notes"
+        },
+        {
+          "role": "Dropship",
+          "status": "changed",
+          "notes": "Size 3 turret, not in the notes"
+        },
+        {
+          "role": "Heavy fighter / bomber",
+          "status": "changed",
+          "notes": "Suckerpunch-XL in the turret, not in the notes"
+        },
+        {
+          "role": "Heavy fighter / bomber",
+          "status": "changed",
+          "notes": "Three turret guns, not in the notes"
+        },
+        {
+          "role": "Heavy salvage",
+          "status": "changed",
+          "notes": "Salvage buffer 240 → 448 SCU"
+        },
+        {
+          "role": "Medium salvage",
+          "status": "changed",
+          "notes": "Salvage buffer 64 → 240 SCU"
+        },
+        {
+          "role": "Corvette",
+          "status": "changed",
+          "notes": "Shield is now called Deterrent"
+        },
+        {
+          "role": "Medium freight / gunship",
+          "status": "changed",
+          "notes": "Hydrogen 46.8 → 32 SCU"
+        }
+      ],
+      "events": [
+        {
+          "name": "Vanduul Incursion",
+          "period": "from Nov 12, 2026",
+          "desc": "Vanduul strike groups attack in the Nyx system. InterSec Defense Solutions offers contracts against the Vanduul, Maulers and the Shattered Blade."
+        },
+        {
+          "name": "IAE 2956",
+          "period": "from Nov 12, 2026",
+          "desc": "Intergalactic Aerospace Expo with collector coins, clothing and Best in Show liveries."
+        }
+      ],
+      "fixesNote": "The official notes for 4.10.3 carry no separate bug fix list.",
+      "wipe": "No wipe. Long Term Persistence preserved, starting funds 20,000 aUEC."
     }
   }
 }

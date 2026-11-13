@@ -586,6 +586,141 @@ function growSpec(h, org = [0, 0, 0]) {
 }
 // Anteil am Zuwachs für die Lage v auf Achse i (wie hgFrac im Shader)
 const growFrac = (s, v, i) => (v <= s.lo[i] ? s.flo[i] : v >= s.hi[i] ? s.fhi[i] : 0);
+// Zuwachs für ein Schiff mit den Maßen info: mit 1 m Rand aufs Feld L, 4 m
+// unter die Wannen (s.clear, sonst die Raumhöhe height); je Seite in ganzen
+// Schritten (s.step). s: growSpec. Ergebnis [x, y, z] in Modellmetern.
+function growNeed(info, L, s, height) {
+  const st = s.step, q = (need, f) => (need > 1e-6 && f > 0 ? (Math.ceil((need * f) / st - 1e-6) * st) / f : 0);
+  return [q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), s.fhi[0]), q(info.height + 4 - (s.clear ?? height), s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), s.fhi[2])];
+}
+
+// Raum der Kamera in der echten Halle (13.11.2026). Krisz: „es auch am
+// glitchen wenn man zb grosse schiffe reinruft“. Die Grenze der Kamera war
+// eine Kugel um das Blickziel, so groß, wie sie in die Breite der Halle
+// passt (0,9 x halbe Breite / 0,94). Die Halle wächst mit dem Schiff aber
+// vor allem in die Länge, und ab 69 m Schiffslänge ragten Bug und Heck aus
+// der Kugel: Ganz herausgezoomt stand die Kamera vor Bug und Heck im Rumpf
+// (Carrack bis 4,9 m, Idris 11 m; keepFree schob sie nur bis zur Kugel,
+// das Bild war schwarz mit Innenteilen). Dazu lag der Mindestabstand (0,45
+// x Spannweite) bei 15 Schiffen nach den Maßen im Katalog auf oder über der
+// Kugel, bei der Carrack nach den Maßen ihres Modells, also zoomte nichts
+// mehr (Carrack 58,1 bis 58,1 m), und die Startansicht stand so nah, dass
+// der weiteste Blickwinkel das Schiff anschnitt.
+// Jetzt bleibt die Kugel, wie sie war (ball), und dazu kommt ein Gang längs
+// der Halle (box), in dem die Kamera bis CAM_AIR m hinter Bug und Heck darf
+// (far). Der Gang endet, wo die Halle beginnt, und zwar mit so viel Rand,
+// dass der Federarm (keepFree, Kegel von 3 Grad) darin nicht eingreift: An
+// einer glatten Wand rückte er die Kamera sonst in Stufen von 0,4 bis 0,9 m.
+//   CAM_SIDE  Breite: 0,9 x halbe Raumbreite − 6,75 m. Die Galerien stehen
+//             7 m vor den Längswänden, der Kegel braucht längs einer Wand
+//             rund 8 % ihres Abstands.
+//   CAM_TOP   m unter den Lichtwannen (HALL_GROW.clear + Zuwachs), sonst
+//             unter der Raumhöhe. Höher hinauf gilt die Kugel wie bisher.
+//   CAM_END   m vor den Stirnwänden des Raums
+//   CAM_NEAR  Mindestabstand höchstens so viel: Näher am Rumpf hält ohnehin
+//             die gemessene Hülle (shipNeed). Schiffe bis 66 m behalten
+//             0,45 x Spannweite.
+// Schiffe bis 34 m Spannweite merken davon nichts (far = ball). Gemessen an
+// Carrack, Idris, Constellation und Gladius, je 864 Richtungen: Die Kamera
+// kommt überall vor die Hülle, wo die Halle es zulässt (vorher Carrack 30,
+// Idris 22 Richtungen im Rumpf), der Federarm greift im Gang nur noch vor
+// dem Kontrollraum der Stirnwand ein.
+// info: Maße des Schiffs, room: Raum der Halle mit Zuwachs (Modellmeter),
+// k: Maßstab der Halle, at: Raummitte in der Welt [x, z], top: freie Höhe
+// über dem Boden (Modellmeter, null: Raumhöhe).
+// edge: So tief liegt das Blickziel der Startansicht (0, homeY, 0) im Gang,
+// der Abstand zur nächsten seiner fünf Flächen (camReach).
+const CAM_NEAR = 30, CAM_AIR = 17.4, CAM_SIDE = [0.9, 6.75], CAM_TOP = 4.5, CAM_END = 4;
+// Höhe des Blickziels der Startansicht über dem Boden
+const homeY = (height) => Math.max(1.2, height * 0.45 + 0.3);
+export function camSpace(info, room, k = 1, at = [0, 0], top = null) {
+  const span = Math.max(info.len, info.halfW * 2, 6);
+  const min = Math.max(4, Math.min(span * 0.45, CAM_NEAR));
+  const ball = Math.max(min, (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94);
+  const far = Math.max(ball, span / 2 + CAM_AIR * k);
+  const hx = Math.max(0, CAM_SIDE[0] * room.halfW - CAM_SIDE[1]) * k, hz = Math.max(0, room.halfL - CAM_END) * k;
+  const y = ((top ?? room.height) - CAM_TOP) * k;
+  const edge = Math.max(1, Math.min(hx - Math.abs(at[0]), y - homeY(info.height), hz - Math.abs(at[1])));
+  return { min, ball, far, edge, box: { x: [at[0] - hx, at[0] + hx], y, z: [at[1] - hz, at[1] + hz] } };
+}
+// So weit darf die Kamera vom Ziel t in Richtung d (Einheitsvektor): im
+// Gang bis far, sonst bis zur Kugel.
+// Das Ziel bleibt nicht in der Hallenmitte: Schieben trägt es bis vor die
+// Wände, ein Hardpoint liegt am Flügelende oder auf dem Rumpf. Nur bis zur
+// Fläche gerechnet, durch die die Linie den Gang verlässt, sprang die Grenze
+// dort (Review PR #354): mit dem Ziel 1 cm neben dem Gang und der Kamera
+// längs der Halle bei 0,01 Grad Drehung von far auf die Kugel (Carrack
+// 24,5 m, Idris 54,7 m), und knapp vor einer Fläche fast so steil. Darum
+// schrumpft der Höchstabstand mit der Tiefe des Ziels im Gang (dem Abstand
+// zur nächsten Fläche): far · Wurzel(Tiefe / edge), ab der Tiefe des Ziels
+// der Startansicht (edge) voll, an und neben dem Gang nur die Kugel. Mit der
+// Wurzel ändert sich die Grenze für jedes Ziel beim Drehen höchstens um
+// far² / edge je Bogenmaß, so viel wie um das Ziel der Startansicht an
+// seiner nächsten Fläche, und beim Schieben höchstens um far² / (edge ·
+// Kugel) je Meter. Die Startansicht selbst ändert sich dadurch nicht.
+export function camReach(sp, t, d) {
+  if (sp.far <= sp.ball) return sp.ball;
+  const B = sp.box, deep = Math.min(t.x - B.x[0], B.x[1] - t.x, B.y - t.y, t.z - B.z[0], B.z[1] - t.z);
+  if (!(deep > 0)) return sp.ball;
+  let L = sp.far * Math.sqrt(Math.min(1, deep / sp.edge));
+  if (d.x > 1e-9) L = Math.min(L, (B.x[1] - t.x) / d.x); else if (d.x < -1e-9) L = Math.min(L, (B.x[0] - t.x) / d.x);
+  if (d.y > 1e-9) L = Math.min(L, (B.y - t.y) / d.y);
+  if (d.z > 1e-9) L = Math.min(L, (B.z[1] - t.z) / d.z); else if (d.z < -1e-9) L = Math.min(L, (B.z[0] - t.z) / d.z);
+  return Math.max(sp.ball, L);
+}
+// Federarm der Kamera (keepFree): der erste freie Abstand vom Blickziel, von
+// L aus zum Ziel hin gesucht. ok(x): Steht die Kamera im Abstand x frei?
+// 48 Schritte, dann 12 Halbierungen: Die Grenze ist damit auf
+// L / 48 / 4096 genau getroffen (CAM_PULL). -1: nirgends frei.
+const CAM_PULL = [48, 12];
+export function camPull(L, ok) {
+  let lo = -1, hi = L;
+  for (let i = 1; i <= CAM_PULL[0]; i++) {
+    const x = L * (1 - i / CAM_PULL[0]);
+    if (ok(x)) { lo = x; break; }
+    hi = x;
+  }
+  if (lo < 0) return -1;
+  for (let i = 0; i < CAM_PULL[1]; i++) {
+    const x = (lo + hi) / 2;
+    if (ok(x)) lo = x; else hi = x;
+  }
+  return lo;
+}
+// Raste des Federarms. Hält die Halle die Kamera vor dem gewünschten Abstand
+// fest, gleitet sie jedes Bild ein Stück hinaus (camWant) und der Federarm
+// holt sie zurück, je nach Start auf Bruchteile eines Millimeters anders:
+// Sie zitterte (Carrack hinter dem Heck: 0,3 mm je Bild), galt den Tafeln
+// nie als ruhend, sodass sie ihren Platz nicht fanden (die Ausrüstung stand
+// vor den Schiffswerten), und der Viewer schlief nie ein. Selten war das,
+// solange die Kugel die Kamera vor den Wänden hielt; mit dem Gang hinter Bug
+// und Heck trifft es jedes große Schiff (gemessen 13.11.2026). Liegt der neue
+// Abstand lo bei gleichem Ziel t und gleicher Richtung d innerhalb der
+// vierfachen Genauigkeit der Suche am vorigen Halt H { t, d, x }, gilt der
+// vorige (true, die Kamera gehört nach H.t + H.d · H.x, auf das Bit dieselbe
+// Stelle); sonst wird lo der neue Halt.
+export function camRest(H, t, d, lo, L) {
+  const same = H.x >= 0 && H.t[0] === t.x && H.t[1] === t.y && H.t[2] === t.z
+    && (H.d[0] - d.x) ** 2 + (H.d[1] - d.y) ** 2 + (H.d[2] - d.z) ** 2 < 1e-18
+    && Math.abs(H.x - lo) <= (4 * L) / CAM_PULL[0] / 2 ** CAM_PULL[1];
+  if (!same) { H.t[0] = t.x; H.t[1] = t.y; H.t[2] = t.z; H.d[0] = d.x; H.d[1] = d.y; H.d[2] = d.z; H.x = lo; }
+  return same;
+}
+// Dieselbe Rechnung aus dem, was die Seite der Bühne mitgibt (hall:
+// opts.hall), für ein Schiff mit den Maßen info: Zuwachs der Halle, ihr Raum
+// und die Grenzen der Kamera, dazu die Grenze in der Startansicht (home).
+// null: Halle ohne Feld oder Zuwachs. verify:hangar [23] rechnet damit
+// jedes Schiff des Docks.
+export function camPlan(hall, info) {
+  const L = liftField(hall), R = hall?.room;
+  if (!L || !R) return null;
+  const o = hallSpot(hall), s = growSpec(hall, [o[0], Number.isFinite(hall.floor) ? hall.floor : R.center[1], o[2]]);
+  if (!s) return null;
+  const grow = growNeed(info, L, s, R.height);
+  const room = { center: R.center, halfW: R.halfW + grow[0] / 2, halfL: R.halfL + grow[2] / 2, height: R.height + grow[1] };
+  const sp = camSpace(info, room, 1, [R.center[0] - o[0], R.center[2] - o[2]], (s.clear ?? R.height) + grow[1]);
+  return { grow, room, ...sp, home: camReach(sp, new THREE.Vector3(0, homeY(info.height), 0), HOME_DIR) };
+}
 // Matrix vom Raum des Knotens o in den von root (oder ganz hinauf, wenn
 // root kein Vorfahre ist: was noch eingehängt wird)
 function relMatrix(root, o, out = new THREE.Matrix4()) {
@@ -6818,10 +6953,14 @@ export async function initHangar(container, opts = {}) {
   const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.1, 4000);
   let S = 1, span = 14;
   // camLimit: in der echten Halle darf die Kamera nicht durch die Wand
-  // (Kugel um das Ziel; was in die Halle ragt, hält keepFree() fern)
-  let camLimit = Infinity;
+  // (Kugel um das Ziel; was in die Halle ragt, hält keepFree() fern).
+  // camSp: ihr Raum in der Halle (camSpace: die Kugel und der Gang zu den
+  // Stirnwänden, keepRoom hält sie darin), null ohne echte Halle und in der
+  // Werkhalle. camHome: so weit darf sie in der Startansicht zurück.
+  let camLimit = Infinity, camSp = null, camHome = Infinity;
+  const homeAt = new THREE.Vector3();
   const wantDist = (sp = span) => sp * 1.45 * Math.min(2.2, Math.max(1, 1.3 / (W() / H()))) + 6;
-  const homeDist = () => Math.min(camLimit, wantDist());
+  const homeDist = () => Math.min(camHome, wantDist());
   // Shift-Optik (setCover): Am Telefon liegt der Titelblock der Seite samt
   // Knöpfen über dem oberen Teil der Bühne (390 x 844: 319 von 523 px). Das
   // Bild rückt dann nach unten wie bei einem verschobenen Objektiv:
@@ -6840,7 +6979,7 @@ export async function initHangar(container, opts = {}) {
     // drinnen eigener Blickwinkel, ohne Shift-Optik
     if (walk?.fov) { camera.fov = walk.fov; camera.aspect = W() / H(); camera.clearViewOffset(); return; }
     const d = wantDist(), k = 1 + lensS;
-    baseFov = d > camLimit ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camLimit))) : 38;
+    baseFov = d > camHome ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camHome))) : 38;
     if (fovGlide) {
       const t = Math.min(1, (now - fovGlide.t0) / fovGlide.dur);
       baseFov = THREE.MathUtils.lerp(fovGlide.a, baseFov, inOut3(t));
@@ -6961,10 +7100,10 @@ export async function initHangar(container, opts = {}) {
   // umrunden kann (Constellation k 2,1, Carrack 4,1); so sah jedes Schiff
   // in der Halle gleich groß aus. Jetzt stehen 176 von 231 in der Halle in
   // Spielgröße; passt ein Schiff nicht mit Abstand ins Bild, weitet sich
-  // der Blickwinkel (fitFov), und die Kamera bleibt im Raum (camRoom: ihr
-  // waagrechter Abstand, 0,94 x Entfernung, unter 90 % der halben Breite).
+  // der Blickwinkel (fitFov), und die Kamera bleibt im Raum (camSpace: in
+  // der Kugel ihr waagrechter Abstand, 0,94 x Entfernung, unter 90 % der
+  // halben Breite; seit 13.11.2026 dazu der Gang zu den Stirnwänden).
   // Gerät und Crew stellen sich aufs Feld und frei vom Rumpf (layDienst).
-  const camRoom = (room, k) => (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94;
   // Mit Aufzug steht das Schiff ganz auf dem Feld, mit 1 m Rand.
   const liftScale = () => {
     const L = realHall?.liftL;
@@ -7010,8 +7149,7 @@ export async function initHangar(container, opts = {}) {
   function growFor(info) {
     const G = realHall?.grow, L = realHall?.liftL, out = new THREE.Vector3();
     if (!G || !L) return out;
-    const st = G.s.step, q = (need, f) => (need > 1e-6 && f > 0 ? (Math.ceil((need * f) / st - 1e-6) * st) / f : 0);
-    return out.set(q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), G.s.fhi[0]), q(info.height + 4 - (G.s.clear ?? realHall.room.height), G.s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), G.s.fhi[2]));
+    return out.fromArray(growNeed(info, L, G.s, realHall.room.height));
   }
   // Maßstab der Hallenlampen (scaleLamps, growApply). Wächst die Halle an
   // Streifen, bleibt sie im Maßstab 1, die sechs Lampen aber rücken um die
@@ -7258,11 +7396,20 @@ export async function initHangar(container, opts = {}) {
     camera.far = HALL_R * S * 6; camera.updateProjectionMatrix();
     controls.minDistance = Math.max(4, span * 0.45);
     controls.maxDistance = HALL_R * S * 0.95;
-    camLimit = Infinity;
+    camLimit = Infinity; camSp = null; camHome = Infinity;
     if (realHall) {
       const k = hallRoot.scale.x, R = realHall.grow ? grownRoom(grow.to) : realHall.room;
-      camLimit = ort === 'werk' && realHall.werk ? werkRoom(k) : camRoom(R, k);
-      controls.maxDistance = Math.max(controls.minDistance, camLimit);
+      if (ort === 'werk' && realHall.werk) {
+        camLimit = camHome = werkRoom(k);
+        controls.maxDistance = Math.max(controls.minDistance, camLimit);
+      } else {
+        // Kugel und Gang (camSpace); die Halle steht mit dem Feld im Ursprung
+        const mp = realHall.model.position, G = realHall.grow;
+        camSp = camSpace(shipInfo, R, k, [(R.center[0] + mp.x) * k, (R.center[2] + mp.z) * k], G ? (G.s.clear ?? realHall.room.height) + grow.to.y : null);
+        camLimit = camSp.ball;
+        controls.minDistance = camSp.min; controls.maxDistance = camSp.far;
+        camHome = camReach(camSp, homeAt.set(0, homeY(shipInfo.height), 0), HOME_DIR);
+      }
       camera.far = Math.max(R.halfL, R.height) * k * 4;
       camera.updateProjectionMatrix();
     }
@@ -11829,7 +11976,7 @@ void main() {
     // auf der gebauten Plattform schwebt es knapp darüber, in der echten Halle steht es
     ship.userData.baseY = realHall ? 0.02 : 0.3 * S + 0.25;
     ship.position.y = ship.userData.baseY;
-    const tgt = new THREE.Vector3(0, Math.max(1.2, size.y * 0.45 + 0.3), 0);
+    const tgt = new THREE.Vector3(0, homeY(size.y), 0);
     if (!current) {
       onPoint = false; panned = false;
       controls.target.copy(tgt); camera.position.copy(homeDir().clone().multiplyScalar(homeDist()).add(tgt));
@@ -11840,7 +11987,7 @@ void main() {
       // Schiffs. Steckt die Kamera dann im neuen Rumpf, schiebt keepFree()
       // sie hinaus, wie beim Drehen.
       const off = camAim.pos.clone().sub(camAim.tgt);
-      const r = THREE.MathUtils.clamp(camAim.rel * homeDist(), controls.minDistance, controls.maxDistance);
+      const r = Math.min(THREE.MathUtils.clamp(camAim.rel * homeDist(), controls.minDistance, controls.maxDistance), reachAt(tgt, off.normalize()));
       onPoint = false;
       flyTo(tgt, off.setLength(r).add(tgt), camMs);
       if (fly) holdCam();
@@ -12176,7 +12323,8 @@ void main() {
     out.y = Math.max(out.y, 0);
     const dir = out.lengthSq() > 1e-4 ? out.normalize().multiplyScalar(0.7).add(view.multiplyScalar(0.3)) : view;
     dir.y = Math.max(dir.normalize().y, 0.17);
-    const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, controls.maxDistance);
+    // in der Kugel wie bisher, nicht im Gang zu den Stirnwänden (camSpace)
+    const r = THREE.MathUtils.clamp(span * 0.62, controls.minDistance, Math.max(controls.minDistance, Math.min(controls.maxDistance, camLimit)));
     if (!onPoint) pointRel = aimNow().rel;
     touched = true; onPoint = true;
     flyTo(tgt, dir.normalize().multiplyScalar(r).add(tgt), 700);
@@ -12320,7 +12468,8 @@ void main() {
   }
   const paced = (fps) => vsMs * Math.max(1, Math.floor(1000 / vsMs / fps + 0.25));
   // Freiraum der Kamera (2026-10-10). Ihre Grenze war eine Kugel um das
-  // Ziel (camRoom), die Halle ist keine: Ganz herausgezoomt fuhr die Kamera
+  // Ziel (ball in camSpace), die Halle ist keine: Ganz herausgezoomt fuhr
+  // die Kamera
   // bei 16 bis 32 Grad Höhe in Balkone und Kabeltrassen der Seitenwände (das
   // Bild war grau), bei hohen Schiffen in die Deckenkästen, und ganz tief
   // stand sie auf 15 bis 17 m in einem Kistenstapel. Darum misst die
@@ -12484,7 +12633,7 @@ void main() {
       // Läuft die Fahrt noch, endet sie gleich außerhalb statt danach zu springen
       if (fly && sameAim(o, fly.tb)) {
         const d = new THREE.Vector3().setFromSpherical(new THREE.Spherical(1, fly.b.phi, fly.b.theta));
-        fly.b.radius = Math.max(fly.b.radius, Math.min(shipNeed(fly.tb, d), controls.maxDistance));
+        fly.b.radius = Math.max(fly.b.radius, Math.min(shipNeed(fly.tb, d), reachAt(fly.tb, d)));
       }
       console.info(`[hangar] Hülle des Schiffs gemessen (6 × ${FREE_N}²${b > 0 ? `, ${poses.length} Höhen` : ''}, ${Math.round(performance.now() - t0)} ms)`);
     }).catch((e) => {
@@ -12665,6 +12814,21 @@ void main() {
     }
     return need;
   }
+  // So weit darf die Kamera vom Ziel t in Richtung d (Einheitsvektor): in
+  // der echten Halle ihr Raum (camSpace), sonst der Höchstabstand
+  const reachAt = (t, d) => (camSp ? Math.min(controls.maxDistance, camReach(camSp, t, d)) : controls.maxDistance);
+  // Nach controls.update(): Die Kamera bleibt in ihrem Raum der Halle
+  // (camSpace). OrbitControls kennt nur den größten Abstand, den bis hinter
+  // Bug und Heck; zur Seite und nach oben endet der Raum früher, dort rückt
+  // sie auf der Linie zum Blickziel hinein. Während der Kamerafahrt eines
+  // Schiffswechsels (camHold) bleibt sie, wie die Fahrt sie führt.
+  function keepRoom() {
+    if (!camSp || camHold) return;
+    const c = camera.position, t = controls.target, L = keepD.subVectors(c, t).length();
+    if (L < 1e-6) return;
+    const far = camReach(camSp, t, keepD.divideScalar(L));
+    if (L > far) c.copy(keepAt(t, far));
+  }
   // Nach controls.update(): Steckt die Kamera im Schiff oder streift es, geht
   // sie auf der Linie vom Blickziel nach außen hinter seine fernste Fläche.
   // Steht sie dann nicht frei in der Halle, geht sie auf der Linie zum
@@ -12673,6 +12837,7 @@ void main() {
   // frei ist). Ist die Linie nirgends frei, bleibt sie.
   const keepD = new THREE.Vector3(), keepQ = new THREE.Vector3();
   const keepAt = (t, x) => keepQ.copy(t).addScaledVector(keepD, x);
+  const keepHeld = { t: [0, 0, 0], d: [0, 0, 0], x: -1 };   // voriger Halt des Federarms (camRest)
   function keepFree() {
     const c = camera.position, t = controls.target;
     let L = keepD.subVectors(c, t).length();
@@ -12681,26 +12846,21 @@ void main() {
     // Geschoben steht das Ziel irgendwo in der Halle, das Schiff womöglich
     // hinter der Kamera: Die Linie vom Ziel hinaus führte dann durch den
     // Rumpf auf seine andere Seite. Dort hält keepOut die Kamera draußen.
-    const need = panned ? 0 : shipNeed(t, keepD);
-    if (L < need) { L = Math.min(need, controls.maxDistance); c.copy(keepAt(t, L)); }
+    const need = panned ? 0 : shipNeed(t, keepD), far = camHold ? controls.maxDistance : reachAt(t, keepD);
+    if (L < need) { L = Math.min(need, far); c.copy(keepAt(t, L)); }
     if (!camFree || freeOk(c) || !targetOk(t)) return;
     const b = hallOk(c) && inBox(c);
     if (b) {
       const [s0, s1] = boxSpan(t, keepD, b), out = s1 + 1e-3;
-      if (out - L < L - s0 && out <= controls.maxDistance && freeOk(keepAt(t, out))) { c.copy(keepQ); return; }
+      if (out - L < L - s0 && out <= far && freeOk(keepAt(t, out))) { c.copy(keepQ); return; }
     }
-    let lo = -1, hi = L;
-    for (let i = 1; i <= 48; i++) {
-      const x = L * (1 - i / 48);
-      if (freeOk(keepAt(t, x))) { lo = x; break; }
-      hi = x;
-    }
+    const lo = camPull(L, (x) => freeOk(keepAt(t, x)));
     if (lo < 0) return;
-    for (let i = 0; i < 12; i++) {
-      const x = (lo + hi) / 2;
-      if (freeOk(keepAt(t, x))) lo = x; else hi = x;
-    }
-    c.copy(keepAt(t, lo));
+    // Raste (camRest): am vorigen Halt auf das Bit dieselbe Stelle, sonst
+    // zitterte die Kamera hier Bild für Bild um Bruchteile eines Millimeters
+    const H = keepHeld;
+    if (camRest(H, t, keepD, lo, L)) c.set(H.t[0] + H.d[0] * H.x, H.t[1] + H.d[1] * H.x, H.t[2] + H.d[2] * H.x);
+    else c.copy(keepAt(t, lo));
   }
   // In der Werkhalle bleibt die Kamera im Raum (mit Rand vor Wänden, Boden
   // und Decke): auf der Linie vom Blickziel nach außen bis zur ersten Wand
@@ -13642,6 +13802,7 @@ void main() {
       controls.update(dt);
       // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
+      keepRoom();
       keepFree();
       if (ort === 'werk') keepWerk();
       if (panned) keepOut();

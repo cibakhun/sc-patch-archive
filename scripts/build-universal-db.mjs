@@ -36,7 +36,7 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -107,13 +107,7 @@ if (explicitIni) {
   GLOBAL_INI_TEXT = p4k.read(/Localization[\\/]english[\\/]global\.ini$/i).toString('utf8');
   // Patch-Kennung aus der Build-Manifest-Datei neben dem p4k (best effort),
   // solange die p4k ohnehin schon offen ist — kein zweiter Pfad-Aufbau.
-  const bm = resolve(dirname(p4k.path), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data ?? {};
-      gameVersion = d.RequestedP4ChangeNum ? `${(d.Branch || '').replace(/^sc-alpha-/, '')}-live.${d.RequestedP4ChangeNum}` : null;
-    } catch { /* egal */ }
-  }
+  gameVersion = clientKennung(p4k.path);
   p4k.close();
   catalogSourceLabel = 'der lokalen Data.p4k';  // ohne Pfad — siehe Kommentar oben
 }

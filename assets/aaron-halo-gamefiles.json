@@ -1,6 +1,6 @@
 {
   "source": "Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/aaronhalo.socpak (aaronhalo.xml bounds + gotopoint) — eigene Extraktion",
-  "gameVersion": "4.10.2-live.12913470",
+  "gameVersion": "4.10.3-live.13165946",
   "editorBuildChangelist": "12157308",
   "units": "km",
   "innerEdgeKm": 19597600,

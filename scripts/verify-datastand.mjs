@@ -120,17 +120,19 @@ const HANDPFLEGE = [];
 // ersten gekennzeichneten Stand.
 // 10.11.2026, erster Lauf datamine:loot gegen sc-alpha-4.10.2 (Client CL
 // 12913470): Loot-Fundorte neu aufgenommen, Klinke auf diesem Stand.
+// 12.11.2026, Datenlauf auf 4.10.3 (Client CL 13165946): alle zehn Staende
+// gemeinsam gehoben.
 const KLINKEN = {
-  'Loot-Fundorte': 12913470,
-  'Aaron-Halo': 12913470,
-  'Stanton-Anker': 12913470,
-  Missionen: 12881860,
-  Mining: 12881860,
-  Crafting: 12881860,
-  'Item-Katalog': 12881860,
-  Refinery: 12881860,
-  Zerlegung: 12881860,
-  Wikelo: 12881860,
+  'Loot-Fundorte': 13165946,
+  'Aaron-Halo': 13165946,
+  'Stanton-Anker': 13165946,
+  Missionen: 13165946,
+  Mining: 13165946,
+  Crafting: 13165946,
+  'Item-Katalog': 13165946,
+  Refinery: 13165946,
+  Zerlegung: 13165946,
+  Wikelo: 13165946,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine
@@ -150,13 +152,6 @@ const MAX_VERZUG = 10000;
 // wieder von sich aus einhaelt.
 const AUSNAHMEN = [
   // { kennung: 'Beispiel', anlass: 'Vollstaendiger Satz, der den Rueckstand erklaert.' },
-  // Lauf „Hangar-Werte“ (21.10.2026): nur der Item-Katalog wurde neu erzeugt, gegen den
-  // installierten 4.10.2-Nachbau 12913470; die uebrigen stehen auf 12881860 und folgen
-  // beim naechsten vollstaendigen Datenlauf — dann reisst der Zombie-Waechter hier.
-  ...['Missionen', 'Mining', 'Crafting', 'Refinery', 'Zerlegung', 'Wikelo'].map((kennung) => ({
-    kennung,
-    anlass: `${kennung} steht auf 4.10.2 (12881860), weil der Werte-Lauf vom 21.10.2026 nur den Item-Katalog gegen den Nachbau 12913470 erneuert hat.`,
-  })),
 ];
 
 /* ---------- Lauf ---------- */
