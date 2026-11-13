@@ -59,6 +59,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// three r185 fragt in setProgram `object.colorTexture`, BatchedMesh führt
+// seine Farbkarte aber als `_colorsTexture`. `undefined !== null` gilt immer:
+// Für jedes BatchedMesh ohne eigene Farben (hier alle: Wartungsplatz,
+// Hallendeko, Schachttor) suchte der Renderer bei JEDEM Zeichnen das
+// Shaderprogramm neu (Parameter sammeln, Schlüssel bauen), 91 Mal je Bild auf
+// der hohen Stufe (13.11.2026, RTX 3070 Ti, Gladius). Der Name, den der
+// Renderer fragt, zeigt hier auf die Karte, die BatchedMesh führt. Bringt
+// eine spätere Fassung das Feld selbst mit, verdeckt es diesen Zugriff.
+if (!('colorTexture' in THREE.BatchedMesh.prototype)) {
+  Object.defineProperty(THREE.BatchedMesh.prototype, 'colorTexture', { configurable: true, get() { return this._colorsTexture; } });
+}
+
 // ─── Bildlook ─────────────────────────────────────────────────────────────
 // 20.10.2026, Krisz: „besseres licht (nicht mehr, qualitativ besser also
 // künstlerisch qualitativ) colorgrading“. Die Kurve bleibt ACES (three), so
@@ -6592,6 +6604,20 @@ export async function initHangar(container, opts = {}) {
   // Im Leerlauf zeichnet die Bühne mit pixelRatio · pixelScale (frame())
   let pixelScale = 1;
   console.info(`[hangar] Leistungsstufe ${Q0} (${pick.why})`);
+  // three warnt, sobald ein Material die 17. Textureinheit belegt
+  // (allocateTextureUnit), und misst das an MAX_TEXTURE_IMAGE_UNITS: 16 unter
+  // Windows, die Grenze je Bildshader. Einheiten zählen aber über beide
+  // Shader zusammen (MAX_COMBINED_TEXTURE_IMAGE_UNITS, mindestens 32), und ein
+  // BatchedMesh liest zwei Karten im Eckenshader (Matrizen, Reihenfolge).
+  // Jede Requisite mit 15 oder 16 Karten im Bildshader löste so bei jedem
+  // Zeichnen eine Warnung aus: 160 je Bild, 2.600 bis 4.300 je Sekunde, 6 von
+  // 38 ms Rechenzeit je Bild (13.11.2026, RTX 3070 Ti, hohe Stufe). Die
+  // Grenze je Bildshader prüft texBudget unten selbst und meldet sie als
+  // Fehler; three liest maxTextures nur für diese Warnung.
+  {
+    const gl = renderer.getContext(), units = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    if (units > renderer.capabilities.maxTextures) renderer.capabilities.maxTextures = units;
+  }
   renderer.setPixelRatio(pixelRatio);
   renderer.setSize(W(), H());
   renderer.outputColorSpace = THREE.SRGBColorSpace;

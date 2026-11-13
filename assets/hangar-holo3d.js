@@ -1011,8 +1011,15 @@ export function holoLayer(ctx) {
   const mats = [];   // [material, Grunddeckkraft]: alle blenden mit
   const own = [];    // Geometrien, Texturen zum Aufräumen beim Wechsel
   // owner: die Tafel, deren eigene Blende (P.k) mitwirkt
+  // forceSinglePass: Doppelseitig Durchsichtiges zeichnet three sonst in zwei
+  // Zügen (Rück-, dann Vorderseite) und sucht vor jedem Zug das
+  // Shaderprogramm neu, hier für 30 Teile zweimal je Bild (13.11.2026). Am
+  // Bild ändert ein Zug nichts: Diese Materialien sind einfarbig oder liegen
+  // auf einer Fläche, schreiben keine Tiefe, und was additiv mischt, hängt
+  // ohnehin nicht an der Reihenfolge. Ein Material mit Karte auf einem
+  // gewölbten Körper bräuchte wieder beide Züge.
   const basic = (o, base = o.opacity ?? 1, owner = null) => {
-    const m = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, ...o });
+    const m = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, forceSinglePass: true, ...o });
     mats.push([m, base, owner]); return m;
   };
   const softTex = radial([[0, 0.9], [0.5, 0.35], [1, 0]]);

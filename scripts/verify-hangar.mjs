@@ -285,6 +285,11 @@
         Kamera): 14,6 % am Jaeger, 30,4 % am grossen Schiff         -> [21]
     tt  dort FACE_RISE auf 0.08 setzen: die Stellungen bestuenden,
         die abgenommene Staerke gaelte nicht mehr                   -> [21]
+    uu  in dist/assets/hangar-viewer.js die Zeile streichen, die
+        capabilities.maxTextures anhebt (13.11.2026)                -> [12]
+    vv  dort den Getter colorTexture von BatchedMesh streichen      -> [12]
+    ww  in dist/assets/hangar-holo3d.js forceSinglePass aus basic()
+        nehmen ([21] reisst mit: Version passt nicht mehr)          -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -746,6 +751,27 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   const telOk = !!tm && telWirkt && Number(tm[1]) > 0 && Number(tm[1]) <= TEL_TEX.niedrig && Number(tm[2]) > 0 && Number(tm[2]) <= TEL_TEX.sonst;
   sollIst(`Texturen am Telefon hoechstens ${TEL_TEX.sonst} px, in der niedrigen Stufe ${TEL_TEX.niedrig} px`, !tm ? 'kein Deckel gefunden' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `${tm[2]} px, niedrig ${tm[1]} px`);
   if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr oder liegt ueber ${TEL_TEX.sonst} px (niedrig ${TEL_TEX.niedrig} px): mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu`);
+  // Drei Leerlaeufe des Zeichners (Krisz, 13.11.2026: „es braucht viel zu
+  // viele Ressourcen“), gemessen mit der Gladius in der hohen Stufe auf
+  // einer RTX 3070 Ti: three r185 warnte je Bild rund 160 Mal vor der 17.
+  // Textureinheit (2 600 bis 4 300 Zeilen je Sekunde in der Konsole), suchte
+  // fuer jedes BatchedMesh bei jedem Zeichnen das Shaderprogramm neu (91 Mal
+  // je Bild) und zeichnete 30 Hologrammflaechen in zwei Zuegen. Zusammen
+  // 35,6 statt 25,3 ms Rechenzeit je Bild beim Drehen (26 statt 37 Bilder je
+  // Sekunde). Faellt eine der drei Stellen weg, aendert sich kein Bild, nur
+  // der Takt: Darum haelt dieses Tor sie fest. Wer three anhebt und eine
+  // Stelle dort behoben findet, nimmt sie hier mit Begruendung heraus.
+  const holoQ = existsSync(join(DIST, 'assets', 'hangar-holo3d.js')) ? readFileSync(join(DIST, 'assets', 'hangar-holo3d.js'), 'utf8') : '';
+  const LEERLAUF = [
+    ['Warnflut zur Textureinheit', /getParameter\(gl\.MAX_COMBINED_TEXTURE_IMAGE_UNITS\);\s*if \(units > renderer\.capabilities\.maxTextures\) renderer\.capabilities\.maxTextures = units;/.test(viewer),
+      'dist/assets/hangar-viewer.js hebt renderer.capabilities.maxTextures nicht mehr auf MAX_COMBINED_TEXTURE_IMAGE_UNITS: three warnt dann wieder bei jedem Zeichnen mit mehr als 16 Textureinheiten, tausende Zeilen je Sekunde'],
+    ['Shaderprogramm je BatchedMesh', /if \(!\('colorTexture' in THREE\.BatchedMesh\.prototype\)\) \{\s*Object\.defineProperty\(THREE\.BatchedMesh\.prototype, 'colorTexture', \{[^}]*get\(\) \{ return this\._colorsTexture; \}/.test(viewer),
+      'dist/assets/hangar-viewer.js gibt BatchedMesh kein colorTexture mehr: three r185 sucht dann fuer Wartungsplatz, Hallendeko und Schachttor bei jedem Zeichnen das Shaderprogramm neu'],
+    ['Hologrammflaechen in einem Zug', /const basic = \([^\n]*\n[^\n]*new THREE\.MeshBasicMaterial\(\{[^\n}]*side: THREE\.DoubleSide[^\n}]*forceSinglePass: true/.test(holoQ),
+      'dist/assets/hangar-holo3d.js: basic() baut die Flaechen der Hologramme ohne forceSinglePass: three zeichnet sie dann in zwei Zuegen und setzt beide Male das Material neu auf'],
+  ];
+  sollIst('Leerlaeufe des Zeichners abgestellt (3 Stellen)', LEERLAUF.filter((l) => l[1]).length === LEERLAUF.length ? `${LEERLAUF.length} von ${LEERLAUF.length}` : `${LEERLAUF.filter((l) => l[1]).length} von ${LEERLAUF.length}, fehlt: ${LEERLAUF.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of LEERLAUF) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
