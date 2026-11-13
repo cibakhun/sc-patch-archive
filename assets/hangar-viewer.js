@@ -7117,8 +7117,9 @@ export async function initHangar(container, opts = {}) {
   let walk = null;
   // post: die Kamera fährt in den Leitstand, steht dort vor dem Terminal oder
   // fährt zurück (leitGo, leitLeave); leitScreen: dessen Schirm in der Halle
-  // placeWish: zählt die Wünsche der Seite (place); wer auf eine laufende
-  // Fahrt wartet, fährt danach nur, wenn seiner noch der letzte ist
+  // placeWish: zählt die Wünsche der Seite (place) und jeden Schiffswechsel;
+  // wer auf eine laufende Fahrt oder auf die Halle wartet, fährt danach nur,
+  // wenn seiner noch der letzte ist
   let post = null, leitScreen = null, placeFn = null, placeTold = '', placeWish = 0;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
@@ -11919,6 +11920,11 @@ void main() {
   async function showShip(url, o) {
     const my = ++token;
     if (walk) leave(true);
+    // Ein neues Schiff nimmt jeden Ortswunsch zurück, auch einen, der noch auf
+    // das Ende einer Fahrt oder auf die Halle wartet: Die Seite führt für das
+    // neue Schiff wieder das Feld, die Kamera führe sonst nach dem Warten
+    // allein hinauf, und „Schiffsfeld“ holte sie nicht zurück (Review PR #355).
+    placeWish++;
     // aus dem Leitstand ohne Fahrt zurück: der Wechsel führt die Kamera selbst
     if (post) leitLeave(true);
     makerCode = o.maker || '';
@@ -13792,8 +13798,17 @@ void main() {
   }
   const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
   async function leitGo() {
-    if (!LEIT || !leitScreen || walk) return false;
+    if (!LEIT || walk) return false;
     const wish = placeWish;
+    // Der Schirm kommt mit der Halle. An einer langsamen Leitung steht das
+    // Schiff vor ihr (showShip wartet höchstens 9 s auf sie): Der Wunsch aus
+    // der Adresse (?ort=leit) wartet dann auf die Halle, statt still aufs Feld
+    // zurückzufallen (Review PR #355). hallSettled endet auch, wenn die Halle
+    // scheitert: ohne sie gibt es keinen Schirm, und es bleibt beim Feld.
+    if (!leitScreen) {
+      await hallSettled;
+      if (!leitScreen || wish !== placeWish) return false;
+    }
     if (post) {
       // schon dort oder unterwegs dorthin; auf dem Rückweg erst ankommen lassen
       if (post.state !== 'weg') return post.state === 'an' ? true : post.arrived;

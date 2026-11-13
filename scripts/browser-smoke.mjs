@@ -28,7 +28,7 @@
    in CI den frisch gebauten Container vor dem Push, lokal `astro preview`
    oder eine beliebige URL.
 
-   Sieben Zusicherungen je Seitenaufruf:
+   Acht Zusicherungen je Seitenaufruf:
      1  keine unbehandelte JS-Ausnahme (pageerror)
      2  keine eigene Ressource antwortet mit >= 400 (faengt tote ?v=-Verweise)
      3  kein CSP-Verstoss (securitypolicyviolation am Dokument)
@@ -36,6 +36,10 @@
      5  kein waagerechter Ueberlauf (die wiederkehrende 360-px-Falle)
      6  kein Element mit hidden-Attribut wird gezeichnet
      7  Selbstauskunft + Klinke: wie viele Aufrufe wurden wirklich gefahren
+     8  1 und 2 auch nach dem ersten Blick (nachgeladene Dateien, alles, was
+        eine Probe bedient, Seiten in einem Rahmen), und jedes eigene
+        Stilblatt ist geladen (ein gescheitertes meldet der Browser nie als
+        Antwort)
 
      node scripts/browser-smoke.mjs --base http://localhost:4321
      node scripts/browser-smoke.mjs --base https://staging.verse-base.com
@@ -159,13 +163,18 @@ const SEITEN = [
     en: '/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&station=uebersicht&tafel=1',
     de: '/de/hangar.html?ship=drak-cutlass-black&tab=weapons&hp=hardpoint_turret&station=uebersicht&tafel=1',
     leit: '#hgx-panelhost .hgx-slot', schwer: true, probe: probeHangar,
+    // spieltEin: Die Probe „Wiederholen nach gescheiterter Bucht“ beantwortet
+    // einen Buchtabruf selbst mit 500. Genau so viele Fehlantworten ohne Server
+    // nimmt [8] diesem Szenario ab, keine mehr, und fehlt sie nach einer Probe
+    // ohne Befund, reisst das Tor (die Ausnahme haette ihren Anlass verloren).
+    spieltEin: 1,
     nurMitHangar: true,
   },
   // Die Layout-Werkstatt, die Vorgabe der Tafel: ihre Slots kommen aus
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
   // tafel=1: ohne steht die Ausruestung ab 761 px als Hologramm in der Halle
   // (dieselbe Werkstatt, gezeichnet statt als Knoepfe), und #hgl-slots bleibt zu.
-  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)) ?? (await probeFussleiste(page)), nurMitHangar: true },
+  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)) ?? (await probeFussleiste(page)) ?? (await probeLeitTastatur(page)), minRahmenAntworten: 8, nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -212,7 +221,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -1184,6 +1193,51 @@ async function probeFussleiste(page) {
   return null;
 }
 
+/* Im Leitstand (data-ort="leit" an #main) nimmt das Stilblatt Tafel, Marker
+   und Titelblock aus dem Bild. Der Titelblock bleibt fuer Vorleser im
+   Dokument und ist nur auf 1 px beschnitten: Seine Knopfreihe (Flotte,
+   Vergleich, Link) blieb damit in der Tab-Reihenfolge, und der Fokus stand
+   dann nirgends im Bild (Review PR #355). Die Probe setzt den Zustand am
+   Dokument, wie paintStation es tut (braucht kein 3D), und verlangt von jedem
+   Bedienelement der Hangarseite, das dann mit Tab erreichbar ist, einen Platz
+   im Bild: weder es selbst noch ein Vorfahr ist auf einen Punkt beschnitten. */
+const LEIT_MIN_KNOEPFE = 5; // je Sprache: Bedienelemente, die im Leitstand in der Tab-Reihenfolge stehen
+async function probeLeitTastatur(page) {
+  const wo = 'Leitstand';
+  const r = await page.evaluate(() => {
+    const main = document.getElementById('main');
+    if (!main) return { fehlt: '#main' };
+    const vor = main.dataset.ort;
+    main.dataset.ort = 'leit';
+    const name = (el) => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : typeof el.className === 'string' && el.className.trim() ? `.${el.className.trim().split(/\s+/)[0]}` : ''}`;
+    // auf einen Punkt beschnitten: der Kasten ist hoechstens 1 px gross und zeigt nichts darueber hinaus
+    const punkt = (n) => {
+      const cs = getComputedStyle(n), b = n.getBoundingClientRect();
+      return b.width <= 1 && b.height <= 1 && (cs.overflowX !== 'visible' || cs.clipPath !== 'none');
+    };
+    const ausDemBild = (el) => {
+      for (let n = el; n && n !== main.parentElement; n = n.parentElement) if (punkt(n)) return n;
+      return null;
+    };
+    const erreichbar = [...main.querySelectorAll('a[href],button,input:not([type="hidden"]),select,textarea,summary,[tabindex]')]
+      .filter((el) => el.tabIndex >= 0 && !el.disabled && !el.closest('[inert]') && el.checkVisibility({ visibilityProperty: true }));
+    const aus = erreichbar.map((el) => [el, ausDemBild(el)]).filter(([, n]) => n).map(([el, n]) => (n === el ? name(el) : `${name(el)} in ${name(n)}`));
+    const titel = main.querySelector('.hg-title'), h1 = titel?.querySelector('h1');
+    const out = { n: erreichbar.length, aus, titel: !!titel && punkt(titel), h1: !!h1 && h1.checkVisibility() };
+    if (vor === undefined) delete main.dataset.ort;
+    else main.dataset.ort = vor;
+    return out;
+  });
+  if (r.fehlt) return `${wo}: ${r.fehlt} fehlt auf der Hangarseite`;
+  leitKnoepfe += r.n;
+  // die Voraussetzung der Probe: der Titelblock ist im Leitstand wirklich aus dem Bild und noch im Dokument
+  if (!r.titel) return `${wo}: mit data-ort="leit" steht der Titelblock (.hg-title) noch im Bild — die Probe prueft die Tab-Reihenfolge eines Zustands, den es so nicht mehr gibt`;
+  if (!r.h1) return `${wo}: mit data-ort="leit" ist die Ueberschrift der Seite nicht mehr im Dokument (display none) — Vorleser faenden im Leitstand keine Ueberschrift`;
+  if (r.aus.length) return `${wo}: ${r.aus.length} Bedienelement(e) stehen mit data-ort="leit" in der Tab-Reihenfolge, aber nicht im Bild: ${r.aus.slice(0, 4).join(', ')} — der Fokus stuende dort nirgends sichtbar`;
+  if (r.n < LEIT_MIN_KNOEPFE) return `${wo}: nur ${r.n} Bedienelemente in der Tab-Reihenfolge gefunden, Untergrenze ${LEIT_MIN_KNOEPFE} — die Probe sieht die Hangarseite nicht mehr`;
+  return null;
+}
+
 /* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
    und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.
    Anlass 11.11.2026: #calc-results ist eine Flex-Spalte mit begrenzter Hoehe
@@ -1923,9 +1977,25 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
   const jsFehler = [];
   const schlechteAntworten = [];
   page.on('pageerror', (e) => jsFehler.push(e.message.split('\n')[0]));
+  let eigeneAntworten = 0, rahmenAntworten = 0;
+  // wie viel der beiden Listen [1] und [2] schon ausgewertet haben; den Rest holt [8] am Ende
+  let gesehenJs = 0, gesehenHttp = 0;
+  // Eine Antwort ohne Server hat eine Probe selbst eingespielt (route.fulfill,
+  // etwa die 500 fuer „Wiederholen nach gescheiterter Bucht“): Sie sagt nichts
+  // ueber das Artefakt. [8] nimmt sie aber nur dem Szenario ab, das sie
+  // erklaert (spieltEin), und nur so viele, wie es erklaert. Die Frage nach dem
+  // Server ist asynchron, [8] wartet auf alle Antworten (herkunft).
+  const herkunft = [], eingespielt = new Set();
+  let probeOhneBefund = false;
   page.on('response', (r) => {
-    if (r.url().startsWith(BASE) && r.status() >= 400 && r.status() !== (seite.erwarteterStatus ?? -1))
-      schlechteAntworten.push(`${r.status()} ${r.url().slice(BASE.length)}`);
+    if (!r.url().startsWith(BASE)) return;
+    eigeneAntworten++;
+    // aus einer Seite in einem Rahmen (das Terminal des Hangars); frame() wirft bei Antworten ohne Rahmen
+    try { if (r.frame() !== page.mainFrame()) rahmenAntworten++; } catch { /* zaehlt nur oben */ }
+    if (r.status() >= 400 && r.status() !== (seite.erwarteterStatus ?? -1)) {
+      const i = schlechteAntworten.push(`${r.status()} ${r.url().slice(BASE.length)}`) - 1;
+      herkunft.push(r.serverAddr().then((a) => { if (!a) eingespielt.add(i); }, () => {}));
+    }
   });
 
   const marke = `${seite.id}/${sprache} [${variante.id}]`;
@@ -1957,11 +2027,13 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     // [1] keine unbehandelte JS-Ausnahme
     geprueftePunkte++;
     if (jsFehler.length) melde('js', `JS-Ausnahme: ${jsFehler.slice(0, 2).join(' | ')}`);
+    gesehenJs = jsFehler.length;
 
     // [2] keine eigene Ressource >= 400
     geprueftePunkte++;
     if (schlechteAntworten.length)
       melde('http', `${schlechteAntworten.length} eigene Ressource(n) >= 400: ${schlechteAntworten.slice(0, 3).join(', ')}`);
+    gesehenHttp = schlechteAntworten.length;
 
     // [3] CSP — und zwar artefakt-abhaengig, in BEIDE Richtungen.
     //
@@ -2111,8 +2183,72 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     // nicht dreimal dasselbe.
     if (seite.probe && variante.id === 'dunkel-1280') {
       geprueftePunkte++;
+      const vor = { antworten: eigeneAntworten, rahmen: rahmenAntworten };
       const p = await seite.probe(page);
       if (p) melde('probe', p);
+      else probeOhneBefund = true;
+      probenLaeufe++;
+      const imRahmen = rahmenAntworten - vor.rahmen;
+      probenAntworten += eigeneAntworten - vor.antworten;
+      probenRahmen += imRahmen;
+      // Selbstauskunft je Szenario: Laedt die Probe Seiten in einen Rahmen
+      // (minRahmenAntworten), muss der Lauscher deren Antworten gesehen haben.
+      // Sonst waere [8] fuer genau diese Seiten taub und trotzdem gruen. Nur
+      // nach einer Probe ohne Befund: Bricht sie vorher ab, hat sie die
+      // Seiten gar nicht geladen.
+      if (seite.minRahmenAntworten && !p && imRahmen < seite.minRahmenAntworten)
+        melde('probe-lauscher', `waehrend der Probe nur ${imRahmen} Antworten aus Seiten in einem Rahmen mitgelesen, Untergrenze ${seite.minRahmenAntworten} — der Lauscher hoert die Seiten im Terminal nicht mehr; Ursache klaeren, nicht die Untergrenze senken`);
+    }
+
+    // [8] Nach dem ersten Blick. [1] und [2] werten aus, was beim Aufbau des
+    // Dokuments angekommen war. Was spaeter kam (nachgeladene Dateien, alles,
+    // was eine Probe bedient, im Hangar ganze Seiten im Fenster des
+    // Terminals), stand danach nur noch in den Listen und nie in der Bilanz
+    // (Review PR #355). pageerror und response melden alle Rahmen der Seite,
+    // die Seiten im Terminal zaehlen also mit.
+    geprueftePunkte++;
+    await Promise.all(herkunft);
+    const ohneServer = [...eingespielt].filter((i) => i >= gesehenHttp).sort((x, y) => x - y);
+    const abgenommen = new Set(ohneServer.slice(0, variante.id === 'dunkel-1280' ? (seite.spieltEin ?? 0) : 0));
+    probenEingespielt += abgenommen.size;
+    if (seite.spieltEin && probeOhneBefund && ohneServer.length < seite.spieltEin)
+      melde('probe-eingespielt', `das Szenario erklaert ${seite.spieltEin} selbst eingespielte Fehlantwort(en), die Probe hat ${ohneServer.length} eingespielt — die Ausnahme hat ihren Anlass verloren; spieltEin am Szenario anpassen`);
+    const jsSpaet = jsFehler.slice(gesehenJs), httpSpaet = schlechteAntworten.filter((_, i) => i >= gesehenHttp && !abgenommen.has(i));
+    if (jsSpaet.length) melde('js-spaet', `JS-Ausnahme nach dem Aufbau der Seite: ${jsSpaet.slice(0, 2).join(' | ')}`);
+    if (httpSpaet.length) melde('http-spaet', `${httpSpaet.length} eigene Ressource(n) >= 400 nach dem Aufbau der Seite: ${httpSpaet.slice(0, 3).join(', ')}`);
+    // Ein Stilblatt, das mit 404 oder 500 antwortet, taucht in [2] nie auf:
+    // Die Fehlerseite ist text/html, mit nosniff verwirft der Browser sie, und
+    // die Anfrage endet als abgebrochen statt als Antwort (gemessen am
+    // 13.11.2026 beim Rotlauf zu dieser Zusicherung; ein Skript meldet seine
+    // 404 dagegen). Abgebrochene Anfragen sind als Signal unbrauchbar, jeder
+    // Seitenwechsel im Fenster des Terminals bricht welche ab. Deshalb am
+    // Dokument gefragt: Jedes eingebundene eigene Stilblatt ist geladen, im
+    // Dokument selbst und in jeder eigenen Seite in einem Rahmen. Geladen
+    // heisst: seine Regeln sind lesbar. Ein Blatt (link.sheet) bekommt auch
+    // das gescheiterte, erst der Griff nach cssRules wirft dort (gemessen).
+    geprueftePunkte++;
+    for (const rahmen of page.frames()) {
+      if (rahmen.isDetached() || !rahmen.url().startsWith(BASE)) continue;
+      const b = await rahmen.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 })
+        .then(() => rahmen.evaluate(async () => {
+          const alle = [...document.querySelectorAll('link[rel~="stylesheet"]:not([rel~="alternate"])')]
+            .filter((l) => !l.disabled && new URL(l.href, location.href).origin === location.origin);
+          // Ein Blatt, das ein Skript eben erst eingehaengt hat (die Suche laedt
+          // ihres beim ersten Oeffnen), ist noch unterwegs und hat noch kein
+          // sheet: auf sein load oder error warten, hoechstens 5 s, statt es
+          // als gescheitert zu lesen.
+          await Promise.all(alle.filter((l) => !l.sheet).map((l) => new Promise((fertig) => {
+            l.addEventListener('load', fertig, { once: true });
+            l.addEventListener('error', fertig, { once: true });
+            setTimeout(fertig, 5000);
+          })));
+          const geladen = (l) => { try { return !!l.sheet && l.sheet.cssRules.length >= 0; } catch { return false; } };
+          return { n: alle.length, ohne: alle.filter((l) => !geladen(l)).map((l) => l.getAttribute('href')), wo: location.pathname };
+        }))
+        .catch(() => null); // der Rahmen ist inzwischen weg oder laedt noch: nichts zu sagen
+      if (!b) continue;
+      stilblaetter += b.n - b.ohne.length;
+      if (b.ohne.length) melde('stilblatt', `${b.ohne.length} Stilblatt/Stilblaetter nicht geladen${rahmen === page.mainFrame() ? '' : ` in ${b.wo} (Seite im Rahmen)`}: ${b.ohne.slice(0, 3).join(', ')}`);
     }
   } catch (e) {
     melde('aufruf', `Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
@@ -2220,6 +2356,11 @@ const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
 if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
 console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Untergrenze: ${MIN_SCHUBLADEN}`);
 if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Fussleiste des Hangars: ${fussBreiten} Breiten gemessen, an ${fussEng} wichen Namen den Zeichen (Untergrenze ${FUSS_MIN_ENG} je Sprache), an ${fussNeben} rueckte sie neben die Zeichen der Buehne (Untergrenze 1 je Sprache)`);
+if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Leitstand: ${leitKnoepfe} Bedienelemente in der Tab-Reihenfolge auf ihren Platz im Bild geprueft (Untergrenze ${LEIT_MIN_KNOEPFE} je Sprache)`);
+if (probenLaeufe) console.log(`  Proben: ${probenLaeufe} gefahren, dabei ${probenAntworten} Antworten eigener Ressourcen mitgelesen, ${probenRahmen} davon aus Seiten in einem Rahmen; ${probenEingespielt} Fehlantwort(en) hat eine Probe selbst eingespielt, wie am Szenario erklaert (nicht gewertet)`);
+console.log(`  [8] Stilblaetter mit geladenem Blatt: ${stilblaetter}   Untergrenze: eines je Seitenaufruf (${aufrufe})`);
+if (stilblaetter < aufrufe)
+  fehler.push(`[8] nur ${stilblaetter} geladene Stilblaetter bei ${aufrufe} Seitenaufrufen gezaehlt — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (schubladen < MIN_SCHUBLADEN && !NUR)
   fehler.push(`[7] nur ${schubladen} Filter-Schubladen geprueft, Untergrenze ist ${MIN_SCHUBLADEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (hiddenGeprueft < MIN_HIDDEN && !NUR)

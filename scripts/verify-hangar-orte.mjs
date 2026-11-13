@@ -355,6 +355,17 @@ let naht = 0;
     [cSrc, /\.onPlace\?\.\(onPlace\)/, 'der Controller hoert nicht mehr, wo die Kamera steht (onPlace)'],
     [cSrc, /import\(termBox\.dataset\.js\)/, 'der Controller laedt das Terminal nicht mehr ueber data-js'],
     [cSrc, /\.initTerminal\(termBox,/, 'der Controller ruft initTerminal nicht mehr'],
+    // Der letzte Wunsch gilt (zwei Review-Runden an PR #355, im Browser nur mit
+    // 3D nachzustellen): Jede Stelle, die den Wunsch aendert, zaehlt ihn, und
+    // wer gewartet hat, fragt nach, bevor er faehrt. Die Datei der Buehne
+    // bearbeiten mehrere Straenge; faellt eine der Zeilen bei einem Merge
+    // heraus, faehrt die Kamera wieder gegen den Wunsch, und kein Bild zeigt es.
+    [vSrc, /\n\s+place: \(name\) => \{ placeWish\+\+;/, 'place zaehlt den Wunsch der Seite nicht mehr (placeWish++): nach dem Warten fuehre auch ein ueberholter Wunsch los'],
+    [vSrc, /placeWish\+\+;\s*(?:\/\/[^\n]*\n\s*)*if \(post\) leitLeave\(true\);/, 'ein Schiffswechsel zaehlt nicht mehr als neuer Wunsch (placeWish++ vor leitLeave(true) in showShip): ein wartender Wunsch fuehre nach dem Wechsel allein in den Leitstand, und „Schiffsfeld“ holte die Kamera nicht zurueck'],
+    [vSrc, /await hallSettled;\s*if \(!leitScreen \|\| wish !== placeWish\) return false;/, 'leitGo wartet nicht mehr auf die Halle oder fragt danach nicht nach dem Wunsch: ?ort=leit fiele an einer langsamen Leitung still aufs Feld zurueck'],
+    [vSrc, /while \(trip\) await trip\.done;\s*(?:\/\/[^\n]*\n\s*)*if \(wish !== placeWish\) return false;/, 'leitGo fragt nach dem Warten auf eine Fahrt nicht mehr nach dem Wunsch: „Leitstand, Schiffsfeld“ waehrend der Rueckfahrt fuehre wieder hinauf'],
+    [vSrc, /if \(me\.state === 'hin' && !\(await me\.arrived\)\) return false;\s*(?:\/\/[^\n]*\n\s*)*if \(wish !== placeWish\) return false;/, 'leitLeave fragt nach der Ankunft nicht mehr nach dem Wunsch: „Schiffsfeld, Leitstand“ waehrend der Hinfahrt fuehre wieder herunter'],
+    [cSrc, /if \(!ok && my === ortTok && state\.ort === 'leit'/, 'der Controller laesst auch die Antwort auf einen ueberholten Wunsch aufs Feld zurueckstellen (ortTok in applyOrt): „Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt endete auf dem Feld'],
   ];
   for (const [src, muster, was] of NAHT) {
     if (muster.test(src)) naht++;

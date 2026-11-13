@@ -2100,14 +2100,19 @@ export function boot(doc) {
   });
   // Die Kamera folgt dem Zustand: hinauf erst, wenn das Schiff steht
   // (viewerShow ruft dann erneut), zurueck sofort. Kann die Buehne nicht
-  // (false), faellt der Zustand zurueck aufs Feld.
+  // (false), faellt der Zustand zurueck aufs Feld. Das darf nur die Antwort
+  // auf den juengsten Wunsch: Auch ein ueberholter loest mit false auf
+  // („Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt), und seine
+  // Antwort naehme sonst den juengeren zurueck (Review PR #355).
+  let ortTok = 0;
   function applyOrt() {
     if (!viewer?.place) return;
+    const my = ++ortTok;
     if (state.ort !== 'leit') { viewer.place('halle'); return; }
     if (placed !== state.ship) return;
     const ship = state.ship;
     viewer.place('leit').then((ok) => {
-      if (!ok && state.ort === 'leit' && state.ship === ship) setState({ ort: 'halle' });
+      if (!ok && my === ortTok && state.ort === 'leit' && state.ship === ship) setState({ ort: 'halle' });
     }, () => {});
   }
   // Das Terminal im Leitstand (assets/hangar-terminal.js): geladen, wenn die

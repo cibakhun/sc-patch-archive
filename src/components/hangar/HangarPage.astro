@@ -292,9 +292,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Im Leitstand steht die Kamera vor dem Terminal: Tafel, Marker, Hinweise,
    der Korb und die Zeichen fuers Schiff (Zuruecksetzen, Einsteigen) haben
    dort nichts zu zeigen; Grafikstufe und Ton bleiben. Der Titelblock bleibt
-   fuer Vorleser im Dokument. */
+   fuer Vorleser im Dokument, seine Knopfreihe (Flotte, Vergleich, Link) nicht:
+   Auf 1 px beschnitten blieben die Knoepfe in der Tab-Reihenfolge, und der
+   Fokus stuende dann nirgends im Bild (Review PR #355). */
 .hg[data-ort="leit"]{--hg-panelw:0px}
-.hg[data-ort="leit"] :is(.hg-side,.hgx-marks,.hg-hint,.hgx-tray,.hg-holo,#hg-reset,#hgx-walk){display:none}
+.hg[data-ort="leit"] :is(.hg-side,.hgx-marks,.hg-hint,.hgx-tray,.hg-holo,.hgx-actions,#hg-reset,#hgx-walk){display:none}
 .hg[data-ort="leit"] .hg-title{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* Das Terminal im Leitstand: die Seite selbst in einem Fenster, genau auf dem
    Schirm der Halle. hangar-viewer.js nennt das Rechteck des Schirms im Bild,
