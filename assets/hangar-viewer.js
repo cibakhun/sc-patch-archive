@@ -13963,6 +13963,10 @@ void main() {
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
       draco.dispose();
+      // der gemeinsame Generator der Umgebungskugeln (pmremFor): sein
+      // Zwischenbild, seine Geometrien und sein Shader gehören keinem der
+      // Ziele oben
+      pmremOf.get(renderer)?.dispose(); pmremOf.delete(renderer);
       renderer.dispose();
       renderer.domElement.remove();
     },

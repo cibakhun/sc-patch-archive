@@ -244,7 +244,8 @@ const MB = (b) => (b / 1048576).toFixed(1);
 const gruppe = (u) => {
   const p = new URL(u).pathname;
   if (p.startsWith('/hangar/hall/')) return 'Halle';
-  if (p.startsWith('/hangar/ships/') || p.startsWith('/hangar/geo/')) return 'Schiff (Modell)';
+  // /holo/: das Modell der Datenblätter, Rückfall für Schiffe ohne eigene Geometrie-Fassung (HangarApp.astro: geo[id] ?? meshes[id])
+  if (p.startsWith('/hangar/ships/') || p.startsWith('/hangar/geo/') || p.startsWith('/holo/')) return 'Schiff (Modell)';
   if (p.startsWith('/hangar/tex/')) return 'Schiff (Bilder)';
   if (p.startsWith('/hangar/props/') || p.startsWith('/hangar/lift/') || p.startsWith('/hangar/werkhalle/')) return 'Requisiten, Schacht, Werkhalle';
   if (p.startsWith('/hangar/npc/')) return 'Crew';
