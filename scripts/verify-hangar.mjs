@@ -900,6 +900,32 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   ];
   sollIst(`Bilder nach dem Hochladen freigegeben (${FREI.length} Stellen)`, FREI.filter((l) => l[1]).length === FREI.length ? `${FREI.length} von ${FREI.length}` : `${FREI.filter((l) => l[1]).length} von ${FREI.length}, fehlt: ${FREI.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of FREI) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Geometrie der Halle nach dem Hochladen aus dem Arbeitsspeicher (Krisz,
+  // 13.11.2026, derselbe Anlass). Gemessen mit der Gladius in der hohen
+  // Stufe: 240 MB an Attribut- und Indexpuffern lagen neben ihren Kopien
+  // bei der Grafikkarte noch in der Seite, 183 MB davon in einfachen Netzen
+  // der Halle; die Freigabe nimmt 159 MB heraus. Faellt eine der Stellen
+  // weg, sieht kein Bild anders aus, nur der Speicher waechst wieder (oder,
+  // bei der zweiten, bleibt die Einrichtung nach einem Wechsel auf ein
+  // groesseres Schiff in der falschen Groesse stehen; bei der dritten
+  // verschwinden Netze der Halle beim Drehen, weil three ihre Kugel aus
+  // einem leeren Puffer rechnet). Ob auf einem Weg ein
+  // freigegebener Puffer noch einmal gelesen wird, prueft
+  // check:hangar-shader im Browser.
+  const GEO = [
+    ['Halle und Werkhalle vor dem Hochladen angemeldet', /hallClosing = true;[\s\S]{0,300}?freeGeometry\(model\b[^\n]*\);\s*if \(werk\) freeGeometry\(werk\.group\);\s*await prepare\(model\);/.test(viewer),
+      'dist/assets/hangar-viewer.js: der Bau der Halle meldet ihre Netze nicht mehr vor prepare(model) zur Freigabe an (freeGeometry(model), freeGeometry(werk.group)): die Kopien der Geometrie bleiben im Arbeitsspeicher, rund 160 MB in der hohen Stufe'],
+    ['Ecken der Moebel bleiben', /freeGeometry\(model, new Set\(furniture\.map\(\(f\) => f\.mesh\.geometry\.attributes\.position\)\)\);/.test(viewer) && /\|\| keep\?\.has\(at\)\) continue;/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() laesst die Ecken der Moebel nicht mehr stehen (keep): waechst die Halle mit einem groesseren Schiff, rechnet scaleFurniture() sie aus einem leeren Puffer, und die Einrichtung bleibt in der falschen Groesse stehen'],
+    ['Kugel und Kasten vorher gerechnet', /if \(!g\.boundingBox\) g\.computeBoundingBox\(\);\s*if \(!g\.boundingSphere\) g\.computeBoundingSphere\(\);[\s\S]{0,400}?at\.onUpload\(/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() rechnet Kugel und Kasten nicht mehr, bevor es die Freigabe anmeldet: three rechnet sie dann beim ersten Zeichnen aus einem schon leeren Puffer, und das Netz faellt aus der Sichtpruefung'],
+    ['Freigabe im Moment des Hochladens, mit Falle', /at\.onUpload\(function \(\) \{\s*if \(texQuiet\) return;[\s\S]{0,300}?goneArray\(this, label\);/.test(viewer) && /console\.error\(`\[hangar\] Geometrie nach der Freigabe noch einmal verlangt/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() gibt den Puffer nicht mehr beim Hochladen frei (onUpload, goneArray), oder die Falle meldet einen spaeteren Leser nicht mehr: entweder bleibt der Speicher belegt, oder ein Leser rechnet still mit einem leeren Puffer'],
+    ['nur einfache Netze', /if \(!n\.isMesh \|\| n\.isBatchedMesh \|\| n\.isSkinnedMesh \|\| n\.isInstancedMesh\) return;\s*const g = n\.geometry;\s*if \(!g \|\| !g\.attributes\.position \|\| Object\.keys\(g\.morphAttributes\)\.length\) return;/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() nimmt BatchedMesh, Netze mit Knochen, Instanzen oder Morphzielen nicht mehr aus: three liest deren Puffer nach dem Hochladen noch (Kugel je Teil, Knochenkasten, Morphziele)'],
+  ];
+  sollIst(`Geometrie der Halle nach dem Hochladen freigegeben (${GEO.length} Stellen)`, GEO.filter((l) => l[1]).length === GEO.length ? `${GEO.length} von ${GEO.length}` : `${GEO.filter((l) => l[1]).length} von ${GEO.length}, fehlt: ${GEO.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of GEO) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
   // Stillstand beim Laden (Krisz, 13.11.2026, derselbe Anlass). Gemessen
   // im sichtbaren Fenster, jeder Aufruf am Zeichenkontext gestoppt: Die
   // Shader der Vollbildpaesse wurden vorab uebersetzt, aber mit einer
