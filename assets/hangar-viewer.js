@@ -274,6 +274,74 @@ const nextTask = () => new Promise((r) => setTimeout(r, 0));
 // dem Rechner nichts Messbares (im Wechsel, 3 Runden), der Hauptfaden hat
 // in der Phase Luft; es ist Rechenzeit, die niemand braucht.
 const pooledImage = (def) => def.bufferView === undefined && typeof def.uri === 'string' && !/^(data|blob):/.test(def.uri);
+// Am Telefon kleiner auspacken (13.11.2026, Krisz: „Das Handy versucht es
+// immer noch die ganze Zeit zu laden“). Der Texturdeckel vom Vortag
+// (TEX_MAX) verkleinerte erst in prepare(), also nachdem jede Datei alle
+// ihre Bilder in voller Größe ausgepackt hatte. Gemessen an dem Tag im
+// Telefonformat mit der Gladius: 844 Bilder, 900 MB, davon bis zu 818 MB
+// zugleich im Arbeitsspeicher der Seite, in der niedrigen Stufe immer noch
+// 698 MB. Die Spitze lag vor dem Deckel und in jeder Stufe gleich hoch;
+// eine Stufe zu senken (Wächter der Seite) half dem Laden deshalb nicht.
+// Mit `max` packt embeddedImages() höchstens FIT_AT_ONCE Bilder zugleich
+// aus und bringt jedes sofort auf seine Zielgröße; das große geht, bevor
+// das nächste kommt.
+// fitSize: Zielgröße [w, h] bei höchstens max px an der längeren Kante,
+// null, wenn das Bild schon passt (auch ohne Maße).
+export const fitSize = (w, h, max) => {
+  const k = max / Math.max(w, h);
+  return !(k < 1) ? null : [Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k))];
+};
+// Höchstens n Aufgaben zugleich, in der Reihenfolge ihres Eintreffens.
+export function limiter(n) {
+  let free = Math.max(1, n);
+  const wait = [];
+  const done = () => { const next = wait.shift(); if (next) next(); else free++; };
+  return (fn) => new Promise((go) => { if (free > 0) { free--; go(); } else wait.push(go); }).then(fn).finally(done);
+}
+const FIT_AT_ONCE = 3;
+let fitCv = null, fitTurn = Promise.resolve();
+// Verkleinertes Bild oder null (passt schon, oder der Browser kann es
+// nicht). In der Regel ein ImageBitmap. Ohne Größenangabe in
+// createImageBitmap geht es über EINE Leinwand, die jedes Mal
+// wiederverwendet wird, ein Bild nach dem anderen (fitTurn): eine Leinwand
+// je Bild bliebe im Speicher (freeImages gibt nur ImageBitmaps frei), und
+// iOS gibt allen Leinwänden einer Seite zusammen nur 384 MB.
+// Kann der Browser gar kein createImageBitmap (der Loader nimmt dann den
+// TextureLoader, und shrinkTextures() verkleinert), bekommt das Bild als
+// letzten Ausweg doch eine eigene Leinwand, wie vor dem 13.11.2026: Die
+// gemeinsame darf nie selbst Quelle einer Textur werden, das nächste Bild
+// überschriebe sie. Ohne diesen Ausweg blieb dort jedes Bild in voller
+// Größe (nachgestellt im Telefonformat: 903 statt 198 MB Texturen).
+async function fitImage(im, max) {
+  const to = fitSize(im?.width || 0, im?.height || 0, max);
+  if (!to) return null;
+  const [nw, nh] = to;
+  let out = null;
+  try {
+    out = await createImageBitmap(im, { resizeWidth: nw, resizeHeight: nh, resizeQuality: 'high', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    if (out.width !== nw || out.height !== nh) { out.close(); out = null; }   // Größe nicht unterstützt
+  } catch { out = null; }
+  if (out) return out;
+  const draw = async () => {
+    try {
+      fitCv ??= document.createElement('canvas');
+      fitCv.width = nw; fitCv.height = nh;
+      const c = fitCv.getContext('2d');
+      c.clearRect(0, 0, nw, nh);
+      c.drawImage(im, 0, 0, nw, nh);
+    } catch { return null; }
+    try {
+      return await createImageBitmap(fitCv, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    } catch { /* kein createImageBitmap: eigene Leinwand */ }
+    try {
+      const own = document.createElement('canvas');
+      own.width = nw; own.height = nh;
+      own.getContext('2d').drawImage(fitCv, 0, 0);
+      return own;
+    } catch { return null; }
+  };
+  return (fitTurn = fitTurn.then(draw));
+}
 // Mittel einer Farbkarte, linear je Kanal (für albedoFloor): auf 8 × 8
 // verkleinert (mit Mip-Stufen, nicht nur einzelne Punkte) und gemittelt.
 // Nur für Bilder, die eine Farbkarte sind; ohne Erfolg undefined.
@@ -340,8 +408,9 @@ const colourImages = (json) => {
   }
   return out;
 };
-function embeddedImages(ms, tally = () => null) {
+function embeddedImages(ms, tally = () => null, max = 0) {
   const pause = slicer(ms, nextTask);
+  const gate = max ? limiter(FIT_AT_ONCE) : null;
   let turn = Promise.resolve();
   return (mean) => (parser) => {
     const load = parser.loadImageSource.bind(parser);
@@ -359,7 +428,16 @@ function embeddedImages(ms, tally = () => null) {
       const go = (turn = turn.then(pause));
       const p = go
         .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
-        .then((blob) => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' }))
+        .then((blob) => {
+          const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
+          if (!gate) return decode();
+          return gate(async () => {
+            const big = await decode(), small = await fitImage(big, max);
+            if (!small) return big;
+            big.close();
+            return small;
+          });
+        })
         .then(async (bitmap) => {
           const t = new THREE.Texture(bitmap);
           t.needsUpdate = true;
@@ -6902,6 +6980,29 @@ export async function initHangar(container, opts = {}) {
     if (rank(p2.level) <= rank(pick.level)) pick = p2;
   }
   const Q0 = pick.level, FORCED = pick.why === 'gewählt';
+  // Deckel der Texturkante in px (0 = keiner): am Telefon in jeder Stufe,
+  // sonst nur in der niedrigen. Anlass und Zahlen bei shrinkTextures(); die
+  // Bilder der Dateien kommen am Telefon schon so klein aus dem Loader
+  // (embeddedImages mit max).
+  // Am Telefon startet die Automatik seit 13.11.2026 in jeder Stufe mit
+  // TEX_PHONE_AUTO (Krisz: „Das Handy versucht es immer noch die ganze Zeit
+  // zu laden“): Die Stufe bestimmt dort weiter Bildschärfe, Kantenglättung
+  // und Lampen, aber nicht mehr, wie viel Speicher die Texturen brauchen.
+  // Mit 512 px brach sein iPhone in jeder Stufe ab, und was ein Telefon einer
+  // Seite an Speicher lässt, verrät es nicht (kein navigator.deviceMemory in
+  // Safari). Gemessen im Telefonformat mit der Gladius, hohe Stufe: 256 px
+  // sind 206 MB Texturen statt 518 MB und beim Laden 129 MB ausgepackte Bilder
+  // zugleich statt 412 MB. Wer im Grafik-Schalter eine Stufe wählt, bekommt TEX_PHONE,
+  // drei Stufen mit echtem Abstand; bricht die Bühne dann ab, nimmt der
+  // Wächter der Seite die Wahl zurück, und es gilt wieder die Automatik.
+  // Bricht sie auch in der Automatik ab, läuft sie unter dem Deckel des
+  // Wächters (opts.cap) mit TEX_PHONE_CAP: Jede Stufe, die er senkt, spart
+  // dann wirklich Speicher, auch beim Laden. Ohne das lüde jede Stufe
+  // dieselben 256 px, und er senkte dreimal ins Leere (nachgestellt mit 150
+  // MB für Texturen: drei Läufe, jeder brach bei 150 MB ab). Unscharf ist
+  // besser als keine Halle.
+  const TEX_PHONE = { hoch: 512, mittel: 384, niedrig: 256 }, TEX_PHONE_AUTO = 256, TEX_PHONE_CAP = { mittel: 192, niedrig: 128 };
+  const TEX_MAX = SMALL ? (FORCED ? TEX_PHONE[Q0] : (opts.cap === Q0 && TEX_PHONE_CAP[Q0]) || TEX_PHONE_AUTO) : Q0 === 'niedrig' ? 512 : 0;
   // Wartungsplatz am Schiff, wo die Stufe Requisiten hat (loadRealHall)
   const DIENST_ON = REAL && !!opts.hall?.workshop?.dienst && (WORK_BUDGET[SMALL ? 'niedrig' : Q0]?.props ?? 0) > 0;
   let level = Q0;
@@ -7541,7 +7642,7 @@ export async function initHangar(container, opts = {}) {
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
-  const images = embeddedImages(8, (parser) => shipTex.count(parser));
+  const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0);
   const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
   // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
   // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
@@ -7805,7 +7906,6 @@ export async function initHangar(container, opts = {}) {
   // den Zeichenkontext oder beendet sie, und sie lädt neu. Mit 512 px sind es
   // 512 MB, mit 256 px (niedrige Stufe) 182 MB; die Bühne ist am Telefon
   // keine 600 px breit.
-  const TEX_MAX = SMALL ? (Q0 === 'niedrig' ? 256 : 512) : Q0 === 'niedrig' ? 512 : 0;
   const shrunk = new WeakMap();
   async function shrinkTextures(tex) {
     const jobs = [];
@@ -7816,22 +7916,11 @@ export async function initHangar(container, opts = {}) {
       // Leinwände bleiben: ein Bild an ihrer Stelle nähme spätere Zeichnungen nicht mehr an
       if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture || t.isCanvasTexture) continue;
       if (!shrunk.has(src)) {
-        const k = TEX_MAX / Math.max(w, h), nw = Math.max(1, Math.round(w * k)), nh = Math.max(1, Math.round(h * k));
         shrunk.set(src, (async () => {
-          let out = null;
-          try {
-            out = await createImageBitmap(im, { resizeWidth: nw, resizeHeight: nh, resizeQuality: 'high', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
-            if (out.width !== nw) { out.close(); out = null; }   // Größe nicht unterstützt
-          } catch { out = null; }
-          if (!out) {
-            try {
-              out = document.createElement('canvas');
-              out.width = nw; out.height = nh;
-              out.getContext('2d').drawImage(im, 0, 0, nw, nh);
-            } catch { return; }
-          }
+          const out = await fitImage(im, TEX_MAX);
+          if (!out) return;
           src.data = out;
-          if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
+          if (isBitmap(im)) im.close();
         })());
       }
       jobs.push(shrunk.get(src).then(() => { t.needsUpdate = true; }));

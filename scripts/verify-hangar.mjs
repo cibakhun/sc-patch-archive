@@ -74,6 +74,14 @@
         weiter; beide Hangarseiten tragen den Grafik-Schalter mit genau
         den Stufen des Viewers. Ohne das faellt ein schwaches Geraet still
         in die volle Stufe zurueck, und nur ein Ruckeln verriete es.
+        Dazu das Telefon (Krisz 12. und 13.11.2026: „Auf dem Handy laedt
+        es die ganze Zeit neu“, „versucht es immer noch die ganze Zeit zu
+        laden“): Texturdeckel als Klinken (Automatik 256 px, von Hand
+        512/384/256, unter dem Deckel des Waechters 192/128), die Bilder
+        kommen schon verkleinert aus dem Loader
+        (fitSize und limiter am Modul nachgerechnet), und der Waechter
+        der Seite senkt dort beim ersten Abbruch und fuehrt eine Spur,
+        deren Woerter auf beiden Hangarseiten stehen.
     13  Getauschte Bordwaffen am Modell (Layout-Werkstatt): jede URL unter
         models in dist/hangar-layouts.json traegt ?v= und liegt in dist/,
         und die Schiffs-GLBs in dist/hangar/ships tragen ihre Serienwaffen als
@@ -255,6 +263,41 @@
      e  in dist/hangar.html zwei Werte einer Karte tauschen          -> [10]
      f  in einer gebauten Bucht einen Port gross schreiben           -> [11]
      g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
+     g2 dort TEX_PHONE_AUTO = 512 (13.11.2026: die Automatik am
+        Telefon luede wieder 512 MB Texturen)                        -> [12]
+     g3 dort TEX_PHONE mittel: 512 (die Stufen von Hand laegen
+        wieder aufeinander)                                         -> [12]
+     g4 dort dem Loader den Deckel nehmen (embeddedImages(8, …)
+        ohne SMALL ? TEX_MAX : 0): alle Bilder wieder in voller
+        Groesse zugleich im Speicher                                -> [12]
+     g5 dort in limiter() den Platz nach einer Aufgabe nicht mehr
+        freigeben (.finally(done) gestrichen): 3 von 12 Aufgaben,
+        das Laden bliebe nach drei Bildern stehen                   -> [12]
+     g6 dort in fitSize() Math.max durch Math.min ersetzen: ein
+        Bild 1024 x 512 kaeme mit 512 x 256 statt 256 x 128         -> [12]
+     g7 in dist/assets/hangar-overview.js sofort: TELEFON durch
+        sofort: false ersetzen (am Telefon zaehlte der erste
+        Abbruch wieder nur)                                         -> [12]
+     g8 dort laufPhase('steht') streichen (die Spur hielte jeden
+        Abbruch fuer einen beim Aufbau)                             -> [12]
+     g9 in dist/de/hangar.html data-spur-kontext streichen (die
+        Zeile liesse aus, was abbrach)                              -> [12]
+     g10 dort WAECHTER.v auf 1 (alte Deckel gaelten wieder)         -> [12]
+     g11 in dist/assets/hangar-viewer.js TEX_PHONE_CAP mittel: 256
+        (unter dem Deckel des Waechters luede jede Stufe wieder
+        dieselbe Kante)                                             -> [12]
+     g12 in dist/assets/hangar-overview.js meldungPlatz(); nach
+        fallback.hidden = false in noStage() streichen (am Telefon
+        ragte die Meldung mit Verlauf in die Knoepfe des Titels)    -> [12]
+     g13 dort in waechterOffen() die Pruefung o.v !== WAECHTER.v
+        streichen (ein Lauf von vor einem Update setzte der neuen
+        Halle am Telefon sofort einen Deckel)                       -> [12]
+     g14 dort meldungPlatz(); nach dem Tausch der Regionen in
+        showBay() streichen (ein laengerer Schiffsname schoebe die
+        Knoepfe des Titels unter eine sichtbare Meldung)            -> [12]
+     g15 in dist/assets/hangar-viewer.js in fitImage() return own
+        durch return null ersetzen: ohne createImageBitmap bliebe
+        jedes Bild gross, 903 statt 198 MB Texturen                 -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
      i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
@@ -846,15 +889,73 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   for (const n of apiQ) fail(`[12] dist/assets/hangar-viewer.js liefert ${n} nicht mehr: der Grafik-Schalter zeigt dann keine Stufe`);
   // Texturdeckel am Telefon (Krisz, 12.11.2026: „Auf dem Handy laedt es die
   // ganze Zeit neu“). Ohne ihn lud die Halle im Telefonformat 905 MB
-  // Texturen, mehr als ein Telefon einer Seite gibt. Klinke: am Telefon gilt
-  // in jeder Stufe ein Deckel von hoechstens TEL_TEX px; groesser nur per
-  // Commit, der den Grafikspeicher neu misst und die Zahl nennt.
-  const TEL_TEX = { niedrig: 256, sonst: 512 };
-  const tm = /const TEX_MAX = SMALL \? \(Q0 === 'niedrig' \? (\d+) : (\d+)\) :/.exec(viewer);
+  // Texturen, mehr als ein Telefon einer Seite gibt. Seit 13.11.2026 („Das
+  // Handy versucht es immer noch die ganze Zeit zu laden“) startet die
+  // Automatik am Telefon in jeder Stufe mit TEL_TEX.auto px (gemessen in der
+  // hohen Stufe: 206 statt 518 MB Texturen); eine Wahl von Hand bekommt drei Stufen mit
+  // echtem Abstand, und unter dem Deckel des Waechters (cap) sinkt die
+  // Kante mit jeder Stufe weiter, sonst senkte er ins Leere. Klinken: Deckel
+  // nur nach unten; groesser nur per Commit, der den Grafikspeicher neu
+  // misst und die Zahl nennt.
+  const TEL_TEX = { auto: 256, hoch: 512, mittel: 384, niedrig: 256, capMittel: 192, capNiedrig: 128 };
+  const tp = /const TEX_PHONE = \{ hoch: (\d+), mittel: (\d+), niedrig: (\d+) \}, TEX_PHONE_AUTO = (\d+), TEX_PHONE_CAP = \{ mittel: (\d+), niedrig: (\d+) \};/.exec(viewer);
+  const telZeile = /const TEX_MAX = SMALL \? \(FORCED \? TEX_PHONE\[Q0\] : \(opts\.cap === Q0 && TEX_PHONE_CAP\[Q0\]\) \|\| TEX_PHONE_AUTO\) :/.test(viewer);
   const telWirkt = /if \(TEX_MAX\) await shrinkTextures\(/.test(viewer);
-  const telOk = !!tm && telWirkt && Number(tm[1]) > 0 && Number(tm[1]) <= TEL_TEX.niedrig && Number(tm[2]) > 0 && Number(tm[2]) <= TEL_TEX.sonst;
-  sollIst(`Texturen am Telefon hoechstens ${TEL_TEX.sonst} px, in der niedrigen Stufe ${TEL_TEX.niedrig} px`, !tm ? 'kein Deckel gefunden' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `${tm[2]} px, niedrig ${tm[1]} px`);
-  if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr oder liegt ueber ${TEL_TEX.sonst} px (niedrig ${TEL_TEX.niedrig} px): mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu`);
+  const [tHoch, tMittel, tNiedrig, tAuto, tCapM, tCapN] = tp ? tp.slice(1).map(Number) : [0, 0, 0, 0, 0, 0];
+  const telOk = !!tp && telZeile && telWirkt && tAuto > 0 && tAuto <= TEL_TEX.auto && tNiedrig > 0 && tNiedrig <= TEL_TEX.niedrig
+    && tMittel > tNiedrig && tMittel <= TEL_TEX.mittel && tHoch > tMittel && tHoch <= TEL_TEX.hoch
+    && tCapN > 0 && tCapN <= TEL_TEX.capNiedrig && tCapM > tCapN && tCapM <= TEL_TEX.capMittel && tCapM < tAuto;
+  sollIst(`Texturen am Telefon: Automatik hoechstens ${TEL_TEX.auto} px, unter dem Deckel des Waechters ${TEL_TEX.capMittel}/${TEL_TEX.capNiedrig} px, von Hand hoechstens ${TEL_TEX.hoch}/${TEL_TEX.mittel}/${TEL_TEX.niedrig} px, jede Stufe kleiner als die darueber`,
+    !tp ? 'kein Deckel gefunden' : !telZeile ? 'Deckel da, aber TEX_MAX liest ihn nicht mehr so' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `Automatik ${tAuto} px, unter dem Deckel ${tCapM}/${tCapN} px, von Hand ${tHoch}/${tMittel}/${tNiedrig} px`);
+  if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr, liegt ueber der Klinke (Automatik ${TEL_TEX.auto} px, unter dem Deckel des Waechters ${TEL_TEX.capMittel}/${TEL_TEX.capNiedrig} px, von Hand ${TEL_TEX.hoch}/${TEL_TEX.mittel}/${TEL_TEX.niedrig} px) oder seine Stufen liegen nicht mehr auseinander: mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu, und wo jede Stufe dieselbe Kante laedt, senkt der Waechter ins Leere`);
+  // Am Telefon kommen die Bilder schon klein aus dem Loader (13.11.2026).
+  // Vorher packte jede Datei alle ihre Bilder in voller Groesse aus, und
+  // der Deckel verkleinerte erst danach: bis zu 818 MB ausgepackte Bilder
+  // zugleich, in der niedrigen Stufe 698 MB (Telefonformat, Gladius). Der
+  // Loader bekommt den Deckel, packt hoechstens FIT_MAX Bilder zugleich aus
+  // und gibt das grosse frei, sobald das kleine steht. Die beiden Helfer
+  // rechnet das Tor am ausgelieferten Modul nach.
+  const FIT_MAX = 4;
+  const ladeDeckel = /embeddedImages\(\d+, [^\n]*, SMALL \? TEX_MAX : 0\);/.test(viewer);
+  const fitZugleich = Number(/const FIT_AT_ONCE = (\d+);/.exec(viewer)?.[1] ?? NaN);
+  const kleinPacken = /const gate = max \? limiter\(FIT_AT_ONCE\) : null;/.test(viewer)
+    && /const big = await decode\(\), small = await fitImage\(big, max\);[^}]{0,160}big\.close\(\);/.test(viewer);
+  // Browser ohne createImageBitmap: fitImage gibt als letzten Ausweg eine
+  // eigene Leinwand je Bild zurueck, nie die gemeinsame (fitCv), die das
+  // naechste Bild ueberschreibt. Ohne den Ausweg blieb dort jedes Bild gross
+  // (nachgestellt im Telefonformat: 903 statt 198 MB Texturen).
+  const fitKoerper = /async function fitImage\(im, max\) \{[\s\S]*?\n\}\n/.exec(viewer)?.[0] ?? '';
+  const eigeneLeinwand = /const own = document\.createElement\('canvas'\);[\s\S]{0,200}?drawImage\(fitCv, 0, 0\);\s*return own;/.test(fitKoerper) && !/return fitCv\b/.test(fitKoerper);
+  let fitIst = 'fitSize fehlt', limIst = 'limiter fehlt', fitOk = false, limOk = false;
+  if (typeof mod?.fitSize === 'function') {
+    const soll = [[256, 128], [64, 256], null, null, [512, 1], [1, 256]];
+    const ist = [[1024, 512, 256], [300, 1200, 256], [256, 256, 256], [0, 0, 256], [4096, 1, 512], [2, 2048, 256]].map((a) => mod.fitSize(...a));
+    fitOk = JSON.stringify(ist) === JSON.stringify(soll);
+    fitIst = fitOk ? `${soll.length} Groessen richtig` : `falsch: ${JSON.stringify(ist)}`;
+  }
+  if (typeof mod?.limiter === 'function' && fitZugleich >= 1) {
+    const N = 12, lim = mod.limiter(fitZugleich), folge = [];
+    let jetzt = 0, hoechst = 0, fehler = 0, frist = null;
+    const alle = Promise.all(Array.from({ length: N }, (_, k) => lim(async () => {
+      jetzt++; hoechst = Math.max(hoechst, jetzt); folge.push(k);
+      await new Promise((r) => setTimeout(r, k % 3));
+      jetzt--;
+      // eine Aufgabe scheitert: ihr Platz muss trotzdem frei werden
+      if (k === 4) throw new Error('Probe');
+    }).catch(() => { fehler++; })));
+    // Gibt der Limiter einen Platz nicht frei, wartet der Rest ewig: Frist statt haengendem Tor
+    const fertig = await Promise.race([alle.then(() => true), new Promise((r) => { frist = setTimeout(() => r(false), 3000); })]);
+    clearTimeout(frist);
+    const inReihe = folge.join() === Array.from({ length: folge.length }, (_, k) => k).join();
+    limOk = fertig && folge.length === N && hoechst === Math.min(N, fitZugleich) && fehler === 1 && inReihe;
+    limIst = `${folge.length} von ${N} Aufgaben gelaufen${fertig ? '' : ' (der Rest wartet nach 3 s noch)'}, hoechstens ${hoechst} zugleich${inReihe ? '' : ', Reihenfolge vertauscht'}`;
+  }
+  const packOk = ladeDeckel && kleinPacken && fitZugleich >= 1 && fitZugleich <= FIT_MAX && fitOk && limOk;
+  sollIst(`Telefon: Bilder kommen verkleinert aus dem Loader, hoechstens ${FIT_MAX} zugleich in voller Groesse`,
+    !ladeDeckel ? 'der Loader bekommt den Deckel nicht' : !kleinPacken ? 'das Auspacken verkleinert nicht mehr oder gibt das grosse Bild nicht frei' : `${Number.isFinite(fitZugleich) ? fitZugleich : 'ohne Zahl'} zugleich; ${fitIst}; ${limIst}`);
+  if (!packOk) fail(`[12] dist/assets/hangar-viewer.js: am Telefon packt der Loader die Bilder nicht mehr klein aus (erwartet: embeddedImages(…, SMALL ? TEX_MAX : 0), darin limiter(FIT_AT_ONCE) mit hoechstens ${FIT_MAX}, fitImage(big, max) und big.close(); fitSize und limiter rechnen wie beschrieben): jede Datei laege wieder mit allen Bildern in voller Groesse im Speicher, 818 MB zugleich statt 129 MB, in jeder Stufe gleich`);
+  sollIst('fitImage ohne createImageBitmap: eigene Leinwand je Bild als letzter Ausweg, nie die gemeinsame', !fitKoerper ? 'fitImage nicht gefunden' : eigeneLeinwand ? 'eigene Leinwand, fitCv bleibt intern' : 'kein Ausweg, oder die gemeinsame Leinwand wird selbst zurueckgegeben');
+  if (!eigeneLeinwand) fail('[12] dist/assets/hangar-viewer.js: fitImage() hat keinen Ausweg mehr fuer Browser ohne createImageBitmap (erwartet: eine eigene Leinwand je Bild, gezeichnet von fitCv, und fitCv selbst wird nie zurueckgegeben): shrinkTextures() liesse dort jedes Bild in voller Groesse, im Telefonformat 903 statt 198 MB Texturen');
   // Drei Leerlaeufe des Zeichners (Krisz, 13.11.2026: „es braucht viel zu
   // viele Ressourcen“), gemessen mit der Gladius in der hohen Stufe auf
   // einer RTX 3070 Ti mit i5-13400F: three r185 warnte je Bild rund 100 Mal
@@ -1008,6 +1109,67 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     const ws = JSON.stringify(ctrlMod.WAECHTER?.stufen ?? null);
     sollIst(`Stufen des Waechters ${JSON.stringify(LEVELS)}`, ws);
     if (ws !== JSON.stringify(LEVELS)) fail(`[12] WAECHTER.stufen in dist/assets/hangar-overview.js ist ${ws} statt ${JSON.stringify(LEVELS)}: Waechter und Viewer muessen dieselben Stufen nennen`);
+  }
+  // Seit 13.11.2026 (WAECHTER.v 2): Am Telefon senkt schon der erste
+  // Abbruch, und der Stand fuehrt eine Spur (Stufe, Phase, Art), die die
+  // Meldung zeigt. Geprueft am ausgelieferten Modul und an den Naehten: Der
+  // Controller nennt das Telefon mit derselben Abfrage wie der Viewer, gibt
+  // sofort, Phase und Art an waechterAbbruch, der Vermerk traegt die Phase,
+  // und sie rueckt beim Laden vor ('bauen' ab 90 %, 'steht' mit dem ersten
+  // Schiff). v ist eine Klinke: Sinkt sie, gelten Deckel wieder, die fuer
+  // eine schwerere Halle gemerkt wurden.
+  const WAECHTER_V = 2;
+  if (ctrlMod) {
+    const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 13, 12, 0, 0);
+    const leer = ctrlMod.waechterStand?.(null, T);
+    const erst = leer && ctrlMod.waechterAbbruch?.(leer, T, 'hoch', { phase: 'bauen', wie: 'seite' });
+    const sofort = leer && ctrlMod.waechterAbbruch?.(leer, T, 'hoch', { sofort: true, phase: 'bauen', wie: 'seite' });
+    // drei Laeufe am Telefon, jeder bricht ab: hoch, mittel, niedrig, dann aus
+    let stand = leer, laeufe = 0;
+    for (; stand && stand.deckel !== 'aus' && laeufe < 9; laeufe++) {
+      stand = ctrlMod.waechterStand(ctrlMod.waechterText(ctrlMod.waechterAbbruch(stand, T + laeufe * 60e3, stand.deckel ?? 'hoch', { sofort: true, phase: 'bauen', wie: 'kontext' })), T + laeufe * 60e3);
+    }
+    const zeilen = stand ? ctrlMod.waechterVerlauf?.(stand.spur, (k) => k.toUpperCase()) ?? [] : [];
+    // Vermerk „Lauf offen“: nur einer der eigenen Fassung zaehlt. Einer von
+    // vor dem Update (ohne v) setzte der leichteren Halle sonst sofort einen
+    // Deckel, von niedrig aus gleich „aus“ fuer 30 Tage.
+    const vermerk = (o) => ctrlMod.waechterOffen?.(JSON.stringify({ t: T, id: 'x', stufe: 'niedrig', ...o }), T + 1000);
+    const vermerkIst = `Vermerk der eigenen Fassung ${vermerk({ v: W.v }) ? 'zaehlt' : 'zaehlt nicht'}, einer ohne Fassung ${vermerk({}) ? 'zaehlt' : 'zaehlt nicht'}, einer aelteren ${vermerk({ v: W.v - 1 }) ? 'zaehlt' : 'zaehlt nicht'}`;
+    const vermerkOk = !!vermerk({ v: W.v }) && vermerk({}) === null && vermerk({ v: W.v - 1 }) === null;
+    const regelOk = W.v >= WAECHTER_V && erst?.deckel === null && sofort?.deckel === 'mittel' && laeufe === 3
+      && zeilen.length === 3 && zeilen[0] === 'HOCH, BAUEN, KONTEXT' && zeilen[2] === 'NIEDRIG, BAUEN, KONTEXT' && vermerkOk;
+    sollIst(`Waechter ab v ${WAECHTER_V}: am Telefon senkt der erste Abbruch, drei Laeufe bis aus, die Spur nennt Stufe, Phase und Art, ein Vermerk „Lauf offen“ zaehlt nur in der eigenen Fassung`,
+      `v ${W.v}, erster Abbruch ohne sofort: Deckel ${erst?.deckel ?? 'keiner'}, mit sofort: ${sofort?.deckel ?? 'keiner'}; ${laeufe} Laeufe bis aus; Spur: ${zeilen.join(' | ') || 'leer'}; ${vermerkIst}`);
+    if (!regelOk) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 13.11.2026 abgenommen (v mindestens ${WAECHTER_V}; ohne sofort wird der erste Abbruch nur vermerkt, mit sofort senkt er auf mittel; am Telefon drei Laeufe bis aus; waechterVerlauf nennt je Abbruch Stufe, Phase und Art; waechterOffen nimmt nur Vermerke der eigenen Fassung): am Telefon liefe die Schleife laenger, die Meldung sagte nicht mehr, wie weit die Laeufe kamen, oder ein Lauf von vor einem Update setzte der neuen Halle einen Deckel`);
+    const telQ = /const TELEFON = window\.matchMedia\('([^']+)'\)\.matches;/.exec(ctrl)?.[1] ?? null;
+    const smallQ = /const SMALL = matchMedia\('([^']+)'\)\.matches;/.exec(viewer)?.[1] ?? null;
+    const naht = [
+      [telQ !== null && telQ === smallQ, `Telefon heisst im Controller „${telQ}“, im Viewer „${smallQ}“`],
+      [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie \}\)/.test(ctrl), 'abbruch() gibt sofort, phase und wie nicht an waechterAbbruch'],
+      [/JSON\.stringify\(\{ v: WAECHTER\.v, t: Date\.now\(\), id: lauf\.id, stufe: lauf\.stufe, phase: lauf\.phase \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
+      [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
+      [/abbruch\(offen\.stufe, 'seite', offen\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
+      [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
+      // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
+      [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
+      // ... und mit dem Titel: Ein neues Schiff tauscht ihn erst nach dem Laden der Bucht, ein laengerer Name macht ihn hoeher
+      [/replaceWith\(doc\.importNode\(regions\[name\], true\)\);\s*(?:\/\/[^\n]*\n\s*)?meldungPlatz\(\);/.test(ctrl) && /bayErr\.hidden = false;\s*meldungPlatz\(\);/.test(ctrl), 'der Titel wechselt (showBay nach dem Tausch der Regionen, showBayError), ohne dass meldungPlatz() den Platz einer sichtbaren Meldung nachmisst'],
+    ];
+    const offen = naht.filter(([ok]) => !ok).map(([, was]) => was);
+    sollIst(`${naht.length} Naehte von Spur und Sofort-Regel im Controller`, offen.length ? `${naht.length - offen.length} von ${naht.length}: ${offen.join('; ')}` : `${naht.length} von ${naht.length}`);
+    for (const was of offen) fail(`[12] dist/assets/hangar-overview.js: ${was}. Vom Telefon kommt nichts zurueck ausser dieser Zeile unter der Meldung; ohne sie laesst sich von aussen nicht sagen, woran ein Lauf scheiterte`);
+    // Die Woerter der Spur stehen auf jeder Hangarseite: je Phase und Art eines, dazu die beiden Einleitungen
+    const woerter = ['data-spur', 'data-grund', ...[...(W.phasen ?? []), ...(W.arten ?? [])].map((k) => `data-spur-${k}`)];
+    let wortSeiten = 0;
+    for (const page of PAGES) {
+      const tag = /<div[^>]*id="hg-fallback"[^>]*>/.exec(page.html)?.[0] ?? '';
+      const fehlt = woerter.filter((w) => !new RegExp(`\\s${w}="[^"]+"`).test(tag));
+      if (!/<p[^>]*id="hgx-modelerr"[^>]*\sdata-grund="[^"]+"/.test(page.html)) fehlt.push('data-grund an #hgx-modelerr');
+      if (fehlt.length) fail(`[12] dist/${page.file}: an der Meldung der Buehne fehlt ${fehlt.join(', ')}: die Zeile unter der Meldung bliebe leer oder liesse ein Wort aus`);
+      else wortSeiten++;
+    }
+    sollIst(`${woerter.length} Woerter fuer Spur und Grund auf jeder Hangarseite`, `${wortSeiten} von ${PAGES.length} Seiten`);
+    if ((W.phasen ?? []).length < 3 || (W.arten ?? []).length < 2) fail(`[12] WAECHTER nennt ${(W.phasen ?? []).length} Phasen und ${(W.arten ?? []).length} Arten, erwartet mindestens 3 und 2`);
   }
   // Der einzige Weg, auf dem die Seite nach verlorenem Zeichenkontext von
   // selbst neu laedt, haengt am Waechter: im Rueckruf von onLost zaehlt

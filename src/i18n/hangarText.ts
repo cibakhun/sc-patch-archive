@@ -145,6 +145,7 @@ const DE = {
   'bay.failed': 'Die Ausstattung dieses Schiffs konnte nicht geladen werden.',
   'bay.retry': 'Erneut versuchen',
   'model.failed': 'Das 3D-Modell dieses Schiffs konnte nicht geladen werden. Die Werte stehen trotzdem bereit.',
+  'model.grund': 'Technischer Grund:',
   // Vorlagen, die der Controller fuellt (Mehrzahl ueber Intl.PluralRules)
   'msg.count.one': '{n} Schiff',
   'msg.count.other': '{n} Schiffe',
@@ -378,6 +379,7 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'bay.failed': 'The loadout of this ship could not be loaded.',
   'bay.retry': 'Try again',
   'model.failed': 'The 3D model of this ship could not be loaded. The figures are still available.',
+  'model.grund': 'Technical reason:',
   'msg.count.one': '{n} ship',
   'msg.count.other': '{n} ships',
   'msg.copy.ok': 'Link copied.',
