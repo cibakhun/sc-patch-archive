@@ -387,6 +387,13 @@
     ao  dort in captureHallEnv() stLayer?.mirror(true) streichen
         (13.11.2026: die Kugel der Halle kaeme wieder mit dem
         Schleier der Hologramme, halb so hell)                      -> [12]
+    ap  dort in captureHallEnv() die Zeile const unrest = hallRest();
+        streichen (13.11.2026: nach einem Schiffswechsel kaeme die
+        Kugel wieder vom geschlossenen Tor statt vom Schiffsfeld,
+        ein Viertel bis ein Drittel dunkler)                        -> [12]
+    aq  dort in growStep() scaleLamps() am Ende des Gleitens wieder
+        durch renderHallShadows() ersetzen (der Schatten des Schiffs
+        bliebe nach dem Wechsel groeber als nach frischem Laden)    -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -929,6 +936,22 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     && /mirror\(on\) \{[^}]*dim\.visible = vis;[^}]*root\.visible = vis;/.test(holoQ);
   sollIst('Umgebungskugel der Halle ohne Hologramme aufgenommen', kugelOhne ? 'ja' : 'nein');
   if (!kugelOhne) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr ohne die Hologramme der Stationen auf (stLayer?.mirror um fromScene, oder mirror() in hangar-holo3d.js blendet Schleier und Tafeln nicht mehr aus): ihr Schleier halbiert die Kugel, und die Halle steht je nach Ladereihenfolge anders hell da (13.11.2026)');
+  // Licht der Halle nach einem Schiffswechsel wie nach frischem Laden
+  // (13.11.2026, im Bildvergleich Pisces <-> Carrack gefunden). Waechst die
+  // Halle fuer das naechste Schiff, nimmt growSettled() die Kugel unter
+  // geschlossenem Tor neu auf: Schiffsfeld und Wartungsplatz sind dort
+  // ausgeblendet, unter der Kugel lag das Tor, und sie kam 25 bis 33 %
+  // dunkler heraus (Carrack 0,137 statt 0,204) und blieb es bis zum naechsten
+  // Wechsel der Hallengroesse. hallRest() stellt die Halle fuer die Aufnahme
+  // in Ruhelage. Die Schattenkegel richtete scaleWorld() vor dem Gleiten, als
+  // die Lampen noch am alten Ort standen (Carrack nach der Pisces: focus 1
+  // statt 0,77): growStep() richtet sie am Ende des Gleitens neu.
+  const kugelRuhe = /function hallRest\(\) \{[\s\S]{0,700}?\[\[lf, true\], \[dn, true\], \[sh\?\.gate\?\.group, false\]/.test(viewer)
+    && /function captureHallEnv\([\s\S]{0,3500}?const unrest = hallRest\(\);\s*stLayer\?\.mirror\(true\);\s*const rt = pmremFor\(renderer\)\.fromScene\(scene,[^\n]*\n\s*stLayer\?\.mirror\(false\);\s*unrest\(\);/.test(viewer);
+  const kegelEnde = /function growStep\(now\) \{[\s\S]{0,900}?if \(t >= 1\) scaleLamps\(\);/.test(viewer);
+  sollIst('Licht der Halle nach Schiffswechsel wie frisch geladen (Kugel in Ruhelage, Schattenkegel am Ende des Gleitens)', kugelRuhe && kegelEnde ? 'ja' : `nein (Kugel ${kugelRuhe ? 'ja' : 'nein'}, Kegel ${kegelEnde ? 'ja' : 'nein'})`);
+  if (!kugelRuhe) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr in Ruhelage auf (hallRest() um fromScene: Schiffsfeld und Wartungsplatz sichtbar, Tor und Schacht aus): nach einem Schiffswechsel kommt sie vom geschlossenen Tor und steht ein Viertel bis ein Drittel dunkler als nach frischem Laden (13.11.2026)');
+  if (!kegelEnde) fail('[12] dist/assets/hangar-viewer.js: growStep() richtet die Schattenkegel am Ende des Gleitens nicht mehr neu (scaleLamps()): nach einem Schiffswechsel bleibt der Schatten des Schiffs groeber als nach frischem Laden (13.11.2026)');
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
