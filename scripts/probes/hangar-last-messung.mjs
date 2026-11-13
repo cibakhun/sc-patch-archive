@@ -101,7 +101,7 @@ function vorSeite(opt) {
   };
   const fmt = (f) => FMT[f] || `0x${f.toString(16)}`;
   function wrap(gl) {
-    const S = { gl, tex: new Map(), rb: new Map(), buf: new Map(), progs: 0, unit: 0, boundTex: {}, boundRb: null, boundBuf: {}, draws: 0, tris: 0, compressed: 0 };
+    const S = { gl, tex: new Map(), rb: new Map(), buf: new Map(), progs: 0, unit: 0, boundTex: {}, boundRb: null, boundBuf: {}, draws: 0, tris: 0, multi: 0, teile: 0, compressed: 0 };
     gl.__last = S;
     L.ctxs.push(S);
     const o = (k) => gl[k].bind(gl);
@@ -178,18 +178,39 @@ function vorSeite(opt) {
     gl.drawRangeElements = (m, a, b, n, t, off) => { count(m, n); return f.drawRangeElements(m, a, b, n, t, off); };
     gl.drawArraysInstanced = (m, a, n, i) => { count(m, n, i); return f.drawArraysInstanced(m, a, n, i); };
     gl.drawElementsInstanced = (m, n, t, off, i) => { count(m, n, i); return f.drawElementsInstanced(m, n, t, off, i); };
+    // BatchedMesh (Wartungsplatz, Hallendeko, Schachttor) zeichnet three über
+    // WEBGL_multi_draw, direkt am Erweiterungsobjekt und nicht über gl.draw*:
+    // ein Aufruf mit vielen Teilen. Ohne diese Stelle fehlten die Aufrufe
+    // und ihre Dreiecke in der Zählung.
+    const multi = (m, counts, co, n, inst, io) => {
+      S.draws++; S.multi++; S.teile += n;
+      for (let k = 0; k < n; k++) S.tris += tri(m, counts[co + k]) * (inst ? inst[io + k] : 1);
+    };
+    const getExt = gl.getExtension.bind(gl);
+    gl.getExtension = (name) => {
+      const e = getExt(name);
+      if (name === 'WEBGL_multi_draw' && e && !e.__lastGezaehlt) {
+        e.__lastGezaehlt = true;
+        const o = { a: e.multiDrawArraysWEBGL.bind(e), e: e.multiDrawElementsWEBGL.bind(e), ai: e.multiDrawArraysInstancedWEBGL.bind(e), ei: e.multiDrawElementsInstancedWEBGL.bind(e) };
+        e.multiDrawArraysWEBGL = (m, firsts, fo, counts, co, n) => { multi(m, counts, co, n); return o.a(m, firsts, fo, counts, co, n); };
+        e.multiDrawElementsWEBGL = (m, counts, co, t, offs, oo, n) => { multi(m, counts, co, n); return o.e(m, counts, co, t, offs, oo, n); };
+        e.multiDrawArraysInstancedWEBGL = (m, firsts, fo, counts, co, ic, io, n) => { multi(m, counts, co, n, ic, io); return o.ai(m, firsts, fo, counts, co, ic, io, n); };
+        e.multiDrawElementsInstancedWEBGL = (m, counts, co, t, offs, oo, ic, io, n) => { multi(m, counts, co, n, ic, io); return o.ei(m, counts, co, t, offs, oo, ic, io, n); };
+      }
+      return e;
+    };
   }
   // Bilder: Zählung und Rechenzeit je requestAnimationFrame
   const raf = window.requestAnimationFrame.bind(window);
   window.requestAnimationFrame = (cb) => raf((t) => {
-    for (const S of L.ctxs) { S.draws = 0; S.tris = 0; }
+    for (const S of L.ctxs) { S.draws = 0; S.tris = 0; S.multi = 0; S.teile = 0; }
     const c0 = performance.now();
     try { cb(t); } finally {
       if (L.on) {
         const cpu = performance.now() - c0;
-        let draws = 0, tris = 0;
-        for (const S of L.ctxs) { draws += S.draws; tris += S.tris; }
-        if (draws) L.frames.push({ t: c0, cpu, draws, tris });
+        let draws = 0, tris = 0, multi = 0, teile = 0;
+        for (const S of L.ctxs) { draws += S.draws; tris += S.tris; multi += S.multi; teile += S.teile; }
+        if (draws) L.frames.push({ t: c0, cpu, draws, tris, multi, teile });
       }
     }
   });
@@ -252,11 +273,16 @@ if (NETZ > 0) await cdp.send('Network.emulateNetworkConditions', { offline: fals
 await cdp.send('Performance.enable');
 
 const reqs = new Map();
+// laufend: Anfragen, die unterwegs sind. Ruhe im Netz heißt: keine läuft
+// mehr UND seit RUHE ist keine fertig geworden. Nur auf die letzte fertige
+// zu sehen, endete zu früh, wenn eine große Datei länger als RUHE lud
+// (mit --netz die Regel).
+const laufend = new Set();
 let letzte = Date.now();
-cdp.on('Network.requestWillBeSent', (e) => { if (/^https?:/.test(e.request.url)) reqs.set(e.requestId, { url: e.request.url, t0: e.timestamp, wall: e.wallTime }); });
+cdp.on('Network.requestWillBeSent', (e) => { if (/^https?:/.test(e.request.url)) { reqs.set(e.requestId, { url: e.request.url, t0: e.timestamp, wall: e.wallTime }); laufend.add(e.requestId); } });
 cdp.on('Network.responseReceived', (e) => { const r = reqs.get(e.requestId); if (r) { r.mime = e.response.mimeType; r.status = e.response.status; } });
-cdp.on('Network.loadingFinished', (e) => { const r = reqs.get(e.requestId); if (r) { r.bytes = e.encodedDataLength; r.t1 = e.timestamp; letzte = Date.now(); r.id = e.requestId; } });
-cdp.on('Network.loadingFailed', (e) => { const r = reqs.get(e.requestId); if (r) { r.failed = e.errorText; letzte = Date.now(); } });
+cdp.on('Network.loadingFinished', (e) => { laufend.delete(e.requestId); const r = reqs.get(e.requestId); if (r) { r.bytes = e.encodedDataLength; r.t1 = e.timestamp; letzte = Date.now(); r.id = e.requestId; } });
+cdp.on('Network.loadingFailed', (e) => { laufend.delete(e.requestId); const r = reqs.get(e.requestId); if (r) { r.failed = e.errorText; letzte = Date.now(); } });
 const logs = [];
 page.on('console', (m) => { const t = m.text(); if (t.startsWith('[hangar]')) logs.push(t); });
 page.on('pageerror', (e) => logs.push(`FEHLER der Seite: ${String(e).slice(0, 200)}`));
@@ -277,9 +303,13 @@ while (Date.now() - start < WARTE) {
 if (rueckfall) { console.error('FEHLER: die Seite zeigt ihren Rückfall statt der Halle.\n' + logs.join('\n')); await browser.close(); process.exit(1); }
 const reveal = await page.evaluate(() => window.__last.reveal);
 if (reveal == null) { console.error(`FEHLER: nach ${WARTE / 60000} min kein Bild der Halle.\n` + logs.join('\n')); await browser.close(); process.exit(1); }
-// Ruhe: vier Sekunden ohne fertige Anfrage (unter Software länger, dort rechnet die Seite zwischen den Anfragen lange)
+// Ruhe: keine Anfrage läuft mehr, und vier Sekunden ohne fertige Anfrage
+// (unter Software länger, dort rechnet die Seite zwischen den Anfragen lange).
+// Läuft die Frist WARTE ab, während noch geladen wird, ist die Messung
+// unvollständig: Das sagt der Bericht, statt Ruhe zu melden.
 const RUHE = SOFT ? 25000 : 4000;
-while (Date.now() - letzte < RUHE && Date.now() - start < WARTE) await page.waitForTimeout(250);
+while ((laufend.size > 0 || Date.now() - letzte < RUHE) && Date.now() - start < WARTE) await page.waitForTimeout(250);
+const offen = [...laufend].map((id) => reqs.get(id)?.url).filter(Boolean);
 const ruhe = (letzte - start) / 1000;
 await page.waitForTimeout(SOFT ? 5000 : 3000);
 
@@ -341,7 +371,7 @@ async function bilder(label, drive) {
   if (!fr.length) return { label, fps: 0, n: 0 };
   const med = (k) => { const a = fr.map((x) => x[k]).sort((x, y) => x - y); return a[a.length >> 1]; };
   const p95 = (k) => { const a = fr.map((x) => x[k]).sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(a.length * 0.95))]; };
-  return { label, n: fr.length, fps: +(fr.length / secs).toFixed(1), cpu: +med('cpu').toFixed(2), cpu95: +p95('cpu').toFixed(2), draws: med('draws'), tris: Math.round(med('tris')) };
+  return { label, n: fr.length, fps: +(fr.length / secs).toFixed(1), cpu: +med('cpu').toFixed(2), cpu95: +p95('cpu').toFixed(2), draws: med('draws'), tris: Math.round(med('tris')), multi: med('multi'), teile: med('teile') };
 }
 const vw = TELEFON ? tel.viewport.width : W, vh = TELEFON ? tel.viewport.height : H;
 const stand = await bilder('in Ruhe', () => page.waitForTimeout(SECS * 1000));
@@ -368,7 +398,8 @@ if (fehlAnfragen.length) console.log(`   ⚠ ${fehlAnfragen.length} Anfragen ges
 // ohne Fenster: siehe Kopf (Hintergrundarbeit, auf Prozessoren mit E-Kernen viel zu langsam)
 const OHNE_FENSTER = SOFT || HEADED ? '' : ' (ohne Fenster gemessen: Zeiten und Takt fallen auf Prozessoren mit E-Kernen zu schlecht aus, mit --headed wiederholen)';
 console.log(`\n── Zeit${SOFT ? ' (Software-WebGL: nicht belastbar)' : ''}${OHNE_FENSTER}`);
-console.log(`   Seite da (DOMContentLoaded) ${(nav.dcl / 1000).toFixed(2)} s · Bild der Halle ${(reveal / 1000).toFixed(2)} s · Ruhe im Netz ${ruhe.toFixed(1)} s`);
+console.log(`   Seite da (DOMContentLoaded) ${(nav.dcl / 1000).toFixed(2)} s · Bild der Halle ${(reveal / 1000).toFixed(2)} s · ${offen.length ? `Netz nach ${(WARTE / 60000).toFixed(0)} min nicht in Ruhe` : `Ruhe im Netz ${ruhe.toFixed(1)} s`}`);
+if (offen.length) console.log(`   ⚠ UNVOLLSTÄNDIG: ${offen.length} Anfragen liefen noch, als die Frist ablief; ihre Bytes fehlen unten, und Speicher und Bilder sind während des Ladens gemessen:\n     ${offen.slice(0, 5).join('\n     ')}`);
 console.log(`   Hauptfaden am Stück belegt: bis zum Bild ${Math.round(sum(lang.vor))} ms in ${lang.vor.length} Blöcken (längster ${Math.round(max(lang.vor))} ms), danach ${Math.round(sum(lang.nach))} ms in ${lang.nach.length} (längster ${Math.round(max(lang.nach))} ms)`);
 console.log('\n── Grafikspeicher (am Zeichenkontext gezählt)');
 const ges = sp.texBytes + sp.rbBytes + sp.bufBytes + sp.leinwand;
@@ -382,10 +413,10 @@ for (const t of sp.tex.sort((a, b) => b.bytes - a.bytes).slice(0, TOP)) console.
 if (sp.rb.length) console.log('   Zwischenbilder: ' + sp.rb.sort((a, b) => b.bytes - a.bytes).slice(0, 8).map((r) => `${r.w}×${r.h} ${r.f}${r.s > 1 ? ` ×${r.s}` : ''} ${MB(r.bytes)} MB`).join(' · '));
 console.log(`\n── Bild${OHNE_FENSTER}`);
 console.log(`   ${sp.progs} Shaderprogramme`);
-for (const b of [stand, dreh].filter(Boolean)) console.log(b.n ? `   ${b.label.padEnd(12)} ${String(b.fps).padStart(6)} Bilder/s · ${b.draws} Zeichenaufrufe · ${b.tris.toLocaleString('de-DE')} Dreiecke · Hauptfaden ${b.cpu} ms je Bild (95 %: ${b.cpu95} ms)` : `   ${b.label.padEnd(12)} kein Bild gezeichnet`);
+for (const b of [stand, dreh].filter(Boolean)) console.log(b.n ? `   ${b.label.padEnd(12)} ${String(b.fps).padStart(6)} Bilder/s · ${b.draws} Zeichenaufrufe${b.multi ? ` (davon ${b.multi} Sammelaufrufe mit ${b.teile} Teilen)` : ''} · ${b.tris.toLocaleString('de-DE')} Dreiecke · Hauptfaden ${b.cpu} ms je Bild (95 %: ${b.cpu95} ms)` : `   ${b.label.padEnd(12)} kein Bild gezeichnet`);
 console.log('\n── Arbeitsspeicher');
 console.log(`   JS-Heap ${MB(metr.JSHeapUsedSize)} MB belegt (${MB(metr.JSHeapTotalSize)} MB reserviert), ${metr.Nodes} DOM-Knoten`);
 console.log('\n── Meldungen des Viewers');
-for (const l of logs.filter((x) => /Leistungsstufe|Texturen je|FEHLER/.test(x))) console.log(`   ${l}`);
+for (const l of logs.filter((x) => /Leistungsstufe|Texturen je|Bilder nach dem Hochladen|Bild nach der Freigabe|FEHLER/.test(x))) console.log(`   ${l}`);
 console.log('');
-if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, fenster: HEADED, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: ruhe * 1000, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));
+if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, fenster: HEADED, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: offen.length ? null : ruhe * 1000, offen, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));
