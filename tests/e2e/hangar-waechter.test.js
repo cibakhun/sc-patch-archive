@@ -108,7 +108,7 @@ describe('Hangar-Waechter: Abbrueche senken die Stufe, bis die Buehne aus bleibt
 });
 
 describe('Hangar-Waechter: Vermerk „Lauf offen“', () => {
-  const vermerk = (o) => JSON.stringify({ t: T0, id: 'a1', stufe: 'mittel', ...o });
+  const vermerk = (o) => JSON.stringify({ v: WAECHTER.v, t: T0, id: 'a1', stufe: 'mittel', ...o });
 
   test('ein frischer Vermerk nennt Lauf und Stufe', () => {
     assert.deepEqual(waechterOffen(vermerk({}), T0 + MIN), { id: 'a1', stufe: 'mittel', phase: null });
@@ -126,6 +126,17 @@ describe('Hangar-Waechter: Vermerk „Lauf offen“', () => {
     // der Vermerk wird alle WAECHTER.puls erneuert: Er darf dazwischen nicht alt werden
     assert.ok(WAECHTER.puls > 0 && WAECHTER.puls * 2 <= WAECHTER.frisch);
     assert.deepEqual(waechterOffen(vermerk({}), T0 + WAECHTER.puls), { id: 'a1', stufe: 'mittel', phase: null });
+  });
+
+  test('ein Vermerk einer anderen Fassung zaehlt nicht', () => {
+    // Ein Lauf der Halle von vor dem Update darf der neuen keinen Deckel
+    // setzen: Am Telefon senkt schon der erste Abbruch, und ein alter
+    // Vermerk auf niedrig stellte die Ansicht fuer 30 Tage ab.
+    const alt = JSON.stringify({ t: T0, id: 'a1', stufe: 'niedrig' });
+    assert.equal(waechterOffen(alt, T0 + MIN), null);
+    assert.equal(waechterOffen(vermerk({ v: WAECHTER.v - 1 }), T0 + MIN), null);
+    assert.equal(waechterOffen(vermerk({ v: WAECHTER.v + 1 }), T0 + MIN), null);
+    assert.equal(waechterOffen(vermerk({ v: String(WAECHTER.v) }), T0 + MIN), null);
   });
 
   test('alt, aus der Zukunft, ohne Kennung oder kaputt: kein Abbruch', () => {

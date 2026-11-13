@@ -678,16 +678,19 @@ export const waechterVerlauf = (spur, wort) => (spur ?? [])
 
 /**
  * Der Vermerk „Lauf offen“ einer Registerkarte: { id, stufe, phase } oder
- * null, wenn keiner da ist, er kaputt ist oder aelter als WAECHTER.frisch
- * (dann liegt der Lauf zu lange zurueck, um an der Halle zu haengen). phase:
- * wie weit der Lauf war, null bei einem Vermerk ohne.
+ * null, wenn keiner da ist, er kaputt ist, aelter als WAECHTER.frisch (dann
+ * liegt der Lauf zu lange zurueck, um an der Halle zu haengen) oder von
+ * einer anderen Fassung des Waechters stammt (v): Ein Lauf der schwereren
+ * Halle von vorher darf der neuen keinen Deckel setzen, am Telefon senkt
+ * schon der erste Abbruch. phase: wie weit der Lauf war, null bei einem
+ * Vermerk ohne.
  * @param {string|null} raw
  * @param {number} now
  */
 export function waechterOffen(raw, now) {
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return null; }
-  if (!o || typeof o !== 'object' || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
   return { id: o.id, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase) };
 }
 
@@ -942,6 +945,8 @@ export function boot(doc) {
       const regions = await loadBay(id);
       if (my !== selTok) return;
       for (const name of REGIONS) regionNow(name).replaceWith(doc.importNode(regions[name], true));
+      // der neue Titel kann hoeher sein als der alte: Platz einer sichtbaren Meldung nachmessen
+      meldungPlatz();
       applyTab();
       syncMarks();
       applyHp();
@@ -978,6 +983,7 @@ export function boot(doc) {
     viewer?.label?.(id, labelOf(id));
     regionNow('panel').hidden = true;
     bayErr.hidden = false;
+    meldungPlatz();
   }
   // Nur die Bucht: das Modell steht, seine Einfahrt soll nicht noch einmal laufen.
   $('hgx-bayretry').addEventListener('click', () => showBay(state.ship));
@@ -2455,7 +2461,7 @@ export function boot(doc) {
   const offenWeg = () => { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* ohne Speicher gab es keinen Vermerk */ } };
   function offenSetzen() {
     if (!lauf || doc.hidden) return;
-    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ t: Date.now(), id: lauf.id, stufe: lauf.stufe, phase: lauf.phase })); } catch { /* ohne Speicher zaehlt nur der verlorene Kontext */ }
+    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ v: WAECHTER.v, t: Date.now(), id: lauf.id, stufe: lauf.stufe, phase: lauf.phase })); } catch { /* ohne Speicher zaehlt nur der verlorene Kontext */ }
   }
   function laufEnde() { lauf = null; offenWeg(); }
   // Wie weit der Lauf ist (WAECHTER.phasen), nur vorwaerts: 'laden' bis die

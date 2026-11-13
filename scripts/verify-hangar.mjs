@@ -289,6 +289,15 @@
      g12 in dist/assets/hangar-overview.js meldungPlatz(); nach
         fallback.hidden = false in noStage() streichen (am Telefon
         ragte die Meldung mit Verlauf in die Knoepfe des Titels)    -> [12]
+     g13 dort in waechterOffen() die Pruefung o.v !== WAECHTER.v
+        streichen (ein Lauf von vor einem Update setzte der neuen
+        Halle am Telefon sofort einen Deckel)                       -> [12]
+     g14 dort meldungPlatz(); nach dem Tausch der Regionen in
+        showBay() streichen (ein laengerer Schiffsname schoebe die
+        Knoepfe des Titels unter eine sichtbare Meldung)            -> [12]
+     g15 in dist/assets/hangar-viewer.js in fitImage() return own
+        durch return null ersetzen: ohne createImageBitmap bliebe
+        jedes Bild gross, 903 statt 198 MB Texturen                 -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
      i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
@@ -911,6 +920,12 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   const fitZugleich = Number(/const FIT_AT_ONCE = (\d+);/.exec(viewer)?.[1] ?? NaN);
   const kleinPacken = /const gate = max \? limiter\(FIT_AT_ONCE\) : null;/.test(viewer)
     && /const big = await decode\(\), small = await fitImage\(big, max\);[^}]{0,160}big\.close\(\);/.test(viewer);
+  // Browser ohne createImageBitmap: fitImage gibt als letzten Ausweg eine
+  // eigene Leinwand je Bild zurueck, nie die gemeinsame (fitCv), die das
+  // naechste Bild ueberschreibt. Ohne den Ausweg blieb dort jedes Bild gross
+  // (nachgestellt im Telefonformat: 903 statt 198 MB Texturen).
+  const fitKoerper = /async function fitImage\(im, max\) \{[\s\S]*?\n\}\n/.exec(viewer)?.[0] ?? '';
+  const eigeneLeinwand = /const own = document\.createElement\('canvas'\);[\s\S]{0,200}?drawImage\(fitCv, 0, 0\);\s*return own;/.test(fitKoerper) && !/return fitCv\b/.test(fitKoerper);
   let fitIst = 'fitSize fehlt', limIst = 'limiter fehlt', fitOk = false, limOk = false;
   if (typeof mod?.fitSize === 'function') {
     const soll = [[256, 128], [64, 256], null, null, [512, 1], [1, 256]];
@@ -939,6 +954,8 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   sollIst(`Telefon: Bilder kommen verkleinert aus dem Loader, hoechstens ${FIT_MAX} zugleich in voller Groesse`,
     !ladeDeckel ? 'der Loader bekommt den Deckel nicht' : !kleinPacken ? 'das Auspacken verkleinert nicht mehr oder gibt das grosse Bild nicht frei' : `${Number.isFinite(fitZugleich) ? fitZugleich : 'ohne Zahl'} zugleich; ${fitIst}; ${limIst}`);
   if (!packOk) fail(`[12] dist/assets/hangar-viewer.js: am Telefon packt der Loader die Bilder nicht mehr klein aus (erwartet: embeddedImages(…, SMALL ? TEX_MAX : 0), darin limiter(FIT_AT_ONCE) mit hoechstens ${FIT_MAX}, fitImage(big, max) und big.close(); fitSize und limiter rechnen wie beschrieben): jede Datei laege wieder mit allen Bildern in voller Groesse im Speicher, 818 MB zugleich statt 129 MB, in jeder Stufe gleich`);
+  sollIst('fitImage ohne createImageBitmap: eigene Leinwand je Bild als letzter Ausweg, nie die gemeinsame', !fitKoerper ? 'fitImage nicht gefunden' : eigeneLeinwand ? 'eigene Leinwand, fitCv bleibt intern' : 'kein Ausweg, oder die gemeinsame Leinwand wird selbst zurueckgegeben');
+  if (!eigeneLeinwand) fail('[12] dist/assets/hangar-viewer.js: fitImage() hat keinen Ausweg mehr fuer Browser ohne createImageBitmap (erwartet: eine eigene Leinwand je Bild, gezeichnet von fitCv, und fitCv selbst wird nie zurueckgegeben): shrinkTextures() liesse dort jedes Bild in voller Groesse, im Telefonformat 903 statt 198 MB Texturen');
   // Drei Leerlaeufe des Zeichners (Krisz, 13.11.2026: „es braucht viel zu
   // viele Ressourcen“), gemessen mit der Gladius in der hohen Stufe auf
   // einer RTX 3070 Ti mit i5-13400F: three r185 warnte je Bild rund 100 Mal
@@ -1087,22 +1104,30 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       stand = ctrlMod.waechterStand(ctrlMod.waechterText(ctrlMod.waechterAbbruch(stand, T + laeufe * 60e3, stand.deckel ?? 'hoch', { sofort: true, phase: 'bauen', wie: 'kontext' })), T + laeufe * 60e3);
     }
     const zeilen = stand ? ctrlMod.waechterVerlauf?.(stand.spur, (k) => k.toUpperCase()) ?? [] : [];
+    // Vermerk „Lauf offen“: nur einer der eigenen Fassung zaehlt. Einer von
+    // vor dem Update (ohne v) setzte der leichteren Halle sonst sofort einen
+    // Deckel, von niedrig aus gleich „aus“ fuer 30 Tage.
+    const vermerk = (o) => ctrlMod.waechterOffen?.(JSON.stringify({ t: T, id: 'x', stufe: 'niedrig', ...o }), T + 1000);
+    const vermerkIst = `Vermerk der eigenen Fassung ${vermerk({ v: W.v }) ? 'zaehlt' : 'zaehlt nicht'}, einer ohne Fassung ${vermerk({}) ? 'zaehlt' : 'zaehlt nicht'}, einer aelteren ${vermerk({ v: W.v - 1 }) ? 'zaehlt' : 'zaehlt nicht'}`;
+    const vermerkOk = !!vermerk({ v: W.v }) && vermerk({}) === null && vermerk({ v: W.v - 1 }) === null;
     const regelOk = W.v >= WAECHTER_V && erst?.deckel === null && sofort?.deckel === 'mittel' && laeufe === 3
-      && zeilen.length === 3 && zeilen[0] === 'HOCH, BAUEN, KONTEXT' && zeilen[2] === 'NIEDRIG, BAUEN, KONTEXT';
-    sollIst(`Waechter ab v ${WAECHTER_V}: am Telefon senkt der erste Abbruch, drei Laeufe bis aus, die Spur nennt Stufe, Phase und Art`,
-      `v ${W.v}, erster Abbruch ohne sofort: Deckel ${erst?.deckel ?? 'keiner'}, mit sofort: ${sofort?.deckel ?? 'keiner'}; ${laeufe} Laeufe bis aus; Spur: ${zeilen.join(' | ') || 'leer'}`);
-    if (!regelOk) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 13.11.2026 abgenommen (v mindestens ${WAECHTER_V}; ohne sofort wird der erste Abbruch nur vermerkt, mit sofort senkt er auf mittel; am Telefon drei Laeufe bis aus; waechterVerlauf nennt je Abbruch Stufe, Phase und Art): am Telefon liefe die Schleife laenger, oder die Meldung sagte nicht mehr, wie weit die Laeufe kamen`);
+      && zeilen.length === 3 && zeilen[0] === 'HOCH, BAUEN, KONTEXT' && zeilen[2] === 'NIEDRIG, BAUEN, KONTEXT' && vermerkOk;
+    sollIst(`Waechter ab v ${WAECHTER_V}: am Telefon senkt der erste Abbruch, drei Laeufe bis aus, die Spur nennt Stufe, Phase und Art, ein Vermerk „Lauf offen“ zaehlt nur in der eigenen Fassung`,
+      `v ${W.v}, erster Abbruch ohne sofort: Deckel ${erst?.deckel ?? 'keiner'}, mit sofort: ${sofort?.deckel ?? 'keiner'}; ${laeufe} Laeufe bis aus; Spur: ${zeilen.join(' | ') || 'leer'}; ${vermerkIst}`);
+    if (!regelOk) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 13.11.2026 abgenommen (v mindestens ${WAECHTER_V}; ohne sofort wird der erste Abbruch nur vermerkt, mit sofort senkt er auf mittel; am Telefon drei Laeufe bis aus; waechterVerlauf nennt je Abbruch Stufe, Phase und Art; waechterOffen nimmt nur Vermerke der eigenen Fassung): am Telefon liefe die Schleife laenger, die Meldung sagte nicht mehr, wie weit die Laeufe kamen, oder ein Lauf von vor einem Update setzte der neuen Halle einen Deckel`);
     const telQ = /const TELEFON = window\.matchMedia\('([^']+)'\)\.matches;/.exec(ctrl)?.[1] ?? null;
     const smallQ = /const SMALL = matchMedia\('([^']+)'\)\.matches;/.exec(viewer)?.[1] ?? null;
     const naht = [
       [telQ !== null && telQ === smallQ, `Telefon heisst im Controller „${telQ}“, im Viewer „${smallQ}“`],
       [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie \}\)/.test(ctrl), 'abbruch() gibt sofort, phase und wie nicht an waechterAbbruch'],
-      [/JSON\.stringify\(\{ t: Date\.now\(\), id: lauf\.id, stufe: lauf\.stufe, phase: lauf\.phase \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt die Phase nicht'],
+      [/JSON\.stringify\(\{ v: WAECHTER\.v, t: Date\.now\(\), id: lauf\.id, stufe: lauf\.stufe, phase: lauf\.phase \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
       [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
       [/abbruch\(offen\.stufe, 'seite', offen\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
       [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
       // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
       [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
+      // ... und mit dem Titel: Ein neues Schiff tauscht ihn erst nach dem Laden der Bucht, ein laengerer Name macht ihn hoeher
+      [/replaceWith\(doc\.importNode\(regions\[name\], true\)\);\s*(?:\/\/[^\n]*\n\s*)?meldungPlatz\(\);/.test(ctrl) && /bayErr\.hidden = false;\s*meldungPlatz\(\);/.test(ctrl), 'der Titel wechselt (showBay nach dem Tausch der Regionen, showBayError), ohne dass meldungPlatz() den Platz einer sichtbaren Meldung nachmisst'],
     ];
     const offen = naht.filter(([ok]) => !ok).map(([, was]) => was);
     sollIst(`${naht.length} Naehte von Spur und Sofort-Regel im Controller`, offen.length ? `${naht.length - offen.length} von ${naht.length}: ${offen.join('; ')}` : `${naht.length} von ${naht.length}`);

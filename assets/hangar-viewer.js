@@ -300,12 +300,18 @@ export function limiter(n) {
 }
 const FIT_AT_ONCE = 3;
 let fitCv = null, fitTurn = Promise.resolve();
-// Verkleinertes Bild als ImageBitmap oder null (passt schon, oder der
-// Browser kann es nicht). Ohne Größenangabe in createImageBitmap geht es
-// über EINE Leinwand, die jedes Mal wiederverwendet wird, ein Bild nach dem
-// anderen (fitTurn): eine Leinwand je Bild bliebe im Speicher (freeImages
-// gibt nur ImageBitmaps frei), und iOS gibt allen Leinwänden einer Seite
-// zusammen nur 384 MB.
+// Verkleinertes Bild oder null (passt schon, oder der Browser kann es
+// nicht). In der Regel ein ImageBitmap. Ohne Größenangabe in
+// createImageBitmap geht es über EINE Leinwand, die jedes Mal
+// wiederverwendet wird, ein Bild nach dem anderen (fitTurn): eine Leinwand
+// je Bild bliebe im Speicher (freeImages gibt nur ImageBitmaps frei), und
+// iOS gibt allen Leinwänden einer Seite zusammen nur 384 MB.
+// Kann der Browser gar kein createImageBitmap (der Loader nimmt dann den
+// TextureLoader, und shrinkTextures() verkleinert), bekommt das Bild als
+// letzten Ausweg doch eine eigene Leinwand, wie vor dem 13.11.2026: Die
+// gemeinsame darf nie selbst Quelle einer Textur werden, das nächste Bild
+// überschriebe sie. Ohne diesen Ausweg blieb dort jedes Bild in voller
+// Größe (nachgestellt im Telefonformat: 903 statt 198 MB Texturen).
 async function fitImage(im, max) {
   const to = fitSize(im?.width || 0, im?.height || 0, max);
   if (!to) return null;
@@ -323,7 +329,15 @@ async function fitImage(im, max) {
       const c = fitCv.getContext('2d');
       c.clearRect(0, 0, nw, nh);
       c.drawImage(im, 0, 0, nw, nh);
+    } catch { return null; }
+    try {
       return await createImageBitmap(fitCv, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    } catch { /* kein createImageBitmap: eigene Leinwand */ }
+    try {
+      const own = document.createElement('canvas');
+      own.width = nw; own.height = nh;
+      own.getContext('2d').drawImage(fitCv, 0, 0);
+      return own;
     } catch { return null; }
   };
   return (fitTurn = fitTurn.then(draw));
