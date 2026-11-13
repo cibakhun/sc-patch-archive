@@ -7274,8 +7274,13 @@ export async function initHangar(container, opts = {}) {
     if (!g) return;
     const t = Math.min(1, (now - g.t0) / g.dur);
     growApply(growT.copy(g.a).lerp(g.b, inOut3(t)));
-    // die festen Schatten gleiten mit (wie propStep), am Ende genau
-    if (t >= 1 || now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(); }
+    // die festen Schatten gleiten mit (wie propStep), am Ende genau. Am Ende
+    // dazu die Schattenkegel neu richten (scaleLamps): scaleWorld() hat sie
+    // vor dem Gleiten gerichtet, als die Lampen noch am alten Ort standen,
+    // und der Schatten des Schiffs blieb nach dem Wechsel gröber als nach
+    // frischem Laden (Carrack nach der Pisces: focus 1 statt 0,77).
+    if (t >= 1) scaleLamps();
+    else if (now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(); }
     if (t < 1) return;
     grow.glide = null;
     g.done();
@@ -8166,6 +8171,36 @@ export async function initHangar(container, opts = {}) {
   // WebGLRenderer.setProgram). Dieselbe Kugel wie scene.environment, also
   // dasselbe Shaderprogramm.
   const setHallEnv = (tex) => { for (const m of realHall.mats) if (m.isMeshStandardMaterial) m.envMap = tex; };
+  // Die Halle für die Aufnahme in Ruhelage, gibt das Zurückstellen zurück:
+  // Schiffsfeld oben und sichtbar, Wartungsplatz da, Tor, Schacht und
+  // Schachtlicht aus. Beim Schiffswechsel wächst die Halle unter
+  // geschlossenem Tor, und growSettled() nimmt die Kugel dort neu auf: Feld
+  // und Wartungsplatz sind dann ausgeblendet (sealed im Bildtakt), unter der
+  // Kugel liegt das Tor. Sie kam so 25 bis 33 % dunkler heraus als nach
+  // frischem Laden desselben Schiffs (Carrack 0,137 statt 0,204) und blieb
+  // es bis zum nächsten Wechsel der Hallengröße (13.11.2026).
+  function hallRest() {
+    const lf = realHall.lift, dn = realHall.dienst?.group, sh = realHall.shaft;
+    if (!lf) return () => {};
+    const vis = [[lf, true], [dn, true], [sh?.gate?.group, false], [sh?.pit, false], [sh?.fx, false], [sh?.edge, false]]
+      .filter(([o]) => o).map(([o, v]) => { const was = o.visible; o.visible = v; return [o, was]; });
+    const ly = lf.position.y, dy = dn?.position.y, uy = hallLiftY.value, glow = sh?.glow?.emissiveIntensity;
+    const pk = hallPit.k.value.clone(), bm = hallShaft.beam.value.clone();
+    lf.position.y = 0;
+    if (dn) dn.position.y = realHall.floorY;
+    hallLiftY.value = 0;
+    hallPit.k.value.set(0, 0, 0);
+    hallShaft.beam.value.x = 0; hallShaft.beam.value.y = 0;
+    if (sh?.glow) sh.glow.emissiveIntensity = 0;
+    return () => {
+      for (const [o, was] of vis) o.visible = was;
+      lf.position.y = ly;
+      if (dn) dn.position.y = dy;
+      hallLiftY.value = uy;
+      hallPit.k.value.copy(pk); hallShaft.beam.value.copy(bm);
+      if (sh?.glow) sh.glow.emissiveIntensity = glow;
+    };
+  }
   function captureHallEnv(force = false) {
     if (!realHall || !HALL_PROBE) return;
     if (hallEnv && !force) return;
@@ -8191,9 +8226,13 @@ export async function initHangar(container, opts = {}) {
     // Laden), kam die Kugel halb so hell heraus (Mittel 0,094 statt 0,19,
     // Wände im Bild ein Viertel dunkler), und die Halle blieb so bis zur
     // nächsten Aufnahme (13.11.2026).
+    // Dazu in Ruhelage (hallRest): Beim Schiffswechsel steht die Halle
+    // unter geschlossenem Tor ohne Feld und Wartungsplatz da.
+    const unrest = hallRest();
     stLayer?.mirror(true);
     const rt = pmremFor(renderer).fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     stLayer?.mirror(false);
+    unrest();
     // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
     shadowSig = '';
     fog.near = near; fog.far = far;
