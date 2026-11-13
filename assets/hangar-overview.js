@@ -599,50 +599,88 @@ export function dockSearch(ships, f, crew) {
 //
 // Wird die Halle spuerbar leichter, WAECHTER.v erhoehen: alte Deckel
 // verfallen dann sofort.
-export const WAECHTER = { v: 1, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5 };
+//
+// Seit 13.11.2026 (Krisz: „Das Handy versucht es immer noch die ganze Zeit
+// zu laden und iwann kommt die Meldung“), v 2:
+// - Am Telefon senkt schon der erste Abbruch (sofort). Dort beendet der
+//   Browser eine Seite im Vordergrund so gut wie nur aus Speichernot, und
+//   jeder Lauf, der nur zaehlt, ist eine halbe Minute Warten fuer nichts.
+//   Eine Schleife endet dort nach hoechstens drei Laeufen.
+// - Der Stand fuehrt eine Spur der letzten Abbrueche: Stufe, wie weit der
+//   Lauf war (WAECHTER.phasen) und was abbrach (WAECHTER.arten: die Seite
+//   wurde beendet oder der Zeichenkontext ging verloren). Die Meldung zeigt
+//   sie als Zeile (waechterVerlauf). Vom Telefon kommt sonst nichts zurueck,
+//   keine Konsole, kein Protokoll, und ohne sie laesst sich von aussen nicht
+//   sagen, ob das Laden oder das Stehen das Geraet ueberfordert.
+export const WAECHTER = { v: 2, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext'] };
 const DECKEL = ['aus', ...WAECHTER.stufen];
 const istZeit = (t, now, frist) => Number.isFinite(t) && t <= now && now - t < frist;
+const eins = (liste, x) => (liste.includes(x) ? x : null);
+// Ein Eintrag der Spur: t wann, s Stufe, p Phase, w was abbrach; Unbekanntes wird null
+const spurEintrag = (e, now) => (e && typeof e === 'object' && istZeit(e.t, now, WAECHTER.deckel)
+  ? { t: e.t, s: eins(WAECHTER.stufen, e.s), p: eins(WAECHTER.phasen, e.p), w: eins(WAECHTER.arten, e.w) }
+  : null);
+const spurVon = (liste, now) => (Array.isArray(liste) ? liste : []).map((e) => spurEintrag(e, now)).filter(Boolean).slice(-WAECHTER.spur);
 
 /**
  * Gemerkter Stand aus dem Speicher des Geraets, Abgelaufenes und Kaputtes
  * faellt weg. ab: Zeit des letzten Abbruchs in der Frist oder null; deckel:
- * 'mittel' | 'niedrig' | 'aus' oder null, seit: seit wann.
+ * 'mittel' | 'niedrig' | 'aus' oder null, seit: seit wann; spur: die letzten
+ * Abbrueche (sie lebt mit dem Stand: ohne Abbruch in der Frist und ohne
+ * Deckel ist sie leer).
  * @param {string|null} raw
  * @param {number} now
  */
 export function waechterStand(raw, now) {
-  const leer = { ab: null, deckel: null, seit: 0 };
+  const leer = { ab: null, deckel: null, seit: 0, spur: [] };
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return leer; }
   if (!o || typeof o !== 'object' || o.v !== WAECHTER.v) return leer;
   const deckel = DECKEL.indexOf(o.deckel) >= 0 && o.deckel !== 'hoch' && istZeit(o.seit, now, WAECHTER.deckel);
-  return { ab: istZeit(o.ab, now, WAECHTER.zweimal) ? o.ab : null, deckel: deckel ? o.deckel : null, seit: deckel ? o.seit : 0 };
+  const ab = istZeit(o.ab, now, WAECHTER.zweimal) ? o.ab : null;
+  return { ab, deckel: deckel ? o.deckel : null, seit: deckel ? o.seit : 0, spur: ab !== null || deckel ? spurVon(o.spur, now) : [] };
 }
 
 /**
  * Stand nach einem Abbruch. stufe: in welcher Stufe der abgebrochene Lauf
  * geladen hatte; null, wenn er abbrach, bevor sie feststand (dann gilt der
- * Deckel, ohne Deckel die hoechste).
- * @param {{ ab: number|null, deckel: string|null, seit: number }} stand
+ * Deckel, ohne Deckel die hoechste). was.sofort: schon der erste Abbruch
+ * senkt (Telefon); was.phase und was.wie gehen in die Spur.
+ * @param {{ ab: number|null, deckel: string|null, seit: number, spur?: object[] }} stand
  * @param {number} now
  * @param {string|null} stufe
+ * @param {{ sofort?: boolean, phase?: string|null, wie?: string|null }} [was]
  */
-export function waechterAbbruch(stand, now, stufe) {
-  if (stand.ab === null) return { ...stand, ab: now };
+export function waechterAbbruch(stand, now, stufe, { sofort = false, phase = null, wie = null } = {}) {
+  const spur = [...spurVon(stand.spur, now), spurEintrag({ t: now, s: stufe, p: phase, w: wie }, now)].slice(-WAECHTER.spur);
+  if (stand.ab === null && !sofort) return { ...stand, ab: now, spur };
   const lief = WAECHTER.stufen.includes(stufe) ? stufe : stand.deckel && stand.deckel !== 'aus' ? stand.deckel : 'hoch';
   const tiefer = DECKEL[Math.max(0, DECKEL.indexOf(lief) - 1)];
   // nie nach oben: ein Deckel unter der gelaufenen Stufe bleibt
   const deckel = stand.deckel && DECKEL.indexOf(stand.deckel) < DECKEL.indexOf(tiefer) ? stand.deckel : tiefer;
-  return { ab: now, deckel, seit: now };
+  return { ab: now, deckel, seit: now, spur };
 }
 
-/** @param {{ ab: number|null, deckel: string|null, seit: number }} stand */
-export const waechterText = (stand) => JSON.stringify({ v: WAECHTER.v, ab: stand.ab, deckel: stand.deckel, seit: stand.seit });
+/** @param {{ ab: number|null, deckel: string|null, seit: number, spur?: object[] }} stand */
+export const waechterText = (stand) => JSON.stringify({ v: WAECHTER.v, ab: stand.ab, deckel: stand.deckel, seit: stand.seit, spur: stand.spur ?? [] });
 
 /**
- * Der Vermerk „Lauf offen“ einer Registerkarte: { id, stufe } oder null, wenn
- * keiner da ist, er kaputt ist oder aelter als WAECHTER.frisch (dann liegt
- * der Lauf zu lange zurueck, um an der Halle zu haengen).
+ * Die Spur als Zeilen fuer die Meldung, eine je Abbruch, aelteste zuerst:
+ * „Hoch, beim Aufbau der Halle, Seite beendet“. wort(k) gibt das Wort der
+ * Seite zu einer Stufe, Phase oder Art, '' wenn sie keins hat; Unbekanntes
+ * faellt aus der Zeile.
+ * @param {object[]} spur
+ * @param {(k: string) => string} wort
+ */
+export const waechterVerlauf = (spur, wort) => (spur ?? [])
+  .map((e) => [e.s, e.p, e.w].map((k) => (k ? wort(k) : '')).filter(Boolean).join(', '))
+  .filter(Boolean);
+
+/**
+ * Der Vermerk „Lauf offen“ einer Registerkarte: { id, stufe, phase } oder
+ * null, wenn keiner da ist, er kaputt ist oder aelter als WAECHTER.frisch
+ * (dann liegt der Lauf zu lange zurueck, um an der Halle zu haengen). phase:
+ * wie weit der Lauf war, null bei einem Vermerk ohne.
  * @param {string|null} raw
  * @param {number} now
  */
@@ -650,7 +688,7 @@ export function waechterOffen(raw, now) {
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return null; }
   if (!o || typeof o !== 'object' || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
-  return { id: o.id, stufe: WAECHTER.stufen.includes(o.stufe) ? o.stufe : null };
+  return { id: o.id, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase) };
 }
 
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
@@ -887,6 +925,7 @@ export function boot(doc) {
   function showShip(id) {
     markCards(id);
     modelErr.hidden = true;
+    meldungPlatz();
     viewerShow(id);
     showBay(id);
   }
@@ -2339,6 +2378,7 @@ export function boot(doc) {
       .then(() => {
         if (my !== showTok) return;
         placed = id;
+        laufPhase('steht');
         fitKey = '';
         paintKey = '';
         syncMarks();
@@ -2347,7 +2387,13 @@ export function boot(doc) {
         // der Leitstand aus der Adresse oder von der Werkhalle aus: jetzt steht das Schiff
         if (state.ort === 'leit') applyOrt();
       })
-      .catch(() => { if (my === showTok) modelErr.hidden = false; })
+      .catch((e) => {
+        if (my !== showTok) return;
+        grund(modelErr, e);
+        modelErr.hidden = false;
+        meldungPlatz();
+        console.warn('[hangar] Modell nicht geladen', e);
+      })
       .finally(() => {
         clearTimeout(t);
         if (my === showTok) loadEl.hidden = true;
@@ -2370,16 +2416,21 @@ export function boot(doc) {
       return true;
     } catch { return false; }
   }
+  // Telefon wie SMALL im Viewer (schmal oder Touch): dort senkt schon der
+  // erste Abbruch (WAECHTER oben).
+  const TELEFON = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+  const WIE = { seite: 'Seite neu gestartet', kontext: 'Zeichenkontext verloren' };
   // Ein Abbruch in der Stufe stufe: vermerken, und was der Besucher von Hand
   // gewaehlt hatte, gilt nicht weiter, wenn der Deckel darunter liegt.
-  function abbruch(stufe, wie) {
+  // wie: 'seite' oder 'kontext', phase: wie weit der Lauf war (beides fuer die Spur).
+  function abbruch(stufe, wie, phase) {
     const vor = waechterStand(lies(() => localStorage, STAND_KEY), Date.now());
-    const stand = waechterAbbruch(vor, Date.now(), stufe);
+    const stand = waechterAbbruch(vor, Date.now(), stufe, { sofort: TELEFON, phase, wie });
     const ok = standSchreiben(stand);
     if (stand.deckel && GRAFIK && (stand.deckel === 'aus' || WAECHTER.stufen.indexOf(GRAFIK) > WAECHTER.stufen.indexOf(stand.deckel))) {
       try { localStorage.removeItem(GRAFIK_KEY); } catch { /* dann gilt der Deckel ueber der Wahl */ }
     }
-    console.warn(`[hangar] Abbruch der Buehne (${wie}, Stufe ${stufe ?? 'unbekannt'}): ${stand.deckel === vor.deckel ? 'vermerkt' : `Deckel ${stand.deckel}`}${ok ? '' : ', ohne Speicher nicht gemerkt'}`);
+    console.warn(`[hangar] Abbruch der Buehne (${WIE[wie] ?? wie}, Stufe ${stufe ?? 'unbekannt'}, ${phase ?? 'Phase unbekannt'}): ${stand.deckel === vor.deckel ? 'vermerkt' : `Deckel ${stand.deckel}`}${ok ? '' : ', ohne Speicher nicht gemerkt'}`);
     return ok ? stand : null;
   }
   let lauf = null;
@@ -2404,9 +2455,16 @@ export function boot(doc) {
   const offenWeg = () => { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* ohne Speicher gab es keinen Vermerk */ } };
   function offenSetzen() {
     if (!lauf || doc.hidden) return;
-    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ t: Date.now(), id: lauf.id, stufe: lauf.stufe })); } catch { /* ohne Speicher zaehlt nur der verlorene Kontext */ }
+    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ t: Date.now(), id: lauf.id, stufe: lauf.stufe, phase: lauf.phase })); } catch { /* ohne Speicher zaehlt nur der verlorene Kontext */ }
   }
   function laufEnde() { lauf = null; offenWeg(); }
+  // Wie weit der Lauf ist (WAECHTER.phasen), nur vorwaerts: 'laden' bis die
+  // Dateien da sind, 'bauen' bis das erste Schiff steht, dann 'steht'.
+  function laufPhase(phase) {
+    if (!lauf || WAECHTER.phasen.indexOf(phase) <= WAECHTER.phasen.indexOf(lauf.phase)) return;
+    lauf.phase = phase;
+    offenSetzen();
+  }
   // Seit wann die Seite sichtbar ist (0: im Hintergrund, 1: seit dem Start).
   // Einer Seite im Hintergrund nimmt das Telefon den Zeichenkontext auch ohne
   // Not, und sie erfaehrt es erst beim Zurueckkommen: Das ist kein Abbruch
@@ -2437,7 +2495,7 @@ export function boot(doc) {
     const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), Date.now());
     if (offen && !(await lebtNoch(offen.id))) {
       offenWeg();
-      if (!abbruch(offen.stufe, 'Seite neu gestartet')) return 'aus';
+      if (!abbruch(offen.stufe, 'seite', offen.phase)) return 'aus';
     }
     return waechterStand(lies(() => localStorage, STAND_KEY), Date.now()).deckel;
   }
@@ -2446,6 +2504,47 @@ export function boot(doc) {
   // why waehlt den Text (data-blocked, -soft, -failed an #hg-fallback), ohne
   // passenden Text bleibt der allgemeine; die Konsole nennt die Ursache.
   const fallback = $('hg-fallback');
+  // Kleine Zeilen unter einer Meldung der Buehne (eine je Eintrag); ersetzt die vorigen
+  function notiz(el, zeilen) {
+    el.querySelector('.hgx-spur')?.remove();
+    if (!zeilen.length) return;
+    const box = doc.createElement('small');
+    box.className = 'hgx-spur';
+    for (const z of zeilen) {
+      const row = doc.createElement('span');
+      row.textContent = z;
+      box.append(row);
+    }
+    el.append(box);
+  }
+  // Der technische Grund eines Fehlers als kleine Zeile unter der Meldung:
+  // Vom Telefon kommt keine Konsole zurueck, und „konnte nicht geladen
+  // werden“ allein sagt nicht, woran es lag. Adressen kuerzt er auf den
+  // Dateinamen.
+  function grund(el, e) {
+    const text = String(e?.message ?? e ?? '').replace(/\bhttps?:\/\/[^\s"'<>]*\/([^\s"'<>/?#]+)[^\s"'<>]*/g, '$1').replace(/\s+/g, ' ').trim().slice(0, 140);
+    notiz(el, text && el.dataset.grund ? [`${el.dataset.grund} ${text}`] : []);
+  }
+  // Schmal stehen die Meldungen der Buehne an ihrem Fuss und der Titelblock
+  // oben. Mit Knopf, Verlauf oder Grund ist eine Meldung hoeher als der Platz
+  // dazwischen und laege ueber den Knoepfen des Titels: Dann waechst die
+  // Buehne um das, was fehlt, und geht mit der Meldung wieder zurueck.
+  // offset* wie bei cover(): der Titel faehrt beim Wechsel mit translateY ein.
+  // Liest nur das Dokument (keine Namen von weiter unten): showShip() ruft
+  // sie auch.
+  function meldungPlatz() {
+    const fb = $('hg-fallback'), buehne = fb.parentElement, title = doc.querySelector('.hg-title');
+    buehne.style.minHeight = '';
+    if (!title || !window.matchMedia('(max-width: 760px)').matches) return;
+    const oben = title.offsetTop + title.offsetHeight - $('hg-canvas').offsetTop + 12;
+    let need = 0;
+    for (const el of [fb, $('hgx-modelerr')]) {
+      // unten: Abstand zum Fuss der Buehne, wie ihn das Stilblatt setzt
+      if (el && !el.hidden) need = Math.max(need, oben + el.offsetHeight + (parseFloat(getComputedStyle(el).bottom) || 0));
+    }
+    if (need > buehne.offsetHeight) buehne.style.minHeight = `${Math.ceil(need)}px`;
+  }
+  window.addEventListener('resize', meldungPlatz, { passive: true });
   function noStage(why, detail) {
     loadEl.hidden = true;
     delete main.dataset.holo;
@@ -2457,20 +2556,28 @@ export function boot(doc) {
       queueMicrotask(() => { if (state.ort === 'leit') setState({ ort: 'halle' }); else paintStation(); });
     }
     if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
-    // Vom Waechter abgestellt: ein Knopf versucht es in der niedrigen Stufe
+    // Vom Waechter abgestellt: ein Knopf versucht es in der niedrigen Stufe,
+    // darunter die Spur der Abbrueche (sie bleibt ueber den Versuch stehen)
     if (why === 'crash' && fallback.dataset.retry) {
+      const stand = waechterStand(lies(() => localStorage, STAND_KEY), Date.now());
       const b = doc.createElement('button');
       b.type = 'button';
       b.className = 'hgx-retry';
       b.textContent = fallback.dataset.retry;
       // Ohne Speicher laedt der Knopf trotzdem neu: ein Versuch je Druck
       b.addEventListener('click', () => {
-        standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now() });
+        standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now(), spur: stand.spur });
         location.reload();
       });
       fallback.append(b);
+      const stufenWort = (k) => $('hgx-gfx')?.querySelector(`option[value="${k}"]`)?.textContent ?? '';
+      const zeilen = waechterVerlauf(stand.spur, (k) => (WAECHTER.stufen.includes(k) ? stufenWort(k) : fallback.dataset[`spur${k[0].toUpperCase()}${k.slice(1)}`] ?? ''));
+      if (zeilen.length && fallback.dataset.spur) notiz(fallback, [fallback.dataset.spur, ...zeilen]);
     }
+    // Nicht gestartet: der Grund in Kurzform darunter
+    if (why === 'failed') grund(fallback, detail);
     fallback.hidden = false;
+    meldungPlatz();
     $('hg-reset').hidden = true;
     const hint = doc.querySelector('.hg-hint');
     if (hint) hint.hidden = true;
@@ -2624,14 +2731,18 @@ export function boot(doc) {
     if (miss) { noStage(miss, gpuWhy); return; }
     loadEl.hidden = false;
     // Lauf offen, die Stufe folgt, sobald der Viewer sie gewaehlt hat
-    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, stufe: null };
+    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, stufe: null, phase: 'laden' };
     offenSetzen();
     import(stageCfg.viewer)
       .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, sound: tonAn() }))
       .then((v) => {
         viewer = v;
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }
-        v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
+        // ab 90 % sind die Dateien da, der Rest ist Auspacken, Uebersetzen und Hochladen
+        v.onProgress((p) => {
+          bar.style.setProperty('--p', `${p}%`);
+          if (p >= 90) laufPhase('bauen');
+        });
         v.onFrame(placeMarks);
         // Kontext weg: die Meldung steht ueber der Buehne, und der Waechter
         // zaehlt einen Abbruch. Kommt der Kontext zurueck, laedt die Seite
@@ -2655,14 +2766,15 @@ export function boot(doc) {
             delete main.dataset.holo;
             fallback.textContent = fallback.dataset.lost;
             fallback.hidden = false;
+            meldungPlatz();
             // Ladebalken, Knoepfe und Bedienhinweis der Buehne gehen mit
             // (data-lost in HangarPage.astro): Sie steuern nichts mehr, am
             // Telefon lagen die Knoepfe ueber der Meldung, und was noch laedt,
             // blendete sie sonst wieder ein.
             main.dataset.lost = 'on';
-            const stufe = lauf?.stufe ?? v.quality().start;
+            const stufe = lauf?.stufe ?? v.quality().start, phase = lauf?.phase ?? null;
             laufEnde();
-            if (imVordergrund()) neuLaden = !!abbruch(stufe, 'Zeichenkontext verloren');
+            if (imVordergrund()) neuLaden = !!abbruch(stufe, 'kontext', phase);
             else {
               neuLaden = true;
               console.warn('[hangar] Zeichenkontext im Hintergrund verloren, nicht als Abbruch gezaehlt');
