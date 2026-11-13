@@ -165,7 +165,7 @@ const SEITEN = [
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
   // tafel=1: ohne steht die Ausruestung ab 761 px als Hologramm in der Halle
   // (dieselbe Werkstatt, gezeichnet statt als Knoepfe), und #hgl-slots bleibt zu.
-  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: probeWerkstatt, nurMitHangar: true },
+  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)), nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -909,6 +909,160 @@ const SYNC_ZUSTAENDE = [
   { state: 'error', sitzung: true, lesen: 503, login: false, retry: true },
 ];
 const SYNC_BREITEN = [360, 1280];
+
+/* Terminal im Leitstand (assets/hangar-terminal.js, 13.11.2026): die Seiten
+   der Website in einem Fenster der Hangarseite. Der Weg dorthin ist eine
+   Kamerafahrt der 3D-Buehne, und die laeuft nicht in jeder Umgebung (ohne
+   GPU steht der Rueckfall). Die Probe setzt das Fenster deshalb selbst auf,
+   mit demselben Kasten und demselben Modul, die der Controller naehme, und
+   prueft, was nur ein echter Browser gegen den echten Server zeigt:
+
+     · der Server laesst die eigene Seite im Rahmen zu (frame-src,
+       frame-ancestors und X-Frame-Options aus dist/_csp/, nginx/default.conf)
+       — sonst bleibt das Fenster leer, und kein Tor, das dist/ als Text
+       liest, sieht es;
+     · die Seite steht im Fenster ohne ihre eigene Kopfzeile, die schlanken
+       Datenseiten mit ihrem Pfad;
+     · ein Bereich der Leiste wechselt die Seite, ohne der Hangarseite einen
+       Eintrag im Verlauf zu geben (sonst fuehrte „Zurueck“ des Browsers durch
+       jede Seite des Fensters statt aus dem Hangar), der Pfeil fuehrt zurueck;
+     · „Suche“ oeffnet die Suche der Seite im Fenster, auf Datenseiten ueber
+       deren eigenen Knopf;
+     · ein Link zum Hangar laedt keine zweite Halle ins Fenster, einer nach
+       draussen verlaesst es nicht.
+
+   Alle Klicks kommen per Skript: der Kasten liegt hier nicht auf dem Schirm
+   der Halle, sondern ueber Tafel und Werkstatt, und ein Zeigerklick traefe,
+   was gerade darueber liegt. */
+const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
+async function probeTerminal(page) {
+  const wo = 'Terminal';
+  const warte = (fn, ms = 30000, arg = null) => page.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
+  const start = await page.evaluate(async (kasten) => {
+    const box = document.getElementById('hgx-term');
+    if (!box) return { fehlt: '#hgx-term' };
+    const home = box.querySelector(`a[data-term="${box.dataset.home}"]`);
+    if (!home) return { fehlt: `der Bereich „${box.dataset.home}“ aus data-home` };
+    try { sessionStorage.removeItem('hg-term'); } catch { /* ohne Speicher gilt die Startseite */ }
+    window.__termShip = null;
+    window.__termTab = null;
+    window.open = (...a) => { window.__termTab = a; return null; };
+    const m = await import(box.dataset.js);
+    window.__term = m.initTerminal(box, { ship: (id) => { window.__termShip = id ?? '(ohne)'; } });
+    window.__term.place(kasten);
+    return {
+      home: new URL(home.href).pathname,
+      bereiche: Object.fromEntries([...box.querySelectorAll('a[data-term]')].map((a) => [a.dataset.term, new URL(a.href).pathname])),
+      verlauf: history.length,
+      hangar: location.pathname,
+    };
+  }, TERM_PROBE_KASTEN);
+  if (start.fehlt) return `${wo}: ${start.fehlt} fehlt auf der Hangarseite`;
+
+  const stand = () => page.evaluate(() => {
+    const box = document.getElementById('hgx-term'), f = document.getElementById('hgx-term-frame');
+    let d = null;
+    try { d = f.contentDocument; } catch { /* fremder Ursprung: die Fehlerseite des Browsers */ }
+    const zeigt = (el) => !!el && getComputedStyle(el).display !== 'none';
+    const r = box.getBoundingClientRect(), b = box.offsetParent?.getBoundingClientRect() ?? { left: 0, top: 0 };
+    const scs = d?.getElementById('scs');
+    return {
+      bereit: box.classList.contains('is-ready'), zu: box.hidden,
+      pfad: d ? d.location.pathname : null,
+      kleid: !!d?.documentElement.hasAttribute('data-vb-terminal'),
+      kopf: d ? zeigt(d.getElementById('topbar')) : null,
+      daten: d?.querySelector('.dp-bar')
+        ? { start: zeigt(d.querySelector('.dp-bar>.dp-home')), knopf: zeigt(d.querySelector('.dp-bar>.dp-search')), sprache: zeigt(d.querySelector('.dp-bar>.dp-lang')), pfad: zeigt(d.querySelector('.dp-bar>.dp-crumbs')) }
+        : null,
+      suche: !!scs && !scs.hidden && zeigt(scs),
+      marke: [...box.querySelectorAll('a[data-term][aria-current="page"]')].map((a) => a.dataset.term).join(' '),
+      zurueck: !document.getElementById('hgx-term-back').disabled,
+      kasten: [r.left - b.left, r.top - b.top, r.right - b.left, r.bottom - b.top].map(Math.round),
+      text: document.getElementById('hgx-term-load')?.textContent.trim() ?? '',
+      verlauf: history.length, schiff: window.__termShip, tab: window.__termTab,
+      rahmenCsp: (window.__cspVerstoesse ?? []).filter((v) => /frame/.test(v)),
+    };
+  });
+  const steht = (pfad, ms = 45000) => warte((p) => {
+    const box = document.getElementById('hgx-term');
+    let d = null;
+    try { d = document.getElementById('hgx-term-frame').contentDocument; } catch { /* s. o. */ }
+    return !!d && d.location.pathname === p && d.readyState !== 'loading' && box.classList.contains('is-ready') && d.documentElement.hasAttribute('data-vb-terminal');
+  }, ms, pfad);
+  const klick = (sel) => page.evaluate((s) => document.querySelector(s).click(), sel);
+  const imFenster = (href) => page.evaluate((h) => {
+    const d = document.getElementById('hgx-term-frame').contentDocument;
+    const a = d.createElement('a');
+    a.href = h;
+    a.textContent = 'Probe';
+    d.body.append(a);
+    a.click();
+    a.remove();
+  }, href);
+
+  // 1 · die Startseite des Terminals steht im Fenster
+  if (!(await steht(start.home))) {
+    const s = await stand();
+    return `${wo}: ${start.home} steht nach 45 s nicht im Fenster (Pfad ${s.pfad}, bereit ${s.bereit}, Meldung „${s.text}“${s.rahmenCsp.length ? `, CSP ${s.rahmenCsp.join(', ')}` : ''}) — laesst der Server die eigene Seite im Rahmen zu (dist/_csp/, X-Frame-Options)?`;
+  }
+  let s = await stand();
+  if (s.zu) return `${wo}: der Kasten ist nach place() noch verborgen`;
+  if (s.kopf) return `${wo}: die Kopfzeile der Seite (#topbar) steht im Fenster unter der Leiste des Terminals`;
+  if (s.marke !== Object.keys(start.bereiche).find((k) => start.bereiche[k] === start.home)) return `${wo}: nach dem Start ist „${s.marke}“ markiert statt des Startbereichs`;
+  if (s.zurueck) return `${wo}: der Zurueck-Pfeil ist auf der ersten Seite bedienbar`;
+  const soll = [TERM_PROBE_KASTEN.l, TERM_PROBE_KASTEN.t, TERM_PROBE_KASTEN.r, TERM_PROBE_KASTEN.b];
+  if (s.kasten.some((v, i) => Math.abs(v - soll[i]) > 2)) return `${wo}: der Kasten liegt bei ${s.kasten.join(', ')} statt auf dem genannten Rechteck ${soll.join(', ')}`;
+
+  // 2 · Bereich wechseln (eine schlanke Datenseite), ohne Eintrag im Verlauf
+  if (!start.bereiche.items) return `${wo}: die Leiste nennt den Bereich „items“ nicht mehr — die Probe braucht eine Datenseite`;
+  await klick('#hgx-term a[data-term="items"]');
+  if (!(await steht(start.bereiche.items))) return `${wo}: „Items“ in der Leiste brachte ${start.bereiche.items} nicht ins Fenster (dort steht ${(await stand()).pfad})`;
+  s = await stand();
+  if (s.marke !== 'items') return `${wo}: nach dem Wechsel ist „${s.marke}“ markiert statt „items“`;
+  if (!s.zurueck) return `${wo}: nach dem Wechsel bleibt der Zurueck-Pfeil gesperrt`;
+  if (s.verlauf !== start.verlauf) return `${wo}: der Wechsel im Fenster schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+  if (!s.daten) return `${wo}: ${start.bereiche.items} traegt keine Kopfleiste .dp-bar mehr`;
+  if (s.daten.start || s.daten.knopf || s.daten.sprache || !s.daten.pfad)
+    return `${wo}: Datenseite im Fenster zeigt Startlink ${s.daten.start}, Suchknopf ${s.daten.knopf}, Sprachschalter ${s.daten.sprache}, Pfad ${s.daten.pfad} — Soll: nur der Pfad`;
+
+  // 3 · Suche auf der Datenseite (holt sie erst ueber data-scs-boot)
+  await klick('#hgx-term-search');
+  if (!(await warte(() => { const x = document.getElementById('hgx-term-frame').contentDocument?.getElementById('scs'); return !!x && !x.hidden; }, 20000)))
+    return `${wo}: „Suche“ oeffnete auf der Datenseite nichts`;
+
+  // 4 · der Pfeil fuehrt zurueck
+  await klick('#hgx-term-back');
+  if (!(await steht(start.home))) return `${wo}: der Zurueck-Pfeil brachte ${start.home} nicht zurueck (dort steht ${(await stand()).pfad})`;
+  s = await stand();
+  if (s.zurueck) return `${wo}: nach dem Rueckweg auf die erste Seite ist der Pfeil noch bedienbar`;
+  if (s.verlauf !== start.verlauf) return `${wo}: der Rueckweg schrieb in den Verlauf der Hangarseite (${start.verlauf} → ${s.verlauf} Eintraege)`;
+
+  // 5 · ein Link zum Hangar holt das Schiff, statt eine zweite Halle zu laden
+  await imFenster(`${start.hangar}?ship=aegs-gladius`);
+  await page.waitForTimeout(600);
+  s = await stand();
+  if (s.schiff !== 'aegs-gladius') return `${wo}: ein Link zum Hangar im Fenster meldete das Schiff nicht (${s.schiff})`;
+  if (s.pfad !== start.home) return `${wo}: ein Link zum Hangar lud ${s.pfad} ins Fenster`;
+
+  // 6 · ein Link nach draussen geht in einen neuen Tab; danach die Suche der
+  // Seiten mit voller Navigation (data-scs-open)
+  await imFenster('https://example.org/probe');
+  await page.waitForTimeout(600);
+  s = await stand();
+  if (s.tab?.[0] !== 'https://example.org/probe' || s.tab?.[1] !== '_blank') return `${wo}: ein Link nach draussen oeffnete keinen neuen Tab (${JSON.stringify(s.tab)})`;
+  if (s.pfad !== start.home) return `${wo}: ein Link nach draussen ersetzte die Seite im Fenster (${s.pfad})`;
+  if (s.rahmenCsp.length) return `${wo}: CSP-Verstoss am Rahmen: ${s.rahmenCsp.join(', ')}`;
+  await klick('#hgx-term-search');
+  if (!(await warte(() => { const x = document.getElementById('hgx-term-frame').contentDocument?.getElementById('scs'); return !!x && !x.hidden; }, 20000)))
+    return `${wo}: „Suche“ oeffnete auf ${start.home} nichts`;
+
+  // 7 · zu: aus dem Layout, die letzte Seite gemerkt
+  await page.evaluate(() => window.__term.place(null));
+  if (!(await warte(() => document.getElementById('hgx-term').hidden, 5000))) return `${wo}: place(null) nimmt den Kasten nicht aus dem Layout`;
+  const gemerkt = await page.evaluate(() => { const v = sessionStorage.getItem('hg-term'); sessionStorage.removeItem('hg-term'); return v; });
+  if (!String(gemerkt).startsWith(start.home)) return `${wo}: die letzte Seite wurde nicht gemerkt (${gemerkt})`;
+  return null;
+}
 
 /* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
    und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.

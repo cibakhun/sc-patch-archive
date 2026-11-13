@@ -31,6 +31,11 @@
                            Websocket) — Maps $vb_supabase/$vb_supabase_ws.
                            Quelle: scripts/lib/supabase-ziel.mjs, gleiches
                            Ziel wie Seiten und account-lite.js.
+     frame-src.conf,       wer die Seite rahmen darf: live niemand, im
+     frame-ancestors.conf, Vorschau-Bau die Seite sich selbst (das Terminal
+     x-frame-options.conf  im Hangar) — Maps $vb_frame_self,
+                           $vb_frame_ancestors, $vb_xfo. Quelle:
+                           scripts/lib/rahmen.mjs.
 
    Kein Netz, kein git, kein Kindprozess.
      node scripts/_write-csp-hashes.mjs
@@ -41,6 +46,7 @@ import {
   zerlege, bloecke, CSP_ORDNER, SKRIPT_BLOECKE, skriptDatei, ATTR_DATEI, MAP_SCHLUESSEL,
 } from './lib/csp-inline.mjs';
 import { zielImBau, CSP_SUPABASE } from './lib/supabase-ziel.mjs';
+import { RAHMEN, rahmenWert, rahmenOffenImBau } from './lib/rahmen.mjs';
 
 const DIST = 'dist';
 if (!existsSync(DIST)) { console.error('_write-csp-hashes: dist/ fehlt — erst astro build.'); process.exit(1); }
@@ -100,9 +106,17 @@ for (const { datei, wert } of CSP_SUPABASE) {
   );
 }
 
+const rahmenOffen = rahmenOffenImBau();
+for (const e of RAHMEN) {
+  writeFileSync(
+    join(DIST, CSP_ORDNER, e.datei),
+    kopf(`${e.wo}: Rahmen ${rahmenOffen ? 'offen fuer die eigene Seite (Vorschau-Bau)' : 'zu (Live-Bau)'}, scripts/lib/rahmen.mjs`) + `${MAP_SCHLUESSEL} "${rahmenWert(e, rahmenOffen)}";\n`,
+  );
+}
+
 const handlerGesamt = [...handlerHashes.values()].reduce((a, b) => a + b, 0);
 console.log(
   `_write-csp-hashes: ${seiten.length} Seiten, ${skripte} ausgefuehrte Inline-Skripte, ${sortiert.length} verschiedene ` +
     `(${teile.length} von ${SKRIPT_BLOECKE} Bloecken), ${handlerGesamt} Inline-Handler in ${handlerHashes.size} Fassung(en), ` +
-    `Supabase-Host ${ziel.ziel} -> ${DIST}/${CSP_ORDNER}/`,
+    `Supabase-Host ${ziel.ziel}, Rahmen ${rahmenOffen ? 'offen fuer die eigene Seite' : 'zu'} -> ${DIST}/${CSP_ORDNER}/`,
 );

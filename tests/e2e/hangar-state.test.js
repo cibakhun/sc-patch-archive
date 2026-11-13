@@ -8,8 +8,9 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   parseState, serializeState, fillMessage, figuresOf, fleetSummary, compareCell, figureText, dockOrder, pickRandom,
-  fold, editDistance, parseQuery, findWords, wordScore, dockSearch, shipClass, rankIn,
+  fold, editDistance, parseQuery, findWords, wordScore, dockSearch, shipClass, rankIn, placeOf, placeShip,
 } from '../../assets/hangar-overview.js';
+import { termFrame, termRoute, termTool, TERM_MIN_W, TERM_MIN_K, TERM_NARROW_W } from '../../assets/hangar-terminal.js';
 
 const ctx = {
   ids: new Set(['aegs-gladius', 'anvl-arrow', 'drak-cutlass-black', 'rsi-aurora-mk2']),
@@ -30,7 +31,7 @@ describe('Hangar: URL-Zustand', () => {
   test('eine nackte Seite ist das Startschiff im Ueberblick', () => {
     assert.equal(url(''), '');
     assert.deepEqual(parseState('', '', ctx), {
-      ship: 'aegs-gladius', tab: 'overview', hp: null, cmp: [], view: 'stage', lo: null, station: 'loadout', flat: false,
+      ship: 'aegs-gladius', tab: 'overview', hp: null, cmp: [], view: 'stage', lo: null, station: 'loadout', flat: false, ort: 'halle',
       fleetOnly: false, sort: 'name', q: '', pur: '', grp: '', size: [], crew: '', cargo: 0, price: 0, maker: '',
     });
   });
@@ -79,6 +80,104 @@ describe('Hangar: URL-Zustand', () => {
       url('?ship=drak-cutlass-black&tab=systems&cmp=anvl-arrow&fleet=1&sort=cargo&q=cut&pur=kampf&size=klein&crew=solo&cargo=1&price=1000000&maker=Drake%20Interplanetary', '', 'share'),
       '?ship=drak-cutlass-black&tab=systems&cmp=anvl-arrow',
     );
+  });
+});
+
+describe('Hangar: Orte der Halle', () => {
+  // rsi-aurora-mk2 steht hier fuer ein Bodenfahrzeug (Werkhalle)
+  const werk = new Set(['rsi-aurora-mk2']);
+  const mit = { ...ctx, werk };
+  const ort = (search, scope = 'location') => serializeState(parseState(search, '', mit), mit, scope);
+  const c = { ids: ['aegs-gladius', 'anvl-arrow', 'drak-cutlass-black', 'rsi-aurora-mk2'], werk, defaultShip: 'aegs-gladius' };
+
+  test('der Leitstand steht in der Adresse, das Schiffsfeld ist die Vorgabe', () => {
+    assert.equal(ort('?ort=leit'), '?ort=leit');
+    assert.equal(ort('?ship=anvl-arrow&ort=leit'), '?ship=anvl-arrow&ort=leit');
+    assert.equal(ort('?ort=halle'), '');
+    assert.equal(ort('?ort=keller'), '');
+    assert.equal(parseState('?ort=leit', '', mit).ort, 'leit');
+  });
+
+  test('in den Leitstand nur von einem Schiff aus, nicht aus der Werkhalle', () => {
+    assert.equal(ort('?ship=rsi-aurora-mk2&ort=leit'), '?ship=rsi-aurora-mk2');
+    assert.equal(parseState('?ship=rsi-aurora-mk2&ort=leit', '', mit).ort, 'halle');
+  });
+
+  test('wo die Kamera steht, steht nicht im geteilten Link', () => {
+    assert.equal(ort('?ship=anvl-arrow&ort=leit', 'share'), '?ship=anvl-arrow');
+  });
+
+  test('der Ort folgt dem Fahrzeug, der Leitstand dem Zustand', () => {
+    assert.equal(placeOf({ ship: 'aegs-gladius', ort: 'halle' }, werk), 'halle');
+    assert.equal(placeOf({ ship: 'rsi-aurora-mk2', ort: 'halle' }, werk), 'werk');
+    assert.equal(placeOf({ ship: 'aegs-gladius', ort: 'leit' }, werk), 'leit');
+  });
+
+  test('ein Ort zeigt, was passt: das gezeigte, sonst das zuletzt dort gezeigte, sonst die Vorgabe', () => {
+    assert.equal(placeShip('halle', 'anvl-arrow', {}, c), 'anvl-arrow');
+    assert.equal(placeShip('leit', 'anvl-arrow', {}, c), 'anvl-arrow');
+    assert.equal(placeShip('werk', 'anvl-arrow', {}, c), 'rsi-aurora-mk2');
+    assert.equal(placeShip('halle', 'rsi-aurora-mk2', { halle: 'drak-cutlass-black' }, c), 'drak-cutlass-black');
+    assert.equal(placeShip('halle', 'rsi-aurora-mk2', { halle: 'nope' }, c), 'aegs-gladius');
+    assert.equal(placeShip('leit', 'rsi-aurora-mk2', {}, c), 'aegs-gladius');
+    assert.equal(placeShip('werk', 'aegs-gladius', {}, { ...c, werk: new Set() }), null);
+  });
+});
+
+describe('Hangar: Terminal im Leitstand', () => {
+  const hier = 'https://staging.example/de/hangar.html?ort=leit';
+  const tools = [
+    { key: 'schiffe', pre: ['/schiffe.html', '/schiffe/'] },
+    { key: 'crafting', pre: ['/topics/crafting', '/crafting/'] },
+    { key: 'archiv', pre: ['/archiv.html', '/patches/', '/topics/'] },
+  ];
+
+  test('der Kasten steht in voller Breite und verkleinert, bis die Schrift zu klein wuerde', () => {
+    assert.deepEqual(termFrame(1336, 696), { w: 1336, h: 696, k: 1 });
+    assert.deepEqual(termFrame(888, 462), { w: TERM_MIN_W, h: 616, k: 0.75 });
+    assert.deepEqual(termFrame(1005, 525), { w: TERM_MIN_W, h: 619, k: 1005 / TERM_MIN_W });
+  });
+
+  test('im schmalen Fenster steht die Seite schmaler statt kleiner, aber nie in der Telefonansicht', () => {
+    // halbes Fenster auf dem Monitor: frueher Massstab 0,55, die Schrift unlesbar
+    assert.deepEqual(termFrame(660, 520), { w: 880, h: 693, k: 0.75 });
+    const f = termFrame(700.4, 380.2);
+    assert.equal(f.w, 933);
+    assert.ok(Math.abs(f.k - TERM_MIN_K) < 0.001);
+    assert.ok(Math.abs(f.w * f.k - 700) < 1e-9 && Math.abs(f.h * f.k - 380) < 1);
+    // darunter gibt es nur noch die Telefonansicht: dann lieber kleiner
+    assert.deepEqual(termFrame(420, 300), { w: TERM_NARROW_W, h: 600, k: 0.5 });
+    assert.ok(TERM_NARROW_W > 820);
+  });
+
+  test('Seiten der Website bleiben im Fenster, in jeder Sprache', () => {
+    assert.deepEqual(termRoute('/de/schiffe/aegs-gladius.html', hier), { art: 'innen' });
+    assert.deepEqual(termRoute('../items.html#waffen', hier), { art: 'innen' });
+    assert.deepEqual(termRoute('mailto:hallo@example.org', hier), { art: 'innen' });
+  });
+
+  test('ein Link zum Hangar holt das Schiff aufs Feld statt eine zweite Halle zu laden', () => {
+    assert.deepEqual(termRoute('/de/hangar.html?ship=anvl-arrow', hier), { art: 'hangar', ship: 'anvl-arrow' });
+    assert.deepEqual(termRoute('/hangar.html', hier), { art: 'hangar', ship: null });
+    assert.deepEqual(termRoute('/de/hangar-loadout.html?l=abc', hier), { art: 'tab' });
+    assert.deepEqual(termRoute('/hangar-bay/aegs-gladius', hier), { art: 'tab' });
+  });
+
+  test('Konto und fremde Seiten oeffnen einen eigenen Tab', () => {
+    assert.deepEqual(termRoute('/de/account.html', hier), { art: 'tab' });
+    assert.deepEqual(termRoute('/account/profil.html', hier), { art: 'tab' });
+    assert.deepEqual(termRoute('https://robertsspaceindustries.com/', hier), { art: 'tab' });
+    assert.deepEqual(termRoute('//staging.example.evil.test/de/schiffe.html', hier), { art: 'tab' });
+    // gleicher Name, anderes Protokoll: ein anderer Ursprung
+    assert.deepEqual(termRoute('http://staging.example/de/schiffe.html', hier), { art: 'tab' });
+  });
+
+  test('der Reiter folgt dem Pfad: laengster Anfang gewinnt, die Sprache zaehlt nicht', () => {
+    assert.equal(termTool('/de/topics/crafting-werkbank.html', tools), 'crafting');
+    assert.equal(termTool('/topics/4-0-0-pyro-system.html', tools), 'archiv');
+    assert.equal(termTool('/de/schiffe/aegs-gladius.html', tools), 'schiffe');
+    assert.equal(termTool('/de/feedback.html', tools), null);
+    assert.equal(termTool('/de', tools), null);
   });
 });
 

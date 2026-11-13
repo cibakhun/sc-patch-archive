@@ -23,7 +23,9 @@ import LayoutWorkshop from './LayoutWorkshop.astro';
 import { localeFromPath, href, useTranslations } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
+import { getCollection } from 'astro:content';
 import { versioned } from '../../lib/assetVersion';
+import { HAS_WERKBANK } from '../../lib/seo';
 import { jsonForScript } from '../../lib/safeJson';
 import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STAT, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
 import { buildBay, COMPARE, TABS } from '../../lib/hangar/bay';
@@ -101,6 +103,24 @@ const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overvi
 const fleetSrc = versioned('assets/fleet.js', '/assets/fleet.js');
 // Die Werkstatt laedt der Controller erst bei Bedarf, ueber diese URL.
 const layoutSrc = versioned('assets/hangar-layouts.js', '/assets/hangar-layouts.js');
+// Das Terminal im Leitstand (assets/hangar-terminal.js, vom Controller erst
+// geladen, wenn die Kamera hinauffaehrt): die Bereiche der Seite als
+// Umschaltleiste ueber dem Schirm. pre nennt, unter welchen Pfaden ein Bereich
+// seine Seiten fuehrt (ohne Sprachteil); danach markiert das Terminal den
+// Reiter auch auf einer Unterseite. Die Werkbank gibt es nur im Vorschau-Bau.
+const termSrc = versioned('assets/hangar-terminal.js', '/assets/hangar-terminal.js');
+const TERM = [
+  { key: 'schiffe', label: ui('nav.ships'), path: '/schiffe.html', pre: ['/schiffe.html', '/schiffe/'] },
+  { key: 'items', label: 'Items', path: '/items.html', pre: ['/items.html', '/items/'] },
+  { key: 'finder', label: 'Item Finder', path: '/item-finder.html', pre: ['/item-finder.html'] },
+  { key: 'crafting', label: 'Crafting', path: HAS_WERKBANK ? '/topics/crafting-werkbank.html' : '/topics/crafting.html', pre: ['/topics/crafting', '/crafting/'] },
+  { key: 'missionen', label: ui('nav.missions'), path: '/missionen.html', pre: ['/missionen.html', '/missionen/'] },
+  { key: 'mining', label: 'Mining', path: '/topics/mining.html', pre: ['/topics/mining', '/fracturing.html', '/refinery.html', '/precision-jump.html'] },
+  { key: 'archiv', label: t('term.archiv'), path: '/archiv.html', pre: ['/archiv.html', '/patches/', '/topics/', '/evolution.html'] },
+];
+const TERM_HOME = 'crafting';
+// Der juengste Patch als Stand rechts in der Leiste, wie ihn das Archiv nennt
+const patchNow = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date)).at(-1)?.data.version;
 const star = 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 18.6 6.1 21.3l1.2-6.6L2.5 9.5l6.6-.9z';
 const link = 'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1M14 10a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1';
 const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014-4z';
@@ -243,11 +263,62 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-st button{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:40px;padding:.45rem .85rem;border:0;border-radius:8px;background:none;color:var(--hg-dim);font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);font-weight:700;white-space:nowrap;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
 .hgx-st button:hover,.hgx-st button:focus-visible{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 5%,transparent)}
 .hgx-st button:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
-.hgx-st button[aria-selected="true"],.hgx-st button[aria-pressed="true"]{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 10%,transparent)}
-.hgx-st button[aria-selected="true"] svg,.hgx-st button[aria-pressed="true"] svg{color:var(--hg-amber)}
+.hgx-st button[aria-selected="true"],.hgx-st button[aria-pressed="true"],.hgx-st button[aria-current="true"]{color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 10%,transparent)}
+.hgx-st button[aria-selected="true"] svg,.hgx-st button[aria-pressed="true"] svg,.hgx-st button[aria-current="true"] svg{color:var(--hg-amber)}
 .hgx-st svg{flex:0 0 auto}
 .hgx-st__flat{border-left:1px solid var(--hg-hair)!important;border-radius:0 8px 8px 0!important;margin-left:.15rem}
 .hgx-st__flat[hidden]{display:none}
+/* Orte der Halle (13.11.2026): Schiffsfeld, Werkhalle und Leitstand stehen
+   vorn in der Leiste der Stationen. Der Ort, an dem man steht, ist hell wie
+   eine gewaehlte Station (aria-current); folgen ihm Reiter, trennt sie ein
+   Haarstrich. Die Orte gibt es nur, wo die Buehne einen Leitstand hat
+   (hangar-viewer.js canPlace): am Telefon und ohne 3D bleibt die Leiste, wie
+   sie war. */
+.hgx-st__orte{display:flex;gap:.25rem}
+.hgx-st__orte[hidden],.hgx-st__tabs[hidden]{display:none}
+.hgx-st__orte:not([hidden])+.hgx-st__tabs{margin-left:.15rem;padding-left:.4rem;border-left:1px solid var(--hg-hair)}
+/* Im Leitstand steht die Kamera vor dem Terminal: Tafel, Marker, Hinweise,
+   der Korb und die Zeichen fuers Schiff (Zuruecksetzen, Einsteigen) haben
+   dort nichts zu zeigen; Grafikstufe und Ton bleiben. Der Titelblock bleibt
+   fuer Vorleser im Dokument. */
+.hg[data-ort="leit"]{--hg-panelw:0px}
+.hg[data-ort="leit"] :is(.hg-side,.hgx-marks,.hg-hint,.hgx-tray,.hg-holo,#hg-reset,#hgx-walk){display:none}
+.hg[data-ort="leit"] .hg-title{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+/* Das Terminal im Leitstand: die Seite selbst in einem Fenster, genau auf dem
+   Schirm der Halle. hangar-viewer.js nennt das Rechteck des Schirms im Bild,
+   assets/hangar-terminal.js legt den Kasten darauf (transform) und gibt ihm
+   die Breite, die die Seite als Schreibtisch-Fenster braucht. Oben die
+   Umschaltleiste: Die Bereiche wechseln im Fenster, Halle und Schiff bleiben
+   geladen (Krisz 13.11.2026: „da oben ist ein menü wo man so hin und her
+   switchen kann ohne seite nezuladen“). Zu sehen erst, wenn die Kamera
+   steht (.is-on); das Fenster der Seite, sobald sie eingerichtet ist
+   (.is-ready), bis dahin steht „Seite lädt“. */
+.hgx-term{container:hgxterm/inline-size;position:absolute;left:0;top:0;z-index:2;display:flex;flex-direction:column;overflow:hidden;transform-origin:0 0;background:var(--bg);color:var(--hg-on);opacity:0;visibility:hidden;transition:opacity var(--dur-slow) var(--ease-ui),visibility 0s linear var(--dur-slow)}
+.hgx-term[hidden]{display:none}
+.hgx-term.is-on{opacity:1;visibility:visible;transition-delay:0s}
+.hgx-term__bar{flex:0 0 auto;display:flex;align-items:stretch;min-height:46px;padding:0 .5rem 0 1.4rem;border-bottom:1px solid var(--hg-hair);background:var(--bg-2);font-family:var(--font-ui);font-size:var(--fs-6);font-weight:700;letter-spacing:var(--ls-11);text-transform:uppercase;white-space:nowrap}
+.hgx-term__name{display:flex;align-items:center;margin-right:1.4rem}
+/* Feste Farbe: das Licht des Schirms, wie beim Namens-Hologramm */
+[data-media-surface] .hgx-term__name{color:rgb(170 232 255/.9)}
+.hgx-term__nav{display:flex;align-items:stretch;flex:0 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.hgx-term__nav :is(a,button){appearance:none;display:inline-flex;align-items:center;padding:0 .85rem;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;color:var(--hg-dim);font:inherit;letter-spacing:inherit;text-transform:inherit;text-decoration:none;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.hgx-term__nav :is(a,button):is(:hover,:focus-visible){color:var(--hg-on)}
+.hgx-term__nav :is(a,button):focus-visible,.hgx-term__ext:focus-visible,.hgx-term__back:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
+.hgx-term__nav a[aria-current="page"]{color:var(--hg-amber);border-bottom-color:var(--hg-amber);background:color-mix(in srgb,var(--hg-amber) 8%,transparent)}
+.hgx-term__end{flex:none;display:flex;align-items:center;gap:.6rem;margin:0 0 0 auto;padding-left:1rem;color:var(--hg-dim)}
+/* Schmales Fenster: die Seite im Terminal steht dann schmaler (termFrame,
+   bis 840 px). Die Leiste gibt zuerst die Spielversion ab, dann ihren Namen;
+   die Bereiche bleiben alle erreichbar (und rollen zur Not seitwaerts). */
+@container hgxterm (max-width:1070px){.hgx-term__end span{display:none}.hgx-term__end{padding-left:.4rem}}
+@container hgxterm (max-width:980px){.hgx-term__name{display:none}.hgx-term__bar{padding-left:1rem}.hgx-term__nav :is(a,button){padding:0 .6rem}.hgx-term__back{margin-right:.2rem}}
+.hgx-term__ext,.hgx-term__back{appearance:none;display:inline-grid;place-items:center;align-self:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:none;color:var(--hg-dim);cursor:pointer}
+.hgx-term__back{margin:0 .5rem 0 -.9rem}
+.hgx-term__back:disabled{opacity:.35;cursor:default}
+:is(.hgx-term__ext,.hgx-term__back:enabled):is(:hover,:focus-visible){color:var(--hg-on);background:color-mix(in srgb,var(--hg-on) 6%,transparent)}
+.hgx-term__view{position:relative;flex:1 1 auto;min-height:0;background:var(--bg)}
+.hgx-term__load{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:2rem;text-align:center;color:var(--hg-dim);font-size:var(--fs-7)}
+.hgx-term__view iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);opacity:0;transition:opacity var(--dur-fast) var(--ease-ui)}
+.hgx-term.is-ready .hgx-term__view iframe{opacity:1}
 .hg[data-st3d]{--hg-panelw:0px}
 .hg[data-st3d] .hg-side,.hg[data-st3d] .hgx-marks{display:none}
 /* Die Flottenzeile steht im Dock (eigene Insel): dieselben Insel-Woerter dort. */
@@ -653,7 +724,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
      zeigt sie ohnehin nie; den Namen traegt aria-label. */
   .hgx-rand .hgx-tip{display:none}
 }
-@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-qv:not([hidden]){animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg{transition:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-qv:not([hidden]){animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg,.hgx-term,.hgx-term__view iframe{transition:none}}</style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
@@ -726,12 +797,57 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </div>
       <p class="hg-hint" id="hg-hint">{t('act.hint')}</p>
       <p class="hg-hint hgx-walkhint" id="hgx-walkhint">{t('walk.hint')}</p>
+      {/* Das Terminal im Leitstand: Leiste und Fenster der Seite, vom Controller
+          auf den Schirm der Halle gelegt, sobald die Kamera davor steht. Das
+          Fenster bekommt seine Adresse erst dann (assets/hangar-terminal.js);
+          die Reiter sind echte Links in dieses Fenster. */}
+      <section class="hgx-term" id="hgx-term" aria-label={t('term.label')} data-js={termSrc} data-home={TERM_HOME} hidden>
+        <div class="hgx-term__bar" data-help={h('hangar.ctl.terminal')}>
+          {/* Zurueck im Fenster: der Zurueck-Knopf des Browsers gehoert der Halle */}
+          <button type="button" class="hgx-term__back" id="hgx-term-back" aria-label={t('term.back')} disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <b class="hgx-term__name">Terminal</b>
+          <nav class="hgx-term__nav" aria-label={t('term.nav')}>
+            <button type="button" id="hgx-term-search">{ui('nav.search')}</button>
+            {TERM.map((x) => <a href={href(x.path, lang)} target="hgx-term-frame" data-term={x.key} data-pre={x.pre.join(' ')}>{x.label}</a>)}
+          </nav>
+          <p class="hgx-term__end">
+            {patchNow && <span>Alpha {patchNow}</span>}
+            <a class="hgx-term__ext" id="hgx-term-ext" href={href(TERM.find((x) => x.key === TERM_HOME)!.path, lang)} target="_blank" rel="noopener" aria-label={t('term.open')}>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M13.5 5H19v5.5M19 5l-8 8M10 6.5H6.5A1.5 1.5 0 005 8v9.5A1.5 1.5 0 006.5 19H16a1.5 1.5 0 001.5-1.5V14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+          </p>
+        </div>
+        <div class="hgx-term__view">
+          <p class="hgx-term__load" id="hgx-term-load" data-fail={t('term.fail')}>{t('term.load')}</p>
+          <iframe id="hgx-term-frame" name="hgx-term-frame" title={t('term.frame')}></iframe>
+        </div>
+      </section>
     </HangarApp>
     {/* Die Leiste am Buehnenfuss: die Stationen und der Korb des Vergleichs;
         sie laesst links den Platz der Zeichen frei. Welche Station steht und
         ob als Tafel, sagt der Zustand des Controllers (?station=, ?tafel=1). */}
     <div class="hgx-stagebar" id="hgx-stagebar">
       <div class="hgx-st" id="hgx-st" data-help={h('hangar.ctl.stations')}>
+        {/* Orte der Halle (hangar-overview.js placeOf, goPlace): sichtbar, sobald
+            die Buehne einen Leitstand hat. Schiffsfeld und Werkhalle fuehren
+            zum zuletzt dort gezeigten Fahrzeug, der Leitstand faehrt die
+            Kamera vor das Terminal (?ort=leit). */}
+        <div class="hgx-st__orte" id="hgx-orte" role="group" aria-label={t('ort.label')} data-help={h('hangar.ctl.orte')} data-an-leit={t('ort.an.leit')} data-an-halle={t('ort.an.halle')} hidden>
+          <button type="button" data-ort="halle">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 4l6.5 15L12 15.8 5.5 19z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            <span>{t('ort.halle')}</span>
+          </button>
+          <button type="button" data-ort="werk">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M3.5 10.5L12 5l8.5 5.5V19h-17zM8 19v-5h8v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            <span>{t('ort.werk')}</span>
+          </button>
+          <button type="button" data-ort="leit">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 5.5h16v10H4zM9 19.5h6M12 15.5v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span>{t('ort.leit')}</span>
+          </button>
+        </div>
         <div class="hgx-st__tabs" role="tablist" aria-label={t('st.label')}>
           <button type="button" role="tab" id="hgx-st-uebersicht" data-station="uebersicht" aria-controls="hg-stats" aria-selected="false" tabindex="-1">
             <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>

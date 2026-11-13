@@ -32,7 +32,12 @@
 //   · der Zähl-Host (data-host-url) steht in connect-src und NICHT in
 //     script-src — das Zählskript kommt vom eigenen Ursprung;
 //   · kein add_header außerhalb des server-Blocks (eine location mit
-//     eigenem add_header verwirft alle Sicherheits-Kopfzeilen).
+//     eigenem add_header verwirft alle Sicherheits-Kopfzeilen);
+//   · der Rahmen passt zum Artefakt (scripts/lib/rahmen.mjs): live lässt
+//     sich die Seite von niemandem in ein <iframe> setzen (X-Frame-Options
+//     DENY, frame-ancestors 'none', kein 'self' in frame-src), der
+//     Vorschau-Bau erlaubt genau die eigene Seite (das Terminal im Hangar);
+//     der Rückfall der drei Maps ist der strenge Wert.
 // Selbstauskunft mit Klinken; ausgeliefert prüft es check:headers.
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,6 +45,7 @@ import {
   zerlege, zaehleScriptTagsRoh, cspHash, leseMapWert, CSP_ORDNER,
 } from './lib/csp-inline.mjs';
 import { zielImArtefakt, supabaseZiel, SUPABASE_ZIELE, REF_MUSTER } from './lib/supabase-ziel.mjs';
+import { RAHMEN, rahmenWert, rahmenOffenImArtefakt } from './lib/rahmen.mjs';
 
 const CONF = 'nginx/default.conf';
 const DIST = 'dist';
@@ -396,6 +402,36 @@ for (const a of nginxAnweisungen(conf)) {
   if (!/\salways$/.test(a.text)) fehler.push(`${CONF}: add_header ${name} ohne "always" — fehlt dann an 404- und Weiterleitungs-Antworten`);
 }
 
+// ------------------------------------------------------------ Rahmen je Bau --
+// Wer die Seite rahmen darf, entscheidet der Bau (scripts/lib/rahmen.mjs).
+// Geprüft wird in beide Richtungen: Ein Live-Bau, der sich rahmen ließe, wäre
+// eine Einladung zum Clickjacking; ein Vorschau-Bau, der es verbietet, ließe
+// den Schirm des Terminals im Hangar leer, ohne dass ein anderes Tor es merkt.
+const rahmenOffen = rahmenOffenImArtefakt(DIST);
+const rahmenBau = rahmenOffen ? 'Vorschau-Bau' : 'Live-Bau';
+let rahmenOk = 0;
+for (const e of RAHMEN) {
+  const h = hashMaps.get(e.variable);
+  if (!h) { fehler.push(`Rahmen: ${CONF} hat keine map "csp" $${e.variable} für ${e.wo} — scripts/lib/rahmen.mjs und die Konfiguration sind auseinandergelaufen`); continue; }
+  if (h.rueckfall !== e.zu) fehler.push(`Rahmen: Rückfall von $${e.variable} ist "${h.rueckfall}", Soll "${e.zu}" — ohne Datei muss die Seite zu bleiben`);
+  const soll = rahmenWert(e, rahmenOffen);
+  if (h.wert === null) continue; // fehlende oder kaputte Datei steht schon oben
+  if (h.wert !== soll) fehler.push(`Rahmen: ${h.datei} trägt "${h.wert}", Soll im ${rahmenBau} "${soll}" (${e.wo}) — ${rahmenOffen ? 'das Terminal im Hangar bliebe leer' : 'die Live-Seite ließe sich wieder in einen Rahmen laden, live bleibt sie zu'}; npm run build neu laufen lassen`);
+  else rahmenOk++;
+}
+if (!conf.split('\n').some((z) => /^\s*add_header\s+X-Frame-Options\s+\$vb_xfo\s+always;/.test(z)))
+  fehler.push(`Rahmen: ${CONF} setzt X-Frame-Options nicht über $vb_xfo — der Wert folgte dem Bau nicht mehr`);
+// m[1]: die Richtlinie, wie sie in der Konfiguration steht, mit Variablen
+const roh = Object.fromEntries(m[1].split(';').map((d) => d.trim().split(/\s+/)).filter((d) => d[0]).map(([name, ...src]) => [name, src]));
+for (const [direktive, variable] of [['frame-ancestors', 'vb_frame_ancestors'], ['frame-src', 'vb_frame_self']])
+  if (!(roh[direktive] ?? []).includes(`$${variable}`))
+    fehler.push(`Rahmen: ${direktive} der Richtlinie nennt $${variable} nicht — der Wert folgte dem Bau nicht mehr`);
+const ahnen = (policy['frame-ancestors'] ?? []).join(' ');
+if (ahnen !== (rahmenOffen ? "'self'" : "'none'"))
+  fehler.push(`Rahmen: frame-ancestors löst zu "${ahnen}" auf, Soll im ${rahmenBau} ${rahmenOffen ? "'self'" : "'none'"}`);
+if ((policy['frame-src'] ?? []).includes("'self'") !== rahmenOffen)
+  fehler.push(`Rahmen: frame-src ${rahmenOffen ? "ohne 'self' — die Hangar-Seite dürfte das Fenster des Terminals nicht laden" : "trägt 'self' — im Live-Bau rahmt die Seite sich nicht selbst"}`);
+
 // ------------------------------------------------------------------ Bericht --
 const missing = [];
 for (const [k, v] of found) {
@@ -440,6 +476,7 @@ console.log(`    script-src-attr: ${[...attrSrc].map((q) => (q.length > 20 ? q.s
 console.log(`    Seiten mit data-img-fail: ${inline.imgFailSeiten}   ohne Bild-Hörer davor — Soll: 0   Ist: ${inline.imgFailOhneHoerer.length}`);
 console.log(`    javascript:-Links: ${inline.jsUrls.length}   Inline-Skripte in <svg>: ${inline.svg.length}   Zähl-Hosts (data-host-url): ${[...zaehlHosts.keys()].join(', ') || '—'}`);
 console.log(`    add_header im server-Block: ${addHeaderServer}   außerhalb — Soll: 0   Ist: ${addHeaderAusserhalb}`);
+console.log(`    Rahmen im ${rahmenBau} (${rahmenOffen ? 'offen nur für die eigene Seite' : 'zu'}): ${rahmenOk} von ${RAHMEN.length} Werten wie verlangt`);
 if (inline.seiten < MIN_SEITEN)
   fehler.push(`nur ${inline.seiten} Seiten gelesen, Klinke ${MIN_SEITEN} — Build unvollständig? Ursache klären, nicht die Klinke senken`);
 if (inline.ausgefuehrt < MIN_INLINE_SKRIPTE)
