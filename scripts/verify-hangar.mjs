@@ -373,6 +373,20 @@
         hinter Bug und Heck)                                        -> [23]
     ah  dort in camPlan home: NaN: 190 Befunde und 4 Proben rot.
         Das Tor von vor dem Review blieb dabei ganz gruen           -> [23]
+    ai  in dist/assets/hangar-viewer.js die Zeile streichen, die
+        capabilities.maxTextures anhebt (13.11.2026)                -> [12]
+    aj  dort den Getter colorTexture von BatchedMesh streichen      -> [12]
+    ak  in dist/assets/hangar-holo3d.js forceSinglePass aus basic()
+        nehmen ([21] reisst mit: Version passt nicht mehr)          -> [12]
+    al  in dist/assets/hangar-viewer.js plane.deleteAttribute('normal')
+        aus buildComposer() streichen (13.11.2026; im Browser reisst
+        check:hangar-shader: 12 von 12 erst beim Probebild)         -> [12]
+    am  dort eine Umgebungskugel wieder mit eigenem
+        new THREE.PMREMGenerator(renderer) bauen                    -> [12]
+    an  dort in texBudget() p.fragmentShader streichen              -> [12]
+    ao  dort in captureHallEnv() stLayer?.mirror(true) streichen
+        (13.11.2026: die Kugel der Halle kaeme wieder mit dem
+        Schleier der Hologramme, halb so hell)                      -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -834,6 +848,87 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   const telOk = !!tm && telWirkt && Number(tm[1]) > 0 && Number(tm[1]) <= TEL_TEX.niedrig && Number(tm[2]) > 0 && Number(tm[2]) <= TEL_TEX.sonst;
   sollIst(`Texturen am Telefon hoechstens ${TEL_TEX.sonst} px, in der niedrigen Stufe ${TEL_TEX.niedrig} px`, !tm ? 'kein Deckel gefunden' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `${tm[2]} px, niedrig ${tm[1]} px`);
   if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr oder liegt ueber ${TEL_TEX.sonst} px (niedrig ${TEL_TEX.niedrig} px): mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu`);
+  // Drei Leerlaeufe des Zeichners (Krisz, 13.11.2026: „es braucht viel zu
+  // viele Ressourcen“), gemessen mit der Gladius in der hohen Stufe auf
+  // einer RTX 3070 Ti mit i5-13400F: three r185 warnte je Bild rund 100 Mal
+  // vor der 17. Textureinheit (2 500 bis 7 000 Zeilen je Sekunde in der
+  // Konsole), suchte fuer jedes BatchedMesh bei jedem Zeichnen das
+  // Shaderprogramm neu (91 Mal je Bild) und zeichnete 30 Hologrammflaechen
+  // in zwei Zuegen. Zusammen 13,2 statt 10,0 ms Rechenzeit je Bild beim
+  // Drehen im sichtbaren Fenster: Der Hauptfaden war zu 90 statt zu 61 %
+  // belegt, die 60 Bilder je Sekunde hielt er in beiden Faellen. (Ohne
+  // Fenster, wo der Browser nur auf den E-Kernen rechnet, waren es 33
+  // statt 25 ms und 28 statt 37 Bilder je Sekunde.) Faellt eine der drei
+  // Stellen weg, aendert sich kein Bild, nur die Last: Darum haelt dieses
+  // Tor sie fest. Wer three anhebt und eine Stelle dort behoben findet,
+  // nimmt sie hier mit Begruendung heraus.
+  const holoQ = existsSync(join(DIST, 'assets', 'hangar-holo3d.js')) ? readFileSync(join(DIST, 'assets', 'hangar-holo3d.js'), 'utf8') : '';
+  const LEERLAUF = [
+    ['Warnflut zur Textureinheit', /getParameter\(gl\.MAX_COMBINED_TEXTURE_IMAGE_UNITS\);\s*if \(units > renderer\.capabilities\.maxTextures\) renderer\.capabilities\.maxTextures = units;/.test(viewer),
+      'dist/assets/hangar-viewer.js hebt renderer.capabilities.maxTextures nicht mehr auf MAX_COMBINED_TEXTURE_IMAGE_UNITS: three warnt dann wieder bei jedem Zeichnen mit mehr als 16 Textureinheiten, tausende Zeilen je Sekunde'],
+    ['Shaderprogramm je BatchedMesh', /if \(!\('colorTexture' in THREE\.BatchedMesh\.prototype\)\) \{\s*Object\.defineProperty\(THREE\.BatchedMesh\.prototype, 'colorTexture', \{[^}]*get\(\) \{ return this\._colorsTexture; \}/.test(viewer),
+      'dist/assets/hangar-viewer.js gibt BatchedMesh kein colorTexture mehr: three r185 sucht dann fuer Wartungsplatz, Hallendeko und Schachttor bei jedem Zeichnen das Shaderprogramm neu'],
+    ['Hologrammflaechen in einem Zug', /const basic = \([^\n]*\n[^\n]*new THREE\.MeshBasicMaterial\(\{[^\n}]*side: THREE\.DoubleSide[^\n}]*forceSinglePass: true/.test(holoQ),
+      'dist/assets/hangar-holo3d.js: basic() baut die Flaechen der Hologramme ohne forceSinglePass: three zeichnet sie dann in zwei Zuegen und setzt beide Male das Material neu auf'],
+  ];
+  sollIst('Leerlaeufe des Zeichners abgestellt (3 Stellen)', LEERLAUF.filter((l) => l[1]).length === LEERLAUF.length ? `${LEERLAUF.length} von ${LEERLAUF.length}` : `${LEERLAUF.filter((l) => l[1]).length} von ${LEERLAUF.length}, fehlt: ${LEERLAUF.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of LEERLAUF) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Bilder nach dem Hochladen aus dem Arbeitsspeicher (Krisz, 13.11.2026,
+  // derselbe Anlass). Gemessen mit der Gladius in der hohen Stufe: 901
+  // ausgepackte Bilder mit 1.055 MB lagen neben ihren Texturen bei der
+  // Grafikkarte noch in der Seite, die damit 2,1 statt 1,0 GB hielt. Faellt
+  // eine der Stellen weg, sieht kein Bild anders aus, nur der Speicher
+  // waechst wieder (oder, bei der letzten, ein Verlust des Zeichenkontexts
+  // fuellt die Konsole mit Fehlern). Ob auf einem Weg ein freigegebenes
+  // Bild noch einmal verlangt wird, prueft check:hangar-shader im Browser.
+  const FREI = [
+    ['Texturen je Bildquelle gemerkt', /return \{ name: 'hg_embedded_images', afterRoot: noteTextures \};/.test(viewer) && /function noteTextures\(result\) \{/.test(viewer),
+      'dist/assets/hangar-viewer.js: der Loader merkt sich die Texturen je Bildquelle nicht mehr (afterRoot: noteTextures): freeImages() gibt dann kein Bild mehr frei'],
+    ['Freigabe nach dem Hochladen', /renderer\.initTexture\(t\);[\s\S]{0,160}?\}\s*freeImages\(tex\);/.test(viewer),
+      'dist/assets/hangar-viewer.js: prepare() ruft freeImages(tex) nach dem Hochladen nicht mehr: die ausgepackten Bilder bleiben im Arbeitsspeicher, rund 1 GB in der hohen Stufe'],
+    ['Bild geschlossen, Platzhalter an seiner Stelle', /im\.close\(\);\s*src\.data = goneImage\(/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeImages() schliesst das Bild nicht mehr oder setzt keinen Platzhalter: entweder bleibt der Speicher belegt, oder three.js laedt ein geschlossenes Bild hoch und das Zeichnen bricht ab'],
+    ['still nach Verlust des Zeichenkontexts', /addEventListener\('webglcontextlost', \(\) => \{ texQuiet = true;/.test(viewer),
+      'dist/assets/hangar-viewer.js stellt die Freigabe nach einem Verlust des Zeichenkontexts nicht mehr still (texQuiet): three.js laedt danach alles neu hoch, und jeder Platzhalter meldet einen Fehler'],
+  ];
+  sollIst(`Bilder nach dem Hochladen freigegeben (${FREI.length} Stellen)`, FREI.filter((l) => l[1]).length === FREI.length ? `${FREI.length} von ${FREI.length}` : `${FREI.filter((l) => l[1]).length} von ${FREI.length}, fehlt: ${FREI.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of FREI) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Stillstand beim Laden (Krisz, 13.11.2026, derselbe Anlass). Gemessen
+  // im sichtbaren Fenster, jeder Aufruf am Zeichenkontext gestoppt: Die
+  // Shader der Vollbildpaesse wurden vorab uebersetzt, aber mit einer
+  // Geometrie mit Normalen, und three fuehrt das im Schluessel eines
+  // Programms. Die zwoelf Programme benutzte nie jemand, das Probebild
+  // uebersetzte die echten im Stehen (1,2 s, davon 1 s der Entrauscher der
+  // Verdeckung). Jede Umgebungskugel baute ihren eigenen PMREM-Generator
+  // und gab ihn frei, die zweite uebersetzte dessen Shader deshalb noch
+  // einmal (0,4 s kurz nach dem ersten Bild). Und die Zaehlung der Texturen
+  // fragte je Programm zweimal beim Grafikprozess nach dem Typ seiner
+  // Shader. Faellt eine Stelle weg, sieht kein Bild anders aus, die Seite
+  // steht nur wieder. Ob die Paesse wirklich vorab uebersetzt sind, prueft
+  // check:hangar-shader im Browser.
+  const pmremNeu = (viewer.match(/new THREE\.PMREMGenerator\(/g) ?? []).length;
+  const STILLSTAND = [
+    ['Vollbildpaesse ohne Normalen vorab', /plane\.deleteAttribute\('normal'\);[\s\S]{0,600}?await compileFor\(quad, rt, quad\);/.test(viewer) && /Vollbildpässe: \$\{spaet\} von/.test(viewer),
+      'dist/assets/hangar-viewer.js: buildComposer() uebersetzt die Shader der Vollbildpaesse nicht mehr mit einer Geometrie ohne Normalen vorab (oder meldet es nicht mehr): das Probebild uebersetzt sie dann im Stehen, 1,2 s Stillstand bei jedem ersten Besuch'],
+    ['ein PMREM-Generator fuer alle Kugeln', pmremNeu === 1 && /function pmremFor\(renderer\) \{/.test(viewer),
+      `dist/assets/hangar-viewer.js baut ${pmremNeu} statt 1 PMREM-Generator (pmremFor): jeder eigene uebersetzt seine Shader neu, 0,4 s Stillstand kurz nach dem ersten Bild`],
+    ['Texturzaehlung ohne Rueckfrage', /const frag = p\.fragmentShader \?\? /.test(viewer),
+      'dist/assets/hangar-viewer.js: texBudget() nimmt den Bildshader nicht mehr von three (p.fragmentShader): die Suche ueber den Typ fragt je Programm zweimal beim Grafikprozess nach und wartet mitten im Laden auf die Antwort'],
+  ];
+  sollIst(`Stillstand beim Laden abgestellt (${STILLSTAND.length} Stellen)`, STILLSTAND.filter((l) => l[1]).length === STILLSTAND.length ? `${STILLSTAND.length} von ${STILLSTAND.length}` : `${STILLSTAND.filter((l) => l[1]).length} von ${STILLSTAND.length}, fehlt: ${STILLSTAND.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of STILLSTAND) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Umgebungskugel der Halle ohne die Hologramme der Stationen (13.11.2026,
+  // beim Bildvergleich derselben Runde gefunden). Ihr Schleier ist ein
+  // Rechteck ueber dem ganzen Bild und lag ueber jeder Seite der Kugel:
+  // Standen die Hologramme beim Aufnehmen schon (das Schiff war vor der Halle
+  // fertig), kam sie halb so hell heraus (Mittel 0,094 statt 0,19), und wie
+  // hell die Halle stand, hing an der Reihenfolge, in der Schiff und Halle
+  // fertig wurden. Die Aufnahme blendet sie aus wie das Spiegelbild des
+  // Bodens (mirror() in hangar-holo3d.js).
+  const kugelOhne = /function captureHallEnv\([\s\S]{0,3000}?stLayer\?\.mirror\(true\);\s*const rt = pmremFor\(renderer\)\.fromScene\(scene,[^\n]*\n\s*stLayer\?\.mirror\(false\);/.test(viewer)
+    && /mirror\(on\) \{[^}]*dim\.visible = vis;[^}]*root\.visible = vis;/.test(holoQ);
+  sollIst('Umgebungskugel der Halle ohne Hologramme aufgenommen', kugelOhne ? 'ja' : 'nein');
+  if (!kugelOhne) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr ohne die Hologramme der Stationen auf (stLayer?.mirror um fromScene, oder mirror() in hangar-holo3d.js blendet Schleier und Tafeln nicht mehr aus): ihr Schleier halbiert die Kugel, und die Halle steht je nach Ladereihenfolge anders hell da (13.11.2026)');
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
