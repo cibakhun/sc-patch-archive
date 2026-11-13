@@ -287,6 +287,39 @@ async function imageMean(bitmap) {
     small?.close();
   }
 }
+// Ausgepackte Bilder nach dem Hochladen freigeben (13.11.2026, Krisz: „es
+// braucht viel zu viele Ressourcen um das Hangar laufen zu lassen“). Jede
+// Karte lag doppelt im Speicher: als Textur bei der Grafikkarte und, mit 4
+// Byte je Bildpunkt ausgepackt, als ImageBitmap in der Seite. Gemessen an
+// dem Tag (Gladius, hohe Stufe, Chrome unter Windows): 901 Bilder mit
+// 1.055 MB; die Seite hielt 2,1 GB Arbeitsspeicher, ohne die Bilder 1,0 GB.
+// three.js braucht ein Bild nach dem Hochladen nur noch in zwei Fällen:
+// wenn eine Texture derselben Quelle mit anderen Sampler-Werten (texKey,
+// sie bekommt eine eigene WebGL-Textur) zum ersten Mal gezeichnet wird, und
+// nach dispose(). Gegen den ersten Fall merkt sich texUsers je Quelle alle
+// Texturen der Datei (afterRoot des Loaders, also auch die Kopien, die der
+// Loader für weitere Sampler anlegt). freeImages() in prepare() gibt eine
+// Quelle erst frei, wenn jede davon hochgeladen ist oder ihre Sampler-Werte
+// mit einer hochgeladenen teilt; Quellen, die texUsers nicht kennt,
+// bleiben. Der zweite Fall kommt im Viewer nicht vor: dispose() trifft nur
+// Texturen, die mit ihrem Schiff gehen (release), und Tauschteile nimmt
+// unfit() vorher heraus.
+const isBitmap = (im) => typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap;
+// wie getTextureCacheKey in three.js (WebGLTextures): gleiche Quelle und
+// gleicher Schlüssel teilen sich eine WebGL-Textur
+const texKey = (t) => [t.wrapS, t.wrapT, t.wrapR || 0, t.magFilter, t.minFilter, t.anisotropy, t.internalFormat, t.format, t.type, t.generateMipmaps, t.premultiplyAlpha, t.flipY, t.unpackAlignment, t.colorSpace].join();
+const texUsers = new WeakMap();   // Source -> [WeakRef<Texture>]
+const texNoted = new WeakSet();
+function noteTextures(result) {
+  if (typeof WeakRef === 'undefined') return;   // ohne WeakRef bleibt jedes Bild
+  const note = (t) => {
+    if (!t?.isTexture || texNoted.has(t) || !isBitmap(t.source?.data)) return;
+    texNoted.add(t);
+    const u = texUsers.get(t.source);
+    if (u) u.push(new WeakRef(t)); else texUsers.set(t.source, [new WeakRef(t)]);
+  };
+  for (const sc of result.scenes ?? []) sc.traverse((n) => { for (const m of [].concat(n.material ?? [])) for (const k in m) note(m[k]); });
+}
 const colourImages = (json) => {
   const out = new Set();
   for (const m of json.materials ?? []) {
@@ -328,7 +361,7 @@ function embeddedImages(ms, tally = () => null) {
       parser.sourceCache[i] = p;
       return p;
     };
-    return { name: 'hg_embedded_images' };
+    return { name: 'hg_embedded_images', afterRoot: noteTextures };
   };
 }
 
@@ -7392,8 +7425,55 @@ export async function initHangar(container, opts = {}) {
         renderer.initTexture(t);
         if (performance.now() - t0 > 6) { await yieldToBrowser(); t0 = performance.now(); }
       }
+      freeImages(tex);
       await compiled;
     } finally { busyEnd(); }
+  }
+  // Bilder, die bei der Grafikkarte liegen, aus dem Arbeitsspeicher nehmen
+  // (Anlass, Zahlen und Regel bei texUsers oben). An die Stelle des Bildes
+  // tritt ein Platzhalter von 1 × 1. Fragt jemand dessen Größe ab, soll er
+  // hochgeladen werden: dann fehlt ein Bild. Das meldet die Konsole als
+  // Fehler (einmal je Quelle), und die Fläche zeigt eine Farbe statt ihrer
+  // Karte; die Bühne läuft weiter. Ob eine Texture hochgeladen ist, sagt
+  // three.js selbst (renderer.properties). Geht der Zeichenkontext
+  // verloren, lädt die Seite neu (onLost in hangar-overview.js); von da an
+  // wird nichts mehr freigegeben und nichts gemeldet (texQuiet).
+  const texGone = new WeakSet();   // Quellen, deren Bild freigegeben ist
+  const texStat = { n: 0, bytes: 0, held: 0, asked: 0, told: 0, timer: 0 };
+  let texQuiet = false;
+  const texUp = (t) => { const p = renderer.properties.get(t); return p.__webglTexture !== undefined && p.__version === t.version; };
+  function goneImage(label) {
+    const im = new ImageData(new Uint8ClampedArray([128, 128, 255, 255]), 1, 1);
+    let asked = false;
+    const ask = () => {
+      if (!asked && !texQuiet) {
+        asked = true; texStat.asked++;
+        console.error(`[hangar] Bild nach der Freigabe noch einmal verlangt (${label}): die Fläche zeigt eine Farbe statt ihrer Karte`);
+      }
+      return 1;
+    };
+    try { for (const k of ['width', 'height']) Object.defineProperty(im, k, { get: ask }); } catch { /* dann ohne Meldung */ }
+    return im;
+  }
+  function freeImages(tex) {
+    if (texQuiet || renderer.getContext().isContextLost()) return;
+    const srcs = new Map();
+    for (const t of tex) if (t.source && !srcs.has(t.source)) srcs.set(t.source, t);
+    for (const [src, t0] of srcs) {
+      const im = src.data, users = texUsers.get(src);
+      if (!users || !isBitmap(im)) continue;
+      const keys = new Set(), open = [];
+      for (const r of users) { const u = r.deref(); if (u) { if (texUp(u)) keys.add(texKey(u)); else open.push(u); } }
+      if (!keys.size || open.some((u) => !keys.has(texKey(u)))) { texStat.held++; continue; }
+      texStat.n++; texStat.bytes += im.width * im.height * 4;
+      im.close();
+      src.data = goneImage(t0.name || 'ohne Namen');
+      texGone.add(src);
+    }
+    if (texStat.n > texStat.told && !texStat.timer) texStat.timer = setTimeout(() => {
+      texStat.timer = 0; texStat.told = texStat.n;
+      console.info(`[hangar] Bilder nach dem Hochladen freigegeben: ${texStat.n} mit ${Math.round(texStat.bytes / 1048576)} MB, zurückgehalten ${texStat.held} Mal (eine Fassung mit anderen Sampler-Werten ist noch nicht hochgeladen)`);
+    }, 2000);
   }
   // Niedrige Stufe: Texturen höchstens TEX_MAX px an der längeren Kante,
   // verkleinert vor dem Hochladen (ein Viertel des Grafikspeichers je
@@ -7412,7 +7492,9 @@ export async function initHangar(container, opts = {}) {
   async function shrinkTextures(tex) {
     const jobs = [];
     for (const t of tex) {
-      const src = t.source, im = src?.data, w = im?.width || 0, h = im?.height || 0;
+      const src = t.source;
+      if (!src || texGone.has(src)) continue;   // schon hochgeladen und freigegeben
+      const im = src.data, w = im?.width || 0, h = im?.height || 0;
       // Leinwände bleiben: ein Bild an ihrer Stelle nähme spätere Zeichnungen nicht mehr an
       if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture || t.isCanvasTexture) continue;
       if (!shrunk.has(src)) {
@@ -10808,7 +10890,7 @@ void main() {
   // gezeichnet wurde (Umgebungskugeln, Hallenschatten), ist im neuen Kontext
   // leer; neu aufbauen muss es die Seite.
   let lostFn = null;
-  renderer.domElement.addEventListener('webglcontextlost', () => lostFn?.(true));
+  renderer.domElement.addEventListener('webglcontextlost', () => { texQuiet = true; lostFn?.(true); });
   renderer.domElement.addEventListener('webglcontextrestored', () => lostFn?.(false));
   let token = 0;
   let liveryKey = 'werk';

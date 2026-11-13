@@ -776,6 +776,26 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   ];
   sollIst('Leerlaeufe des Zeichners abgestellt (3 Stellen)', LEERLAUF.filter((l) => l[1]).length === LEERLAUF.length ? `${LEERLAUF.length} von ${LEERLAUF.length}` : `${LEERLAUF.filter((l) => l[1]).length} von ${LEERLAUF.length}, fehlt: ${LEERLAUF.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of LEERLAUF) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Bilder nach dem Hochladen aus dem Arbeitsspeicher (Krisz, 13.11.2026,
+  // derselbe Anlass). Gemessen mit der Gladius in der hohen Stufe: 901
+  // ausgepackte Bilder mit 1.055 MB lagen neben ihren Texturen bei der
+  // Grafikkarte noch in der Seite, die damit 2,1 statt 1,0 GB hielt. Faellt
+  // eine der Stellen weg, sieht kein Bild anders aus, nur der Speicher
+  // waechst wieder (oder, bei der letzten, ein Verlust des Zeichenkontexts
+  // fuellt die Konsole mit Fehlern). Ob auf einem Weg ein freigegebenes
+  // Bild noch einmal verlangt wird, prueft check:hangar-shader im Browser.
+  const FREI = [
+    ['Texturen je Bildquelle gemerkt', /return \{ name: 'hg_embedded_images', afterRoot: noteTextures \};/.test(viewer) && /function noteTextures\(result\) \{/.test(viewer),
+      'dist/assets/hangar-viewer.js: der Loader merkt sich die Texturen je Bildquelle nicht mehr (afterRoot: noteTextures): freeImages() gibt dann kein Bild mehr frei'],
+    ['Freigabe nach dem Hochladen', /renderer\.initTexture\(t\);[\s\S]{0,160}?\}\s*freeImages\(tex\);/.test(viewer),
+      'dist/assets/hangar-viewer.js: prepare() ruft freeImages(tex) nach dem Hochladen nicht mehr: die ausgepackten Bilder bleiben im Arbeitsspeicher, rund 1 GB in der hohen Stufe'],
+    ['Bild geschlossen, Platzhalter an seiner Stelle', /im\.close\(\);\s*src\.data = goneImage\(/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeImages() schliesst das Bild nicht mehr oder setzt keinen Platzhalter: entweder bleibt der Speicher belegt, oder three.js laedt ein geschlossenes Bild hoch und das Zeichnen bricht ab'],
+    ['still nach Verlust des Zeichenkontexts', /addEventListener\('webglcontextlost', \(\) => \{ texQuiet = true;/.test(viewer),
+      'dist/assets/hangar-viewer.js stellt die Freigabe nach einem Verlust des Zeichenkontexts nicht mehr still (texQuiet): three.js laedt danach alles neu hoch, und jeder Platzhalter meldet einen Fehler'],
+  ];
+  sollIst(`Bilder nach dem Hochladen freigegeben (${FREI.length} Stellen)`, FREI.filter((l) => l[1]).length === FREI.length ? `${FREI.length} von ${FREI.length}` : `${FREI.filter((l) => l[1]).length} von ${FREI.length}, fehlt: ${FREI.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of FREI) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);

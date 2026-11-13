@@ -40,6 +40,14 @@
        ankommt (Zeile "[hangar] Licht drinnen")
    Dazu FEHLER, wenn ein Bild des Schiffs nicht laedt (Bildablage
    /hangar/tex/, Meldung des Viewers oder von GLTFLoader).
+   Dazu die Freigabe der Bilder (13.11.2026): Der Viewer nimmt jedes Bild
+   nach dem Hochladen aus dem Arbeitsspeicher (freeImages, 1 GB in der
+   hohen Stufe). FEHLER, wenn er auf diesem Weg ein freigegebenes Bild noch
+   einmal verlangt (Zeile "[hangar] Bild nach der Freigabe noch einmal
+   verlangt": die Flaeche zeigt dann eine Farbe statt ihrer Karte) oder
+   wenn er weniger Bilder freigibt als die Klinke (dann liegt das GB
+   wieder im Speicher, und kein Bild sieht anders aus). Das gilt mit
+   --ship, --layout und --innen fuer deren Wege mit.
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
    ============================================================ */
 import { existsSync } from 'node:fs';
@@ -57,7 +65,9 @@ if (LAYOUT && !/^[A-Za-z0-9_-]{1,4000}$/.test(LAYOUT)) { console.error(`\n--layo
 const GRENZE = 16;
 // Gemessen 21.10.2026 auf hoch mit der Gladius: 73 Programme, 2 mit
 // Schichttafel (Halle und Grube). Klinken nur nach oben.
-const KLINKE = { programme: 60, schichten: 2 };
+// frei: Bilder, die der Viewer nach dem Hochladen freigibt. Gemessen
+// 13.11.2026 auf hoch mit der Gladius: 897 von 901 (1.054 MB).
+const KLINKE = { programme: 60, schichten: 2, frei: 600 };
 const WARTE_MS = 15 * 60 * 1000, NACHLAUF_MS = 20000;
 
 const KANDIDATEN = [
@@ -112,7 +122,8 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '', drinnen = '';
+let deko = '', viewer = '', drinnen = '', frei = '';
+const verlangt = [];
 const shaderFehler = [];
 page.on('console', (m) => {
   const t = m.text();
@@ -120,6 +131,8 @@ page.on('console', (m) => {
   if (t.startsWith('[hangar] Texturen je Bildshader:')) viewer = t;
   if (t.startsWith('[hangar] Licht drinnen:') || t.startsWith('[hangar] Innenraum geladen:')) drinnen = drinnen ? `${drinnen} · ${t.slice(9)}` : t.slice(9);
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
+  if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) frei = t;
+  if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
 });
 const bildFehler = [];
@@ -172,6 +185,11 @@ for (const p of ueber) fehler.push(`${p.name} braucht ${p.n} Texturen, Grenze ${
 for (const p of kaputt) fehler.push(p.zaehlung ? `Zaehlung eines Programms fehlgeschlagen (${p.zaehlung}): ungeprueft` : `${p.name} linkt nicht`);
 for (const s of shaderFehler) fehler.push(s);
 for (const b of bildFehler.slice(0, 10)) fehler.push(b);
+const freiN = Number(/freigegeben: (\d+) /.exec(frei)?.[1] ?? NaN);
+console.log(`  Bilder: ${frei ? frei.slice(9, 160) : 'keine Zeile zur Freigabe'} (Klinke ${KLINKE.frei}); noch einmal verlangt: ${verlangt.length}`);
+for (const v of verlangt.slice(0, 10)) fehler.push(v);
+if (verlangt.length > 10) fehler.push(`… und ${verlangt.length - 10} weitere freigegebene Bilder noch einmal verlangt`);
+if (deko && !(freiN >= KLINKE.frei)) fehler.push(`der Viewer gibt ${Number.isFinite(freiN) ? `nur ${freiN}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${KLINKE.frei}: die ausgepackten Bilder bleiben im Arbeitsspeicher (rund 1 GB in der hohen Stufe)`);
 if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
@@ -183,4 +201,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze ✓\n');
+console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild noch einmal verlangt ✓\n');
