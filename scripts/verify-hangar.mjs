@@ -290,6 +290,12 @@
     vv  dort den Getter colorTexture von BatchedMesh streichen      -> [12]
     ww  in dist/assets/hangar-holo3d.js forceSinglePass aus basic()
         nehmen ([21] reisst mit: Version passt nicht mehr)          -> [12]
+    xx  in dist/assets/hangar-viewer.js plane.deleteAttribute('normal')
+        aus buildComposer() streichen (13.11.2026; im Browser reisst
+        check:hangar-shader: 12 von 12 erst beim Probebild)         -> [12]
+    yy  dort eine Umgebungskugel wieder mit eigenem
+        new THREE.PMREMGenerator(renderer) bauen                    -> [12]
+    zz  dort in texBudget() p.fragmentShader streichen              -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -796,6 +802,30 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   ];
   sollIst(`Bilder nach dem Hochladen freigegeben (${FREI.length} Stellen)`, FREI.filter((l) => l[1]).length === FREI.length ? `${FREI.length} von ${FREI.length}` : `${FREI.filter((l) => l[1]).length} von ${FREI.length}, fehlt: ${FREI.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of FREI) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Stillstand beim Laden (Krisz, 13.11.2026, derselbe Anlass). Gemessen
+  // im sichtbaren Fenster, jeder Aufruf am Zeichenkontext gestoppt: Die
+  // Shader der Vollbildpaesse wurden vorab uebersetzt, aber mit einer
+  // Geometrie mit Normalen, und three fuehrt das im Schluessel eines
+  // Programms. Die zwoelf Programme benutzte nie jemand, das Probebild
+  // uebersetzte die echten im Stehen (1,2 s, davon 1 s der Entrauscher der
+  // Verdeckung). Jede Umgebungskugel baute ihren eigenen PMREM-Generator
+  // und gab ihn frei, die zweite uebersetzte dessen Shader deshalb noch
+  // einmal (0,4 s kurz nach dem ersten Bild). Und die Zaehlung der Texturen
+  // fragte je Programm zweimal beim Grafikprozess nach dem Typ seiner
+  // Shader. Faellt eine Stelle weg, sieht kein Bild anders aus, die Seite
+  // steht nur wieder. Ob die Paesse wirklich vorab uebersetzt sind, prueft
+  // check:hangar-shader im Browser.
+  const pmremNeu = (viewer.match(/new THREE\.PMREMGenerator\(/g) ?? []).length;
+  const STILLSTAND = [
+    ['Vollbildpaesse ohne Normalen vorab', /plane\.deleteAttribute\('normal'\);[\s\S]{0,600}?await compileFor\(quad, rt, quad\);/.test(viewer) && /Vollbildpässe: \$\{spaet\} von/.test(viewer),
+      'dist/assets/hangar-viewer.js: buildComposer() uebersetzt die Shader der Vollbildpaesse nicht mehr mit einer Geometrie ohne Normalen vorab (oder meldet es nicht mehr): das Probebild uebersetzt sie dann im Stehen, 1,2 s Stillstand bei jedem ersten Besuch'],
+    ['ein PMREM-Generator fuer alle Kugeln', pmremNeu === 1 && /function pmremFor\(renderer\) \{/.test(viewer),
+      `dist/assets/hangar-viewer.js baut ${pmremNeu} statt 1 PMREM-Generator (pmremFor): jeder eigene uebersetzt seine Shader neu, 0,4 s Stillstand kurz nach dem ersten Bild`],
+    ['Texturzaehlung ohne Rueckfrage', /const frag = p\.fragmentShader \?\? /.test(viewer),
+      'dist/assets/hangar-viewer.js: texBudget() nimmt den Bildshader nicht mehr von three (p.fragmentShader): die Suche ueber den Typ fragt je Programm zweimal beim Grafikprozess nach und wartet mitten im Laden auf die Antwort'],
+  ];
+  sollIst(`Stillstand beim Laden abgestellt (${STILLSTAND.length} Stellen)`, STILLSTAND.filter((l) => l[1]).length === STILLSTAND.length ? `${STILLSTAND.length} von ${STILLSTAND.length}` : `${STILLSTAND.filter((l) => l[1]).length} von ${STILLSTAND.length}, fehlt: ${STILLSTAND.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of STILLSTAND) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);

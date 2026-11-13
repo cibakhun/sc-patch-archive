@@ -48,6 +48,15 @@
    wenn er weniger Bilder freigibt als die Klinke (dann liegt das GB
    wieder im Speicher, und kein Bild sieht anders aus). Das gilt mit
    --ship, --layout und --innen fuer deren Wege mit.
+   Dazu die Shader der Vollbildpaesse (13.11.2026): Verdeckung, Entrauscher
+   und Schein uebersetzt der Viewer vorab im Hintergrund. Passt der
+   Schluessel des vorab uebersetzten Programms nicht zu dem, mit dem der
+   Pass wirklich zeichnet (three fuehrt darin etwa, ob die Geometrie
+   Normalen hat), uebersetzt das Probebild sie im Stehen: 1,2 s Stillstand
+   beim Laden, und kein Bild sieht anders aus. FEHLER, wenn der Viewer das
+   meldet (Zeile "[hangar] Vollbildpässe: … erst beim Probebild
+   übersetzt") oder gar keine Zeile zu den Paessen kommt (dann steht die
+   Nachbearbeitung nicht).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
    ============================================================ */
 import { existsSync } from 'node:fs';
@@ -122,7 +131,7 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '', drinnen = '', frei = '';
+let deko = '', viewer = '', drinnen = '', frei = '', paesse = '';
 const verlangt = [];
 const shaderFehler = [];
 page.on('console', (m) => {
@@ -132,6 +141,7 @@ page.on('console', (m) => {
   if (t.startsWith('[hangar] Licht drinnen:') || t.startsWith('[hangar] Innenraum geladen:')) drinnen = drinnen ? `${drinnen} · ${t.slice(9)}` : t.slice(9);
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
   if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) frei = t;
+  if (t.startsWith('[hangar] Vollbildpässe:')) paesse = t;
   if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
 });
@@ -190,6 +200,9 @@ console.log(`  Bilder: ${frei ? frei.slice(9, 160) : 'keine Zeile zur Freigabe'}
 for (const v of verlangt.slice(0, 10)) fehler.push(v);
 if (verlangt.length > 10) fehler.push(`… und ${verlangt.length - 10} weitere freigegebene Bilder noch einmal verlangt`);
 if (deko && !(freiN >= KLINKE.frei)) fehler.push(`der Viewer gibt ${Number.isFinite(freiN) ? `nur ${freiN}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${KLINKE.frei}: die ausgepackten Bilder bleiben im Arbeitsspeicher (rund 1 GB in der hohen Stufe)`);
+console.log(`  ${paesse ? paesse.slice(9, 160) : 'Vollbildpässe: keine Zeile'}`);
+if (/erst beim Probebild/.test(paesse)) fehler.push(`${paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
+else if (deko && !/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(paesse)) fehler.push('der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) steht nicht, oder ihre Shader werden nicht mehr vorab uebersetzt');
 if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
@@ -201,4 +214,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild noch einmal verlangt ✓\n');
+console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild noch einmal verlangt, Vollbildpaesse vorab uebersetzt ✓\n');
