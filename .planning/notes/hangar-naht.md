@@ -217,6 +217,48 @@ Zusicherung 21 hält die Naht (board, act, drawLoadout) und dass jedes Wort
 der Werkstatt in `#hgl-msg` steht: die gezeichnete Tafel zeigte sonst den
 rohen Schlüssel, und kein Textprüfer sähe ihn.
 
+Die Auswahl eines offenen Slots steht seit 13.11.2026 nicht mehr unter seiner
+Zeile, sondern als eigenes Fenster rechts neben der Tafel (Krisz: „wenn ich
+ein slot anclicke soll ein fenster daneben erscheinen … genau so wie jetzt
+nur nicht unten sondern extra kleines fenster an der seite“). Die Zeilen der
+Tafel bleiben, wo sie sind; die offene trägt den Rahmen, und das Fenster
+zeigt mit einer Nase auf sie. Es ist ein drittes Bild in der Ebene der
+linken Tafel (`drawPick`), ohne eigenen Platz am Boden und ohne Projektor:
+`placeFly` hängt es an ihre Lage, `pickTop` setzt seine Oberkante an die
+Zeile und hält es innerhalb der Höhe der Tafel. Neben einer Tafel am Boden
+steht es in dieser Ebene weiter hinten als sie und ist deshalb um `PICK_K`
+(1,12) vergrößert, sonst läse sich seine Schrift kleiner als ihre. Eine
+schwebende Tafel steht flach im Bild; dort gilt der Maßstab 1 (`pickK`),
+sonst wäre die Schrift im Fenster größer als auf der Tafel (so gesehen an
+der Carrack im Test vom 13.11.2026). Inhalt und Klicks sind
+dieselben wie zuvor (`pickPaint` zeichnet beide Fassungen; ein Klick auf
+ein Teil baut es ein und schließt die Auswahl), dazu ein Knopf
+zum Schließen (derselbe Weg wie ein zweiter Klick auf die Zeile); das
+Mausrad über dem Fenster rollt seine Liste. Ist zwischen Tafel und
+Datenblatt kein Platz (`pickFits`: mit Seitenleiste unter 1321 px
+Bildbreite), klappt die Auswahl wie bisher unter ihre Zeile. Die Rechnung
+kennt nur die Plätze der Tafeln; eine Tafel rückt aber zur Mitte, wenn sie
+seitlich hinausragte, und bleibt bis 70 px neben einem neuen Platz stehen
+(nach einem Größenwechsel im Test 66 px). Deshalb misst `placeFly` je Bild
+nach, sobald beide Tafeln stehen (`pickClear`: rechter Rand des Fensters,
+linker Rand des Datenblatts): Liegt das Fenster an, klappt die Auswahl noch
+vor dem Zeichnen unter ihre Zeile und bleibt dort, bis sich Bildgröße,
+Ränder oder Schiff ändern (`splitOff`), damit sie nicht zwischen beiden
+Fassungen springt. Der Name des Schiffs ist kein Bild der Halle, sondern
+Text der Seite über der Leinwand, und läge deshalb vor dem Fenster (so
+gesehen im niedrigen Bild 1440 x 620 im Test vom 13.11.2026). Der Viewer
+meldet dem Modul, wo er im Bild steht (`name: () => holo.rect()`); steht er
+in der Breite des Fensters, beginnt es `PICK_NAME_AIR` unter ihm
+(`pickBelow` misst an der Oberkante nach, `min` in `pickTop`) und zeigt
+dafür weniger Zeilen. Hat es darunter an der Tafel keinen Platz (mit den
+Halterungen eines Raketenslots ist es höher), klappt die Auswahl dieses
+einen Slots unter ihre Zeile (`splitOffRow`), die anderen behalten ihr
+Fenster. Klappt die Auswahl aus dem Fenster unter ihre Zeile zurück (auch
+nach einem Größenwechsel), rollt die Tafel Zeile und Liste ins Bild
+(`redraw`), sonst stünde die Liste unter dem unteren Rand. Zusicherung 21
+rechnet Platz, Lage, Maßstab und die Grenze unter dem Namen am
+ausgelieferten Modul nach.
+
 Steht auf der linken Tafel ein Slot offen, zeigt die rechte seit 11.11.2026
 statt des Schiffs das Datenblatt seines Bauteils (Krisz 10.11.2026: „man
 könnte die itemdatenblatt seite direkt in das hangar reinbauen für

@@ -391,9 +391,9 @@ function icon(g, d, x, y, size, color) {
 const RK1 = { f: RAJ, w: 700, s: 13 }, RK2 = { f: BAR, s: 11 };
 const MI = { f: RAJ, w: 700, s: 14 }, MS = { f: BAR, s: 11.5 }, MN = { f: BAR, s: 12 };
 // Auswahl unter der offenen Zeile: Kopf, Halterungen, Liste, Knöpfe
-function loPick(g, pk, y0) {
-  const x0 = LO.p + 6, x1 = LO_W - LO.p - 4;
-  const out = { y: y0, x0, x1 };
+function loPick(g, pk, y0, o = {}) {
+  const x0 = o.x0 ?? LO.p + 6, x1 = o.x1 ?? LO_W - LO.p - 4, rows = o.rows ?? LO.opts;
+  const out = { y: y0, x0, x1, rows, own: !!o.own };
   let y = y0 + 22;
   if (pk.racks) {
     out.rackLabel = y + 10; y += 18;
@@ -409,7 +409,7 @@ function loPick(g, pk, y0) {
     y += (row + 1) * 40;
     out.rackInfo = y + 9; y += 20;
   }
-  const n = pk.opts.length, vis = Math.min(n, LO.opts);
+  const n = pk.opts.length, vis = Math.min(n, rows);
   out.opts = { x: x0, y, w: x1 - x0, h: vis * LO.oh, total: n * LO.oh };
   y += vis * LO.oh + 6;
   out.pills = [];
@@ -425,6 +425,69 @@ function loPick(g, pk, y0) {
   if (out.pills.length) { out.pillY = y; y += (row + 1) * 34; }
   out.h = y - y0 + 4;
   return out;
+}
+// Auswahl zeichnen: unter der offenen Zeile (py = Rollstand der Liste) oder im eigenen Fenster (py = 0)
+function pickPaint(g, d, P, py, hover, ui, hit, yB, hB) {
+  const pk = d.pick;
+  if (P.own) head(g, fit(g, `${pk.head} · ${pk.count}`.toLocaleUpperCase(), P.x1 - P.x0 - 22, { f: RAJ, w: 700, s: 12, ls: '0.14em' }), P.x0, py + P.y + 16);
+  else text(g, `${pk.head} · ${pk.count}`.toLocaleUpperCase(), P.x0, py + P.y + 15, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.12em' });
+  if (P.racks) {
+    text(g, pk.racks.label.toLocaleUpperCase(), P.x0, py + P.rackLabel, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.12em' });
+    for (const b of P.racks) {
+      const ract = `lo|rack|${pk.key}|${b.r.id}`, rh = hover === ract, by = py + b.y;
+      g.save(); rr(g, b.x, by, b.w, b.h, 6);
+      g.fillStyle = b.r.on ? 'rgba(143,211,255,.18)' : rh ? 'rgba(143,211,255,.10)' : 'rgba(143,211,255,.04)'; g.fill();
+      g.lineWidth = 1; g.strokeStyle = b.r.on ? '#d4f1ff' : rh ? 'rgba(212,241,255,.6)' : 'rgba(143,211,255,.3)'; g.stroke(); g.restore();
+      text(g, b.r.top, b.x + 9, by + 15, { ...RK1, c: b.r.on ? C.txt : C.sub });
+      text(g, b.sub, b.x + 9, by + 28, { ...RK2, c: C.mut });
+      if (!b.r.on) hit(b.x, by, b.w, b.h, ract);
+    }
+    text(g, fit(g, pk.racks.info, P.x1 - P.x0, { f: BAR, s: 11.5 }), P.x0, py + P.rackInfo, { f: BAR, s: 11.5, c: C.mut });
+  }
+  const O = P.opts, oy0 = py + O.y, v0 = Math.max(yB, oy0), v1 = Math.min(yB + hB, oy0 + O.h);
+  ui.zones.opts = v1 > v0 ? { x: O.x, y: v0, w: O.w, h: v1 - v0, max: P.pmax } : null;
+  g.save(); g.beginPath(); g.rect(O.x - 2, oy0, O.w + 4, O.h); g.clip();
+  pk.opts.forEach((o, i) => {
+    const yy = oy0 + i * LO.oh - ui.pscroll;
+    if (yy + LO.oh < oy0 || yy > oy0 + O.h) return;
+    const oact = `lo|opt|${pk.key}|${o.id}`, oh = hover === oact, ot = tintOf(o.type, o.dt);
+    if (o.on || oh) {
+      g.save(); rr(g, O.x, yy + 1, O.w - (P.pmax ? 6 : 0), LO.oh - 3, 5);
+      g.fillStyle = o.on ? 'rgba(143,211,255,.16)' : 'rgba(143,211,255,.10)'; g.fill();
+      if (oh) { g.lineWidth = 1; g.strokeStyle = 'rgba(212,241,255,.7)'; g.stroke(); }
+      g.restore();
+    }
+    const right = O.x + O.w - (P.pmax ? 12 : 6), nx = O.x + 20;
+    g.save(); g.beginPath(); g.arc(O.x + 10, yy + 11, 3.5, 0, Math.PI * 2); g.fillStyle = ot; g.shadowColor = ot; g.shadowBlur = 4 * S; g.fill(); g.restore();
+    if (o.delta) text(g, o.delta, right, yy + 15, { f: RAJ, w: 700, s: 12, al: 'right', c: toneOf(o.dir) });
+    text(g, o.figure, right - 56, yy + 15, { f: RAJ, w: 700, s: 13.5, al: 'right', c: C.txt });
+    const nmSt = { f: RAJ, w: 700, s: 13.5, c: o.on ? C.txt : C.sub };
+    const tagW = o.tag ? measure(g, o.tag, { f: BAR, s: 10.5 }) + 16 : 0;
+    const nameRoom = right - 56 - measure(g, o.figure, { f: RAJ, w: 700, s: 13.5 }) - 8 - nx;
+    const nw = text(g, fit(g, o.name, nameRoom - tagW, nmSt), nx, yy + 15, nmSt);
+    if (o.tag) {
+      const tw = tagW - 6, tgx = nx + nw + 6;
+      g.save(); rr(g, tgx, yy + 4, tw, 14, 7); g.lineWidth = 1; g.strokeStyle = o.on ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.35)'; g.stroke(); g.restore();
+      text(g, o.tag, tgx + tw / 2, yy + 14.5, { f: BAR, s: 10.5, c: o.on ? C.txt : C.mut, al: 'center' });
+    }
+    text(g, fit(g, o.sub, right - nx, { f: BAR, s: 11 }), nx, yy + 28, { f: BAR, s: 11, c: C.mut });
+    // Wertbalken bis zum stärksten passenden Teil
+    g.save(); g.fillStyle = 'rgba(143,211,255,.14)'; g.fillRect(nx, yy + LO.oh - 4.5, right - nx, 2);
+    g.fillStyle = rgba(ot, 0.85); g.fillRect(nx, yy + LO.oh - 4.5, Math.max(2, (right - nx) * clamp(o.bar, 0, 1)), 2); g.restore();
+    // das eingebaute Teil ist kein Knopf, meldet sich aber unter dem Zeiger: sein Datenblatt (lo|peek)
+    hit(O.x, yy, O.w, LO.oh, o.on ? `lo|peek|${pk.key}|${o.id}` : oact, v0, v1);
+  });
+  g.restore();
+  if (P.pmax) {
+    const th = Math.max(18, O.h * (O.h / O.total)), ty = oy0 + (O.h - th) * (ui.pscroll / P.pmax);
+    g.save(); rr(g, O.x + O.w - 3, oy0, 3, O.h, 1.5); g.fillStyle = 'rgba(143,211,255,.12)'; g.fill();
+    rr(g, O.x + O.w - 3, ty, 3, th, 1.5); g.fillStyle = 'rgba(143,211,255,.6)'; g.fill(); g.restore();
+  }
+  for (const b of P.pills) {
+    const by = py + P.pillY + b.row * 34, rev = b.act.startsWith('lo|revert');
+    const r2 = pill(g, b.x + b.w, by, b.label, { c: rev ? AMBER : C.cy, border: rev ? rgba(AMBER, 0.55) : 'rgba(143,211,255,.45)', hover: hover === b.act });
+    hit(r2.x, r2.y, r2.w, r2.h, b.act);
+  }
 }
 // Menü der Layouts unter dem Namensknopf
 function loMenu(g, items) {
@@ -443,13 +506,14 @@ function loLayout(g, d, ui) {
   const W = LO_W, { p } = LO;
   const yBody = LO.top + (d.cats.length ? LO.tabs : 0) + 4;
   const items = [];
-  let y = 0, pick = null;
+  let y = 0, pick = null, openRow = null;
   for (const gr of d.groups) {
     items.push({ t: 'group', y, h: LO.gh, gr }); y += LO.gh;
     for (const r of gr.rows) {
       const it = { t: 'row', y, h: LO.rh + (r.changed ? LO.was : 0), r, open: d.pick?.key === r.key };
       items.push(it); y += it.h;
-      if (it.open) { pick = loPick(g, d.pick, y); pick.row = it; y += pick.h; }
+      if (it.open && ui.split) openRow = it;
+      else if (it.open) { pick = loPick(g, d.pick, y); pick.row = it; openRow = it; y += pick.h; }
     }
     y += 4;
   }
@@ -466,8 +530,8 @@ function loLayout(g, d, ui) {
   if (menu) H = Math.max(H, menu.y + menu.h + 10);
   const hBody = H - yBody - LO.foot, max = Math.max(0, contentH - hBody);
   // eine frisch geöffnete Zeile samt Auswahl ins Bild rollen, die eingebaute Zeile in die Mitte ihrer Liste
-  if (ui.reveal && pick && pick.row.r.key === ui.reveal) {
-    const top = pick.row.y - 2, bottom = pick.y + pick.h + 4;
+  if (ui.reveal && openRow && openRow.r.key === ui.reveal) {
+    const top = openRow.y - 2, bottom = pick ? pick.y + pick.h + 4 : openRow.y + openRow.h + 2;
     if (top < ui.scroll || bottom > ui.scroll + hBody) ui.scroll = Math.min(top, Math.max(ui.scroll, bottom - hBody));
   }
   ui.scroll = clamp(ui.scroll ?? 0, 0, max);
@@ -478,7 +542,7 @@ function loLayout(g, d, ui) {
     ui.pscroll = clamp(ui.pscroll ?? 0, 0, pmax);
     pick.pmax = pmax;
   }
-  return { W, H, yBody, hBody, contentH, max, items, pick, menu, footY: H - LO.foot };
+  return { W, H, yBody, hBody, contentH, max, items, pick, openRow, menu, footY: H - LO.foot };
 }
 function drawLoadout(g, d, hover, ui = {}) {
   const L = loLayout(g, d, ui), W = LO_W, { p } = LO;
@@ -524,6 +588,8 @@ function drawLoadout(g, d, hover, ui = {}) {
   }
   // ── Liste: rollt zwischen Reitern und Fuß ──
   const yB = L.yBody, hB = L.hBody, oy = yB - ui.scroll;
+  // Lage der offenen Zeile auf der Tafel: daran hängt das Fenster der Auswahl
+  ui.openAt = L.openRow ? { y: oy + L.openRow.y, h: L.openRow.h, y0: yB, y1: yB + hB } : null;
   // Knopf in der Liste: nur, was im Fenster liegt
   const hit = (x, y, w, h, act, y0 = yB, y1 = yB + hB) => {
     const t = Math.max(y, y0), b = Math.min(y + h, y1);
@@ -532,7 +598,7 @@ function drawLoadout(g, d, hover, ui = {}) {
   g.save(); g.beginPath(); g.rect(0, yB, W, hB); g.clip();
   for (const it of L.items) {
     const y = oy + it.y;
-    if (y > yB + hB || y + it.h + (it.open ? L.pick.h : 0) < yB) continue;
+    if (y > yB + hB || y + it.h + (it.open && L.pick ? L.pick.h : 0) < yB) continue;
     if (it.t === 'group') {
       text(g, it.gr.title.toLocaleUpperCase(), p, y + 18, { f: RAJ, w: 700, s: 11.5, c: C.cy, ls: '0.14em', glow: 'rgba(110,200,255,.6)' });
       let rx = W - p;
@@ -542,7 +608,7 @@ function drawLoadout(g, d, hover, ui = {}) {
       const r = it.r, act = `lo|slot|${r.key}`, hot = hover === act, tint = tintOf(r.type, r.dt), mark = r.changed ? AMBER : tint;
       if (r.changed) { g.save(); rr(g, 4, y + 1, W - 8, it.h - 2, 6); g.fillStyle = 'rgba(245,166,35,.07)'; g.fill(); g.restore(); }
       if (it.open || hot) {
-        g.save(); rr(g, 4, y + 1, W - 8, it.h - 2 + (it.open ? L.pick.h : 0), 6);
+        g.save(); rr(g, 4, y + 1, W - 8, it.h - 2 + (it.open && L.pick ? L.pick.h : 0), 6);
         g.fillStyle = it.open ? 'rgba(143,211,255,.11)' : 'rgba(143,211,255,.15)'; g.fill();
         if (it.open) { g.lineWidth = 1; g.strokeStyle = 'rgba(143,211,255,.5)'; g.stroke(); }
         g.restore();
@@ -582,67 +648,9 @@ function drawLoadout(g, d, hover, ui = {}) {
         text(g, fit(g, r.was, W - p - tx - dw, { f: BAR, s: 11.5 }), tx, y + 47, { f: BAR, s: 11.5, c: '#cfae74' });
       }
       hit(4, y, W - 8, it.h, act);
-      if (!it.open) continue;
+      if (!it.open || !L.pick) continue;
       // Auswahl: was hier passt, das eingebaute und das Serienteil benannt
-      const P = L.pick, pk = d.pick, py = oy;
-      text(g, `${pk.head} · ${pk.count}`.toLocaleUpperCase(), P.x0, py + P.y + 15, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.12em' });
-      if (P.racks) {
-        text(g, pk.racks.label.toLocaleUpperCase(), P.x0, py + P.rackLabel, { f: RAJ, w: 700, s: 10.5, c: C.mut, ls: '0.12em' });
-        for (const b of P.racks) {
-          const ract = `lo|rack|${pk.key}|${b.r.id}`, rh = hover === ract, by = py + b.y;
-          g.save(); rr(g, b.x, by, b.w, b.h, 6);
-          g.fillStyle = b.r.on ? 'rgba(143,211,255,.18)' : rh ? 'rgba(143,211,255,.10)' : 'rgba(143,211,255,.04)'; g.fill();
-          g.lineWidth = 1; g.strokeStyle = b.r.on ? '#d4f1ff' : rh ? 'rgba(212,241,255,.6)' : 'rgba(143,211,255,.3)'; g.stroke(); g.restore();
-          text(g, b.r.top, b.x + 9, by + 15, { ...RK1, c: b.r.on ? C.txt : C.sub });
-          text(g, b.sub, b.x + 9, by + 28, { ...RK2, c: C.mut });
-          if (!b.r.on) hit(b.x, by, b.w, b.h, ract);
-        }
-        text(g, fit(g, pk.racks.info, P.x1 - P.x0, { f: BAR, s: 11.5 }), P.x0, py + P.rackInfo, { f: BAR, s: 11.5, c: C.mut });
-      }
-      const O = P.opts, oy0 = py + O.y, v0 = Math.max(yB, oy0), v1 = Math.min(yB + hB, oy0 + O.h);
-      ui.zones.opts = v1 > v0 ? { x: O.x, y: v0, w: O.w, h: v1 - v0, max: P.pmax } : null;
-      g.save(); g.beginPath(); g.rect(O.x - 2, oy0, O.w + 4, O.h); g.clip();
-      pk.opts.forEach((o, i) => {
-        const yy = oy0 + i * LO.oh - ui.pscroll;
-        if (yy + LO.oh < oy0 || yy > oy0 + O.h) return;
-        const oact = `lo|opt|${pk.key}|${o.id}`, oh = hover === oact, ot = tintOf(o.type, o.dt);
-        if (o.on || oh) {
-          g.save(); rr(g, O.x, yy + 1, O.w - (P.pmax ? 6 : 0), LO.oh - 3, 5);
-          g.fillStyle = o.on ? 'rgba(143,211,255,.16)' : 'rgba(143,211,255,.10)'; g.fill();
-          if (oh) { g.lineWidth = 1; g.strokeStyle = 'rgba(212,241,255,.7)'; g.stroke(); }
-          g.restore();
-        }
-        const right = O.x + O.w - (P.pmax ? 12 : 6), nx = O.x + 20;
-        g.save(); g.beginPath(); g.arc(O.x + 10, yy + 11, 3.5, 0, Math.PI * 2); g.fillStyle = ot; g.shadowColor = ot; g.shadowBlur = 4 * S; g.fill(); g.restore();
-        if (o.delta) text(g, o.delta, right, yy + 15, { f: RAJ, w: 700, s: 12, al: 'right', c: toneOf(o.dir) });
-        text(g, o.figure, right - 56, yy + 15, { f: RAJ, w: 700, s: 13.5, al: 'right', c: C.txt });
-        const nmSt = { f: RAJ, w: 700, s: 13.5, c: o.on ? C.txt : C.sub };
-        const tagW = o.tag ? measure(g, o.tag, { f: BAR, s: 10.5 }) + 16 : 0;
-        const nameRoom = right - 56 - measure(g, o.figure, { f: RAJ, w: 700, s: 13.5 }) - 8 - nx;
-        const nw = text(g, fit(g, o.name, nameRoom - tagW, nmSt), nx, yy + 15, nmSt);
-        if (o.tag) {
-          const tw = tagW - 6, tgx = nx + nw + 6;
-          g.save(); rr(g, tgx, yy + 4, tw, 14, 7); g.lineWidth = 1; g.strokeStyle = o.on ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.35)'; g.stroke(); g.restore();
-          text(g, o.tag, tgx + tw / 2, yy + 14.5, { f: BAR, s: 10.5, c: o.on ? C.txt : C.mut, al: 'center' });
-        }
-        text(g, fit(g, o.sub, right - nx, { f: BAR, s: 11 }), nx, yy + 28, { f: BAR, s: 11, c: C.mut });
-        // Wertbalken bis zum stärksten passenden Teil
-        g.save(); g.fillStyle = 'rgba(143,211,255,.14)'; g.fillRect(nx, yy + LO.oh - 4.5, right - nx, 2);
-        g.fillStyle = rgba(ot, 0.85); g.fillRect(nx, yy + LO.oh - 4.5, Math.max(2, (right - nx) * clamp(o.bar, 0, 1)), 2); g.restore();
-        // das eingebaute Teil ist kein Knopf, meldet sich aber unter dem Zeiger: sein Datenblatt (lo|peek)
-        hit(O.x, yy, O.w, LO.oh, o.on ? `lo|peek|${pk.key}|${o.id}` : oact, v0, v1);
-      });
-      g.restore();
-      if (P.pmax) {
-        const th = Math.max(18, O.h * (O.h / O.total)), ty = oy0 + (O.h - th) * (ui.pscroll / P.pmax);
-        g.save(); rr(g, O.x + O.w - 3, oy0, 3, O.h, 1.5); g.fillStyle = 'rgba(143,211,255,.12)'; g.fill();
-        rr(g, O.x + O.w - 3, ty, 3, th, 1.5); g.fillStyle = 'rgba(143,211,255,.6)'; g.fill(); g.restore();
-      }
-      for (const b of P.pills) {
-        const by = py + P.pillY + b.row * 34, rev = b.act.startsWith('lo|revert');
-        const r2 = pill(g, b.x + b.w, by, b.label, { c: rev ? AMBER : C.cy, border: rev ? rgba(AMBER, 0.55) : 'rgba(143,211,255,.45)', hover: hover === b.act });
-        hit(r2.x, r2.y, r2.w, r2.h, b.act);
-      }
+      pickPaint(g, d, L.pick, oy, hover, ui, hit, yB, hB);
     } else if (it.t === 'paint') {
       // Lackierung: drei Töne (Haupt, Zweit, Akzent) als Farbfeld, die gewählte mit Rahmen und Haken
       const pt = it.pt, act = `lo|paint|${pt.id}`, hot = hover === act;
@@ -741,6 +749,87 @@ function drawLoadout(g, d, hover, ui = {}) {
   return hits;
 }
 drawLoadout.W = LO_W;
+
+// ─── Auswahl als eigenes Fenster neben der Ausrüstung (Krisz 13.11.2026) ──
+// Dieselbe Liste wie bisher unter der offenen Zeile, nur daneben: die Zeilen
+// der Tafel bleiben, wo sie sind. d = die Daten der Ausrüstung (d.pick).
+const PK_W = 336, PK_ROWS = 8;
+function drawPick(g, d, hover, ui = {}) {
+  const pk = d?.pick, W = PK_W;
+  if (!pk) return g.canvas.dataset.h ? [] : 10;
+  let rows = PK_ROWS, P = loPick(g, pk, 10, { x0: 12, x1: W - 10, rows, own: true });
+  while (rows > 3 && P.h + 18 > (ui.maxH ?? 600)) { rows -= 1; P = loPick(g, pk, 10, { x0: 12, x1: W - 10, rows, own: true }); }
+  const H = P.h + 18;
+  P.pmax = Math.max(0, P.opts.total - P.opts.h);
+  if (ui.pReveal) { const i = pk.opts.findIndex((o) => o.on); ui.pscroll = i < 0 ? 0 : Math.max(0, i - Math.floor((rows - 1) / 2)) * LO.oh; }
+  ui.pscroll = clamp(ui.pscroll ?? 0, 0, P.pmax);
+  if (!g.canvas.dataset.h) return H;
+  ui.pReveal = false; ui.zones = { body: null, opts: null };
+  const hits = [];
+  card(g, W, H);
+  // Nase zur offenen Zeile der Tafel
+  const nose = ui.noseAt?.(H);
+  if (nose != null) {
+    g.save(); g.beginPath(); g.moveTo(-9, nose); g.lineTo(1, nose - 8); g.lineTo(1, nose + 8); g.closePath();
+    g.fillStyle = 'rgba(9,34,58,.97)'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(140,215,255,.80)';
+    g.beginPath(); g.moveTo(1, nose - 8); g.lineTo(-9, nose); g.lineTo(1, nose + 8); g.stroke(); g.restore();
+  }
+  const hit = (x, y, w, h, act, y0 = 0, y1 = H) => {
+    const t = Math.max(y, y0), b = Math.min(y + h, y1);
+    if (b - t > 4) hits.push({ x, y: t, w, h: b - t, act });
+  };
+  pickPaint(g, d, P, 0, hover, ui, hit, 0, H);
+  // Schließen: derselbe Weg wie ein zweiter Klick auf die Zeile
+  {
+    const act = `lo|slot|${pk.key}`, x = W - 30, y = 8, hot = hover === act;
+    g.save(); rr(g, x, y, 20, 20, 5); if (hot) { g.fillStyle = 'rgba(143,211,255,.18)'; g.fill(); }
+    g.lineWidth = 1; g.strokeStyle = hot ? 'rgba(212,241,255,.75)' : 'rgba(143,211,255,.35)'; g.stroke();
+    g.strokeStyle = hot ? '#ffffff' : C.cy; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x + 6, y + 6); g.lineTo(x + 14, y + 14); g.moveTo(x + 14, y + 6); g.lineTo(x + 6, y + 14); g.stroke(); g.restore();
+    hits.push({ x, y, w: 20, h: 20, act });
+  }
+  return hits;
+}
+drawPick.W = PK_W;
+// Das Fenster steht in der Ebene der Tafel rechts neben ihr, an der offenen
+// Zeile. PICK_K: neben einer Tafel am Boden steht es weiter hinten als sie und
+// wäre ohne Zuschlag kleiner zu lesen. Eine schwebende Tafel steht flach im
+// Bild, dort gilt 1 (pickK).
+export const PICK_GAP = 12, PICK_K = 1.12;
+export const pickK = (float) => (float ? 1 : PICK_K);
+// Platz zwischen den beiden Tafeln? W: Breite des Bilds, l und r: was die
+// Seite am Rand verdeckt. Sonst klappt die Auswahl wie bisher unter ihre Zeile.
+// Gerechnet mit dem größeren Fenster (PICK_K), auch wenn die Tafel schwebt.
+// PICK_AIR: Tafeln am Boden stehen geneigt, die innere obere Ecke des
+// Datenblatts reicht im Bild gut 40 px weiter zur Mitte als sein Platz.
+export const PICK_AIR = 56;
+export function pickFits(W, l = 0, r = 0) {
+  return l + 18 + LO_W + PICK_GAP + PK_W * PICK_K + PICK_AIR <= W - r - 18 - ITEM_W;
+}
+// Dasselbe am Bild gemessen: rechter Rand des Fensters, linker Rand des
+// Datenblatts. Eine Tafel steht nicht immer an ihrem Platz (sie rückt zur
+// Mitte, wenn sie seitlich hinausragte, und bleibt bis 70 px daneben stehen).
+export const pickClear = (winRight, sheetLeft) => winRight <= sheetLeft - 6;
+// Oberkante des Fensters in den CSS-Pixeln der Tafel: an der offenen Zeile,
+// ganz innerhalb der Tafel. at: Lage der Zeile { y, h, y0, y1 } (y0 bis y1 ist
+// der rollende Teil der Tafel) oder null, boardH: Höhe der Tafel, winH: Höhe
+// des Fensters in seinen eigenen Pixeln, k: sein Maßstab (pickK), min: so
+// weit unter der Oberkante der Tafel beginnt es frühestens (der Name des
+// Schiffs steht darüber, placeFly).
+export function pickTop(at, boardH, winH, k = PICK_K, min = 0) {
+  const row = at ? clamp(at.y, at.y0, Math.max(at.y0, at.y1 - at.h)) : 60;
+  return clamp(row - 8, min, Math.max(min, boardH - winH * k));
+}
+// Der Name des Schiffs liegt als Text über der Leinwand und damit vor dem
+// Fenster. y0: wo die Oberkante des Fensters im Bild läge, hinge es ganz oben
+// an der Tafel, s: Bildpunkte je Pixel der Tafel dort (eine geneigte Tafel
+// ist im Bild kürzer), nameB: Unterkante des Namens im Bild. Zurück: min für
+// pickTop, in Stufen von 8 px (der Name gleitet, das Fenster soll dabei nicht
+// je Bild neu gezeichnet werden).
+export const PICK_NAME_AIR = 14;
+export function pickBelow(y0, s, nameB) {
+  const q = s >= 0.5 && s <= 1.5 ? s : 1;
+  return Math.max(0, Math.ceil((nameB + PICK_NAME_AIR - y0) / q / 8) * 8);
+}
 
 // ─── Datenblatt des Bauteils: rechte Tafel, solange ein Slot offen steht ──
 // Einordnung wie in Detail Pages 2.0 (Richtung B): jeder Wert als Streifen
@@ -1098,9 +1187,9 @@ export function holoLayer(ctx) {
   const floatM = () => Math.max(FLOAT_M, camera.near * 4);
 
   // ── Tafel ──
-  function makePanel(draw, data, side) {
+  function makePanel(draw, data, side, fly = false) {
     const cv = sheetCanvas(1, 1), g = cv.getContext('2d');
-    const P = { draw, data, side, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null, ui: { scroll: 0, pscroll: 0, menu: false } };
+    const P = { draw, data, side, fly, canvas: cv, g, cssW: 0, cssH: 0, hits: [], pos: null, from: null, to: null, glideAt: 0, k: 1, hop: null, ui: { scroll: 0, pscroll: 0, menu: false } };
     P.tex = new THREE.CanvasTexture(cv); P.tex.colorSpace = THREE.SRGBColorSpace;
     P.tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() ?? 1);
     P.tex.minFilter = THREE.LinearMipmapLinearFilter; P.tex.generateMipmaps = true;
@@ -1129,6 +1218,13 @@ export function holoLayer(ctx) {
     // so hoch, wie über ihrem Platz frei ist; was nicht passt, rollt (Ausrüstung)
     const w = P.draw.W, room = roomOf(P, w);
     P.ui.maxH = room.bottom - 40 - room.top - 6;
+    if (P.side === 'left' && !P.fly) {
+      const was = P.ui.split;
+      P.ui.split = canSplit(P);
+      // klappt die Auswahl aus dem Fenster unter ihre Zeile zurück, rollt sie samt Zeile ins Bild
+      if (was && !P.ui.split && P.data?.pick) { P.ui.reveal = P.data.pick.key; P.ui.pReveal = true; }
+    }
+    if (P.fly) P.ui.maxH = Math.max(240, ((built?.left.cssH ?? 560) - 8 - (P.minTop ?? 0)) / (P.kf ?? PICK_K));
     const H = P.draw(g, P.data, null, P.ui);
     P.cssW = w; P.cssH = H;
     const cw = Math.ceil((w + 2 * PAD) * S), ch = Math.ceil((H + 2 * PAD) * S);
@@ -1144,6 +1240,8 @@ export function holoLayer(ctx) {
     g.setTransform(S, 0, 0, S, PAD * S, PAD * S);
     P.hits = P.draw(g, P.data, P.hover ?? null, P.ui) || [];
     P.tex.needsUpdate = true;
+    // das Fenster der Auswahl hängt an der Tafel: ihre Höhe, die Lage der offenen Zeile
+    if (built && P === built.left) redraw(built.pick);
   }
   // Freier Streifen einer Tafel der Breite w im Bild: Mitte, Ränder, tiefste
   // Unterkante (über Knöpfen der Seite) und höchste Oberkante (unter Kopfzeile
@@ -1160,14 +1258,90 @@ export function holoLayer(ctx) {
     }
     return { x, x0, x1, bottom, top };
   }
-  function redrawAll() { for (const P of built?.panels ?? []) redraw(P); for (const s of built?.sprites ?? []) s.redraw?.(); }
+  // Fenster der Auswahl: hängt an der linken Tafel, kein eigener Platz am Boden.
+  // splitOff: lag es an diesem Schiff in diesem Bild einmal am Datenblatt an
+  // (placeFly misst), bleibt die Auswahl unter ihrer Zeile, bis sich Bildgröße
+  // oder Ränder ändern: kein Hin und Her zwischen beiden Fassungen.
+  // splitOffRow: dasselbe für den einen Slot, dessen Fenster unter dem Namen
+  // des Schiffs keinen Platz hatte (mit Halterungen ist es höher); die anderen
+  // Slots behalten ihr Fenster.
+  let splitOff = '', splitOffRow = '';
+  const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}`;
+  const rowKey = (P) => `${splitKey()}|${P.data?.pick?.key ?? ''}`;
+  const canSplit = (P) => splitOff !== splitKey() && splitOffRow !== rowKey(P) && pickFits(ctx.W(), safe.l ?? 0, safe.r ?? 0);
+  // Gezeichnete Fläche einer Tafel im Bild: das Rechteck um ihre vier Ecken
+  const edgeV = new THREE.Vector3();
+  function boxPx(P) {
+    const fx = PAD / (P.cssW + 2 * PAD), fy = PAD / (P.cssH + 2 * PAD), out = { l: Infinity, r: -Infinity, t: Infinity, b: -Infinity };
+    for (const x of [fx - 0.5, 0.5 - fx]) for (const y of [fy - 0.5, 0.5 - fy]) {
+      const p = toPx(P.mesh.localToWorld(edgeV.set(x, y, 0)));
+      if (!p) return null;
+      out.l = Math.min(out.l, p[0]); out.r = Math.max(out.r, p[0]); out.t = Math.min(out.t, p[1]); out.b = Math.max(out.b, p[1]);
+    }
+    return out;
+  }
+  const NAME_PROBE = 120;
+  // zurück zur Liste unter der Zeile (row: nur für diesen Slot); redraw rollt sie ins Bild
+  const noSplit = (L, F, row) => {
+    if (row) splitOffRow = rowKey(L); else splitOff = splitKey();
+    F.group.visible = false; F.rect = null;
+    redraw(L); settledAt = 0; ctx.wake(300);
+  };
+  const flyTop = (L, F, H = F.cssH) => pickTop(L.ui.openAt, L.cssH, H, F.kf ?? PICK_K, F.minTop ?? 0);
+  function placeFly(F) {
+    const L = built.left, on = L.group.visible && !!L.pos && L.draw === drawLoadout && !!L.ui.split && !!L.data?.pick;
+    F.group.visible = on;
+    if (!on) { F.rect = null; return; }
+    setK(F, L.k);
+    const fl = !!L.float, d = Math.max(1, depthOf(L.pos)), k = d / ppm(), kx = fl ? 1 : 1 / spread(L.pos, L.group.rotation.y);
+    // Maßstab: am Boden größer gezeichnet, schwebend wie die Tafel; wechselt er, misst sich das Fenster neu
+    const K = pickK(fl);
+    if (F.kf !== K) { F.kf = K; redraw(F); }
+    F.group.position.copy(L.group.position); F.group.quaternion.copy(L.group.quaternion);
+    F.pivot.position.y = fl ? 0 : LIFT; F.pivot.rotation.x = fl ? 0 : -TILT;
+    F.proj.visible = F.glow.visible = false;
+    const put = (top) => {
+      F.mesh.scale.set((F.cssW + 2 * PAD) * k * kx * K, (F.cssH + 2 * PAD) * k * K, 1);
+      F.mesh.position.set((L.cssW / 2 + PICK_GAP + (F.cssW * K) / 2) * k * kx, (L.cssH - top - (F.cssH * K) / 2) * k, 0.01);
+      F.group.updateMatrixWorld(true);
+    };
+    // unter dem Namen des Schiffs bleiben, wo er in der Breite des Fensters
+    // steht (er liegt als Text vor der Leinwand): gemessen an der Oberkante,
+    // einmal ganz oben an der Tafel und einmal NAME_PROBE Pixel tiefer
+    let min = 0;
+    const nb = ctx.name?.();
+    if (nb) {
+      put(0);
+      const f = boxPx(F), near = F.minTop ? 24 : 8;
+      if (f && nb.r > f.l - near && nb.l < f.r + near) {
+        put(NAME_PROBE);
+        const f1 = boxPx(F);
+        min = pickBelow(f.t, f1 ? (f1.t - f.t) / NAME_PROBE : 1, nb.b);
+      }
+    }
+    if (min !== (F.minTop ?? 0)) { F.minTop = min; redraw(F); }
+    // unter ihm hat das Fenster an der Tafel keinen Platz mehr: dann die Liste unter der Zeile
+    if (min && F.cssH * K > L.cssH - min) return noSplit(L, F, true);
+    put(flyTop(L, F));
+    // Bildfläche für die Schilder (placeLabels), aus der der Tafel geschätzt
+    if (L.rect) { const t = L.rect.t + flyTop(L, F); F.rect = { l: L.rect.r, r: L.rect.r + PICK_GAP + F.cssW * K, t, b: t + F.cssH * K }; }
+    // am Bild nachmessen, sobald beide Tafeln stehen: liegt das Fenster am
+    // Datenblatt an, klappt die Auswahl unter ihre Zeile, noch vor dem Zeichnen
+    const R = built.sheet;
+    if (R.group.visible && !R.from && !R.hop && !L.from && !L.hop) {
+      R.group.updateMatrixWorld(true);
+      const a = boxPx(F), b = boxPx(R);
+      if (a && b && !pickClear(a.r, b.l)) noSplit(L, F);
+    }
+  }
+  function redrawAll() { for (const P of built?.panels ?? []) if (!P.fly) redraw(P); for (const s of built?.sprites ?? []) s.redraw?.(); }
   // Zeiger und Wahl auf Tafeln und Nummern: die Zeile unter dem Zeiger
   // leuchtet an beiden Stellen, die gewählte bleibt gefüllt
   function applyHover() {
     if (!built) return;
     const leftH = hoverAct && /^(sys:|go:|lo\||ui\||href\|)/.test(hoverAct) ? hoverAct : null;
     const sheetH = hoverAct && !leftH ? hoverAct : null;
-    if ((built.left.hover ?? null) !== leftH) { built.left.hover = leftH; redraw(built.left); }
+    if ((built.left.hover ?? null) !== leftH) { built.left.hover = leftH; built.pick.hover = leftH; redraw(built.left); }
     if ((built.sheet.hover ?? null) !== sheetH) { built.sheet.hover = sheetH; redraw(built.sheet); }
     updateMarks();
   }
@@ -1258,7 +1432,11 @@ export function holoLayer(ctx) {
   const rightOf = (d) => (d.loadout && d.item ? [drawItem, d.item] : [drawTiles, d.sheet]);
   function buildShip(rest, d) {
     const left = makePanel(...leftOf(d), 'left'), sheet = makePanel(...rightOf(d), 'right');
-    const b = { key: d.key, panels: [left, sheet], left, sheet, sprites: [], box: worldBox(rest, d.dims.box), dims: d.dims, lines: null, model: rest.model, numKey: '' };
+    const pickP = makePanel(drawPick, null, 'left', true);
+    pickP.ui.noseAt = (H) => { const at = left.ui.openAt; if (!at) return null; const y = (at.y + at.h / 2 - flyTop(left, pickP, H)) / (pickP.kf ?? PICK_K); return y > 14 && y < H - 14 && at.y >= at.y0 - 4 && at.y + at.h <= at.y1 + 4 ? y : null; };
+    pickP.data = left.draw === drawLoadout ? left.data : null;
+    if (pickP.data?.pick) redraw(pickP);
+    const b = { key: d.key, panels: [left, sheet, pickP], left, sheet, pick: pickP, sprites: [], box: worldBox(rest, d.dims.box), dims: d.dims, lines: null, model: rest.model, numKey: '' };
     // Schein hinter dem Bauteil-Hologramm, mit der Tafel gebaut und aufgeräumt
     b.partGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), basic({ map: softTex, color: C.cy, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false }, 0, sheet));
     b.partGlow.renderOrder = RO.panel; b.partGlow.visible = false; b.partGlow.position.z = -0.02;
@@ -1588,6 +1766,7 @@ export function holoLayer(ctx) {
 
   // je Bild: Drehung, Größe, Projektor, Gleiten
   function place(P, now) {
+    if (P.fly) return placeFly(P);
     if (!P.pos) return;
     if (P.float) {
       // schwebend: fest im Bild, zur Kamera gedreht, ohne Projektor
@@ -1639,6 +1818,7 @@ export function holoLayer(ctx) {
 
   function retarget(now, first) {
     for (const P of built.panels) {
+      if (P.fly) continue;
       const wasFloat = P.float, wasShown = P.group.visible;
       const t = target(P);
       P.group.visible = !!t;
@@ -1770,7 +1950,7 @@ export function holoLayer(ctx) {
   const onWheel = (e) => {
     if (e.target !== el) return;
     const at = panelAt(e);
-    if (!at || at.P.draw !== drawLoadout) return;
+    if (!at || (at.P.draw !== drawLoadout && at.P.draw !== drawPick)) return;
     e.preventDefault(); e.stopPropagation();
     const ui = at.P.ui, z = ui.zones ?? {}, dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
     const inOpts = z.opts && at.x >= z.opts.x && at.x <= z.opts.x + z.opts.w && at.y >= z.opts.y && at.y <= z.opts.y + z.opts.h;
@@ -1796,10 +1976,11 @@ export function holoLayer(ctx) {
     if (draw === drawLoadout) {
       const was = L.draw === drawLoadout ? L.data : null;
       if (was?.cat !== data.cat) { L.ui.scroll = 0; L.ui.menu = false; }
-      if (data.open && data.open !== was?.open) { L.ui.reveal = data.open; L.ui.pReveal = true; }
-      else if (data.pick && was?.pick && data.pick.opts.length !== was.pick.opts.length) L.ui.pReveal = true;
+      if (data.open && data.open !== was?.open) { L.ui.reveal = data.open; L.ui.pReveal = true; built.pick.ui.pReveal = true; }
+      else if (data.pick && was?.pick && data.pick.opts.length !== was.pick.opts.length) { L.ui.pReveal = true; built.pick.ui.pReveal = true; }
     }
     L.draw = draw; L.data = data;
+    built.pick.data = draw === drawLoadout ? data : null;
     const R = built.sheet;
     [R.draw, R.data] = rightOf(d);
     partSync();

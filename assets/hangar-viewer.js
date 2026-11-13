@@ -5836,6 +5836,8 @@ function buildHolo(container, reduceMotion) {
   // told: zuletzt der Seite gemeldet (null: noch nie); gone: seit wann sie
   // am stehenden Fahrzeug keinen Platz findet
   let shown = null, power = 0, last = 0, onShow = null, told = null, gone = 0;
+  // Fläche des Namens im Bild (Pixel der Leinwand), solange er zu sehen ist
+  let box = null;
   // Oberseite je Rumpf: { G, it, pts }
   let tops = null;
   const disp = { A: new THREE.Vector3(), f: 1, ok: false };
@@ -6018,6 +6020,10 @@ function buildHolo(container, reduceMotion) {
       for (const k of ['l', 't', 'r']) if (Number.isFinite(s?.[k])) safe[k] = Math.max(HOLO_EDGE, s[k]);
       if (Array.isArray(s?.rects)) safe.rects = s.rects;
     },
+    // Wo der Name gerade im Bild steht ({ l, r, t, b }) oder null. Er liegt als
+    // Text über der Leinwand, also vor allem, was in ihr gezeichnet ist: Das
+    // Fenster der Auswahl (hangar-holo3d.js) bleibt deshalb unter ihm.
+    rect() { return box; },
     // je Bild nach der Kamera; c: { camera, w, h, rest, group, info, low,
     // ceil, boxes, more, free }. true, solange sie sich auf- oder abbaut
     frame(now, c) {
@@ -6057,10 +6063,13 @@ function buildHolo(container, reduceMotion) {
         // beim Aufbau ein Zittern um ein, zwei Bildpunkte
         const jx = run ? Math.round((Math.random() - 0.5) * 3) : 0;
         el.style.transform = `translate(${Math.round(x - shown.w / 2) + jx}px, ${Math.round(y - shown.h)}px) scale(${f.toFixed(3)})`;
+        // gestaucht wird um die Mitte der Unterkante (transform-origin im CSS)
+        box = { l: x - (shown.w * f) / 2, r: x + (shown.w * f) / 2, t: y - shown.h * f, b: y };
         el.style.setProperty('--holo-on', power.toFixed(3));
         el.toggleAttribute('data-run', run);
       }
       el.hidden = !vis;
+      if (!vis) box = null;
       // Der Seite melden: an, sobald sie steht; aus erst, wenn sie am
       // stehenden Fahrzeug HOLO_GONE_MS lang keinen Platz findet, nicht im Wechsel
       if (vis) gone = 0;
@@ -13550,7 +13559,7 @@ void main() {
     if (stLayer) stLayer.set(stWant);
     else if (stWant && !stLoad) {
       stLoad = import(opts.holo.module).then((m) => {
-        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw });
+        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw, name: () => holo.rect() });
         if (stSafe) stLayer.safe(stSafe);
         stLayer.set(stWant);
       }).catch((e) => { stLoad = null; console.warn('[hangar] Stationen nicht geladen', e); });

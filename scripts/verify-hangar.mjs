@@ -176,8 +176,38 @@
         die Tafel der Kamera nicht ganz zugewandt ist; geradeaus dreht sie
         sich gar nicht, und die Breite im Bild stimmt mit einer eigenen
         Projektion ueberein. FACE_RISE selbst steht auf der angesehenen
-        und abgenommenen Staerke (KANTE_ANGESEHEN). Klinken: Stationen,
-        Proben, Woerter, Stellungen.
+        und abgenommenen Staerke (KANTE_ANGESEHEN).
+        Auswahl als Fenster (seit 13.11.2026, Krisz: „wenn ich ein slot
+        anclicke soll ein fenster daneben erscheinen … genau so wie jetzt
+        nur nicht unten sondern extra kleines fenster an der seite“): die
+        Liste der passenden Bauteile steht nicht mehr unter der offenen
+        Zeile, sondern als eigenes Bild rechts neben der Tafel
+        „Ausruestung“, in ihrer Ebene. Naht: drawPick steht im Modul und
+        wird aufgestellt, die Tafel fragt am Bild, ob Platz ist. Rechnung
+        am ausgelieferten Modul (pickFits, pickTop) mit eigener Geometrie:
+        fuer jede Bildbreite von 761 bis 2600 px bleiben zwischen Fenster
+        und Datenblatt wenigstens 40 px (Tafeln am Boden stehen geneigt,
+        die innere obere Ecke des Datenblatts reicht so weit zur Mitte),
+        bei 80 px Luft klappt es nie in die Liste, und es passt in Krisz'
+        Fenster (1849 px). Dazu misst das Modul am Bild nach (pickClear):
+        eine Tafel steht nicht immer an ihrem Platz (am Test vom
+        13.11.2026 nach einem Groessenwechsel 66 px daneben), und liegt
+        das Fenster am Datenblatt an, klappt die Auswahl unter ihre
+        Zeile und bleibt dort, bis sich das Bild aendert. Senkrecht ragt es
+        nie ueber die Tafel hinaus, beginnt nicht unter der offenen Zeile,
+        und die Zeile liegt neben ihm, in beiden Massstaeben: neben einer
+        Tafel am Boden ist es um PICK_K groesser gezeichnet (es steht dort
+        weiter hinten), neben einer schwebenden so gross wie sie (pickK;
+        am Test vom 13.11.2026 gesehen: an der Carrack war die Schrift im
+        Fenster groesser als auf der Tafel). Der Name des Schiffs liegt
+        als Text vor der Leinwand (am Test vom 13.11.2026 im niedrigen
+        Bild 1440 x 620 ueber dem Kopf des Fensters gesehen): der Viewer
+        meldet, wo er steht (name), das Fenster beginnt darunter
+        (pickBelow, min in pickTop). Nachgerechnet: es beginnt nie ueber
+        min, und pickBelow liefert die kleinste Stufe, mit der zwischen
+        Name und Fenster PICK_NAME_AIR bleibt, auch an einer geneigten
+        Tafel, die im Bild kuerzer ist. Klinken: Stationen, Proben,
+        Woerter, Stellungen, Lagen des Fensters.
     22  Datenblatt des Bauteils (seit 11.11.2026, Krisz: „man koennte die
         itemdatenblatt seite direkt in das hangar reinbauen fuer komponente
         und waffen“). Steht ein Slot offen, zeigt die rechte Tafel sein
@@ -387,6 +417,30 @@
     ao  dort in captureHallEnv() stLayer?.mirror(true) streichen
         (13.11.2026: die Kugel der Halle kaeme wieder mit dem
         Schleier der Hologramme, halb so hell)                      -> [12]
+    ar  in dist/assets/hangar-holo3d.js pickFits immer true liefern
+        lassen: bei 761 px laege das Fenster der Auswahl 390 px
+        ueber dem Datenblatt                                        -> [21]
+    as  dort pickFits immer false liefern lassen: die Auswahl
+        klappte ueberall wieder unter ihre Zeile                    -> [21]
+    at  dort in pickTop die Grenze an der Hoehe der Tafel
+        streichen: das Fenster hinge bis zu 39 px unter der Tafel   -> [21]
+    au  dort drawPick umbenennen (das Fenster stuende nicht mehr
+        da; die Version passt dann auch nicht mehr zum Inhalt)      -> [21]
+    av  dort pickK immer PICK_K liefern lassen: neben einer
+        schwebenden Tafel waere das Fenster 12 % groesser als sie  -> [21]
+    aw  dort pickClear immer true liefern lassen: das Fenster
+        duerfte am Datenblatt anliegen oder darueber stehen         -> [21]
+    ax  dort PICK_AIR auf 14 setzen: bei 1279 px blieben 14 px
+        zwischen Fenster und der geneigten Ecke des Datenblatts    -> [21]
+    ay  dort in placeFly die Messung am Bild streichen: eine
+        verrueckte Tafel schoebe das Fenster ans Datenblatt         -> [21]
+    az  dort in pickTop min nicht mehr beachten (untere Grenze 0):
+        das Fenster beganne wieder unter dem Namen des Schiffs      -> [21]
+    ba  dort in pickBelow den Massstab s nicht mehr teilen: an
+        einer geneigten Tafel reichte der Name ins Fenster          -> [21]
+    bb  in dist/assets/hangar-viewer.js name: () => holo.rect() aus
+        dem Aufruf von holoLayer nehmen: das Fenster wuesste nicht
+        mehr, wo der Name steht                                     -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1647,7 +1701,7 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
 // 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
 // der flachen Werkstatt (sheet.open, sheet.back).
-const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36 };
+const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14633 };
 // Keine Klinke, ein Sichturteil (WINDOWS #156): wie stark sich die Tafeln zur
 // Kamera drehen, ist am 11.11.2026 gerendert verglichen und so abgenommen.
 // Die Stellungen unten rechnen gegen den Wert des Moduls; ohne diese Zahl
@@ -1686,7 +1740,7 @@ const KANTE_ANGESEHEN = 0.065;
   // richtung kamera schauen“). Nachgerechnet am ausgelieferten Modul, mit
   // eigener Geometrie statt seiner Winkel: was das Auge sieht, ist, welche
   // Kante der Tafel naeher an der Kamera steht und um wie viel.
-  let schaut = '—', stellungen = 0;
+  let schaut = '—', stellungen = 0, fensterIst = '—', fensterLagen = 0;
   if (holoSrc) {
     let hm = null;
     try { hm = await import(pathToFileURL(holoFile).href); } catch (e) { fail(`[21] dist/assets/hangar-holo3d.js laedt nicht als Modul (${e.message})`); }
@@ -1735,6 +1789,95 @@ const KANTE_ANGESEHEN = 0.065;
       }
       for (const t of falsch) fail(`[21] Tafel am Boden, ${t}`);
       schaut = falsch.length ? `${falsch.length} von ${stellungen} Stellungen falsch` : `zur Kamera in ${stellungen} Stellungen (äußere Kante höchstens ${hm.FACE_RISE * 100} % höher)`;
+    }
+    // Auswahl als Fenster neben der Tafel „Ausruestung“ (Krisz 13.11.2026:
+    // „nicht unten sondern extra kleines fenster an der seite“). Die Tafel
+    // steht links am Rand, das Datenblatt rechts, das Fenster in der Ebene
+    // der Tafel daneben, um PICK_K vergroessert. Nachgerechnet mit eigener
+    // Geometrie statt seiner Formel: Luft zwischen Fenster und Datenblatt,
+    // und wo das Fenster an der Tafel haengt.
+    if (hm) {
+      const src = holoSrc.toString('utf8');
+      const zahl = (name) => Number(new RegExp(`\\b${name} = (\\d+)\\b`).exec(src)?.[1] ?? NaN);
+      const bT = zahl('LO_W'), bF = zahl('PK_W'), bD = zahl('ITEM_W');
+      const naht = [
+        [/function drawPick\(/.test(src) && /makePanel\(drawPick\b/.test(src), 'zeichnet die Auswahl nicht mehr als eigenes Fenster (drawPick) oder stellt es nicht auf: die Auswahl stünde wieder unter ihrer Zeile oder gar nicht da'],
+        [/ui\.split\b/.test(src) && /pickFits\(ctx\.W\(\)/.test(src), 'fragt nicht mehr am Bild, ob das Fenster Platz hat (ui.split, pickFits): im schmalen Bild stünde es über dem Datenblatt'],
+        [/!pickClear\(/.test(src) && /splitOff = splitKey\(\)/.test(src) && /splitOff !== splitKey\(\) &&/.test(src), 'misst nicht mehr am Bild nach, ob das Fenster am Datenblatt anliegt (pickClear), oder merkt es sich nicht (splitOff): eine verrückte Tafel schöbe es ans Datenblatt, oder die Auswahl spränge zwischen beiden Fassungen'],
+        [/ctx\.name\?\.\(\)/.test(src) && /pickBelow\(f\.t,/.test(src) && /splitOffRow !== rowKey\(/.test(src) && /name:\s*\(\)\s*=>\s*holo\.rect\(\)/.test(viewer) && /rect\(\)\s*\{\s*return box;?\s*\}/.test(viewer), 'erfährt nicht mehr, wo der Name des Schiffs steht (ctx.name, pickBelow; in dist/assets/hangar-viewer.js name: () => holo.rect() und rect()), oder merkt sich nicht, an welchem Slot das Fenster unter ihm keinen Platz hatte (splitOffRow): der Name läge im niedrigen Bild über dem Kopf des Fensters, oder die Auswahl spränge zwischen beiden Fassungen'],
+      ].filter(([ok]) => !ok).map(([, text]) => text);
+      for (const text of naht) fail(`[21] dist/assets/hangar-holo3d.js ${text}`);
+      if (typeof hm.pickFits !== 'function' || typeof hm.pickTop !== 'function' || typeof hm.pickK !== 'function' || typeof hm.pickClear !== 'function' || typeof hm.pickBelow !== 'function' || !(hm.PICK_K >= 1) || !(hm.PICK_GAP >= 0) || !(hm.PICK_NAME_AIR >= 8) || ![bT, bF, bD].every(Number.isFinite)) {
+        fail('[21] dist/assets/hangar-holo3d.js exportiert pickFits, pickTop, pickK, pickClear, pickBelow, PICK_K, PICK_GAP oder PICK_NAME_AIR (wenigstens 8 px) nicht mehr, oder die Breiten LO_W, PK_W, ITEM_W stehen dort nicht mehr als Zahl: wo das Fenster der Auswahl steht, prueft dann nichts');
+      } else {
+        const falsch = [], RAND = 18, breit = bF * hm.PICK_K;
+        // waagrecht, je Bildbreite und verdecktem Rand (114 px = Seitenleiste)
+        for (const [l, r] of [[0, 0], [114, 0], [114, 60]]) {
+          let vorher = false;
+          for (let W = 761; W <= 2600; W++) {
+            fensterLagen++;
+            const passt = hm.pickFits(W, l, r) === true;
+            const frei = (W - r - RAND - bD) - (l + RAND + bT + hm.PICK_GAP + breit);   // Luft zwischen Fenster und Datenblatt
+            const wo = `Bild ${W} px (Rand links ${l}, rechts ${r})`;
+            if (passt && frei < 0) { falsch.push(`${wo}: das Fenster läge ${Math.ceil(-frei)} px über dem Datenblatt rechts`); break; }
+            if (passt && frei < 40) { falsch.push(`${wo}: nur ${Math.floor(frei)} px Luft zwischen Fenster und Datenblatt, die geneigte Ecke des Datenblatts reicht weiter`); break; }
+            if (!passt && vorher) { falsch.push(`${wo}: kein Fenster mehr, obwohl es bei ${W - 1} px passte`); break; }
+            if (!passt && frei >= 80) { falsch.push(`${wo}: ${Math.floor(frei)} px Luft neben dem Fenster, und die Auswahl klappt trotzdem unter ihre Zeile`); break; }
+            vorher = passt;
+          }
+        }
+        if (hm.pickFits(1849, 114, 0) !== true) falsch.push('Bild 1849 px (Krisz’ Fenster): die Auswahl klappt unter ihre Zeile statt ins Fenster');
+        // am Bild gemessen: frei ist das Fenster erst mit etwas Abstand zum Datenblatt
+        for (const [a, b, soll] of [[800, 880, true], [874, 880, true], [877, 880, false], [880, 880, false], [940, 880, false]]) {
+          fensterLagen++;
+          if (hm.pickClear(a, b) !== soll) falsch.push(`Fenster bis ${a} px, Datenblatt ab ${b} px: gilt als ${soll ? 'anliegend' : 'frei'}`);
+        }
+        // Massstab: am Boden groesser, schwebend wie die Tafel
+        const kBoden = hm.pickK(false), kSchwebt = hm.pickK(true);
+        if (kBoden !== hm.PICK_K) falsch.push(`neben einer Tafel am Boden ist das Fenster im Maßstab ${kBoden} gezeichnet statt ${hm.PICK_K}: pickFits rechnet mit einer anderen Breite, als im Bild steht`);
+        if (kSchwebt !== 1) falsch.push(`neben einer schwebenden Tafel ist das Fenster im Maßstab ${kSchwebt} gezeichnet: die Tafel steht dort flach im Bild, seine Schrift wäre ${Math.round((kSchwebt - 1) * 100)} % größer als ihre`);
+        // senkrecht: Tafeln und Fenster verschiedener Hoehe, die offene Zeile von weit ueber bis weit unter dem rollenden Teil
+        for (const K of [kBoden, kSchwebt]) for (const hT of [300, 420, 560, 700]) for (const hF of [150, 240, 338, 420]) {
+          const y0 = 78, y1 = hT - 68, h = 42, hoch = hF * K;
+          for (let y = y0 - 300; y <= y1 + 300; y += 7) {
+            fensterLagen++;
+            const top = hm.pickTop({ y, h, y0, y1 }, hT, hF, K), wo = `Tafel ${hT} px, Fenster ${hF} px im Maßstab ${K}, Zeile bei ${y} px`;
+            if (!Number.isFinite(top)) { falsch.push(`${wo}: pickTop liefert ${top}`); break; }
+            if (top < -1e-6) { falsch.push(`${wo}: das Fenster ragt ${Math.ceil(-top)} px über die Oberkante der Tafel`); break; }
+            if (hoch <= hT && top + hoch > hT + 1e-6) { falsch.push(`${wo}: das Fenster hängt ${Math.ceil(top + hoch - hT)} px unter der Tafel`); break; }
+            const sichtbar = y >= y0 && y + h <= y1, mitte = y + h / 2;
+            if (sichtbar && top > y + 1e-6) { falsch.push(`${wo}: das Fenster beginnt ${Math.ceil(top - y)} px unter der offenen Zeile`); break; }
+            if (sichtbar && hoch <= hT && !(mitte > top && mitte < top + hoch)) { falsch.push(`${wo}: die offene Zeile liegt nicht neben dem Fenster (${Math.round(top)} bis ${Math.round(top + hoch)} px)`); break; }
+          }
+        }
+        const leer = hm.pickTop(null, 560, 338);
+        if (!(leer >= 0) || leer + 338 * hm.PICK_K > 560) falsch.push(`ohne offene Zeile liefert pickTop ${leer}`);
+        // unter dem Namen des Schiffs: nie ueber min, sonst wie ohne ihn; und nie unter die Tafel, solange es darunter passt
+        for (const K of [kBoden, kSchwebt]) for (const hT of [420, 560, 700]) for (const hF of [150, 240, 338]) for (const min of [8, 48, 120, 200]) {
+          const y0 = 78, y1 = hT - 68, h = 42, hoch = hF * K;
+          for (let y = y0 - 100; y <= y1 + 100; y += 13) {
+            fensterLagen++;
+            const at = { y, h, y0, y1 }, top = hm.pickTop(at, hT, hF, K, min), ohne = hm.pickTop(at, hT, hF, K), wo = `Tafel ${hT} px, Fenster ${hF} px im Maßstab ${K}, Zeile bei ${y} px, Name bis ${min} px unter der Oberkante`;
+            if (!Number.isFinite(top)) { falsch.push(`${wo}: pickTop liefert ${top}`); break; }
+            if (top < min - 1e-6) { falsch.push(`${wo}: das Fenster beginnt ${Math.ceil(min - top)} px über der Grenze, der Name läge darüber`); break; }
+            if (ohne >= min && Math.abs(top - ohne) > 1e-6) { falsch.push(`${wo}: der Name ist nicht im Weg, und das Fenster steht trotzdem bei ${Math.round(top)} statt ${Math.round(ohne)} px`); break; }
+            if (min + hoch <= hT && top + hoch > hT + 1e-6) { falsch.push(`${wo}: das Fenster hängt ${Math.ceil(top + hoch - hT)} px unter der Tafel`); break; }
+          }
+        }
+        // wie weit unter die Oberkante: die kleinste Stufe von 8 px, mit der unter dem Namen PICK_NAME_AIR bleibt
+        for (const s of [1, 0.93, 0.86, 1.05]) for (const oben of [40, 96.5, 180]) for (let nameB = oben - 120; nameB <= oben + 260; nameB += 3.5) {
+          fensterLagen++;
+          const m = hm.pickBelow(oben, s, nameB), wo = `Oberkante der Tafel bei ${oben} px, ${s} Bildpunkte je Pixel, Name bis ${nameB} px`;
+          const luft = (v) => oben + v * s - nameB;   // im Bild zwischen Name und Fenster, wenn es v Pixel tiefer hängt
+          if (!Number.isInteger(m) || m < 0 || m % 8) { falsch.push(`${wo}: pickBelow liefert ${m}, keine Stufe von 8 px`); break; }
+          if (luft(m) < hm.PICK_NAME_AIR - 1e-6) { falsch.push(`${wo}: das Fenster beginnt nur ${Math.floor(luft(m))} px unter dem Namen (soll ${hm.PICK_NAME_AIR})`); break; }
+          if (m > 0 && luft(m - 8) >= hm.PICK_NAME_AIR + 1e-6) { falsch.push(`${wo}: das Fenster hängt ${m} px tiefer, ${m - 8} px hätten gereicht`); break; }
+        }
+        if (hm.pickBelow(100, NaN, 150) !== hm.pickBelow(100, 1, 150) || hm.pickBelow(100, 0, 150) !== hm.pickBelow(100, 1, 150)) falsch.push('pickBelow rechnet mit einem unbrauchbaren Maßstab (0 oder keine Zahl) statt mit 1');
+        for (const t of falsch) fail(`[21] Fenster der Auswahl, ${t}`);
+        let ab = 761; while (ab <= 2600 && hm.pickFits(ab, 114, 0) !== true) ab++;
+        fensterIst = falsch.length ? `${falsch.length} Lagen falsch` : `Naht ${naht.length ? 'mit Lücke' : 'ganz'}, neben der Tafel ab ${ab} px Bildbreite (mit Seitenleiste), darunter unter der Zeile; ${fensterLagen} Lagen nachgerechnet`;
+      }
     }
   }
   // Tafel „Ausruestung“ in der Halle: Werkstatt, Controller und Modul halten
@@ -1808,6 +1951,8 @@ const KANTE_ANGESEHEN = 0.065;
   if (list.length < STATIONEN.stationen) fail(`[21] nur ${list.length} Stationen im Controller (Klinke ${STATIONEN.stationen})`);
   if (proben < STATIONEN.proben) fail(`[21] nur ${proben} Proben der Adresse (Klinke ${STATIONEN.proben}): der Controller laedt nicht oder STATIONS ist kuerzer geworden`);
   if (stellungen < STATIONEN.stellungen) fail(`[21] nur ${stellungen} Stellungen der Tafeln nachgerechnet (Klinke ${STATIONEN.stellungen}): das Modul laedt nicht oder exportiert die Rechnung nicht mehr`);
+  sollIst(`Auswahl als Fenster neben der Tafel „Ausrüstung“: Naht ganz, nie über dem Datenblatt, an der offenen Zeile, innerhalb der Tafel; Lagen >= ${STATIONEN.fenster}`, fensterIst);
+  if (fensterLagen < STATIONEN.fenster) fail(`[21] nur ${fensterLagen} Lagen des Fensters der Auswahl nachgerechnet (Klinke ${STATIONEN.fenster}): das Modul laedt nicht oder exportiert pickFits und pickTop nicht mehr`);
   ist.stationen = list.length; ist.stationenProben = proben; ist.werkstattWoerter = wsKeys.length;
 }
 
