@@ -144,6 +144,11 @@ export function initTerminal(box, hooks = {}) {
     if (!d || d !== seen) return;
     try { win.sessionStorage.setItem(TERM_KEY, urlOf(d)); } catch { /* ohne Speicher beginnt das Terminal bei seiner Startseite */ }
   };
+  // Ziel von „In eigenem Tab öffnen“: die Seite, die im Fenster steht
+  const syncExt = () => {
+    const d = frameDoc();
+    if (ext && d && d === seen) ext.href = d.location.href;
+  };
   const mark = (pathname) => {
     const key = termTool(pathname, tools);
     for (const a of links) {
@@ -186,6 +191,7 @@ export function initTerminal(box, hooks = {}) {
     back.disabled = stack.length < 2;
     mark(d.location.pathname);
     remember();
+    syncExt();
     return true;
   }
   function onLink(e, w) {
@@ -286,11 +292,11 @@ export function initTerminal(box, hooks = {}) {
     b.click();
     b.remove();
   });
-  // „In eigenem Tab öffnen“ meint die Seite, die gerade im Fenster steht
-  ext?.addEventListener('click', () => {
-    const d = frameDoc();
-    if (d && d === seen) ext.href = d.location.href;
-  });
+  // „In eigenem Tab öffnen“ meint die Seite, die gerade im Fenster steht.
+  // Nachgezogen wird, bevor der Link auf irgendeinem Weg ausgeloest wird:
+  // Mittelklick und das Kontextmenue kennen kein click, und eine Seite kann
+  // ihre Adresse aendern, ohne neu zu laden (Anker, Filter in der Abfrage).
+  for (const ev of ['pointerenter', 'pointerdown', 'focus', 'contextmenu', 'click']) ext?.addEventListener(ev, syncExt);
   win.addEventListener('pagehide', remember);
 
   function place(rect) {

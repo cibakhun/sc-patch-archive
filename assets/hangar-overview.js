@@ -1968,6 +1968,53 @@ export function boot(doc) {
   let stageOrte = null;
   const canOrte = () => !!ortBox && (stageOrte ?? guess3d()) && main.dataset.walk !== 'on';
   const placeNow = () => placeOf(state, ctx.werk);
+  // Fuss der Buehne: Passt die Leiste nicht in den freien Streifen zwischen
+  // Schiffsauswahl und Tafel (offene Auswahl im schmalen Fenster, flache
+  // Tafel), geben erst die Orte, dann auch Reiter und „Als Tafel“ ihre Namen
+  // ab und zeigen nur ihr Zeichen: data-eng 1 | 2 an #hgx-st. Der Name bleibt
+  // im Dokument (Vorleser) und steht als title am Knopf. Links im Streifen
+  // stehen die Zeichen der Buehne (#hg-tools, zwei bis vier): Der Platz
+  // zaehlt erst rechts von ihnen, und laege die Leiste in der Mitte des
+  // Streifens ueber ihnen, rueckt sie daneben (padding-left). Gemessen statt
+  // an Fensterbreiten geknuepft, weil Sprache, Korb, Tafel und die Zahl der
+  // Zeichen den Bedarf aendern. Passt auch die kleinste Form nicht (beide
+  // Spalten offen im schmalen Fenster), bleibt sie stehen wie zuvor.
+  // Anlass 13.11.2026: Mit den drei Orten lief die Leiste bei 800 px neben
+  // der offenen Auswahl 132 px aus dem Fenster, „Als Tafel“ war nicht mehr
+  // zu erreichen; bei 1280 px mit flacher Tafel lag sie ueber dem Ton-Knopf.
+  const stBar = $('hgx-stagebar'), stBox = $('hgx-st'), stTools = $('hg-tools');
+  function fitBar() {
+    if (!stBar || !stBox) return;
+    stBar.style.paddingLeft = '';
+    const bar = stBar.getBoundingClientRect(), t = stTools?.getBoundingClientRect();
+    const ab = t && t.width && t.top < bar.bottom && t.bottom > bar.top ? Math.max(bar.left, t.right + 12) : bar.left;
+    const pad = ab > bar.left ? `${Math.ceil(ab - bar.left)}px` : '';
+    let eng = '', passt = false;
+    for (const v of ['', '1', '2']) {
+      eng = v;
+      if (v) stBox.dataset.eng = v;
+      else delete stBox.dataset.eng;
+      stBar.style.paddingLeft = pad;
+      passt = stBar.scrollWidth <= stBar.clientWidth;
+      if (passt) break;
+    }
+    // in der Mitte des Streifens bleibt sie, solange sie dort frei steht
+    stBar.style.paddingLeft = '';
+    if (passt && pad && stBox.getBoundingClientRect().left < ab) stBar.style.paddingLeft = pad;
+    for (const b of stBox.querySelectorAll('button')) {
+      if (eng === '2' || (eng === '1' && b.closest('.hgx-st__orte'))) b.title = b.textContent.trim();
+      else b.removeAttribute('title');
+    }
+  }
+  if (stBar && stBox) {
+    // border-box: der eigene Einzug (padding-left) loest keine neue Meldung aus
+    const ro = new ResizeObserver(fitBar);
+    ro.observe(stBar, { box: 'border-box' });
+    if (stTools) ro.observe(stTools);
+    // Orte, Reiter, „Als Tafel“ und der Korb kommen und gehen ueber hidden
+    new MutationObserver(fitBar).observe(stBar, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+    doc.fonts?.ready.then(fitBar);
+  }
   let stageSafe = null;
   function paintStation() {
     main.dataset.station = state.station;
@@ -2029,6 +2076,11 @@ export function boot(doc) {
     ortMemo = { ...ortMemo, [ctx.werk.has(state.ship) ? 'werk' : 'halle']: state.ship };
     try { sessionStorage.setItem(ORTE_KEY, JSON.stringify(ortMemo)); } catch { /* ohne Speicher gilt das Startschiff */ }
   }
+  // Auch das Fahrzeug, mit dem die Seite beginnt, ist ein Ort, an dem man
+  // war: Ohne diesen Eintrag fuehrte „Schiffsfeld“ nach einem Direktlink auf
+  // ein anderes Schiff und einem Abstecher in die Werkhalle zum Startschiff
+  // der Seite statt zurueck (Review PR #355).
+  rememberPlace();
   function goPlace(to) {
     if (to === placeNow()) return;
     const ship = placeShip(to, state.ship, ortMemo, { ids: items.map((li) => li.dataset.id), werk: ctx.werk, defaultShip: ctx.defaultShip });

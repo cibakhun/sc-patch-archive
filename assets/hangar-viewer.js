@@ -6278,22 +6278,32 @@ export const LEIT_FOV_MAX = 62, LEIT_LUFT = 0.3;
  * @param {{ l: number, t: number, r: number, b: number }} frei Rechteck im Bild, das der Schirm füllen darf
  * @param {{ schirm: { y: number, b: number }, form: number[], fov: number, d: number[], raum?: { y: number[] } }} L
  * @returns {{ b: number, h: number, d: number, fov: number, dx: number, dy: number, s: number, rect: { l: number, t: number, r: number, b: number } }}
- *   b, h: Schirm in Metern; d: Abstand; fov: Bildwinkel (Grad, senkrecht);
+ *   b, h: Schirm in Metern (b sonst L.schirm.b, kleiner nur, wo der
+ *   Bildwinkel an LEIT_FOV_MAX stößt); d: Abstand; fov: Bildwinkel (Grad,
+ *   senkrecht);
  *   dx, dy: Kamera gegen die Schirmmitte (m, +x rechts im Bild, +y oben);
  *   s: px je Meter; rect: der Schirm im Bild
  */
 export function leitFit(W, H, frei, L) {
   const fw = Math.max(1, frei.r - frei.l), fh = Math.max(1, frei.b - frei.t);
   const form = Math.min(L.form[1], Math.max(L.form[0], fh / fw));
-  const b = L.schirm.b, h = b * form;
+  let b = L.schirm.b, h = b * form;
   // px je Meter, bei denen der Schirm gerade hineinpasst
   let s = Math.min(fw / b, fh / h);
   // Abstand beim Wunschwinkel, in den Grenzen des Raums; der Winkel gleicht aus
   const d = Math.min(L.d[1], Math.max(L.d[0], H / 2 / Math.tan((L.fov * Math.PI) / 360) / s));
   let fov = (2 * Math.atan(H / 2 / (s * d)) * 180) / Math.PI;
-  // In einem sehr schmalen oder flachen Fenster bliebe sonst ein Weitwinkel:
-  // dann wird der Schirm kleiner als das freie Stück
-  if (fov > LEIT_FOV_MAX) { fov = LEIT_FOV_MAX; s = H / 2 / Math.tan((fov * Math.PI) / 360) / d; }
+  // Ein schmales freies Stück in einem hohen Fenster verlangte am fernen Ende
+  // des Abstands einen Weitwinkel. Der Bildwinkel bleibt bei LEIT_FOV_MAX;
+  // beim engeren Winkel füllte derselbe Schirm aber mehr vom Bild, als frei
+  // ist (800 × 1500 mit offener Schiffsauswahl: 25 px über den Rand der
+  // Bühne, Review PR #355). Darum wird der Schirm dort in Metern kleiner,
+  // sein Rechteck im Bild bleibt das freie Stück.
+  if (fov > LEIT_FOV_MAX) {
+    fov = LEIT_FOV_MAX;
+    const eng = H / 2 / Math.tan((fov * Math.PI) / 360) / d;
+    b *= s / eng; h = b * form; s = eng;
+  }
   const cx = (frei.l + frei.r) / 2;
   // Liegt das freie Stück weit unter oder über der Bildmitte und ist es
   // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, der
@@ -6992,7 +7002,9 @@ export async function initHangar(container, opts = {}) {
   let walk = null;
   // post: die Kamera fährt in den Leitstand, steht dort vor dem Terminal oder
   // fährt zurück (leitGo, leitLeave); leitScreen: dessen Schirm in der Halle
-  let post = null, leitScreen = null, placeFn = null, placeTold = '';
+  // placeWish: zählt die Wünsche der Seite (place); wer auf eine laufende
+  // Fahrt wartet, fährt danach nur, wenn seiner noch der letzte ist
+  let post = null, leitScreen = null, placeFn = null, placeTold = '', placeWish = 0;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
@@ -13465,7 +13477,7 @@ void main() {
   // Eckwinkeln, kein Text (von der Halle aus sieht man ihn von hinten).
   function leitDraw() {
     const { cv, tex } = leitScreen, g = cv.getContext('2d');
-    const w = Math.round((LEIT.schirm.b + 2 * LEIT_RAND) * LEIT_PX), h = Math.round((leitScreen.h + 2 * LEIT_RAND) * LEIT_PX), p = LEIT_RAND * LEIT_PX;
+    const w = Math.round((leitScreen.b + 2 * LEIT_RAND) * LEIT_PX), h = Math.round((leitScreen.h + 2 * LEIT_RAND) * LEIT_PX), p = LEIT_RAND * LEIT_PX;
     cv.width = w; cv.height = h;
     g.clearRect(0, 0, w, h);
     g.fillStyle = 'rgba(7, 16, 30, 0.94)';
@@ -13493,7 +13505,7 @@ void main() {
     if (!leitScreen) return;
     const S = LEIT.schirm, k = hallRoot.scale.x;
     leitAt(S.x, S.y, S.z, leitScreen.mesh.position);
-    leitScreen.mesh.scale.set((S.b + 2 * LEIT_RAND) / k, (leitScreen.h + 2 * LEIT_RAND) / k, 1);
+    leitScreen.mesh.scale.set((leitScreen.b + 2 * LEIT_RAND) / k, (leitScreen.h + 2 * LEIT_RAND) / k, 1);
   }
   function leitBuild() {
     if (!LEIT || leitScreen) return;
@@ -13504,7 +13516,7 @@ void main() {
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
     mesh.name = 'leit:schirm';
     mesh.renderOrder = 3;
-    leitScreen = { mesh, cv, tex, mat, h: LEIT.schirm.b * LEIT.form[0], power: LEIT_DIM, at: 0 };
+    leitScreen = { mesh, cv, tex, mat, b: LEIT.schirm.b, h: LEIT.schirm.b * LEIT.form[0], power: LEIT_DIM, at: 0 };
     leitDraw();
     leitLay();
     hallRoot.add(mesh);
@@ -13539,10 +13551,11 @@ void main() {
     placeTold = told;
     placeFn?.({ ort: post ? 'leit' : ort, state: post?.state ?? 'an', rect: r && { ...r } });
   };
-  // Höhe des Schirms für die Stellung f (neu gezeichnet nur, wenn sie sich ändert)
+  // Breite und Höhe des Schirms für die Stellung f (neu gezeichnet nur, wenn
+  // sie sich ändern)
   function leitShape(f) {
-    if (Math.abs(f.h - leitScreen.h) < 1e-3) return;
-    leitScreen.h = f.h;
+    if (Math.abs(f.h - leitScreen.h) < 1e-3 && Math.abs(f.b - leitScreen.b) < 1e-3) return;
+    leitScreen.b = f.b; leitScreen.h = f.h;
     leitDraw();
     leitLay();
   }
@@ -13583,6 +13596,7 @@ void main() {
   const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
   async function leitGo() {
     if (!LEIT || !leitScreen || walk) return false;
+    const wish = placeWish;
     if (post) {
       // schon dort oder unterwegs dorthin; auf dem Rückweg erst ankommen lassen
       if (post.state !== 'weg') return post.state === 'an' ? true : post.arrived;
@@ -13590,6 +13604,8 @@ void main() {
     }
     // eine Fahrt von oder zur Werkhalle fährt erst zu Ende
     while (trip) await trip.done;
+    // inzwischen wollte die Seite wieder aufs Feld: dort bleibt die Kamera
+    if (wish !== placeWish) return false;
     if (post || walk || ort !== 'halle' || !current) return false;
     const k = hallRoot.scale.x, fit = leitPose();
     let arrive;
@@ -13615,7 +13631,7 @@ void main() {
   }
   // now: ohne Fahrt zurück (Schiffswechsel)
   async function leitLeave(now = false) {
-    const me = post;
+    const me = post, wish = placeWish;
     if (!me) return false;
     const k = hallRoot.scale.x;
     const back = () => {
@@ -13640,6 +13656,10 @@ void main() {
     }
     if (me.state === 'weg') return me.gone;
     if (me.state === 'hin' && !(await me.arrived)) return false;
+    // Auf der Hinfahrt erst „Schiffsfeld“, dann doch wieder „Leitstand“: Der
+    // zweite Wunsch wartete nur auf dieselbe Ankunft, und diese Rückfahrt
+    // nähme ihn zurück (Review PR #355). Der letzte Wunsch gilt.
+    if (wish !== placeWish) return false;
     if (post !== me || me.state !== 'an') return false;
     let gone;
     me.gone = new Promise((r) => { gone = r; });
@@ -14049,7 +14069,7 @@ void main() {
     // 'werk' oder 'leit', state 'hin' | 'an' | 'weg'; rect { l, t, r, b } ist
     // der Schirm im Bild (px der Bühne), solange die Kamera davor steht:
     // dorthin legt die Seite ihr Fenster.
-    place: (name) => (name === 'leit' ? leitGo() : leitLeave()),
+    place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
     canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
     onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality

@@ -277,6 +277,18 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-st__orte{display:flex;gap:.25rem}
 .hgx-st__orte[hidden],.hgx-st__tabs[hidden]{display:none}
 .hgx-st__orte:not([hidden])+.hgx-st__tabs{margin-left:.15rem;padding-left:.4rem;border-left:1px solid var(--hg-hair)}
+/* Enger Streifen (hangar-overview.js fitBar, data-eng 1 | 2): Passt die
+   Leiste nicht zwischen die Zeichen der Buehne und die Tafel, zeigen erst die
+   Orte, dann auch Reiter und „Als Tafel“ nur ihr Zeichen (in Stufe 2 mit
+   36 px je Knopf: sechs Zeichen stehen dann bei 1280 px neben vier Zeichen
+   der Buehne zwischen offener Schiffsauswahl und flacher Tafel). Der Name
+   bleibt im Dokument (Vorleser) und steht als title am Knopf. Am Telefon
+   steht die Leiste in voller Breite unter der Buehne und behaelt ihre Namen. */
+@media (min-width:761px){
+  .hgx-st[data-eng] .hgx-st__orte button span,.hgx-st[data-eng="2"] .hgx-st__tabs button span,.hgx-st[data-eng="2"] .hgx-st__flat span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .hgx-st[data-eng="1"] .hgx-st__orte button{gap:0;min-width:40px;padding-inline:.7rem}
+  .hgx-st[data-eng="2"] button{gap:0;min-width:36px;padding-inline:.55rem}
+}
 /* Im Leitstand steht die Kamera vor dem Terminal: Tafel, Marker, Hinweise,
    der Korb und die Zeichen fuers Schiff (Zuruecksetzen, Einsteigen) haben
    dort nichts zu zeigen; Grafikstufe und Ton bleiben. Der Titelblock bleibt

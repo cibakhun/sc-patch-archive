@@ -388,7 +388,7 @@ export const CHECKS = [
     // gebauten Hangarseiten als Text und laedt die ausgelieferten Module
     // (Viewer fuer die reine Rechnung leitFit, Terminal fuer seine reinen
     // Funktionen) in Node, unter einer Sekunde. Kein env-Feld: kein git, kein
-    // Netz, kein Kindprozess — liest nur dist/. VORGEFUEHRT ROT in zwoelf
+    // Netz, kein Kindprozess — liest nur dist/. VORGEFUEHRT ROT in dreizehn
     // Laeufen, je ein Eingriff in dist/ (Liste im Kopf des Skripts, Meldungen
     // in der PR): unter anderem Ortsleiste ohne Werkhalle, ein Bereich der
     // Umschaltleiste auf eine Seite, die es nicht gibt, ein Link zum Hangar,

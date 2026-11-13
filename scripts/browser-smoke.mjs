@@ -165,7 +165,7 @@ const SEITEN = [
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
   // tafel=1: ohne steht die Ausruestung ab 761 px als Hologramm in der Halle
   // (dieselbe Werkstatt, gezeichnet statt als Knoepfe), und #hgl-slots bleibt zu.
-  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)), nurMitHangar: true },
+  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)) ?? (await probeFussleiste(page)), nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -212,7 +212,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -977,6 +977,7 @@ async function probeTerminal(page) {
       suche: !!scs && !scs.hidden && zeigt(scs),
       marke: [...box.querySelectorAll('a[data-term][aria-current="page"]')].map((a) => a.dataset.term).join(' '),
       zurueck: !document.getElementById('hgx-term-back').disabled,
+      eigen: (() => { try { return new URL(document.getElementById('hgx-term-ext').href).pathname; } catch { return null; } })(),
       kasten: [r.left - b.left, r.top - b.top, r.right - b.left, r.bottom - b.top].map(Math.round),
       text: document.getElementById('hgx-term-load')?.textContent.trim() ?? '',
       verlauf: history.length, schiff: window.__termShip, tab: window.__termTab,
@@ -1024,6 +1025,19 @@ async function probeTerminal(page) {
   if (!s.daten) return `${wo}: ${start.bereiche.items} traegt keine Kopfleiste .dp-bar mehr`;
   if (s.daten.start || s.daten.knopf || s.daten.sprache || !s.daten.pfad)
     return `${wo}: Datenseite im Fenster zeigt Startlink ${s.daten.start}, Suchknopf ${s.daten.knopf}, Sprachschalter ${s.daten.sprache}, Pfad ${s.daten.pfad} — Soll: nur der Pfad`;
+  // „In eigenem Tab öffnen“ meint die Seite im Fenster, ohne dass jemand den Link schon geklickt hat:
+  // Mittelklick und Kontextmenue kennen kein click (Review PR #355). Dasselbe fuer eine Adresse, die
+  // die Seite aendert, ohne neu zu laden: nachgezogen wird, bevor der Link ausgeloest wird.
+  if (s.eigen !== start.bereiche.items) return `${wo}: „In eigenem Tab öffnen“ zeigt nach dem Wechsel auf ${s.eigen} statt auf ${start.bereiche.items} — Mittelklick und Kontextmenue oeffneten die alte Seite`;
+  const anker = await page.evaluate(() => {
+    const w = document.getElementById('hgx-term-frame').contentWindow, a = document.getElementById('hgx-term-ext');
+    w.history.replaceState(null, '', '#probe');
+    a.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 1 }));
+    const h = new URL(a.href).hash;
+    w.history.replaceState(null, '', w.location.pathname + w.location.search);
+    return h;
+  });
+  if (anker !== '#probe') return `${wo}: „In eigenem Tab öffnen“ folgt einer Adresse nicht, die die Seite im Fenster ohne Neuladen aendert (Anker „${anker}“ statt „#probe“)`;
 
   // 3 · Suche auf der Datenseite (holt sie erst ueber data-scs-boot)
   await klick('#hgx-term-search');
@@ -1061,6 +1075,112 @@ async function probeTerminal(page) {
   if (!(await warte(() => document.getElementById('hgx-term').hidden, 5000))) return `${wo}: place(null) nimmt den Kasten nicht aus dem Layout`;
   const gemerkt = await page.evaluate(() => { const v = sessionStorage.getItem('hg-term'); sessionStorage.removeItem('hg-term'); return v; });
   if (!String(gemerkt).startsWith(start.home)) return `${wo}: die letzte Seite wurde nicht gemerkt (${gemerkt})`;
+  return null;
+}
+
+/* Fussleiste der Hangar-Buehne (Orte, Reiter, „Als Tafel“): Sie steht im
+   freien Streifen zwischen Schiffsauswahl und Tafel, rechts der Zeichen der
+   Buehne (#hg-tools: Zuruecksetzen, Einsteigen, Grafik, Ton). Anlass
+   13.11.2026: Mit den drei Orten wurde sie breiter als dieser Streifen. Bei
+   800 px lief sie neben der offenen Schiffsauswahl 132 px aus dem Fenster
+   („Als Tafel“ nicht mehr zu erreichen), mit flacher Tafel lag sie bis
+   1600 px ueber der Tafel und bei 1280 px ueber dem Ton-Knopf. Kein Tor sah
+   das: alle Knoepfe standen im Dokument. Gemessen wird deshalb, was der
+   Browser setzt. Je Breite misst die Probe selbst, wie breit die Leiste mit
+   Namen, ohne die Namen der Orte (data-eng 1) und nur mit Zeichen
+   (data-eng 2) ist, und verlangt:
+     · die Leiste traegt die groesste Form, die rechts der Zeichen in den
+       Streifen passt: nicht dauernd Zeichen, nicht mehr Namen weg als noetig;
+     · passt eine Form, steht die Leiste im Streifen und nicht ueber den
+       Zeichen der Buehne;
+     · ein Knopf, der nur sein Zeichen zeigt, behaelt seinen Namen im
+       Dokument und traegt ihn als title.
+   Die Probe oeffnet die Schiffsauswahl und zeigt die Orte und die vier
+   Zeichen selbst (ohne 3D gibt es sie nicht), damit sie in jeder Umgebung
+   die volle Besetzung misst. Wo die Leiste auch als Zeichen nicht passt
+   (beide Spalten offen im schmalen Fenster, schon vor den Orten so),
+   verlangt sie nur die kleinste Form. */
+const FUSS_BREITEN = [1920, 1600, 1440, 1280, 1100, 900];
+const FUSS_MIN_ENG = 2; // je Sprache: Breiten, an denen Namen weichen muessen und die Leiste dann passt
+const FUSS_LUFT = 12; // px zwischen den Zeichen der Buehne und der Leiste (fitBar)
+async function probeFussleiste(page) {
+  const wo = 'Fußleiste';
+  const fenster = page.viewportSize();
+  const bilder = () => page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 60)))));
+  // volle Besetzung zeigen; true, wenn dafuer etwas einzublenden war
+  const besetze = () => page.evaluate(() => {
+    let neu = false;
+    for (const e of [document.getElementById('hgx-orte'), ...document.getElementById('hg-tools').children]) if (e.hidden) { e.hidden = false; neu = true; }
+    return neu;
+  });
+  const auf = await page.evaluate(() => {
+    const need = ['hgx-st', 'hgx-stagebar', 'hgx-orte', 'hgx-docktog', 'hg-tools'].filter((id) => !document.getElementById(id));
+    if (need.length) return { fehlt: need.map((id) => `#${id}`).join(', ') };
+    const tog = document.getElementById('hgx-docktog');
+    const war = { dock: tog.getAttribute('aria-expanded'), zu: [document.getElementById('hgx-orte'), ...document.getElementById('hg-tools').children].filter((e) => e.hidden).map((e) => e.id) };
+    if (war.dock !== 'true') tog.click();
+    return { war };
+  });
+  if (auf.fehlt) return `${wo}: ${auf.fehlt} fehlt auf der Hangarseite`;
+  let befund = null, eng = 0, weit = 0, neben = 0;
+  for (const breite of FUSS_BREITEN) {
+    await page.setViewportSize({ width: breite, height: fenster.height });
+    await bilder();
+    // die Buehne darf beim Neuzeichnen wieder ausblenden, was es ohne 3D nicht gibt
+    if (await besetze()) await bilder();
+    const m = await page.evaluate((luft) => {
+      const st = document.getElementById('hgx-st'), bar = document.getElementById('hgx-stagebar'), tools = document.getElementById('hg-tools');
+      const b = bar.getBoundingClientRect(), t = tools.getBoundingClientRect(), z = st.getBoundingClientRect();
+      const ab = t.width && t.top < b.bottom && t.bottom > b.top ? Math.max(b.left, t.right + luft) : b.left;
+      const ist = st.dataset.eng ?? '';
+      const knoepfe = [...st.querySelectorAll('button')].filter((k) => k.offsetParent).map((k) => {
+        const span = k.querySelector('span');
+        return { name: k.textContent.trim(), zeichen: !!span && span.getBoundingClientRect().width <= 1, title: k.title };
+      });
+      const r = { ist, platz: Math.floor(b.right - ab), streifen: Math.round(b.width), zeichen: tools.querySelectorAll(':scope > :not([hidden])').length, links: Math.round(z.left - ab), rechts: Math.round(z.right - b.right), knoepfe, dock: document.getElementById('hgx-docktog').getAttribute('aria-expanded') };
+      // Bedarf der drei Formen: die Leiste schrumpft nicht unter ihren Inhalt
+      r.bedarf = ['', '1', '2'].map((v) => { if (v) st.dataset.eng = v; else delete st.dataset.eng; return Math.ceil(st.getBoundingClientRect().width); });
+      if (ist) st.dataset.eng = ist; else delete st.dataset.eng;
+      return r;
+    }, FUSS_LUFT);
+    fussBreiten++;
+    const passt = m.bedarf.findIndex((w) => w <= m.platz);
+    const soll = passt < 0 ? '2' : ['', '1', '2'][passt];
+    const lage = `Bedarf ${m.bedarf.join(' / ')} px mit Namen / ohne die der Orte / nur Zeichen, Platz ${m.platz} px rechts von ${m.zeichen} Zeichen der Buehne`;
+    if (m.dock !== 'true') befund = `${wo} ${breite} px: die Schiffsauswahl liess sich nicht oeffnen, gemessen wuerde der weite Streifen`;
+    else if (m.knoepfe.length < 4) befund = `${wo} ${breite} px: nur ${m.knoepfe.length} Knoepfe in der Leiste, mit den drei Orten sind es mindestens 4`;
+    else if (m.zeichen < 4) befund = `${wo} ${breite} px: nur ${m.zeichen} Zeichen der Buehne im Bild, gemessen wird mit allen vier`;
+    else if (!(m.bedarf[0] > m.bedarf[1] && m.bedarf[1] > m.bedarf[2])) befund = `${wo} ${breite} px: data-eng macht die Leiste nicht schmaler (${m.bedarf.join(' / ')} px mit Namen / Stufe 1 / Stufe 2) — die Stufen nehmen keinem Knopf den Namen aus dem Bild`;
+    else if (m.ist !== soll) befund = soll === ''
+      ? `${wo} ${breite} px: die Leiste zeigt nur Zeichen (data-eng „${m.ist}“), obwohl die Namen in den Streifen passen (${lage})`
+      : `${wo} ${breite} px: data-eng ist „${m.ist}“ statt „${soll}“ (${lage})${m.rechts > 0 ? ` — die Leiste laeuft ${m.rechts} px ueber den Streifen, sie liegt dann ueber der Tafel oder laeuft aus dem Fenster` : m.links < 0 ? ` — die Leiste liegt ${-m.links} px ueber den Zeichen der Buehne` : ' — sie gibt mehr Namen ab als noetig'}`;
+    else if (passt >= 0 && m.rechts > 0) befund = `${wo} ${breite} px: die Leiste laeuft ${m.rechts} px ueber den freien Streifen, obwohl sie mit data-eng „${m.ist}“ hineinpasst (${lage})`;
+    else if (passt >= 0 && m.links < 0) befund = `${wo} ${breite} px: die Leiste liegt ${-m.links} px ueber den Zeichen der Buehne, obwohl sie daneben passt (${lage})`;
+    else {
+      const stumm = m.knoepfe.find((k) => !k.name), ohne = m.knoepfe.find((k) => k.zeichen && k.title !== k.name), zuviel = m.knoepfe.find((k) => !k.zeichen && k.title);
+      if (stumm) befund = `${wo} ${breite} px: ein Knopf der Leiste hat keinen Namen im Dokument`;
+      else if (ohne) befund = `${wo} ${breite} px: „${ohne.name}“ zeigt nur sein Zeichen und traegt den Namen nicht als title („${ohne.title}“)`;
+      else if (zuviel) befund = `${wo} ${breite} px: „${zuviel.name}“ zeigt seinen Namen und traegt ihn noch einmal als title`;
+    }
+    if (befund) break;
+    if (soll && passt >= 0) eng++;
+    if (!soll) weit++;
+    // stuende die Leiste in der Mitte des Streifens, laege sie ueber den Zeichen: hier musste sie ruecken
+    if (passt >= 0 && (m.streifen - m.bedarf[passt]) / 2 < m.streifen - m.platz) neben++;
+  }
+  await page.evaluate((war) => {
+    for (const id of war.zu) document.getElementById(id).hidden = true;
+    const tog = document.getElementById('hgx-docktog');
+    if (tog.getAttribute('aria-expanded') !== war.dock) tog.click();
+  }, auf.war);
+  await page.setViewportSize(fenster);
+  await bilder();
+  if (befund) return befund;
+  fussEng += eng;
+  fussNeben += neben;
+  if (eng < FUSS_MIN_ENG) return `${wo}: nur an ${eng} von ${FUSS_BREITEN.length} Breiten mussten Namen weichen und passte die Leiste dann, Untergrenze ${FUSS_MIN_ENG} — die Probe misst den engen Streifen nicht mehr`;
+  if (!weit) return `${wo}: an keiner der ${FUSS_BREITEN.length} Breiten passten die Namen — die Probe sieht nicht mehr, ob die Leiste sie zeigt, wo Platz ist`;
+  if (!neben) return `${wo}: an keiner der ${FUSS_BREITEN.length} Breiten musste die Leiste neben die Zeichen der Buehne ruecken — die Probe sieht nicht mehr, ob sie ueber ihnen liegt`;
   return null;
 }
 
@@ -2099,6 +2219,7 @@ const SYNC_SOLL = SYNC_BREITEN.length * SYNC_ZUSTAENDE.length * 2 * 2; // je Bre
 const mitPlaner = seiten.some((s) => s.id === 'crafting-planer');
 if (mitPlaner) console.log(`  Konto-Anzeigen des Crafting-Planers geprueft: ${syncAnzeigen} von ${SYNC_SOLL}`);
 console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Untergrenze: ${MIN_SCHUBLADEN}`);
+if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Fussleiste des Hangars: ${fussBreiten} Breiten gemessen, an ${fussEng} wichen Namen den Zeichen (Untergrenze ${FUSS_MIN_ENG} je Sprache), an ${fussNeben} rueckte sie neben die Zeichen der Buehne (Untergrenze 1 je Sprache)`);
 if (schubladen < MIN_SCHUBLADEN && !NUR)
   fehler.push(`[7] nur ${schubladen} Filter-Schubladen geprueft, Untergrenze ist ${MIN_SCHUBLADEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (hiddenGeprueft < MIN_HIDDEN && !NUR)

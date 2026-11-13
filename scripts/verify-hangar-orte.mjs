@@ -46,7 +46,9 @@
          Rechtecke steht die Kamera aus leitFit so, dass der Schirm im
          Bild genau das gemeldete Rechteck ist (nachgerechnet mit der
          Zentralprojektion), im freien Stueck liegt, der Bildwinkel unter
-         LEIT_FOV_MAX bleibt und die Kamera im Raum des Leitstands steht
+         LEIT_FOV_MAX bleibt (auch in hohen, schmalen Fenstern, wo der
+         Schirm dafuer in Metern kleiner wird) und die Kamera im Raum des
+         Leitstands steht
          (HALL_LEIT.raum, mit Abstand zu Glas, Wand, Boden und Decke);
          beide Enden des erlaubten Abstands (HALL_LEIT.d) liegen im Raum.
      [6] Naht: Die Buehne liefert place, canPlace und onPlace, der
@@ -60,8 +62,8 @@
    Selbstauskunft mit Klinken (nur nach oben; nach unten nur per Commit
    mit Ursache). Kein git, kein Netz, kein Kindprozess.
 
-   VORGEFUEHRT ROT (13.11.2026), je ein Eingriff am gebauten dist/, zwoelf
-   Laeufe:
+   VORGEFUEHRT ROT (13.11.2026), je ein Eingriff am gebauten dist/,
+   dreizehn Laeufe:
      a  dist/de/hangar.html: dem Fenster src="/de/archiv.html" gegeben;
         den Reiter Missionen auf /de/missionen-alt.html gebogen;
         data-ort="werk" gestrichen
@@ -73,7 +75,9 @@
         gedreht; die Klemme auf LEIT_LUFT ausgeschaltet; d auf [2.3, 12]
         geweitet. Der letzte Eingriff blieb im ersten Lauf GRUEN: das
         Raster erreicht das ferne Ende des Abstands nicht. Seither prueft
-        [5] beide Enden von d selbst gegen den Raum.
+        [5] beide Enden von d selbst gegen den Raum. Nach dem Review der
+        PR (hohe, schmale Fenster): das Schrumpfen des Schirms am
+        begrenzten Bildwinkel gestrichen.
      d  dist/_csp/frame-ancestors.conf auf 'none' gestellt
    Die Meldungen stehen in der PR, die dieses Tor eingefuehrt hat.
 
@@ -91,7 +95,8 @@ const DIST = join(ROOT, 'dist');
 
 // Klinken
 const MIN_BEREICHE = 7;    // Reiter des Terminals je Seite (13.11.2026: 7)
-const MIN_FIT_PROBEN = 400; // Stellungen der Kamera, die [5] nachrechnet (13.11.2026: 432)
+const MIN_FIT_PROBEN = 600; // Stellungen der Kamera, die [5] nachrechnet (13.11.2026: 432, mit hohen Fenstern 624)
+const MIN_FIT_ENG = 60;     // davon mit begrenztem Bildwinkel: dort schrumpft der Schirm (13.11.2026: 66)
 const MIN_WEG_PROBEN = 14;  // Links, die [4] durch termRoute schickt
 
 const fehler = [];
@@ -110,7 +115,13 @@ if (PAGES.some((p) => p.html === null)) {
 const attr = (tag, name) => new RegExp(`\\s${name}(?:="([^"]*)")?(?=[\\s>])`).exec(tag);
 const wert = (tag, name) => attr(tag, name)?.[1] ?? null;
 const hat = (tag, name) => attr(tag, name) !== null;
-const text = (s) => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+// Sichtbarer Text einer Beschriftung: Markup heraus, bis nichts mehr faellt
+// (ein Durchgang allein kann aus Resten ein neues Tag zusammensetzen)
+const text = (s) => {
+  let t = s, vorher;
+  do { vorher = t; t = t.replace(/<[^>]+>/g, ''); } while (t !== vorher);
+  return t.replace(/\s+/g, ' ').trim();
+};
 const laden = async (rel) => {
   const f = join(DIST, rel);
   if (!existsSync(f)) { fail(`dist/${rel} fehlt`); return null; }
@@ -271,7 +282,7 @@ say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter
 
 /* ---------- [5] Geometrie der Buehne ---------- */
 say('[5] Buehne: Kamera vor dem Schirm, Schirm im Bild genau das gemeldete Rechteck');
-let fitProben = 0, hallen = 0;
+let fitProben = 0, fitEng = 0, hallen = 0;
 if (viewer) {
   const { HALL_LEIT, LEIT_FOV_MAX, leitFit } = viewer;
   if (typeof leitFit !== 'function' || !HALL_LEIT || !(LEIT_FOV_MAX > 0)) fail('[5] dist/assets/hangar-viewer.js liefert HALL_LEIT, LEIT_FOV_MAX oder leitFit nicht mehr');
@@ -288,13 +299,18 @@ if (viewer) {
     else if (S.z + L.d[0] < R.z[0] + RAND || S.z + L.d[1] > R.z[1] - RAND)
       fail(`[5] ${id}: der Abstand ${L.d.join(' bis ')} m stellt die Kamera bei z ${(S.z + L.d[0]).toFixed(2)} bis ${(S.z + L.d[1]).toFixed(2)}, der Raum des Leitstands reicht mit ${RAND} m Luft nur von ${(R.z[0] + RAND).toFixed(2)} bis ${(R.z[1] - RAND).toFixed(2)} — in einem kleinen Fenster stuende sie hinter der Rueckwand`);
     let schlimm = null;
-    for (const [W, H] of [[761, 540], [1024, 600], [1280, 720], [1366, 768], [1600, 900], [1920, 1080], [2560, 1080], [2560, 1440], [3440, 1440]])
+    // die letzten vier: hohe, schmale Fenster. Dort stoesst der Bildwinkel an LEIT_FOV_MAX, und der
+    // Schirm muss in Metern kleiner werden, sonst ragt er aus dem freien Stueck (Review PR #355:
+    // 800 × 1500 mit offener Schiffsauswahl, 25 px ueber den Rand der Buehne).
+    for (const [W, H] of [[761, 540], [1024, 600], [1280, 720], [1366, 768], [1600, 900], [1920, 1080], [2560, 1080], [2560, 1440], [3440, 1440], [761, 1080], [800, 1500], [900, 1400], [1080, 1920]])
       for (const l of [0, 70, 300, 400]) for (const r of [0, 60]) for (const t of [70, 120]) for (const b of [0, 80, 140]) {
         if (W - l - r < 240 || H - t - b < 180) continue;
         fitProben++;
         // wie leitPose im Viewer: das freie Stueck ist die Buehne ohne Raender, mit dem Rahmen (rand + 6 px) Luft
         const luft = L.rand + 6, frei = { l: l + luft, t: t + luft, r: W - r - luft, b: H - b - luft };
         const f = leitFit(W, H, frei, L);
+        const eng = f.fov >= LEIT_FOV_MAX - 1e-6;
+        if (eng) fitEng++;
         // Zentralprojektion nachgerechnet: Kamera bei Schirmmitte + (dx, dy, d), Blick nach -z
         const fpx = H / 2 / Math.tan((f.fov * Math.PI) / 360);
         const px = (x) => W / 2 + ((x - f.dx) / f.d) * fpx, py = (y) => H / 2 - ((y - f.dy) / f.d) * fpx;
@@ -310,6 +326,8 @@ if (viewer) {
         else if (!(f.fov > 10 && f.fov <= LEIT_FOV_MAX + 1e-6)) m = `${wo}: Bildwinkel ${f.fov.toFixed(1)}°, Grenze ${LEIT_FOV_MAX}°`;
         else if (!(f.d >= L.d[0] - 1e-9 && f.d <= L.d[1] + 1e-9)) m = `${wo}: Abstand ${f.d.toFixed(2)} m ausserhalb ${L.d.join(' bis ')} m`;
         else if (!(f.h / f.b >= L.form[0] - 1e-9 && f.h / f.b <= L.form[1] + 1e-9)) m = `${wo}: Form ${(f.h / f.b).toFixed(2)} ausserhalb ${L.form.join(' bis ')}`;
+        // der Schirm hat seine Breite aus HALL_LEIT; kleiner wird er nur, wo der Bildwinkel begrenzt ist
+        else if (!(f.b <= S.b + 1e-9 && f.b > 0) || (!eng && Math.abs(f.b - S.b) > 1e-9)) m = `${wo}: Schirm ${f.b.toFixed(3)} m breit bei Bildwinkel ${f.fov.toFixed(1)}°, HALL_LEIT nennt ${S.b} m`;
         else if (cam.x < R.x[0] + RAND || cam.x > R.x[1] - RAND || cam.y < R.y[0] + RAND || cam.y > R.y[1] - RAND || cam.z < R.z[0] + RAND || cam.z > R.z[1] - RAND)
           m = `${wo}: die Kamera stuende bei (${cam.x.toFixed(2)}, ${cam.y.toFixed(2)}, ${cam.z.toFixed(2)}) ausserhalb des Leitstands oder naeher als ${RAND} m an Glas, Wand, Boden oder Decke`;
         else if ((f.rect.r - f.rect.l) < 0.45 * (frei.r - frei.l) && (f.rect.b - f.rect.t) < 0.45 * (frei.b - frei.t)) m = `${wo}: der Schirm fuellt weniger als die Haelfte des freien Stuecks (${Math.round(f.rect.r - f.rect.l)} × ${Math.round(f.rect.b - f.rect.t)} px)`;
@@ -319,7 +337,8 @@ if (viewer) {
   }
 }
 if (fitProben < MIN_FIT_PROBEN) fail(`[5] nur ${fitProben} Stellungen nachgerechnet, Klinke ${MIN_FIT_PROBEN}`);
-say(`    ${fitProben} Stellungen in ${hallen} Halle(n) nachgerechnet (Klinke ${MIN_FIT_PROBEN})`);
+if (fitEng < MIN_FIT_ENG) fail(`[5] nur ${fitEng} Stellungen mit begrenztem Bildwinkel, Klinke ${MIN_FIT_ENG}: Das Raster erreicht den Zweig nicht mehr, in dem der Schirm schrumpft`);
+say(`    ${fitProben} Stellungen in ${hallen} Halle(n) nachgerechnet (Klinke ${MIN_FIT_PROBEN}), davon ${fitEng} mit begrenztem Bildwinkel (Klinke ${MIN_FIT_ENG})`);
 
 /* ---------- [6] Naht ---------- */
 say('[6] Naht: Buehne, Controller und Terminal rufen einander, ?ort=leit in der Adresse');
