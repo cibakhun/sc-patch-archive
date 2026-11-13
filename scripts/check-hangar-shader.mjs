@@ -91,7 +91,15 @@ import { existsSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const argv = process.argv.slice(2);
-const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
+// Ein Schalter mit Wert, der ohne Wert kommt (am Ende, leer, oder vor dem naechsten
+// Schalter), ist ein Fehler und kein fehlender Schalter: sonst endet der Lauf gruen,
+// ohne getan zu haben, was verlangt war (--wechsel am Ende wechselte kein Schiff).
+const flag = (n, d) => {
+  if (!argv.includes(n)) return d;
+  const v = argv[argv.indexOf(n) + 1];
+  if (v === undefined || v === '' || v.startsWith('--')) { console.error(`\n${n}: der Wert fehlt\n`); process.exit(2); }
+  return v;
+};
 const BASE = flag('--base', process.env.SMOKE_BASE || 'http://localhost:4321').replace(/\/$/, '');
 const SHIP = flag('--ship', null);
 const SHOT = flag('--shot', null);
