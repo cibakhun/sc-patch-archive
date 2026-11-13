@@ -49,7 +49,12 @@
          Sampler ohne Mips laedt nur die groesste Stufe; die niedrige Stufe
          laesst die grossen Stufen weg; antwortet der Umwandler nicht,
          stellt ein Waechter den Weg ab, statt den Hangar warten zu
-         lassen. Ob die Zwillinge im Browser wirklich laden, prueft
+         lassen; der Umwandler wird vor den Bildern angefordert, und der
+         Waechter zaehlt erst, wenn er angekommen ist (ueber 16 Mbit/s
+         stellte er sonst ab, obwohl nichts kaputt war); das Aus gilt fuer
+         alles, was noch laedt oder umwandeln will; beim Abbau wird der
+         Loader samt Workern frei, auch wenn sein Start erst danach fertig
+         wird. Ob die Zwillinge im Browser wirklich laden, prueft
          check:hangar-shader.
      [7] Umwandler ohne Code aus Zeichenketten: Die Seite erlaubt kein
          'unsafe-eval', und der Umwandler, wie three ihn ausliefert, baut
@@ -74,9 +79,15 @@
      g2 eine Datei mitten in den Mip-Stufen abschneiden -> [3]
      h  KTX_BAU im Viewer aendern                       -> [5]
      i  basis_transcoder.wasm aus dist/ nehmen          -> [5], [7]
-     j  bis t (mit n2, zwoelf Faelle): je eine der elf
-        Nahtstellen im Viewer oder Controller in dist/
-        aendern                                         -> [6]
+     j  bis t (mit n2 und t2, dreizehn Faelle): je eine der
+        ersten elf Nahtstellen im Viewer oder Controller
+        in dist/ aendern                                -> [6]
+     w  bis y (mit w2, w3, x2, x3, y2, acht Faelle): die
+        drei Nahtstellen aus dem Review zu PR #361: der
+        Waechter zaehlt vor dem Umwandler, der Umwandler
+        kommt erst mit dem ersten Bild, das Aus laesst
+        weiter laden oder umwandeln, der Abbau gibt den
+        Loader nicht frei                               -> [6]
      u  den Umwandler in dist/ durch den unveraenderten
         aus node_modules/three ersetzen                 -> [7]
      v  im Umwandler in dist/ eine der beiden Korrekturen
@@ -262,7 +273,7 @@ say('[6] Nahtstellen im Viewer');
       `${V}: der Zwilling bekommt die Merkmale seines Bildes nicht mehr (images[].extras, etwa neutral): eine neutrale Karte gälte als echte, und ihr Farbmittel dunkelte das Material ab`],
     ['aus am Telefon und mit ?bilder=webp', /const KTX_AN = !SMALL && opts\.bilder !== 'webp' && !!globalThis\.crypto\?\.subtle;/.test(src) && /const BILDER = new URLSearchParams\(location\.search\)\.get\('bilder'\);/.test(ctrl) && /pad: BODEN, bilder: BILDER,/.test(ctrl),
       `${V} oder dist/assets/hangar-overview.js: der Weg über die Zwillinge ist am Telefon nicht mehr aus (dort unerprobt), oder ?bilder=webp stellt ihn nicht mehr ab (Vergleich beider Wege)`],
-    ['nur mit BC7 oder ASTC', /if \(L\.workerConfig\.bptcSupported \|\| L\.workerConfig\.astcSupported\) return L;/.test(src),
+    ['nur mit BC7 oder ASTC', /if \(!\(L\.workerConfig\.bptcSupported \|\| L\.workerConfig\.astcSupported\)\) \{ L\.dispose\(\); throw new Error\(/.test(src),
       `${V}: der Viewer verlangt für die Zwillinge kein BC7 oder ASTC mehr: ohne ein solches Format packt der Umwandler nach RGBA aus, nichts ist gewonnen und das Laden dauert länger`],
     ['Schlüssel vor dem Umwandeln gelesen', /const kv = ktxKv\(buf\);\s*if \(kv\.HGbau !== KTX_BAU\) throw[^\n]*\n\s*stage = 'Umwandeln';\s*const t = await ktxWandle\(L, buf\);/.test(src),
       `${V}: die Schlüssel des Zwillings werden nicht mehr gelesen, bevor der Puffer zum Umwandler geht (danach ist er leer), oder das Rezept wird nicht mehr verglichen`],
@@ -275,6 +286,17 @@ say('[6] Nahtstellen im Viewer');
     ['Wächter des Umwandlers', Number(/const KTX_STILL_S = (\d+);/.exec(src)?.[1] ?? NaN) <= 30 && /if \(\+\+ktxWach\.still >= KTX_STILL_S\) ktxTot\(/.test(src) && /L\.parse\(buf, \(t\) => fertig\(ja, t\), \(e\) => fertig\(nein, e\)\);/.test(src)
       && /ktxLoader = Promise\.resolve\(null\);[\s\S]{0,260}?for \(const nein of offen\) nein\(new Error\(why\)\);/.test(src),
       `${V}: antwortet der Umwandler nicht (Worker scheitert beim Start), wartet der Viewer wieder ohne Ende auf ihn, statt nach höchstens 30 s auf das WebP zurückzufallen: der Hangar bliebe beim Laden stehen`],
+    // Die drei folgenden kamen mit dem Review zu PR #361 (13.11.2026). Über
+    // eine Leitung mit 16 Mbit/s stellte die erste Fassung des Wächters den
+    // Weg nach 15 s ab, obwohl nichts kaputt war: Der Umwandler stand hinter
+    // Hunderten von Zwillingen in der Schlange. 451 Bilder kamen aus dem
+    // WebP, der Rest lief danach doch noch durch den Umwandler.
+    ['Umwandler zuerst angefordert, Wächter zählt erst danach', /L\.init\(\)\.then\(\(\) => \{ ktxWach\.bereit = true; \}, \(e\) => ktxTot\(/.test(src) && /if \(!ktxWach\.bereit\) return;\s*if \(ktxWach\.fertig !== ktxWach\.gesehen\)/.test(src) && /\n  if \(KTX_AN\) ktxStart\(\);\n/.test(src),
+      `${V}: der Umwandler wird nicht mehr vor den Bildern angefordert, oder der Wächter zählt schon, bevor er angekommen ist: über eine langsame Leitung stellt der Wächter die komprimierten Texturen ab, obwohl nichts kaputt ist (16 Mbit/s: nach 15 s, 451 Bilder aus dem WebP)`],
+    ['das Aus gilt für alles', /if \(ktxWach\.aus\) return;\s*ktxWach\.aus = true;/.test(src) && /ktxWach\.ab\.abort\(\);/.test(src) && /credentials: 'same-origin', signal: ktxWach\.ab\.signal \}\);/.test(src) && /if \(ktxWach\.aus\) \{ nein\(new Error\(/.test(src),
+      `${V}: nach dem Aus laden Zwillinge weiter, oder ein Bild geht noch an den abgestellten Loader: der Wächter stellt jede Sekunde neu ab, Bilder laden doppelt, und ein Teil der Texturen kommt doch noch komprimiert an`],
+    ['Loader beim Abbau frei, auch bei spätem Start', /ktxTot\('der Hangar ist abgebaut', false\);\s*draco\.dispose\(\);/.test(src) && /alt\?\.then\(ktxFrei\)/.test(src) && /L\.setWorkerLimit\(0\);\s*L\.dispose\(\);\s*L\.transcoderPending\?\.then\(\(\) => \{ L\.workerPool\.dispose\(\); if \(L\.workerSourceURL\) URL\.revokeObjectURL\(L\.workerSourceURL\); \}\)/.test(src),
+      `${V}: der Viewer gibt den Loader der Zwillinge beim Abbau nicht mehr frei, oder ein Start, der erst nach der Freigabe fertig wird, legt wieder Worker an und wandelt die wartenden Bilder um`],
   ];
   const gutN = NAHT.filter((l) => l[1]).length;
   say(`    ${gutN} von ${NAHT.length} Nahtstellen${gutN === NAHT.length ? '' : `, fehlt: ${NAHT.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`}`);

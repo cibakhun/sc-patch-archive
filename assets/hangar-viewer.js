@@ -7734,12 +7734,31 @@ export async function initHangar(container, opts = {}) {
     }, 2000);
   };
   let ktxLoader = null;
-  const ktxStart = () => (ktxLoader ??= import('three/addons/loaders/KTX2Loader.js').then(({ KTX2Loader }) => {
-    const L = new KTX2Loader().setTranscoderPath('/vendor/three/addons/libs/basis/').setWorkerLimit(Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))).detectSupport(renderer);
-    if (L.workerConfig.bptcSupported || L.workerConfig.astcSupported) return L;
+  // Gibt einen Loader samt Workern frei. dispose() von three beendet nur,
+  // was es gerade gibt: Ist der Umwandler noch unterwegs, baut init() danach
+  // trotzdem die Quelle der Worker und startet die wartenden Aufträge.
+  // Deshalb erst die Zahl der Worker auf null (kein neuer entsteht, was
+  // wartet, bleibt liegen) und nach dem Start noch einmal aufräumen
+  // (Review zu PR #361).
+  const ktxFrei = (L) => {
+    if (!L) return;
+    L.setWorkerLimit(0);
     L.dispose();
-    throw new Error('die Grafikkarte kann weder BC7 noch ASTC');
+    L.transcoderPending?.then(() => { L.workerPool.dispose(); if (L.workerSourceURL) URL.revokeObjectURL(L.workerSourceURL); }).catch(() => {});
+  };
+  const ktxStart = () => (ktxLoader ??= import('three/addons/loaders/KTX2Loader.js').then(({ KTX2Loader }) => {
+    if (ktxWach.aus) throw new Error(ktxStat.why ?? 'abgestellt');
+    const L = new KTX2Loader().setTranscoderPath('/vendor/three/addons/libs/basis/').setWorkerLimit(Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))).detectSupport(renderer);
+    if (!(L.workerConfig.bptcSupported || L.workerConfig.astcSupported)) { L.dispose(); throw new Error('die Grafikkarte kann weder BC7 noch ASTC'); }
+    // Den Umwandler (basis_transcoder.js und .wasm) sofort anfordern, nicht
+    // erst mit dem ersten Bild: three holte ihn sonst hinter Hunderten von
+    // Zwillingen, und über eine Leitung mit 16 Mbit/s kam er 20 s nach
+    // seiner Anfrage an (gemessen 13.11.2026). Erst wenn er da ist, zählt
+    // der Wächter unten; scheitert sein Abruf, ist der Weg sofort aus.
+    L.init().then(() => { ktxWach.bereit = true; }, (e) => ktxTot(`der Umwandler lädt nicht (${e?.message ?? e})`));
+    return L;
   }).catch((e) => {
+    if (ktxWach.aus) return null;
     ktxStat.why = String(e?.message ?? e);
     console.info(`[hangar] Texturen bleiben WebP: ${ktxStat.why}`);
     return null;
@@ -7755,24 +7774,37 @@ export async function initHangar(container, opts = {}) {
   // check:hangar-shader reißt daran. Gezählt werden Takte der Uhr, nicht
   // die Zeit: Steht der Hauptfaden selbst (Shader, große Datei), zählt das
   // eine Sekunde, nicht die ganze Pause.
+  // Er zählt erst, wenn der Umwandler selbst angekommen ist (bereit): Bis
+  // dahin wartet ein Bild auf die Leitung, nicht auf einen toten Worker.
+  // Die erste Fassung zählte von Anfang an und stellte den Weg über eine
+  // Leitung mit 16 Mbit/s nach 15 s ab, obwohl nichts kaputt war; 451 Bilder
+  // kamen aus dem WebP, und der Rest lief danach doch noch durch den
+  // Umwandler (gemessen 13.11.2026 gegen den nginx des Repos). Seitdem gilt
+  // das Aus für alles: Wer noch lädt, bricht ab (ab), wer noch umwandeln
+  // will, wird abgewiesen, und kein zweiter Aufruf stellt noch einmal ab.
   const KTX_STILL_S = 15;
-  const ktxWach = { offen: new Set(), fertig: 0, gesehen: 0, still: 0, timer: 0 };
-  const ktxTot = (why) => {
-    ktxStat.why = why;
-    console.info(`[hangar] Texturen bleiben WebP: ${why}`);
+  const ktxWach = { offen: new Set(), fertig: 0, gesehen: 0, still: 0, timer: 0, bereit: false, aus: false, stumm: false, ab: new AbortController() };
+  const ktxTot = (why, laut = true) => {
+    if (ktxWach.aus) return;
+    ktxWach.aus = true;
+    if (laut) { ktxStat.why = why; console.info(`[hangar] Texturen bleiben WebP: ${why}`); } else ktxWach.stumm = true;
+    clearInterval(ktxWach.timer); ktxWach.timer = 0;
     const alt = ktxLoader;
     ktxLoader = Promise.resolve(null);
-    alt?.then((L) => L?.dispose()).catch(() => {});
+    alt?.then(ktxFrei).catch(() => {});
+    ktxWach.ab.abort();
     const offen = [...ktxWach.offen];
     ktxWach.offen.clear();
     for (const nein of offen) nein(new Error(why));
   };
   const ktxWandle = (L, buf) => new Promise((ja, nein) => {
+    if (ktxWach.aus) { nein(new Error(ktxStat.why ?? 'abgestellt')); return; }
     // Eine Antwort nach dem Aus gilt nicht mehr; ihr Bild wird verworfen.
     const fertig = (f, v) => { if (!ktxWach.offen.delete(nein)) { if (f === ja) v?.dispose?.(); return; } ktxWach.fertig++; f(v); };
     ktxWach.offen.add(nein);
     ktxWach.timer ||= setInterval(() => {
       if (!ktxWach.offen.size) { clearInterval(ktxWach.timer); ktxWach.timer = 0; ktxWach.still = 0; return; }
+      if (!ktxWach.bereit) return;
       if (ktxWach.fertig !== ktxWach.gesehen) { ktxWach.gesehen = ktxWach.fertig; ktxWach.still = 0; return; }
       if (++ktxWach.still >= KTX_STILL_S) ktxTot(`der Umwandler antwortet seit ${KTX_STILL_S} s nicht`);
     }, 1000);
@@ -7785,7 +7817,7 @@ export async function initHangar(container, opts = {}) {
       if (!L) return null;
       let stage = 'Datei';
       try {
-        const r = await fetch(`/hangar/ktx/${id}.ktx2?v=${KTX_BAU}`, { credentials: 'same-origin' });
+        const r = await fetch(`/hangar/ktx/${id}.ktx2?v=${KTX_BAU}`, { credentials: 'same-origin', signal: ktxWach.ab.signal });
         if (!r.ok) throw new Error(`Antwort ${r.status}`);
         const buf = await r.arrayBuffer();
         // vor dem Umwandeln lesen: parse() gibt den Puffer an den Worker ab
@@ -7810,13 +7842,18 @@ export async function initHangar(container, opts = {}) {
         ktxTell();
         return { t, webp: Number(kv.HGwebp) || 0, mean: mean.length === 3 && mean.every((v) => Number.isFinite(v) && v >= 0) ? mean : undefined };
       } catch (e) {
+        if (ktxWach.stumm) return null;
         ktxStat.miss++;
-        if (ktxStat.miss <= 5) console.warn(`[hangar] Zwilling ${id} nicht geladen (${stage}: ${e?.message ?? e}): das Bild kommt aus dem WebP`);
+        if (ktxStat.miss <= 5) console.warn(`[hangar] Zwilling ${id} nicht geladen (${stage}: ${ktxWach.aus ? ktxStat.why : e?.message ?? e}): das Bild kommt aus dem WebP`);
         ktxTell();
         return null;
       }
     },
   };
+  // Loader und Umwandler vor der ersten Datei der Halle anfordern: Sie
+  // stehen dann vorn in der Schlange der Leitung, nicht hinter den GLB
+  // (über 16 Mbit/s kam KTX2Loader.js sonst 13 s nach seiner Anfrage an).
+  if (KTX_AN) ktxStart();
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
   const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0, ktxTwin);
   const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
@@ -14739,6 +14776,8 @@ void main() {
       for (const ps of composer?.passes ?? []) ps.dispose?.();
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
+      // Loader der Zwillinge samt Workern; still, ein Abbau ist kein Ausfall
+      ktxTot('der Hangar ist abgebaut', false);
       draco.dispose();
       // der gemeinsame Generator der Umgebungskugeln (pmremFor): sein
       // Zwischenbild, seine Geometrien und sein Shader gehören keinem der
