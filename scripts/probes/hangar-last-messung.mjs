@@ -305,11 +305,15 @@ const reveal = await page.evaluate(() => window.__last.reveal);
 if (reveal == null) { console.error(`FEHLER: nach ${WARTE / 60000} min kein Bild der Halle.\n` + logs.join('\n')); await browser.close(); process.exit(1); }
 // Ruhe: keine Anfrage läuft mehr, und vier Sekunden ohne fertige Anfrage
 // (unter Software länger, dort rechnet die Seite zwischen den Anfragen lange).
-// Läuft die Frist WARTE ab, während noch geladen wird, ist die Messung
-// unvollständig: Das sagt der Bericht, statt Ruhe zu melden.
+// Läuft die Frist WARTE ab, während noch geladen wird oder bevor die
+// Ruhefrist um ist, ist die Messung unvollständig: Das sagt der Bericht,
+// statt Ruhe zu melden. ruheDa hält beide Bedingungen fest; nur auf offene
+// Anfragen zu sehen, meldete Ruhe, wenn die letzte Anfrage kurz vor der
+// Frist fertig wurde (Befund CodeRabbit, 13.11.2026).
 const RUHE = SOFT ? 25000 : 4000;
 while ((laufend.size > 0 || Date.now() - letzte < RUHE) && Date.now() - start < WARTE) await page.waitForTimeout(250);
 const offen = [...laufend].map((id) => reqs.get(id)?.url).filter(Boolean);
+const ruheDa = laufend.size === 0 && Date.now() - letzte >= RUHE;
 const ruhe = (letzte - start) / 1000;
 await page.waitForTimeout(SOFT ? 5000 : 3000);
 
@@ -398,8 +402,9 @@ if (fehlAnfragen.length) console.log(`   ⚠ ${fehlAnfragen.length} Anfragen ges
 // ohne Fenster: siehe Kopf (Hintergrundarbeit, auf Prozessoren mit E-Kernen viel zu langsam)
 const OHNE_FENSTER = SOFT || HEADED ? '' : ' (ohne Fenster gemessen: Zeiten und Takt fallen auf Prozessoren mit E-Kernen zu schlecht aus, mit --headed wiederholen)';
 console.log(`\n── Zeit${SOFT ? ' (Software-WebGL: nicht belastbar)' : ''}${OHNE_FENSTER}`);
-console.log(`   Seite da (DOMContentLoaded) ${(nav.dcl / 1000).toFixed(2)} s · Bild der Halle ${(reveal / 1000).toFixed(2)} s · ${offen.length ? `Netz nach ${(WARTE / 60000).toFixed(0)} min nicht in Ruhe` : `Ruhe im Netz ${ruhe.toFixed(1)} s`}`);
+console.log(`   Seite da (DOMContentLoaded) ${(nav.dcl / 1000).toFixed(2)} s · Bild der Halle ${(reveal / 1000).toFixed(2)} s · ${ruheDa ? `Ruhe im Netz ${ruhe.toFixed(1)} s` : `Netz nach ${(WARTE / 60000).toFixed(0)} min nicht in Ruhe`}`);
 if (offen.length) console.log(`   ⚠ UNVOLLSTÄNDIG: ${offen.length} Anfragen liefen noch, als die Frist ablief; ihre Bytes fehlen unten, und Speicher und Bilder sind während des Ladens gemessen:\n     ${offen.slice(0, 5).join('\n     ')}`);
+else if (!ruheDa) console.log(`   ⚠ UNVOLLSTÄNDIG: die Frist lief ab, bevor ${RUHE / 1000} s ohne fertige Anfrage vergangen waren; die Seite kann danach noch geladen haben, und Speicher und Bilder sind dann während des Ladens gemessen.`);
 console.log(`   Hauptfaden am Stück belegt: bis zum Bild ${Math.round(sum(lang.vor))} ms in ${lang.vor.length} Blöcken (längster ${Math.round(max(lang.vor))} ms), danach ${Math.round(sum(lang.nach))} ms in ${lang.nach.length} (längster ${Math.round(max(lang.nach))} ms)`);
 console.log('\n── Grafikspeicher (am Zeichenkontext gezählt)');
 const ges = sp.texBytes + sp.rbBytes + sp.bufBytes + sp.leinwand;
@@ -419,4 +424,4 @@ console.log(`   JS-Heap ${MB(metr.JSHeapUsedSize)} MB belegt (${MB(metr.JSHeapTo
 console.log('\n── Meldungen des Viewers');
 for (const l of logs.filter((x) => /Leistungsstufe|Texturen je|Bilder nach dem Hochladen|Bild nach der Freigabe|FEHLER/.test(x))) console.log(`   ${l}`);
 console.log('');
-if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, fenster: HEADED, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: offen.length ? null : ruhe * 1000, offen, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));
+if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, fenster: HEADED, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: ruheDa ? ruhe * 1000 : null, offen, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));
