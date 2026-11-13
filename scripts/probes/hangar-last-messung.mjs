@@ -23,9 +23,20 @@
    ⚠ Mit --soft (Software-WebGL, Cloud und CI) stimmen Bytes, Speicher und
    Zählungen, aber KEINE Zeit und KEIN Takt. Zeiten nur vom echten Chip.
 
+   ⚠ Zeiten und Takt nur mit --headed (sichtbares Fenster). Ein Browser ohne
+   Fenster gilt Windows als Hintergrundarbeit; auf einem Prozessor mit P-
+   und E-Kernen rechnen seine Fäden dann nur auf den E-Kernen. Gemessen am
+   13.11.2026 auf einem i5-13400F (sechs P-, vier E-Kerne) mit der Gladius
+   in der hohen Stufe: ohne Fenster 18 s bis zum Bild und 25 ms Rechenzeit
+   je Bild (37 Bilder je Sekunde), mit Fenster 10 s und 10 ms (60 Bilder je
+   Sekunde); 16 rechnende Fäden leisteten ohne Fenster so viel wie 3, mit
+   Fenster wie 9. Die ersten Zahlen dieser Sonde stammten aus dem Lauf ohne
+   Fenster und waren darum um das Zweieinhalbfache zu hoch. Mengen (Bytes,
+   Speicher, Zeichenaufrufe) stimmen in beiden Fällen.
+
      node scripts/probes/hangar-last-messung.mjs --base http://localhost:4391
        [--grafik hoch|mittel|niedrig|auto] [--ship <kennung>] [--telefon]
-       [--soft] [--netz <Mbit/s>] [--secs 8] [--w 1920 --h 970]
+       [--headed] [--soft] [--netz <Mbit/s>] [--secs 8] [--w 1920 --h 970]
        [--json aus.json] [--shot bild.png] [--top 15]
    ============================================================ */
 import { existsSync, writeFileSync } from 'node:fs';
@@ -40,6 +51,7 @@ const GRAFIK = flag('--grafik', 'hoch');
 const SHIP = flag('--ship', null);
 const TELEFON = argv.includes('--telefon');
 const SOFT = argv.includes('--soft');
+const HEADED = argv.includes('--headed');
 const NETZ = Number(flag('--netz', '0'));
 const SECS = Number(flag('--secs', '8'));
 const W = Number(flag('--w', '1920')), H = Number(flag('--h', '970'));
@@ -224,12 +236,13 @@ const gruppe = (u) => {
 };
 
 const args = SOFT ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-gpu', '--ignore-gpu-blocklist', ...(process.platform === 'win32' ? ['--use-angle=d3d11'] : []), `--window-size=${W},${H + 120}`];
-const browser = await chromium.launch({ executablePath: BROWSER, headless: true, args });
+const browser = await chromium.launch({ executablePath: BROWSER, headless: !HEADED, args });
 const tel = devices['iPhone 14'];
 const ctx = await browser.newContext(TELEFON
   ? { viewport: tel.viewport, deviceScaleFactor: tel.deviceScaleFactor, isMobile: true, hasTouch: true, userAgent: tel.userAgent, bypassCSP: true }
   : { viewport: { width: W, height: H }, deviceScaleFactor: 1, bypassCSP: true });
 const page = await ctx.newPage();
+if (HEADED) await page.bringToFront();
 const GPU_NAME = TELEFON ? 'Apple GPU' : 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0)';
 await page.addInitScript(vorSeite, { soft: SOFT, gpu: GPU_NAME });
 const cdp = await ctx.newCDPSession(page);
@@ -352,7 +365,9 @@ console.log('── Netz (erster Besuch, ohne Zwischenspeicher)');
 console.log(`   ${String(allN).padStart(4)} Anfragen, ${MB(all)} MB${textRoh ? ` (Text gepackt: etwa ${MB(gzAll)} MB über die Leitung)` : ''}; davon ${MB(vor)} MB, bis das Bild steht`);
 for (const [g, r] of [...rows].sort((a, b) => b[1].bytes - a[1].bytes)) console.log(`   ${g.padEnd(34)} ${String(r.n).padStart(4)} × ${MB(r.bytes).padStart(7)} MB${r.gz !== r.bytes ? ` (gepackt ${MB(r.gz)})` : ''}${r.vor < r.bytes ? `   bis zum Bild ${MB(r.vor)}` : ''}`);
 if (fehlAnfragen.length) console.log(`   ⚠ ${fehlAnfragen.length} Anfragen gescheitert: ${fehlAnfragen.slice(0, 3).join('; ')}`);
-console.log(`\n── Zeit${SOFT ? ' (Software-WebGL: nicht belastbar)' : ''}`);
+// ohne Fenster: siehe Kopf (Hintergrundarbeit, auf Prozessoren mit E-Kernen viel zu langsam)
+const OHNE_FENSTER = SOFT || HEADED ? '' : ' (ohne Fenster gemessen: Zeiten und Takt fallen auf Prozessoren mit E-Kernen zu schlecht aus, mit --headed wiederholen)';
+console.log(`\n── Zeit${SOFT ? ' (Software-WebGL: nicht belastbar)' : ''}${OHNE_FENSTER}`);
 console.log(`   Seite da (DOMContentLoaded) ${(nav.dcl / 1000).toFixed(2)} s · Bild der Halle ${(reveal / 1000).toFixed(2)} s · Ruhe im Netz ${ruhe.toFixed(1)} s`);
 console.log(`   Hauptfaden am Stück belegt: bis zum Bild ${Math.round(sum(lang.vor))} ms in ${lang.vor.length} Blöcken (längster ${Math.round(max(lang.vor))} ms), danach ${Math.round(sum(lang.nach))} ms in ${lang.nach.length} (längster ${Math.round(max(lang.nach))} ms)`);
 console.log('\n── Grafikspeicher (am Zeichenkontext gezählt)');
@@ -365,7 +380,7 @@ console.log('   Texturen nach Kantenlänge: ' + [...kl].sort((a, b) => b[1].b - 
 console.log(`   die ${TOP} größten:`);
 for (const t of sp.tex.sort((a, b) => b.bytes - a.bytes).slice(0, TOP)) console.log(`     ${`${t.w}×${t.h}${t.d > 1 ? `×${t.d}` : ''}`.padEnd(14)} ${t.art.padEnd(6)} ${t.f.padEnd(10)} ${t.mip ? 'mit Mips ' : 'ohne Mips'} ${MB(t.bytes).padStart(6)} MB`);
 if (sp.rb.length) console.log('   Zwischenbilder: ' + sp.rb.sort((a, b) => b.bytes - a.bytes).slice(0, 8).map((r) => `${r.w}×${r.h} ${r.f}${r.s > 1 ? ` ×${r.s}` : ''} ${MB(r.bytes)} MB`).join(' · '));
-console.log('\n── Bild');
+console.log(`\n── Bild${OHNE_FENSTER}`);
 console.log(`   ${sp.progs} Shaderprogramme`);
 for (const b of [stand, dreh].filter(Boolean)) console.log(b.n ? `   ${b.label.padEnd(12)} ${String(b.fps).padStart(6)} Bilder/s · ${b.draws} Zeichenaufrufe · ${b.tris.toLocaleString('de-DE')} Dreiecke · Hauptfaden ${b.cpu} ms je Bild (95 %: ${b.cpu95} ms)` : `   ${b.label.padEnd(12)} kein Bild gezeichnet`);
 console.log('\n── Arbeitsspeicher');
@@ -373,4 +388,4 @@ console.log(`   JS-Heap ${MB(metr.JSHeapUsedSize)} MB belegt (${MB(metr.JSHeapTo
 console.log('\n── Meldungen des Viewers');
 for (const l of logs.filter((x) => /Leistungsstufe|Texturen je|FEHLER/.test(x))) console.log(`   ${l}`);
 console.log('');
-if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: ruhe * 1000, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));
+if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, fenster: HEADED, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: ruhe * 1000, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));

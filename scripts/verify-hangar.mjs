@@ -753,14 +753,18 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr oder liegt ueber ${TEL_TEX.sonst} px (niedrig ${TEL_TEX.niedrig} px): mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu`);
   // Drei Leerlaeufe des Zeichners (Krisz, 13.11.2026: „es braucht viel zu
   // viele Ressourcen“), gemessen mit der Gladius in der hohen Stufe auf
-  // einer RTX 3070 Ti: three r185 warnte je Bild rund 160 Mal vor der 17.
-  // Textureinheit (2 600 bis 4 300 Zeilen je Sekunde in der Konsole), suchte
-  // fuer jedes BatchedMesh bei jedem Zeichnen das Shaderprogramm neu (91 Mal
-  // je Bild) und zeichnete 30 Hologrammflaechen in zwei Zuegen. Zusammen
-  // 35,6 statt 25,3 ms Rechenzeit je Bild beim Drehen (26 statt 37 Bilder je
-  // Sekunde). Faellt eine der drei Stellen weg, aendert sich kein Bild, nur
-  // der Takt: Darum haelt dieses Tor sie fest. Wer three anhebt und eine
-  // Stelle dort behoben findet, nimmt sie hier mit Begruendung heraus.
+  // einer RTX 3070 Ti mit i5-13400F: three r185 warnte je Bild rund 100 Mal
+  // vor der 17. Textureinheit (2 500 bis 7 000 Zeilen je Sekunde in der
+  // Konsole), suchte fuer jedes BatchedMesh bei jedem Zeichnen das
+  // Shaderprogramm neu (91 Mal je Bild) und zeichnete 30 Hologrammflaechen
+  // in zwei Zuegen. Zusammen 13,2 statt 10,0 ms Rechenzeit je Bild beim
+  // Drehen im sichtbaren Fenster: Der Hauptfaden war zu 90 statt zu 61 %
+  // belegt, die 60 Bilder je Sekunde hielt er in beiden Faellen. (Ohne
+  // Fenster, wo der Browser nur auf den E-Kernen rechnet, waren es 33
+  // statt 25 ms und 28 statt 37 Bilder je Sekunde.) Faellt eine der drei
+  // Stellen weg, aendert sich kein Bild, nur die Last: Darum haelt dieses
+  // Tor sie fest. Wer three anhebt und eine Stelle dort behoben findet,
+  // nimmt sie hier mit Begruendung heraus.
   const holoQ = existsSync(join(DIST, 'assets', 'hangar-holo3d.js')) ? readFileSync(join(DIST, 'assets', 'hangar-holo3d.js'), 'utf8') : '';
   const LEERLAUF = [
     ['Warnflut zur Textureinheit', /getParameter\(gl\.MAX_COMBINED_TEXTURE_IMAGE_UNITS\);\s*if \(units > renderer\.capabilities\.maxTextures\) renderer\.capabilities\.maxTextures = units;/.test(viewer),

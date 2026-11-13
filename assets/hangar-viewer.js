@@ -6610,10 +6610,13 @@ export async function initHangar(container, opts = {}) {
   // Shader zusammen (MAX_COMBINED_TEXTURE_IMAGE_UNITS, mindestens 32), und ein
   // BatchedMesh liest zwei Karten im Eckenshader (Matrizen, Reihenfolge).
   // Jede Requisite mit 15 oder 16 Karten im Bildshader löste so bei jedem
-  // Zeichnen eine Warnung aus: 160 je Bild, 2.600 bis 4.300 je Sekunde, 6 von
-  // 38 ms Rechenzeit je Bild (13.11.2026, RTX 3070 Ti, hohe Stufe). Die
-  // Grenze je Bildshader prüft texBudget unten selbst und meldet sie als
-  // Fehler; three liest maxTextures nur für diese Warnung.
+  // Zeichnen eine Warnung aus: rund 100 je Bild, 2.500 Zeilen je Sekunde in
+  // Ruhe und 6.500 bis 7.000 beim Drehen (13.11.2026, RTX 3070 Ti und
+  // i5-13400F, hohe Stufe, sichtbares Fenster). Mit den beiden Stellen
+  // daneben (colorTexture oben, forceSinglePass in hangar-holo3d.js) waren
+  // das 3 von 13 ms Rechenzeit je Bild. Die Grenze je Bildshader prüft
+  // texBudget unten selbst und meldet sie als Fehler; three liest
+  // maxTextures nur für diese Warnung.
   {
     const gl = renderer.getContext(), units = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
     if (units > renderer.capabilities.maxTextures) renderer.capabilities.maxTextures = units;
