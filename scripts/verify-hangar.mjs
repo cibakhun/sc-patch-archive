@@ -213,6 +213,23 @@
         die Grenzen von vier Schiffen, wie sie am 13.11.2026 gerendert und
         angesehen wurden. Wer CAM_AIR, CAM_SIDE, CAM_TOP, CAM_END oder
         CAM_NEAR aendert, rendert erst und zieht die Zahlen dann nach.
+        Und am Rand des Gangs (Review der PR #354): Das Blickziel bleibt
+        nicht in der Hallenmitte. Schieben traegt es bis neben den Gang
+        (Carrack 5,75 m), ein Hardpoint liegt am Fluegelende. Dort sprang
+        die Grenze beim Drehen von far auf die Kugel (Carrack 24,5 m,
+        Idris 54,7 m bei 0,01 Grad), und bis dahin stand die Kamera ganz
+        draussen neben dem Gang, wo der Federarm sie in einem Bild
+        hereinriss (Carrack 37,6 m beim Schieben, 52,8 m beim Drehen).
+        Je Schiff mit Gang werden 105 Ziele im, am und neben dem Gang
+        gerechnet, je 2 859 Richtungen und 375 um 10 cm geschobene: Beim
+        Drehen aendert sich die Grenze hoechstens um far² / Rand je
+        Bogenmasz (Rand: Tiefe des Ziels der Startansicht im Gang), beim
+        Schieben um far² / (Rand x Kugel) je Meter, am und neben dem Gang
+        gilt die Kugel, jenseits der Kugel steht die Kamera im Gang, die
+        Startansicht bleibt ungedaempft, und far ist hoechstens das
+        RAUM_STEIL-Fache des Rands. Nicht endliche Zahlen sind
+        ausdruecklich FEHLER: NaN besteht jeden Vergleich mit < und >,
+        und eine Startansicht ohne Zahl (home: NaN) lief gruen durch.
         Und die Buehne nutzt den gerechneten Raum: Ihre Grenzen kommen
         aus camSpace, keepRoom laeuft nach controls.update vor keepFree.
         Und der Federarm ruht: Haelt eine Wand die Kamera vor dem
@@ -224,7 +241,8 @@
         gleich: gerechnet an 16 Lagen ueber je 360 Bilder wechselnder
         Dauer, dazu rueckt die Wand heran und zurueck, und keepFree
         stellt die Kamera auf den Halt von camRest.
-        Klinken: Schiffe, davon mit Gang, Proben, Lagen des Federarms.
+        Klinken: Schiffe, davon mit Gang, Proben, Lagen des Federarms,
+        Ziele am Rand des Gangs.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -336,6 +354,25 @@
     ab  dort in keepFree die Kamera wieder nur auf das Ergebnis
         der Suche stellen (c.copy(keepAt(t, lo))): die gerechnete
         Ruhe gaelte im Hangar nicht                                 -> [23]
+    ac  dort camReach wie im ersten Stand der PR #354 (let L =
+        sp.far, ohne die Tiefe des Ziels): 197 Befunde, die Grenze
+        springt beim Drehen (600i: 17,24 m bei 0,49 Grad, erlaubt
+        1,48), neben dem Gang darf die Kamera bis far              -> [23]
+    ad  dort neben dem Gang die Kugel, im Gang aber far ohne die
+        Wurzel (let L = sp.far): 77 Befunde, 890 Jump 1,02 m vor dem
+        Rand 57,87 m bei 0,49 Grad (erlaubt 4,84)                   -> [23]
+    ae  dort statt der Wurzel die vierte Wurzel: 44 Befunde, die
+        Grenze dreht steiler als um das Ziel der Startansicht
+        (Carrack 3,62 m bei 0,49 Grad, erlaubt 3,21)                -> [23]
+    af  dort in camSpace min = NaN: 190 Befunde „keine endliche
+        Zahl“, alle 16 Proben rot. Das Tor von vor dem Review
+        meldete dazu 0 Befunde, die 16 Proben bestanden mit NaN,
+        nur die Klinke der Gaenge hielt                             -> [23]
+    ag  dort in camSpace edge = 60: die Startansicht waere
+        gedaempft (Carrack home 57,45 statt 74,03 m, 600i nur 0,16 m
+        hinter Bug und Heck)                                        -> [23]
+    ah  dort in camPlan home: NaN: 190 Befunde und 4 Proben rot.
+        Das Tor von vor dem Review blieb dabei ganz gruen           -> [23]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1773,10 +1810,18 @@ say('\n[23] Raum der Kamera: jedes Schiff der Halle durch camPlan des ausgeliefe
 // Halle gerechnet (184 mit Maszen im Dock, 6 nur mit Umriss), 60 davon mit
 // Gang zu den Stirnwaenden, 16 Proben. Die Masze kommen aus dem Katalog und
 // duerfen nach einem Datenlauf leicht schwanken, darum etwas Abstand.
-const RAUM = { schiffe: 188, gang: 56, proben: 16, ruhe: 16 };
+const RAUM = { schiffe: 188, gang: 56, proben: 16, ruhe: 16, rand: 5880 };
 // m hinter Bug und Heck (CAM_AIR 17,4 abzueglich Rand vor der Stirnwand am
 // Tor: gebaut 13,2) und m Zoom zwischen Mindestabstand und Kugel (gebaut 4,47)
 const RAUM_LUFT = 10, RAUM_ZOOM = 4;
+// Rand des Gangs: Ziele im, am und neben dem Gang, je Schiff mit Gang
+// (Anteile der halben Breite, der Hoehe und der halben Laenge des Gangs, von
+// seiner Mitte aus), und far hoechstens so viele Male die Tiefe des Ziels
+// der Startansicht im Gang (gebaut 8,39 am Javelin, 252 m ueber 30 m unter
+// den Wannen: je Grad Drehung dort hoechstens 14,7 % von far; Carrack 4,68,
+// Idris 4,24)
+const RAND_X = [-1.04, -0.98, 0, 0.75, 0.98, 1, 1.04], RAND_Y = [0.45, 0.97, 1.02], RAND_Z = [-1.02, -0.97, 0, 0.97, 1.02];
+const RAUM_STEIL = 9;
 // Angesehen und abgenommen am 13.11.2026 (Masze wie in der Halle gemessen):
 // Mindestabstand, Kugel, Hoechstabstand hinter Bug und Heck, Startansicht.
 // Aendern sich die Zahlen, stehen die Kameras anders: erst rendern und
@@ -1794,7 +1839,17 @@ const RAUM_PROBEN = [
   let hall = null, models = {};
   try { const cfg = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(PAGES[0].html)?.[1] ?? 'null'); hall = cfg?.opts?.hall ?? null; models = cfg?.models ?? {}; } catch { hall = null; }
   const clear = (() => { try { return JSON.parse(/\/\* hall-grow \*\/([\s\S]*?)\/\* \/hall-grow \*\//.exec(viewer)?.[1] ?? 'null')?.[hall?.id]?.clear ?? null; } catch { return null; } })();
-  let schiffe = 0, gang = 0, geschaetzt = 0, proben = 0, luftMin = Infinity, zoomMin = Infinity;
+  let schiffe = 0, gang = 0, geschaetzt = 0, proben = 0, luftMin = Infinity, zoomMin = Infinity, rand = 0, randR = 0, steil = 0, randMin = Infinity, farRand = 0;
+  // Richtungen fuer den Rand des Gangs, einmal fuer alle Schiffe: drei
+  // Umlaeufe (1,8, 12 und 40 Grad Hoehe) und vier Boegen vom Boden bis fast
+  // senkrecht, je halbes Grad; c: Sehne zur vorigen Richtung
+  const RAND_DIRS = (() => {
+    const G = Math.PI / 180, at = (az, e) => ({ x: Math.cos(e * G) * Math.sin(az * G), y: Math.sin(e * G), z: Math.cos(e * G) * Math.cos(az * G) }), out = [];
+    for (const e of [1.8, 12, 40]) out.push(Array.from({ length: 721 }, (_, i) => at(i / 2, e)));
+    for (const az of [0, 37, 90, 233]) out.push(Array.from({ length: 174 }, (_, i) => at(az, 1.8 + i / 2)));
+    for (const b of out) for (let i = 1; i < b.length; i++) b[i].c = Math.hypot(b[i].x - b[i - 1].x, b[i].y - b[i - 1].y, b[i].z - b[i - 1].z);
+    return out;
+  })();
   const bad = [];
   if (mod && !hall?.room) fail('[23] #hg-stage nennt keine Halle mit Raum (opts.hall.room): die Grenzen der Kamera sind nicht zu rechnen');
   else if (mod && !mod.camPlan(hall, { len: 20, halfW: 8, height: 5 })) fail(`[23] camPlan rechnet die Halle ${hall.id} nicht (kein Feld in HALL_LIFT oder kein Zuwachs in HALL_GROW)`);
@@ -1811,6 +1866,10 @@ const RAUM_PROBEN = [
       const hgt = fig.hgt > 0 ? fig.hgt : Math.max(3, wid / 4);
       if (!(fig.hgt > 0)) geschaetzt++;
       const info = { len, halfW: wid / 2, height: hgt }, span = Math.max(len, wid, 6), p = mod.camPlan(hall, info);
+      // NaN besteht jeden Vergleich mit < und >: nicht endliche Grenzen
+      // ausdruecklich, sonst gaelte eine kaputte Rechnung als bestanden
+      const krank = p ? Object.entries({ min: p.min, Kugel: p.ball, far: p.far, Startansicht: p.home, Rand: p.edge, 'Gang x': p.box?.x?.[0] + p.box?.x?.[1], 'Gang oben': p.box?.y, 'Gang z': p.box?.z?.[0] + p.box?.z?.[1] }).filter(([, v]) => !Number.isFinite(v)).map(([k]) => k) : ['alles (camPlan liefert nichts)'];
+      if (krank.length) { bad.push(`${id}: camPlan liefert keine endliche Zahl für ${krank.join(', ')}: die Grenzen der Kamera sind nicht zu prüfen, im Hangar stünde sie irgendwo`); continue; }
       schiffe++;
       const t = { x: 0, y: Math.max(1.2, hgt * 0.45 + 0.3), z: 0 };
       const hin = (az) => ({ x: Math.cos(el) * Math.sin(az), y: Math.sin(el), z: Math.cos(el) * Math.cos(az) });
@@ -1818,12 +1877,12 @@ const RAUM_PROBEN = [
       for (const [was, az] of [['Bug', Math.PI], ['Heck', 0]]) {
         const luft = mod.camReach(p, t, hin(az)) - len / 2;
         luftMin = Math.min(luftMin, luft);
-        if (luft < RAUM_LUFT) bad.push(`${id}: vor dem ${was} kommt die Kamera nur ${f2(luft)} m über die halbe Länge (${f2(len / 2)} m) hinaus, verlangt sind ${RAUM_LUFT}: ganz herausgezoomt stünde sie im oder am Rumpf`);
+        if (!(luft >= RAUM_LUFT)) bad.push(`${id}: vor dem ${was} kommt die Kamera nur ${f2(luft)} m über die halbe Länge (${f2(len / 2)} m) hinaus, verlangt sind ${RAUM_LUFT}: ganz herausgezoomt stünde sie im oder am Rumpf`);
       }
       const zoom = p.ball - p.min;
       zoomMin = Math.min(zoomMin, zoom);
-      if (zoom < RAUM_ZOOM || p.far < p.ball) bad.push(`${id}: zwischen Mindestabstand ${f2(p.min)} m und Kugel ${f2(p.ball)} m bleiben ${f2(zoom)} m Zoom, verlangt sind ${RAUM_ZOOM} (Höchstabstand ${f2(p.far)} m)`);
-      if (p.home < p.ball - 1e-9 || p.home > p.far + 1e-9) bad.push(`${id}: Startansicht ${f2(p.home)} m liegt nicht zwischen Kugel ${f2(p.ball)} m und Höchstabstand ${f2(p.far)} m`);
+      if (!(zoom >= RAUM_ZOOM) || !(p.far >= p.ball)) bad.push(`${id}: zwischen Mindestabstand ${f2(p.min)} m und Kugel ${f2(p.ball)} m bleiben ${f2(zoom)} m Zoom, verlangt sind ${RAUM_ZOOM} (Höchstabstand ${f2(p.far)} m)`);
+      if (!(p.home >= p.ball - 1e-9 && p.home <= p.far + 1e-9)) bad.push(`${id}: Startansicht ${f2(p.home)} m liegt nicht zwischen Kugel ${f2(p.ball)} m und Höchstabstand ${f2(p.far)} m`);
       // der Gang im Raum: vor den Galerien (7 m vor der Wand), unter den Wannen, vor den Stirnwänden
       const hx = (p.box.x[1] - p.box.x[0]) / 2, hz = (p.box.z[1] - p.box.z[0]) / 2, oben = (clear ?? p.room.height - p.grow[1]) + p.grow[1];
       if (hx > p.room.halfW - 7.6 || hz > p.room.halfL - 3.9 || p.box.y > oben - 4 || p.ball > 0.96 * Math.min(p.room.halfW, p.room.halfL))
@@ -1832,9 +1891,51 @@ const RAUM_PROBEN = [
       // nirgends, auch nicht nach oben, enger als die Kugel
       let prev = mod.camReach(p, t, hin(0)), sprung = 0, eng = Math.min(prev, mod.camReach(p, t, { x: 0, y: 1, z: 0 }));
       for (let g = 1; g <= 360; g++) { const r = mod.camReach(p, t, hin((g * Math.PI) / 180)); sprung = Math.max(sprung, Math.abs(r - prev)); eng = Math.min(eng, r); prev = r; }
-      if (sprung > 0.06 * p.far) bad.push(`${id}: die Grenze springt beim Drehen um ${f2(sprung)} m je Grad (Höchstabstand ${f2(p.far)} m): die Kamera ruckt`);
-      if (eng < p.ball - 1e-9) bad.push(`${id}: die Grenze fällt auf ${f2(eng)} m unter die Kugel (${f2(p.ball)} m): zur Seite und nach oben stünde die Kamera näher als bisher`);
-      if (p.far > p.ball + 1e-9) gang++;
+      if (!(sprung <= 0.06 * p.far)) bad.push(`${id}: die Grenze springt beim Drehen um ${f2(sprung)} m je Grad (Höchstabstand ${f2(p.far)} m): die Kamera ruckt`);
+      if (!(eng >= p.ball - 1e-9)) bad.push(`${id}: die Grenze fällt auf ${f2(eng)} m unter die Kugel (${f2(p.ball)} m): zur Seite und nach oben stünde die Kamera näher als bisher`);
+      if (p.far > p.ball + 1e-9) {
+        gang++;
+        // Rand des Gangs (Review PR #354). Das Blickziel bleibt nicht in der
+        // Hallenmitte: Schieben trägt es bis vor die Wände (Carrack: 5,75 m
+        // neben den Gang), ein Hardpoint liegt am Flügelende. Dort sprang die
+        // Grenze: Ziel 1 cm neben dem Gang, Kamera längs der Halle, 0,01 Grad
+        // Drehung, und sie fiel von far auf die Kugel (Carrack 24,5 m, Idris
+        // 54,7 m), die Kamera stand bis dahin ganz draußen neben dem Gang.
+        // Für jedes Ziel gilt: beim Drehen ändert sich die Grenze höchstens
+        // um far² / Rand je Bogenmaß (Rand: Tiefe des Ziels der Startansicht
+        // im Gang, p.edge), beim Schieben um far² / (Rand · Kugel) je Meter,
+        // am und neben dem Gang gilt die Kugel, und jenseits der Kugel steht
+        // die Kamera im Gang.
+        const B = p.box, K = p.far ** 2 / p.edge, mx = (B.x[0] + B.x[1]) / 2, mz = (B.z[0] + B.z[1]) / 2, bx = (B.x[1] - B.x[0]) / 2, bz = (B.z[1] - B.z[0]) / 2;
+        const tief = (q) => Math.min(q.x - B.x[0], B.x[1] - q.x, B.y - q.y, q.z - B.z[0], B.z[1] - q.z), ort = (q) => `(${f2(q.x)}, ${f2(q.y)}, ${f2(q.z)})`;
+        randMin = Math.min(randMin, p.edge); farRand = Math.max(farRand, p.far / p.edge);
+        if (!(tief(t) >= p.edge - 1e-9)) bad.push(`${id}: das Ziel der Startansicht liegt ${f2(tief(t))} m tief im Gang, gerechnet wird mit ${f2(p.edge)} m: die Startansicht stünde näher als abgenommen`);
+        if (!(p.far <= RAUM_STEIL * p.edge)) bad.push(`${id}: far ${f2(p.far)} m ist mehr als das ${RAUM_STEIL}-Fache der Tiefe des Ziels der Startansicht im Gang (${f2(p.edge)} m): beim Drehen rückte die Kamera um mehr als ${(RAUM_STEIL * 1.745).toFixed(1)} % von far je Grad`);
+        const w = { dreh: null, schub: null, neben: null, aus: null, wert: null };
+        for (const fx of RAND_X) for (const fy of RAND_Y) for (const fz of RAND_Z) {
+          const q = { x: mx + fx * bx, y: fy * B.y, z: mz + fz * bz }, tq = tief(q), wo = tq > 0 ? `${f2(tq)} m tief im Gang` : `${f2(-tq)} m neben dem Gang`;
+          rand++;
+          for (const bogen of RAND_DIRS) {
+            let prev = NaN;
+            for (let i = 0; i < bogen.length; i++) {
+              const d = bogen[i], r = mod.camReach(p, q, d);
+              randR++;
+              if (!(r >= p.ball - 1e-9 && r <= p.far + 1e-9)) { w.wert ??= `am Ziel ${ort(q)} (${wo}) ist die Grenze ${f2(r)} m, außerhalb von Kugel ${f2(p.ball)} m und far ${f2(p.far)} m`; prev = r; continue; }
+              if (i) { const x = Math.abs(r - prev) / (K * d.c); steil = Math.max(steil, x); if (x > 1 + 1e-9 && !(w.dreh?.x >= x)) w.dreh = { x, s: `am Ziel ${ort(q)} (${wo}) ändert sich die Grenze bei ${(d.c * 180 / Math.PI).toFixed(2)} Grad Drehung um ${f2(Math.abs(r - prev))} m (${f2(prev)} auf ${f2(r)} m), erlaubt sind ${f2(K * d.c)} m: die Kamera springt beim Drehen` }; }
+              prev = r;
+              if (!(tq > 0) && r > p.ball + 1e-9) w.neben ??= `das Ziel ${ort(q)} liegt ${wo}, und die Kamera darf doch ${f2(r)} m weit (Kugel ${f2(p.ball)} m): sie stünde neben dem Gang vor Galerien und Wänden`;
+              if (r > p.ball + 1e-9) { const cx = q.x + d.x * r, cy = q.y + d.y * r, cz = q.z + d.z * r; if (cx < B.x[0] - 1e-6 || cx > B.x[1] + 1e-6 || cy > B.y + 1e-6 || cz < B.z[0] - 1e-6 || cz > B.z[1] + 1e-6) w.aus ??= `am Ziel ${ort(q)} (${wo}) steht die Kamera bei ${f2(r)} m jenseits der Kugel außerhalb des Gangs (${f2(cx)}, ${f2(cy)}, ${f2(cz)})`; }
+              // 10 cm schieben, längs jeder Achse
+              if (i % 24 === 0) for (const a of ['x', 'y', 'z']) {
+                const r2 = mod.camReach(p, { ...q, [a]: q[a] + 0.1 }, d), x = Math.abs(r2 - r) / ((K / p.ball) * 0.1);
+                randR++;
+                if (!(x <= 1 + 1e-9) && !(w.schub?.x >= x)) w.schub = { x, s: `am Ziel ${ort(q)} (${wo}) ändert sich die Grenze bei 10 cm Schieben (${a}) um ${f2(Math.abs(r2 - r))} m (${f2(r)} auf ${f2(r2)} m), erlaubt sind ${f2((K / p.ball) * 0.1)} m: die Kamera springt beim Schieben` };
+              }
+            }
+          }
+        }
+        for (const v of Object.values(w)) if (v) bad.push(`${id}: ${v.s ?? v}`);
+      }
       // kleine Schiffe merken nichts
       if (span <= 34 && (Math.abs(p.far - p.ball) > 1e-9 || Math.abs(p.min - Math.max(4, span * 0.45)) > 1e-9)) bad.push(`${id}: ${f2(span)} m Spannweite, und doch ändern sich die Grenzen (min ${f2(p.min)}, Kugel ${f2(p.ball)}, far ${f2(p.far)}): Schiffe bis 34 m sollen nichts merken`);
     }
@@ -1842,7 +1943,7 @@ const RAUM_PROBEN = [
       const p = mod.camPlan(hall, info);
       for (const k of Object.keys(soll)) {
         proben++;
-        if (Math.abs(p[k] - soll[k]) > 0.02) fail(`[23] Probe ${name}: ${k} ist ${p[k].toFixed(2)} m, angesehen und abgenommen sind ${soll[k]} m: erst rendern und hinsehen, dann die Zahl im Tor nachziehen (RAUM_PROBEN)`);
+        if (!(Math.abs(p?.[k] - soll[k]) <= 0.02)) fail(`[23] Probe ${name}: ${k} ist ${Number.isFinite(p?.[k]) ? p[k].toFixed(2) : String(p?.[k])} m, angesehen und abgenommen sind ${soll[k]} m: erst rendern und hinsehen, dann die Zahl im Tor nachziehen (RAUM_PROBEN)`);
       }
     }
   }
@@ -1906,17 +2007,18 @@ const RAUM_PROBEN = [
   }
   for (const t of bad.slice(0, 12)) fail(`[23] ${t}`);
   if (bad.length > 12) fail(`[23] … und ${bad.length - 12} weitere Befunde am Raum der Kamera`);
-  sollIst(`Schiffe der Halle >= ${RAUM.schiffe}, davon mit Gang >= ${RAUM.gang}; hinter Bug und Heck >= ${RAUM_LUFT} m, Zoom >= ${RAUM_ZOOM} m, Gang im Raum, stetig; Proben >= ${RAUM.proben}; Federarm ruht in allen Lagen (>= ${RAUM.ruhe})`,
-    `${schiffe} Schiffe (${geschaetzt} mit geschätzter Höhe), ${gang} mit Gang, kleinste Luft ${Number.isFinite(luftMin) ? luftMin.toFixed(2) : '—'} m, kleinster Zoom ${Number.isFinite(zoomMin) ? zoomMin.toFixed(2) : '—'} m, ${bad.length} Befunde, ${proben} Proben, ${verdrahtet} von ${draht.length} Stellen der Bühne, Federarm ruht in ${ruht} von ${ruhe} Lagen`);
+  sollIst(`Schiffe der Halle >= ${RAUM.schiffe}, davon mit Gang >= ${RAUM.gang}; hinter Bug und Heck >= ${RAUM_LUFT} m, Zoom >= ${RAUM_ZOOM} m, Gang im Raum, stetig; am Rand des Gangs >= ${RAUM.rand} Ziele ohne Sprung, far <= ${RAUM_STEIL} x Rand; Proben >= ${RAUM.proben}; Federarm ruht in allen Lagen (>= ${RAUM.ruhe})`,
+    `${schiffe} Schiffe (${geschaetzt} mit geschätzter Höhe), ${gang} mit Gang, kleinste Luft ${Number.isFinite(luftMin) ? luftMin.toFixed(2) : '—'} m, kleinster Zoom ${Number.isFinite(zoomMin) ? zoomMin.toFixed(2) : '—'} m, ${bad.length} Befunde, am Rand des Gangs ${rand} Ziele und ${randR} Richtungen (steilste Stelle ${(steil * 100).toFixed(1)} % des Erlaubten, kleinster Rand ${Number.isFinite(randMin) ? randMin.toFixed(2) : '—'} m, far höchstens ${farRand.toFixed(2)} x Rand), ${proben} Proben, ${verdrahtet} von ${draht.length} Stellen der Bühne, Federarm ruht in ${ruht} von ${ruhe} Lagen`);
   if (schiffe < RAUM.schiffe) fail(`[23] nur ${schiffe} Schiffe der Halle gerechnet (Klinke ${RAUM.schiffe}): lädt der Viewer nicht, fehlt #hg-stage oder nennt das Dock keine Maße mehr?`);
   if (gang < RAUM.gang) fail(`[23] nur ${gang} Schiffe mit Gang zu den Stirnwänden (Klinke ${RAUM.gang}): große Schiffe stünden wieder in der Kugel`);
   if (proben < RAUM.proben) fail(`[23] nur ${proben} Proben am Raum der Kamera (Klinke ${RAUM.proben})`);
+  if (mod && rand < RAUM.rand) fail(`[23] nur ${rand} Ziele am Rand des Gangs gerechnet (Klinke ${RAUM.rand}): ob die Grenze dort springt, prüft dann nichts`);
   if (mod && ruhe < RAUM.ruhe) fail(`[23] nur ${ruhe} Lagen des Federarms gerechnet (Klinke ${RAUM.ruhe})`);
-  ist.raumSchiffe = schiffe; ist.raumGang = gang; ist.raumProben = proben; ist.raumRuhe = ruht;
+  ist.raumSchiffe = schiffe; ist.raumGang = gang; ist.raumProben = proben; ist.raumRuhe = ruht; ist.raumRand = rand;
 }
 
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

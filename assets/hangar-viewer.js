@@ -583,22 +583,41 @@ function growNeed(info, L, s, height) {
 // info: Maße des Schiffs, room: Raum der Halle mit Zuwachs (Modellmeter),
 // k: Maßstab der Halle, at: Raummitte in der Welt [x, z], top: freie Höhe
 // über dem Boden (Modellmeter, null: Raumhöhe).
+// edge: So tief liegt das Blickziel der Startansicht (0, homeY, 0) im Gang,
+// der Abstand zur nächsten seiner fünf Flächen (camReach).
 const CAM_NEAR = 30, CAM_AIR = 17.4, CAM_SIDE = [0.9, 6.75], CAM_TOP = 4.5, CAM_END = 4;
+// Höhe des Blickziels der Startansicht über dem Boden
+const homeY = (height) => Math.max(1.2, height * 0.45 + 0.3);
 export function camSpace(info, room, k = 1, at = [0, 0], top = null) {
   const span = Math.max(info.len, info.halfW * 2, 6);
   const min = Math.max(4, Math.min(span * 0.45, CAM_NEAR));
   const ball = Math.max(min, (0.9 * Math.min(room.halfW, room.halfL) * k) / 0.94);
   const far = Math.max(ball, span / 2 + CAM_AIR * k);
   const hx = Math.max(0, CAM_SIDE[0] * room.halfW - CAM_SIDE[1]) * k, hz = Math.max(0, room.halfL - CAM_END) * k;
-  return { min, ball, far, box: { x: [at[0] - hx, at[0] + hx], y: ((top ?? room.height) - CAM_TOP) * k, z: [at[1] - hz, at[1] + hz] } };
+  const y = ((top ?? room.height) - CAM_TOP) * k;
+  const edge = Math.max(1, Math.min(hx - Math.abs(at[0]), y - homeY(info.height), hz - Math.abs(at[1])));
+  return { min, ball, far, edge, box: { x: [at[0] - hx, at[0] + hx], y, z: [at[1] - hz, at[1] + hz] } };
 }
 // So weit darf die Kamera vom Ziel t in Richtung d (Einheitsvektor): im
-// Gang bis far, sonst bis zur Kugel. Stetig in t und d, also ohne Sprung
-// beim Drehen.
+// Gang bis far, sonst bis zur Kugel.
+// Das Ziel bleibt nicht in der Hallenmitte: Schieben trägt es bis vor die
+// Wände, ein Hardpoint liegt am Flügelende oder auf dem Rumpf. Nur bis zur
+// Fläche gerechnet, durch die die Linie den Gang verlässt, sprang die Grenze
+// dort (Review PR #354): mit dem Ziel 1 cm neben dem Gang und der Kamera
+// längs der Halle bei 0,01 Grad Drehung von far auf die Kugel (Carrack
+// 24,5 m, Idris 54,7 m), und knapp vor einer Fläche fast so steil. Darum
+// schrumpft der Höchstabstand mit der Tiefe des Ziels im Gang (dem Abstand
+// zur nächsten Fläche): far · Wurzel(Tiefe / edge), ab der Tiefe des Ziels
+// der Startansicht (edge) voll, an und neben dem Gang nur die Kugel. Mit der
+// Wurzel ändert sich die Grenze für jedes Ziel beim Drehen höchstens um
+// far² / edge je Bogenmaß, so viel wie um das Ziel der Startansicht an
+// seiner nächsten Fläche, und beim Schieben höchstens um far² / (edge ·
+// Kugel) je Meter. Die Startansicht selbst ändert sich dadurch nicht.
 export function camReach(sp, t, d) {
   if (sp.far <= sp.ball) return sp.ball;
-  const B = sp.box;
-  let L = sp.far;
+  const B = sp.box, deep = Math.min(t.x - B.x[0], B.x[1] - t.x, B.y - t.y, t.z - B.z[0], B.z[1] - t.z);
+  if (!(deep > 0)) return sp.ball;
+  let L = sp.far * Math.sqrt(Math.min(1, deep / sp.edge));
   if (d.x > 1e-9) L = Math.min(L, (B.x[1] - t.x) / d.x); else if (d.x < -1e-9) L = Math.min(L, (B.x[0] - t.x) / d.x);
   if (d.y > 1e-9) L = Math.min(L, (B.y - t.y) / d.y);
   if (d.z > 1e-9) L = Math.min(L, (B.z[1] - t.z) / d.z); else if (d.z < -1e-9) L = Math.min(L, (B.z[0] - t.z) / d.z);
@@ -642,8 +661,6 @@ export function camRest(H, t, d, lo, L) {
   if (!same) { H.t[0] = t.x; H.t[1] = t.y; H.t[2] = t.z; H.d[0] = d.x; H.d[1] = d.y; H.d[2] = d.z; H.x = lo; }
   return same;
 }
-// Höhe des Blickziels der Startansicht über dem Boden
-const homeY = (height) => Math.max(1.2, height * 0.45 + 0.3);
 // Dieselbe Rechnung aus dem, was die Seite der Bühne mitgibt (hall:
 // opts.hall), für ein Schiff mit den Maßen info: Zuwachs der Halle, ihr Raum
 // und die Grenzen der Kamera, dazu die Grenze in der Startansicht (home).
