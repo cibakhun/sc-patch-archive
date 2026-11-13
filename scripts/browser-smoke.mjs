@@ -36,10 +36,11 @@
      5  kein waagerechter Ueberlauf (die wiederkehrende 360-px-Falle)
      6  kein Element mit hidden-Attribut wird gezeichnet
      7  Selbstauskunft + Klinke: wie viele Aufrufe wurden wirklich gefahren
-     8  1 und 2 auch nach dem ersten Blick (nachgeladene Dateien, alles, was
-        eine Probe bedient, Seiten in einem Rahmen), und jedes eigene
+     8  1, 2 und 3 auch nach dem ersten Blick (nachgeladene Dateien, alles,
+        was eine Probe bedient, Seiten in einem Rahmen), und jedes eigene
         Stilblatt ist geladen (ein gescheitertes meldet der Browser nie als
-        Antwort)
+        Antwort). Stilblaetter und CSP melden die Dokumente selbst, jedes in
+        jedem Rahmen und sofort: auch eines, das es am Ende nicht mehr gibt
 
      node scripts/browser-smoke.mjs --base http://localhost:4321
      node scripts/browser-smoke.mjs --base https://staging.verse-base.com
@@ -174,7 +175,7 @@ const SEITEN = [
   // /hangar-layouts.json und stehen erst, wenn Datei und Skript geladen sind.
   // tafel=1: ohne steht die Ausruestung ab 761 px als Hologramm in der Halle
   // (dieselbe Werkstatt, gezeichnet statt als Knoepfe), und #hgl-slots bleibt zu.
-  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)) ?? (await probeFussleiste(page)) ?? (await probeLeitTastatur(page)), minRahmenAntworten: 8, nurMitHangar: true },
+  { id: 'hangar-layout', en: '/hangar.html?tafel=1', de: '/de/hangar.html?tafel=1', leit: '#hgl-slots .hgl-slot', minAnzahl: 3, warteLeit: 30000, probe: async (page) => (await probeWerkstatt(page)) ?? (await probeTerminal(page)) ?? (await probeFussleiste(page)) ?? (await probeLeitTastatur(page)), minRahmenAntworten: 8, minRahmenBlaetter: 8, nurMitHangar: true },
   // Der 404-Fall: nginx muss die EIGENE Seite ausliefern, nicht sein
   // Standardblatt. Als Marke dient der Heimweg-Link — ein `h1` haette auch
   // die nginx-Standardseite („404 Not Found"), dieser Link nur unserer.
@@ -221,7 +222,7 @@ const erklaert = [];
 const ZAEHLER_HOST = /stats\.verse-base\.com/;
 
 const fehler = [];
-let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0;
+let aufrufe = 0, geprueftePunkte = 0, erwarteteCsp = 0, hiddenGeprueft = 0, syncAnzeigen = 0, schubladen = 0, fussBreiten = 0, fussEng = 0, fussNeben = 0, probenLaeufe = 0, probenAntworten = 0, probenRahmen = 0, probenEingespielt = 0, leitKnoepfe = 0, stilblaetter = 0, stilDokumente = 0, stilGehoert = 0, stilRahmen = 0, cspGehoertGesamt = 0, cspSpaetGesamt = 0;
 
 /* ---------- Was „sichtbar“ heisst ----------
    EINE Bestimmung fuer die Frage „sieht man das?“, damit keine Probe ihre
@@ -1998,6 +1999,14 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     }
   });
 
+  // Was der Browser nur dem Dokument sagt (ein Stilblatt ist geladen oder
+  // gescheitert, ein CSP-Verstoss), melden die Dokumente selbst heraus: ueber
+  // den Meldeweg unten, aus jedem Rahmen und in dem Augenblick, in dem es
+  // geschieht. gescheitert und csp tragen den Pfad ihres Dokuments.
+  const gehoert = { blaetter: 0, blaetterImRahmen: 0, gescheitert: [], csp: new Map() };
+  // die Verstoesse, die [3] am ersten Blick schon gewertet hat
+  let cspGesehen = new Set();
+
   const marke = `${seite.id}/${sprache} [${variante.id}]`;
   // Ein Befund ist ein FEHLER — es sei denn, genau diese Stelle steht als
   // benannte Ausnahme mit Grund in AUSNAHMEN. Dann wird sie als erklaert
@@ -2013,6 +2022,38 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
   };
 
   try {
+    // Der Meldeweg aus den Dokumenten. Ein Blick ins Dokument am Ende des
+    // Seitenaufrufs sieht nur die Dokumente, die es dann noch gibt, und darin
+    // nur die Links, die noch dastehen. Die Probe des Terminals wechselt die
+    // Seite im Rahmen aber mehrmals, und die Suche nimmt den Link ihres
+    // nachgeladenen Blatts selbst wieder heraus, wenn es scheitert
+    // (assets/data-search.js): Beides blieb gruen (Review PR #355, dritte
+    // Runde). Deshalb haengt in JEDEM Dokument jedes Rahmens ein Lauscher,
+    // bevor dort irgendetwas laedt, und meldet sofort nach draussen. Was er
+    // gehoert hat, bleibt gehoert, auch wenn Link oder Dokument danach weg
+    // sind. load und error eines Links steigen nicht auf, kommen in der
+    // Fangphase aber am Dokument vorbei. Ein Seitenwechsel mitten im Laden
+    // loest kein error aus (gemessen: 18 Wechsel zwischen 0 und 400 ms, 71
+    // load, kein error), die abgebrochenen Anfragen des Terminals sind also
+    // kein Fehlalarm.
+    await page.exposeBinding('__vbRauch', ({ frame }, art, was, wo) => {
+      const imRahmen = frame !== page.mainFrame();
+      if (art === 'blatt-load') { gehoert.blaetter++; if (imRahmen) gehoert.blaetterImRahmen++; }
+      else if (art === 'blatt-error') gehoert.gescheitert.push({ was: String(was), wo: String(wo), imRahmen });
+      else if (art === 'csp' && !gehoert.csp.has(String(was))) gehoert.csp.set(String(was), { wo: String(wo), imRahmen });
+    });
+    await page.addInitScript(() => {
+      const eigenesBlatt = (t) => t instanceof HTMLLinkElement && t.relList.contains('stylesheet') && !t.relList.contains('alternate')
+        && new URL(t.href, location.href).origin === location.origin;
+      for (const art of ['load', 'error'])
+        document.addEventListener(art, (e) => {
+          if (eigenesBlatt(e.target)) window.__vbRauch?.(`blatt-${art}`, e.target.getAttribute('href'), location.pathname);
+        }, true);
+      document.addEventListener('securitypolicyviolation', (e) => {
+        window.__vbRauch?.('csp', `${e.violatedDirective} ${e.blockedURI || ''}`.trim(), location.pathname);
+      });
+    });
+
     const antwort = await page.goto(BASE + pfad, { waitUntil: 'domcontentloaded', timeout: 30000 });
     aufrufe++;
     if (seite.erwarteterStatus && antwort?.status() !== seite.erwarteterStatus)
@@ -2051,6 +2092,7 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     const csp = [...new Set(await page.evaluate(() => window.__cspVerstoesse ?? []))];
     const erwartet = csp.filter((v) => ZAEHLER_HOST.test(v));
     const unerwartet = csp.filter((v) => !ZAEHLER_HOST.test(v));
+    cspGesehen = new Set(csp);
     if (unerwartet.length) melde('csp', `CSP-Verstoss: ${unerwartet.slice(0, 3).join(', ')}`);
     if (erwartet.length) {
       if (IST_VORSCHAU) erwarteteCsp++;
@@ -2221,35 +2263,98 @@ async function pruefe(kontext, variante, seite, pfad, sprache) {
     // die Anfrage endet als abgebrochen statt als Antwort (gemessen am
     // 13.11.2026 beim Rotlauf zu dieser Zusicherung; ein Skript meldet seine
     // 404 dagegen). Abgebrochene Anfragen sind als Signal unbrauchbar, jeder
-    // Seitenwechsel im Fenster des Terminals bricht welche ab. Deshalb am
-    // Dokument gefragt: Jedes eingebundene eigene Stilblatt ist geladen, im
-    // Dokument selbst und in jeder eigenen Seite in einem Rahmen. Geladen
-    // heisst: seine Regeln sind lesbar. Ein Blatt (link.sheet) bekommt auch
-    // das gescheiterte, erst der Griff nach cssRules wirft dort (gemessen).
+    // Seitenwechsel im Fenster des Terminals bricht welche ab. Das Urteil
+    // kommt deshalb aus den Dokumenten, auf zwei Wegen:
+    //   · gehoert: das error, das der Meldeweg oben in irgendeinem Dokument
+    //     des Seitenaufrufs gehoert hat, wann auch immer;
+    //   · gesehen: in den Dokumenten, die es jetzt noch gibt, sind die Regeln
+    //     jedes eingebundenen eigenen Blatts lesbar. Ein Blatt (link.sheet)
+    //     bekommt auch das gescheiterte, erst der Griff nach cssRules wirft
+    //     dort (gemessen). Dieser Blick wartet zugleich auf Blaetter, die
+    //     noch unterwegs sind, und er haelt den Meldeweg ehrlich: Was er
+    //     findet, zaehlt auch dann, wenn der Meldeweg es nicht gehoert hat.
     geprueftePunkte++;
+    const ohneBlatt = new Map(); // je Dokument die Blaetter, die dort nicht geladen sind
+    const merke = (wo, imRahmen, was) => {
+      const k = `${imRahmen ? 'rahmen' : 'oben'} ${wo}`;
+      if (!ohneBlatt.has(k)) ohneBlatt.set(k, { wo, imRahmen, was: new Set() });
+      ohneBlatt.get(k).was.add(was);
+    };
     for (const rahmen of page.frames()) {
-      if (rahmen.isDetached() || !rahmen.url().startsWith(BASE)) continue;
-      const b = await rahmen.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 })
-        .then(() => rahmen.evaluate(async () => {
-          const alle = [...document.querySelectorAll('link[rel~="stylesheet"]:not([rel~="alternate"])')]
-            .filter((l) => !l.disabled && new URL(l.href, location.href).origin === location.origin);
-          // Ein Blatt, das ein Skript eben erst eingehaengt hat (die Suche laedt
-          // ihres beim ersten Oeffnen), ist noch unterwegs und hat noch kein
-          // sheet: auf sein load oder error warten, hoechstens 5 s, statt es
-          // als gescheitert zu lesen.
-          await Promise.all(alle.filter((l) => !l.sheet).map((l) => new Promise((fertig) => {
-            l.addEventListener('load', fertig, { once: true });
-            l.addEventListener('error', fertig, { once: true });
-            setTimeout(fertig, 5000);
-          })));
-          const geladen = (l) => { try { return !!l.sheet && l.sheet.cssRules.length >= 0; } catch { return false; } };
-          return { n: alle.length, ohne: alle.filter((l) => !geladen(l)).map((l) => l.getAttribute('href')), wo: location.pathname };
-        }))
-        .catch(() => null); // der Rahmen ist inzwischen weg oder laedt noch: nichts zu sagen
-      if (!b) continue;
+      // Fehlen darf hier nur ein Dokument, das es nachweislich nicht mehr gibt
+      // (der Rahmen ist weg oder zeigt keine eigene Seite mehr). Ein Dokument,
+      // das noch da ist und sich nicht lesen laesst (nach 10 s nicht fertig
+      // geladen, oder die Abfrage wirft), wurde bis zur dritten Review-Runde
+      // von PR #355 still uebersprungen, und die Blaetter der anderen
+      // Seitenaufrufe hielten die Untergrenze trotzdem. Jetzt ist das ein
+      // Befund. Zwei Anlaeufe: Wechselt das Dokument waehrend des Lesens,
+      // gilt der zweite dem neuen.
+      let b = null, grund = '';
+      for (let anlauf = 0; anlauf < 2 && !b; anlauf++) {
+        if (rahmen.isDetached() || !rahmen.url().startsWith(BASE)) { grund = ''; break; }
+        try {
+          await rahmen.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
+          b = await rahmen.evaluate(async () => {
+            const alle = [...document.querySelectorAll('link[rel~="stylesheet"]:not([rel~="alternate"])')]
+              .filter((l) => !l.disabled && new URL(l.href, location.href).origin === location.origin);
+            // Ein Blatt, das ein Skript eben erst eingehaengt hat (die Suche laedt
+            // ihres beim ersten Oeffnen), ist noch unterwegs und hat noch kein
+            // sheet: auf sein load oder error warten, hoechstens 5 s, statt es
+            // als gescheitert zu lesen.
+            await Promise.all(alle.filter((l) => !l.sheet).map((l) => new Promise((fertig) => {
+              l.addEventListener('load', fertig, { once: true });
+              l.addEventListener('error', fertig, { once: true });
+              setTimeout(fertig, 5000);
+            })));
+            const geladen = (l) => { try { return !!l.sheet && l.sheet.cssRules.length >= 0; } catch { return false; } };
+            return { n: alle.length, ohne: alle.filter((l) => !geladen(l)).map((l) => l.getAttribute('href')), wo: location.pathname };
+          });
+        } catch (e) {
+          grund = e.message.split('\n')[0];
+        }
+      }
+      const imRahmen = rahmen !== page.mainFrame();
+      if (!b) {
+        if (grund && !rahmen.isDetached() && rahmen.url().startsWith(BASE))
+          melde('stilblatt-blick', `die Stilblaetter von ${new URL(rahmen.url()).pathname}${imRahmen ? ' (Seite im Rahmen)' : ''} liessen sich am Ende nicht lesen: ${grund} — das Dokument ist noch da, sein Blick fehlt in der Bilanz`);
+        continue;
+      }
+      stilDokumente++;
       stilblaetter += b.n - b.ohne.length;
-      if (b.ohne.length) melde('stilblatt', `${b.ohne.length} Stilblatt/Stilblaetter nicht geladen${rahmen === page.mainFrame() ? '' : ` in ${b.wo} (Seite im Rahmen)`}: ${b.ohne.slice(0, 3).join(', ')}`);
+      for (const was of b.ohne) merke(b.wo, imRahmen, was);
     }
+    for (const g of gehoert.gescheitert) merke(g.wo, g.imRahmen, g.was);
+    for (const d of ohneBlatt.values())
+      melde('stilblatt', `${d.was.size} Stilblatt/Stilblaetter nicht geladen${d.imRahmen ? ` in ${d.wo} (Seite im Rahmen)` : ''}: ${[...d.was].slice(0, 3).join(', ')}`);
+    stilGehoert += gehoert.blaetter;
+    stilRahmen += gehoert.blaetterImRahmen;
+    // Selbstauskunft je Szenario, wie minRahmenAntworten oben: Laedt die Probe
+    // Seiten in einen Rahmen, muss der Meldeweg dort Blaetter laden gehoert
+    // haben. Sonst hinge er nur noch im Dokument oben und waere fuer die
+    // Seiten im Terminal taub und trotzdem gruen.
+    if (seite.minRahmenBlaetter && probeOhneBefund && gehoert.blaetterImRahmen < seite.minRahmenBlaetter)
+      melde('stil-lauscher', `nur ${gehoert.blaetterImRahmen} geladene Stilblaetter aus Seiten in einem Rahmen gehoert, Untergrenze ${seite.minRahmenBlaetter} — der Meldeweg aus den Dokumenten hoert die Seiten im Terminal nicht mehr; Ursache klaeren, nicht die Untergrenze senken`);
+
+    // CSP wie [3], fuer den Rest: [3] liest einmal, am ersten Blick, und nur
+    // im Dokument oben. Was der Meldeweg darueber hinaus gehoert hat, kam
+    // spaeter oder aus einer Seite in einem Rahmen. Gleiche Erwartung wie
+    // dort: Der Zaehl-Host darf nur im Vorschau-Bau verstossen.
+    geprueftePunkte++;
+    const cspNeu = [...gehoert.csp].filter(([v]) => !cspGesehen.has(v));
+    cspGehoertGesamt += gehoert.csp.size;
+    cspSpaetGesamt += cspNeu.length;
+    const woher = ([v, d]) => `${v}${d.imRahmen ? ` in ${d.wo} (Seite im Rahmen)` : ''}`;
+    const cspUnerwartet = cspNeu.filter(([v]) => !ZAEHLER_HOST.test(v));
+    if (cspUnerwartet.length)
+      melde('csp-spaet', `CSP-Verstoss nach dem Aufbau der Seite oder in einer Seite in einem Rahmen: ${cspUnerwartet.slice(0, 3).map(woher).join(', ')}`);
+    const cspZaehler = cspNeu.filter(([v]) => ZAEHLER_HOST.test(v));
+    if (cspZaehler.length && !IST_VORSCHAU)
+      melde('csp-spaet', `der Zaehl-Host ist auf dem LIVE-Build blockiert: ${woher(cspZaehler[0])} — die Besucherstatistik laedt nicht`);
+    // Selbstauskunft: Was [3] im Dokument gelesen hat, muss auch der Meldeweg
+    // gehoert haben, es ist dasselbe Ereignis. Sonst waere er fuer CSP taub.
+    const cspTaub = [...cspGesehen].filter((v) => !gehoert.csp.has(v));
+    if (cspTaub.length)
+      melde('csp-lauscher', `[3] hat im Dokument ${cspTaub.length} CSP-Verstoss/Verstoesse gelesen, die der Meldeweg aus den Dokumenten nicht gehoert hat (${cspTaub[0]}) — [8] waere fuer CSP taub; Ursache klaeren`);
   } catch (e) {
     melde('aufruf', `Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
   } finally {
@@ -2358,9 +2463,12 @@ console.log(`  [7] Filter-Schubladen am Telefon geprueft: ${schubladen}   Unterg
 if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Fussleiste des Hangars: ${fussBreiten} Breiten gemessen, an ${fussEng} wichen Namen den Zeichen (Untergrenze ${FUSS_MIN_ENG} je Sprache), an ${fussNeben} rueckte sie neben die Zeichen der Buehne (Untergrenze 1 je Sprache)`);
 if (seiten.some((x) => x.id === 'hangar-layout')) console.log(`  Leitstand: ${leitKnoepfe} Bedienelemente in der Tab-Reihenfolge auf ihren Platz im Bild geprueft (Untergrenze ${LEIT_MIN_KNOEPFE} je Sprache)`);
 if (probenLaeufe) console.log(`  Proben: ${probenLaeufe} gefahren, dabei ${probenAntworten} Antworten eigener Ressourcen mitgelesen, ${probenRahmen} davon aus Seiten in einem Rahmen; ${probenEingespielt} Fehlantwort(en) hat eine Probe selbst eingespielt, wie am Szenario erklaert (nicht gewertet)`);
-console.log(`  [8] Stilblaetter mit geladenem Blatt: ${stilblaetter}   Untergrenze: eines je Seitenaufruf (${aufrufe})`);
+console.log(`  [8] Stilblaetter: ${stilGehoert} beim Laden gehoert, ${stilRahmen} davon in Seiten in einem Rahmen; am Ende ${stilblaetter} mit lesbarem Blatt in ${stilDokumente} Dokumenten   Untergrenze beider Zaehler: eines je Seitenaufruf (${aufrufe})`);
 if (stilblaetter < aufrufe)
   fehler.push(`[8] nur ${stilblaetter} geladene Stilblaetter bei ${aufrufe} Seitenaufrufen gezaehlt — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
+if (stilGehoert < aufrufe)
+  fehler.push(`[8] der Meldeweg aus den Dokumenten hat nur ${stilGehoert} Stilblaetter laden gehoert bei ${aufrufe} Seitenaufrufen — taub? Ursache klaeren, nicht die Untergrenze senken`);
+console.log(`  [8] CSP-Verstoesse ueber den Meldeweg aus den Dokumenten: ${cspGehoertGesamt} gehoert, ${cspSpaetGesamt} davon nach dem ersten Blick oder aus einer Seite in einem Rahmen`);
 if (schubladen < MIN_SCHUBLADEN && !NUR)
   fehler.push(`[7] nur ${schubladen} Filter-Schubladen geprueft, Untergrenze ist ${MIN_SCHUBLADEN} — leerlaufende Abfrage? Ursache klaeren, nicht die Untergrenze senken`);
 if (hiddenGeprueft < MIN_HIDDEN && !NUR)
