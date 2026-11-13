@@ -120,7 +120,7 @@
     "linkedom": "^0.18.13",
     "meshoptimizer": "^1.2.0",
     "playwright-core": "^1.62.1",
-    "three": "^0.185.1",
+    "three": "^0.187.0",
     "typescript": "^5.9.3"
   },
   "overrides": {
