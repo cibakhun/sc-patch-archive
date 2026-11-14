@@ -942,13 +942,32 @@
     return true;
   }
 
+  // Werkbank R7: aendert sich, was die Liste zeigt (Suche, Filter,
+  // Sortierung, Ansicht), setzt sie einmal kurz neu an (.is-frisch,
+  // werkbankDesign.ts) statt hart umzuspringen. Beim Tippen laeuft eine
+  // begonnene Bewegung weiter, statt mit jedem Buchstaben neu zu starten;
+  // waehrend des Auftakts bewegt sich die Liste ohnehin.
+  var wbFrischBis = 0, wbListeSig = null;
+  function wbFrisch() {
+    if (!WB || !wbRoot || wbRoot.classList.contains('wb-auftakt')) return;
+    var jetzt = performance.now();
+    if (jetzt < wbFrischBis) return;
+    wbFrischBis = jetzt + 200;
+    wbNeu(grid, 'is-frisch');
+  }
+
   function apply() {
-    var shown = 0;
+    var shown = 0, erste = -1, letzte = -1;
     for (var i = 0; i < cards.length; i++) {
       var vis = matches(cards[i]);
       cards[i].hidden = !vis;
-      if (vis) shown++;
+      if (vis) { shown++; if (erste < 0) erste = i; letzte = i; }
     }
+    // Dieselbe Auswahl noch einmal (ein Filter, der nichts aendert) bewegt
+    // nichts: Zahl, erste und letzte sichtbare Karte sind der Fingerabdruck.
+    var sig = shown + ':' + erste + ':' + letzte;
+    if (wbListeSig != null && sig !== wbListeSig) wbFrisch();
+    wbListeSig = sig;
     var zahl = shown.toLocaleString(LOC);
     if (countEl) {
       // Werkbank: die Zahl ruckt kurz, wenn sie sich aendert.
@@ -997,6 +1016,7 @@
     var frag = document.createDocumentFragment();
     arr.forEach(function (c) { frag.appendChild(c); });
     grid.appendChild(frag);
+    wbFrisch();
   }
 
   function sortResourcesList() {
@@ -1100,6 +1120,7 @@
 
   function setView(v) {
     state.view = v; save('craft.view.v1', v);
+    if (grid.classList.contains('is-list') !== (v === 'list')) wbFrisch();
     grid.classList.toggle('is-list', v === 'list');
     $$('.cdb-view').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.view === v ? 'true' : 'false'); });
   }
@@ -1341,6 +1362,16 @@
 
   // Navigation
   function renderEntry(entry) {
+    // Werkbank R7: steht schon ein Rezept da, ist das ein Wechsel. Dann
+    // bleibt stehen, was gleich bleibt (Knopf, Verweise), und der Rest
+    // kommt knapper (.is-wechsel, werkbankDesign.ts). Beim ersten Rezept
+    // baut sich die Mitte ganz auf. .is-neu setzt jede Wahl neu: der
+    // Reiterwechsel raeumt es ab (switchTab), damit sich dort nichts
+    // wiederholt.
+    if (WB && modalBody) {
+      modalBody.classList.add('is-neu');
+      modalBody.classList.toggle('is-wechsel', !modal.classList.contains('is-leer'));
+    }
     if (entry.t === 'bp') renderBlueprint(entry.i);
     else renderPool(entry.key);
     showModal();
@@ -1821,7 +1852,88 @@
   // {Material: 1}). Daraus ergibt sich, welche Zeile neu ist und wo sich die
   // Stueckzahl geaendert hat. null bis zum ersten Zeichnen mit Daten: ein
   // gespeicherter Plan soll beim Laden nicht einfliegen.
-  var wbPlanStand = null, wbShopStand = null;
+  var wbPlanStand = null, wbShopStand = null, wbBlattLauf = null;
+
+  // Werkbank R7: die Liste wird bei jeder Aenderung neu geschrieben. Damit
+  // dabei nichts springt, merkt sich wbPlanLage() vorher, wo jede Zeile und
+  // die Summe standen; wbPlanFluss() laesst sie danach von dort an ihren
+  // neuen Platz gleiten, und eine entfernte Zeile blendet als Abbild aus
+  // (.wbp-geist: ausserhalb der Liste, inert, fuer Hilfstechnik unsichtbar,
+  // damit weder der Fokus noch eine Zaehlung der Zeilen es trifft). Nur wo
+  // man den Planer sieht, und nicht bei prefers-reduced-motion.
+  function wbPlanLage(listEl) {
+    if (!WB || !wbPlanStand || mqRuhig.matches || !drawer || !drawer.animate) return null;
+    if (!wbPlaner() && !drawer.classList.contains('is-open')) return null;
+    var lage = { z: {}, sum: null, d: drawer.getBoundingClientRect() };
+    $$('.cdb-plan-item[data-k]', listEl).forEach(function (li) {
+      lage.z[li.getAttribute('data-k')] = { r: li.getBoundingClientRect(), el: li };
+    });
+    var sum = $('.cdb-plan-sum', drawer);
+    if (sum && sum.offsetHeight) lage.sum = sum.getBoundingClientRect().top;
+    return lage;
+  }
+  function wbPlanFluss(listEl, lage) {
+    if (!lage) return;
+    var da = {}, fehlt = 0;
+    $$('.cdb-plan-item[data-k]', listEl).forEach(function (li) { da[li.getAttribute('data-k')] = 1; });
+    Object.keys(lage.z).forEach(function (k) { if (!da[k]) fehlt++; });
+    // Geht eine Zeile, blendet erst sie aus, dann ruecken die anderen nach:
+    // gleichzeitig laegen fuer einen Augenblick zwei Namen uebereinander.
+    var gleit = { duration: 320, delay: fehlt ? 90 : 0, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' };
+    // Am Handy ist der Planer ein Blatt am unteren Rand, so hoch wie sein
+    // Inhalt: geht eine Zeile, sprang seine Oberkante um deren Hoehe nach
+    // unten. Das Blatt gleitet deshalb mit (einzige Stelle, an der eine Hoehe
+    // laeuft: fest verankert, nichts ausserhalb ordnet sich neu). Es setzt
+    // als Erstes an: die Zeilen messen ihre neue Lage dann schon im Blatt
+    // von vorher (fill backwards haelt dessen Hoehe) und gleiten mit ihm.
+    // Laeuft das Blatt noch von der Aenderung davor, zaehlt als Ziel seine
+    // Hoehe ohne diese Bewegung; der Anfang (lage.d) ist, wo es gerade steht.
+    if (wbBlattLauf) { wbBlattLauf.cancel(); wbBlattLauf = null; }
+    var dAlt = lage.d, dNeu = drawer.getBoundingClientRect();
+    var blatt = Math.abs(dAlt.height - dNeu.height) >= 1 && Math.abs(dAlt.bottom - dNeu.bottom) < 1;
+    if (blatt) {
+      var rand = dNeu.height - (parseFloat(getComputedStyle(drawer).height) || dNeu.height);
+      wbBlattLauf = drawer.animate([{ height: (dAlt.height - rand).toFixed(1) + 'px', overflowY: 'hidden' },
+        { height: (dNeu.height - rand).toFixed(1) + 'px', overflowY: 'hidden' }], gleit);
+    }
+    $$('.cdb-plan-item[data-k]', listEl).forEach(function (li) {
+      var alt = lage.z[li.getAttribute('data-k')];
+      if (!alt) return;
+      var dy = alt.r.top - li.getBoundingClientRect().top;
+      if (Math.abs(dy) >= 1) li.animate([{ transform: 'translateY(' + dy.toFixed(1) + 'px)' }, { transform: 'none' }], gleit);
+    });
+    var sum = $('.cdb-plan-sum', drawer);
+    if (sum && lage.sum != null && sum.offsetHeight) {
+      var ds = lage.sum - sum.getBoundingClientRect().top;
+      if (Math.abs(ds) >= 1) sum.animate([{ transform: 'translateY(' + ds.toFixed(1) + 'px)' }, { transform: 'none' }], gleit);
+    }
+    // Das Abbild steht, wo die Zeile vorher stand: gegen das Blatt von vorher
+    // gerechnet, das waehrend der Verzoegerung noch seine alte Hoehe haelt.
+    var dr = blatt ? dAlt : dNeu, n = 0;
+    Object.keys(lage.z).forEach(function (k) {
+      if (da[k]) return;
+      var alt = lage.z[k];
+      // Nur was im Bild stand, und hoechstens acht: „Planer leeren“ soll
+      // bei einem langen Plan keine fuenfzig Abbilder anlegen.
+      if (n >= 8 || alt.r.bottom < dr.top || alt.r.top > dr.bottom) return;
+      var g = document.createElement('ul');
+      g.className = 'wbp-geist';
+      g.setAttribute('aria-hidden', 'true');
+      g.inert = true;
+      var kopie = alt.el.cloneNode(true);
+      kopie.classList.remove('is-neu', 'is-puls', 'is-spaet');
+      g.appendChild(kopie);
+      g.style.left = (alt.r.left - dr.left - drawer.clientLeft + drawer.scrollLeft) + 'px';
+      g.style.top = (alt.r.top - dr.top - drawer.clientTop + drawer.scrollTop) + 'px';
+      g.style.width = alt.r.width + 'px';
+      drawer.appendChild(g);
+      var lauf = g.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(26px) scale(.97)' }],
+        { duration: 170, delay: n * 35, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+      var weg = function () { if (g.parentNode) g.parentNode.removeChild(g); };
+      lauf.onfinish = weg; lauf.oncancel = weg;
+      n++;
+    });
+  }
 
   function flashPlan() { if (plannerBtn) { plannerBtn.classList.remove('flash'); void plannerBtn.offsetWidth; plannerBtn.classList.add('flash'); } }
 
@@ -1860,13 +1972,34 @@
       }
       if (wieder) wieder.focus({ preventScroll: true });
     };
+    var lage = WB ? wbPlanLage(listEl) : null;
+    // Werkbank R7: der Summenblock haengt an der Liste. War der Planer eben
+    // noch leer, blendet er ein; kam das Stueck geflogen, wartet er wie die
+    // Zeile, bis der Punkt da ist.
+    var sumEl = WB ? $('.cdb-plan-sum', drawer) : null;
+    var warLeer = WB && !!wbPlanStand && !Object.keys(wbPlanStand).length;
     if (!DB || !slugs.length) {
+      if (WB && !DB && slugs.length) {
+        // R7: ein gespeicherter Plan, die Daten laden noch. Platzhalter fuer
+        // seine Zeilen statt des Hinweises „noch nichts im Planer“, der
+        // gleich darauf wieder verschwaende.
+        var platz = '';
+        for (var pz = 0; pz < Math.min(slugs.length, 4); pz++) platz += '<li class="wbp-skel" aria-hidden="true"></li>';
+        listEl.innerHTML = platz;
+        return;
+      }
       // Werkbank: drei leere Plaetze ueber dem Hinweis (werkbankDesign.ts).
-      listEl.innerHTML = '<li class="cdb-plan-empty">' + (WB ? '<span class="wbp-leer" aria-hidden="true"><i></i><i></i><i></i></span>' : '') +
+      // R7: wurde der Planer eben geleert, blendet der Hinweis ein.
+      listEl.innerHTML = '<li class="cdb-plan-empty' + (WB && wbPlanStand && !warLeer ? ' is-neu' : '') + '">' + (WB ? '<span class="wbp-leer" aria-hidden="true"><i></i><i></i><i></i></span>' : '') +
         tr('planEmpty', 'Noch keine Blueprints im Planer. „＋" auf einer Karte fügt hinzu.') + '</li>';
       if (shopEl) shopEl.innerHTML = '';
       if (timeEl) timeEl.textContent = '—';
       if (WB && DB) { wbPlanStand = {}; wbShopStand = {}; }
+      if (sumEl) sumEl.classList.remove('is-neu', 'is-spaet');
+      // Vom Summenblock bleibt im leeren Planer nur die Zeile zum Speicherort
+      // ganz unten: die gleitet nicht quer durch die Spalte dorthin.
+      if (lage) lage.sum = null;
+      wbPlanFluss(listEl, lage);
       fokusZurueck();
       return;
     }
@@ -1886,7 +2019,7 @@
       if (WB) {
         var karte = KARTE_BY_I[idx];
         var art = !vorher ? '' : vorher[k] == null ? ' is-neu' + spaet : vorher[k] !== qty ? ' is-puls' + spaet : '';
-        return '<li class="cdb-plan-item' + art + '" data-cat="' + esc(karte ? karte.dataset.cat : '') + '">' + wg(karte ? karte.getAttribute('data-g') : null) +
+        return '<li class="cdb-plan-item' + art + '" data-k="' + esc(k) + '" data-cat="' + esc(karte ? karte.dataset.cat : '') + '">' + wg(karte ? karte.getAttribute('data-g') : null) +
           '<div class="pi__n">' + esc(b.name) + '</div>' +
           '<div class="pi__z" title="' + esc(tr('craftTime', 'Craft-Zeit')) + '">' + fmtTime((b.craft_time_seconds || 0) * qty) + '</div>' +
           '<button type="button" data-rm="' + k + '" class="pi__rm" aria-label="' + esc((WBT.remove || 'Remove') + ': ' + b.name) + '"></button>' +
@@ -1901,10 +2034,17 @@
       // Einkaufsliste = die Abbauliste: jeder Posten führt direkt zu seinen
       // Fundorten, statt dass man die Namen in die Mining-Suche tippt.
       var names = Object.keys(shop).sort();
+      // Werkbank: ein neuer Posten kommt herein (is-neu), und R7: eine
+      // Menge, die sich geaendert hat, ruckt kurz (is-tick). wbShopStand
+      // traegt dafuer die zuletzt gezeigte Menge je Material.
+      var mengen = {};
       shopEl.innerHTML = names.length ? names.map(function (n) {
-        return '<div class="ps__row' + (WB && wbShopStand && !wbShopStand[n] ? ' is-neu' : '') + '">' + mineNameHtml(n, 'ps__n') + '<b>' + fmtNum(shop[n] * 100) + ' cSCU</b></div>';
+        var menge = mengen[n] = fmtNum(shop[n] * 100) + ' cSCU';
+        var alt = WB && wbShopStand ? wbShopStand[n] : null;
+        return '<div class="ps__row' + (WB && wbShopStand && alt == null ? ' is-neu' : '') + '">' + mineNameHtml(n, 'ps__n') +
+          '<b' + (alt != null && alt !== menge ? ' class="is-tick"' : '') + '>' + menge + '</b></div>';
       }).join('') : '';
-      if (WB) { wbShopStand = {}; names.forEach(function (n) { wbShopStand[n] = 1; }); }
+      if (WB) wbShopStand = mengen;
     }
     if (timeEl) {
       var zeit = fmtTime(totalTime);
@@ -1914,6 +2054,11 @@
     if (WB) {
       wbPlanStand = {};
       slugs.forEach(function (k) { wbPlanStand[k] = plan[k]; });
+      if (sumEl) {
+        sumEl.classList.toggle('is-spaet', warLeer && !!spaet);
+        if (warLeer) wbNeu(sumEl, 'is-neu'); else sumEl.classList.remove('is-neu');
+      }
+      wbPlanFluss(listEl, lage);
       fokusZurueck();
     }
     // wire qty buttons
@@ -1931,6 +2076,10 @@
     wiped.forEach(markDirty);
     renderPlanner(); syncCards();
   });
+  // Werkbank R7: der Planer zeigt seinen Stand, sobald das Skript laeuft,
+  // nicht erst mit den Daten: leer den Hinweis, bei einem gespeicherten
+  // Plan Platzhalter fuer dessen Zeilen (renderPlanner).
+  if (WB) renderPlanner();
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
@@ -2032,6 +2181,9 @@
     list.appendChild(frag);
   }
 
+  // Werkbank R7: Fingerabdruck der zuletzt gezeigten Ergebnisse (welche
+  // Items, nicht ihre Zahlen), siehe das Ende von calcApply().
+  var wbCalcSig = null;
   function calcApply() {
     var resultsEl = $('#calc-results');
     var countEl = $('#calc-results-count');
@@ -2045,6 +2197,7 @@
     if (selectedMats.length === 0 && !q) {
       resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcSelectPrompt', 'Bitte wähle mindestens ein Material aus oder suche oben nach einem Item-Namen.') + '</div>';
       if (countEl) countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', '0');
+      wbCalcSig = '';
       return;
     }
 
@@ -2107,6 +2260,7 @@
     if (!list.length) {
       resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcNoResults', 'Keine Items für diese Auswahl gefunden.') + '</div>';
       if (countEl) countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', '0');
+      wbCalcSig = '';
       return;
     }
 
@@ -2143,6 +2297,15 @@
         '</div>' +
       '</div>';
     }).join('');
+    // Werkbank R7: aendert sich, WELCHE Items passen (Material, Suche),
+    // kommen die ersten Ergebnisse gestaffelt herein (.is-neu am Feld,
+    // werkbankDesign.ts). Aendern sich nur die Zahlen (Regler, Zielmenge),
+    // bleibt alles stehen: sonst flackerte die Liste beim Ziehen des Reglers.
+    if (WB) {
+      var calcSig = list.map(function (r) { return r.item.name; }).sort().join('|');
+      resultsEl.classList.toggle('is-neu', wbCalcSig != null && calcSig !== wbCalcSig);
+      wbCalcSig = calcSig;
+    }
 
     if (countEl) {
       countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', list.length);
@@ -2300,6 +2463,16 @@
     $$('.cdb-tab-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
     var dbContent = $('#cdb-tab-db-content');
     var dismantleContent = $('#cdb-tab-dismantle-content');
+    // R7: Was eben erst hereinkam, traegt seine Klasse noch (is-neu, is-tick
+    // ...). Ein Kasten, der aus display:none zurueckkehrt, spielt jede davon
+    // neu ab: das Rezept baute sich nach jedem Reiterwechsel noch einmal auf,
+    // der leere Planer blendete ein zweites Mal ein. Vor dem Wechsel also
+    // abraeumen, dann kommt nur der Reiter selbst herein.
+    if (WB && wbRoot) {
+      $$('.is-neu, .is-tick, .is-puls, .is-spaet, .is-wechsel', wbRoot).forEach(function (el) {
+        el.classList.remove('is-neu', 'is-tick', 'is-puls', 'is-spaet', 'is-wechsel');
+      });
+    }
     if (tab === 'db') {
       if (dbContent) dbContent.removeAttribute('hidden');
       if (dismantleContent) dismantleContent.setAttribute('hidden', '');
@@ -2309,6 +2482,19 @@
     }
     // Werkbank: der eben eingeblendete Reiter hat erst jetzt eine Lage.
     if (WB && typeof wbMiss === 'function') requestAnimationFrame(wbMiss);
+    // R7: er kommt kurz herein statt hart umzuspringen (.is-frisch). Der
+    // erste Reiter ist am Schreibtisch kein Kasten (display:contents), dort
+    // setzen seine Teile einzeln an. Leiste und Planer nur, wo sie im Fluss
+    // stehen: als feste Leiste bzw. Schublade haben sie eine eigene Lage, die
+    // eine Bewegung von aussen verschoebe.
+    if (WB && wbRoot && !wbRoot.classList.contains('wb-auftakt')) {
+      if (tab !== 'db') wbNeu(dismantleContent, 'is-frisch');
+      else {
+        wbNeu($('.cdb-layout', dbContent), 'is-frisch');
+        if (wbMitte()) { wbNeu($('.cdb-bar', dbContent), 'is-frisch'); wbNeu(wbBox, 'is-frisch'); }
+        if (wbPlaner()) wbNeu(drawer, 'is-frisch');
+      }
+    }
   }
   $$('.cdb-tab-btn').forEach(function (btn) {
     btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });

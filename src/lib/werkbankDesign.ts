@@ -385,6 +385,21 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(n+5){animation-delay:250ms}
 .cdb--wb .cdb-modal__body.is-neu .wbr-emb .wg{animation:wb-emb .5s var(--feder) both}
 .cdb--wb .cdb-modal__body.is-neu .wb-ring__b{stroke-dasharray:277;animation:wb-zieh .7s var(--out) both}
+/* R7: Wechsel von Rezept zu Rezept (is-wechsel setzt crafting-app.js, wenn
+   schon ein Rezept dasteht). Vorher baute sich die ganze Mitte jedes Mal neu
+   auf und war fuer zwei Bilder leer, samt dem Knopf, der doch derselbe
+   bleibt. Jetzt bleibt stehen, was gleich bleibt (die Felder der Kennwerte,
+   „Zum Planer“ und die Verweise); die Werte rucken, Name und Zutaten kommen
+   knapper und mit kuerzerem Weg. */
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > *{animation:wb-nach .3s var(--out) both}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > .cbm__meta{animation:none}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn b{animation:wb-tick var(--dur-slow) var(--out) both}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(2){animation-delay:25ms}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(3){animation-delay:50ms}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(4){animation-delay:75ms}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(n+5){animation-delay:100ms}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-emb .wg{animation-duration:.38s}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wb-ring__b{animation-duration:.45s}
 /* Leere Mitte: Bauplan im Fadenkreuz. */
 .cdb--wb .cdb-wb-leer{gap:.55rem;padding:2rem 1.4rem}
 .cdb--wb .cdb-wb-leer__i{position:relative;width:132px;height:132px;margin-bottom:.9rem;border:0;background:radial-gradient(closest-side,color-mix(in srgb,var(--o) 16%,transparent),transparent)}
@@ -455,9 +470,13 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-plan-sum{padding:.9rem 1rem 1rem;border-top:1px solid var(--hl);background:rgba(0,0,0,.16);transition:opacity var(--dur-base) linear}
 /* R6: leerer Planer ohne die blassen Reste von Summe, Einkaufsliste und
    „Planer leeren“: es bleibt der Hinweis oben und unten, wo gespeichert wird. */
-.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-time-row,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-sum h4,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-shop,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-clear{display:none}
-.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-sum{border-top:0;background:none}
-.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-sync--drawer{margin:0}
+/* R7: „leer“ heisst hier „keine Zeile in der Liste“, nicht „der Hinweis steht
+   da“: bevor das Skript laeuft, ist die Liste noch ganz leer, und die Reste
+   blitzten beim Laden fuer ein Bild auf (gesehen im Filmstreifen bei 900 ms).
+   Ebenso, solange fuer einen gespeicherten Plan Platzhalter stehen. */
+.cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-plan-time-row,.cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-plan-sum h4,.cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-plan-shop,.cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-plan-clear{display:none}
+.cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-plan-sum{border-top:0;background:none}
+.cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-sync--drawer{margin:0}
 .cdb--wb .cdb-plan-time-row{align-items:baseline;margin-bottom:.9rem;font-size:var(--fs-1);letter-spacing:var(--ls-11)}
 .cdb--wb .cdb-plan-time-row b{display:inline-block;font-family:var(--font-display,inherit);font-size:var(--fs-13);letter-spacing:var(--ls-3);text-transform:none;color:var(--tx)}
 .cdb--wb .cdb-plan-time-row b.is-tick{animation:wb-tick var(--dur-slow) var(--out)}
@@ -468,6 +487,23 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .ps__row:last-child{border-bottom:0}
 .cdb--wb .ps__row b{font-weight:700;color:var(--tx)}
 .cdb--wb .ps__row.is-neu{animation:wb-auf .4s var(--out) both}
+/* R7: eine Menge, die sich aendert, ruckt wie die Gesamtzeit darueber. */
+.cdb--wb .ps__row b{display:inline-block}
+.cdb--wb .ps__row b.is-tick{animation:wb-tick var(--dur-slow) var(--out)}
+/* R7: Der Planer springt nicht mehr. crafting-app.js laesst die Zeilen und
+   den Summenblock an ihren neuen Platz gleiten; die entfernte Zeile bleibt
+   als Abbild stehen und blendet aus. Das Abbild liegt ausserhalb der Liste
+   (kein Fokus, keine Zaehlung trifft es) und unter dem klebenden Kopf. */
+.cdb--wb .wbp-geist{position:absolute;z-index:2;margin:0;padding:0;list-style:none;pointer-events:none}
+.cdb--wb .cdb-plan-empty.is-neu{animation:wb-blende .35s var(--out) .14s both}
+.cdb--wb .cdb-plan-sum.is-neu{animation:wb-blende .4s var(--out) both}
+.cdb--wb .cdb-plan-sum.is-neu.is-spaet{animation-delay:.32s}
+/* R7: Platzhalter fuer die Zeilen eines gespeicherten Plans, solange die
+   Daten laden (vorher stand dort kurz „noch nichts im Planer“). */
+.cdb--wb .wbp-skel{height:4.6rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2);animation:wb-atem 1s ease-in-out infinite alternate}
+.cdb--wb .wbp-skel:nth-child(2){animation-delay:.12s}
+.cdb--wb .wbp-skel:nth-child(3){animation-delay:.24s}
+.cdb--wb .wbp-skel:nth-child(4){animation-delay:.36s}
 .cdb--wb .cdb-sync--drawer{margin:.2rem 0 .6rem}
 .cdb--wb .cdb-plan-clear{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;height:2.2rem;border-color:var(--hl2);border-radius:8px;font-size:var(--fs-5);transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cdb-plan-clear::before{content:"";width:1em;height:1em;background:currentColor;-webkit-mask:var(--i-trash) center/contain no-repeat;mask:var(--i-trash) center/contain no-repeat}
@@ -596,12 +632,37 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb.wb-auftakt .cbp:nth-child(7){animation-delay:180ms}
 .cdb--wb.wb-auftakt .cbp:nth-child(8){animation-delay:210ms}
 .cdb--wb.wb-auftakt .cbp:nth-child(n+9){animation-delay:240ms}
-@media (min-width:821px){
-  .cdb--wb.wb-auftakt > .cdb-modal .cdb-modal__box{animation:wb-ein .55s var(--out) 120ms both}
+/* R7: Mitte und Planer stehen im Markup hinter den 1.626 Kacheln (rund
+   0,9 MB) und kamen deshalb erst ins Bild, wenn der Rest der Seite geladen
+   und gelesen war: zwei Drittel der Seite blieben so lange leer und sprangen
+   dann herein (Filmstreifen: Liste bei 300 ms, Mitte und Planer bei 900 ms).
+   Jetzt stehen ihre Rahmen vom ersten Bild an als Platzhalter im Raster und
+   verschwinden, sobald die echten Kaesten da sind (:has). Die blenden
+   deshalb nicht mehr als Ganzes ein, nur ihr Inhalt: der Rahmen steht schon.
+   Nur auf hohen Fenstern, wo die Spalten eine feste Hoehe haben (--wb-h). */
+@media (min-width:821px) and (min-height:720px){
+  .cdb--wb:not(:has(> .cdb-modal))::before{content:"";grid-area:bp;box-sizing:border-box;height:var(--wb-h);border:1px solid var(--hl2);border-radius:12px;box-shadow:0 30px 70px -40px #000;background:
+    radial-gradient(60% 50% at 50% 45%,rgba(255,94,26,.05),transparent),
+    linear-gradient(rgba(238,241,245,.03) 1px,transparent 1px) 0 0/100% 22px,
+    linear-gradient(90deg,rgba(238,241,245,.03) 1px,transparent 1px) 0 0/22px 100%,
+    var(--e1)}
 }
-@media (min-width:1180px){
-  .cdb--wb.wb-auftakt > .cdb-drawer{animation:wb-ein .55s var(--out) 190ms both}
+@media (min-width:1180px) and (min-height:720px){
+  .cdb--wb:not(:has(> .cdb-drawer))::after{content:"";grid-area:plan;box-sizing:border-box;height:var(--wb-h);border:1px solid var(--hl2);border-radius:12px;background:var(--e1);box-shadow:0 30px 70px -40px #000}
+  .cdb--wb.wb-auftakt > .cdb-drawer > *{animation:wb-blende .5s var(--out) 60ms both}
 }
+/* R7: Stern und Plus haengt das Skript an die Kacheln. An den ersten, die
+   man beim Laden sieht, blenden sie ein, statt aufzuspringen. */
+.cdb--wb.wb-auftakt .cbp:nth-child(-n+12) .cbp__btns{animation:wb-blende .35s var(--out) both}
+/* R7: was die Liste zeigt, hat sich geaendert (Suche, Filter, Sortierung,
+   Ansicht), oder ein Reiter wurde gewechselt: der Inhalt setzt einmal kurz
+   neu an, statt hart umzuspringen (is-frisch setzt crafting-app.js). */
+.cdb--wb .is-frisch{animation:wb-nach .26s var(--out)}
+.cdb--wb .cdb-grid.is-frisch{animation:wb-frisch .22s var(--out)}
+@keyframes wb-nach{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes wb-frisch{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes wb-atem{from{opacity:.3}to{opacity:.75}}
+@keyframes wb-hoch{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes wb-ein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @keyframes wb-blende{from{opacity:0}to{opacity:1}}
 @keyframes wb-auf{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -650,7 +711,15 @@ export const WERKBANK_DESIGN_CSS = `
      macht sie zum Bezugsrahmen der festen Planer-Leiste: die sass dann die
      erste Sekunde ueber der Sortierung und sprang danach an den unteren
      Rand. */
-  .cdb--wb.wb-auftakt .cdb-bar{animation-name:wb-blende}
+  /* R7: auch ohne Verschiebung hielt der Auftakt die Leiste als eigene Ebene
+     fest (die Bewegung bleibt mit „both“ stehen), und die feste Planer-Leiste
+     darin lag so lange UNTER den Kacheln: sie war die erste gute Sekunde
+     verdeckt und sprang dann ins Bild (Filmstreifen: weg von 300 bis ueber
+     1700 ms). Jetzt kommen die Teile der Leiste einzeln, und die Planer-Leiste
+     hebt sich als Letztes selbst von unten herein. */
+  .cdb--wb.wb-auftakt .cdb-bar{animation:none}
+  .cdb--wb.wb-auftakt .cdb-bar > :not(.cdb-planner-open){animation:wb-ein .45s var(--out) 50ms both}
+  .cdb--wb.wb-auftakt .cdb-planner-open{animation:wb-hoch .5s var(--out) .3s both}
   .cdb--wb .cdb-planner-open{border-radius:10px;background:color-mix(in srgb,var(--b) 16%,var(--e1));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   /* R6: Listenansicht am Telefon. Kleinere Knoepfe und weniger Rand links
      geben dem Namen die Breite (vorher brach „10-Series Greatsword Cannon“
@@ -669,4 +738,63 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb #calc-reset{margin-top:.2rem!important}
 }
 @keyframes wb-blatt{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+/* ===== 9 Siebte Runde: Licht, Druck, Tiefe ===== */
+/* Krisz 14.11.2026: „noch einmal polish runde bitte, auch animationen,
+   visuals, feeling“. Was sich bewegt, steht oben bei seinem Teil (R7); hier
+   steht, was die Seite unter der Hand anders anfuehlen laesst. */
+/* Licht von der Oberkante, in der Farbe der Bauteilart, solange die Maus
+   auf der Kachel liegt. Es steht fest und folgt dem Zeiger nicht: der
+   mitlaufende Schein ist auf der ganzen Seite getilgt (verify:fx). Die
+   gewaehlte Kachel traegt stattdessen ihren Lichtstreif. */
+@media (hover:hover) and (pointer:fine){
+  .cdb--wb .cbp:not(.is-sel)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(260px circle at 50% 0,color-mix(in srgb,var(--kc) 14%,transparent),transparent 70%);opacity:0;transition:opacity var(--dur-slow) var(--ease-ui);pointer-events:none}
+  .cdb--wb .cbp:not(.is-sel):hover::after{opacity:1}
+}
+/* Die Kachel gibt unter dem Klick nach. Nicht, wenn der Klick Stern oder
+   Plus gilt: die geben selbst nach. */
+.cdb--wb .cbp:active:not(:has(button:active)){transform:scale(.988);transition-duration:var(--dur-fast)}
+/* Mitte und Planer: eine helle Oberkante laesst die Kaesten aufliegen. */
+.cdb--wb .cdb-modal__box{box-shadow:0 30px 70px -40px #000,inset 0 1px 0 rgba(255,255,255,.05)}
+@media (min-width:1180px){
+  .cdb--wb > .cdb-drawer{box-shadow:0 30px 70px -40px #000,inset 0 1px 0 rgba(255,255,255,.05)}
+}
+/* Rollt das Rezept, laeuft es unten weich aus, statt an der Kante hart zu
+   enden: man sieht, dass noch etwas folgt. Am Ende liegt der Verlauf ueber
+   dem leeren Rand unter dem letzten Abschnitt. */
+.cdb--wb .cdb-modal:not(.is-leer) .cdb-modal__box::after{content:"";position:sticky;bottom:0;z-index:4;display:block;height:24px;margin-top:-24px;border-radius:0 0 12px 12px;background:linear-gradient(180deg,transparent,var(--e1));pointer-events:none}
+/* „Zum Planer“: ein Lichtstreif laeuft einmal ueber den Knopf, wenn der
+   Zeiger darauf kommt. */
+.cdb--wb .cbm__plan{position:relative;overflow:hidden}
+.cdb--wb .cbm__plan::after{content:"";position:absolute;top:0;bottom:0;left:0;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.34),transparent);transform:translateX(-130%) skewX(-14deg);pointer-events:none}
+@media (hover:hover){
+  .cdb--wb .cbm__plan:not(.is-ok):hover::after{transform:translateX(330%) skewX(-14deg);transition:transform .65s cubic-bezier(.45,0,.3,1)}
+}
+/* Zeilen im Planer und Ergebnisse des Rechners heben sich unter dem Zeiger. */
+.cdb--wb .cdb-plan-item{transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
+.cdb--wb .cdb-plan-item:hover{background:var(--e3)}
+.cdb--wb .calc-card:hover{transform:translateY(-2px)}
+/* Rechner: die ersten Ergebnisse kommen gestaffelt, wenn sich aendert,
+   welche Items passen (is-neu am Feld setzt crafting-app.js; beim Ziehen des
+   Reglers aendern sich nur Zahlen, dann bleibt alles stehen). */
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(-n+6){animation:wb-nach .32s var(--out) backwards}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(2){animation-delay:30ms}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(3){animation-delay:60ms}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(4){animation-delay:90ms}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(5){animation-delay:120ms}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(6){animation-delay:150ms}
+@media (max-width:820px){
+  /* Der Planer kommt am Telefon von unten, aus seiner Leiste heraus, wie das
+     Rezept. Vorher schob er sich als Wand von rechts ueber die ganze Seite,
+     obwohl sein Knopf unten liegt, und zwischen Zeilen und Summe klaffte ein
+     Loch. Jetzt ist er so hoch wie sein Inhalt, hoechstens 88 % des Fensters. */
+  .cdb--wb .cdb-drawer{top:auto;right:0;bottom:0;left:0;width:auto;height:auto;max-height:min(88dvh,calc(100dvh - 3.5rem));padding-bottom:env(safe-area-inset-bottom,0px);border-left:0;border-top:1px solid color-mix(in srgb,var(--b) 55%,transparent);border-radius:16px 16px 0 0;box-shadow:0 -24px 60px -20px #000;transform:translateY(105%)}
+  .cdb--wb .cdb-drawer.is-open{transform:none}
+  .cdb--wb .cdb-drawer__hd{border-radius:16px 16px 0 0}
+  /* Stern und Plus sind hier 44 px hoch (Fingermass, mobile-ux.css) und
+     kommen erst mit dem Skript. Die Kopfzeile der Kachel haelt ihre Hoehe
+     schon vorher frei: sonst wuchs jede Kachel um 12 px, und die Liste
+     rutschte unter dem Finger weg (bei der zehnten Kachel um 120 px). */
+  .cdb--wb .cbp__top,.cdb--wb .cdb-grid.is-list .cbp__top{min-height:44px}
+}
 `;

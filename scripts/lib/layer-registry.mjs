@@ -758,7 +758,12 @@ export const EXCLUSIONS = [
   {
     id: 'X-werkbank-streif',
     selectorFamilies: ['.cdb--wb .cbp.is-sel::after'],
-    reason: 'src/lib/werkbankDesign.ts (Crafting-Werkbank, nur Vorschau-Bau): .cbp.is-sel::after ist ein Lichtstreif, der einmal in 0,7 s ueber die gerade gewaehlte Kachel laeuft (hoechstens 9 % Weiss, er hellt auf statt abzudunkeln). In Ruhe und bei prefers-reduced-motion steht er ausserhalb der Kachel (background-position -60 %, no-repeat), die Flaeche ist dann durchsichtig. Der Kontrast der Kacheltexte haengt an der deckenden Kachelflaeche darunter, nicht an diesem Streif.',
+    reason: 'src/lib/werkbankDesign.ts (Crafting-Seite, beide Baufassungen): .cbp.is-sel::after ist ein Lichtstreif, der einmal in 0,7 s ueber die gerade gewaehlte Kachel laeuft (hoechstens 9 % Weiss, er hellt auf statt abzudunkeln). In Ruhe und bei prefers-reduced-motion steht er ausserhalb der Kachel (background-position -60 %, no-repeat), die Flaeche ist dann durchsichtig. Der Kontrast der Kacheltexte haengt an der deckenden Kachelflaeche darunter, nicht an diesem Streif.',
+  },
+  {
+    id: 'X-werkbank-licht',
+    selectorFamilies: ['.cdb--wb .cbp:not(.is-sel)::after'],
+    reason: 'src/lib/werkbankDesign.ts (Crafting-Seite, siebte Runde): .cbp:not(.is-sel)::after ist ein Licht von der Oberkante der Kachel (radial-gradient, 260 px, fest in der Mitte der Oberkante, hoechstens 14 % der Kategoriefarbe, laeuft zum Rand in transparent aus). Es folgt dem Mauszeiger nicht (der mitlaufende Schein ist getilgt, verify:fx [2]). Es steht nur bei hover:hover und pointer:fine und nur waehrend die Maus auf der Kachel liegt, sonst opacity 0; es hellt die Kachelflaeche auf statt sie abzudunkeln und liegt mit pointer-events:none ueber dem Text. Der Kontrast der Kacheltexte haengt an der deckenden Kachelflaeche darunter; gemessen wird er in der Ruhelage, die das Licht nicht beruehrt.',
   },
 ];
 
