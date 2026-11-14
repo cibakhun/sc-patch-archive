@@ -11068,12 +11068,18 @@ void main() {
           m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
           // Nicht alle bringen ihre Leuchtkarte mit: dann leuchtet die Farbkarte.
-          if (!sticker && /light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
+          // Im Industrie-Bausatz (HALL_FEST) heißt ein Material <Datei>_mtl_<Teil>, und die Datei einer
+          // Lampe heißt selbst „light“: dort zählt nur der Teilname, und nur „glow“. Sonst leuchteten
+          // Gehäuse, Lack und Gummi jeder Lampe mit („…prop_light_1_a_mtl_metal_paint_grey“, 14.11.2026).
+          if (!sticker && (fest ? /_mtl_.*glow/i : /light|glow/i).test(m.name) && !/glass/i.test(m.name) && m.map) {
             m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
           } else if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
           const us = uvStats.get(m);
-          if (us && us.share > 0.4 && !boxed.has(m) && !sticker && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
+          // Kein Würfel-UV für Material, das nach Alpha schneidet: Seine UV zeigen mit Absicht auf eine
+          // volle Stelle der Karte (ein Pfeil aus Geometrie im Alphabet-Atlas). Die Würfellage legte den
+          // ganzen Atlas darüber, und der Schnitt zerlegte den Pfeil in Bruchstücke (14.11.2026).
+          if (us && us.share > 0.4 && !boxed.has(m) && !sticker && !(m.alphaTest > 0) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
           unifyMaps(m);
           onePass(m);
         }

@@ -639,6 +639,20 @@
         streichen, die die Horcher der Seite loest                  -> [24]
     ce  dort in dispose() renderer.forceContextLoss() streichen     -> [24]
     cf  dort fetchGltf ohne die Frage nach tot                      -> [24]
+    cg  in dist/assets/hangar-overview.js in umbauen() die Zeile
+        loadEl.dataset.umbau = ''; streichen (14.11.2026, Wort
+        des Hallenwechsels unter dem Ladebalken)                    -> [24]
+    ch  dort in standbildWeg() delete loadEl.dataset.umbau; hinter
+        die Frage nach dem Bild (if (!el) return;) setzen           -> [24]
+    ci  in dist/hangar.html das <em> aus #hg-load nehmen            -> [24]
+    cj  in dist/de/hangar.html das Wort englisch schreiben          -> [24]
+    ck  in dist/hangar.html .hg-load em{display:none} streichen     -> [24]
+    cl  in dist/assets/hangar-viewer.js in der Leuchtregel der
+        Halle (fest ? /_mtl_.*glow/i : /light|glow/i) wieder durch
+        /light|glow/i ersetzen (14.11.2026, Lampengehäuse der
+        Industrie-Hallen leuchteten mit)                            -> [24]
+    cm  dort an der Würfellage (boxProject) die Bedingung
+        !(m.alphaTest > 0) streichen                                -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2780,7 +2794,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 15, worte: 14 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 19, worte: 16 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -2891,6 +2905,12 @@ const GROESSE_AUSNAHMEN = {
     [viewer, /dispose\(\) \{\s*if \(tot\) return;\s*tot = true;[\s\S]{0,400}?lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;/, 'eine abgebaute Bühne meldet der Seite weiter (dispose): Der Kontext, den sie selbst aufgibt, zählte beim Hallenwechsel als Abbruch'],
     [viewer, /renderer\.forceContextLoss\(\);\s*if \(!uebersetzt\) renderer\.dispose\(\);/, 'dispose gibt den Zeichenkontext nicht mehr auf: Der Grafikspeicher der alten Halle bliebe belegt, während die neue lädt'],
     [viewer, /const fetchGltf = \(url, key = 'ship', guess = 8e6, my = null\) => \(tot \? nieMehr\(\) :/, 'eine abgebaute Bühne lädt weiter Modelle (fetchGltf): Sie baute in eine Szene, die es nicht mehr gibt'],
+    // Material der Industrie-Hallen (HALL_FEST): Namen <Datei>_mtl_<Teil>, Schnitt nach dem Alpha der Karte
+    [viewer, /if \(!sticker && \(fest \? \/_mtl_\.\*glow\/i : \/light\|glow\/i\)\.test\(m\.name\) && !\/glass\/i\.test\(m\.name\) && m\.map\) \{/, 'in den Industrie-Hallen leuchtet wieder jedes Material, dessen Datei „light“ heißt (Leuchtregel der Halle ohne fest): Gehäuse, Lack und Gummi der Lampen stünden als helle Flächen im Raum'],
+    [viewer, /&& !sticker && !\(m\.alphaTest > 0\) && !\/decal\|logo\|glow\|leak\/i\.test\(m\.name\)\) \{ boxProject\(m, us\.mPerUv\);/, 'Material, das nach Alpha schneidet, bekommt wieder die Würfellage (boxProject ohne !(m.alphaTest > 0)): Der Pfeil am Tor der Large-Halle zerfiele in Bruchstücke'],
+    // das Wort unter dem Ladebalken: Der Umbau dauert so lang wie ein erstes Laden, darunter steht das alte Bild still
+    [ctrl, /async function umbauen\(\) \{[\s\S]{0,700}?loadEl\.dataset\.umbau = '';\s*loadEl\.hidden = false;/, 'der Umbau nennt sich unter dem Ladebalken nicht mehr beim Wort (loadEl.dataset.umbau in umbauen): Die Seite stünde beim Hallenwechsel still, ohne zu sagen, warum'],
+    [ctrl, /function standbildWeg\(sofort = false\) \{[\s\S]{0,200}?delete loadEl\.dataset\.umbau;\s*const el = standbild;\s*if \(!el\) return;/, 'das Wort des Hallenwechsels geht nicht mehr mit dem Standbild (standbildWeg, vor der Frage nach dem Bild): Es stünde über dem nächsten Schiffswechsel, oder bliebe ohne Standbild für immer'],
   ];
   let verdrahtet = 0;
   for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
@@ -2906,10 +2926,16 @@ const GROESSE_AUSNAHMEN = {
     }
     if (tag !== null && !['{w}', '{l}'].every((x) => o.feld.includes(x))) fail(`[24] ${page.file}: data-feld („${o.feld}“) trägt nicht {w} und {l}: Die Zeile nennte das Feld nicht`);
     if (tag !== null && !['{w}', '{l}', '{h}'].every((x) => o.frei.includes(x))) fail(`[24] ${page.file}: data-frei („${o.frei}“) trägt nicht {w}, {l} und {h}`);
+    // das Wort des Hallenwechsels unter dem Ladebalken (umbauen, .hg-load[data-umbau] em)
+    o.umbau = (/<div class="hg-load" id="hg-load" hidden>[\s\S]{0,300}?<em>([^<]*)<\/em><\/div>/.exec(page.html)?.[1] ?? '').trim();
+    if (!o.umbau) fail(`[24] ${page.file}: das Wort des Hallenwechsels fehlt unter dem Ladebalken (#hg-load em): Beim Wechsel der Halle stünde das alte Bild still, ohne zu sagen, warum`);
+    else worte++;
+    if (!/\.hg-load em\{display:none\}/.test(page.html) || !/\.hg-load\[data-umbau\] em\{display:block/.test(page.html)) fail(`[24] ${page.file}: das Wort des Hallenwechsels ist nicht mehr an data-umbau gebunden (.hg-load em verborgen, .hg-load[data-umbau] em sichtbar): Es stünde bei jedem Schiffswechsel oder nie`);
     if (!/<header class="hg-title">[\s\S]{0,4000}?<p class="hg-role hg-gr" id="hgx-gr" hidden><\/p>[\s\S]{0,200}?<div class="hgx-actions"/.test(page.html)) fail(`[24] ${page.file}: die Zeile #hgx-gr steht nicht mehr leer und verborgen im Titelblock (.hg-title, vor der Knopfreihe): Ohne Hologramm und für Vorleser fehlte die Hangargröße`);
     return o;
   });
   for (const k of ['s', 'm', 'l', 'xl', 'own', 'frei']) if (wort[0][k] && wort[0][k] === wort[1][k]) fail(`[24] data-${k} der Hangargröße lautet deutsch wie englisch („${wort[0][k]}“): vergessene Übersetzung`);
+  if (wort[0].umbau && wort[0].umbau === wort[1].umbau) fail(`[24] das Wort des Hallenwechsels lautet deutsch wie englisch („${wort[0].umbau}“): vergessene Übersetzung`);
   for (const t of bad.slice(0, 12)) fail(`[24] ${t}`);
   if (bad.length > 12) fail(`[24] … und ${bad.length - 12} weitere Befunde an den Hangargrößen`);
   sollIst(`${GROESSEN.length} Stufen mit den abgenommenen Maßen; Schiffe der Halle >= ${GROESSE.schiffe}, jedes auf dem Feld seiner Halle, nie kleiner als seine Stufe; Small >= ${GROESSE.S}, Medium >= ${GROESSE.M}, Large >= ${GROESSE.L}, Extra Large >= ${GROESSE.XL}; Abweichungen von der Größenklasse nur benannt (${Object.keys(GROESSE_AUSNAHMEN).length}); Naht >= ${GROESSE.draht} Stellen, Wörter >= ${GROESSE.worte}`,

@@ -34,7 +34,7 @@ import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-is
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
-import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures } from './lib/hall-decals.mjs';
+import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff } from './lib/hall-decals.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -233,7 +233,7 @@ function coverage(doc) {
 // Schicht ist Lack, also nicht metallisch. Dazu entsteht eine eigene
 // metallicRoughness-Karte im selben UV-Raum: B (Metall) = 1 − f,
 // G (Rauheit) = mix(Grund-Rauheit aus der Glätte, 1 − BlendLayer2Glossiness, f).
-async function bakeBlend(baseFile, x, factor, metal = null) {
+async function bakeBlend(baseFile, x, factor, metal = null, keepAlpha = false) {
   const b = x.blend;
   const load = async (f, size) => {
     let img = sharp(f).removeAlpha();
@@ -248,6 +248,15 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
     W = Math.max(4, Math.round(meta.width * scale)); H = Math.max(4, Math.round(meta.height * scale));
     base = await load(baseFile); if (base.w !== W) base = await load(baseFile, W);
   }
+  // keepAlpha: Das Material schneidet nach dem Alpha seiner Grundkarte (AlphaTest: die Form eines
+  // Buchstabens, ein Lochblech). Dann bleibt es in der gebackenen Karte. Bis 14.11.2026 fiel es
+  // weg, und Schrift aus einem Alphabet-Atlas stand als volle dunkle Rechtecke an Tafeln und Toren.
+  let alpha = null;
+  if (keepAlpha && baseFile && (await sharp(baseFile).metadata()).hasAlpha) {
+    const a = await sharp(baseFile).extractChannel(3).resize(W, H, { fit: 'fill' }).raw().toBuffer();
+    if (a.some((v) => v < 255)) alpha = a;
+  }
+  const C = alpha ? 4 : 3;
   const l2 = await load(texFile(b.d));
   const mk = await load(texFile(b.mask));
   const col = String(b.color || '1,1,1').split(',').map(Number);
@@ -260,27 +269,28 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
   };
   const gl = metal?.glossFile ? await load(metal.glossFile) : null;
   const tg = (x.tile_n?.[0] || 1) / bt;   // Glätte kachelt mit dem TexMod der Normalen
-  const out = Buffer.alloc(W * H * 3);
+  const out = Buffer.alloc(W * H * C);
   const mr = metal ? Buffer.alloc(W * H * 3) : null;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const u = (i + 0.5) / W, v = (j + 0.5) / H;
     const m = sample(mk, u * tm, v * tm, 0) / 255;
     const f = Math.min(1, Math.max(0, Math.pow(m * (1 + b.factor), b.falloff || 1)));
-    const p = (j * W + i) * 3;
+    const p = (j * W + i) * C, q = (j * W + i) * 3;
     for (let ch = 0; ch < 3; ch++) {
       const g = black ? 0 : (base ? base.data[(j * W + i) * base.c + ch] : 255) * factor[ch];
       const s2 = sample(l2, u * t2, v * t2, ch) * col[ch];
       out[p + ch] = Math.round(g * (1 - f) + s2 * f);
     }
+    if (alpha) out[p + 3] = alpha[j * W + i];
     if (mr) {
       const rb = gl ? 1 - sample(gl, u * tg, v * tg, 0) / 255 : metal.roughBase;
-      mr[p] = 255;
-      mr[p + 1] = Math.round((rb * (1 - f) + metal.roughL2 * f) * 255);
-      mr[p + 2] = Math.round((1 - f) * 255);
+      mr[q] = 255;
+      mr[q + 1] = Math.round((rb * (1 - f) + metal.roughL2 * f) * 255);
+      mr[q + 2] = Math.round((1 - f) * 255);
     }
   }
-  const png = (buf) => sharp(buf, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
-  return { color: await png(out), mr: mr ? await png(mr) : null };
+  const png = (buf, c = 3) => sharp(buf, { raw: { width: W, height: H, channels: c } }).png().toBuffer();
+  return { color: await png(out, C), mr: mr ? await png(mr) : null, alpha: !!alpha };
 }
 
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
@@ -294,7 +304,12 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
 // - Kachelung: TexMod TileU/TileV der .mtl über KHR_texture_transform.
 // only: nur diese Materialien (Schiffe: die nachgetragenen, die übrigen
 // tragen ihre eingebetteten Karten)
-async function attachHallTextures(doc, only = null) {
+// fest: Hallen fester Größe (Industrie-Bausatz). Nur dort gilt das Alpha der
+// Grundkarte, wie das Spiel es liest: als Schnitt (bakeBlend, keepAlpha) und
+// als Maske des Leuchtens (glowMask). Die Revel & York, Aufzug und Werkhalle
+// bleiben, wie sie abgenommen sind.
+const GLOW_MIN = 0.01;
+async function attachHallTextures(doc, only = null, { fest = false } = {}) {
   const root = doc.getRoot();
   const cache = new Map();
   const tex = (file, name, image) => {
@@ -319,7 +334,34 @@ async function attachHallTextures(doc, only = null) {
   };
   const tt = doc.createExtension(KHRTextureTransform);
   const tile = (ti, t) => { if (ti && t) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale(t)); };
-  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0 };
+  // Leuchtmaske: Illum lässt mit Glow seine Grundkarte leuchten, und deren Alpha sagt, wo (die
+  // Lämpchen einer Zierleiste, der Ring einer Lampe). Die Leuchtkarte ist dann Farbe mal Alpha;
+  // 512 px genügen dafür. Liefert die Textur, 'voll' (das Alpha trägt keine Maske, die Karte
+  // leuchtet ganz wie bisher) oder 'leer' (die Maske deckt nichts, es leuchtet nichts).
+  const glowCache = new Map();
+  const glowMask = async (f) => {
+    if (glowCache.has(f)) return glowCache.get(f);
+    const meta = await sharp(f).metadata();
+    let r = 'voll';
+    if (meta.hasAlpha) {
+      const sc = Math.min(1, 512 / Math.max(meta.width, meta.height));
+      const w = Math.max(4, Math.round(meta.width * sc)), h = Math.max(4, Math.round(meta.height * sc));
+      const { data, info } = await sharp(f).resize(w, h, { fit: 'fill' }).raw().toBuffer({ resolveWithObject: true });
+      const px = Buffer.alloc(w * h * 3);
+      let min = 255, max = info.channels === 4 ? 0 : 255;
+      for (let i = 0; info.channels === 4 && i < w * h; i++) {
+        const a = data[i * 4 + 3];
+        if (a < min) min = a;
+        if (a > max) max = a;
+        for (let k = 0; k < 3; k++) px[i * 3 + k] = Math.round((data[i * 4 + k] * a) / 255);
+      }
+      if (max < 8) r = 'leer';
+      else if (min < 250) r = tex(`glow:${f}`, 'e' + cache.size, await sharp(px, { raw: { width: w, height: h, channels: 3 } }).png().toBuffer());
+    }
+    glowCache.set(f, r);
+    return r;
+  };
+  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0, blendAlpha: 0, glowMaske: 0, glowAus: 0 };
   // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
   const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
   for (const m of [...used].filter((u) => u && (!only || only(u)))) {
@@ -345,9 +387,10 @@ async function attachHallTextures(doc, only = null) {
         };
       }
       if (!cache.has(key)) {
-        const r = await bakeBlend(d, x, factor, metalOpt);
+        const r = await bakeBlend(d, x, factor, metalOpt, fest && m.getAlphaMode() !== 'OPAQUE');
         tex(key, 'b' + cache.size, r.color);
         if (r.mr) tex(`${key}:mr`, 'bm' + cache.size, r.mr);
+        if (r.alpha) s.blendAlpha++;
       }
       // die Grundfarbe (Diffuse-Faktor) steckt jetzt in der Karte — sonst
       // färbte sie auch die zweite Schicht
@@ -378,6 +421,19 @@ async function attachHallTextures(doc, only = null) {
     // gebackene Metall/Rauheit-Karte liegt im UV-Raum der Farbkarte
     tile(m.getMetallicRoughnessTextureInfo(), m.getExtras()?.blend_baked ? td : tn);
     if (td || x.tile_n) s.tiled++;
+    // Leuchten nach dem Spiel (fest): Ein Glow unter GLOW_MIN ist keiner (die Schrift der Tafeln trägt
+    // 0,0001). Ein deckendes Illum-Material leuchtet nur, wo das Alpha seiner Grundkarte es sagt. Bis
+    // 14.11.2026 leuchtete jede solche Karte ganz: Zierleisten mit ein paar Lämpchen standen als helle
+    // Flächen an den Wänden und unter den Gitterrosten. glow === true (Leuchtglas, applyLayers) bleibt.
+    if (fest && typeof x.glow === 'number' && !m.getEmissiveTexture()) {
+      let aus = x.glow < GLOW_MIN;
+      if (!aus && x.shader === 'Illum' && m.getAlphaMode() === 'OPAQUE' && d && !metal) {
+        const e = await glowMask(d);
+        if (e === 'leer') aus = true;
+        else if (e !== 'voll') { m.setEmissiveTexture(e).setEmissiveFactor([1, 1, 1]); tile(m.getEmissiveTextureInfo(), td); s.glowMaske++; }
+      }
+      if (aus) { m.setExtras({ ...m.getExtras(), glow: 0 }); s.glowAus++; }
+    }
     if (m.getBaseColorTexture()) s.color++;
     if (m.getNormalTexture()) s.normal++;
   }
@@ -2286,8 +2342,11 @@ async function buildOne(kind, name, inPath) {
   const hallLayers = kind === 'hall' && existsSync(fileURLToPath(new URL(`hall/${name}.layers.json`, SRC)));
   const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind, null, { ton: hallLayers }) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
   const hallPalette = hallLayers ? { ...applyHallPalette(doc, name), schichtTon: layered.ton ?? 0 } : null;
-  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
+  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc, null, { fest: hallLayers }) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
   const decalMaps = decals || logo?.tafeln ? await attachHallDecalTextures(doc, { texFile, sharp }) : null;
+  // Bildschirme, deren Bild das Spiel erst zur Laufzeit liefert, sind hier aus (Industrie-Hallen;
+  // die Revel & York bleibt, wie sie abgenommen ist). Nach den Karten, solange die extras den Shader tragen.
+  const schirme = hallLayers ? hallScreensOff(doc) : null;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
   const vertexColors = stripAttributes(doc, werk ? 'hall' : srcKind);
@@ -2422,6 +2481,7 @@ async function buildOne(kind, name, inPath) {
     ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
     ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
     ...(logo ? { logo: { ...logo, ...(decalMaps?.logo ?? {}) } } : {}),
+    ...(schirme?.schirme ? { schirme: { aus: schirme.schirme, dreiecke: schirme.dreiecke } } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
@@ -3592,7 +3652,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
-        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendAlpha ?? 0} mit dem Alpha ihrer Grundkarte, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
       }
       if (r.parts) {
         for (const t of r.parts) console.log(`    Teil ${t.role.padEnd(11)} ${String(t.tris).padStart(6)} Dreiecke  ${t.materials} Materialien  aus ${t.from.join(' + ')}`);
@@ -3611,6 +3671,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         if (r.hallPalette) console.log(r.hallPalette.name
           ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
           : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
+        if (r.attached?.glowMaske || r.attached?.glowAus) console.log(`    Leuchten: ${r.attached.glowMaske} Materialien leuchten nur, wo das Alpha ihrer Grundkarte es sagt; ${r.attached.glowAus} mit Glow unter ${String(GLOW_MIN).replace('.', ',')} oder leerer Maske leuchten nicht`);
+        if (r.schirme) console.log(`    Bildschirme ohne Bild: ${r.schirme.aus} Materialien mit ${r.schirme.dreiecke} Dreiecken ausgeschaltet (Werte des Spiels für einen Schirm, der aus ist)`);
         if (r.logo) console.log(r.logo.tafeln
           ? `    Logo des Betreibers: ${r.logo.tafeln} Tafeln, Karte ${r.logo.karte ?? 'fehlt'}${r.logo.deckt != null ? `, ${Math.round(r.logo.deckt * 100)} % der Karte decken` : ''}`
           : `    Logo des Betreibers: ${r.logo.weg} Tafeln ohne Material weggelassen (die Palette in ${name}.info.json nennt kein Logo)`);

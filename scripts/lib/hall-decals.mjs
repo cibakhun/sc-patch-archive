@@ -306,6 +306,34 @@ export function addHallDecals(doc, decalDoc, { keep = null, mult = null, lift = 
   return { added, bericht };
 }
 
+// Bildschirme ohne Bild. Materialien mit dem Shader DisplayScreen sind
+// Schirme, deren Bild das Spiel zur Laufzeit liefert (Bedienoberfläche der
+// Kioske, Anzeigen im Kontrollraum). Der Export kennt davon nur die
+// Grundfarbe, meist Weiß: Am Eingang der Large-Halle standen so zwei Kioske
+// mit leuchtend weißen Flächen, im Kontrollraum vier weiße Schirme. Ohne Bild
+// ist ein Schirm aus: Er bekommt die Farbe, die das Spiel seinen
+// ausgeschalteten Schirmen selbst gibt (screen_off_01.mtl, Diffuse 0,0048).
+// Glätte und Normal-Karte (Schlieren im Glas) sind seine eigenen und bleiben.
+// Schirme mit Farb- oder Leuchtkarte bleiben, wie sie sind. Muss nach den
+// Karten und vor cleanMaterials laufen (danach tragen die extras den Shader
+// nicht mehr). Liefert { schirme, dreiecke, namen }.
+export const SCHIRM_AUS = 0.0048;
+export function hallScreensOff(doc) {
+  const s = { schirme: 0, dreiecke: 0, namen: [] };
+  const tris = new Map();
+  for (const me of doc.getRoot().listMeshes()) for (const p of me.listPrimitives()) {
+    const m = p.getMaterial();
+    if (m) tris.set(m, (tris.get(m) ?? 0) + (p.getIndices() ?? p.getAttribute('POSITION')).getCount() / 3);
+  }
+  for (const [m, n] of tris) {
+    if ((m.getExtras() || {}).shader !== 'DisplayScreen' || m.getBaseColorTexture() || m.getEmissiveTexture()) continue;
+    m.setBaseColorFactor([SCHIRM_AUS, SCHIRM_AUS, SCHIRM_AUS, 1]).setEmissiveFactor([0, 0, 0]).setMetallicFactor(0).setAlphaMode('OPAQUE');
+    s.schirme++; s.dreiecke += n; s.namen.push(m.getName());
+  }
+  s.namen.sort();
+  return s;
+}
+
 // Logo des Betreibers. Netze, deren Name mit tint_logo beginnt, sind Tafeln aus
 // zwei Dreiecken, denen der Export kein Material gibt: Im Spiel malt sie die
 // Farbpalette der Halle (decalTexture: eine Schablone, deren Kanäle R, G, B je

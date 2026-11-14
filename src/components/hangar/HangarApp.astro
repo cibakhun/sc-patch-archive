@@ -319,6 +319,11 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-load[hidden]{display:none}
 .hg-load b{display:block;height:2px;background:var(--line-soft);border-radius:2px;overflow:hidden}
 .hg-load b i{display:block;height:100%;width:var(--p,0%);background:var(--hg-amber)}
+/* Hallenwechsel (umbauen): Er dauert so lang wie ein erstes Laden, und darunter steht
+   das alte Bild still. Dann traegt der Balken ein Wort, sonst bleibt er leise. */
+.hg-load em{display:none}
+.hg-load[data-umbau]{width:min(220px,60%);opacity:1}
+.hg-load[data-umbau] em{display:block;margin-top:.7rem;font-style:normal;font-size:var(--fs-4);letter-spacing:var(--ls-13);text-transform:uppercase;text-align:center;white-space:nowrap;color:var(--hg-dim);text-shadow:0 1px 6px rgb(0 0 0/.9)}
 .hg-fallback{position:absolute;inset:0;display:grid;place-items:center;padding:2rem;text-align:center;color:var(--hg-dim)}
 .hg-fallback[hidden]{display:none}
 @media (max-width:760px){
@@ -331,7 +336,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 
     <section class="hg-stage" data-hg-stage aria-label={de ? '3D-Hangar' : '3D hangar'}>
       <div class="hg-canvas" id="hg-canvas"></div>
-      <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b></div>
+      <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b><em>{de ? 'Hangar wird gewechselt …' : 'Switching hangar …'}</em></div>
       {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt.
           data-crash: der Wächter der Seite hat die Bühne abgestellt, data-retry beschriftet seinen Knopf,
           data-spur und data-spur-* die Zeilen darunter (wie weit die abgebrochenen Läufe kamen),

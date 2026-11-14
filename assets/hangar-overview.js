@@ -2659,6 +2659,8 @@ export function boot(doc) {
   // so lange wartet der Umbau auf das Standbild der alten Buehne (ms)
   const STANDBILD_MS = 350;
   function standbildWeg(sofort = false) {
+    // das Wort unter dem Ladebalken gilt nur dem Umbau
+    delete loadEl.dataset.umbau;
     const el = standbild;
     if (!el) return;
     standbild = null;
@@ -2685,6 +2687,8 @@ export function boot(doc) {
         syncMarks();
         modelErr.hidden = true;
         bar.style.setProperty('--p', '0%');
+        // der Balken nennt den Hallenwechsel beim Wort (.hg-load[data-umbau] em), bis das Schiff steht
+        loadEl.dataset.umbau = '';
         loadEl.hidden = false;
         if (!standbild) {
           // Hoechstens kurz darauf warten: Mit Grafikkarte steht es sofort, ohne
