@@ -364,7 +364,9 @@ und was die Oberfläche unter der Zeile zeigt:
   auch die aus dem Pool genommenen (three.js fragt nur den Pool; Befunde im
   Review der PR #364). Große Stücke haben dafür Plätze, einen weniger als
   die Grenze (Telefon 1, PC 3), und halten ihren Platz bis zum Ende ihres
-  Workers: Am Telefon läuft damit ein großes Stück nach dem anderen. Gemessen
+  Workers: Am Telefon läuft damit ein großes Stück nach dem anderen. Gezählt
+  wird je Stück, nicht je Worker: Am PC können zwei große Stücke beim selben
+  Worker liegen, und mit seinem Ende kommen beide Plätze zurück. Gemessen
   im Telefonformat mit der Gladius: 620 bis 711 statt 946 MB beim Laden. Am
   PC gilt die Ruhe genauso (dort hielten die vier Worker 343 MB).
 - Abbau des Entpackers (Befund im selben Review), gehalten wie beim

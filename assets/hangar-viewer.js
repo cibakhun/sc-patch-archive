@@ -379,6 +379,14 @@ async function fitImage(im, max) {
 //   gilt ab einer Grenze von 2: Bei 1 lebte neben dem Worker eines großen
 //   Stücks einer im Pool (verify:hangar [12] hält die 2 als untere
 //   Klinke).
+// - Gezählt wird der Platz je Stück, nicht je Worker (vierter Befund):
+//   three wählt den Worker für ein Stück, bevor der des vorigen aus dem
+//   Pool genommen ist. Kommen am PC zwei große im selben Augenblick und
+//   trägt ein Worker deutlich weniger als die anderen, liegen beide bei
+//   ihm. Mit einem Platz je Worker kam dann nur einer zurück: Von da an
+//   fehlte ein Platz (bei drei Stücken zwei), und große Stücke liefen bis
+//   zum Neuladen einzeln. Kein Abbruch, nur langsamer; am Telefon mit
+//   seinem einen Platz kommt es nicht vor.
 // - Abbau (dritter Befund im selben Review), gehalten wie beim Umwandler
 //   der Bilder (ktxTot): Nach dispose() endet jedes Stück, das noch offen
 //   ist, mit einem Fehler, ob es bei einem Worker liegt oder auf einen
@@ -477,7 +485,9 @@ export class Entpacker extends DRACOLoader {
         worker._geht = true;
         const i = this.workerPool.indexOf(worker);
         if (i >= 0) { this.workerPool.splice(i, 1); this.draussen.add(worker); }
-        if (platz) { platz.worker = worker; worker._platz = true; }
+        // three wählt den Worker, bevor der des vorigen großen Stücks aus
+        // dem Pool ist: Zwei können beim selben liegen, jedes hält seinen Platz
+        if (platz) { platz.worker = worker; worker._plaetze = (worker._plaetze || 0) + 1; }
       }
       return worker;
     });
@@ -493,7 +503,9 @@ export class Entpacker extends DRACOLoader {
     worker.terminate();
     this.stat.beendet++;
     this.draussen.delete(worker);
-    if (worker._platz) { worker._platz = false; this.frei(); }
+    const n = worker._plaetze || 0;
+    worker._plaetze = 0;
+    for (let i = 0; i < n; i++) this.frei();
   }
   // Jeden Worker ohne Arbeit beenden; liefert, wie viele es waren.
   ruhe() {

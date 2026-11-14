@@ -1419,8 +1419,8 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       const alle = [], groesse = new Map();
       let uhr = null;
       class Zaehler {
-        constructor() { this.tot = false; this.post = []; alle.push(this); }
-        postMessage(m) { if (m?.type === 'decode') { this.post.push(m.id); groesse.set(m.id, m.buffer?.byteLength ?? 0); } }
+        constructor() { this.tot = false; this.post = []; this.grosse = 0; alle.push(this); }
+        postMessage(m) { if (m?.type === 'decode') { this.post.push(m.id); groesse.set(m.id, m.buffer?.byteLength ?? 0); if (m.buffer?.byteLength >= K.gross) this.grosse++; } }
         terminate() { this.tot = true; }
         fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
       }
@@ -1596,31 +1596,85 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
         q.dispose();
         ist.push(`${K.faeden + 1} grosse Stuecke nacheinander und ein kleines am PC: ${pcLeben} Worker leben, ${pcGross} grosse zugleich in Arbeit, bis zum Ende hoechstens ${pcHoechst}, ${pcFertig ? 'alle fertig' : 'NICHT alle fertig'}`);
         const pcOk = pcLeben === K.faeden && pcGross === K.faeden - 1 && pcHoechst === K.faeden && pcFertig;
-        // (h) die Art, nicht der Fall: Zufallsfolgen aus kleinen und grossen
+        // (h) zwei oder drei grosse Stuecke im selben Augenblick beim selben
+        // Worker (vierter Befund im Review der PR #364): three waehlt den
+        // Worker fuer ein Stueck, bevor der Entpacker den des vorigen aus
+        // dem Pool genommen hat. Traegt ein Worker deutlich weniger als die
+        // anderen, landen beide bei ihm. Jedes haelt einen Platz, und alle
+        // muessen mit dem Ende des Workers zurueckkommen: Sonst fehlte am PC
+        // von da an ein Platz (bei drei Stuecken zwei), und grosse Stuecke
+        // liefen bis zum Neuladen nur noch einzeln
+        const selber = async (zahl) => {
+          alle.length = 0;
+          const e = neuer(false), schwer = Math.floor(K.gross * 0.85);
+          // der Pool ist voll, jeder Worker traegt drei schwere kleine Stuecke
+          for (let i = 0; i < 3 * K.faeden; i++) still(e.decodeGeometry(new ArrayBuffer(schwer + i), {}));
+          await ruck();
+          // einer arbeitet alles ab und bleibt ohne Arbeit im Pool
+          const x = alle[0];
+          if (x) for (const id of x.post.splice(0)) x.fertig(id);
+          await ruck();
+          const pg = [];
+          for (let i = 0; i < zahl; i++) pg.push(still(e.decodeGeometry(new ArrayBuffer(K.gross + 20 + i), {})));
+          await ruck();
+          const bei = x ? x.post.filter((id) => groesse.get(id) >= K.gross).length : 0;
+          if (x) for (const id of x.post.splice(0)) x.fertig(id);
+          await ruck();
+          const belegt = e.belegt, fertig = (await stand(pg)).every((st) => st === 'fertig');
+          // danach laufen wieder so viele grosse Stuecke zugleich wie zuvor
+          for (let i = 0; i < K.faeden - 1; i++) { still(e.decodeGeometry(new ArrayBuffer(K.gross + 30 + i), {})); await ruck(); }
+          const danach = alle.filter((w) => !w.tot && w.post.some((id) => groesse.get(id) >= K.gross)).length;
+          e.dispose();
+          return { bei, belegt, danach, ok: bei === zahl && belegt === 0 && fertig && !!x?.tot && danach === K.faeden - 1,
+            wort: `${bei} beim selben Worker, nach seinem Ende ${belegt} Plaetze belegt, ${fertig ? 'alle fertig' : 'NICHT alle fertig'}, danach ${danach} grosse zugleich in Arbeit` };
+        };
+        const sel2 = await selber(2), sel3 = await selber(3);
+        ist.push(`zwei grosse Stuecke im selben Augenblick am PC, ein Worker ohne Arbeit neben drei vollen: ${sel2.wort}; drei: ${sel3.wort}`);
+        // (i) die Art, nicht der Fall: Zufallsfolgen aus kleinen und grossen
         // Stuecken und Antworten der Worker, mal im selben Augenblick, mal
         // nacheinander. Nach jedem Zug leben hoechstens so viele Worker wie
-        // zugesagt, am Ende ist jedes Stueck fertig. Fester Keim je Folge.
+        // zugesagt, am Ende ist jedes Stueck fertig und kein Platz belegt.
+        // Fester Keim je Folge. Zwei Mischungen, weil eine allein die andere
+        // Art nicht trifft: „dicht“ (viele grosse Stuecke einzeln, winzige
+        // kleine) reizt die Grenze und die Plaetze aus; „dateien“ (zwei oder
+        // drei grosse im selben Augenblick, kleine in Gruppen und
+        // verschieden schwer, ein Worker arbeitet auch einmal alles ab)
+        // legt grosse Stuecke zum selben Worker. Wie oft, zaehlt das Tor
+        // mit: Unter DOPPELT_MIN prueften die Folgen den Fall (h) nicht mehr.
         const zufall = (keim) => () => {
           keim = (keim + 0x6D2B79F5) | 0;
           let t = Math.imul(keim ^ (keim >>> 15), 1 | keim);
           t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
           return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
         };
-        const FOLGEN = 40, ZUEGE = 50;
-        const folgen = async (telefon) => {
-          const z = { grenze: telefon ? K.telefon : K.faeden, hoechst: 0, drueber: 0, offen: 0, zuege: 0 };
+        const FOLGEN = 40, ZUEGE = 50, DOPPELT_MIN = 8;
+        const zieh = (art, r, zug, neu) => {
+          const x = r();
+          const mitArbeit = alle.filter((w) => !w.tot && w.post.length);
+          const einer = () => mitArbeit[Math.floor(r() * mitArbeit.length)];
+          const eineAntwort = () => { if (mitArbeit.length) { const w = einer(); w.fertig(w.post.splice(Math.floor(r() * w.post.length), 1)[0]); } };
+          if (art === 'dicht') {
+            if (x < 0.3) neu(K.gross + zug);
+            else if (x < 0.65) neu(64 + zug);
+            else eineAntwort();
+          } else {
+            const leicht = [64, Math.floor(K.gross * 0.57), Math.floor(K.gross * 0.85)];
+            if (x < 0.05) neu(K.gross + 8 * zug);
+            else if (x < 0.15) for (let i = 0, n = 2 + Math.floor(r() * 2); i < n; i++) neu(K.gross + 8 * zug + i);
+            else if (x < 0.5) for (let i = 0, n = 1 + Math.floor(r() * 6); i < n; i++) neu(leicht[Math.floor(r() * 3)] + 8 * zug + i);
+            else if (x < 0.75) { if (mitArbeit.length) { const w = einer(); for (const id of w.post.splice(0)) w.fertig(id); } }
+            else eineAntwort();
+          }
+        };
+        const folgen = async (telefon, art) => {
+          const z = { grenze: telefon ? K.telefon : K.faeden, hoechst: 0, drueber: 0, offen: 0, belegt: 0, doppelt: 0, zuege: 0 };
           for (let keim = 1; keim <= FOLGEN; keim++) {
             alle.length = 0;
             const e = neuer(telefon), r = zufall(keim * (telefon ? 7919 : 104729)), ps = [];
+            const neu = (bytes) => ps.push(still(e.decodeGeometry(new ArrayBuffer(bytes), {})));
             const sehen = () => { const n = lebt(); z.hoechst = Math.max(z.hoechst, n); if (n > z.grenze) z.drueber++; };
             for (let zug = 0; zug < ZUEGE; zug++) {
-              const x = r();
-              if (x < 0.3) ps.push(still(e.decodeGeometry(new ArrayBuffer(K.gross + zug), {})));
-              else if (x < 0.65) ps.push(still(e.decodeGeometry(new ArrayBuffer(64 + zug), {})));
-              else {
-                const mitArbeit = alle.filter((w) => !w.tot && w.post.length);
-                if (mitArbeit.length) { const w = mitArbeit[Math.floor(r() * mitArbeit.length)]; w.fertig(w.post.splice(Math.floor(r() * w.post.length), 1)[0]); }
-              }
+              zieh(art, r, zug, neu);
               if (r() < 0.5) await ruck();
               sehen();
               z.zuege++;
@@ -1631,13 +1685,18 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
               for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
             }
             z.offen += (await stand(ps)).filter((x) => x !== 'fertig').length;
+            z.belegt += Number.isFinite(e.belegt) ? Math.abs(e.belegt) : 1;
+            z.doppelt += alle.filter((w) => w.grosse >= 2).length;
             e.dispose();
           }
           return z;
         };
-        const zt = await folgen(true), zp = await folgen(false);
-        ist.push(`Zufallsfolgen (${FOLGEN} je Geraet, ${zt.zuege + zp.zuege} Zuege): am Telefon hoechstens ${zt.hoechst} Worker zugleich (${zt.drueber} Mal ueber der Grenze, ${zt.offen} Stuecke am Ende offen), am PC ${zp.hoechst} (${zp.drueber}, ${zp.offen})`);
-        const zufallOk = [zt, zp].every((z) => z.hoechst === z.grenze && z.drueber === 0 && z.offen === 0) && zt.zuege + zp.zuege >= 2 * FOLGEN * ZUEGE;
+        const zt = await folgen(true, 'dicht'), zp = await folgen(false, 'dicht'), dt = await folgen(true, 'dateien'), dp = await folgen(false, 'dateien');
+        const alleFolgen = [zt, zp, dt, dp], zuege = alleFolgen.reduce((n, z) => n + z.zuege, 0);
+        const wortZ = (z) => `hoechstens ${z.hoechst} Worker zugleich (${z.drueber} Mal ueber der Grenze, ${z.offen} Stuecke am Ende offen, ${z.belegt} Plaetze am Ende belegt)`;
+        ist.push(`Zufallsfolgen (${FOLGEN} je Geraet und Mischung, ${zuege} Zuege): dicht am Telefon ${wortZ(zt)}, am PC ${wortZ(zp)}; wie Dateien am Telefon ${wortZ(dt)}, am PC ${wortZ(dp)}; dabei lagen am PC ${dp.doppelt} Mal grosse Stuecke beim selben Worker (mindestens ${DOPPELT_MIN}), am Telefon ${zt.doppelt + dt.doppelt} Mal`);
+        const zufallOk = alleFolgen.every((z) => z.hoechst === z.grenze && z.drueber === 0 && z.offen === 0 && z.belegt === 0) && zuege >= 4 * FOLGEN * ZUEGE
+          && dp.doppelt >= DOPPELT_MIN && zt.doppelt + dt.doppelt === 0 && sel2.ok && sel3.ok;
         rechnetOk = abLauf.ok && abWart.ok && ladeOk && pcOk && zufallOk && ruheOk && grossOk && tel.erst === 1 && tel.worker === 2 && tel.leben === 0 && tel.fertig && pc.erst === 2 && pc.leben === 0 && pc.fertig
           && lebenTel === K.telefon && lebenPc === K.faeden && lebtNoch === true && frueh === 0 && spaet === 1 && alleVier && lebenF <= K.telefon;
       } catch (e) {
@@ -1647,9 +1706,9 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
         console.info = echt.info;
       }
     }
-    sollIst(`Entpacker der Geometrie: hoechstens ${ENTPACKER_MAX.faeden} Worker, am Telefon ${ENTPACKER_MAX.telefon}, die aus dem Pool genommenen mitgezaehlt; ohne Arbeit enden sie nach hoechstens ${ENTPACKER_MAX.ruhe} ms; ein Stueck ab hoechstens ${ENTPACKER_MAX.gross / 1024} KB nimmt seinen Worker mit; grosse Stuecke haben einen Platz weniger als die Grenze (Telefon nacheinander, PC drei zugleich), der Platz gilt bis zum Ende des Workers; nach dem Abbau endet Offenes mit einem Fehler, Spaeteres wird abgewiesen, kein Worker bleibt`,
+    sollIst(`Entpacker der Geometrie: hoechstens ${ENTPACKER_MAX.faeden} Worker, am Telefon ${ENTPACKER_MAX.telefon}, die aus dem Pool genommenen mitgezaehlt; ohne Arbeit enden sie nach hoechstens ${ENTPACKER_MAX.ruhe} ms; ein Stueck ab hoechstens ${ENTPACKER_MAX.gross / 1024} KB nimmt seinen Worker mit; grosse Stuecke haben einen Platz weniger als die Grenze (Telefon nacheinander, PC drei zugleich), der Platz gilt bis zum Ende des Workers, und liegen mehrere beim selben Worker, kommen alle ihre Plaetze zurueck; nach dem Abbau endet Offenes mit einem Fehler, Spaeteres wird abgewiesen, kein Worker bleibt`,
       `${typeof E === 'function' ? `faeden ${K.faeden}, telefon ${K.telefon}, gross ${K.gross / 1024} KB, ruhe ${K.ruhe} ms` : 'Klasse Entpacker fehlt'}${ist.length ? `; ${ist.join('; ')}` : ''}`);
-    if (!klinkeOk || !rechnetOk) fail(`[12] dist/assets/hangar-viewer.js: der Entpacker der Geometrie rechnet nicht mehr wie am 14.11.2026 abgenommen (ENTPACKER hoechstens ${JSON.stringify(ENTPACKER_MAX)}, telefon mindestens 2; Worker ohne Arbeit enden nach ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus dem Pool und beendet ihn danach, die Grenze zaehlt auf jedem Geraet alle lebenden Worker, grosse Stuecke haben einen Platz weniger als die Grenze und halten ihn bis zum Ende ihres Workers, nach dispose() endet jedes offene Stueck mit einem Fehler, jedes spaetere wird abgewiesen und kein Worker bleibt): Die Worker hielten wieder bis zu 343 MB, solange die Seite offen ist, und die volle Halle braeche am Telefon wieder beim Laden ab (946 statt 633 MB)`);
+    if (!klinkeOk || !rechnetOk) fail(`[12] dist/assets/hangar-viewer.js: der Entpacker der Geometrie rechnet nicht mehr wie am 14.11.2026 abgenommen (ENTPACKER hoechstens ${JSON.stringify(ENTPACKER_MAX)}, telefon mindestens 2; Worker ohne Arbeit enden nach ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus dem Pool und beendet ihn danach, die Grenze zaehlt auf jedem Geraet alle lebenden Worker, grosse Stuecke haben einen Platz weniger als die Grenze und halten ihn bis zum Ende ihres Workers, mit dem Ende eines Workers kommt der Platz jedes grossen Stuecks zurueck, das bei ihm lag, nach dispose() endet jedes offene Stueck mit einem Fehler, jedes spaetere wird abgewiesen und kein Worker bleibt): Die Worker hielten wieder bis zu 343 MB, solange die Seite offen ist, und die volle Halle braeche am Telefon wieder beim Laden ab (946 statt 633 MB)`);
     const dracoFile = join(DIST, 'vendor', 'three', 'addons', 'loaders', 'DRACOLoader.js');
     const dracoSrc = existsSync(dracoFile) ? readFileSync(dracoFile, 'utf8') : '';
     const nahtE = [

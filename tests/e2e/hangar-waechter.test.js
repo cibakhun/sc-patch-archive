@@ -432,8 +432,8 @@ describe('Hangar am Telefon: Bilder klein auspacken', () => {
 function zaehlWorker() {
   const alle = [];
   class Zaehler {
-    constructor() { this.tot = false; this.post = []; alle.push(this); }
-    postMessage(m) { if (m?.type === 'decode') this.post.push(m.id); }
+    constructor() { this.tot = false; this.post = []; this.grosse = 0; alle.push(this); }
+    postMessage(m) { if (m?.type === 'decode') { this.post.push(m.id); if (m.buffer?.byteLength >= ENTPACKER.gross) this.grosse++; } }
     terminate() { this.tot = true; }
     fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
     scheitert(id) { this.onmessage({ data: { type: 'error', id, error: 'Probe' } }); }
@@ -685,59 +685,136 @@ describe('Hangar: Entpacker der Geometrie geben ihren Speicher zurueck', () => {
     } finally { ab(); }
   });
 
+  // CodeRabbit zum Stand d2828e48: three waehlt den Worker fuer ein Stueck,
+  // bevor der Entpacker den des vorigen aus dem Pool genommen hat. Kommen
+  // zwei grosse Stuecke im selben Augenblick und traegt ein Worker deutlich
+  // weniger als die anderen, landen beide bei ihm. Jedes haelt einen Platz,
+  // und beide muessen mit dem Ende des Workers zurueckkommen: Sonst fehlte
+  // am PC von da an ein Platz (bei drei Stuecken zwei), und grosse Stuecke
+  // liefen bis zum Neuladen nur noch einzeln. Am Telefon gibt es einen
+  // Platz, dort kommen nie zwei zugleich dran.
+  test('zwei grosse Stuecke beim selben Worker geben beide ihren Platz zurueck', async () => {
+    for (const zahl of [2, 3]) {
+      const { e, alle, ab } = buehne(false);
+      try {
+        // der Pool ist voll, jeder Worker traegt drei Stuecke von rund 900 KB
+        const k = [];
+        for (let i = 0; i < 3 * ENTPACKER.faeden; i++) k.push(e.decodeGeometry(new ArrayBuffer(900_000 + i), {}));
+        await ruck();
+        assert.equal(alle.length, ENTPACKER.faeden);
+        // einer wird fertig und bleibt ohne Arbeit im Pool
+        const x = alle[0];
+        for (const id of x.post.splice(0)) x.fertig(id);
+        await ruck();
+        assert.equal(x.tot, false);
+        const g = [];
+        for (let i = 0; i < zahl; i++) g.push(e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + i), {}));
+        await ruck();
+        assert.equal(x.grosse, zahl, `${zahl} grosse Stuecke im selben Augenblick: so viele liegen beim selben Worker`);
+        assert.equal(e.belegt, zahl);
+        assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.faeden);
+        for (const id of x.post.splice(0)) x.fertig(id);
+        await ruck();
+        assert.equal(x.tot, true);
+        assert.deepEqual(await stand(g), g.map(() => 'fertig'));
+        assert.equal(e.belegt, 0, `${zahl} grosse Stuecke beim selben Worker: so viele Plaetze sind nach seinem Ende noch belegt`);
+        // und es laufen danach wieder drei grosse Stuecke zugleich
+        const h = [];
+        for (let i = 0; i < ENTPACKER.faeden - 1; i++) { h.push(e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 10 + i), {})); await ruck(); }
+        assert.equal(alle.filter((w) => w._geht && !w.tot).length, ENTPACKER.faeden - 1, 'danach laufen nicht mehr drei grosse Stuecke zugleich');
+        for (let runde = 0; runde < 4; runde++) {
+          for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+          await ruck();
+        }
+        assert.deepEqual(await stand([...k, ...h]), [...k, ...h].map(() => 'fertig'));
+        assert.equal(e.belegt, 0);
+      } finally { ab(); }
+    }
+  });
+
   // Die Art, nicht der Fall: beliebige Folgen aus kleinen und grossen
   // Stuecken und Antworten der Worker, mal im selben Augenblick, mal
   // nacheinander. Nach jedem Zug leben hoechstens so viele Worker, wie
   // zugesagt, und am Ende ist jedes Stueck fertig und kein Platz belegt.
   // Fester Keim je Folge, damit sich eine rote Folge wiederholen laesst.
+  // Zwei Mischungen, weil eine allein die andere Art nicht trifft:
+  // - dicht: viele grosse Stuecke einzeln, dazu winzige kleine. Reizt die
+  //   Grenze und die Plaetze aus.
+  // - dateien: wie eine Datei sie bringt, also zwei oder drei grosse im
+  //   selben Augenblick, kleine in Gruppen und verschieden schwer (64 Byte
+  //   bis rund 900 KB), und ein Worker arbeitet auch einmal alles ab. Nur
+  //   so traegt ein Worker deutlich weniger als die anderen, und zwei
+  //   grosse Stuecke landen bei ihm (in den 300 dichten Folgen kam das nie
+  //   vor, der vierte Befund blieb deshalb gruen).
   const zufall = (keim) => () => {
     keim = (keim + 0x6D2B79F5) | 0;
     let t = Math.imul(keim ^ (keim >>> 15), 1 | keim);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  const zieh = (art, r, zug, neu, alle) => {
+    const x = r();
+    const mit = alle.filter((w) => !w.tot && w.post.length);
+    const einer = () => mit[Math.floor(r() * mit.length)];
+    const eineAntwort = () => { if (mit.length) { const w = einer(); w.fertig(w.post.splice(Math.floor(r() * w.post.length), 1)[0]); } };
+    if (art === 'dicht') {
+      if (x < 0.3) neu(ENTPACKER.gross + zug);
+      else if (x < 0.65) neu(64 + zug);
+      else eineAntwort();
+    } else {
+      if (x < 0.05) neu(ENTPACKER.gross + 8 * zug);
+      else if (x < 0.15) for (let i = 0, n = 2 + Math.floor(r() * 2); i < n; i++) neu(ENTPACKER.gross + 8 * zug + i);
+      else if (x < 0.5) for (let i = 0, n = 1 + Math.floor(r() * 6); i < n; i++) neu([64, 600_000, 900_000][Math.floor(r() * 3)] + 8 * zug + i);
+      else if (x < 0.75) { if (mit.length) { const w = einer(); for (const id of w.post.splice(0)) w.fertig(id); } }
+      else eineAntwort();
+    }
+  };
   test('die Grenze haelt in Zufallsfolgen, am Telefon wie am PC', async () => {
     const FOLGEN = 150, ZUEGE = 60;
-    for (const telefon of [true, false]) {
-      const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden, wo = telefon ? 'Telefon' : 'PC';
-      let hoechst = 0, grosse = 0;
-      for (let keim = 1; keim <= FOLGEN; keim++) {
-        const { e, alle, ab } = buehne(telefon);
-        try {
-          const r = zufall(keim * (telefon ? 7919 : 104729));
-          const ps = [];
-          const sehen = (wann) => {
-            const leben = alle.filter((w) => !w.tot).length;
-            hoechst = Math.max(hoechst, leben);
-            grosse = Math.max(grosse, alle.filter((w) => w._geht && !w.tot).length);
-            assert.ok(leben <= grenze, `${wo}, Folge ${keim}, ${wann}: ${leben} Worker leben, zugesagt sind hoechstens ${grenze}`);
-            assert.equal(e.lebend.size, leben, `${wo}, Folge ${keim}, ${wann}: der Entpacker zaehlt anders, als Worker leben`);
-          };
-          for (let zug = 0; zug < ZUEGE; zug++) {
-            const x = r();
-            if (x < 0.3) ps.push(e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + zug), {}));
-            else if (x < 0.65) ps.push(e.decodeGeometry(new ArrayBuffer(64 + zug), {}));
-            else {
-              const mit = alle.filter((w) => !w.tot && w.post.length);
-              if (mit.length) { const w = mit[Math.floor(r() * mit.length)]; w.fertig(w.post.splice(Math.floor(r() * w.post.length), 1)[0]); }
+    for (const art of ['dicht', 'dateien']) {
+      for (const telefon of [true, false]) {
+        const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden, wo = `${telefon ? 'Telefon' : 'PC'} (${art})`;
+        let hoechst = 0, grosse = 0, doppelt = 0;
+        for (let keim = 1; keim <= FOLGEN; keim++) {
+          const { e, alle, ab } = buehne(telefon);
+          try {
+            const r = zufall(keim * (telefon ? 7919 : 104729));
+            const ps = [];
+            const neu = (bytes) => ps.push(e.decodeGeometry(new ArrayBuffer(bytes), {}));
+            const sehen = (wann) => {
+              const leben = alle.filter((w) => !w.tot).length;
+              hoechst = Math.max(hoechst, leben);
+              grosse = Math.max(grosse, alle.filter((w) => w._geht && !w.tot).length);
+              assert.ok(leben <= grenze, `${wo}, Folge ${keim}, ${wann}: ${leben} Worker leben, zugesagt sind hoechstens ${grenze}`);
+              assert.equal(e.lebend.size, leben, `${wo}, Folge ${keim}, ${wann}: der Entpacker zaehlt anders, als Worker leben`);
+              assert.ok(e.belegt >= 0 && e.belegt <= grenze - 1, `${wo}, Folge ${keim}, ${wann}: ${e.belegt} Plaetze belegt, es gibt ${grenze - 1}`);
+            };
+            for (let zug = 0; zug < ZUEGE; zug++) {
+              zieh(art, r, zug, neu, alle);
+              if (r() < 0.5) await ruck();
+              sehen(`Zug ${zug}`);
             }
-            if (r() < 0.5) await ruck();
-            sehen(`Zug ${zug}`);
-          }
-          for (let runde = 0; runde <= ps.length; runde++) {
+            for (let runde = 0; runde <= ps.length; runde++) {
+              await ruck();
+              sehen('Auslauf');
+              for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+            }
             await ruck();
-            sehen('Auslauf');
-            for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
-          }
-          await ruck();
-          assert.equal((await stand(ps)).filter((z) => z !== 'fertig').length, 0, `${wo}, Folge ${keim}: nicht jedes Stueck ist fertig`);
-          assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0, `${wo}, Folge ${keim}: der Worker eines grossen Stuecks lebt nach seiner Arbeit`);
-          assert.equal(e.belegt, 0, `${wo}, Folge ${keim}: ein Platz fuer grosse Stuecke ist noch belegt`);
-        } finally { ab(); }
+            assert.equal((await stand(ps)).filter((z) => z !== 'fertig').length, 0, `${wo}, Folge ${keim}: nicht jedes Stueck ist fertig`);
+            assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0, `${wo}, Folge ${keim}: der Worker eines grossen Stuecks lebt nach seiner Arbeit`);
+            assert.equal(e.belegt, 0, `${wo}, Folge ${keim}: so viele Plaetze fuer grosse Stuecke sind am Ende noch belegt`);
+            doppelt += alle.filter((w) => w.grosse >= 2).length;
+          } finally { ab(); }
+        }
+        // die Folgen muessen die Grenze auch ausreizen, sonst prueften sie nichts
+        assert.equal(hoechst, grenze, `${wo}: die Folgen haben die Grenze nie erreicht`);
+        assert.equal(grosse, grenze - 1, `${wo}: hoechstens ${grenze - 1} grosse Stuecke zugleich`);
+        // und am PC muessen in den Dateien-Folgen grosse Stuecke auch beim
+        // selben Worker gelegen haben (gezaehlt 46 Mal); am Telefon darf das
+        // nie vorkommen, dort gibt es einen Platz
+        if (telefon) assert.equal(doppelt, 0, `${wo}: zwei grosse Stuecke lagen beim selben Worker`);
+        else if (art === 'dateien') assert.ok(doppelt >= 30, `${wo}: nur ${doppelt} Mal lagen zwei grosse Stuecke beim selben Worker`);
       }
-      // die Folgen muessen die Grenze auch ausreizen, sonst prueften sie nichts
-      assert.equal(hoechst, grenze, `${wo}: die Folgen haben die Grenze nie erreicht`);
-      assert.equal(grosse, grenze - 1, `${wo}: hoechstens ${grenze - 1} grosse Stuecke zugleich`);
     }
   });
 
