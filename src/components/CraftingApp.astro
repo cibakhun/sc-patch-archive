@@ -860,13 +860,18 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
             hebt sie beim Init selbst ins dataset. Nur data-i (localStorage-Key
             für Besitz/Planer, muss DB-stabil bleiben) und data-time (Craft-Zeit
             steht sichtbar nur als gerundetes Label) bleiben im Markup. Die
-            ★/＋-Buttons sind ohne JS funktionslos → injiziert ebenfalls das JS. */}
+            ★/＋-Buttons sind ohne JS funktionslos → injiziert ebenfalls das JS.
+            Runde 7: data-cat steht wieder im Markup, aber nur bei den beiden
+            Gruppen mit eigener Farbe (Vehiclegear blau, Ammo gelb; rund 12 KB
+            je Sprachseite). Vorher malte der erste Blick alle Kacheln orange,
+            und ein Drittel faerbte sich um, sobald das Skript lief. */}
         {cardsData.map((c) => (
           <article
             class="cbp"
             data-i={c.i}
             data-time={c.time}
             data-g={c.g}
+            data-cat={c.top === 'Vehiclegear' || c.top === 'Ammo' ? c.top : undefined}
           >
             <div class="cbp__top">
               <span class="cbp__cat">{c.top}{c.sub && (<em>{c.sub}</em>)}</span>

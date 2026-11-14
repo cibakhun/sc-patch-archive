@@ -1675,6 +1675,21 @@ async function probeWerkbank(page) {
   // 14.11.2026 stand dort der Spielbestand (1634) unter „1.626 / 1.626“.
   if (zaehler.band !== String(zaehler.karten))
     return `Werkbank 1280 px: unter dem Werkzeug steht „Blueprints ${zaehler.band}“, in der Liste stehen ${zaehler.karten} Kacheln`;
+  // Runde 7: die Farbe der Gruppe (Vehiclegear blau, Ammo gelb) haengt an
+  // data-cat. Das setzte bis dahin erst das Skript: der erste Blick malte
+  // alle Kacheln orange, ein Drittel faerbte sich um, sobald es lief. Jetzt
+  // traegt das ausgelieferte Markup es selbst, bei genau den Kacheln, die das
+  // Skript so einordnet (es liest die Gruppe aus dem Text der Kachel).
+  const farbe = await page.evaluate(async () => {
+    const roh = await fetch(location.pathname, { cache: 'no-store' }).then((r) => r.text());
+    return {
+      imMarkup: (roh.match(/<article\b[^>]*\bclass="cbp[ "][^>]*\bdata-cat="(?:Vehiclegear|Ammo)"/g) || []).length,
+      imBild: [...document.querySelectorAll('#cdb-grid .cbp')].filter((k) => k.dataset.cat === 'Vehiclegear' || k.dataset.cat === 'Ammo').length,
+    };
+  });
+  if (!farbe.imBild) return 'Werkbank 1280 px: keine Kachel der Gruppen Vehiclegear oder Ammo, die Probe kann die Farbe im Markup nicht pruefen';
+  if (farbe.imMarkup !== farbe.imBild)
+    return `Werkbank 1280 px: ${farbe.imBild} Kacheln tragen eine Gruppenfarbe, im ausgelieferten Markup steht sie nur bei ${farbe.imMarkup} (der Rest faerbt sich um, sobald das Skript laeuft)`;
   const liste = await kasten(page, '#cdb-grid');
   const mitte = await kasten(page, '#cdb-modal .cdb-modal__box');
   const planer = await kasten(page, '#cdb-planner');
@@ -2014,6 +2029,38 @@ async function probeWerkbank(page) {
   if (pfNull.zeilen !== 1 || pfNull.auf !== 'Zeile 1') return `Werkbank 1280 px: nach „weniger“ von eins auf null per Tastatur (${pfNull.zeilen} uebrig) steht der Fokus auf ${pfNull.auf} statt auf der letzten Zeile`;
   const pfLeer = await druecke('#cdb-plan-list .cdb-plan-item [data-rm]');
   if (pfLeer.zeilen !== 0 || pfLeer.auf !== 'Hinweis') return `Werkbank 1280 px: nach dem Entfernen der letzten Planer-Zeile per Tastatur steht der Fokus auf ${pfLeer.auf} statt auf dem Hinweis des leeren Planers`;
+  // Runde 7: die Liste wird bei jeder Aenderung neu geschrieben, vorher
+  // sprang dabei alles. Jetzt blendet die entfernte Zeile als Abbild aus
+  // (.wbp-geist, ausserhalb der Liste), und die naechste steht im ersten
+  // Augenblick noch, wo sie stand, und gleitet dann nach. Gemessen wird im
+  // selben Zug wie der Klick (die Bewegung steht dann bei null), und danach,
+  // dass nichts uebrig bleibt: kein Abbild, keine verschobene Zeile.
+  const fluss = await page.evaluate(async () => {
+    [...document.querySelectorAll('#cdb-grid .cbp .cbp__add')].slice(0, 3).forEach((x) => x.click());
+    await new Promise((r) => setTimeout(r, 700));
+    const lade = document.querySelector('#cdb-planner');
+    const zeilen = () => [...lade.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+    const oben = (e) => Math.round(e.getBoundingClientRect().top);
+    const vorher = zeilen();
+    if (vorher.length < 3) return { vorher: vorher.length };
+    const stand = oben(vorher[1]), ziel = oben(vorher[0]);
+    vorher[0].querySelector('[data-rm]').click();
+    const sofort = { geister: lade.querySelectorAll('.wbp-geist').length, y: oben(zeilen()[0]) };
+    await new Promise((r) => setTimeout(r, 900));
+    const z = zeilen();
+    const danach = { geister: lade.querySelectorAll('.wbp-geist').length, zeilen: z.length, y: oben(z[0]), schief: z.filter((e) => getComputedStyle(e).transform !== 'none').length };
+    // Aufraeumen: die naechste Messung zaehlt ihre Zeilen selbst.
+    z.forEach((e) => e.querySelector('[data-rm]').click());
+    await new Promise((r) => setTimeout(r, 700));
+    return { vorher: vorher.length, stand, ziel, sofort, danach, rest: zeilen().length, restGeister: lade.querySelectorAll('.wbp-geist').length };
+  });
+  if (fluss.vorher < 3) return `Werkbank 1280 px: die Probe braucht drei Zeilen im Planer, es sind ${fluss.vorher}`;
+  if (fluss.rest || fluss.restGeister) return `Werkbank 1280 px: nach dem Leeren stehen im Planer noch ${fluss.rest} Zeile(n) und ${fluss.restGeister} Abbild(er) entfernter Zeilen`;
+  if (fluss.sofort.geister !== 1) return `Werkbank 1280 px: beim Entfernen einer Planer-Zeile blenden ${fluss.sofort.geister} Abbilder aus statt einem (die Zeile verschwindet hart)`;
+  if (Math.abs(fluss.sofort.y - fluss.stand) > 1) return `Werkbank 1280 px: die nachrueckende Planer-Zeile springt (stand bei ${fluss.stand} px, steht im selben Augenblick bei ${fluss.sofort.y} px)`;
+  if (fluss.danach.geister) return `Werkbank 1280 px: das Abbild einer entfernten Planer-Zeile bleibt stehen (${fluss.danach.geister} nach 0,9 s)`;
+  if (fluss.danach.zeilen !== fluss.vorher - 1 || fluss.danach.schief || Math.abs(fluss.danach.y - fluss.ziel) > 1)
+    return `Werkbank 1280 px: nach dem Entfernen einer Planer-Zeile steht die Liste nicht (${fluss.danach.zeilen} Zeilen, ${fluss.danach.schief} verschoben, erste bei ${fluss.danach.y} statt ${fluss.ziel} px)`;
   // Voller Planer (Runde 6): rollt die Spalte, bleibt ihr Kopf oben und
   // deckt die Zeilen darunter (vorher schienen Zeichen und Zaehler durch),
   // und in keiner Zeile liegt der Papierkorb auf Zeit oder Zaehler.
@@ -2191,6 +2238,9 @@ async function probeWerkbank(page) {
     const da = (e) => !!e && !e.hidden && e.getBoundingClientRect().width > 0;
     const spalte = () => Math.round(document.querySelector('.calc-sidebar').getBoundingClientRect().top + window.scrollY);
     await bild();
+    // Runde 7: der Reiter kommt kurz herein (.is-frisch, wenige Pixel von
+    // unten). Die Lage der Spalte sagt erst etwas, wenn das steht.
+    await Promise.all(document.querySelector('#cdb-tab-dismantle-content').getAnimations().map((a) => a.finished.catch(() => {})));
     const zahl = document.querySelector('#calc-results-count'), haken = document.querySelector('.calc-mat-list .calc-mat-cb');
     const leer = { zahl: da(zahl), oben: spalte() };
     haken.click(); await new Promise((r) => setTimeout(r, 200)); await bild();
@@ -2202,6 +2252,44 @@ async function probeWerkbank(page) {
   if (ruhe.leer.zahl) return 'Werkbank 1280 px: der Zerlege-Rechner zeigt ohne Auswahl eine Trefferzahl';
   if (!ruhe.mit.zahl) return 'Werkbank 1280 px: der Zerlege-Rechner zeigt mit gewaehltem Material keine Trefferzahl';
   if (ruhe.leer.oben !== ruhe.mit.oben) return `Werkbank 1280 px: die linke Spalte des Zerlege-Rechners springt mit den Ergebnissen (${ruhe.leer.oben} px leer, ${ruhe.mit.oben} px mit Treffern)`;
+  // Runde 7: was eben hereinkam, traegt seine Klasse noch (.is-neu am
+  // Rezept, .is-tick an einer Zahl). Kehrt der Reiter aus display:none
+  // zurueck, spielte sich das alles noch einmal ab: das Rezept baute sich
+  // nach jedem Reiterwechsel neu auf. Nach dem Wechsel traegt nichts mehr
+  // eine solche Klasse, nur der Reiter selbst kommt herein (.is-frisch).
+  const wechsel = await page.evaluate(async () => {
+    const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const marken = () => [...document.querySelectorAll('#cdb .is-neu, #cdb .is-tick, #cdb .is-puls')].map((e) => e.className.toString().trim().split(/\s+/)[0] || e.tagName.toLowerCase());
+    document.querySelector('#cdb-grid .cbp .cbp__name').click();
+    await bild();
+    const vorher = marken().length;
+    // Das Raster traegt .is-frisch nach jedem Ansichtswechsel weiter. Kehrt
+    // der Reiter zurueck, setzte es deshalb selbst noch einmal an, mitten in
+    // der Bewegung des Reiters (Befund am Review zu #370).
+    const raster = document.querySelector('#cdb-grid');
+    const eigene = () => raster.getAnimations().filter((a) => a.effect && a.effect.target === raster && a.playState === 'running').length;
+    const ansicht = [...document.querySelectorAll('.cdb-view')];
+    const war = ansicht.find((x) => x.getAttribute('aria-pressed') === 'true');
+    const andere = ansicht.find((x) => x !== war);
+    if (andere) andere.click();
+    await bild();
+    const rasterVorher = raster.classList.contains('is-frisch');
+    await new Promise((r) => setTimeout(r, 500));
+    document.querySelector('.cdb-tab-btn[data-tab="dismantle"]').click(); await bild();
+    document.querySelector('.cdb-tab-btn[data-tab="db"]').click(); await bild();
+    const nachher = marken();
+    const herein = document.querySelectorAll('#cdb .is-frisch').length;
+    const rasterNachher = { klasse: raster.classList.contains('is-frisch'), laeuft: eigene() };
+    await new Promise((r) => setTimeout(r, 300));
+    if (war && andere) war.click();
+    document.querySelector('#cdb-modal .cdb-modal__x').click();
+    return { vorher, nachher, herein, rasterVorher, rasterNachher };
+  });
+  if (!wechsel.vorher) return 'Werkbank 1280 px: nach der Rezeptwahl traegt nichts .is-neu, die Probe kann den Reiterwechsel nicht pruefen';
+  if (wechsel.nachher.length) return `Werkbank 1280 px: nach dem Reiterwechsel spielt sich noch einmal ab, was vorher hereinkam (${wechsel.nachher.length} Element(e) mit is-neu, is-tick oder is-puls, zuerst „${wechsel.nachher[0]}“)`;
+  if (!wechsel.herein) return 'Werkbank 1280 px: der zurueckgekehrte Reiter kommt nicht herein (nichts traegt .is-frisch)';
+  if (!wechsel.rasterVorher) return 'Werkbank 1280 px: nach dem Ansichtswechsel traegt das Raster kein .is-frisch, die Probe kann die Rueckkehr des Reiters nicht pruefen';
+  if (wechsel.rasterNachher.klasse || wechsel.rasterNachher.laeuft) return `Werkbank 1280 px: nach dem Reiterwechsel setzt das Raster selbst noch einmal an (.is-frisch ${wechsel.rasterNachher.klasse ? 'steht noch' : 'fehlt'}, ${wechsel.rasterNachher.laeuft} eigene Bewegung(en) laufen), obwohl nur der Reiter hereinkommen soll`;
 
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
@@ -2258,12 +2346,83 @@ async function probeWerkbank(page) {
       const w = document.querySelector('#cdb');
       w.classList.add('wb-auftakt');
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-      return document.querySelector('.cdb-bar').getAnimations().filter((a) => a.playState === 'running').length;
+      // Runde 7: am Telefon bewegt sich die Leiste selbst gar nicht mehr,
+      // ihre Teile kommen einzeln, und die Planer-Leiste hebt sich von unten
+      // herein. Gezaehlt wird deshalb getrennt: was in der Leiste laeuft, und
+      // was an ihr selbst laeuft (das muss null sein, sonst ist sie wieder
+      // der Bezugsrahmen der festen Planer-Leiste).
+      const leiste = document.querySelector('.cdb-bar');
+      const an = (liste) => liste.filter((a) => a.playState === 'running').length;
+      return { teile: an(leiste.getAnimations({ subtree: true })), selbst: an(leiste.getAnimations()) };
     });
     const lageAuftakt = await leisteLage('waehrend des Auftakts');
     await p.evaluate(() => document.querySelector('#cdb').classList.remove('wb-auftakt'));
-    if (!laeuft) return 'Werkbank 390 px: der Auftakt der Bedienleiste laeuft nicht an, die Probe kann die Planer-Leiste nicht waehrenddessen messen';
+    if (!laeuft.teile) return 'Werkbank 390 px: der Auftakt der Bedienleiste laeuft nicht an, die Probe kann die Planer-Leiste nicht waehrenddessen messen';
+    if (laeuft.selbst) return `Werkbank 390 px: im Auftakt bewegt sich die Bedienleiste selbst (${laeuft.selbst} Animation(en)); das macht sie zum Bezugsrahmen der festen Planer-Leiste`;
     if (lageAuftakt) return lageAuftakt;
+    // Runde 7: Stern und Plus setzt das Skript in die Kachel. Bis dahin hielt
+    // die Kopfzeile am Telefon nur 32 px frei, die Knoepfe sind 44 px hoch:
+    // jede Kachel wuchs um 12 px, die Liste rutschte unter dem Finger weg.
+    // Mit und ohne Knoepfe muss die Kachel gleich hoch sein, als Kacheln und
+    // als Liste.
+    const wuchs = await p.evaluate(async () => {
+      const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const g = document.querySelector('#cdb-grid'), k = g.querySelector('.cbp'), weit = g.querySelectorAll('.cbp')[9];
+      const knoepfe = [...g.querySelectorAll('.cbp__btns')];
+      const lage = () => ({ h: Math.round(k.getBoundingClientRect().height), y: Math.round(weit.getBoundingClientRect().top) });
+      const messen = async () => {
+        const mit = lage();
+        knoepfe.forEach((x) => { x.style.display = 'none'; });
+        const ohne = lage();
+        knoepfe.forEach((x) => { x.style.display = ''; });
+        await bild();
+        return { mit, ohne };
+      };
+      const aus = { knoepfe: knoepfe.length, kacheln: await messen() };
+      document.querySelector('.cdb-view[data-view="list"]').click(); await bild();
+      aus.liste = await messen();
+      document.querySelector('.cdb-view[data-view="grid"]').click(); await bild();
+      return aus;
+    });
+    if (wuchs.knoepfe < 10) return `Werkbank 390 px: nur ${wuchs.knoepfe} Kacheln tragen Stern und Plus, die Probe kann ihr Wachsen nicht messen`;
+    for (const [art, m] of [['Kacheln', wuchs.kacheln], ['Liste', wuchs.liste]]) {
+      if (m.mit.h !== m.ohne.h || m.mit.y !== m.ohne.y)
+        return `Werkbank 390 px (${art}): die Kachel waechst, wenn Stern und Plus dazukommen (${m.ohne.h} px ohne, ${m.mit.h} px mit; die zehnte Kachel rutscht von ${m.ohne.y} auf ${m.mit.y} px)`;
+    }
+    // Runde 7: der Planer ist am Telefon ein Blatt, das von unten kommt (die
+    // Planer-Leiste sitzt unten, die Schublade kam vorher von rechts): volle
+    // Breite, am unteren Rand, oben bleibt die Seite zu sehen. Geht eine
+    // Zeile, gleitet das Blatt auf seine neue Hoehe statt zu springen: im
+    // selben Zug wie der Klick steht seine Oberkante noch, wo sie stand.
+    const blatt = await p.evaluate(async () => {
+      const warte = (ms) => new Promise((r) => setTimeout(r, ms));
+      [...document.querySelectorAll('#cdb-grid .cbp .cbp__add')].slice(0, 2).forEach((x) => x.click());
+      await warte(700);
+      document.querySelector('#cdb-planner-open').click();
+      await warte(600);
+      const lade = document.querySelector('#cdb-planner');
+      const r = () => { const x = lade.getBoundingClientRect(); return { x: Math.round(x.left), b: Math.round(x.width), oben: Math.round(x.top), unten: Math.round(x.bottom) }; };
+      const zeilen = () => [...lade.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+      const offen = { ...r(), auf: lade.classList.contains('is-open'), zeilen: zeilen().length, fenster: window.innerHeight };
+      zeilen()[0]?.querySelector('[data-rm]').click();
+      const sofort = { ...r(), gleitet: lade.getAnimations().filter((a) => a.playState === 'running').length };
+      await warte(900);
+      const danach = { ...r(), geister: lade.querySelectorAll('.wbp-geist').length, zeilen: zeilen().length };
+      // Aufraeumen: Planer leer und zu, wie ihn die naechsten Schritte erwarten.
+      zeilen().forEach((e) => e.querySelector('[data-rm]').click());
+      await warte(300);
+      lade.querySelector('[data-planner-close]').click();
+      await warte(500);
+      return { offen, sofort, danach, rest: zeilen().length, zu: !lade.classList.contains('is-open') };
+    });
+    if (blatt.rest || !blatt.zu) return `Werkbank 390 px: der Planer laesst sich nach der Probe nicht leeren und schliessen (${blatt.rest} Zeilen, zu ${blatt.zu})`;
+    if (!blatt.offen.auf || blatt.offen.zeilen !== 2) return `Werkbank 390 px: die Probe braucht den offenen Planer mit zwei Zeilen (offen ${blatt.offen.auf}, ${blatt.offen.zeilen} Zeilen)`;
+    if (blatt.offen.x !== 0 || blatt.offen.b !== 390 || Math.abs(blatt.offen.unten - blatt.offen.fenster) > 1 || blatt.offen.oben < 40)
+      return `Werkbank 390 px: der offene Planer ist kein Blatt am unteren Rand (x=${blatt.offen.x}, Breite ${blatt.offen.b}, oben ${blatt.offen.oben}, unten ${blatt.offen.unten} von ${blatt.offen.fenster} px)`;
+    if (blatt.danach.zeilen !== 1 || blatt.danach.geister) return `Werkbank 390 px: nach dem Entfernen einer Zeile stehen im Planer ${blatt.danach.zeilen} Zeile(n) und ${blatt.danach.geister} Abbild(er)`;
+    if (blatt.danach.oben <= blatt.offen.oben + 20) return `Werkbank 390 px: das Blatt wird mit einer Zeile weniger nicht niedriger (oben ${blatt.offen.oben} px, danach ${blatt.danach.oben} px), die Probe kann sein Gleiten nicht messen`;
+    if (!blatt.sofort.gleitet || Math.abs(blatt.sofort.oben - blatt.offen.oben) > 2)
+      return `Werkbank 390 px: das Blatt des Planers springt, wenn eine Zeile geht (Oberkante ${blatt.offen.oben} px, im selben Augenblick ${blatt.sofort.oben} px, Ziel ${blatt.danach.oben} px, ${blatt.sofort.gleitet} Bewegung(en) am Blatt)`;
     const k = p.locator('#cdb-grid .cbp').nth(1);
     const n2 = ((await k.locator('.cbp__name').textContent()) || '').trim();
     await k.locator('.cbp__name').tap();
