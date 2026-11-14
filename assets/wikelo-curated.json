@@ -1,4 +1,9 @@
 {
+  "stand": {
+    "art": "datum",
+    "geaendert": "2026-11-03",
+    "pruefsumme": "046acdb30d543685"
+  },
   "source": "Kuratierte Wikelo-Zusatzfelder — von Hand gepflegt, keyed by Vertrags-id, vom Erzeuger gelesen und nie überschrieben.",
   "reviewedAt": "2026-08-28",
   "matNames": {

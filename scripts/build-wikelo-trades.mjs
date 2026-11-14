@@ -136,6 +136,10 @@ const meta = {
   // zuletzt gegen den Bestand gehalten — nicht, gegen welchen Client
   // ausgelesen wurde. Bleibt deshalb bestehen.
   curatedReviewedAt: curated.reviewedAt ?? null,
+  // Stempel des Handbestands (scripts/lib/handstand.mjs), so wie er in der
+  // Datei steht: die Seite liest ihn hier, verify:patch-angaben haelt ihn
+  // gegen die Datei selbst.
+  curatedGeaendert: curated.stand?.geaendert ?? null,
   // reviewedVersion/reviewedAt sind mit Phase 20 (D-04) entfallen: ihr
   // einziger Leser war die HANDPFLEGE-Zeile in verify-datastand.mjs, die
   // Wikelo jetzt als maschinellen Datenstand (STANDS, Feld gameVersion)

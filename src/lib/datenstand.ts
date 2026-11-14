@@ -36,8 +36,11 @@ import VEHICLES from '../data/vehicles.json';
 import VEHICLE_PRICES from '../data/vehicle-prices.json';
 import SHIP_EXTRAS from '../data/ship-extras.json';
 import VEHICLE_EXTERNAL from '../data/vehicle-external.json';
+import WIKELO from '../../assets/wikelo-trades.meta.json';
 
-export type StandArt = 'spiel' | 'fremd' | 'hand' | 'schnappschuss' | 'quelle';
+// pflege: Handbestand ohne Patch-Bezug, „von Hand gepflegt, zuletzt geändert
+// am <Datum>" (Stempel in der Datei, scripts/lib/handstand.mjs).
+export type StandArt = 'spiel' | 'fremd' | 'hand' | 'pflege' | 'schnappschuss' | 'quelle';
 
 export interface StandZeile {
   /** fester Schluessel, ueber den das Tor die Datendatei findet */
@@ -64,6 +67,8 @@ const T = {
     stand: 'Stand',
     hand: 'von Hand gepflegt',
     schnappschuss: 'Schnappschuss vom',
+    geaendert: 'zuletzt geändert am',
+    wikeloZusatz: 'Bilder, Ausstattung und Hinweise je Tausch',
     recherche: 'eigene Recherche',
     shopSchnappschuss: 'eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt',
     aufbereitung: 'eigene Aufbereitung',
@@ -96,6 +101,8 @@ const T = {
     stand: 'as of',
     hand: 'maintained by hand',
     schnappschuss: 'snapshot of',
+    geaendert: 'last changed',
+    wikeloZusatz: 'Images, equipment and notes per trade',
     recherche: 'own research',
     shopSchnappschuss: 'own shop snapshot, undated, only where UEX does not list the item',
     aufbereitung: 'processed in-house',
@@ -297,6 +304,18 @@ export function standDossier(lang: Locale, o: { kennungen: (string | null | unde
     });
   }
   return z;
+}
+
+const WIKELO_F = fassung((WIKELO as { gameVersion?: string }).gameVersion, 'assets/wikelo-trades.meta.json gameVersion');
+const WIKELO_GEAENDERT = isoAus((WIKELO as { curatedGeaendert?: string }).curatedGeaendert, 'assets/wikelo-trades.meta.json curatedGeaendert');
+
+/** Wikelo-Seite: Tauschliste aus dem Spiel, dazu die von Hand gepflegten Zusatzangaben. */
+export function standWikelo(lang: Locale): StandZeile[] {
+  const t = T[lang];
+  return [
+    spiel(lang, 'wikelo', t.spielwerte, WIKELO_F),
+    { quelle: 'wikelo-pflege', art: 'pflege', was: t.wikeloZusatz, wert: WIKELO_GEAENDERT, text: `${t.hand}, ${t.geaendert} ${datumLang(WIKELO_GEAENDERT, lang)}`, aelter: false },
+  ];
 }
 
 /** Refinery (Wissensteil). */

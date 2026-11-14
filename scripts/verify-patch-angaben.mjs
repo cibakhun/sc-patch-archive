@@ -405,6 +405,9 @@ const STAND_GRUPPEN = [
   { name: 'Crafting-Werkzeug', match: (p) => p === 'topics/crafting.html', pflicht: ['crafting'], erlaubt: ['crafting'] },
   // Der Rechner zeigt keine Ausbeute je Station, nur Spielwerte.
   { name: 'Fracturing', match: (p) => p === 'fracturing.html', pflicht: ['mining'], erlaubt: ['mining'] },
+  // Seit 14.11.2026 (Krisz: „überall, immer"): die Wikelo-Seite zeigt die
+  // Tauschliste aus dem Spiel und die von Hand gepflegten Zusatzangaben.
+  { name: 'Wikelo', match: (p) => p === 'topics/wikelo-emporium.html', pflicht: ['wikelo', 'wikelo-pflege'], erlaubt: ['wikelo', 'wikelo-pflege'] },
 ];
 // Klinken je Gruppe (Grundsatz 5), Messlauf 06.11.2026 im Live-Bau der
 // Baustein-Aenderung. Nur nach OBEN; nach unten nur per Commit mit Ursache.
@@ -416,6 +419,8 @@ const STAND_KLINKEN = {
   'Item-Seiten': 11000, 'Item-Finder': 2, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
   // 06.11.2026, gemessen: je DE und EN.
   'Crafting-Werkzeug': 2, Fracturing: 2,
+  // 14.11.2026, je DE und EN.
+  Wikelo: 2,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
 // Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
@@ -437,6 +442,7 @@ const STAND_WAS = {
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
   methoden: ['Bewertung der Raffinationsmethoden', 'Refining method ratings'],
+  wikelo: ['Spielwerte', 'Game values'], 'wikelo-pflege': ['Bilder, Ausstattung und Hinweise je Tausch', 'Images, equipment and notes per trade'],
 };
 // FleetYards-Zeile: die Wertegruppe zaehlt auf, was die Seite von dort zeigt.
 const FY_TEILE = [['lackierungen', 'Lackierungen', 'paints'], ['varianten', 'Varianten', 'variants'], ['leihschiffe', 'Leihschiffe', 'loaners'], ['huelle', '3D-Hülle', '3D hull']];
@@ -490,6 +496,8 @@ try {
     // Gegen den Handbestand selbst, nicht gegen die Kopie in refinery-data.json:
     // vergisst der Bau das Uebertragen, faellt das hier auf.
     methoden: { art: 'hand', wert: rd('assets/refinery-methods.json').stand?.patch ?? null, datei: 'assets/refinery-methods.json stand.patch' },
+    wikelo: { art: 'spiel', wert: fassung.Wikelo, datei: 'assets/wikelo-trades.meta.json gameVersion' },
+    'wikelo-pflege': { art: 'pflege', wert: isoDatum(rd('assets/wikelo-curated.json').stand?.geaendert), datei: 'assets/wikelo-curated.json stand.geaendert' },
     fundorte: { art: 'quelle', wert: null },
     'shop-schnappschuss': { art: 'quelle', wert: null },
     huelle: { art: 'quelle', wert: null },
@@ -648,6 +656,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       } else if (q.art === 'hand') {
         kern = `${L ? 'von Hand gepflegt, Stand' : 'maintained by hand, as of'} ${sollWert}`;
         aelterSoll = !!spielWert && !!sollWert && vor(sollWert, spielWert);
+      } else if (q.art === 'pflege') {
+        kern = sollWert ? `${L ? 'von Hand gepflegt, zuletzt geändert am' : 'maintained by hand, last changed'} ${datumIn(sollWert, lang)}` : null;
       } else if (STAND_QUELLTEXT[z.quelle]) {
         kern = STAND_QUELLTEXT[z.quelle][sp];
       }

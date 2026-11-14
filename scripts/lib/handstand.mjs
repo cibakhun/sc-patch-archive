@@ -24,4 +24,5 @@ export function pruefsumme(daten) {
 /** Die Handbestaende der Site: Datei und wo sie sich zeigen. */
 export const HANDBESTAENDE = [
   { datei: 'assets/refinery-methods.json', art: 'patch', zeigt: 'Refinery (Bewertung der Raffinationsmethoden)' },
+  { datei: 'assets/wikelo-curated.json', art: 'datum', zeigt: 'Wikelo-Seite (Bilder, Ausstattung und Hinweise je Tausch)' },
 ];
