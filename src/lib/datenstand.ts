@@ -433,7 +433,7 @@ export function standHangar(lang: Locale, ids: readonly string[]): StandZeile[] 
     const was = aufzaehlen(ohne, lang);
     z.push({
       quelle: 'modelle-ohne', art: 'quelle', was: was.charAt(0).toUpperCase() + was.slice(1),
-      text: lang === 'de' ? `exportiert vor ${HANGAR_STEMPEL_AB}, ${t.nichtBelegt}` : `exported before ${HANGAR_STEMPEL_AB}, ${t.nichtBelegt}`,
+      text: lang === 'de' ? `vor ${HANGAR_STEMPEL_AB} erstellt, ${t.nichtBelegt}` : `made before ${HANGAR_STEMPEL_AB}, ${t.nichtBelegt}`,
       aelter: false,
     });
   }
