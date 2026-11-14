@@ -394,13 +394,19 @@ export const CHECKS = [
     // Umschaltleiste auf eine Seite, die es nicht gibt, ein Link zum Hangar,
     // der im Fenster bliebe, die Kamera ohne Abstand zur Decke und
     // frame-ancestors.conf auf 'none'.
+    // Erweitert (14.11.2026): Das Terminal liegt auf dem Glas des mittleren
+    // Monitors am Pult und meldet den Besucher an. Dazu liest das Tor die
+    // ausgelieferte Einrichtung der Halle (dist/hangar/hall/<id>.furniture.glb,
+    // in Node entpackt wie in verify:hangar-hall, unter einer Sekunde) und misst
+    // das Glas nach. Weiter ohne git, Netz und Kindprozess. VORGEFUEHRT ROT in
+    // elf weiteren Laeufen (Buchstaben e bis g im Kopf des Skripts).
     id: 'verify:hangar-orte',
     npm: 'verify:hangar-orte',
     nurMitHangar: true,
     script: 'scripts/verify-hangar-orte.mjs',
     rail: 'A',
     checks:
-      'Orte der Halle und Terminal im Leitstand: die Hangarseite traegt in beiden Sprachen die Ortsleiste mit Schiffsfeld, Werkhalle und Leitstand samt Ansagen und das Fenster des Terminals mit versioniertem Modul und leerem Rahmen; jeder Bereich der Umschaltleiste zeigt auf eine gebaute Seite derselben Sprache, bleibt im Fenster und markiert sich selbst (Klinke Bereiche je Seite); die reinen Funktionen des ausgelieferten Terminal-Moduls bestehen feste Proben (Massstab, Wege nach innen, in einen neuen Tab und zurueck in den Hangar, Zuordnung zum Bereich); die Kamera vor dem Schirm: leitFit aus dem ausgelieferten Viewer legt den Schirm fuer ein Raster von Fenstergroessen in das freie Rechteck und bleibt mit Abstand im Raum des Leitstands (Klinke Proben); die Naht zwischen Seite, Controller, Terminal und Viewer; und die Rahmen-Dateien des Baus lassen die eigene Seite zu',
+      'Orte der Halle und Terminal im Leitstand: die Hangarseite traegt in beiden Sprachen die Ortsleiste mit Schiffsfeld, Werkhalle und Leitstand samt Ansagen und das Fenster des Terminals mit versioniertem Modul und leerem Rahmen; jeder Bereich der Umschaltleiste zeigt auf eine gebaute Seite derselben Sprache, bleibt im Fenster und markiert sich selbst (Klinke Bereiche je Seite); die reinen Funktionen des ausgelieferten Terminal-Moduls bestehen feste Proben (Massstab, Wege nach innen, in einen neuen Tab und zurueck in den Hangar, Zuordnung zum Bereich); die Kamera vor dem Monitor: leitFit aus dem ausgelieferten Viewer legt das Fenster der Seite fuer ein Raster von Fenstergroessen in das freie Rechteck, laesst es auf dem Glas des Monitors und bleibt mit Abstand im Raum des Leitstands, suedlich des Pults (Klinke Proben); die Naht zwischen Seite, Controller, Terminal und Viewer; die Rahmen-Dateien des Baus lassen die eigene Seite zu; die Anmeldung am Terminal: Blende und Platz in der Leiste stehen in beiden Sprachen mit allen Worten und Zielen im Markup, termIdent laesst aus der Profilzeile nur durch, was in Stil und Adresse gehoert (Klinke Profilzeilen), und die Blende bleibt kurz; und der Monitor im Modell: die ausgelieferte Einrichtung der Halle traegt das Glas des mittleren Monitors dort, wo HALL_LEIT es nennt (Klinke Hallen), und die Marke der Blende steht, wo der Monitor sie in Ruhe zeigt',
   },
   {
     // Neuzugang (13.11.2026) hinter verify:hangar-orte: komprimierte

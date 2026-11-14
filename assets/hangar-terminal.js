@@ -34,6 +34,18 @@
 // und fremde Adressen (die Kopfzeilen des Servers erlauben im Fenster nur
 // die eigene Seite). Die beiden letzten oeffnen einen eigenen Tab.
 //
+// Anmeldung: Setzt sich die Kamera vor den Monitor, meldet das Terminal erst
+// den Besucher an (Krisz 14.11.2026: „son user anmeldung kurz loadin animation
+// beim bildschirm also wenn man sich davor hockt, und dann soll dargestellt
+// werden dass der echte user angemeldet wird mit versebase zeug“). Die Blende
+// (#hgx-term-login) beginnt mit derselben Marke an derselben Stelle, die der
+// Monitor der Halle in Ruhe zeigt, fragt das Konto der Seite (window.VBAccount,
+// assets/account-lite.js) und nennt, wer vor dem Terminal sitzt: das eigene
+// Profil mit Bild und Namen, oder den Gast. Danach steht dasselbe in der
+// Leiste (#hgx-term-who). Die Anmeldung selbst bleibt, wo sie ist: Ohne Konto
+// fuehrt die Leiste zur Anmeldeseite in einem eigenen Tab, und meldet sich
+// dort jemand an, meldet das Terminal ihn von selbst nach (vb-account-session).
+//
 // Beim Import passiert nichts; die Pruefung (scripts/verify-hangar-orte.mjs)
 // ruft die reinen Funktionen.
 
@@ -103,6 +115,30 @@ export function termTool(pathname, tools) {
   let best = null, len = 0;
   for (const t of tools) for (const p of t.pre) if (p.length > len && path.startsWith(p)) { best = t.key; len = p.length; }
   return best;
+}
+
+/** Dauer der Anmeldung in ms: auth = „Anmeldung …“ mindestens so lange, hold = Name steht, frist = so lange wartet sie hoechstens auf das Konto */
+export const TERM_LOGIN = { auth: 900, hold: 1300, kurz: { auth: 450, hold: 800 }, frist: 2600, aus: 320 };
+
+/**
+ * Wer vor dem Terminal sitzt, aus der Profilzeile des Kontos. Geprueft wird
+ * alles, was spaeter in Stil oder Adresse landet: das Bild nur ueber https,
+ * die Farbe nur als #rrggbb, das Zeichen hoechstens vier Zeichen lang.
+ *   termIdent('u1', { display_name: 'Ada', handle: 'ada' }) → { uid: 'u1', name: 'Ada', sub: '@ada', bild: '', zeichen: 'A', farbe: '#2dd4ff' }
+ *   termIdent('u1', null) → { uid: 'u1', name: '', … }   (Konto ohne lesbares Profil: die Leiste nennt es „Konto“)
+ *   termIdent(null, null) → null   (Gast)
+ * @param {string|null} uid @param {Record<string, unknown>|null} p Zeile aus profiles
+ */
+export function termIdent(uid, p) {
+  if (!uid) return null;
+  const text = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+  const handle = text(p?.handle, 40).replace(/^@+/, ''), anzeige = text(p?.display_name, 60);
+  const name = anzeige || (handle ? `@${handle}` : '');
+  let bild = '';
+  try { const u = new URL(text(p?.avatar_url, 600)); if (u.protocol === 'https:') bild = u.href; } catch { /* kein Bild */ }
+  const farbe = /^#[0-9a-f]{6}$/i.test(text(p?.avatar_color, 7)) ? text(p?.avatar_color, 7) : '#2dd4ff';
+  const zeichen = [...text(p?.avatar_icon, 16)].slice(0, 4).join('') || [...name.replace(/^@/, '')][0]?.toUpperCase() || '◆';
+  return { uid: String(uid), name, sub: anzeige && handle ? `@${handle}` : '', bild, zeichen, farbe };
 }
 
 // Stil fuer die Seite im Fenster. Die Kopfzeile der Seite (#topbar) und die
@@ -299,14 +335,141 @@ export function initTerminal(box, hooks = {}) {
   for (const ev of ['pointerenter', 'pointerdown', 'focus', 'contextmenu', 'click']) ext?.addEventListener(ev, syncExt);
   win.addEventListener('pagehide', remember);
 
+  // ---- Anmeldung ----------------------------------------------------------
+  const who = box.querySelector('#hgx-term-who'), login = box.querySelector('#hgx-term-login');
+  const lstep = box.querySelector('#hgx-term-lstep'), lname = box.querySelector('#hgx-term-lname'), lsub = box.querySelector('#hgx-term-lsub');
+  const ruhig = win.matchMedia?.('(prefers-reduced-motion: reduce)');
+  // wer: zuletzt gezeigt (undefined: noch nie gefragt, null: Gast); lauf zaehlt die Anmeldungen, damit eine ueberholte nichts mehr setzt
+  // frage: die Antwort des Kontos, auf die die laufende Anmeldung wartet;
+  // gefragt: fuer welches Konto sie gestellt wurde (null: die Antwort steht in der Leiste)
+  let wer, lauf = 0, loginTimer = 0, gesessen = false, frage = null, gefragt = null;
+  // das Konto der gespeicherten Sitzung, ohne Netz ('' ohne Sitzung)
+  const kontoJetzt = () => { try { return String(win.VBAccount?.peek?.()?.user?.id ?? ''); } catch { return ''; } };
+
+  // Bild oder Zeichen in einen Kreis (.hgx-term__av): Laedt das Bild nicht
+  // (fremder Host, den die Seite nicht zulaesst, oder es ist fort), bleibt das Zeichen.
+  function avatarInto(av, id) {
+    if (!av) return;
+    const z = av.querySelector('span'), img = av.querySelector('img');
+    av.style.setProperty('--av', id?.farbe ?? '');
+    if (z) z.textContent = id?.zeichen ?? '◆';
+    if (!img) return;
+    img.hidden = true;
+    img.onload = img.onerror = null;
+    if (!id?.bild) { img.removeAttribute('src'); return; }
+    img.onload = () => { img.hidden = false; };
+    img.onerror = () => { img.hidden = true; };
+    img.referrerPolicy = 'no-referrer';
+    img.src = id.bild;
+  }
+  // Die Leiste nennt, wer angemeldet ist, und fuehrt zum Konto oder zur Anmeldung
+  function showWho(id) {
+    if (!who) return;
+    const label = who.querySelector('b'), name = id ? id.name || who.dataset.lAcct : who.dataset.lLogin;
+    who.dataset.who = id ? 'user' : 'guest';
+    who.href = id ? who.dataset.dash : who.dataset.login;
+    if (label) label.textContent = name ?? '';
+    who.setAttribute('aria-label', id ? (who.dataset.aUser ?? '').replace('{name}', name ?? '') : who.dataset.aGuest ?? '');
+    avatarInto(who.querySelector('.hgx-term__av'), id);
+  }
+  // Die Antwort des Kontos gilt: merken, in die Leiste, die Frage ist erledigt
+  const setze = (id) => { wer = id; gefragt = null; showWho(id); };
+  // Das Konto fragen: die Sitzung der Seite, dann die eigene Profilzeile.
+  // Ohne Konto-Skript, ohne Sitzung oder ohne Antwort in der Frist: Gast.
+  async function ident() {
+    const acct = win.VBAccount;
+    if (!acct?.session) return null;
+    const sess = await acct.session().catch(() => null), uid = sess?.user?.id;
+    if (!uid) return null;
+    const stop = new win.AbortController(), frist = win.setTimeout(() => stop.abort(), TERM_LOGIN.frist);
+    try {
+      const r = await acct.rest(sess, 'GET', `profiles?select=display_name,handle,avatar_url,avatar_icon,avatar_color&id=eq.${encodeURIComponent(uid)}`, null, null, stop.signal);
+      const rows = r.ok ? await r.json() : [];
+      return termIdent(uid, Array.isArray(rows) ? rows[0] ?? null : null);
+    } catch {
+      // angemeldet, aber das Profil kam nicht: Das Konto bleibt ein Konto
+      return termIdent(uid, null);
+    } finally { win.clearTimeout(frist); }
+  }
+  const warte = (ms) => new Promise((ok) => { loginTimer = win.setTimeout(ok, ms); });
+  // Blende zu; loginOff bricht dazu ab, was noch laeuft (die Kamera geht)
+  function loginZu() {
+    win.clearTimeout(loginTimer);
+    if (login) { login.hidden = true; login.removeAttribute('data-step'); }
+  }
+  function loginOff() {
+    lauf++;
+    loginZu();
+  }
+  // Die Blende: „Anmeldung …“, dann wer es ist, dann gibt sie die Seite frei
+  async function signIn() {
+    const n = ++lauf, zeit = gesessen ? TERM_LOGIN.kurz : TERM_LOGIN, still = !!ruhig?.matches;
+    gesessen = true;
+    win.clearTimeout(loginTimer);
+    gefragt = kontoJetzt();
+    const echt = (frage = ident()), bald = Promise.race([echt, new Promise((ok) => win.setTimeout(() => ok(undefined), TERM_LOGIN.frist + 200))]);
+    // Kommt die Antwort erst nach der Frist (die Sitzung wird gerade erneuert),
+    // zieht die Leiste still nach, solange keine neuere Anmeldung laeuft
+    bald.then((id) => { if (id === undefined) echt.then((spaet) => { if (n === lauf || (frage === echt && wer === undefined)) setze(spaet); }); });
+    if (!login) { const id = await bald; if (n === lauf && id !== undefined) setze(id); return; }
+    login.removeAttribute('data-who');
+    login.dataset.step = 'boot';
+    if (lstep) lstep.textContent = login.dataset.lAuth ?? '';
+    login.hidden = false;
+    // erst ein Layout mit dem Anfang, sonst faellt der Lauf des Balkens aus
+    void login.offsetWidth;
+    login.dataset.step = 'auth';
+    const [id] = await Promise.all([bald, still ? 0 : warte(zeit.auth)]);
+    if (n !== lauf) return;
+    // keine Antwort in der Frist: wer zuletzt hier sass, bleibt stehen
+    if (id !== undefined) setze(id);
+    const da = wer ?? null;
+    if (id === undefined) showWho(da);
+    avatarInto(login.querySelector('.hgx-term__av'), da);
+    if (lname) lname.textContent = da ? da.name || who?.dataset.lAcct || '' : login.dataset.lGast ?? '';
+    if (lsub) lsub.textContent = da ? da.sub : login.dataset.lGastsub ?? '';
+    if (lstep) lstep.textContent = (da ? login.dataset.lUser : login.dataset.lGuest) ?? '';
+    login.dataset.who = da ? 'user' : 'guest';
+    login.dataset.step = da ? 'user' : 'guest';
+    await warte(zeit.hold);
+    if (n !== lauf) return;
+    login.dataset.step = 'out';
+    await warte(still ? 0 : TERM_LOGIN.aus);
+    if (n === lauf) loginZu();
+  }
+  // Ein Klick ueberspringt den Rest: Die Blende ist eine Begruessung, keine
+  // Sperre. Wer es ist, sagt die Leiste, sobald das Konto geantwortet hat:
+  // dieselbe Frage, auf die die Blende gewartet haette, nicht der Stand davor.
+  login?.addEventListener('pointerdown', () => {
+    if (login.hidden || login.dataset.step === 'out') return;
+    const n = ++lauf;
+    win.clearTimeout(loginTimer);
+    (frage ?? ident()).then((id) => { if (n === lauf) setze(id); });
+    login.dataset.step = 'out';
+    loginTimer = win.setTimeout(() => { if (n === lauf) loginZu(); }, ruhig?.matches ? 0 : TERM_LOGIN.aus);
+  });
+  // An- oder abgemeldet, in diesem oder einem anderen Tab: Sitzt jemand vor
+  // dem Terminal und ist es ein anderes Konto als eben, meldet es neu an.
+  // Eine nur erneuerte Sitzung desselben Kontos aendert nichts.
+  win.addEventListener('vb-account-session', () => {
+    if (wer === undefined && gefragt === null) return;
+    // laeuft gerade eine Frage, zaehlt das Konto, fuer das sie gestellt wurde, sonst das zuletzt gezeigte
+    if (kontoJetzt() === (gefragt ?? wer?.uid ?? '')) return;
+    if (box.classList.contains('is-on')) signIn();
+    else { wer = undefined; gefragt = null; }
+  });
+
   function place(rect) {
     win.clearTimeout(offTimer);
     if (!rect) {
       remember();
+      // die Anmeldung endet mit der Blende des Kastens, nicht davor
+      lauf++;
+      win.clearTimeout(loginTimer);
       box.classList.remove('is-on');
       // Nach der Blende ganz aus dem Layout: Eine Seite, die nicht zu sehen
       // ist, soll neben der Halle weder zeichnen noch Bilder rechnen.
-      offTimer = win.setTimeout(() => { box.hidden = true; }, 340);
+      offTimer = win.setTimeout(() => { box.hidden = true; loginOff(); }, 340);
       return;
     }
     const l = Math.round(rect.l), t = Math.round(rect.t);
@@ -319,8 +482,11 @@ export function initTerminal(box, hooks = {}) {
       // erst ein Layout ohne .is-on, sonst faellt die Blende aus
       void box.offsetWidth;
     }
+    const neu = !box.classList.contains('is-on');
     box.classList.add('is-on');
     if (!started) start();
+    // hingesetzt (nicht bei jedem neuen Rechteck, etwa wenn das Fenster des Browsers waechst)
+    if (neu) signIn();
   }
   return { place };
 }
