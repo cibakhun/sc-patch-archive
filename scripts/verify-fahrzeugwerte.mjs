@@ -31,6 +31,7 @@
 //
 //   node scripts/verify-fahrzeugwerte.mjs [--katalog <vehicles.json>]
 import { readFileSync } from 'node:fs';
+import { POWER_SUITS } from './lib/power-suits.mjs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -56,9 +57,9 @@ const ZAHLFELDER = [
 
 // Benannte Ausnahmen von den Pflichtwerten (Grundsatz 6). Schluessel =
 // Fahrzeug-id, Wert = Anlass als voller Satz.
-const ATLS = 'Die ATLS-Varianten haben im DataCore keinen Fahrzeug-Record (sie sind ein Power Suit) und kommen seit D-13 als eingefrorener Wiki-Satz, der weder Hülle noch Masse führt.';
+const ATLS = 'Die ATLS-Varianten sind im Spiel Power Suits (Actor-Record ohne Fahrzeugteile, scripts/lib/power-suits.mjs): eine Hülle gibt es dort nicht.';
 const PFLICHT_AUSNAHMEN = Object.fromEntries(
-  ['argo-atls', 'argo-atls-geo', 'argo-atls-geo-collector-grad01', 'argo-atls-geo-collector-grad03'].map((id) => [id, ATLS]),
+  Object.keys(POWER_SUITS).map((id) => [id, ATLS]),
 );
 
 const rund = (n) => Math.round(n * 10) / 10;
@@ -95,8 +96,9 @@ for (const v of vehicles) {
   const masseOk = typeof v.massKg === 'number' && v.massKg > 0;
   pflicht++;
   if (huelleOk && masseOk) continue;
-  if (PFLICHT_AUSNAHMEN[v.id]) { ausnahmeGetroffen.add(v.id); continue; }
-  if (!huelleOk) fail.push(`${v.id}: Huelle ${JSON.stringify(v.hullHp)} HP — ein Fahrzeug ohne Huelle gibt es nicht; Datensatz neu erzeugen`);
+  // Die Ausnahme deckt nur die Huelle; die Masse steht auch beim Power Suit im Record.
+  if (PFLICHT_AUSNAHMEN[v.id] && !huelleOk) ausnahmeGetroffen.add(v.id);
+  if (!huelleOk && !PFLICHT_AUSNAHMEN[v.id]) fail.push(`${v.id}: Huelle ${JSON.stringify(v.hullHp)} HP — ein Fahrzeug ohne Huelle gibt es nicht; Datensatz neu erzeugen`);
   if (!masseOk) fail.push(`${v.id}: Masse ${JSON.stringify(v.massKg)} kg — ein Fahrzeug ohne Masse gibt es nicht; Datensatz neu erzeugen (so stand am 29.10.2026 die Gladius Valiant auf 0 kg)`);
 }
 console.log(`    geprueft: ${pflicht}   benannte Ausnahmen getroffen: ${ausnahmeGetroffen.size} von ${Object.keys(PFLICHT_AUSNAHMEN).length}`);

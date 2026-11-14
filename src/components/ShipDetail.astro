@@ -59,13 +59,10 @@ const { d, id, similar, profile, viz, hasEn = false } = Astro.props;
 // Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
 const lang = assertLocale(Astro.props.lang, 'ShipDetail');
 // Pledge-Preis, Masse, Crew max. und Status stehen in keiner Spieldatei; sie
-// kommen aus dem eingefrorenen Wiki-Schnappschuss (vehicle-external.json). Der
-// Datenstand am Seitenende nennt ihn mit seinem eigenen Datum und als
-// aelteren Stand (src/lib/datenstand.ts, Bestandsaufnahme C 06.11.2026) —
-// aber nur, wenn die Seite einen dieser Werte auch zeigt.
-const wikiEintrag =
-  (vehicleExternal.vehicles as Record<string, object>)[d.id] ??
-  (vehicleExternal.overrides as Record<string, object>)[d.id];
+// kommen aus dem Wiki-Schnappschuss (vehicle-external.json, sync-wiki-extern).
+// Der Datenstand am Seitenende nennt ihn mit seinem eigenen Datum (src/lib/
+// datenstand.ts) — aber nur, wenn die Seite einen dieser Werte auch zeigt.
+const wikiEintrag = (vehicleExternal.vehicles as Record<string, object>)[d.id];
 const zeigtWiki = !!wikiEintrag && [d.msrpUSD, d.lengthM, d.crewMax, d.statusDe, d.statusEn].some((x) => x != null);
 
 const t = useTranslations(lang);

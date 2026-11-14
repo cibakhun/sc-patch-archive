@@ -86,7 +86,11 @@ let hardpointChecked = 0, hardpointSkipped = 0;
 // Implementierungs-XML nennt nur die vier S5-Ports.
 // 12.11.2026 (4.10.3-Datenlauf): 83 -> 84 — die neue RSI Galaxy, derselbe Fall: sechs
 // S5-Repeater in Fernsteuer-Tuermen, die Implementierungs-XML nennt keinen WeaponGun-Port.
-const MAX_HARDPOINT_SKIP = 84;
+// 14.11.2026: 84 -> 92 — die acht ATLS-Varianten kommen aus dem Spiel und
+// tragen ihre Handwaffen (Traktorstrahl, Bergbaulaser, CF-117/CF-999); als
+// Power Suits haben sie keine Implementierungs-XML mit WeaponGun-Ports
+// (scripts/lib/power-suits.mjs).
+const MAX_HARDPOINT_SKIP = 92;
 
 for (const v of snapshot.vehicles) {
   const pilotGuns = v.fixedWeapons ?? [];
