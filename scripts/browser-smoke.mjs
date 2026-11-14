@@ -1603,9 +1603,17 @@ async function probeWerkbank(page) {
   // ausgeblendet. Was zu sehen ist, muss Aenderungen auch ansagen: bis
   // 14.11.2026 trug nur die ausgeblendete Anzeige aria-live, ein Fehler beim
   // Speichern blieb fuer Vorleser stumm (Hinweis von CodeRabbit an #367).
-  const speicher = await mitSichtbar(page, (_, da) => [...document.querySelectorAll('.cdb-sync')].filter((h) => da(h)).map((h) => h.getAttribute('aria-live') || ''));
+  // Zu sehen heisst nicht erreichbar: der Planer ist als Schublade gebaut und
+  // traegt im Markup aria-hidden="true"; crafting-app.js stellt es erst um,
+  // wenn er als Spalte steht. Bliebe das aus, stuende die Anzeige im Bild,
+  // und Vorleser kaemen nicht hin (zweiter Hinweis von CodeRabbit an #367).
+  const speicher = await mitSichtbar(page, (_, da) => [...document.querySelectorAll('.cdb-sync')].filter((h) => da(h)).map((h) => {
+    const zu = h.closest('[aria-hidden="true"], [inert]');
+    return { live: h.getAttribute('aria-live') || '', zu: zu ? `${zu.id ? '#' + zu.id : zu.tagName.toLowerCase()} traegt ${zu.hasAttribute('inert') ? 'inert' : 'aria-hidden="true"'}` : '' };
+  }));
   if (speicher.length !== 1) return `Werkbank 1280 px: ${speicher.length} Speicheranzeigen zu sehen statt einer (im Planer)`;
-  if (speicher[0] !== 'polite') return `Werkbank 1280 px: die sichtbare Speicheranzeige sagt Aenderungen nicht an (aria-live „${speicher[0]}“ statt polite)`;
+  if (speicher[0].live !== 'polite') return `Werkbank 1280 px: die sichtbare Speicheranzeige sagt Aenderungen nicht an (aria-live „${speicher[0].live}“ statt polite)`;
+  if (speicher[0].zu) return `Werkbank 1280 px: die sichtbare Speicheranzeige ist fuer Vorleser nicht erreichbar (${speicher[0].zu})`;
   // Die Werkbank fuellt die Seite: kein Kopfband (die Ueberschrift bleibt
   // fuer Vorleser im Dokument), die Reiterzeile direkt unter der Kopfleiste,
   // die Werkbank ueber die Breite, und Liste, Mitte und Planer enden am
