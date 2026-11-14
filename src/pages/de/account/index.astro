@@ -7,6 +7,8 @@ import SiteNav from '../../../components/SiteNav.astro';
 import Attribution from '../../../components/Attribution.astro';
 import AccountShell from '../../../components/account/AccountShell.astro';
 import AccountDashboard from '../../../components/account/AccountDashboard.astro';
+import Datenstand from '../../../components/Datenstand.astro';
+import { standKonto } from '../../../lib/datenstand';
 import { versioned } from '../../../lib/assetVersion';
 
 // CSS-Cache-Bust per Content-Hash (sha1): siehe EN-Seite. Verhindert veraltetes
@@ -40,6 +42,7 @@ const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossi
   <AccountShell bare={true}>
     <AccountDashboard lang="de" />
   </AccountShell>
+  <Datenstand lang="de" zeilen={standKonto('de')} />
 </main>
 
 <Attribution sources={[]} />
