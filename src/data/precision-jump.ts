@@ -8,8 +8,7 @@
 //  1. Aaron-Halo-HÜLLE (Innen-/Mittel-/Außenkante + vertikale Dicke) = GAME-
 //     SOURCED aus den Spieldateien (aaronhalo.socpak) via scripts/datamine-aaron-halo.mjs
 //     -> assets/aaron-halo-gamefiles.json. Siehe AH_GAME_ENVELOPE.
-//  2. Die feinen 10 Dichtebänder = cstone.space-Community-Vermessung, von Hand
-//     gepflegt in assets/aaron-halo-bands.json; ihr Stand steht dort im Stempel.
+//  2. Die feinen 10 Dichtebänder = cstone.space-Community-Vermessung.
 //     Sie liegen INNERHALB der game-sourced Hülle (validiert), sind aber selbst
 //     kein sauberer Spielwert -> Ehrlichkeitsmarker im UI.
 //  3. QT-Anker-Koordinaten (Planeten/Monde/Lagrange) = GAME-SOURCED aus den
@@ -71,7 +70,6 @@ export interface AnchorRecord {
 // -- Aaron-Halo-Bänder (10 Dichtebänder, Spitzendichte-Radius in km) ----------
 export const AH_BAND_INFO = bandsData.bands as Record<string, BandInfo>;
 
-/** Stand der Dichtebänder aus dem Stempel des Handbestands (scripts/stempel-hand.mjs). */
 export const AH_BAENDER_STAND: string = bandsData.stand.patch;
 
 // -- Orbitalstationen: nutzen bewusst das Zentrum ihres Mutterplaneten --------

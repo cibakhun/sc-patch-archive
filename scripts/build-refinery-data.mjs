@@ -22,10 +22,6 @@ const MODEL = readJson(R('assets', 'mining-model.json'));
 let PRICES = { commodities: {}, fetchedAt: null, source: null };
 try { PRICES = readJson(R('src', 'data', 'commodity-prices.json')); } catch { console.warn('! commodity-prices.json fehlt — Preise bleiben leer (npm run sync:commodity-prices)'); }
 
-// ---- Methoden (aus dem Spiel: die Stufen, die es je Methode nennt) ----
-// Exakte Yield-%/Zeit/Kosten pro Methode sind serverseitig; das Spiel nennt
-// nur Stufen (Ausbeute und Kosten 3, Tempo 9). Der Schluessel bleibt der Name
-// als Slug: gespeicherte Auftraege im Konto verweisen darauf.
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const METHOD_FILE = readJson(R('assets', 'refinery-methods.json'));
 const METHODS = METHOD_FILE.methods.map(({ id: _id, ...m }) => ({ key: slug(m.name), ...m }));

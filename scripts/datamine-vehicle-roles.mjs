@@ -159,7 +159,6 @@ const ROLE_FAMILY = {
   interdiction: 'abriegelung',
   // bergbau (5)
   lightmining: 'bergbau', mediummining: 'bergbau',
-  // grosskampfschiff (6)
   frigate: 'grosskampfschiff', destroyer: 'grosskampfschiff', corvette: 'grosskampfschiff', snubcarrier: 'grosskampfschiff', lightcarrier: 'grosskampfschiff',
   // daten-wissenschaft (3)
   mediumdata: 'daten-wissenschaft', lightscience: 'daten-wissenschaft', reporting: 'daten-wissenschaft',

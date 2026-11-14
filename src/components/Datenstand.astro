@@ -16,11 +16,6 @@
 // Pfad wird beim Bauen eingesetzt, die Seite bleibt reines HTML; das Formular
 // prueft ihn streng (src/components/FeedbackForm.astro). data-ev-melden ist
 // die Marke fuer das Messereignis wert-melden (assets/ereignisse.js).
-//
-// bucht (Hangar): der Block sitzt in der Bucht eines Schiffs, die der Hangar
-// in seine Seite holt. Ohne <link> (die Buchtdokumente bleiben frei von CSS,
-// die Hangarseite laedt das Stylesheet mit ihrem eigenen Block) und mit
-// eigener Ueberschrift-Id, weil Seite und Bucht gleichzeitig im Dokument stehen.
 import type { Locale } from '../i18n/ui';
 import { standTexte, standVerweis, type StandZeile } from '../lib/datenstand';
 import { patchLinkFromKennung } from '../lib/patchPages';
@@ -34,7 +29,6 @@ interface Props {
   innen?: boolean;
   /** Detailseite: Link „Falschen Wert melden“ mit dem eigenen Pfad */
   melden?: boolean;
-  /** in der Bucht eines Hangar-Schiffs */
   bucht?: boolean;
 }
 const { lang, zeilen, innen = false, melden = false, bucht = false } = Astro.props;

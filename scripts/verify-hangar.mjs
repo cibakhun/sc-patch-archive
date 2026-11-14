@@ -905,9 +905,6 @@ const LACK = { schiffe: 207, lackierungen: 2103, umfaerbbar: 203 };
 
 say('\n[15] Raketen der Werkstatt: Serienteil, Art, Groesse und Gruppe je Halterung');
 // Sperrklinken (Grundsatz 5), Startwerte aus dem ersten Bau am 19.10.2026.
-// 12.11.2026 (4.10.3): je -4. Phoenix Emerald (4) und Hammerhead Showdown (8)
-// haben keinen Fahrzeug-Record mehr, Galaxy (4) und Liberator (4) kommen dazu
-// (src/data/ship-missile-racks.json vorher/nachher).
 const RAKETEN = { schiffe: 152, slots: 464, tauschbar: 458, halterWahl: 210 };
 {
   const lf = join(DIST, 'hangar-layouts.json');

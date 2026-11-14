@@ -201,7 +201,6 @@ const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
 const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
 if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
-// Power Suits (ATLS): Record unter actor/actors/, ausserhalb der Fahrzeug-Ordner
 const psFehlt = powerSuitRecords(db, byId);
 if (psFehlt.length) throw new Error(`Power-Suit-Record fehlt im Spiel: ${psFehlt.join(', ')} — scripts/lib/power-suits.mjs pruefen`);
 
@@ -390,7 +389,6 @@ const worstUnmatched = [];
 const gapHisto = {}; // Namensmuster der "echter Bone OHNE Item"
 for (const id of matched) {
   const lo = out[id];
-  // Power Suits ohne eigenen Eintrag in ship-hardpoints.json: kein Bone-Abgleich
   const bones = (hp[id]?.hp || []).filter((h) => GRP[h.k]);
   let named = 0, logical = 0, unm = 0;
   for (const h of bones) {

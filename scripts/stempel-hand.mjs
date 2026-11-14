@@ -1,11 +1,5 @@
-// Schreibt den Stempel eines Handbestands neu (scripts/lib/handstand.mjs).
-//
 //   node scripts/stempel-hand.mjs <datei> --geaendert YYYY-MM-DD   (Art "datum")
 //   node scripts/stempel-hand.mjs <datei> --patch X.Y.Z            (Art "patch")
-//
-// Der Stand wird immer ausdruecklich genannt: das Skript leitet ihn nicht aus
-// dem heutigen Datum oder der installierten Spielversion ab, weil nur der
-// Mensch weiss, gegen welchen Stand er die Werte geprueft hat.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';

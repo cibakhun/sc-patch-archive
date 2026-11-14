@@ -52,7 +52,6 @@ const ALIAS = {
   'constellation aquila': 'constellation mk iv aquila',
   'constellation phoenix': 'constellation mk iv phoenix',
   'constellation taurus': 'constellation mk iv taurus',
-  // 4.10.3: Anvils Bodenfahrzeuge heissen im Spiel "HM6 ...", UEX ohne Praefix
   'ballista': 'hm6 ballista',
   'spartan': 'hm6 spartan',
   'centurion': 'hm6 centurion',

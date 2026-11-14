@@ -48,9 +48,6 @@ export type ShipExtras = {
 
 export const extrasFetchedAt: string = (extrasSnapshot as { fetchedAt: string }).fetchedAt;
 
-// Verweise (Varianten, Loaner) ohne id loest der Bau ueber den exakten
-// Namen im Katalog auf: der FleetYards-Abruf kennt nur die Fahrzeuge, die es
-// zu seinem Zeitpunkt gab (ATLS IKTI Akuma kam am 14.11.2026 dazu).
 const ID_NACH_NAME = new Map(
   (vehiclesSnapshot as { vehicles: { id: string; name: string }[] }).vehicles.map((v) => [v.name, v.id]),
 );

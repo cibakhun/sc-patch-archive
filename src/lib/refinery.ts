@@ -8,10 +8,6 @@
 // für die Wert-Schätzung und Formatierungs-/Zeit-Helfer.
 import DATA from '../../assets/refinery-data.json';
 
-/**
- * Methode mit den Stufen, die das Spiel nennt (1 = niedrigste):
- * Ausbeute und Kosten 1–3, Tempo 1–9 (Slowest bis Fastest).
- */
 export interface RefMethod {
   key: string;
   name: string;

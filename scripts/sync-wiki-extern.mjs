@@ -1,29 +1,3 @@
-// Frischt die Fremdwerte des Fahrzeug-Katalogs aus dem Wiki auf: die zehn
-// Felder je Fahrzeug, die in keiner Spieldatei stehen (Block `vehicles` in
-// src/data/vehicle-external.json: Pledge-Preis und -Link, Masse, Bild,
-// Hoechstcrew, Status, Schwerpunkte). Bis 14.11.2026 war das ein einmal
-// eingefrorener Schnappschuss vom 18.07.2026 (build-vehicle-external.mjs).
-//
-// Quelle: https://api.star-citizen.wiki/api/v2/vehicles (ohne Anmeldung).
-// Zuordnung ueber den Slug, der die Fahrzeug-Id ist; einige Gold-Standard-
-// Fassungen fuehrt das Wiki als <id>-gs.
-//
-// Bilder nur vom Host media.starcitizen.tools: nur ihn erlauben die CSP
-// (nginx/default.conf, img-src) und die Datenschutzerklaerung. Seit 11/2026
-// liefert die API Bilder von cdn.star-citizen.wiki, teils Platzhalter; solche
-// bleiben beim alten Bild und werden gemeldet.
-//
-// Uebernommen wird nur, was plausibel ist. Liefert das Wiki fuer ein Feld
-// nichts, wo bisher ein Wert stand, oder springt eine Zahl um mehr als den
-// Faktor in GRENZE, bleibt der alte Wert und der Lauf meldet ihn; ein Mensch
-// entscheidet.
-//
-// Benannte Ausnahmen (FALSCH_IM_WIKI): Felder, die das Wiki nachweislich dem
-// falschen Fahrzeug zuordnet. Sie werden nicht uebernommen und gemeldet.
-//
-// Der Zeitstand steht im Feld `source` ("fetchedAt YYYY-MM-DD"), daraus liest
-// die Seite das Datum des Schnappschusses.
-//
 // Aufruf: node scripts/sync-wiki-extern.mjs [--bericht <datei.json>]
 //         (npm run sync:wiki-extern; danach datamine:vehicles mischt die Werte ein)
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -33,16 +7,9 @@ const UA = 'sc-patch-archiv fan site (non-commercial German patch archive)';
 const KATALOG = new URL('../src/data/vehicles.json', import.meta.url);
 const ZIEL = new URL('../src/data/vehicle-external.json', import.meta.url);
 const argOf = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
-// Ab welchem Faktor eine Zahl als Sprung gilt (neu/alt oder alt/neu)
 const GRENZE = { msrpUSD: 2, lengthM: 1.5, widthM: 1.5, heightM: 1.5, crewMax: 2 };
 const FALSCH_IM_WIKI = {
-  // Das Wiki fuehrt unter argo-atls-ikti Preis und Store-Link des „ATLS IKTI
-  // Akuma" (Nine Tails Shogun Pack). Der ATLS IKTI selbst ist nur ueber einen
-  // Wikelo-Vertrag erhaeltlich und hat keinen Store-Eintrag (14.11.2026).
   'argo-atls-ikti': { felder: ['msrpUSD', 'pledgeUrl'], grund: 'Wiki fuehrt hier Preis und Store-Link des ATLS IKTI Akuma' },
-  // Die Collector-Lackierungen gibt es nur als Belohnung eines Wikelo-Vertrags
-  // (ContractGenerator.TheCollector); das Wiki setzt Preis und Store-Link des
-  // Basis-ATLS ein (SKU „ATLS", $40).
   'argo-atls-geo-collector-grad01': { felder: ['msrpUSD', 'pledgeUrl'], grund: 'Wikelo-Belohnung, Wiki fuehrt Preis und Store-Link des Basis-ATLS' },
   'argo-atls-geo-collector-grad03': { felder: ['msrpUSD', 'pledgeUrl'], grund: 'Wikelo-Belohnung, Wiki fuehrt Preis und Store-Link des Basis-ATLS' },
 };
@@ -104,8 +71,6 @@ for (const k of katalog) {
   const w = bySlug.get(k.id) ?? bySlug.get(`${k.id}-gs`);
   if (!w) { bericht.ohneWiki.push(k.id); continue; }
   const neu = felder(w);
-  // Hoechstcrew unter der Mindestcrew des Spiels (crewSize) ist keine Spanne;
-  // so liess schon der erste Schnappschuss neun Fahrzeuge bewusst ohne crewMax.
   if (neu.crewMax != null && k.crewMin != null && neu.crewMax < k.crewMin) {
     bericht.behalten.push({ id: k.id, feld: 'crewMax', vorher: ext.vehicles[k.id]?.crewMax ?? null, wiki: neu.crewMax, grund: `unter der Mindestcrew des Spiels (${k.crewMin}), nicht gefuehrt` });
     neu.crewMax = null;

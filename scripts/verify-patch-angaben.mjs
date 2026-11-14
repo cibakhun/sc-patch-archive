@@ -110,9 +110,6 @@ const OHNE_KENNUNG = {};
 // Fahrzeug-Datensaetze, deren Stempel bewusst vom Kopf von vehicles.json
 // abweicht. Schluessel = Fahrzeug-id, Wert = Anlass und der EINE Stempel,
 // den der Anlass erlaubt (ein anderer oder fehlender Stempel ist FEHLER).
-// Derzeit leer. Bis 14.11.2026 standen hier die vier ATLS-Varianten mit 4.9.0
-// (eingefrorener Wiki-Satz); seitdem baut datamine-vehicles sie aus dem Spiel
-// (scripts/lib/power-suits.mjs). Die Mechanik bleibt fuer den naechsten Fall.
 const STEMPEL_AUSNAHMEN = {};
 
 // Klinken (Grundsatz 5), Messlauf 04.11.2026 gegen den korrigierten Stand
@@ -245,9 +242,6 @@ for (const [id, s] of Object.entries(STAENDE)) {
   console.log(`    ${id.padEnd(14)} ${f.padEnd(8)} (${kennung})`);
 }
 
-// Wiki-Schnappschuss: aelter, solange sein eigener Datenstand (source,
-// „Wiki-Datenstand X.Y.Z") hinter dem Fahrzeug-Katalog liegt; ohne Angabe
-// aelter. Gesetzt in [6], wo der Schnappschuss gelesen wird.
 let wikiAelter = true;
 
 const zaehler = Object.fromEntries(FAMILIEN.map((f) => [f.stand, { seiten: 0, angaben: 0, wo: {}, fassungen: {} }]));
@@ -283,8 +277,6 @@ if (!existsSync(DIST)) {
       if (v && !label) shipPagesOhneVersion.push(rel);
     }
 
-    // Schiffsuebersicht: jede Fassung, auf der ein Fahrzeug ihrer Karten steht
-    // (die Zeilen „flotte-aelter" im Datenstand); Zahl und Wortlaut haelt [6].
     const kartenFassungen = new Set();
     if (pfad === 'schiffe.html') {
       for (const m of html.matchAll(/class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g)) {
@@ -420,24 +412,11 @@ const STAND_GRUPPEN = [
   { name: 'Crafting-Werkzeug', match: (p) => p === 'topics/crafting.html', pflicht: ['crafting'], erlaubt: ['crafting'] },
   // Der Rechner zeigt keine Ausbeute je Station, nur Spielwerte.
   { name: 'Fracturing', match: (p) => p === 'fracturing.html', pflicht: ['mining'], erlaubt: ['mining'] },
-  // Seit 14.11.2026 (Krisz: „überall, immer"): die Wikelo-Seite zeigt die
-  // Tauschliste aus dem Spiel und die von Hand gepflegten Zusatzangaben.
   { name: 'Wikelo', match: (p) => p === 'topics/wikelo-emporium.html', pflicht: ['wikelo', 'wikelo-pflege'], erlaubt: ['wikelo', 'wikelo-pflege'] },
-  // Seit 14.11.2026 tragen auch die beiden Uebersichten den Baustein. Die
-  // Schiffsuebersicht fuehrt je aelterer Fassung eine eigene Zeile mit der Zahl
-  // der Fahrzeuge darauf, gezaehlt an den Karten der gebauten Seite.
   { name: 'Missionsübersicht', match: (p) => p === 'missionen.html', pflicht: ['missionen'], erlaubt: ['missionen'] },
-  // Precision Jump: Halo-Huelle und QT-Anker aus dem Spiel, die Dichtebaender
-  // als Handbestand (assets/aaron-halo-bands.json) mit eigenem Stand.
   { name: 'Precision Jump', match: (p) => p === 'precision-jump.html', pflicht: ['halo', 'halo-baender'], erlaubt: ['halo', 'halo-baender'] },
-  // Hangar (nur im Vorschau-Bau; fehlt er dort, reisst verify:hangar). Die
-  // Seite ist ein Fenster hoch, der Block steht am Fuss des Docks vor Impressum
-  // und Datenschutz (lageFrei). Jede Bucht eines Schiffs traegt einen eigenen
-  // Block (vb-stand--bucht), auch die des Startschiffs auf der Hangarseite;
-  // jede Gruppe prueft nur ihren.
   { name: 'Hangar', match: (p) => p === 'hangar.html', pflicht: ['flotte', 'modelle', 'wiki'], erlaubt: ['flotte', 'flotte-aelter', 'modelle', 'wiki', 'modelle-ohne'], lageFrei: true, nurMitHangar: true },
   { name: 'Hangar-Buchten', match: (p) => p.startsWith('hangar-bay/'), pflicht: ['fahrzeug', 'modell'], erlaubt: ['fahrzeug', 'modell', 'wiki'], lageFrei: true, bucht: true, nurMitHangar: true },
-  // Konto-Uebersicht: Refinery-Wert (Erzpreise UEX) und Anteil an allen Blueprints.
   { name: 'Konto', match: (p) => p === 'account.html', pflicht: ['rezeptzahl', 'uex-erze'], erlaubt: ['rezeptzahl', 'uex-erze'] },
   { name: 'Schiffsübersicht', match: (p) => p === 'schiffe.html', pflicht: ['flotte', 'uex-schiffe', 'wiki', 'bild'], erlaubt: ['flotte', 'flotte-aelter', 'uex-schiffe', 'wiki', 'bild'] },
 ];
@@ -451,12 +430,8 @@ const STAND_KLINKEN = {
   'Item-Seiten': 11000, 'Item-Finder': 2, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
   // 06.11.2026, gemessen: je DE und EN.
   'Crafting-Werkzeug': 2, Fracturing: 2,
-  // 14.11.2026, je DE und EN.
   Wikelo: 2,
-  // 14.11.2026, je DE und EN.
   'Missionsübersicht': 2, 'Schiffsübersicht': 2, 'Precision Jump': 2,
-  // 14.11.2026, Vorschau-Bau: Hangar je DE und EN, Buchten 231 Schiffe je DE
-  // und EN. Ohne Hangar im Bau gelten sie nicht (nurMitHangar).
   Hangar: 2, 'Hangar-Buchten': 462, Konto: 2,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
@@ -491,10 +466,6 @@ const STAND_QUELLTEXT = {
   fundorte: ['eigene Recherche', 'own research'],
   'shop-schnappschuss': ['eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt', 'own shop snapshot, undated, only where UEX does not list the item'],
   huelle: ['eigene Aufbereitung', 'processed in-house'] };
-// Hangar: was ausser den Schiffsmodellen aus dem Spiel kommt, in der
-// Reihenfolge der Nennung; die Zeile „modelle-ohne" nennt die Teile, deren
-// Eintraege ohne gameVersion sind. Exporte ohne Stempel stammen alle aus der
-// Zeit vor dem Stempel (eingefuehrt 14.11.2026 mit Client 4.10.3).
 const HANGAR_TEILE = [[['weapons'], 'Waffen', 'weapons'], [['components'], 'Komponenten', 'components'], [['interior'], 'Innenräume', 'interiors'], [['hall', 'hallLite'], 'Halle', 'hall'], [['lift', 'npc', 'props', 'werkhalle'], 'Ausstattung', 'fixtures']];
 const HANGAR_STEMPEL_AB = '4.10.3';
 const SERIE_TITEL = { varianten: ['Varianten der Baureihe', 'Variants of the series'], leihschiffe: ['Loaner (bis zur Flugfreigabe)', 'Loaners (until flight-ready)'] };
@@ -546,8 +517,6 @@ try {
     fleetyards: { art: 'fremd', wert: isoDatum(rd('src/data/ship-extras.json').fetchedAt), datei: 'src/data/ship-extras.json fetchedAt', name: 'FleetYards' },
     wiki: { art: 'schnappschuss', wert: /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(ext.source ?? '')?.[1] ?? null, datei: 'src/data/vehicle-external.json source', name: 'Wiki-Schnappschuss' },
     ausbeute: { art: 'hand', wert: fassungAus(rd('assets/mining-frozen.json').frozen_from), datei: 'assets/mining-frozen.json frozen_from' },
-    // Gegen die Datei des Datenlaufs selbst, nicht gegen die Kopie in
-    // refinery-data.json: vergisst der Bau das Uebertragen, faellt das hier auf.
     methoden: { art: 'spiel', wert: fassungAus(rd('assets/refinery-methods.json').gameVersion), datei: 'assets/refinery-methods.json gameVersion' },
     halo: { art: 'spiel', wert: fassung['Präzisionssprung'], datei: 'assets/aaron-halo-gamefiles.json gameVersion' },
     'halo-baender': { art: 'hand', wert: rd('assets/aaron-halo-bands.json').stand?.patch ?? null, datei: 'assets/aaron-halo-bands.json stand.patch' },
@@ -671,8 +640,6 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       fyTeile = FY_TEILE.filter(([k]) => zeigt[k]).map((t) => t[1 + sp]);
       if (fyTeile.length) soll.add('fleetyards');
     }
-    // Schiffsuebersicht und Hangar: Fahrzeuge je aelterer Fassung an den
-    // Karten gezaehlt, im Hangar dazu die Schiffsmodelle je Fassung.
     const flotteAelter = new Map();
     const modelleSoll = new Map();
     let modelleOhne = 0;
@@ -706,7 +673,6 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       gesehen.add(schluessel);
       gesehen.add(z.quelle);
       if (g.bedingt?.includes(z.quelle) && !soll.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" steht im Datenstand, die Seite zeigt diese Werte aber nicht`);
-      // Bucht: ein Modell ohne gameVersion steht als „Stand nicht belegt" (Art quelle)
       const fzId = /^(?:schiffe|hangar-bay)\/([^/]+)\.html$/.exec(pfad)?.[1] ?? null;
       const modellF = z.quelle === 'modell' ? fassungAus(hangarSchiffe[fzId]?.gameVersion) : null;
       const sollArt = z.quelle === 'modell' && !modellF ? 'quelle' : q.art;
@@ -744,7 +710,6 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       }
       if (was && z.was !== `${was}:`) standFehler.push(`${rel}: Zeile „${z.quelle}" heisst „${z.was}", Soll „${was}:"`);
       const name = STAND_NAME[z.quelle] ?? null;
-      // Fassung als Verweis auf die Patch-Seite genau dieser Fassung, wenn es sie gibt
       const patchSeite = (q.art === 'spiel' || q.art === 'hand') && sollWert && existsSync(join(DIST, 'patches', `sc-${sollWert.replace(/\./g, '-')}.html`))
         ? `${L ? '/de' : ''}/patches/sc-${sollWert.replace(/\./g, '-')}.html` : null;
       if (name) {
