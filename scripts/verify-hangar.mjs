@@ -1337,7 +1337,8 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // und sie rueckt beim Laden vor ('bauen' ab 90 %, 'steht' mit dem ersten
   // Schiff). v ist eine Klinke: Sinkt sie, gelten Deckel wieder, die fuer
   // eine schwerere Halle gemerkt wurden.
-  const WAECHTER_V = 3;
+  // 14.11.2026 auf 4: Die volle Halle wurde leichter (Entpacker, unten).
+  const WAECHTER_V = 4;
   if (ctrlMod) {
     const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 13, 12, 0, 0);
     const leer = ctrlMod.waechterStand?.(null, T);
@@ -1368,7 +1369,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e(?:, g)? \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
       [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
       [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
-      [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
+      [/waechterVerlauf\(\(stand\.spur \?\? \[\]\)\.slice\(-letzte\),/.test(ctrl) && /notiz\(fallback, spurZeilen\(stand\)\);/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
       // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
       [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
       // ... und mit dem Titel: Ein neues Schiff tauscht ihn erst nach dem Laden der Bucht, ein laengerer Name macht ihn hoeher
@@ -1489,6 +1490,334 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       else leichtSeiten++;
     }
     sollIst('Zeile der leichten Ansicht mit Text und Knopf, anfangs verborgen, auf jeder Hangarseite', `${leichtSeiten} von ${PAGES.length} Seiten`);
+  }
+  // Seit 14.11.2026 (Krisz waehlte „Volle Halle fuers Handy abspecken“): Die
+  // Worker, die die Geometrie auspacken (Draco), hielten zusammen 343 MB,
+  // solange die Seite offen war; ihr Speicher waechst mit dem groessten
+  // Stueck und schrumpft nie. Der Viewer nimmt deshalb seinen eigenen
+  // Entpacker (Klasse Entpacker): Worker ohne Arbeit enden nach
+  // ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus
+  // dem Pool, es leben hoechstens ENTPACKER.faeden Worker (am Telefon
+  // ENTPACKER.telefon), und grosse Stuecke haben einen Platz weniger als
+  // die Grenze: am Telefon laeuft eines nach dem anderen, am PC drei
+  // zugleich. Gemessen im Telefonformat (Gladius, volle Halle): 633 statt
+  // 946 MB beim Laden. Nachgerechnet am ausgelieferten Modul mit Workern,
+  // die nur zaehlen; die vier Zahlen sind Klinken und wandern nur
+  // abwaerts. Untere Klinke: telefon mindestens 2, denn bei einer Grenze
+  // von 1 lebte neben dem Worker eines grossen Stuecks einer im Pool.
+  const ENTPACKER_MAX = { faeden: 4, telefon: 2, gross: 1 << 20, ruhe: 1500 };
+  {
+    let vm = null;
+    try { vm = await import(pathToFileURL(viewerFile).href); } catch { /* oben schon gemeldet */ }
+    const K = vm?.ENTPACKER ?? {}, E = vm?.Entpacker;
+    const klinkeOk = ['faeden', 'telefon', 'gross', 'ruhe'].every((k) => Number.isFinite(K[k]) && K[k] > 0 && K[k] <= ENTPACKER_MAX[k]) && K.telefon <= K.faeden && K.telefon >= 2;
+    const ist = [];
+    let rechnetOk = false;
+    if (typeof E === 'function' && klinkeOk) {
+      const echt = { Worker: globalThis.Worker, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, info: console.info };
+      const alle = [], groesse = new Map();
+      let uhr = null;
+      class Zaehler {
+        constructor() { this.tot = false; this.post = []; this.grosse = 0; alle.push(this); }
+        postMessage(m) { if (m?.type === 'decode') { this.post.push(m.id); groesse.set(m.id, m.buffer?.byteLength ?? 0); if (m.buffer?.byteLength >= K.gross) this.grosse++; } }
+        terminate() { this.tot = true; }
+        fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
+      }
+      const ruck = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+      // Nie auf ein Versprechen des Entpackers selbst warten: Bleibt ein
+      // Worker haengen, den die Reihe der grossen Stuecke abwartet, haenge
+      // sonst das Tor (node endet dann mit 13 und ohne Meldung)
+      const erledigt = async (ps) => { let ok = false; Promise.allSettled(ps).then(() => { ok = true; }); await ruck(); return ok; };
+      // Seit dem Abbau-Vertrag lehnt dispose() jedes offene Stueck ab: Jedes
+      // Versprechen bekommt deshalb gleich einen Abnehmer, sonst endete das
+      // Tor an einer Ablehnung ohne Abnehmer statt mit seiner Meldung
+      const still = (p) => { p.catch(() => {}); return p; };
+      // begrenzt nachsehen, wie jedes Stueck steht
+      const stand = async (ps) => { const st = ps.map(() => 'offen'); ps.forEach((p, i) => p.then(() => { st[i] = 'fertig'; }, () => { st[i] = 'Fehler'; })); await ruck(); return st; };
+      const neuer = (telefon) => { const e = new E(telefon); e._initDecoder = () => Promise.resolve(); return e; };
+      try {
+        globalThis.Worker = Zaehler;
+        globalThis.setTimeout = (fn, ms) => { uhr = { fn, ms }; return 1; };
+        globalThis.clearTimeout = () => { uhr = null; };
+        console.info = () => {};
+        // (a) Ruhe: drei kleine Stuecke am Telefon, danach enden alle Worker
+        const a = neuer(true);
+        const wa = [];
+        for (let id = 1; id <= 3; id++) wa.push(await a._getWorker(id, 1000));
+        const gestartet = alle.length;
+        for (let id = 1; id <= 3; id++) a._releaseTask(wa[id - 1], id);
+        const frist = uhr?.ms ?? null;
+        uhr?.fn();
+        const nachRuhe = alle.filter((w) => !w.tot).length;
+        const wieder = await a._getWorker(4, 1000);
+        const neuNachRuhe = alle.length - gestartet;
+        // ein Worker mit Arbeit ueberlebt die Ruhe
+        const beiArbeit = a.ruhe();
+        a._releaseTask(wieder, 4);
+        ist.push(`Telefon: ${gestartet} Worker fuer 3 kleine Stuecke, Ruhe nach ${frist ?? 'nie'} ms, danach laufen ${nachRuhe}, das naechste Stueck startet ${neuNachRuhe} neuen, mit Arbeit beendet die Ruhe ${beiArbeit}`);
+        const ruheOk = gestartet === K.telefon && frist === K.ruhe && nachRuhe === 0 && neuNachRuhe === 1 && beiArbeit === 0 && !wieder.tot;
+        a.dispose();
+        // (b) ein grosses Stueck nimmt seinen Worker aus dem Pool, er endet mit seiner Arbeit
+        alle.length = 0;
+        const b = neuer(false);
+        const klein = await b._getWorker(1, K.gross - 1), kleinImPool = b.workerPool.includes(klein);
+        b._releaseTask(klein, 1);
+        const gross = await b._getWorker(2, K.gross), imPool = b.workerPool.includes(gross), vorher = gross.tot;
+        b._releaseTask(gross, 2);
+        ist.push(`Stueck knapp unter der Grenze: Worker ${kleinImPool ? 'bleibt im Pool' : 'verlaesst den Pool'}; an der Grenze: ${imPool ? 'bleibt im Pool' : 'verlaesst den Pool'}, ${vorher ? 'endet vor seiner Arbeit' : gross.tot ? 'endet mit seiner Arbeit' : 'laeuft danach weiter'}`);
+        const grossOk = kleinImPool && !klein.tot && !imPool && !vorher && gross.tot;
+        b.dispose();
+        // (c) zwei grosse Stuecke: am Telefon nacheinander, am PC zugleich
+        const zugleich = async (telefon) => {
+          alle.length = 0;
+          const e = neuer(telefon);
+          const p = [still(e.decodeGeometry(new ArrayBuffer(K.gross), {})), still(e.decodeGeometry(new ArrayBuffer(K.gross), {}))];
+          await ruck();
+          const erst = alle.reduce((n, w) => n + w.post.length, 0);
+          for (let runde = 0; runde < 2; runde++) {
+            for (const w of alle) for (const id of w.post.splice(0)) w.fertig(id);
+            await ruck();
+          }
+          const fertig = await erledigt(p);
+          const leben = alle.filter((w) => !w.tot).length;
+          e.dispose();
+          return { erst, worker: alle.length, leben, fertig };
+        };
+        const tel = await zugleich(true), pc = await zugleich(false);
+        const wort = (z) => `${z.worker} Worker, ${z.fertig ? 'beide fertig' : 'NICHT beide fertig'}, danach laufen ${z.leben}`;
+        ist.push(`zwei grosse Stuecke: am Telefon ${tel.erst} zugleich in Arbeit (${wort(tel)}), am PC ${pc.erst} (${wort(pc)})`);
+        // (d) die Grenze zaehlt alle lebenden Worker: Der Pool ist voll, ein
+        // grosses Stueck nimmt einen Worker mit, das naechste kleine darf
+        // keinen weiteren starten (Befund im Review der PR #364: three
+        // fragt nur den Pool, am Telefon lebten drei statt zwei)
+        const alleLeben = async (telefon) => {
+          alle.length = 0;
+          const e = neuer(telefon), grenze = telefon ? K.telefon : K.faeden;
+          for (let id = 1; id <= grenze; id++) await e._getWorker(id, 5000 - id);
+          await e._getWorker(90, K.gross);
+          await e._getWorker(91, 10);
+          const leben = alle.filter((w) => !w.tot).length;
+          e.dispose();
+          return leben;
+        };
+        const lebenTel = await alleLeben(true), lebenPc = await alleLeben(false);
+        ist.push(`Pool voll, dann ein grosses und ein kleines Stueck: am Telefon leben ${lebenTel} Worker, am PC ${lebenPc}`);
+        // (e) am Telefon wartet das naechste grosse Stueck, bis der Worker des
+        // vorigen beendet ist: Hat er noch ein kleines Stueck offen, haelt er
+        // so lange den Speicher seines grossen
+        alle.length = 0;
+        const f = neuer(true);
+        const pf = [still(f.decodeGeometry(new ArrayBuffer(64), {})), still(f.decodeGeometry(new ArrayBuffer(65), {}))];
+        await ruck();
+        pf.push(still(f.decodeGeometry(new ArrayBuffer(K.gross), {})), still(f.decodeGeometry(new ArrayBuffer(K.gross + 1), {})));
+        await ruck();
+        // welches Stueck wo liegt, sagt seine Groesse (die Kennungen vergibt three)
+        const mit = (bytes) => alle.find((w) => w.post.some((id) => groesse.get(id) === bytes));
+        const x = mit(K.gross);
+        let frueh = null, lebtNoch = null, spaet = null, alleVier = false;
+        if (x && x.post.some((id) => groesse.get(id) < K.gross)) {
+          x.fertig(x.post.find((id) => groesse.get(id) === K.gross));
+          await ruck();
+          frueh = mit(K.gross + 1) ? 1 : 0;
+          lebtNoch = !x.tot;
+          for (const id of x.post.filter((i) => groesse.get(i) < K.gross)) x.fertig(id);
+          await ruck();
+          spaet = mit(K.gross + 1) ? 1 : 0;
+          for (const w of alle) if (w !== x) for (const id of w.post.splice(0)) w.fertig(id);
+          alleVier = await erledigt(pf);
+        }
+        const lebenF = alle.filter((w) => !w.tot).length;
+        f.dispose();
+        ist.push(`zweites grosses Stueck am Telefon: ${lebtNoch === null ? 'kein Worker traegt ein kleines und ein grosses Stueck' : `solange der Worker des ersten ${lebtNoch ? 'lebt' : 'schon beendet ist'}, ${frueh} unterwegs, nach seinem Ende ${spaet}, ${alleVier ? 'alle vier Stuecke fertig' : 'NICHT alle vier Stuecke fertig'}`}`);
+        // (f) Abbau (zweiter Befund im Review der PR #364): Was offen ist,
+        // endet mit einem Fehler, ob es bei einem Worker liegt oder in der
+        // Reihe wartet; Spaeteres wird abgewiesen, und kein Worker startet
+        // mehr (three gibt die Quelle der Worker mit dispose() zurueck).
+        // Zweimal: das erste grosse Stueck laeuft noch, und es ist fertig,
+        // waehrend sein Worker noch ein kleines traegt (dann wartet das
+        // zweite auf das Ende dieses Workers und liefe mit dem Abbau los).
+        const abbau = async (erstesFertig) => {
+          alle.length = 0;
+          const h = neuer(true);
+          const ph = [still(h.decodeGeometry(new ArrayBuffer(64), {})), still(h.decodeGeometry(new ArrayBuffer(65), {}))];
+          await ruck();
+          ph.push(still(h.decodeGeometry(new ArrayBuffer(K.gross), {})), still(h.decodeGeometry(new ArrayBuffer(K.gross + 1), {})));
+          await ruck();
+          const y = mit(K.gross);
+          let lage = !!y && y.post.some((id) => groesse.get(id) < K.gross) && !mit(K.gross + 1);
+          if (lage && erstesFertig) { y.fertig(y.post.splice(y.post.findIndex((id) => groesse.get(id) === K.gross), 1)[0]); await ruck(); lage = !y.tot && !mit(K.gross + 1); }
+          const vorher = alle.length;
+          h.dispose();
+          const st = await stand(ph);
+          const spaeter = await stand([still(h.decodeGeometry(new ArrayBuffer(66), {})), still(h.decodeGeometry(new ArrayBuffer(K.gross + 2), {}))]);
+          // eine Antwort, die jetzt noch eintrifft, gilt nicht mehr und stellt keine Uhr
+          uhr = null;
+          for (const w of alle) for (const id of w.post.splice(0)) w.fertig(id);
+          await ruck();
+          const soll = erstesFertig ? 'Fehler,Fehler,fertig,Fehler' : 'Fehler,Fehler,Fehler,Fehler';
+          return { lage, ok: lage && st.join() === soll && spaeter.join() === 'Fehler,Fehler' && alle.length === vorher && alle.every((w) => w.tot) && uhr === null,
+            wort: `${st.filter((x) => x === 'Fehler').length} von ${st.filter((x) => x !== 'fertig').length} offenen Stuecken enden mit einem Fehler, ${spaeter.filter((x) => x === 'Fehler').length} von 2 spaeteren abgewiesen, danach ${alle.length - vorher} Worker gestartet, ${alle.filter((w) => !w.tot).length} leben, Uhr der Ruhe ${uhr === null ? 'steht' : 'laeuft'}` };
+        };
+        const abLauf = await abbau(false), abWart = await abbau(true);
+        ist.push(`Abbau am Telefon, erstes grosses Stueck laeuft: ${abLauf.lage ? abLauf.wort : 'Lage nicht hergestellt'}; erstes fertig, zweites wartet auf das Ende des Workers: ${abWart.lage ? abWart.wort : 'Lage nicht hergestellt'}`);
+        // three legt den Worker an, sobald der Decoder geladen ist, und fragt
+        // nicht, ob noch gebaut wird: Kam der Abbau dazwischen, bliebe er
+        alle.length = 0;
+        const l = new E(true), geladen = [];
+        l._initDecoder = () => new Promise((ok) => geladen.push(ok));
+        const pl = [still(l.decodeGeometry(new ArrayBuffer(68), {})), still(l.decodeGeometry(new ArrayBuffer(K.gross + 3), {}))];
+        await ruck();
+        l.dispose();
+        const stL = await stand(pl);
+        for (const ok of geladen) ok();
+        await ruck();
+        const lebtL = alle.filter((w) => !w.tot).length;
+        ist.push(`Abbau, waehrend der Decoder laedt: ${stL.filter((x) => x === 'Fehler').length} von ${pl.length} Stuecken enden mit einem Fehler, danach leben ${lebtL} Worker`);
+        const ladeOk = geladen.length === pl.length && stL.join() === 'Fehler,Fehler' && lebtL === 0;
+        // (g) grosse Stuecke haben auf jedem Geraet Plaetze (CodeRabbit nach
+        // dem ersten Fix: Am PC lebten hier sechs Worker statt vier, wenn
+        // fuenf grosse Stuecke nacheinander kamen; die Halle hat zwei,
+        // Polaris und Ironclad haben drei)
+        alle.length = 0;
+        const q = neuer(false), pq = [];
+        for (let i = 0; i <= K.faeden; i++) { pq.push(still(q.decodeGeometry(new ArrayBuffer(K.gross + 10 + i), {}))); await ruck(); }
+        pq.push(still(q.decodeGeometry(new ArrayBuffer(67), {})));
+        await ruck();
+        const lebt = () => alle.filter((w) => !w.tot).length;
+        const pcLeben = lebt(), pcGross = alle.filter((w) => !w.tot && w.post.some((id) => groesse.get(id) >= K.gross)).length;
+        let pcHoechst = pcLeben;
+        for (let runde = 0; runde < 6; runde++) {
+          for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+          await ruck();
+          pcHoechst = Math.max(pcHoechst, lebt());
+        }
+        const pcFertig = (await stand(pq)).every((x) => x === 'fertig');
+        q.dispose();
+        ist.push(`${K.faeden + 1} grosse Stuecke nacheinander und ein kleines am PC: ${pcLeben} Worker leben, ${pcGross} grosse zugleich in Arbeit, bis zum Ende hoechstens ${pcHoechst}, ${pcFertig ? 'alle fertig' : 'NICHT alle fertig'}`);
+        const pcOk = pcLeben === K.faeden && pcGross === K.faeden - 1 && pcHoechst === K.faeden && pcFertig;
+        // (h) zwei oder drei grosse Stuecke im selben Augenblick beim selben
+        // Worker (vierter Befund im Review der PR #364): three waehlt den
+        // Worker fuer ein Stueck, bevor der Entpacker den des vorigen aus
+        // dem Pool genommen hat. Traegt ein Worker deutlich weniger als die
+        // anderen, landen beide bei ihm. Jedes haelt einen Platz, und alle
+        // muessen mit dem Ende des Workers zurueckkommen: Sonst fehlte am PC
+        // von da an ein Platz (bei drei Stuecken zwei), und grosse Stuecke
+        // liefen bis zum Neuladen nur noch einzeln
+        const selber = async (zahl) => {
+          alle.length = 0;
+          const e = neuer(false), schwer = Math.floor(K.gross * 0.85);
+          // der Pool ist voll, jeder Worker traegt drei schwere kleine Stuecke
+          for (let i = 0; i < 3 * K.faeden; i++) still(e.decodeGeometry(new ArrayBuffer(schwer + i), {}));
+          await ruck();
+          // einer arbeitet alles ab und bleibt ohne Arbeit im Pool
+          const x = alle[0];
+          if (x) for (const id of x.post.splice(0)) x.fertig(id);
+          await ruck();
+          const pg = [];
+          for (let i = 0; i < zahl; i++) pg.push(still(e.decodeGeometry(new ArrayBuffer(K.gross + 20 + i), {})));
+          await ruck();
+          const bei = x ? x.post.filter((id) => groesse.get(id) >= K.gross).length : 0;
+          if (x) for (const id of x.post.splice(0)) x.fertig(id);
+          await ruck();
+          const belegt = e.belegt, fertig = (await stand(pg)).every((st) => st === 'fertig');
+          // danach laufen wieder so viele grosse Stuecke zugleich wie zuvor
+          for (let i = 0; i < K.faeden - 1; i++) { still(e.decodeGeometry(new ArrayBuffer(K.gross + 30 + i), {})); await ruck(); }
+          const danach = alle.filter((w) => !w.tot && w.post.some((id) => groesse.get(id) >= K.gross)).length;
+          e.dispose();
+          return { bei, belegt, danach, ok: bei === zahl && belegt === 0 && fertig && !!x?.tot && danach === K.faeden - 1,
+            wort: `${bei} beim selben Worker, nach seinem Ende ${belegt} Plaetze belegt, ${fertig ? 'alle fertig' : 'NICHT alle fertig'}, danach ${danach} grosse zugleich in Arbeit` };
+        };
+        const sel2 = await selber(2), sel3 = await selber(3);
+        ist.push(`zwei grosse Stuecke im selben Augenblick am PC, ein Worker ohne Arbeit neben drei vollen: ${sel2.wort}; drei: ${sel3.wort}`);
+        // (i) die Art, nicht der Fall: Zufallsfolgen aus kleinen und grossen
+        // Stuecken und Antworten der Worker, mal im selben Augenblick, mal
+        // nacheinander. Nach jedem Zug leben hoechstens so viele Worker wie
+        // zugesagt, am Ende ist jedes Stueck fertig und kein Platz belegt.
+        // Fester Keim je Folge. Zwei Mischungen, weil eine allein die andere
+        // Art nicht trifft: „dicht“ (viele grosse Stuecke einzeln, winzige
+        // kleine) reizt die Grenze und die Plaetze aus; „dateien“ (zwei oder
+        // drei grosse im selben Augenblick, kleine in Gruppen und
+        // verschieden schwer, ein Worker arbeitet auch einmal alles ab)
+        // legt grosse Stuecke zum selben Worker. Wie oft, zaehlt das Tor
+        // mit: Unter DOPPELT_MIN prueften die Folgen den Fall (h) nicht mehr.
+        const zufall = (keim) => () => {
+          keim = (keim + 0x6D2B79F5) | 0;
+          let t = Math.imul(keim ^ (keim >>> 15), 1 | keim);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const FOLGEN = 40, ZUEGE = 50, DOPPELT_MIN = 8;
+        const zieh = (art, r, zug, neu) => {
+          const x = r();
+          const mitArbeit = alle.filter((w) => !w.tot && w.post.length);
+          const einer = () => mitArbeit[Math.floor(r() * mitArbeit.length)];
+          const eineAntwort = () => { if (mitArbeit.length) { const w = einer(); w.fertig(w.post.splice(Math.floor(r() * w.post.length), 1)[0]); } };
+          if (art === 'dicht') {
+            if (x < 0.3) neu(K.gross + zug);
+            else if (x < 0.65) neu(64 + zug);
+            else eineAntwort();
+          } else {
+            const leicht = [64, Math.floor(K.gross * 0.57), Math.floor(K.gross * 0.85)];
+            if (x < 0.05) neu(K.gross + 8 * zug);
+            else if (x < 0.15) for (let i = 0, n = 2 + Math.floor(r() * 2); i < n; i++) neu(K.gross + 8 * zug + i);
+            else if (x < 0.5) for (let i = 0, n = 1 + Math.floor(r() * 6); i < n; i++) neu(leicht[Math.floor(r() * 3)] + 8 * zug + i);
+            else if (x < 0.75) { if (mitArbeit.length) { const w = einer(); for (const id of w.post.splice(0)) w.fertig(id); } }
+            else eineAntwort();
+          }
+        };
+        const folgen = async (telefon, art) => {
+          const z = { grenze: telefon ? K.telefon : K.faeden, hoechst: 0, drueber: 0, offen: 0, belegt: 0, doppelt: 0, zuege: 0 };
+          for (let keim = 1; keim <= FOLGEN; keim++) {
+            alle.length = 0;
+            const e = neuer(telefon), r = zufall(keim * (telefon ? 7919 : 104729)), ps = [];
+            const neu = (bytes) => ps.push(still(e.decodeGeometry(new ArrayBuffer(bytes), {})));
+            const sehen = () => { const n = lebt(); z.hoechst = Math.max(z.hoechst, n); if (n > z.grenze) z.drueber++; };
+            for (let zug = 0; zug < ZUEGE; zug++) {
+              zieh(art, r, zug, neu);
+              if (r() < 0.5) await ruck();
+              sehen();
+              z.zuege++;
+            }
+            for (let runde = 0; runde <= ps.length; runde++) {
+              await ruck();
+              sehen();
+              for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+            }
+            z.offen += (await stand(ps)).filter((x) => x !== 'fertig').length;
+            z.belegt += Number.isFinite(e.belegt) ? Math.abs(e.belegt) : 1;
+            z.doppelt += alle.filter((w) => w.grosse >= 2).length;
+            e.dispose();
+          }
+          return z;
+        };
+        const zt = await folgen(true, 'dicht'), zp = await folgen(false, 'dicht'), dt = await folgen(true, 'dateien'), dp = await folgen(false, 'dateien');
+        const alleFolgen = [zt, zp, dt, dp], zuege = alleFolgen.reduce((n, z) => n + z.zuege, 0);
+        const wortZ = (z) => `hoechstens ${z.hoechst} Worker zugleich (${z.drueber} Mal ueber der Grenze, ${z.offen} Stuecke am Ende offen, ${z.belegt} Plaetze am Ende belegt)`;
+        ist.push(`Zufallsfolgen (${FOLGEN} je Geraet und Mischung, ${zuege} Zuege): dicht am Telefon ${wortZ(zt)}, am PC ${wortZ(zp)}; wie Dateien am Telefon ${wortZ(dt)}, am PC ${wortZ(dp)}; dabei lagen am PC ${dp.doppelt} Mal grosse Stuecke beim selben Worker (mindestens ${DOPPELT_MIN}), am Telefon ${zt.doppelt + dt.doppelt} Mal`);
+        const zufallOk = alleFolgen.every((z) => z.hoechst === z.grenze && z.drueber === 0 && z.offen === 0 && z.belegt === 0) && zuege >= 4 * FOLGEN * ZUEGE
+          && dp.doppelt >= DOPPELT_MIN && zt.doppelt + dt.doppelt === 0 && sel2.ok && sel3.ok;
+        rechnetOk = abLauf.ok && abWart.ok && ladeOk && pcOk && zufallOk && ruheOk && grossOk && tel.erst === 1 && tel.worker === 2 && tel.leben === 0 && tel.fertig && pc.erst === 2 && pc.leben === 0 && pc.fertig
+          && lebenTel === K.telefon && lebenPc === K.faeden && lebtNoch === true && frueh === 0 && spaet === 1 && alleVier && lebenF <= K.telefon;
+      } catch (e) {
+        ist.push(`Fehler beim Nachrechnen: ${e.message}`);
+      } finally {
+        Object.assign(globalThis, { Worker: echt.Worker, setTimeout: echt.setTimeout, clearTimeout: echt.clearTimeout });
+        console.info = echt.info;
+      }
+    }
+    sollIst(`Entpacker der Geometrie: hoechstens ${ENTPACKER_MAX.faeden} Worker, am Telefon ${ENTPACKER_MAX.telefon}, die aus dem Pool genommenen mitgezaehlt; ohne Arbeit enden sie nach hoechstens ${ENTPACKER_MAX.ruhe} ms; ein Stueck ab hoechstens ${ENTPACKER_MAX.gross / 1024} KB nimmt seinen Worker mit; grosse Stuecke haben einen Platz weniger als die Grenze (Telefon nacheinander, PC drei zugleich), der Platz gilt bis zum Ende des Workers, und liegen mehrere beim selben Worker, kommen alle ihre Plaetze zurueck; nach dem Abbau endet Offenes mit einem Fehler, Spaeteres wird abgewiesen, kein Worker bleibt`,
+      `${typeof E === 'function' ? `faeden ${K.faeden}, telefon ${K.telefon}, gross ${K.gross / 1024} KB, ruhe ${K.ruhe} ms` : 'Klasse Entpacker fehlt'}${ist.length ? `; ${ist.join('; ')}` : ''}`);
+    if (!klinkeOk || !rechnetOk) fail(`[12] dist/assets/hangar-viewer.js: der Entpacker der Geometrie rechnet nicht mehr wie am 14.11.2026 abgenommen (ENTPACKER hoechstens ${JSON.stringify(ENTPACKER_MAX)}, telefon mindestens 2; Worker ohne Arbeit enden nach ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus dem Pool und beendet ihn danach, die Grenze zaehlt auf jedem Geraet alle lebenden Worker, grosse Stuecke haben einen Platz weniger als die Grenze und halten ihn bis zum Ende ihres Workers, mit dem Ende eines Workers kommt der Platz jedes grossen Stuecks zurueck, das bei ihm lag, nach dispose() endet jedes offene Stueck mit einem Fehler, jedes spaetere wird abgewiesen und kein Worker bleibt): Die Worker hielten wieder bis zu 343 MB, solange die Seite offen ist, und die volle Halle braeche am Telefon wieder beim Laden ab (946 statt 633 MB)`);
+    const dracoFile = join(DIST, 'vendor', 'three', 'addons', 'loaders', 'DRACOLoader.js');
+    const dracoSrc = existsSync(dracoFile) ? readFileSync(dracoFile, 'utf8') : '';
+    const nahtE = [
+      [/const draco = new Entpacker\(SMALL\)\.setDecoderPath\(/.test(viewer) && !/new DRACOLoader\(/.test(viewer), 'assets/hangar-viewer.js', 'der Viewer packt die Geometrie nicht mehr ueber seinen Entpacker aus (new Entpacker(SMALL), kein new DRACOLoader)', 'die Worker blieben wieder, solange die Seite offen ist (343 MB)'],
+      [/\t_getWorker\( taskID, taskCost \) \{/.test(dracoSrc) && /\t_releaseTask\( worker, taskID \) \{/.test(dracoSrc) && /this\.workerPool\.length < this\.workerLimit/.test(dracoSrc) && /worker\._taskLoad \+= taskCost;/.test(dracoSrc), 'vendor/three/addons/loaders/DRACOLoader.js', 'der DRACOLoader von three.js hat _getWorker, _releaseTask, workerPool, workerLimit oder _taskLoad nicht mehr in der Form, auf die der Entpacker baut', 'im Browser liefe der Entpacker still an three.js vorbei, die Worker blieben'],
+      [/notiz\(leichtEl, spurZeilen\(waechterStand\(lies\(\(\) => localStorage, STAND_KEY\), Date\.now\(\)\), 2\)\);/.test(ctrl) && /notiz\(fallback, spurZeilen\(stand\)\);/.test(ctrl), 'assets/hangar-overview.js', 'die Zeile der leichten Ansicht oder die Meldung zeigt die Spur der Abbrueche und das Geraet nicht mehr (spurZeilen)', 'vom Telefon kaeme nicht zurueck, in welcher Phase die volle Halle abbrach'],
+    ];
+    const offenE = nahtE.filter(([ok]) => !ok);
+    sollIst(`${nahtE.length} Naehte von Entpacker und Spur an der leichten Ansicht`, offenE.length ? `${nahtE.length - offenE.length} von ${nahtE.length}: ${offenE.map(([, , was]) => was).join('; ')}` : `${nahtE.length} von ${nahtE.length}`);
+    for (const [, datei, was, folge] of offenE) fail(`[12] dist/${datei}: ${was}: ${folge} (14.11.2026)`);
   }
   // Der einzige Weg, auf dem die Seite nach verlorenem Zeichenkontext von
   // selbst neu laedt, haengt am Waechter: im Rueckruf von onLost zaehlt

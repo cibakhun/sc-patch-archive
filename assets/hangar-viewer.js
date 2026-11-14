@@ -344,6 +344,199 @@ async function fitImage(im, max) {
   };
   return (fitTurn = fitTurn.then(draw));
 }
+// Entpacker der Geometrie (Draco: WebAssembly in Workern), 14.11.2026.
+// Krisz wählte an dem Tag „Volle Halle fürs Handy abspecken“, nachdem die
+// volle Halle auf seinem iPhone 12 abgebrochen war. Gemessen im
+// Telefonformat (Gladius, volle Halle): Der Prozess der Seite brauchte beim
+// Laden bis zu 946 MB und hielt danach 809 MB. Der größte einzelne Posten
+// waren die vier Worker des DRACOLoader. Der Speicher eines Entpackers
+// wächst mit dem größten Stück, das er je ausgepackt hat (3.988 KB Eingang:
+// 187 MB, 2.554 KB: 100 MB, unter 500 KB: höchstens 19 MB), schrumpft nie
+// wieder, und three.js beendet die Worker erst mit dispose(): zusammen
+// 343 MB, solange die Seite offen war, auf jedem Gerät. Deshalb:
+// - Ruhe: Hat ENTPACKER.ruhe ms lang kein Worker im Pool mehr zu tun,
+//   enden alle. Die nächste Datei startet neue (der Decoder selbst bleibt
+//   geladen).
+// - Ein Stück ab ENTPACKER.gross Bytes nimmt seinen Worker aus dem Pool:
+//   Er bekommt nichts Neues mehr und endet, sobald er fertig ist.
+// - Höchstens ENTPACKER.faeden Worker, am Telefon ENTPACKER.telefon. Die
+//   Grenze zählt alle lebenden Worker (zwei Befunde im Review der PR #364):
+//   three fragt vor jedem neuen Worker nur `workerPool.length <
+//   workerLimit`. Der Worker eines großen Stücks steht nicht mehr im Pool,
+//   läuft aber noch; ohne Abzug lebten am Telefon drei statt zwei. Deshalb
+//   ist workerLimit hier die gesetzte Grenze weniger die Worker, die
+//   draußen noch arbeiten.
+// - Große Stücke haben Plätze, einen weniger als die Grenze (Telefon 1,
+//   PC 3): So bleibt dem Pool immer ein Worker, und die Grenze hält auch,
+//   wenn mehr große Stücke kommen, als sie zählt (die Halle hat zwei,
+//   Polaris und Ironclad haben drei; kamen fünf nacheinander, lebten ohne
+//   Plätze im Test am PC sechs Worker statt vier. Im Browser trat das in
+//   einem Lauf mit Halle und Polaris nicht auf, dort waren es vorher wie
+//   nachher höchstens vier). Ein Platz gilt vom Start des Stücks bis zum
+//   Ende seines Workers: Hat der noch ein kleines Stück hinter sich, hält
+//   er so lange den Speicher des großen. Am Telefon läuft damit ein großes
+//   Stück nach dem anderen; zwei zugleich hielten 287 MB. Die Rechnung
+//   gilt ab einer Grenze von 2: Bei 1 lebte neben dem Worker eines großen
+//   Stücks einer im Pool (verify:hangar [12] hält die 2 als untere
+//   Klinke).
+// - Gezählt wird der Platz je Stück, nicht je Worker (vierter Befund):
+//   three wählt den Worker für ein Stück, bevor der des vorigen aus dem
+//   Pool genommen ist. Kommen am PC zwei große im selben Augenblick und
+//   trägt ein Worker deutlich weniger als die anderen, liegen beide bei
+//   ihm. Mit einem Platz je Worker kam dann nur einer zurück: Von da an
+//   fehlte ein Platz (bei drei Stücken zwei), und große Stücke liefen bis
+//   zum Neuladen einzeln. Kein Abbruch, nur langsamer; am Telefon mit
+//   seinem einen Platz kommt es nicht vor.
+// - Abbau (dritter Befund im selben Review), gehalten wie beim Umwandler
+//   der Bilder (ktxTot): Nach dispose() endet jedes Stück, das noch offen
+//   ist, mit einem Fehler, ob es bei einem Worker liegt oder auf einen
+//   Platz wartet; jedes spätere wird abgewiesen, und kein Worker bleibt
+//   (three gibt die Quelle der Worker mit dispose() zurück, ein Worker
+//   danach käme nie an). Lud der Decoder beim Abbau noch, legt three
+//   danach trotzdem einen Worker an: Der wird sofort beendet. Die Antwort
+//   eines Workers, die nach dem Abbau noch eintrifft, gilt nicht mehr.
+//   Nicht abgedeckt: was three selbst nach dispose() tut (preload). Die
+//   Seite baut die Bühne heute nirgends ab; geprüft ist das an Workern,
+//   die nur zählen, nicht im Browser.
+// Die Klasse greift in drei Stellen des DRACOLoader von three.js, die
+// keine Schnittstelle sind (_getWorker, _releaseTask, die Felder
+// workerPool und _taskLoad), und sie verlässt sich darauf, dass er
+// workerLimit bei jedem neuen Worker liest; verify:hangar [12] prüft das am
+// ausgelieferten Modul, damit ein neues three.js nicht still daran
+// vorbeiläuft.
+export const ENTPACKER = { faeden: 4, telefon: 2, gross: 1 << 20, ruhe: 1500 };
+export class Entpacker extends DRACOLoader {
+  constructor(telefon = false) {
+    super();
+    this.telefon = !!telefon;
+    this.setWorkerLimit(this.telefon ? ENTPACKER.telefon : ENTPACKER.faeden);
+    this.lebend = new Set();   // alle Worker, auch die aus dem Pool genommenen
+    this.draussen = new Set(); // aus dem Pool genommen, arbeiten noch
+    this.belegt = 0;           // Plätze, die große Stücke gerade halten
+    this.wartet = [];          // große Stücke, die auf einen Platz warten
+    this.traeger = null;       // Platz des großen Stücks, das gerade seinen Worker holt
+    this.offen = new Set();    // Ablehnen jedes Stücks, das noch nicht fertig ist
+    this.abgebaut = false;
+    this.uhr = 0;
+    this.stat = { stuecke: 0, gross: 0, gestartet: 0, beendet: 0, gesagt: 0 };
+  }
+  // three liest workerLimit vor jedem neuen Worker und kennt nur den Pool
+  get workerLimit() { return Math.max(1, this.grenze - (this.draussen?.size ?? 0)); }
+  set workerLimit(n) { this.grenze = n; }
+  // so viele große Stücke zugleich: Jedes hält einen Worker außerhalb des Pools
+  get plaetze() { return Math.max(1, this.grenze - 1); }
+  // Jedes Stück bekommt ein eigenes Versprechen, das dispose() ablehnen kann
+  decodeGeometry(buffer, taskConfig) {
+    return new Promise((ja, nein) => {
+      if (this.abgebaut) { nein(new Error(Entpacker.AB)); return; }
+      const p = this.hole(buffer, taskConfig);
+      this.offen.add(nein);
+      const zu = (f) => (v) => { if (this.offen.delete(nein)) f(v); };
+      p.then(zu(ja), zu(nein));
+    });
+  }
+  hole(buffer, taskConfig) {
+    if (buffer.byteLength < ENTPACKER.gross) return super.decodeGeometry(buffer, taskConfig);
+    return this.platz().then(() => {
+      const platz = { worker: null };
+      let p;
+      try {
+        if (this.abgebaut) throw new Error(Entpacker.AB);
+        this.traeger = platz; // _getWorker liest ihn im selben Zug
+        p = super.decodeGeometry(buffer, taskConfig);
+      } catch (f) {
+        this.frei();
+        throw f;
+      } finally { this.traeger = null; }
+      // Nimmt das Stück keinen Worker mit (three hatte es schon, oder es
+      // scheitert davor), gibt es seinen Platz selbst zurück
+      const selbst = () => { if (!platz.worker) this.frei(); };
+      p.then(selbst, selbst);
+      return p;
+    });
+  }
+  // Ein Platz für ein großes Stück, von seinem Start bis zum Ende des
+  // Workers, den es mitnimmt
+  platz() {
+    if (this.belegt < this.plaetze) { this.belegt++; return Promise.resolve(); }
+    return new Promise((ok) => this.wartet.push(ok));
+  }
+  // Der Platz geht an das nächste wartende Stück, sonst wird er frei
+  frei() {
+    const ok = this.wartet.shift();
+    if (ok) ok(); else this.belegt--;
+  }
+  _getWorker(taskID, taskCost) {
+    const platz = this.traeger;
+    this.traeger = null;
+    return super._getWorker(taskID, taskCost).then((worker) => {
+      if (this.abgebaut) {
+        // der Decoder lud beim Abbau noch: three hat den Worker trotzdem angelegt
+        worker.terminate();
+        const i = this.workerPool.indexOf(worker);
+        if (i >= 0) this.workerPool.splice(i, 1);
+        throw new Error(Entpacker.AB);
+      }
+      clearTimeout(this.uhr); this.uhr = 0;
+      this.stat.stuecke++;
+      if (!this.lebend.has(worker)) { this.lebend.add(worker); this.stat.gestartet++; }
+      if (taskCost >= ENTPACKER.gross) {
+        this.stat.gross++;
+        worker._geht = true;
+        const i = this.workerPool.indexOf(worker);
+        if (i >= 0) { this.workerPool.splice(i, 1); this.draussen.add(worker); }
+        // three wählt den Worker, bevor der des vorigen großen Stücks aus
+        // dem Pool ist: Zwei können beim selben liegen, jedes hält seinen Platz
+        if (platz) { platz.worker = worker; worker._plaetze = (worker._plaetze || 0) + 1; }
+      }
+      return worker;
+    });
+  }
+  _releaseTask(worker, taskID) {
+    super._releaseTask(worker, taskID);
+    if (this.abgebaut) return;
+    if (worker._geht && worker._taskLoad === 0) this.beenden(worker);
+    if (!this.uhr && this.workerPool.every((w) => w._taskLoad === 0)) this.uhr = setTimeout(() => { this.uhr = 0; this.ruhe(); }, ENTPACKER.ruhe);
+  }
+  beenden(worker) {
+    if (!this.lebend.delete(worker)) return;
+    worker.terminate();
+    this.stat.beendet++;
+    this.draussen.delete(worker);
+    const n = worker._plaetze || 0;
+    worker._plaetze = 0;
+    for (let i = 0; i < n; i++) this.frei();
+  }
+  // Jeden Worker ohne Arbeit beenden; liefert, wie viele es waren.
+  ruhe() {
+    let n = 0;
+    for (let i = this.workerPool.length - 1; i >= 0; i--) {
+      const w = this.workerPool[i];
+      if (w._taskLoad !== 0) continue;
+      this.workerPool.splice(i, 1);
+      this.beenden(w);
+      n++;
+    }
+    const s = this.stat;
+    if (n && s.stuecke > s.gesagt) {
+      s.gesagt = s.stuecke;
+      console.info(`[hangar] Entpacker der Geometrie in Ruhe: ${s.stuecke} Stücke ausgepackt (${s.gross} große), ${s.gestartet} Worker gestartet, ${s.beendet} beendet, ${this.lebend.size} laufen noch`);
+    }
+    return n;
+  }
+  dispose() {
+    clearTimeout(this.uhr); this.uhr = 0;
+    this.abgebaut = true;
+    const ab = new Error(Entpacker.AB);
+    for (const nein of [...this.offen]) nein(ab);
+    this.offen.clear();
+    // beenden() gibt dabei die Plätze der großen Stücke zurück: Wer auf
+    // einen wartet, kommt dran, sieht abgebaut und startet nichts
+    for (const w of [...this.lebend]) this.beenden(w);
+    return super.dispose();
+  }
+}
+Entpacker.AB = 'der Entpacker der Geometrie ist abgebaut';
 // Komprimierte Zwillinge der Bilder (KTX2/Basis, 13.11.2026; Anlass,
 // Zahlen und Bauweise: scripts/lib/hangar-ktx.mjs). Zu jedem Bild liegt
 // unter /hangar/ktx/<kennung>.ktx2 dasselbe Bild in einer Form, die bei der
@@ -8072,7 +8265,7 @@ export async function initHangar(container, opts = {}) {
     life.layout(S, shipInfo);
   }
 
-  const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
+  const draco = new Entpacker(SMALL).setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   // Komprimierte Texturen (KTX_BAU oben; Krisz 13.11.2026: „es braucht viel
   // zu viele Ressourcen um das Hangar laufen zu lassen“). Gemessen an dem Tag
   // in der Probe mit Halle und Gladius, hohe Stufe, RTX 3070 Ti: Texturen am

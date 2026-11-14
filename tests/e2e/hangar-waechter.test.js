@@ -10,10 +10,13 @@
 // Seit 14.11.2026 („Ne immer noch Dauer Neulade Loop“): Der Vermerk steht
 // auch im Speicher des Geraets, am Telefon zaehlen die Starts, und unter
 // jedem Deckel laeuft dort die leichte Buehne.
+// Seit 14.11.2026 (Krisz waehlte „Volle Halle fuers Handy abspecken“): Die
+// Worker, die die Geometrie auspacken, enden ohne Arbeit, und grosse Stuecke
+// nehmen ihren Worker mit (Entpacker in assets/hangar-viewer.js).
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { WAECHTER, waechterStand, waechterAbbruch, waechterText, waechterOffen, waechterVerlauf, waechterLaeufe, waechterLaeufeText, waechterAnlauf, waechterAnlaufText, waechterAnspruch, waechterBefund, waechterLeicht, waechterGeraet } from '../../assets/hangar-overview.js';
-import { fitSize, limiter } from '../../assets/hangar-viewer.js';
+import { fitSize, limiter, ENTPACKER, Entpacker } from '../../assets/hangar-viewer.js';
 
 const T0 = Date.UTC(2026, 10, 12, 18, 0, 0);
 const MIN = 60e3;
@@ -226,7 +229,7 @@ describe('Hangar-Waechter: offene Laeufe im Speicher des Geraets', () => {
     assert.deepEqual(waechterLaeufe(text, T0 + MIN).map((e) => e.id), ['neu']);
     const fremd = JSON.stringify({ v: WAECHTER.v - 1, l: { a: { t: T0, s: 'hoch', p: 'laden' } } });
     assert.deepEqual(waechterLaeufe(fremd, T0 + MIN), []);
-    for (const raw of [null, '', '{', 'null', '[]', '{"v":3}', JSON.stringify({ v: WAECHTER.v, l: [] }), JSON.stringify({ v: WAECHTER.v, l: { a: null, b: 7 } })]) assert.deepEqual(waechterLaeufe(raw, T0), [], String(raw));
+    for (const raw of [null, '', '{', 'null', '[]', JSON.stringify({ v: WAECHTER.v }), JSON.stringify({ v: WAECHTER.v, l: [] }), JSON.stringify({ v: WAECHTER.v, l: { a: null, b: 7 } })]) assert.deepEqual(waechterLaeufe(raw, T0), [], String(raw));
     const schief = JSON.stringify({ v: WAECHTER.v, l: { a: { t: T0, s: 'ultra', p: 'fertig' } } });
     assert.deepEqual(waechterLaeufe(schief, T0 + MIN), [{ id: 'a', t: T0, stufe: null, phase: null }]);
   });
@@ -276,7 +279,7 @@ describe('Hangar-Waechter: was ein Start zaehlt', () => {
     assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, s: [['a', T0], ['', T0], [7, T0], ['b', 'x'], null, T0, ['c', T0 + 5 * MIN]] }), T0 + MIN), [{ id: 'a', t: T0 }]);
     // die Liste von vor dem Review (nur Zeiten) gilt nicht mehr
     assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, t: [T0] }), T0 + MIN), []);
-    for (const raw of [null, '', '{', 'null', '[]', '{"v":3}']) assert.deepEqual(waechterAnlauf(raw, T0), [], String(raw));
+    for (const raw of [null, '', '{', 'null', '[]', JSON.stringify({ v: WAECHTER.v })]) assert.deepEqual(waechterAnlauf(raw, T0), [], String(raw));
   });
 
   // Ein Telefon, dessen Browser nach jedem Ende alles vergisst, was die
@@ -421,5 +424,531 @@ describe('Hangar am Telefon: Bilder klein auspacken', () => {
     assert.equal(await lim(async () => 'frei'), 'frei');
     // n unter 1 heisst eins nach dem anderen, nicht keins
     assert.equal(await limiter(0)(async () => 'geht'), 'geht');
+  });
+});
+
+// Worker, die nur zaehlen: was sie zu tun bekamen und ob sie beendet sind.
+// fertig(id) antwortet wie der echte mit einer (leeren) Geometrie.
+function zaehlWorker() {
+  const alle = [];
+  class Zaehler {
+    constructor() { this.tot = false; this.post = []; this.grosse = 0; alle.push(this); }
+    postMessage(m) { if (m?.type === 'decode') { this.post.push(m.id); if (m.buffer?.byteLength >= ENTPACKER.gross) this.grosse++; } }
+    terminate() { this.tot = true; }
+    fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
+    scheitert(id) { this.onmessage({ data: { type: 'error', id, error: 'Probe' } }); }
+  }
+  return { alle, Zaehler };
+}
+const ruck = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+
+describe('Hangar: Entpacker der Geometrie geben ihren Speicher zurueck', () => {
+  // je Test: eigene Worker, eigene Uhr (der Zeitgeber der Ruhe wird gefangen)
+  function buehne(telefon) {
+    const { alle, Zaehler } = zaehlWorker();
+    const echt = { Worker: globalThis.Worker, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, info: console.info };
+    const uhr = { fn: null, ms: null };
+    globalThis.Worker = Zaehler;
+    globalThis.setTimeout = (fn, ms) => { uhr.fn = fn; uhr.ms = ms; return 7; };
+    globalThis.clearTimeout = () => { uhr.fn = null; uhr.ms = null; };
+    console.info = () => {};
+    const e = new Entpacker(telefon);
+    e._initDecoder = () => Promise.resolve();
+    const ab = () => { e.dispose(); Object.assign(globalThis, { Worker: echt.Worker, setTimeout: echt.setTimeout, clearTimeout: echt.clearTimeout }); console.info = echt.info; };
+    return { e, alle, uhr, ab };
+  }
+
+  test('Zahlen: am Telefon weniger Worker, die Grenze fuer grosse Stuecke bei 1 MB', () => {
+    assert.ok(ENTPACKER.telefon >= 1 && ENTPACKER.telefon <= 2 && ENTPACKER.telefon <= ENTPACKER.faeden);
+    assert.ok(ENTPACKER.faeden <= 4);
+    assert.equal(ENTPACKER.gross, 1 << 20);
+    assert.ok(ENTPACKER.ruhe > 0 && ENTPACKER.ruhe <= 1500);
+    const { e: tel, ab: a1 } = buehne(true), { e: pc, ab: a2 } = buehne(false);
+    try {
+      assert.equal(tel.workerLimit, ENTPACKER.telefon);
+      assert.equal(pc.workerLimit, ENTPACKER.faeden);
+    } finally { a1(); a2(); }
+  });
+
+  test('Ruhe: Worker ohne Arbeit enden nach der Frist, das naechste Stueck startet neue', async () => {
+    const { e, alle, uhr, ab } = buehne(false);
+    try {
+      const w = [];
+      for (let id = 1; id <= 6; id++) w.push(await e._getWorker(id, 1000 * id));
+      assert.equal(alle.length, ENTPACKER.faeden);
+      // solange einer arbeitet, laeuft keine Frist
+      for (let id = 1; id <= 5; id++) e._releaseTask(w[id - 1], id);
+      assert.equal(uhr.fn, null);
+      e._releaseTask(w[5], 6);
+      assert.equal(uhr.ms, ENTPACKER.ruhe);
+      uhr.fn();
+      assert.equal(alle.filter((x) => !x.tot).length, 0);
+      assert.equal(e.workerPool.length, 0);
+      assert.deepEqual({ gestartet: e.stat.gestartet, beendet: e.stat.beendet, stuecke: e.stat.stuecke }, { gestartet: 4, beendet: 4, stuecke: 6 });
+      // danach geht es mit einem neuen Worker weiter
+      const neu = await e._getWorker(7, 500);
+      assert.equal(alle.length, ENTPACKER.faeden + 1);
+      assert.equal(neu.tot, false);
+      assert.deepEqual(e.workerPool, [neu]);
+    } finally { ab(); }
+  });
+
+  test('Ruhe: ein neues Stueck vor Ablauf der Frist haelt sie an, ein Worker mit Arbeit bleibt', async () => {
+    const { e, alle, uhr, ab } = buehne(true);
+    try {
+      const a = await e._getWorker(1, 100);
+      e._releaseTask(a, 1);
+      assert.equal(uhr.ms, ENTPACKER.ruhe);
+      const b = await e._getWorker(2, 100);
+      assert.equal(uhr.fn, null);
+      // von Hand gerufen: nur der ohne Arbeit geht
+      assert.equal(e.ruhe(), alle.length - 1);
+      assert.equal(b.tot, false);
+      assert.deepEqual(e.workerPool, [b]);
+      e._releaseTask(b, 2);
+      assert.equal(uhr.ms, ENTPACKER.ruhe);
+    } finally { ab(); }
+  });
+
+  test('ein grosses Stueck nimmt seinen Worker aus dem Pool; er endet erst, wenn alles von ihm fertig ist', async () => {
+    const { e, alle, ab } = buehne(false);
+    try {
+      // vier Worker, jeder mit einem kleinen Stueck; das grosse geht an den mit der kleinsten Last
+      const w = [];
+      for (let id = 1; id <= 4; id++) w.push(await e._getWorker(id, 5000 - id));
+      const g = await e._getWorker(5, ENTPACKER.gross);
+      assert.equal(g, w[3]);
+      assert.equal(e.workerPool.includes(g), false);
+      assert.equal(e.workerPool.length, 3);
+      // das naechste kleine Stueck geht an einen aus dem Pool, nicht an den, der geht;
+      // ein weiterer Worker startet nicht, solange der noch lebt
+      const k = await e._getWorker(6, 10);
+      assert.notEqual(k, g);
+      assert.equal(e.workerPool.includes(k), true);
+      assert.equal(alle.length, 4);
+      e._releaseTask(g, 5);
+      assert.equal(g.tot, false, 'sein kleines Stueck laeuft noch');
+      e._releaseTask(g, 4);
+      assert.equal(g.tot, true);
+      assert.equal(e.stat.gross, 1);
+      // knapp darunter bleibt der Worker
+      const n = await e._getWorker(7, ENTPACKER.gross - 1);
+      assert.equal(e.workerPool.includes(n), true);
+    } finally { ab(); }
+  });
+
+  test('grosse Stuecke: am Telefon eines nach dem anderen, am PC zugleich; ein Fehler haelt die Reihe nicht an', async () => {
+    for (const telefon of [true, false]) {
+      const { e, alle, ab } = buehne(telefon);
+      try {
+        const aus = [0, 1, 2].map(() => e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {}));
+        const klein = e.decodeGeometry(new ArrayBuffer(64), {});
+        await ruck();
+        const gross = () => alle.filter((w) => w._geht);
+        assert.equal(gross().reduce((n, w) => n + w.post.length, 0), telefon ? 1 : 3, `telefon ${telefon}`);
+        // das kleine Stueck wartet nicht auf die grossen
+        const kw = alle.find((w) => !w._geht);
+        assert.equal(kw.post.length, 1);
+        kw.fertig(kw.post.shift());
+        assert.ok((await klein).isBufferGeometry);
+        // das erste grosse scheitert, die anderen kommen trotzdem dran
+        let runde = 0;
+        for (; runde < 4 && gross().some((w) => w.post.length); runde++) {
+          for (const w of gross()) for (const id of w.post.splice(0)) { if (runde === 0 && w === gross()[0]) w.scheitert(id); else w.fertig(id); }
+          await ruck();
+        }
+        const erg = await Promise.allSettled(aus);
+        assert.deepEqual(erg.map((r) => r.status), ['rejected', 'fulfilled', 'fulfilled'], `telefon ${telefon}`);
+        assert.equal(runde, telefon ? 3 : 1, `telefon ${telefon}`);
+        assert.equal(gross().length, 3);
+        assert.equal(gross().filter((w) => !w.tot).length, 0);
+      } finally { ab(); }
+    }
+  });
+
+  // Befund aus dem Review der PR #364: three fragt vor jedem neuen Worker nur
+  // den Pool. Der Worker eines grossen Stuecks steht nicht mehr darin, laeuft
+  // aber noch; ohne Abzug lebten am Telefon drei statt zwei.
+  test('die Grenze gilt fuer alle lebenden Worker: der aus dem Pool genommene zaehlt mit, bis er endet', async () => {
+    for (const telefon of [true, false]) {
+      const { e, alle, ab } = buehne(telefon);
+      const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden;
+      const leben = () => alle.filter((w) => !w.tot).length;
+      try {
+        // der Pool ist voll, jeder Worker hat ein kleines Stueck
+        const w = [];
+        for (let id = 1; id <= grenze; id++) w.push(await e._getWorker(id, 5000 - id));
+        assert.equal(leben(), grenze);
+        // ein grosses Stueck nimmt einen mit; das naechste kleine startet keinen weiteren
+        const g = await e._getWorker(90, ENTPACKER.gross);
+        assert.equal(g, w[grenze - 1]);
+        const k = await e._getWorker(91, 10);
+        assert.equal(leben(), grenze, `telefon ${telefon}: ${leben()} Worker leben`);
+        assert.equal(e.workerPool.includes(k), true);
+        assert.equal(e.workerLimit, grenze - 1);
+        // endet er, ist sein Platz wieder frei
+        e._releaseTask(g, 90);
+        e._releaseTask(g, grenze);
+        assert.equal(g.tot, true);
+        assert.equal(e.workerLimit, grenze);
+        await e._getWorker(92, 10);
+        assert.equal(leben(), grenze);
+        assert.equal(alle.length, grenze + 1);
+      } finally { ab(); }
+    }
+  });
+
+  test('die Grenze haelt auch, wenn alles im selben Augenblick kommt', async () => {
+    for (const telefon of [true, false]) {
+      const { e, alle, ab } = buehne(telefon);
+      const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden;
+      try {
+        // ein grosses und zwoelf kleine Stuecke, ohne dazwischen zu warten;
+        // sechs weitere kleine, waehrend das grosse noch laeuft
+        const aus = [e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {})];
+        for (let i = 0; i < 12; i++) aus.push(e.decodeGeometry(new ArrayBuffer(64 + i), {}));
+        let hoechstens = 0;
+        await ruck();
+        assert.equal(alle.filter((w) => w._geht && !w.tot).length, 1);
+        for (let i = 0; i < 6; i++) aus.push(e.decodeGeometry(new ArrayBuffer(128 + i), {}));
+        await ruck();
+        for (let runde = 0; runde < 20 && alle.some((w) => w.post.length); runde++) {
+          hoechstens = Math.max(hoechstens, alle.filter((w) => !w.tot).length);
+          // je Runde ein Stueck je Worker, wie ein Worker sie abarbeitet
+          for (const w of alle) if (w.post.length) w.fertig(w.post.shift());
+          await ruck();
+          hoechstens = Math.max(hoechstens, alle.filter((w) => !w.tot).length);
+        }
+        await Promise.all(aus);
+        assert.ok(hoechstens >= 1 && hoechstens <= grenze, `telefon ${telefon}: ${hoechstens} Worker zugleich`);
+        assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0);
+      } finally { ab(); }
+    }
+  });
+
+  // CodeRabbit im selben Review, nach dem ersten Fix: Am PC galt die Grenze
+  // noch nicht, sobald mehr grosse Stuecke kamen, als sie zaehlt (die Halle
+  // hat zwei, Polaris und Ironclad haben drei). Grosse Stuecke haben
+  // seitdem auf jedem Geraet feste Plaetze.
+  test('am PC laufen hoechstens drei grosse Stuecke zugleich, die weiteren warten auf das Ende eines Workers', async () => {
+    const { e, alle, ab } = buehne(false);
+    try {
+      // eines nach dem anderen, wie Halle und Schiff sie bringen
+      const g = [];
+      for (let i = 0; i < ENTPACKER.faeden + 1; i++) { g.push(e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + i), {})); await ruck(); }
+      const k = e.decodeGeometry(new ArrayBuffer(64), {});
+      await ruck();
+      const leben = () => alle.filter((w) => !w.tot).length;
+      assert.equal(leben(), ENTPACKER.faeden, 'fuenf grosse Stuecke und danach ein kleines: so viele Worker leben');
+      assert.equal(alle.filter((w) => w._geht).length, ENTPACKER.faeden - 1);
+      assert.equal(e.wartet.length, 2);
+      // ein grosses wird fertig, sein Worker endet: das naechste kommt dran, nicht beide
+      const x = alle.find((w) => w._geht);
+      x.fertig(x.post.shift());
+      await ruck();
+      assert.equal(x.tot, true);
+      assert.equal(leben(), ENTPACKER.faeden);
+      assert.equal(e.wartet.length, 1);
+      for (let runde = 0; runde < 4; runde++) {
+        for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+        await ruck();
+        assert.ok(leben() <= ENTPACKER.faeden, `${leben()} Worker leben`);
+      }
+      assert.deepEqual(await stand([...g, k]), ['fertig', 'fertig', 'fertig', 'fertig', 'fertig', 'fertig']);
+      assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0);
+      assert.equal(e.belegt, 0);
+    } finally { ab(); }
+  });
+
+  // three merkt sich jedes Stueck an seinem Puffer und gibt beim zweiten Mal
+  // dasselbe Versprechen zurueck, ohne einen Worker zu holen. Ein solches
+  // Stueck darf seinen Platz nicht behalten, sonst kaeme am Telefon kein
+  // grosses mehr dran.
+  test('ein grosses Stueck, das three schon hat, gibt seinen Platz selbst zurueck', async () => {
+    const { e, alle, ab } = buehne(true);
+    try {
+      const puffer = new ArrayBuffer(ENTPACKER.gross);
+      const zwei = [e.decodeGeometry(puffer, {}), e.decodeGeometry(puffer, {})];
+      await ruck();
+      assert.equal(alle.length, 1);
+      assert.equal(e.wartet.length, 1);
+      alle[0].fertig(alle[0].post.shift());
+      await ruck();
+      assert.deepEqual(await stand(zwei), ['fertig', 'fertig']);
+      assert.equal(alle.length, 1, 'das zweite Mal hat einen Worker gestartet');
+      assert.equal(e.belegt, 0, 'das Stueck ohne Worker haelt seinen Platz');
+      const drittes = e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 1), {});
+      await ruck();
+      assert.equal(alle.length, 2, 'das naechste grosse Stueck kommt nicht dran');
+      alle[1].fertig(alle[1].post.shift());
+      assert.deepEqual(await stand([drittes]), ['fertig']);
+    } finally { ab(); }
+  });
+
+  // CodeRabbit zum Stand d2828e48: three waehlt den Worker fuer ein Stueck,
+  // bevor der Entpacker den des vorigen aus dem Pool genommen hat. Kommen
+  // zwei grosse Stuecke im selben Augenblick und traegt ein Worker deutlich
+  // weniger als die anderen, landen beide bei ihm. Jedes haelt einen Platz,
+  // und beide muessen mit dem Ende des Workers zurueckkommen: Sonst fehlte
+  // am PC von da an ein Platz (bei drei Stuecken zwei), und grosse Stuecke
+  // liefen bis zum Neuladen nur noch einzeln. Am Telefon gibt es einen
+  // Platz, dort kommen nie zwei zugleich dran.
+  test('zwei grosse Stuecke beim selben Worker geben beide ihren Platz zurueck', async () => {
+    for (const zahl of [2, 3]) {
+      const { e, alle, ab } = buehne(false);
+      try {
+        // der Pool ist voll, jeder Worker traegt drei Stuecke von rund 900 KB
+        const k = [];
+        for (let i = 0; i < 3 * ENTPACKER.faeden; i++) k.push(e.decodeGeometry(new ArrayBuffer(900_000 + i), {}));
+        await ruck();
+        assert.equal(alle.length, ENTPACKER.faeden);
+        // einer wird fertig und bleibt ohne Arbeit im Pool
+        const x = alle[0];
+        for (const id of x.post.splice(0)) x.fertig(id);
+        await ruck();
+        assert.equal(x.tot, false);
+        const g = [];
+        for (let i = 0; i < zahl; i++) g.push(e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + i), {}));
+        await ruck();
+        assert.equal(x.grosse, zahl, `${zahl} grosse Stuecke im selben Augenblick: so viele liegen beim selben Worker`);
+        assert.equal(e.belegt, zahl);
+        assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.faeden);
+        for (const id of x.post.splice(0)) x.fertig(id);
+        await ruck();
+        assert.equal(x.tot, true);
+        assert.deepEqual(await stand(g), g.map(() => 'fertig'));
+        assert.equal(e.belegt, 0, `${zahl} grosse Stuecke beim selben Worker: so viele Plaetze sind nach seinem Ende noch belegt`);
+        // und es laufen danach wieder drei grosse Stuecke zugleich
+        const h = [];
+        for (let i = 0; i < ENTPACKER.faeden - 1; i++) { h.push(e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 10 + i), {})); await ruck(); }
+        assert.equal(alle.filter((w) => w._geht && !w.tot).length, ENTPACKER.faeden - 1, 'danach laufen nicht mehr drei grosse Stuecke zugleich');
+        for (let runde = 0; runde < 4; runde++) {
+          for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+          await ruck();
+        }
+        assert.deepEqual(await stand([...k, ...h]), [...k, ...h].map(() => 'fertig'));
+        assert.equal(e.belegt, 0);
+      } finally { ab(); }
+    }
+  });
+
+  // Die Art, nicht der Fall: beliebige Folgen aus kleinen und grossen
+  // Stuecken und Antworten der Worker, mal im selben Augenblick, mal
+  // nacheinander. Nach jedem Zug leben hoechstens so viele Worker, wie
+  // zugesagt, und am Ende ist jedes Stueck fertig und kein Platz belegt.
+  // Fester Keim je Folge, damit sich eine rote Folge wiederholen laesst.
+  // Zwei Mischungen, weil eine allein die andere Art nicht trifft:
+  // - dicht: viele grosse Stuecke einzeln, dazu winzige kleine. Reizt die
+  //   Grenze und die Plaetze aus.
+  // - dateien: wie eine Datei sie bringt, also zwei oder drei grosse im
+  //   selben Augenblick, kleine in Gruppen und verschieden schwer (64 Byte
+  //   bis rund 900 KB), und ein Worker arbeitet auch einmal alles ab. Nur
+  //   so traegt ein Worker deutlich weniger als die anderen, und zwei
+  //   grosse Stuecke landen bei ihm (in den 300 dichten Folgen kam das nie
+  //   vor, der vierte Befund blieb deshalb gruen).
+  const zufall = (keim) => () => {
+    keim = (keim + 0x6D2B79F5) | 0;
+    let t = Math.imul(keim ^ (keim >>> 15), 1 | keim);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const zieh = (art, r, zug, neu, alle) => {
+    const x = r();
+    const mit = alle.filter((w) => !w.tot && w.post.length);
+    const einer = () => mit[Math.floor(r() * mit.length)];
+    const eineAntwort = () => { if (mit.length) { const w = einer(); w.fertig(w.post.splice(Math.floor(r() * w.post.length), 1)[0]); } };
+    if (art === 'dicht') {
+      if (x < 0.3) neu(ENTPACKER.gross + zug);
+      else if (x < 0.65) neu(64 + zug);
+      else eineAntwort();
+    } else {
+      if (x < 0.05) neu(ENTPACKER.gross + 8 * zug);
+      else if (x < 0.15) for (let i = 0, n = 2 + Math.floor(r() * 2); i < n; i++) neu(ENTPACKER.gross + 8 * zug + i);
+      else if (x < 0.5) for (let i = 0, n = 1 + Math.floor(r() * 6); i < n; i++) neu([64, 600_000, 900_000][Math.floor(r() * 3)] + 8 * zug + i);
+      else if (x < 0.75) { if (mit.length) { const w = einer(); for (const id of w.post.splice(0)) w.fertig(id); } }
+      else eineAntwort();
+    }
+  };
+  test('die Grenze haelt in Zufallsfolgen, am Telefon wie am PC', async () => {
+    const FOLGEN = 150, ZUEGE = 60;
+    for (const art of ['dicht', 'dateien']) {
+      for (const telefon of [true, false]) {
+        const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden, wo = `${telefon ? 'Telefon' : 'PC'} (${art})`;
+        let hoechst = 0, grosse = 0, doppelt = 0;
+        for (let keim = 1; keim <= FOLGEN; keim++) {
+          const { e, alle, ab } = buehne(telefon);
+          try {
+            const r = zufall(keim * (telefon ? 7919 : 104729));
+            const ps = [];
+            const neu = (bytes) => ps.push(e.decodeGeometry(new ArrayBuffer(bytes), {}));
+            const sehen = (wann) => {
+              const leben = alle.filter((w) => !w.tot).length;
+              hoechst = Math.max(hoechst, leben);
+              grosse = Math.max(grosse, alle.filter((w) => w._geht && !w.tot).length);
+              assert.ok(leben <= grenze, `${wo}, Folge ${keim}, ${wann}: ${leben} Worker leben, zugesagt sind hoechstens ${grenze}`);
+              assert.equal(e.lebend.size, leben, `${wo}, Folge ${keim}, ${wann}: der Entpacker zaehlt anders, als Worker leben`);
+              assert.ok(e.belegt >= 0 && e.belegt <= grenze - 1, `${wo}, Folge ${keim}, ${wann}: ${e.belegt} Plaetze belegt, es gibt ${grenze - 1}`);
+            };
+            for (let zug = 0; zug < ZUEGE; zug++) {
+              zieh(art, r, zug, neu, alle);
+              if (r() < 0.5) await ruck();
+              sehen(`Zug ${zug}`);
+            }
+            for (let runde = 0; runde <= ps.length; runde++) {
+              await ruck();
+              sehen('Auslauf');
+              for (const w of alle) if (!w.tot) for (const id of w.post.splice(0)) w.fertig(id);
+            }
+            await ruck();
+            assert.equal((await stand(ps)).filter((z) => z !== 'fertig').length, 0, `${wo}, Folge ${keim}: nicht jedes Stueck ist fertig`);
+            assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0, `${wo}, Folge ${keim}: der Worker eines grossen Stuecks lebt nach seiner Arbeit`);
+            assert.equal(e.belegt, 0, `${wo}, Folge ${keim}: so viele Plaetze fuer grosse Stuecke sind am Ende noch belegt`);
+            doppelt += alle.filter((w) => w.grosse >= 2).length;
+          } finally { ab(); }
+        }
+        // die Folgen muessen die Grenze auch ausreizen, sonst prueften sie nichts
+        assert.equal(hoechst, grenze, `${wo}: die Folgen haben die Grenze nie erreicht`);
+        assert.equal(grosse, grenze - 1, `${wo}: hoechstens ${grenze - 1} grosse Stuecke zugleich`);
+        // und am PC muessen in den Dateien-Folgen grosse Stuecke auch beim
+        // selben Worker gelegen haben (gezaehlt 46 Mal); am Telefon darf das
+        // nie vorkommen, dort gibt es einen Platz
+        if (telefon) assert.equal(doppelt, 0, `${wo}: zwei grosse Stuecke lagen beim selben Worker`);
+        else if (art === 'dateien') assert.ok(doppelt >= 30, `${wo}: nur ${doppelt} Mal lagen zwei grosse Stuecke beim selben Worker`);
+      }
+    }
+  });
+
+  // Der Worker eines grossen Stuecks kann noch ein kleines hinter sich haben.
+  // Solange er lebt, haelt er den Speicher seines grossen Stuecks (bis 187 MB).
+  test('am Telefon wartet das naechste grosse Stueck, bis der Worker des vorigen beendet ist', async () => {
+    const { e, alle, ab } = buehne(true);
+    try {
+      const k1 = e.decodeGeometry(new ArrayBuffer(64), {}), k2 = e.decodeGeometry(new ArrayBuffer(65), {});
+      await ruck();
+      assert.equal(alle.length, 2);
+      const g1 = e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {}), g2 = e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 1), {});
+      await ruck();
+      const x = alle.find((w) => w._geht);
+      assert.deepEqual(x.post, [1, 3], 'das erste grosse Stueck liegt hinter einem kleinen');
+      // das grosse ist fertig, das kleine desselben Workers noch nicht
+      const tu = (w, id) => { w.post.splice(w.post.indexOf(id), 1); w.fertig(id); };
+      tu(x, 3);
+      assert.ok((await g1).isBufferGeometry);
+      await ruck();
+      assert.equal(x.tot, false);
+      assert.equal(alle.reduce((n, w) => n + w.post.filter((id) => id >= 4).length, 0), 0, 'das zweite grosse Stueck ist schon unterwegs');
+      assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.telefon);
+      // erst mit dem Ende des Workers geht es weiter
+      tu(x, 1);
+      assert.ok((await k1).isBufferGeometry);
+      await ruck();
+      assert.equal(x.tot, true);
+      assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.telefon);
+      const z = alle.find((w) => w.post.includes(4));
+      assert.ok(z && z._geht && z !== x);
+      for (const w of alle) for (const id of w.post.splice(0)) w.fertig(id);
+      await ruck();
+      assert.ok((await g2).isBufferGeometry && (await k2).isBufferGeometry);
+      assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0);
+    } finally { ab(); }
+  });
+
+  test('dispose beendet auch die Worker, die schon aus dem Pool genommen sind', async () => {
+    const { e, alle, ab } = buehne(false);
+    try {
+      await e._getWorker(1, 10);
+      await e._getWorker(2, ENTPACKER.gross);
+      assert.equal(alle.filter((w) => !w.tot).length, 2);
+      e.dispose();
+      assert.equal(alle.filter((w) => !w.tot).length, 0);
+      assert.equal(e.lebend.size, 0);
+    } finally { ab(); }
+  });
+
+  // Zweiter Befund im Review der PR #364: Der Abbau liess wartende Stuecke
+  // offen, und ein Stueck danach haette einen Worker aus einer Quelle
+  // gestartet, die three schon zurueckgegeben hat. Gehalten wie beim
+  // Umwandler der Bilder: Offenes endet mit einem Fehler, Spaeteres wird
+  // abgewiesen.
+  // Begrenzt nachsehen statt warten: Ein Stueck, das offen bleibt, soll den
+  // Test rot machen und ihn nicht haengen lassen.
+  const stand = async (ps) => {
+    const s = ps.map(() => 'offen');
+    ps.forEach((p, i) => p.then(() => { s[i] = 'fertig'; }, (f) => { s[i] = f?.message ?? 'Fehler'; }));
+    await ruck();
+    return s;
+  };
+
+  test('dispose: was noch offen ist, endet mit einem Fehler, und kein Worker startet mehr', async () => {
+    const { e, alle, uhr, ab } = buehne(true);
+    try {
+      // zwei kleine Stuecke bei ihren Workern, ein grosses bei seinem, ein zweites grosses wartet auf seinen Platz
+      const k = [e.decodeGeometry(new ArrayBuffer(64), {}), e.decodeGeometry(new ArrayBuffer(65), {})];
+      await ruck();
+      const g = [e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {}), e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 1), {})];
+      await ruck();
+      // das erste grosse ist fertig, sein Worker hat noch ein kleines: das zweite wartet auf dessen Ende
+      const x = alle.find((w) => w._geht);
+      assert.deepEqual(x.post, [1, 3]);
+      x.fertig(3);
+      await ruck();
+      assert.equal(e.wartet.length, 1);
+      assert.equal(e.offen.size, 3);
+      const vorher = alle.length;
+      e.dispose();
+      assert.deepEqual(await stand([...k, ...g]), [Entpacker.AB, Entpacker.AB, 'fertig', Entpacker.AB]);
+      assert.equal(alle.length, vorher, 'nach dispose ist ein Worker gestartet');
+      assert.equal(alle.filter((w) => !w.tot).length, 0);
+      assert.equal(e.offen.size, 0);
+      // wer auf einen Platz gewartet hat, wartet nicht weiter, und kein Platz bleibt belegt
+      assert.equal(e.wartet.length, 0, 'ein grosses Stueck wartet nach dispose noch auf einen Platz');
+      assert.equal(e.belegt, 0, 'nach dispose ist noch ein Platz belegt');
+      // danach wird jedes Stueck abgewiesen, klein wie gross, und nichts startet
+      assert.deepEqual(await stand([e.decodeGeometry(new ArrayBuffer(64), {}), e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {})]), [Entpacker.AB, Entpacker.AB]);
+      assert.equal(alle.length, vorher, 'ein Stueck nach dispose hat einen Worker gestartet');
+      // die Antwort eines Workers, die jetzt noch eintrifft, gilt nicht mehr und stellt keine Uhr
+      const y = alle.find((w) => w.post.includes(2));
+      y.fertig(2);
+      await ruck();
+      assert.equal(uhr.fn, null, 'eine spaete Antwort hat die Uhr der Ruhe gestellt');
+      assert.equal(e.lebend.size, 0);
+    } finally { ab(); }
+  });
+
+  test('dispose: auch ein grosses Stueck, das hinter einem laufenden grossen wartet, endet mit einem Fehler', async () => {
+    const { e, alle, ab } = buehne(true);
+    try {
+      const g = [e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {}), e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 1), {})];
+      await ruck();
+      // das erste laeuft, das zweite hat noch keinen Worker
+      assert.equal(alle.length, 1);
+      assert.deepEqual(alle[0].post, [1]);
+      e.dispose();
+      assert.deepEqual(await stand(g), [Entpacker.AB, Entpacker.AB]);
+      assert.equal(alle.length, 1, 'nach dispose ist ein Worker gestartet');
+      assert.equal(alle[0].tot, true);
+    } finally { ab(); }
+  });
+
+  // three legt den Worker an, sobald der Decoder geladen ist, und fragt
+  // nicht, ob noch gebaut wird: Kam dispose() dazwischen, bliebe er.
+  test('dispose, waehrend der Decoder noch laedt: der Worker, den three danach anlegt, wird sofort beendet', async () => {
+    const { e, alle, ab } = buehne(true);
+    try {
+      const geladen = [];
+      e._initDecoder = () => new Promise((ok) => geladen.push(ok));
+      const ps = [e.decodeGeometry(new ArrayBuffer(64), {}), e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {})];
+      await ruck();
+      assert.equal(geladen.length, 2);
+      assert.equal(alle.length, 0);
+      e.dispose();
+      assert.deepEqual(await stand(ps), [Entpacker.AB, Entpacker.AB]);
+      for (const ok of geladen) ok();
+      await ruck();
+      assert.equal(alle.filter((w) => !w.tot).length, 0, 'nach dispose lebt ein Worker');
+      assert.equal(e.workerPool.length, 0);
+      assert.equal(e.lebend.size, 0);
+      assert.equal(e.belegt, 0, 'nach dispose ist noch ein Platz belegt');
+    } finally { ab(); }
   });
 });
