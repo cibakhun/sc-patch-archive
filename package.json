@@ -97,6 +97,7 @@
     "track:marketplace": "node scripts/track-marketplace.mjs",
     "build:refinery-data": "node scripts/build-refinery-data.mjs",
     "datamine:refinery-methods": "node scripts/datamine-refinery-methods.mjs",
+    "hangar:stand": "node scripts/hangar-stand.mjs",
     "sync:style-blocks": "node scripts/sync-style-blocks.mjs",
     "audit:site": "node scripts/audit-site.mjs",
     "audit:csp": "node scripts/audit-csp.mjs",

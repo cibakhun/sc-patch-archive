@@ -136,13 +136,22 @@ function sb(args, { log = false, timeout = 0 } = {}) {
 // mip 1 = halbe Kantenlänge (bis 2048 px); der Build deckelt Farbe auf 1024, Normalen auf 512
 const COMMON = ['--materials', 'textures', '--mip', '1', '--lod', '1'];
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
-const sbSkin = (part, file) => sb(['skin', 'export', part, file]);
+const sbSkin = (part, file) => { const r = sb(['skin', 'export', part, file]); stempel(file); return r; };
+
+// Spielstand jedes Rohexports: <datei>.build.json daneben (Branch und
+// Changelist aus build_manifest.id). build-hangar-assets traegt die
+// Changelist als `game` in den Manifest-Eintrag; die Hangar-Seiten nennen
+// daraus den Stand ihrer Modelle.
+function stempel(file) {
+  writeFileSync(file.replace(/\.glb$/i, '.build.json'), JSON.stringify(gameBuild()) + '\n');
+}
 
 function exportTo(file, args, common = COMMON, { log = false } = {}) {
   if (!FORCE && existsSync(file)) { console.log(`  = ${file.slice(SRC.length)}`); return false; }
   mkdirSync(dirname(file), { recursive: true });
   const t = Date.now();
   const r = sb([...args, file, ...common], { log });
+  stempel(file);
   console.log(`  + ${file.slice(SRC.length)}  (${((Date.now() - t) / 1000).toFixed(0)} s)`);
   return log ? r.log : true;
 }
@@ -412,6 +421,7 @@ if (containers.length) {
       if (h.tor) await werkhalleCompose(h, file);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
+    if (h.raw || h.from) stempel(file);
     if (h.dir === 'lift') {
       const info = liftEntities(h);
       writeFileSync(`${SRC}lift/${h.key}.entities.json`, JSON.stringify(info, null, 1));
