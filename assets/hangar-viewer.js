@@ -688,6 +688,20 @@ function hallSpot(h) {
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
 }
 
+// Ursprung der Halle im Modellraum: Ein Punkt p des Modells (Halle und
+// Einrichtung) steht in der Halle bei p − hallOrigin(h), solange ihn weder
+// die Feldmitte (HALL_SHIFT) noch der Zuwachs der Halle bewegt. loadRealHall
+// setzt das Modell genau so. Fehlt die Höhe des Bodens im Manifest, lotet
+// loadRealHall sie erst am geladenen Modell: dann null.
+// verify:hangar-orte [8] rechnet damit am ausgelieferten Modell nach, ob der
+// Monitor des Leitstands steht, wo HALL_LEIT ihn nennt (absolut, nicht nur
+// gegen das Pult), und [6] hält die Zeilen in loadRealHall fest.
+export function hallOrigin(h) {
+  if (!Array.isArray(h?.room?.center) || !Number.isFinite(h.floor)) return null;
+  const o = hallSpot(h);
+  return [o[0], h.floor, o[2]];
+}
+
 // Die Halle wächst mit dem Schiff, alles darin bleibt in Spielgröße
 // (29.10.2026). Krisz: „momentan ist es so dass die assets in der hangar
 // kleiner werden somit simuliert man dass der hangar grösser ist, aber dabei
@@ -10598,7 +10612,7 @@ void main() {
       : Promise.resolve(null);
     hallSettled = fetchGltf(h.url, 'hall', h.bytes || 1.1e7).then(async (gltf) => {
       const model = gltf.scene;
-      const c = h.room.center, o = hallSpot(h);
+      const c = h.room.center, o = hallSpot(h), O = hallOrigin(h);
       model.position.set(-o[0], -c[1], -o[2]);
       // Der begehbare Boden liegt im Modell nicht auf 0 (beim Deluxe-Hangar
       // knapp 1 m darüber) — sonst versinken Schiff, Gerät und Crew darin.
@@ -10606,9 +10620,9 @@ void main() {
       // senkrecht nach unten gelotet (kostet bei 700 000 Dreiecken spürbar).
       model.updateMatrixWorld(true);
       let floorY = c[1];
-      if (Number.isFinite(h.floor)) {
-        model.position.y = -h.floor;
-        floorY = h.floor;
+      if (O) {
+        model.position.y = -O[1];
+        floorY = O[1];
       } else {
         const rc = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0), ys = [];
         for (const [x, z] of [[0, 0], [6, 4], [-6, -4], [4, -8], [-8, 6], [10, 10], [-10, -10]]) {

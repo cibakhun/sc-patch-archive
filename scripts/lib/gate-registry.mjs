@@ -400,6 +400,11 @@ export const CHECKS = [
     // in Node entpackt wie in verify:hangar-hall, unter einer Sekunde) und misst
     // das Glas nach. Weiter ohne git, Netz und Kindprozess. VORGEFUEHRT ROT in
     // elf weiteren Laeufen (Buchstaben e bis g im Kopf des Skripts).
+    // Nach dem Review der PR #365: Die Lage des Monitors ist absolut gemessen,
+    // der Ursprung der Halle kommt aus der Buehne (hallOrigin) und aus der
+    // StageConfig der Seite, nicht mehr aus den Monitoren selbst. Zwei Eingriffe,
+    // die vorher gruen blieben (Halle 4 m in x, 1 m in y versetzt), reissen
+    // jetzt; VORGEFUEHRT ROT in sieben Laeufen (Buchstabe h).
     id: 'verify:hangar-orte',
     npm: 'verify:hangar-orte',
     nurMitHangar: true,

@@ -64,6 +64,8 @@
          Controller ruft sie und laedt das Terminal ueber data-js; der
          Zustand ?ort=leit ueberlebt die Adresse, steht nicht im geteilten
          Link und gilt nicht fuer Bodenfahrzeuge.
+         Die Buehne setzt das Modell der Halle mit hallOrigin
+         (loadRealHall): Damit rechnet [8].
      [7] Rahmen: Dieser Bau erlaubt der eigenen Seite das Rahmen
          (dist/_csp/, scripts/lib/rahmen.mjs). Sonst bliebe der Schirm
          leer; audit:csp prueft dieselben Dateien in beide Richtungen.
@@ -71,11 +73,19 @@
          Glas des mittleren Monitors am Pult (Krisz: „dass unser
          bildschirmscreen wirklich auf einem bildschirm drauf ist der in
          den control raum sitzt“). Die ausgelieferte Einrichtung der Halle
-         (dist/hangar/hall/<id>.furniture.glb) traegt die Monitore des
-         Pults in der Groesse, die HALL_LEIT.bank nennt, und darin eine
-         nach Sueden gewandte Glasflaeche genau dort, wo HALL_LEIT.schirm
-         sie nennt. Sonst schwebte das Bild neben dem Monitor, oder es
-         staenden wieder zwei Schirme hintereinander. Die Marke der Blende
+         (die Datei, die die Seite der Buehne nennt: hg-stage,
+         opts.hall.furniture) traegt die Monitore des Pults in der
+         Groesse und an der Stelle, die HALL_LEIT.bank nennt, und darin
+         eine nach Sueden gewandte Glasflaeche genau dort, wo
+         HALL_LEIT.schirm sie nennt. Die Stelle ist absolut gemeint: Der
+         Ursprung der Halle im Modell kommt aus der Buehne (hallOrigin:
+         Raum, Schiffsfeld, Bodenhoehe aus hg-stage), nicht aus den
+         Monitoren selbst. Sonst schwebte das Bild neben dem Monitor,
+         oder es staenden wieder zwei Schirme hintereinander. Nicht
+         nachgerechnet: was die Buehne nach dem Laden noch bewegt
+         (Feldmitte, Zuwachs der Halle); das Pult steht ausserhalb der
+         Streifen der Feldmitte, und der Zuwachs traegt Monitor und Bild
+         gemeinsam (leitAt). Die Marke der Blende
          (CSS der Seite) steht, wo der Monitor sie in Ruhe zeigt
          (LEIT_MARKE).
 
@@ -114,6 +124,14 @@
      g  dist/assets/hangar-viewer.js: HALL_LEIT.schirm.z auf 58.5 (der
         alte Schirm vor dem Pult); schirm.b auf 3.4; in leitFit den Saum
         gestrichen; LEIT_MARKE.y auf 0.5
+     h  Nach dem Review der PR (#365): [8] leitete den Ursprung der Halle
+        aus der Mitte der Monitore ab und mass das Glas damit nur gegen
+        das Pult. Vorher GRUEN, seither rot: dist/assets/hangar-viewer.js
+        HALL_SHIFT.field 4 → 0 (Halle 4 m weiter in x); beide Seiten
+        floor 1 → 2 (Halle 1 m tiefer). Dazu: bank und schirm gemeinsam
+        um 1 m in x versetzt; in loadRealHall die Hoehe wieder aus
+        h.floor gesetzt ([6]); floor nur in dist/de/hangar.html auf 2;
+        die Halle der Seiten umbenannt; floor aus hg-stage gestrichen
    Die Meldungen stehen in der PR dieses Umbaus.
 
      node scripts/verify-hangar-orte.mjs
@@ -465,6 +483,11 @@ let naht = 0;
     [vSrc, /await hallSettled;\s*if \(!leitScreen \|\| wish !== placeWish\) return false;/, 'leitGo wartet nicht mehr auf die Halle oder fragt danach nicht nach dem Wunsch: ?ort=leit fiele an einer langsamen Leitung still aufs Feld zurueck'],
     [vSrc, /while \(trip\) await trip\.done;\s*(?:\/\/[^\n]*\n\s*)*if \(wish !== placeWish\) return false;/, 'leitGo fragt nach dem Warten auf eine Fahrt nicht mehr nach dem Wunsch: „Leitstand, Schiffsfeld“ waehrend der Rueckfahrt fuehre wieder hinauf'],
     [vSrc, /if \(me\.state === 'hin' && !\(await me\.arrived\)\) return false;\s*(?:\/\/[^\n]*\n\s*)*if \(wish !== placeWish\) return false;/, 'leitLeave fragt nach der Ankunft nicht mehr nach dem Wunsch: „Schiffsfeld, Leitstand“ waehrend der Hinfahrt fuehre wieder herunter'],
+    // Lage der Halle im Modellraum: [8] rechnet mit hallOrigin nach, wo der
+    // Monitor des Leitstands steht. Das gilt nur, solange die Buehne das
+    // Modell mit derselben Rechnung setzt.
+    [vSrc, /const c = h\.room\.center, o = hallSpot\(h\), O = hallOrigin\(h\);\s*model\.position\.set\(-o\[0\], -c\[1\], -o\[2\]\);/, 'loadRealHall setzt das Modell der Halle nicht mehr mit hallSpot und hallOrigin: [8] maesse den Monitor des Leitstands an einer anderen Stelle nach, als die Buehne ihn zeigt'],
+    [vSrc, /if \(O\) \{\s*model\.position\.y = -O\[1\];/, 'loadRealHall setzt den Boden der Halle nicht mehr nach hallOrigin: [8] maesse den Monitor des Leitstands in einer anderen Hoehe nach, als die Buehne ihn zeigt'],
     [cSrc, /if \(!ok && my === ortTok && state\.ort === 'leit'/, 'der Controller laesst auch die Antwort auf einen ueberholten Wunsch aufs Feld zurueckstellen (ortTok in applyOrt): „Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt endete auf dem Feld'],
   ];
   for (const [src, muster, was] of NAHT) {
@@ -515,15 +538,28 @@ say(`    ${rahmen} von ${RAHMEN.length} Werten offen fuer die eigene Seite`);
 
 /* ---------- [8] Monitor im Modell ---------- */
 say('[8] Monitor: Glas im ausgelieferten Modell, wo HALL_LEIT es nennt; Marke der Blende, wo der Monitor sie zeigt');
-let glasHallen = 0, glasFlaeche = 0, glasDreiecke = 0;
+let glasHallen = 0, glasFlaeche = 0, glasDreiecke = 0, glasFern = 0;
 if (viewer?.HALL_LEIT) {
   const { NodeIO } = await import('@gltf-transform/core');
   const { ALL_EXTENSIONS } = await import('@gltf-transform/extensions');
   const draco3d = (await import('draco3d')).default;
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
   const TOL = 0.015; // m: HALL_LEIT nennt Zentimeter, das Modell Millimeter
+  // Die Hallen, wie die Seiten sie der Buehne geben (hg-stage, opts.hall): Raum, Bodenhoehe, Einrichtung
+  const HALLEN = new Map();
+  for (const page of PAGES) {
+    let hall = null;
+    try { hall = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html ?? '')?.[1] ?? 'null')?.opts?.hall ?? null; } catch { /* unten */ }
+    if (!hall?.id) { fail(`[8] ${page.file}: keine Halle in der StageConfig (#hg-stage, opts.hall) — die Lage des Leitstands ist nicht nachzumessen`); continue; }
+    const alt = HALLEN.get(hall.id), lage = JSON.stringify([hall.room, hall.floor, hall.furniture?.url]);
+    if (alt && alt.lage !== lage) fail(`[8] ${page.file}: die Halle ${hall.id} steht anders als in ${alt.file} (Raum, Boden oder Einrichtung) — die Sprachen zeigten den Monitor an verschiedenen Stellen`);
+    else if (!alt) HALLEN.set(hall.id, { hall, lage, file: page.file });
+  }
   for (const [id, L] of Object.entries(viewer.HALL_LEIT)) {
-    const S = L.schirm, B = L.bank, rel = `hangar/hall/${id}.furniture.glb`, file = join(DIST, rel);
+    const S = L.schirm, B = L.bank, hall = HALLEN.get(id)?.hall;
+    if (!hall) { fail(`[8] HALL_LEIT.${id}: keine Seite gibt der Buehne diese Halle (hg-stage nennt ${[...HALLEN.keys()].join(', ') || 'keine'}) — ihr Leitstand ist nicht nachzumessen; den Eintrag streichen oder dieses Tor um die Quelle der Halle erweitern`); continue; }
+    if (!hall.furniture?.url) { fail(`[8] ${id}: die Seite nennt keine Einrichtung der Halle (hg-stage, opts.hall.furniture) — ohne sie gibt es keinen Monitor fuer das Terminal`); continue; }
+    const rel = String(hall.furniture.url).replace(/^\//, '').replace(/[?#].*$/, ''), file = join(DIST, rel);
     if (!B) { fail(`[8] HALL_LEIT.${id} nennt die Monitore des Pults nicht (bank): das Terminal stuende frei im Raum statt auf einem Monitor`); continue; }
     if (!existsSync(file)) { fail(`[8] dist/${rel} fehlt: ohne die Einrichtung der Halle gibt es keinen Monitor fuer das Terminal`); continue; }
     let doc;
@@ -542,8 +578,18 @@ if (viewer?.HALL_LEIT) {
     const soll = [B.x, B.y, B.z], mass = (k) => `${(hi[k] - lo[k]).toFixed(3)} m statt ${(soll[k][1] - soll[k][0]).toFixed(2)} m`;
     const schief = [0, 1, 2].filter((k) => Math.abs(hi[k] - lo[k] - (soll[k][1] - soll[k][0])) > 2 * TOL);
     if (schief.length) { fail(`[8] dist/${rel}: die Monitore des Pults messen ${schief.map((k) => `${'xyz'[k]} ${mass(k)}`).join(', ')} (HALL_LEIT.${id}.bank) — das Pult ist ein anderes, die Lage des Glases (schirm) neu vermessen`); continue; }
-    // Lage der Halle im Modellraum: aus der Mitte der Monitore, wie bank sie nennt
-    const ab = [0, 1, 2].map((k) => (lo[k] + hi[k]) / 2 - (soll[k][0] + soll[k][1]) / 2);
+    // Lage der Halle im Modellraum: wie die Buehne das Modell setzt (hallOrigin
+    // aus Raum, Schiffsfeld und Bodenhoehe), NICHT aus den Monitoren selbst.
+    // Bis zum Review an PR #365 stand hier die Mitte der Monitore gegen die
+    // Mitte von bank: Eine Halle, die als Ganzes anders steht (HALL_SHIFT.field
+    // 4 → 0, floor 1 → 2, beides vorgefuehrt), wanderte damit mit, und alles
+    // Folgende bestand weiter, waehrend die Buehne das Bild neben den Monitor
+    // legt und es nur in der Konsole meldet.
+    const ab = viewer.hallOrigin?.(hall);
+    if (!Array.isArray(ab) || !ab.every(Number.isFinite)) { fail(`[8] ${id}: die Buehne nennt den Ursprung der Halle nicht (hallOrigin; Raum ${JSON.stringify(hall.room?.center ?? null)}, Boden ${hall.floor ?? '—'}) — ohne Bodenhoehe im Manifest lotet sie erst am geladenen Modell, und der Monitor ist hier nicht nachzumessen`); continue; }
+    const mitte = [0, 1, 2].map((k) => (lo[k] + hi[k]) / 2 - ab[k]), sollM = soll.map((r) => (r[0] + r[1]) / 2);
+    const fern = Math.hypot(...mitte.map((v, k) => v - sollM[k]));
+    if (fern > 2 * TOL) { fail(`[8] ${id}: die Monitore des Pults stehen im ausgelieferten Modell bei x ${mitte[0].toFixed(3)}, y ${mitte[1].toFixed(3)}, z ${mitte[2].toFixed(3)} (Hallenmeter, Mitte), HALL_LEIT.${id}.bank nennt x ${sollM[0].toFixed(3)}, y ${sollM[1].toFixed(3)}, z ${sollM[2].toFixed(3)} — das Bild des Terminals stuende ${fern.toFixed(2)} m neben seinem Monitor; die Lage der Halle pruefen (Schiffsfeld, HALL_SHIFT.field, floor) oder HALL_LEIT neu vermessen`); continue; }
     const gx = [S.x - S.b / 2 + ab[0], S.x + S.b / 2 + ab[0]], gy = [S.y - S.h / 2 + ab[1], S.y + S.h / 2 + ab[1]], gz = S.z + ab[2];
     // das Glas: nach Sueden gewandt (+z), in der Ebene des Schirms, innerhalb seines Rechtecks
     let fl = 0, n = 0;
@@ -558,13 +604,13 @@ if (viewer?.HALL_LEIT) {
       fl += len / 2; n++;
       for (const p of [a, b, c]) { r.x[0] = Math.min(r.x[0], p[0]); r.x[1] = Math.max(r.x[1], p[0]); r.y[0] = Math.min(r.y[0], p[1]); r.y[1] = Math.max(r.y[1], p[1]); }
     }
-    const hall = (v, k) => (v - ab[k]).toFixed(3);
+    const inHalle = (v, k) => (v - ab[k]).toFixed(3);
     if (!n) { fail(`[8] ${id}: bei z ${S.z} traegt das Pult kein nach Sueden gewandtes Glas (HALL_LEIT.${id}.schirm) — das Bild des Terminals hinge in der Luft, oder es staenden wieder zwei Schirme hintereinander`); continue; }
     const kanten = [[r.x[0], gx[0]], [r.x[1], gx[1]], [r.y[0], gy[0]], [r.y[1], gy[1]]];
-    if (kanten.some(([ist, sollK]) => Math.abs(ist - sollK) > TOL)) { fail(`[8] ${id}: das Glas des mittleren Monitors reicht im Modell von x ${hall(r.x[0], 0)} bis ${hall(r.x[1], 0)} und y ${hall(r.y[0], 1)} bis ${hall(r.y[1], 1)}, HALL_LEIT.${id}.schirm nennt x ${(S.x - S.b / 2).toFixed(3)} bis ${(S.x + S.b / 2).toFixed(3)} und y ${(S.y - S.h / 2).toFixed(3)} bis ${(S.y + S.h / 2).toFixed(3)} — das Bild des Terminals laege neben dem Glas`); continue; }
+    if (kanten.some(([ist, sollK]) => Math.abs(ist - sollK) > TOL)) { fail(`[8] ${id}: das Glas des mittleren Monitors reicht im Modell von x ${inHalle(r.x[0], 0)} bis ${inHalle(r.x[1], 0)} und y ${inHalle(r.y[0], 1)} bis ${inHalle(r.y[1], 1)}, HALL_LEIT.${id}.schirm nennt x ${(S.x - S.b / 2).toFixed(3)} bis ${(S.x + S.b / 2).toFixed(3)} und y ${(S.y - S.h / 2).toFixed(3)} bis ${(S.y + S.h / 2).toFixed(3)} — das Bild des Terminals laege neben dem Glas`); continue; }
     if (!(fl >= 0.97 * S.b * S.h && fl <= 1.01 * S.b * S.h)) { fail(`[8] ${id}: das Glas misst im Modell ${fl.toFixed(3)} m², HALL_LEIT.${id}.schirm nennt ${S.b} × ${S.h} m (${(S.b * S.h).toFixed(3)} m²) — die Flaeche ist nicht mehr eine geschlossene Scheibe`); continue; }
     if (!(S.ecke >= 0 && S.ecke <= Math.min(S.b, S.h) / 4)) { fail(`[8] HALL_LEIT.${id}.schirm.ecke ${S.ecke} m passt nicht zu einem Glas von ${S.b} × ${S.h} m`); continue; }
-    glasHallen++; glasFlaeche += fl; glasDreiecke += n;
+    glasHallen++; glasFlaeche += fl; glasDreiecke += n; glasFern = Math.max(glasFern, fern);
   }
   // Die Blende beginnt mit der Marke an der Stelle, an der der Monitor sie in Ruhe zeigt
   const M = viewer.LEIT_MARKE;
@@ -577,7 +623,7 @@ if (viewer?.HALL_LEIT) {
   }
 }
 if (glasHallen < MIN_GLAS_HALLEN) fail(`[8] nur ${glasHallen} Halle(n) mit nachgemessenem Monitor, Klinke ${MIN_GLAS_HALLEN}`);
-say(`    ${glasHallen} Halle(n) nachgemessen (Klinke ${MIN_GLAS_HALLEN}): ${glasDreiecke} Dreiecke Glas, ${glasFlaeche.toFixed(3)} m²`);
+say(`    ${glasHallen} Halle(n) nachgemessen (Klinke ${MIN_GLAS_HALLEN}): ${glasDreiecke} Dreiecke Glas, ${glasFlaeche.toFixed(3)} m², Monitore hoechstens ${(glasFern * 1000).toFixed(0)} mm neben HALL_LEIT.bank (erlaubt 30 mm)`);
 
 if (fehler.length) {
   console.error(`\nverify-hangar-orte: ${fehler.length} FEHLER`);

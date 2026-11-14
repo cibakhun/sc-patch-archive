@@ -456,7 +456,9 @@ export function initTerminal(box, hooks = {}) {
     // laeuft gerade eine Frage, zaehlt das Konto, fuer das sie gestellt wurde, sonst das zuletzt gezeigte
     if (kontoJetzt() === (gefragt ?? wer?.uid ?? '')) return;
     if (box.classList.contains('is-on')) signIn();
-    else { wer = undefined; gefragt = null; }
+    // Niemand sitzt davor: Das naechste Hinsetzen fragt neu. Eine Antwort, die
+    // noch aussteht, galt dem Konto davor und setzt nichts mehr (frage).
+    else { wer = undefined; gefragt = null; frage = null; }
   });
 
   function place(rect) {
