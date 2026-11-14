@@ -303,7 +303,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
       <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b></div>
       {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt.
           data-crash: der Wächter der Seite hat die Bühne abgestellt, data-retry beschriftet seinen Knopf,
-          data-spur und data-spur-* die Zeilen darunter (wie weit die abgebrochenen Läufe kamen);
+          data-spur und data-spur-* die Zeilen darunter (wie weit die abgebrochenen Läufe kamen),
+          data-geraet die Zeile mit dem Gerät;
           data-grund leitet den technischen Grund unter data-failed ein. */}
       <div class="hg-fallback" id="hg-fallback" role="status" hidden
         data-blocked={de ? 'Dein Browser lässt gerade keine 3D-Grafik zu, meist nach einem Absturz des Grafiktreibers. Dann hilft es, alle seine Fenster zu schließen und ihn neu zu öffnen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is not allowing 3D graphics right now, usually after a graphics driver crash. Closing all of its windows and opening it again fixes that. The figures and the data sheet are still available.'}
@@ -319,6 +320,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
         data-spur-steht={de ? 'nach dem Laden' : 'after loading'}
         data-spur-seite={de ? 'Seite beendet' : 'page stopped'}
         data-spur-kontext={de ? 'Grafik verloren' : 'graphics lost'}
+        data-spur-start={de ? 'mehrmals neu gestartet, ohne zu stehen' : 'restarted several times without standing'}
+        data-geraet={de ? 'Gerät:' : 'Device:'}
       >{de ? 'Dein Browser kann die 3D-Ansicht nicht darstellen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser cannot show the 3D view. The figures and the data sheet are still available.'}</div>
       <slot />
     </section>

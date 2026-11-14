@@ -447,6 +447,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
    Grund (notiz in hangar-overview.js). Eine Zeile je Eintrag, lange Woerter brechen. */
 .hgx-spur{display:block;margin-top:.35rem;color:var(--hg-dim);font-size:var(--fs-5);line-height:1.35;overflow-wrap:anywhere}
 .hgx-spur span{display:block}
+/* Leichte Ansicht (#hgx-leicht): breit am Platz des Bedienhinweises, der dann
+   weicht; schmal als Zeile zwischen Buehne und Stationen-Leiste. */
+.hgx-leicht{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:80px;width:fit-content;margin:0 auto;padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);color:var(--hg-dim);font-size:var(--fs-5);line-height:1.35;text-align:center}
+.hgx-leicht[hidden]{display:none}
+.hgx-leicht .hgx-retry{margin-left:.35rem}
+.hg:has(#hgx-leicht:not([hidden])) .hg-hint{display:none}
+.hg[data-lost="on"] .hgx-leicht{display:none}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 /* Hardpoint-Marker ueber der Leinwand: der Controller setzt sie je Bild per
    transform auf die Projektion ihres Punkts. Nur der aktive Ausstattungs-Tab
@@ -715,6 +722,11 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
      hangar-overview.js). */
   .hgx-modelerr,.hg-stagewrap .hg-fallback{left:50%;top:auto;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px)}
   .hgx-modelerr{bottom:68px}
+  /* Die Zeile der leichten Ansicht: Text links, Knopf rechts (Tippflaeche 44 px) */
+  .hgx-leicht{position:static;display:flex;align-items:center;gap:.75rem;width:auto;margin:0;padding:.3rem 16px;border-radius:0;border-top:1px solid var(--hg-hair);background:var(--bg-2);text-align:left}
+  .hgx-leicht span{flex:1 1 auto}
+  .hgx-leicht .hgx-retry{display:block;flex:none;margin:0;min-height:44px;white-space:nowrap}
+  .hgx-leicht:not([hidden]) + .hgx-stagebar{border-top:0;padding-top:0}
   .hg-side{position:static;width:auto;display:block}
   .hg-stats{position:static;width:auto;max-height:none;border-radius:0;border-width:1px 0 0;background:var(--bg-2);color:var(--text);box-shadow:none}
   .hgx-scroll{overflow:visible;margin-right:0;padding-right:0}
@@ -855,6 +867,13 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         </div>
       </section>
     </HangarApp>
+    {/* Leichte Ansicht (waechterLeicht in hangar-overview.js): Am Telefon steht
+        das Schiff nach einem Abbruch der Buehne in der gebauten Halle statt in
+        der echten. Die Zeile sagt es, ihr Knopf laedt die volle Halle. */}
+    <p class="hgx-leicht" id="hgx-leicht" role="status" hidden>
+      <span>{t('leicht.text')}</span>
+      <button type="button" class="hgx-retry" id="hgx-leicht-voll">{t('leicht.voll')}</button>
+    </p>
     {/* Die Leiste am Buehnenfuss: die Stationen und der Korb des Vergleichs;
         sie laesst links den Platz der Zeichen frei. Welche Station steht und
         ob als Tafel, sagt der Zustand des Controllers (?station=, ?tafel=1). */}
