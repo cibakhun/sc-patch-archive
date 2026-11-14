@@ -83,6 +83,7 @@ const T = {
     bild: 'Bild',
     erzpreise: 'Erzpreise',
     ausbeute: 'Ausbeute je Station',
+    methoden: 'Bewertung der Raffinationsmethoden',
     dossier: 'Schiffswerte wie auf den Schiffsseiten.',
     frachtCrew: 'Fracht, Mindestcrew',
     pledgeCrew: 'Pledge-Preis, Höchstcrew',
@@ -114,6 +115,7 @@ const T = {
     bild: 'Image',
     erzpreise: 'Ore prices',
     ausbeute: 'Yield per station',
+    methoden: 'Refining method ratings',
     dossier: 'Ship values as on the ship pages.',
     frachtCrew: 'Cargo, minimum crew',
     pledgeCrew: 'Pledge price, maximum crew',
@@ -204,6 +206,7 @@ const WIKI_DATUM = isoAus(/fetchedAt (\d{4}-\d{2}-\d{2})/.exec((VEHICLE_EXTERNAL
 const MINING_F = fassung((MINING as { game_version?: string }).game_version, 'assets/mining-db.json game_version');
 const AUSBEUTE_F = fassung((FROZEN as { frozen_from?: string }).frozen_from, 'assets/mining-frozen.json frozen_from');
 const REFINERY_F = fassung((REFINERY as { meta?: { gameVersion?: string } }).meta?.gameVersion, 'assets/refinery-data.json meta.gameVersion');
+const METHODEN_F = fassung((REFINERY as { meta?: { methodsStand?: string } }).meta?.methodsStand, 'assets/refinery-data.json meta.methodsStand');
 const ERZ_PREISE = isoAus((REFINERY as { meta?: { priceDate?: string } }).meta?.priceDate, 'assets/refinery-data.json meta.priceDate');
 
 /** Fassungen und Daten fuer Stellen ausserhalb des Bausteins (Kennzahlen im Kopf, Einleitungen). */
@@ -303,6 +306,7 @@ export function standRefinery(lang: Locale): StandZeile[] {
     spiel(lang, 'refinery', t.spielwerte, REFINERY_F),
     fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE),
     hand(lang, 'ausbeute', t.ausbeute, AUSBEUTE_F, REFINERY_F),
+    hand(lang, 'methoden', t.methoden, METHODEN_F, REFINERY_F),
   ];
 }
 

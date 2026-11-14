@@ -42,6 +42,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_P4K } from './lib/p4k.mjs';
+import { HANDBESTAENDE, pruefsumme } from './lib/handstand.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rd = (rel) => JSON.parse(readFileSync(resolve(ROOT, rel), 'utf8'));
@@ -92,6 +93,12 @@ const STANDS = [
   // Kopf der kompakten Lauf-Datei; verify:loot-fundorte haelt den Katalog
   // gegen dieselbe Datei.
   { id: 'Loot-Fundorte', file: 'src/data/loot-fundorte.json', get: (j) => j?.meta?.patch },
+  // 14.11.2026: Ausbeute je Station stand bis 4.10.3 auf 4.10.1, weil
+  // freeze-mining-constants.mjs in keinem Datenlauf mitlief und kein Tor es
+  // merkte. Als eigener Stand reisst ein vergessenes Einfrieren jetzt den
+  // Kreuzvergleich [5]. Fahrzeuge: der Katalog aller Schiffsseiten.
+  { id: 'Ausbeute', file: 'assets/mining-frozen.json', get: (j) => j?.frozen_from },
+  { id: 'Fahrzeuge', file: 'src/data/vehicles.json', get: (j) => j?.gameVersion },
 ];
 
 // Derzeit KEIN handgepflegter Datenstand. Wikelo war bis Phase 20 (D-04) der
@@ -133,6 +140,8 @@ const KLINKEN = {
   Refinery: 13165946,
   Zerlegung: 13165946,
   Wikelo: 13165946,
+  Ausbeute: 13165946,
+  Fahrzeuge: 13165946,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine
@@ -164,12 +173,13 @@ const handReads = HANDPFLEGE.map((h) => ({ ...h, data: read(h.file) }));
 console.log('\n[1] Bestand und Selbstauskunft');
 const maschinellGelesen = standReads.filter((s) => s.data.ok).length;
 const handpflegeGelesen = handReads.filter((h) => h.data.ok).length;
-console.log(`    maschinelle Datenstaende gelesen — Soll: 10   Ist: ${maschinellGelesen}`);
+console.log(`    maschinelle Datenstaende gelesen — Soll: 12   Ist: ${maschinellGelesen}`);
 console.log(`    handgepflegte Datenstaende gelesen — Soll: 0   Ist: ${handpflegeGelesen}`);
 // 7 statt 6: Wikelo ist Phase 20 (D-04) aus HANDPFLEGE in STANDS gewandert.
 // 9 statt 7 (05.11.2026): Aaron-Halo und Stanton-Anker tragen jetzt eine Kennung.
 // 10 statt 9 (10.11.2026): Loot-Fundorte (datamine:loot) kam dazu.
-need(maschinellGelesen >= 10, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 10) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
+// 12 statt 10 (14.11.2026): Ausbeute und Fahrzeuge kamen dazu.
+need(maschinellGelesen >= 12, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 12) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
 // 0 statt 1: es gibt derzeit keinen handgepflegten Datenstand mehr, weil der
 // einzige (Wikelo) jetzt maschinell erzeugt wird. Die Mechanik bleibt fuer
 // den naechsten handgepflegten Fall stehen (>= 0 ist immer wahr, aber die
@@ -322,6 +332,27 @@ if (existsSync(bmPath)) {
 } else {
   console.log('    (Client-Abgleich uebersprungen: keine lokale Spielinstallation gefunden)');
 }
+
+console.log('\n[9] Handbestaende: Stempel neben den Werten');
+// Werte und Stempel gehen zusammen (scripts/lib/handstand.mjs): aendert jemand
+// die Werte ohne neuen Stempel oder den Stempel ohne die Werte, passt die
+// Pruefsumme nicht mehr. Die Handlung ist immer richtig: pruefen, gegen
+// welchen Stand die Werte stimmen, und scripts/stempel-hand.mjs laufen lassen.
+let handGeprueft = 0;
+for (const h of HANDBESTAENDE) {
+  const r = read(h.datei);
+  if (!r.ok) { fail.push(`${h.datei}: Handbestand nicht lesbar — ${r.error.message}`); continue; }
+  const st = r.json?.stand;
+  const standWert = h.art === 'patch' ? st?.patch : st?.geaendert;
+  const muster = h.art === 'patch' ? /^\d+\.\d+\.\d+$/ : /^\d{4}-\d{2}-\d{2}$/;
+  if (st?.art !== h.art || !muster.test(standWert ?? '')) { fail.push(`${h.datei}: Stempel fehlt oder hat die falsche Art (Soll ${h.art}) — node scripts/stempel-hand.mjs ${h.datei} ${h.art === 'patch' ? '--patch X.Y.Z' : '--geaendert YYYY-MM-DD'}`); continue; }
+  const ist = pruefsumme(r.json);
+  if (st.pruefsumme !== ist) { fail.push(`${h.datei}: Werte und Stempel passen nicht zusammen (Pruefsumme ${st.pruefsumme}, Werte ergeben ${ist}) — Werte gegen ihren Stand pruefen, dann node scripts/stempel-hand.mjs ${h.datei} …`); continue; }
+  handGeprueft++;
+  console.log(`    ${h.datei}: ${h.art === 'patch' ? `Stand ${standWert}` : `geaendert ${standWert}`}, Pruefsumme stimmt (${h.zeigt})`);
+}
+console.log(`    Handbestaende geprueft — Soll: ${HANDBESTAENDE.length}   Ist: ${handGeprueft}`);
+need(HANDBESTAENDE.length >= 1, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 1) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
 
 /* ---------- Schlusszeile ---------- */
 
