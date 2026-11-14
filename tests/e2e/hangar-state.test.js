@@ -173,7 +173,7 @@ describe('Hangar: Terminal im Leitstand', () => {
   });
 
   test('der Reiter folgt dem Pfad: laengster Anfang gewinnt, die Sprache zaehlt nicht', () => {
-    assert.equal(termTool('/de/topics/crafting-werkbank.html', tools), 'crafting');
+    assert.equal(termTool('/de/topics/crafting.html', tools), 'crafting');
     assert.equal(termTool('/topics/4-0-0-pyro-system.html', tools), 'archiv');
     assert.equal(termTool('/de/schiffe/aegs-gladius.html', tools), 'schiffe');
     assert.equal(termTool('/de/feedback.html', tools), null);

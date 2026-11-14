@@ -77,8 +77,7 @@ const MIN_AUFRUFE = 40;
 // fuer beide Artefakte. Ohne Klinke waere ein Lauf, dessen Abfrage still
 // nichts findet, von einem echten nicht zu unterscheiden.
 const MIN_HIDDEN = 300;
-// [7] Filter-Schubladen am Telefon: Crafting-Planer und Missionen je EN/DE
-// (der Vorschau-Bau hat mit der Werkbank zwei mehr).
+// [7] Filter-Schubladen am Telefon: Crafting-Seite und Missionen je EN/DE.
 const MIN_SCHUBLADEN = 4;
 
 /* ---------- Browser finden ---------- */
@@ -125,22 +124,18 @@ const SEITEN = [
     id: 'schiffe', en: '/schiffe.html', de: '/de/schiffe.html',
     leit: '#sf-q', schwer: true, probe: probeSchiffe,
   },
-  // Die Crafting-Werkbank, ein Prototyp nur im Vorschau-Bau (Skizze 016-3).
-  // Sie steht unter demselben Schalter wie der Hangar (hangarImBau), daher
-  // nurMitHangar; verify:hangar-schalter [4]/[5] prueft beide Richtungen.
-  {
-    id: 'crafting-werkbank', en: '/topics/crafting-werkbank.html', de: '/de/topics/crafting-werkbank.html',
-    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeWerkbank, nurMitHangar: true,
-  },
   { id: 'crafting', en: '/crafting.html', de: '/de/crafting.html', leit: '.dp-card--cat', minAnzahl: 50, schwer: true },
-  // Der Crafting-Planer mit seiner Konto-Anzeige. Am Handy stand dort
-  // „Synced to your account" neben „Sign in" und „Retry" (Krisz, 07.11.2026):
-  // die Logik setzte hidden richtig, mobile-ux.css hob es auf. Die Probe
-  // spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
+  // Die Crafting-Seite ist die Werkbank (Skizze 016-3; vom 09.11. bis
+  // 13.11.2026 ein Prototyp nur im Vorschau-Bau, seit Krisz' Abnahme in
+  // beiden Bauten). probeWerkbank misst Stellung, Rezept, Planer, Zerlege-
+  // Rechner und das Telefon; probeCraftingSync die Konto-Anzeige. Am Handy
+  // stand dort „Synced to your account" neben „Sign in" und „Retry" (Krisz,
+  // 07.11.2026): die Logik setzte hidden richtig, mobile-ux.css hob es auf.
+  // Die Probe spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
   {
     id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
     leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true,
-    probe: async (page) => (await probeZurueckMarke(page, 'Crafting-Planer')) ?? (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeRezeptDialog(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
+    probe: async (page) => (await probeWerkbank(page)) ?? (await probeCraftingSync(page)),
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
@@ -150,7 +145,9 @@ const SEITEN = [
   { id: 'support', en: '/support.html', de: '/de/support.html', leit: 'main' },
   { id: 'downloads', en: '/downloads.html', de: '/de/downloads.html', leit: 'main' },
   // Zwei unabhaengige ToolHelp-Instanzen auf EINER Seite (Phase 1.2, Plan 02).
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2 },
+  // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
+  // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: (page) => probeZurueckMarke(page, 'Mining-Thema') },
   // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true },
   // Erzeugte Detailseite (eine von ~17.000) — stellvertretend fuer die Masse.
@@ -1312,8 +1309,8 @@ async function probeLeitTastatur(page) {
   return null;
 }
 
-/* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
-   und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.
+/* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs): die
+   Ergebniskarten stehen in voller Hoehe im Kasten.
    Anlass 11.11.2026: #calc-results ist eine Flex-Spalte mit begrenzter Hoehe
    (.vb-scrollbox), die Karten tragen overflow:hidden und durften deshalb
    schrumpfen. Ab etwa fuenf Treffern drueckte der Kasten jede Karte auf
@@ -1357,7 +1354,7 @@ async function probeZerlegen(page, wo) {
   return null;
 }
 
-/* Das Rezept als Dialog (bisherige Seite: immer; Werkbank: unter 821 px).
+/* Das Rezept als Dialog (unter 821 px; darueber steht es als Mitte im Fluss).
    Die Box sagt aria-modal="true", der Fokus blieb aber auf der Karte hinter
    dem Fenster, und die Tabulatortaste lief dort weiter (Hinweis von
    CodeRabbit an #349, 11.11.2026). Gemessen mit echten Tasten: Enter auf dem
@@ -1397,11 +1394,13 @@ async function probeRezeptDialog(p, wo) {
   return null;
 }
 
-/* Die Zurueck-Marke unter der Kopfleiste („← ALPHA 4.10.2“) faellt nur in der
-   Werkbank weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC „Kann weg“).
-   Auf der bisherigen Crafting-Seite, wie auf jeder anderen Blattseite, bleibt
-   sie stehen: sichtbar, mit Ziel und Text. Kippt die Vorgabe des Schalters,
-   verloeren gut hundert Seiten ihren Rueckweg, und kein anderes Tor saehe es.
+/* Die Zurueck-Marke unter der Kopfleiste („← ALPHA 4.10.2“) faellt nur auf
+   der Crafting-Seite weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC
+   „Kann weg“). Auf jeder anderen Blattseite bleibt sie stehen: sichtbar, mit
+   Ziel und Text. Kippt die Vorgabe des Schalters, verloeren gut hundert
+   Seiten ihren Rueckweg, und kein anderes Tor saehe es. Gemessen wird an der
+   Mining-Themenseite; bis zur Abnahme der Werkbank (13.11.2026) stand die
+   Probe an der bisherigen Crafting-Seite.
    Sichtbar heisst hier wie ueberall im Skript SICHTBAR (oben): eine Marke
    mit visibility:hidden oder opacity:0 hat noch ihren Kasten und gaelte
    sonst als da (Hinweis von CodeRabbit an #349). */
@@ -1411,7 +1410,7 @@ async function probeZurueckMarke(page, wo) {
     if (!da(a)) return null;
     return { text: a.textContent.replace(/\s+/g, ' ').trim(), ziel: a.getAttribute('href') || '' };
   });
-  if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur in der Werkbank weg)`;
+  if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur auf der Crafting-Seite weg)`;
   if (!m.ziel || m.text.length < 3) return `${wo}: die Zurueck-Marke unter der Kopfleiste hat ${m.ziel ? 'keinen Text' : 'kein Ziel'} („${m.text}“)`;
   return null;
 }
@@ -1473,9 +1472,24 @@ async function probeCraftingSync(page) {
           probleme.push(`${wo}: die Konto-Anzeige erreicht den Zustand nicht (steht auf "${st}")`);
           continue;
         }
-        // Den Planer oeffnen: seine Anzeige soll so gemessen werden, wie man sie sieht.
-        await p.locator('#cdb-planner-open').click({ timeout: 15000 });
-        await p.waitForTimeout(400);
+        // Den Planer oeffnen, wo er zu ist (am Telefon die Leiste unten): seine
+        // Anzeige soll so gemessen werden, wie man sie sieht. Am Schreibtisch
+        // steht er als Spalte offen, der Knopf ist dort nicht zu sehen. Fehlt
+        // der Knopf auch am Telefon, bleibt der Planer zu, und die Anzeige
+        // darin faellt unten als „nicht zu sehen“ auf.
+        // Der Auftakt blendet Leiste und Planer-Spalte ein (gut eine Sekunde,
+        // die Spalte beginnt bei Deckkraft 0). Am Schreibtisch misst die Probe
+        // ohne Klick; ein Zustand, der sofort erreicht ist (synced), fiele
+        // sonst in die Einblendung und gaelte als „nicht zu sehen“.
+        if (!(await p.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false))) {
+          probleme.push(`${wo}: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)`);
+          continue;
+        }
+        const planerKnopf = p.locator('#cdb-planner-open');
+        if (await planerKnopf.isVisible()) {
+          await planerKnopf.click({ timeout: 15000 });
+          await p.waitForTimeout(400);
+        }
         // zu ist SICHTBAR (oben), die eine Bestimmung dieses Skripts.
         const anzeigen = await mitSichtbar(p, (_, zu) => [...document.querySelectorAll('.cdb-sync')].map((h) => ({
           wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
@@ -1488,6 +1502,16 @@ async function probeCraftingSync(page) {
         if (anzeigen.length !== 2) { probleme.push(`${wo}: ${anzeigen.length} Konto-Anzeigen statt 2 (Kopfleiste und Planer)`); continue; }
         for (const a of anzeigen) {
           const hier = `${wo}, ${a.wo}`;
+          // Die Anzeige steht einmal, im Planer (dort liegt, was gespeichert
+          // wird). In der Kopfleiste meldet sich nur ein Fehler, und nur
+          // unter 1180 px: darueber steht der Planer als Spalte daneben.
+          // Eine zu Recht verborgene Anzeige zaehlt als geprueft.
+          const sollZu = a.wo === 'Planer' || (z.state === 'error' && breite < 1180);
+          if (!sollZu) {
+            if (a.zu) { probleme.push(`${hier}: die Konto-Anzeige steht ein zweites Mal in der Kopfleiste („${a.text}"), dort meldet sich nur ein Fehler unter 1180 px`); continue; }
+            syncAnzeigen++;
+            continue;
+          }
           if (!a.zu) { probleme.push(`${hier}: die Konto-Anzeige ist nicht zu sehen`); continue; }
           if (!a.text) { probleme.push(`${hier}: die Konto-Anzeige hat keinen Text`); continue; }
           if (a.login !== z.login || a.retry !== z.retry) {
@@ -1528,8 +1552,8 @@ async function kreuzVerdeckt(page) {
   });
 }
 
-/* Die Crafting-Werkbank (Prototyp, Skizze 016-3, nur im Vorschau-Bau):
-   dasselbe Werkzeug wie der Planer, anders gestellt. Am Schreibtisch steht
+/* Die Crafting-Werkbank (Skizze 016-3; als Prototyp gebaut, seit Krisz'
+   Abnahme am 13.11.2026 die Crafting-Seite). Am Schreibtisch steht
    das Rezept als feste Mitte neben der Liste und der Planer als Spalte
    rechts; Waehlen, Schliessen und ein tiefer Link muessen dort ohne Dialog
    gehen. Seit der zweiten Runde (11.11.2026) traegt sie Kacheln,

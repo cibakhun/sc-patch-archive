@@ -10,7 +10,7 @@
   var LOC = CFG.lang === 'en' ? 'en-US' : 'de-DE';
   function tr(k, d) { return T[k] != null ? T[k] : d; }
 
-  // ---- Werkbank (Prototyp, Skizze 016-3, nur /topics/crafting-werkbank.html) ----
+  // ---- Werkbank (Skizze 016-3; seit der Abnahme am 13.11.2026 die Crafting-Seite) ----
   // Dasselbe Werkzeug, anders gestellt: das Rezept steht als feste Mitte
   // statt im Modal, der Planer ab 1180 px als rechte Spalte statt Schublade.
   // Unter 821 px bleibt es das Fenster der bisherigen Seite. Alles andere

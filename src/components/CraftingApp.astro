@@ -20,8 +20,9 @@ import { wbGlyphCss, wbGlyphKey } from '../lib/werkbankGlyphs';
 
 interface Props {
   lang: 'de' | 'en';
-  /** Prototyp der Werkbank (Skizze 016-3): Rezept als feste Mitte, Planer als
-   *  Spalte. Nur die Vorschau-Seite /topics/crafting-werkbank.html setzt das. */
+  /** Werkbank (Skizze 016-3): Rezept als feste Mitte, Planer als Spalte. Seit
+   *  der Abnahme (Krisz 13.11.2026) setzt die Crafting-Seite das immer; die
+   *  Zweige ohne Werkbank sind die bisherige Ansicht. */
   werkbank?: boolean;
 }
 const { lang, werkbank = false } = Astro.props;
@@ -296,12 +297,7 @@ let craftAppVer = 'x';
 try {
   craftAppVer = createHash('sha1').update(readFileSync('assets/crafting-app.js')).digest('hex').slice(0, 8);
 } catch { /* dev-Fallback */ }
-// Werkbank-Prototyp: keine Messmarken. assets/ereignisse.js beachtet sie nur
-// auf den Werkzeugseiten (WERKZEUG_SEITEN), die Vorschau-Seite gehoert nicht
-// dazu, und verify:zaehler haelt tote Marken fuer FEHLER. Gemessen wird erst,
-// was abgenommen ist.
-const evF = (name: string) => (werkbank ? undefined : name);
-// Werkbank-Prototyp: Texte der leeren Mitte.
+// Werkbank: Texte der leeren Mitte.
 const WB = lang === 'de'
   ? { emptyKicker: 'Werkbank', emptyTitle: 'Rezept wählen',
       emptyText: 'Links einen Blueprint anklicken: Zutaten, Qualität und Werte erscheinen hier. Mit ＋ kommt er in den Planer.',
@@ -726,8 +722,6 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         immer nur einer von beiden dargestellt, Vorleser hoeren ihn einmal. */}
     <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{werkbank ? (<Fragment><span class="wb-tl">{S.calcTabDb}</span><span class="wb-tk">{WB.tabDb}</span></Fragment>) : S.calcTabDb}</button>
     <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{werkbank ? (<Fragment><span class="wb-tl">{S.calcTabCalc}</span><span class="wb-tk">{WB.tabCalc}</span></Fragment>) : S.calcTabCalc}</button>
-    {/* Werkbank: Prototyp-Zeile in der Reiterzeile (crafting.astro). */}
-    <slot name="kopf" />
   </div>
 
   <div id="cdb-tab-db-content">
@@ -736,11 +730,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div class="cdb-bar">
     <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>{!werkbank && '☰ '}{S.filterBtn}</button>
     <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
-      <input type="search" id="cdb-search" data-ev-filter={evF('suche')} class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
+      <input type="search" id="cdb-search" data-ev-filter="suche" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
     <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
       <span class="cdb-sr">{S.sort}</span>
-      <select id="cdb-sort" data-ev-filter={evF('sortierung')}>
+      <select id="cdb-sort" data-ev-filter="sortierung">
         <option value="name">{S.sortName}</option>
         <option value="name-desc">{S.sortNameDesc}</option>
         <option value="time-asc">{S.sortTimeAsc}</option>
@@ -778,7 +772,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')} data-ev-filter={evF('kategorie')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')} data-ev-filter="kategorie">
         <h4>{S.category}</h4>
         {catList.map((c) => (
           <details class="cdb-cat-details">
@@ -800,7 +794,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')} data-ev-filter={evF('ressource')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')} data-ev-filter="ressource">
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
           <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder={S.resSearch} aria-label={S.resSearch} autocomplete="off" />
@@ -815,7 +809,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         </div>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')} data-ev-filter={evF('groesse')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')} data-ev-filter="groesse">
         <h4>{it('specSize')}</h4>
         {sizeList.map((sz) => (
           <label class="cdb-check">
@@ -825,7 +819,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')} data-ev-filter={evF('qualitaet')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')} data-ev-filter="qualitaet">
         <h4>{it('specGrade')}</h4>
         {gradeList.map((gr) => (
           <label class="cdb-check">
@@ -835,7 +829,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')} data-ev-filter={evF('merkmal')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')} data-ev-filter="merkmal">
         <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
         <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
       </div>
@@ -858,9 +852,8 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <div class="cdb-count-row">
         <span><b id="cdb-count">{totalText}</b> / {totalText} {S.results}</span>
       </div>
-      {/* data-ev-treffer: Messereignis treffer-offen (assets/ereignisse.js), nur
-          auf dem Werkzeug selbst — die Werkbank ist keine gezaehlte Werkzeugseite. */}
-      <div class="cdb-grid vb-scrollbox" id="cdb-grid" data-ev-treffer={werkbank ? undefined : ''}>
+      {/* data-ev-treffer: Messereignis treffer-offen (assets/ereignisse.js). */}
+      <div class="cdb-grid vb-scrollbox" id="cdb-grid" data-ev-treffer>
         {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
             waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
             mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js
@@ -945,7 +938,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div id="cdb-tab-dismantle-content" hidden>
     <div class="calc-layout">
       <!-- Inputs sidebar -->
-      <aside class="calc-sidebar" data-ev-rechnung={werkbank ? undefined : ''}>
+      <aside class="calc-sidebar" data-ev-rechnung>
         <h4>{S.calcSelectMats}</h4>
         
         <!-- Material search & list -->
@@ -992,7 +985,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <p class="calc-method" style="margin:-.6rem 0 1rem;font-size:var(--fs-6);color:var(--muted,#9ba2ae);line-height:1.4;">{S.calcMethod}</p>
 
         <div class="calc-search-row">
-          <input type="search" id="calc-item-search" data-ev-filter={evF('suche')} class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
+          <input type="search" id="calc-item-search" data-ev-filter="suche" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
         </div>
 
         {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,
@@ -1017,7 +1010,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       den Hinweis unten (Klasse is-leer statt hidden: am Schreibtisch ist sie
       immer zu sehen). Am Telefon ist sie das Fenster der bisherigen Seite. */}
   <div class:list={['cdb-modal', werkbank && 'is-leer']} id="cdb-modal" hidden={!werkbank}>
-    <div class="cdb-modal__box" role="dialog" aria-modal="true">
+    {/* data-ev-fenster: das Rezept ist das Fenster zum Eintrag, auch wenn es
+        am Schreibtisch als Mitte im Fluss steht (role="region"); Links darin
+        zaehlen wie im Fenster nicht als geoeffneter Treffer (assets/ereignisse.js). */}
+    <div class="cdb-modal__box" role="dialog" aria-modal="true" data-ev-fenster>
       {/* Siehe MiningApp: Zurueck-Pfeil nur bei nachgewiesener Herkunft von
           aussen (Deep-Link ?bp= / ?res=), sonst waere er ein zweites X. */}
       <button class="cdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
