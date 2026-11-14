@@ -154,7 +154,7 @@
    Die Meldungen stehen in der PR dieses Umbaus.
 
    VORGEFUEHRT ROT (14.11.2026, zweite Runde: Sperrbild, Karte, Blende),
-   46 Eingriffe am gebauten dist/, jeder fuer sich, alle rot:
+   45 Eingriffe am gebauten dist/, jeder fuer sich, alle rot:
      i  dist/de/hangar.html ([2]): data-f-seit geleert; {n} aus
         data-f-schiffn; die Leinwand umbenannt; Wortmarke als Schrift
         und Hinweis auf den Klick geleert; die untere Kantenlinie
