@@ -19,7 +19,7 @@ import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './lib/ivo-caf.mjs';
-import { hallDecalDoc, meshBase } from './lib/hall-decals.mjs';
+import { hallDecalDoc, hallTextDoc, meshBase } from './lib/hall-decals.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -880,10 +880,19 @@ async function hallDecals(h, doc) {
   const file = `${SRC}hall/${h.key}.decals.glb`;
   if (out) await new NodeIO().write(file, out);
   else if (existsSync(file)) rmSync(file);
+  // Schrift, die in der leichteren Stufe der Halle ausgedünnt ist, aus der Grundstufe derselben
+  // Dateien (hallTextDoc): eigenes GLB nach hall/<halle>.schrift.glb, der Build tauscht die Geometrie
+  const schrift = hallTextDoc({ doc, files: byBase, read: (f) => readFileSync(f), lod: h.lod, Document });
+  const schriftFile = `${SRC}hall/${h.key}.schrift.glb`;
+  if (schrift.doc) await new NodeIO().write(schriftFile, schrift.doc);
+  else if (existsSync(schriftFile)) rmSync(schriftFile);
+  report.schrift = schrift.report;
   writeFileSync(`${SRC}hall/${h.key}.decals.json`, JSON.stringify(report, null, 1));
   const A = report.aufkleber;
   console.log(`  Aufkleber: ${report.zugeordnet} von ${report.netze} Netzen ihrer Spieldatei zugeordnet (${report.ohneDatei.length} ohne Datei, ${report.unklar.length} unklar), ${A.teilnetze} ausgelassene Teilnetze an ${A.netze} Netzen zurückgeholt, ${A.trisMitExemplaren} Dreiecke mit allen Exemplaren, ${Object.keys(report.materialien).length} Materialien; ${report.ohneLage.length} ohne Lage, ${report.andere.teilnetze} ausgelassene ohne Aufkleber-Material`);
   if (report.ohneLage.length) console.log(`    ohne Lage (kein behaltenes Teilnetz am selben Knoten): ${report.ohneLage.slice(0, 8).join(' | ')}`);
+  const S = schrift.report;
+  if (S.teilnetze || S.ohneLage.length) console.log(`  Schrift: ${S.teilnetze} in der leichteren Stufe ausgedünnte Teilnetze an ${S.netze} Netzen aus der Grundstufe geholt (${S.trisNeu} statt ${S.trisAlt} Dreiecke)${S.ohneLage.length ? `; ${S.ohneLage.length} ohne sichere Lage ausgelassen: ${S.ohneLage.slice(0, 8).join(' | ')}` : ''}`);
   return out ? out.getRoot().listMaterials().flatMap((m) => [m.getExtras().hall_decal.d, m.getExtras().hall_decal.n]).filter(Boolean) : [];
 }
 

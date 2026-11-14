@@ -34,7 +34,7 @@ import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-is
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
-import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff } from './lib/hall-decals.mjs';
+import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -2278,6 +2278,10 @@ async function buildOne(kind, name, inPath) {
     // am Tor fährt ein Aufkleber mit seiner Lamelle
     if (aufzug) for (const p of decals.added.get(aufzug.door.getMesh()) ?? []) aufzug.owner.set(p, aufzug.boneOf(p.getExtras().sub.node));
   }
+  // Schrift, die der leichteren Stufe der Halle fehlt, aus der vollen Stufe (hallTextDoc im
+  // Extraktor, <halle>.schrift.glb): ebenfalls jetzt, solange die Netze die Primitive des Exports tragen
+  const schriftFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.schrift.glb`, SRC)) : null;
+  const schriftVoll = schriftFile && existsSync(schriftFile) ? swapHallText(doc, await io.read(schriftFile)) : null;
   // Tafeln mit dem Logo des Betreibers (Netze tint_logo_*, im Export ohne Material): Schablone und
   // Farben nennt die Palette der Halle in <halle>.info.json; ohne Angabe fallen die Tafeln weg
   let logo = null;
@@ -2340,6 +2344,8 @@ async function buildOne(kind, name, inPath) {
   const fixedOnly = (m) => !!m.getExtras()?.matfix;
   // Hallen mit Schichtmaterialien (Industrie-Bausatz util_a): der Extraktor legt <halle>.layers.json daneben
   const hallLayers = kind === 'hall' && existsSync(fileURLToPath(new URL(`hall/${name}.layers.json`, SRC)));
+  // Schrift aus Geometrie rückt von ihrer Tafel ab, sonst liegt sie nach dem Rastern stellenweise darunter
+  const schrift = hallLayers ? liftHallText(doc) : null;
   const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind, null, { ton: hallLayers }) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
   const hallPalette = hallLayers ? { ...applyHallPalette(doc, name), schichtTon: layered.ton ?? 0 } : null;
   const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc, null, { fest: hallLayers }) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
@@ -2482,6 +2488,8 @@ async function buildOne(kind, name, inPath) {
     ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
     ...(logo ? { logo: { ...logo, ...(decalMaps?.logo ?? {}) } } : {}),
     ...(schirme?.schirme ? { schirme: { aus: schirme.schirme, dreiecke: schirme.dreiecke } } : {}),
+    ...(schrift?.primitive ? { schrift } : {}),
+    ...(schriftVoll ? { schriftVoll } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
@@ -3672,6 +3680,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
           ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
           : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
         if (r.attached?.glowMaske || r.attached?.glowAus) console.log(`    Leuchten: ${r.attached.glowMaske} Materialien leuchten nur, wo das Alpha ihrer Grundkarte es sagt; ${r.attached.glowAus} mit Glow unter ${String(GLOW_MIN).replace('.', ',')} oder leerer Maske leuchten nicht`);
+        if (r.schriftVoll) console.log(`    Schrift aus der vollen Stufe: ${r.schriftVoll.teilnetze} ausgedünnte Teilnetze an ${r.schriftVoll.netze} Netzen ersetzt (${r.schriftVoll.trisNeu} statt ${r.schriftVoll.trisAlt} Dreiecke)${r.schriftVoll.fremd.length ? `; ! nicht zugeordnet: ${r.schriftVoll.fremd.join(', ')}` : ''}`);
+        if (r.schrift) console.log(`    Schrift aus Geometrie: ${r.schrift.primitive} Teilnetze mit ${r.schrift.ecken} Ecken ${r.schrift.mm} mm von ihrer Tafel abgerückt`);
         if (r.schirme) console.log(`    Bildschirme ohne Bild: ${r.schirme.aus} Materialien mit ${r.schirme.dreiecke} Dreiecken ausgeschaltet (Werte des Spiels für einen Schirm, der aus ist)`);
         if (r.logo) console.log(r.logo.tafeln
           ? `    Logo des Betreibers: ${r.logo.tafeln} Tafeln, Karte ${r.logo.karte ?? 'fehlt'}${r.logo.deckt != null ? `, ${Math.round(r.logo.deckt * 100)} % der Karte decken` : ''}`

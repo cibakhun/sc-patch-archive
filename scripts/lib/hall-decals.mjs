@@ -23,6 +23,8 @@ import { readSkinMesh, readSkinMaterial } from './ivo-skin.mjs';
 export const meshBase = (name) => String(name).replace(/\\/g, '/').split('/').pop().replace(/\.(cga|cgf)$/i, '').toLowerCase();
 const trisOf = (p) => (p.getIndices()?.getCount() ?? 0) / 3;
 const matNo = (p) => Number((p.getMaterial()?.getName().match(/_(\d+)$/) || [])[1] ?? NaN);
+// Schrift aus einzelnen Buchstaben-Vierecken: Material <Datei>_mtl_alphabet_… oder …_number_… (hallTextDoc, liftHallText)
+export const SCHRIFT = /_mtl_(alphabet|number)_/i;
 
 // Primitive des Exports (in ihrer Reihenfolge) gegen die Teilnetze der Datei:
 // ein Primitiv ist das nächste Teilnetz mit seiner Dreieckszahl und, wo der
@@ -175,6 +177,112 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
     r.farben = all.slice(0, 5).map(([k, c]) => `${k} ×${c}`);
   }
   return { doc: report.aufkleber.netze ? out : null, report };
+}
+
+// ─── Schrift aus der vollen Stufe ────────────────────────────────────────
+// Die Industrie-Hallen kommen in der leichteren Stufe des Spiels (LOD 1). Für
+// Schrift aus einzelnen Buchstaben-Vierecken (Materialien SCHRIFT, siehe
+// liftHallText) trägt diese Stufe bei manchen Schildern ein ausgedünntes Netz,
+// gedacht für die Ferne: In util-lrgtop standen an der Tafel
+// primary_sign_cu74xt_a noch 4 von 27 Buchstaben, an den Tafeln screen_drso_a
+// und screen_fshc_a die Hälfte, und am Vordach des Kiosks fehlten von „HANGAR
+// SERVICES“ ein halbes H und das I. hallTextDoc holt solche Teilnetze aus der
+// Grundstufe derselben Spieldatei: Passt die Datei der leichteren Stufe zum
+// Netz des Exports und trägt die Grundstufe für dasselbe Untermaterial am
+// selben Knoten mehr Dreiecke, kommt deren Geometrie (Lage, Normale, UV,
+// Eckfarbe) als Ersatz in ein eigenes Dokument. Lage und Umlaufrichtung werden
+// wie bei den Aufklebern am Primitiv des Exports gemessen, und der Ersatz gilt
+// nur, wenn er den Kasten des ausgedünnten Teilnetzes ganz überdeckt. Der
+// Build tauscht die Geometrie in swapHallText. Liefert { doc, report }; doc
+// ist null, wenn nichts zu holen war.
+export function hallTextDoc({ doc, files, read, lod = 1, Document }) {
+  const report = { netze: 0, teilnetze: 0, trisAlt: 0, trisNeu: 0, trisNeuMitExemplaren: 0, ohneLage: [], liste: [] };
+  if (!lod) return { doc: null, report };
+  const uses = new Map();
+  for (const n of doc.getRoot().listNodes()) { const m = n.getMesh(); if (m) uses.set(m, (uses.get(m) || 0) + 1); }
+  const nrOf = new Map(), count = new Map();
+  for (const m of doc.getRoot().listMeshes()) { const k = count.get(m.getName()) || 0; nrOf.set(m, k); count.set(m.getName(), k + 1); }
+  const out = new Document();
+  const buffer = out.createBuffer(), scene = out.createScene('schrift'), mats = new Map();
+  const ordner = (f) => f.replace(/\\/g, '/').replace(/\/[^/]*$/, '').toLowerCase();
+  for (const [mesh, inst] of uses) {
+    const prims = mesh.listPrimitives();
+    const text = prims.map((p, i) => i).filter((i) => SCHRIFT.test(prims[i].getMaterial()?.getName() ?? ''));
+    if (!text.length) continue;
+    const base = meshBase(mesh.getName());
+    const sig = prims.map((p) => ({ tris: trisOf(p), mat: matNo(p) }));
+    // die Datei der leichteren Stufe, aus der der Export dieses Netz hat
+    let g = null, fit = null, file = null;
+    for (const e of ['cga', 'cgf']) for (const c of files.get(`${base}_lod${lod}.${e}m`) ?? []) {
+      if (fit) break;
+      let gg;
+      try { gg = readSkinMesh(read(c)); } catch { continue; }
+      const f = fitSubsets(sig, gg.subs);
+      if (f) { g = gg; fit = f; file = c; }
+    }
+    if (!fit) continue;   // der Export kommt nicht aus einer leichteren Stufe: nichts zu holen
+    const cands = files.get(file.replace(/\\/g, '/').split('/').pop().replace(/_lod\d(\.(cga|cgf)m)$/i, '$1').toLowerCase()) ?? [];
+    const vollFile = cands.find((c) => ordner(c) === ordner(file)) ?? cands[0];
+    if (!vollFile) continue;
+    let g0;
+    try { g0 = readSkinMesh(read(vollFile)); } catch { continue; }
+    const made = [];
+    for (const i of text) {
+      const p = prims[i], sub = g.subs[fit.kept[i]];
+      const voll = g0.subs.filter((s) => s.mat === sub.mat && s.node === sub.node);
+      if (voll.length !== 1 || voll[0].numIndices <= sub.numIndices) continue;
+      const s0 = voll[0], name = p.getMaterial().getName();
+      const a = p.getAttribute('POSITION'), ixA = p.getIndices()?.getArray();
+      if (!a || !ixA) continue;
+      const getA = (j, v) => a.getElement(j, v);
+      const lage = (gx) => (j, v) => { v[0] = gx.pos[j * 3]; v[1] = gx.pos[j * 3 + 1]; v[2] = gx.pos[j * 3 + 2]; };
+      const ixB = g.idx.subarray(sub.firstIndex, sub.firstIndex + sub.numIndices), ix = g0.idx.subarray(s0.firstIndex, s0.firstIndex + s0.numIndices);
+      const A = boxOfIndexed(getA, ixA), B = boxOfIndexed(lage(g), ixB), V = boxOfIndexed(lage(g0), ix);
+      const t = [0, 1, 2].map((q) => A.lo[q] - B.lo[q]);
+      const gleich = Math.max(...[0, 1, 2].map((q) => Math.abs((A.hi[q] - A.lo[q]) - (B.hi[q] - B.lo[q])))) <= 2e-3;
+      const deckt = [0, 1, 2].every((q) => V.lo[q] + t[q] <= A.lo[q] + 2e-3 && V.hi[q] + t[q] >= A.hi[q] - 2e-3);
+      if (!gleich || !deckt) { report.ohneLage.push(`${base} #${sub.mat} Knoten ${sub.node}`); continue; }
+      const nA = firstNormal(getA, ixA), nB = firstNormal(lage(g), ixB);
+      const flip = !!(nA && nB && nA[0] * nB[0] + nA[1] * nB[1] + nA[2] * nB[2] < 0);
+      const neu = new Map(), alt = [], idx = new Uint32Array(ix.length);
+      for (let k = 0; k < ix.length; k++) { let v = neu.get(ix[k]); if (v === undefined) { v = alt.length; neu.set(ix[k], v); alt.push(ix[k]); } idx[k] = v; }
+      if (flip) for (let k = 0; k < idx.length; k += 3) { const q = idx[k + 1]; idx[k + 1] = idx[k + 2]; idx[k + 2] = q; }
+      const n = alt.length, pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Uint8Array(n * 4), nor = new Float32Array(n * 3);
+      for (let k = 0; k < n; k++) {
+        const s = alt[k];
+        for (let q = 0; q < 3; q++) pos[k * 3 + q] = g0.pos[s * 3 + q] + t[q];
+        uv[k * 2] = g0.uv[s * 2]; uv[k * 2 + 1] = g0.uv[s * 2 + 1];
+        col.set(g0.col.subarray(s * 4, s * 4 + 4), k * 4);
+        if (g0.nor) for (let q = 0; q < 3; q++) nor[k * 3 + q] = g0.nor[s * 3 + q];
+      }
+      if (!g0.nor) {
+        // ohne Normalen der Datei: flächengewichtete aus den Dreiecken (in der Umlaufrichtung des Exports)
+        for (let k = 0; k < idx.length; k += 3) {
+          const i0 = idx[k] * 3, i1 = idx[k + 1] * 3, i2 = idx[k + 2] * 3;
+          const u = [pos[i1] - pos[i0], pos[i1 + 1] - pos[i0 + 1], pos[i1 + 2] - pos[i0 + 2]], w = [pos[i2] - pos[i0], pos[i2 + 1] - pos[i0 + 1], pos[i2 + 2] - pos[i0 + 2]];
+          const f = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]];
+          for (const v of [i0, i1, i2]) for (let q = 0; q < 3; q++) nor[v + q] += f[q];
+        }
+        for (let k = 0; k < n; k++) { const l = Math.hypot(nor[k * 3], nor[k * 3 + 1], nor[k * 3 + 2]) || 1; for (let q = 0; q < 3; q++) nor[k * 3 + q] /= l; }
+      }
+      if (!mats.has(name)) mats.set(name, out.createMaterial(name));
+      const trisAlt = sub.numIndices / 3, trisNeu = idx.length / 3;
+      made.push(out.createPrimitive().setMaterial(mats.get(name)).setExtras({ schrift: { prim: i, mat: sub.mat, node: sub.node, trisAlt, trisNeu } })
+        .setAttribute('POSITION', out.createAccessor().setType('VEC3').setArray(pos).setBuffer(buffer))
+        .setAttribute('NORMAL', out.createAccessor().setType('VEC3').setArray(nor).setBuffer(buffer))
+        .setAttribute('TEXCOORD_0', out.createAccessor().setType('VEC2').setArray(uv).setBuffer(buffer))
+        .setAttribute('COLOR_0', out.createAccessor().setType('VEC4').setArray(col).setNormalized(true).setBuffer(buffer))
+        .setIndices(out.createAccessor().setType('SCALAR').setArray(n > 65535 ? idx : new Uint16Array(idx)).setBuffer(buffer)));
+      report.teilnetze++; report.trisAlt += trisAlt; report.trisNeu += trisNeu; report.trisNeuMitExemplaren += trisNeu * inst;
+      report.liste.push(`${base} #${sub.mat}: ${trisAlt} -> ${trisNeu} Dreiecke${inst > 1 ? `, ${inst} Exemplare` : ''}`);
+    }
+    if (!made.length) continue;
+    const m = out.createMesh(mesh.getName()).setExtras({ nr: nrOf.get(mesh), tris: sig.map((s) => s.tris), datei: vollFile.replace(/\\/g, '/').split('/').pop(), exemplare: inst });
+    for (const p of made) m.addPrimitive(p);
+    scene.addChild(out.createNode(mesh.getName()).setMesh(m));
+    report.netze++;
+  }
+  return { doc: report.netze ? out : null, report };
 }
 
 // ─── Build ────────────────────────────────────────────────────────────────
@@ -331,6 +439,62 @@ export function hallScreensOff(doc) {
     s.schirme++; s.dreiecke += n; s.namen.push(m.getName());
   }
   s.namen.sort();
+  return s;
+}
+
+// Schrift aus der vollen Stufe einsetzen (hallTextDoc, der Extraktor legt
+// <halle>.schrift.glb daneben): Das Primitiv des Exports behält Material und
+// Platz im Netz und bekommt die Geometrie der Grundstufe. Das Netz wird wie
+// bei den Aufklebern über Name, Nummer und die Dreieckszahlen seiner Primitive
+// wiedergefunden (schon angehängte Aufkleber zählen nicht mit), das Primitiv
+// über seinen Platz und den Namen seines Materials. Muss vor liftHallText
+// laufen. Liefert { netze, teilnetze, trisAlt, trisNeu, fremd }.
+export function swapHallText(doc, textDoc) {
+  const root = doc.getRoot(), buffer = root.listBuffers()[0];
+  const byName = new Map();
+  for (const m of root.listMeshes()) { const l = byName.get(m.getName()); if (l) l.push(m); else byName.set(m.getName(), [m]); }
+  const s = { netze: 0, teilnetze: 0, trisAlt: 0, trisNeu: 0, fremd: [] };
+  for (const tm of textDoc.getRoot().listMeshes()) {
+    const x = tm.getExtras() ?? {}, target = byName.get(tm.getName())?.[x.nr ?? 0];
+    const prims = target?.listPrimitives().filter((p) => !p.getExtras()?.hall_decal) ?? [];
+    if (!target || JSON.stringify(prims.map(trisOf)) !== JSON.stringify(x.tris)) { s.fremd.push(tm.getName()); continue; }
+    let n = 0;
+    for (const sp of tm.listPrimitives()) {
+      const k = sp.getExtras().schrift, p = prims[k.prim];
+      if (!p || p.getMaterial()?.getName() !== sp.getMaterial()?.getName()) { s.fremd.push(`${tm.getName()} #${k.prim}`); continue; }
+      for (const sem of p.listSemantics()) p.setAttribute(sem, null);
+      for (const sem of sp.listSemantics()) { const a = sp.getAttribute(sem); p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setArray(a.getArray().slice()).setNormalized(a.getNormalized()).setBuffer(buffer)); }
+      p.setIndices(doc.createAccessor().setType('SCALAR').setArray(sp.getIndices().getArray().slice()).setBuffer(buffer));
+      n++; s.teilnetze++; s.trisAlt += k.trisAlt; s.trisNeu += k.trisNeu;
+    }
+    if (n) s.netze++;
+  }
+  return s;
+}
+
+// Schrift aus Geometrie. Buchstaben und Ziffern aus einem Alphabet-Atlas
+// (Material <Datei>_mtl_alphabet_… oder …_number_…, Schnitt nach Alpha) sind
+// eigene kleine Flächen, die im Spiel rund einen Millimeter über ihrer Tafel
+// liegen. Draco rastert die Halle auf rund 3 mm: Am Eingang der Large-Halle
+// lag „STORAGE ACCESS“ so ganz unter seinem Vordach. Jede Ecke rückt deshalb
+// wie bei den Aufklebern (addHallDecals) längs ihrer Normale von der Fläche
+// ab. Muss laufen, solange die Materialien ihre Namen tragen. Liefert
+// { primitive, ecken, mm }.
+export function liftHallText(doc, { lift = 0.005 } = {}) {
+  const s = { primitive: 0, ecken: 0, mm: lift * 1000 }, buffer = doc.getRoot().listBuffers()[0], seen = new Set();
+  for (const me of doc.getRoot().listMeshes()) for (const p of me.listPrimitives()) {
+    const m = p.getMaterial(), pos = p.getAttribute('POSITION'), nor = p.getAttribute('NORMAL');
+    if (seen.has(p) || !m || !pos || !nor || m.getAlphaMode() !== 'MASK' || !SCHRIFT.test(m.getName()) || p.getExtras()?.hall_decal) continue;
+    seen.add(p);
+    const n = pos.getCount(), P = new Float32Array(n * 3), a = [0, 0, 0], b = [0, 0, 0];
+    for (let i = 0; i < n; i++) {
+      pos.getElement(i, a); nor.getElement(i, b);
+      const l = Math.hypot(b[0], b[1], b[2]) || 1;
+      for (let k = 0; k < 3; k++) P[i * 3 + k] = a[k] + (b[k] / l) * lift;
+    }
+    p.setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(P).setBuffer(buffer));
+    s.primitive++; s.ecken += n;
+  }
   return s;
 }
 
