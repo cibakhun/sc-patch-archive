@@ -394,13 +394,24 @@ export const CHECKS = [
     // Umschaltleiste auf eine Seite, die es nicht gibt, ein Link zum Hangar,
     // der im Fenster bliebe, die Kamera ohne Abstand zur Decke und
     // frame-ancestors.conf auf 'none'.
+    // Erweitert (14.11.2026): Das Terminal liegt auf dem Glas des mittleren
+    // Monitors am Pult und meldet den Besucher an. Dazu liest das Tor die
+    // ausgelieferte Einrichtung der Halle (dist/hangar/hall/<id>.furniture.glb,
+    // in Node entpackt wie in verify:hangar-hall, unter einer Sekunde) und misst
+    // das Glas nach. Weiter ohne git, Netz und Kindprozess. VORGEFUEHRT ROT in
+    // elf weiteren Laeufen (Buchstaben e bis g im Kopf des Skripts).
+    // Nach dem Review der PR #365: Die Lage des Monitors ist absolut gemessen,
+    // der Ursprung der Halle kommt aus der Buehne (hallOrigin) und aus der
+    // StageConfig der Seite, nicht mehr aus den Monitoren selbst. Zwei Eingriffe,
+    // die vorher gruen blieben (Halle 4 m in x, 1 m in y versetzt), reissen
+    // jetzt; VORGEFUEHRT ROT in sieben Laeufen (Buchstabe h).
     id: 'verify:hangar-orte',
     npm: 'verify:hangar-orte',
     nurMitHangar: true,
     script: 'scripts/verify-hangar-orte.mjs',
     rail: 'A',
     checks:
-      'Orte der Halle und Terminal im Leitstand: die Hangarseite traegt in beiden Sprachen die Ortsleiste mit Schiffsfeld, Werkhalle und Leitstand samt Ansagen und das Fenster des Terminals mit versioniertem Modul und leerem Rahmen; jeder Bereich der Umschaltleiste zeigt auf eine gebaute Seite derselben Sprache, bleibt im Fenster und markiert sich selbst (Klinke Bereiche je Seite); die reinen Funktionen des ausgelieferten Terminal-Moduls bestehen feste Proben (Massstab, Wege nach innen, in einen neuen Tab und zurueck in den Hangar, Zuordnung zum Bereich); die Kamera vor dem Schirm: leitFit aus dem ausgelieferten Viewer legt den Schirm fuer ein Raster von Fenstergroessen in das freie Rechteck und bleibt mit Abstand im Raum des Leitstands (Klinke Proben); die Naht zwischen Seite, Controller, Terminal und Viewer; und die Rahmen-Dateien des Baus lassen die eigene Seite zu',
+      'Orte der Halle und Terminal im Leitstand: die Hangarseite traegt in beiden Sprachen die Ortsleiste mit Schiffsfeld, Werkhalle und Leitstand samt Ansagen und das Fenster des Terminals mit versioniertem Modul und leerem Rahmen; jeder Bereich der Umschaltleiste zeigt auf eine gebaute Seite derselben Sprache, bleibt im Fenster und markiert sich selbst (Klinke Bereiche je Seite); die reinen Funktionen des ausgelieferten Terminal-Moduls bestehen feste Proben (Massstab, Wege nach innen, in einen neuen Tab und zurueck in den Hangar, Zuordnung zum Bereich); die Kamera vor dem Monitor: leitFit aus dem ausgelieferten Viewer legt das Fenster der Seite fuer ein Raster von Fenstergroessen in das freie Rechteck, laesst es auf dem Glas des Monitors und bleibt mit Abstand im Raum des Leitstands, suedlich des Pults (Klinke Proben); die Naht zwischen Seite, Controller, Terminal und Viewer; die Rahmen-Dateien des Baus lassen die eigene Seite zu; die Anmeldung am Terminal: Blende und Platz in der Leiste stehen in beiden Sprachen mit allen Worten und Zielen im Markup, termIdent laesst aus der Profilzeile nur durch, was in Stil und Adresse gehoert (Klinke Profilzeilen), und die Blende bleibt kurz; und der Monitor im Modell: die ausgelieferte Einrichtung der Halle traegt das Glas des mittleren Monitors dort, wo HALL_LEIT es nennt (Klinke Hallen), und die Marke der Blende steht, wo der Monitor sie in Ruhe zeigt; seit der zweiten Runde (14.11.2026) dazu das Sperrbild: Monitor und Blende zeichnen es beide mit leitFenster (auf einer mitschreibenden Leinwand nachgeprueft: beschnitten auf sein Fenster, Uhr und Sitzung nur auf Verlangen, Marke und Wortmarke an ihrem Platz), aufs Glas kommen nur Name, Zeichen und eine Farbe #rrggbb, die Karte der Anmeldung nennt hoechstens drei Fakten in den Worten und der Zahlschreibung der Seite (Klinken Karten und Sperrbild), und die Blende oeffnet sich ueber eine einzige angemeldete Zahl in der Zeit, nach der das Modul sie wegnimmt',
   },
   {
     // Neuzugang (13.11.2026) hinter verify:hangar-orte: komprimierte
@@ -931,7 +942,7 @@ export const CHECKS = [
     checks:
       'kein Bildshader des 3D-Hangars braucht mehr als 16 Texturen (die Grenze von Chrome unter Windows; darueber linkt das Programm dort nicht und sein Material bleibt unsichtbar): auf hoch mit ganzer Hallendeko je gelinktem Programm selbst gezaehlt, kein Programm linkt nicht, die Zeile des Viewers ist da, Klinken fuer Programme und Programme mit Schichttafel. Dazu die Freigabe der Bilder nach dem Hochladen (13.11.2026, rund 1 GB Arbeitsspeicher in der hohen Stufe): der Viewer verlangt auf dem gefahrenen Weg kein freigegebenes Bild noch einmal (sonst zeigte die Flaeche eine Farbe statt ihrer Karte), und er gibt mindestens so viele Bilder frei wie die Klinke. Dazu die Freigabe der Geometrie der Halle nach dem Hochladen (13.11.2026, 159 MB Arbeitsspeicher in der hohen Stufe): auf dem gefahrenen Weg liest niemand einen freigegebenen Puffer noch einmal (sonst rechnete er mit einem leeren), und der Viewer gibt mindestens so viele MB frei wie die Klinke. Dazu die Shader der Vollbildpaesse (13.11.2026): Verdeckung, Entrauscher und Schein sind vorab im Hintergrund uebersetzt, das Probebild zeichnet jeden Pass mit einem Programm, das es vorher schon gab (sonst steht die Seite beim Laden 1,2 s, und kein Bild sieht anders aus)',
     env:
-      'Browser und laufender Server: laedt <base>/hangar.html in einem installierten Chromium mit Software-WebGL und vorgetaeuschter Grafikkarte (sonst zeigt die Seite ihren Rueckfall) und wartet, bis die Hallendeko steht (in Software-WebGL einige Minuten). Beides gibt es im Build-Container nicht, deshalb Schiene C. Anlass: Wartungsplatz und Hallendeko waren auf staging unter Windows unsichtbar, waehrend jede Aufnahme mit Software-WebGL (32 Texturen erlaubt) und der Rauchtest (sieht nur den Rueckfall) gruen waren (Krisz, 21.10.2026).',
+      'Browser und laufender Server: laedt <base>/hangar.html in einem installierten Chromium mit Software-WebGL und vorgetaeuschter Grafikkarte (sonst zeigt die Seite ihren Rueckfall) und wartet, bis die Hallendeko steht, das Schiff auf dem Feld steht und die Halle ruht: 10 Abfragen im Abstand von 2 s ohne neues Programm, neue Textur, neuen Puffer, neue Zeile des Viewers oder Datei unterwegs (in Software-WebGL einige Minuten; bis 14.11.2026 feste 20 s nach der Hallendeko, auf einem langsamen Rechner 4 falsche FEHLER). Kommt die Halle in 15 min nicht zur Ruhe, ist das ein HINWEIS, und die Klinken werten einen Zwischenstand aus. Beides gibt es im Build-Container nicht, deshalb Schiene C. Anlass: Wartungsplatz und Hallendeko waren auf staging unter Windows unsichtbar, waehrend jede Aufnahme mit Software-WebGL (32 Texturen erlaubt) und der Rauchtest (sieht nur den Rueckfall) gruen waren (Krisz, 21.10.2026).',
   },
 
   {

@@ -2258,6 +2258,9 @@ export function boot(doc) {
     }
     const before = main.dataset.ort;
     main.dataset.ort = at;
+    // Vor dem Terminal weicht die Erklaerung der Schiffsauswahl, die beim
+    // ersten Besuch von selbst aufgeht: Sie laege sonst ueber dem Monitor.
+    if (leit && before !== 'leit') main.querySelector('.hg-dock details.tool-help[open]')?.removeAttribute('open');
     for (const b of stBtns) {
       const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
       b.hidden = leit || (holo && (!on || orte));
@@ -2365,15 +2368,39 @@ export function boot(doc) {
     if (!oben && termBox.contains(doc.activeElement)) (ortBox?.querySelector('[aria-current="true"]') ?? ortBtns[0])?.focus({ preventScroll: true });
     if (terminal) { terminal.place(termRect); return; }
     if (e.ort !== 'leit' || terminalLoad) return;
-    terminalLoad = import(termBox.dataset.js).then((m) => {
+    // Das Modul der Buehne ist laengst geladen (sie steht); von ihm kommt das
+    // Sperrbild des Monitors als reine Funktion (leitFenster), damit die
+    // Anmeldung denselben Grund zeichnet wie das Glas der Halle.
+    terminalLoad = Promise.all([import(termBox.dataset.js), import(stageCfg.viewer).catch(() => null)]).then(([m, buehne]) => {
       terminal = m.initTerminal(termBox, {
         // Ein Link zum Hangar auf dem Schirm („Im Hangar ansehen“): Das Schiff
         // kommt aufs Feld, ohne die Halle neu zu laden; ohne bekanntes Schiff
         // fuehrt er nur zurueck aufs Feld.
         ship: (id) => setState(id && ctx.ids.has(id) ? { ship: id, ort: 'halle', hp: null } : { ort: 'halle' }),
+        bild: (cv, o) => {
+          if (typeof buehne?.leitFenster !== 'function') return false;
+          buehne.leitFenster(cv.getContext('2d'), 0, 0, cv.width, cv.height, o);
+          return true;
+        },
+        fakten: termRoh,
+        // Wer angemeldet ist, nennt auch der Monitor der Halle (setTerminal:
+        // eine Einstellung, die eine neu gebaute Buehne wieder bekommt)
+        wer: (id) => viewer?.setTerminal?.(id),
       });
       terminal.place(termRect);
     }, () => { terminalLoad = null; });
+  }
+  // Was die Seite fuer die Karte der Anmeldung weiss (termFakten in
+  // assets/hangar-terminal.js setzt die Zeilen): wie viele Schiffe der Flotte
+  // die Seite kennt, welches gerade auf dem Feld steht und in welcher
+  // Hangargroesse die Halle dafuer steht.
+  function termRoh() {
+    const e = grOf.get(state.ship), m = msg('gr');
+    return {
+      flotte: fleetSummary(fleetIds, dock).n,
+      schiff: dock.get(state.ship)?.name ?? '',
+      halle: e?.size ? m[e.size.toLowerCase()] ?? '' : '',
+    };
   }
 
   // Die Uebersicht als Hologramm (viewer.station): Woerter und Zahlen aus der

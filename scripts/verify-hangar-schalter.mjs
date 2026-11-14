@@ -13,12 +13,10 @@
        [3] die Hangar-Seiten in beiden Sprachen, die Buchtdokumente und
            die Modelle sind da, und das Menue fuehrt zum Hangar
 
-   Dieselbe Regel fuer die Prototypen (scripts/lib/vorschau-seiten.mjs,
-   seit 09.11.2026 die Crafting-Werkbank):
-       [4] Live-Bau: keine Prototyp-Seite, keine Seite verlinkt eine,
-           und keine Daten-Datei (Suchregister) nennt ihren Pfad
-       [5] Vorschau-Bau: die Prototyp-Seiten in beiden Sprachen sind da,
-           und die bisherige Crafting-Seite fuehrt in beiden Sprachen hin
+   Die Nummern [4] und [5] galten der Crafting-Werkbank, solange sie ein
+   Prototyp nur im Vorschau-Bau war (09.11. bis 13.11.2026). Seit ihrer
+   Abnahme ist sie die Crafting-Seite in beiden Bauten; die Pruefungen sind
+   mit der Prototyp-Seite entfallen, die Nummern bleiben frei.
 
    Erst [1] und [2] machen es zulaessig, dass run-gate die Hangar-Strecken
    (nurMitHangar) gegen den Live-Bau weglaesst: was nicht da ist, muss
@@ -33,7 +31,6 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { HANGAR_DIST_DIRS, HANGAR_DIST_FILES, HANGAR_HREF } from './lib/hangar-switch.mjs';
-import { VORSCHAU_DIST_FILES, VORSCHAU_HREF, VORSCHAU_PFAD } from './lib/vorschau-seiten.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // --dist <Ordner> und --klinke-seiten <n>: nur fuer
@@ -78,14 +75,9 @@ if (!vorschau) {
   if (reste.length > 10) fail(`[1] … und ${reste.length - 10} weitere Hangar-Dateien`);
   console.log(`  [1] ${HANGAR_DIST_DIRS.length} Ordner und ${dateien.length} Dateien durchgesehen: ${ordner.length + reste.length} Hangar-Reste`);
 
-  // [2] und [4] in einem Durchgang: jede Seite wird einmal gelesen.
+  // [2]
   const LAEDT = /(?:src|href|data-src|content)=["'](?:https:\/\/verse-base\.com)?\/(?:hangar\/|assets\/hangar-[\w-]+\.js)/;
   let treffer = 0;
-  let protoLinks = 0;
-  const protoLink = (f, m) => {
-    protoLinks++;
-    if (protoLinks <= 10) fail(`[4] dist/${f}: ${m[0]}`);
-  };
   for (const f of html) {
     const t = readFileSync(resolve(DIST, f), 'utf8');
     const m = HANGAR_HREF.exec(t) || LAEDT.exec(t);
@@ -93,22 +85,9 @@ if (!vorschau) {
       treffer++;
       if (treffer <= 10) fail(`[2] dist/${f}: ${m[0]}`);
     }
-    const p = VORSCHAU_HREF.exec(t);
-    if (p) protoLink(f, p);
   }
   if (treffer > 10) fail(`[2] … und ${treffer - 10} weitere Seiten mit Hangar-Verweis`);
   console.log(`  [2] ${html.length} Seiten gelesen: ${treffer} mit Verweis auf den Hangar`);
-
-  // [4] Prototypen: Seiten, Links (oben) und Daten-Dateien (Suchregister).
-  const proto = VORSCHAU_DIST_FILES.filter((f) => existsSync(resolve(DIST, f)));
-  for (const f of proto) fail(`[4] dist/${f} gehoert nicht in den Live-Bau (Prototyp)`);
-  const daten = dateien.filter((f) => f.endsWith('.json'));
-  for (const f of daten) {
-    const p = VORSCHAU_PFAD.exec(readFileSync(resolve(DIST, f), 'utf8'));
-    if (p) protoLink(f, p);
-  }
-  if (protoLinks > 10) fail(`[4] … und ${protoLinks - 10} weitere Dateien mit Verweis auf einen Prototyp`);
-  console.log(`  [4] ${VORSCHAU_DIST_FILES.length} Prototyp-Seiten gesucht, ${proto.length} gefunden; ${html.length} Seiten und ${daten.length} Daten-Dateien gelesen: ${protoLinks} mit Verweis`);
 } else {
   // [3]
   for (const f of ['hangar.html', 'de/hangar.html', 'hangar-loadout.html', 'de/hangar-loadout.html', 'hangar-layouts.json']) {
@@ -123,17 +102,6 @@ if (!vorschau) {
   const nav = existsSync(resolve(DIST, 'schiffe.html')) && /href="\/hangar\.html"/.test(readFileSync(resolve(DIST, 'schiffe.html'), 'utf8'));
   if (!nav) fail('[3] dist/schiffe.html fuehrt nicht zum Hangar (Menue oder Schiffsliste)');
   console.log(`  [3] Seiten in beiden Sprachen, ${en} + ${de} Buchtdokumente, ${modelle} Dateien unter dist/hangar/, Menue ${nav ? 'mit' : 'OHNE'} Hangar`);
-
-  // [5]
-  const fehlt = VORSCHAU_DIST_FILES.filter((f) => !existsSync(resolve(DIST, f)));
-  for (const f of fehlt) fail(`[5] dist/${f} fehlt im Vorschau-Bau (Prototyp)`);
-  let wege = 0;
-  for (const f of ['topics/crafting.html', 'de/topics/crafting.html']) {
-    const alt = resolve(DIST, f);
-    if (existsSync(alt) && VORSCHAU_HREF.test(readFileSync(alt, 'utf8'))) wege++;
-    else fail(`[5] dist/${f} fuehrt nicht zur Werkbank (Prototyp-Zeile)`);
-  }
-  console.log(`  [5] ${VORSCHAU_DIST_FILES.length - fehlt.length} von ${VORSCHAU_DIST_FILES.length} Prototyp-Seiten da, ${wege} von 2 Crafting-Seiten mit Weg dorthin`);
 }
 
 if (html.length < MIN_SEITEN) fail(`gelesen: ${html.length} Seiten, Klinke ${MIN_SEITEN} — unvollstaendiger Bau?`);

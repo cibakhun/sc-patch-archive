@@ -10,8 +10,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { hangarImBau, hangarImArtefakt, HANGAR_ROUTES, HANGAR_DIST_FILES, HANGAR_HREF } from '../../scripts/lib/hangar-switch.mjs';
-import { hangarRoutes, vorschauRoutes } from '../../astro.config.mjs';
-import { VORSCHAU_ROUTES, VORSCHAU_HREF } from '../../scripts/lib/vorschau-seiten.mjs';
+import { hangarRoutes } from '../../astro.config.mjs';
 
 const read = (p) => fs.readFileSync(path.resolve(p), 'utf8');
 
@@ -109,70 +108,22 @@ test('Tor: Vorschau-Bau ohne Hangar ist rot', () => {
   assert.match(r.stderr, /\[3\] dist\/hangar\.html fehlt im Vorschau-Bau/);
 });
 
-// Prototypen (scripts/lib/vorschau-seiten.mjs, seit 09.11.2026 die
-// Crafting-Werkbank): dieselbe Regel, eigene Liste, eigene Punkte [4]/[5].
-test('Prototypen: Routen nur im Vorschau-Bau, Muster trifft nur sie', () => {
-  for (const r of VORSCHAU_ROUTES) assert.ok(fs.existsSync(path.resolve(r.entrypoint)), r.entrypoint);
-  const haenge = (env) => {
-    const got = [];
-    vorschauRoutes(env).hooks['astro:config:setup']({ injectRoute: (r) => got.push(r.pattern), logger: { info() {} } });
-    return got;
-  };
-  assert.deepEqual(haenge({ STAGING: '1' }), VORSCHAU_ROUTES.map((r) => r.pattern));
-  assert.deepEqual(haenge({}), []);
-  assert.ok(VORSCHAU_HREF.test('<a href="/de/topics/crafting-werkbank.html?bp=x&#38;bpi=1">'));
-  assert.ok(VORSCHAU_HREF.test("<a href='/topics/crafting-werkbank.html'>"));
-  assert.ok(!VORSCHAU_HREF.test('<a href="/de/topics/crafting.html?bp=x">'));
-});
-
-test('Tor: Live-Bau mit Prototyp-Seite oder -Link ist rot', () => {
-  const tor = (d) => run(['scripts/verify-hangar-schalter.mjs', '--dist', d, '--klinke-seiten', '1']);
-  const a = probe();
-  a.put('build.json', JSON.stringify({ staging: false }));
-  run(['scripts/_hangar-switch.mjs', '--dist', a.d]);
-  assert.equal(tor(a.d).status, 0);
-  a.put('de/topics/crafting-werkbank.html', '<p>x</p>');
-  let r = tor(a.d);
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[4\] dist\/de\/topics\/crafting-werkbank\.html gehoert nicht in den Live-Bau/);
-  fs.rmSync(path.join(a.d, 'de/topics'), { recursive: true });
-  a.put('de/schiffe.html', '<a href="/de/topics/crafting-werkbank.html?bp=x">Herstellen</a>');
-  r = tor(a.d);
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[4\] dist\/de\/schiffe\.html: href="\/de\/topics\/crafting-werkbank\.html/);
-  // Auch ohne href: das Suchregister traegt den Weg als blossen Pfad (Feld c).
-  a.put('de/schiffe.html', '<a href="/de/schiffe.html">Schiffe</a>');
-  a.put('search-index-more.json', JSON.stringify([{ t: 'BroadSpec', c: '/topics/crafting-werkbank.html?bp=BroadSpec&bpi=323' }]));
-  r = tor(a.d);
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[4\] dist\/search-index-more\.json: \/topics\/crafting-werkbank\.html/);
-  a.put('search-index-more.json', JSON.stringify([{ t: 'BroadSpec', c: '/topics/crafting.html?bp=BroadSpec&bpi=323' }]));
-  r = tor(a.d);
-  assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /\[4\] .* und 2 Daten-Dateien gelesen: 0 mit Verweis/);
-});
-
-test('Tor: Vorschau-Bau braucht die Werkbank und den Weg dorthin in beiden Sprachen', () => {
-  const a = probe();
-  a.put('build.json', JSON.stringify({ staging: true }));
-  a.put('schiffe.html', '<a href="/hangar.html">Hangar</a>');
-  for (let i = 0; i < 200; i++) { a.put(`hangar-bay/s${i}.html`); a.put(`de/hangar-bay/s${i}.html`); }
-  for (let i = 0; i < 500; i++) a.put(`hangar/m${i}.glb`);
-  a.put('de/hangar.html');
-  a.put('hangar-loadout.html');
-  const weg = (de) => `<a href="${de ? '/de' : ''}/topics/crafting-werkbank.html">Ausprobieren</a>`;
-  a.put('topics/crafting-werkbank.html');
-  a.put('de/topics/crafting-werkbank.html');
-  a.put('topics/crafting.html', weg(false));
-  a.put('de/topics/crafting.html', weg(true));
-  const tor = () => run(['scripts/verify-hangar-schalter.mjs', '--dist', a.d, '--klinke-seiten', '1']);
-  let r = tor();
-  assert.equal(r.status, 0, r.stderr + r.stdout);
-  assert.match(r.stdout, /\[5\] 2 von 2 Prototyp-Seiten da, 2 von 2 Crafting-Seiten mit Weg dorthin/);
-  a.put('topics/crafting.html', '<p>ohne Weg</p>');
-  r = tor();
-  assert.equal(r.status, 1);
-  assert.match(r.stderr, /\[5\] dist\/topics\/crafting\.html fuehrt nicht zur Werkbank/);
+// Die Crafting-Werkbank war vom 09.11. bis 13.11.2026 ein Prototyp nur im
+// Vorschau-Bau (eigene Liste, Punkte [4]/[5] im Tor). Seit ihrer Abnahme ist
+// sie die Crafting-Seite in beiden Bauten: kein Schalter, keine eigene
+// Adresse, und der eine Weg ins Crafting fuehrt auf die Crafting-Seite.
+test('Werkbank: kein Prototyp-Schalter mehr, der Weg ins Crafting ist die Crafting-Seite', () => {
+  assert.ok(!fs.existsSync(path.resolve('src/vorschau-routes')), 'src/vorschau-routes');
+  assert.ok(!fs.existsSync(path.resolve('scripts/lib/vorschau-seiten.mjs')), 'scripts/lib/vorschau-seiten.mjs');
+  assert.doesNotMatch(read('src/lib/seo.ts'), /HAS_WERKBANK/);
+  assert.doesNotMatch(read('astro.config.mjs'), /vorschauRoutes/);
+  const weg = read('src/lib/crafting.ts');
+  assert.match(weg, /export const craftEntryPath = \(b: BlueprintEntry\) => plannerPath\(b\);/);
+  assert.match(weg, /`\/topics\/crafting\.html\?bp=\$\{encodeURIComponent\(b\.name\)\}&bpi=\$\{b\.index\}`/);
+  assert.doesNotMatch(weg, /crafting-werkbank/);
+  for (const f of ['src/pages/topics/crafting.astro', 'src/pages/de/topics/crafting.astro'])
+    assert.doesNotMatch(read(f), /noindex/, f);
+  assert.match(read('src/components/topics/crafting.astro'), /<CraftingApp lang=\{de \? 'de' : 'en'\} werkbank \/>/);
 });
 
 test('Muster: Dateien und Links', () => {

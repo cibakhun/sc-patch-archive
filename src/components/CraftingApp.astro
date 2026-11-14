@@ -20,8 +20,9 @@ import { wbGlyphCss, wbGlyphKey } from '../lib/werkbankGlyphs';
 
 interface Props {
   lang: 'de' | 'en';
-  /** Prototyp der Werkbank (Skizze 016-3): Rezept als feste Mitte, Planer als
-   *  Spalte. Nur die Vorschau-Seite /topics/crafting-werkbank.html setzt das. */
+  /** Werkbank (Skizze 016-3): Rezept als feste Mitte, Planer als Spalte. Seit
+   *  der Abnahme (Krisz 13.11.2026) setzt die Crafting-Seite das immer; die
+   *  Zweige ohne Werkbank sind die bisherige Ansicht. */
   werkbank?: boolean;
 }
 const { lang, werkbank = false } = Astro.props;
@@ -92,8 +93,8 @@ const JS_T = {
   de: {
     craftTime: 'Craft-Zeit', tier: 'Tier', addPlan: 'Zum Planer', ingredients: 'Zutaten',
     minQ: 'min. Q', quality: 'Qualität', simOut: 'Simulierte Ausgabe-Werte',
-    simNote: 'Absolute Werte live aus den quality_effects (Qualität 0–1000): multiplikativ = Basis × Faktor, additiv = Basis + Wert.',
-    simIdxNote: 'kein absoluter Basiswert in den Daten — 100 = Standard-Item (Faktor 1,0).',
+    simNote: 'Die Werte folgen der Qualität der Zutaten (0–1000), je nach Wert als Faktor auf den Grundwert oder als Zuschlag.',
+    simIdxNote: 'ohne festen Grundwert, 100 steht für das Standard-Item.',
     itemStats: 'Item-Werte', missions: 'Missionen (Bezugsquelle)',
     missionHint: 'Mission anklicken → alle Blueprints, die sie droppen kann.',
     missionPoolLabel: 'Missions-Pool', poolIntro: 'Alle Blueprints, die diese Mission droppen kann — Blueprint anklicken für Details.',
@@ -129,8 +130,8 @@ const JS_T = {
   en: {
     craftTime: 'Craft time', tier: 'Tier', addPlan: 'Add to planner', ingredients: 'Ingredients',
     minQ: 'min. Q', quality: 'Quality', simOut: 'Simulated output stats',
-    simNote: 'Absolute values computed live from quality_effects (quality 0–1000): multiplicative = base × factor, additive = base + value.',
-    simIdxNote: 'no absolute base value in the data — 100 = standard item (factor 1.0).',
+    simNote: 'Values follow ingredient quality (0–1000), depending on the stat as a factor on the base value or as an added bonus.',
+    simIdxNote: 'no fixed base value, 100 stands for the standard item.',
     itemStats: 'Item stats', missions: 'Missions (source)',
     missionHint: 'Click a mission → all blueprints it can drop.',
     missionPoolLabel: 'Mission pool', poolIntro: 'All blueprints this mission can drop — click a blueprint for details.',
@@ -164,7 +165,7 @@ const JS_T = {
 
 // -- Kategorie-Baum aus den Daten --
 const tree: Record<string, Set<string>> = {};
-for (const b of DB.blueprints) {
+for (const b of blueprints) {
   const p = (b.category || '').split(' / ');
   const top = p[0] || '—';
   const sub = p[1] || '';
@@ -178,8 +179,12 @@ const cats = Object.keys(tree).sort((a, b) => {
 const catList = cats.map((c) => ({
   top: c,
   subs: [...tree[c]].filter(Boolean).sort(),
-  count: DB.blueprints.filter((b) => (b.category || '').split(' / ')[0] === c).length,
-}));
+  // Gezaehlt wird, was die Seite zeigt (blueprints aus lib/crafting, ohne
+  // die Rezepte ohne Item): die Zahl am Filter stimmt dann mit den Karten
+  // ueberein, die er uebrig laesst (14.11.2026: „Vehiclegear 480“ am Filter,
+  // 475 Karten).
+  count: blueprints.filter((b) => (b.category || '').split(' / ')[0] === c).length,
+})).filter((c) => c.count > 0);
 
 // -- Ressourcen, die tatsächlich als Zutat vorkommen --
 const resSet = new Set<string>();
@@ -266,7 +271,13 @@ const gradeList = Object.keys(gradeCounts).sort();
 
 const snapDate = DB.snapshot_date;
 const version = DB.version;
-const total = DB.counts.blueprints;
+// Zaehlzeile ueber der Liste: „gezeigt / alle Karten“. Bis 14.11.2026 stand
+// hinter dem Schraegstrich der Spielbestand (DB.counts.blueprints, 1634), die
+// Liste traegt aber nur die Rezepte mit Item (1626): ohne jeden Filter las
+// sich die Zeile wie gefiltert. Beide Zahlen in der Schreibweise der Sprache,
+// wie crafting-app.js die erste nach jedem Filtern schreibt.
+const total = blueprints.length;
+const totalText = total.toLocaleString(lang === 'de' ? 'de-DE' : 'en-US');
 // Basis-Effizienz des generischen Dismantle-Blueprints (GlobalGenericDismantle)
 // aus den Spieldaten -> Default des Ausbeute-Sliders. Fallback 0.5 nur, falls
 // eine ältere DB das Feld noch nicht führt. Zur Build-Zeit ins Markup gerendert
@@ -286,22 +297,25 @@ let craftAppVer = 'x';
 try {
   craftAppVer = createHash('sha1').update(readFileSync('assets/crafting-app.js')).digest('hex').slice(0, 8);
 } catch { /* dev-Fallback */ }
-// Werkbank-Prototyp: keine Messmarken. assets/ereignisse.js beachtet sie nur
-// auf den Werkzeugseiten (WERKZEUG_SEITEN), die Vorschau-Seite gehoert nicht
-// dazu, und verify:zaehler haelt tote Marken fuer FEHLER. Gemessen wird erst,
-// was abgenommen ist.
-const evF = (name: string) => (werkbank ? undefined : name);
-// Werkbank-Prototyp: Texte der leeren Mitte.
+// Werkbank: Texte der leeren Mitte.
 const WB = lang === 'de'
   ? { emptyKicker: 'Werkbank', emptyTitle: 'Rezept wählen',
-      emptyText: 'Links einen Blueprint anklicken: Zutaten, Qualität und Werte erscheinen hier. Mit ＋ kommt er in den Planer.' }
+      emptyText: 'Links einen Blueprint anklicken: Zutaten, Qualität und Werte erscheinen hier. Mit ＋ kommt er in den Planer.',
+      tabDb: 'Blueprints', tabCalc: 'Zerlegen',
+      noneTitle: 'Nichts gefunden', noneReset: 'Suche und Filter zurücksetzen' }
   : { emptyKicker: 'Workbench', emptyTitle: 'Pick a recipe',
-      emptyText: 'Click a blueprint on the left: ingredients, quality and stats show up here. ＋ adds it to the planner.' };
+      emptyText: 'Click a blueprint on the left: ingredients, quality and stats show up here. ＋ adds it to the planner.',
+      tabDb: 'Blueprints', tabCalc: 'Dismantle',
+      noneTitle: 'Nothing found', noneReset: 'Clear search and filters' };
 // Werkbank: Texte, die nur ihr Skriptzweig braucht (Kennwerte im Rezeptkopf,
 // Namen der Planer-Knoepfe fuer Vorleser).
 const WB_JS = lang === 'de'
-  ? { missions: 'Missionen', more: 'Eins mehr', less: 'Eins weniger', remove: 'Aus dem Planer nehmen', planCount: 'Stück im Planer' }
-  : { missions: 'Missions', more: 'One more', less: 'One less', remove: 'Remove from planner', planCount: 'items in the planner' };
+  ? { missions: 'Missionen', more: 'Eins mehr', less: 'Eins weniger', remove: 'Aus dem Planer nehmen', planCount: 'Stück im Planer',
+      itemSheet: 'Item-Datenblatt', dismantle: 'Zerlege-Rechner', show: '{n} anzeigen', showNone: 'Keine Treffer',
+      poolTitle: 'Blueprints dieser Mission', poolHint: 'Ein Klick öffnet das Rezept.', minQ: 'ab Qualität' }
+  : { missions: 'Missions', more: 'One more', less: 'One less', remove: 'Remove from planner', planCount: 'items in the planner',
+      itemSheet: 'Item data sheet', dismantle: 'Dismantle calculator', show: 'Show {n}', showNone: 'No matches',
+      poolTitle: 'Blueprints from this mission', poolHint: 'Click one to open its recipe.', minQ: 'quality from' };
 const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 ---
 
@@ -703,10 +717,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
 <section class:list={['cdb', werkbank && 'cdb--wb wb-auftakt']} id="cdb">
   <!-- Tab Switcher -->
   <div class="cdb-tabs">
-    <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{S.calcTabDb}</button>
-    <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{S.calcTabCalc}</button>
-    {/* Werkbank: Prototyp-Zeile in der Reiterzeile (crafting.astro). */}
-    <slot name="kopf" />
+    {/* Werkbank: am Telefon stehen beide Reiter in einer Zeile, dafuer mit
+        dem kurzen Namen (wb-tk); der lange (wb-tl) bleibt ab 821 px. Es ist
+        immer nur einer von beiden dargestellt, Vorleser hoeren ihn einmal. */}
+    <button class="cdb-tab-btn active" data-tab="db"><Fragment set:html={ICON_BLUEPRINT} />{werkbank ? (<Fragment><span class="wb-tl">{S.calcTabDb}</span><span class="wb-tk">{WB.tabDb}</span></Fragment>) : S.calcTabDb}</button>
+    <button class="cdb-tab-btn" data-tab="dismantle"><Fragment set:html={ICON_DISMANTLE} />{werkbank ? (<Fragment><span class="wb-tl">{S.calcTabCalc}</span><span class="wb-tk">{WB.tabCalc}</span></Fragment>) : S.calcTabCalc}</button>
   </div>
 
   <div id="cdb-tab-db-content">
@@ -715,11 +730,11 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div class="cdb-bar">
     <button class="cdb-filter-toggle" id="cdb-filter-toggle" aria-expanded="false" aria-controls="cdb-sidebar" data-offcanvas-toggle="cdb-sidebar" data-help={h('crafting.ctl.filter')}>{!werkbank && '☰ '}{S.filterBtn}</button>
     <div class="cdb-search-wrap" data-help={h('crafting.ctl.search')}>
-      <input type="search" id="cdb-search" data-ev-filter={evF('suche')} class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
+      <input type="search" id="cdb-search" data-ev-filter="suche" class="cdb-search" placeholder={S.toolbarSearch} aria-label={S.toolbarSearch} autocomplete="off" />
     </div>
     <label class="cdb-sort" data-help={h('crafting.ctl.sort')}>
       <span class="cdb-sr">{S.sort}</span>
-      <select id="cdb-sort" data-ev-filter={evF('sortierung')}>
+      <select id="cdb-sort" data-ev-filter="sortierung">
         <option value="name">{S.sortName}</option>
         <option value="name-desc">{S.sortNameDesc}</option>
         <option value="time-asc">{S.sortTimeAsc}</option>
@@ -757,7 +772,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <button id="cdb-filter-close" class="cdb-x" aria-label={S.close}>✕</button>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')} data-ev-filter={evF('kategorie')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.category')} data-ev-filter="kategorie">
         <h4>{S.category}</h4>
         {catList.map((c) => (
           <details class="cdb-cat-details">
@@ -779,7 +794,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')} data-ev-filter={evF('ressource')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.resource')} data-ev-filter="ressource">
         <h4>{S.resource}</h4>
         <div class="cdb-res-search-wrap">
           <input type="text" id="cdb-res-search" class="cdb-res-search" placeholder={S.resSearch} aria-label={S.resSearch} autocomplete="off" />
@@ -794,7 +809,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         </div>
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')} data-ev-filter={evF('groesse')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.size')} data-ev-filter="groesse">
         <h4>{it('specSize')}</h4>
         {sizeList.map((sz) => (
           <label class="cdb-check">
@@ -804,7 +819,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')} data-ev-filter={evF('qualitaet')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.grade')} data-ev-filter="qualitaet">
         <h4>{it('specGrade')}</h4>
         {gradeList.map((gr) => (
           <label class="cdb-check">
@@ -814,22 +829,31 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         ))}
       </div>
 
-      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')} data-ev-filter={evF('merkmal')}>
+      <div class="cdb-fgroup" data-help={h('crafting.ctl.flags')} data-ev-filter="merkmal">
         <label class="cdb-check"><input type="checkbox" id="cdb-mission" /><span>{S.missionOnly}</span></label>
         <label class="cdb-check"><input type="checkbox" id="cdb-owned" /><span>{S.ownedOnly}</span></label>
       </div>
 
-      <button id="cdb-reset" class="cdb-reset">{S.reset}</button>
+      {/* Werkbank: Zuruecksetzen und „N anzeigen“ stehen als Fuss am unteren
+          Rand der Schublade, auch wenn die Gruppen darueber rollen. Der
+          zweite Knopf schliesst sie (crafting-app.js schreibt die Zahl). */}
+      {werkbank ? (
+        <div class="cdb-side-ft">
+          <button id="cdb-reset" class="cdb-reset">{S.reset}</button>
+          <button type="button" id="cdb-filter-show" class="cdb-show">{WB_JS.show.replace('{n}', totalText)}</button>
+        </div>
+      ) : (
+        <button id="cdb-reset" class="cdb-reset">{S.reset}</button>
+      )}
     </aside>
 
     <!-- Results -->
     <div class="cdb-main">
       <div class="cdb-count-row">
-        <span><b id="cdb-count">{total}</b> / {total} {S.results}</span>
+        <span><b id="cdb-count">{totalText}</b> / {totalText} {S.results}</span>
       </div>
-      {/* data-ev-treffer: Messereignis treffer-offen (assets/ereignisse.js), nur
-          auf dem Werkzeug selbst — die Werkbank ist keine gezaehlte Werkzeugseite. */}
-      <div class="cdb-grid vb-scrollbox" id="cdb-grid" data-ev-treffer={werkbank ? undefined : ''}>
+      {/* data-ev-treffer: Messereignis treffer-offen (assets/ereignisse.js). */}
+      <div class="cdb-grid vb-scrollbox" id="cdb-grid" data-ev-treffer>
         {/* HTML-Diät (SEO/Ladegewicht): 1534 Karten × ~340 Zeichen tote Fracht
             waren ~0,5 MB pro Sprachseite. Filter-Metadaten (name/cat/sub/res/
             mis/ings) stehen sichtbar in der Karte bzw. in der DB — crafting-app.js
@@ -894,7 +918,18 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
           </article>
         ))}
       </div>
-      <p class="cdb-empty" id="cdb-empty" hidden>{S.empty}</p>
+      {/* Werkbank: die leere Liste nennt den Ausweg gleich mit (Suche und
+          Filter zuruecksetzen); crafting-app.js drueckt dafuer #cdb-reset. */}
+      {werkbank ? (
+        <div class="cdb-empty cdb-empty--wb" id="cdb-empty" hidden>
+          <span class="cdb-empty__i" aria-hidden="true"></span>
+          <p class="cdb-empty__t">{WB.noneTitle}</p>
+          <p class="cdb-empty__x">{S.empty}</p>
+          <button type="button" class="cdb-empty__r" id="cdb-empty-reset">{WB.noneReset}</button>
+        </div>
+      ) : (
+        <p class="cdb-empty" id="cdb-empty" hidden>{S.empty}</p>
+      )}
     </div>
   </div>
   </div> <!-- End #cdb-tab-db-content -->
@@ -903,7 +938,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
   <div id="cdb-tab-dismantle-content" hidden>
     <div class="calc-layout">
       <!-- Inputs sidebar -->
-      <aside class="calc-sidebar" data-ev-rechnung={werkbank ? undefined : ''}>
+      <aside class="calc-sidebar" data-ev-rechnung>
         <h4>{S.calcSelectMats}</h4>
         
         <!-- Material search & list -->
@@ -950,7 +985,7 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
         <p class="calc-method" style="margin:-.6rem 0 1rem;font-size:var(--fs-6);color:var(--muted,#9ba2ae);line-height:1.4;">{S.calcMethod}</p>
 
         <div class="calc-search-row">
-          <input type="search" id="calc-item-search" data-ev-filter={evF('suche')} class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
+          <input type="search" id="calc-item-search" data-ev-filter="suche" class="cdb-search" placeholder={S.calcItemSearch} aria-label={S.calcItemSearch} autocomplete="off" />
         </div>
 
         {/* Ehrlichkeits-Hinweis: nur sichtbar, wenn das Client-JS feststellt,
@@ -975,7 +1010,10 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       den Hinweis unten (Klasse is-leer statt hidden: am Schreibtisch ist sie
       immer zu sehen). Am Telefon ist sie das Fenster der bisherigen Seite. */}
   <div class:list={['cdb-modal', werkbank && 'is-leer']} id="cdb-modal" hidden={!werkbank}>
-    <div class="cdb-modal__box" role="dialog" aria-modal="true">
+    {/* data-ev-fenster: das Rezept ist das Fenster zum Eintrag, auch wenn es
+        am Schreibtisch als Mitte im Fluss steht (role="region"); Links darin
+        zaehlen wie im Fenster nicht als geoeffneter Treffer (assets/ereignisse.js). */}
+    <div class="cdb-modal__box" role="dialog" aria-modal="true" data-ev-fenster>
       {/* Siehe MiningApp: Zurueck-Pfeil nur bei nachgewiesener Herkunft von
           aussen (Deep-Link ?bp= / ?res=), sonst waere er ein zweites X. */}
       <button class="cdb-modal__back" data-modal-back data-back-aria={tBack("nav.back.aria")} hidden>
@@ -1021,8 +1059,13 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <h4>{S.shoppingList}</h4>
       <div id="cdb-plan-shop" class="cdb-plan-shop"></div>
       {/* Zweite Statusanzeige: im Planer sieht man den Speicherort dort, wo die
-          Liste steht — nicht nur oben in der Toolbar. */}
-      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle}>
+          Liste steht — nicht nur oben in der Toolbar.
+          Werkbank: dort ist sie seit der sechsten Runde die eine Anzeige (die
+          in der Leiste ist ausgeblendet, unter 1180 px bis auf den Fehlerfall)
+          und sagt Aenderungen deshalb selbst an. Auf der bisherigen Seite
+          bleibt das bei der Leiste, sonst hoerte man jede Aenderung bei
+          offener Schublade doppelt (Hinweis von CodeRabbit an #367). */}
+      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle} aria-live={werkbank ? 'polite' : undefined}>
         <span class="cdb-sync__dot" aria-hidden="true"></span>
         <span class="cdb-sync__txt">{S.syncLocal}</span>
         <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>

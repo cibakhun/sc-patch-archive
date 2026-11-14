@@ -29,7 +29,16 @@
          Datei ist; ein Fenster OHNE Adresse (die Halle laedt keine zweite
          Seite, solange niemand im Leitstand steht) mit Namen und Titel;
          Zurueck-Pfeil, Suche, „eigener Tab“ und der Text fuer den Fall,
-         dass sich die Seite nicht rahmen laesst.
+         dass sich die Seite nicht rahmen laesst. Dazu die Anmeldung
+         (seit 14.11.2026): die Blende #hgx-term-login, anfangs verborgen,
+         mit Marke, Schritt, Namen und allen Worten in der Sprache der
+         Seite, und in der Leiste #hgx-term-who mit beiden Zielen (Konto,
+         Anmeldung) in dist/, eigenem Tab und beiden Namen fuer Vorleser.
+         Seit der zweiten Runde (14.11.2026) dazu: die Leinwand fuer das
+         Sperrbild, die Karte mit Gruss und Faktenzeilen samt ihren
+         Worten ({n} in der Mehrzahl der Flotte), die Wortmarke als
+         Schrift fuer den Fall ohne Bild, der Hinweis auf den Klick und
+         die beiden Kantenlinien der Blende.
      [3] Reiter: mindestens MIN_BEREICHE je Seite, Schluessel einmalig,
          jeder zielt ins Fenster, fuehrt auf eine Seite, die in dist/
          liegt, in der Sprache der Hangarseite, bleibt im Fenster
@@ -41,23 +50,63 @@
          und nie in der Telefonansicht; Links zum Hangar, zum Konto und nach
          draussen verlassen das Fenster, Seiten der Website bleiben; das
          Stilblatt fuer die Seite im Fenster nimmt Kopfzeile und
-         Vorschau-Marke heraus.
+         Vorschau-Marke heraus. termIdent macht aus der Profilzeile des
+         Kontos, wer vor dem Terminal sitzt, und laesst nichts durch, was
+         nicht in Stil oder Adresse gehoert; die Anmeldung bleibt kurz
+         (TERM_LOGIN). termFakten macht aus dem, was die Seite weiss
+         (Flotte, Schiff auf dem Feld, Beitritt, Halle), hoechstens drei
+         Zeilen der Karte, in den Worten und der Zahlschreibung der
+         Seite; leitWerVon laesst aufs Glas der Halle nur Namen, Zeichen
+         und eine Farbe #rrggbb; leitFenster zeichnet das Sperrbild in
+         jedes Fenster, ohne ueber dessen Rand zu gehen, mit Uhr und
+         Sitzung, wenn es sie bekommt (gezeichnet auf eine mitschreibende
+         Leinwand).
      [5] Geometrie der Buehne: Fuer viele Fenstergroessen und freie
-         Rechtecke steht die Kamera aus leitFit so, dass der Schirm im
-         Bild genau das gemeldete Rechteck ist (nachgerechnet mit der
-         Zentralprojektion), im freien Stueck liegt, der Bildwinkel unter
-         LEIT_FOV_MAX bleibt (auch in hohen, schmalen Fenstern, wo der
-         Schirm dafuer in Metern kleiner wird) und die Kamera im Raum des
-         Leitstands steht
+         Rechtecke steht die Kamera aus leitFit so, dass das Fenster der
+         Seite im Bild genau das gemeldete Rechteck ist (nachgerechnet mit
+         der Zentralprojektion), im freien Stueck liegt, auf dem Glas des
+         Monitors bleibt (HALL_LEIT.schirm ohne Saum; so hoch wie das
+         Glas, solange der Bildwinkel nicht begrenzt), der Bildwinkel unter
+         LEIT_FOV_MAX bleibt (auch in hohen, schmalen Fenstern, wo das
+         Fenster dafuer in Metern kleiner wird) und die Kamera im Raum des
+         Leitstands steht, suedlich des Pults
          (HALL_LEIT.raum, mit Abstand zu Glas, Wand, Boden und Decke);
          beide Enden des erlaubten Abstands (HALL_LEIT.d) liegen im Raum.
      [6] Naht: Die Buehne liefert place, canPlace und onPlace, der
          Controller ruft sie und laedt das Terminal ueber data-js; der
          Zustand ?ort=leit ueberlebt die Adresse, steht nicht im geteilten
          Link und gilt nicht fuer Bodenfahrzeuge.
+         Die Buehne setzt das Modell der Halle mit hallOrigin
+         (loadRealHall): Damit rechnet [8].
+         Sperrbild (zweite Runde): Monitor und Blende zeichnen beide mit
+         leitFenster, das Terminal meldet der Buehne die Sitzung
+         (setTerminal) und fragt die Seite nach den Fakten der Karte; im
+         Stil der Seite oeffnet sich die Blende ueber eine einzige Zahl
+         (--hgx-auf, als Prozentwert angemeldet) in der Zeit, nach der das
+         Modul sie wegnimmt (TERM_LOGIN.aus), und die Wortmarke als Schrift
+         steht, wo sie das Bild zeigt (LEIT_WORT).
      [7] Rahmen: Dieser Bau erlaubt der eigenen Seite das Rahmen
          (dist/_csp/, scripts/lib/rahmen.mjs). Sonst bliebe der Schirm
          leer; audit:csp prueft dieselben Dateien in beide Richtungen.
+     [8] Monitor im Modell (seit 14.11.2026): Das Terminal liegt auf dem
+         Glas des mittleren Monitors am Pult (Krisz: „dass unser
+         bildschirmscreen wirklich auf einem bildschirm drauf ist der in
+         den control raum sitzt“). Die ausgelieferte Einrichtung der Halle
+         (die Datei, die die Seite der Buehne nennt: hg-stage,
+         opts.hall.furniture) traegt die Monitore des Pults in der
+         Groesse und an der Stelle, die HALL_LEIT.bank nennt, und darin
+         eine nach Sueden gewandte Glasflaeche genau dort, wo
+         HALL_LEIT.schirm sie nennt. Die Stelle ist absolut gemeint: Der
+         Ursprung der Halle im Modell kommt aus der Buehne (hallOrigin:
+         Raum, Schiffsfeld, Bodenhoehe aus hg-stage), nicht aus den
+         Monitoren selbst. Sonst schwebte das Bild neben dem Monitor,
+         oder es staenden wieder zwei Schirme hintereinander. Nicht
+         nachgerechnet: was die Buehne nach dem Laden noch bewegt
+         (Feldmitte, Zuwachs der Halle); das Pult steht ausserhalb der
+         Streifen der Feldmitte, und der Zuwachs traegt Monitor und Bild
+         gemeinsam (leitAt). Die Marke der Blende
+         (CSS der Seite) steht, wo der Monitor sie in Ruhe zeigt
+         (LEIT_MARKE).
 
    Selbstauskunft mit Klinken (nur nach oben; nach unten nur per Commit
    mit Ursache). Kein git, kein Netz, kein Kindprozess.
@@ -81,6 +130,61 @@
      d  dist/_csp/frame-ancestors.conf auf 'none' gestellt
    Die Meldungen stehen in der PR, die dieses Tor eingefuehrt hat.
 
+   VORGEFUEHRT ROT (14.11.2026, Terminal auf dem Monitor und Anmeldung),
+   je ein Eingriff am gebauten dist/:
+     e  dist/de/hangar.html: der Blende das hidden genommen; data-l-gast
+        geleert; dem Link der Leiste data-dash auf /de/konto.html gebogen
+        (im ersten Lauf GRUEN: der Eingriff traf das data-dash der
+        Kopfzeile der Seite, nicht das des Terminals; am richtigen Link
+        rot), dann auf /de/schiffe.html (eine Seite, die im Fenster
+        bliebe); in data-a-user das {name} gestrichen
+     f  dist/assets/hangar-terminal.js: in termIdent die Pruefung auf
+        https gestrichen; TERM_LOGIN.hold auf 6000
+     g  dist/assets/hangar-viewer.js: HALL_LEIT.schirm.z auf 58.5 (der
+        alte Schirm vor dem Pult); schirm.b auf 3.4; in leitFit den Saum
+        gestrichen; LEIT_MARKE.y auf 0.5
+     h  Nach dem Review der PR (#365): [8] leitete den Ursprung der Halle
+        aus der Mitte der Monitore ab und mass das Glas damit nur gegen
+        das Pult. Vorher GRUEN, seither rot: dist/assets/hangar-viewer.js
+        HALL_SHIFT.field 4 → 0 (Halle 4 m weiter in x); beide Seiten
+        floor 1 → 2 (Halle 1 m tiefer). Dazu: bank und schirm gemeinsam
+        um 1 m in x versetzt; in loadRealHall die Hoehe wieder aus
+        h.floor gesetzt ([6]); floor nur in dist/de/hangar.html auf 2;
+        die Halle der Seiten umbenannt; floor aus hg-stage gestrichen
+   Die Meldungen stehen in der PR dieses Umbaus.
+
+   VORGEFUEHRT ROT (14.11.2026, zweite Runde: Sperrbild, Karte, Blende),
+   45 Eingriffe am gebauten dist/, jeder fuer sich, alle rot:
+     i  dist/de/hangar.html ([2]): data-f-seit geleert; {n} aus
+        data-f-schiffn; die Leinwand umbenannt; Wortmarke als Schrift
+        und Hinweis auf den Klick geleert; die untere Kantenlinie
+        entfernt; die Liste der Fakten umbenannt
+     j  dist/assets/hangar-terminal.js ([4] termFakten, TERM_LOGIN): ein
+        Beitritt vor 2024 und einer in der Zukunft zugelassen; Namen 80
+        statt 48 Zeichen; jede Zahl als Anzahl; die Anzahl ohne
+        Zahlschreibung; immer deutsche Schreibung; die Halle trotz
+        Beitritt; wink 9000
+     k  dist/assets/hangar-viewer.js ([4] leitWerVon, leitFenster): die
+        Farbe ungeprueft; ein Name nur aus @ ohne Ersatzzeichen (wirft);
+        Name 90 Zeichen; das Bild ohne Beschnitt; die Uhr immer, die Uhr
+        nie; der Name der Sitzung ungekuerzt; die Marke in der Mitte der
+        Hoehe; die Wortmarke tiefer; restore gestrichen; die Sitzung ohne
+        Zeichen
+     l  Stil ([6]): die Blende 0,5 s statt TERM_LOGIN.aus, umgekehrt aus
+        auf 500; @property gestrichen; die Kantenlinie mit eigener Lage;
+        der Ausschnitt mit einer festen Zahl (im ersten Lauf GRUEN: die
+        Pruefung suchte nur irgendein var(--hgx-auf) im Ausschnitt; seither
+        verlangt sie das ganze Vieleck); die Wortmarke als Schrift 6 cqw
+        unter der Marke und mit anderer Sperrung
+     m  Naht ([6]): leitDraw ohne leitFenster; setTerminal ohne
+        leitWerVon; das Neuzeichnen zur Minute gestrichen; der Import der
+        Buehne ohne catch; die Blende ueber die halbe Leinwand; der
+        Controller ohne fakten und ohne wer; das Terminal ohne hooks.wer,
+        hooks.bild, hooks.fakten
+     n  Klinken: der englischen Seite ein Wort der Karte genommen (10
+        Karten statt 20); leitFenster nicht mehr exportiert (0 Proben)
+   Die Meldungen stehen in der PR der zweiten Runde.
+
      node scripts/verify-hangar-orte.mjs
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -98,6 +202,10 @@ const MIN_BEREICHE = 7;    // Reiter des Terminals je Seite (13.11.2026: 7)
 const MIN_FIT_PROBEN = 600; // Stellungen der Kamera, die [5] nachrechnet (13.11.2026: 432, mit hohen Fenstern 624)
 const MIN_FIT_ENG = 60;     // davon mit begrenztem Bildwinkel: dort schrumpft der Schirm (13.11.2026: 66)
 const MIN_WEG_PROBEN = 14;  // Links, die [4] durch termRoute schickt
+const MIN_WER_PROBEN = 11;  // Profilzeilen, die [4] durch termIdent schickt (14.11.2026: 11)
+const MIN_GLAS_HALLEN = 1;  // Hallen, deren Monitor [8] im Modell nachmisst (14.11.2026: 1)
+const MIN_FAKT_PROBEN = 20;  // Karten der Anmeldung, die [4] durch termFakten schickt (14.11.2026: 10 je Seite)
+const MIN_BILD_PROBEN = 20;  // Namen fuer das Glas (leitWerVon) und gezeichnete Sperrbilder (leitFenster) in [4] (14.11.2026: 8 + 12)
 
 const fehler = [];
 const fail = (m) => fehler.push(m);
@@ -182,9 +290,41 @@ for (const page of PAGES) {
   if (load && !wert(load, 'data-fail')?.trim()) fail(`[2] ${page.file}: #hgx-term-load ohne data-fail: laesst sich die Seite nicht rahmen, stuende dort fuer immer „Seite lädt“`);
   const back = /<button[^>]*\bid="hgx-term-back"[^>]*>/.exec(sec)?.[0] ?? '';
   if (back && !wert(back, 'aria-label')?.trim()) fail(`[2] ${page.file}: der Zurueck-Pfeil hat keinen Namen`);
+  // Anmeldung: die Blende und der Platz in der Leiste
+  const blende = /<div[^>]*\bid="hgx-term-login"[^>]*>/.exec(sec)?.[0];
+  if (!blende) fail(`[2] ${page.file}: die Blende der Anmeldung (#hgx-term-login) fehlt im Terminal`);
+  else {
+    if (!hat(blende, 'hidden')) fail(`[2] ${page.file}: #hgx-term-login ist nicht anfangs verborgen — die Blende laege ueber der Seite, bis das Modul sie zum ersten Mal schliesst`);
+    if (wert(blende, 'aria-hidden') !== 'true') fail(`[2] ${page.file}: #hgx-term-login ohne aria-hidden="true": Vorleser laesen die Begruessung bei jedem Hinsetzen vor, den Namen nennt schon die Leiste`);
+    for (const n of ['data-l-auth', 'data-l-user', 'data-l-guest', 'data-l-gast', 'data-l-gastsub']) if (!wert(blende, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-login ohne ${n}: der Schritt der Anmeldung stuende ohne Worte da`);
+    for (const [id, was] of [['hgx-term-lstep', 'der Schritt'], ['hgx-term-lname', 'der Name'], ['hgx-term-lsub', 'die Zeile unter dem Namen']]) if (!sec.includes(`id="${id}"`)) fail(`[2] ${page.file}: ${was} der Anmeldung (#${id}) fehlt`);
+    if (!/class="hgx-term__mark"[^>]*>\s*<svg/.test(sec)) fail(`[2] ${page.file}: die Blende traegt die Marke nicht (.hgx-term__mark mit svg): der Uebergang vom Monitor der Halle spraenge`);
+    // zweite Runde: Sperrbild, Karte mit Gruss und Fakten, Hinweis, Kantenlinien
+    for (const n of ['data-l-hallo', 'data-l-zurueck', 'data-f-flotte', 'data-f-schiff1', 'data-f-schiffn', 'data-f-leer', 'data-f-feld', 'data-f-hangar', 'data-f-seit']) if (!wert(blende, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-login ohne ${n}: der Karte der Anmeldung fehlte ein Wort`);
+    if (!(wert(blende, 'data-f-schiffn') ?? '').includes('{n}')) fail(`[2] ${page.file}: #hgx-term-login data-f-schiffn nennt den Platz fuer die Zahl nicht ({n}): die Flotte stuende ohne Anzahl auf der Karte`);
+    if (!/<canvas[^>]*\bid="hgx-term-lbild"/.test(sec)) fail(`[2] ${page.file}: die Leinwand fuer das Sperrbild (canvas#hgx-term-lbild) fehlt: die Blende zeigte ein anderes Bild als der Monitor der Halle`);
+    for (const [id, was] of [['hgx-term-lid', 'die Karte'], ['hgx-term-lhallo', 'der Gruss'], ['hgx-term-lfakt', 'die Liste der Fakten']]) if (!sec.includes(`id="${id}"`)) fail(`[2] ${page.file}: ${was} der Anmeldung (#${id}) fehlt`);
+    if (!text(/<b[^>]*class="hgx-term__wort"[^>]*>([\s\S]*?)<\/b>/.exec(sec)?.[1] ?? '')) fail(`[2] ${page.file}: die Wortmarke als Schrift (.hgx-term__wort) fehlt: ohne Buehne stuende die Blende ohne Namen der Seite da`);
+    if (!text(/<p[^>]*class="hgx-term__lfuss"[^>]*>([\s\S]*?)<\/p>/.exec(sec)?.[1] ?? '')) fail(`[2] ${page.file}: der Hinweis, dass ein Klick die Anmeldung ueberspringt (.hgx-term__lfuss), fehlt`);
+    for (const k of ['o', 'u']) if (!sec.includes(`hgx-term__lkante--${k}`)) fail(`[2] ${page.file}: die Kantenlinie der Blende (.hgx-term__lkante--${k}) fehlt`);
+  }
+  const wer = /<a[^>]*\bid="hgx-term-who"[^>]*>/.exec(sec)?.[0];
+  if (!wer) fail(`[2] ${page.file}: in der Leiste fehlt, wer angemeldet ist (#hgx-term-who)`);
+  else {
+    if (wert(wer, 'target') !== '_blank') fail(`[2] ${page.file}: #hgx-term-who oeffnet keinen eigenen Tab — Konto und Anmeldung lassen sich nicht rahmen, die Halle ginge verloren`);
+    for (const n of ['data-login', 'data-dash']) {
+      const ziel = wert(wer, n) ?? '';
+      if (!ziel.startsWith(page.de ? '/de/' : '/') || (!page.de && ziel.startsWith('/de/'))) fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" liegt nicht in der Sprache der Seite`);
+      else if (!existsSync(join(DIST, ziel.replace(/[?#].*$/, '')))) fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" fuehrt auf keine Seite in dist/`);
+      else if (term && term.termRoute(ziel, `https://x.test/${page.file}`).art !== 'tab') fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" gilt dem Terminal nicht als Ziel fuer einen eigenen Tab`);
+    }
+    if (wert(wer, 'href') !== wert(wer, 'data-login')) fail(`[2] ${page.file}: #hgx-term-who fuehrt ohne Skript nicht zur Anmeldung (href ist nicht data-login)`);
+    for (const n of ['data-l-login', 'data-l-acct', 'data-a-guest', 'data-a-user', 'aria-label']) if (!wert(wer, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-who ohne ${n}`);
+    if (!(wert(wer, 'data-a-user') ?? '').includes('{name}')) fail(`[2] ${page.file}: #hgx-term-who data-a-user nennt den Platz fuer den Namen nicht ({name}): Vorleser erfuehren nicht, wer angemeldet ist`);
+  }
   kaesten++;
 }
-say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal, Modulversion ${termV || '—'}`);
+say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal und Anmeldung, Modulversion ${termV || '—'}`);
 
 /* ---------- [3] Reiter ---------- */
 say('[3] Reiter: Ziele in dist/, in der Sprache der Seite, bleiben im Fenster, markieren sich selbst');
@@ -245,7 +385,7 @@ if (term) {
   }
   const hier = 'https://probe.invalid/de/hangar.html?ort=leit';
   const WEGE = [
-    ['/de/schiffe/aegs-gladius.html', 'innen'], ['/items.html#waffen', 'innen'], ['/de/topics/crafting-werkbank.html?q=x', 'innen'],
+    ['/de/schiffe/aegs-gladius.html', 'innen'], ['/items.html#waffen', 'innen'], ['/de/topics/crafting.html?q=x', 'innen'],
     ['/de/archiv.html', 'innen'], ['mailto:hallo@example.org', 'innen'], ['/de/support.html', 'innen'],
     ['/de/hangar.html?ship=anvl-arrow', 'hangar'], ['/hangar.html', 'hangar'], ['https://probe.invalid/hangar.html?ship=x', 'hangar'],
     ['/de/hangar-loadout.html?l=abc', 'tab'], ['/hangar-bay/aegs-gladius', 'tab'], ['/de/account.html', 'tab'], ['/account/profil.html', 'tab'],
@@ -278,10 +418,139 @@ if (term) {
   if (!/\[data-scs-boot\]/.test(String(termSrc ?? '')) || !/data-scs-open/.test(String(termSrc ?? ''))) fail('[4] das Terminal oeffnet die Suche nicht mehr ueber data-scs-boot (Datenseiten) und data-scs-open (uebrige Seiten)');
 }
 if (wegProben < MIN_WEG_PROBEN) fail(`[4] nur ${wegProben} Wege geprueft, Klinke ${MIN_WEG_PROBEN}`);
-say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN})`);
+// Anmeldung: wer vor dem Terminal sitzt, und wie lange die Blende steht
+let werProben = 0;
+if (term) {
+  const { termIdent, TERM_LOGIN } = term;
+  if (typeof termIdent !== 'function' || !TERM_LOGIN) fail('[4] dist/assets/hangar-terminal.js liefert termIdent oder TERM_LOGIN nicht');
+  else {
+    const WER = [
+      [null, null, null, 'ohne Sitzung sitzt ein Gast da'],
+      ['', { display_name: 'Ada' }, null, 'ohne Sitzung sitzt ein Gast da'],
+      ['u1', { display_name: 'Ada', handle: 'ada' }, { name: 'Ada', sub: '@ada', zeichen: 'A' }, 'der Anzeigename geht vor, das Handle steht darunter'],
+      ['u1', { display_name: '  ', handle: '@@zed' }, { name: '@zed', sub: '', zeichen: 'Z' }, 'ohne Anzeigenamen nennt sich das Konto beim Handle'],
+      ['u1', null, { name: '', sub: '', bild: '', zeichen: '◆', farbe: '#2dd4ff' }, 'ein Konto ohne lesbares Profil bleibt ein Konto'],
+      ['u1', { display_name: 'Bo', avatar_url: 'https://cdn.discordapp.com/a/b.png', avatar_color: '#A1b2C3', avatar_icon: '✦' }, { bild: 'https://cdn.discordapp.com/a/b.png', farbe: '#A1b2C3', zeichen: '✦' }, 'Bild, Farbe und Zeichen des Profils kommen an'],
+      ['u1', { display_name: 'Bo', avatar_url: 'javascript:alert(1)' }, { bild: '' }, 'als Bild gilt nur eine Adresse ueber https'],
+      ['u1', { display_name: 'Bo', avatar_url: 'http://bilder.test/a.png' }, { bild: '' }, 'als Bild gilt nur eine Adresse ueber https'],
+      ['u1', { display_name: 'Bo', avatar_color: 'red;background:url(//x.test)' }, { farbe: '#2dd4ff' }, 'als Farbe gilt nur #rrggbb, sie landet im Stil'],
+      ['u1', { display_name: 'Bo', avatar_icon: 'ABCDEFGH' }, { zeichen: 'ABCD' }, 'das Zeichen bleibt hoechstens vier Zeichen lang'],
+      ['u1', { display_name: 7, handle: {}, avatar_url: [], avatar_color: null, avatar_icon: 0 }, { name: '', bild: '', farbe: '#2dd4ff', zeichen: '◆' }, 'was kein Text ist, zaehlt nicht'],
+    ];
+    for (const [uid, zeile, soll, was] of WER) {
+      werProben++;
+      let ist;
+      try { ist = termIdent(uid, zeile); } catch (e) { fail(`[4] termIdent(${JSON.stringify(uid)}, ${JSON.stringify(zeile)}) wirft (${e.message})`); continue; }
+      if (soll === null ? ist !== null : !ist || Object.entries(soll).some(([k, v]) => ist[k] !== v)) fail(`[4] termIdent(${JSON.stringify(uid)}, ${JSON.stringify(zeile)}) → ${JSON.stringify(ist)}: ${was}`);
+    }
+    // „kurz“ (Krisz): die ganze Blende unter drei Sekunden, beim Wiederkommen unter zwei; die Frist reicht fuer eine langsame Leitung
+    const lang = TERM_LOGIN.auth + TERM_LOGIN.hold + TERM_LOGIN.aus, kurz = (TERM_LOGIN.kurz?.auth ?? NaN) + (TERM_LOGIN.kurz?.hold ?? NaN) + TERM_LOGIN.aus;
+    if (!(lang >= 1200 && lang <= 3000)) fail(`[4] TERM_LOGIN: die Anmeldung dauert ${lang} ms, gedacht sind 1,2 bis 3 s — kuerzer liest niemand den Namen, laenger steht sie der Seite im Weg`);
+    if (!(kurz >= 800 && kurz < lang && kurz <= 2000)) fail(`[4] TERM_LOGIN.kurz: beim Wiederkommen ${kurz} ms, gedacht sind 0,8 bis 2 s und weniger als beim ersten Mal (${lang} ms)`);
+    if (!(TERM_LOGIN.wink >= 1000 && TERM_LOGIN.wink <= 4000)) fail(`[4] TERM_LOGIN.wink ${TERM_LOGIN.wink} ms: der Wink zum Konto nach der Anmeldung als Gast dauert 1 bis 4 s (zweimal 1,1 s im Stil)`);
+    if (!(TERM_LOGIN.frist >= TERM_LOGIN.auth && TERM_LOGIN.frist <= 5000)) fail(`[4] TERM_LOGIN.frist ${TERM_LOGIN.frist} ms: die Antwort des Kontos bekommt mindestens die Dauer des ersten Schritts (${TERM_LOGIN.auth} ms) und haelt die Blende hoechstens 5 s`);
+  }
+}
+if (werProben < MIN_WER_PROBEN) fail(`[4] nur ${werProben} Profilzeilen durch termIdent geschickt, Klinke ${MIN_WER_PROBEN}`);
+// Karte der Anmeldung: was die Seite weiss, in hoechstens drei Zeilen, in den Worten der Seite
+let faktProben = 0;
+if (term) {
+  const { termFakten } = term;
+  if (typeof termFakten !== 'function') fail('[4] dist/assets/hangar-terminal.js liefert termFakten nicht');
+  else for (const page of PAGES) {
+    const blende = /<div[^>]*\bid="hgx-term-login"[^>]*>/.exec(boxOf(page))?.[0] ?? '';
+    const T = Object.fromEntries(Object.entries({ flotte: 'data-f-flotte', schiff1: 'data-f-schiff1', schiffn: 'data-f-schiffn', leer: 'data-f-leer', feld: 'data-f-feld', halle: 'data-f-hangar', seit: 'data-f-seit' }).map(([k, n]) => [k, wert(blende, n) ?? '']));
+    if (Object.values(T).some((v) => !v.trim())) continue; // [2] hat es gemeldet
+    const lang = page.de ? 'de' : 'en', JETZT = Date.UTC(2026, 10, 14), okt = '2026-10-03T09:00:00Z';
+    const viele = T.schiffn.replace('{n}', page.de ? '1.234' : '1,234'), zwei = T.schiffn.replace('{n}', '2');
+    const FAKT = [
+      [{ flotte: 0, schiff: '', halle: 'Halle S' }, '', [[T.flotte, T.leer], [T.halle, 'Halle S']], 'eine leere Flotte heisst so; ohne Beitritt steht die Halle da'],
+      [{ flotte: 1, schiff: 'Gladius', halle: 'Halle S' }, '', [[T.flotte, T.schiff1], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'ein Schiff steht in der Einzahl'],
+      [{ flotte: 1234, schiff: 'Gladius', halle: 'Halle S' }, okt, [[T.flotte, viele], [T.feld, 'Gladius'], [T.seit, page.de ? 'Oktober 2026' : 'October 2026']], 'die Anzahl steht in der Zahlschreibung der Seite, der Beitritt geht vor der Halle'],
+      [{ flotte: 2, schiff: 'Gladius', halle: 'Halle S' }, '2031-01-01T00:00:00Z', [[T.flotte, zwei], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'ein Beitritt in der Zukunft ist keiner'],
+      [{ flotte: 2, schiff: 'Gladius', halle: 'Halle S' }, '2019-05-01T00:00:00Z', [[T.flotte, zwei], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'ein Beitritt vor 2024 ist keiner'],
+      [{ flotte: 2, schiff: 'Gladius', halle: 'Halle S' }, 'gestern', [[T.flotte, zwei], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'was kein Datum ist, ist kein Beitritt'],
+      [{ flotte: -1, schiff: 7, halle: null }, '', [], 'was keine Anzahl und kein Text ist, zaehlt nicht'],
+      [{ flotte: 2.5, schiff: '   ', halle: '' }, '', [], 'eine halbe Anzahl und leere Namen zaehlen nicht'],
+      [{ flotte: '3', schiff: 'x'.repeat(80), halle: 'Halle S' }, '', [[T.feld, 'x'.repeat(48)], [T.halle, 'Halle S']], 'eine Anzahl als Text zaehlt nicht, ein Name bleibt hoechstens 48 Zeichen lang'],
+      [null, okt, [[T.seit, page.de ? 'Oktober 2026' : 'October 2026']], 'ohne Angaben der Seite bleibt der Beitritt'],
+    ];
+    for (const [roh, seit, soll, was] of FAKT) {
+      faktProben++;
+      let ist;
+      try { ist = termFakten(roh, T, seit, lang, JETZT); } catch (e) { fail(`[4] ${page.file}: termFakten(${JSON.stringify(roh)}, …, ${JSON.stringify(seit)}) wirft (${e.message})`); continue; }
+      if (JSON.stringify(ist) !== JSON.stringify(soll)) fail(`[4] ${page.file}: termFakten(${JSON.stringify(roh)}, …, ${JSON.stringify(seit)}) → ${JSON.stringify(ist)} statt ${JSON.stringify(soll)}: ${was}`);
+    }
+    try { if (termFakten(null, null, '', lang, JETZT).length) fail(`[4] ${page.file}: termFakten ohne Worte liefert Zeilen`); } catch (e) { fail(`[4] ${page.file}: termFakten ohne Angaben und Worte wirft (${e.message}): die Karte der Anmeldung bliebe leer stehen`); }
+  }
+}
+if (faktProben < MIN_FAKT_PROBEN) fail(`[4] nur ${faktProben} Karten durch termFakten geschickt, Klinke ${MIN_FAKT_PROBEN}`);
+// Sperrbild: wer aufs Glas der Halle darf, und was leitFenster in ein Fenster zeichnet
+let bildProben = 0;
+if (viewer) {
+  const { leitWerVon, leitFenster, LEIT_MARKE: M, LEIT_WORT: W } = viewer;
+  if (typeof leitWerVon !== 'function' || typeof leitFenster !== 'function' || !(M?.b > 0 && M?.y > 0) || !(W?.ab > 0 && W?.h > 0)) fail('[4] dist/assets/hangar-viewer.js liefert leitWerVon, leitFenster, LEIT_MARKE oder LEIT_WORT nicht');
+  else {
+    const WER = [
+      [null, null, 'ohne Sitzung steht niemand auf dem Glas'],
+      [{ name: '   ' }, null, 'ohne Namen steht niemand auf dem Glas'],
+      [{ name: 7 }, null, 'was kein Text ist, ist kein Name'],
+      [{ name: ' Ada ' }, { name: 'Ada', zeichen: 'A', farbe: '#2dd4ff' }, 'ohne Zeichen gilt der Anfangsbuchstabe, ohne Farbe die der Seite'],
+      [{ name: '@zed', zeichen: '', farbe: '#A1b2C3' }, { name: '@zed', zeichen: 'Z', farbe: '#A1b2C3' }, 'beim Handle zaehlt der Buchstabe hinter dem @'],
+      [{ name: '@' }, { name: '@', zeichen: '◆' }, 'ein Name nur aus @ bekommt das Zeichen der Seite'],
+      [{ name: 'Bo', zeichen: 'ABCDEFGH', farbe: 'red;x' }, { zeichen: 'ABCD', farbe: '#2dd4ff' }, 'das Zeichen bleibt hoechstens vier Zeichen lang, als Farbe gilt nur #rrggbb'],
+      [{ name: 'x'.repeat(90) }, { name: 'x'.repeat(60) }, 'der Name bleibt hoechstens 60 Zeichen lang'],
+    ];
+    for (const [roh, soll, was] of WER) {
+      bildProben++;
+      let ist;
+      try { ist = leitWerVon(roh); } catch (e) { fail(`[4] leitWerVon(${JSON.stringify(roh)}) wirft (${e.message})`); continue; }
+      if (soll === null ? ist !== null : !ist || Object.entries(soll).some(([k, v]) => ist[k] !== v)) fail(`[4] leitWerVon(${JSON.stringify(roh)}) → ${JSON.stringify(ist)}: ${was}`);
+    }
+    // Leinwand, die mitschreibt: jede Schrift ist 0,6 em breit je Zeichen; fillText merkt sich hinten die Schriftgroesse in px
+    const leinwand = () => {
+      const rufe = [], o = { font: '10px x' };
+      return new Proxy(o, {
+        get: (_, k) => (k === 'rufe' ? rufe
+          : k in o ? o[k]
+          : k === 'measureText' ? (t) => ({ width: [...String(t)].length * 0.6 * parseFloat(/([\d.]+)px/.exec(o.font)?.[1] ?? '10') })
+          : /^create\w+Gradient$/.test(String(k)) ? () => ({ addColorStop() {} })
+          : (...a) => { rufe.push(k === 'fillText' ? [k, ...a, parseFloat(/([\d.]+)px/.exec(o.font)?.[1] ?? '10')] : [k, ...a]); }),
+        set: (_, k, v) => { o[k] = v; return true; },
+      });
+    };
+    const lang = 'Kommandantin Aurelia von Sternenstaub-Lichtenfels zu Hohenwacht';
+    const SICHT = [{}, { uhr: '12:34' }, { uhr: '12:34', wer: { name: 'Testpilot', zeichen: 'T', farbe: '#f5a623' } }, { uhr: '', wer: { name: lang, zeichen: 'KAVS', farbe: '#7dd3a8' } }];
+    for (const [x, y, w, h] of [[0, 0, 1600, 900], [130, 40, 1211, 683], [0, 0, 640, 1100]]) for (const o of SICHT) {
+      bildProben++;
+      const g = leinwand(), wo = `leitFenster im Fenster ${w} × ${h} mit ${JSON.stringify(o)}`;
+      try { leitFenster(g, x, y, w, h, o); } catch (e) { fail(`[4] ${wo} wirft (${e.message})`); continue; }
+      const rufe = g.rufe, namen = rufe.map((r) => r[0]);
+      const erstes = namen.findIndex((n) => /^(fill|stroke|fillRect|fillText|strokeRect|drawImage)$/.test(n)), clip = namen.indexOf('clip'), rect = rufe.find((r) => r[0] === 'rect');
+      if (!(clip >= 0 && clip < erstes) || !rect || rect.slice(1).some((v, i) => v !== [x, y, w, h][i])) fail(`[4] ${wo}: zeichnet, bevor es auf sein Fenster beschnitten hat (rect ${JSON.stringify(rect?.slice(1) ?? null)}, clip an Stelle ${clip}, erster Strich an Stelle ${erstes}) — das Sperrbild liefe ueber den Rand aufs Glas`);
+      if (namen.filter((n) => n === 'save').length !== namen.filter((n) => n === 'restore').length || namen[0] !== 'save' || namen.at(-1) !== 'restore') fail(`[4] ${wo}: save und restore gehen nicht auf — der Beschnitt bliebe auf der Leinwand stehen`);
+      // gesperrte Schrift steht Zeichen fuer Zeichen da; in der Folge der Aufrufe ergibt sie die Worte
+      const worte = rufe.filter((r) => r[0] === 'fillText').map((r) => r[1]).join('');
+      for (const wort of ['TERMINAL', 'VERSE·BASE']) if (!worte.includes(wort)) fail(`[4] ${wo}: „${wort}“ steht nicht im Bild`);
+      if (o.uhr ? !worte.includes(o.uhr) : /\d\d:\d\d/.test(worte)) fail(`[4] ${wo}: die Uhr ${o.uhr ? 'fehlt' : 'steht im Bild, obwohl keine verlangt ist'}`);
+      if (o.wer) {
+        const rest = worte.slice(worte.indexOf('VERSE·BASE') + 10), name = rest.slice([...o.wer.zeichen].join('').length);
+        if (!rest.startsWith(o.wer.zeichen) || !(name === o.wer.name || (name.endsWith('…') && o.wer.name.startsWith(name.slice(0, -1).trimEnd())))) fail(`[4] ${wo}: Zeichen und Name der Sitzung stehen nicht im Bild (gezeichnet „${rest}“)`);
+        else if ([...name].length * 0.6 * rufe.findLast((r) => r[0] === 'fillText')[4] > 36 * (w / 100) + 1e-6) fail(`[4] ${wo}: der Name der Sitzung ist ${[...name].length} Zeichen lang und breiter als sein Platz (36 % der Breite)`);
+      } else if (worte.length !== 'TERMINAL'.length + 'VERSE·BASE'.length + (o.uhr ?? '').length) fail(`[4] ${wo}: im Bild steht mehr als Terminal, Uhr und Wortmarke („${worte}“)`);
+      // Marke und Wortmarke stehen, wo sie die Blende der Seite zeigt (LEIT_MARKE, LEIT_WORT; den Stil dazu vergleichen [6] und [8])
+      const punkt = rufe.find((r) => r[0] === 'arc'), v = rufe.find((r) => r[0] === 'fillText' && r[1] === 'V');
+      const mx = x + w / 2, my = y + M.y * h, nah = (a, b) => Math.abs(a - b) < 1e-6 * w;
+      if (!punkt || !nah(punkt[1], mx) || !nah(punkt[2], my) || !nah(punkt[3], (6 * M.b * w) / 64)) fail(`[4] ${wo}: der Punkt der Marke steht bei ${punkt ? `${punkt[1]}, ${punkt[2]}` : '—'} statt ${mx}, ${my} (LEIT_MARKE)`);
+      if (!v || !nah(v[3], my + (W.ab + W.h / 2) * w)) fail(`[4] ${wo}: die Wortmarke steht in der Hoehe ${v?.[3] ?? '—'} statt ${my + (W.ab + W.h / 2) * w} (LEIT_WORT)`);
+    }
+  }
+}
+if (bildProben < MIN_BILD_PROBEN) fail(`[4] nur ${bildProben} Proben am Sperrbild, Klinke ${MIN_BILD_PROBEN}`);
+say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN}), ${faktProben} Karten (Klinke ${MIN_FAKT_PROBEN}), ${bildProben} Proben am Sperrbild (Klinke ${MIN_BILD_PROBEN})`);
 
 /* ---------- [5] Geometrie der Buehne ---------- */
-say('[5] Buehne: Kamera vor dem Schirm, Schirm im Bild genau das gemeldete Rechteck');
+say('[5] Buehne: Kamera vor dem Monitor, Fenster der Seite im Bild genau das gemeldete Rechteck und auf dem Glas');
 let fitProben = 0, fitEng = 0, hallen = 0;
 if (viewer) {
   const { HALL_LEIT, LEIT_FOV_MAX, leitFit } = viewer;
@@ -290,6 +559,11 @@ if (viewer) {
     hallen++;
     const S = L.schirm, R = L.raum;
     if (!R) { fail(`[5] HALL_LEIT.${id} nennt den Raum nicht (raum)`); continue; }
+    // Das Fenster der Seite liegt auf dem Glas des Monitors, mit dem Saum als Rand
+    if (!(S.saum >= 0.01 && S.saum <= 0.1 && S.b > 4 * S.saum && S.h > 4 * S.saum)) { fail(`[5] HALL_LEIT.${id}.schirm: Saum ${S.saum} m passt nicht zu einem Glas von ${S.b} × ${S.h} m (gedacht: 1 bis 10 cm Rand um das Fenster der Seite)`); continue; }
+    const bMax = S.b - 2 * S.saum, hMax = S.h - 2 * S.saum;
+    // Die Kamera sitzt suedlich des Pults: zwischen ihr und dem Monitor steht nur die Tischplatte unterhalb des Bilds
+    if (L.bank && !(S.z + L.d[0] >= L.bank.z[1] + 0.1)) fail(`[5] ${id}: beim kleinsten Abstand ${L.d[0]} m stuende die Kamera bei z ${(S.z + L.d[0]).toFixed(2)}, das Pult reicht bis z ${L.bank.z[1]} — sie saesse im Tisch`);
     if (!(S.z > R.z[0] && S.z < R.z[1] && S.y > R.y[0] && S.y < R.y[1])) fail(`[5] ${id}: der Schirm (${S.x}, ${S.y}, ${S.z}) steht nicht im Raum des Leitstands`);
     const RAND = 0.25; // so viel Luft bleibt zwischen Kamera und Glas, Wand, Boden, Decke
     // Die Grenzen des Abstands selbst: Fuer ein kleines freies Stueck schoepft leitFit sie ganz aus,
@@ -326,8 +600,9 @@ if (viewer) {
         else if (!(f.fov > 10 && f.fov <= LEIT_FOV_MAX + 1e-6)) m = `${wo}: Bildwinkel ${f.fov.toFixed(1)}°, Grenze ${LEIT_FOV_MAX}°`;
         else if (!(f.d >= L.d[0] - 1e-9 && f.d <= L.d[1] + 1e-9)) m = `${wo}: Abstand ${f.d.toFixed(2)} m ausserhalb ${L.d.join(' bis ')} m`;
         else if (!(f.h / f.b >= L.form[0] - 1e-9 && f.h / f.b <= L.form[1] + 1e-9)) m = `${wo}: Form ${(f.h / f.b).toFixed(2)} ausserhalb ${L.form.join(' bis ')}`;
-        // der Schirm hat seine Breite aus HALL_LEIT; kleiner wird er nur, wo der Bildwinkel begrenzt ist
-        else if (!(f.b <= S.b + 1e-9 && f.b > 0) || (!eng && Math.abs(f.b - S.b) > 1e-9)) m = `${wo}: Schirm ${f.b.toFixed(3)} m breit bei Bildwinkel ${f.fov.toFixed(1)}°, HALL_LEIT nennt ${S.b} m`;
+        // das Fenster bleibt auf dem Glas und ist so hoch wie dieses ohne Saum; kleiner wird es nur, wo der Bildwinkel begrenzt ist
+        else if (!(f.b > 0 && f.h > 0 && f.b <= bMax + 1e-9 && f.h <= hMax + 1e-9)) m = `${wo}: das Fenster der Seite (${f.b.toFixed(3)} × ${f.h.toFixed(3)} m) ragt ueber das Glas des Monitors (${bMax.toFixed(3)} × ${hMax.toFixed(3)} m ohne Saum)`;
+        else if (!eng && Math.abs(f.h - hMax) > 1e-9) m = `${wo}: das Fenster der Seite ist ${f.h.toFixed(3)} m hoch bei Bildwinkel ${f.fov.toFixed(1)}°, das Glas des Monitors traegt ${hMax.toFixed(3)} m`;
         else if (cam.x < R.x[0] + RAND || cam.x > R.x[1] - RAND || cam.y < R.y[0] + RAND || cam.y > R.y[1] - RAND || cam.z < R.z[0] + RAND || cam.z > R.z[1] - RAND)
           m = `${wo}: die Kamera stuende bei (${cam.x.toFixed(2)}, ${cam.y.toFixed(2)}, ${cam.z.toFixed(2)}) ausserhalb des Leitstands oder naeher als ${RAND} m an Glas, Wand, Boden oder Decke`;
         else if ((f.rect.r - f.rect.l) < 0.45 * (frei.r - frei.l) && (f.rect.b - f.rect.t) < 0.45 * (frei.b - frei.t)) m = `${wo}: der Schirm fuellt weniger als die Haelfte des freien Stuecks (${Math.round(f.rect.r - f.rect.l)} × ${Math.round(f.rect.b - f.rect.t)} px)`;
@@ -337,7 +612,7 @@ if (viewer) {
   }
 }
 if (fitProben < MIN_FIT_PROBEN) fail(`[5] nur ${fitProben} Stellungen nachgerechnet, Klinke ${MIN_FIT_PROBEN}`);
-if (fitEng < MIN_FIT_ENG) fail(`[5] nur ${fitEng} Stellungen mit begrenztem Bildwinkel, Klinke ${MIN_FIT_ENG}: Das Raster erreicht den Zweig nicht mehr, in dem der Schirm schrumpft`);
+if (fitEng < MIN_FIT_ENG) fail(`[5] nur ${fitEng} Stellungen mit begrenztem Bildwinkel, Klinke ${MIN_FIT_ENG}: Das Raster erreicht den Zweig nicht mehr, in dem das Fenster schrumpft`);
 say(`    ${fitProben} Stellungen in ${hallen} Halle(n) nachgerechnet (Klinke ${MIN_FIT_PROBEN}), davon ${fitEng} mit begrenztem Bildwinkel (Klinke ${MIN_FIT_ENG})`);
 
 /* ---------- [6] Naht ---------- */
@@ -346,6 +621,8 @@ let naht = 0;
 {
   const vSrc = existsSync(join(DIST, 'assets/hangar-viewer.js')) ? readFileSync(join(DIST, 'assets/hangar-viewer.js'), 'utf8') : '';
   const cSrc = existsSync(join(DIST, 'assets/hangar-overview.js')) ? readFileSync(join(DIST, 'assets/hangar-overview.js'), 'utf8') : '';
+  const tSrc = String(termSrc ?? '');
+  const themeCss = existsSync(join(DIST, 'assets/theme.css')) ? readFileSync(join(DIST, 'assets/theme.css'), 'utf8') : '';
   const NAHT = [
     [vSrc, /\n\s+place: \(name\) =>/, 'die Buehne liefert place nicht mehr'],
     [vSrc, /\n\s+canPlace: \(name\) =>/, 'die Buehne liefert canPlace nicht mehr'],
@@ -365,13 +642,52 @@ let naht = 0;
     [vSrc, /await hallSettled;\s*if \(!leitScreen \|\| wish !== placeWish\) return false;/, 'leitGo wartet nicht mehr auf die Halle oder fragt danach nicht nach dem Wunsch: ?ort=leit fiele an einer langsamen Leitung still aufs Feld zurueck'],
     [vSrc, /while \(trip\) await trip\.done;\s*(?:\/\/[^\n]*\n\s*)*if \(wish !== placeWish\) return false;/, 'leitGo fragt nach dem Warten auf eine Fahrt nicht mehr nach dem Wunsch: „Leitstand, Schiffsfeld“ waehrend der Rueckfahrt fuehre wieder hinauf'],
     [vSrc, /if \(me\.state === 'hin' && !\(await me\.arrived\)\) return false;\s*(?:\/\/[^\n]*\n\s*)*if \(wish !== placeWish\) return false;/, 'leitLeave fragt nach der Ankunft nicht mehr nach dem Wunsch: „Schiffsfeld, Leitstand“ waehrend der Hinfahrt fuehre wieder herunter'],
+    // Lage der Halle im Modellraum: [8] rechnet mit hallOrigin nach, wo der
+    // Monitor des Leitstands steht. Das gilt nur, solange die Buehne das
+    // Modell mit derselben Rechnung setzt.
+    [vSrc, /const c = h\.room\.center, o = hallSpot\(h\), O = hallOrigin\(h\);\s*model\.position\.set\(-o\[0\], -c\[1\], -o\[2\]\);/, 'loadRealHall setzt das Modell der Halle nicht mehr mit hallSpot und hallOrigin: [8] maesse den Monitor des Leitstands an einer anderen Stelle nach, als die Buehne ihn zeigt'],
+    [vSrc, /if \(O\) \{\s*model\.position\.y = -O\[1\];/, 'loadRealHall setzt den Boden der Halle nicht mehr nach hallOrigin: [8] maesse den Monitor des Leitstands in einer anderen Hoehe nach, als die Buehne ihn zeigt'],
     [cSrc, /if \(!ok && my === ortTok && state\.ort === 'leit'/, 'der Controller laesst auch die Antwort auf einen ueberholten Wunsch aufs Feld zurueckstellen (ortTok in applyOrt): „Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt endete auf dem Feld'],
+    // Sperrbild (zweite Runde): ein Bild aus einer Quelle. Der Monitor
+    // der Halle und die Blende der Seite zeichnen beide mit leitFenster;
+    // wer sich anmeldet, steht danach auf dem Glas; die Uhr geht weiter.
+    [vSrc, /\n\s+leitFenster\(g, fx, fy, fw, fh, \{ uhr: leitUhr\(\), wer: leitWer \}\);/, 'der Monitor der Halle zeichnet sein Fenster nicht mehr mit leitFenster (leitDraw): Glas und Blende zeigten zwei verschiedene Bilder, beim Hinsetzen spraenge es'],
+    [vSrc, /\n\s+setTerminal\(wer\) \{ leitWer = leitWerVon\(wer\);/, 'die Buehne liefert setTerminal nicht mehr oder laesst den Namen ungeprueft aufs Glas (leitWerVon)'],
+    [vSrc, /if \(Math\.floor\(Date\.now\(\) \/ 60000\) !== S\.min\) leitDraw\(\);/, 'der Monitor zeichnet zur vollen Minute nicht mehr neu (leitStep): die Uhr auf dem Glas bliebe stehen'],
+    [cSrc, /import\(stageCfg\.viewer\)\.catch\(\(\) => null\)/, 'der Controller holt das Sperrbild nicht mehr aus der Datei der Buehne, oder ein Fehler dabei risse das Terminal mit (import(stageCfg.viewer).catch)'],
+    [cSrc, /buehne\.leitFenster\(cv\.getContext\('2d'\), 0, 0, cv\.width, cv\.height, o\);/, 'der Controller zeichnet die Blende nicht mehr mit leitFenster ueber die ganze Leinwand: sie zeigte ein anderes Bild als der Monitor'],
+    [cSrc, /\n\s+fakten: termRoh,/, 'der Controller reicht der Karte der Anmeldung nicht mehr, was die Seite weiss (fakten: termRoh)'],
+    [cSrc, /wer: \(id\) => viewer\?\.setTerminal\?\.\(id\)/, 'der Controller sagt der Buehne nicht mehr, wer angemeldet ist (setTerminal): das Glas nennte die Sitzung nie'],
+    [tSrc, /hooks\.wer\?\.\(id \? \{ name:/, 'das Terminal meldet nicht mehr, wer angemeldet ist (hooks.wer in setze)'],
+    [tSrc, /ok = hooks\.bild\(lbild, \{ uhr: uhr\(\) \}\) === true;/, 'das Terminal laesst das Sperrbild nicht mehr auf seine Leinwand zeichnen (hooks.bild)'],
+    [tSrc, /roh = hooks\.fakten\?\.\(\) \?\? null;/, 'das Terminal fragt die Seite nicht mehr nach den Fakten der Karte (hooks.fakten)'],
   ];
   for (const [src, muster, was] of NAHT) {
     if (muster.test(src)) naht++;
     else fail(`[6] ${was}`);
   }
   if (term && typeof term.initTerminal !== 'function') fail('[6] dist/assets/hangar-terminal.js liefert initTerminal nicht');
+  // Stil der Blende gegen Modul und Buehne: Die Blende oeffnet sich ueber
+  // EINE Zahl (--hgx-auf), aus der Ausschnitt und Kantenlinien lesen, in
+  // genau der Zeit, nach der das Modul sie wegnimmt (TERM_LOGIN.aus); die
+  // Wortmarke als Schrift steht, wo sie das Bild zeigt (LEIT_WORT).
+  for (const page of PAGES) {
+    const regel = (sel) => new RegExp(`(?:^|[}>\\s])${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\{([^}]*)\\}`).exec(page.html)?.[1] ?? '';
+    const blende = regel('.hgx-term__login'), kante = regel('.hgx-term__lkante'), unten = regel('.hgx-term__lkante--u'), wort = regel('.hgx-term__wort');
+    const zeit = /transition:--hgx-auf ([\d.]+)(m?s)\b/.exec(blende), ms = zeit ? Math.round(+zeit[1] * (zeit[2] === 's' ? 1000 : 1)) : NaN;
+    if (!/@property --hgx-auf\{[^}]*syntax:\s*["']<percentage>["']/.test(page.html)) fail(`[6] ${page.file}: --hgx-auf ist nicht als Prozentwert angemeldet (@property): die Blende spraenge auf, statt sich zu oeffnen`);
+    else if (!(ms === term?.TERM_LOGIN?.aus)) fail(`[6] ${page.file}: die Blende oeffnet sich in ${Number.isNaN(ms) ? '—' : ms} ms (transition:--hgx-auf in .hgx-term__login), das Modul nimmt sie nach ${term?.TERM_LOGIN?.aus ?? '—'} ms weg (TERM_LOGIN.aus): Sie verschwaende halb offen oder laege unsichtbar ueber der Seite`);
+    else if (!blende.includes('clip-path:polygon(0 0,100% 0,100% var(--hgx-auf),0 var(--hgx-auf),0 calc(100% - var(--hgx-auf)),100% calc(100% - var(--hgx-auf)),100% 100%,0 100%)') || !/(?:^|;)top:var\(--hgx-auf\)/.test(kante) || !/(?:^|;)top:calc\(100% - var\(--hgx-auf\)\)/.test(unten)) fail(`[6] ${page.file}: Ausschnitt und Kantenlinien der Blende lesen nicht dieselbe Zahl (--hgx-auf): als zwei Uebergaenge liefen sie auseinander, und die Linien laegen im weggeschnittenen Spalt`);
+    else naht++;
+    const W = viewer?.LEIT_WORT, M = viewer?.LEIT_MARKE;
+    const top = /(?:^|;)top:calc\(([\d.]+)% \+ ([\d.]+)cqw\)/.exec(wort), hoch = /(?:^|;)font-size:([\d.]+)cqw/.exec(wort)?.[1];
+    // die Sperrung kommt aus der Skala der Seite (verify:typo verlangt das): den Wert der Stufe aus dem ausgelieferten Stilblatt lesen
+    const stufe = /(?:^|;)letter-spacing:var\((--ls-\d+)\)/.exec(wort)?.[1];
+    const ls = stufe ? new RegExp(`${stufe}:\\s*([\\d.]+)em`).exec(themeCss)?.[1] : /(?:^|;)letter-spacing:([\d.]+)em/.exec(wort)?.[1];
+    if (!W || !M) { /* [4] hat es gemeldet */ }
+    else if (!top || !(Math.abs(+top[1] / 100 - M.y) < 1e-6 && Math.abs(+top[2] / 100 - W.ab) < 1e-6 && Math.abs(+hoch / 100 - W.h) < 1e-6 && Math.abs(+ls - W.ls) < 1e-6)) fail(`[6] ${page.file}: die Wortmarke als Schrift (.hgx-term__wort) steht bei top ${top ? `${top[1]} % + ${top[2]} cqw` : '—'}, ${hoch ?? '—'} cqw hoch, gesperrt ${ls ?? '—'} em; das Bild zeigt sie bei ${+(M.y * 100).toFixed(2)} % + ${+(W.ab * 100).toFixed(2)} cqw, ${+(W.h * 100).toFixed(2)} cqw hoch, gesperrt ${W.ls} em (LEIT_WORT) — ohne Bild stuende sie woanders als mit`);
+    else naht++;
+  }
   if (ctrl) {
     const { parseState, serializeState, placeOf, placeShip } = ctrl;
     if (typeof placeOf !== 'function' || typeof placeShip !== 'function') fail('[6] dist/assets/hangar-overview.js liefert placeOf oder placeShip nicht mehr');
@@ -412,6 +728,95 @@ for (const e of RAHMEN) {
   else rahmen++;
 }
 say(`    ${rahmen} von ${RAHMEN.length} Werten offen fuer die eigene Seite`);
+
+/* ---------- [8] Monitor im Modell ---------- */
+say('[8] Monitor: Glas im ausgelieferten Modell, wo HALL_LEIT es nennt; Marke der Blende, wo der Monitor sie zeigt');
+let glasHallen = 0, glasFlaeche = 0, glasDreiecke = 0, glasFern = 0;
+if (viewer?.HALL_LEIT) {
+  const { NodeIO } = await import('@gltf-transform/core');
+  const { ALL_EXTENSIONS } = await import('@gltf-transform/extensions');
+  const draco3d = (await import('draco3d')).default;
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() });
+  const TOL = 0.015; // m: HALL_LEIT nennt Zentimeter, das Modell Millimeter
+  // Die Hallen, wie die Seiten sie der Buehne geben (hg-stage, opts.hall): Raum, Bodenhoehe, Einrichtung
+  const HALLEN = new Map();
+  for (const page of PAGES) {
+    let hall = null;
+    try { hall = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(page.html ?? '')?.[1] ?? 'null')?.opts?.hall ?? null; } catch { /* unten */ }
+    if (!hall?.id) { fail(`[8] ${page.file}: keine Halle in der StageConfig (#hg-stage, opts.hall) — die Lage des Leitstands ist nicht nachzumessen`); continue; }
+    const alt = HALLEN.get(hall.id), lage = JSON.stringify([hall.room, hall.floor, hall.furniture?.url]);
+    if (alt && alt.lage !== lage) fail(`[8] ${page.file}: die Halle ${hall.id} steht anders als in ${alt.file} (Raum, Boden oder Einrichtung) — die Sprachen zeigten den Monitor an verschiedenen Stellen`);
+    else if (!alt) HALLEN.set(hall.id, { hall, lage, file: page.file });
+  }
+  for (const [id, L] of Object.entries(viewer.HALL_LEIT)) {
+    const S = L.schirm, B = L.bank, hall = HALLEN.get(id)?.hall;
+    if (!hall) { fail(`[8] HALL_LEIT.${id}: keine Seite gibt der Buehne diese Halle (hg-stage nennt ${[...HALLEN.keys()].join(', ') || 'keine'}) — ihr Leitstand ist nicht nachzumessen; den Eintrag streichen oder dieses Tor um die Quelle der Halle erweitern`); continue; }
+    if (!hall.furniture?.url) { fail(`[8] ${id}: die Seite nennt keine Einrichtung der Halle (hg-stage, opts.hall.furniture) — ohne sie gibt es keinen Monitor fuer das Terminal`); continue; }
+    const rel = String(hall.furniture.url).replace(/^\//, '').replace(/[?#].*$/, ''), file = join(DIST, rel);
+    if (!B) { fail(`[8] HALL_LEIT.${id} nennt die Monitore des Pults nicht (bank): das Terminal stuende frei im Raum statt auf einem Monitor`); continue; }
+    if (!existsSync(file)) { fail(`[8] dist/${rel} fehlt: ohne die Einrichtung der Halle gibt es keinen Monitor fuer das Terminal`); continue; }
+    let doc;
+    try { doc = await io.read(file); } catch (e) { fail(`[8] dist/${rel} laesst sich nicht lesen (${e.message})`); continue; }
+    // alle Dreiecke des Monitor-Materials im Modellraum
+    const tri = [];
+    for (const node of doc.getRoot().listNodes()) for (const prim of node.getMesh()?.listPrimitives() ?? []) {
+      if (!/monitors/i.test(prim.getMaterial()?.getName() ?? '')) continue;
+      const m = node.getWorldMatrix(), pos = prim.getAttribute('POSITION'), idx = prim.getIndices(), v = [0, 0, 0];
+      const at = (i) => { pos.getElement(i, v); return [m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12], m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13], m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14]]; };
+      const n = idx ? idx.getCount() : pos.getCount();
+      for (let i = 0; i + 2 < n; i += 3) tri.push([0, 1, 2].map((k) => at(idx ? idx.getScalar(i + k) : i + k)));
+    }
+    if (!tri.length) { fail(`[8] dist/${rel}: kein Teil mit dem Material der Monitore (/monitors/) — das Pult des Leitstands traegt keine Schirme mehr, das Terminal stuende frei im Raum`); continue; }
+    const lo = [0, 1, 2].map((k) => Math.min(...tri.flat().map((p) => p[k]))), hi = [0, 1, 2].map((k) => Math.max(...tri.flat().map((p) => p[k])));
+    const soll = [B.x, B.y, B.z], mass = (k) => `${(hi[k] - lo[k]).toFixed(3)} m statt ${(soll[k][1] - soll[k][0]).toFixed(2)} m`;
+    const schief = [0, 1, 2].filter((k) => Math.abs(hi[k] - lo[k] - (soll[k][1] - soll[k][0])) > 2 * TOL);
+    if (schief.length) { fail(`[8] dist/${rel}: die Monitore des Pults messen ${schief.map((k) => `${'xyz'[k]} ${mass(k)}`).join(', ')} (HALL_LEIT.${id}.bank) — das Pult ist ein anderes, die Lage des Glases (schirm) neu vermessen`); continue; }
+    // Lage der Halle im Modellraum: wie die Buehne das Modell setzt (hallOrigin
+    // aus Raum, Schiffsfeld und Bodenhoehe), NICHT aus den Monitoren selbst.
+    // Bis zum Review an PR #365 stand hier die Mitte der Monitore gegen die
+    // Mitte von bank: Eine Halle, die als Ganzes anders steht (HALL_SHIFT.field
+    // 4 → 0, floor 1 → 2, beides vorgefuehrt), wanderte damit mit, und alles
+    // Folgende bestand weiter, waehrend die Buehne das Bild neben den Monitor
+    // legt und es nur in der Konsole meldet.
+    const ab = viewer.hallOrigin?.(hall);
+    if (!Array.isArray(ab) || !ab.every(Number.isFinite)) { fail(`[8] ${id}: die Buehne nennt den Ursprung der Halle nicht (hallOrigin; Raum ${JSON.stringify(hall.room?.center ?? null)}, Boden ${hall.floor ?? '—'}) — ohne Bodenhoehe im Manifest lotet sie erst am geladenen Modell, und der Monitor ist hier nicht nachzumessen`); continue; }
+    const mitte = [0, 1, 2].map((k) => (lo[k] + hi[k]) / 2 - ab[k]), sollM = soll.map((r) => (r[0] + r[1]) / 2);
+    const fern = Math.hypot(...mitte.map((v, k) => v - sollM[k]));
+    if (fern > 2 * TOL) { fail(`[8] ${id}: die Monitore des Pults stehen im ausgelieferten Modell bei x ${mitte[0].toFixed(3)}, y ${mitte[1].toFixed(3)}, z ${mitte[2].toFixed(3)} (Hallenmeter, Mitte), HALL_LEIT.${id}.bank nennt x ${sollM[0].toFixed(3)}, y ${sollM[1].toFixed(3)}, z ${sollM[2].toFixed(3)} — das Bild des Terminals stuende ${fern.toFixed(2)} m neben seinem Monitor; die Lage der Halle pruefen (Schiffsfeld, HALL_SHIFT.field, floor) oder HALL_LEIT neu vermessen`); continue; }
+    const gx = [S.x - S.b / 2 + ab[0], S.x + S.b / 2 + ab[0]], gy = [S.y - S.h / 2 + ab[1], S.y + S.h / 2 + ab[1]], gz = S.z + ab[2];
+    // das Glas: nach Sueden gewandt (+z), in der Ebene des Schirms, innerhalb seines Rechtecks
+    let fl = 0, n = 0;
+    const r = { x: [Infinity, -Infinity], y: [Infinity, -Infinity] };
+    for (const [a, b, c] of tri) {
+      const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+      const nx = u[1] * w[2] - u[2] * w[1], ny = u[2] * w[0] - u[0] * w[2], nz = u[0] * w[1] - u[1] * w[0], len = Math.hypot(nx, ny, nz);
+      if (!(len > 1e-10) || nz / len < 0.95) continue;
+      if ([a, b, c].some((p) => Math.abs(p[2] - gz) > TOL)) continue;
+      const mx = (a[0] + b[0] + c[0]) / 3, my = (a[1] + b[1] + c[1]) / 3;
+      if (mx < gx[0] - 2 * TOL || mx > gx[1] + 2 * TOL || my < gy[0] - 2 * TOL || my > gy[1] + 2 * TOL) continue;
+      fl += len / 2; n++;
+      for (const p of [a, b, c]) { r.x[0] = Math.min(r.x[0], p[0]); r.x[1] = Math.max(r.x[1], p[0]); r.y[0] = Math.min(r.y[0], p[1]); r.y[1] = Math.max(r.y[1], p[1]); }
+    }
+    const inHalle = (v, k) => (v - ab[k]).toFixed(3);
+    if (!n) { fail(`[8] ${id}: bei z ${S.z} traegt das Pult kein nach Sueden gewandtes Glas (HALL_LEIT.${id}.schirm) — das Bild des Terminals hinge in der Luft, oder es staenden wieder zwei Schirme hintereinander`); continue; }
+    const kanten = [[r.x[0], gx[0]], [r.x[1], gx[1]], [r.y[0], gy[0]], [r.y[1], gy[1]]];
+    if (kanten.some(([ist, sollK]) => Math.abs(ist - sollK) > TOL)) { fail(`[8] ${id}: das Glas des mittleren Monitors reicht im Modell von x ${inHalle(r.x[0], 0)} bis ${inHalle(r.x[1], 0)} und y ${inHalle(r.y[0], 1)} bis ${inHalle(r.y[1], 1)}, HALL_LEIT.${id}.schirm nennt x ${(S.x - S.b / 2).toFixed(3)} bis ${(S.x + S.b / 2).toFixed(3)} und y ${(S.y - S.h / 2).toFixed(3)} bis ${(S.y + S.h / 2).toFixed(3)} — das Bild des Terminals laege neben dem Glas`); continue; }
+    if (!(fl >= 0.97 * S.b * S.h && fl <= 1.01 * S.b * S.h)) { fail(`[8] ${id}: das Glas misst im Modell ${fl.toFixed(3)} m², HALL_LEIT.${id}.schirm nennt ${S.b} × ${S.h} m (${(S.b * S.h).toFixed(3)} m²) — die Flaeche ist nicht mehr eine geschlossene Scheibe`); continue; }
+    if (!(S.ecke >= 0 && S.ecke <= Math.min(S.b, S.h) / 4)) { fail(`[8] HALL_LEIT.${id}.schirm.ecke ${S.ecke} m passt nicht zu einem Glas von ${S.b} × ${S.h} m`); continue; }
+    glasHallen++; glasFlaeche += fl; glasDreiecke += n; glasFern = Math.max(glasFern, fern);
+  }
+  // Die Blende beginnt mit der Marke an der Stelle, an der der Monitor sie in Ruhe zeigt
+  const M = viewer.LEIT_MARKE;
+  if (!(M?.b > 0 && M?.y > 0)) fail('[8] dist/assets/hangar-viewer.js liefert LEIT_MARKE nicht');
+  else for (const page of PAGES) {
+    const css = /\.hgx-term__mark\{([^}]*)\}/.exec(page.html)?.[1] ?? '';
+    const top = /(?:^|;)top:([\d.]+)%/.exec(css)?.[1], breit = /(?:^|;)width:([\d.]+)cqw/.exec(css)?.[1];
+    if (!css) fail(`[8] ${page.file}: der Stil der Marke (.hgx-term__mark) fehlt`);
+    else if (!(Math.abs(+top / 100 - M.y) < 1e-6 && Math.abs(+breit / 100 - M.b) < 1e-6 && /(?:^|;)left:50%/.test(css))) fail(`[8] ${page.file}: die Marke der Blende steht bei top ${top ?? '—'} %, Breite ${breit ?? '—'} cqw; der Monitor der Halle zeigt sie bei ${+(M.y * 100).toFixed(2)} % der Hoehe und ${+(M.b * 100).toFixed(2)} % der Breite des Fensters (LEIT_MARKE) — beim Hinsetzen spraenge sie`);
+  }
+}
+if (glasHallen < MIN_GLAS_HALLEN) fail(`[8] nur ${glasHallen} Halle(n) mit nachgemessenem Monitor, Klinke ${MIN_GLAS_HALLEN}`);
+say(`    ${glasHallen} Halle(n) nachgemessen (Klinke ${MIN_GLAS_HALLEN}): ${glasDreiecke} Dreiecke Glas, ${glasFlaeche.toFixed(3)} m², Monitore hoechstens ${(glasFern * 1000).toFixed(0)} mm neben HALL_LEIT.bank (erlaubt 30 mm)`);
 
 if (fehler.length) {
   console.error(`\nverify-hangar-orte: ${fehler.length} FEHLER`);
