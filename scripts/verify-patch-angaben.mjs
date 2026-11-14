@@ -110,10 +110,10 @@ const OHNE_KENNUNG = {};
 // Fahrzeug-Datensaetze, deren Stempel bewusst vom Kopf von vehicles.json
 // abweicht. Schluessel = Fahrzeug-id, Wert = Anlass und der EINE Stempel,
 // den der Anlass erlaubt (ein anderer oder fehlender Stempel ist FEHLER).
-const ATLS_ANLASS = 'Die ATLS-Varianten haben im DataCore keinen Fahrzeug-Record (sie sind ein Power Suit) und werden seit D-13 als eingefrorener Wiki-Satz aus vehicle-external.json übernommen, samt dessen Stempel 4.9.0.';
-const STEMPEL_AUSNAHMEN = Object.fromEntries(
-  ['argo-atls', 'argo-atls-geo', 'argo-atls-geo-collector-grad01', 'argo-atls-geo-collector-grad03'].map((id) => [id, { anlass: ATLS_ANLASS, stempel: '4.9.0' }]),
-);
+// Derzeit leer. Bis 14.11.2026 standen hier die vier ATLS-Varianten mit 4.9.0
+// (eingefrorener Wiki-Satz); seitdem baut datamine-vehicles sie aus dem Spiel
+// (scripts/lib/power-suits.mjs). Die Mechanik bleibt fuer den naechsten Fall.
+const STEMPEL_AUSNAHMEN = {};
 
 // Klinken (Grundsatz 5), Messlauf 04.11.2026 gegen den korrigierten Stand
 // (Live-Bau und Vorschau gleich): Items 11.046 Seiten / 66.274 Angaben,
@@ -336,7 +336,7 @@ if (!existsSync(DIST)) {
     if (!vehicleById.has(id)) fail.push(`Stempel-Ausnahme "${id}": kein Datensatz mit dieser id — Ausnahme zeigt ins Leere, entfernen`);
     else if (!ausnahmeGetroffen.has(id) && !ausnahmeVerletzt.has(id)) fail.push(`Stempel-Ausnahme "${id}": der Stempel passt wieder zum Katalog — Anlass erledigt, Ausnahme entfernen`);
   }
-  console.log(`    Stempel-Ausnahmen: ${Object.keys(STEMPEL_AUSNAHMEN).length}, je mit erlaubtem Stempel ${[...new Set(Object.values(STEMPEL_AUSNAHMEN).map((a) => a.stempel))].join(', ')}   (${ATLS_ANLASS})`);
+  console.log(`    Stempel-Ausnahmen: ${Object.keys(STEMPEL_AUSNAHMEN).length}, je mit erlaubtem Stempel ${[...new Set(Object.values(STEMPEL_AUSNAHMEN).map((a) => a.stempel))].join(', ')}`);
   for (const [fam, a] of Object.entries(OHNE_KENNUNG)) {
     let besteht = false;
     try { besteht = a.besteht(); } catch (e) { fail.push(`Ausnahme "${fam}": Pruefung nicht ausfuehrbar — ${e.message}`); continue; }
@@ -808,7 +808,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     for (const f of flotteAelter.keys()) if (!gesehen.has(`flotte-aelter@${f}`)) standFehler.push(`${rel}: ${flotteAelter.get(f)} Fahrzeug(e) auf den Karten stehen auf ${f}, die Zeile „flotte-aelter" dafuer fehlt im Datenstand`);
     if (g.name === 'Hangar-Buchten') {
       const bid = /^hangar-bay\/([^/]+)\.html$/.exec(pfad)?.[1];
-      const hat = !!(extern.vehicles?.[bid] ?? extern.overrides?.[bid]);
+      const hat = !!extern.vehicles?.[bid];
       if (hat && !gesehen.has('wiki')) standFehler.push(`${rel}: die Bucht zeigt Werte aus dem Wiki-Schnappschuss (src/data/vehicle-external.json), die Zeile „wiki" fehlt im Datenstand`);
       if (!hat && gesehen.has('wiki')) standFehler.push(`${rel}: Zeile „wiki" steht im Datenstand, der Schnappschuss fuehrt dieses Schiff aber nicht`);
     }

@@ -16,8 +16,10 @@
 // Uebernommen wird nur, was plausibel ist. Liefert das Wiki fuer ein Feld
 // nichts, wo bisher ein Wert stand, oder springt eine Zahl um mehr als den
 // Faktor in GRENZE, bleibt der alte Wert und der Lauf meldet ihn; ein Mensch
-// entscheidet. Im Block `overrides` (ATLS, ganze Saetze) gilt dasselbe nur
-// fuer diese zehn Felder; alles andere dort bleibt unberuehrt.
+// entscheidet.
+//
+// Benannte Ausnahmen (FALSCH_IM_WIKI): Felder, die das Wiki nachweislich dem
+// falschen Fahrzeug zuordnet. Sie werden nicht uebernommen und gemeldet.
 //
 // Der Zeitstand steht im Feld `source` ("fetchedAt YYYY-MM-DD"), daraus liest
 // die Seite das Datum des Schnappschusses.
@@ -33,6 +35,17 @@ const ZIEL = new URL('../src/data/vehicle-external.json', import.meta.url);
 const argOf = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : null; };
 // Ab welchem Faktor eine Zahl als Sprung gilt (neu/alt oder alt/neu)
 const GRENZE = { msrpUSD: 2, lengthM: 1.5, widthM: 1.5, heightM: 1.5, crewMax: 2 };
+const FALSCH_IM_WIKI = {
+  // Das Wiki fuehrt unter argo-atls-ikti Preis und Store-Link des „ATLS IKTI
+  // Akuma" (Nine Tails Shogun Pack). Der ATLS IKTI selbst ist nur ueber einen
+  // Wikelo-Vertrag erhaeltlich und hat keinen Store-Eintrag (14.11.2026).
+  'argo-atls-ikti': { felder: ['msrpUSD', 'pledgeUrl'], grund: 'Wiki fuehrt hier Preis und Store-Link des ATLS IKTI Akuma' },
+  // Die Collector-Lackierungen gibt es nur als Belohnung eines Wikelo-Vertrags
+  // (ContractGenerator.TheCollector); das Wiki setzt Preis und Store-Link des
+  // Basis-ATLS ein (SKU „ATLS", $40).
+  'argo-atls-geo-collector-grad01': { felder: ['msrpUSD', 'pledgeUrl'], grund: 'Wikelo-Belohnung, Wiki fuehrt Preis und Store-Link des Basis-ATLS' },
+  'argo-atls-geo-collector-grad03': { felder: ['msrpUSD', 'pledgeUrl'], grund: 'Wikelo-Belohnung, Wiki fuehrt Preis und Store-Link des Basis-ATLS' },
+};
 
 const loc = (x) => (x == null ? null : typeof x === 'string' ? x : x.de_DE ?? x.en_EN ?? null);
 
@@ -91,7 +104,12 @@ for (const k of katalog) {
   const w = bySlug.get(k.id) ?? bySlug.get(`${k.id}-gs`);
   if (!w) { bericht.ohneWiki.push(k.id); continue; }
   const neu = felder(w);
-  const alt = ext.vehicles[k.id] ?? ext.overrides?.[k.id];
+  const falsch = FALSCH_IM_WIKI[k.id];
+  for (const feld of falsch?.felder ?? []) {
+    if (neu[feld] != null) bericht.behalten.push({ id: k.id, feld, vorher: null, wiki: neu[feld], grund: falsch.grund });
+    neu[feld] = null;
+  }
+  const alt = ext.vehicles[k.id];
   if (!alt) {
     if (neu.image && !erlaubtesBild(neu.image)) { bericht.behalten.push({ id: k.id, feld: 'image', vorher: null, wiki: neu.image, grund: 'Bild von einem Host ausserhalb von CSP und Datenschutzerklaerung' }); neu.image = null; }
     ext.vehicles[k.id] = Object.fromEntries(Object.entries(neu).filter(([, x]) => x != null && !(Array.isArray(x) && !x.length)));
@@ -103,6 +121,7 @@ for (const k of katalog) {
     if (gleich(vorher, wert)) continue;
     if (feld === 'image' && wert && !erlaubtesBild(wert)) { bericht.behalten.push({ id: k.id, feld, vorher, wiki: wert, grund: 'Bild von einem Host ausserhalb von CSP und Datenschutzerklaerung' }); continue; }
     const leer = wert == null || (Array.isArray(wert) && !wert.length);
+    if (leer && falsch?.felder.includes(feld)) { delete alt[feld]; continue; }
     if (leer && vorher != null) { bericht.behalten.push({ id: k.id, feld, vorher, wiki: wert, grund: 'Wiki liefert nichts' }); continue; }
     const g = GRENZE[feld];
     if (g && typeof vorher === 'number' && typeof wert === 'number' && vorher > 0 && (wert <= 0 || Math.max(wert / vorher, vorher / wert) > g)) {
@@ -112,10 +131,6 @@ for (const k of katalog) {
     alt[feld] = wert;
     bericht.geaendert.push({ id: k.id, feld, vorher, nachher: wert });
   }
-  // ATLS: der Katalog liest den ganzen Satz aus `overrides`; dessen Wiki-Felder
-  // tragen denselben Stand wie der Eintrag unter `vehicles`.
-  const satz = ext.overrides?.[k.id];
-  if (satz && satz !== alt) for (const feld of Object.keys(neu)) if (feld in alt) satz[feld] = alt[feld];
 }
 
 ext.source = `src/data/vehicles.json (Wiki-Schnappschuss, fetchedAt ${heute}, Wiki-Datenstand ${wikiVersion ?? 'unbekannt'}) — aufgefrischt von scripts/sync-wiki-extern.mjs`;

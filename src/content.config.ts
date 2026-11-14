@@ -124,11 +124,12 @@ const ships = defineCollection({
 
 // Full vehicle catalog — game-sourced, written by `npm run datamine:vehicles`
 // (scripts/datamine-vehicles.mjs, Data.p4k extraction, 01.4-05). Ten fields
-// with no game-file source stay frozen in src/data/vehicle-external.json
-// (msrpUSD, pledgeUrl, dimensions, image, crewMax, statusEn/De, fociDe) and
-// are merged in at generation time — including the four ARGO-ATLS overrides
-// (D-13), which is why several fields below stay nullable/defaulted even
-// though buildVehicle() itself always fills them.
+// with no game-file source come from src/data/vehicle-external.json
+// (msrpUSD, pledgeUrl, dimensions, image, crewMax, statusEn/De, fociDe; wiki
+// snapshot, scripts/sync-wiki-extern.mjs) and are merged in at generation
+// time. Several fields below stay nullable/defaulted: the ATLS power suits
+// (scripts/lib/power-suits.mjs) have no vehicle parts, so buildVehicle()
+// leaves speeds, hull and fuel empty for them.
 /** an equipped item on a port: name + size class + how many are fitted */
 const fitted = z.object({
   name: z.string(),

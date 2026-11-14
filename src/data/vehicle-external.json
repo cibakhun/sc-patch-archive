@@ -1,6 +1,6 @@
 {
   "source": "src/data/vehicles.json (Wiki-Schnappschuss, fetchedAt 2026-11-14, Wiki-Datenstand 4.10.3-LIVE.13165946) — aufgefrischt von scripts/sync-wiki-extern.mjs",
-  "reason": "Nur was belegt in keiner Spieldatei zu finden ist (Block \"vehicles\") ODER strukturell keine Fahrzeug-Entity im DataCore ist (Block \"overrides\", ATLS). Diese Datei soll schrumpfen, nicht wachsen — s. scratch/01.4-feldurteile.md, Abschnitt \"Für Plan 03\".",
+  "reason": "Nur was belegt in keiner Spieldatei zu finden ist (zehn Felder je Fahrzeug, Block \"vehicles\"). Die ATLS-Saetze (bis 14.11.2026 Block \"overrides\") baut datamine-vehicles seit 4.10.3 aus dem Spiel (scripts/lib/power-suits.mjs).",
   "generatedAt": "2026-11-14",
   "fields": [
     "msrpUSD",
@@ -14,7 +14,7 @@
     "statusDe",
     "fociDe"
   ],
-  "count": 233,
+  "count": 237,
   "vehicles": {
     "orig-100i": {
       "msrpUSD": 50,
@@ -404,8 +404,6 @@
       ]
     },
     "argo-atls-geo-collector-grad03": {
-      "msrpUSD": 40,
-      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
       "lengthM": 3.2,
       "widthM": 1.6,
       "heightM": 1.6,
@@ -435,8 +433,6 @@
       ]
     },
     "argo-atls-geo-collector-grad01": {
-      "msrpUSD": 40,
-      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
       "lengthM": 3.2,
       "widthM": 1.6,
       "heightM": 1.6,
@@ -4148,290 +4144,43 @@
       "fociDe": [
         "Leichter Träger"
       ]
-    }
-  },
-  "overrideSearch": "DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.",
-  "overrideCount": 4,
-  "overrides": {
-    "argo-atls": {
-      "id": "argo-atls",
-      "name": "ATLS",
-      "manufacturer": "Argo Astronautics",
-      "makerCode": "ARGO",
-      "typeDe": "Gelände",
-      "typeEn": "ground",
-      "sizeDe": "Fahrzeug",
-      "statusDe": "Flugbereit",
-      "statusEn": "flight-ready",
-      "fociDe": [
-        "Fracht"
-      ],
-      "descriptionDe": "Single-handedly load and unload the biggest haulers with the power of Argo. The ATLS power suit’s unique exo-frame helps you work quickly, easily, and safely – whatever the task.",
-      "crewMin": 1,
-      "crewMax": 1,
-      "cargoSCU": 0,
-      "oreSCU": null,
-      "msrpUSD": 40,
+    },
+    "argo-atls-geo-collector-grad02": {
       "lengthM": 3.2,
       "widthM": 1.6,
       "heightM": 1.6,
-      "scmSpeed": null,
-      "maxSpeed": null,
-      "boostForward": null,
-      "pitch": null,
-      "yaw": null,
-      "roll": null,
-      "pilotDps": null,
-      "turretDps": null,
-      "fixedWeapons": [],
-      "turrets": [],
-      "missileCount": null,
-      "missileRacks": [],
-      "cmLaunchers": 0,
-      "components": {
-        "powerPlants": [],
-        "shields": [],
-        "coolers": [],
-        "quantumDrives": [],
-        "radars": []
-      },
-      "hullHp": 0,
-      "shieldHp": null,
-      "qtSpeedMs": null,
-      "qtRangeM": null,
-      "qtSpoolS": null,
-      "qtFuel": 0,
-      "h2Fuel": 0,
-      "insClaimMin": 2.5,
-      "insExpediteMin": 0.63,
-      "insExpediteCost": 850,
-      "isSpaceship": false,
-      "isGravlev": false,
-      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
-      "patches": [
-        "4.2.0"
-      ],
-      "gameVersion": "4.9.0-LIVE.12232306",
+      "crewMax": 1,
+      "fociDe": []
+    },
+    "argo-atls-ikti": {
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
+      "crewMax": 1,
+      "statusEn": "flight-ready",
+      "statusDe": "Flugbereit",
+      "fociDe": [
+        "Gefecht"
+      ]
+    },
+    "argo-atls-geo-ikti": {
+      "lengthM": 3.2,
+      "widthM": 1.6,
+      "heightM": 1.6,
       "image": {
-        "hero": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/1280px-ATLS_in_cargo_elevator_-_cropped.jpg.webp?h70wo",
-        "thumb": "https://media.starcitizen.tools/thumb/2/2f/ATLS_in_cargo_elevator_-_cropped.jpg/320px-ATLS_in_cargo_elevator_-_cropped.jpg.webp?h70wo",
+        "hero": "https://media.starcitizen.tools/5/5b/ATLS_GEO_IKTI_Front_view_pic_2.jpg?9kvd4",
+        "thumb": "https://media.starcitizen.tools/thumb/5/5b/ATLS_GEO_IKTI_Front_view_pic_2.jpg/320px-ATLS_GEO_IKTI_Front_view_pic_2.jpg.webp?9kvd4",
         "source": "starcitizen.tools"
       },
-      "fixedWeaponMounts": [],
-      "fixedWeaponSizes": [],
-      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
-      "overriddenAt": "2026-08-03"
-    },
-    "argo-atls-geo": {
-      "id": "argo-atls-geo",
-      "name": "ATLS GEO",
-      "manufacturer": "Argo Astronautics",
-      "makerCode": "ARGO",
-      "typeDe": "Gelände",
-      "typeEn": "ground",
-      "sizeDe": "Fahrzeug",
-      "statusDe": "Flugbereit",
-      "statusEn": "flight-ready",
-      "fociDe": [
-        "Bergbau"
-      ],
-      "descriptionDe": "Built on the proven ATLS power suit chassis, the GEO is outfitted with bespoke mining components and a Jump Pack to open up the most inaccessible (and prosperous) corners of the galaxy.",
-      "crewMin": 1,
       "crewMax": 1,
-      "cargoSCU": 0,
-      "oreSCU": null,
-      "msrpUSD": 45,
+      "fociDe": []
+    },
+    "argo-atls-geo-ikti-ntls": {
       "lengthM": 3.2,
       "widthM": 1.6,
       "heightM": 1.6,
-      "scmSpeed": null,
-      "maxSpeed": null,
-      "boostForward": null,
-      "pitch": null,
-      "yaw": null,
-      "roll": null,
-      "pilotDps": null,
-      "turretDps": null,
-      "fixedWeapons": [],
-      "turrets": [],
-      "missileCount": null,
-      "missileRacks": [],
-      "cmLaunchers": 0,
-      "components": {
-        "powerPlants": [],
-        "shields": [],
-        "coolers": [],
-        "quantumDrives": [],
-        "radars": [
-          {
-            "name": "Surveyor-Go",
-            "size": 0,
-            "count": 1
-          }
-        ]
-      },
-      "hullHp": 0,
-      "shieldHp": null,
-      "qtSpeedMs": null,
-      "qtRangeM": null,
-      "qtSpoolS": null,
-      "qtFuel": 0,
-      "h2Fuel": 0,
-      "insClaimMin": 3,
-      "insExpediteMin": 1,
-      "insExpediteCost": 1020,
-      "isSpaceship": false,
-      "isGravlev": false,
-      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS-GEO",
-      "patches": [],
-      "gameVersion": "4.9.0-LIVE.12232306",
-      "image": {
-        "hero": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/1280px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp?c0hop",
-        "thumb": "https://media.starcitizen.tools/thumb/9/95/ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg/320px-ATLS_GEO_x3_landing_in_sandy_area_-_cropped.jpg.webp?c0hop",
-        "source": "starcitizen.tools"
-      },
-      "fixedWeaponMounts": [],
-      "fixedWeaponSizes": [],
-      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
-      "overriddenAt": "2026-08-03"
-    },
-    "argo-atls-geo-collector-grad01": {
-      "id": "argo-atls-geo-collector-grad01",
-      "name": "ATLS Snowland Color",
-      "manufacturer": "Argo Astronautics",
-      "makerCode": "ARGO",
-      "typeDe": "Gelände",
-      "typeEn": "ground",
-      "sizeDe": "Fahrzeug",
-      "statusDe": "Flugbereit",
-      "statusEn": "flight-ready",
-      "fociDe": [
-        "Fracht"
-      ],
-      "descriptionDe": "Single-handedly load and unload the biggest haulers with the power of Argo. The ATLS power suit’s unique exo-frame helps you work quickly, easily, and safely – whatever the task.",
-      "crewMin": 1,
       "crewMax": 1,
-      "cargoSCU": 0,
-      "oreSCU": null,
-      "msrpUSD": 40,
-      "lengthM": 3.2,
-      "widthM": 1.6,
-      "heightM": 1.6,
-      "scmSpeed": null,
-      "maxSpeed": null,
-      "boostForward": null,
-      "pitch": null,
-      "yaw": null,
-      "roll": null,
-      "pilotDps": null,
-      "turretDps": null,
-      "fixedWeapons": [],
-      "turrets": [],
-      "missileCount": null,
-      "missileRacks": [],
-      "cmLaunchers": 0,
-      "components": {
-        "powerPlants": [],
-        "shields": [],
-        "coolers": [],
-        "quantumDrives": [],
-        "radars": [
-          {
-            "name": "Surveyor-Go",
-            "size": 0,
-            "count": 1
-          }
-        ]
-      },
-      "hullHp": 0,
-      "shieldHp": null,
-      "qtSpeedMs": null,
-      "qtRangeM": null,
-      "qtSpoolS": null,
-      "qtFuel": 0,
-      "h2Fuel": 0,
-      "insClaimMin": 3,
-      "insExpediteMin": 1,
-      "insExpediteCost": 1020,
-      "isSpaceship": false,
-      "isGravlev": false,
-      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
-      "patches": [],
-      "gameVersion": "4.9.0-LIVE.12232306",
-      "image": null,
-      "fixedWeaponMounts": [],
-      "fixedWeaponSizes": [],
-      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
-      "overriddenAt": "2026-08-03"
-    },
-    "argo-atls-geo-collector-grad03": {
-      "id": "argo-atls-geo-collector-grad03",
-      "name": "ATLS Cool Metal Color",
-      "manufacturer": "Argo Astronautics",
-      "makerCode": "ARGO",
-      "typeDe": "Gelände",
-      "typeEn": "ground",
-      "sizeDe": "Fahrzeug",
-      "statusDe": "Flugbereit",
-      "statusEn": "flight-ready",
-      "fociDe": [
-        "Fracht"
-      ],
-      "descriptionDe": "Single-handedly load and unload the biggest haulers with the power of Argo. The ATLS power suit’s unique exo-frame helps you work quickly, easily, and safely – whatever the task.",
-      "crewMin": 1,
-      "crewMax": 1,
-      "cargoSCU": 0,
-      "oreSCU": null,
-      "msrpUSD": 40,
-      "lengthM": 3.2,
-      "widthM": 1.6,
-      "heightM": 1.6,
-      "scmSpeed": null,
-      "maxSpeed": null,
-      "boostForward": null,
-      "pitch": null,
-      "yaw": null,
-      "roll": null,
-      "pilotDps": null,
-      "turretDps": null,
-      "fixedWeapons": [],
-      "turrets": [],
-      "missileCount": null,
-      "missileRacks": [],
-      "cmLaunchers": 0,
-      "components": {
-        "powerPlants": [],
-        "shields": [],
-        "coolers": [],
-        "quantumDrives": [],
-        "radars": [
-          {
-            "name": "Surveyor-Go",
-            "size": 0,
-            "count": 1
-          }
-        ]
-      },
-      "hullHp": 0,
-      "shieldHp": null,
-      "qtSpeedMs": null,
-      "qtRangeM": null,
-      "qtSpoolS": null,
-      "qtFuel": 0,
-      "h2Fuel": 0,
-      "insClaimMin": 3,
-      "insExpediteMin": 1,
-      "insExpediteCost": 1020,
-      "isSpaceship": false,
-      "isGravlev": false,
-      "pledgeUrl": "https://robertsspaceindustries.com/pledge/ships/atls/ATLS",
-      "patches": [],
-      "gameVersion": "4.9.0-LIVE.12232306",
-      "image": null,
-      "fixedWeaponMounts": [],
-      "fixedWeaponSizes": [],
-      "herkunft": "uebernommen aus Wiki-Snapshot 2026-07-18 (kein DataCore-Record in /spaceships/ oder /groundvehicles/ — DataCore-Suche (scratch/probe-atls.mjs, scratch/probe-atls2.mjs, Changelist 12326004): ARGO ATLS ist im DataCore ein \"Power Suit\" (Character.Character_ARGO_ATLS[...] unter character/powersuits/, Grad01/Grad03 unter actor/actors/) — keine /spaceships/- oder /groundvehicles/-Entity mit VehicleComponentParams. Filtererweiterung wäre eine andere Extraktionsart, keine Filterkorrektur — belegbar nicht mit buildVehicle() extrahierbar.)",
-      "overriddenAt": "2026-08-03"
+      "fociDe": []
     }
   }
 }

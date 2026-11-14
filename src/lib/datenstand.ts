@@ -268,8 +268,8 @@ export function standMission(lang: Locale): StandZeile[] {
 }
 
 /**
- * Schiffsseite. `kennung` ist der Stempel DES Datensatzes (ATLS: 4.9.0, gegen
- * den Kopf 4.10.2 also älterer Stand). `fleetyards`: was die Seite von dort
+ * Schiffsseite. `kennung` ist der Stempel DES Datensatzes; liegt er hinter
+ * dem Kopf des Katalogs, ist die Zeile älterer Stand. `fleetyards`: was die Seite von dort
  * zeigt; `wiki`: Pledge/Maße/Crew/Status aus dem Schnappschuss; `bild`: Quelle
  * des Kopfbilds.
  * `huelle`: woher die 3D-Hülle stammt, die die Seite zeigt. 'eigen' ist das
@@ -473,8 +473,8 @@ const wikiZeile = (lang: Locale): StandZeile => ({
   quelle: 'wiki', art: 'schnappschuss', was: T[lang].wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
   wert: WIKI_DATUM, text: `, ${T[lang].schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
 });
-const EXTERN = VEHICLE_EXTERNAL as { vehicles?: Record<string, unknown>; overrides?: Record<string, unknown> };
-const hatWiki = (id: string) => !!(EXTERN.vehicles?.[id] ?? EXTERN.overrides?.[id]);
+const EXTERN = VEHICLE_EXTERNAL as { vehicles?: Record<string, unknown> };
+const hatWiki = (id: string) => !!EXTERN.vehicles?.[id];
 
 /** Bucht eines Schiffs im Hangar: seine Werte und sein 3D-Modell, je mit eigenem Stempel. */
 export function standBucht(lang: Locale, id: string): StandZeile[] {

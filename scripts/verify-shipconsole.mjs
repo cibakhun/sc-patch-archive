@@ -122,7 +122,7 @@ const VOID_TAGS = new Set([
    toleranzProzent), hier auf den Textbestand einer Schiffsseite
    angewendet statt auf eine Bestandszahl. */
 const TEXTBESTAND_KLINKE = {
-  wert: 3224,
+  wert: 2910,
   regel: 'min', // wandert nur nach oben
   toleranzProzent: 2,
   anlass:
@@ -141,7 +141,11 @@ const TEXTBESTAND_KLINKE = {
     'Hoehenklinke aus 14-04-PLAN.md blieb 21px ueber dem gemessenen Ist-Wert stehen (docs/maschinelle-validierung.md ' +
     'Grundsatz 5: eine Klinke ist eine Untergrenze fuer KUENFTIGE Laeufe, kein exakter Momentwert des heutigen) — ' +
     'hier ein Prozentsatz statt eines festen Byte-Versatzes, weil dieselbe Mechanik (regel "min" + toleranzProzent) ' +
-    'bereits in scripts/lib/metrics-baseline.mjs fuer genau diesen Zweck existiert.',
+    'bereits in scripts/lib/metrics-baseline.mjs fuer genau diesen Zweck existiert. ' +
+    '14.11.2026: 3.224 -> 2.910 (nach UNTEN, Ursache benannt): die Collector-Lackierungen des ATLS fuehren keinen ' +
+    'Pledge-Preis und Store-Link mehr — beide gehoerten dem Basis-ATLS, die Lackierungen gibt es nur bei Wikelo ' +
+    '(scripts/sync-wiki-extern.mjs, FALSCH_IM_WIKI) —, und die neue ATLS Orange Line ist ebenso knapp. Gemessen ' +
+    'im Live-Bau dieses Worktrees: Minimum dist/schiffe/argo-atls-geo-collector-grad02.html 2.910 Bytes.',
 };
 
 /* Rail-Laengen-Verteilung je Sprache (EN und DE identisch, da Ports
@@ -163,8 +167,13 @@ const TEXTBESTAND_KLINKE = {
    Portgruppen; 229 Schiffe.
    11.10.2026 (4.10.2-Datenlauf): 4=181 -> 4=183 — Constellation Mk V
    Centaurus und Skylark neu im Katalog, beide mit allen vier Portgruppen;
-   231 Schiffe. */
-const WELLE1_RAIL_VERTEILUNG = { 0: 0, 1: 6, 2: 22, 3: 20, 4: 183 };
+   231 Schiffe.
+   14.11.2026: die ATLS-Varianten kommen aus dem Spiel (Power Suits, 8 statt
+   4 Seiten). Ihre Waffen sitzen an Handports, nicht an Hardpoint-Bones einer
+   Schiffskonsole: 5 Seiten mit 0, 3 mit 1 Portgruppe (vorher 4 ATLS mit 1x1,
+   3x2). Die uebrigen 227 Seiten unveraendert (1=5, 2=19, 3=20, 4=183);
+   235 Schiffe. */
+const WELLE1_RAIL_VERTEILUNG = { 0: 5, 1: 8, 2: 19, 3: 20, 4: 183 };
 
 if (!existsSync('dist')) {
   console.error(
