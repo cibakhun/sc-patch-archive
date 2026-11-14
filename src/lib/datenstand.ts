@@ -284,6 +284,32 @@ export function standSchiff(
 }
 
 /**
+ * Schiffsübersicht. `kennungen`: die Stempel aller Fahrzeuge, die die Übersicht
+ * zeigt. Der Stand des Katalogs steht vorn; jede ältere Fassung bekommt eine
+ * eigene Zeile mit der Zahl der Fahrzeuge, die noch auf ihr stehen.
+ */
+export function standFlotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
+  const t = T[lang];
+  const z = [spiel(lang, 'flotte', t.schiffswerte, FAHRZEUG_F)];
+  const aelter = new Map<string, number>();
+  for (const k of kennungen) {
+    const f = fassung(k, 'Fahrzeug-Datensatz gameVersion');
+    if (frueher(f, FAHRZEUG_F)) aelter.set(f, (aelter.get(f) ?? 0) + 1);
+  }
+  for (const [f, n] of aelter) {
+    const was = lang === 'de' ? `${t.schiffswerte} von ${n} Fahrzeug${n === 1 ? '' : 'en'}` : `${t.schiffswerte} of ${n} vehicle${n === 1 ? '' : 's'}`;
+    z.push(spiel(lang, 'flotte-aelter', was, f, FAHRZEUG_F));
+  }
+  z.push(fremd(lang, 'uex-schiffe', t.ingamePreise, UEX.name, UEX.link, SCHIFF_PREISE));
+  z.push({
+    quelle: 'wiki', art: 'schnappschuss', was: t.wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
+    wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+  });
+  z.push({ quelle: 'bild', art: 'quelle', was: t.bild, text: 'starcitizen.tools', aelter: false });
+  return z;
+}
+
+/**
  * Patch-Dossier, Schiffstabelle (C1b, Freigabe Krisz 06.11.2026 „Wie
  * empfohlen"): Crew, Fracht und Pledge-Preis kommen aus dem eigenen Katalog,
  * dieselben Werte wie auf der Schiffsseite. Vorher stand dort ein
