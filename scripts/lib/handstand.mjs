@@ -7,7 +7,7 @@ const sortiert = (v) => (Array.isArray(v)
     : v);
 
 export function pruefsumme(daten) {
-  const { stand: _stand, ...werte } = daten;
+  const { stand: _stand, erzeugung: _erzeugung, ...werte } = daten;
   return createHash('sha256').update(JSON.stringify(sortiert(werte))).digest('hex').slice(0, 16);
 }
 
