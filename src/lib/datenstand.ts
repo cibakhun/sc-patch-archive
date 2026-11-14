@@ -72,6 +72,7 @@ const T = {
     wikeloZusatz: 'Bilder, Ausstattung und Hinweise je Tausch',
     halo: 'Halo-Hülle und QT-Anker',
     baender: 'Dichtebänder',
+    erzeugung: 'Erzeugung der Dichtebänder im Spiel geprüft',
     modell: '3D-Modell',
     rezeptzahl: 'Zahl der Blueprints',
     nichtBelegt: 'Stand nicht belegt',
@@ -111,6 +112,7 @@ const T = {
     wikeloZusatz: 'Images, equipment and notes per trade',
     halo: 'Halo envelope and QT anchors',
     baender: 'Density bands',
+    erzeugung: 'Density band generation checked in the game',
     modell: '3D model',
     rezeptzahl: 'Number of blueprints',
     nichtBelegt: 'version not documented',
@@ -382,10 +384,15 @@ export function standMining(lang: Locale): StandZeile[] {
 const HALO_F = fassung((HALO as { gameVersion?: string }).gameVersion, 'assets/aaron-halo-gamefiles.json gameVersion');
 const BAENDER_F = (HALO_BAENDER as { stand?: { patch?: string } }).stand?.patch ?? '';
 if (!/^\d+\.\d+(?:\.\d+)?$/.test(BAENDER_F)) throw new Error(`datenstand: assets/aaron-halo-bands.json stand.patch traegt keinen Patch (${JSON.stringify(BAENDER_F)})`);
+const ERZEUGUNG_F = fassung((HALO_BAENDER as { erzeugung?: { geprueft?: string } }).erzeugung?.geprueft, 'assets/aaron-halo-bands.json erzeugung.geprueft');
 
 export function standPrecision(lang: Locale): StandZeile[] {
   const t = T[lang];
-  return [spiel(lang, 'halo', t.halo, HALO_F), hand(lang, 'halo-baender', t.baender, BAENDER_F, HALO_F)];
+  return [
+    spiel(lang, 'halo', t.halo, HALO_F),
+    hand(lang, 'halo-baender', t.baender, BAENDER_F, HALO_F),
+    spiel(lang, 'halo-erzeugung', t.erzeugung, ERZEUGUNG_F, HALO_F),
+  ];
 }
 
 

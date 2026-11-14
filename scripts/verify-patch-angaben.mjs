@@ -414,7 +414,7 @@ const STAND_GRUPPEN = [
   { name: 'Fracturing', match: (p) => p === 'fracturing.html', pflicht: ['mining'], erlaubt: ['mining'] },
   { name: 'Wikelo', match: (p) => p === 'topics/wikelo-emporium.html', pflicht: ['wikelo', 'wikelo-pflege'], erlaubt: ['wikelo', 'wikelo-pflege'] },
   { name: 'Missionsübersicht', match: (p) => p === 'missionen.html', pflicht: ['missionen'], erlaubt: ['missionen'] },
-  { name: 'Precision Jump', match: (p) => p === 'precision-jump.html', pflicht: ['halo', 'halo-baender'], erlaubt: ['halo', 'halo-baender'] },
+  { name: 'Precision Jump', match: (p) => p === 'precision-jump.html', pflicht: ['halo', 'halo-baender', 'halo-erzeugung'], erlaubt: ['halo', 'halo-baender', 'halo-erzeugung'] },
   { name: 'Hangar', match: (p) => p === 'hangar.html', pflicht: ['flotte', 'modelle', 'wiki'], erlaubt: ['flotte', 'flotte-aelter', 'modelle', 'wiki', 'modelle-ohne'], lageFrei: true, nurMitHangar: true },
   { name: 'Hangar-Buchten', match: (p) => p.startsWith('hangar-bay/'), pflicht: ['fahrzeug', 'modell'], erlaubt: ['fahrzeug', 'modell', 'wiki'], lageFrei: true, bucht: true, nurMitHangar: true },
   { name: 'Konto', match: (p) => p === 'account.html', pflicht: ['rezeptzahl', 'uex-erze'], erlaubt: ['rezeptzahl', 'uex-erze'] },
@@ -455,6 +455,7 @@ const STAND_WAS = {
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
   methoden: ['Bewertung der Raffinationsmethoden', 'Refining method ratings'],
   halo: ['Halo-Hülle und QT-Anker', 'Halo envelope and QT anchors'], 'halo-baender': ['Dichtebänder', 'Density bands'],
+  'halo-erzeugung': ['Erzeugung der Dichtebänder im Spiel geprüft', 'Density band generation checked in the game'],
   wikelo: ['Spielwerte', 'Game values'], 'wikelo-pflege': ['Bilder, Ausstattung und Hinweise je Tausch', 'Images, equipment and notes per trade'],
 };
 // FleetYards-Zeile: die Wertegruppe zaehlt auf, was die Seite von dort zeigt.
@@ -524,6 +525,7 @@ try {
     methoden: { art: 'spiel', wert: fassungAus(rd('assets/refinery-methods.json').gameVersion), datei: 'assets/refinery-methods.json gameVersion' },
     halo: { art: 'spiel', wert: fassung['Präzisionssprung'], datei: 'assets/aaron-halo-gamefiles.json gameVersion' },
     'halo-baender': { art: 'hand', wert: rd('assets/aaron-halo-bands.json').stand?.patch ?? null, datei: 'assets/aaron-halo-bands.json stand.patch' },
+    'halo-erzeugung': { art: 'spiel', wert: fassungAus(rd('assets/aaron-halo-bands.json').erzeugung?.geprueft), datei: 'assets/aaron-halo-bands.json erzeugung.geprueft' },
     wikelo: { art: 'spiel', wert: fassung.Wikelo, datei: 'assets/wikelo-trades.meta.json gameVersion' },
     'wikelo-pflege': { art: 'pflege', wert: isoDatum(rd('assets/wikelo-curated.json').stand?.geaendert), datei: 'assets/wikelo-curated.json stand.geaendert' },
     fundorte: { art: 'quelle', wert: null },

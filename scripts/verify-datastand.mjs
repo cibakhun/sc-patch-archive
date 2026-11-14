@@ -43,6 +43,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_P4K } from './lib/p4k.mjs';
 import { HANDBESTAENDE, pruefsumme, PATCH_MUSTER } from './lib/handstand.mjs';
+import { ringFingerabdruck } from './lib/halo-ring.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rd = (rel) => JSON.parse(readFileSync(resolve(ROOT, rel), 'utf8'));
@@ -344,6 +345,23 @@ for (const h of HANDBESTAENDE) {
 }
 console.log(`    Handbestaende geprueft — Soll: ${HANDBESTAENDE.length}   Ist: ${handGeprueft}`);
 need(HANDBESTAENDE.length >= 2, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 2) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
+
+console.log('\n[10] Dichtebaender: Erzeugung im Spiel geprueft');
+{
+  const b = read('assets/aaron-halo-bands.json');
+  const g = read('assets/aaron-halo-gamefiles.json');
+  const erz = b.ok ? b.json?.erzeugung : null;
+  const ring = g.ok ? g.json?.ring : null;
+  if (!erz?.fingerabdruck || !erz?.geprueft) fail.push('[10] assets/aaron-halo-bands.json traegt keine erzeugung {fingerabdruck, geprueft} — node scripts/datamine-aaron-halo.mjs');
+  else if (!ring) fail.push('[10] assets/aaron-halo-gamefiles.json traegt keinen ring — node scripts/datamine-aaron-halo.mjs');
+  else {
+    const ist = ringFingerabdruck(ring);
+    console.log(`    Ring ${ring.gameVersion}: Fingerabdruck ${ist} — Baender: ${erz.fingerabdruck}, geprueft ${erz.geprueft}`);
+    if (ring.fingerabdruck !== ist) fail.push(`[10] assets/aaron-halo-gamefiles.json ring.fingerabdruck ${ring.fingerabdruck} passt nicht zu seinen Werten (${ist})`);
+    if (erz.fingerabdruck !== ist) fail.push(`[10] Erzeugung der Dichtebaender geaendert (Baender ${erz.fingerabdruck}, Spiel ${ist}) — Baender neu vermessen, dann datamine-aaron-halo --erzeugung-uebernehmen`);
+    if (erz.geprueft !== ring.gameVersion || erz.geprueft !== g.json.gameVersion) fail.push(`[10] erzeugung.geprueft ${erz.geprueft} ist nicht die Spielfassung des Rings (${ring.gameVersion}) bzw. der Datei (${g.json.gameVersion})`);
+  }
+}
 
 /* ---------- Schlusszeile ---------- */
 

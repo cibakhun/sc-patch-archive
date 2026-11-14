@@ -866,6 +866,7 @@ statt still grün zu sein. Die Reihenfolge als Kopfkommentar:
 1. Client updaten, Changelist notieren (build_manifest.id)
 2. npm run datamine:items && npm run sync:items        # nie sync:item-prices allein
 3. npm run datamine:crafting / :mining / :loadouts / :vehicles / :components / :vehicle-roles
+   npm run datamine:aaron-halo / :stanton-anchors       # bricht ab, wenn sich die Erzeugung der Dichtebaender aendert
 4. npm run gate:data
 5. npm run build && npm run gate
 6. committen (Kennungs-Diff zeigt die neue Changelist), auf staging

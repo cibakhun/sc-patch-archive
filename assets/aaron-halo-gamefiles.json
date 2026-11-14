@@ -1,5 +1,5 @@
 {
-  "source": "Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/aaronhalo.socpak (aaronhalo.xml bounds + gotopoint) — eigene Extraktion",
+  "source": "Star Citizen Data.p4k -> ObjectContainers/PU/system/stanton/aaronhalo.socpak (aaronhalo.xml bounds + gotopoint + aaronhalo.soc Ring) — eigene Extraktion",
   "gameVersion": "4.10.3-live.13165946",
   "editorBuildChangelist": "12157308",
   "units": "km",
@@ -8,6 +8,20 @@
   "outerEdgeKm": 21392800,
   "outerRadiusKm": 21392800,
   "verticalHalfThicknessKm": 5000,
+  "ring": {
+    "gameVersion": "4.10.3-live.13165946",
+    "fingerabdruck": "b50eca67d00bdd10",
+    "innerRadiusKm": 19597600,
+    "outerRadiusKm": 21392800,
+    "depthKm": 10000,
+    "densityScale": 0.0099999998,
+    "rngSeed": 2,
+    "noiseFrequencyRadial": 8,
+    "noiseAmplitude": 1,
+    "noiseGranularity": 1,
+    "noiseRoughness": 1,
+    "composition": "AsteroidField_AaronHalo"
+  },
   "raw": {
     "minBoundsM": [
       -21392799744,

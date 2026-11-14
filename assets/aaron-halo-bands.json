@@ -4,6 +4,10 @@
     "patch": "3.16",
     "pruefsumme": "75a2434b98d27119"
   },
+  "erzeugung": {
+    "fingerabdruck": "b50eca67d00bdd10",
+    "geprueft": "4.10.3-live.13165946"
+  },
   "source": "Community-Vermessung der Aaron-Halo-Dichtebaender (cstone.space); Spitzendichte-Radius und Bandgrenzen in km vom Stanton-Ursprung",
   "bands": {
     "band1": {
