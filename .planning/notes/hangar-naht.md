@@ -398,3 +398,41 @@ Die Oberfläche zeigt dazu die Zeile `#hgx-leicht` mit dem Knopf
 `#hgx-leicht-voll`, der den Deckel aufhebt und die volle Halle lädt, und
 setzt `data-leicht="on"` an `#main`. `verify:hangar` [12] hält beide Seiten
 der Abmachung fest.
+
+### Volle Halle am Telefon, erster Schritt (2026-11-14)
+
+Krisz wählte am 14.11.2026 „Volle Halle fürs Handy abspecken“. Die Abmachung
+oben bleibt, wie sie ist; neu ist nur, was die Szene mit ihrem Speicher tut,
+und was die Oberfläche unter der Zeile zeigt:
+
+- Die Szene packt Geometrie über ihren eigenen Entpacker aus (`Entpacker` in
+  `assets/hangar-viewer.js`, baut auf dem `DRACOLoader` von three.js). Worker
+  ohne Arbeit enden nach `ENTPACKER.ruhe`, ein Stück ab `ENTPACKER.gross`
+  nimmt seinen Worker aus dem Pool. Es leben höchstens `ENTPACKER.faeden`
+  Worker, am Telefon `ENTPACKER.telefon`; die Grenze zählt alle lebenden,
+  auch die aus dem Pool genommenen (three.js fragt nur den Pool; Befunde im
+  Review der PR #364). Große Stücke haben dafür Plätze, einen weniger als
+  die Grenze (Telefon 1, PC 3), und halten ihren Platz bis zum Ende ihres
+  Workers: Am Telefon läuft damit ein großes Stück nach dem anderen. Gezählt
+  wird je Stück, nicht je Worker: Am PC können zwei große Stücke beim selben
+  Worker liegen, und mit seinem Ende kommen beide Plätze zurück. Gemessen
+  im Telefonformat mit der Gladius: 620 bis 711 statt 946 MB beim Laden. Am
+  PC gilt die Ruhe genauso (dort hielten die vier Worker 343 MB).
+- Abbau des Entpackers (Befund im selben Review), gehalten wie beim
+  Umwandler der Bilder: Nach `dispose()` endet jedes Stück, das noch offen
+  ist, mit dem Fehler `Entpacker.AB`, ob es bei einem Worker liegt oder auf
+  einen Platz wartet; jedes spätere wird abgewiesen, und kein Worker bleibt.
+  Die Oberfläche ruft `dispose()` der Szene heute nirgends; wer das ändert,
+  bekommt für Dateien, die noch laden, einen Ladefehler und muss ihn als
+  Abbau lesen, nicht als Ausfall.
+- Der Wächter der Oberfläche steht auf v 4: Alte Deckel verfallen, jedes
+  Telefon versucht die volle Halle einmal neu.
+- Schmal zeigt die Zeile `#hgx-leicht` darunter die letzten zwei Abbrüche
+  (Stufe, Phase, Art) und das Gerät, mit denselben Worten wie die Meldung
+  (`spurZeilen`). Breit bleibt es bei der einen Zeile.
+
+Offen für den zweiten Schritt: die zwei sehr großen Stücke der Halle teilen
+(3.988 und 2.554 KB, ihr Entpacker braucht 187 und 100 MB) und die Bilder
+erst zum Hochladen auspacken (bis zu 130 MB warten ausgepackt auf ihr
+`prepare()`). `verify:hangar` [12] rechnet den Entpacker am ausgelieferten
+Modul nach und hält seine vier Zahlen als Klinken.
