@@ -3573,7 +3573,7 @@
         {
           "name": "Skarnov and Raider Camo",
           "system": "Weapons & Gear",
-          "desc": "New in the catalogue is the Skarnov energy rifle in seven versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Intersec Eliminate Specific Rank1\" in Nyx. The workbench gains 17 blueprints, mostly the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons. The Deterrent shield and the Lephari radar join them. Deterrent is the former RSI size 4 shield that was also called \"Glacis\" up to 4.10.2. The Polaris carries it from the factory.",
+          "desc": "New in the catalogue is the Skarnov energy rifle in five versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Intersec Eliminate Specific Rank1\" in Nyx. The workbench gains 17 blueprints: the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons, the Skarnov \"Raider Camo\" with its battery and the Deterrent shield. The Lephari radar already had a blueprint, which now carries its name. Deterrent is the former RSI size 4 shield that was also called \"Glacis\" up to 4.10.2. The Polaris carries it from the factory.",
           "facts": [
             {
               "label": "Item catalogue",

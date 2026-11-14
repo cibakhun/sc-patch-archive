@@ -434,7 +434,7 @@
       "name": "Skarnov und Raider Camo",
       "system": "Waffen & Ausrüstung",
       "kind": "gameplay",
-      "desc": "Neu im Katalog ist das Energiegewehr Skarnov in sieben Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu, vor allem die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A. Dazu kommen der Schild Deterrent und das Radar Lephari. Deterrent ist der bisherige RSI-Schild der Größe 4, der bis 4.10.2 ebenfalls „Glacis\" hieß. Die Polaris trägt ihn ab Werk.",
+      "desc": "Neu im Katalog ist das Energiegewehr Skarnov in fünf Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu: die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A, der Skarnov „Raider Camo\" mit Batterie und der Schild Deterrent. Den Bauplan des Radars Lephari gab es schon, er trägt jetzt seinen Namen. Deterrent ist der bisherige RSI-Schild der Größe 4, der bis 4.10.2 ebenfalls „Glacis\" hieß. Die Polaris trägt ihn ab Werk.",
       "facts": [
         {
           "label": "Item-Katalog",
@@ -451,28 +451,76 @@
           "href": "/items/skarnov-rifle.html"
         },
         {
+          "label": "Skarnov \"Ferrite\" Rifle",
+          "href": "/items/skarnov-ferrite-rifle.html"
+        },
+        {
+          "label": "Skarnov \"Relay\" Rifle",
+          "href": "/items/skarnov-relay-rifle.html"
+        },
+        {
+          "label": "Skarnov \"Sparkplug\" Rifle",
+          "href": "/items/skarnov-sparkplug-rifle.html"
+        },
+        {
           "label": "Skarnov \"Raider Camo\" Rifle",
-          "href": "/items/skarnov-raider-camo-rifle.html"
+          "href": "/crafting/skarnov-raider-camo-rifle.html"
         },
         {
           "label": "Skarnov Rifle Battery (30 cap)",
-          "href": "/items/skarnov-rifle-battery-30-cap.html"
+          "href": "/crafting/skarnov-rifle-battery-30-cap.html"
         },
         {
-          "label": "Skarnov \"Raider Camo\" Rifle (Bauplan)",
-          "href": "/crafting/skarnov-raider-camo-rifle.html"
+          "label": "Corbel Arms Raider Camo",
+          "href": "/crafting/corbel-arms-raider-camo.html"
         },
         {
           "label": "Corbel Core Raider Camo",
           "href": "/crafting/corbel-core-raider-camo.html"
         },
         {
+          "label": "Corbel Helmet Raider Camo",
+          "href": "/crafting/corbel-helmet-raider-camo.html"
+        },
+        {
+          "label": "Corbel Legs Raider Camo",
+          "href": "/crafting/corbel-legs-raider-camo.html"
+        },
+        {
+          "label": "Palatino Arms Raider Camo",
+          "href": "/crafting/palatino-arms-raider-camo.html"
+        },
+        {
+          "label": "Palatino Backpack Raider Camo",
+          "href": "/crafting/palatino-backpack-raider-camo.html"
+        },
+        {
           "label": "Palatino Core Raider Camo",
           "href": "/crafting/palatino-core-raider-camo.html"
         },
         {
+          "label": "Palatino Helmet Raider Camo",
+          "href": "/crafting/palatino-helmet-raider-camo.html"
+        },
+        {
+          "label": "Palatino Legs Raider Camo",
+          "href": "/crafting/palatino-legs-raider-camo.html"
+        },
+        {
           "label": "Tailwind Flight Suit Raider Camo",
           "href": "/crafting/tailwind-flight-suit-raider-camo.html"
+        },
+        {
+          "label": "Tailwind Helmet Raider Camo",
+          "href": "/crafting/tailwind-helmet-raider-camo.html"
+        },
+        {
+          "label": "M3A Cannon Raider Camo",
+          "href": "/crafting/m3a-cannon-raider-camo.html"
+        },
+        {
+          "label": "M4A Cannon Raider Camo",
+          "href": "/crafting/m4a-cannon-raider-camo.html"
         },
         {
           "label": "M5A Cannon Raider Camo",
