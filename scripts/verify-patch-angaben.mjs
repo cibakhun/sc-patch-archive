@@ -425,6 +425,13 @@ const STAND_GRUPPEN = [
   // Precision Jump: Halo-Huelle und QT-Anker aus dem Spiel, die Dichtebaender
   // als Handbestand (assets/aaron-halo-bands.json) mit eigenem Stand.
   { name: 'Precision Jump', match: (p) => p === 'precision-jump.html', pflicht: ['halo', 'halo-baender'], erlaubt: ['halo', 'halo-baender'] },
+  // Hangar (nur im Vorschau-Bau; fehlt er dort, reisst verify:hangar). Die
+  // Seite ist ein Fenster hoch, der Block steht am Fuss des Docks vor Impressum
+  // und Datenschutz (lageFrei). Jede Bucht eines Schiffs traegt einen eigenen
+  // Block (vb-stand--bucht), auch die des Startschiffs auf der Hangarseite;
+  // jede Gruppe prueft nur ihren.
+  { name: 'Hangar', match: (p) => p === 'hangar.html', pflicht: ['flotte', 'modelle', 'wiki'], erlaubt: ['flotte', 'flotte-aelter', 'modelle', 'wiki', 'modelle-ohne'], lageFrei: true, nurMitHangar: true },
+  { name: 'Hangar-Buchten', match: (p) => p.startsWith('hangar-bay/'), pflicht: ['fahrzeug', 'modell'], erlaubt: ['fahrzeug', 'modell', 'wiki'], lageFrei: true, bucht: true, nurMitHangar: true },
   { name: 'Schiffsübersicht', match: (p) => p === 'schiffe.html', pflicht: ['flotte', 'uex-schiffe', 'wiki', 'bild'], erlaubt: ['flotte', 'flotte-aelter', 'uex-schiffe', 'wiki', 'bild'] },
 ];
 // Klinken je Gruppe (Grundsatz 5), Messlauf 06.11.2026 im Live-Bau der
@@ -441,6 +448,9 @@ const STAND_KLINKEN = {
   Wikelo: 2,
   // 14.11.2026, je DE und EN.
   'Missionsübersicht': 2, 'Schiffsübersicht': 2, 'Precision Jump': 2,
+  // 14.11.2026, Vorschau-Bau: Hangar je DE und EN, Buchten 231 Schiffe je DE
+  // und EN. Ohne Hangar im Bau gelten sie nicht (nurMitHangar).
+  Hangar: 2, 'Hangar-Buchten': 462,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
 // Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
@@ -457,7 +467,7 @@ const STAND_WAS = {
   items: ['Spielwerte', 'Game values'], 'uex-items': ['Kaufpreise', 'Purchase prices'], 'shop-schnappschuss': ['Kaufpreise', 'Purchase prices'], fundorte: ['Fundorte', 'Loot locations'],
   'fundorte-spiel': ['Bestätigte Fundorte', 'Confirmed loot locations'],
   crafting: ['Rezepte und Drop-Chancen', 'Recipes and drop chances'], missionen: ['Missionsdaten', 'Mission data'],
-  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], flotte: ['Werte und Bewaffnung', 'Stats and loadout'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
+  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], flotte: ['Werte und Bewaffnung', 'Stats and loadout'], modell: ['3D-Modell', '3D model'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
   huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
@@ -474,6 +484,12 @@ const STAND_QUELLTEXT = {
   fundorte: ['eigene Recherche', 'own research'],
   'shop-schnappschuss': ['eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt', 'own shop snapshot, undated, only where UEX does not list the item'],
   huelle: ['eigene Aufbereitung', 'processed in-house'] };
+// Hangar: was ausser den Schiffsmodellen aus dem Spiel kommt, in der
+// Reihenfolge der Nennung; die Zeile „modelle-ohne" nennt die Teile, deren
+// Eintraege ohne gameVersion sind. Exporte ohne Stempel stammen alle aus der
+// Zeit vor dem Stempel (eingefuehrt 14.11.2026 mit Client 4.10.3).
+const HANGAR_TEILE = [[['weapons'], 'Waffen', 'weapons'], [['components'], 'Komponenten', 'components'], [['interior'], 'Innenräume', 'interiors'], [['hall', 'hallLite'], 'Halle', 'hall'], [['lift', 'npc', 'props', 'werkhalle'], 'Ausstattung', 'fixtures']];
+const HANGAR_STEMPEL_AB = '4.10.3';
 const SERIE_TITEL = { varianten: ['Varianten der Baureihe', 'Variants of the series'], leihschiffe: ['Loaner (bis zur Flugfreigabe)', 'Loaners (until flight-ready)'] };
 
 console.log('\n[6] Datenstand-Baustein: jede Zeile gegen ihre Datendatei');
@@ -508,6 +524,9 @@ try {
     fahrzeug: { art: 'spiel', wert: null, datei: 'Stempel des Fahrzeug-Datensatzes (src/data/vehicles.json)' },
     flotte: { art: 'spiel', wert: fassungAus(rd('src/data/vehicles.json').gameVersion), datei: 'src/data/vehicles.json gameVersion' },
     'flotte-aelter': { art: 'spiel', wert: null, datei: 'Stempel der Fahrzeuge auf den Karten der Schiffsuebersicht' },
+    modelle: { art: 'spiel', wert: null, datei: 'Stempel der Schiffsmodelle auf den Karten des Hangars (src/data/hangar-assets.json gameVersion)' },
+    modell: { art: 'spiel', wert: null, datei: 'src/data/hangar-assets.json ships.<id>.gameVersion' },
+    'modelle-ohne': { art: 'quelle', wert: null },
     mining: { art: 'spiel', wert: fassung.Mining, datei: 'assets/mining-db.json game_version' },
     refinery: { art: 'spiel', wert: fassung.Refinery, datei: 'assets/refinery-data.json meta.gameVersion' },
     'uex-items': { art: 'fremd', wert: isoDatum(items.pricesAsOf), datei: 'assets/universal-items.json pricesAsOf', name: 'UEX Item-Preise' },
@@ -535,7 +554,7 @@ try {
   if (modellF !== fassung.Mining) fail.push(`[6] assets/mining-model.json steht auf ${modellF}, assets/mining-db.json auf ${fassung.Mining} — der Fracturing-Rechner nennt nur eine Spielversion; beide Dateien aus demselben Datenlauf bauen`);
   for (const [k, q] of Object.entries(quellen)) {
     standSoll[k] = q;
-    if (q.art !== 'quelle' && k !== 'fahrzeug' && k !== 'flotte-aelter' && !q.wert) fail.push(`[6] ${k}: ${q.datei} liefert keinen Stand — der Baustein liefe gegen nichts`);
+    if (q.art !== 'quelle' && !['fahrzeug', 'flotte-aelter', 'modelle', 'modell'].includes(k) && !q.wert) fail.push(`[6] ${k}: ${q.datei} liefert keinen Stand — der Baustein liefe gegen nichts`);
   }
 } catch (e) {
   fail.push(`[6] Datendateien fuer den Datenstand nicht lesbar — ${e.message}`);
@@ -545,6 +564,9 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   const vehicles = rd('src/data/vehicles.json');
   const kopfFahrzeug = fassungAus(vehicles.gameVersion);
   const stempel = new Map(vehicles.vehicles.map((v) => [v.id, fassungAus(v.gameVersion)]));
+  const hangar = rd('src/data/hangar-assets.json');
+  const extern = rd('src/data/vehicle-external.json');
+  const hangarSchiffe = hangar.ships ?? {};
   // Tags weg, bis nichts mehr wegfaellt: ein verschachtelter Rest wie
   // "<scr<b></b>ipt>" bliebe nach einem einzigen Durchgang stehen.
   const ohneTags = (h) => {
@@ -567,7 +589,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     // Seiten ohne eigenen Inhalt (Weiterleitungen) tragen keinen Baustein.
     if (/<meta http-equiv="refresh"/i.test(html.slice(0, 2000))) continue;
     standSeiten[g.name]++;
-    const bloecke = [...html.matchAll(/<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/g)];
+    const bloecke = [...html.matchAll(/<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/g)]
+      .filter((b) => /^<section class="[^"]*\bvb-stand--bucht\b/.test(b[0]) === !!g.bucht);
     if (bloecke.length !== 1) { standFehler.push(`${rel}: ${bloecke.length === 0 ? 'kein' : bloecke.length + '×'} Datenstand-Baustein (Soll: genau einer)`); continue; }
     const innen = bloecke[0][1];
     // Neben dem Baustein keine zweite, alte Stand-Angabe: die Fusszeile
@@ -585,7 +608,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       // Endtags auch mit Leerraum oder Attributen („</script >"), sonst
       // bliebe ein so geschlossenes Skript als sichtbarer Text stehen.
       .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, ' ').replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, ' ').replace(/<template\b[\s\S]*?<\/template\b[^>]*>/gi, ' '));
-    if (rest) standFehler.push(`${rel}: nach dem Datenstand steht noch Inhalt („${rest.slice(0, 60)}") — der Baustein gehoert ans Ende des Inhalts`);
+    if (rest && !g.lageFrei) standFehler.push(`${rel}: nach dem Datenstand steht noch Inhalt („${rest.slice(0, 60)}") — der Baustein gehoert ans Ende des Inhalts`);
     const text = sichtbar(innen);
     const iso = /\b\d{4}-\d{2}-\d{2}\b/.exec(text);
     if (iso) standFehler.push(`${rel}: ISO-Datum ${iso[0]} im sichtbaren Datenstand — Datum in Seitensprache setzen`);
@@ -637,10 +660,22 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       fyTeile = FY_TEILE.filter(([k]) => zeigt[k]).map((t) => t[1 + sp]);
       if (fyTeile.length) soll.add('fleetyards');
     }
-    // Schiffsuebersicht: Fahrzeuge je aelterer Fassung, an den Karten gezaehlt
+    // Schiffsuebersicht und Hangar: Fahrzeuge je aelterer Fassung an den
+    // Karten gezaehlt, im Hangar dazu die Schiffsmodelle je Fassung.
     const flotteAelter = new Map();
-    if (g.name === 'Schiffsübersicht') {
-      const karten = [...aussen.matchAll(/class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g)].map((m) => m[1]);
+    const modelleSoll = new Map();
+    let modelleOhne = 0;
+    const kartenRx = g.name === 'Schiffsübersicht' ? /class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g
+      : g.name === 'Hangar' ? /<a class="hg-card" href="[^"]*" data-id="([^"]+)"/g : null;
+    if (kartenRx) {
+      const karten = [...aussen.matchAll(kartenRx)].map((m) => m[1]);
+      if (g.name === 'Hangar') {
+        for (const id of karten) {
+          const mf = fassungAus(hangarSchiffe[id]?.gameVersion);
+          if (mf) modelleSoll.set(mf, (modelleSoll.get(mf) ?? 0) + 1);
+          else modelleOhne++;
+        }
+      }
       if (!karten.length) standFehler.push(`${rel}: keine Fahrzeugkarten gefunden — die Zaehlung der aelteren Fassungen liefe gegen nichts`);
       for (const id of karten) {
         const f = stempel.get(id);
@@ -655,14 +690,23 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const q = standSoll[z.quelle];
       if (!q) { standFehler.push(`${rel}: Zeile mit unbekannter Quelle ${JSON.stringify(z.quelle)} — in src/lib/datenstand.ts und hier eintragen`); continue; }
       if (!g.erlaubt.includes(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" gehoert nicht auf ${g.name}`);
-      const schluessel = z.quelle === 'flotte-aelter' ? `${z.quelle}@${z.wert}` : z.quelle;
+      const schluessel = z.quelle === 'flotte-aelter' || z.quelle === 'modelle' ? `${z.quelle}@${z.wert}` : z.quelle;
       if (gesehen.has(schluessel)) standFehler.push(`${rel}: Zeile „${schluessel}" doppelt`);
       gesehen.add(schluessel);
       gesehen.add(z.quelle);
       if (g.bedingt?.includes(z.quelle) && !soll.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" steht im Datenstand, die Seite zeigt diese Werte aber nicht`);
-      if (z.art !== q.art) standFehler.push(`${rel}: Zeile „${z.quelle}" ist als ${z.art} ausgezeichnet, Soll ${q.art}`);
+      // Bucht: ein Modell ohne gameVersion steht als „Stand nicht belegt" (Art quelle)
+      const fzId = /^(?:schiffe|hangar-bay)\/([^/]+)\.html$/.exec(pfad)?.[1] ?? null;
+      const modellF = z.quelle === 'modell' ? fassungAus(hangarSchiffe[fzId]?.gameVersion) : null;
+      const sollArt = z.quelle === 'modell' && !modellF ? 'quelle' : q.art;
+      if (z.art !== sollArt) standFehler.push(`${rel}: Zeile „${z.quelle}" ist als ${z.art} ausgezeichnet, Soll ${sollArt}`);
       let sollWert = q.wert;
-      if (z.quelle === 'fahrzeug') sollWert = stempel.get(pfad.slice('schiffe/'.length, -'.html'.length)) ?? null;
+      if (z.quelle === 'fahrzeug') sollWert = stempel.get(fzId) ?? null;
+      if (z.quelle === 'modell') sollWert = modellF;
+      if (z.quelle === 'modelle') {
+        sollWert = modelleSoll.has(z.wert) ? z.wert : null;
+        if (!sollWert) standFehler.push(`${rel}: Zeile „modelle" nennt ${JSON.stringify(z.wert)}, auf den Karten steht kein Schiffsmodell auf dieser Fassung`);
+      }
       if (z.quelle === 'flotte-aelter') {
         sollWert = flotteAelter.has(z.wert) ? z.wert : null;
         if (!sollWert) standFehler.push(`${rel}: Zeile „flotte-aelter" nennt ${JSON.stringify(z.wert)}, auf den Karten steht kein Fahrzeug auf dieser aelteren Fassung`);
@@ -671,6 +715,18 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       // Wertegruppe, Quellname und Link
       let was = STAND_WAS[z.quelle]?.[sp] ?? null;
       if (z.quelle === 'fleetyards') { const w = fyTeile.join(', '); was = w.charAt(0).toUpperCase() + w.slice(1); }
+      if (z.quelle === 'modelle') {
+        const n = modelleSoll.get(z.wert) ?? 0;
+        was = L ? `3D-Modelle von ${n} Schiff${n === 1 ? '' : 'en'}` : `3D models of ${n} ship${n === 1 ? '' : 's'}`;
+      }
+      if (z.quelle === 'modelle-ohne') {
+        const teile = [
+          ...(modelleOhne ? [L ? `${modelleOhne} Schiffsmodelle` : `${modelleOhne} ship models`] : []),
+          ...HANGAR_TEILE.filter(([k]) => k.some((x) => Object.values(hangar[x] ?? {}).some((e) => !e?.gameVersion))).map((t) => t[1 + sp]),
+        ];
+        const liste = teile.length < 2 ? teile.join('') : `${teile.slice(0, -1).join(', ')} ${L ? 'und' : 'and'} ${teile[teile.length - 1]}`;
+        was = liste ? liste.charAt(0).toUpperCase() + liste.slice(1) : '(nichts ohne Stand)';
+      }
       if (z.quelle === 'flotte-aelter') {
         const n = flotteAelter.get(z.wert) ?? 0;
         was = L ? `Werte und Bewaffnung von ${n} Fahrzeug${n === 1 ? '' : 'en'}` : `Stats and loadout of ${n} vehicle${n === 1 ? '' : 's'}`;
@@ -691,7 +747,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       let kern = null;
       if (q.art === 'spiel') {
         kern = `${L ? 'Spielversion' : 'Game version'} ${sollWert}`;
-        aelterSoll = (z.quelle === 'fahrzeug' || z.quelle === 'flotte-aelter') && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
+        aelterSoll = ['fahrzeug', 'flotte-aelter', 'modelle', 'modell'].includes(z.quelle) && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
         // Fundorte aus einem frueheren Lauf als die Spielwerte des Katalogs
         if (z.quelle === 'fundorte-spiel') aelterSoll = !!sollWert && !!fassung['Item-Katalog'] && vor(sollWert, fassung['Item-Katalog']);
       } else if (q.art === 'fremd') {
@@ -704,10 +760,14 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
         aelterSoll = !!spielWert && !!sollWert && vor(sollWert, spielWert);
       } else if (q.art === 'pflege') {
         kern = sollWert ? `${L ? 'von Hand gepflegt, zuletzt geändert am' : 'maintained by hand, last changed'} ${datumIn(sollWert, lang)}` : null;
+      } else if (z.quelle === 'modelle-ohne') {
+        kern = L ? `exportiert vor ${HANGAR_STEMPEL_AB}, Stand nicht belegt` : `exported before ${HANGAR_STEMPEL_AB}, version not documented`;
+      } else if (z.quelle === 'modell') {
+        kern = L ? 'Stand nicht belegt' : 'version not documented';
       } else if (STAND_QUELLTEXT[z.quelle]) {
         kern = STAND_QUELLTEXT[z.quelle][sp];
       }
-      if (q.art !== 'quelle') {
+      if (sollArt !== 'quelle') {
         if (sollWert == null) { standFehler.push(`${rel}: Zeile „${z.quelle}" ohne Sollwert (${q.datei})`); continue; }
         if (z.wert !== sollWert) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt ${JSON.stringify(z.wert)}, ${q.datei} steht auf ${sollWert}`);
       }
@@ -717,7 +777,19 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const istKern = (aelterIst ? z.text.slice(0, -marke.length) : z.text).trim().slice(z.was.length).trim();
       if (kern != null ? istKern !== kern : !istKern) standFehler.push(`${rel}: Zeile „${z.quelle}" zeigt „${z.text}", Soll „${z.was} ${kern ?? '(Bildquelle)'}"`);
     }
+    for (const f of modelleSoll.keys()) if (!gesehen.has(`modelle@${f}`)) standFehler.push(`${rel}: ${modelleSoll.get(f)} Schiffsmodell(e) im Dock stehen auf ${f}, die Zeile „modelle" dafuer fehlt im Datenstand`);
+    if (g.name === 'Hangar') {
+      const ohneTeile = modelleOhne + HANGAR_TEILE.filter(([k]) => k.some((x) => Object.values(hangar[x] ?? {}).some((e) => !e?.gameVersion))).length;
+      if (ohneTeile && !gesehen.has('modelle-ohne')) standFehler.push(`${rel}: der Hangar zeigt Modelle ohne Stempel (src/data/hangar-assets.json ohne gameVersion), die Zeile „modelle-ohne" fehlt im Datenstand`);
+      if (!ohneTeile && gesehen.has('modelle-ohne')) standFehler.push(`${rel}: Zeile „modelle-ohne" steht im Datenstand, alle Modelle tragen aber einen Stand`);
+    }
     for (const f of flotteAelter.keys()) if (!gesehen.has(`flotte-aelter@${f}`)) standFehler.push(`${rel}: ${flotteAelter.get(f)} Fahrzeug(e) auf den Karten stehen auf ${f}, die Zeile „flotte-aelter" dafuer fehlt im Datenstand`);
+    if (g.name === 'Hangar-Buchten') {
+      const bid = /^hangar-bay\/([^/]+)\.html$/.exec(pfad)?.[1];
+      const hat = !!(extern.vehicles?.[bid] ?? extern.overrides?.[bid]);
+      if (hat && !gesehen.has('wiki')) standFehler.push(`${rel}: die Bucht zeigt Werte aus dem Wiki-Schnappschuss (src/data/vehicle-external.json), die Zeile „wiki" fehlt im Datenstand`);
+      if (!hat && gesehen.has('wiki')) standFehler.push(`${rel}: Zeile „wiki" steht im Datenstand, der Schnappschuss fuehrt dieses Schiff aber nicht`);
+    }
     for (const p of g.pflicht) if (!gesehen.has(p)) standFehler.push(`${rel}: Pflichtzeile „${p}" fehlt im Datenstand`);
     for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'shop-schnappschuss' ? 'Kaufpreise aus dem eigenen Shop-Schnappschuss' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'fundorte-spiel' ? 'bestätigte Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
     // Link „Falschen Wert melden“: genau einer auf Detailseiten, sonst keiner.
@@ -737,8 +809,9 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   for (const f of standFehler.slice(0, 40)) fail.push(`[6] ${f}`);
   if (standFehler.length > 40) fail.push(`[6] … und ${standFehler.length - 40} weitere Befunde derselben Art`);
 
+  const mitHangar = existsSync(join(DIST, 'hangar.html'));
   for (const g of STAND_GRUPPEN) {
-    const k = STAND_KLINKEN[g.name] ?? 0;
+    const k = g.nurMitHangar && !mitHangar ? 0 : STAND_KLINKEN[g.name] ?? 0;
     console.log(`    ${g.name.padEnd(17)} Seiten ${String(standSeiten[g.name]).padStart(6)} (Klinke ${k})`);
     if (standSeiten[g.name] < k) fail.push(`[6] ${g.name}: nur ${standSeiten[g.name]} Seiten mit Datenstand geprueft, Klinke ${k} — Zuordnung oder Build kaputt; Ursache klaeren, nicht die Klinke senken`);
   }

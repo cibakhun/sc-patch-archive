@@ -17,6 +17,8 @@
 import type { Bay } from '../../lib/hangar/bay';
 import { SLOT_TABS } from '../../lib/hangar/bay';
 import { hangarT } from '../../i18n/hangarText';
+import Datenstand from '../Datenstand.astro';
+import { standBucht } from '../../lib/datenstand';
 
 interface Props {
   bay: Bay;
@@ -55,6 +57,7 @@ const box = bay.marks.box ? [...bay.marks.box[0], ...bay.marks.box[1]].join(' ')
         {bay.overview.turn.map((x) => <div class={x.value === null ? 'hgx-tile is-na' : 'hgx-tile'} data-k={x.key}><dt>{x.label}</dt><dd>{x.value ?? '–'}</dd></div>)}
       </dl>
       <p class="hg-note">{bay.overview.note}</p>
+      <Datenstand lang={bay.lang} zeilen={standBucht(bay.lang, bay.id)} bucht innen />
     </section>
     {SLOT_TABS.map((tab) => {
       const panel = bay.slots[tab];
