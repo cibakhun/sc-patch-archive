@@ -17,7 +17,8 @@
 // prueft ihn streng (src/components/FeedbackForm.astro). data-ev-melden ist
 // die Marke fuer das Messereignis wert-melden (assets/ereignisse.js).
 import type { Locale } from '../i18n/ui';
-import { standTexte, type StandZeile } from '../lib/datenstand';
+import { standTexte, standVerweis, type StandZeile } from '../lib/datenstand';
+import { patchLinkFromKennung } from '../lib/patchPages';
 import { versioned } from '../lib/assetVersion';
 import { href } from '../i18n/ui';
 
@@ -44,13 +45,16 @@ const meldenHref = melden
 <section class:list={['vb-stand', innen && 'vb-stand--innen']} aria-labelledby="vb-stand-h">
   <h2 id="vb-stand-h" class="vb-stand__h">{t.titel}</h2>
   <ul class="vb-stand__zeilen">
-    {zeilen.map((z) => (
-      <li data-stand={z.quelle} data-stand-art={z.art} data-stand-wert={z.wert}>
-        <span class="vb-stand__was">{z.was}:</span>{' '}
-        {z.name && (z.link ? <a href={z.link} target="_blank" rel="noopener">{z.name}</a> : z.name)}{z.text}
-        {z.aelter && <>{' '}<span class="vb-stand__alt">{t.aelter}</span></>}
-      </li>
-    ))}
+    {zeilen.map((z) => {
+      const p = standVerweis(z, lang, patchLinkFromKennung);
+      return (
+        <li data-stand={z.quelle} data-stand-art={z.art} data-stand-wert={z.wert}>
+          <span class="vb-stand__was">{z.was}:</span>{' '}
+          {z.name && (z.link ? <a href={z.link} target="_blank" rel="noopener">{z.name}</a> : z.name)}{p ? <>{p.vor}<a href={p.href}>{z.wert}</a>{p.nach}</> : z.text}
+          {z.aelter && <>{' '}<span class="vb-stand__alt">{t.aelter}</span></>}
+        </li>
+      );
+    })}
   </ul>
   {meldenHref && (
     <p class="vb-stand__melden"><a href={meldenHref} rel="nofollow" data-ev-melden>{t.melden}</a></p>
