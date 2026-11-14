@@ -38,6 +38,7 @@ import SHIP_EXTRAS from '../data/ship-extras.json';
 import VEHICLE_EXTERNAL from '../data/vehicle-external.json';
 import WIKELO from '../../assets/wikelo-trades.meta.json';
 import HALO from '../../assets/aaron-halo-gamefiles.json';
+import HANGAR from '../data/hangar-assets.json';
 import HALO_BAENDER from '../../assets/aaron-halo-bands.json';
 
 // pflege: Handbestand ohne Patch-Bezug, „von Hand gepflegt, zuletzt geändert
@@ -73,6 +74,8 @@ const T = {
     wikeloZusatz: 'Bilder, Ausstattung und Hinweise je Tausch',
     halo: 'Halo-Hülle und QT-Anker',
     baender: 'Dichtebänder',
+    modell: '3D-Modell',
+    nichtBelegt: 'Stand nicht belegt',
     recherche: 'eigene Recherche',
     shopSchnappschuss: 'eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt',
     aufbereitung: 'eigene Aufbereitung',
@@ -109,6 +112,8 @@ const T = {
     wikeloZusatz: 'Images, equipment and notes per trade',
     halo: 'Halo envelope and QT anchors',
     baender: 'Density bands',
+    modell: '3D model',
+    nichtBelegt: 'version not documented',
     recherche: 'own research',
     shopSchnappschuss: 'own shop snapshot, undated, only where UEX does not list the item',
     aufbereitung: 'processed in-house',
@@ -295,7 +300,7 @@ export function standSchiff(
  * zeigt. Der Stand des Katalogs steht vorn; jede ältere Fassung bekommt eine
  * eigene Zeile mit der Zahl der Fahrzeuge, die noch auf ihr stehen.
  */
-export function standFlotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
+function flotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
   const t = T[lang];
   const z = [spiel(lang, 'flotte', t.schiffswerte, FAHRZEUG_F)];
   const aelter = new Map<string, number>();
@@ -307,6 +312,12 @@ export function standFlotte(lang: Locale, kennungen: (string | null | undefined)
     const was = lang === 'de' ? `${t.schiffswerte} von ${n} Fahrzeug${n === 1 ? '' : 'en'}` : `${t.schiffswerte} of ${n} vehicle${n === 1 ? '' : 's'}`;
     z.push(spiel(lang, 'flotte-aelter', was, f, FAHRZEUG_F));
   }
+  return z;
+}
+
+export function standFlotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
+  const t = T[lang];
+  const z = flotte(lang, kennungen);
   z.push(fremd(lang, 'uex-schiffe', t.ingamePreise, UEX.name, UEX.link, SCHIFF_PREISE));
   z.push({
     quelle: 'wiki', art: 'schnappschuss', was: t.wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
@@ -385,4 +396,88 @@ if (!/^\d+\.\d+(?:\.\d+)?$/.test(BAENDER_F)) throw new Error(`datenstand: assets
 export function standPrecision(lang: Locale): StandZeile[] {
   const t = T[lang];
   return [spiel(lang, 'halo', t.halo, HALO_F), hand(lang, 'halo-baender', t.baender, BAENDER_F, HALO_F)];
+}
+
+/* ---------- Hangar (nur Vorschau) ---------- */
+
+type HangarEintrag = { gameVersion?: string };
+const HANGAR_TEILE_ALLE = HANGAR as unknown as Record<string, Record<string, HangarEintrag> | string>;
+const SCHIFFSMODELLE = HANGAR_TEILE_ALLE.ships as Record<string, HangarEintrag>;
+const FZ_STEMPEL = new Map((VEHICLES as { vehicles: { id: string; gameVersion?: string }[] }).vehicles.map((v) => [v.id, v.gameVersion]));
+// Rohexporte ohne Stempel stammen aus der Zeit, bevor extract-hangar-sources
+// den Spielstand neben jeden Export schrieb. Der Stempel kam am 14.11.2026,
+// als Client 4.10.3 installiert war; neue Exporte tragen ihren Stand selbst.
+const HANGAR_STEMPEL_AB = '4.10.3';
+// Was der Hangar ausser den Schiffsmodellen aus dem Spiel zeigt, in der
+// Reihenfolge der Nennung. Genannt wird nur, was ohne Stand ist.
+const HANGAR_TEILE = [
+  { teile: ['weapons'], de: 'Waffen', en: 'weapons' },
+  { teile: ['components'], de: 'Komponenten', en: 'components' },
+  { teile: ['interior'], de: 'Innenräume', en: 'interiors' },
+  { teile: ['hall', 'hallLite'], de: 'Halle', en: 'hall' },
+  { teile: ['lift', 'npc', 'props', 'werkhalle'], de: 'Ausstattung', en: 'fixtures' },
+] as const;
+
+const aufzaehlen = (teile: string[], lang: Locale) =>
+  teile.length < 2 ? teile.join('') : `${teile.slice(0, -1).join(', ')} ${lang === 'de' ? 'und' : 'and'} ${teile[teile.length - 1]}`;
+
+/**
+ * Hangar-Seite. `ids`: die Schiffe des Docks. Werte und Bewaffnung wie auf der
+ * Schiffsuebersicht, dazu die 3D-Modelle je Fassung ihres Rohexports und eine
+ * Zeile fuer alles, was ohne Stempel exportiert wurde.
+ */
+export function standHangar(lang: Locale, ids: readonly string[]): StandZeile[] {
+  const t = T[lang];
+  const z = flotte(lang, ids.map((id) => FZ_STEMPEL.get(id)));
+  const modelle = new Map<string, number>();
+  let ohneModellStand = 0;
+  for (const id of ids) {
+    const g = SCHIFFSMODELLE[id]?.gameVersion;
+    if (!g) { ohneModellStand++; continue; }
+    const f = fassung(g, `src/data/hangar-assets.json ships.${id}.gameVersion`);
+    modelle.set(f, (modelle.get(f) ?? 0) + 1);
+  }
+  const fassungen = [...modelle.keys()].sort((a, b) => (frueher(a, b) ? 1 : frueher(b, a) ? -1 : 0));
+  for (const f of fassungen) {
+    const n = modelle.get(f)!;
+    const was = lang === 'de' ? `3D-Modelle von ${n} Schiff${n === 1 ? '' : 'en'}` : `3D models of ${n} ship${n === 1 ? '' : 's'}`;
+    z.push(spiel(lang, 'modelle', was, f, FAHRZEUG_F));
+  }
+  // Preisfilter und Schnellansicht des Docks zeigen den Pledge-Preis
+  if (ids.some(hatWiki)) z.push(wikiZeile(lang));
+  const ohne: string[] = [];
+  if (ohneModellStand) ohne.push(lang === 'de' ? `${ohneModellStand} Schiffsmodelle` : `${ohneModellStand} ship models`);
+  for (const teil of HANGAR_TEILE) {
+    const eintraege = teil.teile.flatMap((k) => Object.values((HANGAR_TEILE_ALLE[k] ?? {}) as Record<string, HangarEintrag>));
+    if (eintraege.some((e) => !e.gameVersion)) ohne.push(teil[lang]);
+  }
+  if (ohne.length) {
+    const was = aufzaehlen(ohne, lang);
+    z.push({
+      quelle: 'modelle-ohne', art: 'quelle', was: was.charAt(0).toUpperCase() + was.slice(1),
+      text: lang === 'de' ? `exportiert vor ${HANGAR_STEMPEL_AB}, ${t.nichtBelegt}` : `exported before ${HANGAR_STEMPEL_AB}, ${t.nichtBelegt}`,
+      aelter: false,
+    });
+  }
+  return z;
+}
+
+const wikiZeile = (lang: Locale): StandZeile => ({
+  quelle: 'wiki', art: 'schnappschuss', was: T[lang].wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
+  wert: WIKI_DATUM, text: `, ${T[lang].schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+});
+const EXTERN = VEHICLE_EXTERNAL as { vehicles?: Record<string, unknown>; overrides?: Record<string, unknown> };
+const hatWiki = (id: string) => !!(EXTERN.vehicles?.[id] ?? EXTERN.overrides?.[id]);
+
+/** Bucht eines Schiffs im Hangar: seine Werte und sein 3D-Modell, je mit eigenem Stempel. */
+export function standBucht(lang: Locale, id: string): StandZeile[] {
+  const t = T[lang];
+  const z = [spiel(lang, 'fahrzeug', t.schiffswerte, fassung(FZ_STEMPEL.get(id), `src/data/vehicles.json ${id}.gameVersion`), FAHRZEUG_F)];
+  const g = SCHIFFSMODELLE[id]?.gameVersion;
+  z.push(g
+    ? spiel(lang, 'modell', t.modell, fassung(g, `src/data/hangar-assets.json ships.${id}.gameVersion`), FAHRZEUG_F)
+    : { quelle: 'modell', art: 'quelle', was: t.modell, text: t.nichtBelegt, aelter: false });
+  // Pledge-Preis, Masse und Status der Uebersicht kommen aus dem Wiki-Schnappschuss
+  if (hatWiki(id)) z.push(wikiZeile(lang));
+  return z;
 }
