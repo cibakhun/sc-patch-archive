@@ -65,11 +65,14 @@ in `HangarPage.astro`; beide Seitenhüllen (`src/pages/hangar.astro`,
 2. `<script type="application/json" id="hg-stage">` mit genau einer
    `StageConfig` (`src/lib/hangar/stage.ts`): `viewer` (versionierte URL),
    `opts` (wird unverändert in `initHangar` gespreizt) und
-   `models[id] = [glb, Werkslack-glb oder null, Herstellerkürzel, Ort]` für
-   jede Id aus `HANGAR_IDS`. Ort ist `'werk'` für die Bodenfahrzeuge
-   (`vehicles.json` `isSpaceship === false`, seit 24.10.2026): Sie stehen in
-   der Werkhalle hinter der Westnische, die Kamera fliegt hinüber. Sonst
-   `'halle'`. Die Garage dafür kommt in `opts.hall.werk` (glb, Maße, Bühnen).
+   `models[id] = [glb, Werkslack-glb oder null, Herstellerkürzel, Ort,
+   Hangargröße]` für jede Id aus `HANGAR_IDS`. Ort ist `'werk'` für die
+   Bodenfahrzeuge (`vehicles.json` `isSpaceship === false`, seit 24.10.2026):
+   Sie stehen in der Werkhalle hinter der Westnische, die Kamera fliegt
+   hinüber. Sonst `'halle'`. Die Garage dafür kommt in `opts.hall.werk` (glb,
+   Maße, Bühnen). Hangargröße (seit 13.11.2026) ist `'S'`, `'M'`, `'L'` oder
+   `'XL'` nach der Größenklasse des Schiffs (`hangarOfClass` in `stage.ts`),
+   `null` in der Werkhalle und ohne Größenklasse.
 3. Die Import-Map für three.js, vor jedem Modul-Skript der Seite.
 
 Die Modellpolitik bleibt in der Szene: `HOLD`, die Werkslack-Fassungen, Halle
@@ -86,7 +89,18 @@ scrollt die Seite, waagerechtes Ziehen dreht das Schiff. Die Regel braucht
 Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 ...opts })`, zeigt `#hg-load` und setzt `--p` aus `onProgress`, zeigt bei
 einem Fehler `#hg-fallback` und lädt Schiffe mit
-`show(models[id][0], { maker: models[id][2], tex: models[id][1], ort: models[id][3] })`.
+`show(models[id][0], { maker: models[id][2], tex: models[id][1], ort: models[id][3], hangar: models[id][4] })`.
+
+Die Halle rastet je Schiff auf eine von vier festen Hangargrößen ein
+(`HALL_GROW.sizes` im Viewer, Small bis Extra Large wie im Spiel). `hangar`
+ist die Stufe des Schiffs und die kleinste, die es bekommt; ragt sein Modell
+über deren Feld, nimmt der Viewer die nächste, die es fasst, und für ein
+Schiff, das keine fasst (Javelin), wächst die Halle auf sein Maß. Welche
+Stufe die Halle hat, meldet `onHangar(fn)` mit `{ id, size, w, l, h }`
+(`size` `''`: Halle nach Maß; `w` × `l` das Feld, `h` die freie Höhe in m).
+Die Oberfläche schreibt daraus die letzte Zeile des Titelblocks (`#hgx-gr`)
+und gibt sie dem Hologramm über dem Schiff mit (`label(id, { …, hangar })`).
+`verify:hangar` [24] rechnet jedes Schiff nach.
 
 Unter 760 px liegt der Titelblock samt Knöpfen über dem oberen Teil der
 Bühne (390 × 844: 319 von 523 px). Dort meldet sie dessen Unterkante mit

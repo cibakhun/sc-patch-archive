@@ -957,6 +957,7 @@ export function boot(doc) {
       title.classList.remove('is-swap');
       void title.offsetWidth;
       title.classList.add('is-swap');
+      paintGr();
       viewer?.label?.(id, labelOf(id));
       say(regionNow('head').dataset.announce);
       paintHolo();
@@ -984,6 +985,7 @@ export function boot(doc) {
     head.querySelector('.hg-name').textContent = card?.querySelector('span')?.textContent ?? id;
     head.querySelector('.hg-maker').textContent = card?.querySelector('small')?.textContent ?? '';
     head.querySelector('.hg-role').textContent = '';
+    paintGr();
     viewer?.label?.(id, labelOf(id));
     regionNow('panel').hidden = true;
     bayErr.hidden = false;
@@ -1131,10 +1133,41 @@ export function boot(doc) {
     const head = regionNow('head');
     if (head?.dataset.id === id) {
       const txt = (sel) => head.querySelector(sel)?.textContent.trim() ?? '';
-      return { logo: logoOf(id), maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role') };
+      return { logo: logoOf(id), maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role'), hangar: grText(id) };
     }
     const card = cardOf(id);
-    return { logo: logoOf(id), maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '' };
+    return { logo: logoOf(id), maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '', hangar: grText(id) };
+  }
+  // Hangargroesse (hangar-viewer.js onHangar, 13.11.2026). Krisz: „small
+  // Hangar, Medium, large und extra large einführen genau wie ingame, dann
+  // haben wir auch richtige grössenreferenzen“. Die Halle rastet je Schiff auf
+  // eine der vier Stufen ein, und die Buehne meldet, auf welche: Das steht als
+  // letzte Zeile des Titelblocks, im Hologramm und in #hgx-gr, mit dem Feld
+  // der Halle in Metern. Die Zeile folgt der Buehne, nicht der Schiffsliste:
+  // Ragt ein Modell ueber das Feld seiner Stufe, steht es eine groesser, und
+  // das soll sie sagen. size '': Kein Hangar fasst das Schiff (Javelin).
+  // Fahrzeuge der Werkhalle bekommen keine Meldung und keine Zeile.
+  const grBox = $('hgx-gr');
+  const grOf = new Map();
+  const grFill = (tpl, e) => tpl.replace('{w}', String(Math.round(e.w))).replace('{l}', String(Math.round(e.l))).replace('{h}', String(Math.round(e.h)));
+  function grText(id) {
+    const e = grOf.get(id), m = msg('gr');
+    if (!e) return '';
+    return e.size === '' ? m.own : m[e.size.toLowerCase()] ? `${m[e.size.toLowerCase()]} · ${grFill(m.feld, e)}` : '';
+  }
+  function paintGr() {
+    if (!grBox) return;
+    const e = grOf.get(state.ship), text = grText(state.ship);
+    grBox.textContent = text;
+    grBox.hidden = !text;
+    grBox.title = text ? grFill(msg('gr').frei, e) : '';
+  }
+  function onHangar(e) {
+    if (!e?.id || typeof e.size !== 'string') return;
+    grOf.set(e.id, e);
+    if (e.id !== state.ship) return;
+    paintGr();
+    viewer?.label?.(e.id, labelOf(e.id));
   }
   // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
   const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);
@@ -2376,7 +2409,7 @@ export function boot(doc) {
     const my = ++showTok;
     placed = null;
     syncMarks();
-    const [glb, tex, maker, ort] = stageCfg.models[id];
+    const [glb, tex, maker, ort, hangar] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
     // blendet nur aus, was ihm gehoert.
@@ -2384,7 +2417,7 @@ export function boot(doc) {
     // Nur ein leiser Balken ohne Wort, und erst wenn das Laden spuerbar
     // dauert: ein schneller Wechsel zeigt gar nichts.
     const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 1200);
-    viewer.show(glb, { maker, tex, ort, id, label: labelOf(id) })
+    viewer.show(glb, { maker, tex, ort, id, hangar, label: labelOf(id) })
       .then(() => {
         if (my !== showTok) return;
         placed = id;
@@ -2852,6 +2885,7 @@ export function boot(doc) {
         // Orte, wenn sie einen Leitstand hat; sonst gilt die Adresse nicht
         stageOrte = stage3d && v.canPlace?.('leit') === true;
         v.onPlace?.(onPlace);
+        v.onHangar?.(onHangar);
         if (!stageOrte && state.ort === 'leit') setState({ ort: 'halle' });
         viewerShow(state.ship);
         paintStation();

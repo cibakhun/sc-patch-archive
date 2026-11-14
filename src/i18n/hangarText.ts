@@ -230,6 +230,16 @@ const DE = {
   'ort.leit': 'Leitstand',
   'ort.an.leit': 'Im Leitstand. Das Terminal zeigt die Seite.',
   'ort.an.halle': 'Zurück in der Halle.',
+  // Hangargröße des Schiffs (13.11.2026): vier Stufen wie im Spiel, mit
+  // deren Namen. „own“: Kein Hangar fasst das Schiff (Javelin). Dahinter das
+  // Feld der Halle (feld), für Maus und Vorleser die freie Höhe (frei).
+  'gr.S': 'Small-Hangar',
+  'gr.M': 'Medium-Hangar',
+  'gr.L': 'Large-Hangar',
+  'gr.XL': 'Extra-Large-Hangar',
+  'gr.own': 'Für jeden Hangar zu groß',
+  'msg.gr.feld': '{w} × {l} m',
+  'msg.gr.frei': 'Feld der Halle {w} × {l} m, darüber {h} m frei',
   'term.label': 'Terminal im Leitstand',
   'term.nav': 'Bereiche der Seite',
   'term.frame': 'VerseBase auf dem Terminal',
@@ -455,6 +465,13 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'ort.leit': 'Control room',
   'ort.an.leit': 'In the control room. The terminal shows the site.',
   'ort.an.halle': 'Back in the hall.',
+  'gr.S': 'Small hangar',
+  'gr.M': 'Medium hangar',
+  'gr.L': 'Large hangar',
+  'gr.XL': 'Extra Large hangar',
+  'gr.own': 'Too large for any hangar',
+  'msg.gr.feld': '{w} × {l} m',
+  'msg.gr.frei': 'Pad of the hall {w} × {l} m, {h} m clear above it',
   'term.label': 'Terminal in the control room',
   'term.nav': 'Sections of the site',
   'term.frame': 'VerseBase on the terminal',
@@ -483,7 +500,7 @@ const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> =
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname, ein
 // Fachkürzel oder ein Wort ist, das beide Sprachen gleich schreiben (Name,
 // Filter); jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status', 'st.loadout']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status', 'st.loadout', 'msg.gr.feld']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];

@@ -715,8 +715,18 @@ function hallSpot(h) {
 // beim Wachsen hängen und schnitten die Idris auf Deckhöhe. `clear`: so
 // hoch ist das Feld frei (m über dem Boden, bis zu den Wannen); growFor
 // hält das Schiff 4 m darunter.
+// `sizes`: die festen Hangargrößen (13.11.2026). Krisz: „Wir könnten auch
+// mal small Hangar, Medium, large und extra large einführen genau wie
+// ingame, dann haben wir auch richtige grössenreferenzen“. Bis dahin wuchs
+// die Halle für jedes Schiff auf sein Maß, 19 verschiedene Hallen für 190
+// Schiffe, und keine sagte etwas über die Größe des Schiffs. Jetzt rastet
+// sie auf eine von vier Stufen ein, je [Name, Zuwachs x, y, z] in m, von
+// klein nach groß und in ganzen Schritten je Seite (step): S ist die Halle
+// ohne Zuwachs (Feld 32 x 96 m, 35,5 m frei), M 56 x 96 m, L 88 x 160 m und
+// 59,5 m frei, XL 184 x 304 m und 99,5 m frei. Das Seitenverhältnis bleibt
+// das unserer Halle, die Stufen und ihre Namen sind die des Spiels.
 const HALL_GROW = /* hall-grow */ {
-  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[34.067, 34.221, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4, "clear": 35.48 }
+  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[34.067, 34.221, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4, "clear": 35.48, "sizes": [["S", 0, 0, 0], ["M", 24, 0, 0], ["L", 56, 24, 64], ["XL", 152, 64, 208]] }
 } /* /hall-grow */;
 
 // Streifen aus HALL_GROW in einem Raum, der um org gegen den Modellraum
@@ -725,7 +735,7 @@ const HALL_GROW = /* hall-grow */ {
 function growSpec(h, org = [0, 0, 0]) {
   const G = HALL_GROW[h.id];
   if (!G) return null;
-  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4, clear: G.clear ?? null };
+  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4, clear: G.clear ?? null, sizes: G.sizes ?? null };
   ['x', 'y', 'z'].forEach((a, i) => {
     for (const [p, q, f] of G[a] ?? []) {
       const z = [p - org[i], q - org[i]], mid = (z[0] + z[1]) / 2;
@@ -737,12 +747,24 @@ function growSpec(h, org = [0, 0, 0]) {
 }
 // Anteil am Zuwachs für die Lage v auf Achse i (wie hgFrac im Shader)
 const growFrac = (s, v, i) => (v <= s.lo[i] ? s.flo[i] : v >= s.hi[i] ? s.fhi[i] : 0);
-// Zuwachs für ein Schiff mit den Maßen info: mit 1 m Rand aufs Feld L, 4 m
-// unter die Wannen (s.clear, sonst die Raumhöhe height); je Seite in ganzen
-// Schritten (s.step). s: growSpec. Ergebnis [x, y, z] in Modellmetern.
-function growNeed(info, L, s, height) {
+// Hangargröße und Zuwachs für ein Schiff mit den Maßen info. need: so viel
+// braucht es, mit 1 m Rand aufs Feld L, 4 m unter die Wannen (s.clear, sonst
+// die Raumhöhe height), je Seite in ganzen Schritten (s.step). Die Halle
+// bekommt die kleinste Stufe aus s.sizes, die das fasst, und nie eine
+// kleinere als info.hangar: Das ist die Stufe des Schiffs von der Seite (aus
+// seiner Größenklasse), ohne sie zählt allein das Maß. s: growSpec.
+// Ergebnis { size, grow: [x, y, z] in Modellmetern }. size '': Keine Stufe
+// fasst das Schiff (Javelin, 470 m), die Halle wächst dann wie vor den
+// Stufen auf sein Maß. size null: Die Halle kennt keine Stufen.
+function growPick(info, L, s, height) {
   const st = s.step, q = (need, f) => (need > 1e-6 && f > 0 ? (Math.ceil((need * f) / st - 1e-6) * st) / f : 0);
-  return [q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), s.fhi[0]), q(info.height + 4 - (s.clear ?? height), s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), s.fhi[2])];
+  const need = [q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), s.fhi[0]), q(info.height + 4 - (s.clear ?? height), s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), s.fhi[2])];
+  if (!s.sizes?.length) return { size: null, grow: need };
+  for (let i = Math.max(0, s.sizes.findIndex((z) => z[0] === info.hangar)); i < s.sizes.length; i++) {
+    const [size, ...grow] = s.sizes[i];
+    if (need.every((v, a) => v <= grow[a] + 1e-6)) return { size, grow };
+  }
+  return { size: '', grow: need };
 }
 
 // Raum der Kamera in der echten Halle (13.11.2026). Krisz: „es auch am
@@ -858,8 +880,10 @@ export function camRest(H, t, d, lo, L) {
   return same;
 }
 // Dieselbe Rechnung aus dem, was die Seite der Bühne mitgibt (hall:
-// opts.hall), für ein Schiff mit den Maßen info: Zuwachs der Halle, ihr Raum
-// und die Grenzen der Kamera, dazu die Grenze in der Startansicht (home).
+// opts.hall), für ein Schiff mit den Maßen info (und info.hangar, seiner
+// Stufe von der Seite): Hangargröße (size, wie growPick) und Zuwachs der
+// Halle, ihr Raum und die Grenzen der Kamera, dazu die Grenze in der
+// Startansicht (home).
 // null: Halle ohne Feld oder Zuwachs. verify:hangar [23] rechnet damit
 // jedes Schiff des Docks.
 export function camPlan(hall, info) {
@@ -867,10 +891,10 @@ export function camPlan(hall, info) {
   if (!L || !R) return null;
   const o = hallSpot(hall), s = growSpec(hall, [o[0], Number.isFinite(hall.floor) ? hall.floor : R.center[1], o[2]]);
   if (!s) return null;
-  const grow = growNeed(info, L, s, R.height);
+  const { size, grow } = growPick(info, L, s, R.height);
   const room = { center: R.center, halfW: R.halfW + grow[0] / 2, halfL: R.halfL + grow[2] / 2, height: R.height + grow[1] };
   const sp = camSpace(info, room, 1, [R.center[0] - o[0], R.center[2] - o[2]], (s.clear ?? R.height) + grow[1]);
-  return { grow, room, ...sp, home: camReach(sp, new THREE.Vector3(0, homeY(info.height), 0), HOME_DIR) };
+  return { size, grow, room, ...sp, home: camReach(sp, new THREE.Vector3(0, homeY(info.height), 0), HOME_DIR) };
 }
 // Matrix vom Raum des Knotens o in den von root (oder ganz hinauf, wenn
 // root kein Vorfahre ist: was noch eingehängt wird)
@@ -5968,7 +5992,7 @@ function buildHolo(container, reduceMotion) {
   // Hologramm mit dem Herstellerlogo schmücken): das Bild ist nur Maske
   // (CSS --logo), die Farbe kommt vom Hologramm; die äußere Hülle trägt das
   // Glühen, eine Maske schnitte es sonst ab.
-  const rows = ['k', 'm', 'n', 'r'].map((c) => {
+  const rows = ['k', 'm', 'n', 'r', 'g'].map((c) => {
     const p = document.createElement('p');
     p.className = `hg-holo__${c}`;
     el.append(p);
@@ -5993,7 +6017,7 @@ function buildHolo(container, reduceMotion) {
   const V = new THREE.Vector3(), P = new THREE.Vector3(), Q = new THREE.Vector3(), R = new THREE.Vector3(), U = new THREE.Vector3(), F = new THREE.Vector3(), S = new THREE.Vector3();
   const M = new THREE.Matrix4();
   let sx = new Float32Array(0), sy = sx, sd = sx;
-  const keyOf = (t) => [t.logo?.url, t.maker, t.name, t.role].join('\u0001');
+  const keyOf = (t) => [t.logo?.url, t.maker, t.name, t.role, t.hangar].join('\u0001');
   // Schriftgröße des Namens für die Bühnenhöhe, Breite höchstens der freie Teil
   const sizeOf = (h) => Math.round(THREE.MathUtils.clamp(h * HOLO_NAME[0], HOLO_NAME[1], HOLO_NAME[2]));
   const maxOf = (w) => Math.round(Math.max(160, (w - safe.l - safe.r) * 0.9));
@@ -6008,7 +6032,8 @@ function buildHolo(container, reduceMotion) {
       logo.style.setProperty('--logo-ar', String(L.ar || 1));
       logo.toggleAttribute('data-full', !!L.full);
     }
-    [null, t.maker, t.name, t.role].forEach((s, i) => { if (i) { rows[i].textContent = s || ''; rows[i].hidden = !s; } });
+    // letzte Zeile: die Hangargröße des Schiffs (t.hangar, von der Seite nach onHangar)
+    [null, t.maker, t.name, t.role, t.hangar].forEach((s, i) => { if (i) { rows[i].textContent = s || ''; rows[i].hidden = !s; } });
     el.style.setProperty('--holo-n', `${N}px`);
     el.style.setProperty('--holo-max', `${max}px`);
     el.style.transform = 'none';
@@ -7407,12 +7432,26 @@ export async function initHangar(container, opts = {}) {
     }
     return out;
   }
-  // Zuwachs für ein Schiff: mit 1 m Rand aufs Feld, 4 m unter die Decke
-  // (über dem Feld: HALL_GROW.clear); je Seite in ganzen Schritten (HALL_GROW.step)
+  // Zuwachs für ein Schiff: die Hangargröße, die es fasst (growPick,
+  // HALL_GROW.sizes). Welche das ist, erfährt die Seite (hangarTell).
   function growFor(info) {
     const G = realHall?.grow, L = realHall?.liftL, out = new THREE.Vector3();
     if (!G || !L) return out;
-    return out.fromArray(growNeed(info, L, G.s, realHall.room.height));
+    const pick = growPick(info, L, G.s, realHall.room.height);
+    if (pick.size != null) hangarTell(info.id ?? null, pick.size, L.to[0] - L.from[0] + pick.grow[0], L.to[1] - L.from[1] + pick.grow[2], (G.s.clear ?? realHall.room.height) + pick.grow[1]);
+    return out.fromArray(pick.grow);
+  }
+  // Hangargröße der Halle, wie sie steht oder gerade wird, und für welches
+  // Schiff: { id, size, w, l, h }, id wie in show(url, { id }) (null: noch
+  // kein Schiff), size 'S' bis 'XL' oder '' für eine Halle nach Maß
+  // (growPick), dazu das Feld (Breite w, Länge l) und die freie Höhe h
+  // darüber in m. null, solange keine echte Halle steht oder sie keine Stufen
+  // kennt. Die Seite hört mit onHangar zu.
+  let hangarFn = null, hangarNow = null;
+  function hangarTell(id, size, w, l, h) {
+    if (hangarNow && hangarNow.id === id && hangarNow.size === size && hangarNow.w === w && hangarNow.l === l && hangarNow.h === h) return;
+    hangarNow = { id, size, w, l, h };
+    hangarFn?.({ ...hangarNow });
   }
   // Maßstab der Hallenlampen (scaleLamps, growApply). Wächst die Halle an
   // Streifen, bleibt sie im Maßstab 1, die sechs Lampen aber rücken um die
@@ -12318,6 +12357,9 @@ void main() {
     return true;
   }
 
+  // o.hangar: die Hangargröße des Schiffs von der Seite ('S' bis 'XL', aus
+  // seiner Größenklasse); die Halle wird nie kleiner, bei Bedarf größer
+  // (growPick). Die Stufe der Halle selbst meldet onHangar.
   async function show(url, o = {}) {
     wake(1500);
     busyStart();
@@ -12501,7 +12543,7 @@ void main() {
     const hb = box.hull ?? box, wp = wrap.position;
     // Aufstandspunkte im Schiffsraum (wie in standOn gedreht): dort prüft die Crew das Fahrwerk
     const feet = stand?.n ? gearOf(textured ? o.tex : url).contacts.filter((p) => p?.length === 3 && p.every(Number.isFinite)).map(([x, y, z]) => new THREE.Vector3(-x, y, -z).applyQuaternion(lean.quaternion).add(wp)) : null;
-    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under, feet };
+    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under, feet, id: o.id ?? null, hangar: o.hangar ?? null };
     // in die Werkhalle, in ihr von Fahrzeug zu Fahrzeug oder aus ihr hinaus
     if (toWerk || current?.werk) {
       if (await werkShow(ship, { model, mat, info, textured, hull, inner: textured ? innerOf(o.tex) : null, my, drop, lowered, covered, padDown, toWerk })) return;
@@ -14737,6 +14779,12 @@ void main() {
     place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
     canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
     onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },
+    // Hangargröße: onHangar(fn) ruft fn({ id, size, w, l, h }) für jedes
+    // Schiff, das auf das Feld kommt, und gleich, wenn sie schon feststeht:
+    // id des Schiffs, size 'S', 'M', 'L', 'XL' oder '' für eine Halle nach
+    // Maß (kein Hangar fasst das Schiff), w x l das Feld und h die freie
+    // Höhe in m. Ohne echte Halle und in der Werkhalle kommt nichts.
+    onHangar(fn) { hangarFn = fn; if (hangarNow) fn({ ...hangarNow }); },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
