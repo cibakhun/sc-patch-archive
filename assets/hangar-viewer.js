@@ -6694,9 +6694,45 @@ const WERK_TOR_VOR = 1200;
 // (verify:hangar-orte rechnet das für viele Fenstergrößen nach und misst
 // das Glas am ausgelieferten Modell); bank: wo die Monitore des Pults
 // stehen (leitBuild warnt, wenn das Modell sie woanders hat).
+// Seit der Large-Halle (14.11.2026) muss der Monitor nicht mehr nach Süden
+// zeigen: schirm.dreh und schirm.neig (Grad, leitAchsen) nennen, wohin sein
+// Glas sieht, die Kamera sieht ihm gerade ins Gesicht, und d zählt entlang
+// dieser Blickachse. schirm.fase: die Ecken des Glases sind gefast statt
+// rund; schirm.mat: Material des Glases, wenn der Monitor im Modell der
+// Halle selbst steht (dann ohne bank); voll: Quader, in die die Kamera nie
+// gerät (Pult, Stühle).
 export const HALL_LEIT = {
   'revelyork-single': { schirm: { x: 0.1215, y: 17.7925, z: 57.555, b: 3.107, h: 0.817, ecke: 0.049, saum: 0.03 }, form: [0.5, 0.8], fov: 40, d: [1, 2.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
+  // Large-Halle (util_a, 14.11.2026): der Kontrollraum der Landefelder über
+  // dem Eingang (Boden 17,75, Decke 21,25, Glasfront bei z 91,17). An seiner
+  // Rückwand steht der Arbeitsplatz der Verwaltung: Pult mit zwei Stühlen,
+  // darüber ein großer Bildschirm, 15° nach vorn geneigt, das Gesicht zur
+  // Halle. Sein Glas gehört dem Terminal (im Modell ein ausgeschalteter
+  // Schirm, ein Achteck mit gefasten Ecken; gemessen am gebauten Modell).
+  // Die Kamera sitzt davor im Gang, nördlich der Stühle, zwischen dem großen
+  // Schirm links und der Reihe der sechs Anzeigen rechts, die ab z 100,7
+  // von der Decke hängen (raum); in Pult und Stühle hinein darf sie nie
+  // (voll). Der Monitor steht hier im Modell der Halle selbst (mat), nicht
+  // in einer Einrichtung: darum kein bank.
+  'util-lrgtop': { schirm: { x: -6.2808, y: 19.9469, z: 103.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, dreh: 180, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: 91.17, y: 20.15, x: 4.8 }, innen: 20, raum: { x: [-8, -4], y: [17.75, 20.75], z: [97.5, 104.1] }, voll: [{ x: [-8, -4.4], y: [17.75, 19.2], z: [102.45, 104.1] }] },
 };
+/**
+ * Achsen eines Monitors in Hallenmetern: X nach rechts (von vorn gesehen), Y
+ * am Glas nach oben, Z aus dem Glas heraus zum Betrachter. Ohne Angaben
+ * zeigt er nach Süden (+z) und steht senkrecht, wie der des Pults in der
+ * Halle von Revel & York. dreh: Grad um die Hochachse (180: Gesicht nach
+ * Norden, zur Halle); neig: Grad nach vorn geneigt (die Oberkante kommt dem
+ * Betrachter entgegen).
+ *   leitAchsen({ dreh: 180, neig: 15 }) -> { X: [-1, 0, 0], Y: [0, 0.966, -0.259], Z: [0, -0.259, -0.966] }
+ * @param {{ dreh?: number, neig?: number }} S
+ * @returns {{ X: number[], Y: number[], Z: number[] }}
+ */
+export function leitAchsen(S) {
+  const a = ((S.dreh ?? 0) * Math.PI) / 180, p = ((S.neig ?? 0) * Math.PI) / 180;
+  // 180° ohne den Rest von sin π: Die Achsen eines gerade stehenden Monitors bleiben ganze Zahlen
+  const ca = S.dreh === 180 ? -1 : Math.cos(a), sa = S.dreh === 180 ? 0 : Math.sin(a), cp = Math.cos(p), sp = Math.sin(p);
+  return { X: [ca, 0, -sa], Y: [sa * sp, cp, ca * sp], Z: [sa * cp, -sp, ca * cp] };
+}
 // Weiter als so öffnet sich der Bildwinkel vor dem Terminal nicht (Grad);
 // so viel Luft hält die Kamera zu Boden und Decke des Leitstands (m)
 export const LEIT_FOV_MAX = 62, LEIT_LUFT = 0.3;
@@ -6744,7 +6780,12 @@ export function leitFit(W, H, frei, L) {
   // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, das
   // Fenster rückt dafür im Bild ein Stück aus der Mitte des freien Stücks.
   let dy = ((frei.t + frei.b) / 2 - H / 2) / s;
-  if (L.raum) dy = Math.min(L.raum.y[1] - LEIT_LUFT - L.schirm.y, Math.max(L.raum.y[0] + LEIT_LUFT - L.schirm.y, dy));
+  // Vor einem geneigten Monitor steht sie um d · sin tiefer als seine Mitte,
+  // und ein Meter am Glas hinauf hebt sie nur um cos.
+  if (L.raum) {
+    const p = ((S.neig ?? 0) * Math.PI) / 180, ab = d * Math.sin(p), c = Math.cos(p);
+    dy = Math.min((L.raum.y[1] - LEIT_LUFT - S.y + ab) / c, Math.max((L.raum.y[0] + LEIT_LUFT - S.y + ab) / c, dy));
+  }
   const cy = H / 2 + dy * s;
   return { b, h, d, fov, dx: -(cx - W / 2) / s, dy, s, rect: { l: cx - (b * s) / 2, t: cy - (h * s) / 2, r: cx + (b * s) / 2, b: cy + (h * s) / 2 } };
 }
@@ -7209,6 +7250,12 @@ export async function initHangar(container, opts = {}) {
   const reduceMotion = !!opts.reduceMotion;
   const W = () => container.clientWidth || 1;
   const H = () => container.clientHeight || 1;
+  // Abgebaut (dispose): Die Seite baut die Bühne für eine andere Halle neu auf
+  // (assets/hangar-overview.js, Hallenwechsel), diese hier ist dann am Ende.
+  // Was sie noch lud, bleibt an den Engstellen stehen (fetchGltf, prepare,
+  // compileFor lösen nie mehr auf), statt in eine abgebaute Szene zu bauen.
+  let tot = false, uebersetzt = 0;
+  const nieMehr = () => new Promise(() => {});
   // Echte Halle aus dem Spiel: Dann wird die gebaute Halle gar nicht erst
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
@@ -8150,13 +8197,13 @@ export async function initHangar(container, opts = {}) {
   };
   // my: Marke des show(), das lädt. Ein überholtes show() lädt zu Ende,
   // meldet aber keinen Fortschritt mehr: der Balken gehört dem gewählten Schiff.
-  const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => new Promise((resolve, reject) => {
-    (HALL_FILES.has(key) ? hallLoader : loader).load(url, resolve, (e) => {
-      if (my !== null && my !== token) return;
+  const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => (tot ? nieMehr() : new Promise((resolve, reject) => {
+    (HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }, (e) => {
+      if (tot || (my !== null && my !== token)) return;
       prog.set(key, [e.loaded, e.total || Math.max(guess, e.loaded)]);
       report();
-    }, reject);
-  });
+    }, (e) => { if (!tot) reject(e); });
+  }));
 
   // Gleiche Merkmale, gleiches Programm: three.js übersetzt für jede
   // Kombination von Karten ein eigenes Shaderprogramm. Fehlende Karten
@@ -8219,12 +8266,16 @@ export async function initHangar(container, opts = {}) {
   // target: Zielbild beim späteren Zeichnen (null = Leinwand); world: die
   // Szene, deren Lichter mitzählen (Vollbildpässe zeichnen ohne Lichter).
   async function compileFor(root, target, world = scene) {
+    if (tot) await nieMehr();
     const prev = renderer.getRenderTarget();
     if (PARALLEL) {
       renderer.setRenderTarget(target);
       let p;
       try { p = renderer.compileAsync(root, camera, world); } finally { renderer.setRenderTarget(prev); }
-      await p;
+      // übersetzt gerade: dispose lässt dem Renderer dann seine Tabellen (übersetzt unten)
+      uebersetzt++;
+      try { await p; } finally { uebersetzt--; }
+      if (tot) await nieMehr();
       return;
     }
     const items = [], seen = new Set();
@@ -8251,9 +8302,11 @@ export async function initHangar(container, opts = {}) {
   const busyStart = () => { if (!busy) busyAt = performance.now(); busy++; };
   const busyEnd = () => { busy = Math.max(0, busy - 1); quietAt = performance.now() + 1000; };
   async function prepare(root) {
+    if (tot) await nieMehr();
     busyStart();
     try {
       await composerReady;
+      if (tot) await nieMehr();
       const tex = new Set();
       root.traverse((n) => {
         if (n.isMesh) for (const m of [].concat(n.material)) {
@@ -13399,7 +13452,7 @@ void main() {
         camFree = { o, dist, m: 0.6 * k, boxes: [...boxes, ...deko] };
         console.info(`[hangar] Freiraum der Kamera gemessen (6 × ${FREE_N}², ${Math.round(performance.now() - t0)} ms), ${boxes.length} Möbel und ${deko.length} Stücke der Hallendeko als Quader`);
       } else freeDirty = true;
-    }).catch((e) => console.warn('[hangar] Freiraum der Kamera nicht gemessen', e)).finally(() => { freeBusy = false; });
+    }).catch((e) => { if (!tot) console.warn('[hangar] Freiraum der Kamera nicht gemessen', e); }).finally(() => { freeBusy = false; });
   }
   // Hülle des Schiffs (2026-10-11). Die Kamera darf bis auf span · 0,45 an
   // ihr Ziel heran, und ganz hereingezoomt streifte sie Flügelspitzen,
@@ -13451,7 +13504,7 @@ void main() {
       // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
       shipFree = { o, dist: null, c, y, b };
       if (home) shipHome = shipFree;
-      console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
+      if (!tot) console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
     }).finally(() => { shipBusy = false; });
   }
   // Wo steht das Schiff in der Startansicht im Bild? Je Kamerahöhe (0 bis
@@ -14378,6 +14431,11 @@ void main() {
   // wie beim Einsteigen (walk). Nicht am Telefon und nur in einer Halle,
   // deren Leitstand vermessen ist.
   const LEIT = REAL && !SMALL ? HALL_LEIT[opts.hall.id] ?? null : null;
+  // Achsen des Monitors (leitAchsen) und dieselbe Drehung für Fläche und
+  // Kamera: Sie sieht ihm gerade ins Gesicht.
+  const LEIT_A = LEIT ? leitAchsen(LEIT.schirm) : null;
+  const leitQ = new THREE.Quaternion();
+  if (LEIT) leitQ.setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(LEIT.schirm.neig ?? 0), THREE.MathUtils.degToRad(LEIT.schirm.dreh ?? 0), 0, 'YXZ'));
   // Auflösung der Fläche (px je m). Vor dem Monitor steht das Fenster der
   // Seite darüber; scharf sein muss nur, was neben ihm und aus der Ferne zu
   // sehen ist.
@@ -14387,9 +14445,10 @@ void main() {
   // ein Punkt des Leitstands dort, wo er mit dem Zuwachs der Halle steht (Hallenmeter)
   const leitAt = (x, y, z, out = new THREE.Vector3()) => growMap(out.set(x, y, z), out);
   // Das Glas des Monitors als Fläche: Rechteck b × h (m) mit runden Ecken wie
-  // das Glas im Modell, Texturkoordinaten über das ganze Rechteck.
-  function leitGlass(b, h, r) {
-    const pts = [[0, 0]], n = 6;
+  // das Glas im Modell (n Stücke je Ecke; eines ist eine Fase),
+  // Texturkoordinaten über das ganze Rechteck.
+  function leitGlass(b, h, r, n = 6) {
+    const pts = [[0, 0]];
     for (const [cx, cy, a0] of [[b / 2 - r, h / 2 - r, 0], [-b / 2 + r, h / 2 - r, 0.5], [-b / 2 + r, -h / 2 + r, 1], [b / 2 - r, -h / 2 + r, 1.5]])
       for (let i = 0; i <= n; i++) { const a = (a0 + (0.5 * i) / n) * Math.PI; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
     const pos = new Float32Array(pts.length * 3), uv = new Float32Array(pts.length * 2), idx = [];
@@ -14469,8 +14528,9 @@ void main() {
   }
   function leitLay() {
     if (!leitScreen) return;
-    const S = LEIT.schirm, k = hallRoot.scale.x;
-    leitAt(S.x, S.y, S.z + LEIT_VOR, leitScreen.mesh.position);
+    const S = LEIT.schirm, k = hallRoot.scale.x, Z = LEIT_A.Z;
+    leitAt(S.x + LEIT_VOR * Z[0], S.y + LEIT_VOR * Z[1], S.z + LEIT_VOR * Z[2], leitScreen.mesh.position);
+    leitScreen.mesh.quaternion.copy(leitQ);
     leitScreen.mesh.scale.setScalar(1 / k);
   }
   function leitBuild() {
@@ -14483,21 +14543,24 @@ void main() {
     // auf dem Glas des mittleren und zeigt wie dieses nur nach Süden: Von der
     // Halle aus bleibt die Rückseite, wie das Spiel sie zeigt. Ohne
     // Einrichtung (Stufe niedrig) ist der Leitstand leer; dann steht die
-    // Fläche dort frei und ist auch von der Halle aus zu sehen.
+    // Fläche dort frei und ist auch von der Halle aus zu sehen. Steht der
+    // Monitor im Modell der Halle selbst (kein bank), ist er immer da.
     const bank = realHall?.furniture?.find((f) => /monitors/i.test(f.mesh.name));
-    const mat = new THREE.MeshBasicMaterial({ map: tex, side: bank ? THREE.FrontSide : THREE.DoubleSide, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const mat = new THREE.MeshBasicMaterial({ map: tex, side: bank || !LEIT.bank ? THREE.FrontSide : THREE.DoubleSide, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     mat.color.setScalar(LEIT_DIM);
-    const mesh = new THREE.Mesh(leitGlass(S.b, S.h, S.ecke), mat);
+    const mesh = new THREE.Mesh(leitGlass(S.b, S.h, S.ecke, S.fase ? 1 : 6), mat);
     mesh.name = 'leit:schirm';
-    const h = S.h - 2 * S.saum;
-    leitScreen = { mesh, cv, tex, mat, b: h / LEIT.form[0], h, power: LEIT_DIM, at: 0 };
+    // In Ruhe das breiteste Fenster, das leitFit kennt (form[0]): so hoch wie
+    // das Glas ohne Saum, auf einem schmaleren Glas so breit wie dieses.
+    const b = Math.min(S.b - 2 * S.saum, (S.h - 2 * S.saum) / LEIT.form[0]), h = b * LEIT.form[0];
+    leitScreen = { mesh, cv, tex, mat, b, h, power: LEIT_DIM, at: 0 };
     leitDraw();
     leitLay();
     hallRoot.add(mesh);
     // Wo die Monitore laut HALL_LEIT stehen, stehen sie auch im Modell? Sonst
     // läge die Fläche nach einem neuen Hallenexport neben dem Glas
     // (verify:hangar-orte [8] misst dasselbe am ausgelieferten Modell).
-    if (bank) {
+    if (bank && LEIT.bank) {
       const bb = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = bb.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
       const want = leitAt((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
       if (c.distanceTo(want) > 0.05) console.warn(`[hangar] Leitstand: Monitore des Pults bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
@@ -14515,8 +14578,10 @@ void main() {
     // (die eingeklappte Schiffsauswahl); neben der offenen Liste füllt er den Rest
     const side = Math.max(frei.l, w - frei.r);
     if (side <= w * 0.14) { frei.l = side; frei.r = w - side; }
-    const f = leitFit(w, h, frei, LEIT), c = leitAt(S.x, S.y, S.z).multiplyScalar(k);
-    return { ...f, pos: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z + f.d), look: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z) };
+    const f = leitFit(w, h, frei, LEIT), c = leitAt(S.x, S.y, S.z).multiplyScalar(k), { X, Y, Z } = LEIT_A;
+    // der Punkt auf dem Glas, dem sie gegenübersteht, und sie selbst um d davor, entlang der Achsen des Monitors
+    const look = new THREE.Vector3(c.x + f.dx * X[0] + f.dy * Y[0], c.y + f.dx * X[1] + f.dy * Y[1], c.z + f.dx * X[2] + f.dy * Y[2]);
+    return { ...f, pos: new THREE.Vector3(look.x + f.d * Z[0], look.y + f.d * Z[1], look.z + f.d * Z[2]), look };
   }
   const leitTell = () => {
     const on = post?.state === 'an', r = on ? post.fit.rect : null;
@@ -14537,7 +14602,7 @@ void main() {
     const f = post.fit = leitPose();
     leitShape(f);
     camera.position.copy(f.pos);
-    camera.quaternion.identity();
+    camera.quaternion.copy(leitQ);
     controls.target.copy(f.look);
     fitFov();
     leitTell();
@@ -14564,7 +14629,12 @@ void main() {
         vor.x = sx * Math.max(G.x + 1.4, Math.min(Math.abs(X) * 0.5, 14));
       }
     }
-    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * 2.3, Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1), to.clone());
+    // Der letzte Punkt vor dem Ziel liegt hinter ihm auf der Blickachse des
+    // Monitors. Zeigt dieser der Halle den Rücken (nach Süden), kommt der
+    // Bogen zur Seite dazu, in dem die Kamera wendet; sieht er zur Halle,
+    // fährt sie gerade auf ihn zu.
+    const Z = LEIT_A.Z, seit = 2.3 * Math.max(0, Z[2]);
+    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * seit + 1.1 * Z[0], Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1 * Z[2]), to.clone());
     return pts;
   }
   const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
@@ -15068,6 +15138,27 @@ void main() {
     onQuality(fn) { qualityFn = fn; },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
+    // Standbild: das Bild, das gerade steht, als eigene Leinwand in der Größe
+    // der Bühne; null, solange nichts zu sehen ist. Die Seite legt es beim
+    // Hallenwechsel über die Lücke, bis die nächste Bühne ihr Schiff zeigt.
+    // Gezeichnet und festgehalten wird im selben Zug: Danach gehört der
+    // Puffer dem Browser. Festgehalten, nicht ausgelesen: createImageBitmap
+    // behält das Bild im Grafikspeicher, und eine Leinwand mit
+    // bitmaprenderer zeigt es von dort. drawImage in eine 2D-Leinwand holte
+    // es heraus und wartete dabei auf alles, was die Grafikkarte noch zu
+    // zeichnen hat: ohne Grafikkarte (Software-GL, die Prüfläufe) stand die
+    // Seite dafür minutenlang.
+    async still() {
+      if (tot || !revealed || renderer.getContext().isContextLost() || typeof createImageBitmap !== 'function') return null;
+      if (composer) composer.render(); else renderer.render(scene, camera);
+      let bild = null;
+      try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }
+      const c = document.createElement('canvas'), k = c.getContext('bitmaprenderer');
+      if (!k) { bild.close(); return null; }
+      c.width = bild.width; c.height = bild.height;
+      k.transferFromImageBitmap(bild);
+      return c;
+    },
     // fn(true): Zeichenkontext verloren, fn(false): wieder da
     onLost(fn) { lostFn = fn; },
     // Geräusche an/aus (Schalter auf der Bühne); sound(): { on, can }. Ohne
@@ -15075,6 +15166,10 @@ void main() {
     setSound(on) { sound.set(on); },
     sound: () => ({ on: sound.on, can: !reduceMotion && !!(window.AudioContext || window.webkitAudioContext) }),
     dispose() {
+      if (tot) return;
+      tot = true;
+      // der Seite meldet diese Bühne nichts mehr, auch nicht den Kontext, den sie unten selbst aufgibt
+      lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo.onShow = null;
       cancelAnimationFrame(raf);
       document.removeEventListener('pointerdown', unlockSound, { capture: true });
       document.removeEventListener('keydown', unlockSound, { capture: true });
@@ -15108,7 +15203,13 @@ void main() {
       // Zwischenbild, seine Geometrien und sein Shader gehören keinem der
       // Ziele oben
       pmremOf.get(renderer)?.dispose(); pmremOf.delete(renderer);
-      renderer.dispose();
+      // Den Zeichenkontext gleich aufgeben: Der Grafikspeicher ist sofort frei
+      // (auch was oben keiner abgebaut hat), bevor die nächste Bühne ihre
+      // Halle lädt, und was hier noch nachläuft, zeichnet ins Leere. Läuft
+      // gerade eine Übersetzung, fragt three.js deren Programme noch ab: Der
+      // Renderer behält dann seine Tabellen, sie gehen mit ihm.
+      renderer.forceContextLoss();
+      if (!uebersetzt) renderer.dispose();
       renderer.domElement.remove();
     },
   };

@@ -274,6 +274,13 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 .hg-canvas::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 55%,transparent 50%,color-mix(in srgb,var(--bg) 55%,transparent) 100%)}
 .hg-canvas canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 .hg-canvas canvas:active{cursor:grabbing}
+/* Hallenwechsel (hangar-overview.js umbauen): Das letzte Bild der alten Halle
+   liegt abgedunkelt ueber der Luecke, bis das Schiff in der neuen steht, und
+   blendet dann aus. Ohne z-index: Titel, Knoepfe und Ladebalken bleiben darueber. */
+.hg-canvas .hg-still{position:absolute;inset:0;pointer-events:none;cursor:default;filter:brightness(.38) saturate(.7);animation:hg-still-in .35s ease;transition:opacity .5s ease}
+.hg-canvas .hg-still[data-geht]{opacity:0}
+@keyframes hg-still-in{from{filter:none}}
+@media (prefers-reduced-motion:reduce){.hg-canvas .hg-still{animation:none;transition:none}}
 /* Name als Hologramm ueber dem Fahrzeug (hangar-viewer.js, buildHolo): der
    Titelblock als leuchtende Tafel. Lage und Groesse setzt der Viewer (Schrift
    des Namens --holo-n, Breite --holo-max, Aufbau --holo-on von 0 bis 1);

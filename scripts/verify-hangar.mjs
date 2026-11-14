@@ -314,7 +314,12 @@
         Zeile nennt die Halle, in der es steht; (d) die Naht: growFor
         nimmt growPick und meldet die Stufe, show() traegt Id und Stufe
         in die Masze, der Controller gibt die Stufe mit und hoert auf
-        onHangar, Titelblock und Hologramm bekommen die Zeile; (e) die
+        onHangar, Titelblock und Hologramm bekommen die Zeile; dazu der
+        Hallenwechsel ohne Neuladen (14.11.2026, eigene Halle je Stufe):
+        Verlangt ein Schiff die Halle einer anderen Stufe, baut der
+        Controller die Buehne um (umbauen), erst ab, dann neu, und eine
+        abgebaute Buehne gibt ihren Zeichenkontext auf, meldet der Seite
+        nichts mehr und laedt nichts mehr; (e) die
         Woerter der Zeile stehen auf beiden Seiten, mit ihren
         Platzhaltern, deutsch anders als englisch. Klinken: Schiffe, je
         Stufe, Stellen der Naht, Woerter.
@@ -625,6 +630,15 @@
     by  in dist/assets/hangar-viewer.js name: () => holo.rect() aus
         dem Aufruf von holoLayer nehmen: das Fenster wuesste nicht
         mehr, wo der Name steht                                     -> [21]
+    bz  in dist/assets/hangar-overview.js in viewerShow() statt
+        umbauen() wieder location.reload() (14.11.2026,
+        Hallenwechsel ohne Neuladen)                                -> [24]
+    ca  dort in umbauen() die Zeile halter.ab() streichen           -> [24]
+    cb  dort in halter.ab() das dispose() streichen                 -> [24]
+    cd  in dist/assets/hangar-viewer.js in dispose() die Zeile
+        streichen, die die Horcher der Seite loest                  -> [24]
+    ce  dort in dispose() renderer.forceContextLoss() streichen     -> [24]
+    cf  dort fetchGltf ohne die Frage nach tot                      -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2766,7 +2780,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 9, worte: 14 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 15, worte: 14 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -2870,6 +2884,13 @@ const GROESSE_AUSNAHMEN = {
     [ctrl, /v\.onHangar\?\.\(onHangar\);/, 'der Controller hört nicht mehr auf onHangar: Die Zeile der Hangargröße bliebe leer'],
     [ctrl, /function onHangar\(e\) \{[\s\S]{0,300}?grOf\.set\(e\.id, e\);[\s\S]{0,200}?paintGr\(\);\s*viewer\?\.label\?\.\(e\.id, labelOf\(e\.id\)\);/, 'onHangar im Controller schreibt die Zeile nicht mehr in den Titelblock und ins Hologramm'],
     [ctrl, /role: txt\('\.hg-role'\), hangar: grText\(id\) \};/, 'labelOf im Controller gibt dem Hologramm die Hangargröße nicht mehr mit'],
+    // Hallenwechsel ohne Neuladen (14.11.2026): eigene Halle je Stufe, die Bühne wird umgebaut
+    [ctrl, /if \(hallNow && hallWant && hallWant !== hallNow && buehneNeu\) \{ umbauen\(\); return; \}/, 'ein Schiff einer anderen Stufe baut die Bühne nicht mehr um (viewerShow): Es stünde in der Halle der vorigen Stufe'],
+    [ctrl, /viewer = null;\s*halter\.ab\(\);[\s\S]{0,500}?const roh = await buehneNeu\(halle\);\s*viewer = halter\.auf\(roh\);/, 'der Umbau baut die alte Bühne nicht mehr ab, bevor die neue lädt (umbauen): zwei Hallen zugleich im Grafikspeicher'],
+    [ctrl, /ab\(\) \{ const b = cur; cur = null; b\?\.dispose\(\); \}/, 'der Stellvertreter der Bühne baut die alte nicht mehr ab (halter.ab): Sie zeichnete und lüde hinter der neuen weiter'],
+    [viewer, /dispose\(\) \{\s*if \(tot\) return;\s*tot = true;[\s\S]{0,400}?lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;/, 'eine abgebaute Bühne meldet der Seite weiter (dispose): Der Kontext, den sie selbst aufgibt, zählte beim Hallenwechsel als Abbruch'],
+    [viewer, /renderer\.forceContextLoss\(\);\s*if \(!uebersetzt\) renderer\.dispose\(\);/, 'dispose gibt den Zeichenkontext nicht mehr auf: Der Grafikspeicher der alten Halle bliebe belegt, während die neue lädt'],
+    [viewer, /const fetchGltf = \(url, key = 'ship', guess = 8e6, my = null\) => \(tot \? nieMehr\(\) :/, 'eine abgebaute Bühne lädt weiter Modelle (fetchGltf): Sie baute in eine Szene, die es nicht mehr gibt'],
   ];
   let verdrahtet = 0;
   for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
