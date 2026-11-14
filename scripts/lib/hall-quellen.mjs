@@ -14,6 +14,12 @@
 //      Materialnachtrag und die Listen des Exports. Neue Aufkleber, neue
 //      Schrift oder eine neue Palette allein ließen die alte Halle stehen, und
 //      eine gelöschte Liste der Aufzugsbahnen wurde nicht neu geschrieben.
+//   3. Fehlt heute eine Beilage, die der letzte Bau gelesen hat? Eine
+//      gelöschte Datei fiel aus der Liste der Eingaben, und die Änderungszeiten
+//      der übrigen sagten „frisch“: Das alte Modell blieb mit seinen Aufklebern
+//      stehen, während ein Bau mit --force eines ohne sie geschrieben hätte
+//      (zweite Runde desselben Reviews). Jeder Bau notiert seither, was er
+//      neben dem Modell gelesen hat (eingaben im Manifest).
 // Die Antworten stehen hier, damit sie ohne die Spieldateien prüfbar sind
 // (tests/e2e/hall-quellen.test.js); scripts/build-hangar-assets.mjs fragt sie.
 
@@ -37,4 +43,30 @@ export const HALL_EINGABEN = [...NEBEN_EINGABEN, 'info.json', ...HALL_BEILAGEN_G
 export function juengerAls(ausgaben, eingaben, zeit) {
   const ein = eingaben.map(zeit).filter((t) => t != null);
   return ausgaben.every((a) => { const t = zeit(a); return t != null && ein.every((e) => t > e); });
+}
+
+/** Welche Eingaben neben dem Modell gibt es gerade? @param {(endung: string) => boolean} gibt */
+export const hallBestand = (gibt) => HALL_EINGABEN.filter((x) => gibt(x));
+
+/**
+ * Was der letzte Bau neben dem Modell gelesen hat. Neue Einträge des Manifests
+ * nennen es selbst (eingaben, genau). Ältere sagen es mittelbar: Aufkleber
+ * kamen aus <halle>.decals.glb, die Schrift der vollen Stufe aus
+ * <halle>.schrift.glb; mehr ist von ihnen nicht zu erfahren.
+ * @param {{ eingaben?: string[], aufkleber?: object, schriftVoll?: object }|null|undefined} eintrag
+ */
+export const eingabenVorher = (eintrag) => (Array.isArray(eintrag?.eingaben)
+  ? { genau: true, liste: eintrag.eingaben }
+  : { genau: false, liste: [...(eintrag?.aufkleber ? ['decals.glb'] : []), ...(eintrag?.schriftVoll ? ['schrift.glb'] : [])] });
+
+/**
+ * Passt der Bestand von heute zu dem des letzten Baus? Mit genauer Liste:
+ * dieselben Eingaben, keine weg und keine dazu. Ohne sie: Es darf nichts
+ * fehlen, was der letzte Bau nachweislich gelesen hat.
+ * @param {object|null|undefined} eintrag Eintrag der Halle im Manifest
+ * @param {string[]} jetzt hallBestand von heute
+ */
+export function bestandPasst(eintrag, jetzt) {
+  const v = eingabenVorher(eintrag);
+  return v.liste.every((x) => jetzt.includes(x)) && (!v.genau || jetzt.every((x) => v.liste.includes(x)));
 }

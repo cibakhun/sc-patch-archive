@@ -6894,6 +6894,20 @@ const WERK_TOR_VOR = 1200;
 // rund; schirm.mat: Material des Glases, wenn der Monitor im Modell der
 // Halle selbst steht (dann ohne bank); voll: Quader, in die die Kamera nie
 // gerät (Pult, Stühle).
+// Unter dieser Reichweite (m) ist ein Flächenlicht nur Glimmen an seiner
+// Leuchte (Bodenleuchten: 0,1 m). Zusammengelegt würde daraus eine Lampe
+// mit Metern Reichweite, die es im Spiel nicht gibt.
+export const LAMP_MIN_RADIUS = 1;
+// Welche Einträge einer <halle>.lights.json die Bühne setzt (loadHallLights):
+// mit Ort und Stärke, kein Umgebungslicht (das hellt nur flächig auf, die
+// Umgebungskugel aus der Halle übernimmt es) und kein Flächenlicht unter
+// LAMP_MIN_RADIUS. Bleibt keiner, steht die Halle mit dem Bühnenlicht. Eine
+// Regel für Bühne und Tor: verify:hangar-hallen zählt mit ihr, was von der
+// ausgelieferten Datei wirklich leuchtet (Befund von CodeRabbit an PR #371:
+// das Tor zählte erst jeden Eintrag, auch die, die hier wegfallen).
+export const hallLampeGilt = (l) => !!l && Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient'
+  && !(l.type === 'area' && (l.radius || 0) < LAMP_MIN_RADIUS);
+
 export const HALL_LEIT = {
   'revelyork-single': { schirm: { x: 0.1215, y: 17.7925, z: 57.555, b: 3.107, h: 0.817, ecke: 0.049, saum: 0.03 }, form: [0.5, 0.8], fov: 40, d: [1, 2.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
   // Large-Halle (util_a, 14.11.2026): der Kontrollraum der Landefelder über
@@ -8822,10 +8836,6 @@ export async function initHangar(container, opts = {}) {
   const SHADOW_LAMPS = SMALL || Q0 === 'niedrig' ? 1 : 2;
   // Kantenlänge der Schattenkarten (Schiff und Halle)
   const SHADOW_SIZE = SMALL || Q0 === 'niedrig' ? 1024 : 2048;
-  // Unter dieser Reichweite (m) ist ein Flächenlicht nur Glimmen an seiner
-  // Leuchte (Bodenleuchten: 0,1 m). Zusammengelegt würde daraus eine Lampe
-  // mit Metern Reichweite, die es im Spiel nicht gibt.
-  const LAMP_MIN_RADIUS = 1;
   // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
   // bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
   const HALL_LIGHT_SCALE = 2;
@@ -8978,10 +8988,8 @@ export async function initHangar(container, opts = {}) {
     // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels. Ist die
     // Halle schon gescheitert, steht die gebaute mit ihrem Bühnenlicht.
     if ((d?.v || 1) < 2 || hallFailed) return false;
-    // Umgebungslichter des Spiels hellen nur flächig auf: das übernimmt die
-    // Umgebungskugel aus der Halle.
-    const all = (d.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient'
-      && !(l.type === 'area' && (l.radius || 0) < LAMP_MIN_RADIUS));
+    // welche Einträge gelten, sagt hallLampeGilt (oben, auch für das Tor)
+    const all = (d.lights || []).filter(hallLampeGilt);
     // Lampen im Boden von Feld und Streifen wandern mit (HALL_SHIFT)
     for (const l of all) l.pos = hallShiftPoint(h, l.pos);
     if (!all.length) return false;

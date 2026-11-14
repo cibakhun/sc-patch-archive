@@ -35,7 +35,7 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
-import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls } from './lib/hall-quellen.mjs';
+import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls, hallBestand, bestandPasst } from './lib/hall-quellen.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -3608,6 +3608,9 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     // als eine Eingabe, stünde die Plattform der Seite still oder an alter Stelle
     const aufzugOut = kind === 'hall' && prev[slot]?.[name]?.aufzug?.json ? fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT)) : null;
     const zeit = (x) => (existsSync(x) ? statSync(x).mtimeMs : null);
+    // welche Eingaben neben dem Modell heute da sind: Fehlt eine, die der letzte Bau gelesen hat (oder kam
+    // eine dazu), ist das gebaute Modell nicht mehr das, was ein Bau jetzt schriebe
+    const bestand = kind === 'hall' ? hallBestand((x) => existsSync(fileURLToPath(new URL(`${name}.${x}`, dir)))) : null;
     // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     // bei Schiffen auch der Lack-Bauplan: Lackliste, Index des zerlegten
@@ -3618,6 +3621,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       && (!paintOut || (existsSync(paintOut) && [inPath, ...side].every((x) => statSync(paintOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
       && (!aufzugOut || juengerAls([aufzugOut], [inPath, ...side], zeit))
+      && (!bestand || bestandPasst(prev[slot]?.[name], bestand))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
     // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu,
@@ -3629,6 +3633,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     try {
       const r = await buildOne(kind, name, inPath);
       if (kind === 'hall') r.room = HALL_ROOM[name.replace(/-lod1$/, '')] ?? null;
+      if (bestand) r.eingaben = bestand;
       manifest[slot][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB${r.pool ? ` + ${r.pool.images} Bilder ${(r.pool.bytes / 1048576).toFixed(2)} MB (neu in der Ablage ${(r.pool.fresh / 1048576).toFixed(2)} MB)` : ''}`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);

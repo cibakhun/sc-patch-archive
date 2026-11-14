@@ -40,8 +40,9 @@
        Knoten
    [3] Bestand: Schrift, Schirme und die Zahlen des Manifests über ihren
        Klinken und unter ihren Obergrenzen; die Lampen aus der
-       ausgelieferten Datei, so viele, wie das Manifest nennt, und jede
-       so, dass die Bühne sie setzen kann
+       ausgelieferten Datei, so viele, wie das Manifest nennt, jede
+       vollständig, und gezählt wird gegen die Klinke, was die Bühne
+       davon nach ihrer eigenen Regel setzt (hallLampeGilt im Viewer)
    [4] Kein Ballast: keine Einrichtungs-, Telefon- oder zweite Stufe einer
        solchen Halle in dist/
 
@@ -110,12 +111,32 @@
        Fassung 1 statt 2: „[3] … nennt die Fassung 1, die Buehne nimmt
        Lampen erst ab Fassung 2 …“;
        einer Lampe den Ort genommen: „[3] … 1 von 798 Lampen der
-       ausgelieferten Datei kann die Buehne nicht setzen …“ und „[3] …
-       797 Lampen des Spiels, Klinke 798“;
+       ausgelieferten Datei sind unvollstaendig …“ und „[3] … 797 Lampen
+       des Spiels, die die Buehne setzt …, Klinke 798“ (Wortlaut seit m);
        nach 5000 Zeichen abgeschnitten: „[3] … die ausgelieferte
        Lampendatei laesst sich nicht lesen …“;
        auf 700 Lampen gekürzt: „[3] … traegt 700 Lampen, das Manifest
        nennt 798 …“ und „[3] … 700 Lampen des Spiels, Klinke 798“.
+   (m) 14.11.2026, zweite Runde desselben Reviews: (l) zählte jeden
+       wohlgeformten Eintrag. Die Bühne lässt aber Umgebungslicht,
+       Einträge ohne Stärke und Flächenlicht unter 1 m weg; mit 798
+       Einträgen der Art „ambient“ blieb das Tor von (l) grün, und die
+       Halle hätte mit dem Bühnenlicht gestanden. Das Tor zählt seither
+       mit der Regel des Viewers selbst (hallLampeGilt, aus dem
+       ausgelieferten Modul), fünfmal gebrochen:
+       alle 798 Einträge „ambient“: „[3] … 0 Lampen des Spiels, die die
+       Buehne setzt (von 798 in der ausgelieferten Datei; 798 laesst sie
+       weg: Umgebungslicht, ohne Staerke oder Flaechenlicht unter 1 m),
+       Klinke 798“;
+       die 50 Flächenlichter auf 0,5 m Reichweite: „[3] … 748 Lampen …
+       (… 50 laesst sie weg …), Klinke 798“;
+       einer Lampe die Stärke 0: „[3] … 797 Lampen … (… 1 laesst sie weg
+       …), Klinke 798“;
+       im ausgelieferten Viewer wählt loadHallLights wieder mit eigener
+       Regel: „[3] … die Buehne waehlt ihre Lampen nicht mehr mit
+       hallLampeGilt aus (loadHallLights) …“;
+       der ausgelieferte Viewer gibt hallLampeGilt nicht mehr heraus:
+       „[3] … der Viewer nennt nicht mehr, welche Lampen er setzt …“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -322,18 +343,26 @@ for (const [id, { bytes }] of HALLEN) {
   if (schriftOffen) fail(`[3] ${id}: ${schriftOffen} Dreiecke Schrift, die deckend oder ohne Farbkarte gezeichnet werden (erwartet: Schnitt oder Mischung nach dem Alpha der Karte, MASK oder BLEND) — die Buchstaben stuenden als dunkle Bloecke da`);
   if (hell.length) fail(`[3] ${id}: ${hell.length} Schirm(e) ohne Bild sind hell: ${hell.slice(0, 4).join('; ')} — das Spiel malt sie zur Laufzeit, ohne Bild gehoeren sie ausgeschaltet (hallScreensOff)`);
   // die Lampen, wie sie ausgeliefert werden: Die Buehne liest diese Datei, nicht das Manifest. Gezaehlt wird, was
-  // sie davon setzen kann (loadHallLights im Viewer: Fassung ab 2, Art, Ort aus drei Zahlen, Staerke ueber null)
+  // sie davon wirklich setzt, mit der Regel des Viewers selbst (hallLampeGilt: mit Ort und Staerke, kein
+  // Umgebungslicht, kein Flaechenlicht unter LAMP_MIN_RADIUS). Eine zweite, hier nachgebaute Regel liefe
+  // auseinander: Die erste Fassung zaehlte jeden wohlgeformten Eintrag, auch die, die der Viewer weglaesst.
   let L = null;
   try { L = JSON.parse(readFileSync(inDist(HALLEN.get(id).hall.lights), 'utf8')); } catch (e) { fail(`[3] ${id}: die ausgelieferte Lampendatei laesst sich nicht lesen (${e.message}) — die Halle stuende mit dem Buehnenlicht statt mit den Lampen des Spiels`); }
   const lampenRoh = Array.isArray(L?.lights) ? L.lights : null;
-  const lampen = (lampenRoh ?? []).filter((l) => l && typeof l.type === 'string' && Array.isArray(l.pos) && l.pos.length === 3 && l.pos.every(Number.isFinite) && l.intensity > 0);
+  const gilt = typeof viewer?.hallLampeGilt === 'function' ? viewer.hallLampeGilt : null;
+  if (!gilt) fail(`[3] ${id}: der Viewer nennt nicht mehr, welche Lampen er setzt (hallLampeGilt) — das Tor koennte nur raten, was von der Datei leuchtet`);
+  else if (!/const all = \(d\.lights \|\| \[\]\)\.filter\(hallLampeGilt\);/.test(viewerSrc)) fail(`[3] ${id}: die Buehne waehlt ihre Lampen nicht mehr mit hallLampeGilt aus (loadHallLights) — Tor und Buehne zaehlten wieder nach verschiedenen Regeln`);
+  const wohlgeformt = (l) => l && typeof l.type === 'string' && Array.isArray(l.pos) && l.pos.length === 3 && l.pos.every(Number.isFinite) && Number.isFinite(l.intensity);
+  const kaputt = (lampenRoh ?? []).filter((l) => !wohlgeformt(l)).length;
+  const lampen = (lampenRoh ?? []).filter((l) => wohlgeformt(l) && gilt?.(l));
   if (L && !lampenRoh) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt keine Liste (lights) — die Halle stuende mit dem Buehnenlicht`);
   if (L && !((L.v ?? 1) >= 2)) fail(`[3] ${id}: die ausgelieferte Lampendatei nennt die Fassung ${L.v ?? 'nicht'}, die Buehne nimmt Lampen erst ab Fassung 2 (Richtungen im Raum des Modells) — die Halle stuende mit dem Buehnenlicht`);
-  if (lampenRoh && lampen.length !== lampenRoh.length) fail(`[3] ${id}: ${lampenRoh.length - lampen.length} von ${lampenRoh.length} Lampen der ausgelieferten Datei kann die Buehne nicht setzen (ohne Art, ohne Ort aus drei Zahlen oder ohne Staerke)`);
+  if (kaputt) fail(`[3] ${id}: ${kaputt} von ${lampenRoh.length} Lampen der ausgelieferten Datei sind unvollstaendig (ohne Art, ohne Ort aus drei Zahlen oder ohne Staerke)`);
   if (lampenRoh && lampenRoh.length !== M.lights?.total) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt ${lampenRoh.length} Lampen, das Manifest nennt ${M.lights?.total ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
+  const lampenAus = (lampenRoh?.length ?? 0) - kaputt - lampen.length;
   // im Manifest: was der Build gezaehlt hat (die Lampen aus der ausgelieferten Datei)
   const ist = { lampen: lampen.length, tor: M.aufzug?.teile, schirme: M.schirme?.aus, tafeln: M.logo?.tafeln, aufkleber: M.aufkleber?.netze, schilder: M.schriftVoll?.teilnetze };
-  for (const [k, was] of [['lampen', 'Lampen des Spiels'], ['tor', 'Teile des Bodentors'], ['schirme', 'vom Build ausgeschaltete Schirme'], ['tafeln', 'Tafeln mit dem Logo des Betreibers'], ['aufkleber', 'Netze mit Aufklebern'], ['schilder', 'aus der vollen Stufe geholte Schilder']]) {
+  for (const [k, was] of [['lampen', gilt ? `Lampen des Spiels, die die Buehne setzt (von ${lampenRoh?.length ?? 0} in der ausgelieferten Datei${lampenAus ? `; ${lampenAus} laesst sie weg: Umgebungslicht, ohne Staerke oder Flaechenlicht unter ${viewer?.LAMP_MIN_RADIUS ?? '?'} m` : ''})` : 'Lampen des Spiels gezaehlt (ohne die Regel des Viewers zaehlt das Tor keine)'], ['tor', 'Teile des Bodentors'], ['schirme', 'vom Build ausgeschaltete Schirme'], ['tafeln', 'Tafeln mit dem Logo des Betreibers'], ['aufkleber', 'Netze mit Aufklebern'], ['schilder', 'aus der vollen Stufe geholte Schilder']]) {
     if (!(ist[k] >= K[k])) fail(`[3] ${id}: ${ist[k] ?? 'keine'} ${was}, Klinke ${K[k]}`);
   }
   const fremd = [...(M.aufkleber?.fremd ?? []), ...(M.schriftVoll?.fremd ?? [])];
@@ -344,7 +373,7 @@ for (const [id, { bytes }] of HALLEN) {
   if (M.floor !== HALLEN.get(id).hall.floor) fail(`[3] ${id}: das Manifest nennt den Boden bei ${M.floor}, die Seite bei ${HALLEN.get(id).hall.floor}`);
   const ueber = [['tris', M.tris, 'Dreiecke'], ['bytes', bytes, 'Bytes'], ['texturen', M.textures, 'Texturen'], ['leck', M.hull?.pct, '% Blickstrahlen ins Leere']].filter(([k, v]) => !(v <= G[k]));
   for (const [k, v, was] of ueber) fail(`[3] ${id}: ${v ?? 'keine Zahl fuer'} ${was}, Obergrenze ${G[k]} — die Halle ist schwerer oder offener geworden`);
-  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${ist.lampen} Lampen in der ausgelieferten Datei, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
+  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
 }
 for (const z of zeilen) say(z);
 if (!zeilen.length) say(`    ${HALLEN.size ? 'keine Halle vollstaendig gemessen' : 'keine Halle ausgeliefert, nichts zu messen'}`);
