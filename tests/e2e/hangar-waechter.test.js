@@ -10,10 +10,13 @@
 // Seit 14.11.2026 („Ne immer noch Dauer Neulade Loop“): Der Vermerk steht
 // auch im Speicher des Geraets, am Telefon zaehlen die Starts, und unter
 // jedem Deckel laeuft dort die leichte Buehne.
+// Seit 14.11.2026 (Krisz waehlte „Volle Halle fuers Handy abspecken“): Die
+// Worker, die die Geometrie auspacken, enden ohne Arbeit, und grosse Stuecke
+// nehmen ihren Worker mit (Entpacker in assets/hangar-viewer.js).
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { WAECHTER, waechterStand, waechterAbbruch, waechterText, waechterOffen, waechterVerlauf, waechterLaeufe, waechterLaeufeText, waechterAnlauf, waechterAnlaufText, waechterAnspruch, waechterBefund, waechterLeicht, waechterGeraet } from '../../assets/hangar-overview.js';
-import { fitSize, limiter } from '../../assets/hangar-viewer.js';
+import { fitSize, limiter, ENTPACKER, Entpacker } from '../../assets/hangar-viewer.js';
 
 const T0 = Date.UTC(2026, 10, 12, 18, 0, 0);
 const MIN = 60e3;
@@ -226,7 +229,7 @@ describe('Hangar-Waechter: offene Laeufe im Speicher des Geraets', () => {
     assert.deepEqual(waechterLaeufe(text, T0 + MIN).map((e) => e.id), ['neu']);
     const fremd = JSON.stringify({ v: WAECHTER.v - 1, l: { a: { t: T0, s: 'hoch', p: 'laden' } } });
     assert.deepEqual(waechterLaeufe(fremd, T0 + MIN), []);
-    for (const raw of [null, '', '{', 'null', '[]', '{"v":3}', JSON.stringify({ v: WAECHTER.v, l: [] }), JSON.stringify({ v: WAECHTER.v, l: { a: null, b: 7 } })]) assert.deepEqual(waechterLaeufe(raw, T0), [], String(raw));
+    for (const raw of [null, '', '{', 'null', '[]', JSON.stringify({ v: WAECHTER.v }), JSON.stringify({ v: WAECHTER.v, l: [] }), JSON.stringify({ v: WAECHTER.v, l: { a: null, b: 7 } })]) assert.deepEqual(waechterLaeufe(raw, T0), [], String(raw));
     const schief = JSON.stringify({ v: WAECHTER.v, l: { a: { t: T0, s: 'ultra', p: 'fertig' } } });
     assert.deepEqual(waechterLaeufe(schief, T0 + MIN), [{ id: 'a', t: T0, stufe: null, phase: null }]);
   });
@@ -276,7 +279,7 @@ describe('Hangar-Waechter: was ein Start zaehlt', () => {
     assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, s: [['a', T0], ['', T0], [7, T0], ['b', 'x'], null, T0, ['c', T0 + 5 * MIN]] }), T0 + MIN), [{ id: 'a', t: T0 }]);
     // die Liste von vor dem Review (nur Zeiten) gilt nicht mehr
     assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, t: [T0] }), T0 + MIN), []);
-    for (const raw of [null, '', '{', 'null', '[]', '{"v":3}']) assert.deepEqual(waechterAnlauf(raw, T0), [], String(raw));
+    for (const raw of [null, '', '{', 'null', '[]', JSON.stringify({ v: WAECHTER.v })]) assert.deepEqual(waechterAnlauf(raw, T0), [], String(raw));
   });
 
   // Ein Telefon, dessen Browser nach jedem Ende alles vergisst, was die
@@ -421,5 +424,155 @@ describe('Hangar am Telefon: Bilder klein auspacken', () => {
     assert.equal(await lim(async () => 'frei'), 'frei');
     // n unter 1 heisst eins nach dem anderen, nicht keins
     assert.equal(await limiter(0)(async () => 'geht'), 'geht');
+  });
+});
+
+// Worker, die nur zaehlen: was sie zu tun bekamen und ob sie beendet sind.
+// fertig(id) antwortet wie der echte mit einer (leeren) Geometrie.
+function zaehlWorker() {
+  const alle = [];
+  class Zaehler {
+    constructor() { this.tot = false; this.post = []; alle.push(this); }
+    postMessage(m) { if (m?.type === 'decode') this.post.push(m.id); }
+    terminate() { this.tot = true; }
+    fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
+    scheitert(id) { this.onmessage({ data: { type: 'error', id, error: 'Probe' } }); }
+  }
+  return { alle, Zaehler };
+}
+const ruck = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+
+describe('Hangar: Entpacker der Geometrie geben ihren Speicher zurueck', () => {
+  // je Test: eigene Worker, eigene Uhr (der Zeitgeber der Ruhe wird gefangen)
+  function buehne(telefon) {
+    const { alle, Zaehler } = zaehlWorker();
+    const echt = { Worker: globalThis.Worker, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, info: console.info };
+    const uhr = { fn: null, ms: null };
+    globalThis.Worker = Zaehler;
+    globalThis.setTimeout = (fn, ms) => { uhr.fn = fn; uhr.ms = ms; return 7; };
+    globalThis.clearTimeout = () => { uhr.fn = null; uhr.ms = null; };
+    console.info = () => {};
+    const e = new Entpacker(telefon);
+    e._initDecoder = () => Promise.resolve();
+    const ab = () => { e.dispose(); Object.assign(globalThis, { Worker: echt.Worker, setTimeout: echt.setTimeout, clearTimeout: echt.clearTimeout }); console.info = echt.info; };
+    return { e, alle, uhr, ab };
+  }
+
+  test('Zahlen: am Telefon weniger Worker, die Grenze fuer grosse Stuecke bei 1 MB', () => {
+    assert.ok(ENTPACKER.telefon >= 1 && ENTPACKER.telefon <= 2 && ENTPACKER.telefon <= ENTPACKER.faeden);
+    assert.ok(ENTPACKER.faeden <= 4);
+    assert.equal(ENTPACKER.gross, 1 << 20);
+    assert.ok(ENTPACKER.ruhe > 0 && ENTPACKER.ruhe <= 1500);
+    const { e: tel, ab: a1 } = buehne(true), { e: pc, ab: a2 } = buehne(false);
+    try {
+      assert.equal(tel.workerLimit, ENTPACKER.telefon);
+      assert.equal(pc.workerLimit, ENTPACKER.faeden);
+    } finally { a1(); a2(); }
+  });
+
+  test('Ruhe: Worker ohne Arbeit enden nach der Frist, das naechste Stueck startet neue', async () => {
+    const { e, alle, uhr, ab } = buehne(false);
+    try {
+      const w = [];
+      for (let id = 1; id <= 6; id++) w.push(await e._getWorker(id, 1000 * id));
+      assert.equal(alle.length, ENTPACKER.faeden);
+      // solange einer arbeitet, laeuft keine Frist
+      for (let id = 1; id <= 5; id++) e._releaseTask(w[id - 1], id);
+      assert.equal(uhr.fn, null);
+      e._releaseTask(w[5], 6);
+      assert.equal(uhr.ms, ENTPACKER.ruhe);
+      uhr.fn();
+      assert.equal(alle.filter((x) => !x.tot).length, 0);
+      assert.equal(e.workerPool.length, 0);
+      assert.deepEqual({ gestartet: e.stat.gestartet, beendet: e.stat.beendet, stuecke: e.stat.stuecke }, { gestartet: 4, beendet: 4, stuecke: 6 });
+      // danach geht es mit einem neuen Worker weiter
+      const neu = await e._getWorker(7, 500);
+      assert.equal(alle.length, ENTPACKER.faeden + 1);
+      assert.equal(neu.tot, false);
+      assert.deepEqual(e.workerPool, [neu]);
+    } finally { ab(); }
+  });
+
+  test('Ruhe: ein neues Stueck vor Ablauf der Frist haelt sie an, ein Worker mit Arbeit bleibt', async () => {
+    const { e, alle, uhr, ab } = buehne(true);
+    try {
+      const a = await e._getWorker(1, 100);
+      e._releaseTask(a, 1);
+      assert.equal(uhr.ms, ENTPACKER.ruhe);
+      const b = await e._getWorker(2, 100);
+      assert.equal(uhr.fn, null);
+      // von Hand gerufen: nur der ohne Arbeit geht
+      assert.equal(e.ruhe(), alle.length - 1);
+      assert.equal(b.tot, false);
+      assert.deepEqual(e.workerPool, [b]);
+      e._releaseTask(b, 2);
+      assert.equal(uhr.ms, ENTPACKER.ruhe);
+    } finally { ab(); }
+  });
+
+  test('ein grosses Stueck nimmt seinen Worker aus dem Pool; er endet erst, wenn alles von ihm fertig ist', async () => {
+    const { e, alle, ab } = buehne(false);
+    try {
+      // vier Worker, jeder mit einem kleinen Stueck; das grosse geht an den mit der kleinsten Last
+      const w = [];
+      for (let id = 1; id <= 4; id++) w.push(await e._getWorker(id, 5000 - id));
+      const g = await e._getWorker(5, ENTPACKER.gross);
+      assert.equal(g, w[3]);
+      assert.equal(e.workerPool.includes(g), false);
+      assert.equal(e.workerPool.length, 3);
+      // das naechste kleine Stueck bekommt einen neuen Worker, nicht den, der geht
+      const k = await e._getWorker(6, 10);
+      assert.notEqual(k, g);
+      assert.equal(alle.length, 5);
+      e._releaseTask(g, 5);
+      assert.equal(g.tot, false, 'sein kleines Stueck laeuft noch');
+      e._releaseTask(g, 4);
+      assert.equal(g.tot, true);
+      assert.equal(e.stat.gross, 1);
+      // knapp darunter bleibt der Worker
+      const n = await e._getWorker(7, ENTPACKER.gross - 1);
+      assert.equal(e.workerPool.includes(n), true);
+    } finally { ab(); }
+  });
+
+  test('grosse Stuecke: am Telefon eines nach dem anderen, am PC zugleich; ein Fehler haelt die Reihe nicht an', async () => {
+    for (const telefon of [true, false]) {
+      const { e, alle, ab } = buehne(telefon);
+      try {
+        const aus = [0, 1, 2].map(() => e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {}));
+        const klein = e.decodeGeometry(new ArrayBuffer(64), {});
+        await ruck();
+        const gross = () => alle.filter((w) => w._geht);
+        assert.equal(gross().reduce((n, w) => n + w.post.length, 0), telefon ? 1 : 3, `telefon ${telefon}`);
+        // das kleine Stueck wartet nicht auf die grossen
+        const kw = alle.find((w) => !w._geht);
+        assert.equal(kw.post.length, 1);
+        kw.fertig(kw.post.shift());
+        assert.ok((await klein).isBufferGeometry);
+        // das erste grosse scheitert, die anderen kommen trotzdem dran
+        let runde = 0;
+        for (; runde < 4 && gross().some((w) => w.post.length); runde++) {
+          for (const w of gross()) for (const id of w.post.splice(0)) { if (runde === 0 && w === gross()[0]) w.scheitert(id); else w.fertig(id); }
+          await ruck();
+        }
+        const erg = await Promise.allSettled(aus);
+        assert.deepEqual(erg.map((r) => r.status), ['rejected', 'fulfilled', 'fulfilled'], `telefon ${telefon}`);
+        assert.equal(runde, telefon ? 3 : 1, `telefon ${telefon}`);
+        assert.equal(gross().length, 3);
+        assert.equal(gross().filter((w) => !w.tot).length, 0);
+      } finally { ab(); }
+    }
+  });
+
+  test('dispose beendet auch die Worker, die schon aus dem Pool genommen sind', async () => {
+    const { e, alle, ab } = buehne(false);
+    try {
+      await e._getWorker(1, 10);
+      await e._getWorker(2, ENTPACKER.gross);
+      assert.equal(alle.filter((w) => !w.tot).length, 2);
+      e.dispose();
+      assert.equal(alle.filter((w) => !w.tot).length, 0);
+      assert.equal(e.lebend.size, 0);
+    } finally { ab(); }
   });
 });
