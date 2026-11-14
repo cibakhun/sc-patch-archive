@@ -2164,7 +2164,9 @@ function ownLift(model, info, floorY) {
   const group = new THREE.Group(), meshes = [];
   group.name = 'hall:pad';
   padNode.traverse((n) => { if (n.isMesh) meshes.push(n); });
-  for (const m of meshes) group.add(m);
+  // trägt der Knoten doch eine Lage (ein Build, der Ecken quantisiert, legt sie dorthin), geht sie an seine Netze
+  padNode.updateMatrix();
+  for (const m of meshes) { if (m !== padNode) m.applyMatrix4(padNode.matrix); group.add(m); }
   if (!padNode.isMesh) padNode.removeFromParent();
   model.add(group);
   const gate = new THREE.Group(), parts = [];

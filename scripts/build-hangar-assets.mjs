@@ -1566,7 +1566,7 @@ function writeLiftJson(name, parts, { extras = null, uv = null, proj = null } = 
 // ersten Schicht aus <name>.layers.json (Extraktor) als Farbe/Normalen, die
 // Tönung der Schicht als Grundfarbe, LayerTiling als Kachelung. attachHall-
 // Textures hängt sie danach wie eigene Karten an. only wie dort.
-function applyLayers(doc, name, dir = 'lift', only = null) {
+function applyLayers(doc, name, dir = 'lift', only = null, { ton = false } = {}) {
   const f = fileURLToPath(new URL(`${dir}/${name}.layers.json`, SRC));
   if (!existsSync(f)) return { missing: true };
   const layers = JSON.parse(readFileSync(f, 'utf8'));
@@ -1589,6 +1589,16 @@ function applyLayers(doc, name, dir = 'lift', only = null) {
       const tint = l0.tint_color || [1, 1, 1];
       m.setBaseColorFactor([...spec.map((v, i) => Math.min(1, v * tint[i])), 1]).setMetallicFactor(1).setRoughnessFactor(Math.max(0.2, 1 - (L.shininess || 200) / 255));
       s.metal = (s.metal || 0) + 1;
+    } else if (ton && L.d && spec[0] <= 0.1) {
+      // Hallen in fester Größe: die Schicht trägt neben ihrer Karte eine eigene Farbe (Diffuse ihrer .mtl;
+      // beim Asphalt der Plattform 0,023, fast schwarz). Ohne sie steht die Karte ungetönt da, der Asphalt
+      // weiß. Nur Nichtmetalle: bei Metallschichten mit Karte (Diffuse um 0,01) steckt die Farbe im Specular.
+      const dif = String(L.diffuse ?? '').split(',').map(Number);
+      if (dif.length === 3 && dif.every(Number.isFinite) && Math.max(...dif) < 0.995) {
+        const c = m.getBaseColorFactor();
+        m.setBaseColorFactor([c[0] * dif[0], c[1] * dif[1], c[2] * dif[2], c[3]]);
+        s.ton = (s.ton || 0) + 1;
+      }
     }
   }
   return s;
@@ -2084,8 +2094,10 @@ function aufzugPlan(doc, T) {
   const up = ups.reduce((a, v) => (v[1] > a[1] ? v : a), ups[0]);
   if (Math.hypot(up[0], up[2]) > 0.01 || !(up[1] > 1)) throw new Error(`Aufzug: Plattform fährt nicht senkrecht (${up.map(r3).join('/')})`);
   const padKeys = (caf) => frames(caf).map((f) => [r3(f / caf.fps), r3(yAt(caf, f)[1] - up[1])]);
+  // markFurniture nimmt den Netzen später ihre Namen; für die Liste dessen, was auf der Plattform steht
+  const names = new Map(root.listMeshes().map((m) => [m, m.getName().split(/[\\/]/).pop().replace(/\.(cga|cgf)$/i, '')]));
   return {
-    door, pad, owner, nodeOf, parts, skipped: skipped.length,
+    door, pad, owner, nodeOf, parts, names, skipped: skipped.length,
     seconds: { close: r3(close.frames / close.fps), open: r3(open.frames / open.fps) },
     plattform: { node: 'aufzug_pad', bone: pb.name, weg: r3(up[1]), keys: { down: padKeys(pc), up: padKeys(po) }, seconds: { down: r3(pc.frames / pc.fps), up: r3(po.frames / po.fps) } },
   };
@@ -2142,7 +2154,7 @@ function aufzugSplit(doc, plan) {
     if (!m || n === plan.pad || n === plan.door || made.has(n.getName())) continue;
     const t = n.getWorldTranslation();
     if (t[0] < box.min[0] + 0.25 || t[0] > box.max[0] - 0.25 || t[2] < box.min[2] + 0.25 || t[2] > box.max[2] - 0.25 || t[1] < box.max[1] - 0.35 || t[1] > box.max[1] + 1) continue;
-    const w = n.getWorldMatrix(), key = m.getName().split(/[\\/]/).pop() || '?';
+    const w = n.getWorldMatrix(), key = plan.names.get(m) || '?';
     for (const p of m.listPrimitives()) { const q = compactPrim(doc, p); transformPrimitive(q, w); prims.push(q); }
     n.setMesh(null);
     riders.set(key, (riders.get(key) || 0) + 1);
@@ -2248,8 +2260,8 @@ async function buildOne(kind, name, inPath) {
   const fixedOnly = (m) => !!m.getExtras()?.matfix;
   // Hallen mit Schichtmaterialien (Industrie-Bausatz util_a): der Extraktor legt <halle>.layers.json daneben
   const hallLayers = kind === 'hall' && existsSync(fileURLToPath(new URL(`hall/${name}.layers.json`, SRC)));
-  const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
-  const hallPalette = hallLayers ? applyHallPalette(doc, name) : null;
+  const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind, null, { ton: hallLayers }) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
+  const hallPalette = hallLayers ? { ...applyHallPalette(doc, name), schichtTon: layered.ton ?? 0 } : null;
   const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
@@ -3570,7 +3582,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         const o = r.lights.orient;
         if (o) console.log(`    Lampen: ${o.spots} Spots (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
         if (r.hallPalette) console.log(r.hallPalette.name
-          ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt`
+          ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
           : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
       }
     } catch (err) {

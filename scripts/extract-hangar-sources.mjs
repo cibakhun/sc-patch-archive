@@ -1253,15 +1253,17 @@ function readDecalMaterials(used, RAW) {
 // Specular (sRGB 0–255) und Glanz. used = Nennungen der Entities der Halle
 // (werkstattInfo); eine Halle, deren Entities die Palette nicht nennen,
 // meldet 0 und damit, dass h.palette geraten ist.
-let paletteDb = null;
+// Der Zwischenspeicher hängt an der Funktion: der Lauf oben ruft sie auf,
+// bevor ein `let` an dieser Stelle der Datei angelegt wäre.
 async function tintPalette(name, used = {}) {
+  let paletteDb = tintPalette.db;
   if (!paletteDb) {
     const { openP4k } = await import('./lib/p4k.mjs');
     const { openDataCore } = await import('./lib/datacore.mjs');
     const p4k = openP4k(P4K);
     const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
     p4k.close();
-    paletteDb = new Map();
+    paletteDb = tintPalette.db = new Map();
     for (const r of db.records) if (db.structs[r.structIndex]?.name === 'TintPaletteTree') paletteDb.set(String(r.name || '').replace(/^TintPaletteTree\./, '').toLowerCase(), () => db.readRecord(r, { typed: true, maxDepth: 12 })?.root);
   }
   const key = name.toLowerCase(), v = paletteDb.get(key)?.();
