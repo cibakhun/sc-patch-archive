@@ -214,8 +214,16 @@
         (pickBelow, min in pickTop). Nachgerechnet: es beginnt nie ueber
         min, und pickBelow liefert die kleinste Stufe, mit der zwischen
         Name und Fenster PICK_NAME_AIR bleibt, auch an einer geneigten
-        Tafel, die im Bild kuerzer ist. Klinken: Stationen, Proben,
-        Woerter, Stellungen, Lagen des Fensters.
+        Tafel, die im Bild kuerzer ist. Platz an der Tafel: pickTop
+        haelt nur die Oberkante, ein Fenster, das hoeher ist als die
+        Tafel, hinge unten ueber sie hinaus (Review 13.11.2026: eine
+        Tafel mit einem einzigen Slot ist 220 px hoch, das Fenster bekam
+        wenigstens 240 px zugestanden, und nach dem Platz fragte das
+        Modul nur unter dem Namen des Schiffs). pickMaxH gesteht ihm nie
+        mehr zu, als in die Tafel passt (dort drei Teile statt vier), und
+        was auch so nicht passt (mit Halterungen), klappt fuer diesen
+        Slot unter seine Zeile (pickRoom), mit und ohne Namen. Klinken:
+        Stationen, Proben, Woerter, Stellungen, Lagen des Fensters.
     22  Datenblatt des Bauteils (seit 11.11.2026, Krisz: „man koennte die
         itemdatenblatt seite direkt in das hangar reinbauen fuer komponente
         und waffen“). Steht ein Slot offen, zeigt die rechte Tafel sein
@@ -570,9 +578,6 @@
         das Fenster beganne wieder unter dem Namen des Schiffs      -> [21]
     ba  dort in pickBelow den Massstab s nicht mehr teilen: an
         einer geneigten Tafel reichte der Name ins Fenster          -> [21]
-    bb  in dist/assets/hangar-viewer.js name: () => holo.rect() aus
-        dem Aufruf von holoLayer nehmen: das Fenster wuesste nicht
-        mehr, wo der Name steht                                     -> [21]
     bc  in dist/assets/hangar-viewer.js "sizes" aus HALL_GROW nehmen
         (14.11.2026; die Halle wuechse wieder je Schiff: 7 Befunde,
         [23] reisst mit an den Proben Carrack, Idris-M und
@@ -606,6 +611,20 @@
     bs  in dist/assets/hangar-viewer.js t.hangar aus den Zeilen des
         Hologramms nehmen                                           -> [24]
     bt  in dist/assets/hangar-overview.js hangar aus labelOf() nehmen -> [24]
+    bu  in dist/assets/hangar-holo3d.js pickRoom immer true liefern
+        lassen: ein Fenster, das hoeher ist als die Tafel, hinge
+        unten ueber sie hinaus                                      -> [21]
+    bv  dort in placeFly vor !pickRoom( wieder min && setzen: ohne
+        den Namen des Schiffs fragte niemand mehr nach dem Platz    -> [21]
+    bw  dort pickMaxH wieder wenigstens PICK_MIN_H liefern lassen
+        (Math.max(PICK_MIN_H, (boardH - min - 8) / k)): an einer
+        Tafel mit einem Slot zeigte das Fenster vier Teile und
+        hinge 35 px unter ihr                                       -> [21]
+    bx  dort in redraw die Hoehe des Fensters wieder ohne pickMaxH
+        setzen (P.ui.maxH = 600)                                    -> [21]
+    by  in dist/assets/hangar-viewer.js name: () => holo.rect() aus
+        dem Aufruf von holoLayer nehmen: das Fenster wuesste nicht
+        mehr, wo der Name steht                                     -> [21]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -2142,7 +2161,7 @@ say('\n[21] Stationen (Phase 22, H1): Leiste je Seite, Hologramm-Modul mit Versi
 // Adresse je Seite. Woerter der Werkstatt: 47 mit der Tafel „Ausruestung“,
 // 116 seit dem Datenblatt des Bauteils (11.11.2026), 118 mit seinem Weg in
 // der flachen Werkstatt (sheet.open, sheet.back).
-const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14633 };
+const STATIONEN = { stationen: 2, proben: 28, woerter: 118, stellungen: 36, fenster: 14943 };
 // Keine Klinke, ein Sichturteil (WINDOWS #156): wie stark sich die Tafeln zur
 // Kamera drehen, ist am 11.11.2026 gerendert verglichen und so abgenommen.
 // Die Stellungen unten rechnen gegen den Wert des Moduls; ohne diese Zahl
@@ -2246,10 +2265,12 @@ const KANTE_ANGESEHEN = 0.065;
         [/ui\.split\b/.test(src) && /pickFits\(ctx\.W\(\)/.test(src), 'fragt nicht mehr am Bild, ob das Fenster Platz hat (ui.split, pickFits): im schmalen Bild stünde es über dem Datenblatt'],
         [/!pickClear\(/.test(src) && /splitOff = splitKey\(\)/.test(src) && /splitOff !== splitKey\(\) &&/.test(src), 'misst nicht mehr am Bild nach, ob das Fenster am Datenblatt anliegt (pickClear), oder merkt es sich nicht (splitOff): eine verrückte Tafel schöbe es ans Datenblatt, oder die Auswahl spränge zwischen beiden Fassungen'],
         [/ctx\.name\?\.\(\)/.test(src) && /pickBelow\(f\.t,/.test(src) && /splitOffRow !== rowKey\(/.test(src) && /name:\s*\(\)\s*=>\s*holo\.rect\(\)/.test(viewer) && /rect\(\)\s*\{\s*return box;?\s*\}/.test(viewer), 'erfährt nicht mehr, wo der Name des Schiffs steht (ctx.name, pickBelow; in dist/assets/hangar-viewer.js name: () => holo.rect() und rect()), oder merkt sich nicht, an welchem Slot das Fenster unter ihm keinen Platz hatte (splitOffRow): der Name läge im niedrigen Bild über dem Kopf des Fensters, oder die Auswahl spränge zwischen beiden Fassungen'],
+        [/if \(!pickRoom\(L\.cssH, F\.cssH, K, min\)\) return noSplit\(L, F, true\);/.test(src), 'fragt in placeFly nicht mehr, ob das Fenster an der Tafel Platz hat (pickRoom), oder nur noch unter dem Namen des Schiffs: ein Fenster, das höher ist als die Tafel, hinge unten über sie hinaus'],
+        [/if \(P\.fly\) P\.ui\.maxH = pickMaxH\(built\?\.left\.cssH \?\? 560, P\.kf \?\? PICK_K, P\.minTop \?\? 0\);/.test(src), 'bemisst die Höhe des Fensters nicht mehr an der Tafel (pickMaxH in redraw): an einer kurzen Tafel bekäme es mehr Zeilen, als in sie passen'],
       ].filter(([ok]) => !ok).map(([, text]) => text);
       for (const text of naht) fail(`[21] dist/assets/hangar-holo3d.js ${text}`);
-      if (typeof hm.pickFits !== 'function' || typeof hm.pickTop !== 'function' || typeof hm.pickK !== 'function' || typeof hm.pickClear !== 'function' || typeof hm.pickBelow !== 'function' || !(hm.PICK_K >= 1) || !(hm.PICK_GAP >= 0) || !(hm.PICK_NAME_AIR >= 8) || ![bT, bF, bD].every(Number.isFinite)) {
-        fail('[21] dist/assets/hangar-holo3d.js exportiert pickFits, pickTop, pickK, pickClear, pickBelow, PICK_K, PICK_GAP oder PICK_NAME_AIR (wenigstens 8 px) nicht mehr, oder die Breiten LO_W, PK_W, ITEM_W stehen dort nicht mehr als Zahl: wo das Fenster der Auswahl steht, prueft dann nichts');
+      if (typeof hm.pickFits !== 'function' || typeof hm.pickTop !== 'function' || typeof hm.pickK !== 'function' || typeof hm.pickClear !== 'function' || typeof hm.pickBelow !== 'function' || typeof hm.pickRoom !== 'function' || typeof hm.pickMaxH !== 'function' || !(hm.PICK_MIN_H >= 192) || !(hm.PICK_K >= 1) || !(hm.PICK_GAP >= 0) || !(hm.PICK_NAME_AIR >= 8) || ![bT, bF, bD].every(Number.isFinite)) {
+        fail('[21] dist/assets/hangar-holo3d.js exportiert pickFits, pickTop, pickK, pickClear, pickBelow, pickRoom, pickMaxH, PICK_MIN_H (wenigstens 192 px, drei Teile), PICK_K, PICK_GAP oder PICK_NAME_AIR (wenigstens 8 px) nicht mehr, oder die Breiten LO_W, PK_W, ITEM_W stehen dort nicht mehr als Zahl: wo das Fenster der Auswahl steht, prueft dann nichts');
       } else {
         const falsch = [], RAND = 18, breit = bF * hm.PICK_K;
         // waagrecht, je Bildbreite und verdecktem Rand (114 px = Seitenleiste)
@@ -2315,6 +2336,27 @@ const KANTE_ANGESEHEN = 0.065;
           if (m > 0 && luft(m - 8) >= hm.PICK_NAME_AIR + 1e-6) { falsch.push(`${wo}: das Fenster hängt ${m} px tiefer, ${m - 8} px hätten gereicht`); break; }
         }
         if (hm.pickBelow(100, NaN, 150) !== hm.pickBelow(100, 1, 150) || hm.pickBelow(100, 0, 150) !== hm.pickBelow(100, 1, 150)) falsch.push('pickBelow rechnet mit einem unbrauchbaren Maßstab (0 oder keine Zahl) statt mit 1');
+        // Platz an der Tafel: ein Fenster nur, wenn es unter min ganz in sie passt (mit und ohne Namen);
+        // und wo pickRoom Platz meldet, haelt pickTop es auch an der untersten Zeile in der Tafel
+        for (const K of [kBoden, kSchwebt]) for (const hT of [220, 300, 420, 560, 700]) for (const hF of [150, 230, 240, 338, 420]) for (const min of [0, 8, 48, 120, 200]) {
+          fensterLagen++;
+          const hoch = hF * K, soll = min + hoch <= hT, ist = hm.pickRoom(hT, hF, K, min), wo = `Tafel ${hT} px, Fenster ${hF} px im Maßstab ${K}, Name bis ${min} px unter der Oberkante`;
+          if (ist !== soll) { falsch.push(soll ? `${wo}: das Fenster passt an die Tafel, und pickRoom meldet keinen Platz (die Auswahl klappte unter ihre Zeile)` : `${wo}: das Fenster hinge ${Math.ceil(min + hoch - hT)} px unter der Tafel, und pickRoom meldet Platz`); break; }
+          if (!soll) continue;
+          const top = hm.pickTop({ y: hT, h: 42, y0: 78, y1: hT - 68 }, hT, hF, K, min);
+          if (top < min - 1e-6 || top + hoch > hT + 1e-6) { falsch.push(`${wo}: pickRoom meldet Platz, pickTop stellt das Fenster aber von ${Math.round(top)} bis ${Math.round(top + hoch)} px`); break; }
+        }
+        // Hoehe, die das Fenster zugestanden bekommt: nie mehr, als unter min in die Tafel passt (220 px = Tafel mit
+        // einem Slot, 262 px = mit zweien); 8 px Luft, wo die Tafel reicht; sonst wenigstens PICK_MIN_H, soweit sie reicht
+        for (const K of [kBoden, kSchwebt]) for (const hT of [220, 262, 300, 420, 560, 700]) for (const min of [0, 8, 48, 120, 200]) {
+          fensterLagen++;
+          const frei = hT - min, m = hm.pickMaxH(hT, K, min), wo = `Tafel ${hT} px, Maßstab ${K}, Name bis ${min} px unter der Oberkante`;
+          if (!Number.isFinite(m)) { falsch.push(`${wo}: pickMaxH liefert ${m}`); break; }
+          if (m * K > frei + 1e-6) { falsch.push(`${wo}: das Fenster bekommt ${Math.round(m)} px zugestanden, im Maßstab ${Math.ceil(m * K - frei)} px mehr, als in die Tafel passt: es hinge unten über sie hinaus`); break; }
+          if ((frei - 8) / K >= hm.PICK_MIN_H && m * K > frei - 8 + 1e-6) { falsch.push(`${wo}: das Fenster bekommt ${Math.round(m)} px zugestanden, unter ihm bleiben keine 8 px Luft in der Tafel`); break; }
+          if (m < Math.min(hm.PICK_MIN_H, frei / K) - 1e-6 || m < (frei - 8) / K - 1e-6) { falsch.push(`${wo}: das Fenster bekommt nur ${Math.round(m)} px zugestanden, obwohl die Tafel mehr hergibt: es zeigte weniger Teile als nötig`); break; }
+        }
+        if (hm.pickRoom(220, 230) !== false || hm.pickRoom(560, 338) !== true) falsch.push('pickRoom rechnet ohne Angabe nicht mit PICK_K und ohne Namen (Tafel 220 px, Fenster 230 px muss keinen Platz haben, Tafel 560 px, Fenster 338 px muss Platz haben)');
         for (const t of falsch) fail(`[21] Fenster der Auswahl, ${t}`);
         let ab = 761; while (ab <= 2600 && hm.pickFits(ab, 114, 0) !== true) ab++;
         fensterIst = falsch.length ? `${falsch.length} Lagen falsch` : `Naht ${naht.length ? 'mit Lücke' : 'ganz'}, neben der Tafel ab ${ab} px Bildbreite (mit Seitenleiste), darunter unter der Zeile; ${fensterLagen} Lagen nachgerechnet`;

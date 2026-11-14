@@ -264,13 +264,20 @@ gesehen im niedrigen Bild 1440 x 620 im Test vom 13.11.2026). Der Viewer
 meldet dem Modul, wo er im Bild steht (`name: () => holo.rect()`); steht er
 in der Breite des Fensters, beginnt es `PICK_NAME_AIR` unter ihm
 (`pickBelow` misst an der Oberkante nach, `min` in `pickTop`) und zeigt
-dafür weniger Zeilen. Hat es darunter an der Tafel keinen Platz (mit den
+dafür weniger Zeilen. Wie hoch es werden darf, bemisst `pickMaxH` an der
+Tafel: was sie unter dem Namen hergibt, mit 8 px Luft, wenigstens 240 px,
+aber nie mehr, als in sie passt. Eine Tafel mit einem einzigen Slot ist
+220 px hoch (19 Schiffe, etwa die Mustang Alpha); dort zeigt das Fenster
+drei Teile statt vier (im Review vom 13.11.2026 gefunden und in der Halle
+nachgestellt: mit vier Teilen hing es 35 px unter der Tafel). Weniger als
+drei Teile zeigt es nicht. Passt es auch so nicht in die Tafel (mit den
 Halterungen eines Raketenslots ist es höher), klappt die Auswahl dieses
-einen Slots unter ihre Zeile (`splitOffRow`), die anderen behalten ihr
-Fenster. Klappt die Auswahl aus dem Fenster unter ihre Zeile zurück (auch
+einen Slots unter ihre Zeile (`pickRoom`, `splitOffRow`), ob der Name im
+Weg steht oder nicht; die anderen behalten ihr Fenster. Klappt die Auswahl
+aus dem Fenster unter ihre Zeile zurück (auch
 nach einem Größenwechsel), rollt die Tafel Zeile und Liste ins Bild
 (`redraw`), sonst stünde die Liste unter dem unteren Rand. Zusicherung 21
-rechnet Platz, Lage, Maßstab und die Grenze unter dem Namen am
+rechnet Platz, Lage, Maßstab, Höhe und die Grenze unter dem Namen am
 ausgelieferten Modul nach.
 
 Steht auf der linken Tafel ein Slot offen, zeigt die rechte seit 11.11.2026

@@ -819,6 +819,17 @@ export function pickTop(at, boardH, winH, k = PICK_K, min = 0) {
   const row = at ? clamp(at.y, at.y0, Math.max(at.y0, at.y1 - at.h)) : 60;
   return clamp(row - 8, min, Math.max(min, boardH - winH * k));
 }
+// So hoch darf das Fenster werden, in seinen eigenen Pixeln: was die Tafel
+// unter min hergibt, mit 8 px Luft; wenigstens PICK_MIN_H, aber nie mehr, als
+// in die Tafel passt. Eine Tafel mit einem einzigen Slot ist 220 px hoch: dort
+// zeigt das Fenster drei Teile statt vier und bleibt in ihr.
+export const PICK_MIN_H = 240;
+export const pickMaxH = (boardH, k = PICK_K, min = 0) => Math.max((boardH - min - 8) / k, Math.min(PICK_MIN_H, (boardH - min) / k));
+// Hat das Fenster an der Tafel Platz? Es muss unter min ganz innerhalb der
+// Tafel stehen können. Weniger als drei Teile zeigt es nicht, mit Halterungen
+// ist es höher: dann hinge es unten über die Tafel hinaus (pickTop hält nur
+// die Oberkante), und die Auswahl klappt für diesen Slot unter ihre Zeile.
+export const pickRoom = (boardH, winH, k = PICK_K, min = 0) => winH * k <= boardH - min;
 // Der Name des Schiffs liegt als Text über der Leinwand und damit vor dem
 // Fenster. y0: wo die Oberkante des Fensters im Bild läge, hinge es ganz oben
 // an der Tafel, s: Bildpunkte je Pixel der Tafel dort (eine geneigte Tafel
@@ -1224,7 +1235,7 @@ export function holoLayer(ctx) {
       // klappt die Auswahl aus dem Fenster unter ihre Zeile zurück, rollt sie samt Zeile ins Bild
       if (was && !P.ui.split && P.data?.pick) { P.ui.reveal = P.data.pick.key; P.ui.pReveal = true; }
     }
-    if (P.fly) P.ui.maxH = Math.max(240, ((built?.left.cssH ?? 560) - 8 - (P.minTop ?? 0)) / (P.kf ?? PICK_K));
+    if (P.fly) P.ui.maxH = pickMaxH(built?.left.cssH ?? 560, P.kf ?? PICK_K, P.minTop ?? 0);
     const H = P.draw(g, P.data, null, P.ui);
     P.cssW = w; P.cssH = H;
     const cw = Math.ceil((w + 2 * PAD) * S), ch = Math.ceil((H + 2 * PAD) * S);
@@ -1262,8 +1273,9 @@ export function holoLayer(ctx) {
   // splitOff: lag es an diesem Schiff in diesem Bild einmal am Datenblatt an
   // (placeFly misst), bleibt die Auswahl unter ihrer Zeile, bis sich Bildgröße
   // oder Ränder ändern: kein Hin und Her zwischen beiden Fassungen.
-  // splitOffRow: dasselbe für den einen Slot, dessen Fenster unter dem Namen
-  // des Schiffs keinen Platz hatte (mit Halterungen ist es höher); die anderen
+  // splitOffRow: dasselbe für den einen Slot, dessen Fenster an der Tafel
+  // keinen Platz hatte (pickRoom: höher als sie, oder unter dem Namen des
+  // Schiffs bleibt zu wenig; mit Halterungen ist es höher); die anderen
   // Slots behalten ihr Fenster.
   let splitOff = '', splitOffRow = '';
   const splitKey = () => `${built?.key ?? ''}|${ctx.W()}x${ctx.H()}|${safe.l ?? 0}|${safe.r ?? 0}`;
@@ -1320,8 +1332,9 @@ export function holoLayer(ctx) {
       }
     }
     if (min !== (F.minTop ?? 0)) { F.minTop = min; redraw(F); }
-    // unter ihm hat das Fenster an der Tafel keinen Platz mehr: dann die Liste unter der Zeile
-    if (min && F.cssH * K > L.cssH - min) return noSplit(L, F, true);
+    // an der Tafel hat das Fenster keinen Platz (es ist höher als sie, oder
+    // unter dem Namen bleibt zu wenig): dann die Liste unter der Zeile
+    if (!pickRoom(L.cssH, F.cssH, K, min)) return noSplit(L, F, true);
     put(flyTop(L, F));
     // Bildfläche für die Schilder (placeLabels), aus der der Tafel geschätzt
     if (L.rect) { const t = L.rect.t + flyTop(L, F); F.rect = { l: L.rect.r, r: L.rect.r + PICK_GAP + F.cssW * K, t, b: t + F.cssH * K }; }
