@@ -2249,6 +2249,9 @@ export function boot(doc) {
     }
     const before = main.dataset.ort;
     main.dataset.ort = at;
+    // Vor dem Terminal weicht die Erklaerung der Schiffsauswahl, die beim
+    // ersten Besuch von selbst aufgeht: Sie laege sonst ueber dem Monitor.
+    if (leit && before !== 'leit') main.querySelector('.hg-dock details.tool-help[open]')?.removeAttribute('open');
     for (const b of stBtns) {
       const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
       b.hidden = leit || (holo && (!on || orte));
