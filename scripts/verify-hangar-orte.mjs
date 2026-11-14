@@ -200,16 +200,25 @@
 
    VORGEFUEHRT ROT (14.11.2026, Terminal der Large-Halle: gedrehter und
    geneigter Monitor im Modell der Halle), je ein Eingriff am gebauten
-   dist/assets/hangar-viewer.js, sieben Laeufe:
+   dist/ (o: dist/assets/hangar-viewer.js, sieben Laeufe):
      o  HALL_LEIT.util-lrgtop: schirm.dreh gestrichen (der Monitor saehe
         nach Sueden, die Kamera stuende hinter der Rueckwand); neig auf
         -15 (sie stiege unter die Decke); voll bis z 101 und y 19.6
         gezogen (sie saesse im Stuhl); d auf [2, 7]; voll ohne z; dreh
         und neig gestrichen und den Raum geweitet (Klinke der gedrehten
         Monitore); in leitAchsen die dritte Achse verbogen
-   Noch nicht vorgefuehrt, weil nur mit dem gebauten Modell der Halle
-   moeglich (es liegt bis zur PR der Large-Halle nur am PC): der Zweig
-   von [8], der das Glas im Modell der Halle selbst nachmisst.
+     p  Der Zweig von [8], der das Glas im Modell der Halle selbst
+        nachmisst (schirm.mat), gegen das ausgelieferte Modell der
+        Large-Halle, sechs Laeufe: schirm.x um 0,5 m versetzt („das Glas
+        des Monitors reicht im Modell quer von -0.833 bis 1.833 …“);
+        schirm.mat auf ein Material, das die Halle nicht traegt („kein
+        Teil mit dem Material der Monitore“); schirm.b 10 cm breiter;
+        neig 15 auf 0 („traegt die Halle kein um 180° gedrehtes, um 0°
+        geneigtes Glas“); in beiden Seiten floor 2.501 auf 3.501 (die
+        Halle stuende 1 m tiefer, kein Glas an der Stelle); in beiden
+        Seiten die Halle der Stufe L umbenannt („nur 1 Halle(n) mit
+        nachgemessenem Monitor, Klinke 2“; dieselbe Zeile steht in jedem
+        der fuenf Laeufe davor)
    Die Meldungen stehen in der PR der Large-Halle.
 
      node scripts/verify-hangar-orte.mjs
