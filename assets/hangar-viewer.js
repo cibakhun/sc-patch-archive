@@ -724,6 +724,20 @@ function hallSpot(h) {
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
 }
 
+// Ursprung der Halle im Modellraum: Ein Punkt p des Modells (Halle und
+// Einrichtung) steht in der Halle bei p − hallOrigin(h), solange ihn weder
+// die Feldmitte (HALL_SHIFT) noch der Zuwachs der Halle bewegt. loadRealHall
+// setzt das Modell genau so. Fehlt die Höhe des Bodens im Manifest, lotet
+// loadRealHall sie erst am geladenen Modell: dann null.
+// verify:hangar-orte [8] rechnet damit am ausgelieferten Modell nach, ob der
+// Monitor des Leitstands steht, wo HALL_LEIT ihn nennt (absolut, nicht nur
+// gegen das Pult), und [6] hält die Zeilen in loadRealHall fest.
+export function hallOrigin(h) {
+  if (!Array.isArray(h?.room?.center) || !Number.isFinite(h.floor)) return null;
+  const o = hallSpot(h);
+  return [o[0], h.floor, o[2]];
+}
+
 // Die Halle wächst mit dem Schiff, alles darin bleibt in Spielgröße
 // (29.10.2026). Krisz: „momentan ist es so dass die assets in der hangar
 // kleiner werden somit simuliert man dass der hangar grösser ist, aber dabei
@@ -6132,6 +6146,8 @@ function buildHolo(container, reduceMotion) {
   // told: zuletzt der Seite gemeldet (null: noch nie); gone: seit wann sie
   // am stehenden Fahrzeug keinen Platz findet
   let shown = null, power = 0, last = 0, onShow = null, told = null, gone = 0;
+  // Fläche des Namens im Bild (Pixel der Leinwand), solange er zu sehen ist
+  let box = null;
   // Oberseite je Rumpf: { G, it, pts }
   let tops = null;
   const disp = { A: new THREE.Vector3(), f: 1, ok: false };
@@ -6315,6 +6331,10 @@ function buildHolo(container, reduceMotion) {
       for (const k of ['l', 't', 'r']) if (Number.isFinite(s?.[k])) safe[k] = Math.max(HOLO_EDGE, s[k]);
       if (Array.isArray(s?.rects)) safe.rects = s.rects;
     },
+    // Wo der Name gerade im Bild steht ({ l, r, t, b }) oder null. Er liegt als
+    // Text über der Leinwand, also vor allem, was in ihr gezeichnet ist: Das
+    // Fenster der Auswahl (hangar-holo3d.js) bleibt deshalb unter ihm.
+    rect() { return box; },
     // je Bild nach der Kamera; c: { camera, w, h, rest, group, info, low,
     // ceil, boxes, more, free }. true, solange sie sich auf- oder abbaut
     frame(now, c) {
@@ -6354,10 +6374,13 @@ function buildHolo(container, reduceMotion) {
         // beim Aufbau ein Zittern um ein, zwei Bildpunkte
         const jx = run ? Math.round((Math.random() - 0.5) * 3) : 0;
         el.style.transform = `translate(${Math.round(x - shown.w / 2) + jx}px, ${Math.round(y - shown.h)}px) scale(${f.toFixed(3)})`;
+        // gestaucht wird um die Mitte der Unterkante (transform-origin im CSS)
+        box = { l: x - (shown.w * f) / 2, r: x + (shown.w * f) / 2, t: y - shown.h * f, b: y };
         el.style.setProperty('--holo-on', power.toFixed(3));
         el.toggleAttribute('data-run', run);
       }
       el.hidden = !vis;
+      if (!vis) box = null;
       // Der Seite melden: an, sobald sie steht; aus erst, wenn sie am
       // stehenden Fahrzeug HOLO_GONE_MS lang keinen Platz findet, nicht im Wechsel
       if (vis) gone = 0;
@@ -6638,62 +6661,79 @@ const WERK_TOR_VOR = 1200;
 
 // Leitstand (13.11.2026). Krisz will die Seite nach und nach in die Halle
 // holen; der erste Ort dafür ist der Glaskasten über der Südtür, den die
-// Halle schon hat (Spielassets: Pult mit Monitorbank, Stühle, Pflanzkästen).
-// Davor steht ein Terminal, auf dem die Seite selbst läuft: Die Kamera fährt
-// hinauf und bleibt gerade davor stehen, die Seite legt ihr Fenster genau
-// über den Schirm (onPlace nennt das Rechteck). Den Ausschlag gab die Leiste
-// des Terminals: „da oben ist ein menü wo man so hin und her switchen kann
-// ohne seite nezuladen“ (Halle und Schiff bleiben geladen).
+// Halle schon hat (Spielassets: Pult mit drei Monitoren, Stühle,
+// Pflanzkästen). Auf dem mittleren Monitor des Pults läuft die Seite selbst:
+// Die Kamera fährt hinauf und setzt sich gerade davor, die Seite legt ihr
+// Fenster genau über das Fenster auf dem Glas (onPlace nennt das Rechteck).
+// Den Ausschlag gab die Leiste des Terminals: „da oben ist ein menü wo man
+// so hin und her switchen kann ohne seite nezuladen“ (Halle und Schiff
+// bleiben geladen).
+// Bis zum 14.11.2026 stand dafür ein eigener Schirm frei im Raum, südlich
+// vor den Monitoren. Krisz: „es gibt in den control raum allerdings jetzt 2
+// bildschirme infront of each other“ und „da ist son deko desktop auf dem
+// tisch, wir können das mal so umbauen dass unser bildschirmscreen wirklich
+// auf einem bildschirm drauf ist der in den control raum sitzt“. Seither
+// gehört das Glas des mittleren Monitors dem Terminal, und im Raum steht
+// nur, was das Spiel hineingestellt hat.
 // Maße je Halle in Hallenmetern (Feldmitte, Boden 0, Bug nach -z), gemessen
 // an der Gladius, also ohne Zuwachs; mit HALL_GROW rückt alles mit der
-// Südwand (leitAt). schirm: Mitte und Breite (er steht südlich vor der
-// Monitorbank und zeigt nach Süden, zur Tür des Leitstands); form: Höhe zu
-// Breite, in diesen Grenzen so, wie das freie Bild ist; fov, d: Wunschwinkel
-// und Grenzen des Abstands (zwischen den Stühlen und der Rückwand); rand: so
-// viel Rahmen steht im Bild um das Fenster der Seite (px); glas: Ebene der
-// Glasfront und Höhe, in der die Kamera sie kreuzt (über dem Querholm);
-// innen: Höhe unter der abgehängten Decke (Lichtbänder auf 19,0 ab z 61);
-// raum: der lichte Raum von der Glasfront bis zur Rückwand und vom Boden bis
-// unter diese Decke, in dem die Kamera vor dem Terminal bleiben muss
-// (verify:hangar-orte rechnet das für viele Fenstergrößen nach); bank: wo
-// die Monitorbank steht (leitBuild warnt, wenn das Modell sie woanders hat).
+// Südwand (leitAt). schirm: das Glas dieses Monitors, wie es im Modell steht
+// (seine Südseite, den Stühlen zugewandt): Mitte, Breite b und Höhe h,
+// Rundung der Ecken (ecke) und saum, so viel Glas bleibt um das Fenster der
+// Seite (alles m). Das Glas ist 3,8-mal so breit wie hoch, eine Seite der
+// Website braucht eher 16 zu 9: Ihr Fenster steht darum in der Mitte des
+// Glases, so hoch wie dieses ohne Saum und so breit, wie form es verlangt.
+// form: Höhe zu Breite des Fensters, in diesen Grenzen so, wie das freie
+// Bild ist; fov, d: Wunschwinkel und Grenzen des Abstands (die Kamera sitzt
+// am Platz vor dem Pult, über dem mittleren Stuhl); rand: so viel Luft
+// bleibt im Bild um das Fenster der Seite (px); glas: Ebene der Glasfront
+// und Höhe, in der die Kamera sie kreuzt (über dem Querholm); innen: Höhe
+// unter der abgehängten Decke (Lichtbänder auf 19,0 ab z 61); raum: der
+// lichte Raum von der Glasfront bis zur Rückwand und vom Boden bis unter
+// diese Decke, in dem die Kamera vor dem Terminal bleiben muss
+// (verify:hangar-orte rechnet das für viele Fenstergrößen nach und misst
+// das Glas am ausgelieferten Modell); bank: wo die Monitore des Pults
+// stehen (leitBuild warnt, wenn das Modell sie woanders hat).
 export const HALL_LEIT = {
-  'revelyork-single': { schirm: { x: 0, y: 18.24, z: 58.5, b: 2.6 }, form: [0.5, 0.8], fov: 40, d: [2.3, 6.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
+  'revelyork-single': { schirm: { x: 0.1215, y: 17.7925, z: 57.555, b: 3.107, h: 0.817, ecke: 0.049, saum: 0.03 }, form: [0.5, 0.8], fov: 40, d: [1, 2.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
 };
 // Weiter als so öffnet sich der Bildwinkel vor dem Terminal nicht (Grad);
 // so viel Luft hält die Kamera zu Boden und Decke des Leitstands (m)
 export const LEIT_FOV_MAX = 62, LEIT_LUFT = 0.3;
 /**
- * Stellung der Kamera vor dem Terminal: gerade vor dem Schirm (er bleibt im
- * Bild ein Rechteck), so weit weg und so verschoben, dass er das freie
- * Stück der Bühne füllt. Die Höhe des Schirms folgt dessen Form (L.form).
+ * Stellung der Kamera vor dem Terminal: gerade vor dem Monitor (das Fenster
+ * der Seite bleibt im Bild ein Rechteck), so weit weg und so verschoben, dass
+ * es das freie Stück der Bühne füllt. Das Fenster steht mitten auf dem Glas
+ * (L.schirm), so hoch wie dieses ohne Saum; seine Breite folgt der Form des
+ * freien Stücks (L.form).
  *   leitFit(1600, 900, { l: 132, t: 94, r: 1468, b: 790 }, HALL_LEIT['revelyork-single'])
- *   -> { b: 2.6, h: 1.354, d: 2.41, fov: 40, dx: 0, dy: -0.016, s: 513.8, rect: { l: 132, t: 94, r: 1468, b: 790 } }
+ *   -> { b: 1.453, h: 0.757, d: 1.345, fov: 40, dx: 0, dy: -0.009, s: 919.4, rect: { l: 132, t: 94, r: 1468, b: 790 } }
  * @param {number} W Breite der Bühne (px) @param {number} H Höhe (px)
- * @param {{ l: number, t: number, r: number, b: number }} frei Rechteck im Bild, das der Schirm füllen darf
- * @param {{ schirm: { y: number, b: number }, form: number[], fov: number, d: number[], raum?: { y: number[] } }} L
+ * @param {{ l: number, t: number, r: number, b: number }} frei Rechteck im Bild, das das Fenster füllen darf
+ * @param {{ schirm: { y: number, b: number, h: number, saum: number }, form: number[], fov: number, d: number[], raum?: { y: number[] } }} L
  * @returns {{ b: number, h: number, d: number, fov: number, dx: number, dy: number, s: number, rect: { l: number, t: number, r: number, b: number } }}
- *   b, h: Schirm in Metern (b sonst L.schirm.b, kleiner nur, wo der
- *   Bildwinkel an LEIT_FOV_MAX stößt); d: Abstand; fov: Bildwinkel (Grad,
- *   senkrecht);
- *   dx, dy: Kamera gegen die Schirmmitte (m, +x rechts im Bild, +y oben);
- *   s: px je Meter; rect: der Schirm im Bild
+ *   b, h: Fenster der Seite in Metern (h sonst die Höhe des Glases ohne
+ *   Saum, kleiner nur, wo der Bildwinkel an LEIT_FOV_MAX stößt); d: Abstand;
+ *   fov: Bildwinkel (Grad, senkrecht);
+ *   dx, dy: Kamera gegen die Mitte des Glases (m, +x rechts im Bild, +y oben);
+ *   s: px je Meter; rect: das Fenster im Bild
  */
 export function leitFit(W, H, frei, L) {
-  const fw = Math.max(1, frei.r - frei.l), fh = Math.max(1, frei.b - frei.t);
+  const fw = Math.max(1, frei.r - frei.l), fh = Math.max(1, frei.b - frei.t), S = L.schirm;
   const form = Math.min(L.form[1], Math.max(L.form[0], fh / fw));
-  let b = L.schirm.b, h = b * form;
-  // px je Meter, bei denen der Schirm gerade hineinpasst
+  // so hoch wie das Glas ohne Saum; breiter als das Glas wird es nie
+  let b = Math.min(S.b - 2 * S.saum, (S.h - 2 * S.saum) / form), h = b * form;
+  // px je Meter, bei denen das Fenster gerade hineinpasst
   let s = Math.min(fw / b, fh / h);
   // Abstand beim Wunschwinkel, in den Grenzen des Raums; der Winkel gleicht aus
   const d = Math.min(L.d[1], Math.max(L.d[0], H / 2 / Math.tan((L.fov * Math.PI) / 360) / s));
   let fov = (2 * Math.atan(H / 2 / (s * d)) * 180) / Math.PI;
   // Ein schmales freies Stück in einem hohen Fenster verlangte am fernen Ende
   // des Abstands einen Weitwinkel. Der Bildwinkel bleibt bei LEIT_FOV_MAX;
-  // beim engeren Winkel füllte derselbe Schirm aber mehr vom Bild, als frei
+  // beim engeren Winkel füllte dasselbe Fenster aber mehr vom Bild, als frei
   // ist (800 × 1500 mit offener Schiffsauswahl: 25 px über den Rand der
-  // Bühne, Review PR #355). Darum wird der Schirm dort in Metern kleiner,
-  // sein Rechteck im Bild bleibt das freie Stück.
+  // Bühne, Review PR #355). Darum wird es dort in Metern kleiner, sein
+  // Rechteck im Bild bleibt das freie Stück.
   if (fov > LEIT_FOV_MAX) {
     fov = LEIT_FOV_MAX;
     const eng = H / 2 / Math.tan((fov * Math.PI) / 360) / d;
@@ -6701,15 +6741,21 @@ export function leitFit(W, H, frei, L) {
   }
   const cx = (frei.l + frei.r) / 2;
   // Liegt das freie Stück weit unter oder über der Bildmitte und ist es
-  // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, der
-  // Schirm rückt dafür im Bild ein Stück aus der Mitte des freien Stücks.
+  // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, das
+  // Fenster rückt dafür im Bild ein Stück aus der Mitte des freien Stücks.
   let dy = ((frei.t + frei.b) / 2 - H / 2) / s;
   if (L.raum) dy = Math.min(L.raum.y[1] - LEIT_LUFT - L.schirm.y, Math.max(L.raum.y[0] + LEIT_LUFT - L.schirm.y, dy));
   const cy = H / 2 + dy * s;
   return { b, h, d, fov, dx: -(cx - W / 2) / s, dy, s, rect: { l: cx - (b * s) / 2, t: cy - (h * s) / 2, r: cx + (b * s) / 2, b: cy + (h * s) / 2 } };
 }
-// So lange blendet der Schirm zwischen Ruhe (LEIT_DIM) und voller Stärke
-const LEIT_FADE_MS = 500, LEIT_DIM = 0.5;
+// So lange blendet der Monitor zwischen Ruhe (LEIT_DIM) und voller Helligkeit
+const LEIT_FADE_MS = 500, LEIT_DIM = 0.6;
+// Farben auf dem Glas: Grundfarbe und Akzent der Hangarseite (--bg, --accent)
+const LEIT_FARBE = { glas: '#060d17', grund: '#0b0d12', marke: '#f5a623' };
+// Pegel der linken Flanke des Monitors: feste Längen, kein Messwert
+const LEIT_PEGEL = [0.82, 0.56, 0.91, 0.4, 0.68, 0.3, 0.75];
+/** Marke von VerseBase im Fenster des Terminals: Breite (Anteil der Fensterbreite) und Mitte (Anteil der Fensterhöhe von oben) */
+export const LEIT_MARKE = { b: 0.07, y: 0.36 };
 // Die Bänder (WERK.reihen, je eine Lampenreihe der Garage) gehen einzeln
 // nacheinander an, von hinten nach vorn, alle abstand ms eins; der Spot
 // spot ms nach dem letzten (Krisz, 25.10.2026: „es sollen mehr lampen
@@ -7436,7 +7482,7 @@ export async function initHangar(container, opts = {}) {
   // Grenzen und Shift-Optik
   let walk = null;
   // post: die Kamera fährt in den Leitstand, steht dort vor dem Terminal oder
-  // fährt zurück (leitGo, leitLeave); leitScreen: dessen Schirm in der Halle
+  // fährt zurück (leitGo, leitLeave); leitScreen: dessen Bild auf dem Monitor des Pults
   // placeWish: zählt die Wünsche der Seite (place) und jeden Schiffswechsel;
   // wer auf eine laufende Fahrt oder auf die Halle wartet, fährt danach nur,
   // wenn seiner noch der letzte ist
@@ -10704,7 +10750,7 @@ void main() {
       : Promise.resolve(null);
     hallSettled = fetchGltf(h.url, 'hall', h.bytes || 1.1e7).then(async (gltf) => {
       const model = gltf.scene;
-      const c = h.room.center, o = hallSpot(h);
+      const c = h.room.center, o = hallSpot(h), O = hallOrigin(h);
       model.position.set(-o[0], -c[1], -o[2]);
       // Der begehbare Boden liegt im Modell nicht auf 0 (beim Deluxe-Hangar
       // knapp 1 m darüber) — sonst versinken Schiff, Gerät und Crew darin.
@@ -10712,9 +10758,9 @@ void main() {
       // senkrecht nach unten gelotet (kostet bei 700 000 Dreiecken spürbar).
       model.updateMatrixWorld(true);
       let floorY = c[1];
-      if (Number.isFinite(h.floor)) {
-        model.position.y = -h.floor;
-        floorY = h.floor;
+      if (O) {
+        model.position.y = -O[1];
+        floorY = O[1];
       } else {
         const rc = new THREE.Raycaster(), down = new THREE.Vector3(0, -1, 0), ys = [];
         for (const [x, z] of [[0, 0], [6, 4], [-6, -4], [4, -8], [-8, 6], [10, 10], [-10, -10]]) {
@@ -14315,7 +14361,7 @@ void main() {
     if (stLayer) stLayer.set(stWant);
     else if (stWant && !stLoad) {
       stLoad = import(opts.holo.module).then((m) => {
-        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw });
+        stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw, name: () => holo.rect() });
         if (stSafe) stLayer.safe(stSafe);
         stLayer.set(stWant);
       }).catch((e) => { stLoad = null; console.warn('[hangar] Stationen nicht geladen', e); });
@@ -14324,71 +14370,137 @@ void main() {
     return true;
   }
 
-  // Leitstand (HALL_LEIT): der Schirm des Terminals steht immer in der
-  // Halle, gedimmt; place('leit') fährt die Kamera hinauf vor ihn.
+  // Leitstand (HALL_LEIT): Das Terminal steht immer auf dem Glas des
+  // mittleren Monitors, in Ruhe gedimmt; place('leit') fährt die Kamera
+  // hinauf vor ihn.
   // post { state }: 'hin' unterwegs dorthin, 'an' sie steht davor, 'weg'
   // unterwegs zurück; solange ruhen OrbitControls, Grenzen und Shift-Optik
   // wie beim Einsteigen (walk). Nicht am Telefon und nur in einer Halle,
   // deren Leitstand vermessen ist.
   const LEIT = REAL && !SMALL ? HALL_LEIT[opts.hall.id] ?? null : null;
-  // Rand des Schirms um das Fenster der Seite (m): Rahmen und Eckwinkel
-  const LEIT_RAND = 0.07, LEIT_PX = 200;
+  // Auflösung der Fläche (px je m). Vor dem Monitor steht das Fenster der
+  // Seite darüber; scharf sein muss nur, was neben ihm und aus der Ferne zu
+  // sehen ist.
+  const LEIT_PX = 480;
+  // so weit steht die Fläche vor dem Glas des Spiels (m), damit beide nicht flimmern
+  const LEIT_VOR = 0.004;
   // ein Punkt des Leitstands dort, wo er mit dem Zuwachs der Halle steht (Hallenmeter)
   const leitAt = (x, y, z, out = new THREE.Vector3()) => growMap(out.set(x, y, z), out);
-  // Der Schirm ohne Seite: dunkle Fläche mit feinem Raster, Rahmen und
-  // Eckwinkeln, kein Text (von der Halle aus sieht man ihn von hinten).
+  // Das Glas des Monitors als Fläche: Rechteck b × h (m) mit runden Ecken wie
+  // das Glas im Modell, Texturkoordinaten über das ganze Rechteck.
+  function leitGlass(b, h, r) {
+    const pts = [[0, 0]], n = 6;
+    for (const [cx, cy, a0] of [[b / 2 - r, h / 2 - r, 0], [-b / 2 + r, h / 2 - r, 0.5], [-b / 2 + r, -h / 2 + r, 1], [b / 2 - r, -h / 2 + r, 1.5]])
+      for (let i = 0; i <= n; i++) { const a = (a0 + (0.5 * i) / n) * Math.PI; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+    const pos = new Float32Array(pts.length * 3), uv = new Float32Array(pts.length * 2), idx = [];
+    pts.forEach(([x, y], i) => { pos.set([x, y, 0], i * 3); uv.set([x / b + 0.5, y / h + 0.5], i * 2); });
+    for (let i = 1; i < pts.length; i++) idx.push(0, i, i === pts.length - 1 ? 1 : i + 1);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setIndex(idx);
+    return g;
+  }
+  // Was der Monitor zeigt, solange die Seite nicht darüber liegt: dunkles
+  // Glas mit feinem Raster, in der Mitte das Fenster der Seite in ihrer
+  // Grundfarbe mit der Marke von VerseBase. Die Marke steht dort, wo die
+  // Anmeldung des Terminals sie zeigt (assets/hangar-terminal.js,
+  // .hgx-term__mark: Mitte bei LEIT_MARKE.y der Fensterhöhe, so breit wie
+  // LEIT_MARKE.b der Fensterbreite): Kommt die Kamera an, blendet die Seite
+  // ihr Fenster über genau dieses Bild. Kein Wort, die Wörter stehen im
+  // Markup der Seite.
   function leitDraw() {
-    const { cv, tex } = leitScreen, g = cv.getContext('2d');
-    const w = Math.round((leitScreen.b + 2 * LEIT_RAND) * LEIT_PX), h = Math.round((leitScreen.h + 2 * LEIT_RAND) * LEIT_PX), p = LEIT_RAND * LEIT_PX;
-    cv.width = w; cv.height = h;
-    g.clearRect(0, 0, w, h);
-    g.fillStyle = 'rgba(7, 16, 30, 0.94)';
-    g.fillRect(p, p, w - 2 * p, h - 2 * p);
-    g.strokeStyle = 'rgba(120, 205, 255, 0.07)'; g.lineWidth = 1;
+    const { cv, tex, b, h } = leitScreen, g = cv.getContext('2d'), w = cv.width, H = cv.height, P = LEIT_PX;
+    g.fillStyle = LEIT_FARBE.glas;
+    g.fillRect(0, 0, w, H);
+    g.strokeStyle = 'rgba(120, 205, 255, 0.1)'; g.lineWidth = 1;
     g.beginPath();
-    for (let x = p + 40; x < w - p; x += 40) { g.moveTo(x + 0.5, p); g.lineTo(x + 0.5, h - p); }
-    for (let y = p + 40; y < h - p; y += 40) { g.moveTo(p, y + 0.5); g.lineTo(w - p, y + 0.5); }
+    for (let x = w / 2 % 48; x < w; x += 48) { g.moveTo(Math.round(x) + 0.5, 0); g.lineTo(Math.round(x) + 0.5, H); }
+    for (let y = H / 2 % 48; y < H; y += 48) { g.moveTo(0, Math.round(y) + 0.5); g.lineTo(w, Math.round(y) + 0.5); }
     g.stroke();
-    g.strokeStyle = 'rgba(130, 210, 255, 0.5)'; g.lineWidth = 2;
-    g.strokeRect(p - 4, p - 4, w - 2 * p + 8, h - 2 * p + 8);
-    // Eckwinkel
-    const a = 3, L = 0.2 * LEIT_PX;
-    g.strokeStyle = 'rgba(175, 232, 255, 0.95)'; g.lineWidth = 6; g.lineCap = 'square';
-    g.beginPath();
-    for (const [x, y, dx, dy] of [[a, a, 1, 1], [w - a, a, -1, 1], [a, h - a, 1, -1], [w - a, h - a, -1, -1]]) {
-      g.moveTo(x + dx * L, y); g.lineTo(x, y); g.lineTo(x, y + dy * L);
+    const fw = Math.round(b * P), fh = Math.round(h * P), fx = Math.round((w - fw) / 2), fy = Math.round((H - fh) / 2);
+    // Flanken: Das Fenster der Seite füllt nur die Mitte des Glases. Links
+    // und rechts stehen Anzeigen ohne Worte (Pegel, Ringe der Marke), damit
+    // der Monitor über seine ganze Breite ein Gerät bleibt und nicht neben
+    // dem Fenster schwarz steht.
+    const hex = (cx, cy, r) => { g.beginPath(); for (let i = 0; i < 6; i++) { const a = (i * Math.PI) / 3 - Math.PI / 2; g[i ? 'lineTo' : 'moveTo'](cx + r * Math.cos(a), cy + r * Math.sin(a)); } g.closePath(); };
+    const kante = 'rgba(120, 205, 255, 0.34)', leise = 'rgba(120, 205, 255, 0.16)';
+    for (const [x0, x1, pegel] of [[0, fx, true], [fx + fw, w, false]]) {
+      const l = x0 + 30, r = x1 - 30, t = 30, u = H - 30, e = 20;
+      if (r - l < 140) continue;
+      g.strokeStyle = kante; g.lineWidth = 2;
+      g.beginPath();
+      for (const [cx, cy, sx, sy] of [[l, t, 1, 1], [r, t, -1, 1], [l, u, 1, -1], [r, u, -1, -1]]) { g.moveTo(cx + sx * e, cy); g.lineTo(cx, cy); g.lineTo(cx, cy + sy * e); }
+      g.stroke();
+      if (pegel) {
+        const n = LEIT_PEGEL.length, step = (u - t - 56) / (n - 1), bl = l + 34, br = r - 34;
+        LEIT_PEGEL.forEach((v, i) => {
+          const y = Math.round(t + 28 + i * step);
+          g.fillStyle = leise; g.fillRect(bl, y - 1, br - bl, 2);
+          g.fillStyle = i === 2 ? LEIT_FARBE.marke : 'rgba(120, 205, 255, 0.55)';
+          g.fillRect(bl, y - 4, Math.round((br - bl) * v), 8);
+        });
+      } else {
+        const cx = (l + r) / 2, cy = (t + u) / 2, R = Math.min(r - l, u - t) / 2 - 22;
+        g.strokeStyle = leise; g.lineWidth = 2;
+        for (const k of [1, 0.68]) { hex(cx, cy, R * k); g.stroke(); }
+        g.beginPath(); g.moveTo(l + 34, cy); g.lineTo(cx - R - 12, cy); g.moveTo(cx + R + 12, cy); g.lineTo(r - 34, cy); g.stroke();
+        g.strokeStyle = 'rgba(245, 166, 35, 0.6)'; hex(cx, cy, R * 0.36); g.stroke();
+        g.fillStyle = LEIT_FARBE.marke; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+      }
     }
+    // Fenster der Seite
+    g.fillStyle = LEIT_FARBE.grund;
+    g.fillRect(fx, fy, fw, fh);
+    g.strokeStyle = 'rgba(150, 215, 255, 0.4)'; g.lineWidth = 2;
+    g.strokeRect(fx - 1, fy - 1, fw + 2, fh + 2);
+    // Marke: Sechseck mit Punkt (wie in der Kopfzeile der Seite, dort im Kasten 64 × 64)
+    const m = (LEIT_MARKE.b * fw) / 64, mx = fx + fw / 2 - 32 * m, my = fy + LEIT_MARKE.y * fh - 32 * m;
+    g.strokeStyle = g.fillStyle = LEIT_FARBE.marke;
+    g.lineWidth = 5 * m; g.lineJoin = 'round';
+    g.beginPath();
+    [[32, 8], [52, 20], [52, 44], [32, 56], [12, 44], [12, 20]].forEach(([x, y], i) => (i ? g.lineTo(mx + x * m, my + y * m) : g.moveTo(mx + x * m, my + y * m)));
+    g.closePath();
     g.stroke();
-    // die Leinwand hat eine neue Größe: neu anlegen statt nachladen
-    tex.dispose();
+    g.beginPath();
+    g.arc(mx + 32 * m, my + 32 * m, 6 * m, 0, Math.PI * 2);
+    g.fill();
     tex.needsUpdate = true;
   }
   function leitLay() {
     if (!leitScreen) return;
     const S = LEIT.schirm, k = hallRoot.scale.x;
-    leitAt(S.x, S.y, S.z, leitScreen.mesh.position);
-    leitScreen.mesh.scale.set((leitScreen.b + 2 * LEIT_RAND) / k, (leitScreen.h + 2 * LEIT_RAND) / k, 1);
+    leitAt(S.x, S.y, S.z + LEIT_VOR, leitScreen.mesh.position);
+    leitScreen.mesh.scale.setScalar(1 / k);
   }
   function leitBuild() {
     if (!LEIT || leitScreen) return;
-    const cv = document.createElement('canvas'), tex = new THREE.CanvasTexture(cv);
+    const S = LEIT.schirm, cv = document.createElement('canvas'), tex = new THREE.CanvasTexture(cv);
+    cv.width = Math.round(S.b * LEIT_PX); cv.height = Math.round(S.h * LEIT_PX);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.generateMipmaps = false; tex.minFilter = THREE.LinearFilter;
-    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: LEIT_DIM, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+    // Stehen die Monitore des Pults (Einrichtung der Halle), liegt die Fläche
+    // auf dem Glas des mittleren und zeigt wie dieses nur nach Süden: Von der
+    // Halle aus bleibt die Rückseite, wie das Spiel sie zeigt. Ohne
+    // Einrichtung (Stufe niedrig) ist der Leitstand leer; dann steht die
+    // Fläche dort frei und ist auch von der Halle aus zu sehen.
+    const bank = realHall?.furniture?.find((f) => /monitors/i.test(f.mesh.name));
+    const mat = new THREE.MeshBasicMaterial({ map: tex, side: bank ? THREE.FrontSide : THREE.DoubleSide, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    mat.color.setScalar(LEIT_DIM);
+    const mesh = new THREE.Mesh(leitGlass(S.b, S.h, S.ecke), mat);
     mesh.name = 'leit:schirm';
-    mesh.renderOrder = 3;
-    leitScreen = { mesh, cv, tex, mat, b: LEIT.schirm.b, h: LEIT.schirm.b * LEIT.form[0], power: LEIT_DIM, at: 0 };
+    const h = S.h - 2 * S.saum;
+    leitScreen = { mesh, cv, tex, mat, b: h / LEIT.form[0], h, power: LEIT_DIM, at: 0 };
     leitDraw();
     leitLay();
     hallRoot.add(mesh);
-    // Wo die Bank laut HALL_LEIT steht, steht sie auch im Modell? Sonst
-    // schwebte der Schirm nach einem neuen Hallenexport im Leeren.
-    const bank = realHall?.furniture?.find((f) => /monitors/i.test(f.mesh.name));
+    // Wo die Monitore laut HALL_LEIT stehen, stehen sie auch im Modell? Sonst
+    // läge die Fläche nach einem neuen Hallenexport neben dem Glas
+    // (verify:hangar-orte [8] misst dasselbe am ausgelieferten Modell).
     if (bank) {
-      const b = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = b.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
+      const bb = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = bb.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
       const want = leitAt((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
-      if (c.distanceTo(want) > 0.6) console.warn(`[hangar] Leitstand: Monitorbank bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
+      if (c.distanceTo(want) > 0.05) console.warn(`[hangar] Leitstand: Monitore des Pults bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
     }
   }
   // Stellung vor dem Terminal fürs jetzige Bild: leitFit, dazu Kamera und
@@ -14413,15 +14525,14 @@ void main() {
     placeTold = told;
     placeFn?.({ ort: post ? 'leit' : ort, state: post?.state ?? 'an', rect: r && { ...r } });
   };
-  // Breite und Höhe des Schirms für die Stellung f (neu gezeichnet nur, wenn
-  // sie sich ändern)
+  // Breite und Höhe des Fensters auf dem Glas für die Stellung f (neu
+  // gezeichnet nur, wenn sie sich ändern)
   function leitShape(f) {
     if (Math.abs(f.h - leitScreen.h) < 1e-3 && Math.abs(f.b - leitScreen.b) < 1e-3) return;
     leitScreen.b = f.b; leitScreen.h = f.h;
     leitDraw();
-    leitLay();
   }
-  // Die Kamera genau vor den Schirm (Ankunft, neue Fenstergröße, andere Ränder)
+  // Die Kamera genau vor den Monitor (Ankunft, neue Fenstergröße, andere Ränder)
   function leitSet() {
     const f = post.fit = leitPose();
     leitShape(f);
@@ -14435,8 +14546,9 @@ void main() {
   // Weg der Kamera von from in den Leitstand nach to (Hallenmeter, wie die
   // Halle gerade steht): vor die Glasfront, über dem Querholm hindurch, über
   // Pult und Pflanzkasten hinweg unter die abgehängte Decke und im Bogen
-  // hinter den Schirm. Auf der Seite, auf der die Kamera steht. Steht das
-  // Schiff im geraden Weg, außen an ihm entlang zum Heck.
+  // über die Stühle an den Platz vor dem Monitor. Auf der Seite, auf der die
+  // Kamera steht. Steht das Schiff im geraden Weg, außen an ihm entlang zum
+  // Heck.
   function leitPath(from, to) {
     const G = LEIT.glas, k = hallRoot.scale.x, c = current, sx = from.x < 0 ? -1 : 1, O = new THREE.Vector3();
     const pts = [from.clone()], glas = leitAt(sx * G.x, G.y, G.z), vor = leitAt(sx * (G.x + 1.4), G.y - 0.2, G.z - 9);
@@ -14545,7 +14657,7 @@ void main() {
     gone(true);
     return true;
   }
-  // Bildwinkel unterwegs und Stärke des Schirms (voll, sobald die Kamera zu ihm fährt)
+  // Bildwinkel unterwegs und Helligkeit des Monitors (voll, sobald die Kamera zu ihm fährt)
   function leitStep(now, dt) {
     if (post && post.state !== 'an') fitFov(now);
     if (!leitScreen) return;
@@ -14553,7 +14665,7 @@ void main() {
     if (S.power === want) return;
     const step = reduceMotion ? 1 : (dt * 1000) / LEIT_FADE_MS * (1 - LEIT_DIM);
     S.power = want > S.power ? Math.min(want, S.power + step) : Math.max(want, S.power - step);
-    S.mat.opacity = S.power;
+    S.mat.color.setScalar(S.power);
     wake(200);
   }
 
@@ -14939,8 +15051,8 @@ void main() {
     // Bühne hat einen Leitstand (echte Halle, nicht am Telefon).
     // onPlace(fn): fn({ ort, state, rect }) bei jedem Wechsel, ort 'halle',
     // 'werk' oder 'leit', state 'hin' | 'an' | 'weg'; rect { l, t, r, b } ist
-    // der Schirm im Bild (px der Bühne), solange die Kamera davor steht:
-    // dorthin legt die Seite ihr Fenster.
+    // das Fenster des Terminals auf dem Monitor im Bild (px der Bühne), solange
+    // die Kamera davor steht: dorthin legt die Seite ihr Fenster.
     place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
     canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
     onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },

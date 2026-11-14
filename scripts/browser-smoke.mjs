@@ -945,6 +945,74 @@ const SYNC_BREITEN = [360, 1280];
    der Halle, sondern ueber Tafel und Werkstatt, und ein Zeigerklick traefe,
    was gerade darueber liegt. */
 const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
+
+/* Anmeldung am Terminal (14.11.2026, Krisz: „son user anmeldung kurz loadin
+   animation beim bildschirm also wenn man sich davor hockt, und dann soll
+   dargestellt werden dass der echte user angemeldet wird“). Die Blende
+   #hgx-term-login und der Platz in der Leiste #hgx-term-who haengen an
+   Zeitgebern, am Konto der Seite (window.VBAccount) und an dessen Ereignis
+   vb-account-session; kein Tor, das dist/ als Text liest, sieht, ob die
+   Blende wieder aufgeht oder wessen Name dasteht. Die Probe laeuft im schon
+   gestarteten Terminal (probeTerminal) und verlangt:
+     · ohne Konto: die Blende ist nach dem Hinsetzen wieder zu, die Leiste
+       fuehrt zur Anmeldung;
+     · meldet sich jemand an (hier ein gestelltes Konto, dessen Profilzeile
+       ein Bild und eine Farbe traegt, die nicht durchgehen duerfen), geht die
+       Blende von selbst wieder auf, nennt Namen und Handle, laesst Bild und
+       Farbe fallen, schliesst sich, und die Leiste fuehrt mit dem Namen zum
+       Konto;
+     · nach dem Abmelden dasselbe zurueck zum Gast, und ein Klick auf die
+       Blende ueberspringt den Rest. */
+async function probeAnmeldung(page, warte) {
+  const lies = () => page.evaluate(() => {
+    const l = document.getElementById('hgx-term-login'), w = document.getElementById('hgx-term-who');
+    if (!l || !w) return null;
+    const av = l.querySelector('.hgx-term__av');
+    return {
+      zu: l.hidden, schritt: l.dataset.step ?? '', name: document.getElementById('hgx-term-lname')?.textContent ?? '', sub: document.getElementById('hgx-term-lsub')?.textContent ?? '',
+      bild: av?.querySelector('img')?.getAttribute('src') ?? '', farbe: av?.style.getPropertyValue('--av') ?? '', zeichen: av?.querySelector('span')?.textContent ?? '',
+      wer: w.dataset.who ?? '', ziel: w.getAttribute('href'), text: w.querySelector('b')?.textContent ?? '', ansage: w.getAttribute('aria-label') ?? '',
+      soll: { login: w.dataset.login, dash: w.dataset.dash, lLogin: w.dataset.lLogin, gast: l.dataset.lGast },
+    };
+  });
+  const blendeZu = (ms) => warte(() => document.getElementById('hgx-term-login').hidden, ms);
+  const melde = (konto) => page.evaluate((k) => {
+    window.__termKonto ??= { echt: window.VBAccount };
+    if (!k) window.VBAccount = window.__termKonto.echt;
+    else {
+      const sess = { user: { id: k.uid }, access_token: 'probe' };
+      window.VBAccount = { ...(window.__termKonto.echt ?? {}), peek: () => sess, session: () => Promise.resolve(sess), rest: () => Promise.resolve(new Response(JSON.stringify([k.zeile]), { status: 200, headers: { 'Content-Type': 'application/json' } })) };
+    }
+    window.dispatchEvent(new Event('vb-account-session'));
+  }, konto);
+
+  // 1 · der Gast vom Hinsetzen
+  if (!(await blendeZu(15000))) return `die Blende der Anmeldung steht 15 s nach dem Hinsetzen noch ueber der Seite (Schritt „${(await lies())?.schritt}“)`;
+  let s = await lies();
+  if (!s) return '#hgx-term-login oder #hgx-term-who fehlt im Terminal';
+  if (s.wer !== 'guest' || s.ziel !== s.soll.login || s.text !== s.soll.lLogin) return `ohne Konto nennt die Leiste „${s.text}“ (${s.wer || '—'}) mit Ziel ${s.ziel} — Soll: „${s.soll.lLogin}“ zur Anmeldung ${s.soll.login}`;
+
+  // 2 · jemand meldet sich an: die Blende geht von selbst wieder auf und nennt ihn
+  await melde({ uid: 'probe-konto', zeile: { display_name: 'Probe Pilot', handle: 'probe', avatar_url: 'javascript:void(0)', avatar_color: 'red', avatar_icon: 'P' } });
+  if (!(await warte(() => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === 'user'; }, 8000))) { s = await lies(); return `nach der Anmeldung (vb-account-session) nennt die Blende niemanden (zu ${s.zu}, Schritt „${s.schritt}“)`; }
+  s = await lies();
+  if (s.name !== 'Probe Pilot' || s.sub !== '@probe') return `die Blende nennt „${s.name}“ / „${s.sub}“ statt „Probe Pilot“ / „@probe“`;
+  if (s.bild || s.farbe !== '#2dd4ff' || s.zeichen !== 'P') return `die Blende nimmt aus dem Profil, was nicht durchgehen darf: Bild „${s.bild}“, Farbe „${s.farbe}“, Zeichen „${s.zeichen}“ — Soll: kein Bild (nur https), #2dd4ff, „P“`;
+  if (!(await blendeZu(8000))) return 'die Blende schliesst sich nach der Anmeldung nicht';
+  s = await lies();
+  if (s.wer !== 'user' || s.ziel !== s.soll.dash || s.text !== 'Probe Pilot' || !s.ansage.includes('Probe Pilot') || s.ansage.includes('{name}')) return `angemeldet nennt die Leiste „${s.text}“ (${s.wer || '—'}, Ansage „${s.ansage}“) mit Ziel ${s.ziel} — Soll: der Name zum Konto ${s.soll.dash}`;
+
+  // 3 · abgemeldet: zurueck zum Gast, ein Klick ueberspringt die Blende
+  await melde(null);
+  if (!(await warte(() => !document.getElementById('hgx-term-login').hidden, 4000))) return 'nach dem Abmelden geht die Blende nicht wieder auf — die Leiste nennte weiter das alte Konto';
+  await page.evaluate(() => document.getElementById('hgx-term-login').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
+  if (!(await blendeZu(1500))) return 'ein Klick auf die Blende ueberspringt die Anmeldung nicht';
+  if (!(await warte(() => document.getElementById('hgx-term-who').dataset.who === 'guest', 6000))) { s = await lies(); return `nach dem Abmelden nennt die Leiste weiter „${s.text}“ (${s.wer})`; }
+  s = await lies();
+  if (s.ziel !== s.soll.login || s.bild) return `nach dem Abmelden fuehrt die Leiste nach ${s.ziel} (Bild „${s.bild}“) statt zur Anmeldung ${s.soll.login}`;
+  return null;
+}
+
 async function probeTerminal(page) {
   const wo = 'Terminal';
   const warte = (fn, ms = 30000, arg = null) => page.waitForFunction(fn, arg, { timeout: ms }).then(() => true, () => false);
@@ -1024,6 +1092,10 @@ async function probeTerminal(page) {
   const soll = [TERM_PROBE_KASTEN.l, TERM_PROBE_KASTEN.t, TERM_PROBE_KASTEN.r, TERM_PROBE_KASTEN.b];
   if (s.kasten.some((v, i) => Math.abs(v - soll[i]) > 2)) return `${wo}: der Kasten liegt bei ${s.kasten.join(', ')} statt auf dem genannten Rechteck ${soll.join(', ')}`;
 
+  // 1b · die Anmeldung: wer vor dem Terminal sitzt
+  const anmeldung = await probeAnmeldung(page, warte);
+  if (anmeldung) return `${wo}, Anmeldung: ${anmeldung}`;
+
   // 2 · Bereich wechseln (eine schlanke Datenseite), ohne Eintrag im Verlauf
   if (!start.bereiche.items) return `${wo}: die Leiste nennt den Bereich „items“ nicht mehr — die Probe braucht eine Datenseite`;
   await klick('#hgx-term a[data-term="items"]');
@@ -1083,6 +1155,7 @@ async function probeTerminal(page) {
   // 7 · zu: aus dem Layout, die letzte Seite gemerkt
   await page.evaluate(() => window.__term.place(null));
   if (!(await warte(() => document.getElementById('hgx-term').hidden, 5000))) return `${wo}: place(null) nimmt den Kasten nicht aus dem Layout`;
+  if (!(await page.evaluate(() => document.getElementById('hgx-term-login').hidden))) return `${wo}: nach place(null) steht die Blende der Anmeldung noch offen`;
   const gemerkt = await page.evaluate(() => { const v = sessionStorage.getItem('hg-term'); sessionStorage.removeItem('hg-term'); return v; });
   if (!String(gemerkt).startsWith(start.home)) return `${wo}: die letzte Seite wurde nicht gemerkt (${gemerkt})`;
   return null;
