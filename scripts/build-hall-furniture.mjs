@@ -194,6 +194,12 @@ for (const [key, asset] of Object.entries(manifest.hall ?? {})) {
   const liteName = `${key}-lod1.glb`, liteFile = join(HALL_DIR, liteName);
   const liteBytes = existsSync(liteFile) && liteName !== srcName ? readFileSync(liteFile) : null;
   const liteHash = liteBytes ? sha1(liteBytes) : null;
+  // Ohne dichte Kopie lädt die Seite die volle Stufe selbst, und die trägt
+  // ihre Möbel schon (HangarApp.astro reicht die Möbeldatei nur neben der
+  // dichten Kopie weiter). So ist es bei den Hallen fester Größe: Für die
+  // Large-Halle schnitt der Build bis zum 14.11.2026 trotzdem 233 KB heraus,
+  // die ungenutzt nach dist/ gingen (verify:hangar-hallen [4] hält das fest).
+  if (!liteBytes) { drop(`keine dichte Kopie ${liteName}, die Seite lädt ${srcName} mit seinen Möbeln`); continue; }
   const had = existsSync(out) ? glbJson(out)?.extras?.furnitureOf : null;
   // Die Telefon-Datei muss aus genau dieser Moebeldatei stammen
   const patchOk = existsSync(out) && existsSync(patchOut) && glbJson(patchOut)?.extras?.patchOf?.sha1 === sha1(readFileSync(out));

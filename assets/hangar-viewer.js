@@ -6704,7 +6704,7 @@ const WERK_TOR_VOR = 1200;
 export const HALL_LEIT = {
   'revelyork-single': { schirm: { x: 0.1215, y: 17.7925, z: 57.555, b: 3.107, h: 0.817, ecke: 0.049, saum: 0.03 }, form: [0.5, 0.8], fov: 40, d: [1, 2.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
   // Large-Halle (util_a, 14.11.2026): der Kontrollraum der Landefelder über
-  // dem Eingang (Boden 17,75, Decke 21,25, Glasfront bei z 91,17). An seiner
+  // dem Eingang (Boden 17,5, Decke 21,0, Glasfront bei z 91,17). An seiner
   // Rückwand steht der Arbeitsplatz der Verwaltung: Pult mit zwei Stühlen,
   // darüber ein großer Bildschirm, 15° nach vorn geneigt, das Gesicht zur
   // Halle. Sein Glas gehört dem Terminal (im Modell ein ausgeschalteter
@@ -6714,7 +6714,14 @@ export const HALL_LEIT = {
   // von der Decke hängen (raum); in Pult und Stühle hinein darf sie nie
   // (voll). Der Monitor steht hier im Modell der Halle selbst (mat), nicht
   // in einer Einrichtung: darum kein bank.
-  'util-lrgtop': { schirm: { x: -6.2808, y: 19.9469, z: 103.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, dreh: 180, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: 91.17, y: 20.15, x: 4.8 }, innen: 20, raum: { x: [-8, -4], y: [17.75, 20.75], z: [97.5, 104.1] }, voll: [{ x: [-8, -4.4], y: [17.75, 19.2], z: [102.45, 104.1] }] },
+  // Alle Höhen zählen ab dem Boden, den das Manifest der Halle nennt (floor:
+  // die Oberseite ihrer Landefläche, im Modell bei 2,501). Die erste Fassung
+  // war gegen 2,25 gemessen, die Höhe der Torflügel darunter: So hoch lotete
+  // der Build, bevor die Halle ihren eigenen Aufzug bekam. Das Fenster der
+  // Seite stand damit 25 cm über dem Glas und ragte über den Rahmen des
+  // Bildschirms hinaus. Gefunden hat es verify:hangar-orte [8] beim ersten
+  // Lauf gegen das ausgelieferte Modell („trägt die Halle kein … Glas“).
+  'util-lrgtop': { schirm: { x: -6.2808, y: 19.6959, z: 103.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, dreh: 180, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: 91.17, y: 19.9, x: 4.8 }, innen: 19.75, raum: { x: [-8, -4], y: [17.5, 20.5], z: [97.5, 104.1] }, voll: [{ x: [-8, -4.4], y: [17.5, 18.95], z: [102.45, 104.1] }] },
 };
 /**
  * Achsen eines Monitors in Hallenmetern: X nach rechts (von vorn gesehen), Y
