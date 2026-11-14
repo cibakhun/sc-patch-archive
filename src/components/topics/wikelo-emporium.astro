@@ -40,7 +40,7 @@ const linkAttrs = (raw: string) => {
   return it ? { 'data-item': it, role: 'button' as const, tabindex: '0', title: (de ? 'Bezugsquellen anzeigen' : 'Show where to get it') } : {};
 };
 // Schiffe als Belohnung verweisen auf ihr Datenblatt (src/lib/wikeloShips.ts).
-const schiffHref = (n: string) => { const id = schiffZurBelohnung(n); return id ? href(`/schiffe/${id}.html`, lang) : null; };
+const schiffHref = (n: string, cls?: string) => { const id = schiffZurBelohnung(n, cls); return id ? href(`/schiffe/${id}.html`, lang) : null; };
 // On-brand inline SVG icons (instead of emojis) — line style, currentColor.
 const svg = (b: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
 const ICON = {
@@ -349,7 +349,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
                 ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/thumb/${(t.img ?? '').replace(/\.[^.]+$/, '')}.webp`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[catOf(t.cat)]]}></div>)}
               <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
-              {schiffHref(t.get ?? t.name) && (<a class="wk-ship" href={schiffHref(t.get ?? t.name)}>{de ? 'Zum Datenblatt' : 'Data sheet'} →</a>)}
+              {schiffHref(t.get ?? t.name, t.cls) && (<a class="wk-ship" href={schiffHref(t.get ?? t.name, t.cls)}>{de ? 'Zum Datenblatt' : 'Data sheet'} →</a>)}
             </div>
           </div>
           {t.comps && (
