@@ -110,16 +110,26 @@ export const WERKBANK_CSS = `
 @media (min-width:1180px){
   /* Mitte und Planer wachsen mit dem Fenster, die Liste nimmt den Rest:
      ab etwa 1400 px zwei Kacheln nebeneinander. */
-  .cdb--wb{grid-template-columns:minmax(280px,1fr) clamp(440px,34vw,580px) clamp(250px,20vw,300px);grid-template-areas:"kopf kopf kopf" "bar bar bar" "list bp plan"}
+  .cdb--wb{grid-template-columns:minmax(280px,1fr) clamp(440px,34vw,580px) clamp(264px,21vw,300px);grid-template-areas:"kopf kopf kopf" "bar bar bar" "list bp plan"}
   .cdb--wb > .cdb-drawer{grid-area:plan;position:sticky;top:var(--wb-top);right:auto;z-index:auto;width:auto;height:auto;max-height:calc(100dvh - var(--wb-top) - 1rem);transform:none;border:1px solid var(--accent-2,#1FA2FF);border-radius:8px;transition:none}
   .cdb--wb .cdb-drawer__hd [data-planner-close]{display:none}
   .cdb--wb .cdb-planner-open{display:none}
+  /* R6: Der Planer ist rund 13 px breiter geworden (Namen in zwei statt drei
+     Zeilen). Die beiden Spaltenabstaende geben der Liste diese Breite zurueck:
+     bei 1280 px 16 statt 22 px, ab etwa 1800 px wieder die vollen 1,4rem.
+     Ohne das braechen bei 1280 px Kachelnamen in drei Zeilen, die vorher in
+     zwei standen, und bei 1265 px fiele die Liste auf eine Spalte. */
+  .cdb--wb{column-gap:clamp(1rem,1.25vw,1.4rem)}
 }
 @media (min-width:1180px) and (min-height:720px){
   .cdb--wb > .cdb-drawer{position:relative;top:auto;height:var(--wb-h);max-height:none}
 }
 @media (max-width:820px){
-  .cdb--wb{padding-bottom:5.2rem}
+  /* Die Planer-Leiste steht fest am unteren Rand. Der Platz dafuer gehoert
+     ans Ende der SEITE, nicht ans Ende der Werkbank: darunter folgen noch
+     der Abschnitt „Worum geht es“ und die Fusszeile, und deren letzte Zeilen
+     lagen sonst unter der Leiste (gesehen 14.11.2026 bei 390 px). */
+  body:has(.cdb--wb) > .site-attr{padding-bottom:calc(5.4rem + env(safe-area-inset-bottom,0px))}
   /* Die Hilfe steht hier als Kasten unter der Reiterzeile: etwas Luft. */
   .cdb--wb > .cdb-tabs{margin-bottom:.9rem}
   .cdb--wb > .cdb-modal.is-leer{display:none}
