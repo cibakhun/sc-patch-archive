@@ -2467,10 +2467,14 @@
     // ...). Ein Kasten, der aus display:none zurueckkehrt, spielt jede davon
     // neu ab: das Rezept baute sich nach jedem Reiterwechsel noch einmal auf,
     // der leere Planer blendete ein zweites Mal ein. Vor dem Wechsel also
-    // abraeumen, dann kommt nur der Reiter selbst herein.
+    // abraeumen, dann kommt nur der Reiter selbst herein. Dasselbe gilt fuer
+    // is-frisch: das Raster traegt es nach jeder Suche, Sortierung und jedem
+    // Ansichtswechsel weiter und setzte bei der Rueckkehr ein zweites Mal an,
+    // mitten in der Bewegung des Reiters. Was hereinkommen soll, bekommt die
+    // Klasse unten neu.
     if (WB && wbRoot) {
-      $$('.is-neu, .is-tick, .is-puls, .is-spaet, .is-wechsel', wbRoot).forEach(function (el) {
-        el.classList.remove('is-neu', 'is-tick', 'is-puls', 'is-spaet', 'is-wechsel');
+      $$('.is-neu, .is-tick, .is-puls, .is-spaet, .is-wechsel, .is-frisch', wbRoot).forEach(function (el) {
+        el.classList.remove('is-neu', 'is-tick', 'is-puls', 'is-spaet', 'is-wechsel', 'is-frisch');
       });
     }
     if (tab === 'db') {

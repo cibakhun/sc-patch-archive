@@ -2263,16 +2263,33 @@ async function probeWerkbank(page) {
     document.querySelector('#cdb-grid .cbp .cbp__name').click();
     await bild();
     const vorher = marken().length;
+    // Das Raster traegt .is-frisch nach jedem Ansichtswechsel weiter. Kehrt
+    // der Reiter zurueck, setzte es deshalb selbst noch einmal an, mitten in
+    // der Bewegung des Reiters (Befund am Review zu #370).
+    const raster = document.querySelector('#cdb-grid');
+    const eigene = () => raster.getAnimations().filter((a) => a.effect && a.effect.target === raster && a.playState === 'running').length;
+    const ansicht = [...document.querySelectorAll('.cdb-view')];
+    const war = ansicht.find((x) => x.getAttribute('aria-pressed') === 'true');
+    const andere = ansicht.find((x) => x !== war);
+    if (andere) andere.click();
+    await bild();
+    const rasterVorher = raster.classList.contains('is-frisch');
+    await new Promise((r) => setTimeout(r, 500));
     document.querySelector('.cdb-tab-btn[data-tab="dismantle"]').click(); await bild();
     document.querySelector('.cdb-tab-btn[data-tab="db"]').click(); await bild();
     const nachher = marken();
     const herein = document.querySelectorAll('#cdb .is-frisch').length;
+    const rasterNachher = { klasse: raster.classList.contains('is-frisch'), laeuft: eigene() };
+    await new Promise((r) => setTimeout(r, 300));
+    if (war && andere) war.click();
     document.querySelector('#cdb-modal .cdb-modal__x').click();
-    return { vorher, nachher, herein };
+    return { vorher, nachher, herein, rasterVorher, rasterNachher };
   });
   if (!wechsel.vorher) return 'Werkbank 1280 px: nach der Rezeptwahl traegt nichts .is-neu, die Probe kann den Reiterwechsel nicht pruefen';
   if (wechsel.nachher.length) return `Werkbank 1280 px: nach dem Reiterwechsel spielt sich noch einmal ab, was vorher hereinkam (${wechsel.nachher.length} Element(e) mit is-neu, is-tick oder is-puls, zuerst „${wechsel.nachher[0]}“)`;
   if (!wechsel.herein) return 'Werkbank 1280 px: der zurueckgekehrte Reiter kommt nicht herein (nichts traegt .is-frisch)';
+  if (!wechsel.rasterVorher) return 'Werkbank 1280 px: nach dem Ansichtswechsel traegt das Raster kein .is-frisch, die Probe kann die Rueckkehr des Reiters nicht pruefen';
+  if (wechsel.rasterNachher.klasse || wechsel.rasterNachher.laeuft) return `Werkbank 1280 px: nach dem Reiterwechsel setzt das Raster selbst noch einmal an (.is-frisch ${wechsel.rasterNachher.klasse ? 'steht noch' : 'fehlt'}, ${wechsel.rasterNachher.laeuft} eigene Bewegung(en) laufen), obwohl nur der Reiter hereinkommen soll`;
 
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
