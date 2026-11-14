@@ -516,9 +516,9 @@ try {
     fleetyards: { art: 'fremd', wert: isoDatum(rd('src/data/ship-extras.json').fetchedAt), datei: 'src/data/ship-extras.json fetchedAt', name: 'FleetYards' },
     wiki: { art: 'schnappschuss', wert: /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(ext.source ?? '')?.[1] ?? null, datei: 'src/data/vehicle-external.json source', name: 'Wiki-Schnappschuss' },
     ausbeute: { art: 'hand', wert: fassungAus(rd('assets/mining-frozen.json').frozen_from), datei: 'assets/mining-frozen.json frozen_from' },
-    // Gegen den Handbestand selbst, nicht gegen die Kopie in refinery-data.json:
-    // vergisst der Bau das Uebertragen, faellt das hier auf.
-    methoden: { art: 'hand', wert: rd('assets/refinery-methods.json').stand?.patch ?? null, datei: 'assets/refinery-methods.json stand.patch' },
+    // Gegen die Datei des Datenlaufs selbst, nicht gegen die Kopie in
+    // refinery-data.json: vergisst der Bau das Uebertragen, faellt das hier auf.
+    methoden: { art: 'spiel', wert: fassungAus(rd('assets/refinery-methods.json').gameVersion), datei: 'assets/refinery-methods.json gameVersion' },
     halo: { art: 'spiel', wert: fassung['Präzisionssprung'], datei: 'assets/aaron-halo-gamefiles.json gameVersion' },
     'halo-baender': { art: 'hand', wert: rd('assets/aaron-halo-bands.json').stand?.patch ?? null, datei: 'assets/aaron-halo-bands.json stand.patch' },
     wikelo: { art: 'spiel', wert: fassung.Wikelo, datei: 'assets/wikelo-trades.meta.json gameVersion' },

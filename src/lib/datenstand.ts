@@ -358,7 +358,7 @@ export function standRefinery(lang: Locale): StandZeile[] {
     spiel(lang, 'refinery', t.spielwerte, REFINERY_F),
     fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE),
     hand(lang, 'ausbeute', t.ausbeute, AUSBEUTE_F, REFINERY_F),
-    hand(lang, 'methoden', t.methoden, METHODEN_F, REFINERY_F),
+    spiel(lang, 'methoden', t.methoden, METHODEN_F, REFINERY_F),
   ];
 }
 
