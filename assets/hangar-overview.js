@@ -618,16 +618,25 @@ export function dockSearch(ships, f, crew) {
 //   Browser sie nach dem Ende der Seite neu auf, statt sie nur neu zu laden,
 //   ist der Vermerk weg, kein Abbruch wird gezaehlt, und die Schleife laeuft
 //   ohne Ende (nachgestellt: 7 Laeufe in 55 s, alle in der hohen Stufe). Der
-//   Vermerk steht deshalb zusaetzlich im Speicher des Geraets, je Lauf einer
-//   (waechterLaeufe); ob ein dort vermerkter Lauf in einer anderen
-//   Registerkarte noch lebt, sagt der Kanal.
+//   Vermerk steht am Telefon deshalb zusaetzlich im Speicher des Geraets, je
+//   Lauf einer (waechterLaeufe); ob ein dort vermerkter Lauf in einer anderen
+//   Registerkarte noch lebt, sagt der Kanal. Am PC bleibt es beim Vermerk
+//   der Registerkarte: Dort stehen Fenster nebeneinander, und eines, das
+//   gerade laedt, antwortet dem Kanal nicht in der Frist.
 // - Am Telefon zaehlt ausserdem jeder Start der Buehne (waechterAnlauf): Wer
 //   dort startet und WAECHTER.anlauf.zahl Starts vor sich findet, von denen
 //   keiner WAECHTER.anlauf.ruhe lang stand, zaehlt einen Abbruch, auch wenn
 //   kein Vermerk ueberlebt hat (Art 'start'). Das ist der Gurt zum
 //   Hosentraeger: Er haengt an keinem Ereignis und an keinem Speicher der
-//   Registerkarte. Wer die Seite von sich aus verlaesst (pagehide), nimmt
-//   seinen Start wieder heraus.
+//   Registerkarte. Wer die Seite von sich aus verlaesst (pagehide) oder in
+//   den Hintergrund legt, nimmt seinen Start wieder heraus, und ein Start,
+//   dessen Lauf in einer anderen Registerkarte nachweislich lebt, zaehlt
+//   nicht: Sonst bekaeme die leichte Buehne, wer drei Hangarseiten
+//   nacheinander in neuen Registerkarten oeffnet (nachgestellt beim Review
+//   zu PR 363).
+// - Ein toter Lauf gehoert dem Start, der ihn im Speicher des Geraets noch
+//   vorfindet (waechterAnspruch): Starten zwei Registerkarten im selben
+//   Augenblick, zaehlt ihn nur eine.
 // - Am Telefon laeuft unter jedem Deckel die leichte Buehne (waechterLeicht):
 //   das Schiff in der gebauten Halle statt in der echten. Gemessen im
 //   Telefonformat mit der Gladius braucht die Seite mit der echten Halle beim
@@ -698,13 +707,14 @@ export const waechterVerlauf = (spur, wort) => (spur ?? [])
   .filter(Boolean);
 
 /**
- * Der Vermerk „Lauf offen“ einer Registerkarte: { id, stufe, phase } oder
- * null, wenn keiner da ist, er kaputt ist, aelter als WAECHTER.frisch (dann
+ * Der Vermerk „Lauf offen“ einer Registerkarte: { id, t, stufe, phase,
+ * geraet } oder null, wenn keiner da ist, er kaputt ist, aelter als WAECHTER.frisch (dann
  * liegt der Lauf zu lange zurueck, um an der Halle zu haengen) oder von
  * einer anderen Fassung des Waechters stammt (v): Ein Lauf der schwereren
  * Halle von vorher darf der neuen keinen Deckel setzen, am Telefon senkt
  * schon der erste Abbruch. phase: wie weit der Lauf war, null bei einem
- * Vermerk ohne.
+ * Vermerk ohne. geraet: Der Lauf steht auch im Speicher des Geraets
+ * (waechterLaeufe); wem sein Abbruch dann gehoert, sagt waechterAnspruch.
  * @param {string|null} raw
  * @param {number} now
  */
@@ -712,7 +722,7 @@ export function waechterOffen(raw, now) {
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return null; }
   if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
-  return { id: o.id, t: o.t, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase) };
+  return { id: o.id, t: o.t, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase), geraet: o.g === 1 };
 }
 
 /**
@@ -739,33 +749,58 @@ export const waechterLaeufeText = (laeufe) => JSON.stringify({ v: WAECHTER.v, l:
 
 /**
  * Die Starts der Buehne an diesem Telefon, die weder standen noch verlassen
- * wurden: Zeiten in der Frist WAECHTER.anlauf.frist, aelteste zuerst.
+ * wurden: [{ id, t }] in der Frist WAECHTER.anlauf.frist, aelteste zuerst.
+ * id: die Kennung des Laufs, an ihr fragt ein spaeterer Start, ob er noch
+ * lebt.
  * @param {string|null} raw
  * @param {number} now
  */
 export function waechterAnlauf(raw, now) {
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return []; }
-  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || !Array.isArray(o.t)) return [];
-  return o.t.filter((t) => istZeit(t, now, WAECHTER.anlauf.frist)).sort((a, b) => a - b).slice(-WAECHTER.laeufe);
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || !Array.isArray(o.s)) return [];
+  return o.s
+    .filter((e) => Array.isArray(e) && typeof e[0] === 'string' && e[0] && istZeit(e[1], now, WAECHTER.anlauf.frist))
+    .map(([id, t]) => ({ id, t }))
+    .sort((a, b) => a.t - b.t)
+    .slice(-WAECHTER.laeufe);
 }
 
-/** @param {number[]} zeiten */
-export const waechterAnlaufText = (zeiten) => JSON.stringify({ v: WAECHTER.v, t: zeiten });
+/** @param {{ id: string, t: number }[]} starts */
+export const waechterAnlaufText = (starts) => JSON.stringify({ v: WAECHTER.v, s: starts.map((e) => [e.id, e.t]) });
+
+/**
+ * Welche toten Laeufe dieser Start zaehlen darf. Ein Lauf aus dem Speicher
+ * des Geraets gehoert dem Start, der ihn dort noch vorfindet: Starten zwei
+ * Registerkarten im selben Augenblick, lesen beide denselben toten Lauf, und
+ * nur die erste nimmt ihn heraus. Der Vermerk der eigenen Registerkarte
+ * zaehlt ohne den Speicher des Geraets immer; stand sein Lauf auch dort
+ * (offen.geraet) und ist dort weg, hat ihn ein anderer Start schon gezaehlt.
+ * tot: die vermerkten Laeufe, die nicht mehr leben; offen: der Vermerk der
+ * eigenen Registerkarte oder null; imGeraet: was jetzt im Speicher des
+ * Geraets steht, null, wenn dort nichts vermerkt wird (kein Kanal).
+ * @param {{ tot?: { id: string }[], offen?: { id: string, geraet?: boolean }|null, imGeraet?: { id: string }[]|null }} was
+ */
+export function waechterAnspruch({ tot = [], offen = null, imGeraet = null } = {}) {
+  const da = new Set((imGeraet ?? []).map((e) => e.id));
+  return tot.filter((e) => da.has(e.id) || (!!offen && e.id === offen.id && (imGeraet === null || !offen.geraet)));
+}
 
 /**
  * Was ein Start zaehlt: null oder der Abbruch { stufe, phase, wie }. tot: die
- * vermerkten Laeufe, die nicht mehr leben (der juengste gilt, gezaehlt wird
- * einer); anlauf: die Starts vor diesem (waechterAnlauf), sie zaehlen nur am
- * Telefon und nur ohne toten Lauf.
- * @param {{ tot?: { t: number, stufe: string|null, phase: string|null }[], anlauf?: number[], telefon?: boolean }} was
+ * vermerkten Laeufe, die nicht mehr leben und diesem Start gehoeren
+ * (waechterAnspruch; der juengste gilt, gezaehlt wird einer); anlauf: die
+ * Starts vor diesem (waechterAnlauf), sie zaehlen nur am Telefon und nur
+ * ohne toten Lauf; lebt: Kennungen von Laeufen, die in einer anderen
+ * Registerkarte nachweislich leben, ihre Starts zaehlen nicht.
+ * @param {{ tot?: { t: number, stufe: string|null, phase: string|null }[], anlauf?: { id: string, t: number }[], lebt?: string[], telefon?: boolean }} was
  */
-export function waechterBefund({ tot = [], anlauf = [], telefon = false } = {}) {
+export function waechterBefund({ tot = [], anlauf = [], lebt = [], telefon = false } = {}) {
   if (tot.length) {
     const e = tot.reduce((a, b) => (b.t > a.t ? b : a));
     return { stufe: e.stufe ?? null, phase: e.phase ?? null, wie: 'seite' };
   }
-  if (telefon && anlauf.length >= WAECHTER.anlauf.zahl) return { stufe: null, phase: null, wie: 'start' };
+  if (telefon && anlauf.filter((e) => !lebt.includes(e.id)).length >= WAECHTER.anlauf.zahl) return { stufe: null, phase: null, wie: 'start' };
   return null;
 }
 
@@ -2567,28 +2602,43 @@ export function boot(doc) {
   const TELEFON = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   const WIE = { seite: 'Seite neu gestartet', kontext: 'Zeichenkontext verloren', start: 'mehrere Starts, keiner stand' };
   // Die Starts der Buehne an diesem Telefon (waechterAnlauf): Jeder Start
-  // traegt sich ein; steht die Buehne WAECHTER.anlauf.ruhe lang, ist die
-  // Liste leer, und wer die Seite von sich aus verlaesst (pagehide), nimmt
-  // seinen Eintrag wieder heraus. Was stehen bleibt, sind Starts, die ohne
-  // Abschied endeten. Ein gezaehlter Abbruch leert die Liste ebenfalls, und
-  // was die Seite selbst neu laedt (Grafik-Schalter, Knoepfe), auch.
-  let meinStart = 0;
-  const anlaufWeg = () => { meinStart = 0; try { localStorage.removeItem(ANLAUF_KEY); } catch { /* ohne Speicher gab es keine Liste */ } };
+  // traegt sich mit der Kennung seines Laufs ein; steht die Buehne
+  // WAECHTER.anlauf.ruhe lang, nimmt sie ihn und alle davor heraus
+  // (anlaufRuhe), und wer die Seite von sich aus verlaesst (pagehide) oder in
+  // den Hintergrund legt, nimmt seinen Eintrag ebenfalls heraus. Was stehen
+  // bleibt, sind Starts, die ohne Abschied endeten. Ein gezaehlter Abbruch
+  // leert die Liste, und was die Seite selbst neu laedt (Grafik-Schalter,
+  // Knoepfe), auch. Im Hintergrund traegt sich nichts ein: Kommt die Seite
+  // wieder nach vorn, bevor ihr Lauf geruht hat, steht ihr Start wieder da.
+  let meinStart = null;
+  const anlaufWeg = () => { meinStart = null; try { localStorage.removeItem(ANLAUF_KEY); } catch { /* ohne Speicher gab es keine Liste */ } };
+  const anlaufSchreiben = (rest) => {
+    if (rest.length) localStorage.setItem(ANLAUF_KEY, waechterAnlaufText(rest));
+    else localStorage.removeItem(ANLAUF_KEY);
+  };
   function anlaufSetzen() {
-    if (!TELEFON) return;
+    if (!TELEFON || !lauf || lauf.ruht || meinStart || doc.hidden) return;
     try {
-      meinStart = Date.now();
-      localStorage.setItem(ANLAUF_KEY, waechterAnlaufText([...waechterAnlauf(localStorage.getItem(ANLAUF_KEY), meinStart), meinStart]));
-    } catch { meinStart = 0; }
+      const e = { id: lauf.id, t: Date.now() };
+      anlaufSchreiben([...waechterAnlauf(localStorage.getItem(ANLAUF_KEY), e.t).filter((x) => x.id !== e.id), e]);
+      meinStart = e;
+    } catch { meinStart = null; }
   }
   function anlaufAbschied() {
     if (!meinStart) return;
-    try {
-      const rest = waechterAnlauf(localStorage.getItem(ANLAUF_KEY), Date.now()).filter((t) => t !== meinStart);
-      if (rest.length) localStorage.setItem(ANLAUF_KEY, waechterAnlaufText(rest));
-      else localStorage.removeItem(ANLAUF_KEY);
-    } catch { /* dann bleibt der Eintrag und verfaellt mit der Frist */ }
-    meinStart = 0;
+    const id = meinStart.id;
+    meinStart = null;
+    try { anlaufSchreiben(waechterAnlauf(localStorage.getItem(ANLAUF_KEY), Date.now()).filter((e) => e.id !== id)); } catch { /* dann bleibt der Eintrag und verfaellt mit der Frist */ }
+  }
+  // Der Lauf steht WAECHTER.anlauf.ruhe lang, das Geraet traegt ihn: Sein
+  // Start und alle davor zaehlen nicht mehr. Spaetere bleiben: Sie gehoeren
+  // anderen Registerkarten, ueber die dieser Lauf nichts sagt.
+  function anlaufRuhe() {
+    if (!lauf) return;
+    lauf.ruht = true;
+    meinStart = null;
+    const { id, t0 } = lauf;
+    try { anlaufSchreiben(waechterAnlauf(localStorage.getItem(ANLAUF_KEY), Date.now()).filter((e) => e.id !== id && e.t > t0)); } catch { /* dann verfallen sie mit der Frist */ }
   }
   // Ein Abbruch in der Stufe stufe: vermerken, und was der Besucher von Hand
   // gewaehlt hatte, gilt nicht weiter, wenn der Deckel darunter liegt.
@@ -2626,14 +2676,23 @@ export function boot(doc) {
   });
   // Die offenen Laeufe im Speicher des Geraets (waechterLaeufe): lesen,
   // aendern, schreiben. Nur mit Kanal: ohne ihn kann kein Start sagen, ob ein
-  // dort vermerkter Lauf in einer anderen Registerkarte noch laeuft.
+  // dort vermerkter Lauf in einer anderen Registerkarte noch laeuft. Und nur
+  // am Telefon (GERAET): Dort ist eine Registerkarte zu sehen, und ein Lauf,
+  // der im Vordergrund vermerkt wurde und sich nicht abgemeldet hat, ist
+  // abgebrochen. Am PC stehen Fenster nebeneinander, und eines, das gerade
+  // laedt, antwortet dem Kanal nicht in der Frist: Ein zweites Fenster
+  // hielte es fuer tot (nachgestellt beim Review zu PR 363). Dort bleibt es
+  // beim Vermerk der Registerkarte, den der Browser beim Neuladen behaelt.
+  // true: geschrieben.
+  const GERAET = TELEFON && !!kanal;
   function laeufeAendern(fn) {
-    if (!kanal) return;
+    if (!GERAET) return false;
     try {
       const l = fn(waechterLaeufe(localStorage.getItem(LAEUFE_KEY), Date.now()));
       if (l.length) localStorage.setItem(LAEUFE_KEY, waechterLaeufeText(l));
       else localStorage.removeItem(LAEUFE_KEY);
-    } catch { /* ohne Speicher bleibt der Vermerk der Registerkarte */ }
+      return true;
+    } catch { return false; /* ohne Speicher bleibt der Vermerk der Registerkarte */ }
   }
   // unter welcher Kennung der Vermerk dieser Seite im Speicher des Geraets steht
   let offenId = null;
@@ -2647,9 +2706,11 @@ export function boot(doc) {
   function offenSetzen() {
     if (!lauf || doc.hidden) return;
     const e = { id: lauf.id, t: Date.now(), stufe: lauf.stufe, phase: lauf.phase };
-    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ v: WAECHTER.v, ...e })); } catch { /* dann zaehlt der Vermerk im Speicher des Geraets */ }
-    offenId = e.id;
-    laeufeAendern((l) => [...l.filter((x) => x.id !== e.id), e]);
+    // g: Der Lauf steht auch im Speicher des Geraets; sein Abbruch gehoert
+    // dann dem Start, der ihn dort herausnimmt (waechterAnspruch).
+    const g = laeufeAendern((l) => [...l.filter((x) => x.id !== e.id), e]) ? 1 : 0;
+    if (g) offenId = e.id;
+    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ v: WAECHTER.v, ...e, g })); } catch { /* dann zaehlt der Vermerk im Speicher des Geraets */ }
   }
   // Ein Lauf, der mit einer Meldung endet (kein Start, Kontext verloren), ist
   // kein Start, der ohne Abschied endete: Er nimmt sich aus der Liste.
@@ -2661,10 +2722,10 @@ export function boot(doc) {
     lauf.phase = phase;
     offenSetzen();
     // Steht die Buehne WAECHTER.anlauf.ruhe lang, traegt das Geraet sie: Die
-    // Starts davor zaehlen nicht mehr (der eigene eingeschlossen).
+    // Starts bis zu ihrem eigenen zaehlen nicht mehr (anlaufRuhe).
     if (phase === 'steht') {
       const id = lauf.id;
-      setTimeout(() => { if (lauf?.id === id) anlaufWeg(); }, WAECHTER.anlauf.ruhe);
+      setTimeout(() => { if (lauf?.id === id) anlaufRuhe(); }, WAECHTER.anlauf.ruhe);
     }
   }
   // Seit wann die Seite sichtbar ist (0: im Hintergrund, 1: seit dem Start).
@@ -2678,10 +2739,14 @@ export function boot(doc) {
     if (!e.persisted) return;
     sichtbarSeit = doc.hidden ? 0 : Date.now();
     offenSetzen();
+    anlaufSetzen();
   });
+  // Im Hintergrund gehen Vermerk und Start: Was dort mit der Seite geschieht,
+  // ist kein Abbruch der Buehne, und eine Registerkarte, die das Telefon im
+  // Hintergrund anhaelt, koennte ihren Start sonst nie mehr herausnehmen.
   doc.addEventListener('visibilitychange', () => {
     sichtbarSeit = doc.hidden ? 0 : Date.now();
-    if (doc.hidden) offenWeg(); else offenSetzen();
+    if (doc.hidden) { offenWeg(); anlaufAbschied(); } else { offenSetzen(); anlaufSetzen(); }
   });
   // Der Vermerk bleibt frisch, solange der Lauf zu sehen ist: Sonst gaelte
   // er nach WAECHTER.frisch als alt, und ein Abbruch nach langem Ansehen
@@ -2694,22 +2759,38 @@ export function boot(doc) {
   // zaehlte kein Abbruch, und die Schleife liefe weiter. Der Knopf oder ein
   // Neuladen von Hand versucht es wieder, einmal je Mal.
   // Vermerkt sind Laeufe an zwei Orten: im Speicher der Registerkarte (der
-  // eigene vorige Lauf) und in dem des Geraets (alle offenen, seit v 3). Wer
+  // eigene vorige Lauf) und am Telefon in dem des Geraets (alle offenen, seit
+  // v 3). Wer
   // davon nicht mehr lebt, ist abgebrochen; gezaehlt wird je Start einer.
-  // Findet sich keiner, zaehlen am Telefon die Starts (waechterBefund).
+  // Findet sich keiner, zaehlen am Telefon die Starts (waechterBefund), ohne
+  // die, deren Lauf noch lebt.
+  // Nach der Frage an den Kanal liest der Start beide Listen noch einmal und
+  // zaehlt im selben Zug: Ein toter Lauf, den ein anderer Start inzwischen
+  // aus dem Speicher des Geraets genommen hat, ist dort gezaehlt
+  // (waechterAnspruch), und Starts, die der andere dabei geleert hat, zaehlen
+  // nicht noch einmal. Eine Sperre ueber Registerkarten hinweg (Web Locks)
+  // gibt es hier mit Absicht nicht: Wartete ein Start hinter einer
+  // Registerkarte, die das Telefon im Hintergrund angehalten hat, bliebe die
+  // Buehne aus.
   async function waechterStart() {
     const now = Date.now();
     const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), now);
-    const laeufe = kanal ? waechterLaeufe(lies(() => localStorage, LAEUFE_KEY), now) : [];
+    const laeufe = GERAET ? waechterLaeufe(lies(() => localStorage, LAEUFE_KEY), now) : [];
     const vermerkt = [...(offen ? [offen] : []), ...laeufe.filter((e) => e.id !== offen?.id)];
-    const lebt = await Promise.all(vermerkt.map((e) => lebtNoch(e.id)));
-    const tot = vermerkt.filter((_, i) => !lebt[i]);
+    const anlauf = TELEFON ? waechterAnlauf(lies(() => localStorage, ANLAUF_KEY), now) : [];
+    // jede Kennung einmal fragen: Vermerk und Start eines Laufs teilen sie
+    const ids = [...new Set([...vermerkt, ...anlauf].map((e) => e.id))];
+    const antwort = await Promise.all(ids.map((id) => lebtNoch(id)));
+    const lebt = ids.filter((_, i) => antwort[i]);
+    const tot = vermerkt.filter((e) => !lebt.includes(e.id));
+    const meine = waechterAnspruch({ tot, offen, imGeraet: GERAET ? waechterLaeufe(lies(() => localStorage, LAEUFE_KEY), Date.now()) : null });
     if (tot.length) {
       if (offen && tot.includes(offen)) { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* dann gab es ihn nicht */ } }
       laeufeAendern((l) => l.filter((e) => !tot.some((x) => x.id === e.id)));
     }
-    const anlauf = TELEFON ? waechterAnlauf(lies(() => localStorage, ANLAUF_KEY), now) : [];
-    const was = waechterBefund({ tot, anlauf, telefon: TELEFON });
+    // was in der Wartezeit dazukam, ist ein Start von eben und lebt
+    const starts = TELEFON ? waechterAnlauf(lies(() => localStorage, ANLAUF_KEY), Date.now()).filter((e) => ids.includes(e.id)) : [];
+    const was = waechterBefund({ tot: meine, anlauf: starts, lebt, telefon: TELEFON });
     if (was && !abbruch(was.stufe, was.wie, was.phase)) return 'aus';
     return waechterStand(lies(() => localStorage, STAND_KEY), Date.now()).deckel;
   }
@@ -2971,7 +3052,7 @@ export function boot(doc) {
     if (miss) { noStage(miss, gpuWhy); return; }
     loadEl.hidden = false;
     // Lauf offen, die Stufe folgt, sobald der Viewer sie gewaehlt hat
-    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, stufe: null, phase: 'laden' };
+    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, t0: Date.now(), stufe: null, phase: 'laden' };
     offenSetzen();
     anlaufSetzen();
     // Am Telefon unter einem Deckel die leichte Buehne: ohne echte Halle und

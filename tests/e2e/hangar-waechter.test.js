@@ -12,7 +12,7 @@
 // jedem Deckel laeuft dort die leichte Buehne.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { WAECHTER, waechterStand, waechterAbbruch, waechterText, waechterOffen, waechterVerlauf, waechterLaeufe, waechterLaeufeText, waechterAnlauf, waechterAnlaufText, waechterBefund, waechterLeicht, waechterGeraet } from '../../assets/hangar-overview.js';
+import { WAECHTER, waechterStand, waechterAbbruch, waechterText, waechterOffen, waechterVerlauf, waechterLaeufe, waechterLaeufeText, waechterAnlauf, waechterAnlaufText, waechterAnspruch, waechterBefund, waechterLeicht, waechterGeraet } from '../../assets/hangar-overview.js';
 import { fitSize, limiter } from '../../assets/hangar-viewer.js';
 
 const T0 = Date.UTC(2026, 10, 12, 18, 0, 0);
@@ -116,9 +116,14 @@ describe('Hangar-Waechter: Vermerk „Lauf offen“', () => {
   const vermerk = (o) => JSON.stringify({ v: WAECHTER.v, t: T0, id: 'a1', stufe: 'mittel', ...o });
 
   test('ein frischer Vermerk nennt Lauf und Stufe', () => {
-    assert.deepEqual(waechterOffen(vermerk({}), T0 + MIN), { id: 'a1', t: T0, stufe: 'mittel', phase: null });
-    assert.deepEqual(waechterOffen(vermerk({ stufe: null }), T0 + MIN), { id: 'a1', t: T0, stufe: null, phase: null });
-    assert.deepEqual(waechterOffen(vermerk({ stufe: 'ultra' }), T0 + MIN), { id: 'a1', t: T0, stufe: null, phase: null });
+    assert.deepEqual(waechterOffen(vermerk({}), T0 + MIN), { id: 'a1', t: T0, stufe: 'mittel', phase: null, geraet: false });
+    assert.deepEqual(waechterOffen(vermerk({ stufe: null }), T0 + MIN), { id: 'a1', t: T0, stufe: null, phase: null, geraet: false });
+    assert.deepEqual(waechterOffen(vermerk({ stufe: 'ultra' }), T0 + MIN), { id: 'a1', t: T0, stufe: null, phase: null, geraet: false });
+  });
+
+  test('und ob der Lauf auch im Speicher des Geraets steht', () => {
+    assert.equal(waechterOffen(vermerk({ g: 1 }), T0 + MIN).geraet, true);
+    for (const g of [0, '1', true, null]) assert.equal(waechterOffen(vermerk({ g }), T0 + MIN).geraet, false, String(g));
   });
 
   test('und wie weit der Lauf war', () => {
@@ -130,7 +135,7 @@ describe('Hangar-Waechter: Vermerk „Lauf offen“', () => {
   test('der Zeitgeber haelt den Vermerk eines sichtbaren Laufs frisch', () => {
     // der Vermerk wird alle WAECHTER.puls erneuert: Er darf dazwischen nicht alt werden
     assert.ok(WAECHTER.puls > 0 && WAECHTER.puls * 2 <= WAECHTER.frisch);
-    assert.deepEqual(waechterOffen(vermerk({}), T0 + WAECHTER.puls), { id: 'a1', t: T0, stufe: 'mittel', phase: null });
+    assert.deepEqual(waechterOffen(vermerk({}), T0 + WAECHTER.puls), { id: 'a1', t: T0, stufe: 'mittel', phase: null, geraet: false });
   });
 
   test('ein Vermerk einer anderen Fassung zaehlt nicht', () => {
@@ -235,13 +240,15 @@ describe('Hangar-Waechter: offene Laeufe im Speicher des Geraets', () => {
 });
 
 describe('Hangar-Waechter: was ein Start zaehlt', () => {
+  const start = (i, t) => ({ id: `s${i}`, t });
+
   test('ein toter Lauf ist ein Abbruch der Seite, der juengste gilt, gezaehlt wird einer', () => {
     assert.deepEqual(waechterBefund({ tot: [{ t: T0, stufe: 'hoch', phase: 'laden' }, { t: T0 + 9, stufe: 'mittel', phase: 'bauen' }] }), { stufe: 'mittel', phase: 'bauen', wie: 'seite' });
-    assert.deepEqual(waechterBefund({ tot: [{ t: T0, stufe: null, phase: null }], anlauf: [T0, T0 + 1, T0 + 2], telefon: true }), { stufe: null, phase: null, wie: 'seite' });
+    assert.deepEqual(waechterBefund({ tot: [{ t: T0, stufe: null, phase: null }], anlauf: [start(0, T0), start(1, T0 + 1), start(2, T0 + 2)], telefon: true }), { stufe: null, phase: null, wie: 'seite' });
   });
 
   test('ohne Vermerk zaehlen am Telefon die Starts, anderswo nicht', () => {
-    const zwei = Array.from({ length: WAECHTER.anlauf.zahl }, (_, i) => T0 + i * MIN);
+    const zwei = Array.from({ length: WAECHTER.anlauf.zahl }, (_, i) => start(i, T0 + i * MIN));
     assert.deepEqual(waechterBefund({ anlauf: zwei, telefon: true }), { stufe: null, phase: null, wie: 'start' });
     assert.equal(waechterBefund({ anlauf: zwei, telefon: false }), null);
     assert.equal(waechterBefund({ anlauf: zwei.slice(1), telefon: true }), null);
@@ -249,13 +256,26 @@ describe('Hangar-Waechter: was ein Start zaehlt', () => {
     assert.equal(waechterBefund(), null);
   });
 
-  test('die Starts gehen durch den Speicher und verfallen mit der Frist', () => {
-    const text = waechterAnlaufText([T0 + MIN, T0]);
-    assert.deepEqual(waechterAnlauf(text, T0 + 2 * MIN), [T0, T0 + MIN]);
-    assert.deepEqual(waechterAnlauf(text, T0 + WAECHTER.anlauf.frist), [T0 + MIN]);
+  // Review zu PR 363, nachgestellt: drei Hangarseiten nacheinander in neuen
+  // Registerkarten, keine bricht ab, und die dritte bekam die leichte Buehne.
+  test('Starts, deren Lauf in einer anderen Registerkarte lebt, zaehlen nicht', () => {
+    const drei = Array.from({ length: WAECHTER.anlauf.zahl + 1 }, (_, i) => start(i, T0 + i * MIN));
+    assert.equal(waechterBefund({ anlauf: drei, lebt: ['s0', 's1'], telefon: true }), null);
+    assert.equal(waechterBefund({ anlauf: drei.slice(0, WAECHTER.anlauf.zahl), lebt: ['s0'], telefon: true }), null);
+    // ein lebender Lauf nimmt den toten ihre Zahl nicht
+    assert.deepEqual(waechterBefund({ anlauf: drei, lebt: ['s0'], telefon: true }), { stufe: null, phase: null, wie: 'start' });
+    assert.deepEqual(waechterBefund({ anlauf: drei, lebt: ['fremd'], telefon: true }), { stufe: null, phase: null, wie: 'start' });
+  });
+
+  test('die Starts gehen mit ihrer Kennung durch den Speicher und verfallen mit der Frist', () => {
+    const text = waechterAnlaufText([start(1, T0 + MIN), start(0, T0)]);
+    assert.deepEqual(waechterAnlauf(text, T0 + 2 * MIN), [start(0, T0), start(1, T0 + MIN)]);
+    assert.deepEqual(waechterAnlauf(text, T0 + WAECHTER.anlauf.frist), [start(1, T0 + MIN)]);
     assert.deepEqual(waechterAnlauf(text, T0 + MIN + WAECHTER.anlauf.frist), []);
-    assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v - 1, t: [T0] }), T0 + MIN), []);
-    assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, t: [T0, 'x', null, T0 + 5 * MIN] }), T0 + MIN), [T0]);
+    assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v - 1, s: [['a', T0]] }), T0 + MIN), []);
+    assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, s: [['a', T0], ['', T0], [7, T0], ['b', 'x'], null, T0, ['c', T0 + 5 * MIN]] }), T0 + MIN), [{ id: 'a', t: T0 }]);
+    // die Liste von vor dem Review (nur Zeiten) gilt nicht mehr
+    assert.deepEqual(waechterAnlauf(JSON.stringify({ v: WAECHTER.v, t: [T0] }), T0 + MIN), []);
     for (const raw of [null, '', '{', 'null', '[]', '{"v":3}']) assert.deepEqual(waechterAnlauf(raw, T0), [], String(raw));
   });
 
@@ -274,7 +294,7 @@ describe('Hangar-Waechter: was ein Start zaehlt', () => {
       }
       if (stand.deckel === 'aus') break;
       laeufe.push(waechterLeicht(stand.deckel, true) ? `leicht ${stand.deckel}` : 'voll');
-      anlauf.push(now);
+      anlauf.push(start(i, now));
     }
     assert.equal(stand.deckel, 'aus');
     assert.deepEqual(laeufe, ['voll', 'voll', 'leicht mittel', 'leicht mittel', 'leicht niedrig', 'leicht niedrig']);
@@ -286,6 +306,53 @@ describe('Hangar-Waechter: was ein Start zaehlt', () => {
     assert.ok(WAECHTER.anlauf.ruhe >= 30e3, 'der Speicher faellt erst eine halbe Minute nach dem Laden');
     assert.ok((WAECHTER.anlauf.zahl + 1) * (WAECHTER.anlauf.ruhe + 60e3) <= WAECHTER.anlauf.frist);
     assert.ok(WAECHTER.arten.includes('start'));
+  });
+});
+
+// Review zu PR 363: Starten zwei Registerkarten im selben Augenblick, lesen
+// beide denselben toten Lauf aus dem Speicher des Geraets. Gezaehlt wird er
+// von der, die ihn dort noch vorfindet.
+describe('Hangar-Waechter: wem ein toter Lauf gehoert', () => {
+  const lauf = (id, o = {}) => ({ id, t: T0, stufe: 'mittel', phase: 'bauen', ...o });
+
+  test('ein Lauf aus dem Speicher des Geraets zaehlt nur, solange er dort steht', () => {
+    const tot = [lauf('x')];
+    assert.deepEqual(waechterAnspruch({ tot, imGeraet: [lauf('x'), lauf('y')] }), tot);
+    assert.deepEqual(waechterAnspruch({ tot, imGeraet: [lauf('y')] }), []);
+    assert.deepEqual(waechterAnspruch({ tot, imGeraet: [] }), []);
+    assert.deepEqual(waechterAnspruch({ tot: [lauf('x'), lauf('z')], imGeraet: [lauf('z')] }), [lauf('z')]);
+  });
+
+  test('zwei Starts im selben Augenblick: der zweite findet ihn nicht mehr', () => {
+    let imGeraet = [lauf('x')];
+    const zaehlt = [];
+    for (const name of ['erste', 'zweite']) {
+      // beide haben x vor der Frage an den Kanal gelesen
+      const meine = waechterAnspruch({ tot: [lauf('x')], imGeraet });
+      imGeraet = imGeraet.filter((e) => e.id !== 'x');
+      if (waechterBefund({ tot: meine })) zaehlt.push(name);
+    }
+    assert.deepEqual(zaehlt, ['erste']);
+  });
+
+  test('der Vermerk der eigenen Registerkarte zaehlt ohne den Speicher des Geraets immer', () => {
+    const offen = lauf('a', { geraet: false });
+    assert.deepEqual(waechterAnspruch({ tot: [offen], offen, imGeraet: null }), [offen]);
+    assert.deepEqual(waechterAnspruch({ tot: [offen], offen, imGeraet: [] }), [offen]);
+    const gespiegelt = lauf('a', { geraet: true });
+    assert.deepEqual(waechterAnspruch({ tot: [gespiegelt], offen: gespiegelt, imGeraet: null }), [gespiegelt]);
+  });
+
+  test('stand er auch im Speicher des Geraets und ist dort weg, hat ihn ein anderer Start gezaehlt', () => {
+    const offen = lauf('a', { geraet: true });
+    assert.deepEqual(waechterAnspruch({ tot: [offen], offen, imGeraet: [] }), []);
+    assert.deepEqual(waechterAnspruch({ tot: [offen], offen, imGeraet: [lauf('a')] }), [offen]);
+  });
+
+  test('ohne Tote und ohne Angaben bleibt es leer', () => {
+    assert.deepEqual(waechterAnspruch({ tot: [], offen: lauf('a'), imGeraet: [lauf('a')] }), []);
+    assert.deepEqual(waechterAnspruch({}), []);
+    assert.deepEqual(waechterAnspruch(), []);
   });
 });
 

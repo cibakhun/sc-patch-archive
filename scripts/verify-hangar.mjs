@@ -362,6 +362,24 @@
         nicht gemerkten Abbruch streichen                           -> [12]
      g30 dort anlaufAbschied(); aus laufEnde() nehmen (drei Starts
         mit Meldung zaehlten als Abbruch)                           -> [12]
+     g31 dort im visibilitychange-Lauscher anlaufAbschied(); nehmen
+        (Review zu PR 363, nachgestellt: drei Hangarseiten
+        nacheinander in neuen Registerkarten, und die dritte bekam
+        ohne jeden Abbruch die leichte Ansicht)                     -> [12]
+     g32 dort in waechterBefund() den Filter nach lebt streichen
+        (Starts lebender Laeufe zaehlten wieder als Abbruch)        -> [12]
+     g33 dort in waechterStart() tot: meine durch tot: tot ersetzen
+        (zwei Starts im selben Augenblick zaehlten denselben toten
+        Lauf beide)                                                 -> [12]
+     g34 dort in waechterAnspruch() den Filter durch tot ersetzen
+        (dasselbe ueber das Modul)                                  -> [12]
+     g35 dort im Vermerk der Registerkarte g streichen (ein Lauf,
+        den ein anderer Start im Speicher des Geraets schon
+        gezaehlt hat, zaehlte in der eigenen Registerkarte noch
+        einmal)                                                     -> [12]
+     g36 dort const GERAET = TELEFON && !!kanal; durch !!kanal
+        ersetzen (am PC hielte ein zweites Hangar-Fenster eines,
+        das gerade laedt, fuer abgebrochen)                         -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
      i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
@@ -1248,7 +1266,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     const naht = [
       [telQ !== null && telQ === smallQ, `Telefon heisst im Controller „${telQ}“, im Viewer „${smallQ}“`],
       [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie \}\)/.test(ctrl), 'abbruch() gibt sofort, phase und wie nicht an waechterAbbruch'],
-      [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
+      [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e(?:, g)? \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
       [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
       [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
       [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
@@ -1284,6 +1302,12 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   //    bevor einer zaehlt; RUHE_MIN nur aufwaerts: so lange muss eine Buehne
   //    stehen, bis die Starts vor ihr nicht mehr zaehlen, gemessen faellt der
   //    Arbeitsspeicher erst rund eine halbe Minute nach dem Laden).
+  //    Seit dem Review zu PR 363 (nachgestellt: drei Hangarseiten
+  //    nacheinander in neuen Registerkarten, die dritte bekam ohne Abbruch
+  //    die leichte Buehne): Eine Seite im Hintergrund nimmt ihren Start
+  //    heraus, Starts lebender Laeufe zaehlen nicht, und ein toter Lauf aus
+  //    dem Speicher des Geraets gehoert dem Start, der ihn dort noch
+  //    vorfindet (zwei Starts im selben Augenblick zaehlten ihn beide).
   // 3. Unter jedem Deckel laeuft am Telefon die leichte Buehne: Die Seite
   //    gibt dem Viewer weder echte Halle noch Besatzung, er baut seine eigene
   //    (gemessen im Telefonformat mit der Gladius: rund 340 statt 950 MB
@@ -1295,11 +1319,17 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     const befund = typeof ctrlMod.waechterBefund === 'function' ? ctrlMod.waechterBefund : () => undefined;
     const leichtFn = typeof ctrlMod.waechterLeicht === 'function' ? ctrlMod.waechterLeicht : () => undefined;
     const zahl = W.anlauf?.zahl ?? 0, ruhe = W.anlauf?.ruhe ?? 0, frist = W.anlauf?.frist ?? 0;
-    const starts = Array.from({ length: zahl }, (_, i) => T + i * 20e3);
+    const starts = Array.from({ length: zahl }, (_, i) => ({ id: `s${i}`, t: T + i * 20e3 }));
     const tot = befund({ tot: [{ t: T, stufe: 'hoch', phase: 'bauen' }], anlauf: [], telefon: true });
     const ohne = befund({ tot: [], anlauf: starts, telefon: true });
     const pc = befund({ tot: [], anlauf: starts, telefon: false });
     const einer = befund({ tot: [], anlauf: starts.slice(1), telefon: true });
+    // Starts, deren Lauf lebt, zaehlen nicht; ein toter Lauf gehoert dem Start, der ihn im Geraet noch findet
+    const lebend = zahl >= 1 ? befund({ tot: [], anlauf: starts, lebt: [starts[0].id], telefon: true }) : undefined;
+    const anspruch = typeof ctrlMod.waechterAnspruch === 'function' ? ctrlMod.waechterAnspruch : () => undefined;
+    const X = { id: 'x', t: T, stufe: 'mittel', phase: 'bauen' };
+    const anspruchIst = [anspruch({ tot: [X], imGeraet: [X] }), anspruch({ tot: [X], imGeraet: [] }), anspruch({ tot: [X], offen: { ...X, geraet: true }, imGeraet: [] }), anspruch({ tot: [X], offen: { ...X, geraet: false }, imGeraet: [] }), anspruch({ tot: [X], offen: { ...X, geraet: true }, imGeraet: null })].map((l) => (Array.isArray(l) ? l.length : -1));
+    const anspruchOk = anspruchIst.join(' ') === '1 0 0 1 1';
     // Telefon, an dem kein Vermerk ueberlebt und jeder Lauf abbricht, bevor er steht
     let stand = ctrlMod.waechterStand?.(null, T) ?? null, anlauf = [], now = T;
     const laeufe = [];
@@ -1312,7 +1342,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       }
       if (stand.deckel === 'aus') break;
       laeufe.push(leichtFn(stand.deckel, true) ? 'leicht' : 'voll');
-      anlauf.push(now);
+      anlauf.push({ id: `l${i}`, t: now });
     }
     const voll = laeufe.filter((l) => l === 'voll').length;
     const durch = ctrlMod.waechterLaeufe?.(ctrlMod.waechterLaeufeText?.([{ id: 'x', t: T, stufe: 'mittel', phase: 'bauen' }]) ?? null, T + 1000) ?? [];
@@ -1321,18 +1351,25 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       && zahl >= 1 && zahl <= ANLAUF_ZAHL && ruhe >= RUHE_MIN && (zahl + 1) * (ruhe + 60e3) <= frist
       && stand?.deckel === 'aus' && laeufe.length >= 1 && laeufe.length <= LAEUFE_OHNE && voll === zahl
       && leichtFn('mittel', true) === true && leichtFn('niedrig', true) === true && leichtFn('mittel', false) === false && leichtFn('aus', true) === false && leichtFn(null, true) === false
-      && durch.length === 1 && durch[0].id === 'x' && durch[0].stufe === 'mittel' && durch[0].phase === 'bauen';
+      && durch.length === 1 && durch[0].id === 'x' && durch[0].stufe === 'mittel' && durch[0].phase === 'bauen'
+      && lebend === null && anspruchOk;
     sollIst(`Waechter ab v 3: ein toter Lauf zaehlt als Abbruch der Seite; am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts, die mindestens ${RUHE_MIN / 1000} s nicht standen, auch ohne Vermerk; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus; unter dem Deckel am Telefon die leichte Buehne`,
-      `toter Lauf: ${tot?.wie ?? 'nichts'}; ${zahl} Starts am Telefon: ${ohne?.wie ?? 'nichts'}, am PC: ${pc?.wie ?? 'nichts'}, ${Math.max(0, zahl - 1)} am Telefon: ${einer?.wie ?? 'nichts'}; Ruhe ${ruhe / 1000} s, Frist ${frist / 60e3} min; ohne Vermerk ${laeufe.length} Laeufe bis ${stand?.deckel ?? 'nichts'} (${laeufe.join(' ') || 'keiner'}); ${leichtIst}; Vermerk im Geraet ${durch.length === 1 ? 'geht durch den Speicher' : 'geht verloren'}`);
-    if (!v3Ok) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 14.11.2026 abgenommen (waechterBefund: toter Lauf zaehlt als 'seite', am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts als 'start', am PC keine; WAECHTER.anlauf.ruhe mindestens ${RUHE_MIN / 1000} s und drei Laeufe in der Frist; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus, davon so viele mit voller Halle wie Starts zaehlen; waechterLeicht: am Telefon unter jedem Deckel, sonst nie; waechterLaeufe liest, was waechterLaeufeText schreibt): Ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu, oder es versuchte dreimal dieselbe Halle`);
-    const startTeil = ctrl.slice(Math.max(0, ctrl.indexOf('async function waechterStart()')), Math.max(0, ctrl.indexOf('async function waechterStart()')) + 1800);
+      `toter Lauf: ${tot?.wie ?? 'nichts'}; ${zahl} Starts am Telefon: ${ohne?.wie ?? 'nichts'}, am PC: ${pc?.wie ?? 'nichts'}, ${Math.max(0, zahl - 1)} am Telefon: ${einer?.wie ?? 'nichts'}; Ruhe ${ruhe / 1000} s, Frist ${frist / 60e3} min; ohne Vermerk ${laeufe.length} Laeufe bis ${stand?.deckel ?? 'nichts'} (${laeufe.join(' ') || 'keiner'}); ${leichtIst}; Vermerk im Geraet ${durch.length === 1 ? 'geht durch den Speicher' : 'geht verloren'}; Starts mit einem lebenden Lauf: ${lebend === null ? 'nichts' : lebend?.wie ?? 'unbekannt'}; toter Lauf im Geraet vorgefunden, dort schon weg, eigener dort schon weg, eigener ohne Geraet, eigener ohne Kanal zaehlt ${anspruchIst.join(' ')}-mal (Soll 1 0 0 1 1)`);
+    if (!v3Ok) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 14.11.2026 abgenommen (waechterBefund: toter Lauf zaehlt als 'seite', am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts als 'start', am PC keine; WAECHTER.anlauf.ruhe mindestens ${RUHE_MIN / 1000} s und drei Laeufe in der Frist; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus, davon so viele mit voller Halle wie Starts zaehlen; waechterLeicht: am Telefon unter jedem Deckel, sonst nie; waechterLaeufe liest, was waechterLaeufeText schreibt; Starts lebender Laeufe zaehlen nicht; waechterAnspruch: ein toter Lauf zaehlt nur fuer den Start, der ihn im Speicher des Geraets noch vorfindet): Ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu, oder es versuchte dreimal dieselbe Halle, oder ein Besucher ohne Abbruch bekaeme die leichte Ansicht`);
+    const startTeil = ctrl.slice(Math.max(0, ctrl.indexOf('async function waechterStart()')), Math.max(0, ctrl.indexOf('async function waechterStart()')) + 2600);
     // je Naht: erfuellt, Datei, was fehlt, was daraus folgte
     const SCHLEIFE = 'ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu', DREIMAL = 'das Telefon versuchte nach einem Abbruch wieder dieselbe Halle (rund 950 statt 340 MB)', FALSCH = 'ein Besucher ohne Abbruch bekaeme die leichte Ansicht';
+    const DOPPELT = 'zwei Registerkarten, die im selben Augenblick starten, zaehlten denselben Abbruch beide und senkten zwei Stufen (Review zu PR 363)';
     const naht3 = [
-      [/laeufeAendern\(\(l\) => \[\.\.\.l\.filter\(\(x\) => x\.id !== e\.id\), e\]\);/.test(ctrl), 'hangar-overview.js', 'offenSetzen() vermerkt den Lauf nicht mehr im Speicher des Geraets', SCHLEIFE],
-      [/waechterLaeufe\(lies\(\(\) => localStorage, LAEUFE_KEY\), now\)/.test(startTeil) && /waechterAnlauf\(lies\(\(\) => localStorage, ANLAUF_KEY\), now\)/.test(startTeil) && /waechterBefund\(\{ tot, anlauf, telefon: TELEFON \}\)/.test(startTeil), 'hangar-overview.js', 'waechterStart liest die offenen Laeufe des Geraets oder die Starts nicht mehr', SCHLEIFE],
-      [/offenSetzen\(\);\s*anlaufSetzen\(\);/.test(ctrl), 'hangar-overview.js', 'der Start der Buehne traegt sich nicht mehr in die Liste der Starts ein', 'ueberlebt kein Vermerk, zaehlte am Telefon nichts mehr, und es luede ohne Ende neu'],
-      [/setTimeout\(\(\) => \{ if \(lauf\?\.id === id\) anlaufWeg\(\); \}, WAECHTER\.anlauf\.ruhe\);/.test(ctrl), 'hangar-overview.js', 'eine Buehne, die steht, leert die Liste der Starts nicht mehr', FALSCH],
+      [/const g = laeufeAendern\(\(l\) => \[\.\.\.l\.filter\(\(x\) => x\.id !== e\.id\), e\]\) \? 1 : 0;/.test(ctrl), 'hangar-overview.js', 'offenSetzen() vermerkt den Lauf nicht mehr im Speicher des Geraets', SCHLEIFE],
+      [/waechterLaeufe\(lies\(\(\) => localStorage, LAEUFE_KEY\), now\)/.test(startTeil) && /waechterAnlauf\(lies\(\(\) => localStorage, ANLAUF_KEY\), now\)/.test(startTeil) && /waechterBefund\(\{ tot: [a-z]+, anlauf: starts, lebt, telefon: TELEFON \}\)/.test(startTeil), 'hangar-overview.js', 'waechterStart liest die offenen Laeufe des Geraets oder die Starts nicht mehr', SCHLEIFE],
+      [/const meine = waechterAnspruch\(\{ tot, offen, imGeraet: GERAET \? waechterLaeufe\(lies\(\(\) => localStorage, LAEUFE_KEY\), Date\.now\(\)\) : null \}\);/.test(startTeil) && /waechterBefund\(\{ tot: meine, /.test(startTeil), 'hangar-overview.js', 'waechterStart zaehlt einen toten Lauf, ohne ihn im Speicher des Geraets noch vorzufinden (waechterAnspruch)', DOPPELT],
+      [/JSON\.stringify\(\{[^}]*\.\.\.e, g \}\)/.test(ctrl) && /geraet: o\.g === 1 \}/.test(ctrl), 'hangar-overview.js', 'der Vermerk der Registerkarte sagt nicht mehr, ob sein Lauf auch im Speicher des Geraets steht (g)', 'ein Lauf, den ein anderer Start dort schon gezaehlt hat, zaehlte in der eigenen Registerkarte noch einmal (Review zu PR 363)'],
+      [/const ids = \[\.\.\.new Set\(\[\.\.\.vermerkt, \.\.\.anlauf\]\.map\(\(e\) => e\.id\)\)\];/.test(startTeil) && /const lebt = ids\.filter\(\(_, i\) => antwort\[i\]\);/.test(startTeil) && /anlauf\.filter\(\(e\) => !lebt\.includes\(e\.id\)\)\.length >= WAECHTER\.anlauf\.zahl/.test(ctrl), 'hangar-overview.js', 'waechterStart fragt nicht mehr, ob die Laeufe der Starts noch leben, oder waechterBefund zaehlt sie trotzdem', 'drei Hangarseiten nebeneinander, keine bricht ab, und die dritte bekaeme die leichte Ansicht (Review zu PR 363)'],
+      [/const GERAET = TELEFON && !!kanal;/.test(ctrl) && /function laeufeAendern\(fn\) \{\s*if \(!GERAET\) return false;/.test(ctrl) && /const laeufe = GERAET \? waechterLaeufe\(/.test(startTeil), 'hangar-overview.js', 'der Vermerk im Speicher des Geraets gilt nicht mehr nur am Telefon', 'am PC hielte ein zweites Hangar-Fenster eines, das gerade laedt, fuer abgebrochen und zaehlte einen Abbruch (Review zu PR 363, nachgestellt)'],
+      [/if \(doc\.hidden\) \{ offenWeg\(\); anlaufAbschied\(\); \} else \{ offenSetzen\(\); anlaufSetzen\(\); \}/.test(ctrl) && /if \(!TELEFON \|\| !lauf \|\| lauf\.ruht \|\| meinStart \|\| doc\.hidden\) return;/.test(ctrl), 'hangar-overview.js', 'eine Seite im Hintergrund nimmt ihren Start nicht mehr heraus oder traegt sich dort ein', 'wer am Telefon drei Hangarseiten nacheinander in neuen Registerkarten oeffnet, bekaeme ohne jeden Abbruch die leichte Ansicht (Review zu PR 363, nachgestellt)'],
+      [/lauf = \{ id: [^\n]+\};\s*offenSetzen\(\);\s*anlaufSetzen\(\);/.test(ctrl), 'hangar-overview.js', 'der Start der Buehne traegt sich nicht mehr in die Liste der Starts ein', 'ueberlebt kein Vermerk, zaehlte am Telefon nichts mehr, und es luede ohne Ende neu'],
+      [/setTimeout\(\(\) => \{ if \(lauf\?\.id === id\) anlaufRuhe\(\); \}, WAECHTER\.anlauf\.ruhe\);/.test(ctrl) && /\.filter\(\(e\) => e\.id !== id && e\.t > t0\)/.test(ctrl), 'hangar-overview.js', 'eine Buehne, die steht, nimmt ihren Start und die davor nicht mehr aus der Liste', FALSCH],
       [/window\.addEventListener\('pagehide', \(\) => \{ offenWeg\(\); anlaufAbschied\(\); \}\);/.test(ctrl), 'hangar-overview.js', 'wer die Seite von sich aus verlaesst, nimmt Vermerk oder Start nicht mehr heraus', 'wer dreimal kurz hereinschaut oder von Hand neu laedt, zaehlte als Abbruch'],
       [/anlaufWeg\(\);\s*console\.warn\(`\[hangar\] Abbruch der Buehne/.test(ctrl), 'hangar-overview.js', 'ein gezaehlter Abbruch leert die Starts nicht', 'derselbe Abbruch zaehlte ueber die Starts ein zweites Mal und senkte zwei Stufen'],
       [/function laufEnde\(\) \{ lauf = null; offenWeg\(\); anlaufAbschied\(\); \}/.test(ctrl), 'hangar-overview.js', 'ein Lauf, der mit einer Meldung endet (kein Start, Kontext im Hintergrund verloren), bleibt als Start ohne Abschied stehen', FALSCH],
@@ -1369,7 +1406,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // Dazu haelt ein Zeitgeber den Vermerk „Lauf offen“ frisch, sonst zaehlte
   // ein Abbruch nach langem Ansehen nicht.
   const startAt = ctrl.indexOf('async function waechterStart()');
-  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 1800);
+  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 2600);
   const startOk = /if \(was && !abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
   const pulsOk = /setInterval\(offenSetzen, WAECHTER\.puls\)/.test(ctrl) && ctrlMod && ctrlMod.WAECHTER?.puls > 0 && ctrlMod.WAECHTER.puls < ctrlMod.WAECHTER.frisch;
   sollIst('Start ohne gemerkten Abbruch bleibt ohne Buehne, Vermerk „Lauf offen“ wird frisch gehalten', startOk && pulsOk ? 'ja' : `nein (${[!startFn && 'waechterStart nicht gefunden', startFn && !startOk && 'Start prueft abbruch() nicht', !pulsOk && 'kein Zeitgeber unter der Frist'].filter(Boolean).join(', ')})`);
