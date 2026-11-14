@@ -1238,7 +1238,8 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // und sie rueckt beim Laden vor ('bauen' ab 90 %, 'steht' mit dem ersten
   // Schiff). v ist eine Klinke: Sinkt sie, gelten Deckel wieder, die fuer
   // eine schwerere Halle gemerkt wurden.
-  const WAECHTER_V = 3;
+  // 14.11.2026 auf 4: Die volle Halle wurde leichter (Entpacker, unten).
+  const WAECHTER_V = 4;
   if (ctrlMod) {
     const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 13, 12, 0, 0);
     const leer = ctrlMod.waechterStand?.(null, T);
@@ -1269,7 +1270,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e(?:, g)? \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
       [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
       [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
-      [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
+      [/waechterVerlauf\(\(stand\.spur \?\? \[\]\)\.slice\(-letzte\),/.test(ctrl) && /notiz\(fallback, spurZeilen\(stand\)\);/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
       // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
       [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
       // ... und mit dem Titel: Ein neues Schiff tauscht ihn erst nach dem Laden der Bucht, ein laengerer Name macht ihn hoeher
@@ -1390,6 +1391,109 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       else leichtSeiten++;
     }
     sollIst('Zeile der leichten Ansicht mit Text und Knopf, anfangs verborgen, auf jeder Hangarseite', `${leichtSeiten} von ${PAGES.length} Seiten`);
+  }
+  // Seit 14.11.2026 (Krisz waehlte „Volle Halle fuers Handy abspecken“): Die
+  // Worker, die die Geometrie auspacken (Draco), hielten zusammen 343 MB,
+  // solange die Seite offen war; ihr Speicher waechst mit dem groessten
+  // Stueck und schrumpft nie. Der Viewer nimmt deshalb seinen eigenen
+  // Entpacker (Klasse Entpacker): Worker ohne Arbeit enden nach
+  // ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus
+  // dem Pool, und am Telefon laufen hoechstens ENTPACKER.telefon Worker und
+  // die grossen Stuecke nacheinander. Gemessen im Telefonformat (Gladius,
+  // volle Halle): 633 statt 946 MB beim Laden. Nachgerechnet am
+  // ausgelieferten Modul mit Workern, die nur zaehlen; die vier Zahlen sind
+  // Klinken und wandern nur abwaerts.
+  const ENTPACKER_MAX = { faeden: 4, telefon: 2, gross: 1 << 20, ruhe: 1500 };
+  {
+    let vm = null;
+    try { vm = await import(pathToFileURL(viewerFile).href); } catch { /* oben schon gemeldet */ }
+    const K = vm?.ENTPACKER ?? {}, E = vm?.Entpacker;
+    const klinkeOk = ['faeden', 'telefon', 'gross', 'ruhe'].every((k) => Number.isFinite(K[k]) && K[k] > 0 && K[k] <= ENTPACKER_MAX[k]) && K.telefon <= K.faeden;
+    const ist = [];
+    let rechnetOk = false;
+    if (typeof E === 'function' && klinkeOk) {
+      const echt = { Worker: globalThis.Worker, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, info: console.info };
+      const alle = [];
+      let uhr = null;
+      class Zaehler {
+        constructor() { this.tot = false; this.post = []; alle.push(this); }
+        postMessage(m) { if (m?.type === 'decode') this.post.push(m.id); }
+        terminate() { this.tot = true; }
+        fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
+      }
+      const ruck = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+      const neuer = (telefon) => { const e = new E(telefon); e._initDecoder = () => Promise.resolve(); return e; };
+      try {
+        globalThis.Worker = Zaehler;
+        globalThis.setTimeout = (fn, ms) => { uhr = { fn, ms }; return 1; };
+        globalThis.clearTimeout = () => { uhr = null; };
+        console.info = () => {};
+        // (a) Ruhe: drei kleine Stuecke am Telefon, danach enden alle Worker
+        const a = neuer(true);
+        const wa = [];
+        for (let id = 1; id <= 3; id++) wa.push(await a._getWorker(id, 1000));
+        const gestartet = alle.length;
+        for (let id = 1; id <= 3; id++) a._releaseTask(wa[id - 1], id);
+        const frist = uhr?.ms ?? null;
+        uhr?.fn();
+        const nachRuhe = alle.filter((w) => !w.tot).length;
+        const wieder = await a._getWorker(4, 1000);
+        const neuNachRuhe = alle.length - gestartet;
+        // ein Worker mit Arbeit ueberlebt die Ruhe
+        const beiArbeit = a.ruhe();
+        a._releaseTask(wieder, 4);
+        ist.push(`Telefon: ${gestartet} Worker fuer 3 kleine Stuecke, Ruhe nach ${frist ?? 'nie'} ms, danach laufen ${nachRuhe}, das naechste Stueck startet ${neuNachRuhe} neuen, mit Arbeit beendet die Ruhe ${beiArbeit}`);
+        const ruheOk = gestartet === K.telefon && frist === K.ruhe && nachRuhe === 0 && neuNachRuhe === 1 && beiArbeit === 0 && !wieder.tot;
+        a.dispose();
+        // (b) ein grosses Stueck nimmt seinen Worker aus dem Pool, er endet mit seiner Arbeit
+        alle.length = 0;
+        const b = neuer(false);
+        const klein = await b._getWorker(1, K.gross - 1), kleinImPool = b.workerPool.includes(klein);
+        b._releaseTask(klein, 1);
+        const gross = await b._getWorker(2, K.gross), imPool = b.workerPool.includes(gross), vorher = gross.tot;
+        b._releaseTask(gross, 2);
+        ist.push(`Stueck knapp unter der Grenze: Worker ${kleinImPool ? 'bleibt im Pool' : 'verlaesst den Pool'}; an der Grenze: ${imPool ? 'bleibt im Pool' : 'verlaesst den Pool'}, ${vorher ? 'endet vor seiner Arbeit' : gross.tot ? 'endet mit seiner Arbeit' : 'laeuft danach weiter'}`);
+        const grossOk = kleinImPool && !klein.tot && !imPool && !vorher && gross.tot;
+        b.dispose();
+        // (c) zwei grosse Stuecke: am Telefon nacheinander, am PC zugleich
+        const zugleich = async (telefon) => {
+          alle.length = 0;
+          const e = neuer(telefon);
+          const p = [e.decodeGeometry(new ArrayBuffer(K.gross), {}), e.decodeGeometry(new ArrayBuffer(K.gross), {})];
+          await ruck();
+          const erst = alle.reduce((n, w) => n + w.post.length, 0);
+          for (let runde = 0; runde < 2; runde++) {
+            for (const w of alle) for (const id of w.post.splice(0)) w.fertig(id);
+            await ruck();
+          }
+          await Promise.all(p);
+          const leben = alle.filter((w) => !w.tot).length;
+          e.dispose();
+          return { erst, worker: alle.length, leben };
+        };
+        const tel = await zugleich(true), pc = await zugleich(false);
+        ist.push(`zwei grosse Stuecke: am Telefon ${tel.erst} zugleich in Arbeit (${tel.worker} Worker, danach laufen ${tel.leben}), am PC ${pc.erst} (${pc.worker} Worker, danach laufen ${pc.leben})`);
+        rechnetOk = ruheOk && grossOk && tel.erst === 1 && tel.worker === 2 && tel.leben === 0 && pc.erst === 2 && pc.leben === 0;
+      } catch (e) {
+        ist.push(`Fehler beim Nachrechnen: ${e.message}`);
+      } finally {
+        Object.assign(globalThis, { Worker: echt.Worker, setTimeout: echt.setTimeout, clearTimeout: echt.clearTimeout });
+        console.info = echt.info;
+      }
+    }
+    sollIst(`Entpacker der Geometrie: hoechstens ${ENTPACKER_MAX.faeden} Worker, am Telefon ${ENTPACKER_MAX.telefon}; ohne Arbeit enden sie nach hoechstens ${ENTPACKER_MAX.ruhe} ms; ein Stueck ab hoechstens ${ENTPACKER_MAX.gross / 1024} KB nimmt seinen Worker mit; grosse Stuecke am Telefon nacheinander`,
+      `${typeof E === 'function' ? `faeden ${K.faeden}, telefon ${K.telefon}, gross ${K.gross / 1024} KB, ruhe ${K.ruhe} ms` : 'Klasse Entpacker fehlt'}${ist.length ? `; ${ist.join('; ')}` : ''}`);
+    if (!klinkeOk || !rechnetOk) fail(`[12] dist/assets/hangar-viewer.js: der Entpacker der Geometrie rechnet nicht mehr wie am 14.11.2026 abgenommen (ENTPACKER hoechstens ${JSON.stringify(ENTPACKER_MAX)}; Worker ohne Arbeit enden nach ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus dem Pool und beendet ihn danach, am Telefon laufen grosse Stuecke nacheinander): Die Worker hielten wieder bis zu 343 MB, solange die Seite offen ist, und die volle Halle braeche am Telefon wieder beim Laden ab (946 statt 633 MB)`);
+    const dracoFile = join(DIST, 'vendor', 'three', 'addons', 'loaders', 'DRACOLoader.js');
+    const dracoSrc = existsSync(dracoFile) ? readFileSync(dracoFile, 'utf8') : '';
+    const nahtE = [
+      [/const draco = new Entpacker\(SMALL\)\.setDecoderPath\(/.test(viewer) && !/new DRACOLoader\(/.test(viewer), 'assets/hangar-viewer.js', 'der Viewer packt die Geometrie nicht mehr ueber seinen Entpacker aus (new Entpacker(SMALL), kein new DRACOLoader)', 'die Worker blieben wieder, solange die Seite offen ist (343 MB)'],
+      [/\t_getWorker\( taskID, taskCost \) \{/.test(dracoSrc) && /\t_releaseTask\( worker, taskID \) \{/.test(dracoSrc) && /this\.workerPool\.length < this\.workerLimit/.test(dracoSrc) && /worker\._taskLoad \+= taskCost;/.test(dracoSrc), 'vendor/three/addons/loaders/DRACOLoader.js', 'der DRACOLoader von three.js hat _getWorker, _releaseTask, workerPool oder _taskLoad nicht mehr in der Form, auf die der Entpacker baut', 'im Browser liefe der Entpacker still an three.js vorbei, die Worker blieben'],
+      [/notiz\(leichtEl, spurZeilen\(waechterStand\(lies\(\(\) => localStorage, STAND_KEY\), Date\.now\(\)\), 2\)\);/.test(ctrl) && /notiz\(fallback, spurZeilen\(stand\)\);/.test(ctrl), 'assets/hangar-overview.js', 'die Zeile der leichten Ansicht oder die Meldung zeigt die Spur der Abbrueche und das Geraet nicht mehr (spurZeilen)', 'vom Telefon kaeme nicht zurueck, in welcher Phase die volle Halle abbrach'],
+    ];
+    const offenE = nahtE.filter(([ok]) => !ok);
+    sollIst(`${nahtE.length} Naehte von Entpacker und Spur an der leichten Ansicht`, offenE.length ? `${nahtE.length - offenE.length} von ${nahtE.length}: ${offenE.map(([, , was]) => was).join('; ')}` : `${nahtE.length} von ${nahtE.length}`);
+    for (const [, datei, was, folge] of offenE) fail(`[12] dist/${datei}: ${was}: ${folge} (14.11.2026)`);
   }
   // Der einzige Weg, auf dem die Seite nach verlorenem Zeichenkontext von
   // selbst neu laedt, haengt am Waechter: im Rueckruf von onLost zaehlt

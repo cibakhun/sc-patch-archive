@@ -344,6 +344,91 @@ async function fitImage(im, max) {
   };
   return (fitTurn = fitTurn.then(draw));
 }
+// Entpacker der Geometrie (Draco: WebAssembly in Workern), 14.11.2026.
+// Krisz wählte an dem Tag „Volle Halle fürs Handy abspecken“, nachdem die
+// volle Halle auf seinem iPhone 12 abgebrochen war. Gemessen im
+// Telefonformat (Gladius, volle Halle): Der Prozess der Seite brauchte beim
+// Laden bis zu 946 MB und hielt danach 809 MB. Der größte einzelne Posten
+// waren die vier Worker des DRACOLoader. Der Speicher eines Entpackers
+// wächst mit dem größten Stück, das er je ausgepackt hat (3.988 KB Eingang:
+// 187 MB, 2.554 KB: 100 MB, unter 500 KB: höchstens 19 MB), schrumpft nie
+// wieder, und three.js beendet die Worker erst mit dispose(): zusammen
+// 343 MB, solange die Seite offen war, auf jedem Gerät. Deshalb:
+// - Ruhe: Hat ENTPACKER.ruhe ms lang kein Worker im Pool mehr zu tun,
+//   enden alle. Die nächste Datei startet neue (der Decoder selbst bleibt
+//   geladen).
+// - Ein Stück ab ENTPACKER.gross Bytes nimmt seinen Worker aus dem Pool:
+//   Er bekommt nichts Neues mehr und endet, sobald er fertig ist.
+// - Am Telefon höchstens ENTPACKER.telefon Worker, und die großen Stücke
+//   eines nach dem anderen: zwei zugleich hielten 287 MB.
+// Die Klasse greift in drei Stellen des DRACOLoader von three.js, die
+// keine Schnittstelle sind (_getWorker, _releaseTask, die Felder
+// workerPool und _taskLoad); verify:hangar [12] prüft sie am ausgelieferten
+// Modul, damit ein neues three.js nicht still daran vorbeiläuft.
+export const ENTPACKER = { faeden: 4, telefon: 2, gross: 1 << 20, ruhe: 1500 };
+export class Entpacker extends DRACOLoader {
+  constructor(telefon = false) {
+    super();
+    this.telefon = !!telefon;
+    this.setWorkerLimit(this.telefon ? ENTPACKER.telefon : ENTPACKER.faeden);
+    this.lebend = new Set();   // alle Worker, auch die aus dem Pool genommenen
+    this.reihe = Promise.resolve();
+    this.uhr = 0;
+    this.stat = { stuecke: 0, gross: 0, gestartet: 0, beendet: 0, gesagt: 0 };
+  }
+  decodeGeometry(buffer, taskConfig) {
+    if (!this.telefon || buffer.byteLength < ENTPACKER.gross) return super.decodeGeometry(buffer, taskConfig);
+    const p = this.reihe.then(() => super.decodeGeometry(buffer, taskConfig));
+    this.reihe = p.then(() => {}, () => {});
+    return p;
+  }
+  _getWorker(taskID, taskCost) {
+    return super._getWorker(taskID, taskCost).then((worker) => {
+      clearTimeout(this.uhr); this.uhr = 0;
+      this.stat.stuecke++;
+      if (!this.lebend.has(worker)) { this.lebend.add(worker); this.stat.gestartet++; }
+      if (taskCost >= ENTPACKER.gross) {
+        this.stat.gross++;
+        worker._geht = true;
+        const i = this.workerPool.indexOf(worker);
+        if (i >= 0) this.workerPool.splice(i, 1);
+      }
+      return worker;
+    });
+  }
+  _releaseTask(worker, taskID) {
+    super._releaseTask(worker, taskID);
+    if (worker._geht && worker._taskLoad === 0) this.beenden(worker);
+    if (!this.uhr && this.workerPool.every((w) => w._taskLoad === 0)) this.uhr = setTimeout(() => { this.uhr = 0; this.ruhe(); }, ENTPACKER.ruhe);
+  }
+  beenden(worker) {
+    if (!this.lebend.delete(worker)) return;
+    worker.terminate();
+    this.stat.beendet++;
+  }
+  // Jeden Worker ohne Arbeit beenden; liefert, wie viele es waren.
+  ruhe() {
+    let n = 0;
+    for (let i = this.workerPool.length - 1; i >= 0; i--) {
+      const w = this.workerPool[i];
+      if (w._taskLoad !== 0) continue;
+      this.workerPool.splice(i, 1);
+      this.beenden(w);
+      n++;
+    }
+    const s = this.stat;
+    if (n && s.stuecke > s.gesagt) {
+      s.gesagt = s.stuecke;
+      console.info(`[hangar] Entpacker der Geometrie in Ruhe: ${s.stuecke} Stücke ausgepackt (${s.gross} große), ${s.gestartet} Worker gestartet, ${s.beendet} beendet, ${this.lebend.size} laufen noch`);
+    }
+    return n;
+  }
+  dispose() {
+    clearTimeout(this.uhr); this.uhr = 0;
+    for (const w of [...this.lebend]) this.beenden(w);
+    return super.dispose();
+  }
+}
 // Komprimierte Zwillinge der Bilder (KTX2/Basis, 13.11.2026; Anlass,
 // Zahlen und Bauweise: scripts/lib/hangar-ktx.mjs). Zu jedem Bild liegt
 // unter /hangar/ktx/<kennung>.ktx2 dasselbe Bild in einer Form, die bei der
@@ -7741,7 +7826,7 @@ export async function initHangar(container, opts = {}) {
     life.layout(S, shipInfo);
   }
 
-  const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
+  const draco = new Entpacker(SMALL).setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
   // Komprimierte Texturen (KTX_BAU oben; Krisz 13.11.2026: „es braucht viel
   // zu viele Ressourcen um das Hangar laufen zu lassen“). Gemessen an dem Tag
   // in der Probe mit Halle und Gladius, hohe Stufe, RTX 3070 Ti: Texturen am

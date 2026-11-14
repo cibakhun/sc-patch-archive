@@ -642,7 +642,16 @@ export function dockSearch(ships, f, crew) {
 //   Telefonformat mit der Gladius braucht die Seite mit der echten Halle beim
 //   Laden rund 950 MB Arbeitsspeicher, ohne sie rund 340 MB; dreimal dieselbe
 //   Halle mit kleineren Bildern zu versuchen sparte dagegen kaum etwas.
-export const WAECHTER = { v: 3, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext', 'start'], anlauf: { zahl: 2, frist: 10 * 60e3, ruhe: 45e3 }, laeufe: 8 };
+//
+// Seit 14.11.2026 (Krisz waehlte „Volle Halle fuers Handy abspecken“), v 4:
+// - Die volle Halle ist leichter geworden (Entpacker der Geometrie im Viewer:
+//   im Telefonformat 633 statt 946 MB beim Laden, danach rund 520 statt
+//   809 MB). Alte Deckel verfallen, jedes Telefon versucht die volle Halle
+//   einmal neu.
+// - Die Zeile der leichten Ansicht zeigt schmal darunter die letzten
+//   Abbrueche und das Geraet, wie die Meldung (spurZeilen): Ein Bildschirmfoto
+//   der leichten Ansicht sagt dann, in welcher Phase die volle Halle abbrach.
+export const WAECHTER = { v: 4, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext', 'start'], anlauf: { zahl: 2, frist: 10 * 60e3, ruhe: 45e3 }, laeufe: 8 };
 const DECKEL = ['aus', ...WAECHTER.stufen];
 const istZeit = (t, now, frist) => Number.isFinite(t) && t <= now && now - t < frist;
 const eins = (liste, x) => (liste.includes(x) ? x : null);
@@ -2845,9 +2854,23 @@ export function boot(doc) {
   // auf und laedt die volle Halle. data-leicht an der Seite fuer Stil und
   // Pruefer.
   const leichtEl = $('hgx-leicht');
+  // Kleine Zeilen zu einem Stand des Waechters: die letzten `letzte` Abbrueche
+  // (Stufe, Phase, Art) und das Geraet. Welches Telefon es ist und wo die
+  // Halle abbrach, sagt sonst nur sein Besitzer.
+  function spurZeilen(stand, letzte = WAECHTER.spur) {
+    const stufenWort = (k) => $('hgx-gfx')?.querySelector(`option[value="${k}"]`)?.textContent ?? '';
+    const zeilen = waechterVerlauf((stand.spur ?? []).slice(-letzte), (k) => (WAECHTER.stufen.includes(k) ? stufenWort(k) : fallback.dataset[`spur${k[0].toUpperCase()}${k.slice(1)}`] ?? ''));
+    const geraet = waechterGeraet(navigator.userAgent, { w: window.screen?.width, h: window.screen?.height, dpr: window.devicePixelRatio });
+    return [
+      ...(zeilen.length && fallback.dataset.spur ? [fallback.dataset.spur, ...zeilen] : []),
+      ...(geraet && fallback.dataset.geraet ? [`${fallback.dataset.geraet} ${geraet}`] : []),
+    ];
+  }
   function leichtZeigen() {
     main.dataset.leicht = 'on';
-    if (leichtEl) leichtEl.hidden = false;
+    if (!leichtEl) return;
+    leichtEl.hidden = false;
+    notiz(leichtEl, spurZeilen(waechterStand(lies(() => localStorage, STAND_KEY), Date.now()), 2));
   }
   function leichtWeg() {
     delete main.dataset.leicht;
@@ -2885,14 +2908,8 @@ export function boot(doc) {
         location.reload();
       });
       fallback.append(b);
-      const stufenWort = (k) => $('hgx-gfx')?.querySelector(`option[value="${k}"]`)?.textContent ?? '';
-      const zeilen = waechterVerlauf(stand.spur, (k) => (WAECHTER.stufen.includes(k) ? stufenWort(k) : fallback.dataset[`spur${k[0].toUpperCase()}${k.slice(1)}`] ?? ''));
-      // Darunter das Geraet: Welches Telefon es ist, sagt sonst nur sein Besitzer
-      const geraet = waechterGeraet(navigator.userAgent, { w: window.screen?.width, h: window.screen?.height, dpr: window.devicePixelRatio });
-      notiz(fallback, [
-        ...(zeilen.length && fallback.dataset.spur ? [fallback.dataset.spur, ...zeilen] : []),
-        ...(geraet && fallback.dataset.geraet ? [`${fallback.dataset.geraet} ${geraet}`] : []),
-      ]);
+      // Darunter die Spur der Abbrueche und das Geraet
+      notiz(fallback, spurZeilen(stand));
     }
     // Nicht gestartet: der Grund in Kurzform darunter
     if (why === 'failed') grund(fallback, detail);

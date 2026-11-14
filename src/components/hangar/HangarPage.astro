@@ -452,6 +452,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-leicht{position:absolute;left:calc(var(--hg-left) + 6.5rem);right:calc(var(--hg-gut) + var(--hg-panelw) + 16px);bottom:80px;width:fit-content;margin:0 auto;padding:.3rem .7rem;border-radius:999px;background:var(--hg-panel);color:var(--hg-dim);font-size:var(--fs-5);line-height:1.35;text-align:center}
 .hgx-leicht[hidden]{display:none}
 .hgx-leicht .hgx-retry{margin-left:.35rem}
+/* Spur der Abbrueche und Geraet unter der Zeile: nur schmal (spurZeilen in
+   hangar-overview.js); breit ist die Zeile eine Pille ueber der Buehne. */
+.hgx-leicht .hgx-spur{display:none}
 .hg:has(#hgx-leicht:not([hidden])) .hg-hint{display:none}
 .hg[data-lost="on"] .hgx-leicht{display:none}
 .hgx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -723,8 +726,9 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   .hgx-modelerr,.hg-stagewrap .hg-fallback{left:50%;top:auto;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px)}
   .hgx-modelerr{bottom:68px}
   /* Die Zeile der leichten Ansicht: Text links, Knopf rechts (Tippflaeche 44 px) */
-  .hgx-leicht{position:static;display:flex;align-items:center;gap:.75rem;width:auto;margin:0;padding:.3rem 16px;border-radius:0;border-top:1px solid var(--hg-hair);background:var(--bg-2);text-align:left}
-  .hgx-leicht span{flex:1 1 auto}
+  .hgx-leicht{position:static;display:flex;flex-wrap:wrap;align-items:center;gap:0 .75rem;width:auto;margin:0;padding:.3rem 16px;border-radius:0;border-top:1px solid var(--hg-hair);background:var(--bg-2);text-align:left}
+  .hgx-leicht > span{flex:1 1 0;min-width:0}
+  .hgx-leicht .hgx-spur{display:block;flex:1 0 100%;margin:0 0 .2rem}
   .hgx-leicht .hgx-retry{display:block;flex:none;margin:0;min-height:44px;white-space:nowrap}
   .hgx-leicht:not([hidden]) + .hgx-stagebar{border-top:0;padding-top:0}
   .hg-side{position:static;width:auto;display:block}
