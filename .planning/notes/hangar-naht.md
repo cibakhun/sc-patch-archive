@@ -328,3 +328,24 @@ der neue Platz keine 70 Pixel neben dem alten, bleibt die Tafel stehen,
 solange sie dort ganz im Bild steht; wird sie höher (Datenblatt statt
 Schiffswerte), ragte ihre äußere obere Ecke sonst über den Rand. Maßschilder ohne freien Platz
 entfallen. Der Bodenspiegel („hoch“) zeigt die Ebene nicht.
+
+## Leichte Bühne am Telefon (2026-11-14)
+
+Am Telefon (schmal oder Touch, dieselbe Abfrage wie `SMALL` in der Szene)
+startet die Oberfläche die Szene unter jedem Deckel ihres Wächters ohne echte
+Halle und ohne Besatzung: Sie übergibt `hall: null` und `crew: null`
+(`waechterLeicht` in `assets/hangar-overview.js`), der Deckel kommt wie immer
+als `cap`. Die Szene sagt dafür zu: Ohne `opts.hall` baut sie ihre eigene
+Halle (`REAL` falsch, `buildStage()`), lädt keine Datei aus `/hangar/hall/`,
+`/hangar/npc/` oder der Werkhalle und stellt weder Stationen noch Orte auf
+(`canStation()` und `canPlace()` falsch). Schiffe, Bodenfahrzeuge, Marker,
+das Hologramm mit dem Namen, Grafik-Schalter, Ton und Einsteigen bleiben.
+Eine Hangargröße meldet sie dort nicht (`onHangar` schweigt ohne echte
+Halle): Die Zeile `#hgx-gr` und die letzte Zeile des Hologramms bleiben leer.
+
+Anlass: Im Telefonformat braucht die Seite mit der echten Halle beim Laden
+rund 950 MB Arbeitsspeicher, ohne sie rund 340 MB (gemessen mit der Gladius).
+Die Oberfläche zeigt dazu die Zeile `#hgx-leicht` mit dem Knopf
+`#hgx-leicht-voll`, der den Deckel aufhebt und die volle Halle lädt, und
+setzt `data-leicht="on"` an `#main`. `verify:hangar` [12] hält beide Seiten
+der Abmachung fest.

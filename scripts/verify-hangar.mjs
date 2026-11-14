@@ -327,6 +327,41 @@
      g15 in dist/assets/hangar-viewer.js in fitImage() return own
         durch return null ersetzen: ohne createImageBitmap bliebe
         jedes Bild gross, 903 statt 198 MB Texturen                 -> [12]
+     g16 in dist/assets/hangar-overview.js in offenSetzen() die
+        Zeile laeufeAendern(…) streichen (14.11.2026: der Vermerk
+        stuende wieder nur in der Registerkarte, und ein Browser,
+        der sie nach dem Absturz neu aufbaut, luede ohne Ende)      -> [12]
+     g17 dort in waechterBefund() die Zeile mit wie: 'start'
+        streichen (ohne Vermerk zaehlte am Telefon nichts mehr)     -> [12]
+     g18 dort anlaufSetzen(); nach offenSetzen(); in startBuehne
+        streichen (kein Start truege sich mehr ein)                 -> [12]
+     g19 dort in waechterLeicht() !!telefon durch false ersetzen
+        (unter dem Deckel luede das Telefon dreimal die echte
+        Halle, rund 950 statt 340 MB)                               -> [12]
+     g20 dort hall: null, crew: null aus dem Aufruf nehmen (die
+        leichte Buehne bekaeme die echte Halle doch)                -> [12]
+     g21 dort WAECHTER.anlauf.zahl auf 4 (ohne Vermerk liefe die
+        Schleife zehn statt sechs Laeufe)                           -> [12]
+     g22 dort WAECHTER.anlauf.ruhe auf 5e3 (die Liste der Starts
+        waere leer, bevor der Speicher nach dem Laden faellt)       -> [12]
+     g23 in dist/de/hangar.html den Knopf #hgx-leicht-voll
+        streichen (aus der leichten Ansicht fuehrte kein Weg zur
+        vollen Halle)                                               -> [12]
+     g24 dort data-geraet an #hg-fallback streichen (die Meldung
+        nennte das Geraet nicht mehr)                               -> [12]
+     g25 in dist/assets/hangar-viewer.js if (!REAL) buildStage();
+        streichen (ohne echte Halle stuende das Schiff im Leeren)   -> [12]
+     g26 in dist/assets/hangar-overview.js anlaufAbschied(); aus
+        dem pagehide-Lauscher nehmen (wer die Seite dreimal kurz
+        besucht, bekaeme die leichte Ansicht)                       -> [12]
+     g27 dort in abbruch() die Zeile anlaufWeg(); streichen
+        (derselbe Abbruch zaehlte ueber die Starts noch einmal)     -> [12]
+     g28 dort im Vermerk der Registerkarte v: WAECHTER.v streichen
+        (kein Vermerk der Registerkarte zaehlte mehr)               -> [12]
+     g29 dort in waechterStart() das return 'aus' nach einem
+        nicht gemerkten Abbruch streichen                           -> [12]
+     g30 dort anlaufAbschied(); aus laufEnde() nehmen (drei Starts
+        mit Meldung zaehlten als Abbruch)                           -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
      i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
@@ -1185,7 +1220,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // und sie rueckt beim Laden vor ('bauen' ab 90 %, 'steht' mit dem ersten
   // Schiff). v ist eine Klinke: Sinkt sie, gelten Deckel wieder, die fuer
   // eine schwerere Halle gemerkt wurden.
-  const WAECHTER_V = 2;
+  const WAECHTER_V = 3;
   if (ctrlMod) {
     const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 13, 12, 0, 0);
     const leer = ctrlMod.waechterStand?.(null, T);
@@ -1213,9 +1248,9 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     const naht = [
       [telQ !== null && telQ === smallQ, `Telefon heisst im Controller „${telQ}“, im Viewer „${smallQ}“`],
       [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie \}\)/.test(ctrl), 'abbruch() gibt sofort, phase und wie nicht an waechterAbbruch'],
-      [/JSON\.stringify\(\{ v: WAECHTER\.v, t: Date\.now\(\), id: lauf\.id, stufe: lauf\.stufe, phase: lauf\.phase \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
+      [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
       [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
-      [/abbruch\(offen\.stufe, 'seite', offen\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
+      [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
       [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
       // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
       [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
@@ -1226,7 +1261,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     sollIst(`${naht.length} Naehte von Spur und Sofort-Regel im Controller`, offen.length ? `${naht.length - offen.length} von ${naht.length}: ${offen.join('; ')}` : `${naht.length} von ${naht.length}`);
     for (const was of offen) fail(`[12] dist/assets/hangar-overview.js: ${was}. Vom Telefon kommt nichts zurueck ausser dieser Zeile unter der Meldung; ohne sie laesst sich von aussen nicht sagen, woran ein Lauf scheiterte`);
     // Die Woerter der Spur stehen auf jeder Hangarseite: je Phase und Art eines, dazu die beiden Einleitungen
-    const woerter = ['data-spur', 'data-grund', ...[...(W.phasen ?? []), ...(W.arten ?? [])].map((k) => `data-spur-${k}`)];
+    const woerter = ['data-spur', 'data-grund', 'data-geraet', ...[...(W.phasen ?? []), ...(W.arten ?? [])].map((k) => `data-spur-${k}`)];
     let wortSeiten = 0;
     for (const page of PAGES) {
       const tag = /<div[^>]*id="hg-fallback"[^>]*>/.exec(page.html)?.[0] ?? '';
@@ -1235,8 +1270,89 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       if (fehlt.length) fail(`[12] dist/${page.file}: an der Meldung der Buehne fehlt ${fehlt.join(', ')}: die Zeile unter der Meldung bliebe leer oder liesse ein Wort aus`);
       else wortSeiten++;
     }
-    sollIst(`${woerter.length} Woerter fuer Spur und Grund auf jeder Hangarseite`, `${wortSeiten} von ${PAGES.length} Seiten`);
-    if ((W.phasen ?? []).length < 3 || (W.arten ?? []).length < 2) fail(`[12] WAECHTER nennt ${(W.phasen ?? []).length} Phasen und ${(W.arten ?? []).length} Arten, erwartet mindestens 3 und 2`);
+    sollIst(`${woerter.length} Woerter fuer Spur, Grund und Geraet auf jeder Hangarseite`, `${wortSeiten} von ${PAGES.length} Seiten`);
+    if ((W.phasen ?? []).length < 3 || (W.arten ?? []).length < 3) fail(`[12] WAECHTER nennt ${(W.phasen ?? []).length} Phasen und ${(W.arten ?? []).length} Arten, erwartet mindestens 3 und 3`);
+  }
+  // Seit 14.11.2026 (WAECHTER.v 3, Krisz nach v 2: „Ne immer noch Dauer
+  // Neulade Loop“). Nachgestellt: Baut der Browser die Registerkarte nach dem
+  // Ende der Seite neu auf, ist ihr Speicher leer, kein Abbruch wurde
+  // gezaehlt, 7 Laeufe in 55 s ohne Ende. Drei Zusicherungen:
+  // 1. Der Vermerk „Lauf offen“ steht auch im Speicher des Geraets.
+  // 2. Am Telefon zaehlen die Starts, auch wenn kein Vermerk ueberlebt: Eine
+  //    Schleife endet dort ohne jeden Vermerk nach hoechstens LAEUFE_OHNE
+  //    Laeufen (Klinken, nur abwaerts: ANLAUF_ZAHL Starts, die nicht standen,
+  //    bevor einer zaehlt; RUHE_MIN nur aufwaerts: so lange muss eine Buehne
+  //    stehen, bis die Starts vor ihr nicht mehr zaehlen, gemessen faellt der
+  //    Arbeitsspeicher erst rund eine halbe Minute nach dem Laden).
+  // 3. Unter jedem Deckel laeuft am Telefon die leichte Buehne: Die Seite
+  //    gibt dem Viewer weder echte Halle noch Besatzung, er baut seine eigene
+  //    (gemessen im Telefonformat mit der Gladius: rund 340 statt 950 MB
+  //    Arbeitsspeicher der Seite beim Laden). Sie sagt es in einer Zeile mit
+  //    Knopf zur vollen Halle.
+  const ANLAUF_ZAHL = 2, LAEUFE_OHNE = 6, RUHE_MIN = 30e3;
+  if (ctrlMod) {
+    const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 14, 6, 0, 0);
+    const befund = typeof ctrlMod.waechterBefund === 'function' ? ctrlMod.waechterBefund : () => undefined;
+    const leichtFn = typeof ctrlMod.waechterLeicht === 'function' ? ctrlMod.waechterLeicht : () => undefined;
+    const zahl = W.anlauf?.zahl ?? 0, ruhe = W.anlauf?.ruhe ?? 0, frist = W.anlauf?.frist ?? 0;
+    const starts = Array.from({ length: zahl }, (_, i) => T + i * 20e3);
+    const tot = befund({ tot: [{ t: T, stufe: 'hoch', phase: 'bauen' }], anlauf: [], telefon: true });
+    const ohne = befund({ tot: [], anlauf: starts, telefon: true });
+    const pc = befund({ tot: [], anlauf: starts, telefon: false });
+    const einer = befund({ tot: [], anlauf: starts.slice(1), telefon: true });
+    // Telefon, an dem kein Vermerk ueberlebt und jeder Lauf abbricht, bevor er steht
+    let stand = ctrlMod.waechterStand?.(null, T) ?? null, anlauf = [], now = T;
+    const laeufe = [];
+    for (let i = 0; stand && typeof ctrlMod.waechterAnlauf === 'function' && typeof ctrlMod.waechterAnlaufText === 'function' && i < 40 && stand.deckel !== 'aus'; i++) {
+      now += 20e3;
+      const was = befund({ tot: [], anlauf: ctrlMod.waechterAnlauf(ctrlMod.waechterAnlaufText(anlauf), now), telefon: true });
+      if (was) {
+        stand = ctrlMod.waechterAbbruch(ctrlMod.waechterStand(ctrlMod.waechterText(stand), now), now, was.stufe, { sofort: true, phase: was.phase, wie: was.wie });
+        anlauf = [];
+      }
+      if (stand.deckel === 'aus') break;
+      laeufe.push(leichtFn(stand.deckel, true) ? 'leicht' : 'voll');
+      anlauf.push(now);
+    }
+    const voll = laeufe.filter((l) => l === 'voll').length;
+    const durch = ctrlMod.waechterLaeufe?.(ctrlMod.waechterLaeufeText?.([{ id: 'x', t: T, stufe: 'mittel', phase: 'bauen' }]) ?? null, T + 1000) ?? [];
+    const leichtIst = `Telefon mit Deckel mittel ${leichtFn('mittel', true) === true ? 'leicht' : 'voll'}, niedrig ${leichtFn('niedrig', true) === true ? 'leicht' : 'voll'}, ohne Deckel ${leichtFn(null, true) === false ? 'voll' : 'leicht'}, PC mit Deckel ${leichtFn('mittel', false) === false ? 'voll' : 'leicht'}`;
+    const v3Ok = tot?.wie === 'seite' && tot.stufe === 'hoch' && tot.phase === 'bauen' && ohne?.wie === 'start' && pc === null && einer === null
+      && zahl >= 1 && zahl <= ANLAUF_ZAHL && ruhe >= RUHE_MIN && (zahl + 1) * (ruhe + 60e3) <= frist
+      && stand?.deckel === 'aus' && laeufe.length >= 1 && laeufe.length <= LAEUFE_OHNE && voll === zahl
+      && leichtFn('mittel', true) === true && leichtFn('niedrig', true) === true && leichtFn('mittel', false) === false && leichtFn('aus', true) === false && leichtFn(null, true) === false
+      && durch.length === 1 && durch[0].id === 'x' && durch[0].stufe === 'mittel' && durch[0].phase === 'bauen';
+    sollIst(`Waechter ab v 3: ein toter Lauf zaehlt als Abbruch der Seite; am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts, die mindestens ${RUHE_MIN / 1000} s nicht standen, auch ohne Vermerk; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus; unter dem Deckel am Telefon die leichte Buehne`,
+      `toter Lauf: ${tot?.wie ?? 'nichts'}; ${zahl} Starts am Telefon: ${ohne?.wie ?? 'nichts'}, am PC: ${pc?.wie ?? 'nichts'}, ${Math.max(0, zahl - 1)} am Telefon: ${einer?.wie ?? 'nichts'}; Ruhe ${ruhe / 1000} s, Frist ${frist / 60e3} min; ohne Vermerk ${laeufe.length} Laeufe bis ${stand?.deckel ?? 'nichts'} (${laeufe.join(' ') || 'keiner'}); ${leichtIst}; Vermerk im Geraet ${durch.length === 1 ? 'geht durch den Speicher' : 'geht verloren'}`);
+    if (!v3Ok) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 14.11.2026 abgenommen (waechterBefund: toter Lauf zaehlt als 'seite', am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts als 'start', am PC keine; WAECHTER.anlauf.ruhe mindestens ${RUHE_MIN / 1000} s und drei Laeufe in der Frist; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus, davon so viele mit voller Halle wie Starts zaehlen; waechterLeicht: am Telefon unter jedem Deckel, sonst nie; waechterLaeufe liest, was waechterLaeufeText schreibt): Ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu, oder es versuchte dreimal dieselbe Halle`);
+    const startTeil = ctrl.slice(Math.max(0, ctrl.indexOf('async function waechterStart()')), Math.max(0, ctrl.indexOf('async function waechterStart()')) + 1800);
+    // je Naht: erfuellt, Datei, was fehlt, was daraus folgte
+    const SCHLEIFE = 'ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu', DREIMAL = 'das Telefon versuchte nach einem Abbruch wieder dieselbe Halle (rund 950 statt 340 MB)', FALSCH = 'ein Besucher ohne Abbruch bekaeme die leichte Ansicht';
+    const naht3 = [
+      [/laeufeAendern\(\(l\) => \[\.\.\.l\.filter\(\(x\) => x\.id !== e\.id\), e\]\);/.test(ctrl), 'hangar-overview.js', 'offenSetzen() vermerkt den Lauf nicht mehr im Speicher des Geraets', SCHLEIFE],
+      [/waechterLaeufe\(lies\(\(\) => localStorage, LAEUFE_KEY\), now\)/.test(startTeil) && /waechterAnlauf\(lies\(\(\) => localStorage, ANLAUF_KEY\), now\)/.test(startTeil) && /waechterBefund\(\{ tot, anlauf, telefon: TELEFON \}\)/.test(startTeil), 'hangar-overview.js', 'waechterStart liest die offenen Laeufe des Geraets oder die Starts nicht mehr', SCHLEIFE],
+      [/offenSetzen\(\);\s*anlaufSetzen\(\);/.test(ctrl), 'hangar-overview.js', 'der Start der Buehne traegt sich nicht mehr in die Liste der Starts ein', 'ueberlebt kein Vermerk, zaehlte am Telefon nichts mehr, und es luede ohne Ende neu'],
+      [/setTimeout\(\(\) => \{ if \(lauf\?\.id === id\) anlaufWeg\(\); \}, WAECHTER\.anlauf\.ruhe\);/.test(ctrl), 'hangar-overview.js', 'eine Buehne, die steht, leert die Liste der Starts nicht mehr', FALSCH],
+      [/window\.addEventListener\('pagehide', \(\) => \{ offenWeg\(\); anlaufAbschied\(\); \}\);/.test(ctrl), 'hangar-overview.js', 'wer die Seite von sich aus verlaesst, nimmt Vermerk oder Start nicht mehr heraus', 'wer dreimal kurz hereinschaut oder von Hand neu laedt, zaehlte als Abbruch'],
+      [/anlaufWeg\(\);\s*console\.warn\(`\[hangar\] Abbruch der Buehne/.test(ctrl), 'hangar-overview.js', 'ein gezaehlter Abbruch leert die Starts nicht', 'derselbe Abbruch zaehlte ueber die Starts ein zweites Mal und senkte zwei Stufen'],
+      [/function laufEnde\(\) \{ lauf = null; offenWeg\(\); anlaufAbschied\(\); \}/.test(ctrl), 'hangar-overview.js', 'ein Lauf, der mit einer Meldung endet (kein Start, Kontext im Hintergrund verloren), bleibt als Start ohne Abschied stehen', FALSCH],
+      [/const leicht = waechterLeicht\(deckel, TELEFON\);/.test(ctrl) && /const buehne = leicht \? \{ \.\.\.stageCfg\.opts, hall: null, crew: null \} : stageCfg\.opts;/.test(ctrl) && /\.\.\.buehne\b/.test(call), 'hangar-overview.js', 'unter einem Deckel bekommt der Viewer am Telefon weiter die echte Halle und die Besatzung', DREIMAL],
+      [/const REAL = !!\(opts\.hall\?\.url && opts\.hall\.room\);/.test(viewer) && /if \(!REAL\) buildStage\(\);/.test(viewer) && /if \(opts\.crew\?\.module && REAL\) \{/.test(viewer), 'hangar-viewer.js', 'der Viewer baut ohne echte Halle keine eigene mehr (REAL, buildStage) oder laedt die Besatzung auch ohne sie', 'in der leichten Ansicht stuende das Schiff im Leeren'],
+    ];
+    const offen3 = naht3.filter(([ok]) => !ok);
+    sollIst(`${naht3.length} Naehte von Vermerk im Geraet, Starts und leichter Buehne`, offen3.length ? `${naht3.length - offen3.length} von ${naht3.length}: ${offen3.map(([, , was]) => was).join('; ')}` : `${naht3.length} von ${naht3.length}`);
+    for (const [, datei, was, folge] of offen3) fail(`[12] dist/assets/${datei}: ${was}: ${folge} (14.11.2026)`);
+    // Die Zeile der leichten Ansicht steht auf jeder Hangarseite, mit Text und Knopf
+    let leichtSeiten = 0;
+    for (const page of PAGES) {
+      const el = /<p[^>]*id="hgx-leicht"[^>]*>([\s\S]*?)<\/p>/.exec(page.html);
+      const text = el ? (/<span>([^<]+)<\/span>/.exec(el[1])?.[1] ?? '').trim() : '';
+      const knopf = el ? (/<button[^>]*id="hgx-leicht-voll"[^>]*>([^<]+)<\/button>/.exec(el[1])?.[1] ?? '').trim() : '';
+      const zu = el ? /\shidden(?:[\s>=])/.test(el[0].slice(0, el[0].indexOf('>') + 1)) : false;
+      if (!el || !text || !knopf || !zu) fail(`[12] dist/${page.file}: die Zeile der leichten Ansicht ${!el ? 'fehlt (#hgx-leicht)' : !text ? 'hat keinen Text' : !knopf ? 'hat keinen Knopf zur vollen Halle (#hgx-leicht-voll)' : 'ist nicht von Anfang an verborgen (hidden)'}: Am Telefon stuende das Schiff ohne Erklaerung in der gebauten Halle, oder kein Weg fuehrte zurueck`);
+      else leichtSeiten++;
+    }
+    sollIst('Zeile der leichten Ansicht mit Text und Knopf, anfangs verborgen, auf jeder Hangarseite', `${leichtSeiten} von ${PAGES.length} Seiten`);
   }
   // Der einzige Weg, auf dem die Seite nach verlorenem Zeichenkontext von
   // selbst neu laedt, haengt am Waechter: im Rueckruf von onLost zaehlt
@@ -1253,11 +1369,11 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // Dazu haelt ein Zeitgeber den Vermerk „Lauf offen“ frisch, sonst zaehlte
   // ein Abbruch nach langem Ansehen nicht.
   const startAt = ctrl.indexOf('async function waechterStart()');
-  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 600);
-  const startOk = /if \(!abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
+  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 1800);
+  const startOk = /if \(was && !abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
   const pulsOk = /setInterval\(offenSetzen, WAECHTER\.puls\)/.test(ctrl) && ctrlMod && ctrlMod.WAECHTER?.puls > 0 && ctrlMod.WAECHTER.puls < ctrlMod.WAECHTER.frisch;
   sollIst('Start ohne gemerkten Abbruch bleibt ohne Buehne, Vermerk „Lauf offen“ wird frisch gehalten', startOk && pulsOk ? 'ja' : `nein (${[!startFn && 'waechterStart nicht gefunden', startFn && !startOk && 'Start prueft abbruch() nicht', !pulsOk && 'kein Zeitgeber unter der Frist'].filter(Boolean).join(', ')})`);
-  if (!startOk) fail('[12] dist/assets/hangar-overview.js: waechterStart startet die Buehne auch dann, wenn der Abbruch des vorigen Laufs nicht gemerkt wurde (erwartet „if (!abbruch(…)) return \'aus\'“): ohne Speicher zaehlte kein Abbruch, die Neu-Lade-Schleife liefe weiter');
+  if (!startOk) fail('[12] dist/assets/hangar-overview.js: waechterStart startet die Buehne auch dann, wenn der Abbruch des vorigen Laufs nicht gemerkt wurde (erwartet „if (was && !abbruch(…)) return \'aus\'“): ohne Speicher zaehlte kein Abbruch, die Neu-Lade-Schleife liefe weiter');
   if (!pulsOk) fail('[12] dist/assets/hangar-overview.js: der Vermerk „Lauf offen“ wird nicht mehr frisch gehalten (setInterval(offenSetzen, WAECHTER.puls), puls unter frisch): ein Abbruch nach langem Ansehen zaehlte nicht');
   for (const page of PAGES) {
     const sel = /<select id="hgx-gfx">([\s\S]*?)<\/select>/.exec(page.html)?.[1] ?? null;

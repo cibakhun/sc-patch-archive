@@ -146,6 +146,8 @@ const DE = {
   'bay.retry': 'Erneut versuchen',
   'model.failed': 'Das 3D-Modell dieses Schiffs konnte nicht geladen werden. Die Werte stehen trotzdem bereit.',
   'model.grund': 'Technischer Grund:',
+  'leicht.text': 'Leichte Ansicht: Die volle Halle brach auf diesem Gerät ab.',
+  'leicht.voll': 'Volle Halle laden',
   // Vorlagen, die der Controller fuellt (Mehrzahl ueber Intl.PluralRules)
   'msg.count.one': '{n} Schiff',
   'msg.count.other': '{n} Schiffe',
@@ -390,6 +392,8 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'bay.retry': 'Try again',
   'model.failed': 'The 3D model of this ship could not be loaded. The figures are still available.',
   'model.grund': 'Technical reason:',
+  'leicht.text': 'Light view: the full hangar stopped on this device.',
+  'leicht.voll': 'Load the full hangar',
   'msg.count.one': '{n} ship',
   'msg.count.other': '{n} ships',
   'msg.copy.ok': 'Link copied.',

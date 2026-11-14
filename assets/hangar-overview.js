@@ -612,7 +612,28 @@ export function dockSearch(ships, f, crew) {
 //   sie als Zeile (waechterVerlauf). Vom Telefon kommt sonst nichts zurueck,
 //   keine Konsole, kein Protokoll, und ohne sie laesst sich von aussen nicht
 //   sagen, ob das Laden oder das Stehen das Geraet ueberfordert.
-export const WAECHTER = { v: 2, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext'] };
+//
+// Seit 14.11.2026 (Krisz nach v 2: „Ne immer noch Dauer Neulade Loop“), v 3:
+// - Der Vermerk „Lauf offen“ lag nur im Speicher der Registerkarte. Baut der
+//   Browser sie nach dem Ende der Seite neu auf, statt sie nur neu zu laden,
+//   ist der Vermerk weg, kein Abbruch wird gezaehlt, und die Schleife laeuft
+//   ohne Ende (nachgestellt: 7 Laeufe in 55 s, alle in der hohen Stufe). Der
+//   Vermerk steht deshalb zusaetzlich im Speicher des Geraets, je Lauf einer
+//   (waechterLaeufe); ob ein dort vermerkter Lauf in einer anderen
+//   Registerkarte noch lebt, sagt der Kanal.
+// - Am Telefon zaehlt ausserdem jeder Start der Buehne (waechterAnlauf): Wer
+//   dort startet und WAECHTER.anlauf.zahl Starts vor sich findet, von denen
+//   keiner WAECHTER.anlauf.ruhe lang stand, zaehlt einen Abbruch, auch wenn
+//   kein Vermerk ueberlebt hat (Art 'start'). Das ist der Gurt zum
+//   Hosentraeger: Er haengt an keinem Ereignis und an keinem Speicher der
+//   Registerkarte. Wer die Seite von sich aus verlaesst (pagehide), nimmt
+//   seinen Start wieder heraus.
+// - Am Telefon laeuft unter jedem Deckel die leichte Buehne (waechterLeicht):
+//   das Schiff in der gebauten Halle statt in der echten. Gemessen im
+//   Telefonformat mit der Gladius braucht die Seite mit der echten Halle beim
+//   Laden rund 950 MB Arbeitsspeicher, ohne sie rund 340 MB; dreimal dieselbe
+//   Halle mit kleineren Bildern zu versuchen sparte dagegen kaum etwas.
+export const WAECHTER = { v: 3, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext', 'start'], anlauf: { zahl: 2, frist: 10 * 60e3, ruhe: 45e3 }, laeufe: 8 };
 const DECKEL = ['aus', ...WAECHTER.stufen];
 const istZeit = (t, now, frist) => Number.isFinite(t) && t <= now && now - t < frist;
 const eins = (liste, x) => (liste.includes(x) ? x : null);
@@ -691,7 +712,89 @@ export function waechterOffen(raw, now) {
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return null; }
   if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
-  return { id: o.id, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase) };
+  return { id: o.id, t: o.t, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase) };
+}
+
+/**
+ * Die offenen Laeufe dieses Geraets aus seinem Speicher, aelteste zuerst:
+ * [{ id, t, stufe, phase }]. Dieselben Regeln wie beim Vermerk der
+ * Registerkarte (waechterOffen): Kaputtes, Altes und andere Fassungen fallen
+ * weg; hoechstens WAECHTER.laeufe bleiben.
+ * @param {string|null} raw
+ * @param {number} now
+ */
+export function waechterLaeufe(raw, now) {
+  let o = null;
+  try { o = JSON.parse(raw ?? 'null'); } catch { return []; }
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || !o.l || typeof o.l !== 'object' || Array.isArray(o.l)) return [];
+  return Object.entries(o.l)
+    .filter(([id, e]) => id && e && typeof e === 'object' && istZeit(e.t, now, WAECHTER.frisch))
+    .map(([id, e]) => ({ id, t: e.t, stufe: eins(WAECHTER.stufen, e.s), phase: eins(WAECHTER.phasen, e.p) }))
+    .sort((a, b) => a.t - b.t)
+    .slice(-WAECHTER.laeufe);
+}
+
+/** @param {{ id: string, t: number, stufe: string|null, phase: string|null }[]} laeufe */
+export const waechterLaeufeText = (laeufe) => JSON.stringify({ v: WAECHTER.v, l: Object.fromEntries(laeufe.map((e) => [e.id, { t: e.t, s: e.stufe, p: e.phase }])) });
+
+/**
+ * Die Starts der Buehne an diesem Telefon, die weder standen noch verlassen
+ * wurden: Zeiten in der Frist WAECHTER.anlauf.frist, aelteste zuerst.
+ * @param {string|null} raw
+ * @param {number} now
+ */
+export function waechterAnlauf(raw, now) {
+  let o = null;
+  try { o = JSON.parse(raw ?? 'null'); } catch { return []; }
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || !Array.isArray(o.t)) return [];
+  return o.t.filter((t) => istZeit(t, now, WAECHTER.anlauf.frist)).sort((a, b) => a - b).slice(-WAECHTER.laeufe);
+}
+
+/** @param {number[]} zeiten */
+export const waechterAnlaufText = (zeiten) => JSON.stringify({ v: WAECHTER.v, t: zeiten });
+
+/**
+ * Was ein Start zaehlt: null oder der Abbruch { stufe, phase, wie }. tot: die
+ * vermerkten Laeufe, die nicht mehr leben (der juengste gilt, gezaehlt wird
+ * einer); anlauf: die Starts vor diesem (waechterAnlauf), sie zaehlen nur am
+ * Telefon und nur ohne toten Lauf.
+ * @param {{ tot?: { t: number, stufe: string|null, phase: string|null }[], anlauf?: number[], telefon?: boolean }} was
+ */
+export function waechterBefund({ tot = [], anlauf = [], telefon = false } = {}) {
+  if (tot.length) {
+    const e = tot.reduce((a, b) => (b.t > a.t ? b : a));
+    return { stufe: e.stufe ?? null, phase: e.phase ?? null, wie: 'seite' };
+  }
+  if (telefon && anlauf.length >= WAECHTER.anlauf.zahl) return { stufe: null, phase: null, wie: 'start' };
+  return null;
+}
+
+/**
+ * Leichte Buehne: am Telefon unter jedem Deckel des Waechters, also nach dem
+ * ersten Abbruch. Die Seite gibt dem Viewer dann weder die echte Halle noch
+ * die Besatzung mit, er baut seine eigene Halle (REAL in hangar-viewer.js).
+ * @param {string|null} deckel
+ * @param {boolean} telefon
+ */
+export const waechterLeicht = (deckel, telefon) => !!telefon && WAECHTER.stufen.includes(deckel);
+
+/**
+ * Das Geraet als Zeile fuer die Meldung: Art und System aus der Kennung des
+ * Browsers, dazu Bildschirm und Pixeldichte („iPhone, iOS 17.5, 390 × 844 @3“).
+ * Am Bildschirm laesst sich die Baureihe ablesen, die das Telefon selbst
+ * nicht verraet. '' ohne Angaben.
+ * @param {string} ua
+ * @param {{ w?: number, h?: number, dpr?: number }} [schirm]
+ */
+export function waechterGeraet(ua, { w = 0, h = 0, dpr = 0 } = {}) {
+  const u = String(ua ?? '');
+  const ios = /\b(iPhone|iPad|iPod)\b[^)]*?\bOS (\d+)[_.](\d+)/.exec(u);
+  const android = /\bAndroid (\d+(?:\.\d+)?)/.exec(u);
+  const teile = [];
+  if (ios) teile.push(ios[1], `iOS ${ios[2]}.${ios[3]}`);
+  else if (android) teile.push(`Android ${android[1]}`);
+  if (w > 0 && h > 0) teile.push(`${Math.round(Math.min(w, h))} × ${Math.round(Math.max(w, h))}${dpr > 0 ? ` @${Math.round(dpr * 100) / 100}` : ''}`);
+  return teile.join(', ');
 }
 
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
@@ -2450,7 +2553,7 @@ export function boot(doc) {
   // Start ihn vor, ist der vorige Lauf abgebrochen, es sei denn, die
   // Registerkarte wurde verdoppelt (der Vermerk wird mitkopiert): dann
   // meldet sich der noch laufende Lauf ueber den Kanal.
-  const STAND_KEY = 'vb.hangar.waechter', OFFEN_KEY = 'vb.hangar.offen';
+  const STAND_KEY = 'vb.hangar.waechter', OFFEN_KEY = 'vb.hangar.offen', LAEUFE_KEY = 'vb.hangar.laeufe', ANLAUF_KEY = 'vb.hangar.anlauf';
   const lies = (wo, key) => { try { return wo().getItem(key); } catch { return null; } };
   function standSchreiben(stand) {
     try {
@@ -2462,7 +2565,31 @@ export function boot(doc) {
   // Telefon wie SMALL im Viewer (schmal oder Touch): dort senkt schon der
   // erste Abbruch (WAECHTER oben).
   const TELEFON = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
-  const WIE = { seite: 'Seite neu gestartet', kontext: 'Zeichenkontext verloren' };
+  const WIE = { seite: 'Seite neu gestartet', kontext: 'Zeichenkontext verloren', start: 'mehrere Starts, keiner stand' };
+  // Die Starts der Buehne an diesem Telefon (waechterAnlauf): Jeder Start
+  // traegt sich ein; steht die Buehne WAECHTER.anlauf.ruhe lang, ist die
+  // Liste leer, und wer die Seite von sich aus verlaesst (pagehide), nimmt
+  // seinen Eintrag wieder heraus. Was stehen bleibt, sind Starts, die ohne
+  // Abschied endeten. Ein gezaehlter Abbruch leert die Liste ebenfalls, und
+  // was die Seite selbst neu laedt (Grafik-Schalter, Knoepfe), auch.
+  let meinStart = 0;
+  const anlaufWeg = () => { meinStart = 0; try { localStorage.removeItem(ANLAUF_KEY); } catch { /* ohne Speicher gab es keine Liste */ } };
+  function anlaufSetzen() {
+    if (!TELEFON) return;
+    try {
+      meinStart = Date.now();
+      localStorage.setItem(ANLAUF_KEY, waechterAnlaufText([...waechterAnlauf(localStorage.getItem(ANLAUF_KEY), meinStart), meinStart]));
+    } catch { meinStart = 0; }
+  }
+  function anlaufAbschied() {
+    if (!meinStart) return;
+    try {
+      const rest = waechterAnlauf(localStorage.getItem(ANLAUF_KEY), Date.now()).filter((t) => t !== meinStart);
+      if (rest.length) localStorage.setItem(ANLAUF_KEY, waechterAnlaufText(rest));
+      else localStorage.removeItem(ANLAUF_KEY);
+    } catch { /* dann bleibt der Eintrag und verfaellt mit der Frist */ }
+    meinStart = 0;
+  }
   // Ein Abbruch in der Stufe stufe: vermerken, und was der Besucher von Hand
   // gewaehlt hatte, gilt nicht weiter, wenn der Deckel darunter liegt.
   // wie: 'seite' oder 'kontext', phase: wie weit der Lauf war (beides fuer die Spur).
@@ -2473,6 +2600,8 @@ export function boot(doc) {
     if (stand.deckel && GRAFIK && (stand.deckel === 'aus' || WAECHTER.stufen.indexOf(GRAFIK) > WAECHTER.stufen.indexOf(stand.deckel))) {
       try { localStorage.removeItem(GRAFIK_KEY); } catch { /* dann gilt der Deckel ueber der Wahl */ }
     }
+    // gezaehlt ist gezaehlt: die Starts davor zaehlen kein zweites Mal
+    anlaufWeg();
     console.warn(`[hangar] Abbruch der Buehne (${WIE[wie] ?? wie}, Stufe ${stufe ?? 'unbekannt'}, ${phase ?? 'Phase unbekannt'}): ${stand.deckel === vor.deckel ? 'vermerkt' : `Deckel ${stand.deckel}`}${ok ? '' : ', ohne Speicher nicht gemerkt'}`);
     return ok ? stand : null;
   }
@@ -2495,18 +2624,48 @@ export function boot(doc) {
     kanal.addEventListener('message', on);
     kanal.postMessage({ frage: id });
   });
-  const offenWeg = () => { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* ohne Speicher gab es keinen Vermerk */ } };
+  // Die offenen Laeufe im Speicher des Geraets (waechterLaeufe): lesen,
+  // aendern, schreiben. Nur mit Kanal: ohne ihn kann kein Start sagen, ob ein
+  // dort vermerkter Lauf in einer anderen Registerkarte noch laeuft.
+  function laeufeAendern(fn) {
+    if (!kanal) return;
+    try {
+      const l = fn(waechterLaeufe(localStorage.getItem(LAEUFE_KEY), Date.now()));
+      if (l.length) localStorage.setItem(LAEUFE_KEY, waechterLaeufeText(l));
+      else localStorage.removeItem(LAEUFE_KEY);
+    } catch { /* ohne Speicher bleibt der Vermerk der Registerkarte */ }
+  }
+  // unter welcher Kennung der Vermerk dieser Seite im Speicher des Geraets steht
+  let offenId = null;
+  const offenWeg = () => {
+    try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* ohne Speicher gab es keinen Vermerk */ }
+    if (!offenId) return;
+    const id = offenId;
+    offenId = null;
+    laeufeAendern((l) => l.filter((e) => e.id !== id));
+  };
   function offenSetzen() {
     if (!lauf || doc.hidden) return;
-    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ v: WAECHTER.v, t: Date.now(), id: lauf.id, stufe: lauf.stufe, phase: lauf.phase })); } catch { /* ohne Speicher zaehlt nur der verlorene Kontext */ }
+    const e = { id: lauf.id, t: Date.now(), stufe: lauf.stufe, phase: lauf.phase };
+    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ v: WAECHTER.v, ...e })); } catch { /* dann zaehlt der Vermerk im Speicher des Geraets */ }
+    offenId = e.id;
+    laeufeAendern((l) => [...l.filter((x) => x.id !== e.id), e]);
   }
-  function laufEnde() { lauf = null; offenWeg(); }
+  // Ein Lauf, der mit einer Meldung endet (kein Start, Kontext verloren), ist
+  // kein Start, der ohne Abschied endete: Er nimmt sich aus der Liste.
+  function laufEnde() { lauf = null; offenWeg(); anlaufAbschied(); }
   // Wie weit der Lauf ist (WAECHTER.phasen), nur vorwaerts: 'laden' bis die
   // Dateien da sind, 'bauen' bis das erste Schiff steht, dann 'steht'.
   function laufPhase(phase) {
     if (!lauf || WAECHTER.phasen.indexOf(phase) <= WAECHTER.phasen.indexOf(lauf.phase)) return;
     lauf.phase = phase;
     offenSetzen();
+    // Steht die Buehne WAECHTER.anlauf.ruhe lang, traegt das Geraet sie: Die
+    // Starts davor zaehlen nicht mehr (der eigene eingeschlossen).
+    if (phase === 'steht') {
+      const id = lauf.id;
+      setTimeout(() => { if (lauf?.id === id) anlaufWeg(); }, WAECHTER.anlauf.ruhe);
+    }
   }
   // Seit wann die Seite sichtbar ist (0: im Hintergrund, 1: seit dem Start).
   // Einer Seite im Hintergrund nimmt das Telefon den Zeichenkontext auch ohne
@@ -2514,7 +2673,7 @@ export function boot(doc) {
   // (imVordergrund). Ein Verlust gleich nach dem Start zaehlt dagegen.
   let sichtbarSeit = doc.hidden ? 0 : 1;
   const imVordergrund = () => sichtbarSeit > 0 && Date.now() - sichtbarSeit >= 5000;
-  window.addEventListener('pagehide', offenWeg);
+  window.addEventListener('pagehide', () => { offenWeg(); anlaufAbschied(); });
   window.addEventListener('pageshow', (e) => {
     if (!e.persisted) return;
     sichtbarSeit = doc.hidden ? 0 : Date.now();
@@ -2534,12 +2693,24 @@ export function boot(doc) {
   // Registerkarte schon), bleibt die Buehne fuer dieses Laden aus: Sonst
   // zaehlte kein Abbruch, und die Schleife liefe weiter. Der Knopf oder ein
   // Neuladen von Hand versucht es wieder, einmal je Mal.
+  // Vermerkt sind Laeufe an zwei Orten: im Speicher der Registerkarte (der
+  // eigene vorige Lauf) und in dem des Geraets (alle offenen, seit v 3). Wer
+  // davon nicht mehr lebt, ist abgebrochen; gezaehlt wird je Start einer.
+  // Findet sich keiner, zaehlen am Telefon die Starts (waechterBefund).
   async function waechterStart() {
-    const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), Date.now());
-    if (offen && !(await lebtNoch(offen.id))) {
-      offenWeg();
-      if (!abbruch(offen.stufe, 'seite', offen.phase)) return 'aus';
+    const now = Date.now();
+    const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), now);
+    const laeufe = kanal ? waechterLaeufe(lies(() => localStorage, LAEUFE_KEY), now) : [];
+    const vermerkt = [...(offen ? [offen] : []), ...laeufe.filter((e) => e.id !== offen?.id)];
+    const lebt = await Promise.all(vermerkt.map((e) => lebtNoch(e.id)));
+    const tot = vermerkt.filter((_, i) => !lebt[i]);
+    if (tot.length) {
+      if (offen && tot.includes(offen)) { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* dann gab es ihn nicht */ } }
+      laeufeAendern((l) => l.filter((e) => !tot.some((x) => x.id === e.id)));
     }
+    const anlauf = TELEFON ? waechterAnlauf(lies(() => localStorage, ANLAUF_KEY), now) : [];
+    const was = waechterBefund({ tot, anlauf, telefon: TELEFON });
+    if (was && !abbruch(was.stufe, was.wie, was.phase)) return 'aus';
     return waechterStand(lies(() => localStorage, STAND_KEY), Date.now()).deckel;
   }
 
@@ -2588,10 +2759,29 @@ export function boot(doc) {
     if (need > buehne.offsetHeight) buehne.style.minHeight = `${Math.ceil(need)}px`;
   }
   window.addEventListener('resize', meldungPlatz, { passive: true });
+  // Leichte Ansicht (waechterLeicht): Die Zeile #hgx-leicht sagt, dass das
+  // Schiff in der gebauten Halle steht und warum; ihr Knopf hebt den Deckel
+  // auf und laedt die volle Halle. data-leicht an der Seite fuer Stil und
+  // Pruefer.
+  const leichtEl = $('hgx-leicht');
+  function leichtZeigen() {
+    main.dataset.leicht = 'on';
+    if (leichtEl) leichtEl.hidden = false;
+  }
+  function leichtWeg() {
+    delete main.dataset.leicht;
+    if (leichtEl) leichtEl.hidden = true;
+  }
+  $('hgx-leicht-voll')?.addEventListener('click', () => {
+    standSchreiben({ ab: null, deckel: null, seit: 0 });
+    anlaufWeg();
+    location.reload();
+  });
   function noStage(why, detail) {
     loadEl.hidden = true;
     delete main.dataset.holo;
     laufEnde();
+    leichtWeg();
     // ohne Buehne keine Stationen in der Halle: die Tafeln der Seite gelten
     // und keine Orte: ein ?ort=leit aus der Adresse faellt zurueck aufs Feld
     if (stage3d !== false || stageOrte !== false) {
@@ -2610,12 +2800,18 @@ export function boot(doc) {
       // Ohne Speicher laedt der Knopf trotzdem neu: ein Versuch je Druck
       b.addEventListener('click', () => {
         standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now(), spur: stand.spur });
+        anlaufWeg();
         location.reload();
       });
       fallback.append(b);
       const stufenWort = (k) => $('hgx-gfx')?.querySelector(`option[value="${k}"]`)?.textContent ?? '';
       const zeilen = waechterVerlauf(stand.spur, (k) => (WAECHTER.stufen.includes(k) ? stufenWort(k) : fallback.dataset[`spur${k[0].toUpperCase()}${k.slice(1)}`] ?? ''));
-      if (zeilen.length && fallback.dataset.spur) notiz(fallback, [fallback.dataset.spur, ...zeilen]);
+      // Darunter das Geraet: Welches Telefon es ist, sagt sonst nur sein Besitzer
+      const geraet = waechterGeraet(navigator.userAgent, { w: window.screen?.width, h: window.screen?.height, dpr: window.devicePixelRatio });
+      notiz(fallback, [
+        ...(zeilen.length && fallback.dataset.spur ? [fallback.dataset.spur, ...zeilen] : []),
+        ...(geraet && fallback.dataset.geraet ? [`${fallback.dataset.geraet} ${geraet}`] : []),
+      ]);
     }
     // Nicht gestartet: der Grund in Kurzform darunter
     if (why === 'failed') grund(fallback, detail);
@@ -2697,6 +2893,7 @@ export function boot(doc) {
       } catch { /* ohne Speicher gilt die Wahl nur ueber die Adresse */ }
       // Eine Wahl von Hand hebt den Deckel des Waechters auf
       standSchreiben({ ab: null, deckel: null, seit: 0 });
+      anlaufWeg();
       const u = new URL(location.href);
       if (!canStore()) {
         if (sel.value === 'auto') u.searchParams.delete('grafik'); else u.searchParams.set('grafik', sel.value);
@@ -2776,8 +2973,14 @@ export function boot(doc) {
     // Lauf offen, die Stufe folgt, sobald der Viewer sie gewaehlt hat
     lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, stufe: null, phase: 'laden' };
     offenSetzen();
+    anlaufSetzen();
+    // Am Telefon unter einem Deckel die leichte Buehne: ohne echte Halle und
+    // ohne Besatzung baut der Viewer seine eigene Halle (waechterLeicht)
+    const leicht = waechterLeicht(deckel, TELEFON);
+    if (leicht) leichtZeigen();
+    const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : stageCfg.opts;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...buehne, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }))
       .then((v) => {
         viewer = v;
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }
