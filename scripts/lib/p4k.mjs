@@ -39,7 +39,8 @@ export function clientManifest(p4kPath = DEFAULT_P4K) {
 }
 let warnedBranch = false;
 
-function launcherFassung(cl) {
+/** Fassung X.Y.Z, unter der der Launcher diese Changelist installiert hat, oder null. */
+export function launcherFassung(cl) {
   if (!cl || !process.env.APPDATA) return null;
   const log = resolve(process.env.APPDATA, 'rsilauncher', 'logs', 'log.log');
   if (!existsSync(log)) return null;
