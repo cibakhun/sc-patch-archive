@@ -352,7 +352,7 @@ for (const h of HANDBESTAENDE) {
   console.log(`    ${h.datei}: ${h.art === 'patch' ? `Stand ${standWert}` : `geaendert ${standWert}`}, Pruefsumme stimmt (${h.zeigt})`);
 }
 console.log(`    Handbestaende geprueft — Soll: ${HANDBESTAENDE.length}   Ist: ${handGeprueft}`);
-need(HANDBESTAENDE.length >= 1, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 1) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
+need(HANDBESTAENDE.length >= 2, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 2) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
 
 /* ---------- Schlusszeile ---------- */
 

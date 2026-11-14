@@ -17,6 +17,8 @@ import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
+import Datenstand from '../../components/Datenstand.astro';
+import { standWikelo } from '../../lib/datenstand';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -436,6 +438,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
 <WikeloBridge lang={de ? 'de' : 'en'} />
 
 <RelatedTopics topicSlug="wikelo-emporium" />
+
+<Datenstand lang={de ? 'de' : 'en'} zeilen={standWikelo(de ? 'de' : 'en')} />
 
 <Attribution sources={["starcitizen.tools", "wikelotrades.com", "RSI"]} />
 
