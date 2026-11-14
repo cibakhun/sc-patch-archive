@@ -432,6 +432,8 @@ const STAND_GRUPPEN = [
   // jede Gruppe prueft nur ihren.
   { name: 'Hangar', match: (p) => p === 'hangar.html', pflicht: ['flotte', 'modelle', 'wiki'], erlaubt: ['flotte', 'flotte-aelter', 'modelle', 'wiki', 'modelle-ohne'], lageFrei: true, nurMitHangar: true },
   { name: 'Hangar-Buchten', match: (p) => p.startsWith('hangar-bay/'), pflicht: ['fahrzeug', 'modell'], erlaubt: ['fahrzeug', 'modell', 'wiki'], lageFrei: true, bucht: true, nurMitHangar: true },
+  // Konto-Uebersicht: Refinery-Wert (Erzpreise UEX) und Anteil an allen Blueprints.
+  { name: 'Konto', match: (p) => p === 'account.html', pflicht: ['rezeptzahl', 'uex-erze'], erlaubt: ['rezeptzahl', 'uex-erze'] },
   { name: 'Schiffsübersicht', match: (p) => p === 'schiffe.html', pflicht: ['flotte', 'uex-schiffe', 'wiki', 'bild'], erlaubt: ['flotte', 'flotte-aelter', 'uex-schiffe', 'wiki', 'bild'] },
 ];
 // Klinken je Gruppe (Grundsatz 5), Messlauf 06.11.2026 im Live-Bau der
@@ -450,7 +452,7 @@ const STAND_KLINKEN = {
   'Missionsübersicht': 2, 'Schiffsübersicht': 2, 'Precision Jump': 2,
   // 14.11.2026, Vorschau-Bau: Hangar je DE und EN, Buchten 231 Schiffe je DE
   // und EN. Ohne Hangar im Bau gelten sie nicht (nurMitHangar).
-  Hangar: 2, 'Hangar-Buchten': 462,
+  Hangar: 2, 'Hangar-Buchten': 462, Konto: 2,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
 // Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
@@ -467,7 +469,7 @@ const STAND_WAS = {
   items: ['Spielwerte', 'Game values'], 'uex-items': ['Kaufpreise', 'Purchase prices'], 'shop-schnappschuss': ['Kaufpreise', 'Purchase prices'], fundorte: ['Fundorte', 'Loot locations'],
   'fundorte-spiel': ['Bestätigte Fundorte', 'Confirmed loot locations'],
   crafting: ['Rezepte und Drop-Chancen', 'Recipes and drop chances'], missionen: ['Missionsdaten', 'Mission data'],
-  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], flotte: ['Werte und Bewaffnung', 'Stats and loadout'], modell: ['3D-Modell', '3D model'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
+  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], flotte: ['Werte und Bewaffnung', 'Stats and loadout'], modell: ['3D-Modell', '3D model'], rezeptzahl: ['Zahl der Blueprints', 'Number of blueprints'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
   huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
@@ -524,6 +526,7 @@ try {
     items: { art: 'spiel', wert: fassung['Item-Katalog'], datei: 'assets/universal-items.json gameVersion' },
     'fundorte-spiel': { art: 'spiel', wert: fassung['Loot-Fundorte'], datei: 'assets/universal-items.json fundorte.patch' },
     crafting: { art: 'spiel', wert: fassung.Crafting, datei: 'assets/crafting-db.json version' },
+    rezeptzahl: { art: 'spiel', wert: fassung.Crafting, datei: 'assets/crafting-db.json version' },
     missionen: { art: 'spiel', wert: fassung.Missionen, datei: 'src/data/missions.json meta.patch' },
     fahrzeug: { art: 'spiel', wert: null, datei: 'Stempel des Fahrzeug-Datensatzes (src/data/vehicles.json)' },
     flotte: { art: 'spiel', wert: fassungAus(rd('src/data/vehicles.json').gameVersion), datei: 'src/data/vehicles.json gameVersion' },

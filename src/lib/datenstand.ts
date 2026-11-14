@@ -75,6 +75,7 @@ const T = {
     halo: 'Halo-Hülle und QT-Anker',
     baender: 'Dichtebänder',
     modell: '3D-Modell',
+    rezeptzahl: 'Zahl der Blueprints',
     nichtBelegt: 'Stand nicht belegt',
     recherche: 'eigene Recherche',
     shopSchnappschuss: 'eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt',
@@ -113,6 +114,7 @@ const T = {
     halo: 'Halo envelope and QT anchors',
     baender: 'Density bands',
     modell: '3D model',
+    rezeptzahl: 'Number of blueprints',
     nichtBelegt: 'version not documented',
     recherche: 'own research',
     shopSchnappschuss: 'own shop snapshot, undated, only where UEX does not list the item',
@@ -480,4 +482,14 @@ export function standBucht(lang: Locale, id: string): StandZeile[] {
   // Pledge-Preis, Masse und Status der Uebersicht kommen aus dem Wiki-Schnappschuss
   if (hatWiki(id)) z.push(wikiZeile(lang));
   return z;
+}
+
+/**
+ * Konto-Uebersicht: die Kachel „Refinery-Wert" rechnet die Auftraege des
+ * Nutzers mit den Erzpreisen von UEX; die Crafting-Kachel nennt den Anteil an
+ * allen Blueprints des Spiels. Mehr Daten zeigt das Konto nicht.
+ */
+export function standKonto(lang: Locale): StandZeile[] {
+  const t = T[lang];
+  return [spiel(lang, 'rezeptzahl', t.rezeptzahl, CRAFT_F), fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE)];
 }
