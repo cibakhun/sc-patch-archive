@@ -100,7 +100,6 @@ const trades = game.contracts.map((c) => {
   if (cur.cat != null) mitKuratierterKategorie++;
 
   const card = { id: c.id, cat: cur.cat ?? DEFAULT_CAT, name };
-  // Klasse der Belohnung, wenn es genau eine ist: verknuepft den Tausch mit der Schiffsseite
   if (c.rewardKlassen?.length === 1) card.cls = c.rewardKlassen[0];
   if (cur.get) card.get = cur.get;
   if (favor != null) card.favor = favor;
@@ -138,9 +137,6 @@ const meta = {
   // zuletzt gegen den Bestand gehalten — nicht, gegen welchen Client
   // ausgelesen wurde. Bleibt deshalb bestehen.
   curatedReviewedAt: curated.reviewedAt ?? null,
-  // Stempel des Handbestands (scripts/lib/handstand.mjs), so wie er in der
-  // Datei steht: die Seite liest ihn hier, verify:patch-angaben haelt ihn
-  // gegen die Datei selbst.
   curatedGeaendert: curated.stand?.geaendert ?? null,
   // reviewedVersion/reviewedAt sind mit Phase 20 (D-04) entfallen: ihr
   // einziger Leser war die HANDPFLEGE-Zeile in verify-datastand.mjs, die

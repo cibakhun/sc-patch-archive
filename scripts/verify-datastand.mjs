@@ -93,14 +93,8 @@ const STANDS = [
   // Kopf der kompakten Lauf-Datei; verify:loot-fundorte haelt den Katalog
   // gegen dieselbe Datei.
   { id: 'Loot-Fundorte', file: 'src/data/loot-fundorte.json', get: (j) => j?.meta?.patch },
-  // 14.11.2026: Ausbeute je Station stand bis 4.10.3 auf 4.10.1, weil
-  // freeze-mining-constants.mjs in keinem Datenlauf mitlief und kein Tor es
-  // merkte. Als eigener Stand reisst ein vergessenes Einfrieren jetzt den
-  // Kreuzvergleich [5]. Fahrzeuge: der Katalog aller Schiffsseiten.
   { id: 'Ausbeute', file: 'assets/mining-frozen.json', get: (j) => j?.frozen_from },
   { id: 'Fahrzeuge', file: 'src/data/vehicles.json', get: (j) => j?.gameVersion },
-  // 14.11.2026: die Raffinationsmethoden kommen aus dem Spiel
-  // (datamine-refinery-methods), vorher Handbestand Stand 4.8.0.
   { id: 'Methoden', file: 'assets/refinery-methods.json', get: (j) => j?.gameVersion },
 ];
 
@@ -130,8 +124,6 @@ const HANDPFLEGE = [];
 // ersten gekennzeichneten Stand.
 // 10.11.2026, erster Lauf datamine:loot gegen sc-alpha-4.10.2 (Client CL
 // 12913470): Loot-Fundorte neu aufgenommen, Klinke auf diesem Stand.
-// 12.11.2026, Datenlauf auf 4.10.3 (Client CL 13165946): alle zehn Staende
-// gemeinsam gehoben.
 const KLINKEN = {
   'Loot-Fundorte': 13165946,
   'Aaron-Halo': 13165946,
@@ -182,8 +174,6 @@ console.log(`    handgepflegte Datenstaende gelesen — Soll: 0   Ist: ${handpfl
 // 7 statt 6: Wikelo ist Phase 20 (D-04) aus HANDPFLEGE in STANDS gewandert.
 // 9 statt 7 (05.11.2026): Aaron-Halo und Stanton-Anker tragen jetzt eine Kennung.
 // 10 statt 9 (10.11.2026): Loot-Fundorte (datamine:loot) kam dazu.
-// 12 statt 10 (14.11.2026): Ausbeute und Fahrzeuge kamen dazu; 13 mit den
-// Raffinationsmethoden aus dem Spiel.
 need(maschinellGelesen >= 13, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 13) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
 // 0 statt 1: es gibt derzeit keinen handgepflegten Datenstand mehr, weil der
 // einzige (Wikelo) jetzt maschinell erzeugt wird. Die Mechanik bleibt fuer
@@ -339,10 +329,6 @@ if (existsSync(bmPath)) {
 }
 
 console.log('\n[9] Handbestaende: Stempel neben den Werten');
-// Werte und Stempel gehen zusammen (scripts/lib/handstand.mjs): aendert jemand
-// die Werte ohne neuen Stempel oder den Stempel ohne die Werte, passt die
-// Pruefsumme nicht mehr. Die Handlung ist immer richtig: pruefen, gegen
-// welchen Stand die Werte stimmen, und scripts/stempel-hand.mjs laufen lassen.
 let handGeprueft = 0;
 for (const h of HANDBESTAENDE) {
   const r = read(h.datei);
@@ -357,8 +343,6 @@ for (const h of HANDBESTAENDE) {
   console.log(`    ${h.datei}: ${h.art === 'patch' ? `Stand ${standWert}` : `geaendert ${standWert}`}, Pruefsumme stimmt (${h.zeigt})`);
 }
 console.log(`    Handbestaende geprueft — Soll: ${HANDBESTAENDE.length}   Ist: ${handGeprueft}`);
-// 3 -> 2 (14.11.2026): die Raffinationsmethoden sind kein Handbestand mehr,
-// sie kommen aus dem Spiel und stehen oben unter den maschinellen Staenden.
 need(HANDBESTAENDE.length >= 2, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 2) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
 
 /* ---------- Schlusszeile ---------- */

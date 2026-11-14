@@ -145,7 +145,6 @@ for (const c of vertraege) {
       if (k === 'entityClass' && v?.__ref) {
         const n = entityName(v);
         if (n) items.push(n);
-        // Klasse der Belohnung: eindeutig, wo zwei Tausche denselben Anzeigenamen tragen
         const kl = v.name?.replace('EntityClassDefinition.', '');
         if (kl) klassen.push(kl);
       }

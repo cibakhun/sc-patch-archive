@@ -54,7 +54,6 @@ const COPY = {
     fStation: 'Raffinerie', pickStation: 'Raffinerie wählen',
     fMethod: 'Methode', pickMethod: 'Methode wählen',
     tagYield: 'Ausbeute', tagSpeed: 'Tempo', tagCost: 'Kosten',
-    // Stufen wie im Spiel: Ausbeute und Kosten drei, Tempo neun.
     stufe3: ['niedrig', 'mittel', 'hoch'],
     tempo9: ['am langsamsten', 'sehr langsam', 'langsam', 'etwas langsam', 'mittel', 'etwas schnell', 'schnell', 'sehr schnell', 'am schnellsten'],
     fOresLbl: 'Erze', pickOre: 'Erz wählen',
@@ -176,7 +175,6 @@ const loginHref = href('/account/login.html', lang);
 const registerHref = href('/account/register.html', lang);
 const pct = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + ' %';
 const fmtPrice = (n: number | null) => (n == null ? '—' : Math.round(n).toLocaleString(loc));
-// Je Wert: Stufe, Zahl der Stufen, Wort, Farbe der Leiste.
 const methodRows = methods.map((m) => ({
   ...m,
   zellen: [
@@ -636,7 +634,6 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
   .rf-matrix[open] summary { margin-bottom: 8px; }
 
   /* ---- Methoden ---- */
-  /* Gleiche Gesamtbreite fuer 3 und 9 Stufen: die Leisten stehen buendig. */
   .rf-meter { display: inline-flex; gap: 2px; width: 62px; vertical-align: middle; margin-right: 6px; }
   .rf-meter i { flex: 1; height: 6px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 16%, transparent); }
   .rf-meter i.an { background: var(--accent); }

@@ -41,8 +41,6 @@ import HALO from '../../assets/aaron-halo-gamefiles.json';
 import HANGAR from '../data/hangar-assets.json';
 import HALO_BAENDER from '../../assets/aaron-halo-bands.json';
 
-// pflege: Handbestand ohne Patch-Bezug, „von Hand gepflegt, zuletzt geändert
-// am <Datum>" (Stempel in der Datei, scripts/lib/handstand.mjs).
 export type StandArt = 'spiel' | 'fremd' | 'hand' | 'pflege' | 'schnappschuss' | 'quelle';
 
 export interface StandZeile {
@@ -145,19 +143,15 @@ const T = {
 export const standTexte = (lang: Locale) => T[lang];
 
 /**
- * Die Fassung einer Zeile (Spielversion, Stand) als Verweis auf die Patch-Seite
- * genau dieser Fassung. Ohne diese Seite `null`, die Fassung bleibt dann Text:
- * die Seite der Hauptfassung waere ein anderer Patch. `patchLink` reichen die
- * Astro-Bausteine herein (src/lib/patchPages.ts liest den Seitenbestand per
- * import.meta.glob, das gibt es nur im Vite-Bau; dieses Modul laeuft auch in
- * Node-Tests).
+ * `patchLink` reichen die Astro-Bausteine herein: src/lib/patchPages.ts liest
+ * den Seitenbestand per import.meta.glob, das gibt es nur im Vite-Bau; dieses
+ * Modul laeuft auch in Node-Tests.
  */
 export function standVerweis(
   z: StandZeile,
   lang: Locale,
   patchLink: (kennung: string, lang: Locale) => { version: string; href: string | null },
 ): { vor: string; href: string; nach: string } | null {
-  // Ein Stempel ohne Z-Stelle („3.16") hat keine Patch-Seite.
   if ((z.art !== 'spiel' && z.art !== 'hand') || !/^\d+\.\d+\.\d+$/.test(z.wert ?? '') || !z.text.includes(z.wert!)) return null;
   const p = patchLink(z.wert!, lang);
   if (!p.href || p.version !== z.wert) return null;
@@ -223,9 +217,6 @@ const MISSION_F = fassung((MISSIONS as { meta?: { patch?: string } }).meta?.patc
 const FAHRZEUG_F = fassung((VEHICLES as { gameVersion?: string }).gameVersion, 'src/data/vehicles.json gameVersion');
 const SCHIFF_PREISE = isoAus((VEHICLE_PRICES as { fetchedAt?: string }).fetchedAt, 'src/data/vehicle-prices.json fetchedAt');
 const EXTRAS_DATUM = isoAus((SHIP_EXTRAS as { fetchedAt?: string }).fetchedAt, 'src/data/ship-extras.json fetchedAt');
-// Datenstand des Wikis selbst (die API nennt ihn je Fahrzeug, sync-wiki-extern
-// schreibt ihn in source). Aelter, solange er hinter dem Katalog liegt; ein
-// Schnappschuss ohne diese Angabe (der vom 18.07.2026) gilt als aelter.
 const WIKI_F = /Wiki-Datenstand (\d+\.\d+\.\d+)/.exec((VEHICLE_EXTERNAL as { source?: string }).source ?? '')?.[1] ?? null;
 const WIKI_AELTER = !WIKI_F || frueher(WIKI_F, FAHRZEUG_F);
 const WIKI_DATUM = isoAus(/fetchedAt (\d{4}-\d{2}-\d{2})/.exec((VEHICLE_EXTERNAL as { source?: string }).source ?? '')?.[1], 'src/data/vehicle-external.json source (fetchedAt)');
@@ -268,8 +259,7 @@ export function standMission(lang: Locale): StandZeile[] {
 }
 
 /**
- * Schiffsseite. `kennung` ist der Stempel DES Datensatzes; liegt er hinter
- * dem Kopf des Katalogs, ist die Zeile älterer Stand. `fleetyards`: was die Seite von dort
+ * Schiffsseite. `kennung` ist der Stempel DES Datensatzes. `fleetyards`: was die Seite von dort
  * zeigt; `wiki`: Pledge/Maße/Crew/Status aus dem Schnappschuss; `bild`: Quelle
  * des Kopfbilds.
  * `huelle`: woher die 3D-Hülle stammt, die die Seite zeigt. 'eigen' ist das
@@ -302,11 +292,6 @@ export function standSchiff(
   return z;
 }
 
-/**
- * Schiffsübersicht. `kennungen`: die Stempel aller Fahrzeuge, die die Übersicht
- * zeigt. Der Stand des Katalogs steht vorn; jede ältere Fassung bekommt eine
- * eigene Zeile mit der Zahl der Fahrzeuge, die noch auf ihr stehen.
- */
 function flotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
   const t = T[lang];
   const z = [spiel(lang, 'flotte', t.schiffswerte, FAHRZEUG_F)];
@@ -360,7 +345,6 @@ export function standDossier(lang: Locale, o: { kennungen: (string | null | unde
 const WIKELO_F = fassung((WIKELO as { gameVersion?: string }).gameVersion, 'assets/wikelo-trades.meta.json gameVersion');
 const WIKELO_GEAENDERT = isoAus((WIKELO as { curatedGeaendert?: string }).curatedGeaendert, 'assets/wikelo-trades.meta.json curatedGeaendert');
 
-/** Wikelo-Seite: Tauschliste aus dem Spiel, dazu die von Hand gepflegten Zusatzangaben. */
 export function standWikelo(lang: Locale): StandZeile[] {
   const t = T[lang];
   return [
@@ -399,24 +383,17 @@ const HALO_F = fassung((HALO as { gameVersion?: string }).gameVersion, 'assets/a
 const BAENDER_F = (HALO_BAENDER as { stand?: { patch?: string } }).stand?.patch ?? '';
 if (!/^\d+\.\d+(?:\.\d+)?$/.test(BAENDER_F)) throw new Error(`datenstand: assets/aaron-halo-bands.json stand.patch traegt keinen Patch (${JSON.stringify(BAENDER_F)})`);
 
-/** Precision Jump: Halo-Hülle und QT-Anker aus dem Spiel, die Dichtebänder von Hand gepflegt. */
 export function standPrecision(lang: Locale): StandZeile[] {
   const t = T[lang];
   return [spiel(lang, 'halo', t.halo, HALO_F), hand(lang, 'halo-baender', t.baender, BAENDER_F, HALO_F)];
 }
 
-/* ---------- Hangar (nur Vorschau) ---------- */
 
 type HangarEintrag = { gameVersion?: string };
 const HANGAR_TEILE_ALLE = HANGAR as unknown as Record<string, Record<string, HangarEintrag> | string>;
 const SCHIFFSMODELLE = HANGAR_TEILE_ALLE.ships as Record<string, HangarEintrag>;
 const FZ_STEMPEL = new Map((VEHICLES as { vehicles: { id: string; gameVersion?: string }[] }).vehicles.map((v) => [v.id, v.gameVersion]));
-// Rohexporte ohne Stempel stammen aus der Zeit, bevor extract-hangar-sources
-// den Spielstand neben jeden Export schrieb. Der Stempel kam am 14.11.2026,
-// als Client 4.10.3 installiert war; neue Exporte tragen ihren Stand selbst.
 const HANGAR_STEMPEL_AB = '4.10.3';
-// Was der Hangar ausser den Schiffsmodellen aus dem Spiel zeigt, in der
-// Reihenfolge der Nennung. Genannt wird nur, was ohne Stand ist.
 const HANGAR_TEILE = [
   { teile: ['weapons'], de: 'Waffen', en: 'weapons' },
   { teile: ['components'], de: 'Komponenten', en: 'components' },
@@ -428,11 +405,6 @@ const HANGAR_TEILE = [
 const aufzaehlen = (teile: string[], lang: Locale) =>
   teile.length < 2 ? teile.join('') : `${teile.slice(0, -1).join(', ')} ${lang === 'de' ? 'und' : 'and'} ${teile[teile.length - 1]}`;
 
-/**
- * Hangar-Seite. `ids`: die Schiffe des Docks. Werte und Bewaffnung wie auf der
- * Schiffsuebersicht, dazu die 3D-Modelle je Fassung ihres Rohexports und eine
- * Zeile fuer alles, was ohne Stempel exportiert wurde.
- */
 export function standHangar(lang: Locale, ids: readonly string[]): StandZeile[] {
   const t = T[lang];
   const z = flotte(lang, ids.map((id) => FZ_STEMPEL.get(id)));
@@ -450,7 +422,6 @@ export function standHangar(lang: Locale, ids: readonly string[]): StandZeile[] 
     const was = lang === 'de' ? `3D-Modelle von ${n} Schiff${n === 1 ? '' : 'en'}` : `3D models of ${n} ship${n === 1 ? '' : 's'}`;
     z.push(spiel(lang, 'modelle', was, f, FAHRZEUG_F));
   }
-  // Preisfilter und Schnellansicht des Docks zeigen den Pledge-Preis
   if (ids.some(hatWiki)) z.push(wikiZeile(lang));
   const ohne: string[] = [];
   if (ohneModellStand) ohne.push(lang === 'de' ? `${ohneModellStand} Schiffsmodelle` : `${ohneModellStand} ship models`);
@@ -476,7 +447,6 @@ const wikiZeile = (lang: Locale): StandZeile => ({
 const EXTERN = VEHICLE_EXTERNAL as { vehicles?: Record<string, unknown> };
 const hatWiki = (id: string) => !!EXTERN.vehicles?.[id];
 
-/** Bucht eines Schiffs im Hangar: seine Werte und sein 3D-Modell, je mit eigenem Stempel. */
 export function standBucht(lang: Locale, id: string): StandZeile[] {
   const t = T[lang];
   const z = [spiel(lang, 'fahrzeug', t.schiffswerte, fassung(FZ_STEMPEL.get(id), `src/data/vehicles.json ${id}.gameVersion`), FAHRZEUG_F)];
@@ -484,16 +454,10 @@ export function standBucht(lang: Locale, id: string): StandZeile[] {
   z.push(g
     ? spiel(lang, 'modell', t.modell, fassung(g, `src/data/hangar-assets.json ships.${id}.gameVersion`), FAHRZEUG_F)
     : { quelle: 'modell', art: 'quelle', was: t.modell, text: t.nichtBelegt, aelter: false });
-  // Pledge-Preis, Masse und Status der Uebersicht kommen aus dem Wiki-Schnappschuss
   if (hatWiki(id)) z.push(wikiZeile(lang));
   return z;
 }
 
-/**
- * Konto-Uebersicht: die Kachel „Refinery-Wert" rechnet die Auftraege des
- * Nutzers mit den Erzpreisen von UEX; die Crafting-Kachel nennt den Anteil an
- * allen Blueprints des Spiels. Mehr Daten zeigt das Konto nicht.
- */
 export function standKonto(lang: Locale): StandZeile[] {
   const t = T[lang];
   return [spiel(lang, 'rezeptzahl', t.rezeptzahl, CRAFT_F), fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE)];

@@ -140,9 +140,7 @@ const COVERAGE_FLOOR = {
   // (vehicle-external.json, Plan 03) — 218 von 227 gemessen: 223 gebaute
   // Fahrzeuge minus 9 bewusst ausgelassene ruecklaeufige Spannen (600i Touring,
   // Idris-M/P, Ironclad, Starfarer, Starlancer TAC, MOLE, MOTH, ROC-DS) plus
-  // 4 ATLS-Uebernahmen. 12.11.2026 (4.10.3): 218 -> 216, Phoenix Emerald und
-  // Hammerhead Showdown haben keinen Fahrzeug-Record mehr; Galaxy und
-  // Liberator stehen nicht in vehicle-external.json.
+  // 4 ATLS-Uebernahmen.
   crewMin: 223, crewMax: 216, isGravlev: 223, isSpaceship: 223,
   scmSpeed: 183, maxSpeed: 183, boostForward: 183,
   pitch: 183, yaw: 183, roll: 183,
@@ -159,8 +157,6 @@ const COVERAGE_FLOOR = {
   // Ports trugen "maxsize" statt "maxSize") holte 28 Schiffe zurueck. Der
   // Riegel haelt jetzt den NEUEN, hoeheren Ist-Stand fest statt der Luecke,
   // die diese Lueckenschliessung gerade behoben hat.
-  // turretWeapons/turretDps 12.11.2026 (4.10.3): je -1, Phoenix Emerald und
-  // Hammerhead Showdown fallen weg, die Liberator kommt mit Turm dazu.
   fixedWeapons: 175, fixedWeaponMounts: 160, turretWeapons: 82, missileRacks: 148,
   cmLaunchers: 223, components: 223,
   // pilotDps/turretDps (01.4-06, Gap 1): bisher NICHT im Riegel — genau

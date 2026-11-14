@@ -31,11 +31,6 @@
 // Einmisch-Schleife unten übernimmt JEDES Feld, das die Fremddatei je Fahrzeug
 // führt, nicht eine feste Liste — bleibt also richtig, wenn die Liste schrumpft.
 //
-// Die ATLS-Varianten sind im Spiel keine Fahrzeug-Entity, sondern Power Suits
-// (Actor-Record). Seit 14.11.2026 baut buildVehicle() sie mit denselben Regeln
-// aus dem Spiel (scripts/lib/power-suits.mjs); vorher kamen vier davon als
-// eingefrorener Wiki-Satz (Stand 4.9.0) aus vehicle-external.json.
-//
 // STAND 01.4-05 (der Tausch): schreibt jetzt ZWEI Dateien — die Zwischenstufe
 // src/data/vehicles-gamefiles.json (gitignored, frischer Lauf) UND das
 // ausgelieferte src/data/vehicles.json (committet). scripts/verify-vehicles.mjs
@@ -175,7 +170,6 @@ const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
 const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
 if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
-// Power Suits (ATLS): Record unter actor/actors/, ausserhalb der Fahrzeug-Ordner
 const psFehlt = powerSuitRecords(db, byId);
 if (psFehlt.length) throw new Error(`Power-Suit-Record fehlt im Spiel: ${psFehlt.join(', ')} — scripts/lib/power-suits.mjs pruefen`);
 
@@ -312,7 +306,6 @@ function manufacturer(ref) {
   return out;
 }
 
-/** Hersteller-Record ueber sein Kuerzel (SCItemManufacturer.<CODE>), oder null. */
 function manufacturerByCode(code) {
   const r = code ? db.records.find((x) => x.name === `SCItemManufacturer.${code}`) : null;
   return r ? manufacturer({ __ref: r.id }) : null;
@@ -741,8 +734,6 @@ function buildVehicle(id) {
     });
   }
 
-  // Power Suits: keine Fahrzeugteile, die Masse steht am Physik-Controller
-  // des Actors (SEntityActorPhysicsControllerParams.Mass; ATLS 1440 kg).
   if (disp && massKg == null) {
     const m = findType(o, 'SEntityActorPhysicsControllerParams')?.Mass;
     if (m > 0) { massKg = Math.round(m); stats.mass++; }

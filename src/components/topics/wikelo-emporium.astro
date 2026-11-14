@@ -39,7 +39,6 @@ const linkAttrs = (raw: string) => {
   const it = matchItemName(raw);
   return it ? { 'data-item': it, role: 'button' as const, tabindex: '0', title: (de ? 'Bezugsquellen anzeigen' : 'Show where to get it') } : {};
 };
-// Schiffe als Belohnung verweisen auf ihr Datenblatt (src/lib/wikeloShips.ts).
 const schiffHref = (n: string, cls?: string) => { const id = schiffZurBelohnung(n, cls); return id ? href(`/schiffe/${id}.html`, lang) : null; };
 // On-brand inline SVG icons (instead of emojis) — line style, currentColor.
 const svg = (b: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;

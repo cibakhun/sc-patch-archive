@@ -247,7 +247,6 @@ console.log(`   Armour-Blueprints geprueft: ${armourBps.length} | mit Ton: ${arm
 // 913 -> 916: drei neue Ruestungs-Bauplaene im 4.10-Datenlauf 27.08.2026.
 // 916 -> 926 im 4.10.2-Datenlauf 11.10.2026: das Monolith-Set (Helm, Torso, Arme, Beine,
 // Rucksack, je normal und "Shadowflux") ist neu.
-// 926 -> 937 im 4.10.3-Datenlauf 12.11.2026: "Raider Camo" fuer Corbel, Palatino und Tailwind (11 Teile).
 need(armourBps.length === 937, `Armour-Blueprints: erwartet 937, gemessen ${armourBps.length}`);
 need(armourWithTone === 0, `${armourWithTone} Armour-Blueprints mit Ton`);
 
@@ -267,8 +266,8 @@ const COVERAGE_EXPECTED = {
   // 4.10.2-Datenlauf 11.10.2026: +1 Kraftwerk, der neue Bauplan "DayBreak".
   Powerplant: { n: 75, leer: 0, size: 75, grade: 75, tone: 73 },
   Cooler: { n: 75, leer: 2, size: 73, grade: 73, tone: 72 },
-  Shield: { n: 62, leer: 0, size: 62, grade: 62, tone: 60 }, // 4.10.3: +Deterrent, ohne Ton
-  Radar: { n: 60, leer: 2, size: 58, grade: 58, tone: 58 }, // 4.10.3: "Radr Wlop S03 Lephari" heisst jetzt Lephari
+  Shield: { n: 62, leer: 0, size: 62, grade: 62, tone: 60 },
+  Radar: { n: 60, leer: 2, size: 58, grade: 58, tone: 58 },
   Quantumdrive: { n: 57, leer: 0, size: 57, grade: 57, tone: 56 },
 };
 for (const [type, exp] of Object.entries(COVERAGE_EXPECTED)) {
@@ -310,7 +309,6 @@ for (const b of weaponBps) {
   }
 }
 console.log(`   Schiffswaffen geprueft: ${weaponChecked} | Abweichungen: ${weaponBad}`);
-// 96 -> 99 im 4.10.3-Datenlauf: M3A, M4A und M5A Cannon Raider Camo.
 need(weaponChecked === 99, `Schiffswaffen: erwartet 99 geprueft, gemessen ${weaponChecked}`);
 need(weaponBad === 0, `Schiffswaffen-Ton: ${weaponBad} Abweichungen`);
 
@@ -351,9 +349,6 @@ console.log(`   Chip-Reihen (mind. 1 Angabe): ${totalWithSpec} | Groesse: ${tota
 // sync:items): neu mit Angabe sind DayBreak, Goliath, F55 "Shadowflux" LMG,
 // acht Monolith-Teile und die zwei umbenannten Antium-Bauplaene; die zwei
 // alten Antium-Namen entfallen.
-// 1550 -> 1557 im 4.10.3-Datenlauf 12.11.2026 (1.623 statt 1.606 Bauplaene): drei Raider-Camo-
-// Kanonen, Skarnov "Raider Camo", Deterrent, Lephari und die Skarnov-Batterie; zehn
-// der neuen Baupläne tragen keine Chip-Angabe (ohne jede Angabe 67 -> 77).
 need(totalWithSpec === 1557, `Chip-Reihen: erwartet 1557, gemessen ${totalWithSpec}`);
 // 1513 statt 1510 seit dem 07.08.2026: die Crafting-Schicht leitet die Groesse
 // nicht mehr selbst aus `g.size` ab, sondern nimmt `itemSizes()` aus items.ts.

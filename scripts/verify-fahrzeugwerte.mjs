@@ -96,7 +96,6 @@ for (const v of vehicles) {
   const masseOk = typeof v.massKg === 'number' && v.massKg > 0;
   pflicht++;
   if (huelleOk && masseOk) continue;
-  // Die Ausnahme deckt nur die Huelle; die Masse steht auch beim Power Suit im Record.
   if (PFLICHT_AUSNAHMEN[v.id] && !huelleOk) ausnahmeGetroffen.add(v.id);
   if (!huelleOk && !PFLICHT_AUSNAHMEN[v.id]) fail.push(`${v.id}: Huelle ${JSON.stringify(v.hullHp)} HP — ein Fahrzeug ohne Huelle gibt es nicht; Datensatz neu erzeugen`);
   if (!masseOk) fail.push(`${v.id}: Masse ${JSON.stringify(v.massKg)} kg — ein Fahrzeug ohne Masse gibt es nicht; Datensatz neu erzeugen (so stand am 29.10.2026 die Gladius Valiant auf 0 kg)`);

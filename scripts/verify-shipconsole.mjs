@@ -167,12 +167,7 @@ const TEXTBESTAND_KLINKE = {
    Portgruppen; 229 Schiffe.
    11.10.2026 (4.10.2-Datenlauf): 4=181 -> 4=183 — Constellation Mk V
    Centaurus und Skylark neu im Katalog, beide mit allen vier Portgruppen;
-   231 Schiffe.
-   14.11.2026: die ATLS-Varianten kommen aus dem Spiel (Power Suits, 8 statt
-   4 Seiten). Ihre Waffen sitzen an Handports, nicht an Hardpoint-Bones einer
-   Schiffskonsole: 5 Seiten mit 0, 3 mit 1 Portgruppe (vorher 4 ATLS mit 1x1,
-   3x2). Die uebrigen 227 Seiten unveraendert (1=5, 2=19, 3=20, 4=183);
-   235 Schiffe. */
+   231 Schiffe. */
 const WELLE1_RAIL_VERTEILUNG = { 0: 5, 1: 8, 2: 19, 3: 20, 4: 183 };
 
 if (!existsSync('dist')) {

@@ -1,8 +1,3 @@
-// Traegt im Hangar-Manifest die Fassung je Modell nach (scripts/lib/hangar-stand.mjs),
-// ohne die Modelle neu zu bauen. build-hangar-assets tut dasselbe bei jedem Lauf;
-// dieses Skript ist fuer einen Bestand, der vor dem Stempel gebaut wurde.
-// Braucht das Launcher-Protokoll (Rechner mit dem Spiel).
-//
 // Aufruf: node scripts/hangar-stand.mjs   (npm run hangar:stand)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { standNachtragen } from './lib/hangar-stand.mjs';

@@ -1121,10 +1121,6 @@ function gearCheck(written, gear) {
   return { ok: !why, dev, sink: Math.round(sink * 1000) / 1000, ...(why ? { why } : {}) };
 }
 
-// Spielstand (Changelist) eines Rohexports: <datei>.build.json, das
-// extract-hangar-sources neben jeden Export schreibt, sonst die Sidecar eines
-// Schiffs (auch Quelle seines Innenraums). Ältere Rohexporte: null, die
-// Hangar-Seiten nennen ihren Stand dann als nicht belegt.
 function rohStand(inPath) {
   for (const f of [inPath.replace(/\.glb$/i, '.build.json'), inPath.replace(/\.glb$/i, '.json')]) {
     if (!existsSync(f)) continue;

@@ -138,10 +138,6 @@ const COMMON = ['--materials', 'textures', '--mip', '1', '--lod', '1'];
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
 const sbSkin = (part, file) => { const r = sb(['skin', 'export', part, file]); stempel(file); return r; };
 
-// Spielstand jedes Rohexports: <datei>.build.json daneben (Branch und
-// Changelist aus build_manifest.id). build-hangar-assets traegt die
-// Changelist als `game` in den Manifest-Eintrag; die Hangar-Seiten nennen
-// daraus den Stand ihrer Modelle.
 function stempel(file) {
   writeFileSync(file.replace(/\.glb$/i, '.build.json'), JSON.stringify(gameBuild()) + '\n');
 }

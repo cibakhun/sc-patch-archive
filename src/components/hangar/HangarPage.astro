@@ -1236,10 +1236,6 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       </ul>
       <p class="hg-empty" id="hg-empty" hidden>{t('dock.empty')}</p>
       <p class="hg-empty" id="hgx-empty-fleet" hidden>{t('fleet.empty')}</p>
-      {/* Datenstand am Ende der Schiffsliste: die Seite ist ein Fenster hoch und
-          hat kein Seitenende; hier erreicht man ihn durch Scrollen wie sonst am
-          Seitenende, und die Liste behaelt ihre Hoehe. Bei eingeklapptem Dock
-          verschwindet er mit der Liste (src/lib/datenstand.ts). */}
       <Datenstand lang={lang} zeilen={standHangar(lang, HANGAR_IDS)} innen />
     </div>
     {/* Schnellansicht neben dem Dock (ab 761 px): das Schiff unter der Maus

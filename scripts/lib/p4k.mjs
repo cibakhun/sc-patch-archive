@@ -16,9 +16,7 @@ import { dirname, resolve } from 'node:path';
 
 export const DEFAULT_P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
 
-// Data-Block aus build_manifest.id neben der p4k, oder null. Einzige Stelle,
-// die das Manifest liest: 4.10.3 (CL 13165946) kam mit "Branch":
-// "sc-alpha-4.10.0" — jeder Datenstand haette sich als 4.10.0 ausgegeben.
+// build_manifest.id von 4.10.3 (CL 13165946) nennt "Branch": "sc-alpha-4.10.0".
 // Der Launcher protokolliert die echte Fassung je Changelist; passt dessen
 // Eintrag zur Changelist des Manifests, gilt seine Fassung.
 export function clientManifest(p4kPath = DEFAULT_P4K) {
@@ -39,7 +37,6 @@ export function clientManifest(p4kPath = DEFAULT_P4K) {
 }
 let warnedBranch = false;
 
-/** Fassung X.Y.Z, unter der der Launcher diese Changelist installiert hat, oder null. */
 export function launcherFassung(cl) {
   if (!cl || !process.env.APPDATA) return null;
   const log = resolve(process.env.APPDATA, 'rsilauncher', 'logs', 'log.log');
@@ -50,10 +47,6 @@ export function launcherFassung(cl) {
   return fassung;
 }
 
-// Client-Kennung in der Form der uebrigen Datenstaende
-// ("4.10.2-live.12913470", wie datamine-wikelo.mjs). null, wenn das Manifest
-// fehlt oder Branch/Changelist nicht traegt — der Aufrufer entscheidet, ob er
-// ohne Kennung schreiben darf.
 export function clientKennung(p4kPath = DEFAULT_P4K) {
   const d = clientManifest(p4kPath);
   if (!d?.Branch || !d?.RequestedP4ChangeNum) return null;

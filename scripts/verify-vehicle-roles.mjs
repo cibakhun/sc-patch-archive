@@ -74,9 +74,6 @@ console.log(`\n=== F) 18 Rollenfamilien tragen genau den erhobenen Stand (D-05, 
 // 07.10.2026: jaeger 63 -> 65 (Raven EX + Stingray, beide mediumfighter).
 // 11.10.2026 (4.10.2-Datenlauf): jaeger 65 -> 66 (Skylark, snubfighter), frachttransport 35 -> 36 und
 // kanonenschiff 9 -> 10 (Mk V Centaurus, "Medium Freight / Gun Ship").
-// 12.11.2026 (4.10.3-Datenlauf): passagiere 17 -> 16 (Phoenix Emerald) und kanonenschiff
-// 10 -> 9 (Hammerhead Showdown) haben keinen Fahrzeug-Record mehr; grosskampfschiff 5 -> 6
-// (Liberator, "Light Carrier"), mehrzweck 2 -> 3 (Galaxy, "Modular").
 const FAMILY_WANT = {
   jaeger: 66, frachttransport: 36, erkundung: 27, passagiere: 16, rennen: 17,
   einsteiger: 12, bodenkampf: 11, kanonenschiff: 9, medizin: 7, bomber: 6,
@@ -167,8 +164,6 @@ console.log(`\n=== M) Größenklasse (AttachDef.Size, Quick-Task 260802-ose): se
 // Ursache klaert — nicht stillschweigend nachziehen.
 // 07.10.2026: Groesse 2 82 -> 84 (Raven EX + Stingray).
 // 11.10.2026 (4.10.2-Datenlauf): Groesse 1 48 -> 49 (Skylark), Groesse 5 26 -> 27 (Mk V Centaurus).
-// 12.11.2026 (4.10.3-Datenlauf): Groesse 4 22 -> 21 (Phoenix Emerald faellt weg), Groesse 5
-// bleibt 27 (Galaxy dazu, Hammerhead Showdown weg), Groesse 6 7 -> 8 (Liberator).
 const SIZE_WANT = { 1: 49, 2: 84, 3: 38, 4: 21, 5: 27, 6: 8 };
 const sizeCount = {};
 for (const v of Object.values(roles.vehicles)) if (v.size != null) sizeCount[v.size] = (sizeCount[v.size] || 0) + 1;

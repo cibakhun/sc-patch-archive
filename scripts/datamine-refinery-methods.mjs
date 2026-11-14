@@ -1,14 +1,3 @@
-// Raffinationsmethoden aus dem Spiel: Name und die drei Stufen, die das Spiel
-// je Methode nennt (Ausbeute, Kosten, Tempo).
-//
-// Quelle ist die englische Lokalisierung im Data.p4k. Je Methode gibt es dort
-// den Namen (refinery_ui_ProcessingType_<Art>) und eine Wertung
-// (…_Details,P = "High Yield // Low Cost // Slowest"). Ausbeute und Kosten
-// kennen drei Stufen, Tempo neun. Die Stufen werden so uebernommen, wie das
-// Spiel sie nennt; ein unbekanntes Wort bricht den Lauf ab, statt geraten zu
-// werden. Bis 14.11.2026 stand hier ein Handbestand (Stand 4.8.0), der in 7
-// von 9 Methoden vom Spiel abwich.
-//
 // Nur die Loose-Datei im Spielordner (Data/Localization/…) wird NICHT gelesen:
 // dort liegt bei Krisz eine Community-Lokalisierung.
 //
@@ -22,7 +11,6 @@ import { openP4k, DEFAULT_P4K, clientKennung } from './lib/p4k.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const argOf = (n) => { const i = process.argv.indexOf(n); return i > 0 ? process.argv[i + 1] : undefined; };
 
-// Stufen in der Reihenfolge des Spiels, 1 = niedrigste.
 const AUSBEUTE = ['Low Yield', 'Moderate Yield', 'High Yield'];
 const KOSTEN = ['Low Cost', 'Moderate Cost', 'High Cost'];
 const TEMPO = ['Slowest', 'Very Slow', 'Slow', 'Slightly Slow', 'Moderate Speed', 'Slightly Fast', 'Fast', 'Very Fast', 'Fastest'];
@@ -62,7 +50,6 @@ for (const [id, e] of werte) {
   });
 }
 if (methods.length < 9) throw new Error(`datamine-refinery-methods: nur ${methods.length} Methoden gefunden (bisher 9) — Schluessel der Lokalisierung geaendert?`);
-// Beste Ausbeute zuerst, dann die guenstigere, dann die schnellere.
 methods.sort((a, b) => b.yield - a.yield || a.cost - b.cost || b.speed - a.speed);
 
 const out = {
