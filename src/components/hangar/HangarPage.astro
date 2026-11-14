@@ -324,7 +324,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Schmales Fenster: die Seite im Terminal steht dann schmaler (termFrame,
    bis 840 px). Die Leiste gibt zuerst die Spielversion ab, dann ihren Namen;
    die Bereiche bleiben alle erreichbar (und rollen zur Not seitwaerts). */
-@container hgxterm (max-width:1070px){.hgx-term__end span{display:none}.hgx-term__end{padding-left:.4rem}}
+@container hgxterm (max-width:1070px){.hgx-term__end>span{display:none}.hgx-term__end{padding-left:.4rem}}
 @container hgxterm (max-width:980px){.hgx-term__name{display:none}.hgx-term__bar{padding-left:1rem}.hgx-term__nav :is(a,button){padding:0 .6rem}.hgx-term__back{margin-right:.2rem}}
 .hgx-term__ext,.hgx-term__back{appearance:none;display:inline-grid;place-items:center;align-self:center;width:40px;height:40px;padding:0;border:0;border-radius:8px;background:none;color:var(--hg-dim);cursor:pointer}
 .hgx-term__back{margin:0 .5rem 0 -.9rem}
@@ -334,6 +334,44 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hgx-term__load{position:absolute;inset:0;display:grid;place-items:center;margin:0;padding:2rem;text-align:center;color:var(--hg-dim);font-size:var(--fs-7)}
 .hgx-term__view iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);opacity:0;transition:opacity var(--dur-fast) var(--ease-ui)}
 .hgx-term.is-ready .hgx-term__view iframe{opacity:1}
+/* Wer am Terminal sitzt (rechts in der Leiste): Bild oder Zeichen des Kontos
+   im Ring seiner Farbe (--av, vom Profil) und der Name; ohne Konto der Weg
+   zur Anmeldung. Im schmalen Fenster bleibt nur das Bild. */
+.hgx-term__who{display:inline-flex;align-items:center;gap:.5rem;min-height:40px;max-width:15rem;padding:0 .55rem 0 .3rem;border-radius:8px;color:var(--hg-on);text-decoration:none;transition:background var(--dur-fast) var(--ease-ui)}
+.hgx-term__who:is(:hover,:focus-visible){background:color-mix(in srgb,var(--hg-on) 6%,transparent)}
+.hgx-term__who:focus-visible{outline:2px solid var(--hg-amber);outline-offset:-2px}
+.hgx-term__who b{overflow:hidden;font-weight:700;text-overflow:ellipsis}
+.hgx-term__who:not([data-who="user"]) b{color:var(--hg-dim)}
+.hgx-term__av{--av:var(--hg-dim);flex:none;position:relative;display:inline-grid;place-items:center;width:26px;height:26px;border:1.5px solid var(--av);border-radius:50%;overflow:hidden;background:color-mix(in srgb,var(--av) 14%,var(--bg));color:var(--av);font-family:var(--font-ui);font-size:var(--fs-5);font-weight:700;line-height:1;letter-spacing:var(--ls-3)}
+.hgx-term__av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@container hgxterm (max-width:1180px){.hgx-term__who b{display:none}.hgx-term__who{padding:0 .3rem}}
+/* Anmeldung: deckt Leiste und Fenster, bis sie durch ist (data-step: auth,
+   dann user oder guest, zuletzt out). Alle Masse haengen an der Breite des
+   Kastens (cqw), der Kasten wird als Ganzes auf den Monitor skaliert. Die
+   Marke steht absolut (Mitte bei 36 % der Hoehe, 7 % der Breite): genau dort
+   zeichnet sie der Monitor der Halle (LEIT_MARKE), verify:hangar-orte
+   vergleicht beide Zahlen. */
+.hgx-term__login{position:absolute;inset:0;z-index:3;background:var(--bg);color:var(--hg-on);opacity:1;transition:opacity var(--dur-slow) var(--ease-ui);cursor:default}
+.hgx-term__login[data-step="out"]{opacity:0}
+.hgx-term__mark{position:absolute;left:50%;top:36%;width:7cqw;aspect-ratio:1;transform:translate(-50%,-50%);color:var(--hg-amber)}
+.hgx-term__mark svg{display:block;width:100%;height:100%}
+.hgx-term__login[data-step="auth"] .hgx-term__mark svg{animation:hgxTermPuls 1.1s var(--ease-ui) infinite alternate}
+.hgx-term__lbody{position:absolute;left:0;right:0;top:calc(36% + 5.2cqw);display:flex;flex-direction:column;align-items:center;gap:1.1cqw;padding:0 4cqw;text-align:center}
+.hgx-term__wort{font-family:var(--font-display);font-size:clamp(15px,1.9cqw,34px);font-weight:700;letter-spacing:var(--ls-15);text-transform:uppercase}
+.hgx-term__lstep{margin:0;color:var(--hg-dim);font-family:var(--font-ui);font-size:clamp(12px,1.15cqw,20px);font-weight:700;letter-spacing:var(--ls-13);text-transform:uppercase}
+.hgx-term__login:is([data-step="user"],[data-step="out"][data-who="user"]) .hgx-term__lstep{color:var(--hg-amber)}
+.hgx-term__lbar{display:block;width:clamp(180px,22cqw,420px);height:2px;overflow:hidden;background:var(--hg-hair)}
+.hgx-term__lbar i{display:block;width:100%;height:100%;background:var(--hg-amber);transform:scaleX(.08);transform-origin:0 50%;transition:transform .9s cubic-bezier(.3,.1,.2,1)}
+.hgx-term__login[data-step="auth"] .hgx-term__lbar i{transform:scaleX(.7)}
+.hgx-term__login:is([data-step="user"],[data-step="guest"],[data-step="out"]) .hgx-term__lbar i{transform:scaleX(1);transition-duration:var(--dur-slow)}
+.hgx-term__lid{display:flex;align-items:center;gap:1.1cqw;margin:.9cqw 0 0;text-align:left;opacity:0;transform:translateY(.8cqw);transition:opacity var(--dur-slow) var(--ease-ui),transform var(--dur-slow) var(--ease-ui)}
+.hgx-term__login:is([data-step="user"],[data-step="guest"],[data-step="out"]) .hgx-term__lid{opacity:1;transform:none}
+.hgx-term__lid .hgx-term__av{width:clamp(40px,4.4cqw,76px);height:clamp(40px,4.4cqw,76px);border-width:2px;font-size:clamp(18px,2cqw,34px)}
+.hgx-term__lwho{display:flex;flex-direction:column;gap:.15cqw;min-width:0}
+.hgx-term__lwho b{overflow:hidden;max-width:46cqw;font-family:var(--font-ui);font-size:clamp(18px,2.1cqw,38px);font-weight:700;line-height:1.15;text-overflow:ellipsis;white-space:nowrap}
+.hgx-term__lwho small{max-width:46cqw;color:var(--hg-dim);font-size:clamp(12px,1.1cqw,19px);line-height:1.3}
+.hgx-term__lwho small:empty{display:none}
+@keyframes hgxTermPuls{from{opacity:.55}to{opacity:1}}
 .hg[data-st3d]{--hg-panelw:0px}
 .hg[data-st3d] .hg-side,.hg[data-st3d] .hgx-marks{display:none}
 /* Die Flottenzeile steht im Dock (eigene Insel): dieselben Insel-Woerter dort. */
@@ -760,7 +798,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
      zeigt sie ohnehin nie; den Namen traegt aria-label. */
   .hgx-rand .hgx-tip{display:none}
 }
-@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-qv:not([hidden]){animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg,.hgx-term,.hgx-term__view iframe{transition:none}}</style>
+@media (prefers-reduced-motion:reduce){.hg-card{transition:none;transform:none!important}.hg-strip{scroll-behavior:auto}.hg-bar i{transition:none}.hg-title.is-swap{animation:none}.hgx-qv:not([hidden]){animation:none}.hgx-tabs button,.hgx-slot__btn,.hgx-mk,.hgx-docktog svg,.hgx-term,.hgx-term__view iframe,.hgx-term__who,.hgx-term__login,.hgx-term__lbar i,.hgx-term__lid{transition:none}.hgx-term__login[data-step="auth"] .hgx-term__mark svg{animation:none}}</style>
 
 <SiteNav crumbs={lang === 'de' ? [{ label: 'Schiffe', href: '/de/schiffe.html' }, { label: 'Hangar' }] : [{ label: 'Ships', href: '/schiffe.html' }, { label: 'Hangar' }]} hasEn={true} />
 
@@ -855,6 +893,14 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
             {TERM.map((x) => <a href={href(x.path, lang)} target="hgx-term-frame" data-term={x.key} data-pre={x.pre.join(' ')}>{x.label}</a>)}
           </nav>
           <p class="hgx-term__end">
+            {/* Wer am Terminal sitzt: das Konto der Seite, mit dem auch die Seiten
+                im Fenster laufen (dieselbe Sitzung), sonst der Weg zur Anmeldung.
+                Bild, Name und Ziel setzt assets/hangar-terminal.js; das Konto
+                oeffnet wie jede Kontoseite einen eigenen Tab. */}
+            <a class="hgx-term__who" id="hgx-term-who" href={href('/account/login.html', lang)} target="_blank" rel="noopener" data-login={href('/account/login.html', lang)} data-dash={href('/account.html', lang)} data-l-login={ui('nav.account.login')} data-l-acct={ui('nav.account')} data-a-guest={t('term.who.guest')} data-a-user={t('term.who.user')} aria-label={t('term.who.guest')}>
+              <span class="hgx-term__av" aria-hidden="true"><span>◆</span><img alt="" width="26" height="26" hidden /></span>
+              <b>{ui('nav.account.login')}</b>
+            </a>
             {patchNow && <span>Alpha {patchNow}</span>}
             <a class="hgx-term__ext" id="hgx-term-ext" href={href(TERM.find((x) => x.key === TERM_HOME)!.path, lang)} target="_blank" rel="noopener" aria-label={t('term.open')}>
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M13.5 5H19v5.5M19 5l-8 8M10 6.5H6.5A1.5 1.5 0 005 8v9.5A1.5 1.5 0 006.5 19H16a1.5 1.5 0 001.5-1.5V14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -864,6 +910,26 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
         <div class="hgx-term__view">
           <p class="hgx-term__load" id="hgx-term-load" data-fail={t('term.fail')}>{t('term.load')}</p>
           <iframe id="hgx-term-frame" name="hgx-term-frame" title={t('term.frame')}></iframe>
+        </div>
+        {/* Anmeldung am Terminal: Setzt sich die Kamera vor den Monitor, meldet
+            er kurz an, wer davor sitzt (Krisz 14.11.2026: „son user anmeldung
+            kurz loadin animation … dass der echte user angemeldet wird mit
+            versebase zeug“). Die Marke steht dort, wo der Monitor in der Halle
+            sie in Ruhe zeigt (LEIT_MARKE in hangar-viewer.js): Das Bild geht
+            ohne Sprung vom Glas auf die Seite ueber. Reine Schau, darum fuer
+            Vorleser verborgen: Wer angemeldet ist, sagt ihnen der Knopf in der
+            Leiste. Die Woerter stehen hier, assets/hangar-terminal.js waehlt. */}
+        <div class="hgx-term__login" id="hgx-term-login" aria-hidden="true" data-l-auth={t('term.login.auth')} data-l-user={t('term.login.user')} data-l-guest={t('term.login.guest')} data-l-gast={t('term.login.gast')} data-l-gastsub={t('term.login.gastsub')} hidden>
+          <span class="hgx-term__mark"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 8 52 20v24L32 56 12 44V20z" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" /><circle cx="32" cy="32" r="6" fill="currentColor" /></svg></span>
+          <div class="hgx-term__lbody">
+            <b class="hgx-term__wort">Verse·Base</b>
+            <p class="hgx-term__lstep" id="hgx-term-lstep">{t('term.login.auth')}</p>
+            <span class="hgx-term__lbar"><i></i></span>
+            <p class="hgx-term__lid">
+              <span class="hgx-term__av" aria-hidden="true"><span>◆</span><img alt="" width="56" height="56" hidden /></span>
+              <span class="hgx-term__lwho"><b id="hgx-term-lname"></b><small id="hgx-term-lsub"></small></span>
+            </p>
+          </div>
         </div>
       </section>
     </HangarApp>
