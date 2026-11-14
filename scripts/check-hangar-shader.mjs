@@ -33,6 +33,15 @@
        liegt nach dem Laden am Modell (bis 29.10.2026 erst nach einem Klick auf
        den Lack, .planning/notes/hangar-landung.md)
      … --ohne-ui           Aufnahme nur der Halle, Bedienelemente ausgeblendet
+     … --wechsel <schiff>  danach auf ein anderes Schiff wechseln (wie der
+       Zurueck-Knopf des Browsers, ohne neu zu laden). Mit einem groesseren
+       Schiff (etwa anvl-carrack) waechst die Halle, und die Einrichtung wird
+       neu gerechnet: der Weg, auf dem ein freigegebener Puffer oder ein
+       freigegebenes Bild am ehesten noch einmal gebraucht wird. Gewartet
+       wird, bis das Schiff auf dem Feld steht (die Leiste seiner Marken
+       traegt data-live); die Zeile nennt dazu die Laenge des Wartungsplatzes
+       danach, an der man sieht, ob die Halle gewachsen ist. FEHLER, wenn
+       das Schiff nicht ankommt
      … --innen             danach einsteigen (Knopf #hgx-walk): der Innenraum
        laedt erst dann (.planning/notes/hangar-innenleben.md), seine
        Programme zaehlen mit; die Aufnahme zeigt dann den Blick drinnen.
@@ -47,7 +56,17 @@
    verlangt": die Flaeche zeigt dann eine Farbe statt ihrer Karte) oder
    wenn er weniger Bilder freigibt als die Klinke (dann liegt das GB
    wieder im Speicher, und kein Bild sieht anders aus). Das gilt mit
-   --ship, --layout und --innen fuer deren Wege mit.
+   --ship, --layout, --wechsel und --innen fuer deren Wege mit.
+   Dazu die Freigabe der Geometrie (13.11.2026): Der Viewer nimmt die
+   Attribut- und Indexpuffer der einfachen Netze der Halle im Moment des
+   Hochladens aus dem Arbeitsspeicher (freeGeometry, 159 MB in der hohen
+   Stufe). FEHLER, wenn auf diesem Weg jemand einen freigegebenen Puffer
+   noch einmal liest (Zeile "[hangar] Geometrie nach der Freigabe noch
+   einmal verlangt": der Leser rechnet dann mit einem leeren Puffer) oder
+   wenn der Viewer weniger MB freigibt als die Klinke (dann liegen die
+   Kopien wieder im Speicher, und kein Bild sieht anders aus). Die Ecken
+   der Moebel bleiben stehen: scaleFurniture() rechnet sie neu, wenn die
+   Halle waechst. Diesen Weg faehrt --wechsel mit einem groesseren Schiff.
    Dazu die Shader der Vollbildpaesse (13.11.2026): Verdeckung, Entrauscher
    und Schein uebersetzt der Viewer vorab im Hintergrund. Passt der
    Schluessel des vorab uebersetzten Programms nicht zu dem, mit dem der
@@ -57,26 +76,65 @@
    meldet (Zeile "[hangar] Vollbildpässe: … erst beim Probebild
    übersetzt") oder gar keine Zeile zu den Paessen kommt (dann steht die
    Nachbearbeitung nicht).
+   Dazu das Farbmittel (13.11.2026): Der Viewer misst das Mittel einer
+   Farbkarte nur noch fuer Dateien, deren Materialien dressTextured() liest
+   (Schiff, Tauschteile, Innenraum), nicht mehr fuer die 324 Farbkarten der
+   Halle (0,35 s Rechenzeit im Hauptfaden bei jedem Laden). Geht dabei das
+   Schiff durch den Loader der Halle, traegt keine seiner Karten ein Mittel,
+   und der dunkelste Lack wird nicht mehr angehoben (albedoFloor): das Schiff
+   steht fleckig schwarz da. FEHLER, wenn die Zeile "[hangar] Lack:" eine
+   deckende Farbkarte ohne Farbmittel meldet oder weniger Materialien mit
+   Mittel als die Klinke (ohne --ship und --layout, also mit der Gladius).
+   Dazu die komprimierten Texturen (13.11.2026): Am PC laedt der Viewer
+   jedes Bild aus seinem Zwilling unter /hangar/ktx/ (KTX2, bei der
+   Grafikkarte BC7: 1 Byte je Bildpunkt statt 4) und nur ohne ihn aus dem
+   WebP. Dann stimmt jedes Bild, und der Grafikspeicher ist wieder doppelt
+   so gross (Gladius, hohe Stufe: 1.507 statt 516 MB Texturen). FEHLER,
+   wenn ein Zwilling nicht laedt (Zeile "[hangar] Zwilling … nicht
+   geladen": fehlt in dist/, falsches Rezept, Umwandler oder Richtlinie),
+   wenn der Viewer den Weg ganz abstellt ("[hangar] Texturen bleiben WebP";
+   die Software-Grafik dieses Laufs kann BC7), wenn die Zeile "[hangar]
+   Texturen komprimiert:" fehlt oder weniger Bilder nennt als die Klinke
+   (ohne --ship und --layout).
      CHROME_PATH=/pfad/zu/chromium npm run check:hangar-shader -- --base …
    ============================================================ */
 import { existsSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const argv = process.argv.slice(2);
-const flag = (n, d) => (argv.includes(n) ? argv[argv.indexOf(n) + 1] : d);
+// Ein Schalter mit Wert, der ohne Wert kommt (am Ende, leer, oder vor dem naechsten
+// Schalter), ist ein Fehler und kein fehlender Schalter: sonst endet der Lauf gruen,
+// ohne getan zu haben, was verlangt war (--wechsel am Ende wechselte kein Schiff).
+const flag = (n, d) => {
+  if (!argv.includes(n)) return d;
+  const v = argv[argv.indexOf(n) + 1];
+  if (v === undefined || v === '' || v.startsWith('--')) { console.error(`\n${n}: der Wert fehlt\n`); process.exit(2); }
+  return v;
+};
 const BASE = flag('--base', process.env.SMOKE_BASE || 'http://localhost:4321').replace(/\/$/, '');
 const SHIP = flag('--ship', null);
 const SHOT = flag('--shot', null);
 const LAYOUT = flag('--layout', null);
 const OHNE_UI = argv.includes('--ohne-ui'), INNEN = argv.includes('--innen');
+const WECHSEL = flag('--wechsel', null);
 if (SHIP && !/^[a-z0-9][a-z0-9-]{0,63}$/.test(SHIP)) { console.error(`\n--ship ${SHIP}: keine Schiffskennung\n`); process.exit(2); }
+if (WECHSEL && !/^[a-z0-9][a-z0-9-]{0,63}$/.test(WECHSEL)) { console.error(`\n--wechsel ${WECHSEL}: keine Schiffskennung\n`); process.exit(2); }
 if (LAYOUT && !/^[A-Za-z0-9_-]{1,4000}$/.test(LAYOUT)) { console.error(`\n--layout ${LAYOUT}: kein Link-Code\n`); process.exit(2); }
 const GRENZE = 16;
 // Gemessen 21.10.2026 auf hoch mit der Gladius: 73 Programme, 2 mit
 // Schichttafel (Halle und Grube). Klinken nur nach oben.
 // frei: Bilder, die der Viewer nach dem Hochladen freigibt. Gemessen
 // 13.11.2026 auf hoch mit der Gladius: 897 von 901 (1.054 MB).
-const KLINKE = { programme: 60, schichten: 2, frei: 600 };
+// lack: Materialien der Gladius mit gemessener Farbkarte (Zeile "[hangar]
+// Lack:"). Gemessen 13.11.2026: 118, keine Farbkarte ohne Mittel.
+// geoMB: MB Geometrie der Halle, die der Viewer nach dem Hochladen freigibt
+// (Zeile "[hangar] Geometrie nach dem Hochladen freigegeben:"). Gemessen
+// 13.11.2026 auf hoch mit der Gladius: 159 MB in 1.603 Puffern.
+// ktx: Bilder, die der Viewer aus ihrem komprimierten Zwilling laedt (Zeile
+// "[hangar] Texturen komprimiert:"). Gemessen 13.11.2026 auf hoch mit der
+// Gladius: 958 am Ende des Prueflaufs (969, wenn die letzten Tauschteile
+// geladen sind), keins aus dem WebP.
+const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, ktx: 850 };
 const WARTE_MS = 15 * 60 * 1000, NACHLAUF_MS = 20000;
 
 const KANDIDATEN = [
@@ -131,8 +189,8 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '', drinnen = '', frei = '', paesse = '';
-const verlangt = [];
+let deko = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '';
+const verlangt = [], geoVerlangt = [], ktxFehlt = [];
 const shaderFehler = [];
 page.on('console', (m) => {
   const t = m.text();
@@ -142,8 +200,15 @@ page.on('console', (m) => {
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
   if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) frei = t;
   if (t.startsWith('[hangar] Vollbildpässe:')) paesse = t;
+  if (t.startsWith('[hangar] Lack:') && !lack) lack = t;
+  if (t.startsWith('[hangar] Wartungsplatz bei')) platz = t;
   if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
+  if (t.startsWith('[hangar] Geometrie nach dem Hochladen freigegeben:')) geo = t;
+  if (t.startsWith('[hangar] Geometrie nach der Freigabe noch einmal verlangt')) geoVerlangt.push(t.slice(9, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
+  if (t.startsWith('[hangar] Texturen komprimiert:')) ktx = t;
+  if (t.startsWith('[hangar] Texturen bleiben WebP:')) ktxAus = t;
+  if (t.startsWith('[hangar] Zwilling ')) ktxFehlt.push(t.slice(9, 200));
 });
 const bildFehler = [];
 const fehler = [];
@@ -156,6 +221,25 @@ try {
   }
   if (!deko && !fehler.length) fehler.push(`nach ${WARTE_MS / 60000} min keine Zeile "[hangar] Hallendeko:"`);
   if (deko) await page.waitForTimeout(NACHLAUF_MS);
+  if (deko && WECHSEL) {
+    // Steht ein Schiff, traegt die Leiste seiner Marken data-live und seine Kennung
+    // (syncMarks in hangar-overview.js, nach viewer.show()). Die Zeile "[hangar] Lack:"
+    // taugt dafuer nicht: sie kommt, sobald das Modell geladen ist, in Software-WebGL
+    // gut eine Minute, bevor die Halle gewachsen ist und das Schiff auf dem Feld steht.
+    const steht = () => page.evaluate(() => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch(() => '');
+    const t1 = Date.now(), vorher = await page.evaluate(() => window.__texProgramme.length);
+    let erst = '', dann = '';
+    while (!(erst = await steht()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
+    if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
+    else if (erst === WECHSEL) fehler.push(`--wechsel ${WECHSEL}: dieses Schiff steht schon, ein Wechsel findet nicht statt`);
+    else {
+      await page.evaluate((id) => { const u = new URL(location.href); u.searchParams.set('ship', id); history.pushState(null, '', u); dispatchEvent(new PopStateEvent('popstate')); }, WECHSEL);
+      while ((dann = await steht()) !== WECHSEL && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
+      if (dann !== WECHSEL) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht ${WECHSEL} nicht auf dem Feld (kein Schiff mit dieser Kennung, oder das Modell laedt nicht)`);
+      else await page.waitForTimeout(NACHLAUF_MS);
+    }
+    console.log(`  Wechsel von ${erst || '—'} auf ${WECHSEL}: ${dann === WECHSEL ? `steht nach ${Math.round((Date.now() - t1 - NACHLAUF_MS) / 1000)} s` : 'nicht angekommen'}; ${platz ? platz.slice(9).split(':')[0] : 'keine Zeile zum Wartungsplatz'}; Programme dazu: ${(await page.evaluate(() => window.__texProgramme.length)) - vorher}`);
+  }
   if (deko && INNEN) {
     const vorher = await page.evaluate(() => window.__texProgramme.length);
     const knopf = await page.evaluate(() => { const b = document.getElementById('hgx-walk'); if (!b || b.hidden) return false; b.click(); return true; });
@@ -200,9 +284,26 @@ console.log(`  Bilder: ${frei ? frei.slice(9, 160) : 'keine Zeile zur Freigabe'}
 for (const v of verlangt.slice(0, 10)) fehler.push(v);
 if (verlangt.length > 10) fehler.push(`… und ${verlangt.length - 10} weitere freigegebene Bilder noch einmal verlangt`);
 if (deko && !(freiN >= KLINKE.frei)) fehler.push(`der Viewer gibt ${Number.isFinite(freiN) ? `nur ${freiN}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${KLINKE.frei}: die ausgepackten Bilder bleiben im Arbeitsspeicher (rund 1 GB in der hohen Stufe)`);
+const geoN = Number(/freigegeben: (\d+) Puffer/.exec(geo)?.[1] ?? NaN), geoMB = Number(/ mit (\d+) MB/.exec(geo)?.[1] ?? NaN);
+console.log(`  Geometrie: ${geo ? geo.slice(9, 160) : 'keine Zeile zur Freigabe'} (Klinke ${KLINKE.geoMB} MB); noch einmal verlangt: ${geoVerlangt.length}`);
+for (const v of geoVerlangt.slice(0, 10)) fehler.push(v);
+if (geoVerlangt.length > 10) fehler.push(`… und ${geoVerlangt.length - 10} weitere freigegebene Puffer noch einmal verlangt`);
+if (deko && !(geoMB >= KLINKE.geoMB)) fehler.push(`der Viewer gibt ${Number.isFinite(geoMB) ? `nur ${geoMB} MB Geometrie in ${geoN} Puffern` : 'keine Geometrie'} nach dem Hochladen frei, Klinke ${KLINKE.geoMB} MB: die Kopien der Netze der Halle bleiben im Arbeitsspeicher (rund 160 MB in der hohen Stufe)`);
 console.log(`  ${paesse ? paesse.slice(9, 160) : 'Vollbildpässe: keine Zeile'}`);
 if (/erst beim Probebild/.test(paesse)) fehler.push(`${paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
 else if (deko && !/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(paesse)) fehler.push('der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) steht nicht, oder ihre Shader werden nicht mehr vorab uebersetzt');
+const lackMit = Number(/\((\d+) mit gemessener Farbkarte/.exec(lack)?.[1] ?? NaN), lackOhne = Number(/, (\d+) ohne Farbmittel\)/.exec(lack)?.[1] ?? NaN);
+console.log(`  Farbmittel: ${lack ? `${lackMit} Materialien des Schiffs mit gemessener Farbkarte${SHIP || LAYOUT ? '' : ` (Klinke ${KLINKE.lack})`}, ${lackOhne} Farbkarten ohne Mittel` : 'keine Zeile "[hangar] Lack:"'}`);
+if (deko && !lack) fehler.push('der Viewer meldet keine Zeile "[hangar] Lack:" mehr: ob die Farbkarten des Schiffs ihr Mittel tragen, ist ungeprueft');
+else if (deko && !(lackOhne === 0)) fehler.push(`${Number.isFinite(lackOhne) ? lackOhne : 'unbekannt viele'} deckende Farbkarten des Schiffs ohne Farbmittel: das Schiff laedt ueber einen Loader, der nicht misst (images(false), HALL_FILES), und der dunkelste Lack wird nicht mehr angehoben`);
+else if (deko && !SHIP && !LAYOUT && !(lackMit >= KLINKE.lack)) fehler.push(`nur ${lackMit} Materialien des Schiffs mit gemessener Farbkarte, Klinke ${KLINKE.lack}`);
+const ktxN = Number(/komprimiert: (\d+) /.exec(ktx)?.[1] ?? NaN), ktxOhne = Number(/aus dem WebP: (\d+)$/.exec(ktx)?.[1] ?? NaN);
+console.log(`  Komprimiert: ${ktx ? ktx.slice(9, 160) : ktxAus ? ktxAus.slice(9, 160) : 'keine Zeile zu den komprimierten Texturen'}${SHIP || LAYOUT ? '' : ` (Klinke ${KLINKE.ktx})`}`);
+for (const z of ktxFehlt.slice(0, 5)) fehler.push(z);
+if (ktxAus) fehler.push(`${ktxAus.slice(9, 200)}: jede Textur liegt unkomprimiert bei der Grafikkarte`);
+else if (deko && !ktx) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen komprimiert:": er laedt kein Bild aus seinem komprimierten Zwilling (ktxTwin in assets/hangar-viewer.js), jede Textur liegt unkomprimiert bei der Grafikkarte');
+else if (deko && !(ktxOhne === 0)) fehler.push(`${Number.isFinite(ktxOhne) ? ktxOhne : 'unbekannt viele'} Bilder ohne ladbaren Zwilling kamen aus dem WebP und liegen unkomprimiert bei der Grafikkarte (verify:hangar-ktx prueft die Dateien in dist/)`);
+else if (deko && !SHIP && !LAYOUT && !(ktxN >= KLINKE.ktx)) fehler.push(`nur ${ktxN} Bilder aus komprimierten Zwillingen, Klinke ${KLINKE.ktx}`);
 if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
 if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
 if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
@@ -214,4 +315,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild noch einmal verlangt, Vollbildpaesse vorab uebersetzt ✓\n');
+console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel, jedes Bild aus seinem komprimierten Zwilling ✓\n');

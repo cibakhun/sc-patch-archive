@@ -58,6 +58,37 @@ export const EMPTY_LAYOUT = 'WzEsIiIse31d';
 export const STATIONS = ['uebersicht', 'loadout'];
 export const STATION_DEFAULT = 'loadout';
 
+// Orte der Halle (13.11.2026): Schiffsfeld, Werkhalle, Leitstand. Wo das
+// Fahrzeug steht, sagt es selbst (Schiff: Feld, Bodenfahrzeug: Werkhalle,
+// models[id][3]); der Zustand nennt nur, ob die Kamera im Leitstand vor dem
+// Terminal steht (?ort=leit). Das gibt es nur bei einem Schiff: Aus der
+// Werkhalle fuehrt der Weg erst zurueck aufs Feld.
+/**
+ * Der Ort, an dem die Buehne fuer diesen Zustand steht.
+ *   placeOf({ ship: 'anvl-ballista', ort: 'halle' }, new Set(['anvl-ballista'])) === 'werk'
+ * @param {{ ship: string, ort: string }} s @param {ReadonlySet<string>} werk Ids der Bodenfahrzeuge
+ * @returns {'halle'|'werk'|'leit'}
+ */
+export const placeOf = (s, werk) => (s.ort === 'leit' ? 'leit' : werk.has(s.ship) ? 'werk' : 'halle');
+/**
+ * Das Fahrzeug, das ein Ort zeigt: Wer schon passt, bleibt. Sonst das zuletzt
+ * dort gezeigte (memo), sonst das Startschiff bzw. das erste Bodenfahrzeug
+ * der Liste. null, wenn es fuer den Ort keines gibt.
+ *   placeShip('werk', 'aegs-gladius', { werk: 'anvl-ballista' }, { ids: ['aegs-gladius', 'anvl-ballista'], werk: new Set(['anvl-ballista']), defaultShip: 'aegs-gladius' }) === 'anvl-ballista'
+ * @param {'halle'|'werk'|'leit'} to @param {string} ship das gezeigte Fahrzeug
+ * @param {{ halle?: string, werk?: string }} memo
+ * @param {{ ids: readonly string[], werk: ReadonlySet<string>, defaultShip: string }} c ids in der Folge der Liste
+ * @returns {string|null}
+ */
+export function placeShip(to, ship, memo, c) {
+  const ground = to === 'werk', fits = (id) => c.ids.includes(id) && c.werk.has(id) === ground;
+  if (fits(ship)) return ship;
+  const last = ground ? memo?.werk : memo?.halle;
+  if (fits(last)) return last;
+  if (!ground && fits(c.defaultShip)) return c.defaultShip;
+  return c.ids.find(fits) ?? null;
+}
+
 /**
  * Bringt einen beliebigen Zustandsentwurf in die gueltige Form. Unbekannte Ids
  * fallen weg, cmp wird entdoppelt und auf drei gekappt, unbekannte Tabs und
@@ -70,8 +101,9 @@ export function normalize(s, ctx) {
   const tab = ctx.tabs.includes(s.tab) ? s.tab : ctx.tabs[0];
   const pur = ctx.purs.has(s.pur) ? s.pur : '';
   const cmp = [...new Set((s.cmp ?? []).filter((id) => ctx.ids.has(id)))].slice(0, MAX_COMPARE);
+  const ship = ctx.ids.has(s.ship) ? s.ship : ctx.defaultShip;
   return {
-    ship: ctx.ids.has(s.ship) ? s.ship : ctx.defaultShip,
+    ship,
     tab,
     hp: tab !== ctx.tabs[0] && typeof s.hp === 'string' && PORT_RE.test(s.hp) ? s.hp : null,
     cmp,
@@ -79,6 +111,8 @@ export function normalize(s, ctx) {
     lo: typeof s.lo === 'string' && LAYOUT_RE.test(s.lo) && s.lo !== EMPTY_LAYOUT ? s.lo : null,
     station: STATIONS.includes(s.station) ? s.station : STATION_DEFAULT,
     flat: s.flat === true,
+    // In den Leitstand nur von einem Schiff aus (ctx.werk: die Bodenfahrzeuge)
+    ort: s.ort === 'leit' && !ctx.werk?.has(ship) ? 'leit' : 'halle',
     fleetOnly: s.fleetOnly === true,
     sort: ctx.sorts.includes(s.sort) ? s.sort : ctx.sorts[0],
     q: String(s.q ?? '').trim().slice(0, 80),
@@ -114,6 +148,7 @@ export function parseState(search, hash, ctx) {
     lo: p.get('layout'),
     station: p.get('station') ?? (p.get('pane') === 'ship' ? 'uebersicht' : null),
     flat: p.get('tafel') === '1',
+    ort: p.get('ort'),
     fleetOnly: p.get('fleet') === '1',
     sort: p.get('sort'),
     q: p.get('q') ?? '',
@@ -129,7 +164,7 @@ export function parseState(search, hash, ctx) {
 
 /**
  * HangarState nach '?…', Vorgaben weggelassen, feste Schluesselfolge (ship,
- * tab, hp, cmp, view, layout, station, tafel, fleet, sort, q, pur, grp, size, crew,
+ * tab, hp, cmp, view, layout, station, tafel, ort, fleet, sort, q, pur, grp, size, crew,
  * cargo, price, maker): gleiche Zustaende
  * ergeben gleiche URLs. scope 'share' (Link kopieren) nennt immer das Schiff
  * und laesst die persoenlichen Dock-Filter weg; der Empfaenger hat eine andere
@@ -153,6 +188,8 @@ export function serializeState(s, ctx, scope = 'location') {
     // Wer ein Layout teilt, teilt die Werkstatt: die Ansicht bleibt beim Empfaenger Vorgabe.
     if (s.station !== STATION_DEFAULT) put('station', s.station);
     if (s.flat) put('tafel', '1');
+    // Wo die Kamera steht, ist Sache dessen, der schaut: nicht im geteilten Link
+    if (s.ort === 'leit') put('ort', 'leit');
     if (s.fleetOnly) put('fleet', '1');
     if (s.sort !== ctx.sorts[0]) put('sort', s.sort);
     if (s.q) put('q', s.q);
@@ -562,58 +599,237 @@ export function dockSearch(ships, f, crew) {
 //
 // Wird die Halle spuerbar leichter, WAECHTER.v erhoehen: alte Deckel
 // verfallen dann sofort.
-export const WAECHTER = { v: 1, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5 };
+//
+// Seit 13.11.2026 (Krisz: „Das Handy versucht es immer noch die ganze Zeit
+// zu laden und iwann kommt die Meldung“), v 2:
+// - Am Telefon senkt schon der erste Abbruch (sofort). Dort beendet der
+//   Browser eine Seite im Vordergrund so gut wie nur aus Speichernot, und
+//   jeder Lauf, der nur zaehlt, ist eine halbe Minute Warten fuer nichts.
+//   Eine Schleife endet dort nach hoechstens drei Laeufen.
+// - Der Stand fuehrt eine Spur der letzten Abbrueche: Stufe, wie weit der
+//   Lauf war (WAECHTER.phasen) und was abbrach (WAECHTER.arten: die Seite
+//   wurde beendet oder der Zeichenkontext ging verloren). Die Meldung zeigt
+//   sie als Zeile (waechterVerlauf). Vom Telefon kommt sonst nichts zurueck,
+//   keine Konsole, kein Protokoll, und ohne sie laesst sich von aussen nicht
+//   sagen, ob das Laden oder das Stehen das Geraet ueberfordert.
+//
+// Seit 14.11.2026 (Krisz nach v 2: „Ne immer noch Dauer Neulade Loop“), v 3:
+// - Der Vermerk „Lauf offen“ lag nur im Speicher der Registerkarte. Baut der
+//   Browser sie nach dem Ende der Seite neu auf, statt sie nur neu zu laden,
+//   ist der Vermerk weg, kein Abbruch wird gezaehlt, und die Schleife laeuft
+//   ohne Ende (nachgestellt: 7 Laeufe in 55 s, alle in der hohen Stufe). Der
+//   Vermerk steht am Telefon deshalb zusaetzlich im Speicher des Geraets, je
+//   Lauf einer (waechterLaeufe); ob ein dort vermerkter Lauf in einer anderen
+//   Registerkarte noch lebt, sagt der Kanal. Am PC bleibt es beim Vermerk
+//   der Registerkarte: Dort stehen Fenster nebeneinander, und eines, das
+//   gerade laedt, antwortet dem Kanal nicht in der Frist.
+// - Am Telefon zaehlt ausserdem jeder Start der Buehne (waechterAnlauf): Wer
+//   dort startet und WAECHTER.anlauf.zahl Starts vor sich findet, von denen
+//   keiner WAECHTER.anlauf.ruhe lang stand, zaehlt einen Abbruch, auch wenn
+//   kein Vermerk ueberlebt hat (Art 'start'). Das ist der Gurt zum
+//   Hosentraeger: Er haengt an keinem Ereignis und an keinem Speicher der
+//   Registerkarte. Wer die Seite von sich aus verlaesst (pagehide) oder in
+//   den Hintergrund legt, nimmt seinen Start wieder heraus, und ein Start,
+//   dessen Lauf in einer anderen Registerkarte nachweislich lebt, zaehlt
+//   nicht: Sonst bekaeme die leichte Buehne, wer drei Hangarseiten
+//   nacheinander in neuen Registerkarten oeffnet (nachgestellt beim Review
+//   zu PR 363).
+// - Ein toter Lauf gehoert dem Start, der ihn im Speicher des Geraets noch
+//   vorfindet (waechterAnspruch): Starten zwei Registerkarten im selben
+//   Augenblick, zaehlt ihn nur eine.
+// - Am Telefon laeuft unter jedem Deckel die leichte Buehne (waechterLeicht):
+//   das Schiff in der gebauten Halle statt in der echten. Gemessen im
+//   Telefonformat mit der Gladius braucht die Seite mit der echten Halle beim
+//   Laden rund 950 MB Arbeitsspeicher, ohne sie rund 340 MB; dreimal dieselbe
+//   Halle mit kleineren Bildern zu versuchen sparte dagegen kaum etwas.
+export const WAECHTER = { v: 3, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext', 'start'], anlauf: { zahl: 2, frist: 10 * 60e3, ruhe: 45e3 }, laeufe: 8 };
 const DECKEL = ['aus', ...WAECHTER.stufen];
 const istZeit = (t, now, frist) => Number.isFinite(t) && t <= now && now - t < frist;
+const eins = (liste, x) => (liste.includes(x) ? x : null);
+// Ein Eintrag der Spur: t wann, s Stufe, p Phase, w was abbrach; Unbekanntes wird null
+const spurEintrag = (e, now) => (e && typeof e === 'object' && istZeit(e.t, now, WAECHTER.deckel)
+  ? { t: e.t, s: eins(WAECHTER.stufen, e.s), p: eins(WAECHTER.phasen, e.p), w: eins(WAECHTER.arten, e.w) }
+  : null);
+const spurVon = (liste, now) => (Array.isArray(liste) ? liste : []).map((e) => spurEintrag(e, now)).filter(Boolean).slice(-WAECHTER.spur);
 
 /**
  * Gemerkter Stand aus dem Speicher des Geraets, Abgelaufenes und Kaputtes
  * faellt weg. ab: Zeit des letzten Abbruchs in der Frist oder null; deckel:
- * 'mittel' | 'niedrig' | 'aus' oder null, seit: seit wann.
+ * 'mittel' | 'niedrig' | 'aus' oder null, seit: seit wann; spur: die letzten
+ * Abbrueche (sie lebt mit dem Stand: ohne Abbruch in der Frist und ohne
+ * Deckel ist sie leer).
  * @param {string|null} raw
  * @param {number} now
  */
 export function waechterStand(raw, now) {
-  const leer = { ab: null, deckel: null, seit: 0 };
+  const leer = { ab: null, deckel: null, seit: 0, spur: [] };
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return leer; }
   if (!o || typeof o !== 'object' || o.v !== WAECHTER.v) return leer;
   const deckel = DECKEL.indexOf(o.deckel) >= 0 && o.deckel !== 'hoch' && istZeit(o.seit, now, WAECHTER.deckel);
-  return { ab: istZeit(o.ab, now, WAECHTER.zweimal) ? o.ab : null, deckel: deckel ? o.deckel : null, seit: deckel ? o.seit : 0 };
+  const ab = istZeit(o.ab, now, WAECHTER.zweimal) ? o.ab : null;
+  return { ab, deckel: deckel ? o.deckel : null, seit: deckel ? o.seit : 0, spur: ab !== null || deckel ? spurVon(o.spur, now) : [] };
 }
 
 /**
  * Stand nach einem Abbruch. stufe: in welcher Stufe der abgebrochene Lauf
  * geladen hatte; null, wenn er abbrach, bevor sie feststand (dann gilt der
- * Deckel, ohne Deckel die hoechste).
- * @param {{ ab: number|null, deckel: string|null, seit: number }} stand
+ * Deckel, ohne Deckel die hoechste). was.sofort: schon der erste Abbruch
+ * senkt (Telefon); was.phase und was.wie gehen in die Spur.
+ * @param {{ ab: number|null, deckel: string|null, seit: number, spur?: object[] }} stand
  * @param {number} now
  * @param {string|null} stufe
+ * @param {{ sofort?: boolean, phase?: string|null, wie?: string|null }} [was]
  */
-export function waechterAbbruch(stand, now, stufe) {
-  if (stand.ab === null) return { ...stand, ab: now };
+export function waechterAbbruch(stand, now, stufe, { sofort = false, phase = null, wie = null } = {}) {
+  const spur = [...spurVon(stand.spur, now), spurEintrag({ t: now, s: stufe, p: phase, w: wie }, now)].slice(-WAECHTER.spur);
+  if (stand.ab === null && !sofort) return { ...stand, ab: now, spur };
   const lief = WAECHTER.stufen.includes(stufe) ? stufe : stand.deckel && stand.deckel !== 'aus' ? stand.deckel : 'hoch';
   const tiefer = DECKEL[Math.max(0, DECKEL.indexOf(lief) - 1)];
   // nie nach oben: ein Deckel unter der gelaufenen Stufe bleibt
   const deckel = stand.deckel && DECKEL.indexOf(stand.deckel) < DECKEL.indexOf(tiefer) ? stand.deckel : tiefer;
-  return { ab: now, deckel, seit: now };
+  return { ab: now, deckel, seit: now, spur };
 }
 
-/** @param {{ ab: number|null, deckel: string|null, seit: number }} stand */
-export const waechterText = (stand) => JSON.stringify({ v: WAECHTER.v, ab: stand.ab, deckel: stand.deckel, seit: stand.seit });
+/** @param {{ ab: number|null, deckel: string|null, seit: number, spur?: object[] }} stand */
+export const waechterText = (stand) => JSON.stringify({ v: WAECHTER.v, ab: stand.ab, deckel: stand.deckel, seit: stand.seit, spur: stand.spur ?? [] });
 
 /**
- * Der Vermerk „Lauf offen“ einer Registerkarte: { id, stufe } oder null, wenn
- * keiner da ist, er kaputt ist oder aelter als WAECHTER.frisch (dann liegt
- * der Lauf zu lange zurueck, um an der Halle zu haengen).
+ * Die Spur als Zeilen fuer die Meldung, eine je Abbruch, aelteste zuerst:
+ * „Hoch, beim Aufbau der Halle, Seite beendet“. wort(k) gibt das Wort der
+ * Seite zu einer Stufe, Phase oder Art, '' wenn sie keins hat; Unbekanntes
+ * faellt aus der Zeile.
+ * @param {object[]} spur
+ * @param {(k: string) => string} wort
+ */
+export const waechterVerlauf = (spur, wort) => (spur ?? [])
+  .map((e) => [e.s, e.p, e.w].map((k) => (k ? wort(k) : '')).filter(Boolean).join(', '))
+  .filter(Boolean);
+
+/**
+ * Der Vermerk „Lauf offen“ einer Registerkarte: { id, t, stufe, phase,
+ * geraet } oder null, wenn keiner da ist, er kaputt ist, aelter als WAECHTER.frisch (dann
+ * liegt der Lauf zu lange zurueck, um an der Halle zu haengen) oder von
+ * einer anderen Fassung des Waechters stammt (v): Ein Lauf der schwereren
+ * Halle von vorher darf der neuen keinen Deckel setzen, am Telefon senkt
+ * schon der erste Abbruch. phase: wie weit der Lauf war, null bei einem
+ * Vermerk ohne. geraet: Der Lauf steht auch im Speicher des Geraets
+ * (waechterLaeufe); wem sein Abbruch dann gehoert, sagt waechterAnspruch.
  * @param {string|null} raw
  * @param {number} now
  */
 export function waechterOffen(raw, now) {
   let o = null;
   try { o = JSON.parse(raw ?? 'null'); } catch { return null; }
-  if (!o || typeof o !== 'object' || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
-  return { id: o.id, stufe: WAECHTER.stufen.includes(o.stufe) ? o.stufe : null };
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || typeof o.id !== 'string' || !o.id || !istZeit(o.t, now, WAECHTER.frisch)) return null;
+  return { id: o.id, t: o.t, stufe: eins(WAECHTER.stufen, o.stufe), phase: eins(WAECHTER.phasen, o.phase), geraet: o.g === 1 };
+}
+
+/**
+ * Die offenen Laeufe dieses Geraets aus seinem Speicher, aelteste zuerst:
+ * [{ id, t, stufe, phase }]. Dieselben Regeln wie beim Vermerk der
+ * Registerkarte (waechterOffen): Kaputtes, Altes und andere Fassungen fallen
+ * weg; hoechstens WAECHTER.laeufe bleiben.
+ * @param {string|null} raw
+ * @param {number} now
+ */
+export function waechterLaeufe(raw, now) {
+  let o = null;
+  try { o = JSON.parse(raw ?? 'null'); } catch { return []; }
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || !o.l || typeof o.l !== 'object' || Array.isArray(o.l)) return [];
+  return Object.entries(o.l)
+    .filter(([id, e]) => id && e && typeof e === 'object' && istZeit(e.t, now, WAECHTER.frisch))
+    .map(([id, e]) => ({ id, t: e.t, stufe: eins(WAECHTER.stufen, e.s), phase: eins(WAECHTER.phasen, e.p) }))
+    .sort((a, b) => a.t - b.t)
+    .slice(-WAECHTER.laeufe);
+}
+
+/** @param {{ id: string, t: number, stufe: string|null, phase: string|null }[]} laeufe */
+export const waechterLaeufeText = (laeufe) => JSON.stringify({ v: WAECHTER.v, l: Object.fromEntries(laeufe.map((e) => [e.id, { t: e.t, s: e.stufe, p: e.phase }])) });
+
+/**
+ * Die Starts der Buehne an diesem Telefon, die weder standen noch verlassen
+ * wurden: [{ id, t }] in der Frist WAECHTER.anlauf.frist, aelteste zuerst.
+ * id: die Kennung des Laufs, an ihr fragt ein spaeterer Start, ob er noch
+ * lebt.
+ * @param {string|null} raw
+ * @param {number} now
+ */
+export function waechterAnlauf(raw, now) {
+  let o = null;
+  try { o = JSON.parse(raw ?? 'null'); } catch { return []; }
+  if (!o || typeof o !== 'object' || o.v !== WAECHTER.v || !Array.isArray(o.s)) return [];
+  return o.s
+    .filter((e) => Array.isArray(e) && typeof e[0] === 'string' && e[0] && istZeit(e[1], now, WAECHTER.anlauf.frist))
+    .map(([id, t]) => ({ id, t }))
+    .sort((a, b) => a.t - b.t)
+    .slice(-WAECHTER.laeufe);
+}
+
+/** @param {{ id: string, t: number }[]} starts */
+export const waechterAnlaufText = (starts) => JSON.stringify({ v: WAECHTER.v, s: starts.map((e) => [e.id, e.t]) });
+
+/**
+ * Welche toten Laeufe dieser Start zaehlen darf. Ein Lauf aus dem Speicher
+ * des Geraets gehoert dem Start, der ihn dort noch vorfindet: Starten zwei
+ * Registerkarten im selben Augenblick, lesen beide denselben toten Lauf, und
+ * nur die erste nimmt ihn heraus. Der Vermerk der eigenen Registerkarte
+ * zaehlt ohne den Speicher des Geraets immer; stand sein Lauf auch dort
+ * (offen.geraet) und ist dort weg, hat ihn ein anderer Start schon gezaehlt.
+ * tot: die vermerkten Laeufe, die nicht mehr leben; offen: der Vermerk der
+ * eigenen Registerkarte oder null; imGeraet: was jetzt im Speicher des
+ * Geraets steht, null, wenn dort nichts vermerkt wird (kein Kanal).
+ * @param {{ tot?: { id: string }[], offen?: { id: string, geraet?: boolean }|null, imGeraet?: { id: string }[]|null }} was
+ */
+export function waechterAnspruch({ tot = [], offen = null, imGeraet = null } = {}) {
+  const da = new Set((imGeraet ?? []).map((e) => e.id));
+  return tot.filter((e) => da.has(e.id) || (!!offen && e.id === offen.id && (imGeraet === null || !offen.geraet)));
+}
+
+/**
+ * Was ein Start zaehlt: null oder der Abbruch { stufe, phase, wie }. tot: die
+ * vermerkten Laeufe, die nicht mehr leben und diesem Start gehoeren
+ * (waechterAnspruch; der juengste gilt, gezaehlt wird einer); anlauf: die
+ * Starts vor diesem (waechterAnlauf), sie zaehlen nur am Telefon und nur
+ * ohne toten Lauf; lebt: Kennungen von Laeufen, die in einer anderen
+ * Registerkarte nachweislich leben, ihre Starts zaehlen nicht.
+ * @param {{ tot?: { t: number, stufe: string|null, phase: string|null }[], anlauf?: { id: string, t: number }[], lebt?: string[], telefon?: boolean }} was
+ */
+export function waechterBefund({ tot = [], anlauf = [], lebt = [], telefon = false } = {}) {
+  if (tot.length) {
+    const e = tot.reduce((a, b) => (b.t > a.t ? b : a));
+    return { stufe: e.stufe ?? null, phase: e.phase ?? null, wie: 'seite' };
+  }
+  if (telefon && anlauf.filter((e) => !lebt.includes(e.id)).length >= WAECHTER.anlauf.zahl) return { stufe: null, phase: null, wie: 'start' };
+  return null;
+}
+
+/**
+ * Leichte Buehne: am Telefon unter jedem Deckel des Waechters, also nach dem
+ * ersten Abbruch. Die Seite gibt dem Viewer dann weder die echte Halle noch
+ * die Besatzung mit, er baut seine eigene Halle (REAL in hangar-viewer.js).
+ * @param {string|null} deckel
+ * @param {boolean} telefon
+ */
+export const waechterLeicht = (deckel, telefon) => !!telefon && WAECHTER.stufen.includes(deckel);
+
+/**
+ * Das Geraet als Zeile fuer die Meldung: Art und System aus der Kennung des
+ * Browsers, dazu Bildschirm und Pixeldichte („iPhone, iOS 17.5, 390 × 844 @3“).
+ * Am Bildschirm laesst sich die Baureihe ablesen, die das Telefon selbst
+ * nicht verraet. '' ohne Angaben.
+ * @param {string} ua
+ * @param {{ w?: number, h?: number, dpr?: number }} [schirm]
+ */
+export function waechterGeraet(ua, { w = 0, h = 0, dpr = 0 } = {}) {
+  const u = String(ua ?? '');
+  const ios = /\b(iPhone|iPad|iPod)\b[^)]*?\bOS (\d+)[_.](\d+)/.exec(u);
+  const android = /\bAndroid (\d+(?:\.\d+)?)/.exec(u);
+  const teile = [];
+  if (ios) teile.push(ios[1], `iOS ${ios[2]}.${ios[3]}`);
+  else if (android) teile.push(`Android ${android[1]}`);
+  if (w > 0 && h > 0) teile.push(`${Math.round(Math.min(w, h))} × ${Math.round(Math.max(w, h))}${dpr > 0 ? ` @${Math.round(dpr * 100) / 100}` : ''}`);
+  return teile.join(', ');
 }
 
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
@@ -652,6 +868,8 @@ export function boot(doc) {
     cargos: new Set(opts('cargo').map(Number)),
     prices: new Set(opts('price').map(Number)),
     makers: new Set(opts('maker')),
+    // Bodenfahrzeuge stehen in der Werkhalle (StageConfig.models, Ort)
+    werk: new Set(Object.keys(stageCfg.models).filter((id) => stageCfg.models[id][3] === 'werk')),
   };
 
   // Die Dock-Karten tragen die Zahlen fuer Flotte, Vergleich und Sortierung
@@ -682,6 +900,10 @@ export function boot(doc) {
   // statt des gewaehlten (WORK_PAD im Viewer). Anders als ?grafik= bleibt
   // er in der Adresse (urlOf), damit Neuladen und Kopieren ihn behalten.
   const BODEN = new URLSearchParams(location.search).get('boden');
+  // Bilder zum Vergleich: ?bilder=webp laedt jede Textur aus dem WebP statt
+  // aus ihrem komprimierten Zwilling (ktxTwin im Viewer). Wie ?grafik= nur
+  // fuer diesen Aufruf, writeUrl() schreibt es nicht zurueck.
+  const BILDER = new URLSearchParams(location.search).get('bilder');
   let state = parseState(location.search, location.hash, ctx);
 
   // Auf- und Zuklappen des Docks. Gemerkt wird nur der Klick auf den Schalter
@@ -741,6 +963,8 @@ export function boot(doc) {
   function setState(patch, push = false) {
     // Ein Layout gehoert zu seinem Schiff: wer das Schiff wechselt, beginnt dort mit der Serie.
     if (patch.ship && patch.ship !== state.ship && !('lo' in patch)) patch = { ...patch, lo: null };
+    // Wer im Leitstand ein anderes Schiff waehlt, will es sehen: zurueck aufs Feld
+    if (patch.ship && patch.ship !== state.ship && !('ort' in patch)) patch = { ...patch, ort: 'halle' };
     commit(normalize({ ...state, ...patch }, ctx), push ? 'push' : 'replace');
   }
   /**
@@ -778,8 +1002,11 @@ export function boot(doc) {
     } else if (prev.sort !== state.sort) applySort();
     if (prev.ship !== state.ship && !finding) paintRandom();
     const cmpChanged = prev.cmp.join() !== state.cmp.join();
-    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.station !== state.station || prev.flat !== state.flat) paintStation();
+    if (prev.ship !== state.ship) rememberPlace();
+    if (prev.lo !== state.lo || prev.ship !== state.ship || prev.tab !== state.tab || prev.hp !== state.hp || prev.station !== state.station || prev.flat !== state.flat || prev.ort !== state.ort) paintStation();
     else if (cmpChanged) paintHolo();
+    // Bei einem Wechsel des Schiffs holt die Buehne die Kamera selbst zurueck (viewer.show)
+    if (prev.ort !== state.ort && prev.ship === state.ship) applyOrt();
     if (cmpChanged || prev.ship !== state.ship) paintTray();
     if (prev.view !== state.view || (cmpChanged && state.view === 'compare')) paintView();
   }
@@ -843,6 +1070,7 @@ export function boot(doc) {
   function showShip(id) {
     markCards(id);
     modelErr.hidden = true;
+    meldungPlatz();
     viewerShow(id);
     showBay(id);
   }
@@ -859,12 +1087,15 @@ export function boot(doc) {
       const regions = await loadBay(id);
       if (my !== selTok) return;
       for (const name of REGIONS) regionNow(name).replaceWith(doc.importNode(regions[name], true));
+      // der neue Titel kann hoeher sein als der alte: Platz einer sichtbaren Meldung nachmessen
+      meldungPlatz();
       applyTab();
       syncMarks();
       applyHp();
       title.classList.remove('is-swap');
       void title.offsetWidth;
       title.classList.add('is-swap');
+      paintGr();
       viewer?.label?.(id, labelOf(id));
       say(regionNow('head').dataset.announce);
       paintHolo();
@@ -892,9 +1123,11 @@ export function boot(doc) {
     head.querySelector('.hg-name').textContent = card?.querySelector('span')?.textContent ?? id;
     head.querySelector('.hg-maker').textContent = card?.querySelector('small')?.textContent ?? '';
     head.querySelector('.hg-role').textContent = '';
+    paintGr();
     viewer?.label?.(id, labelOf(id));
     regionNow('panel').hidden = true;
     bayErr.hidden = false;
+    meldungPlatz();
   }
   // Nur die Bucht: das Modell steht, seine Einfahrt soll nicht noch einmal laufen.
   $('hgx-bayretry').addEventListener('click', () => showBay(state.ship));
@@ -1038,10 +1271,41 @@ export function boot(doc) {
     const head = regionNow('head');
     if (head?.dataset.id === id) {
       const txt = (sel) => head.querySelector(sel)?.textContent.trim() ?? '';
-      return { logo: logoOf(id), maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role') };
+      return { logo: logoOf(id), maker: txt('.hg-maker'), name: txt('.hg-name'), role: txt('.hg-role'), hangar: grText(id) };
     }
     const card = cardOf(id);
-    return { logo: logoOf(id), maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '' };
+    return { logo: logoOf(id), maker: card?.querySelector('small')?.textContent.trim() ?? '', name: card?.querySelector('span')?.textContent.trim() ?? id, role: '', hangar: grText(id) };
+  }
+  // Hangargroesse (hangar-viewer.js onHangar, 13.11.2026). Krisz: „small
+  // Hangar, Medium, large und extra large einführen genau wie ingame, dann
+  // haben wir auch richtige grössenreferenzen“. Die Halle rastet je Schiff auf
+  // eine der vier Stufen ein, und die Buehne meldet, auf welche: Das steht als
+  // letzte Zeile des Titelblocks, im Hologramm und in #hgx-gr, mit dem Feld
+  // der Halle in Metern. Die Zeile folgt der Buehne, nicht der Schiffsliste:
+  // Ragt ein Modell ueber das Feld seiner Stufe, steht es eine groesser, und
+  // das soll sie sagen. size '': Kein Hangar fasst das Schiff (Javelin).
+  // Fahrzeuge der Werkhalle bekommen keine Meldung und keine Zeile.
+  const grBox = $('hgx-gr');
+  const grOf = new Map();
+  const grFill = (tpl, e) => tpl.replace('{w}', String(Math.round(e.w))).replace('{l}', String(Math.round(e.l))).replace('{h}', String(Math.round(e.h)));
+  function grText(id) {
+    const e = grOf.get(id), m = msg('gr');
+    if (!e) return '';
+    return e.size === '' ? m.own : m[e.size.toLowerCase()] ? `${m[e.size.toLowerCase()]} · ${grFill(m.feld, e)}` : '';
+  }
+  function paintGr() {
+    if (!grBox) return;
+    const e = grOf.get(state.ship), text = grText(state.ship);
+    grBox.textContent = text;
+    grBox.hidden = !text;
+    grBox.title = text ? grFill(msg('gr').frei, e) : '';
+  }
+  function onHangar(e) {
+    if (!e?.id || typeof e.size !== 'string') return;
+    grOf.set(e.id, e);
+    if (e.id !== state.ship) return;
+    paintGr();
+    viewer?.label?.(e.id, labelOf(e.id));
   }
   // In der Folge des Docks, also der Sortierung: Pfeile und Vorabruf folgen ihr.
   const visibleIds = () => [...strip.children].filter((li) => !li.hidden).map((li) => li.dataset.id);
@@ -1911,24 +2175,93 @@ export function boot(doc) {
   const guess3d = () => !!(stageCfg.opts?.hall?.url && stageCfg.opts.hall.room && stageCfg.opts.holo?.module)
     && !doc.defaultView.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   // Drinnen (data-walk) stellt der Viewer keine Station auf: dann die Tafel
-  const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on';
+  // und im Leitstand keine: dort steht das Terminal im Bild
+  const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on' && state.ort !== 'leit';
   const holoOn = () => canHolo() && !state.flat;
+  // Orte (placeOf): die Leiste nennt Schiffsfeld, Werkhalle und Leitstand,
+  // sobald die Buehne einen Leitstand hat (viewer.canPlace, bis sie
+  // antwortet die Vorhersage wie bei den Stationen); nicht drinnen. Steht
+  // die Uebersicht als Hologramm, ersetzen die Orte ihren einen Reiter; im
+  // Leitstand gibt es weder Reiter noch Tafel.
+  const ortBox = $('hgx-orte');
+  const ortBtns = [...(ortBox?.querySelectorAll('[data-ort]') ?? [])];
+  let stageOrte = null;
+  const canOrte = () => !!ortBox && (stageOrte ?? guess3d()) && main.dataset.walk !== 'on';
+  const placeNow = () => placeOf(state, ctx.werk);
+  // Fuss der Buehne: Passt die Leiste nicht in den freien Streifen zwischen
+  // Schiffsauswahl und Tafel (offene Auswahl im schmalen Fenster, flache
+  // Tafel), geben erst die Orte, dann auch Reiter und „Als Tafel“ ihre Namen
+  // ab und zeigen nur ihr Zeichen: data-eng 1 | 2 an #hgx-st. Der Name bleibt
+  // im Dokument (Vorleser) und steht als title am Knopf. Links im Streifen
+  // stehen die Zeichen der Buehne (#hg-tools, zwei bis vier): Der Platz
+  // zaehlt erst rechts von ihnen, und laege die Leiste in der Mitte des
+  // Streifens ueber ihnen, rueckt sie daneben (padding-left). Gemessen statt
+  // an Fensterbreiten geknuepft, weil Sprache, Korb, Tafel und die Zahl der
+  // Zeichen den Bedarf aendern. Passt auch die kleinste Form nicht (beide
+  // Spalten offen im schmalen Fenster), bleibt sie stehen wie zuvor.
+  // Anlass 13.11.2026: Mit den drei Orten lief die Leiste bei 800 px neben
+  // der offenen Auswahl 132 px aus dem Fenster, „Als Tafel“ war nicht mehr
+  // zu erreichen; bei 1280 px mit flacher Tafel lag sie ueber dem Ton-Knopf.
+  const stBar = $('hgx-stagebar'), stBox = $('hgx-st'), stTools = $('hg-tools');
+  function fitBar() {
+    if (!stBar || !stBox) return;
+    stBar.style.paddingLeft = '';
+    const bar = stBar.getBoundingClientRect(), t = stTools?.getBoundingClientRect();
+    const ab = t && t.width && t.top < bar.bottom && t.bottom > bar.top ? Math.max(bar.left, t.right + 12) : bar.left;
+    const pad = ab > bar.left ? `${Math.ceil(ab - bar.left)}px` : '';
+    let eng = '', passt = false;
+    for (const v of ['', '1', '2']) {
+      eng = v;
+      if (v) stBox.dataset.eng = v;
+      else delete stBox.dataset.eng;
+      stBar.style.paddingLeft = pad;
+      passt = stBar.scrollWidth <= stBar.clientWidth;
+      if (passt) break;
+    }
+    // in der Mitte des Streifens bleibt sie, solange sie dort frei steht
+    stBar.style.paddingLeft = '';
+    if (passt && pad && stBox.getBoundingClientRect().left < ab) stBar.style.paddingLeft = pad;
+    for (const b of stBox.querySelectorAll('button')) {
+      if (eng === '2' || (eng === '1' && b.closest('.hgx-st__orte'))) b.title = b.textContent.trim();
+      else b.removeAttribute('title');
+    }
+  }
+  if (stBar && stBox) {
+    // border-box: der eigene Einzug (padding-left) loest keine neue Meldung aus
+    const ro = new ResizeObserver(fitBar);
+    ro.observe(stBar, { box: 'border-box' });
+    if (stTools) ro.observe(stTools);
+    // Orte, Reiter, „Als Tafel“ und der Korb kommen und gehen ueber hidden
+    new MutationObserver(fitBar).observe(stBar, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+    doc.fonts?.ready.then(fitBar);
+  }
   let stageSafe = null;
   function paintStation() {
     main.dataset.station = state.station;
-    const holo = holoOn();
+    const holo = holoOn(), orte = canOrte(), at = placeNow(), leit = at === 'leit';
+    if (ortBox) {
+      ortBox.hidden = !orte;
+      for (const b of ortBtns) {
+        const on = b.dataset.ort === at;
+        if (on) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
+      }
+    }
+    const before = main.dataset.ort;
+    main.dataset.ort = at;
     for (const b of stBtns) {
       const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
-      b.hidden = holo && !on;
+      b.hidden = leit || (holo && (!on || orte));
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     }
+    stBtns[0].parentElement.hidden = stBtns.every((b) => b.hidden);
     tafelBtn.hidden = !canHolo();
     tafelBtn.setAttribute('aria-pressed', String(state.flat));
     const was = main.dataset.st3d === '1';
     if (holo) main.dataset.st3d = '1';
     else delete main.dataset.st3d;
-    if (was !== holo) stageSafe?.();
+    if (was !== holo || before !== at) stageSafe?.();
     // erst die Werkstatt, dann die Halle: holoData liest ihren Stand
     if (workshop) workshop.render(state);
     else if (state.station === 'loadout' || holo) {
@@ -1951,6 +2284,88 @@ export function boot(doc) {
     vis[to].focus();
   });
   tafelBtn.addEventListener('click', () => setState({ flat: !state.flat }));
+
+  // Orte: Ein Klick waehlt, was dort steht (placeShip), und ob die Kamera in
+  // den Leitstand faehrt. Je Ort merkt sich die Registerkarte das zuletzt
+  // gezeigte Fahrzeug (hg-orte): Schiffsfeld und Werkhalle fuehren dorthin
+  // zurueck, wo man war.
+  const ORTE_KEY = 'hg-orte';
+  let ortMemo = {};
+  try { ortMemo = JSON.parse(sessionStorage.getItem(ORTE_KEY) ?? '{}') ?? {}; } catch { ortMemo = {}; }
+  function rememberPlace() {
+    ortMemo = { ...ortMemo, [ctx.werk.has(state.ship) ? 'werk' : 'halle']: state.ship };
+    try { sessionStorage.setItem(ORTE_KEY, JSON.stringify(ortMemo)); } catch { /* ohne Speicher gilt das Startschiff */ }
+  }
+  // Auch das Fahrzeug, mit dem die Seite beginnt, ist ein Ort, an dem man
+  // war: Ohne diesen Eintrag fuehrte „Schiffsfeld“ nach einem Direktlink auf
+  // ein anderes Schiff und einem Abstecher in die Werkhalle zum Startschiff
+  // der Seite statt zurueck (Review PR #355).
+  rememberPlace();
+  function goPlace(to) {
+    if (to === placeNow()) return;
+    const ship = placeShip(to, state.ship, ortMemo, { ids: items.map((li) => li.dataset.id), werk: ctx.werk, defaultShip: ctx.defaultShip });
+    if (!ship) return;
+    setState({ ship, ort: to === 'leit' ? 'leit' : 'halle', hp: null });
+  }
+  ortBox?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ort]');
+    if (b) goPlace(b.dataset.ort);
+  });
+  // Escape fuehrt aus dem Leitstand zurueck aufs Feld (nicht, wenn es schon
+  // etwas anderes geschlossen hat, und nicht aus dem Fenster der Seite heraus:
+  // dort gehoert die Taste der Seite)
+  doc.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || e.defaultPrevented || state.ort !== 'leit' || state.view === 'compare') return;
+    setState({ ort: 'halle' });
+  });
+  // Die Kamera folgt dem Zustand: hinauf erst, wenn das Schiff steht
+  // (viewerShow ruft dann erneut), zurueck sofort. Kann die Buehne nicht
+  // (false), faellt der Zustand zurueck aufs Feld. Das darf nur die Antwort
+  // auf den juengsten Wunsch: Auch ein ueberholter loest mit false auf
+  // („Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt), und seine
+  // Antwort naehme sonst den juengeren zurueck (Review PR #355).
+  let ortTok = 0;
+  function applyOrt() {
+    if (!viewer?.place) return;
+    const my = ++ortTok;
+    if (state.ort !== 'leit') { viewer.place('halle'); return; }
+    if (placed !== state.ship) return;
+    const ship = state.ship;
+    viewer.place('leit').then((ok) => {
+      if (!ok && my === ortTok && state.ort === 'leit' && state.ship === ship) setState({ ort: 'halle' });
+    }, () => {});
+  }
+  // Das Terminal im Leitstand (assets/hangar-terminal.js): geladen, wenn die
+  // Kamera zum ersten Mal hinauffaehrt. Die Buehne nennt das Rechteck des
+  // Schirms im Bild (viewer.onPlace), das Fenster der Seite liegt genau
+  // darauf, solange die Kamera davor steht.
+  const termBox = $('hgx-term');
+  let terminal = null, terminalLoad = null, termRect = null, warOben = false;
+  function onPlace(e) {
+    if (e.ort === 'leit') main.dataset.fahrt = e.state;
+    else delete main.dataset.fahrt;
+    // Ansage fuer Vorleser, wenn die Kamera oben steht und wenn sie zurueck ist
+    const oben = e.ort === 'leit' && e.state === 'an';
+    if (oben && !warOben) say(ortBox?.dataset.anLeit ?? '');
+    else if (e.ort !== 'leit' && warOben) say(ortBox?.dataset.anHalle ?? '');
+    if (oben || e.ort !== 'leit') warOben = oben;
+    termRect = oben ? e.rect : null;
+    if (!termBox) return;
+    // Geht das Fenster zu, waehrend der Fokus in ihm steht, wandert er auf den
+    // Ort in der Leiste statt in einem verborgenen Rahmen zu bleiben.
+    if (!oben && termBox.contains(doc.activeElement)) (ortBox?.querySelector('[aria-current="true"]') ?? ortBtns[0])?.focus({ preventScroll: true });
+    if (terminal) { terminal.place(termRect); return; }
+    if (e.ort !== 'leit' || terminalLoad) return;
+    terminalLoad = import(termBox.dataset.js).then((m) => {
+      terminal = m.initTerminal(termBox, {
+        // Ein Link zum Hangar auf dem Schirm („Im Hangar ansehen“): Das Schiff
+        // kommt aufs Feld, ohne die Halle neu zu laden; ohne bekanntes Schiff
+        // fuehrt er nur zurueck aufs Feld.
+        ship: (id) => setState(id && ctx.ids.has(id) ? { ship: id, ort: 'halle', hp: null } : { ort: 'halle' }),
+      });
+      terminal.place(termRect);
+    }, () => { terminalLoad = null; });
+  }
 
   // Die Uebersicht als Hologramm (viewer.station): Woerter und Zahlen aus der
   // eingesetzten Bucht und den Dock-Karten, fertig gesetzt; der Viewer
@@ -2132,7 +2547,7 @@ export function boot(doc) {
     const my = ++showTok;
     placed = null;
     syncMarks();
-    const [glb, tex, maker, ort] = stageCfg.models[id];
+    const [glb, tex, maker, ort, hangar] = stageCfg.models[id];
     // Der Balken beginnt fuer jedes Schiff bei null. Wie bei der Bucht zeigt
     // der Zeitgeber eines ueberholten show() nichts mehr an; sein finally
     // blendet nur aus, was ihm gehoert.
@@ -2140,17 +2555,26 @@ export function boot(doc) {
     // Nur ein leiser Balken ohne Wort, und erst wenn das Laden spuerbar
     // dauert: ein schneller Wechsel zeigt gar nichts.
     const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 1200);
-    viewer.show(glb, { maker, tex, ort, id, label: labelOf(id) })
+    viewer.show(glb, { maker, tex, ort, id, hangar, label: labelOf(id) })
       .then(() => {
         if (my !== showTok) return;
         placed = id;
+        laufPhase('steht');
         fitKey = '';
         paintKey = '';
         syncMarks();
         applyFit();
         applyPaintSel();
+        // der Leitstand aus der Adresse oder von der Werkhalle aus: jetzt steht das Schiff
+        if (state.ort === 'leit') applyOrt();
       })
-      .catch(() => { if (my === showTok) modelErr.hidden = false; })
+      .catch((e) => {
+        if (my !== showTok) return;
+        grund(modelErr, e);
+        modelErr.hidden = false;
+        meldungPlatz();
+        console.warn('[hangar] Modell nicht geladen', e);
+      })
       .finally(() => {
         clearTimeout(t);
         if (my === showTok) loadEl.hidden = true;
@@ -2164,7 +2588,7 @@ export function boot(doc) {
   // Start ihn vor, ist der vorige Lauf abgebrochen, es sei denn, die
   // Registerkarte wurde verdoppelt (der Vermerk wird mitkopiert): dann
   // meldet sich der noch laufende Lauf ueber den Kanal.
-  const STAND_KEY = 'vb.hangar.waechter', OFFEN_KEY = 'vb.hangar.offen';
+  const STAND_KEY = 'vb.hangar.waechter', OFFEN_KEY = 'vb.hangar.offen', LAEUFE_KEY = 'vb.hangar.laeufe', ANLAUF_KEY = 'vb.hangar.anlauf';
   const lies = (wo, key) => { try { return wo().getItem(key); } catch { return null; } };
   function standSchreiben(stand) {
     try {
@@ -2173,16 +2597,62 @@ export function boot(doc) {
       return true;
     } catch { return false; }
   }
+  // Telefon wie SMALL im Viewer (schmal oder Touch): dort senkt schon der
+  // erste Abbruch (WAECHTER oben).
+  const TELEFON = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+  const WIE = { seite: 'Seite neu gestartet', kontext: 'Zeichenkontext verloren', start: 'mehrere Starts, keiner stand' };
+  // Die Starts der Buehne an diesem Telefon (waechterAnlauf): Jeder Start
+  // traegt sich mit der Kennung seines Laufs ein; steht die Buehne
+  // WAECHTER.anlauf.ruhe lang, nimmt sie ihn und alle davor heraus
+  // (anlaufRuhe), und wer die Seite von sich aus verlaesst (pagehide) oder in
+  // den Hintergrund legt, nimmt seinen Eintrag ebenfalls heraus. Was stehen
+  // bleibt, sind Starts, die ohne Abschied endeten. Ein gezaehlter Abbruch
+  // leert die Liste, und was die Seite selbst neu laedt (Grafik-Schalter,
+  // Knoepfe), auch. Im Hintergrund traegt sich nichts ein: Kommt die Seite
+  // wieder nach vorn, bevor ihr Lauf geruht hat, steht ihr Start wieder da.
+  let meinStart = null;
+  const anlaufWeg = () => { meinStart = null; try { localStorage.removeItem(ANLAUF_KEY); } catch { /* ohne Speicher gab es keine Liste */ } };
+  const anlaufSchreiben = (rest) => {
+    if (rest.length) localStorage.setItem(ANLAUF_KEY, waechterAnlaufText(rest));
+    else localStorage.removeItem(ANLAUF_KEY);
+  };
+  function anlaufSetzen() {
+    if (!TELEFON || !lauf || lauf.ruht || meinStart || doc.hidden) return;
+    try {
+      const e = { id: lauf.id, t: Date.now() };
+      anlaufSchreiben([...waechterAnlauf(localStorage.getItem(ANLAUF_KEY), e.t).filter((x) => x.id !== e.id), e]);
+      meinStart = e;
+    } catch { meinStart = null; }
+  }
+  function anlaufAbschied() {
+    if (!meinStart) return;
+    const id = meinStart.id;
+    meinStart = null;
+    try { anlaufSchreiben(waechterAnlauf(localStorage.getItem(ANLAUF_KEY), Date.now()).filter((e) => e.id !== id)); } catch { /* dann bleibt der Eintrag und verfaellt mit der Frist */ }
+  }
+  // Der Lauf steht WAECHTER.anlauf.ruhe lang, das Geraet traegt ihn: Sein
+  // Start und alle davor zaehlen nicht mehr. Spaetere bleiben: Sie gehoeren
+  // anderen Registerkarten, ueber die dieser Lauf nichts sagt.
+  function anlaufRuhe() {
+    if (!lauf) return;
+    lauf.ruht = true;
+    meinStart = null;
+    const { id, t0 } = lauf;
+    try { anlaufSchreiben(waechterAnlauf(localStorage.getItem(ANLAUF_KEY), Date.now()).filter((e) => e.id !== id && e.t > t0)); } catch { /* dann verfallen sie mit der Frist */ }
+  }
   // Ein Abbruch in der Stufe stufe: vermerken, und was der Besucher von Hand
   // gewaehlt hatte, gilt nicht weiter, wenn der Deckel darunter liegt.
-  function abbruch(stufe, wie) {
+  // wie: 'seite' oder 'kontext', phase: wie weit der Lauf war (beides fuer die Spur).
+  function abbruch(stufe, wie, phase) {
     const vor = waechterStand(lies(() => localStorage, STAND_KEY), Date.now());
-    const stand = waechterAbbruch(vor, Date.now(), stufe);
+    const stand = waechterAbbruch(vor, Date.now(), stufe, { sofort: TELEFON, phase, wie });
     const ok = standSchreiben(stand);
     if (stand.deckel && GRAFIK && (stand.deckel === 'aus' || WAECHTER.stufen.indexOf(GRAFIK) > WAECHTER.stufen.indexOf(stand.deckel))) {
       try { localStorage.removeItem(GRAFIK_KEY); } catch { /* dann gilt der Deckel ueber der Wahl */ }
     }
-    console.warn(`[hangar] Abbruch der Buehne (${wie}, Stufe ${stufe ?? 'unbekannt'}): ${stand.deckel === vor.deckel ? 'vermerkt' : `Deckel ${stand.deckel}`}${ok ? '' : ', ohne Speicher nicht gemerkt'}`);
+    // gezaehlt ist gezaehlt: die Starts davor zaehlen kein zweites Mal
+    anlaufWeg();
+    console.warn(`[hangar] Abbruch der Buehne (${WIE[wie] ?? wie}, Stufe ${stufe ?? 'unbekannt'}, ${phase ?? 'Phase unbekannt'}): ${stand.deckel === vor.deckel ? 'vermerkt' : `Deckel ${stand.deckel}`}${ok ? '' : ', ohne Speicher nicht gemerkt'}`);
     return ok ? stand : null;
   }
   let lauf = null;
@@ -2204,27 +2674,79 @@ export function boot(doc) {
     kanal.addEventListener('message', on);
     kanal.postMessage({ frage: id });
   });
-  const offenWeg = () => { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* ohne Speicher gab es keinen Vermerk */ } };
+  // Die offenen Laeufe im Speicher des Geraets (waechterLaeufe): lesen,
+  // aendern, schreiben. Nur mit Kanal: ohne ihn kann kein Start sagen, ob ein
+  // dort vermerkter Lauf in einer anderen Registerkarte noch laeuft. Und nur
+  // am Telefon (GERAET): Dort ist eine Registerkarte zu sehen, und ein Lauf,
+  // der im Vordergrund vermerkt wurde und sich nicht abgemeldet hat, ist
+  // abgebrochen. Am PC stehen Fenster nebeneinander, und eines, das gerade
+  // laedt, antwortet dem Kanal nicht in der Frist: Ein zweites Fenster
+  // hielte es fuer tot (nachgestellt beim Review zu PR 363). Dort bleibt es
+  // beim Vermerk der Registerkarte, den der Browser beim Neuladen behaelt.
+  // true: geschrieben.
+  const GERAET = TELEFON && !!kanal;
+  function laeufeAendern(fn) {
+    if (!GERAET) return false;
+    try {
+      const l = fn(waechterLaeufe(localStorage.getItem(LAEUFE_KEY), Date.now()));
+      if (l.length) localStorage.setItem(LAEUFE_KEY, waechterLaeufeText(l));
+      else localStorage.removeItem(LAEUFE_KEY);
+      return true;
+    } catch { return false; /* ohne Speicher bleibt der Vermerk der Registerkarte */ }
+  }
+  // unter welcher Kennung der Vermerk dieser Seite im Speicher des Geraets steht
+  let offenId = null;
+  const offenWeg = () => {
+    try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* ohne Speicher gab es keinen Vermerk */ }
+    if (!offenId) return;
+    const id = offenId;
+    offenId = null;
+    laeufeAendern((l) => l.filter((e) => e.id !== id));
+  };
   function offenSetzen() {
     if (!lauf || doc.hidden) return;
-    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ t: Date.now(), id: lauf.id, stufe: lauf.stufe })); } catch { /* ohne Speicher zaehlt nur der verlorene Kontext */ }
+    const e = { id: lauf.id, t: Date.now(), stufe: lauf.stufe, phase: lauf.phase };
+    // g: Der Lauf steht auch im Speicher des Geraets; sein Abbruch gehoert
+    // dann dem Start, der ihn dort herausnimmt (waechterAnspruch).
+    const g = laeufeAendern((l) => [...l.filter((x) => x.id !== e.id), e]) ? 1 : 0;
+    if (g) offenId = e.id;
+    try { sessionStorage.setItem(OFFEN_KEY, JSON.stringify({ v: WAECHTER.v, ...e, g })); } catch { /* dann zaehlt der Vermerk im Speicher des Geraets */ }
   }
-  function laufEnde() { lauf = null; offenWeg(); }
+  // Ein Lauf, der mit einer Meldung endet (kein Start, Kontext verloren), ist
+  // kein Start, der ohne Abschied endete: Er nimmt sich aus der Liste.
+  function laufEnde() { lauf = null; offenWeg(); anlaufAbschied(); }
+  // Wie weit der Lauf ist (WAECHTER.phasen), nur vorwaerts: 'laden' bis die
+  // Dateien da sind, 'bauen' bis das erste Schiff steht, dann 'steht'.
+  function laufPhase(phase) {
+    if (!lauf || WAECHTER.phasen.indexOf(phase) <= WAECHTER.phasen.indexOf(lauf.phase)) return;
+    lauf.phase = phase;
+    offenSetzen();
+    // Steht die Buehne WAECHTER.anlauf.ruhe lang, traegt das Geraet sie: Die
+    // Starts bis zu ihrem eigenen zaehlen nicht mehr (anlaufRuhe).
+    if (phase === 'steht') {
+      const id = lauf.id;
+      setTimeout(() => { if (lauf?.id === id) anlaufRuhe(); }, WAECHTER.anlauf.ruhe);
+    }
+  }
   // Seit wann die Seite sichtbar ist (0: im Hintergrund, 1: seit dem Start).
   // Einer Seite im Hintergrund nimmt das Telefon den Zeichenkontext auch ohne
   // Not, und sie erfaehrt es erst beim Zurueckkommen: Das ist kein Abbruch
   // (imVordergrund). Ein Verlust gleich nach dem Start zaehlt dagegen.
   let sichtbarSeit = doc.hidden ? 0 : 1;
   const imVordergrund = () => sichtbarSeit > 0 && Date.now() - sichtbarSeit >= 5000;
-  window.addEventListener('pagehide', offenWeg);
+  window.addEventListener('pagehide', () => { offenWeg(); anlaufAbschied(); });
   window.addEventListener('pageshow', (e) => {
     if (!e.persisted) return;
     sichtbarSeit = doc.hidden ? 0 : Date.now();
     offenSetzen();
+    anlaufSetzen();
   });
+  // Im Hintergrund gehen Vermerk und Start: Was dort mit der Seite geschieht,
+  // ist kein Abbruch der Buehne, und eine Registerkarte, die das Telefon im
+  // Hintergrund anhaelt, koennte ihren Start sonst nie mehr herausnehmen.
   doc.addEventListener('visibilitychange', () => {
     sichtbarSeit = doc.hidden ? 0 : Date.now();
-    if (doc.hidden) offenWeg(); else offenSetzen();
+    if (doc.hidden) { offenWeg(); anlaufAbschied(); } else { offenSetzen(); anlaufSetzen(); }
   });
   // Der Vermerk bleibt frisch, solange der Lauf zu sehen ist: Sonst gaelte
   // er nach WAECHTER.frisch als alt, und ein Abbruch nach langem Ansehen
@@ -2236,12 +2758,40 @@ export function boot(doc) {
   // Registerkarte schon), bleibt die Buehne fuer dieses Laden aus: Sonst
   // zaehlte kein Abbruch, und die Schleife liefe weiter. Der Knopf oder ein
   // Neuladen von Hand versucht es wieder, einmal je Mal.
+  // Vermerkt sind Laeufe an zwei Orten: im Speicher der Registerkarte (der
+  // eigene vorige Lauf) und am Telefon in dem des Geraets (alle offenen, seit
+  // v 3). Wer
+  // davon nicht mehr lebt, ist abgebrochen; gezaehlt wird je Start einer.
+  // Findet sich keiner, zaehlen am Telefon die Starts (waechterBefund), ohne
+  // die, deren Lauf noch lebt.
+  // Nach der Frage an den Kanal liest der Start beide Listen noch einmal und
+  // zaehlt im selben Zug: Ein toter Lauf, den ein anderer Start inzwischen
+  // aus dem Speicher des Geraets genommen hat, ist dort gezaehlt
+  // (waechterAnspruch), und Starts, die der andere dabei geleert hat, zaehlen
+  // nicht noch einmal. Eine Sperre ueber Registerkarten hinweg (Web Locks)
+  // gibt es hier mit Absicht nicht: Wartete ein Start hinter einer
+  // Registerkarte, die das Telefon im Hintergrund angehalten hat, bliebe die
+  // Buehne aus.
   async function waechterStart() {
-    const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), Date.now());
-    if (offen && !(await lebtNoch(offen.id))) {
-      offenWeg();
-      if (!abbruch(offen.stufe, 'Seite neu gestartet')) return 'aus';
+    const now = Date.now();
+    const offen = waechterOffen(lies(() => sessionStorage, OFFEN_KEY), now);
+    const laeufe = GERAET ? waechterLaeufe(lies(() => localStorage, LAEUFE_KEY), now) : [];
+    const vermerkt = [...(offen ? [offen] : []), ...laeufe.filter((e) => e.id !== offen?.id)];
+    const anlauf = TELEFON ? waechterAnlauf(lies(() => localStorage, ANLAUF_KEY), now) : [];
+    // jede Kennung einmal fragen: Vermerk und Start eines Laufs teilen sie
+    const ids = [...new Set([...vermerkt, ...anlauf].map((e) => e.id))];
+    const antwort = await Promise.all(ids.map((id) => lebtNoch(id)));
+    const lebt = ids.filter((_, i) => antwort[i]);
+    const tot = vermerkt.filter((e) => !lebt.includes(e.id));
+    const meine = waechterAnspruch({ tot, offen, imGeraet: GERAET ? waechterLaeufe(lies(() => localStorage, LAEUFE_KEY), Date.now()) : null });
+    if (tot.length) {
+      if (offen && tot.includes(offen)) { try { sessionStorage.removeItem(OFFEN_KEY); } catch { /* dann gab es ihn nicht */ } }
+      laeufeAendern((l) => l.filter((e) => !tot.some((x) => x.id === e.id)));
     }
+    // was in der Wartezeit dazukam, ist ein Start von eben und lebt
+    const starts = TELEFON ? waechterAnlauf(lies(() => localStorage, ANLAUF_KEY), Date.now()).filter((e) => ids.includes(e.id)) : [];
+    const was = waechterBefund({ tot: meine, anlauf: starts, lebt, telefon: TELEFON });
+    if (was && !abbruch(was.stufe, was.wie, was.phase)) return 'aus';
     return waechterStand(lies(() => localStorage, STAND_KEY), Date.now()).deckel;
   }
 
@@ -2249,27 +2799,105 @@ export function boot(doc) {
   // why waehlt den Text (data-blocked, -soft, -failed an #hg-fallback), ohne
   // passenden Text bleibt der allgemeine; die Konsole nennt die Ursache.
   const fallback = $('hg-fallback');
+  // Kleine Zeilen unter einer Meldung der Buehne (eine je Eintrag); ersetzt die vorigen
+  function notiz(el, zeilen) {
+    el.querySelector('.hgx-spur')?.remove();
+    if (!zeilen.length) return;
+    const box = doc.createElement('small');
+    box.className = 'hgx-spur';
+    for (const z of zeilen) {
+      const row = doc.createElement('span');
+      row.textContent = z;
+      box.append(row);
+    }
+    el.append(box);
+  }
+  // Der technische Grund eines Fehlers als kleine Zeile unter der Meldung:
+  // Vom Telefon kommt keine Konsole zurueck, und „konnte nicht geladen
+  // werden“ allein sagt nicht, woran es lag. Adressen kuerzt er auf den
+  // Dateinamen.
+  function grund(el, e) {
+    const text = String(e?.message ?? e ?? '').replace(/\bhttps?:\/\/[^\s"'<>]*\/([^\s"'<>/?#]+)[^\s"'<>]*/g, '$1').replace(/\s+/g, ' ').trim().slice(0, 140);
+    notiz(el, text && el.dataset.grund ? [`${el.dataset.grund} ${text}`] : []);
+  }
+  // Schmal stehen die Meldungen der Buehne an ihrem Fuss und der Titelblock
+  // oben. Mit Knopf, Verlauf oder Grund ist eine Meldung hoeher als der Platz
+  // dazwischen und laege ueber den Knoepfen des Titels: Dann waechst die
+  // Buehne um das, was fehlt, und geht mit der Meldung wieder zurueck.
+  // offset* wie bei cover(): der Titel faehrt beim Wechsel mit translateY ein.
+  // Liest nur das Dokument (keine Namen von weiter unten): showShip() ruft
+  // sie auch.
+  function meldungPlatz() {
+    const fb = $('hg-fallback'), buehne = fb.parentElement, title = doc.querySelector('.hg-title');
+    buehne.style.minHeight = '';
+    if (!title || !window.matchMedia('(max-width: 760px)').matches) return;
+    const oben = title.offsetTop + title.offsetHeight - $('hg-canvas').offsetTop + 12;
+    let need = 0;
+    for (const el of [fb, $('hgx-modelerr')]) {
+      // unten: Abstand zum Fuss der Buehne, wie ihn das Stilblatt setzt
+      if (el && !el.hidden) need = Math.max(need, oben + el.offsetHeight + (parseFloat(getComputedStyle(el).bottom) || 0));
+    }
+    if (need > buehne.offsetHeight) buehne.style.minHeight = `${Math.ceil(need)}px`;
+  }
+  window.addEventListener('resize', meldungPlatz, { passive: true });
+  // Leichte Ansicht (waechterLeicht): Die Zeile #hgx-leicht sagt, dass das
+  // Schiff in der gebauten Halle steht und warum; ihr Knopf hebt den Deckel
+  // auf und laedt die volle Halle. data-leicht an der Seite fuer Stil und
+  // Pruefer.
+  const leichtEl = $('hgx-leicht');
+  function leichtZeigen() {
+    main.dataset.leicht = 'on';
+    if (leichtEl) leichtEl.hidden = false;
+  }
+  function leichtWeg() {
+    delete main.dataset.leicht;
+    if (leichtEl) leichtEl.hidden = true;
+  }
+  $('hgx-leicht-voll')?.addEventListener('click', () => {
+    standSchreiben({ ab: null, deckel: null, seit: 0 });
+    anlaufWeg();
+    location.reload();
+  });
   function noStage(why, detail) {
     loadEl.hidden = true;
     delete main.dataset.holo;
     laufEnde();
+    leichtWeg();
     // ohne Buehne keine Stationen in der Halle: die Tafeln der Seite gelten
-    if (stage3d !== false) { stage3d = false; queueMicrotask(paintStation); }
+    // und keine Orte: ein ?ort=leit aus der Adresse faellt zurueck aufs Feld
+    if (stage3d !== false || stageOrte !== false) {
+      stage3d = false; stageOrte = false;
+      queueMicrotask(() => { if (state.ort === 'leit') setState({ ort: 'halle' }); else paintStation(); });
+    }
     if (why && fallback.dataset[why]) fallback.textContent = fallback.dataset[why];
-    // Vom Waechter abgestellt: ein Knopf versucht es in der niedrigen Stufe
+    // Vom Waechter abgestellt: ein Knopf versucht es in der niedrigen Stufe,
+    // darunter die Spur der Abbrueche (sie bleibt ueber den Versuch stehen)
     if (why === 'crash' && fallback.dataset.retry) {
+      const stand = waechterStand(lies(() => localStorage, STAND_KEY), Date.now());
       const b = doc.createElement('button');
       b.type = 'button';
       b.className = 'hgx-retry';
       b.textContent = fallback.dataset.retry;
       // Ohne Speicher laedt der Knopf trotzdem neu: ein Versuch je Druck
       b.addEventListener('click', () => {
-        standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now() });
+        standSchreiben({ ab: null, deckel: 'niedrig', seit: Date.now(), spur: stand.spur });
+        anlaufWeg();
         location.reload();
       });
       fallback.append(b);
+      const stufenWort = (k) => $('hgx-gfx')?.querySelector(`option[value="${k}"]`)?.textContent ?? '';
+      const zeilen = waechterVerlauf(stand.spur, (k) => (WAECHTER.stufen.includes(k) ? stufenWort(k) : fallback.dataset[`spur${k[0].toUpperCase()}${k.slice(1)}`] ?? ''));
+      // Darunter das Geraet: Welches Telefon es ist, sagt sonst nur sein Besitzer
+      const geraet = waechterGeraet(navigator.userAgent, { w: window.screen?.width, h: window.screen?.height, dpr: window.devicePixelRatio });
+      notiz(fallback, [
+        ...(zeilen.length && fallback.dataset.spur ? [fallback.dataset.spur, ...zeilen] : []),
+        ...(geraet && fallback.dataset.geraet ? [`${fallback.dataset.geraet} ${geraet}`] : []),
+      ]);
     }
+    // Nicht gestartet: der Grund in Kurzform darunter
+    if (why === 'failed') grund(fallback, detail);
     fallback.hidden = false;
+    meldungPlatz();
     $('hg-reset').hidden = true;
     const hint = doc.querySelector('.hg-hint');
     if (hint) hint.hidden = true;
@@ -2346,6 +2974,7 @@ export function boot(doc) {
       } catch { /* ohne Speicher gilt die Wahl nur ueber die Adresse */ }
       // Eine Wahl von Hand hebt den Deckel des Waechters auf
       standSchreiben({ ab: null, deckel: null, seit: 0 });
+      anlaufWeg();
       const u = new URL(location.href);
       if (!canStore()) {
         if (sel.value === 'auto') u.searchParams.delete('grafik'); else u.searchParams.set('grafik', sel.value);
@@ -2423,14 +3052,24 @@ export function boot(doc) {
     if (miss) { noStage(miss, gpuWhy); return; }
     loadEl.hidden = false;
     // Lauf offen, die Stufe folgt, sobald der Viewer sie gewaehlt hat
-    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, stufe: null };
+    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, t0: Date.now(), stufe: null, phase: 'laden' };
     offenSetzen();
+    anlaufSetzen();
+    // Am Telefon unter einem Deckel die leichte Buehne: ohne echte Halle und
+    // ohne Besatzung baut der Viewer seine eigene Halle (waechterLeicht)
+    const leicht = waechterLeicht(deckel, TELEFON);
+    if (leicht) leichtZeigen();
+    const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : stageCfg.opts;
     import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...stageCfg.opts, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, sound: tonAn() }))
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...buehne, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }))
       .then((v) => {
         viewer = v;
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }
-        v.onProgress((p) => bar.style.setProperty('--p', `${p}%`));
+        // ab 90 % sind die Dateien da, der Rest ist Auspacken, Uebersetzen und Hochladen
+        v.onProgress((p) => {
+          bar.style.setProperty('--p', `${p}%`);
+          if (p >= 90) laufPhase('bauen');
+        });
         v.onFrame(placeMarks);
         // Kontext weg: die Meldung steht ueber der Buehne, und der Waechter
         // zaehlt einen Abbruch. Kommt der Kontext zurueck, laedt die Seite
@@ -2454,14 +3093,15 @@ export function boot(doc) {
             delete main.dataset.holo;
             fallback.textContent = fallback.dataset.lost;
             fallback.hidden = false;
+            meldungPlatz();
             // Ladebalken, Knoepfe und Bedienhinweis der Buehne gehen mit
             // (data-lost in HangarPage.astro): Sie steuern nichts mehr, am
             // Telefon lagen die Knoepfe ueber der Meldung, und was noch laedt,
             // blendete sie sonst wieder ein.
             main.dataset.lost = 'on';
-            const stufe = lauf?.stufe ?? v.quality().start;
+            const stufe = lauf?.stufe ?? v.quality().start, phase = lauf?.phase ?? null;
             laufEnde();
-            if (imVordergrund()) neuLaden = !!abbruch(stufe, 'Zeichenkontext verloren');
+            if (imVordergrund()) neuLaden = !!abbruch(stufe, 'kontext', phase);
             else {
               neuLaden = true;
               console.warn('[hangar] Zeichenkontext im Hintergrund verloren, nicht als Abbruch gezaehlt');
@@ -2526,6 +3166,11 @@ export function boot(doc) {
         // Stationen in 3D, wenn die Buehne sie kann
         stage3d = v.canStation?.() === true;
         v.onStation?.(onStationAct);
+        // Orte, wenn sie einen Leitstand hat; sonst gilt die Adresse nicht
+        stageOrte = stage3d && v.canPlace?.('leit') === true;
+        v.onPlace?.(onPlace);
+        v.onHangar?.(onHangar);
+        if (!stageOrte && state.ort === 'leit') setState({ ort: 'halle' });
         viewerShow(state.ship);
         paintStation();
       })

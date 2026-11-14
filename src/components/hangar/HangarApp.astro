@@ -22,7 +22,7 @@ import { versioned } from '../../lib/assetVersion';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
-import type { StageConfig } from '../../lib/hangar/stage';
+import { hangarOfClass, type StageConfig, type StageOrt } from '../../lib/hangar/stage';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { jsonForScript } from '../../lib/safeJson';
 
@@ -218,16 +218,21 @@ const holo = { module: versioned('assets/hangar-holo3d.js', '/assets/hangar-holo
 const stage = {
   viewer: viewerSrc,
   opts: { hall, crew, gear, texBytes, logos, interior, holo },
-  models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
-    withV(geo[id] ?? meshes[id]),
-    real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
-    shipFacts(id, lang).makerCode,
+  models: Object.fromEntries(HANGAR_IDS.map((id) => {
     // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026), dazu die
     // Gravlev-Räder (Dragonfly, Nox, X1, Pulse, HoverQuad), obwohl sie im
     // Spiel als Raumschiff zählen (Krisz 25.10.2026: „dragonfly undso
     // gehört auch zur bodenfahrzeugen“)
-    shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle',
-  ] as const])),
+    const ort: StageOrt = shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle';
+    return [id, [
+      withV(geo[id] ?? meshes[id]),
+      real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
+      shipFacts(id, lang).makerCode,
+      ort,
+      // Hangargröße wie im Spiel, nur auf dem Schiffsfeld (stage.ts)
+      ort === 'halle' ? hangarOfClass(shipData(id).sizeClass) : null,
+    ] as const];
+  })),
 } satisfies StageConfig;
 const payload = jsonForScript(stage);
 ---
@@ -269,6 +274,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 [data-media-surface] .hg-holo__m{font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-12);text-transform:uppercase;color:rgb(205 230 246/.88)}
 .hg-holo__n{margin:.06em 0 .12em!important;font-family:var(--font-display);font-weight:900;font-size:1em;line-height:1.04;text-wrap:balance;text-shadow:-.025em 0 rgb(255 80 130/.3),.025em 0 rgb(80 205 255/.45),0 0 .16em rgb(130 215 255/.65),0 0 .5em rgb(2 6 12/.55)}
 [data-media-surface] .hg-holo__r{font-size:max(13px,.31em);color:rgb(205 230 246/.85)}
+/* Hangargröße des Schiffs und das Feld der Halle, unter der Rolle */
+[data-media-surface] .hg-holo__g{margin-top:.5em;font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-6,.04em);color:rgb(170 226 255/.95)}
 /* Austrittskante unter dem Block, Abtastlinie beim Auf- und Abbau */
 .hg-holo::before,.hg-holo::after{content:"";position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgb(160 226 255/.8),transparent)}
 .hg-holo::before{left:14%;right:14%;bottom:0;box-shadow:0 0 6px rgb(110 205 255/.5)}
@@ -295,7 +302,10 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
       <div class="hg-canvas" id="hg-canvas"></div>
       <div class="hg-load" id="hg-load" hidden><span>{de ? 'Schiff wird hereingerollt …' : 'Rolling the ship in …'}</span><b><i></i></b></div>
       {/* Text je Ursache (noStage in hangar-overview.js); ohne Ursache gilt der Inhalt.
-          data-crash: der Wächter der Seite hat die Bühne abgestellt, data-retry beschriftet seinen Knopf. */}
+          data-crash: der Wächter der Seite hat die Bühne abgestellt, data-retry beschriftet seinen Knopf,
+          data-spur und data-spur-* die Zeilen darunter (wie weit die abgebrochenen Läufe kamen),
+          data-geraet die Zeile mit dem Gerät;
+          data-grund leitet den technischen Grund unter data-failed ein. */}
       <div class="hg-fallback" id="hg-fallback" role="status" hidden
         data-blocked={de ? 'Dein Browser lässt gerade keine 3D-Grafik zu, meist nach einem Absturz des Grafiktreibers. Dann hilft es, alle seine Fenster zu schließen und ihn neu zu öffnen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is not allowing 3D graphics right now, usually after a graphics driver crash. Closing all of its windows and opening it again fixes that. The figures and the data sheet are still available.'}
         data-soft={de ? 'Dein Browser zeichnet gerade ohne Grafikkarte, für die Halle ist das zu langsam. Hardwarebeschleunigung einschalten oder den Browser neu starten. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser is drawing without the graphics card right now, which is too slow for the hangar. Turn on hardware acceleration or restart the browser. The figures and the data sheet are still available.'}
@@ -303,6 +313,15 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
         data-lost={de ? 'Die Grafikkarte hat die 3D-Ansicht verloren. Sobald sie wieder bereit ist, lädt die Seite neu; tut sie das nicht, die Seite selbst neu laden. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'The graphics card dropped the 3D view. The page reloads as soon as it is available again; if it does not, reload the page yourself. The figures and the data sheet are still available.'}
         data-crash={de ? 'Die 3D-Ansicht ist auf diesem Gerät mehrmals abgebrochen. Sie bleibt aus, damit die Seite nicht immer wieder neu lädt. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'The 3D view stopped several times on this device. It stays off so the page does not keep reloading. The figures and the data sheet are still available.'}
         data-retry={de ? '3D-Ansicht noch einmal versuchen' : 'Try the 3D view again'}
+        data-grund={de ? 'Technischer Grund:' : 'Technical reason:'}
+        data-spur={de ? 'Verlauf der Abbrüche:' : 'What happened:'}
+        data-spur-laden={de ? 'beim Laden der Dateien' : 'while downloading'}
+        data-spur-bauen={de ? 'beim Aufbau der Halle' : 'while building the hall'}
+        data-spur-steht={de ? 'nach dem Laden' : 'after loading'}
+        data-spur-seite={de ? 'Seite beendet' : 'page stopped'}
+        data-spur-kontext={de ? 'Grafik verloren' : 'graphics lost'}
+        data-spur-start={de ? 'mehrmals neu gestartet, ohne zu stehen' : 'restarted several times without standing'}
+        data-geraet={de ? 'Gerät:' : 'Device:'}
       >{de ? 'Dein Browser kann die 3D-Ansicht nicht darstellen. Die Werte und das Datenblatt stehen trotzdem bereit.' : 'Your browser cannot show the 3D view. The figures and the data sheet are still available.'}</div>
       <slot />
     </section>

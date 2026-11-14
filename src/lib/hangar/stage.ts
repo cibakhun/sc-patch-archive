@@ -39,11 +39,30 @@ export interface HallConfig {
 /** Wo ein Fahrzeug in der Szene steht: Schiffe auf dem Feld der Halle, Bodenfahrzeuge (vehicles.json isSpaceship === false) und Gravlev-Räder (isGravlev) in der Werkhalle. */
 export type StageOrt = 'halle' | 'werk';
 
+/**
+ * Hangargroesse wie im Spiel (Krisz 13.11.2026: „small Hangar, Medium, large
+ * und extra large einführen genau wie ingame, dann haben wir auch richtige
+ * grössenreferenzen“). Die Halle rastet je Schiff auf eine der vier Stufen
+ * ein (HALL_GROW.sizes im Viewer).
+ */
+export type HangarSize = 'S' | 'M' | 'L' | 'XL';
+export const HANGAR_SIZES: readonly HangarSize[] = ['S', 'M', 'L', 'XL'];
+/**
+ * Stufe je Groessenklasse des Schiffs (vehicles.json sizeClass): Small fuer
+ * 1 und 2, Medium fuer 3 und 4, Large fuer 5, Extra Large fuer 6. Das ist
+ * die Mindeststufe: Ragt das Modell ueber ihr Feld, nimmt der Viewer die
+ * naechste, die es fasst (growPick). verify:hangar [24] rechnet jedes Schiff
+ * nach und fuehrt die Abweichungen namentlich.
+ */
+const HANGAR_OF_CLASS: Readonly<Record<number, HangarSize>> = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
+/** null: ohne Groessenklasse, dann entscheidet allein das Mass des Modells. */
+export const hangarOfClass = (sizeClass: number | null | undefined): HangarSize | null => (sizeClass == null ? null : HANGAR_OF_CLASS[sizeClass] ?? null);
+
 export interface StageConfig {
   /** versioned('assets/hangar-viewer.js', …) */
   readonly viewer: string;
   /** Wird unverändert in initHangar(container, { reduceMotion, ...opts }) gespreizt: neue Szenen-Optionen brauchen keine Oberflaechen-Aenderung. */
   readonly opts: { readonly hall?: HallConfig | null; readonly crew?: { url: string } | null } & Readonly<Record<string, unknown>>;
-  /** Je Id aus HANGAR_IDS: [Geometrie-glb (Hangar-Geometrie aus geo, sonst Holo; ob das Schiff auf dem Fahrwerk steht, sagt opts.gear), Werkslack-glb oder null, Herstellerkuerzel, Ort] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. */
-  readonly models: Readonly<Record<ShipId, readonly [glb: string, tex: string | null, maker: string, ort: StageOrt]>>;
+  /** Je Id aus HANGAR_IDS: [Geometrie-glb (Hangar-Geometrie aus geo, sonst Holo; ob das Schiff auf dem Fahrwerk steht, sagt opts.gear), Werkslack-glb oder null, Herstellerkuerzel, Ort, Hangargroesse] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. Hangargroesse: die Stufe des Schiffs (hangarOfClass), null in der Werkhalle und ohne Groessenklasse. */
+  readonly models: Readonly<Record<ShipId, readonly [glb: string, tex: string | null, maker: string, ort: StageOrt, hangar: HangarSize | null]>>;
 }

@@ -53,6 +53,16 @@ const REQUIRED_FILES = [
   'public/vendor/three/addons/postprocessing/UnrealBloomPass.js',
   // Hangar: Spiegelungssonden der Halle aus dem Spiel (nachgeladen, falls da)
   'public/vendor/three/addons/loaders/HDRLoader.js',
+  // Hangar: komprimierte Texturen (KTX2/Basis, scripts/lib/hangar-ktx.mjs).
+  // KTX2Loader importiert die vier Module daneben und holt den Umwandler
+  // (basis_transcoder) zur Laufzeit in seine Worker.
+  'public/vendor/three/addons/loaders/KTX2Loader.js',
+  'public/vendor/three/addons/utils/WorkerPool.js',
+  'public/vendor/three/addons/libs/ktx-parse.module.js',
+  'public/vendor/three/addons/libs/zstddec.module.js',
+  'public/vendor/three/addons/math/ColorSpaces.js',
+  'public/vendor/three/addons/libs/basis/basis_transcoder.js',
+  'public/vendor/three/addons/libs/basis/basis_transcoder.wasm',
 ];
 
 const problems = [];
@@ -103,7 +113,7 @@ const VENDOR = 'public/vendor/three';
 const UPSTREAM = 'node_modules/three';
 // Sperrklinke: so viele Dateien liegen heute in der Kopie. Nur nach oben;
 // nach unten nur per Commit, der sagt, welches Addon wegfiel und warum.
-const MIN_FILES = 25;
+const MIN_FILES = 32;
 
 const PATCHED = {
   'addons/controls/OrbitControls.js': {
@@ -114,6 +124,28 @@ const PATCHED = {
       '\t\t// zoomToCursor zoomt das Mittelklick-Ziehen dadurch auf einen falschen\n' +
       '\t\t// Punkt (y = x). Wheel/Pinch (Zeile ~1157/1426) machen es korrekt.\n' +
       '\t\tthis._updateZoomParameters( event.clientX, event.clientY );\n',
+  },
+  // Zwei Stellen in einer Datei (teile). Die Seite erlaubt kein 'unsafe-eval'
+  // (nginx, Content-Security-Policy), und ein Worker aus einem Blob erbt die
+  // Richtlinie seiner Seite. embind baut an diesen zwei Stellen einen Aufrufer
+  // mit new Function(...); unter der Richtlinie wirft das beim Start des
+  // Workers, er antwortet nie, und der Hangar blieb am 13.11.2026 gegen den
+  // echten nginx beim Laden stehen. Die Korrektur ist dieselbe Logik als feste
+  // Funktion, wie emscripten sie mit DYNAMIC_EXECUTION=0 selbst baut (upstream:
+  // BinomialLLC/basis_universal, Antrag 323, nicht uebernommen). Dass sie
+  // rechnet wie das Original, prueft verify:hangar-ktx [7] an echten Dateien.
+  'addons/libs/basis/basis_transcoder.js': {
+    why: "embind baut seine Aufrufer mit new Function; die Richtlinie der Seite (kein 'unsafe-eval') laesst den Umwandler der Hangar-Texturen damit nicht starten",
+    teile: [
+      {
+        upstream: "var invokerFn=newFunc(Function,args)(...closureArgs);",
+        patched: "var invokerFn=function(...cppArgs){if(cppArgs.length!==argCount-2){throwBindingError('function '+humanName+' called with '+cppArgs.length+' arguments, expected '+(argCount-2))}var destructors=needsDestructorStack?[]:null;var wired=[cppTargetFunc];if(isClassMethodFunc){wired.push(argTypes[1]['toWireType'](destructors,this))}for(var i=0;i<argCount-2;++i){wired.push(argTypes[i+2]['toWireType'](destructors,cppArgs[i]))}var rv=cppInvokerFunc(...wired);if(needsDestructorStack){runDestructors(destructors)}else{for(var i=isClassMethodFunc?1:2;i<argTypes.length;++i){if(argTypes[i].destructorFunction!==null){argTypes[i].destructorFunction(wired[i===1?1:isClassMethodFunc?i:i-1])}}}if(returns){return argTypes[0]['fromWireType'](rv)}};",
+      },
+      {
+        upstream: "var invokerFunction=newFunc(Function,params)(...args);",
+        patched: "var invokerFunction=function(obj,func,destructorsRef,argsPtr){var offset=0;var list=kind===0?[obj]:[];for(var i=0;i<argCount;++i){list.push(types[i].readValueFromPointer(argsPtr+offset));offset+=types[i][\"argPackAdvance\"]}var rv=kind===1?reflectConstruct(func,list):func.call(...list);if(!retType.isVoid){return emval_returnValue(retType,destructorsRef,rv)}};",
+      },
+    ],
   },
 };
 
@@ -166,11 +198,14 @@ if (!existsSync(join(UPSTREAM, 'package.json'))) {
       continue;
     }
     const text = mine.toString('utf8');
+    // eine Ersetzung (upstream/patched) oder mehrere in einer Datei (teile)
+    const teile = patch.teile ?? [{ upstream: patch.upstream, patched: patch.patched }];
+    const fehlt = teile.findIndex((t) => text.split(t.patched).length !== 2);
     if (sha(mine) === sha(theirs)) {
       problems.push(`Ausnahme ${rel} ist ein Zombie: die Kopie ist bitgleich zur Quelle, die Korrektur fehlt — Eintrag aus PATCHED entfernen oder die Korrektur wieder einspielen (${patch.why}).`);
-    } else if (text.split(patch.patched).length !== 2) {
-      problems.push(`Ausnahme ${rel}: die benannte Korrektur steht nicht genau einmal in der Kopie — PATCHED.patched an die Datei anpassen.`);
-    } else if (sha(Buffer.from(text.replace(patch.patched, patch.upstream), 'utf8')) !== sha(theirs)) {
+    } else if (fehlt >= 0) {
+      problems.push(`Ausnahme ${rel}: die benannte Korrektur${teile.length > 1 ? ` ${fehlt + 1} von ${teile.length}` : ''} steht nicht genau einmal in der Kopie — PATCHED.patched an die Datei anpassen.`);
+    } else if (sha(Buffer.from(teile.reduce((s, t) => s.replace(t.patched, () => t.upstream), text), 'utf8')) !== sha(theirs)) {
       problems.push(`Ausnahme ${rel}: ohne die benannte Korrektur ist die Kopie NICHT bitgleich zur Quelle — dort ist mehr veraendert als erklaert.`);
     } else {
       patchedOk++;

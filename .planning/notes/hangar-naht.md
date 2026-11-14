@@ -65,11 +65,14 @@ in `HangarPage.astro`; beide Seitenhüllen (`src/pages/hangar.astro`,
 2. `<script type="application/json" id="hg-stage">` mit genau einer
    `StageConfig` (`src/lib/hangar/stage.ts`): `viewer` (versionierte URL),
    `opts` (wird unverändert in `initHangar` gespreizt) und
-   `models[id] = [glb, Werkslack-glb oder null, Herstellerkürzel, Ort]` für
-   jede Id aus `HANGAR_IDS`. Ort ist `'werk'` für die Bodenfahrzeuge
-   (`vehicles.json` `isSpaceship === false`, seit 24.10.2026): Sie stehen in
-   der Werkhalle hinter der Westnische, die Kamera fliegt hinüber. Sonst
-   `'halle'`. Die Garage dafür kommt in `opts.hall.werk` (glb, Maße, Bühnen).
+   `models[id] = [glb, Werkslack-glb oder null, Herstellerkürzel, Ort,
+   Hangargröße]` für jede Id aus `HANGAR_IDS`. Ort ist `'werk'` für die
+   Bodenfahrzeuge (`vehicles.json` `isSpaceship === false`, seit 24.10.2026):
+   Sie stehen in der Werkhalle hinter der Westnische, die Kamera fliegt
+   hinüber. Sonst `'halle'`. Die Garage dafür kommt in `opts.hall.werk` (glb,
+   Maße, Bühnen). Hangargröße (seit 13.11.2026) ist `'S'`, `'M'`, `'L'` oder
+   `'XL'` nach der Größenklasse des Schiffs (`hangarOfClass` in `stage.ts`),
+   `null` in der Werkhalle und ohne Größenklasse.
 3. Die Import-Map für three.js, vor jedem Modul-Skript der Seite.
 
 Die Modellpolitik bleibt in der Szene: `HOLD`, die Werkslack-Fassungen, Halle
@@ -86,7 +89,18 @@ scrollt die Seite, waagerechtes Ziehen dreht das Schiff. Die Regel braucht
 Sie importiert `stage.viewer`, ruft `initHangar(#hg-canvas, { reduceMotion,
 ...opts })`, zeigt `#hg-load` und setzt `--p` aus `onProgress`, zeigt bei
 einem Fehler `#hg-fallback` und lädt Schiffe mit
-`show(models[id][0], { maker: models[id][2], tex: models[id][1], ort: models[id][3] })`.
+`show(models[id][0], { maker: models[id][2], tex: models[id][1], ort: models[id][3], hangar: models[id][4] })`.
+
+Die Halle rastet je Schiff auf eine von vier festen Hangargrößen ein
+(`HALL_GROW.sizes` im Viewer, Small bis Extra Large wie im Spiel). `hangar`
+ist die Stufe des Schiffs und die kleinste, die es bekommt; ragt sein Modell
+über deren Feld, nimmt der Viewer die nächste, die es fasst, und für ein
+Schiff, das keine fasst (Javelin), wächst die Halle auf sein Maß. Welche
+Stufe die Halle hat, meldet `onHangar(fn)` mit `{ id, size, w, l, h }`
+(`size` `''`: Halle nach Maß; `w` × `l` das Feld, `h` die freie Höhe in m).
+Die Oberfläche schreibt daraus die letzte Zeile des Titelblocks (`#hgx-gr`)
+und gibt sie dem Hologramm über dem Schiff mit (`label(id, { …, hangar })`).
+`verify:hangar` [24] rechnet jedes Schiff nach.
 
 Unter 760 px liegt der Titelblock samt Knöpfen über dem oberen Teil der
 Bühne (390 × 844: 319 von 523 px). Dort meldet sie dessen Unterkante mit
@@ -356,3 +370,24 @@ der neue Platz keine 70 Pixel neben dem alten, bleibt die Tafel stehen,
 solange sie dort ganz im Bild steht; wird sie höher (Datenblatt statt
 Schiffswerte), ragte ihre äußere obere Ecke sonst über den Rand. Maßschilder ohne freien Platz
 entfallen. Der Bodenspiegel („hoch“) zeigt die Ebene nicht.
+
+## Leichte Bühne am Telefon (2026-11-14)
+
+Am Telefon (schmal oder Touch, dieselbe Abfrage wie `SMALL` in der Szene)
+startet die Oberfläche die Szene unter jedem Deckel ihres Wächters ohne echte
+Halle und ohne Besatzung: Sie übergibt `hall: null` und `crew: null`
+(`waechterLeicht` in `assets/hangar-overview.js`), der Deckel kommt wie immer
+als `cap`. Die Szene sagt dafür zu: Ohne `opts.hall` baut sie ihre eigene
+Halle (`REAL` falsch, `buildStage()`), lädt keine Datei aus `/hangar/hall/`,
+`/hangar/npc/` oder der Werkhalle und stellt weder Stationen noch Orte auf
+(`canStation()` und `canPlace()` falsch). Schiffe, Bodenfahrzeuge, Marker,
+das Hologramm mit dem Namen, Grafik-Schalter, Ton und Einsteigen bleiben.
+Eine Hangargröße meldet sie dort nicht (`onHangar` schweigt ohne echte
+Halle): Die Zeile `#hgx-gr` und die letzte Zeile des Hologramms bleiben leer.
+
+Anlass: Im Telefonformat braucht die Seite mit der echten Halle beim Laden
+rund 950 MB Arbeitsspeicher, ohne sie rund 340 MB (gemessen mit der Gladius).
+Die Oberfläche zeigt dazu die Zeile `#hgx-leicht` mit dem Knopf
+`#hgx-leicht-voll`, der den Deckel aufhebt und die volle Halle lädt, und
+setzt `data-leicht="on"` an `#main`. `verify:hangar` [12] hält beide Seiten
+der Abmachung fest.

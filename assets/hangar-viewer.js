@@ -38,12 +38,14 @@
 // BILDER: Schiffe im Werkslack holen ihre Bilder aus der gemeinsamen Ablage
 // /hangar/tex/ (embeddedImages); opts.texBytes nennt je Modelldatei (Pfad
 // ohne ?v=) ihre Summe, damit der Ladebalken sie mitzählt.
+// Am PC kommt jedes Bild aus seinem komprimierten Zwilling unter
+// /hangar/ktx/ (KTX_BAU); opts.bilder 'webp' stellt das ab.
 //
 // INNENRAUM: opts.interior nennt je Werkslack-Datei (Pfad ohne ?v=) den
 // begehbaren Innenraum im selben Modellraum (url) und seine Lampen und
 // Einstiegspunkte (meta, JSON { lights, spots }); enter() lädt beides.
 //
-// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, interior?: { [pfad]: { url, meta, bytes? } }, holo?: { module }, sound?: false }) -> Promise<{
+// API:  initHangar(container, { reduceMotion, hall?: { id, url, room, floor?, bytes?, lights?, probes?, lite?: { url, bytes? }, furniture?: { url, bytes? }, patch?: { url, bytes? }, lift?: { url, json, bytes? }, workshop?: { url, json, bytes?, boden?: { url, bytes? } } }, crew?: { url }, gear?: { [pfad]: { contacts } | { ground } }, texBytes?: { [pfad]: bytes }, bilder?: 'webp', interior?: { [pfad]: { url, meta, bytes? } }, holo?: { module }, sound?: false }) -> Promise<{
 //         show(url, { maker, tex? }) -> Promise<void>, setLivery(key), fit([{ port, item, url }]) -> Promise<n>,
 //         paint({ cols, base } | null) -> n, setSound(on), sound() -> { on, can },
 //         resetView(), onProgress(fn), dispose(),
@@ -262,7 +264,118 @@ const nextTask = () => new Promise((r) => setTimeout(r, 0));
 // (images[].uri ../tex/<inhalt>.webp, scripts/lib/glb-texpool.mjs). Die holt
 // fetch gleich los, dekodiert wird in derselben Reihe; jedes fertige Bild
 // meldet seine Bytes an tally(parser) (Fortschritt des Ladebalkens).
+// Seit 13.11.2026 gibt embeddedImages() eine Fabrik zurück: images(mean)
+// je Loader, alle teilen sich die eine Reihe. mean sagt, ob der Loader das
+// Mittel seiner Farbkarten misst (imageMean). Das liest nur dressTextured(),
+// also Schiff, Tauschteile und Innenraum; gemessen wurde es für jede
+// Farbkarte jeder Datei: 439 Messungen beim Laden der Gladius in der hohen
+// Stufe, davon 324 für die Halle. Jede verkleinert das Bild im Hauptfaden
+// und liest es zurück, zusammen 0,45 bis 0,5 s Rechenzeit (im Viewer
+// gestoppt, sichtbares Fenster, RTX 3070 Ti mit i5-13400F); ohne die der
+// Halle sind es 115 Messungen und 0,11 s. Am ersten Bild ändert das auf
+// dem Rechner nichts Messbares (im Wechsel, 3 Runden), der Hauptfaden hat
+// in der Phase Luft; es ist Rechenzeit, die niemand braucht.
 const pooledImage = (def) => def.bufferView === undefined && typeof def.uri === 'string' && !/^(data|blob):/.test(def.uri);
+// Am Telefon kleiner auspacken (13.11.2026, Krisz: „Das Handy versucht es
+// immer noch die ganze Zeit zu laden“). Der Texturdeckel vom Vortag
+// (TEX_MAX) verkleinerte erst in prepare(), also nachdem jede Datei alle
+// ihre Bilder in voller Größe ausgepackt hatte. Gemessen an dem Tag im
+// Telefonformat mit der Gladius: 844 Bilder, 900 MB, davon bis zu 818 MB
+// zugleich im Arbeitsspeicher der Seite, in der niedrigen Stufe immer noch
+// 698 MB. Die Spitze lag vor dem Deckel und in jeder Stufe gleich hoch;
+// eine Stufe zu senken (Wächter der Seite) half dem Laden deshalb nicht.
+// Mit `max` packt embeddedImages() höchstens FIT_AT_ONCE Bilder zugleich
+// aus und bringt jedes sofort auf seine Zielgröße; das große geht, bevor
+// das nächste kommt.
+// fitSize: Zielgröße [w, h] bei höchstens max px an der längeren Kante,
+// null, wenn das Bild schon passt (auch ohne Maße).
+export const fitSize = (w, h, max) => {
+  const k = max / Math.max(w, h);
+  return !(k < 1) ? null : [Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k))];
+};
+// Höchstens n Aufgaben zugleich, in der Reihenfolge ihres Eintreffens.
+export function limiter(n) {
+  let free = Math.max(1, n);
+  const wait = [];
+  const done = () => { const next = wait.shift(); if (next) next(); else free++; };
+  return (fn) => new Promise((go) => { if (free > 0) { free--; go(); } else wait.push(go); }).then(fn).finally(done);
+}
+const FIT_AT_ONCE = 3;
+let fitCv = null, fitTurn = Promise.resolve();
+// Verkleinertes Bild oder null (passt schon, oder der Browser kann es
+// nicht). In der Regel ein ImageBitmap. Ohne Größenangabe in
+// createImageBitmap geht es über EINE Leinwand, die jedes Mal
+// wiederverwendet wird, ein Bild nach dem anderen (fitTurn): eine Leinwand
+// je Bild bliebe im Speicher (freeImages gibt nur ImageBitmaps frei), und
+// iOS gibt allen Leinwänden einer Seite zusammen nur 384 MB.
+// Kann der Browser gar kein createImageBitmap (der Loader nimmt dann den
+// TextureLoader, und shrinkTextures() verkleinert), bekommt das Bild als
+// letzten Ausweg doch eine eigene Leinwand, wie vor dem 13.11.2026: Die
+// gemeinsame darf nie selbst Quelle einer Textur werden, das nächste Bild
+// überschriebe sie. Ohne diesen Ausweg blieb dort jedes Bild in voller
+// Größe (nachgestellt im Telefonformat: 903 statt 198 MB Texturen).
+async function fitImage(im, max) {
+  const to = fitSize(im?.width || 0, im?.height || 0, max);
+  if (!to) return null;
+  const [nw, nh] = to;
+  let out = null;
+  try {
+    out = await createImageBitmap(im, { resizeWidth: nw, resizeHeight: nh, resizeQuality: 'high', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    if (out.width !== nw || out.height !== nh) { out.close(); out = null; }   // Größe nicht unterstützt
+  } catch { out = null; }
+  if (out) return out;
+  const draw = async () => {
+    try {
+      fitCv ??= document.createElement('canvas');
+      fitCv.width = nw; fitCv.height = nh;
+      const c = fitCv.getContext('2d');
+      c.clearRect(0, 0, nw, nh);
+      c.drawImage(im, 0, 0, nw, nh);
+    } catch { return null; }
+    try {
+      return await createImageBitmap(fitCv, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+    } catch { /* kein createImageBitmap: eigene Leinwand */ }
+    try {
+      const own = document.createElement('canvas');
+      own.width = nw; own.height = nh;
+      own.getContext('2d').drawImage(fitCv, 0, 0);
+      return own;
+    } catch { return null; }
+  };
+  return (fitTurn = fitTurn.then(draw));
+}
+// Komprimierte Zwillinge der Bilder (KTX2/Basis, 13.11.2026; Anlass,
+// Zahlen und Bauweise: scripts/lib/hangar-ktx.mjs). Zu jedem Bild liegt
+// unter /hangar/ktx/<kennung>.ktx2 dasselbe Bild in einer Form, die bei der
+// Grafikkarte komprimiert bleibt (am PC BC7, 1 Byte je Bildpunkt statt 4).
+// Die Kennung ist der Inhalt des WebP: bei Bildern der Ablage steht sie im
+// Dateinamen, bei eingebetteten rechnet sie der Browser aus den Bytes im
+// GLB (SHA-256, erste 16 Hex-Zeichen). embeddedImages() fragt je Bild erst
+// den Zwilling (twin, nur am PC und nur, wenn die Grafikkarte ein
+// komprimiertes Format kann) und geht ohne ihn den Weg über das WebP.
+// KTX_BAU ist das Rezept der Zwillinge (BAU in scripts/lib/hangar-ktx.mjs,
+// verify:hangar-ktx vergleicht beide) und hängt als ?v= an jeder URL:
+// /hangar/ wird ein Jahr unveränderlich gecacht.
+export const KTX_BAU = 'd1';
+const KTX_ABLAGE = /(?:^|\/)([0-9a-f]{16})\.webp$/;
+const hex16 = (hash) => Array.from(new Uint8Array(hash, 0, 8), (v) => v.toString(16).padStart(2, '0')).join('');
+// Schlüssel-Wert-Daten einer KTX2-Datei: Offset und Länge stehen im Kopf
+// (Byte 56 und 60), jeder Eintrag ist Länge, Schlüssel, NUL, Wert, auf 4
+// Byte aufgefüllt. Eine Datei, die nicht passt, hat keine Schlüssel.
+export function ktxKv(buf) {
+  const out = {};
+  if (!buf || buf.byteLength < 80) return out;
+  const v = new DataView(buf), off = v.getUint32(56, true), len = v.getUint32(60, true);
+  if (off < 80 || off + len > buf.byteLength) return out;
+  const bytes = new Uint8Array(buf), td = new TextDecoder();
+  for (let at = off; at + 4 <= off + len;) {
+    const n = v.getUint32(at, true), body = bytes.subarray(at + 4, at + 4 + n), nul = body.indexOf(0);
+    if (n < 2 || at + 4 + n > off + len || nul < 0) break;
+    out[td.decode(body.subarray(0, nul))] = td.decode(body.subarray(nul + 1)).replace(/\0+$/, '');
+    at += 4 + n + ((4 - (n % 4)) % 4);
+  }
+  return out;
+}
 // Mittel einer Farbkarte, linear je Kanal (für albedoFloor): auf 8 × 8
 // verkleinert (mit Mip-Stufen, nicht nur einzelne Punkte) und gemittelt.
 // Nur für Bilder, die eine Farbkarte sind; ohne Erfolg undefined.
@@ -313,8 +426,13 @@ const texNoted = new WeakSet();
 function noteTextures(result) {
   if (typeof WeakRef === 'undefined') return;   // ohne WeakRef bleibt jedes Bild
   const note = (t) => {
-    if (!t?.isTexture || texNoted.has(t) || !isBitmap(t.source?.data)) return;
+    if (!t?.isTexture || texNoted.has(t) || !(isBitmap(t.source?.data) || t.isCompressedTexture)) return;
     texNoted.add(t);
+    // Ein Zwilling bringt immer Mip-Stufen mit. Eine Textur, deren Sampler
+    // keine liest (linear oder nächster Punkt), lädt nur die größte hoch:
+    // sonst läge ein Drittel mehr bei der Grafikkarte als mit dem WebP.
+    // Die Liste gehört der Textur, die Stufen teilt sie mit ihren Kopien.
+    if (t.isCompressedTexture && t.mipmaps.length > 1 && (t.minFilter === THREE.LinearFilter || t.minFilter === THREE.NearestFilter)) t.mipmaps = [t.mipmaps[0]];
     const u = texUsers.get(t.source);
     if (u) u.push(new WeakRef(t)); else texUsers.set(t.source, [new WeakRef(t)]);
   };
@@ -329,10 +447,16 @@ const colourImages = (json) => {
   }
   return out;
 };
-function embeddedImages(ms, tally = () => null) {
+// twin (oder null): { id(bytes) -> Promise<kennung>, load(kennung) ->
+// Promise<{ t, webp, mean } | null> }, der Weg zu den komprimierten
+// Zwillingen (ktxTwin in initHangar). load() scheitert nie: ohne Zwilling
+// null, und das Bild kommt wie bisher aus dem WebP. max (Telefon) und twin
+// (PC) kommen nie zusammen: KTX_AN gilt nur ohne SMALL.
+function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
   const pause = slicer(ms, nextTask);
+  const gate = max ? limiter(FIT_AT_ONCE) : null;
   let turn = Promise.resolve();
-  return (parser) => {
+  return (mean) => (parser) => {
     const load = parser.loadImageSource.bind(parser);
     const count = tally(parser);
     const colour = colourImages(parser.json);
@@ -341,23 +465,50 @@ function embeddedImages(ms, tally = () => null) {
       const pooled = pooledImage(def);
       if (parser.sourceCache[i] !== undefined || (def.bufferView === undefined && !pooled) || !loader.isImageBitmapLoader) return load(i, loader);
       const url = pooled ? THREE.LoaderUtils.resolveURL(def.uri, parser.options.path) : null;
-      const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
-        if (!r.ok) throw new Error(`${r.status} ${url}`);
-        return r.blob();
-      }).then((b) => { count?.(b.size); return b; }) : null;
-      const go = (turn = turn.then(pause));
-      const p = go
-        .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
-        .then((blob) => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' }))
-        .then(async (bitmap) => {
-          const t = new THREE.Texture(bitmap);
-          t.needsUpdate = true;
-          if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
-          t.userData.mimeType = def.mimeType;
-          if (colour.has(i)) t.userData.mean = await imageMean(bitmap);
-          return t;
-        });
-      if (pooled) p.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
+      const dress = (t) => {
+        if (def.extras && typeof def.extras === 'object') Object.assign(t.userData, def.extras);
+        t.userData.mimeType = def.mimeType;
+        return t;
+      };
+      const bild = () => {
+        const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
+          if (!r.ok) throw new Error(`${r.status} ${url}`);
+          return r.blob();
+        }).then((b) => { count?.(b.size); return b; }) : null;
+        const go = (turn = turn.then(pause));
+        const q = go
+          .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
+          .then((blob) => {
+            const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
+            if (!gate) return decode();
+            return gate(async () => {
+              const big = await decode(), small = await fitImage(big, max);
+              if (!small) return big;
+              big.close();
+              return small;
+            });
+          })
+          .then(async (bitmap) => {
+            const t = dress(new THREE.Texture(bitmap));
+            t.needsUpdate = true;
+            if (mean && colour.has(i)) t.userData.mean = await imageMean(bitmap);
+            return t;
+          });
+        if (pooled) q.catch(() => console.error(`[hangar] Bild ${url} nicht geladen: das Material bleibt ohne diese Karte`));
+        return q;
+      };
+      // Kennung des Zwillings: aus dem Dateinamen der Ablage, sonst aus den
+      // Bytes im GLB. Der Balken zählt die Bytes des WebP (opts.texBytes kennt
+      // nur sie), das Farbmittel steht in der Datei.
+      const id = !twin ? null : pooled ? KTX_ABLAGE.exec(def.uri)?.[1] ?? null
+        : def.mimeType === 'image/webp' ? parser.getDependency('bufferView', def.bufferView).then(twin.id).catch(() => null) : null;
+      const p = id === null ? bild() : Promise.resolve(id).then((k) => (k ? twin.load(k) : null)).then((z) => {
+        if (!z) return bild();
+        const t = dress(z.t);
+        if (pooled) count?.(z.webp);
+        if (mean && colour.has(i)) t.userData.mean = z.mean;
+        return t;
+      });
       parser.sourceCache[i] = p;
       return p;
     };
@@ -564,8 +715,18 @@ function hallSpot(h) {
 // beim Wachsen hängen und schnitten die Idris auf Deckhöhe. `clear`: so
 // hoch ist das Feld frei (m über dem Boden, bis zu den Wannen); growFor
 // hält das Schiff 4 m darunter.
+// `sizes`: die festen Hangargrößen (13.11.2026). Krisz: „Wir könnten auch
+// mal small Hangar, Medium, large und extra large einführen genau wie
+// ingame, dann haben wir auch richtige grössenreferenzen“. Bis dahin wuchs
+// die Halle für jedes Schiff auf sein Maß, 19 verschiedene Hallen für 190
+// Schiffe, und keine sagte etwas über die Größe des Schiffs. Jetzt rastet
+// sie auf eine von vier Stufen ein, je [Name, Zuwachs x, y, z] in m, von
+// klein nach groß und in ganzen Schritten je Seite (step): S ist die Halle
+// ohne Zuwachs (Feld 32 x 96 m, 35,5 m frei), M 56 x 96 m, L 88 x 160 m und
+// 59,5 m frei, XL 184 x 304 m und 99,5 m frei. Das Seitenverhältnis bleibt
+// das unserer Halle, die Stufen und ihre Namen sind die des Spiels.
 const HALL_GROW = /* hall-grow */ {
-  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[34.067, 34.221, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4, "clear": 35.48 }
+  "revelyork-single": { "x": [[23.141, 23.189, -0.5], [48.815, 48.867, 0.5]], "y": [[34.067, 34.221, 1]], "z": [[-107.09, -107.01, -0.5], [-43.09, -43.01, 0.5]], "small": 8, "step": 4, "clear": 35.48, "sizes": [["S", 0, 0, 0], ["M", 24, 0, 0], ["L", 56, 24, 64], ["XL", 152, 64, 208]] }
 } /* /hall-grow */;
 
 // Streifen aus HALL_GROW in einem Raum, der um org gegen den Modellraum
@@ -574,7 +735,7 @@ const HALL_GROW = /* hall-grow */ {
 function growSpec(h, org = [0, 0, 0]) {
   const G = HALL_GROW[h.id];
   if (!G) return null;
-  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4, clear: G.clear ?? null };
+  const s = { lo: [-1e9, -1e9, -1e9], hi: [1e9, 1e9, 1e9], flo: [0, 0, 0], fhi: [0, 0, 0], zones: [[], [], []], small: G.small ?? 8, step: G.step ?? 4, clear: G.clear ?? null, sizes: G.sizes ?? null };
   ['x', 'y', 'z'].forEach((a, i) => {
     for (const [p, q, f] of G[a] ?? []) {
       const z = [p - org[i], q - org[i]], mid = (z[0] + z[1]) / 2;
@@ -586,12 +747,24 @@ function growSpec(h, org = [0, 0, 0]) {
 }
 // Anteil am Zuwachs für die Lage v auf Achse i (wie hgFrac im Shader)
 const growFrac = (s, v, i) => (v <= s.lo[i] ? s.flo[i] : v >= s.hi[i] ? s.fhi[i] : 0);
-// Zuwachs für ein Schiff mit den Maßen info: mit 1 m Rand aufs Feld L, 4 m
-// unter die Wannen (s.clear, sonst die Raumhöhe height); je Seite in ganzen
-// Schritten (s.step). s: growSpec. Ergebnis [x, y, z] in Modellmetern.
-function growNeed(info, L, s, height) {
+// Hangargröße und Zuwachs für ein Schiff mit den Maßen info. need: so viel
+// braucht es, mit 1 m Rand aufs Feld L, 4 m unter die Wannen (s.clear, sonst
+// die Raumhöhe height), je Seite in ganzen Schritten (s.step). Die Halle
+// bekommt die kleinste Stufe aus s.sizes, die das fasst, und nie eine
+// kleinere als info.hangar: Das ist die Stufe des Schiffs von der Seite (aus
+// seiner Größenklasse), ohne sie zählt allein das Maß. s: growSpec.
+// Ergebnis { size, grow: [x, y, z] in Modellmetern }. size '': Keine Stufe
+// fasst das Schiff (Javelin, 470 m), die Halle wächst dann wie vor den
+// Stufen auf sein Maß. size null: Die Halle kennt keine Stufen.
+function growPick(info, L, s, height) {
   const st = s.step, q = (need, f) => (need > 1e-6 && f > 0 ? (Math.ceil((need * f) / st - 1e-6) * st) / f : 0);
-  return [q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), s.fhi[0]), q(info.height + 4 - (s.clear ?? height), s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), s.fhi[2])];
+  const need = [q(2 * info.halfW + 2 - (L.to[0] - L.from[0]), s.fhi[0]), q(info.height + 4 - (s.clear ?? height), s.fhi[1]), q(info.len + 2 - (L.to[1] - L.from[1]), s.fhi[2])];
+  if (!s.sizes?.length) return { size: null, grow: need };
+  for (let i = Math.max(0, s.sizes.findIndex((z) => z[0] === info.hangar)); i < s.sizes.length; i++) {
+    const [size, ...grow] = s.sizes[i];
+    if (need.every((v, a) => v <= grow[a] + 1e-6)) return { size, grow };
+  }
+  return { size: '', grow: need };
 }
 
 // Raum der Kamera in der echten Halle (13.11.2026). Krisz: „es auch am
@@ -707,8 +880,10 @@ export function camRest(H, t, d, lo, L) {
   return same;
 }
 // Dieselbe Rechnung aus dem, was die Seite der Bühne mitgibt (hall:
-// opts.hall), für ein Schiff mit den Maßen info: Zuwachs der Halle, ihr Raum
-// und die Grenzen der Kamera, dazu die Grenze in der Startansicht (home).
+// opts.hall), für ein Schiff mit den Maßen info (und info.hangar, seiner
+// Stufe von der Seite): Hangargröße (size, wie growPick) und Zuwachs der
+// Halle, ihr Raum und die Grenzen der Kamera, dazu die Grenze in der
+// Startansicht (home).
 // null: Halle ohne Feld oder Zuwachs. verify:hangar [23] rechnet damit
 // jedes Schiff des Docks.
 export function camPlan(hall, info) {
@@ -716,10 +891,10 @@ export function camPlan(hall, info) {
   if (!L || !R) return null;
   const o = hallSpot(hall), s = growSpec(hall, [o[0], Number.isFinite(hall.floor) ? hall.floor : R.center[1], o[2]]);
   if (!s) return null;
-  const grow = growNeed(info, L, s, R.height);
+  const { size, grow } = growPick(info, L, s, R.height);
   const room = { center: R.center, halfW: R.halfW + grow[0] / 2, halfL: R.halfL + grow[2] / 2, height: R.height + grow[1] };
   const sp = camSpace(info, room, 1, [R.center[0] - o[0], R.center[2] - o[2]], (s.clear ?? R.height) + grow[1]);
-  return { grow, room, ...sp, home: camReach(sp, new THREE.Vector3(0, homeY(info.height), 0), HOME_DIR) };
+  return { size, grow, room, ...sp, home: camReach(sp, new THREE.Vector3(0, homeY(info.height), 0), HOME_DIR) };
 }
 // Matrix vom Raum des Knotens o in den von root (oder ganz hinauf, wenn
 // root kein Vorfahre ist: was noch eingehängt wird)
@@ -5817,7 +5992,7 @@ function buildHolo(container, reduceMotion) {
   // Hologramm mit dem Herstellerlogo schmücken): das Bild ist nur Maske
   // (CSS --logo), die Farbe kommt vom Hologramm; die äußere Hülle trägt das
   // Glühen, eine Maske schnitte es sonst ab.
-  const rows = ['k', 'm', 'n', 'r'].map((c) => {
+  const rows = ['k', 'm', 'n', 'r', 'g'].map((c) => {
     const p = document.createElement('p');
     p.className = `hg-holo__${c}`;
     el.append(p);
@@ -5844,7 +6019,7 @@ function buildHolo(container, reduceMotion) {
   const V = new THREE.Vector3(), P = new THREE.Vector3(), Q = new THREE.Vector3(), R = new THREE.Vector3(), U = new THREE.Vector3(), F = new THREE.Vector3(), S = new THREE.Vector3();
   const M = new THREE.Matrix4();
   let sx = new Float32Array(0), sy = sx, sd = sx;
-  const keyOf = (t) => [t.logo?.url, t.maker, t.name, t.role].join('\u0001');
+  const keyOf = (t) => [t.logo?.url, t.maker, t.name, t.role, t.hangar].join('\u0001');
   // Schriftgröße des Namens für die Bühnenhöhe, Breite höchstens der freie Teil
   const sizeOf = (h) => Math.round(THREE.MathUtils.clamp(h * HOLO_NAME[0], HOLO_NAME[1], HOLO_NAME[2]));
   const maxOf = (w) => Math.round(Math.max(160, (w - safe.l - safe.r) * 0.9));
@@ -5859,7 +6034,8 @@ function buildHolo(container, reduceMotion) {
       logo.style.setProperty('--logo-ar', String(L.ar || 1));
       logo.toggleAttribute('data-full', !!L.full);
     }
-    [null, t.maker, t.name, t.role].forEach((s, i) => { if (i) { rows[i].textContent = s || ''; rows[i].hidden = !s; } });
+    // letzte Zeile: die Hangargröße des Schiffs (t.hangar, von der Seite nach onHangar)
+    [null, t.maker, t.name, t.role, t.hangar].forEach((s, i) => { if (i) { rows[i].textContent = s || ''; rows[i].hidden = !s; } });
     el.style.setProperty('--holo-n', `${N}px`);
     el.style.setProperty('--holo-max', `${max}px`);
     el.style.transform = 'none';
@@ -6347,6 +6523,81 @@ const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // offen, als die Kamera es erreicht (ms).
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
 const WERK_TOR_VOR = 1200;
+
+// Leitstand (13.11.2026). Krisz will die Seite nach und nach in die Halle
+// holen; der erste Ort dafür ist der Glaskasten über der Südtür, den die
+// Halle schon hat (Spielassets: Pult mit Monitorbank, Stühle, Pflanzkästen).
+// Davor steht ein Terminal, auf dem die Seite selbst läuft: Die Kamera fährt
+// hinauf und bleibt gerade davor stehen, die Seite legt ihr Fenster genau
+// über den Schirm (onPlace nennt das Rechteck). Den Ausschlag gab die Leiste
+// des Terminals: „da oben ist ein menü wo man so hin und her switchen kann
+// ohne seite nezuladen“ (Halle und Schiff bleiben geladen).
+// Maße je Halle in Hallenmetern (Feldmitte, Boden 0, Bug nach -z), gemessen
+// an der Gladius, also ohne Zuwachs; mit HALL_GROW rückt alles mit der
+// Südwand (leitAt). schirm: Mitte und Breite (er steht südlich vor der
+// Monitorbank und zeigt nach Süden, zur Tür des Leitstands); form: Höhe zu
+// Breite, in diesen Grenzen so, wie das freie Bild ist; fov, d: Wunschwinkel
+// und Grenzen des Abstands (zwischen den Stühlen und der Rückwand); rand: so
+// viel Rahmen steht im Bild um das Fenster der Seite (px); glas: Ebene der
+// Glasfront und Höhe, in der die Kamera sie kreuzt (über dem Querholm);
+// innen: Höhe unter der abgehängten Decke (Lichtbänder auf 19,0 ab z 61);
+// raum: der lichte Raum von der Glasfront bis zur Rückwand und vom Boden bis
+// unter diese Decke, in dem die Kamera vor dem Terminal bleiben muss
+// (verify:hangar-orte rechnet das für viele Fenstergrößen nach); bank: wo
+// die Monitorbank steht (leitBuild warnt, wenn das Modell sie woanders hat).
+export const HALL_LEIT = {
+  'revelyork-single': { schirm: { x: 0, y: 18.24, z: 58.5, b: 2.6 }, form: [0.5, 0.8], fov: 40, d: [2.3, 6.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
+};
+// Weiter als so öffnet sich der Bildwinkel vor dem Terminal nicht (Grad);
+// so viel Luft hält die Kamera zu Boden und Decke des Leitstands (m)
+export const LEIT_FOV_MAX = 62, LEIT_LUFT = 0.3;
+/**
+ * Stellung der Kamera vor dem Terminal: gerade vor dem Schirm (er bleibt im
+ * Bild ein Rechteck), so weit weg und so verschoben, dass er das freie
+ * Stück der Bühne füllt. Die Höhe des Schirms folgt dessen Form (L.form).
+ *   leitFit(1600, 900, { l: 132, t: 94, r: 1468, b: 790 }, HALL_LEIT['revelyork-single'])
+ *   -> { b: 2.6, h: 1.354, d: 2.41, fov: 40, dx: 0, dy: -0.016, s: 513.8, rect: { l: 132, t: 94, r: 1468, b: 790 } }
+ * @param {number} W Breite der Bühne (px) @param {number} H Höhe (px)
+ * @param {{ l: number, t: number, r: number, b: number }} frei Rechteck im Bild, das der Schirm füllen darf
+ * @param {{ schirm: { y: number, b: number }, form: number[], fov: number, d: number[], raum?: { y: number[] } }} L
+ * @returns {{ b: number, h: number, d: number, fov: number, dx: number, dy: number, s: number, rect: { l: number, t: number, r: number, b: number } }}
+ *   b, h: Schirm in Metern (b sonst L.schirm.b, kleiner nur, wo der
+ *   Bildwinkel an LEIT_FOV_MAX stößt); d: Abstand; fov: Bildwinkel (Grad,
+ *   senkrecht);
+ *   dx, dy: Kamera gegen die Schirmmitte (m, +x rechts im Bild, +y oben);
+ *   s: px je Meter; rect: der Schirm im Bild
+ */
+export function leitFit(W, H, frei, L) {
+  const fw = Math.max(1, frei.r - frei.l), fh = Math.max(1, frei.b - frei.t);
+  const form = Math.min(L.form[1], Math.max(L.form[0], fh / fw));
+  let b = L.schirm.b, h = b * form;
+  // px je Meter, bei denen der Schirm gerade hineinpasst
+  let s = Math.min(fw / b, fh / h);
+  // Abstand beim Wunschwinkel, in den Grenzen des Raums; der Winkel gleicht aus
+  const d = Math.min(L.d[1], Math.max(L.d[0], H / 2 / Math.tan((L.fov * Math.PI) / 360) / s));
+  let fov = (2 * Math.atan(H / 2 / (s * d)) * 180) / Math.PI;
+  // Ein schmales freies Stück in einem hohen Fenster verlangte am fernen Ende
+  // des Abstands einen Weitwinkel. Der Bildwinkel bleibt bei LEIT_FOV_MAX;
+  // beim engeren Winkel füllte derselbe Schirm aber mehr vom Bild, als frei
+  // ist (800 × 1500 mit offener Schiffsauswahl: 25 px über den Rand der
+  // Bühne, Review PR #355). Darum wird der Schirm dort in Metern kleiner,
+  // sein Rechteck im Bild bleibt das freie Stück.
+  if (fov > LEIT_FOV_MAX) {
+    fov = LEIT_FOV_MAX;
+    const eng = H / 2 / Math.tan((fov * Math.PI) / 360) / d;
+    b *= s / eng; h = b * form; s = eng;
+  }
+  const cx = (frei.l + frei.r) / 2;
+  // Liegt das freie Stück weit unter oder über der Bildmitte und ist es
+  // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, der
+  // Schirm rückt dafür im Bild ein Stück aus der Mitte des freien Stücks.
+  let dy = ((frei.t + frei.b) / 2 - H / 2) / s;
+  if (L.raum) dy = Math.min(L.raum.y[1] - LEIT_LUFT - L.schirm.y, Math.max(L.raum.y[0] + LEIT_LUFT - L.schirm.y, dy));
+  const cy = H / 2 + dy * s;
+  return { b, h, d, fov, dx: -(cx - W / 2) / s, dy, s, rect: { l: cx - (b * s) / 2, t: cy - (h * s) / 2, r: cx + (b * s) / 2, b: cy + (h * s) / 2 } };
+}
+// So lange blendet der Schirm zwischen Ruhe (LEIT_DIM) und voller Stärke
+const LEIT_FADE_MS = 500, LEIT_DIM = 0.5;
 // Die Bänder (WERK.reihen, je eine Lampenreihe der Garage) gehen einzeln
 // nacheinander an, von hinten nach vorn, alle abstand ms eins; der Spot
 // spot ms nach dem letzten (Krisz, 25.10.2026: „es sollen mehr lampen
@@ -6825,6 +7076,29 @@ export async function initHangar(container, opts = {}) {
     if (rank(p2.level) <= rank(pick.level)) pick = p2;
   }
   const Q0 = pick.level, FORCED = pick.why === 'gewählt';
+  // Deckel der Texturkante in px (0 = keiner): am Telefon in jeder Stufe,
+  // sonst nur in der niedrigen. Anlass und Zahlen bei shrinkTextures(); die
+  // Bilder der Dateien kommen am Telefon schon so klein aus dem Loader
+  // (embeddedImages mit max).
+  // Am Telefon startet die Automatik seit 13.11.2026 in jeder Stufe mit
+  // TEX_PHONE_AUTO (Krisz: „Das Handy versucht es immer noch die ganze Zeit
+  // zu laden“): Die Stufe bestimmt dort weiter Bildschärfe, Kantenglättung
+  // und Lampen, aber nicht mehr, wie viel Speicher die Texturen brauchen.
+  // Mit 512 px brach sein iPhone in jeder Stufe ab, und was ein Telefon einer
+  // Seite an Speicher lässt, verrät es nicht (kein navigator.deviceMemory in
+  // Safari). Gemessen im Telefonformat mit der Gladius, hohe Stufe: 256 px
+  // sind 206 MB Texturen statt 518 MB und beim Laden 129 MB ausgepackte Bilder
+  // zugleich statt 412 MB. Wer im Grafik-Schalter eine Stufe wählt, bekommt TEX_PHONE,
+  // drei Stufen mit echtem Abstand; bricht die Bühne dann ab, nimmt der
+  // Wächter der Seite die Wahl zurück, und es gilt wieder die Automatik.
+  // Bricht sie auch in der Automatik ab, läuft sie unter dem Deckel des
+  // Wächters (opts.cap) mit TEX_PHONE_CAP: Jede Stufe, die er senkt, spart
+  // dann wirklich Speicher, auch beim Laden. Ohne das lüde jede Stufe
+  // dieselben 256 px, und er senkte dreimal ins Leere (nachgestellt mit 150
+  // MB für Texturen: drei Läufe, jeder brach bei 150 MB ab). Unscharf ist
+  // besser als keine Halle.
+  const TEX_PHONE = { hoch: 512, mittel: 384, niedrig: 256 }, TEX_PHONE_AUTO = 256, TEX_PHONE_CAP = { mittel: 192, niedrig: 128 };
+  const TEX_MAX = SMALL ? (FORCED ? TEX_PHONE[Q0] : (opts.cap === Q0 && TEX_PHONE_CAP[Q0]) || TEX_PHONE_AUTO) : Q0 === 'niedrig' ? 512 : 0;
   // Wartungsplatz am Schiff, wo die Stufe Requisiten hat (loadRealHall)
   const DIENST_ON = REAL && !!opts.hall?.workshop?.dienst && (WORK_BUDGET[SMALL ? 'niedrig' : Q0]?.props ?? 0) > 0;
   let level = Q0;
@@ -6987,6 +7261,14 @@ export async function initHangar(container, opts = {}) {
   const fitFov = (now = performance.now()) => {
     // drinnen eigener Blickwinkel, ohne Shift-Optik
     if (walk?.fov) { camera.fov = walk.fov; camera.aspect = W() / H(); camera.clearViewOffset(); return; }
+    // im Leitstand der Winkel der Stellung (leitFit), unterwegs gleitet er
+    if (post) {
+      const t = post.state === 'an' || !post.ms ? 1 : THREE.MathUtils.clamp((now - post.t0) / post.ms, 0, 1);
+      camera.fov = post.state === 'an' ? post.fit.fov : THREE.MathUtils.lerp(post.fovA, post.fovB, inOut3(t));
+      camera.aspect = W() / H();
+      camera.clearViewOffset();
+      return;
+    }
     const d = wantDist(), k = 1 + lensS;
     baseFov = d > camHome ? Math.min(64, 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(19)) * d / camHome))) : 38;
     if (fovGlide) {
@@ -7041,6 +7323,12 @@ export async function initHangar(container, opts = {}) {
   // walk: Einsteigen läuft (enter, walkStep); solange ruhen OrbitControls,
   // Grenzen und Shift-Optik
   let walk = null;
+  // post: die Kamera fährt in den Leitstand, steht dort vor dem Terminal oder
+  // fährt zurück (leitGo, leitLeave); leitScreen: dessen Schirm in der Halle
+  // placeWish: zählt die Wünsche der Seite (place) und jeden Schiffswechsel;
+  // wer auf eine laufende Fahrt oder auf die Halle wartet, fährt danach nur,
+  // wenn seiner noch der letzte ist
+  let post = null, leitScreen = null, placeFn = null, placeTold = '', placeWish = 0;
   controls.addEventListener('start', () => { touched = true; dragging = true; fly = null; });
   // Kamerafahrt statt Sprung: Ziel und Abstand gleiten, die Richtung läuft
   // auf der Kugel um das Schiff herum (nicht quer hindurch).
@@ -7153,12 +7441,26 @@ export async function initHangar(container, opts = {}) {
     }
     return out;
   }
-  // Zuwachs für ein Schiff: mit 1 m Rand aufs Feld, 4 m unter die Decke
-  // (über dem Feld: HALL_GROW.clear); je Seite in ganzen Schritten (HALL_GROW.step)
+  // Zuwachs für ein Schiff: die Hangargröße, die es fasst (growPick,
+  // HALL_GROW.sizes). Welche das ist, erfährt die Seite (hangarTell).
   function growFor(info) {
     const G = realHall?.grow, L = realHall?.liftL, out = new THREE.Vector3();
     if (!G || !L) return out;
-    return out.fromArray(growNeed(info, L, G.s, realHall.room.height));
+    const pick = growPick(info, L, G.s, realHall.room.height);
+    if (pick.size != null) hangarTell(info.id ?? null, pick.size, L.to[0] - L.from[0] + pick.grow[0], L.to[1] - L.from[1] + pick.grow[2], (G.s.clear ?? realHall.room.height) + pick.grow[1]);
+    return out.fromArray(pick.grow);
+  }
+  // Hangargröße der Halle, wie sie steht oder gerade wird, und für welches
+  // Schiff: { id, size, w, l, h }, id wie in show(url, { id }) (null: noch
+  // kein Schiff), size 'S' bis 'XL' oder '' für eine Halle nach Maß
+  // (growPick), dazu das Feld (Breite w, Länge l) und die freie Höhe h
+  // darüber in m. null, solange keine echte Halle steht oder sie keine Stufen
+  // kennt. Die Seite hört mit onHangar zu.
+  let hangarFn = null, hangarNow = null;
+  function hangarTell(id, size, w, l, h) {
+    if (hangarNow && hangarNow.id === id && hangarNow.size === size && hangarNow.w === w && hangarNow.l === l && hangarNow.h === h) return;
+    hangarNow = { id, size, w, l, h };
+    hangarFn?.({ ...hangarNow });
   }
   // Maßstab der Hallenlampen (scaleLamps, growApply). Wächst die Halle an
   // Streifen, bleibt sie im Maßstab 1, die sechs Lampen aber rücken um die
@@ -7232,6 +7534,9 @@ export async function initHangar(container, opts = {}) {
     }
     if (realHall.deko) layDeko(realHall.deko, realHall.deko.k || hallRoot.scale.x, d);
     growBounds(d);
+    // der Leitstand rückt mit der Südwand: Schirm und Kamera davor mit
+    leitLay();
+    if (post?.state === 'an') leitSet();
   }
   // Hüllen für die Sichtprüfung von three.js: je mitwachsendem Mesh der
   // Quader in Ruhe, im Raum der Halle verschoben. Geteilte Geometrie (eine
@@ -7283,8 +7588,13 @@ export async function initHangar(container, opts = {}) {
     if (!g) return;
     const t = Math.min(1, (now - g.t0) / g.dur);
     growApply(growT.copy(g.a).lerp(g.b, inOut3(t)));
-    // die festen Schatten gleiten mit (wie propStep), am Ende genau
-    if (t >= 1 || now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(); }
+    // die festen Schatten gleiten mit (wie propStep), am Ende genau. Am Ende
+    // dazu die Schattenkegel neu richten (scaleLamps): scaleWorld() hat sie
+    // vor dem Gleiten gerichtet, als die Lampen noch am alten Ort standen,
+    // und der Schatten des Schiffs blieb nach dem Wechsel gröber als nach
+    // frischem Laden (Carrack nach der Pisces: focus 1 statt 0,77).
+    if (t >= 1) scaleLamps();
+    else if (now - g.shade >= PROP_SHADOW_MS) { g.shade = now; renderHallShadows(); }
     if (t < 1) return;
     grow.glide = null;
     g.done();
@@ -7393,6 +7703,7 @@ export async function initHangar(container, opts = {}) {
       const R = realHall.grow ? grownRoom(grow.to) : realHall.room;
       scene.fog.near = R.halfL * k * 1.2; scene.fog.far = R.halfL * k * 4;
       scaleLamps();
+      leitLay();
       if (grew) growSettled();
     }
     key.position.set(9 * S, HALL_H * S * 0.92, 12 * S);
@@ -7440,8 +7751,164 @@ export async function initHangar(container, opts = {}) {
   }
 
   const draco = new DRACOLoader().setDecoderPath('/vendor/three/addons/libs/draco/gltf/');
+  // Komprimierte Texturen (KTX_BAU oben; Krisz 13.11.2026: „es braucht viel
+  // zu viele Ressourcen um das Hangar laufen zu lassen“). Gemessen an dem Tag
+  // in der Probe mit Halle und Gladius, hohe Stufe, RTX 3070 Ti: Texturen am
+  // Zeichenkontext 1.507 MB, komprimiert 516 MB; Grafikspeicher im
+  // Task-Manager 2,0 GB, komprimiert 1,0 GB; Bildrate und Ladezeit gleich.
+  // Den Loader und seinen Umwandler (WebAssembly, in bis zu vier Workern)
+  // holt erst das erste Bild. Aus bleibt der Weg
+  //  - am Telefon: dort ist er auf keinem echten Gerät erprobt, und der Weg
+  //    über das WebP packt dort schon klein aus;
+  //  - ohne BC7 oder ASTC: der Umwandler packte sonst nach RGBA aus oder in
+  //    ein schwächeres Format, und nichts wäre gewonnen;
+  //  - mit ?bilder=webp (opts.bilder), zum Vergleich beider Wege;
+  //  - ohne crypto.subtle (keine sichere Herkunft): die Kennung der
+  //    eingebetteten Bilder ließe sich nicht rechnen.
+  // Fehlt ein Zwilling, kommt das Bild aus dem WebP, und die Konsole nennt
+  // es (verify:hangar-ktx hält die Zwillinge vollständig, check:hangar-shader
+  // zählt einen fehlenden als FEHLER).
+  const KTX_AN = !SMALL && opts.bilder !== 'webp' && !!globalThis.crypto?.subtle;
+  const KTX_NAMEN = { 36492: 'BC7', 36493: 'BC7', 37808: 'ASTC', 37496: 'ETC2', 37492: 'ETC2', 33776: 'BC1', 33777: 'BC1', 33779: 'BC3' };
+  const ktxStat = { n: 0, bytes: 0, miss: 0, fmt: new Map(), told: -1, timer: 0, why: null };
+  const ktxTell = () => {
+    if (ktxStat.timer) return;
+    ktxStat.timer = setTimeout(() => {
+      ktxStat.timer = 0;
+      if (ktxStat.told === ktxStat.n + ktxStat.miss) return;
+      ktxStat.told = ktxStat.n + ktxStat.miss;
+      const fmt = [...ktxStat.fmt].map(([k, n]) => `${KTX_NAMEN[k] ?? k} ${n}`).join(', ');
+      console.info(`[hangar] Texturen komprimiert: ${ktxStat.n} (${fmt || 'keine'}; ${Math.round(ktxStat.bytes / 1048576)} MB für die Grafikkarte), ohne Zwilling aus dem WebP: ${ktxStat.miss}`);
+    }, 2000);
+  };
+  let ktxLoader = null;
+  // Gibt einen Loader samt Workern frei. dispose() von three beendet nur,
+  // was es gerade gibt: Ist der Umwandler noch unterwegs, baut init() danach
+  // trotzdem die Quelle der Worker und startet die wartenden Aufträge.
+  // Deshalb erst die Zahl der Worker auf null (kein neuer entsteht, was
+  // wartet, bleibt liegen) und nach dem Start noch einmal aufräumen
+  // (Review zu PR #361).
+  const ktxFrei = (L) => {
+    if (!L) return;
+    L.setWorkerLimit(0);
+    L.dispose();
+    L.transcoderPending?.then(() => { L.workerPool.dispose(); if (L.workerSourceURL) URL.revokeObjectURL(L.workerSourceURL); }).catch(() => {});
+  };
+  const ktxStart = () => (ktxLoader ??= import('three/addons/loaders/KTX2Loader.js').then(({ KTX2Loader }) => {
+    if (ktxWach.aus) throw new Error(ktxStat.why ?? 'abgestellt');
+    const L = new KTX2Loader().setTranscoderPath('/vendor/three/addons/libs/basis/').setWorkerLimit(Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))).detectSupport(renderer);
+    if (!(L.workerConfig.bptcSupported || L.workerConfig.astcSupported)) { L.dispose(); throw new Error('die Grafikkarte kann weder BC7 noch ASTC'); }
+    // Den Umwandler (basis_transcoder.js und .wasm) sofort anfordern, nicht
+    // erst mit dem ersten Bild: three holte ihn sonst hinter Hunderten von
+    // Zwillingen, und über eine Leitung mit 16 Mbit/s kam er 20 s nach
+    // seiner Anfrage an (gemessen 13.11.2026). Erst wenn er da ist, zählt
+    // der Wächter unten; scheitert sein Abruf, ist der Weg sofort aus.
+    L.init().then(() => { ktxWach.bereit = true; }, (e) => ktxTot(`der Umwandler lädt nicht (${e?.message ?? e})`));
+    return L;
+  }).catch((e) => {
+    if (ktxWach.aus) return null;
+    ktxStat.why = String(e?.message ?? e);
+    console.info(`[hangar] Texturen bleiben WebP: ${ktxStat.why}`);
+    return null;
+  }));
+  // Wächter des Umwandlers (13.11.2026). Der Umwandler läuft in Workern, und
+  // ein Worker, der beim Start scheitert, antwortet nie: KTX2Loader wartet
+  // dann ohne Ende, und mit ihm jede Datei der Halle. Genau so stand der
+  // Hangar unter der Richtlinie der Seite beim Laden still, bevor die Kopie
+  // des Umwandlers korrigiert war (scripts/lib/hangar-basis.mjs). Der
+  // Wächter zählt Sekunden, in denen Bilder warten und keines fertig wird.
+  // Nach KTX_STILL_S davon gilt der Umwandler als tot: Die wartenden Bilder
+  // und alle späteren kommen aus dem WebP, die Konsole nennt es, und
+  // check:hangar-shader reißt daran. Gezählt werden Takte der Uhr, nicht
+  // die Zeit: Steht der Hauptfaden selbst (Shader, große Datei), zählt das
+  // eine Sekunde, nicht die ganze Pause.
+  // Er zählt erst, wenn der Umwandler selbst angekommen ist (bereit): Bis
+  // dahin wartet ein Bild auf die Leitung, nicht auf einen toten Worker.
+  // Die erste Fassung zählte von Anfang an und stellte den Weg über eine
+  // Leitung mit 16 Mbit/s nach 15 s ab, obwohl nichts kaputt war; 451 Bilder
+  // kamen aus dem WebP, und der Rest lief danach doch noch durch den
+  // Umwandler (gemessen 13.11.2026 gegen den nginx des Repos). Seitdem gilt
+  // das Aus für alles: Wer noch lädt, bricht ab (ab), wer noch umwandeln
+  // will, wird abgewiesen, und kein zweiter Aufruf stellt noch einmal ab.
+  const KTX_STILL_S = 15;
+  const ktxWach = { offen: new Set(), fertig: 0, gesehen: 0, still: 0, timer: 0, bereit: false, aus: false, stumm: false, ab: new AbortController() };
+  const ktxTot = (why, laut = true) => {
+    if (ktxWach.aus) return;
+    ktxWach.aus = true;
+    if (laut) { ktxStat.why = why; console.info(`[hangar] Texturen bleiben WebP: ${why}`); } else ktxWach.stumm = true;
+    clearInterval(ktxWach.timer); ktxWach.timer = 0;
+    const alt = ktxLoader;
+    ktxLoader = Promise.resolve(null);
+    alt?.then(ktxFrei).catch(() => {});
+    ktxWach.ab.abort();
+    const offen = [...ktxWach.offen];
+    ktxWach.offen.clear();
+    for (const nein of offen) nein(new Error(why));
+  };
+  const ktxWandle = (L, buf) => new Promise((ja, nein) => {
+    if (ktxWach.aus) { nein(new Error(ktxStat.why ?? 'abgestellt')); return; }
+    // Eine Antwort nach dem Aus gilt nicht mehr; ihr Bild wird verworfen.
+    const fertig = (f, v) => { if (!ktxWach.offen.delete(nein)) { if (f === ja) v?.dispose?.(); return; } ktxWach.fertig++; f(v); };
+    ktxWach.offen.add(nein);
+    ktxWach.timer ||= setInterval(() => {
+      if (!ktxWach.offen.size) { clearInterval(ktxWach.timer); ktxWach.timer = 0; ktxWach.still = 0; return; }
+      if (!ktxWach.bereit) return;
+      if (ktxWach.fertig !== ktxWach.gesehen) { ktxWach.gesehen = ktxWach.fertig; ktxWach.still = 0; return; }
+      if (++ktxWach.still >= KTX_STILL_S) ktxTot(`der Umwandler antwortet seit ${KTX_STILL_S} s nicht`);
+    }, 1000);
+    L.parse(buf, (t) => fertig(ja, t), (e) => fertig(nein, e));
+  });
+  const ktxTwin = !KTX_AN ? null : {
+    id: (view) => crypto.subtle.digest('SHA-256', view).then(hex16),
+    async load(id) {
+      const L = await ktxStart();
+      if (!L) return null;
+      let stage = 'Datei';
+      try {
+        const r = await fetch(`/hangar/ktx/${id}.ktx2?v=${KTX_BAU}`, { credentials: 'same-origin', signal: ktxWach.ab.signal });
+        if (!r.ok) throw new Error(`Antwort ${r.status}`);
+        const buf = await r.arrayBuffer();
+        // vor dem Umwandeln lesen: parse() gibt den Puffer an den Worker ab
+        const kv = ktxKv(buf);
+        if (kv.HGbau !== KTX_BAU) throw new Error(`Rezept ${kv.HGbau ?? 'fehlt'} statt ${KTX_BAU}`);
+        stage = 'Umwandeln';
+        const t = await ktxWandle(L, buf);
+        if (!t?.isCompressedTexture || !t.mipmaps?.length) { t?.dispose?.(); throw new Error('kein komprimiertes Bild'); }
+        // Der Loader liest den Farbraum aus der Datei (sRGB oder linear). Wie
+        // beim WebP soll ihn allein der Platz im Material bestimmen, den der
+        // GLTFLoader danach setzt: eine Karte, die als Farbe und als Daten
+        // dient, läse sonst an beiden Plätzen als Farbe.
+        t.colorSpace = THREE.NoColorSpace;
+        // Deckel der Stufe (TEX_MAX, shrinkTextures): die größeren Stufen
+        // gehen gar nicht erst zur Grafikkarte
+        if (TEX_MAX) while (t.mipmaps.length > 1 && Math.max(t.mipmaps[0].width, t.mipmaps[0].height) > TEX_MAX) t.mipmaps.shift();
+        t.image.width = t.mipmaps[0].width; t.image.height = t.mipmaps[0].height;
+        const mean = (kv.HGmittel ?? '').split(',').map(Number);
+        ktxStat.n++;
+        ktxStat.fmt.set(t.format, (ktxStat.fmt.get(t.format) ?? 0) + 1);
+        for (const mm of t.mipmaps) ktxStat.bytes += mm.data.byteLength;
+        ktxTell();
+        return { t, webp: Number(kv.HGwebp) || 0, mean: mean.length === 3 && mean.every((v) => Number.isFinite(v) && v >= 0) ? mean : undefined };
+      } catch (e) {
+        if (ktxWach.stumm) return null;
+        ktxStat.miss++;
+        if (ktxStat.miss <= 5) console.warn(`[hangar] Zwilling ${id} nicht geladen (${stage}: ${ktxWach.aus ? ktxStat.why : e?.message ?? e}): das Bild kommt aus dem WebP`);
+        ktxTell();
+        return null;
+      }
+    },
+  };
+  // Loader und Umwandler vor der ersten Datei der Halle anfordern: Sie
+  // stehen dann vorn in der Schlange der Leitung, nicht hinter den GLB
+  // (über 16 Mbit/s kam KTX2Loader.js sonst 13 s nach seiner Anfrage an).
+  if (KTX_AN) ktxStart();
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
-  const loader = new GLTFLoader().setDRACOLoader(draco).register(embeddedImages(8, (parser) => shipTex.count(parser)));
+  const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0, ktxTwin);
+  const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
+  // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
+  // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
+  const hallLoader = new GLTFLoader().setDRACOLoader(draco).register(images(false));
+  const HALL_FILES = new Set(['hall', 'furniture', 'lift', 'gate', 'rand', 'workshop', 'workshop-floor', 'dienst', 'werk', 'buehne', 'werkdecke', 'deko', 'crew']);
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   // Höchstens 16 Texturen je Bildshader: so viele erlaubt Chrome unter
@@ -7521,7 +7988,7 @@ export async function initHangar(container, opts = {}) {
   // my: Marke des show(), das lädt. Ein überholtes show() lädt zu Ende,
   // meldet aber keinen Fortschritt mehr: der Balken gehört dem gewählten Schiff.
   const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => new Promise((resolve, reject) => {
-    loader.load(url, resolve, (e) => {
+    (HALL_FILES.has(key) ? hallLoader : loader).load(url, resolve, (e) => {
       if (my !== null && my !== token) return;
       prog.set(key, [e.loaded, e.total || Math.max(guess, e.loaded)]);
       report();
@@ -7652,6 +8119,7 @@ export async function initHangar(container, opts = {}) {
   // verloren, lädt die Seite neu (onLost in hangar-overview.js); von da an
   // wird nichts mehr freigegeben und nichts gemeldet (texQuiet).
   const texGone = new WeakSet();   // Quellen, deren Bild freigegeben ist
+  const KTX_LEER = new Uint8Array(0);
   const texStat = { n: 0, bytes: 0, held: 0, asked: 0, told: 0, timer: 0 };
   let texQuiet = false;
   const texUp = (t) => { const p = renderer.properties.get(t); return p.__webglTexture !== undefined && p.__version === t.version; };
@@ -7673,14 +8141,38 @@ export async function initHangar(container, opts = {}) {
     const srcs = new Map();
     for (const t of tex) if (t.source && !srcs.has(t.source)) srcs.set(t.source, t);
     for (const [src, t0] of srcs) {
-      const im = src.data, users = texUsers.get(src);
-      if (!users || !isBitmap(im)) continue;
-      const keys = new Set(), open = [];
-      for (const r of users) { const u = r.deref(); if (u) { if (texUp(u)) keys.add(texKey(u)); else open.push(u); } }
+      const im = src.data, users = texUsers.get(src), comp = t0.isCompressedTexture === true;
+      if (!users || texGone.has(src) || !(comp || isBitmap(im))) continue;
+      const keys = new Set(), open = [], live = [];
+      for (const r of users) { const u = r.deref(); if (u) { live.push(u); if (texUp(u)) keys.add(texKey(u)); else open.push(u); } }
       if (!keys.size || open.some((u) => !keys.has(texKey(u)))) { texStat.held++; continue; }
-      texStat.n++; texStat.bytes += im.width * im.height * 4;
-      im.close();
-      src.data = goneImage(t0.name || 'ohne Namen');
+      texStat.n++;
+      if (comp) {
+        // Komprimierte Textur: ihre Bytes liegen je Mip-Stufe an der Textur,
+        // und die Kopien einer Quelle teilen sich die Stufen. An die Stelle
+        // der Bytes tritt ein leeres Feld, das meldet, wenn es doch noch
+        // jemand hochladen will (wie goneImage).
+        const label = t0.name || 'ohne Namen';
+        let asked = false;
+        const ask = () => {
+          if (!asked && !texQuiet) {
+            asked = true; texStat.asked++;
+            console.error(`[hangar] Bild nach der Freigabe noch einmal verlangt (${label}): die Fläche zeigt eine Farbe statt ihrer Karte`);
+          }
+          return KTX_LEER;
+        };
+        const seen = new Set();
+        for (const u of live) for (const mm of u.mipmaps ?? []) {
+          if (seen.has(mm)) continue;
+          seen.add(mm);
+          texStat.bytes += mm.data?.byteLength ?? 0;
+          try { Object.defineProperty(mm, 'data', { get: ask, configurable: true }); } catch { mm.data = KTX_LEER; }
+        }
+      } else {
+        texStat.bytes += im.width * im.height * 4;
+        im.close();
+        src.data = goneImage(t0.name || 'ohne Namen');
+      }
       texGone.add(src);
     }
     if (texStat.n > texStat.told && !texStat.timer) texStat.timer = setTimeout(() => {
@@ -7700,7 +8192,6 @@ export async function initHangar(container, opts = {}) {
   // den Zeichenkontext oder beendet sie, und sie lädt neu. Mit 512 px sind es
   // 512 MB, mit 256 px (niedrige Stufe) 182 MB; die Bühne ist am Telefon
   // keine 600 px breit.
-  const TEX_MAX = SMALL ? (Q0 === 'niedrig' ? 256 : 512) : Q0 === 'niedrig' ? 512 : 0;
   const shrunk = new WeakMap();
   async function shrinkTextures(tex) {
     const jobs = [];
@@ -7711,22 +8202,11 @@ export async function initHangar(container, opts = {}) {
       // Leinwände bleiben: ein Bild an ihrer Stelle nähme spätere Zeichnungen nicht mehr an
       if (!im || Math.max(w, h) <= TEX_MAX || t.isDataTexture || t.isCompressedTexture || t.isCanvasTexture) continue;
       if (!shrunk.has(src)) {
-        const k = TEX_MAX / Math.max(w, h), nw = Math.max(1, Math.round(w * k)), nh = Math.max(1, Math.round(h * k));
         shrunk.set(src, (async () => {
-          let out = null;
-          try {
-            out = await createImageBitmap(im, { resizeWidth: nw, resizeHeight: nh, resizeQuality: 'high', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
-            if (out.width !== nw) { out.close(); out = null; }   // Größe nicht unterstützt
-          } catch { out = null; }
-          if (!out) {
-            try {
-              out = document.createElement('canvas');
-              out.width = nw; out.height = nh;
-              out.getContext('2d').drawImage(im, 0, 0, nw, nh);
-            } catch { return; }
-          }
+          const out = await fitImage(im, TEX_MAX);
+          if (!out) return;
           src.data = out;
-          if (typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) im.close();
+          if (isBitmap(im)) im.close();
         })());
       }
       jobs.push(shrunk.get(src).then(() => { t.needsUpdate = true; }));
@@ -7734,6 +8214,69 @@ export async function initHangar(container, opts = {}) {
     await Promise.all(jobs);
   }
 
+  // Geometrie der Halle im Arbeitsspeicher: three.js behält jeden Attribut-
+  // und Indexpuffer nach dem Hochladen (gemessen 13.11.2026, Gladius, hohe
+  // Stufe: 240 MB in 796 Geometrien, 183 MB davon in einfachen Netzen;
+  // freigegeben werden 159 MB).
+  // Gebraucht wird die Kopie nur, wenn jemand die Ecken noch einmal liest,
+  // und die Halle liest nach dem Bau niemand mehr: growApply schiebt über
+  // Uniformen, Sicht- und Schattenprüfung nehmen Kugel und Kasten, und die
+  // rechnet freeGeometry() vorher. Es gibt jeden Puffer in dem Moment frei,
+  // in dem three.js ihn hochgeladen hat (onUpload), also auch bei Netzen,
+  // die erst später sichtbar werden. Nicht für BatchedMesh (die Kugel je
+  // Teil entsteht dort erst beim ersten Zeichnen aus den Puffern), nicht
+  // für Netze mit Knochen, Instanzen oder Morphzielen, und nicht für das
+  // Schiff: Tafeln, Tauschteile und Messungen lesen es. Puffer in keep
+  // bleiben auch: die Ecken der Möbel rechnet scaleFurniture() neu, wenn
+  // die Halle mit einem größeren Schiff wächst. Wer einen
+  // freigegebenen Puffer doch liest, bekommt einen leeren und einen Fehler
+  // in der Konsole (einmal je Puffer); check:hangar-shader zählt ihn als
+  // FEHLER. Nach einem verlorenen Zeichenkontext baut niemand aus den
+  // Puffern neu auf, die Seite lädt neu (onLost in hangar-overview.js).
+  const geoStat = { n: 0, bytes: 0, asked: 0, told: 0, timer: 0 };
+  const geoArmed = new WeakSet(), geoBufs = new WeakSet();
+  function goneArray(at, label) {
+    const leer = new at.array.constructor(0);
+    let asked = false;
+    Object.defineProperty(at, 'array', {
+      configurable: true,
+      enumerable: true,
+      get() {
+        if (!asked && !texQuiet) {
+          asked = true; geoStat.asked++;
+          console.error(`[hangar] Geometrie nach der Freigabe noch einmal verlangt (${label}): der Leser bekommt einen leeren Puffer`);
+        }
+        return leer;
+      },
+      set(v) { Object.defineProperty(at, 'array', { value: v, writable: true, configurable: true, enumerable: true }); },
+    });
+  }
+  function freeGeometry(root, keep = null) {
+    root.traverse((n) => {
+      if (!n.isMesh || n.isBatchedMesh || n.isSkinnedMesh || n.isInstancedMesh) return;
+      const g = n.geometry;
+      if (!g || !g.attributes.position || Object.keys(g.morphAttributes).length) return;
+      if (!g.boundingBox) g.computeBoundingBox();
+      if (!g.boundingSphere) g.computeBoundingSphere();
+      const label = n.name || 'ohne Namen';
+      for (const a of [...Object.values(g.attributes), g.index]) {
+        const at = a?.isInterleavedBufferAttribute ? a.data : a;
+        if (!at?.array?.buffer || geoArmed.has(at) || keep?.has(at)) continue;
+        geoArmed.add(at);
+        at.onUpload(function () {
+          if (texQuiet) return;
+          const buf = this.array.buffer;
+          if (!geoBufs.has(buf)) { geoBufs.add(buf); geoStat.bytes += buf.byteLength; }
+          geoStat.n++;
+          goneArray(this, label);
+          if (!geoStat.timer) geoStat.timer = setTimeout(() => {
+            geoStat.timer = 0; geoStat.told = geoStat.n;
+            console.info(`[hangar] Geometrie nach dem Hochladen freigegeben: ${geoStat.n} Puffer mit ${Math.round(geoStat.bytes / 1048576)} MB`);
+          }, 2000);
+        });
+      }
+    });
+  }
   // Lampen der Halle aus dem Spiel (Licht-Entities des socpak, vom Build als
   // <halle>.lights.json neben das GLB gelegt; Richtungen dort schon nach glTF
   // gedreht, Flächenlichter an ihrer Fläche ausgerichtet). Fehlt die Datei,
@@ -8175,6 +8718,36 @@ export async function initHangar(container, opts = {}) {
   // WebGLRenderer.setProgram). Dieselbe Kugel wie scene.environment, also
   // dasselbe Shaderprogramm.
   const setHallEnv = (tex) => { for (const m of realHall.mats) if (m.isMeshStandardMaterial) m.envMap = tex; };
+  // Die Halle für die Aufnahme in Ruhelage, gibt das Zurückstellen zurück:
+  // Schiffsfeld oben und sichtbar, Wartungsplatz da, Tor, Schacht und
+  // Schachtlicht aus. Beim Schiffswechsel wächst die Halle unter
+  // geschlossenem Tor, und growSettled() nimmt die Kugel dort neu auf: Feld
+  // und Wartungsplatz sind dann ausgeblendet (sealed im Bildtakt), unter der
+  // Kugel liegt das Tor. Sie kam so 25 bis 33 % dunkler heraus als nach
+  // frischem Laden desselben Schiffs (Carrack 0,137 statt 0,204) und blieb
+  // es bis zum nächsten Wechsel der Hallengröße (13.11.2026).
+  function hallRest() {
+    const lf = realHall.lift, dn = realHall.dienst?.group, sh = realHall.shaft;
+    if (!lf) return () => {};
+    const vis = [[lf, true], [dn, true], [sh?.gate?.group, false], [sh?.pit, false], [sh?.fx, false], [sh?.edge, false]]
+      .filter(([o]) => o).map(([o, v]) => { const was = o.visible; o.visible = v; return [o, was]; });
+    const ly = lf.position.y, dy = dn?.position.y, uy = hallLiftY.value, glow = sh?.glow?.emissiveIntensity;
+    const pk = hallPit.k.value.clone(), bm = hallShaft.beam.value.clone();
+    lf.position.y = 0;
+    if (dn) dn.position.y = realHall.floorY;
+    hallLiftY.value = 0;
+    hallPit.k.value.set(0, 0, 0);
+    hallShaft.beam.value.x = 0; hallShaft.beam.value.y = 0;
+    if (sh?.glow) sh.glow.emissiveIntensity = 0;
+    return () => {
+      for (const [o, was] of vis) o.visible = was;
+      lf.position.y = ly;
+      if (dn) dn.position.y = dy;
+      hallLiftY.value = uy;
+      hallPit.k.value.copy(pk); hallShaft.beam.value.copy(bm);
+      if (sh?.glow) sh.glow.emissiveIntensity = glow;
+    };
+  }
   function captureHallEnv(force = false) {
     if (!realHall || !HALL_PROBE) return;
     if (hallEnv && !force) return;
@@ -8200,9 +8773,13 @@ export async function initHangar(container, opts = {}) {
     // Laden), kam die Kugel halb so hell heraus (Mittel 0,094 statt 0,19,
     // Wände im Bild ein Viertel dunkler), und die Halle blieb so bis zur
     // nächsten Aufnahme (13.11.2026).
+    // Dazu in Ruhelage (hallRest): Beim Schiffswechsel steht die Halle
+    // unter geschlossenem Tor ohne Feld und Wartungsplatz da.
+    const unrest = hallRest();
     stLayer?.mirror(true);
     const rt = pmremFor(renderer).fromScene(scene, 0, 0.1, Math.max(R.halfL, R.height) * k * 4, { size: 256, position: new THREE.Vector3(0, 2.5 * k, 0) });
     stLayer?.mirror(false);
+    unrest();
     // Die Karten sind jetzt die ohne Schiff: im nächsten Bild neu
     shadowSig = '';
     fog.near = near; fog.far = far;
@@ -10527,6 +11104,10 @@ void main() {
       // hochladen, dann einhängen, in denselben Modellraum wie die Lampen.
       await lampsReady;
       hallClosing = true;
+      // ab hier liest niemand mehr die Ecken der Halle: Kopien nach dem Hochladen
+      // freigeben. Nur die Ecken der Möbel bleiben (scaleFurniture, furnitureBoxes).
+      freeGeometry(model, new Set(furniture.map((f) => f.mesh.geometry.attributes.position)));
+      if (werk) freeGeometry(werk.group);
       await prepare(model);
       if (werk) {
         // beide Lichter von Tor und Stirn übersetzen, sonst hakt der erste Wechsel
@@ -10548,6 +11129,7 @@ void main() {
       realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk,
         grow: gsL ? { s: gsL, org: new THREE.Vector3(o[0], floorY, o[2]), cut: hallCut.value.clone(), door: hallDoor.value.clone(), list: [] } : null };
       if (realHall.grow) { growBoundsInit(); growApply(grow.d); }
+      leitBuild();
       // Dampf gleich mit übersetzen: sein erster Stoß soll nicht ruckeln
       if (steam && lift) prepare(steam.mesh).catch(() => {});
       // Stand vorher die gebaute Halle, weicht sie (in der echten Halle gibt
@@ -11407,6 +11989,7 @@ void main() {
     if (hallOn !== hallShown) {
       hallShown = hallOn;
       realHall.model.visible = hallOn;
+      if (leitScreen) leitScreen.mesh.visible = hallOn;
       if (steam) steam.mesh.visible = hallOn;
       if (hallOn) life.root.visible = !REAL || (revealed && life.isRigged());
     }
@@ -11504,12 +12087,16 @@ void main() {
     for (const e of P.ev) if (!e.ran && now >= P.t0 + e.at) { e.ran = true; e.fn(); }
     if (f < 1) return;
     trip = null;
-    controls.enabled = true;
-    controls.update();
-    // Der Abstand der Ankunft gilt: camWant stammte noch von vor der Fahrt,
-    // die Kamera glitt sonst danach auf ihn zurück (Ursa: 0,8 m hinaus)
-    camWant = camera.position.distanceTo(controls.target);
-    camRef = 0;
+    // Im Leitstand bleibt die Steuerung aus: Die Kamera steht näher am
+    // Schirm, als OrbitControls sie ans Schiff ließe (leitGo, leitLeave)
+    if (!post) {
+      controls.enabled = true;
+      controls.update();
+      // Der Abstand der Ankunft gilt: camWant stammte noch von vor der Fahrt,
+      // die Kamera glitt sonst danach auf ihn zurück (Ursa: 0,8 m hinaus)
+      camWant = camera.position.distanceTo(controls.target);
+      camRef = 0;
+    }
     P.end();
   }
   // Liegt die Strecke a-b im Quader um c (halbe Maße sx, sz, Höhe sy)?
@@ -11779,6 +12366,9 @@ void main() {
     return true;
   }
 
+  // o.hangar: die Hangargröße des Schiffs von der Seite ('S' bis 'XL', aus
+  // seiner Größenklasse); die Halle wird nie kleiner, bei Bedarf größer
+  // (growPick). Die Stufe der Halle selbst meldet onHangar.
   async function show(url, o = {}) {
     wake(1500);
     busyStart();
@@ -11819,7 +12409,7 @@ void main() {
         m.userData.albT = Math.max(...mean);
         if (m.userData.albT < 5e-4) { m.map = null; m.userData.albT = 1; }
         if (albedoFloor(m)) m.userData.albLift = true;
-      }
+      } else m.userData.albOhne = true;   // Farbkarte ohne Mittel: steht in der Zeile „Lack“ (check:hangar-shader)
     }
     m.envMapIntensity = 0.9;
     for (const t of [m.map, m.normalMap, m.emissiveMap]) if (t) t.anisotropy = maxAniso;
@@ -11830,6 +12420,13 @@ void main() {
   async function showShip(url, o) {
     const my = ++token;
     if (walk) leave(true);
+    // Ein neues Schiff nimmt jeden Ortswunsch zurück, auch einen, der noch auf
+    // das Ende einer Fahrt oder auf die Halle wartet: Die Seite führt für das
+    // neue Schiff wieder das Feld, die Kamera führe sonst nach dem Warten
+    // allein hinauf, und „Schiffsfeld“ holte sie nicht zurück (Review PR #355).
+    placeWish++;
+    // aus dem Leitstand ohne Fahrt zurück: der Wechsel führt die Kamera selbst
+    if (post) leitLeave(true);
     makerCode = o.maker || '';
     prog.delete('ship'); prog.delete('ship-tex');
     // Eine Fahrt zwischen Halle und Werkhalle fährt zu Ende, dann der nächste Wechsel
@@ -11878,13 +12475,17 @@ void main() {
     });
     if (textured) {
       // Selbstauskunft: Schadensnetze aus, Grundfarben angehoben (albedoFloor)
-      const mats = new Set(); let dmg = 0, tris = 0, gemessen = 0;
+      const mats = new Set(); let dmg = 0, tris = 0, gemessen = 0, ohne = 0;
       model.traverse((n) => {
         if (!n.isMesh) return;
         if (n.userData.damage) { dmg++; tris += (n.geometry.index?.count ?? n.geometry.attributes.position.count) / 3; } else mats.add(n.material);
       });
-      for (const m of mats) if (m.userData.albT != null) gemessen++;
-      console.info(`[hangar] Lack: ${[...mats].filter((m) => m.userData.albLift).length} von ${mats.size} Materialien bis zur Untergrenze angehoben (${gemessen} mit gemessener Farbkarte), ${dmg} Schadensnetze aus (${Math.round(tris)} Dreiecke)`);
+      // ohne: Materialien, deren Farbkarte kein Mittel trug, als dressTextured() danach fragte
+      for (const m of mats) {
+        if (m.userData.albT != null) gemessen++;
+        else if (m.userData.albOhne) ohne++;
+      }
+      console.info(`[hangar] Lack: ${[...mats].filter((m) => m.userData.albLift).length} von ${mats.size} Materialien bis zur Untergrenze angehoben (${gemessen} mit gemessener Farbkarte, ${ohne} ohne Farbmittel), ${dmg} Schadensnetze aus (${Math.round(tris)} Dreiecke)`);
     }
     // Die Achsdrehung Z-oben -> Y-oben steckt schon im Knoten der .glb.
     // Bug in -Z: einmal umdrehen, im Schiffsraum zeigt er nach +Z (Grundriss,
@@ -11951,7 +12552,7 @@ void main() {
     const hb = box.hull ?? box, wp = wrap.position;
     // Aufstandspunkte im Schiffsraum (wie in standOn gedreht): dort prüft die Crew das Fahrwerk
     const feet = stand?.n ? gearOf(textured ? o.tex : url).contacts.filter((p) => p?.length === 3 && p.every(Number.isFinite)).map(([x, y, z]) => new THREE.Vector3(-x, y, -z).applyQuaternion(lean.quaternion).add(wp)) : null;
-    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under, feet };
+    const info = { len: 2 * Math.max(-(hb.min.z + wp.z), hb.max.z + wp.z), halfW: Math.max(-(hb.min.x + wp.x), hb.max.x + wp.x), height: hb.max.y + wp.y, under, feet, id: o.id ?? null, hangar: o.hangar ?? null };
     // in die Werkhalle, in ihr von Fahrzeug zu Fahrzeug oder aus ihr hinaus
     if (toWerk || current?.werk) {
       if (await werkShow(ship, { model, mat, info, textured, hull, inner: textured ? innerOf(o.tex) : null, my, drop, lowered, covered, padDown, toWerk })) return;
@@ -12281,8 +12882,8 @@ void main() {
     return { tgt, pos, rel: onPoint ? pointRel : pos.distanceTo(tgt) / homeDist() };
   }
   function resetView() {
-    // die Fahrt zwischen Halle und Werkhalle führt die Kamera selbst
-    if (trip) return;
+    // die Fahrt zwischen Halle und Werkhalle führt die Kamera selbst, im Leitstand steht sie
+    if (trip || post) return;
     if (walk) leave(true);
     touched = false; onPoint = false;
     // nach focus() steht das Ziel auf einem Hardpoint, nicht auf der Schiffsmitte
@@ -12299,7 +12900,7 @@ void main() {
     out.length = points.length;
     // Im Schacht (Aufzug nicht oben), mit der Bühne der Werkhalle unten und
     // auf der Fahrt dorthin zeigt die Oberfläche keine Marker
-    const m = current && current.group.visible && !trip && !walk && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
+    const m = current && current.group.visible && !trip && !walk && !post && !(current.lift && lift.y < -0.05) && !(current.werk && realHall?.werk?.buehne.v < -0.05) ? current.model.matrixWorld : null;
     const w = W(), h = H();
     for (let i = 0; i < points.length; i++) {
       if (!m) { out[i] = null; continue; }
@@ -12312,7 +12913,7 @@ void main() {
     return out;
   }
   function focus(p) {
-    if (!current || trip || walk) return;
+    if (!current || trip || walk || post) return;
     if (!p) { resetView(); return; }
     // Ziel aus der Ruhelage: waehrend der Einfahrt schwebt und dreht die
     // Gruppe noch, das Ziel laege sonst bis zu 18 % der Spannweite daneben.
@@ -12360,7 +12961,7 @@ void main() {
   // deckelt beides (niedrige Stufe: 30).
   const FPS_ACTIVE = 60, FPS_IDLE = 24, BG_HOVER = 3000;
   let fpsCap = Q0 === 'niedrig' ? 30 : 0, due = 0, capNow = 0;
-  let focused = document.hasFocus(), hoverUntil = 0;
+  let focused = document.hasFocus(), hoverUntil = 0, focusAt = 0;
   const frameD = [];
   let frameSum = 0, lastNow = 0;
   // Leerlauf und Ruhe (2026-10-18, Wahl des Betreibers für „great
@@ -13201,7 +13802,7 @@ void main() {
   async function enter() {
     const c = current;
     // nicht während eines Wechsels (Aufzug unterwegs oder unten, Einfahrt)
-    if (!walkCan() || walk || trip || leaving || lift.dur || Math.abs(lift.y) > 1e-3 || performance.now() - c.born < 1600 || !revealed) return false;
+    if (!walkCan() || walk || post || trip || leaving || lift.dur || Math.abs(lift.y) > 1e-3 || performance.now() - c.born < 1600 || !revealed) return false;
     const me = walk = { c, state: 'load', saved: { t: controls.target.clone(), p: camera.position.clone() }, keys: new Set(), yaw: 0, pitch: 0, drag: null, mv: new THREE.Vector2(), fov: 0 };
     fly = null; controls.enabled = false; dragging = false;
     walkState(); wake(1000);
@@ -13545,7 +14146,7 @@ void main() {
   let stStill = 0;
   function stRest() {
     const c = current;
-    if (!c || !revealed || trip || walk || leaving || c.werk || ort === 'werk') return null;
+    if (!c || !revealed || trip || walk || post || leaving || c.werk || ort === 'werk') return null;
     const now = performance.now();
     if (c.lift ? lift.dur || Math.abs(lift.y) > 1e-4 : !reduceMotion && now - c.born < 1300) return null;
     const e = c.model.matrixWorld.elements, at = [e[0], e[12], e[13], e[14]];
@@ -13566,6 +14167,239 @@ void main() {
     }
     wake(400);
     return true;
+  }
+
+  // Leitstand (HALL_LEIT): der Schirm des Terminals steht immer in der
+  // Halle, gedimmt; place('leit') fährt die Kamera hinauf vor ihn.
+  // post { state }: 'hin' unterwegs dorthin, 'an' sie steht davor, 'weg'
+  // unterwegs zurück; solange ruhen OrbitControls, Grenzen und Shift-Optik
+  // wie beim Einsteigen (walk). Nicht am Telefon und nur in einer Halle,
+  // deren Leitstand vermessen ist.
+  const LEIT = REAL && !SMALL ? HALL_LEIT[opts.hall.id] ?? null : null;
+  // Rand des Schirms um das Fenster der Seite (m): Rahmen und Eckwinkel
+  const LEIT_RAND = 0.07, LEIT_PX = 200;
+  // ein Punkt des Leitstands dort, wo er mit dem Zuwachs der Halle steht (Hallenmeter)
+  const leitAt = (x, y, z, out = new THREE.Vector3()) => growMap(out.set(x, y, z), out);
+  // Der Schirm ohne Seite: dunkle Fläche mit feinem Raster, Rahmen und
+  // Eckwinkeln, kein Text (von der Halle aus sieht man ihn von hinten).
+  function leitDraw() {
+    const { cv, tex } = leitScreen, g = cv.getContext('2d');
+    const w = Math.round((leitScreen.b + 2 * LEIT_RAND) * LEIT_PX), h = Math.round((leitScreen.h + 2 * LEIT_RAND) * LEIT_PX), p = LEIT_RAND * LEIT_PX;
+    cv.width = w; cv.height = h;
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = 'rgba(7, 16, 30, 0.94)';
+    g.fillRect(p, p, w - 2 * p, h - 2 * p);
+    g.strokeStyle = 'rgba(120, 205, 255, 0.07)'; g.lineWidth = 1;
+    g.beginPath();
+    for (let x = p + 40; x < w - p; x += 40) { g.moveTo(x + 0.5, p); g.lineTo(x + 0.5, h - p); }
+    for (let y = p + 40; y < h - p; y += 40) { g.moveTo(p, y + 0.5); g.lineTo(w - p, y + 0.5); }
+    g.stroke();
+    g.strokeStyle = 'rgba(130, 210, 255, 0.5)'; g.lineWidth = 2;
+    g.strokeRect(p - 4, p - 4, w - 2 * p + 8, h - 2 * p + 8);
+    // Eckwinkel
+    const a = 3, L = 0.2 * LEIT_PX;
+    g.strokeStyle = 'rgba(175, 232, 255, 0.95)'; g.lineWidth = 6; g.lineCap = 'square';
+    g.beginPath();
+    for (const [x, y, dx, dy] of [[a, a, 1, 1], [w - a, a, -1, 1], [a, h - a, 1, -1], [w - a, h - a, -1, -1]]) {
+      g.moveTo(x + dx * L, y); g.lineTo(x, y); g.lineTo(x, y + dy * L);
+    }
+    g.stroke();
+    // die Leinwand hat eine neue Größe: neu anlegen statt nachladen
+    tex.dispose();
+    tex.needsUpdate = true;
+  }
+  function leitLay() {
+    if (!leitScreen) return;
+    const S = LEIT.schirm, k = hallRoot.scale.x;
+    leitAt(S.x, S.y, S.z, leitScreen.mesh.position);
+    leitScreen.mesh.scale.set((leitScreen.b + 2 * LEIT_RAND) / k, (leitScreen.h + 2 * LEIT_RAND) / k, 1);
+  }
+  function leitBuild() {
+    if (!LEIT || leitScreen) return;
+    const cv = document.createElement('canvas'), tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.generateMipmaps = false; tex.minFilter = THREE.LinearFilter;
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: LEIT_DIM, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false });
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+    mesh.name = 'leit:schirm';
+    mesh.renderOrder = 3;
+    leitScreen = { mesh, cv, tex, mat, b: LEIT.schirm.b, h: LEIT.schirm.b * LEIT.form[0], power: LEIT_DIM, at: 0 };
+    leitDraw();
+    leitLay();
+    hallRoot.add(mesh);
+    // Wo die Bank laut HALL_LEIT steht, steht sie auch im Modell? Sonst
+    // schwebte der Schirm nach einem neuen Hallenexport im Leeren.
+    const bank = realHall?.furniture?.find((f) => /monitors/i.test(f.mesh.name));
+    if (bank) {
+      const b = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = b.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
+      const want = leitAt((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
+      if (c.distanceTo(want) > 0.6) console.warn(`[hangar] Leitstand: Monitorbank bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
+    }
+  }
+  // Stellung vor dem Terminal fürs jetzige Bild: leitFit, dazu Kamera und
+  // Blickpunkt in der Welt. Frei ist die Bühne ohne das, was die Seite an
+  // den Rändern verdeckt (setSafe: Kopfzeile, Schiffsauswahl) und ohne den
+  // Fuß mit Leiste und Knöpfen.
+  function leitPose() {
+    const w = W(), h = H(), s = stSafe ?? {}, m = LEIT.rand + 6, S = LEIT.schirm, k = hallRoot.scale.x;
+    const frei = { l: (s.l || 0) + m, t: (s.t || 0) + m, r: w - (s.r || 0) - m, b: h - m };
+    for (const q of s.rects ?? []) if (q.t > h * 0.55) frei.b = Math.min(frei.b, q.t - m);
+    // Mittig im Bild, solange links und rechts nur schmale Ränder stehen
+    // (die eingeklappte Schiffsauswahl); neben der offenen Liste füllt er den Rest
+    const side = Math.max(frei.l, w - frei.r);
+    if (side <= w * 0.14) { frei.l = side; frei.r = w - side; }
+    const f = leitFit(w, h, frei, LEIT), c = leitAt(S.x, S.y, S.z).multiplyScalar(k);
+    return { ...f, pos: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z + f.d), look: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z) };
+  }
+  const leitTell = () => {
+    const on = post?.state === 'an', r = on ? post.fit.rect : null;
+    const told = `${post?.state ?? ''}|${r ? [r.l, r.t, r.r, r.b].map((v) => v.toFixed(1)) : ''}`;
+    if (told === placeTold) return;
+    placeTold = told;
+    placeFn?.({ ort: post ? 'leit' : ort, state: post?.state ?? 'an', rect: r && { ...r } });
+  };
+  // Breite und Höhe des Schirms für die Stellung f (neu gezeichnet nur, wenn
+  // sie sich ändern)
+  function leitShape(f) {
+    if (Math.abs(f.h - leitScreen.h) < 1e-3 && Math.abs(f.b - leitScreen.b) < 1e-3) return;
+    leitScreen.b = f.b; leitScreen.h = f.h;
+    leitDraw();
+    leitLay();
+  }
+  // Die Kamera genau vor den Schirm (Ankunft, neue Fenstergröße, andere Ränder)
+  function leitSet() {
+    const f = post.fit = leitPose();
+    leitShape(f);
+    camera.position.copy(f.pos);
+    camera.quaternion.identity();
+    controls.target.copy(f.look);
+    fitFov();
+    leitTell();
+    wake(400);
+  }
+  // Weg der Kamera von from in den Leitstand nach to (Hallenmeter, wie die
+  // Halle gerade steht): vor die Glasfront, über dem Querholm hindurch, über
+  // Pult und Pflanzkasten hinweg unter die abgehängte Decke und im Bogen
+  // hinter den Schirm. Auf der Seite, auf der die Kamera steht. Steht das
+  // Schiff im geraden Weg, außen an ihm entlang zum Heck.
+  function leitPath(from, to) {
+    const G = LEIT.glas, k = hallRoot.scale.x, c = current, sx = from.x < 0 ? -1 : 1, O = new THREE.Vector3();
+    const pts = [from.clone()], glas = leitAt(sx * G.x, G.y, G.z), vor = leitAt(sx * (G.x + 1.4), G.y - 0.2, G.z - 9);
+    const box = c && !c.werk && c.group.visible ? shipBox(c.info, c.group.scale.x, k) : null;
+    if (box) {
+      // der Punkt vor dem Glas liegt hinter dem Heck, nicht über ihm
+      vor.z = Math.min(glas.z - 2.5, Math.max(vor.z, box.sz + 0.5));
+      if (segHits(from, vor, O, box.sx, box.sy, box.sz)) {
+        const X = sx * (box.sx + 2.5), y = Math.min(G.y - 0.4, Math.max(from.y, 6));
+        // vor dem Bug oder über dem Rumpf: erst zur Seite hinaus
+        if (Math.abs(from.x) < box.sx + 1 && from.z < box.sz) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.3), Math.max(from.z, -box.sz - 2.5)));
+        if (pts.at(-1).z < box.sz * 0.4 - 4) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.7), box.sz * 0.4));
+        vor.x = sx * Math.max(G.x + 1.4, Math.min(Math.abs(X) * 0.5, 14));
+      }
+    }
+    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * 2.3, Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1), to.clone());
+    return pts;
+  }
+  const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
+  async function leitGo() {
+    if (!LEIT || walk) return false;
+    const wish = placeWish;
+    // Der Schirm kommt mit der Halle. An einer langsamen Leitung steht das
+    // Schiff vor ihr (showShip wartet höchstens 9 s auf sie): Der Wunsch aus
+    // der Adresse (?ort=leit) wartet dann auf die Halle, statt still aufs Feld
+    // zurückzufallen (Review PR #355). hallSettled endet auch, wenn die Halle
+    // scheitert: ohne sie gibt es keinen Schirm, und es bleibt beim Feld.
+    if (!leitScreen) {
+      await hallSettled;
+      if (!leitScreen || wish !== placeWish) return false;
+    }
+    if (post) {
+      // schon dort oder unterwegs dorthin; auf dem Rückweg erst ankommen lassen
+      if (post.state !== 'weg') return post.state === 'an' ? true : post.arrived;
+      await post.gone;
+    }
+    // eine Fahrt von oder zur Werkhalle fährt erst zu Ende
+    while (trip) await trip.done;
+    // inzwischen wollte die Seite wieder aufs Feld: dort bleibt die Kamera
+    if (wish !== placeWish) return false;
+    if (post || walk || ort !== 'halle' || !current) return false;
+    const k = hallRoot.scale.x, fit = leitPose();
+    let arrive;
+    const me = post = { state: 'hin', fit, saved: { t: controls.target.clone().divideScalar(k), p: camera.position.clone().divideScalar(k), touched, onPoint, panned }, fovA: camera.fov, fovB: fit.fov, t0: performance.now(), ms: 0, arrived: null, gone: null };
+    me.arrived = new Promise((r) => { arrive = r; });
+    leitShape(fit);
+    leitTell();
+    wake(1000);
+    if (reduceMotion) {
+      fly = null; onPoint = false; touched = false; panned = false; panLive = 0;
+      controls.enabled = false;
+    } else {
+      const plan = tripPlan(leitPath(me.saved.p, fit.pos.clone().divideScalar(k)));
+      me.ms = plan.ms;
+      console.info(`[hangar] Fahrt in den Leitstand: ${plan.len.toFixed(0)} m in ${(plan.ms / 1000).toFixed(1)} s`);
+      await tripStart(plan, me.saved.t, fit.look.clone().divideScalar(k), [], me.t0);
+      if (post !== me) { arrive(false); return false; }
+    }
+    me.state = 'an';
+    leitSet();
+    arrive(true);
+    return true;
+  }
+  // now: ohne Fahrt zurück (Schiffswechsel)
+  async function leitLeave(now = false) {
+    const me = post, wish = placeWish;
+    if (!me) return false;
+    const k = hallRoot.scale.x;
+    const back = () => {
+      post = null;
+      controls.enabled = true;
+      controls.target.copy(me.saved.t).multiplyScalar(k);
+      camera.position.copy(me.saved.p).multiplyScalar(k);
+      camera.lookAt(controls.target);
+      touched = me.saved.touched; onPoint = me.saved.onPoint; panned = me.saved.panned;
+      fitFov();
+      controls.update();
+      camWant = camera.position.distanceTo(controls.target);
+      camRef = 0;
+      leitTell();
+      wake(1500);
+    };
+    if (now || reduceMotion) {
+      // eine laufende Fahrt hinauf oder herab endet hier
+      if (me.state !== 'an' && trip) { const P = trip; trip = null; P.end(); }
+      back();
+      return true;
+    }
+    if (me.state === 'weg') return me.gone;
+    if (me.state === 'hin' && !(await me.arrived)) return false;
+    // Auf der Hinfahrt erst „Schiffsfeld“, dann doch wieder „Leitstand“: Der
+    // zweite Wunsch wartete nur auf dieselbe Ankunft, und diese Rückfahrt
+    // nähme ihn zurück (Review PR #355). Der letzte Wunsch gilt.
+    if (wish !== placeWish) return false;
+    if (post !== me || me.state !== 'an') return false;
+    let gone;
+    me.gone = new Promise((r) => { gone = r; });
+    me.state = 'weg';
+    me.fovA = camera.fov; me.fovB = fovPlain();
+    leitTell();
+    const here = camera.position.clone().divideScalar(k);
+    const plan = tripPlan(leitPath(me.saved.p, here).reverse());
+    me.t0 = performance.now(); me.ms = plan.ms;
+    await tripStart(plan, controls.target.clone().divideScalar(k), me.saved.t, [], me.t0);
+    if (post === me) back();
+    gone(true);
+    return true;
+  }
+  // Bildwinkel unterwegs und Stärke des Schirms (voll, sobald die Kamera zu ihm fährt)
+  function leitStep(now, dt) {
+    if (post && post.state !== 'an') fitFov(now);
+    if (!leitScreen) return;
+    const want = post && post.state !== 'weg' ? 1 : LEIT_DIM, S = leitScreen;
+    if (S.power === want) return;
+    const step = reduceMotion ? 1 : (dt * 1000) / LEIT_FADE_MS * (1 - LEIT_DIM);
+    S.power = want > S.power ? Math.min(want, S.power + step) : Math.max(want, S.power - step);
+    S.mat.opacity = S.power;
+    wake(200);
   }
 
   // Name als Hologramm (buildHolo): steht, wenn das Fahrzeug steht, kein
@@ -13594,7 +14428,7 @@ void main() {
   }
   function holoStep(now) {
     const c = current, k = hallRoot.scale.x, B = realHall?.werk?.buehne;
-    let rest = !!c && revealed && !holoShows && !trip && !leaving;
+    let rest = !!c && revealed && !holoShows && !trip && !post && !leaving;
     if (rest && c.werk) rest = !B || (!B.dur && Math.abs(B.v) < 1e-4);
     else if (rest && c.lift) rest = !lift.dur && Math.abs(lift.y) < 1e-4;
     else if (rest) rest = reduceMotion || now - c.born > 1300;
@@ -13643,6 +14477,10 @@ void main() {
     if (!visible) { sound.hush(); return; }
     // vor dem ersten Bild ist die Leinwand unsichtbar: nichts zu zeichnen
     if (REAL && !revealed) return;
+    // Fokus zweimal je Sekunde nachfragen: Steht er im Fenster einer
+    // eingebetteten Seite (Terminal im Leitstand), meldet dieses Fenster weder
+    // den Wechsel zu einem anderen Programm noch die Rückkehr (onBlur unten).
+    if (now - focusAt > 500) { focusAt = now; focused = document.hasFocus(); }
     if (!focused && now > hoverUntil) { sound.hush(); return; }
     // Bewegung, die jemand auslöst oder verfolgt: volle Rate. Auch solange
     // ein Wechsel läuft (busy) und das Feld unten auf das neue Schiff wartet:
@@ -13778,10 +14616,10 @@ void main() {
       leaving.group.rotation.y = leaving.r0 + e * 0.35;
       if (k >= 1) { scene.remove(leaving.group); release(leaving.c); leaving = null; }
     }
-    if (freeDirty && !trip && !walk) measureFree();
+    if (freeDirty && !trip && !walk && !post) measureFree();
     // Geschoben gilt die Hülle von der Schiffsmitte aus (keepOut); die vom
     // Ziel aus wird erst nach dem Zurücksetzen wieder gebraucht
-    if (walk) { /* das Schiff steht, gemessen wird danach */ } else if (!trip && !panned && shipStale()) measureShip();
+    if (walk || post) { /* das Schiff steht, gemessen wird danach */ } else if (!trip && !panned && shipStale()) measureShip();
     else if (!trip && homeStale()) measureShip(homeTgt);
     // camWant: der Abstand, den der Nutzer will. OrbitControls dreht und
     // zoomt schon im Zeiger- oder Mausradereignis, also zwischen zwei
@@ -13790,7 +14628,7 @@ void main() {
     // zurück, sobald der Weg frei ist; die Grenze greift danach erneut.
     const flying = !!fly;
     if (trip) tripStep(now);
-    else if (!flying && !walk) {
+    else if (!flying && !walk && !post) {
       const r = camera.position.distanceTo(controls.target);
       if (!camRef) camWant = r;
       else if (!camera.position.equals(camLast)) {
@@ -13802,12 +14640,14 @@ void main() {
     if (fly) flyStep(now);
     if (camHold && !fly) { controls.minDistance = camHold.min; controls.maxDistance = camHold.max; camHold = null; }
     if (fovGlide) fitFov(now);
+    leitStep(now, dt);
     if (propGlide) propStep(now);
     if (grow.glide) growStep(now);
     if (now - texAt > 2000) { texAt = now; texBudget(); }
-    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep), drinnen walkStep
+    // die Fahrt zur Werkhalle führt die Kamera allein (tripStep), drinnen
+    // walkStep; im Leitstand steht sie (leitSet)
     if (walk) walkStep(dt, now);
-    else if (!trip) {
+    else if (!trip && !post) {
       controls.update(dt);
       // eine Kamerafahrt legt den Abstand fest, mit dem sie ankommt
       camWant = THREE.MathUtils.clamp(flying ? camera.position.distanceTo(controls.target) : camWant, controls.minDistance, controls.maxDistance);
@@ -13878,7 +14718,8 @@ void main() {
     renderer.setSize(W(), H());
     composer?.setSize(W(), H());
     fitFov();
-    if (!touched && !trip && !walk) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
+    if (post?.state === 'an') leitSet();
+    else if (!touched && !trip && !walk && !post) camera.position.sub(controls.target).setLength(homeDist()).add(controls.target);
   });
   ro.observe(container);
   const io = new IntersectionObserver((es) => { visible = es[0]?.isIntersecting ?? true; });
@@ -13886,7 +14727,10 @@ void main() {
   const onVis = () => { visible = !document.hidden; sound.pause(document.hidden); };
   document.addEventListener('visibilitychange', onVis);
   const onFocus = () => { focused = document.hasFocus(); if (focused) wake(500); };
-  const onBlur = () => { focused = false; hoverUntil = 0; };
+  // Ein Klick in die eingebettete Seite (Terminal im Leitstand) meldet blur,
+  // obwohl das Fenster vorn bleibt: document.hasFocus() gilt dann weiter.
+  // Deshalb fragt onBlur gleich nach, statt die Bühne anzuhalten.
+  const onBlur = () => { focused = false; hoverUntil = 0; setTimeout(onFocus, 0); };
   const onHover = (e) => {
     const now = performance.now();
     if (!focused) hoverUntil = now + BG_HOVER;
@@ -13922,7 +14766,7 @@ void main() {
     // setSafe({ l, t, r }): px am Rand der Bühne, die die Oberfläche verdeckt
     label(id, t) { holo.text(id, t); wake(300); },
     onHolo(fn) { holo.onShow = fn; },
-    setSafe(s) { holo.safe(s); stSafe = s; stLayer?.safe(s); wake(300); },
+    setSafe(s) { holo.safe(s); stSafe = s; stLayer?.safe(s); if (post?.state === 'an') leitSet(); wake(300); },
     // Stationen in 3D: station({ name, data }) zeigt sie (data von der Seite,
     // assets/hangar-overview.js holoData), station(null) blendet sie aus;
     // false heißt, diese Bühne kann es nicht (Telefon, ohne echte Halle),
@@ -13932,6 +14776,24 @@ void main() {
     station,
     canStation: () => ST_OK,
     onStation(fn) { stAct = fn; },
+    // Orte der Halle: place('leit') fährt die Kamera in den Leitstand vor
+    // das Terminal, place('halle') zurück; beide lösen auf, wenn sie steht
+    // (false: nicht möglich, etwa in der Werkhalle oder drinnen). Ein
+    // Schiffswechsel holt sie ohne Fahrt zurück. canPlace('leit'): diese
+    // Bühne hat einen Leitstand (echte Halle, nicht am Telefon).
+    // onPlace(fn): fn({ ort, state, rect }) bei jedem Wechsel, ort 'halle',
+    // 'werk' oder 'leit', state 'hin' | 'an' | 'weg'; rect { l, t, r, b } ist
+    // der Schirm im Bild (px der Bühne), solange die Kamera davor steht:
+    // dorthin legt die Seite ihr Fenster.
+    place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
+    canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
+    onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },
+    // Hangargröße: onHangar(fn) ruft fn({ id, size, w, l, h }) für jedes
+    // Schiff, das auf das Feld kommt, und gleich, wenn sie schon feststeht:
+    // id des Schiffs, size 'S', 'M', 'L', 'XL' oder '' für eine Halle nach
+    // Maß (kein Hangar fasst das Schiff), w x l das Feld und h die freie
+    // Höhe in m. Ohne echte Halle und in der Werkhalle kommt nichts.
+    onHangar(fn) { hangarFn = fn; if (hangarNow) fn({ ...hangarNow }); },
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
@@ -13971,6 +14833,8 @@ void main() {
       for (const ps of composer?.passes ?? []) ps.dispose?.();
       composer?.dispose();
       for (const k of Object.values(cubeKit)) { k.rt.dispose(); k.mat.dispose(); }
+      // Loader der Zwillinge samt Workern; still, ein Abbau ist kein Ausfall
+      ktxTot('der Hangar ist abgebaut', false);
       draco.dispose();
       // der gemeinsame Generator der Umgebungskugeln (pmremFor): sein
       // Zwischenbild, seine Geometrien und sein Shader gehören keinem der

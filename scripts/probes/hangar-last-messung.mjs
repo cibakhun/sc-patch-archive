@@ -423,6 +423,6 @@ for (const b of [stand, dreh].filter(Boolean)) console.log(b.n ? `   ${b.label.p
 console.log('\n── Arbeitsspeicher');
 console.log(`   JS-Heap ${MB(metr.JSHeapUsedSize)} MB belegt (${MB(metr.JSHeapTotalSize)} MB reserviert), ${metr.Nodes} DOM-Knoten`);
 console.log('\n── Meldungen des Viewers');
-for (const l of logs.filter((x) => /Leistungsstufe|Texturen je|Bilder nach dem Hochladen|Bild nach der Freigabe|FEHLER/.test(x))) console.log(`   ${l}`);
+for (const l of logs.filter((x) => /Leistungsstufe|Texturen je|Bilder nach dem Hochladen|Bild nach der Freigabe|Geometrie nach dem Hochladen|Geometrie nach der Freigabe|FEHLER/.test(x))) console.log(`   ${l}`);
 console.log('');
 if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify({ url, soft: SOFT, fenster: HEADED, telefon: TELEFON, netz: NETZ, netzwerk: { anfragen: allN, bytes: all, gepackt: gzAll, bisBild: vor, gruppen: Object.fromEntries(rows) }, zeit: { dcl: nav.dcl, bild: reveal, ruhe: ruheDa ? ruhe * 1000 : null, offen, langVor: sum(lang.vor), langNach: sum(lang.nach), langMax: Math.max(max(lang.vor), max(lang.nach)) }, grafik: { gesamt: ges, texturen: sp.texBytes, zwischenbilder: sp.rbBytes, geometrie: sp.bufBytes, leinwand: sp.leinwand, vram: vramBytes, tex: sp.tex, rb: sp.rb, programme: sp.progs }, bild: { stand, dreh }, heap: metr.JSHeapUsedSize, logs }, null, 1));

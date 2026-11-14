@@ -74,6 +74,14 @@
         weiter; beide Hangarseiten tragen den Grafik-Schalter mit genau
         den Stufen des Viewers. Ohne das faellt ein schwaches Geraet still
         in die volle Stufe zurueck, und nur ein Ruckeln verriete es.
+        Dazu das Telefon (Krisz 12. und 13.11.2026: „Auf dem Handy laedt
+        es die ganze Zeit neu“, „versucht es immer noch die ganze Zeit zu
+        laden“): Texturdeckel als Klinken (Automatik 256 px, von Hand
+        512/384/256, unter dem Deckel des Waechters 192/128), die Bilder
+        kommen schon verkleinert aus dem Loader
+        (fitSize und limiter am Modul nachgerechnet), und der Waechter
+        der Seite senkt dort beim ersten Abbruch und fuehrt eine Spur,
+        deren Woerter auf beiden Hangarseiten stehen.
     13  Getauschte Bordwaffen am Modell (Layout-Werkstatt): jede URL unter
         models in dist/hangar-layouts.json traegt ?v= und liegt in dist/,
         und die Schiffs-GLBs in dist/hangar/ships tragen ihre Serienwaffen als
@@ -273,6 +281,35 @@
         stellt die Kamera auf den Halt von camRest.
         Klinken: Schiffe, davon mit Gang, Proben, Lagen des Federarms,
         Ziele am Rand des Gangs.
+    24  Hangargroessen (seit 13.11.2026, Krisz: „small Hangar, Medium,
+        large und extra large einführen genau wie ingame, dann haben wir
+        auch richtige grössenreferenzen“). Die Halle wuchs fuer jedes
+        Schiff auf sein Masz, 19 verschiedene Hallen fuer 190 Schiffe.
+        Jetzt rastet sie auf eine von vier Stufen ein (HALL_GROW.sizes im
+        Viewer), und die Stufe eines Schiffs kommt aus seiner
+        Groessenklasse (fuenftes Glied von models[id] in #hg-stage).
+        Geprueft wird: (a) die Stufen selbst, vier in der Folge S, M, L,
+        XL, die kleinste ohne Zuwachs, jede in jeder Richtung mindestens
+        so grosz wie die vorige, je Seite in ganzen Schritten der
+        Bodenkachel, und Feld und freie Hoehe jeder Stufe wie im Entwurf
+        abgenommen (GROESSE_FELD: wer sie aendert, rendert erst); (b)
+        jedes Schiff der Halle mit den Maszen wie in [23]: die Stufe der
+        Seite ist die seiner Groessenklasse (vehicles.json), camPlan des
+        ausgelieferten Viewers nennt eine Stufe und genau deren Zuwachs,
+        nie eine kleinere als die des Schiffs, und das Schiff steht mit
+        1 m Rand auf dem Feld und 4 m unter den Wannen (hier selbst
+        nachgemessen, nicht dem Viewer geglaubt); (c) Abweichungen von der
+        Groessenklasse sind benannt (GROESSE_AUSNAHMEN, je mit Anlass und
+        Zombie-Waechter): Der Clipper ist breiter als das Feld seiner
+        Stufe, die Javelin faszt keine. Eine neue Abweichung ohne Eintrag
+        ist WARNUNG, kein FEHLER: Die Halle faszt das Schiff, und die
+        Zeile nennt die Halle, in der es steht; (d) die Naht: growFor
+        nimmt growPick und meldet die Stufe, show() traegt Id und Stufe
+        in die Masze, der Controller gibt die Stufe mit und hoert auf
+        onHangar, Titelblock und Hologramm bekommen die Zeile; (e) die
+        Woerter der Zeile stehen auf beiden Seiten, mit ihren
+        Platzhaltern, deutsch anders als englisch. Klinken: Schiffe, je
+        Stufe, Stellen der Naht, Woerter.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -285,6 +322,94 @@
      e  in dist/hangar.html zwei Werte einer Karte tauschen          -> [10]
      f  in einer gebauten Bucht einen Port gross schreiben           -> [11]
      g  in dist/assets/hangar-viewer.js GPU_WEAK ohne u?hd           -> [12]
+     g2 dort TEX_PHONE_AUTO = 512 (13.11.2026: die Automatik am
+        Telefon luede wieder 512 MB Texturen)                        -> [12]
+     g3 dort TEX_PHONE mittel: 512 (die Stufen von Hand laegen
+        wieder aufeinander)                                         -> [12]
+     g4 dort dem Loader den Deckel nehmen (embeddedImages(8, …)
+        ohne SMALL ? TEX_MAX : 0): alle Bilder wieder in voller
+        Groesse zugleich im Speicher                                -> [12]
+     g5 dort in limiter() den Platz nach einer Aufgabe nicht mehr
+        freigeben (.finally(done) gestrichen): 3 von 12 Aufgaben,
+        das Laden bliebe nach drei Bildern stehen                   -> [12]
+     g6 dort in fitSize() Math.max durch Math.min ersetzen: ein
+        Bild 1024 x 512 kaeme mit 512 x 256 statt 256 x 128         -> [12]
+     g7 in dist/assets/hangar-overview.js sofort: TELEFON durch
+        sofort: false ersetzen (am Telefon zaehlte der erste
+        Abbruch wieder nur)                                         -> [12]
+     g8 dort laufPhase('steht') streichen (die Spur hielte jeden
+        Abbruch fuer einen beim Aufbau)                             -> [12]
+     g9 in dist/de/hangar.html data-spur-kontext streichen (die
+        Zeile liesse aus, was abbrach)                              -> [12]
+     g10 dort WAECHTER.v auf 1 (alte Deckel gaelten wieder)         -> [12]
+     g11 in dist/assets/hangar-viewer.js TEX_PHONE_CAP mittel: 256
+        (unter dem Deckel des Waechters luede jede Stufe wieder
+        dieselbe Kante)                                             -> [12]
+     g12 in dist/assets/hangar-overview.js meldungPlatz(); nach
+        fallback.hidden = false in noStage() streichen (am Telefon
+        ragte die Meldung mit Verlauf in die Knoepfe des Titels)    -> [12]
+     g13 dort in waechterOffen() die Pruefung o.v !== WAECHTER.v
+        streichen (ein Lauf von vor einem Update setzte der neuen
+        Halle am Telefon sofort einen Deckel)                       -> [12]
+     g14 dort meldungPlatz(); nach dem Tausch der Regionen in
+        showBay() streichen (ein laengerer Schiffsname schoebe die
+        Knoepfe des Titels unter eine sichtbare Meldung)            -> [12]
+     g15 in dist/assets/hangar-viewer.js in fitImage() return own
+        durch return null ersetzen: ohne createImageBitmap bliebe
+        jedes Bild gross, 903 statt 198 MB Texturen                 -> [12]
+     g16 in dist/assets/hangar-overview.js in offenSetzen() die
+        Zeile laeufeAendern(…) streichen (14.11.2026: der Vermerk
+        stuende wieder nur in der Registerkarte, und ein Browser,
+        der sie nach dem Absturz neu aufbaut, luede ohne Ende)      -> [12]
+     g17 dort in waechterBefund() die Zeile mit wie: 'start'
+        streichen (ohne Vermerk zaehlte am Telefon nichts mehr)     -> [12]
+     g18 dort anlaufSetzen(); nach offenSetzen(); in startBuehne
+        streichen (kein Start truege sich mehr ein)                 -> [12]
+     g19 dort in waechterLeicht() !!telefon durch false ersetzen
+        (unter dem Deckel luede das Telefon dreimal die echte
+        Halle, rund 950 statt 340 MB)                               -> [12]
+     g20 dort hall: null, crew: null aus dem Aufruf nehmen (die
+        leichte Buehne bekaeme die echte Halle doch)                -> [12]
+     g21 dort WAECHTER.anlauf.zahl auf 4 (ohne Vermerk liefe die
+        Schleife zehn statt sechs Laeufe)                           -> [12]
+     g22 dort WAECHTER.anlauf.ruhe auf 5e3 (die Liste der Starts
+        waere leer, bevor der Speicher nach dem Laden faellt)       -> [12]
+     g23 in dist/de/hangar.html den Knopf #hgx-leicht-voll
+        streichen (aus der leichten Ansicht fuehrte kein Weg zur
+        vollen Halle)                                               -> [12]
+     g24 dort data-geraet an #hg-fallback streichen (die Meldung
+        nennte das Geraet nicht mehr)                               -> [12]
+     g25 in dist/assets/hangar-viewer.js if (!REAL) buildStage();
+        streichen (ohne echte Halle stuende das Schiff im Leeren)   -> [12]
+     g26 in dist/assets/hangar-overview.js anlaufAbschied(); aus
+        dem pagehide-Lauscher nehmen (wer die Seite dreimal kurz
+        besucht, bekaeme die leichte Ansicht)                       -> [12]
+     g27 dort in abbruch() die Zeile anlaufWeg(); streichen
+        (derselbe Abbruch zaehlte ueber die Starts noch einmal)     -> [12]
+     g28 dort im Vermerk der Registerkarte v: WAECHTER.v streichen
+        (kein Vermerk der Registerkarte zaehlte mehr)               -> [12]
+     g29 dort in waechterStart() das return 'aus' nach einem
+        nicht gemerkten Abbruch streichen                           -> [12]
+     g30 dort anlaufAbschied(); aus laufEnde() nehmen (drei Starts
+        mit Meldung zaehlten als Abbruch)                           -> [12]
+     g31 dort im visibilitychange-Lauscher anlaufAbschied(); nehmen
+        (Review zu PR 363, nachgestellt: drei Hangarseiten
+        nacheinander in neuen Registerkarten, und die dritte bekam
+        ohne jeden Abbruch die leichte Ansicht)                     -> [12]
+     g32 dort in waechterBefund() den Filter nach lebt streichen
+        (Starts lebender Laeufe zaehlten wieder als Abbruch)        -> [12]
+     g33 dort in waechterStart() tot: meine durch tot: tot ersetzen
+        (zwei Starts im selben Augenblick zaehlten denselben toten
+        Lauf beide)                                                 -> [12]
+     g34 dort in waechterAnspruch() den Filter durch tot ersetzen
+        (dasselbe ueber das Modul)                                  -> [12]
+     g35 dort im Vermerk der Registerkarte g streichen (ein Lauf,
+        den ein anderer Start im Speicher des Geraets schon
+        gezaehlt hat, zaehlte in der eigenen Registerkarte noch
+        einmal)                                                     -> [12]
+     g36 dort const GERAET = TELEFON && !!kanal; durch !!kanal
+        ersetzen (am PC hielte ein zweites Hangar-Fenster eines,
+        das gerade laedt, fuer abgebrochen)                         -> [12]
      h  dist/hangar/weapons/ndb-30-repeater.glb loeschen             -> [13]
      i  in dist/hangar-layouts.json models leeren                    -> [13]
      i2 dist/hangar/components/POWR_AEGS_S04_Idris_SCItem.glb
@@ -417,6 +542,13 @@
     ao  dort in captureHallEnv() stLayer?.mirror(true) streichen
         (13.11.2026: die Kugel der Halle kaeme wieder mit dem
         Schleier der Hologramme, halb so hell)                      -> [12]
+    ap  dort in captureHallEnv() die Zeile const unrest = hallRest();
+        streichen (13.11.2026: nach einem Schiffswechsel kaeme die
+        Kugel wieder vom geschlossenen Tor statt vom Schiffsfeld,
+        ein Viertel bis ein Drittel dunkler)                        -> [12]
+    aq  dort in growStep() scaleLamps() am Ende des Gleitens wieder
+        durch renderHallShadows() ersetzen (der Schatten des Schiffs
+        bliebe nach dem Wechsel groeber als nach frischem Laden)    -> [12]
     ar  in dist/assets/hangar-holo3d.js pickFits immer true liefern
         lassen: bei 761 px laege das Fenster der Auswahl 390 px
         ueber dem Datenblatt                                        -> [21]
@@ -441,6 +573,39 @@
     bb  in dist/assets/hangar-viewer.js name: () => holo.rect() aus
         dem Aufruf von holoLayer nehmen: das Fenster wuesste nicht
         mehr, wo der Name steht                                     -> [21]
+    bc  in dist/assets/hangar-viewer.js "sizes" aus HALL_GROW nehmen
+        (14.11.2026; die Halle wuechse wieder je Schiff: 7 Befunde,
+        [23] reisst mit an den Proben Carrack, Idris-M und
+        Constellation)                                              -> [24]
+    bd  dort Medium 20 statt 24 m breiter: kein ganzer Kachelschritt,
+        Feld 52 statt 56 m, die Ausnahme Clipper nennt die falsche
+        Stufe; WARNUNG nennt Clipper und Star Runner in Large       -> [24]
+    be  dort Large 72 statt 64 m laenger (Feld 88 x 168 m)          -> [24]
+    bf  dort Medium und Large vertauscht                            -> [24]
+    bg  dort in growPick die Stufe ohne Messen nehmen (if (true)):
+        Clipper ragt 19,5 m ueber das Feld von Small, beide
+        Ausnahmen verlieren ihren Anlass, [23] reisst an der Javelin -> [24]
+    bh  dort growPick bei Small beginnen lassen statt bei der Stufe
+        des Schiffs: 19 Befunde (600i in Medium statt Large), WARNUNG
+        nennt 31 Schiffe                                            -> [24]
+    bi  dort in growFor() die Zeile mit hangarTell() streichen      -> [24]
+    bj  dort in show() hangar aus info nehmen                       -> [24]
+    bk  in dist/assets/hangar-overview.js hangar aus dem Aufruf von
+        viewer.show() nehmen                                        -> [24]
+    bl  dort v.onHangar?.(onHangar) streichen                       -> [24]
+    bm  in dist/hangar.html der Carrack in #hg-stage die Stufe S
+        geben                                                       -> [24]
+    bn  dort dem Clipper die Stufe M geben (Ausnahme ohne Anlass:
+        Zombie-Waechter)                                            -> [24]
+    bo  dort der Gladius das fuenfte Glied nehmen ([1] reisst mit:
+        Form von models)                                            -> [24]
+    bp  in dist/de/hangar.html data-own der Vorlage leeren          -> [24]
+    bq  in dist/hangar.html die Zeile #hgx-gr streichen             -> [24]
+    br  dort allen Schiffen der Stufe Medium S geben: 14 Befunde,
+        WARNUNG nennt 22 Schiffe                                    -> [24]
+    bs  in dist/assets/hangar-viewer.js t.hangar aus den Zeilen des
+        Hologramms nehmen                                           -> [24]
+    bt  in dist/assets/hangar-overview.js hangar aus labelOf() nehmen -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -515,6 +680,7 @@ const dockIds = (html) => [...html.matchAll(/<li data-id="([^"]+)"/g)].map((m) =
 // Die Modellliste der Seite: die StageConfig der Szene in #hg-stage
 // (src/lib/hangar/stage.ts). Liefert die Ids, deren Eintrag die Form
 // [glb, Werkslack oder null, Herstellerkuerzel, Ort] hat, und die Formfehler.
+const GROESSEN = ['S', 'M', 'L', 'XL'];
 function stageModels(html) {
   const m = /<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(html);
   if (!m) return { ids: null, bad: ['kein #hg-stage'] };
@@ -525,8 +691,10 @@ function stageModels(html) {
   if (!cfg.opts || typeof cfg.opts !== 'object') bad.push('opts fehlt');
   const ids = [], werk = [];
   for (const [id, e] of Object.entries(cfg.models ?? {})) {
-    const ok = Array.isArray(e) && e.length === 4 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string' && (e[3] === 'halle' || e[3] === 'werk');
-    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker, 'halle'|'werk']`);
+    // fünftes Glied: Hangargröße des Schiffs ([24]), null in der Werkhalle und ohne Größenklasse
+    const ok = Array.isArray(e) && e.length === 5 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string' && (e[3] === 'halle' || e[3] === 'werk')
+      && (e[4] === null || (e[3] === 'halle' && GROESSEN.includes(e[4])));
+    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker, 'halle'|'werk', ${GROESSEN.map((g) => `'${g}'`).join('|')}|null (nur auf dem Schiffsfeld)]`);
     if (ok && e[3] === 'werk') werk.push(id);
   }
   return { ids, werk, bad };
@@ -893,15 +1061,73 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   for (const n of apiQ) fail(`[12] dist/assets/hangar-viewer.js liefert ${n} nicht mehr: der Grafik-Schalter zeigt dann keine Stufe`);
   // Texturdeckel am Telefon (Krisz, 12.11.2026: „Auf dem Handy laedt es die
   // ganze Zeit neu“). Ohne ihn lud die Halle im Telefonformat 905 MB
-  // Texturen, mehr als ein Telefon einer Seite gibt. Klinke: am Telefon gilt
-  // in jeder Stufe ein Deckel von hoechstens TEL_TEX px; groesser nur per
-  // Commit, der den Grafikspeicher neu misst und die Zahl nennt.
-  const TEL_TEX = { niedrig: 256, sonst: 512 };
-  const tm = /const TEX_MAX = SMALL \? \(Q0 === 'niedrig' \? (\d+) : (\d+)\) :/.exec(viewer);
+  // Texturen, mehr als ein Telefon einer Seite gibt. Seit 13.11.2026 („Das
+  // Handy versucht es immer noch die ganze Zeit zu laden“) startet die
+  // Automatik am Telefon in jeder Stufe mit TEL_TEX.auto px (gemessen in der
+  // hohen Stufe: 206 statt 518 MB Texturen); eine Wahl von Hand bekommt drei Stufen mit
+  // echtem Abstand, und unter dem Deckel des Waechters (cap) sinkt die
+  // Kante mit jeder Stufe weiter, sonst senkte er ins Leere. Klinken: Deckel
+  // nur nach unten; groesser nur per Commit, der den Grafikspeicher neu
+  // misst und die Zahl nennt.
+  const TEL_TEX = { auto: 256, hoch: 512, mittel: 384, niedrig: 256, capMittel: 192, capNiedrig: 128 };
+  const tp = /const TEX_PHONE = \{ hoch: (\d+), mittel: (\d+), niedrig: (\d+) \}, TEX_PHONE_AUTO = (\d+), TEX_PHONE_CAP = \{ mittel: (\d+), niedrig: (\d+) \};/.exec(viewer);
+  const telZeile = /const TEX_MAX = SMALL \? \(FORCED \? TEX_PHONE\[Q0\] : \(opts\.cap === Q0 && TEX_PHONE_CAP\[Q0\]\) \|\| TEX_PHONE_AUTO\) :/.test(viewer);
   const telWirkt = /if \(TEX_MAX\) await shrinkTextures\(/.test(viewer);
-  const telOk = !!tm && telWirkt && Number(tm[1]) > 0 && Number(tm[1]) <= TEL_TEX.niedrig && Number(tm[2]) > 0 && Number(tm[2]) <= TEL_TEX.sonst;
-  sollIst(`Texturen am Telefon hoechstens ${TEL_TEX.sonst} px, in der niedrigen Stufe ${TEL_TEX.niedrig} px`, !tm ? 'kein Deckel gefunden' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `${tm[2]} px, niedrig ${tm[1]} px`);
-  if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr oder liegt ueber ${TEL_TEX.sonst} px (niedrig ${TEL_TEX.niedrig} px): mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu`);
+  const [tHoch, tMittel, tNiedrig, tAuto, tCapM, tCapN] = tp ? tp.slice(1).map(Number) : [0, 0, 0, 0, 0, 0];
+  const telOk = !!tp && telZeile && telWirkt && tAuto > 0 && tAuto <= TEL_TEX.auto && tNiedrig > 0 && tNiedrig <= TEL_TEX.niedrig
+    && tMittel > tNiedrig && tMittel <= TEL_TEX.mittel && tHoch > tMittel && tHoch <= TEL_TEX.hoch
+    && tCapN > 0 && tCapN <= TEL_TEX.capNiedrig && tCapM > tCapN && tCapM <= TEL_TEX.capMittel && tCapM < tAuto;
+  sollIst(`Texturen am Telefon: Automatik hoechstens ${TEL_TEX.auto} px, unter dem Deckel des Waechters ${TEL_TEX.capMittel}/${TEL_TEX.capNiedrig} px, von Hand hoechstens ${TEL_TEX.hoch}/${TEL_TEX.mittel}/${TEL_TEX.niedrig} px, jede Stufe kleiner als die darueber`,
+    !tp ? 'kein Deckel gefunden' : !telZeile ? 'Deckel da, aber TEX_MAX liest ihn nicht mehr so' : !telWirkt ? 'Deckel da, aber nicht mehr angewandt' : `Automatik ${tAuto} px, unter dem Deckel ${tCapM}/${tCapN} px, von Hand ${tHoch}/${tMittel}/${tNiedrig} px`);
+  if (!telOk) fail(`[12] dist/assets/hangar-viewer.js: der Texturdeckel am Telefon fehlt, wirkt nicht mehr, liegt ueber der Klinke (Automatik ${TEL_TEX.auto} px, unter dem Deckel des Waechters ${TEL_TEX.capMittel}/${TEL_TEX.capNiedrig} px, von Hand ${TEL_TEX.hoch}/${TEL_TEX.mittel}/${TEL_TEX.niedrig} px) oder seine Stufen liegen nicht mehr auseinander: mit vollen Texturen brauchte die Halle am Telefon ueber 1 GB Grafikspeicher und lud in einer Schleife neu, und wo jede Stufe dieselbe Kante laedt, senkt der Waechter ins Leere`);
+  // Am Telefon kommen die Bilder schon klein aus dem Loader (13.11.2026).
+  // Vorher packte jede Datei alle ihre Bilder in voller Groesse aus, und
+  // der Deckel verkleinerte erst danach: bis zu 818 MB ausgepackte Bilder
+  // zugleich, in der niedrigen Stufe 698 MB (Telefonformat, Gladius). Der
+  // Loader bekommt den Deckel, packt hoechstens FIT_MAX Bilder zugleich aus
+  // und gibt das grosse frei, sobald das kleine steht. Die beiden Helfer
+  // rechnet das Tor am ausgelieferten Modul nach.
+  const FIT_MAX = 4;
+  const ladeDeckel = /embeddedImages\(\d+, [^\n]*, SMALL \? TEX_MAX : 0(?:, ktxTwin)?\);/.test(viewer);   // seit 13.11.2026 folgt der Weg zu den komprimierten Zwillingen (verify:hangar-ktx)
+  const fitZugleich = Number(/const FIT_AT_ONCE = (\d+);/.exec(viewer)?.[1] ?? NaN);
+  const kleinPacken = /const gate = max \? limiter\(FIT_AT_ONCE\) : null;/.test(viewer)
+    && /const big = await decode\(\), small = await fitImage\(big, max\);[^}]{0,160}big\.close\(\);/.test(viewer);
+  // Browser ohne createImageBitmap: fitImage gibt als letzten Ausweg eine
+  // eigene Leinwand je Bild zurueck, nie die gemeinsame (fitCv), die das
+  // naechste Bild ueberschreibt. Ohne den Ausweg blieb dort jedes Bild gross
+  // (nachgestellt im Telefonformat: 903 statt 198 MB Texturen).
+  const fitKoerper = /async function fitImage\(im, max\) \{[\s\S]*?\n\}\n/.exec(viewer)?.[0] ?? '';
+  const eigeneLeinwand = /const own = document\.createElement\('canvas'\);[\s\S]{0,200}?drawImage\(fitCv, 0, 0\);\s*return own;/.test(fitKoerper) && !/return fitCv\b/.test(fitKoerper);
+  let fitIst = 'fitSize fehlt', limIst = 'limiter fehlt', fitOk = false, limOk = false;
+  if (typeof mod?.fitSize === 'function') {
+    const soll = [[256, 128], [64, 256], null, null, [512, 1], [1, 256]];
+    const ist = [[1024, 512, 256], [300, 1200, 256], [256, 256, 256], [0, 0, 256], [4096, 1, 512], [2, 2048, 256]].map((a) => mod.fitSize(...a));
+    fitOk = JSON.stringify(ist) === JSON.stringify(soll);
+    fitIst = fitOk ? `${soll.length} Groessen richtig` : `falsch: ${JSON.stringify(ist)}`;
+  }
+  if (typeof mod?.limiter === 'function' && fitZugleich >= 1) {
+    const N = 12, lim = mod.limiter(fitZugleich), folge = [];
+    let jetzt = 0, hoechst = 0, fehler = 0, frist = null;
+    const alle = Promise.all(Array.from({ length: N }, (_, k) => lim(async () => {
+      jetzt++; hoechst = Math.max(hoechst, jetzt); folge.push(k);
+      await new Promise((r) => setTimeout(r, k % 3));
+      jetzt--;
+      // eine Aufgabe scheitert: ihr Platz muss trotzdem frei werden
+      if (k === 4) throw new Error('Probe');
+    }).catch(() => { fehler++; })));
+    // Gibt der Limiter einen Platz nicht frei, wartet der Rest ewig: Frist statt haengendem Tor
+    const fertig = await Promise.race([alle.then(() => true), new Promise((r) => { frist = setTimeout(() => r(false), 3000); })]);
+    clearTimeout(frist);
+    const inReihe = folge.join() === Array.from({ length: folge.length }, (_, k) => k).join();
+    limOk = fertig && folge.length === N && hoechst === Math.min(N, fitZugleich) && fehler === 1 && inReihe;
+    limIst = `${folge.length} von ${N} Aufgaben gelaufen${fertig ? '' : ' (der Rest wartet nach 3 s noch)'}, hoechstens ${hoechst} zugleich${inReihe ? '' : ', Reihenfolge vertauscht'}`;
+  }
+  const packOk = ladeDeckel && kleinPacken && fitZugleich >= 1 && fitZugleich <= FIT_MAX && fitOk && limOk;
+  sollIst(`Telefon: Bilder kommen verkleinert aus dem Loader, hoechstens ${FIT_MAX} zugleich in voller Groesse`,
+    !ladeDeckel ? 'der Loader bekommt den Deckel nicht' : !kleinPacken ? 'das Auspacken verkleinert nicht mehr oder gibt das grosse Bild nicht frei' : `${Number.isFinite(fitZugleich) ? fitZugleich : 'ohne Zahl'} zugleich; ${fitIst}; ${limIst}`);
+  if (!packOk) fail(`[12] dist/assets/hangar-viewer.js: am Telefon packt der Loader die Bilder nicht mehr klein aus (erwartet: embeddedImages(…, SMALL ? TEX_MAX : 0), darin limiter(FIT_AT_ONCE) mit hoechstens ${FIT_MAX}, fitImage(big, max) und big.close(); fitSize und limiter rechnen wie beschrieben): jede Datei laege wieder mit allen Bildern in voller Groesse im Speicher, 818 MB zugleich statt 129 MB, in jeder Stufe gleich`);
+  sollIst('fitImage ohne createImageBitmap: eigene Leinwand je Bild als letzter Ausweg, nie die gemeinsame', !fitKoerper ? 'fitImage nicht gefunden' : eigeneLeinwand ? 'eigene Leinwand, fitCv bleibt intern' : 'kein Ausweg, oder die gemeinsame Leinwand wird selbst zurueckgegeben');
+  if (!eigeneLeinwand) fail('[12] dist/assets/hangar-viewer.js: fitImage() hat keinen Ausweg mehr fuer Browser ohne createImageBitmap (erwartet: eine eigene Leinwand je Bild, gezeichnet von fitCv, und fitCv selbst wird nie zurueckgegeben): shrinkTextures() liesse dort jedes Bild in voller Groesse, im Telefonformat 903 statt 198 MB Texturen');
   // Drei Leerlaeufe des Zeichners (Krisz, 13.11.2026: „es braucht viel zu
   // viele Ressourcen“), gemessen mit der Gladius in der hohen Stufe auf
   // einer RTX 3070 Ti mit i5-13400F: three r185 warnte je Bild rund 100 Mal
@@ -947,6 +1173,32 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   ];
   sollIst(`Bilder nach dem Hochladen freigegeben (${FREI.length} Stellen)`, FREI.filter((l) => l[1]).length === FREI.length ? `${FREI.length} von ${FREI.length}` : `${FREI.filter((l) => l[1]).length} von ${FREI.length}, fehlt: ${FREI.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of FREI) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
+  // Geometrie der Halle nach dem Hochladen aus dem Arbeitsspeicher (Krisz,
+  // 13.11.2026, derselbe Anlass). Gemessen mit der Gladius in der hohen
+  // Stufe: 240 MB an Attribut- und Indexpuffern lagen neben ihren Kopien
+  // bei der Grafikkarte noch in der Seite, 183 MB davon in einfachen Netzen
+  // der Halle; die Freigabe nimmt 159 MB heraus. Faellt eine der Stellen
+  // weg, sieht kein Bild anders aus, nur der Speicher waechst wieder (oder,
+  // bei der zweiten, bleibt die Einrichtung nach einem Wechsel auf ein
+  // groesseres Schiff in der falschen Groesse stehen; bei der dritten
+  // verschwinden Netze der Halle beim Drehen, weil three ihre Kugel aus
+  // einem leeren Puffer rechnet). Ob auf einem Weg ein
+  // freigegebener Puffer noch einmal gelesen wird, prueft
+  // check:hangar-shader im Browser.
+  const GEO = [
+    ['Halle und Werkhalle vor dem Hochladen angemeldet', /hallClosing = true;[\s\S]{0,300}?freeGeometry\(model\b[^\n]*\);\s*if \(werk\) freeGeometry\(werk\.group\);\s*await prepare\(model\);/.test(viewer),
+      'dist/assets/hangar-viewer.js: der Bau der Halle meldet ihre Netze nicht mehr vor prepare(model) zur Freigabe an (freeGeometry(model), freeGeometry(werk.group)): die Kopien der Geometrie bleiben im Arbeitsspeicher, rund 160 MB in der hohen Stufe'],
+    ['Ecken der Moebel bleiben', /freeGeometry\(model, new Set\(furniture\.map\(\(f\) => f\.mesh\.geometry\.attributes\.position\)\)\);/.test(viewer) && /\|\| keep\?\.has\(at\)\) continue;/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() laesst die Ecken der Moebel nicht mehr stehen (keep): waechst die Halle mit einem groesseren Schiff, rechnet scaleFurniture() sie aus einem leeren Puffer, und die Einrichtung bleibt in der falschen Groesse stehen'],
+    ['Kugel und Kasten vorher gerechnet', /if \(!g\.boundingBox\) g\.computeBoundingBox\(\);\s*if \(!g\.boundingSphere\) g\.computeBoundingSphere\(\);[\s\S]{0,400}?at\.onUpload\(/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() rechnet Kugel und Kasten nicht mehr, bevor es die Freigabe anmeldet: three rechnet sie dann beim ersten Zeichnen aus einem schon leeren Puffer, und das Netz faellt aus der Sichtpruefung'],
+    ['Freigabe im Moment des Hochladens, mit Falle', /at\.onUpload\(function \(\) \{\s*if \(texQuiet\) return;[\s\S]{0,300}?goneArray\(this, label\);/.test(viewer) && /console\.error\(`\[hangar\] Geometrie nach der Freigabe noch einmal verlangt/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() gibt den Puffer nicht mehr beim Hochladen frei (onUpload, goneArray), oder die Falle meldet einen spaeteren Leser nicht mehr: entweder bleibt der Speicher belegt, oder ein Leser rechnet still mit einem leeren Puffer'],
+    ['nur einfache Netze', /if \(!n\.isMesh \|\| n\.isBatchedMesh \|\| n\.isSkinnedMesh \|\| n\.isInstancedMesh\) return;\s*const g = n\.geometry;\s*if \(!g \|\| !g\.attributes\.position \|\| Object\.keys\(g\.morphAttributes\)\.length\) return;/.test(viewer),
+      'dist/assets/hangar-viewer.js: freeGeometry() nimmt BatchedMesh, Netze mit Knochen, Instanzen oder Morphzielen nicht mehr aus: three liest deren Puffer nach dem Hochladen noch (Kugel je Teil, Knochenkasten, Morphziele)'],
+  ];
+  sollIst(`Geometrie der Halle nach dem Hochladen freigegeben (${GEO.length} Stellen)`, GEO.filter((l) => l[1]).length === GEO.length ? `${GEO.length} von ${GEO.length}` : `${GEO.filter((l) => l[1]).length} von ${GEO.length}, fehlt: ${GEO.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
+  for (const [, ok, msg] of GEO) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
   // Stillstand beim Laden (Krisz, 13.11.2026, derselbe Anlass). Gemessen
   // im sichtbaren Fenster, jeder Aufruf am Zeichenkontext gestoppt: Die
   // Shader der Vollbildpaesse wurden vorab uebersetzt, aber mit einer
@@ -968,6 +1220,18 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
       `dist/assets/hangar-viewer.js baut ${pmremNeu} statt 1 PMREM-Generator (pmremFor): jeder eigene uebersetzt seine Shader neu, 0,4 s Stillstand kurz nach dem ersten Bild`],
     ['Texturzaehlung ohne Rueckfrage', /const frag = p\.fragmentShader \?\? /.test(viewer),
       'dist/assets/hangar-viewer.js: texBudget() nimmt den Bildshader nicht mehr von three (p.fragmentShader): die Suche ueber den Typ fragt je Programm zweimal beim Grafikprozess nach und wartet mitten im Laden auf die Antwort'],
+    // Farbmittel nur, wo es jemand liest (13.11.2026). imageMean() lief fuer
+    // jede Farbkarte jeder Datei: 439 Messungen beim Laden der Gladius in der
+    // hohen Stufe, 324 davon fuer die Halle, zusammen 0,45 bis 0,5 s
+    // Rechenzeit im Hauptfaden (im Viewer gestoppt, sichtbares Fenster);
+    // gelesen wird das Mittel nur in dressTextured() (Schiff, Tauschteile,
+    // Innenraum). Jetzt 115 Messungen und 0,11 s. Ob das Schiff seine Mittel
+    // noch bekommt, prueft check:hangar-shader im Browser.
+    ['Farbmittel nur fuer Dateien des Schiffs', /if \(mean && colour\.has\(i\)\) t\.userData\.mean = await imageMean\(bitmap\);/.test(viewer)
+      && /const hallLoader = new GLTFLoader\(\)\.setDRACOLoader\(draco\)\.register\(images\(false\)\);/.test(viewer)
+      && /\(HALL_FILES\.has\(key\) \? hallLoader : loader\)\.load\(url, /.test(viewer)
+      && ['hall', 'furniture', 'workshop', 'workshop-floor', 'dienst', 'werk', 'werkdecke', 'deko'].every((k) => new RegExp(`const HALL_FILES = new Set\\(\\[[^\\]]*'${k}'`).test(viewer)),
+      'dist/assets/hangar-viewer.js misst das Mittel der Farbkarten wieder fuer die Dateien der Halle (hallLoader mit images(false), HALL_FILES in fetchGltf): 324 Messungen im Hauptfaden, die niemand liest, 0,35 s Rechenzeit bei jedem Laden'],
   ];
   sollIst(`Stillstand beim Laden abgestellt (${STILLSTAND.length} Stellen)`, STILLSTAND.filter((l) => l[1]).length === STILLSTAND.length ? `${STILLSTAND.length} von ${STILLSTAND.length}` : `${STILLSTAND.filter((l) => l[1]).length} von ${STILLSTAND.length}, fehlt: ${STILLSTAND.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`);
   for (const [, ok, msg] of STILLSTAND) if (!ok) fail(`[12] ${msg} (13.11.2026)`);
@@ -983,6 +1247,22 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     && /mirror\(on\) \{[^}]*dim\.visible = vis;[^}]*root\.visible = vis;/.test(holoQ);
   sollIst('Umgebungskugel der Halle ohne Hologramme aufgenommen', kugelOhne ? 'ja' : 'nein');
   if (!kugelOhne) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr ohne die Hologramme der Stationen auf (stLayer?.mirror um fromScene, oder mirror() in hangar-holo3d.js blendet Schleier und Tafeln nicht mehr aus): ihr Schleier halbiert die Kugel, und die Halle steht je nach Ladereihenfolge anders hell da (13.11.2026)');
+  // Licht der Halle nach einem Schiffswechsel wie nach frischem Laden
+  // (13.11.2026, im Bildvergleich Pisces <-> Carrack gefunden). Waechst die
+  // Halle fuer das naechste Schiff, nimmt growSettled() die Kugel unter
+  // geschlossenem Tor neu auf: Schiffsfeld und Wartungsplatz sind dort
+  // ausgeblendet, unter der Kugel lag das Tor, und sie kam 25 bis 33 %
+  // dunkler heraus (Carrack 0,137 statt 0,204) und blieb es bis zum naechsten
+  // Wechsel der Hallengroesse. hallRest() stellt die Halle fuer die Aufnahme
+  // in Ruhelage. Die Schattenkegel richtete scaleWorld() vor dem Gleiten, als
+  // die Lampen noch am alten Ort standen (Carrack nach der Pisces: focus 1
+  // statt 0,77): growStep() richtet sie am Ende des Gleitens neu.
+  const kugelRuhe = /function hallRest\(\) \{[\s\S]{0,700}?\[\[lf, true\], \[dn, true\], \[sh\?\.gate\?\.group, false\]/.test(viewer)
+    && /function captureHallEnv\([\s\S]{0,3500}?const unrest = hallRest\(\);\s*stLayer\?\.mirror\(true\);\s*const rt = pmremFor\(renderer\)\.fromScene\(scene,[^\n]*\n\s*stLayer\?\.mirror\(false\);\s*unrest\(\);/.test(viewer);
+  const kegelEnde = /function growStep\(now\) \{[\s\S]{0,900}?if \(t >= 1\) scaleLamps\(\);/.test(viewer);
+  sollIst('Licht der Halle nach Schiffswechsel wie frisch geladen (Kugel in Ruhelage, Schattenkegel am Ende des Gleitens)', kugelRuhe && kegelEnde ? 'ja' : `nein (Kugel ${kugelRuhe ? 'ja' : 'nein'}, Kegel ${kegelEnde ? 'ja' : 'nein'})`);
+  if (!kugelRuhe) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr in Ruhelage auf (hallRest() um fromScene: Schiffsfeld und Wartungsplatz sichtbar, Tor und Schacht aus): nach einem Schiffswechsel kommt sie vom geschlossenen Tor und steht ein Viertel bis ein Drittel dunkler als nach frischem Laden (13.11.2026)');
+  if (!kegelEnde) fail('[12] dist/assets/hangar-viewer.js: growStep() richtet die Schattenkegel am Ende des Gleitens nicht mehr neu (scaleLamps()): nach einem Schiffswechsel bleibt der Schatten des Schiffs groeber als nach frischem Laden (13.11.2026)');
   const ctrl =existsSync(join(DIST, 'assets', 'hangar-overview.js')) ? readFileSync(join(DIST, 'assets', 'hangar-overview.js'), 'utf8') : '';
   const call = /initHangar\([^{]*\{([^}]*)\}/.exec(ctrl)?.[1] ?? '';
   const passes = /\bgpu:/.test(call) && /\bquality:/.test(call);
@@ -1002,6 +1282,167 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     sollIst(`Stufen des Waechters ${JSON.stringify(LEVELS)}`, ws);
     if (ws !== JSON.stringify(LEVELS)) fail(`[12] WAECHTER.stufen in dist/assets/hangar-overview.js ist ${ws} statt ${JSON.stringify(LEVELS)}: Waechter und Viewer muessen dieselben Stufen nennen`);
   }
+  // Seit 13.11.2026 (WAECHTER.v 2): Am Telefon senkt schon der erste
+  // Abbruch, und der Stand fuehrt eine Spur (Stufe, Phase, Art), die die
+  // Meldung zeigt. Geprueft am ausgelieferten Modul und an den Naehten: Der
+  // Controller nennt das Telefon mit derselben Abfrage wie der Viewer, gibt
+  // sofort, Phase und Art an waechterAbbruch, der Vermerk traegt die Phase,
+  // und sie rueckt beim Laden vor ('bauen' ab 90 %, 'steht' mit dem ersten
+  // Schiff). v ist eine Klinke: Sinkt sie, gelten Deckel wieder, die fuer
+  // eine schwerere Halle gemerkt wurden.
+  const WAECHTER_V = 3;
+  if (ctrlMod) {
+    const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 13, 12, 0, 0);
+    const leer = ctrlMod.waechterStand?.(null, T);
+    const erst = leer && ctrlMod.waechterAbbruch?.(leer, T, 'hoch', { phase: 'bauen', wie: 'seite' });
+    const sofort = leer && ctrlMod.waechterAbbruch?.(leer, T, 'hoch', { sofort: true, phase: 'bauen', wie: 'seite' });
+    // drei Laeufe am Telefon, jeder bricht ab: hoch, mittel, niedrig, dann aus
+    let stand = leer, laeufe = 0;
+    for (; stand && stand.deckel !== 'aus' && laeufe < 9; laeufe++) {
+      stand = ctrlMod.waechterStand(ctrlMod.waechterText(ctrlMod.waechterAbbruch(stand, T + laeufe * 60e3, stand.deckel ?? 'hoch', { sofort: true, phase: 'bauen', wie: 'kontext' })), T + laeufe * 60e3);
+    }
+    const zeilen = stand ? ctrlMod.waechterVerlauf?.(stand.spur, (k) => k.toUpperCase()) ?? [] : [];
+    // Vermerk „Lauf offen“: nur einer der eigenen Fassung zaehlt. Einer von
+    // vor dem Update (ohne v) setzte der leichteren Halle sonst sofort einen
+    // Deckel, von niedrig aus gleich „aus“ fuer 30 Tage.
+    const vermerk = (o) => ctrlMod.waechterOffen?.(JSON.stringify({ t: T, id: 'x', stufe: 'niedrig', ...o }), T + 1000);
+    const vermerkIst = `Vermerk der eigenen Fassung ${vermerk({ v: W.v }) ? 'zaehlt' : 'zaehlt nicht'}, einer ohne Fassung ${vermerk({}) ? 'zaehlt' : 'zaehlt nicht'}, einer aelteren ${vermerk({ v: W.v - 1 }) ? 'zaehlt' : 'zaehlt nicht'}`;
+    const vermerkOk = !!vermerk({ v: W.v }) && vermerk({}) === null && vermerk({ v: W.v - 1 }) === null;
+    const regelOk = W.v >= WAECHTER_V && erst?.deckel === null && sofort?.deckel === 'mittel' && laeufe === 3
+      && zeilen.length === 3 && zeilen[0] === 'HOCH, BAUEN, KONTEXT' && zeilen[2] === 'NIEDRIG, BAUEN, KONTEXT' && vermerkOk;
+    sollIst(`Waechter ab v ${WAECHTER_V}: am Telefon senkt der erste Abbruch, drei Laeufe bis aus, die Spur nennt Stufe, Phase und Art, ein Vermerk „Lauf offen“ zaehlt nur in der eigenen Fassung`,
+      `v ${W.v}, erster Abbruch ohne sofort: Deckel ${erst?.deckel ?? 'keiner'}, mit sofort: ${sofort?.deckel ?? 'keiner'}; ${laeufe} Laeufe bis aus; Spur: ${zeilen.join(' | ') || 'leer'}; ${vermerkIst}`);
+    if (!regelOk) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 13.11.2026 abgenommen (v mindestens ${WAECHTER_V}; ohne sofort wird der erste Abbruch nur vermerkt, mit sofort senkt er auf mittel; am Telefon drei Laeufe bis aus; waechterVerlauf nennt je Abbruch Stufe, Phase und Art; waechterOffen nimmt nur Vermerke der eigenen Fassung): am Telefon liefe die Schleife laenger, die Meldung sagte nicht mehr, wie weit die Laeufe kamen, oder ein Lauf von vor einem Update setzte der neuen Halle einen Deckel`);
+    const telQ = /const TELEFON = window\.matchMedia\('([^']+)'\)\.matches;/.exec(ctrl)?.[1] ?? null;
+    const smallQ = /const SMALL = matchMedia\('([^']+)'\)\.matches;/.exec(viewer)?.[1] ?? null;
+    const naht = [
+      [telQ !== null && telQ === smallQ, `Telefon heisst im Controller „${telQ}“, im Viewer „${smallQ}“`],
+      [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie \}\)/.test(ctrl), 'abbruch() gibt sofort, phase und wie nicht an waechterAbbruch'],
+      [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e(?:, g)? \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
+      [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
+      [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
+      [/waechterVerlauf\(stand\.spur,/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
+      // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
+      [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
+      // ... und mit dem Titel: Ein neues Schiff tauscht ihn erst nach dem Laden der Bucht, ein laengerer Name macht ihn hoeher
+      [/replaceWith\(doc\.importNode\(regions\[name\], true\)\);\s*(?:\/\/[^\n]*\n\s*)?meldungPlatz\(\);/.test(ctrl) && /bayErr\.hidden = false;\s*meldungPlatz\(\);/.test(ctrl), 'der Titel wechselt (showBay nach dem Tausch der Regionen, showBayError), ohne dass meldungPlatz() den Platz einer sichtbaren Meldung nachmisst'],
+    ];
+    const offen = naht.filter(([ok]) => !ok).map(([, was]) => was);
+    sollIst(`${naht.length} Naehte von Spur und Sofort-Regel im Controller`, offen.length ? `${naht.length - offen.length} von ${naht.length}: ${offen.join('; ')}` : `${naht.length} von ${naht.length}`);
+    for (const was of offen) fail(`[12] dist/assets/hangar-overview.js: ${was}. Vom Telefon kommt nichts zurueck ausser dieser Zeile unter der Meldung; ohne sie laesst sich von aussen nicht sagen, woran ein Lauf scheiterte`);
+    // Die Woerter der Spur stehen auf jeder Hangarseite: je Phase und Art eines, dazu die beiden Einleitungen
+    const woerter = ['data-spur', 'data-grund', 'data-geraet', ...[...(W.phasen ?? []), ...(W.arten ?? [])].map((k) => `data-spur-${k}`)];
+    let wortSeiten = 0;
+    for (const page of PAGES) {
+      const tag = /<div[^>]*id="hg-fallback"[^>]*>/.exec(page.html)?.[0] ?? '';
+      const fehlt = woerter.filter((w) => !new RegExp(`\\s${w}="[^"]+"`).test(tag));
+      if (!/<p[^>]*id="hgx-modelerr"[^>]*\sdata-grund="[^"]+"/.test(page.html)) fehlt.push('data-grund an #hgx-modelerr');
+      if (fehlt.length) fail(`[12] dist/${page.file}: an der Meldung der Buehne fehlt ${fehlt.join(', ')}: die Zeile unter der Meldung bliebe leer oder liesse ein Wort aus`);
+      else wortSeiten++;
+    }
+    sollIst(`${woerter.length} Woerter fuer Spur, Grund und Geraet auf jeder Hangarseite`, `${wortSeiten} von ${PAGES.length} Seiten`);
+    if ((W.phasen ?? []).length < 3 || (W.arten ?? []).length < 3) fail(`[12] WAECHTER nennt ${(W.phasen ?? []).length} Phasen und ${(W.arten ?? []).length} Arten, erwartet mindestens 3 und 3`);
+  }
+  // Seit 14.11.2026 (WAECHTER.v 3, Krisz nach v 2: „Ne immer noch Dauer
+  // Neulade Loop“). Nachgestellt: Baut der Browser die Registerkarte nach dem
+  // Ende der Seite neu auf, ist ihr Speicher leer, kein Abbruch wurde
+  // gezaehlt, 7 Laeufe in 55 s ohne Ende. Drei Zusicherungen:
+  // 1. Der Vermerk „Lauf offen“ steht auch im Speicher des Geraets.
+  // 2. Am Telefon zaehlen die Starts, auch wenn kein Vermerk ueberlebt: Eine
+  //    Schleife endet dort ohne jeden Vermerk nach hoechstens LAEUFE_OHNE
+  //    Laeufen (Klinken, nur abwaerts: ANLAUF_ZAHL Starts, die nicht standen,
+  //    bevor einer zaehlt; RUHE_MIN nur aufwaerts: so lange muss eine Buehne
+  //    stehen, bis die Starts vor ihr nicht mehr zaehlen, gemessen faellt der
+  //    Arbeitsspeicher erst rund eine halbe Minute nach dem Laden).
+  //    Seit dem Review zu PR 363 (nachgestellt: drei Hangarseiten
+  //    nacheinander in neuen Registerkarten, die dritte bekam ohne Abbruch
+  //    die leichte Buehne): Eine Seite im Hintergrund nimmt ihren Start
+  //    heraus, Starts lebender Laeufe zaehlen nicht, und ein toter Lauf aus
+  //    dem Speicher des Geraets gehoert dem Start, der ihn dort noch
+  //    vorfindet (zwei Starts im selben Augenblick zaehlten ihn beide).
+  // 3. Unter jedem Deckel laeuft am Telefon die leichte Buehne: Die Seite
+  //    gibt dem Viewer weder echte Halle noch Besatzung, er baut seine eigene
+  //    (gemessen im Telefonformat mit der Gladius: rund 340 statt 950 MB
+  //    Arbeitsspeicher der Seite beim Laden). Sie sagt es in einer Zeile mit
+  //    Knopf zur vollen Halle.
+  const ANLAUF_ZAHL = 2, LAEUFE_OHNE = 6, RUHE_MIN = 30e3;
+  if (ctrlMod) {
+    const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 14, 6, 0, 0);
+    const befund = typeof ctrlMod.waechterBefund === 'function' ? ctrlMod.waechterBefund : () => undefined;
+    const leichtFn = typeof ctrlMod.waechterLeicht === 'function' ? ctrlMod.waechterLeicht : () => undefined;
+    const zahl = W.anlauf?.zahl ?? 0, ruhe = W.anlauf?.ruhe ?? 0, frist = W.anlauf?.frist ?? 0;
+    const starts = Array.from({ length: zahl }, (_, i) => ({ id: `s${i}`, t: T + i * 20e3 }));
+    const tot = befund({ tot: [{ t: T, stufe: 'hoch', phase: 'bauen' }], anlauf: [], telefon: true });
+    const ohne = befund({ tot: [], anlauf: starts, telefon: true });
+    const pc = befund({ tot: [], anlauf: starts, telefon: false });
+    const einer = befund({ tot: [], anlauf: starts.slice(1), telefon: true });
+    // Starts, deren Lauf lebt, zaehlen nicht; ein toter Lauf gehoert dem Start, der ihn im Geraet noch findet
+    const lebend = zahl >= 1 ? befund({ tot: [], anlauf: starts, lebt: [starts[0].id], telefon: true }) : undefined;
+    const anspruch = typeof ctrlMod.waechterAnspruch === 'function' ? ctrlMod.waechterAnspruch : () => undefined;
+    const X = { id: 'x', t: T, stufe: 'mittel', phase: 'bauen' };
+    const anspruchIst = [anspruch({ tot: [X], imGeraet: [X] }), anspruch({ tot: [X], imGeraet: [] }), anspruch({ tot: [X], offen: { ...X, geraet: true }, imGeraet: [] }), anspruch({ tot: [X], offen: { ...X, geraet: false }, imGeraet: [] }), anspruch({ tot: [X], offen: { ...X, geraet: true }, imGeraet: null })].map((l) => (Array.isArray(l) ? l.length : -1));
+    const anspruchOk = anspruchIst.join(' ') === '1 0 0 1 1';
+    // Telefon, an dem kein Vermerk ueberlebt und jeder Lauf abbricht, bevor er steht
+    let stand = ctrlMod.waechterStand?.(null, T) ?? null, anlauf = [], now = T;
+    const laeufe = [];
+    for (let i = 0; stand && typeof ctrlMod.waechterAnlauf === 'function' && typeof ctrlMod.waechterAnlaufText === 'function' && i < 40 && stand.deckel !== 'aus'; i++) {
+      now += 20e3;
+      const was = befund({ tot: [], anlauf: ctrlMod.waechterAnlauf(ctrlMod.waechterAnlaufText(anlauf), now), telefon: true });
+      if (was) {
+        stand = ctrlMod.waechterAbbruch(ctrlMod.waechterStand(ctrlMod.waechterText(stand), now), now, was.stufe, { sofort: true, phase: was.phase, wie: was.wie });
+        anlauf = [];
+      }
+      if (stand.deckel === 'aus') break;
+      laeufe.push(leichtFn(stand.deckel, true) ? 'leicht' : 'voll');
+      anlauf.push({ id: `l${i}`, t: now });
+    }
+    const voll = laeufe.filter((l) => l === 'voll').length;
+    const durch = ctrlMod.waechterLaeufe?.(ctrlMod.waechterLaeufeText?.([{ id: 'x', t: T, stufe: 'mittel', phase: 'bauen' }]) ?? null, T + 1000) ?? [];
+    const leichtIst = `Telefon mit Deckel mittel ${leichtFn('mittel', true) === true ? 'leicht' : 'voll'}, niedrig ${leichtFn('niedrig', true) === true ? 'leicht' : 'voll'}, ohne Deckel ${leichtFn(null, true) === false ? 'voll' : 'leicht'}, PC mit Deckel ${leichtFn('mittel', false) === false ? 'voll' : 'leicht'}`;
+    const v3Ok = tot?.wie === 'seite' && tot.stufe === 'hoch' && tot.phase === 'bauen' && ohne?.wie === 'start' && pc === null && einer === null
+      && zahl >= 1 && zahl <= ANLAUF_ZAHL && ruhe >= RUHE_MIN && (zahl + 1) * (ruhe + 60e3) <= frist
+      && stand?.deckel === 'aus' && laeufe.length >= 1 && laeufe.length <= LAEUFE_OHNE && voll === zahl
+      && leichtFn('mittel', true) === true && leichtFn('niedrig', true) === true && leichtFn('mittel', false) === false && leichtFn('aus', true) === false && leichtFn(null, true) === false
+      && durch.length === 1 && durch[0].id === 'x' && durch[0].stufe === 'mittel' && durch[0].phase === 'bauen'
+      && lebend === null && anspruchOk;
+    sollIst(`Waechter ab v 3: ein toter Lauf zaehlt als Abbruch der Seite; am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts, die mindestens ${RUHE_MIN / 1000} s nicht standen, auch ohne Vermerk; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus; unter dem Deckel am Telefon die leichte Buehne`,
+      `toter Lauf: ${tot?.wie ?? 'nichts'}; ${zahl} Starts am Telefon: ${ohne?.wie ?? 'nichts'}, am PC: ${pc?.wie ?? 'nichts'}, ${Math.max(0, zahl - 1)} am Telefon: ${einer?.wie ?? 'nichts'}; Ruhe ${ruhe / 1000} s, Frist ${frist / 60e3} min; ohne Vermerk ${laeufe.length} Laeufe bis ${stand?.deckel ?? 'nichts'} (${laeufe.join(' ') || 'keiner'}); ${leichtIst}; Vermerk im Geraet ${durch.length === 1 ? 'geht durch den Speicher' : 'geht verloren'}; Starts mit einem lebenden Lauf: ${lebend === null ? 'nichts' : lebend?.wie ?? 'unbekannt'}; toter Lauf im Geraet vorgefunden, dort schon weg, eigener dort schon weg, eigener ohne Geraet, eigener ohne Kanal zaehlt ${anspruchIst.join(' ')}-mal (Soll 1 0 0 1 1)`);
+    if (!v3Ok) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 14.11.2026 abgenommen (waechterBefund: toter Lauf zaehlt als 'seite', am Telefon zaehlen hoechstens ${ANLAUF_ZAHL} Starts als 'start', am PC keine; WAECHTER.anlauf.ruhe mindestens ${RUHE_MIN / 1000} s und drei Laeufe in der Frist; ohne jeden Vermerk hoechstens ${LAEUFE_OHNE} Laeufe bis aus, davon so viele mit voller Halle wie Starts zaehlen; waechterLeicht: am Telefon unter jedem Deckel, sonst nie; waechterLaeufe liest, was waechterLaeufeText schreibt; Starts lebender Laeufe zaehlen nicht; waechterAnspruch: ein toter Lauf zaehlt nur fuer den Start, der ihn im Speicher des Geraets noch vorfindet): Ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu, oder es versuchte dreimal dieselbe Halle, oder ein Besucher ohne Abbruch bekaeme die leichte Ansicht`);
+    const startTeil = ctrl.slice(Math.max(0, ctrl.indexOf('async function waechterStart()')), Math.max(0, ctrl.indexOf('async function waechterStart()')) + 2600);
+    // je Naht: erfuellt, Datei, was fehlt, was daraus folgte
+    const SCHLEIFE = 'ein Telefon, dessen Browser die Registerkarte nach dem Absturz neu aufbaut, luede wieder ohne Ende neu', DREIMAL = 'das Telefon versuchte nach einem Abbruch wieder dieselbe Halle (rund 950 statt 340 MB)', FALSCH = 'ein Besucher ohne Abbruch bekaeme die leichte Ansicht';
+    const DOPPELT = 'zwei Registerkarten, die im selben Augenblick starten, zaehlten denselben Abbruch beide und senkten zwei Stufen (Review zu PR 363)';
+    const naht3 = [
+      [/const g = laeufeAendern\(\(l\) => \[\.\.\.l\.filter\(\(x\) => x\.id !== e\.id\), e\]\) \? 1 : 0;/.test(ctrl), 'hangar-overview.js', 'offenSetzen() vermerkt den Lauf nicht mehr im Speicher des Geraets', SCHLEIFE],
+      [/waechterLaeufe\(lies\(\(\) => localStorage, LAEUFE_KEY\), now\)/.test(startTeil) && /waechterAnlauf\(lies\(\(\) => localStorage, ANLAUF_KEY\), now\)/.test(startTeil) && /waechterBefund\(\{ tot: [a-z]+, anlauf: starts, lebt, telefon: TELEFON \}\)/.test(startTeil), 'hangar-overview.js', 'waechterStart liest die offenen Laeufe des Geraets oder die Starts nicht mehr', SCHLEIFE],
+      [/const meine = waechterAnspruch\(\{ tot, offen, imGeraet: GERAET \? waechterLaeufe\(lies\(\(\) => localStorage, LAEUFE_KEY\), Date\.now\(\)\) : null \}\);/.test(startTeil) && /waechterBefund\(\{ tot: meine, /.test(startTeil), 'hangar-overview.js', 'waechterStart zaehlt einen toten Lauf, ohne ihn im Speicher des Geraets noch vorzufinden (waechterAnspruch)', DOPPELT],
+      [/JSON\.stringify\(\{[^}]*\.\.\.e, g \}\)/.test(ctrl) && /geraet: o\.g === 1 \}/.test(ctrl), 'hangar-overview.js', 'der Vermerk der Registerkarte sagt nicht mehr, ob sein Lauf auch im Speicher des Geraets steht (g)', 'ein Lauf, den ein anderer Start dort schon gezaehlt hat, zaehlte in der eigenen Registerkarte noch einmal (Review zu PR 363)'],
+      [/const ids = \[\.\.\.new Set\(\[\.\.\.vermerkt, \.\.\.anlauf\]\.map\(\(e\) => e\.id\)\)\];/.test(startTeil) && /const lebt = ids\.filter\(\(_, i\) => antwort\[i\]\);/.test(startTeil) && /anlauf\.filter\(\(e\) => !lebt\.includes\(e\.id\)\)\.length >= WAECHTER\.anlauf\.zahl/.test(ctrl), 'hangar-overview.js', 'waechterStart fragt nicht mehr, ob die Laeufe der Starts noch leben, oder waechterBefund zaehlt sie trotzdem', 'drei Hangarseiten nebeneinander, keine bricht ab, und die dritte bekaeme die leichte Ansicht (Review zu PR 363)'],
+      [/const GERAET = TELEFON && !!kanal;/.test(ctrl) && /function laeufeAendern\(fn\) \{\s*if \(!GERAET\) return false;/.test(ctrl) && /const laeufe = GERAET \? waechterLaeufe\(/.test(startTeil), 'hangar-overview.js', 'der Vermerk im Speicher des Geraets gilt nicht mehr nur am Telefon', 'am PC hielte ein zweites Hangar-Fenster eines, das gerade laedt, fuer abgebrochen und zaehlte einen Abbruch (Review zu PR 363, nachgestellt)'],
+      [/if \(doc\.hidden\) \{ offenWeg\(\); anlaufAbschied\(\); \} else \{ offenSetzen\(\); anlaufSetzen\(\); \}/.test(ctrl) && /if \(!TELEFON \|\| !lauf \|\| lauf\.ruht \|\| meinStart \|\| doc\.hidden\) return;/.test(ctrl), 'hangar-overview.js', 'eine Seite im Hintergrund nimmt ihren Start nicht mehr heraus oder traegt sich dort ein', 'wer am Telefon drei Hangarseiten nacheinander in neuen Registerkarten oeffnet, bekaeme ohne jeden Abbruch die leichte Ansicht (Review zu PR 363, nachgestellt)'],
+      [/lauf = \{ id: [^\n]+\};\s*offenSetzen\(\);\s*anlaufSetzen\(\);/.test(ctrl), 'hangar-overview.js', 'der Start der Buehne traegt sich nicht mehr in die Liste der Starts ein', 'ueberlebt kein Vermerk, zaehlte am Telefon nichts mehr, und es luede ohne Ende neu'],
+      [/setTimeout\(\(\) => \{ if \(lauf\?\.id === id\) anlaufRuhe\(\); \}, WAECHTER\.anlauf\.ruhe\);/.test(ctrl) && /\.filter\(\(e\) => e\.id !== id && e\.t > t0\)/.test(ctrl), 'hangar-overview.js', 'eine Buehne, die steht, nimmt ihren Start und die davor nicht mehr aus der Liste', FALSCH],
+      [/window\.addEventListener\('pagehide', \(\) => \{ offenWeg\(\); anlaufAbschied\(\); \}\);/.test(ctrl), 'hangar-overview.js', 'wer die Seite von sich aus verlaesst, nimmt Vermerk oder Start nicht mehr heraus', 'wer dreimal kurz hereinschaut oder von Hand neu laedt, zaehlte als Abbruch'],
+      [/anlaufWeg\(\);\s*console\.warn\(`\[hangar\] Abbruch der Buehne/.test(ctrl), 'hangar-overview.js', 'ein gezaehlter Abbruch leert die Starts nicht', 'derselbe Abbruch zaehlte ueber die Starts ein zweites Mal und senkte zwei Stufen'],
+      [/function laufEnde\(\) \{ lauf = null; offenWeg\(\); anlaufAbschied\(\); \}/.test(ctrl), 'hangar-overview.js', 'ein Lauf, der mit einer Meldung endet (kein Start, Kontext im Hintergrund verloren), bleibt als Start ohne Abschied stehen', FALSCH],
+      [/const leicht = waechterLeicht\(deckel, TELEFON\);/.test(ctrl) && /const buehne = leicht \? \{ \.\.\.stageCfg\.opts, hall: null, crew: null \} : stageCfg\.opts;/.test(ctrl) && /\.\.\.buehne\b/.test(call), 'hangar-overview.js', 'unter einem Deckel bekommt der Viewer am Telefon weiter die echte Halle und die Besatzung', DREIMAL],
+      [/const REAL = !!\(opts\.hall\?\.url && opts\.hall\.room\);/.test(viewer) && /if \(!REAL\) buildStage\(\);/.test(viewer) && /if \(opts\.crew\?\.module && REAL\) \{/.test(viewer), 'hangar-viewer.js', 'der Viewer baut ohne echte Halle keine eigene mehr (REAL, buildStage) oder laedt die Besatzung auch ohne sie', 'in der leichten Ansicht stuende das Schiff im Leeren'],
+    ];
+    const offen3 = naht3.filter(([ok]) => !ok);
+    sollIst(`${naht3.length} Naehte von Vermerk im Geraet, Starts und leichter Buehne`, offen3.length ? `${naht3.length - offen3.length} von ${naht3.length}: ${offen3.map(([, , was]) => was).join('; ')}` : `${naht3.length} von ${naht3.length}`);
+    for (const [, datei, was, folge] of offen3) fail(`[12] dist/assets/${datei}: ${was}: ${folge} (14.11.2026)`);
+    // Die Zeile der leichten Ansicht steht auf jeder Hangarseite, mit Text und Knopf
+    let leichtSeiten = 0;
+    for (const page of PAGES) {
+      const el = /<p[^>]*id="hgx-leicht"[^>]*>([\s\S]*?)<\/p>/.exec(page.html);
+      const text = el ? (/<span>([^<]+)<\/span>/.exec(el[1])?.[1] ?? '').trim() : '';
+      const knopf = el ? (/<button[^>]*id="hgx-leicht-voll"[^>]*>([^<]+)<\/button>/.exec(el[1])?.[1] ?? '').trim() : '';
+      const zu = el ? /\shidden(?:[\s>=])/.test(el[0].slice(0, el[0].indexOf('>') + 1)) : false;
+      if (!el || !text || !knopf || !zu) fail(`[12] dist/${page.file}: die Zeile der leichten Ansicht ${!el ? 'fehlt (#hgx-leicht)' : !text ? 'hat keinen Text' : !knopf ? 'hat keinen Knopf zur vollen Halle (#hgx-leicht-voll)' : 'ist nicht von Anfang an verborgen (hidden)'}: Am Telefon stuende das Schiff ohne Erklaerung in der gebauten Halle, oder kein Weg fuehrte zurueck`);
+      else leichtSeiten++;
+    }
+    sollIst('Zeile der leichten Ansicht mit Text und Knopf, anfangs verborgen, auf jeder Hangarseite', `${leichtSeiten} von ${PAGES.length} Seiten`);
+  }
   // Der einzige Weg, auf dem die Seite nach verlorenem Zeichenkontext von
   // selbst neu laedt, haengt am Waechter: im Rueckruf von onLost zaehlt
   // abbruch(), und neu geladen wird nur hinter „if (neuLaden)“.
@@ -1017,11 +1458,11 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // Dazu haelt ein Zeitgeber den Vermerk „Lauf offen“ frisch, sonst zaehlte
   // ein Abbruch nach langem Ansehen nicht.
   const startAt = ctrl.indexOf('async function waechterStart()');
-  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 600);
-  const startOk = /if \(!abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
+  const startFn = startAt < 0 ? '' : ctrl.slice(startAt, startAt + 2600);
+  const startOk = /if \(was && !abbruch\([^\n]*\)\) return 'aus';/.test(startFn);
   const pulsOk = /setInterval\(offenSetzen, WAECHTER\.puls\)/.test(ctrl) && ctrlMod && ctrlMod.WAECHTER?.puls > 0 && ctrlMod.WAECHTER.puls < ctrlMod.WAECHTER.frisch;
   sollIst('Start ohne gemerkten Abbruch bleibt ohne Buehne, Vermerk „Lauf offen“ wird frisch gehalten', startOk && pulsOk ? 'ja' : `nein (${[!startFn && 'waechterStart nicht gefunden', startFn && !startOk && 'Start prueft abbruch() nicht', !pulsOk && 'kein Zeitgeber unter der Frist'].filter(Boolean).join(', ')})`);
-  if (!startOk) fail('[12] dist/assets/hangar-overview.js: waechterStart startet die Buehne auch dann, wenn der Abbruch des vorigen Laufs nicht gemerkt wurde (erwartet „if (!abbruch(…)) return \'aus\'“): ohne Speicher zaehlte kein Abbruch, die Neu-Lade-Schleife liefe weiter');
+  if (!startOk) fail('[12] dist/assets/hangar-overview.js: waechterStart startet die Buehne auch dann, wenn der Abbruch des vorigen Laufs nicht gemerkt wurde (erwartet „if (was && !abbruch(…)) return \'aus\'“): ohne Speicher zaehlte kein Abbruch, die Neu-Lade-Schleife liefe weiter');
   if (!pulsOk) fail('[12] dist/assets/hangar-overview.js: der Vermerk „Lauf offen“ wird nicht mehr frisch gehalten (setInterval(offenSetzen, WAECHTER.puls), puls unter frisch): ein Abbruch nach langem Ansehen zaehlte nicht');
   for (const page of PAGES) {
     const sel = /<select id="hgx-gfx">([\s\S]*?)<\/select>/.exec(page.html)?.[1] ?? null;
@@ -2050,7 +2491,16 @@ say('\n[23] Raum der Kamera: jedes Schiff der Halle durch camPlan des ausgeliefe
 // Halle gerechnet (184 mit Maszen im Dock, 6 nur mit Umriss), 60 davon mit
 // Gang zu den Stirnwaenden, 16 Proben. Die Masze kommen aus dem Katalog und
 // duerfen nach einem Datenlauf leicht schwanken, darum etwas Abstand.
-const RAUM = { schiffe: 188, gang: 56, proben: 16, ruhe: 16, rand: 5880 };
+// Gesenkt am 13.11.2026 mit den festen Hangargroessen ([24]): gang von 56
+// auf 30, rand von 5880 auf 3150 (105 Ziele je Schiff mit Gang). Ursache:
+// Die Hallen der Stufen sind breiter als die Halle nach Masz (Medium 96 m
+// statt 72 m im Raum), und die Kugel der Kamera waechst mit der Breite
+// (Medium 45,96 m statt 34,47 m, Large 61,28 m, Extra Large 107,23 m). Einen
+// Gang braucht nur, wessen halbe Laenge plus 17,4 m ueber die Kugel reicht:
+// vorher 60 Schiffe, jetzt 33. Den uebrigen 27 gibt die Kugel selbst mehr
+// Luft hinter Bug und Heck als vorher der Gang (die Pruefung der Luft gilt
+// weiter fuer alle 190).
+const RAUM = { schiffe: 188, gang: 30, proben: 16, ruhe: 16, rand: 3150 };
 // m hinter Bug und Heck (CAM_AIR 17,4 abzueglich Rand vor der Stirnwand am
 // Tor: gebaut 13,2) und m Zoom zwischen Mindestabstand und Kugel (gebaut 4,47)
 const RAUM_LUFT = 10, RAUM_ZOOM = 4;
@@ -2066,11 +2516,19 @@ const RAUM_STEIL = 9;
 // Mindestabstand, Kugel, Hoechstabstand hinter Bug und Heck, Startansicht.
 // Aendern sich die Zahlen, stehen die Kameras anders: erst rendern und
 // hinsehen, dann hier nachziehen.
+// Nachgezogen am 13.11.2026 mit den festen Hangargroessen ([24]), nach neuen
+// Bildern der vier Startansichten: Jedes Schiff steht in der Halle seiner
+// Stufe (hangar), die breiter ist als die Halle nach Masz. Kugel und
+// Startansicht ruecken mit: Carrack in Large 57,45 auf 61,28 m und 74,03 auf
+// 79,68 m, Idris-M in Extra Large 84,26 auf 107,23 m und 113,52 auf 138,99 m,
+// Constellation in Medium 34,47 auf 45,96 m und 40,19 auf 49,35 m. Der
+// Hoechstabstand hinter Bug und Heck und der Mindestabstand bleiben, die
+// Gladius in Small aendert sich nicht.
 const RAUM_PROBEN = [
-  ['Carrack', { len: 129.13, halfW: 36.19, height: 28.76 }, { min: 30, ball: 57.45, far: 81.97, home: 74.03 }],
-  ['Idris-M', { len: 243.18, halfW: 63.34, height: 53.71 }, { min: 30, ball: 84.26, far: 138.99, home: 113.52 }],
-  ['Constellation Andromeda', { len: 63.9, halfW: 13.25, height: 14.84 }, { min: 28.76, ball: 34.47, far: 49.35, home: 40.19 }],
-  ['Gladius', { len: 22.42, halfW: 8.69, height: 5.59 }, { min: 10.09, ball: 34.47, far: 34.47, home: 34.47 }],
+  ['Carrack', { len: 129.13, halfW: 36.19, height: 28.76, hangar: 'L' }, { min: 30, ball: 61.28, far: 81.97, home: 79.68 }],
+  ['Idris-M', { len: 243.18, halfW: 63.34, height: 53.71, hangar: 'XL' }, { min: 30, ball: 107.23, far: 138.99, home: 138.99 }],
+  ['Constellation Andromeda', { len: 63.9, halfW: 13.25, height: 14.84, hangar: 'M' }, { min: 28.76, ball: 45.96, far: 49.35, home: 49.35 }],
+  ['Gladius', { len: 22.42, halfW: 8.69, height: 5.59, hangar: 'S' }, { min: 10.09, ball: 34.47, far: 34.47, home: 34.47 }],
 ];
 {
   let mod = null;
@@ -2105,7 +2563,8 @@ const RAUM_PROBEN = [
       // ohne Hoehe im Dock: geschaetzt, sie aendert nur den Zuwachs nach oben
       const hgt = fig.hgt > 0 ? fig.hgt : Math.max(3, wid / 4);
       if (!(fig.hgt > 0)) geschaetzt++;
-      const info = { len, halfW: wid / 2, height: hgt }, span = Math.max(len, wid, 6), p = mod.camPlan(hall, info);
+      // mit der Hangargröße des Schiffs von der Seite ([24]): der Raum der Halle, in der es steht
+      const info = { len, halfW: wid / 2, height: hgt, hangar: e[4] ?? null }, span = Math.max(len, wid, 6), p = mod.camPlan(hall, info);
       // NaN besteht jeden Vergleich mit < und >: nicht endliche Grenzen
       // ausdruecklich, sonst gaelte eine kaputte Rechnung als bestanden
       const krank = p ? Object.entries({ min: p.min, Kugel: p.ball, far: p.far, Startansicht: p.home, Rand: p.edge, 'Gang x': p.box?.x?.[0] + p.box?.x?.[1], 'Gang oben': p.box?.y, 'Gang z': p.box?.z?.[0] + p.box?.z?.[1] }).filter(([, v]) => !Number.isFinite(v)).map(([k]) => k) : ['alles (camPlan liefert nichts)'];
@@ -2257,8 +2716,152 @@ const RAUM_PROBEN = [
   ist.raumSchiffe = schiffe; ist.raumGang = gang; ist.raumProben = proben; ist.raumRuhe = ruht; ist.raumRand = rand;
 }
 
+say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle in seiner Stufe und ganz auf dem Feld, Zeile im Titelblock');
+// Feste Hangargrößen (13.11.2026, Krisz: „small Hangar, Medium, large und
+// extra large einführen genau wie ingame, dann haben wir auch richtige
+// grössenreferenzen“). Sperrklinken (Grundsatz 5), erster Bau: 190 Schiffe
+// der Halle, davon 107 in Small, 48 in Medium, 27 in Large, 7 in Extra
+// Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
+// Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
+// Schiffe wechseln, darum etwas Abstand.
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 9, worte: 14 };
+// Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
+// sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
+const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
+// Feld (Breite x Länge) und freie Höhe darüber in m je Stufe, wie am
+// 13.11.2026 gerendert und von Krisz im Entwurf abgenommen („Ja“ zu „vier
+// feste Stufen bauen“, Bilder G-1 und G-2). Ändern sich die Zahlen, steht
+// jedes Schiff der Stufe in einer anderen Halle: erst rendern und hinsehen,
+// dann hier nachziehen.
+const GROESSE_FELD = { S: [32, 96, 35.48], M: [56, 96, 35.48], L: [88, 160, 59.48], XL: [184, 304, 99.48] };
+// Schiffe, deren Halle nicht die Stufe ihrer Größenklasse ist (Grundsatz 6:
+// benannt, mit Anlass und Zombie-Wächter). von: Stufe der Seite, auf: Stufe
+// der Halle ('' = keine fasst es, Halle nach Maß).
+const GROESSE_AUSNAHMEN = {
+  'drak-clipper': { von: 'S', auf: 'M', anlass: 'Größenklasse 2, sein Modell ist aber 49,5 m breit und das Feld der Stufe Small 32 m: Der Viewer nimmt die nächste Stufe, die es fasst' },
+  'aegs-javelin': { von: 'XL', auf: '', anlass: '469,9 m lang und 218,8 m breit, das Feld der Stufe Extra Large misst 184 x 304 m: Kein Hangar fasst es, die Halle wächst auf sein Maß wie vor den Stufen' },
+};
+{
+  const R = /\/\* hall-grow \*\/([\s\S]*?)\/\* \/hall-grow \*\//.exec(viewer), RL = /\/\* hall-lift \*\/([\s\S]*?)\/\* \/hall-lift \*\//.exec(viewer);
+  let cfg = null, G = null, LIFT = null;
+  try { cfg = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(PAGES[0].html)?.[1] ?? 'null'); } catch { cfg = null; }
+  const hall = cfg?.opts?.hall ?? null, models = cfg?.models ?? {};
+  try { G = JSON.parse(R?.[1] ?? 'null')?.[hall?.id] ?? null; LIFT = JSON.parse(RL?.[1] ?? 'null')?.[hall?.id] ?? null; } catch { G = LIFT = null; }
+  const f2 = (x) => (Number.isFinite(x) ? x.toFixed(2) : String(x));
+  // (a) die Stufen im Viewer
+  const sizes = Array.isArray(G?.sizes) ? G.sizes : null, step = G?.step, feld = LIFT && [LIFT.to?.[0] - LIFT.from?.[0], LIFT.to?.[1] - LIFT.from?.[1]];
+  let stufen = 0;
+  const formOk = !!sizes && sizes.length === GROESSEN.length && sizes.every((z, i) => Array.isArray(z) && z.length === 4 && z[0] === GROESSEN[i] && z.slice(1).every((v) => Number.isFinite(v) && v >= 0));
+  if (!hall?.id || !G) fail('[24] HALL_GROW im Viewer nennt die Halle der Seite nicht: ohne ihren Eintrag gibt es keine Hangargrößen');
+  else if (!formOk) fail(`[24] HALL_GROW["${hall.id}"].sizes braucht genau ${GROESSEN.length} Stufen [Name, x, y, z] in der Folge ${GROESSEN.join(', ')} (gefunden ${JSON.stringify(G.sizes ?? null)}): Ohne sie wächst die Halle wieder für jedes Schiff auf sein Maß`);
+  else if (!(Number.isFinite(step) && step > 0) || !(feld?.every((v) => Number.isFinite(v) && v > 0)) || !Number.isFinite(G.clear)) fail(`[24] step, clear oder das Feld (HALL_LIFT) der Halle ${hall.id} fehlen: die Stufen sind nicht nachzurechnen`);
+  else {
+    sizes.forEach((z, i) => {
+      const [name, x, y, zz] = z, vor = i ? sizes[i - 1] : null;
+      // je Seite ganze Schritte (x und z wachsen nach beiden Seiten, y nur nach oben): sonst läuft die Textur an der Kante der gestreckten Platten versetzt weiter
+      const ganz = (v, n) => Math.abs(v / (n * step) - Math.round(v / (n * step))) < 1e-9;
+      if (!ganz(x, 2) || !ganz(y, 1) || !ganz(zz, 2)) fail(`[24] Stufe ${name} [${x}, ${y}, ${zz}]: x und z brauchen Vielfache von ${2 * step} m (je Seite ein ganzer Schritt von ${step} m), y von ${step} m: sonst läuft die Textur des Bodens an den Streifen versetzt weiter`);
+      if (i === 0 && (x || y || zz)) fail(`[24] Stufe ${name} [${x}, ${y}, ${zz}] ist nicht die Halle ohne Zuwachs: Die kleinste Stufe ist die Halle, wie sie gebaut ist`);
+      if (vor && !(x >= vor[1] && y >= vor[2] && zz >= vor[3] && x + y + zz > vor[1] + vor[2] + vor[3])) fail(`[24] Stufe ${name} [${x}, ${y}, ${zz}] ist nicht in jeder Richtung mindestens so groß wie ${vor[0]} [${vor.slice(1).join(', ')}] und in einer größer: Ein Schiff, das in ${vor[0]} nicht passt, fände auch hier keinen Platz`);
+      const ist = [feld[0] + x, feld[1] + zz, G.clear + y], soll = GROESSE_FELD[name];
+      if (!soll.every((v, k) => Math.abs(v - ist[k]) <= 0.02)) fail(`[24] Stufe ${name}: Feld ${f2(ist[0])} x ${f2(ist[1])} m, ${f2(ist[2])} m frei; angesehen und abgenommen sind ${soll[0]} x ${soll[1]} m und ${soll[2]} m: erst rendern und hinsehen, dann die Zahl im Tor nachziehen (GROESSE_FELD)`);
+      else stufen++;
+    });
+  }
+  // (b) jedes Schiff der Halle: Stufe der Seite gegen die Größenklasse, Stufe der Halle aus camPlan des ausgelieferten Viewers, und ob es auf dem Feld steht
+  let mod = null;
+  try { mod = await import(pathToFileURL(viewerFile).href); } catch (e) { fail(`[24] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
+  const zahl = { S: 0, M: 0, L: 0, XL: 0, '': 0 }, bad = [], fremd = [], hallen = new Set(), gesehen = new Map();
+  let schiffe = 0, luftMin = Infinity, ohneStufe = 0;
+  if (mod && formOk && feld && hall?.room) {
+    const KL = new Map(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.map((v) => [v.id, v.sizeClass ?? null]));
+    const { figures } = DOCK.en;
+    const fps = new Map([...PAGES[0].html.matchAll(/<li data-id="([^"]+)"([^>]*)>/g)].map((m) => [m[1], (/\sdata-fp="([^"]*)"/.exec(m[2])?.[1] ?? '').split(' ').map(Number)]));
+    for (const [id, e] of Object.entries(models)) {
+      if (!Array.isArray(e) || e[3] !== 'halle') continue;
+      const seite = e[4] ?? null, klasse = GROESSE_KLASSE[KL.get(id)] ?? null;
+      if (seite !== klasse) bad.push(`${id}: die Seite gibt der Bühne die Stufe ${JSON.stringify(seite)} mit, nach seiner Größenklasse ${KL.get(id) ?? '–'} gehört es in ${JSON.stringify(klasse)} (hangarOfClass in src/lib/hangar/stage.ts, GROESSE_KLASSE hier)`);
+      if (seite === null) ohneStufe++;
+      // Maße wie [23]: das Größere aus Katalog und Umriss, die Höhe notfalls geschätzt
+      const fig = figures.get(id) ?? {}, fp = fps.get(id) ?? [];
+      const len = Math.max(fig.len ?? 0, fp[1] || 0), wid = Math.max(fig.wid ?? 0, fp[0] || 0);
+      if (!(len > 0 && wid > 0)) continue;
+      const hgt = fig.hgt > 0 ? fig.hgt : Math.max(3, wid / 4);
+      const p = mod.camPlan(hall, { len, halfW: wid / 2, height: hgt, hangar: seite });
+      if (!p || typeof p.size !== 'string' || !(p.size === '' || GROESSEN.includes(p.size)) || !Array.isArray(p.grow) || !p.grow.every(Number.isFinite)) { bad.push(`${id}: camPlan nennt keine Hangargröße (size ${JSON.stringify(p?.size)}, Zuwachs ${JSON.stringify(p?.grow)}): Die Halle rastet nicht ein`); continue; }
+      schiffe++;
+      zahl[p.size]++;
+      gesehen.set(id, { seite, halle: p.size });
+      hallen.add(p.grow.join('/'));
+      const z = sizes.find((x) => x[0] === p.size);
+      if (z && !p.grow.every((v, k) => v === z[k + 1])) bad.push(`${id}: Stufe ${p.size}, der Zuwachs der Halle ist aber [${p.grow.join(', ')}] statt [${z.slice(1).join(', ')}]: Die Halle steht nicht auf der Stufe`);
+      if (seite && p.size !== '' && GROESSEN.indexOf(p.size) < GROESSEN.indexOf(seite)) bad.push(`${id}: die Halle steht auf ${p.size}, kleiner als seine Stufe ${seite}: Die Stufe des Schiffs ist die kleinste, die es bekommt`);
+      // selbst nachgemessen, nicht dem Viewer geglaubt: mit 1 m Rand auf dem Feld, 4 m unter den Wannen
+      const luft = [feld[0] + p.grow[0] - wid - 2, feld[1] + p.grow[2] - len - 2, G.clear + p.grow[1] - hgt - 4];
+      luftMin = Math.min(luftMin, ...luft);
+      if (!luft.every((v) => v >= -1e-6)) bad.push(`${id}: ${f2(len)} x ${f2(wid)} x ${f2(hgt)} m ragt in ${p.size || 'seiner Halle nach Maß'} über das Feld ${f2(feld[0] + p.grow[0])} x ${f2(feld[1] + p.grow[2])} m oder unter die Wannen bei ${f2(G.clear + p.grow[1])} m (Luft quer ${f2(luft[0])}, längs ${f2(luft[1])}, oben ${f2(luft[2])} m bei 1 m Rand und 4 m unter den Wannen): Es stünde über dem Rand des Aufzugs oder in den Lichtwannen`);
+      const a = GROESSE_AUSNAHMEN[id];
+      if (p.size !== seite && !(a && a.auf === p.size && a.von === seite)) fremd.push(`${id} (${seite ?? 'ohne Stufe'} nach Größenklasse, die Halle steht auf ${p.size || 'Maß'}; ${f2(len)} x ${f2(wid)} x ${f2(hgt)} m)`);
+    }
+    // Zombie-Wächter: Jede Ausnahme braucht ihren Anlass
+    for (const [id, a] of Object.entries(GROESSE_AUSNAHMEN)) {
+      const g = gesehen.get(id);
+      if (!g) fail(`[24] Ausnahme ${id} (${a.anlass}) ohne Schiff: Es steht nicht mehr auf dem Feld oder hat keine Maße; Ausnahme in GROESSE_AUSNAHMEN streichen`);
+      else if (g.halle === g.seite) fail(`[24] Ausnahme ${id} (${a.anlass}) ohne Anlass: Es steht jetzt in der Stufe seiner Größenklasse (${g.seite}); Ausnahme in GROESSE_AUSNAHMEN streichen`);
+      else if (g.halle !== a.auf || g.seite !== a.von) fail(`[24] Ausnahme ${id} nennt ${a.von} auf ${a.auf || 'Maß'}, gebaut ist ${g.seite ?? 'ohne Stufe'} auf ${g.halle || 'Maß'}: Ausnahme in GROESSE_AUSNAHMEN nachziehen (mit Anlass)`);
+    }
+    // so viele verschiedene Hallen wie Stufen in Gebrauch, dazu je Halle nach Maß eine
+    const erlaubt = GROESSEN.filter((g) => zahl[g]).length + zahl[''];
+    if (hallen.size > erlaubt) bad.push(`${hallen.size} verschiedene Hallen für ${schiffe} Schiffe, mit ${GROESSEN.filter((g) => zahl[g]).length} Stufen und ${zahl['']} Hallen nach Maß dürften es höchstens ${erlaubt} sein: Die Halle wächst wieder je Schiff`);
+  }
+  // Abweichung von der Größenklasse ohne Eintrag: kein Schaden (die Halle
+  // fasst das Schiff, die Zeile nennt die Halle), aber benannt gehört sie
+  if (fremd.length) say(`    WARNUNG: ${fremd.length} Schiffe stehen nicht in der Stufe ihrer Größenklasse und nicht in GROESSE_AUSNAHMEN: ${fremd.slice(0, 4).join('; ')}${fremd.length > 4 ? '; …' : ''}. Maße im Katalog prüfen, sonst dort mit Anlass eintragen`);
+  // (c) die Naht: Bühne, Controller und Seite
+  const draht = [
+    [viewer, /function growFor\(info\) \{[\s\S]{0,300}?const pick = growPick\(info, L, G\.s, realHall\.room\.height\);[\s\S]{0,400}?hangarTell\(info\.id \?\? null, pick\.size,[\s\S]{0,300}?return out\.fromArray\(pick\.grow\);/, 'growFor im Viewer nimmt den Zuwachs nicht mehr aus growPick oder meldet die Stufe nicht (hangarTell): Die Halle wüchse wieder je Schiff, oder die Zeile bliebe leer'],
+    [viewer, /for \(let i = Math\.max\(0, s\.sizes\.findIndex\(\(z\) => z\[0\] === info\.hangar\)\); i < s\.sizes\.length; i\+\+\)/, 'growPick beginnt nicht mehr bei der Stufe des Schiffs (info.hangar): Ein Schiff der Stufe Medium, das in Small passte, stünde in Small'],
+    [viewer, /id: o\.id \?\? null, hangar: o\.hangar \?\? null \};/, 'show() im Viewer gibt Id und Stufe des Schiffs nicht mehr in die Maße (info.id, info.hangar)'],
+    [viewer, /onHangar\(fn\) \{ hangarFn = fn; if \(hangarNow\) fn\(\{ \.\.\.hangarNow \}\); \}/, 'der Viewer bietet onHangar nicht mehr an'],
+    [viewer, /\[null, t\.maker, t\.name, t\.role, t\.hangar\]\.forEach\(/, 'das Hologramm über dem Schiff zeigt die Zeile der Hangargröße nicht mehr (t.hangar)'],
+    [ctrl, /const \[glb, tex, maker, ort, hangar\] = stageCfg\.models\[id\];[\s\S]{0,900}?viewer\.show\(glb, \{ maker, tex, ort, id, hangar, label: labelOf\(id\) \}\)/, 'der Controller gibt show() die Stufe des Schiffs nicht mehr mit (models[id][4]): Jedes Schiff bekäme die kleinste Halle, die es fasst'],
+    [ctrl, /v\.onHangar\?\.\(onHangar\);/, 'der Controller hört nicht mehr auf onHangar: Die Zeile der Hangargröße bliebe leer'],
+    [ctrl, /function onHangar\(e\) \{[\s\S]{0,300}?grOf\.set\(e\.id, e\);[\s\S]{0,200}?paintGr\(\);\s*viewer\?\.label\?\.\(e\.id, labelOf\(e\.id\)\);/, 'onHangar im Controller schreibt die Zeile nicht mehr in den Titelblock und ins Hologramm'],
+    [ctrl, /role: txt\('\.hg-role'\), hangar: grText\(id\) \};/, 'labelOf im Controller gibt dem Hologramm die Hangargröße nicht mehr mit'],
+  ];
+  let verdrahtet = 0;
+  for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
+  // Wörter der Zeile je Sprache: alle da, die mit Maßen tragen ihre Platzhalter, und Deutsch ist nicht Englisch
+  let worte = 0;
+  const wort = PAGES.map((page) => {
+    const tag = /<span data-msg="gr"([^>]*)>/.exec(page.html)?.[1] ?? null, o = {};
+    if (tag === null) fail(`[24] ${page.file}: die Wörter der Hangargröße fehlen (#hgx-msg [data-msg="gr"])`);
+    for (const k of ['s', 'm', 'l', 'xl', 'own', 'feld', 'frei']) {
+      o[k] = (new RegExp(`\\sdata-${k}="([^"]*)"`).exec(tag ?? '')?.[1] ?? '').trim();
+      if (tag !== null && !o[k]) fail(`[24] ${page.file}: data-${k} der Hangargröße ist leer`);
+      else if (tag !== null) worte++;
+    }
+    if (tag !== null && !['{w}', '{l}'].every((x) => o.feld.includes(x))) fail(`[24] ${page.file}: data-feld („${o.feld}“) trägt nicht {w} und {l}: Die Zeile nennte das Feld nicht`);
+    if (tag !== null && !['{w}', '{l}', '{h}'].every((x) => o.frei.includes(x))) fail(`[24] ${page.file}: data-frei („${o.frei}“) trägt nicht {w}, {l} und {h}`);
+    if (!/<header class="hg-title">[\s\S]{0,4000}?<p class="hg-role hg-gr" id="hgx-gr" hidden><\/p>[\s\S]{0,200}?<div class="hgx-actions"/.test(page.html)) fail(`[24] ${page.file}: die Zeile #hgx-gr steht nicht mehr leer und verborgen im Titelblock (.hg-title, vor der Knopfreihe): Ohne Hologramm und für Vorleser fehlte die Hangargröße`);
+    return o;
+  });
+  for (const k of ['s', 'm', 'l', 'xl', 'own', 'frei']) if (wort[0][k] && wort[0][k] === wort[1][k]) fail(`[24] data-${k} der Hangargröße lautet deutsch wie englisch („${wort[0][k]}“): vergessene Übersetzung`);
+  for (const t of bad.slice(0, 12)) fail(`[24] ${t}`);
+  if (bad.length > 12) fail(`[24] … und ${bad.length - 12} weitere Befunde an den Hangargrößen`);
+  sollIst(`${GROESSEN.length} Stufen mit den abgenommenen Maßen; Schiffe der Halle >= ${GROESSE.schiffe}, jedes auf dem Feld seiner Halle, nie kleiner als seine Stufe; Small >= ${GROESSE.S}, Medium >= ${GROESSE.M}, Large >= ${GROESSE.L}, Extra Large >= ${GROESSE.XL}; Abweichungen von der Größenklasse nur benannt (${Object.keys(GROESSE_AUSNAHMEN).length}); Naht >= ${GROESSE.draht} Stellen, Wörter >= ${GROESSE.worte}`,
+    `${stufen} Stufen, ${schiffe} Schiffe (${zahl.S} Small, ${zahl.M} Medium, ${zahl.L} Large, ${zahl.XL} Extra Large, ${zahl['']} nach Maß; ${ohneStufe} ohne Stufe von der Seite), ${hallen.size} verschiedene Hallen, knappste Luft ${Number.isFinite(luftMin) ? luftMin.toFixed(2) : '—'} m, ${bad.length} Befunde, ${fremd.length} unbenannte Abweichungen, Naht ${verdrahtet} von ${draht.length}, ${worte} Wörter`);
+  if (mod && formOk) {
+    if (schiffe < GROESSE.schiffe) fail(`[24] nur ${schiffe} Schiffe der Halle gerechnet (Klinke ${GROESSE.schiffe}): lädt der Viewer nicht, fehlt #hg-stage oder nennt das Dock keine Maße mehr?`);
+    for (const g of GROESSEN) if (zahl[g] < GROESSE[g]) fail(`[24] nur ${zahl[g]} Schiffe in der Stufe ${g} (Klinke ${GROESSE[g]}): Fällt die Größenklasse im Katalog weg, oder rastet die Halle anders ein?`);
+  }
+  if (verdrahtet < GROESSE.draht) fail(`[24] nur ${verdrahtet} Stellen der Naht geprüft (Klinke ${GROESSE.draht})`);
+  if (worte < GROESSE.worte) fail(`[24] nur ${worte} Wörter der Hangargröße auf den Seiten (Klinke ${GROESSE.worte})`);
+  ist.grStufen = stufen; ist.grSchiffe = schiffe; ist.grZahl = zahl; ist.grHallen = hallen.size; ist.grDraht = verdrahtet; ist.grWorte = worte;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen   Hangargrößen: ${ist.grStufen ?? 0} Stufen, ${ist.grSchiffe ?? 0} Schiffe (S ${ist.grZahl?.S ?? 0}, M ${ist.grZahl?.M ?? 0}, L ${ist.grZahl?.L ?? 0}, XL ${ist.grZahl?.XL ?? 0}, nach Maß ${ist.grZahl?.[''] ?? 0}), ${ist.grHallen ?? 0} Hallen, Naht ${ist.grDraht ?? 0}, ${ist.grWorte ?? 0} Wörter`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

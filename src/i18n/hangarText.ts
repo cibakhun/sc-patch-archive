@@ -145,6 +145,9 @@ const DE = {
   'bay.failed': 'Die Ausstattung dieses Schiffs konnte nicht geladen werden.',
   'bay.retry': 'Erneut versuchen',
   'model.failed': 'Das 3D-Modell dieses Schiffs konnte nicht geladen werden. Die Werte stehen trotzdem bereit.',
+  'model.grund': 'Technischer Grund:',
+  'leicht.text': 'Leichte Ansicht: Die volle Halle brach auf diesem Gerät ab.',
+  'leicht.voll': 'Volle Halle laden',
   // Vorlagen, die der Controller fuellt (Mehrzahl ueber Intl.PluralRules)
   'msg.count.one': '{n} Schiff',
   'msg.count.other': '{n} Schiffe',
@@ -221,6 +224,32 @@ const DE = {
   'st.uebersicht': 'Übersicht',
   'st.loadout': 'Loadout',
   'st.flat': 'Als Tafel',
+  // Orte der Halle und das Terminal im Leitstand (13.11.2026): die Leiste am
+  // Bühnenfuß nennt die Orte, das Terminal zeigt die Seite selbst
+  'ort.label': 'Orte der Halle',
+  'ort.halle': 'Schiffsfeld',
+  'ort.werk': 'Werkhalle',
+  'ort.leit': 'Leitstand',
+  'ort.an.leit': 'Im Leitstand. Das Terminal zeigt die Seite.',
+  'ort.an.halle': 'Zurück in der Halle.',
+  // Hangargröße des Schiffs (13.11.2026): vier Stufen wie im Spiel, mit
+  // deren Namen. „own“: Kein Hangar fasst das Schiff (Javelin). Dahinter das
+  // Feld der Halle (feld), für Maus und Vorleser die freie Höhe (frei).
+  'gr.S': 'Small-Hangar',
+  'gr.M': 'Medium-Hangar',
+  'gr.L': 'Large-Hangar',
+  'gr.XL': 'Extra-Large-Hangar',
+  'gr.own': 'Für jeden Hangar zu groß',
+  'msg.gr.feld': '{w} × {l} m',
+  'msg.gr.frei': 'Feld der Halle {w} × {l} m, darüber {h} m frei',
+  'term.label': 'Terminal im Leitstand',
+  'term.nav': 'Bereiche der Seite',
+  'term.frame': 'VerseBase auf dem Terminal',
+  'term.archiv': 'Archiv',
+  'term.back': 'Zurück zur vorigen Seite',
+  'term.load': 'Seite lädt …',
+  'term.fail': 'Die Seite lässt sich hier gerade nicht anzeigen. Der Pfeil oben rechts öffnet sie in einem eigenen Tab.',
+  'term.open': 'In eigenem Tab öffnen',
   'holo.speed': 'Tempo',
   'holo.fire': 'Feuerkraft',
   'holo.shield': 'Schild',
@@ -362,6 +391,9 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'bay.failed': 'The loadout of this ship could not be loaded.',
   'bay.retry': 'Try again',
   'model.failed': 'The 3D model of this ship could not be loaded. The figures are still available.',
+  'model.grund': 'Technical reason:',
+  'leicht.text': 'Light view: the full hangar stopped on this device.',
+  'leicht.voll': 'Load the full hangar',
   'msg.count.one': '{n} ship',
   'msg.count.other': '{n} ships',
   'msg.copy.ok': 'Link copied.',
@@ -431,6 +463,27 @@ const EN: Readonly<Record<HangarKey, string>> = {
   'st.uebersicht': 'Overview',
   'st.loadout': 'Loadout',
   'st.flat': 'As panel',
+  'ort.label': 'Places in the hall',
+  'ort.halle': 'Ship pad',
+  'ort.werk': 'Vehicle bay',
+  'ort.leit': 'Control room',
+  'ort.an.leit': 'In the control room. The terminal shows the site.',
+  'ort.an.halle': 'Back in the hall.',
+  'gr.S': 'Small hangar',
+  'gr.M': 'Medium hangar',
+  'gr.L': 'Large hangar',
+  'gr.XL': 'Extra Large hangar',
+  'gr.own': 'Too large for any hangar',
+  'msg.gr.feld': '{w} × {l} m',
+  'msg.gr.frei': 'Pad of the hall {w} × {l} m, {h} m clear above it',
+  'term.label': 'Terminal in the control room',
+  'term.nav': 'Sections of the site',
+  'term.frame': 'VerseBase on the terminal',
+  'term.archiv': 'Archive',
+  'term.back': 'Back to the previous page',
+  'term.load': 'Loading page …',
+  'term.fail': 'The page cannot be shown here right now. The arrow at the top right opens it in its own tab.',
+  'term.open': 'Open in its own tab',
   'holo.speed': 'Speed',
   'holo.fire': 'Firepower',
   'holo.shield': 'Shield',
@@ -451,7 +504,7 @@ const HANGAR_UI: Readonly<Record<Locale, Readonly<Record<HangarKey, string>>>> =
 // Gleich lautend in beiden Sprachen ist nur, was ein Eigenname, ein
 // Fachkürzel oder ein Wort ist, das beide Sprachen gleich schreiben (Name,
 // Filter); jeder andere gleiche Wert ist eine vergessene Übersetzung.
-const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status', 'st.loadout']);
+const SAME_OK: ReadonlySet<HangarKey> = new Set<HangarKey>(['grp.radar', 'kind.radar', 'msg.fleet.scu', 'dock.sortName', 'dock.filter', 'qv.crew', 'ov.status', 'st.loadout', 'msg.gr.feld']);
 
 function assertParity(): void {
   const keys = Object.keys(DE) as HangarKey[];
