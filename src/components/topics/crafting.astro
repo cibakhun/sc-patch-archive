@@ -14,6 +14,7 @@ import { versioned } from '../../lib/assetVersion';
 import { localeFromPath } from '../../i18n/ui';
 import { patchLinkFromKennung } from '../../lib/patchPages';
 import CraftingProtoNote from '../CraftingProtoNote.astro';
+import { blueprints } from '../../lib/crafting';
 
 interface Props {
   /** Prototyp der Werkbank (Skizze 016): nur die Vorschau-Seite
@@ -24,7 +25,10 @@ const werkbank = Astro.props.werkbank === true;
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
-const total = DB.counts.blueprints;
+// Kennzahl unter dem Werkzeug: dieselbe Zahl wie der Zaehler ueber der Liste
+// (Rezepte mit Item, lib/crafting). Bis 14.11.2026 stand hier der Spielbestand
+// DB.counts.blueprints (1634) unter einer Liste, die „1.626 / 1.626“ zaehlt.
+const total = blueprints.length.toLocaleString(de ? 'de-DE' : 'en-US');
 const nRes = DB.counts.resources;
 const ver = DB.version;
 // Patch label derived from the database version ("LIVE-4.9.0-12232306" -> "4.9")
@@ -139,6 +143,18 @@ const patchCrumb = patchHref ? { label: patchLink.label, href: patchHref } : { l
    (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC „Kann weg“): --nav-h
    bleibt bei 68 px, die Reiterzeile steht direkt unter der Leiste. */
 .cr-wb{padding-top:calc(var(--nav-h,68px) + .5rem)}
+/* Werkbank: der Block unter dem Werkzeug steht auf dessen Kanten (die
+   Werkbank fuellt die Seitenbreite, die Mittelspalte von --maxw stuende
+   darunter eingerueckt). Ab 900 px zwei Spalten: links Zeile, Kennzahlen
+   und Verzeichnisse, rechts der Speicherhinweis; der Datenstand darunter
+   ueber die ganze Breite. */
+.cr-about--wb{max-width:none;margin-top:1.6rem;padding-inline:clamp(.75rem,1.6vw,1.5rem)}
+@media (min-width:900px){
+  .cr-about--wb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,36rem);gap:.9rem 2.4rem;align-items:start}
+  .cr-about--wb > *{grid-column:1}
+  .cr-about--wb > .cr-note{grid-column:2;grid-row:1 / span 3}
+  .cr-about--wb > .vb-stand{grid-column:1 / -1}
+}
 .hero.cr-sr{position:absolute;width:1px;height:1px;min-height:0;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}</style>
 <a class="skip" href="#main" set:text={de ? 'Zum Inhalt springen' : 'Skip to content'} />
 
@@ -179,7 +195,7 @@ const patchCrumb = patchHref ? { label: patchLink.label, href: patchHref } : { l
       bzw. echtes <a href> im statischen HTML; die Verweise sind der
       krabbelbare Weg in die Verzeichnisse, ihre Position im Dokument ist
       dafuer egal, ihr Vorhandensein nicht. */}
-  <aside class="cr-about">
+  <aside class:list={['cr-about', werkbank && 'cr-about--wb']}>
     <p class="cr-about__lead">{de ? 'Blueprints, Zutaten, Qualitäts-Simulator, Fabricator-Planer.' : 'Blueprints, ingredients, quality simulator, fabricator planner.'}</p>
     <div class="qbar"><span>Blueprints <b>{total}</b></span><span>{de ? 'Ressourcen ' : 'Resources '}<b>{nRes}</b></span><span>Patch {patchHref ? <a href={patchHref}><b>{patchLink.version}</b></a> : <b>{patchLink.version}</b>}</span></div>
     <div class="cr-note">

@@ -2,6 +2,11 @@
 // Krisz 11.11.2026 zur dritten Runde: „sher gut. jetzt möchte ich dass du mal
 // das design auf dem höchsten niveou bringst“, „also grafik ui animations etc“.
 //
+// Sechste Runde (Krisz 14.11.2026, nach der Umfrage: „dass du mal jedem aspekt
+// der werkbankseite eine richtig guten polish gibst“): Bestandsaufnahme an
+// Schreibtisch, Tablet und Telefon, dann Stelle fuer Stelle. Was dabei neu
+// dazukam, steht an seiner Stelle mit „R6“ im Kommentar.
+//
 // Arbeitsteilung: werkbankCss.ts stellt (Spalten, Hoehen, Schubladen), diese
 // Datei gestaltet. Sie steht im selben <style> dahinter und gewinnt bei
 // gleichem Gewicht. Die bisherige Crafting-Seite und der Live-Bau sehen sie nie.
@@ -36,6 +41,9 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wg{-webkit-mask-image:var(--g);mask-image:var(--g)}
 .cdb--wb button{-webkit-tap-highlight-color:transparent}
 .cdb--wb :focus-visible{outline:2px solid var(--b);outline-offset:2px}
+/* R6: Das Rezeptblatt selbst ist am Handy nur Parkplatz für den Fokus (tabindex=-1). Der Rahmen oben
+   legte sich sonst um das ganze bildschirmfüllende Blatt und lief an den Rändern aus dem Bild. */
+.cdb--wb .cdb-modal__box:focus-visible{outline:none}
 
 /* ===== 1 Kopfzeile: Reiter, Prototyp, Hilfe ===== */
 .cdb--wb > .cdb-tabs{gap:.2rem;margin-bottom:.55rem;padding-bottom:0}
@@ -55,6 +63,9 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__body{top:calc(100% + .45rem);border:1px solid var(--hl2);border-radius:12px;background:var(--e1);box-shadow:0 30px 70px -20px #000,0 0 0 1px rgba(0,0,0,.4);transform-origin:100% 0}
   .cdb--wb > #cdb-tab-db-content > .tool-help[open] > .tool-help__body{animation:wb-pop var(--dur-base) var(--out)}
 }
+
+/* R6: Reiter mit langem Namen (wb-tl) und, am Telefon, mit kurzem (wb-tk). */
+.cdb--wb .wb-tk{display:none}
 
 /* ===== 2 Bedienleiste ===== */
 .cdb--wb > #cdb-tab-db-content > .cdb-bar{gap:.5rem;margin-bottom:.8rem;padding:.5rem;border:1px solid var(--hl);border-radius:12px;background:var(--e1);box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 18px 40px -30px #000}
@@ -85,8 +96,16 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-planner-open::before{content:"";width:1.1em;height:1.1em;background:currentColor;-webkit-mask:var(--i-fab) center/contain no-repeat;mask:var(--i-fab) center/contain no-repeat}
 .cdb--wb .cdb-planner-open:hover{background:color-mix(in srgb,var(--b) 20%,var(--e2))}
 .cdb--wb .cdb-sync{border-color:var(--hl);background:transparent}
+/* R6: die Speicheranzeige steht einmal, im Planer (dort liegt, was gespeichert
+   wird). In der Leiste war sie ab 1180 px doppelt zu sehen, darunter nahm sie
+   eine eigene Zeile. Nur ein Fehler beim Speichern meldet sich weiter oben:
+   der Planer ist unter 1180 px eine Schublade und meist zu. */
+.cdb--wb .cdb-bar > .cdb-sync:not([data-state="error"]){display:none}
 @media (min-width:821px){
   .cdb--wb .cdb-sync{height:var(--ctl);padding:0 .9rem}
+}
+@media (min-width:1180px){
+  .cdb--wb .cdb-bar > .cdb-sync{display:none}
 }
 @media (min-width:821px) and (max-width:1179px){
   .cdb--wb .cdb-planner-open{display:inline-flex;align-items:center;gap:.5rem}
@@ -137,6 +156,10 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbp__own.is-knall::before,.cdb--wb .cbp__add.is-knall::before{animation:wb-knall .42s var(--feder)}
 .cdb--wb .cbp__name{font-size:var(--fs-9);line-height:1.18;text-wrap:balance;transition:color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cbp:hover .cbp__name a{color:var(--tx)}
+/* R6: der Name ist der Tabulator-Halt der Kachel. Der Ring liegt um die ganze
+   Kachel statt als gezackter Rahmen um einen zweizeiligen Link. */
+.cdb--wb .cbp__name a:focus-visible{outline:none}
+.cdb--wb .cbp:has(.cbp__name a:focus-visible){outline:2px solid var(--b);outline-offset:2px}
 .cdb--wb .cbp__meta{align-items:center;gap:.85rem;font-size:var(--fs-4);color:var(--mu)}
 .cdb--wb .cbp__meta span{display:inline-flex;align-items:center;gap:.3rem}
 .cdb--wb .cbp__meta span::before{content:"";width:13px;height:13px;background:currentColor;opacity:.8;-webkit-mask:var(--i-clock) center/contain no-repeat;mask:var(--i-clock) center/contain no-repeat}
@@ -146,7 +169,10 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbp__spec li{padding:.12rem .45rem;border:0;border-radius:4px;background:rgba(255,255,255,.07);font-size:var(--fs-3);font-weight:700;letter-spacing:var(--ls-5)}
 .cdb--wb .cbp__spec li.tone{background:color-mix(in srgb,var(--b) 15%,transparent);color:var(--b)}
 /* Zutaten unter einer gestrichelten Linie: oben, was entsteht, unten, was es kostet. */
-.cdb--wb .cbp__res{gap:.2rem .3rem;margin:.1rem 0 0;padding-top:.55rem;border-top:1px dashed var(--hl2)}
+/* R6: margin-top:auto stellt die Zeile an die Unterkante der Kachel; in einer
+   Reihe stehen die gestrichelten Linien dann auf einer Hoehe, auch wenn ein
+   Name zwei Zeilen braucht und der daneben nur eine. */
+.cdb--wb .cbp__res{gap:.2rem .3rem;margin:auto 0 0;padding-top:.55rem;border-top:1px dashed var(--hl2)}
 .cdb--wb .cbp__res li{border:0;border-radius:4px;background:transparent;padding:.05rem .1rem;font-size:var(--fs-4);color:#c3c8d1}
 .cdb--wb .cbp__res li:not(:last-child)::after{content:"";display:inline-block;width:3px;height:3px;margin-left:.45rem;border-radius:50%;background:var(--mu2);vertical-align:middle}
 .cdb--wb .cbp__res li:has(.cbp__mine){padding:.05rem .1rem}
@@ -167,6 +193,16 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-grid.is-list .cbp__res{display:none}
 .cdb--wb .cdb-grid.is-list .cbp:not(:has(.cbp__spec)) .cbp__name{grid-row:1 / span 2}
 .cdb--wb .cdb-empty{padding:3rem 1rem;border:1px dashed var(--hl2);border-radius:10px}
+/* R6: leere Liste mit Zeichen, Grund und Ausweg. */
+.cdb--wb .cdb-empty--wb{display:grid;justify-items:center;gap:.45rem;padding:2.6rem 1.2rem 2.4rem;text-align:center;animation:wb-ein var(--dur-slow) var(--out)}
+.cdb--wb .cdb-empty--wb[hidden]{display:none}
+.cdb--wb .cdb-empty__i{display:grid;place-items:center;width:52px;height:52px;margin-bottom:.4rem;border-radius:50%;background:color-mix(in srgb,var(--o) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--o) 30%,transparent)}
+.cdb--wb .cdb-empty__i::before{content:"";width:22px;height:22px;background:var(--o);-webkit-mask:var(--i-search) center/contain no-repeat;mask:var(--i-search) center/contain no-repeat}
+.cdb--wb .cdb-empty__t{margin:0;font-family:var(--font-display,inherit);font-size:var(--fs-11);font-weight:800;color:var(--tx)}
+.cdb--wb .cdb-empty__x{margin:0;max-width:34ch;font-size:var(--fs-7);line-height:1.5;color:var(--mu)}
+.cdb--wb .cdb-empty__r{display:inline-flex;align-items:center;gap:.45rem;height:2.3rem;margin-top:.7rem;padding:0 1rem;border:1px solid color-mix(in srgb,var(--o) 55%,transparent);border-radius:8px;background:color-mix(in srgb,var(--o) 10%,transparent);color:var(--o);font-family:var(--font-ui,inherit);font-size:var(--fs-6);font-weight:700;cursor:pointer;transition:background-color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
+.cdb--wb .cdb-empty__r:hover{border-color:var(--o);background:color-mix(in srgb,var(--o) 18%,transparent)}
+.cdb--wb .cdb-empty__r:active{transform:scale(.97)}
 
 /* ===== 4 Rezept (Mitte) ===== */
 .cdb--wb .cdb-modal__box{padding:0;border:1px solid var(--hl2);border-radius:12px;background:var(--e1);box-shadow:0 30px 70px -40px #000}
@@ -182,8 +218,12 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb .wbr-kenn:has(> :nth-child(4)) > div:nth-child(n+3){border-top:1px solid var(--hl)}
   .cdb--wb .wbr-kenn .wi{display:inline-block}
 }
-@container wbm (max-width:440px){
+@container wbm (max-width:400px){
   .cdb--wb .cbm__meta > .cbm__xlink{flex-basis:100%}
+  .cdb--wb .cdb-modal__body .wbr-kopf{gap:.8rem}
+  .cdb--wb .cdb-modal__body .wbr-emb{width:60px;height:60px}
+  .cdb--wb .cdb-modal__body .wbr-emb .wg,.cdb--wb .cdb-modal__body .wbr-emb .wi{width:28px;height:28px}
+  .cdb--wb .cdb-modal__body .cbm__name{font-size:1.2rem}
 }
 .cdb--wb .cdb-modal__x,.cdb--wb .cdb-x{z-index:6;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--hl2);border-radius:8px;background:rgba(0,0,0,.35);color:var(--mu);font-size:0;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
 /* Das X klebt oben rechts in der Mitte, auch wenn das Rezept darunter rollt
@@ -209,8 +249,19 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wb-ring__b{stroke:currentColor;stroke-width:1.2;opacity:.55}
 .cdb--wb .wb-ring__c{stroke:currentColor;stroke-width:1.5;stroke-linecap:round;opacity:.9}
 .cdb--wb .wbr-kopf__t{min-width:0;flex:1}
-.cdb--wb .cbm__cat{padding-right:5.2rem;font-size:var(--fs-1);letter-spacing:var(--ls-12);color:var(--kc)}
-.cdb--wb .cbm__name{margin:.3rem 0 0;font-size:clamp(1.25rem,1.9vw,1.65rem);line-height:1.12;text-wrap:balance}
+/* R6: rechts bleibt Platz fuer das ✕, fuer den Zurueck-Pfeil daneben nur,
+   wenn er da ist (tiefer Link). Vorher hielten 5,2rem immer beide frei, und
+   „/ CANNON“ fiel allein in die zweite Zeile. */
+.cdb--wb .cbm__cat{padding-right:2.6rem;font-size:var(--fs-1);letter-spacing:var(--ls-12);color:var(--kc)}
+.cdb--wb .cdb-modal__box:has(> .cdb-modal__back:not([hidden])) .cbm__cat{padding-right:5.2rem}
+/* Pfad in Gliedern (crafting-app.js, wbPfad): der Strich haengt am Glied
+   davor, eine umbrochene Zeile beginnt nie mit „/“. */
+.cdb--wb .wbr-pfad{display:flex;flex-wrap:wrap;gap:.15rem .5rem}
+.cdb--wb .wbr-pfad span{white-space:nowrap}
+.cdb--wb .wbr-pfad span:not(:last-child)::after{content:"/";margin-left:.5rem;opacity:.5}
+/* R6: Namen nur an Wortgrenzen umbrechen (hyphens:auto, geerbt, machte in der
+   366 px schmalen Mitte bei 900 px aus „Greatsword“ ein „Gre-atsword“). */
+.cdb--wb .cbm__name{margin:.3rem 0 0;font-size:clamp(1.25rem,1.9vw,1.65rem);line-height:1.12;text-wrap:balance;hyphens:manual;overflow-wrap:break-word}
 .cdb--wb .wbr-chips{list-style:none;display:flex;flex-wrap:wrap;gap:.3rem;margin:.6rem 0 0;padding:0}
 .cdb--wb .wbr-chips li{padding:.14rem .5rem;border-radius:4px;background:rgba(255,255,255,.08);font-size:var(--fs-3);font-weight:700;letter-spacing:var(--ls-5);color:var(--tx)}
 .cdb--wb .wbr-chips li.tone{background:color-mix(in srgb,var(--b) 16%,transparent);color:var(--b)}
@@ -229,6 +280,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbm__plan.is-ok .wi,.cdb--wb .wbr-fest__p.is-ok .wi{animation:wb-knall .42s var(--feder)}
 .cdb--wb .cbm__xlink{flex:1 1 9.5rem;justify-content:space-between;gap:.6rem;min-height:2.4rem;padding:.3rem .8rem .3rem .9rem;border-color:var(--hl2);border-radius:8px;color:var(--tx);font-size:var(--fs-5);line-height:1.25;text-align:left;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cbm__xlink .wi{margin-left:auto;color:var(--b);transition:transform var(--dur-base) var(--out)}
+.cdb--wb .cbm__xlink > span{min-width:0;margin-right:auto}
 .cdb--wb .cbm__xlink .cic{flex:none;color:var(--mu)}
 .cdb--wb .cbm__xlink:hover{border-color:color-mix(in srgb,var(--b) 70%,transparent);background:color-mix(in srgb,var(--b) 10%,transparent);color:var(--b)}
 .cdb--wb .cbm__xlink:hover .wi--arrow{transform:translateX(3px)}
@@ -249,6 +301,9 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbm__opt .on{font-weight:700}
 .cdb--wb .cbm__opt .oq{margin-left:auto;font-size:var(--fs-7);color:var(--tx)}
 .cdb--wb .cbm__opt .omq{padding:.05rem .4rem;border-radius:4px;background:rgba(255,255,255,.06);font-size:var(--fs-2);letter-spacing:var(--ls-5)}
+/* R6: die Marke steht nur noch, wo das Rezept wirklich eine Qualitaet
+   verlangt (crafting-app.js), und faellt dann auf. */
+.cdb--wb .cbm__opt .omq--hart{background:color-mix(in srgb,var(--o) 15%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--o) 40%,transparent);font-weight:700;color:var(--o)}
 .cdb--wb a.cdb-mine{border-bottom:1px solid transparent}
 .cdb--wb a.cdb-mine:hover,.cdb--wb a.cdb-mine:focus-visible{border-bottom-color:var(--b)}
 .cdb--wb .cdb-mine__ico{display:inline-block;width:.85em;height:.85em;margin-left:.3rem;background:currentColor;font-size:inherit;opacity:.5;overflow:hidden;color:inherit;text-indent:-9em;vertical-align:-.08em;-webkit-mask:var(--i-pick) center/contain no-repeat;mask:var(--i-pick) center/contain no-repeat;transition:opacity var(--dur-fast) var(--ease-ui)}
@@ -293,11 +348,16 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbm__mis{gap:.3rem;max-height:none}
 .cdb--wb .cbm__mis li,.cdb--wb .cbm__pool li{padding:0 .7rem 0 0;border:1px solid var(--hl);border-radius:8px;background:var(--e2);transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cbm__mis li:hover,.cdb--wb .cbm__pool li:hover{border-color:color-mix(in srgb,var(--b) 55%,transparent);background:color-mix(in srgb,var(--b) 7%,var(--e2))}
-.cdb--wb .cbm__mlink{gap:.6rem;padding:.6rem .7rem;font-size:var(--fs-7)}
+/* R6: justify-content, weil Knoepfe unter 821 px ihren Inhalt mittig stellen
+   (mobile-ux.css): die Zeichen der Zeilen standen dort nicht untereinander. */
+.cdb--wb .cbm__mlink{justify-content:flex-start;gap:.6rem;padding:.5rem .7rem;font-size:var(--fs-7)}
 .cdb--wb .cbm__mlink::before{content:"";width:1em;height:1em;background:var(--b);-webkit-mask:var(--i-mission) center/contain no-repeat;mask:var(--i-mission) center/contain no-repeat}
 .cdb--wb .cbm__mlink:hover{background:none}
 .cdb--wb .cbm__mis b,.cdb--wb .cbm__pool b{padding:.08rem .4rem;border-radius:4px;background:color-mix(in srgb,var(--o) 14%,transparent);font-size:var(--fs-3);color:var(--o)}
-.cdb--wb .cbm__blink{flex-direction:row;align-items:center;gap:.7rem;padding:.55rem .7rem}
+/* R6: 3.813 von 3.848 Quoten sind 100 %. Die stehen leise, betont ist die
+   Ausnahme darunter. */
+.cdb--wb .cbm__mis b.is-voll,.cdb--wb .cbm__pool b.is-voll{background:rgba(255,255,255,.06);font-weight:600;color:var(--mu)}
+.cdb--wb .cbm__blink{flex-direction:row;align-items:center;justify-content:flex-start;gap:.7rem;padding:.55rem .7rem}
 .cdb--wb .cbm__blink:hover{background:none}
 .cdb--wb .cbm__blink .wg{width:1.15rem;height:1.15rem;color:var(--kc)}
 .cdb--wb .cbm__blink .pt{display:flex;flex-direction:column;gap:.1rem;min-width:0}
@@ -342,26 +402,39 @@ export const WERKBANK_DESIGN_CSS = `
 
 /* ===== 5 Planer ===== */
 .cdb--wb .cdb-drawer{background:var(--e1)}
-.cdb--wb .cdb-drawer__hd{gap:.5rem;padding:.9rem .9rem;border-bottom:1px solid var(--hl);background:linear-gradient(180deg,color-mix(in srgb,var(--b) 9%,var(--e1)),var(--e1));font-size:var(--fs-9)}
+/* R6: z-index. Der Kopf klebt, und die Zeichen der Zeilen sind positioniert:
+   ohne eigene Ebene rollten sie ueber den Kopf hinweg statt darunter. */
+.cdb--wb .cdb-drawer__hd{z-index:3;gap:.5rem;padding:.9rem .9rem;border-bottom:1px solid var(--hl);background:linear-gradient(180deg,color-mix(in srgb,var(--b) 9%,var(--e1)),var(--e1));font-size:var(--fs-9)}
 .cdb--wb .wbp-t{display:flex;align-items:center;gap:.6rem;min-width:0;font-size:clamp(.8rem,1.1vw,1.05rem);white-space:nowrap}
 .cdb--wb .wbp-t::before{content:"";flex:none;width:1.25rem;height:1.25rem;background:var(--b);-webkit-mask:var(--i-fab) center/contain no-repeat;mask:var(--i-fab) center/contain no-repeat}
 .cdb--wb .wbp-n{display:grid;place-items:center;min-width:1.5rem;height:1.5rem;padding:0 .4rem;border-radius:999px;background:var(--b);color:#041019;font-family:var(--font-ui,inherit);font-size:var(--fs-4);font-weight:800}
 .cdb--wb .wbp-n[hidden]{display:none}
 .cdb--wb .wbp-n.is-tick{animation:wb-knall .42s var(--feder)}
 .cdb--wb .cdb-plan-list{gap:.35rem;padding:.8rem .8rem .6rem}
-.cdb--wb .cdb-plan-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"g n n n" "g z rm c";align-items:center;gap:.4rem .5rem;padding:.6rem .55rem .55rem .65rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2);transition:border-color var(--dur-fast) var(--ease-ui)}
+/* R6: der Papierkorb steht oben rechts neben dem Namen. In der unteren Zeile
+   stiess er bei 256 px Planerbreite (1280 px) an die Craft-Zeit („13m 30s“). */
+.cdb--wb .cdb-plan-item{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"g n n rm" "g z c c";align-items:center;gap:.35rem .5rem;padding:.6rem .55rem .55rem .65rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2);transition:border-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cdb-plan-item:hover{border-color:var(--hl2)}
 .cdb--wb .cdb-plan-item > .wg{grid-area:g;align-self:start;box-sizing:content-box;width:1.15rem;height:1.15rem;padding:.35rem;border-radius:7px;-webkit-mask:none;mask:none;background:color-mix(in srgb,var(--kc) 13%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--kc) 28%,transparent);position:relative}
 .cdb--wb .cdb-plan-item > .wg::before{content:"";position:absolute;inset:.35rem;background:var(--kc);-webkit-mask:var(--g) center/contain no-repeat;mask:var(--g) center/contain no-repeat}
+/* R6: schmale Planerspalte (drei Spalten unter 1360 px). Liste und Zeile
+   ruecken zusammen, das Zeichen wird kleiner: 18 px mehr fuer den Namen,
+   dreizeilige Namen fallen von 44 auf 11 der 1626 Blueprints. */
+@media (min-width:1180px) and (max-width:1359px){
+  .cdb--wb .cdb-plan-list{padding-inline:.6rem}
+  .cdb--wb .cdb-plan-item{column-gap:.4rem;padding-left:.5rem;padding-right:.45rem}
+  .cdb--wb .cdb-plan-item > .wg{width:1rem;height:1rem;padding:.3rem}
+  .cdb--wb .cdb-plan-item > .wg::before{inset:.3rem}
+}
 .cdb--wb .pi__n{grid-area:n;font-size:var(--fs-6);font-weight:600;line-height:1.25}
-.cdb--wb .pi__z{grid-area:z;display:inline-flex;align-items:center;gap:.3rem;font-size:var(--fs-4);white-space:nowrap;color:var(--mu)}
+.cdb--wb .pi__z{grid-area:z;display:inline-flex;align-items:center;gap:.3rem;min-width:0;font-size:var(--fs-4);white-space:nowrap;color:var(--mu)}
 .cdb--wb .pi__z::before{content:"";width:12px;height:12px;background:currentColor;opacity:.8;-webkit-mask:var(--i-clock) center/contain no-repeat;mask:var(--i-clock) center/contain no-repeat}
 /* Stueckzahl als ein Feld: minus, Zahl, plus. */
 .cdb--wb .pi__ctrl{grid-area:c;gap:0;border:1px solid var(--hl2);border-radius:7px;background:rgba(0,0,0,.25)}
 .cdb--wb .pi__ctrl button,.cdb--wb .cdb-plan-item .pi__rm{display:grid;place-items:center;width:26px;height:24px;padding:0;border:0;border-radius:6px;background:none;color:var(--mu);font-size:0;cursor:pointer;transition:color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
 .cdb--wb .pi__ctrl button::before,.cdb--wb .cdb-plan-item .pi__rm::before{content:"";width:13px;height:13px;background:currentColor;-webkit-mask:var(--i-plus) center/contain no-repeat;mask:var(--i-plus) center/contain no-repeat}
 .cdb--wb .pi__ctrl [data-dec]::before{-webkit-mask-image:var(--i-minus);mask-image:var(--i-minus)}
-.cdb--wb .cdb-plan-item .pi__rm{grid-area:rm;height:26px;opacity:.6}
+.cdb--wb .cdb-plan-item .pi__rm{grid-area:rm;align-self:start;justify-self:end;height:24px;margin:-.1rem -.1rem 0 0;opacity:.55}
 .cdb--wb .cdb-plan-item .pi__rm::before{-webkit-mask-image:var(--i-trash);mask-image:var(--i-trash)}
 .cdb--wb .cdb-plan-item:hover .pi__rm,.cdb--wb .cdb-plan-item .pi__rm:focus-visible{opacity:1}
 .cdb--wb .pi__ctrl button:hover{color:var(--tx);background:rgba(255,255,255,.08)}
@@ -381,7 +454,11 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wbp-leer i:nth-child(2){opacity:.6}
 .cdb--wb .wbp-leer i:nth-child(3){opacity:.3}
 .cdb--wb .cdb-plan-sum{padding:.9rem 1rem 1rem;border-top:1px solid var(--hl);background:rgba(0,0,0,.16);transition:opacity var(--dur-base) linear}
-.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-time-row,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-sum h4,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-clear{opacity:.4}
+/* R6: leerer Planer ohne die blassen Reste von Summe, Einkaufsliste und
+   „Planer leeren“: es bleibt der Hinweis oben und unten, wo gespeichert wird. */
+.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-time-row,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-sum h4,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-shop,.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-clear{display:none}
+.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-plan-sum{border-top:0;background:none}
+.cdb--wb .cdb-drawer:has(.cdb-plan-empty) .cdb-sync--drawer{margin:0}
 .cdb--wb .cdb-plan-time-row{align-items:baseline;margin-bottom:.9rem;font-size:var(--fs-1);letter-spacing:var(--ls-11)}
 .cdb--wb .cdb-plan-time-row b{display:inline-block;font-family:var(--font-display,inherit);font-size:var(--fs-13);letter-spacing:var(--ls-3);text-transform:none;color:var(--tx)}
 .cdb--wb .cdb-plan-time-row b.is-tick{animation:wb-tick var(--dur-slow) var(--out)}
@@ -422,9 +499,22 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-res-search{height:2.2rem;border-color:var(--hl2);border-radius:8px;background:var(--e0)}
 .cdb--wb .cdb-res-list{border-color:var(--hl);border-radius:8px;background:rgba(0,0,0,.2)}
 .cdb--wb .cdb-reset{height:2.4rem;padding:0;border-color:var(--hl2);border-radius:8px;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+/* R6: Fuss der Schublade, klebt unten: zuruecksetzen und, mit der Zahl der
+   Treffer, schliessen. Der negative Rand hebt den Innenabstand der Schublade
+   auf, der Fuss reicht von Kante zu Kante. */
+.cdb--wb .cdb-side-ft{position:sticky;bottom:-1.2rem;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:.5rem;margin:1.2rem -1rem -1.2rem;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom,0px));border-top:1px solid var(--hl);background:var(--e1);box-shadow:0 -14px 24px -18px #000}
+.cdb--wb .cdb-fgroup:has(+ .cdb-side-ft){margin-bottom:0;padding-bottom:0;border-bottom:0}
+.cdb--wb .cdb-show{height:2.4rem;padding:0 .6rem;border:0;border-radius:8px;background:var(--o);color:var(--ink,#16161a);font-family:var(--font-ui,inherit);font-size:var(--fs-7);font-weight:800;white-space:nowrap;cursor:pointer;transition:background-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
+.cdb--wb .cdb-show:hover{background:color-mix(in srgb,var(--o) 86%,#fff)}
+.cdb--wb .cdb-show:active{transform:scale(.97)}
+.cdb--wb .cdb-show.is-leer{background:var(--e3);color:var(--mu)}
 
 /* ===== 6b Zerlege-Rechner (zweiter Reiter): dieselbe Flaechensprache ===== */
-.cdb--wb .calc-layout{gap:1rem}
+/* R6: --vb-top ist hier der Abstand unter der Kopfleiste, an dem die linke
+   Spalte beim Rollen der Seite haengen bleibt. Der geerbte Wert rechnete eine
+   klebende Bedienleiste mit, die es in diesem Reiter nicht gibt: mit
+   Ergebnissen stand die Spalte 16 px tiefer als ohne (gemessen bei 1440 px). */
+.cdb--wb .calc-layout{gap:1rem;--vb-top:calc(var(--nav-h,68px) + .9rem)}
 .cdb--wb .calc-sidebar{padding:1rem;border:1px solid var(--hl2);border-radius:12px;background:var(--e1);box-shadow:0 30px 70px -40px #000}
 .cdb--wb .calc-sidebar h4{display:flex;align-items:center;gap:.5rem;margin:0 0 .7rem;font-size:var(--fs-1);letter-spacing:var(--ls-12);color:var(--tx)}
 .cdb--wb .calc-sidebar h4::before{content:"";flex:none;width:3px;height:.85rem;border-radius:2px;background:var(--o)}
@@ -448,13 +538,22 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .calc-search-row{position:relative;margin-bottom:1rem}
 .cdb--wb .calc-search-row::before{content:"";position:absolute;left:.8rem;top:50%;z-index:1;width:1.05rem;height:1.05rem;margin-top:-.525rem;background:var(--mu);-webkit-mask:var(--i-search) center/contain no-repeat;mask:var(--i-search) center/contain no-repeat;pointer-events:none;transition:background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .calc-search-row:focus-within::before{background:var(--o)}
-.cdb--wb .calc-grid{gap:.6rem}
+/* R6: ab etwa 1400 px zwei Ergebniskarten nebeneinander (die Spalte ist dort
+   ueber 1000 px breit, eine Karte fuellte sie mit Luft). */
+.cdb--wb .calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(500px,100%),1fr));align-content:start;gap:.6rem}
+.cdb--wb .calc-grid > div[style]{grid-column:1 / -1}
 /* Der Hinweis „Material waehlen“ traegt seine Farben im style-Attribut
    (crafting-app.js, auch fuer die bisherige Seite), daher !important. */
 .cdb--wb .calc-grid > div[style]{padding:3rem 1.5rem!important;border-color:var(--hl2)!important;border-radius:10px!important;background:transparent!important}
 .cdb--wb .calc-card{gap:1rem;padding:1rem 1.1rem;border:1px solid var(--hl);border-radius:10px;background:linear-gradient(180deg,#24242a,#1f1f25);transition:border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui),box-shadow var(--dur-base) var(--ease-ui)}
 .cdb--wb .calc-card:hover{border-color:var(--hl3);box-shadow:0 14px 28px -18px #000}
 .cdb--wb .calc-card.incompatible{border-color:rgba(239,68,68,.22);background:rgba(239,68,68,.03)}
+/* R6: der Hinweis auf Beifang, der beim Zerlegen verloren geht, steht an fast
+   jeder Karte. Als rote Tafel schrie er aus der ganzen Liste; jetzt eine
+   ruhige Zeile mit Kante in Bernstein. */
+.cdb--wb .calc-card__warning{display:flex;align-items:flex-start;gap:.5rem;margin-top:.7rem;padding:.05rem 0 .05rem .65rem;border:0;border-left:2px solid #d9a441;border-radius:0;background:none;font-size:var(--fs-5);font-weight:500;line-height:1.45;color:#dcc08a}
+.cdb--wb .calc-card__left{min-width:0}
+.cdb--wb .calc-card__yields{gap:.35rem .4rem}
 .cdb--wb .calc-card__title{font-size:var(--fs-10)}
 .cdb--wb .calc-card__meta{font-size:var(--fs-5)}
 .cdb--wb .calc-card__meta strong{color:var(--tx)}
@@ -465,6 +564,22 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .calc-card__bp:hover{border-color:color-mix(in srgb,var(--b) 70%,transparent);background:color-mix(in srgb,var(--b) 10%,transparent);color:var(--b)}
 @media (min-width:821px){
   .cdb--wb .calc-layout{grid-template-columns:280px 1fr}
+  .cdb--wb .calc-mat-list{max-height:min(44vh,420px)}
+}
+/* R6: hohe Fenster. Wie im ersten Reiter reicht der Rechner bis an den
+   unteren Rand, die Materialliste nimmt, was die linke Spalte uebrig hat, und
+   die Ergebnisse rollen in ihrem Feld (--wb-ly und --wb-zy misst
+   crafting-app.js: Oberkante der Spalten und des Ergebnisfelds). */
+@media (min-width:821px) and (min-height:720px){
+  .cdb--wb .calc-sidebar{position:relative;top:auto;display:flex;flex-direction:column;height:calc(100dvh - var(--wb-ly,9rem) - .9rem);max-height:none}
+  .cdb--wb .calc-sidebar > *{flex:none}
+  .cdb--wb .calc-sidebar > .calc-fgroup{margin-bottom:.8rem;padding-bottom:.8rem}
+  .cdb--wb .calc-sidebar > .calc-fgroup:last-of-type{margin-bottom:0;padding-bottom:0}
+  .cdb--wb .calc-sidebar > h4[style]{margin-top:.15rem!important}
+  .cdb--wb .calc-sidebar > #calc-reset{margin-top:.8rem!important}
+  .cdb--wb .calc-sidebar > .calc-fgroup:first-of-type{flex:1 1 0;display:flex;flex-direction:column}
+  .cdb--wb .calc-sidebar > .calc-fgroup:first-of-type .calc-mat-list{flex:1 1 0;min-height:8.6rem;max-height:none}
+  .cdb--wb .calc-grid.vb-scrollbox{max-height:calc(100dvh - var(--wb-zy,19rem) - .9rem)}
 }
 
 /* ===== 7 Auftakt und Bewegung ===== */
@@ -489,6 +604,7 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb.wb-auftakt > .cdb-drawer{animation:wb-ein .55s var(--out) 190ms both}
 }
 @keyframes wb-ein{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes wb-blende{from{opacity:0}to{opacity:1}}
 @keyframes wb-auf{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes wb-pop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes wb-knall{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
@@ -505,6 +621,16 @@ export const WERKBANK_DESIGN_CSS = `
 
 /* ===== 8 Telefon ===== */
 @media (max-width:820px){
+  /* R6: Kopf am Telefon. Beide Reiter in einer Zeile mit kurzem Namen, die
+     Hilfe als schmale Zeile: vorher begann die erste Kachel bei 535 von
+     844 px, der Kopf nahm mehr als die halbe erste Seite. */
+  .cdb--wb .wb-tl{display:none}
+  .cdb--wb .wb-tk{display:inline}
+  .cdb--wb > .cdb-tabs{gap:.25rem .2rem;margin-bottom:.6rem}
+  .cdb--wb > .cdb-tabs > .cdb-tab-btn{flex:1 1 0;justify-content:center;min-width:0;padding:.6rem .5rem .72rem}
+  .cdb--wb > .cdb-tabs > .cr-proto{flex:1 1 100%}
+  .cdb--wb > #cdb-tab-db-content > .tool-help{margin-bottom:.6rem}
+  .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__summary{padding:.55rem .8rem;font-size:var(--fs-7)}
   .cdb--wb > #cdb-tab-db-content > .cdb-bar{padding:.5rem}
   .cdb--wb .cdb-search-wrap{flex:1 1 9rem}
   .cdb--wb .cdb-sort{flex:1 1 auto}
@@ -522,7 +648,27 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb .wbr-inh{padding:1rem 1rem 1.4rem}
   .cdb--wb .cbm__plan{flex:1 1 100%}
   .cdb--wb .cbm__xlink{flex:1 1 auto;justify-content:center}
+  /* R6: der Auftakt der Leiste ohne Verschiebung. Ein transform an .cdb-bar
+     macht sie zum Bezugsrahmen der festen Planer-Leiste: die sass dann die
+     erste Sekunde ueber der Sortierung und sprang danach an den unteren
+     Rand. */
+  .cdb--wb.wb-auftakt .cdb-bar{animation-name:wb-blende}
   .cdb--wb .cdb-planner-open{border-radius:10px;background:color-mix(in srgb,var(--b) 16%,var(--e1));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  /* R6: Listenansicht am Telefon. Kleinere Knoepfe und weniger Rand links
+     geben dem Namen die Breite (vorher brach „10-Series Greatsword Cannon“
+     auf drei Zeilen). */
+  .cdb--wb .cdb-grid.is-list .cbp{gap:.35rem .6rem;padding:.6rem .65rem .6rem 3.1rem}
+  .cdb--wb .cdb-grid.is-list .cbp[data-g] .cbp__top::before{left:.6rem}
+  .cdb--wb .cdb-grid.is-list .cbp[data-g] .cbp__top::after{left:calc(.6rem + 5px)}
+  .cdb--wb .cdb-grid.is-list .cbp__name{font-size:var(--fs-7)}
+  .cdb--wb .cdb-grid.is-list .cbp__meta{gap:.6rem}
+  /* R6: der Rechner am Telefon: knappere Spalte, damit die Ergebnisse frueher
+     kommen. */
+  .cdb--wb .calc-sidebar{padding:.85rem}
+  .cdb--wb .calc-sidebar h4[style]{margin-top:1rem!important}
+  .cdb--wb .calc-mat-list{max-height:13.2rem}
+  .cdb--wb .calc-fgroup{margin-bottom:.8rem;padding-bottom:.8rem}
+  .cdb--wb #calc-reset{margin-top:.2rem!important}
 }
 @keyframes wb-blatt{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 `;

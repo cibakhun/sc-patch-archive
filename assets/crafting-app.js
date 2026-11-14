@@ -55,6 +55,7 @@
   if (WB) {
     var wbRoot = $('#cdb'), wbBar = $('.cdb-bar'), wbCount = $('.cdb-count-row');
     var wbLay = $('#cdb-tab-db-content > .cdb-layout');
+    var wbZLay = $('#cdb-tab-dismantle-content .calc-layout'), wbZErg = $('#calc-results');
     var wbMiss = function () {
       if (!wbRoot) return;
       if (wbBar && wbBar.offsetHeight) wbRoot.style.setProperty('--wb-bar', wbBar.offsetHeight + 'px');
@@ -65,6 +66,17 @@
       if (wbLay && wbLay.offsetHeight) {
         var y = Math.round(wbLay.getBoundingClientRect().top + window.scrollY);
         if (y > 0) wbRoot.style.setProperty('--wb-y', y + 'px');
+      }
+      // Zerlege-Rechner: Oberkante der beiden Spalten und des Ergebnisfelds,
+      // damit Materialliste und Ergebnisse auf hohen Fenstern genau bis an
+      // den unteren Rand reichen (werkbankDesign.ts, --wb-ly/--wb-zy).
+      if (wbZLay && wbZLay.offsetHeight) {
+        var ly = Math.round(wbZLay.getBoundingClientRect().top + window.scrollY);
+        if (ly > 0) wbRoot.style.setProperty('--wb-ly', ly + 'px');
+        if (wbZErg) {
+          var zy = Math.round(wbZErg.getBoundingClientRect().top + window.scrollY);
+          if (zy > 0) wbRoot.style.setProperty('--wb-zy', zy + 'px');
+        }
       }
     };
     wbMiss();
@@ -944,7 +956,15 @@
       countEl.textContent = zahl;
     }
     if (emptyEl) emptyEl.hidden = shown !== 0;
-    if (WB) wbFilterZahl();
+    if (WB) {
+      wbFilterZahl();
+      // Fuss der Filter-Schublade: der Knopf nennt, was sie uebrig laesst.
+      var zeige = $('#cdb-filter-show');
+      if (zeige) {
+        zeige.textContent = shown ? (WBT.show || '{n}').replace('{n}', zahl) : (WBT.showNone || '0');
+        zeige.classList.toggle('is-leer', !shown);
+      }
+    }
   }
   // Werkbank: der Filterknopf zeigt, wie viele Filter gesetzt sind. Die
   // Schublade ist zu, sobald man die Liste ansieht; ohne die Zahl saehe man
@@ -1105,6 +1125,13 @@
     apply();
   });
 
+  // Werkbank: der Knopf in der leeren Liste setzt Suche und Filter zurueck.
+  var leerReset = $('#cdb-empty-reset');
+  if (leerReset && resetBtn) leerReset.addEventListener('click', function () {
+    resetBtn.click();
+    if (search) search.focus({ preventScroll: true });
+  });
+
   // Mobile off-canvas filter panel
   var sidebar = $('#cdb-sidebar');
   var filtToggle = $('#cdb-filter-toggle');
@@ -1115,6 +1142,11 @@
     });
     var closeF = $('#cdb-filter-close');
     if (closeF) closeF.addEventListener('click', function () { sidebar.classList.remove('is-open'); filtToggle.setAttribute('aria-expanded', 'false'); });
+    // Werkbank: „N anzeigen“ im Fuss der Schublade schliesst sie wie das ✕
+    // (derselbe Klick, damit offcanvas.js Verdunkler, Sperre und Fokus
+    // genauso zuruecknimmt).
+    var zeigeF = $('#cdb-filter-show');
+    if (zeigeF && closeF) zeigeF.addEventListener('click', function () { closeF.click(); });
     // Werkbank: die Filter fahren auch am Schreibtisch von links aus;
     // Verdunkler, Esc und inert bringt offcanvas.js (data-offcanvas-immer).
   }
@@ -1374,6 +1406,12 @@
   // Zeichen, Gruppe und Marken (Groesse, Grade, Ton) kommen von der Karte:
   // dort stehen sie im Markup, das Rezept in der DB kennt sie nicht.
   // Endet mit dem offenen .wbr-inh, das der Aufrufer schliesst.
+  // Der Pfad („VEHICLEGEAR / WEAPONS / BALLISTIC / CANNON“) als einzelne
+  // Glieder: der Strich haengt am Glied davor (werkbankDesign.ts), eine
+  // umbrochene Zeile beginnt dann nie mit „/“.
+  function wbPfad(cat) {
+    return String(cat || '').split(' / ').filter(Boolean).map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('');
+  }
   function wbRezeptKopf(b, i) {
     var karte = KARTE_BY_I[i];
     var g = karte ? karte.getAttribute('data-g') : null;
@@ -1386,7 +1424,7 @@
         '<span class="wbr-fest__n">' + esc(b.name) + '</span>' +
         '<button type="button" class="wbr-fest__p" data-plan="' + i + '">' + wi('plus') + '<span>' + tr('addPlan', 'Zum Planer') + '</span></button></div></div>' +
       '<div class="wbr-kopf" data-cat="' + gruppe + '"><div class="wbr-emb" aria-hidden="true">' + WB_RING + wg(g) + '</div>' +
-        '<div class="wbr-kopf__t"><div class="cbm__cat">' + esc(b.category || '') + '</div><h2 class="cbm__name">' + esc(b.name) + '</h2>' +
+        '<div class="wbr-kopf__t"><div class="cbm__cat wbr-pfad">' + wbPfad(b.category) + '</div><h2 class="cbm__name">' + esc(b.name) + '</h2>' +
         (marken ? '<ul class="wbr-chips">' + marken + '</ul>' : '') + '</div></div>' +
       '<div class="wbr-kenn">' + feld('clock', tr('craftTime', 'Craft-Zeit'), fmtTime(b.craft_time_seconds)) +
         (b.tiers != null ? feld('tier', tr('tier', 'Tier'), b.tiers) : '') +
@@ -1431,11 +1469,11 @@
     // Fundorte und Werte stehen dort); sonst wie bisher in den Item Finder.
     // DE liegt unter /de/, EN im Root (ein /en/-Prefix existiert nicht).
     var itemUrl = itemSheetUrl(i);
-    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + tr('openItem', 'Item-Datenblatt öffnen') + pfeil + '</a>';
+    if (itemUrl) html += '<a class="cbm__xlink" href="' + esc(itemUrl) + '">' + (WB && WBT.itemSheet ? '<span>' + esc(WBT.itemSheet) + '</span>' : tr('openItem', 'Item-Datenblatt öffnen')) + pfeil + '</a>';
     else html += '<a class="cbm__xlink" href="' + (CFG.lang === 'de' ? '/de' : '') + '/item-finder.html?item=' + encodeURIComponent(b.name) + '">' + tr('openInFinder', 'Im Item Finder öffnen') + pfeil + '</a>';
     // Sprung zum Zerlegungs-Rechner — nur wenn ein gleichnamiges Item existiert.
     if (DISMANTLE_NAMES && DISMANTLE_NAMES[(b.name || '').toLowerCase()] != null) {
-      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen') + pfeil + '</button>';
+      html += '<button type="button" class="cbm__xlink" data-goto-dismantle="' + esc(b.name) + '">' + (ICONS.dis || '') + (WB && WBT.dismantle ? '<span>' + esc(WBT.dismantle) + '</span>' : tr('openInDismantle', 'Im Zerlegungs-Rechner öffnen')) + pfeil + '</button>';
     }
     html += '</div>';
 
@@ -1457,7 +1495,10 @@
           // man wissen will, wo das Zeug herkommt.
           html += '<div class="cbm__opt">' + mineNameHtml(o.name, 'on') +
             '<span class="oq">' + fmtNum((o.quantity_scu || 0) * 100) + ' cSCU</span>' +
-            (o.min_quality != null ? '<span class="omq">' + tr('minQ', 'min. Q') + ' ' + o.min_quality + '</span>' : '') +
+            // Werkbank: 4.334 von 4.357 Zutaten nennen 0 oder 1 als
+            // Mindestqualitaet (jede Qualitaet reicht). Die Marke steht dort
+            // nur noch an den 23, die wirklich etwas verlangen (ab 500).
+            (o.min_quality != null && (!WB || o.min_quality > 1) ? '<span class="omq' + (WB ? ' omq--hart' : '') + '">' + (WB && WBT.minQ ? esc(WBT.minQ) : tr('minQ', 'min. Q')) + ' ' + o.min_quality + '</span>' : '') +
             '</div>';
         });
         if (ing.quality_effects && ing.quality_effects.length) {
@@ -1491,7 +1532,7 @@
       html += '<ul class="cbm__mis">';
       b.missions.forEach(function (m) {
         var dc = m.drop_chance != null ? Math.round(m.drop_chance * 100) + '%' : '';
-        html += '<li><button type="button" class="cbm__mlink" data-mkey="' + esc(missionKey(m)) + '"><span>' + esc(missionName(m.name)) + '</span></button>' + (dc ? '<b>' + dc + '</b>' : '') + '</li>';
+        html += '<li><button type="button" class="cbm__mlink" data-mkey="' + esc(missionKey(m)) + '"><span>' + esc(missionName(m.name)) + '</span></button>' + (dc ? '<b' + (dc === '100%' ? ' class="is-voll"' : '') + '>' + dc + '</b>' : '') + '</li>';
       });
       html += '</ul>';
     } else {
@@ -1592,8 +1633,8 @@
         return '<div class="cbm__ostat"><span>' + esc(k) + '</span><b><span class="cbm__b1">' + (d >= 0 ? '+' : '') + fmtSmart(e.add) + '</span></b></div>';
       }).join('');
       if (noteEl) {
-        noteEl.innerHTML = tr('simNote', 'Absolute Werte live aus den quality_effects (Qualität 0–1000): multiplikativ = Basis × Faktor, additiv = Basis + Wert.') +
-          (anyIndexed ? ' <b>†</b> ' + tr('simIdxNote', 'kein absoluter Basiswert in den Daten — 100 = Standard-Item (Faktor 1,0).') : '');
+        noteEl.innerHTML = tr('simNote', 'Die Werte folgen der Qualität der Zutaten (0–1000), je nach Wert als Faktor auf den Grundwert oder als Zuschlag.') +
+          (anyIndexed ? ' <b>†</b> ' + tr('simIdxNote', 'ohne festen Grundwert, 100 steht für das Standard-Item.') : '');
       }
     }
     sliders.forEach(function (sl) { sl.addEventListener('input', recompute); });
@@ -1657,7 +1698,9 @@
       html += '<div class="cbm__cat">' + tr('missionPoolLabel', 'Missions-Pool') + '</div>';
       html += '<h2 class="cbm__name">' + esc(missionName(e.name)) + '</h2>';
     }
-    html += '<p class="cbm__note cbm__hint">' + tr('poolIntro', 'Alle Blueprints, die diese Mission droppen kann — Blueprint anklicken für Details.') + ' <span class="cbm__c">' + e.pool.length + '</span></p>';
+    if (WB && WBT.poolTitle) html += '<h3 class="cbm__h">' + esc(WBT.poolTitle) + ' <span class="cbm__c">' + e.pool.length + '</span></h3>' +
+      '<p class="cbm__note cbm__hint">' + esc(WBT.poolHint || '') + '</p>';
+    else html += '<p class="cbm__note cbm__hint">' + tr('poolIntro', 'Alle Blueprints, die diese Mission droppen kann — Blueprint anklicken für Details.') + ' <span class="cbm__c">' + e.pool.length + '</span></p>';
     html += '<ul class="cbm__pool">';
     e.pool.forEach(function (p) {
       var b = DB.blueprints[p.i];
@@ -1667,7 +1710,7 @@
       if (WB) html += '<li data-cat="' + esc(karte ? karte.dataset.cat : '') + '"><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
         wg(karte ? karte.getAttribute('data-g') : null) +
         '<span class="pt"><span class="pn">' + esc(b.name) + '</span><span class="pc">' + esc(cat) + '</span></span></button>' +
-        (dc ? '<b>' + dc + '</b>' : '') + '</li>';
+        (dc ? '<b' + (dc === '100%' ? ' class="is-voll"' : '') + '>' + dc + '</b>' : '') + '</li>';
       else html += '<li><button type="button" class="cbm__blink" data-bp="' + p.i + '">' +
         '<span class="pn">' + esc(b.name) + '</span><span class="pc">' + esc(cat) + '</span></button>' +
         (dc ? '<b>' + dc + '</b>' : '') + '</li>';
@@ -1996,6 +2039,9 @@
 
     var q = calcState.q;
     var selectedMats = Object.keys(calcState.res).filter(function (k) { return calcState.res[k]; });
+    // Werkbank: solange nichts gewaehlt ist, steht dort keine Trefferzahl
+    // („0 kompatible Items gefunden“ las sich wie ein Ergebnis).
+    if (WB && countEl) countEl.hidden = selectedMats.length === 0 && !q;
     if (selectedMats.length === 0 && !q) {
       resultsEl.innerHTML = '<div style="background:var(--bg,#16161a);border:1px dashed var(--line,rgba(255,94,26,.3));padding:2rem;text-align:center;color:var(--muted,#9ba2ae);border-radius:8px;">' + tr('calcSelectPrompt', 'Bitte wähle mindestens ein Material aus oder suche oben nach einem Item-Namen.') + '</div>';
       if (countEl) countEl.textContent = tr('calcFound', '{count} kompatible Items gefunden').replace('{count}', '0');
@@ -2261,6 +2307,8 @@
       if (dbContent) dbContent.setAttribute('hidden', '');
       if (dismantleContent) dismantleContent.removeAttribute('hidden');
     }
+    // Werkbank: der eben eingeblendete Reiter hat erst jetzt eine Lage.
+    if (WB && typeof wbMiss === 'function') requestAnimationFrame(wbMiss);
   }
   $$('.cdb-tab-btn').forEach(function (btn) {
     btn.addEventListener('click', function () { switchTab(btn.dataset.tab); });
