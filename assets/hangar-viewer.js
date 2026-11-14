@@ -6627,14 +6627,117 @@ export function leitFit(W, H, frei, L) {
   const cy = H / 2 + dy * s;
   return { b, h, d, fov, dx: -(cx - W / 2) / s, dy, s, rect: { l: cx - (b * s) / 2, t: cy - (h * s) / 2, r: cx + (b * s) / 2, b: cy + (h * s) / 2 } };
 }
-// So lange blendet der Monitor zwischen Ruhe (LEIT_DIM) und voller Helligkeit
-const LEIT_FADE_MS = 500, LEIT_DIM = 0.6;
-// Farben auf dem Glas: Grundfarbe und Akzent der Hangarseite (--bg, --accent)
-const LEIT_FARBE = { glas: '#060d17', grund: '#0b0d12', marke: '#f5a623' };
-// Pegel der linken Flanke des Monitors: feste Längen, kein Messwert
-const LEIT_PEGEL = [0.82, 0.56, 0.91, 0.4, 0.68, 0.3, 0.75];
+// So lange blendet der Monitor zwischen Ruhe (LEIT_DIM) und voller Helligkeit.
+// In Ruhe stand er bei 0,6 und wirkte neben den Monitoren des Spiels wie aus
+// (Krisz 14.11.2026: „es geht aber besser alles“).
+const LEIT_FADE_MS = 500, LEIT_DIM = 0.8;
+// Farben auf dem Glas: Grund, Schrift und Akzent der Hangarseite (--bg,
+// --text, --accent), Linien im Blau der Monitore daneben (r, g, b)
+const LEIT_FARBE = { glas: '#060d17', grund: '#0b0d12', marke: '#f5a623', schrift: '#e9edf5', blau: '120, 205, 255' };
+// Schriften der Seite (public/assets/fonts.css) für das Bild auf dem Glas
+const LEIT_ORB = "'Orbitron', 'Rajdhani', system-ui, sans-serif", LEIT_UI = "'Rajdhani', 'Barlow', system-ui, sans-serif";
+const LEIT_FONTS = ['700 16px Orbitron', '900 16px Orbitron', '600 16px Rajdhani', '700 16px Rajdhani'];
 /** Marke von VerseBase im Fenster des Terminals: Breite (Anteil der Fensterbreite) und Mitte (Anteil der Fensterhöhe von oben) */
 export const LEIT_MARKE = { b: 0.07, y: 0.36 };
+/** Wortmarke unter der Marke: Oberkante so weit unter der Mitte der Marke und Schriftgröße (Anteile der Fensterbreite), Sperrung in em */
+export const LEIT_WORT = { ab: 0.052, h: 0.019, ls: 0.18 };
+/**
+ * Wer zuletzt am Terminal angemeldet war, für das Bild auf dem Glas: nur was
+ * gezeichnet werden darf (Name gekürzt, Zeichen höchstens vier, Farbe #rrggbb).
+ *   leitWerVon({ name: 'Ada', zeichen: 'A', farbe: '#2dd4ff' }) → { name: 'Ada', zeichen: 'A', farbe: '#2dd4ff' }
+ *   leitWerVon({ name: '', zeichen: 'x' }) → null   (ohne Namen steht nichts da)
+ * @param {unknown} v @returns {{ name: string, zeichen: string, farbe: string } | null}
+ */
+export function leitWerVon(v) {
+  const name = typeof v?.name === 'string' ? v.name.trim().slice(0, 60) : '';
+  if (!name) return null;
+  const zeichen = [...(typeof v.zeichen === 'string' ? v.zeichen.trim() : '')].slice(0, 4).join('') || ([...name.replace(/^@+/, '')][0] ?? '◆').toUpperCase();
+  return { name, zeichen, farbe: typeof v.farbe === 'string' && /^#[0-9a-f]{6}$/i.test(v.farbe) ? v.farbe : '#2dd4ff' };
+}
+/**
+ * Das Sperrbild des Terminals: was das Fenster der Seite zeigt, solange keine
+ * Seite darin steht. Der Monitor der Halle zeichnet es aufs Glas (leitDraw),
+ * die Anmeldung der Seite nimmt dasselbe Bild als ihren Grund
+ * (Haken bild von initTerminal, assets/hangar-terminal.js): ein Bild aus einer Quelle,
+ * damit beim Hinsetzen nichts springt. Alle Maße hängen an der Breite w
+ * (u = w / 100, wie cqw im Stil der Anmeldung). Wörter stehen hier keine
+ * außer dem Namen der Seite und „Terminal“, das in beiden Sprachen gleich
+ * heißt; alles Übrige sagt die Anmeldung aus dem Markup.
+ * @param {CanvasRenderingContext2D} g
+ * @param {number} x @param {number} y @param {number} w @param {number} h Fenster in px der Leinwand
+ * @param {{ uhr?: string, wer?: { name: string, zeichen: string, farbe: string } | null }} o
+ *   uhr 'HH:MM' (leer: keine Uhr), wer: die Sitzung unten in der Mitte
+ */
+export function leitFenster(g, x, y, w, h, o = {}) {
+  const u = w / 100, cx = x + w / 2, my = y + LEIT_MARKE.y * h, blau = (a) => `rgba(${LEIT_FARBE.blau}, ${a})`;
+  // gesperrte Schrift: Zeichen einzeln, die Sperrung steht zwischen ihnen (nicht hinter dem letzten)
+  const text = (str, px, py, size, font, color, align = 'left', ls = 0, farben = null) => {
+    g.font = `${font.w} ${size}px ${font.f}`; g.textBaseline = 'middle'; g.textAlign = 'left';
+    const ch = [...str], ws = ch.map((c) => g.measureText(c).width), sum = ws.reduce((a, c) => a + c, 0) + ls * size * (ch.length - 1);
+    let at = align === 'center' ? px - sum / 2 : align === 'right' ? px - sum : px;
+    ch.forEach((c, i) => { g.fillStyle = farben?.[c] ?? color; g.fillText(c, at, py); at += ws[i] + ls * size; });
+    return sum;
+  };
+  g.save();
+  g.beginPath(); g.rect(x, y, w, h); g.clip();
+  g.fillStyle = LEIT_FARBE.grund;
+  g.fillRect(x, y, w, h);
+  // Schein hinter der Marke: Das Fenster ist an, auch ohne Seite
+  const schein = g.createRadialGradient(cx, my, 0, cx, my, 48 * u);
+  schein.addColorStop(0, 'rgba(56, 150, 255, 0.17)'); schein.addColorStop(0.42, 'rgba(56, 150, 255, 0.055)'); schein.addColorStop(1, 'rgba(56, 150, 255, 0)');
+  g.fillStyle = schein;
+  g.fillRect(x, y, w, h);
+  // feines Raster von der Mitte aus
+  g.strokeStyle = blau(0.05); g.lineWidth = Math.max(1, 0.07 * u);
+  g.beginPath();
+  for (let i = 0; i * 5 * u <= w / 2; i++) for (const sx of i ? [-1, 1] : [1]) { const X = Math.round(cx + sx * i * 5 * u) + 0.5; g.moveTo(X, y); g.lineTo(X, y + h); }
+  for (let i = 0; i * 5 * u <= h; i++) for (const sy of i ? [-1, 1] : [1]) { const Y = Math.round(my + sy * i * 5 * u) + 0.5; if (Y < y || Y > y + h) continue; g.moveTo(x, Y); g.lineTo(x + w, Y); }
+  g.stroke();
+  // zu den Rändern dunkler: eine Ellipse um die Marke (1,25 Breiten, 0,95 Höhen), außen 42 % Schwarz
+  g.save();
+  g.translate(cx, my); g.scale(1.25 * w, 0.95 * h);
+  const rand = g.createRadialGradient(0, 0, 0.52, 0, 0, 1);
+  rand.addColorStop(0, 'rgba(0, 0, 0, 0)'); rand.addColorStop(1, 'rgba(0, 0, 0, 0.42)');
+  g.fillStyle = rand;
+  g.fillRect(-1, -1, 2, 2);
+  g.restore();
+  // Winkel in den vier Ecken, oben links „Terminal“, oben rechts die Uhr
+  const e = 2.2 * u, arm = 3.2 * u;
+  g.strokeStyle = blau(0.55); g.lineWidth = Math.max(1.5, 0.16 * u); g.lineCap = 'square';
+  g.beginPath();
+  for (const [px, py, sx, sy] of [[x + e, y + e, 1, 1], [x + w - e, y + e, -1, 1], [x + e, y + h - e, 1, -1], [x + w - e, y + h - e, -1, -1]]) { g.moveTo(px + sx * arm, py); g.lineTo(px, py); g.lineTo(px, py + sy * arm); }
+  g.stroke();
+  text('TERMINAL', x + e + 1.7 * u, y + e + 1.75 * u, 1.15 * u, { w: 700, f: LEIT_UI }, blau(0.78), 'left', 0.24);
+  if (o.uhr) text(o.uhr, x + w - e - 1.7 * u, y + e + 1.75 * u, 1.25 * u, { w: 700, f: LEIT_ORB }, 'rgba(233, 237, 245, 0.86)', 'right', 0.1);
+  // Marke: Sechseck mit Punkt (wie in der Kopfzeile der Seite, dort im Kasten 64 × 64)
+  const m = (LEIT_MARKE.b * w) / 64, mx = cx - 32 * m, mY = my - 32 * m;
+  g.strokeStyle = g.fillStyle = LEIT_FARBE.marke;
+  g.lineWidth = 5 * m; g.lineJoin = 'round'; g.lineCap = 'butt';
+  g.beginPath();
+  [[32, 8], [52, 20], [52, 44], [32, 56], [12, 44], [12, 20]].forEach(([a, c], i) => (i ? g.lineTo(mx + a * m, mY + c * m) : g.moveTo(mx + a * m, mY + c * m)));
+  g.closePath();
+  g.stroke();
+  g.beginPath();
+  g.arc(mx + 32 * m, mY + 32 * m, 6 * m, 0, Math.PI * 2);
+  g.fill();
+  // Wortmarke, der Punkt in der Farbe der Marke
+  text('VERSE·BASE', cx, my + (LEIT_WORT.ab + LEIT_WORT.h / 2) * w, LEIT_WORT.h * w, { w: 700, f: LEIT_ORB }, LEIT_FARBE.schrift, 'center', LEIT_WORT.ls, { '·': LEIT_FARBE.marke });
+  // Sitzung: Kreis mit dem Zeichen des Kontos und sein Name
+  if (o.wer) {
+    const r = 1.8 * u, py = y + h - e - 3.4 * u, size = 2.1 * u, font = { w: 600, f: LEIT_UI };
+    g.font = `${font.w} ${size}px ${font.f}`;
+    let name = o.wer.name;
+    while (name.length > 1 && g.measureText(name).width > 36 * u) name = `${name.slice(0, -2).trimEnd()}…`;
+    const nw = g.measureText(name).width, x0 = cx - (2 * r + 1.1 * u + nw) / 2;
+    g.globalAlpha = 0.16; g.fillStyle = o.wer.farbe;
+    g.beginPath(); g.arc(x0 + r, py, r, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 1; g.strokeStyle = o.wer.farbe; g.lineWidth = Math.max(1.5, 0.16 * u);
+    g.stroke();
+    text(o.wer.zeichen, x0 + r, py + 0.08 * u, [...o.wer.zeichen].length > 1 ? 1.4 * u : 2 * u, { w: 700, f: LEIT_UI }, o.wer.farbe, 'center');
+    text(name, x0 + 2 * r + 1.1 * u, py + 0.08 * u, size, font, 'rgba(233, 237, 245, 0.88)');
+  }
+  g.restore();
+}
 // Die Bänder (WERK.reihen, je eine Lampenreihe der Garage) gehen einzeln
 // nacheinander an, von hinten nach vorn, alle abstand ms eins; der Spot
 // spot ms nach dem letzten (Krisz, 25.10.2026: „es sollen mehr lampen
@@ -7498,6 +7601,8 @@ export async function initHangar(container, opts = {}) {
     if (hangarNow && hangarNow.id === id && hangarNow.size === size && hangarNow.w === w && hangarNow.l === l && hangarNow.h === h) return;
     hangarNow = { id, size, w, l, h };
     hangarFn?.({ ...hangarNow });
+    // der Monitor im Leitstand nennt die Hangargröße neben dem Fenster (leitDraw)
+    if (leitScreen) { leitDraw(); wake(200); }
   }
   // Maßstab der Hallenlampen (scaleLamps, growApply). Wächst die Halle an
   // Streifen, bleibt sie im Maßstab 1, die sechs Lampen aber rücken um die
@@ -14238,47 +14343,56 @@ void main() {
     return g;
   }
   // Was der Monitor zeigt, solange die Seite nicht darüber liegt: dunkles
-  // Glas mit feinem Raster, in der Mitte das Fenster der Seite in ihrer
-  // Grundfarbe mit der Marke von VerseBase. Die Marke steht dort, wo die
-  // Anmeldung des Terminals sie zeigt (assets/hangar-terminal.js,
-  // .hgx-term__mark: Mitte bei LEIT_MARKE.y der Fensterhöhe, so breit wie
-  // LEIT_MARKE.b der Fensterbreite): Kommt die Kamera an, blendet die Seite
-  // ihr Fenster über genau dieses Bild. Kein Wort, die Wörter stehen im
-  // Markup der Seite.
+  // Glas mit feinem Raster, in der Mitte das Fenster der Seite mit dem
+  // Sperrbild des Terminals (leitFenster: Marke, Wortmarke, Uhr, die letzte
+  // Sitzung). Dasselbe Bild nimmt die Anmeldung der Seite als ihren Grund
+  // (assets/hangar-terminal.js), und ihre Marke steht darauf an derselben
+  // Stelle (.hgx-term__mark, LEIT_MARKE): Kommt die Kamera an, blendet die
+  // Seite ihr Fenster über genau dieses Bild. Neben dem Fenster steht nur,
+  // was die Halle selbst weiß: links die Hangargröße mit dem Feld in Metern
+  // (hangarTell), rechts das Zeichen der Seite. Auf einem Glas ohne Platz
+  // daneben (Fenster so breit wie das Glas) entfällt beides.
+  let leitWer = null;
+  const leitUhr = () => { const d = new Date(); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   function leitDraw() {
     const { cv, tex, b, h } = leitScreen, g = cv.getContext('2d'), w = cv.width, H = cv.height, P = LEIT_PX;
+    const blau = (a) => `rgba(${LEIT_FARBE.blau}, ${a})`;
+    leitScreen.min = Math.floor(Date.now() / 60000);
     g.fillStyle = LEIT_FARBE.glas;
     g.fillRect(0, 0, w, H);
-    g.strokeStyle = 'rgba(120, 205, 255, 0.1)'; g.lineWidth = 1;
+    g.strokeStyle = blau(0.1); g.lineWidth = 1;
     g.beginPath();
     for (let x = w / 2 % 48; x < w; x += 48) { g.moveTo(Math.round(x) + 0.5, 0); g.lineTo(Math.round(x) + 0.5, H); }
     for (let y = H / 2 % 48; y < H; y += 48) { g.moveTo(0, Math.round(y) + 0.5); g.lineTo(w, Math.round(y) + 0.5); }
     g.stroke();
     const fw = Math.round(b * P), fh = Math.round(h * P), fx = Math.round((w - fw) / 2), fy = Math.round((H - fh) / 2);
-    // Flanken: Das Fenster der Seite füllt nur die Mitte des Glases. Links
-    // und rechts stehen Anzeigen ohne Worte (Pegel, Ringe der Marke), damit
-    // der Monitor über seine ganze Breite ein Gerät bleibt und nicht neben
-    // dem Fenster schwarz steht.
     const hex = (cx, cy, r) => { g.beginPath(); for (let i = 0; i < 6; i++) { const a = (i * Math.PI) / 3 - Math.PI / 2; g[i ? 'lineTo' : 'moveTo'](cx + r * Math.cos(a), cy + r * Math.sin(a)); } g.closePath(); };
-    const kante = 'rgba(120, 205, 255, 0.34)', leise = 'rgba(120, 205, 255, 0.16)';
-    for (const [x0, x1, pegel] of [[0, fx, true], [fx + fw, w, false]]) {
+    // gesperrte Schrift um x zentriert, die Sperrung (em) steht zwischen den Zeichen
+    const gesperrt = (str, x, y, size, gewicht, familie, color, ls) => {
+      g.font = `${gewicht} ${size}px ${familie}`; g.fillStyle = color; g.textBaseline = 'middle'; g.textAlign = 'left';
+      const ch = [...str], ws = ch.map((c) => g.measureText(c).width), sum = ws.reduce((a, c) => a + c, 0) + ls * size * (ch.length - 1);
+      let at = x - sum / 2;
+      ch.forEach((c, i) => { g.fillText(c, at, y); at += ws[i] + ls * size; });
+    };
+    const G = hangarNow;
+    for (const [x0, x1, links] of [[0, fx, true], [fx + fw, w, false]]) {
       const l = x0 + 30, r = x1 - 30, t = 30, u = H - 30, e = 20;
       if (r - l < 140) continue;
-      g.strokeStyle = kante; g.lineWidth = 2;
+      g.strokeStyle = blau(0.34); g.lineWidth = 2;
       g.beginPath();
       for (const [cx, cy, sx, sy] of [[l, t, 1, 1], [r, t, -1, 1], [l, u, 1, -1], [r, u, -1, -1]]) { g.moveTo(cx + sx * e, cy); g.lineTo(cx, cy); g.lineTo(cx, cy + sy * e); }
       g.stroke();
-      if (pegel) {
-        const n = LEIT_PEGEL.length, step = (u - t - 56) / (n - 1), bl = l + 34, br = r - 34;
-        LEIT_PEGEL.forEach((v, i) => {
-          const y = Math.round(t + 28 + i * step);
-          g.fillStyle = leise; g.fillRect(bl, y - 1, br - bl, 2);
-          g.fillStyle = i === 2 ? LEIT_FARBE.marke : 'rgba(120, 205, 255, 0.55)';
-          g.fillRect(bl, y - 4, Math.round((br - bl) * v), 8);
-        });
+      const cx = (l + r) / 2, cy = (t + u) / 2, R = Math.min(r - l, u - t) / 2 - 22;
+      if (links && G) {
+        // Hangargröße wie im Titel der Seite: der Buchstabe der Stufe, darunter das Feld in Metern
+        const gross = Math.min(R * 1.05, (r - l) / Math.max(1.6, G.size.length * 1.05));
+        gesperrt('HANGAR', cx, t + 46, 25, 700, LEIT_UI, blau(0.78), 0.26);
+        if (G.size) gesperrt(G.size, cx, cy - 4, gross, 900, LEIT_ORB, LEIT_FARBE.schrift, 0.04);
+        g.fillStyle = LEIT_FARBE.marke;
+        g.fillRect(cx - 34, cy + (G.size ? gross * 0.5 + 8 : -44), 68, 4);
+        gesperrt(`${Math.round(G.w)} × ${Math.round(G.l)} m`, cx, G.size ? cy + gross * 0.5 + 46 : cy + 4, G.size ? 30 : 40, 600, LEIT_UI, blau(0.9), 0.06);
       } else {
-        const cx = (l + r) / 2, cy = (t + u) / 2, R = Math.min(r - l, u - t) / 2 - 22;
-        g.strokeStyle = leise; g.lineWidth = 2;
+        g.strokeStyle = blau(0.16); g.lineWidth = 2;
         for (const k of [1, 0.68]) { hex(cx, cy, R * k); g.stroke(); }
         g.beginPath(); g.moveTo(l + 34, cy); g.lineTo(cx - R - 12, cy); g.moveTo(cx + R + 12, cy); g.lineTo(r - 34, cy); g.stroke();
         g.strokeStyle = 'rgba(245, 166, 35, 0.6)'; hex(cx, cy, R * 0.36); g.stroke();
@@ -14286,23 +14400,14 @@ void main() {
       }
     }
     // Fenster der Seite
-    g.fillStyle = LEIT_FARBE.grund;
-    g.fillRect(fx, fy, fw, fh);
+    leitFenster(g, fx, fy, fw, fh, { uhr: leitUhr(), wer: leitWer });
     g.strokeStyle = 'rgba(150, 215, 255, 0.4)'; g.lineWidth = 2;
     g.strokeRect(fx - 1, fy - 1, fw + 2, fh + 2);
-    // Marke: Sechseck mit Punkt (wie in der Kopfzeile der Seite, dort im Kasten 64 × 64)
-    const m = (LEIT_MARKE.b * fw) / 64, mx = fx + fw / 2 - 32 * m, my = fy + LEIT_MARKE.y * fh - 32 * m;
-    g.strokeStyle = g.fillStyle = LEIT_FARBE.marke;
-    g.lineWidth = 5 * m; g.lineJoin = 'round';
-    g.beginPath();
-    [[32, 8], [52, 20], [52, 44], [32, 56], [12, 44], [12, 20]].forEach(([x, y], i) => (i ? g.lineTo(mx + x * m, my + y * m) : g.moveTo(mx + x * m, my + y * m)));
-    g.closePath();
-    g.stroke();
-    g.beginPath();
-    g.arc(mx + 32 * m, my + 32 * m, 6 * m, 0, Math.PI * 2);
-    g.fill();
     tex.needsUpdate = true;
   }
+  // Die Schriften der Seite kommen erst, wenn etwas sie braucht: Steht das
+  // Bild schon, wird es mit ihnen noch einmal gezeichnet.
+  if (LEIT && document.fonts?.load) Promise.all(LEIT_FONTS.map((f) => document.fonts.load(f))).then(() => { if (leitScreen) { leitDraw(); wake(300); } }, () => {});
   function leitLay() {
     if (!leitScreen) return;
     const S = LEIT.schirm, k = hallRoot.scale.x;
@@ -14498,6 +14603,8 @@ void main() {
     if (post && post.state !== 'an') fitFov(now);
     if (!leitScreen) return;
     const want = post && post.state !== 'weg' ? 1 : LEIT_DIM, S = leitScreen;
+    // die Uhr auf dem Glas geht mit, solange die Bühne ohnehin zeichnet
+    if (Math.floor(Date.now() / 60000) !== S.min) leitDraw();
     if (S.power === want) return;
     const step = reduceMotion ? 1 : (dt * 1000) / LEIT_FADE_MS * (1 - LEIT_DIM);
     S.power = want > S.power ? Math.min(want, S.power + step) : Math.max(want, S.power - step);
@@ -14891,6 +14998,10 @@ void main() {
     place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
     canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
     onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },
+    // setTerminal(wer): wer zuletzt am Terminal angemeldet war ({ name,
+    // zeichen, farbe }, null: niemand oder ein Gast). Der Monitor nennt die
+    // Sitzung in seinem Sperrbild, sobald die Seite nicht mehr darüber liegt.
+    setTerminal(wer) { leitWer = leitWerVon(wer); if (leitScreen) { leitDraw(); wake(300); } },
     // Hangargröße: onHangar(fn) ruft fn({ id, size, w, l, h }) für jedes
     // Schiff, das auf das Feld kommt, und gleich, wenn sie schon feststeht:
     // id des Schiffs, size 'S', 'M', 'L', 'XL' oder '' für eine Halle nach

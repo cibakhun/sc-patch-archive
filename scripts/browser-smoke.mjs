@@ -962,7 +962,18 @@ const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
        Farbe fallen, schliesst sich, und die Leiste fuehrt mit dem Namen zum
        Konto;
      · nach dem Abmelden dasselbe zurueck zum Gast, und ein Klick auf die
-       Blende ueberspringt den Rest. */
+       Blende ueberspringt den Rest.
+   Zweite Runde (14.11.2026, Krisz: „es geht aber besser alles“): Die Probe
+   gibt dem Terminal dieselben Haken wie der Controller und verlangt dazu:
+     · die Blende zeichnet ihr Sperrbild mit leitFenster aus der Datei der
+       Buehne auf ihre Leinwand (in den Pixeln des Schirms, mit Uhr, die
+       Marke in Bernstein an ihrem Platz);
+     · die Karte nennt die Fakten der Seite (Flotte, Schiff auf dem Feld,
+       Halle beim Gast, Beitritt beim Konto) und gruesst ein Konto beim
+       ersten Mal anders als beim Wiederkommen;
+     · der Monitor der Halle erfaehrt jede Sitzung (Haken wer): den Gast,
+       das Konto mit geprueftem Zeichen und Farbe, den Gast nach dem
+       Abmelden. */
 async function probeAnmeldung(page, warte) {
   const lies = () => page.evaluate(() => {
     const l = document.getElementById('hgx-term-login'), w = document.getElementById('hgx-term-who');
@@ -972,7 +983,18 @@ async function probeAnmeldung(page, warte) {
       zu: l.hidden, schritt: l.dataset.step ?? '', name: document.getElementById('hgx-term-lname')?.textContent ?? '', sub: document.getElementById('hgx-term-lsub')?.textContent ?? '',
       bild: av?.querySelector('img')?.getAttribute('src') ?? '', farbe: av?.style.getPropertyValue('--av') ?? '', zeichen: av?.querySelector('span')?.textContent ?? '',
       wer: w.dataset.who ?? '', ziel: w.getAttribute('href'), text: w.querySelector('b')?.textContent ?? '', ansage: w.getAttribute('aria-label') ?? '',
-      soll: { login: w.dataset.login, dash: w.dataset.dash, lLogin: w.dataset.lLogin, gast: l.dataset.lGast },
+      soll: { login: w.dataset.login, dash: w.dataset.dash, lLogin: w.dataset.lLogin, gast: l.dataset.lGast, hallo: l.dataset.lHallo, zurueck: l.dataset.lZurueck, flotte: l.dataset.fFlotte, schiffn: l.dataset.fSchiffn, feld: l.dataset.fFeld, halle: l.dataset.fHangar, seit: l.dataset.fSeit },
+      // zweite Runde: Gruss, Faktenzeilen, das Sperrbild auf der Leinwand, und was die Buehne erfaehrt
+      hallo: document.getElementById('hgx-term-lhallo')?.textContent ?? '',
+      fakten: [...document.querySelectorAll('#hgx-term-lfakt li')].map((li) => [li.querySelector('span')?.textContent ?? '', li.querySelector('b')?.textContent ?? '']),
+      grund: l.hasAttribute('data-bild'), leinwand: window.__termBild, gemeldet: window.__termWer.at(-1), meldungen: window.__termWer.length,
+      breit: Math.round(l.getBoundingClientRect().width * Math.min(2, window.devicePixelRatio || 1)),
+      // der Punkt der Marke im Bild (Mitte, LEIT_MARKE.y der Hoehe): Bernstein, wenn wirklich gezeichnet wurde
+      punkt: (() => {
+        const cv = document.getElementById('hgx-term-lbild'), b = window.__termBild;
+        if (!cv || !b) return null;
+        try { return [...cv.getContext('2d').getImageData(Math.round(cv.width / 2), Math.round(cv.height * b.marke), 1, 1).data]; } catch { return null; }
+      })(),
     };
   });
   const blendeZu = (ms) => warte(() => document.getElementById('hgx-term-login').hidden, ms);
@@ -980,7 +1002,7 @@ async function probeAnmeldung(page, warte) {
     window.__termKonto ??= { echt: window.VBAccount };
     if (!k) window.VBAccount = window.__termKonto.echt;
     else {
-      const sess = { user: { id: k.uid }, access_token: 'probe' };
+      const sess = { user: { id: k.uid, created_at: k.seit }, access_token: 'probe' };
       window.VBAccount = { ...(window.__termKonto.echt ?? {}), peek: () => sess, session: () => Promise.resolve(sess), rest: () => Promise.resolve(new Response(JSON.stringify([k.zeile]), { status: 200, headers: { 'Content-Type': 'application/json' } })) };
     }
     window.dispatchEvent(new Event('vb-account-session'));
@@ -991,16 +1013,29 @@ async function probeAnmeldung(page, warte) {
   let s = await lies();
   if (!s) return '#hgx-term-login oder #hgx-term-who fehlt im Terminal';
   if (s.wer !== 'guest' || s.ziel !== s.soll.login || s.text !== s.soll.lLogin) return `ohne Konto nennt die Leiste „${s.text}“ (${s.wer || '—'}) mit Ziel ${s.ziel} — Soll: „${s.soll.lLogin}“ zur Anmeldung ${s.soll.login}`;
+  // das Sperrbild: gezeichnet von leitFenster aus der Datei der Buehne, mit Uhr, die Marke in Bernstein an ihrem Platz
+  const bernstein = (p) => !!p && p[0] > 200 && p[1] > 120 && p[1] < 200 && p[2] < 90;
+  if (!s.grund || !s.leinwand) return 'die Blende hat ihr Sperrbild nicht gezeichnet (data-bild fehlt) — sie zeigte ein anderes Bild als der Monitor der Halle; liefert die Datei der Buehne leitFenster noch?';
+  if (!/^\d\d:\d\d$/.test(s.leinwand.uhr) || !bernstein(s.punkt)) return `im Sperrbild der Blende fehlt die Uhr („${s.leinwand.uhr}“) oder die Marke steht nicht an ihrem Platz (Farbe dort ${JSON.stringify(s.punkt)}, Soll Bernstein)`;
+  const gastKarte = [[s.soll.flotte, (s.soll.schiffn ?? '').replace('{n}', '3')], [s.soll.feld, 'Probe Schiff'], [s.soll.halle, 'Probe Halle']];
+  if (s.name !== s.soll.gast || s.hallo || JSON.stringify(s.fakten) !== JSON.stringify(gastKarte)) return `die Karte des Gasts nennt „${s.name}“ (Gruss „${s.hallo}“) mit ${JSON.stringify(s.fakten)} — Soll: „${s.soll.gast}“ ohne Gruss mit ${JSON.stringify(gastKarte)}`;
+  if (s.meldungen < 1 || s.gemeldet !== null) return `der Monitor der Halle erfaehrt nicht, dass ein Gast davor sitzt (gemeldet ${JSON.stringify(s.gemeldet)} nach ${s.meldungen} Meldungen)`;
 
   // 2 · jemand meldet sich an: die Blende geht von selbst wieder auf und nennt ihn
-  await melde({ uid: 'probe-konto', zeile: { display_name: 'Probe Pilot', handle: 'probe', avatar_url: 'javascript:void(0)', avatar_color: 'red', avatar_icon: 'P' } });
+  const konto = { uid: 'probe-konto', seit: '2026-10-03T09:00:00Z', zeile: { display_name: 'Probe Pilot', handle: 'probe', avatar_url: 'javascript:void(0)', avatar_color: 'red', avatar_icon: 'P' } };
+  await melde(konto);
   if (!(await warte(() => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === 'user'; }, 8000))) { s = await lies(); return `nach der Anmeldung (vb-account-session) nennt die Blende niemanden (zu ${s.zu}, Schritt „${s.schritt}“)`; }
   s = await lies();
   if (s.name !== 'Probe Pilot' || s.sub !== '@probe') return `die Blende nennt „${s.name}“ / „${s.sub}“ statt „Probe Pilot“ / „@probe“`;
   if (s.bild || s.farbe !== '#2dd4ff' || s.zeichen !== 'P') return `die Blende nimmt aus dem Profil, was nicht durchgehen darf: Bild „${s.bild}“, Farbe „${s.farbe}“, Zeichen „${s.zeichen}“ — Soll: kein Bild (nur https), #2dd4ff, „P“`;
+  // die Karte: Gruss beim ersten Mal, die Fakten der Seite, der Beitritt statt der Halle; das Bild in den Pixeln des Schirms
+  if (s.hallo !== s.soll.hallo) return `die Karte gruesst ein Konto beim ersten Mal mit „${s.hallo}“ statt „${s.soll.hallo}“`;
+  if (s.fakten.length !== 3 || s.fakten[0][0] !== s.soll.flotte || s.fakten[1].join('|') !== `${s.soll.feld}|Probe Schiff` || s.fakten[2][0] !== s.soll.seit || !s.fakten[2][1].includes('2026')) return `die Karte des Kontos zeigt ${JSON.stringify(s.fakten)} — Soll: Flotte, „Probe Schiff“ auf dem Feld und der Beitritt im Jahr 2026 („${s.soll.seit}“)`;
+  if (!s.grund || Math.abs(s.leinwand.w - s.breit) > 2) return `das Sperrbild der Blende ist ${s.leinwand?.w} px breit, der Kasten steht ${s.breit} px breit im Bild: Es stuende unscharf oder gar nicht da (data-bild ${s.grund})`;
   if (!(await blendeZu(8000))) return 'die Blende schliesst sich nach der Anmeldung nicht';
   s = await lies();
   if (s.wer !== 'user' || s.ziel !== s.soll.dash || s.text !== 'Probe Pilot' || !s.ansage.includes('Probe Pilot') || s.ansage.includes('{name}')) return `angemeldet nennt die Leiste „${s.text}“ (${s.wer || '—'}, Ansage „${s.ansage}“) mit Ziel ${s.ziel} — Soll: der Name zum Konto ${s.soll.dash}`;
+  if (s.gemeldet?.name !== 'Probe Pilot' || s.gemeldet.zeichen !== 'P' || s.gemeldet.farbe !== '#2dd4ff') return `der Monitor der Halle erfaehrt als Sitzung ${JSON.stringify(s.gemeldet)} statt „Probe Pilot“ mit Zeichen „P“ in #2dd4ff`;
 
   // 3 · abgemeldet: zurueck zum Gast, ein Klick ueberspringt die Blende
   await melde(null);
@@ -1010,6 +1045,16 @@ async function probeAnmeldung(page, warte) {
   if (!(await warte(() => document.getElementById('hgx-term-who').dataset.who === 'guest', 6000))) { s = await lies(); return `nach dem Abmelden nennt die Leiste weiter „${s.text}“ (${s.wer})`; }
   s = await lies();
   if (s.ziel !== s.soll.login || s.bild) return `nach dem Abmelden fuehrt die Leiste nach ${s.ziel} (Bild „${s.bild}“) statt zur Anmeldung ${s.soll.login}`;
+  if (s.gemeldet !== null) return `nach dem Abmelden nennt der Monitor der Halle weiter ${JSON.stringify(s.gemeldet)}`;
+
+  // 4 · dasselbe Konto kommt wieder: „Willkommen zurück“; danach abgemeldet, wie die Probe begann
+  await melde(konto);
+  if (!(await warte(() => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === 'user'; }, 8000))) return 'beim zweiten Anmelden desselben Kontos nennt die Blende niemanden';
+  s = await lies();
+  if (s.hallo !== s.soll.zurueck) return `die Karte gruesst ein Konto, das schon hier sass, mit „${s.hallo}“ statt „${s.soll.zurueck}“`;
+  await melde(null);
+  if (!(await warte(() => document.getElementById('hgx-term-who').dataset.who === 'guest', 8000))) return 'nach dem zweiten Abmelden nennt die Leiste weiter das Konto';
+  if (!(await blendeZu(8000))) return 'nach dem zweiten Abmelden bleibt die Blende ueber der Seite stehen';
   return null;
 }
 
@@ -1026,7 +1071,22 @@ async function probeTerminal(page) {
     window.__termTab = null;
     window.open = (...a) => { window.__termTab = a; return null; };
     const m = await import(box.dataset.js);
-    window.__term = m.initTerminal(box, { ship: (id) => { window.__termShip = id ?? '(ohne)'; } });
+    // Haken wie im Controller (assets/hangar-overview.js): das Sperrbild aus
+    // der Datei der Buehne, die Fakten der Karte, und wer angemeldet ist
+    const buehne = await import(JSON.parse(document.getElementById('hg-stage').textContent).viewer).catch(() => null);
+    window.__termWer = [];
+    window.__termBild = null;
+    window.__term = m.initTerminal(box, {
+      ship: (id) => { window.__termShip = id ?? '(ohne)'; },
+      bild: (cv, o) => {
+        if (typeof buehne?.leitFenster !== 'function') return false;
+        buehne.leitFenster(cv.getContext('2d'), 0, 0, cv.width, cv.height, o);
+        window.__termBild = { w: cv.width, h: cv.height, uhr: o?.uhr ?? '', marke: buehne.LEIT_MARKE?.y ?? 0 };
+        return true;
+      },
+      fakten: () => ({ flotte: 3, schiff: 'Probe Schiff', halle: 'Probe Halle' }),
+      wer: (id) => { window.__termWer.push(id); },
+    });
     window.__term.place(kasten);
     return {
       home: new URL(home.href).pathname,
