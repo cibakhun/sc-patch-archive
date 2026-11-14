@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
+import { readCaf } from './lib/ivo-caf.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -67,7 +68,7 @@ const HALLS = [
   // die Palettenmaterialien mit einem fast schwarzen Ersatzwert.
   { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
   { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
-  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
+  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' } },
   { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
 ];
 // Schiffsaufzug der heutigen Hangars (Hightech, „medtop“: Landefläche 56 x 88 m,
@@ -422,6 +423,7 @@ if (containers.length) {
         }
       }
       if (h.tor) await werkhalleCompose(h, file);
+      if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
     if (h.dir === 'lift') {
@@ -649,7 +651,6 @@ function liftEntities(h) {
 // Ursprung, Oberkante y = 0, nach <key>-buehne.glb.
 async function werkhalleCompose(h, file) {
   const { copyToDocument, getBounds } = await import('@gltf-transform/functions');
-  const { readCaf } = await import('./lib/ivo-caf.mjs');
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const RAW = `${SRC}werkhalle-raw/`;
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -761,6 +762,55 @@ function compactPrimitive(doc, sp) {
     p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(out).setBuffer(buf));
   }
   return p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
+}
+
+// ─── Halle mit eigenem Aufzug (Industrie-Bausatz, h.aufzug) ──────────────
+// Bodentor und Plattform stehen im Export der Halle als je ein Mesh
+// (…elev_door_<größe>_a.cga, …elev_<größe>_a.cga), in der Ruhelage ihrer
+// .cga: Tor zu, Plattform unten. Welche Lamelle ein Primitiv trägt und wie
+// sie fährt, sagen nur die Spieldateien: der Knotenbaum der .cga, die
+// Teilnetze der .cgam in der Stufe der Halle (Material, Netz-Knoten,
+// Dreiecke) und die Spuren door_close/door_open (.caf, Lage je Knochen im
+// Raum seines Elternknotens, Achsen der .cga mit Z oben). Das geht nach
+// hall/<halle>.tor.json; der Build teilt damit das Tor in seine Teile.
+function hallAufzug(h) {
+  const RAW = `${SRC}hall-aufzug-raw/`;
+  mkdirSync(RAW, { recursive: true });
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const names = [h.aufzug.tor, h.aufzug.plattform];
+  sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${names.map(esc).join('|')})[._]`]);
+  const files = listFiles(RAW);
+  const r4 = (v) => Math.round(v * 10000) / 10000;
+  const teil = (name) => {
+    const cga = files.find((f) => f.toLowerCase().endsWith(`/${name}.cga`));
+    if (!cga) throw new Error(`Aufzug: ${name}.cga fehlt im Auszug`);
+    const dump = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout || '';
+    const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*\n\s*b2w\[0\] = \[([^\]]+)\]\n\s*b2w\[1\] = \[([^\]]+)\]\n\s*b2w\[2\] = \[([^\]]+)\]/g)].map((m) => ({
+      index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), t: [m[5], m[6], m[7]].map((r) => Number(r.split(',')[3])),
+    }));
+    if (!nodes.length) throw new Error(`Aufzug: nmc dump ${name}.cga nennt keinen Knoten`);
+    const cgam = files.find((f) => f.toLowerCase().endsWith(`/${name}${h.lod ? `_lod${h.lod}` : ''}.cgam`));
+    if (!cgam) throw new Error(`Aufzug: ${name}.cgam der Stufe ${h.lod} fehlt im Auszug`);
+    const cafs = {};
+    for (const f of files.filter((x) => x.toLowerCase().includes(`/${name}_`) && x.toLowerCase().endsWith('.caf'))) {
+      const c = readCaf(readFileSync(f), nodes.map((n) => n.name));
+      const tracks = {}, dreht = [];
+      for (const b of c.bones) {
+        if (!b.name) continue;
+        if (b.pos?.times && b.pos?.values) tracks[b.name] = b.pos.times.map((tt, k) => [tt, ...b.pos.values[k].map(r4)]);
+        // eine Drehspur, die sich ändert, kann der Build nicht: er meldet sie
+        const q = b.rot?.values;
+        if (q?.length > 1 && q.some((v) => v.some((x, i) => Math.abs(x - q[0][i]) > 1e-3))) dreht.push(b.name);
+      }
+      cafs[f.split('/').pop().slice(name.length + 1).replace(/\.caf$/i, '')] = { fps: c.fps, frames: c.frames, tracks, ...(dreht.length ? { dreht } : {}) };
+    }
+    for (const k of ['door_close', 'door_open']) if (!cafs[k]) throw new Error(`Aufzug: Spur ${name}_${k}.caf fehlt im Auszug`);
+    return { cga: name, nodes, subsets: readSubsetsNode(readFileSync(cgam)), cafs };
+  };
+  const out = { lod: h.lod, tor: teil(h.aufzug.tor), plattform: teil(h.aufzug.plattform) };
+  writeFileSync(`${SRC}hall/${h.key}.tor.json`, JSON.stringify(out, null, 1));
+  const spur = (t) => Object.entries(t.cafs).map(([k, c]) => `${k} ${Object.keys(c.tracks).length} Knochen in ${c.frames} Bildern`).join(', ');
+  console.log(`  Aufzug: Tor ${out.tor.nodes.length} Knoten, ${out.tor.subsets.length} Teilnetze (${spur(out.tor)}); Plattform ${out.plattform.subsets.length} Teilnetze (${spur(out.plattform)})`);
 }
 
 // Teilnetze einer .cgam mit Netz-Knoten: [Material, Knoten, Dreiecke]

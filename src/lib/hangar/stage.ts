@@ -22,6 +22,8 @@ export interface HallConfig {
   readonly bytes?: number;
   readonly lights?: string | null;
   readonly probes?: string | null;
+  /** Eigener Aufzug einer Halle in fester Groesse: Bahnen von Bodentor und Plattform (json); beide sind Knoten der Halle selbst (aufzug_tor_*, aufzug_pad), ownLift im Viewer */
+  readonly aufzug?: string | null;
   /** Leichtere Stufe fuers Telefon, nur ohne Moebeldatei */
   readonly lite?: { url: string; bytes?: number } | null;
   /** Moebel als eigene Datei, nur neben der leichteren Stufe als Halle */

@@ -63,6 +63,11 @@ const lightsOf = (key: string | undefined) => {
   return f && existsSync(f) ? `/hangar/hall/${key}.lights.json?v=${contentV([f])}` : null;
 };
 const lights = lightsOf(hallKey);
+// Bahnen des eigenen Aufzugs einer Halle (Bodentor und Plattform sind Teile ihres Modells)
+const aufzugOf = (key: string) => {
+  const f = `${hallDir}/${key}.aufzug.json`;
+  return existsSync(f) ? `/hangar/hall/${key}.aufzug.json?v=${contentV([f])}` : null;
+};
 // Spiegelungssonden aus dem Spiel (PC-Lauf „Hallensonden“): Liste und die
 // HDR-Karten daneben, alle im Hash.
 const probesFile = hallKey ? `${hallDir}/${hallKey}.probes.json` : '';
@@ -165,7 +170,7 @@ const halls: Partial<Record<HangarSize, HallConfig>> = {};
 for (const size of HANGAR_SIZES) {
   const key = HALL_OF_SIZE[size], a = real.hall?.[key];
   if (!a?.room || !existsSync(`public${a.url}`)) continue;
-  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null };
+  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null, aufzug: aufzugOf(key) };
 }
 // Crew: mit Skelett und Spielanimationen (scripts/build-hangar-crew.mjs,
 // Modul assets/hangar-crew.js), sonst die starre Figur aus hangar-assets

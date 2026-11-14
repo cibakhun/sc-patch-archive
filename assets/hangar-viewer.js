@@ -704,9 +704,17 @@ function hallShiftPoint(h, p) {
 // Am Bild abgeglichen (Carrack in util-lrgtop, 14.11.2026): bei 10 liest
 // sich der Boden, die Wände bleiben schwarz; bei 18 wird die Oberseite des
 // Schiffs hell, ohne auszubrennen; 16 steht.
-// verify:hangar-hall liest den Block aus dem ausgelieferten Viewer.
+// `fuell`: Stärke des neutralen Fülllichts von oben und unten (Halbkugel),
+// sobald die Umgebungskugel der Halle steht (sonst HALL_HEMI_WITH_ENV). Die
+// Kugel wird über der Landefläche aufgenommen; in einer Halle von 144 m
+// Breite kommt davon an den Wänden kaum etwas an, sie blieben fast schwarz.
+// 0,5 hebt sie, ohne das Bild zu verflachen (so abgenommen, Krisz
+// 14.11.2026 zu den ersten Bildern: „ja“).
+// Der eigene Aufzug einer solchen Halle (Bodentor und Plattform aus ihrem
+// Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
+// durch, ownLift baut ihn.
 const HALL_FEST = /* hall-fest */ {
-  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16 }
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5 }
 } /* /hall-fest */;
 
 // Mitte des Schiffsfelds (mit Aufzug), der Landefläche (HALL_FEST) oder des
@@ -2126,6 +2134,89 @@ function gatePose(G, dir, tau, blend = 1) {
     } else G.M.makeTranslation(G.v.x, G.v.y, G.v.z);
     for (const id of u.ids) id.b.setMatrixAt(id.iid, G.M);
   }
+}
+
+// Aufzug einer Halle in fester Größe aus ihrem eigenen Modell (HALL_FEST,
+// <halle>.aufzug.json des Builds). Im Modell steht die Plattform oben (Knoten
+// aufzug_pad, mit ihren Landeleuchten) und das Bodentor zu (aufzug_tor_*, je
+// bewegtem Knochen des Spiels ein Knoten). Die Plattform wird das Feld
+// (group), das Tor bekommt die Gestalt von buildGate, damit Fahrt, Ton und
+// Bildschleife beide gleich führen: parts mit Bahnen ([t, x, y, z], hier der
+// Versatz gegen zu im Modellraum), T die Dauer im Spiel, cover die Zeit der
+// Schließbahn, ab der das Feld gedeckt ist, bottom die Unterkante unter dem
+// Boden, ease die Fahrkurve der Plattform. Ruhelage wie im Spiel mit Schiff:
+// Tor offen (seine Teile liegen unter dem Hallenboden neben der Öffnung und
+// sind aus), Plattform oben.
+function ownLift(model, info, floorY) {
+  const P = info.plattform, D = info.tor, F = info.feld;
+  const padNode = P?.node ? model.getObjectByName(P.node) : null;
+  if (!padNode || !F || !(P.weg > 0)) throw new Error(`Plattform ${P?.node ?? '?'} fehlt in der Halle`);
+  const trisOf = (m) => (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3;
+  const T = Math.max(D?.s?.close ?? 0, D?.s?.open ?? 0);
+  if (!(T > 0) || !D.teile?.length) throw new Error('Bodentor ohne Teile oder Dauer');
+  // erst prüfen, dann umhängen: Scheitert der Aufzug, bleibt die Halle, wie sie geladen ist
+  const nodes = D.teile.map((p) => {
+    const node = model.getObjectByName(p.node);
+    if (!node || !(p.keys?.close?.length > 1) || !(p.keys?.open?.length > 1) || !p.box) throw new Error(`Torteil ${p.node} fehlt in der Halle`);
+    return node;
+  });
+  // die Netze der Plattform direkt in die Gruppe (gebacken: ihr Knoten hat keine eigene Lage)
+  const group = new THREE.Group(), meshes = [];
+  group.name = 'hall:pad';
+  padNode.traverse((n) => { if (n.isMesh) meshes.push(n); });
+  for (const m of meshes) group.add(m);
+  if (!padNode.isMesh) padNode.removeFromParent();
+  model.add(group);
+  const gate = new THREE.Group(), parts = [];
+  gate.name = 'hall:gate';
+  let tris = 0;
+  for (const [i, p] of D.teile.entries()) {
+    const node = nodes[i], keys = p.keys;
+    gate.add(node);
+    node.traverse((n) => { if (n.isMesh) tris += trisOf(n); });
+    const rest = node.position.clone(), open = keys.open.at(-1);
+    // gatePose setzt Matrizen an Exemplaren (BatchedMesh); hier steht dafür der Knoten selbst
+    const self = { setMatrixAt(_, M) { node.position.setFromMatrixPosition(M).add(rest); } };
+    parts.push({ node: p.node, keys, rot: null, lo: p.box[0], hi: p.box[1], at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), q: new THREE.Quaternion(), snapQ: new THREE.Quaternion(), ids: [{ b: self, iid: 0 }] });
+  }
+  model.add(gate);
+  // Ab wann deckt das Tor das Feld? Zellen von 0,5 m unter den Teilen, die
+  // bis an die Oberkante reichen; früheste Stützstelle der Schließbahn, zu
+  // der keine Zelle offen ist
+  const CELL = 0.5, nx = Math.round((F.to[0] - F.from[0]) / CELL), nz = Math.round((F.to[1] - F.from[1]) / CELL), cells = new Uint8Array(nx * nz), at = new THREE.Vector3();
+  const tops = parts.filter((u) => u.hi[1] >= D.oben - 0.6);
+  const full = (t) => {
+    cells.fill(0);
+    for (const u of tops) {
+      gateAt(u.keys.close, t, at);
+      const i0 = Math.max(0, Math.ceil((u.lo[0] + at.x - F.from[0]) / CELL - 0.5)), i1 = Math.min(nx - 1, Math.floor((u.hi[0] + at.x - F.from[0]) / CELL - 0.5));
+      const j0 = Math.max(0, Math.ceil((u.lo[2] + at.z - F.from[1]) / CELL - 0.5)), j1 = Math.min(nz - 1, Math.floor((u.hi[2] + at.z - F.from[1]) / CELL - 0.5));
+      for (let j = j0; j <= j1; j++) if (i1 >= i0) cells.fill(1, j * nx + i0, j * nx + i1 + 1);
+    }
+    return cells.indexOf(0) < 0;
+  };
+  let cover = 0;
+  for (const [t] of parts[0].keys.close) if (full(t)) { cover = t; break; }
+  // Fahrkurve der Plattform aus dem Spiel (hinab: 0 bis −weg), auf 0..1; nur wenn sie stetig steigt
+  const pad = P.keys?.down, ps = P.s?.down;
+  let ease = null;
+  if (Array.isArray(pad) && pad.length > 2 && ps > 0) {
+    const depth = pad.at(-1)[1], f = pad.map(([t, y]) => [t / ps, y / depth]);
+    if (depth < 0 && f.every((v, i) => i === 0 || (v[0] > f[i - 1][0] && v[1] >= f[i - 1][1]))) {
+      ease = (k) => {
+        if (k <= 0) return 0;
+        if (k >= 1) return 1;
+        let i = 1;
+        while (i < f.length - 1 && f[i][0] < k) i++;
+        const a = f[i - 1], b = f[i];
+        return pchipAt(f, i, (k - a[0]) / (b[0] - a[0]), 1);
+      };
+    }
+  }
+  const G = { group: gate, parts, batches: [], used: parts.length, dropped: [], tris, T, cover: cover || T, ease, bottom: D.unten - floorY, own: true, state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
+  gatePose(G, 'open', T);
+  gate.visible = false;
+  return { own: true, group, field: { from: F.from, to: F.to }, gate: G, parts: meshes.length, tris: Math.round(meshes.reduce((a, m) => a + trisOf(m), 0)), travel: P.weg, top: P.oben, riders: Object.values(P.mit ?? {}).reduce((a, b) => a + b, 0) };
 }
 
 // Fester Rand um die Öffnung (19.10.2026, Krisz: „es soll so aussehen wie
@@ -8712,7 +8803,7 @@ export async function initHangar(container, opts = {}) {
     const env = !!realHall.envOn;
     if (hallLamps) {
       hemi.color.set(0xffffff); hemi.groundColor.set(0x9a9a9a);
-      hemi.intensity = env ? HALL_HEMI_WITH_ENV : HALL_HEMI * 0.5;
+      hemi.intensity = env ? realHall.fest?.fuell ?? HALL_HEMI_WITH_ENV : HALL_HEMI * 0.5;
       return;
     }
     hemi.intensity = env ? HALL_HEMI_WITH_ENV : HALL_HEMI;
@@ -10539,6 +10630,15 @@ void main() {
         return null;
       })
       : Promise.resolve(null);
+    // Eigener Aufzug einer Halle in fester Größe (ownLift): Bahnen und Maße
+    // von Bodentor und Plattform, die Teile ihres Modells sind; ohne die
+    // Datei steht das Schiff auf dem geschlossenen Tor wie bisher
+    const ownReady = h.aufzug && HALL_FEST[h.id]
+      ? fetch(h.aufzug).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.aufzug}: ${r.status}`)))).catch((e) => {
+        console.warn('[hangar] Aufzug der Halle nicht geladen', e);
+        return null;
+      })
+      : Promise.resolve(null);
     // Fester Rand um die Öffnung (buildRand), parallel; ohne ihn bleibt der
     // Hallenboden bis an das Feld
     const R0 = h.lift?.rand;
@@ -10655,11 +10755,24 @@ void main() {
       await pause();
       // Schiffsfeld als Aufzug, vor der Einrichtung (die bleibt stehen)
       const L = HALL_LIFT[h.id], t2 = performance.now();
-      const lift = L ? await cutHallLift(model, L, new Set(furn), pause) : null;
+      let lift = L ? await cutHallLift(model, L, new Set(furn), pause) : null;
       if (lift) {
         model.add(lift.group);
         console.info(`[hangar] Aufzug: ${lift.tris} Dreiecke in ${lift.parts} Teilen aus dem Schiffsfeld, ${Math.round(performance.now() - t2)} ms`);
       } else if (L) console.warn('[hangar] Aufzug: Schiffsfeld trifft keine Dreiecke');
+      // Halle mit eigenem Aufzug: Plattform und Bodentor aus ihrem Modell
+      const ownInfo = L ? null : await ownReady;
+      if (ownInfo) {
+        try {
+          lift = ownLift(model, ownInfo, floorY);
+          const G = lift.gate;
+          console.info(`[hangar] Aufzug der Halle: Plattform ${lift.tris} Dreiecke in ${lift.parts} Netzen (mit ${lift.riders} Landeleuchten und anderem darauf), Fahrweg ${lift.travel} m, Oberkante ${(lift.top - floorY).toFixed(3)} m über dem Boden; Bodentor ${G.used} Teile, ${Math.round(G.tris)} Dreiecke, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+          if (Math.abs(lift.top - floorY) > 0.1) console.warn(`[hangar] Aufzug der Halle: Plattform ${(lift.top - floorY).toFixed(2)} m neben der Bodenhöhe des Manifests, das Schiff stünde nicht auf ihr`);
+        } catch (e) {
+          console.warn('[hangar] Aufzug der Halle nicht gebaut', e);
+          lift = null;
+        }
+      }
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
       await pause();
@@ -10673,7 +10786,7 @@ void main() {
       // Feld und Bodenstreifen in die Hallenmitte (HALL_SHIFT): nach der
       // Möbeldatei (ihre Füllung liegt im Boden), vor dem Zusammenlegen.
       // F ist das Feld, wie es danach steht.
-      const S = lift ? HALL_SHIFT[h.id] : null, F = S ? liftField(h) : L;
+      const S = lift ? HALL_SHIFT[h.id] : null, F = S ? liftField(h) : L ?? lift?.field ?? null;
       if (S) {
         const t7 = performance.now();
         lift.group.position.x = S.field;
@@ -11101,6 +11214,11 @@ void main() {
           shaft = null;
         }
       }
+      // Halle mit eigenem Aufzug: Der Schacht ist Teil ihres Modells und
+      // nimmt ihr Licht. Hier steht nur, was Fahrt und Bildschleife führen:
+      // das Tor, eine leere Gruppe an der Stelle des gebauten Schachts und
+      // der Fahrweg der Plattform als Grenze der Tiefe (liftDepth).
+      if (!shaft && lift?.own) shaft = { own: true, pit: new THREE.Group(), gate: reduceMotion ? null : lift.gate, depth: lift.travel, depth0: 0, max: lift.travel - 0.5, fit: () => false, lights: null };
       // Hallendeko: steht fest, Matrizen je Maßstab in scaleWorld (layDeko)
       if (deko) model.add(deko.group);
       // Wartungsplatz (buildDienst): fährt mit dem Feld, gestellt je Schiff in scaleWorld
@@ -11521,7 +11639,8 @@ void main() {
   const fx = {
     field() {
       const L = realHall?.liftL;
-      if (!L || !steam) return null;
+      // Dampf gehört zum gebauten Schacht der Revel & York; der Aufzug einer Spielhalle (own) fährt ohne
+      if (!L || !steam || realHall.shaft?.own) return null;
       // das Feld wächst mit der Halle (HALL_GROW)
       const k = hallRoot.scale.x, hx = (L.to[0] - L.from[0] + grow.d.x) * k / 2, hz = (L.to[1] - L.from[1] + grow.d.z) * k / 2;
       const zl = Math.min(hz, ((current?.info.len ?? 20) / 2 + 7) * Math.max(1, k * 0.6));
@@ -11688,7 +11807,8 @@ void main() {
     const d = LIFT_DEPTH + info.height / hallRoot.scale.x, sh = realHall?.shaft;
     if (!sh) return d;
     sh.fit(Math.max(d, sh.depth));
-    return Math.max(d, sh.depth0);
+    // eigener Aufzug der Halle: nicht tiefer als der Fahrweg der Plattform
+    return Math.min(Math.max(d, sh.depth0), sh.max ?? Infinity);
   };
   // Schachtlicht an einer Stelle der Schachtachse (Höhe y im Schachtraum),
   // als Helligkeit gemittelt über oben und die vier Seiten: hebt dort die
@@ -14579,7 +14699,8 @@ void main() {
         if (realHall.dienst) realHall.dienst.group.visible = !sealed;
         if (!active) pitState.t0 = 0;
         else if (!pitState.t0) pitState.t0 = now;
-        const on = active ? Math.min(1, (now - pitState.t0) / PIT_FADE_MS) : 0;
+        // der Schacht einer Halle mit eigenem Aufzug (own) hat ihr Licht, keine Schachtlampen
+        const on = active && !sh.own ? Math.min(1, (now - pitState.t0) / PIT_FADE_MS) : 0;
         const bx = 0.5 + 0.5 * Math.cos(t * Math.PI * 2), by = Math.pow(0.5 + 0.5 * Math.cos(t * Math.PI), 4);
         hallPit.k.value.set(on, lift.y, 0);
         hallPit.blink.value.set(bx, by);

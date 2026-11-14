@@ -1989,9 +1989,210 @@ async function writeWerkhalleJson(doc, name, werkNodes, lights) {
   return { file, json, summary: { floorY: json.floorY, interior: json.interior, ceiling: json.ceiling, gate: { width: json.gate.width, height: json.gate.height, openClear: json.gate.openClear }, stage: json.stage && json.stage.size, panel: json.panel && json.panel.size, fixtures: fixtures.length, ceilingFixtures: fixtures.filter((f) => f.mount === 'decke').length, buehnen: buehnen.map((b) => b.node) } };
 }
 
+// ─── Aufzug einer Halle des Industrie-Bausatzes ──────────────────────────
+// Quelle: hall/<halle>.tor.json (hallAufzug im Extraktor). Bodentor und
+// Plattform sind Teile der Halle und bleiben in ihrer Datei: kein zweites
+// Paket, dieselben Materialien und Karten. Im Export stehen sie in der
+// Ruhelage ihrer .cga (Tor zu, Plattform unten) als je ein Mesh.
+//
+// aufzugPlan (gleich nach dem Lesen, bevor ein Schritt Primitive nimmt):
+// ordnet jedes Primitiv des Tors seinem Teilnetz zu (Materialnummer am Ende
+// des Materialnamens und Dreieckszahl, in der Reihenfolge der .cgam; die
+// Teilnetze mit Decal-Material lässt der Export aus) und damit dem Knochen,
+// der es bewegt: dem nächsten Vorfahren seines Netz-Knotens, dessen Spur die
+// Ruhelage verlässt. Je solchem Knochen ein Teil; was an keinem hängt
+// (Rahmen), bleibt Halle.
+// aufzugSplit (nach markFurniture, vor join): je Teil ein eigener Knoten
+// aufzug_tor_<nn>; die Plattform wird um ihren Fahrweg gehoben (Ruhelage der
+// Seite: Tor offen, Plattform oben, das Schiff steht darauf) und nimmt mit,
+// was auf ihr steht (Landeleuchten): ein Knoten aufzug_pad.
+// writeAufzugJson: Bahnen und Maße nach public/hangar/hall/<halle>.aufzug.json.
+// Alle Lagen im Modellraum der Halle (glTF, y oben, Meter).
+const AUFZUG_STEPS = 60;   // Stützstellen je Bahn (der Viewer legt PCHIP dazwischen)
+function aufzugPlan(doc, T) {
+  const root = doc.getRoot();
+  const one = (cga) => {
+    const re = new RegExp(`[\\\\/]${cga}\\.cga$`, 'i');
+    const ns = root.listNodes().filter((n) => n.getMesh() && re.test(n.getMesh().getName()));
+    if (ns.length !== 1) throw new Error(`Aufzug: ${cga}.cga steht ${ns.length}-mal im Export der Halle`);
+    return ns[0];
+  };
+  const door = one(T.tor.cga), pad = one(T.plattform.cga);
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  // Lage eines Knochens im Raum seines Elternknotens in Ruhe (t steht im Raum der .cga)
+  const ruhe = (part) => { const by = new Map(part.nodes.map((n) => [n.index, n])); return { by, of: (n) => { const p = n.parent != null ? by.get(n.parent) : null; return n.t.map((v, i) => v - (p ? p.t[i] : 0)); } }; };
+  const at = (tr, f) => { let a = tr[0]; for (const k of tr) { if (k[0] <= f) a = k; else { const w = (f - a[0]) / (k[0] - a[0] || 1); return [1, 2, 3].map((i) => a[i] + (k[i] - a[i]) * w); } } return tr[tr.length - 1].slice(1); };
+  const moving = (part) => {
+    const R = ruhe(part), set = new Set();
+    for (const c of Object.values(part.cafs)) for (const [bone, tr] of Object.entries(c.tracks)) {
+      const n = part.nodes.find((x) => x.name === bone);
+      if (!n) continue;
+      const r = R.of(n);
+      if (tr.some((k) => Math.hypot(k[1] - r[0], k[2] - r[1], k[3] - r[2]) > 1e-3)) set.add(bone);
+    }
+    return set;
+  };
+  const turning = [T.tor, T.plattform].flatMap((p) => Object.values(p.cafs).flatMap((c) => c.dreht ?? []));
+  if (turning.length) throw new Error(`Aufzug: Knochen mit Drehspur (${[...new Set(turning)].join(', ')}), der Build kann nur Schieben`);
+  // Richtung aus dem Raum der .cga in den der Halle (ohne Verschiebung)
+  const lin = (W, v) => [W[0] * v[0] + W[4] * v[1] + W[8] * v[2], W[1] * v[0] + W[5] * v[1] + W[9] * v[2], W[2] * v[0] + W[6] * v[1] + W[10] * v[2]];
+  // Versatz eines Knochens gegen seine Ruhelage zur Bildnummer f: Summe über die Kette seiner Vorfahren
+  const offset = (part, R, bone, caf, f) => {
+    const o = [0, 0, 0];
+    for (let n = bone; n; n = n.parent != null ? R.by.get(n.parent) : null) {
+      const tr = caf.tracks[n.name];
+      if (!tr) continue;
+      const p = at(tr, f), r = R.of(n);
+      for (let i = 0; i < 3; i++) o[i] += p[i] - r[i];
+    }
+    return o;
+  };
+  const frames = (caf) => [...Array(AUFZUG_STEPS + 1)].map((_, k) => (k / AUFZUG_STEPS) * caf.frames);
+
+  // Tor: Primitiv -> Teilnetz -> bewegender Knochen
+  const RT = ruhe(T.tor), movT = moving(T.tor), W = door.getWorldMatrix();
+  const boneOf = (meshNode) => { for (let n = RT.by.get(meshNode); n; n = n.parent != null ? RT.by.get(n.parent) : null) if (movT.has(n.name)) return n; return null; };
+  const owner = new Map(), skipped = [];
+  let s = 0;
+  for (const p of door.getMesh().listPrimitives()) {
+    const tris = (p.getIndices()?.getCount() ?? 0) / 3, mi = Number((p.getMaterial()?.getName().match(/_(\d+)$/) || [])[1] ?? NaN);
+    while (s < T.tor.subsets.length && !(T.tor.subsets[s].tris === tris && (Number.isNaN(mi) || T.tor.subsets[s].mat === mi))) skipped.push(T.tor.subsets[s++]);
+    if (s >= T.tor.subsets.length) throw new Error(`Aufzug: Primitiv ${owner.size} des Tors (${tris} Dreiecke, Material ${p.getMaterial()?.getName() ?? '-'}) passt zu keinem Teilnetz der Stufe ${T.lod}`);
+    owner.set(p, boneOf(T.tor.subsets[s++].node));
+  }
+  skipped.push(...T.tor.subsets.slice(s));
+  const bones = [...new Set([...owner.values()].filter(Boolean))].sort((a, b) => a.name.localeCompare(b.name));
+  if (!bones.length) throw new Error('Aufzug: kein Primitiv des Tors hängt an einem bewegten Knochen');
+  const close = T.tor.cafs.door_close, open = T.tor.cafs.door_open;
+  const parts = bones.map((bone, i) => {
+    const keys = (caf) => frames(caf).map((f) => [r3(f / caf.fps), ...lin(W, offset(T.tor, RT, bone, caf, f)).map(r3)]);
+    const k = { close: keys(close), open: keys(open) };
+    // zu = Ruhelage der .cga: dort enden door_close und beginnt door_open
+    const off = Math.max(Math.hypot(...k.close.at(-1).slice(1)), Math.hypot(...k.open[0].slice(1)));
+    if (off > 0.01) throw new Error(`Aufzug: ${bone.name} steht am Ende von door_close ${off.toFixed(3)} m neben seiner Ruhelage`);
+    return { node: `aufzug_tor_${String(i).padStart(2, '0')}`, bone: bone.name, keys: k };
+  });
+  const nodeOf = new Map(bones.map((b, i) => [b, parts[i].node]));
+
+  // Plattform: ein bewegter Knochen, oben = größter Wert seiner Spur längs der Fahrachse
+  const RP = ruhe(T.plattform), movP = [...moving(T.plattform)];
+  if (movP.length !== 1) throw new Error(`Aufzug: Plattform mit ${movP.length} bewegten Knochen (${movP.join(', ')})`);
+  const pb = T.plattform.nodes.find((n) => n.name === movP[0]), PW = pad.getWorldMatrix();
+  const pc = T.plattform.cafs.door_close, po = T.plattform.cafs.door_open;
+  const yAt = (caf, f) => lin(PW, offset(T.plattform, RP, pb, caf, f));
+  const ups = [...frames(pc).map((f) => yAt(pc, f)), ...frames(po).map((f) => yAt(po, f))];
+  const up = ups.reduce((a, v) => (v[1] > a[1] ? v : a), ups[0]);
+  if (Math.hypot(up[0], up[2]) > 0.01 || !(up[1] > 1)) throw new Error(`Aufzug: Plattform fährt nicht senkrecht (${up.map(r3).join('/')})`);
+  const padKeys = (caf) => frames(caf).map((f) => [r3(f / caf.fps), r3(yAt(caf, f)[1] - up[1])]);
+  return {
+    door, pad, owner, nodeOf, parts, skipped: skipped.length,
+    seconds: { close: r3(close.frames / close.fps), open: r3(open.frames / open.fps) },
+    plattform: { node: 'aufzug_pad', bone: pb.name, weg: r3(up[1]), keys: { down: padKeys(pc), up: padKeys(po) }, seconds: { down: r3(pc.frames / pc.fps), up: r3(po.frames / po.fps) } },
+  };
+}
+// Primitiv auf die Ecken verdichten, die es benutzt (die Primitive eines
+// .cga-Meshs teilen sich einen Vertex-Puffer), mit eigenen Accessoren
+function compactPrim(doc, sp) {
+  const buf = doc.getRoot().listBuffers()[0];
+  const ix = sp.getIndices().getArray();
+  const neu = new Map(), alt = [];
+  const idx = new Uint32Array(ix.length);
+  for (let i = 0; i < ix.length; i++) { let v = neu.get(ix[i]); if (v === undefined) { v = alt.length; neu.set(ix[i], v); alt.push(ix[i]); } idx[i] = v; }
+  const p = doc.createPrimitive().setMaterial(sp.getMaterial()).setExtras(sp.getExtras());
+  for (const sem of sp.listSemantics()) {
+    const a = sp.getAttribute(sem), e = a.getElementSize(), arr = a.getArray(), out = new arr.constructor(alt.length * e);
+    for (let i = 0; i < alt.length; i++) for (let k = 0; k < e; k++) out[i * e + k] = arr[alt[i] * e + k];
+    p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(out).setBuffer(buf));
+  }
+  return p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
+}
+function aufzugSplit(doc, plan) {
+  const root = doc.getRoot(), scene = root.listScenes()[0];
+  const trisOf = (p) => (p.getIndices()?.getCount() ?? 0) / 3;
+  // Tor: Teile als eigene Knoten in der Lage des Tors; der Rest (Rahmen) bleibt, ebenfalls verdichtet
+  const W = plan.door.getWorldMatrix(), mesh = plan.door.getMesh();
+  const made = new Map();
+  for (const p of mesh.listPrimitives()) {
+    if (!plan.owner.has(p)) throw new Error('Aufzug: ein Primitiv des Tors ist seit dem Plan ersetzt worden');
+    const bone = plan.owner.get(p), q = compactPrim(doc, p);
+    mesh.removePrimitive(p);
+    p.dispose();
+    if (!bone) { mesh.addPrimitive(q); continue; }
+    const name = plan.nodeOf.get(bone);
+    if (!made.has(name)) { const m = doc.createMesh(name); made.set(name, m); scene.addChild(doc.createNode(name).setMesh(m).setMatrix(W)); }
+    made.get(name).addPrimitive(q);
+  }
+  for (const part of plan.parts) {
+    const m = made.get(part.node);
+    if (!m) throw new Error(`Aufzug: Teil ${part.node} (${part.bone}) hat kein Primitiv mehr`);
+    part.tris = m.listPrimitives().reduce((a, p) => a + trisOf(p), 0);
+  }
+  const rahmen = mesh.listPrimitives().reduce((a, p) => a + trisOf(p), 0);
+
+  // Plattform: gehoben, in den Raum der Halle gebacken, dazu was auf ihr steht
+  const P = plan.plattform, PW = plan.pad.getWorldMatrix().slice();
+  PW[13] += P.weg;
+  const padMesh = doc.createMesh(P.node), prims = [];
+  for (const p of plan.pad.getMesh().listPrimitives()) { const q = compactPrim(doc, p); transformPrimitive(q, PW); prims.push(q); }
+  const box = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
+  for (const q of prims) { const a = q.getAttribute('POSITION'), v = [0, 0, 0]; for (let i = 0; i < a.getCount(); i++) { a.getElement(i, v); for (let k = 0; k < 3; k++) { box.min[k] = Math.min(box.min[k], v[k]); box.max[k] = Math.max(box.max[k], v[k]); } } }
+  const riders = new Map();
+  for (const n of root.listNodes()) {
+    const m = n.getMesh();
+    if (!m || n === plan.pad || n === plan.door || made.has(n.getName())) continue;
+    const t = n.getWorldTranslation();
+    if (t[0] < box.min[0] + 0.25 || t[0] > box.max[0] - 0.25 || t[2] < box.min[2] + 0.25 || t[2] > box.max[2] - 0.25 || t[1] < box.max[1] - 0.35 || t[1] > box.max[1] + 1) continue;
+    const w = n.getWorldMatrix(), key = m.getName().split(/[\\/]/).pop() || '?';
+    for (const p of m.listPrimitives()) { const q = compactPrim(doc, p); transformPrimitive(q, w); prims.push(q); }
+    n.setMesh(null);
+    riders.set(key, (riders.get(key) || 0) + 1);
+  }
+  // je Material ein Primitiv, wo die Attribute zusammenpassen
+  const byMat = new Map();
+  for (const q of prims) { const k = q.getMaterial(); if (!byMat.has(k)) byMat.set(k, []); byMat.get(k).push(q); }
+  for (const g of byMat.values()) {
+    let j = null;
+    if (g.length > 1) { try { j = joinPrimitives(g); } catch { j = null; } }
+    if (j) { padMesh.addPrimitive(j); for (const q of g) q.dispose(); } else for (const q of g) padMesh.addPrimitive(q);
+  }
+  plan.pad.setMesh(null);
+  scene.addChild(doc.createNode(P.node).setMesh(padMesh));
+  P.oben = Math.round(box.max[1] * 1000) / 1000;
+  P.tris = padMesh.listPrimitives().reduce((a, p) => a + trisOf(p), 0);
+  P.mit = Object.fromEntries([...riders].sort((a, b) => a[0].localeCompare(b[0])));
+  return { teile: plan.parts.length, tris: plan.parts.reduce((a, p) => a + p.tris, 0), rahmen, plattform: P.tris, mit: [...riders.values()].reduce((a, b) => a + b, 0) };
+}
+function writeAufzugJson(written, name, plan) {
+  const root = written.getRoot(), r3 = (v) => Math.round(v * 1000) / 1000;
+  const find = (nm) => root.listNodes().find((n) => n.getName() === nm && n.getMesh());
+  const teile = plan.parts.map((p) => {
+    const n = find(p.node);
+    if (!n) throw new Error(`Aufzug: Knoten ${p.node} fehlt im geschriebenen GLB`);
+    const b = getBounds(n);
+    return { node: p.node, bone: p.bone, tris: p.tris, box: [b.min.map(r3), b.max.map(r3)], keys: p.keys };
+  });
+  const P = plan.plattform, pn = find(P.node);
+  if (!pn) throw new Error(`Aufzug: Knoten ${P.node} fehlt im geschriebenen GLB`);
+  const pb = getBounds(pn);
+  const json = {
+    v: 1,
+    achsen: 'Modellraum der Halle (glTF, y oben, Meter); Zeiten in Sekunden des Spiels',
+    ruhe: 'im GLB: Tor zu (aufzug_tor_*), Plattform oben (aufzug_pad); keys des Tors sind der Versatz gegen zu, keys der Plattform die Höhe gegen oben',
+    feld: { from: [r3(pb.min[0]), r3(pb.min[2])], to: [r3(pb.max[0]), r3(pb.max[2])] },
+    tor: { s: plan.seconds, unten: r3(Math.min(...teile.map((t) => t.box[0][1]))), oben: r3(Math.max(...teile.map((t) => t.box[1][1]))), teile },
+    plattform: { node: P.node, bone: P.bone, oben: P.oben, weg: P.weg, s: P.seconds, tris: P.tris, mit: P.mit, keys: P.keys },
+  };
+  const file = fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT));
+  writeFileSync(file, JSON.stringify(json) + '\n');
+  return { file, json };
+}
+
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
+  // Halle mit eigenem Aufzug: Zuordnung jetzt, solange das Tor-Mesh noch alle Primitive des Exports trägt
+  const torFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.tor.json`, SRC)) : null;
+  const aufzug = torFile && existsSync(torFile) ? aufzugPlan(doc, JSON.parse(readFileSync(torFile, 'utf8'))) : null;
   const tris0 = countTris(root);
   if (kind === 'npc') prepareCrew(doc);
   const weapon = kind === 'weapons' || kind === 'components' ? prepareWeapon(doc, name, kind) : null;
@@ -2068,6 +2269,8 @@ async function buildOne(kind, name, inPath) {
   stockUsed = null;
   // je Komponenten-Port Lage, Klasse und ob der Export ein Teil trägt (Bericht, nicht ausgeliefert)
   if (swap) { const d = new URL('../hangar-komponenten/', SRC); mkdirSync(d, { recursive: true }); writeFileSync(new URL(`${name}.json`, d), JSON.stringify(swap.detail, null, 1)); }
+  // nach markFurniture (löscht fremde Namen), vor join: Tor und Plattform behalten ihre Knoten
+  const aufzugParts = aufzug ? aufzugSplit(doc, aufzug) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || ship || werk }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
@@ -2165,6 +2368,8 @@ async function buildOne(kind, name, inPath) {
   if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
   const werkJson = werkRoom ? await writeWerkhalleJson(written, name, werkNodes, lights) : null;
   if (werkJson) hash.update(readFileSync(werkJson.file));
+  const aufzugJson = aufzug ? writeAufzugJson(written, name, aufzug) : null;
+  if (aufzugJson) hash.update(readFileSync(aufzugJson.file));
   const liftProj = liftParts ? await liftProjectors(name) : null;
   const liftJson = liftParts ? writeLiftJson(name, liftParts, { extras: liftExtras, uv: liftUv, proj: liftProj }) : null;
   if (liftJson) hash.update(readFileSync(liftJson.file));
@@ -2177,6 +2382,7 @@ async function buildOne(kind, name, inPath) {
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
     ...(hallPalette ? { hallPalette } : {}),
+    ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
