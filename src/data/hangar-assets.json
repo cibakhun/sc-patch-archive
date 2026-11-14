@@ -74,7 +74,8 @@
         "images": 336,
         "bytes": 15366328,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-avenger-titan-renegade": {
       "url": "/hangar/ships/aegs-avenger-titan-renegade.glb",
@@ -147,7 +148,8 @@
         "images": 320,
         "bytes": 13916430,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-avenger-titan": {
       "url": "/hangar/ships/aegs-avenger-titan.glb",
@@ -222,7 +224,8 @@
         "images": 336,
         "bytes": 15366328,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-avenger-warlock": {
       "url": "/hangar/ships/aegs-avenger-warlock.glb",
@@ -298,7 +301,8 @@
         "images": 343,
         "bytes": 16011418,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-eclipse": {
       "url": "/hangar/ships/aegs-eclipse.glb",
@@ -372,7 +376,8 @@
         "images": 121,
         "bytes": 5709206,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-gladius-pir": {
       "url": "/hangar/ships/aegs-gladius-pir.glb",
@@ -452,7 +457,8 @@
         "images": 275,
         "bytes": 10290696,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-gladius-valiant": {
       "url": "/hangar/ships/aegs-gladius-valiant.glb",
@@ -532,7 +538,8 @@
         "images": 278,
         "bytes": 11119400,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-gladius": {
       "url": "/hangar/ships/aegs-gladius.glb",
@@ -613,7 +620,8 @@
         "images": 283,
         "bytes": 10598884,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-hammerhead-showdown": {
       "url": "/hangar/ships/aegs-hammerhead-showdown.glb",
@@ -699,7 +707,8 @@
         "images": 293,
         "bytes": 15633824,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-hammerhead": {
       "url": "/hangar/ships/aegs-hammerhead.glb",
@@ -790,7 +799,8 @@
         "images": 268,
         "bytes": 14384366,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-idris-m": {
       "url": "/hangar/ships/aegs-idris-m.glb",
@@ -871,7 +881,8 @@
         "images": 266,
         "bytes": 9203434,
         "fresh": 59298
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-idris-p": {
       "url": "/hangar/ships/aegs-idris-p.glb",
@@ -953,7 +964,8 @@
         "images": 259,
         "bytes": 9147408,
         "fresh": 3272
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-javelin": {
       "url": "/hangar/ships/aegs-javelin.glb",
@@ -1055,7 +1067,8 @@
         "images": 135,
         "bytes": 9471008,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-reclaimer-showdown": {
       "url": "/hangar/ships/aegs-reclaimer-showdown.glb",
@@ -1130,7 +1143,8 @@
         "images": 216,
         "bytes": 12573872,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-reclaimer": {
       "url": "/hangar/ships/aegs-reclaimer.glb",
@@ -1205,7 +1219,8 @@
         "images": 216,
         "bytes": 12571976,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-redeemer": {
       "url": "/hangar/ships/aegs-redeemer.glb",
@@ -1287,7 +1302,8 @@
         "images": 282,
         "bytes": 12825852,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-retaliator": {
       "url": "/hangar/ships/aegs-retaliator.glb",
@@ -1373,7 +1389,8 @@
         "images": 237,
         "bytes": 9988952,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-sabre-comet": {
       "url": "/hangar/ships/aegs-sabre-comet.glb",
@@ -1456,7 +1473,8 @@
         "images": 248,
         "bytes": 10246604,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-sabre-firebird": {
       "url": "/hangar/ships/aegs-sabre-firebird.glb",
@@ -1538,7 +1556,8 @@
         "images": 243,
         "bytes": 10964248,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-sabre-peregrine": {
       "url": "/hangar/ships/aegs-sabre-peregrine.glb",
@@ -1617,7 +1636,8 @@
         "images": 202,
         "bytes": 9755010,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-sabre-raven-ex": {
       "url": "/hangar/ships/aegs-sabre-raven-ex.glb",
@@ -1697,7 +1717,8 @@
         "images": 262,
         "bytes": 11699438,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-sabre-raven": {
       "url": "/hangar/ships/aegs-sabre-raven.glb",
@@ -1780,7 +1801,8 @@
         "images": 243,
         "bytes": 10183220,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-sabre": {
       "url": "/hangar/ships/aegs-sabre.glb",
@@ -1863,7 +1885,8 @@
         "images": 232,
         "bytes": 9939512,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-tiburon": {
       "url": "/hangar/ships/aegs-tiburon.glb",
@@ -1949,7 +1972,8 @@
         "images": 285,
         "bytes": 15305026,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-vanguard-harbinger": {
       "url": "/hangar/ships/aegs-vanguard-harbinger.glb",
@@ -2033,7 +2057,8 @@
         "images": 278,
         "bytes": 11025424,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-vanguard-hoplite": {
       "url": "/hangar/ships/aegs-vanguard-hoplite.glb",
@@ -2115,7 +2140,8 @@
         "images": 283,
         "bytes": 10235308,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-vanguard-sentinel": {
       "url": "/hangar/ships/aegs-vanguard-sentinel.glb",
@@ -2200,7 +2226,8 @@
         "images": 315,
         "bytes": 12282066,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "aegs-vanguard": {
       "url": "/hangar/ships/aegs-vanguard.glb",
@@ -2282,7 +2309,8 @@
         "images": 284,
         "bytes": 10215918,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-arrow": {
       "url": "/hangar/ships/anvl-arrow.glb",
@@ -2357,7 +2385,8 @@
         "images": 161,
         "bytes": 6850894,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-asgard": {
       "url": "/hangar/ships/anvl-asgard.glb",
@@ -2443,7 +2472,8 @@
         "images": 312,
         "bytes": 13090782,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-ballista-dunestalker": {
       "url": "/hangar/ships/anvl-ballista-dunestalker.glb",
@@ -2505,7 +2535,8 @@
         "images": 129,
         "bytes": 6855750,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-ballista-snowblind": {
       "url": "/hangar/ships/anvl-ballista-snowblind.glb",
@@ -2567,7 +2598,8 @@
         "images": 129,
         "bytes": 6855750,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-ballista": {
       "url": "/hangar/ships/anvl-ballista.glb",
@@ -2629,7 +2661,8 @@
         "images": 129,
         "bytes": 6855750,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-c8-pisces": {
       "url": "/hangar/ships/anvl-c8-pisces.glb",
@@ -2704,7 +2737,8 @@
         "images": 168,
         "bytes": 7868188,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-c8r-pisces": {
       "url": "/hangar/ships/anvl-c8r-pisces.glb",
@@ -2781,7 +2815,8 @@
         "images": 237,
         "bytes": 8981988,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-c8x-pisces-expedition": {
       "url": "/hangar/ships/anvl-c8x-pisces-expedition.glb",
@@ -2858,7 +2893,8 @@
         "images": 183,
         "bytes": 7895694,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-carrack-expedition": {
       "url": "/hangar/ships/anvl-carrack-expedition.glb",
@@ -2940,7 +2976,8 @@
         "images": 268,
         "bytes": 11500700,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-carrack": {
       "url": "/hangar/ships/anvl-carrack.glb",
@@ -3022,7 +3059,8 @@
         "images": 266,
         "bytes": 11497312,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-centurion": {
       "url": "/hangar/ships/anvl-centurion.glb",
@@ -3098,7 +3136,8 @@
         "images": 273,
         "bytes": 9297090,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-gladiator": {
       "url": "/hangar/ships/anvl-gladiator.glb",
@@ -3174,7 +3213,8 @@
         "images": 136,
         "bytes": 5940954,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hawk": {
       "url": "/hangar/ships/anvl-hawk.glb",
@@ -3252,7 +3292,8 @@
         "images": 143,
         "bytes": 5746646,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7a-mk1": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk1.glb",
@@ -3327,7 +3368,8 @@
         "images": 149,
         "bytes": 7866542,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7a-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7a-mk2.glb",
@@ -3437,7 +3479,8 @@
         "images": 168,
         "bytes": 9387000,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7c-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7c-mk2.glb",
@@ -3545,7 +3588,8 @@
         "images": 163,
         "bytes": 9632250,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7c-wildfire": {
       "url": "/hangar/ships/anvl-hornet-f7c-wildfire.glb",
@@ -3620,7 +3664,8 @@
         "images": 150,
         "bytes": 6827916,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7c": {
       "url": "/hangar/ships/anvl-hornet-f7c.glb",
@@ -3726,7 +3771,8 @@
         "images": 134,
         "bytes": 6895950,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cm-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-heartseeker.glb",
@@ -3802,7 +3848,8 @@
         "images": 161,
         "bytes": 6821214,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cm-mk2-heartseeker": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2-heartseeker.glb",
@@ -3908,7 +3955,8 @@
         "images": 166,
         "bytes": 8952742,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cm-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cm-mk2.glb",
@@ -4015,7 +4063,8 @@
         "images": 167,
         "bytes": 8958814,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cm": {
       "url": "/hangar/ships/anvl-hornet-f7cm.glb",
@@ -4091,7 +4140,8 @@
         "images": 152,
         "bytes": 6731318,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cr-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cr-mk2.glb",
@@ -4199,7 +4249,8 @@
         "images": 154,
         "bytes": 9017930,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cr": {
       "url": "/hangar/ships/anvl-hornet-f7cr.glb",
@@ -4273,7 +4324,8 @@
         "images": 133,
         "bytes": 6342332,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cs-mk2": {
       "url": "/hangar/ships/anvl-hornet-f7cs-mk2.glb",
@@ -4381,7 +4433,8 @@
         "images": 154,
         "bytes": 9015294,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hornet-f7cs": {
       "url": "/hangar/ships/anvl-hornet-f7cs.glb",
@@ -4455,7 +4508,8 @@
         "images": 128,
         "bytes": 6267988,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-hurricane": {
       "url": "/hangar/ships/anvl-hurricane.glb",
@@ -4529,7 +4583,8 @@
         "images": 163,
         "bytes": 7278476,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-liberator": {
       "url": "/hangar/ships/anvl-liberator.glb",
@@ -4612,7 +4667,8 @@
         "images": 284,
         "bytes": 13681350,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.3-live.13165946"
     },
     "anvl-lightning-f8": {
       "url": "/hangar/ships/anvl-lightning-f8.glb",
@@ -4690,7 +4746,8 @@
         "images": 166,
         "bytes": 8299180,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-lightning-f8c-exec": {
       "url": "/hangar/ships/anvl-lightning-f8c-exec.glb",
@@ -4768,7 +4825,8 @@
         "images": 161,
         "bytes": 6953132,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-lightning-f8c": {
       "url": "/hangar/ships/anvl-lightning-f8c.glb",
@@ -4846,7 +4904,8 @@
         "images": 161,
         "bytes": 6953132,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-paladin": {
       "url": "/hangar/ships/anvl-paladin.glb",
@@ -4930,7 +4989,8 @@
         "images": 247,
         "bytes": 9891418,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-spartan": {
       "url": "/hangar/ships/anvl-spartan.glb",
@@ -5002,7 +5062,8 @@
         "images": 217,
         "bytes": 7899558,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-terrapin-medic": {
       "url": "/hangar/ships/anvl-terrapin-medic.glb",
@@ -5081,7 +5142,8 @@
         "images": 232,
         "bytes": 9563622,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-terrapin": {
       "url": "/hangar/ships/anvl-terrapin.glb",
@@ -5162,7 +5224,8 @@
         "images": 222,
         "bytes": 9179920,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "anvl-valkyrie": {
       "url": "/hangar/ships/anvl-valkyrie.glb",
@@ -5239,7 +5302,8 @@
         "images": 215,
         "bytes": 9772774,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-atls-geo-collector-grad01": {
       "url": "/hangar/ships/argo-atls-geo-collector-grad01.glb",
@@ -5289,7 +5353,8 @@
         "images": 93,
         "bytes": 4027378,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-atls-geo-collector-grad03": {
       "url": "/hangar/ships/argo-atls-geo-collector-grad03.glb",
@@ -5339,7 +5404,8 @@
         "images": 93,
         "bytes": 4027378,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-atls-geo": {
       "url": "/hangar/ships/argo-atls-geo.glb",
@@ -5389,7 +5455,8 @@
         "images": 93,
         "bytes": 4027378,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-atls": {
       "url": "/hangar/ships/argo-atls.glb",
@@ -5433,7 +5500,8 @@
         "images": 42,
         "bytes": 1982960,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-csv-cargo": {
       "url": "/hangar/ships/argo-csv-cargo.glb",
@@ -5493,7 +5561,8 @@
         "images": 122,
         "bytes": 4976866,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-mole": {
       "url": "/hangar/ships/argo-mole.glb",
@@ -5575,7 +5644,8 @@
         "images": 273,
         "bytes": 11601686,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-moth": {
       "url": "/hangar/ships/argo-moth.glb",
@@ -5653,7 +5723,8 @@
         "images": 283,
         "bytes": 11801778,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-mpuv-1t": {
       "url": "/hangar/ships/argo-mpuv-1t.glb",
@@ -5730,7 +5801,8 @@
         "images": 202,
         "bytes": 8271878,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-mpuv-transport": {
       "url": "/hangar/ships/argo-mpuv-transport.glb",
@@ -5799,7 +5871,8 @@
         "images": 162,
         "bytes": 7677214,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-mpuv": {
       "url": "/hangar/ships/argo-mpuv.glb",
@@ -5869,7 +5942,8 @@
         "images": 135,
         "bytes": 6770344,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-raft": {
       "url": "/hangar/ships/argo-raft.glb",
@@ -5950,7 +6024,8 @@
         "images": 234,
         "bytes": 9351510,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "argo-srv": {
       "url": "/hangar/ships/argo-srv.glb",
@@ -6034,7 +6109,8 @@
         "images": 213,
         "bytes": 8916332,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "banu-defender": {
       "url": "/hangar/ships/banu-defender.glb",
@@ -6110,7 +6186,8 @@
         "images": 145,
         "bytes": 6401230,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-hoverquad": {
       "url": "/hangar/ships/cnou-hoverquad.glb",
@@ -6178,7 +6255,8 @@
         "images": 100,
         "bytes": 3183454,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-mustang-alpha-citizencon2018": {
       "url": "/hangar/ships/cnou-mustang-alpha-citizencon2018.glb",
@@ -6251,7 +6329,8 @@
         "images": 165,
         "bytes": 8200876,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-mustang-alpha": {
       "url": "/hangar/ships/cnou-mustang-alpha.glb",
@@ -6324,7 +6403,8 @@
         "images": 161,
         "bytes": 7948670,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-mustang-beta": {
       "url": "/hangar/ships/cnou-mustang-beta.glb",
@@ -6397,7 +6477,8 @@
         "images": 197,
         "bytes": 8440820,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-mustang-delta": {
       "url": "/hangar/ships/cnou-mustang-delta.glb",
@@ -6474,7 +6555,8 @@
         "images": 174,
         "bytes": 8335258,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-mustang-gamma": {
       "url": "/hangar/ships/cnou-mustang-gamma.glb",
@@ -6548,7 +6630,8 @@
         "images": 170,
         "bytes": 8352670,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-mustang-omega": {
       "url": "/hangar/ships/cnou-mustang-omega.glb",
@@ -6622,7 +6705,8 @@
         "images": 172,
         "bytes": 8611822,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "cnou-nomad": {
       "url": "/hangar/ships/cnou-nomad.glb",
@@ -6697,7 +6781,8 @@
         "images": 328,
         "bytes": 12698452,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-intrepid": {
       "url": "/hangar/ships/crus-intrepid.glb",
@@ -6783,7 +6868,8 @@
         "images": 287,
         "bytes": 11765502,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-spirit-a1": {
       "url": "/hangar/ships/crus-spirit-a1.glb",
@@ -6865,7 +6951,8 @@
         "images": 274,
         "bytes": 11245570,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-spirit-c1": {
       "url": "/hangar/ships/crus-spirit-c1.glb",
@@ -6947,7 +7034,8 @@
         "images": 256,
         "bytes": 10364094,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-star-runner": {
       "url": "/hangar/ships/crus-star-runner.glb",
@@ -7027,7 +7115,8 @@
         "images": 238,
         "bytes": 11551418,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-starfighter-inferno": {
       "url": "/hangar/ships/crus-starfighter-inferno.glb",
@@ -7107,7 +7196,8 @@
         "images": 226,
         "bytes": 9304714,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-starfighter-ion": {
       "url": "/hangar/ships/crus-starfighter-ion.glb",
@@ -7187,7 +7277,8 @@
         "images": 225,
         "bytes": 9047218,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-starlifter-a2": {
       "url": "/hangar/ships/crus-starlifter-a2.glb",
@@ -7275,7 +7366,8 @@
         "images": 209,
         "bytes": 8536326,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-starlifter-c2": {
       "url": "/hangar/ships/crus-starlifter-c2.glb",
@@ -7358,7 +7450,8 @@
         "images": 206,
         "bytes": 9047078,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "crus-starlifter-m2": {
       "url": "/hangar/ships/crus-starlifter-m2.glb",
@@ -7442,7 +7535,8 @@
         "images": 190,
         "bytes": 8107936,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-buccaneer": {
       "url": "/hangar/ships/drak-buccaneer.glb",
@@ -7513,7 +7607,8 @@
         "images": 180,
         "bytes": 10059132,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-caterpillar-pirate": {
       "url": "/hangar/ships/drak-caterpillar-pirate.glb",
@@ -7634,7 +7729,8 @@
         "images": 368,
         "bytes": 18007562,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-caterpillar": {
       "url": "/hangar/ships/drak-caterpillar.glb",
@@ -7752,7 +7848,8 @@
         "images": 370,
         "bytes": 18009104,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-clipper": {
       "url": "/hangar/ships/drak-clipper.glb",
@@ -7835,7 +7932,8 @@
         "images": 294,
         "bytes": 12613134,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-corsair": {
       "url": "/hangar/ships/drak-corsair.glb",
@@ -7929,7 +8027,8 @@
         "images": 273,
         "bytes": 11106496,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutlass-black": {
       "url": "/hangar/ships/drak-cutlass-black.glb",
@@ -8006,7 +8105,8 @@
         "images": 239,
         "bytes": 10726208,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutlass-blue": {
       "url": "/hangar/ships/drak-cutlass-blue.glb",
@@ -8084,7 +8184,8 @@
         "images": 249,
         "bytes": 11131228,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutlass-red": {
       "url": "/hangar/ships/drak-cutlass-red.glb",
@@ -8159,7 +8260,8 @@
         "images": 216,
         "bytes": 10809922,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutlass-steel": {
       "url": "/hangar/ships/drak-cutlass-steel.glb",
@@ -8235,7 +8337,8 @@
         "images": 233,
         "bytes": 11222798,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutter-rambler": {
       "url": "/hangar/ships/drak-cutter-rambler.glb",
@@ -8312,7 +8415,8 @@
         "images": 263,
         "bytes": 11733500,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutter-scout": {
       "url": "/hangar/ships/drak-cutter-scout.glb",
@@ -8385,7 +8489,8 @@
         "images": 214,
         "bytes": 10280960,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-cutter": {
       "url": "/hangar/ships/drak-cutter.glb",
@@ -8463,7 +8568,8 @@
         "images": 282,
         "bytes": 12489826,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-dragonfly-yellow": {
       "url": "/hangar/ships/drak-dragonfly-yellow.glb",
@@ -8530,7 +8636,8 @@
         "images": 117,
         "bytes": 5046556,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-dragonfly": {
       "url": "/hangar/ships/drak-dragonfly.glb",
@@ -8597,7 +8704,8 @@
         "images": 114,
         "bytes": 4936514,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-golem-ox": {
       "url": "/hangar/ships/drak-golem-ox.glb",
@@ -8676,7 +8784,8 @@
         "images": 248,
         "bytes": 11468194,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-golem": {
       "url": "/hangar/ships/drak-golem.glb",
@@ -8755,7 +8864,8 @@
         "images": 243,
         "bytes": 11754238,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-herald": {
       "url": "/hangar/ships/drak-herald.glb",
@@ -8829,7 +8939,8 @@
         "images": 182,
         "bytes": 8921712,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-ironclad-assault": {
       "url": "/hangar/ships/drak-ironclad-assault.glb",
@@ -8905,7 +9016,8 @@
         "images": 437,
         "bytes": 9825552,
         "fresh": 7532
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-ironclad": {
       "url": "/hangar/ships/drak-ironclad.glb",
@@ -8981,7 +9093,8 @@
         "images": 432,
         "bytes": 9819320,
         "fresh": 1300
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-mule": {
       "url": "/hangar/ships/drak-mule.glb",
@@ -9049,7 +9162,8 @@
         "images": 163,
         "bytes": 6788828,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-pitbull": {
       "url": "/hangar/ships/drak-pitbull.glb",
@@ -9129,7 +9243,8 @@
         "images": 216,
         "bytes": 10262594,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "drak-vulture": {
       "url": "/hangar/ships/drak-vulture.glb",
@@ -9212,7 +9327,8 @@
         "images": 264,
         "bytes": 10334598,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "espr-prowler-utility": {
       "url": "/hangar/ships/espr-prowler-utility.glb",
@@ -9287,7 +9403,8 @@
         "images": 271,
         "bytes": 11914688,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "espr-prowler": {
       "url": "/hangar/ships/espr-prowler.glb",
@@ -9370,7 +9487,8 @@
         "images": 234,
         "bytes": 10935778,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "espr-talon-shrike": {
       "url": "/hangar/ships/espr-talon-shrike.glb",
@@ -9483,7 +9601,8 @@
         "images": 236,
         "bytes": 10270458,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "espr-talon": {
       "url": "/hangar/ships/espr-talon.glb",
@@ -9596,7 +9715,8 @@
         "images": 242,
         "bytes": 10334082,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "gama-railen": {
       "url": "/hangar/ships/gama-railen.glb",
@@ -9684,7 +9804,8 @@
         "images": 248,
         "bytes": 12746750,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "gama-syulen": {
       "url": "/hangar/ships/gama-syulen.glb",
@@ -9789,7 +9910,8 @@
         "images": 230,
         "bytes": 10202968,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "gama-tyilui": {
       "url": "/hangar/ships/gama-tyilui.glb",
@@ -9878,7 +10000,8 @@
         "images": 261,
         "bytes": 13581352,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "glsn-basher": {
       "url": "/hangar/ships/glsn-basher.glb",
@@ -9963,7 +10086,8 @@
         "images": 287,
         "bytes": 15206980,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "glsn-shiv": {
       "url": "/hangar/ships/glsn-shiv.glb",
@@ -10043,7 +10167,8 @@
         "images": 342,
         "bytes": 17285720,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-mdc": {
       "url": "/hangar/ships/grin-mdc.glb",
@@ -10113,7 +10238,8 @@
         "images": 199,
         "bytes": 6846554,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-mtc": {
       "url": "/hangar/ships/grin-mtc.glb",
@@ -10183,7 +10309,8 @@
         "images": 207,
         "bytes": 6856974,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-ptv": {
       "url": "/hangar/ships/grin-ptv.glb",
@@ -10240,7 +10367,8 @@
         "images": 29,
         "bytes": 1801510,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-roc-ds": {
       "url": "/hangar/ships/grin-roc-ds.glb",
@@ -10300,7 +10428,8 @@
         "images": 73,
         "bytes": 3858706,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-roc": {
       "url": "/hangar/ships/grin-roc.glb",
@@ -10365,7 +10494,8 @@
         "images": 66,
         "bytes": 3603034,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-stv": {
       "url": "/hangar/ships/grin-stv.glb",
@@ -10426,7 +10556,8 @@
         "images": 129,
         "bytes": 4845870,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "grin-utv": {
       "url": "/hangar/ships/grin-utv.glb",
@@ -10487,7 +10618,8 @@
         "images": 135,
         "bytes": 4539414,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "krig-l21-wolf": {
       "url": "/hangar/ships/krig-l21-wolf.glb",
@@ -10566,7 +10698,8 @@
         "images": 222,
         "bytes": 10173664,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "krig-l22-alphawolf": {
       "url": "/hangar/ships/krig-l22-alphawolf.glb",
@@ -10645,7 +10778,8 @@
         "images": 222,
         "bytes": 10136622,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "krig-p52-merlin": {
       "url": "/hangar/ships/krig-p52-merlin.glb",
@@ -10751,7 +10885,8 @@
         "images": 125,
         "bytes": 4609418,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "krig-p72-archimedes-emerald": {
       "url": "/hangar/ships/krig-p72-archimedes-emerald.glb",
@@ -10823,7 +10958,8 @@
         "images": 124,
         "bytes": 4770452,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "krig-p72-archimedes": {
       "url": "/hangar/ships/krig-p72-archimedes.glb",
@@ -10895,7 +11031,8 @@
         "images": 124,
         "bytes": 4770452,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "krig-s65-stingray": {
       "url": "/hangar/ships/krig-s65-stingray.glb",
@@ -10978,7 +11115,8 @@
         "images": 258,
         "bytes": 10753402,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-fortune": {
       "url": "/hangar/ships/misc-fortune.glb",
@@ -11058,7 +11196,8 @@
         "images": 266,
         "bytes": 10107310,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-freelancer-dur": {
       "url": "/hangar/ships/misc-freelancer-dur.glb",
@@ -11141,7 +11280,8 @@
         "images": 285,
         "bytes": 9975900,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-freelancer-max": {
       "url": "/hangar/ships/misc-freelancer-max.glb",
@@ -11222,7 +11362,8 @@
         "images": 249,
         "bytes": 10539290,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-freelancer-mis": {
       "url": "/hangar/ships/misc-freelancer-mis.glb",
@@ -11305,7 +11446,8 @@
         "images": 243,
         "bytes": 9999644,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-freelancer": {
       "url": "/hangar/ships/misc-freelancer.glb",
@@ -11388,7 +11530,8 @@
         "images": 252,
         "bytes": 10538882,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-fury-lx": {
       "url": "/hangar/ships/misc-fury-lx.glb",
@@ -11457,7 +11600,8 @@
         "images": 168,
         "bytes": 7247812,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-fury-miru": {
       "url": "/hangar/ships/misc-fury-miru.glb",
@@ -11525,7 +11669,8 @@
         "images": 175,
         "bytes": 7789598,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-fury": {
       "url": "/hangar/ships/misc-fury.glb",
@@ -11598,7 +11743,8 @@
         "images": 194,
         "bytes": 8083376,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-hull-a": {
       "url": "/hangar/ships/misc-hull-a.glb",
@@ -11677,7 +11823,8 @@
         "images": 247,
         "bytes": 11378070,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-hull-b": {
       "url": "/hangar/ships/misc-hull-b.glb",
@@ -11763,7 +11910,8 @@
         "images": 294,
         "bytes": 11713754,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-hull-c": {
       "url": "/hangar/ships/misc-hull-c.glb",
@@ -11839,7 +11987,8 @@
         "images": 282,
         "bytes": 11043158,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-prospector": {
       "url": "/hangar/ships/misc-prospector.glb",
@@ -11913,7 +12062,8 @@
         "images": 206,
         "bytes": 9656334,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-razor-ex": {
       "url": "/hangar/ships/misc-razor-ex.glb",
@@ -11986,7 +12136,8 @@
         "images": 183,
         "bytes": 7467640,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-razor-lx": {
       "url": "/hangar/ships/misc-razor-lx.glb",
@@ -12063,7 +12214,8 @@
         "images": 189,
         "bytes": 7926508,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-razor": {
       "url": "/hangar/ships/misc-razor.glb",
@@ -12140,7 +12292,8 @@
         "images": 188,
         "bytes": 7777120,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-reliant-mako": {
       "url": "/hangar/ships/misc-reliant-mako.glb",
@@ -12216,7 +12369,8 @@
         "images": 205,
         "bytes": 8852308,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-reliant-sen": {
       "url": "/hangar/ships/misc-reliant-sen.glb",
@@ -12292,7 +12446,8 @@
         "images": 206,
         "bytes": 8944314,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-reliant-tana": {
       "url": "/hangar/ships/misc-reliant-tana.glb",
@@ -12370,7 +12525,8 @@
         "images": 214,
         "bytes": 9217866,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-reliant": {
       "url": "/hangar/ships/misc-reliant.glb",
@@ -12448,7 +12604,8 @@
         "images": 221,
         "bytes": 9070138,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-starfarer-gemini": {
       "url": "/hangar/ships/misc-starfarer-gemini.glb",
@@ -12527,7 +12684,8 @@
         "images": 245,
         "bytes": 13715206,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-starfarer": {
       "url": "/hangar/ships/misc-starfarer.glb",
@@ -12606,7 +12764,8 @@
         "images": 234,
         "bytes": 12468116,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-starlancer-max": {
       "url": "/hangar/ships/misc-starlancer-max.glb",
@@ -12690,7 +12849,8 @@
         "images": 242,
         "bytes": 10802720,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-starlancer-tac": {
       "url": "/hangar/ships/misc-starlancer-tac.glb",
@@ -12772,7 +12932,8 @@
         "images": 272,
         "bytes": 10702724,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "misc-starlite": {
       "url": "/hangar/ships/misc-starlite.glb",
@@ -12854,7 +13015,8 @@
         "images": 262,
         "bytes": 11289472,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "mrai-guardian-mx": {
       "url": "/hangar/ships/mrai-guardian-mx.glb",
@@ -12944,7 +13106,8 @@
         "images": 271,
         "bytes": 10651584,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "mrai-guardian-qi": {
       "url": "/hangar/ships/mrai-guardian-qi.glb",
@@ -13031,7 +13194,8 @@
         "images": 279,
         "bytes": 11316056,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "mrai-guardian": {
       "url": "/hangar/ships/mrai-guardian.glb",
@@ -13118,7 +13282,8 @@
         "images": 276,
         "bytes": 11238904,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "mrai-pulse-lx": {
       "url": "/hangar/ships/mrai-pulse-lx.glb",
@@ -13179,7 +13344,8 @@
         "images": 156,
         "bytes": 5309714,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "mrai-pulse": {
       "url": "/hangar/ships/mrai-pulse.glb",
@@ -13242,7 +13408,8 @@
         "images": 141,
         "bytes": 4565432,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-100i": {
       "url": "/hangar/ships/orig-100i.glb",
@@ -13321,7 +13488,8 @@
         "images": 241,
         "bytes": 9291668,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-125a": {
       "url": "/hangar/ships/orig-125a.glb",
@@ -13400,7 +13568,8 @@
         "images": 239,
         "bytes": 9494436,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-135c": {
       "url": "/hangar/ships/orig-135c.glb",
@@ -13479,7 +13648,8 @@
         "images": 236,
         "bytes": 9312148,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-300i": {
       "url": "/hangar/ships/orig-300i.glb",
@@ -13582,7 +13752,8 @@
         "images": 164,
         "bytes": 6194730,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-315p": {
       "url": "/hangar/ships/orig-315p.glb",
@@ -13685,7 +13856,8 @@
         "images": 173,
         "bytes": 6377816,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-325a": {
       "url": "/hangar/ships/orig-325a.glb",
@@ -13788,7 +13960,8 @@
         "images": 176,
         "bytes": 6835688,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-350r": {
       "url": "/hangar/ships/orig-350r.glb",
@@ -13891,7 +14064,8 @@
         "images": 138,
         "bytes": 5665224,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-400i": {
       "url": "/hangar/ships/orig-400i.glb",
@@ -13970,7 +14144,8 @@
         "images": 242,
         "bytes": 11352682,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-600i-bis2951": {
       "url": "/hangar/ships/orig-600i-bis2951.glb",
@@ -14048,7 +14223,8 @@
         "images": 170,
         "bytes": 8116794,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-600i-touring": {
       "url": "/hangar/ships/orig-600i-touring.glb",
@@ -14126,7 +14302,8 @@
         "images": 161,
         "bytes": 7584998,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-600i": {
       "url": "/hangar/ships/orig-600i.glb",
@@ -14204,7 +14381,8 @@
         "images": 171,
         "bytes": 8119602,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-85x": {
       "url": "/hangar/ships/orig-85x.glb",
@@ -14269,7 +14447,8 @@
         "images": 114,
         "bytes": 5107072,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-890jump": {
       "url": "/hangar/ships/orig-890jump.glb",
@@ -14336,7 +14515,8 @@
         "images": 255,
         "bytes": 11482540,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-m50": {
       "url": "/hangar/ships/orig-m50.glb",
@@ -14442,7 +14622,8 @@
         "images": 142,
         "bytes": 6240298,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-m80": {
       "url": "/hangar/ships/orig-m80.glb",
@@ -14523,7 +14704,8 @@
         "images": 273,
         "bytes": 11627920,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-x1-force": {
       "url": "/hangar/ships/orig-x1-force.glb",
@@ -14592,7 +14774,8 @@
         "images": 176,
         "bytes": 7724202,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-x1-velocity": {
       "url": "/hangar/ships/orig-x1-velocity.glb",
@@ -14658,7 +14841,8 @@
         "images": 149,
         "bytes": 7178080,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "orig-x1": {
       "url": "/hangar/ships/orig-x1.glb",
@@ -14720,7 +14904,8 @@
         "images": 166,
         "bytes": 8235092,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-apollo-medivac": {
       "url": "/hangar/ships/rsi-apollo-medivac.glb",
@@ -14800,7 +14985,8 @@
         "images": 309,
         "bytes": 14514844,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-apollo-triage": {
       "url": "/hangar/ships/rsi-apollo-triage.glb",
@@ -14880,7 +15066,8 @@
         "images": 303,
         "bytes": 15360812,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-gs-cl": {
       "url": "/hangar/ships/rsi-aurora-gs-cl.glb",
@@ -14959,7 +15146,8 @@
         "images": 231,
         "bytes": 11050972,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-gs-es": {
       "url": "/hangar/ships/rsi-aurora-gs-es.glb",
@@ -15038,7 +15226,8 @@
         "images": 231,
         "bytes": 10975916,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-gs-ln": {
       "url": "/hangar/ships/rsi-aurora-gs-ln.glb",
@@ -15119,7 +15308,8 @@
         "images": 228,
         "bytes": 11048540,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-gs-lx": {
       "url": "/hangar/ships/rsi-aurora-gs-lx.glb",
@@ -15198,7 +15388,8 @@
         "images": 244,
         "bytes": 11058760,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-gs-mr": {
       "url": "/hangar/ships/rsi-aurora-gs-mr.glb",
@@ -15277,7 +15468,8 @@
         "images": 234,
         "bytes": 11497578,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-gs-se": {
       "url": "/hangar/ships/rsi-aurora-gs-se.glb",
@@ -15358,7 +15550,8 @@
         "images": 226,
         "bytes": 10718108,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-aurora-mk2": {
       "url": "/hangar/ships/rsi-aurora-mk2.glb",
@@ -15446,7 +15639,8 @@
         "images": 287,
         "bytes": 13885076,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-constellation-andromeda": {
       "url": "/hangar/ships/rsi-constellation-andromeda.glb",
@@ -15567,7 +15761,8 @@
         "images": 331,
         "bytes": 14771424,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-constellation-aquila": {
       "url": "/hangar/ships/rsi-constellation-aquila.glb",
@@ -15687,7 +15882,8 @@
         "images": 341,
         "bytes": 15164390,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-constellation-mk5-centaurus": {
       "url": "/hangar/ships/rsi-constellation-mk5-centaurus.glb",
@@ -15769,7 +15965,8 @@
         "images": 379,
         "bytes": 10514126,
         "fresh": 1048002
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-constellation-phoenix-emerald": {
       "url": "/hangar/ships/rsi-constellation-phoenix-emerald.glb",
@@ -15851,7 +16048,8 @@
         "images": 230,
         "bytes": 10593036,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-constellation-phoenix": {
       "url": "/hangar/ships/rsi-constellation-phoenix.glb",
@@ -15942,7 +16140,8 @@
         "images": 368,
         "bytes": 17137008,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-constellation-taurus": {
       "url": "/hangar/ships/rsi-constellation-taurus.glb",
@@ -16031,7 +16230,8 @@
         "images": 285,
         "bytes": 12972604,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-galaxy": {
       "url": "/hangar/ships/rsi-galaxy.glb",
@@ -16112,7 +16312,8 @@
         "images": 294,
         "bytes": 15616200,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.3-live.13165946"
     },
     "rsi-hermes": {
       "url": "/hangar/ships/rsi-hermes.glb",
@@ -16193,7 +16394,8 @@
         "images": 290,
         "bytes": 13812988,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-lynx": {
       "url": "/hangar/ships/rsi-lynx.glb",
@@ -16264,7 +16466,8 @@
         "images": 209,
         "bytes": 9634944,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-mantis": {
       "url": "/hangar/ships/rsi-mantis.glb",
@@ -16369,7 +16572,8 @@
         "images": 239,
         "bytes": 11212840,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-meteor": {
       "url": "/hangar/ships/rsi-meteor.glb",
@@ -16479,7 +16683,8 @@
         "images": 257,
         "bytes": 11513236,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-perseus": {
       "url": "/hangar/ships/rsi-perseus.glb",
@@ -16558,7 +16763,8 @@
         "images": 325,
         "bytes": 9198996,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-polaris": {
       "url": "/hangar/ships/rsi-polaris.glb",
@@ -16636,7 +16842,8 @@
         "images": 304,
         "bytes": 4052686,
         "fresh": 3214106
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-salvation": {
       "url": "/hangar/ships/rsi-salvation.glb",
@@ -16715,7 +16922,8 @@
         "images": 241,
         "bytes": 10323558,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-scorpius-antares": {
       "url": "/hangar/ships/rsi-scorpius-antares.glb",
@@ -16831,7 +17039,8 @@
         "images": 230,
         "bytes": 10301538,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-scorpius": {
       "url": "/hangar/ships/rsi-scorpius.glb",
@@ -16913,7 +17122,8 @@
         "images": 224,
         "bytes": 9703352,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-skylark": {
       "url": "/hangar/ships/rsi-skylark.glb",
@@ -16991,7 +17201,8 @@
         "images": 231,
         "bytes": 11298048,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-ursa-medivac": {
       "url": "/hangar/ships/rsi-ursa-medivac.glb",
@@ -17068,7 +17279,8 @@
         "images": 219,
         "bytes": 7236336,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-ursa-rover-emerald": {
       "url": "/hangar/ships/rsi-ursa-rover-emerald.glb",
@@ -17138,7 +17350,8 @@
         "images": 197,
         "bytes": 7238140,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-ursa-rover": {
       "url": "/hangar/ships/rsi-ursa-rover.glb",
@@ -17208,7 +17421,8 @@
         "images": 179,
         "bytes": 6816654,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-zeus-cl": {
       "url": "/hangar/ships/rsi-zeus-cl.glb",
@@ -17297,7 +17511,8 @@
         "images": 293,
         "bytes": 12363768,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "rsi-zeus-es": {
       "url": "/hangar/ships/rsi-zeus-es.glb",
@@ -17378,7 +17593,8 @@
         "images": 278,
         "bytes": 11905328,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-cyclone-aa": {
       "url": "/hangar/ships/tmbl-cyclone-aa.glb",
@@ -17443,7 +17659,8 @@
         "images": 103,
         "bytes": 6681720,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-cyclone-mt": {
       "url": "/hangar/ships/tmbl-cyclone-mt.glb",
@@ -17508,7 +17725,8 @@
         "images": 114,
         "bytes": 7186872,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-cyclone-rc": {
       "url": "/hangar/ships/tmbl-cyclone-rc.glb",
@@ -17565,7 +17783,8 @@
         "images": 78,
         "bytes": 4167930,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-cyclone-rn": {
       "url": "/hangar/ships/tmbl-cyclone-rn.glb",
@@ -17622,7 +17841,8 @@
         "images": 78,
         "bytes": 4837286,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-cyclone-tr": {
       "url": "/hangar/ships/tmbl-cyclone-tr.glb",
@@ -17681,7 +17901,8 @@
         "images": 105,
         "bytes": 5363352,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-cyclone": {
       "url": "/hangar/ships/tmbl-cyclone.glb",
@@ -17738,7 +17959,8 @@
         "images": 83,
         "bytes": 5094524,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-nova": {
       "url": "/hangar/ships/tmbl-nova.glb",
@@ -17810,7 +18032,8 @@
         "images": 166,
         "bytes": 6546168,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-storm-aa": {
       "url": "/hangar/ships/tmbl-storm-aa.glb",
@@ -17877,7 +18100,8 @@
         "images": 183,
         "bytes": 8243966,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "tmbl-storm": {
       "url": "/hangar/ships/tmbl-storm.glb",
@@ -17946,7 +18170,8 @@
         "images": 161,
         "bytes": 6864620,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "vncl-blade": {
       "url": "/hangar/ships/vncl-blade.glb",
@@ -18018,7 +18243,8 @@
         "images": 149,
         "bytes": 9240614,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "vncl-glaive": {
       "url": "/hangar/ships/vncl-glaive.glb",
@@ -18083,7 +18309,8 @@
         "images": 86,
         "bytes": 3876326,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "vncl-scythe": {
       "url": "/hangar/ships/vncl-scythe.glb",
@@ -18148,7 +18375,8 @@
         "images": 90,
         "bytes": 4096182,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "vncl-stinger": {
       "url": "/hangar/ships/vncl-stinger.glb",
@@ -18235,7 +18463,8 @@
         "images": 249,
         "bytes": 14425176,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "xian-nox-kue": {
       "url": "/hangar/ships/xian-nox-kue.glb",
@@ -18323,7 +18552,8 @@
         "images": 84,
         "bytes": 3961746,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "xian-nox": {
       "url": "/hangar/ships/xian-nox.glb",
@@ -18420,7 +18650,8 @@
         "images": 113,
         "bytes": 4794240,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "xian-scout": {
       "url": "/hangar/ships/xian-scout.glb",
@@ -18487,7 +18718,8 @@
         "images": 103,
         "bytes": 4274924,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     },
     "xnaa-santokyai": {
       "url": "/hangar/ships/xnaa-santokyai.glb",
@@ -18563,7 +18795,8 @@
         "images": 221,
         "bytes": 11239382,
         "fresh": 0
-      }
+      },
+      "gameVersion": "4.10.2-live.12913470"
     }
   },
   "weapons": {
