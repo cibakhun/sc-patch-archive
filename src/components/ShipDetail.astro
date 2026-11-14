@@ -31,6 +31,7 @@ import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { patchesFor } from '../lib/patchSpine';
 import { mergePatchEn } from '../i18n/patchText';
 import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
+import { beiWikelo } from '../lib/wikeloShips';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
@@ -2654,8 +2655,10 @@ span.sd__ref{color:var(--muted)}
             </details>
           )}
         </>
+      ) : beiWikelo(id) ? (
+        <p class="sd__nobuy">{t('ship.buy.wikelo')} <a href={L('/topics/wikelo-emporium.html')}>Wikelo</a>.</p>
       ) : (
-        <p class="sd__nobuy">{t('ship.buy.none')}</p>
+        <p class="sd__nobuy">{t(d.pledgeUrl ? 'ship.buy.none' : 'ship.buy.noneNoPledge')}</p>
       )}
       {rentMin && (
         <>
