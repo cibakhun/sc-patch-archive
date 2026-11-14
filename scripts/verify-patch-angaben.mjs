@@ -278,12 +278,22 @@ if (!existsSync(DIST)) {
       if (v && !label) shipPagesOhneVersion.push(rel);
     }
 
+    // Schiffsuebersicht: jede Fassung, auf der ein Fahrzeug ihrer Karten steht
+    // (die Zeilen „flotte-aelter" im Datenstand); Zahl und Wortlaut haelt [6].
+    const kartenFassungen = new Set();
+    if (pfad === 'schiffe.html') {
+      for (const m of html.matchAll(/class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g)) {
+        const f = fassungAus(vehicleById.get(m[1])?.gameVersion);
+        if (f) kartenFassungen.add(f);
+      }
+    }
+
     for (const a of angaben) {
       z.angaben++;
       z.wo[a.wo] = (z.wo[a.wo] ?? 0) + 1;
       z.fassungen[a.ver] = (z.fassungen[a.ver] ?? 0) + 1;
       if (soll == null) continue; // Familie ohne pruefbare Kennung — nur gemeldet
-      if (!passt(a.ver, soll)) widersprueche.push({ rel, stand: sollQuelle, soll, ...a });
+      if (!passt(a.ver, soll) && !kartenFassungen.has(a.ver)) widersprueche.push({ rel, stand: sollQuelle, soll, ...a });
     }
   }
 
@@ -408,6 +418,11 @@ const STAND_GRUPPEN = [
   // Seit 14.11.2026 (Krisz: „überall, immer"): die Wikelo-Seite zeigt die
   // Tauschliste aus dem Spiel und die von Hand gepflegten Zusatzangaben.
   { name: 'Wikelo', match: (p) => p === 'topics/wikelo-emporium.html', pflicht: ['wikelo', 'wikelo-pflege'], erlaubt: ['wikelo', 'wikelo-pflege'] },
+  // Seit 14.11.2026 tragen auch die beiden Uebersichten den Baustein. Die
+  // Schiffsuebersicht fuehrt je aelterer Fassung eine eigene Zeile mit der Zahl
+  // der Fahrzeuge darauf, gezaehlt an den Karten der gebauten Seite.
+  { name: 'Missionsübersicht', match: (p) => p === 'missionen.html', pflicht: ['missionen'], erlaubt: ['missionen'] },
+  { name: 'Schiffsübersicht', match: (p) => p === 'schiffe.html', pflicht: ['flotte', 'uex-schiffe', 'wiki', 'bild'], erlaubt: ['flotte', 'flotte-aelter', 'uex-schiffe', 'wiki', 'bild'] },
 ];
 // Klinken je Gruppe (Grundsatz 5), Messlauf 06.11.2026 im Live-Bau der
 // Baustein-Aenderung. Nur nach OBEN; nach unten nur per Commit mit Ursache.
@@ -421,6 +436,8 @@ const STAND_KLINKEN = {
   'Crafting-Werkzeug': 2, Fracturing: 2,
   // 14.11.2026, je DE und EN.
   Wikelo: 2,
+  // 14.11.2026, je DE und EN.
+  'Missionsübersicht': 2, 'Schiffsübersicht': 2,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
 // Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
@@ -437,7 +454,7 @@ const STAND_WAS = {
   items: ['Spielwerte', 'Game values'], 'uex-items': ['Kaufpreise', 'Purchase prices'], 'shop-schnappschuss': ['Kaufpreise', 'Purchase prices'], fundorte: ['Fundorte', 'Loot locations'],
   'fundorte-spiel': ['Bestätigte Fundorte', 'Confirmed loot locations'],
   crafting: ['Rezepte und Drop-Chancen', 'Recipes and drop chances'], missionen: ['Missionsdaten', 'Mission data'],
-  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
+  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], flotte: ['Werte und Bewaffnung', 'Stats and loadout'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
   huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
@@ -485,6 +502,8 @@ try {
     crafting: { art: 'spiel', wert: fassung.Crafting, datei: 'assets/crafting-db.json version' },
     missionen: { art: 'spiel', wert: fassung.Missionen, datei: 'src/data/missions.json meta.patch' },
     fahrzeug: { art: 'spiel', wert: null, datei: 'Stempel des Fahrzeug-Datensatzes (src/data/vehicles.json)' },
+    flotte: { art: 'spiel', wert: fassungAus(rd('src/data/vehicles.json').gameVersion), datei: 'src/data/vehicles.json gameVersion' },
+    'flotte-aelter': { art: 'spiel', wert: null, datei: 'Stempel der Fahrzeuge auf den Karten der Schiffsuebersicht' },
     mining: { art: 'spiel', wert: fassung.Mining, datei: 'assets/mining-db.json game_version' },
     refinery: { art: 'spiel', wert: fassung.Refinery, datei: 'assets/refinery-data.json meta.gameVersion' },
     'uex-items': { art: 'fremd', wert: isoDatum(items.pricesAsOf), datei: 'assets/universal-items.json pricesAsOf', name: 'UEX Item-Preise' },
@@ -510,7 +529,7 @@ try {
   if (modellF !== fassung.Mining) fail.push(`[6] assets/mining-model.json steht auf ${modellF}, assets/mining-db.json auf ${fassung.Mining} — der Fracturing-Rechner nennt nur eine Spielversion; beide Dateien aus demselben Datenlauf bauen`);
   for (const [k, q] of Object.entries(quellen)) {
     standSoll[k] = q;
-    if (q.art !== 'quelle' && k !== 'fahrzeug' && !q.wert) fail.push(`[6] ${k}: ${q.datei} liefert keinen Stand — der Baustein liefe gegen nichts`);
+    if (q.art !== 'quelle' && k !== 'fahrzeug' && k !== 'flotte-aelter' && !q.wert) fail.push(`[6] ${k}: ${q.datei} liefert keinen Stand — der Baustein liefe gegen nichts`);
   }
 } catch (e) {
   fail.push(`[6] Datendateien fuer den Datenstand nicht lesbar — ${e.message}`);
@@ -612,6 +631,17 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       fyTeile = FY_TEILE.filter(([k]) => zeigt[k]).map((t) => t[1 + sp]);
       if (fyTeile.length) soll.add('fleetyards');
     }
+    // Schiffsuebersicht: Fahrzeuge je aelterer Fassung, an den Karten gezaehlt
+    const flotteAelter = new Map();
+    if (g.name === 'Schiffsübersicht') {
+      const karten = [...aussen.matchAll(/class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g)].map((m) => m[1]);
+      if (!karten.length) standFehler.push(`${rel}: keine Fahrzeugkarten gefunden — die Zaehlung der aelteren Fassungen liefe gegen nichts`);
+      for (const id of karten) {
+        const f = stempel.get(id);
+        if (!f) standFehler.push(`${rel}: Karte ${id} ohne Datensatz in src/data/vehicles.json`);
+        else if (kopfFahrzeug && vor(f, kopfFahrzeug)) flotteAelter.set(f, (flotteAelter.get(f) ?? 0) + 1);
+      }
+    }
     const gesehen = new Set();
     const spielWert = zeilen.find((z) => standSoll[z.quelle]?.art === 'spiel')?.wert ?? null;
     for (const z of zeilen) {
@@ -619,16 +649,26 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const q = standSoll[z.quelle];
       if (!q) { standFehler.push(`${rel}: Zeile mit unbekannter Quelle ${JSON.stringify(z.quelle)} — in src/lib/datenstand.ts und hier eintragen`); continue; }
       if (!g.erlaubt.includes(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" gehoert nicht auf ${g.name}`);
-      if (gesehen.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" doppelt`);
+      const schluessel = z.quelle === 'flotte-aelter' ? `${z.quelle}@${z.wert}` : z.quelle;
+      if (gesehen.has(schluessel)) standFehler.push(`${rel}: Zeile „${schluessel}" doppelt`);
+      gesehen.add(schluessel);
       gesehen.add(z.quelle);
       if (g.bedingt?.includes(z.quelle) && !soll.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" steht im Datenstand, die Seite zeigt diese Werte aber nicht`);
       if (z.art !== q.art) standFehler.push(`${rel}: Zeile „${z.quelle}" ist als ${z.art} ausgezeichnet, Soll ${q.art}`);
       let sollWert = q.wert;
       if (z.quelle === 'fahrzeug') sollWert = stempel.get(pfad.slice('schiffe/'.length, -'.html'.length)) ?? null;
+      if (z.quelle === 'flotte-aelter') {
+        sollWert = flotteAelter.has(z.wert) ? z.wert : null;
+        if (!sollWert) standFehler.push(`${rel}: Zeile „flotte-aelter" nennt ${JSON.stringify(z.wert)}, auf den Karten steht kein Fahrzeug auf dieser aelteren Fassung`);
+      }
       let aelterSoll = false;
       // Wertegruppe, Quellname und Link
       let was = STAND_WAS[z.quelle]?.[sp] ?? null;
       if (z.quelle === 'fleetyards') { const w = fyTeile.join(', '); was = w.charAt(0).toUpperCase() + w.slice(1); }
+      if (z.quelle === 'flotte-aelter') {
+        const n = flotteAelter.get(z.wert) ?? 0;
+        was = L ? `Werte und Bewaffnung von ${n} Fahrzeug${n === 1 ? '' : 'en'}` : `Stats and loadout of ${n} vehicle${n === 1 ? '' : 's'}`;
+      }
       if (was && z.was !== `${was}:`) standFehler.push(`${rel}: Zeile „${z.quelle}" heisst „${z.was}", Soll „${was}:"`);
       const name = STAND_NAME[z.quelle] ?? null;
       // Fassung als Verweis auf die Patch-Seite genau dieser Fassung, wenn es sie gibt
@@ -645,7 +685,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       let kern = null;
       if (q.art === 'spiel') {
         kern = `${L ? 'Spielversion' : 'Game version'} ${sollWert}`;
-        aelterSoll = z.quelle === 'fahrzeug' && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
+        aelterSoll = (z.quelle === 'fahrzeug' || z.quelle === 'flotte-aelter') && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
         // Fundorte aus einem frueheren Lauf als die Spielwerte des Katalogs
         if (z.quelle === 'fundorte-spiel') aelterSoll = !!sollWert && !!fassung['Item-Katalog'] && vor(sollWert, fassung['Item-Katalog']);
       } else if (q.art === 'fremd') {
@@ -671,6 +711,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const istKern = (aelterIst ? z.text.slice(0, -marke.length) : z.text).trim().slice(z.was.length).trim();
       if (kern != null ? istKern !== kern : !istKern) standFehler.push(`${rel}: Zeile „${z.quelle}" zeigt „${z.text}", Soll „${z.was} ${kern ?? '(Bildquelle)'}"`);
     }
+    for (const f of flotteAelter.keys()) if (!gesehen.has(`flotte-aelter@${f}`)) standFehler.push(`${rel}: ${flotteAelter.get(f)} Fahrzeug(e) auf den Karten stehen auf ${f}, die Zeile „flotte-aelter" dafuer fehlt im Datenstand`);
     for (const p of g.pflicht) if (!gesehen.has(p)) standFehler.push(`${rel}: Pflichtzeile „${p}" fehlt im Datenstand`);
     for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'shop-schnappschuss' ? 'Kaufpreise aus dem eigenen Shop-Schnappschuss' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'fundorte-spiel' ? 'bestätigte Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
     // Link „Falschen Wert melden“: genau einer auf Detailseiten, sonst keiner.

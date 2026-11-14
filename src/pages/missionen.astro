@@ -5,6 +5,8 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import Attribution from '../components/Attribution.astro';
 import MissionsApp from '../components/MissionsApp.astro';
+import Datenstand from '../components/Datenstand.astro';
+import { standMission } from '../lib/datenstand';
 import { db } from '../lib/missions';
 import { versioned } from '../lib/assetVersion';
 ---
@@ -32,6 +34,7 @@ import { versioned } from '../lib/assetVersion';
   <SiteNav crumbs={[{ label: 'VerseBase', href: '/index.html' }, { label: 'Missions' }]} />
   <main id="main">
     <MissionsApp lang="en" />
+    <Datenstand lang="en" zeilen={standMission('en')} />
   </main>
   {/* Keine Quellen-Zeile: die Missionsdaten sind eigene Aufbereitung, und die
       Vorgabe von Attribution (Wiki, RSI, YouTube) stimmte hier nicht. */}

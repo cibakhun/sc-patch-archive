@@ -13,23 +13,11 @@
 // components/topics/crafting.astro).
 import SiteNav from '../SiteNav.astro';
 import { getCollection } from 'astro:content';
-import vehiclesSnapshot from '../../data/vehicles.json';
-
-// Anzeigeform der Spielversion: aus "sc-alpha-4.9.0@12326004" wird "Alpha 4.9.0".
-// `split('-')[0]` stand hier vorher und ergab das nichtssagende "sc" — das fiel
-// nur niemandem auf, solange davor noch ein Wort stand.
-// 03.11.2026: das Muster verlangte "alpha-" und erkannte die Form der
-// eingefrorenen ATLS-Saetze ("4.9.0-LIVE.12232306") nicht — dort blieb die
-// Spielversion still leer (verify:patch-angaben). Jetzt zaehlt die Fassung
-// X.Y.Z, gleich in welcher Kennungsform.
-const alphaLabelOf = (v: string | null | undefined) => {
-  const m = /(\d+\.\d+\.\d+)/.exec(v ?? '');
-  return m ? `Alpha ${m[1]}` : null;
-};
-const shipsAlphaLabel = alphaLabelOf(vehiclesSnapshot.gameVersion);
 import vehicleRoles from '../../data/vehicle-roles.json';
 import { pickThumb } from '../../lib/shipRenders';
-import { priceInfo, pricesFetchedAt } from '../../lib/shipExtras';
+import Datenstand from '../Datenstand.astro';
+import { standFlotte } from '../../lib/datenstand';
+import { priceInfo } from '../../lib/shipExtras';
 import { compAttr } from '../../lib/shipComponents';
 import { patchesFor } from '../../lib/patchSpine';
 import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
@@ -312,9 +300,6 @@ a{color:inherit;text-decoration:none}
   .fprice--game{border-left:1px solid var(--line);padding-left:.6rem;border-top:0;padding-top:0}
 }
 
-.sdb__src{margin-top:1.5rem;font-size:var(--fs-7);color:var(--muted)}
-.sdb__src a{text-decoration:underline}
-.sdb__src a:hover{color:var(--accent)}
 /* Mobil-Filter: NACH den Basis-Regeln, damit display:grid (gleiche Spezifität) greift */
 @media(max-width:640px){
   .sdb__filter{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
@@ -505,12 +490,7 @@ a{color:inherit;text-decoration:none}
     <p class="sdb__empty" id="sf-empty" hidden>{de ? 'Keine Treffer — Filter zurücksetzen.' : 'No matches — reset the filters.'}</p>
   </div>
 
-  <p class="sdb__src">
-    {de ? 'Spielversion:' : 'Game version:'}{shipsAlphaLabel && ` ${shipsAlphaLabel}`}
-    {de ? ' · Stand ' : ' · as of '}{vehiclesSnapshot.fetchedAt}
-    {de ? ' · Ingame-Preise: ' : ' · In-game prices: '}<a href="https://uexcorp.space" target="_blank" rel="noopener">UEX Corp</a> ({de ? 'Stand ' : 'as of '}{pricesFetchedAt})
-    {de ? ' · Bilder: starcitizen.tools' : ' · Images: starcitizen.tools'}
-  </p>
+  <Datenstand lang={lang} zeilen={standFlotte(lang, vehicles.map((v) => v.data.gameVersion))} />
   </div>
 </main>
 
