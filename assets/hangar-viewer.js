@@ -14560,9 +14560,18 @@ void main() {
     // Wo die Monitore laut HALL_LEIT stehen, stehen sie auch im Modell? Sonst
     // läge die Fläche nach einem neuen Hallenexport neben dem Glas
     // (verify:hangar-orte [8] misst dasselbe am ausgelieferten Modell).
+    // Ruhe gegen Ruhe: die Ecken der Monitore, wie das Modell sie trägt (vor
+    // Zuwachs und Maßstab), gegen HALL_LEIT.bank. Die Hülle der Geometrie taugt
+    // dafür nicht: mergeFurniture erweitert sie um die Bezugspunkte der Stücke
+    // (am Boden des Leitstands, die Mitte läge 0,43 m zu tief), und growBounds
+    // rückt sie mit der Halle. Bis 14.11.2026 warnte die Prüfung deshalb bei
+    // jedem Laden.
     if (bank && LEIT.bank) {
-      const bb = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = bb.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
-      const want = leitAt((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
+      const P = bank.base || bank.mesh.geometry.attributes.position.array, o = realHall.model.position, B = LEIT.bank;
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], P[i + a]); hi[a] = Math.max(hi[a], P[i + a]); }
+      const c = new THREE.Vector3((lo[0] + hi[0]) / 2 + o.x, (lo[1] + hi[1]) / 2 + o.y, (lo[2] + hi[2]) / 2 + o.z);
+      const want = new THREE.Vector3((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
       if (c.distanceTo(want) > 0.05) console.warn(`[hangar] Leitstand: Monitore des Pults bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
     }
   }

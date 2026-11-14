@@ -453,6 +453,7 @@ if (containers.length) {
         info.palette = await tintPalette(h.palette, info.palettes);
         if (info.palette) console.log(`  Palette ${info.palette.name}: A ${info.palette.entries.primary.rgb.join(',')}, B ${info.palette.entries.secondary.rgb.join(',')}, C ${info.palette.entries.tertiary.rgb.join(',')}; von ${info.palette.entities} Entities der Halle genannt (alle Nennungen: ${Object.entries(info.palettes).map(([k, n]) => `${k} ${n}`).join(', ') || 'keine'})`);
         else console.error(`  ! ${h.key}: Palette ${h.palette} fehlt im Datensatz, Palettenmaterialien bleiben beim Ersatzwert des Exports`);
+        if (info.palette?.decal) { add(info.palette.decal.tex); console.log(`  Logo der Palette: ${info.palette.decal.tex.split('/').pop()}, Farben R ${info.palette.decal.r.join(',')}, G ${info.palette.decal.g.join(',')}, B ${info.palette.decal.b.join(',')}`); }
       }
       writeFileSync(`${SRC}${h.dir}/${h.key}.info.json`, JSON.stringify(info, null, 1));
       for (const m of Object.values(info.decalMaterials)) { add(m.d); add(m.n); add(m.maskTex); }
@@ -1329,7 +1330,10 @@ async function tintPalette(name, used = {}) {
   const key = name.toLowerCase(), v = paletteDb.get(key)?.();
   if (!v?.entryA || !v.entryB || !v.entryC) return null;
   const e = (x) => ({ rgb: [x.tintColor.r, x.tintColor.g, x.tintColor.b], spec: [x.specColor.r, x.specColor.g, x.specColor.b], gloss: x.glossiness });
-  return { name: key, entries: { primary: e(v.entryA), secondary: e(v.entryB), tertiary: e(v.entryC) }, entities: used[key] ?? 0 };
+  // Logo der Palette: eine Schablone, deren Kanäle R, G, B je eine Farbe decken (Tafeln tint_logo_*, addHallLogo im Build)
+  const f = (c) => (c ? [c.r, c.g, c.b] : null);
+  const decal = v.decalTexture && v.decalColorR && v.decalColorG && v.decalColorB ? { tex: String(v.decalTexture).replace(/\\/g, '/'), r: f(v.decalColorR), g: f(v.decalColorG), b: f(v.decalColorB) } : null;
+  return { name: key, entries: { primary: e(v.entryA), secondary: e(v.entryB), tertiary: e(v.entryC) }, ...(decal ? { decal } : {}), entities: used[key] ?? 0 };
 }
 
 function werkstattInfo(h) {

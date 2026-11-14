@@ -34,7 +34,7 @@ import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-is
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
-import { hallDecalMaps, pickHallDecals, addHallDecals, attachHallDecalTextures } from './lib/hall-decals.mjs';
+import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures } from './lib/hall-decals.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -2222,6 +2222,14 @@ async function buildOne(kind, name, inPath) {
     // am Tor fährt ein Aufkleber mit seiner Lamelle
     if (aufzug) for (const p of decals.added.get(aufzug.door.getMesh()) ?? []) aufzug.owner.set(p, aufzug.boneOf(p.getExtras().sub.node));
   }
+  // Tafeln mit dem Logo des Betreibers (Netze tint_logo_*, im Export ohne Material): Schablone und
+  // Farben nennt die Palette der Halle in <halle>.info.json; ohne Angabe fallen die Tafeln weg
+  let logo = null;
+  if (kind === 'hall') {
+    const f = fileURLToPath(new URL(`hall/${name}.info.json`, SRC));
+    logo = addHallLogo(doc, { decal: existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')).palette?.decal ?? null : null });
+    if (!logo.tafeln && !logo.weg) logo = null;
+  }
   if (kind === 'npc') prepareCrew(doc);
   const weapon = kind === 'weapons' || kind === 'components' ? prepareWeapon(doc, name, kind) : null;
   const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
@@ -2279,7 +2287,7 @@ async function buildOne(kind, name, inPath) {
   const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind, null, { ton: hallLayers }) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
   const hallPalette = hallLayers ? { ...applyHallPalette(doc, name), schichtTon: layered.ton ?? 0 } : null;
   const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
-  const decalMaps = decals ? await attachHallDecalTextures(doc, { texFile, sharp }) : null;
+  const decalMaps = decals || logo?.tafeln ? await attachHallDecalTextures(doc, { texFile, sharp }) : null;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
   const vertexColors = stripAttributes(doc, werk ? 'hall' : srcKind);
@@ -2413,6 +2421,7 @@ async function buildOne(kind, name, inPath) {
     ...(hallPalette ? { hallPalette } : {}),
     ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
     ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
+    ...(logo ? { logo: { ...logo, ...(decalMaps?.logo ?? {}) } } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
@@ -3602,6 +3611,9 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         if (r.hallPalette) console.log(r.hallPalette.name
           ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
           : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
+        if (r.logo) console.log(r.logo.tafeln
+          ? `    Logo des Betreibers: ${r.logo.tafeln} Tafeln, Karte ${r.logo.karte ?? 'fehlt'}${r.logo.deckt != null ? `, ${Math.round(r.logo.deckt * 100)} % der Karte decken` : ''}`
+          : `    Logo des Betreibers: ${r.logo.weg} Tafeln ohne Material weggelassen (die Palette in ${name}.info.json nennt kein Logo)`);
         const a = r.aufkleber;
         if (a) console.log(`    Aufkleber: ${a.primitive} Teilnetze an ${a.netze} Netzen, ${a.trisMitExemplaren.toLocaleString()} Dreiecke mit allen Exemplaren, ${a.karten.materialien} Materialien mit ${a.karten.farbkarten} Farb- und ${a.karten.normalen} Normalenkarten; weggelassen: ${a.weg.relief.materialien} nur Relief (${a.weg.relief.tris.toLocaleString()} Dreiecke), ${a.weg.klein.materialien} klein (${a.weg.klein.tris.toLocaleString()})${a.fremd.length ? `; WARNUNG ${a.fremd.length} Netze passen nicht mehr zum Export (${a.fremd.slice(0, 5).join(', ')}), Halle mit dem Extraktor neu exportieren` : ''}${a.karten.ohneKarte.length ? `; WARNUNG ohne Farbkarte im Cache: ${a.karten.ohneKarte.join(', ')}` : ''}`);
       }

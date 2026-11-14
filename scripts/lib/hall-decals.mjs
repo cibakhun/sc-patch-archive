@@ -306,6 +306,38 @@ export function addHallDecals(doc, decalDoc, { keep = null, mult = null, lift = 
   return { added, bericht };
 }
 
+// Logo des Betreibers. Netze, deren Name mit tint_logo beginnt, sind Tafeln aus
+// zwei Dreiecken, denen der Export kein Material gibt: Im Spiel malt sie die
+// Farbpalette der Halle (decalTexture: eine Schablone, deren Kanäle R, G, B je
+// eine Farbe der Palette decken; <halle>.info.json palette.decal). Der Bau
+// kennt ein Primitive ohne Material nur als weiße Fläche, so stand über dem
+// Kontrollraum der Large-Halle eine leere helle Tafel von 15 × 15 m. Hier
+// bekommen sie ein Aufkleber-Material, dessen Karte attachHallDecalTextures
+// aus der Schablone backt. Nennt die Palette kein Logo, fallen die Tafeln weg:
+// keine Tafel ist besser als eine leere. Muss laufen, solange die Netze ihre
+// Namen tragen. Liefert { tafeln, weg }.
+export function addHallLogo(doc, { decal = null } = {}) {
+  const s = { tafeln: 0, weg: 0 };
+  const ganz = !!(decal?.tex && [decal.r, decal.g, decal.b].every((c) => Array.isArray(c) && c.length === 3));
+  let mat = null;
+  // ein Netz, viele Knoten: gezählt wird, wie oft die Tafel in der Halle hängt
+  const mal = new Map();
+  for (const n of doc.getRoot().listNodes()) { const m = n.getMesh(); if (m) mal.set(m, (mal.get(m) ?? 0) + 1); }
+  for (const me of doc.getRoot().listMeshes()) {
+    if (!/^tint_logo/.test(meshBase(me.getName()))) continue;
+    for (const p of me.listPrimitives()) {
+      // der Export gibt ihnen sein namenloses Ersatzmaterial (hellgrau, ohne Karte und ohne extras)
+      const alt = p.getMaterial();
+      if (alt && (alt.getName() || Object.keys(alt.getExtras() || {}).length)) continue;
+      if (!ganz) { me.removePrimitive(p); p.dispose(); s.weg += mal.get(me) ?? 1; continue; }
+      mat ??= doc.createMaterial('hall_logo').setExtras({ hall_decal: { logo: { tex: decal.tex, r: decal.r, g: decal.g, b: decal.b } } }).setAlphaMode('BLEND').setMetallicFactor(0);
+      p.setMaterial(mat).setExtras({ ...p.getExtras(), hall_decal: true });
+      s.tafeln += mal.get(me) ?? 1;
+    }
+  }
+  return s;
+}
+
 // Karten und Werte der Aufkleber-Materialien (nach attachHallTextures, das
 // sie nicht kennt). Die Farbkarte trägt die Deckkraft im Alpha; DecalAlphaMult
 // wird hineingerechnet (das Spiel verstärkt damit schwache Ränder; je Datei
@@ -322,8 +354,27 @@ export async function attachHallDecalTextures(doc, { texFile, sharp }) {
   const s = { materialien: 0, farbkarten: 0, normalen: 0, verstaerkt: 0, ohneKarte: [] };
   const num = (v, d) => (Number.isFinite(Number(v)) && v !== undefined && v !== null && v !== '' ? Number(v) : d);
   for (const [m, prims] of used) {
-    const x = m.getExtras().hall_decal, dFile = texFile(x.d);
+    const x = m.getExtras().hall_decal, dFile = texFile(x.logo ? x.logo.tex : x.d);
     if (!dFile) { s.ohneKarte.push(m.getName()); for (const [me, p] of prims) { me.removePrimitive(p); p.dispose(); } continue; }
+    if (x.logo) {
+      // Schablone des Betreibers (addHallLogo): je Kanal eine Farbe der Palette (sRGB 0–255), Deckkraft
+      // ist der stärkste Kanal. Wo nichts deckt, steht die dunkelste der drei: kein heller Saum am Rand.
+      const { data, info } = await sharp(dFile).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const F = [x.logo.r, x.logo.g, x.logo.b], leer = F.reduce((u, c) => (c[0] + c[1] + c[2] < u[0] + u[1] + u[2] ? c : u));
+      let deckt = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        const w0 = data[i], w1 = data[i + 1], w2 = data[i + 2], sum = w0 + w1 + w2;
+        for (let k = 0; k < 3; k++) data[i + k] = sum ? Math.round((w0 * F[0][k] + w1 * F[1][k] + w2 * F[2][k]) / sum) : leer[k];
+        data[i + 3] = Math.max(w0, w1, w2);
+        if (data[i + 3] > 127) deckt++;
+      }
+      const name = `a${cache.size}`;
+      cache.set(`${dFile}|logo`, doc.createTexture(name).setImage(await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer()).setMimeType('image/png').setURI(`${name}.png`));
+      m.setBaseColorTexture(cache.get(`${dFile}|logo`)).setBaseColorFactor([1, 1, 1, 1]).setAlphaMode('BLEND').setMetallicFactor(0).setRoughnessFactor(0.6);
+      s.farbkarten++; s.materialien++;
+      s.logo = { karte: `${info.width}x${info.height}`, deckt: Math.round((deckt / (info.width * info.height)) * 1000) / 1000 };
+      continue;
+    }
     const mult = num(x.verstaerker ?? x.params?.DecalAlphaMult, 1), dKey = `${dFile}|${mult}`;
     if (!cache.has(dKey)) {
       let image = null;
