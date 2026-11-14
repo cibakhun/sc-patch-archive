@@ -1504,8 +1504,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Luxus-Reisen"
-      ],
-      "crewMax": 3
+      ]
     },
     {
       "id": "orig-85x",
@@ -14644,8 +14643,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Fregatte"
-      ],
-      "crewMax": 22
+      ]
     },
     {
       "id": "aegs-idris-p",
@@ -14826,8 +14824,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Fregatte"
-      ],
-      "crewMax": 22
+      ]
     },
     {
       "id": "crus-intrepid",
@@ -15153,8 +15150,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Schwertransport"
-      ],
-      "crewMax": 6
+      ]
     },
     {
       "id": "drak-ironclad-assault",
@@ -18944,8 +18940,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Schweres Betanken"
-      ],
-      "crewMax": 7
+      ]
     },
     {
       "id": "misc-starfarer-gemini",
@@ -19437,8 +19432,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Kanonenboot"
-      ],
-      "crewMax": 6
+      ]
     },
     {
       "id": "misc-starlite",
@@ -19737,8 +19731,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Mittlerer Bergbau"
-      ],
-      "crewMax": 2
+      ]
     },
     {
       "id": "argo-moth",
@@ -19878,8 +19871,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Mittlere Bergung"
-      ],
-      "crewMax": 2
+      ]
     },
     {
       "id": "argo-mpuv",
@@ -24817,8 +24809,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Leichter Bergbau"
-      ],
-      "crewMax": 1
+      ]
     },
     {
       "id": "aegs-sabre",
