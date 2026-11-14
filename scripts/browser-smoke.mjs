@@ -77,8 +77,7 @@ const MIN_AUFRUFE = 40;
 // fuer beide Artefakte. Ohne Klinke waere ein Lauf, dessen Abfrage still
 // nichts findet, von einem echten nicht zu unterscheiden.
 const MIN_HIDDEN = 300;
-// [7] Filter-Schubladen am Telefon: Crafting-Planer und Missionen je EN/DE
-// (der Vorschau-Bau hat mit der Werkbank zwei mehr).
+// [7] Filter-Schubladen am Telefon: Crafting-Seite und Missionen je EN/DE.
 const MIN_SCHUBLADEN = 4;
 
 /* ---------- Browser finden ---------- */
@@ -125,22 +124,18 @@ const SEITEN = [
     id: 'schiffe', en: '/schiffe.html', de: '/de/schiffe.html',
     leit: '#sf-q', schwer: true, probe: probeSchiffe,
   },
-  // Die Crafting-Werkbank, ein Prototyp nur im Vorschau-Bau (Skizze 016-3).
-  // Sie steht unter demselben Schalter wie der Hangar (hangarImBau), daher
-  // nurMitHangar; verify:hangar-schalter [4]/[5] prueft beide Richtungen.
-  {
-    id: 'crafting-werkbank', en: '/topics/crafting-werkbank.html', de: '/de/topics/crafting-werkbank.html',
-    leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true, probe: probeWerkbank, nurMitHangar: true,
-  },
   { id: 'crafting', en: '/crafting.html', de: '/de/crafting.html', leit: '.dp-card--cat', minAnzahl: 50, schwer: true },
-  // Der Crafting-Planer mit seiner Konto-Anzeige. Am Handy stand dort
-  // „Synced to your account" neben „Sign in" und „Retry" (Krisz, 07.11.2026):
-  // die Logik setzte hidden richtig, mobile-ux.css hob es auf. Die Probe
-  // spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
+  // Die Crafting-Seite ist die Werkbank (Skizze 016-3; vom 09.11. bis
+  // 13.11.2026 ein Prototyp nur im Vorschau-Bau, seit Krisz' Abnahme in
+  // beiden Bauten). probeWerkbank misst Stellung, Rezept, Planer, Zerlege-
+  // Rechner und das Telefon; probeCraftingSync die Konto-Anzeige. Am Handy
+  // stand dort „Synced to your account" neben „Sign in" und „Retry" (Krisz,
+  // 07.11.2026): die Logik setzte hidden richtig, mobile-ux.css hob es auf.
+  // Die Probe spielt jeden Zustand der Anzeige bei 360 und 1280 px durch.
   {
     id: 'crafting-planer', en: '/topics/crafting.html', de: '/de/topics/crafting.html',
     leit: '#cdb-grid .cbp', minAnzahl: 50, schwer: true,
-    probe: async (page) => (await probeZurueckMarke(page, 'Crafting-Planer')) ?? (await probeZerlegen(page, 'Crafting-Planer')) ?? (await probeRezeptDialog(page, 'Crafting-Planer')) ?? (await probeCraftingSync(page)),
+    probe: async (page) => (await probeWerkbank(page)) ?? (await probeCraftingSync(page)),
   },
   { id: 'archiv', en: '/archiv.html', de: '/de/archiv.html', leit: 'main' },
   // schwer: auch bei 360 px, wegen der Filter-Schublade ([7]).
@@ -150,7 +145,9 @@ const SEITEN = [
   { id: 'support', en: '/support.html', de: '/de/support.html', leit: 'main' },
   { id: 'downloads', en: '/downloads.html', de: '/de/downloads.html', leit: 'main' },
   // Zwei unabhaengige ToolHelp-Instanzen auf EINER Seite (Phase 1.2, Plan 02).
-  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2 },
+  // Traegt auch die Probe der Zurueck-Marke unter der Kopfleiste: die Seite
+  // steht fuer die gut hundert Blattseiten, die sie behalten (probeZurueckMarke).
+  { id: 'mining-thema', en: '/topics/mining.html', de: '/de/topics/mining.html', leit: '[data-tool-id]', minAnzahl: 2, probe: (page) => probeZurueckMarke(page, 'Mining-Thema') },
   // Patch-Koerper: eigenes Ambiente, eigener .reveal-Beobachter, eigenes body::after.
   { id: 'patch', en: '/patches/sc-4-9-0.html', de: '/de/patches/sc-4-9-0.html', leit: 'main', schwer: true },
   // Erzeugte Detailseite (eine von ~17.000) — stellvertretend fuer die Masse.
@@ -1372,8 +1369,8 @@ async function probeLeitTastatur(page) {
   return null;
 }
 
-/* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs, bisherige Seite
-   und Werkbank): die Ergebniskarten stehen in voller Hoehe im Kasten.
+/* Zerlege-Rechner (zweiter Reiter des Crafting-Werkzeugs): die
+   Ergebniskarten stehen in voller Hoehe im Kasten.
    Anlass 11.11.2026: #calc-results ist eine Flex-Spalte mit begrenzter Hoehe
    (.vb-scrollbox), die Karten tragen overflow:hidden und durften deshalb
    schrumpfen. Ab etwa fuenf Treffern drueckte der Kasten jede Karte auf
@@ -1417,7 +1414,7 @@ async function probeZerlegen(page, wo) {
   return null;
 }
 
-/* Das Rezept als Dialog (bisherige Seite: immer; Werkbank: unter 821 px).
+/* Das Rezept als Dialog (unter 821 px; darueber steht es als Mitte im Fluss).
    Die Box sagt aria-modal="true", der Fokus blieb aber auf der Karte hinter
    dem Fenster, und die Tabulatortaste lief dort weiter (Hinweis von
    CodeRabbit an #349, 11.11.2026). Gemessen mit echten Tasten: Enter auf dem
@@ -1457,11 +1454,13 @@ async function probeRezeptDialog(p, wo) {
   return null;
 }
 
-/* Die Zurueck-Marke unter der Kopfleiste („← ALPHA 4.10.2“) faellt nur in der
-   Werkbank weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC „Kann weg“).
-   Auf der bisherigen Crafting-Seite, wie auf jeder anderen Blattseite, bleibt
-   sie stehen: sichtbar, mit Ziel und Text. Kippt die Vorgabe des Schalters,
-   verloeren gut hundert Seiten ihren Rueckweg, und kein anderes Tor saehe es.
+/* Die Zurueck-Marke unter der Kopfleiste („← ALPHA 4.10.2“) faellt nur auf
+   der Crafting-Seite weg (backMark an SiteNav, Krisz 11.11.2026 23:44 UTC
+   „Kann weg“). Auf jeder anderen Blattseite bleibt sie stehen: sichtbar, mit
+   Ziel und Text. Kippt die Vorgabe des Schalters, verloeren gut hundert
+   Seiten ihren Rueckweg, und kein anderes Tor saehe es. Gemessen wird an der
+   Mining-Themenseite; bis zur Abnahme der Werkbank (13.11.2026) stand die
+   Probe an der bisherigen Crafting-Seite.
    Sichtbar heisst hier wie ueberall im Skript SICHTBAR (oben): eine Marke
    mit visibility:hidden oder opacity:0 hat noch ihren Kasten und gaelte
    sonst als da (Hinweis von CodeRabbit an #349). */
@@ -1471,7 +1470,7 @@ async function probeZurueckMarke(page, wo) {
     if (!da(a)) return null;
     return { text: a.textContent.replace(/\s+/g, ' ').trim(), ziel: a.getAttribute('href') || '' };
   });
-  if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur in der Werkbank weg)`;
+  if (!m) return `${wo}: die Zurueck-Marke unter der Kopfleiste ist nicht zu sehen (sie faellt nur auf der Crafting-Seite weg)`;
   if (!m.ziel || m.text.length < 3) return `${wo}: die Zurueck-Marke unter der Kopfleiste hat ${m.ziel ? 'keinen Text' : 'kein Ziel'} („${m.text}“)`;
   return null;
 }
@@ -1533,9 +1532,24 @@ async function probeCraftingSync(page) {
           probleme.push(`${wo}: die Konto-Anzeige erreicht den Zustand nicht (steht auf "${st}")`);
           continue;
         }
-        // Den Planer oeffnen: seine Anzeige soll so gemessen werden, wie man sie sieht.
-        await p.locator('#cdb-planner-open').click({ timeout: 15000 });
-        await p.waitForTimeout(400);
+        // Den Planer oeffnen, wo er zu ist (am Telefon die Leiste unten): seine
+        // Anzeige soll so gemessen werden, wie man sie sieht. Am Schreibtisch
+        // steht er als Spalte offen, der Knopf ist dort nicht zu sehen. Fehlt
+        // der Knopf auch am Telefon, bleibt der Planer zu, und die Anzeige
+        // darin faellt unten als „nicht zu sehen“ auf.
+        // Der Auftakt blendet Leiste und Planer-Spalte ein (gut eine Sekunde,
+        // die Spalte beginnt bei Deckkraft 0). Am Schreibtisch misst die Probe
+        // ohne Klick; ein Zustand, der sofort erreicht ist (synced), fiele
+        // sonst in die Einblendung und gaelte als „nicht zu sehen“.
+        if (!(await p.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false))) {
+          probleme.push(`${wo}: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)`);
+          continue;
+        }
+        const planerKnopf = p.locator('#cdb-planner-open');
+        if (await planerKnopf.isVisible()) {
+          await planerKnopf.click({ timeout: 15000 });
+          await p.waitForTimeout(400);
+        }
         // zu ist SICHTBAR (oben), die eine Bestimmung dieses Skripts.
         const anzeigen = await mitSichtbar(p, (_, zu) => [...document.querySelectorAll('.cdb-sync')].map((h) => ({
           wo: h.classList.contains('cdb-sync--drawer') ? 'Planer' : 'Kopfleiste',
@@ -1548,6 +1562,16 @@ async function probeCraftingSync(page) {
         if (anzeigen.length !== 2) { probleme.push(`${wo}: ${anzeigen.length} Konto-Anzeigen statt 2 (Kopfleiste und Planer)`); continue; }
         for (const a of anzeigen) {
           const hier = `${wo}, ${a.wo}`;
+          // Die Anzeige steht einmal, im Planer (dort liegt, was gespeichert
+          // wird). In der Kopfleiste meldet sich nur ein Fehler, und nur
+          // unter 1180 px: darueber steht der Planer als Spalte daneben.
+          // Eine zu Recht verborgene Anzeige zaehlt als geprueft.
+          const sollZu = a.wo === 'Planer' || (z.state === 'error' && breite < 1180);
+          if (!sollZu) {
+            if (a.zu) { probleme.push(`${hier}: die Konto-Anzeige steht ein zweites Mal in der Kopfleiste („${a.text}"), dort meldet sich nur ein Fehler unter 1180 px`); continue; }
+            syncAnzeigen++;
+            continue;
+          }
           if (!a.zu) { probleme.push(`${hier}: die Konto-Anzeige ist nicht zu sehen`); continue; }
           if (!a.text) { probleme.push(`${hier}: die Konto-Anzeige hat keinen Text`); continue; }
           if (a.login !== z.login || a.retry !== z.retry) {
@@ -1588,8 +1612,8 @@ async function kreuzVerdeckt(page) {
   });
 }
 
-/* Die Crafting-Werkbank (Prototyp, Skizze 016-3, nur im Vorschau-Bau):
-   dasselbe Werkzeug wie der Planer, anders gestellt. Am Schreibtisch steht
+/* Die Crafting-Werkbank (Skizze 016-3; als Prototyp gebaut, seit Krisz'
+   Abnahme am 13.11.2026 die Crafting-Seite). Am Schreibtisch steht
    das Rezept als feste Mitte neben der Liste und der Planer als Spalte
    rechts; Waehlen, Schliessen und ein tiefer Link muessen dort ohne Dialog
    gehen. Seit der zweiten Runde (11.11.2026) traegt sie Kacheln,
@@ -1610,6 +1634,7 @@ async function kreuzVerdeckt(page) {
    mit dem Namen stehen, und der Planer zaehlt mit. Der Auftakt beim Laden
    muss enden, bevor gemessen wird. */
 const WB_MIN_ZEICHEN = 20; // verschiedene Zeichen der Bauteilart, gemessen 26 am 11.11.2026
+const WB_PLANER_VOLL = 12; // so viele Zeilen braucht der Planer, damit seine Spalte bei 740 px Hoehe rollt
 const WB_NAV_FREI = 68; // Freiraum unter der Kopfleiste ohne Zurueck-Marke (--nav-h, SiteNav.astro)
 async function probeWerkbank(page) {
   const kasten = (p, sel) => p.locator(sel).first().boundingBox();
@@ -1631,6 +1656,25 @@ async function probeWerkbank(page) {
   if (!auftaktEndet) return 'Werkbank 1280 px: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)';
   // 1. Schreibtisch (1280 px): Liste | leere Mitte | Planer.
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: die leere Mitte („Rezept waehlen“) ist nicht zu sehen';
+  // Der Zaehler ueber der Liste nennt, was in der Liste steht: beide Zahlen
+  // sind die der Kacheln (Runde 6: „1.626 / 1634“, die Gesamtzahl kam aus
+  // der Datenbank samt der acht Blueprints ohne Item).
+  const zaehler = await page.evaluate(() => {
+    const ziffern = (t) => (t || '').replace(/\D/g, '');
+    const zeile = document.querySelector('.cdb-count-row');
+    return {
+      karten: document.querySelectorAll('#cdb-grid .cbp').length,
+      zeigt: ziffern(document.querySelector('#cdb-count')?.textContent),
+      von: ziffern(((zeile ? zeile.textContent : '').split('/')[1] || '')),
+      band: ziffern(document.querySelector('.cr-about .qbar b')?.textContent),
+    };
+  });
+  if (zaehler.zeigt !== String(zaehler.karten) || zaehler.von !== String(zaehler.karten))
+    return `Werkbank 1280 px: der Zaehler nennt „${zaehler.zeigt} / ${zaehler.von}“, in der Liste stehen ${zaehler.karten} Kacheln`;
+  // Die Kennzahl „Blueprints“ unter dem Werkzeug ist dieselbe Zahl: bis
+  // 14.11.2026 stand dort der Spielbestand (1634) unter „1.626 / 1.626“.
+  if (zaehler.band !== String(zaehler.karten))
+    return `Werkbank 1280 px: unter dem Werkzeug steht „Blueprints ${zaehler.band}“, in der Liste stehen ${zaehler.karten} Kacheln`;
   const liste = await kasten(page, '#cdb-grid');
   const mitte = await kasten(page, '#cdb-modal .cdb-modal__box');
   const planer = await kasten(page, '#cdb-planner');
@@ -1639,6 +1683,21 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
   if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
   if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Der Speicherstand steht einmal, im Planer; die Anzeige in der Leiste ist
+  // ausgeblendet. Was zu sehen ist, muss Aenderungen auch ansagen: bis
+  // 14.11.2026 trug nur die ausgeblendete Anzeige aria-live, ein Fehler beim
+  // Speichern blieb fuer Vorleser stumm (Hinweis von CodeRabbit an #367).
+  // Zu sehen heisst nicht erreichbar: der Planer ist als Schublade gebaut und
+  // traegt im Markup aria-hidden="true"; crafting-app.js stellt es erst um,
+  // wenn er als Spalte steht. Bliebe das aus, stuende die Anzeige im Bild,
+  // und Vorleser kaemen nicht hin (zweiter Hinweis von CodeRabbit an #367).
+  const speicher = await mitSichtbar(page, (_, da) => [...document.querySelectorAll('.cdb-sync')].filter((h) => da(h)).map((h) => {
+    const zu = h.closest('[aria-hidden="true"], [inert]');
+    return { live: h.getAttribute('aria-live') || '', zu: zu ? `${zu.id ? '#' + zu.id : zu.tagName.toLowerCase()} traegt ${zu.hasAttribute('inert') ? 'inert' : 'aria-hidden="true"'}` : '' };
+  }));
+  if (speicher.length !== 1) return `Werkbank 1280 px: ${speicher.length} Speicheranzeigen zu sehen statt einer (im Planer)`;
+  if (speicher[0].live !== 'polite') return `Werkbank 1280 px: die sichtbare Speicheranzeige sagt Aenderungen nicht an (aria-live „${speicher[0].live}“ statt polite)`;
+  if (speicher[0].zu) return `Werkbank 1280 px: die sichtbare Speicheranzeige ist fuer Vorleser nicht erreichbar (${speicher[0].zu})`;
   // Die Werkbank fuellt die Seite: kein Kopfband (die Ueberschrift bleibt
   // fuer Vorleser im Dokument), die Reiterzeile direkt unter der Kopfleiste,
   // die Werkbank ueber die Breite, und Liste, Mitte und Planer enden am
@@ -1772,6 +1831,54 @@ async function probeWerkbank(page) {
   await page.keyboard.press('Escape');
   await page.waitForTimeout(400);
   if (!(await inert())) return 'Werkbank 1280 px: Esc schliesst die Filter-Schublade nicht';
+  // Fuss der Schublade (Runde 6): „N anzeigen“ nennt die Treffer der
+  // laufenden Auswahl, steht buendig am unteren Rand (auch wenn die Filter
+  // darueber rollen) und schliesst die Schublade.
+  await page.locator('#cdb-filter-toggle').click();
+  await page.waitForTimeout(400);
+  const fuss = () => page.evaluate(() => {
+    const k = document.querySelector('#cdb-filter-show'), lade = document.querySelector('#cdb-sidebar');
+    if (!k) return null;
+    const f = k.closest('.cdb-side-ft').getBoundingClientRect(), l = lade.getBoundingClientRect();
+    return {
+      zahl: k.textContent.replace(/\D/g, ''), luft: Math.round(l.bottom - f.bottom),
+      sichtbar: document.querySelectorAll('#cdb-grid .cbp:not([hidden])').length, rollt: lade.scrollHeight - lade.clientHeight,
+    };
+  });
+  const fuss0 = await fuss();
+  if (!fuss0) return 'Werkbank 1280 px: der Filter-Schublade fehlt der Fuss mit „N anzeigen“ (#cdb-filter-show)';
+  if (fuss0.zahl !== String(fuss0.sichtbar)) return `Werkbank 1280 px: der Fuss der Filter nennt ${fuss0.zahl || 'keine Zahl'}, in der Liste stehen ${fuss0.sichtbar} Kacheln`;
+  if (Math.abs(fuss0.luft) > 1) return `Werkbank 1280 px: der Fuss der Filter steht nicht am unteren Rand der Schublade (${fuss0.luft} px Abstand, die Filter rollen ${fuss0.rollt} px)`;
+  await page.$eval('#cdb-sidebar .cdb-cat', (c) => c.click());
+  await page.waitForTimeout(150);
+  const fuss1 = await fuss();
+  if (fuss1.sichtbar >= fuss0.sichtbar || fuss1.zahl !== String(fuss1.sichtbar))
+    return `Werkbank 1280 px: nach dem Ankreuzen einer Kategorie nennt der Fuss der Filter ${fuss1.zahl}, in der Liste stehen ${fuss1.sichtbar} von ${fuss0.sichtbar} Kacheln`;
+  await page.locator('#cdb-filter-show').click();
+  await page.waitForTimeout(400);
+  if (!(await inert())) return 'Werkbank 1280 px: „N anzeigen“ schliesst die Filter-Schublade nicht';
+  // Leere Liste (Runde 6): eine Suche ohne Treffer zeigt einen Hinweis mit
+  // einem Knopf, der Suche und Filter zuruecksetzt und den Fokus ins
+  // Suchfeld legt. Die Kategorie von eben ist dabei noch angekreuzt.
+  await page.locator('#cdb-search').fill('xqzvxqzv');
+  await page.waitForTimeout(250);
+  const ohne = await mitSichtbar(page, (_, da) => ({
+    hinweis: da(document.querySelector('#cdb-empty')), knopf: da(document.querySelector('#cdb-empty-reset')),
+    sichtbar: document.querySelectorAll('#cdb-grid .cbp:not([hidden])').length,
+  }));
+  if (ohne.sichtbar || !ohne.hinweis || !ohne.knopf)
+    return `Werkbank 1280 px: eine Suche ohne Treffer zeigt ${ohne.sichtbar} Kacheln, Hinweis ${ohne.hinweis ? 'da' : 'fehlt'}, Knopf zum Zuruecksetzen ${ohne.knopf ? 'da' : 'fehlt'}`;
+  await page.locator('#cdb-empty-reset').click();
+  await page.waitForTimeout(250);
+  const wieder = await mitSichtbar(page, (_, da) => ({
+    hinweis: da(document.querySelector('#cdb-empty')), suche: document.querySelector('#cdb-search').value,
+    sichtbar: document.querySelectorAll('#cdb-grid .cbp:not([hidden])').length, alle: document.querySelectorAll('#cdb-grid .cbp').length,
+    angekreuzt: document.querySelectorAll('#cdb-sidebar input[type="checkbox"]:checked').length,
+    fokus: document.activeElement === document.querySelector('#cdb-search'),
+  }));
+  if (wieder.hinweis || wieder.suche || wieder.angekreuzt || wieder.sichtbar !== wieder.alle)
+    return `Werkbank 1280 px: der Knopf in der leeren Liste setzt nicht alles zurueck (Suche „${wieder.suche}“, ${wieder.angekreuzt} Filter angekreuzt, ${wieder.sichtbar} von ${wieder.alle} Kacheln)`;
+  if (!wieder.fokus) return 'Werkbank 1280 px: nach dem Zuruecksetzen aus der leeren Liste steht der Fokus nicht im Suchfeld';
 
   // Waehlen: die zweite Karte (die erste koennte zufaellig schon passen).
   const karte = page.locator('#cdb-grid .cbp').nth(1);
@@ -1907,6 +2014,53 @@ async function probeWerkbank(page) {
   if (pfNull.zeilen !== 1 || pfNull.auf !== 'Zeile 1') return `Werkbank 1280 px: nach „weniger“ von eins auf null per Tastatur (${pfNull.zeilen} uebrig) steht der Fokus auf ${pfNull.auf} statt auf der letzten Zeile`;
   const pfLeer = await druecke('#cdb-plan-list .cdb-plan-item [data-rm]');
   if (pfLeer.zeilen !== 0 || pfLeer.auf !== 'Hinweis') return `Werkbank 1280 px: nach dem Entfernen der letzten Planer-Zeile per Tastatur steht der Fokus auf ${pfLeer.auf} statt auf dem Hinweis des leeren Planers`;
+  // Voller Planer (Runde 6): rollt die Spalte, bleibt ihr Kopf oben und
+  // deckt die Zeilen darunter (vorher schienen Zeichen und Zaehler durch),
+  // und in keiner Zeile liegt der Papierkorb auf Zeit oder Zaehler.
+  const voll = await page.evaluate(async (soll) => {
+    [...document.querySelectorAll('#cdb-grid .cbp .cbp__add')].slice(0, soll).forEach((x) => x.click());
+    const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise((r) => setTimeout(r, 700));
+    const lade = document.querySelector('#cdb-planner'), kopf = lade.querySelector('.cdb-drawer__hd');
+    const zeilen = [...lade.querySelectorAll('#cdb-plan-list .cdb-plan-item')];
+    const schneidet = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+    const eng = zeilen.filter((z) => {
+      const rm = z.querySelector('.pi__rm')?.getBoundingClientRect(), t = z.querySelector('.pi__z')?.getBoundingClientRect(), c = z.querySelector('.pi__ctrl')?.getBoundingClientRect();
+      return !rm || !t || !c || schneidet(rm, t) || schneidet(rm, c) || schneidet(t, c);
+    }).length;
+    const rollbar = lade.scrollHeight - lade.clientHeight;
+    lade.scrollTop = 0; await bild();
+    const k0 = kopf.getBoundingClientRect().top;
+    // So weit rollen, dass das Zeichen einer Zeile hinter dem Kopf liegt.
+    const z2 = zeilen[1]?.querySelector('.wg');
+    let durch = '';
+    if (z2 && rollbar > 60) {
+      const k = kopf.getBoundingClientRect();
+      lade.scrollTop = Math.round(z2.getBoundingClientRect().top - k.top - (k.height - z2.getBoundingClientRect().height) / 2);
+      await bild();
+      const g = z2.getBoundingClientRect(), kk = kopf.getBoundingClientRect();
+      const punkt = [g.left + g.width / 2, g.top + g.height / 2];
+      const hinter = punkt[1] > kk.top && punkt[1] < kk.bottom;
+      const oben = document.elementFromPoint(punkt[0], punkt[1]);
+      durch = !hinter ? 'nicht gemessen' : (oben && kopf.contains(oben) ? '' : (oben ? oben.className || oben.tagName : 'nichts'));
+    }
+    const k1 = kopf.getBoundingClientRect().top;
+    lade.scrollTop = 0; await bild();
+    return { zeilen: zeilen.length, eng, rollbar, wandert: Math.round(k1 - k0), durch };
+  }, WB_PLANER_VOLL);
+  // Erst leeren, dann urteilen: der Planer liegt im Speicher des Browsers,
+  // und die naechste Sprache faehrt im selben Kontext. Ein voller Planer
+  // liesse dort die Tastaturprobe oben an etwas anderem scheitern.
+  await page.$$eval('#cdb-plan-list .cdb-plan-item [data-rm]', (b) => b.forEach((x) => x.click()));
+  await page.waitForTimeout(150);
+  const planerRest = await page.locator('#cdb-plan-list .cdb-plan-item').count();
+  if (voll.zeilen < WB_PLANER_VOLL) return `Werkbank 1280 px: die Probe braucht ${WB_PLANER_VOLL} Zeilen im Planer, es sind ${voll.zeilen}`;
+  if (voll.eng) return `Werkbank 1280 px: in ${voll.eng} von ${voll.zeilen} Planer-Zeilen liegen Papierkorb, Zeit und Zaehler aufeinander`;
+  if (voll.rollbar <= 60) return `Werkbank 1280 px: der Planer rollt mit ${voll.zeilen} Zeilen nicht (${voll.rollbar} px), die Probe kann den Kopf nicht messen`;
+  if (voll.wandert) return `Werkbank 1280 px: der Kopf des Planers rollt mit (${voll.wandert} px)`;
+  if (voll.durch === 'nicht gemessen') return 'Werkbank 1280 px: die Probe bekommt kein Zeichen einer Planer-Zeile hinter den Kopf, sie kann nicht messen, ob er deckt';
+  if (voll.durch) return `Werkbank 1280 px: hinter dem Kopf des Planers scheint eine Zeile durch (oben liegt „${voll.durch}“)`;
+  if (planerRest) return 'Werkbank 1280 px: der Planer laesst sich nach der Probe nicht leeren';
   // Schliessen: zurueck zur leeren Mitte, Adresse und Markierung frei.
   await page.locator('#cdb-modal .cdb-modal__x').first().click();
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: nach ✕ kommt die leere Mitte nicht zurueck';
@@ -2028,6 +2182,26 @@ async function probeWerkbank(page) {
   // Zweiter Reiter: der Zerlege-Rechner staucht seine Ergebniskarten nicht.
   const zerlegen = await probeZerlegen(page, 'Werkbank 1280 px');
   if (zerlegen) return zerlegen;
+  // Rechner im Ruhezustand (Runde 6): ohne Auswahl steht keine Trefferzahl da
+  // („0 gefunden“), und die linke Spalte springt nicht, wenn Ergebnisse
+  // kommen (vorher 16 px).
+  await page.locator('.cdb-tab-btn[data-tab="dismantle"]').first().click();
+  const ruhe = await page.evaluate(async () => {
+    const bild = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const da = (e) => !!e && !e.hidden && e.getBoundingClientRect().width > 0;
+    const spalte = () => Math.round(document.querySelector('.calc-sidebar').getBoundingClientRect().top + window.scrollY);
+    await bild();
+    const zahl = document.querySelector('#calc-results-count'), haken = document.querySelector('.calc-mat-list .calc-mat-cb');
+    const leer = { zahl: da(zahl), oben: spalte() };
+    haken.click(); await new Promise((r) => setTimeout(r, 200)); await bild();
+    const mit = { zahl: da(zahl), oben: spalte() };
+    haken.click(); await new Promise((r) => setTimeout(r, 100));
+    return { leer, mit };
+  });
+  await page.locator('.cdb-tab-btn[data-tab="db"]').first().click();
+  if (ruhe.leer.zahl) return 'Werkbank 1280 px: der Zerlege-Rechner zeigt ohne Auswahl eine Trefferzahl';
+  if (!ruhe.mit.zahl) return 'Werkbank 1280 px: der Zerlege-Rechner zeigt mit gewaehltem Material keine Trefferzahl';
+  if (ruhe.leer.oben !== ruhe.mit.oben) return `Werkbank 1280 px: die linke Spalte des Zerlege-Rechners springt mit den Ergebnissen (${ruhe.leer.oben} px leer, ${ruhe.mit.oben} px mit Treffern)`;
 
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
@@ -2064,9 +2238,32 @@ async function probeWerkbank(page) {
     });
     if (oben.marke) return `Werkbank 390 px: unter der Kopfleiste steht noch die Zurueck-Marke („${oben.marke}“)`;
     if (oben.nav > WB_NAV_FREI) return `Werkbank 390 px: unter der Kopfleiste sind ${oben.nav} px freigehalten statt ${WB_NAV_FREI} (Platz der Zurueck-Marke)`;
-    const leiste = await kasten(p, '#cdb-planner-open');
-    if (!leiste || leiste.y + leiste.height < 844 - 40 || leiste.height < 44)
-      return `Werkbank 390 px: die Planer-Leiste sitzt nicht unten (${leiste ? `y=${Math.round(leiste.y)}, h=${Math.round(leiste.height)}` : 'fehlt'})`;
+    // Die Planer-Leiste sitzt unten, nach dem Auftakt und waehrend er laeuft
+    // (Runde 6: dessen Verschiebung an .cdb-bar machte die Bedienleiste zum
+    // Bezugsrahmen der festen Planer-Leiste, die sass eine Sekunde lang ueber
+    // der Sortierung und sprang dann nach unten). Der Auftakt wird dafuer
+    // noch einmal angestossen: wann die Probe nach dem Laden ankommt, haengt
+    // an der Maschine, die Messung soll es nicht.
+    const leisteLage = async (wann) => {
+      const l = await kasten(p, '#cdb-planner-open');
+      if (!l || l.y + l.height < 844 - 40 || l.y + l.height > 844 || l.height < 44)
+        return `Werkbank 390 px: die Planer-Leiste sitzt ${wann} nicht unten (${l ? `y=${Math.round(l.y)}, h=${Math.round(l.height)}` : 'fehlt'})`;
+      return null;
+    };
+    if (!(await p.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false)))
+      return 'Werkbank 390 px: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)';
+    const lageRuhe = await leisteLage('nach dem Auftakt');
+    if (lageRuhe) return lageRuhe;
+    const laeuft = await p.evaluate(async () => {
+      const w = document.querySelector('#cdb');
+      w.classList.add('wb-auftakt');
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      return document.querySelector('.cdb-bar').getAnimations().filter((a) => a.playState === 'running').length;
+    });
+    const lageAuftakt = await leisteLage('waehrend des Auftakts');
+    await p.evaluate(() => document.querySelector('#cdb').classList.remove('wb-auftakt'));
+    if (!laeuft) return 'Werkbank 390 px: der Auftakt der Bedienleiste laeuft nicht an, die Probe kann die Planer-Leiste nicht waehrenddessen messen';
+    if (lageAuftakt) return lageAuftakt;
     const k = p.locator('#cdb-grid .cbp').nth(1);
     const n2 = ((await k.locator('.cbp__name').textContent()) || '').trim();
     await k.locator('.cbp__name').tap();
@@ -2094,6 +2291,26 @@ async function probeWerkbank(page) {
     await p.locator('#cdb-filter-close').tap();
     await p.waitForTimeout(400);
     if (!(await p.$eval('#cdb-sidebar', (el) => el.inert === true))) return 'Werkbank 390 px: ✕ schliesst die Filter-Schublade nicht';
+    // Kopf am Telefon (Runde 6): beide Reiter in einer Zeile, jeder gross
+    // genug zum Antippen.
+    const reiter = await p.$$eval('.cdb-tabs .cdb-tab-btn', (b) => b.map((x) => { const r = x.getBoundingClientRect(); return [Math.round(r.top), Math.round(r.height), Math.round(r.right)]; }));
+    if (reiter.length !== 2 || Math.abs(reiter[0][0] - reiter[1][0]) > 1 || reiter.some((r) => r[1] < 44 || r[2] > 390))
+      return `Werkbank 390 px: die beiden Reiter stehen nicht in einer Zeile oder sind zu klein (oben/Hoehe/rechts: ${JSON.stringify(reiter)})`;
+    // Seitenende (Runde 6): die feste Planer-Leiste verdeckt die letzte Zeile
+    // der Fusszeile nicht.
+    const ende = await p.evaluate(async () => {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const f = document.querySelector('footer.site-attr'), l = document.querySelector('#cdb-planner-open');
+      if (!f || !l) return null;
+      let text = 0;
+      f.querySelectorAll('a, p, span, small, li').forEach((e) => { const r = e.getBoundingClientRect(); if (r.width && r.height && e.textContent.trim()) text = Math.max(text, r.bottom); });
+      const aus = { text: Math.round(text), leiste: Math.round(l.getBoundingClientRect().top), rollt: Math.round(window.scrollY) };
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      return aus;
+    });
+    if (!ende || !ende.text) return 'Werkbank 390 px: Fusszeile oder Planer-Leiste fehlen, die Probe kann das Seitenende nicht messen';
+    if (ende.text > ende.leiste + 1) return `Werkbank 390 px: die Planer-Leiste verdeckt das Seitenende (Fusszeile bis ${ende.text} px, Leiste ab ${ende.leiste} px)`;
     const breit = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     if (breit > 1) return `Werkbank 390 px: die Seite laeuft ${breit} px seitlich ueber`;
     const csp = [...new Set(await p.evaluate(() => window.__cspVerstoesse ?? []))].filter((v) => !ZAEHLER_HOST.test(v));

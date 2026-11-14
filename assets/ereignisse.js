@@ -36,6 +36,9 @@
 //      in der Karte zaehlen nicht) oder auf einen Link im Inhalt eines
 //      Werkzeugs zu einer Detailseite (Missionen, Schiffe …), nicht in einem
 //      offenen Fenster (role="dialog") und nicht in Kopf, Navigation, Fuss.
+//      Ein Fenster zum Eintrag, das am Schreibtisch im Fluss steht (das
+//      Rezept der Crafting-Werkbank, dort role="region"), traegt
+//      data-ev-fenster und zaehlt wie ein offenes Fenster.
 //    hilfe: „Wie funktioniert …?“ geoeffnet (data-ev-hilfe="anleitung" an der
 //      summary, nur wenn sie zu ist) bzw. „Elemente erklaeren“ eingeschaltet
 //      (data-ev-hilfe="elemente", nur wenn aria-pressed nicht true ist).
@@ -266,7 +269,7 @@
       return;
     }
     if (hierWz) {
-      if (detailArt(ziel) && !a.closest('header, nav, footer, [role="dialog"], dialog')) senden('treffer-offen', { werkzeug: hierWz });
+      if (detailArt(ziel) && !a.closest('header, nav, footer, [role="dialog"], dialog, [data-ev-fenster]')) senden('treffer-offen', { werkzeug: hierWz });
       return;
     }
     if (!hierDetail || a.closest('header, nav, footer')) return;

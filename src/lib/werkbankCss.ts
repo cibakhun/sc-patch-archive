@@ -1,6 +1,6 @@
-// Stil der Crafting-Werkbank (Prototyp, Skizze 016-3). Nur die Vorschau-
-// Seite /topics/crafting-werkbank.html traegt ihn (CraftingApp werkbank),
-// die bisherige Crafting-Seite und der Live-Bau sehen ihn nie.
+// Stil der Crafting-Werkbank (Skizze 016-3). Die Crafting-Seite traegt ihn
+// (CraftingApp werkbank); bis zur Abnahme am 13.11.2026 war die Werkbank ein
+// Prototyp unter eigener Adresse im Vorschau-Bau.
 //
 // Aufbau, alles aus dem bestehenden Markup von CraftingApp umgestellt:
 //   ab 1180 px   Liste | Rezept | Planer   (drei Spalten, Mitte und Planer kleben)
@@ -17,8 +17,8 @@
 //
 // Dritte Runde (Krisz 11.11.2026: „wir können das so machen das das tool die
 // ganze seite füllt, überschrift und sowas brauchen wir eig gar nicht“): kein
-// Kopfband mehr (crafting.astro), die Werkbank nimmt die volle Breite, Reiter,
-// Prototyp-Zeile und Hilfe teilen sich eine Zeile, und auf hohen Fenstern
+// Kopfband mehr (crafting.astro), die Werkbank nimmt die volle Breite, Reiter
+// und Hilfe teilen sich eine Zeile, und auf hohen Fenstern
 // reichen die drei Spalten bis an den unteren Rand.
 export const WERKBANK_CSS = `
 /* --wb-bar, --wb-count und --wb-y misst crafting-app.js (Hoehe der
@@ -26,8 +26,7 @@ export const WERKBANK_CSS = `
    der Seite); die Werte hier sind nur der Startwert. --wb-h ist die Hoehe,
    die unter den Spalten-Oberkanten bis zum unteren Fensterrand bleibt. */
 .cdb--wb{--wb-bar:4.4rem;--wb-count:2.6rem;--wb-top:calc(var(--nav-h,68px) + var(--wb-bar) + .5rem);--wb-h:calc(100dvh - var(--wb-y,calc(var(--nav-h,68px) + var(--wb-bar) + 3.5rem)) - .9rem);max-width:none;padding-inline:clamp(.75rem,1.6vw,1.5rem)}
-/* Reiterzeile: Reiter, dahinter die Prototyp-Zeile (CraftingProtoNote
-   kompakt); ab 821 px steht rechts daneben die Hilfe. */
+/* Reiterzeile: die Reiter; ab 821 px steht rechts daneben die Hilfe. */
 .cdb--wb > .cdb-tabs{margin-bottom:.35rem;border-bottom:0;align-items:center}
 .cdb-wb-leer{display:grid;justify-items:center;align-content:center;gap:.5rem;min-height:min(420px,calc(100dvh - var(--wb-top) - 6rem));padding:1.5rem 1rem;text-align:center}
 .cdb-wb-leer__i{display:grid;place-items:center;width:64px;height:64px;margin-bottom:.4rem;border:1px solid var(--line,rgba(255,94,26,.3));border-radius:50%;color:var(--accent,#FF5E1A);background:color-mix(in srgb,var(--accent,#FF5E1A) 8%,transparent)}
@@ -51,8 +50,7 @@ export const WERKBANK_CSS = `
      Kinder des Reiters ins Raster; hidden gewinnt weiter (theme.css). */
   .cdb--wb{display:grid;grid-template-columns:minmax(280px,1fr) clamp(400px,44vw,560px);grid-template-areas:"kopf kopf" "bar bar" "list bp";column-gap:1.4rem;align-items:start}
   /* Reiter und Hilfe teilen sich die Kopfzeile (dieselbe Rasterzelle, links
-     und rechts). Der Innenabstand rechts haelt den Platz der Hilfe frei;
-     wird es eng, bricht die Prototyp-Zeile unter die Reiter um. */
+     und rechts). Der Innenabstand rechts haelt den Platz der Hilfe frei. */
   .cdb--wb > .cdb-tabs{grid-area:kopf;padding-right:min(22rem,42%)}
   .cdb--wb > #cdb-tab-db-content:not([hidden]){display:contents}
   /* Hilfe rechts in der Kopfzeile; aufgeklappt legt sie sich als Tafel
@@ -110,16 +108,26 @@ export const WERKBANK_CSS = `
 @media (min-width:1180px){
   /* Mitte und Planer wachsen mit dem Fenster, die Liste nimmt den Rest:
      ab etwa 1400 px zwei Kacheln nebeneinander. */
-  .cdb--wb{grid-template-columns:minmax(280px,1fr) clamp(440px,34vw,580px) clamp(250px,20vw,300px);grid-template-areas:"kopf kopf kopf" "bar bar bar" "list bp plan"}
+  .cdb--wb{grid-template-columns:minmax(280px,1fr) clamp(440px,34vw,580px) clamp(264px,21vw,300px);grid-template-areas:"kopf kopf kopf" "bar bar bar" "list bp plan"}
   .cdb--wb > .cdb-drawer{grid-area:plan;position:sticky;top:var(--wb-top);right:auto;z-index:auto;width:auto;height:auto;max-height:calc(100dvh - var(--wb-top) - 1rem);transform:none;border:1px solid var(--accent-2,#1FA2FF);border-radius:8px;transition:none}
   .cdb--wb .cdb-drawer__hd [data-planner-close]{display:none}
   .cdb--wb .cdb-planner-open{display:none}
+  /* R6: Der Planer ist rund 13 px breiter geworden (Namen in zwei statt drei
+     Zeilen). Die beiden Spaltenabstaende geben der Liste diese Breite zurueck:
+     bei 1280 px 16 statt 22 px, ab etwa 1800 px wieder die vollen 1,4rem.
+     Ohne das braechen bei 1280 px Kachelnamen in drei Zeilen, die vorher in
+     zwei standen, und bei 1265 px fiele die Liste auf eine Spalte. */
+  .cdb--wb{column-gap:clamp(1rem,1.25vw,1.4rem)}
 }
 @media (min-width:1180px) and (min-height:720px){
   .cdb--wb > .cdb-drawer{position:relative;top:auto;height:var(--wb-h);max-height:none}
 }
 @media (max-width:820px){
-  .cdb--wb{padding-bottom:5.2rem}
+  /* Die Planer-Leiste steht fest am unteren Rand. Der Platz dafuer gehoert
+     ans Ende der SEITE, nicht ans Ende der Werkbank: darunter folgen noch
+     der Abschnitt „Worum geht es“ und die Fusszeile, und deren letzte Zeilen
+     lagen sonst unter der Leiste (gesehen 14.11.2026 bei 390 px). */
+  body:has(.cdb--wb) > .site-attr{padding-bottom:calc(5.4rem + env(safe-area-inset-bottom,0px))}
   /* Die Hilfe steht hier als Kasten unter der Reiterzeile: etwas Luft. */
   .cdb--wb > .cdb-tabs{margin-bottom:.9rem}
   .cdb--wb > .cdb-modal.is-leer{display:none}

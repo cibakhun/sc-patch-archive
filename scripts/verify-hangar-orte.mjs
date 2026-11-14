@@ -385,7 +385,7 @@ if (term) {
   }
   const hier = 'https://probe.invalid/de/hangar.html?ort=leit';
   const WEGE = [
-    ['/de/schiffe/aegs-gladius.html', 'innen'], ['/items.html#waffen', 'innen'], ['/de/topics/crafting-werkbank.html?q=x', 'innen'],
+    ['/de/schiffe/aegs-gladius.html', 'innen'], ['/items.html#waffen', 'innen'], ['/de/topics/crafting.html?q=x', 'innen'],
     ['/de/archiv.html', 'innen'], ['mailto:hallo@example.org', 'innen'], ['/de/support.html', 'innen'],
     ['/de/hangar.html?ship=anvl-arrow', 'hangar'], ['/hangar.html', 'hangar'], ['https://probe.invalid/hangar.html?ship=x', 'hangar'],
     ['/de/hangar-loadout.html?l=abc', 'tab'], ['/hangar-bay/aegs-gladius', 'tab'], ['/de/account.html', 'tab'], ['/account/profil.html', 'tab'],
