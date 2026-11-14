@@ -42,7 +42,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEFAULT_P4K } from './lib/p4k.mjs';
-import { HANDBESTAENDE, pruefsumme } from './lib/handstand.mjs';
+import { HANDBESTAENDE, pruefsumme, PATCH_MUSTER } from './lib/handstand.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rd = (rel) => JSON.parse(readFileSync(resolve(ROOT, rel), 'utf8'));
@@ -344,7 +344,7 @@ for (const h of HANDBESTAENDE) {
   if (!r.ok) { fail.push(`${h.datei}: Handbestand nicht lesbar — ${r.error.message}`); continue; }
   const st = r.json?.stand;
   const standWert = h.art === 'patch' ? st?.patch : st?.geaendert;
-  const muster = h.art === 'patch' ? /^\d+\.\d+\.\d+$/ : /^\d{4}-\d{2}-\d{2}$/;
+  const muster = h.art === 'patch' ? PATCH_MUSTER : /^\d{4}-\d{2}-\d{2}$/;
   if (st?.art !== h.art || !muster.test(standWert ?? '')) { fail.push(`${h.datei}: Stempel fehlt oder hat die falsche Art (Soll ${h.art}) — node scripts/stempel-hand.mjs ${h.datei} ${h.art === 'patch' ? '--patch X.Y.Z' : '--geaendert YYYY-MM-DD'}`); continue; }
   const ist = pruefsumme(r.json);
   if (st.pruefsumme !== ist) { fail.push(`${h.datei}: Werte und Stempel passen nicht zusammen (Pruefsumme ${st.pruefsumme}, Werte ergeben ${ist}) — Werte gegen ihren Stand pruefen, dann node scripts/stempel-hand.mjs ${h.datei} …`); continue; }
@@ -352,7 +352,7 @@ for (const h of HANDBESTAENDE) {
   console.log(`    ${h.datei}: ${h.art === 'patch' ? `Stand ${standWert}` : `geaendert ${standWert}`}, Pruefsumme stimmt (${h.zeigt})`);
 }
 console.log(`    Handbestaende geprueft — Soll: ${HANDBESTAENDE.length}   Ist: ${handGeprueft}`);
-need(HANDBESTAENDE.length >= 2, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 2) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
+need(HANDBESTAENDE.length >= 3, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 3) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
 
 /* ---------- Schlusszeile ---------- */
 
