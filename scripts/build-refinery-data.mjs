@@ -5,7 +5,7 @@
 // Fakten sind game-sourced (aus den eigenen Mining-Extraktionen):
 //   - Erz-Liste + Attribute  ← assets/mining-db.json
 //   - Stationen + Yield-Boni  ← assets/mining-model.json (refineries/refineryProfiles)
-//   - Methoden (qualitativ)   ← hier gepflegt, identisch zu RefineryFinder.astro
+//   - Methoden + Stufen       ← assets/refinery-methods.json (datamine-refinery-methods)
 // Preise sind UEX (Community, attribuiert) ← src/data/commodity-prices.json
 //
 // Aufruf: node scripts/build-refinery-data.mjs   (npm run build:refinery-data)
@@ -22,12 +22,13 @@ const MODEL = readJson(R('assets', 'mining-model.json'));
 let PRICES = { commodities: {}, fetchedAt: null, source: null };
 try { PRICES = readJson(R('src', 'data', 'commodity-prices.json')); } catch { console.warn('! commodity-prices.json fehlt — Preise bleiben leer (npm run sync:commodity-prices)'); }
 
-// ---- Methoden (qualitativ, Handbestand mit eigenem Stempel) ----
-// Exakte Yield-%/Zeit/Kosten pro Methode sind serverseitig und NICHT öffentlich
-// dokumentiert — daher nur die Trade-off-Stufen als Auswahlhilfe.
+// ---- Methoden (aus dem Spiel: die Stufen, die es je Methode nennt) ----
+// Exakte Yield-%/Zeit/Kosten pro Methode sind serverseitig; das Spiel nennt
+// nur Stufen (Ausbeute und Kosten 3, Tempo 9). Der Schluessel bleibt der Name
+// als Slug: gespeicherte Auftraege im Konto verweisen darauf.
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const METHOD_FILE = readJson(R('assets', 'refinery-methods.json'));
-const METHODS = METHOD_FILE.methods.map((m) => ({ key: slug(m.name), ...m }));
+const METHODS = METHOD_FILE.methods.map(({ id: _id, ...m }) => ({ key: slug(m.name), ...m }));
 
 // ---- Stationen (game-sourced) ----
 const shortName = (n) => {
@@ -85,8 +86,9 @@ const out = {
     gameVersion: DB.game_version || null,
     priceDate: PRICES.fetchedAt || null,
     priceSource: PRICES.source || null,
-    methodsStand: METHOD_FILE.stand?.patch ?? null,
-    note: 'Verkaufspreise UEX (Community). Methoden qualitativ — exakte Yield-/Zeit-/Kostenwerte der Raffinerie sind serverseitig und werden im Dashboard manuell aus dem Ingame-Terminal eingetragen.',
+    methodsStand: METHOD_FILE.gameVersion ?? null,
+    methodSteps: METHOD_FILE.stufen ?? null,
+    note: 'Verkaufspreise UEX (Community). Methoden in den Stufen des Spiels — exakte Yield-/Zeit-/Kostenwerte der Raffinerie sind serverseitig und werden im Dashboard manuell aus dem Ingame-Terminal eingetragen.',
   },
   methods: METHODS,
   stations: outStations,

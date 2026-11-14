@@ -54,7 +54,9 @@ const COPY = {
     fStation: 'Raffinerie', pickStation: 'Raffinerie wählen',
     fMethod: 'Methode', pickMethod: 'Methode wählen',
     tagYield: 'Ausbeute', tagSpeed: 'Tempo', tagCost: 'Kosten',
-    lvl: { vlow: 'sehr niedrig', low: 'niedrig', mid: 'mittel', high: 'hoch' } as Record<string, string>,
+    // Stufen wie im Spiel: Ausbeute und Kosten drei, Tempo neun.
+    stufe3: ['niedrig', 'mittel', 'hoch'],
+    tempo9: ['am langsamsten', 'sehr langsam', 'langsam', 'etwas langsam', 'mittel', 'etwas schnell', 'schnell', 'sehr schnell', 'am schnellsten'],
     fOresLbl: 'Erze', pickOre: 'Erz wählen',
     fRaw: 'Roh-SCU', fYield: 'Ausbeute-SCU', addOre: 'Erz hinzufügen', removeOre: 'Entfernen',
     hintPrice: '≈ %p aUEC/SCU', hintHere: 'hier %b', hintBest: 'am besten: %s (%b)', hintBestHere: 'beste Station',
@@ -120,7 +122,8 @@ const COPY = {
     fStation: 'Refinery', pickStation: 'Select refinery',
     fMethod: 'Method', pickMethod: 'Select method',
     tagYield: 'Yield', tagSpeed: 'Speed', tagCost: 'Cost',
-    lvl: { vlow: 'very low', low: 'low', mid: 'mid', high: 'high' } as Record<string, string>,
+    stufe3: ['low', 'moderate', 'high'],
+    tempo9: ['slowest', 'very slow', 'slow', 'slightly slow', 'moderate', 'slightly fast', 'fast', 'very fast', 'fastest'],
     fOresLbl: 'Ores', pickOre: 'Select ore',
     fRaw: 'Raw SCU', fYield: 'Yield SCU', addOre: 'Add ore', removeOre: 'Remove',
     hintPrice: '≈ %p aUEC/SCU', hintHere: 'here %b', hintBest: 'best: %s (%b)', hintBestHere: 'best station',
@@ -173,8 +176,15 @@ const loginHref = href('/account/login.html', lang);
 const registerHref = href('/account/register.html', lang);
 const pct = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n) + ' %';
 const fmtPrice = (n: number | null) => (n == null ? '—' : Math.round(n).toLocaleString(loc));
-const LVL = { vlow: 1, low: 2, mid: 3, high: 4 } as Record<string, number>;
-const methodRows = methods.map((m) => ({ ...m, y: LVL[m.yield], s: LVL[m.speed], c: LVL[m.cost] }));
+// Je Wert: Stufe, Zahl der Stufen, Wort, Farbe der Leiste.
+const methodRows = methods.map((m) => ({
+  ...m,
+  zellen: [
+    { n: m.yield, von: 3, wort: COPY.stufe3[m.yield - 1], cls: '' },
+    { n: m.speed, von: 9, wort: COPY.tempo9[m.speed - 1], cls: '' },
+    { n: m.cost, von: 3, wort: COPY.stufe3[m.cost - 1], cls: ' rf-meter--cost' },
+  ],
+}));
 
 const oreRows = ores
   .map((o) => {
@@ -436,8 +446,8 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
             {methodRows.map((m) => (
               <tr>
                 <th scope="row">{m.name}</th>
-                {([[m.y, m.yield, ''], [m.s, m.speed, ''], [m.c, m.cost, ' rf-meter--cost']] as const).map(([n, k, cls]) => (
-                  <td><span class={'rf-meter' + cls} data-n={n}><i></i><i></i><i></i><i></i></span> {COPY.lvl[k]}</td>
+                {m.zellen.map((z) => (
+                  <td><span class={'rf-meter' + z.cls} data-n={z.n} data-von={z.von}>{Array.from({ length: z.von }, (_, i) => <i class={i < z.n ? 'an' : undefined}></i>)}</span> {z.wort}</td>
                 ))}
               </tr>
             ))}
@@ -626,13 +636,12 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
   .rf-matrix[open] summary { margin-bottom: 8px; }
 
   /* ---- Methoden ---- */
-  .rf-meter { display: inline-flex; gap: 3px; vertical-align: middle; margin-right: 6px; }
-  .rf-meter i { width: 14px; height: 6px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 16%, transparent); }
-  .rf-meter[data-n="1"] i:nth-child(-n+1), .rf-meter[data-n="2"] i:nth-child(-n+2),
-  .rf-meter[data-n="3"] i:nth-child(-n+3), .rf-meter[data-n="4"] i:nth-child(-n+4) { background: var(--accent); }
+  /* Gleiche Gesamtbreite fuer 3 und 9 Stufen: die Leisten stehen buendig. */
+  .rf-meter { display: inline-flex; gap: 2px; width: 62px; vertical-align: middle; margin-right: 6px; }
+  .rf-meter i { flex: 1; height: 6px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .rf-meter i.an { background: var(--accent); }
   .rf-meter--cost i { background: color-mix(in srgb, var(--gold) 16%, transparent); }
-  .rf-meter--cost[data-n="1"] i:nth-child(-n+1), .rf-meter--cost[data-n="2"] i:nth-child(-n+2),
-  .rf-meter--cost[data-n="3"] i:nth-child(-n+3), .rf-meter--cost[data-n="4"] i:nth-child(-n+4) { background: var(--gold); }
+  .rf-meter--cost i.an { background: var(--gold); }
   .rf-table--meth td { color: var(--muted); }
 </style>
 
@@ -1071,7 +1080,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       mtags.hidden = !m;
       if (!m) return;
       const tag = (k: string, v: string) => { const s = el('span'); s.append(el('b', undefined, k + ':'), ' ' + v); return s; };
-      mtags.append(tag(C.tagYield, C.lvl[m.yield] || m.yield), tag(C.tagSpeed, C.lvl[m.speed] || m.speed), tag(C.tagCost, C.lvl[m.cost] || m.cost));
+      mtags.append(tag(C.tagYield, C.stufe3[m.yield - 1]), tag(C.tagSpeed, C.tempo9[m.speed - 1]), tag(C.tagCost, C.stufe3[m.cost - 1]));
     });
     [hoursEl, minsEl, costEl].forEach((e) => e.addEventListener('input', updatePreview));
 

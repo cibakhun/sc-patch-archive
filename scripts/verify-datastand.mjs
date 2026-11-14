@@ -99,6 +99,9 @@ const STANDS = [
   // Kreuzvergleich [5]. Fahrzeuge: der Katalog aller Schiffsseiten.
   { id: 'Ausbeute', file: 'assets/mining-frozen.json', get: (j) => j?.frozen_from },
   { id: 'Fahrzeuge', file: 'src/data/vehicles.json', get: (j) => j?.gameVersion },
+  // 14.11.2026: die Raffinationsmethoden kommen aus dem Spiel
+  // (datamine-refinery-methods), vorher Handbestand Stand 4.8.0.
+  { id: 'Methoden', file: 'assets/refinery-methods.json', get: (j) => j?.gameVersion },
 ];
 
 // Derzeit KEIN handgepflegter Datenstand. Wikelo war bis Phase 20 (D-04) der
@@ -142,6 +145,7 @@ const KLINKEN = {
   Wikelo: 13165946,
   Ausbeute: 13165946,
   Fahrzeuge: 13165946,
+  Methoden: 13165946,
 };
 
 // Toleranz des Kreuzvergleichs (Zusicherung 5) — anders als eine Klinke eine
@@ -173,13 +177,14 @@ const handReads = HANDPFLEGE.map((h) => ({ ...h, data: read(h.file) }));
 console.log('\n[1] Bestand und Selbstauskunft');
 const maschinellGelesen = standReads.filter((s) => s.data.ok).length;
 const handpflegeGelesen = handReads.filter((h) => h.data.ok).length;
-console.log(`    maschinelle Datenstaende gelesen — Soll: 12   Ist: ${maschinellGelesen}`);
+console.log(`    maschinelle Datenstaende gelesen — Soll: 13   Ist: ${maschinellGelesen}`);
 console.log(`    handgepflegte Datenstaende gelesen — Soll: 0   Ist: ${handpflegeGelesen}`);
 // 7 statt 6: Wikelo ist Phase 20 (D-04) aus HANDPFLEGE in STANDS gewandert.
 // 9 statt 7 (05.11.2026): Aaron-Halo und Stanton-Anker tragen jetzt eine Kennung.
 // 10 statt 9 (10.11.2026): Loot-Fundorte (datamine:loot) kam dazu.
-// 12 statt 10 (14.11.2026): Ausbeute und Fahrzeuge kamen dazu.
-need(maschinellGelesen >= 12, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 12) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
+// 12 statt 10 (14.11.2026): Ausbeute und Fahrzeuge kamen dazu; 13 mit den
+// Raffinationsmethoden aus dem Spiel.
+need(maschinellGelesen >= 13, `nur ${maschinellGelesen} maschinelle Datenstaende lesbar (Soll 13) — das Tor laeuft leer. Ursache klaeren, nicht die Untergrenze senken.`);
 // 0 statt 1: es gibt derzeit keinen handgepflegten Datenstand mehr, weil der
 // einzige (Wikelo) jetzt maschinell erzeugt wird. Die Mechanik bleibt fuer
 // den naechsten handgepflegten Fall stehen (>= 0 ist immer wahr, aber die
@@ -352,7 +357,9 @@ for (const h of HANDBESTAENDE) {
   console.log(`    ${h.datei}: ${h.art === 'patch' ? `Stand ${standWert}` : `geaendert ${standWert}`}, Pruefsumme stimmt (${h.zeigt})`);
 }
 console.log(`    Handbestaende geprueft — Soll: ${HANDBESTAENDE.length}   Ist: ${handGeprueft}`);
-need(HANDBESTAENDE.length >= 3, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 3) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
+// 3 -> 2 (14.11.2026): die Raffinationsmethoden sind kein Handbestand mehr,
+// sie kommen aus dem Spiel und stehen oben unter den maschinellen Staenden.
+need(HANDBESTAENDE.length >= 2, `nur ${HANDBESTAENDE.length} Handbestaende eingetragen (Soll 2) — das Register in scripts/lib/handstand.mjs ist geschrumpft`);
 
 /* ---------- Schlusszeile ---------- */
 
