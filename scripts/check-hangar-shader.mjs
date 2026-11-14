@@ -41,6 +41,11 @@
    nicht zur Ruhe, ist das ein HINWEIS und kein FEHLER (ein sehr langsamer
    Rechner ist kein Fehler des Hangars); die Klinken werten dann einen
    Zwischenstand aus, und reisst eine, steht der Hinweis darueber.
+   Antwortet die Seite auf eine einzelne Abfrage 15 min lang gar nicht
+   (ihr Hauptfaden haengt), ist das ein FEHLER: page.evaluate() hat keine
+   eigene Frist, der Lauf hinge sonst ohne Meldung mit, und geprueft ist
+   dann nichts (frage() unten). Die laengste Antwort einer gesunden Seite
+   war bisher 136 s (zwei Kerne, Freiraum der Kamera messen).
 
    FEHLER: ein Programm ueber 16 Texturen; ein Programm linkt nicht; die
    Hallendeko oder die Zeile des Viewers kommt nicht. Klinken: Programme
@@ -164,7 +169,8 @@ const GRENZE = 16;
 const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, ktx: 850 };
 // Warten: WARTE_MS ist die Obergrenze je Abschnitt (Hallendeko, Ruhe, Schiff nach
 // dem Wechsel, Innenraum). Ruhe heisst RUHE_TAKTE Abfragen im Abstand von TAKT_MS
-// ohne neuen Stand (ruhe() unten, Anlass im Kopf unter WARTEN).
+// ohne neuen Stand (ruhe() unten, Anlass im Kopf unter WARTEN). Dieselbe Frist gilt
+// fuer eine einzelne Antwort der Seite (frage() unten).
 const WARTE_MS = 15 * 60 * 1000, TAKT_MS = 2000, RUHE_TAKTE = 10;
 
 const KANDIDATEN = [
@@ -254,6 +260,28 @@ page.on('console', (m) => {
 });
 const bildFehler = [];
 const fehler = [];
+// Jede Abfrage der Seite wartet auf deren Hauptfaden, und page.evaluate() hat keine
+// eigene Frist: Haengt die Seite, hinge der Lauf ohne Meldung mit, und die Obergrenzen
+// der Schleifen griffen nie, weil sie zwischen zwei Abfragen stehen. frage() gibt nach
+// WARTE_MS auf. Danach fragt niemand die Seite mehr (jede weitere Abfrage scheitert
+// sofort), und der Lauf endet mit einem FEHLER: geprueft ist dann nichts.
+class Haengt extends Error {}
+let haengt = '';
+function frage(wo, fn, arg) {
+  if (haengt) return Promise.reject(new Haengt(haengt));
+  const p = page.evaluate(fn, arg);
+  p.catch(() => {});
+  let uhr;
+  return Promise.race([
+    p,
+    new Promise((_, nein) => {
+      uhr = setTimeout(() => {
+        haengt = `die Seite antwortet seit ${WARTE_MS / 60000} min nicht (${wo}): ihr Hauptfaden haengt, Programme und Klinken sind in diesem Lauf nicht geprueft`;
+        nein(new Haengt(haengt));
+      }, WARTE_MS);
+    }),
+  ]).finally(() => clearTimeout(uhr));
+}
 // Wartet, bis die Halle ruht (Anlass und Messung im Kopf unter WARTEN). mitSchiff:
 // Ruhe erst, wenn das Schiff auf dem Feld steht (die Leiste seiner Marken traegt
 // data-live, syncMarks in hangar-overview.js nach viewer.show()).
@@ -269,7 +297,7 @@ async function ruhe(was, mitSchiff) {
     }
     await page.waitForTimeout(TAKT_MS);
     const a = Date.now();
-    s = await page.evaluate(() => { const r = document.querySelector('[data-bay="marks"]'); return { prog: window.__texProgramme?.length ?? 0, tex: window.__texNeu?.tex ?? 0, buf: window.__texNeu?.buf ?? 0, schiff: r?.hasAttribute('data-live') ? r.dataset.id : '' }; });
+    s = await frage(`Warten auf die Ruhe, ${was}`, () => { const r = document.querySelector('[data-bay="marks"]'); return { prog: window.__texProgramme?.length ?? 0, tex: window.__texNeu?.tex ?? 0, buf: window.__texNeu?.buf ?? 0, schiff: r?.hasAttribute('data-live') ? r.dataset.id : '' }; });
     traege = Math.max(traege, Date.now() - a);
     const jetzt = `Programme ${s.prog}, Texturen ${s.tex}, Puffer ${s.buf}, Zeilen ${zeilen}, unterwegs ${unterwegs.size}, Schiff ${s.schiff || '—'}`;
     if (jetzt !== stand) {
@@ -283,7 +311,7 @@ try {
   await page.goto(`${BASE}/hangar.html?grafik=hoch${SHIP ? `&ship=${SHIP}` : ''}${LAYOUT ? `&layout=${LAYOUT}` : ''}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
   t0 = Date.now();
   while (!deko && Date.now() - t0 < WARTE_MS) {
-    if (await page.evaluate(() => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
+    if (await frage('Warten auf die Hallendeko', () => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
     await page.waitForTimeout(2000);
   }
   if (!deko && !fehler.length) fehler.push(`nach ${WARTE_MS / 60000} min keine Zeile "[hangar] Hallendeko:"`);
@@ -296,47 +324,55 @@ try {
     // (syncMarks in hangar-overview.js, nach viewer.show()). Die Zeile "[hangar] Lack:"
     // taugt dafuer nicht: sie kommt, sobald das Modell geladen ist, in Software-WebGL
     // gut eine Minute, bevor die Halle gewachsen ist und das Schiff auf dem Feld steht.
-    const steht = () => page.evaluate(() => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch(() => '');
-    const t1 = Date.now(), vorher = await page.evaluate(() => window.__texProgramme.length);
+    const steht = () => frage('--wechsel, steht das Schiff', () => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch((e) => { if (e instanceof Haengt) throw e; return ''; });
+    const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
     let erst = '', dann = '', kam = 0;
     while (!(erst = await steht()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
     if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
     else if (erst === WECHSEL) fehler.push(`--wechsel ${WECHSEL}: dieses Schiff steht schon, ein Wechsel findet nicht statt`);
     else {
-      await page.evaluate((id) => { const u = new URL(location.href); u.searchParams.set('ship', id); history.pushState(null, '', u); dispatchEvent(new PopStateEvent('popstate')); }, WECHSEL);
+      await frage('--wechsel, Schiff waehlen', (id) => { const u = new URL(location.href); u.searchParams.set('ship', id); history.pushState(null, '', u); dispatchEvent(new PopStateEvent('popstate')); }, WECHSEL);
       while ((dann = await steht()) !== WECHSEL && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
       if (dann !== WECHSEL) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht ${WECHSEL} nicht auf dem Feld (kein Schiff mit dieser Kennung, oder das Modell laedt nicht)`);
       else { kam = Date.now() - t1; await ruhe(`Wechsel auf ${WECHSEL}`, true); }
     }
-    console.log(`  Wechsel von ${erst || '—'} auf ${WECHSEL}: ${dann === WECHSEL ? `steht nach ${Math.round(kam / 1000)} s` : 'nicht angekommen'}; ${platz ? platz.slice(9).split(':')[0] : 'keine Zeile zum Wartungsplatz'}; Programme dazu: ${(await page.evaluate(() => window.__texProgramme.length)) - vorher}`);
+    console.log(`  Wechsel von ${erst || '—'} auf ${WECHSEL}: ${dann === WECHSEL ? `steht nach ${Math.round(kam / 1000)} s` : 'nicht angekommen'}; ${platz ? platz.slice(9).split(':')[0] : 'keine Zeile zum Wartungsplatz'}; Programme dazu: ${(await frage('--wechsel', () => window.__texProgramme.length)) - vorher}`);
   }
   if (deko && INNEN) {
-    const vorher = await page.evaluate(() => window.__texProgramme.length);
-    const knopf = await page.evaluate(() => { const b = document.getElementById('hgx-walk'); if (!b || b.hidden) return false; b.click(); return true; });
+    const vorher = await frage('--innen', () => window.__texProgramme.length);
+    const knopf = await frage('--innen, Einsteigen', () => { const b = document.getElementById('hgx-walk'); if (!b || b.hidden) return false; b.click(); return true; });
     if (!knopf) fehler.push('--innen: kein Knopf Einsteigen (#hgx-walk), das Schiff hat keinen Innenraum oder die Seite gibt ihn nicht mit');
     else {
       const t1 = Date.now();
       while (!/Licht drinnen/.test(drinnen) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
       if (!/Licht drinnen/.test(drinnen)) fehler.push(`--innen: nach ${WARTE_MS / 60000} min nicht drin (keine Zeile "[hangar] Licht drinnen")`);
       else await ruhe('Innenraum', false);
-      console.log(`  Innenraum: ${drinnen || '—'}; Programme dazu: ${(await page.evaluate(() => window.__texProgramme.length)) - vorher}`);
+      console.log(`  Innenraum: ${drinnen || '—'}; Programme dazu: ${(await frage('--innen', () => window.__texProgramme.length)) - vorher}`);
     }
   }
 } catch (e) {
-  fehler.push(`Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
+  fehler.push(e instanceof Haengt ? e.message : `Aufruf fehlgeschlagen: ${e.message.split('\n')[0]}`);
 }
-const progs = await page.evaluate(() => window.__texProgramme ?? []).catch(() => []);
+const progs = await frage('Programme lesen', () => window.__texProgramme ?? []).catch((e) => { if (e instanceof Haengt && !fehler.includes(e.message)) fehler.push(e.message); return []; });
 // --ohne-ui: nur die Halle, ohne Hilfe, Werkstatt und Leisten, die das Schiff verdecken
-if (SHOT && OHNE_UI) {
-  await page.evaluate(() => {
+if (SHOT && OHNE_UI && !haengt) {
+  await frage('--ohne-ui', () => {
     const cv = [...document.querySelectorAll('canvas')].sort((a, b) => b.width * b.height - a.width * a.height)[0];
     for (const e of document.body.querySelectorAll('*')) if (cv && !e.contains(cv)) e.style.visibility = 'hidden';
   }).catch((e) => fehler.push(`Bedienelemente ausblenden: ${e.message.split('\n')[0]}`));
   await page.waitForTimeout(2000);
 }
 // Software-WebGL braucht für ein Bild der ganzen Halle oft länger als die 30 s von Playwright
-if (SHOT) await page.screenshot({ path: SHOT, timeout: 180000 }).catch((e) => fehler.push(`Aufnahme ${SHOT}: ${e.message.split('\n')[0]}`));
+if (SHOT && !haengt) await page.screenshot({ path: SHOT, timeout: 180000 }).catch((e) => fehler.push(`Aufnahme ${SHOT}: ${e.message.split('\n')[0]}`));
 await browser.close();
+// Die Seite haengt: Was die Konsole bis dahin meldete, ist ein Zwischenstand ohne
+// Programme; die Klinken darunter rissen alle und sagten nichts.
+if (haengt) {
+  console.error(`\ncheck-hangar-shader: ${fehler.length} FEHLER\n`);
+  for (const f of fehler) console.error(`  · ${f}`);
+  console.error('');
+  process.exit(1);
+}
 
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
 const max = progs.reduce((a, p) => Math.max(a, p.n), 0), schichten = progs.filter((p) => p.schichten).length;
