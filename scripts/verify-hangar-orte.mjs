@@ -34,6 +34,11 @@
          mit Marke, Schritt, Namen und allen Worten in der Sprache der
          Seite, und in der Leiste #hgx-term-who mit beiden Zielen (Konto,
          Anmeldung) in dist/, eigenem Tab und beiden Namen fuer Vorleser.
+         Seit der zweiten Runde (14.11.2026) dazu: die Leinwand fuer das
+         Sperrbild, die Karte mit Gruss und Faktenzeilen samt ihren
+         Worten ({n} in der Mehrzahl der Flotte), die Wortmarke als
+         Schrift fuer den Fall ohne Bild, der Hinweis auf den Klick und
+         die beiden Kantenlinien der Blende.
      [3] Reiter: mindestens MIN_BEREICHE je Seite, Schluessel einmalig,
          jeder zielt ins Fenster, fuehrt auf eine Seite, die in dist/
          liegt, in der Sprache der Hangarseite, bleibt im Fenster
@@ -48,7 +53,14 @@
          Vorschau-Marke heraus. termIdent macht aus der Profilzeile des
          Kontos, wer vor dem Terminal sitzt, und laesst nichts durch, was
          nicht in Stil oder Adresse gehoert; die Anmeldung bleibt kurz
-         (TERM_LOGIN).
+         (TERM_LOGIN). termFakten macht aus dem, was die Seite weiss
+         (Flotte, Schiff auf dem Feld, Beitritt, Halle), hoechstens drei
+         Zeilen der Karte, in den Worten und der Zahlschreibung der
+         Seite; leitWerVon laesst aufs Glas der Halle nur Namen, Zeichen
+         und eine Farbe #rrggbb; leitFenster zeichnet das Sperrbild in
+         jedes Fenster, ohne ueber dessen Rand zu gehen, mit Uhr und
+         Sitzung, wenn es sie bekommt (gezeichnet auf eine mitschreibende
+         Leinwand).
      [5] Geometrie der Buehne: Fuer viele Fenstergroessen und freie
          Rechtecke steht die Kamera aus leitFit so, dass das Fenster der
          Seite im Bild genau das gemeldete Rechteck ist (nachgerechnet mit
@@ -66,6 +78,13 @@
          Link und gilt nicht fuer Bodenfahrzeuge.
          Die Buehne setzt das Modell der Halle mit hallOrigin
          (loadRealHall): Damit rechnet [8].
+         Sperrbild (zweite Runde): Monitor und Blende zeichnen beide mit
+         leitFenster, das Terminal meldet der Buehne die Sitzung
+         (setTerminal) und fragt die Seite nach den Fakten der Karte; im
+         Stil der Seite oeffnet sich die Blende ueber eine einzige Zahl
+         (--hgx-auf, als Prozentwert angemeldet) in der Zeit, nach der das
+         Modul sie wegnimmt (TERM_LOGIN.aus), und die Wortmarke als Schrift
+         steht, wo sie das Bild zeigt (LEIT_WORT).
      [7] Rahmen: Dieser Bau erlaubt der eigenen Seite das Rahmen
          (dist/_csp/, scripts/lib/rahmen.mjs). Sonst bliebe der Schirm
          leer; audit:csp prueft dieselben Dateien in beide Richtungen.
@@ -134,6 +153,38 @@
         die Halle der Seiten umbenannt; floor aus hg-stage gestrichen
    Die Meldungen stehen in der PR dieses Umbaus.
 
+   VORGEFUEHRT ROT (14.11.2026, zweite Runde: Sperrbild, Karte, Blende),
+   45 Eingriffe am gebauten dist/, jeder fuer sich, alle rot:
+     i  dist/de/hangar.html ([2]): data-f-seit geleert; {n} aus
+        data-f-schiffn; die Leinwand umbenannt; Wortmarke als Schrift
+        und Hinweis auf den Klick geleert; die untere Kantenlinie
+        entfernt; die Liste der Fakten umbenannt
+     j  dist/assets/hangar-terminal.js ([4] termFakten, TERM_LOGIN): ein
+        Beitritt vor 2024 und einer in der Zukunft zugelassen; Namen 80
+        statt 48 Zeichen; jede Zahl als Anzahl; die Anzahl ohne
+        Zahlschreibung; immer deutsche Schreibung; die Halle trotz
+        Beitritt; wink 9000
+     k  dist/assets/hangar-viewer.js ([4] leitWerVon, leitFenster): die
+        Farbe ungeprueft; ein Name nur aus @ ohne Ersatzzeichen (wirft);
+        Name 90 Zeichen; das Bild ohne Beschnitt; die Uhr immer, die Uhr
+        nie; der Name der Sitzung ungekuerzt; die Marke in der Mitte der
+        Hoehe; die Wortmarke tiefer; restore gestrichen; die Sitzung ohne
+        Zeichen
+     l  Stil ([6]): die Blende 0,5 s statt TERM_LOGIN.aus, umgekehrt aus
+        auf 500; @property gestrichen; die Kantenlinie mit eigener Lage;
+        der Ausschnitt mit einer festen Zahl (im ersten Lauf GRUEN: die
+        Pruefung suchte nur irgendein var(--hgx-auf) im Ausschnitt; seither
+        verlangt sie das ganze Vieleck); die Wortmarke als Schrift 6 cqw
+        unter der Marke und mit anderer Sperrung
+     m  Naht ([6]): leitDraw ohne leitFenster; setTerminal ohne
+        leitWerVon; das Neuzeichnen zur Minute gestrichen; der Import der
+        Buehne ohne catch; die Blende ueber die halbe Leinwand; der
+        Controller ohne fakten und ohne wer; das Terminal ohne hooks.wer,
+        hooks.bild, hooks.fakten
+     n  Klinken: der englischen Seite ein Wort der Karte genommen (10
+        Karten statt 20); leitFenster nicht mehr exportiert (0 Proben)
+   Die Meldungen stehen in der PR der zweiten Runde.
+
      node scripts/verify-hangar-orte.mjs
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -153,6 +204,8 @@ const MIN_FIT_ENG = 60;     // davon mit begrenztem Bildwinkel: dort schrumpft d
 const MIN_WEG_PROBEN = 14;  // Links, die [4] durch termRoute schickt
 const MIN_WER_PROBEN = 11;  // Profilzeilen, die [4] durch termIdent schickt (14.11.2026: 11)
 const MIN_GLAS_HALLEN = 1;  // Hallen, deren Monitor [8] im Modell nachmisst (14.11.2026: 1)
+const MIN_FAKT_PROBEN = 20;  // Karten der Anmeldung, die [4] durch termFakten schickt (14.11.2026: 10 je Seite)
+const MIN_BILD_PROBEN = 20;  // Namen fuer das Glas (leitWerVon) und gezeichnete Sperrbilder (leitFenster) in [4] (14.11.2026: 8 + 12)
 
 const fehler = [];
 const fail = (m) => fehler.push(m);
@@ -246,6 +299,14 @@ for (const page of PAGES) {
     for (const n of ['data-l-auth', 'data-l-user', 'data-l-guest', 'data-l-gast', 'data-l-gastsub']) if (!wert(blende, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-login ohne ${n}: der Schritt der Anmeldung stuende ohne Worte da`);
     for (const [id, was] of [['hgx-term-lstep', 'der Schritt'], ['hgx-term-lname', 'der Name'], ['hgx-term-lsub', 'die Zeile unter dem Namen']]) if (!sec.includes(`id="${id}"`)) fail(`[2] ${page.file}: ${was} der Anmeldung (#${id}) fehlt`);
     if (!/class="hgx-term__mark"[^>]*>\s*<svg/.test(sec)) fail(`[2] ${page.file}: die Blende traegt die Marke nicht (.hgx-term__mark mit svg): der Uebergang vom Monitor der Halle spraenge`);
+    // zweite Runde: Sperrbild, Karte mit Gruss und Fakten, Hinweis, Kantenlinien
+    for (const n of ['data-l-hallo', 'data-l-zurueck', 'data-f-flotte', 'data-f-schiff1', 'data-f-schiffn', 'data-f-leer', 'data-f-feld', 'data-f-hangar', 'data-f-seit']) if (!wert(blende, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-login ohne ${n}: der Karte der Anmeldung fehlte ein Wort`);
+    if (!(wert(blende, 'data-f-schiffn') ?? '').includes('{n}')) fail(`[2] ${page.file}: #hgx-term-login data-f-schiffn nennt den Platz fuer die Zahl nicht ({n}): die Flotte stuende ohne Anzahl auf der Karte`);
+    if (!/<canvas[^>]*\bid="hgx-term-lbild"/.test(sec)) fail(`[2] ${page.file}: die Leinwand fuer das Sperrbild (canvas#hgx-term-lbild) fehlt: die Blende zeigte ein anderes Bild als der Monitor der Halle`);
+    for (const [id, was] of [['hgx-term-lid', 'die Karte'], ['hgx-term-lhallo', 'der Gruss'], ['hgx-term-lfakt', 'die Liste der Fakten']]) if (!sec.includes(`id="${id}"`)) fail(`[2] ${page.file}: ${was} der Anmeldung (#${id}) fehlt`);
+    if (!text(/<b[^>]*class="hgx-term__wort"[^>]*>([\s\S]*?)<\/b>/.exec(sec)?.[1] ?? '')) fail(`[2] ${page.file}: die Wortmarke als Schrift (.hgx-term__wort) fehlt: ohne Buehne stuende die Blende ohne Namen der Seite da`);
+    if (!text(/<p[^>]*class="hgx-term__lfuss"[^>]*>([\s\S]*?)<\/p>/.exec(sec)?.[1] ?? '')) fail(`[2] ${page.file}: der Hinweis, dass ein Klick die Anmeldung ueberspringt (.hgx-term__lfuss), fehlt`);
+    for (const k of ['o', 'u']) if (!sec.includes(`hgx-term__lkante--${k}`)) fail(`[2] ${page.file}: die Kantenlinie der Blende (.hgx-term__lkante--${k}) fehlt`);
   }
   const wer = /<a[^>]*\bid="hgx-term-who"[^>]*>/.exec(sec)?.[0];
   if (!wer) fail(`[2] ${page.file}: in der Leiste fehlt, wer angemeldet ist (#hgx-term-who)`);
@@ -386,11 +447,107 @@ if (term) {
     const lang = TERM_LOGIN.auth + TERM_LOGIN.hold + TERM_LOGIN.aus, kurz = (TERM_LOGIN.kurz?.auth ?? NaN) + (TERM_LOGIN.kurz?.hold ?? NaN) + TERM_LOGIN.aus;
     if (!(lang >= 1200 && lang <= 3000)) fail(`[4] TERM_LOGIN: die Anmeldung dauert ${lang} ms, gedacht sind 1,2 bis 3 s — kuerzer liest niemand den Namen, laenger steht sie der Seite im Weg`);
     if (!(kurz >= 800 && kurz < lang && kurz <= 2000)) fail(`[4] TERM_LOGIN.kurz: beim Wiederkommen ${kurz} ms, gedacht sind 0,8 bis 2 s und weniger als beim ersten Mal (${lang} ms)`);
+    if (!(TERM_LOGIN.wink >= 1000 && TERM_LOGIN.wink <= 4000)) fail(`[4] TERM_LOGIN.wink ${TERM_LOGIN.wink} ms: der Wink zum Konto nach der Anmeldung als Gast dauert 1 bis 4 s (zweimal 1,1 s im Stil)`);
     if (!(TERM_LOGIN.frist >= TERM_LOGIN.auth && TERM_LOGIN.frist <= 5000)) fail(`[4] TERM_LOGIN.frist ${TERM_LOGIN.frist} ms: die Antwort des Kontos bekommt mindestens die Dauer des ersten Schritts (${TERM_LOGIN.auth} ms) und haelt die Blende hoechstens 5 s`);
   }
 }
 if (werProben < MIN_WER_PROBEN) fail(`[4] nur ${werProben} Profilzeilen durch termIdent geschickt, Klinke ${MIN_WER_PROBEN}`);
-say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN})`);
+// Karte der Anmeldung: was die Seite weiss, in hoechstens drei Zeilen, in den Worten der Seite
+let faktProben = 0;
+if (term) {
+  const { termFakten } = term;
+  if (typeof termFakten !== 'function') fail('[4] dist/assets/hangar-terminal.js liefert termFakten nicht');
+  else for (const page of PAGES) {
+    const blende = /<div[^>]*\bid="hgx-term-login"[^>]*>/.exec(boxOf(page))?.[0] ?? '';
+    const T = Object.fromEntries(Object.entries({ flotte: 'data-f-flotte', schiff1: 'data-f-schiff1', schiffn: 'data-f-schiffn', leer: 'data-f-leer', feld: 'data-f-feld', halle: 'data-f-hangar', seit: 'data-f-seit' }).map(([k, n]) => [k, wert(blende, n) ?? '']));
+    if (Object.values(T).some((v) => !v.trim())) continue; // [2] hat es gemeldet
+    const lang = page.de ? 'de' : 'en', JETZT = Date.UTC(2026, 10, 14), okt = '2026-10-03T09:00:00Z';
+    const viele = T.schiffn.replace('{n}', page.de ? '1.234' : '1,234'), zwei = T.schiffn.replace('{n}', '2');
+    const FAKT = [
+      [{ flotte: 0, schiff: '', halle: 'Halle S' }, '', [[T.flotte, T.leer], [T.halle, 'Halle S']], 'eine leere Flotte heisst so; ohne Beitritt steht die Halle da'],
+      [{ flotte: 1, schiff: 'Gladius', halle: 'Halle S' }, '', [[T.flotte, T.schiff1], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'ein Schiff steht in der Einzahl'],
+      [{ flotte: 1234, schiff: 'Gladius', halle: 'Halle S' }, okt, [[T.flotte, viele], [T.feld, 'Gladius'], [T.seit, page.de ? 'Oktober 2026' : 'October 2026']], 'die Anzahl steht in der Zahlschreibung der Seite, der Beitritt geht vor der Halle'],
+      [{ flotte: 2, schiff: 'Gladius', halle: 'Halle S' }, '2031-01-01T00:00:00Z', [[T.flotte, zwei], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'ein Beitritt in der Zukunft ist keiner'],
+      [{ flotte: 2, schiff: 'Gladius', halle: 'Halle S' }, '2019-05-01T00:00:00Z', [[T.flotte, zwei], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'ein Beitritt vor 2024 ist keiner'],
+      [{ flotte: 2, schiff: 'Gladius', halle: 'Halle S' }, 'gestern', [[T.flotte, zwei], [T.feld, 'Gladius'], [T.halle, 'Halle S']], 'was kein Datum ist, ist kein Beitritt'],
+      [{ flotte: -1, schiff: 7, halle: null }, '', [], 'was keine Anzahl und kein Text ist, zaehlt nicht'],
+      [{ flotte: 2.5, schiff: '   ', halle: '' }, '', [], 'eine halbe Anzahl und leere Namen zaehlen nicht'],
+      [{ flotte: '3', schiff: 'x'.repeat(80), halle: 'Halle S' }, '', [[T.feld, 'x'.repeat(48)], [T.halle, 'Halle S']], 'eine Anzahl als Text zaehlt nicht, ein Name bleibt hoechstens 48 Zeichen lang'],
+      [null, okt, [[T.seit, page.de ? 'Oktober 2026' : 'October 2026']], 'ohne Angaben der Seite bleibt der Beitritt'],
+    ];
+    for (const [roh, seit, soll, was] of FAKT) {
+      faktProben++;
+      let ist;
+      try { ist = termFakten(roh, T, seit, lang, JETZT); } catch (e) { fail(`[4] ${page.file}: termFakten(${JSON.stringify(roh)}, …, ${JSON.stringify(seit)}) wirft (${e.message})`); continue; }
+      if (JSON.stringify(ist) !== JSON.stringify(soll)) fail(`[4] ${page.file}: termFakten(${JSON.stringify(roh)}, …, ${JSON.stringify(seit)}) → ${JSON.stringify(ist)} statt ${JSON.stringify(soll)}: ${was}`);
+    }
+    try { if (termFakten(null, null, '', lang, JETZT).length) fail(`[4] ${page.file}: termFakten ohne Worte liefert Zeilen`); } catch (e) { fail(`[4] ${page.file}: termFakten ohne Angaben und Worte wirft (${e.message}): die Karte der Anmeldung bliebe leer stehen`); }
+  }
+}
+if (faktProben < MIN_FAKT_PROBEN) fail(`[4] nur ${faktProben} Karten durch termFakten geschickt, Klinke ${MIN_FAKT_PROBEN}`);
+// Sperrbild: wer aufs Glas der Halle darf, und was leitFenster in ein Fenster zeichnet
+let bildProben = 0;
+if (viewer) {
+  const { leitWerVon, leitFenster, LEIT_MARKE: M, LEIT_WORT: W } = viewer;
+  if (typeof leitWerVon !== 'function' || typeof leitFenster !== 'function' || !(M?.b > 0 && M?.y > 0) || !(W?.ab > 0 && W?.h > 0)) fail('[4] dist/assets/hangar-viewer.js liefert leitWerVon, leitFenster, LEIT_MARKE oder LEIT_WORT nicht');
+  else {
+    const WER = [
+      [null, null, 'ohne Sitzung steht niemand auf dem Glas'],
+      [{ name: '   ' }, null, 'ohne Namen steht niemand auf dem Glas'],
+      [{ name: 7 }, null, 'was kein Text ist, ist kein Name'],
+      [{ name: ' Ada ' }, { name: 'Ada', zeichen: 'A', farbe: '#2dd4ff' }, 'ohne Zeichen gilt der Anfangsbuchstabe, ohne Farbe die der Seite'],
+      [{ name: '@zed', zeichen: '', farbe: '#A1b2C3' }, { name: '@zed', zeichen: 'Z', farbe: '#A1b2C3' }, 'beim Handle zaehlt der Buchstabe hinter dem @'],
+      [{ name: '@' }, { name: '@', zeichen: '◆' }, 'ein Name nur aus @ bekommt das Zeichen der Seite'],
+      [{ name: 'Bo', zeichen: 'ABCDEFGH', farbe: 'red;x' }, { zeichen: 'ABCD', farbe: '#2dd4ff' }, 'das Zeichen bleibt hoechstens vier Zeichen lang, als Farbe gilt nur #rrggbb'],
+      [{ name: 'x'.repeat(90) }, { name: 'x'.repeat(60) }, 'der Name bleibt hoechstens 60 Zeichen lang'],
+    ];
+    for (const [roh, soll, was] of WER) {
+      bildProben++;
+      let ist;
+      try { ist = leitWerVon(roh); } catch (e) { fail(`[4] leitWerVon(${JSON.stringify(roh)}) wirft (${e.message})`); continue; }
+      if (soll === null ? ist !== null : !ist || Object.entries(soll).some(([k, v]) => ist[k] !== v)) fail(`[4] leitWerVon(${JSON.stringify(roh)}) → ${JSON.stringify(ist)}: ${was}`);
+    }
+    // Leinwand, die mitschreibt: jede Schrift ist 0,6 em breit je Zeichen; fillText merkt sich hinten die Schriftgroesse in px
+    const leinwand = () => {
+      const rufe = [], o = { font: '10px x' };
+      return new Proxy(o, {
+        get: (_, k) => (k === 'rufe' ? rufe
+          : k in o ? o[k]
+          : k === 'measureText' ? (t) => ({ width: [...String(t)].length * 0.6 * parseFloat(/([\d.]+)px/.exec(o.font)?.[1] ?? '10') })
+          : /^create\w+Gradient$/.test(String(k)) ? () => ({ addColorStop() {} })
+          : (...a) => { rufe.push(k === 'fillText' ? [k, ...a, parseFloat(/([\d.]+)px/.exec(o.font)?.[1] ?? '10')] : [k, ...a]); }),
+        set: (_, k, v) => { o[k] = v; return true; },
+      });
+    };
+    const lang = 'Kommandantin Aurelia von Sternenstaub-Lichtenfels zu Hohenwacht';
+    const SICHT = [{}, { uhr: '12:34' }, { uhr: '12:34', wer: { name: 'Testpilot', zeichen: 'T', farbe: '#f5a623' } }, { uhr: '', wer: { name: lang, zeichen: 'KAVS', farbe: '#7dd3a8' } }];
+    for (const [x, y, w, h] of [[0, 0, 1600, 900], [130, 40, 1211, 683], [0, 0, 640, 1100]]) for (const o of SICHT) {
+      bildProben++;
+      const g = leinwand(), wo = `leitFenster im Fenster ${w} × ${h} mit ${JSON.stringify(o)}`;
+      try { leitFenster(g, x, y, w, h, o); } catch (e) { fail(`[4] ${wo} wirft (${e.message})`); continue; }
+      const rufe = g.rufe, namen = rufe.map((r) => r[0]);
+      const erstes = namen.findIndex((n) => /^(fill|stroke|fillRect|fillText|strokeRect|drawImage)$/.test(n)), clip = namen.indexOf('clip'), rect = rufe.find((r) => r[0] === 'rect');
+      if (!(clip >= 0 && clip < erstes) || !rect || rect.slice(1).some((v, i) => v !== [x, y, w, h][i])) fail(`[4] ${wo}: zeichnet, bevor es auf sein Fenster beschnitten hat (rect ${JSON.stringify(rect?.slice(1) ?? null)}, clip an Stelle ${clip}, erster Strich an Stelle ${erstes}) — das Sperrbild liefe ueber den Rand aufs Glas`);
+      if (namen.filter((n) => n === 'save').length !== namen.filter((n) => n === 'restore').length || namen[0] !== 'save' || namen.at(-1) !== 'restore') fail(`[4] ${wo}: save und restore gehen nicht auf — der Beschnitt bliebe auf der Leinwand stehen`);
+      // gesperrte Schrift steht Zeichen fuer Zeichen da; in der Folge der Aufrufe ergibt sie die Worte
+      const worte = rufe.filter((r) => r[0] === 'fillText').map((r) => r[1]).join('');
+      for (const wort of ['TERMINAL', 'VERSE·BASE']) if (!worte.includes(wort)) fail(`[4] ${wo}: „${wort}“ steht nicht im Bild`);
+      if (o.uhr ? !worte.includes(o.uhr) : /\d\d:\d\d/.test(worte)) fail(`[4] ${wo}: die Uhr ${o.uhr ? 'fehlt' : 'steht im Bild, obwohl keine verlangt ist'}`);
+      if (o.wer) {
+        const rest = worte.slice(worte.indexOf('VERSE·BASE') + 10), name = rest.slice([...o.wer.zeichen].join('').length);
+        if (!rest.startsWith(o.wer.zeichen) || !(name === o.wer.name || (name.endsWith('…') && o.wer.name.startsWith(name.slice(0, -1).trimEnd())))) fail(`[4] ${wo}: Zeichen und Name der Sitzung stehen nicht im Bild (gezeichnet „${rest}“)`);
+        else if ([...name].length * 0.6 * rufe.findLast((r) => r[0] === 'fillText')[4] > 36 * (w / 100) + 1e-6) fail(`[4] ${wo}: der Name der Sitzung ist ${[...name].length} Zeichen lang und breiter als sein Platz (36 % der Breite)`);
+      } else if (worte.length !== 'TERMINAL'.length + 'VERSE·BASE'.length + (o.uhr ?? '').length) fail(`[4] ${wo}: im Bild steht mehr als Terminal, Uhr und Wortmarke („${worte}“)`);
+      // Marke und Wortmarke stehen, wo sie die Blende der Seite zeigt (LEIT_MARKE, LEIT_WORT; den Stil dazu vergleichen [6] und [8])
+      const punkt = rufe.find((r) => r[0] === 'arc'), v = rufe.find((r) => r[0] === 'fillText' && r[1] === 'V');
+      const mx = x + w / 2, my = y + M.y * h, nah = (a, b) => Math.abs(a - b) < 1e-6 * w;
+      if (!punkt || !nah(punkt[1], mx) || !nah(punkt[2], my) || !nah(punkt[3], (6 * M.b * w) / 64)) fail(`[4] ${wo}: der Punkt der Marke steht bei ${punkt ? `${punkt[1]}, ${punkt[2]}` : '—'} statt ${mx}, ${my} (LEIT_MARKE)`);
+      if (!v || !nah(v[3], my + (W.ab + W.h / 2) * w)) fail(`[4] ${wo}: die Wortmarke steht in der Hoehe ${v?.[3] ?? '—'} statt ${my + (W.ab + W.h / 2) * w} (LEIT_WORT)`);
+    }
+  }
+}
+if (bildProben < MIN_BILD_PROBEN) fail(`[4] nur ${bildProben} Proben am Sperrbild, Klinke ${MIN_BILD_PROBEN}`);
+say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN}), ${faktProben} Karten (Klinke ${MIN_FAKT_PROBEN}), ${bildProben} Proben am Sperrbild (Klinke ${MIN_BILD_PROBEN})`);
 
 /* ---------- [5] Geometrie der Buehne ---------- */
 say('[5] Buehne: Kamera vor dem Monitor, Fenster der Seite im Bild genau das gemeldete Rechteck und auf dem Glas');
@@ -464,6 +621,8 @@ let naht = 0;
 {
   const vSrc = existsSync(join(DIST, 'assets/hangar-viewer.js')) ? readFileSync(join(DIST, 'assets/hangar-viewer.js'), 'utf8') : '';
   const cSrc = existsSync(join(DIST, 'assets/hangar-overview.js')) ? readFileSync(join(DIST, 'assets/hangar-overview.js'), 'utf8') : '';
+  const tSrc = String(termSrc ?? '');
+  const themeCss = existsSync(join(DIST, 'assets/theme.css')) ? readFileSync(join(DIST, 'assets/theme.css'), 'utf8') : '';
   const NAHT = [
     [vSrc, /\n\s+place: \(name\) =>/, 'die Buehne liefert place nicht mehr'],
     [vSrc, /\n\s+canPlace: \(name\) =>/, 'die Buehne liefert canPlace nicht mehr'],
@@ -489,12 +648,46 @@ let naht = 0;
     [vSrc, /const c = h\.room\.center, o = hallSpot\(h\), O = hallOrigin\(h\);\s*model\.position\.set\(-o\[0\], -c\[1\], -o\[2\]\);/, 'loadRealHall setzt das Modell der Halle nicht mehr mit hallSpot und hallOrigin: [8] maesse den Monitor des Leitstands an einer anderen Stelle nach, als die Buehne ihn zeigt'],
     [vSrc, /if \(O\) \{\s*model\.position\.y = -O\[1\];/, 'loadRealHall setzt den Boden der Halle nicht mehr nach hallOrigin: [8] maesse den Monitor des Leitstands in einer anderen Hoehe nach, als die Buehne ihn zeigt'],
     [cSrc, /if \(!ok && my === ortTok && state\.ort === 'leit'/, 'der Controller laesst auch die Antwort auf einen ueberholten Wunsch aufs Feld zurueckstellen (ortTok in applyOrt): „Leitstand, Schiffsfeld, Leitstand“ waehrend der Rueckfahrt endete auf dem Feld'],
+    // Sperrbild (zweite Runde): ein Bild aus einer Quelle. Der Monitor
+    // der Halle und die Blende der Seite zeichnen beide mit leitFenster;
+    // wer sich anmeldet, steht danach auf dem Glas; die Uhr geht weiter.
+    [vSrc, /\n\s+leitFenster\(g, fx, fy, fw, fh, \{ uhr: leitUhr\(\), wer: leitWer \}\);/, 'der Monitor der Halle zeichnet sein Fenster nicht mehr mit leitFenster (leitDraw): Glas und Blende zeigten zwei verschiedene Bilder, beim Hinsetzen spraenge es'],
+    [vSrc, /\n\s+setTerminal\(wer\) \{ leitWer = leitWerVon\(wer\);/, 'die Buehne liefert setTerminal nicht mehr oder laesst den Namen ungeprueft aufs Glas (leitWerVon)'],
+    [vSrc, /if \(Math\.floor\(Date\.now\(\) \/ 60000\) !== S\.min\) leitDraw\(\);/, 'der Monitor zeichnet zur vollen Minute nicht mehr neu (leitStep): die Uhr auf dem Glas bliebe stehen'],
+    [cSrc, /import\(stageCfg\.viewer\)\.catch\(\(\) => null\)/, 'der Controller holt das Sperrbild nicht mehr aus der Datei der Buehne, oder ein Fehler dabei risse das Terminal mit (import(stageCfg.viewer).catch)'],
+    [cSrc, /buehne\.leitFenster\(cv\.getContext\('2d'\), 0, 0, cv\.width, cv\.height, o\);/, 'der Controller zeichnet die Blende nicht mehr mit leitFenster ueber die ganze Leinwand: sie zeigte ein anderes Bild als der Monitor'],
+    [cSrc, /\n\s+fakten: termRoh,/, 'der Controller reicht der Karte der Anmeldung nicht mehr, was die Seite weiss (fakten: termRoh)'],
+    [cSrc, /wer: \(id\) => viewer\?\.setTerminal\?\.\(id\)/, 'der Controller sagt der Buehne nicht mehr, wer angemeldet ist (setTerminal): das Glas nennte die Sitzung nie'],
+    [tSrc, /hooks\.wer\?\.\(id \? \{ name:/, 'das Terminal meldet nicht mehr, wer angemeldet ist (hooks.wer in setze)'],
+    [tSrc, /ok = hooks\.bild\(lbild, \{ uhr: uhr\(\) \}\) === true;/, 'das Terminal laesst das Sperrbild nicht mehr auf seine Leinwand zeichnen (hooks.bild)'],
+    [tSrc, /roh = hooks\.fakten\?\.\(\) \?\? null;/, 'das Terminal fragt die Seite nicht mehr nach den Fakten der Karte (hooks.fakten)'],
   ];
   for (const [src, muster, was] of NAHT) {
     if (muster.test(src)) naht++;
     else fail(`[6] ${was}`);
   }
   if (term && typeof term.initTerminal !== 'function') fail('[6] dist/assets/hangar-terminal.js liefert initTerminal nicht');
+  // Stil der Blende gegen Modul und Buehne: Die Blende oeffnet sich ueber
+  // EINE Zahl (--hgx-auf), aus der Ausschnitt und Kantenlinien lesen, in
+  // genau der Zeit, nach der das Modul sie wegnimmt (TERM_LOGIN.aus); die
+  // Wortmarke als Schrift steht, wo sie das Bild zeigt (LEIT_WORT).
+  for (const page of PAGES) {
+    const regel = (sel) => new RegExp(`(?:^|[}>\\s])${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\{([^}]*)\\}`).exec(page.html)?.[1] ?? '';
+    const blende = regel('.hgx-term__login'), kante = regel('.hgx-term__lkante'), unten = regel('.hgx-term__lkante--u'), wort = regel('.hgx-term__wort');
+    const zeit = /transition:--hgx-auf ([\d.]+)(m?s)\b/.exec(blende), ms = zeit ? Math.round(+zeit[1] * (zeit[2] === 's' ? 1000 : 1)) : NaN;
+    if (!/@property --hgx-auf\{[^}]*syntax:\s*["']<percentage>["']/.test(page.html)) fail(`[6] ${page.file}: --hgx-auf ist nicht als Prozentwert angemeldet (@property): die Blende spraenge auf, statt sich zu oeffnen`);
+    else if (!(ms === term?.TERM_LOGIN?.aus)) fail(`[6] ${page.file}: die Blende oeffnet sich in ${Number.isNaN(ms) ? '—' : ms} ms (transition:--hgx-auf in .hgx-term__login), das Modul nimmt sie nach ${term?.TERM_LOGIN?.aus ?? '—'} ms weg (TERM_LOGIN.aus): Sie verschwaende halb offen oder laege unsichtbar ueber der Seite`);
+    else if (!blende.includes('clip-path:polygon(0 0,100% 0,100% var(--hgx-auf),0 var(--hgx-auf),0 calc(100% - var(--hgx-auf)),100% calc(100% - var(--hgx-auf)),100% 100%,0 100%)') || !/(?:^|;)top:var\(--hgx-auf\)/.test(kante) || !/(?:^|;)top:calc\(100% - var\(--hgx-auf\)\)/.test(unten)) fail(`[6] ${page.file}: Ausschnitt und Kantenlinien der Blende lesen nicht dieselbe Zahl (--hgx-auf): als zwei Uebergaenge liefen sie auseinander, und die Linien laegen im weggeschnittenen Spalt`);
+    else naht++;
+    const W = viewer?.LEIT_WORT, M = viewer?.LEIT_MARKE;
+    const top = /(?:^|;)top:calc\(([\d.]+)% \+ ([\d.]+)cqw\)/.exec(wort), hoch = /(?:^|;)font-size:([\d.]+)cqw/.exec(wort)?.[1];
+    // die Sperrung kommt aus der Skala der Seite (verify:typo verlangt das): den Wert der Stufe aus dem ausgelieferten Stilblatt lesen
+    const stufe = /(?:^|;)letter-spacing:var\((--ls-\d+)\)/.exec(wort)?.[1];
+    const ls = stufe ? new RegExp(`${stufe}:\\s*([\\d.]+)em`).exec(themeCss)?.[1] : /(?:^|;)letter-spacing:([\d.]+)em/.exec(wort)?.[1];
+    if (!W || !M) { /* [4] hat es gemeldet */ }
+    else if (!top || !(Math.abs(+top[1] / 100 - M.y) < 1e-6 && Math.abs(+top[2] / 100 - W.ab) < 1e-6 && Math.abs(+hoch / 100 - W.h) < 1e-6 && Math.abs(+ls - W.ls) < 1e-6)) fail(`[6] ${page.file}: die Wortmarke als Schrift (.hgx-term__wort) steht bei top ${top ? `${top[1]} % + ${top[2]} cqw` : '—'}, ${hoch ?? '—'} cqw hoch, gesperrt ${ls ?? '—'} em; das Bild zeigt sie bei ${+(M.y * 100).toFixed(2)} % + ${+(W.ab * 100).toFixed(2)} cqw, ${+(W.h * 100).toFixed(2)} cqw hoch, gesperrt ${W.ls} em (LEIT_WORT) — ohne Bild stuende sie woanders als mit`);
+    else naht++;
+  }
   if (ctrl) {
     const { parseState, serializeState, placeOf, placeShip } = ctrl;
     if (typeof placeOf !== 'function' || typeof placeShip !== 'function') fail('[6] dist/assets/hangar-overview.js liefert placeOf oder placeShip nicht mehr');
