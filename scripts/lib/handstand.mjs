@@ -1,7 +1,8 @@
 // Stempel von Hand gepflegter Datenbestaende.
 //
 // Ein Handbestand (z. B. assets/wikelo-curated.json) traegt seinen Stand im
-// Feld `stand` direkt neben den Werten: `art` ("patch" mit `patch: "X.Y.Z"`
+// Feld `stand` direkt neben den Werten: `art` ("patch" mit `patch: "X.Y.Z"`,
+// oder "X.Y", wenn die Quelle den Patch nicht genauer nennt,
 // oder "datum" mit `geaendert: "YYYY-MM-DD"`) und `pruefsumme`, eine SHA-256
 // ueber alle uebrigen Felder. Die Seite liest nur diesen Stempel.
 // verify:datastand rechnet die Pruefsumme nach: aendern sich die Werte ohne
@@ -21,8 +22,12 @@ export function pruefsumme(daten) {
   return createHash('sha256').update(JSON.stringify(sortiert(werte))).digest('hex').slice(0, 16);
 }
 
+/** Form eines Patch-Stempels: X.Y.Z, oder X.Y, wenn die Quelle nicht genauer ist. */
+export const PATCH_MUSTER = /^\d+\.\d+(?:\.\d+)?$/;
+
 /** Die Handbestaende der Site: Datei und wo sie sich zeigen. */
 export const HANDBESTAENDE = [
   { datei: 'assets/refinery-methods.json', art: 'patch', zeigt: 'Refinery (Bewertung der Raffinationsmethoden)' },
   { datei: 'assets/wikelo-curated.json', art: 'datum', zeigt: 'Wikelo-Seite (Bilder, Ausstattung und Hinweise je Tausch)' },
+  { datei: 'assets/aaron-halo-bands.json', art: 'patch', zeigt: 'Precision Jump (Dichtebaender des Aaron Halo)' },
 ];

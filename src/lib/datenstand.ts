@@ -37,6 +37,8 @@ import VEHICLE_PRICES from '../data/vehicle-prices.json';
 import SHIP_EXTRAS from '../data/ship-extras.json';
 import VEHICLE_EXTERNAL from '../data/vehicle-external.json';
 import WIKELO from '../../assets/wikelo-trades.meta.json';
+import HALO from '../../assets/aaron-halo-gamefiles.json';
+import HALO_BAENDER from '../../assets/aaron-halo-bands.json';
 
 // pflege: Handbestand ohne Patch-Bezug, „von Hand gepflegt, zuletzt geändert
 // am <Datum>" (Stempel in der Datei, scripts/lib/handstand.mjs).
@@ -69,6 +71,8 @@ const T = {
     schnappschuss: 'Schnappschuss vom',
     geaendert: 'zuletzt geändert am',
     wikeloZusatz: 'Bilder, Ausstattung und Hinweise je Tausch',
+    halo: 'Halo-Hülle und QT-Anker',
+    baender: 'Dichtebänder',
     recherche: 'eigene Recherche',
     shopSchnappschuss: 'eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt',
     aufbereitung: 'eigene Aufbereitung',
@@ -103,6 +107,8 @@ const T = {
     schnappschuss: 'snapshot of',
     geaendert: 'last changed',
     wikeloZusatz: 'Images, equipment and notes per trade',
+    halo: 'Halo envelope and QT anchors',
+    baender: 'Density bands',
     recherche: 'own research',
     shopSchnappschuss: 'own shop snapshot, undated, only where UEX does not list the item',
     aufbereitung: 'processed in-house',
@@ -144,8 +150,9 @@ export function standVerweis(
   lang: Locale,
   patchLink: (kennung: string, lang: Locale) => { version: string; href: string | null },
 ): { vor: string; href: string; nach: string } | null {
-  if ((z.art !== 'spiel' && z.art !== 'hand') || !z.wert || !z.text.includes(z.wert)) return null;
-  const p = patchLink(z.wert, lang);
+  // Ein Stempel ohne Z-Stelle („3.16") hat keine Patch-Seite.
+  if ((z.art !== 'spiel' && z.art !== 'hand') || !/^\d+\.\d+\.\d+$/.test(z.wert ?? '') || !z.text.includes(z.wert!)) return null;
+  const p = patchLink(z.wert!, lang);
   if (!p.href || p.version !== z.wert) return null;
   const i = z.text.indexOf(z.wert);
   return { vor: z.text.slice(0, i), href: p.href, nach: z.text.slice(i + z.wert.length) };
@@ -368,4 +375,14 @@ export function standFracturing(lang: Locale): StandZeile[] {
 export function standMining(lang: Locale): StandZeile[] {
   const t = T[lang];
   return [spiel(lang, 'mining', t.spielwerte, MINING_F), hand(lang, 'ausbeute', t.ausbeute, AUSBEUTE_F, MINING_F)];
+}
+
+const HALO_F = fassung((HALO as { gameVersion?: string }).gameVersion, 'assets/aaron-halo-gamefiles.json gameVersion');
+const BAENDER_F = (HALO_BAENDER as { stand?: { patch?: string } }).stand?.patch ?? '';
+if (!/^\d+\.\d+(?:\.\d+)?$/.test(BAENDER_F)) throw new Error(`datenstand: assets/aaron-halo-bands.json stand.patch traegt keinen Patch (${JSON.stringify(BAENDER_F)})`);
+
+/** Precision Jump: Halo-Hülle und QT-Anker aus dem Spiel, die Dichtebänder von Hand gepflegt. */
+export function standPrecision(lang: Locale): StandZeile[] {
+  const t = T[lang];
+  return [spiel(lang, 'halo', t.halo, HALO_F), hand(lang, 'halo-baender', t.baender, BAENDER_F, HALO_F)];
 }

@@ -422,6 +422,9 @@ const STAND_GRUPPEN = [
   // Schiffsuebersicht fuehrt je aelterer Fassung eine eigene Zeile mit der Zahl
   // der Fahrzeuge darauf, gezaehlt an den Karten der gebauten Seite.
   { name: 'Missionsübersicht', match: (p) => p === 'missionen.html', pflicht: ['missionen'], erlaubt: ['missionen'] },
+  // Precision Jump: Halo-Huelle und QT-Anker aus dem Spiel, die Dichtebaender
+  // als Handbestand (assets/aaron-halo-bands.json) mit eigenem Stand.
+  { name: 'Precision Jump', match: (p) => p === 'precision-jump.html', pflicht: ['halo', 'halo-baender'], erlaubt: ['halo', 'halo-baender'] },
   { name: 'Schiffsübersicht', match: (p) => p === 'schiffe.html', pflicht: ['flotte', 'uex-schiffe', 'wiki', 'bild'], erlaubt: ['flotte', 'flotte-aelter', 'uex-schiffe', 'wiki', 'bild'] },
 ];
 // Klinken je Gruppe (Grundsatz 5), Messlauf 06.11.2026 im Live-Bau der
@@ -437,7 +440,7 @@ const STAND_KLINKEN = {
   // 14.11.2026, je DE und EN.
   Wikelo: 2,
   // 14.11.2026, je DE und EN.
-  'Missionsübersicht': 2, 'Schiffsübersicht': 2,
+  'Missionsübersicht': 2, 'Schiffsübersicht': 2, 'Precision Jump': 2,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
 // Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
@@ -459,6 +462,7 @@ const STAND_WAS = {
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
   methoden: ['Bewertung der Raffinationsmethoden', 'Refining method ratings'],
+  halo: ['Halo-Hülle und QT-Anker', 'Halo envelope and QT anchors'], 'halo-baender': ['Dichtebänder', 'Density bands'],
   wikelo: ['Spielwerte', 'Game values'], 'wikelo-pflege': ['Bilder, Ausstattung und Hinweise je Tausch', 'Images, equipment and notes per trade'],
 };
 // FleetYards-Zeile: die Wertegruppe zaehlt auf, was die Seite von dort zeigt.
@@ -519,6 +523,8 @@ try {
     // Gegen den Handbestand selbst, nicht gegen die Kopie in refinery-data.json:
     // vergisst der Bau das Uebertragen, faellt das hier auf.
     methoden: { art: 'hand', wert: rd('assets/refinery-methods.json').stand?.patch ?? null, datei: 'assets/refinery-methods.json stand.patch' },
+    halo: { art: 'spiel', wert: fassung['Präzisionssprung'], datei: 'assets/aaron-halo-gamefiles.json gameVersion' },
+    'halo-baender': { art: 'hand', wert: rd('assets/aaron-halo-bands.json').stand?.patch ?? null, datei: 'assets/aaron-halo-bands.json stand.patch' },
     wikelo: { art: 'spiel', wert: fassung.Wikelo, datei: 'assets/wikelo-trades.meta.json gameVersion' },
     'wikelo-pflege': { art: 'pflege', wert: isoDatum(rd('assets/wikelo-curated.json').stand?.geaendert), datei: 'assets/wikelo-curated.json stand.geaendert' },
     fundorte: { art: 'quelle', wert: null },
