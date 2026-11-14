@@ -20,6 +20,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './lib/ivo-caf.mjs';
 import { hallDecalDoc, hallTextDoc, meshBase } from './lib/hall-decals.mjs';
+import { hallKinder } from './lib/hall-kinder.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -69,9 +70,19 @@ const HALLS = [
   // die Palettenmaterialien mit einem fast schwarzen Ersatzwert.
   // decals: die Teilnetze mit Aufkleber-Material, die der Export auslässt
   // (Bodenmarkierungen, Schrift, Fugen und Schrauben), aus den Spieldateien.
+  // kinder: fremde Container, die die Halle an einer Stelle einhängt und denen
+  // der Export nicht folgt (scripts/lib/hall-kinder.mjs). folge: welche davon
+  // dazukommen, hier die Frachtaufzüge in den Längswänden (das Modul mit Tor,
+  // Stegen und Bedienpult, darin die Plattform mit Kabine). lage: das Tor des
+  // Frachtaufzugs ruht im Spiel offen, solange die Plattform oben steht; der
+  // Export zeigt es zu.
   { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
-  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' } },
+  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' },
+    kinder: {
+      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i],
+      lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
+    } },
   { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];
 // Schiffsaufzug der heutigen Hangars (Hightech, „medtop“: Landefläche 56 x 88 m,
@@ -151,6 +162,10 @@ function sb(args, { log = false, timeout = 0 } = {}) {
 }
 // mip 1 = halbe Kantenlänge (bis 2048 px); der Build deckelt Farbe auf 1024, Normalen auf 512
 const COMMON = ['--materials', 'textures', '--mip', '1', '--lod', '1'];
+// dieselben Schalter in der Stufe einer Halle
+const schalter = (lod) => COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(lod) : a));
+// die Lichtzeilen aus dem Protokoll eines Exports (-v), ohne Zeitstempel
+const lichtZeilen = (log) => log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
 const sbSkin = (part, file) => sb(['skin', 'export', part, file]);
 
@@ -393,7 +408,8 @@ if (want('components')) {
 
 // Halle und Aufzug: socpak-Export mit Lichtprotokoll, Materialnachtrag, Texturen
 const containers = [
-  ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall' })) : []),
+  // Halle mit Kind-Containern: Raum roh nach hall-kinder/, daraus die Halle mit Kindern (hallKinder)
+  ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall', ...(h.kinder ? { raw: `${SRC}hall-kinder/${h.key}.raum.glb` } : {}) })) : []),
   ...(want('lift') ? LIFTS.map((h) => ({ ...h, dir: 'lift' })) : []),
   ...(want('werkstatt') ? WERKSTATT.map((h) => ({ ...h, dir: 'werkstatt' })) : []),
   // Werkhalle: Raum roh nach werkhalle-raw/, daraus Raum mit Torblatt und die
@@ -418,14 +434,16 @@ if (containers.length) {
     // den Namen mit den Lichtknoten.
     try {
       if (h.socpak) {
-        const log = exportTo(h.raw ?? file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(h.lod) : a)), { log: true });
+        const log = exportTo(h.raw ?? file, ['socpak', 'export', h.socpak], schalter(h.lod), { log: true });
         if (typeof log === 'string') {
-          const lines = log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
-          writeFileSync(`${SRC}${h.dir}/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
+          const lines = lichtZeilen(log);
+          // mit Kind-Containern bleiben die Zeilen der Halle beim Rohexport; die Liste der ganzen Halle schreibt hallKinder
+          writeFileSync(h.kinder ? `${SRC}hall-kinder/${h.key}.lights-src.txt` : `${SRC}${h.dir}/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
           console.log(`  Lichtangaben: ${lines.length}`);
         }
       }
       if (h.tor) await werkhalleCompose(h, file);
+      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, lichtZeilen, schalter });
       if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
