@@ -1,0 +1,64 @@
+{
+  "stand": {
+    "art": "patch",
+    "patch": "4.8.0",
+    "pruefsumme": "49345ca0cd0ada78"
+  },
+  "source": "Bewertung der Raffinationsmethoden in Stufen (Tempo, Kosten, Ertrag), von Hand gepflegt. Die genauen Werte je Methode liegen serverseitig.",
+  "methods": [
+    {
+      "name": "Dinyx Solventation",
+      "speed": "low",
+      "cost": "high",
+      "yield": "high"
+    },
+    {
+      "name": "Gaskin Process",
+      "speed": "low",
+      "cost": "mid",
+      "yield": "high"
+    },
+    {
+      "name": "Pyrometric Chromalysis",
+      "speed": "vlow",
+      "cost": "low",
+      "yield": "high"
+    },
+    {
+      "name": "Ferron Exchange",
+      "speed": "low",
+      "cost": "low",
+      "yield": "mid"
+    },
+    {
+      "name": "Kazen Winnowing",
+      "speed": "mid",
+      "cost": "mid",
+      "yield": "mid"
+    },
+    {
+      "name": "Thermonatic Deposition",
+      "speed": "high",
+      "cost": "high",
+      "yield": "mid"
+    },
+    {
+      "name": "Cormack Method",
+      "speed": "high",
+      "cost": "mid",
+      "yield": "low"
+    },
+    {
+      "name": "Electrostarolysis",
+      "speed": "mid",
+      "cost": "low",
+      "yield": "low"
+    },
+    {
+      "name": "XCR Reaction",
+      "speed": "high",
+      "cost": "high",
+      "yield": "low"
+    }
+  ]
+}

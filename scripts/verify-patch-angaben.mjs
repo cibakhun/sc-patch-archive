@@ -398,7 +398,7 @@ const STAND_GRUPPEN = [
   { name: 'Blueprint-Seiten', match: (p) => p === 'crafting.html' || p.startsWith('crafting/'), pflicht: ['crafting'], erlaubt: ['crafting'] },
   { name: 'Missionsseiten', match: (p) => p.startsWith('missionen/'), pflicht: ['missionen'], erlaubt: ['missionen'] },
   { name: 'Schiffsseiten', match: (p) => p.startsWith('schiffe/'), pflicht: ['fahrzeug', 'uex-schiffe'], erlaubt: ['fahrzeug', 'uex-schiffe', 'huelle', 'fleetyards', 'wiki', 'bild'], bedingt: ['huelle', 'fleetyards'] },
-  { name: 'Refinery', match: (p) => p === 'refinery.html', pflicht: ['refinery', 'uex-erze', 'ausbeute'], erlaubt: ['refinery', 'uex-erze', 'ausbeute'] },
+  { name: 'Refinery', match: (p) => p === 'refinery.html', pflicht: ['refinery', 'uex-erze', 'ausbeute', 'methoden'], erlaubt: ['refinery', 'uex-erze', 'ausbeute', 'methoden'] },
   { name: 'Mining-Datenbank', match: (p) => p === 'topics/mining.html', pflicht: ['mining', 'ausbeute'], erlaubt: ['mining', 'ausbeute'] },
   // Seit 06.11.2026 (Rest aus C1): die beiden Werkzeuge trugen bis dahin nur
   // die alte Fusszeile „Daten-Stand: <Datum des Datenlaufs>".
@@ -436,6 +436,7 @@ const STAND_WAS = {
   huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
+  methoden: ['Bewertung der Raffinationsmethoden', 'Refining method ratings'],
 };
 // FleetYards-Zeile: die Wertegruppe zaehlt auf, was die Seite von dort zeigt.
 const FY_TEILE = [['lackierungen', 'Lackierungen', 'paints'], ['varianten', 'Varianten', 'variants'], ['leihschiffe', 'Leihschiffe', 'loaners'], ['huelle', '3D-Hülle', '3D hull']];
@@ -490,6 +491,9 @@ try {
     fleetyards: { art: 'fremd', wert: isoDatum(rd('src/data/ship-extras.json').fetchedAt), datei: 'src/data/ship-extras.json fetchedAt', name: 'FleetYards' },
     wiki: { art: 'schnappschuss', wert: /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(ext.source ?? '')?.[1] ?? null, datei: 'src/data/vehicle-external.json source', name: 'Wiki-Schnappschuss' },
     ausbeute: { art: 'hand', wert: fassungAus(rd('assets/mining-frozen.json').frozen_from), datei: 'assets/mining-frozen.json frozen_from' },
+    // Gegen den Handbestand selbst, nicht gegen die Kopie in refinery-data.json:
+    // vergisst der Bau das Uebertragen, faellt das hier auf.
+    methoden: { art: 'hand', wert: rd('assets/refinery-methods.json').stand?.patch ?? null, datei: 'assets/refinery-methods.json stand.patch' },
     fundorte: { art: 'quelle', wert: null },
     'shop-schnappschuss': { art: 'quelle', wert: null },
     huelle: { art: 'quelle', wert: null },
