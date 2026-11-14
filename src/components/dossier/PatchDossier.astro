@@ -8,7 +8,8 @@ import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import vehicles from '../../data/vehicles.json';
 import { crewFmt } from '../../lib/shipFacts';
-import { standDossier, standTexte } from '../../lib/datenstand';
+import { standDossier, standTexte, standVerweis } from '../../lib/datenstand';
+import { patchLinkFromKennung } from '../../lib/patchPages';
 import { stripSpine } from '../../../scripts/lib/patch-spine.mjs';
 import { useTranslations, href, assertLocale, type Locale } from '../../i18n/ui';
 
@@ -156,16 +157,19 @@ const linkHref = (h: string) => (h.startsWith('/') ? L(h) : h);
         {standZeilen.length > 0 && (
           <p class="do__specsrc">
             {st.dossier}
-            {standZeilen.map((z, i) => (
+            {standZeilen.map((z, i) => {
+              const p = standVerweis(z, lang, patchLinkFromKennung);
+              return (
               <>
                 {i > 0 ? ' · ' : ' '}
                 <span data-stand={z.quelle} data-stand-art={z.art} data-stand-wert={z.wert}>
                   <span class="do__standwas">{z.was}:</span>{' '}
-                  {z.name && (z.link ? <a href={z.link} target="_blank" rel="noopener">{z.name}</a> : z.name)}{z.text}
+                  {z.name && (z.link ? <a href={z.link} target="_blank" rel="noopener">{z.name}</a> : z.name)}{p ? <>{p.vor}<a href={p.href}>{z.wert}</a>{p.nach}</> : z.text}
                   {z.aelter && <>{' '}<span class="do__alt">{st.aelter}</span></>}
                 </span>
               </>
-            ))}
+              );
+            })}
           </p>
         )}
       </>

@@ -466,6 +466,7 @@ const standSoll = {};
 const standFehler = [];
 const standSeiten = Object.fromEntries(STAND_GRUPPEN.map((g) => [g.name, 0]));
 const standZeilen = {};
+let standPatchLinks = 0;
 try {
   const items = rd('assets/universal-items.json');
   for (const it of items.items ?? []) {
@@ -629,9 +630,15 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (z.quelle === 'fleetyards') { const w = fyTeile.join(', '); was = w.charAt(0).toUpperCase() + w.slice(1); }
       if (was && z.was !== `${was}:`) standFehler.push(`${rel}: Zeile „${z.quelle}" heisst „${z.was}", Soll „${was}:"`);
       const name = STAND_NAME[z.quelle] ?? null;
+      // Fassung als Verweis auf die Patch-Seite genau dieser Fassung, wenn es sie gibt
+      const patchSeite = (q.art === 'spiel' || q.art === 'hand') && sollWert && existsSync(join(DIST, 'patches', `sc-${sollWert.replace(/\./g, '-')}.html`))
+        ? `${L ? '/de' : ''}/patches/sc-${sollWert.replace(/\./g, '-')}.html` : null;
       if (name) {
         const istName = z.link ? sichtbar(z.link[2]) : null;
         if (istName !== name[0] || z.link?.[1] !== name[1]) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt die Quelle ${JSON.stringify(istName)} → ${JSON.stringify(z.link?.[1] ?? null)}, Soll „${name[0]}" → ${name[1]}`);
+      } else if (patchSeite) {
+        if (z.link?.[1] !== patchSeite || sichtbar(z.link[2]) !== sollWert) standFehler.push(`${rel}: Zeile „${z.quelle}" verweist mit ${JSON.stringify(z.link?.[1] ?? null)} auf ihre Fassung, Soll ${sollWert} → ${patchSeite}`);
+        else standPatchLinks++;
       } else if (z.link) standFehler.push(`${rel}: Zeile „${z.quelle}" traegt einen Link, Soll ohne`);
       // Wortlaut nach der Wertegruppe
       let kern = null;
@@ -701,6 +708,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   if (fundMitSeite < fundKatalog.size) fail.push(`[6] Bestätigte Fundorte: ${fundKatalog.size - fundMitSeite} Item(s) mit Profil ohne Datenblatt (dist/items/<id>.html) — Items mit Fundort sind indexierbar, die Seite muss es geben`);
   if (fundMitSeite && fundBlaetter < 2 * fundMitSeite) fail.push(`[6] Bestätigte Fundorte: nur ${fundBlaetter} von ${2 * fundMitSeite} Datenblaettern (DE+EN) geprueft — Zuordnung kaputt`);
   console.log(`    Zeilen je Quelle: ${Object.entries(standZeilen).map(([q, n]) => `${q} ${n}`).join(', ') || '—'}`);
+  console.log(`    Fassungen mit Verweis auf ihre Patch-Seite: ${standPatchLinks}`);
+  if (!standPatchLinks) fail.push('[6] keine Zeile verweist auf ihre Patch-Seite — der Verweis in standVerweis() (src/lib/datenstand.ts) fehlt oder die Patch-Seiten sind nicht gebaut');
   // Alter der Fremdquellen: nur genannt, nie bewertet (Grundsatz 3).
   let gebaut = null;
   try { gebaut = isoDatum(JSON.parse(readFileSync(resolve(DIST, 'build.json'), 'utf8')).gebautAm); } catch { /* ohne Baustempel: Alter gegen heute */ }
@@ -829,7 +838,8 @@ if (existsSync(DIST)) {
       const fassungen = [...new Set(gezeigt.map((v) => fassungAus(v.gameVersion)))];
       const marke = sp === 0 ? 'älterer Stand' : 'older data';
       const sollTeile = fassungen.map((f) => ({
-        quelle: 'fahrzeug', art: 'spiel', wert: f, link: null,
+        quelle: 'fahrzeug', art: 'spiel', wert: f,
+        link: existsSync(join(DIST, 'patches', `sc-${f.replace(/\./g, '-')}.html`)) ? `${sp === 0 ? '/de' : ''}/patches/sc-${f.replace(/\./g, '-')}.html` : null,
         text: `${DOSSIER_TEXT.fahrzeug[sp]}: ${sp === 0 ? 'Spielversion' : 'Game version'} ${f}${kopf && vor(f, kopf) ? ` ${marke}` : ''}`,
       }));
       if (wikiGezeigt && wikiDatum) sollTeile.push({

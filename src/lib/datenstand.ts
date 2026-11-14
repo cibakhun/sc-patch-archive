@@ -122,6 +122,26 @@ const T = {
 
 export const standTexte = (lang: Locale) => T[lang];
 
+/**
+ * Die Fassung einer Zeile (Spielversion, Stand) als Verweis auf die Patch-Seite
+ * genau dieser Fassung. Ohne diese Seite `null`, die Fassung bleibt dann Text:
+ * die Seite der Hauptfassung waere ein anderer Patch. `patchLink` reichen die
+ * Astro-Bausteine herein (src/lib/patchPages.ts liest den Seitenbestand per
+ * import.meta.glob, das gibt es nur im Vite-Bau; dieses Modul laeuft auch in
+ * Node-Tests).
+ */
+export function standVerweis(
+  z: StandZeile,
+  lang: Locale,
+  patchLink: (kennung: string, lang: Locale) => { version: string; href: string | null },
+): { vor: string; href: string; nach: string } | null {
+  if ((z.art !== 'spiel' && z.art !== 'hand') || !z.wert || !z.text.includes(z.wert)) return null;
+  const p = patchLink(z.wert, lang);
+  if (!p.href || p.version !== z.wert) return null;
+  const i = z.text.indexOf(z.wert);
+  return { vor: z.text.slice(0, i), href: p.href, nach: z.text.slice(i + z.wert.length) };
+}
+
 const MONATE = {
   de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
