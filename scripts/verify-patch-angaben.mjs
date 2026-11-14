@@ -748,7 +748,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       } else if (q.art === 'pflege') {
         kern = sollWert ? `${L ? 'von Hand gepflegt, zuletzt geändert am' : 'maintained by hand, last changed'} ${datumIn(sollWert, lang)}` : null;
       } else if (z.quelle === 'modelle-ohne') {
-        kern = L ? `exportiert vor ${HANGAR_STEMPEL_AB}, Stand nicht belegt` : `exported before ${HANGAR_STEMPEL_AB}, version not documented`;
+        kern = L ? `vor ${HANGAR_STEMPEL_AB} erstellt, Stand nicht belegt` : `made before ${HANGAR_STEMPEL_AB}, version not documented`;
       } else if (z.quelle === 'modell') {
         kern = L ? 'Stand nicht belegt' : 'version not documented';
       } else if (STAND_QUELLTEXT[z.quelle]) {
