@@ -137,11 +137,18 @@ for (const c of vertraege) {
   // Belohnung: die Reputationsstufe steht als eigener Record, das Item im Ergebnis
   const rep = [];
   const items = [];
+  const klassen = [];
   const lauf = (o, tiefe) => {
     if (!o || typeof o !== 'object' || tiefe > 8) return;
     for (const [k, v] of Object.entries(o)) {
       if (k === 'name' && typeof v === 'string' && v.startsWith('SReputationRewardAmount.')) rep.push(v.replace('SReputationRewardAmount.', ''));
-      if (k === 'entityClass' && v?.__ref) { const n = entityName(v); if (n) items.push(n); }
+      if (k === 'entityClass' && v?.__ref) {
+        const n = entityName(v);
+        if (n) items.push(n);
+        // Klasse der Belohnung: eindeutig, wo zwei Tausche denselben Anzeigenamen tragen
+        const kl = v.name?.replace('EntityClassDefinition.', '');
+        if (kl) klassen.push(kl);
+      }
       if (typeof v === 'object') lauf(v, tiefe + 1);
     }
   };
@@ -156,6 +163,7 @@ for (const c of vertraege) {
     beschreibung: beschreibung ? beschreibung.slice(0, 400) : null,
     orders,
     rewardItems: [...new Set(items)],
+    rewardKlassen: [...new Set(klassen)],
     reputation: [...new Set(rep)],
   });
 }
