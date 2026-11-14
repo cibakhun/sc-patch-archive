@@ -25,7 +25,6 @@ import { useHelp } from '../../i18n/help';
 import { hangarT } from '../../i18n/hangarText';
 import { getCollection } from 'astro:content';
 import { versioned } from '../../lib/assetVersion';
-import { HAS_WERKBANK } from '../../lib/seo';
 import { jsonForScript } from '../../lib/safeJson';
 import { HANGAR_IDS, HANGAR_DEFAULT_SHIP, STAT, STATS, dockFigures, shipFacts } from '../../lib/hangar/catalog';
 import { buildBay, COMPARE, TABS } from '../../lib/hangar/bay';
@@ -107,13 +106,13 @@ const layoutSrc = versioned('assets/hangar-layouts.js', '/assets/hangar-layouts.
 // geladen, wenn die Kamera hinauffaehrt): die Bereiche der Seite als
 // Umschaltleiste ueber dem Schirm. pre nennt, unter welchen Pfaden ein Bereich
 // seine Seiten fuehrt (ohne Sprachteil); danach markiert das Terminal den
-// Reiter auch auf einer Unterseite. Die Werkbank gibt es nur im Vorschau-Bau.
+// Reiter auch auf einer Unterseite.
 const termSrc = versioned('assets/hangar-terminal.js', '/assets/hangar-terminal.js');
 const TERM = [
   { key: 'schiffe', label: ui('nav.ships'), path: '/schiffe.html', pre: ['/schiffe.html', '/schiffe/'] },
   { key: 'items', label: 'Items', path: '/items.html', pre: ['/items.html', '/items/'] },
   { key: 'finder', label: 'Item Finder', path: '/item-finder.html', pre: ['/item-finder.html'] },
-  { key: 'crafting', label: 'Crafting', path: HAS_WERKBANK ? '/topics/crafting-werkbank.html' : '/topics/crafting.html', pre: ['/topics/crafting', '/crafting/'] },
+  { key: 'crafting', label: 'Crafting', path: '/topics/crafting.html', pre: ['/topics/crafting', '/crafting/'] },
   { key: 'missionen', label: ui('nav.missions'), path: '/missionen.html', pre: ['/missionen.html', '/missionen/'] },
   { key: 'mining', label: 'Mining', path: '/topics/mining.html', pre: ['/topics/mining', '/fracturing.html', '/refinery.html', '/precision-jump.html'] },
   { key: 'archiv', label: t('term.archiv'), path: '/archiv.html', pre: ['/archiv.html', '/patches/', '/topics/', '/evolution.html'] },

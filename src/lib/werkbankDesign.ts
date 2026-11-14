@@ -1,4 +1,5 @@
-// Aussehen der Crafting-Werkbank (Prototyp, nur Vorschau-Bau), vierte Runde.
+// Aussehen der Crafting-Werkbank, vierte Runde (damals Prototyp im Vorschau-Bau;
+// seit der Abnahme am 13.11.2026 ist sie die Crafting-Seite).
 // Krisz 11.11.2026 zur dritten Runde: „sher gut. jetzt möchte ich dass du mal
 // das design auf dem höchsten niveou bringst“, „also grafik ui animations etc“.
 //
@@ -45,15 +46,13 @@ export const WERKBANK_DESIGN_CSS = `
    legte sich sonst um das ganze bildschirmfüllende Blatt und lief an den Rändern aus dem Bild. */
 .cdb--wb .cdb-modal__box:focus-visible{outline:none}
 
-/* ===== 1 Kopfzeile: Reiter, Prototyp, Hilfe ===== */
+/* ===== 1 Kopfzeile: Reiter, Hilfe ===== */
 .cdb--wb > .cdb-tabs{gap:.2rem;margin-bottom:.55rem;padding-bottom:0}
 .cdb--wb .cdb-tab-btn{position:relative;padding:.6rem .9rem .72rem;border-bottom:0;border-radius:6px;letter-spacing:var(--ls-4);transition:color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cdb-tab-btn::after{content:"";position:absolute;left:.9rem;right:.9rem;bottom:.16rem;height:2px;border-radius:2px;background:var(--o);box-shadow:0 0 12px color-mix(in srgb,var(--o) 70%,transparent);transform:scaleX(0);opacity:0;transition:transform var(--dur-slow) var(--out),opacity var(--dur-fast) linear}
 .cdb--wb .cdb-tab-btn.active::after{transform:scaleX(1);opacity:1}
 .cdb--wb .cdb-tab-btn:hover{color:var(--tx);background:rgba(255,255,255,.035)}
 .cdb--wb .cdb-tab-btn.active{color:var(--o);border-color:transparent}
-.cdb--wb .cr-proto b{background:color-mix(in srgb,var(--b) 13%,transparent);color:var(--b);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--b) 42%,transparent);padding:.14rem .5rem}
-.cdb--wb .cr-proto a{border-bottom-color:transparent;transition:border-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__summary{gap:.45rem;transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__summary::before{content:"";width:1.1em;height:1.1em;background:var(--o);-webkit-mask:var(--i-help) center/contain no-repeat;mask:var(--i-help) center/contain no-repeat;transform:none}
 @media (min-width:821px){
@@ -628,7 +627,6 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb .wb-tk{display:inline}
   .cdb--wb > .cdb-tabs{gap:.25rem .2rem;margin-bottom:.6rem}
   .cdb--wb > .cdb-tabs > .cdb-tab-btn{flex:1 1 0;justify-content:center;min-width:0;padding:.6rem .5rem .72rem}
-  .cdb--wb > .cdb-tabs > .cr-proto{flex:1 1 100%}
   .cdb--wb > #cdb-tab-db-content > .tool-help{margin-bottom:.6rem}
   .cdb--wb > #cdb-tab-db-content > .tool-help > .tool-help__summary{padding:.55rem .8rem;font-size:var(--fs-7)}
   .cdb--wb > #cdb-tab-db-content > .cdb-bar{padding:.5rem}

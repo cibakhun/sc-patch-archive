@@ -1,4 +1,4 @@
-// Symbole der Crafting-Werkbank (Prototyp, nur Vorschau-Bau): ein Zeichen je
+// Symbole der Crafting-Werkbank: ein Zeichen je
 // Bauteilart, eigene Linienzeichnungen im 24er-Raster (Strich 1.6, runde
 // Enden). Krisz 11.11.2026: „jetzt möchte ich dass du mal das design auf dem
 // höchsten niveou bringst“, „also grafik ui animations etc“.

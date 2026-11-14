@@ -106,7 +106,7 @@ export function termRoute(href, base) {
 /**
  * Der Bereich der Leiste, zu dem ein Pfad gehoert: der laengste passende
  * Anfang gewinnt, die Sprache zaehlt nicht mit.
- *   termTool('/de/topics/crafting-werkbank.html', [{ key: 'crafting', pre: ['/topics/crafting'] }, { key: 'archiv', pre: ['/topics/'] }]) === 'crafting'
+ *   termTool('/de/topics/crafting.html', [{ key: 'crafting', pre: ['/topics/crafting'] }, { key: 'archiv', pre: ['/topics/'] }]) === 'crafting'
  * @param {string} pathname @param {ReadonlyArray<{ key: string, pre: readonly string[] }>} tools
  * @returns {string|null}
  */

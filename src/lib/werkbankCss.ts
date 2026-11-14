@@ -1,6 +1,6 @@
-// Stil der Crafting-Werkbank (Prototyp, Skizze 016-3). Nur die Vorschau-
-// Seite /topics/crafting-werkbank.html traegt ihn (CraftingApp werkbank),
-// die bisherige Crafting-Seite und der Live-Bau sehen ihn nie.
+// Stil der Crafting-Werkbank (Skizze 016-3). Die Crafting-Seite traegt ihn
+// (CraftingApp werkbank); bis zur Abnahme am 13.11.2026 war die Werkbank ein
+// Prototyp unter eigener Adresse im Vorschau-Bau.
 //
 // Aufbau, alles aus dem bestehenden Markup von CraftingApp umgestellt:
 //   ab 1180 px   Liste | Rezept | Planer   (drei Spalten, Mitte und Planer kleben)
@@ -17,8 +17,8 @@
 //
 // Dritte Runde (Krisz 11.11.2026: „wir können das so machen das das tool die
 // ganze seite füllt, überschrift und sowas brauchen wir eig gar nicht“): kein
-// Kopfband mehr (crafting.astro), die Werkbank nimmt die volle Breite, Reiter,
-// Prototyp-Zeile und Hilfe teilen sich eine Zeile, und auf hohen Fenstern
+// Kopfband mehr (crafting.astro), die Werkbank nimmt die volle Breite, Reiter
+// und Hilfe teilen sich eine Zeile, und auf hohen Fenstern
 // reichen die drei Spalten bis an den unteren Rand.
 export const WERKBANK_CSS = `
 /* --wb-bar, --wb-count und --wb-y misst crafting-app.js (Hoehe der
@@ -26,8 +26,7 @@ export const WERKBANK_CSS = `
    der Seite); die Werte hier sind nur der Startwert. --wb-h ist die Hoehe,
    die unter den Spalten-Oberkanten bis zum unteren Fensterrand bleibt. */
 .cdb--wb{--wb-bar:4.4rem;--wb-count:2.6rem;--wb-top:calc(var(--nav-h,68px) + var(--wb-bar) + .5rem);--wb-h:calc(100dvh - var(--wb-y,calc(var(--nav-h,68px) + var(--wb-bar) + 3.5rem)) - .9rem);max-width:none;padding-inline:clamp(.75rem,1.6vw,1.5rem)}
-/* Reiterzeile: Reiter, dahinter die Prototyp-Zeile (CraftingProtoNote
-   kompakt); ab 821 px steht rechts daneben die Hilfe. */
+/* Reiterzeile: die Reiter; ab 821 px steht rechts daneben die Hilfe. */
 .cdb--wb > .cdb-tabs{margin-bottom:.35rem;border-bottom:0;align-items:center}
 .cdb-wb-leer{display:grid;justify-items:center;align-content:center;gap:.5rem;min-height:min(420px,calc(100dvh - var(--wb-top) - 6rem));padding:1.5rem 1rem;text-align:center}
 .cdb-wb-leer__i{display:grid;place-items:center;width:64px;height:64px;margin-bottom:.4rem;border:1px solid var(--line,rgba(255,94,26,.3));border-radius:50%;color:var(--accent,#FF5E1A);background:color-mix(in srgb,var(--accent,#FF5E1A) 8%,transparent)}
@@ -51,8 +50,7 @@ export const WERKBANK_CSS = `
      Kinder des Reiters ins Raster; hidden gewinnt weiter (theme.css). */
   .cdb--wb{display:grid;grid-template-columns:minmax(280px,1fr) clamp(400px,44vw,560px);grid-template-areas:"kopf kopf" "bar bar" "list bp";column-gap:1.4rem;align-items:start}
   /* Reiter und Hilfe teilen sich die Kopfzeile (dieselbe Rasterzelle, links
-     und rechts). Der Innenabstand rechts haelt den Platz der Hilfe frei;
-     wird es eng, bricht die Prototyp-Zeile unter die Reiter um. */
+     und rechts). Der Innenabstand rechts haelt den Platz der Hilfe frei. */
   .cdb--wb > .cdb-tabs{grid-area:kopf;padding-right:min(22rem,42%)}
   .cdb--wb > #cdb-tab-db-content:not([hidden]){display:contents}
   /* Hilfe rechts in der Kopfzeile; aufgeklappt legt sie sich als Tafel
