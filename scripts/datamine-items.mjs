@@ -12,10 +12,10 @@
 //
 // Aufruf: node scripts/datamine-items.mjs [--p4k <Data.p4k>] [--debug]
 // Ausgabe: assets/items-gamefiles.json
-import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
+import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { buildTagIndex, leafUnder } from './lib/tags.mjs';
 import { resolveArmorSets, shortNamesByStem } from './lib/armor-sets.mjs';
@@ -42,13 +42,8 @@ p4k.close();
 // verschiedene Builds desselben Branches waeren ununterscheidbar gewesen (D-16).
 let patchLabel = 'sc-alpha-4.9.0'; // Fallback, falls build_manifest.id fehlt
 {
-  const bm = resolve(dirname(DEFAULT_P4K), 'build_manifest.id');
-  if (existsSync(bm)) {
-    try {
-      const d = JSON.parse(readFileSync(bm, 'utf8'))?.Data;
-      if (d?.Branch && d?.RequestedP4ChangeNum) patchLabel = `${d.Branch}@${d.RequestedP4ChangeNum}`;
-    } catch { /* Fallback bleibt */ }
-  }
+  const d = clientManifest(argOf('--p4k') ?? DEFAULT_P4K);
+  if (d?.Branch && d?.RequestedP4ChangeNum) patchLabel = `${d.Branch}@${d.RequestedP4ChangeNum}`;
 }
 
 const mkMap = (ini) => { const m = new Map(); if (!ini) return m; for (const line of ini.split(/\r?\n/)) { const i = line.indexOf('='); if (i > 0) m.set(line.slice(0, i).replace(/^﻿/, '').toLowerCase(), line.slice(i + 1)); } return m; };
