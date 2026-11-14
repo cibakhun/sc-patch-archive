@@ -1,22 +1,30 @@
-// Spiellampen der Halle: Richtung umrechnen, Flächenlichter an ihrer Fläche
+// Spiellampen der Halle: Spots prüfen, Flächenlichter an ihrer Fläche
 // ausrichten.
 //
 // Der Export legt die Lampen als KHR_lights_punctual-Knoten ab. Die Positionen
-// stimmen, die Ausrichtung nicht:
-// - Spots: Die −Z-Spalte der Weltmatrix ist ein Vektor im Z-oben-Raum des
-//   Spiels und muss nach glTF (x, z, −y). Nachgeprüft per Strahl an der
-//   Deluxe-Halle (2026-10-07): Von 30 an einer Fläche montierten Spots zeigen
-//   so 19 von ihr weg, ohne Umrechnung einer; die beiden Hauptstrahler unter
-//   der Decke zeigen so senkrecht auf den Boden statt waagrecht durch die Halle.
+// stimmen; wohin eine Lampe strahlt, sagt der Knoten so:
+// - Spots: entlang der +X-Spalte der Weltmatrix, schon im glTF-Raum der
+//   Halle (im Spiel strahlt ein Projektor entlang seiner X-Achse; so liest
+//   auch der Aufzugsschacht seine Lampen, rot(q, [1, 0, 0])). Der Build
+//   (hallLights) trägt genau diese Spalte als dir ein, hier wird nichts mehr
+//   umgerechnet.
+//   Bis zum 14.11.2026 stand hier die −Z-Spalte, als Vektor im Z-oben-Raum
+//   des Spiels nach glTF (x, z, −y) gedreht. An der Deluxe-Halle fiel das
+//   nicht auf: Ihre beiden Hauptstrahler zeigen unter beiden Lesarten
+//   senkrecht auf den Boden. In der großen Industriehalle (util-lrgtop)
+//   zeigten damit alle sechs Hauptstrahler (Stärke 600, 45 m über dem Feld)
+//   an die Decke, und auf der Landefläche kam kein Licht an. Nachgemessen
+//   per Strahl gegen die nächste Fläche, alle 18 Lesarten (drei Spalten, zwei
+//   Vorzeichen, roh und zwei Achsdrehungen): +X roh lässt in util-lrgtop 231
+//   von 336 montierten Spots von ihrer Fläche weg zeigen (die alte Lesart 81,
+//   die zweitbeste 140), in der Deluxe-Halle 23 von 31 (die alte 18); die
+//   sechs Hauptstrahler zeigen so schräg nach unten zur Hallenmitte.
 // - Flächenlichter kommen als Punktlichter an; ihre Spalte passt unter keiner
 //   Achsvertauschung (bestenfalls 73 von 206). Sie sitzen aber an einer Fläche
 //   (Leuchtpaneel, Leiste) und strahlen von ihr weg: Richtung = Normale der
 //   nächsten Fläche, zur Lampe hin gedreht.
 //
 // Arbeitet auf Weltkoordinaten der Halle (glTF-Raum, wie im GLB).
-
-/** CryEngine-Richtung (Z oben) -> glTF (Y oben). */
-export const cryToGltf = (d) => [d[0], d[2], -d[1]];
 
 /** Dreiecke aller undurchsichtigen Hallenflächen in Weltkoordinaten, mit BVH. */
 export function hallRaycaster(doc, skip = /glass|grid_grayyellow/i) {
@@ -122,7 +130,7 @@ for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <
 }
 
 /**
- * Richtet die Lampenliste aus (verändert sie): Spots umgerechnet, Flächenlichter
+ * Richtet die Lampenliste aus (verändert sie): Spots gegengeprüft, Flächenlichter
  * von der nächsten Fläche weg (bis `reach` m; weiter weg: dir null = rundum).
  * Gibt eine Selbstauskunft zurück.
  */
@@ -131,7 +139,6 @@ export function orientHallLights(lights, rc, reach = 1.2) {
   const r3 = (v) => Math.round(v * 1000) / 1000;
   for (const l of lights) {
     if (l.type === 'spot' && l.dir) {
-      l.dir = cryToGltf(l.dir).map(r3);
       out.spots++;
       // Gegenprobe: sitzt der Spot an einer Fläche, zeigt er von ihr weg?
       const back = rc.ray(l.pos, l.dir.map((x) => -x), reach);

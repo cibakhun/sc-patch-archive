@@ -58,9 +58,22 @@ const HANGAR_OF_CLASS: Readonly<Record<number, HangarSize>> = { 1: 'S', 2: 'S', 
 /** null: ohne Groessenklasse, dann entscheidet allein das Mass des Modells. */
 export const hangarOfClass = (sizeClass: number | null | undefined): HangarSize | null => (sizeClass == null ? null : HANGAR_OF_CLASS[sizeClass] ?? null);
 
+/**
+ * Halle je Hangargroesse (Krisz 14.11.2026: „Baue mal alle Gangarten
+ * vollständig aus“, Baustil „Industrie wie Lorville und Area18“): Schluessel
+ * aus hangar-assets.json. Bis dahin stand jedes Schiff in der Revel-&-York-
+ * Halle, die fuer Large und Extra Large in Streifen gestreckt wurde. Jetzt
+ * bekommt jede Stufe die Halle, die das Spiel fuer sie baut (Bausatz util_a,
+ * Landeflaeche in HALL_PAD im Viewer). Steht eine Halle noch nicht im
+ * Manifest, bleibt ihre Stufe in der bisherigen Halle (StageConfig.halls).
+ */
+export const HALL_OF_SIZE: Readonly<Record<HangarSize, string>> = { S: 'util-smltop', M: 'util-medtop', L: 'util-lrgtop', XL: 'util-xltop' };
+
 export interface StageConfig {
   /** versioned('assets/hangar-viewer.js', …) */
   readonly viewer: string;
+  /** Eigene Halle je Hangargroesse (HALL_OF_SIZE), nur fuer Stufen, deren Halle gebaut ist. Der Controller startet die Buehne mit der Halle des gezeigten Schiffs und wechselt sie mit der Stufe; ohne Eintrag gilt opts.hall. */
+  readonly halls?: Readonly<Partial<Record<HangarSize, HallConfig>>>;
   /** Wird unverändert in initHangar(container, { reduceMotion, ...opts }) gespreizt: neue Szenen-Optionen brauchen keine Oberflaechen-Aenderung. */
   readonly opts: { readonly hall?: HallConfig | null; readonly crew?: { url: string } | null } & Readonly<Record<string, unknown>>;
   /** Je Id aus HANGAR_IDS: [Geometrie-glb (Hangar-Geometrie aus geo, sonst Holo; ob das Schiff auf dem Fahrwerk steht, sagt opts.gear), Werkslack-glb oder null, Herstellerkuerzel, Ort, Hangargroesse] fuer show(). Ort 'werk': Bodenfahrzeug, steht in der Werkhalle hinter der Westnische; 'halle': auf dem Schiffsfeld. Hangargroesse: die Stufe des Schiffs (hangarOfClass), null in der Werkhalle und ohne Groessenklasse. */

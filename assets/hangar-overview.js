@@ -2536,6 +2536,19 @@ export function boot(doc) {
   }
 
   let viewer = null;
+  // Halle je Hangargroesse (stage.ts HALL_OF_SIZE, 14.11.2026). Krisz: „Baue
+  // mal alle Gangarten vollständig aus“. Jede Stufe hat die Halle, die das
+  // Spiel fuer sie baut; die Buehne laeuft immer mit genau einer (vier Hallen
+  // zugleich hielte keine Grafikkarte). hallOf: die Halle fuer ein Fahrzeug,
+  // die seiner Stufe oder, ohne eigene (und in der Werkhalle), die der Seite.
+  // hallNow: mit welcher die Buehne laeuft (null: ohne echte Halle, etwa die
+  // leichte Buehne am Telefon). Verlangt ein Schiff eine andere, laedt die
+  // Seite mit ihm neu; sein Zustand steht in der Adresse.
+  const hallOf = (id) => {
+    const m = stageCfg.models[id];
+    return (m && m[3] === 'halle' && m[4] && stageCfg.halls?.[m[4]]) || stageCfg.opts.hall || null;
+  };
+  let hallNow = null;
   const loadEl = $('hg-load');
   const bar = loadEl.querySelector('i');
 
@@ -2544,6 +2557,13 @@ export function boot(doc) {
   let showTok = 0;
   function viewerShow(id) {
     if (!viewer) return;
+    const hallWant = hallOf(id)?.id ?? null;
+    if (hallNow && hallWant && hallWant !== hallNow) {
+      // erst nach diesem Zug: commit schreibt die Adresse nach dem Zeichnen
+      loadEl.hidden = false;
+      setTimeout(() => location.reload(), 0);
+      return;
+    }
     const my = ++showTok;
     placed = null;
     syncMarks();
@@ -3059,7 +3079,9 @@ export function boot(doc) {
     // ohne Besatzung baut der Viewer seine eigene Halle (waechterLeicht)
     const leicht = waechterLeicht(deckel, TELEFON);
     if (leicht) leichtZeigen();
-    const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : stageCfg.opts;
+    const halle = hallOf(state.ship);
+    hallNow = leicht ? null : halle?.id ?? null;
+    const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : { ...stageCfg.opts, hall: halle };
     import(stageCfg.viewer)
       .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...buehne, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }))
       .then((v) => {

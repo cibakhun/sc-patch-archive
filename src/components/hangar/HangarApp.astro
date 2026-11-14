@@ -22,7 +22,7 @@ import { versioned } from '../../lib/assetVersion';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
-import { hangarOfClass, type StageConfig, type StageOrt } from '../../lib/hangar/stage';
+import { hangarOfClass, HALL_OF_SIZE, HANGAR_SIZES, type HallConfig, type HangarSize, type StageConfig, type StageOrt } from '../../lib/hangar/stage';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { jsonForScript } from '../../lib/safeJson';
 
@@ -43,7 +43,12 @@ const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // zerfallene, verschobene Rumpfteile aus dem Ausdünnen). Die Werkslack-
 // Fassungen tragen das ganze Modell.
 const HOLD: Record<string, string> = {};
-const [hallKey, hallAsset] = Object.entries(real.hall ?? {})[0] ?? [];
+// Die Halle der Seite: der erste Eintrag, der nicht die Halle einer
+// Hangargröße ist (HALL_OF_SIZE, unten `halls`). Sie trägt Schacht, Werkstatt
+// und Werkhalle und bleibt die Halle aller Stufen ohne eigene.
+const sizeHalls = new Set<string>(Object.values(HALL_OF_SIZE));
+const hallEntry = Object.entries(real.hall ?? {}).find(([k]) => !sizeHalls.has(k));
+const hallKey = hallEntry?.[0], hallAsset = hallEntry?.[1];
 // Lampen der Halle aus dem Spiel (vom Build neben das GLB gelegt, Name nach
 // der Halle, nicht nach der Datei: die LOD-Fassung teilt sie); Version aus
 // dem Inhalt, sonst hielte der Jahres-Cache die alte Liste.
@@ -53,8 +58,11 @@ const contentV = (files: string[]) => {
   return h.digest('hex').slice(0, 8);
 };
 const hallDir = 'public/hangar/hall';
-const lightsFile = hallKey ? `${hallDir}/${hallKey}.lights.json` : '';
-const lights = lightsFile && existsSync(lightsFile) ? `/hangar/hall/${hallKey}.lights.json?v=${contentV([lightsFile])}` : null;
+const lightsOf = (key: string | undefined) => {
+  const f = key ? `${hallDir}/${key}.lights.json` : '';
+  return f && existsSync(f) ? `/hangar/hall/${key}.lights.json?v=${contentV([f])}` : null;
+};
+const lights = lightsOf(hallKey);
 // Spiegelungssonden aus dem Spiel (PC-Lauf „Hallensonden“): Liste und die
 // HDR-Karten daneben, alle im Hash.
 const probesFile = hallKey ? `${hallDir}/${hallKey}.probes.json` : '';
@@ -146,9 +154,19 @@ const werk = werkEntry && werkAsset && werkJson && existsSync(werkJson)
   ? { id: werkEntry[0], url: withV(werkAsset), json: `${werkAsset.json}?v=${contentV([werkJson])}`, bytes: werkAsset.bytes, buehne: buehneAsset ? { url: withV(buehneAsset), bytes: buehneAsset.bytes } : null, decke: werkDecke }
   : null;
 // floor: Bodenhöhe im Modell (vom Build gemessen), bytes: für die Ladeleiste
-const hall = !hallAsset?.room ? null : furniture && lite
+const hall = !hallKey || !hallAsset?.room ? null : furniture && lite
   ? { id: hallKey, url: lite.url, room: hallAsset.room, floor: hallAsset.floor, bytes: lite.bytes, lights, probes, furniture, patch, lift, workshop, werk }
   : { id: hallKey, url: withV(hallAsset), room: hallAsset.room, floor: hallAsset.floor, bytes: hallAsset.bytes, lights, probes, lite, lift, workshop, werk };
+// Eigene Halle je Hangargröße (stage.ts HALL_OF_SIZE), sobald sie im Manifest
+// steht: die Halle des Spiels für diese Stufe mit ihren Lampen. Schacht,
+// Werkstatt und Werkhalle der Seite sind an der Halle oben vermessen und
+// bleiben bei ihr (HALL_FEST im Viewer).
+const halls: Partial<Record<HangarSize, HallConfig>> = {};
+for (const size of HANGAR_SIZES) {
+  const key = HALL_OF_SIZE[size], a = real.hall?.[key];
+  if (!a?.room || !existsSync(`public${a.url}`)) continue;
+  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null };
+}
 // Crew: mit Skelett und Spielanimationen (scripts/build-hangar-crew.mjs,
 // Modul assets/hangar-crew.js), sonst die starre Figur aus hangar-assets
 const crewRig = existsSync('src/data/hangar-crew.json') ? JSON.parse(readFileSync('src/data/hangar-crew.json', 'utf8')) : null;
@@ -217,6 +235,7 @@ const holo = { module: versioned('assets/hangar-holo3d.js', '/assets/hangar-holo
 // "</script>" darf ihn nicht beenden.
 const stage = {
   viewer: viewerSrc,
+  halls,
   opts: { hall, crew, gear, texBytes, logos, interior, holo },
   models: Object.fromEntries(HANGAR_IDS.map((id) => {
     // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026), dazu die

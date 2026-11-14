@@ -57,6 +57,18 @@ const SHIP_DEC = `${SRC}ships-dec/`;
 const HALLS = [
   { key: 'revelyork-single', socpak: 'hangar_revelyork_single.socpak', lod: 0 },
   { key: 'revelyork-single-lod1', socpak: 'hangar_revelyork_single.socpak', lod: 1 },
+  // Industrie-Hallen des heutigen Spiels (Bausatz util_a: Lorville, Area18,
+  // Stationen), je Hangargröße eine, Tore in der Decke, Schiffsaufzug im
+  // Boden (Krisz 14.11.2026: „Industrie wie Lorville und Area18“). Stufe 1
+  // ist die Stufe der Seite. info: Landefläche und Decals aus der .soc;
+  // layers: Schichtmaterialien des Bausatzes (Tönung, Abnutzung).
+  // palette: die Farbpalette der Halle (Datensatz TintPaletteTree), wie ihre
+  // Entities sie am RenderProxy nennen; der Export kennt sie nicht und färbt
+  // die Palettenmaterialien mit einem fast schwarzen Ersatzwert.
+  { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
+  { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
+  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
+  { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
 ];
 // Schiffsaufzug der heutigen Hangars (Hightech, „medtop“: Landefläche 56 x 88 m,
 // am nächsten an unserem Schiffsfeld 32 x 96 m). Exportiert wird der ganze
@@ -431,11 +443,16 @@ if (containers.length) {
     // Decal-Farbkarten tragen ihr Alpha (Deckkraft) schon im RGBA-PNG
     if (h.info) {
       const info = werkstattInfo(h);
+      if (h.palette) {
+        info.palette = await tintPalette(h.palette, info.palettes);
+        if (info.palette) console.log(`  Palette ${info.palette.name}: A ${info.palette.entries.primary.rgb.join(',')}, B ${info.palette.entries.secondary.rgb.join(',')}, C ${info.palette.entries.tertiary.rgb.join(',')}; von ${info.palette.entities} Entities der Halle genannt (alle Nennungen: ${Object.entries(info.palettes).map(([k, n]) => `${k} ${n}`).join(', ') || 'keine'})`);
+        else console.error(`  ! ${h.key}: Palette ${h.palette} fehlt im Datensatz, Palettenmaterialien bleiben beim Ersatzwert des Exports`);
+      }
       writeFileSync(`${SRC}${h.dir}/${h.key}.info.json`, JSON.stringify(info, null, 1));
       for (const m of Object.values(info.decalMaterials)) { add(m.d); add(m.n); add(m.maskTex); }
       console.log(`  Werkstatt: Landefläche ${info.landingArea?.dimensions?.join(' x ')} m, ${info.decals.length} Decals (${info.decals.filter((d) => d.floor).length} auf dem Boden), ${Object.keys(info.decalMaterials).length} Decal-Materialien`);
     }
-    if (h.dir === 'lift' || h.dir === 'werkstatt' || h.dir === 'werkhalle') {
+    if (h.dir === 'lift' || h.dir === 'werkstatt' || h.dir === 'werkhalle' || h.layers) {
       const layers = layerMaterials(docLayerPaths(doc));
       writeFileSync(`${SRC}${h.dir}/${h.key}.layers.json`, JSON.stringify(layers, null, 1));
       for (const l of Object.values(layers)) { add(l.d); add(l.n); }
@@ -1182,6 +1199,27 @@ function readDecalMaterials(used, RAW) {
   return decalMaterials;
 }
 
+// Farbpalette aus dem Datensatz (TintPaletteTree): je Kanal Tönung und
+// Specular (sRGB 0–255) und Glanz. used = Nennungen der Entities der Halle
+// (werkstattInfo); eine Halle, deren Entities die Palette nicht nennen,
+// meldet 0 und damit, dass h.palette geraten ist.
+let paletteDb = null;
+async function tintPalette(name, used = {}) {
+  if (!paletteDb) {
+    const { openP4k } = await import('./lib/p4k.mjs');
+    const { openDataCore } = await import('./lib/datacore.mjs');
+    const p4k = openP4k(P4K);
+    const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
+    p4k.close();
+    paletteDb = new Map();
+    for (const r of db.records) if (db.structs[r.structIndex]?.name === 'TintPaletteTree') paletteDb.set(String(r.name || '').replace(/^TintPaletteTree\./, '').toLowerCase(), () => db.readRecord(r, { typed: true, maxDepth: 12 })?.root);
+  }
+  const key = name.toLowerCase(), v = paletteDb.get(key)?.();
+  if (!v?.entryA || !v.entryB || !v.entryC) return null;
+  const e = (x) => ({ rgb: [x.tintColor.r, x.tintColor.g, x.tintColor.b], spec: [x.specColor.r, x.specColor.g, x.specColor.b], gloss: x.glossiness });
+  return { name: key, entries: { primary: e(v.entryA), secondary: e(v.entryB), tertiary: e(v.entryC) }, entities: used[key] ?? 0 };
+}
+
 function werkstattInfo(h) {
   const RAW = `${SRC}werkstatt-raw/`;
   mkdirSync(RAW, { recursive: true });
@@ -1192,6 +1230,9 @@ function werkstattInfo(h) {
   const soc = zip.get([...zip.keys()].find((k) => k.toLowerCase().endsWith('.soc')))();
   const xml = socEntitiesXml(soc, `${RAW}${h.key}`);
   const la = (xml.match(/<Entity\b[^>]*EntityClass="LandingArea"[^>]*>[\s\S]*?<\/Entity>/) || [])[0] || '';
+  // Farbpaletten, wie die Entities sie nennen (RenderProxy Palette), Name ohne Pfad und Kennziffer
+  const palettes = {};
+  for (const m of xml.matchAll(/<RenderProxy\b[^>]*\bPalette="([^"]*)"/g)) { const n = m[1].split('/').pop().replace(/&lt;\d+&gt;|<\d+>/, '').toLowerCase(); palettes[n] = (palettes[n] || 0) + 1; }
   const attr = (s, k) => (s.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
   const { materials, decals } = socDecals(soc);
   // Decal-Materialien (.mtl unter Materials/Decals): Farbe TexSlot1 (mit
@@ -1204,7 +1245,7 @@ function werkstattInfo(h) {
       pos: String(attr(la, 'Pos') || '0,0,0').split(',').map(Number), rotate: attr(la, 'Rotate') || null,
       dimensions: ['x', 'y', 'z'].map((k) => Number(attr((la.match(/<dimensions\b([^>]*)\/>/) || [])[1] || '', k))),
     },
-    materialTable: materials.length, decals, decalMaterials, extraDecals: WERK_EXTRA_DECALS,
+    materialTable: materials.length, decals, decalMaterials, extraDecals: WERK_EXTRA_DECALS, palettes,
   };
 }
 

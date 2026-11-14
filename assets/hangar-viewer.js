@@ -682,9 +682,37 @@ function hallShiftPoint(h, p) {
   return d ? [p[0] + d, p[1], p[2]] : p;
 }
 
-// Mitte des Schiffsfelds (mit Aufzug) oder des Raums, im Modellraum
+// Hallen in fester Größe (14.11.2026). Krisz: „Baue mal alle Gangarten
+// vollständig aus in vollste Tiefe, Assets Textur Materialien Szene npc ui
+// deko alles“, als Baustil wählte er „Industrie wie Lorville und Area18“.
+// Bis dahin stand jedes Schiff in der Revel-&-York-Halle, die für Large und
+// Extra Large an Streifen auseinandergezogen wurde (HALL_GROW): viermal
+// dieselbe Halle, in den großen Stufen mit kahlen Wänden und leerem Boden.
+// Jetzt hat jede Hangargröße die Halle, die das Spiel für sie baut (Bausatz
+// util_a), und die Seite lädt je Schiff die seiner Stufe (StageConfig.halls).
+// Eine solche Halle wächst nicht und wird nie skaliert: Sie ist so groß, wie
+// sie im Spiel ist. `size`: ihre Stufe, wie die Seite sie nennt. `pad`: die
+// Landefläche des Spiels im Modellraum (x/z von, bis), das Schiff steht auf
+// ihrer Mitte; `clear`: so hoch ist sie frei (m, Höhe der Landefläche im
+// Spiel). `tint`: Faktor auf die Grundfarben; der Bausatz bringt Tönung und
+// Abnutzung in seinen Schichten mit, anders als die weiße Halle.
+// `licht`: Faktor auf die Stärke aller Spiellampen dieser Halle (echte
+// Lampen und Lichtgitter). Das Spiel regelt die Belichtung selbst nach, der
+// Viewer belichtet fest: In der großen Industriehalle kommt am Boden der
+// Landefläche ein Achtel des Lichts der weißen Halle an (0,20 gegen 1,69 je
+// Stärke-Einheit, Hauptstrahler 600 gegen 2500), auf dunklerem Material.
+// Am Bild abgeglichen (Carrack in util-lrgtop, 14.11.2026): bei 10 liest
+// sich der Boden, die Wände bleiben schwarz; bei 18 wird die Oberseite des
+// Schiffs hell, ohne auszubrennen; 16 steht.
+// verify:hangar-hall liest den Block aus dem ausgelieferten Viewer.
+const HALL_FEST = /* hall-fest */ {
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16 }
+} /* /hall-fest */;
+
+// Mitte des Schiffsfelds (mit Aufzug), der Landefläche (HALL_FEST) oder des
+// Raums, im Modellraum
 function hallSpot(h) {
-  const c = h.room.center, L = liftField(h);
+  const c = h.room.center, L = liftField(h) ?? HALL_FEST[h.id]?.pad;
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
 }
 
@@ -7397,8 +7425,9 @@ export async function initHangar(container, opts = {}) {
     const L = realHall?.liftL;
     return L && lastInfo ? Math.max((2 * lastInfo.halfW + 2) / (L.to[0] - L.from[0]), (lastInfo.len + 2) / (L.to[1] - L.from[1])) : 0;
   };
-  // Wächst die Halle (HALL_GROW), bleibt sie im Maßstab 1
-  const realHallScale = (room) => (realHall?.grow ? 1 : Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
+  // Wächst die Halle (HALL_GROW), bleibt sie im Maßstab 1, ebenso eine Halle
+  // in fester Größe (HALL_FEST)
+  const realHallScale = (room) => (realHall?.grow || realHall?.fest ? 1 : Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
     (lastInfo.len + 4) / (2 * room.halfL), (lastInfo.height + 4) / room.height) : 0));
 
   // Zuwachs der Halle (HALL_GROW, hallGrowPrep): grow.d gilt gerade
@@ -7687,6 +7716,10 @@ export async function initHangar(container, opts = {}) {
       if (realHall.grow && ort !== 'werk') {
         grow.to.copy(growFor(shipInfo));
         if (!hold && !grow.to.equals(grow.d)) { grow.glide?.done(); grow.glide = null; growApply(grow.to); grew = true; }
+      } else if (realHall.fest && ort !== 'werk') {
+        // Halle in fester Größe: ihre Stufe und ihre Landefläche, für jedes Schiff dieselbe
+        const P = realHall.fest;
+        hangarTell(shipInfo.id ?? null, P.size, P.pad.to[0] - P.pad.from[0], P.pad.to[1] - P.pad.from[1], P.clear);
       }
       if (!hold) { propGlide = null; layProps(k); }
       if (realHall.dienst && !keep) layDienst(realHall.dienst, shipInfo, k);
@@ -8455,6 +8488,9 @@ export async function initHangar(container, opts = {}) {
     // Lampen im Boden von Feld und Streifen wandern mit (HALL_SHIFT)
     for (const l of all) l.pos = hallShiftPoint(h, l.pos);
     if (!all.length) return false;
+    // Stärke je Halle (HALL_FEST.licht), vor Rangfolge, Gruppen und Gitter
+    const gain = HALL_FEST[h.id]?.licht ?? 1;
+    if (gain !== 1) for (const l of all) l.intensity *= gain;
     const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
     // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
     const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
@@ -10762,7 +10798,7 @@ void main() {
       }
       const uvStats = await hallUvStats(model, pause);
       await pause();
-      const boxed = new Set(), seen = new Set();
+      const boxed = new Set(), seen = new Set(), fest = HALL_FEST[h.id] ?? null;
       model.traverse((n) => {
         if (!n.isMesh) return;
         // Editor-Raster (grau-gelbes Platzhaltergitter) liegt als Deckel
@@ -10791,7 +10827,8 @@ void main() {
           // Die Lackschichten der Halle liefern reinweiße Grundfarben, die
           // im Spiel erst Tönung und Schmutz abdunkeln: ohne das ist jede
           // Wand ein Leuchtkasten.
-          if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
+          // Der Industrie-Bausatz (HALL_FEST) trägt beides in seinen Schichten: nur sein eigener Faktor.
+          if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(fest ? fest.tint ?? 1 : /white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
           if (/metal_grey/i.test(m.name)) {
             // Bodenplatten: gebürstetes Stahlgrau statt der hellen Glanzkarte,
             // die der Export als Farbe liefert; spiegelt ein wenig die Halle.
@@ -11117,7 +11154,7 @@ void main() {
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
       for (const m of werk?.hallMats ?? []) mats.add(m);
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk,
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk, fest,
         grow: gsL ? { s: gsL, org: new THREE.Vector3(o[0], floorY, o[2]), cut: hallCut.value.clone(), door: hallDoor.value.clone(), list: [] } : null };
       if (realHall.grow) { growBoundsInit(); growApply(grow.d); }
       leitBuild();

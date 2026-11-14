@@ -89,8 +89,12 @@ const BUDGET = {
 // Innenraum je Halle (Meter, glTF-Raum Y oben): Bodenmitte, halbe Breite (x),
 // halbe Länge (z), lichte Höhe. Abgelesen an den Bodenplatten und der
 // Deckenunterkante des Exports; der Viewer stellt das Schiff auf die Mitte.
+// Industrie-Hallen (util_a): Wände, Boden und Decke an der gebauten Halle
+// gemessen (Flächen je Ebene); das Schiff steht dort auf der Landefläche des
+// Spiels (HALL_PAD im Viewer), bei Large liegt sie in der Raummitte.
 const HALL_ROOM = {
   'revelyork-single': { center: [36, 0, -68], halfW: 36, halfL: 68, height: 44 },
+  'util-lrgtop': { center: [-72, 2, 112], halfW: 72, halfL: 108, height: 68 },
 };
 
 // Nie sichtbar oder nur im Spiel sinnvoll: Schadensmodelle, Kollisions-/
@@ -493,13 +497,17 @@ function stripAttributes(doc, kind) {
 
 // Spiellampen der Halle -> public/hangar/hall/<halle>.lights.json (liest der
 // Viewer neben dem GLB). Position und Richtung aus den KHR_lights_punctual-
-// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt in −Z),
+// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt entlang
+// der +X-Spalte, siehe scripts/lib/hall-lights.mjs),
 // Spieltyp, Spiel-Intensität und Radius aus <halle>.lights-src.txt (das
 // Protokoll des Exports, siehe scripts/extract-hangar-sources.mjs), über den
 // Namen verbunden. angle = voller Kegelwinkel in Grad. Schatten nennt der
-// Export nicht: shadow bleibt false. Danach richtet orientHallLights die
-// Richtungen aus (Spots aus dem Z-oben-Raum nach glTF, Flächenlichter von
-// ihrer Fläche weg, siehe scripts/lib/hall-lights.mjs); v: 2 kennzeichnet das.
+// Export nicht: shadow bleibt false. Danach prüft orientHallLights die Spots
+// gegen und richtet die Flächenlichter von ihrer Fläche weg aus; v: 2 heißt:
+// alle Richtungen im glTF-Raum.
+// Der Spieltyp kann auch <Uninitialized> heißen (zwei Warnleuchten in
+// util-lrgtop): Mit \w+ fiel die Zeile durch, und die Lampe bekam die Stärke
+// des glTF-Knotens (750 statt 0,5, eine andere Einheit).
 const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
 // Werkhalle (fixtures): je Lampe der Leuchtkörper, in dessen um 0,6 m
 // erweiterter Box sie liegt (der nächste, wenn mehrere), als fixture.
@@ -511,7 +519,7 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
   if (!existsSync(srcFile)) return { missing: `${kind}/${name}.lights-src.txt` };
   const src = new Map();
   for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
-    const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+    const m = line.match(/^Light '(.+)' type=(\S+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
     if (!m) continue;
     if (!src.has(m[1])) src.set(m[1], []);
     src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
@@ -521,14 +529,14 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
     const l = node.getExtension('KHR_lights_punctual');
     if (!l) continue;
     const w = node.getWorldMatrix();
-    const len = Math.hypot(w[8], w[9], w[10]) || 1;
+    const len = Math.hypot(w[0], w[1], w[2]) || 1;
     const s = src.get(node.getName())?.shift();
     const type = s ? (LIGHT_TYPE[s.type] || 'point') : l.getType();
     const r3 = (v) => Math.round(v * 1000) / 1000;
     lights.push({
       type,
       pos: [w[12], w[13], w[14]].map(r3),
-      dir: [-w[8] / len, -w[9] / len, -w[10] / len].map(r3),
+      dir: [w[0] / len, w[1] / len, w[2] / len].map(r3),
       color: l.getColor().map(r3),
       intensity: s ? s.intensity : l.getIntensity(),
       radius: s ? s.radius : l.getRange() ?? 0,
@@ -1586,6 +1594,36 @@ function applyLayers(doc, name, dir = 'lift', only = null) {
   return s;
 }
 
+// Farbpalette der Halle (Industrie-Bausatz util_a, 14.11.2026). Die
+// Paneele, Böden und Lackflächen des Bausatzes tragen keine eigene Farbe:
+// Ihre erste Schicht nennt einen Kanal der Palette (palette_tint 1/2/3 =
+// Eintrag A/B/C), die Farbe kommt aus der Palette der Entity. Der Export
+// kennt die Palette der Halle nicht und setzt einen Ersatzwert ein, linear
+// 0,017 / 0,032 / 0,007: Boden und Wände fast schwarz, die gelben Streifen
+// des Kanals C ebenso. Die Entities der Halle nennen ihre Palette selbst
+// (RenderProxy Palette in der .soc, für util-lrgtop Hangar_default: A
+// 81,80,89, B 130,130,130, C 229,171,91); der Extraktor liest sie aus dem
+// Datensatz und legt sie in <halle>.info.json (palette). Hier wird sie zur
+// Grundfarbe der Palettenmaterialien (sRGB 0–255 -> linear).
+// Metallschichten ohne Farbkarte bleiben, wie applyLayers sie gesetzt hat.
+function applyHallPalette(doc, name) {
+  const f = fileURLToPath(new URL(`hall/${name}.info.json`, SRC));
+  const pal = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')).palette ?? null : null;
+  const lin = (v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const key = [null, 'primary', 'secondary', 'tertiary'];
+  const out = { name: pal?.name ?? null, materials: 0, missing: 0 };
+  for (const m of doc.getRoot().listMaterials()) {
+    const x = m.getExtras() || {};
+    const ch = x.layers?.[0]?.palette_tint ?? x.palette_tint;
+    if (![1, 2, 3].includes(ch)) continue;
+    if (!pal) { out.missing++; continue; }
+    if (m.getMetallicFactor() === 1 && !x.diffuse_tex) continue;
+    m.setBaseColorFactor([...pal.entries[key[ch]].rgb.map(lin), m.getBaseColorFactor()[3]]);
+    out.materials++;
+  }
+  return out;
+}
+
 function prepareLift(doc, name) {
   const root = doc.getRoot();
   const scene = root.listScenes()[0];
@@ -2007,7 +2045,10 @@ async function buildOne(kind, name, inPath) {
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
   const fixedOnly = (m) => !!m.getExtras()?.matfix;
-  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
+  // Hallen mit Schichtmaterialien (Industrie-Bausatz util_a): der Extraktor legt <halle>.layers.json daneben
+  const hallLayers = kind === 'hall' && existsSync(fileURLToPath(new URL(`hall/${name}.layers.json`, SRC)));
+  const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
+  const hallPalette = hallLayers ? applyHallPalette(doc, name) : null;
   const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
@@ -2135,6 +2176,7 @@ async function buildOne(kind, name, inPath) {
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
+    ...(hallPalette ? { hallPalette } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
@@ -3320,7 +3362,10 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
         console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture != null ? `${r.furniture} Einrichtungsobjekte, ` : ''}${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp${r.lights.withFixture != null ? `, ${r.lights.withFixture} an einem Leuchtkörper` : ''}), ${(r.bytes / 1048576).toFixed(2)} MB`);
         const o = r.lights.orient;
-        if (o) console.log(`    Lampen: ${o.spots} Spots umgerechnet (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
+        if (o) console.log(`    Lampen: ${o.spots} Spots (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
+        if (r.hallPalette) console.log(r.hallPalette.name
+          ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt`
+          : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
