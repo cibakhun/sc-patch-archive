@@ -47,10 +47,11 @@
    src/data/hangar-assets.json. Kein git, kein Netz, kein Kindprozess. Im
    Live-Bau gibt es keinen Hangar (nurMitHangar in der Registry).
 
-   VORGEFUEHRT ROT (14.11.2026, am PC gegen die gebaute Large-Halle; im
-   Repo liegt ihr Modell bis zu ihrer PR nicht, hier meldet das Tor bis
-   dahin „0 Hallen“). Jede Gegenprobe verändert dist/ (b eine Kopie des
-   Skripts) und stellt danach zurück; der Lauf danach war grün:
+   VORGEFUEHRT ROT (14.11.2026, a bis i am PC gegen die gebaute
+   Large-Halle, bevor ihr Modell im Repo lag; k im Cloud-Rechner gegen den
+   Vorschau-Bau mit ihr). Jede Gegenprobe verändert dist/ (b eine Kopie des
+   Skripts, k dazu das Manifest) und stellt danach zurück; der Lauf danach
+   war grün:
    (a) Einrichtungsdatei der Halle in dist/: „[4] dist/hangar/hall/ traegt
        util-lrgtop.furniture.glb: Die Seite laedt fuer eine Halle fester
        Groesse nur ihr Modell …“. So stand es ungestellt auch im ersten
@@ -82,6 +83,18 @@
    (i) screen_off_01_mtl__00 umgefärbt (hinter „_mtl_“ weist sein Name es
        nicht als Schirm aus): „[3] … 142 Dreiecke ausgeschalteter Schirme
        (9 Materialien …), Klinke 196 …“
+   (k) 14.11.2026, mit den Frachtaufzügen im Modell (Kind-Container,
+       scripts/lib/hall-kinder.mjs) und den Klinken dafür: die Halle des
+       Stands davor, ohne die beiden Aufzüge (Modell, Lampen und Manifest
+       getauscht, `bytes` der Seiten angepasst), 7 FEHLER: „[3] … 196
+       Dreiecke ausgeschalteter Schirme …, Klinke 244 …“, „[3] … 2089
+       Dreiecke Schrift, Klinke 2337 …“, „[3] … 678 Lampen des Spiels,
+       Klinke 798“, „[3] … 10 vom Build ausgeschaltete Schirme, Klinke
+       13“, „[3] … 7 Tafeln mit dem Logo des Betreibers, Klinke 9“, „[3] …
+       130 Netze mit Aufklebern, Klinke 148“, „[3] … 1.27 % Blickstrahlen
+       ins Leere, Obergrenze 0.3 …“ (an der Stelle jedes Aufzugs stand ein
+       Loch von 48 x 32 m in der Längswand). Die Zahlen in (b), (g) und (i)
+       sind die ihres Tages, vor den Aufzügen.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -107,16 +120,22 @@ const DIST = join(ROOT, 'dist');
 const STUFEN = ['S', 'M', 'L', 'XL'];
 
 // Klinken (Grundsatz 5: nur nach oben; nach unten per Commit mit Ursache)
-const MIN_HALLEN = 0; // ausgelieferte Hallen fester Größe (14.11.2026: 0, das Modell der Large-Halle kommt mit ihrer PR)
+const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die Large-Halle)
 // je Halle, gemessen am gebauten Stand: Lampen des Spiels, Teile des Bodentors, Dreiecke der Schrift im Modell,
 // Dreiecke ausgeschalteter Schirme im Modell, vom Build ausgeschaltete Schirme, Tafeln mit Logo, Netze mit
-// Aufklebern, aus der vollen Stufe geholte Schilder
+// Aufklebern, aus der vollen Stufe geholte Schilder.
+// util-lrgtop mit ihren beiden Frachtaufzügen (Kind-Container, scripts/lib/hall-kinder.mjs): 678 Lampen der
+// Halle und 2 × 60 der Aufzüge, 7 Tafeln mit Logo und je eine am Bedienhäuschen. Fehlen die Aufzüge wieder,
+// reißen Lampen, Tafeln, Schirme und die Obergrenze für Strahlen ins Leere zugleich.
 const KLINKE = {
-  'util-lrgtop': { lampen: 678, tor: 18, schriftTris: 2089, schirmTris: 196, schirme: 10, tafeln: 7, aufkleber: 130, schilder: 5 },
+  'util-lrgtop': { lampen: 798, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 148, schilder: 5 },
 };
-// Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%)
+// Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
+// util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
+// 1 783 379. Ins Leere gingen ohne sie 1,27 % der Strahlen (zwei Löcher von 48 × 32 m in den Längswänden),
+// mit ihnen 0,01 %: Die Grenze 0,3 % hält die Hülle geschlossen.
 const OBERGRENZE = {
-  'util-lrgtop': { tris: 1700000, bytes: 24e6, texturen: 270, leck: 1.5 },
+  'util-lrgtop': { tris: 1850000, bytes: 24e6, texturen: 270, leck: 0.3 },
 };
 // Schirme ohne Bild. Aus ist ein Material ohne Farb- und Leuchtkarte in der Farbe, die das Spiel seinen
 // ausgeschalteten Schirmen gibt und der Build denen ohne Bild (SCHIRM_AUS, 0,0048). Ihre Dreiecke im Modell

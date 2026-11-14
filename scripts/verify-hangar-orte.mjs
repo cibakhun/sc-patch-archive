@@ -179,7 +179,7 @@ const MIN_FIT_PROBEN = 1200; // Stellungen der Kamera, die [5] nachrechnet (13.1
 const MIN_FIT_ENG = 130;     // davon mit begrenztem Bildwinkel: dort schrumpft der Schirm (13.11.2026: 66; 14.11.2026 mit der Large-Halle 144)
 const MIN_WEG_PROBEN = 14;  // Links, die [4] durch termRoute schickt
 const MIN_WER_PROBEN = 11;  // Profilzeilen, die [4] durch termIdent schickt (14.11.2026: 11)
-const MIN_GLAS_HALLEN = 1;  // Hallen, deren Monitor [8] im Modell nachmisst (14.11.2026: 1)
+const MIN_GLAS_HALLEN = 2;  // Hallen, deren Monitor [8] im Modell nachmisst (14.11.2026: 2, Revel & York und Large)
 const MIN_GEDREHT = 1;      // Hallen, deren Monitor nicht gerade nach Sueden sieht (14.11.2026: 1, Large-Halle)
 
 const fehler = [];
