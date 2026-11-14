@@ -34,6 +34,7 @@ import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-is
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
+import { hallDecalMaps, pickHallDecals, addHallDecals, attachHallDecalTextures } from './lib/hall-decals.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -190,6 +191,8 @@ function applyMatFix(doc, fix, { ship = false } = {}) {
   // Specular-Maps und Kachelung (TexMod) auch für die schon aufgelösten
   // Materialien nachtragen — die nennt der Export nicht
   if (!ship) for (const m of mats) {
+    // Aufkleber (scripts/lib/hall-decals.mjs) bringen ihre Karten selbst mit
+    if (m.getExtras()?.hall_decal) continue;
     const [base, rest] = m.getName().split('_mtl_');
     const sub = rest && fix.mtls[base]?.find((s, i) => s.name && rest.startsWith(s.name + '_') && Number(rest.slice(s.name.length + 1)) === i);
     if (sub) m.setExtras({ ...m.getExtras(), spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend, vc: sub.vc });
@@ -445,7 +448,7 @@ function cleanMaterials(doc, { paletteOwner, paintTargets, series, twoSided = fa
       pbr.materials++;
       if (q.metalness > 0.5) pbr.metal++;
     }
-    m.setExtras({ ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(pal ? { palette: pal } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
+    m.setExtras({ ...(x.hall_decal ? { hallDecal: 1 } : {}), ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(pal ? { palette: pal } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
   }
   for (const e of root.listExtensionsUsed()) {
     if (/lights_punctual|materials_(ior|transmission|volume)/.test(e.extensionName)) e.dispose();
@@ -471,7 +474,9 @@ function stripAttributes(doc, kind) {
     // Schacht (kind lift): VEC4 — im Alpha liegt die Mischmaske der Wear-Schicht
     // (HardSurface %WEAR_LAYER), siehe .planning/notes/hangar-schacht-tiefe.md
     const ch = kind === 'lift' ? 4 : 3;
-    if ((kind === 'hall' || kind === 'lift') && c && mat?.getExtras()?.vc) {
+    if (kind === 'hall' && c && mat?.getExtras()?.hall_decal) {
+      // Aufkleber (scripts/lib/hall-decals.mjs): COLOR_0 bleibt ganz, es ist Farbe und Deckkraft des Aufdrucks
+    } else if ((kind === 'hall' || kind === 'lift') && c && mat?.getExtras()?.vc) {
       const n = c.getCount(), out = new Uint8Array(n * ch), v = [0, 0, 0, 1];
       const key = `${mat.getName()}|${p.getExtras()?.matfix ? 'matfix' : 'eigen'}`;
       const e = vc.get(key) || { tris: 0, n: 0, sumR: 0, low: 0 };
@@ -2097,7 +2102,7 @@ function aufzugPlan(doc, T) {
   // markFurniture nimmt den Netzen später ihre Namen; für die Liste dessen, was auf der Plattform steht
   const names = new Map(root.listMeshes().map((m) => [m, m.getName().split(/[\\/]/).pop().replace(/\.(cga|cgf)$/i, '')]));
   return {
-    door, pad, owner, nodeOf, parts, names, skipped: skipped.length,
+    door, pad, owner, boneOf, nodeOf, parts, names, skipped: skipped.length,
     seconds: { close: r3(close.frames / close.fps), open: r3(open.frames / open.fps) },
     plattform: { node: 'aufzug_pad', bone: pb.name, weg: r3(up[1]), keys: { down: padKeys(pc), up: padKeys(po) }, seconds: { down: r3(pc.frames / pc.fps), up: r3(po.frames / po.fps) } },
   };
@@ -2206,6 +2211,17 @@ async function buildOne(kind, name, inPath) {
   const torFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.tor.json`, SRC)) : null;
   const aufzug = torFile && existsSync(torFile) ? aufzugPlan(doc, JSON.parse(readFileSync(torFile, 'utf8'))) : null;
   const tris0 = countTris(root);
+  // Aufkleber, die der Export auslässt (scripts/lib/hall-decals.mjs, der Extraktor legt
+  // <halle>.decals.glb daneben): gleich jetzt, solange die Netze die Primitive des Exports
+  // tragen, aber nach dem Plan des Aufzugs, der die Primitive des Tors der Reihe nach zuordnet
+  const decalFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.decals.glb`, SRC)) : null;
+  let decals = null;
+  if (decalFile && existsSync(decalFile)) {
+    const dd = await io.read(decalFile), pick = pickHallDecals(dd, { karten: await hallDecalMaps(dd, { texFile, sharp }) });
+    decals = { ...addHallDecals(doc, dd, { keep: pick.keep, mult: pick.mult }), weg: pick.weg };
+    // am Tor fährt ein Aufkleber mit seiner Lamelle
+    if (aufzug) for (const p of decals.added.get(aufzug.door.getMesh()) ?? []) aufzug.owner.set(p, aufzug.boneOf(p.getExtras().sub.node));
+  }
   if (kind === 'npc') prepareCrew(doc);
   const weapon = kind === 'weapons' || kind === 'components' ? prepareWeapon(doc, name, kind) : null;
   const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
@@ -2263,6 +2279,7 @@ async function buildOne(kind, name, inPath) {
   const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind, null, { ton: hallLayers }) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
   const hallPalette = hallLayers ? { ...applyHallPalette(doc, name), schichtTon: layered.ton ?? 0 } : null;
   const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
+  const decalMaps = decals ? await attachHallDecalTextures(doc, { texFile, sharp }) : null;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
   const vertexColors = stripAttributes(doc, werk ? 'hall' : srcKind);
@@ -2395,6 +2412,7 @@ async function buildOne(kind, name, inPath) {
     ...(lights ? { lights, furniture } : {}),
     ...(hallPalette ? { hallPalette } : {}),
     ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
+    ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
@@ -3584,6 +3602,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         if (r.hallPalette) console.log(r.hallPalette.name
           ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
           : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
+        const a = r.aufkleber;
+        if (a) console.log(`    Aufkleber: ${a.primitive} Teilnetze an ${a.netze} Netzen, ${a.trisMitExemplaren.toLocaleString()} Dreiecke mit allen Exemplaren, ${a.karten.materialien} Materialien mit ${a.karten.farbkarten} Farb- und ${a.karten.normalen} Normalenkarten; weggelassen: ${a.weg.relief.materialien} nur Relief (${a.weg.relief.tris.toLocaleString()} Dreiecke), ${a.weg.klein.materialien} klein (${a.weg.klein.tris.toLocaleString()})${a.fremd.length ? `; WARNUNG ${a.fremd.length} Netze passen nicht mehr zum Export (${a.fremd.slice(0, 5).join(', ')}), Halle mit dem Extraktor neu exportieren` : ''}${a.karten.ohneKarte.length ? `; WARNUNG ohne Farbkarte im Cache: ${a.karten.ohneKarte.join(', ')}` : ''}`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);

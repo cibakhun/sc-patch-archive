@@ -10883,9 +10883,12 @@ void main() {
       // Paneele verschieden ab. Als eigenes Attribut (hgShade, der Hallen-
       // shader nimmt den Rotkanal): Vertexfarben wären je Material ein
       // eigenes Shaderprogramm.
+      // Aufkleber (extras.hallDecal, scripts/lib/hall-decals.mjs) sind die
+      // Ausnahme: Ihr COLOR_0 ist Farbe und Deckkraft des Aufdrucks und bleibt
+      // als Eckfarbe stehen (ein Programm für alle, sie sind wenige).
       let shaded = 0, padded = 0;
       model.traverse((n) => {
-        if (!n.isMesh || !n.geometry.attributes.color) return;
+        if (!n.isMesh || !n.geometry.attributes.color || [].concat(n.material).some((m) => m.userData.hallDecal)) return;
         n.geometry.setAttribute('hgShade', n.geometry.attributes.color);
         n.geometry.deleteAttribute('color');
         for (const m of [].concat(n.material)) { m.vertexColors = false; m.userData.hgShade = true; }
@@ -10930,7 +10933,8 @@ void main() {
           // Logo und Wand flimmerten um dieselben Pixel, in der Ferne fehlten
           // Logos ganz. Zwei Tiefenstufen zur Kamera hin; mehr ließe sie durch
           // Leisten davor scheinen. Laufspuren (leakings) kämpfen nicht.
-          if (/decal/i.test(m.name)) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
+          const sticker = !!m.userData.hallDecal;
+          if (sticker || /decal/i.test(m.name)) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
           // Weißer Innenraum: die Reflexe der Ersatzhalle dämpfen. Spiegelndes
           // Metall (Bodenplatten, Verkleidung) spiegelte sie sonst als flache
           // blaue Flächen, glatter Kunststoff als Gleißen.
@@ -10944,6 +10948,7 @@ void main() {
           // Wand ein Leuchtkasten.
           // Der Industrie-Bausatz (HALL_FEST) trägt beides in seinen Schichten: nur sein eigener Faktor.
           if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(fest ? fest.tint ?? 1 : /white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
+          else if (sticker && fest && m.color) m.color.multiplyScalar(fest.tint ?? 1);
           if (/metal_grey/i.test(m.name)) {
             // Bodenplatten: gebürstetes Stahlgrau statt der hellen Glanzkarte,
             // die der Export als Farbe liefert; spiegelt ein wenig die Halle.
@@ -10964,12 +10969,12 @@ void main() {
           m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
           // Nicht alle bringen ihre Leuchtkarte mit: dann leuchtet die Farbkarte.
-          if (/light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
+          if (!sticker && /light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
             m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
           } else if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
           const us = uvStats.get(m);
-          if (us && us.share > 0.4 && !boxed.has(m) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
+          if (us && us.share > 0.4 && !boxed.has(m) && !sticker && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
           unifyMaps(m);
           onePass(m);
         }

@@ -19,6 +19,7 @@ import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './lib/ivo-caf.mjs';
+import { hallDecalDoc, meshBase } from './lib/hall-decals.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -66,10 +67,12 @@ const HALLS = [
   // palette: die Farbpalette der Halle (Datensatz TintPaletteTree), wie ihre
   // Entities sie am RenderProxy nennen; der Export kennt sie nicht und färbt
   // die Palettenmaterialien mit einem fast schwarzen Ersatzwert.
-  { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
-  { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
-  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' } },
-  { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default' },
+  // decals: die Teilnetze mit Aufkleber-Material, die der Export auslässt
+  // (Bodenmarkierungen, Schrift, Fugen und Schrauben), aus den Spieldateien.
+  { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
+  { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
+  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' } },
+  { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];
 // Schiffsaufzug der heutigen Hangars (Hightech, „medtop“: Landefläche 56 x 88 m,
 // am nächsten an unserem Schiffsfeld 32 x 96 m). Exportiert wird der ganze
@@ -442,6 +445,7 @@ if (containers.length) {
     const add = (p) => { if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/')); };
     for (const m of doc.getRoot().listMaterials()) { const x = m.getExtras() || {}; add(x.diffuse_tex); add(x.normal_tex); }
     for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); add(s.blend?.d); add(s.blend?.mask); }
+    if (h.decals) for (const p of await hallDecals(h, doc)) add(p);
     // Decal-Farbkarten tragen ihr Alpha (Deckkraft) schon im RGBA-PNG
     if (h.info) {
       const info = werkstattInfo(h);
@@ -824,6 +828,62 @@ function readSubsetsNode(buf) {
     if (rows.length && (!best || rows.length > best.length)) best = rows;
   }
   return best || [];
+}
+
+// ─── Aufkleber der Halle (scripts/lib/hall-decals.mjs, h.decals) ─────────
+// Der socpak-Export lässt jedes Teilnetz mit Aufkleber-Material (%DECAL im
+// StringGenMask) aus. Hier kommen sie aus den Spieldateien zurück: je Netz
+// der Halle die Netzdatei ihrer Stufe (.cgfm/.cgam) samt Kopf (dort steht
+// der Materialpfad), dazu die .mtl. Das Ergebnis geht als eigenes GLB nach
+// hall/<halle>.decals.glb, der Bericht nach hall/<halle>.decals.json; der
+// Build hängt die Primitive an die Netze der Halle und entscheidet, welche
+// Materialien sie bekommt. Liefert die Texturpfade zum Dekodieren.
+async function hallDecals(h, doc) {
+  const RAW = `${SRC}hall-decal-raw/`;
+  mkdirSync(RAW, { recursive: true });
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const names = [...new Set(doc.getRoot().listMeshes().map((m) => meshBase(m.getName())))];
+  let files = listFiles(RAW);
+  const have = new Set(files.map((f) => f.toLowerCase().split('/').pop().replace(/(_lod\d)?\.(cga|cgf)m?$/, '')));
+  const need = FORCE ? names : names.filter((n) => !have.has(n));
+  // in Portionen: die Befehlszeile hat unter Windows eine Obergrenze
+  for (let i = 0; i < need.length; i += 80) {
+    try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${need.slice(i, i + 80).map(esc).join('|')})(_lod1)?\\.(cga|cgf)m?$`]); }
+    catch (e) { console.error(`  ! Aufkleber, Auszug ab Netz ${i}: ${e.message}`); }
+  }
+  if (need.length) files = listFiles(RAW);
+  const byBase = new Map();
+  for (const f of files) { const b = f.toLowerCase().split('/').pop(); (byBase.get(b) ?? byBase.set(b, []).get(b)).push(f); }
+  let mtlFiles = files.filter((f) => /\.mtl$/i.test(f));
+  const mtlCache = new Map();
+  const subMaterials = (mtl) => {
+    const rel = mtl.replace(/\\/g, '/').replace(/^data\//i, '').replace(/\.mtl$/i, '').toLowerCase(), base = rel.split('/').pop();
+    if (mtlCache.has(rel)) return mtlCache.get(rel);
+    const find = () => { const l = mtlFiles.filter((f) => f.toLowerCase().endsWith(`/${base}.mtl`)); return l.find((f) => f.toLowerCase().endsWith(`/${rel}.mtl`)) ?? l[0]; };
+    let f = find();
+    if (!f) {
+      try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(base)}\\.mtl$`]); } catch { /* ohne .mtl kein Aufkleber */ }
+      mtlFiles = listFiles(RAW).filter((x) => /\.mtl$/i.test(x));
+      f = find();
+    }
+    let out = null;
+    if (f) {
+      const xml = `${f}.xml`;
+      if (FORCE || !existsSync(xml)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, xml]);
+      if (existsSync(xml)) out = parseSubMaterials(readFileSync(xml, 'utf8'));
+    }
+    mtlCache.set(rel, out);
+    return out;
+  };
+  const { doc: out, report } = hallDecalDoc({ doc, files: byBase, read: (f) => readFileSync(f), subMaterials, lod: h.lod, Document });
+  const file = `${SRC}hall/${h.key}.decals.glb`;
+  if (out) await new NodeIO().write(file, out);
+  else if (existsSync(file)) rmSync(file);
+  writeFileSync(`${SRC}hall/${h.key}.decals.json`, JSON.stringify(report, null, 1));
+  const A = report.aufkleber;
+  console.log(`  Aufkleber: ${report.zugeordnet} von ${report.netze} Netzen ihrer Spieldatei zugeordnet (${report.ohneDatei.length} ohne Datei, ${report.unklar.length} unklar), ${A.teilnetze} ausgelassene Teilnetze an ${A.netze} Netzen zurückgeholt, ${A.trisMitExemplaren} Dreiecke mit allen Exemplaren, ${Object.keys(report.materialien).length} Materialien; ${report.ohneLage.length} ohne Lage, ${report.andere.teilnetze} ausgelassene ohne Aufkleber-Material`);
+  if (report.ohneLage.length) console.log(`    ohne Lage (kein behaltenes Teilnetz am selben Knoten): ${report.ohneLage.slice(0, 8).join(' | ')}`);
+  return out ? out.getRoot().listMaterials().flatMap((m) => [m.getExtras().hall_decal.d, m.getExtras().hall_decal.n]).filter(Boolean) : [];
 }
 
 // ─── Hallen-Materialien, die der socpak-Export nicht auflöst ─────────────
@@ -1381,6 +1441,8 @@ function parseSubMaterials(xml) {
       vc: /VERTCOLORS/i.test(attr('StringGenMask') || ''),
       // Schiffe: Decals blenden, Glow leuchtet (wie die Materialien des Exports)
       decal: /%DECAL(?![A-Z_])/i.test(attr('StringGenMask') || '') || undefined,
+      // Aufkleber der Hallen (scripts/lib/hall-decals.mjs): Schalter, Schwelle und Parameter wörtlich
+      ...(/%DECAL(?![A-Z_])/i.test(attr('StringGenMask') || '') ? { genMask: attr('StringGenMask'), alphaTest: attr('AlphaTest'), params: Object.fromEntries([...pp.matchAll(/(\w+)="([^"]*)"/g)].map((q) => [q[1], q[2]])) } : {}),
       glow: Number(attr('Glow')) || undefined,
       ...(layers.length ? { layers } : {}),
     });
