@@ -1413,15 +1413,19 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     let rechnetOk = false;
     if (typeof E === 'function' && klinkeOk) {
       const echt = { Worker: globalThis.Worker, setTimeout: globalThis.setTimeout, clearTimeout: globalThis.clearTimeout, info: console.info };
-      const alle = [];
+      const alle = [], groesse = new Map();
       let uhr = null;
       class Zaehler {
         constructor() { this.tot = false; this.post = []; alle.push(this); }
-        postMessage(m) { if (m?.type === 'decode') this.post.push(m.id); }
+        postMessage(m) { if (m?.type === 'decode') { this.post.push(m.id); groesse.set(m.id, m.buffer?.byteLength ?? 0); } }
         terminate() { this.tot = true; }
         fertig(id) { this.onmessage({ data: { type: 'decode', id, geometry: { index: null, attributes: [] } } }); }
       }
       const ruck = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+      // Nie auf ein Versprechen des Entpackers selbst warten: Bleibt ein
+      // Worker haengen, den die Reihe der grossen Stuecke abwartet, haenge
+      // sonst das Tor (node endet dann mit 13 und ohne Meldung)
+      const erledigt = async (ps) => { let ok = false; Promise.allSettled(ps).then(() => { ok = true; }); await ruck(); return ok; };
       const neuer = (telefon) => { const e = new E(telefon); e._initDecoder = () => Promise.resolve(); return e; };
       try {
         globalThis.Worker = Zaehler;
@@ -1466,14 +1470,59 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
             for (const w of alle) for (const id of w.post.splice(0)) w.fertig(id);
             await ruck();
           }
-          await Promise.all(p);
+          const fertig = await erledigt(p);
           const leben = alle.filter((w) => !w.tot).length;
           e.dispose();
-          return { erst, worker: alle.length, leben };
+          return { erst, worker: alle.length, leben, fertig };
         };
         const tel = await zugleich(true), pc = await zugleich(false);
-        ist.push(`zwei grosse Stuecke: am Telefon ${tel.erst} zugleich in Arbeit (${tel.worker} Worker, danach laufen ${tel.leben}), am PC ${pc.erst} (${pc.worker} Worker, danach laufen ${pc.leben})`);
-        rechnetOk = ruheOk && grossOk && tel.erst === 1 && tel.worker === 2 && tel.leben === 0 && pc.erst === 2 && pc.leben === 0;
+        const wort = (z) => `${z.worker} Worker, ${z.fertig ? 'beide fertig' : 'NICHT beide fertig'}, danach laufen ${z.leben}`;
+        ist.push(`zwei grosse Stuecke: am Telefon ${tel.erst} zugleich in Arbeit (${wort(tel)}), am PC ${pc.erst} (${wort(pc)})`);
+        // (d) die Grenze zaehlt alle lebenden Worker: Der Pool ist voll, ein
+        // grosses Stueck nimmt einen Worker mit, das naechste kleine darf
+        // keinen weiteren starten (Befund im Review der PR #364: three
+        // fragt nur den Pool, am Telefon lebten drei statt zwei)
+        const alleLeben = async (telefon) => {
+          alle.length = 0;
+          const e = neuer(telefon), grenze = telefon ? K.telefon : K.faeden;
+          for (let id = 1; id <= grenze; id++) await e._getWorker(id, 5000 - id);
+          await e._getWorker(90, K.gross);
+          await e._getWorker(91, 10);
+          const leben = alle.filter((w) => !w.tot).length;
+          e.dispose();
+          return leben;
+        };
+        const lebenTel = await alleLeben(true), lebenPc = await alleLeben(false);
+        ist.push(`Pool voll, dann ein grosses und ein kleines Stueck: am Telefon leben ${lebenTel} Worker, am PC ${lebenPc}`);
+        // (e) am Telefon wartet das naechste grosse Stueck, bis der Worker des
+        // vorigen beendet ist: Hat er noch ein kleines Stueck offen, haelt er
+        // so lange den Speicher seines grossen
+        alle.length = 0;
+        const f = neuer(true);
+        const pf = [f.decodeGeometry(new ArrayBuffer(64), {}), f.decodeGeometry(new ArrayBuffer(65), {})];
+        await ruck();
+        pf.push(f.decodeGeometry(new ArrayBuffer(K.gross), {}), f.decodeGeometry(new ArrayBuffer(K.gross + 1), {}));
+        await ruck();
+        // welches Stueck wo liegt, sagt seine Groesse (die Kennungen vergibt three)
+        const mit = (bytes) => alle.find((w) => w.post.some((id) => groesse.get(id) === bytes));
+        const x = mit(K.gross);
+        let frueh = null, lebtNoch = null, spaet = null, alleVier = false;
+        if (x && x.post.some((id) => groesse.get(id) < K.gross)) {
+          x.fertig(x.post.find((id) => groesse.get(id) === K.gross));
+          await ruck();
+          frueh = mit(K.gross + 1) ? 1 : 0;
+          lebtNoch = !x.tot;
+          for (const id of x.post.filter((i) => groesse.get(i) < K.gross)) x.fertig(id);
+          await ruck();
+          spaet = mit(K.gross + 1) ? 1 : 0;
+          for (const w of alle) if (w !== x) for (const id of w.post.splice(0)) w.fertig(id);
+          alleVier = await erledigt(pf);
+        }
+        const lebenF = alle.filter((w) => !w.tot).length;
+        f.dispose();
+        ist.push(`zweites grosses Stueck am Telefon: ${lebtNoch === null ? 'kein Worker traegt ein kleines und ein grosses Stueck' : `solange der Worker des ersten ${lebtNoch ? 'lebt' : 'schon beendet ist'}, ${frueh} unterwegs, nach seinem Ende ${spaet}, ${alleVier ? 'alle vier Stuecke fertig' : 'NICHT alle vier Stuecke fertig'}`}`);
+        rechnetOk = ruheOk && grossOk && tel.erst === 1 && tel.worker === 2 && tel.leben === 0 && tel.fertig && pc.erst === 2 && pc.leben === 0 && pc.fertig
+          && lebenTel === K.telefon && lebenPc === K.faeden && lebtNoch === true && frueh === 0 && spaet === 1 && alleVier && lebenF <= K.telefon;
       } catch (e) {
         ist.push(`Fehler beim Nachrechnen: ${e.message}`);
       } finally {
@@ -1481,14 +1530,14 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
         console.info = echt.info;
       }
     }
-    sollIst(`Entpacker der Geometrie: hoechstens ${ENTPACKER_MAX.faeden} Worker, am Telefon ${ENTPACKER_MAX.telefon}; ohne Arbeit enden sie nach hoechstens ${ENTPACKER_MAX.ruhe} ms; ein Stueck ab hoechstens ${ENTPACKER_MAX.gross / 1024} KB nimmt seinen Worker mit; grosse Stuecke am Telefon nacheinander`,
+    sollIst(`Entpacker der Geometrie: hoechstens ${ENTPACKER_MAX.faeden} Worker, am Telefon ${ENTPACKER_MAX.telefon}, die aus dem Pool genommenen mitgezaehlt; ohne Arbeit enden sie nach hoechstens ${ENTPACKER_MAX.ruhe} ms; ein Stueck ab hoechstens ${ENTPACKER_MAX.gross / 1024} KB nimmt seinen Worker mit; grosse Stuecke am Telefon nacheinander, das naechste erst nach dem Ende des Workers`,
       `${typeof E === 'function' ? `faeden ${K.faeden}, telefon ${K.telefon}, gross ${K.gross / 1024} KB, ruhe ${K.ruhe} ms` : 'Klasse Entpacker fehlt'}${ist.length ? `; ${ist.join('; ')}` : ''}`);
-    if (!klinkeOk || !rechnetOk) fail(`[12] dist/assets/hangar-viewer.js: der Entpacker der Geometrie rechnet nicht mehr wie am 14.11.2026 abgenommen (ENTPACKER hoechstens ${JSON.stringify(ENTPACKER_MAX)}; Worker ohne Arbeit enden nach ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus dem Pool und beendet ihn danach, am Telefon laufen grosse Stuecke nacheinander): Die Worker hielten wieder bis zu 343 MB, solange die Seite offen ist, und die volle Halle braeche am Telefon wieder beim Laden ab (946 statt 633 MB)`);
+    if (!klinkeOk || !rechnetOk) fail(`[12] dist/assets/hangar-viewer.js: der Entpacker der Geometrie rechnet nicht mehr wie am 14.11.2026 abgenommen (ENTPACKER hoechstens ${JSON.stringify(ENTPACKER_MAX)}; Worker ohne Arbeit enden nach ENTPACKER.ruhe, ein Stueck ab ENTPACKER.gross nimmt seinen Worker aus dem Pool und beendet ihn danach, die Grenze zaehlt auch die Worker ausserhalb des Pools, am Telefon laufen grosse Stuecke nacheinander und das naechste wartet auf das Ende des Workers): Die Worker hielten wieder bis zu 343 MB, solange die Seite offen ist, und die volle Halle braeche am Telefon wieder beim Laden ab (946 statt 633 MB)`);
     const dracoFile = join(DIST, 'vendor', 'three', 'addons', 'loaders', 'DRACOLoader.js');
     const dracoSrc = existsSync(dracoFile) ? readFileSync(dracoFile, 'utf8') : '';
     const nahtE = [
       [/const draco = new Entpacker\(SMALL\)\.setDecoderPath\(/.test(viewer) && !/new DRACOLoader\(/.test(viewer), 'assets/hangar-viewer.js', 'der Viewer packt die Geometrie nicht mehr ueber seinen Entpacker aus (new Entpacker(SMALL), kein new DRACOLoader)', 'die Worker blieben wieder, solange die Seite offen ist (343 MB)'],
-      [/\t_getWorker\( taskID, taskCost \) \{/.test(dracoSrc) && /\t_releaseTask\( worker, taskID \) \{/.test(dracoSrc) && /this\.workerPool\.length < this\.workerLimit/.test(dracoSrc) && /worker\._taskLoad \+= taskCost;/.test(dracoSrc), 'vendor/three/addons/loaders/DRACOLoader.js', 'der DRACOLoader von three.js hat _getWorker, _releaseTask, workerPool oder _taskLoad nicht mehr in der Form, auf die der Entpacker baut', 'im Browser liefe der Entpacker still an three.js vorbei, die Worker blieben'],
+      [/\t_getWorker\( taskID, taskCost \) \{/.test(dracoSrc) && /\t_releaseTask\( worker, taskID \) \{/.test(dracoSrc) && /this\.workerPool\.length < this\.workerLimit/.test(dracoSrc) && /worker\._taskLoad \+= taskCost;/.test(dracoSrc), 'vendor/three/addons/loaders/DRACOLoader.js', 'der DRACOLoader von three.js hat _getWorker, _releaseTask, workerPool, workerLimit oder _taskLoad nicht mehr in der Form, auf die der Entpacker baut', 'im Browser liefe der Entpacker still an three.js vorbei, die Worker blieben'],
       [/notiz\(leichtEl, spurZeilen\(waechterStand\(lies\(\(\) => localStorage, STAND_KEY\), Date\.now\(\)\), 2\)\);/.test(ctrl) && /notiz\(fallback, spurZeilen\(stand\)\);/.test(ctrl), 'assets/hangar-overview.js', 'die Zeile der leichten Ansicht oder die Meldung zeigt die Spur der Abbrueche und das Geraet nicht mehr (spurZeilen)', 'vom Telefon kaeme nicht zurueck, in welcher Phase die volle Halle abbrach'],
     ];
     const offenE = nahtE.filter(([ok]) => !ok);

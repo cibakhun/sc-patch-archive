@@ -520,10 +520,12 @@ describe('Hangar: Entpacker der Geometrie geben ihren Speicher zurueck', () => {
       assert.equal(g, w[3]);
       assert.equal(e.workerPool.includes(g), false);
       assert.equal(e.workerPool.length, 3);
-      // das naechste kleine Stueck bekommt einen neuen Worker, nicht den, der geht
+      // das naechste kleine Stueck geht an einen aus dem Pool, nicht an den, der geht;
+      // ein weiterer Worker startet nicht, solange der noch lebt
       const k = await e._getWorker(6, 10);
       assert.notEqual(k, g);
-      assert.equal(alle.length, 5);
+      assert.equal(e.workerPool.includes(k), true);
+      assert.equal(alle.length, 4);
       e._releaseTask(g, 5);
       assert.equal(g.tot, false, 'sein kleines Stueck laeuft noch');
       e._releaseTask(g, 4);
@@ -564,6 +566,113 @@ describe('Hangar: Entpacker der Geometrie geben ihren Speicher zurueck', () => {
     }
   });
 
+  // Befund aus dem Review der PR #364: three fragt vor jedem neuen Worker nur
+  // den Pool. Der Worker eines grossen Stuecks steht nicht mehr darin, laeuft
+  // aber noch; ohne Abzug lebten am Telefon drei statt zwei.
+  test('die Grenze gilt fuer alle lebenden Worker: der aus dem Pool genommene zaehlt mit, bis er endet', async () => {
+    for (const telefon of [true, false]) {
+      const { e, alle, ab } = buehne(telefon);
+      const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden;
+      const leben = () => alle.filter((w) => !w.tot).length;
+      try {
+        // der Pool ist voll, jeder Worker hat ein kleines Stueck
+        const w = [];
+        for (let id = 1; id <= grenze; id++) w.push(await e._getWorker(id, 5000 - id));
+        assert.equal(leben(), grenze);
+        // ein grosses Stueck nimmt einen mit; das naechste kleine startet keinen weiteren
+        const g = await e._getWorker(90, ENTPACKER.gross);
+        assert.equal(g, w[grenze - 1]);
+        const k = await e._getWorker(91, 10);
+        assert.equal(leben(), grenze, `telefon ${telefon}: ${leben()} Worker leben`);
+        assert.equal(e.workerPool.includes(k), true);
+        assert.equal(e.workerLimit, grenze - 1);
+        // endet er, ist sein Platz wieder frei
+        e._releaseTask(g, 90);
+        e._releaseTask(g, grenze);
+        assert.equal(g.tot, true);
+        assert.equal(e.workerLimit, grenze);
+        await e._getWorker(92, 10);
+        assert.equal(leben(), grenze);
+        assert.equal(alle.length, grenze + 1);
+      } finally { ab(); }
+    }
+  });
+
+  test('die Grenze haelt auch, wenn alles im selben Augenblick kommt', async () => {
+    for (const telefon of [true, false]) {
+      const { e, alle, ab } = buehne(telefon);
+      const grenze = telefon ? ENTPACKER.telefon : ENTPACKER.faeden;
+      try {
+        // ein grosses und zwoelf kleine Stuecke, ohne dazwischen zu warten;
+        // sechs weitere kleine, waehrend das grosse noch laeuft
+        const aus = [e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {})];
+        for (let i = 0; i < 12; i++) aus.push(e.decodeGeometry(new ArrayBuffer(64 + i), {}));
+        let hoechstens = 0;
+        await ruck();
+        assert.equal(alle.filter((w) => w._geht && !w.tot).length, 1);
+        for (let i = 0; i < 6; i++) aus.push(e.decodeGeometry(new ArrayBuffer(128 + i), {}));
+        await ruck();
+        for (let runde = 0; runde < 20 && alle.some((w) => w.post.length); runde++) {
+          hoechstens = Math.max(hoechstens, alle.filter((w) => !w.tot).length);
+          // je Runde ein Stueck je Worker, wie ein Worker sie abarbeitet
+          for (const w of alle) if (w.post.length) w.fertig(w.post.shift());
+          await ruck();
+          hoechstens = Math.max(hoechstens, alle.filter((w) => !w.tot).length);
+        }
+        await Promise.all(aus);
+        assert.ok(hoechstens >= 1 && hoechstens <= grenze, `telefon ${telefon}: ${hoechstens} Worker zugleich`);
+        assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0);
+      } finally { ab(); }
+    }
+  });
+
+  test('am PC bleibt dem Pool ein Worker, auch wenn mehr grosse Stuecke laufen, als die Grenze zaehlt', async () => {
+    const { e, alle, ab } = buehne(false);
+    try {
+      for (let id = 1; id <= ENTPACKER.faeden + 1; id++) await e._getWorker(id, ENTPACKER.gross);
+      assert.equal(e.workerPool.length, 0);
+      assert.equal(e.workerLimit, 1);
+      const k = await e._getWorker(50, 10), k2 = await e._getWorker(51, 10);
+      assert.equal(k, k2);
+      assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.faeden + 2);
+    } finally { ab(); }
+  });
+
+  // Der Worker eines grossen Stuecks kann noch ein kleines hinter sich haben.
+  // Solange er lebt, haelt er den Speicher seines grossen Stuecks (bis 187 MB).
+  test('am Telefon wartet das naechste grosse Stueck, bis der Worker des vorigen beendet ist', async () => {
+    const { e, alle, ab } = buehne(true);
+    try {
+      const k1 = e.decodeGeometry(new ArrayBuffer(64), {}), k2 = e.decodeGeometry(new ArrayBuffer(65), {});
+      await ruck();
+      assert.equal(alle.length, 2);
+      const g1 = e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {}), g2 = e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 1), {});
+      await ruck();
+      const x = alle.find((w) => w._geht);
+      assert.deepEqual(x.post, [1, 3], 'das erste grosse Stueck liegt hinter einem kleinen');
+      // das grosse ist fertig, das kleine desselben Workers noch nicht
+      const tu = (w, id) => { w.post.splice(w.post.indexOf(id), 1); w.fertig(id); };
+      tu(x, 3);
+      assert.ok((await g1).isBufferGeometry);
+      await ruck();
+      assert.equal(x.tot, false);
+      assert.equal(alle.reduce((n, w) => n + w.post.filter((id) => id >= 4).length, 0), 0, 'das zweite grosse Stueck ist schon unterwegs');
+      assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.telefon);
+      // erst mit dem Ende des Workers geht es weiter
+      tu(x, 1);
+      assert.ok((await k1).isBufferGeometry);
+      await ruck();
+      assert.equal(x.tot, true);
+      assert.equal(alle.filter((w) => !w.tot).length, ENTPACKER.telefon);
+      const z = alle.find((w) => w.post.includes(4));
+      assert.ok(z && z._geht && z !== x);
+      for (const w of alle) for (const id of w.post.splice(0)) w.fertig(id);
+      await ruck();
+      assert.ok((await g2).isBufferGeometry && (await k2).isBufferGeometry);
+      assert.equal(alle.filter((w) => w._geht && !w.tot).length, 0);
+    } finally { ab(); }
+  });
+
   test('dispose beendet auch die Worker, die schon aus dem Pool genommen sind', async () => {
     const { e, alle, ab } = buehne(false);
     try {
@@ -573,6 +682,29 @@ describe('Hangar: Entpacker der Geometrie geben ihren Speicher zurueck', () => {
       e.dispose();
       assert.equal(alle.filter((w) => !w.tot).length, 0);
       assert.equal(e.lebend.size, 0);
+    } finally { ab(); }
+  });
+
+  test('dispose: ein grosses Stueck, das am Telefon noch wartet, startet danach keinen Worker mehr', async () => {
+    const { e, alle, ab } = buehne(true);
+    try {
+      e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross), {});
+      e.decodeGeometry(new ArrayBuffer(ENTPACKER.gross + 1), {});
+      await ruck();
+      assert.equal(alle.length, 1);
+      // das erste ist fertig, sein Worker hat aber noch ein kleines Stueck: das zweite wartet auf sein Ende
+      const x = alle[0];
+      await e._getWorker(77, 10).then((w) => assert.notEqual(w, x));
+      x._taskCosts[78] = 10; x._taskLoad += 10;
+      x.fertig(x.post[0]);
+      await ruck();
+      assert.equal(x.tot, false);
+      assert.equal(e.wartet.length, 1);
+      const vorher = alle.length;
+      e.dispose();
+      await ruck();
+      assert.equal(alle.length, vorher, 'nach dispose ist ein Worker gestartet');
+      assert.equal(alle.filter((w) => !w.tot).length, 0);
     } finally { ab(); }
   });
 });

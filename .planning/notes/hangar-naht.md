@@ -359,10 +359,14 @@ und was die Oberfläche unter der Zeile zeigt:
 - Die Szene packt Geometrie über ihren eigenen Entpacker aus (`Entpacker` in
   `assets/hangar-viewer.js`, baut auf dem `DRACOLoader` von three.js). Worker
   ohne Arbeit enden nach `ENTPACKER.ruhe`, ein Stück ab `ENTPACKER.gross`
-  nimmt seinen Worker aus dem Pool, am Telefon laufen höchstens
-  `ENTPACKER.telefon` Worker und die großen Stücke nacheinander. Gemessen im
-  Telefonformat mit der Gladius: 633 bis 704 statt 946 MB beim Laden. Am PC
-  gilt die Ruhe genauso (dort hielten die vier Worker 343 MB).
+  nimmt seinen Worker aus dem Pool, am Telefon leben höchstens
+  `ENTPACKER.telefon` Worker und die großen Stücke laufen nacheinander.
+  Die Grenze zählt alle lebenden Worker, auch den aus dem Pool genommenen
+  (three.js fragt nur den Pool; Befund im Review der PR #364), und am
+  Telefon beginnt das nächste große Stück erst, wenn der Worker des vorigen
+  beendet ist. Gemessen im Telefonformat mit der Gladius: 620 bis 711 statt
+  946 MB beim Laden. Am PC gilt die Ruhe genauso (dort hielten die vier
+  Worker 343 MB).
 - Der Wächter der Oberfläche steht auf v 4: Alte Deckel verfallen, jedes
   Telefon versucht die volle Halle einmal neu.
 - Schmal zeigt die Zeile `#hgx-leicht` darunter die letzten zwei Abbrüche

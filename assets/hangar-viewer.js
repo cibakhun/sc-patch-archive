@@ -361,10 +361,20 @@ async function fitImage(im, max) {
 //   Er bekommt nichts Neues mehr und endet, sobald er fertig ist.
 // - Am Telefon höchstens ENTPACKER.telefon Worker, und die großen Stücke
 //   eines nach dem anderen: zwei zugleich hielten 287 MB.
+// - Die Grenze zählt alle lebenden Worker (Befund im Review der PR #364):
+//   three fragt vor jedem neuen Worker nur `workerPool.length <
+//   workerLimit`. Der Worker eines großen Stücks steht nicht mehr im Pool,
+//   läuft aber noch; ohne Abzug lebten am Telefon drei statt zwei. Deshalb
+//   ist workerLimit hier die gesetzte Grenze weniger die Worker, die
+//   draußen noch arbeiten, mindestens 1. Am Telefon wartet das nächste große
+//   Stück außerdem, bis der Worker des vorigen beendet ist: Hat er noch ein
+//   kleines Stück hinter sich, hält er so lange den Speicher des großen.
 // Die Klasse greift in drei Stellen des DRACOLoader von three.js, die
 // keine Schnittstelle sind (_getWorker, _releaseTask, die Felder
-// workerPool und _taskLoad); verify:hangar [12] prüft sie am ausgelieferten
-// Modul, damit ein neues three.js nicht still daran vorbeiläuft.
+// workerPool und _taskLoad), und sie verlässt sich darauf, dass er
+// workerLimit bei jedem neuen Worker liest; verify:hangar [12] prüft das am
+// ausgelieferten Modul, damit ein neues three.js nicht still daran
+// vorbeiläuft.
 export const ENTPACKER = { faeden: 4, telefon: 2, gross: 1 << 20, ruhe: 1500 };
 export class Entpacker extends DRACOLoader {
   constructor(telefon = false) {
@@ -372,15 +382,24 @@ export class Entpacker extends DRACOLoader {
     this.telefon = !!telefon;
     this.setWorkerLimit(this.telefon ? ENTPACKER.telefon : ENTPACKER.faeden);
     this.lebend = new Set();   // alle Worker, auch die aus dem Pool genommenen
+    this.draussen = new Set(); // aus dem Pool genommen, arbeiten noch
+    this.wartet = [];          // wer auf das Ende dieser Worker wartet
     this.reihe = Promise.resolve();
     this.uhr = 0;
     this.stat = { stuecke: 0, gross: 0, gestartet: 0, beendet: 0, gesagt: 0 };
   }
+  // three liest workerLimit vor jedem neuen Worker und kennt nur den Pool
+  get workerLimit() { return Math.max(1, this.grenze - (this.draussen?.size ?? 0)); }
+  set workerLimit(n) { this.grenze = n; }
   decodeGeometry(buffer, taskConfig) {
     if (!this.telefon || buffer.byteLength < ENTPACKER.gross) return super.decodeGeometry(buffer, taskConfig);
     const p = this.reihe.then(() => super.decodeGeometry(buffer, taskConfig));
-    this.reihe = p.then(() => {}, () => {});
+    this.reihe = p.then(() => {}, () => {}).then(() => this.leer());
     return p;
+  }
+  // Erfüllt, sobald kein aus dem Pool genommener Worker mehr läuft
+  leer() {
+    return this.draussen.size ? new Promise((ok) => this.wartet.push(ok)) : Promise.resolve();
   }
   _getWorker(taskID, taskCost) {
     return super._getWorker(taskID, taskCost).then((worker) => {
@@ -391,7 +410,7 @@ export class Entpacker extends DRACOLoader {
         this.stat.gross++;
         worker._geht = true;
         const i = this.workerPool.indexOf(worker);
-        if (i >= 0) this.workerPool.splice(i, 1);
+        if (i >= 0) { this.workerPool.splice(i, 1); this.draussen.add(worker); }
       }
       return worker;
     });
@@ -405,6 +424,7 @@ export class Entpacker extends DRACOLoader {
     if (!this.lebend.delete(worker)) return;
     worker.terminate();
     this.stat.beendet++;
+    if (this.draussen.delete(worker) && !this.draussen.size) for (const ok of this.wartet.splice(0)) ok();
   }
   // Jeden Worker ohne Arbeit beenden; liefert, wie viele es waren.
   ruhe() {
@@ -425,6 +445,9 @@ export class Entpacker extends DRACOLoader {
   }
   dispose() {
     clearTimeout(this.uhr); this.uhr = 0;
+    // Ein großes Stück, das noch wartet, startet danach nicht mehr: three
+    // hat die Quelle der Worker dann schon zurückgegeben
+    this.wartet.length = 0;
     for (const w of [...this.lebend]) this.beenden(w);
     return super.dispose();
   }
