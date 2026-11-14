@@ -104,6 +104,13 @@ for (const k of katalog) {
   const w = bySlug.get(k.id) ?? bySlug.get(`${k.id}-gs`);
   if (!w) { bericht.ohneWiki.push(k.id); continue; }
   const neu = felder(w);
+  // Hoechstcrew unter der Mindestcrew des Spiels (crewSize) ist keine Spanne;
+  // so liess schon der erste Schnappschuss neun Fahrzeuge bewusst ohne crewMax.
+  if (neu.crewMax != null && k.crewMin != null && neu.crewMax < k.crewMin) {
+    bericht.behalten.push({ id: k.id, feld: 'crewMax', vorher: ext.vehicles[k.id]?.crewMax ?? null, wiki: neu.crewMax, grund: `unter der Mindestcrew des Spiels (${k.crewMin}), nicht gefuehrt` });
+    neu.crewMax = null;
+    if (ext.vehicles[k.id]) delete ext.vehicles[k.id].crewMax;
+  }
   const falsch = FALSCH_IM_WIKI[k.id];
   for (const feld of falsch?.felder ?? []) {
     if (neu[feld] != null) bericht.behalten.push({ id: k.id, feld, vorher: null, wiki: neu[feld], grund: falsch.grund });

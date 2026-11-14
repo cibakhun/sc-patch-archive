@@ -207,8 +207,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Luxus-Reisen"
-      ],
-      "crewMax": 3
+      ]
     },
     "orig-85x": {
       "msrpUSD": 50,
@@ -2020,8 +2019,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Fregatte"
-      ],
-      "crewMax": 22
+      ]
     },
     "aegs-idris-p": {
       "msrpUSD": 1900,
@@ -2038,8 +2036,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Fregatte"
-      ],
-      "crewMax": 22
+      ]
     },
     "crus-intrepid": {
       "msrpUSD": 65,
@@ -2075,8 +2072,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Schwertransport"
-      ],
-      "crewMax": 6
+      ]
     },
     "drak-ironclad-assault": {
       "msrpUSD": 650,
@@ -2556,8 +2552,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Schweres Betanken"
-      ],
-      "crewMax": 7
+      ]
     },
     "misc-starfarer-gemini": {
       "msrpUSD": 340,
@@ -2610,8 +2605,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Kanonenboot"
-      ],
-      "crewMax": 6
+      ]
     },
     "misc-starlite": {
       "msrpUSD": 60,
@@ -2641,8 +2635,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Mittlerer Bergbau"
-      ],
-      "crewMax": 2
+      ]
     },
     "argo-moth": {
       "msrpUSD": 315,
@@ -2659,8 +2652,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Mittlere Bergung"
-      ],
-      "crewMax": 2
+      ]
     },
     "argo-mpuv": {
       "msrpUSD": 35,
@@ -3344,8 +3336,7 @@
       "statusDe": "Flugbereit",
       "fociDe": [
         "Leichter Bergbau"
-      ],
-      "crewMax": 1
+      ]
     },
     "aegs-sabre": {
       "msrpUSD": 175,
