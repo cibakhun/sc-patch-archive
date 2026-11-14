@@ -35,6 +35,7 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
+import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls } from './lib/hall-quellen.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -3585,7 +3586,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
   const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
   if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
-  for (const f of readdirSync(dir).filter((x) => x.toLowerCase().endsWith('.glb'))) {
+  // im Ordner der Hallen liegen neben den Modellen ihre Beilagen (<halle>.decals.glb, <halle>.schrift.glb): keine Hallen
+  for (const f of readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')))) {
     const name = f.replace(/\.glb$/i, '');
     const slot = slotOf(kind, name);
     if ((kind === 'ships' || kind === 'interior') && !webShip(name)) continue;
@@ -3595,11 +3597,17 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
     // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
     // Lampenliste muss schon da sein.
-    const side = kind === 'hall' || kind === 'lift' || kind === 'werkhalle' ? ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json', 'tor.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    // bei der Halle auch, was der Extraktor neben das Modell legt und buildOne mitliest: Maße und Palette,
+    // Aufkleber, Schrift (HALL_EINGABEN)
+    const side = kind === 'hall' || kind === 'lift' || kind === 'werkhalle' ? (kind === 'hall' ? HALL_EINGABEN : NEBEN_EINGABEN).map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
     // Werkhalle: Maße und Lampenliste müssen jünger sein; die Maße lesen auch die Bühnen-Rohdatei
     const werkOut = kind === 'werkhalle' && !/-buehne$/.test(name) ? ['json', 'lights.json'].map((x) => fileURLToPath(new URL(`werkhalle/${name}.${x}`, OUT))) : [];
     if (werkOut.length && existsSync(fileURLToPath(new URL(`${name}-buehne.glb`, dir)))) side.push(fileURLToPath(new URL(`${name}-buehne.glb`, dir)));
     const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    // Halle mit Aufzug: die Liste seiner Bahnen (writeAufzugJson) gehört zum Bau; fehlt sie oder ist sie älter
+    // als eine Eingabe, stünde die Plattform der Seite still oder an alter Stelle
+    const aufzugOut = kind === 'hall' && prev[slot]?.[name]?.aufzug?.json ? fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT)) : null;
+    const zeit = (x) => (existsSync(x) ? statSync(x).mtimeMs : null);
     // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     // bei Schiffen auch der Lack-Bauplan: Lackliste, Index des zerlegten
@@ -3609,6 +3617,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (!paintOut || (existsSync(paintOut) && [inPath, ...side].every((x) => statSync(paintOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
+      && (!aufzugOut || juengerAls([aufzugOut], [inPath, ...side], zeit))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
     // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu,

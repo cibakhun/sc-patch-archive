@@ -841,6 +841,52 @@ export function waechterGeraet(ua, { w = 0, h = 0, dpr = 0 } = {}) {
   return teile.join(', ');
 }
 
+/**
+ * Stellvertreter der Buehne: Die Seite spricht nur mit ihm. Beim
+ * Hallenwechsel wird die Buehne abgebaut und mit der anderen Halle neu
+ * aufgebaut; der Stellvertreter gibt der neuen, was die Seite der alten
+ * gesagt hat: ihre Horcher (on…) und die letzten Einstellungen (set…).
+ * Dazwischen, ohne Buehne, merkt er sich beides nur, beantwortet Fragen mit
+ * der letzten Antwort (sound, quality) und laesst alles andere fallen. Ein
+ * Horcher hoert nur die Buehne, die gerade steht: Was eine abgebaute noch
+ * meldet, erreicht die Seite nicht.
+ * Der Ton ist die eine Einstellung, nach der die Seite auch fragt: Der Knopf
+ * dreht um, was sound() nennt. Deshalb geht die gemerkte Antwort mit jedem
+ * setSound mit; sonst nennte sie waehrend eines Hallenwechsels den Stand von
+ * vorher, und der Ton liesse sich dort an-, aber nicht wieder ausschalten.
+ * v: der Stellvertreter, auf(b): Buehne b steht, ab(): die stehende abbauen.
+ */
+export function buehnenHalter() {
+  let cur = null;
+  const horcher = new Map(), gesetzt = new Map(), antwort = new Map(), kennt = new Set();
+  const nur = (b, a) => a.map((f) => (typeof f === 'function' ? (...e) => (cur === b ? f(...e) : undefined) : f));
+  const ruf = (k, a) => {
+    const on = /^on[A-Z]/.test(k);
+    if (on) horcher.set(k, a);
+    else if (/^set[A-Z]/.test(k)) gesetzt.set(k, a);
+    if (k === 'setSound') antwort.set('sound', { ...antwort.get('sound'), on: !!a[0] });
+    if (!cur) return antwort.get(k);
+    const r = cur[k](...(on ? nur(cur, a) : a));
+    if (k === 'sound' || k === 'quality') antwort.set(k, r);
+    return r;
+  };
+  // then: ein Versprechen, das den Stellvertreter traegt, haelt ihn sonst selbst fuer eines
+  const v = new Proxy({}, {
+    get: (_, k) => (typeof k === 'string' && k !== 'then' && (cur ? typeof cur[k] === 'function' : kennt.has(k)) ? (...a) => ruf(k, a) : undefined),
+  });
+  return {
+    v,
+    auf(b) {
+      cur = b;
+      for (const k of Object.keys(b)) if (typeof b[k] === 'function') kennt.add(k);
+      for (const [k, a] of horcher) b[k]?.(...nur(b, a));
+      for (const [k, a] of gesetzt) b[k]?.(...a);
+      return v;
+    },
+    ab() { const b = cur; cur = null; b?.dispose(); },
+  };
+}
+
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
 export function boot(doc) {
   const $ = (id) => doc.getElementById(id);
@@ -2585,43 +2631,8 @@ export function boot(doc) {
     return (m && m[3] === 'halle' && m[4] && stageCfg.halls?.[m[4]]) || stageCfg.opts.hall || null;
   };
   let hallNow = null;
-  // Stellvertreter der Buehne: Die Seite spricht nur mit ihm. Beim
-  // Hallenwechsel wird die Buehne abgebaut und mit der anderen Halle neu
-  // aufgebaut; der Stellvertreter gibt der neuen, was die Seite der alten
-  // gesagt hat: ihre Horcher (on…) und die letzten Einstellungen (set…).
-  // Dazwischen, ohne Buehne, merkt er sich beides nur, beantwortet Fragen mit
-  // der letzten Antwort (sound, quality) und laesst alles andere fallen. Ein
-  // Horcher hoert nur die Buehne, die gerade steht: Was eine abgebaute noch
-  // meldet, erreicht die Seite nicht.
-  const halter = (() => {
-    let cur = null;
-    const horcher = new Map(), gesetzt = new Map(), antwort = new Map(), kennt = new Set();
-    const nur = (b, a) => a.map((f) => (typeof f === 'function' ? (...e) => (cur === b ? f(...e) : undefined) : f));
-    const ruf = (k, a) => {
-      const on = /^on[A-Z]/.test(k);
-      if (on) horcher.set(k, a);
-      else if (/^set[A-Z]/.test(k)) gesetzt.set(k, a);
-      if (!cur) return antwort.get(k);
-      const r = cur[k](...(on ? nur(cur, a) : a));
-      if (k === 'sound' || k === 'quality') antwort.set(k, r);
-      return r;
-    };
-    // then: ein Versprechen, das den Stellvertreter traegt, haelt ihn sonst selbst fuer eines
-    const v = new Proxy({}, {
-      get: (_, k) => (typeof k === 'string' && k !== 'then' && (cur ? typeof cur[k] === 'function' : kennt.has(k)) ? (...a) => ruf(k, a) : undefined),
-    });
-    return {
-      v,
-      auf(b) {
-        cur = b;
-        for (const k of Object.keys(b)) if (typeof b[k] === 'function') kennt.add(k);
-        for (const [k, a] of horcher) b[k]?.(...nur(b, a));
-        for (const [k, a] of gesetzt) b[k]?.(...a);
-        return v;
-      },
-      ab() { const b = cur; cur = null; b?.dispose(); },
-    };
-  })();
+  // Stellvertreter der Buehne (buehnenHalter, oben): Die Seite spricht nur mit ihm
+  const halter = buehnenHalter();
   // buehneNeu(halle): baut eine Buehne mit dieser Halle (startBuehne setzt es;
   // null, solange keine steht, und auf der leichten Buehne, die keine Halle hat)
   let buehneNeu = null;

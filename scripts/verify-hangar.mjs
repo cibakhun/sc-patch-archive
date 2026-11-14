@@ -653,6 +653,13 @@
         Industrie-Hallen leuchteten mit)                            -> [24]
     cm  dort an der Würfellage (boxProject) die Bedingung
         !(m.alphaTest > 0) streichen                                -> [24]
+    cn  in dist/assets/hangar-overview.js im Stellvertreter der
+        Bühne (buehnenHalter) die Zeile streichen, die sound() mit
+        setSound mitführt (14.11.2026, Befund von CodeRabbit an
+        PR #371: Ton während des Hallenwechsels nicht wieder
+        abschaltbar). Das Verhalten selbst prüft
+        tests/e2e/hangar-halter.test.js, dort ohne die Zeile
+        5 von 6 grün                                                -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3123,7 +3130,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 19, worte: 16 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 20, worte: 16 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3231,6 +3238,7 @@ const GROESSE_AUSNAHMEN = {
     [ctrl, /if \(hallNow && hallWant && hallWant !== hallNow && buehneNeu\) \{ umbauen\(\); return; \}/, 'ein Schiff einer anderen Stufe baut die Bühne nicht mehr um (viewerShow): Es stünde in der Halle der vorigen Stufe'],
     [ctrl, /viewer = null;\s*halter\.ab\(\);[\s\S]{0,500}?const roh = await buehneNeu\(halle\);\s*viewer = halter\.auf\(roh\);/, 'der Umbau baut die alte Bühne nicht mehr ab, bevor die neue lädt (umbauen): zwei Hallen zugleich im Grafikspeicher'],
     [ctrl, /ab\(\) \{ const b = cur; cur = null; b\?\.dispose\(\); \}/, 'der Stellvertreter der Bühne baut die alte nicht mehr ab (halter.ab): Sie zeichnete und lüde hinter der neuen weiter'],
+    [ctrl, /if \(k === 'setSound'\) antwort\.set\('sound', \{ \.\.\.antwort\.get\('sound'\), on: !!a\[0\] \}\);\s*if \(!cur\) return antwort\.get\(k\);/, 'der Stellvertreter der Bühne führt die Antwort von sound() nicht mehr mit setSound mit (buehnenHalter): Während eines Hallenwechsels ließe sich der Ton an-, aber nicht wieder ausschalten'],
     [viewer, /dispose\(\) \{\s*if \(tot\) return;\s*tot = true;[\s\S]{0,400}?lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;/, 'eine abgebaute Bühne meldet der Seite weiter (dispose): Der Kontext, den sie selbst aufgibt, zählte beim Hallenwechsel als Abbruch'],
     [viewer, /renderer\.forceContextLoss\(\);\s*if \(!uebersetzt\) renderer\.dispose\(\);/, 'dispose gibt den Zeichenkontext nicht mehr auf: Der Grafikspeicher der alten Halle bliebe belegt, während die neue lädt'],
     [viewer, /const fetchGltf = \(url, key = 'ship', guess = 8e6, my = null\) => \(tot \? nieMehr\(\) :/, 'eine abgebaute Bühne lädt weiter Modelle (fetchGltf): Sie baute in eine Szene, die es nicht mehr gibt'],

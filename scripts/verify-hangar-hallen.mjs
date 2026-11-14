@@ -39,7 +39,9 @@
        Feld des Aufzugs und Raum liegen ineinander; jede Bahn hat ihren
        Knoten
    [3] Bestand: Schrift, Schirme und die Zahlen des Manifests über ihren
-       Klinken und unter ihren Obergrenzen
+       Klinken und unter ihren Obergrenzen; die Lampen aus der
+       ausgelieferten Datei, so viele, wie das Manifest nennt, und jede
+       so, dass die Bühne sie setzen kann
    [4] Kein Ballast: keine Einrichtungs-, Telefon- oder zweite Stufe einer
        solchen Halle in dist/
 
@@ -95,6 +97,25 @@
        ins Leere, Obergrenze 0.3 …“ (an der Stelle jedes Aufzugs stand ein
        Loch von 48 x 32 m in der Längswand). Die Zahlen in (b), (g) und (i)
        sind die ihres Tages, vor den Aufzügen.
+   (l) 14.11.2026, Befund von CodeRabbit an PR #371: Die Klinke der Lampen
+       las ihre Zahl aus dem Manifest, die ausgelieferte Lampendatei
+       wurde nur auf ihr Dasein geprüft. Mit einer leeren Liste in
+       dist/hangar/hall/util-lrgtop.lights.json ({"v":2,"lights":[]})
+       blieb das Tor grün („798 Lampen“), und die Halle hätte mit dem
+       Bühnenlicht gestanden. Seither liest [3] die Datei selbst, an
+       ihr fünfmal gebrochen:
+       leere Liste: „[3] … die ausgelieferte Lampendatei traegt 0
+       Lampen, das Manifest nennt 798 …“ und „[3] … 0 Lampen des
+       Spiels, Klinke 798“;
+       Fassung 1 statt 2: „[3] … nennt die Fassung 1, die Buehne nimmt
+       Lampen erst ab Fassung 2 …“;
+       einer Lampe den Ort genommen: „[3] … 1 von 798 Lampen der
+       ausgelieferten Datei kann die Buehne nicht setzen …“ und „[3] …
+       797 Lampen des Spiels, Klinke 798“;
+       nach 5000 Zeichen abgeschnitten: „[3] … die ausgelieferte
+       Lampendatei laesst sich nicht lesen …“;
+       auf 700 Lampen gekürzt: „[3] … traegt 700 Lampen, das Manifest
+       nennt 798 …“ und „[3] … 700 Lampen des Spiels, Klinke 798“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -272,7 +293,7 @@ for (const [id, { hall, F }] of HALLEN) {
 say(`    ${DOCS.size} Modell(e) gelesen, ${bahnen} Bahnen mit Knoten, ${padFlaeche.toFixed(0)} m² Plattform auf der Hoehe des Bodens`);
 
 /* ---------- [3] Bestand ---------- */
-say('[3] Bestand: Schrift und Schirme am Modell, Zahlen des Manifests ueber ihren Klinken und unter ihren Obergrenzen');
+say('[3] Bestand: Schrift und Schirme am Modell, Lampen in der ausgelieferten Datei, Zahlen des Manifests ueber ihren Klinken und unter ihren Obergrenzen');
 let manifest = null;
 try { manifest = JSON.parse(readFileSync(join(ROOT, 'src/data/hangar-assets.json'), 'utf8')); } catch (e) { if (HALLEN.size) fail(`[3] src/data/hangar-assets.json ist nicht lesbar (${e.message})`); }
 const zeilen = [];
@@ -300,8 +321,18 @@ for (const [id, { bytes }] of HALLEN) {
   if (schrift < K.schriftTris) fail(`[3] ${id}: das Modell traegt ${schrift} Dreiecke Schrift, Klinke ${K.schriftTris} — Schilder haben Buchstaben verloren (die leichtere Stufe des Spiels duennt sie aus; swapHallText setzt die der vollen Stufe ein)`);
   if (schriftOffen) fail(`[3] ${id}: ${schriftOffen} Dreiecke Schrift, die deckend oder ohne Farbkarte gezeichnet werden (erwartet: Schnitt oder Mischung nach dem Alpha der Karte, MASK oder BLEND) — die Buchstaben stuenden als dunkle Bloecke da`);
   if (hell.length) fail(`[3] ${id}: ${hell.length} Schirm(e) ohne Bild sind hell: ${hell.slice(0, 4).join('; ')} — das Spiel malt sie zur Laufzeit, ohne Bild gehoeren sie ausgeschaltet (hallScreensOff)`);
-  // im Manifest: was der Build gezaehlt hat
-  const ist = { lampen: M.lights?.total, tor: M.aufzug?.teile, schirme: M.schirme?.aus, tafeln: M.logo?.tafeln, aufkleber: M.aufkleber?.netze, schilder: M.schriftVoll?.teilnetze };
+  // die Lampen, wie sie ausgeliefert werden: Die Buehne liest diese Datei, nicht das Manifest. Gezaehlt wird, was
+  // sie davon setzen kann (loadHallLights im Viewer: Fassung ab 2, Art, Ort aus drei Zahlen, Staerke ueber null)
+  let L = null;
+  try { L = JSON.parse(readFileSync(inDist(HALLEN.get(id).hall.lights), 'utf8')); } catch (e) { fail(`[3] ${id}: die ausgelieferte Lampendatei laesst sich nicht lesen (${e.message}) — die Halle stuende mit dem Buehnenlicht statt mit den Lampen des Spiels`); }
+  const lampenRoh = Array.isArray(L?.lights) ? L.lights : null;
+  const lampen = (lampenRoh ?? []).filter((l) => l && typeof l.type === 'string' && Array.isArray(l.pos) && l.pos.length === 3 && l.pos.every(Number.isFinite) && l.intensity > 0);
+  if (L && !lampenRoh) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt keine Liste (lights) — die Halle stuende mit dem Buehnenlicht`);
+  if (L && !((L.v ?? 1) >= 2)) fail(`[3] ${id}: die ausgelieferte Lampendatei nennt die Fassung ${L.v ?? 'nicht'}, die Buehne nimmt Lampen erst ab Fassung 2 (Richtungen im Raum des Modells) — die Halle stuende mit dem Buehnenlicht`);
+  if (lampenRoh && lampen.length !== lampenRoh.length) fail(`[3] ${id}: ${lampenRoh.length - lampen.length} von ${lampenRoh.length} Lampen der ausgelieferten Datei kann die Buehne nicht setzen (ohne Art, ohne Ort aus drei Zahlen oder ohne Staerke)`);
+  if (lampenRoh && lampenRoh.length !== M.lights?.total) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt ${lampenRoh.length} Lampen, das Manifest nennt ${M.lights?.total ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
+  // im Manifest: was der Build gezaehlt hat (die Lampen aus der ausgelieferten Datei)
+  const ist = { lampen: lampen.length, tor: M.aufzug?.teile, schirme: M.schirme?.aus, tafeln: M.logo?.tafeln, aufkleber: M.aufkleber?.netze, schilder: M.schriftVoll?.teilnetze };
   for (const [k, was] of [['lampen', 'Lampen des Spiels'], ['tor', 'Teile des Bodentors'], ['schirme', 'vom Build ausgeschaltete Schirme'], ['tafeln', 'Tafeln mit dem Logo des Betreibers'], ['aufkleber', 'Netze mit Aufklebern'], ['schilder', 'aus der vollen Stufe geholte Schilder']]) {
     if (!(ist[k] >= K[k])) fail(`[3] ${id}: ${ist[k] ?? 'keine'} ${was}, Klinke ${K[k]}`);
   }
@@ -313,7 +344,7 @@ for (const [id, { bytes }] of HALLEN) {
   if (M.floor !== HALLEN.get(id).hall.floor) fail(`[3] ${id}: das Manifest nennt den Boden bei ${M.floor}, die Seite bei ${HALLEN.get(id).hall.floor}`);
   const ueber = [['tris', M.tris, 'Dreiecke'], ['bytes', bytes, 'Bytes'], ['texturen', M.textures, 'Texturen'], ['leck', M.hull?.pct, '% Blickstrahlen ins Leere']].filter(([k, v]) => !(v <= G[k]));
   for (const [k, v, was] of ueber) fail(`[3] ${id}: ${v ?? 'keine Zahl fuer'} ${was}, Obergrenze ${G[k]} — die Halle ist schwerer oder offener geworden`);
-  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${ist.lampen} Lampen, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
+  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${ist.lampen} Lampen in der ausgelieferten Datei, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
 }
 for (const z of zeilen) say(z);
 if (!zeilen.length) say(`    ${HALLEN.size ? 'keine Halle vollstaendig gemessen' : 'keine Halle ausgeliefert, nichts zu messen'}`);
