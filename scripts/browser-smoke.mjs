@@ -1599,6 +1599,13 @@ async function probeWerkbank(page) {
     return `Werkbank 1280 px: die Spalten stehen nicht nebeneinander (Liste x=${Math.round(liste.x)}, Mitte x=${Math.round(mitte.x)}, Planer x=${Math.round(planer.x)})`;
   if (mitte.width < 300) return `Werkbank 1280 px: die Mitte ist nur ${Math.round(mitte.width)} px breit`;
   if (await zuSehen(page, '#cdb-planner-open')) return 'Werkbank 1280 px: der Planer-Knopf steht noch da, obwohl der Planer eine Spalte ist';
+  // Der Speicherstand steht einmal, im Planer; die Anzeige in der Leiste ist
+  // ausgeblendet. Was zu sehen ist, muss Aenderungen auch ansagen: bis
+  // 14.11.2026 trug nur die ausgeblendete Anzeige aria-live, ein Fehler beim
+  // Speichern blieb fuer Vorleser stumm (Hinweis von CodeRabbit an #367).
+  const speicher = await mitSichtbar(page, (_, da) => [...document.querySelectorAll('.cdb-sync')].filter((h) => da(h)).map((h) => h.getAttribute('aria-live') || ''));
+  if (speicher.length !== 1) return `Werkbank 1280 px: ${speicher.length} Speicheranzeigen zu sehen statt einer (im Planer)`;
+  if (speicher[0] !== 'polite') return `Werkbank 1280 px: die sichtbare Speicheranzeige sagt Aenderungen nicht an (aria-live „${speicher[0]}“ statt polite)`;
   // Die Werkbank fuellt die Seite: kein Kopfband (die Ueberschrift bleibt
   // fuer Vorleser im Dokument), die Reiterzeile direkt unter der Kopfleiste,
   // die Werkbank ueber die Breite, und Liste, Mitte und Planer enden am

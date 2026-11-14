@@ -1063,8 +1063,13 @@ const craftAppSrc = `/assets/crafting-app.js?v=${craftAppVer}`;
       <h4>{S.shoppingList}</h4>
       <div id="cdb-plan-shop" class="cdb-plan-shop"></div>
       {/* Zweite Statusanzeige: im Planer sieht man den Speicherort dort, wo die
-          Liste steht — nicht nur oben in der Toolbar. */}
-      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle}>
+          Liste steht — nicht nur oben in der Toolbar.
+          Werkbank: dort ist sie seit der sechsten Runde die eine Anzeige (die
+          in der Leiste ist ausgeblendet, unter 1180 px bis auf den Fehlerfall)
+          und sagt Aenderungen deshalb selbst an. Auf der bisherigen Seite
+          bleibt das bei der Leiste, sonst hoerte man jede Aenderung bei
+          offener Schublade doppelt (Hinweis von CodeRabbit an #367). */}
+      <div class="cdb-sync cdb-sync--drawer" data-state="local" title={S.syncTitle} aria-live={werkbank ? 'polite' : undefined}>
         <span class="cdb-sync__dot" aria-hidden="true"></span>
         <span class="cdb-sync__txt">{S.syncLocal}</span>
         <a class="cdb-sync__login" href={href('/account/login.html', lang)}>{S.syncLogin}</a>
