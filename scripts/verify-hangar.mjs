@@ -251,6 +251,35 @@
         stellt die Kamera auf den Halt von camRest.
         Klinken: Schiffe, davon mit Gang, Proben, Lagen des Federarms,
         Ziele am Rand des Gangs.
+    24  Hangargroessen (seit 13.11.2026, Krisz: „small Hangar, Medium,
+        large und extra large einführen genau wie ingame, dann haben wir
+        auch richtige grössenreferenzen“). Die Halle wuchs fuer jedes
+        Schiff auf sein Masz, 19 verschiedene Hallen fuer 190 Schiffe.
+        Jetzt rastet sie auf eine von vier Stufen ein (HALL_GROW.sizes im
+        Viewer), und die Stufe eines Schiffs kommt aus seiner
+        Groessenklasse (fuenftes Glied von models[id] in #hg-stage).
+        Geprueft wird: (a) die Stufen selbst, vier in der Folge S, M, L,
+        XL, die kleinste ohne Zuwachs, jede in jeder Richtung mindestens
+        so grosz wie die vorige, je Seite in ganzen Schritten der
+        Bodenkachel, und Feld und freie Hoehe jeder Stufe wie im Entwurf
+        abgenommen (GROESSE_FELD: wer sie aendert, rendert erst); (b)
+        jedes Schiff der Halle mit den Maszen wie in [23]: die Stufe der
+        Seite ist die seiner Groessenklasse (vehicles.json), camPlan des
+        ausgelieferten Viewers nennt eine Stufe und genau deren Zuwachs,
+        nie eine kleinere als die des Schiffs, und das Schiff steht mit
+        1 m Rand auf dem Feld und 4 m unter den Wannen (hier selbst
+        nachgemessen, nicht dem Viewer geglaubt); (c) Abweichungen von der
+        Groessenklasse sind benannt (GROESSE_AUSNAHMEN, je mit Anlass und
+        Zombie-Waechter): Der Clipper ist breiter als das Feld seiner
+        Stufe, die Javelin faszt keine. Eine neue Abweichung ohne Eintrag
+        ist WARNUNG, kein FEHLER: Die Halle faszt das Schiff, und die
+        Zeile nennt die Halle, in der es steht; (d) die Naht: growFor
+        nimmt growPick und meldet die Stufe, show() traegt Id und Stufe
+        in die Masze, der Controller gibt die Stufe mit und hoert auf
+        onHangar, Titelblock und Hologramm bekommen die Zeile; (e) die
+        Woerter der Zeile stehen auf beiden Seiten, mit ihren
+        Platzhaltern, deutsch anders als englisch. Klinken: Schiffe, je
+        Stufe, Stellen der Naht, Woerter.
 
    VORGEFUEHRT ROT (die Meldungen stehen in den Commit-Botschaften):
      a  dist/hangar-bay/aegs-gladius.html nach dem Bauen loeschen   -> [1]
@@ -437,6 +466,41 @@
     aq  dort in growStep() scaleLamps() am Ende des Gleitens wieder
         durch renderHallShadows() ersetzen (der Schatten des Schiffs
         bliebe nach dem Wechsel groeber als nach frischem Laden)    -> [12]
+    (ar bis bb sind an die PR des Auswahlfensters der Ausruestung
+     vergeben und kommen mit ihr)
+    bc  in dist/assets/hangar-viewer.js "sizes" aus HALL_GROW nehmen
+        (14.11.2026; die Halle wuechse wieder je Schiff: 7 Befunde,
+        [23] reisst mit an den Proben Carrack, Idris-M und
+        Constellation)                                              -> [24]
+    bd  dort Medium 20 statt 24 m breiter: kein ganzer Kachelschritt,
+        Feld 52 statt 56 m, die Ausnahme Clipper nennt die falsche
+        Stufe; WARNUNG nennt Clipper und Star Runner in Large       -> [24]
+    be  dort Large 72 statt 64 m laenger (Feld 88 x 168 m)          -> [24]
+    bf  dort Medium und Large vertauscht                            -> [24]
+    bg  dort in growPick die Stufe ohne Messen nehmen (if (true)):
+        Clipper ragt 19,5 m ueber das Feld von Small, beide
+        Ausnahmen verlieren ihren Anlass, [23] reisst an der Javelin -> [24]
+    bh  dort growPick bei Small beginnen lassen statt bei der Stufe
+        des Schiffs: 19 Befunde (600i in Medium statt Large), WARNUNG
+        nennt 31 Schiffe                                            -> [24]
+    bi  dort in growFor() die Zeile mit hangarTell() streichen      -> [24]
+    bj  dort in show() hangar aus info nehmen                       -> [24]
+    bk  in dist/assets/hangar-overview.js hangar aus dem Aufruf von
+        viewer.show() nehmen                                        -> [24]
+    bl  dort v.onHangar?.(onHangar) streichen                       -> [24]
+    bm  in dist/hangar.html der Carrack in #hg-stage die Stufe S
+        geben                                                       -> [24]
+    bn  dort dem Clipper die Stufe M geben (Ausnahme ohne Anlass:
+        Zombie-Waechter)                                            -> [24]
+    bo  dort der Gladius das fuenfte Glied nehmen ([1] reisst mit:
+        Form von models)                                            -> [24]
+    bp  in dist/de/hangar.html data-own der Vorlage leeren          -> [24]
+    bq  in dist/hangar.html die Zeile #hgx-gr streichen             -> [24]
+    br  dort allen Schiffen der Stufe Medium S geben: 14 Befunde,
+        WARNUNG nennt 22 Schiffe                                    -> [24]
+    bs  in dist/assets/hangar-viewer.js t.hangar aus den Zeilen des
+        Hologramms nehmen                                           -> [24]
+    bt  in dist/assets/hangar-overview.js hangar aus labelOf() nehmen -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -511,6 +575,7 @@ const dockIds = (html) => [...html.matchAll(/<li data-id="([^"]+)"/g)].map((m) =
 // Die Modellliste der Seite: die StageConfig der Szene in #hg-stage
 // (src/lib/hangar/stage.ts). Liefert die Ids, deren Eintrag die Form
 // [glb, Werkslack oder null, Herstellerkuerzel, Ort] hat, und die Formfehler.
+const GROESSEN = ['S', 'M', 'L', 'XL'];
 function stageModels(html) {
   const m = /<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(html);
   if (!m) return { ids: null, bad: ['kein #hg-stage'] };
@@ -521,8 +586,10 @@ function stageModels(html) {
   if (!cfg.opts || typeof cfg.opts !== 'object') bad.push('opts fehlt');
   const ids = [], werk = [];
   for (const [id, e] of Object.entries(cfg.models ?? {})) {
-    const ok = Array.isArray(e) && e.length === 4 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string' && (e[3] === 'halle' || e[3] === 'werk');
-    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker, 'halle'|'werk']`);
+    // fünftes Glied: Hangargröße des Schiffs ([24]), null in der Werkhalle und ohne Größenklasse
+    const ok = Array.isArray(e) && e.length === 5 && typeof e[0] === 'string' && e[0] && (e[1] === null || typeof e[1] === 'string') && typeof e[2] === 'string' && (e[3] === 'halle' || e[3] === 'werk')
+      && (e[4] === null || (e[3] === 'halle' && GROESSEN.includes(e[4])));
+    if (ok) ids.push(id); else bad.push(`models["${id}"] hat nicht die Form [glb, tex|null, maker, 'halle'|'werk', ${GROESSEN.map((g) => `'${g}'`).join('|')}|null (nur auf dem Schiffsfeld)]`);
     if (ok && e[3] === 'werk') werk.push(id);
   }
   return { ids, werk, bad };
@@ -2128,7 +2195,16 @@ say('\n[23] Raum der Kamera: jedes Schiff der Halle durch camPlan des ausgeliefe
 // Halle gerechnet (184 mit Maszen im Dock, 6 nur mit Umriss), 60 davon mit
 // Gang zu den Stirnwaenden, 16 Proben. Die Masze kommen aus dem Katalog und
 // duerfen nach einem Datenlauf leicht schwanken, darum etwas Abstand.
-const RAUM = { schiffe: 188, gang: 56, proben: 16, ruhe: 16, rand: 5880 };
+// Gesenkt am 13.11.2026 mit den festen Hangargroessen ([24]): gang von 56
+// auf 30, rand von 5880 auf 3150 (105 Ziele je Schiff mit Gang). Ursache:
+// Die Hallen der Stufen sind breiter als die Halle nach Masz (Medium 96 m
+// statt 72 m im Raum), und die Kugel der Kamera waechst mit der Breite
+// (Medium 45,96 m statt 34,47 m, Large 61,28 m, Extra Large 107,23 m). Einen
+// Gang braucht nur, wessen halbe Laenge plus 17,4 m ueber die Kugel reicht:
+// vorher 60 Schiffe, jetzt 33. Den uebrigen 27 gibt die Kugel selbst mehr
+// Luft hinter Bug und Heck als vorher der Gang (die Pruefung der Luft gilt
+// weiter fuer alle 190).
+const RAUM = { schiffe: 188, gang: 30, proben: 16, ruhe: 16, rand: 3150 };
 // m hinter Bug und Heck (CAM_AIR 17,4 abzueglich Rand vor der Stirnwand am
 // Tor: gebaut 13,2) und m Zoom zwischen Mindestabstand und Kugel (gebaut 4,47)
 const RAUM_LUFT = 10, RAUM_ZOOM = 4;
@@ -2144,11 +2220,19 @@ const RAUM_STEIL = 9;
 // Mindestabstand, Kugel, Hoechstabstand hinter Bug und Heck, Startansicht.
 // Aendern sich die Zahlen, stehen die Kameras anders: erst rendern und
 // hinsehen, dann hier nachziehen.
+// Nachgezogen am 13.11.2026 mit den festen Hangargroessen ([24]), nach neuen
+// Bildern der vier Startansichten: Jedes Schiff steht in der Halle seiner
+// Stufe (hangar), die breiter ist als die Halle nach Masz. Kugel und
+// Startansicht ruecken mit: Carrack in Large 57,45 auf 61,28 m und 74,03 auf
+// 79,68 m, Idris-M in Extra Large 84,26 auf 107,23 m und 113,52 auf 138,99 m,
+// Constellation in Medium 34,47 auf 45,96 m und 40,19 auf 49,35 m. Der
+// Hoechstabstand hinter Bug und Heck und der Mindestabstand bleiben, die
+// Gladius in Small aendert sich nicht.
 const RAUM_PROBEN = [
-  ['Carrack', { len: 129.13, halfW: 36.19, height: 28.76 }, { min: 30, ball: 57.45, far: 81.97, home: 74.03 }],
-  ['Idris-M', { len: 243.18, halfW: 63.34, height: 53.71 }, { min: 30, ball: 84.26, far: 138.99, home: 113.52 }],
-  ['Constellation Andromeda', { len: 63.9, halfW: 13.25, height: 14.84 }, { min: 28.76, ball: 34.47, far: 49.35, home: 40.19 }],
-  ['Gladius', { len: 22.42, halfW: 8.69, height: 5.59 }, { min: 10.09, ball: 34.47, far: 34.47, home: 34.47 }],
+  ['Carrack', { len: 129.13, halfW: 36.19, height: 28.76, hangar: 'L' }, { min: 30, ball: 61.28, far: 81.97, home: 79.68 }],
+  ['Idris-M', { len: 243.18, halfW: 63.34, height: 53.71, hangar: 'XL' }, { min: 30, ball: 107.23, far: 138.99, home: 138.99 }],
+  ['Constellation Andromeda', { len: 63.9, halfW: 13.25, height: 14.84, hangar: 'M' }, { min: 28.76, ball: 45.96, far: 49.35, home: 49.35 }],
+  ['Gladius', { len: 22.42, halfW: 8.69, height: 5.59, hangar: 'S' }, { min: 10.09, ball: 34.47, far: 34.47, home: 34.47 }],
 ];
 {
   let mod = null;
@@ -2183,7 +2267,8 @@ const RAUM_PROBEN = [
       // ohne Hoehe im Dock: geschaetzt, sie aendert nur den Zuwachs nach oben
       const hgt = fig.hgt > 0 ? fig.hgt : Math.max(3, wid / 4);
       if (!(fig.hgt > 0)) geschaetzt++;
-      const info = { len, halfW: wid / 2, height: hgt }, span = Math.max(len, wid, 6), p = mod.camPlan(hall, info);
+      // mit der Hangargröße des Schiffs von der Seite ([24]): der Raum der Halle, in der es steht
+      const info = { len, halfW: wid / 2, height: hgt, hangar: e[4] ?? null }, span = Math.max(len, wid, 6), p = mod.camPlan(hall, info);
       // NaN besteht jeden Vergleich mit < und >: nicht endliche Grenzen
       // ausdruecklich, sonst gaelte eine kaputte Rechnung als bestanden
       const krank = p ? Object.entries({ min: p.min, Kugel: p.ball, far: p.far, Startansicht: p.home, Rand: p.edge, 'Gang x': p.box?.x?.[0] + p.box?.x?.[1], 'Gang oben': p.box?.y, 'Gang z': p.box?.z?.[0] + p.box?.z?.[1] }).filter(([, v]) => !Number.isFinite(v)).map(([k]) => k) : ['alles (camPlan liefert nichts)'];
@@ -2335,8 +2420,152 @@ const RAUM_PROBEN = [
   ist.raumSchiffe = schiffe; ist.raumGang = gang; ist.raumProben = proben; ist.raumRuhe = ruht; ist.raumRand = rand;
 }
 
+say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle in seiner Stufe und ganz auf dem Feld, Zeile im Titelblock');
+// Feste Hangargrößen (13.11.2026, Krisz: „small Hangar, Medium, large und
+// extra large einführen genau wie ingame, dann haben wir auch richtige
+// grössenreferenzen“). Sperrklinken (Grundsatz 5), erster Bau: 190 Schiffe
+// der Halle, davon 107 in Small, 48 in Medium, 27 in Large, 7 in Extra
+// Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
+// Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
+// Schiffe wechseln, darum etwas Abstand.
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 9, worte: 14 };
+// Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
+// sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
+const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
+// Feld (Breite x Länge) und freie Höhe darüber in m je Stufe, wie am
+// 13.11.2026 gerendert und von Krisz im Entwurf abgenommen („Ja“ zu „vier
+// feste Stufen bauen“, Bilder G-1 und G-2). Ändern sich die Zahlen, steht
+// jedes Schiff der Stufe in einer anderen Halle: erst rendern und hinsehen,
+// dann hier nachziehen.
+const GROESSE_FELD = { S: [32, 96, 35.48], M: [56, 96, 35.48], L: [88, 160, 59.48], XL: [184, 304, 99.48] };
+// Schiffe, deren Halle nicht die Stufe ihrer Größenklasse ist (Grundsatz 6:
+// benannt, mit Anlass und Zombie-Wächter). von: Stufe der Seite, auf: Stufe
+// der Halle ('' = keine fasst es, Halle nach Maß).
+const GROESSE_AUSNAHMEN = {
+  'drak-clipper': { von: 'S', auf: 'M', anlass: 'Größenklasse 2, sein Modell ist aber 49,5 m breit und das Feld der Stufe Small 32 m: Der Viewer nimmt die nächste Stufe, die es fasst' },
+  'aegs-javelin': { von: 'XL', auf: '', anlass: '469,9 m lang und 218,8 m breit, das Feld der Stufe Extra Large misst 184 x 304 m: Kein Hangar fasst es, die Halle wächst auf sein Maß wie vor den Stufen' },
+};
+{
+  const R = /\/\* hall-grow \*\/([\s\S]*?)\/\* \/hall-grow \*\//.exec(viewer), RL = /\/\* hall-lift \*\/([\s\S]*?)\/\* \/hall-lift \*\//.exec(viewer);
+  let cfg = null, G = null, LIFT = null;
+  try { cfg = JSON.parse(/<script type="application\/json" id="hg-stage">([\s\S]*?)<\/script>/.exec(PAGES[0].html)?.[1] ?? 'null'); } catch { cfg = null; }
+  const hall = cfg?.opts?.hall ?? null, models = cfg?.models ?? {};
+  try { G = JSON.parse(R?.[1] ?? 'null')?.[hall?.id] ?? null; LIFT = JSON.parse(RL?.[1] ?? 'null')?.[hall?.id] ?? null; } catch { G = LIFT = null; }
+  const f2 = (x) => (Number.isFinite(x) ? x.toFixed(2) : String(x));
+  // (a) die Stufen im Viewer
+  const sizes = Array.isArray(G?.sizes) ? G.sizes : null, step = G?.step, feld = LIFT && [LIFT.to?.[0] - LIFT.from?.[0], LIFT.to?.[1] - LIFT.from?.[1]];
+  let stufen = 0;
+  const formOk = !!sizes && sizes.length === GROESSEN.length && sizes.every((z, i) => Array.isArray(z) && z.length === 4 && z[0] === GROESSEN[i] && z.slice(1).every((v) => Number.isFinite(v) && v >= 0));
+  if (!hall?.id || !G) fail('[24] HALL_GROW im Viewer nennt die Halle der Seite nicht: ohne ihren Eintrag gibt es keine Hangargrößen');
+  else if (!formOk) fail(`[24] HALL_GROW["${hall.id}"].sizes braucht genau ${GROESSEN.length} Stufen [Name, x, y, z] in der Folge ${GROESSEN.join(', ')} (gefunden ${JSON.stringify(G.sizes ?? null)}): Ohne sie wächst die Halle wieder für jedes Schiff auf sein Maß`);
+  else if (!(Number.isFinite(step) && step > 0) || !(feld?.every((v) => Number.isFinite(v) && v > 0)) || !Number.isFinite(G.clear)) fail(`[24] step, clear oder das Feld (HALL_LIFT) der Halle ${hall.id} fehlen: die Stufen sind nicht nachzurechnen`);
+  else {
+    sizes.forEach((z, i) => {
+      const [name, x, y, zz] = z, vor = i ? sizes[i - 1] : null;
+      // je Seite ganze Schritte (x und z wachsen nach beiden Seiten, y nur nach oben): sonst läuft die Textur an der Kante der gestreckten Platten versetzt weiter
+      const ganz = (v, n) => Math.abs(v / (n * step) - Math.round(v / (n * step))) < 1e-9;
+      if (!ganz(x, 2) || !ganz(y, 1) || !ganz(zz, 2)) fail(`[24] Stufe ${name} [${x}, ${y}, ${zz}]: x und z brauchen Vielfache von ${2 * step} m (je Seite ein ganzer Schritt von ${step} m), y von ${step} m: sonst läuft die Textur des Bodens an den Streifen versetzt weiter`);
+      if (i === 0 && (x || y || zz)) fail(`[24] Stufe ${name} [${x}, ${y}, ${zz}] ist nicht die Halle ohne Zuwachs: Die kleinste Stufe ist die Halle, wie sie gebaut ist`);
+      if (vor && !(x >= vor[1] && y >= vor[2] && zz >= vor[3] && x + y + zz > vor[1] + vor[2] + vor[3])) fail(`[24] Stufe ${name} [${x}, ${y}, ${zz}] ist nicht in jeder Richtung mindestens so groß wie ${vor[0]} [${vor.slice(1).join(', ')}] und in einer größer: Ein Schiff, das in ${vor[0]} nicht passt, fände auch hier keinen Platz`);
+      const ist = [feld[0] + x, feld[1] + zz, G.clear + y], soll = GROESSE_FELD[name];
+      if (!soll.every((v, k) => Math.abs(v - ist[k]) <= 0.02)) fail(`[24] Stufe ${name}: Feld ${f2(ist[0])} x ${f2(ist[1])} m, ${f2(ist[2])} m frei; angesehen und abgenommen sind ${soll[0]} x ${soll[1]} m und ${soll[2]} m: erst rendern und hinsehen, dann die Zahl im Tor nachziehen (GROESSE_FELD)`);
+      else stufen++;
+    });
+  }
+  // (b) jedes Schiff der Halle: Stufe der Seite gegen die Größenklasse, Stufe der Halle aus camPlan des ausgelieferten Viewers, und ob es auf dem Feld steht
+  let mod = null;
+  try { mod = await import(pathToFileURL(viewerFile).href); } catch (e) { fail(`[24] dist/assets/hangar-viewer.js laedt nicht als Modul (${e.message})`); }
+  const zahl = { S: 0, M: 0, L: 0, XL: 0, '': 0 }, bad = [], fremd = [], hallen = new Set(), gesehen = new Map();
+  let schiffe = 0, luftMin = Infinity, ohneStufe = 0;
+  if (mod && formOk && feld && hall?.room) {
+    const KL = new Map(JSON.parse(readFileSync(join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.map((v) => [v.id, v.sizeClass ?? null]));
+    const { figures } = DOCK.en;
+    const fps = new Map([...PAGES[0].html.matchAll(/<li data-id="([^"]+)"([^>]*)>/g)].map((m) => [m[1], (/\sdata-fp="([^"]*)"/.exec(m[2])?.[1] ?? '').split(' ').map(Number)]));
+    for (const [id, e] of Object.entries(models)) {
+      if (!Array.isArray(e) || e[3] !== 'halle') continue;
+      const seite = e[4] ?? null, klasse = GROESSE_KLASSE[KL.get(id)] ?? null;
+      if (seite !== klasse) bad.push(`${id}: die Seite gibt der Bühne die Stufe ${JSON.stringify(seite)} mit, nach seiner Größenklasse ${KL.get(id) ?? '–'} gehört es in ${JSON.stringify(klasse)} (hangarOfClass in src/lib/hangar/stage.ts, GROESSE_KLASSE hier)`);
+      if (seite === null) ohneStufe++;
+      // Maße wie [23]: das Größere aus Katalog und Umriss, die Höhe notfalls geschätzt
+      const fig = figures.get(id) ?? {}, fp = fps.get(id) ?? [];
+      const len = Math.max(fig.len ?? 0, fp[1] || 0), wid = Math.max(fig.wid ?? 0, fp[0] || 0);
+      if (!(len > 0 && wid > 0)) continue;
+      const hgt = fig.hgt > 0 ? fig.hgt : Math.max(3, wid / 4);
+      const p = mod.camPlan(hall, { len, halfW: wid / 2, height: hgt, hangar: seite });
+      if (!p || typeof p.size !== 'string' || !(p.size === '' || GROESSEN.includes(p.size)) || !Array.isArray(p.grow) || !p.grow.every(Number.isFinite)) { bad.push(`${id}: camPlan nennt keine Hangargröße (size ${JSON.stringify(p?.size)}, Zuwachs ${JSON.stringify(p?.grow)}): Die Halle rastet nicht ein`); continue; }
+      schiffe++;
+      zahl[p.size]++;
+      gesehen.set(id, { seite, halle: p.size });
+      hallen.add(p.grow.join('/'));
+      const z = sizes.find((x) => x[0] === p.size);
+      if (z && !p.grow.every((v, k) => v === z[k + 1])) bad.push(`${id}: Stufe ${p.size}, der Zuwachs der Halle ist aber [${p.grow.join(', ')}] statt [${z.slice(1).join(', ')}]: Die Halle steht nicht auf der Stufe`);
+      if (seite && p.size !== '' && GROESSEN.indexOf(p.size) < GROESSEN.indexOf(seite)) bad.push(`${id}: die Halle steht auf ${p.size}, kleiner als seine Stufe ${seite}: Die Stufe des Schiffs ist die kleinste, die es bekommt`);
+      // selbst nachgemessen, nicht dem Viewer geglaubt: mit 1 m Rand auf dem Feld, 4 m unter den Wannen
+      const luft = [feld[0] + p.grow[0] - wid - 2, feld[1] + p.grow[2] - len - 2, G.clear + p.grow[1] - hgt - 4];
+      luftMin = Math.min(luftMin, ...luft);
+      if (!luft.every((v) => v >= -1e-6)) bad.push(`${id}: ${f2(len)} x ${f2(wid)} x ${f2(hgt)} m ragt in ${p.size || 'seiner Halle nach Maß'} über das Feld ${f2(feld[0] + p.grow[0])} x ${f2(feld[1] + p.grow[2])} m oder unter die Wannen bei ${f2(G.clear + p.grow[1])} m (Luft quer ${f2(luft[0])}, längs ${f2(luft[1])}, oben ${f2(luft[2])} m bei 1 m Rand und 4 m unter den Wannen): Es stünde über dem Rand des Aufzugs oder in den Lichtwannen`);
+      const a = GROESSE_AUSNAHMEN[id];
+      if (p.size !== seite && !(a && a.auf === p.size && a.von === seite)) fremd.push(`${id} (${seite ?? 'ohne Stufe'} nach Größenklasse, die Halle steht auf ${p.size || 'Maß'}; ${f2(len)} x ${f2(wid)} x ${f2(hgt)} m)`);
+    }
+    // Zombie-Wächter: Jede Ausnahme braucht ihren Anlass
+    for (const [id, a] of Object.entries(GROESSE_AUSNAHMEN)) {
+      const g = gesehen.get(id);
+      if (!g) fail(`[24] Ausnahme ${id} (${a.anlass}) ohne Schiff: Es steht nicht mehr auf dem Feld oder hat keine Maße; Ausnahme in GROESSE_AUSNAHMEN streichen`);
+      else if (g.halle === g.seite) fail(`[24] Ausnahme ${id} (${a.anlass}) ohne Anlass: Es steht jetzt in der Stufe seiner Größenklasse (${g.seite}); Ausnahme in GROESSE_AUSNAHMEN streichen`);
+      else if (g.halle !== a.auf || g.seite !== a.von) fail(`[24] Ausnahme ${id} nennt ${a.von} auf ${a.auf || 'Maß'}, gebaut ist ${g.seite ?? 'ohne Stufe'} auf ${g.halle || 'Maß'}: Ausnahme in GROESSE_AUSNAHMEN nachziehen (mit Anlass)`);
+    }
+    // so viele verschiedene Hallen wie Stufen in Gebrauch, dazu je Halle nach Maß eine
+    const erlaubt = GROESSEN.filter((g) => zahl[g]).length + zahl[''];
+    if (hallen.size > erlaubt) bad.push(`${hallen.size} verschiedene Hallen für ${schiffe} Schiffe, mit ${GROESSEN.filter((g) => zahl[g]).length} Stufen und ${zahl['']} Hallen nach Maß dürften es höchstens ${erlaubt} sein: Die Halle wächst wieder je Schiff`);
+  }
+  // Abweichung von der Größenklasse ohne Eintrag: kein Schaden (die Halle
+  // fasst das Schiff, die Zeile nennt die Halle), aber benannt gehört sie
+  if (fremd.length) say(`    WARNUNG: ${fremd.length} Schiffe stehen nicht in der Stufe ihrer Größenklasse und nicht in GROESSE_AUSNAHMEN: ${fremd.slice(0, 4).join('; ')}${fremd.length > 4 ? '; …' : ''}. Maße im Katalog prüfen, sonst dort mit Anlass eintragen`);
+  // (c) die Naht: Bühne, Controller und Seite
+  const draht = [
+    [viewer, /function growFor\(info\) \{[\s\S]{0,300}?const pick = growPick\(info, L, G\.s, realHall\.room\.height\);[\s\S]{0,400}?hangarTell\(info\.id \?\? null, pick\.size,[\s\S]{0,300}?return out\.fromArray\(pick\.grow\);/, 'growFor im Viewer nimmt den Zuwachs nicht mehr aus growPick oder meldet die Stufe nicht (hangarTell): Die Halle wüchse wieder je Schiff, oder die Zeile bliebe leer'],
+    [viewer, /for \(let i = Math\.max\(0, s\.sizes\.findIndex\(\(z\) => z\[0\] === info\.hangar\)\); i < s\.sizes\.length; i\+\+\)/, 'growPick beginnt nicht mehr bei der Stufe des Schiffs (info.hangar): Ein Schiff der Stufe Medium, das in Small passte, stünde in Small'],
+    [viewer, /id: o\.id \?\? null, hangar: o\.hangar \?\? null \};/, 'show() im Viewer gibt Id und Stufe des Schiffs nicht mehr in die Maße (info.id, info.hangar)'],
+    [viewer, /onHangar\(fn\) \{ hangarFn = fn; if \(hangarNow\) fn\(\{ \.\.\.hangarNow \}\); \}/, 'der Viewer bietet onHangar nicht mehr an'],
+    [viewer, /\[null, t\.maker, t\.name, t\.role, t\.hangar\]\.forEach\(/, 'das Hologramm über dem Schiff zeigt die Zeile der Hangargröße nicht mehr (t.hangar)'],
+    [ctrl, /const \[glb, tex, maker, ort, hangar\] = stageCfg\.models\[id\];[\s\S]{0,900}?viewer\.show\(glb, \{ maker, tex, ort, id, hangar, label: labelOf\(id\) \}\)/, 'der Controller gibt show() die Stufe des Schiffs nicht mehr mit (models[id][4]): Jedes Schiff bekäme die kleinste Halle, die es fasst'],
+    [ctrl, /v\.onHangar\?\.\(onHangar\);/, 'der Controller hört nicht mehr auf onHangar: Die Zeile der Hangargröße bliebe leer'],
+    [ctrl, /function onHangar\(e\) \{[\s\S]{0,300}?grOf\.set\(e\.id, e\);[\s\S]{0,200}?paintGr\(\);\s*viewer\?\.label\?\.\(e\.id, labelOf\(e\.id\)\);/, 'onHangar im Controller schreibt die Zeile nicht mehr in den Titelblock und ins Hologramm'],
+    [ctrl, /role: txt\('\.hg-role'\), hangar: grText\(id\) \};/, 'labelOf im Controller gibt dem Hologramm die Hangargröße nicht mehr mit'],
+  ];
+  let verdrahtet = 0;
+  for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
+  // Wörter der Zeile je Sprache: alle da, die mit Maßen tragen ihre Platzhalter, und Deutsch ist nicht Englisch
+  let worte = 0;
+  const wort = PAGES.map((page) => {
+    const tag = /<span data-msg="gr"([^>]*)>/.exec(page.html)?.[1] ?? null, o = {};
+    if (tag === null) fail(`[24] ${page.file}: die Wörter der Hangargröße fehlen (#hgx-msg [data-msg="gr"])`);
+    for (const k of ['s', 'm', 'l', 'xl', 'own', 'feld', 'frei']) {
+      o[k] = (new RegExp(`\\sdata-${k}="([^"]*)"`).exec(tag ?? '')?.[1] ?? '').trim();
+      if (tag !== null && !o[k]) fail(`[24] ${page.file}: data-${k} der Hangargröße ist leer`);
+      else if (tag !== null) worte++;
+    }
+    if (tag !== null && !['{w}', '{l}'].every((x) => o.feld.includes(x))) fail(`[24] ${page.file}: data-feld („${o.feld}“) trägt nicht {w} und {l}: Die Zeile nennte das Feld nicht`);
+    if (tag !== null && !['{w}', '{l}', '{h}'].every((x) => o.frei.includes(x))) fail(`[24] ${page.file}: data-frei („${o.frei}“) trägt nicht {w}, {l} und {h}`);
+    if (!/<header class="hg-title">[\s\S]{0,4000}?<p class="hg-role hg-gr" id="hgx-gr" hidden><\/p>[\s\S]{0,200}?<div class="hgx-actions"/.test(page.html)) fail(`[24] ${page.file}: die Zeile #hgx-gr steht nicht mehr leer und verborgen im Titelblock (.hg-title, vor der Knopfreihe): Ohne Hologramm und für Vorleser fehlte die Hangargröße`);
+    return o;
+  });
+  for (const k of ['s', 'm', 'l', 'xl', 'own', 'frei']) if (wort[0][k] && wort[0][k] === wort[1][k]) fail(`[24] data-${k} der Hangargröße lautet deutsch wie englisch („${wort[0][k]}“): vergessene Übersetzung`);
+  for (const t of bad.slice(0, 12)) fail(`[24] ${t}`);
+  if (bad.length > 12) fail(`[24] … und ${bad.length - 12} weitere Befunde an den Hangargrößen`);
+  sollIst(`${GROESSEN.length} Stufen mit den abgenommenen Maßen; Schiffe der Halle >= ${GROESSE.schiffe}, jedes auf dem Feld seiner Halle, nie kleiner als seine Stufe; Small >= ${GROESSE.S}, Medium >= ${GROESSE.M}, Large >= ${GROESSE.L}, Extra Large >= ${GROESSE.XL}; Abweichungen von der Größenklasse nur benannt (${Object.keys(GROESSE_AUSNAHMEN).length}); Naht >= ${GROESSE.draht} Stellen, Wörter >= ${GROESSE.worte}`,
+    `${stufen} Stufen, ${schiffe} Schiffe (${zahl.S} Small, ${zahl.M} Medium, ${zahl.L} Large, ${zahl.XL} Extra Large, ${zahl['']} nach Maß; ${ohneStufe} ohne Stufe von der Seite), ${hallen.size} verschiedene Hallen, knappste Luft ${Number.isFinite(luftMin) ? luftMin.toFixed(2) : '—'} m, ${bad.length} Befunde, ${fremd.length} unbenannte Abweichungen, Naht ${verdrahtet} von ${draht.length}, ${worte} Wörter`);
+  if (mod && formOk) {
+    if (schiffe < GROESSE.schiffe) fail(`[24] nur ${schiffe} Schiffe der Halle gerechnet (Klinke ${GROESSE.schiffe}): lädt der Viewer nicht, fehlt #hg-stage oder nennt das Dock keine Maße mehr?`);
+    for (const g of GROESSEN) if (zahl[g] < GROESSE[g]) fail(`[24] nur ${zahl[g]} Schiffe in der Stufe ${g} (Klinke ${GROESSE[g]}): Fällt die Größenklasse im Katalog weg, oder rastet die Halle anders ein?`);
+  }
+  if (verdrahtet < GROESSE.draht) fail(`[24] nur ${verdrahtet} Stellen der Naht geprüft (Klinke ${GROESSE.draht})`);
+  if (worte < GROESSE.worte) fail(`[24] nur ${worte} Wörter der Hangargröße auf den Seiten (Klinke ${GROESSE.worte})`);
+  ist.grStufen = stufen; ist.grSchiffe = schiffe; ist.grZahl = zahl; ist.grHallen = hallen.size; ist.grDraht = verdrahtet; ist.grWorte = worte;
+}
+
 say('\n[Selbstauskunft]');
-say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen`);
+say(`    Hangarseiten: ${PAGES.length}   Buchten: EN ${BAYS.en.length}, DE ${BAYS.de.length}   Zeilen EN: ${ist.slotZeilen}   Marker EN: ${ist.marker}   Grafikchips: ${ist.chips}   Waffenmodelle: ${ist.tauschModelle}   Tauschports: ${ist.tauschPorts}   Komponentenmodelle: ${ist.kompModelle}   Serienanker: ${ist.kompSerie}   Lackierungen: ${ist.lackierungen} in ${ist.lackSchiffe} Schiffen   Raketenslots: ${ist.raketenSlots} in ${ist.raketenSchiffe} Schiffen   Einhaengepunkte: ${ist.haken ?? 0} von 2   Ton-Schalter: ${ist.tonSeiten ?? 0} Seiten   Klaenge: ${ist.tonDateien ?? 0} Dateien   Schiffe mit Bildablage: ${ist.bildSchiffe ?? 0} (${ist.bildDateien ?? 0} Bilder, ${ist.bildMB ?? 0} MB)   Platzhalter: ${ist.platzhalter ?? 0} Dreiecke in ${ist.platzhalterSchiffe ?? 0} Schiffen   Karten mit Bild: ${ist.wahlKarten ?? 0}   Proben der Suche: ${ist.wahlProben ?? 0}   Innenräume: ${ist.innen ?? 0} (${ist.innenLampen ?? 0} Lampen)   Stationen: ${ist.stationen ?? 0} (${ist.stationenProben ?? 0} Proben der Adresse)   Wörter der Werkstatt: ${ist.werkstattWoerter ?? 0}   Datenblatt: ${ist.blattKauf ?? 0} Bauteile mit Laden, ${ist.blattRezept ?? 0} mit Rezept, ${ist.blattSeite ?? 0} mit Item-Seite (${ist.blattProben ?? 0} Proben der Rang-Rechnung)   Raum der Kamera: ${ist.raumSchiffe ?? 0} Schiffe, ${ist.raumGang ?? 0} mit Gang (${ist.raumProben ?? 0} Proben, ${ist.raumRand ?? 0} Ziele am Rand), Federarm ruht in ${ist.raumRuhe ?? 0} Lagen   Hangargrößen: ${ist.grStufen ?? 0} Stufen, ${ist.grSchiffe ?? 0} Schiffe (S ${ist.grZahl?.S ?? 0}, M ${ist.grZahl?.M ?? 0}, L ${ist.grZahl?.L ?? 0}, XL ${ist.grZahl?.XL ?? 0}, nach Maß ${ist.grZahl?.[''] ?? 0}), ${ist.grHallen ?? 0} Hallen, Naht ${ist.grDraht ?? 0}, ${ist.grWorte ?? 0} Wörter`);
 
 if (REPORT) {
   say('\n(--report: nur Ist-Werte, kein Urteil)\n');

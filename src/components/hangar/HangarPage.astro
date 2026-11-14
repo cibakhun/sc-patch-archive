@@ -166,6 +166,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 .hg-maker{margin:0;font-family:var(--font-ui);font-size:var(--fs-6);font-weight:600;letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--hg-dim)}
 .hg-name{margin:.1rem 0 .3rem;font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;color:var(--hg-on);text-shadow:0 2px 18px var(--shadow-color)}
 .hg-role{margin:0;font-size:var(--fs-7);color:var(--hg-dim)}
+.hg-gr{margin-top:.15rem}
 /* Lange Namen eine oder zwei Stufen kleiner (bay.ts nameStep), statt in zwei
    grossen Zeilen ueber der Halle zu stehen. */
 .hg-name.is-long{font-size:clamp(1.7rem,3.6vw,2.6rem)}
@@ -177,7 +178,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
 /* Steht der Name als Hologramm ueber dem Fahrzeug (hangar-viewer.js,
    buildHolo), bleibt vom Titelblock nur die Knopfreihe im Bild; Titel und
    Name bleiben fuer Vorleser im Dokument. Ohne 3D-Ansicht bleibt er, wie er ist. */
-.hg[data-holo="on"] .hg-title .hgx-head{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.hg[data-holo="on"] .hg-title :is(.hgx-head,.hg-gr){position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 /* Die Spalte rechts: Schalter oben, darunter die gewaehlte Tafel. Werkstatt
    fuellt sie bis zum Buehnenfuss, die Schiffsdaten nur so weit wie ihr Inhalt;
    wo die Spalte leer ist, gehen Klicks zur Leinwand durch. */
@@ -763,6 +764,12 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       <header class="hg-title">
         <h1>Hangar</h1>
         <ShipBay bay={bay} region="head" />
+        {/* Hangargroesse des Schiffs, wie die Halle sie zeigt (Small bis Extra
+            Large wie im Spiel, hangar-viewer.js onHangar), dazu das Feld in
+            Metern. Die Zeile gehoert zum Titelblock und steht deshalb im
+            Hologramm unter der Rolle; hier bleibt sie fuer Vorleser und fuer
+            die Ansicht ohne Hologramm. Leer, bis die Buehne die Stufe meldet. */}
+        <p class="hg-role hg-gr" id="hgx-gr" hidden></p>
         {/* Drei Zeichen statt drei beschrifteter Knoepfe; das Wort steht als
             Blase am Knopf (.hgx-tip) und ist zugleich sein Name fuer Vorleser. */}
         <div class="hgx-actions" role="group" aria-label={t('act.group')}>
@@ -1128,6 +1135,7 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
     <span data-msg="fleet-merged" data-one={t('msg.fleet.merged.one')} data-other={t('msg.fleet.merged.other')}></span>
     <span data-msg="fleet-note" data-added={t('msg.fleet.added')} data-removed={t('msg.fleet.removed')}></span>
     <span data-msg="cmp-open" data-other={t('msg.cmp.open')}></span>
+    <span data-msg="gr" data-s={t('gr.S')} data-m={t('gr.M')} data-l={t('gr.L')} data-xl={t('gr.XL')} data-own={t('gr.own')} data-feld={t('msg.gr.feld')} data-frei={t('msg.gr.frei')}></span>
     <span data-msg="find-hits" data-one={t('msg.find.hits.one')} data-other={t('msg.find.hits.other')}></span>
     <span data-msg="find" data-remove={t('msg.find.remove')} data-cargo={t('msg.find.cargo')} data-price={t('msg.find.price')} data-here={t('msg.qv.here')}></span>
     <span data-msg="holo" data-speed={t('holo.speed')} data-fire={t('holo.fire')} data-shield={t('holo.shield')} data-hull={t('holo.hull')} data-rank={t('msg.holo.rank')} data-cls={t('msg.holo.cls')} data-size={t('msg.holo.size')} data-none={t('holo.none')} data-cmp={t('holo.cmp')} data-cmp-on={t('holo.cmpOn')} data-all={t('holo.all')} data-sys={t('holo.sys')} data-more={t('msg.holo.more')}></span>

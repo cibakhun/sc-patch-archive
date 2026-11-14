@@ -22,7 +22,7 @@ import { versioned } from '../../lib/assetVersion';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { HANGAR_IDS, shipData, shipFacts } from '../../lib/hangar/catalog';
-import type { StageConfig } from '../../lib/hangar/stage';
+import { hangarOfClass, type StageConfig, type StageOrt } from '../../lib/hangar/stage';
 import makerLogos from '../../data/manufacturer-logos.json';
 import { jsonForScript } from '../../lib/safeJson';
 
@@ -218,16 +218,21 @@ const holo = { module: versioned('assets/hangar-holo3d.js', '/assets/hangar-holo
 const stage = {
   viewer: viewerSrc,
   opts: { hall, crew, gear, texBytes, logos, interior, holo },
-  models: Object.fromEntries(HANGAR_IDS.map((id) => [id, [
-    withV(geo[id] ?? meshes[id]),
-    real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
-    shipFacts(id, lang).makerCode,
+  models: Object.fromEntries(HANGAR_IDS.map((id) => {
     // Bodenfahrzeuge in die Werkhalle (Krisz 24.10.2026), dazu die
     // Gravlev-Räder (Dragonfly, Nox, X1, Pulse, HoverQuad), obwohl sie im
     // Spiel als Raumschiff zählen (Krisz 25.10.2026: „dragonfly undso
     // gehört auch zur bodenfahrzeugen“)
-    shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle',
-  ] as const])),
+    const ort: StageOrt = shipData(id).isSpaceship === false || shipData(id).isGravlev === true ? 'werk' : 'halle';
+    return [id, [
+      withV(geo[id] ?? meshes[id]),
+      real.ships?.[id] && !HOLD[id] ? withV(real.ships[id]) : null,
+      shipFacts(id, lang).makerCode,
+      ort,
+      // Hangargröße wie im Spiel, nur auf dem Schiffsfeld (stage.ts)
+      ort === 'halle' ? hangarOfClass(shipData(id).sizeClass) : null,
+    ] as const];
+  })),
 } satisfies StageConfig;
 const payload = jsonForScript(stage);
 ---
@@ -269,6 +274,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-body
 [data-media-surface] .hg-holo__m{font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-12);text-transform:uppercase;color:rgb(205 230 246/.88)}
 .hg-holo__n{margin:.06em 0 .12em!important;font-family:var(--font-display);font-weight:900;font-size:1em;line-height:1.04;text-wrap:balance;text-shadow:-.025em 0 rgb(255 80 130/.3),.025em 0 rgb(80 205 255/.45),0 0 .16em rgb(130 215 255/.65),0 0 .5em rgb(2 6 12/.55)}
 [data-media-surface] .hg-holo__r{font-size:max(13px,.31em);color:rgb(205 230 246/.85)}
+/* Hangargröße des Schiffs und das Feld der Halle, unter der Rolle */
+[data-media-surface] .hg-holo__g{margin-top:.5em;font-family:var(--font-ui);font-size:max(12px,.28em);font-weight:600;letter-spacing:var(--ls-6,.04em);color:rgb(170 226 255/.95)}
 /* Austrittskante unter dem Block, Abtastlinie beim Auf- und Abbau */
 .hg-holo::before,.hg-holo::after{content:"";position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgb(160 226 255/.8),transparent)}
 .hg-holo::before{left:14%;right:14%;bottom:0;box-shadow:0 0 6px rgb(110 205 255/.5)}
