@@ -223,6 +223,11 @@ const MISSION_F = fassung((MISSIONS as { meta?: { patch?: string } }).meta?.patc
 const FAHRZEUG_F = fassung((VEHICLES as { gameVersion?: string }).gameVersion, 'src/data/vehicles.json gameVersion');
 const SCHIFF_PREISE = isoAus((VEHICLE_PRICES as { fetchedAt?: string }).fetchedAt, 'src/data/vehicle-prices.json fetchedAt');
 const EXTRAS_DATUM = isoAus((SHIP_EXTRAS as { fetchedAt?: string }).fetchedAt, 'src/data/ship-extras.json fetchedAt');
+// Datenstand des Wikis selbst (die API nennt ihn je Fahrzeug, sync-wiki-extern
+// schreibt ihn in source). Aelter, solange er hinter dem Katalog liegt; ein
+// Schnappschuss ohne diese Angabe (der vom 18.07.2026) gilt als aelter.
+const WIKI_F = /Wiki-Datenstand (\d+\.\d+\.\d+)/.exec((VEHICLE_EXTERNAL as { source?: string }).source ?? '')?.[1] ?? null;
+const WIKI_AELTER = !WIKI_F || frueher(WIKI_F, FAHRZEUG_F);
 const WIKI_DATUM = isoAus(/fetchedAt (\d{4}-\d{2}-\d{2})/.exec((VEHICLE_EXTERNAL as { source?: string }).source ?? '')?.[1], 'src/data/vehicle-external.json source (fetchedAt)');
 const MINING_F = fassung((MINING as { game_version?: string }).game_version, 'assets/mining-db.json game_version');
 const AUSBEUTE_F = fassung((FROZEN as { frozen_from?: string }).frozen_from, 'assets/mining-frozen.json frozen_from');
@@ -290,7 +295,7 @@ export function standSchiff(
   if (o.wiki) {
     z.push({
       quelle: 'wiki', art: 'schnappschuss', was: t.wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
-      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
     });
   }
   if (o.bild) z.push({ quelle: 'bild', art: 'quelle', was: t.bild, text: o.bild, aelter: false });
@@ -323,7 +328,7 @@ export function standFlotte(lang: Locale, kennungen: (string | null | undefined)
   z.push(fremd(lang, 'uex-schiffe', t.ingamePreise, UEX.name, UEX.link, SCHIFF_PREISE));
   z.push({
     quelle: 'wiki', art: 'schnappschuss', was: t.wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
-    wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+    wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
   });
   z.push({ quelle: 'bild', art: 'quelle', was: t.bild, text: 'starcitizen.tools', aelter: false });
   return z;
@@ -346,7 +351,7 @@ export function standDossier(lang: Locale, o: { kennungen: (string | null | unde
   if (o.wiki) {
     z.push({
       quelle: 'wiki', art: 'schnappschuss', was: t.pledgeCrew, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
-      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
     });
   }
   return z;
@@ -466,7 +471,7 @@ export function standHangar(lang: Locale, ids: readonly string[]): StandZeile[] 
 
 const wikiZeile = (lang: Locale): StandZeile => ({
   quelle: 'wiki', art: 'schnappschuss', was: T[lang].wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
-  wert: WIKI_DATUM, text: `, ${T[lang].schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+  wert: WIKI_DATUM, text: `, ${T[lang].schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
 });
 const EXTERN = VEHICLE_EXTERNAL as { vehicles?: Record<string, unknown>; overrides?: Record<string, unknown> };
 const hatWiki = (id: string) => !!(EXTERN.vehicles?.[id] ?? EXTERN.overrides?.[id]);

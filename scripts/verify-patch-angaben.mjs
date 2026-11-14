@@ -245,6 +245,11 @@ for (const [id, s] of Object.entries(STAENDE)) {
   console.log(`    ${id.padEnd(14)} ${f.padEnd(8)} (${kennung})`);
 }
 
+// Wiki-Schnappschuss: aelter, solange sein eigener Datenstand (source,
+// „Wiki-Datenstand X.Y.Z") hinter dem Fahrzeug-Katalog liegt; ohne Angabe
+// aelter. Gesetzt in [6], wo der Schnappschuss gelesen wird.
+let wikiAelter = true;
+
 const zaehler = Object.fromEntries(FAMILIEN.map((f) => [f.stand, { seiten: 0, angaben: 0, wo: {}, fassungen: {} }]));
 const widersprueche = [];
 let seitenGesamt = 0;
@@ -521,6 +526,9 @@ try {
     if (it.fund != null) fundKatalog.set(it.id, items.fundorte?.profile?.[it.fund]?.length ?? 0);
   }
   const ext = rd('src/data/vehicle-external.json');
+  const wikiF = /Wiki-Datenstand (\d+\.\d+\.\d+)/.exec(ext.source ?? '')?.[1] ?? null;
+  wikiAelter = !wikiF || !fassung.Fahrzeuge || vor(wikiF, fassung.Fahrzeuge);
+  console.log(`    Wiki-Schnappschuss: Datenstand ${wikiF ?? 'ohne Angabe'}, Katalog ${fassung.Fahrzeuge} -> ${wikiAelter ? 'aelterer Stand' : 'aktuell'}`);
   const ref = rd('assets/refinery-data.json');
   const quellen = {
     items: { art: 'spiel', wert: fassung['Item-Katalog'], datei: 'assets/universal-items.json gameVersion' },
@@ -768,7 +776,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
         kern = sollWert ? `${name?.[0]}, ${L ? 'Stand' : 'as of'} ${datumIn(sollWert, lang)}` : null;
       } else if (q.art === 'schnappschuss') {
         kern = sollWert ? `${name?.[0]}, ${L ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(sollWert, lang)}` : null;
-        aelterSoll = true;
+        aelterSoll = wikiAelter;
       } else if (q.art === 'hand') {
         kern = `${L ? 'von Hand gepflegt, Stand' : 'maintained by hand, as of'} ${sollWert}`;
         aelterSoll = !!spielWert && !!sollWert && vor(sollWert, spielWert);
@@ -981,7 +989,7 @@ if (existsSync(DIST)) {
       }));
       if (wikiGezeigt && wikiDatum) sollTeile.push({
         quelle: 'wiki', art: 'schnappschuss', wert: wikiDatum, link: 'https://starcitizen.tools',
-        text: `${DOSSIER_TEXT.wiki[sp]}: starcitizen.tools, ${sp === 0 ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(wikiDatum, lang)} ${marke}`,
+        text: `${DOSSIER_TEXT.wiki[sp]}: starcitizen.tools, ${sp === 0 ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(wikiDatum, lang)}${wikiAelter ? ` ${marke}` : ''}`,
       });
       const key = (x) => `${x.quelle}|${x.wert}`;
       const istMap = new Map(teile.map((x) => [key(x), x]));
