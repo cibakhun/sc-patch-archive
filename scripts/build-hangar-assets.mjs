@@ -35,6 +35,8 @@ import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-is
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
+import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
+import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls, hallBestand, bestandPasst } from './lib/hall-quellen.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
 import { repairSwapped } from './lib/hangar-netztausch.mjs';
@@ -90,8 +92,12 @@ const BUDGET = {
 // Innenraum je Halle (Meter, glTF-Raum Y oben): Bodenmitte, halbe Breite (x),
 // halbe Länge (z), lichte Höhe. Abgelesen an den Bodenplatten und der
 // Deckenunterkante des Exports; der Viewer stellt das Schiff auf die Mitte.
+// Industrie-Hallen (util_a): Wände, Boden und Decke an der gebauten Halle
+// gemessen (Flächen je Ebene); das Schiff steht dort auf der Landefläche des
+// Spiels (HALL_PAD im Viewer), bei Large liegt sie in der Raummitte.
 const HALL_ROOM = {
   'revelyork-single': { center: [36, 0, -68], halfW: 36, halfL: 68, height: 44 },
+  'util-lrgtop': { center: [-72, 2, 112], halfW: 72, halfL: 108, height: 68 },
 };
 
 // Nie sichtbar oder nur im Spiel sinnvoll: Schadensmodelle, Kollisions-/
@@ -187,6 +193,8 @@ function applyMatFix(doc, fix, { ship = false } = {}) {
   // Specular-Maps und Kachelung (TexMod) auch für die schon aufgelösten
   // Materialien nachtragen — die nennt der Export nicht
   if (!ship) for (const m of mats) {
+    // Aufkleber (scripts/lib/hall-decals.mjs) bringen ihre Karten selbst mit
+    if (m.getExtras()?.hall_decal) continue;
     const [base, rest] = m.getName().split('_mtl_');
     const sub = rest && fix.mtls[base]?.find((s, i) => s.name && rest.startsWith(s.name + '_') && Number(rest.slice(s.name.length + 1)) === i);
     if (sub) m.setExtras({ ...m.getExtras(), spec_tex: sub.s, tile_d: sub.td, tile_n: sub.tn, blend: sub.blend, vc: sub.vc });
@@ -227,7 +235,7 @@ function coverage(doc) {
 // Schicht ist Lack, also nicht metallisch. Dazu entsteht eine eigene
 // metallicRoughness-Karte im selben UV-Raum: B (Metall) = 1 − f,
 // G (Rauheit) = mix(Grund-Rauheit aus der Glätte, 1 − BlendLayer2Glossiness, f).
-async function bakeBlend(baseFile, x, factor, metal = null) {
+async function bakeBlend(baseFile, x, factor, metal = null, keepAlpha = false) {
   const b = x.blend;
   const load = async (f, size) => {
     let img = sharp(f).removeAlpha();
@@ -242,6 +250,15 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
     W = Math.max(4, Math.round(meta.width * scale)); H = Math.max(4, Math.round(meta.height * scale));
     base = await load(baseFile); if (base.w !== W) base = await load(baseFile, W);
   }
+  // keepAlpha: Das Material schneidet nach dem Alpha seiner Grundkarte (AlphaTest: die Form eines
+  // Buchstabens, ein Lochblech). Dann bleibt es in der gebackenen Karte. Bis 14.11.2026 fiel es
+  // weg, und Schrift aus einem Alphabet-Atlas stand als volle dunkle Rechtecke an Tafeln und Toren.
+  let alpha = null;
+  if (keepAlpha && baseFile && (await sharp(baseFile).metadata()).hasAlpha) {
+    const a = await sharp(baseFile).extractChannel(3).resize(W, H, { fit: 'fill' }).raw().toBuffer();
+    if (a.some((v) => v < 255)) alpha = a;
+  }
+  const C = alpha ? 4 : 3;
   const l2 = await load(texFile(b.d));
   const mk = await load(texFile(b.mask));
   const col = String(b.color || '1,1,1').split(',').map(Number);
@@ -254,27 +271,28 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
   };
   const gl = metal?.glossFile ? await load(metal.glossFile) : null;
   const tg = (x.tile_n?.[0] || 1) / bt;   // Glätte kachelt mit dem TexMod der Normalen
-  const out = Buffer.alloc(W * H * 3);
+  const out = Buffer.alloc(W * H * C);
   const mr = metal ? Buffer.alloc(W * H * 3) : null;
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
     const u = (i + 0.5) / W, v = (j + 0.5) / H;
     const m = sample(mk, u * tm, v * tm, 0) / 255;
     const f = Math.min(1, Math.max(0, Math.pow(m * (1 + b.factor), b.falloff || 1)));
-    const p = (j * W + i) * 3;
+    const p = (j * W + i) * C, q = (j * W + i) * 3;
     for (let ch = 0; ch < 3; ch++) {
       const g = black ? 0 : (base ? base.data[(j * W + i) * base.c + ch] : 255) * factor[ch];
       const s2 = sample(l2, u * t2, v * t2, ch) * col[ch];
       out[p + ch] = Math.round(g * (1 - f) + s2 * f);
     }
+    if (alpha) out[p + 3] = alpha[j * W + i];
     if (mr) {
       const rb = gl ? 1 - sample(gl, u * tg, v * tg, 0) / 255 : metal.roughBase;
-      mr[p] = 255;
-      mr[p + 1] = Math.round((rb * (1 - f) + metal.roughL2 * f) * 255);
-      mr[p + 2] = Math.round((1 - f) * 255);
+      mr[q] = 255;
+      mr[q + 1] = Math.round((rb * (1 - f) + metal.roughL2 * f) * 255);
+      mr[q + 2] = Math.round((1 - f) * 255);
     }
   }
-  const png = (buf) => sharp(buf, { raw: { width: W, height: H, channels: 3 } }).png().toBuffer();
-  return { color: await png(out), mr: mr ? await png(mr) : null };
+  const png = (buf, c = 3) => sharp(buf, { raw: { width: W, height: H, channels: c } }).png().toBuffer();
+  return { color: await png(out, C), mr: mr ? await png(mr) : null, alpha: !!alpha };
 }
 
 // Die Halle kommt ohne eingebettete Bilder: Texturen aus dem Cache anhängen.
@@ -288,7 +306,12 @@ async function bakeBlend(baseFile, x, factor, metal = null) {
 // - Kachelung: TexMod TileU/TileV der .mtl über KHR_texture_transform.
 // only: nur diese Materialien (Schiffe: die nachgetragenen, die übrigen
 // tragen ihre eingebetteten Karten)
-async function attachHallTextures(doc, only = null) {
+// fest: Hallen fester Größe (Industrie-Bausatz). Nur dort gilt das Alpha der
+// Grundkarte, wie das Spiel es liest: als Schnitt (bakeBlend, keepAlpha) und
+// als Maske des Leuchtens (glowMask). Die Revel & York, Aufzug und Werkhalle
+// bleiben, wie sie abgenommen sind.
+const GLOW_MIN = 0.01;
+async function attachHallTextures(doc, only = null, { fest = false } = {}) {
   const root = doc.getRoot();
   const cache = new Map();
   const tex = (file, name, image) => {
@@ -313,7 +336,34 @@ async function attachHallTextures(doc, only = null) {
   };
   const tt = doc.createExtension(KHRTextureTransform);
   const tile = (ti, t) => { if (ti && t) ti.setExtension('KHR_texture_transform', tt.createTransform().setScale(t)); };
-  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0 };
+  // Leuchtmaske: Illum lässt mit Glow seine Grundkarte leuchten, und deren Alpha sagt, wo (die
+  // Lämpchen einer Zierleiste, der Ring einer Lampe). Die Leuchtkarte ist dann Farbe mal Alpha;
+  // 512 px genügen dafür. Liefert die Textur, 'voll' (das Alpha trägt keine Maske, die Karte
+  // leuchtet ganz wie bisher) oder 'leer' (die Maske deckt nichts, es leuchtet nichts).
+  const glowCache = new Map();
+  const glowMask = async (f) => {
+    if (glowCache.has(f)) return glowCache.get(f);
+    const meta = await sharp(f).metadata();
+    let r = 'voll';
+    if (meta.hasAlpha) {
+      const sc = Math.min(1, 512 / Math.max(meta.width, meta.height));
+      const w = Math.max(4, Math.round(meta.width * sc)), h = Math.max(4, Math.round(meta.height * sc));
+      const { data, info } = await sharp(f).resize(w, h, { fit: 'fill' }).raw().toBuffer({ resolveWithObject: true });
+      const px = Buffer.alloc(w * h * 3);
+      let min = 255, max = info.channels === 4 ? 0 : 255;
+      for (let i = 0; info.channels === 4 && i < w * h; i++) {
+        const a = data[i * 4 + 3];
+        if (a < min) min = a;
+        if (a > max) max = a;
+        for (let k = 0; k < 3; k++) px[i * 3 + k] = Math.round((data[i * 4 + k] * a) / 255);
+      }
+      if (max < 8) r = 'leer';
+      else if (min < 250) r = tex(`glow:${f}`, 'e' + cache.size, await sharp(px, { raw: { width: w, height: h, channels: 3 } }).png().toBuffer());
+    }
+    glowCache.set(f, r);
+    return r;
+  };
+  const s = { attached: 0, color: 0, normal: 0, flatNormals: 0, rough: 0, tiled: 0, blended: 0, blendMetal: 0, blendSkipped: 0, blendAlpha: 0, glowMaske: 0, glowAus: 0 };
   // nur benutzte Materialien zählen (unbenutzte fallen später bei prune weg)
   const used = new Set(root.listMeshes().flatMap((me) => me.listPrimitives().map((p) => p.getMaterial())));
   for (const m of [...used].filter((u) => u && (!only || only(u)))) {
@@ -339,9 +389,10 @@ async function attachHallTextures(doc, only = null) {
         };
       }
       if (!cache.has(key)) {
-        const r = await bakeBlend(d, x, factor, metalOpt);
+        const r = await bakeBlend(d, x, factor, metalOpt, fest && m.getAlphaMode() !== 'OPAQUE');
         tex(key, 'b' + cache.size, r.color);
         if (r.mr) tex(`${key}:mr`, 'bm' + cache.size, r.mr);
+        if (r.alpha) s.blendAlpha++;
       }
       // die Grundfarbe (Diffuse-Faktor) steckt jetzt in der Karte — sonst
       // färbte sie auch die zweite Schicht
@@ -372,6 +423,19 @@ async function attachHallTextures(doc, only = null) {
     // gebackene Metall/Rauheit-Karte liegt im UV-Raum der Farbkarte
     tile(m.getMetallicRoughnessTextureInfo(), m.getExtras()?.blend_baked ? td : tn);
     if (td || x.tile_n) s.tiled++;
+    // Leuchten nach dem Spiel (fest): Ein Glow unter GLOW_MIN ist keiner (die Schrift der Tafeln trägt
+    // 0,0001). Ein deckendes Illum-Material leuchtet nur, wo das Alpha seiner Grundkarte es sagt. Bis
+    // 14.11.2026 leuchtete jede solche Karte ganz: Zierleisten mit ein paar Lämpchen standen als helle
+    // Flächen an den Wänden und unter den Gitterrosten. glow === true (Leuchtglas, applyLayers) bleibt.
+    if (fest && typeof x.glow === 'number' && !m.getEmissiveTexture()) {
+      let aus = x.glow < GLOW_MIN;
+      if (!aus && x.shader === 'Illum' && m.getAlphaMode() === 'OPAQUE' && d && !metal) {
+        const e = await glowMask(d);
+        if (e === 'leer') aus = true;
+        else if (e !== 'voll') { m.setEmissiveTexture(e).setEmissiveFactor([1, 1, 1]); tile(m.getEmissiveTextureInfo(), td); s.glowMaske++; }
+      }
+      if (aus) { m.setExtras({ ...m.getExtras(), glow: 0 }); s.glowAus++; }
+    }
     if (m.getBaseColorTexture()) s.color++;
     if (m.getNormalTexture()) s.normal++;
   }
@@ -442,7 +506,7 @@ function cleanMaterials(doc, { paletteOwner, paintTargets, series, twoSided = fa
       pbr.materials++;
       if (q.metalness > 0.5) pbr.metal++;
     }
-    m.setExtras({ ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(pal ? { palette: pal } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
+    m.setExtras({ ...(x.hall_decal ? { hallDecal: 1 } : {}), ...(ownTint ? { palette_tint: x.palette_tint } : {}), ...(pal ? { palette: pal } : {}), ...(paintTargets?.has(m.getName().toLowerCase()) ? { paint: m.getName() } : {}) });
   }
   for (const e of root.listExtensionsUsed()) {
     if (/lights_punctual|materials_(ior|transmission|volume)/.test(e.extensionName)) e.dispose();
@@ -468,7 +532,9 @@ function stripAttributes(doc, kind) {
     // Schacht (kind lift): VEC4 — im Alpha liegt die Mischmaske der Wear-Schicht
     // (HardSurface %WEAR_LAYER), siehe .planning/notes/hangar-schacht-tiefe.md
     const ch = kind === 'lift' ? 4 : 3;
-    if ((kind === 'hall' || kind === 'lift') && c && mat?.getExtras()?.vc) {
+    if (kind === 'hall' && c && mat?.getExtras()?.hall_decal) {
+      // Aufkleber (scripts/lib/hall-decals.mjs): COLOR_0 bleibt ganz, es ist Farbe und Deckkraft des Aufdrucks
+    } else if ((kind === 'hall' || kind === 'lift') && c && mat?.getExtras()?.vc) {
       const n = c.getCount(), out = new Uint8Array(n * ch), v = [0, 0, 0, 1];
       const key = `${mat.getName()}|${p.getExtras()?.matfix ? 'matfix' : 'eigen'}`;
       const e = vc.get(key) || { tris: 0, n: 0, sumR: 0, low: 0 };
@@ -494,13 +560,17 @@ function stripAttributes(doc, kind) {
 
 // Spiellampen der Halle -> public/hangar/hall/<halle>.lights.json (liest der
 // Viewer neben dem GLB). Position und Richtung aus den KHR_lights_punctual-
-// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt in −Z),
+// Knoten des Exports (Weltmatrix, glTF-Raum der Halle, Licht strahlt entlang
+// der +X-Spalte, siehe scripts/lib/hall-lights.mjs),
 // Spieltyp, Spiel-Intensität und Radius aus <halle>.lights-src.txt (das
 // Protokoll des Exports, siehe scripts/extract-hangar-sources.mjs), über den
 // Namen verbunden. angle = voller Kegelwinkel in Grad. Schatten nennt der
-// Export nicht: shadow bleibt false. Danach richtet orientHallLights die
-// Richtungen aus (Spots aus dem Z-oben-Raum nach glTF, Flächenlichter von
-// ihrer Fläche weg, siehe scripts/lib/hall-lights.mjs); v: 2 kennzeichnet das.
+// Export nicht: shadow bleibt false. Danach prüft orientHallLights die Spots
+// gegen und richtet die Flächenlichter von ihrer Fläche weg aus; v: 2 heißt:
+// alle Richtungen im glTF-Raum.
+// Der Spieltyp kann auch <Uninitialized> heißen (zwei Warnleuchten in
+// util-lrgtop): Mit \w+ fiel die Zeile durch, und die Lampe bekam die Stärke
+// des glTF-Knotens (750 statt 0,5, eine andere Einheit).
 const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
 // Werkhalle (fixtures): je Lampe der Leuchtkörper, in dessen um 0,6 m
 // erweiterter Box sie liegt (der nächste, wenn mehrere), als fixture.
@@ -512,7 +582,7 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
   if (!existsSync(srcFile)) return { missing: `${kind}/${name}.lights-src.txt` };
   const src = new Map();
   for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
-    const m = line.match(/^Light '(.+)' type=(\w+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+    const m = line.match(/^Light '(.+)' type=(\S+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
     if (!m) continue;
     if (!src.has(m[1])) src.set(m[1], []);
     src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
@@ -522,14 +592,14 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
     const l = node.getExtension('KHR_lights_punctual');
     if (!l) continue;
     const w = node.getWorldMatrix();
-    const len = Math.hypot(w[8], w[9], w[10]) || 1;
+    const len = Math.hypot(w[0], w[1], w[2]) || 1;
     const s = src.get(node.getName())?.shift();
     const type = s ? (LIGHT_TYPE[s.type] || 'point') : l.getType();
     const r3 = (v) => Math.round(v * 1000) / 1000;
     lights.push({
       type,
       pos: [w[12], w[13], w[14]].map(r3),
-      dir: [-w[8] / len, -w[9] / len, -w[10] / len].map(r3),
+      dir: [w[0] / len, w[1] / len, w[2] / len].map(r3),
       color: l.getColor().map(r3),
       intensity: s ? s.intensity : l.getIntensity(),
       radius: s ? s.radius : l.getRange() ?? 0,
@@ -1570,7 +1640,7 @@ function writeLiftJson(name, parts, { extras = null, uv = null, proj = null } = 
 // ersten Schicht aus <name>.layers.json (Extraktor) als Farbe/Normalen, die
 // Tönung der Schicht als Grundfarbe, LayerTiling als Kachelung. attachHall-
 // Textures hängt sie danach wie eigene Karten an. only wie dort.
-function applyLayers(doc, name, dir = 'lift', only = null) {
+function applyLayers(doc, name, dir = 'lift', only = null, { ton = false } = {}) {
   const f = fileURLToPath(new URL(`${dir}/${name}.layers.json`, SRC));
   if (!existsSync(f)) return { missing: true };
   const layers = JSON.parse(readFileSync(f, 'utf8'));
@@ -1593,9 +1663,49 @@ function applyLayers(doc, name, dir = 'lift', only = null) {
       const tint = l0.tint_color || [1, 1, 1];
       m.setBaseColorFactor([...spec.map((v, i) => Math.min(1, v * tint[i])), 1]).setMetallicFactor(1).setRoughnessFactor(Math.max(0.2, 1 - (L.shininess || 200) / 255));
       s.metal = (s.metal || 0) + 1;
+    } else if (ton && L.d && spec[0] <= 0.1) {
+      // Hallen in fester Größe: die Schicht trägt neben ihrer Karte eine eigene Farbe (Diffuse ihrer .mtl;
+      // beim Asphalt der Plattform 0,023, fast schwarz). Ohne sie steht die Karte ungetönt da, der Asphalt
+      // weiß. Nur Nichtmetalle: bei Metallschichten mit Karte (Diffuse um 0,01) steckt die Farbe im Specular.
+      const dif = String(L.diffuse ?? '').split(',').map(Number);
+      if (dif.length === 3 && dif.every(Number.isFinite) && Math.max(...dif) < 0.995) {
+        const c = m.getBaseColorFactor();
+        m.setBaseColorFactor([c[0] * dif[0], c[1] * dif[1], c[2] * dif[2], c[3]]);
+        s.ton = (s.ton || 0) + 1;
+      }
     }
   }
   return s;
+}
+
+// Farbpalette der Halle (Industrie-Bausatz util_a, 14.11.2026). Die
+// Paneele, Böden und Lackflächen des Bausatzes tragen keine eigene Farbe:
+// Ihre erste Schicht nennt einen Kanal der Palette (palette_tint 1/2/3 =
+// Eintrag A/B/C), die Farbe kommt aus der Palette der Entity. Der Export
+// kennt die Palette der Halle nicht und setzt einen Ersatzwert ein, linear
+// 0,017 / 0,032 / 0,007: Boden und Wände fast schwarz, die gelben Streifen
+// des Kanals C ebenso. Die Entities der Halle nennen ihre Palette selbst
+// (RenderProxy Palette in der .soc, für util-lrgtop Hangar_default: A
+// 81,80,89, B 130,130,130, C 229,171,91); der Extraktor liest sie aus dem
+// Datensatz und legt sie in <halle>.info.json (palette). Hier wird sie zur
+// Grundfarbe der Palettenmaterialien (sRGB 0–255 -> linear).
+// Metallschichten ohne Farbkarte bleiben, wie applyLayers sie gesetzt hat.
+function applyHallPalette(doc, name) {
+  const f = fileURLToPath(new URL(`hall/${name}.info.json`, SRC));
+  const pal = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')).palette ?? null : null;
+  const lin = (v) => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const key = [null, 'primary', 'secondary', 'tertiary'];
+  const out = { name: pal?.name ?? null, materials: 0, missing: 0 };
+  for (const m of doc.getRoot().listMaterials()) {
+    const x = m.getExtras() || {};
+    const ch = x.layers?.[0]?.palette_tint ?? x.palette_tint;
+    if (![1, 2, 3].includes(ch)) continue;
+    if (!pal) { out.missing++; continue; }
+    if (m.getMetallicFactor() === 1 && !x.diffuse_tex) continue;
+    m.setBaseColorFactor([...pal.entries[key[ch]].rgb.map(lin), m.getBaseColorFactor()[3]]);
+    out.materials++;
+  }
+  return out;
 }
 
 function prepareLift(doc, name) {
@@ -1963,10 +2073,236 @@ async function writeWerkhalleJson(doc, name, werkNodes, lights) {
   return { file, json, summary: { floorY: json.floorY, interior: json.interior, ceiling: json.ceiling, gate: { width: json.gate.width, height: json.gate.height, openClear: json.gate.openClear }, stage: json.stage && json.stage.size, panel: json.panel && json.panel.size, fixtures: fixtures.length, ceilingFixtures: fixtures.filter((f) => f.mount === 'decke').length, buehnen: buehnen.map((b) => b.node) } };
 }
 
+// ─── Aufzug einer Halle des Industrie-Bausatzes ──────────────────────────
+// Quelle: hall/<halle>.tor.json (hallAufzug im Extraktor). Bodentor und
+// Plattform sind Teile der Halle und bleiben in ihrer Datei: kein zweites
+// Paket, dieselben Materialien und Karten. Im Export stehen sie in der
+// Ruhelage ihrer .cga (Tor zu, Plattform unten) als je ein Mesh.
+//
+// aufzugPlan (gleich nach dem Lesen, bevor ein Schritt Primitive nimmt):
+// ordnet jedes Primitiv des Tors seinem Teilnetz zu (Materialnummer am Ende
+// des Materialnamens und Dreieckszahl, in der Reihenfolge der .cgam; die
+// Teilnetze mit Decal-Material lässt der Export aus) und damit dem Knochen,
+// der es bewegt: dem nächsten Vorfahren seines Netz-Knotens, dessen Spur die
+// Ruhelage verlässt. Je solchem Knochen ein Teil; was an keinem hängt
+// (Rahmen), bleibt Halle.
+// aufzugSplit (nach markFurniture, vor join): je Teil ein eigener Knoten
+// aufzug_tor_<nn>; die Plattform wird um ihren Fahrweg gehoben (Ruhelage der
+// Seite: Tor offen, Plattform oben, das Schiff steht darauf) und nimmt mit,
+// was auf ihr steht (Landeleuchten): ein Knoten aufzug_pad.
+// writeAufzugJson: Bahnen und Maße nach public/hangar/hall/<halle>.aufzug.json.
+// Alle Lagen im Modellraum der Halle (glTF, y oben, Meter).
+const AUFZUG_STEPS = 60;   // Stützstellen je Bahn (der Viewer legt PCHIP dazwischen)
+function aufzugPlan(doc, T) {
+  const root = doc.getRoot();
+  const one = (cga) => {
+    const re = new RegExp(`[\\\\/]${cga}\\.cga$`, 'i');
+    const ns = root.listNodes().filter((n) => n.getMesh() && re.test(n.getMesh().getName()));
+    if (ns.length !== 1) throw new Error(`Aufzug: ${cga}.cga steht ${ns.length}-mal im Export der Halle`);
+    return ns[0];
+  };
+  const door = one(T.tor.cga), pad = one(T.plattform.cga);
+  const r3 = (v) => Math.round(v * 1000) / 1000;
+  // Lage eines Knochens im Raum seines Elternknotens in Ruhe (t steht im Raum der .cga)
+  const ruhe = (part) => { const by = new Map(part.nodes.map((n) => [n.index, n])); return { by, of: (n) => { const p = n.parent != null ? by.get(n.parent) : null; return n.t.map((v, i) => v - (p ? p.t[i] : 0)); } }; };
+  const at = (tr, f) => { let a = tr[0]; for (const k of tr) { if (k[0] <= f) a = k; else { const w = (f - a[0]) / (k[0] - a[0] || 1); return [1, 2, 3].map((i) => a[i] + (k[i] - a[i]) * w); } } return tr[tr.length - 1].slice(1); };
+  const moving = (part) => {
+    const R = ruhe(part), set = new Set();
+    for (const c of Object.values(part.cafs)) for (const [bone, tr] of Object.entries(c.tracks)) {
+      const n = part.nodes.find((x) => x.name === bone);
+      if (!n) continue;
+      const r = R.of(n);
+      if (tr.some((k) => Math.hypot(k[1] - r[0], k[2] - r[1], k[3] - r[2]) > 1e-3)) set.add(bone);
+    }
+    return set;
+  };
+  const turning = [T.tor, T.plattform].flatMap((p) => Object.values(p.cafs).flatMap((c) => c.dreht ?? []));
+  if (turning.length) throw new Error(`Aufzug: Knochen mit Drehspur (${[...new Set(turning)].join(', ')}), der Build kann nur Schieben`);
+  // Richtung aus dem Raum der .cga in den der Halle (ohne Verschiebung)
+  const lin = (W, v) => [W[0] * v[0] + W[4] * v[1] + W[8] * v[2], W[1] * v[0] + W[5] * v[1] + W[9] * v[2], W[2] * v[0] + W[6] * v[1] + W[10] * v[2]];
+  // Versatz eines Knochens gegen seine Ruhelage zur Bildnummer f: Summe über die Kette seiner Vorfahren
+  const offset = (part, R, bone, caf, f) => {
+    const o = [0, 0, 0];
+    for (let n = bone; n; n = n.parent != null ? R.by.get(n.parent) : null) {
+      const tr = caf.tracks[n.name];
+      if (!tr) continue;
+      const p = at(tr, f), r = R.of(n);
+      for (let i = 0; i < 3; i++) o[i] += p[i] - r[i];
+    }
+    return o;
+  };
+  const frames = (caf) => [...Array(AUFZUG_STEPS + 1)].map((_, k) => (k / AUFZUG_STEPS) * caf.frames);
+
+  // Tor: Primitiv -> Teilnetz -> bewegender Knochen
+  const RT = ruhe(T.tor), movT = moving(T.tor), W = door.getWorldMatrix();
+  const boneOf = (meshNode) => { for (let n = RT.by.get(meshNode); n; n = n.parent != null ? RT.by.get(n.parent) : null) if (movT.has(n.name)) return n; return null; };
+  const owner = new Map(), skipped = [];
+  let s = 0;
+  for (const p of door.getMesh().listPrimitives()) {
+    const tris = (p.getIndices()?.getCount() ?? 0) / 3, mi = Number((p.getMaterial()?.getName().match(/_(\d+)$/) || [])[1] ?? NaN);
+    while (s < T.tor.subsets.length && !(T.tor.subsets[s].tris === tris && (Number.isNaN(mi) || T.tor.subsets[s].mat === mi))) skipped.push(T.tor.subsets[s++]);
+    if (s >= T.tor.subsets.length) throw new Error(`Aufzug: Primitiv ${owner.size} des Tors (${tris} Dreiecke, Material ${p.getMaterial()?.getName() ?? '-'}) passt zu keinem Teilnetz der Stufe ${T.lod}`);
+    owner.set(p, boneOf(T.tor.subsets[s++].node));
+  }
+  skipped.push(...T.tor.subsets.slice(s));
+  const bones = [...new Set([...owner.values()].filter(Boolean))].sort((a, b) => a.name.localeCompare(b.name));
+  if (!bones.length) throw new Error('Aufzug: kein Primitiv des Tors hängt an einem bewegten Knochen');
+  const close = T.tor.cafs.door_close, open = T.tor.cafs.door_open;
+  const parts = bones.map((bone, i) => {
+    const keys = (caf) => frames(caf).map((f) => [r3(f / caf.fps), ...lin(W, offset(T.tor, RT, bone, caf, f)).map(r3)]);
+    const k = { close: keys(close), open: keys(open) };
+    // zu = Ruhelage der .cga: dort enden door_close und beginnt door_open
+    const off = Math.max(Math.hypot(...k.close.at(-1).slice(1)), Math.hypot(...k.open[0].slice(1)));
+    if (off > 0.01) throw new Error(`Aufzug: ${bone.name} steht am Ende von door_close ${off.toFixed(3)} m neben seiner Ruhelage`);
+    return { node: `aufzug_tor_${String(i).padStart(2, '0')}`, bone: bone.name, keys: k };
+  });
+  const nodeOf = new Map(bones.map((b, i) => [b, parts[i].node]));
+
+  // Plattform: ein bewegter Knochen, oben = größter Wert seiner Spur längs der Fahrachse
+  const RP = ruhe(T.plattform), movP = [...moving(T.plattform)];
+  if (movP.length !== 1) throw new Error(`Aufzug: Plattform mit ${movP.length} bewegten Knochen (${movP.join(', ')})`);
+  const pb = T.plattform.nodes.find((n) => n.name === movP[0]), PW = pad.getWorldMatrix();
+  const pc = T.plattform.cafs.door_close, po = T.plattform.cafs.door_open;
+  const yAt = (caf, f) => lin(PW, offset(T.plattform, RP, pb, caf, f));
+  const ups = [...frames(pc).map((f) => yAt(pc, f)), ...frames(po).map((f) => yAt(po, f))];
+  const up = ups.reduce((a, v) => (v[1] > a[1] ? v : a), ups[0]);
+  if (Math.hypot(up[0], up[2]) > 0.01 || !(up[1] > 1)) throw new Error(`Aufzug: Plattform fährt nicht senkrecht (${up.map(r3).join('/')})`);
+  const padKeys = (caf) => frames(caf).map((f) => [r3(f / caf.fps), r3(yAt(caf, f)[1] - up[1])]);
+  // markFurniture nimmt den Netzen später ihre Namen; für die Liste dessen, was auf der Plattform steht
+  const names = new Map(root.listMeshes().map((m) => [m, m.getName().split(/[\\/]/).pop().replace(/\.(cga|cgf)$/i, '')]));
+  return {
+    door, pad, owner, boneOf, nodeOf, parts, names, skipped: skipped.length,
+    seconds: { close: r3(close.frames / close.fps), open: r3(open.frames / open.fps) },
+    plattform: { node: 'aufzug_pad', bone: pb.name, weg: r3(up[1]), keys: { down: padKeys(pc), up: padKeys(po) }, seconds: { down: r3(pc.frames / pc.fps), up: r3(po.frames / po.fps) } },
+  };
+}
+// Primitiv auf die Ecken verdichten, die es benutzt (die Primitive eines
+// .cga-Meshs teilen sich einen Vertex-Puffer), mit eigenen Accessoren
+function compactPrim(doc, sp) {
+  const buf = doc.getRoot().listBuffers()[0];
+  const ix = sp.getIndices().getArray();
+  const neu = new Map(), alt = [];
+  const idx = new Uint32Array(ix.length);
+  for (let i = 0; i < ix.length; i++) { let v = neu.get(ix[i]); if (v === undefined) { v = alt.length; neu.set(ix[i], v); alt.push(ix[i]); } idx[i] = v; }
+  const p = doc.createPrimitive().setMaterial(sp.getMaterial()).setExtras(sp.getExtras());
+  for (const sem of sp.listSemantics()) {
+    const a = sp.getAttribute(sem), e = a.getElementSize(), arr = a.getArray(), out = new arr.constructor(alt.length * e);
+    for (let i = 0; i < alt.length; i++) for (let k = 0; k < e; k++) out[i * e + k] = arr[alt[i] * e + k];
+    p.setAttribute(sem, doc.createAccessor().setType(a.getType()).setNormalized(a.getNormalized()).setArray(out).setBuffer(buf));
+  }
+  return p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
+}
+function aufzugSplit(doc, plan) {
+  const root = doc.getRoot(), scene = root.listScenes()[0];
+  const trisOf = (p) => (p.getIndices()?.getCount() ?? 0) / 3;
+  // Tor: Teile als eigene Knoten in der Lage des Tors; der Rest (Rahmen) bleibt, ebenfalls verdichtet
+  const W = plan.door.getWorldMatrix(), mesh = plan.door.getMesh();
+  const made = new Map();
+  for (const p of mesh.listPrimitives()) {
+    if (!plan.owner.has(p)) throw new Error('Aufzug: ein Primitiv des Tors ist seit dem Plan ersetzt worden');
+    const bone = plan.owner.get(p), q = compactPrim(doc, p);
+    mesh.removePrimitive(p);
+    p.dispose();
+    if (!bone) { mesh.addPrimitive(q); continue; }
+    const name = plan.nodeOf.get(bone);
+    if (!made.has(name)) { const m = doc.createMesh(name); made.set(name, m); scene.addChild(doc.createNode(name).setMesh(m).setMatrix(W)); }
+    made.get(name).addPrimitive(q);
+  }
+  for (const part of plan.parts) {
+    const m = made.get(part.node);
+    if (!m) throw new Error(`Aufzug: Teil ${part.node} (${part.bone}) hat kein Primitiv mehr`);
+    part.tris = m.listPrimitives().reduce((a, p) => a + trisOf(p), 0);
+  }
+  const rahmen = mesh.listPrimitives().reduce((a, p) => a + trisOf(p), 0);
+
+  // Plattform: gehoben, in den Raum der Halle gebacken, dazu was auf ihr steht
+  const P = plan.plattform, PW = plan.pad.getWorldMatrix().slice();
+  PW[13] += P.weg;
+  const padMesh = doc.createMesh(P.node), prims = [];
+  for (const p of plan.pad.getMesh().listPrimitives()) { const q = compactPrim(doc, p); transformPrimitive(q, PW); prims.push(q); }
+  const box = { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity] };
+  for (const q of prims) { const a = q.getAttribute('POSITION'), v = [0, 0, 0]; for (let i = 0; i < a.getCount(); i++) { a.getElement(i, v); for (let k = 0; k < 3; k++) { box.min[k] = Math.min(box.min[k], v[k]); box.max[k] = Math.max(box.max[k], v[k]); } } }
+  const riders = new Map();
+  for (const n of root.listNodes()) {
+    const m = n.getMesh();
+    if (!m || n === plan.pad || n === plan.door || made.has(n.getName())) continue;
+    const t = n.getWorldTranslation();
+    if (t[0] < box.min[0] + 0.25 || t[0] > box.max[0] - 0.25 || t[2] < box.min[2] + 0.25 || t[2] > box.max[2] - 0.25 || t[1] < box.max[1] - 0.35 || t[1] > box.max[1] + 1) continue;
+    const w = n.getWorldMatrix(), key = plan.names.get(m) || '?';
+    for (const p of m.listPrimitives()) { const q = compactPrim(doc, p); transformPrimitive(q, w); prims.push(q); }
+    n.setMesh(null);
+    riders.set(key, (riders.get(key) || 0) + 1);
+  }
+  // je Material ein Primitiv, wo die Attribute zusammenpassen
+  const byMat = new Map();
+  for (const q of prims) { const k = q.getMaterial(); if (!byMat.has(k)) byMat.set(k, []); byMat.get(k).push(q); }
+  for (const g of byMat.values()) {
+    let j = null;
+    if (g.length > 1) { try { j = joinPrimitives(g); } catch { j = null; } }
+    if (j) { padMesh.addPrimitive(j); for (const q of g) q.dispose(); } else for (const q of g) padMesh.addPrimitive(q);
+  }
+  plan.pad.setMesh(null);
+  scene.addChild(doc.createNode(P.node).setMesh(padMesh));
+  P.oben = Math.round(box.max[1] * 1000) / 1000;
+  P.tris = padMesh.listPrimitives().reduce((a, p) => a + trisOf(p), 0);
+  P.mit = Object.fromEntries([...riders].sort((a, b) => a[0].localeCompare(b[0])));
+  return { teile: plan.parts.length, tris: plan.parts.reduce((a, p) => a + p.tris, 0), rahmen, plattform: P.tris, mit: [...riders.values()].reduce((a, b) => a + b, 0) };
+}
+function writeAufzugJson(written, name, plan) {
+  const root = written.getRoot(), r3 = (v) => Math.round(v * 1000) / 1000;
+  const find = (nm) => root.listNodes().find((n) => n.getName() === nm && n.getMesh());
+  const teile = plan.parts.map((p) => {
+    const n = find(p.node);
+    if (!n) throw new Error(`Aufzug: Knoten ${p.node} fehlt im geschriebenen GLB`);
+    const b = getBounds(n);
+    return { node: p.node, bone: p.bone, tris: p.tris, box: [b.min.map(r3), b.max.map(r3)], keys: p.keys };
+  });
+  const P = plan.plattform, pn = find(P.node);
+  if (!pn) throw new Error(`Aufzug: Knoten ${P.node} fehlt im geschriebenen GLB`);
+  const pb = getBounds(pn);
+  const json = {
+    v: 1,
+    achsen: 'Modellraum der Halle (glTF, y oben, Meter); Zeiten in Sekunden des Spiels',
+    ruhe: 'im GLB: Tor zu (aufzug_tor_*), Plattform oben (aufzug_pad); keys des Tors sind der Versatz gegen zu, keys der Plattform die Höhe gegen oben',
+    feld: { from: [r3(pb.min[0]), r3(pb.min[2])], to: [r3(pb.max[0]), r3(pb.max[2])] },
+    tor: { s: plan.seconds, unten: r3(Math.min(...teile.map((t) => t.box[0][1]))), oben: r3(Math.max(...teile.map((t) => t.box[1][1]))), teile },
+    plattform: { node: P.node, bone: P.bone, oben: P.oben, weg: P.weg, s: P.seconds, tris: P.tris, mit: P.mit, keys: P.keys },
+  };
+  const file = fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT));
+  writeFileSync(file, JSON.stringify(json) + '\n');
+  return { file, json };
+}
+
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
+  // Halle mit eigenem Aufzug: Zuordnung jetzt, solange das Tor-Mesh noch alle Primitive des Exports trägt
+  const torFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.tor.json`, SRC)) : null;
+  const aufzug = torFile && existsSync(torFile) ? aufzugPlan(doc, JSON.parse(readFileSync(torFile, 'utf8'))) : null;
   const tris0 = countTris(root);
+  // Aufkleber, die der Export auslässt (scripts/lib/hall-decals.mjs, der Extraktor legt
+  // <halle>.decals.glb daneben): gleich jetzt, solange die Netze die Primitive des Exports
+  // tragen, aber nach dem Plan des Aufzugs, der die Primitive des Tors der Reihe nach zuordnet
+  const decalFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.decals.glb`, SRC)) : null;
+  let decals = null;
+  if (decalFile && existsSync(decalFile)) {
+    const dd = await io.read(decalFile), pick = pickHallDecals(dd, { karten: await hallDecalMaps(dd, { texFile, sharp }) });
+    decals = { ...addHallDecals(doc, dd, { keep: pick.keep, mult: pick.mult }), weg: pick.weg };
+    // am Tor fährt ein Aufkleber mit seiner Lamelle
+    if (aufzug) for (const p of decals.added.get(aufzug.door.getMesh()) ?? []) aufzug.owner.set(p, aufzug.boneOf(p.getExtras().sub.node));
+  }
+  // Schrift, die der leichteren Stufe der Halle fehlt, aus der vollen Stufe (hallTextDoc im
+  // Extraktor, <halle>.schrift.glb): ebenfalls jetzt, solange die Netze die Primitive des Exports tragen
+  const schriftFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.schrift.glb`, SRC)) : null;
+  const schriftVoll = schriftFile && existsSync(schriftFile) ? swapHallText(doc, await io.read(schriftFile)) : null;
+  // Tafeln mit dem Logo des Betreibers (Netze tint_logo_*, im Export ohne Material): Schablone und
+  // Farben nennt die Palette der Halle in <halle>.info.json; ohne Angabe fallen die Tafeln weg
+  let logo = null;
+  if (kind === 'hall') {
+    const f = fileURLToPath(new URL(`hall/${name}.info.json`, SRC));
+    logo = addHallLogo(doc, { decal: existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')).palette?.decal ?? null : null });
+    if (!logo.tafeln && !logo.weg) logo = null;
+  }
   if (kind === 'npc') prepareCrew(doc);
   const weapon = kind === 'weapons' || kind === 'components' ? prepareWeapon(doc, name, kind) : null;
   const liftParts = kind === 'lift' ? prepareLift(doc, name) : null;
@@ -2019,8 +2355,17 @@ async function buildOne(kind, name, inPath) {
     if (existsSync(fixFile)) matfix = applyMatFix(doc, JSON.parse(readFileSync(fixFile, 'utf8')));
   }
   const fixedOnly = (m) => !!m.getExtras()?.matfix;
-  const layered = kind === 'lift' || werk ? applyLayers(doc, name, kind) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
-  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
+  // Hallen mit Schichtmaterialien (Industrie-Bausatz util_a): der Extraktor legt <halle>.layers.json daneben
+  const hallLayers = kind === 'hall' && existsSync(fileURLToPath(new URL(`hall/${name}.layers.json`, SRC)));
+  // Schrift aus Geometrie rückt von ihrer Tafel ab, sonst liegt sie nach dem Rastern stellenweise darunter
+  const schrift = hallLayers ? liftHallText(doc) : null;
+  const layered = kind === 'lift' || werk || hallLayers ? applyLayers(doc, name, kind, null, { ton: hallLayers }) : shipFix ? applyLayers(doc, name, srcKind, fixedOnly) : null;
+  const hallPalette = hallLayers ? { ...applyHallPalette(doc, name), schichtTon: layered.ton ?? 0 } : null;
+  const attached = kind === 'hall' || kind === 'lift' || werk ? await attachHallTextures(doc, null, { fest: hallLayers }) : shipFix ? await attachHallTextures(doc, fixedOnly) : 0;
+  const decalMaps = decals || logo?.tafeln ? await attachHallDecalTextures(doc, { texFile, sharp }) : null;
+  // Bildschirme, deren Bild das Spiel erst zur Laufzeit liefert, sind hier aus (Industrie-Hallen;
+  // die Revel & York bleibt, wie sie abgenommen ist). Nach den Karten, solange die extras den Shader tragen.
+  const schirme = hallLayers ? hallScreensOff(doc) : null;
   if (cover) cover.after = coverage(doc);
   if (shipFix && !layered.missing) matfix.layered = layered.materials;
   const vertexColors = stripAttributes(doc, werk ? 'hall' : srcKind);
@@ -2039,6 +2384,8 @@ async function buildOne(kind, name, inPath) {
   stockUsed = null;
   // je Komponenten-Port Lage, Klasse und ob der Export ein Teil trägt (Bericht, nicht ausgeliefert)
   if (swap) { const d = new URL('../hangar-komponenten/', SRC); mkdirSync(d, { recursive: true }); writeFileSync(new URL(`${name}.json`, d), JSON.stringify(swap.detail, null, 1)); }
+  // nach markFurniture (löscht fremde Namen), vor join: Tor und Plattform behalten ihre Knoten
+  const aufzugParts = aufzug ? aufzugSplit(doc, aufzug) : null;
   await doc.transform(prune(), flatten(), dedup(), join({ keepNamed: kind === 'hall' || kind === 'lift' || ship || werk }), weld());
   if (furnitureNodes) furnitureNodes.drawCalls = drawCalls(root);
 
@@ -2136,6 +2483,11 @@ async function buildOne(kind, name, inPath) {
   if (lights && existsSync(lightsPath)) hash.update(readFileSync(lightsPath));
   const werkJson = werkRoom ? await writeWerkhalleJson(written, name, werkNodes, lights) : null;
   if (werkJson) hash.update(readFileSync(werkJson.file));
+  const aufzugJson = aufzug ? writeAufzugJson(written, name, aufzug) : null;
+  if (aufzugJson) hash.update(readFileSync(aufzugJson.file));
+  // Baut die Halle diesmal keinen Aufzug (keine Zuordnung des Tors), geht die Datei eines früheren Baus mit:
+  // Ihre Bahnen nennten Knoten, die dieses Modell nicht trägt. Die Seite nennt sie ohnehin nur nach dem Manifest.
+  else if (kind === 'hall') rmSync(fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT)), { force: true });
   const liftProj = liftParts ? await liftProjectors(name) : null;
   const liftJson = liftParts ? writeLiftJson(name, liftParts, { extras: liftExtras, uv: liftUv, proj: liftProj }) : null;
   if (liftJson) hash.update(readFileSync(liftJson.file));
@@ -2147,6 +2499,13 @@ async function buildOne(kind, name, inPath) {
     tris: countTris(root), trisRaw: tris0,
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
+    ...(hallPalette ? { hallPalette } : {}),
+    ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
+    ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
+    ...(logo ? { logo: { ...logo, ...(decalMaps?.logo ?? {}) } } : {}),
+    ...(schirme?.schirme ? { schirme: { aus: schirme.schirme, dreiecke: schirme.dreiecke } } : {}),
+    ...(schrift?.primitive ? { schrift } : {}),
+    ...(schriftVoll ? { schriftVoll } : {}),
     ...(vertexColors.length ? { vertexColors } : {}),
     ...(seams ? { seams } : {}),
     ...(furnitureNodes ? { furnitureNodes } : {}),
@@ -3242,7 +3601,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
   const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
   if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
-  for (const f of readdirSync(dir).filter((x) => x.toLowerCase().endsWith('.glb'))) {
+  // im Ordner der Hallen liegen neben den Modellen ihre Beilagen (<halle>.decals.glb, <halle>.schrift.glb): keine Hallen
+  for (const f of readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')))) {
     const name = f.replace(/\.glb$/i, '');
     const slot = slotOf(kind, name);
     if ((kind === 'ships' || kind === 'interior') && !webShip(name)) continue;
@@ -3252,11 +3612,20 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     // Wiederverwenden nur, wenn das Ergebnis jünger ist als alle Eingaben:
     // bei der Halle zählen Lampenprotokoll und Materialnachtrag mit, und ihre
     // Lampenliste muss schon da sein.
-    const side = kind === 'hall' || kind === 'lift' || kind === 'werkhalle' ? ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json', 'tor.json'].map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
+    // bei der Halle auch, was der Extraktor neben das Modell legt und buildOne mitliest: Maße und Palette,
+    // Aufkleber, Schrift (HALL_EINGABEN)
+    const side = kind === 'hall' || kind === 'lift' || kind === 'werkhalle' ? (kind === 'hall' ? HALL_EINGABEN : NEBEN_EINGABEN).map((x) => fileURLToPath(new URL(`${name}.${x}`, dir))).filter((x) => existsSync(x)) : [];
     // Werkhalle: Maße und Lampenliste müssen jünger sein; die Maße lesen auch die Bühnen-Rohdatei
     const werkOut = kind === 'werkhalle' && !/-buehne$/.test(name) ? ['json', 'lights.json'].map((x) => fileURLToPath(new URL(`werkhalle/${name}.${x}`, OUT))) : [];
     if (werkOut.length && existsSync(fileURLToPath(new URL(`${name}-buehne.glb`, dir)))) side.push(fileURLToPath(new URL(`${name}-buehne.glb`, dir)));
     const lightsOut = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
+    // Halle mit Aufzug: die Liste seiner Bahnen (writeAufzugJson) gehört zum Bau; fehlt sie oder ist sie älter
+    // als eine Eingabe, stünde die Plattform der Seite still oder an alter Stelle
+    const aufzugOut = kind === 'hall' && prev[slot]?.[name]?.aufzug?.json ? fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT)) : null;
+    const zeit = (x) => (existsSync(x) ? statSync(x).mtimeMs : null);
+    // welche Eingaben neben dem Modell heute da sind: Fehlt eine, die der letzte Bau gelesen hat (oder kam
+    // eine dazu), ist das gebaute Modell nicht mehr das, was ein Bau jetzt schriebe
+    const bestand = kind === 'hall' ? hallBestand((x) => existsSync(fileURLToPath(new URL(`${name}.${x}`, dir)))) : null;
     // beim Aufzug ebenso seine Teile-/Lampenliste (writeLiftJson): fehlt sie, laesst die Seite den Schacht weg
     const liftOut = fileURLToPath(new URL(`lift/${name}.json`, OUT));
     // bei Schiffen auch der Lack-Bauplan: Lackliste, Index des zerlegten
@@ -3266,6 +3635,8 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     const fresh = existsSync(outPath) && [inPath, ...side].every((x) => statSync(outPath).mtimeMs > statSync(x).mtimeMs)
       && (!paintOut || (existsSync(paintOut) && [inPath, ...side].every((x) => statSync(paintOut).mtimeMs > statSync(x).mtimeMs)))
       && (kind !== 'hall' || isLite(kind, name) || !side.some((x) => x.endsWith('.lights-src.txt')) || (existsSync(lightsOut) && side.every((x) => statSync(lightsOut).mtimeMs > statSync(x).mtimeMs)))
+      && (!aufzugOut || juengerAls([aufzugOut], [inPath, ...side], zeit))
+      && (!bestand || bestandPasst(prev[slot]?.[name], bestand))
       && (kind !== 'lift' || (existsSync(liftOut) && [inPath, ...side].every((x) => statSync(liftOut).mtimeMs > statSync(x).mtimeMs)))
       && werkOut.every((o) => existsSync(o) && [inPath, ...side].every((x) => statSync(o).mtimeMs > statSync(x).mtimeMs));
     // Schiffe ohne Tauschteile oder Lackkanäle (vor der Layout-Werkstatt gebaut) neu,
@@ -3278,6 +3649,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       const r = await buildOne(kind, name, inPath);
       if (r.game == null) r.game = rohStand(inPath);
       if (kind === 'hall') r.room = HALL_ROOM[name.replace(/-lod1$/, '')] ?? null;
+      if (bestand) r.eingaben = bestand;
       manifest[slot][name] = r; built++;
       console.log(`  ${kind}/${name.padEnd(28)} ${r.trisRaw.toLocaleString().padStart(8)} -> ${r.tris.toLocaleString().padStart(8)} Dreiecke  ${String(r.textures).padStart(3)} Texturen  ${(r.bytes / 1048576).toFixed(2)} MB${r.pool ? ` + ${r.pool.images} Bilder ${(r.pool.bytes / 1048576).toFixed(2)} MB (neu in der Ablage ${(r.pool.fresh / 1048576).toFixed(2)} MB)` : ''}`);
       if (r.crease) console.log(`    Normalen: ${r.crease.changedPct} % der Ecken über Kanten geglättet, neu berechnet`);
@@ -3318,7 +3690,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
       console.log(`    UV: Bereich ${r.uv.rangeBefore} -> ${r.uv.rangeAfter}, ${r.uv.bits} Bit, ${r.uv.degenerate} % Dreiecke ohne UV-Fläche`);
       if (r.attached?.color !== undefined) {
         const a = r.attached;
-        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
+        console.log(`    Selbstauskunft: ${r.cover.after.materials} Materialien, ${a.color} mit Farbe, ${a.normal} mit Normalen, ${a.rough} mit Rauheit, ${a.tiled} gekachelt; ${a.flatNormals} flache Normalen verworfen; ${a.blended} mit eingebackener Blendschicht (davon ${a.blendMetal} auf Metall, ${a.blendAlpha ?? 0} mit dem Alpha ihrer Grundkarte, ${a.blendSkipped} ausgelassen); ${r.cover.after.trisOhneMaterial} Dreiecke ohne Material`);
       }
       if (r.parts) {
         for (const t of r.parts) console.log(`    Teil ${t.role.padEnd(11)} ${String(t.tris).padStart(6)} Dreiecke  ${t.materials} Materialien  aus ${t.from.join(' + ')}`);
@@ -3333,7 +3705,19 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
         console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture != null ? `${r.furniture} Einrichtungsobjekte, ` : ''}${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp${r.lights.withFixture != null ? `, ${r.lights.withFixture} an einem Leuchtkörper` : ''}), ${(r.bytes / 1048576).toFixed(2)} MB`);
         const o = r.lights.orient;
-        if (o) console.log(`    Lampen: ${o.spots} Spots umgerechnet (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
+        if (o) console.log(`    Lampen: ${o.spots} Spots (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
+        if (r.hallPalette) console.log(r.hallPalette.name
+          ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
+          : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);
+        if (r.attached?.glowMaske || r.attached?.glowAus) console.log(`    Leuchten: ${r.attached.glowMaske} Materialien leuchten nur, wo das Alpha ihrer Grundkarte es sagt; ${r.attached.glowAus} mit Glow unter ${String(GLOW_MIN).replace('.', ',')} oder leerer Maske leuchten nicht`);
+        if (r.schriftVoll) console.log(`    Schrift aus der vollen Stufe: ${r.schriftVoll.teilnetze} ausgedünnte Teilnetze an ${r.schriftVoll.netze} Netzen ersetzt (${r.schriftVoll.trisNeu} statt ${r.schriftVoll.trisAlt} Dreiecke)${r.schriftVoll.fremd.length ? `; ! nicht zugeordnet: ${r.schriftVoll.fremd.join(', ')}` : ''}`);
+        if (r.schrift) console.log(`    Schrift aus Geometrie: ${r.schrift.primitive} Teilnetze mit ${r.schrift.ecken} Ecken ${r.schrift.mm} mm von ihrer Tafel abgerückt`);
+        if (r.schirme) console.log(`    Bildschirme ohne Bild: ${r.schirme.aus} Materialien mit ${r.schirme.dreiecke} Dreiecken ausgeschaltet (Werte des Spiels für einen Schirm, der aus ist)`);
+        if (r.logo) console.log(r.logo.tafeln
+          ? `    Logo des Betreibers: ${r.logo.tafeln} Tafeln, Karte ${r.logo.karte ?? 'fehlt'}${r.logo.deckt != null ? `, ${Math.round(r.logo.deckt * 100)} % der Karte decken` : ''}`
+          : `    Logo des Betreibers: ${r.logo.weg} Tafeln ohne Material weggelassen (die Palette in ${name}.info.json nennt kein Logo)`);
+        const a = r.aufkleber;
+        if (a) console.log(`    Aufkleber: ${a.primitive} Teilnetze an ${a.netze} Netzen, ${a.trisMitExemplaren.toLocaleString()} Dreiecke mit allen Exemplaren, ${a.karten.materialien} Materialien mit ${a.karten.farbkarten} Farb- und ${a.karten.normalen} Normalenkarten; weggelassen: ${a.weg.relief.materialien} nur Relief (${a.weg.relief.tris.toLocaleString()} Dreiecke), ${a.weg.klein.materialien} klein (${a.weg.klein.tris.toLocaleString()})${a.fremd.length ? `; WARNUNG ${a.fremd.length} Netze passen nicht mehr zum Export (${a.fremd.slice(0, 5).join(', ')}), Halle mit dem Extraktor neu exportieren` : ''}${a.karten.ohneKarte.length ? `; WARNUNG ohne Farbkarte im Cache: ${a.karten.ohneKarte.join(', ')}` : ''}`);
       }
     } catch (err) {
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);

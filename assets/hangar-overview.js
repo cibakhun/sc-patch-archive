@@ -864,6 +864,52 @@ export function waechterGeraet(ua, { w = 0, h = 0, dpr = 0 } = {}) {
   return teile.join(', ');
 }
 
+/**
+ * Stellvertreter der Buehne: Die Seite spricht nur mit ihm. Beim
+ * Hallenwechsel wird die Buehne abgebaut und mit der anderen Halle neu
+ * aufgebaut; der Stellvertreter gibt der neuen, was die Seite der alten
+ * gesagt hat: ihre Horcher (on…) und die letzten Einstellungen (set…).
+ * Dazwischen, ohne Buehne, merkt er sich beides nur, beantwortet Fragen mit
+ * der letzten Antwort (sound, quality) und laesst alles andere fallen. Ein
+ * Horcher hoert nur die Buehne, die gerade steht: Was eine abgebaute noch
+ * meldet, erreicht die Seite nicht.
+ * Der Ton ist die eine Einstellung, nach der die Seite auch fragt: Der Knopf
+ * dreht um, was sound() nennt. Deshalb geht die gemerkte Antwort mit jedem
+ * setSound mit; sonst nennte sie waehrend eines Hallenwechsels den Stand von
+ * vorher, und der Ton liesse sich dort an-, aber nicht wieder ausschalten.
+ * v: der Stellvertreter, auf(b): Buehne b steht, ab(): die stehende abbauen.
+ */
+export function buehnenHalter() {
+  let cur = null;
+  const horcher = new Map(), gesetzt = new Map(), antwort = new Map(), kennt = new Set();
+  const nur = (b, a) => a.map((f) => (typeof f === 'function' ? (...e) => (cur === b ? f(...e) : undefined) : f));
+  const ruf = (k, a) => {
+    const on = /^on[A-Z]/.test(k);
+    if (on) horcher.set(k, a);
+    else if (/^set[A-Z]/.test(k)) gesetzt.set(k, a);
+    if (k === 'setSound') antwort.set('sound', { ...antwort.get('sound'), on: !!a[0] });
+    if (!cur) return antwort.get(k);
+    const r = cur[k](...(on ? nur(cur, a) : a));
+    if (k === 'sound' || k === 'quality') antwort.set(k, r);
+    return r;
+  };
+  // then: ein Versprechen, das den Stellvertreter traegt, haelt ihn sonst selbst fuer eines
+  const v = new Proxy({}, {
+    get: (_, k) => (typeof k === 'string' && k !== 'then' && (cur ? typeof cur[k] === 'function' : kennt.has(k)) ? (...a) => ruf(k, a) : undefined),
+  });
+  return {
+    v,
+    auf(b) {
+      cur = b;
+      for (const k of Object.keys(b)) if (typeof b[k] === 'function') kennt.add(k);
+      for (const [k, a] of horcher) b[k]?.(...nur(b, a));
+      for (const [k, a] of gesetzt) b[k]?.(...a);
+      return v;
+    },
+    ab() { const b = cur; cur = null; b?.dispose(); },
+  };
+}
+
 /** Verdrahtet die Seite; einmal aufgerufen vom Inline-Modul in HangarPage.astro. @param {Document} doc */
 export function boot(doc) {
   const $ = (id) => doc.getElementById(id);
@@ -2595,14 +2641,38 @@ export function boot(doc) {
   }
 
   let viewer = null;
+  // Halle je Hangargroesse (stage.ts HALL_OF_SIZE, 14.11.2026). Krisz: „Baue
+  // mal alle Gangarten vollständig aus“. Jede Stufe hat die Halle, die das
+  // Spiel fuer sie baut; die Buehne laeuft immer mit genau einer (vier Hallen
+  // zugleich hielte keine Grafikkarte). hallOf: die Halle fuer ein Fahrzeug,
+  // die seiner Stufe oder, ohne eigene (und in der Werkhalle), die der Seite.
+  // hallNow: mit welcher die Buehne laeuft (null: ohne echte Halle, etwa die
+  // leichte Buehne am Telefon). Verlangt ein Schiff eine andere, baut die
+  // Seite die Buehne um (umbauen), ohne selbst neu zu laden.
+  const hallOf = (id) => {
+    const m = stageCfg.models[id];
+    return (m && m[3] === 'halle' && m[4] && stageCfg.halls?.[m[4]]) || stageCfg.opts.hall || null;
+  };
+  let hallNow = null;
+  // Stellvertreter der Buehne (buehnenHalter, oben): Die Seite spricht nur mit ihm
+  const halter = buehnenHalter();
+  // buehneNeu(halle): baut eine Buehne mit dieser Halle (startBuehne setzt es;
+  // null, solange keine steht, und auf der leichten Buehne, die keine Halle hat)
+  let buehneNeu = null;
   const loadEl = $('hg-load');
   const bar = loadEl.querySelector('i');
 
   // show() loest auch auf, wenn ein neueres show() es ueberholt hat: nur der
   // eigene Zaehler sagt, ob das Modell dieser Auswahl wirklich steht.
   let showTok = 0;
+  // wunsch: das zuletzt verlangte Fahrzeug; ein Umbau zeigt am Ende dieses
+  let wunsch = null, umbau = false;
   function viewerShow(id) {
-    if (!viewer) return;
+    wunsch = id;
+    // ohne Buehne und waehrend eines Umbaus nur der Wunsch: Der Umbau zeigt ihn am Ende
+    if (!viewer || umbau) return;
+    const hallWant = hallOf(id)?.id ?? null;
+    if (hallNow && hallWant && hallWant !== hallNow && buehneNeu) { umbauen(); return; }
     const my = ++showTok;
     placed = null;
     syncMarks();
@@ -2636,8 +2706,112 @@ export function boot(doc) {
       })
       .finally(() => {
         clearTimeout(t);
-        if (my === showTok) loadEl.hidden = true;
+        if (my !== showTok) return;
+        loadEl.hidden = true;
+        standbildWeg();
       });
+  }
+
+  // Hallenwechsel ohne Neuladen (14.11.2026): Verlangt ein Schiff die Halle
+  // einer anderen Stufe, wird die Buehne abgebaut und mit der neuen Halle neu
+  // aufgebaut. Zwei Hallen zugleich hielte kein Grafikspeicher: erst geht die
+  // alte (ihr Zeichenkontext gleich mit), dann laedt die neue. Die Seite
+  // bleibt stehen, mit Auswahl, Tafeln und allem, was nicht in der Adresse
+  // steht. Ueber der Luecke liegt das letzte Bild der alten Halle, abgedunkelt
+  // (standbild), bis das Schiff in der neuen steht. Waehlt jemand waehrenddessen
+  // weiter, zeigt der Umbau am Ende das zuletzt gewaehlte Schiff und baut
+  // noch einmal um, wenn es wieder eine andere Halle verlangt.
+  const canvasBox = $('hg-canvas');
+  let standbild = null;
+  // so lange wartet der Umbau auf das Standbild der alten Buehne (ms)
+  const STANDBILD_MS = 350;
+  function standbildWeg(sofort = false) {
+    // das Wort unter dem Ladebalken gilt nur dem Umbau
+    delete loadEl.dataset.umbau;
+    const el = standbild;
+    if (!el) return;
+    standbild = null;
+    if (sofort || reduce) { el.remove(); return; }
+    el.dataset.geht = '';
+    setTimeout(() => el.remove(), 600);
+  }
+  // Was die Buehne kann, sagt jede neu: Stationen in 3D und einen Leitstand
+  // hat nicht jede Halle. Ohne Leitstand gilt ein ?ort=leit nicht.
+  function buehneKann(v) {
+    stage3d = v.canStation?.() === true;
+    stageOrte = stage3d && v.canPlace?.('leit') === true;
+    if (!stageOrte && state.ort === 'leit') setState({ ort: 'halle' });
+  }
+  // Hat die Buehne ihren Zeichenkontext verloren (onLost unten: Meldung,
+  // data-lost, Waechter), baut niemand um. Der Umbau naehme der alten Buehne
+  // das Wort, bevor sie die Rueckkehr des Kontexts melden kann (halter.ab),
+  // die Seite luede also nie neu, und unter der Meldung stuende eine neue
+  // Buehne, die niemand sieht und die der Waechter nicht gezaehlt hat. Das
+  // Schiff steht in der Adresse: Das Neuladen von onLost zeigt es in seiner
+  // Halle. Gefragt wird vor jedem Durchgang und noch einmal nach dem Warten
+  // auf das Standbild, der letzten Pause vor dem Abbau.
+  const verloren = () => main.dataset.lost === 'on';
+  const umbauAus = () => { umbau = false; standbildWeg(true); loadEl.hidden = true; };
+  async function umbauen() {
+    if (umbau) return;
+    umbau = true;
+    try {
+      for (;;) {
+        // Erst abwarten, was die Buehne dem Horcher nachreicht: Verlor sie ihren
+        // Zeichenkontext schon waehrend ihres Aufbaus, erfaehrt die Seite es als
+        // Mikroaufgabe, gleich nachdem sie zuhoert (onLost in hangar-viewer.js,
+        // gesetzt von halter.auf am Ende des vorigen Durchgangs). Ohne das
+        // fragte der naechste Durchgang zu frueh, baute, liegt das Standbild
+        // schon, die verlorene Buehne ohne Pause ab (halter.ab nimmt ihr das
+        // Wort), und weder die Seite noch der Waechter erfuehren vom Verlust.
+        await null;
+        if (verloren()) { umbauAus(); return; }
+        const halle = hallOf(wunsch);
+        // ein show(), das noch laeuft, gehoert der alten Buehne
+        showTok++;
+        placed = null;
+        syncMarks();
+        modelErr.hidden = true;
+        bar.style.setProperty('--p', '0%');
+        // der Balken nennt den Hallenwechsel beim Wort (.hg-load[data-umbau] em), bis das Schiff steht
+        loadEl.dataset.umbau = '';
+        loadEl.hidden = false;
+        if (!standbild) {
+          // Hoechstens kurz darauf warten: Mit Grafikkarte steht es sofort, ohne
+          // sie (Software-GL) kaeme es zu spaet, dann geht der Umbau ohne.
+          const bild = await Promise.race([Promise.resolve(viewer?.still?.() ?? null).catch(() => null), new Promise((r) => setTimeout(r, STANDBILD_MS, null))]);
+          if (bild && !standbild) {
+            bild.className = 'hg-still';
+            bild.setAttribute('aria-hidden', 'true');
+            canvasBox.append(standbild = bild);
+          }
+          if (verloren()) { umbauAus(); return; }
+        }
+        viewer = null;
+        halter.ab();
+        // der Ort der alten Buehne gilt nicht mehr: Fenster des Terminals zu, bis die neue ihren nennt
+        onPlace({ ort: 'halle', state: 'an', rect: null });
+        // was der alten Buehne gehoerte: ihr Hologramm und die Tafeln, die sie zeigte
+        delete main.dataset.holo;
+        holoKey = '';
+        hallNow = halle?.id ?? null;
+        laufLaden();
+        const roh = await buehneNeu(halle);
+        viewer = halter.auf(roh);
+        if (lauf) { lauf.stufe = roh.quality().start; offenSetzen(); }
+        grafikMalen?.(roh.quality());
+        buehneKann(viewer);
+        if ((hallOf(wunsch)?.id ?? null) === hallNow) break;
+      }
+    } catch (e) {
+      umbau = false;
+      standbildWeg(true);
+      noStage('failed', e);
+      return;
+    }
+    umbau = false;
+    viewerShow(wunsch);
+    paintStation();
   }
 
   // Waechter gegen die Neu-Lade-Schleife (waechterStand, waechterAbbruch oben).
@@ -2789,6 +2963,13 @@ export function boot(doc) {
       setTimeout(() => { if (lauf?.id === id) anlaufRuhe(); }, WAECHTER.anlauf.ruhe);
     }
   }
+  // Hallenwechsel: Die Buehne laedt wieder, und der Vermerk des Laufs sagt es
+  // (bricht die Seite jetzt ab, war es beim Laden).
+  function laufLaden() {
+    if (!lauf) return;
+    lauf.phase = 'laden';
+    offenSetzen();
+  }
   // Seit wann die Seite sichtbar ist (0: im Hintergrund, 1: seit dem Start).
   // Einer Seite im Hintergrund nimmt das Telefon den Zeichenkontext auch ohne
   // Not, und sie erfaehrt es erst beim Zurueckkommen: Das ist kein Abbruch
@@ -2935,6 +3116,7 @@ export function boot(doc) {
   });
   function noStage(why, detail) {
     loadEl.hidden = true;
+    standbildWeg(true);
     delete main.dataset.holo;
     laufEnde();
     leichtWeg();
@@ -3018,6 +3200,7 @@ export function boot(doc) {
   // laeuft (sinkt sie beim Nachregeln, wandert die Anzeige mit). Eine Wahl
   // gilt ab dem naechsten Laden, weil Lampen, Texturen und Moebel beim Laden
   // entstehen; die Seite laedt deshalb gleich neu.
+  let grafikMalen = null;
   function grafikSchalter(v) {
     const wrap = $('hgx-gfx-wrap'), sel = $('hgx-gfx');
     if (!wrap || !sel || typeof v.quality !== 'function') return;
@@ -3035,6 +3218,8 @@ export function boot(doc) {
     };
     paint(v.quality());
     v.onQuality(paint);
+    // nach einem Hallenwechsel: die Stufe, mit der die neue Buehne startet
+    grafikMalen = paint;
     wrap.hidden = false;
     sel.addEventListener('change', () => {
       try {
@@ -3128,11 +3313,18 @@ export function boot(doc) {
     // ohne Besatzung baut der Viewer seine eigene Halle (waechterLeicht)
     const leicht = waechterLeicht(deckel, TELEFON);
     if (leicht) leichtZeigen();
-    const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : stageCfg.opts;
-    import(stageCfg.viewer)
-      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...buehne, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }))
-      .then((v) => {
+    const halle = hallOf(state.ship);
+    hallNow = leicht ? null : halle?.id ?? null;
+    const buehne = leicht ? { ...stageCfg.opts, hall: null, crew: null } : { ...stageCfg.opts, hall: halle };
+    // mit: was ein Umbau anders gibt (umbauen: die Halle der neuen Stufe)
+    const bauen = (mit) => import(stageCfg.viewer)
+      .then((m) => m.initHangar($('hg-canvas'), { reduceMotion: reduce, ...buehne, ...mit, gpu: gpuName, quality: GRAFIK, cap: deckel, pad: BODEN, bilder: BILDER, sound: tonAn() }));
+    bauen(null)
+      .then((roh) => {
+        // ab hier spricht die Seite mit dem Stellvertreter (halter)
+        const v = halter.auf(roh);
         viewer = v;
+        buehneNeu = leicht ? null : (h) => bauen({ hall: h });
         if (lauf) { lauf.stufe = v.quality().start; offenSetzen(); }
         // ab 90 % sind die Dateien da, der Rest ist Auspacken, Uebersetzen und Hochladen
         v.onProgress((p) => {
@@ -3234,14 +3426,12 @@ export function boot(doc) {
         grafikSchalter(v);
         tonSchalter(v);
         walkSchalter(v);
-        // Stationen in 3D, wenn die Buehne sie kann
-        stage3d = v.canStation?.() === true;
+        // Stationen in 3D, wenn die Buehne sie kann, und Orte, wenn sie einen
+        // Leitstand hat (buehneKann)
         v.onStation?.(onStationAct);
-        // Orte, wenn sie einen Leitstand hat; sonst gilt die Adresse nicht
-        stageOrte = stage3d && v.canPlace?.('leit') === true;
         v.onPlace?.(onPlace);
         v.onHangar?.(onHangar);
-        if (!stageOrte && state.ort === 'leit') setState({ ort: 'halle' });
+        buehneKann(v);
         viewerShow(state.ship);
         paintStation();
       })

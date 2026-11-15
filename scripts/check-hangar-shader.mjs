@@ -52,10 +52,117 @@
    gesamt und Programme mit Schichttafel (Wartungsplatz und Deko), damit ein
    Lauf, der die Halle nicht erreicht, nicht gruen aussieht.
 
+   HALLEN FESTER GROESSE (14.11.2026): Ein Schiff, dessen Groesse eine Halle
+   des Industrie-Bausatzes hat (hg-stage, halls; als erste die Large-Halle
+   util-lrgtop, etwa mit --ship anvl-carrack), steht nicht mehr in der
+   gestreckten Halle. Dort gibt es keine Hallendeko und noch keinen
+   Wartungsplatz: Der Lauf wartete 15 min auf die Zeile "[hangar]
+   Hallendeko:", die dort nie kommt, und endete rot mit „nach 15 min keine
+   Zeile "[hangar] Hallendeko:"“; keine Klinke griff, und auf die Ruhe der
+   Halle wartete er nicht (so gelaufen mit --ship anvl-carrack). Er
+   nimmt jetzt auch die Zeile "[hangar] Aufzug der Halle:" als Zeichen, dass
+   die Halle steht (nur eine Halle fester Groesse baut ihren Aufzug aus dem
+   eigenen Modell; in der gestreckten Halle kommt sie nie, dort bleibt die
+   Hallendeko Pflicht), liest am geholten Modell unter /hangar/hall/, welche
+   es ist, und wertet gegen deren eigene Klinken aus (KLINKE_FEST). FEHLER,
+   wenn die Halle dort keinen Eintrag hat oder keines der Modelle aus
+   hg-stage geholt wurde.
+   Hallenwechsel (14.11.2026): --wechsel anvl-carrack von der Gladius aus
+   baut die Buehne um (umbauen in hangar-overview.js), die Carrack steht
+   danach in der Large-Halle. Der Lauf wertete die Zeilen der neuen Buehne
+   gegen die Klinken der gestreckten Halle: 3 FEHLER (560 Bilder
+   freigegeben gegen Klinke 600, 107 MB Geometrie gegen 120, 562 Bilder
+   aus Zwillingen gegen 850), und an keiner der beiden Hallen fehlte
+   etwas. Jetzt liest er aus hg-stage, welche Halle die Seite fuer das
+   erste und fuer das neue Schiff nennt (wie hallOf der Seite). Sind es
+   zwei, verlangt er den Beleg an der Buehne selbst (das Modell der neuen
+   Halle geholt und eine neue Zeile zu ihrem Aufzug; fuer die gestreckte
+   Halle eine neue Zeile zur Hallendeko) und wertet dann jede Halle fuer
+   sich: den Stand vor dem Wechsel (Programme, Schichttafeln, freigegebene
+   Bilder und Geometrie, Zwillinge) gegen die Klinken der ersten, und was
+   seit dem Wechsel dazukam, gegen die der neuen. Fuer die neue Halle
+   zaehlen nur Zeilen, die ihre Buehne selbst gemeldet hat (die der alten
+   blieben sonst stehen und saehen gruen aus), und die Klinke ktx gilt
+   dort nicht (es steht nicht mehr das erste Schiff der Liste). Die Grenze
+   von 16 Texturen und die noch einmal verlangten Bilder und Puffer gelten
+   ueber den ganzen Lauf.
+   Vorgefuehrt rot (14.11.2026, je eine Kopie des Skripts mit einem
+   Eingriff, --wechsel anvl-carrack von der Gladius aus, 4 von 4 Laeufen
+   rot, das Skript selbst danach gruen): die Klinke frei beider Hallen auf
+   9999 (2 FEHLER: „vor dem Hallenwechsel (revelyork-single): der Viewer
+   gab nur 897 Bilder … frei“ und „der Viewer gibt nur 560 Bilder … frei“);
+   die Large-Halle ohne Eintrag in KLINKE_FEST („die Halle util-lrgtop hat
+   keine eigenen Klinken“); die Seite baut die Buehne nicht um (Eingriff
+   in ihr Skript auf dem Weg zum Browser, die Carrack laesst die
+   gestreckte Halle auf 129 m wachsen: „die Seite nennt fuer anvl-carrack
+   die Halle util-lrgtop …, aber ihr Modell unter /hangar/hall/ wurde nicht
+   geholt: die Halle hat nicht gewechselt, das Schiff steht in der
+   falschen“); die neue Buehne meldet ihre freigegebenen Bilder nicht
+   („der Viewer gibt keine Bilder nach dem Hochladen frei, Klinke 500“;
+   ohne die Regel zu den Zeilen stuende dort die 897 der alten Halle).
+   Vorgefuehrt rot (14.11.2026, je eine Kopie des Skripts mit einem
+   Eingriff, Carrack in der Large-Halle, 5 von 5 Laeufen rot): die Halle
+   ohne Eintrag in KLINKE_FEST; ihre vier Klinken ueber dem Gemessenen
+   (4 FEHLER); Grenze 14 statt 16 (die 8 Programme mit 15 Texturen beim
+   Namen); das Muster fuer das Modell verbogen („hat aber keines der
+   Modelle ihrer Hallen fester Groesse geholt“); die Zeile zum Aufzug
+   kommt nicht („weder die Zeile … noch …“, mit 1 min Frist statt 15).
+   Die Meldungen stehen in der PR der Large-Halle.
+   Halle des Schiffs (15.11.2026, Befund von CodeRabbit an PR #371): Ob
+   das Schiff in der Halle steht, die die Seite fuer es nennt, verglich
+   der Lauf nur nach --wechsel. Mit --ship anvl-carrack haette eine
+   Seite, die die Carrack in der gestreckten Halle laesst, gruen gegen
+   deren Klinken geendet. Jetzt vergleicht jeder Lauf nach dem Laden:
+   die Halle, die hg-stage fuer das Schiff auf dem Feld nennt (wie hallOf
+   der Seite), gegen die, die steht (eine Halle fester Groesse am
+   geholten Modell, die gestreckte an der Zeile zur Hallendeko, die nur
+   sie meldet). FEHLER, wenn es zwei sind, oder wenn eine der beiden
+   nicht zu lesen ist. Mit --ship muss ausserdem dieses Schiff auf dem
+   Feld stehen: Eine Kennung, die die Seite nicht kennt, zeigt das erste
+   Schiff der Liste, und der Lauf pruefte gruen das falsche.
+   Vorgefuehrt rot (15.11.2026, Kopie des Skripts mit einem Eingriff in
+   das Skript der Seite auf dem Weg zum Browser: Sie nimmt fuer jedes
+   Schiff die Halle der Seite und baut nie um; --ship anvl-carrack):
+   „die Seite nennt fuer anvl-carrack die Halle util-lrgtop, es steht
+   aber revelyork-single: das Schiff steht in der falschen Halle, und
+   die Klinken dieses Laufs gelten der falschen“. Das Skript des Stands
+   davor endete mit demselben Eingriff gruen. Und ohne Eingriff mit
+   --ship gibt-es-nicht: „--ship gibt-es-nicht: auf dem Feld steht
+   aegs-gladius: die Seite kennt diese Kennung nicht oder zeigt ein
+   anderes Schiff, geprueft waere das falsche“.
+   Nachfrage dazu (15.11.2026, selbe PR): Steht nach der ganzen Frist
+   kein Schiff auf dem Feld, meldet ruhe() nur ihren Hinweis, und die
+   Vergleiche oben fielen still aus. Seither ist das ein FEHLER, wie
+   schon nach --wechsel; die Unruhe allein bleibt ein Hinweis.
+   Vorgefuehrt rot (Kopie des Skripts mit 3 min Frist, ohne --wechsel;
+   die Seite verliert data-live an der Leiste der Marken sofort
+   wieder): „nach 3 min steht kein Schiff auf dem Feld (die Leiste der
+   Marken traegt kein data-live): in welcher Halle es steht, ist
+   ungeprueft“. Das Skript des Stands davor endete mit demselben
+   Eingriff gruen, nur mit dem Hinweis zur Ruhe.
+   Zeilen der ersten Halle (15.11.2026, selbe PR, sechste Runde): Nach
+   --wechsel las der Lauf die Zeile zu den Vollbildpaessen und die zu
+   den Texturen je Bildshader nur noch von der neuen Buehne. Meldete
+   die erste „erst beim Probebild“ oder gar nichts, blieb er gruen.
+   Der Stand vor dem Wechsel fuehrt beide Zeilen jetzt mit, und sie
+   werden fuer die erste Halle gewertet wie ohne --wechsel.
+   Vorgefuehrt rot (Eingriff in den gebauten Viewer: Nur die erste
+   Buehne meldet ihre Paesse als „erst beim Probebild“; --wechsel
+   anvl-carrack): „vor dem Hallenwechsel (revelyork-single):
+   Vollbildpässe: 0 von 12 Shadern erst beim Probebild übersetzt …“.
+   Das Skript des Stands davor endete mit demselben Eingriff gruen.
+   Gesehen und offen: In einem von vier Laeufen linkten nach der
+   gemeldeten Ruhe noch vier Programme ohne Namen (hoechstens eine
+   Textur); ein Lauf ueber 15 min zaehlte 58 statt 54 Programme, keins
+   ueber 15 Texturen. Ein Programm, das so spaet linkt, zaehlt der Lauf
+   nicht.
+
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
        (ein anderes Schiff als das erste der Liste; seit 25.10.2026 tragen
-       alle Schiffe ihre echten Materialien, .planning/notes/hangar-alle-schiffe.md)
+       alle Schiffe ihre echten Materialien, .planning/notes/hangar-alle-schiffe.md.
+       Die Carrack steht seit 14.11.2026 in der Large-Halle: dieser Aufruf
+       prueft deren Programme, siehe HALLEN FESTER GROESSE)
      … --shot schiff.png   Aufnahme der Halle am Ende (zum Hinsehen)
      … --layout <code>     mit Layout aus der Werkstatt (?layout=, encodeLayout in
        assets/hangar-layouts.js), etwa einer Lackierung als viertem Feld; sie
@@ -66,13 +173,19 @@
        (wo steht die Halle wann: fuer einen Rechner, der nicht zur Ruhe kommt)
      … --wechsel <schiff>  danach auf ein anderes Schiff wechseln (wie der
        Zurueck-Knopf des Browsers, ohne neu zu laden). Mit einem groesseren
-       Schiff (etwa anvl-carrack) waechst die Halle, und die Einrichtung wird
-       neu gerechnet: der Weg, auf dem ein freigegebener Puffer oder ein
-       freigegebenes Bild am ehesten noch einmal gebraucht wird. Gewartet
-       wird, bis das Schiff auf dem Feld steht (die Leiste seiner Marken
-       traegt data-live); die Zeile nennt dazu die Laenge des Wartungsplatzes
-       danach, an der man sieht, ob die Halle gewachsen ist. FEHLER, wenn
-       das Schiff nicht ankommt
+       Schiff (etwa drak-cutlass-black, Groesse M) waechst die Halle, und die
+       Einrichtung wird neu gerechnet: der Weg, auf dem ein freigegebener
+       Puffer oder ein freigegebenes Bild am ehesten noch einmal gebraucht
+       wird. Mit einem Schiff, dessen Groesse eine Halle fester Groesse hat
+       (anvl-carrack, bis 14.11.2026 das Beispiel fuers Wachsen), wechselt
+       stattdessen die Halle: die alte wird abgebaut, die neue geladen. Dann
+       wertet der Lauf jede Halle fuer sich (HALLEN FESTER GROESSE,
+       Hallenwechsel). Gewartet wird, bis das Schiff auf dem Feld steht (die
+       Leiste seiner Marken traegt data-live); die Zeile nennt dazu die
+       Laenge des Wartungsplatzes danach, an der man sieht, ob die Halle
+       gewachsen ist, oder den Hallenwechsel. FEHLER, wenn das Schiff nicht
+       ankommt, oder wenn die Seite fuer das Schiff eine andere Halle nennt
+       und die Buehne nicht wechselt
      … --innen             danach einsteigen (Knopf #hgx-walk): der Innenraum
        laedt erst dann (.planning/notes/hangar-innenleben.md), seine
        Programme zaehlen mit; die Aufnahme zeigt dann den Blick drinnen.
@@ -116,6 +229,22 @@
    steht fleckig schwarz da. FEHLER, wenn die Zeile "[hangar] Lack:" eine
    deckende Farbkarte ohne Farbmittel meldet oder weniger Materialien mit
    Mittel als die Klinke (ohne --ship und --layout, also mit der Gladius).
+   Jedes Schiff des Laufs zaehlt (15.11.2026, Befund von CodeRabbit an
+   PR #371): Bis dahin behielt der Lauf nur die erste Zeile, nach
+   --wechsel blieb der Lack des zweiten Schiffs ungeprueft, auch der der
+   neuen Buehne nach einem Hallenwechsel. Jetzt merkt er jede Zeile: die
+   Klinke gilt weiter dem ersten Schiff, ohne Farbmittel darf keine
+   Karte eines Schiffs bleiben, und nach einem Hallenwechsel muss die
+   neue Buehne ihre eigene Zeile bringen.
+   Vorgefuehrt rot (15.11.2026, Kopie des Skripts mit einem Eingriff in
+   den Viewer auf dem Weg zum Browser, --wechsel anvl-carrack von der
+   Gladius aus): ab dem zweiten Schiff meldet der Viewer drei Karten
+   ohne Mittel („Schiff 2 des Laufs: 3 deckende Farbkarten ohne
+   Farbmittel (Lack: 59 von 173 Materialien …)“; das Skript des Stands
+   davor endete mit demselben Eingriff gruen); der Viewer meldet seinen
+   Lack nur fuer das erste Schiff („seit dem Hallenwechsel meldet der
+   Viewer keine Zeile "[hangar] Lack:": ob die Farbkarten des Schiffs
+   in der neuen Halle ihr Mittel tragen, ist ungeprueft“).
    Dazu die komprimierten Texturen (13.11.2026): Am PC laedt der Viewer
    jedes Bild aus seinem Zwilling unter /hangar/ktx/ (KTX2, bei der
    Grafikkarte BC7: 1 Byte je Bildpunkt statt 4) und nur ohne ihn aus dem
@@ -167,6 +296,25 @@ const GRENZE = 16;
 // geladen sind; seit der Lauf auf die Ruhe wartet, 14.11.2026, endet er
 // dort), keins aus dem WebP.
 const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, ktx: 850 };
+// Hallen fester Groesse (hg-stage, halls: der Industrie-Bausatz, 14.11.2026) haben
+// keine Hallendeko und noch keinen Wartungsplatz, also kein Programm mit
+// Schichttafel, und ihre Bilder und Netze sind andere: jede traegt ihre eigenen
+// Klinken (KLINKE_FEST). Welche Halle steht, sagt der Lauf an zwei Dingen:
+// der Zeile "[hangar] Aufzug der Halle:" (nur eine Halle fester Groesse baut ihren
+// Aufzug aus dem eigenen Modell) und dem Modell unter /hangar/hall/, das die Seite
+// dafuer geholt hat. Eine Halle ohne Eintrag ist ein FEHLER: sonst liefe sie ohne
+// Untergrenze, und ein Lauf, der sie halb erreicht, saehe gruen aus.
+// lack haengt am Schiff und bleibt oben; ktx gilt ohne --ship und --layout und
+// gehoert in den Eintrag der Halle, sobald das erste Schiff der Liste in ihr steht.
+// util-lrgtop, gemessen 14.11.2026 auf hoch mit der Carrack (jeder Lauf gleich): 54
+// Programme in Ruhe, keins mit Schichttafel (die Klinke steigt mit dem Wartungsplatz
+// und den Werkszenen der Halle); 560 Bilder freigegeben (235 MB); 107 MB Geometrie
+// in 1.640 Puffern; hoechstens 15 Texturen je Bildshader.
+const KLINKE_FEST = {
+  'util-lrgtop': { programme: 48, schichten: 0, frei: 500, geoMB: 95 },
+};
+// Eine Halle ohne Eintrag: der Lauf ist rot, und seine Zeilen nennen keine Klinke einer anderen Halle
+const OHNE_KLINKEN = { programme: '—', schichten: '—', frei: '—', geoMB: '—', ktx: '—' };
 // Warten: WARTE_MS ist die Obergrenze je Abschnitt (Hallendeko, Ruhe, Schiff nach
 // dem Wechsel, Innenraum). Ruhe heisst RUHE_TAKTE Abfragen im Abstand von TAKT_MS
 // ohne neuen Stand (ruhe() unten, Anlass im Kopf unter WARTEN). Dieselbe Frist gilt
@@ -230,36 +378,50 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '';
+let deko = '', aufzug = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '';
+// Wie oft die Halle sich gemeldet hat (dekoN, aufzugN: jede Buehne meldet sich einmal) und bei welcher Zeile des
+// Viewers eine Meldung zuletzt kam (kam): daran haengt nach einem Hallenwechsel, was der neuen Buehne gehoert
+let dekoN = 0, aufzugN = 0;
+const kam = {};
+// Modelle unter /hangar/hall/, die die Seite geholt hat (welche Halle steht)
+const hallen = new Set();
 const verlangt = [], geoVerlangt = [], ktxFehlt = [];
+// Jede Zeile "[hangar] Lack:" des Laufs (eine je Schiff, das eine Buehne laedt) mit der Zeile, bei der sie kam
+const lacke = [];
 const shaderFehler = [];
 let zeilen = 0;
 // Dateien des Hangars (Modelle, Bilder, Zwillinge), die angefordert und noch nicht da sind
 const unterwegs = new Set();
-page.on('request', (r) => { try { if (new URL(r.url()).pathname.startsWith('/hangar/')) unterwegs.add(r); } catch { /* keine Adresse */ } });
+page.on('request', (r) => { try { const p = new URL(r.url()).pathname; if (p.startsWith('/hangar/')) unterwegs.add(r); const h = /^\/hangar\/hall\/([a-z0-9-]+)\.glb$/.exec(p); if (h) hallen.add(h[1]); } catch { /* keine Adresse */ } });
 page.on('requestfinished', (r) => unterwegs.delete(r));
 page.on('requestfailed', (r) => unterwegs.delete(r));
 page.on('console', (m) => {
   const t = m.text();
   if (t.startsWith('[hangar]')) zeilen++;
-  if (t.startsWith('[hangar] Hallendeko:')) deko = t;
-  if (t.startsWith('[hangar] Texturen je Bildshader:')) viewer = t;
+  if (t.startsWith('[hangar] Hallendeko:')) { deko = t; dekoN++; }
+  // nur die Zeile zur Plattform selbst (die Warnung zu ihrer Hoehe beginnt gleich)
+  if (/^\[hangar\] Aufzug der Halle: Plattform \d+ Dreiecke/.test(t)) { aufzug = t; aufzugN++; }
+  if (t.startsWith('[hangar] Texturen je Bildshader:')) { viewer = t; kam.viewer = zeilen; }
   if (t.startsWith('[hangar] Licht drinnen:') || t.startsWith('[hangar] Innenraum geladen:')) drinnen = drinnen ? `${drinnen} · ${t.slice(9)}` : t.slice(9);
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
-  if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) frei = t;
-  if (t.startsWith('[hangar] Vollbildpässe:')) paesse = t;
-  if (t.startsWith('[hangar] Lack:') && !lack) lack = t;
+  if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) { frei = t; kam.frei = zeilen; }
+  if (t.startsWith('[hangar] Vollbildpässe:')) { paesse = t; kam.paesse = zeilen; }
+  if (t.startsWith('[hangar] Lack:')) { lacke.push({ t, bei: zeilen }); if (!lack) lack = t; }
   if (t.startsWith('[hangar] Wartungsplatz bei')) platz = t;
   if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
-  if (t.startsWith('[hangar] Geometrie nach dem Hochladen freigegeben:')) geo = t;
+  if (t.startsWith('[hangar] Geometrie nach dem Hochladen freigegeben:')) { geo = t; kam.geo = zeilen; }
   if (t.startsWith('[hangar] Geometrie nach der Freigabe noch einmal verlangt')) geoVerlangt.push(t.slice(9, 200));
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
-  if (t.startsWith('[hangar] Texturen komprimiert:')) ktx = t;
+  if (t.startsWith('[hangar] Texturen komprimiert:')) { ktx = t; kam.ktx = zeilen; }
   if (t.startsWith('[hangar] Texturen bleiben WebP:')) ktxAus = t;
   if (t.startsWith('[hangar] Zwilling ')) ktxFehlt.push(t.slice(9, 200));
 });
 const bildFehler = [];
 const fehler = [];
+// Die Klinken dieses Laufs (K) und ob die Halle steht: mit ihrer Deko, oder als Halle fester Groesse (fest) mit eigenen Klinken
+let K = KLINKE, fest = '', steht = false;
+// Hat --wechsel die Halle gewechselt: der Stand der ersten Halle davor (ihre Klinken, ihre Zeilen, ihre Programme)
+let vor = null;
 // Jede Abfrage der Seite wartet auf deren Hauptfaden, und page.evaluate() hat keine
 // eigene Frist: Haengt die Seite, hinge der Lauf ohne Meldung mit, und die Obergrenzen
 // der Schleifen griffen nie, weil sie zwischen zwei Abfragen stehen. frage() gibt nach
@@ -310,35 +472,91 @@ async function ruhe(was, mitSchiff) {
 try {
   await page.goto(`${BASE}/hangar.html?grafik=hoch${SHIP ? `&ship=${SHIP}` : ''}${LAYOUT ? `&layout=${LAYOUT}` : ''}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
   t0 = Date.now();
-  while (!deko && Date.now() - t0 < WARTE_MS) {
-    if (await frage('Warten auf die Hallendeko', () => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
+  // Hallen fester Groesse, wie die Seite sie mitgibt (hg-stage, halls)
+  const feste = await frage('Hallen fester Groesse lesen', () => { try { return Object.values(JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}').halls ?? {}).map((h) => h.id); } catch { return []; } });
+  while (!deko && !aufzug && Date.now() - t0 < WARTE_MS) {
+    if (await frage('Warten auf die Halle', () => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
     await page.waitForTimeout(2000);
   }
-  if (!deko && !fehler.length) fehler.push(`nach ${WARTE_MS / 60000} min keine Zeile "[hangar] Hallendeko:"`);
-  if (deko) {
-    console.log(`  Hallendeko nach ${Math.round((Date.now() - t0) / 1000)} s`);
-    await ruhe('Laden', true);
+  if (!deko && !aufzug && !fehler.length) fehler.push(`nach ${WARTE_MS / 60000} min weder die Zeile "[hangar] Hallendeko:" noch, fuer eine Halle fester Groesse, "[hangar] Aufzug der Halle:"`);
+  if (deko) console.log(`  Hallendeko nach ${Math.round((Date.now() - t0) / 1000)} s`);
+  else if (aufzug) {
+    // Die Halle, deren Modell die Seite geholt hat; ohne eines davon steht keine Halle fester Groesse
+    fest = feste.find((id) => hallen.has(id)) ?? '';
+    console.log(`  Halle fester Groesse ${fest || '—'}: ihr Aufzug nach ${Math.round((Date.now() - t0) / 1000)} s`);
+    if (!fest) fehler.push(`die Seite meldet "[hangar] Aufzug der Halle:", hat aber keines der Modelle ihrer Hallen fester Groesse geholt (hg-stage nennt ${feste.join(', ') || 'keine'}; geholt: ${[...hallen].join(', ') || 'keins'}): welche Halle steht, ist unbekannt`);
+    else if (!KLINKE_FEST[fest]) { fehler.push(`die Halle ${fest} hat keine eigenen Klinken (KLINKE_FEST): ohne Untergrenze saehe ein Lauf, der sie nur halb erreicht, gruen aus`); K = OHNE_KLINKEN; }
+    else K = KLINKE_FEST[fest];
   }
-  if (deko && WECHSEL) {
-    // Steht ein Schiff, traegt die Leiste seiner Marken data-live und seine Kennung
-    // (syncMarks in hangar-overview.js, nach viewer.show()). Die Zeile "[hangar] Lack:"
-    // taugt dafuer nicht: sie kommt, sobald das Modell geladen ist, in Software-WebGL
-    // gut eine Minute, bevor die Halle gewachsen ist und das Schiff auf dem Feld steht.
-    const steht = () => frage('--wechsel, steht das Schiff', () => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch((e) => { if (e instanceof Haengt) throw e; return ''; });
+  steht = Boolean(deko || (aufzug && K !== KLINKE && K !== OHNE_KLINKEN));
+  if (steht) await ruhe('Laden', true);
+  // Steht ein Schiff, traegt die Leiste seiner Marken data-live und seine Kennung
+  // (syncMarks in hangar-overview.js, nach viewer.show()). Die Zeile "[hangar] Lack:"
+  // taugt dafuer nicht: sie kommt, sobald das Modell geladen ist, in Software-WebGL
+  // gut eine Minute, bevor die Halle gewachsen ist und das Schiff auf dem Feld steht.
+  const aufDemFeld = () => frage('steht das Schiff', () => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch((e) => { if (e instanceof Haengt) throw e; return ''; });
+  // Die Halle, die die Seite fuer ein Schiff nennt (hallOf in hangar-overview.js: die seiner Stufe, sonst die der Seite)
+  const halleVon = (schiff) => frage('Halle des Schiffs', (id) => { try { const j = JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}'), m = j.models?.[id]; return (m && m[3] === 'halle' && m[4] && j.halls?.[m[4]]?.id) || j.opts?.hall?.id || ''; } catch { return ''; } }, schiff);
+  // Steht die Halle, die die Seite fuer das Schiff auf dem Feld nennt (HALLEN FESTER GROESSE, Halle
+  // des Schiffs)? Welche steht, sagt die Buehne selbst: eine Halle fester Groesse am geholten Modell
+  // (fest), die gestreckte an der Zeile zur Hallendeko, die nur sie meldet; sie ist die der Seite.
+  if (steht) {
+    const schiff = await aufDemFeld();
+    const soll = schiff ? await halleVon(schiff) : '';
+    const ist = fest || (deko ? await frage('Halle der Seite', () => { try { return JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}').opts?.hall?.id || ''; } catch { return ''; } }) : '');
+    console.log(`  Halle des Schiffs: ${schiff || 'kein Schiff auf dem Feld'}${schiff ? `, die Seite nennt ${soll || 'keine'}, es steht ${ist || 'unbekannt'}` : ''}`);
+    // Ohne Schiff auf dem Feld gibt es nichts zu vergleichen: ruhe() hat dann die ganze Frist auf es gewartet und
+    // meldet das nur als Hinweis (die Halle kam nicht zur Ruhe). Fuer diesen Lauf ist es ein FEHLER, wie nach --wechsel.
+    if (!schiff) fehler.push(`nach ${WARTE_MS / 60000} min steht kein Schiff auf dem Feld (die Leiste der Marken traegt kein data-live): in welcher Halle es steht${SHIP ? ` und ob es ${SHIP} ist` : ''}, ist ungeprueft`);
+    // mit --ship muss auch dieses Schiff stehen: Eine Kennung, die die Seite nicht kennt, zeigt das erste der Liste
+    if (SHIP && schiff && schiff !== SHIP) fehler.push(`--ship ${SHIP}: auf dem Feld steht ${schiff}: die Seite kennt diese Kennung nicht oder zeigt ein anderes Schiff, geprueft waere das falsche`);
+    if (schiff && !(soll && ist)) fehler.push(`welche Halle die Seite fuer ${schiff} nennt (${soll || 'keine'}) oder welche steht (${ist || 'unbekannt'}), ist aus hg-stage nicht zu lesen: ob das Schiff in seiner Halle steht, ist ungeprueft`);
+    else if (schiff && soll !== ist) fehler.push(`die Seite nennt fuer ${schiff} die Halle ${soll}, es steht aber ${ist}: das Schiff steht in der falschen Halle, und die Klinken dieses Laufs gelten der falschen`);
+  }
+  if (steht && WECHSEL) {
     const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
-    let erst = '', dann = '', kam = 0;
-    while (!(erst = await steht()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
+    // was die erste Buehne gemeldet hat: Die neue ueberschreibt jede dieser Zeilen mit ihrer eigenen
+    const stand = { K, frei, geo, ktx, paesse, viewer, n: vorher, dekoN, aufzugN, zeilen };
+    let erst = '', dann = '', kam1 = 0, h0 = '', h1 = '';
+    while (!(erst = await aufDemFeld()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
     if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
     else if (erst === WECHSEL) fehler.push(`--wechsel ${WECHSEL}: dieses Schiff steht schon, ein Wechsel findet nicht statt`);
     else {
       await frage('--wechsel, Schiff waehlen', (id) => { const u = new URL(location.href); u.searchParams.set('ship', id); history.pushState(null, '', u); dispatchEvent(new PopStateEvent('popstate')); }, WECHSEL);
-      while ((dann = await steht()) !== WECHSEL && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
+      while ((dann = await aufDemFeld()) !== WECHSEL && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
       if (dann !== WECHSEL) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht ${WECHSEL} nicht auf dem Feld (kein Schiff mit dieser Kennung, oder das Modell laedt nicht)`);
-      else { kam = Date.now() - t1; await ruhe(`Wechsel auf ${WECHSEL}`, true); }
+      else {
+        kam1 = Date.now() - t1;
+        await ruhe(`Wechsel auf ${WECHSEL}`, true);
+        // Nennt die Seite fuer das neue Schiff eine andere Halle, hat sie die Buehne umgebaut (umbauen in
+        // hangar-overview.js): Was der Viewer danach meldet, gehoert der neuen Halle und wird gegen deren
+        // Klinken gewertet, der Stand davor gegen die der ersten. Belegt wird der Wechsel an der Buehne
+        // selbst: eine Halle fester Groesse am geholten Modell und einer neuen Zeile zu ihrem Aufzug, die
+        // gestreckte Halle an einer neuen Zeile zur Hallendeko.
+        h0 = await halleVon(erst); h1 = await halleVon(WECHSEL);
+        if (h0 && h1 && h0 !== h1) {
+          const neuFest = feste.includes(h1);
+          if (neuFest ? !(hallen.has(h1) && aufzugN > stand.aufzugN) : !(dekoN > stand.dekoN)) {
+            fehler.push(`--wechsel: die Seite nennt fuer ${WECHSEL} die Halle ${h1} (fuer ${erst}: ${h0}), aber ${neuFest ? `${hallen.has(h1) ? 'die Zeile "[hangar] Aufzug der Halle:" kam nach dem Wechsel nicht' : 'ihr Modell unter /hangar/hall/ wurde nicht geholt'}` : 'die Zeile "[hangar] Hallendeko:" kam nach dem Wechsel nicht'}: die Halle hat nicht gewechselt, das Schiff steht in der falschen`);
+            h1 = h0;
+          } else {
+            vor = { ...stand, halle: h0 };
+            fest = neuFest ? h1 : '';
+            // Zeilen, die die neue Buehne nicht selbst gemeldet hat, gelten fuer sie nicht (die der alten blieben sonst stehen)
+            if (!(kam.frei > stand.zeilen)) frei = '';
+            if (!(kam.geo > stand.zeilen)) geo = '';
+            if (!(kam.ktx > stand.zeilen)) ktx = '';
+            if (!(kam.viewer > stand.zeilen)) viewer = '';
+            if (!(kam.paesse > stand.zeilen)) paesse = '';
+            if (neuFest && !KLINKE_FEST[h1]) { fehler.push(`die Halle ${h1} hat keine eigenen Klinken (KLINKE_FEST): ohne Untergrenze saehe ein Lauf, der sie nur halb erreicht, gruen aus`); K = OHNE_KLINKEN; steht = false; }
+            else K = neuFest ? KLINKE_FEST[h1] : KLINKE;
+          }
+        }
+      }
     }
-    console.log(`  Wechsel von ${erst || '—'} auf ${WECHSEL}: ${dann === WECHSEL ? `steht nach ${Math.round(kam / 1000)} s` : 'nicht angekommen'}; ${platz ? platz.slice(9).split(':')[0] : 'keine Zeile zum Wartungsplatz'}; Programme dazu: ${(await frage('--wechsel', () => window.__texProgramme.length)) - vorher}`);
+    console.log(`  Wechsel von ${erst || '—'} auf ${WECHSEL}: ${dann === WECHSEL ? `steht nach ${Math.round(kam1 / 1000)} s` : 'nicht angekommen'}; ${vor ? `Halle gewechselt von ${h0} auf ${h1}` : platz ? platz.slice(9).split(':')[0] : 'keine Zeile zum Wartungsplatz'}; Programme dazu: ${(await frage('--wechsel', () => window.__texProgramme.length)) - vorher}`);
   }
-  if (deko && INNEN) {
+  if (steht && INNEN) {
     const vorher = await frage('--innen', () => window.__texProgramme.length);
     const knopf = await frage('--innen, Einsteigen', () => { const b = document.getElementById('hgx-walk'); if (!b || b.hidden) return false; b.click(); return true; });
     if (!knopf) fehler.push('--innen: kein Knopf Einsteigen (#hgx-walk), das Schiff hat keinen Innenraum oder die Seite gibt ihn nicht mit');
@@ -375,45 +593,76 @@ if (haengt) {
 }
 
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
-const max = progs.reduce((a, p) => Math.max(a, p.n), 0), schichten = progs.filter((p) => p.schichten).length;
+// Nach einem Hallenwechsel zaehlen fuer die Klinken der Halle am Ende nur die Programme seit dem Wechsel
+const seit = progs.slice(vor ? vor.n : 0);
+const max = progs.reduce((a, p) => Math.max(a, p.n), 0), schichten = seit.filter((p) => p.schichten).length;
 const oben = [...progs].sort((a, b) => b.n - a.n).slice(0, 4).map((p) => `${p.name} ${p.n}`).join(', ');
-console.log(`  Programme gelinkt: ${progs.length} (Klinke ${KLINKE.programme}), davon mit Schichttafel: ${schichten} (Klinke ${KLINKE.schichten})`);
+if (vor) {
+  // Die erste Halle, wie sie vor dem Wechsel stand, gegen ihre eigenen Klinken
+  const n = progs.slice(0, vor.n), s = n.filter((p) => p.schichten).length, wo = `vor dem Hallenwechsel (${vor.halle})`, mitKtx = !SHIP && !LAYOUT;
+  const f = Number(/freigegeben: (\d+) /.exec(vor.frei)?.[1] ?? NaN), g = Number(/ mit (\d+) MB/.exec(vor.geo)?.[1] ?? NaN), k = Number(/komprimiert: (\d+) /.exec(vor.ktx)?.[1] ?? NaN);
+  console.log(`  Vor dem Hallenwechsel (${vor.halle}): ${n.length} Programme (Klinke ${vor.K.programme}), ${s} mit Schichttafel (Klinke ${vor.K.schichten}), ${f} Bilder freigegeben (Klinke ${vor.K.frei}), ${g} MB Geometrie freigegeben (Klinke ${vor.K.geoMB})${mitKtx ? `, ${k} Bilder aus komprimierten Zwillingen (Klinke ${vor.K.ktx ?? '—'})` : ''}`);
+  if (n.length < vor.K.programme) fehler.push(`${wo}: nur ${n.length} Programme gelinkt, Klinke ${vor.K.programme}`);
+  if (s < vor.K.schichten) fehler.push(`${wo}: nur ${s} Programme mit Schichttafel, Klinke ${vor.K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
+  if (!(f >= vor.K.frei)) fehler.push(`${wo}: der Viewer gab ${Number.isFinite(f) ? `nur ${f}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${vor.K.frei}`);
+  if (!(g >= vor.K.geoMB)) fehler.push(`${wo}: der Viewer gab ${Number.isFinite(g) ? `nur ${g} MB` : 'keine'} Geometrie nach dem Hochladen frei, Klinke ${vor.K.geoMB} MB`);
+  if (mitKtx && !(k >= vor.K.ktx)) fehler.push(vor.K.ktx === undefined ? `${wo}: die Halle hat keine Klinke ktx (KLINKE_FEST), und dieser Lauf (ohne --ship und --layout) braucht sie: ${k} Bilder aus komprimierten Zwillingen gemessen` : `${wo}: nur ${k} Bilder aus komprimierten Zwillingen, Klinke ${vor.K.ktx}`);
+  // Auch die Zeilen zu den Vollbildpaessen und zu den Texturen je Bildshader gehoeren der ersten Buehne (stand):
+  // Unten wird nur noch gewertet, was die neue gemeldet hat, ein Fehler der ersten faerbte den Lauf sonst nicht.
+  console.log(`  Vor dem Hallenwechsel (${vor.halle}): ${vor.paesse ? vor.paesse.slice(9, 160) : 'Vollbildpässe: keine Zeile'}; ${vor.viewer ? 'Zeile zu den Texturen je Bildshader da' : 'keine Zeile zu den Texturen je Bildshader'}`);
+  if (/erst beim Probebild/.test(vor.paesse)) fehler.push(`${wo}: ${vor.paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
+  else if (!/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(vor.paesse)) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) der ersten Halle steht nicht, oder ihre Shader entstehen erst beim ersten Bild`);
+  if (!vor.viewer) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader"`);
+}
+console.log(`  Programme gelinkt: ${progs.length}${vor ? `, davon ${seit.length} seit dem Hallenwechsel` : ''} (Klinke ${K.programme}), davon mit Schichttafel: ${schichten} (Klinke ${K.schichten})`);
 console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);
-console.log(`  ${deko ? deko.slice(9, 100) : 'Hallendeko: —'}`);
+console.log(`  ${fest ? `Halle fester Groesse ${fest}, ohne Hallendeko: ${aufzug.slice(9, 100)}` : deko ? deko.slice(9, 100) : 'Hallendeko: —'}`);
 console.log(`  Viewer meldet: ${viewer ? viewer.slice(9) : '—'}`);
 for (const p of ueber) fehler.push(`${p.name} braucht ${p.n} Texturen, Grenze ${GRENZE}: unter Windows unsichtbar`);
 for (const p of kaputt) fehler.push(p.zaehlung ? `Zaehlung eines Programms fehlgeschlagen (${p.zaehlung}): ungeprueft` : `${p.name} linkt nicht`);
 for (const s of shaderFehler) fehler.push(s);
 for (const b of bildFehler.slice(0, 10)) fehler.push(b);
 const freiN = Number(/freigegeben: (\d+) /.exec(frei)?.[1] ?? NaN);
-console.log(`  Bilder: ${frei ? frei.slice(9, 160) : 'keine Zeile zur Freigabe'} (Klinke ${KLINKE.frei}); noch einmal verlangt: ${verlangt.length}`);
+console.log(`  Bilder: ${frei ? frei.slice(9, 160) : 'keine Zeile zur Freigabe'} (Klinke ${K.frei}); noch einmal verlangt: ${verlangt.length}`);
 for (const v of verlangt.slice(0, 10)) fehler.push(v);
 if (verlangt.length > 10) fehler.push(`… und ${verlangt.length - 10} weitere freigegebene Bilder noch einmal verlangt`);
-if (deko && !(freiN >= KLINKE.frei)) fehler.push(`der Viewer gibt ${Number.isFinite(freiN) ? `nur ${freiN}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${KLINKE.frei}: die ausgepackten Bilder bleiben im Arbeitsspeicher (rund 1 GB in der hohen Stufe)`);
+if (steht && !(freiN >= K.frei)) fehler.push(`der Viewer gibt ${Number.isFinite(freiN) ? `nur ${freiN}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${K.frei}: die ausgepackten Bilder bleiben im Arbeitsspeicher (rund 1 GB in der hohen Stufe)`);
 const geoN = Number(/freigegeben: (\d+) Puffer/.exec(geo)?.[1] ?? NaN), geoMB = Number(/ mit (\d+) MB/.exec(geo)?.[1] ?? NaN);
-console.log(`  Geometrie: ${geo ? geo.slice(9, 160) : 'keine Zeile zur Freigabe'} (Klinke ${KLINKE.geoMB} MB); noch einmal verlangt: ${geoVerlangt.length}`);
+console.log(`  Geometrie: ${geo ? geo.slice(9, 160) : 'keine Zeile zur Freigabe'} (Klinke ${K.geoMB} MB); noch einmal verlangt: ${geoVerlangt.length}`);
 for (const v of geoVerlangt.slice(0, 10)) fehler.push(v);
 if (geoVerlangt.length > 10) fehler.push(`… und ${geoVerlangt.length - 10} weitere freigegebene Puffer noch einmal verlangt`);
-if (deko && !(geoMB >= KLINKE.geoMB)) fehler.push(`der Viewer gibt ${Number.isFinite(geoMB) ? `nur ${geoMB} MB Geometrie in ${geoN} Puffern` : 'keine Geometrie'} nach dem Hochladen frei, Klinke ${KLINKE.geoMB} MB: die Kopien der Netze der Halle bleiben im Arbeitsspeicher (rund 160 MB in der hohen Stufe)`);
+if (steht && !(geoMB >= K.geoMB)) fehler.push(`der Viewer gibt ${Number.isFinite(geoMB) ? `nur ${geoMB} MB Geometrie in ${geoN} Puffern` : 'keine Geometrie'} nach dem Hochladen frei, Klinke ${K.geoMB} MB: die Kopien der Netze der Halle bleiben im Arbeitsspeicher (rund 160 MB in der hohen Stufe)`);
 console.log(`  ${paesse ? paesse.slice(9, 160) : 'Vollbildpässe: keine Zeile'}`);
 if (/erst beim Probebild/.test(paesse)) fehler.push(`${paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
-else if (deko && !/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(paesse)) fehler.push('der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) steht nicht, oder ihre Shader werden nicht mehr vorab uebersetzt');
+else if (steht && !/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(paesse)) fehler.push('der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) steht nicht, oder ihre Shader werden nicht mehr vorab uebersetzt');
 const lackMit = Number(/\((\d+) mit gemessener Farbkarte/.exec(lack)?.[1] ?? NaN), lackOhne = Number(/, (\d+) ohne Farbmittel\)/.exec(lack)?.[1] ?? NaN);
 console.log(`  Farbmittel: ${lack ? `${lackMit} Materialien des Schiffs mit gemessener Farbkarte${SHIP || LAYOUT ? '' : ` (Klinke ${KLINKE.lack})`}, ${lackOhne} Farbkarten ohne Mittel` : 'keine Zeile "[hangar] Lack:"'}`);
-if (deko && !lack) fehler.push('der Viewer meldet keine Zeile "[hangar] Lack:" mehr: ob die Farbkarten des Schiffs ihr Mittel tragen, ist ungeprueft');
-else if (deko && !(lackOhne === 0)) fehler.push(`${Number.isFinite(lackOhne) ? lackOhne : 'unbekannt viele'} deckende Farbkarten des Schiffs ohne Farbmittel: das Schiff laedt ueber einen Loader, der nicht misst (images(false), HALL_FILES), und der dunkelste Lack wird nicht mehr angehoben`);
-else if (deko && !SHIP && !LAYOUT && !(lackMit >= KLINKE.lack)) fehler.push(`nur ${lackMit} Materialien des Schiffs mit gemessener Farbkarte, Klinke ${KLINKE.lack}`);
+if (steht && !lack) fehler.push('der Viewer meldet keine Zeile "[hangar] Lack:" mehr: ob die Farbkarten des Schiffs ihr Mittel tragen, ist ungeprueft');
+else if (steht && !(lackOhne === 0)) fehler.push(`${Number.isFinite(lackOhne) ? lackOhne : 'unbekannt viele'} deckende Farbkarten des Schiffs ohne Farbmittel: das Schiff laedt ueber einen Loader, der nicht misst (images(false), HALL_FILES), und der dunkelste Lack wird nicht mehr angehoben`);
+else if (steht && !SHIP && !LAYOUT && !(lackMit >= KLINKE.lack)) fehler.push(`nur ${lackMit} Materialien des Schiffs mit gemessener Farbkarte, Klinke ${KLINKE.lack}`);
+// Jedes weitere Schiff des Laufs (--wechsel) meldet seinen Lack selbst: die Klinke oben gilt dem ersten,
+// ohne Farbmittel darf keines bleiben, und nach einem Hallenwechsel muss die neue Buehne ihre Zeile bringen
+// (die der alten sagt nichts darueber, ob die neue ihr Schiff ueber einen Loader holt, der misst).
+const lackNeu = vor ? lacke.filter((l) => l.bei > vor.zeilen) : [];
+if (lacke.length > 1 || vor) console.log(`  Farbmittel, alle Schiffe des Laufs: ${lacke.length} Zeilen${vor ? `, davon ${lackNeu.length} seit dem Hallenwechsel` : ''}; ohne Farbmittel je Zeile: ${lacke.map((l) => /, (\d+) ohne Farbmittel\)/.exec(l.t)?.[1] ?? '?').join(', ') || '—'}`);
+lacke.slice(1).forEach((l, i) => {
+  const ohne = Number(/, (\d+) ohne Farbmittel\)/.exec(l.t)?.[1] ?? NaN);
+  if (steht && !(ohne === 0)) fehler.push(`Schiff ${i + 2} des Laufs: ${Number.isFinite(ohne) ? ohne : 'unbekannt viele'} deckende Farbkarten ohne Farbmittel (${l.t.slice(9, 200)})`);
+});
+if (steht && vor && !lackNeu.length) fehler.push('seit dem Hallenwechsel meldet der Viewer keine Zeile "[hangar] Lack:": ob die Farbkarten des Schiffs in der neuen Halle ihr Mittel tragen, ist ungeprueft');
 const ktxN = Number(/komprimiert: (\d+) /.exec(ktx)?.[1] ?? NaN), ktxOhne = Number(/aus dem WebP: (\d+)$/.exec(ktx)?.[1] ?? NaN);
-console.log(`  Komprimiert: ${ktx ? ktx.slice(9, 160) : ktxAus ? ktxAus.slice(9, 160) : 'keine Zeile zu den komprimierten Texturen'}${SHIP || LAYOUT ? '' : ` (Klinke ${KLINKE.ktx})`}`);
+// Die Klinke ktx gilt mit dem ersten Schiff der Liste: nicht mit --ship und --layout, und nicht in der Halle nach einem Hallenwechsel
+const mitKtx = !SHIP && !LAYOUT && !vor;
+console.log(`  Komprimiert: ${ktx ? ktx.slice(9, 160) : ktxAus ? ktxAus.slice(9, 160) : 'keine Zeile zu den komprimierten Texturen'}${mitKtx ? ` (Klinke ${K.ktx ?? '—'})` : ''}`);
 for (const z of ktxFehlt.slice(0, 5)) fehler.push(z);
 if (ktxAus) fehler.push(`${ktxAus.slice(9, 200)}: jede Textur liegt unkomprimiert bei der Grafikkarte`);
-else if (deko && !ktx) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen komprimiert:": er laedt kein Bild aus seinem komprimierten Zwilling (ktxTwin in assets/hangar-viewer.js), jede Textur liegt unkomprimiert bei der Grafikkarte');
-else if (deko && !(ktxOhne === 0)) fehler.push(`${Number.isFinite(ktxOhne) ? ktxOhne : 'unbekannt viele'} Bilder ohne ladbaren Zwilling kamen aus dem WebP und liegen unkomprimiert bei der Grafikkarte (verify:hangar-ktx prueft die Dateien in dist/)`);
-else if (deko && !SHIP && !LAYOUT && !(ktxN >= KLINKE.ktx)) fehler.push(`nur ${ktxN} Bilder aus komprimierten Zwillingen, Klinke ${KLINKE.ktx}`);
+else if (steht && !ktx) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen komprimiert:": er laedt kein Bild aus seinem komprimierten Zwilling (ktxTwin in assets/hangar-viewer.js), jede Textur liegt unkomprimiert bei der Grafikkarte');
+else if (steht && !(ktxOhne === 0)) fehler.push(`${Number.isFinite(ktxOhne) ? ktxOhne : 'unbekannt viele'} Bilder ohne ladbaren Zwilling kamen aus dem WebP und liegen unkomprimiert bei der Grafikkarte (verify:hangar-ktx prueft die Dateien in dist/)`);
+else if (steht && mitKtx && !(ktxN >= K.ktx)) fehler.push(K.ktx === undefined ? `die Halle ${fest} hat keine Klinke ktx (KLINKE_FEST), und dieser Lauf (ohne --ship und --layout) braucht sie: ${ktxN} Bilder aus komprimierten Zwillingen gemessen` : `nur ${ktxN} Bilder aus komprimierten Zwillingen, Klinke ${K.ktx}`);
 if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}`);
-if (deko && progs.length < KLINKE.programme) fehler.push(`nur ${progs.length} Programme gelinkt, Klinke ${KLINKE.programme}`);
-if (deko && schichten < KLINKE.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${KLINKE.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
-if (deko && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
+if (steht && seit.length < K.programme) fehler.push(`nur ${seit.length} Programme ${vor ? 'seit dem Hallenwechsel ' : ''}gelinkt, Klinke ${K.programme}`);
+if (steht && schichten < K.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
+if (steht && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
 
 for (const u of unruhig) console.log(`  HINWEIS: keine Ruhe (${u}): der Lauf wertet einen Zwischenstand aus`);
 if (fehler.length) {

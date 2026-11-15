@@ -18,6 +18,9 @@ import { fileURLToPath } from 'node:url';
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
+import { readCaf } from './lib/ivo-caf.mjs';
+import { hallDecalDoc, hallTextDoc, meshBase, mtlQuelle } from './lib/hall-decals.mjs';
+import { hallKinder } from './lib/hall-kinder.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -57,6 +60,30 @@ const SHIP_DEC = `${SRC}ships-dec/`;
 const HALLS = [
   { key: 'revelyork-single', socpak: 'hangar_revelyork_single.socpak', lod: 0 },
   { key: 'revelyork-single-lod1', socpak: 'hangar_revelyork_single.socpak', lod: 1 },
+  // Industrie-Hallen des heutigen Spiels (Bausatz util_a: Lorville, Area18,
+  // Stationen), je Hangargröße eine, Tore in der Decke, Schiffsaufzug im
+  // Boden (Krisz 14.11.2026: „Industrie wie Lorville und Area18“). Stufe 1
+  // ist die Stufe der Seite. info: Landefläche und Decals aus der .soc;
+  // layers: Schichtmaterialien des Bausatzes (Tönung, Abnutzung).
+  // palette: die Farbpalette der Halle (Datensatz TintPaletteTree), wie ihre
+  // Entities sie am RenderProxy nennen; der Export kennt sie nicht und färbt
+  // die Palettenmaterialien mit einem fast schwarzen Ersatzwert.
+  // decals: die Teilnetze mit Aufkleber-Material, die der Export auslässt
+  // (Bodenmarkierungen, Schrift, Fugen und Schrauben), aus den Spieldateien.
+  // kinder: fremde Container, die die Halle an einer Stelle einhängt und denen
+  // der Export nicht folgt (scripts/lib/hall-kinder.mjs). folge: welche davon
+  // dazukommen, hier die Frachtaufzüge in den Längswänden (das Modul mit Tor,
+  // Stegen und Bedienpult, darin die Plattform mit Kabine). lage: das Tor des
+  // Frachtaufzugs ruht im Spiel offen, solange die Plattform oben steht; der
+  // Export zeigt es zu.
+  { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
+  { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
+  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' },
+    kinder: {
+      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i],
+      lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
+    } },
+  { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];
 // Schiffsaufzug der heutigen Hangars (Hightech, „medtop“: Landefläche 56 x 88 m,
 // am nächsten an unserem Schiffsfeld 32 x 96 m). Exportiert wird der ganze
@@ -135,8 +162,17 @@ function sb(args, { log = false, timeout = 0 } = {}) {
 }
 // mip 1 = halbe Kantenlänge (bis 2048 px); der Build deckelt Farbe auf 1024, Normalen auf 512
 const COMMON = ['--materials', 'textures', '--mip', '1', '--lod', '1'];
+// dieselben Schalter in der Stufe einer Halle
+const schalter = (lod) => COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(lod) : a));
+// die Lichtzeilen aus dem Protokoll eines Exports (-v), ohne Zeitstempel
+const lichtZeilen = (log) => log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
 const sbSkin = (part, file) => { const r = sb(['skin', 'export', part, file]); stempel(file); return r; };
+// Welche .mtl dieser Lauf mit --force schon neu ausgepackt hat: je Lauf, nicht je Halle. Zwei Hallen, die
+// dieselbe Materialdatei nennen, packten sie sonst zweimal aus (mtlQuelle in lib/hall-decals.mjs).
+// Steht hier oben, vor dem Lauf: Die Hallenschleife unten wartet auf hallDecals, und eine Konstante, die erst
+// hinter ihr erklärt wäre, gäbe es beim ersten Aufruf noch nicht (tests/e2e/modul-reihenfolge.test.js).
+const MTL_FRISCH = new Set();
 
 function stempel(file) {
   writeFileSync(file.replace(/\.glb$/i, '.build.json'), JSON.stringify(gameBuild()) + '\n');
@@ -382,7 +418,8 @@ if (want('components')) {
 
 // Halle und Aufzug: socpak-Export mit Lichtprotokoll, Materialnachtrag, Texturen
 const containers = [
-  ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall' })) : []),
+  // Halle mit Kind-Containern: Raum roh nach hall-kinder/, daraus die Halle mit Kindern (hallKinder)
+  ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall', ...(h.kinder ? { raw: `${SRC}hall-kinder/${h.key}.raum.glb` } : {}) })) : []),
   ...(want('lift') ? LIFTS.map((h) => ({ ...h, dir: 'lift' })) : []),
   ...(want('werkstatt') ? WERKSTATT.map((h) => ({ ...h, dir: 'werkstatt' })) : []),
   // Werkhalle: Raum roh nach werkhalle-raw/, daraus Raum mit Torblatt und die
@@ -407,14 +444,17 @@ if (containers.length) {
     // den Namen mit den Lichtknoten.
     try {
       if (h.socpak) {
-        const log = exportTo(h.raw ?? file, ['socpak', 'export', h.socpak], COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? String(h.lod) : a)), { log: true });
+        const log = exportTo(h.raw ?? file, ['socpak', 'export', h.socpak], schalter(h.lod), { log: true });
         if (typeof log === 'string') {
-          const lines = log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
-          writeFileSync(`${SRC}${h.dir}/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
+          const lines = lichtZeilen(log);
+          // mit Kind-Containern bleiben die Zeilen der Halle beim Rohexport; die Liste der ganzen Halle schreibt hallKinder
+          writeFileSync(h.kinder ? `${SRC}hall-kinder/${h.key}.lights-src.txt` : `${SRC}${h.dir}/${h.key}.lights-src.txt`, lines.join('\n') + '\n');
           console.log(`  Lichtangaben: ${lines.length}`);
         }
       }
       if (h.tor) await werkhalleCompose(h, file);
+      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, lichtZeilen, schalter });
+      if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
     if (h.raw || h.from) stempel(file);
@@ -434,14 +474,21 @@ if (containers.length) {
     const add = (p) => { if (p && !/defaults\//i.test(p)) paths.add(p.replace(/\\/g, '/')); };
     for (const m of doc.getRoot().listMaterials()) { const x = m.getExtras() || {}; add(x.diffuse_tex); add(x.normal_tex); }
     for (const subs of Object.values(fix.mtls)) for (const s of subs) { add(s.d); add(s.n); add(s.s); add(s.blend?.d); add(s.blend?.mask); }
+    if (h.decals) for (const p of await hallDecals(h, doc)) add(p);
     // Decal-Farbkarten tragen ihr Alpha (Deckkraft) schon im RGBA-PNG
     if (h.info) {
       const info = werkstattInfo(h);
+      if (h.palette) {
+        info.palette = await tintPalette(h.palette, info.palettes);
+        if (info.palette) console.log(`  Palette ${info.palette.name}: A ${info.palette.entries.primary.rgb.join(',')}, B ${info.palette.entries.secondary.rgb.join(',')}, C ${info.palette.entries.tertiary.rgb.join(',')}; von ${info.palette.entities} Entities der Halle genannt (alle Nennungen: ${Object.entries(info.palettes).map(([k, n]) => `${k} ${n}`).join(', ') || 'keine'})`);
+        else console.error(`  ! ${h.key}: Palette ${h.palette} fehlt im Datensatz, Palettenmaterialien bleiben beim Ersatzwert des Exports`);
+        if (info.palette?.decal) { add(info.palette.decal.tex); console.log(`  Logo der Palette: ${info.palette.decal.tex.split('/').pop()}, Farben R ${info.palette.decal.r.join(',')}, G ${info.palette.decal.g.join(',')}, B ${info.palette.decal.b.join(',')}`); }
+      }
       writeFileSync(`${SRC}${h.dir}/${h.key}.info.json`, JSON.stringify(info, null, 1));
       for (const m of Object.values(info.decalMaterials)) { add(m.d); add(m.n); add(m.maskTex); }
       console.log(`  Werkstatt: Landefläche ${info.landingArea?.dimensions?.join(' x ')} m, ${info.decals.length} Decals (${info.decals.filter((d) => d.floor).length} auf dem Boden), ${Object.keys(info.decalMaterials).length} Decal-Materialien`);
     }
-    if (h.dir === 'lift' || h.dir === 'werkstatt' || h.dir === 'werkhalle') {
+    if (h.dir === 'lift' || h.dir === 'werkstatt' || h.dir === 'werkhalle' || h.layers) {
       const layers = layerMaterials(docLayerPaths(doc));
       writeFileSync(`${SRC}${h.dir}/${h.key}.layers.json`, JSON.stringify(layers, null, 1));
       for (const l of Object.values(layers)) { add(l.d); add(l.n); }
@@ -638,7 +685,6 @@ function liftEntities(h) {
 // Ursprung, Oberkante y = 0, nach <key>-buehne.glb.
 async function werkhalleCompose(h, file) {
   const { copyToDocument, getBounds } = await import('@gltf-transform/functions');
-  const { readCaf } = await import('./lib/ivo-caf.mjs');
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const RAW = `${SRC}werkhalle-raw/`;
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -752,6 +798,55 @@ function compactPrimitive(doc, sp) {
   return p.setIndices(doc.createAccessor().setType('SCALAR').setArray(idx).setBuffer(buf));
 }
 
+// ─── Halle mit eigenem Aufzug (Industrie-Bausatz, h.aufzug) ──────────────
+// Bodentor und Plattform stehen im Export der Halle als je ein Mesh
+// (…elev_door_<größe>_a.cga, …elev_<größe>_a.cga), in der Ruhelage ihrer
+// .cga: Tor zu, Plattform unten. Welche Lamelle ein Primitiv trägt und wie
+// sie fährt, sagen nur die Spieldateien: der Knotenbaum der .cga, die
+// Teilnetze der .cgam in der Stufe der Halle (Material, Netz-Knoten,
+// Dreiecke) und die Spuren door_close/door_open (.caf, Lage je Knochen im
+// Raum seines Elternknotens, Achsen der .cga mit Z oben). Das geht nach
+// hall/<halle>.tor.json; der Build teilt damit das Tor in seine Teile.
+function hallAufzug(h) {
+  const RAW = `${SRC}hall-aufzug-raw/`;
+  mkdirSync(RAW, { recursive: true });
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const names = [h.aufzug.tor, h.aufzug.plattform];
+  sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${names.map(esc).join('|')})[._]`]);
+  const files = listFiles(RAW);
+  const r4 = (v) => Math.round(v * 10000) / 10000;
+  const teil = (name) => {
+    const cga = files.find((f) => f.toLowerCase().endsWith(`/${name}.cga`));
+    if (!cga) throw new Error(`Aufzug: ${name}.cga fehlt im Auszug`);
+    const dump = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout || '';
+    const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*\n\s*b2w\[0\] = \[([^\]]+)\]\n\s*b2w\[1\] = \[([^\]]+)\]\n\s*b2w\[2\] = \[([^\]]+)\]/g)].map((m) => ({
+      index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), t: [m[5], m[6], m[7]].map((r) => Number(r.split(',')[3])),
+    }));
+    if (!nodes.length) throw new Error(`Aufzug: nmc dump ${name}.cga nennt keinen Knoten`);
+    const cgam = files.find((f) => f.toLowerCase().endsWith(`/${name}${h.lod ? `_lod${h.lod}` : ''}.cgam`));
+    if (!cgam) throw new Error(`Aufzug: ${name}.cgam der Stufe ${h.lod} fehlt im Auszug`);
+    const cafs = {};
+    for (const f of files.filter((x) => x.toLowerCase().includes(`/${name}_`) && x.toLowerCase().endsWith('.caf'))) {
+      const c = readCaf(readFileSync(f), nodes.map((n) => n.name));
+      const tracks = {}, dreht = [];
+      for (const b of c.bones) {
+        if (!b.name) continue;
+        if (b.pos?.times && b.pos?.values) tracks[b.name] = b.pos.times.map((tt, k) => [tt, ...b.pos.values[k].map(r4)]);
+        // eine Drehspur, die sich ändert, kann der Build nicht: er meldet sie
+        const q = b.rot?.values;
+        if (q?.length > 1 && q.some((v) => v.some((x, i) => Math.abs(x - q[0][i]) > 1e-3))) dreht.push(b.name);
+      }
+      cafs[f.split('/').pop().slice(name.length + 1).replace(/\.caf$/i, '')] = { fps: c.fps, frames: c.frames, tracks, ...(dreht.length ? { dreht } : {}) };
+    }
+    for (const k of ['door_close', 'door_open']) if (!cafs[k]) throw new Error(`Aufzug: Spur ${name}_${k}.caf fehlt im Auszug`);
+    return { cga: name, nodes, subsets: readSubsetsNode(readFileSync(cgam)), cafs };
+  };
+  const out = { lod: h.lod, tor: teil(h.aufzug.tor), plattform: teil(h.aufzug.plattform) };
+  writeFileSync(`${SRC}hall/${h.key}.tor.json`, JSON.stringify(out, null, 1));
+  const spur = (t) => Object.entries(t.cafs).map(([k, c]) => `${k} ${Object.keys(c.tracks).length} Knochen in ${c.frames} Bildern`).join(', ');
+  console.log(`  Aufzug: Tor ${out.tor.nodes.length} Knoten, ${out.tor.subsets.length} Teilnetze (${spur(out.tor)}); Plattform ${out.plattform.subsets.length} Teilnetze (${spur(out.plattform)})`);
+}
+
 // Teilnetze einer .cgam mit Netz-Knoten: [Material, Knoten, Dreiecke]
 function readSubsetsNode(buf) {
   const i32 = (o) => buf.readInt32LE(o);
@@ -763,6 +858,73 @@ function readSubsetsNode(buf) {
     if (rows.length && (!best || rows.length > best.length)) best = rows;
   }
   return best || [];
+}
+
+// ─── Aufkleber der Halle (scripts/lib/hall-decals.mjs, h.decals) ─────────
+// Der socpak-Export lässt jedes Teilnetz mit Aufkleber-Material (%DECAL im
+// StringGenMask) aus. Hier kommen sie aus den Spieldateien zurück: je Netz
+// der Halle die Netzdatei ihrer Stufe (.cgfm/.cgam) samt Kopf (dort steht
+// der Materialpfad), dazu die .mtl. Das Ergebnis geht als eigenes GLB nach
+// hall/<halle>.decals.glb, der Bericht nach hall/<halle>.decals.json; der
+// Build hängt die Primitive an die Netze der Halle und entscheidet, welche
+// Materialien sie bekommt. Liefert die Texturpfade zum Dekodieren.
+async function hallDecals(h, doc) {
+  const RAW = `${SRC}hall-decal-raw/`;
+  mkdirSync(RAW, { recursive: true });
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const names = [...new Set(doc.getRoot().listMeshes().map((m) => meshBase(m.getName())))];
+  let files = listFiles(RAW);
+  const have = new Set(files.map((f) => f.toLowerCase().split('/').pop().replace(/(_lod\d)?\.(cga|cgf)m?$/, '')));
+  const need = FORCE ? names : names.filter((n) => !have.has(n));
+  // in Portionen: die Befehlszeile hat unter Windows eine Obergrenze
+  for (let i = 0; i < need.length; i += 80) {
+    try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/](${need.slice(i, i + 80).map(esc).join('|')})(_lod1)?\\.(cga|cgf)m?$`]); }
+    catch (e) { console.error(`  ! Aufkleber, Auszug ab Netz ${i}: ${e.message}`); }
+  }
+  if (need.length) files = listFiles(RAW);
+  const byBase = new Map();
+  for (const f of files) { const b = f.toLowerCase().split('/').pop(); (byBase.get(b) ?? byBase.set(b, []).get(b)).push(f); }
+  let mtlFiles = files.filter((f) => /\.mtl$/i.test(f));
+  const mtlCache = new Map();
+  const subMaterials = (mtl) => {
+    const rel = mtl.replace(/\\/g, '/').replace(/^data\//i, '').replace(/\.mtl$/i, '').toLowerCase();
+    if (mtlCache.has(rel)) return mtlCache.get(rel);
+    // mit --force auch die .mtl neu aus dem Spiel (mtlQuelle): Sonst entstünden Aufkleber-Materialien und
+    // Texturpfade aus der Datei des letzten Auszugs, neben frisch ausgepackten Netzen
+    const { datei: f, neu } = mtlQuelle({
+      rel, force: FORCE, frisch: MTL_FRISCH, liste: () => mtlFiles,
+      holen: (base) => {
+        try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(base)}\\.mtl$`]); }
+        finally { mtlFiles = listFiles(RAW).filter((x) => /\.mtl$/i.test(x)); }
+      },
+    });
+    let out = null;
+    if (f) {
+      const xml = `${f}.xml`;
+      if (FORCE || neu || !existsSync(xml)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, xml]);
+      if (existsSync(xml)) out = parseSubMaterials(readFileSync(xml, 'utf8'));
+    }
+    mtlCache.set(rel, out);
+    return out;
+  };
+  const { doc: out, report } = hallDecalDoc({ doc, files: byBase, read: (f) => readFileSync(f), subMaterials, lod: h.lod, Document });
+  const file = `${SRC}hall/${h.key}.decals.glb`;
+  if (out) await new NodeIO().write(file, out);
+  else if (existsSync(file)) rmSync(file);
+  // Schrift, die in der leichteren Stufe der Halle ausgedünnt ist, aus der Grundstufe derselben
+  // Dateien (hallTextDoc): eigenes GLB nach hall/<halle>.schrift.glb, der Build tauscht die Geometrie
+  const schrift = hallTextDoc({ doc, files: byBase, read: (f) => readFileSync(f), lod: h.lod, Document });
+  const schriftFile = `${SRC}hall/${h.key}.schrift.glb`;
+  if (schrift.doc) await new NodeIO().write(schriftFile, schrift.doc);
+  else if (existsSync(schriftFile)) rmSync(schriftFile);
+  report.schrift = schrift.report;
+  writeFileSync(`${SRC}hall/${h.key}.decals.json`, JSON.stringify(report, null, 1));
+  const A = report.aufkleber;
+  console.log(`  Aufkleber: ${report.zugeordnet} von ${report.netze} Netzen ihrer Spieldatei zugeordnet (${report.ohneDatei.length} ohne Datei, ${report.unklar.length} unklar), ${A.teilnetze} ausgelassene Teilnetze an ${A.netze} Netzen zurückgeholt, ${A.trisMitExemplaren} Dreiecke mit allen Exemplaren, ${Object.keys(report.materialien).length} Materialien; ${report.ohneLage.length} ohne Lage, ${report.andere.teilnetze} ausgelassene ohne Aufkleber-Material`);
+  if (report.ohneLage.length) console.log(`    ohne Lage (kein behaltenes Teilnetz am selben Knoten): ${report.ohneLage.slice(0, 8).join(' | ')}`);
+  const S = schrift.report;
+  if (S.teilnetze || S.ohneLage.length) console.log(`  Schrift: ${S.teilnetze} in der leichteren Stufe ausgedünnte Teilnetze an ${S.netze} Netzen aus der Grundstufe geholt (${S.trisNeu} statt ${S.trisAlt} Dreiecke)${S.ohneLage.length ? `; ${S.ohneLage.length} ohne sichere Lage ausgelassen: ${S.ohneLage.slice(0, 8).join(' | ')}` : ''}`);
+  return out ? out.getRoot().listMaterials().flatMap((m) => [m.getExtras().hall_decal.d, m.getExtras().hall_decal.n]).filter(Boolean) : [];
 }
 
 // ─── Hallen-Materialien, die der socpak-Export nicht auflöst ─────────────
@@ -1188,6 +1350,32 @@ function readDecalMaterials(used, RAW) {
   return decalMaterials;
 }
 
+// Farbpalette aus dem Datensatz (TintPaletteTree): je Kanal Tönung und
+// Specular (sRGB 0–255) und Glanz. used = Nennungen der Entities der Halle
+// (werkstattInfo); eine Halle, deren Entities die Palette nicht nennen,
+// meldet 0 und damit, dass h.palette geraten ist.
+// Der Zwischenspeicher hängt an der Funktion: der Lauf oben ruft sie auf,
+// bevor ein `let` an dieser Stelle der Datei angelegt wäre.
+async function tintPalette(name, used = {}) {
+  let paletteDb = tintPalette.db;
+  if (!paletteDb) {
+    const { openP4k } = await import('./lib/p4k.mjs');
+    const { openDataCore } = await import('./lib/datacore.mjs');
+    const p4k = openP4k(P4K);
+    const db = openDataCore(p4k.read(/^Data[\\/]Game2\.dcb$/i));
+    p4k.close();
+    paletteDb = tintPalette.db = new Map();
+    for (const r of db.records) if (db.structs[r.structIndex]?.name === 'TintPaletteTree') paletteDb.set(String(r.name || '').replace(/^TintPaletteTree\./, '').toLowerCase(), () => db.readRecord(r, { typed: true, maxDepth: 12 })?.root);
+  }
+  const key = name.toLowerCase(), v = paletteDb.get(key)?.();
+  if (!v?.entryA || !v.entryB || !v.entryC) return null;
+  const e = (x) => ({ rgb: [x.tintColor.r, x.tintColor.g, x.tintColor.b], spec: [x.specColor.r, x.specColor.g, x.specColor.b], gloss: x.glossiness });
+  // Logo der Palette: eine Schablone, deren Kanäle R, G, B je eine Farbe decken (Tafeln tint_logo_*, addHallLogo im Build)
+  const f = (c) => (c ? [c.r, c.g, c.b] : null);
+  const decal = v.decalTexture && v.decalColorR && v.decalColorG && v.decalColorB ? { tex: String(v.decalTexture).replace(/\\/g, '/'), r: f(v.decalColorR), g: f(v.decalColorG), b: f(v.decalColorB) } : null;
+  return { name: key, entries: { primary: e(v.entryA), secondary: e(v.entryB), tertiary: e(v.entryC) }, ...(decal ? { decal } : {}), entities: used[key] ?? 0 };
+}
+
 function werkstattInfo(h) {
   const RAW = `${SRC}werkstatt-raw/`;
   mkdirSync(RAW, { recursive: true });
@@ -1198,6 +1386,9 @@ function werkstattInfo(h) {
   const soc = zip.get([...zip.keys()].find((k) => k.toLowerCase().endsWith('.soc')))();
   const xml = socEntitiesXml(soc, `${RAW}${h.key}`);
   const la = (xml.match(/<Entity\b[^>]*EntityClass="LandingArea"[^>]*>[\s\S]*?<\/Entity>/) || [])[0] || '';
+  // Farbpaletten, wie die Entities sie nennen (RenderProxy Palette), Name ohne Pfad und Kennziffer
+  const palettes = {};
+  for (const m of xml.matchAll(/<RenderProxy\b[^>]*\bPalette="([^"]*)"/g)) { const n = m[1].split('/').pop().replace(/&lt;\d+&gt;|<\d+>/, '').toLowerCase(); palettes[n] = (palettes[n] || 0) + 1; }
   const attr = (s, k) => (s.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
   const { materials, decals } = socDecals(soc);
   // Decal-Materialien (.mtl unter Materials/Decals): Farbe TexSlot1 (mit
@@ -1210,7 +1401,7 @@ function werkstattInfo(h) {
       pos: String(attr(la, 'Pos') || '0,0,0').split(',').map(Number), rotate: attr(la, 'Rotate') || null,
       dimensions: ['x', 'y', 'z'].map((k) => Number(attr((la.match(/<dimensions\b([^>]*)\/>/) || [])[1] || '', k))),
     },
-    materialTable: materials.length, decals, decalMaterials, extraDecals: WERK_EXTRA_DECALS,
+    materialTable: materials.length, decals, decalMaterials, extraDecals: WERK_EXTRA_DECALS, palettes,
   };
 }
 
@@ -1294,6 +1485,8 @@ function parseSubMaterials(xml) {
       vc: /VERTCOLORS/i.test(attr('StringGenMask') || ''),
       // Schiffe: Decals blenden, Glow leuchtet (wie die Materialien des Exports)
       decal: /%DECAL(?![A-Z_])/i.test(attr('StringGenMask') || '') || undefined,
+      // Aufkleber der Hallen (scripts/lib/hall-decals.mjs): Schalter, Schwelle und Parameter wörtlich
+      ...(/%DECAL(?![A-Z_])/i.test(attr('StringGenMask') || '') ? { genMask: attr('StringGenMask'), alphaTest: attr('AlphaTest'), params: Object.fromEntries([...pp.matchAll(/(\w+)="([^"]*)"/g)].map((q) => [q[1], q[2]])) } : {}),
       glow: Number(attr('Glow')) || undefined,
       ...(layers.length ? { layers } : {}),
     });

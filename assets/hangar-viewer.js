@@ -652,15 +652,34 @@ const colourImages = (json) => {
 // null, und das Bild kommt wie bisher aus dem WebP. Am Telefon (KTX_TEL)
 // kommen max und twin zusammen: Der Zwilling trägt dort schon nur die
 // kleinen Stufen, und max gilt dem WebP, wenn er fehlt.
+// Die Bühne, die lädt, nennt sich an der Fabrik (images.buehne = { rast,
+// tot, signal }, in initHangar): Ist sie abgebaut, beginnt hier kein Bild
+// mehr, und was unterwegs ist, hält an seinem nächsten Schritt an (vor dem
+// Abruf, vor dem Auspacken, nach dem Auspacken; ein fertiges Bild wird
+// geschlossen, ein fertiger Zwilling freigegeben). Vorher fiel jeder
+// Zwilling, den der Abbau abbrach, auf sein WebP zurück: Die tote Bühne
+// holte und packte dann alle Bilder aus, die noch offen waren, neben der
+// neuen Halle (vierte Runde des Reviews an PR #371, 15.11.2026).
+// Fünfte Runde, selber Tag: Am Telefon (max) warten die Bilder im Limiter,
+// höchstens FIT_AT_ONCE werden zugleich ausgepackt und verkleinert. Was beim
+// Abbau schon dort wartete, hatte die Frage vor dem Auspacken hinter sich
+// und kam trotzdem noch dran, Bild für Bild. Deshalb fragt decode() selbst,
+// und zwar erst, wenn es wirklich beginnt, und noch einmal, wenn es fertig
+// ist (das Bild wird geschlossen, verkleinert wird nicht mehr). Und kein
+// Bild beginnt mehr: Die Frage steht am Anfang von loadImageSource, vor der
+// Kennung des Zwillings, die aus den Bytes gerechnet wird.
 function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
-  const pause = slicer(ms, nextTask);
+  const pause = slicer(ms, () => (fabrik.buehne?.rast ?? nextTask)());
+  const ende = () => !!fabrik.buehne?.tot();
+  const nie = () => new Promise(() => {});
   const gate = max ? limiter(FIT_AT_ONCE) : null;
   let turn = Promise.resolve();
-  return (mean) => (parser) => {
+  const fabrik = (mean) => (parser) => {
     const load = parser.loadImageSource.bind(parser);
     const count = tally(parser);
     const colour = colourImages(parser.json);
     parser.loadImageSource = (i, loader) => {
+      if (ende()) return nie();
       const def = parser.json.images[i];
       const pooled = pooledImage(def);
       if (parser.sourceCache[i] !== undefined || (def.bufferView === undefined && !pooled) || !loader.isImageBitmapLoader) return load(i, loader);
@@ -671,15 +690,21 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
         return t;
       };
       const bild = () => {
-        const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
+        if (ende()) return nie();
+        const got = pooled ? fetch(url, { credentials: 'same-origin', signal: fabrik.buehne?.signal }).then((r) => {
           if (!r.ok) throw new Error(`${r.status} ${url}`);
           return r.blob();
-        }).then((b) => { count?.(b.size); return b; }) : null;
+        }).then((b) => { count?.(b.size); return b; }, (e) => (ende() ? nie() : Promise.reject(e))) : null;
         const go = (turn = turn.then(pause));
         const q = go
           .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
           .then((blob) => {
-            const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
+            if (ende()) return nie();
+            // decode() fragt die Bühne selbst: wenn es beginnt (am Telefon
+            // erst, wenn der Limiter das Bild an die Reihe lässt) und wenn
+            // es fertig ist. Ist sie abgebaut, endet es nie: Der Platz im
+            // Limiter bleibt belegt, und was dahinter wartet, beginnt nicht.
+            const decode = () => (ende() ? nie() : createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' }).then((b) => { if (!ende()) return b; b.close(); return nie(); }));
             if (!gate) return decode();
             return gate(async () => {
               const big = await decode(), small = await fitImage(big, max);
@@ -689,6 +714,7 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
             });
           })
           .then(async (bitmap) => {
+            if (ende()) { bitmap.close?.(); return nie(); }
             const t = dress(new THREE.Texture(bitmap));
             t.needsUpdate = true;
             if (mean && colour.has(i)) t.userData.mean = await imageMean(bitmap);
@@ -703,6 +729,7 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
       const id = !twin ? null : pooled ? KTX_ABLAGE.exec(def.uri)?.[1] ?? null
         : def.mimeType === 'image/webp' ? parser.getDependency('bufferView', def.bufferView).then(twin.id).catch(() => null) : null;
       const p = id === null ? bild() : Promise.resolve(id).then((k) => (k ? twin.load(k) : null)).then((z) => {
+        if (ende()) { z?.t.dispose(); return nie(); }
         if (!z) return bild();
         const t = dress(z.t);
         if (pooled) count?.(z.webp);
@@ -714,6 +741,8 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
     };
     return { name: 'hg_embedded_images', afterRoot: noteTextures };
   };
+  fabrik.buehne = null;
+  return fabrik;
 }
 
 // Spielteile, die in der Halle nicht stehen sollen, je Halle (Schlüssel wie
@@ -882,9 +911,45 @@ function hallShiftPoint(h, p) {
   return d ? [p[0] + d, p[1], p[2]] : p;
 }
 
-// Mitte des Schiffsfelds (mit Aufzug) oder des Raums, im Modellraum
+// Hallen in fester Größe (14.11.2026). Krisz: „Baue mal alle Gangarten
+// vollständig aus in vollste Tiefe, Assets Textur Materialien Szene npc ui
+// deko alles“, als Baustil wählte er „Industrie wie Lorville und Area18“.
+// Bis dahin stand jedes Schiff in der Revel-&-York-Halle, die für Large und
+// Extra Large an Streifen auseinandergezogen wurde (HALL_GROW): viermal
+// dieselbe Halle, in den großen Stufen mit kahlen Wänden und leerem Boden.
+// Jetzt hat jede Hangargröße die Halle, die das Spiel für sie baut (Bausatz
+// util_a), und die Seite lädt je Schiff die seiner Stufe (StageConfig.halls).
+// Eine solche Halle wächst nicht und wird nie skaliert: Sie ist so groß, wie
+// sie im Spiel ist. `size`: ihre Stufe, wie die Seite sie nennt. `pad`: die
+// Landefläche des Spiels im Modellraum (x/z von, bis), das Schiff steht auf
+// ihrer Mitte; `clear`: so hoch ist sie frei (m, Höhe der Landefläche im
+// Spiel). `tint`: Faktor auf die Grundfarben; der Bausatz bringt Tönung und
+// Abnutzung in seinen Schichten mit, anders als die weiße Halle.
+// `licht`: Faktor auf die Stärke aller Spiellampen dieser Halle (echte
+// Lampen und Lichtgitter). Das Spiel regelt die Belichtung selbst nach, der
+// Viewer belichtet fest: In der großen Industriehalle kommt am Boden der
+// Landefläche ein Achtel des Lichts der weißen Halle an (0,20 gegen 1,69 je
+// Stärke-Einheit, Hauptstrahler 600 gegen 2500), auf dunklerem Material.
+// Am Bild abgeglichen (Carrack in util-lrgtop, 14.11.2026): bei 10 liest
+// sich der Boden, die Wände bleiben schwarz; bei 18 wird die Oberseite des
+// Schiffs hell, ohne auszubrennen; 16 steht.
+// `fuell`: Stärke des neutralen Fülllichts von oben und unten (Halbkugel),
+// sobald die Umgebungskugel der Halle steht (sonst HALL_HEMI_WITH_ENV). Die
+// Kugel wird über der Landefläche aufgenommen; in einer Halle von 144 m
+// Breite kommt davon an den Wänden kaum etwas an, sie blieben fast schwarz.
+// 0,5 hebt sie, ohne das Bild zu verflachen (so abgenommen, Krisz
+// 14.11.2026 zu den ersten Bildern: „ja“).
+// Der eigene Aufzug einer solchen Halle (Bodentor und Plattform aus ihrem
+// Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
+// durch, ownLift baut ihn.
+const HALL_FEST = /* hall-fest */ {
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5 }
+} /* /hall-fest */;
+
+// Mitte des Schiffsfelds (mit Aufzug), der Landefläche (HALL_FEST) oder des
+// Raums, im Modellraum
 function hallSpot(h) {
-  const c = h.room.center, L = liftField(h);
+  const c = h.room.center, L = liftField(h) ?? HALL_FEST[h.id]?.pad;
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
 }
 
@@ -2312,6 +2377,91 @@ function gatePose(G, dir, tau, blend = 1) {
     } else G.M.makeTranslation(G.v.x, G.v.y, G.v.z);
     for (const id of u.ids) id.b.setMatrixAt(id.iid, G.M);
   }
+}
+
+// Aufzug einer Halle in fester Größe aus ihrem eigenen Modell (HALL_FEST,
+// <halle>.aufzug.json des Builds). Im Modell steht die Plattform oben (Knoten
+// aufzug_pad, mit ihren Landeleuchten) und das Bodentor zu (aufzug_tor_*, je
+// bewegtem Knochen des Spiels ein Knoten). Die Plattform wird das Feld
+// (group), das Tor bekommt die Gestalt von buildGate, damit Fahrt, Ton und
+// Bildschleife beide gleich führen: parts mit Bahnen ([t, x, y, z], hier der
+// Versatz gegen zu im Modellraum), T die Dauer im Spiel, cover die Zeit der
+// Schließbahn, ab der das Feld gedeckt ist, bottom die Unterkante unter dem
+// Boden, ease die Fahrkurve der Plattform. Ruhelage wie im Spiel mit Schiff:
+// Tor offen (seine Teile liegen unter dem Hallenboden neben der Öffnung und
+// sind aus), Plattform oben.
+function ownLift(model, info, floorY) {
+  const P = info.plattform, D = info.tor, F = info.feld;
+  const padNode = P?.node ? model.getObjectByName(P.node) : null;
+  if (!padNode || !F || !(P.weg > 0)) throw new Error(`Plattform ${P?.node ?? '?'} fehlt in der Halle`);
+  const trisOf = (m) => (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3;
+  const T = Math.max(D?.s?.close ?? 0, D?.s?.open ?? 0);
+  if (!(T > 0) || !D.teile?.length) throw new Error('Bodentor ohne Teile oder Dauer');
+  // erst prüfen, dann umhängen: Scheitert der Aufzug, bleibt die Halle, wie sie geladen ist
+  const nodes = D.teile.map((p) => {
+    const node = model.getObjectByName(p.node);
+    if (!node || !(p.keys?.close?.length > 1) || !(p.keys?.open?.length > 1) || !p.box) throw new Error(`Torteil ${p.node} fehlt in der Halle`);
+    return node;
+  });
+  // die Netze der Plattform direkt in die Gruppe (gebacken: ihr Knoten hat keine eigene Lage)
+  const group = new THREE.Group(), meshes = [];
+  group.name = 'hall:pad';
+  padNode.traverse((n) => { if (n.isMesh) meshes.push(n); });
+  // trägt der Knoten doch eine Lage (ein Build, der Ecken quantisiert, legt sie dorthin), geht sie an seine Netze
+  padNode.updateMatrix();
+  for (const m of meshes) { if (m !== padNode) m.applyMatrix4(padNode.matrix); group.add(m); }
+  if (!padNode.isMesh) padNode.removeFromParent();
+  model.add(group);
+  const gate = new THREE.Group(), parts = [];
+  gate.name = 'hall:gate';
+  let tris = 0;
+  for (const [i, p] of D.teile.entries()) {
+    const node = nodes[i], keys = p.keys;
+    gate.add(node);
+    node.traverse((n) => { if (n.isMesh) tris += trisOf(n); });
+    const rest = node.position.clone(), open = keys.open.at(-1);
+    // gatePose setzt Matrizen an Exemplaren (BatchedMesh); hier steht dafür der Knoten selbst
+    const self = { setMatrixAt(_, M) { node.position.setFromMatrixPosition(M).add(rest); } };
+    parts.push({ node: p.node, keys, rot: null, lo: p.box[0], hi: p.box[1], at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), q: new THREE.Quaternion(), snapQ: new THREE.Quaternion(), ids: [{ b: self, iid: 0 }] });
+  }
+  model.add(gate);
+  // Ab wann deckt das Tor das Feld? Zellen von 0,5 m unter den Teilen, die
+  // bis an die Oberkante reichen; früheste Stützstelle der Schließbahn, zu
+  // der keine Zelle offen ist
+  const CELL = 0.5, nx = Math.round((F.to[0] - F.from[0]) / CELL), nz = Math.round((F.to[1] - F.from[1]) / CELL), cells = new Uint8Array(nx * nz), at = new THREE.Vector3();
+  const tops = parts.filter((u) => u.hi[1] >= D.oben - 0.6);
+  const full = (t) => {
+    cells.fill(0);
+    for (const u of tops) {
+      gateAt(u.keys.close, t, at);
+      const i0 = Math.max(0, Math.ceil((u.lo[0] + at.x - F.from[0]) / CELL - 0.5)), i1 = Math.min(nx - 1, Math.floor((u.hi[0] + at.x - F.from[0]) / CELL - 0.5));
+      const j0 = Math.max(0, Math.ceil((u.lo[2] + at.z - F.from[1]) / CELL - 0.5)), j1 = Math.min(nz - 1, Math.floor((u.hi[2] + at.z - F.from[1]) / CELL - 0.5));
+      for (let j = j0; j <= j1; j++) if (i1 >= i0) cells.fill(1, j * nx + i0, j * nx + i1 + 1);
+    }
+    return cells.indexOf(0) < 0;
+  };
+  let cover = 0;
+  for (const [t] of parts[0].keys.close) if (full(t)) { cover = t; break; }
+  // Fahrkurve der Plattform aus dem Spiel (hinab: 0 bis −weg), auf 0..1; nur wenn sie stetig steigt
+  const pad = P.keys?.down, ps = P.s?.down;
+  let ease = null;
+  if (Array.isArray(pad) && pad.length > 2 && ps > 0) {
+    const depth = pad.at(-1)[1], f = pad.map(([t, y]) => [t / ps, y / depth]);
+    if (depth < 0 && f.every((v, i) => i === 0 || (v[0] > f[i - 1][0] && v[1] >= f[i - 1][1]))) {
+      ease = (k) => {
+        if (k <= 0) return 0;
+        if (k >= 1) return 1;
+        let i = 1;
+        while (i < f.length - 1 && f[i][0] < k) i++;
+        const a = f[i - 1], b = f[i];
+        return pchipAt(f, i, (k - a[0]) / (b[0] - a[0]), 1);
+      };
+    }
+  }
+  const G = { group: gate, parts, batches: [], used: parts.length, dropped: [], tris, T, cover: cover || T, ease, bottom: D.unten - floorY, own: true, state: 'open', run: null, pend: null, wait: [], v: new THREE.Vector3(), q: new THREE.Quaternion(), one: new THREE.Vector3(1, 1, 1), M: new THREE.Matrix4() };
+  gatePose(G, 'open', T);
+  gate.visible = false;
+  return { own: true, group, field: { from: F.from, to: F.to }, gate: G, parts: meshes.length, tris: Math.round(meshes.reduce((a, m) => a + trisOf(m), 0)), travel: P.weg, top: P.oben, riders: Object.values(P.mit ?? {}).reduce((a, b) => a + b, 0) };
 }
 
 // Fester Rand um die Öffnung (19.10.2026, Krisz: „es soll so aussehen wie
@@ -6773,9 +6923,66 @@ const WERK_TOR_VOR = 1200;
 // (verify:hangar-orte rechnet das für viele Fenstergrößen nach und misst
 // das Glas am ausgelieferten Modell); bank: wo die Monitore des Pults
 // stehen (leitBuild warnt, wenn das Modell sie woanders hat).
+// Seit der Large-Halle (14.11.2026) muss der Monitor nicht mehr nach Süden
+// zeigen: schirm.dreh und schirm.neig (Grad, leitAchsen) nennen, wohin sein
+// Glas sieht, die Kamera sieht ihm gerade ins Gesicht, und d zählt entlang
+// dieser Blickachse. schirm.fase: die Ecken des Glases sind gefast statt
+// rund; schirm.mat: Material des Glases, wenn der Monitor im Modell der
+// Halle selbst steht (dann ohne bank); voll: Quader, in die die Kamera nie
+// gerät (Pult, Stühle).
+// Unter dieser Reichweite (m) ist ein Flächenlicht nur Glimmen an seiner
+// Leuchte (Bodenleuchten: 0,1 m). Zusammengelegt würde daraus eine Lampe
+// mit Metern Reichweite, die es im Spiel nicht gibt.
+export const LAMP_MIN_RADIUS = 1;
+// Welche Einträge einer <halle>.lights.json die Bühne setzt (loadHallLights):
+// mit Ort und Stärke, kein Umgebungslicht (das hellt nur flächig auf, die
+// Umgebungskugel aus der Halle übernimmt es) und kein Flächenlicht unter
+// LAMP_MIN_RADIUS. Bleibt keiner, steht die Halle mit dem Bühnenlicht. Eine
+// Regel für Bühne und Tor: verify:hangar-hallen zählt mit ihr, was von der
+// ausgelieferten Datei wirklich leuchtet (Befund von CodeRabbit an PR #371:
+// das Tor zählte erst jeden Eintrag, auch die, die hier wegfallen).
+export const hallLampeGilt = (l) => !!l && Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient'
+  && !(l.type === 'area' && (l.radius || 0) < LAMP_MIN_RADIUS);
+
 export const HALL_LEIT = {
   'revelyork-single': { schirm: { x: 0.1215, y: 17.7925, z: 57.555, b: 3.107, h: 0.817, ecke: 0.049, saum: 0.03 }, form: [0.5, 0.8], fov: 40, d: [1, 2.2], rand: 18, glas: { z: 56.05, y: 19.4, x: 4.8 }, innen: 18.7, raum: { x: [-12, 12], y: [16, 19.01], z: [56.05, 67.62] }, bank: { x: [-2.87, 3.04], y: [17.0, 18.2], z: [57.54, 58.44] } },
+  // Large-Halle (util_a, 14.11.2026): der Kontrollraum der Landefelder über
+  // dem Eingang (Boden 17,5, Decke 21,0, Glasfront bei z 91,17). An seiner
+  // Rückwand steht der Arbeitsplatz der Verwaltung: Pult mit zwei Stühlen,
+  // darüber ein großer Bildschirm, 15° nach vorn geneigt, das Gesicht zur
+  // Halle. Sein Glas gehört dem Terminal (im Modell ein ausgeschalteter
+  // Schirm, ein Achteck mit gefasten Ecken; gemessen am gebauten Modell).
+  // Die Kamera sitzt davor im Gang, nördlich der Stühle, zwischen dem großen
+  // Schirm links und der Reihe der sechs Anzeigen rechts, die ab z 100,7
+  // von der Decke hängen (raum); in Pult und Stühle hinein darf sie nie
+  // (voll). Der Monitor steht hier im Modell der Halle selbst (mat), nicht
+  // in einer Einrichtung: darum kein bank.
+  // Alle Höhen zählen ab dem Boden, den das Manifest der Halle nennt (floor:
+  // die Oberseite ihrer Landefläche, im Modell bei 2,501). Die erste Fassung
+  // war gegen 2,25 gemessen, die Höhe der Torflügel darunter: So hoch lotete
+  // der Build, bevor die Halle ihren eigenen Aufzug bekam. Das Fenster der
+  // Seite stand damit 25 cm über dem Glas und ragte über den Rahmen des
+  // Bildschirms hinaus. Gefunden hat es verify:hangar-orte [8] beim ersten
+  // Lauf gegen das ausgelieferte Modell („trägt die Halle kein … Glas“).
+  'util-lrgtop': { schirm: { x: -6.2808, y: 19.6959, z: 103.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, dreh: 180, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: 91.17, y: 19.9, x: 4.8 }, innen: 19.75, raum: { x: [-8, -4], y: [17.5, 20.5], z: [97.5, 104.1] }, voll: [{ x: [-8, -4.4], y: [17.5, 18.95], z: [102.45, 104.1] }] },
 };
+/**
+ * Achsen eines Monitors in Hallenmetern: X nach rechts (von vorn gesehen), Y
+ * am Glas nach oben, Z aus dem Glas heraus zum Betrachter. Ohne Angaben
+ * zeigt er nach Süden (+z) und steht senkrecht, wie der des Pults in der
+ * Halle von Revel & York. dreh: Grad um die Hochachse (180: Gesicht nach
+ * Norden, zur Halle); neig: Grad nach vorn geneigt (die Oberkante kommt dem
+ * Betrachter entgegen).
+ *   leitAchsen({ dreh: 180, neig: 15 }) -> { X: [-1, 0, 0], Y: [0, 0.966, -0.259], Z: [0, -0.259, -0.966] }
+ * @param {{ dreh?: number, neig?: number }} S
+ * @returns {{ X: number[], Y: number[], Z: number[] }}
+ */
+export function leitAchsen(S) {
+  const a = ((S.dreh ?? 0) * Math.PI) / 180, p = ((S.neig ?? 0) * Math.PI) / 180;
+  // 180° ohne den Rest von sin π: Die Achsen eines gerade stehenden Monitors bleiben ganze Zahlen
+  const ca = S.dreh === 180 ? -1 : Math.cos(a), sa = S.dreh === 180 ? 0 : Math.sin(a), cp = Math.cos(p), sp = Math.sin(p);
+  return { X: [ca, 0, -sa], Y: [sa * sp, cp, ca * sp], Z: [sa * cp, -sp, ca * cp] };
+}
 // Weiter als so öffnet sich der Bildwinkel vor dem Terminal nicht (Grad);
 // so viel Luft hält die Kamera zu Boden und Decke des Leitstands (m)
 export const LEIT_FOV_MAX = 62, LEIT_LUFT = 0.3;
@@ -6823,7 +7030,12 @@ export function leitFit(W, H, frei, L) {
   // klein, stiege die Kamera sonst bis an die Decke: Sie bleibt im Raum, das
   // Fenster rückt dafür im Bild ein Stück aus der Mitte des freien Stücks.
   let dy = ((frei.t + frei.b) / 2 - H / 2) / s;
-  if (L.raum) dy = Math.min(L.raum.y[1] - LEIT_LUFT - L.schirm.y, Math.max(L.raum.y[0] + LEIT_LUFT - L.schirm.y, dy));
+  // Vor einem geneigten Monitor steht sie um d · sin tiefer als seine Mitte,
+  // und ein Meter am Glas hinauf hebt sie nur um cos.
+  if (L.raum) {
+    const p = ((S.neig ?? 0) * Math.PI) / 180, ab = d * Math.sin(p), c = Math.cos(p);
+    dy = Math.min((L.raum.y[1] - LEIT_LUFT - S.y + ab) / c, Math.max((L.raum.y[0] + LEIT_LUFT - S.y + ab) / c, dy));
+  }
   const cy = H / 2 + dy * s;
   return { b, h, d, fov, dx: -(cx - W / 2) / s, dy, s, rect: { l: cx - (b * s) / 2, t: cy - (h * s) / 2, r: cx + (b * s) / 2, b: cy + (h * s) / 2 } };
 }
@@ -7391,6 +7603,31 @@ export async function initHangar(container, opts = {}) {
   const reduceMotion = !!opts.reduceMotion;
   const W = () => container.clientWidth || 1;
   const H = () => container.clientHeight || 1;
+  // Abgebaut (dispose): Die Seite baut die Bühne für eine andere Halle neu auf
+  // (assets/hangar-overview.js, Hallenwechsel), diese hier ist dann am Ende.
+  // Was sie noch lud, bleibt an den Engstellen stehen (fetchGltf, prepare,
+  // compileFor lösen nie mehr auf, auch nicht nach einer Pause mittendrin),
+  // statt in eine abgebaute Szene zu bauen.
+  let tot = false;
+  const nieMehr = () => new Promise(() => {});
+  // Jede Pause, die diese Bühne beim Laden und Rechnen macht (statt
+  // nextTask): Ist die Bühne danach abgebaut, geht es nicht weiter. So endet
+  // auch, was zwischen den Engstellen in Häppchen rechnet oder hochlädt
+  // (Halle aufbereiten, Schiffsmaße, Texturen, Shader einzeln übersetzen),
+  // statt am aufgegebenen Renderer weiterzuarbeiten.
+  const rast = async () => { await nextTask(); if (tot) await nieMehr(); };
+  // Was von außen in die Bühne kommt (Leitung, Modul, Schrift, Uhr), geht
+  // durch lebt(): Kommt es an, wenn die Bühne schon abgebaut ist, geht es
+  // nicht weiter, auch nicht als Fehler. Sechs Runden Review haben je eine
+  // andere Fortsetzung gefunden, die nach dem Abbau weiterlief (Pausen,
+  // Shader, Bilder, deren Warteschlange, zuletzt die Spiegelungssonde).
+  // Statt jede Fortsetzung einzeln zu fragen, endet sie hier an der Quelle:
+  // verify:hangar [24] zählt die Quellen im Rumpf von initHangar und reißt,
+  // wenn eine ohne lebt() dazukommt (die Ausnahmen sind dort benannt).
+  const lebt = (p) => Promise.resolve(p).then((v) => (tot ? nieMehr() : v), (e) => { if (tot) return nieMehr(); throw e; });
+  // Was diese Bühne über die Leitung holt und beim Abbau nicht mehr braucht
+  // (die Bilder aus dem WebP, embeddedImages): dispose() bricht es ab.
+  const abbau = new AbortController();
   // Echte Halle aus dem Spiel: Dann wird die gebaute Halle gar nicht erst
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
@@ -7410,6 +7647,13 @@ export async function initHangar(container, opts = {}) {
   const PR_CAP = { hoch: 2, mittel: 1.5, niedrig: 1 };
 
   const renderer = new THREE.WebGLRenderer({ antialias: pick.level !== 'niedrig', powerPreference: 'high-performance' });
+  // Kontextverluste von Anfang an zählen: Die Horcher der Bühne stehen erst
+  // hinter den Pausen des Aufbaus (unten bei lostFn), und die Seite hört
+  // erst zu, wenn initHangar zurück ist (halter.auf in hangar-overview.js).
+  // Was davor verloren geht, wird dort nachgetragen und dem Horcher
+  // nachgereicht, sobald er gesetzt ist (onLost).
+  let kontextWeg = 0;
+  renderer.domElement.addEventListener('webglcontextlost', () => { kontextWeg++; });
   // Ohne Namen von der Seite: aus dem eigenen Zeichenkontext, nur abwärts
   if (opts.gpu == null && pick.why !== 'gewählt') {
     const p2 = pickQuality({ ...device, gpu: gpuName(renderer.getContext()) });
@@ -7487,7 +7731,7 @@ export async function initHangar(container, opts = {}) {
   // Aufbau gibt dann zwischen seinen großen Schritten dem Browser das Wort
   // (am Stück 0,5 s bei vierfach gedrosselter CPU, 15.10.2026). Nur vor den
   // Steuerelementen: danach könnten Ereignisse auf Späteres zugreifen.
-  const breathe = () => (REAL ? nextTask() : undefined);
+  const breathe = () => (REAL ? rast() : undefined);
   await breathe();
 
   const scene = new THREE.Scene();
@@ -7746,8 +7990,9 @@ export async function initHangar(container, opts = {}) {
     const L = realHall?.liftL;
     return L && lastInfo ? Math.max((2 * lastInfo.halfW + 2) / (L.to[0] - L.from[0]), (lastInfo.len + 2) / (L.to[1] - L.from[1])) : 0;
   };
-  // Wächst die Halle (HALL_GROW), bleibt sie im Maßstab 1
-  const realHallScale = (room) => (realHall?.grow ? 1 : Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
+  // Wächst die Halle (HALL_GROW), bleibt sie im Maßstab 1, ebenso eine Halle
+  // in fester Größe (HALL_FEST)
+  const realHallScale = (room) => (realHall?.grow || realHall?.fest ? 1 : Math.max(1, liftScale(), lastInfo ? Math.max((2 * lastInfo.halfW + 4) / (2 * room.halfW),
     (lastInfo.len + 4) / (2 * room.halfL), (lastInfo.height + 4) / room.height) : 0));
 
   // Zuwachs der Halle (HALL_GROW, hallGrowPrep): grow.d gilt gerade
@@ -8038,6 +8283,10 @@ export async function initHangar(container, opts = {}) {
       if (realHall.grow && ort !== 'werk') {
         grow.to.copy(growFor(shipInfo));
         if (!hold && !grow.to.equals(grow.d)) { grow.glide?.done(); grow.glide = null; growApply(grow.to); grew = true; }
+      } else if (realHall.fest && ort !== 'werk') {
+        // Halle in fester Größe: ihre Stufe und ihre Landefläche, für jedes Schiff dieselbe
+        const P = realHall.fest;
+        hangarTell(shipInfo.id ?? null, P.size, P.pad.to[0] - P.pad.from[0], P.pad.to[1] - P.pad.from[1], P.clear);
       }
       if (!hold) { propGlide = null; layProps(k); }
       if (realHall.dienst && !keep) layDienst(realHall.dienst, shipInfo, k);
@@ -8274,6 +8523,7 @@ export async function initHangar(container, opts = {}) {
   if (KTX_AN) ktxStart();
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
   const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0, ktxTwin);
+  images.buehne = { rast, tot: () => tot, signal: abbau.signal };
   const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
   // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
   // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
@@ -8357,13 +8607,13 @@ export async function initHangar(container, opts = {}) {
   };
   // my: Marke des show(), das lädt. Ein überholtes show() lädt zu Ende,
   // meldet aber keinen Fortschritt mehr: der Balken gehört dem gewählten Schiff.
-  const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => new Promise((resolve, reject) => {
-    (HALL_FILES.has(key) ? hallLoader : loader).load(url, resolve, (e) => {
-      if (my !== null && my !== token) return;
+  const fetchGltf = (url, key = 'ship', guess = 8e6, my = null) => (tot ? nieMehr() : new Promise((resolve, reject) => {
+    (HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }, (e) => {
+      if (tot || (my !== null && my !== token)) return;
       prog.set(key, [e.loaded, e.total || Math.max(guess, e.loaded)]);
       report();
-    }, reject);
-  });
+    }, (e) => { if (!tot) reject(e); });
+  }));
 
   // Gleiche Merkmale, gleiches Programm: three.js übersetzt für jede
   // Kombination von Karten ein eigenes Shaderprogramm. Fehlende Karten
@@ -8410,7 +8660,6 @@ export async function initHangar(container, opts = {}) {
   // Zug. Übersetzt wird mit dem Zwischenbild der Nachbearbeitung als Ziel,
   // sobald es sie gibt: Ziel mit/ohne Tonwertabbildung sind zwei Programme.
   const TEX_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap', 'alphaMap'];
-  const yieldToBrowser = () => new Promise((r) => setTimeout(r, 0));
   let composerReady = Promise.resolve();
   // Spiellampen stehen (true) oder kommen nicht (false); vorher wird nichts übersetzt
   let lampsReady = Promise.resolve(false);
@@ -8423,15 +8672,30 @@ export async function initHangar(container, opts = {}) {
   // jedes in einer eigenen Aufgabe, statt alle am Stück im ersten Bild.
   const PARALLEL = renderer.extensions.has('KHR_parallel_shader_compile');
   const linked = new WeakSet();
+  // Warten, bis die Programme dieser Materialien übersetzt sind: wie
+  // compileAsync von three.js (0.185, alle 10 ms isReady fragen), nur mit
+  // Ende. Nach dem Abbau (forceContextLoss) meldet dort kein Programm mehr
+  // fertig, three fragte für immer weiter und griffe dabei in abgebaute
+  // Materialien. Dieser Takt hört mit dem Abbau auf; sein Versprechen löst
+  // dann nie auf, wie alles an den Engstellen.
+  const fertigUebersetzt = (mats) => new Promise((fertig) => {
+    const takt = () => {
+      if (tot) return;
+      for (const m of mats) { const pr = renderer.properties.get(m).currentProgram; if (!pr || pr.isReady()) mats.delete(m); }
+      if (mats.size) setTimeout(takt, 10); else fertig();
+    };
+    takt();
+  });
   // target: Zielbild beim späteren Zeichnen (null = Leinwand); world: die
   // Szene, deren Lichter mitzählen (Vollbildpässe zeichnen ohne Lichter).
   async function compileFor(root, target, world = scene) {
+    if (tot) await nieMehr();
     const prev = renderer.getRenderTarget();
     if (PARALLEL) {
       renderer.setRenderTarget(target);
-      let p;
-      try { p = renderer.compileAsync(root, camera, world); } finally { renderer.setRenderTarget(prev); }
-      await p;
+      let mats;
+      try { mats = renderer.compile(root, camera, world); } finally { renderer.setRenderTarget(prev); }
+      await fertigUebersetzt(mats);
       return;
     }
     const items = [], seen = new Set();
@@ -8449,7 +8713,7 @@ export async function initHangar(container, opts = {}) {
         pr.getUniforms();
         fresh = true;
       }
-      if (fresh) await yieldToBrowser();
+      if (fresh) await rast();
     }
   }
   // Laden läuft (prepare, show): Nachregeln (adapt) misst dann nicht, und
@@ -8458,9 +8722,11 @@ export async function initHangar(container, opts = {}) {
   const busyStart = () => { if (!busy) busyAt = performance.now(); busy++; };
   const busyEnd = () => { busy = Math.max(0, busy - 1); quietAt = performance.now() + 1000; };
   async function prepare(root) {
+    if (tot) await nieMehr();
     busyStart();
     try {
       await composerReady;
+      if (tot) await nieMehr();
       const tex = new Set();
       root.traverse((n) => {
         if (n.isMesh) for (const m of [].concat(n.material)) {
@@ -8469,11 +8735,12 @@ export async function initHangar(container, opts = {}) {
         }
       });
       if (TEX_MAX) await shrinkTextures(tex);
+      if (tot) await nieMehr();
       const compiled = compileFor(root, composer ? composer.readBuffer : null);
       let t0 = performance.now();
       for (const t of tex) {
         renderer.initTexture(t);
-        if (performance.now() - t0 > 6) { await yieldToBrowser(); t0 = performance.now(); }
+        if (performance.now() - t0 > 6) { await rast(); t0 = performance.now(); }
       }
       freeImages(tex);
       await compiled;
@@ -8671,10 +8938,6 @@ export async function initHangar(container, opts = {}) {
   const SHADOW_LAMPS = SMALL || Q0 === 'niedrig' ? 1 : 2;
   // Kantenlänge der Schattenkarten (Schiff und Halle)
   const SHADOW_SIZE = SMALL || Q0 === 'niedrig' ? 1024 : 2048;
-  // Unter dieser Reichweite (m) ist ein Flächenlicht nur Glimmen an seiner
-  // Leuchte (Bodenleuchten: 0,1 m). Zusammengelegt würde daraus eine Lampe
-  // mit Metern Reichweite, die es im Spiel nicht gibt.
-  const LAMP_MIN_RADIUS = 1;
   // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
   // bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
   const HALL_LIGHT_SCALE = 2;
@@ -8823,17 +9086,18 @@ export async function initHangar(container, opts = {}) {
   async function loadHallLights(h) {
     if (!GAME_LAMPS || !h?.lights) return false;
     let d = null;
-    try { const r = await fetch(h.lights); d = r.ok ? await r.json() : null; } catch { return false; }
+    try { const r = await lebt(fetch(h.lights)); d = r.ok ? await lebt(r.json()) : null; } catch { return false; }
     // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels. Ist die
     // Halle schon gescheitert, steht die gebaute mit ihrem Bühnenlicht.
     if ((d?.v || 1) < 2 || hallFailed) return false;
-    // Umgebungslichter des Spiels hellen nur flächig auf: das übernimmt die
-    // Umgebungskugel aus der Halle.
-    const all = (d.lights || []).filter((l) => Array.isArray(l.pos) && l.intensity > 0 && l.type !== 'ambient'
-      && !(l.type === 'area' && (l.radius || 0) < LAMP_MIN_RADIUS));
+    // welche Einträge gelten, sagt hallLampeGilt (oben, auch für das Tor)
+    const all = (d.lights || []).filter(hallLampeGilt);
     // Lampen im Boden von Feld und Streifen wandern mit (HALL_SHIFT)
     for (const l of all) l.pos = hallShiftPoint(h, l.pos);
     if (!all.length) return false;
+    // Stärke je Halle (HALL_FEST.licht), vor Rangfolge, Gruppen und Gitter
+    const gain = HALL_FEST[h.id]?.licht ?? 1;
+    if (gain !== 1) for (const l of all) l.intensity *= gain;
     const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
     // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
     const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
@@ -8888,7 +9152,7 @@ export async function initHangar(container, opts = {}) {
     // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
     const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
     const t0 = performance.now();
-    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, nextTask));
+    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, rast));
     // in Häppchen gerechnet: scheiterte die Halle derweil, bleibt die gebaute samt Bühnenlicht
     if (hallFailed) { vol.a.dispose(); vol.b.dispose(); return false; }
     hallVol.a.value = vol.a; hallVol.b.value = vol.b;
@@ -9055,7 +9319,7 @@ export async function initHangar(container, opts = {}) {
     const env = !!realHall.envOn;
     if (hallLamps) {
       hemi.color.set(0xffffff); hemi.groundColor.set(0x9a9a9a);
-      hemi.intensity = env ? HALL_HEMI_WITH_ENV : HALL_HEMI * 0.5;
+      hemi.intensity = env ? realHall.fest?.fuell ?? HALL_HEMI_WITH_ENV : HALL_HEMI * 0.5;
       return;
     }
     hemi.intensity = env ? HALL_HEMI_WITH_ENV : HALL_HEMI;
@@ -9183,9 +9447,9 @@ export async function initHangar(container, opts = {}) {
   async function loadHallProbe(h) {
     if (!HALL_PROBE || !h?.probes) return null;
     try {
-      const r = await fetch(h.probes);
+      const r = await lebt(fetch(h.probes));
       if (!r.ok) return null;
-      const list = ((await r.json()).probes || []).filter((p) => p.spec && Array.isArray(p.pos));
+      const list = ((await lebt(r.json())).probes || []).filter((p) => p.spec && Array.isArray(p.pos));
       if (!list.length) return null;
       const c = h.room.center, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
       const pad = [o[0], f + 2.5, o[2]];
@@ -9193,8 +9457,8 @@ export async function initHangar(container, opts = {}) {
       const holds = (p) => Array.isArray(p.box) && p.pos.every((v, i) => Math.abs(pad[i] - v) <= p.box[i]);
       const pick = [...list].sort((a, b) => (holds(b) - holds(a)) || ((b.priority ?? 0) - (a.priority ?? 0)) || (d2(a) - d2(b)))[0];
       const u = new URL(h.probes, location.href);
-      const { HDRLoader } = await import('three/addons/loaders/HDRLoader.js');
-      const tex = await new HDRLoader().loadAsync(u.pathname.replace(/\.json$/, '/') + pick.spec + u.search);
+      const { HDRLoader } = await lebt(import('three/addons/loaders/HDRLoader.js'));
+      const tex = await lebt(new HDRLoader().loadAsync(u.pathname.replace(/\.json$/, '/') + pick.spec + u.search));
       tex.mapping = THREE.EquirectangularReflectionMapping;
       return { tex, name: pick.name };
     } catch (e) {
@@ -10003,7 +10267,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (!x?.tafel?.length || !x.namen?.length) return null;
     try {
       const n = x.namen.length, px = x.px, cols = x.spalten, rows = x.tafel.length / (x.texel * 4);
-      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = new URL(`${x.karten}?v=${x.sha}`, new URL(url, location.href)).href; });
+      const img = await lebt(new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = new URL(`${x.karten}?v=${x.sha}`, new URL(url, location.href)).href; }));
       const W = px * cols, H = px * Math.ceil(n / cols);
       if (img.width !== W || img.height !== H) throw new Error(`Kartenraster ${img.width}×${img.height}, erwartet ${W}×${H}`);
       const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -10862,7 +11126,7 @@ void main() {
     const shaftReady = h.lift?.url && h.lift.json && HALL_SHAFT[h.id] && HALL_LIFT[h.id]
       ? Promise.all([
         fetchGltf(h.lift.url, 'lift', h.lift.bytes || 4e5),
-        fetch(h.lift.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.lift.json}: ${r.status}`)))),
+        lebt(fetch(h.lift.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.lift.json}: ${r.status}`))))),
       ]).then(([g, info]) => ({ kit: g.scene, info }), (e) => {
         console.warn('[hangar] Schacht nicht geladen', e);
         prog.delete('lift');
@@ -10875,10 +11139,19 @@ void main() {
     const gateReady = G0?.url && G0.json && !reduceMotion
       ? Promise.all([
         fetchGltf(G0.url, 'gate', G0.bytes || 7e5),
-        fetch(G0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${G0.json}: ${r.status}`)))),
+        lebt(fetch(G0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${G0.json}: ${r.status}`))))),
       ]).then(([g, info]) => ({ scene: g.scene, info }), (e) => {
         console.warn('[hangar] Schachttor nicht geladen', e);
         prog.delete('gate');
+        return null;
+      })
+      : Promise.resolve(null);
+    // Eigener Aufzug einer Halle in fester Größe (ownLift): Bahnen und Maße
+    // von Bodentor und Plattform, die Teile ihres Modells sind; ohne die
+    // Datei steht das Schiff auf dem geschlossenen Tor wie bisher
+    const ownReady = h.aufzug && HALL_FEST[h.id]
+      ? lebt(fetch(h.aufzug).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.aufzug}: ${r.status}`))))).catch((e) => {
+        console.warn('[hangar] Aufzug der Halle nicht geladen', e);
         return null;
       })
       : Promise.resolve(null);
@@ -10888,7 +11161,7 @@ void main() {
     const randReady = R0?.url && R0.json
       ? Promise.all([
         fetchGltf(R0.url, 'rand', R0.bytes || 7e5),
-        fetch(R0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${R0.json}: ${r.status}`)))),
+        lebt(fetch(R0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${R0.json}: ${r.status}`))))),
       ]).then(([g, info]) => ({ scene: g.scene, info }), (e) => {
         console.warn('[hangar] Rand nicht geladen', e);
         prog.delete('rand');
@@ -10902,7 +11175,7 @@ void main() {
       ? Promise.all([
         WB.props > 0 ? fetchGltf(W.url, 'workshop', W.bytes || 6e6).then((g) => g.scene) : null,
         W.boden?.url && WB.decals > 0 ? fetchGltf(W.boden.url, 'workshop-floor', W.boden.bytes || 2e6).then((g) => g.scene) : null,
-        fetch(W.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${W.json}: ${r.status}`)))),
+        lebt(fetch(W.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${W.json}: ${r.status}`))))),
       ]).then(([props, boden, info]) => ({ scenes: [props, boden], info }), (e) => {
         console.warn('[hangar] Werkstatt nicht geladen', e);
         prog.delete('workshop'); prog.delete('workshop-floor');
@@ -10922,7 +11195,7 @@ void main() {
     const werkReady = WERK.halle === h.id && HALL_LIFT[h.id] && h.werk?.url && h.werk.json && h.werk.id === WERK.garage.id
       ? Promise.all([
         fetchGltf(h.werk.url, 'werk', h.werk.bytes || 3.2e6),
-        fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`)))),
+        lebt(fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`))))),
         h.werk.buehne?.url ? fetchGltf(h.werk.buehne.url, 'buehne', h.werk.buehne.bytes || 5e5) : null,
         // Leitungen unter der Decke (WERK_DECKE); ohne sie bleibt die Decke leer
         h.werk.decke?.url ? fetchGltf(h.werk.decke.url, 'werkdecke', h.werk.decke.bytes || 1e6).catch((e) => {
@@ -10979,8 +11252,8 @@ void main() {
       model.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
       // In Häppchen (siehe slicer): Die Halle hängt erst nach prepare() in
       // der Szene, zwischendurch zeichnet also nichts eine halb fertige.
-      const pause = slicer(12, nextTask);
-      await nextTask();
+      const pause = slicer(12, rast);
+      await rast();
       const t0 = performance.now();
       for (const r of await dropHallParts(model, HALL_DROP[h.id], pause)) {
         const ms = Math.round(performance.now() - t0);
@@ -10998,11 +11271,24 @@ void main() {
       await pause();
       // Schiffsfeld als Aufzug, vor der Einrichtung (die bleibt stehen)
       const L = HALL_LIFT[h.id], t2 = performance.now();
-      const lift = L ? await cutHallLift(model, L, new Set(furn), pause) : null;
+      let lift = L ? await cutHallLift(model, L, new Set(furn), pause) : null;
       if (lift) {
         model.add(lift.group);
         console.info(`[hangar] Aufzug: ${lift.tris} Dreiecke in ${lift.parts} Teilen aus dem Schiffsfeld, ${Math.round(performance.now() - t2)} ms`);
       } else if (L) console.warn('[hangar] Aufzug: Schiffsfeld trifft keine Dreiecke');
+      // Halle mit eigenem Aufzug: Plattform und Bodentor aus ihrem Modell
+      const ownInfo = L ? null : await ownReady;
+      if (ownInfo) {
+        try {
+          lift = ownLift(model, ownInfo, floorY);
+          const G = lift.gate;
+          console.info(`[hangar] Aufzug der Halle: Plattform ${lift.tris} Dreiecke in ${lift.parts} Netzen (mit ${lift.riders} Landeleuchten und anderem darauf), Fahrweg ${lift.travel} m, Oberkante ${(lift.top - floorY).toFixed(3)} m über dem Boden; Bodentor ${G.used} Teile, ${Math.round(G.tris)} Dreiecke, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+          if (Math.abs(lift.top - floorY) > 0.1) console.warn(`[hangar] Aufzug der Halle: Plattform ${(lift.top - floorY).toFixed(2)} m neben der Bodenhöhe des Manifests, das Schiff stünde nicht auf ihr`);
+        } catch (e) {
+          console.warn('[hangar] Aufzug der Halle nicht gebaut', e);
+          lift = null;
+        }
+      }
       // Die Möbeldatei teilt den Modellraum der Halle; der Schnitt gilt nur der Halle
       const extra = await furnReady;
       await pause();
@@ -11016,7 +11302,7 @@ void main() {
       // Feld und Bodenstreifen in die Hallenmitte (HALL_SHIFT): nach der
       // Möbeldatei (ihre Füllung liegt im Boden), vor dem Zusammenlegen.
       // F ist das Feld, wie es danach steht.
-      const S = lift ? HALL_SHIFT[h.id] : null, F = S ? liftField(h) : L;
+      const S = lift ? HALL_SHIFT[h.id] : null, F = S ? liftField(h) : L ?? lift?.field ?? null;
       if (S) {
         const t7 = performance.now();
         lift.group.position.x = S.field;
@@ -11111,9 +11397,12 @@ void main() {
       // Paneele verschieden ab. Als eigenes Attribut (hgShade, der Hallen-
       // shader nimmt den Rotkanal): Vertexfarben wären je Material ein
       // eigenes Shaderprogramm.
+      // Aufkleber (extras.hallDecal, scripts/lib/hall-decals.mjs) sind die
+      // Ausnahme: Ihr COLOR_0 ist Farbe und Deckkraft des Aufdrucks und bleibt
+      // als Eckfarbe stehen (ein Programm für alle, sie sind wenige).
       let shaded = 0, padded = 0;
       model.traverse((n) => {
-        if (!n.isMesh || !n.geometry.attributes.color) return;
+        if (!n.isMesh || !n.geometry.attributes.color || [].concat(n.material).some((m) => m.userData.hallDecal)) return;
         n.geometry.setAttribute('hgShade', n.geometry.attributes.color);
         n.geometry.deleteAttribute('color');
         for (const m of [].concat(n.material)) { m.vertexColors = false; m.userData.hgShade = true; }
@@ -11141,7 +11430,7 @@ void main() {
       }
       const uvStats = await hallUvStats(model, pause);
       await pause();
-      const boxed = new Set(), seen = new Set();
+      const boxed = new Set(), seen = new Set(), fest = HALL_FEST[h.id] ?? null;
       model.traverse((n) => {
         if (!n.isMesh) return;
         // Editor-Raster (grau-gelbes Platzhaltergitter) liegt als Deckel
@@ -11158,7 +11447,8 @@ void main() {
           // Logo und Wand flimmerten um dieselben Pixel, in der Ferne fehlten
           // Logos ganz. Zwei Tiefenstufen zur Kamera hin; mehr ließe sie durch
           // Leisten davor scheinen. Laufspuren (leakings) kämpfen nicht.
-          if (/decal/i.test(m.name)) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
+          const sticker = !!m.userData.hallDecal;
+          if (sticker || /decal/i.test(m.name)) { m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -2; }
           // Weißer Innenraum: die Reflexe der Ersatzhalle dämpfen. Spiegelndes
           // Metall (Bodenplatten, Verkleidung) spiegelte sie sonst als flache
           // blaue Flächen, glatter Kunststoff als Gleißen.
@@ -11170,7 +11460,9 @@ void main() {
           // Die Lackschichten der Halle liefern reinweiße Grundfarben, die
           // im Spiel erst Tönung und Schmutz abdunkeln: ohne das ist jede
           // Wand ein Leuchtkasten.
-          if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(/white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
+          // Der Industrie-Bausatz (HALL_FEST) trägt beides in seinen Schichten: nur sein eigener Faktor.
+          if (!m.transparent && !m.emissiveMap && m.color) m.color.multiplyScalar(fest ? fest.tint ?? 1 : /white|plastic|marble/i.test(m.name) ? 0.58 : 0.78);
+          else if (sticker && fest && m.color) m.color.multiplyScalar(fest.tint ?? 1);
           if (/metal_grey/i.test(m.name)) {
             // Bodenplatten: gebürstetes Stahlgrau statt der hellen Glanzkarte,
             // die der Export als Farbe liefert; spiegelt ein wenig die Halle.
@@ -11191,12 +11483,18 @@ void main() {
           m.customProgramCacheKey = hallKey;
           // Leuchtleisten und Lampen sollen leuchten, nicht nur hell sein.
           // Nicht alle bringen ihre Leuchtkarte mit: dann leuchtet die Farbkarte.
-          if (/light|glow/i.test(m.name) && !/glass/i.test(m.name) && m.map) {
+          // Im Industrie-Bausatz (HALL_FEST) heißt ein Material <Datei>_mtl_<Teil>, und die Datei einer
+          // Lampe heißt selbst „light“: dort zählt nur der Teilname, und nur „glow“. Sonst leuchteten
+          // Gehäuse, Lack und Gummi jeder Lampe mit („…prop_light_1_a_mtl_metal_paint_grey“, 14.11.2026).
+          if (!sticker && (fest ? /_mtl_.*glow/i : /light|glow/i).test(m.name) && !/glass/i.test(m.name) && m.map) {
             m.emissive.set(0xffffff); m.emissiveMap = m.emissiveMap || m.map; m.emissiveIntensity = 5;
           } else if (m.emissiveMap) m.emissiveIntensity = 4;
           for (const t of [m.map, m.normalMap, m.roughnessMap]) if (t) t.anisotropy = maxAniso;
           const us = uvStats.get(m);
-          if (us && us.share > 0.4 && !boxed.has(m) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
+          // Kein Würfel-UV für Material, das nach Alpha schneidet: Seine UV zeigen mit Absicht auf eine
+          // volle Stelle der Karte (ein Pfeil aus Geometrie im Alphabet-Atlas). Die Würfellage legte den
+          // ganzen Atlas darüber, und der Schnitt zerlegte den Pfeil in Bruchstücke (14.11.2026).
+          if (us && us.share > 0.4 && !boxed.has(m) && !sticker && !(m.alphaTest > 0) && !/decal|logo|glow|leak/i.test(m.name)) { boxProject(m, us.mPerUv); boxed.add(m); m.userData.boxUv = us.mPerUv; }
           unifyMaps(m);
           onePass(m);
         }
@@ -11443,6 +11741,11 @@ void main() {
           shaft = null;
         }
       }
+      // Halle mit eigenem Aufzug: Der Schacht ist Teil ihres Modells und
+      // nimmt ihr Licht. Hier steht nur, was Fahrt und Bildschleife führen:
+      // das Tor, eine leere Gruppe an der Stelle des gebauten Schachts und
+      // der Fahrweg der Plattform als Grenze der Tiefe (liftDepth).
+      if (!shaft && lift?.own) shaft = { own: true, pit: new THREE.Group(), gate: reduceMotion ? null : lift.gate, depth: lift.travel, depth0: 0, max: lift.travel - 0.5, fit: () => false, lights: null };
       // Hallendeko: steht fest, Matrizen je Maßstab in scaleWorld (layDeko)
       if (deko) model.add(deko.group);
       // Wartungsplatz (buildDienst): fährt mit dem Feld, gestellt je Schiff in scaleWorld
@@ -11496,7 +11799,7 @@ void main() {
       const mats = new Set();
       model.traverse((n) => { if (n.isMesh) for (const m of [].concat(n.material)) mats.add(m); });
       for (const m of werk?.hallMats ?? []) mats.add(m);
-      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk,
+      realHall = { group: hallRoot, model, room: h.room, spot: o, mats, floorY, furniture, lift: lift?.group ?? null, liftL: lift ? F : null, shaft, dienst, deko, werk, fest,
         grow: gsL ? { s: gsL, org: new THREE.Vector3(o[0], floorY, o[2]), cut: hallCut.value.clone(), door: hallDoor.value.clone(), list: [] } : null };
       if (realHall.grow) { growBoundsInit(); growApply(grow.d); }
       leitBuild();
@@ -11526,6 +11829,10 @@ void main() {
       if (lastInfo) scaleWorld(lastInfo);
       camFree = null; freeDirty = true;
       const probe = await probeReady;
+      // Abgebaut, während hier auf die Sonde gewartet wurde: Diese
+      // Fortsetzung nähme sonst am aufgegebenen Renderer eine Umgebungskugel
+      // auf (useHallProbe, captureHallEnv). Das geladene Bild geht mit.
+      if (tot) { probe?.tex.dispose(); await nieMehr(); }
       if (probe) useHallProbe(probe); else captureHallEnv(true);
       // die Kamera stand womöglich für die gebaute (größere) Halle
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
@@ -11557,12 +11864,12 @@ void main() {
   async function buildComposer() {
     try {
       const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }, { Pass, FullScreenQuad }] = await Promise.all([
-        import('three/addons/postprocessing/EffectComposer.js'),
-        import('three/addons/postprocessing/RenderPass.js'),
-        import('three/addons/postprocessing/GTAOPass.js'),
-        import('three/addons/postprocessing/UnrealBloomPass.js'),
-        import('three/addons/postprocessing/OutputPass.js'),
-        import('three/addons/postprocessing/Pass.js'),
+        lebt(import('three/addons/postprocessing/EffectComposer.js')),
+        lebt(import('three/addons/postprocessing/RenderPass.js')),
+        lebt(import('three/addons/postprocessing/GTAOPass.js')),
+        lebt(import('three/addons/postprocessing/UnrealBloomPass.js')),
+        lebt(import('three/addons/postprocessing/OutputPass.js')),
+        lebt(import('three/addons/postprocessing/Pass.js')),
       ]);
       // Eigenes Ziel mit 4-fach-MSAA: der Composer umgeht sonst die
       // Kantenglättung des Renderers, und jede Kante treppt.
@@ -11863,7 +12170,8 @@ void main() {
   const fx = {
     field() {
       const L = realHall?.liftL;
-      if (!L || !steam) return null;
+      // Dampf gehört zum gebauten Schacht der Revel & York; der Aufzug einer Spielhalle (own) fährt ohne
+      if (!L || !steam || realHall.shaft?.own) return null;
       // das Feld wächst mit der Halle (HALL_GROW)
       const k = hallRoot.scale.x, hx = (L.to[0] - L.from[0] + grow.d.x) * k / 2, hz = (L.to[1] - L.from[1] + grow.d.z) * k / 2;
       const zl = Math.min(hz, ((current?.info.len ?? 20) / 2 + 7) * Math.max(1, k * 0.6));
@@ -12030,7 +12338,8 @@ void main() {
     const d = LIFT_DEPTH + info.height / hallRoot.scale.x, sh = realHall?.shaft;
     if (!sh) return d;
     sh.fit(Math.max(d, sh.depth));
-    return Math.max(d, sh.depth0);
+    // eigener Aufzug der Halle: nicht tiefer als der Fahrweg der Plattform
+    return Math.min(Math.max(d, sh.depth0), sh.max ?? Infinity);
   };
   // Schachtlicht an einer Stelle der Schachtachse (Höhe y im Schachtraum),
   // als Helligkeit gemittelt über oben und die vier Seiten: hebt dort die
@@ -12076,9 +12385,22 @@ void main() {
   // die Seite erfährt beides über onLost(true/false). Was beim Laden einmal
   // gezeichnet wurde (Umgebungskugeln, Hallenschatten), ist im neuen Kontext
   // leer; neu aufbauen muss es die Seite.
-  let lostFn = null;
-  renderer.domElement.addEventListener('webglcontextlost', () => { texQuiet = true; lostFn?.(true); });
-  renderer.domElement.addEventListener('webglcontextrestored', () => lostFn?.(false));
+  // Hört noch niemand zu (während des Aufbaus, vor halter.auf), merkt sich
+  // die Bühne, was sie zu melden hatte: [true] oder, ist der Kontext schon
+  // zurück, [true, false]. onLost reicht es dem Horcher nach; sonst bliebe
+  // die Seite ohne Meldung vor einer leeren Bühne stehen und lüde auch bei
+  // der Rückkehr des Kontexts nicht neu.
+  let lostFn = null, lostOffen = null;
+  const lostSag = (lost) => {
+    if (lostFn) lostFn(lost);
+    else if (tot) return;
+    else if (lost) lostOffen = [true];
+    else lostOffen?.push(false);
+  };
+  renderer.domElement.addEventListener('webglcontextlost', () => { texQuiet = true; lostSag(true); });
+  renderer.domElement.addEventListener('webglcontextrestored', () => lostSag(false));
+  // schon während der Pausen des Aufbaus verloren (kontextWeg oben)
+  if (kontextWeg) { texQuiet = true; lostSag(true); if (!renderer.getContext().isContextLost()) lostSag(false); }
   let token = 0;
   let liveryKey = 'werk';
   let makerCode = '';
@@ -12106,7 +12428,7 @@ void main() {
     if (!reduceMotion) el.style.transition = 'opacity .45s ease-out';
     el.style.opacity = '1';
   }
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const sleep = (ms) => lebt(new Promise((r) => setTimeout(r, ms)));
 
   // ─── Werkhalle: Bühne, Licht, Fahrt der Kamera ──────────────────────────
   // Bodenfahrzeuge (Seitenvertrag ort 'werk') stehen in der Werkhalle auf
@@ -12871,14 +13193,14 @@ void main() {
     wrap.add(lean);
     const stand = standOn(lean, gearOf(textured ? o.tex : url));
     wrap.updateMatrixWorld(true);
-    const box = await robustBox(wrap, slicer(12, nextTask), stand?.tilt ? lean.quaternion.clone().invert() : null);
+    const box = await robustBox(wrap, slicer(12, rast), stand?.tilt ? lean.quaternion.clone().invert() : null);
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     wrap.position.set(-center.x, stand ? -stand.ground : -box.min.y, -center.z);
     if (stand) console.info(`[hangar] Fahrwerk: ${stand.n} Aufstandspunkte, Neigung ${stand.tilt.toFixed(2)}°, Streuung ${(stand.spread * 100).toFixed(1)} cm, Hüllquader ${((box.min.y - stand.ground) * 100).toFixed(1)} cm über dem Boden`);
     // Grundriss von unten für den Wartungsplatz (layDienst)
-    const tu = performance.now(), under = (realHall ? realHall.dienst : DIENST_ON) ? await shipUnder(wrap, size.x / 2, size.z / 2, slicer(12, nextTask)) : null;
+    const tu = performance.now(), under = (realHall ? realHall.dienst : DIENST_ON) ? await shipUnder(wrap, size.x / 2, size.z / 2, slicer(12, rast)) : null;
     if (under) under.ms = Math.round(performance.now() - tu);
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     // Lack-Uniforms im Objektraum des Modells (Z oben, Meter)
@@ -13143,7 +13465,7 @@ void main() {
   const weaponTpl = new Map();   // url -> Promise<Object3D>, geteilt über Schiffe
   function loadWeapon(url) {
     if (!weaponTpl.has(url)) {
-      const p = new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject)).then(async (g) => {
+      const p = lebt(new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject))).then(async (g) => {
         const tpl = g.scene;
         tpl.traverse((n) => {
           if (!n.isMesh) return;
@@ -13164,7 +13486,7 @@ void main() {
   // einem Teil nicht zeigt (POM-Decals, Schadensnetze: hiddenMaterial),
   // bleibt auch dort weg.
   function loadPartRaw(url) {
-    return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject)).then((g) => {
+    return lebt(new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject))).then((g) => {
       g.scene.traverse((n) => { if (n.isMesh && hiddenMaterial([].concat(n.material)[0]?.name)) n.visible = false; });
       return g.scene;
     });
@@ -13568,7 +13890,7 @@ void main() {
         camFree = { o, dist, m: 0.6 * k, boxes: [...boxes, ...deko] };
         console.info(`[hangar] Freiraum der Kamera gemessen (6 × ${FREE_N}², ${Math.round(performance.now() - t0)} ms), ${boxes.length} Möbel und ${deko.length} Stücke der Hallendeko als Quader`);
       } else freeDirty = true;
-    }).catch((e) => console.warn('[hangar] Freiraum der Kamera nicht gemessen', e)).finally(() => { freeBusy = false; });
+    }).catch((e) => { if (!tot) console.warn('[hangar] Freiraum der Kamera nicht gemessen', e); }).finally(() => { freeBusy = false; });
   }
   // Hülle des Schiffs (2026-10-11). Die Kamera darf bis auf span · 0,45 an
   // ihr Ziel heran, und ganz hereingezoomt streifte sie Flügelspitzen,
@@ -13620,7 +13942,7 @@ void main() {
       // nicht jedes Bild neu versuchen: erst wieder für ein anderes Ziel
       shipFree = { o, dist: null, c, y, b };
       if (home) shipHome = shipFree;
-      console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
+      if (!tot) console.warn('[hangar] Hülle des Schiffs nicht gemessen', e);
     }).finally(() => { shipBusy = false; });
   }
   // Wo steht das Schiff in der Startansicht im Bild? Je Kamerahöhe (0 bis
@@ -13964,7 +14286,7 @@ void main() {
     c.innerP = (async () => {
       const [g, meta] = await Promise.all([
         fetchGltf(inf.url, 'interior', inf.bytes || 8e6),
-        fetch(inf.meta).then((r) => (r.ok ? r.json() : null), () => null),
+        lebt(fetch(inf.meta).then((r) => (r.ok ? r.json() : null), () => null)),
       ]);
       if (current !== c) { disposeObject(g.scene); return null; }
       const root = g.scene;
@@ -14179,7 +14501,7 @@ void main() {
     const inner = await loadInner(c);
     if (walk !== me) return false;
     if (!inner) { leave(true); return false; }
-    const t0 = performance.now(), pause = slicer(12, nextTask);
+    const t0 = performance.now(), pause = slicer(12, rast);
     c.group.updateMatrixWorld(true);
     // an, bevor coarseOf misst: Gitter nehmen nur Sichtbares
     inner.root.visible = true;
@@ -14529,7 +14851,7 @@ void main() {
     stWant = w ?? null;
     if (stLayer) stLayer.set(stWant);
     else if (stWant && !stLoad) {
-      stLoad = import(opts.holo.module).then((m) => {
+      stLoad = lebt(import(opts.holo.module)).then((m) => {
         stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw, name: () => holo.rect() });
         if (stSafe) stLayer.safe(stSafe);
         stLayer.set(stWant);
@@ -14547,6 +14869,11 @@ void main() {
   // wie beim Einsteigen (walk). Nicht am Telefon und nur in einer Halle,
   // deren Leitstand vermessen ist.
   const LEIT = REAL && !SMALL ? HALL_LEIT[opts.hall.id] ?? null : null;
+  // Achsen des Monitors (leitAchsen) und dieselbe Drehung für Fläche und
+  // Kamera: Sie sieht ihm gerade ins Gesicht.
+  const LEIT_A = LEIT ? leitAchsen(LEIT.schirm) : null;
+  const leitQ = new THREE.Quaternion();
+  if (LEIT) leitQ.setFromEuler(new THREE.Euler(THREE.MathUtils.degToRad(LEIT.schirm.neig ?? 0), THREE.MathUtils.degToRad(LEIT.schirm.dreh ?? 0), 0, 'YXZ'));
   // Auflösung der Fläche (px je m). Vor dem Monitor steht das Fenster der
   // Seite darüber; scharf sein muss nur, was neben ihm und aus der Ferne zu
   // sehen ist.
@@ -14556,9 +14883,10 @@ void main() {
   // ein Punkt des Leitstands dort, wo er mit dem Zuwachs der Halle steht (Hallenmeter)
   const leitAt = (x, y, z, out = new THREE.Vector3()) => growMap(out.set(x, y, z), out);
   // Das Glas des Monitors als Fläche: Rechteck b × h (m) mit runden Ecken wie
-  // das Glas im Modell, Texturkoordinaten über das ganze Rechteck.
-  function leitGlass(b, h, r) {
-    const pts = [[0, 0]], n = 6;
+  // das Glas im Modell (n Stücke je Ecke; eines ist eine Fase),
+  // Texturkoordinaten über das ganze Rechteck.
+  function leitGlass(b, h, r, n = 6) {
+    const pts = [[0, 0]];
     for (const [cx, cy, a0] of [[b / 2 - r, h / 2 - r, 0], [-b / 2 + r, h / 2 - r, 0.5], [-b / 2 + r, -h / 2 + r, 1], [b / 2 - r, -h / 2 + r, 1.5]])
       for (let i = 0; i <= n; i++) { const a = (a0 + (0.5 * i) / n) * Math.PI; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
     const pos = new Float32Array(pts.length * 3), uv = new Float32Array(pts.length * 2), idx = [];
@@ -14635,11 +14963,12 @@ void main() {
   }
   // Die Schriften der Seite kommen erst, wenn etwas sie braucht: Steht das
   // Bild schon, wird es mit ihnen noch einmal gezeichnet.
-  if (LEIT && document.fonts?.load) Promise.all(LEIT_FONTS.map((f) => document.fonts.load(f))).then(() => { if (leitScreen) { leitDraw(); wake(300); } }, () => {});
+  if (LEIT && document.fonts?.load) lebt(Promise.all(LEIT_FONTS.map((f) => document.fonts.load(f)))).then(() => { if (leitScreen) { leitDraw(); wake(300); } }, () => {});
   function leitLay() {
     if (!leitScreen) return;
-    const S = LEIT.schirm, k = hallRoot.scale.x;
-    leitAt(S.x, S.y, S.z + LEIT_VOR, leitScreen.mesh.position);
+    const S = LEIT.schirm, k = hallRoot.scale.x, Z = LEIT_A.Z;
+    leitAt(S.x + LEIT_VOR * Z[0], S.y + LEIT_VOR * Z[1], S.z + LEIT_VOR * Z[2], leitScreen.mesh.position);
+    leitScreen.mesh.quaternion.copy(leitQ);
     leitScreen.mesh.scale.setScalar(1 / k);
   }
   function leitBuild() {
@@ -14652,23 +14981,35 @@ void main() {
     // auf dem Glas des mittleren und zeigt wie dieses nur nach Süden: Von der
     // Halle aus bleibt die Rückseite, wie das Spiel sie zeigt. Ohne
     // Einrichtung (Stufe niedrig) ist der Leitstand leer; dann steht die
-    // Fläche dort frei und ist auch von der Halle aus zu sehen.
+    // Fläche dort frei und ist auch von der Halle aus zu sehen. Steht der
+    // Monitor im Modell der Halle selbst (kein bank), ist er immer da.
     const bank = realHall?.furniture?.find((f) => /monitors/i.test(f.mesh.name));
-    const mat = new THREE.MeshBasicMaterial({ map: tex, side: bank ? THREE.FrontSide : THREE.DoubleSide, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const mat = new THREE.MeshBasicMaterial({ map: tex, side: bank || !LEIT.bank ? THREE.FrontSide : THREE.DoubleSide, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     mat.color.setScalar(LEIT_DIM);
-    const mesh = new THREE.Mesh(leitGlass(S.b, S.h, S.ecke), mat);
+    const mesh = new THREE.Mesh(leitGlass(S.b, S.h, S.ecke, S.fase ? 1 : 6), mat);
     mesh.name = 'leit:schirm';
-    const h = S.h - 2 * S.saum;
-    leitScreen = { mesh, cv, tex, mat, b: h / LEIT.form[0], h, power: LEIT_DIM, at: 0 };
+    // In Ruhe das breiteste Fenster, das leitFit kennt (form[0]): so hoch wie
+    // das Glas ohne Saum, auf einem schmaleren Glas so breit wie dieses.
+    const b = Math.min(S.b - 2 * S.saum, (S.h - 2 * S.saum) / LEIT.form[0]), h = b * LEIT.form[0];
+    leitScreen = { mesh, cv, tex, mat, b, h, power: LEIT_DIM, at: 0 };
     leitDraw();
     leitLay();
     hallRoot.add(mesh);
     // Wo die Monitore laut HALL_LEIT stehen, stehen sie auch im Modell? Sonst
     // läge die Fläche nach einem neuen Hallenexport neben dem Glas
     // (verify:hangar-orte [8] misst dasselbe am ausgelieferten Modell).
-    if (bank) {
-      const bb = bank.mesh.geometry.boundingBox.clone().applyMatrix4(bank.mesh.matrixWorld), c = bb.getCenter(new THREE.Vector3()).divideScalar(hallRoot.scale.x), B = LEIT.bank;
-      const want = leitAt((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
+    // Ruhe gegen Ruhe: die Ecken der Monitore, wie das Modell sie trägt (vor
+    // Zuwachs und Maßstab), gegen HALL_LEIT.bank. Die Hülle der Geometrie taugt
+    // dafür nicht: mergeFurniture erweitert sie um die Bezugspunkte der Stücke
+    // (am Boden des Leitstands, die Mitte läge 0,43 m zu tief), und growBounds
+    // rückt sie mit der Halle. Bis 14.11.2026 warnte die Prüfung deshalb bei
+    // jedem Laden.
+    if (bank && LEIT.bank) {
+      const P = bank.base || bank.mesh.geometry.attributes.position.array, o = realHall.model.position, B = LEIT.bank;
+      const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) { lo[a] = Math.min(lo[a], P[i + a]); hi[a] = Math.max(hi[a], P[i + a]); }
+      const c = new THREE.Vector3((lo[0] + hi[0]) / 2 + o.x, (lo[1] + hi[1]) / 2 + o.y, (lo[2] + hi[2]) / 2 + o.z);
+      const want = new THREE.Vector3((B.x[0] + B.x[1]) / 2, (B.y[0] + B.y[1]) / 2, (B.z[0] + B.z[1]) / 2);
       if (c.distanceTo(want) > 0.05) console.warn(`[hangar] Leitstand: Monitore des Pults bei ${c.toArray().map((v) => v.toFixed(2))} statt ${want.toArray().map((v) => v.toFixed(2))} (HALL_LEIT)`);
     }
   }
@@ -14684,8 +15025,10 @@ void main() {
     // (die eingeklappte Schiffsauswahl); neben der offenen Liste füllt er den Rest
     const side = Math.max(frei.l, w - frei.r);
     if (side <= w * 0.14) { frei.l = side; frei.r = w - side; }
-    const f = leitFit(w, h, frei, LEIT), c = leitAt(S.x, S.y, S.z).multiplyScalar(k);
-    return { ...f, pos: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z + f.d), look: new THREE.Vector3(c.x + f.dx, c.y + f.dy, c.z) };
+    const f = leitFit(w, h, frei, LEIT), c = leitAt(S.x, S.y, S.z).multiplyScalar(k), { X, Y, Z } = LEIT_A;
+    // der Punkt auf dem Glas, dem sie gegenübersteht, und sie selbst um d davor, entlang der Achsen des Monitors
+    const look = new THREE.Vector3(c.x + f.dx * X[0] + f.dy * Y[0], c.y + f.dx * X[1] + f.dy * Y[1], c.z + f.dx * X[2] + f.dy * Y[2]);
+    return { ...f, pos: new THREE.Vector3(look.x + f.d * Z[0], look.y + f.d * Z[1], look.z + f.d * Z[2]), look };
   }
   const leitTell = () => {
     const on = post?.state === 'an', r = on ? post.fit.rect : null;
@@ -14706,7 +15049,7 @@ void main() {
     const f = post.fit = leitPose();
     leitShape(f);
     camera.position.copy(f.pos);
-    camera.quaternion.identity();
+    camera.quaternion.copy(leitQ);
     controls.target.copy(f.look);
     fitFov();
     leitTell();
@@ -14733,7 +15076,12 @@ void main() {
         vor.x = sx * Math.max(G.x + 1.4, Math.min(Math.abs(X) * 0.5, 14));
       }
     }
-    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * 2.3, Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1), to.clone());
+    // Der letzte Punkt vor dem Ziel liegt hinter ihm auf der Blickachse des
+    // Monitors. Zeigt dieser der Halle den Rücken (nach Süden), kommt der
+    // Bogen zur Seite dazu, in dem die Kamera wendet; sieht er zur Halle,
+    // fährt sie gerade auf ihn zu.
+    const Z = LEIT_A.Z, seit = 2.3 * Math.max(0, Z[2]);
+    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * seit + 1.1 * Z[0], Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1 * Z[2]), to.clone());
     return pts;
   }
   const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
@@ -14989,7 +15337,8 @@ void main() {
         if (realHall.dienst) realHall.dienst.group.visible = !sealed;
         if (!active) pitState.t0 = 0;
         else if (!pitState.t0) pitState.t0 = now;
-        const on = active ? Math.min(1, (now - pitState.t0) / PIT_FADE_MS) : 0;
+        // der Schacht einer Halle mit eigenem Aufzug (own) hat ihr Licht, keine Schachtlampen
+        const on = active && !sh.own ? Math.min(1, (now - pitState.t0) / PIT_FADE_MS) : 0;
         const bx = 0.5 + 0.5 * Math.cos(t * Math.PI * 2), by = Math.pow(0.5 + 0.5 * Math.cos(t * Math.PI), 4);
         hallPit.k.value.set(on, lift.y, 0);
         hallPit.blink.value.set(bx, by);
@@ -15131,7 +15480,7 @@ void main() {
   if (opts.crew?.module && REAL) {
     // mit Skelett und Spielanimationen: Modul und Figur zugleich laden,
     // Programme übersetzen, bevor die Figuren an root hängen
-    Promise.all([import(opts.crew.module), fetchGltf(opts.crew.url, 'crew', opts.crew.bytes ?? 2e6)]).then(async ([mod, g]) => {
+    Promise.all([lebt(import(opts.crew.module)), fetchGltf(opts.crew.url, 'crew', opts.crew.bytes ?? 2e6)]).then(async ([mod, g]) => {
       const r = await mod.crewRig(g, { reduceMotion });
       await prepare({ traverse: (f) => r.roots.forEach((o) => o.traverse(f)), traverseVisible: (f) => r.roots.forEach((o) => o.traverseVisible(f)) });
       life.useRig(r);
@@ -15244,13 +15593,53 @@ void main() {
     onQuality(fn) { qualityFn = fn; },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },
-    // fn(true): Zeichenkontext verloren, fn(false): wieder da
-    onLost(fn) { lostFn = fn; },
+    // Standbild: das Bild, das gerade steht, als eigene Leinwand in der Größe
+    // der Bühne; null, solange nichts zu sehen ist. Die Seite legt es beim
+    // Hallenwechsel über die Lücke, bis die nächste Bühne ihr Schiff zeigt.
+    // Gezeichnet und festgehalten wird im selben Zug: Danach gehört der
+    // Puffer dem Browser. Festgehalten, nicht ausgelesen: createImageBitmap
+    // behält das Bild im Grafikspeicher, und eine Leinwand mit
+    // bitmaprenderer zeigt es von dort. drawImage in eine 2D-Leinwand holte
+    // es heraus und wartete dabei auf alles, was die Grafikkarte noch zu
+    // zeichnen hat: ohne Grafikkarte (Software-GL, die Prüfläufe) stand die
+    // Seite dafür minutenlang.
+    async still() {
+      if (tot || !revealed || renderer.getContext().isContextLost() || typeof createImageBitmap !== 'function') return null;
+      if (composer) composer.render(); else renderer.render(scene, camera);
+      let bild = null;
+      try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }
+      // inzwischen abgebaut (die Seite wartet nur kurz darauf): Das Bild braucht niemand mehr
+      if (tot) { bild.close(); return null; }
+      const c = document.createElement('canvas'), k = c.getContext('bitmaprenderer');
+      if (!k) { bild.close(); return null; }
+      c.width = bild.width; c.height = bild.height;
+      k.transferFromImageBitmap(bild);
+      return c;
+    },
+    // fn(true): Zeichenkontext verloren, fn(false): wieder da. Was geschah,
+    // bevor jemand zuhörte (lostOffen), erfährt der Horcher gleich nach dem
+    // Setzen, als Mikroaufgabe: nicht mitten in dem Aufruf, der ihn setzt.
+    onLost(fn) {
+      lostFn = fn;
+      if (!fn || !lostOffen) return;
+      const was = lostOffen;
+      lostOffen = null;
+      queueMicrotask(() => { for (const lost of was) if (lostFn === fn) fn(lost); });
+    },
     // Geräusche an/aus (Schalter auf der Bühne); sound(): { on, can }. Ohne
     // Bewegung (reduceMotion) fährt nichts, dann gibt es auch nichts zu hören.
     setSound(on) { sound.set(on); },
     sound: () => ({ on: sound.on, can: !reduceMotion && !!(window.AudioContext || window.webkitAudioContext) }),
     dispose() {
+      if (tot) return;
+      tot = true;
+      abbau.abort();
+      // der Seite meldet diese Bühne nichts mehr, auch nicht den Kontext, den sie unten selbst aufgibt
+      lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo.onShow = null;
+      // auch nicht mehr auf der Konsole: Die Zeilen zu freigegebenen Bildern,
+      // Puffern und Zwillingen kommen zwei Sekunden verzögert, nach einem
+      // Hallenwechsel zählte check:hangar-shader sie sonst zur neuen Bühne
+      clearTimeout(ktxStat.timer); clearTimeout(texStat.timer); clearTimeout(geoStat.timer);
       cancelAnimationFrame(raf);
       document.removeEventListener('pointerdown', unlockSound, { capture: true });
       document.removeEventListener('keydown', unlockSound, { capture: true });
@@ -15284,6 +15673,13 @@ void main() {
       // Zwischenbild, seine Geometrien und sein Shader gehören keinem der
       // Ziele oben
       pmremOf.get(renderer)?.dispose(); pmremOf.delete(renderer);
+      // Den Zeichenkontext gleich aufgeben: Der Grafikspeicher ist sofort frei
+      // (auch was oben keiner abgebaut hat), bevor die nächste Bühne ihre
+      // Halle lädt, und was hier noch nachläuft, zeichnet ins Leere. Eine
+      // Übersetzung, die gerade läuft, fragt ihre Programme nicht weiter ab
+      // (fertigUebersetzt hört mit tot auf): Der Renderer gibt seine Tabellen
+      // deshalb immer her.
+      renderer.forceContextLoss();
       renderer.dispose();
       renderer.domElement.remove();
     },
