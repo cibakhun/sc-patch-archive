@@ -20,6 +20,7 @@
 import type { Locale } from '../i18n/ui';
 import { href } from '../i18n/ui';
 import { HANGAR_ON } from './hangarFlag';
+import { fassung } from './fassung';
 import { VORSCHAU_PATCHES } from '../../scripts/lib/vorschau-patches.mjs';
 
 const VORSCHAU_SLUGS: readonly string[] = VORSCHAU_PATCHES.map((id: string) => `sc-${id}`);
@@ -46,7 +47,7 @@ export function patchSeiteHref(id: string, lang: Locale): string | null {
 /**
  * Patch-Label aus der Kennung einer Datendatei, in jeder ihrer Formen:
  * "4.10.2-live.12881860", "PUBLIC-4.10.2-12881860", "sc-alpha-4.10.2@12881860"
- * -> "4.10".
+ * -> "4.10.2" (Krisz 15.11.2026: Titel nennen die volle Fassung des Datenstands).
  *
  * ANLASS (03.11.2026): Mining-Datenbank und Wikelo nannten in Titel und
  * Vorschau "Star Citizen 4.9" bzw. "4.1", der Item Finder "Patch 4.9" —
@@ -58,9 +59,7 @@ export function patchSeiteHref(id: string, lang: Locale): string | null {
  * was die gebauten Seiten daraus machen.)
  */
 export function patchFromKennung(kennung: string | null | undefined): string {
-  const m = /(\d+)\.(\d+)\.\d+/.exec(kennung ?? '');
-  if (!m) throw new Error(`patchFromKennung: Kennung "${kennung}" traegt keine Fassung X.Y.Z`);
-  return `${m[1]}.${m[2]}`;
+  return fassung(kennung, 'patchFromKennung');
 }
 
 /** "4.10" -> "sc-4-10-0" */

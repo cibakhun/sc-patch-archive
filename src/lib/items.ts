@@ -11,6 +11,7 @@
 
 import DB from '../../assets/universal-items.json';
 import type { Locale } from '../i18n/ui';
+import { fassung } from './fassung';
 
 /* ---------- Typen (Spiegel von scripts/build-universal-db.mjs) ---------- */
 
@@ -669,15 +670,10 @@ export function clip(s: string, max = 160): string {
 }
 
 /**
- * Spielstand, aus dem der Katalog stammt — abgeleitet aus der DB-Kennung
- * ("4.10.0-live.12519617" -> "4.10"), nach demselben Muster wie craftPatch in
+ * Spielstand, aus dem der Katalog stammt — die volle Fassung aus der
+ * DB-Kennung ("4.10.3-live.13165946" -> "4.10.3"), wie craftPatch in
  * lib/crafting.ts. Item-Finder und Item-Seiten ziehen das Label von hier.
- *
- * ⚠ Bis zum 27.08.2026 stand hier ein von Hand gepflegtes '4.9', mit der
- * Begruendung, universal-items.json trage keine Versionsnummer. Sie traegt eine,
- * und verify:datastand prueft sie sogar. Das Literal blieb beim Datenlauf
- * zwangslaeufig stehen: 5.237 Item-Seiten haetten "Star Citizen 4.9" behauptet
- * und 4.10-Daten gezeigt. Der Rueckfall greift nur noch, wenn die Kennung fehlt.
+ * Fehlt die Kennung, bricht der Bau, statt einen alten Stand zu behaupten.
  *
  * Der VERWEIS auf die zugehoerige Patch-Seite gehoert NICHT hierher: sie ist
  * handgeschrieben und existiert nicht fuer jeden Datenstand. Dafuer gibt es
@@ -685,7 +681,7 @@ export function clip(s: string, max = 160): string {
  * fehlt. Die frueher hier stehende Konstante ITEM_PATCH_HREF war ungenutzt und
  * schrieb genau die Annahme fest, die am 27.08. zwei tote Verweise erzeugt hat.
  */
-export const ITEM_PATCH = (/(\d+\.\d+)/.exec(db.gameVersion ?? '') ?? [])[1] ?? '4.10';
+export const ITEM_PATCH = fassung(db.gameVersion, 'assets/universal-items.json gameVersion');
 /** Volle Kennung des Item-Katalogs ("4.10.2-live.…") fuer patchLinkFromKennung(). */
 export const ITEM_KENNUNG = db.gameVersion ?? null;
 
