@@ -14,6 +14,7 @@ import { layoutList, shipLabel } from './account-layouts';
   import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
   import { needsCode, needsAal2Error } from '../lib/mfa';
   import { askCode } from '../lib/mfa-dialog';
+  import { imTerminal } from '../lib/im-terminal';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -34,6 +35,17 @@ import { layoutList, shipLabel } from './account-layouts';
       el.textContent = msg;
       el.classList.toggle('acx-status--ok', ok);
       el.hidden = false;
+    };
+
+    // Im Terminal der Halle steht diese Seite in einem Rahmen (lib/im-terminal.ts),
+    // und Discord lässt sich nicht rahmen. Bestätigen und Verbinden mit Discord
+    // kehren außerdem in DIESES Fenster zurück (Merker in sessionStorage): Dort
+    // öffnet das Konto in einem eigenen Tab, und die Zeile sagt, wie es weitergeht.
+    const discordImTab = (sagen: (msg: string) => void): boolean => {
+      if (!imTerminal()) return false;
+      window.open(location.href, '_blank', 'noopener');
+      sagen(D.msgTermTab || '');
+      return true;
     };
 
     // Subtiler 3D-Tilt auf der Profilkarte (nur Desktop mit Maus, kein Reduced-Motion)
@@ -1809,6 +1821,7 @@ import { layoutList, shipLabel } from './account-layouts';
       // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
       document.querySelectorAll<HTMLButtonElement>('.js-reauth-dc').forEach((b) => {
         b.addEventListener('click', async () => {
+          if (discordImTab((m) => { if (reauthStatus) show(reauthStatus, m, true); })) return;
           b.disabled = true;
           b.textContent = b.dataset.busy || '';
           try { sessionStorage.setItem('vb.reauth', user.id); } catch { /* dann ohne Hinweis */ }
@@ -2232,6 +2245,7 @@ import { layoutList, shipLabel } from './account-layouts';
 
         dcBtn.addEventListener('click', async () => {
           dcSay('');
+          if (discordImTab((m) => dcSay(m))) return;
           dcBusy(dcBtn, true);
           try {
             // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der

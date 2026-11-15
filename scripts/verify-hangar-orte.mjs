@@ -39,6 +39,16 @@
          Worten ({n} in der Mehrzahl der Flotte), die Wortmarke als
          Schrift fuer den Fall ohne Bild, der Hinweis auf den Klick und
          die beiden Kantenlinien der Blende.
+         Seit der dritten Runde (15.11.2026, Krisz: „konto seite direkt
+         auf das bildschirm einbauen“, „wenn kein konto angemeldet ist
+         soll man da direkt registrieren können und gleich anmelden
+         können“): Der Knopf des Kontos zielt ins Fenster statt in einen
+         eigenen Tab. Die Blende ist nicht mehr als Ganzes fuer Vorleser
+         verborgen, sondern jedes ihrer Schaustuecke einzeln; die Zeile
+         des Schritts hat zwei Lagen, die ineinander blenden; unter der
+         Karte stehen die drei Wege des Gasts (#hgx-term-lwahl): Anmelden
+         und Konto erstellen als Links ins Fenster auf Seiten, die in
+         dist/ liegen, „Als Gast weiter“ als Knopf.
      [3] Reiter: mindestens MIN_BEREICHE je Seite, Schluessel einmalig,
          jeder zielt ins Fenster, fuehrt auf eine Seite, die in dist/
          liegt, in der Sprache der Hangarseite, bleibt im Fenster
@@ -47,13 +57,15 @@
      [4] Reine Funktionen des ausgelieferten Terminals: Der Kasten deckt
          das Rechteck des Schirms (Breite mal Massstab), steht in voller
          Breite, solange der Massstab TERM_MIN_K haelt, darunter schmaler
-         und nie in der Telefonansicht; Links zum Hangar, zum Konto und nach
-         draussen verlassen das Fenster, Seiten der Website bleiben; das
+         und nie in der Telefonansicht; Links zum Hangar und nach
+         draussen verlassen das Fenster, Seiten der Website bleiben (seit
+         der dritten Runde auch das Konto); das
          Stilblatt fuer die Seite im Fenster nimmt Kopfzeile und
          Vorschau-Marke heraus. termIdent macht aus der Profilzeile des
          Kontos, wer vor dem Terminal sitzt, und laesst nichts durch, was
-         nicht in Stil oder Adresse gehoert; die Anmeldung bleibt kurz
-         (TERM_LOGIN). termFakten macht aus dem, was die Seite weiss
+         nicht in Stil oder Adresse gehoert; die Anmeldung dauert vier
+         bis sechseinhalb Sekunden und kennt keine kurze Fassung mehr
+         (TERM_LOGIN, dritte Runde). termFakten macht aus dem, was die Seite weiss
          (Flotte, Schiff auf dem Feld, Beitritt, Halle), hoechstens drei
          Zeilen der Karte, in den Worten und der Zahlschreibung der
          Seite; leitWerVon laesst aufs Glas der Halle nur Namen, Zeichen
@@ -61,6 +73,14 @@
          jedes Fenster, ohne ueber dessen Rand zu gehen, mit Uhr und
          Sitzung, wenn es sie bekommt (gezeichnet auf eine mitschreibende
          Leinwand).
+         Dritte Runde: termKonto und termAnmeldung erkennen die Seiten
+         des Kontos und die beiden, auf denen eine Sitzung entsteht;
+         termGruss gruesst nur ein eben entstandenes Konto mit
+         „Willkommen“; termBlende zeigt die Blende einmal je Sitzung und
+         Konto. Das Stilblatt legt Anmelden und Registrieren in die
+         Breite des Schirms (zwei zu eins, etwa 550 px hoch), geprueft
+         gegen das Markup der ausgelieferten Kontoseiten: Ein Muster, das
+         dort nichts mehr traefe, reisst.
      [5] Geometrie der Buehne: Fuer viele Fenstergroessen und freie
          Rechtecke steht die Kamera aus leitFit so, dass das Fenster der
          Seite im Bild genau das gemeldete Rechteck ist (nachgerechnet mit
@@ -90,6 +110,16 @@
          (--hgx-auf, als Prozentwert angemeldet) in der Zeit, nach der das
          Modul sie wegnimmt (TERM_LOGIN.aus), und die Wortmarke als Schrift
          steht, wo sie das Bild zeigt (LEIT_WORT).
+         Dritte Runde: Das Terminal kennzeichnet die Seite im Fenster
+         (data-vb-terminal), fragt beim Hinsetzen termBlende, merkt sich
+         die Begruessung in der Sitzung, haelt sie zurueck, solange die
+         Anmeldeseite offen steht (darunter fragt die Seite nach dem
+         zweiten Faktor), faehrt die Blende ueber einer offenen Seite
+         erst zu (Schritt „zu“) und laesst sie beim Gast stehen. Im Stil
+         sind die drei Wege nur beim Gast zu sehen und zu erreichen. Die
+         ausgelieferten Skripte der Kontoseiten lesen das Kennzeichen und
+         oeffnen fuer Discord ein kleines Fenster, das die Halle nicht
+         steuern kann (opener).
      [7] Rahmen: Dieser Bau erlaubt der eigenen Seite das Rahmen
          (dist/_csp/, scripts/lib/rahmen.mjs). Sonst bliebe der Schirm
          leer; audit:csp prueft dieselben Dateien in beide Richtungen.
@@ -221,6 +251,47 @@
         der fuenf Laeufe davor)
    Die Meldungen stehen in der PR der Large-Halle.
 
+   VORGEFUEHRT ROT (15.11.2026, dritte Runde: Kontoseiten im Bildschirm,
+   Anmeldung einmal je Sitzung, drei Wege fuer Gaeste), 47 Eingriffe am
+   gebauten dist/, jeder fuer sich, alle rot:
+     q  dist/de/hangar.html ([2]): die Blende als Ganzes mit aria-hidden;
+        die Zeile des Schritts nicht mehr stumm; ihre zweite Lage
+        entfernt; den Weg „Konto erstellen“ entfernt; „Anmelden“ in einen
+        eigenen Tab; „Konto erstellen“ auf eine Seite, die es nicht gibt;
+        den Knopf des Kontos in einen eigenen Tab; „Anmelden“ woandershin
+        als die Leiste; die Gruppe der Wege ohne Namen; der englischen
+        Seite einen Weg genommen (5 Wege statt 6)
+     r  dist/assets/hangar-terminal.js ([4] termRoute, TERM_LOGIN,
+        termKonto, termAnmeldung, termGruss, termBlende): das Konto
+        verlaesst das Fenster wieder; hold 600 und hold 5000; boot 100;
+        die kurze Fassung wieder da; termKonto nimmt /accounting.html;
+        termAnmeldung nimmt jede Adresse unter /account/ (im ersten Lauf
+        nur ueber die Pruefsumme des Moduls rot: die Proben kannten
+        /de/account/ nicht; seither steht die Adresse in den Proben,
+        Klinke 36 → 37) und das Konto selbst; termGruss gruesst jeden wie
+        neu und jeden wie einen alten Bekannten; termBlende kommt immer
+        und kommt nie
+     s  Stil der Kontoseiten ([4] TERM_CSS gegen die gebauten Seiten): das
+        Bild im Kopf bleibt; die Felder der Registrierung mit 1fr 1fr; der
+        Satz zum Datenschutz wieder unter dem Knopf; die Anmeldung in
+        einer Spalte; der Discord-Knopf ohne Platz. Dazu drei Eingriffe an
+        den Seiten selbst, nach denen der Stil ins Leere griffe: das
+        Formular der Registrierung, die Trennlinie der Anmeldung und der
+        Hinweis zum Namen umbenannt
+     t  Naht und Stil ([6]): das Kennzeichen der Seite im Fenster
+        gestrichen; das Hinsetzen fragt termBlende nicht; die Sitzung
+        merkt sich die Begruessung nicht; die Begruessung wartet nicht auf
+        die Anmeldeseite und wird nicht nachgeholt; ein Klick daneben
+        nimmt dem Gast das Sperrbild; die Blende faehrt nicht zu; die Wege
+        von Anfang an sichtbar und beim Gast nicht sichtbar; die Kanten
+        nur beim Oeffnen; der Hinweis auf den Klick auch beim Gast. In den
+        gebauten Skripten der Kontoseiten: das kleine Fenster bleibt mit
+        der Halle verbunden; Discord laedt im Rahmen; die Seite hoert
+        nicht auf eine Sitzung von woanders; das kleine Fenster der
+        Registrierung oeffnet nicht leer; die Seiten fragen nicht nach dem
+        Kennzeichen; der Name des kleinen Fensters geaendert
+   Die Meldungen stehen in der PR der dritten Runde.
+
      node scripts/verify-hangar-orte.mjs
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -243,6 +314,9 @@ const MIN_GLAS_HALLEN = 2;  // Hallen, deren Monitor [8] im Modell nachmisst (14
 const MIN_GEDREHT = 1;      // Hallen, deren Monitor nicht gerade nach Sueden sieht (14.11.2026: 1, Large-Halle)
 const MIN_FAKT_PROBEN = 20;  // Karten der Anmeldung, die [4] durch termFakten schickt (14.11.2026: 10 je Seite)
 const MIN_BILD_PROBEN = 20;  // Namen fuer das Glas (leitWerVon) und gezeichnete Sperrbilder (leitFenster) in [4] (14.11.2026: 8 + 12)
+const MIN_GAST_WEGE = 6;     // Wege des Gasts auf dem Sperrbild, beschriftet und mit Ziel, in [2] (15.11.2026: 3 je Seite)
+const MIN_SITZ_PROBEN = 37;  // Pfade, Zeitstempel und Sitzungen, die [4] durch termKonto, termAnmeldung, termGruss und termBlende schickt (15.11.2026: 9 + 10 + 8 + 10)
+const MIN_KONTO_SEITEN = 6;  // Kontoseiten (Anmelden, Registrieren, Konto, je Sprache), deren ausgelieferte Skripte [6] nach dem Kennzeichen des Terminals durchsucht (15.11.2026: 6)
 
 const fehler = [];
 const fail = (m) => fehler.push(m);
@@ -303,7 +377,7 @@ say(`    ${orte} beschriftete Orte auf ${PAGES.length} Seiten`);
 
 /* ---------- [2] Terminal im Markup ---------- */
 say('[2] Terminal: Kasten, Fenster ohne Adresse, Modul mit Version des Inhalts');
-let kaesten = 0;
+let kaesten = 0, gastWege = 0;
 const boxOf = (page) => /<section[^>]*\bid="hgx-term"[^>]*>[\s\S]*?<\/section>/.exec(page.html)?.[0] ?? '';
 for (const page of PAGES) {
   const sec = boxOf(page), kopf = /^<section[^>]*>/.exec(sec)?.[0] ?? '';
@@ -332,7 +406,12 @@ for (const page of PAGES) {
   if (!blende) fail(`[2] ${page.file}: die Blende der Anmeldung (#hgx-term-login) fehlt im Terminal`);
   else {
     if (!hat(blende, 'hidden')) fail(`[2] ${page.file}: #hgx-term-login ist nicht anfangs verborgen — die Blende laege ueber der Seite, bis das Modul sie zum ersten Mal schliesst`);
-    if (wert(blende, 'aria-hidden') !== 'true') fail(`[2] ${page.file}: #hgx-term-login ohne aria-hidden="true": Vorleser laesen die Begruessung bei jedem Hinsetzen vor, den Namen nennt schon die Leiste`);
+    // dritte Runde: Die Blende traegt die drei Wege des Gasts, also darf sie als Ganzes nicht stumm sein; stumm bleibt, was nur Begruessung ist
+    if (hat(blende, 'aria-hidden')) fail(`[2] ${page.file}: #hgx-term-login traegt aria-hidden: die drei Wege des Gasts (#hgx-term-lwahl) waeren fuer Vorleser nicht da`);
+    for (const [id, was] of [['hgx-term-lstep', 'der Schritt'], ['hgx-term-lid', 'die Karte']]) {
+      const tag = new RegExp(`<[a-z]+[^>]*\\bid="${id}"[^>]*>`).exec(sec)?.[0] ?? '';
+      if (tag && wert(tag, 'aria-hidden') !== 'true') fail(`[2] ${page.file}: ${was} der Anmeldung (#${id}) ohne aria-hidden="true": Vorleser laesen die Begruessung vor, den Namen nennt schon die Leiste`);
+    }
     for (const n of ['data-l-auth', 'data-l-user', 'data-l-guest', 'data-l-gast', 'data-l-gastsub']) if (!wert(blende, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-login ohne ${n}: der Schritt der Anmeldung stuende ohne Worte da`);
     for (const [id, was] of [['hgx-term-lstep', 'der Schritt'], ['hgx-term-lname', 'der Name'], ['hgx-term-lsub', 'die Zeile unter dem Namen']]) if (!sec.includes(`id="${id}"`)) fail(`[2] ${page.file}: ${was} der Anmeldung (#${id}) fehlt`);
     if (!/class="hgx-term__mark"[^>]*>\s*<svg/.test(sec)) fail(`[2] ${page.file}: die Blende traegt die Marke nicht (.hgx-term__mark mit svg): der Uebergang vom Monitor der Halle spraenge`);
@@ -344,24 +423,60 @@ for (const page of PAGES) {
     if (!text(/<b[^>]*class="hgx-term__wort"[^>]*>([\s\S]*?)<\/b>/.exec(sec)?.[1] ?? '')) fail(`[2] ${page.file}: die Wortmarke als Schrift (.hgx-term__wort) fehlt: ohne Buehne stuende die Blende ohne Namen der Seite da`);
     if (!text(/<p[^>]*class="hgx-term__lfuss"[^>]*>([\s\S]*?)<\/p>/.exec(sec)?.[1] ?? '')) fail(`[2] ${page.file}: der Hinweis, dass ein Klick die Anmeldung ueberspringt (.hgx-term__lfuss), fehlt`);
     for (const k of ['o', 'u']) if (!sec.includes(`hgx-term__lkante--${k}`)) fail(`[2] ${page.file}: die Kantenlinie der Blende (.hgx-term__lkante--${k}) fehlt`);
+    // dritte Runde: Die Zeile des Schritts hat zwei Lagen, die ineinander blenden; die erste traegt „Anmeldung …“ schon im Markup
+    const lageA = /<span[^>]*\bid="hgx-term-lstep-a"[^>]*>([\s\S]*?)<\/span>/.exec(sec)?.[1];
+    if (lageA === undefined || !sec.includes('id="hgx-term-lstep-b"')) fail(`[2] ${page.file}: die Zeile des Schritts hat ihre zwei Lagen nicht (#hgx-term-lstep-a, #hgx-term-lstep-b): „Anmeldung …“ und das Ergebnis spraengen um, statt ineinander zu blenden`);
+    else if (text(lageA) !== text(wert(blende, 'data-l-auth') ?? '')) fail(`[2] ${page.file}: die erste Lage des Schritts nennt „${text(lageA)}“ statt „${text(wert(blende, 'data-l-auth') ?? '')}“ (data-l-auth)`);
+    // dritte Runde: die drei Wege des Gasts unter der Karte. Anmelden und Konto erstellen sind Links ins Fenster
+    // (ohne Skript und mit Strg wie jeder Link), „Als Gast weiter“ ein Knopf.
+    const wahl = /<div[^>]*\bid="hgx-term-lwahl"[^>]*>([\s\S]*?)<\/div>/.exec(sec);
+    if (!wahl) fail(`[2] ${page.file}: die drei Wege des Gasts (#hgx-term-lwahl) fehlen auf dem Sperrbild: Ohne Konto bliebe nur der Knopf der Leiste`);
+    else {
+      const kopfW = /^<div[^>]*>/.exec(wahl[0])[0];
+      if (wert(kopfW, 'role') !== 'group' || !wert(kopfW, 'aria-label')?.trim()) fail(`[2] ${page.file}: #hgx-term-lwahl ist keine benannte Gruppe (role="group" mit aria-label)`);
+      const wege = [...wahl[1].matchAll(/<(a|button)\b[^>]*\bdata-weg="([a-z]+)"[^>]*>([\s\S]*?)<\/\1>/g)].map((m) => ({ tag: /^<[^>]*>/.exec(m[0])[0], art: m[1], weg: m[2], label: text(m[3]) }));
+      if (wege.map((w) => `${w.art}:${w.weg}`).join() !== 'a:an,a:neu,button:gast') fail(`[2] ${page.file}: #hgx-term-lwahl traegt ${wege.map((w) => `${w.art}:${w.weg}`).join(', ') || 'nichts'} statt Link „an“, Link „neu“, Knopf „gast“`);
+      else for (const w of wege) {
+        const wo = `[2] ${page.file}: Weg „${w.weg}“ des Gasts`;
+        if (!w.label) { fail(`${wo} ohne Beschriftung`); continue; }
+        if (w.art === 'button') {
+          if (wert(w.tag, 'type') !== 'button') fail(`${wo} ist kein Knopf vom Typ button`);
+          else gastWege++;
+          continue;
+        }
+        const ziel = wert(w.tag, 'href') ?? '', pfad = ziel.replace(/[?#].*$/, '');
+        if (wert(w.tag, 'target') !== 'hgx-term-frame') fail(`${wo} zielt nicht ins Fenster (target ${wert(w.tag, 'target') ?? '—'}): Ohne Skript oeffnete er die Seite statt der Halle`);
+        else if (!ziel.startsWith(page.de ? '/de/' : '/') || (!page.de && ziel.startsWith('/de/'))) fail(`${wo}: ${ziel} liegt nicht in der Sprache der Seite`);
+        else if (!existsSync(join(DIST, pfad))) fail(`${wo}: ${ziel} fuehrt auf keine Seite in dist/`);
+        else if (term && term.termRoute(ziel, `https://x.test/${page.file}`).art !== 'innen') fail(`${wo}: ${ziel} bliebe nicht im Fenster (termRoute)`);
+        else if (term && typeof term.termAnmeldung === 'function' && !term.termAnmeldung(pfad)) fail(`${wo}: ${ziel} gilt dem Terminal nicht als Seite der Anmeldung (termAnmeldung): Die Begruessung laege ueber der Frage nach dem zweiten Faktor`);
+        else gastWege++;
+      }
+    }
   }
   const wer = /<a[^>]*\bid="hgx-term-who"[^>]*>/.exec(sec)?.[0];
   if (!wer) fail(`[2] ${page.file}: in der Leiste fehlt, wer angemeldet ist (#hgx-term-who)`);
   else {
-    if (wert(wer, 'target') !== '_blank') fail(`[2] ${page.file}: #hgx-term-who oeffnet keinen eigenen Tab — Konto und Anmeldung lassen sich nicht rahmen, die Halle ginge verloren`);
+    // dritte Runde (Krisz 15.11.2026: „konto seite direkt auf das bildschirm einbauen“): Der Knopf fuehrt ins Fenster
+    if (wert(wer, 'target') !== 'hgx-term-frame') fail(`[2] ${page.file}: #hgx-term-who zielt nicht ins Fenster (target ${wert(wer, 'target') ?? '—'}): Konto und Anmeldung oeffneten einen eigenen Tab, statt auf dem Bildschirm zu stehen`);
     for (const n of ['data-login', 'data-dash']) {
       const ziel = wert(wer, n) ?? '';
       if (!ziel.startsWith(page.de ? '/de/' : '/') || (!page.de && ziel.startsWith('/de/'))) fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" liegt nicht in der Sprache der Seite`);
       else if (!existsSync(join(DIST, ziel.replace(/[?#].*$/, '')))) fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" fuehrt auf keine Seite in dist/`);
-      else if (term && term.termRoute(ziel, `https://x.test/${page.file}`).art !== 'tab') fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" gilt dem Terminal nicht als Ziel fuer einen eigenen Tab`);
+      else if (term && term.termRoute(ziel, `https://x.test/${page.file}`).art !== 'innen') fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" bliebe nicht im Fenster (termRoute)`);
+      else if (term && typeof term.termKonto === 'function' && !term.termKonto(ziel.replace(/[?#].*$/, ''))) fail(`[2] ${page.file}: #hgx-term-who ${n}="${ziel}" gilt dem Terminal nicht als Seite des Kontos (termKonto): Der Knopf der Leiste waere dort nicht der aktive Bereich`);
     }
+    // die Anmeldung der Leiste und der erste Weg des Gasts sind dieselbe Seite
+    const wegAn = /<a[^>]*\bdata-weg="an"[^>]*>/.exec(sec)?.[0];
+    if (wegAn && wert(wegAn, 'href') !== wert(wer, 'data-login')) fail(`[2] ${page.file}: „Anmelden“ auf dem Sperrbild fuehrt nach ${wert(wegAn, 'href')}, der Knopf der Leiste nach ${wert(wer, 'data-login')}`);
     if (wert(wer, 'href') !== wert(wer, 'data-login')) fail(`[2] ${page.file}: #hgx-term-who fuehrt ohne Skript nicht zur Anmeldung (href ist nicht data-login)`);
     for (const n of ['data-l-login', 'data-l-acct', 'data-a-guest', 'data-a-user', 'aria-label']) if (!wert(wer, n)?.trim()) fail(`[2] ${page.file}: #hgx-term-who ohne ${n}`);
     if (!(wert(wer, 'data-a-user') ?? '').includes('{name}')) fail(`[2] ${page.file}: #hgx-term-who data-a-user nennt den Platz fuer den Namen nicht ({name}): Vorleser erfuehren nicht, wer angemeldet ist`);
   }
   kaesten++;
 }
-say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal und Anmeldung, Modulversion ${termV || '—'}`);
+if (gastWege < MIN_GAST_WEGE) fail(`[2] nur ${gastWege} Wege des Gasts mit Beschriftung und Ziel, Klinke ${MIN_GAST_WEGE}`);
+say(`    ${kaesten} von ${PAGES.length} Seiten mit Terminal und Anmeldung, ${gastWege} Wege des Gasts (Klinke ${MIN_GAST_WEGE}), Modulversion ${termV || '—'}`);
 
 /* ---------- [3] Reiter ---------- */
 say('[3] Reiter: Ziele in dist/, in der Sprache der Seite, bleiben im Fenster, markieren sich selbst');
@@ -425,7 +540,9 @@ if (term) {
     ['/de/schiffe/aegs-gladius.html', 'innen'], ['/items.html#waffen', 'innen'], ['/de/topics/crafting.html?q=x', 'innen'],
     ['/de/archiv.html', 'innen'], ['mailto:hallo@example.org', 'innen'], ['/de/support.html', 'innen'],
     ['/de/hangar.html?ship=anvl-arrow', 'hangar'], ['/hangar.html', 'hangar'], ['https://probe.invalid/hangar.html?ship=x', 'hangar'],
-    ['/de/hangar-loadout.html?l=abc', 'tab'], ['/hangar-bay/aegs-gladius', 'tab'], ['/de/account.html', 'tab'], ['/account/profil.html', 'tab'],
+    ['/de/hangar-loadout.html?l=abc', 'tab'], ['/hangar-bay/aegs-gladius', 'tab'],
+    // dritte Runde: Das Konto steht im Fenster (Anmelden, Registrieren, das Konto selbst)
+    ['/de/account.html', 'innen'], ['/account/login.html?next=%2Fpilot%2Fx', 'innen'], ['/de/account/register.html', 'innen'],
     ['https://robertsspaceindustries.com/', 'tab'], ['//probe.invalid.evil.test/de/schiffe.html', 'tab'], ['http://probe.invalid/de/schiffe.html', 'tab'],
   ];
   for (const [href, soll] of WEGE) {
@@ -453,6 +570,32 @@ if (term) {
   if (kopf && !/<nav class="dp-crumbs"/.test(kopf)) fail('[4] die Kopfleiste der Datenseiten traegt den Pfad .dp-crumbs nicht mehr: im Fenster bliebe eine leere Leiste');
   if (kopf && !/<button[^>]*\bdata-scs-boot\b/.test(kopf)) fail('[4] der Suchknopf der Datenseiten traegt data-scs-boot nicht mehr: „Suche“ in der Leiste des Terminals oeffnete dort nichts');
   if (!/\[data-scs-boot\]/.test(String(termSrc ?? '')) || !/data-scs-open/.test(String(termSrc ?? ''))) fail('[4] das Terminal oeffnet die Suche nicht mehr ueber data-scs-boot (Datenseiten) und data-scs-open (uebrige Seiten)');
+  // Dritte Runde: Anmelden und Registrieren stehen im Fenster. Ihr Kopf steht dort eng und ohne Bild, das
+  // Formular in die Breite gelegt: Sonst laege der Knopf zum Absenden unter dem Rand des Schirms.
+  const lesen = (rel) => (existsSync(join(DIST, rel)) ? readFileSync(join(DIST, rel), 'utf8') : '');
+  const anmelden = lesen('de/account/login.html'), registrieren = lesen('de/account/register.html');
+  if (!anmelden || !registrieren) fail('[4] dist/de/account/login.html oder dist/de/account/register.html fehlt: Die Wege des Gasts fuehrten ins Leere');
+  else for (const [was, muster, seite, traeger, name] of [
+    ['den hohen Kopf der Kontoseiten', /\.hero--acct\{[^}]*min-height:0/, anmelden, /<section class="[^"]*\bhero--acct\b/, '.hero--acct'],
+    ['das Bild im Kopf der Kontoseiten', /\.hero--acct \.hero__photo[^{]*\{[^}]*display:none/, anmelden, /class="[^"]*\bhero__photo\b/, '.hero__photo'],
+    ['den Abstand der Karte', /\.hero--acct\+\.acwrap \.acx-card\{[^}]*padding:/, anmelden, /<section class="[^"]*\bhero--acct\b[\s\S]*?<\/section>\s*<div class="acwrap"[\s\S]*?class="acx-card\b/, '.hero--acct + .acwrap mit .acx-card'],
+    ['den Abstand der Felder', /\.hero--acct\+\.acwrap \.acx-field\{[^}]*margin-bottom:/, anmelden, /class="acx-field"/, '.acx-field'],
+    // Der Schirm ist breit, nicht hoch: Anmelden stellt E-Mail und Discord nebeneinander, Registrieren Discord neben die
+    // vier Felder in zwei Spalten. minmax(0, …) haelt die Spalten gleich breit, auch wenn eine Zeile nicht umbricht.
+    ['das Nebeneinander von E-Mail und Discord bei der Anmeldung', /\.acx-card:has\(>#loginForm\)\{[^}]*display:grid[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/, anmelden, /<div class="acx-card[^"]*"[^>]*>(?:(?!<div class="acx-card)[\s\S])*?<form[^>]*\bid="loginForm"/, '#loginForm in .acx-card'],
+    ['den Platz des Discord-Knopfs neben der Anmeldung', /\.acx-card>#discordBtn\{[^}]*grid-column:2/, anmelden, /<button[^>]*\bid="discordBtn"/, '#discordBtn'],
+    ['die Trennlinie ueber dem Discord-Knopf der Anmeldung', /\.acx-card:has\(>#loginForm\)>\.acx-divider\{[^}]*display:none/, anmelden, /<hr class="acx-divider"/, '.acx-divider'],
+    ['das Nebeneinander von Discord und Formular bei der Registrierung', /\.acx-card:has\(>#regForm\)\{[^}]*display:grid/, registrieren, /<div class="acx-card[^"]*"[^>]*>(?:(?!<div class="acx-card)[\s\S])*?<form[^>]*\bid="regForm"/, '#regForm in .acx-card'],
+    ['den Platz des Formulars neben Discord bei der Registrierung', /\.acx-card>#regForm\{[^}]*grid-column:2/, registrieren, /<button[^>]*\bid="regDiscordBtn"/, '#regDiscordBtn'],
+    ['die Zeile „oder mit E-Mail“ der Registrierung', /\.acx-card:has\(>#regForm\)>\.acx-or\{[^}]*display:none/, registrieren, /<p class="acx-or"/, '.acx-or'],
+    ['die zwei Spalten der Felder der Registrierung', /#regForm\{[^}]*grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/, registrieren, /<form[^>]*\bid="regForm"/, '#regForm'],
+    ['die zwei Spalten der Registrierung (was kein Feld ist, laeuft ueber beide)', /#regForm>:not\(\.acx-field\)\{[^}]*grid-column:1\/-1/, registrieren, /<form[^>]*\bid="regForm"[^>]*>\s*<div class="acx-field"/, 'Felder .acx-field als Kinder von #regForm'],
+    ['den Umbruch des Hinweises zum Namen', /#regForm \.acx-hint\{[^}]*white-space:nowrap/, registrieren, /<p class="acx-hint"/, '.acx-hint'],
+    ['den Satz zum Datenschutz unter dem Knopf der Registrierung', /#regForm \.acx-actions\{[^}]*flex-wrap:nowrap/, registrieren, /<div class="acx-actions"[^>]*>\s*<button[^>]*\bid="rgBtn"[^>]*>(?:(?!<\/div>)[\s\S])*?<span class="acx-privacy"/, '.acx-actions mit #rgBtn und .acx-privacy'],
+  ]) {
+    if (!muster.test(TERM_CSS ?? '')) fail(`[4] TERM_CSS nimmt ${was} nicht heraus: Anmelden oder Registrieren passte im Fenster nicht ohne Scrollen auf den Schirm`);
+    else if (!traeger.test(seite)) fail(`[4] die Kontoseite traegt ${name} nicht mehr so, wie TERM_CSS es sucht: der Stil fuer das Fenster griffe ins Leere`);
+  }
 }
 if (wegProben < MIN_WEG_PROBEN) fail(`[4] nur ${wegProben} Wege geprueft, Klinke ${MIN_WEG_PROBEN}`);
 // Anmeldung: wer vor dem Terminal sitzt, und wie lange die Blende steht
@@ -480,15 +623,60 @@ if (term) {
       try { ist = termIdent(uid, zeile); } catch (e) { fail(`[4] termIdent(${JSON.stringify(uid)}, ${JSON.stringify(zeile)}) wirft (${e.message})`); continue; }
       if (soll === null ? ist !== null : !ist || Object.entries(soll).some(([k, v]) => ist[k] !== v)) fail(`[4] termIdent(${JSON.stringify(uid)}, ${JSON.stringify(zeile)}) → ${JSON.stringify(ist)}: ${was}`);
     }
-    // „kurz“ (Krisz): die ganze Blende unter drei Sekunden, beim Wiederkommen unter zwei; die Frist reicht fuer eine langsame Leitung
-    const lang = TERM_LOGIN.auth + TERM_LOGIN.hold + TERM_LOGIN.aus, kurz = (TERM_LOGIN.kurz?.auth ?? NaN) + (TERM_LOGIN.kurz?.hold ?? NaN) + TERM_LOGIN.aus;
-    if (!(lang >= 1200 && lang <= 3000)) fail(`[4] TERM_LOGIN: die Anmeldung dauert ${lang} ms, gedacht sind 1,2 bis 3 s — kuerzer liest niemand den Namen, laenger steht sie der Seite im Weg`);
-    if (!(kurz >= 800 && kurz < lang && kurz <= 2000)) fail(`[4] TERM_LOGIN.kurz: beim Wiederkommen ${kurz} ms, gedacht sind 0,8 bis 2 s und weniger als beim ersten Mal (${lang} ms)`);
+    // Dritte Runde (Krisz 15.11.2026: „länger gemacht insgesamt“, dafuer „nur beim 1x mal pro session“): die ganze
+    // Blende vier bis sechseinhalb Sekunden, und keine kurze Fassung mehr fuer das Wiederkommen. Die Frist reicht fuer eine langsame Leitung.
+    const lang = TERM_LOGIN.boot + TERM_LOGIN.auth + TERM_LOGIN.hold + TERM_LOGIN.aus;
+    if (!(lang >= 4000 && lang <= 6500)) fail(`[4] TERM_LOGIN: die Anmeldung dauert ${lang} ms (boot + auth + hold + aus), gedacht sind 4 bis 6,5 s — kuerzer ist sie nicht die laengere Fassung, die bestellt ist, laenger steht sie der Seite im Weg`);
+    if (!(TERM_LOGIN.boot >= 300 && TERM_LOGIN.boot <= 900)) fail(`[4] TERM_LOGIN.boot ${TERM_LOGIN.boot} ms: das Sperrbild steht 0,3 bis 0,9 s ruhig, bevor die Pruefung beginnt — kuerzer springt es vom Glas weg, laenger wirkt es wie haengengeblieben`);
+    if ('kurz' in TERM_LOGIN) fail('[4] TERM_LOGIN.kurz ist wieder da: Die Blende kommt nur einmal je Sitzung, eine kurze Fassung fuer das Wiederkommen gibt es nicht mehr');
     if (!(TERM_LOGIN.wink >= 1000 && TERM_LOGIN.wink <= 4000)) fail(`[4] TERM_LOGIN.wink ${TERM_LOGIN.wink} ms: der Wink zum Konto nach der Anmeldung als Gast dauert 1 bis 4 s (zweimal 1,1 s im Stil)`);
     if (!(TERM_LOGIN.frist >= TERM_LOGIN.auth && TERM_LOGIN.frist <= 5000)) fail(`[4] TERM_LOGIN.frist ${TERM_LOGIN.frist} ms: die Antwort des Kontos bekommt mindestens die Dauer des ersten Schritts (${TERM_LOGIN.auth} ms) und haelt die Blende hoechstens 5 s`);
   }
 }
 if (werProben < MIN_WER_PROBEN) fail(`[4] nur ${werProben} Profilzeilen durch termIdent geschickt, Klinke ${MIN_WER_PROBEN}`);
+// Dritte Runde: was zum Konto gehoert, wo man sich anmeldet, wie die Karte gruesst, wann die Blende kommt
+let sitzProben = 0;
+if (term) {
+  const { termKonto, termAnmeldung, termGruss, termBlende, TERM_GAST, TERM_NEU, TERM_AN } = term;
+  if ([termKonto, termAnmeldung, termGruss, termBlende].some((f) => typeof f !== 'function') || typeof TERM_GAST !== 'string' || !TERM_GAST || !(TERM_NEU >= 60e3 && TERM_NEU <= 3600e3) || typeof TERM_AN !== 'string' || !TERM_AN)
+    fail('[4] dist/assets/hangar-terminal.js liefert termKonto, termAnmeldung, termGruss, termBlende, TERM_GAST, TERM_AN oder TERM_NEU (1 bis 60 Minuten) nicht');
+  else {
+    const probe = (name, fn, args, soll, was) => {
+      sitzProben++;
+      let ist;
+      try { ist = fn(...args); } catch (e) { fail(`[4] ${name}(${args.map((a) => JSON.stringify(a)).join(', ')}) wirft (${e.message})`); return; }
+      if (ist !== soll) fail(`[4] ${name}(${args.map((a) => JSON.stringify(a)).join(', ')}) → ${JSON.stringify(ist)} statt ${JSON.stringify(soll)}: ${was}`);
+    };
+    for (const [pfad, soll] of [['/de/account.html', true], ['/account.html', true], ['/account/login.html', true], ['/de/account/register.html', true], ['/account', true], ['/accounting.html', false], ['/de/schiffe.html', false], ['/de/', false], ['', false]])
+      probe('termKonto', termKonto, [pfad], soll, soll ? 'die Seite gehoert zum Konto, der Knopf der Leiste waere dort nicht markiert' : 'die Seite gehoert nicht zum Konto');
+    for (const [pfad, soll] of [['/de/account/login.html', true], ['/account/login.html', true], ['/account/register.html', true], ['/de/account/register', true], ['/de/account.html', false], ['/account/reset.html', false], ['/account/update-password.html', false], ['/de/account/login.html.bak', false], ['/de/schiffe/account/login.html', false], ['/de/account/', false]])
+      probe('termAnmeldung', termAnmeldung, [pfad], soll, soll ? 'dort meldet man sich an: Die Begruessung muss warten, bis die Seite weitergeht (zweiter Faktor)' : 'dort entsteht keine Anmeldung: Die Begruessung bliebe aus, bis jemand die Seite verlaesst');
+    const JETZT = Date.UTC(2026, 10, 15, 12), iso = (ms) => new Date(ms).toISOString();
+    for (const [seit, soll, was] of [
+      [iso(JETZT - 60e3), 'hallo', 'ein Konto von eben wird mit „Willkommen“ begruesst'],
+      [iso(JETZT - TERM_NEU + 1000), 'hallo', 'bis TERM_NEU gilt ein Konto als eben entstanden'],
+      [iso(JETZT - TERM_NEU - 1000), 'zurueck', 'nach TERM_NEU heisst es „Willkommen zurück“'],
+      ['2026-03-02T10:00:00Z', 'zurueck', 'ein altes Konto wird mit „Willkommen zurück“ begruesst'],
+      [iso(JETZT + 3600e3), 'hallo', 'ein Zeitstempel aus der Zukunft ist keiner'],
+      ['', 'hallo', 'ohne Zeitstempel bleibt es beim schlichten Gruss'],
+      ['gestern', 'hallo', 'was kein Datum ist, ist kein Zeitstempel'],
+      [null, 'hallo', 'was kein Text ist, ist kein Zeitstempel'],
+    ]) probe('termGruss', termGruss, [seit, JETZT], soll, was);
+    for (const [schon, konto, soll, was] of [
+      [null, '', true, 'beim ersten Hinsetzen der Sitzung kommt die Blende, auch fuer den Gast'],
+      [null, 'u1', true, 'beim ersten Hinsetzen der Sitzung kommt die Blende'],
+      [undefined, 'u1', true, 'ohne Gedaechtnis kommt die Blende'],
+      [TERM_GAST, '', false, 'der Gast wurde in dieser Sitzung schon begruesst: nur einmal je Sitzung'],
+      ['u1', 'u1', false, 'das Konto wurde in dieser Sitzung schon begruesst: nur einmal je Sitzung'],
+      [TERM_GAST, 'u1', true, 'seit der Begruessung als Gast hat sich jemand angemeldet'],
+      ['u1', '', true, 'seit der Begruessung hat sich das Konto abgemeldet'],
+      ['u1', 'u2', true, 'jetzt sitzt ein anderes Konto davor'],
+      ['', '', true, 'ein leeres Gedaechtnis ist keins: Der Gast steht als TERM_GAST darin'],
+      ['u1', null, true, 'ohne Konto sitzt der Gast davor, begruesst wurde ein Konto'],
+    ]) probe('termBlende', termBlende, [schon, konto], soll, was);
+  }
+}
+if (sitzProben < MIN_SITZ_PROBEN) fail(`[4] nur ${sitzProben} Proben zu Konto, Anmeldeseite, Gruss und Blende, Klinke ${MIN_SITZ_PROBEN}`);
 // Karte der Anmeldung: was die Seite weiss, in hoechstens drei Zeilen, in den Worten der Seite
 let faktProben = 0;
 if (term) {
@@ -584,7 +772,7 @@ if (viewer) {
   }
 }
 if (bildProben < MIN_BILD_PROBEN) fail(`[4] nur ${bildProben} Proben am Sperrbild, Klinke ${MIN_BILD_PROBEN}`);
-say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN}), ${faktProben} Karten (Klinke ${MIN_FAKT_PROBEN}), ${bildProben} Proben am Sperrbild (Klinke ${MIN_BILD_PROBEN})`);
+say(`    ${kastenProben} Kaesten (${klein} davon so schmal, dass die Seite unter den kleinsten Massstab muss), ${wegProben} Wege (Klinke ${MIN_WEG_PROBEN}), ${werProben} Profilzeilen (Klinke ${MIN_WER_PROBEN}), ${sitzProben} Proben zu Konto und Sitzung (Klinke ${MIN_SITZ_PROBEN}), ${faktProben} Karten (Klinke ${MIN_FAKT_PROBEN}), ${bildProben} Proben am Sperrbild (Klinke ${MIN_BILD_PROBEN})`);
 
 /* ---------- [5] Geometrie der Buehne ---------- */
 say('[5] Buehne: Kamera vor dem Monitor, Fenster der Seite im Bild genau das gemeldete Rechteck und auf dem Glas');
@@ -676,7 +864,7 @@ say(`    ${fitProben} Stellungen in ${hallen} Halle(n) nachgerechnet (Klinke ${M
 
 /* ---------- [6] Naht ---------- */
 say('[6] Naht: Buehne, Controller und Terminal rufen einander, ?ort=leit in der Adresse');
-let naht = 0;
+let naht = 0, kontoSeiten = 0;
 {
   const vSrc = existsSync(join(DIST, 'assets/hangar-viewer.js')) ? readFileSync(join(DIST, 'assets/hangar-viewer.js'), 'utf8') : '';
   const cSrc = existsSync(join(DIST, 'assets/hangar-overview.js')) ? readFileSync(join(DIST, 'assets/hangar-overview.js'), 'utf8') : '';
@@ -720,6 +908,15 @@ let naht = 0;
     [tSrc, /hooks\.wer\?\.\(id \? \{ name:/, 'das Terminal meldet nicht mehr, wer angemeldet ist (hooks.wer in setze)'],
     [tSrc, /ok = hooks\.bild\(lbild, \{ uhr: uhr\(\) \}\) === true;/, 'das Terminal laesst das Sperrbild nicht mehr auf seine Leinwand zeichnen (hooks.bild)'],
     [tSrc, /roh = hooks\.fakten\?\.\(\) \?\? null;/, 'das Terminal fragt die Seite nicht mehr nach den Fakten der Karte (hooks.fakten)'],
+    // Dritte Runde: Konto im Fenster, Blende einmal je Sitzung. Was davon im
+    // Browser nur mit einem echten Konto zu sehen ist, steht hier als Zeile.
+    [tSrc, /d\.documentElement\.setAttribute\('data-vb-terminal', ''\);/, 'das Terminal kennzeichnet die Seite im Fenster nicht mehr (data-vb-terminal): Die Kontoseiten wuessten nicht, dass sie gerahmt sind, und schickten das Fenster zu Discord, das sich nicht rahmen laesst'],
+    [tSrc, /if \(termBlende\(an, kontoJetzt\(\)\)\) \{ signIn\(\); return; \}/, 'das Hinsetzen fragt nicht mehr, ob die Blende in dieser Sitzung schon lief (termBlende in hinsetzen): Sie kaeme wieder bei jedem Hinsetzen'],
+    [tSrc, /win\.sessionStorage\.setItem\(TERM_AN, an\)/, 'das Terminal merkt sich nicht mehr, wen die Blende begruesst hat (TERM_AN in sessionStorage): Nach jedem Neuladen der Halle kaeme sie wieder'],
+    [tSrc, /if \(kontoJetzt\(\) && login\?\.hidden && beimAnmelden\(\)\) \{ wartet = true; return; \}/, 'die Begruessung wartet nicht mehr, bis die Anmeldeseite im Fenster weitergeht: Die Blende laege ueber der Frage nach dem zweiten Faktor'],
+    [tSrc, /box\.classList\.remove\('is-ready'\); watch\(\); nachAnmeldung\(\); \}\);/, 'verlaesst die Anmeldeseite das Fenster, holt das Terminal die Begruessung nicht mehr nach (nachAnmeldung bei pagehide): Nach der Anmeldung im Fenster bliebe sie aus'],
+    [tSrc, /login\.dataset\.step === 'out' \|\| login\.dataset\.step === 'guest'\) return;/, 'ein Klick neben die drei Wege nimmt dem Gast das Sperrbild wieder (ueberspringen im Schritt guest)'],
+    [tSrc, /if \(zu\) \{\s*login\.dataset\.step = 'zu';\s*await warte\(TERM_LOGIN\.aus\);/, 'die Blende faehrt vor einer Anmeldung im Fenster nicht mehr zu (Schritt zu, so lang wie TERM_LOGIN.aus): Sie staende in einem Bild ueber der Seite'],
   ];
   for (const [src, muster, was] of NAHT) {
     if (muster.test(src)) naht++;
@@ -747,6 +944,55 @@ let naht = 0;
     else if (!top || !(Math.abs(+top[1] / 100 - M.y) < 1e-6 && Math.abs(+top[2] / 100 - W.ab) < 1e-6 && Math.abs(+hoch / 100 - W.h) < 1e-6 && Math.abs(+ls - W.ls) < 1e-6)) fail(`[6] ${page.file}: die Wortmarke als Schrift (.hgx-term__wort) steht bei top ${top ? `${top[1]} % + ${top[2]} cqw` : '—'}, ${hoch ?? '—'} cqw hoch, gesperrt ${ls ?? '—'} em; das Bild zeigt sie bei ${+(M.y * 100).toFixed(2)} % + ${+(W.ab * 100).toFixed(2)} cqw, ${+(W.h * 100).toFixed(2)} cqw hoch, gesperrt ${W.ls} em (LEIT_WORT) — ohne Bild stuende sie woanders als mit`);
     else naht++;
   }
+  // Dritte Runde, Stil: Die drei Wege des Gasts sind nur im Schritt guest zu sehen und zu erreichen
+  // (visibility, sonst traefe sie die Tastatur hinter der Karte), und die Kanten der Blende stehen auch,
+  // waehrend sie zufaehrt.
+  for (const page of PAGES) {
+    const regel = (sel) => new RegExp(`(?:^|[}>\\s])${sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\{([^}]*)\\}`).exec(page.html)?.[1] ?? '';
+    const wahl = regel('.hgx-term__lwahl'), wahlAn = regel('.hgx-term__login[data-step="guest"] .hgx-term__lwahl');
+    if (!/(?:^|;)visibility:hidden/.test(wahl) || !/(?:^|;)opacity:0/.test(wahl)) fail(`[6] ${page.file}: die drei Wege des Gasts (.hgx-term__lwahl) sind nicht von Anfang an unsichtbar und unerreichbar (opacity:0, visibility:hidden): Die Tastatur traefe sie waehrend der Anmeldung eines Kontos`);
+    else if (!/(?:^|;)visibility:visible/.test(wahlAn) || !/(?:^|;)opacity:1/.test(wahlAn)) fail(`[6] ${page.file}: die drei Wege des Gasts erscheinen im Schritt guest nicht (.hgx-term__login[data-step="guest"] .hgx-term__lwahl): Ohne Konto bliebe das Sperrbild ohne Ausweg stehen`);
+    else naht++;
+    if (!/\.hgx-term__login:is\(\[data-step="out"\],\[data-step="zu"\]\) \.hgx-term__lkante\{[^}]*opacity:1/.test(page.html)) fail(`[6] ${page.file}: die Kanten der Blende stehen nicht in beiden Fahrten (Schritte out und zu): Beim Zufahren schloesse sie sich ohne ihre Linien`);
+    else naht++;
+    const fuss = /\.hgx-term__login:is\(([^)]*)\) \.hgx-term__lfuss\{[^}]*opacity:/.exec(page.html)?.[1] ?? '';
+    if (!fuss.includes('[data-step="auth"]') || fuss.includes('guest')) fail(`[6] ${page.file}: „Klick überspringt“ steht im Schritt ${fuss || '—'}; gedacht: waehrend der Anmeldung, nicht beim Gast, bei dem ein Klick daneben nichts ueberspringt`);
+    else naht++;
+  }
+  // Dritte Runde, Kennzeichen: Die Kontoseiten lesen data-vb-terminal (src/lib/im-terminal.ts) in den
+  // Skripten, die sie wirklich laden. Gesucht wird in den Modulen der Seite und allem, was sie fest einbinden.
+  {
+    const astro = (rel, gesehen = new Set()) => {
+      if (gesehen.has(rel) || gesehen.size > 60) return gesehen;
+      const f = join(DIST, rel);
+      if (!existsSync(f)) return gesehen;
+      gesehen.add(rel);
+      const src = readFileSync(f, 'utf8');
+      for (const m of src.matchAll(/(?:from|import)\s*\(?"\.\/([\w.@-]+\.js)"/g)) astro(`_astro/${m[1]}`, gesehen);
+      return gesehen;
+    };
+    for (const pre of ['', 'de/']) for (const [rel, was, kopf] of [['account/login.html', 'die Anmeldeseite', 'AuthLogin'], ['account/register.html', 'die Registrierung', 'AuthRegister'], ['account.html', 'das Konto', '']]) {
+      const file = `${pre}${rel}`, html = existsSync(join(DIST, file)) ? readFileSync(join(DIST, file), 'utf8') : '';
+      if (!html) { fail(`[6] dist/${file} fehlt: ${was} stuende nicht im Fenster`); continue; }
+      const module = new Set();
+      let eigen = '';
+      for (const m of html.matchAll(/<script type="module" src="\/(_astro\/[\w.@-]+\.js)"/g)) {
+        astro(m[1], module);
+        // das Skript der Seite selbst (nicht das von „Anderes Discord-Konto?“ daneben, das dieselben Aufrufe traegt)
+        if (kopf && m[1].startsWith(`_astro/${kopf}.astro`) && existsSync(join(DIST, m[1]))) eigen = readFileSync(join(DIST, m[1]), 'utf8');
+      }
+      const alles = [...module].map((r) => readFileSync(join(DIST, r), 'utf8')).join('\n');
+      if (!alles.includes('data-vb-terminal')) fail(`[6] dist/${file}: ${was} fragt in ${module.size} geladenen Modulen nirgends nach dem Kennzeichen des Terminals (data-vb-terminal): Im Fenster schickte „Mit Discord …“ den Rahmen zu Discord, das sich nicht rahmen laesst`);
+      else if (kopf && !eigen) fail(`[6] dist/${file}: das Skript von ${kopf}.astro ist nicht unter den Modulen der Seite: Das kleine Fenster fuer Discord liesse sich nicht nachweisen`);
+      else if (kopf && !/window\.open\(""/.test(eigen)) fail(`[6] dist/${file}: ${was} oeffnet das kleine Fenster fuer Discord nicht mehr leer und noch im Klick (window.open("", …)): Der Browser hielte es fuer ungebeten`);
+      else if (kopf && !/skipBrowserRedirect:\s*(?:!0|true)/.test(eigen)) fail(`[6] dist/${file}: ${was} holt die Adresse fuer Discord nicht, ohne selbst dorthin zu gehen (skipBrowserRedirect): Der Rahmen ginge zu Discord, das kleine Fenster bliebe leer`);
+      else if (kopf && !/opener\s*=\s*null/.test(eigen)) fail(`[6] dist/${file}: ${was} trennt das kleine Fenster nicht mehr von sich (opener = null), bevor es eine fremde Adresse laedt`);
+      else if (kopf && !/addEventListener\("storage"/.test(eigen)) fail(`[6] dist/${file}: ${was} hoert nicht mehr, dass woanders eine Sitzung entstanden ist (storage): Nach Discord im kleinen Fenster bliebe sie im Bildschirm stehen`);
+      else if (kopf && !alles.includes('vb-anmeldung')) fail(`[6] dist/${file}: ${was} kennt den Namen des kleinen Fensters nicht (vb-anmeldung)`);
+      else kontoSeiten++;
+    }
+  }
+  if (kontoSeiten < MIN_KONTO_SEITEN) fail(`[6] nur ${kontoSeiten} Kontoseiten mit dem Kennzeichen des Terminals in ihren Skripten, Klinke ${MIN_KONTO_SEITEN}`);
   if (ctrl) {
     const { parseState, serializeState, placeOf, placeShip } = ctrl;
     if (typeof placeOf !== 'function' || typeof placeShip !== 'function') fail('[6] dist/assets/hangar-overview.js liefert placeOf oder placeShip nicht mehr');
@@ -775,7 +1021,7 @@ let naht = 0;
     }
   }
 }
-say(`    ${naht} Nahtstellen und Proben`);
+say(`    ${naht} Nahtstellen und Proben, ${kontoSeiten} Kontoseiten mit dem Kennzeichen des Terminals in ihren Skripten (Klinke ${MIN_KONTO_SEITEN})`);
 
 /* ---------- [7] Rahmen ---------- */
 say('[7] Rahmen: dieser Bau erlaubt der eigenen Seite das Fenster');

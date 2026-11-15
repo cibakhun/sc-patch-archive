@@ -10,7 +10,7 @@ import {
   parseState, serializeState, fillMessage, figuresOf, fleetSummary, compareCell, figureText, dockOrder, pickRandom,
   fold, editDistance, parseQuery, findWords, wordScore, dockSearch, shipClass, rankIn, placeOf, placeShip,
 } from '../../assets/hangar-overview.js';
-import { termFrame, termRoute, termTool, TERM_MIN_W, TERM_MIN_K, TERM_NARROW_W } from '../../assets/hangar-terminal.js';
+import { termFrame, termRoute, termTool, termKonto, termAnmeldung, termBlende, termGruss, TERM_GAST, TERM_NEU, TERM_MIN_W, TERM_MIN_K, TERM_NARROW_W } from '../../assets/hangar-terminal.js';
 
 const ctx = {
   ids: new Set(['aegs-gladius', 'anvl-arrow', 'drak-cutlass-black', 'rsi-aurora-mk2']),
@@ -163,9 +163,40 @@ describe('Hangar: Terminal im Leitstand', () => {
     assert.deepEqual(termRoute('/hangar-bay/aegs-gladius', hier), { art: 'tab' });
   });
 
-  test('Konto und fremde Seiten oeffnen einen eigenen Tab', () => {
-    assert.deepEqual(termRoute('/de/account.html', hier), { art: 'tab' });
-    assert.deepEqual(termRoute('/account/profil.html', hier), { art: 'tab' });
+  test('Kontoseiten bleiben im Fenster (dritte Runde, 15.11.2026: Konto, Anmelden und Registrieren auf dem Bildschirm)', () => {
+    assert.deepEqual(termRoute('/de/account.html', hier), { art: 'innen' });
+    assert.deepEqual(termRoute('/account/login.html?next=%2Fde%2Faccount.html', hier), { art: 'innen' });
+    assert.deepEqual(termRoute('/de/account/register.html', hier), { art: 'innen' });
+    // der Knopf des Kontos ist dort der aktive Bereich; Anmelden und Registrieren halten die Begruessung zurueck
+    assert.equal(termKonto('/de/account.html'), true);
+    assert.equal(termKonto('/account/login.html'), true);
+    assert.equal(termKonto('/accounting.html'), false);
+    assert.equal(termKonto('/de/schiffe.html'), false);
+    assert.equal(termAnmeldung('/de/account/login.html'), true);
+    assert.equal(termAnmeldung('/account/register.html'), true);
+    assert.equal(termAnmeldung('/de/account.html'), false);
+    assert.equal(termAnmeldung('/de/account/'), false);
+    assert.equal(termAnmeldung('/de/account/reset.html'), false);
+  });
+
+  test('die Blende kommt einmal je Sitzung, der Gruss gilt dem Alter des Kontos', () => {
+    assert.equal(termBlende(null, ''), true);
+    assert.equal(termBlende(TERM_GAST, ''), false);
+    assert.equal(termBlende(TERM_GAST, 'u1'), true);
+    assert.equal(termBlende('u1', 'u1'), false);
+    assert.equal(termBlende('u1', ''), true);
+    assert.equal(termBlende('u1', 'u2'), true);
+    const jetzt = Date.UTC(2026, 10, 15, 16, 4);
+    assert.equal(termGruss('2026-11-15T16:00:00Z', jetzt), 'hallo');
+    assert.equal(termGruss(new Date(jetzt - TERM_NEU - 1000).toISOString(), jetzt), 'zurueck');
+    assert.equal(termGruss('2026-03-02T10:00:00Z', jetzt), 'zurueck');
+    // ohne lesbaren Zeitstempel oder mit einem aus der Zukunft: der schlichte Gruss
+    assert.equal(termGruss('', jetzt), 'hallo');
+    assert.equal(termGruss('gestern', jetzt), 'hallo');
+    assert.equal(termGruss('2027-01-01T00:00:00Z', jetzt), 'hallo');
+  });
+
+  test('fremde Seiten oeffnen einen eigenen Tab', () => {
     assert.deepEqual(termRoute('https://robertsspaceindustries.com/', hier), { art: 'tab' });
     assert.deepEqual(termRoute('//staging.example.evil.test/de/schiffe.html', hier), { art: 'tab' });
     // gleicher Name, anderes Protokoll: ein anderer Ursprung

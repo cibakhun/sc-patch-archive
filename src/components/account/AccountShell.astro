@@ -102,6 +102,8 @@ const { eyebrow, titleThin, title, lead, wide = false, bare = false } = Astro.pr
 
   .acx-status { margin-top: 1.1rem; font-size: var(--fs-8); line-height: 1.5; color: #ff8a8a; }
   .acx-status--ok { color: #9be8a8; }
+  /* Ein Weg in der Meldung (Skripte der Kontoseiten hängen ihn an) soll als Link zu erkennen sein. */
+  .acx-status a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
   .acx-links { margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: var(--fs-8); }
   .acx-links a { color: var(--accent); border-bottom: 1px solid var(--line); }
