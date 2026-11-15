@@ -102,6 +102,13 @@ const KURZ: Record<string, Record<Locale, string>> = {
 /* „2× SW16BR3 “Shredder” Repeater (S3)" */
 type Teil = { anzahl: number; name: string; gr: number | null };
 const TEIL = /^(\d+)× (.+?)(?: \(S(\d+)\))?$/;
+
+/** Einheit je Zahlenfeld, damit kein Wert nackt dasteht. */
+const EINHEIT: Record<string, string> = {
+  cargoSCU: 'SCU', h2Fuel: 'SCU', qtFuel: 'SCU', massKg: 'kg', scmSpeed: 'm/s', maxSpeed: 'm/s', boostForward: 'm/s', qtSpeedMs: 'm/s', speed: 'm/s',
+  qtRangeM: 'm', range: 'm', pitch: '°/s', yaw: '°/s', roll: '°/s', pilotDps: 'DPS', turretDps: 'DPS', dps: 'DPS', fireRate: 'RPM',
+  hullHp: 'HP', shieldHp: 'HP', health: 'HP', craft_time_seconds: 's', rewardMin: 'aUEC', rewardMax: 'aUEC',
+};
 function teil(s: string): Teil {
   const m = TEIL.exec(s);
   return m ? { anzahl: +m[1], name: m[2], gr: m[3] != null ? +m[3] : null } : { anzahl: 1, name: s, gr: null };
@@ -177,10 +184,10 @@ export async function hologrammInhalt(lang: Locale): Promise<HologrammInhalt> {
   const alle = (kind: Eintrag['kind'], change: Eintrag['change']) => E.filter((e) => e.kind === kind && e.change === change);
 
   const teilText = (t: Teil) => `${t.anzahl > 1 ? `${t.anzahl}× ` : ''}${t.name}${t.gr != null ? ` · ${gr} ${t.gr}` : ''}`;
-  const wertText = (w: Wert): string => {
+  const wertText = (w: Wert, feld?: string): string => {
     if (w == null) return '–';
     if (Array.isArray(w)) return w.map((s) => teilText(teil(s))).join(', ');
-    if (typeof w === 'number') return n(w);
+    if (typeof w === 'number') return feld && EINHEIT[feld] ? `${n(w)} ${EINHEIT[feld]}` : n(w);
     if (typeof w === 'boolean') return w ? T('ja', 'yes') : T('nein', 'no');
     return w;
   };
@@ -189,9 +196,9 @@ export async function hologrammInhalt(lang: Locale): Promise<HologrammInhalt> {
   const feldWechsel = (vg: PatchVergleich, schiff: string, feld: string, vorher: Wert, nachher: Wert): Omit<Wechsel, 'ort'> => {
     const label = feldLabel(vg, 'ship', feld, lang);
     const kurz0 = KURZ[feld]?.[lang] ?? label;
-    let kurz = `${kurz0} ${wertText(vorher)} → ${wertText(nachher)}`;
-    let vt: string | null = wertText(vorher);
-    const nt = wertText(nachher);
+    let kurz = `${kurz0} ${wertText(vorher, feld)} → ${wertText(nachher, feld)}`;
+    let vt: string | null = wertText(vorher, feld);
+    const nt = wertText(nachher, feld);
     let link: string | null = null;
     if (Array.isArray(vorher) && Array.isArray(nachher) && vorher.length === 1 && nachher.length === 1) {
       const a = teil(vorher[0]), b = teil(nachher[0]);
@@ -244,7 +251,7 @@ export async function hologrammInhalt(lang: Locale): Promise<HologrammInhalt> {
     if (e.change !== 'new' || e.kind === 'price') continue;
     stelle(e.id, 'neu', ART.neu, STAND_NACH, () => NEU_FELDER.flatMap((f) => {
       const w = e.werte.find((x) => x.feld === f);
-      return w ? [{ key: `${e.id}:${f}`, label: feldLabel(v, 'ship', f, lang), vorher: null, nachher: wertText(w.wert), kurz: '', ort: null, herkunft: 'berechnet' as const, link: null }] : [];
+      return w ? [{ key: `${e.id}:${f}`, label: feldLabel(v, 'ship', f, lang), vorher: null, nachher: wertText(w.wert, f), kurz: '', ort: null, herkunft: 'berechnet' as const, link: null }] : [];
     }));
   }
   for (const e of alle('ship', 'changed')) {
@@ -283,7 +290,7 @@ export async function hologrammInhalt(lang: Locale): Promise<HologrammInhalt> {
   /* Groesse nur, wo sie etwas sagt: bei Kleidung und Lackierungen steht sie immer auf 1. */
   const werteZeilen = (e: Eintrag, felder: string[]) => (e.change === 'new' && 'werte' in e ? e.werte : [])
     .filter((w, _, ws) => felder.includes(w.feld) && (w.feld !== 'size' || e.kind !== 'item' || ws.some((x) => x.feld === 'class' || x.feld === 'health')))
-    .map((w) => ({ label: feldLabel(v, e.kind as 'item', w.feld, lang), vorher: null, nachher: wertText(w.wert) }));
+    .map((w) => ({ label: feldLabel(v, e.kind as 'item', w.feld, lang), vorher: null, nachher: wertText(w.wert, w.feld) }));
   const auftraegeText = (x: Wert) => T(`${(x as string[]).length} Aufträge`, `${(x as string[]).length} contracts`);
   const felderZeilen = (e: Eintrag) => ('felder' in e ? e.felder : []).map((f) => {
     const w = feldWechsel(v, e.id, f.feld, f.vorher, f.nachher);

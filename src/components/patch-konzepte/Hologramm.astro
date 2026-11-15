@@ -76,8 +76,8 @@ const TEXTE = {
 ---
 <main id="main" class="ph" data-viewer={viewerSrc} data-start={start}>
   <header class="ph-kopf">
-    <p class="sd__maker">Alpha {PATCH.version} · {datum}<span class="ph-code"> · {PATCH.codename}</span></p>
-    <h1>{T('Patch am Hologramm', 'Patch on the hologram')}</h1>
+    <p class="sd__maker">{datum}<span class="ph-code"> · {PATCH.codename}</span></p>
+    <h1>Alpha {PATCH.version}</h1>
     <p class="ph-satz">{T('Die Vanduul greifen in Nyx an, und die RSI Galaxy und die Anvil Liberator kommen ins Spiel.', 'The Vanduul strike Nyx, and the RSI Galaxy and the Anvil Liberator join the game.')}</p>
     <ul class="holo__chips ph-high">
       {highlights.map((h) => <li><a href={h.h} data-schiff={h.schiff}>{h.t}</a></li>)}
