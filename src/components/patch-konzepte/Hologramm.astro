@@ -6,22 +6,27 @@
 // Standschiff, alle Reiter untereinander und die Beispielflotte.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { href } from '../../i18n/ui';
+import { href, localeFromPath } from '../../i18n/ui';
 import { hologrammInhalt, BELEG, type BuehnenSchiff, type Wechsel } from '../../lib/patch-4-10-3/hologramm';
 import { jsonForScript } from '../../lib/safeJson';
 import { versioned } from '../../lib/assetVersion';
 import PATCH from '../../data/patches/4-10-3.json';
+import PATCHES_EN from '../../data/patches-en.json';
 import holoCalloutsCss from '../holo-callouts.css?raw';
 
-const de = (p: string) => href(p, 'de');
-const n = (x: number) => x.toLocaleString('de-DE');
-const I = await hologrammInhalt();
+const lang = localeFromPath(Astro.url.pathname);
+const istDe = lang === 'de';
+const T = (d: string, e: string) => (istDe ? d : e);
+const L = (p: string) => href(p, lang);
+const I = await hologrammInhalt(lang);
 const STAND = `${I.stand.von} → ${I.stand.nach}`;
+const STAND_NACH = T(`Stand ${I.stand.nach}`, `As of ${I.stand.nach}`);
+const datum = istDe ? PATCH.dateDisplay : (PATCHES_EN as { patches: Record<string, { dateDisplayEn: string }> }).patches['4-10-3'].dateDisplayEn;
 
 const GRUPPEN = [
-  { id: 'neu', titel: 'Neu', g: 'core' },
-  { id: 'geaendert', titel: 'Geändert', g: 'arms' },
-  { id: 'kaufbar', titel: 'Neu kaufbar', g: 'prop' },
+  { id: 'neu', titel: T('Neu', 'New'), g: 'core' },
+  { id: 'geaendert', titel: T('Geändert', 'Changed'), g: 'arms' },
+  { id: 'kaufbar', titel: T('Neu kaufbar', 'Newly buyable'), g: 'prop' },
 ] as const;
 const imGrp = (g: string) => I.schiffe.filter((s) => s.gruppe === g);
 
@@ -43,39 +48,47 @@ const start = Math.max(0, I.schiffe.findIndex((s) => s.id === 'rsi-galaxy'));
 
 /* Erster Bildschirm: drei Hervorhebungen, jede mit Ziel. */
 const reiter = (id: string) => I.reiter.find((r) => r.id === id)!;
-const radarGroesser = I.schiffe.filter((s) => s.wechsel.some((w) => w.key.endsWith(':radars') && /Gr\. \d+ → \d+/.test(w.kurz)));
+const radarGroesser = I.schiffe.filter((s) => s.wechsel.some((w) => w.key.endsWith(':radars') && /(Gr\.|size) \d+ → \d+/.test(w.kurz)));
 const intersec = reiter('auftraege').karten.filter((k) => k.herkunft === 'berechnet' && k.art === 'InterSec Defense Solutions').length;
+const kaufbar = reiter('kaufbar').karten.length;
 const highlights = [
-  { t: `${intersec} InterSec-Aufträge in Nyx`, h: '#reiter-auftraege' },
-  { t: `Radar Gr. 2 → 3 an ${radarGroesser.length} Schiffen`, h: '#phwrap', schiff: radarGroesser[0]?.id },
-  { t: `${reiter('kaufbar').karten.length} Schiffe neu für aUEC`, h: '#reiter-kaufbar' },
+  { t: T(`${intersec} InterSec-Aufträge in Nyx`, `${intersec} InterSec contracts in Nyx`), h: '#reiter-auftraege' },
+  { t: T(`Radar Gr. 2 → 3 an ${radarGroesser.length} Schiffen`, `Radar size 2 → 3 on ${radarGroesser.length} ships`), h: '#phwrap', schiff: radarGroesser[0]?.id },
+  { t: T(`${kaufbar} Schiffe neu für aUEC`, `${kaufbar} ships new for aUEC`), h: '#reiter-kaufbar' },
 ];
 
 /* Beispielflotte, solange die eigene leer ist: drei betroffene, ein unberuehrtes Schiff. */
 const BEISPIEL = ['anvl-carrack', 'aegs-vanguard', 'aegs-reclaimer', 'drak-cutlass-black'];
-const flottenKarten = (ids: string[]) => ids.filter((id) => I.flotte[id]).map((id) => ({ id, ...I.flotte[id] }));
-const beispiel = flottenKarten(BEISPIEL);
-const beispielOhne = BEISPIEL.filter((id) => !I.flotte[id]).length;
+const beispiel = BEISPIEL.filter((id) => I.flotte[id]).map((id) => ({ id, ...I.flotte[id] }));
+const beispielOhne = BEISPIEL.length - beispiel.length;
 
 const viewerSrc = `/assets/holo-viewer.js?v=${createHash('sha1').update(readFileSync('assets/holo-viewer.js')).digest('hex').slice(0, 8)}`;
 const fleetSrc = versioned('assets/fleet.js', '/assets/fleet.js');
-const notesStempel = `ergänzt · ${BELEG.t}`;
+const notesStempel = `${T('ergänzt', 'added')} · ${BELEG.t}`;
+/* Texte, die das Skript schreibt */
+const TEXTE = {
+  laedt: T('Lädt …', 'Loading …'), keinBild: T('Kein Standbild', 'No still image'), holoDer: T('Hologramm der', 'Hologram of the'),
+  vonDeinen: T('Von deinen {n} Schiffen ändert 4.10.3 {m}.', '4.10.3 changes {m} of your {n} ships.'),
+  keines: T('Keines deiner {n} Schiffe ändert sich in 4.10.3.', 'None of your {n} ships changes in 4.10.3.'),
+  ohne: T('{n} ohne Änderung in 4.10.3.', '{n} without a change in 4.10.3.'),
+  praefix: istDe ? '/de' : '',
+};
 ---
 <main id="main" class="ph" data-viewer={viewerSrc} data-start={start}>
   <header class="ph-kopf">
-    <p class="sd__maker">Alpha {PATCH.version} · {PATCH.dateDisplay}<span class="ph-code"> · {PATCH.codename}</span></p>
-    <h1>Patch am Hologramm</h1>
-    <p class="ph-satz">Die Vanduul greifen in Nyx an, und die RSI Galaxy und die Anvil Liberator kommen ins Spiel.</p>
+    <p class="sd__maker">Alpha {PATCH.version} · {datum}<span class="ph-code"> · {PATCH.codename}</span></p>
+    <h1>{T('Patch am Hologramm', 'Patch on the hologram')}</h1>
+    <p class="ph-satz">{T('Die Vanduul greifen in Nyx an, und die RSI Galaxy und die Anvil Liberator kommen ins Spiel.', 'The Vanduul strike Nyx, and the RSI Galaxy and the Anvil Liberator join the game.')}</p>
     <ul class="holo__chips ph-high">
       {highlights.map((h) => <li><a href={h.h} data-schiff={h.schiff}>{h.t}</a></li>)}
     </ul>
   </header>
 
-  <section class="holo ph-holo" aria-label="Betroffene Schiffe am Hologramm">
+  <section class="holo ph-holo" aria-label={T('Betroffene Schiffe am Hologramm', 'Affected ships on the hologram')}>
     <div class="holo__wrap" id="phwrap">
       <div class="holo__grid" aria-hidden="true"></div>
       <div class="holo__pad" aria-hidden="true"></div>
-      <nav class="holo__rail" aria-label="Gruppe">
+      <nav class="holo__rail" aria-label={T('Gruppe', 'Group')}>
         {GRUPPEN.map((g) => (
           <a href={`#gruppe-${g.id}`} data-g={g.g} data-gruppe={g.id} aria-current={g.id === I.schiffe[start].gruppe ? 'true' : undefined}>
             <span class="holo__rail-lb">{g.titel}</span>
@@ -85,16 +98,16 @@ const notesStempel = `ergänzt · ${BELEG.t}`;
       </nav>
       <div class="ph-3d" id="ph3d"></div>
       <figure class="ph-still" id="phstill">
-        <img id="phstillimg" src={I.schiffe[start].still ?? undefined} alt={`Hologramm der ${I.schiffe[start].name}`} />
+        <img id="phstillimg" src={I.schiffe[start].still ?? undefined} alt={`${TEXTE.holoDer} ${I.schiffe[start].name}`} />
       </figure>
       <p class="holo__hud">{STAND} · <b id="phzahl">{start + 1} / {I.schiffe.length}</b></p>
-      <button type="button" class="ph-schritt ph-schritt--zurueck" id="phzurueck" aria-label="Voriges Schiff" hidden>‹</button>
-      <button type="button" class="ph-schritt ph-schritt--vor" id="phvor" aria-label="Nächstes Schiff" hidden>›</button>
+      <button type="button" class="ph-schritt ph-schritt--zurueck" id="phzurueck" aria-label={T('Voriges Schiff', 'Previous ship')} hidden>‹</button>
+      <button type="button" class="ph-schritt ph-schritt--vor" id="phvor" aria-label={T('Nächstes Schiff', 'Next ship')} hidden>›</button>
       {I.schiffe.map((s, i) => (
         <div class="holo__title" data-titel={s.id} hidden={i !== start}>
           <span class="sd__maker">{s.art} · {s.stand}</span>
           <h2>{s.name}</h2>
-          <div class="holo__chips"><a href={de(s.seite)}>Zur Schiffsseite</a></div>
+          <div class="holo__chips"><a href={L(s.seite)}>{T('Zur Schiffsseite', 'Ship page')}</a></div>
         </div>
       ))}
       <p class="holo__status" id="phstatus" aria-live="polite"></p>
@@ -107,27 +120,27 @@ const notesStempel = `ergänzt · ${BELEG.t}`;
           <ul>
             {imGrp(g.id).map((s) => {
               const i = I.schiffe.indexOf(s);
-              return <li><a href={de(s.seite)} data-i={i} aria-pressed={i === start ? 'true' : 'false'}>{s.name}</a></li>;
+              return <li><a href={L(s.seite)} data-i={i} aria-pressed={i === start ? 'true' : 'false'}>{s.name}</a></li>;
             })}
           </ul>
         </div>
       ))}
       {I.ohneHolo.length > 0 && (
-        <p class="ph-ohne">Ohne Hologramm: {I.ohneHolo.map((o, j) => <>{j > 0 && ', '}<a href={o.link ? de(o.link) : undefined}>{o.name}</a></>)} (neu, im Reiter <a href="#reiter-neu">Neu</a>).</p>
+        <p class="ph-ohne">{T('Ohne Hologramm', 'No hologram')}: {I.ohneHolo.map((o, j) => <>{j > 0 && ', '}<a href={o.link ? L(o.link) : undefined}>{o.name}</a></>)} ({T('neu, im Reiter', 'new, see the tab')} <a href="#reiter-neu">{T('Neu', 'New')}</a>).</p>
       )}
     </div>
 
     {I.schiffe.map((s, i) => (
       <div class="holo__bar ph-bar" data-leiste={s.id} hidden={i !== start}>
-        <p class="ph-bar__kopf"><b>{s.name}</b> · {s.stand}{s.wechsel.some((w) => w.ort) && <span class="ph-bar__amrumpf">● am Rumpf markiert</span>}</p>
+        <p class="ph-bar__kopf"><b>{s.name}</b> · {s.stand}{s.wechsel.some((w) => w.ort) && <span class="ph-bar__amrumpf">● {T('am Rumpf markiert', 'marked on the hull')}</span>}</p>
         <dl>
-          {s.wechsel.length === 0 && <div class="kv"><dt>Änderung</dt><dd>keine Werte</dd></div>}
+          {s.wechsel.length === 0 && <div class="kv"><dt>{T('Änderung', 'Change')}</dt><dd>{T('keine Werte', 'no values')}</dd></div>}
           {s.wechsel.map((w) => (
             <div class={`kv${w.herkunft === 'ergaenzt' ? ' kv--erg' : ''}`} data-herkunft={w.herkunft} data-erg={w.herkunft === 'ergaenzt' ? w.key : undefined}>
-              <dt>{w.ort && <span class="ph-punkt" aria-label="am Rumpf"></span>}{w.label}</dt>
+              <dt>{w.ort && <span class="ph-punkt" aria-label={T('am Rumpf', 'on the hull')}></span>}{w.label}</dt>
               <dd>
                 {w.vorher && <span class="ph-vorher">{I.stand.von}: {w.vorher}</span>}
-                {w.link ? <a href={de(w.link)}>{w.nachher}</a> : w.nachher}
+                {w.link ? <a href={L(w.link)}>{w.nachher}</a> : w.nachher}
               </dd>
               {w.herkunft === 'ergaenzt' && <a class="holo__caveat ph-stempel" href={BELEG.h}>{notesStempel}</a>}
             </div>
@@ -138,9 +151,9 @@ const notesStempel = `ergänzt · ${BELEG.t}`;
   </section>
 
   <section class="sd ph-reiter" aria-labelledby="ph-reiter-h">
-    <h2 class="holo__sys-h" id="ph-reiter-h">Alle Änderungen</h2>
-    <p class="holo__sys-ct">{STAND} · aus dem Datenvergleich, {I.ergaenztAnzahl} Werte von Hand aus den <a href={BELEG.h}>Patch Notes</a> ergänzt und so markiert.</p>
-    <div class="holo__rail ph-tabs" role="tablist" aria-label="Änderungen nach Art">
+    <h2 class="holo__sys-h" id="ph-reiter-h">{T('Alle Änderungen', 'All changes')}</h2>
+    <p class="holo__sys-ct">{STAND} · {T('aus dem Datenvergleich,', 'from the data comparison,')} {T(`${I.ergaenztAnzahl} Werte von Hand aus den`, `${I.ergaenztAnzahl} values added by hand from the`)} <a href={BELEG.h}>Patch Notes</a> {T('ergänzt und so markiert.', 'and marked as such.')}</p>
+    <div class="holo__rail ph-tabs" role="tablist" aria-label={T('Änderungen nach Art', 'Changes by kind')}>
       {I.reiter.map((r, j) => (
         <a href={`#reiter-${r.id}`} role="tab" id={`tab-${r.id}`} aria-controls={`reiter-${r.id}`} aria-selected={j === 0 ? 'true' : 'false'} aria-current={j === 0 ? 'true' : undefined} data-reiter={r.id}>
           <span class="holo__rail-lb">{r.titel}</span><span class="holo__rail-ct">{r.karten.length + (r.extra?.anzahl ?? 0)}</span>
@@ -153,22 +166,22 @@ const notesStempel = `ergänzt · ${BELEG.t}`;
         const erg = r.karten.length - r.karten.filter((k) => k.herkunft === 'berechnet').length;
         return (
           <section class="ph-panel" id={`reiter-${r.id}`} role="tabpanel" aria-labelledby={`tab-${r.id}`} data-reiter={r.id}>
-            <h3 class="sd__sub">{r.titel} <span>{r.id === 'kaufbar' || r.id === 'neu' || r.id === 'auftraege' ? 'Stand 4.10.3' : STAND}</span></h3>
-            <p class="ph-panel__satz">{r.satz} {ber} aus dem Datenvergleich{erg > 0 && <>, {erg} ergänzt</>}.</p>
+            <h3 class="sd__sub">{r.titel} <span>{r.id === 'kaufbar' || r.id === 'neu' || r.id === 'auftraege' ? STAND_NACH : STAND}</span></h3>
+            <p class="ph-panel__satz">{r.satz} {ber} {T('aus dem Datenvergleich', 'from the data comparison')}{erg > 0 && <>, {erg} {T('ergänzt', 'added')}</>}.</p>
             {r.id === 'auftraege' && (
-              <p class="ph-panel__satz">Einstieg nach Rang: {I.raenge.map((x, j) => <>{j > 0 && ' · '}{x.anzahl} ab {x.rang}</>)}.</p>
+              <p class="ph-panel__satz">{T('Einstieg nach Rang', 'Entry rank')}: {I.raenge.map((x, j) => <>{j > 0 && ' · '}{x.anzahl} {T('ab', 'from')} {x.rang}</>)}.</p>
             )}
             {r.extra && (
               <div class="ph-lack">
-                <p><b>{r.extra.anzahl} neue Lackierungen</b> für {r.extra.jeSchiff.length} Schiffe · <a href={de(r.extra.uebersicht)}>alle Lackierungen</a></p>
-                <ul>{r.extra.jeSchiff.map((x) => <li>{x.link ? <a href={de(x.link)}>{x.name}</a> : x.name} <span>{x.anzahl}</span></li>)}</ul>
+                <p><b>{T(`${r.extra.anzahl} neue Lackierungen`, `${r.extra.anzahl} new liveries`)}</b> {T(`für ${r.extra.jeSchiff.length} Schiffe`, `for ${r.extra.jeSchiff.length} ships`)} · <a href={L(r.extra.uebersicht)}>{T('alle Lackierungen', 'all liveries')}</a></p>
+                <ul>{r.extra.jeSchiff.map((x) => <li>{x.link ? <a href={L(x.link)}>{x.name}</a> : x.name} <span>{x.anzahl}</span></li>)}</ul>
               </div>
             )}
             <div class="sd__slots ph-karten">
               {r.karten.map((k) => (
                 <div class={`sd__slot ph-karte${k.herkunft === 'ergaenzt' ? ' ph-karte--erg' : ''}`} data-g={k.g} data-herkunft={k.herkunft} data-erg={k.herkunft === 'ergaenzt' ? k.key.slice(4) : undefined}>
                   <div class="sd__slothead"><span class="t">{k.art}</span></div>
-                  <p class="n">{k.link ? <a href={de(k.link)}>{k.name}</a> : k.name}</p>
+                  <p class="n">{k.link ? <a href={L(k.link)}>{k.name}</a> : k.name}</p>
                   {k.zeilen.length > 0 && (
                     <dl class="ph-zeilen">
                       {k.zeilen.map((z) => <div class={z.vorher || z.nachher.length > 22 ? 'is-lang' : undefined}><dt>{z.label}</dt><dd>{z.vorher && <span class="ph-vorher">{I.stand.von}: {z.vorher}</span>}{z.nachher}</dd></div>)}
@@ -185,18 +198,18 @@ const notesStempel = `ergänzt · ${BELEG.t}`;
   </section>
 
   <section class="sd ph-flotte" aria-labelledby="ph-flotte-h">
-    <h2 class="holo__sys-h" id="ph-flotte-h">Deine Flotte in 4.10.3</h2>
-    <p class="holo__sys-ct" id="phflottesatz"><span class="ph-beispiel">Beispiel</span> Deine Flotte ist leer. So sähe es mit vier Schiffen aus; {beispiel.length} davon ändert der Patch. Schiffe merkst du dir auf jeder <a href={de('/schiffe.html')}>Schiffsseite</a> mit „Zur Flotte".</p>
+    <h2 class="holo__sys-h" id="ph-flotte-h">{T('Deine Flotte in 4.10.3', 'Your fleet in 4.10.3')}</h2>
+    <p class="holo__sys-ct" id="phflottesatz"><span class="ph-beispiel">{T('Beispiel', 'Example')}</span> {T(`Deine Flotte ist leer. So sähe es mit vier Schiffen aus; ${beispiel.length} davon ändert der Patch. Schiffe merkst du dir auf jeder`, `Your fleet is empty. This is how four ships would look; the patch changes ${beispiel.length} of them. Save ships on any`)} <a href={L('/schiffe.html')}>{T('Schiffsseite', 'ship page')}</a> {T('mit „Zur Flotte".', 'with "Add to fleet".')}</p>
     <div class="sd__slots ph-karten" id="phflotte">
       {beispiel.map((f) => (
         <div class="sd__slot ph-karte" data-g="core">
           <div class="sd__slothead"><span class="t">{f.art}</span></div>
-          <p class="n"><a href={de(f.seite)}>{f.name}</a></p>
+          <p class="n"><a href={L(f.seite)}>{f.name}</a></p>
           <ul class="ph-flotte__z">{f.zeilen.map((z) => <li>{z}</li>)}</ul>
         </div>
       ))}
     </div>
-    {beispielOhne > 0 && <p class="ph-panel__satz" id="phflotteohne">Dazu {beispielOhne} Schiff ohne Änderung in 4.10.3.</p>}
+    {beispielOhne > 0 && <p class="ph-panel__satz" id="phflotteohne">{T(`Dazu ${beispielOhne} Schiff ohne Änderung in 4.10.3.`, `Plus ${beispielOhne} ship without a change in 4.10.3.`)}</p>}
   </section>
 </main>
 
@@ -385,7 +398,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
 @media(max-width:560px){.holo__bar dd{font-size:var(--fs-10)}.holo__bar dt{font-size:var(--fs-4);letter-spacing:var(--ls-12)}}
 @media(prefers-reduced-motion:reduce){.ph *{transition:none !important}}
 </style>
-<script type="application/json" id="phdata" set:html={jsonForScript({ schiffe: daten, flotte: I.flotte, beispiel: BEISPIEL })} />
+<script type="application/json" id="phdata" set:html={jsonForScript({ schiffe: daten, flotte: I.flotte, texte: TEXTE })} />
 <script type="importmap" is:inline>
 {"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
 </script>
@@ -423,8 +436,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
   function standbild(s) {
     probe.standbild = true;
     still.hidden = !s.still;
-    if (s.still) { stillImg.src = s.still; stillImg.alt = 'Hologramm der ' + s.name; }
-    status.textContent = s.still ? '' : 'Kein Standbild';
+    if (s.still) { stillImg.src = s.still; stillImg.alt = D.texte.holoDer + ' ' + s.name; }
+    status.textContent = s.still ? '' : D.texte.keinBild;
     probe.gezeigt = s.id;
   }
   function wahlen(i, push) {
@@ -434,7 +447,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
     zeigeSchiff(i);
     if (push) history.replaceState(null, '', '#schiff=' + s.id);
     if (ohneWebgl || !buehne) { standbild(s); return; }
-    status.textContent = 'Lädt …';
+    status.textContent = D.texte.laedt;
     buehne.load(Object.assign({}, s.holo, { reduceMotion: reduce, highlight: s.callouts })).then(function (v) {
       if (gewollt !== i) return;
       status.textContent = '';
@@ -544,14 +557,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
       var k = el('div', 'sd__slot ph-karte');
       k.setAttribute('data-g', 'core');
       var h = el('div', 'sd__slothead'); h.appendChild(el('span', 't', f.art)); k.appendChild(h);
-      var n = el('p', 'n'); var a = el('a', null, f.name); a.href = '/de' + f.seite; n.appendChild(a); k.appendChild(n);
+      var n = el('p', 'n'); var a = el('a', null, f.name); a.href = D.texte.praefix + f.seite; n.appendChild(a); k.appendChild(n);
       var ul = el('ul', 'ph-flotte__z'); f.zeilen.forEach(function (z) { ul.appendChild(el('li', null, z)); }); k.appendChild(ul);
       flotte.appendChild(k);
     });
-    satz.textContent = drin.length
-      ? 'Von deinen ' + ids.length + ' Schiffen ändert 4.10.3 ' + drin.length + '.'
-      : 'Keines deiner ' + ids.length + ' Schiffe ändert sich in 4.10.3.';
-    if (ohneZeile) ohneZeile.textContent = ids.length > drin.length ? (ids.length - drin.length) + ' ohne Änderung in 4.10.3.' : '';
+    satz.textContent = (drin.length ? D.texte.vonDeinen : D.texte.keines).replace('{n}', ids.length).replace('{m}', drin.length);
+    if (ohneZeile) ohneZeile.textContent = ids.length > drin.length ? D.texte.ohne.replace('{n}', ids.length - drin.length) : '';
   }
   var flotteDa = false;
   function flotteLesen() {

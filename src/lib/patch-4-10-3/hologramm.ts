@@ -14,14 +14,12 @@
    ============================================================ */
 import { existsSync } from 'node:fs';
 import { getCollection } from 'astro:content';
+import type { Locale } from '../../i18n/ui';
 import { holoDaten, type HoloDaten } from '../holoPorts';
-import { vergleichZu, feldLabel, seite, type Eintrag, type Wert } from '../patchVergleich';
+import { vergleichZu, feldLabel, seite, type Eintrag, type Wert, type PatchVergleich } from '../patchVergleich';
 import { items, pageItemIds } from '../items';
 import { missionBySlug, bpCount } from '../missions';
 import ERGAENZT from '../../data/patch-vergleich/ergaenzt/4.10.3.json';
-
-const LANG = 'de' as const;
-const n = (x: number) => x.toLocaleString('de-DE');
 
 /* ---------- Typen ---------- */
 
@@ -72,12 +70,16 @@ export type Lackierungen = { anzahl: number; uebersicht: string; jeSchiff: { nam
 
 /* ---------- Ergaenzungen ---------- */
 
+type ErgText = { label: string; vorher?: string | null; nachher: string };
 type Ergaenzung = {
   id: string; kind: 'ship' | 'thema'; ziel: string | null; feld: string; label: string;
-  vorher: string | null; nachher: string; reiter: ReiterId; link?: string;
+  vorher: string | null; nachher: string; reiter: ReiterId; link?: string; en: ErgText;
 };
 const ERG = ERGAENZT as { nach: string; beleg: { t: string; h: string }; eintraege: Ergaenzung[] };
 export const BELEG = ERG.beleg;
+/** Die Ergaenzung in der Sprache der Seite. */
+const ergText = (x: Ergaenzung, lang: Locale): Required<ErgText> =>
+  lang === 'en' ? { label: x.en.label, vorher: x.en.vorher === undefined ? x.vorher : x.en.vorher, nachher: x.en.nachher } : { label: x.label, vorher: x.vorher, nachher: x.nachher };
 
 /* ---------- Feld -> Bauteilart am Rumpf ---------- */
 
@@ -88,10 +90,13 @@ const FELD_ART: Record<string, string> = {
   missileRacks: 'missile', missileCount: 'missile', cmLaunchers: 'countermeasure', h2Fuel: 'fuel', qtFuel: 'fuel',
 };
 /** Kurzname der Bauteilart fuer die Beschriftung am Rumpf. */
-const KURZ: Record<string, string> = {
-  radars: 'Radar', shields: 'Schild', coolers: 'Kühler', powerPlants: 'Kraftwerk', quantumDrives: 'Quantenantrieb',
-  turretWeapons: 'Turmwaffen', turretDps: 'Turm-DPS', fixedWeapons: 'Waffen', pilotDps: 'Pilot-DPS',
-  missileRacks: 'Raketen', missileCount: 'Raketen', cmLaunchers: 'Täuschkörper', h2Fuel: 'Wasserstoff', qtFuel: 'Quantentreibstoff',
+const KURZ: Record<string, Record<Locale, string>> = {
+  radars: { de: 'Radar', en: 'Radar' }, shields: { de: 'Schild', en: 'Shield' }, coolers: { de: 'Kühler', en: 'Cooler' },
+  powerPlants: { de: 'Kraftwerk', en: 'Power plant' }, quantumDrives: { de: 'Quantenantrieb', en: 'Quantum drive' },
+  turretWeapons: { de: 'Turmwaffen', en: 'Turret guns' }, turretDps: { de: 'Turm-DPS', en: 'Turret DPS' },
+  fixedWeapons: { de: 'Waffen', en: 'Guns' }, pilotDps: { de: 'Pilot-DPS', en: 'Pilot DPS' },
+  missileRacks: { de: 'Raketen', en: 'Missiles' }, missileCount: { de: 'Raketen', en: 'Missiles' },
+  cmLaunchers: { de: 'Täuschkörper', en: 'Countermeasures' }, h2Fuel: { de: 'Wasserstoff', en: 'Hydrogen' }, qtFuel: { de: 'Quantentreibstoff', en: 'Quantum fuel' },
 };
 
 /* „2× SW16BR3 “Shredder” Repeater (S3)" */
@@ -103,43 +108,12 @@ function teil(s: string): Teil {
 }
 /** Interner Klassenname statt Spielname (RADR_WLOP_S03_Lephari): das Ding hatte keinen Namen. */
 const INTERN = /^[A-Z]{3,}_[A-Z0-9]+_/;
-const teilText = (t: Teil) => `${t.anzahl > 1 ? `${t.anzahl}× ` : ''}${t.name}${t.gr != null ? ` · Gr. ${t.gr}` : ''}`;
 
 const itemNachName = new Map(items.map((i) => [i.name.toLowerCase(), i.id]));
 const itemSeite = (name: string) => {
   const id = itemNachName.get(name.toLowerCase());
   return id && pageItemIds.has(id) ? `/items/${id}.html` : null;
 };
-
-function wertText(w: Wert): string {
-  if (w == null) return '–';
-  if (Array.isArray(w)) return w.map((s) => teilText(teil(s))).join(', ');
-  if (typeof w === 'number') return n(w);
-  if (typeof w === 'boolean') return w ? 'ja' : 'nein';
-  return w;
-}
-
-/** Eine Feldaenderung als Wechsel, mit Kurzform fuer den Rumpf. */
-function feldWechsel(v: NonNullable<ReturnType<typeof vergleichZu>>, schiff: string, feld: string, vorher: Wert, nachher: Wert): Omit<Wechsel, 'ort'> {
-  const label = feldLabel(v, 'ship', feld, LANG);
-  const kurz0 = KURZ[feld] ?? label;
-  let kurz = `${kurz0} ${wertText(vorher)} → ${wertText(nachher)}`;
-  let vt: string | null = wertText(vorher);
-  let nt = wertText(nachher);
-  let link: string | null = null;
-  if (Array.isArray(vorher) && Array.isArray(nachher) && vorher.length === 1 && nachher.length === 1) {
-    const a = teil(vorher[0]), b = teil(nachher[0]);
-    link = itemSeite(b.name);
-    const umbenannt = v.eintraege.some((e) => e.kind === 'item' && e.change === 'renamed' && e.name === b.name && e.nameVorher === a.name);
-    if (INTERN.test(a.name)) { kurz = `${kurz0} neu benannt: ${b.name}`; vt = 'ohne Namen'; }
-    else if (umbenannt) kurz = `${kurz0} neu benannt: ${a.name} → ${b.name}`;
-    else if (a.anzahl !== b.anzahl && a.name === b.name) kurz = `${kurz0} ${a.anzahl} → ${b.anzahl}`;
-    else if (a.gr != null && b.gr != null && a.gr !== b.gr) kurz = `${kurz0} Gr. ${a.gr} → ${b.gr}`;
-    else kurz = `${kurz0}: ${a.name} → ${b.name}`;
-  }
-  if (feld === 'turretDps' || feld === 'pilotDps') kurz = `${n(vorher as number)} → ${n(nachher as number)} DPS`;
-  return { key: `${schiff}:${feld}`, label, vorher: vt, nachher: nt, kurz, herkunft: 'berechnet', link };
-}
 
 /** Wo am Rumpf: die Marker der Art, deren Beschriftung das neue Bauteil nennt; sonst alle der Art. */
 function ortAm(holo: HoloDaten, feld: string, nachher: Wert): Ort | null {
@@ -185,7 +159,11 @@ export type HologrammInhalt = {
   ergaenztAnzahl: number;
 };
 
-export async function hologrammInhalt(): Promise<HologrammInhalt> {
+export async function hologrammInhalt(lang: Locale): Promise<HologrammInhalt> {
+  const de = lang === 'de';
+  const T = (d: string, e: string) => (de ? d : e);
+  const n = (x: number) => x.toLocaleString(de ? 'de-DE' : 'en-US');
+  const gr = T('Gr.', 'size');
   const v = vergleichZu('4.10.3');
   if (!v) throw new Error('hologramm: Vergleich 4.10.2 -> 4.10.3 fehlt');
   if (ERG.nach !== v.nach.version) throw new Error(`hologramm: Ergaenzungen stehen auf ${ERG.nach}, der Vergleich auf ${v.nach.version}`);
@@ -198,18 +176,52 @@ export async function hologrammInhalt(): Promise<HologrammInhalt> {
   const E = v.eintraege;
   const alle = (kind: Eintrag['kind'], change: Eintrag['change']) => E.filter((e) => e.kind === kind && e.change === change);
 
+  const teilText = (t: Teil) => `${t.anzahl > 1 ? `${t.anzahl}× ` : ''}${t.name}${t.gr != null ? ` · ${gr} ${t.gr}` : ''}`;
+  const wertText = (w: Wert): string => {
+    if (w == null) return '–';
+    if (Array.isArray(w)) return w.map((s) => teilText(teil(s))).join(', ');
+    if (typeof w === 'number') return n(w);
+    if (typeof w === 'boolean') return w ? T('ja', 'yes') : T('nein', 'no');
+    return w;
+  };
+
+  /** Eine Feldaenderung als Wechsel, mit Kurzform fuer den Rumpf. */
+  const feldWechsel = (vg: PatchVergleich, schiff: string, feld: string, vorher: Wert, nachher: Wert): Omit<Wechsel, 'ort'> => {
+    const label = feldLabel(vg, 'ship', feld, lang);
+    const kurz0 = KURZ[feld]?.[lang] ?? label;
+    let kurz = `${kurz0} ${wertText(vorher)} → ${wertText(nachher)}`;
+    let vt: string | null = wertText(vorher);
+    const nt = wertText(nachher);
+    let link: string | null = null;
+    if (Array.isArray(vorher) && Array.isArray(nachher) && vorher.length === 1 && nachher.length === 1) {
+      const a = teil(vorher[0]), b = teil(nachher[0]);
+      link = itemSeite(b.name);
+      const umbenannt = vg.eintraege.some((e) => e.kind === 'item' && e.change === 'renamed' && e.name === b.name && e.nameVorher === a.name);
+      if (INTERN.test(a.name)) { kurz = `${kurz0} ${T('neu benannt', 'renamed')}: ${b.name}`; vt = T('ohne Namen', 'unnamed'); }
+      else if (umbenannt) kurz = `${kurz0} ${T('neu benannt', 'renamed')}: ${a.name} → ${b.name}`;
+      else if (a.anzahl !== b.anzahl && a.name === b.name) kurz = `${kurz0} ${a.anzahl} → ${b.anzahl}`;
+      else if (a.gr != null && b.gr != null && a.gr !== b.gr) kurz = `${kurz0} ${gr} ${a.gr} → ${b.gr}`;
+      else kurz = `${kurz0}: ${a.name} → ${b.name}`;
+    }
+    if (feld === 'turretDps' || feld === 'pilotDps') kurz = `${n(vorher as number)} → ${n(nachher as number)} DPS`;
+    return { key: `${schiff}:${feld}`, label, vorher: vt, nachher: nt, kurz, herkunft: 'berechnet', link };
+  };
+
   /* Lephari-Regel: ein „neues" Item, dessen Bauplan (gleiche guid) nur umbenannt
      wurde, ist ein altes Ding mit neuem Namen. */
-  const bpUmbenannt = new Map(alle('blueprint', 'renamed').map((e) => [e.id, e as Extract<Eintrag, { change: 'renamed' }>]));
+  const bpUmbenannt = new Set(alle('blueprint', 'renamed').map((e) => e.id));
   const neuBenanntItem = (e: Eintrag) => e.kind === 'item' && e.change === 'new' && bpUmbenannt.has(e.id);
 
   /* ---- Buehne ---- */
   const ergZu = (id: string) => ERG.eintraege.filter((x) => x.kind === 'ship' && x.ziel === id);
-  const ergWechsel = (x: Ergaenzung): Wechsel => ({
-    key: x.id, label: x.label, vorher: x.vorher, nachher: x.nachher,
-    kurz: x.vorher ? `${x.label} ${x.vorher} → ${x.nachher}` : `${x.label}: ${x.nachher}`,
-    ort: null, herkunft: 'ergaenzt', link: x.link ?? null,
-  });
+  const ergWechsel = (x: Ergaenzung): Wechsel => {
+    const t = ergText(x, lang);
+    return {
+      key: x.id, label: t.label, vorher: t.vorher, nachher: t.nachher,
+      kurz: t.vorher ? `${t.label} ${t.vorher} → ${t.nachher}` : `${t.label}: ${t.nachher}`,
+      ort: null, herkunft: 'ergaenzt', link: x.link ?? null,
+    };
+  };
   const still = (id: string) => {
     const p = `/assets/patch-4-10-3/render/${id}-holo.webp`;
     return existsSync(`assets${p.slice('/assets'.length)}`) ? p : null;
@@ -218,55 +230,64 @@ export async function hologrammInhalt(): Promise<HologrammInhalt> {
   const ohneHolo: HologrammInhalt['ohneHolo'] = [];
   const stelle = (id: string, gruppe: Gruppe, art: string, stand: string, wechsel: (holo: HoloDaten) => Wechsel[]) => {
     const d = fz(id);
-    const holo = holoDaten(d, LANG);
+    const holo = holoDaten(d, lang);
     if (!holo) { ohneHolo.push({ name: d.name, link: `/schiffe/${id}.html` }); return; }
     schiffe.push({ id, name: d.name, gruppe, art, stand, seite: `/schiffe/${id}.html`, holo, still: still(id), wechsel: [...wechsel(holo), ...ergZu(id).map(ergWechsel)] });
   };
+  const STAND_NACH = T(`Stand ${v.nach.version}`, `As of ${v.nach.version}`);
+  const STAND_PAAR = `${v.von.version} → ${v.nach.version}`;
+  const ART = { neu: T('Neu im Spiel', 'New in game'), geaendert: T('Geändert', 'Changed'), benannt: T('Neu benannt', 'Renamed'), kaufbar: T('Neu für aUEC', 'New for aUEC') };
   const NEU_FELDER = ['crewMin', 'hullHp', 'shieldHp', 'scmSpeed', 'cargoSCU'];
   // Galaxy zuerst: Standardschiff der Buehne
   const neu = alle('ship', 'new').sort((a, b) => +(b.id === 'rsi-galaxy') - +(a.id === 'rsi-galaxy'));
   for (const e of neu) {
     if (e.change !== 'new' || e.kind === 'price') continue;
-    stelle(e.id, 'neu', 'Neu im Spiel', 'Stand 4.10.3', () => NEU_FELDER.flatMap((f) => {
+    stelle(e.id, 'neu', ART.neu, STAND_NACH, () => NEU_FELDER.flatMap((f) => {
       const w = e.werte.find((x) => x.feld === f);
-      return w ? [{ key: `${e.id}:${f}`, label: feldLabel(v, 'ship', f, LANG), vorher: null, nachher: wertText(w.wert), kurz: '', ort: null, herkunft: 'berechnet' as const, link: null }] : [];
+      return w ? [{ key: `${e.id}:${f}`, label: feldLabel(v, 'ship', f, lang), vorher: null, nachher: wertText(w.wert), kurz: '', ort: null, herkunft: 'berechnet' as const, link: null }] : [];
     }));
   }
   for (const e of alle('ship', 'changed')) {
     if (e.change !== 'changed') continue;
-    stelle(e.id, 'geaendert', 'Geändert', '4.10.2 → 4.10.3', (holo) => e.felder.map((f) => ({ ...feldWechsel(v, e.id, f.feld, f.vorher, f.nachher), ort: ortAm(holo, f.feld, f.nachher) })));
+    stelle(e.id, 'geaendert', ART.geaendert, STAND_PAAR, (holo) => e.felder.map((f) => ({ ...feldWechsel(v, e.id, f.feld, f.vorher, f.nachher), ort: ortAm(holo, f.feld, f.nachher) })));
   }
   for (const e of alle('ship', 'renamed')) {
     if (e.change !== 'renamed') continue;
-    stelle(e.id, 'geaendert', 'Neu benannt', '4.10.2 → 4.10.3', () => [{ key: `${e.id}:name`, label: 'Name', vorher: e.nameVorher, nachher: e.name, kurz: '', ort: null, herkunft: 'berechnet', link: null }]);
+    stelle(e.id, 'geaendert', ART.benannt, STAND_PAAR, () => [{ key: `${e.id}:name`, label: 'Name', vorher: e.nameVorher, nachher: e.name, kurz: '', ort: null, herkunft: 'berechnet', link: null }]);
   }
   const imVergleich = new Set(E.filter((e) => e.kind === 'ship').map((e) => e.id));
   for (const id of [...new Set(ERG.eintraege.filter((x) => x.kind === 'ship' && x.ziel && !imVergleich.has(x.ziel)).map((x) => x.ziel!))]) {
-    stelle(id, 'geaendert', 'Geändert', '4.10.2 → 4.10.3', () => []);
+    stelle(id, 'geaendert', ART.geaendert, STAND_PAAR, () => []);
   }
+  const preiseVom = de ? v.nach.preiseVom.split('-').reverse().join('.') : v.nach.preiseVom;
   for (const e of alle('price', 'new')) {
     if (e.kind !== 'price' || e.change !== 'new') continue;
     const min = Math.min(...e.angebote.map((a) => a.preis));
     const orte = [...new Set(e.angebote.map((a) => (a.system === 'Pyro' ? 'Pyro' : a.ort)))];
-    stelle(e.id, 'kaufbar', 'Neu für aUEC', 'Preise vom ' + v.nach.preiseVom.split('-').reverse().join('.'), () => [
-      { key: `${e.id}:preis`, label: 'Kaufpreis ab', vorher: null, nachher: `${n(min)} aUEC`, kurz: '', ort: null, herkunft: 'berechnet', link: null },
-      { key: `${e.id}:orte`, label: 'Kaufbar in', vorher: null, nachher: orte.join(', '), kurz: '', ort: null, herkunft: 'berechnet', link: null },
+    stelle(e.id, 'kaufbar', ART.kaufbar, T(`Preise vom ${preiseVom}`, `Prices from ${preiseVom}`), () => [
+      { key: `${e.id}:preis`, label: T('Kaufpreis ab', 'Price from'), vorher: null, nachher: `${n(min)} aUEC`, kurz: '', ort: null, herkunft: 'berechnet', link: null },
+      { key: `${e.id}:orte`, label: T('Kaufbar in', 'Sold in'), vorher: null, nachher: orte.join(', '), kurz: '', ort: null, herkunft: 'berechnet', link: null },
     ]);
   }
 
   /* ---- Reiter ---- */
   const karte = (e: Eintrag, art: string, zeilen: Karte['zeilen'], g: Karte['g']): Karte => ({ key: `${e.kind}:${e.id}`, art, name: e.name, link: seite(e), zeilen, herkunft: 'berechnet', g });
-  const ergKarte = (x: Ergaenzung, art: string, g: Karte['g']): Karte => ({
-    key: `erg:${x.id}`, art, name: x.ziel ? fz(x.ziel).name : x.label,
-    link: x.ziel ? `/schiffe/${x.ziel}.html` : x.link ?? null,
-    zeilen: [{ label: x.ziel ? x.label : 'Patch Notes', vorher: x.vorher, nachher: x.nachher }], herkunft: 'ergaenzt', g,
-  });
+  const ergKarte = (x: Ergaenzung, art: string, g: Karte['g']): Karte => {
+    const t = ergText(x, lang);
+    return {
+      key: `erg:${x.id}`, art, name: x.ziel ? fz(x.ziel).name : t.label,
+      link: x.ziel ? `/schiffe/${x.ziel}.html` : x.link ?? null,
+      zeilen: [{ label: x.ziel ? t.label : 'Patch Notes', vorher: t.vorher, nachher: t.nachher }], herkunft: 'ergaenzt', g,
+    };
+  };
   /* Groesse nur, wo sie etwas sagt: bei Kleidung und Lackierungen steht sie immer auf 1. */
   const werteZeilen = (e: Eintrag, felder: string[]) => (e.change === 'new' && 'werte' in e ? e.werte : [])
-    .filter((w, _, alle) => felder.includes(w.feld) && (w.feld !== 'size' || e.kind !== 'item' || alle.some((x) => x.feld === 'class' || x.feld === 'health'))).map((w) => ({ label: feldLabel(v, e.kind as 'item', w.feld, LANG), vorher: null, nachher: wertText(w.wert) }));
+    .filter((w, _, ws) => felder.includes(w.feld) && (w.feld !== 'size' || e.kind !== 'item' || ws.some((x) => x.feld === 'class' || x.feld === 'health')))
+    .map((w) => ({ label: feldLabel(v, e.kind as 'item', w.feld, lang), vorher: null, nachher: wertText(w.wert) }));
+  const auftraegeText = (x: Wert) => T(`${(x as string[]).length} Aufträge`, `${(x as string[]).length} contracts`);
   const felderZeilen = (e: Eintrag) => ('felder' in e ? e.felder : []).map((f) => {
     const w = feldWechsel(v, e.id, f.feld, f.vorher, f.nachher);
-    return { label: feldLabel(v, e.kind as 'item', f.feld, LANG), vorher: f.feld === 'missions' ? `${(f.vorher as string[]).length} Aufträge` : w.vorher, nachher: f.feld === 'missions' ? `${(f.nachher as string[]).length} Aufträge` : w.nachher };
+    return { label: feldLabel(v, e.kind as 'item', f.feld, lang), vorher: f.feld === 'missions' ? auftraegeText(f.vorher) : w.vorher, nachher: f.feld === 'missions' ? auftraegeText(f.nachher) : w.nachher };
   });
 
   const istLackierung = (e: Eintrag) => e.kind === 'item' && /\bLivery$/.test(e.name);
@@ -281,61 +302,62 @@ export async function hologrammInhalt(): Promise<HologrammInhalt> {
     z.anzahl++;
     jeSchiff.set(key, z);
   }
+  const A = { fz: T('Fahrzeug', 'Vehicle'), ge: T('Gegenstand', 'Item'), notes: 'Patch Notes' };
   const reiter: Reiter[] = [
     {
-      id: 'neu', titel: 'Neu', satz: 'Neue Fahrzeuge und Gegenstände, mit ihren Werten aus 4.10.3.',
+      id: 'neu', titel: T('Neu', 'New'), satz: T('Neue Fahrzeuge und Gegenstände, mit ihren Werten aus 4.10.3.', 'New vehicles and items, with their 4.10.3 values.'),
       karten: [
-        ...alle('ship', 'new').map((e) => karte(e, 'Fahrzeug', werteZeilen(e, ['crewMin', 'hullHp', 'shieldHp', 'cargoSCU']), 'core')),
-        ...ERG.eintraege.filter((x) => x.reiter === 'neu').map((x) => ergKarte(x, 'Fahrzeug', 'core')),
-        ...neuItems.filter((e) => !istLackierung(e)).map((e) => karte(e, 'Gegenstand', werteZeilen(e, ['size', 'class', 'dps', 'shieldHp', 'health']), 'other')),
+        ...alle('ship', 'new').map((e) => karte(e, A.fz, werteZeilen(e, ['crewMin', 'hullHp', 'shieldHp', 'cargoSCU']), 'core')),
+        ...ERG.eintraege.filter((x) => x.reiter === 'neu').map((x) => ergKarte(x, A.fz, 'core')),
+        ...neuItems.filter((e) => !istLackierung(e)).map((e) => karte(e, A.ge, werteZeilen(e, ['size', 'class', 'dps', 'shieldHp', 'health']), 'other')),
       ],
       extra: { anzahl: lack.length, uebersicht: '/items/category/vehiclegear-liveries.html', jeSchiff: [...jeSchiff.values()].sort((a, b) => b.anzahl - a.anzahl || a.name.localeCompare(b.name)) },
     },
     {
-      id: 'geaendert', titel: 'Geändert', satz: 'Andere Werte als in 4.10.2.',
+      id: 'geaendert', titel: T('Geändert', 'Changed'), satz: T('Andere Werte als in 4.10.2.', 'Values that differ from 4.10.2.'),
       karten: [
-        ...alle('ship', 'changed').map((e) => karte(e, 'Fahrzeug', felderZeilen(e), 'core')),
-        ...alle('item', 'changed').map((e) => karte(e, 'Gegenstand', felderZeilen(e), 'arms')),
-        ...ERG.eintraege.filter((x) => x.reiter === 'geaendert').map((x) => ergKarte(x, x.ziel ? 'Fahrzeug' : 'Patch Notes', x.ziel ? 'core' : 'arms')),
+        ...alle('ship', 'changed').map((e) => karte(e, A.fz, felderZeilen(e), 'core')),
+        ...alle('item', 'changed').map((e) => karte(e, A.ge, felderZeilen(e), 'arms')),
+        ...ERG.eintraege.filter((x) => x.reiter === 'geaendert').map((x) => ergKarte(x, x.ziel ? A.fz : A.notes, x.ziel ? 'core' : 'arms')),
       ],
     },
     {
-      id: 'kaufbar', titel: 'Neu kaufbar', satz: 'Zum ersten Mal im Spiel für aUEC zu kaufen.',
+      id: 'kaufbar', titel: T('Neu kaufbar', 'Newly buyable'), satz: T('Zum ersten Mal im Spiel für aUEC zu kaufen.', 'Buyable in game for aUEC for the first time.'),
       karten: alle('price', 'new').map((e) => {
         const a = e.kind === 'price' && e.change === 'new' ? e.angebote : [];
         const orte = [...new Map(a.map((x) => [x.system === 'Pyro' ? 'Pyro' : x.ort, x])).values()];
-        return karte(e, 'Fahrzeug', orte.map((x) => ({ label: x.system === 'Pyro' ? 'Pyro, Buy and Fly' : `${x.ort}, ${x.haendler}`, vorher: null, nachher: `${n(x.preis)} aUEC` })), 'arms');
+        return karte(e, A.fz, orte.map((x) => ({ label: x.system === 'Pyro' ? 'Pyro, Buy and Fly' : `${x.ort}, ${x.haendler}`, vorher: null, nachher: `${n(x.preis)} aUEC` })), 'arms');
       }),
     },
     {
-      id: 'auftraege', titel: 'Aufträge', satz: 'Neue Aufträge mit dem Rang, ab dem sie angeboten werden.',
+      id: 'auftraege', titel: T('Aufträge', 'Contracts'), satz: T('Neue Aufträge mit dem Rang, ab dem sie angeboten werden.', 'New contracts with the rank they are offered from.'),
       karten: [
         ...alle('mission', 'new').map((e) => {
           const r = rangSpanne(e.slug!);
           const m = missionBySlug.get(e.slug!);
           const bp = m ? bpCount(m) : 0;
-          return karte(e, (m?.giverNames?.[0] as string | undefined) ?? 'Auftrag', [
-            { label: 'Rang', vorher: null, nachher: r.von === r.bis ? `nur ${r.von}` : `${r.von} bis ${r.bis}` },
-            { label: 'Baupläne als Belohnung', vorher: null, nachher: bp ? `${bp} möglich` : 'keine' },
+          return karte(e, (m?.giverNames?.[0] as string | undefined) ?? T('Auftrag', 'Contract'), [
+            { label: T('Rang', 'Rank'), vorher: null, nachher: r.von === r.bis ? T(`nur ${r.von}`, `${r.von} only`) : `${r.von} ${T('bis', 'to')} ${r.bis}` },
+            { label: T('Baupläne als Belohnung', 'Blueprint rewards'), vorher: null, nachher: bp ? T(`${bp} möglich`, `${bp} possible`) : T('keine', 'none') },
           ], 'arms');
         }),
-        ...ERG.eintraege.filter((x) => x.reiter === 'auftraege').map((x) => ergKarte(x, 'Patch Notes', 'arms')),
+        ...ERG.eintraege.filter((x) => x.reiter === 'auftraege').map((x) => ergKarte(x, A.notes, 'arms')),
       ],
     },
     {
-      id: 'bauplaene', titel: 'Baupläne', satz: 'Neue und geänderte Baupläne.',
+      id: 'bauplaene', titel: T('Baupläne', 'Blueprints'), satz: T('Neue und geänderte Baupläne.', 'New and changed blueprints.'),
       karten: [
-        ...alle('blueprint', 'new').map((e) => karte(e, 'Bauplan neu', werteZeilen(e, ['craft_time_seconds']).map((z) => ({ ...z, label: 'Herstellzeit', nachher: `${z.nachher} s` })), 'prop')),
-        ...alle('blueprint', 'changed').map((e) => karte(e, 'Bauplan geändert', felderZeilen(e), 'prop')),
+        ...alle('blueprint', 'new').map((e) => karte(e, T('Bauplan neu', 'New blueprint'), werteZeilen(e, ['craft_time_seconds']).map((z) => ({ ...z, label: T('Herstellzeit', 'Craft time'), nachher: `${z.nachher} s` })), 'prop')),
+        ...alle('blueprint', 'changed').map((e) => karte(e, T('Bauplan geändert', 'Changed blueprint'), felderZeilen(e), 'prop')),
       ],
     },
     {
-      id: 'entfernt', titel: 'Entfernt und umbenannt', satz: 'Was es nicht mehr gibt und was einen neuen Namen trägt.',
+      id: 'entfernt', titel: T('Entfernt und umbenannt', 'Removed and renamed'), satz: T('Was es nicht mehr gibt und was einen neuen Namen trägt.', 'What is gone and what carries a new name.'),
       karten: [
-        ...alle('ship', 'removed').map((e) => karte(e, 'Fahrzeug entfernt', [{ label: 'Status', vorher: 'eigenes Fahrzeug', nachher: 'entfernt' }], 'other')),
+        ...alle('ship', 'removed').map((e) => karte(e, T('Fahrzeug entfernt', 'Vehicle removed'), [{ label: 'Status', vorher: T('eigenes Fahrzeug', 'own vehicle'), nachher: T('entfernt', 'removed') }], 'other')),
         ...[...alle('ship', 'renamed'), ...alle('item', 'renamed'), ...alle('blueprint', 'renamed')].map((e) =>
-          karte(e, e.kind === 'ship' ? 'Fahrzeug' : e.kind === 'item' ? 'Gegenstand' : 'Bauplan', [{ label: 'Name', vorher: e.change === 'renamed' ? e.nameVorher : null, nachher: e.name }], 'other')),
-        ...alle('item', 'new').filter(neuBenanntItem).map((e) => karte(e, 'Gegenstand', [{ label: 'Name', vorher: 'ohne Namen', nachher: e.name }], 'other')),
+          karte(e, e.kind === 'ship' ? A.fz : e.kind === 'item' ? A.ge : T('Bauplan', 'Blueprint'), [{ label: 'Name', vorher: e.change === 'renamed' ? e.nameVorher : null, nachher: e.name }], 'other')),
+        ...alle('item', 'new').filter(neuBenanntItem).map((e) => karte(e, A.ge, [{ label: 'Name', vorher: T('ohne Namen', 'unnamed'), nachher: e.name }], 'other')),
       ],
     },
   ];
@@ -350,13 +372,13 @@ export async function hologrammInhalt(): Promise<HologrammInhalt> {
   for (const s of schiffe) {
     flotte[s.id] = { name: s.name, seite: s.seite, art: s.art, zeilen: s.wechsel.map((w) => (w.vorher ? `${w.label}: ${w.vorher} → ${w.nachher}` : `${w.label}: ${w.nachher}`)) };
   }
-  for (const e of alle('ship', 'new')) if (!flotte[e.id]) flotte[e.id] = { name: e.name, seite: `/schiffe/${e.id}.html`, art: 'Neu im Spiel', zeilen: [] };
-  for (const { name, link } of jeSchiff.values()) {
+  for (const e of alle('ship', 'new')) if (!flotte[e.id]) flotte[e.id] = { name: e.name, seite: `/schiffe/${e.id}.html`, art: ART.neu, zeilen: [] };
+  for (const [key, { name, link, anzahl }] of jeSchiff) {
     const id = link?.match(/^\/schiffe\/(.+)\.html$/)?.[1];
-    if (!id) continue;
-    const z = `${jeSchiff.get(id)!.anzahl} neue Lackierung${jeSchiff.get(id)!.anzahl > 1 ? 'en' : ''}`;
+    if (!id || id !== key) continue;
+    const z = T(`${anzahl} neue Lackierung${anzahl > 1 ? 'en' : ''}`, `${anzahl} new ${anzahl > 1 ? 'liveries' : 'livery'}`);
     if (flotte[id]) flotte[id].zeilen.push(z);
-    else flotte[id] = { name, seite: link!, art: 'Neue Lackierung', zeilen: [z] };
+    else flotte[id] = { name, seite: link!, art: T('Neue Lackierung', 'New livery'), zeilen: [z] };
   }
 
   return {

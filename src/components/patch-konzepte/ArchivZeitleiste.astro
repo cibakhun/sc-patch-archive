@@ -4,19 +4,22 @@
 // bekommen Balken je Art; aeltere stehen als Redaktionsgut da, mit den
 // Schiffen, die ihre Seite nennt. Filter nach Schiff und Thema.
 import { getCollection } from 'astro:content';
-import { href } from '../../i18n/ui';
+import { href, localeFromPath } from '../../i18n/ui';
+import { mergePatchEn } from '../../i18n/patchText';
 import { uebersicht, patchVergleich, type Kind, type Zaehler } from '../../lib/patchVergleich';
 import { patchSeiteHref } from '../../lib/patchPages';
 
-const de = (p: string) => href(p, 'de');
+const lang = localeFromPath(Astro.url.pathname);
+const istDe = lang === 'de';
+const T = (d: string, e: string) => (istDe ? d : e);
 const PATCHES = import.meta.glob<{ version: string; codename: string; dateDisplay: string; date: string; tagline: string; ships: { name: string }[] }>('../../data/patches/*.json', { eager: true, import: 'default' });
 const patches = Object.values(PATCHES).sort((a, b) => b.date.localeCompare(a.date));
 
 const ARTEN: { id: string; titel: string; kinds: Kind[]; g: string }[] = [
-  { id: 'schiffe', titel: 'Schiffe', kinds: ['ship', 'price'], g: 'core' },
-  { id: 'gegenstaende', titel: 'Gegenstände', kinds: ['item'], g: 'arms' },
-  { id: 'bauplaene', titel: 'Baupläne', kinds: ['blueprint'], g: 'prop' },
-  { id: 'auftraege', titel: 'Aufträge', kinds: ['mission'], g: 'other' },
+  { id: 'schiffe', titel: T('Schiffe', 'Ships'), kinds: ['ship', 'price'], g: 'core' },
+  { id: 'gegenstaende', titel: T('Gegenstände', 'Items'), kinds: ['item'], g: 'arms' },
+  { id: 'bauplaene', titel: T('Baupläne', 'Blueprints'), kinds: ['blueprint'], g: 'prop' },
+  { id: 'auftraege', titel: T('Aufträge', 'Contracts'), kinds: ['mission'], g: 'other' },
 ];
 const summe = (z: Zaehler, kinds: Kind[]) => kinds.reduce((s, k) => s + z[k].new + z[k].renamed + z[k].changed + z[k].removed, 0);
 
@@ -32,9 +35,10 @@ const zeilen = patches.map((p) => {
   const schiffe = v
     ? [...new Set(v.eintraege.filter((e) => e.kind === 'ship' || e.kind === 'price').map((e) => e.id))]
     : [...new Set(p.ships.map((s) => idZu(s.name)).filter((x): x is string => !!x))];
+  const q = mergePatchEn(id, p as unknown as Parameters<typeof mergePatchEn>[1], lang);
   return {
-    id, version: p.version, codename: p.codename, datum: p.dateDisplay, tagline: p.tagline,
-    seite: patchSeiteHref(id, 'de'),
+    id, version: p.version, codename: q.codename, datum: q.dateDisplay, tagline: q.tagline,
+    seite: patchSeiteHref(id, lang),
     von: paar?.von ?? null,
     werte: paar ? ARTEN.map((a) => summe(paar.zaehler, a.kinds)) : null,
     redaktionell: paar ? null : p.ships.length,
@@ -48,25 +52,25 @@ const berechnet = zeilen.filter((z) => z.werte).length;
 ---
 <main id="main" class="pa">
   <header class="pa-kopf">
-    <p class="sd__maker">Entwurf · Archiv · {berechnet} Patches mit Datenvergleich</p>
-    <h1>Patch-Archiv</h1>
-    <p class="pa-satz">Je Patch, was sich an Schiffen, Gegenständen, Bauplänen und Aufträgen geändert hat. Ältere Patches ohne Datenvergleich stehen als Redaktion da.</p>
+    <p class="sd__maker">{T(`Entwurf · Archiv · ${berechnet} Patches mit Datenvergleich`, `Draft · archive · ${berechnet} patches with a data comparison`)}</p>
+    <h1>{T('Patch-Archiv', 'Patch archive')}</h1>
+    <p class="pa-satz">{T('Je Patch, was sich an Schiffen, Gegenständen, Bauplänen und Aufträgen geändert hat. Ältere Patches ohne Datenvergleich stehen als Redaktion da.', 'Per patch, what changed in ships, items, blueprints and contracts. Older patches without a data comparison are shown as editorial entries.')}</p>
   </header>
-  <section class="sd pa-liste" aria-label="Zeitleiste">
+  <section class="sd pa-liste" aria-label={T('Zeitleiste', 'Timeline')}>
     <div class="pa-filter" id="pafilter">
-      <label>Schiff
+      <label>{T('Schiff', 'Ship')}
         <select id="paschiff">
-          <option value="">alle</option>
+          <option value="">{T('alle', 'all')}</option>
           {imFilter.map((f) => <option value={f.id}>{f.name}</option>)}
         </select>
       </label>
-      <fieldset class="holo__rail pa-thema" aria-label="Thema">
-        <a href="#" data-thema="" aria-current="true">Alle</a>
+      <fieldset class="holo__rail pa-thema" aria-label={T('Thema', 'Topic')}>
+        <a href="#" data-thema="" aria-current="true">{T('Alle', 'All')}</a>
         {ARTEN.map((a) => <a href="#" data-thema={a.id} data-g={a.g}>{a.titel}</a>)}
       </fieldset>
     </div>
-    <p class="holo__sys-ct">Zahl je Art: Einträge im Datenvergleich zum Vorgänger, neu, geändert, umbenannt und entfernt zusammen. Ein Klick auf den Patch öffnet seine Seite.</p>
-    <div class="pa-tab" role="table" aria-label="Änderungen je Patch">
+    <p class="holo__sys-ct">{T('Zahl je Art: Einträge im Datenvergleich zum Vorgänger, neu, geändert, umbenannt und entfernt zusammen. Ein Klick auf den Patch öffnet seine Seite.', 'Number per kind: entries in the data comparison with the previous patch, new, changed, renamed and removed together. Click a patch to open its page.')}</p>
+    <div class="pa-tab" role="table" aria-label={T('Änderungen je Patch', 'Changes per patch')}>
       <div class="pa-row pa-row--kopf" role="row">
         <span role="columnheader">Patch</span>
         {ARTEN.map((a) => <span role="columnheader" data-spalte={a.id} data-g={a.g}>{a.titel}</span>)}
@@ -81,20 +85,20 @@ const berechnet = zeilen.filter((z) => z.werte).length;
             ? ARTEN.map((a, j) => (
                 <span role="cell" class="pa-zelle" data-spalte={a.id} data-g={a.g}>
                   <i style={`--w:${Math.round((z.werte![j] / max[j]) * 100)}%`}></i>
-                  <b>{z.werte![j].toLocaleString('de-DE')}</b>
+                  <b>{z.werte![j].toLocaleString(istDe ? 'de-DE' : 'en-US')}</b>
                   <small>{z.von} → {z.version}</small>
                 </span>
               ))
             : (
                 <span role="cell" class="pa-zelle pa-zelle--red">
-                  <span class="holo__caveat">Redaktion</span> {z.redaktionell ? `${z.redaktionell} ${z.redaktionell === 1 ? 'Schiff' : 'Schiffe'} in den Patch Notes · ` : ''}{z.tagline}
+                  <span class="holo__caveat">{T('Redaktion', 'Editorial')}</span> {z.redaktionell ? `${z.redaktionell} ${z.redaktionell === 1 ? T('Schiff', 'ship') : T('Schiffe', 'ships')} ${T('in den Patch Notes', 'in the patch notes')} · ` : ''}{z.tagline}
                 </span>
               )}
         </div>
       ))}
     </div>
-    <p class="pa-leer" id="paleer" hidden>Kein Patch passt zu diesem Filter.</p>
-    <p class="holo__sys-ct">Zur Seite des Entwurfs: <a href={de('/patches/4-10-3-hologramm.html')}>4.10.3 am Hologramm</a>.</p>
+    <p class="pa-leer" id="paleer" hidden>{T('Kein Patch passt zu diesem Filter.', 'No patch matches this filter.')}</p>
+    <p class="holo__sys-ct">{T('Zur Seite des Entwurfs', 'Draft page')}: <a href={href('/patches/4-10-3-hologramm.html', lang)}>{T('4.10.3 am Hologramm', '4.10.3 on the hologram')}</a>.</p>
   </section>
 </main>
 <style is:inline>

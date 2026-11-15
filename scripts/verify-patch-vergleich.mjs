@@ -120,6 +120,7 @@ for (const n of ergDateien) {
     ids.add(x.id);
     need(['ship', 'thema'].includes(x.kind), `${wo}: Art ${x.kind} (erlaubt: ship, thema)`);
     need(x.label && x.nachher && x.feld, `${wo}: ohne label, feld oder nachher`);
+    need(x.en?.label && x.en?.nachher, `${wo}: ohne englischen Text (en.label, en.nachher)`);
     need(REITER.includes(x.reiter), `${wo}: Reiter ${x.reiter} unbekannt`);
     if (x.kind === 'ship') need(fahrzeugIds.has(x.ziel), `${wo}: Fahrzeug ${x.ziel} nicht in src/data/vehicles.json`);
     if (x.link) need(/^\/[a-z0-9/-]+\.html$/.test(x.link), `${wo}: Link ${x.link} ist kein Seitenpfad`);
