@@ -697,6 +697,28 @@
     cz  dort decode() nach dem Auspacken nicht mehr fragen lassen
         (.then((b) => { if (!ende()) return b; …) streichen)        -> [24]
     da  dort die Frage am Anfang von loadImageSource streichen      -> [24]
+    db  dort vor einem fetch() im Rumpf von initHangar lebt(…)
+        streichen (lebt(fetch(h.probes)); 15.11.2026, sechste
+        Runde desselben Reviews: Was von außen in die Bühne
+        kommt, endet an lebt(), wenn sie abgebaut ist; gezählt
+        wird jede Quelle im Rumpf)                                  -> [24]
+    dc  dort die Ausnahme von fetchGltf unkenntlich machen
+        (if (!tot) resolve(g) in if (tot) return; resolve(g)
+        umschreiben: Die benannte Ausnahme verliert ihren Anlass)   -> [24]
+    dd  dort in lebt() die Frage streichen ((v) => v statt
+        (v) => (tot ? nieMehr() : v))                               -> [24]
+    de  dort nach await probeReady die Frage streichen
+        (if (tot) { probe?.tex.dispose(); await nieMehr(); })       -> [24]
+    df  dort onLost(fn) wieder nur lostFn = fn setzen lassen (ein
+        Kontextverlust während des Aufbaus erreichte die Seite
+        nicht)                                                      -> [24]
+    dg  dort die Zeile if (kontextWeg) { … } hinter den Horchern
+        streichen (Verlust in den Pausen des Aufbaus)               -> [24]
+    dh  dort in dispose() die drei clearTimeout streichen           -> [24]
+    di  dort sleep wieder ohne lebt() (new Promise((r) =>
+        setTimeout(r, ms)))                                         -> [24]
+    dj  dort in still() die Frage nach dem Standbild streichen
+        (if (tot) { bild.close(); return null; })                   -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3182,7 +3204,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 29, worte: 16 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 35, worte: 16, quellen: 23 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3306,6 +3328,13 @@ const GROESSE_AUSNAHMEN = {
     // fünfte Runde (15.11.2026): Am Telefon wartet das Auspacken im Limiter; die Frage steht deshalb in decode() selbst und am Anfang jedes Bildes
     [viewer, /const decode = \(\) => \(ende\(\) \? nie\(\) : createImageBitmap\(blob, \{ \.\.\.loader\.options, colorSpaceConversion: 'none' \}\)\.then\(\(b\) => \{ if \(!ende\(\)\) return b; b\.close\(\); return nie\(\); \}\)\);\s*if \(!gate\) return decode\(\);\s*return gate\(async \(\) => \{\s*const big = await decode\(\),/, 'am Telefon arbeitet eine abgebaute Bühne die Schlange ihrer Bilder weiter ab (decode in embeddedImages fragt die Bühne nicht mehr, wenn der Limiter das Bild an die Reihe lässt, oder nicht mehr nach dem Auspacken): Was beim Abbau im Limiter wartete, würde neben der neuen Halle Bild für Bild ausgepackt und verkleinert'],
     [viewer, /parser\.loadImageSource = \(i, loader\) => \{\s*if \(ende\(\)\) return nie\(\);\s*const def = parser\.json\.images\[i\];/, 'eine abgebaute Bühne beginnt wieder Bilder (loadImageSource in embeddedImages fragt die Bühne nicht mehr als Erstes): Für ein Modell, das erst nach dem Abbau ankommt, rechnete sie die Kennung jedes Bildes aus dessen Bytes'],
+    // sechste Runde (15.11.2026): Was von außen in die Bühne kommt, endet an lebt(); die Quellen selbst zählt QUELLE unten
+    [viewer, /const lebt = \(p\) => Promise\.resolve\(p\)\.then\(\(v\) => \(tot \? nieMehr\(\) : v\), \(e\) => \{ if \(tot\) return nieMehr\(\); throw e; \}\);/, 'lebt() fragt nicht mehr, ob die Bühne abgebaut ist: Was über die Leitung, als Modul oder nach einer Frist ankommt, liefe in einer abgebauten Bühne weiter (Antwort wie Fehler)'],
+    [viewer, /const sleep = \(ms\) => lebt\(new Promise\(\(r\) => setTimeout\(r, ms\)\)\);/, 'die Frist der Bühne (sleep) geht nicht mehr durch lebt(): Ein Schiff, das auf seine Halle wartet, machte Sekunden nach dem Abbau in der abgebauten Bühne weiter'],
+    [viewer, /const probe = await probeReady;[\s\S]{0,400}?if \(tot\) \{ probe\?\.tex\.dispose\(\); await nieMehr\(\); \}\s*if \(probe\) useHallProbe\(probe\); else captureHallEnv\(true\);/, 'nach dem Warten auf die Spiegelungssonde fragt die Halle nicht mehr, ob die Bühne abgebaut ist (loadRealHall): Sie nähme am aufgegebenen Renderer eine Umgebungskugel auf, und das Bild der Sonde bliebe liegen'],
+    [viewer, /let kontextWeg = 0;\s*renderer\.domElement\.addEventListener\('webglcontextlost', \(\) => \{ kontextWeg\+\+; \}\);[\s\S]*?if \(lostFn\) lostFn\(lost\);\s*else if \(tot\) return;\s*else if \(lost\) lostOffen = \[true\];\s*else lostOffen\?\.push\(false\);[\s\S]{0,400}?if \(kontextWeg\) \{ texQuiet = true; lostSag\(true\); if \(!renderer\.getContext\(\)\.isContextLost\(\)\) lostSag\(false\); \}/, 'die Bühne merkt sich einen Kontextverlust nicht mehr, solange niemand zuhört (kontextWeg, lostSag, lostOffen): Was während ihres Aufbaus verloren geht, erführe die Seite nie'],
+    [viewer, /onLost\(fn\) \{\s*lostFn = fn;\s*if \(!fn \|\| !lostOffen\) return;\s*const was = lostOffen;\s*lostOffen = null;\s*queueMicrotask\(\(\) => \{ for \(const lost of was\) if \(lostFn === fn\) fn\(lost\); \}\);/, 'onLost reicht dem Horcher nicht mehr nach, was vor ihm geschah: Nach einem Kontextverlust während des Hallenwechsels stünde die Seite ohne Meldung vor einer leeren Bühne und lüde auch bei der Rückkehr des Kontexts nicht neu'],
+    [viewer, /lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;[\s\S]{0,400}?clearTimeout\(ktxStat\.timer\); clearTimeout\(texStat\.timer\); clearTimeout\(geoStat\.timer\);/, 'eine abgebaute Bühne schreibt ihre verzögerten Zeilen weiter auf die Konsole (clearTimeout in dispose): check:hangar-shader zählte sie nach einem Hallenwechsel zur neuen Bühne'],
     // Material der Industrie-Hallen (HALL_FEST): Namen <Datei>_mtl_<Teil>, Schnitt nach dem Alpha der Karte
     [viewer, /if \(!sticker && \(fest \? \/_mtl_\.\*glow\/i : \/light\|glow\/i\)\.test\(m\.name\) && !\/glass\/i\.test\(m\.name\) && m\.map\) \{/, 'in den Industrie-Hallen leuchtet wieder jedes Material, dessen Datei „light“ heißt (Leuchtregel der Halle ohne fest): Gehäuse, Lack und Gummi der Lampen stünden als helle Flächen im Raum'],
     [viewer, /&& !sticker && !\(m\.alphaTest > 0\) && !\/decal\|logo\|glow\|leak\/i\.test\(m\.name\)\) \{ boxProject\(m, us\.mPerUv\);/, 'Material, das nach Alpha schneidet, bekommt wieder die Würfellage (boxProject ohne !(m.alphaTest > 0)): Der Pfeil am Tor der Large-Halle zerfiele in Bruchstücke'],
@@ -3315,6 +3344,32 @@ const GROESSE_AUSNAHMEN = {
   ];
   let verdrahtet = 0;
   for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
+  // Quellen der Bühne (15.11.2026, sechste Runde): Jede Stelle im Rumpf von initHangar, an der etwas von außen
+  // kommt (Leitung, Modul, Bild, Schrift), steht hinter lebt( auf derselben Zeile. Sechs Runden lang fand das
+  // Review je eine andere Fortsetzung, die nach dem Abbau der Bühne weiterlief; gefragt wird deshalb an der
+  // Quelle, und eine neue Quelle ohne lebt() reißt hier. Ausnahmen sind benannt und tragen ihren Anlass: Fehlt
+  // die Zeile, die ihn belegt, reißt das Tor ebenfalls.
+  const rumpf = viewer.slice(Math.max(0, viewer.indexOf('export async function initHangar(')));
+  const QUELLE = /(?<![\w.$])(?:fetch|import|createImageBitmap)\(|\bnew Image\(\)|\.loadAsync\(|\.load\(/g;
+  const QUELLE_OHNE = [
+    ["ktxLoader ??= import('three/addons/loaders/KTX2Loader.js')", 'ktxTot ersetzt den Loader beim Abbau durch null'],
+    ["await fetch(`${KTX_ORT}${id}.ktx2?v=${KTX_V}`, { credentials: 'same-origin', signal: ktxWach.ab.signal })", 'ktxTot bricht die Anfrage beim Abbau ab'],
+    ['(HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }', 'fetchGltf fragt tot selbst, davor und bei der Ankunft'],
+    ['try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }', 'still() antwortet der Seite und fragt tot gleich danach'],
+  ];
+  let quellen = 0, quellenOhne = 0;
+  for (const zeile of rumpf.split('\n')) {
+    if (/^\s*\/\//.test(zeile)) continue;
+    for (const m of zeile.matchAll(QUELLE)) {
+      if (zeile.slice(0, m.index).includes('lebt(')) quellen++;
+      else if (QUELLE_OHNE.some(([stelle]) => zeile.includes(stelle))) quellenOhne++;
+      else fail(`[24] dist/assets/hangar-viewer.js: eine Quelle der Bühne geht nicht durch lebt() („${zeile.trim().slice(0, 110)}“): Kommt sie nach dem Abbau an, arbeitet die abgebaute Bühne neben der neuen Halle weiter. In lebt(…) fassen, oder die Ausnahme in QUELLE_OHNE benennen`);
+    }
+  }
+  for (const [stelle, anlass] of QUELLE_OHNE) if (!rumpf.includes(stelle)) fail(`[24] die Ausnahme von lebt() „${stelle.slice(0, 60)}…“ (${anlass}) hat ihren Anlass verloren: Die Zeile steht so nicht mehr im Rumpf von initHangar. Ausnahme streichen oder an der neuen Zeile neu begründen`);
+  if (!/if \(tot\) \{ bild\.close\(\); return null; \}/.test(rumpf)) fail('[24] still() fragt nach dem Standbild nicht mehr, ob die Bühne abgebaut ist (if (tot) { bild.close(); return null; }): Die Ausnahme von lebt() gilt nur mit dieser Frage');
+  sollIst(`Quellen der Bühne hinter lebt() >= ${GROESSE.quellen}, jede weitere benannt`, `${quellen} hinter lebt(), ${quellenOhne} benannte Ausnahmen (${QUELLE_OHNE.length} Stellen)`);
+  if (quellen < GROESSE.quellen) fail(`[24] nur ${quellen} Quellen der Bühne hinter lebt() gefunden (Klinke ${GROESSE.quellen}): Liest die Suche den Rumpf von initHangar nicht mehr, oder sind Quellen aus der Bühne gewandert?`);
   // Wörter der Zeile je Sprache: alle da, die mit Maßen tragen ihre Platzhalter, und Deutsch ist nicht Englisch
   let worte = 0;
   const wort = PAGES.map((page) => {
@@ -3347,7 +3402,7 @@ const GROESSE_AUSNAHMEN = {
   }
   if (verdrahtet < GROESSE.draht) fail(`[24] nur ${verdrahtet} Stellen der Naht geprüft (Klinke ${GROESSE.draht})`);
   if (worte < GROESSE.worte) fail(`[24] nur ${worte} Wörter der Hangargröße auf den Seiten (Klinke ${GROESSE.worte})`);
-  ist.grStufen = stufen; ist.grSchiffe = schiffe; ist.grZahl = zahl; ist.grHallen = hallen.size; ist.grDraht = verdrahtet; ist.grWorte = worte;
+  ist.grStufen = stufen; ist.grSchiffe = schiffe; ist.grZahl = zahl; ist.grHallen = hallen.size; ist.grDraht = verdrahtet; ist.grWorte = worte; ist.grQuellen = quellen;
 }
 
 say('\n[Selbstauskunft]');

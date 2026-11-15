@@ -140,6 +140,17 @@
    Marken traegt kein data-live): in welcher Halle es steht, ist
    ungeprueft“. Das Skript des Stands davor endete mit demselben
    Eingriff gruen, nur mit dem Hinweis zur Ruhe.
+   Zeilen der ersten Halle (15.11.2026, selbe PR, sechste Runde): Nach
+   --wechsel las der Lauf die Zeile zu den Vollbildpaessen und die zu
+   den Texturen je Bildshader nur noch von der neuen Buehne. Meldete
+   die erste „erst beim Probebild“ oder gar nichts, blieb er gruen.
+   Der Stand vor dem Wechsel fuehrt beide Zeilen jetzt mit, und sie
+   werden fuer die erste Halle gewertet wie ohne --wechsel.
+   Vorgefuehrt rot (Eingriff in den gebauten Viewer: Nur die erste
+   Buehne meldet ihre Paesse als „erst beim Probebild“; --wechsel
+   anvl-carrack): „vor dem Hallenwechsel (revelyork-single):
+   Vollbildpässe: 0 von 12 Shadern erst beim Probebild übersetzt …“.
+   Das Skript des Stands davor endete mit demselben Eingriff gruen.
    Gesehen und offen: In einem von vier Laeufen linkten nach der
    gemeldeten Ruhe noch vier Programme ohne Namen (hoechstens eine
    Textur); ein Lauf ueber 15 min zaehlte 58 statt 54 Programme, keins
@@ -504,7 +515,8 @@ try {
   }
   if (steht && WECHSEL) {
     const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
-    const stand = { K, frei, geo, ktx, n: vorher, dekoN, aufzugN, zeilen };
+    // was die erste Buehne gemeldet hat: Die neue ueberschreibt jede dieser Zeilen mit ihrer eigenen
+    const stand = { K, frei, geo, ktx, paesse, viewer, n: vorher, dekoN, aufzugN, zeilen };
     let erst = '', dann = '', kam1 = 0, h0 = '', h1 = '';
     while (!(erst = await aufDemFeld()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
     if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
@@ -595,6 +607,12 @@ if (vor) {
   if (!(f >= vor.K.frei)) fehler.push(`${wo}: der Viewer gab ${Number.isFinite(f) ? `nur ${f}` : 'keine'} Bilder nach dem Hochladen frei, Klinke ${vor.K.frei}`);
   if (!(g >= vor.K.geoMB)) fehler.push(`${wo}: der Viewer gab ${Number.isFinite(g) ? `nur ${g} MB` : 'keine'} Geometrie nach dem Hochladen frei, Klinke ${vor.K.geoMB} MB`);
   if (mitKtx && !(k >= vor.K.ktx)) fehler.push(vor.K.ktx === undefined ? `${wo}: die Halle hat keine Klinke ktx (KLINKE_FEST), und dieser Lauf (ohne --ship und --layout) braucht sie: ${k} Bilder aus komprimierten Zwillingen gemessen` : `${wo}: nur ${k} Bilder aus komprimierten Zwillingen, Klinke ${vor.K.ktx}`);
+  // Auch die Zeilen zu den Vollbildpaessen und zu den Texturen je Bildshader gehoeren der ersten Buehne (stand):
+  // Unten wird nur noch gewertet, was die neue gemeldet hat, ein Fehler der ersten faerbte den Lauf sonst nicht.
+  console.log(`  Vor dem Hallenwechsel (${vor.halle}): ${vor.paesse ? vor.paesse.slice(9, 160) : 'Vollbildpässe: keine Zeile'}; ${vor.viewer ? 'Zeile zu den Texturen je Bildshader da' : 'keine Zeile zu den Texturen je Bildshader'}`);
+  if (/erst beim Probebild/.test(vor.paesse)) fehler.push(`${wo}: ${vor.paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
+  else if (!/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(vor.paesse)) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) der ersten Halle steht nicht, oder ihre Shader entstehen erst beim ersten Bild`);
+  if (!vor.viewer) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader"`);
 }
 console.log(`  Programme gelinkt: ${progs.length}${vor ? `, davon ${seit.length} seit dem Hallenwechsel` : ''} (Klinke ${K.programme}), davon mit Schichttafel: ${schichten} (Klinke ${K.schichten})`);
 console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);

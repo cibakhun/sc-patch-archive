@@ -26,6 +26,36 @@ const matNo = (p) => Number((p.getMaterial()?.getName().match(/_(\d+)$/) || [])[
 // Schrift aus einzelnen Buchstaben-Vierecken: Material <Datei>_mtl_alphabet_… oder …_number_… (hallTextDoc, liftHallText)
 export const SCHRIFT = /_mtl_(alphabet|number)_/i;
 
+// Lage eines Aufkleber-Teilnetzes, an dessen Knoten kein behaltenes Teilnetz
+// gemessen wurde: nur in einer .cgfm (ein Netz ohne Knotenbaum, deckungsgleich
+// mit dem Export) und nur, wenn alles Gemessene unverschoben ist (still). In
+// einer .cga hat jeder Knoten seine eigene Ruhelage, und die Messung an einem
+// anderen Knoten belegt sie nicht: Dort bleibt die Lage offen, und das
+// Teilnetz geht in den Bericht (ohneLage) statt an eine geratene Stelle.
+// In util-lrgtop nimmt kein Teilnetz diesen Weg über eine .cga (15.11.2026:
+// 327 gemessen, 24 über eine .cgfm, 9 ohne Lage).
+export const lageOhneMessung = (file, still) => (still && /\.cgfm$/i.test(file) ? [0, 0, 0] : undefined);
+
+// Die .mtl eines Netzes im Rohordner des Extraktors: suchen, und auspacken,
+// wenn sie fehlt. Mit force (--force) wird sie auch dann neu ausgepackt,
+// einmal je Lauf und Dateiname (frisch): --force packt die Netzdateien neu
+// aus, und Aufkleber-Materialien und Texturpfade sollen aus derselben Fassung
+// des Spiels kommen wie sie. rel: Pfad der .mtl ohne Endung, klein.
+// liste() -> Pfade aller .mtl im Rohordner; holen(base) packt <base>.mtl aus.
+// Liefert { datei, neu }; neu: in diesem Aufruf (neu) ausgepackt.
+export function mtlQuelle({ rel, liste, holen, force = false, frisch = new Set() }) {
+  const base = rel.split('/').pop();
+  const find = () => { const l = liste().filter((f) => f.toLowerCase().endsWith(`/${base}.mtl`)); return l.find((f) => f.toLowerCase().endsWith(`/${rel}.mtl`)) ?? l[0]; };
+  let datei = find(), neu = false;
+  if (!datei || (force && !frisch.has(base))) {
+    try { holen(base); } catch { /* ohne .mtl kein Aufkleber */ }
+    frisch.add(base);
+    neu = true;
+    datei = find();
+  }
+  return { datei, neu };
+}
+
 // Primitive des Exports (in ihrer Reihenfolge) gegen die Teilnetze der Datei:
 // ein Primitiv ist das nächste Teilnetz mit seiner Dreieckszahl und, wo der
 // Materialname eine Nummer trägt, seiner Materialnummer. Was dazwischen
@@ -124,13 +154,13 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
     });
     const flip = flips > same;
     if (flip) report.gedreht++;
-    // ohne behaltenes Teilnetz am selben Knoten: nur wenn das ganze Netz unverschoben ist (jede .cgf)
+    // ohne behaltenes Teilnetz am selben Knoten: nur in einer .cgf und nur, wenn alles Gemessene unverschoben ist (lageOhneMessung)
     const still = [...shift.values()].every((t) => t !== 'unklar' && Math.hypot(...t) < 2e-3);
     const made = [];
     for (const k of want) {
       const sub = g.subs[k], sm = subMats[sub.mat];
       let t = shift.get(sub.node);
-      if (t === undefined && still && (/\.cgfm$/i.test(file) || shift.size)) t = [0, 0, 0];
+      if (t === undefined) t = lageOhneMessung(file, still);
       if (!t || t === 'unklar') { report.ohneLage.push(`${base} #${sub.mat} Knoten ${sub.node}`); continue; }
       const ix = subIdx(sub), neu = new Map(), alt = [];
       const idx = new Uint32Array(ix.length);

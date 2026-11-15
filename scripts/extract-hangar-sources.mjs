@@ -19,7 +19,7 @@ import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './lib/ivo-caf.mjs';
-import { hallDecalDoc, hallTextDoc, meshBase } from './lib/hall-decals.mjs';
+import { hallDecalDoc, hallTextDoc, meshBase, mtlQuelle } from './lib/hall-decals.mjs';
 import { hallKinder } from './lib/hall-kinder.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
@@ -880,21 +880,23 @@ async function hallDecals(h, doc) {
   const byBase = new Map();
   for (const f of files) { const b = f.toLowerCase().split('/').pop(); (byBase.get(b) ?? byBase.set(b, []).get(b)).push(f); }
   let mtlFiles = files.filter((f) => /\.mtl$/i.test(f));
-  const mtlCache = new Map();
+  const mtlCache = new Map(), mtlFrisch = new Set();
   const subMaterials = (mtl) => {
-    const rel = mtl.replace(/\\/g, '/').replace(/^data\//i, '').replace(/\.mtl$/i, '').toLowerCase(), base = rel.split('/').pop();
+    const rel = mtl.replace(/\\/g, '/').replace(/^data\//i, '').replace(/\.mtl$/i, '').toLowerCase();
     if (mtlCache.has(rel)) return mtlCache.get(rel);
-    const find = () => { const l = mtlFiles.filter((f) => f.toLowerCase().endsWith(`/${base}.mtl`)); return l.find((f) => f.toLowerCase().endsWith(`/${rel}.mtl`)) ?? l[0]; };
-    let f = find();
-    if (!f) {
-      try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(base)}\\.mtl$`]); } catch { /* ohne .mtl kein Aufkleber */ }
-      mtlFiles = listFiles(RAW).filter((x) => /\.mtl$/i.test(x));
-      f = find();
-    }
+    // mit --force auch die .mtl neu aus dem Spiel (mtlQuelle): Sonst entstünden Aufkleber-Materialien und
+    // Texturpfade aus der Datei des letzten Auszugs, neben frisch ausgepackten Netzen
+    const { datei: f, neu } = mtlQuelle({
+      rel, force: FORCE, frisch: mtlFrisch, liste: () => mtlFiles,
+      holen: (base) => {
+        try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(base)}\\.mtl$`]); }
+        finally { mtlFiles = listFiles(RAW).filter((x) => /\.mtl$/i.test(x)); }
+      },
+    });
     let out = null;
     if (f) {
       const xml = `${f}.xml`;
-      if (FORCE || !existsSync(xml)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, xml]);
+      if (FORCE || neu || !existsSync(xml)) spawnSync(STARBREAKER, ['cryxml', 'convert', f, xml]);
       if (existsSync(xml)) out = parseSubMaterials(readFileSync(xml, 'utf8'));
     }
     mtlCache.set(rel, out);

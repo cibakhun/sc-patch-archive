@@ -7616,6 +7616,15 @@ export async function initHangar(container, opts = {}) {
   // (Halle aufbereiten, Schiffsmaße, Texturen, Shader einzeln übersetzen),
   // statt am aufgegebenen Renderer weiterzuarbeiten.
   const rast = async () => { await nextTask(); if (tot) await nieMehr(); };
+  // Was von außen in die Bühne kommt (Leitung, Modul, Schrift, Uhr), geht
+  // durch lebt(): Kommt es an, wenn die Bühne schon abgebaut ist, geht es
+  // nicht weiter, auch nicht als Fehler. Sechs Runden Review haben je eine
+  // andere Fortsetzung gefunden, die nach dem Abbau weiterlief (Pausen,
+  // Shader, Bilder, deren Warteschlange, zuletzt die Spiegelungssonde).
+  // Statt jede Fortsetzung einzeln zu fragen, endet sie hier an der Quelle:
+  // verify:hangar [24] zählt die Quellen im Rumpf von initHangar und reißt,
+  // wenn eine ohne lebt() dazukommt (die Ausnahmen sind dort benannt).
+  const lebt = (p) => Promise.resolve(p).then((v) => (tot ? nieMehr() : v), (e) => { if (tot) return nieMehr(); throw e; });
   // Was diese Bühne über die Leitung holt und beim Abbau nicht mehr braucht
   // (die Bilder aus dem WebP, embeddedImages): dispose() bricht es ab.
   const abbau = new AbortController();
@@ -7638,6 +7647,13 @@ export async function initHangar(container, opts = {}) {
   const PR_CAP = { hoch: 2, mittel: 1.5, niedrig: 1 };
 
   const renderer = new THREE.WebGLRenderer({ antialias: pick.level !== 'niedrig', powerPreference: 'high-performance' });
+  // Kontextverluste von Anfang an zählen: Die Horcher der Bühne stehen erst
+  // hinter den Pausen des Aufbaus (unten bei lostFn), und die Seite hört
+  // erst zu, wenn initHangar zurück ist (halter.auf in hangar-overview.js).
+  // Was davor verloren geht, wird dort nachgetragen und dem Horcher
+  // nachgereicht, sobald er gesetzt ist (onLost).
+  let kontextWeg = 0;
+  renderer.domElement.addEventListener('webglcontextlost', () => { kontextWeg++; });
   // Ohne Namen von der Seite: aus dem eigenen Zeichenkontext, nur abwärts
   if (opts.gpu == null && pick.why !== 'gewählt') {
     const p2 = pickQuality({ ...device, gpu: gpuName(renderer.getContext()) });
@@ -9070,7 +9086,7 @@ export async function initHangar(container, opts = {}) {
   async function loadHallLights(h) {
     if (!GAME_LAMPS || !h?.lights) return false;
     let d = null;
-    try { const r = await fetch(h.lights); d = r.ok ? await r.json() : null; } catch { return false; }
+    try { const r = await lebt(fetch(h.lights)); d = r.ok ? await lebt(r.json()) : null; } catch { return false; }
     // Vor v 2 standen die Richtungen noch im Z-oben-Raum des Spiels. Ist die
     // Halle schon gescheitert, steht die gebaute mit ihrem Bühnenlicht.
     if ((d?.v || 1) < 2 || hallFailed) return false;
@@ -9431,9 +9447,9 @@ export async function initHangar(container, opts = {}) {
   async function loadHallProbe(h) {
     if (!HALL_PROBE || !h?.probes) return null;
     try {
-      const r = await fetch(h.probes);
+      const r = await lebt(fetch(h.probes));
       if (!r.ok) return null;
-      const list = ((await r.json()).probes || []).filter((p) => p.spec && Array.isArray(p.pos));
+      const list = ((await lebt(r.json())).probes || []).filter((p) => p.spec && Array.isArray(p.pos));
       if (!list.length) return null;
       const c = h.room.center, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
       const pad = [o[0], f + 2.5, o[2]];
@@ -9441,8 +9457,8 @@ export async function initHangar(container, opts = {}) {
       const holds = (p) => Array.isArray(p.box) && p.pos.every((v, i) => Math.abs(pad[i] - v) <= p.box[i]);
       const pick = [...list].sort((a, b) => (holds(b) - holds(a)) || ((b.priority ?? 0) - (a.priority ?? 0)) || (d2(a) - d2(b)))[0];
       const u = new URL(h.probes, location.href);
-      const { HDRLoader } = await import('three/addons/loaders/HDRLoader.js');
-      const tex = await new HDRLoader().loadAsync(u.pathname.replace(/\.json$/, '/') + pick.spec + u.search);
+      const { HDRLoader } = await lebt(import('three/addons/loaders/HDRLoader.js'));
+      const tex = await lebt(new HDRLoader().loadAsync(u.pathname.replace(/\.json$/, '/') + pick.spec + u.search));
       tex.mapping = THREE.EquirectangularReflectionMapping;
       return { tex, name: pick.name };
     } catch (e) {
@@ -10251,7 +10267,7 @@ mat3 dienstTbn( vec3 q0, vec3 q1, vec2 st0, vec2 st1, vec3 N ) {
     if (!x?.tafel?.length || !x.namen?.length) return null;
     try {
       const n = x.namen.length, px = x.px, cols = x.spalten, rows = x.tafel.length / (x.texel * 4);
-      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = new URL(`${x.karten}?v=${x.sha}`, new URL(url, location.href)).href; });
+      const img = await lebt(new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = new URL(`${x.karten}?v=${x.sha}`, new URL(url, location.href)).href; }));
       const W = px * cols, H = px * Math.ceil(n / cols);
       if (img.width !== W || img.height !== H) throw new Error(`Kartenraster ${img.width}×${img.height}, erwartet ${W}×${H}`);
       const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
@@ -11110,7 +11126,7 @@ void main() {
     const shaftReady = h.lift?.url && h.lift.json && HALL_SHAFT[h.id] && HALL_LIFT[h.id]
       ? Promise.all([
         fetchGltf(h.lift.url, 'lift', h.lift.bytes || 4e5),
-        fetch(h.lift.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.lift.json}: ${r.status}`)))),
+        lebt(fetch(h.lift.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.lift.json}: ${r.status}`))))),
       ]).then(([g, info]) => ({ kit: g.scene, info }), (e) => {
         console.warn('[hangar] Schacht nicht geladen', e);
         prog.delete('lift');
@@ -11123,7 +11139,7 @@ void main() {
     const gateReady = G0?.url && G0.json && !reduceMotion
       ? Promise.all([
         fetchGltf(G0.url, 'gate', G0.bytes || 7e5),
-        fetch(G0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${G0.json}: ${r.status}`)))),
+        lebt(fetch(G0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${G0.json}: ${r.status}`))))),
       ]).then(([g, info]) => ({ scene: g.scene, info }), (e) => {
         console.warn('[hangar] Schachttor nicht geladen', e);
         prog.delete('gate');
@@ -11134,7 +11150,7 @@ void main() {
     // von Bodentor und Plattform, die Teile ihres Modells sind; ohne die
     // Datei steht das Schiff auf dem geschlossenen Tor wie bisher
     const ownReady = h.aufzug && HALL_FEST[h.id]
-      ? fetch(h.aufzug).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.aufzug}: ${r.status}`)))).catch((e) => {
+      ? lebt(fetch(h.aufzug).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.aufzug}: ${r.status}`))))).catch((e) => {
         console.warn('[hangar] Aufzug der Halle nicht geladen', e);
         return null;
       })
@@ -11145,7 +11161,7 @@ void main() {
     const randReady = R0?.url && R0.json
       ? Promise.all([
         fetchGltf(R0.url, 'rand', R0.bytes || 7e5),
-        fetch(R0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${R0.json}: ${r.status}`)))),
+        lebt(fetch(R0.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${R0.json}: ${r.status}`))))),
       ]).then(([g, info]) => ({ scene: g.scene, info }), (e) => {
         console.warn('[hangar] Rand nicht geladen', e);
         prog.delete('rand');
@@ -11159,7 +11175,7 @@ void main() {
       ? Promise.all([
         WB.props > 0 ? fetchGltf(W.url, 'workshop', W.bytes || 6e6).then((g) => g.scene) : null,
         W.boden?.url && WB.decals > 0 ? fetchGltf(W.boden.url, 'workshop-floor', W.boden.bytes || 2e6).then((g) => g.scene) : null,
-        fetch(W.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${W.json}: ${r.status}`)))),
+        lebt(fetch(W.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${W.json}: ${r.status}`))))),
       ]).then(([props, boden, info]) => ({ scenes: [props, boden], info }), (e) => {
         console.warn('[hangar] Werkstatt nicht geladen', e);
         prog.delete('workshop'); prog.delete('workshop-floor');
@@ -11179,7 +11195,7 @@ void main() {
     const werkReady = WERK.halle === h.id && HALL_LIFT[h.id] && h.werk?.url && h.werk.json && h.werk.id === WERK.garage.id
       ? Promise.all([
         fetchGltf(h.werk.url, 'werk', h.werk.bytes || 3.2e6),
-        fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`)))),
+        lebt(fetch(h.werk.json).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${h.werk.json}: ${r.status}`))))),
         h.werk.buehne?.url ? fetchGltf(h.werk.buehne.url, 'buehne', h.werk.buehne.bytes || 5e5) : null,
         // Leitungen unter der Decke (WERK_DECKE); ohne sie bleibt die Decke leer
         h.werk.decke?.url ? fetchGltf(h.werk.decke.url, 'werkdecke', h.werk.decke.bytes || 1e6).catch((e) => {
@@ -11813,6 +11829,10 @@ void main() {
       if (lastInfo) scaleWorld(lastInfo);
       camFree = null; freeDirty = true;
       const probe = await probeReady;
+      // Abgebaut, während hier auf die Sonde gewartet wurde: Diese
+      // Fortsetzung nähme sonst am aufgegebenen Renderer eine Umgebungskugel
+      // auf (useHallProbe, captureHallEnv). Das geladene Bild geht mit.
+      if (tot) { probe?.tex.dispose(); await nieMehr(); }
       if (probe) useHallProbe(probe); else captureHallEnv(true);
       // die Kamera stand womöglich für die gebaute (größere) Halle
       if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
@@ -11844,12 +11864,12 @@ void main() {
   async function buildComposer() {
     try {
       const [{ EffectComposer }, { RenderPass }, { GTAOPass }, { UnrealBloomPass }, { OutputPass }, { Pass, FullScreenQuad }] = await Promise.all([
-        import('three/addons/postprocessing/EffectComposer.js'),
-        import('three/addons/postprocessing/RenderPass.js'),
-        import('three/addons/postprocessing/GTAOPass.js'),
-        import('three/addons/postprocessing/UnrealBloomPass.js'),
-        import('three/addons/postprocessing/OutputPass.js'),
-        import('three/addons/postprocessing/Pass.js'),
+        lebt(import('three/addons/postprocessing/EffectComposer.js')),
+        lebt(import('three/addons/postprocessing/RenderPass.js')),
+        lebt(import('three/addons/postprocessing/GTAOPass.js')),
+        lebt(import('three/addons/postprocessing/UnrealBloomPass.js')),
+        lebt(import('three/addons/postprocessing/OutputPass.js')),
+        lebt(import('three/addons/postprocessing/Pass.js')),
       ]);
       // Eigenes Ziel mit 4-fach-MSAA: der Composer umgeht sonst die
       // Kantenglättung des Renderers, und jede Kante treppt.
@@ -12365,9 +12385,22 @@ void main() {
   // die Seite erfährt beides über onLost(true/false). Was beim Laden einmal
   // gezeichnet wurde (Umgebungskugeln, Hallenschatten), ist im neuen Kontext
   // leer; neu aufbauen muss es die Seite.
-  let lostFn = null;
-  renderer.domElement.addEventListener('webglcontextlost', () => { texQuiet = true; lostFn?.(true); });
-  renderer.domElement.addEventListener('webglcontextrestored', () => lostFn?.(false));
+  // Hört noch niemand zu (während des Aufbaus, vor halter.auf), merkt sich
+  // die Bühne, was sie zu melden hatte: [true] oder, ist der Kontext schon
+  // zurück, [true, false]. onLost reicht es dem Horcher nach; sonst bliebe
+  // die Seite ohne Meldung vor einer leeren Bühne stehen und lüde auch bei
+  // der Rückkehr des Kontexts nicht neu.
+  let lostFn = null, lostOffen = null;
+  const lostSag = (lost) => {
+    if (lostFn) lostFn(lost);
+    else if (tot) return;
+    else if (lost) lostOffen = [true];
+    else lostOffen?.push(false);
+  };
+  renderer.domElement.addEventListener('webglcontextlost', () => { texQuiet = true; lostSag(true); });
+  renderer.domElement.addEventListener('webglcontextrestored', () => lostSag(false));
+  // schon während der Pausen des Aufbaus verloren (kontextWeg oben)
+  if (kontextWeg) { texQuiet = true; lostSag(true); if (!renderer.getContext().isContextLost()) lostSag(false); }
   let token = 0;
   let liveryKey = 'werk';
   let makerCode = '';
@@ -12395,7 +12428,7 @@ void main() {
     if (!reduceMotion) el.style.transition = 'opacity .45s ease-out';
     el.style.opacity = '1';
   }
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const sleep = (ms) => lebt(new Promise((r) => setTimeout(r, ms)));
 
   // ─── Werkhalle: Bühne, Licht, Fahrt der Kamera ──────────────────────────
   // Bodenfahrzeuge (Seitenvertrag ort 'werk') stehen in der Werkhalle auf
@@ -13432,7 +13465,7 @@ void main() {
   const weaponTpl = new Map();   // url -> Promise<Object3D>, geteilt über Schiffe
   function loadWeapon(url) {
     if (!weaponTpl.has(url)) {
-      const p = new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject)).then(async (g) => {
+      const p = lebt(new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject))).then(async (g) => {
         const tpl = g.scene;
         tpl.traverse((n) => {
           if (!n.isMesh) return;
@@ -13453,7 +13486,7 @@ void main() {
   // einem Teil nicht zeigt (POM-Decals, Schadensnetze: hiddenMaterial),
   // bleibt auch dort weg.
   function loadPartRaw(url) {
-    return new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject)).then((g) => {
+    return lebt(new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject))).then((g) => {
       g.scene.traverse((n) => { if (n.isMesh && hiddenMaterial([].concat(n.material)[0]?.name)) n.visible = false; });
       return g.scene;
     });
@@ -14253,7 +14286,7 @@ void main() {
     c.innerP = (async () => {
       const [g, meta] = await Promise.all([
         fetchGltf(inf.url, 'interior', inf.bytes || 8e6),
-        fetch(inf.meta).then((r) => (r.ok ? r.json() : null), () => null),
+        lebt(fetch(inf.meta).then((r) => (r.ok ? r.json() : null), () => null)),
       ]);
       if (current !== c) { disposeObject(g.scene); return null; }
       const root = g.scene;
@@ -14818,7 +14851,7 @@ void main() {
     stWant = w ?? null;
     if (stLayer) stLayer.set(stWant);
     else if (stWant && !stLoad) {
-      stLoad = import(opts.holo.module).then((m) => {
+      stLoad = lebt(import(opts.holo.module)).then((m) => {
         stLayer = m.holoLayer({ scene, camera, renderer, reduceMotion, wake, W, H, rest: stRest, act: (a) => stAct?.(a), part: loadPartRaw, name: () => holo.rect() });
         if (stSafe) stLayer.safe(stSafe);
         stLayer.set(stWant);
@@ -14930,7 +14963,7 @@ void main() {
   }
   // Die Schriften der Seite kommen erst, wenn etwas sie braucht: Steht das
   // Bild schon, wird es mit ihnen noch einmal gezeichnet.
-  if (LEIT && document.fonts?.load) Promise.all(LEIT_FONTS.map((f) => document.fonts.load(f))).then(() => { if (leitScreen) { leitDraw(); wake(300); } }, () => {});
+  if (LEIT && document.fonts?.load) lebt(Promise.all(LEIT_FONTS.map((f) => document.fonts.load(f)))).then(() => { if (leitScreen) { leitDraw(); wake(300); } }, () => {});
   function leitLay() {
     if (!leitScreen) return;
     const S = LEIT.schirm, k = hallRoot.scale.x, Z = LEIT_A.Z;
@@ -15447,7 +15480,7 @@ void main() {
   if (opts.crew?.module && REAL) {
     // mit Skelett und Spielanimationen: Modul und Figur zugleich laden,
     // Programme übersetzen, bevor die Figuren an root hängen
-    Promise.all([import(opts.crew.module), fetchGltf(opts.crew.url, 'crew', opts.crew.bytes ?? 2e6)]).then(async ([mod, g]) => {
+    Promise.all([lebt(import(opts.crew.module)), fetchGltf(opts.crew.url, 'crew', opts.crew.bytes ?? 2e6)]).then(async ([mod, g]) => {
       const r = await mod.crewRig(g, { reduceMotion });
       await prepare({ traverse: (f) => r.roots.forEach((o) => o.traverse(f)), traverseVisible: (f) => r.roots.forEach((o) => o.traverseVisible(f)) });
       life.useRig(r);
@@ -15575,14 +15608,24 @@ void main() {
       if (composer) composer.render(); else renderer.render(scene, camera);
       let bild = null;
       try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }
+      // inzwischen abgebaut (die Seite wartet nur kurz darauf): Das Bild braucht niemand mehr
+      if (tot) { bild.close(); return null; }
       const c = document.createElement('canvas'), k = c.getContext('bitmaprenderer');
       if (!k) { bild.close(); return null; }
       c.width = bild.width; c.height = bild.height;
       k.transferFromImageBitmap(bild);
       return c;
     },
-    // fn(true): Zeichenkontext verloren, fn(false): wieder da
-    onLost(fn) { lostFn = fn; },
+    // fn(true): Zeichenkontext verloren, fn(false): wieder da. Was geschah,
+    // bevor jemand zuhörte (lostOffen), erfährt der Horcher gleich nach dem
+    // Setzen, als Mikroaufgabe: nicht mitten in dem Aufruf, der ihn setzt.
+    onLost(fn) {
+      lostFn = fn;
+      if (!fn || !lostOffen) return;
+      const was = lostOffen;
+      lostOffen = null;
+      queueMicrotask(() => { for (const lost of was) if (lostFn === fn) fn(lost); });
+    },
     // Geräusche an/aus (Schalter auf der Bühne); sound(): { on, can }. Ohne
     // Bewegung (reduceMotion) fährt nichts, dann gibt es auch nichts zu hören.
     setSound(on) { sound.set(on); },
@@ -15593,6 +15636,10 @@ void main() {
       abbau.abort();
       // der Seite meldet diese Bühne nichts mehr, auch nicht den Kontext, den sie unten selbst aufgibt
       lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo.onShow = null;
+      // auch nicht mehr auf der Konsole: Die Zeilen zu freigegebenen Bildern,
+      // Puffern und Zwillingen kommen zwei Sekunden verzögert, nach einem
+      // Hallenwechsel zählte check:hangar-shader sie sonst zur neuen Bühne
+      clearTimeout(ktxStat.timer); clearTimeout(texStat.timer); clearTimeout(geoStat.timer);
       cancelAnimationFrame(raf);
       document.removeEventListener('pointerdown', unlockSound, { capture: true });
       document.removeEventListener('keydown', unlockSound, { capture: true });
