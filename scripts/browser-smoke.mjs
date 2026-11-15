@@ -2423,6 +2423,66 @@ async function probeWerkbank(page) {
   await page.waitForTimeout(300);
   if (rad) return rad;
 
+  // 1c. Auftakt auf jedem Bildschirm: jede Kachel, die beim Laden im Bild
+  // steht, laeuft mit. Bis zum 15.11.2026 waren es fest die ersten zehn; das
+  // faellt bis 1440 px nicht auf (zwei Spalten, sechs Kacheln), auf einem
+  // grossen Bildschirm standen aber alle ab der elften sofort da, waehrend die
+  // ersten noch einblendeten (Krisz: „die ersten 2 reihen der blueprints
+  // [haben] eine animation die restilchen nicht“). Zwei Groessen, weil die
+  // Regel zwei Stufen hat (werkbankDesign.ts, AUF_GROSS_AB): 3840 x 2160 ist
+  // der groesste gemessene Fall der grossen Stufe (108 Kacheln), 1499 x 999
+  // das groesste Fenster der kleinen (acht). Gelesen wird, was die Regeln mit
+  // der Klasse wb-auftakt tun, nicht ein Zeitpunkt im Ablauf: die Klasse
+  // faellt nach dem Auftakt weg, die Probe setzt sie deshalb selbst.
+  const gross = await page.context().browser().newContext({
+    viewport: { width: 3840, height: 2160 }, deviceScaleFactor: 1,
+    colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
+  });
+  await gross.route('**/*', (route) => { route.request().url().startsWith(BASE) ? route.continue() : route.abort(); });
+  await gross.addInitScript(() => { try { localStorage.setItem('vb.help.seen', '{"all":1}'); } catch { /* ohne Ablage nur die Hilfe */ } });
+  try {
+    const g = await gross.newPage();
+    const ziel = new URL(page.url());
+    ziel.search = '';
+    await g.goto(ziel.href, { waitUntil: 'load', timeout: 60000 });
+    await g.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
+    for (const [breite, hoehe, mindestens] of [[3840, 2160, 60], [1499, 999, 6]]) {
+      await g.setViewportSize({ width: breite, height: hoehe });
+      const auf = await g.evaluate(async () => {
+        const wurzel = document.querySelector('.cdb--wb');
+        wurzel.classList.remove('wb-auftakt');
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const feld = document.querySelector('#cdb-grid').getBoundingClientRect();
+        const unten = Math.min(feld.bottom, innerHeight);
+        // Im Bild: wenigstens 24 px der Kachel stehen im Feld (eine laufende
+        // Kachel ist bis zu 10 px versetzt, ein Streifen am Rand zaehlt nicht).
+        const imBild = [];
+        for (const k of document.querySelectorAll('#cdb-grid .cbp')) {
+          if (k.hidden) continue;
+          const r = k.getBoundingClientRect();
+          if (r.top >= unten) break;
+          if (r.top < unten - 24 && r.bottom > feld.top + 24) imBild.push(k);
+        }
+        wurzel.classList.add('wb-auftakt');
+        const hat = (el, name) => getComputedStyle(el).animationName.split(', ').includes(name);
+        let ohne = 0, erste = 0, ohneKnopf = 0;
+        imBild.forEach((k, i) => {
+          if (!hat(k, 'wb-auf')) { ohne++; if (!erste) erste = i + 1; }
+          const kn = k.querySelector('.cbp__btns');
+          if (kn && !hat(kn, 'wb-blende')) ohneKnopf++;
+        });
+        wurzel.classList.remove('wb-auftakt');
+        return { imBild: imBild.length, ohne, erste, ohneKnopf };
+      });
+      const wo = `Werkbank ${breite} x ${hoehe}`;
+      if (auf.imBild < mindestens) return `${wo}: die Probe sieht nur ${auf.imBild} Kacheln im Bild (erwartet mindestens ${mindestens}) und kann den Auftakt bei dieser Groesse nicht beurteilen`;
+      if (auf.ohne) return `${wo}: beim ersten Laden laufen ${auf.ohne} von ${auf.imBild} sichtbaren Kacheln im Auftakt nicht mit (ab der ${auf.erste}.); sie stehen sofort da, waehrend die ersten noch einblenden`;
+      if (auf.ohneKnopf) return `${wo}: an ${auf.ohneKnopf} von ${auf.imBild} sichtbaren Kacheln springen Stern und Plus beim Laden auf, statt einzublenden`;
+    }
+  } finally {
+    await gross.close();
+  }
+
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
     viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true,

@@ -20,6 +20,43 @@
 //   - Bewegung erklaert, was passiert (Rezept wechselt, Stueck fliegt in den
 //     Planer, Wert folgt dem Regler). Kurz, nur transform/opacity, und aus bei
 //     prefers-reduced-motion.
+// Auftakt der Kacheln (Abschnitt 7): jede Kachel, die beim ersten Laden im
+// Bild stehen kann, laeuft mit. Bis zum 15.11.2026 waren es fest die ersten
+// zehn. Das reicht bis 1440 px Breite (zwei Spalten); auf einem grossen
+// Bildschirm stehen aber 30 (2560 x 1440) bis 108 Kacheln (3840 x 2160) in
+// der Liste, und alle ab der elften standen sofort da, waehrend oben links
+// noch ein Loch war. Krisz 15.11.2026: „beim ersten laden der seite haben
+// die ersten 2 reihen der blueprints eine animation die restilchen nicht.“
+// Der Verzug waechst in Lesereihenfolge und laeuft gegen AUF_ENDE aus: die
+// ersten Kacheln folgen einander im alten Abstand (rund 30 ms), die hinteren
+// immer dichter, damit der Auftakt auf jedem Bildschirm gleich lang dauert.
+// Reines CSS, weil die Klasse wb-auftakt im Markup steht und die Kacheln
+// gezeichnet sind, lange bevor ein Skript sie messen koennte.
+// Zwei Stufen, damit ein Telefon nicht 120 Kacheln bewegt, von denen es eine
+// zeigt: unter 1500 px Breite und unter 1000 px Hoehe stehen hoechstens acht
+// Kacheln im Bild (gemessen von 390 x 844 bis 1499 x 999), dort laufen die
+// ersten AUF_KLEIN mit wie bisher. Ab AUF_GROSS_AB (breit ODER hoch, also
+// auch ein hochkant gedrehter Bildschirm mit 22 Kacheln) sind es AUF_KACHELN;
+// gemessen stehen hoechstens 108 im Bild (3840 x 2160).
+const AUF_KACHELN = 120;
+const AUF_KLEIN = 12;
+const AUF_GROSS_AB = '(min-width:1500px),(min-height:1000px)';
+const AUF_ENDE = 420;
+const AUF_TAU = 13;
+const AUFTAKT_VERZUG = (() => {
+  const wert = (k: number) => Math.round((AUF_ENDE * (1 - Math.exp(-(k - 1) / AUF_TAU))) / 6) * 6;
+  const regeln: string[] = [];
+  let von = 2;
+  for (let k = 3; k <= AUF_KACHELN + 1; k++) {
+    if (k <= AUF_KACHELN && wert(k) === wert(von)) continue;
+    const bis = k - 1;
+    const wahl = von === bis ? `:nth-child(${von})` : `:nth-child(n+${von}):nth-child(-n+${bis})`;
+    regeln.push(`.cdb--wb.wb-auftakt .cbp${wahl}{--wb-v:${wert(von)}ms}`);
+    von = k;
+  }
+  return regeln.join('\n');
+})();
+
 export const WERKBANK_DESIGN_CSS = `
 /* ===== 0 Grundwerte ===== */
 .cdb--wb{
@@ -637,15 +674,15 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb.wb-auftakt > .cdb-tabs,.cdb--wb.wb-auftakt .cdb-bar{animation:wb-ein calc(.45s*var(--zt)) var(--out) both}
 .cdb--wb.wb-auftakt .cdb-bar{animation-delay:calc(50ms*var(--zt))}
 .cdb--wb.wb-auftakt .cdb-count-row{animation:wb-ein calc(.45s*var(--zt)) var(--out) calc(100ms*var(--zt)) both}
-.cdb--wb.wb-auftakt .cbp:nth-child(-n+10){animation:wb-auf calc(.5s*var(--zt)) var(--out) both}
-.cdb--wb.wb-auftakt .cbp:nth-child(2){animation-delay:calc(30ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(3){animation-delay:calc(60ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(4){animation-delay:calc(90ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(5){animation-delay:calc(120ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(6){animation-delay:calc(150ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(7){animation-delay:calc(180ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(8){animation-delay:calc(210ms*var(--zt))}
-.cdb--wb.wb-auftakt .cbp:nth-child(n+9){animation-delay:calc(240ms*var(--zt))}
+/* Jede Kachel, die beim Laden im Bild stehen kann, nicht nur die ersten
+   zehn: auf kleinen Bildschirmen die ersten ${AUF_KLEIN}, auf grossen die ersten
+   ${AUF_KACHELN} (Stufen und Messwerte am Kopf der Datei). Ihr Verzug --wb-v
+   steht in den Regeln darunter. */
+.cdb--wb.wb-auftakt .cbp:nth-child(-n+${AUF_KLEIN}){animation:wb-auf calc(.5s*var(--zt)) var(--out) calc(var(--wb-v,0ms)*var(--zt)) both}
+@media ${AUF_GROSS_AB}{
+  .cdb--wb.wb-auftakt .cbp:nth-child(-n+${AUF_KACHELN}){animation:wb-auf calc(.5s*var(--zt)) var(--out) calc(var(--wb-v,0ms)*var(--zt)) both}
+}
+${AUFTAKT_VERZUG}
 /* R7: Mitte und Planer stehen im Markup hinter den 1.626 Kacheln (rund
    0,9 MB) und kamen deshalb erst ins Bild, wenn der Rest der Seite geladen
    und gelesen war: zwei Drittel der Seite blieben so lange leer und sprangen
@@ -667,7 +704,10 @@ export const WERKBANK_DESIGN_CSS = `
 }
 /* R7: Stern und Plus haengt das Skript an die Kacheln. An den ersten, die
    man beim Laden sieht, blenden sie ein, statt aufzuspringen. */
-.cdb--wb.wb-auftakt .cbp:nth-child(-n+12) .cbp__btns{animation:wb-blende calc(.35s*var(--zt)) var(--out) both}
+.cdb--wb.wb-auftakt .cbp:nth-child(-n+${AUF_KLEIN}) .cbp__btns{animation:wb-blende calc(.35s*var(--zt)) var(--out) both}
+@media ${AUF_GROSS_AB}{
+  .cdb--wb.wb-auftakt .cbp:nth-child(-n+${AUF_KACHELN}) .cbp__btns{animation:wb-blende calc(.35s*var(--zt)) var(--out) both}
+}
 /* R7: was die Liste zeigt, hat sich geaendert (Suche, Filter, Sortierung,
    Ansicht), oder ein Reiter wurde gewechselt: der Inhalt setzt einmal kurz
    neu an, statt hart umzuspringen (is-frisch setzt crafting-app.js). */
