@@ -138,13 +138,41 @@ for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <
   DIRS.push([x / l, y / l, z / l]);
 }
 
+// Lesarten für Flächenlichter (FLAECHEN_LESART in build-hangar-assets.mjs
+// wählt je Halle):
+// - 'flaeche': Normale der nächsten Fläche, wie oben beschrieben. So steht die
+//   Halle von Revel & York (und die Werkhalle) seit ihrem Bau.
+// - 'achse': die eigene +X-Spalte des Lichtknotens, wie bei den Spots. In den
+//   Industriehallen (util_a) ist das die Richtung des Spiels, nachgemessen am
+//   15.11.2026 je Halle an den Flächenlichtern, die an einer Fläche sitzen
+//   (hinten unter 1,2 m) und vorn 0,6 m frei haben: entlang +X Small 13,
+//   Medium 22, Large 20, Extra Large 52; entlang −X 0, 0, 8 und 0. Die acht
+//   der Large-Halle sind die Deckenpaneele in den Kabinen der Frachtaufzüge:
+//   Ihre Lampe sitzt 9 cm über der Scheibe ihrer Leuchte, also im Gehäuse,
+//   und strahlt durch sie nach unten. Die Lesart 'flaeche' nahm die Scheibe
+//   für die Fläche, an der die Lampe hängt, und drehte alle acht an die
+//   Decke. In der ganzen Large-Halle zeigten so von 58 Flächenlichtern 22
+//   ihrer eigenen Richtung entgegen und 22 quer zu ihr, darunter die
+//   sechzehn unter dem Dach (71 m hoch, Stärke 5, 28 und 40 m weit): acht
+//   nach oben außen in die Kehle statt schräg nach unten in die Halle.
+//   Die Halle von Revel & York entscheidet dieselbe Messung nicht (128 zu
+//   75), sie bleibt bei 'flaeche'.
+export const FLAECHEN_LESARTEN = ['flaeche', 'achse'];
+
 /**
- * Richtet die Lampenliste aus (verändert sie): Spots gegengeprüft, Flächenlichter
- * von der nächsten Fläche weg (bis `reach` m; weiter weg: dir null = rundum).
+ * Richtet die Lampenliste aus (verändert sie): Spots gegengeprüft;
+ * Flächenlichter je nach Lesart: 'flaeche' von der nächsten Fläche weg (bis
+ * `reach` m; weiter weg: dir null = rundum), 'achse' entlang ihrer eigenen
+ * Richtung (dir bleibt, wie sie ankommt; gezählt wird nur, wie viele an einer
+ * Fläche sitzen und von ihr weg oder in sie hinein zeigen).
  * Gibt eine Selbstauskunft zurück.
  */
-export function orientHallLights(lights, rc, reach = 1.2) {
+export function orientHallLights(lights, rc, reach = 1.2, { flaechen = 'flaeche' } = {}) {
+  if (!FLAECHEN_LESARTEN.includes(flaechen)) throw new Error(`orientHallLights: unbekannte Lesart für Flächenlichter ${JSON.stringify(flaechen)} (bekannt: ${FLAECHEN_LESARTEN.join(', ')})`);
+  // Die Selbstauskunft der Lesart 'flaeche' bleibt, wie sie war (sie steht im
+  // Manifest der Hallen, die so gebaut sind).
   const out = { spots: 0, area: 0, areaMounted: 0, spotsAway: 0, spotsMounted: 0 };
+  if (flaechen === 'achse') Object.assign(out, { flaechen, areaAway: 0, areaInto: 0, areaOhne: 0 });
   const r3 = (v) => Math.round(v * 1000) / 1000;
   for (const l of lights) {
     if (l.type === 'spot' && l.dir) {
@@ -152,6 +180,16 @@ export function orientHallLights(lights, rc, reach = 1.2) {
       // Gegenprobe: sitzt der Spot an einer Fläche, zeigt er von ihr weg?
       const back = rc.ray(l.pos, l.dir.map((x) => -x), reach);
       if (back) { out.spotsMounted++; if (!(rc.ray(l.pos, l.dir, 0.6))) out.spotsAway++; }
+    } else if (l.type === 'area' && flaechen === 'achse') {
+      out.area++;
+      // Ohne eigene Richtung gäbe es nichts zu lesen: Die Lampe strahlte
+      // rundum, und niemand erführe es.
+      if (!(Array.isArray(l.dir) && l.dir.length === 3 && l.dir.every(Number.isFinite) && Math.hypot(...l.dir) > 0.5)) { out.areaOhne++; l.dir = null; continue; }
+      // Gegenprobe wie bei den Spots, in beide Richtungen
+      const gegen = l.dir.map((x) => -x);
+      const hinten = rc.ray(l.pos, gegen, reach), vorn = rc.ray(l.pos, l.dir, reach);
+      if (hinten && !rc.ray(l.pos, l.dir, 0.6)) { out.areaMounted++; out.areaAway++; }
+      else if (vorn && !rc.ray(l.pos, gegen, 0.6)) { out.areaMounted++; out.areaInto++; }
     } else if (l.type === 'area') {
       out.area++;
       let best = null;

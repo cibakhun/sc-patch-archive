@@ -21336,7 +21336,7 @@
     },
     "util-lrgtop": {
       "url": "/hangar/hall/util-lrgtop.glb",
-      "v": "6589033c",
+      "v": "d7f5089a",
       "tris": 1815479,
       "trisRaw": 574108,
       "textures": 263,
@@ -21376,19 +21376,31 @@
         }
       },
       "lights": {
-        "total": 912,
+        "total": 870,
         "byType": {
-          "spot": 496,
-          "point": 358,
+          "spot": 447,
+          "point": 365,
           "area": 58
         },
-        "matched": 912,
+        "matched": 870,
         "orient": {
-          "spots": 496,
+          "spots": 447,
           "area": 58,
-          "areaMounted": 58,
-          "spotsAway": 251,
-          "spotsMounted": 323
+          "areaMounted": 27,
+          "spotsAway": 227,
+          "spotsMounted": 285,
+          "flaechen": "achse",
+          "areaAway": 19,
+          "areaInto": 8,
+          "areaOhne": 0
+        },
+        "ruhe": {
+          "weg": 86,
+          "namen": 81,
+          "gruppen": {
+            "lg_hangar_lrgtop": 76,
+            "lg_cargo_elevator_lrg-001": 5
+          }
         }
       },
       "furniture": 8,
@@ -22111,6 +22123,7 @@
         "layers.json",
         "tor.json",
         "info.json",
+        "ruhe.json",
         "decals.glb",
         "schrift.glb"
       ],
