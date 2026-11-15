@@ -113,6 +113,19 @@ export function gitterDazu(mit, nur, leer) {
 }
 
 /**
+ * Die dunkelste Stelle eines entpackten Gitters über die sechs Richtungen aller Zellen. Gegenstück zu gitterDunkel
+ * des Viewers: Damit meldet die laufende Bühne, was ihre Uniformen nach dem Laden tragen, und check:hangar-shader
+ * hält es fest. Das Tor vergleicht beide am selben Gitter, damit die Zahl der Bühne meint, was in den Zellen steht.
+ * @param {{ w: Float32Array, N: number }} G entpacktes Gitter (gitterWerte)
+ * @returns {number}
+ */
+export function gitterDunkelste(G) {
+  let m = Infinity;
+  for (let n = 0; n < G.N; n++) for (let s = 0; s < 6; s++) m = Math.min(m, G.w[n * 8 + s]);
+  return m;
+}
+
+/**
  * Die Naht, die am Quelltext bleibt: Die Bühne rechnet ihr Gitter mit derselben Funktion, die das Tor
  * nachrechnet, reicht ihr ihre Halle und lädt, was sie liefert. Gelesen wird der Syntaxbaum (wie
  * scripts/lib/buehnen-quellen.mjs): Ein Aufruf in einem Kommentar oder einer Zeichenkette ist keiner, einer
@@ -125,7 +138,21 @@ export function gitterDazu(mit, nur, leer) {
  *   oder Nachbau von ihr. Ein gleichnamiger Parameter oder eine gleichnamige Erklärung zwischen Aufruf und
  *   Funktion (ein innerer Pfeil mit demselben Namen, const im selben Block) ist ein anderer Wert: dann nicht.
  *   genutzt: Sein Ergebnis wird gewartet, bekommt einen Namen (const x = await …), und beide Felder des Gitters
- *   (x.a und x.b) werden in der Funktion gelesen; gerechnet und verworfen zählt nicht.
+ *   (x.a und x.b) werden in der Funktion gelesen; gerechnet und verworfen zählt nicht. Gelesen heißt: Der Wert
+ *   des Felds wird genommen. Zwei Regeln sagen, wann nicht:
+ *   1. Das Feld ist nur Ziel: x.a = … (auch += und ??=), x.a++, delete x.a, [x.a] = …, ({ k: x.a } = …),
+ *      for (x.a of …).
+ *   2. Der Wert fällt an Ort und Stelle weg: Der Zugriff, oder was nur aus ihm gerechnet ist (!x.a, x.a + 1,
+ *      x.a.length, [x.a], typeof x.a, await x.a, x.a ? 1 : 2), steht als Anweisung für sich, unter void oder
+ *      links vom Komma.
+ *   Die Grenze: Wohin ein gelesener Wert danach geht, verfolgt der Syntaxbaum nicht (in eine Konstante, die
+ *   niemand braucht; in einen Aufruf, der ihn fallen lässt; als typeof oder Länge in eine Zuweisung; hinter eine
+ *   Bedingung, die nie gilt). Strenger als die Sprache ist die Naht dort, wo sie nur die eine Schreibweise kennt
+ *   (x.a am Namen aus const x = await …; nicht x['a'], (x).a, ein zweiter Name für x, { a, b } = …). genutzt ist
+ *   darum eine frühe Warnung auf Schiene A und kein Beleg. Den Beleg führt die laufende Bühne: Sie liest nach dem
+ *   Laden an ihren Uniformen zurück, was sie tragen (gitterDunkel in assets/hangar-viewer.js, Zeile "[hangar]
+ *   Lichtgitter … geladen (dunkelste Stelle …)"), und check:hangar-shader hält das für jede Halle fester Größe
+ *   gegen ihre Klinke grund.
  */
 export function gitterAufrufe(text, { funktion = 'loadHallLights', rechner = 'hallGitter' } = {}) {
   const sf = ts.createSourceFile('viewer.js', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -160,12 +187,40 @@ export function gitterAufrufe(text, { funktion = 'loadHallLights', rechner = 'ha
     }
     return false;
   };
+  // Nimmt dieser Feldzugriff den Wert des Felds? Zwei Regeln sagen, wann nicht (genutzt, oben).
+  const nimmtWert = (n) => {
+    const Z = ts.SyntaxKind;
+    const zuweisung = (e) => ts.isBinaryExpression(e) && e.operatorToken.kind >= Z.FirstAssignment && e.operatorToken.kind <= Z.LastAssignment;
+    const zaehlt = (e) => (ts.isPrefixUnaryExpression(e) || ts.isPostfixUnaryExpression(e)) && (e.operator === Z.PlusPlusToken || e.operator === Z.MinusMinusToken);
+    // 1. nur Ziel: selbst, in Klammern oder als Glied eines Musters ([x.a], { k: x.a }, ...x.a) links vom =
+    //    (auch += und ??=), im Kopf von for-of und for-in, unter ++, -- oder delete
+    let k = n, e = n.parent;
+    while (e && (ts.isParenthesizedExpression(e) || ts.isArrayLiteralExpression(e) || ts.isObjectLiteralExpression(e) || ts.isSpreadElement(e) || ts.isSpreadAssignment(e) || (ts.isPropertyAssignment(e) && e.initializer === k))) { k = e; e = e.parent; }
+    if (!e) return false;
+    if ((zuweisung(e) && e.left === k) || ((ts.isForOfStatement(e) || ts.isForInStatement(e)) && e.initializer === k) || zaehlt(e) || ts.isDeleteExpression(e)) return false;
+    // 2. der Wert fällt an Ort und Stelle weg: Der Zugriff, oder was nur aus ihm gerechnet ist (Klammern, Rechnung,
+    //    Vergleich, Bedingung, await, typeof, Liste, Objekt, Schablone, ein Feld von ihm), steht als Anweisung für
+    //    sich, unter void oder links vom Komma. Ein Aufruf, eine Zuweisung, ein return nehmen ihn mit.
+    for (k = n, e = n.parent; e; k = e, e = e.parent) {
+      if (ts.isExpressionStatement(e) || ts.isVoidExpression(e)) return false;
+      if (ts.isBinaryExpression(e)) {
+        if (zuweisung(e)) return true;
+        if (e.operatorToken.kind === Z.CommaToken && e.left === k) return false;
+        continue;
+      }
+      if (ts.isParenthesizedExpression(e) || ts.isConditionalExpression(e) || ts.isAwaitExpression(e) || ts.isTypeOfExpression(e) || ts.isTemplateExpression(e) || ts.isTemplateSpan(e)
+        || ts.isArrayLiteralExpression(e) || ts.isObjectLiteralExpression(e) || ts.isPropertyAssignment(e) || ts.isSpreadElement(e) || ts.isSpreadAssignment(e)
+        || (ts.isPrefixUnaryExpression(e) && !zaehlt(e)) || ts.isElementAccessExpression(e) || (ts.isPropertyAccessExpression(e) && e.expression === k)) continue;
+      return true;
+    }
+    return false;
+  };
   // x.a und x.b irgendwo im Rumpf gelesen, mit demselben x (nicht neu gebunden)
   const liest = (erkl, name, feld) => {
     let ja = false;
     const geh = (n) => {
       if (ja) return;
-      if (ts.isPropertyAccessExpression(n) && n.name.text === feld && ts.isIdentifier(n.expression) && n.expression.text === name) {
+      if (ts.isPropertyAccessExpression(n) && n.name.text === feld && ts.isIdentifier(n.expression) && n.expression.text === name && nimmtWert(n)) {
         // dieselbe Bindung: Vom Lesen aus gesehen bindet zuerst der Block, in dem die Erklärung steht
         const block = erkl.parent?.parent?.parent ?? null;
         for (let e = n.parent; e; e = e.parent) { if (bindet(e, name)) { ja = e === block; break; } if (e === rumpf) break; }

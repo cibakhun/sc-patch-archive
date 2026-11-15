@@ -19,7 +19,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DataUtils } from 'three';
-import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe, RICHTUNGEN, TOL } from '../../scripts/lib/hall-gitter.mjs';
+import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe, gitterDunkelste, RICHTUNGEN, TOL } from '../../scripts/lib/hall-gitter.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const QUELLE = readFileSync(join(ROOT, 'assets/hangar-viewer.js'), 'utf8');
@@ -182,6 +182,26 @@ test('kein Gitter: falsche Felder, falsche Längen, ohne Ecke', () => {
   assert.equal(gitterDazu(klein, klein, klein).abweichend, 0);
 });
 
+// Was die laufende Bühne nach dem Laden meldet (gitterDunkel an ihren Uniformen, Zeile "[hangar] Lichtgitter …
+// geladen (dunkelste Stelle …)") und check:hangar-shader gegen die Klinke der Halle hält.
+test('die dunkelste Stelle eines Gitters: gitterDunkel liest die sechs Richtungen beider Felder, nicht die Lichtfarbe', async () => {
+  const v = await viewer(), hf = DataUtils.toHalfFloat;
+  const mit = await v.hallGitter(LAMPEN, HALLE, BODEN), nur = await v.hallGitter(LAMPEN, { room: HALLE.room }, BODEN);
+  // am gerechneten Gitter dasselbe wie die Zellen selbst: mit Grundlicht dessen dunkelste Stufe (Unterseiten in
+  // der obersten Schicht), ohne Grundlicht null (Lampen allein lassen Zellen im Schwarz)
+  assert.equal(v.gitterDunkel(mit.a, mit.b), gitterDunkelste(gitterWerte(mit, DataUtils.fromHalfFloat)));
+  const oben = v.hallGrund(ID, (-1 + (mit.res[1] - 1) * v.VOL_STEP) / HALLE.room.height).unten;
+  assert.ok(Math.abs(v.gitterDunkel(mit.a, mit.b) - oben) <= TOL * oben, `${v.gitterDunkel(mit.a, mit.b)} statt ${oben}`);
+  assert.equal(v.gitterDunkel(nur.a, nur.b), 0);
+  // je Zelle zählen a ganz und die ersten zwei von b; Rot und Blau der Lichtfarbe (b, dritter und vierter Wert) nicht
+  const feld = (...w) => Uint16Array.from(w.map(hf));
+  assert.equal(v.gitterDunkel(feld(5, 5, 5, 5, 6, 6, 6, 6), feld(5, 5, 0.1, 0.2, 6, 6, 0, 0)), 5);
+  for (let i = 0; i < 4; i++) { const a = [5, 5, 5, 5, 6, 6, 6, 6]; a[4 + i] = 2; assert.equal(v.gitterDunkel(feld(...a), feld(5, 5, 1, 1, 6, 6, 1, 1)), 2, `a, Wert ${i}`); }
+  for (let i = 0; i < 2; i++) { const b = [5, 5, 1, 1, 6, 6, 1, 1]; b[i] = 3; assert.equal(v.gitterDunkel(feld(5, 5, 5, 5, 6, 6, 6, 6), feld(...b)), 3, `b, Wert ${i}`); }
+  // kein Gitter: nichts geladen, zwei Längen, keine ganzen Zellen, keine Halbfloat-Felder
+  for (const [a, b] of [[null, null], [undefined, mit.b], [mit.a, null], [feld(1, 1, 1, 1), feld(1, 1, 1, 1, 1, 1, 1, 1)], [feld(1, 1, 1), feld(1, 1, 1)], [new Uint16Array(0), new Uint16Array(0)], [[1, 1, 1, 1], [1, 1, 1, 1]], [new Float32Array(4), new Float32Array(4)]]) assert.equal(v.gitterDunkel(a, b), null);
+});
+
 // Die Naht liest Regeln der Sprache nach (welches h ist gemeint, wird das Ergebnis gelesen). Darum läuft jede
 // Form auch wirklich: mit einer Gitterfunktion, die mitschreibt, welche Halle sie bekam und ob a und b ihres
 // Ergebnisses gelesen wurden. Wo die Naht strenger ist als die Sprache, steht es an der Form.
@@ -246,15 +266,66 @@ test('die Naht am Quelltext: Die Bühne rechnet ihr Gitter mit hallGitter, reich
     ['const vol = await hallGitter(liste, h, f); alt.forEach((vol) => { x = tex(vol.a); y = tex(vol.b); });', 'Halle verworfen'],
     ['{ const vol = await hallGitter(liste, h, f); } { const vol = alt[0]; x = tex(vol.a); y = tex(vol.b); }', 'Halle verworfen'],
     ['const vol = await hallGitter(liste, h, f); // x = tex(vol.a); y = tex(vol.b);', 'Halle verworfen'],
-    // strenger als die Sprache: Diese beiden lesen das Gitter wirklich, die Naht verlangt die eine Form const x = await …
+    // nur beschrieben, nie gelesen (CodeRabbit zu PR #380, zweite Runde: Ein Zuweisungsziel ist auch ein Feldzugriff)
+    ['const vol = await hallGitter(liste, h, f); vol.a = null; vol.b = null;', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); vol.a = vol.b = null;', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); (vol.a) = null; (vol.b) = null;', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); [vol.a, vol.b] = [null, null];', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); [vol.a = 1, ...vol.b] = [];', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); ({ k: vol.a, l: vol.b } = { k: 0, l: 0 });', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); for (vol.a of [1]) zaehl(); for (vol.b in { k: 1 }) zaehl();', 'Halle verworfen'],
+    ['const vol = await hallGitter(liste, h, f); delete vol.a; delete vol.b;', 'Halle verworfen'],
+    // eines gelesen, das andere nur beschrieben
+    ['const vol = await hallGitter(liste, h, f); x = tex(vol.a); vol.b = null;', 'Halle verworfen'],
+    // erst beschrieben, dann gelesen: Gelesen ist gelesen (was dann im Feld steht, sieht erst die laufende Bühne)
+    [`const vol = await hallGitter(liste, h, f); vol.a = alt[0].a; ${LADEN}`, 'Halle genutzt'],
+    // gelesen wird auch in einem Muster rechts vom =, als Vorgabe darin und hinter einem Komma
+    ['const vol = await hallGitter(liste, h, f); [vol_a, vol_b] = [vol.a, vol.b];', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); [vol_a = vol.a, vol_b = vol.b] = [];', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); x = { k: vol.a, l: [...alt, vol.b] };', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); x = (zaehl(), vol.a); y = (zaehl(), vol.b);', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); for (const q of [vol.a, vol.b]) zaehl(q);', 'Halle genutzt'],
+    // strenger als die Sprache: Hier ruft die Sprache das Feld ab. Es ist aber nur Ziel (++, +=, ??=), oder sein
+    // Wert und was nur aus ihm gerechnet ist, fällt an Ort und Stelle weg (für sich stehend, void, links vom Komma)
+    ['const vol = await hallGitter(liste, h, f); vol.a++; --vol.b;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); vol.a += 1; vol.b ??= 1; vol.a ||= 1; vol.b &&= 1;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); vol.a; vol.b;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); (vol.a); ((vol.b));', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); void vol.a; void vol.b;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); x = void vol.a; y = void (vol.b, 1);', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); typeof vol.a; typeof vol.b;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); vol.a, vol.b, zaehl();', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); !vol.a; vol.b + 1;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); vol.a == null; vol.a === vol.b;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); await vol.a; await (vol.b);', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); vol.a ? 1 : 2; vol.b && zaehl(); x > 5 ? vol.a : vol.b;', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); vol.a.length; vol.b[0]; alt[vol.a];', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); [vol.a, ...alt, vol.b]; ({ k: vol.a, ...vol.b });', 'Halle verworfen', 'liest und wirft weg'],
+    ['const vol = await hallGitter(liste, h, f); `${vol.a} ${vol.b}`;', 'Halle verworfen', 'liest und wirft weg'],
+    // strenger als die Sprache: Diese lesen das Gitter wirklich, die Naht kennt nur die eine Schreibweise
+    // const x = await … und x.a, x.b an diesem Namen
     ['hallGitter(liste, h, f).then((vol) => { x = tex(vol.a); y = tex(vol.b); });', 'Halle verworfen', 'liest wirklich'],
     ['const { a, b } = await hallGitter(liste, h, f); x = tex(a); y = tex(b);', 'Halle verworfen', 'liest wirklich'],
+    ["const vol = await hallGitter(liste, h, f); x = tex(vol['a']); y = tex(vol['b']);", 'Halle verworfen', 'liest wirklich'],
+    ['const vol = await hallGitter(liste, h, f); x = tex((vol).a); y = tex((vol).b);', 'Halle verworfen', 'liest wirklich'],
+    ['const vol = await hallGitter(liste, h, f); const zwei = vol; x = tex(zwei.a); y = tex(zwei.b);', 'Halle verworfen', 'liest wirklich'],
+    // Die Grenze der Naht (genutzt in scripts/lib/hall-gitter.mjs): Wohin ein gelesener Wert danach geht, verfolgt
+    // sie nicht. Diese Formen gelten ihr als genutzt, und keine lädt das Gitter. Das sieht erst die laufende Bühne,
+    // die an ihren Uniformen zurückliest (gitterDunkel, check:hangar-shader).
+    ['const vol = await hallGitter(liste, h, f); const q = vol.a, r = vol.b;', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); zaehl(vol.a, vol.b);', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); void tex(vol.a, vol.b);', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); x = typeof vol.a; y = !vol.b;', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); x = vol.a.length; if (vol.b) zaehl();', 'Halle genutzt'],
+    ['const vol = await hallGitter(liste, h, f); vol.a.toFixed(0); vol.b[0] = 1;', 'Halle genutzt'],
+    [`const vol = await hallGitter(liste, h, f); if (x > 5) { ${LADEN} }`, 'Halle genutzt', 'läuft nie'],
   ];
   for (const [rumpf, urteil, strenger, kopf] of FORMEN) {
     assert.deepEqual(kurz(form(rumpf, kopf)), [urteil], rumpf);
     const w = await wirklich(rumpf, kopf);
     const lief = `${w.halle ? 'Halle' : 'fremd'} ${w.genutzt ? 'genutzt' : 'verworfen'}`;
-    if (strenger === 'liest wirklich') { assert.equal(lief, 'Halle genutzt', rumpf); continue; }
+    if (strenger === 'liest wirklich' || strenger === 'liest und wirft weg') { assert.equal(w.fehler, null, `${rumpf}: ${w.fehler}`); assert.equal(lief, 'Halle genutzt', rumpf); continue; }
+    if (strenger === 'läuft nie') { assert.equal(w.fehler, null, `${rumpf}: ${w.fehler}`); assert.equal(lief, 'Halle verworfen', rumpf); continue; }
     if (strenger === 'bricht ab, nichts wird gelesen') { assert.ok(w.fehler instanceof ReferenceError && w.rufe === 0, rumpf); continue; }
     assert.equal(w.fehler, null, `${rumpf}: ${w.fehler}`);
     assert.equal(w.rufe, 1, rumpf);

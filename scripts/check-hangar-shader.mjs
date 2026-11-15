@@ -151,6 +151,45 @@
    anvl-carrack): „vor dem Hallenwechsel (revelyork-single):
    Vollbildpässe: 0 von 12 Shadern erst beim Probebild übersetzt …“.
    Das Skript des Stands davor endete mit demselben Eingriff gruen.
+   LICHTGITTER (15.11.2026, zweiter Befund von CodeRabbit an PR #380): Das
+   Grundlicht einer Halle fester Groesse liegt in ihrem Lichtgitter
+   (hallGitter in assets/hangar-viewer.js). verify:hangar-hallen rechnet
+   das Gitter nach, kann die Buehne aber nicht fahren: Ob sie das
+   Gerechnete auch in ihre Uniformen laedt, las es am Syntaxbaum ab, und
+   der hielt ein nur ueberschriebenes Ergebnis (vol.a = null) fuer
+   geladen. Wohin ein Wert geht, sagt kein Syntaxbaum. Darum misst es
+   jetzt die laufende Buehne selbst: Nach dem Laden liest sie an den
+   Uniformen, die der Hallenshader liest, die dunkelste Stelle zurueck
+   (gitterDunkel) und meldet sie in ihrer Zeile "[hangar] Lichtgitter …
+   geladen (dunkelste Stelle …)". Der Lauf haelt sie fuer jede Halle
+   fester Groesse gegen deren Klinke grund (KLINKE_FEST): Lampen allein
+   lassen fast jede Zelle bei null, nur mit dem Grundlicht steht ueberall
+   Licht. FEHLER, wenn die Zeile fehlt, „nicht geladen“ meldet oder die
+   dunkelste Stelle unter der Klinke liegt; nach --wechsel zaehlt fuer
+   die neue Halle nur die Zeile ihrer eigenen Buehne, und die erste Halle
+   wird mit ihrem Stand vor dem Wechsel gewertet. Die gestreckte Halle
+   hat kein Grundlicht und keine Klinke dafuer.
+   Vorgefuehrt rot (15.11.2026, fuenf Laeufe mit --ship anvl-carrack, je
+   1 FEHLER; vier mit einem Eingriff in den gebauten Viewer, einer mit
+   einer Kopie des Skripts): der Fall aus dem Review, die Buehne
+   ueberschreibt das Gerechnete, statt es zu laden (vol.a = null; vol.b
+   = null;): „die Buehne hat ihr Lichtgitter nicht geladen (Lichtgitter
+   73x36x109 aus 729 Spiellampen, Grundlicht 4.5, nicht geladen, …),
+   Klinke 0.7: das Grundlicht der Halle util-lrgtop kommt bei ihren
+   Flaechen nicht an, Waende und Decke stehen im Schwarz …“; die
+   Additionen des Grundlichts ins Gitter gestrichen: „das Lichtgitter,
+   das die Buehne geladen hat, ist an seiner dunkelsten Stelle 0, Klinke
+   0.7: …“; dasselbe mit --wechsel aegs-gladius, die Large-Halle ist die
+   erste: „vor dem Hallenwechsel (util-lrgtop): das Lichtgitter, das die
+   Buehne geladen hat, ist an seiner dunkelsten Stelle 0, Klinke 0.7:
+   …“; die Buehne meldet ihr Gitter nicht mehr: „der Viewer meldet keine
+   Zeile "[hangar] Lichtgitter": ob die Buehne der Halle util-lrgtop ein
+   Lichtgitter mit Grundlicht geladen hat …, ist ungeprueft“; die Halle
+   ohne Klinke grund: „die Halle util-lrgtop hat keine Klinke grund
+   (KLINKE_FEST): ob die Buehne ein Lichtgitter mit Grundlicht geladen
+   hat, bliebe ungeprueft“. Ohne Eingriff: „Lichtgitter: 73x36x109 aus
+   729 Spiellampen, Grundlicht 4.5, geladen (dunkelste Stelle 1.079), …
+   (Klinke 0.7 an der dunkelsten Stelle)“.
    Gesehen und offen: In einem von vier Laeufen linkten nach der
    gemeldeten Ruhe noch vier Programme ohne Namen (hoechstens eine
    Textur); ein Lauf ueber 15 min zaehlte 58 statt 54 Programme, keins
@@ -310,8 +349,14 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // Programme in Ruhe, keins mit Schichttafel (die Klinke steigt mit dem Wartungsplatz
 // und den Werkszenen der Halle); 560 Bilder freigegeben (235 MB); 107 MB Geometrie
 // in 1.640 Puffern; hoechstens 15 Texturen je Bildshader.
+// grund: die dunkelste Stelle des Lichtgitters, das die Buehne geladen hat (Zeile
+// "[hangar] Lichtgitter … geladen (dunkelste Stelle …)", im Kopf unter LICHTGITTER).
+// util-lrgtop, gemessen 15.11.2026: 1.079 (Grundlicht 4,5 am Boden, an Unterseiten
+// unter der Decke 4,5 · 0,4 · 0,6). Die Klinke liegt bei der kleinsten Stufe, die
+// Krisz zur Wahl hatte (3 am Boden, dort 0,72; dieselbe Stufe wie die Klinke grund
+// in verify:hangar-hallen). Ohne Grundlicht steht dort 0.
 const KLINKE_FEST = {
-  'util-lrgtop': { programme: 48, schichten: 0, frei: 500, geoMB: 95 },
+  'util-lrgtop': { programme: 48, schichten: 0, frei: 500, geoMB: 95, grund: 0.7 },
 };
 // Eine Halle ohne Eintrag: der Lauf ist rot, und seine Zeilen nennen keine Klinke einer anderen Halle
 const OHNE_KLINKEN = { programme: '—', schichten: '—', frei: '—', geoMB: '—', ktx: '—' };
@@ -378,7 +423,7 @@ console.log(`Browser: ${BROWSER} (Software-WebGL, Grafikkarte vorgetaeuscht)   G
 const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
-let deko = '', aufzug = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '';
+let deko = '', aufzug = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '', gitter = '';
 // Wie oft die Halle sich gemeldet hat (dekoN, aufzugN: jede Buehne meldet sich einmal) und bei welcher Zeile des
 // Viewers eine Meldung zuletzt kam (kam): daran haengt nach einem Hallenwechsel, was der neuen Buehne gehoert
 let dekoN = 0, aufzugN = 0;
@@ -414,6 +459,7 @@ page.on('console', (m) => {
   if (/^\[hangar\] Bild .* nicht geladen|Couldn't load texture/.test(t)) bildFehler.push(t.slice(0, 200));
   if (t.startsWith('[hangar] Texturen komprimiert:')) { ktx = t; kam.ktx = zeilen; }
   if (t.startsWith('[hangar] Texturen bleiben WebP:')) ktxAus = t;
+  if (t.startsWith('[hangar] Lichtgitter ')) { gitter = t; kam.gitter = zeilen; }
   if (t.startsWith('[hangar] Zwilling ')) ktxFehlt.push(t.slice(9, 200));
 });
 const bildFehler = [];
@@ -516,7 +562,7 @@ try {
   if (steht && WECHSEL) {
     const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
     // was die erste Buehne gemeldet hat: Die neue ueberschreibt jede dieser Zeilen mit ihrer eigenen
-    const stand = { K, frei, geo, ktx, paesse, viewer, n: vorher, dekoN, aufzugN, zeilen };
+    const stand = { K, frei, geo, ktx, paesse, viewer, gitter, fest, n: vorher, dekoN, aufzugN, zeilen };
     let erst = '', dann = '', kam1 = 0, h0 = '', h1 = '';
     while (!(erst = await aufDemFeld()) && Date.now() - t1 < WARTE_MS) await page.waitForTimeout(2000);
     if (!erst) fehler.push(`--wechsel: nach ${WARTE_MS / 60000} min steht das erste Schiff nicht (die Leiste der Marken traegt kein data-live)`);
@@ -548,6 +594,7 @@ try {
             if (!(kam.ktx > stand.zeilen)) ktx = '';
             if (!(kam.viewer > stand.zeilen)) viewer = '';
             if (!(kam.paesse > stand.zeilen)) paesse = '';
+            if (!(kam.gitter > stand.zeilen)) gitter = '';
             if (neuFest && !KLINKE_FEST[h1]) { fehler.push(`die Halle ${h1} hat keine eigenen Klinken (KLINKE_FEST): ohne Untergrenze saehe ein Lauf, der sie nur halb erreicht, gruen aus`); K = OHNE_KLINKEN; steht = false; }
             else K = neuFest ? KLINKE_FEST[h1] : KLINKE;
           }
@@ -592,6 +639,15 @@ if (haengt) {
   process.exit(1);
 }
 
+// LICHTGITTER einer Halle fester Groesse: die dunkelste Stelle dessen, was ihre Buehne geladen hat, gegen die Klinke grund
+function gitterUrteil(zeile, k, halle, wo) {
+  const d = Number(/ geladen \(dunkelste Stelle ([\d.]+)\)/.exec(zeile)?.[1] ?? NaN);
+  console.log(`  Lichtgitter${wo ? ` ${wo}` : ''}: ${zeile ? zeile.slice(21, 172) : 'keine Zeile'} (Klinke ${k.grund ?? '—'} an der dunkelsten Stelle)`);
+  if (k.grund === undefined) fehler.push(`${wo ? `${wo}: ` : ''}die Halle ${halle} hat keine Klinke grund (KLINKE_FEST): ob die Buehne ein Lichtgitter mit Grundlicht geladen hat, bliebe ungeprueft`);
+  else if (!zeile) fehler.push(`${wo ? `${wo}: ` : ''}der Viewer meldet keine Zeile "[hangar] Lichtgitter": ob die Buehne der Halle ${halle} ein Lichtgitter mit Grundlicht geladen hat (Klinke ${k.grund} an der dunkelsten Stelle), ist ungeprueft`);
+  else if (!(d >= k.grund)) fehler.push(`${wo ? `${wo}: ` : ''}${Number.isFinite(d) ? `das Lichtgitter, das die Buehne geladen hat, ist an seiner dunkelsten Stelle ${d}` : `die Buehne hat ihr Lichtgitter nicht geladen (${zeile.slice(9, 160)})`}, Klinke ${k.grund}: das Grundlicht der Halle ${halle} kommt bei ihren Flaechen nicht an, Waende und Decke stehen im Schwarz (Krisz, 15.11.2026: „viel zu dunkel“)`);
+}
+
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
 // Nach einem Hallenwechsel zaehlen fuer die Klinken der Halle am Ende nur die Programme seit dem Wechsel
 const seit = progs.slice(vor ? vor.n : 0);
@@ -613,6 +669,7 @@ if (vor) {
   if (/erst beim Probebild/.test(vor.paesse)) fehler.push(`${wo}: ${vor.paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
   else if (!/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(vor.paesse)) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) der ersten Halle steht nicht, oder ihre Shader entstehen erst beim ersten Bild`);
   if (!vor.viewer) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader"`);
+  if (vor.fest) gitterUrteil(vor.gitter, vor.K, vor.halle, wo);
 }
 console.log(`  Programme gelinkt: ${progs.length}${vor ? `, davon ${seit.length} seit dem Hallenwechsel` : ''} (Klinke ${K.programme}), davon mit Schichttafel: ${schichten} (Klinke ${K.schichten})`);
 console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);
@@ -663,6 +720,7 @@ if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}
 if (steht && seit.length < K.programme) fehler.push(`nur ${seit.length} Programme ${vor ? 'seit dem Hallenwechsel ' : ''}gelinkt, Klinke ${K.programme}`);
 if (steht && schichten < K.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
 if (steht && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
+if (steht && fest) gitterUrteil(gitter, K, fest, '');
 
 for (const u of unruhig) console.log(`  HINWEIS: keine Ruhe (${u}): der Lauf wertet einen Zwischenstand aus`);
 if (fehler.length) {
@@ -672,4 +730,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log('\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel, jedes Bild aus seinem komprimierten Zwilling ✓\n');
+console.log(`\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel, jedes Bild aus seinem komprimierten Zwilling${fest || vor?.fest ? ', das Lichtgitter der Halle fester Groesse mit ihrem Grundlicht geladen' : ''} ✓\n`);

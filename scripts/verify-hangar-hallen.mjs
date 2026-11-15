@@ -42,7 +42,9 @@
        Funktion des Viewers (hallGitter) ohne Lampen und liest jede Zelle
        zurück, alle sechs Richtungen und die Lichtfarbe; ohne den Namen
        der Halle bleibt es dunkel; die Bühne rechnet ihr Gitter mit
-       derselben Funktion und reicht ihr die Halle
+       derselben Funktion und reicht ihr die Halle; gitterDunkel des
+       Viewers nennt am selben Gitter dessen dunkelste Stelle (daran
+       misst check:hangar-shader, was die laufende Bühne geladen hat)
    [3] Bestand: Schrift, Schirme und die Zahlen des Manifests über ihren
        Klinken und unter ihren Obergrenzen (darunter die eingehängten
        Kind-Container: Frachtaufzüge und Türen); die Lampen aus der
@@ -229,6 +231,35 @@
        Jede dieser Formen und weitere (jede Richtung einzeln, Höhe nicht
        beachtet, Farbe weiß, das größere statt der Summe, Lampenlicht
        gelöscht) bricht tests/e2e/hall-gitter.test.js am Viewer des Repos.
+   (r) 15.11.2026, zweite Runde zu PR #380 (CodeRabbit: const vol = await
+       hallGitter(…); vol.a = null; vol.b = null; galt der Naht aus (q)
+       als geladen, ein Zuweisungsziel ist auch ein Feldzugriff). Die Naht
+       zählt seither nur, wo der Wert eines Felds genommen wird. Wohin er
+       danach geht, sagt kein Syntaxbaum: Das misst jetzt die laufende
+       Bühne an ihren Uniformen (gitterDunkel, check:hangar-shader, dort
+       im Kopf unter LICHTGITTER), und das Tor hält hier fest, dass
+       gitterDunkel am nachgerechneten Gitter dessen dunkelste Stelle
+       nennt. Dreimal am ausgelieferten Viewer gebrochen:
+       der Fall aus dem Review, die Bühne lädt nichts und überschreibt
+       das Ergebnis (vol.a = null; vol.b = null;): „[2] die Buehne des
+       ausgelieferten Viewers rechnet ihr Lichtgitter nicht mit hallGitter
+       und ihrer Halle (1 Aufruf(e) in loadHallLights: Zeile 9220
+       hallGitter(…, h, f, slicer(12, rast)), sein Ergebnis wird nicht
+       gewartet, benannt und mit a und b gelesen; …) — …“ (der Stand
+       davor blieb mit demselben Eingriff grün);
+       gitterDunkel zählt das Rot der Lichtfarbe mit: „[2] util-lrgtop:
+       der ausgelieferte Viewer nennt die dunkelste Stelle seines
+       Lichtgitters nicht so, wie sie in den Zellen steht (gitterDunkel:
+       0.8428, in den Zellen: 1.0791) — an dieser Zahl misst
+       check:hangar-shader, ob die laufende Buehne das Gitter mit dem
+       Grundlicht geladen hat; die Messung dort sagte nichts mehr“;
+       gitterDunkel ohne export: dieselbe Meldung mit „gitterDunkel:
+       nichts“.
+       Jede Form eines Feldzugriffs, der nicht liest (Ziel einer
+       Zuweisung, Muster, Schleifenkopf, delete, ++, void, typeof, für
+       sich stehend), steht mit ihrem echten Lauf in
+       tests/e2e/hall-gitter.test.js, dazu die Grenze der Naht: Formen,
+       die lesen und nichts laden.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -249,7 +280,7 @@ import draco3d from 'draco3d';
 import { floorLevel } from './lib/hall-hull.mjs';
 import { SCHRIFT, SCHIRM_AUS } from './lib/hall-decals.mjs';
 import { DataUtils } from 'three';
-import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe } from './lib/hall-gitter.mjs';
+import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe, gitterDunkelste } from './lib/hall-gitter.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -372,9 +403,10 @@ const m2 = (x) => +x.toFixed(2);
 // Gitter der Halle ohne Lampen, mit und ohne ihren Namen; null nach einem FEHLER
 async function grundProbe(id, hall) {
   if (typeof viewer?.hallGitter !== 'function' || !(viewer.VOL_STEP > 0) || !Array.isArray(viewer.VOL_GRUND?.farbe)) { fail(`[2] ${id}: der ausgelieferte Viewer gibt sein Lichtgitter nicht mehr heraus (hallGitter, VOL_STEP, VOL_GRUND) — ob das Grundlicht auf den Flaechen ankommt, laesst sich nicht nachrechnen`); return null; }
-  let leer = null, fremd = null;
+  let leer = null, fremd = null, roh = null;
   try {
-    leer = gitterWerte(await viewer.hallGitter([], hall, hall.floor), DataUtils.fromHalfFloat);
+    roh = await viewer.hallGitter([], hall, hall.floor);
+    leer = gitterWerte(roh, DataUtils.fromHalfFloat);
     fremd = gitterWerte(await viewer.hallGitter([], { room: hall.room }, hall.floor), DataUtils.fromHalfFloat);
   } catch (e) { fail(`[2] ${id}: das Lichtgitter laesst sich nicht rechnen (hallGitter: ${e.message})`); return null; }
   if (!leer || !fremd) { fail(`[2] ${id}: hallGitter liefert kein Gitter (erwartet res und min aus je drei Zahlen und zwei Halbfloat-Felder a und b mit vier Werten je Zelle)`); return null; }
@@ -383,8 +415,13 @@ async function grundProbe(id, hall) {
   if (!B.reicht || B.ohneSoll) { fail(`[2] ${id}: das Lichtgitter deckt den Raum nicht vom Boden bis zur Decke (${B.schichten} Schichten von ${m2(B.von)} bis ${m2(B.bis)} m ueber dem Boden, der Raum ist ${hall.room.height} m hoch${B.ohneSoll ? `; fuer ${B.ohneSoll} Schichten nennt hallGrund nichts` : ''}) — Flaechen ausserhalb bekaemen weder Lampen- noch Grundlicht`); return null; }
   if (B.abweichungen.length) { fail(`[2] ${id}: das Grundlicht kommt im Lichtgitter des Viewers nicht so an, wie hallGrund es nennt (ohne Lampen gerechnet, ${B.zellen} Zellen): ${B.abweichungen.map((a) => `${a.was} an ${a.zahl} Zellen, zuerst in der Schicht ${m2(a.ueberBoden)} m ueber dem Boden ${+a.ist.toFixed(4)} statt ${+a.soll.toFixed(4)}`).join('; ')} — Flaechen in dieser Richtung stuenden dunkler oder heller als abgenommen, bei 0 im Schwarz wie am 15.11.2026`); return null; }
   if (F.ueberNull) { fail(`[2] ${id}: ohne Lampen und ohne den Namen der Halle steht Licht im Gitter (${F.ueberNull} Werte ueber null, der hoechste ${+F.hoechster.toFixed(4)}) — das Grundlicht kaeme nicht mehr aus HALL_FEST.${id}: Die Halle von Revel & York bekaeme es auch, und was das Tor oben gemessen hat, waere nicht das Grundlicht dieser Halle`); return null; }
+  // Die laufende Buehne meldet nach dem Laden die dunkelste Stelle dessen, was ihre Uniformen tragen (gitterDunkel,
+  // Zeile "[hangar] Lichtgitter … geladen (dunkelste Stelle …)"), und check:hangar-shader haelt sie gegen die Klinke
+  // der Halle. Hier am selben Gitter: Die Funktion nennt, was in den Zellen steht.
+  const D = typeof viewer.gitterDunkel === 'function' ? viewer.gitterDunkel(roh.a, roh.b) : null, S = gitterDunkelste(leer);
+  if (D !== S) { fail(`[2] ${id}: der ausgelieferte Viewer nennt die dunkelste Stelle seines Lichtgitters nicht so, wie sie in den Zellen steht (gitterDunkel: ${D === null ? 'nichts' : +(+D).toFixed(4)}, in den Zellen: ${+S.toFixed(4)}) — an dieser Zahl misst check:hangar-shader, ob die laufende Buehne das Gitter mit dem Grundlicht geladen hat; die Messung dort sagte nichts mehr`); return null; }
   GITTER.set(id, leer);
-  return B;
+  return { ...B, dunkel: S };
 }
 const grundlicht = [];
 for (const [id, { hall, F }] of HALLEN) {
@@ -405,7 +442,7 @@ for (const [id, { hall, F }] of HALLEN) {
   else if (!(G1.seite > 0 && G1.unten > 0 && G0.unten > 0)) fail(`[2] ${id}: das Grundlicht faellt unter der Decke oder an Unterseiten auf null (Decke ${m2(G1.seite)}, Unterseiten ${m2(G0.unten)} am Boden und ${m2(G1.unten)} oben) — die Decke staende schwarz`);
   else {
     const B = await grundProbe(id, hall);
-    if (B) grundlicht.push(`${id} ${G0.seite} am Boden, ${m2(G1.seite)} unter der Decke (Klinke ${GK}), im Lichtgitter nachgerechnet an ${B.zellen} Zellen in ${B.schichten} Schichten von ${m2(B.von)} bis ${m2(B.bis)} m ueber dem Boden, je sechs Richtungen und die Lichtfarbe`);
+    if (B) grundlicht.push(`${id} ${G0.seite} am Boden, ${m2(G1.seite)} unter der Decke (Klinke ${GK}), im Lichtgitter nachgerechnet an ${B.zellen} Zellen in ${B.schichten} Schichten von ${m2(B.von)} bis ${m2(B.bis)} m ueber dem Boden, je sechs Richtungen und die Lichtfarbe, dunkelste Stelle ${+B.dunkel.toFixed(3)} (so meldet sie die Buehne nach dem Laden)`);
   }
   // der Ursprung, an den die Buehne das Modell setzt (ohne ihn lotet sie selbst)
   const O = viewer?.hallOrigin?.(hall);

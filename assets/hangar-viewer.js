@@ -1073,6 +1073,19 @@ export async function hallGitter(list, h, f, pause = noPause) {
   return { a: A, b: B, min: [x0, y0, z0], res: [nx, ny, nz], used };
 }
 
+// Die dunkelste Stelle eines Lichtgitters, an seinen beiden gepackten Feldern
+// gelesen: je Zelle die sechs Richtungen (a ganz, von b die ersten zwei). Die
+// Bühne meldet damit, was ihre Uniformen nach dem Laden wirklich tragen, nicht
+// was sie gerechnet hat; check:hangar-shader hält es für Hallen fester Größe
+// fest. Halbfloats ab null ordnen sich wie ihre Bitmuster, darum genügt ein
+// Entpacken am Ende. null: keine zwei gleich langen Felder aus Zellen.
+export function gitterDunkel(a, b) {
+  if (!(a instanceof Uint16Array) || !(b instanceof Uint16Array) || !a.length || a.length % 4 || a.length !== b.length) return null;
+  let m = 0xffff;
+  for (let i = 0; i < a.length; i += 4) m = Math.min(m, a[i], a[i + 1], a[i + 2], a[i + 3], b[i], b[i + 1]);
+  return THREE.DataUtils.fromHalfFloat(m);
+}
+
 // Mitte des Schiffsfelds (mit Aufzug), der Landefläche (HALL_FEST) oder des
 // Raums, im Modellraum
 function hallSpot(h) {
@@ -9214,7 +9227,9 @@ export async function initHangar(container, opts = {}) {
     hallVol.min.value.fromArray(vol.min).add(lamps.position);
     hallVol.res.value.set(...vol.res);
     hallVol.on.value = 1;
-    console.info(`[hangar] Lichtgitter ${vol.res.join('x')} aus ${vol.used} Spiellampen${hallGrund(h.id, 0) ? `, Grundlicht ${hallGrund(h.id, 0).seite}` : ''}, ${Math.round(performance.now() - t0)} ms`);
+    // an den Uniformen zurückgelesen, die der Hallenshader liest (nicht an vol): die dunkelste Stelle dessen, was geladen ist
+    const dunkel = hallVol.on.value === 1 ? gitterDunkel(hallVol.a.value?.image?.data, hallVol.b.value?.image?.data) : null;
+    console.info(`[hangar] Lichtgitter ${vol.res.join('x')} aus ${vol.used} Spiellampen${hallGrund(h.id, 0) ? `, Grundlicht ${hallGrund(h.id, 0).seite}` : ''}, ${dunkel === null ? 'nicht geladen' : `geladen (dunkelste Stelle ${+dunkel.toFixed(3)})`}, ${Math.round(performance.now() - t0)} ms`);
     // Das Bühnenlicht geht ganz: Auf null gedreht stünde es weiter in jedem
     // Shader und kostete jedes Pixel.
     scene.remove(key, rim, fill, doorLight);
