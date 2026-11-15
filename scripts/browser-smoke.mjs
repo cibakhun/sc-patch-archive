@@ -2403,11 +2403,16 @@ async function probeWerkbank(page) {
   }
   if (rad) return rad;
   // Suche mit wenigen Treffern: die Liste ist kuerzer als ihr Kasten.
+  // Erst die Sperre, dann das Rad: der Zeiger steht noch ueber der Mitte
+  // (Schliessen-Knopf), die Trefferliste hat ihn seit der Eingabe nicht
+  // gesehen. Frei ist sie hier also allein, weil assets/scroll-affordance.js
+  // nach der Eingabe neu misst; kaeme zuerst das Rad, haette der Zeiger sie
+  // auf dem Weg dorthin schon gemessen, und die Probe saehe den Weg nie.
   await page.locator('#cdb-modal .cdb-modal__x').first().click();
   await page.locator('#cdb-search').fill(mitMission);
   await page.waitForTimeout(500);
-  rad = radBefund(await radUeber('#cdb-grid'), `der kurzen Trefferliste (Suche „${mitMission}“)`, 'die Seite bleibt stehen')
-    ?? (await sperrBefund('Suche mit wenigen Treffern'));
+  rad = (await sperrBefund('Suche mit wenigen Treffern, vor dem Zeiger'))
+    ?? radBefund(await radUeber('#cdb-grid'), `der kurzen Trefferliste (Suche „${mitMission}“)`, 'die Seite bleibt stehen');
   await page.locator('#cdb-search').fill('');
   await page.waitForTimeout(300);
   if (rad) return rad;
