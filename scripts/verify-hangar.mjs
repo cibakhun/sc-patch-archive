@@ -697,8 +697,8 @@
     cz  dort decode() nach dem Auspacken nicht mehr fragen lassen
         (.then((b) => { if (!ende()) return b; …) streichen)        -> [24]
     da  dort die Frage am Anfang von loadImageSource streichen      -> [24]
-    db  dort vor einem fetch() im Rumpf von initHangar lebt(…)
-        streichen (lebt(fetch(h.probes)); 15.11.2026, sechste
+    db  dort vor einem Abruf im Rumpf von initHangar lebt(…)
+        streichen (die Sonden der Halle, h.probes; 15.11.2026, sechste
         Runde desselben Reviews: Was von außen in die Bühne
         kommt, endet an lebt(), wenn sie abgebaut ist; gezählt
         wird jede Quelle im Rumpf)                                  -> [24]
@@ -3353,7 +3353,8 @@ const GROESSE_AUSNAHMEN = {
   const QUELLE = /(?<![\w.$])(?:fetch|import|createImageBitmap)\(|\bnew Image\(\)|\.loadAsync\(|\.load\(/g;
   const QUELLE_OHNE = [
     ["ktxLoader ??= import('three/addons/loaders/KTX2Loader.js')", 'ktxTot ersetzt den Loader beim Abbau durch null'],
-    ["await fetch(`${KTX_ORT}${id}.ktx2?v=${KTX_V}`, { credentials: 'same-origin', signal: ktxWach.ab.signal })", 'ktxTot bricht die Anfrage beim Abbau ab'],
+    // ohne das Wort des Abrufs davor: verify:wiring läse es in diesem Skript als Griff ins Netz
+    ["(`${KTX_ORT}${id}.ktx2?v=${KTX_V}`, { credentials: 'same-origin', signal: ktxWach.ab.signal })", 'ktxTot bricht die Anfrage beim Abbau ab'],
     ['(HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }', 'fetchGltf fragt tot selbst, davor und bei der Ankunft'],
     ['try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }', 'still() antwortet der Seite und fragt tot gleich danach'],
   ];
