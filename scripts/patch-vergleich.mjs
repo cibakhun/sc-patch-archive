@@ -103,6 +103,18 @@ const SCHADEN = ['physical', 'energy', 'distortion', 'thermal', 'stun', 'biochem
 const SCHADEN_DE = { physical: 'physisch', energy: 'Energie', distortion: 'Verzerrung', thermal: 'thermisch', stun: 'Betäubung', biochemical: 'biochemisch' };
 
 /**
+ * Bis 4.10.1 gab es Bauplaene mit gleicher guid und anderen Zutaten (FoxFire:
+ * Torite statt Tungsten). Der zweite heisst <guid>#2, geordnet nach Zutaten,
+ * damit dieselbe Variante in beiden Staenden denselben Schluessel bekommt.
+ */
+function bauplaeneMitSchluessel(liste) {
+  const zutaten = (b) => JSON.stringify(b.ingredients ?? []);
+  const gruppen = Map.groupBy(liste, (b) => b.entity_guid);
+  return [...gruppen.values()].flatMap((g) => g.sort((a, b) => zutaten(a).localeCompare(zutaten(b)))
+    .map((b, i) => ({ ...b, schluessel: i ? `${b.entity_guid}#${i + 1}` : b.entity_guid })));
+}
+
+/**
  * Je Art: Schluessel (stabil ueber Patches), Name, Seiten-Slug und die Felder,
  * die als Aenderung zaehlen. Nicht drin, mit Absicht: Beschreibungen,
  * Fremdwerte (Pledge, Abmessungen, Bilder, Hoechstcrew, Status, UEX-Preise,
@@ -181,8 +193,8 @@ const REGELN = {
     ],
   },
   blueprint: {
-    liste: (d) => d.crafting.blueprints,
-    schluessel: (b) => b.entity_guid,
+    liste: (d) => bauplaeneMitSchluessel(d.crafting.blueprints),
+    schluessel: (b) => b.schluessel,
     name: (b) => b.name,
     felder: [
       ['craft_time_seconds', 'Herstellzeit (s)', 'Craft time (s)', (b) => zahl(b.craft_time_seconds)],

@@ -492,7 +492,7 @@
     {"kind":"blueprint","id":"2b425c1b8382dd4dcf6f771eee5d5d82","name":"Antium Core Jet","change":"renamed","nameVorher":"Antium Helmet Jet","felder":[]},
     {"kind":"blueprint","id":"1143394cb6212a576aeffbfebb93af89","name":"Antium Helmet Jet","change":"renamed","nameVorher":"Antium Arms Maroon","felder":[]},
     {"kind":"blueprint","id":"7441fcb82200fc1a984b745bfc6d8786","name":"TH-01 Propulsor","change":"changed","felder":[{"feld":"missions","vorher":["orison-relief-large-fabrication-order","orison-relief-medium-fabrication-order","orison-relief-small-fabrication-order"],"nachher":["orison-relief-large-fabrication-order"]}]},
-    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"removed"},
+    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa#2","name":"FoxFire","change":"removed"},
     {"kind":"mission","id":"big-style-lmg","slug":"big-style-lmg","name":"Big Style LMG","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":1}]},
     {"kind":"mission","id":"iasi-2-h-box-courier","slug":"iasi-2-h-box-courier","name":"Iasi 2 H Box Courier","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},
     {"kind":"mission","id":"iasi-courier-gold-item","slug":"iasi-courier-gold-item","name":"Iasi Courier Gold Item","change":"new","werte":[{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0}]},

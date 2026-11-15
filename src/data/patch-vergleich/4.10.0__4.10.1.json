@@ -70,10 +70,10 @@
       "removed": 0
     },
     "blueprint": {
-      "new": 1,
+      "new": 0,
       "renamed": 0,
-      "changed": 1,
-      "removed": 1
+      "changed": 0,
+      "removed": 0
     },
     "mission": {
       "new": 0,
@@ -378,9 +378,6 @@
     {"kind":"item","id":"fd4615124785bbaae3844e0eba408896","slug":"shogun-kiba-helmet-akuma","name":"Shogun Kiba Helmet Akuma","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
     {"kind":"item","id":"ed4809b7238c12efae620704d305b38a","slug":"skullcap-helmet","name":"Skullcap Helmet","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
     {"kind":"item","id":"6a423e5960f28a66e242ddba0a2818a9","slug":"vertine-qd","name":"Vertine QD","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"health","wert":1550}]},
-    {"kind":"item","id":"eb49f9d32dc72c32afa157c915d013b8","slug":"warden-backpack-streamline","name":"Warden Backpack Streamline","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
-    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"new","werte":[{"feld":"craft_time_seconds","wert":780},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASE: Torite 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Beryl 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"]}]},
-    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"changed","felder":[{"feld":"ingredients","vorher":["CASE: Torite 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Beryl 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"],"nachher":["CASE: Tungsten 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Laranite 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"]}]},
-    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"removed"}
+    {"kind":"item","id":"eb49f9d32dc72c32afa157c915d013b8","slug":"warden-backpack-streamline","name":"Warden Backpack Streamline","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]}
   ]
 }

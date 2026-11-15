@@ -109,7 +109,7 @@ export function seite(e: Eintrag): string | null {
       return id && pageItemIds.has(id) ? `/items/${id}.html` : null;
     }
     case 'blueprint': {
-      const b = bauplanNachGuid.get(e.id);
+      const b = bauplanNachGuid.get(e.id.split('#')[0]);
       return b ? blueprintPath(b) : null;
     }
     case 'mission':

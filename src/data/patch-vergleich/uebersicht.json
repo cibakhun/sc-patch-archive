@@ -51,10 +51,10 @@
           "removed": 0
         },
         "blueprint": {
-          "new": 14,
+          "new": 13,
           "renamed": 6,
-          "changed": 39,
-          "removed": 3
+          "changed": 38,
+          "removed": 2
         },
         "mission": {
           "new": 15,
@@ -114,10 +114,10 @@
           "removed": 0
         },
         "blueprint": {
-          "new": 1,
+          "new": 0,
           "renamed": 0,
-          "changed": 1,
-          "removed": 1
+          "changed": 0,
+          "removed": 0
         },
         "mission": {
           "new": 0,
