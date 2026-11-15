@@ -124,15 +124,31 @@
   function syncDurchAb(ziel) {
     var el = ziel && ziel.closest ? ziel.closest(SEL_DURCH) : null;
     while (el) {
+      if (durchKaesten.indexOf(el) < 0) durchKaesten.push(el);
       syncDurch(el, true);
       el = el.parentElement ? el.parentElement.closest(SEL_DURCH) : null;
     }
   }
+  // Die Kaesten der Liste, EINMAL gesucht statt bei jedem Messen. Gemessen
+  // wird nach jedem Klick und jeder Eingabe (siehe unten); die Suche geht
+  // dagegen durchs ganze Dokument, auf der Crafting-Seite durch gut 40.000
+  // Elemente. Bei jedem Klick gesucht, verdoppelte das die Laufzeit von
+  // verify:clienttext auf dieser Seite (61 statt 30 s, Zeitbudget gerissen,
+  // 15.11.2026). Gesucht wird beim Laden, bei jedem window.VBScrollAffordance()
+  // und wenn sich das Fenster aendert. Einen Kasten, der erst spaeter
+  // entsteht, traegt syncDurchAb nach, sobald Zeiger, Finger, Fokus oder Rad
+  // ihn erreichen, also bevor er rollen muss.
+  var durchKaesten = [];
+  function sucheDurch() {
+    durchKaesten = Array.prototype.slice.call(document.querySelectorAll(SEL_DURCH));
+  }
   function syncAll() {
     for (var i = 0; i < faders.length; i++) syncFade(faders[i]);
     for (var k = 0; k < vfaders.length; k++) syncVFade(vfaders[k]);
-    var durch = document.querySelectorAll(SEL_DURCH);
-    for (var d = 0; d < durch.length; d++) syncDurch(durch[d]);
+    for (var d = durchKaesten.length - 1; d >= 0; d--) {
+      if (durchKaesten[d].isConnected === false) durchKaesten.splice(d, 1);
+      else syncDurch(durchKaesten[d]);
+    }
   }
 
   // Weder Maske noch Zeiger-Klasse aendern eine Groesse -> der Beobachter kann
@@ -347,18 +363,20 @@
         return function () { syncVFade(n); };
       })(v), { passive: true });
     }
+    sucheDurch();
     queueSync();
   }
 
   window.VBScrollAffordance = scan;
-  window.addEventListener('resize', onResize);
+  window.addEventListener('resize', function () { sucheDurch(); onResize(); });
   ['pointerover', 'touchstart', 'focusin', 'wheel'].forEach(function (typ) {
     document.addEventListener(typ, function (e) { syncDurchAb(e.target); }, { capture: true, passive: true });
   });
   // Ein Klick oder eine Eingabe aendert oft den Inhalt eines Kastens, waehrend
   // der Zeiger darueber ruht (Filter, Suche, Rezeptwahl). Danach neu messen:
   // im naechsten Bild, und einmal spaeter fuer alles, was verzoegert zeichnet
-  // (entprellte Suche, nachgeladene Daten).
+  // (entprellte Suche, nachgeladene Daten). Gemessen werden die bekannten
+  // Kaesten (durchKaesten), gesucht wird hier nicht.
   var spaeter = 0;
   ['click', 'input', 'change'].forEach(function (typ) {
     document.addEventListener(typ, function () {
