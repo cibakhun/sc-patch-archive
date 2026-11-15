@@ -641,7 +641,7 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .karte__strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
   .karte__strip li { aspect-ratio: 4 / 3; overflow: hidden; background: var(--ink-3); }
   .karte__strip :global(img) { height: 100%; object-fit: cover; }
-  .gewehre { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: .8rem; }
+  .gewehre { order: -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: .8rem; }
   .gewehre li { background: var(--ink-3); padding: .6rem .6rem .5rem; display: flex; flex-direction: column; gap: .3rem; }
   .gewehre a { text-decoration: none; }
   .gewehre :global(svg) { height: auto; aspect-ratio: 400 / 140; }
