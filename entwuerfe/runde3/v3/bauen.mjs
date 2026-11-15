@@ -14,7 +14,6 @@ const a = (l) => `<a href="${esc(url(l.h))}"${l.h.startsWith('http') ? ' target=
 const rich = (teile) => teile.map((p) => (typeof p === 'string' ? esc(p) : p.b ? `<b>${esc(p.b)}</b>` : a(p))).join('');
 const zahl = (n) => n.toLocaleString('de-DE');
 const RSI = (key, w) => `/assets/patch-4-10-3/rsi/${key}-${w}.webp`;
-const RENDER = (id) => `/assets/patch-4-10-3/render/${id}-640.webp`;
 
 const k = J.kopf;
 const kachel = (ziel) => J.kacheln.find((x) => x.ziel === ziel);
@@ -23,21 +22,21 @@ const [galaxy, liberator] = J.neueSchiffe;
 const anzahlAuftraege = J.auftraege.gruppen.reduce((n, g) => n + g.auftraege.length, 0);
 
 // Bild-Kacheln nach dem Muster der Startseite: Bild ist die ganze Fläche,
-// Name in der Display-Schrift, eine Zeile, Pfeil. `render` = freigestelltes Modell.
+// Name in der Display-Schrift, eine Zeile, Pfeil..
 const tools = [
   { size: 'xl', name: 'Vanduul Incursion', sub: `${anzahlAuftraege} Aufträge von InterSec in Nyx`, href: '/missionen.html', img: RSI('vncl-scythe', 1200) },
   { size: 'w', name: galaxy.name, sub: 'Modulschiff · mit Frachtmodul 720 SCU', href: galaxy.link.h, img: RSI('rsi-galaxy-flug', 1200) },
   { size: 'w', name: liberator.name, sub: 'Träger für Schiffe und Fahrzeuge', href: liberator.link.h, img: RSI('anvl-liberator', 1200) },
-  { size: 't', name: 'Radar Gr. 3', sub: kachel('radar').s, href: kachel('radar').link.h, img: RENDER('anvl-carrack'), render: true },
-  { size: 't', name: 'Salvage', sub: 'Reclaimer 240 → 448 SCU', href: kachel('salvage').link.h, img: RENDER('aegs-reclaimer'), render: true },
+  { size: 't', name: 'Radar Gr. 3', sub: kachel('radar').s, href: kachel('radar').link.h, img: RSI('anvl-carrack', 640) },
+  { size: 't', name: 'Salvage', sub: 'Reclaimer 240 → 448 SCU', href: kachel('salvage').link.h, img: RSI('aegs-reclaimer', 640) },
   { size: 't', name: 'Mauler „STRIKER“', sub: 'Schaden je Schuss 64 → 250', href: '/items/vanduul-mauler-striker-repeater.html', img: RSI('vncl-glaive', 640) },
-  { size: 't', name: 'Vanguard', sub: 'Turm-DPS 400 → 750', href: '/schiffe/aegs-vanguard.html', img: RENDER('aegs-vanguard-hoplite'), render: true },
-  { size: 't', name: 'Baupläne +17', sub: 'Skarnov, Raider Camo, Deterrent', href: '/crafting.html', img: RENDER('rsi-polaris'), render: true },
+  { size: 't', name: 'Vanguard', sub: 'Turm-DPS 400 → 750', href: '/schiffe/aegs-vanguard.html', img: RSI('aegs-vanguard-warden', 640) },
+  { size: 't', name: 'Baupläne +17', sub: 'Skarnov, Raider Camo, Deterrent', href: '/crafting.html', img: RSI('rsi-polaris', 640) },
   { size: 't', name: 'IAE 2956', sub: 'Andenken und Lackierungen', href: '/items/2956-best-in-show-bomber-jacket.html', img: RSI('iae-2956-halle', 640) },
 ];
 
 const toolHtml = tools.map((t) => `
-      <a class="tool tool--${t.size}${t.render ? ' tool--render' : ''}" style="--img:url('${t.img}')" href="${esc(url(t.href))}">
+      <a class="tool tool--${t.size}" style="--img:url('${t.img}')" href="${esc(url(t.href))}">
         <span class="tool__arrow" aria-hidden="true">→</span>
         <span class="tool__name">${esc(t.name)}</span>
         <span class="tool__sub">${esc(t.sub)}</span>

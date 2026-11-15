@@ -19,8 +19,7 @@ function bild(art, key) {
     return `<img src="${p}-640.webp" srcset="${p}-640.webp 640w, ${p}-1200.webp 1200w" sizes="(min-width: 900px) 25vw, 80vw" alt="${esc(alt[`rsi:${key}`])}" loading="lazy" decoding="async">`;
   }
   if (art === 'szene') return `<img src="/assets/patch-4-10-3/render/${key}-1200.webp" alt="${esc(alt[`szene:${key}`])}" loading="lazy" decoding="async">`;
-  const p = `/assets/patch-4-10-3/render/${key}`;
-  return `<img class="modell" src="${p}-640.webp" alt="${esc(alt[`render:${key}`])}" loading="lazy" decoding="async">`;
+  throw new Error(`unbekannte Bildart ${art} für ${key}`);
 }
 
 function karte({ id, art, key, name, zahl: z, unter, inhalt }) {
@@ -130,18 +129,18 @@ const balken = (zs) => {
 const notiz = (x) => (x.notiz?.length ? `<p class="klein">${x.notiz.map((n) => (typeof n === 'string' ? esc(n) : rich([n]))).join('')}</p>` : '');
 const notizRich = (x) => (x.notiz?.length ? `<p class="klein">${rich(x.notiz)}</p>` : '');
 const wertKarten = [
-  karte({ id: 'radar', art: 'render', key: 'anvl-carrack', name: 'Radar', zahl: 'Gr. 2 → 3', unter: 'Carrack, Perseus, Starlancer', inhalt: zeilen(w.radar.zeilen.map(wertZeile)) + notiz(w.radar) }),
-  karte({ id: 'salvage', art: 'render', key: 'aegs-reclaimer', name: `Salvage · ${a(w.salvage.zeilen[0].schiffe[0])}`, zahl: '240 → 448<small>&nbsp;SCU</small>', unter: 'Puffer, auch MOTH und Vulture', inhalt: `<p class="klein">Salvage-Puffer in SCU, hell vorher, gold nachher.</p>${balken(w.salvage.zeilen)}${notiz(w.salvage)}` }),
+  karte({ id: 'radar', art: 'rsi', key: 'anvl-carrack', name: 'Radar', zahl: 'Gr. 2 → 3', unter: 'Carrack, Perseus, Starlancer', inhalt: zeilen(w.radar.zeilen.map(wertZeile)) + notiz(w.radar) }),
+  karte({ id: 'salvage', art: 'rsi', key: 'aegs-reclaimer', name: `Salvage · ${a(w.salvage.zeilen[0].schiffe[0])}`, zahl: '240 → 448<small>&nbsp;SCU</small>', unter: 'Puffer, auch MOTH und Vulture', inhalt: `<p class="klein">Salvage-Puffer in SCU, hell vorher, gold nachher.</p>${balken(w.salvage.zeilen)}${notiz(w.salvage)}` }),
   karte({ id: 'kampf', art: 'rsi', key: 'vncl-glaive', name: `Kampf · ${a({ t: 'Mauler „STRIKER“', h: '/items/vanduul-mauler-striker-repeater.html' })}`, zahl: '64 → 250', unter: 'Energieschaden je Schuss', inhalt: zeilen(w.kampf.zeilen.map(wertZeile)) + notiz(w.kampf) }),
-  karte({ id: 'vanguard', art: 'render', key: 'aegs-vanguard', name: 'Vanguard', zahl: '400 → 750', unter: 'Turm-DPS Warden und Hoplite, nicht in den Notes', inhalt: zeilen(w.vanguard.zeilen.map(wertZeile)) + notizRich(w.vanguard) }),
+  karte({ id: 'vanguard', art: 'rsi', key: 'aegs-vanguard-warden', name: 'Vanguard', zahl: '400 → 750', unter: 'Turm-DPS Warden und Hoplite, nicht in den Notes', inhalt: zeilen(w.vanguard.zeilen.map(wertZeile)) + notizRich(w.vanguard) }),
 ];
 
 /* Ausrüstung */
 const k = Object.fromEntries(j.ausruestung.karten.map((x) => [x.id, x]));
 const ausKarten = [
   karte({ id: 'iae-2956', art: 'rsi', key: 'iae-2956-halle', name: 'IAE 2956', zahl: '4 Lackierungen', unter: '„2956 Best In Show“, dazu Kleidung', inhalt: zeilen(k['iae-2956'].liste.map((l) => zeile(esc(l.k), liste(l.v)))) + `<p class="klein">Dazu Sammelmünzen der Best-in-Show-Schiffe mit Vitrine.</p>` }),
-  karte({ id: 'deterrent', art: 'render', key: 'rsi-polaris', name: `${a({ t: 'Deterrent', h: '/items/deterrent.html' })} · ${a({ t: 'Lephari', h: '/items/lephari.html' })}`, zahl: 'Gr. 4', unter: 'Schild, bis 4.10.2 „Glacis“', inhalt: `<p>${rich(k.deterrent.text)}</p>${zeilen(k.deterrent.liste.map((l) => zeile('Bauplan', liste(l.v))))}` }),
-  karte({ id: 'namen', art: 'render', key: 'anvl-ballista', name: 'Namen · HM6', zahl: '3 umbenannt', unter: 'Ballista, Spartan, Centurion', inhalt: `<p>${rich(k.namen.text)}</p>` }),
+  karte({ id: 'deterrent', art: 'rsi', key: 'rsi-polaris', name: `${a({ t: 'Deterrent', h: '/items/deterrent.html' })} · ${a({ t: 'Lephari', h: '/items/lephari.html' })}`, zahl: 'Gr. 4', unter: 'Schild, bis 4.10.2 „Glacis“', inhalt: `<p>${rich(k.deterrent.text)}</p>${zeilen(k.deterrent.liste.map((l) => zeile('Bauplan', liste(l.v))))}` }),
+  karte({ id: 'namen', art: 'rsi', key: 'anvl-ballista', name: 'Namen · HM6', zahl: '3 umbenannt', unter: 'Ballista, Spartan, Centurion', inhalt: `<p>${rich(k.namen.text)}</p>` }),
 ];
 
 /* Dossier */

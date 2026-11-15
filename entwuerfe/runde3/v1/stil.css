@@ -41,7 +41,6 @@ img { display: block; max-width: 100%; }
 .tafel { position: relative; overflow: hidden; isolation: isolate; }
 .tafel__bild { z-index: -1; bottom: auto; height: 330px; }
 .tafel__bild::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, var(--bg) 0, transparent 14%, transparent 45%, var(--scrim-4) 72%, var(--bg) 100%); }
-.tafel__bild img.render { object-fit: contain; object-position: 50% 30%; padding: 0 0 40px; background: radial-gradient(70% 50% at 50% 30%, #1f2a3d, var(--bg)); }
 figcaption { position: absolute; top: 14px; right: var(--pad); z-index: 1; font-family: var(--font-mono); font-size: var(--fs-2); letter-spacing: var(--ls-10); text-transform: uppercase; color: var(--on-media-dim); opacity: .7; }
 .tafel__text { padding: 236px var(--pad) 22px; width: 100%; }
 .kicker { text-shadow: 0 1px 6px var(--on-media-shadow), 0 0 14px var(--on-media-shadow); font-family: var(--font-ui); font-weight: 700; text-transform: uppercase; letter-spacing: var(--ls-13); font-size: var(--fs-5); color: var(--accent-2); }

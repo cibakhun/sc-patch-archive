@@ -14,14 +14,11 @@ const inl = (parts) => parts.map((p) => (typeof p === 'string' ? esc(p) : p.b ? 
 const zahl = (n) => n.toLocaleString('de-DE');
 const datum = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric', year: 'numeric' });
 
-const bildAlt = new Map(j.bilder.map((b) => [b.key, b.alt]));
+// RSI- und Render-Bilder teilen sich Schlüssel, deshalb mit Art.
+const bildAlt = new Map(j.bilder.map((b) => [`${b.art}:${b.key}`, b.alt]));
 function bild(key, art, alt, sizes, cls = '') {
-  const altText = alt ?? bildAlt.get(key);
+  const altText = alt ?? bildAlt.get(`${art}:${key}`);
   if (!altText) throw new Error(`kein alt für ${key}`);
-  if (art === 'render') {
-    const p = `/assets/patch-4-10-3/render/${key}`;
-    return `<img class="${cls}" src="${p}.webp" srcset="${p}-640.webp 640w, ${p}.webp 1200w" sizes="${sizes}" alt="${esc(altText)}" loading="lazy" decoding="async">`;
-  }
   const p = `/assets/patch-4-10-3/rsi/${key}`;
   return `<img class="${cls}" src="${p}-1200.webp" srcset="${p}-640.webp 640w, ${p}-1200.webp 1200w, ${p}-1920.webp 1920w" sizes="${sizes}" alt="${esc(altText)}" loading="lazy" decoding="async">`;
 }
@@ -61,7 +58,7 @@ const tafel = ({ id, img, kicker, h, num, numLbl, text, link, st, cap, extraCls 
 
 tafeln.push(tafel({
   id: 'auftraege',
-  img: bild('vncl-stinger', 'rsi', null, '(min-width: 900px) 50vw, 100vw'),
+  img: bild('vncl-stinger-hell', 'rsi', null, '(min-width: 900px) 50vw, 100vw'),
   kicker: 'Vanduul Incursion · ',
   st: stand(),
   h: esc(j.auftraege.titel),
@@ -132,7 +129,7 @@ tafeln.push(`
 
 tafeln.push(tafel({
   id: 'salvage',
-  img: bild('aegs-reclaimer', 'render', 'Aegis Reclaimer, farbiges Modell schräg von vorn', '(min-width: 900px) 50vw, 100vw', 'render'),
+  img: bild('aegs-reclaimer', 'rsi', null, '(min-width: 900px) 50vw, 100vw'),
   kicker: 'Salvage · ',
   st: stand(reclaimer.vorherStand),
   h: 'Mehr Puffer für Salvage',

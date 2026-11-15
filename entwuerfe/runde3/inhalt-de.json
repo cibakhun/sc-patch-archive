@@ -617,6 +617,30 @@
    "bilder": [
     {
      "key": "anvl-carrack",
+     "art": "rsi",
+     "thema": "anvl-carrack",
+     "alt": "Anvil Carrack, ein großes graues Erkundungsschiff, schräg von vorn vor einem wolkigen Planeten",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1152,
+       "src": "/assets/patch-4-10-3/rsi/anvl-carrack-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 720,
+       "src": "/assets/patch-4-10-3/rsi/anvl-carrack-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 384,
+       "src": "/assets/patch-4-10-3/rsi/anvl-carrack-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/bau5bdotm8te8/source.png"
+    },
+    {
+     "key": "anvl-carrack",
      "art": "render",
      "thema": "anvl-carrack",
      "alt": "Modell der Anvil Carrack, schräg von vorn",
@@ -665,6 +689,30 @@
    },
    "stand": "4.10.3",
    "bilder": [
+    {
+     "key": "aegs-reclaimer",
+     "art": "rsi",
+     "thema": "aegs-reclaimer",
+     "alt": "Aegis Reclaimer, ein klobiges dunkles Bergungsschiff, zwischen Trümmern vor grünlichem Nebel",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 823,
+       "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 514,
+       "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 274,
+       "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/6hwlvqlaqgvs4/source.jpg"
+    },
     {
      "key": "aegs-reclaimer",
      "art": "render",
@@ -2436,6 +2484,30 @@
    "bilder": [
     {
      "key": "anvl-carrack",
+     "art": "rsi",
+     "thema": "anvl-carrack",
+     "alt": "Anvil Carrack, ein großes graues Erkundungsschiff, schräg von vorn vor einem wolkigen Planeten",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1152,
+       "src": "/assets/patch-4-10-3/rsi/anvl-carrack-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 720,
+       "src": "/assets/patch-4-10-3/rsi/anvl-carrack-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 384,
+       "src": "/assets/patch-4-10-3/rsi/anvl-carrack-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/bau5bdotm8te8/source.png"
+    },
+    {
+     "key": "anvl-carrack",
      "art": "render",
      "thema": "anvl-carrack",
      "alt": "Modell der Anvil Carrack, schräg von vorn",
@@ -2676,6 +2748,30 @@
     "Das Zerlegungsfeld ist größer, und der Strahl muss weniger genau ausgerichtet sein."
    ],
    "bilder": [
+    {
+     "key": "aegs-reclaimer",
+     "art": "rsi",
+     "thema": "aegs-reclaimer",
+     "alt": "Aegis Reclaimer, ein klobiges dunkles Bergungsschiff, zwischen Trümmern vor grünlichem Nebel",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 823,
+       "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 514,
+       "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 274,
+       "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/6hwlvqlaqgvs4/source.jpg"
+    },
     {
      "key": "aegs-reclaimer",
      "art": "render",
@@ -3107,6 +3203,30 @@
     " der Größe 2."
    ],
    "bilder": [
+    {
+     "key": "aegs-vanguard-warden",
+     "art": "rsi",
+     "thema": "aegs-vanguard",
+     "alt": "Aegis Vanguard Warden feuert im Tiefflug über einer Stadt im orangefarbenen Dunst",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1207,
+       "src": "/assets/patch-4-10-3/rsi/aegs-vanguard-warden-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 754,
+       "src": "/assets/patch-4-10-3/rsi/aegs-vanguard-warden-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 402,
+       "src": "/assets/patch-4-10-3/rsi/aegs-vanguard-warden-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/xd9clc660apc3/source.jpg"
+    },
     {
      "key": "aegs-vanguard",
      "art": "render",
@@ -3682,6 +3802,30 @@
     "bilder": [
      {
       "key": "anvl-ballista",
+      "art": "rsi",
+      "thema": "anvl-ballista",
+      "alt": "Anvil Ballista, ein Raketenfahrzeug auf sechs Rädern, feuert auf einem brennenden Grasfeld",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 1207,
+        "src": "/assets/patch-4-10-3/rsi/anvl-ballista-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 754,
+        "src": "/assets/patch-4-10-3/rsi/anvl-ballista-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 402,
+        "src": "/assets/patch-4-10-3/rsi/anvl-ballista-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/fgwmyqm1gd658/source.jpg"
+     },
+     {
+      "key": "anvl-ballista",
       "art": "render",
       "thema": "anvl-ballista",
       "alt": "Modell der Anvil HM6 Ballista, schräg von vorn",
@@ -4211,6 +4355,150 @@
     }
    ],
    "quelle": "https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg"
+  },
+  {
+   "key": "vncl-stinger-hell",
+   "art": "rsi",
+   "thema": "vncl-stinger-hell",
+   "alt": "Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/vncl-stinger-hell-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/vncl-stinger-hell-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/vncl-stinger-hell-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg"
+  },
+  {
+   "key": "anvl-carrack",
+   "art": "rsi",
+   "thema": "anvl-carrack",
+   "alt": "Anvil Carrack, ein großes graues Erkundungsschiff, schräg von vorn vor einem wolkigen Planeten",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1152,
+     "src": "/assets/patch-4-10-3/rsi/anvl-carrack-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 720,
+     "src": "/assets/patch-4-10-3/rsi/anvl-carrack-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 384,
+     "src": "/assets/patch-4-10-3/rsi/anvl-carrack-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/bau5bdotm8te8/source.png"
+  },
+  {
+   "key": "aegs-reclaimer",
+   "art": "rsi",
+   "thema": "aegs-reclaimer",
+   "alt": "Aegis Reclaimer, ein klobiges dunkles Bergungsschiff, zwischen Trümmern vor grünlichem Nebel",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/aegs-reclaimer-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/6hwlvqlaqgvs4/source.jpg"
+  },
+  {
+   "key": "aegs-vanguard-warden",
+   "art": "rsi",
+   "thema": "aegs-vanguard",
+   "alt": "Aegis Vanguard Warden feuert im Tiefflug über einer Stadt im orangefarbenen Dunst",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1207,
+     "src": "/assets/patch-4-10-3/rsi/aegs-vanguard-warden-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 754,
+     "src": "/assets/patch-4-10-3/rsi/aegs-vanguard-warden-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 402,
+     "src": "/assets/patch-4-10-3/rsi/aegs-vanguard-warden-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/xd9clc660apc3/source.jpg"
+  },
+  {
+   "key": "rsi-polaris",
+   "art": "rsi",
+   "thema": "rsi-polaris",
+   "alt": "RSI Polaris, eine dunkle Korvette, feuert aus mehreren Türmen zwischen Asteroiden",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/rsi-polaris-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/rsi-polaris-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/rsi-polaris-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/oe0wikh6g3ltm/source.jpg"
+  },
+  {
+   "key": "anvl-ballista",
+   "art": "rsi",
+   "thema": "anvl-ballista",
+   "alt": "Anvil Ballista, ein Raketenfahrzeug auf sechs Rädern, feuert auf einem brennenden Grasfeld",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1207,
+     "src": "/assets/patch-4-10-3/rsi/anvl-ballista-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 754,
+     "src": "/assets/patch-4-10-3/rsi/anvl-ballista-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 402,
+     "src": "/assets/patch-4-10-3/rsi/anvl-ballista-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/fgwmyqm1gd658/source.jpg"
   },
   {
    "key": "rsi-galaxy",
