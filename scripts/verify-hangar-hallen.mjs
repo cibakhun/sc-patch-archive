@@ -38,13 +38,19 @@
        Modell trifft; die Plattform liegt auf dieser Höhe; Landefläche,
        Feld des Aufzugs und Raum liegen ineinander; jede Bahn hat ihren
        Knoten; die Halle hat ihr Grundlicht (hallGrund, Klinke je Halle),
-       und der Viewer legt es ins Lichtgitter
+       und es steht im Lichtgitter: Das Tor rechnet das Gitter mit der
+       Funktion des Viewers (hallGitter) ohne Lampen und liest jede Zelle
+       zurück, alle sechs Richtungen und die Lichtfarbe; ohne den Namen
+       der Halle bleibt es dunkel; die Bühne rechnet ihr Gitter mit
+       derselben Funktion und reicht ihr die Halle
    [3] Bestand: Schrift, Schirme und die Zahlen des Manifests über ihren
        Klinken und unter ihren Obergrenzen (darunter die eingehängten
        Kind-Container: Frachtaufzüge und Türen); die Lampen aus der
        ausgelieferten Datei, so viele, wie das Manifest nennt, jede
        vollständig, und gezählt wird gegen die Klinke, was die Bühne
-       davon nach ihrer eigenen Regel setzt (hallLampeGilt im Viewer)
+       davon nach ihrer eigenen Regel setzt (hallLampeGilt im Viewer);
+       mit diesen Lampen gerechnet ist das Lichtgitter überall die Summe
+       aus Lampenlicht und Grundlicht
    [4] Kein Ballast: keine Einrichtungs-, Telefon- oder zweite Stufe einer
        solchen Halle in dist/, und keine Datei mit Bahnen eines Aufzugs,
        die keine Hangarseite nennt
@@ -182,12 +188,47 @@
        (Waende) und 2 (Flaechen nach oben), Klinke 3 …“;
        loadHallLights reicht buildHallVolume die Halle nicht mehr durch:
        „[2] der ausgelieferte Viewer legt das Grundlicht der Hallen nicht
-       ins Lichtgitter …“;
+       ins Lichtgitter …“ (diese Naht las nur den Quelltext, (q) ersetzt
+       sie);
        VOL_GRUND.decke 0 statt 0.4: „[2] util-lrgtop: das Grundlicht
        faellt unter der Decke oder an Unterseiten auf null (Decke 0, …)
        — die Decke staende schwarz“;
        hallGrund ohne export: „[2] util-lrgtop: der ausgelieferte Viewer
        nennt das Grundlicht seiner Hallen nicht mehr (hallGrund) …“.
+   (q) 15.11.2026, nach dem Review zu PR #380 (CodeRabbit: Wer die
+       Additionen ins Gitter streicht, lässt hallGrund und die
+       durchgereichte Halle im Quelltext stehen, die Naht aus (p) blieb
+       grün). Seither rechnet das Tor das Gitter selbst nach
+       (scripts/lib/hall-gitter.mjs). Sechsmal am ausgelieferten Viewer
+       gebrochen, dazu die vier übrigen Brüche aus (p) mit denselben
+       Meldungen wie dort:
+       der Fall aus dem Review, die drei Zeilen mit den Additionen
+       gestrichen: „[2] util-lrgtop: das Grundlicht kommt im Lichtgitter
+       des Viewers nicht so an, wie hallGrund es nennt (ohne Lampen
+       gerechnet, 286452 Zellen): +x an 286452 Zellen, zuerst in der
+       Schicht -1 m ueber dem Boden 0 statt 4.5; -x …; +y …; -y … 0 statt
+       2.7; +z …; -z …; Lichtfarbe Rot … 1 statt 0.843; Lichtfarbe Blau …
+       1 statt 1.1241 — …“;
+       nur die Addition für Unterseiten gestrichen: dieselbe Meldung mit
+       „-y an 286452 Zellen, … 0 statt 2.7“ allein;
+       = statt += für +x: „[3] util-lrgtop: Lampenlicht und Grundlicht
+       stehen nicht zusammen im Lichtgitter: An 89361 von 1718712 Werten
+       ist das Gitter mit beidem nicht ihre Summe (zuerst +x: 3.666 statt
+       0.0151 der Lampen plus 3.666 Grundlicht) — …“;
+       Grundlicht 2 für jede Halle ohne Eintrag: „[2] util-lrgtop: ohne
+       Lampen und ohne den Namen der Halle steht Licht im Gitter (1718712
+       Werte ueber null, der hoechste 2) — …“;
+       die Bühne reicht hallGitter nur den Raum ({ room: h.room }): „[2]
+       die Buehne des ausgelieferten Viewers rechnet ihr Lichtgitter nicht
+       mit hallGitter und ihrer Halle (1 Aufruf(e) in loadHallLights:
+       Zeile 9207 hallGitter(…, { room: h.room }, f, slicer(12, rast)),
+       das zweite Argument ist nicht die Halle; …) — …“;
+       hallGitter ohne export: „[2] util-lrgtop: der ausgelieferte Viewer
+       gibt sein Lichtgitter nicht mehr heraus (hallGitter, VOL_STEP,
+       VOL_GRUND) — …“.
+       Jede dieser Formen und weitere (jede Richtung einzeln, Höhe nicht
+       beachtet, Farbe weiß, das größere statt der Summe, Lampenlicht
+       gelöscht) bricht tests/e2e/hall-gitter.test.js am Viewer des Repos.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -207,6 +248,8 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { floorLevel } from './lib/hall-hull.mjs';
 import { SCHRIFT, SCHIRM_AUS } from './lib/hall-decals.mjs';
+import { DataUtils } from 'three';
+import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe } from './lib/hall-gitter.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -313,11 +356,36 @@ say('[2] Modell: Boden der Seite wie das Lot am Modell, Plattform auf dieser Hoe
 const io = HALLEN.size ? new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() }) : null;
 const DOCS = new Map();
 let bahnen = 0, padFlaeche = 0;
-// Das Grundlicht steht nur dann auf den Flaechen, wenn das Lichtgitter es bekommt: buildHallVolume liest es
-// je Schicht aus hallGrund, und loadHallLights reicht ihm die Halle durch.
-const gitterBau = /async function buildHallVolume\(([^)]*)\) \{[\s\S]*?\n  \}\n/.exec(viewerSrc);
-const gitterLiest = !!gitterBau && /\bid\b/.test(gitterBau[1]) && /hallGrund\(id, [^)]+\)/.test(gitterBau[0]) && /await buildHallVolume\([^;]*, h\.id\);/.test(viewerSrc);
-if (HALLEN.size && !gitterLiest) fail('[2] der ausgelieferte Viewer legt das Grundlicht der Hallen nicht ins Lichtgitter (buildHallVolume liest hallGrund nicht mehr, oder loadHallLights reicht ihm die Halle nicht durch) — hallGrund nennte eine Staerke, die keine Flaeche bekommt, und Waende und Decke stuenden wieder im Schwarz');
+// Das Grundlicht steht nur dann auf den Flaechen, wenn es im Lichtgitter ankommt. Das Tor rechnet das Gitter
+// darum mit der Funktion des Viewers selbst (hallGitter; ihr Ergebnis laedt die Buehne als Textur) und liest
+// zurueck, was in jeder Zelle steht (scripts/lib/hall-gitter.mjs, dort auch, warum nicht mehr am Quelltext):
+//   ohne Lampen steht in jeder Zelle genau das Grundlicht ihrer Hoehe, in allen sechs Richtungen und in seiner
+//   Farbe; dieselbe Halle ohne ihren Namen bleibt dunkel (das Licht stammt aus ihrem Eintrag in HALL_FEST, eine
+//   Halle ohne Eintrag bekommt keins); und mit den Lampen der ausgelieferten Datei kommt es zu deren Licht
+//   hinzu, statt es zu ersetzen ([3], dort liegen die Lampen).
+// Am Quelltext bleibt eine Naht: Die Buehne rechnet ihr Gitter mit eben dieser Funktion und reicht ihr die Halle.
+const NAHT = gitterAufrufe(viewerSrc);
+const gitterNaht = !NAHT.fehler.length && NAHT.aufrufe.length === 1 && NAHT.aufrufe[0].halle && NAHT.aufrufe[0].genutzt;
+if (HALLEN.size && !gitterNaht) fail(`[2] die Buehne des ausgelieferten Viewers rechnet ihr Lichtgitter nicht mit hallGitter und ihrer Halle (${NAHT.fehler[0] ?? (NAHT.aufrufe.length ? `${NAHT.aufrufe.length} Aufruf(e) in loadHallLights: ${NAHT.aufrufe.map((a) => `Zeile ${a.zeile} ${a.knoten}${a.halle ? '' : ', das zweite Argument ist nicht die Halle'}${a.genutzt ? '' : ', sein Ergebnis wird nicht gewartet, benannt und mit a und b gelesen'}`).join(' | ')}` : 'kein Aufruf in loadHallLights')}; erwartet genau einer: const … = await hallGitter(<Lampen>, <Halle>, …), dessen a und b die Buehne laedt) — das Tor rechnete ein Gitter nach, das die Buehne nicht laedt, und ob das Grundlicht auf den Flaechen ankommt, waere ungeprueft`);
+const GITTER = new Map();
+const m2 = (x) => +x.toFixed(2);
+// Gitter der Halle ohne Lampen, mit und ohne ihren Namen; null nach einem FEHLER
+async function grundProbe(id, hall) {
+  if (typeof viewer?.hallGitter !== 'function' || !(viewer.VOL_STEP > 0) || !Array.isArray(viewer.VOL_GRUND?.farbe)) { fail(`[2] ${id}: der ausgelieferte Viewer gibt sein Lichtgitter nicht mehr heraus (hallGitter, VOL_STEP, VOL_GRUND) — ob das Grundlicht auf den Flaechen ankommt, laesst sich nicht nachrechnen`); return null; }
+  let leer = null, fremd = null;
+  try {
+    leer = gitterWerte(await viewer.hallGitter([], hall, hall.floor), DataUtils.fromHalfFloat);
+    fremd = gitterWerte(await viewer.hallGitter([], { room: hall.room }, hall.floor), DataUtils.fromHalfFloat);
+  } catch (e) { fail(`[2] ${id}: das Lichtgitter laesst sich nicht rechnen (hallGitter: ${e.message})`); return null; }
+  if (!leer || !fremd) { fail(`[2] ${id}: hallGitter liefert kein Gitter (erwartet res und min aus je drei Zahlen und zwei Halbfloat-Felder a und b mit vier Werten je Zelle)`); return null; }
+  const B = grundImGitter(leer, { boden: hall.floor, hoehe: hall.room.height, step: viewer.VOL_STEP, grund: (hoch) => viewer.hallGrund(id, hoch), farbe: viewer.VOL_GRUND.farbe });
+  const F = gitterLicht(fremd);
+  if (!B.reicht || B.ohneSoll) { fail(`[2] ${id}: das Lichtgitter deckt den Raum nicht vom Boden bis zur Decke (${B.schichten} Schichten von ${m2(B.von)} bis ${m2(B.bis)} m ueber dem Boden, der Raum ist ${hall.room.height} m hoch${B.ohneSoll ? `; fuer ${B.ohneSoll} Schichten nennt hallGrund nichts` : ''}) — Flaechen ausserhalb bekaemen weder Lampen- noch Grundlicht`); return null; }
+  if (B.abweichungen.length) { fail(`[2] ${id}: das Grundlicht kommt im Lichtgitter des Viewers nicht so an, wie hallGrund es nennt (ohne Lampen gerechnet, ${B.zellen} Zellen): ${B.abweichungen.map((a) => `${a.was} an ${a.zahl} Zellen, zuerst in der Schicht ${m2(a.ueberBoden)} m ueber dem Boden ${+a.ist.toFixed(4)} statt ${+a.soll.toFixed(4)}`).join('; ')} — Flaechen in dieser Richtung stuenden dunkler oder heller als abgenommen, bei 0 im Schwarz wie am 15.11.2026`); return null; }
+  if (F.ueberNull) { fail(`[2] ${id}: ohne Lampen und ohne den Namen der Halle steht Licht im Gitter (${F.ueberNull} Werte ueber null, der hoechste ${+F.hoechster.toFixed(4)}) — das Grundlicht kaeme nicht mehr aus HALL_FEST.${id}: Die Halle von Revel & York bekaeme es auch, und was das Tor oben gemessen hat, waere nicht das Grundlicht dieser Halle`); return null; }
+  GITTER.set(id, leer);
+  return B;
+}
 const grundlicht = [];
 for (const [id, { hall, F }] of HALLEN) {
   let doc;
@@ -334,8 +402,11 @@ for (const [id, { hall, F }] of HALLEN) {
   else if (!G0 || !G1) fail(`[2] ${id}: die Halle hat kein Grundlicht (HALL_FEST.grund ${JSON.stringify(F.grund ?? null)}) — Waende und Decke stuenden im Schwarz, so wie Krisz sie am 15.11.2026 abgelehnt hat („viel zu dunkel“)`);
   else if (!(GK > 0)) fail(`[2] ${id}: keine Klinke fuer das Grundlicht (KLINKE.${id}.grund in diesem Skript) — eine neue Halle traegt die kleinste Stufe ein, die an ihren Bildern noch taugt`);
   else if (!(G0.seite >= GK && G0.oben >= GK)) fail(`[2] ${id}: das Grundlicht am Boden ist ${G0.seite} (Waende) und ${G0.oben} (Flaechen nach oben), Klinke ${GK} — darunter lag in der Messreihe wieder die Haelfte des oberen Bildteils im Schwarz`);
-  else if (!(G1.seite > 0 && G1.unten > 0 && G0.unten > 0)) fail(`[2] ${id}: das Grundlicht faellt unter der Decke oder an Unterseiten auf null (Decke ${G1.seite}, Unterseiten ${G0.unten} am Boden und ${G1.unten} oben) — die Decke staende schwarz`);
-  else grundlicht.push(`${id} ${G0.seite} am Boden, ${+G1.seite.toFixed(2)} unter der Decke (Klinke ${GK})`);
+  else if (!(G1.seite > 0 && G1.unten > 0 && G0.unten > 0)) fail(`[2] ${id}: das Grundlicht faellt unter der Decke oder an Unterseiten auf null (Decke ${m2(G1.seite)}, Unterseiten ${m2(G0.unten)} am Boden und ${m2(G1.unten)} oben) — die Decke staende schwarz`);
+  else {
+    const B = await grundProbe(id, hall);
+    if (B) grundlicht.push(`${id} ${G0.seite} am Boden, ${m2(G1.seite)} unter der Decke (Klinke ${GK}), im Lichtgitter nachgerechnet an ${B.zellen} Zellen in ${B.schichten} Schichten von ${m2(B.von)} bis ${m2(B.bis)} m ueber dem Boden, je sechs Richtungen und die Lichtfarbe`);
+  }
   // der Ursprung, an den die Buehne das Modell setzt (ohne ihn lotet sie selbst)
   const O = viewer?.hallOrigin?.(hall);
   if (!Array.isArray(O) || Math.abs(O[0] - mitte[0]) > 1e-6 || Math.abs(O[2] - mitte[1]) > 1e-6 || O[1] !== hall.floor) fail(`[2] ${id}: die Buehne setzt die Halle nicht auf die Mitte ihrer Landeflaeche und den Boden der Seite (hallOrigin ${JSON.stringify(O ?? null)}, erwartet ${mitte[0]}, ${hall.floor}, ${mitte[1]})`);
@@ -388,7 +459,7 @@ for (const [id, { hall, F }] of HALLEN) {
   }
 }
 say(`    ${DOCS.size} Modell(e) gelesen, ${bahnen} Bahnen mit Knoten, ${padFlaeche.toFixed(0)} m² Plattform auf der Hoehe des Bodens`);
-say(`    Grundlicht in ${grundlicht.length} von ${HALLEN.size} Halle(n)${grundlicht.length ? `: ${grundlicht.join('; ')}` : ''}; das Lichtgitter liest es: ${gitterLiest ? 'ja' : 'NEIN'}`);
+say(`    Grundlicht in ${grundlicht.length} von ${HALLEN.size} Halle(n)${grundlicht.length ? `: ${grundlicht.join('; ')}` : ''}; die Buehne rechnet ihr Gitter mit derselben Funktion: ${gitterNaht ? 'ja' : 'NEIN'}`);
 
 /* ---------- [3] Bestand ---------- */
 say('[3] Bestand: Schrift und Schirme am Modell, Lampen in der ausgelieferten Datei, Zahlen des Manifests ueber ihren Klinken und unter ihren Obergrenzen');
@@ -437,6 +508,26 @@ for (const [id, { bytes }] of HALLEN) {
   if (kaputt) fail(`[3] ${id}: ${kaputt} von ${lampenRoh.length} Lampen der ausgelieferten Datei sind unvollstaendig (ohne Art, ohne Ort aus drei Zahlen oder ohne Staerke)`);
   if (lampenRoh && lampenRoh.length !== M.lights?.total) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt ${lampenRoh.length} Lampen, das Manifest nennt ${M.lights?.total ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
   const lampenAus = (lampenRoh?.length ?? 0) - kaputt - lampen.length;
+  // Grundlicht und Lampenlicht im selben Gitter: mit den Lampen der ausgelieferten Datei gerechnet, einmal mit
+  // und einmal ohne den Namen der Halle. Das Gitter mit beidem ist ueberall die Summe; wo eines das andere
+  // ersetzte, fehlte sie. (Die Buehne verschiebt die Lampen im Boden von Feld und Streifen, hebt alle um
+  // HALL_FEST.licht und nimmt ihre sechs echten aus; fuer die Summe ist das gleich.)
+  const leerG = GITTER.get(id);
+  let dazu = null;
+  if (leerG && lampen.length) {
+    const hall = HALLEN.get(id).hall;
+    let mit = null, nur = null;
+    try {
+      mit = gitterWerte(await viewer.hallGitter(lampen, hall, hall.floor), DataUtils.fromHalfFloat);
+      nur = gitterWerte(await viewer.hallGitter(lampen, { room: hall.room }, hall.floor), DataUtils.fromHalfFloat);
+    } catch (e) { fail(`[3] ${id}: das Lichtgitter laesst sich mit den Lampen der ausgelieferten Datei nicht rechnen (hallGitter: ${e.message})`); }
+    const D = mit && nur ? gitterDazu(mit, nur, leerG) : null;
+    if (!D) fail(`[3] ${id}: hallGitter liefert mit den Lampen der ausgelieferten Datei kein Gitter in der Groesse des leeren (${leerG.res.join(' x ')})`);
+    else if (!(mit.used > 0 && mit.used === nur.used)) fail(`[3] ${id}: von ${lampen.length} Lampen stehen ${mit.used ?? 'keine'} im Gitter mit Grundlicht und ${nur.used ?? 'keine'} im Gitter ohne — erwartet in beiden dieselben und mehr als keine`);
+    else if (!D.staerker) fail(`[3] ${id}: an keiner Stelle des Gitters haben die ${mit.used} Lampen mehr Licht als das Grundlicht — ob es ihr Licht ersetzt, laesst sich so nicht pruefen (die Staerken der Lampendatei oder HALL_FEST.grund stimmen nicht)`);
+    else if (D.abweichend) fail(`[3] ${id}: Lampenlicht und Grundlicht stehen nicht zusammen im Lichtgitter: An ${D.abweichend} von ${D.werte} Werten ist das Gitter mit beidem nicht ihre Summe (zuerst ${D.erstes.was}: ${+D.erstes.mit.toFixed(4)} statt ${+D.erstes.nur.toFixed(4)} der Lampen plus ${+D.erstes.leer.toFixed(4)} Grundlicht) — eines ersetzt oder daempft das andere, die Halle stuende flacher oder dunkler als abgenommen`);
+    else dazu = `im Lichtgitter ${mit.used} davon, an ${D.staerker} von ${D.werte} Werten staerker als das Grundlicht, ueberall kommt es dazu`;
+  }
   // im Manifest: was der Build gezaehlt hat (die Lampen aus der ausgelieferten Datei)
   const ist = { lampen: lampen.length, tor: M.aufzug?.teile, schirme: M.schirme?.aus, tafeln: M.logo?.tafeln, aufkleber: M.aufkleber?.netze, schilder: M.schriftVoll?.teilnetze, kinder: M.kinder?.exemplare };
   for (const [k, was] of [['lampen', gilt ? `Lampen des Spiels, die die Buehne setzt (von ${lampenRoh?.length ?? 0} in der ausgelieferten Datei${lampenAus ? `; ${lampenAus} laesst sie weg: Umgebungslicht, ohne Staerke oder Flaechenlicht unter ${viewer?.LAMP_MIN_RADIUS ?? '?'} m` : ''})` : 'Lampen des Spiels gezaehlt (ohne die Regel des Viewers zaehlt das Tor keine)'], ['tor', 'Teile des Bodentors'], ['schirme', 'vom Build ausgeschaltete Schirme'], ['tafeln', 'Tafeln mit dem Logo des Betreibers'], ['aufkleber', 'Netze mit Aufklebern'], ['schilder', 'aus der vollen Stufe geholte Schilder'], ['kinder', `Kind-Container mit Geometrie eingehaengt (${Object.entries(M.kinder?.je ?? {}).map(([k, e]) => `${k} ${e?.exemplare}`).join(', ') || 'das Manifest nennt keinen'}; es sind Frachtaufzuege, ihre Kabinen und die Tueren der Personenaufzuege und der Abgabe, wo einer fehlt, steht ein Loch in der Wand)`]]) {
@@ -450,7 +541,7 @@ for (const [id, { bytes }] of HALLEN) {
   if (M.floor !== HALLEN.get(id).hall.floor) fail(`[3] ${id}: das Manifest nennt den Boden bei ${M.floor}, die Seite bei ${HALLEN.get(id).hall.floor}`);
   const ueber = [['tris', M.tris, 'Dreiecke'], ['bytes', bytes, 'Bytes'], ['texturen', M.textures, 'Texturen'], ['leck', M.hull?.pct, '% Blickstrahlen ins Leere']].filter(([k, v]) => !(v <= G[k]));
   for (const [k, v, was] of ueber) fail(`[3] ${id}: ${v ?? 'keine Zahl fuer'} ${was}, Obergrenze ${G[k]} — die Halle ist schwerer oder offener geworden`);
-  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
+  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}${dazu ? ` (${dazu})` : ''}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
 }
 for (const z of zeilen) say(z);
 if (!zeilen.length) say(`    ${HALLEN.size ? 'keine Halle vollstaendig gemessen' : 'keine Halle ausgeliefert, nichts zu messen'}`);

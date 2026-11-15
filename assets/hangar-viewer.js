@@ -973,6 +973,106 @@ export function hallGrund(id, hoch) {
   return { seite: s, oben: s, unten: s * VOL_GRUND.unten };
 }
 
+// Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
+// bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
+const HALL_LIGHT_SCALE = 2;
+const DEG = Math.PI / 180;
+// Flächenlicht ≈ Halbraum vor der Fläche, weich auslaufend; ein Stück vor
+// die Fläche gesetzt, damit direkt davor kein gleißender Fleck entsteht.
+const AREA_HALF = 80 * DEG, AREA_OFFSET = 0.6;
+// Gerichtet strahlen Spots und ausgerichtete Flächenlichter; Punktlichter rundum
+const aimed = (l) => !!l.dir && (l.type === 'spot' || l.type === 'area');
+
+// Licht der übrigen Spiellampen als Lichtgitter. Echt brennen nur die
+// sechs der Bühne (MAX_LIGHTS); die übrigen gut 300 im Raum (Wandleuchten,
+// Eck-Lichtsäulen, Spots über der Stirnwand, Galerie) trugen nichts bei, und
+// jede Wand stand im selben flachen Grau aus Halbkugel und Umgebungskugel.
+// Hier wird ihr Licht einmal beim Laden auf ein Gitter im Modellraum
+// gerechnet, je Zelle als Würfel aus sechs Richtungen (Helligkeit je ±x, ±y,
+// ±z und eine Lichtfarbe), so wie three.js die echten Lampen rechnet (Stärke
+// mal HALL_LIGHT_SCALE, 1/d² bis zur Reichweite, Kegel), nur ohne Schatten.
+// Der Hallenshader liest es als Streulicht: zwei Abrufe je Bildpunkt statt
+// einer Lampe je Spiellampe. Wände, Boden und Decke liegen achsparallel,
+// für sie ist der Würfel genau. Lampen außerhalb des Raums bleiben
+// draußen, ohne Schatten schienen sie sonst durch die Wand. Dazu kommt in
+// jede Zelle das Grundlicht der Halle (hallGrund).
+// Steht hier oben und nicht in der Bühne, damit das Tor dieselbe Rechnung
+// fährt (verify:hangar-hallen [2]): Es liest zurück, was die Bühne als
+// Textur lädt, statt am Quelltext abzulesen, ob das Grundlicht ankommt.
+// `h`: die Halle der Seite (room, id), `f`: Höhe ihres Bodens. Liefert zwei
+// RGBA-Halbfloat-Felder: a = +x −x +y −y, b = +z −z und die Lichtfarbe als
+// Rot und Blau je Helligkeit (Grün folgt daraus).
+export const VOL_STEP = 2;   // Gitterweite in Modellmetern
+const VOL_SOFT = 1;   // m: näher wird keine Lampe heller (Leuchte statt Punkt)
+const VOL_GAIN = 1;   // Stärke gegen die echten Lampen, am Render abgeglichen
+export async function hallGitter(list, h, f, pause = noPause) {
+  const { center: c, halfW, halfL, height } = h.room;
+  const x0 = c[0] - halfW, y0 = f - 1, z0 = c[2] - halfL;
+  const nx = Math.round((2 * halfW) / VOL_STEP) + 1, ny = Math.ceil((height + 1) / VOL_STEP) + 1, nz = Math.round((2 * halfL) / VOL_STEP) + 1;
+  const N = nx * ny * nz, face = new Float32Array(N * 6), rgb = new Float32Array(N * 3);
+  const lo = [x0 - 0.5, y0 - 0.5, z0 - 0.5], hi = [x0 + 2 * halfW + 0.5, f + height + 0.5, z0 + 2 * halfL + 0.5];
+  const soft = VOL_SOFT * VOL_SOFT;
+  let used = 0;
+  for (const l of list) {
+    await pause();
+    if (!l.pos.every((v, i) => v >= lo[i] && v <= hi[i])) continue;
+    const R = l.radius || 30, R4 = R ** 4, I = l.intensity * HALL_LIGHT_SCALE * VOL_GAIN;
+    const col = l.color || [1, 1, 1], lum = 0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2];
+    // Kegel wie bei den echten Lampen: Spot mit Halbschatten 0,5, Flächenlicht weich bis zur Achse
+    const spot = l.type === 'spot', dir = aimed(l) ? l.dir : null;
+    const half = spot ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF;
+    const cosO = Math.cos(half), cosI = Math.cos(spot ? half * 0.5 : 0);
+    const [px, py, pz] = l.pos;
+    const i0 = Math.max(0, Math.floor((px - R - x0) / VOL_STEP)), i1 = Math.min(nx - 1, Math.ceil((px + R - x0) / VOL_STEP));
+    const j0 = Math.max(0, Math.floor((py - R - y0) / VOL_STEP)), j1 = Math.min(ny - 1, Math.ceil((py + R - y0) / VOL_STEP));
+    const k0 = Math.max(0, Math.floor((pz - R - z0) / VOL_STEP)), k1 = Math.min(nz - 1, Math.ceil((pz + R - z0) / VOL_STEP));
+    used++;
+    for (let k = k0; k <= k1; k++) for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const dx = px - (x0 + i * VOL_STEP), dy = py - (y0 + j * VOL_STEP), dz = pz - (z0 + k * VOL_STEP);
+      const d2 = dx * dx + dy * dy + dz * dz;
+      if (d2 >= R * R) continue;
+      const d = Math.sqrt(d2) || 1, w = 1 - (d2 * d2) / R4;
+      let E = (I / (d2 + soft)) * w * w;
+      if (dir) {
+        const cs = -(dir[0] * dx + dir[1] * dy + dir[2] * dz) / d;
+        if (cs <= cosO) continue;
+        const t = Math.min(1, (cs - cosO) / (cosI - cosO));
+        E *= t * t * (3 - 2 * t);
+      }
+      if (E < 1e-4) continue;
+      // Richtung zur Lampe: Eine Fläche mit Normale +x empfängt, was von +x kommt
+      const n = (k * ny + j) * nx + i, e = (E * lum) / d, lx = dx * e, ly = dy * e, lz = dz * e;
+      if (lx > 0) face[n * 6] += lx; else face[n * 6 + 1] -= lx;
+      if (ly > 0) face[n * 6 + 2] += ly; else face[n * 6 + 3] -= ly;
+      if (lz > 0) face[n * 6 + 4] += lz; else face[n * 6 + 5] -= lz;
+      rgb[n * 3] += E * col[0]; rgb[n * 3 + 1] += E * col[1]; rgb[n * 3 + 2] += E * col[2];
+    }
+  }
+  // Grundlicht der Halle (hallGrund) in jede Zelle, je Schicht nach ihrer Höhe
+  if (hallGrund(h.id, 0)) {
+    const [gr, gg, gb] = VOL_GRUND.farbe, gl = 0.2126 * gr + 0.7152 * gg + 0.0722 * gb;
+    for (let j = 0; j < ny; j++) {
+      await pause();
+      const g = hallGrund(h.id, (y0 + j * VOL_STEP - f) / height), q = g.seite / gl;
+      for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++) {
+        const n = (k * ny + j) * nx + i;
+        face[n * 6] += g.seite; face[n * 6 + 1] += g.seite; face[n * 6 + 2] += g.oben;
+        face[n * 6 + 3] += g.unten; face[n * 6 + 4] += g.seite; face[n * 6 + 5] += g.seite;
+        rgb[n * 3] += q * gr; rgb[n * 3 + 1] += q * gg; rgb[n * 3 + 2] += q * gb;
+      }
+    }
+  }
+  const A = new Uint16Array(N * 4), B = new Uint16Array(N * 4), hf = THREE.DataUtils.toHalfFloat;
+  for (let n = 0; n < N; n++) {
+    if (!(n & 4095)) await pause();
+    for (let s = 0; s < 4; s++) A[n * 4 + s] = hf(face[n * 6 + s]);
+    B[n * 4] = hf(face[n * 6 + 4]); B[n * 4 + 1] = hf(face[n * 6 + 5]);
+    const r = rgb[n * 3], g = rgb[n * 3 + 1], b = rgb[n * 3 + 2], L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    B[n * 4 + 2] = hf(L > 1e-6 ? r / L : 1); B[n * 4 + 3] = hf(L > 1e-6 ? b / L : 1);
+  }
+  return { a: A, b: B, min: [x0, y0, z0], res: [nx, ny, nz], used };
+}
+
 // Mitte des Schiffsfelds (mit Aufzug), der Landefläche (HALL_FEST) oder des
 // Raums, im Modellraum
 function hallSpot(h) {
@@ -8958,23 +9058,16 @@ export async function initHangar(container, opts = {}) {
   // Boden um das Schiff 98 % des Lichts (Bewertung wie lampScore, mit den
   // Wänden 94 %), die nächsten vier sind Spots an der Rückwand; alle sechs
   // zusammen 97 %. Mehr Lampen kosten jedes Bild, ohne dass man es sieht.
-  // Unter hoch weniger: Was nicht brennt, geht ins Lichtgitter (buildHallVolume).
+  // Unter hoch weniger: Was nicht brennt, geht ins Lichtgitter (hallGitter).
   const MAX_LIGHTS = Q0 === 'niedrig' ? 2 : SMALL ? 3 : Q0 === 'mittel' ? 4 : 6;
   // So viele Spots über der Plattform werfen den Schatten des Schiffs (und
   // der Halle, renderHallShadows: dieselben Strahler, in derselben Folge)
   const SHADOW_LAMPS = SMALL || Q0 === 'niedrig' ? 1 : 2;
   // Kantenlänge der Schattenkarten (Schiff und Halle)
   const SHADOW_SIZE = SMALL || Q0 === 'niedrig' ? 1024 : 2048;
-  // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
-  // bei 1,5 lesen sich Boden und Wände klar, ab 4,5 brennt der Boden weiß aus.
-  const HALL_LIGHT_SCALE = 2;
-  const DEG = Math.PI / 180;
-  // Flächenlicht ≈ Halbraum vor der Fläche, weich auslaufend; ein Stück vor
-  // die Fläche gesetzt, damit direkt davor kein gleißender Fleck entsteht.
-  const AREA_HALF = 80 * DEG, AREA_OFFSET = 0.6;
+  // HALL_LIGHT_SCALE, DEG, AREA_HALF, AREA_OFFSET und aimed stehen oben beim
+  // Lichtgitter (hallGitter), das dieselben Regeln rechnet.
   const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  // Gerichtet strahlen Spots und ausgerichtete Flächenlichter; Punktlichter rundum
-  const aimed = (l) => !!l.dir && (l.type === 'spot' || l.type === 'area');
 
   function clusterAreaLights(list, reach = 5) {
     const cl = [];
@@ -9021,101 +9114,19 @@ export async function initHangar(container, opts = {}) {
     return s;
   }
 
-  // Licht der übrigen Spiellampen als Lichtgitter. Echt brennen nur die
-  // sechs oben; die übrigen gut 300 im Raum (Wandleuchten, Eck-Lichtsäulen,
-  // Spots über der Stirnwand, Galerie) trugen nichts bei, und jede Wand
-  // stand im selben flachen Grau aus Halbkugel und Umgebungskugel. Hier
-  // wird ihr Licht einmal beim Laden auf ein Gitter im Modellraum gerechnet,
-  // je Zelle als Würfel aus sechs Richtungen (Helligkeit je ±x, ±y, ±z und
-  // eine Lichtfarbe), so wie three.js die echten Lampen rechnet (Stärke mal
-  // HALL_LIGHT_SCALE, 1/d² bis zur Reichweite, Kegel), nur ohne Schatten.
-  // Der Hallenshader liest es als Streulicht: zwei Abrufe je Bildpunkt statt
-  // einer Lampe je Spiellampe. Wände, Boden und Decke liegen achsparallel,
-  // für sie ist der Würfel genau. Lampen außerhalb des Raums bleiben
-  // draußen, ohne Schatten schienen sie sonst durch die Wand.
-  const VOL_STEP = 2;   // Gitterweite in Modellmetern
-  const VOL_SOFT = 1;   // m: näher wird keine Lampe heller (Leuchte statt Punkt)
-  const VOL_GAIN = 1;   // Stärke gegen die echten Lampen, am Render abgeglichen
+  // Lichtgitter der Halle (hallGitter, oben): zwei 3D-Texturen für den
+  // Hallenshader, hgVolume liest sie.
   const hallVol = {
     a: { value: null }, b: { value: null }, on: { value: 0 },
     min: { value: new THREE.Vector3() }, at: null, inv: { value: 1 / VOL_STEP }, res: { value: new THREE.Vector3(1, 1, 1) },
   };
-  async function buildHallVolume(list, room, f, pause = noPause, id = null) {
-    const { center: c, halfW, halfL, height } = room;
-    const x0 = c[0] - halfW, y0 = f - 1, z0 = c[2] - halfL;
-    const nx = Math.round((2 * halfW) / VOL_STEP) + 1, ny = Math.ceil((height + 1) / VOL_STEP) + 1, nz = Math.round((2 * halfL) / VOL_STEP) + 1;
-    const N = nx * ny * nz, face = new Float32Array(N * 6), rgb = new Float32Array(N * 3);
-    const lo = [x0 - 0.5, y0 - 0.5, z0 - 0.5], hi = [x0 + 2 * halfW + 0.5, f + height + 0.5, z0 + 2 * halfL + 0.5];
-    const soft = VOL_SOFT * VOL_SOFT;
-    let used = 0;
-    for (const l of list) {
-      await pause();
-      if (!l.pos.every((v, i) => v >= lo[i] && v <= hi[i])) continue;
-      const R = l.radius || 30, R4 = R ** 4, I = l.intensity * HALL_LIGHT_SCALE * VOL_GAIN;
-      const col = l.color || [1, 1, 1], lum = 0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2];
-      // Kegel wie bei den echten Lampen: Spot mit Halbschatten 0,5, Flächenlicht weich bis zur Achse
-      const spot = l.type === 'spot', dir = aimed(l) ? l.dir : null;
-      const half = spot ? Math.min(89, (l.angle || 60) / 2) * DEG : AREA_HALF;
-      const cosO = Math.cos(half), cosI = Math.cos(spot ? half * 0.5 : 0);
-      const [px, py, pz] = l.pos;
-      const i0 = Math.max(0, Math.floor((px - R - x0) / VOL_STEP)), i1 = Math.min(nx - 1, Math.ceil((px + R - x0) / VOL_STEP));
-      const j0 = Math.max(0, Math.floor((py - R - y0) / VOL_STEP)), j1 = Math.min(ny - 1, Math.ceil((py + R - y0) / VOL_STEP));
-      const k0 = Math.max(0, Math.floor((pz - R - z0) / VOL_STEP)), k1 = Math.min(nz - 1, Math.ceil((pz + R - z0) / VOL_STEP));
-      used++;
-      for (let k = k0; k <= k1; k++) for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-        const dx = px - (x0 + i * VOL_STEP), dy = py - (y0 + j * VOL_STEP), dz = pz - (z0 + k * VOL_STEP);
-        const d2 = dx * dx + dy * dy + dz * dz;
-        if (d2 >= R * R) continue;
-        const d = Math.sqrt(d2) || 1, w = 1 - (d2 * d2) / R4;
-        let E = (I / (d2 + soft)) * w * w;
-        if (dir) {
-          const cs = -(dir[0] * dx + dir[1] * dy + dir[2] * dz) / d;
-          if (cs <= cosO) continue;
-          const t = Math.min(1, (cs - cosO) / (cosI - cosO));
-          E *= t * t * (3 - 2 * t);
-        }
-        if (E < 1e-4) continue;
-        // Richtung zur Lampe: Eine Fläche mit Normale +x empfängt, was von +x kommt
-        const n = (k * ny + j) * nx + i, e = (E * lum) / d, lx = dx * e, ly = dy * e, lz = dz * e;
-        if (lx > 0) face[n * 6] += lx; else face[n * 6 + 1] -= lx;
-        if (ly > 0) face[n * 6 + 2] += ly; else face[n * 6 + 3] -= ly;
-        if (lz > 0) face[n * 6 + 4] += lz; else face[n * 6 + 5] -= lz;
-        rgb[n * 3] += E * col[0]; rgb[n * 3 + 1] += E * col[1]; rgb[n * 3 + 2] += E * col[2];
-      }
-    }
-    // Grundlicht der Halle (hallGrund) in jede Zelle, je Schicht nach ihrer Höhe
-    if (hallGrund(id, 0)) {
-      const [gr, gg, gb] = VOL_GRUND.farbe, gl = 0.2126 * gr + 0.7152 * gg + 0.0722 * gb;
-      for (let j = 0; j < ny; j++) {
-        await pause();
-        const g = hallGrund(id, (y0 + j * VOL_STEP - f) / height), c = g.seite / gl;
-        for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++) {
-          const n = (k * ny + j) * nx + i;
-          face[n * 6] += g.seite; face[n * 6 + 1] += g.seite; face[n * 6 + 2] += g.oben;
-          face[n * 6 + 3] += g.unten; face[n * 6 + 4] += g.seite; face[n * 6 + 5] += g.seite;
-          rgb[n * 3] += c * gr; rgb[n * 3 + 1] += c * gg; rgb[n * 3 + 2] += c * gb;
-        }
-      }
-    }
-    // zwei RGBA-Halbfloat-Texturen: A = +x −x +y −y, B = +z −z und die
-    // Lichtfarbe als Rot und Blau je Helligkeit (Grün folgt daraus)
-    const A = new Uint16Array(N * 4), B = new Uint16Array(N * 4), h = THREE.DataUtils.toHalfFloat;
-    for (let n = 0; n < N; n++) {
-      if (!(n & 4095)) await pause();
-      for (let s = 0; s < 4; s++) A[n * 4 + s] = h(face[n * 6 + s]);
-      B[n * 4] = h(face[n * 6 + 4]); B[n * 4 + 1] = h(face[n * 6 + 5]);
-      const r = rgb[n * 3], g = rgb[n * 3 + 1], b = rgb[n * 3 + 2], L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-      B[n * 4 + 2] = h(L > 1e-6 ? r / L : 1); B[n * 4 + 3] = h(L > 1e-6 ? b / L : 1);
-    }
-    const tex = (arr) => {
-      const t = new THREE.Data3DTexture(arr, nx, ny, nz);
-      t.type = THREE.HalfFloatType; t.format = THREE.RGBAFormat;
-      t.minFilter = t.magFilter = THREE.LinearFilter;
-      t.unpackAlignment = 1; t.needsUpdate = true;
-      return t;
-    };
-    return { a: tex(A), b: tex(B), min: [x0, y0, z0], res: [nx, ny, nz], used };
-  }
+  const volTex = (arr, [nx, ny, nz]) => {
+    const t = new THREE.Data3DTexture(arr, nx, ny, nz);
+    t.type = THREE.HalfFloatType; t.format = THREE.RGBAFormat;
+    t.minFilter = t.magFilter = THREE.LinearFilter;
+    t.unpackAlignment = 1; t.needsUpdate = true;
+    return t;
+  };
 
   // Halle samt Lampen: hallRoot steht ab dem Start in der Szene (die Leinwand
   // ist bis zum ersten Bild verborgen) und trägt erst die Lampen, dann das
@@ -9193,10 +9204,10 @@ export async function initHangar(container, opts = {}) {
     // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
     const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
     const t0 = performance.now();
-    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, rast), h.id);
+    const vol = await hallGitter(all.filter((l) => !lit.has(l)), h, f, slicer(12, rast));
     // in Häppchen gerechnet: scheiterte die Halle derweil, bleibt die gebaute samt Bühnenlicht
-    if (hallFailed) { vol.a.dispose(); vol.b.dispose(); return false; }
-    hallVol.a.value = vol.a; hallVol.b.value = vol.b;
+    if (hallFailed) return false;
+    hallVol.a.value = volTex(vol.a, vol.res); hallVol.b.value = volTex(vol.b, vol.res);
     // Ecke im Modellraum merken: Die Halle verschiebt Lampen und Gitter beim
     // Einhängen um ihre eigene Lage (ohne floor im Manifest gelotet)
     hallVol.at = vol.min;
@@ -9583,7 +9594,7 @@ vec4 hgNoTileSample( sampler2D s, vec2 uv ) {
 uniform highp sampler3D hgVolA, hgVolB;
 uniform vec3 hgVolMin, hgVolRes;
 uniform float hgVolInv, hgVolOn;
-// Lichtgitter (buildHallVolume): eine halbe Zelle vor der Fläche gelesen,
+// Lichtgitter (hallGitter): eine halbe Zelle vor der Fläche gelesen,
 // je Achse die Seite, in die die Normale zeigt, gewichtet mit n².
 vec3 hgVolume( vec3 p, vec3 n ) {
 	vec3 uvw = ( ( p + n * ( 0.5 / hgVolInv ) - hgVolMin ) * hgVolInv + 0.5 ) / hgVolRes;
