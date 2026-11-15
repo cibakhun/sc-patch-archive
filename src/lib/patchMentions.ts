@@ -5,7 +5,10 @@
 
 type PatchFile = { version: string; codename: string; features?: { links?: { href: string }[] }[] };
 
-export type PatchMention = { version: string; codename: string; page: string };
+import { patchPageSlugs } from './patchPages';
+
+/** `page`: null, wenn dieser Bau die Patch-Seite nicht traegt. */
+export type PatchMention = { version: string; codename: string; page: string | null };
 
 const files = import.meta.glob<PatchFile>('../data/patches/*.json', { eager: true, import: 'default' });
 
@@ -18,7 +21,8 @@ const byVersion = (a: PatchMention, b: PatchMention) => {
 
 const mentions = new Map<string, PatchMention[]>();
 for (const p of Object.values(files)) {
-  const page = `/patches/sc-${p.version.replace(/\./g, '-')}.html`;
+  const slug = `sc-${p.version.replace(/\./g, '-')}`;
+  const page = patchPageSlugs.has(slug) ? `/patches/${slug}.html` : null;
   for (const f of p.features ?? []) {
     for (const l of f.links ?? []) {
       if (!l.href.startsWith('/')) continue;

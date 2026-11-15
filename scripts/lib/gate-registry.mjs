@@ -235,6 +235,16 @@ export const CHECKS = [
       'der Hangar steht genau im Vorschau-Bau: live keine Hangar-Seiten, -Ordner, -Modelle und -Skripte in dist/ und keine Seite, die eine Hangar-Seite verlinkt oder etwas aus /hangar/ laedt; in der Vorschau beide Sprachen, die Buchtdokumente (Klinke) und die Modelle (Klinke), und das Menue fuehrt hin; Klinke fuer gelesene Seiten',
   },
   {
+    // Neuzugang (15.11.2026): Patch-Seiten vor der Abnahme, derselbe
+    // STAGING-Schalter am Artefakt. Kein env-Feld: nur dist/.
+    id: 'verify:vorschau-patches',
+    npm: 'verify:vorschau-patches',
+    script: 'scripts/verify-vorschau-patches.mjs',
+    rail: 'A',
+    checks:
+      'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen; Klinke fuer gelesene Seiten',
+  },
+  {
     // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach
     // dem Hangar-Schalter, derselbe STAGING-Schalter am Artefakt. Liest jede
     // Textdatei in dist/ einmal, wenige Sekunden. Kein env-Feld: kein git,

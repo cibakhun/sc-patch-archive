@@ -29,6 +29,7 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { patchesFor } from '../lib/patchSpine';
+import { patchSeiteHref } from '../lib/patchPages';
 import { mergePatchEn } from '../i18n/patchText';
 import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
 import { beiWikelo } from '../lib/wikeloShips';
@@ -2787,11 +2788,13 @@ span.sd__ref{color:var(--muted)}
       <div class="sd__chsec">
       <section class="sd__spine" aria-label={t('ship.spine.title')}>
         <h3>{t('ship.spine.title')}</h3>
-        {spine.map((p) => (
-          <a href={L(`/patches/sc-${p!.id}.html`)}>
+        {spine.map((p) => (patchSeiteHref(p!.id, lang) ? (
+          <a href={patchSeiteHref(p!.id, lang)}>
             Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay} →</span>
           </a>
-        ))}
+        ) : (
+          <span>Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay}</span></span>
+        )))}
       </section>
       </div>
     )}

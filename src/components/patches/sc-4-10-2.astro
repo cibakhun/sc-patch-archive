@@ -9,6 +9,7 @@ import { getEntry } from 'astro:content';
 import { mergePatchEn } from '../../i18n/patchText';
 import { versioned } from '../../lib/assetVersion';
 import { localeFromPath, href } from '../../i18n/ui';
+import { patchSeiteHref } from '../../lib/patchPages';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -415,7 +416,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
 <footer>
   <nav class="pager" aria-label={de ? 'Patch-Navigation' : 'Patch navigation'}>
     <a href={de ? '/de/patches/sc-4-10-1.html' : '/patches/sc-4-10-1.html'}><span class="dir">{de ? '← Älter' : '← Older'}</span><span class="ttl">4.10.1 · Orison Relief Support</span></a>
-    <a class="next" href={de ? '/de/patches/sc-4-10-3.html' : '/patches/sc-4-10-3.html'}><span class="dir">{de ? 'Neuer →' : 'Newer →'}</span><span class="ttl">4.10.3 · IAE 2956 &amp; Vanduul Incursion</span></a>
+    {patchSeiteHref('4-10-3', lang)
+      ? <a class="next" href={patchSeiteHref('4-10-3', lang)}><span class="dir">{de ? 'Neuer →' : 'Newer →'}</span><span class="ttl">4.10.3 · IAE 2956 &amp; Vanduul Incursion</span></a>
+      : <span class="next disabled"><span class="dir">{de ? 'Neuer' : 'Newer'}</span><span class="ttl">4.10.3 · IAE 2956 &amp; Vanduul Incursion</span></span>}
   </nav>
   <div class="foot-meta">
     <a class="home-link" href={de ? '/de/archiv.html' : '/archiv.html'}>{de ? '⌂ Alle Patches' : '⌂ All patches'}</a>

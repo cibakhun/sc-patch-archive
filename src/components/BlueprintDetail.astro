@@ -255,6 +255,6 @@ const resistRow = dmgRes ? formatResist(dmgRes, lang) : null;
     {linkedItem && <a class="dp-btn" href={href(itemPath(linkedItem), lang)}>{t('bpOpenItem')} →</a>}
     <a class="dp-btn dp-btn--ghost" href={href(plannerPath(bp), lang)}>{t('bpOpenPlanner')}</a>
     <a class="dp-btn dp-btn--ghost" href={href(craftCategoryPath(slugify(bp.category)), lang)}>{craftLeaf(bp.category)}</a>
-    {mentions.map((p) => <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a>)}
+    {mentions.map((p) => (p.page ? <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a> : <span class="dp-btn dp-btn--ghost">Alpha {p.version} · {p.codename}</span>))}
   </div>
 </DataShell>

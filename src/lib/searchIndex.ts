@@ -28,6 +28,7 @@ import { mergePatchEn, eraLabel } from '../i18n/patchText';
 import { vType, vSize, vFoci } from '../i18n/vehicleText';
 import { missions, repSummary, uec } from './missions';
 import { patchesFor } from './patchSpine';
+import { patchSeiteHref } from './patchPages';
 import { altName, displayName, itemPath, leafCategory, pageItemIds, pageItems, rootCategory } from './items';
 import {
   blueprintListLabels, blueprintPath, blueprints, craftEntryPath, craftLeaf, craftRoot, itemForBlueprint, recipeForItem,
@@ -77,8 +78,8 @@ export async function buildSearchIndex(lang: Locale): Promise<SearchEntry[]> {
 
   for (const p of patches) {
     const d = mergePatchEn(p.id, p.data, lang);
-    const purl = href(`/patches/sc-${p.id}.html`, lang);
-    out.push({
+    const purl = patchSeiteHref(p.id, lang);
+    if (purl) out.push({
       k: 'patch',
       b: `Alpha ${d.version}`,
       t: `Alpha ${d.version} — ${d.codename}`,

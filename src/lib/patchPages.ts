@@ -19,18 +19,29 @@
 
 import type { Locale } from '../i18n/ui';
 import { href } from '../i18n/ui';
+import { HANGAR_ON } from './hangarFlag';
+import { VORSCHAU_PATCHES } from '../../scripts/lib/vorschau-patches.mjs';
+
+const VORSCHAU_SLUGS: readonly string[] = VORSCHAU_PATCHES.map((id: string) => `sc-${id}`);
 
 /**
- * Die Namen aller vorhandenen Patch-Seiten, ohne Endung ("sc-4-9-0", …).
+ * Die Namen aller Patch-Seiten, die dieser Bau traegt, ohne Endung ("sc-4-9-0", …).
  * `import.meta.glob` wird von Vite zur Bauzeit aufgeloest — kein Dateisystem-
  * Zugriff zur Laufzeit, und der Bestand kann nicht veralten, weil er nicht
- * gepflegt, sondern gelesen wird.
+ * gepflegt, sondern gelesen wird. Seiten aus VORSCHAU_PATCHES zaehlen nur im
+ * Vorschau-Bau.
  */
-export const patchPageSlugs: ReadonlySet<string> = new Set(
-  Object.keys(import.meta.glob('../pages/patches/*.astro')).map(
+export const patchPageSlugs: ReadonlySet<string> = new Set([
+  ...Object.keys(import.meta.glob('../pages/patches/*.astro')).map(
     (p) => p.split('/').pop()!.replace(/\.astro$/, ''),
   ),
-);
+  ...(HANGAR_ON ? VORSCHAU_SLUGS : []),
+]);
+
+/** Verweis auf die Seite eines Patches aus dem Bestand (id wie "4-10-3") — oder `null`, wenn dieser Bau sie nicht traegt. */
+export function patchSeiteHref(id: string, lang: Locale): string | null {
+  return patchPageSlugs.has(`sc-${id}`) ? href(`/patches/sc-${id}.html`, lang) : null;
+}
 
 /**
  * Patch-Label aus der Kennung einer Datendatei, in jeder ihrer Formen:
@@ -83,6 +94,7 @@ export function patchLinkFromKennung(
   const voll = `${m[1]}.${m[2]}.${m[3]}`;
   const vollSlug = `sc-${m[1]}-${m[2]}-${m[3]}`;
   if (patchPageSlugs.has(vollSlug)) return { version: voll, label: `Alpha ${voll}`, href: href(`/patches/${vollSlug}.html`, lang) };
+  if (VORSCHAU_SLUGS.includes(vollSlug)) return { version: voll, label: `Alpha ${voll}`, href: null };
   const haupt = `${m[1]}.${m[2]}`;
   return { version: haupt, label: `Alpha ${haupt}`, href: patchPageHref(haupt, lang) };
 }
