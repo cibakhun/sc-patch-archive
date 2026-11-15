@@ -1,0 +1,14 @@
+---
+// Fliesstext aus src/lib/patch-4-10-3/inhalt.ts: Zeichenketten, Links und
+// Hervorhebungen. Interne Pfade bekommen die Sprache der Seite, externe
+// oeffnen in neuem Tab, Anker (#…) bleiben wie sie sind.
+import type { Text } from '../../lib/patch-4-10-3/inhalt';
+import { href, localeFromPath } from '../../i18n/ui';
+interface Props { text: Text }
+const { text } = Astro.props;
+const lang = localeFromPath(Astro.url.pathname);
+---
+{text.map((s) => typeof s === 'string' ? s
+  : 'b' in s ? <b>{s.b}</b>
+  : s.h.startsWith('https://') ? <a href={s.h} target="_blank" rel="noopener">{s.t}</a>
+  : <a href={s.h.startsWith('/') ? href(s.h, lang) : s.h}>{s.t}</a>)}
