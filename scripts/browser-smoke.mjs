@@ -950,32 +950,50 @@ const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
    Zeitgebern, am Konto der Seite (window.VBAccount) und an dessen Ereignis
    vb-account-session; kein Tor, das dist/ als Text liest, sieht, ob die
    Blende wieder aufgeht oder wessen Name dasteht. Die Probe laeuft im schon
-   gestarteten Terminal (probeTerminal) und verlangt:
-     · ohne Konto: die Blende ist nach dem Hinsetzen wieder zu, die Leiste
-       fuehrt zur Anmeldung;
-     · meldet sich jemand an (hier ein gestelltes Konto, dessen Profilzeile
-       ein Bild und eine Farbe traegt, die nicht durchgehen duerfen), geht die
-       Blende von selbst wieder auf, nennt Namen und Handle, laesst Bild und
-       Farbe fallen, schliesst sich, und die Leiste fuehrt mit dem Namen zum
-       Konto;
-     · nach dem Abmelden dasselbe zurueck zum Gast, und ein Klick auf die
-       Blende ueberspringt den Rest.
+   gestarteten Terminal (probeTerminal).
    Zweite Runde (14.11.2026, Krisz: „es geht aber besser alles“): Die Probe
-   gibt dem Terminal dieselben Haken wie der Controller und verlangt dazu:
+   gibt dem Terminal dieselben Haken wie der Controller und verlangt:
      · die Blende zeichnet ihr Sperrbild mit leitFenster aus der Datei der
        Buehne auf ihre Leinwand (in den Pixeln des Schirms, mit Uhr, die
        Marke in Bernstein an ihrem Platz);
      · die Karte nennt die Fakten der Seite (Flotte, Schiff auf dem Feld,
-       Halle beim Gast, Beitritt beim Konto) und gruesst ein Konto beim
-       ersten Mal anders als beim Wiederkommen;
+       Halle beim Gast, Beitritt beim Konto), laesst aus dem Profil Bild und
+       Farbe fallen, die nicht durchgehen duerfen;
      · der Monitor der Halle erfaehrt jede Sitzung (Haken wer): den Gast,
        das Konto mit geprueftem Zeichen und Farbe, den Gast nach dem
-       Abmelden. */
+       Abmelden.
+   Dritte Runde (15.11.2026, Krisz: „wenn kein konto angemeldet ist soll man
+   da direkt registrieren können und gleich anmelden können“, „anmelde
+   animation nur beim 1x mal pro session“):
+     · ohne Konto bleibt das Sperrbild stehen und bietet drei Wege, die im
+       Bild stehen (im Fenster zwei zu eins lagen sie schon unter dem Rand);
+       ein Klick daneben nimmt es dem Gast nicht, „Als Gast weiter“ gibt die
+       Seite frei, und die Sitzung merkt sich, dass er begruesst ist;
+     · meldet sich jemand an oder ab, waehrend die Seite offen steht, faehrt
+       die Blende erst zu (Schritt „zu“), statt in einem Bild ueber der Seite
+       zu stehen; ein Konto gibt sie nach der Karte von selbst frei, ein Klick
+       ueberspringt den Rest;
+     · „Willkommen“ gilt dem Konto, das eben entstanden ist, jedem anderen
+       „Willkommen zurück“.
+   Die Probe schreibt jeden Schritt der Blende mit (window.__termSchritte).
+   Vorgefuehrt rot (15.11.2026): 19 Eingriffe am gebauten Modul und am Stil
+   der Hangarseite, jeder fuer sich gegen eine Kopie des Baus, jeder mit der
+   Meldung, die ihn meint (dies und probeKontoImFenster). Zwei erst im
+   zweiten Lauf: Ein Eingriff strich mit den Regeln der engen Karte das Ende
+   eines Kommentars und damit den Stil der Wege, die so 1 px ueber der Linie
+   der Eckwinkel blieben; und die Anmeldung in einer Spalte passt weiter ins
+   Fenster (510 von 546 px), rot wird die Zusicherung erst mit der
+   Mindesthoehe des Kopfs. Die Liste steht in der PR der dritten Runde.
+   Dazu nach dem Review (probeKontoImFenster 3b): ohne das Schliessen der
+   Blende im stillen Zweig von hinsetzen() bleibt die Karte stehen, wenn
+   jemand waehrend ihr aufsteht und sich sofort wieder setzt. */
 async function probeAnmeldung(page, warte) {
   const lies = () => page.evaluate(() => {
     const l = document.getElementById('hgx-term-login'), w = document.getElementById('hgx-term-who');
     if (!l || !w) return null;
     const av = l.querySelector('.hgx-term__av');
+    const kasten = (el) => { const r = el?.getBoundingClientRect(); return r ? { o: r.top, u: r.bottom, h: r.height, b: r.width } : null; };
+    const wahl = document.getElementById('hgx-term-lwahl');
     return {
       zu: l.hidden, schritt: l.dataset.step ?? '', name: document.getElementById('hgx-term-lname')?.textContent ?? '', sub: document.getElementById('hgx-term-lsub')?.textContent ?? '',
       bild: av?.querySelector('img')?.getAttribute('src') ?? '', farbe: av?.style.getPropertyValue('--av') ?? '', zeichen: av?.querySelector('span')?.textContent ?? '',
@@ -992,9 +1010,21 @@ async function probeAnmeldung(page, warte) {
         if (!cv || !b) return null;
         try { return [...cv.getContext('2d').getImageData(Math.round(cv.width / 2), Math.round(cv.height * b.marke), 1, 1).data]; } catch { return null; }
       })(),
+      // dritte Runde: die drei Wege des Gasts, wie der Browser sie setzt, und was die Sitzung sich merkt
+      blende: kasten(l), karte: kasten(document.getElementById('hgx-term-lid')),
+      wege: [...(wahl?.querySelectorAll('[data-weg]') ?? [])].map((el) => {
+        const cs = getComputedStyle(el), ws = getComputedStyle(wahl);
+        return { weg: el.dataset.weg, art: el.tagName, ziel: el.getAttribute('href'), rahmen: el.getAttribute('target'), ...kasten(el), da: cs.display !== 'none' && ws.visibility !== 'hidden' && Number(ws.opacity) > 0.9 && ws.pointerEvents !== 'none' };
+      }),
+      an: (() => { try { return sessionStorage.getItem('hg-term-an'); } catch { return null; } })(),
+      schritte: [...(window.__termSchritte ?? [])],
     };
   });
   const blendeZu = (ms) => warte(() => document.getElementById('hgx-term-login').hidden, ms);
+  const beiSchritt = (schritt, ms) => warte((s) => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === s; }, ms, schritt);
+  const neuZaehlen = () => page.evaluate(() => { window.__termSchritte.length = 0; });
+  const daneben = () => page.evaluate(() => document.getElementById('hgx-term-login').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
+  const weg = (w) => page.evaluate((w) => document.querySelector(`#hgx-term-lwahl [data-weg="${w}"]`)?.click(), w);
   const melde = (konto) => page.evaluate((k) => {
     window.__termKonto ??= { echt: window.VBAccount };
     if (!k) window.VBAccount = window.__termKonto.echt;
@@ -1005,10 +1035,11 @@ async function probeAnmeldung(page, warte) {
     window.dispatchEvent(new Event('vb-account-session'));
   }, konto);
 
-  // 1 · der Gast vom Hinsetzen
-  if (!(await blendeZu(15000))) return `die Blende der Anmeldung steht 15 s nach dem Hinsetzen noch ueber der Seite (Schritt „${(await lies())?.schritt}“)`;
+  // 1 · der Gast vom Hinsetzen: das Sperrbild bleibt stehen und bietet drei Wege
+  if (!(await beiSchritt('guest', 15000))) { const s0 = await lies(); return s0 ? `15 s nach dem Hinsetzen bietet die Blende dem Gast seine drei Wege nicht (zu ${s0.zu}, Schritt „${s0.schritt}“)` : '#hgx-term-login oder #hgx-term-who fehlt im Terminal'; }
+  // die Wege blenden ein: gemessen wird, wenn sie stehen
+  await warte(() => { const w = document.getElementById('hgx-term-lwahl'); return !!w && Number(getComputedStyle(w).opacity) > 0.9; }, 4000);
   let s = await lies();
-  if (!s) return '#hgx-term-login oder #hgx-term-who fehlt im Terminal';
   if (s.wer !== 'guest' || s.ziel !== s.soll.login || s.text !== s.soll.lLogin) return `ohne Konto nennt die Leiste „${s.text}“ (${s.wer || '—'}) mit Ziel ${s.ziel} — Soll: „${s.soll.lLogin}“ zur Anmeldung ${s.soll.login}`;
   // das Sperrbild: gezeichnet von leitFenster aus der Datei der Buehne, mit Uhr, die Marke in Bernstein an ihrem Platz
   const bernstein = (p) => !!p && p[0] > 200 && p[1] > 120 && p[1] < 200 && p[2] < 90;
@@ -1017,41 +1048,176 @@ async function probeAnmeldung(page, warte) {
   const gastKarte = [[s.soll.flotte, (s.soll.schiffn ?? '').replace('{n}', '3')], [s.soll.feld, 'Probe Schiff'], [s.soll.halle, 'Probe Halle']];
   if (s.name !== s.soll.gast || s.hallo || JSON.stringify(s.fakten) !== JSON.stringify(gastKarte)) return `die Karte des Gasts nennt „${s.name}“ (Gruss „${s.hallo}“) mit ${JSON.stringify(s.fakten)} — Soll: „${s.soll.gast}“ ohne Gruss mit ${JSON.stringify(gastKarte)}`;
   if (s.meldungen < 1 || s.gemeldet !== null) return `der Monitor der Halle erfaehrt nicht, dass ein Gast davor sitzt (gemeldet ${JSON.stringify(s.gemeldet)} nach ${s.meldungen} Meldungen)`;
-
-  // 2 · jemand meldet sich an: die Blende geht von selbst wieder auf und nennt ihn
-  const konto = { uid: 'probe-konto', seit: '2026-10-03T09:00:00Z', zeile: { display_name: 'Probe Pilot', handle: 'probe', avatar_url: 'javascript:void(0)', avatar_color: 'red', avatar_icon: 'P' } };
-  await melde(konto);
-  if (!(await warte(() => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === 'user'; }, 8000))) { s = await lies(); return `nach der Anmeldung (vb-account-session) nennt die Blende niemanden (zu ${s.zu}, Schritt „${s.schritt}“)`; }
+  // die drei Wege: Anmelden und Konto erstellen als Links ins Fenster, „Als Gast weiter“ als Knopf, alle im Bild und unter der Karte
+  const wege = s.wege.map((w) => `${w.art === 'A' ? 'a' : 'button'}:${w.weg}`).join(',');
+  if (wege !== 'a:an,a:neu,button:gast') return `der Gast bekommt die Wege „${wege}“ — Soll: Anmelden und Konto erstellen als Links, „Als Gast weiter“ als Knopf`;
+  if (s.wege[0].ziel !== s.soll.login || !/\/account\/register\.html$/.test(s.wege[1].ziel ?? '') || s.wege.slice(0, 2).some((w) => w.rahmen !== 'hgx-term-frame')) return `die Wege des Gasts fuehren nach ${s.wege[0].ziel} und ${s.wege[1].ziel} (Rahmen ${s.wege[0].rahmen}, ${s.wege[1].rahmen}) — Soll: Anmeldung ${s.soll.login} und Registrierung, beide ins Fenster des Terminals`;
+  // unten begrenzt die Linie der Eckwinkel des Sperrbilds (leitFenster: 2,2 % der Breite ueber dem Rand)
+  const winkel = s.blende.u - 0.022 * s.blende.b;
+  const draussen = s.wege.find((w) => !w.da || w.h < 12 || w.u > winkel || w.o < s.karte.u - 1);
+  if (draussen) return `der Weg „${draussen.weg}“ des Gasts steht nicht im Bild: ${Math.round(draussen.o)}..${Math.round(draussen.u)} px (zu sehen ${draussen.da}), die Karte endet bei ${Math.round(s.karte.u)}, die Eckwinkel des Sperrbilds stehen bei ${Math.round(winkel)}, die Blende endet bei ${Math.round(s.blende.u)} — im breiten Fenster (zwei zu eins) lagen die Wege schon unter den Winkeln`;
+  if (s.an !== '-') return `nach der Begruessung des Gasts merkt sich die Sitzung „${s.an}“ statt „-“ (sessionStorage hg-term-an) — die Anmeldung kaeme bei jedem Hinsetzen wieder`;
+  // ein Klick daneben nimmt dem Gast das Sperrbild nicht, „Als Gast weiter“ gibt die Seite frei
+  await daneben();
+  await page.waitForTimeout(900);
   s = await lies();
+  if (s.zu || s.schritt !== 'guest') return `ein Klick neben die drei Wege nimmt dem Gast das Sperrbild (zu ${s.zu}, Schritt „${s.schritt}“) — die Wege waeren weg, bevor er einen waehlen kann`;
+  await weg('gast');
+  if (!(await blendeZu(2500))) return '„Als Gast weiter“ gibt die Seite nicht frei: Die Blende steht 2,5 s danach noch darueber';
+
+  // 2 · jemand meldet sich an, waehrend die Seite offen steht: die Blende faehrt zu, nennt ihn und gibt die Seite von selbst frei
+  const konto = { uid: 'probe-konto', seit: '2026-10-03T09:00:00Z', zeile: { display_name: 'Probe Pilot', handle: 'probe', avatar_url: 'javascript:void(0)', avatar_color: 'red', avatar_icon: 'P' } };
+  await neuZaehlen();
+  await melde(konto);
+  if (!(await beiSchritt('user', 12000))) { s = await lies(); return `nach der Anmeldung (vb-account-session) nennt die Blende niemanden (zu ${s.zu}, Schritt „${s.schritt}“)`; }
+  s = await lies();
+  if (s.schritte[0] !== 'zu') return `nach der Anmeldung steht die Blende mit dem Schritt „${s.schritte[0]}“ ueber der offenen Seite (Folge ${s.schritte.join(' → ')}) — Soll: Sie faehrt erst zu (Schritt „zu“), statt in einem Bild da zu sein`;
   if (s.name !== 'Probe Pilot' || s.sub !== '@probe') return `die Blende nennt „${s.name}“ / „${s.sub}“ statt „Probe Pilot“ / „@probe“`;
   if (s.bild || s.farbe !== '#2dd4ff' || s.zeichen !== 'P') return `die Blende nimmt aus dem Profil, was nicht durchgehen darf: Bild „${s.bild}“, Farbe „${s.farbe}“, Zeichen „${s.zeichen}“ — Soll: kein Bild (nur https), #2dd4ff, „P“`;
-  // die Karte: Gruss beim ersten Mal, die Fakten der Seite, der Beitritt statt der Halle; das Bild in den Pixeln des Schirms
-  if (s.hallo !== s.soll.hallo) return `die Karte gruesst ein Konto beim ersten Mal mit „${s.hallo}“ statt „${s.soll.hallo}“`;
+  // die Karte: ein Konto, das es schon gab, wird zurueck begruesst; die Fakten der Seite, der Beitritt statt der Halle; das Bild in den Pixeln des Schirms
+  if (s.hallo !== s.soll.zurueck) return `die Karte gruesst ein Konto vom Oktober mit „${s.hallo}“ statt „${s.soll.zurueck}“`;
   if (s.fakten.length !== 3 || s.fakten[0][0] !== s.soll.flotte || s.fakten[1].join('|') !== `${s.soll.feld}|Probe Schiff` || s.fakten[2][0] !== s.soll.seit || !s.fakten[2][1].includes('2026')) return `die Karte des Kontos zeigt ${JSON.stringify(s.fakten)} — Soll: Flotte, „Probe Schiff“ auf dem Feld und der Beitritt im Jahr 2026 („${s.soll.seit}“)`;
   if (!s.grund || Math.abs(s.leinwand.w - s.breit) > 2) return `das Sperrbild der Blende ist ${s.leinwand?.w} px breit, der Kasten steht ${s.breit} px breit im Bild: Es stuende unscharf oder gar nicht da (data-bild ${s.grund})`;
   if (!(await blendeZu(8000))) return 'die Blende schliesst sich nach der Anmeldung nicht';
   s = await lies();
   if (s.wer !== 'user' || s.ziel !== s.soll.dash || s.text !== 'Probe Pilot' || !s.ansage.includes('Probe Pilot') || s.ansage.includes('{name}')) return `angemeldet nennt die Leiste „${s.text}“ (${s.wer || '—'}, Ansage „${s.ansage}“) mit Ziel ${s.ziel} — Soll: der Name zum Konto ${s.soll.dash}`;
   if (s.gemeldet?.name !== 'Probe Pilot' || s.gemeldet.zeichen !== 'P' || s.gemeldet.farbe !== '#2dd4ff') return `der Monitor der Halle erfaehrt als Sitzung ${JSON.stringify(s.gemeldet)} statt „Probe Pilot“ mit Zeichen „P“ in #2dd4ff`;
+  if (s.an !== 'probe-konto') return `nach der Begruessung des Kontos merkt sich die Sitzung „${s.an}“ statt „probe-konto“ (sessionStorage hg-term-an)`;
 
-  // 3 · abgemeldet: zurueck zum Gast, ein Klick ueberspringt die Blende
+  // 3 · abgemeldet: die Blende faehrt zu und bleibt beim Gast stehen, bis er einen Weg waehlt
+  await neuZaehlen();
   await melde(null);
-  if (!(await warte(() => !document.getElementById('hgx-term-login').hidden, 4000))) return 'nach dem Abmelden geht die Blende nicht wieder auf — die Leiste nennte weiter das alte Konto';
-  await page.evaluate(() => document.getElementById('hgx-term-login').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
-  if (!(await blendeZu(1500))) return 'ein Klick auf die Blende ueberspringt die Anmeldung nicht';
-  if (!(await warte(() => document.getElementById('hgx-term-who').dataset.who === 'guest', 6000))) { s = await lies(); return `nach dem Abmelden nennt die Leiste weiter „${s.text}“ (${s.wer})`; }
+  if (!(await beiSchritt('guest', 12000))) { s = await lies(); return `nach dem Abmelden steht die Blende nicht mit den drei Wegen des Gasts da (zu ${s.zu}, Schritt „${s.schritt}“) — die Leiste nennte weiter das alte Konto`; }
   s = await lies();
-  if (s.ziel !== s.soll.login || s.bild) return `nach dem Abmelden fuehrt die Leiste nach ${s.ziel} (Bild „${s.bild}“) statt zur Anmeldung ${s.soll.login}`;
+  if (s.schritte[0] !== 'zu') return `nach dem Abmelden steht die Blende mit dem Schritt „${s.schritte[0]}“ ueber der offenen Seite (Folge ${s.schritte.join(' → ')}) — Soll: Sie faehrt erst zu`;
+  if (s.wer !== 'guest' || s.ziel !== s.soll.login || s.bild) return `nach dem Abmelden fuehrt die Leiste nach ${s.ziel} („${s.text}“, ${s.wer}, Bild „${s.bild}“) statt zur Anmeldung ${s.soll.login}`;
   if (s.gemeldet !== null) return `nach dem Abmelden nennt der Monitor der Halle weiter ${JSON.stringify(s.gemeldet)}`;
+  await weg('gast');
+  if (!(await blendeZu(2500))) return 'nach dem Abmelden gibt „Als Gast weiter“ die Seite nicht frei';
 
-  // 4 · dasselbe Konto kommt wieder: „Willkommen zurück“; danach abgemeldet, wie die Probe begann
-  await melde(konto);
-  if (!(await warte(() => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === 'user'; }, 8000))) return 'beim zweiten Anmelden desselben Kontos nennt die Blende niemanden';
+  // 4 · ein Konto, das eben entstanden ist: „Willkommen“; ein Klick ueberspringt den Rest. Danach abgemeldet, wie die Probe begann
+  await melde({ ...konto, uid: 'probe-neu', seit: new Date().toISOString() });
+  if (!(await beiSchritt('user', 12000))) return 'beim Anmelden eines neuen Kontos nennt die Blende niemanden';
   s = await lies();
-  if (s.hallo !== s.soll.zurueck) return `die Karte gruesst ein Konto, das schon hier sass, mit „${s.hallo}“ statt „${s.soll.zurueck}“`;
+  if (s.hallo !== s.soll.hallo) return `die Karte gruesst ein Konto, das eben entstanden ist, mit „${s.hallo}“ statt „${s.soll.hallo}“`;
+  await daneben();
+  if (!(await blendeZu(1500))) return 'ein Klick auf die Blende ueberspringt die Begruessung eines Kontos nicht';
   await melde(null);
-  if (!(await warte(() => document.getElementById('hgx-term-who').dataset.who === 'guest', 8000))) return 'nach dem zweiten Abmelden nennt die Leiste weiter das Konto';
-  if (!(await blendeZu(8000))) return 'nach dem zweiten Abmelden bleibt die Blende ueber der Seite stehen';
+  if (!(await beiSchritt('guest', 12000))) return 'nach dem zweiten Abmelden steht die Blende nicht beim Gast';
+  if (!(await warte(() => document.getElementById('hgx-term-who').dataset.who === 'guest', 4000))) return 'nach dem zweiten Abmelden nennt die Leiste weiter das Konto';
+  await weg('gast');
+  if (!(await blendeZu(2500))) return 'nach dem zweiten Abmelden bleibt die Blende ueber der Seite stehen';
+  return null;
+}
+
+/* Konto im Fenster des Terminals (15.11.2026, Krisz: „konto seite direkt auf
+   das bildschirm einbauen“). Laeuft am Ende von probeTerminal, wenn der Kasten
+   schon einmal zu war, und verlangt:
+     · beim zweiten Hinsetzen derselben Sitzung kommt die Anmeldung nicht
+       wieder (sessionStorage hg-term-an, gelesen beim Start des Terminals:
+       hier zaehlt das Gedaechtnis des Seitenaufrufs);
+     · der Knopf des Kontos in der Leiste bringt die Anmeldeseite ins Fenster,
+       nicht in einen eigenen Tab und nicht in den Verlauf der Hangarseite;
+       sie steht ohne ihre Kopfzeile, und ihr Formular endet ueber dem
+       Fensterrand (das Fenster ist breit, nicht hoch: zwei zu eins);
+     · entsteht eine Sitzung, waehrend die Anmeldeseite offen steht, wartet
+       die Begruessung, bis die Seite geht: Sie laege sonst ueber der Frage
+       nach dem zweiten Faktor;
+     · steht jemand waehrend der Karte auf und setzt sich sofort wieder,
+       geht die Blende zu, statt ueber der Seite stehen zu bleiben;
+     · „Konto erstellen“ vom Sperrbild des Gasts bringt die Registrierung
+       ins Fenster, ebenfalls ohne Scrollen. */
+async function probeKontoImFenster(page, warte, steht, start) {
+  const stand = () => page.evaluate(() => {
+    const l = document.getElementById('hgx-term-login'), w = document.getElementById('hgx-term-who');
+    let d = null;
+    try { d = document.getElementById('hgx-term-frame').contentDocument; } catch { /* fremder Ursprung */ }
+    const v = d?.defaultView, u = (sel) => { const e = d?.querySelector(sel); return e ? Math.round(e.getBoundingClientRect().bottom) : null; };
+    return {
+      zu: l.hidden, schritt: l.dataset.step ?? '', schritte: [...(window.__termSchritte ?? [])],
+      pfad: d?.location.pathname ?? null, hoehe: v?.innerHeight ?? 0, rollt: v ? Math.round(v.scrollY) : 0,
+      kopf: !!d?.getElementById('topbar') && v.getComputedStyle(d.getElementById('topbar')).display !== 'none',
+      karte: u('.acx-card'), knopf: u('#loBtn') ?? u('#rgBtn'), links: u('.acx-links'),
+      aktiv: w.getAttribute('aria-current') === 'page', bereiche: document.querySelectorAll('#hgx-term a[data-term][aria-current="page"]').length,
+      tab: window.__termTab, verlauf: history.length, text: w.querySelector('b')?.textContent ?? '',
+    };
+  });
+  const blendeZu = (ms) => warte(() => document.getElementById('hgx-term-login').hidden, ms);
+  const beiSchritt = (schritt, ms) => warte((s) => { const l = document.getElementById('hgx-term-login'); return !l.hidden && l.dataset.step === s; }, ms, schritt);
+  const melde = (konto) => page.evaluate((k) => {
+    window.__termKonto ??= { echt: window.VBAccount };
+    if (!k) window.VBAccount = window.__termKonto.echt;
+    else {
+      const sess = { user: { id: k.uid, created_at: k.seit }, access_token: 'probe' };
+      window.VBAccount = { ...(window.__termKonto.echt ?? {}), peek: () => sess, session: () => Promise.resolve(sess), rest: () => Promise.resolve(new Response(JSON.stringify([k.zeile]), { status: 200, headers: { 'Content-Type': 'application/json' } })) };
+    }
+    window.dispatchEvent(new Event('vb-account-session'));
+  }, konto);
+  const passt = (s, was) => (s.kopf ? `${was} steht im Fenster mit der Kopfzeile der Seite (#topbar)`
+    : s.rollt !== 0 || [s.knopf, s.links, s.karte].some((u) => u === null || u > s.hoehe) ? `${was} passt nicht ins Fenster: Knopf bis ${s.knopf} px, Links bis ${s.links} px, Karte bis ${s.karte} px bei ${s.hoehe} px Hoehe (gerollt ${s.rollt} px) — auf dem Schirm der Halle muss das Formular ohne Scrollen dastehen`
+    : null);
+
+  // 1 · wieder hingesetzt: keine zweite Anmeldung in dieser Sitzung
+  await page.evaluate((kasten) => { window.__termSchritte.length = 0; window.__termTab = null; window.__term.place(kasten); }, TERM_PROBE_KASTEN);
+  if (!(await steht(start.home))) return `nach dem zweiten Hinsetzen steht ${start.home} nicht mehr im Fenster (dort steht ${(await stand()).pfad})`;
+  await page.waitForTimeout(900);
+  let s = await stand();
+  if (!s.zu || s.schritte.length) return `beim zweiten Hinsetzen derselben Sitzung kommt die Anmeldung wieder (Schritte ${s.schritte.join(' → ') || '—'}, zu ${s.zu}) — Soll: einmal je Sitzung, danach gleich die Seite`;
+  const verlauf = s.verlauf;
+
+  // 2 · der Knopf des Kontos: die Anmeldung im Fenster
+  const anmelden = new URL(await page.evaluate(() => document.getElementById('hgx-term-who').href)).pathname;
+  await page.evaluate(() => document.getElementById('hgx-term-who').click());
+  if (!(await steht(anmelden))) { s = await stand(); return `der Knopf des Kontos brachte ${anmelden} nicht ins Fenster (dort steht ${s.pfad}, eigener Tab ${JSON.stringify(s.tab)}) — Soll: Kontoseiten laufen im Bildschirm`; }
+  s = await stand();
+  if (s.tab) return `der Knopf des Kontos oeffnete ausserdem einen eigenen Tab (${JSON.stringify(s.tab)})`;
+  if (s.verlauf !== verlauf) return `die Anmeldung im Fenster schrieb in den Verlauf der Hangarseite (${verlauf} → ${s.verlauf} Eintraege)`;
+  if (!s.aktiv || s.bereiche) return `auf der Anmeldeseite ist in der Leiste nicht der Knopf des Kontos der aktive Bereich (Konto ${s.aktiv}, markierte Bereiche ${s.bereiche})`;
+  let f = passt(s, 'die Anmeldeseite');
+  if (f) return f;
+
+  // 3 · eine Sitzung entsteht, waehrend die Anmeldeseite offen steht: die Begruessung wartet, bis die Seite geht
+  const konto = { uid: 'probe-konto', seit: '2026-10-03T09:00:00Z', zeile: { display_name: 'Probe Pilot', handle: 'probe', avatar_icon: 'P' } };
+  await melde(konto);
+  await page.waitForTimeout(1200);
+  s = await stand();
+  if (!s.zu || s.schritte.length) return `die Begruessung legt sich ueber die Anmeldeseite, sobald die Sitzung im Speicher steht (Schritte ${s.schritte.join(' → ')}) — Soll: Sie wartet, bis die Seite weitergeht; darunter fragt die Seite noch nach dem zweiten Faktor`;
+  await page.evaluate((h) => document.querySelector(`#hgx-term a[data-term="${h}"]`).click(), await page.evaluate(() => document.getElementById('hgx-term').dataset.home));
+  if (!(await beiSchritt('user', 12000))) { s = await stand(); return `nachdem die Anmeldeseite gegangen ist, begruesst die Blende das Konto nicht (zu ${s.zu}, Schritt „${s.schritt}“, Folge ${s.schritte.join(' → ') || '—'})`; }
+  if (!(await blendeZu(8000))) return 'nach der Begruessung aus dem Fenster schliesst sich die Blende nicht';
+  s = await stand();
+  if (s.text !== 'Probe Pilot') return `nach der Anmeldung im Fenster nennt die Leiste „${s.text}“ statt „Probe Pilot“`;
+
+  // 3b · ein anderes Konto meldet sich an; waehrend seine Karte steht, steht
+  // jemand auf und setzt sich in derselben Drittelsekunde wieder (der Kasten
+  // verliert und findet sein Rechteck, etwa beim Ziehen am Fensterrand):
+  // place(null) nimmt der Blende ihren Abschluss, das Wiedersetzen nimmt
+  // loginOff die Frist. Die Sitzung ist begruesst, also kommt keine zweite
+  // Anmeldung, und die Blende darf nicht ueber der Seite stehen bleiben.
+  await melde({ uid: 'probe-zwei', seit: '2026-10-03T09:00:00Z', zeile: { display_name: 'Zweiter Pilot', handle: 'zwei', avatar_icon: 'Z' } });
+  if (!(await beiSchritt('user', 12000))) { s = await stand(); return `ein anderes Konto meldet sich an, und die Blende begruesst es nicht (zu ${s.zu}, Schritt „${s.schritt}“, Folge ${s.schritte.join(' → ') || '—'})`; }
+  await page.evaluate((kasten) => { window.__term.place(null); window.__term.place(kasten); }, TERM_PROBE_KASTEN);
+  await page.waitForTimeout(1200);
+  s = await stand();
+  if (!s.zu) return `wer waehrend der Karte aufsteht und sich sofort wieder setzt, behaelt die Blende ueber der Seite (Schritt „${s.schritt}“, 1,2 s danach) — Soll: Die Sitzung ist begruesst, die Blende geht zu`;
+  if (s.text !== 'Zweiter Pilot') return `nach dem Wiedersetzen nennt die Leiste „${s.text}“ statt „Zweiter Pilot“`;
+
+  // 4 · abgemeldet, dann „Konto erstellen“: die Registrierung im Fenster
+  await melde(null);
+  if (!(await beiSchritt('guest', 12000))) return 'nach dem Abmelden steht die Blende nicht beim Gast';
+  const neu = new URL(await page.evaluate(() => document.querySelector('#hgx-term-lwahl [data-weg="neu"]').href)).pathname;
+  await page.evaluate(() => document.querySelector('#hgx-term-lwahl [data-weg="neu"]').click());
+  if (!(await blendeZu(2500))) return '„Konto erstellen“ gibt die Seite nicht frei: Die Blende steht 2,5 s danach noch ueber der Registrierung';
+  if (!(await steht(neu))) return `„Konto erstellen“ brachte ${neu} nicht ins Fenster (dort steht ${(await stand()).pfad})`;
+  s = await stand();
+  if (s.tab) return `„Konto erstellen“ oeffnete einen eigenen Tab (${JSON.stringify(s.tab)})`;
+  f = passt(s, 'die Registrierung');
+  if (f) return f;
+
+  // 5 · zu, und nichts bleibt in der Sitzung der Probe zurueck
+  await page.evaluate(() => window.__term.place(null));
+  if (!(await warte(() => document.getElementById('hgx-term').hidden, 5000))) return 'place(null) nimmt den Kasten nach den Kontoseiten nicht aus dem Layout';
+  await page.evaluate(() => { try { sessionStorage.removeItem('hg-term'); sessionStorage.removeItem('hg-term-an'); } catch { /* ohne Speicher bleibt nichts zurueck */ } });
   return null;
 }
 
@@ -1063,7 +1229,8 @@ async function probeTerminal(page) {
     if (!box) return { fehlt: '#hgx-term' };
     const home = box.querySelector(`a[data-term="${box.dataset.home}"]`);
     if (!home) return { fehlt: `der Bereich „${box.dataset.home}“ aus data-home` };
-    try { sessionStorage.removeItem('hg-term'); } catch { /* ohne Speicher gilt die Startseite */ }
+    // ohne Gedaechtnis der Sitzung: die letzte Seite und wer hier schon begruesst wurde
+    try { sessionStorage.removeItem('hg-term'); sessionStorage.removeItem('hg-term-an'); } catch { /* ohne Speicher gilt die Startseite */ }
     window.__termShip = null;
     window.__termTab = null;
     window.open = (...a) => { window.__termTab = a; return null; };
@@ -1073,6 +1240,10 @@ async function probeTerminal(page) {
     const buehne = await import(JSON.parse(document.getElementById('hg-stage').textContent).viewer).catch(() => null);
     window.__termWer = [];
     window.__termBild = null;
+    // jeder Schritt der Blende, in seiner Folge (probeAnmeldung)
+    window.__termSchritte = [];
+    const blende = document.getElementById('hgx-term-login');
+    if (blende) new MutationObserver(() => { const jetzt = blende.hidden ? '(zu)' : blende.dataset.step ?? ''; if (window.__termSchritte.at(-1) !== jetzt) window.__termSchritte.push(jetzt); }).observe(blende, { attributes: true, attributeFilter: ['data-step', 'hidden'] });
     window.__term = m.initTerminal(box, {
       ship: (id) => { window.__termShip = id ?? '(ohne)'; },
       bild: (cv, o) => {
@@ -1215,6 +1386,10 @@ async function probeTerminal(page) {
   if (!(await page.evaluate(() => document.getElementById('hgx-term-login').hidden))) return `${wo}: nach place(null) steht die Blende der Anmeldung noch offen`;
   const gemerkt = await page.evaluate(() => { const v = sessionStorage.getItem('hg-term'); sessionStorage.removeItem('hg-term'); return v; });
   if (!String(gemerkt).startsWith(start.home)) return `${wo}: die letzte Seite wurde nicht gemerkt (${gemerkt})`;
+
+  // 8 · wieder hingesetzt: einmal je Sitzung, und die Kontoseiten im Fenster
+  const konto = await probeKontoImFenster(page, warte, steht, start);
+  if (konto) return `${wo}, Konto im Fenster: ${konto}`;
   return null;
 }
 

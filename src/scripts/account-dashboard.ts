@@ -14,6 +14,7 @@ import { layoutList, shipLabel } from './account-layouts';
   import { clearAccountTraces, browserStores } from '../lib/account-cleanup';
   import { needsCode, needsAal2Error } from '../lib/mfa';
   import { askCode } from '../lib/mfa-dialog';
+  import { imTerminal } from '../lib/im-terminal';
 
   const dash = document.getElementById('dash');
   if (dash) {
@@ -34,6 +35,27 @@ import { layoutList, shipLabel } from './account-layouts';
       el.textContent = msg;
       el.classList.toggle('acx-status--ok', ok);
       el.hidden = false;
+    };
+
+    // Im Terminal der Halle steht diese Seite in einem Rahmen (lib/im-terminal.ts),
+    // und Discord lässt sich nicht rahmen. Bestätigen und Verbinden mit Discord
+    // kehren außerdem in DIESES Fenster zurück (Merker in sessionStorage): Dort
+    // öffnet das Konto in einem eigenen Tab, und die Zeile sagt, wie es weitergeht.
+    // Ob der Tab aufging, sagt der Browser hier nicht (mit noopener kommt nie
+    // ein Fenster zurück): Derselbe Weg steht deshalb als Link in der Zeile.
+    const discordImTab = (zeile: HTMLElement | null, sagen: (msg: string) => void): boolean => {
+      if (!imTerminal()) return false;
+      window.open(location.href, '_blank', 'noopener');
+      sagen(D.msgTermTab || '');
+      if (zeile) {
+        const a = document.createElement('a');
+        a.href = location.href;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = D.msgTermTabLink || '';
+        zeile.append(' ', a);
+      }
+      return true;
     };
 
     // Subtiler 3D-Tilt auf der Profilkarte (nur Desktop mit Maus, kein Reduced-Motion)
@@ -1809,6 +1831,7 @@ import { layoutList, shipLabel } from './account-layouts';
       // Bestätigen mit Discord: frische Anmeldung (PKCE), Rücksprung hierher.
       document.querySelectorAll<HTMLButtonElement>('.js-reauth-dc').forEach((b) => {
         b.addEventListener('click', async () => {
+          if (discordImTab(reauthStatus, (m) => { if (reauthStatus) show(reauthStatus, m, true); })) return;
           b.disabled = true;
           b.textContent = b.dataset.busy || '';
           try { sessionStorage.setItem('vb.reauth', user.id); } catch { /* dann ohne Hinweis */ }
@@ -2230,8 +2253,21 @@ import { layoutList, shipLabel } from './account-layouts';
           }
         }
 
+        // Verbinden und Lösen wirken auf das Konto der Sitzung, nicht auf das,
+        // das diese Seite zeigt. Hat die Anmeldung in diesem Browser inzwischen
+        // gewechselt (anderer Tab), geschieht nichts, und die Zeile sagt es.
+        const selbesKonto = async (): Promise<boolean> => {
+          let sitzt = '';
+          try { sitzt = (await supabase.auth.getSession()).data.session?.user.id ?? ''; } catch { /* dann gilt: nicht dasselbe Konto */ }
+          if (sitzt === user.id) return true;
+          dcSay(D.dcOtherSession || '', 'err');
+          return false;
+        };
+
         dcBtn.addEventListener('click', async () => {
           dcSay('');
+          if (discordImTab(dcStatus, (m) => dcSay(m, 'acx-status--ok'))) return;
+          if (!(await selbesKonto())) return;
           dcBusy(dcBtn, true);
           try {
             // redirectTo ausdruecklich auf DIESE Seite: ohne Angabe landet der
@@ -2257,6 +2293,7 @@ import { layoutList, shipLabel } from './account-layouts';
 
         dcOff.addEventListener('click', async () => {
           dcSay('');
+          if (!(await selbesKonto())) return;
           const ids = await dcIdentities();
           // Supabase verweigert das Loesen der LETZTEN Identitaet -- sonst
           // koennte sich jemand selbst aussperren. Das hier vorweg zu pruefen

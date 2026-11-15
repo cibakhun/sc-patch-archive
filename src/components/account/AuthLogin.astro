@@ -13,6 +13,11 @@
 //  - anderes Discord-Konto (DiscordElsewhere, src/lib/discord-elsewhere.ts):
 //    landet ein ?code= ohne Verifier hier (privates Fenster), zeigt die
 //    Seite den Rücklink fürs erste Fenster statt einer Fehlermeldung
+//  - im Terminal der Halle (Rahmen, src/lib/im-terminal.ts): Discord öffnet
+//    ein kleines Fenster, weil es sich nicht rahmen lässt; dort steht diese
+//    Seite mit ?fenster=1, löst den code ein, fragt den zweiten Faktor und
+//    schließt sich, und die Seite im Rahmen geht weiter, sobald die Sitzung
+//    im Speicher steht und keinen Code mehr schuldet
 import { href } from '../../i18n/ui';
 import MfaCodeDialog from './MfaCodeDialog.astro';
 import DiscordElsewhere from './DiscordElsewhere.astro';
@@ -51,6 +56,11 @@ const COPY = {
     backTitle: 'Fast geschafft.',
     backText: 'Kopiere diesen Link und füge ihn in dem Fenster ein, in dem du angefangen hast.',
     backCopy: 'Link kopieren', backCopied: 'Kopiert',
+    fensterWartet: 'Discord öffnet sich in einem kleinen Fenster. Nach der Anmeldung dort geht es hier weiter.',
+    fensterGesperrt: 'Dein Browser hat das Fenster für Discord nicht zugelassen.',
+    fensterTab: 'Anmeldung in eigenem Tab öffnen',
+    fensterFertig: 'Angemeldet. Dieses Fenster schließt sich.',
+    fensterBleibt: 'Angemeldet. Du kannst dieses Fenster schließen.',
   },
   en: {
     email: 'E-mail', emailPh: 'you@example.com',
@@ -75,6 +85,11 @@ const COPY = {
     backTitle: 'Almost done.',
     backText: 'Copy this link and paste it in the window where you started.',
     backCopy: 'Copy link', backCopied: 'Copied',
+    fensterWartet: 'Discord opens in a small window. After you sign in there, this page continues.',
+    fensterGesperrt: 'Your browser did not allow the window for Discord.',
+    fensterTab: 'Open sign-in in its own tab',
+    fensterFertig: 'Signed in. This window closes itself.',
+    fensterBleibt: 'Signed in. You can close this window.',
   },
 }[lang];
 
@@ -106,6 +121,11 @@ const resetHref = href('/account/reset.html', lang);
     data-msg-email-change-half={COPY.emailChangeHalf}
     data-to-dash={COPY.toDash}
     data-msg-mfa-cancel={COPY.mfaCancel}
+    data-msg-fenster-wartet={COPY.fensterWartet}
+    data-msg-fenster-gesperrt={COPY.fensterGesperrt}
+    data-msg-fenster-tab={COPY.fensterTab}
+    data-msg-fenster-fertig={COPY.fensterFertig}
+    data-msg-fenster-bleibt={COPY.fensterBleibt}
   >
     <div class="acx-field">
       <label class="acx-label" for="loEmail">{COPY.email} <span class="reqm">*</span></label>
@@ -157,6 +177,7 @@ const resetHref = href('/account/reset.html', lang);
   import { safeNext } from '../../lib/safe-next';
   import { returnLink } from '../../lib/discord-elsewhere';
   import { copyText } from '../../lib/copy-text';
+  import { imTerminal, imFenster, fensterZiel, sitzungKam, FENSTER_NAME, FENSTER_FORM } from '../../lib/im-terminal';
 
   // Vor jedem Aufräumen der Adresse: ein ?code= ohne Verifier hier wird
   // unten zum Rücklink fürs erste Fenster.
@@ -179,7 +200,11 @@ const resetHref = href('/account/reset.html', lang);
     const rawNext = params.get('next') || '';
     const next = safeNext(rawNext, location.origin, D.dash!);
 
-    const go = () => location.replace(next);
+    // Diese Seite steht im kleinen Fenster, das das Terminal der Halle für
+    // Discord öffnet (src/lib/im-terminal.ts): Dort endet die Anmeldung mit
+    // einer Zeile und schließt das Fenster (fertig), statt ins Konto zu gehen.
+    const klein = imFenster(location.search);
+    const go = () => { if (klein) fertig(); else location.replace(next); };
     const say = (el: HTMLElement, msg: string) => { el.textContent = msg; el.hidden = false; };
 
     // Zweiter Faktor: hat das Konto einen bestätigten Authenticator, gilt
@@ -192,6 +217,24 @@ const resetHref = href('/account/reset.html', lang);
       ok.hidden = true;
       say(status, D.msgMfaCancel!);
       return false;
+    };
+
+    // Im kleinen Fenster endet die Anmeldung hier, nach dem zweiten Faktor:
+    // Die Sitzung steht im gemeinsamen Speicher, die Seite im Terminal geht
+    // weiter. Lässt der Browser das Schließen nicht zu (das Fenster hat dann
+    // kein Skript geöffnet), bleibt der Weg zum Konto.
+    const fertig = () => {
+      // nur die Zeile bleibt stehen: Formular, Discord und Links führen hier nirgends mehr hin
+      for (const el of Array.from(form.closest('.acx-card')?.children ?? [])) if (el !== ok) (el as HTMLElement).hidden = true;
+      say(ok, D.msgFensterFertig!);
+      window.close();
+      window.setTimeout(() => {
+        const a = document.createElement('a');
+        a.href = next;
+        a.textContent = D.toDash!;
+        ok.textContent = D.msgFensterBleibt! + ' ';
+        ok.append(a);
+      }, 900);
     };
 
     // Rücksprung mit Fehler (Discord abgewiesen, Mail-Link abgelaufen). Bei
@@ -318,11 +361,62 @@ const resetHref = href('/account/reset.html', lang);
       }
     });
 
+    // Im Terminal der Halle folgt die Seite einer Sitzung, die woanders
+    // entsteht: im kleinen Fenster für Discord oder in einem anderen Tab.
+    // Sonst bliebe hier die Anmeldung stehen, während die Halle schon grüßt.
+    // Den zweiten Faktor fragt das Fenster, in dem die Anmeldung läuft:
+    // Schuldet die Sitzung den Code noch, wartet diese Seite. Das nächste
+    // Ereignis kommt mit der Sitzung nach dem Code (nach einem Abbruch keines).
+    window.addEventListener('storage', (e) => {
+      if (!sitzungKam(e) || !imTerminal()) return;
+      void (async () => {
+        const { data } = await supabase.auth.getSession();
+        if (!data.session || (await needsCode(supabase, true))) return;
+        ok.hidden = true;
+        go();
+      })();
+    });
+
     const discordBtn = document.getElementById('discordBtn') as HTMLButtonElement | null;
     if (discordBtn) {
       discordBtn.addEventListener('click', async () => {
         discordBtn.disabled = true;
         status.hidden = true;
+        // Im Terminal (Rahmen) lässt sich Discord nicht zeigen: ein kleines
+        // Fenster, geöffnet noch im Klick. Es wird von dieser Seite getrennt
+        // (opener), bevor es eine fremde Adresse lädt.
+        if (imTerminal()) {
+          const fenster = window.open('', FENSTER_NAME, FENSTER_FORM);
+          const ziel = fensterZiel(location.origin, location.pathname);
+          if (!fenster || !ziel) {
+            fenster?.close();
+            // nicht zugelassen: die Anmeldung in einem eigenen Tab, der Hörer oben folgt ihr
+            const a = document.createElement('a');
+            a.href = location.origin + location.pathname;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = D.msgFensterTab!;
+            status.textContent = D.msgFensterGesperrt! + ' ';
+            status.append(a);
+            status.hidden = false;
+            discordBtn.disabled = false;
+            return;
+          }
+          try { fenster.opener = null; } catch { /* dann bleibt es beim Fenster des Browsers */ }
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'discord',
+            options: { redirectTo: ziel, skipBrowserRedirect: true },
+          });
+          discordBtn.disabled = false;
+          if (error || !data?.url) {
+            fenster.close();
+            say(status, D.msgOauth!);
+            return;
+          }
+          fenster.location.replace(data.url);
+          say(ok, D.msgFensterWartet!);
+          return;
+        }
         // Keine zusätzlichen Scopes: identify+email ist die Provider-Vorgabe
         // und reicht (D-03) — Rollenfragen beantwortet der Bot-Token
         // server-zu-server, nicht das Nutzertoken.

@@ -29,10 +29,10 @@
 // Weg zurueck im Fenster fuehrt der Pfeil der Leiste (stack).
 //
 // Nicht ins Fenster gehoeren: der Hangar selbst (eine zweite Halle in der
-// Halle; ein Link dorthin holt stattdessen das Schiff aufs Feld), das Konto
-// (die Anmeldung fuehrt ueber fremde Seiten, die sich nicht rahmen lassen)
-// und fremde Adressen (die Kopfzeilen des Servers erlauben im Fenster nur
-// die eigene Seite). Die beiden letzten oeffnen einen eigenen Tab.
+// Halle; ein Link dorthin holt stattdessen das Schiff aufs Feld) und fremde
+// Adressen (die Kopfzeilen des Servers erlauben im Fenster nur die eigene
+// Seite; sie oeffnen einen eigenen Tab). Das Konto steht seit der dritten
+// Runde im Fenster, siehe unten.
 //
 // Anmeldung: Setzt sich die Kamera vor den Monitor, meldet das Terminal erst
 // den Besucher an (Krisz 14.11.2026: „son user anmeldung kurz loadin animation
@@ -42,9 +42,8 @@
 // Monitor der Halle in Ruhe zeigt, fragt das Konto der Seite (window.VBAccount,
 // assets/account-lite.js) und nennt, wer vor dem Terminal sitzt: das eigene
 // Profil mit Bild und Namen, oder den Gast. Danach steht dasselbe in der
-// Leiste (#hgx-term-who). Die Anmeldung selbst bleibt, wo sie ist: Ohne Konto
-// fuehrt die Leiste zur Anmeldeseite in einem eigenen Tab, und meldet sich
-// dort jemand an, meldet das Terminal ihn von selbst nach (vb-account-session).
+// Leiste (#hgx-term-who). Meldet sich jemand an oder ab, hier oder in einem
+// anderen Tab, meldet das Terminal ihn von selbst nach (vb-account-session).
 //
 // Zweite Runde (Krisz 14.11.2026: „nicht schlecht. es geht aber besser alles“):
 // Der Grund der Blende ist das Sperrbild, das der Monitor der Halle selbst
@@ -54,6 +53,32 @@
 // sitzt: seine Flotte, das Schiff auf dem Feld, seit wann er dabei ist
 // (termFakten). Am Ende sagt die Blende der Halle, wer angemeldet ist
 // (hooks.wer): Der Monitor nennt die Sitzung, wenn die Kamera wieder geht.
+//
+// Dritte Runde (Krisz 15.11.2026: „die anmeldung soll noch smoother animiert,
+// länger gemacht insgesamt, konto seite direkt auf das bildschirm einbauen,
+// dafür soll anmelde animation nur beim 1x mal pro session kommen. wenn kein
+// konto angemeldet ist soll man da direkt registrieren können und gleich
+// anmelden können“). Der Bildschirm ist damit der Ort, an dem man sich
+// anmeldet, registriert und sein Konto fuehrt:
+// - Die Kontoseiten stehen im Fenster wie jede andere Seite (termRoute), der
+//   Knopf der Leiste fuehrt dorthin. E-Mail und Passwort laufen ganz im
+//   Fenster. Discord laesst sich nicht rahmen: Die Kontoseiten merken am
+//   Kennzeichen data-vb-terminal, dass sie im Fenster stehen, und oeffnen
+//   dafuer ein eigenes kleines Fenster (src/lib/im-terminal.ts).
+// - Die Blende kommt einmal je Sitzung des Browsers (TERM_AN): beim ersten
+//   Hinsetzen, und wieder, wenn sich wirklich jemand an- oder abmeldet. Sonst
+//   zeigt das Hinsetzen sofort die Seite, die Leiste fragt das Konto leise.
+// - Ohne Konto bleibt das Sperrbild stehen und bietet drei Wege: anmelden,
+//   Konto erstellen, als Gast weiter (#hgx-term-lwahl). Mit Konto beginnt
+//   der Bildschirm in einer neuen Sitzung auf der Kontoseite.
+// - Die Blende laeuft laenger und in weicheren Schritten (TERM_LOGIN, Stil in
+//   HangarPage.astro): erst das ruhende Sperrbild, dann die Pruefung, die
+//   Karte, die Fakten nacheinander, zuletzt oeffnet sie sich langsamer.
+//   Steht die Seite schon offen (jemand meldet sich im Fenster an oder ab),
+//   faehrt die Blende erst zu, statt in einem Bild da zu sein.
+// - Meldet sich jemand auf der Anmeldeseite im Fenster an, fuehrt erst die
+//   Seite ihre Anmeldung zu Ende (zweiter Faktor): Die Begruessung kommt,
+//   wenn sie weitergeht (termAnmeldung), nicht ueber der Frage nach dem Code.
 //
 // Beim Import passiert nichts; die Pruefung (scripts/verify-hangar-orte.mjs)
 // ruft die reinen Funktionen.
@@ -65,6 +90,9 @@ export const TERM_MIN_K = 0.75;
 /** Schmalste Breite der Seite im Fenster: knapp ueber ihrer Telefonansicht (bis 820 px) */
 export const TERM_NARROW_W = 840;
 export const TERM_KEY = 'hg-term';
+/** Wer in dieser Sitzung des Browsers am Terminal schon angemeldet wurde: die Kennung des Kontos, TERM_GAST fuer den Gast */
+export const TERM_AN = 'hg-term-an';
+export const TERM_GAST = '-';
 /** So viele Seiten merkt sich der Pfeil zurueck */
 export const TERM_STACK = 40;
 
@@ -108,8 +136,33 @@ export function termRoute(href, base) {
   const path = ohneSprache(u.pathname);
   if (path === '/hangar.html') return { art: 'hangar', ship: u.searchParams.get('ship') };
   // jede andere Seite des Hangars brächte eine zweite Halle ins Fenster
-  if (/^\/hangar[-/.]/.test(path) || /^\/account(?:[/.]|$)/.test(path)) return { art: 'tab' };
+  if (/^\/hangar[-/.]/.test(path)) return { art: 'tab' };
   return { art: 'innen' };
+}
+
+/**
+ * Gehoert ein Pfad zum Konto (das Konto selbst, Anmelden, Registrieren,
+ * Passwort)? Dann ist in der Leiste der Knopf des Kontos der aktive Bereich.
+ *   termKonto('/de/account.html') === true
+ *   termKonto('/account/login.html') === true
+ *   termKonto('/accounting.html') === false
+ * @param {string} pathname @returns {boolean}
+ */
+export function termKonto(pathname) {
+  return /^\/account(?:[/.]|$)/.test(ohneSprache(String(pathname ?? '')));
+}
+
+/**
+ * Ist das eine Seite, auf der man sich anmeldet oder registriert? Entsteht
+ * dort eine Sitzung, ist die Anmeldung erst fertig, wenn die Seite weitergeht
+ * (sie fragt vorher den zweiten Faktor).
+ *   termAnmeldung('/de/account/login.html') === true
+ *   termAnmeldung('/account/register.html') === true
+ *   termAnmeldung('/de/account.html') === false
+ * @param {string} pathname @returns {boolean}
+ */
+export function termAnmeldung(pathname) {
+  return /^\/account\/(?:login|register)(?:\.html)?$/.test(ohneSprache(String(pathname ?? '')));
 }
 
 /**
@@ -127,13 +180,48 @@ export function termTool(pathname, tools) {
 }
 
 /**
- * Dauer der Anmeldung in ms: auth = „Anmeldung …“ mindestens so lange, hold =
- * die Karte steht, frist = so lange wartet sie hoechstens auf das Konto, aus =
- * die Blende oeffnet sich (so lang wie der Uebergang von .hgx-term__login im
- * Stil der Seite), wink = so lange zeigt der Knopf der Leiste einem Gast den
- * Weg zum Konto.
+ * Dauer der Anmeldung in ms: boot = das Sperrbild steht ruhig, wie eben noch
+ * auf dem Glas, auth = „Anmeldung …“ mindestens so lange, hold = die Karte
+ * steht, frist = so lange wartet sie hoechstens auf das Konto, aus = die
+ * Blende oeffnet sich (so lang wie der Uebergang von .hgx-term__login im Stil
+ * der Seite), wink = so lange zeigt der Knopf der Leiste einem Gast den Weg
+ * zum Konto. Seit der dritten Runde laenger (Krisz 15.11.2026: „länger
+ * gemacht insgesamt“), dafuer nur einmal je Sitzung: Eine kurze Fassung fuer
+ * das Wiederkommen gibt es nicht mehr.
  */
-export const TERM_LOGIN = { auth: 900, hold: 1450, kurz: { auth: 450, hold: 900 }, frist: 2600, aus: 380, wink: 2400 };
+export const TERM_LOGIN = { boot: 520, auth: 1700, hold: 2300, frist: 3200, aus: 720, wink: 2400 };
+/** So jung (ms) ist ein Konto, das eben erst entstanden ist: Es wird mit „Willkommen“ begruesst, jedes aeltere mit „Willkommen zurück“ */
+export const TERM_NEU = 10 * 60 * 1000;
+
+/**
+ * Der Gruss der Karte: 'hallo' fuer ein Konto, das eben erst entstanden ist
+ * (am Bildschirm registriert), sonst 'zurueck'. Ohne lesbaren Zeitstempel
+ * oder mit einem aus der Zukunft bleibt es beim schlichten 'hallo'.
+ *   termGruss('2026-11-15T16:00:00Z', Date.UTC(2026, 10, 15, 16, 4)) === 'hallo'
+ *   termGruss('2026-03-02T10:00:00Z', Date.UTC(2026, 10, 15)) === 'zurueck'
+ *   termGruss('', Date.now()) === 'hallo'
+ * @param {string} seit Zeitstempel des Kontos (created_at) @param {number} jetzt
+ * @returns {'hallo'|'zurueck'}
+ */
+export function termGruss(seit, jetzt = Date.now()) {
+  const ms = typeof seit === 'string' && seit ? new Date(seit).getTime() : NaN;
+  return ms <= jetzt && jetzt - ms > TERM_NEU ? 'zurueck' : 'hallo';
+}
+
+/**
+ * Kommt die Blende beim Hinsetzen? Einmal je Sitzung: nur, wenn in dieser
+ * Sitzung noch niemand angemeldet wurde (schon === null) oder inzwischen ein
+ * anderer davor sitzt als der, den sie zuletzt begruesst hat.
+ *   termBlende(null, '') === true            (erstes Hinsetzen, Gast)
+ *   termBlende('-', '') === false            (der Gast von eben)
+ *   termBlende('-', 'u1') === true           (inzwischen angemeldet)
+ *   termBlende('u1', 'u1') === false
+ * @param {string|null} schon Wert aus TERM_AN @param {string} konto Kennung der gespeicherten Sitzung, '' ohne
+ * @returns {boolean}
+ */
+export function termBlende(schon, konto) {
+  return schon === null || schon === undefined || schon !== (konto || TERM_GAST);
+}
 /** Schriften des Sperrbilds (leitFenster): geladen, bevor die Blende es zeichnet */
 export const TERM_FONTS = ['700 16px Orbitron', '600 16px Rajdhani', '700 16px Rajdhani'];
 
@@ -202,6 +290,46 @@ export const TERM_CSS = [
   // Schlanke Datenseiten (DataShell): der Pfad bleibt als Wegweiser stehen,
   // Startlink, Suchknopf und Sprachschalter traegt die Leiste des Fensters.
   'html[data-vb-terminal] .dp-bar>.dp-home,html[data-vb-terminal] .dp-bar>.dp-search,html[data-vb-terminal] .dp-bar>.dp-lang{display:none!important}',
+  // Anmelden, Registrieren, Passwort (AccountShell.astro): Auf dem Schirm der
+  // Halle zaehlt das Formular. Der hohe Kopf der Seite mit Bild schrumpft zu
+  // einer Zeile mit dem Titel, damit Felder und Knopf ohne Scrollen dastehen,
+  // auch im breitesten Fenster (zwei zu eins, etwa 550 px Hoehe fuer die Seite).
+  'html[data-vb-terminal] .hero--acct{min-height:0!important;padding-top:.9rem!important;padding-bottom:.35rem!important}',
+  'html[data-vb-terminal] .hero--acct .hero__photo,html[data-vb-terminal] .hero--acct .lead,html[data-vb-terminal] .hero--acct .eyebrow{display:none!important}',
+  'html[data-vb-terminal] .hero--acct h1{margin:0!important;font-size:clamp(1.35rem,2.2vw,1.8rem)!important;line-height:1.15!important}',
+  'html[data-vb-terminal] .hero--acct h1 .thin{display:inline!important;font-size:inherit!important;margin-right:.45em}',
+  'html[data-vb-terminal] .hero--acct+.acwrap{padding-bottom:1rem!important}',
+  'html[data-vb-terminal] .hero--acct+.acwrap .acx-card{padding:1.05rem 1.6rem!important}',
+  'html[data-vb-terminal] .hero--acct+.acwrap .acx-field{margin-bottom:.85rem!important}',
+  'html[data-vb-terminal] .hero--acct+.acwrap .acx-actions{margin-top:1rem!important}',
+  'html[data-vb-terminal] .hero--acct+.acwrap .acx-links{margin-top:.9rem!important}',
+  // Anmelden: der Schirm ist breit, nicht hoch. E-Mail links, Discord rechts
+  // daneben (in der Folge des Dokuments), die Links darunter ueber beide Spalten.
+  'html[data-vb-terminal] .hero--acct+.acwrap:has(#loginForm){max-width:880px!important}',
+  'html[data-vb-terminal] .acx-card:has(>#loginForm){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:2rem;align-items:start}',
+  'html[data-vb-terminal] .acx-card:has(>#loginForm)>*{grid-column:1/-1}',
+  'html[data-vb-terminal] .acx-card>#loginForm{grid-column:1;grid-row:3/span 2;padding-right:2rem;border-right:1px solid rgb(255 255 255/.12)}',
+  'html[data-vb-terminal] .acx-card:has(>#loginForm)>.acx-divider{display:none}',
+  'html[data-vb-terminal] .acx-card>#discordBtn{grid-column:2;grid-row:3;margin-top:1.5rem!important}',
+  'html[data-vb-terminal] .acx-card:has(>#loginForm)>.dce{grid-column:2;grid-row:4}',
+  'html[data-vb-terminal] .acx-card:has(>#loginForm)>.acx-links{grid-row:5}',
+  // Registrieren: Discord links (der schnellste Weg, in der Folge des
+  // Dokuments zuerst), rechts daneben die vier Felder in zwei Spalten.
+  'html[data-vb-terminal] .hero--acct+.acwrap:has(#regForm){max-width:1080px!important}',
+  'html[data-vb-terminal] .acx-card:has(>#regForm){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);column-gap:2rem;align-items:start}',
+  'html[data-vb-terminal] .acx-card:has(>#regForm)>*{grid-column:1/-1}',
+  'html[data-vb-terminal] .acx-card>#regDiscordBtn{grid-column:1;grid-row:1;margin-top:1.5rem!important}',
+  'html[data-vb-terminal] .acx-card>#regDiscordStatus{grid-column:1;grid-row:2}',
+  'html[data-vb-terminal] .acx-card:has(>#regForm)>.acx-or{display:none}',
+  'html[data-vb-terminal] .acx-card>#regForm{grid-column:2;grid-row:1/span 3;padding-left:2rem;border-left:1px solid rgb(255 255 255/.12)}',
+  'html[data-vb-terminal] .acx-card:has(>#regForm)>.acx-links{grid-row:4}',
+  'html[data-vb-terminal] #regForm{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:1.4rem}',
+  'html[data-vb-terminal] #regForm>:not(.acx-field){grid-column:1/-1}',
+  // Der Hinweis zum Namen bleibt eine Zeile (neben ihm ist unter der E-Mail
+  // Platz), der Satz zum Datenschutz steht neben dem Knopf statt darunter.
+  'html[data-vb-terminal] #regForm .acx-hint{white-space:nowrap}',
+  'html[data-vb-terminal] #regForm .acx-actions{flex-wrap:nowrap}',
+  'html[data-vb-terminal] #regForm .acx-privacy{flex:1;min-width:0;font-size:var(--fs-7);line-height:1.45}',
 ].join('');
 
 /**
@@ -244,6 +372,10 @@ export function initTerminal(box, hooks = {}) {
       if (a.dataset.term === key) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     }
+    // das Konto ist kein Bereich der Leiste: Sein Knopf rechts ist dann der aktive
+    const k = box.querySelector('#hgx-term-who');
+    if (k && termKonto(pathname)) k.setAttribute('aria-current', 'page');
+    else k?.removeAttribute('aria-current');
   };
 
   // Eine Seite einrichten, sobald ihr Dokument steht: Stil, Klicks, Leiste.
@@ -268,7 +400,7 @@ export function initTerminal(box, hooks = {}) {
     w.addEventListener('click', (e) => onLink(e, w));
     // Die Seite geht: das Fenster zeigt „Seite lädt“, bis die naechste steht.
     // Kommt sie aus dem Zwischenspeicher des Browsers zurueck, steht sie wieder.
-    w.addEventListener('pagehide', () => { gone = d; box.classList.remove('is-ready'); watch(); });
+    w.addEventListener('pagehide', () => { gone = d; box.classList.remove('is-ready'); watch(); nachAnmeldung(); });
     w.addEventListener('pageshow', (e) => { if (e.persisted && gone === d) { gone = null; watch(); } });
     seen = d;
     fails = 0;
@@ -338,7 +470,11 @@ export function initTerminal(box, hooks = {}) {
 
   function start() {
     started = true;
-    let first = home;
+    // Eine neue Sitzung beginnt mit Konto auf der Kontoseite (Krisz 15.11.2026:
+    // „man meldet sich an seinem bildschirm an, man hat so alles im
+    // überblick“), ohne Konto auf der Startseite des Terminals. Danach gilt
+    // die zuletzt gezeigte Seite.
+    let first = (kontoJetzt() && box.querySelector('#hgx-term-who')?.dataset.dash) || home;
     try {
       const last = win.sessionStorage.getItem(TERM_KEY);
       // nur ein Pfad dieser Seite in der Sprache der Halle, und nichts, was nicht ins Fenster gehoert
@@ -390,14 +526,21 @@ export function initTerminal(box, hooks = {}) {
 
   // ---- Anmeldung ----------------------------------------------------------
   const who = box.querySelector('#hgx-term-who'), login = box.querySelector('#hgx-term-login');
-  const lstep = box.querySelector('#hgx-term-lstep'), lname = box.querySelector('#hgx-term-lname'), lsub = box.querySelector('#hgx-term-lsub');
+  const lwahl = box.querySelector('#hgx-term-lwahl');
+  const lstep = box.querySelector('#hgx-term-lstep-b'), lname = box.querySelector('#hgx-term-lname'), lsub = box.querySelector('#hgx-term-lsub');
   const lid = box.querySelector('#hgx-term-lid'), lhallo = box.querySelector('#hgx-term-lhallo'), lfakt = box.querySelector('#hgx-term-lfakt'), lbild = box.querySelector('#hgx-term-lbild');
   const ruhig = win.matchMedia?.('(prefers-reduced-motion: reduce)');
   // wer: zuletzt gezeigt (undefined: noch nie gefragt, null: Gast); lauf zaehlt die Anmeldungen, damit eine ueberholte nichts mehr setzt
   // frage: die Antwort des Kontos, auf die die laufende Anmeldung wartet;
   // gefragt: fuer welches Konto sie gestellt wurde (null: die Antwort steht in der Leiste)
-  let wer, lauf = 0, loginTimer = 0, gesessen = false, frage = null, gefragt = null, winkTimer = 0, schriften = null;
-  const begruesst = new Set(); // Konten, die in diesem Besuch schon am Terminal sassen
+  // an: wen die Blende in dieser Sitzung zuletzt begruesst hat (Kennung des Kontos oder TERM_GAST), null: noch niemanden
+  // wartet: Auf der Anmeldeseite im Fenster ist eine Sitzung entstanden, die Begruessung steht noch aus (nachAnmeldung)
+  let wer, lauf = 0, loginTimer = 0, frage = null, gefragt = null, winkTimer = 0, schriften = null, an = null, wartet = false;
+  try { an = win.sessionStorage.getItem(TERM_AN); } catch { /* ohne Speicher gilt das Gedaechtnis dieses Seitenaufrufs */ }
+  const merke = (id) => {
+    an = id ? id.uid : TERM_GAST;
+    try { win.sessionStorage.setItem(TERM_AN, an); } catch { /* s. o. */ }
+  };
   // das Konto der gespeicherten Sitzung, ohne Netz ('' ohne Sitzung)
   const kontoJetzt = () => { try { return String(win.VBAccount?.peek?.()?.user?.id ?? ''); } catch { return ''; } };
 
@@ -472,11 +615,12 @@ export function initTerminal(box, hooks = {}) {
   }
   // Die Karte: Bild, Gruss, Name, darunter die Zeilen aus termFakten
   function karte(da) {
-    // „Willkommen zurück“ gilt dem Konto, das hier schon einmal sass, nicht dem Stuhl
-    const kennt = !!da && begruesst.has(da.uid);
-    if (da) begruesst.add(da.uid);
+    // „Willkommen“ gilt dem Konto, das eben erst entstanden ist, jedem anderen „Willkommen zurück“
+    const kennt = !!da && termGruss(da.seit) === 'zurueck';
     avatarInto(login.querySelector('.hgx-term__av'), da);
     lid?.style.setProperty('--av', da?.farbe ?? '');
+    // die Karte des Gasts steht enger, unter ihr folgen die drei Wege (Stil in HangarPage.astro)
+    lid?.classList.toggle('hgx-term__lid--gast', !da);
     if (lhallo) lhallo.textContent = da ? (kennt ? login.dataset.lZurueck : login.dataset.lHallo) ?? '' : '';
     if (lname) lname.textContent = da ? da.name || who?.dataset.lAcct || '' : login.dataset.lGast ?? '';
     if (lsub) lsub.textContent = da ? da.sub : login.dataset.lGastsub ?? '';
@@ -502,10 +646,27 @@ export function initTerminal(box, hooks = {}) {
     lauf++;
     loginZu();
   }
-  // Die Blende: „Anmeldung …“, dann wer es ist, dann gibt sie die Seite frei
-  async function signIn() {
-    const n = ++lauf, erst = !gesessen, zeit = erst ? TERM_LOGIN : TERM_LOGIN.kurz, still = !!ruhig?.matches;
-    gesessen = true;
+  // Die Blende oeffnet sich und gibt die Seite frei; gast: der Knopf der Leiste zeigt danach kurz den Weg zum Konto
+  async function auf(n, gast) {
+    const still = !!ruhig?.matches;
+    win.clearTimeout(loginTimer);
+    login.dataset.step = 'out';
+    await warte(still ? 0 : TERM_LOGIN.aus);
+    if (n !== lauf) return;
+    loginZu();
+    if (gast && who && !still) {
+      who.classList.add('is-hint');
+      winkTimer = win.setTimeout(() => who.classList.remove('is-hint'), TERM_LOGIN.wink);
+    }
+  }
+  // Die Blende: das Sperrbild, „Anmeldung …“, dann wer es ist. Ein Konto gibt
+  // sie nach der Karte von selbst frei; beim Gast bleibt sie stehen, bis er
+  // einen der drei Wege waehlt (#hgx-term-lwahl).
+  // seite: Die Seite steht gerade offen im Fenster (jemand hat sich darin an-
+  // oder abgemeldet). Dann faehrt die Blende erst zu, statt in einem Bild da
+  // zu sein. Beim Hinsetzen steht sie sofort: Auf dem Glas stand dasselbe Bild.
+  async function signIn(seite = false) {
+    const n = ++lauf, still = !!ruhig?.matches;
     win.clearTimeout(loginTimer);
     win.clearTimeout(winkTimer);
     who?.classList.remove('is-hint');
@@ -514,19 +675,27 @@ export function initTerminal(box, hooks = {}) {
     // Kommt die Antwort erst nach der Frist (die Sitzung wird gerade erneuert),
     // zieht die Leiste still nach, solange keine neuere Anmeldung laeuft
     bald.then((id) => { if (id === undefined) echt.then((spaet) => { if (n === lauf || (frage === echt && wer === undefined)) setze(spaet); }); });
-    if (!login) { const id = await bald; if (n === lauf && id !== undefined) setze(id); return; }
+    if (!login) { const id = await bald; if (n === lauf && id !== undefined) { setze(id); merke(id); } return; }
     login.removeAttribute('data-who');
-    login.dataset.step = 'boot';
-    if (lstep) lstep.textContent = login.dataset.lAuth ?? '';
-    login.hidden = false;
+    // zu: von der offenen Seite her, auch aus einer Blende, die eben aufgeht (dann von dort, wo sie steht)
+    const zu = !still && (login.hidden ? seite : login.dataset.step === 'out');
+    if (login.hidden) { login.dataset.step = zu ? 'out' : 'boot'; login.hidden = false; }
     bildMalen();
     // Die Schriften des Bilds kommen beim ersten Mal vielleicht erst jetzt: dann noch einmal
     schriften ??= doc.fonts?.load ? Promise.all(TERM_FONTS.map((f) => doc.fonts.load(f))).then(() => true, () => false) : Promise.resolve(false);
     schriften.then((da) => { if (da && n === lauf && !login.hidden) bildMalen(); });
-    // erst ein Layout mit dem Anfang, sonst faellt der Lauf des Balkens aus
+    // erst ein Layout mit dem Anfang, sonst fallen der Weg der Blende und der Lauf des Balkens aus
     void login.offsetWidth;
+    if (zu) {
+      login.dataset.step = 'zu';
+      await warte(TERM_LOGIN.aus);
+      if (n !== lauf) return;
+    }
+    login.dataset.step = 'boot';
+    // das Sperrbild steht einen Augenblick ruhig, so wie eben noch auf dem Glas (nach dem Zufahren kuerzer)
+    if (!still) { await warte(zu ? Math.round(TERM_LOGIN.boot / 2) : TERM_LOGIN.boot); if (n !== lauf) return; }
     login.dataset.step = 'auth';
-    const [id] = await Promise.all([bald, still ? 0 : warte(zeit.auth)]);
+    const [id] = await Promise.all([bald, still ? 0 : warte(TERM_LOGIN.auth)]);
     if (n !== lauf) return;
     // keine Antwort in der Frist: wer zuletzt hier sass, bleibt stehen
     if (id !== undefined) setze(id);
@@ -536,28 +705,63 @@ export function initTerminal(box, hooks = {}) {
     if (lstep) lstep.textContent = (da ? login.dataset.lUser : login.dataset.lGuest) ?? '';
     login.dataset.who = da ? 'user' : 'guest';
     login.dataset.step = da ? 'user' : 'guest';
-    await warte(zeit.hold);
+    // begruesst: In dieser Sitzung kommt die Blende fuer ihn nicht wieder
+    merke(da);
+    if (!da) return;
+    await warte(zeitHalten());
     if (n !== lauf) return;
-    login.dataset.step = 'out';
-    await warte(still ? 0 : TERM_LOGIN.aus);
-    if (n !== lauf) return;
-    loginZu();
-    // Als Gast beim ersten Hinsetzen: Der Knopf der Leiste zeigt kurz, wo es zum Konto geht
-    if (!da && erst && who && !still) {
-      who.classList.add('is-hint');
-      winkTimer = win.setTimeout(() => who.classList.remove('is-hint'), TERM_LOGIN.wink);
-    }
+    auf(n, false);
+  }
+  // wie lange die Karte steht; ohne Bewegung kuerzer, sie ist dann sofort ganz da
+  const zeitHalten = () => (ruhig?.matches ? Math.round(TERM_LOGIN.hold / 2) : TERM_LOGIN.hold);
+  // Hingesetzt: einmal je Sitzung die Blende, sonst gleich die Seite. Die
+  // Leiste fragt das Konto dann leise, ohne Blende.
+  function hinsetzen() {
+    if (termBlende(an, kontoJetzt())) { signIn(); return; }
+    // Steht vom Sitzen davor noch eine Blende, geht sie zu: Wer waehrend der
+    // Karte aufsteht und sich in derselben Drittelsekunde wieder setzt, hat
+    // ihr mit place(null) den Abschluss genommen, und loginOff kam nicht mehr.
+    if (login && !login.hidden) loginZu();
+    const n = ++lauf;
+    gefragt = kontoJetzt();
+    const echt = (frage = ident());
+    echt.then((id) => { if (n === lauf || (frage === echt && wer === undefined)) setze(id); });
   }
   // Ein Klick ueberspringt den Rest: Die Blende ist eine Begruessung, keine
   // Sperre. Wer es ist, sagt die Leiste, sobald das Konto geantwortet hat:
   // dieselbe Frage, auf die die Blende gewartet haette, nicht der Stand davor.
-  login?.addEventListener('pointerdown', () => {
-    if (login.hidden || login.dataset.step === 'out') return;
-    const n = ++lauf;
+  // Die drei Wege des Gasts behandeln ihren Klick selbst (lwahl).
+  function ueberspringen() {
+    // beim Gast haelt die Blende, bis er einen der drei Wege waehlt: Ein Klick daneben soll sie ihm nicht nehmen
+    if (!login || login.hidden || login.dataset.step === 'out' || login.dataset.step === 'guest') return;
+    const n = ++lauf, gast = login.dataset.who === 'guest';
     win.clearTimeout(loginTimer);
-    (frage ?? ident()).then((id) => { if (n === lauf) setze(id); });
-    login.dataset.step = 'out';
-    loginTimer = win.setTimeout(() => { if (n === lauf) loginZu(); }, ruhig?.matches ? 0 : TERM_LOGIN.aus);
+    (frage ?? ident()).then((id) => { if (n === lauf) { setze(id); merke(id); } });
+    auf(n, gast);
+  }
+  login?.addEventListener('pointerdown', (e) => {
+    if (lwahl?.contains(e.target)) return;
+    ueberspringen();
+  });
+  // Die drei Wege des Gasts: Anmelden und Konto erstellen sind echte Links ins
+  // Fenster (mit Strg oder der mittleren Taste oeffnen sie wie jeder Link einen
+  // eigenen Tab), „Als Gast weiter“ gibt nur die Seite frei.
+  lwahl?.addEventListener('click', (e) => {
+    const el = e.target.closest?.('a[href],button');
+    if (!el || !lwahl.contains(el) || login.hidden || login.dataset.step === 'out') return;
+    if (el.tagName === 'A') {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      go(el.href);
+    }
+    const n = ++lauf;
+    auf(n, el.tagName !== 'A');
+  });
+  // Der Knopf der Leiste fuehrt ins Fenster: zum Konto, ohne Konto zur Anmeldung
+  who?.addEventListener('click', (e) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    go(who.href);
   });
   // An- oder abgemeldet, in diesem oder einem anderen Tab: Sitzt jemand vor
   // dem Terminal und ist es ein anderes Konto als eben, meldet es neu an.
@@ -566,11 +770,26 @@ export function initTerminal(box, hooks = {}) {
     if (wer === undefined && gefragt === null) return;
     // laeuft gerade eine Frage, zaehlt das Konto, fuer das sie gestellt wurde, sonst das zuletzt gezeigte
     if (kontoJetzt() === (gefragt ?? wer?.uid ?? '')) return;
-    if (box.classList.contains('is-on')) signIn();
     // Niemand sitzt davor: Das naechste Hinsetzen fragt neu. Eine Antwort, die
     // noch aussteht, galt dem Konto davor und setzt nichts mehr (frage).
-    else { wer = undefined; gefragt = null; frage = null; }
+    if (!box.classList.contains('is-on')) { wer = undefined; gefragt = null; frage = null; return; }
+    // Die Sitzung ist auf der Anmeldeseite im Fenster entstanden, die Seite
+    // steht offen: Sie fuehrt die Anmeldung erst zu Ende (zweiter Faktor) und
+    // geht dann weiter. Die Blende laege sonst ueber der Frage nach dem Code.
+    if (kontoJetzt() && login?.hidden && beimAnmelden()) { wartet = true; return; }
+    signIn(true);
   });
+  const beimAnmelden = () => { const d = frameDoc(); return !!d && d === seen && d !== gone && termAnmeldung(d.location.pathname); };
+  // Die Anmeldeseite im Fenster geht (weiter zum Konto, oder jemand verlaesst
+  // sie): jetzt die Begruessung, wenn das Konto inzwischen ein anderes ist.
+  // Hat er die Frage nach dem Code abgebrochen, ist er wieder abgemeldet und
+  // nichts geschieht.
+  function nachAnmeldung() {
+    if (!wartet) return;
+    wartet = false;
+    if (!box.classList.contains('is-on') || kontoJetzt() === (gefragt ?? wer?.uid ?? '')) return;
+    signIn(true);
+  }
 
   function place(rect) {
     win.clearTimeout(offTimer);
@@ -578,6 +797,7 @@ export function initTerminal(box, hooks = {}) {
       remember();
       // die Anmeldung endet mit der Blende des Kastens, nicht davor
       lauf++;
+      wartet = false;
       win.clearTimeout(loginTimer);
       box.classList.remove('is-on');
       // Nach der Blende ganz aus dem Layout: Eine Seite, die nicht zu sehen
@@ -599,7 +819,7 @@ export function initTerminal(box, hooks = {}) {
     box.classList.add('is-on');
     if (!started) start();
     // hingesetzt (nicht bei jedem neuen Rechteck, etwa wenn das Fenster des Browsers waechst)
-    if (neu) signIn();
+    if (neu) hinsetzen();
   }
   return { place };
 }
