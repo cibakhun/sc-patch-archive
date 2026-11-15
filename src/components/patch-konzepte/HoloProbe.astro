@@ -1,0 +1,144 @@
+---
+// Probe der Patch-Buehne ("Patch am Hologramm"), nur im Vorschau-Bau
+// (scripts/lib/vorschau-patches.mjs): eine Buehne, drei Schiffe, Wechsel
+// ohne neuen WebGL-Kontext, hervorgehobene Bauteile mit Vorher-Nachher-Text.
+// Die Texte sind Platzhalter, keine Patchdaten. Ohne WebGL (oder mit
+// ?nowebgl) steht das Standbild da, die Texte als feste Liste daneben.
+import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { getEntry } from 'astro:content';
+import { localeFromPath } from '../../i18n/ui';
+import { holoDaten } from '../../lib/holoPorts';
+import { jsonForScript } from '../../lib/safeJson';
+import holoCalloutsCss from '../holo-callouts.css?raw';
+
+const lang = localeFromPath(Astro.url.pathname);
+const de = lang === 'de';
+const PROBE: { id: string; items: { k: string; text: string }[] }[] = [
+  { id: 'anvl-carrack', items: [{ k: 'radar', text: de ? 'Radar Gr. 2 → 3' : 'Radar size 2 → 3' }] },
+  {
+    id: 'rsi-galaxy',
+    items: [
+      { k: 'radar', text: de ? 'Radar Gr. 2 → 3' : 'Radar size 2 → 3' },
+      { k: 'cooler', text: de ? 'Kühler (Probe)' : 'Cooler (probe)' },
+      { k: 'salvage_buffer', text: de ? 'Bergungspuffer (ohne Einbauort)' : 'Salvage buffer (no mount point)' },
+    ],
+  },
+  { id: 'aegs-vanguard', items: [{ k: 'turret', text: de ? 'Turm (Probe)' : 'Turret (probe)' }] },
+];
+const schiffe = await Promise.all(
+  PROBE.map(async ({ id, items }) => {
+    const v = await getEntry('vehicles', id);
+    if (!v) throw new Error(`holo-probe: Fahrzeug ${id} fehlt`);
+    const holo = holoDaten(v.data, lang);
+    if (!holo) throw new Error(`holo-probe: ${id} hat kein Hologramm`);
+    const still = `/assets/patch-4-10-3/render/${id}-holo.webp`;
+    return { id, name: v.data.name, holo, items, still: existsSync(`assets${still.slice('/assets'.length)}`) ? still : null };
+  })
+);
+const viewerSrc = `/assets/holo-viewer.js?v=${createHash('sha1').update(readFileSync('assets/holo-viewer.js')).digest('hex').slice(0, 8)}`;
+---
+<main id="main" class="hp" data-viewer={viewerSrc}>
+  <p class="hp__eyebrow">{de ? 'Vorschau · Probe · nicht live' : 'Preview · probe · not live'}</p>
+  <h1>{de ? 'Patch am Hologramm' : 'Patch on the hologram'}</h1>
+  <p class="hp__lead">{de ? 'Probe der Buehne: Texte sind Platzhalter, keine Patchdaten.' : 'Stage probe: texts are placeholders, not patch data.'}</p>
+  <div class="hp__wahl" role="group" aria-label={de ? 'Schiff' : 'Ship'}>
+    {schiffe.map((s, i) => <button type="button" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>{s.name}</button>)}
+  </div>
+  <div class="hp__buehne" id="hpbuehne">
+    <div class="hp__3d" id="hp3d"></div>
+    <figure class="hp__still" id="hpstill" hidden>
+      <img alt="" id="hpstillimg" />
+    </figure>
+    <p class="hp__status" id="hpstatus" aria-live="polite"></p>
+  </div>
+  <ul class="hp__liste" id="hpliste"></ul>
+</main>
+<Fragment set:html={`<style>${holoCalloutsCss}</style>`} />
+<style is:global>
+  /* Farben und Schriften der Schiffsseiten-Buehne (ShipDetail.astro :root):
+     die Beschriftungen aus holo-callouts.css lesen sie von hier. */
+  .hp{--accent:#2dd4ff;--gold:#d4af37;--font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;
+    max-width:1440px;margin:0 auto;padding:6rem 1rem 3rem}
+  .hp__eyebrow{font-family:var(--font-ui,sans-serif);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-6);color:var(--accent);margin:0 0 .4rem}
+  .hp h1{font-family:var(--font-display,sans-serif);font-size:clamp(1.6rem,4vw,2.6rem);margin:0 0 .3rem}
+  .hp__lead{color:var(--muted);margin:0 0 1rem}
+  .hp__wahl{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem}
+  .hp__wahl button{font:inherit;font-family:var(--font-ui,sans-serif);text-transform:uppercase;letter-spacing:var(--ls-11);font-size:var(--fs-5);color:var(--on-media-dim);background:var(--scrim-4);border:1px solid color-mix(in srgb,var(--accent) 34%,transparent);padding:.5rem .9rem;cursor:pointer}
+  .hp__wahl button[aria-pressed='true']{border-color:var(--accent);color:var(--on-media)}
+  .hp__buehne{position:relative;height:min(70vh,640px);background:radial-gradient(120% 90% at 50% 40%,var(--media-void),#000);overflow:hidden}
+  .hp__3d{position:absolute;inset:0}
+  .hp__still{position:absolute;inset:0;margin:0;display:grid;place-items:center}
+  .hp__still img{max-width:100%;max-height:100%;object-fit:contain}
+  .hp__status{position:absolute;left:50%;bottom:1rem;transform:translateX(-50%);margin:0;color:var(--on-media-dim);font-family:var(--font-ui,sans-serif);font-size:var(--fs-5)}
+  .hp__liste{list-style:none;padding:0;margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.5rem}
+  .hp__liste li{font-family:var(--font-ui,sans-serif);font-size:var(--fs-5);text-transform:uppercase;letter-spacing:var(--ls-11);color:var(--on-media);border-left:2px solid var(--accent);background:var(--scrim-4);padding:.3rem .6rem}
+  .hp__liste li.is-ohne{border-left-style:dashed;color:var(--on-media-dim)}
+</style>
+<script type="application/json" id="hpdata" set:html={jsonForScript(schiffe)} />
+<script type="importmap" is:inline>
+{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
+</script>
+<script is:inline>
+(function () {
+  var schiffe = JSON.parse(document.getElementById('hpdata').textContent);
+  var main = document.querySelector('.hp');
+  var still = document.getElementById('hpstill');
+  var stillImg = document.getElementById('hpstillimg');
+  var status = document.getElementById('hpstatus');
+  var liste = document.getElementById('hpliste');
+  var knoepfe = document.querySelectorAll('.hp__wahl button');
+  var buehne = null;
+  var gewollt = 0;
+  var ohneWebgl = /[?&]nowebgl\b/.test(location.search);
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var probe = window.__holoProbe = { wechsel: 0, gezeigt: null, standbild: false, ohneMarker: [] };
+
+  function zeigeListe(s, ohne) {
+    liste.textContent = '';
+    s.items.forEach(function (it) {
+      var li = document.createElement('li');
+      li.textContent = it.text;
+      if (ohne.indexOf(it) >= 0) li.className = 'is-ohne';
+      liste.appendChild(li);
+    });
+  }
+  function standbild(s) {
+    probe.standbild = true;
+    still.hidden = !s.still;
+    if (s.still) { stillImg.src = s.still; stillImg.alt = s.name; }
+    status.textContent = '';
+    zeigeListe(s, []);
+  }
+  function wahl(i) {
+    var s = schiffe[i];
+    gewollt = i;
+    knoepfe.forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-i') == i ? 'true' : 'false'); });
+    if (ohneWebgl) { standbild(s); probe.gezeigt = s.id; return; }
+    zeigeListe(s, []);
+    status.textContent = '…';
+    var cfg = Object.assign({}, s.holo, { reduceMotion: reduce, highlight: s.items });
+    buehne.load(cfg).then(function (v) {
+      if (gewollt !== i) return;
+      status.textContent = '';
+      var ohne = v.highlight(s.items);
+      probe.ohneMarker = ohne.map(function (it) { return it.k; });
+      zeigeListe(s, ohne);
+      probe.wechsel++;
+      probe.gezeigt = s.id;
+    }).catch(function (e) {
+      console.error(e);
+      ohneWebgl = true;
+      standbild(s);
+      probe.gezeigt = s.id;
+    });
+  }
+  knoepfe.forEach(function (b) { b.addEventListener('click', function () { wahl(+b.getAttribute('data-i')); }); });
+  if (ohneWebgl) { wahl(0); return; }
+  import(main.getAttribute('data-viewer')).then(function (m) {
+    buehne = m.holoBuehne(document.getElementById('hp3d'));
+    probe.buehne = buehne;
+    wahl(0);
+  }).catch(function () { ohneWebgl = true; wahl(0); });
+})();
+</script>
