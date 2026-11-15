@@ -952,11 +952,17 @@ function hallShiftPoint(h, p) {
 // Am Bild abgeglichen (dieselbe Ansicht): bei 2 liegen oben noch 54 % unter
 // 16, bei 3 sind es 47 %, bei 4,5 noch 37 % (Decke und Schatten), bei 7
 // steht die Halle hell da und die dunkle Stimmung ist weg; 4,5 steht.
+// `daempf`: Faktor auf die Stärke der Lampen einzelner Lichtgruppen, nach
+// `licht` (hallLampenStaerke; die Gruppe ist der Name der Lampe ohne ihre
+// Nummern). `licht` gleicht aus, dass in der weiten Halle wenig Licht am
+// Boden ankommt. In der Kabine eines Frachtaufzugs hängen die Lampen wenige
+// Meter über ihrem Boden: Mit `licht` 16 und dem Grundlicht brannte er aus,
+// der Rand weiß, die Farbe der Fläche weg (am Bild, 15.11.2026).
 // Der eigene Aufzug einer solchen Halle (Bodentor und Plattform aus ihrem
 // Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
 // durch, ownLift baut ihn.
 const HALL_FEST = /* hall-fest */ {
-  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5 }
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.25 } }
 } /* /hall-fest */;
 
 // Grundlicht einer Halle fester Größe (HALL_FEST.grund) als Bestrahlung im
@@ -971,6 +977,17 @@ export function hallGrund(id, hoch) {
   if (!(g > 0)) return null;
   const s = g * (1 - (1 - VOL_GRUND.decke) * Math.min(1, Math.max(0, hoch)));
   return { seite: s, oben: s, unten: s * VOL_GRUND.unten };
+}
+
+// Faktor auf die Stärke einer Spiellampe in der Halle `id`: HALL_FEST.licht
+// für jede, mal HALL_FEST.daempf für die Lampen der dort genannten
+// Lichtgruppen. Die Gruppe ist der Name der Lampe ohne die Nummern an seinem
+// Ende („lg_elev_util_cargo_hangar_lrg_a-012“; aus einem eingehängten
+// Container mit zweien: „lg_cargo_elevator_lrg-001-059“).
+export const lampenGruppe = (name) => String(name ?? '').replace(/(-\d+)+$/, '');
+export function hallLampenStaerke(id, name) {
+  const F = HALL_FEST[id];
+  return (F?.licht ?? 1) * (F?.daempf?.[lampenGruppe(name)] ?? 1);
 }
 
 // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
@@ -9160,9 +9177,9 @@ export async function initHangar(container, opts = {}) {
     // Lampen im Boden von Feld und Streifen wandern mit (HALL_SHIFT)
     for (const l of all) l.pos = hallShiftPoint(h, l.pos);
     if (!all.length) return false;
-    // Stärke je Halle (HALL_FEST.licht), vor Rangfolge, Gruppen und Gitter
-    const gain = HALL_FEST[h.id]?.licht ?? 1;
-    if (gain !== 1) for (const l of all) l.intensity *= gain;
+    // Stärke je Halle und Lichtgruppe (hallLampenStaerke), vor Rangfolge, Gruppen und Gitter
+    const licht = hallLampenStaerke(h.id, '');
+    for (const l of all) { l.roh = l.intensity; l.intensity *= hallLampenStaerke(h.id, l.name); }
     const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
     // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
     const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
@@ -9236,7 +9253,10 @@ export async function initHangar(container, opts = {}) {
     scaleLamps();
     hallStage();
     const n = lamps.children.filter((q) => q.isLight).length;
-    console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt`);
+    // zurückgelesen an der Stärke, mit der Rangfolge und Gitter gerechnet haben (nicht am Faktor): Lampen, die
+    // schwächer gehoben sind als die Halle
+    const gedaempft = all.filter((l) => l.intensity < l.roh * licht).length;
+    console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt${gedaempft ? `, ${gedaempft} gedämpft` : ''}`);
     return true;
   }
 

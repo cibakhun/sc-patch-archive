@@ -26,6 +26,15 @@
 //
 // Arbeitet auf Weltkoordinaten der Halle (glTF-Raum, wie im GLB).
 
+// Eine Zeile des Exportprotokolls (<halle>.lights-src.txt): Name des
+// Lichtknotens, Typ, Stärke und Reichweite der Lampe im Spiel; null, wenn die
+// Zeile keine Lampe nennt. Dieselbe Form schreibt lampenZeile
+// (hall-kinder.mjs) für Lampen, die der Export weglässt.
+export function lichtZeile(line) {
+  const m = line.match(/^Light '(.+)' type=(\S+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
+  return m ? { name: m[1], type: m[2], intensity: Number(m[3]), radius: Number(m[4]) } : null;
+}
+
 /** Dreiecke aller undurchsichtigen Hallenflächen in Weltkoordinaten, mit BVH. */
 export function hallRaycaster(doc, skip = /glass|grid_grayyellow/i) {
   const tris = [];

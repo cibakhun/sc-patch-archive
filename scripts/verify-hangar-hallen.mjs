@@ -260,6 +260,52 @@
        sich stehend), steht mit ihrem echten Lauf in
        tests/e2e/hall-gitter.test.js, dazu die Grenze der Naht: Formen,
        die lesen und nichts laden.
+   (s) 15.11.2026, gedämpfte Lichtgruppen (HALL_FEST.daempf): Die Lampen
+       in den Kabinen der Frachtaufzüge hängen wenige Meter über ihrem
+       Boden; mit der Stärke der Halle (licht 16) brannte er aus. Fünfmal
+       am ausgelieferten Viewer gebrochen und einmal an einer Kopie des
+       Tors, je 1 FEHLER:
+       die Dämpfung nennt eine Gruppe, von der die ausgelieferte Datei
+       keine Lampe trägt (…_lrg_b statt …_lrg_a): „[3] util-lrgtop:
+       HALL_FEST.daempf nennt die Lichtgruppe
+       lg_elev_util_cargo_hangar_lrg_b, die ausgelieferte Lampendatei
+       traegt keine Lampe von ihr — die Daempfung hat ihren Anlass
+       verloren (Gruppe umbenannt oder nicht mehr geholt): den Eintrag
+       streichen oder an den neuen Namen anpassen“;
+       Faktor 1,5: „[3] util-lrgtop:
+       HALL_FEST.daempf.lg_elev_util_cargo_hangar_lrg_a ist 1.5, erwartet
+       ein Faktor zwischen 0 und 1 — 1 und mehr daempft nicht, 0 und
+       weniger loescht die Lampen der Gruppe“;
+       hallLampenStaerke rechnet die Dämpfung nicht ein: „[3] util-lrgtop:
+       114 von 114 Lampen der Lichtgruppe lg_elev_util_cargo_hangar_lrg_a
+       bekommen vom Viewer nicht die gedaempfte Staerke
+       (hallLampenStaerke: 16 fuer lg_elev_util_cargo_hangar_lrg_a-000,
+       erwartet licht 16 mal 0.25) — der Boden unter ihnen wuerde wieder
+       ausbrennen“;
+       hallLampenStaerke ohne export: „[3] util-lrgtop: der Viewer nennt
+       die Staerke seiner Lampen nicht mehr (hallLampenStaerke,
+       lampenGruppe), HALL_FEST.daempf nennt aber 1 Lichtgruppe(n) — ob
+       ihre Lampen gedaempft werden, liesse sich nur raten“;
+       HALL_FEST ohne daempf (die Klinke gedaempft): „[3] util-lrgtop: der
+       Viewer daempft 0 Lampen der ausgelieferten Datei, Klinke 114 —
+       Lampen, die wenige Meter ueber ihrem Boden haengen, bekommen wieder
+       die volle Staerke der Halle, der Boden unter ihnen brennt aus
+       (HALL_FEST.daempf im Viewer; in util-lrgtop die Kabinen der
+       Frachtaufzuege)“;
+       die Halle dämpft und trägt keine Klinke gedaempft (Kopie des Tors
+       ohne den Eintrag, der Viewer unverändert): „[3] util-lrgtop:
+       HALL_FEST.daempf nennt 1 Lichtgruppe(n), die Halle hat keine Klinke
+       gedaempft (KLINKE) — fiele die Daempfung wieder weg, bliebe das Tor
+       gruen“.
+       Bleibt hier grün und reißt im Test: lampenGruppe nimmt nur eine
+       Nummer vom Namen (keine gedämpfte Gruppe dieser Halle trägt zwei);
+       tests/e2e/hall-lampen.test.js hält die Regel am Viewer des Repos,
+       dort viermal vorgeführt rot (eine Nummer, ohne Dämpfung gerechnet,
+       Gruppe nach dem Anfang des Namens, HALL_FEST ohne daempf).
+       Nicht hier geprüft: dass die Bühne ihre Lampen mit
+       hallLampenStaerke hebt. Das misst check:hangar-shader an ihrer
+       Zeile „… Spiellampen … gesetzt, N gedämpft“ (dort im Kopf unter
+       GEDAEMPFTE LAMPEN).
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -304,8 +350,14 @@ const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die
 // „viel zu dunkel“, Wände und Decke standen im Schwarz. In der Messreihe an seiner Startansicht lagen bei 2
 // noch 54 % des oberen Bildteils unter 16 von 255, bei 3 waren es 47 %; ausgeliefert wird 4,5 (37 %). Die
 // Klinke hält die kleinste Stufe, die er zur Auswahl bekam.
+// Seit dem 15.11.2026 brennen auch die Lampen in den Kabinen der beiden Frachtaufzüge (2 × 57; ihre Lichtgruppe
+// hängt an der Plattform, und solche Gruppen ließ der Export weg): 912 statt 798 Lampen. Ein Netz mehr trägt
+// Aufkleber (151 statt 150), seit Aufdrucke an gedrehten Knoten ihre Lage aus dem Knotenbaum bekommen.
+// gedaempft: Lampen der ausgelieferten Datei, die der Viewer schwächer hebt als die Halle (HALL_FEST.daempf,
+// hallLampenStaerke): die 114 in den Kabinen. Fällt die Dämpfung weg, brennt der Kabinenboden wieder aus.
+// Eine Halle ohne diese Klinke dämpft keine Lampe; nennt HALL_FEST für sie doch eine Gruppe, reißt das Tor.
 const KLINKE = {
-  'util-lrgtop': { lampen: 798, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 150, schilder: 5, kinder: 14, grund: 3 },
+  'util-lrgtop': { lampen: 912, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
@@ -545,6 +597,37 @@ for (const [id, { bytes }] of HALLEN) {
   if (kaputt) fail(`[3] ${id}: ${kaputt} von ${lampenRoh.length} Lampen der ausgelieferten Datei sind unvollstaendig (ohne Art, ohne Ort aus drei Zahlen oder ohne Staerke)`);
   if (lampenRoh && lampenRoh.length !== M.lights?.total) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt ${lampenRoh.length} Lampen, das Manifest nennt ${M.lights?.total ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
   const lampenAus = (lampenRoh?.length ?? 0) - kaputt - lampen.length;
+  // Gedaempfte Lichtgruppen (HALL_FEST.daempf, hallLampenStaerke): Jede nennt einen Faktor zwischen 0 und 1 und
+  // Lampen, die die ausgelieferte Datei wirklich traegt. Eine Daempfung ohne Lampen ist eine Ausnahme ohne Anlass
+  // (Gruppe umbenannt oder nicht mehr geholt) und reisst. Fuer die Lampen der Datei gibt der Viewer licht mal
+  // Faktor zurueck, fuer alle anderen licht. Nicht geprueft wird hier, dass die Buehne ihre Lampen mit dieser
+  // Funktion hebt: Sie nennt die Zahl der gedaempften in ihrer Zeile "… Spiellampen … gesetzt, N gedämpft",
+  // und check:hangar-shader haelt sie gegen seine Klinke gedaempft (vorgefuehrt rot im Kopf unter (s)).
+  let gedaempft = '', gedaempftN = 0, daempfHeil = true;
+  const daempf = Object.entries(FEST[id]?.daempf ?? {});
+  if (daempf.length) {
+    const staerke = typeof viewer?.hallLampenStaerke === 'function' && typeof viewer?.lampenGruppe === 'function' ? viewer.hallLampenStaerke : null;
+    if (!staerke) { daempfHeil = false; fail(`[3] ${id}: der Viewer nennt die Staerke seiner Lampen nicht mehr (hallLampenStaerke, lampenGruppe), HALL_FEST.daempf nennt aber ${daempf.length} Lichtgruppe(n) — ob ihre Lampen gedaempft werden, liesse sich nur raten`); }
+    else {
+      const licht = FEST[id].licht ?? 1, teile = [];
+      for (const [gruppe, f] of daempf) {
+        const ihre = lampen.filter((l) => viewer.lampenGruppe(l.name) === gruppe);
+        if (!(Number.isFinite(f) && f > 0 && f < 1)) { daempfHeil = false; fail(`[3] ${id}: HALL_FEST.daempf.${gruppe} ist ${JSON.stringify(f)}, erwartet ein Faktor zwischen 0 und 1 — 1 und mehr daempft nicht, 0 und weniger loescht die Lampen der Gruppe`); }
+        else if (!ihre.length) { daempfHeil = false; fail(`[3] ${id}: HALL_FEST.daempf nennt die Lichtgruppe ${gruppe}, die ausgelieferte Lampendatei traegt keine Lampe von ihr — die Daempfung hat ihren Anlass verloren (Gruppe umbenannt oder nicht mehr geholt): den Eintrag streichen oder an den neuen Namen anpassen`); }
+        else {
+          const falsch = ihre.filter((l) => staerke(id, l.name) !== licht * f);
+          if (falsch.length) { daempfHeil = false; fail(`[3] ${id}: ${falsch.length} von ${ihre.length} Lampen der Lichtgruppe ${gruppe} bekommen vom Viewer nicht die gedaempfte Staerke (hallLampenStaerke: ${staerke(id, falsch[0].name)} fuer ${falsch[0].name}, erwartet licht ${licht} mal ${f}) — der Boden unter ihnen wuerde wieder ausbrennen`); }
+          else { teile.push(`${ihre.length} der Gruppe ${gruppe} auf ${f}`); gedaempftN += ihre.length; }
+        }
+      }
+      const andere = lampen.filter((l) => !Object.hasOwn(FEST[id].daempf, viewer.lampenGruppe(l.name)) && staerke(id, l.name) !== licht);
+      if (andere.length) { daempfHeil = false; fail(`[3] ${id}: ${andere.length} Lampen ausserhalb der gedaempften Gruppen bekommen vom Viewer nicht die Staerke der Halle (hallLampenStaerke: ${staerke(id, andere[0].name)} fuer ${andere[0].name}, erwartet licht ${licht})`); }
+      gedaempft = teile.join(', ');
+    }
+  }
+  // Klinke: so viele Lampen daempft der Viewer in dieser Halle. Ohne Klinke und ohne Daempfung gibt es nichts zu halten;
+  // ist die Daempfung oben schon gerissen, steht ihr Grund dort.
+  if (daempfHeil && (daempf.length || K.gedaempft !== undefined) && !(gedaempftN >= K.gedaempft)) fail(K.gedaempft === undefined ? `[3] ${id}: HALL_FEST.daempf nennt ${daempf.length} Lichtgruppe(n), die Halle hat keine Klinke gedaempft (KLINKE) — fiele die Daempfung wieder weg, bliebe das Tor gruen` : `[3] ${id}: der Viewer daempft ${gedaempftN} Lampen der ausgelieferten Datei, Klinke ${K.gedaempft} — Lampen, die wenige Meter ueber ihrem Boden haengen, bekommen wieder die volle Staerke der Halle, der Boden unter ihnen brennt aus (HALL_FEST.daempf im Viewer; in util-lrgtop die Kabinen der Frachtaufzuege)`);
   // Grundlicht und Lampenlicht im selben Gitter: mit den Lampen der ausgelieferten Datei gerechnet, einmal mit
   // und einmal ohne den Namen der Halle. Das Gitter mit beidem ist ueberall die Summe; wo eines das andere
   // ersetzte, fehlte sie. (Die Buehne verschiebt die Lampen im Boden von Feld und Streifen, hebt alle um
@@ -578,7 +661,7 @@ for (const [id, { bytes }] of HALLEN) {
   if (M.floor !== HALLEN.get(id).hall.floor) fail(`[3] ${id}: das Manifest nennt den Boden bei ${M.floor}, die Seite bei ${HALLEN.get(id).hall.floor}`);
   const ueber = [['tris', M.tris, 'Dreiecke'], ['bytes', bytes, 'Bytes'], ['texturen', M.textures, 'Texturen'], ['leck', M.hull?.pct, '% Blickstrahlen ins Leere']].filter(([k, v]) => !(v <= G[k]));
   for (const [k, v, was] of ueber) fail(`[3] ${id}: ${v ?? 'keine Zahl fuer'} ${was}, Obergrenze ${G[k]} — die Halle ist schwerer oder offener geworden`);
-  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}${dazu ? ` (${dazu})` : ''}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
+  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}${dazu ? ` (${dazu})` : ''}${gedaempft ? `, gedaempft ${gedaempft} (Klinke ${K.gedaempft})` : ''}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
 }
 for (const z of zeilen) say(z);
 if (!zeilen.length) say(`    ${HALLEN.size ? 'keine Halle vollstaendig gemessen' : 'keine Halle ausgeliefert, nichts zu messen'}`);

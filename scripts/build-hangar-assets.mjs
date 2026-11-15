@@ -33,7 +33,7 @@ import { standNachtragen } from './lib/hangar-stand.mjs';
 import { sample as sampleCaf, sampleRot as sampleCafRot } from './lib/ivo-caf.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
-import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
+import { hallRaycaster, orientHallLights, lichtZeile } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
 import { kinderBestand } from './lib/hall-kinder.mjs';
@@ -583,10 +583,10 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
   if (!existsSync(srcFile)) return { missing: `${kind}/${name}.lights-src.txt` };
   const src = new Map();
   for (const line of readFileSync(srcFile, 'utf8').split('\n')) {
-    const m = line.match(/^Light '(.+)' type=(\S+).*?intensity=([\d.e+-]+) radius=([\d.e+-]+)/);
-    if (!m) continue;
-    if (!src.has(m[1])) src.set(m[1], []);
-    src.get(m[1]).push({ type: m[2], intensity: Number(m[3]), radius: Number(m[4]) });
+    const z = lichtZeile(line);
+    if (!z) continue;
+    if (!src.has(z.name)) src.set(z.name, []);
+    src.get(z.name).push({ type: z.type, intensity: z.intensity, radius: z.radius });
   }
   const lights = [];
   for (const node of doc.getRoot().listNodes()) {

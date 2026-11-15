@@ -79,6 +79,11 @@ const HALLS = [
   // nur: von den neun Aufzügen für Personen und dem Aufzug der Abgabe-Nische
   // stehen nur die Türen. Sie ruhen zu; Kabine, Käfig und Leuchten dahinter
   // sieht niemand, und ihre Lichter schienen durch die Wand in die Halle.
+  // anhang: die Lampen in der Kabine des Frachtaufzugs. Ihre Lichtgruppe hängt
+  // am Knochen der Plattform, und solche Gruppen lässt der Export weg: Die
+  // Kabine stand mit ihren Leuchten im Modell, aber dunkel. anLeuchte: so
+  // viele Lampen müssen an einer Leuchte des Modells sitzen (gemessen 24 von
+  // 57; im falschen Raum gelesen keine), sonst bricht der Schritt ab.
   { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' },
@@ -86,6 +91,7 @@ const HALLS = [
       folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
       lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
       nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
+      anhang: [{ kind: 'elev_util_cargo_hangar_lrg_a', gruppe: 'lg_elev_util_cargo_hangar_lrg_a', knochen: 'anim_lift', anLeuchte: 12 }],
     } },
   { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];
@@ -457,7 +463,7 @@ if (containers.length) {
         }
       }
       if (h.tor) await werkhalleCompose(h, file);
-      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, lichtZeilen, schalter });
+      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter });
       if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }

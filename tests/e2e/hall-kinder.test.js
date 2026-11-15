@@ -11,7 +11,8 @@ import assert from 'node:assert/strict';
 import { Document, NodeIO } from '@gltf-transform/core';
 import { KHRLightsPunctual } from '@gltf-transform/extensions';
 import { unpartition } from '@gltf-transform/functions';
-import { kinderAusXml, kindEinhaengen, kindLage, kindNur, kinderBaumEinhaengen, kinderBestand, kinderKonfig, planKennung, wurzelVon, nmcKnoten, spurVersatz, eingehaengtGilt, eingehaengtSchreiben } from '../../scripts/lib/hall-kinder.mjs';
+import { kinderAusXml, kindEinhaengen, kindLage, kindNur, kinderBaumEinhaengen, kinderBestand, kinderKonfig, planKennung, wurzelVon, nmcKnoten, spurVersatz, eingehaengtGilt, eingehaengtSchreiben, kelvinFarbe, anhangLampen, lampenEinhaengen, lampenZeile } from '../../scripts/lib/hall-kinder.mjs';
+import { lichtZeile } from '../../scripts/lib/hall-lights.mjs';
 
 // Z oben nach Y oben, wie die Wurzel jedes Exports
 const Z_UP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
@@ -351,4 +352,200 @@ test('kinderBestand: ein Halter ohne Dreieck zählt nicht, ein fremder Knoten mi
   teil.setExtras({ kind: 'schrank' });
   room.getRoot().listNodes().find((n) => n.getName() === 'kind_schrank_1').setExtras({ kind: 'anders', stelle: 1 });
   assert.deepEqual(kinderBestand(room), { exemplare: 0, je: {} });
+});
+
+// ─── Lampen einer Lichtgruppe, die an einem Knochen hängt (15.11.2026) ───────
+// Die Kabine des Frachtaufzugs der Large-Halle stand mit ihren Leuchten im Modell, aber ohne Lampe: Ihre
+// Lichtgruppe hängt am Knochen der Plattform, und solche Gruppen lässt der Export weg. Die Entities hier sind
+// so gebaut, wie die .soc des Aufzugs sie nennt (Träger ohne Pos und Rotate, die Gruppe mit eigenem Ort).
+const lampeXml = ({ name = 'l_probe-001', aktiv = 1, typ = 'SoftOmni', temp = 0, staerke = '0.050000001', kelvin = 2500, farbe = [0.25, 0.5, 0.75], radius = 5, fov = 75, rot = '1,0,0,0', ort = '1,2,3.1' } = {}) => `
+      <Light EntityCryGUID="x" Name="${name}">
+        <BaseProperties ViewDistRatio="100" Holographic="0" />
+        <EntityComponentLight __type="LightComponentParams" active="${aktiv}" lightType="${typ}" importance="Standard" useTemperature="${temp}">
+          <sizeParams __type="LightSizeParams" lightRadius="${radius}" bulbRadius="0.05" planeWidth="0.1" planeHeight="0.6" />
+          <offState __type="LightStateParams_Off" presetTag="" />
+          <defaultState __type="LightStateParams_Default" intensity="${staerke}" presetTag="default" lightStyle="0" temperature="${kelvin}">
+            <color __type="RGB" r="${farbe[0]}" g="${farbe[1]}" b="${farbe[2]}" />
+          </defaultState>
+          <auxiliaryState __type="LightStateParams_Aux" intensity="2" presetTag="" lightStyle="3" temperature="1000">
+            <color __type="RGB" r="1" g="0.1" b="0" />
+          </auxiliaryState>
+          <projectorParams __type="LightProjectorParams" texture="textures/lights/generic/rect.dds" FOV="${fov}" focusedBeam="0" />
+        </EntityComponentLight>
+        <GeomLink EntityCryGUID="y" />
+        <RelativeXForm rotation="${rot}" translation="${ort}" />
+      </Light>`;
+const GRUPPE = 'Name="lg_anhang" ParentEntityCryGUID="p1" AttachmentType="CharacterBone" AttachmentTarget="anim_lift" ParentOffsetPos="-0.01,-11,0.5" ParentOffsetRot="1,0,0,0" Pos="-0.01,-11,0.5" EntityClass="LightGroupObjectAttach" EntityCryGUID="g1"';
+const TRAEGER = 'Name="Plattform" EntityClass="LoadingPlatform" EntityCryGUID="p1"';
+const containerXml = ({ lampen = [lampeXml()], gruppe = GRUPPE, traeger = TRAEGER, mehr = '' } = {}) => `<Entities>
+  <Entity ${traeger}>
+    <Components><geom __type="GlobalResourceGeometry" path="objects/probe/plattform_a.cga" /></Components>
+  </Entity>
+  <Entity Name="leer" EntityClass="AreaShape" EntityCryGUID="s1" />
+  <Entity ${gruppe}>
+    <Lights>${lampen.join('')}
+    </Lights>
+  </Entity>${mehr}
+</Entities>`;
+const WAS = { gruppe: 'lg_anhang', knochen: 'anim_lift' };
+// fünf Lampen: Wandleuchte (Farbe genannt), Strahler mit Farbtemperatur (um 90° um Z gedreht), eine ohne
+// Stärke im Ruhezustand, eine abgeschaltete, ein Flächenlicht
+const FUENF = [
+  lampeXml(),
+  lampeXml({ name: 'l_probe_key-001', typ: 'Projector', temp: 1, staerke: 30, kelvin: 3500, radius: 20, fov: 110, rot: `${W},0,0,${W}`, ort: '4,5,6' }),
+  lampeXml({ name: 'l_probe_spin-001', typ: 'Projector', temp: 1, staerke: 0, kelvin: 1000, ort: '0,0,7' }),
+  lampeXml({ name: 'l_probe_aus-001', aktiv: 0, ort: '0,0,8' }),
+  lampeXml({ name: 'l_probe_ceil-001', typ: 'Planar', staerke: '2.4000001', radius: 10, ort: '0,-4,7.9' }),
+];
+const nah6 = (a, b) => a.every((v, i) => Math.abs(v - b[i]) < 1e-6);
+
+test('kelvinFarbe: die Farbe, die der Export für eine Farbtemperatur schreibt', () => {
+  // an den Lichtzeilen der Large-Halle abgelesen (useTemp=true)
+  for (const [k, farbe] of [[1000, [1, 0.26635462, 0]], [2500, [1, 0.62378275, 0.27477717]], [3500, [1, 0.7550343, 0.55226105]], [4000, [1, 0.80712247, 0.6512995]], [15000, [0.71000713, 0.80438167, 1]]]) {
+    assert.ok(nah6(kelvinFarbe(k), farbe), `${k} K: ${kelvinFarbe(k)} statt ${farbe}`);
+  }
+  assert.deepEqual(kelvinFarbe(6600), [1, 1, 1]);
+  assert.throws(() => kelvinFarbe(0), /keine positive Zahl/);
+  assert.throws(() => kelvinFarbe(NaN), /keine positive Zahl/);
+});
+
+test('anhangLampen: die Lampen der Gruppe am Knochen, benannt nach ihrer Stelle; ohne Stärke im Ruhezustand bleibt eine Lampe aus', () => {
+  const r = anhangLampen(containerXml({ lampen: FUENF }), WAS);
+  assert.equal(r.traeger, 'plattform_a');
+  assert.deepEqual(r.aus, ['lg_anhang-002', 'lg_anhang-003'], 'ohne Stärke und abgeschaltet; die Stelle im Namen bleibt die der Gruppe');
+  assert.deepEqual(r.lampen.map((l) => [l.name, l.eigen, l.typ, l.temp, l.staerke, l.radius, l.fov]), [
+    ['lg_anhang-000', 'l_probe-001', 'SoftOmni', false, 0.050000001, 5, null],
+    ['lg_anhang-001', 'l_probe_key-001', 'Projector', true, 30, 20, 110],
+    ['lg_anhang-004', 'l_probe_ceil-001', 'Planar', false, 2.4000001, 10, null],
+  ]);
+  // Farbe: genannt, oder aus der Farbtemperatur; der Zustand auxiliary (rot, Stärke 2) zählt nie
+  assert.deepEqual(r.lampen[0].farbe, [0.25, 0.5, 0.75]);
+  assert.ok(nah6(r.lampen[1].farbe, [1, 0.7550343, 0.55226105]));
+  // Ort und Drehung stehen, wie RelativeXForm sie nennt: ohne den Ort der Gruppe (-0.01, -11, 0.5)
+  assert.deepEqual(r.lampen[0].ort, [1, 2, 3.1]);
+  assert.deepEqual(r.lampen[1].ort, [4, 5, 6]);
+  assert.ok(nah6(r.lampen[1].dreh, [W, 0, 0, W]));
+});
+
+test('anhangLampen: was nicht nachgemessen ist, bricht ab', () => {
+  const lies = (o, was = WAS) => () => anhangLampen(containerXml(o), was);
+  assert.throws(lies({}, { gruppe: 'lg_anders', knochen: 'anim_lift' }), /Lichtgruppe lg_anders: 0 Entities dieses Namens/);
+  assert.throws(lies({ mehr: `<Entity ${GRUPPE}><Lights>${lampeXml()}</Lights></Entity>` }), /2 Entities dieses Namens/);
+  assert.throws(lies({}, { gruppe: 'lg_anhang', knochen: 'anim_pad' }), /erwartet ist eine LightGroupObjectAttach am Knochen anim_pad \(CharacterBone\), gefunden LightGroupObjectAttach \/ CharacterBone \/ anim_lift/);
+  // eine gewöhnliche Lichtgruppe schreibt der Export selbst
+  assert.throws(lies({ gruppe: 'Name="lg_anhang" Pos="1,2,3" EntityClass="LightGroup" EntityCryGUID="g1"' }), /gefunden LightGroup \/ ohne Angabe \/ ohne Angabe/);
+  assert.throws(lies({ gruppe: GRUPPE.replace('ParentEntityCryGUID="p1"', 'ParentEntityCryGUID="p9"') }), /der Träger \(ParentEntityCryGUID\) steht 0 Mal im Container/);
+  // der Träger ruht nicht im Ursprung: dann gälte RelativeXForm nicht mehr im Raum des Containers
+  assert.throws(lies({ traeger: `${TRAEGER} Pos="0,0,2"` }), /der Träger Plattform ruht nicht im Ursprung des Containers \(Pos 0,0,2, Rotate ohne\)/);
+  assert.throws(lies({ traeger: `${TRAEGER} Rotate="${W},0,0,${W}"` }), /ruht nicht im Ursprung/);
+  assert.throws(lies({ gruppe: GRUPPE.replace('ParentOffsetRot="1,0,0,0"', `ParentOffsetRot="${W},0,0,${W}"`) }), /dreht die Gruppe gegen ihren Träger/);
+  // ein Träger, der seinen Ort ausdrücklich im Ursprung nennt, gilt
+  assert.equal(anhangLampen(containerXml({ traeger: `${TRAEGER} Pos="0,0,0" Rotate="1,0,0,0"` }), WAS).lampen.length, 1);
+  // Angaben einer Lampe, aus denen keine Lampe wird
+  assert.throws(lies({ lampen: [lampeXml({ rot: '0.5,0,0,0.5' })] }), /lg_anhang-000 \(l_probe-001\): rotation 0.5,0,0,0.5 ist keine Drehung/);
+  assert.throws(lies({ lampen: [lampeXml({ ort: '1,2' })] }), /translation: "1,2" ist keine Reihe aus 3 Zahlen/);
+  assert.throws(lies({ lampen: [lampeXml({ typ: 'Projector', fov: 0 })] }), /FOV 0 ergeben keine Lampe/);
+  assert.throws(lies({ lampen: [lampeXml({ radius: 0 })] }), /Reichweite 0 ergeben keine Lampe/);
+  assert.throws(lies({ lampen: [lampeXml({ staerke: 'x' })] }), /intensity="x" ist keine Zahl/);
+  assert.throws(lies({ lampen: [lampeXml().replace(/<RelativeXForm[^>]*\/>/, '')] }), /ohne EntityComponentLight, defaultState mit Farbe oder RelativeXForm/);
+  // eine Gruppe, in der im Ruhezustand nichts brennt, ist kein Anlass
+  assert.throws(lies({ lampen: [lampeXml({ staerke: 0 }), lampeXml({ aktiv: 0 })] }), /keine Lampe mit Stärke im defaultState \(2 ohne\)/);
+});
+
+test('lampenEinhaengen: Lichtknoten im Raum des Containers, so wie der Export sie bei einer gewöhnlichen Gruppe schreibt', async () => {
+  const doc = ausfuhr('kabine');
+  const { lampen } = anhangLampen(containerXml({ lampen: FUENF }), WAS);
+  const r = lampenEinhaengen(doc, lampen, { name: 'kabine', gruppe: 'lg_anhang', anLeuchte: 1 });
+  assert.deepEqual([r.lampen, r.anNetz], [3, 1], 'die Wandleuchte sitzt 0,1 m über dem Knoten ihres Netzes (1, 2, 3)');
+  const knoten = (n) => doc.getRoot().listNodes().find((x) => x.getName() === n);
+  // unter der Wurzel, neben dem Container-Knoten; glTF = (x, z, -y)
+  assert.equal(knoten('anhang_lg_anhang').getParentNode().getName(), 'CryEngine_Z_up');
+  assert.deepEqual(ort(knoten('lg_anhang-000')), [1, 3.1, -2]);
+  assert.deepEqual(ort(knoten('lg_anhang-001')), [4, 6, -5]);
+  // der Strahler strahlt längs seiner +X-Achse (so liest der Build die Richtung): um 90° um Z gedreht zeigt sie nach +y des Spiels, im Modell nach -z
+  assert.ok(nah6(knoten('lg_anhang-001').getWorldMatrix().slice(0, 3), [0, 0, -1]));
+  const licht = (n) => knoten(n).getExtension('KHR_lights_punctual');
+  assert.deepEqual([licht('lg_anhang-000').getType(), licht('lg_anhang-001').getType(), licht('lg_anhang-004').getType()], ['point', 'spot', 'point']);
+  // Stärke mal 1500, Reichweite, Kegel = halbes FOV, innen 0,8 davon
+  assert.ok(Math.abs(licht('lg_anhang-001').getIntensity() - 45000) < 1e-6);
+  assert.equal(licht('lg_anhang-001').getRange(), 20);
+  assert.ok(nah6([licht('lg_anhang-001').getOuterConeAngle(), licht('lg_anhang-001').getInnerConeAngle()], [55 * Math.PI / 180, 44 * Math.PI / 180]));
+  assert.deepEqual(licht('lg_anhang-000').getColor(), [0.25, 0.5, 0.75]);
+  // die Zeilen liest der Build mit derselben Regel wie die des Exports (lichtZeile): Name, Typ, Stärke und Reichweite des Spiels
+  assert.deepEqual(r.zeilen.map(lichtZeile), [
+    { name: 'lg_anhang-000', type: 'SoftOmni', intensity: 0.050000001, radius: 5 },
+    { name: 'lg_anhang-001', type: 'Projector', intensity: 30, radius: 20 },
+    { name: 'lg_anhang-004', type: 'Planar', intensity: 2.4000001, radius: 10 },
+  ]);
+  assert.equal(r.zeilen[1], "Light 'lg_anhang-001' type=Projector useTemp=true temperature=3500 intensity=30 radius=20 color=[1, 0.75503434, 0.55226111]");
+  assert.deepEqual(lichtZeile("Light 'lg_hangar_lrgtop-000' type=Projector useTemp=true temperature=3500 intensity=5 radius=12 color=[1.0, 0.7550343, 0.55226105]"), { name: 'lg_hangar_lrgtop-000', type: 'Projector', intensity: 5, radius: 12 }, 'eine Zeile des Exports selbst');
+  assert.equal(lichtZeile('Exported 12 meshes'), null);
+  // die Datei bleibt lesbar: das Licht des Containers und die drei angehängten
+  await doc.transform(unpartition());
+  const io = new NodeIO().registerExtensions([KHRLightsPunctual]);
+  const wieder = await io.readBinary(await io.writeBinary(doc));
+  assert.equal(wieder.getRoot().listNodes().filter((n) => n.getExtension('KHR_lights_punctual')).length, 4);
+});
+
+test('lampenEinhaengen: sitzen zu wenige Lampen an einer Leuchte, gilt der Raum nicht, und der Schritt bricht ab', () => {
+  const { lampen } = anhangLampen(containerXml({ lampen: FUENF }), WAS);
+  // der Fall, an dem die Regel gemessen ist: den Ort der Gruppe dazugerechnet, läge jede Lampe 11 m neben ihrer Leuchte
+  const versetzt = lampen.map((l) => ({ ...l, ort: [l.ort[0] - 0.01, l.ort[1] - 11, l.ort[2] + 0.5] }));
+  const doc = ausfuhr('kabine');
+  assert.throws(() => lampenEinhaengen(doc, versetzt, { name: 'kabine', gruppe: 'lg_anhang', anLeuchte: 1 }), /kabine: nur 0 von 3 Lampen der Gruppe lg_anhang sitzen an einem Netzknoten \(bis 0.3 m\), erwartet sind wenigstens 1/);
+  assert.equal(doc.getRoot().listNodes().filter((n) => n.getExtension('KHR_lights_punctual')).length, 1, 'nach dem Abbruch hängt keine Lampe im Modell');
+  // ohne Untergrenze hängt der Schritt ein, was man ihm gibt, und nennt die Zahl
+  assert.equal(lampenEinhaengen(ausfuhr('kabine'), versetzt, { name: 'kabine', gruppe: 'lg_anhang' }).anNetz, 0);
+  // ein Netz tiefer im Baum zählt mit seinem Ort im Raum des Containers: die Leuchte des Schranks hängt in einer Gruppe bei (0, 4, 0)
+  const tief = lampenEinhaengen(schrank(), [{ ...lampen[0], ort: [0, 4.2, 0] }], { name: 'schrank', gruppe: 'lg_anhang', anLeuchte: 1 });
+  assert.equal(tief.anNetz, 1);
+});
+
+test('kinderBaumEinhaengen mit anhang: die Kabine bringt ihre Lampen in jedes Exemplar mit, Zeilen und Knoten gleich oft', async () => {
+  // Halle -> Modul an zwei Stellen -> darin die Kabine, um 180° gedreht (wie der Frachtaufzug der Large-Halle)
+  const baum = [{ id: 'modul', name: 'a/modul.socpak', stellen: [{ pos: [-120, -56, -4], rot: [W, 0, 0, W] }, { pos: [-24, -164, -4], rot: [W, 0, 0, -W] }],
+    kinder: [{ id: 'kabine', name: 'a/kabine.socpak', stellen: [{ pos: [0, 10, 0], rot: [0, 0, 0, 1] }], kinder: [] }] }];
+  const { lampen } = anhangLampen(containerXml({ lampen: FUENF }), WAS);
+  const anhang = [{ kind: 'kabine', gruppe: 'lg_anhang', knochen: 'anim_lift', anLeuchte: 1, lampen, exemplare: 0 }];
+  const liste = [], meldungen = [], room = ausfuhr('halle');
+  const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => ausfuhr(c.id), zeilen: (c) => [`Light 'lg_${c.id}-000' type=Omni intensity=1 radius=2`], anhang, liste, melde: (m) => meldungen.push(m) });
+  assert.equal(anhang[0].exemplare, 2, 'eine Kabine je Exemplar des Moduls');
+  // je Exemplar des Moduls: seine Zeile, die der Kabine, dann die drei angehängten
+  const jeModul = ["Light 'lg_modul-000' type=Omni intensity=1 radius=2", "Light 'lg_kabine-000' type=Omni intensity=1 radius=2", ...lampen.map(lampenZeile)];
+  assert.deepEqual(lichter, [...jeModul, ...jeModul]);
+  // jede Zeile findet ihren Knoten: je Name gleich viele Lichtknoten wie Zeilen (so verbindet der Build)
+  const zaehl = (namen) => namen.reduce((m, n) => m.set(n, (m.get(n) || 0) + 1), new Map());
+  const knoten = zaehl(room.getRoot().listNodes().filter((n) => n.getExtension('KHR_lights_punctual') && n.getName() !== 'lg_halle-000').map((n) => n.getName()));
+  assert.deepEqual([...knoten].sort(), [...zaehl(lichter.map((z) => lichtZeile(z).name))].sort());
+  assert.equal(knoten.get('lg_anhang-001'), 2);
+  // der Strahler (4, 5, 6) der Kabine: um 180° um Z und 10 nach y in das Modul: (-4, 5, 6);
+  // Modul 1 um +90°: (-5, -4, 6), dazu (-120, -56, -4) = (-125, -60, 2); glTF = (x, z, -y)
+  assert.deepEqual(ort(unter(room, 'kind_modul_1', 'lg_anhang-001')[0]), [-125, 2, 60]);
+  // Modul 2 um -90°: (5, 4, 6), dazu (-24, -164, -4) = (-19, -160, 2)
+  assert.deepEqual(ort(unter(room, 'kind_modul_2', 'lg_anhang-001')[0]), [-19, 2, 160]);
+  const e = liste.find((x) => x.id === 'kabine');
+  assert.deepEqual([e.exemplare, e.jeExemplar.lichtknoten, e.jeExemplar.lichtzeilen], [2, 4, 4]);
+  assert.deepEqual(e.anhang, [{ gruppe: 'lg_anhang', lampen: 3, anNetz: 1 }]);
+  assert.equal(liste.find((x) => x.id === 'modul').anhang, undefined);
+  assert.match(meldungen.find((m) => m.includes('Kind kabine')), /; 3 Lampe\(n\) der Lichtgruppe lg_anhang angehängt, 1 davon an einer Leuchte$/);
+  // ohne die Regel bleibt die Kabine dunkel, wie bisher
+  const ohne = await kinderBaumEinhaengen(ausfuhr('halle'), baum, { lese: (c) => ausfuhr(c.id), zeilen: (c) => [`Light 'lg_${c.id}-000' type=Omni intensity=1 radius=2`] });
+  assert.equal(ohne.length, 4);
+});
+
+test('kinderBaumEinhaengen mit anhang: nur und anhang am selben Kind widersprechen sich', async () => {
+  const baum = [{ id: 'schrank', name: 'a/schrank.socpak', stellen: [{ pos: [0, 0, 0], rot: [1, 0, 0, 0] }], kinder: [] }];
+  const { lampen } = anhangLampen(containerXml(), WAS);
+  await assert.rejects(kinderBaumEinhaengen(ausfuhr('halle'), baum, { lese: () => schrank(), nur: [{ kind: 'schrank', muster: [TUER], exemplare: 0 }], anhang: [{ kind: 'schrank', gruppe: 'lg_anhang', lampen, anLeuchte: 0, exemplare: 0 }] }),
+    /schrank: nur und anhang am selben Kind widersprechen sich/);
+});
+
+test('kinderKonfig: eine Regel für angehängte Lampen macht das Eingehängte ungültig', () => {
+  const regeln = { folge: [/[\\/]modul\.socpak$/i] };
+  const baum = [{ id: 'modul', stellen: [{ pos: [0, 10, 0], rot: [1, 0, 0, 0] }], kinder: [] }];
+  const k = kinderKonfig(regeln, baum);
+  const mit = kinderKonfig({ ...regeln, anhang: [{ kind: 'kabine', gruppe: 'lg_anhang', knochen: 'anim_lift', anLeuchte: 12 }] }, baum);
+  assert.notEqual(mit, k, 'die Kabine bekommt ihre Lampen');
+  assert.notEqual(kinderKonfig({ ...regeln, anhang: [{ kind: 'kabine', gruppe: 'lg_anhang', knochen: 'anim_lift', anLeuchte: 20 }] }, baum), mit, 'andere Untergrenze');
+  assert.equal(kinderKonfig({ ...regeln, anhang: [] }, baum), k, 'eine leere Liste ist keine Regel');
 });
