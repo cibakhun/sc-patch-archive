@@ -11,9 +11,10 @@ export const SITE = {
   // Fallback-Description pro Sprache (Layout wählt nach URL-Locale). Vorher
   // ein einziger DE-String — der landete auch auf EN-Seiten ohne eigene
   // description und als WebSite-JSON-LD-Text der EN-Ausgabe.
+  // `bis`: der neueste Patch des Baus (NEUESTER_PATCH, src/lib/patchPages.ts).
   defaultDescription: {
-    de: 'VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis 4.10.3. Game-akkurat, zweisprachig, ein Fan-Projekt.',
-    en: 'VerseBase — the unofficial Star Citizen compendium: item finder, mining tools, crafting database, Wikelo trades, ship database and the complete patch archive from Alpha 4.0.0 to 4.10.3. Game-accurate, bilingual, a fan project.',
+    de: (bis: string) => `VerseBase — das inoffizielle Star-Citizen-Kompendium: Item Finder, Mining-Tools, Crafting-Datenbank, Wikelo-Trades, Schiffs-Datenbank und das komplette Patch-Archiv von Alpha 4.0.0 bis ${bis}. Game-akkurat, zweisprachig, ein Fan-Projekt.`,
+    en: (bis: string) => `VerseBase — the unofficial Star Citizen compendium: item finder, mining tools, crafting database, Wikelo trades, ship database and the complete patch archive from Alpha 4.0.0 to ${bis}. Game-accurate, bilingual, a fan project.`,
   },
   /** site-weites Social-Preview-Fallback (1200×630) — Seiten ohne eigenes ogImage */
   ogDefault: '/assets/og-default.jpg',

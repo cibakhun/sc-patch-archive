@@ -3,6 +3,8 @@
 // dramaturgy, but every fact renders from this validated layer.
 import { defineCollection, z } from 'astro:content';
 import { glob, file } from 'astro/loaders';
+import { hangarImBau } from '../scripts/lib/hangar-switch.mjs';
+import { VORSCHAU_PATCH_DATEIEN } from '../scripts/lib/vorschau-patches.mjs';
 
 const fact = z.object({
   label: z.string(),
@@ -12,7 +14,11 @@ const fact = z.object({
 });
 
 const patches = defineCollection({
-  loader: glob({ pattern: '*.json', base: './src/data/patches' }),
+  // Live fehlen Patches, deren Seite noch in der Vorschau steht (scripts/lib/vorschau-patches.mjs).
+  loader: glob({
+    pattern: hangarImBau() ? '*.json' : ['*.json', ...VORSCHAU_PATCH_DATEIEN.map((f) => `!${f}`)],
+    base: './src/data/patches',
+  }),
   schema: z.object({
     version: z.string(),
     codename: z.string(),

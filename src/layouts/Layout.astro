@@ -8,6 +8,7 @@ import { SITE, SUPABASE } from '../consts';
 import { localeFromPath, pathForLocale, HTML_LANG, OG_LOCALE } from '../i18n/ui';
 import { isNoindex, IS_STAGING } from '../lib/seo';
 import { versioned } from '../lib/assetVersion';
+import { NEUESTER_PATCH } from '../lib/patchPages';
 import { jsonForScript } from '../lib/safeJson';
 
 interface Props {
@@ -84,7 +85,7 @@ const canonical = base + Astro.url.pathname;
 // Locale aus dem Pfad (DE lebt unter /de/…). Steuert lang + og:locale und
 // welche Fallback-Description greift (vorher: DE-Text auch auf EN-Seiten).
 const lang = localeFromPath(Astro.url.pathname);
-const description = descriptionProp ?? SITE.defaultDescription[lang];
+const description = descriptionProp ?? SITE.defaultDescription[lang](NEUESTER_PATCH);
 
 // noindex kommt aus zwei Quellen: dem Prop (404) und der Pfad-Liste, die auch
 // die Sitemap auswertet. Oder-Verknüpfung, damit ein gesetztes Prop nie durch
@@ -222,7 +223,7 @@ d.setAttribute('data-perf',m||'full');if(why)d.setAttribute('data-perf-why',why)
       name: SITE.name,
       url: base + '/',
       inLanguage: HTML_LANG[lang],
-      description: SITE.defaultDescription[lang],
+      description: SITE.defaultDescription[lang](NEUESTER_PATCH),
       publisher: {
         '@type': 'Organization',
         name: SITE.name,

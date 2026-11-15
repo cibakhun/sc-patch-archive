@@ -4,10 +4,11 @@
 // Build auf — eine neu hinzugefügte Patch-Seite verlinkt so beim nächsten
 // Build, ohne Datenlauf.
 import { buildPatchSpine } from '../../scripts/lib/patch-spine.mjs';
+import { patchImBestand } from './patchPages';
 
 type PatchFile = { version: string; ships?: { name: string }[] };
 
 const files = import.meta.glob<PatchFile>('../data/patches/*.json', { eager: true, import: 'default' });
 
 /** Versionen der Patch-Seiten, die dieses Fahrzeug nennen — älteste zuerst. */
-export const patchesFor: (vehicleName: string) => string[] = buildPatchSpine(Object.values(files));
+export const patchesFor: (vehicleName: string) => string[] = buildPatchSpine(Object.values(files).filter((f) => patchImBestand(f.version)));

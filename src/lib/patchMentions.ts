@@ -5,7 +5,7 @@
 
 type PatchFile = { version: string; codename: string; features?: { links?: { href: string }[] }[] };
 
-import { patchPageSlugs } from './patchPages';
+import { patchImBestand, patchPageSlugs } from './patchPages';
 
 /** `page`: null, wenn dieser Bau die Patch-Seite nicht traegt. */
 export type PatchMention = { version: string; codename: string; page: string | null };
@@ -20,7 +20,7 @@ const byVersion = (a: PatchMention, b: PatchMention) => {
 };
 
 const mentions = new Map<string, PatchMention[]>();
-for (const p of Object.values(files)) {
+for (const p of Object.values(files).filter((f) => patchImBestand(f.version))) {
   const slug = `sc-${p.version.replace(/\./g, '-')}`;
   const page = patchPageSlugs.has(slug) ? `/patches/${slug}.html` : null;
   for (const f of p.features ?? []) {

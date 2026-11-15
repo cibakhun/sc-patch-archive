@@ -39,6 +39,25 @@ export const patchPageSlugs: ReadonlySet<string> = new Set([
   ...(HANGAR_ON ? VORSCHAU_SLUGS : []),
 ]);
 
+/**
+ * Ob dieser Bau den Patch ("4.10.3") als Patch fuehrt. Live fehlen Patches aus
+ * VORSCHAU_PATCHES ganz; fuer die Sammlung erledigt das src/content.config.ts,
+ * wer src/data/patches/ selbst einliest, filtert hiermit.
+ */
+export function patchImBestand(version: string): boolean {
+  return HANGAR_ON || !VORSCHAU_PATCHES.includes(version.replace(/\./g, '-'));
+}
+
+/** Der neueste Patch, den dieser Bau fuehrt ("4.10.2"), gelesen aus den Dateinamen unter src/data/patches/. */
+export const NEUESTER_PATCH: string = Object.keys(import.meta.glob('../data/patches/*.json'))
+  .map((p) => p.split('/').pop()!.replace(/\.json$/, '').replace(/-/g, '.'))
+  .filter(patchImBestand)
+  .sort((a, b) => {
+    const x = a.split('.').map(Number), y = b.split('.').map(Number);
+    return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+  })
+  .at(-1)!;
+
 /** Verweis auf die Seite eines Patches aus dem Bestand (id wie "4-10-3") — oder `null`, wenn dieser Bau sie nicht traegt. */
 export function patchSeiteHref(id: string, lang: Locale): string | null {
   return patchPageSlugs.has(`sc-${id}`) ? href(`/patches/sc-${id}.html`, lang) : null;
