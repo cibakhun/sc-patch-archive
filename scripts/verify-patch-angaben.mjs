@@ -53,6 +53,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { VORSCHAU_PATCHES } from './lib/vorschau-patches.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = resolve(ROOT, 'dist');
@@ -490,6 +491,8 @@ const standFehler = [];
 const standSeiten = Object.fromEntries(STAND_GRUPPEN.map((g) => [g.name, 0]));
 const standZeilen = {};
 let standPatchLinks = 0;
+// Fassungen, deren Patch-Seite dieser Bau nicht traegt (Zeilen dann ohne Link).
+const fassungenOhneSeite = new Set();
 try {
   const items = rd('assets/universal-items.json');
   for (const it of items.items ?? []) {
@@ -725,6 +728,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const name = STAND_NAME[z.quelle] ?? null;
       const patchSeite = (q.art === 'spiel' || q.art === 'hand') && sollWert && existsSync(join(DIST, 'patches', `sc-${sollWert.replace(/\./g, '-')}.html`))
         ? `${L ? '/de' : ''}/patches/sc-${sollWert.replace(/\./g, '-')}.html` : null;
+      if ((q.art === 'spiel' || q.art === 'hand') && /^\d+\.\d+\.\d+$/.test(sollWert ?? '') && !patchSeite) fassungenOhneSeite.add(sollWert);
       if (name) {
         const istName = z.link ? sichtbar(z.link[2]) : null;
         if (istName !== name[0] || z.link?.[1] !== name[1]) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt die Quelle ${JSON.stringify(istName)} → ${JSON.stringify(z.link?.[1] ?? null)}, Soll „${name[0]}" → ${name[1]}`);
@@ -821,7 +825,12 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   if (fundMitSeite && fundBlaetter < 2 * fundMitSeite) fail.push(`[6] Bestätigte Fundorte: nur ${fundBlaetter} von ${2 * fundMitSeite} Datenblaettern (DE+EN) geprueft — Zuordnung kaputt`);
   console.log(`    Zeilen je Quelle: ${Object.entries(standZeilen).map(([q, n]) => `${q} ${n}`).join(', ') || '—'}`);
   console.log(`    Fassungen mit Verweis auf ihre Patch-Seite: ${standPatchLinks}`);
-  if (!standPatchLinks) fail.push('[6] keine Zeile verweist auf ihre Patch-Seite — der Verweis in standVerweis() (src/lib/datenstand.ts) fehlt oder die Patch-Seiten sind nicht gebaut');
+  // Live fehlen die Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs):
+  // tragen alle Zeilen eine solche Fassung, ist "kein Link" dort das Richtige.
+  const live = JSON.parse(readFileSync(join(DIST, 'build.json'), 'utf8')).staging === false;
+  const offen = [...fassungenOhneSeite].filter((f) => !(live && VORSCHAU_PATCHES.includes(f.replace(/\./g, '-'))));
+  if (fassungenOhneSeite.size) console.log(`    Fassungen ohne gebaute Patch-Seite: ${[...fassungenOhneSeite].join(', ')}${live ? ` (live vor der Abnahme: ${VORSCHAU_PATCHES.join(', ')})` : ''}`);
+  if (!standPatchLinks && (offen.length || !fassungenOhneSeite.size)) fail.push('[6] keine Zeile verweist auf ihre Patch-Seite — der Verweis in standVerweis() (src/lib/datenstand.ts) fehlt oder die Patch-Seiten sind nicht gebaut');
   // Alter der Fremdquellen: nur genannt, nie bewertet (Grundsatz 3).
   let gebaut = null;
   try { gebaut = isoDatum(JSON.parse(readFileSync(resolve(DIST, 'build.json'), 'utf8')).gebautAm); } catch { /* ohne Baustempel: Alter gegen heute */ }
