@@ -718,6 +718,10 @@ export function initTerminal(box, hooks = {}) {
   // Leiste fragt das Konto dann leise, ohne Blende.
   function hinsetzen() {
     if (termBlende(an, kontoJetzt())) { signIn(); return; }
+    // Steht vom Sitzen davor noch eine Blende, geht sie zu: Wer waehrend der
+    // Karte aufsteht und sich in derselben Drittelsekunde wieder setzt, hat
+    // ihr mit place(null) den Abschluss genommen, und loginOff kam nicht mehr.
+    if (login && !login.hidden) loginZu();
     const n = ++lauf;
     gefragt = kontoJetzt();
     const echt = (frage = ident());

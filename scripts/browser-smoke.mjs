@@ -983,7 +983,10 @@ const TERM_PROBE_KASTEN = { l: 96, t: 110, r: 1176, b: 650 };
    eines Kommentars und damit den Stil der Wege, die so 1 px ueber der Linie
    der Eckwinkel blieben; und die Anmeldung in einer Spalte passt weiter ins
    Fenster (510 von 546 px), rot wird die Zusicherung erst mit der
-   Mindesthoehe des Kopfs. Die Liste steht in der PR der dritten Runde. */
+   Mindesthoehe des Kopfs. Die Liste steht in der PR der dritten Runde.
+   Dazu nach dem Review (probeKontoImFenster 3b): ohne das Schliessen der
+   Blende im stillen Zweig von hinsetzen() bleibt die Karte stehen, wenn
+   jemand waehrend ihr aufsteht und sich sofort wieder setzt. */
 async function probeAnmeldung(page, warte) {
   const lies = () => page.evaluate(() => {
     const l = document.getElementById('hgx-term-login'), w = document.getElementById('hgx-term-who');
@@ -1120,6 +1123,8 @@ async function probeAnmeldung(page, warte) {
      · entsteht eine Sitzung, waehrend die Anmeldeseite offen steht, wartet
        die Begruessung, bis die Seite geht: Sie laege sonst ueber der Frage
        nach dem zweiten Faktor;
+     · steht jemand waehrend der Karte auf und setzt sich sofort wieder,
+       geht die Blende zu, statt ueber der Seite stehen zu bleiben;
      · „Konto erstellen“ vom Sperrbild des Gasts bringt die Registrierung
        ins Fenster, ebenfalls ohne Scrollen. */
 async function probeKontoImFenster(page, warte, steht, start) {
@@ -1182,6 +1187,20 @@ async function probeKontoImFenster(page, warte, steht, start) {
   if (!(await blendeZu(8000))) return 'nach der Begruessung aus dem Fenster schliesst sich die Blende nicht';
   s = await stand();
   if (s.text !== 'Probe Pilot') return `nach der Anmeldung im Fenster nennt die Leiste „${s.text}“ statt „Probe Pilot“`;
+
+  // 3b · ein anderes Konto meldet sich an; waehrend seine Karte steht, steht
+  // jemand auf und setzt sich in derselben Drittelsekunde wieder (der Kasten
+  // verliert und findet sein Rechteck, etwa beim Ziehen am Fensterrand):
+  // place(null) nimmt der Blende ihren Abschluss, das Wiedersetzen nimmt
+  // loginOff die Frist. Die Sitzung ist begruesst, also kommt keine zweite
+  // Anmeldung, und die Blende darf nicht ueber der Seite stehen bleiben.
+  await melde({ uid: 'probe-zwei', seit: '2026-10-03T09:00:00Z', zeile: { display_name: 'Zweiter Pilot', handle: 'zwei', avatar_icon: 'Z' } });
+  if (!(await beiSchritt('user', 12000))) { s = await stand(); return `ein anderes Konto meldet sich an, und die Blende begruesst es nicht (zu ${s.zu}, Schritt „${s.schritt}“, Folge ${s.schritte.join(' → ') || '—'})`; }
+  await page.evaluate((kasten) => { window.__term.place(null); window.__term.place(kasten); }, TERM_PROBE_KASTEN);
+  await page.waitForTimeout(1200);
+  s = await stand();
+  if (!s.zu) return `wer waehrend der Karte aufsteht und sich sofort wieder setzt, behaelt die Blende ueber der Seite (Schritt „${s.schritt}“, 1,2 s danach) — Soll: Die Sitzung ist begruesst, die Blende geht zu`;
+  if (s.text !== 'Zweiter Pilot') return `nach dem Wiedersetzen nennt die Leiste „${s.text}“ statt „Zweiter Pilot“`;
 
   // 4 · abgemeldet, dann „Konto erstellen“: die Registrierung im Fenster
   await melde(null);

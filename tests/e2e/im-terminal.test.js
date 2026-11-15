@@ -18,6 +18,13 @@
 //    dieser Test hat einen ersten Stand dieser Runde gefangen, in dem das
 //    kleine Fenster davor endete.
 //
+// 4. Das Konto im Rahmen (src/scripts/account-dashboard.ts): Verbinden und
+//    Bestaetigen mit Discord oeffnen das Konto in einem eigenen Tab; weil der
+//    Browser nicht sagt, ob der Tab aufging, steht derselbe Weg als Link da.
+//    Verbinden und Loesen wirken nur, solange die Sitzung dem Konto gehoert,
+//    das die Seite zeigt: Im Rahmen bleibt die Seite stehen, waehrend sich
+//    in einem anderen Tab jemand anders anmeldet.
+//
 // VORGEFUEHRT ROT (15.11.2026), fuenfzehn Eingriffe an der Quelle, jeder fuer
 // sich, und jeder reisst den Test, der ihn meint: imTerminal ohne die Frage
 // nach dem Rahmen; ein Fenster, das sich nicht fragen laesst, als Terminal;
@@ -28,6 +35,9 @@
 // skipBrowserRedirect auf false; der Hoerer von Anmeldung und Registrierung
 // ohne die Frage nach dem Code; das kleine Fenster, das ins Konto geht statt
 // sich zu schliessen, und eines, das vor dem zweiten Faktor endet.
+// Nach dem Review vier weitere zu Punkt 4, ebenfalls alle rot: der Link neben
+// dem Tab gestrichen und mit opener; die Frage nach dem Konto der Sitzung
+// vor dem Loesen gestrichen; und eine Frage, die immer Ja sagt.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -140,5 +150,34 @@ describe('Verdrahtung', () => {
     assert.match(an, /const go = \(\) => \{ if \(klein\) fertig\(\); else location\.replace\(next\); \};/);
     assert.equal(L.FENSTER_PARAM, 'fenster');
     assert.match(L.FENSTER_FORM, /^popup,/);
+  });
+
+  test('das Konto im Rahmen: Discord in einem eigenen Tab, und der Weg steht auch als Link da', () => {
+    const s = read('src/scripts/account-dashboard.ts');
+    const tab = /const discordImTab = \([\s\S]*?\n    \};/.exec(s)?.[0] ?? '';
+    assert.match(tab, /if \(!imTerminal\(\)\) return false;\n\s*window\.open\(location\.href, '_blank', 'noopener'\);/);
+    // ob der Tab aufging, sagt der Browser nicht: derselbe Weg als Link, ebenfalls ohne opener
+    assert.match(tab, /a\.href = location\.href;\s*a\.target = '_blank';\s*a\.rel = 'noopener';[\s\S]*zeile\.append\(' ', a\);/);
+    // Bestaetigen und Verbinden gehen im Terminal diesen Weg, bevor sie sonst etwas tun
+    assert.equal((s.match(/if \(discordImTab\(/g) ?? []).length, 2);
+    const seite = read('src/components/account/AccountDashboard.astro');
+    assert.equal((seite.match(/^\s*termTabLink: '[^']+',$/gm) ?? []).length, 2, 'der Text des Links fehlt in einer Sprache');
+    assert.match(seite, /data-msg-term-tab-link=\{COPY\.termTabLink\}/);
+  });
+
+  test('Verbinden und Loesen mit Discord wirken nur auf das Konto, das die Seite zeigt', () => {
+    const s = read('src/scripts/account-dashboard.ts');
+    const frage = /const selbesKonto = async[\s\S]*?\n        \};/.exec(s)?.[0] ?? '';
+    assert.match(frage, /sitzt = \(await supabase\.auth\.getSession\(\)\)\.data\.session\?\.user\.id \?\? '';/);
+    assert.match(frage, /if \(sitzt === user\.id\) return true;\s*dcSay\(D\.dcOtherSession \|\| '', 'err'\);\s*return false;/);
+    // die Frage steht vor dem Aufruf, der das Konto aendert
+    for (const [knopf, ruf] of [['dcBtn', '.linkIdentity('], ['dcOff', '.unlinkIdentity(']]) {
+      const h = new RegExp(`${knopf}\\.addEventListener\\('click', async \\(\\) => \\{([\\s\\S]*?)\\n        \\}\\);`).exec(s)?.[1] ?? '';
+      const i = h.indexOf('if (!(await selbesKonto())) return;'), j = h.indexOf(ruf);
+      assert.ok(i >= 0 && j > i, `${knopf}: die Frage nach dem Konto der Sitzung fehlt vor ${ruf}`);
+    }
+    const seite = read('src/components/account/AccountDashboard.astro');
+    assert.equal((seite.match(/^\s*dcOtherSession: '[^']+',$/gm) ?? []).length, 2, 'die Meldung fehlt in einer Sprache');
+    assert.match(seite, /data-dc-other-session=\{COPY\.dcOtherSession\}/);
   });
 });
