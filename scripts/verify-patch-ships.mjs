@@ -22,9 +22,13 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildPatchSpine, stripSpine, SPINE_ALIAS } from './lib/patch-spine.mjs';
+import { VORSCHAU_PATCHES } from './lib/vorschau-patches.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const rd = (p) => JSON.parse(readFileSync(resolve(ROOT, p), 'utf8'));
+// Live fehlen die Patch-Seiten vor der Abnahme; Schiffsseiten nennen sie dort ohne Verweis.
+const LIVE = existsSync(resolve(ROOT, 'dist/build.json')) && rd('dist/build.json').staging === false;
+let vorschauOhneLink = 0;
 
 // Klinken, Messlauf 08.10.2026: 25 Schiffseinträge auf 21 Patch-Seiten, 22
 // verknüpfte Fahrzeuge. Nur nach oben verschieben, nach unten nur per Commit
@@ -81,7 +85,13 @@ if (!existsSync(DIST)) {
       pagesChecked++;
       const html = readFileSync(file, 'utf8');
       for (const ver of v.versions) {
-        const href = `${prefix}/patches/sc-${ver.replace(/\./g, '-')}.html`;
+        const id = ver.replace(/\./g, '-');
+        const href = `${prefix}/patches/sc-${id}.html`;
+        if (LIVE && VORSCHAU_PATCHES.includes(id)) {
+          if (html.includes(`href="${href}"`)) errors.push(`${page}: verweist auf ${href}, die Seite steht live noch nicht (scripts/lib/vorschau-patches.mjs)`);
+          vorschauOhneLink++;
+          continue;
+        }
         if (!html.includes(`href="${href}"`)) errors.push(`${page}: Verweis auf ${href} fehlt, obwohl die Patch-Seite ${ver} das Schiff nennt`);
       }
     }
@@ -97,6 +107,7 @@ console.log('Artefakt: src/data/patches/*.json + src/data/vehicles.json + dist/'
 console.log(`Patch-Seiten: ${patches.length}, Schiffseinträge: ${patchShips} (Klinke ${MIN_PATCH_SHIPS})`);
 console.log(`  benannte Ausnahmen: ${namedHits.size}, ohne Katalog-Treffer: ${warnings.length}`);
 console.log(`Verknüpfte Fahrzeuge: ${linked.length} (Klinke ${MIN_LINKED}), geprüfte Schiffsseiten in dist/: ${pagesChecked}`);
+if (LIVE) console.log(`  Patch-Seiten vor der Abnahme (${VORSCHAU_PATCHES.join(', ')}): ${vorschauOhneLink} Nennungen ohne Verweis, wie es live sein muss`);
 for (const w of warnings) console.log(`WARNUNG: ${w}`);
 for (const e of errors) console.error(`FEHLER: ${e}`);
 console.log(`\nFEHLER: ${errors.length} | WARNUNGEN: ${warnings.length}`);
