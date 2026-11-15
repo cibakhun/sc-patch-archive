@@ -167,9 +167,9 @@ const TEXTE = {
         return (
           <section class="ph-panel" id={`reiter-${r.id}`} role="tabpanel" aria-labelledby={`tab-${r.id}`} data-reiter={r.id}>
             <h3 class="sd__sub">{r.titel} <span>{r.id === 'kaufbar' || r.id === 'neu' || r.id === 'auftraege' ? STAND_NACH : STAND}</span></h3>
-            <p class="ph-panel__satz">{r.satz} {ber} {T('aus dem Datenvergleich', 'from the data comparison')}{erg > 0 && <>, {erg} {T('ergänzt', 'added')}</>}.</p>
+            <p class="ph-panel__satz">{r.satz} {ber} {T('aus dem Datenvergleich', 'from the data comparison')}{erg > 0 && `, ${erg} ${T('ergänzt', 'added')}`}.</p>
             {r.id === 'auftraege' && (
-              <p class="ph-panel__satz">{T('Einstieg nach Rang', 'Entry rank')}: {I.raenge.map((x, j) => <>{j > 0 && ' · '}{x.anzahl} {T('ab', 'from')} {x.rang}</>)}.</p>
+              <p class="ph-panel__satz">{T('Einstieg nach Rang', 'Entry rank')}: {I.raenge.map((x) => `${x.anzahl} ${T('ab', 'from')} ${x.rang}`).join(' · ')}.</p>
             )}
             {r.extra && (
               <div class="ph-lack">
