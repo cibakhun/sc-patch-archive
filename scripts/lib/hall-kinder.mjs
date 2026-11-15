@@ -94,6 +94,68 @@ export function kindEinhaengen(room, src, stellen, name) {
   return { stellen: stellen.length, knoten, dreiecke, lichter };
 }
 
+// Knoten einer .cga, wie „nmc dump“ sie nennt: Index, Name, Elternknoten, Art
+// (geom 0 = Netz) und Lage im Raum der Datei (bone_to_world, drei Zeilen zu vier
+// Zahlen, die vierte ist der Ort). b2w ist null, wenn die Zeilen fehlen.
+export function nmcKnoten(dump) {
+  const out = [];
+  for (const m of dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*((?:\r?\n\s*b2w\[\d\] = \[[^\]]*\])*)/g)) {
+    const reihen = [...m[5].matchAll(/b2w\[\d\] = \[([^\]]*)\]/g)].map((z) => z[1].split(',').map(Number));
+    const ganz = reihen.length === 3 && reihen.every((z) => z.length === 4 && z.every(Number.isFinite));
+    out.push({ index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), geom: Number(m[4]), b2w: ganz ? reihen : null });
+  }
+  return out;
+}
+
+// Um wie viel ein Netz am Knochen gestellt wird. Die Spur nennt die Lage des
+// Knochens im Raum seines Elternknotens (so setzt sie auch das Fahrwerk,
+// applyPose in landing-gear.mjs), nicht den Weg ab der Ruhelage: Gestellt wird
+// um (letzter Wert − Ruhelage). Bis 15.11.2026 galt der letzte Wert selbst;
+// das stimmt nur, wenn der Knochen im Ursprung ruht (so das Tor des
+// Frachtaufzugs: Ruhelage 0/0/0, letzter Wert 0/0/6), sonst zählte die
+// Ruhelage doppelt (Befund von CodeRabbit an PR #371, siebte Runde).
+// kindLage schiebt im Raum des Netzes: Ist der Knochen, einer seiner
+// Elternknoten oder ein Netz gedreht oder ohne lesbare Lage, bricht es ab,
+// statt zu raten.
+export function spurVersatz(knoten, knochen, werte) {
+  const k = knoten.find((n) => n.name === knochen);
+  if (!k) throw new Error(`der Knotenbaum nennt keinen Knochen ${knochen}`);
+  if (!werte?.length) throw new Error(`die Spur trägt keine Lage für ${knochen}`);
+  const kette = [];
+  for (let n = k; n; n = knoten.find((x) => x.index === n.parent)) kette.push(n);
+  const gerade = (n) => n.b2w && [0, 1, 2].every((r) => [0, 1, 2].every((c) => Math.abs(n.b2w[r][c] - (r === c ? 1 : 0)) < 1e-4));
+  const schief = [...new Set([...kette, ...knoten.filter((n) => n.geom === 0)])].filter((n) => !gerade(n));
+  if (schief.length) throw new Error(`${schief.map((n) => n.name).join(', ')} ${schief.some((n) => !n.b2w) ? 'ohne lesbare Lage' : 'gedreht'}: gestellt wird nur ein Versatz in ungedrehten Knoten`);
+  const ruhe = [0, 1, 2].map((i) => k.b2w[i][3] - (kette[1] ? kette[1].b2w[i][3] : 0));
+  return { ruhe, versatz: werte.at(-1).map((v, i) => v - ruhe[i]) };
+}
+
+// Gilt das Eingehängte noch? Nur wenn Modell, Lichtprotokoll und Bericht da
+// sind, der Bericht dieselben Regeln und denselben Plan nennt (konfig) und
+// keine Quelle jünger ist als das Modell. Bis 15.11.2026 fragte die Regel
+// nicht nach dem Lichtprotokoll: Fehlte es, blieb es weg, und der Bau las
+// „missing“ (Befund von CodeRabbit an PR #371, siebte Runde). Ein Bericht,
+// der sich nicht lesen lässt, gilt nicht (vorher brach der Lauf daran ab).
+// w: { da(f), zeit(f), lies(f) }.
+export function eingehaengtGilt({ force, modell, licht, bericht, konfig, quellen }, w = { da: existsSync, zeit: (f) => statSync(f).mtimeMs, lies: (f) => readFileSync(f, 'utf8') }) {
+  if (force || ![modell, licht, bericht].every((f) => w.da(f))) return false;
+  let alt;
+  try { alt = JSON.parse(w.lies(bericht)).konfig; } catch { return false; }
+  return alt === konfig && quellen.every((q) => w.zeit(q) <= w.zeit(modell));
+}
+
+// Schreibt das Eingehängte so, dass ein abgebrochener Lauf nie als fertig
+// gilt: erst den alten Bericht weg, dann das Lichtprotokoll, dann das Modell,
+// zuletzt den Bericht. Vorher kam das Modell zuerst: Brach der Lauf danach
+// ab, war es jünger als jede Quelle, der alte Bericht nannte dieselbe
+// Konfiguration, und der nächste Lauf ließ das alte Lichtprotokoll stehen.
+export async function eingehaengtSchreiben({ berichtWeg, licht, modell, bericht }) {
+  berichtWeg();
+  licht();
+  await modell();
+  bericht();
+}
+
 // Stellt die Knoten, deren Netz das Muster trifft, um versatz weiter, im Raum
 // des Netzes (dort, wo der Knochen der .cga fährt). Liefert die Zahl.
 export function kindLage(doc, muster, versatz) {
@@ -218,11 +280,11 @@ export async function hallKinder(h, file, w) {
 
   const eigeneLichter = `${RAW}${h.key}.lights-src.txt`;
   if (!existsSync(eigeneLichter)) throw new Error(`${kurz(eigeneLichter)} fehlt (das Lichtprotokoll des Rohexports): mit --force neu exportieren`);
-  const bericht = `${SRC}hall/${h.key}.kinder.json`;
+  const bericht = `${SRC}hall/${h.key}.kinder.json`, gemerkt = `${SRC}hall/${h.key}.lights-src.txt`;
   // gilt das Eingehängte noch: dieselben Regeln und derselbe Plan (kinderKonfig), keine Quelle jünger
   const konfig = kinderKonfig(h.kinder, baum);
   const quellen = [h.raw, eigeneLichter, ...[...alle.values()].flatMap((c) => [c.glb, c.licht])];
-  if (!FORCE && existsSync(file) && existsSync(bericht) && JSON.parse(readFileSync(bericht, 'utf8')).konfig === konfig && quellen.every((q) => statSync(q).mtimeMs <= statSync(file).mtimeMs)) {
+  if (eingehaengtGilt({ force: FORCE, modell: file, licht: gemerkt, bericht, konfig, quellen })) {
     console.log(`  = ${kurz(file)}  (Kinder eingehängt)`);
     return;
   }
@@ -235,7 +297,7 @@ export async function hallKinder(h, file, w) {
     const chr = files.find((f) => f.toLowerCase().endsWith(`/${l.cga}.chrparams`.toLowerCase()));
     if (!cga || !chr) throw new Error(`Lage ${l.cga}: .cga oder .chrparams steht nicht in der Data.p4k`);
     const dump = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout || '';
-    const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)/g)].map((m) => ({ index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), geom: Number(m[4]) }));
+    const nodes = nmcKnoten(dump);
     const amKnochen = (n) => { for (let k = n; k; k = nodes.find((x) => x.index === k.parent)) if (k.name === l.knochen) return true; return false; };
     const netze = nodes.filter((n) => n.geom === 0);
     const lose = netze.filter((n) => !amKnochen(n));
@@ -250,11 +312,13 @@ export async function hallKinder(h, file, w) {
     const caf = listFiles(RAW).find((f) => f.toLowerCase().endsWith(`/${a[2].toLowerCase()}`));
     if (!caf) throw new Error(`Lage ${l.cga}: ${a[2]} steht nicht in der Data.p4k`);
     const b = readCaf(readFileSync(caf), nodes.map((n) => n.name)).bones.find((x) => x.name === l.knochen);
-    const versatz = b?.pos?.values?.at(-1);
-    if (!versatz) throw new Error(`Lage ${l.cga}: Spur ${l.spur} trägt keine Lage für ${l.knochen}`);
+    if (!b?.pos?.values?.length) throw new Error(`Lage ${l.cga}: Spur ${l.spur} trägt keine Lage für ${l.knochen}`);
+    let ruhe, versatz;
+    try { ({ ruhe, versatz } = spurVersatz(nodes, l.knochen, b.pos.values)); } catch (e) { throw new Error(`Lage ${l.cga}: ${e.message}`); }
     const dreht = b.rot?.values?.some((q) => q.some((v, i) => Math.abs(v - b.rot.values[0][i]) > 1e-4));
     if (dreht) throw new Error(`Lage ${l.cga}: Spur ${l.spur} dreht ${l.knochen}; gestellt wird nur ein Versatz`);
-    return { ...l, caf: a[2], versatz: versatz.map((v) => Math.round(v * 10000) / 10000), muster: new RegExp(`(^|[\\\\/])${esc(l.cga)}\\.cga$`, 'i'), knoten: 0 };
+    const rund = (v) => Math.round(v * 10000) / 10000 + 0;
+    return { ...l, caf: a[2], ruhe: ruhe.map(rund), versatz: versatz.map(rund), muster: new RegExp(`(^|[\\\\/])${esc(l.cga)}\\.cga$`, 'i'), knoten: 0 };
   });
 
   const zeilen = (f) => readFileSync(f, 'utf8').split('\n').filter((z) => z.trim());
@@ -264,10 +328,13 @@ export async function hallKinder(h, file, w) {
   const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => io.read(c.glb), zeilen: (c) => zeilen(c.licht), lagen, liste, melde: (m) => console.log(m) });
   for (const l of lagen) if (!l.knoten) throw new Error(`Lage ${l.cga}: kein eingehängtes Kind trägt dieses Netz, der Eintrag ist ohne Anlass`);
   await room.transform(unpartition());
-  await io.write(file, room);
   const alleZeilen = [...zeilen(eigeneLichter), ...lichter];
-  writeFileSync(`${SRC}hall/${h.key}.lights-src.txt`, alleZeilen.join('\n') + '\n');
-  writeFileSync(bericht, JSON.stringify({ konfig, kinder: liste, ausgelassen, lagen: lagen.map(({ muster, ...l }) => l), lichtzeilen: { halle: alleZeilen.length - lichter.length, kinder: lichter.length } }, null, 1));
+  await eingehaengtSchreiben({
+    berichtWeg: () => rmSync(bericht, { force: true }),
+    licht: () => writeFileSync(gemerkt, alleZeilen.join('\n') + '\n'),
+    modell: () => io.write(file, room),
+    bericht: () => writeFileSync(bericht, JSON.stringify({ konfig, kinder: liste, ausgelassen, lagen: lagen.map(({ muster, ...l }) => l), lichtzeilen: { halle: alleZeilen.length - lichter.length, kinder: lichter.length } }, null, 1)),
+  });
   console.log(`  Kinder eingehängt: ${room.getRoot().listNodes().length - vorher.knoten} Knoten und ${room.getRoot().listMeshes().length - vorher.netze} Netze dazu, ${lichter.length} Lichtzeilen zu ${alleZeilen.length - lichter.length} der Halle; gestellt: ${lagen.map((l) => `${l.cga} um ${l.versatz.join(',')} (${l.spur}, ${l.knoten} Knoten)`).join('; ') || 'nichts'}`);
   console.log(`  nicht eingehängt (kein Muster in kinder.folge): ${Object.entries(ausgelassen).map(([k, n]) => `${k} ${n}`).join(', ') || 'keiner'}`);
 }

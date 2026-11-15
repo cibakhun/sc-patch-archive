@@ -855,6 +855,10 @@ function readSubsetsNode(buf) {
   return best || [];
 }
 
+// Welche .mtl dieser Lauf mit --force schon neu ausgepackt hat: je Lauf, nicht je Halle. Zwei Hallen, die
+// dieselbe Materialdatei nennen, packten sie sonst zweimal aus (mtlQuelle in lib/hall-decals.mjs).
+const MTL_FRISCH = new Set();
+
 // ─── Aufkleber der Halle (scripts/lib/hall-decals.mjs, h.decals) ─────────
 // Der socpak-Export lässt jedes Teilnetz mit Aufkleber-Material (%DECAL im
 // StringGenMask) aus. Hier kommen sie aus den Spieldateien zurück: je Netz
@@ -880,14 +884,14 @@ async function hallDecals(h, doc) {
   const byBase = new Map();
   for (const f of files) { const b = f.toLowerCase().split('/').pop(); (byBase.get(b) ?? byBase.set(b, []).get(b)).push(f); }
   let mtlFiles = files.filter((f) => /\.mtl$/i.test(f));
-  const mtlCache = new Map(), mtlFrisch = new Set();
+  const mtlCache = new Map();
   const subMaterials = (mtl) => {
     const rel = mtl.replace(/\\/g, '/').replace(/^data\//i, '').replace(/\.mtl$/i, '').toLowerCase();
     if (mtlCache.has(rel)) return mtlCache.get(rel);
     // mit --force auch die .mtl neu aus dem Spiel (mtlQuelle): Sonst entstünden Aufkleber-Materialien und
     // Texturpfade aus der Datei des letzten Auszugs, neben frisch ausgepackten Netzen
     const { datei: f, neu } = mtlQuelle({
-      rel, force: FORCE, frisch: mtlFrisch, liste: () => mtlFiles,
+      rel, force: FORCE, frisch: MTL_FRISCH, liste: () => mtlFiles,
       holen: (base) => {
         try { sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(base)}\\.mtl$`]); }
         finally { mtlFiles = listFiles(RAW).filter((x) => /\.mtl$/i.test(x)); }

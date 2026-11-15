@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { Document, NodeIO } from '@gltf-transform/core';
 import { KHRLightsPunctual } from '@gltf-transform/extensions';
 import { unpartition } from '@gltf-transform/functions';
-import { kinderAusXml, kindEinhaengen, kindLage, kinderBaumEinhaengen, kinderKonfig, planKennung, wurzelVon } from '../../scripts/lib/hall-kinder.mjs';
+import { kinderAusXml, kindEinhaengen, kindLage, kinderBaumEinhaengen, kinderKonfig, planKennung, wurzelVon, nmcKnoten, spurVersatz, eingehaengtGilt, eingehaengtSchreiben } from '../../scripts/lib/hall-kinder.mjs';
 
 // Z oben nach Y oben, wie die Wurzel jedes Exports
 const Z_UP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
@@ -155,4 +155,102 @@ test('kinderKonfig: Regeln und Plan zusammen; ein Kind an anderer Stelle macht d
   assert.notEqual(kinderKonfig({ ...regeln, folge: [/[\\/]anderes\.socpak$/i] }, baum(10)), k, 'andere Muster');
   assert.notEqual(kinderKonfig({ folge: regeln.folge }, baum(10)), k, 'keine Lage mehr');
   assert.equal(JSON.parse(k).plan, planKennung(baum(10)), 'der Bericht trägt den Plan');
+});
+
+// ─── siebte Runde des Reviews an PR #371 (15.11.2026) ───────────────────────
+// Der Knotenbaum einer .cga, wie „nmc dump“ ihn druckt (Zeilenenden wie unter
+// Windows). tor: wo der Knochen ruht.
+const dumpVon = (tor = [0, 0, 0], dreh = false) => [
+  '# NMC dump: probe.cga (3 nodes)',
+  '',
+  '[  0] probe_rendermesh parent=2 geom=0 scale=[0.0000,0.0000,0.0000]',
+  `       b2w[0] = [   1.00000,    0.00000,    0.00000,    ${tor[0].toFixed(5)}]`,
+  `       b2w[1] = [   0.00000,    1.00000,    0.00000,    ${tor[1].toFixed(5)}]`,
+  `       b2w[2] = [   0.00000,    0.00000,    1.00000,    ${tor[2].toFixed(5)}]`,
+  '',
+  '[  1] probe parent=root geom=2 scale=[0.0000,0.0000,0.0000]',
+  '       b2w[0] = [   1.00000,    0.00000,    0.00000,    0.00000]',
+  '       b2w[1] = [   0.00000,    1.00000,    0.00000,    0.00000]',
+  '       b2w[2] = [   0.00000,    0.00000,    1.00000,    0.00000]',
+  '',
+  '[  2] anim_door parent=1 geom=3 scale=[1.0000,1.0000,1.0000]',
+  dreh ? `       b2w[0] = [   0.00000,   -1.00000,    0.00000,    ${tor[0].toFixed(5)}]` : `       b2w[0] = [   1.00000,    0.00000,    0.00000,    ${tor[0].toFixed(5)}]`,
+  dreh ? `       b2w[1] = [   1.00000,    0.00000,    0.00000,    ${tor[1].toFixed(5)}]` : `       b2w[1] = [   0.00000,    1.00000,    0.00000,    ${tor[1].toFixed(5)}]`,
+  `       b2w[2] = [   0.00000,    0.00000,    1.00000,    ${tor[2].toFixed(5)}]`,
+  '',
+].join('\r\n');
+
+test('nmcKnoten: Index, Name, Elternknoten, Art und Lage je Knoten', () => {
+  const k = nmcKnoten(dumpVon([0, 0, 2]));
+  assert.deepEqual(k.map((n) => [n.index, n.name, n.parent, n.geom]), [[0, 'probe_rendermesh', 2, 0], [1, 'probe', null, 2], [2, 'anim_door', 1, 3]]);
+  assert.deepEqual(k[2].b2w, [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 2]]);
+  // ohne die Zeilen zur Lage bleibt der Knoten lesbar, seine Lage aber offen
+  assert.equal(nmcKnoten('[  0] teil parent=root geom=0 scale=[1,1,1]\n')[0].b2w, null);
+});
+
+test('spurVersatz: ruht der Knochen im Ursprung, ist der letzte Wert der Spur der Versatz', () => {
+  // so das Tor des Frachtaufzugs der Large-Halle (an den Rohdateien gemessen: Ruhelage 0/0/0, Spur 0/0/0 bis 0/0/6)
+  assert.deepEqual(spurVersatz(nmcKnoten(dumpVon()), 'anim_door', [[0, 0, 0], [0, 0, 3], [0, 0, 6]]), { ruhe: [0, 0, 0], versatz: [0, 0, 6] });
+});
+
+test('spurVersatz: ruht der Knochen woanders, zählt nur der Weg ab der Ruhelage', () => {
+  // der Fall des Befunds: Die Spur nennt die Lage im Raum des Elternknotens, die Ruhelage steckt schon im Netz
+  assert.deepEqual(spurVersatz(nmcKnoten(dumpVon([0, 0, 2])), 'anim_door', [[0, 0, 2], [0, 0, 8]]), { ruhe: [0, 0, 2], versatz: [0, 0, 6] });
+});
+
+test('spurVersatz: ein gedrehter Knochen, ein Knoten ohne Lage oder eine leere Spur bricht ab', () => {
+  assert.throws(() => spurVersatz(nmcKnoten(dumpVon([0, 0, 0], true)), 'anim_door', [[0, 0, 6]]), /anim_door gedreht/);
+  assert.throws(() => spurVersatz(nmcKnoten('[  0] netz parent=1 geom=0 scale=[1,1,1]\n[  1] anim_door parent=root geom=3 scale=[1,1,1]\n'), 'anim_door', [[0, 0, 6]]), /ohne lesbare Lage/);
+  assert.throws(() => spurVersatz(nmcKnoten(dumpVon()), 'anim_door', []), /keine Lage/);
+  assert.throws(() => spurVersatz(nmcKnoten(dumpVon()), 'anim_tor', [[0, 0, 6]]), /keinen Knochen anim_tor/);
+});
+
+// ein Rohordner als Tabelle: Name -> { zeit, text }
+function platte(anfang) {
+  const d = new Map(Object.entries(anfang));
+  let uhr = 100;
+  return {
+    d,
+    w: { da: (f) => d.has(f), zeit: (f) => d.get(f).zeit, lies: (f) => d.get(f).text },
+    schreib: (f, text = '') => d.set(f, { zeit: ++uhr, text }),
+    weg: (f) => d.delete(f),
+  };
+}
+const FRAGE = { modell: 'halle.glb', licht: 'halle.lights-src.txt', bericht: 'halle.kinder.json', konfig: 'K1', quellen: ['roh.glb', 'kind.glb'] };
+const STAND = { 'roh.glb': { zeit: 1 }, 'kind.glb': { zeit: 2 }, 'halle.glb': { zeit: 5 }, 'halle.lights-src.txt': { zeit: 5 }, 'halle.kinder.json': { zeit: 5, text: '{"konfig":"K1"}' } };
+
+test('eingehaengtGilt: Modell, Lichtprotokoll und Bericht da, dieselbe Konfiguration, keine Quelle jünger', () => {
+  assert.equal(eingehaengtGilt(FRAGE, platte(STAND).w), true);
+  assert.equal(eingehaengtGilt({ ...FRAGE, force: true }, platte(STAND).w), false);
+  assert.equal(eingehaengtGilt({ ...FRAGE, konfig: 'K2' }, platte(STAND).w), false);
+  assert.equal(eingehaengtGilt(FRAGE, platte({ ...STAND, 'kind.glb': { zeit: 9 } }).w), false);
+  for (const f of ['halle.glb', 'halle.kinder.json']) { const p = platte(STAND); p.weg(f); assert.equal(eingehaengtGilt(FRAGE, p.w), false, f); }
+});
+
+test('eingehaengtGilt: ohne Lichtprotokoll oder mit unlesbarem Bericht gilt nichts', () => {
+  // der Fall des Befunds: Modell und Bericht stehen, das Lichtprotokoll fehlt
+  const p = platte(STAND);
+  p.weg('halle.lights-src.txt');
+  assert.equal(eingehaengtGilt(FRAGE, p.w), false);
+  assert.equal(eingehaengtGilt(FRAGE, platte({ ...STAND, 'halle.kinder.json': { zeit: 5, text: '{"konfig":"K' } }).w), false);
+});
+
+test('eingehaengtSchreiben: ein Lauf, der an irgendeiner Stelle abbricht, gilt beim nächsten nicht als fertig', async () => {
+  // eine Quelle hat sich geändert (jünger als das alte Modell), der Lauf baut neu und bricht nach Schritt n ab
+  for (let n = 0; n <= 3; n++) {
+    const p = platte({ ...STAND, 'kind.glb': { zeit: 50 } });
+    let schritt = 0;
+    const tu = (f) => () => { if (schritt++ >= n) throw new Error('abgebrochen'); return f(); };
+    await assert.rejects(eingehaengtSchreiben({
+      berichtWeg: tu(() => p.weg('halle.kinder.json')),
+      licht: tu(() => p.schreib('halle.lights-src.txt')),
+      modell: tu(async () => p.schreib('halle.glb')),
+      bericht: tu(() => p.schreib('halle.kinder.json', '{"konfig":"K1"}')),
+    }), /abgebrochen/);
+    assert.equal(eingehaengtGilt(FRAGE, p.w), false, `Abbruch nach ${n} Schritten`);
+  }
+  // und der ganze Lauf gilt
+  const p = platte({ ...STAND, 'kind.glb': { zeit: 50 } });
+  await eingehaengtSchreiben({ berichtWeg: () => p.weg('halle.kinder.json'), licht: () => p.schreib('halle.lights-src.txt'), modell: async () => p.schreib('halle.glb'), bericht: () => p.schreib('halle.kinder.json', '{"konfig":"K1"}') });
+  assert.equal(eingehaengtGilt(FRAGE, p.w), true);
 });

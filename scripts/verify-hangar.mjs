@@ -719,6 +719,15 @@
         setTimeout(r, ms)))                                         -> [24]
     dj  dort in still() die Frage nach dem Standbild streichen
         (if (tot) { bild.close(); return null; })                   -> [24]
+    dk  dort eine Quelle neben statt in lebt( stellen (await
+        lebt(null) ?? await … vor dem Abruf der Lampen; siebte
+        Runde: Die Zählung nahm jedes lebt( weiter vorn auf der
+        Zeile als Schutz)                                           -> [24]
+    dl  dist/assets/hangar-overview.js: in umbauen() das Abwarten
+        am Anfang des Durchgangs streichen (await null; siebte
+        Runde, Nachfrage zum Kontextverlust: Gladius, Carrack,
+        noch im Aufbau wieder Gladius. Die verlorene Bühne wurde
+        abgebaut, bevor sie den Verlust nachreichen konnte)         -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3204,7 +3213,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 35, worte: 16, quellen: 23 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 36, worte: 16, quellen: 23 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3312,7 +3321,7 @@ const GROESSE_AUSNAHMEN = {
     [ctrl, /if \(hallNow && hallWant && hallWant !== hallNow && buehneNeu\) \{ umbauen\(\); return; \}/, 'ein Schiff einer anderen Stufe baut die Bühne nicht mehr um (viewerShow): Es stünde in der Halle der vorigen Stufe'],
     [ctrl, /viewer = null;\s*halter\.ab\(\);[\s\S]{0,500}?const roh = await buehneNeu\(halle\);\s*viewer = halter\.auf\(roh\);/, 'der Umbau baut die alte Bühne nicht mehr ab, bevor die neue lädt (umbauen): zwei Hallen zugleich im Grafikspeicher'],
     [ctrl, /ab\(\) \{ const b = cur; cur = null; b\?\.dispose\(\); \}/, 'der Stellvertreter der Bühne baut die alte nicht mehr ab (halter.ab): Sie zeichnete und lüde hinter der neuen weiter'],
-    [ctrl, /const verloren = \(\) => main\.dataset\.lost === 'on';[\s\S]{0,300}?for \(;;\) \{\s*if \(verloren\(\)\) \{ umbauAus\(\); return; \}[\s\S]{0,1800}?if \(verloren\(\)\) \{ umbauAus\(\); return; \}\s*\}\s*viewer = null;\s*halter\.ab\(\);/, 'der Umbau fragt nicht mehr vor jedem Durchgang und vor dem Abbau, ob die Bühne ihren Zeichenkontext verloren hat (verloren in umbauen): Unter der Meldung entstünde eine neue Bühne, und die Seite lüde nie neu'],
+    [ctrl, /const verloren = \(\) => main\.dataset\.lost === 'on';[\s\S]{0,300}?for \(;;\) \{[\s\S]{0,700}?if \(verloren\(\)\) \{ umbauAus\(\); return; \}[\s\S]{0,1800}?if \(verloren\(\)\) \{ umbauAus\(\); return; \}\s*\}\s*viewer = null;\s*halter\.ab\(\);/, 'der Umbau fragt nicht mehr vor jedem Durchgang und vor dem Abbau, ob die Bühne ihren Zeichenkontext verloren hat (verloren in umbauen): Unter der Meldung entstünde eine neue Bühne, und die Seite lüde nie neu'],
     [ctrl, /if \(k === 'setSound'\) antwort\.set\('sound', \{ \.\.\.antwort\.get\('sound'\), on: !!a\[0\] \}\);\s*if \(!cur\) return antwort\.get\(k\);/, 'der Stellvertreter der Bühne führt die Antwort von sound() nicht mehr mit setSound mit (buehnenHalter): Während eines Hallenwechsels ließe sich der Ton an-, aber nicht wieder ausschalten'],
     [viewer, /dispose\(\) \{\s*if \(tot\) return;\s*tot = true;[\s\S]{0,400}?lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;/, 'eine abgebaute Bühne meldet der Seite weiter (dispose): Der Kontext, den sie selbst aufgibt, zählte beim Hallenwechsel als Abbruch'],
     [viewer, /renderer\.forceContextLoss\(\);\s*renderer\.dispose\(\);/, 'dispose gibt den Zeichenkontext nicht mehr auf oder lässt dem Renderer seine Tabellen: Der Grafikspeicher der alten Halle bliebe belegt, während die neue lädt'],
@@ -3334,12 +3343,13 @@ const GROESSE_AUSNAHMEN = {
     [viewer, /const probe = await probeReady;[\s\S]{0,400}?if \(tot\) \{ probe\?\.tex\.dispose\(\); await nieMehr\(\); \}\s*if \(probe\) useHallProbe\(probe\); else captureHallEnv\(true\);/, 'nach dem Warten auf die Spiegelungssonde fragt die Halle nicht mehr, ob die Bühne abgebaut ist (loadRealHall): Sie nähme am aufgegebenen Renderer eine Umgebungskugel auf, und das Bild der Sonde bliebe liegen'],
     [viewer, /let kontextWeg = 0;\s*renderer\.domElement\.addEventListener\('webglcontextlost', \(\) => \{ kontextWeg\+\+; \}\);[\s\S]*?if \(lostFn\) lostFn\(lost\);\s*else if \(tot\) return;\s*else if \(lost\) lostOffen = \[true\];\s*else lostOffen\?\.push\(false\);[\s\S]{0,400}?if \(kontextWeg\) \{ texQuiet = true; lostSag\(true\); if \(!renderer\.getContext\(\)\.isContextLost\(\)\) lostSag\(false\); \}/, 'die Bühne merkt sich einen Kontextverlust nicht mehr, solange niemand zuhört (kontextWeg, lostSag, lostOffen): Was während ihres Aufbaus verloren geht, erführe die Seite nie'],
     [viewer, /onLost\(fn\) \{\s*lostFn = fn;\s*if \(!fn \|\| !lostOffen\) return;\s*const was = lostOffen;\s*lostOffen = null;\s*queueMicrotask\(\(\) => \{ for \(const lost of was\) if \(lostFn === fn\) fn\(lost\); \}\);/, 'onLost reicht dem Horcher nicht mehr nach, was vor ihm geschah: Nach einem Kontextverlust während des Hallenwechsels stünde die Seite ohne Meldung vor einer leeren Bühne und lüde auch bei der Rückkehr des Kontexts nicht neu'],
+    [ctrl, /for \(;;\) \{[\s\S]{0,700}?await null;\s*if \(verloren\(\)\) \{ umbauAus\(\); return; \}\s*const halle = hallOf\(wunsch\);/, 'der Umbau wartet vor einem Durchgang nicht mehr ab, was die Bühne dem Horcher nachreicht (await null vor der Frage nach dem verlorenen Kontext in umbauen): Verlöre die neue Bühne ihren Zeichenkontext während ihres Aufbaus und verlangte das inzwischen gewählte Schiff wieder eine andere Halle, baute der nächste Durchgang sie ab, bevor Seite und Wächter davon erfahren'],
     [viewer, /lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;[\s\S]{0,400}?clearTimeout\(ktxStat\.timer\); clearTimeout\(texStat\.timer\); clearTimeout\(geoStat\.timer\);/, 'eine abgebaute Bühne schreibt ihre verzögerten Zeilen weiter auf die Konsole (clearTimeout in dispose): check:hangar-shader zählte sie nach einem Hallenwechsel zur neuen Bühne'],
     // Material der Industrie-Hallen (HALL_FEST): Namen <Datei>_mtl_<Teil>, Schnitt nach dem Alpha der Karte
     [viewer, /if \(!sticker && \(fest \? \/_mtl_\.\*glow\/i : \/light\|glow\/i\)\.test\(m\.name\) && !\/glass\/i\.test\(m\.name\) && m\.map\) \{/, 'in den Industrie-Hallen leuchtet wieder jedes Material, dessen Datei „light“ heißt (Leuchtregel der Halle ohne fest): Gehäuse, Lack und Gummi der Lampen stünden als helle Flächen im Raum'],
     [viewer, /&& !sticker && !\(m\.alphaTest > 0\) && !\/decal\|logo\|glow\|leak\/i\.test\(m\.name\)\) \{ boxProject\(m, us\.mPerUv\);/, 'Material, das nach Alpha schneidet, bekommt wieder die Würfellage (boxProject ohne !(m.alphaTest > 0)): Der Pfeil am Tor der Large-Halle zerfiele in Bruchstücke'],
     // das Wort unter dem Ladebalken: Der Umbau dauert so lang wie ein erstes Laden, darunter steht das alte Bild still
-    [ctrl, /async function umbauen\(\) \{[\s\S]{0,700}?loadEl\.dataset\.umbau = '';\s*loadEl\.hidden = false;/, 'der Umbau nennt sich unter dem Ladebalken nicht mehr beim Wort (loadEl.dataset.umbau in umbauen): Die Seite stünde beim Hallenwechsel still, ohne zu sagen, warum'],
+    [ctrl, /async function umbauen\(\) \{[\s\S]{0,1500}?loadEl\.dataset\.umbau = '';\s*loadEl\.hidden = false;/, 'der Umbau nennt sich unter dem Ladebalken nicht mehr beim Wort (loadEl.dataset.umbau in umbauen): Die Seite stünde beim Hallenwechsel still, ohne zu sagen, warum'],
     [ctrl, /function standbildWeg\(sofort = false\) \{[\s\S]{0,200}?delete loadEl\.dataset\.umbau;\s*const el = standbild;\s*if \(!el\) return;/, 'das Wort des Hallenwechsels geht nicht mehr mit dem Standbild (standbildWeg, vor der Frage nach dem Bild): Es stünde über dem nächsten Schiffswechsel, oder bliebe ohne Standbild für immer'],
   ];
   let verdrahtet = 0;
@@ -3358,11 +3368,23 @@ const GROESSE_AUSNAHMEN = {
     ['(HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }', 'fetchGltf fragt tot selbst, davor und bei der Ankunft'],
     ['try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }', 'still() antwortet der Seite und fragt tot gleich danach'],
   ];
+  // Steht die Stelle am Ende von davor in den Klammern eines lebt(, das dort noch offen ist? Irgendein lebt(
+  // weiter vorn auf der Zeile genügt nicht: In „lebt(x), dann ein Abruf daneben“ liefe der Abruf ungeschützt
+  // (siebte Runde des Reviews). Gezählt werden Klammern, auch die in Zeichenketten: eine Näherung, die eher
+  // zu streng ist als zu milde, und für eine solche Zeile gibt es die benannte Ausnahme.
+  const inLebt = (davor) => {
+    for (const a of davor.matchAll(/(?<![\w$.])lebt\(/g)) {
+      let tiefe = 0, zu = false;
+      for (const c of davor.slice(a.index + 4)) { if (c === '(') tiefe++; else if (c === ')' && --tiefe === 0) { zu = true; break; } }
+      if (!zu) return true;
+    }
+    return false;
+  };
   let quellen = 0, quellenOhne = 0;
   for (const zeile of rumpf.split('\n')) {
     if (/^\s*\/\//.test(zeile)) continue;
     for (const m of zeile.matchAll(QUELLE)) {
-      if (zeile.slice(0, m.index).includes('lebt(')) quellen++;
+      if (inLebt(zeile.slice(0, m.index))) quellen++;
       else if (QUELLE_OHNE.some(([stelle]) => zeile.includes(stelle))) quellenOhne++;
       else fail(`[24] dist/assets/hangar-viewer.js: eine Quelle der Bühne geht nicht durch lebt() („${zeile.trim().slice(0, 110)}“): Kommt sie nach dem Abbau an, arbeitet die abgebaute Bühne neben der neuen Halle weiter. In lebt(…) fassen, oder die Ausnahme in QUELLE_OHNE benennen`);
     }

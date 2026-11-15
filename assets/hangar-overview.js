@@ -2757,6 +2757,14 @@ export function boot(doc) {
     umbau = true;
     try {
       for (;;) {
+        // Erst abwarten, was die Buehne dem Horcher nachreicht: Verlor sie ihren
+        // Zeichenkontext schon waehrend ihres Aufbaus, erfaehrt die Seite es als
+        // Mikroaufgabe, gleich nachdem sie zuhoert (onLost in hangar-viewer.js,
+        // gesetzt von halter.auf am Ende des vorigen Durchgangs). Ohne das
+        // fragte der naechste Durchgang zu frueh, baute, liegt das Standbild
+        // schon, die verlorene Buehne ohne Pause ab (halter.ab nimmt ihr das
+        // Wort), und weder die Seite noch der Waechter erfuehren vom Verlust.
+        await null;
         if (verloren()) { umbauAus(); return; }
         const halle = hallOf(wunsch);
         // ein show(), das noch laeuft, gehoert der alten Buehne
