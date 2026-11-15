@@ -728,6 +728,12 @@
         Runde, Nachfrage zum Kontextverlust: Gladius, Carrack,
         noch im Aufbau wieder Gladius. Die verlorene Bühne wurde
         abgebaut, bevor sie den Verlust nachreichen konnte)         -> [24]
+    dm  dist/assets/hangar-viewer.js: vor dem Abruf der Lampen
+        await lebt(Promise.resolve('(')); stellen und den Abruf
+        selbst aus lebt( nehmen (achte Runde: Die Klammer in der
+        Zeichenkette hielt den Schutz der Klammerzählung offen;
+        gezählt wird seither am Syntaxbaum,
+        scripts/lib/buehnen-quellen.mjs)                            -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -738,6 +744,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { buehnenQuellen } from './lib/buehnen-quellen.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'dist');
@@ -3355,12 +3362,11 @@ const GROESSE_AUSNAHMEN = {
   let verdrahtet = 0;
   for (const [text, re, was] of draht) { if (re.test(text)) verdrahtet++; else fail(`[24] ${was}`); }
   // Quellen der Bühne (15.11.2026, sechste Runde): Jede Stelle im Rumpf von initHangar, an der etwas von außen
-  // kommt (Leitung, Modul, Bild, Schrift), steht hinter lebt( auf derselben Zeile. Sechs Runden lang fand das
+  // kommt (Leitung, Modul, Bild, Schrift), steht in einem Aufruf von lebt(…). Sechs Runden lang fand das
   // Review je eine andere Fortsetzung, die nach dem Abbau der Bühne weiterlief; gefragt wird deshalb an der
   // Quelle, und eine neue Quelle ohne lebt() reißt hier. Ausnahmen sind benannt und tragen ihren Anlass: Fehlt
   // die Zeile, die ihn belegt, reißt das Tor ebenfalls.
   const rumpf = viewer.slice(Math.max(0, viewer.indexOf('export async function initHangar(')));
-  const QUELLE = /(?<![\w.$])(?:fetch|import|createImageBitmap)\(|\bnew Image\(\)|\.loadAsync\(|\.load\(/g;
   const QUELLE_OHNE = [
     ["ktxLoader ??= import('three/addons/loaders/KTX2Loader.js')", 'ktxTot ersetzt den Loader beim Abbau durch null'],
     // ohne das Wort des Abrufs davor: verify:wiring läse es in diesem Skript als Griff ins Netz
@@ -3368,26 +3374,17 @@ const GROESSE_AUSNAHMEN = {
     ['(HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }', 'fetchGltf fragt tot selbst, davor und bei der Ankunft'],
     ['try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }', 'still() antwortet der Seite und fragt tot gleich danach'],
   ];
-  // Steht die Stelle am Ende von davor in den Klammern eines lebt(, das dort noch offen ist? Irgendein lebt(
-  // weiter vorn auf der Zeile genügt nicht: In „lebt(x), dann ein Abruf daneben“ liefe der Abruf ungeschützt
-  // (siebte Runde des Reviews). Gezählt werden Klammern, auch die in Zeichenketten: eine Näherung, die eher
-  // zu streng ist als zu milde, und für eine solche Zeile gibt es die benannte Ausnahme.
-  const inLebt = (davor) => {
-    for (const a of davor.matchAll(/(?<![\w$.])lebt\(/g)) {
-      let tiefe = 0, zu = false;
-      for (const c of davor.slice(a.index + 4)) { if (c === '(') tiefe++; else if (c === ')' && --tiefe === 0) { zu = true; break; } }
-      if (!zu) return true;
-    }
-    return false;
-  };
+  // Gezählt wird am Syntaxbaum (scripts/lib/buehnen-quellen.mjs): Eine Quelle ist geschützt, wenn sie in einem
+  // Argument eines Aufrufs von lebt steht. Die Zählung über Zeilen und Klammern davor ließ sich zweimal täuschen
+  // (siebte Runde des Reviews: ein lebt( daneben; eine Klammer in einer Zeichenkette). Liest der Baum den Viewer
+  // nicht ganz, ist nichts gezählt, und das Tor reißt.
+  const zaehlung = buehnenQuellen(viewer);
+  for (const f of zaehlung.fehler.slice(0, 3)) fail(`[24] dist/assets/hangar-viewer.js: die Zählung der Quellen liest den Viewer nicht ganz (${f}): Was der Syntaxbaum nicht kennt, ist nicht gezählt`);
   let quellen = 0, quellenOhne = 0;
-  for (const zeile of rumpf.split('\n')) {
-    if (/^\s*\/\//.test(zeile)) continue;
-    for (const m of zeile.matchAll(QUELLE)) {
-      if (inLebt(zeile.slice(0, m.index))) quellen++;
-      else if (QUELLE_OHNE.some(([stelle]) => zeile.includes(stelle))) quellenOhne++;
-      else fail(`[24] dist/assets/hangar-viewer.js: eine Quelle der Bühne geht nicht durch lebt() („${zeile.trim().slice(0, 110)}“): Kommt sie nach dem Abbau an, arbeitet die abgebaute Bühne neben der neuen Halle weiter. In lebt(…) fassen, oder die Ausnahme in QUELLE_OHNE benennen`);
-    }
+  for (const q of zaehlung.quellen) {
+    if (q.geschuetzt) quellen++;
+    else if (QUELLE_OHNE.some(([stelle]) => q.text.includes(stelle))) quellenOhne++;
+    else fail(`[24] dist/assets/hangar-viewer.js: eine Quelle der Bühne geht nicht durch lebt() („${q.text.trim().slice(0, 110)}“): Kommt sie nach dem Abbau an, arbeitet die abgebaute Bühne neben der neuen Halle weiter. In lebt(…) fassen, oder die Ausnahme in QUELLE_OHNE benennen`);
   }
   for (const [stelle, anlass] of QUELLE_OHNE) if (!rumpf.includes(stelle)) fail(`[24] die Ausnahme von lebt() „${stelle.slice(0, 60)}…“ (${anlass}) hat ihren Anlass verloren: Die Zeile steht so nicht mehr im Rumpf von initHangar. Ausnahme streichen oder an der neuen Zeile neu begründen`);
   if (!/if \(tot\) \{ bild\.close\(\); return null; \}/.test(rumpf)) fail('[24] still() fragt nach dem Standbild nicht mehr, ob die Bühne abgebaut ist (if (tot) { bild.close(); return null; }): Die Ausnahme von lebt() gilt nur mit dieser Frage');

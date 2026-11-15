@@ -168,6 +168,11 @@ const schalter = (lod) => COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? St
 const lichtZeilen = (log) => log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
 const sbSkin = (part, file) => { const r = sb(['skin', 'export', part, file]); stempel(file); return r; };
+// Welche .mtl dieser Lauf mit --force schon neu ausgepackt hat: je Lauf, nicht je Halle. Zwei Hallen, die
+// dieselbe Materialdatei nennen, packten sie sonst zweimal aus (mtlQuelle in lib/hall-decals.mjs).
+// Steht hier oben, vor dem Lauf: Die Hallenschleife unten wartet auf hallDecals, und eine Konstante, die erst
+// hinter ihr erklärt wäre, gäbe es beim ersten Aufruf noch nicht (tests/e2e/modul-reihenfolge.test.js).
+const MTL_FRISCH = new Set();
 
 function stempel(file) {
   writeFileSync(file.replace(/\.glb$/i, '.build.json'), JSON.stringify(gameBuild()) + '\n');
@@ -854,10 +859,6 @@ function readSubsetsNode(buf) {
   }
   return best || [];
 }
-
-// Welche .mtl dieser Lauf mit --force schon neu ausgepackt hat: je Lauf, nicht je Halle. Zwei Hallen, die
-// dieselbe Materialdatei nennen, packten sie sonst zweimal aus (mtlQuelle in lib/hall-decals.mjs).
-const MTL_FRISCH = new Set();
 
 // ─── Aufkleber der Halle (scripts/lib/hall-decals.mjs, h.decals) ─────────
 // Der socpak-Export lässt jedes Teilnetz mit Aufkleber-Material (%DECAL im
