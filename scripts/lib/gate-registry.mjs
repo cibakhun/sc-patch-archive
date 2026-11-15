@@ -242,7 +242,7 @@ export const CHECKS = [
     script: 'scripts/verify-vorschau-patches.mjs',
     rail: 'A',
     checks:
-      'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen; Klinke fuer gelesene Seiten',
+      'Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs) stehen genau im Vorschau-Bau: live keine dieser Seiten und kein Verweis darauf in Seiten, Suchregister und Sitemaps; in der Vorschau beide Sprachen, die Entwurfsseiten (VORSCHAU_KONZEPTE) mit noindex und in keiner Sitemap; Klinke fuer gelesene Seiten',
   },
   {
     // Neuzugang (04.11.2026, Plan Supabase-Trennung, Phase 3): direkt nach

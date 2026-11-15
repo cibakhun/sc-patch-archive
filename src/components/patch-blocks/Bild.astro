@@ -1,0 +1,24 @@
+---
+// Ein Bild aus src/lib/patch-4-10-3/inhalt.ts mit allen Groessen: AVIF, wo
+// es eine gibt, sonst WebP per srcset. Breite/Hoehe der groessten Fassung
+// halten den Platz frei, bevor das Bild laedt.
+import type { Bild } from '../../lib/patch-4-10-3/inhalt';
+interface Props {
+  bild: Bild;
+  /** sizes-Attribut, z. B. "100vw" oder "(max-width: 900px) 100vw, 560px" */
+  sizes: string;
+  /** oberhalb der Falz: sofort laden */
+  eager?: boolean;
+  class?: string;
+}
+const { bild, sizes, eager = false, class: cls } = Astro.props;
+const [gross] = bild.groessen;
+const srcset = bild.groessen.map((g) => `${g.src} ${g.w}w`).join(', ');
+// AVIF gibt es nur fuer die breiteste Fassung: sie gilt erst oberhalb der
+// naechstkleineren Breite, sonst laede jedes Handy das 1920er Bild.
+const avif = gross.avif ? { src: gross.avif, ab: (bild.groessen[1]?.w ?? 0) + 1 } : null;
+---
+<picture class={cls}>
+  {avif && <source type="image/avif" media={`(min-width: ${avif.ab}px)`} srcset={avif.src} />}
+  <img src={gross.src} srcset={srcset} sizes={sizes} alt={bild.alt} width={gross.w} height={gross.h} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} />
+</picture>

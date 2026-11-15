@@ -22,17 +22,31 @@ export const VORSCHAU_PATCHES = ['4-10-3'];
 
 /** Die Patch-Dateien unter src/data/patches/, die der Live-Bau nicht einliest. */
 export const VORSCHAU_PATCH_DATEIEN = VORSCHAU_PATCHES.map((id) => `${id}.json`);
+/**
+ * Entwuerfe einer neuen Patch-Seite, zwischen denen Krisz waehlt (15.11.2026:
+ * A „Kino", B „Magazin", C „Cockpit" fuer 4.10.3), dazu eine Uebersicht.
+ * Nur im Vorschau-Bau, nie verlinkt von einer Live-Seite. Faellt nach der
+ * Wahl samt src/vorschau-patches/konzept*.astro heraus.
+ */
+export const VORSCHAU_KONZEPTE = ['a', 'b', 'c'];
+const KONZEPT_SEITEN = [...VORSCHAU_KONZEPTE.map((k) => `konzept-${k}`), 'konzepte'];
 
 /** Die Routen: Muster und Datei. Bewusst NICHT unter src/pages/. */
-export const VORSCHAU_PATCH_ROUTES = VORSCHAU_PATCHES.flatMap((id) => [
-  { pattern: `/patches/sc-${id}`, entrypoint: `./src/vorschau-patches/sc-${id}.astro` },
-  { pattern: `/de/patches/sc-${id}`, entrypoint: `./src/vorschau-patches/de/sc-${id}.astro` },
+export const VORSCHAU_PATCH_ROUTES = [...VORSCHAU_PATCHES.map((id) => `sc-${id}`), ...KONZEPT_SEITEN].flatMap((name) => [
+  { pattern: `/patches/${name}`, entrypoint: `./src/vorschau-patches/${name}.astro` },
+  { pattern: `/de/patches/${name}`, entrypoint: `./src/vorschau-patches/de/${name}.astro` },
 ]);
 
-/** Was der Vorschau-Bau tragen muss und der Live-Bau nicht tragen darf (relativ zu dist/). */
-export const VORSCHAU_PATCH_DIST_FILES = VORSCHAU_PATCHES.flatMap((id) => [`patches/sc-${id}.html`, `de/patches/sc-${id}.html`]);
+/** Die Entwurfsseiten (relativ zu dist/): im Vorschau-Bau noindex und in keiner Sitemap. */
+export const VORSCHAU_KONZEPT_DIST_FILES = KONZEPT_SEITEN.flatMap((name) => [`patches/${name}.html`, `de/patches/${name}.html`]);
 
-const ALTERNATIVE = VORSCHAU_PATCHES.map((id) => `sc-${id}`).join('|');
+/** Was der Vorschau-Bau tragen muss und der Live-Bau nicht tragen darf (relativ zu dist/). */
+export const VORSCHAU_PATCH_DIST_FILES = [
+  ...VORSCHAU_PATCHES.flatMap((id) => [`patches/sc-${id}.html`, `de/patches/sc-${id}.html`]),
+  ...VORSCHAU_KONZEPT_DIST_FILES,
+];
+
+const ALTERNATIVE = [...VORSCHAU_PATCHES.map((id) => `sc-${id}`), ...KONZEPT_SEITEN].join('|');
 
 /** Der Pfad einer dieser Seiten, in HTML (href) wie in Daten-Dateien (Suchregister). */
 export const VORSCHAU_PATCH_PFAD = new RegExp(`\\/(?:de\\/)?patches\\/(?:${ALTERNATIVE})\\.html`);

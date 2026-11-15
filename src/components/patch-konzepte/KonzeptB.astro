@@ -1,0 +1,21 @@
+---
+// Entwurf B „Magazin“ der 4.10.3-Seite (Platzhalter). Inhalt nur aus
+// src/lib/patch-4-10-3/inhalt.ts, Bausteine in src/components/patch-blocks/.
+import { localeFromPath } from '../../i18n/ui';
+import { patchInhalt } from '../../lib/patch-4-10-3/inhalt';
+import Bild from '../patch-blocks/Bild.astro';
+
+const lang = localeFromPath(Astro.url.pathname);
+const I = await patchInhalt(lang);
+const kopf = I.bilder.find((b) => b.key === 'iae-2956-stadt');
+if (!kopf) throw new Error('KonzeptB: Kopfbild iae-2956-stadt fehlt');
+---
+<main id="main" class="konzept-b">
+  <h1>{lang === 'de' ? 'Entwurf B · Magazin' : 'Concept B · Magazin'}: {I.kopf.titel}</h1>
+  <Bild bild={kopf} sizes="100vw" eager />
+</main>
+<style>
+  .konzept-b{max-width:1280px;margin:0 auto;padding:6rem 1rem 3rem}
+  .konzept-b h1{font-family:var(--font-display,sans-serif);font-size:clamp(1.6rem,4vw,3rem);margin-bottom:1rem}
+  .konzept-b :global(img){display:block;width:100%;height:auto}
+</style>
