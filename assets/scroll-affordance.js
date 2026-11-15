@@ -14,8 +14,12 @@
  *    Element liessen sich nur ueber mask-composite ueberlagern, und genau
  *    darum steht .dp-tablewrap (beide Achsen) in keiner waagerechten Liste.
  *
- * Beruehrung bleibt unangetastet: dort scrollt der Browser selbst, samt
- * Schwung. Angefasst wird nur Maus und Stift.
+ * 4. Ein Kasten, der gerade NICHTS zu rollen hat, laesst das Rad durch (siehe
+ *    SEL_DURCH). Seine Sperre gegen das Weiterrollen gilt nur, solange er
+ *    selbst rollt.
+ *
+ * Beruehrung bleibt beim Ziehen unangetastet: dort scrollt der Browser selbst,
+ * samt Schwung. Angefasst wird nur Maus und Stift.
  *
  * window.VBScrollAffordance() sucht erneut — noetig fuer Kaesten, die es beim
  * Laden noch nicht gibt (.uif-table-wrapper entsteht erst im Item-Modal).
@@ -59,6 +63,20 @@
   // Falle, die der Kopfkommentar von mobile-ux.css 5c fuer Tabellen
   // beschreibt — hier traf sie das Menue jeder einzelnen Seite.
   var SEL_VFADE = '.vb-scrollbox,.holo__readout,.snav-deck__frame';
+  // Kaesten mit `overscroll-behavior: contain`, die im Seitenfluss stehen.
+  // Die Sperre soll verhindern, dass am Ende der Liste die Seite weiterrollt.
+  // Chrome wendet sie aber auch auf einen Rollkasten an, der gar nichts zu
+  // rollen hat: das Rad darueber rollt dann NICHTS, weder Kasten noch Seite
+  // (15.11.2026, Krisz: ueber der Missionsliste eines Rezepts liess sich die
+  // Crafting-Seite nicht scrollen; gemessen in Chrome 153, dieselbe tote
+  // Zone ueber jeder kurzen Trefferliste). Solange ein Kasten in einer Achse
+  // keinen Ueberlauf hat, traegt er deshalb data-rad-durch mit dieser Achse,
+  // und assets/mobile-ux.css (Abschnitt 5d) nimmt die Sperre dort zurueck.
+  // PFLICHT: wer einem Kasten im Seitenfluss overflow:auto UND
+  // overscroll-behavior:contain gibt, traegt ihn hier ein.
+  var SEL_DURCH =
+    '.vb-scrollbox,.cdb-res-list,.calc-mat-list,.cbm__mis,.mm__terms,.cdb-plan-shop,' +
+    '.cdb-sidebar,.calc-sidebar,.uif-sidebar,.cdb-modal__box';
 
   var faders = [];
   var vfaders = [];
@@ -70,9 +88,67 @@
   function syncVFade(el) {
     el.classList.toggle('is-more-y', el.scrollHeight - el.clientHeight - el.scrollTop > 2);
   }
+  // Steht der Kasten in einer festgestellten Ebene (Dialog, Blatt, Schublade),
+  // gibt er das Rad nur weiter, wenn darin ueber ihm noch ein Rollkasten
+  // steht. Sonst ist er selbst die Grenze der Ebene, und das Rad ginge an die
+  // Seite dahinter.
+  function darfDurch(el) {
+    var innen = false;
+    for (var n = el; n && n.nodeType === 1 && n !== document.documentElement; n = n.parentElement) {
+      var s = getComputedStyle(n);
+      if (n !== el && /auto|scroll/.test(s.overflowY + ' ' + s.overflowX)) innen = true;
+      if (s.position === 'fixed') return innen;
+    }
+    return true;
+  }
+  // `kurz`: steht das Ergebnis schon am Kasten, bleibt die Frage nach der
+  // Ebene aus (der Weg ueber die Zeigerereignisse laeuft bei jeder Bewegung
+  // der Maus). Ob ein Kasten in einer festgestellten Ebene liegt, aendert
+  // sich nur mit der Fensterbreite, und dort misst syncAll ganz.
+  function syncDurch(el, kurz) {
+    var achsen = '';
+    if (el.scrollWidth - el.clientWidth <= 1) achsen = 'x';
+    if (el.scrollHeight - el.clientHeight <= 1) achsen += (achsen ? ' ' : '') + 'y';
+    if (kurz && achsen && el.getAttribute('data-rad-durch') === achsen) return;
+    if (achsen && !darfDurch(el)) achsen = '';
+    if (achsen) {
+      if (el.getAttribute('data-rad-durch') !== achsen) el.setAttribute('data-rad-durch', achsen);
+    } else if (el.hasAttribute('data-rad-durch')) {
+      el.removeAttribute('data-rad-durch');
+    }
+  }
+  // Vom Ziel eines Ereignisses aufwaerts: jeder Kasten der Liste, in dem es
+  // steckt. Laeuft, BEVOR gerollt wird (Zeiger kommt, Finger setzt auf, Fokus
+  // wandert hinein) und beim Rad selbst, falls sich der Inhalt unter dem
+  // ruhenden Zeiger geaendert hat.
+  function syncDurchAb(ziel) {
+    var el = ziel && ziel.closest ? ziel.closest(SEL_DURCH) : null;
+    while (el) {
+      if (durchKaesten.indexOf(el) < 0) durchKaesten.push(el);
+      syncDurch(el, true);
+      el = el.parentElement ? el.parentElement.closest(SEL_DURCH) : null;
+    }
+  }
+  // Die Kaesten der Liste, EINMAL gesucht statt bei jedem Messen. Gemessen
+  // wird nach jedem Klick und jeder Eingabe (siehe unten); die Suche geht
+  // dagegen durchs ganze Dokument, auf der Crafting-Seite durch gut 40.000
+  // Elemente. Bei jedem Klick gesucht, verdoppelte das die Laufzeit von
+  // verify:clienttext auf dieser Seite (61 statt 30 s, Zeitbudget gerissen,
+  // 15.11.2026). Gesucht wird beim Laden, bei jedem window.VBScrollAffordance()
+  // und wenn sich das Fenster aendert. Einen Kasten, der erst spaeter
+  // entsteht, traegt syncDurchAb nach, sobald Zeiger, Finger, Fokus oder Rad
+  // ihn erreichen, also bevor er rollen muss.
+  var durchKaesten = [];
+  function sucheDurch() {
+    durchKaesten = Array.prototype.slice.call(document.querySelectorAll(SEL_DURCH));
+  }
   function syncAll() {
     for (var i = 0; i < faders.length; i++) syncFade(faders[i]);
     for (var k = 0; k < vfaders.length; k++) syncVFade(vfaders[k]);
+    for (var d = durchKaesten.length - 1; d >= 0; d--) {
+      if (durchKaesten[d].isConnected === false) durchKaesten.splice(d, 1);
+      else syncDurch(durchKaesten[d]);
+    }
   }
 
   // Weder Maske noch Zeiger-Klasse aendern eine Groesse -> der Beobachter kann
@@ -287,11 +363,28 @@
         return function () { syncVFade(n); };
       })(v), { passive: true });
     }
+    sucheDurch();
     queueSync();
   }
 
   window.VBScrollAffordance = scan;
-  window.addEventListener('resize', onResize);
+  window.addEventListener('resize', function () { sucheDurch(); onResize(); });
+  ['pointerover', 'touchstart', 'focusin', 'wheel'].forEach(function (typ) {
+    document.addEventListener(typ, function (e) { syncDurchAb(e.target); }, { capture: true, passive: true });
+  });
+  // Ein Klick oder eine Eingabe aendert oft den Inhalt eines Kastens, waehrend
+  // der Zeiger darueber ruht (Filter, Suche, Rezeptwahl). Danach neu messen:
+  // im naechsten Bild, und einmal spaeter fuer alles, was verzoegert zeichnet
+  // (entprellte Suche, nachgeladene Daten). Gemessen werden die bekannten
+  // Kaesten (durchKaesten), gesucht wird hier nicht.
+  var spaeter = 0;
+  ['click', 'input', 'change'].forEach(function (typ) {
+    document.addEventListener(typ, function () {
+      queueSync();
+      clearTimeout(spaeter);
+      spaeter = setTimeout(queueSync, 400);
+    }, { capture: true, passive: true });
+  });
   // Die Anzeigeschriften laden nach und aendern die Tabellenbreite.
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
   scan();
