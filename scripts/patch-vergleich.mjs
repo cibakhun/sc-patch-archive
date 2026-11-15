@@ -100,7 +100,7 @@ function laden(ref, version) {
 const mal = (xs) => (xs ?? []).map((x) => `${x.count ?? 1}× ${x.name}${x.size != null ? ` (S${x.size})` : ''}`).sort();
 const zahl = (x) => (typeof x === 'number' && Number.isFinite(x) ? x : null);
 const SCHADEN = ['physical', 'energy', 'distortion', 'thermal', 'stun', 'biochemical'];
-const SCHADEN_DE = { physical: 'physisch', energy: 'Energie', distortion: 'Verzerrung', thermal: 'thermisch', stun: 'Betaeubung', biochemical: 'biochemisch' };
+const SCHADEN_DE = { physical: 'physisch', energy: 'Energie', distortion: 'Verzerrung', thermal: 'thermisch', stun: 'Betäubung', biochemical: 'biochemisch' };
 
 /**
  * Je Art: Schluessel (stabil ueber Patches), Name, Seiten-Slug und die Felder,
@@ -117,12 +117,12 @@ const REGELN = {
     name: (v) => v.name,
     felder: [
       ['crewMin', 'Mindestcrew', 'Minimum crew', (v) => zahl(v.crewMin)],
-      ['sizeClass', 'Groessenklasse', 'Size class', (v) => zahl(v.sizeClass)],
-      ['hullHp', 'Huelle (HP)', 'Hull (HP)', (v) => zahl(v.hullHp)],
+      ['sizeClass', 'Größenklasse', 'Size class', (v) => zahl(v.sizeClass)],
+      ['hullHp', 'Hülle (HP)', 'Hull (HP)', (v) => zahl(v.hullHp)],
       ['shieldHp', 'Schild (HP)', 'Shield (HP)', (v) => zahl(v.shieldHp)],
       ['scmSpeed', 'SCM (m/s)', 'SCM (m/s)', (v) => zahl(v.scmSpeed)],
       ['maxSpeed', 'Max (m/s)', 'Max (m/s)', (v) => zahl(v.maxSpeed)],
-      ['boostForward', 'Boost vorwaerts (m/s)', 'Forward boost (m/s)', (v) => zahl(v.boostForward)],
+      ['boostForward', 'Boost vorwärts (m/s)', 'Forward boost (m/s)', (v) => zahl(v.boostForward)],
       ['pitch', 'Nicken (°/s)', 'Pitch (°/s)', (v) => zahl(v.pitch)],
       ['yaw', 'Gieren (°/s)', 'Yaw (°/s)', (v) => zahl(v.yaw)],
       ['roll', 'Rollen (°/s)', 'Roll (°/s)', (v) => zahl(v.roll)],
@@ -137,13 +137,13 @@ const REGELN = {
       ['pilotDps', 'Pilot-DPS', 'Pilot DPS', (v) => zahl(v.pilotDps), 0.5],
       ['turretDps', 'Turm-DPS', 'Turret DPS', (v) => zahl(v.turretDps), 0.5],
       ['missileCount', 'Raketen', 'Missiles', (v) => zahl(v.missileCount)],
-      ['cmLaunchers', 'Taeuschkoerperwerfer', 'Countermeasure launchers', (v) => zahl(v.cmLaunchers)],
+      ['cmLaunchers', 'Täuschkörperwerfer', 'Countermeasure launchers', (v) => zahl(v.cmLaunchers)],
       ['fixedWeapons', 'Waffen', 'Weapons', (v) => mal(v.fixedWeapons)],
       ['turretWeapons', 'Turmwaffen', 'Turret weapons', (v) => mal(v.turretWeapons)],
-      ['missileRacks', 'Raketenbestueckung', 'Missile loadout', (v) => mal(v.missileRacks)],
+      ['missileRacks', 'Raketenbestückung', 'Missile loadout', (v) => mal(v.missileRacks)],
       ['powerPlants', 'Kraftwerk', 'Power plant', (v) => mal(v.components?.powerPlants)],
       ['shields', 'Schildgenerator', 'Shield generator', (v) => mal(v.components?.shields)],
-      ['coolers', 'Kuehler', 'Cooler', (v) => mal(v.components?.coolers)],
+      ['coolers', 'Kühler', 'Cooler', (v) => mal(v.components?.coolers)],
       ['quantumDrives', 'Quantenantrieb', 'Quantum drive', (v) => mal(v.components?.quantumDrives)],
       ['radars', 'Radar', 'Radar', (v) => mal(v.components?.radars)],
     ],
@@ -156,7 +156,7 @@ const REGELN = {
     slug: (i) => i.id,
     name: (i) => i.name,
     felder: [
-      ['size', 'Groesse', 'Size', (i) => zahl(i.game.size)],
+      ['size', 'Größe', 'Size', (i) => zahl(i.game.size)],
       ['grade', 'Grade', 'Grade', (i) => i.game.grade ?? null],
       ['class', 'Klasse', 'Class', (i) => i.game.class ?? null],
       ['dps', 'DPS', 'DPS', (i) => zahl(i.game.stats?.dps), 0.5],
@@ -170,7 +170,7 @@ const REGELN = {
       ['shieldHp', 'Schild (HP)', 'Shield (HP)', (i) => zahl(i.game.stats?.shieldHp), 1],
       ['regen', 'Schild-Regeneration', 'Shield regen', (i) => zahl(i.game.stats?.regen)],
       ['powerOutput', 'Leistung', 'Power output', (i) => zahl(i.game.stats?.powerOutput)],
-      ['coolingRate', 'Kuehlrate', 'Cooling rate', (i) => zahl(i.game.stats?.coolingRate)],
+      ['coolingRate', 'Kühlrate', 'Cooling rate', (i) => zahl(i.game.stats?.coolingRate)],
       ['driveSpeed', 'Quantengeschwindigkeit (m/s)', 'Quantum speed (m/s)', (i) => zahl(i.game.stats?.driveSpeed), 1],
       ['spoolTime', 'Anlaufzeit (s)', 'Spool time (s)', (i) => zahl(i.game.stats?.spoolTime)],
       ['fuelCapacity', 'Tankinhalt', 'Fuel capacity', (i) => zahl(i.game.stats?.fuelCapacity)],
@@ -188,7 +188,7 @@ const REGELN = {
       ['craft_time_seconds', 'Herstellzeit (s)', 'Craft time (s)', (b) => zahl(b.craft_time_seconds)],
       ['tiers', 'Stufen', 'Tiers', (b) => zahl(b.tiers)],
       ['ingredients', 'Zutaten', 'Ingredients', (b) => (b.ingredients ?? []).map((s) => `${s.slot}: ${(s.options ?? []).map((o) => `${o.name} ${o.quantity_scu ?? '?'} SCU${o.min_quality ? ` (ab Q${o.min_quality})` : ''}`).join(' / ')}`).sort()],
-      ['missions', 'Auftraege mit diesem Bauplan', 'Contracts rewarding it', (b) => [...new Set((b.missions ?? []).map((m) => m.id))].sort()],
+      ['missions', 'Aufträge mit diesem Bauplan', 'Contracts rewarding it', (b) => [...new Set((b.missions ?? []).map((m) => m.id))].sort()],
     ],
   },
   mission: {
@@ -197,14 +197,14 @@ const REGELN = {
     slug: (m) => m.slug,
     name: (m) => m.title,
     felder: [
-      ['ranks', 'Raenge', 'Ranks', (m) => (m.ranks?.length ? [m.ranks.join(' → ')] : [])],
+      ['ranks', 'Ränge', 'Ranks', (m) => (m.ranks?.length ? [m.ranks.join(' → ')] : [])],
       ['rewardMin', 'Belohnung ab (aUEC)', 'Reward from (aUEC)', (m) => zahl(m.rewardMin)],
       ['rewardMax', 'Belohnung bis (aUEC)', 'Reward up to (aUEC)', (m) => zahl(m.rewardMax)],
       ['shareable', 'Teilbar', 'Shareable', (m) => m.shareable ?? null],
       // Bis 4.10.2 stand fuer "unbelegt" 1 oder -1, ab dem 4.10.3-Lauf null (Erzeuger seit 661a69c8).
-      ['maxPlayers', 'Hoechstzahl Spieler', 'Max players', (m) => (m.maxPlayers > 1 ? m.maxPlayers : null)],
+      ['maxPlayers', 'Höchstzahl Spieler', 'Max players', (m) => (m.maxPlayers > 1 ? m.maxPlayers : null)],
       ['lawful', 'Legal', 'Lawful', (m) => m.lawful ?? null],
-      ['blueprints', 'Bauplaene als Belohnung', 'Blueprint rewards', (m) => [...new Set((m.blueprints ?? []).flatMap((p) => p.blueprints.map((b) => b.name)))].length],
+      ['blueprints', 'Baupläne als Belohnung', 'Blueprint rewards', (m) => [...new Set((m.blueprints ?? []).flatMap((p) => p.blueprints.map((b) => b.name)))].length],
       ['giverNames', 'Auftraggeber', 'Contractor', (m) => [...(m.giverNames ?? [])].sort()],
     ],
   },

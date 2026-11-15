@@ -15,7 +15,7 @@
   "nach": {
     "version": "4.10.3",
     "ref": "Arbeitsbaum",
-    "commit": "317b40bfe85d",
+    "commit": "fdfe78fc831c",
     "cl": {
       "vehicles": "13165946",
       "items": "13165946",
@@ -89,11 +89,11 @@
         "en": "Minimum crew"
       },
       "sizeClass": {
-        "de": "Groessenklasse",
+        "de": "Größenklasse",
         "en": "Size class"
       },
       "hullHp": {
-        "de": "Huelle (HP)",
+        "de": "Hülle (HP)",
         "en": "Hull (HP)"
       },
       "shieldHp": {
@@ -109,7 +109,7 @@
         "en": "Max (m/s)"
       },
       "boostForward": {
-        "de": "Boost vorwaerts (m/s)",
+        "de": "Boost vorwärts (m/s)",
         "en": "Forward boost (m/s)"
       },
       "pitch": {
@@ -169,7 +169,7 @@
         "en": "Missiles"
       },
       "cmLaunchers": {
-        "de": "Taeuschkoerperwerfer",
+        "de": "Täuschkörperwerfer",
         "en": "Countermeasure launchers"
       },
       "fixedWeapons": {
@@ -181,7 +181,7 @@
         "en": "Turret weapons"
       },
       "missileRacks": {
-        "de": "Raketenbestueckung",
+        "de": "Raketenbestückung",
         "en": "Missile loadout"
       },
       "powerPlants": {
@@ -193,7 +193,7 @@
         "en": "Shield generator"
       },
       "coolers": {
-        "de": "Kuehler",
+        "de": "Kühler",
         "en": "Cooler"
       },
       "quantumDrives": {
@@ -207,7 +207,7 @@
     },
     "item": {
       "size": {
-        "de": "Groesse",
+        "de": "Größe",
         "en": "Size"
       },
       "grade": {
@@ -239,7 +239,7 @@
         "en": "Damage per shot, thermal"
       },
       "damage.stun": {
-        "de": "Schaden je Schuss, Betaeubung",
+        "de": "Schaden je Schuss, Betäubung",
         "en": "Damage per shot, stun"
       },
       "fireRate": {
@@ -279,7 +279,7 @@
         "en": "Power output"
       },
       "coolingRate": {
-        "de": "Kuehlrate",
+        "de": "Kühlrate",
         "en": "Cooling rate"
       },
       "driveSpeed": {
@@ -325,13 +325,13 @@
         "en": "Ingredients"
       },
       "missions": {
-        "de": "Auftraege mit diesem Bauplan",
+        "de": "Aufträge mit diesem Bauplan",
         "en": "Contracts rewarding it"
       }
     },
     "mission": {
       "ranks": {
-        "de": "Raenge",
+        "de": "Ränge",
         "en": "Ranks"
       },
       "rewardMin": {
@@ -347,7 +347,7 @@
         "en": "Shareable"
       },
       "maxPlayers": {
-        "de": "Hoechstzahl Spieler",
+        "de": "Höchstzahl Spieler",
         "en": "Max players"
       },
       "lawful": {
@@ -355,7 +355,7 @@
         "en": "Lawful"
       },
       "blueprints": {
-        "de": "Bauplaene als Belohnung",
+        "de": "Baupläne als Belohnung",
         "en": "Blueprint rewards"
       },
       "giverNames": {
