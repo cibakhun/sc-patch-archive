@@ -14,6 +14,13 @@
 // Knoten der Türblätter, an denen der Export kein Teilnetz behält. Sieben
 // Teilnetze blieben „ohne Lage“. Ihre Lage nennt der Knotenbaum der .cga;
 // er gilt nur, wenn jedes behaltene Teilnetz ihn am Export belegt.
+//
+// Gedrehte Knoten (15.11.2026, nach dem Merge der Türen): Zwei Kästen messen
+// eine Verschiebung, keine Drehung. An einem um 180° gedrehten Blatt stimmte
+// das behaltene Teilnetz deshalb für „der Export hat die Dreiecke gewendet“,
+// obwohl nichts gewendet war (Normale der Datei im Raum des Knotens gegen die
+// des Exports), und ein Aufdruck am selben Knoten wäre nur hingeschoben
+// worden statt mitgedreht. Beides beantwortet jetzt der belegte Knotenbaum.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Document } from '@gltf-transform/core';
@@ -163,18 +170,21 @@ test('baumBelegt: eine halbe Drehung belegt, eine schräge nicht (streng)', () =
 // den der Export auslässt, und das Blech (Material 2, Knoten 0), das er behält. Lagen der Datei im Raum
 // ihres Knotens; der Export zeigt das Blech dort, wo der Baum es hinstellt (versatzBlech).
 const BLECH = [[0, 1, 0], [1, 1, 0], [1, 1, 2], [0, 1, 2]], DRUCK = [[0, 0, 0], [0.5, 0, 0], [0.5, 0, 1], [0, 0, 1]];
-function tuer({ baum = TUER(), versatzBlech = [0, -1, 0], endung = 'cgam', mitBaum = true } = {}) {
+// stellBlech: wohin der Export eine Ecke des Blechs stellt (sonst verschoben um versatzBlech). umlauf: die
+// Dreiecke des Blechs im Export. knotenDruck: der Knoten, an dem der Aufdruck hängt. aufdruck: trägt das
+// ausgelassene Teilnetz ein Aufkleber-Material?
+function tuer({ baum = TUER(), versatzBlech = [0, -1, 0], stellBlech = (p) => p.map((x, q) => x + versatzBlech[q]), umlauf = [0, 1, 2, 0, 2, 3], knotenDruck = 1, aufdruck = true, endung = 'cgam', mitBaum = true } = {}) {
   const ecken = [...DRUCK, ...BLECH];
   const g = {
-    subs: [{ mat: 1, node: 1, firstIndex: 0, numIndices: 6 }, { mat: 2, node: 0, firstIndex: 6, numIndices: 6 }],
+    subs: [{ mat: 1, node: knotenDruck, firstIndex: 0, numIndices: 6 }, { mat: 2, node: 0, firstIndex: 6, numIndices: 6 }],
     pos: new Float32Array(ecken.flat()), idx: new Uint32Array([0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7]),
     uv: new Float32Array(16), col: new Uint8Array(32).fill(255), nor: new Float32Array(ecken.flatMap(() => [0, -1, 0])),
   };
   const doc = new Document();
   const buffer = doc.createBuffer();
   const prim = doc.createPrimitive().setMaterial(doc.createMaterial('tuer_mtl_blech_02'))
-    .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array(BLECH.flatMap((p) => p.map((x, q) => x + versatzBlech[q])))).setBuffer(buffer))
-    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array([0, 1, 2, 0, 2, 3])).setBuffer(buffer));
+    .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array(BLECH.flatMap(stellBlech))).setBuffer(buffer))
+    .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array(umlauf)).setBuffer(buffer));
   doc.createScene('halle').addChild(doc.createNode('tuer').setMesh(doc.createMesh('objects/tuer/tuer_a.cga').addPrimitive(prim)));
   const gefragt = [];
   const r = hallDecalDoc({
@@ -183,13 +193,13 @@ function tuer({ baum = TUER(), versatzBlech = [0, -1, 0], endung = 'cgam', mitBa
     read: (f) => f,
     leseNetz: () => g,
     leseMaterial: () => 'objects/tuer/tuer.mtl',
-    subMaterials: () => [null, { name: 'aufdruck', decal: true, shader: 'Illum', d: 'aufdruck.dds' }, { name: 'blech' }],
+    subMaterials: () => [null, { name: 'aufdruck', decal: aufdruck, shader: 'Illum', d: 'aufdruck.dds' }, { name: 'blech' }],
     ...(mitBaum ? { knoten: (kopf) => { gefragt.push(kopf); return baum; } } : {}),
   });
   const p = r.doc?.getRoot().listMeshes()[0]?.listPrimitives()[0];
   const lage = p ? [...p.getAttribute('POSITION').getArray()].map((x) => +x.toFixed(4)) : null;
   const normale = p ? [...p.getAttribute('NORMAL').getArray()].slice(0, 3).map((x) => +x.toFixed(4)) : null;
-  return { report: r.report, lage, normale, gefragt };
+  return { report: r.report, lage, normale, gefragt, dreiecke: p ? [...p.getIndices().getArray()] : null };
 }
 
 test('hallDecalDoc: ein Aufdruck an einem Knoten ohne behaltenes Teilnetz steht, wo der belegte Knotenbaum ihn hinstellt', () => {
@@ -224,9 +234,71 @@ test('hallDecalDoc: ohne Knotenbaum, ohne Beleg oder ohne Lage des Knotens bleib
   offen(tuer({ baum: [k(0, 2, [-2, -1, 0]), k(1, 2, null), k(2, 3, [2, 0, 0]), k(3, null, [0, 0, 0])] }), 'der Knoten des Aufdrucks hat keine Lage');
 });
 
-test('hallDecalDoc: der Knotenbaum wird nur für eine .cga gefragt, und nur, wenn ein Aufdruck ihn braucht', () => {
+test('hallDecalDoc: der Knotenbaum wird nur für eine .cga gefragt, und nur, wenn das Netz Aufdrucke zurückbekommt', () => {
   // .cgfm: ein Netz ohne Knotenbaum; verschoben gemessen, also auch nicht über lageOhneMessung
   const f = tuer({ endung: 'cgfm' });
   assert.deepEqual(f.gefragt, []);
   assert.deepEqual(f.report.ohneLage, ['tuer_a #1 Knoten 1']);
+  // .cga, deren ausgelassenes Teilnetz kein Aufkleber ist: nichts zurückzuholen, also keine Frage
+  const o = tuer({ aufdruck: false });
+  assert.deepEqual(o.gefragt, []);
+  assert.equal(o.report.andere.teilnetze, 1);
+});
+
+// ─── Gedrehte Knoten (15.11.2026) ───────────────────────────────────────────
+// Das Blech hängt an einem halb gedrehten Blatt: Knoten 0 unter Knoten 4 (halbe Drehung um Z, bei (1,0,0)).
+// Der Export zeigt es dort, wohin der Baum es stellt: (x, y, z) -> (1 - x, -y, z). Der Aufdruck hängt am
+// ungedrehten Knoten 1 wie in TUER().
+const BLATT = () => [k(0, 4, [0, 0, 0]), k(1, 2, [-0.9, 0.36, 0.25]), k(2, 3, [2, 0, 0]), k(3, null, [0, 0, 0]), k(4, 3, [1, 0, 0], HALB_Z)];
+const HALB = (p) => [1 - p[0], -p[1], p[2]];
+const GEWENDET = [0, 2, 1, 0, 3, 2];
+
+test('hallDecalDoc: ein um 180° gedrehtes Blatt stimmt nicht für „gewendet“', () => {
+  // Datei: Normale des Blechs -y im Raum seines Knotens. Export: dieselben Dreiecke, gedreht, Normale +y.
+  // Ohne die Drehung des Knotens zeigten die beiden Normalen gegeneinander, und der Aufdruck bekäme
+  // gewendete Dreiecke: Sein Material ist einseitig, man sähe seine Rückseite, also nichts.
+  const t = tuer({ baum: BLATT(), stellBlech: HALB });
+  assert.deepEqual(t.report.ohneLage, []);
+  assert.equal(t.report.gedreht, 0, 'der Export hat nichts gewendet');
+  assert.deepEqual(t.dreiecke, [0, 1, 2, 0, 2, 3]);
+  assert.deepEqual(t.lage, DRUCK.flatMap((p) => [p[0] + 1.1, p[1] + 0.36, p[2] + 0.25]).map((x) => +x.toFixed(4)));
+});
+
+test('hallDecalDoc: hat der Export am gedrehten Blatt wirklich gewendet, wendet der Aufdruck mit', () => {
+  const t = tuer({ baum: BLATT(), stellBlech: HALB, umlauf: GEWENDET });
+  assert.equal(t.report.gedreht, 1);
+  assert.deepEqual(t.dreiecke, GEWENDET);
+  // und am ungedrehten Knoten wie zuvor: gewendet heißt gewendet
+  const u = tuer({ umlauf: GEWENDET });
+  assert.equal(u.report.gedreht, 1);
+  assert.deepEqual(u.dreiecke, GEWENDET);
+  assert.equal(tuer().report.gedreht, 0);
+});
+
+test('hallDecalDoc: ein Aufdruck am gedrehten Knoten dreht mit, auch wenn dort ein behaltenes Teilnetz gemessen ist', () => {
+  // Aufdruck und Blech am selben, gedrehten Knoten 0. Die beiden Kästen des Blechs sind gleich groß, die
+  // Messung nennt eine Verschiebung von (0,-2,0), und die trüge den Aufdruck nach y = -2 statt ihn zu drehen.
+  const t = tuer({ baum: BLATT(), stellBlech: HALB, knotenDruck: 0 });
+  assert.deepEqual(t.report.ohneLage, []);
+  assert.deepEqual(t.report.ausBaum, ['tuer_a #1 Knoten 0']);
+  assert.deepEqual(t.report.gedrehterKnoten, ['tuer_a #1 Knoten 0']);
+  assert.deepEqual(t.lage, DRUCK.flatMap(HALB).map((x) => +x.toFixed(4)));
+  assert.deepEqual(t.normale, [0, 1, 0]);
+  assert.deepEqual(t.dreiecke, [0, 1, 2, 0, 2, 3]);
+});
+
+test('hallDecalDoc: am ungedrehten Knoten bleibt die gemessene Verschiebung, mit und ohne Baum', () => {
+  for (const mitBaum of [true, false]) {
+    const t = tuer({ knotenDruck: 0, mitBaum });
+    assert.deepEqual(t.report.ohneLage, []);
+    assert.deepEqual(t.report.ausBaum, [], 'gemessen, nicht aus dem Baum');
+    assert.deepEqual(t.report.gedrehterKnoten, []);
+    assert.deepEqual(t.lage, DRUCK.flatMap((p) => [p[0], p[1] - 1, p[2]]).map((x) => +x.toFixed(4)));
+    assert.deepEqual(t.normale, [0, -1, 0]);
+  }
+  // der Baum belegt die Drehung nicht (der Export zeigt das Blech nur verschoben): Dann gilt er nicht,
+  // und es bleibt bei der Messung
+  const u = tuer({ baum: BLATT(), knotenDruck: 0 });
+  assert.deepEqual(u.report.ausBaum, []);
+  assert.deepEqual(u.lage, DRUCK.flatMap((p) => [p[0], p[1] - 1, p[2]]).map((x) => +x.toFixed(4)));
 });

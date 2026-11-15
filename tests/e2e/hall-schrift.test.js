@@ -126,10 +126,93 @@ test('liftHallText: Schrift rückt 5 mm längs ihrer Normale ab, Tafel und Aufkl
 
 test('hallTextDoc: ohne leichtere Stufe oder ohne Spieldateien gibt es nichts zu holen', () => {
   const { doc } = halle();
-  const leer = { netze: 0, teilnetze: 0, trisAlt: 0, trisNeu: 0, trisNeuMitExemplaren: 0, ohneLage: [], liste: [] };
+  const leer = { netze: 0, teilnetze: 0, trisAlt: 0, trisNeu: 0, trisNeuMitExemplaren: 0, ohneLage: [], ausBaum: [], liste: [] };
   assert.deepEqual(hallTextDoc({ doc, files: new Map(), read: () => { throw new Error('nicht lesen'); }, lod: 0, Document }), { doc: null, report: leer });
   assert.deepEqual(hallTextDoc({ doc, files: new Map(), read: () => { throw new Error('nicht lesen'); }, lod: 1, Document }), { doc: null, report: leer });
   // eine Datei, die sich nicht lesen lässt, ist kein Treffer und kein Abbruch
   const files = new Map([['primary_sign_test_a_lod1.cgfm', ['raw/primary_sign_test_a_lod1.cgfm']], ['primary_sign_test_a.cgfm', ['raw/primary_sign_test_a.cgfm']]]);
   assert.deepEqual(hallTextDoc({ doc, files, read: () => Buffer.from('kein Netz'), lod: 1, Document }), { doc: null, report: leer });
+});
+
+// ─── Schild an einem gedrehten Knoten (15.11.2026) ──────────────────────────
+// Zwei Kästen messen eine Verschiebung, keine Drehung: Hängt das Schild in seiner .cga an einem um 180°
+// gedrehten Knoten, trüge die gemessene Verschiebung die Buchstaben der Grundstufe nur hin, gespiegelt
+// um die Mitte des ersten, und die Abstimmung über die Umlaufrichtung fiele falsch aus. Dort stellt der
+// belegte Knotenbaum der Datei den Ersatz hin.
+// Datei im Raum ihres Knotens: Buchstaben-Vierecke in der Ebene y = 0,5 (Normale -y), je 1 breit im Abstand 2,
+// dahinter die Tafel. Leichtere Stufe: 1 Buchstabe, Grundstufe: 3.
+function schildDateien(n) {
+  const ecken = [], idx = [];
+  const viereck = (x0, x1, y) => { const b = ecken.length; ecken.push([x0, y, 0], [x1, y, 0], [x1, y, 1], [x0, y, 1]); idx.push(b, b + 1, b + 2, b + 2, b + 3, b); };
+  for (let q = 0; q < n; q++) viereck(q * 2, q * 2 + 1, 0.5);
+  viereck(0, 6, 0.6);
+  return {
+    subs: [{ mat: 5, node: 0, firstIndex: 0, numIndices: n * 6 }, { mat: 2, node: 0, firstIndex: n * 6, numIndices: 6 }],
+    pos: new Float32Array(ecken.flat()), idx: new Uint32Array(idx), uv: new Float32Array(ecken.length * 2),
+    col: new Uint8Array(ecken.length * 4).fill(255), nor: new Float32Array(ecken.flatMap(() => [0, -1, 0])),
+  };
+}
+// stell: wohin der Export eine Ecke der Datei stellt. baum: was „nmc dump“ für die .cga nennt.
+function schild({ stell, baum, mitBaum = true, vollN = 3 }) {
+  const lod = schildDateien(1), voll = schildDateien(vollN);
+  const doc = new Document(), buffer = doc.createBuffer();
+  const prim = (sub, material) => {
+    const ix = [...lod.idx.subarray(sub.firstIndex, sub.firstIndex + sub.numIndices)], ecken = [...new Set(ix)];
+    return doc.createPrimitive().setMaterial(doc.createMaterial(material))
+      .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array(ecken.flatMap((e) => stell([lod.pos[e * 3], lod.pos[e * 3 + 1], lod.pos[e * 3 + 2]])))).setBuffer(buffer))
+      .setIndices(doc.createAccessor().setType('SCALAR').setArray(new Uint16Array(ix.map((e) => ecken.indexOf(e)))).setBuffer(buffer));
+  };
+  doc.createScene().addChild(doc.createNode('schild').setMesh(doc.createMesh('objects/schild/schild_a.cga').addPrimitive(prim(lod.subs[0], TEXT)).addPrimitive(prim(lod.subs[1], WAND))));
+  const gefragt = [];
+  const r = hallTextDoc({
+    doc, Document, lod: 1,
+    files: new Map([['schild_a_lod1.cgam', ['roh/schild_a_lod1.cgam']], ['schild_a.cgam', ['roh/schild_a.cgam']]]),
+    read: (f) => f,
+    leseNetz: (f) => (f.includes('_lod1') ? lod : voll),
+    ...(mitBaum ? { knoten: (kopf) => { gefragt.push(kopf); return baum; } } : {}),
+  });
+  const p = r.doc?.getRoot().listMeshes()[0]?.listPrimitives()[0];
+  if (!p) return { report: r.report, gefragt, x: null };
+  const P = [...p.getAttribute('POSITION').getArray()].map((v) => +v.toFixed(4)), I = p.getIndices().getArray();
+  const e = (i) => P.slice(I[i] * 3, I[i] * 3 + 3), a = e(0), b = e(1), c = e(2);
+  const u = b.map((v, q) => v - a[q]), w = c.map((v, q) => v - a[q]);
+  return {
+    report: r.report, gefragt,
+    x: P.filter((v, i) => i % 3 === 0).reduce((m, v) => [Math.min(m[0], v), Math.max(m[1], v)], [Infinity, -Infinity]),
+    y: [...new Set(P.filter((v, i) => i % 3 === 1))],
+    normale: [...p.getAttribute('NORMAL').getArray()].slice(0, 3).map((v) => +v.toFixed(4)),
+    // wohin das erste Dreieck zeigt (Umlaufrichtung)
+    vorn: Math.sign(u[2] * w[0] - u[0] * w[2]),
+  };
+}
+const knotenS = (ort, dreh = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) => [{ index: 0, name: 'schild', parent: null, geom: 0, b2w: dreh.map((z, i) => [...z, ort[i]]) }];
+const HALB_Z = [[-1, 0, 0], [0, -1, 0], [0, 0, 1]];
+
+test('hallTextDoc: an einem gedrehten Knoten stellt der Knotenbaum die Buchstaben der Grundstufe hin', () => {
+  // der Knoten steht bei (4,0,0), halb um Z gedreht: (x, y, z) -> (4 - x, -y, z)
+  const t = schild({ stell: (p) => [4 - p[0], -p[1], p[2]], baum: knotenS([4, 0, 0], HALB_Z) });
+  assert.deepEqual(t.report.ohneLage, []);
+  assert.deepEqual(t.report.ausBaum, ['schild_a #5 Knoten 0']);
+  assert.equal(t.report.teilnetze, 1);
+  assert.deepEqual(t.x, [-1, 4], 'drei Buchstaben von x = 4 nach links; nur verschoben stünden sie von 3 bis 8');
+  assert.deepEqual(t.y, [-0.5]);
+  assert.deepEqual(t.normale, [0, 1, 0], 'die Normale dreht mit');
+  assert.equal(t.vorn, 1, 'die Dreiecke zeigen nach +y wie im Export, nicht gewendet');
+  assert.deepEqual(t.gefragt, ['roh/schild_a.cga'], 'gefragt wird der Kopf der Grundstufe, einmal');
+});
+
+test('hallTextDoc: am ungedrehten Knoten bleibt die gemessene Verschiebung, und ohne Ersatz wird kein Baum gefragt', () => {
+  for (const mitBaum of [true, false]) {
+    const t = schild({ stell: (p) => [p[0] + 4, p[1], p[2]], baum: knotenS([4, 0, 0]), mitBaum });
+    assert.deepEqual(t.report.ohneLage, []);
+    assert.deepEqual(t.report.ausBaum, []);
+    assert.deepEqual(t.x, [4, 9]);
+    assert.deepEqual(t.y, [0.5]);
+    assert.deepEqual(t.normale, [0, -1, 0]);
+    assert.equal(t.vorn, -1);
+  }
+  // die Grundstufe trägt nicht mehr Buchstaben als die leichtere: nichts zu holen, keine Frage an den Baum
+  const o = schild({ stell: (p) => [p[0] + 4, p[1], p[2]], baum: knotenS([4, 0, 0]), vollN: 1 });
+  assert.equal(o.report.teilnetze, 0);
+  assert.deepEqual(o.gefragt, []);
 });

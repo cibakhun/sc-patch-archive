@@ -79,6 +79,11 @@ const HALLS = [
   // nur: von den neun Aufzügen für Personen und dem Aufzug der Abgabe-Nische
   // stehen nur die Türen. Sie ruhen zu; Kabine, Käfig und Leuchten dahinter
   // sieht niemand, und ihre Lichter schienen durch die Wand in die Halle.
+  // anhang: die Lampen in der Kabine des Frachtaufzugs. Ihre Lichtgruppe hängt
+  // am Knochen der Plattform, und solche Gruppen lässt der Export weg: Die
+  // Kabine stand mit ihren Leuchten im Modell, aber dunkel. anLeuchte: so
+  // viele Lampen müssen an einer Leuchte des Modells sitzen (gemessen 24 von
+  // 57; im falschen Raum gelesen keine), sonst bricht der Schritt ab.
   { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' },
@@ -86,6 +91,7 @@ const HALLS = [
       folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
       lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
       nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
+      anhang: [{ kind: 'elev_util_cargo_hangar_lrg_a', gruppe: 'lg_elev_util_cargo_hangar_lrg_a', knochen: 'anim_lift', anLeuchte: 12 }],
     } },
   { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];
@@ -457,7 +463,7 @@ if (containers.length) {
         }
       }
       if (h.tor) await werkhalleCompose(h, file);
-      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, lichtZeilen, schalter });
+      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter });
       if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
@@ -924,7 +930,7 @@ async function hallDecals(h, doc) {
   else if (existsSync(file)) rmSync(file);
   // Schrift, die in der leichteren Stufe der Halle ausgedünnt ist, aus der Grundstufe derselben
   // Dateien (hallTextDoc): eigenes GLB nach hall/<halle>.schrift.glb, der Build tauscht die Geometrie
-  const schrift = hallTextDoc({ doc, files: byBase, read: (f) => readFileSync(f), lod: h.lod, Document });
+  const schrift = hallTextDoc({ doc, files: byBase, read: (f) => readFileSync(f), knoten, lod: h.lod, Document });
   const schriftFile = `${SRC}hall/${h.key}.schrift.glb`;
   if (schrift.doc) await new NodeIO().write(schriftFile, schrift.doc);
   else if (existsSync(schriftFile)) rmSync(schriftFile);
@@ -932,10 +938,11 @@ async function hallDecals(h, doc) {
   writeFileSync(`${SRC}hall/${h.key}.decals.json`, JSON.stringify(report, null, 1));
   const A = report.aufkleber;
   console.log(`  Aufkleber: ${report.zugeordnet} von ${report.netze} Netzen ihrer Spieldatei zugeordnet (${report.ohneDatei.length} ohne Datei, ${report.unklar.length} unklar), ${A.teilnetze} ausgelassene Teilnetze an ${A.netze} Netzen zurückgeholt, ${A.trisMitExemplaren} Dreiecke mit allen Exemplaren, ${Object.keys(report.materialien).length} Materialien; ${report.ohneLage.length} ohne Lage, ${report.andere.teilnetze} ausgelassene ohne Aufkleber-Material`);
-  if (report.ausBaum.length) console.log(`    Lage aus dem Knotenbaum der Datei (kein behaltenes Teilnetz am selben Knoten, Baum an den behaltenen belegt): ${report.ausBaum.length}, ${report.ausBaum.slice(0, 8).join(' | ')}`);
+  if (report.ausBaum.length) console.log(`    Lage aus dem Knotenbaum der Datei (kein behaltenes Teilnetz am selben Knoten oder der Knoten steht gedreht, Baum an den behaltenen belegt): ${report.ausBaum.length}, ${report.ausBaum.slice(0, 8).join(' | ')}`);
+  if (report.gedrehterKnoten.length) console.log(`    davon an einem gedrehten Knoten mit behaltenem Teilnetz (die gemessene Verschiebung hätte sie nur hingetragen, nicht gedreht): ${report.gedrehterKnoten.length}, ${report.gedrehterKnoten.slice(0, 8).join(' | ')}`);
   if (report.ohneLage.length) console.log(`    ohne Lage (kein behaltenes Teilnetz am selben Knoten, kein belegter Knotenbaum): ${report.ohneLage.slice(0, 8).join(' | ')}`);
   const S = schrift.report;
-  if (S.teilnetze || S.ohneLage.length) console.log(`  Schrift: ${S.teilnetze} in der leichteren Stufe ausgedünnte Teilnetze an ${S.netze} Netzen aus der Grundstufe geholt (${S.trisNeu} statt ${S.trisAlt} Dreiecke)${S.ohneLage.length ? `; ${S.ohneLage.length} ohne sichere Lage ausgelassen: ${S.ohneLage.slice(0, 8).join(' | ')}` : ''}`);
+  if (S.teilnetze || S.ohneLage.length) console.log(`  Schrift: ${S.teilnetze} in der leichteren Stufe ausgedünnte Teilnetze an ${S.netze} Netzen aus der Grundstufe geholt (${S.trisNeu} statt ${S.trisAlt} Dreiecke)${S.ohneLage.length ? `; ${S.ohneLage.length} ohne sichere Lage ausgelassen: ${S.ohneLage.slice(0, 8).join(' | ')}` : ''}${S.ausBaum.length ? `; ${S.ausBaum.length} an einem gedrehten Knoten über den Knotenbaum gestellt: ${S.ausBaum.slice(0, 8).join(' | ')}` : ''}`);
   return out ? out.getRoot().listMaterials().flatMap((m) => [m.getExtras().hall_decal.d, m.getExtras().hall_decal.n]).filter(Boolean) : [];
 }
 

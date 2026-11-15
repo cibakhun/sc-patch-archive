@@ -12,6 +12,16 @@
 // Primitivs gegen Kasten des Teilnetzes) — so prüft jede Zuordnung zugleich,
 // dass Datei und Export wirklich dasselbe Netz meinen.
 //
+// Zwei Kästen sagen aber nur, wohin ein Knoten verschoben ist, nicht, ob er
+// gedreht steht: Ein um 180° gedrehtes Türblatt hat einen gleich großen Kasten.
+// Darum wird bei einer .cga, die Aufdrucke zurückbekommt, ihr Knotenbaum
+// gefragt (knotenLagen), und gilt er (baumBelegt: jedes behaltene Teilnetz
+// fällt nach der Lage seines Knotens auf seinen Kasten im Export), dann
+// antwortet er für jeden gedrehten Knoten: Lage und Normalen der Aufdrucke
+// dort drehen mit, und beim Abstimmen über die Umlaufrichtung wird die
+// Normale der Datei erst in den Raum des Exports gedreht. An ungedrehten
+// Knoten bleibt die gemessene Verschiebung.
+//
 // hallDecalDoc baut daraus ein eigenes glTF-Dokument: je betroffenem Netz ein
 // Mesh mit dem Namen aus dem Export und je ausgelassenem Aufkleber-Teilnetz
 // ein Primitiv (Lage, Normale, UV, Eckfarbe RGBA wie im Spiel). Der Build
@@ -57,6 +67,8 @@ const reineDrehung = (r) => {
   const det = r[0] * (r[4] * r[8] - r[5] * r[7]) - r[1] * (r[3] * r[8] - r[5] * r[6]) + r[2] * (r[3] * r[7] - r[4] * r[6]);
   return Math.abs(det - 1) < 1e-4;
 };
+// steht der Knoten gedreht (und nicht nur verschoben)?
+const stehtGedreht = (l) => !!l && l.r.some((x, i) => Math.abs(x - (i % 4 === 0 ? 1 : 0)) > 1e-4);
 export function knotenLagen(knoten) {
   const nach = new Map((knoten ?? []).map((k) => [k.index, k]));
   const out = new Map(), offen = new Set();
@@ -103,6 +115,15 @@ export function baumBelegt(lagen, proben, tol = 2e-3) {
   }
   return true;
 }
+// Die Lagen aus dem Knotenbaum einer .cga, wenn er gilt, sonst null. knoten(kopf) -> nmcKnoten des Kopfs der
+// Grundstufe (eine leichtere Stufe trägt keinen eigenen Baum); eine .cgf hat keinen.
+function belegterBaum(knoten, file, kopf, proben) {
+  if (!knoten || !/\.cgam$/i.test(file)) return null;
+  let l = null;
+  try { l = knotenLagen(knoten(kopf)); } catch { /* ohne Baum keine Lage */ }
+  return baumBelegt(l, proben) ? l : null;
+}
+const KOPF = (file) => file.replace(/(_lod\d)?\.(cga|cgf)m$/i, '.$2');
 
 // Die .mtl eines Netzes im Rohordner des Extraktors: suchen, und auspacken,
 // wenn sie fehlt. Mit force (--force) wird sie auch dann neu ausgepackt,
@@ -164,7 +185,10 @@ function firstNormal(get, tri) {
 // knoten(kopfPfad) -> Knotenbaum der .cga (nmcKnoten) oder null: Daraus kommt
 // die Lage eines Aufkleber-Teilnetzes, an dessen Knoten der Export kein
 // Teilnetz behalten hat (die Blätter einer Tür tragen ihre Aufdrucke an
-// eigenen Knoten). Ohne knoten bleibt es bei „ohne Lage“. leseNetz und
+// eigenen Knoten), und die Drehung eines gedrehten Knotens, für die Lage
+// seiner Aufdrucke und für die Abstimmung über die Umlaufrichtung. Gefragt
+// wird je .cga, die Aufdrucke zurückbekommt, einmal. Ohne knoten bleibt es
+// bei „ohne Lage“ und bei der gemessenen Verschiebung. leseNetz und
 // leseMaterial lesen Netz- und Kopfdatei (readSkinMesh, readSkinMaterial);
 // die Tests setzen dort ihre kleinen Netze ein.
 // Liefert { doc, report }; doc ist null, wenn kein Aufkleber gefunden wurde.
@@ -178,7 +202,7 @@ export function hallDecalDoc({ doc, files, read, subMaterials, knoten = null, lo
   const buffer = out.createBuffer(), scene = out.createScene('aufkleber');
   const mats = new Map();
   const report = {
-    netze: uses.size, zugeordnet: 0, ohneDatei: [], unklar: [], ohneLage: [], ausBaum: [], gedreht: 0,
+    netze: uses.size, zugeordnet: 0, ohneDatei: [], unklar: [], ohneLage: [], ausBaum: [], gedrehterKnoten: [], gedreht: 0,
     aufkleber: { netze: 0, teilnetze: 0, tris: 0, trisMitExemplaren: 0 }, andere: { teilnetze: 0, tris: 0 }, materialien: {},
   };
   const stufen = lod ? [`_lod${lod}`, ''] : ['', '_lod1'];
@@ -200,7 +224,7 @@ export function hallDecalDoc({ doc, files, read, subMaterials, knoten = null, lo
     report.zugeordnet++;
     if (!fit.dropped.length) continue;
     // Material der Datei: im Kopf (.cgf/.cga) neben der Netzdatei (.cgfm/.cgam)
-    const head = file.replace(/(_lod\d)?\.(cga|cgf)m$/i, '.$2');
+    const head = KOPF(file);
     let mtl = null;
     try { mtl = leseMaterial(read(head)); } catch { /* ohne Kopf kein Material */ }
     const subMats = mtl ? subMaterials(mtl) : null;
@@ -211,8 +235,7 @@ export function hallDecalDoc({ doc, files, read, subMaterials, knoten = null, lo
     // Verschiebung je Netz-Knoten und Umlaufrichtung, gemessen an den behaltenen Teilnetzen
     const filePos = (i, v) => { v[0] = g.pos[i * 3]; v[1] = g.pos[i * 3 + 1]; v[2] = g.pos[i * 3 + 2]; };
     const subIdx = (sub) => g.idx.subarray(sub.firstIndex, sub.firstIndex + sub.numIndices);
-    const shift = new Map(), proben = [];
-    let flips = 0, same = 0;
+    const shift = new Map(), proben = [], normalen = [];
     prims.forEach((p, i) => {
       const sub = g.subs[fit.kept[i]], a = p.getAttribute('POSITION'), ix = p.getIndices()?.getArray();
       if (!a || !ix) return;
@@ -225,33 +248,38 @@ export function hallDecalDoc({ doc, files, read, subMaterials, knoten = null, lo
       if (size > 2e-3 || (old && old !== 'unklar' && Math.hypot(old[0] - t[0], old[1] - t[1], old[2] - t[2]) > 2e-3)) shift.set(sub.node, 'unklar');
       else if (!old) shift.set(sub.node, t);
       const nA = firstNormal(getA, ix), nB = firstNormal(filePos, subIdx(sub));
-      if (nA && nB) { if (nA[0] * nB[0] + nA[1] * nB[1] + nA[2] * nB[2] < 0) flips++; else same++; }
+      if (nA && nB) normalen.push({ node: sub.node, nA, nB });
     });
+    // Der Knotenbaum einer .cga, die Aufdrucke zurückbekommt: Er gilt, wenn jedes behaltene Teilnetz ihn belegt
+    // (baumBelegt). Dann nennt er die Lage der Knoten ohne behaltenes Teilnetz und die Drehung der gedrehten.
+    const lagen = belegterBaum(knoten, file, head, proben);
+    // Umlaufrichtung: Hat der Export die Dreiecke gewendet? Mehrheit der behaltenen Teilnetze, Normale des Exports
+    // gegen die der Datei. Die der Datei steht im Raum ihres Knotens; an einem gedrehten Knoten dreht der Baum sie
+    // erst in den Raum des Exports (sonst stimmte ein um 180° gedrehtes Blatt für „gewendet“, obwohl nichts gewendet ist).
+    let flips = 0, same = 0;
+    for (const { node, nA, nB } of normalen) {
+      const l = lagen?.get(node), n = stehtGedreht(l) ? DREH(l.r, nB) : nB;
+      if (nA[0] * n[0] + nA[1] * n[1] + nA[2] * n[2] < 0) flips++; else same++;
+    }
     const flip = flips > same;
     if (flip) report.gedreht++;
     // ohne behaltenes Teilnetz am selben Knoten: nur in einer .cgf und nur, wenn alles Gemessene unverschoben ist (lageOhneMessung)
     const still = [...shift.values()].every((t) => t !== 'unklar' && Math.hypot(...t) < 2e-3);
-    // ohne behaltenes Teilnetz am selben Knoten einer .cga: die Lage aus ihrem Knotenbaum, wenn jedes behaltene
-    // Teilnetz ihn belegt (baumBelegt). Gefragt wird der Baum erst, wenn ein Teilnetz ihn braucht.
-    let lagen;
-    const ausBaum = (node) => {
-      if (lagen === undefined) {
-        lagen = null;
-        if (knoten && /\.cgam$/i.test(file)) {
-          let l = null;
-          try { l = knotenLagen(knoten(head)); } catch { /* ohne Baum keine Lage */ }
-          if (baumBelegt(l, proben)) lagen = l;
-        }
-      }
-      return lagen?.get(node);
-    };
     const made = [];
     for (const k of want) {
-      const sub = g.subs[k], sm = subMats[sub.mat];
-      let t = shift.get(sub.node), dreh = null;
-      if (t === undefined) t = lageOhneMessung(file, still);
-      if (t === undefined) { const l = ausBaum(sub.node); if (l) { t = l.t; dreh = l.r; report.ausBaum.push(`${base} #${sub.mat} Knoten ${sub.node}`); } }
-      if (!t || t === 'unklar') { report.ohneLage.push(`${base} #${sub.mat} Knoten ${sub.node}`); continue; }
+      const sub = g.subs[k], sm = subMats[sub.mat], wo = `${base} #${sub.mat} Knoten ${sub.node}`;
+      const l = lagen?.get(sub.node);
+      let t, dreh = null;
+      if (stehtGedreht(l)) {
+        // gedrehter Knoten: Die gemessene Verschiebung trüge den Aufdruck nur hin, ohne ihn zu drehen
+        t = l.t; dreh = l.r; report.ausBaum.push(wo); if (shift.has(sub.node)) report.gedrehterKnoten.push(wo);
+      } else {
+        t = shift.get(sub.node);
+        if (t === undefined) t = lageOhneMessung(file, still);
+        // ohne behaltenes Teilnetz am selben Knoten einer .cga: die Lage aus dem Knotenbaum
+        if (t === undefined && l) { t = l.t; dreh = l.r; report.ausBaum.push(wo); }
+      }
+      if (!t || t === 'unklar') { report.ohneLage.push(wo); continue; }
       const ix = subIdx(sub), neu = new Map(), alt = [];
       const idx = new Uint32Array(ix.length);
       for (let i = 0; i < ix.length; i++) { let v = neu.get(ix[i]); if (v === undefined) { v = alt.length; neu.set(ix[i], v); alt.push(ix[i]); } idx[i] = v; }
@@ -313,11 +341,14 @@ export function hallDecalDoc({ doc, files, read, subMaterials, knoten = null, lo
 // selben Knoten mehr Dreiecke, kommt deren Geometrie (Lage, Normale, UV,
 // Eckfarbe) als Ersatz in ein eigenes Dokument. Lage und Umlaufrichtung werden
 // wie bei den Aufklebern am Primitiv des Exports gemessen, und der Ersatz gilt
-// nur, wenn er den Kasten des ausgedünnten Teilnetzes ganz überdeckt. Der
-// Build tauscht die Geometrie in swapHallText. Liefert { doc, report }; doc
-// ist null, wenn nichts zu holen war.
-export function hallTextDoc({ doc, files, read, lod = 1, Document }) {
-  const report = { netze: 0, teilnetze: 0, trisAlt: 0, trisNeu: 0, trisNeuMitExemplaren: 0, ohneLage: [], liste: [] };
+// nur, wenn er den Kasten des ausgedünnten Teilnetzes ganz überdeckt. Steht
+// der Knoten des Schilds in einer .cga gedreht, stellt ihr belegter Knotenbaum
+// den Ersatz hin (knoten wie bei hallDecalDoc; gefragt erst, wenn ein Schild
+// Ersatz bekommt): Die gemessene Verschiebung trüge ihn nur hin, ohne ihn zu
+// drehen. Der Build tauscht die Geometrie in swapHallText. Liefert
+// { doc, report }; doc ist null, wenn nichts zu holen war.
+export function hallTextDoc({ doc, files, read, knoten = null, lod = 1, Document, leseNetz = readSkinMesh }) {
+  const report = { netze: 0, teilnetze: 0, trisAlt: 0, trisNeu: 0, trisNeuMitExemplaren: 0, ohneLage: [], ausBaum: [], liste: [] };
   if (!lod) return { doc: null, report };
   const uses = new Map();
   for (const n of doc.getRoot().listNodes()) { const m = n.getMesh(); if (m) uses.set(m, (uses.get(m) || 0) + 1); }
@@ -337,7 +368,7 @@ export function hallTextDoc({ doc, files, read, lod = 1, Document }) {
     for (const e of ['cga', 'cgf']) for (const c of files.get(`${base}_lod${lod}.${e}m`) ?? []) {
       if (fit) break;
       let gg;
-      try { gg = readSkinMesh(read(c)); } catch { continue; }
+      try { gg = leseNetz(read(c)); } catch { continue; }
       const f = fitSubsets(sig, gg.subs);
       if (f) { g = gg; fit = f; file = c; }
     }
@@ -346,7 +377,22 @@ export function hallTextDoc({ doc, files, read, lod = 1, Document }) {
     const vollFile = cands.find((c) => ordner(c) === ordner(file)) ?? cands[0];
     if (!vollFile) continue;
     let g0;
-    try { g0 = readSkinMesh(read(vollFile)); } catch { continue; }
+    try { g0 = leseNetz(read(vollFile)); } catch { continue; }
+    const lage = (gx) => (j, v) => { v[0] = gx.pos[j * 3]; v[1] = gx.pos[j * 3 + 1]; v[2] = gx.pos[j * 3 + 2]; };
+    // der belegte Knotenbaum der .cga, an allen behaltenen Teilnetzen des Netzes geprüft
+    let lagen;
+    const baum = () => {
+      if (lagen === undefined) {
+        const proben = [];
+        prims.forEach((p, q) => {
+          const sub = g.subs[fit.kept[q]], a = p.getAttribute('POSITION'), ix = p.getIndices()?.getArray();
+          if (!a || !ix) return;
+          proben.push({ node: sub.node, datei: boxOfIndexed(lage(g), g.idx.subarray(sub.firstIndex, sub.firstIndex + sub.numIndices)), ausfuhr: boxOfIndexed((j, v) => a.getElement(j, v), ix) });
+        });
+        lagen = belegterBaum(knoten, file, KOPF(file), proben);
+      }
+      return lagen;
+    };
     const made = [];
     for (const i of text) {
       const p = prims[i], sub = g.subs[fit.kept[i]];
@@ -356,14 +402,17 @@ export function hallTextDoc({ doc, files, read, lod = 1, Document }) {
       const a = p.getAttribute('POSITION'), ixA = p.getIndices()?.getArray();
       if (!a || !ixA) continue;
       const getA = (j, v) => a.getElement(j, v);
-      const lage = (gx) => (j, v) => { v[0] = gx.pos[j * 3]; v[1] = gx.pos[j * 3 + 1]; v[2] = gx.pos[j * 3 + 2]; };
+      // an einem gedrehten Knoten stellt der Baum Datei und Grundstufe in den Raum des Exports (dort bleibt keine Verschiebung zu messen)
+      const l = baum()?.get(sub.node), dreh = stehtGedreht(l) ? l : null;
+      const ort = dreh ? (gx) => (j, v) => { const o = DREH(dreh.r, [gx.pos[j * 3], gx.pos[j * 3 + 1], gx.pos[j * 3 + 2]]); v[0] = o[0] + dreh.t[0]; v[1] = o[1] + dreh.t[1]; v[2] = o[2] + dreh.t[2]; } : lage;
       const ixB = g.idx.subarray(sub.firstIndex, sub.firstIndex + sub.numIndices), ix = g0.idx.subarray(s0.firstIndex, s0.firstIndex + s0.numIndices);
-      const A = boxOfIndexed(getA, ixA), B = boxOfIndexed(lage(g), ixB), V = boxOfIndexed(lage(g0), ix);
-      const t = [0, 1, 2].map((q) => A.lo[q] - B.lo[q]);
-      const gleich = Math.max(...[0, 1, 2].map((q) => Math.abs((A.hi[q] - A.lo[q]) - (B.hi[q] - B.lo[q])))) <= 2e-3;
+      const A = boxOfIndexed(getA, ixA), B = boxOfIndexed(ort(g), ixB), V = boxOfIndexed(ort(g0), ix);
+      const gemessen = [0, 1, 2].map((q) => A.lo[q] - B.lo[q]), t = dreh ? [0, 0, 0] : gemessen;
+      const gleich = Math.max(...[0, 1, 2].map((q) => Math.abs((A.hi[q] - A.lo[q]) - (B.hi[q] - B.lo[q])))) <= 2e-3 && (!dreh || Math.hypot(...gemessen) <= 2e-3);
       const deckt = [0, 1, 2].every((q) => V.lo[q] + t[q] <= A.lo[q] + 2e-3 && V.hi[q] + t[q] >= A.hi[q] - 2e-3);
       if (!gleich || !deckt) { report.ohneLage.push(`${base} #${sub.mat} Knoten ${sub.node}`); continue; }
-      const nA = firstNormal(getA, ixA), nB = firstNormal(lage(g), ixB);
+      if (dreh) report.ausBaum.push(`${base} #${sub.mat} Knoten ${sub.node}`);
+      const nA = firstNormal(getA, ixA), nB = firstNormal(ort(g), ixB);
       const flip = !!(nA && nB && nA[0] * nB[0] + nA[1] * nB[1] + nA[2] * nB[2] < 0);
       const neu = new Map(), alt = [], idx = new Uint32Array(ix.length);
       for (let k = 0; k < ix.length; k++) { let v = neu.get(ix[k]); if (v === undefined) { v = alt.length; neu.set(ix[k], v); alt.push(ix[k]); } idx[k] = v; }
@@ -371,10 +420,11 @@ export function hallTextDoc({ doc, files, read, lod = 1, Document }) {
       const n = alt.length, pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Uint8Array(n * 4), nor = new Float32Array(n * 3);
       for (let k = 0; k < n; k++) {
         const s = alt[k];
-        for (let q = 0; q < 3; q++) pos[k * 3 + q] = g0.pos[s * 3 + q] + t[q];
+        if (dreh) { const o = DREH(dreh.r, [g0.pos[s * 3], g0.pos[s * 3 + 1], g0.pos[s * 3 + 2]]); for (let q = 0; q < 3; q++) pos[k * 3 + q] = o[q] + dreh.t[q]; }
+        else for (let q = 0; q < 3; q++) pos[k * 3 + q] = g0.pos[s * 3 + q] + t[q];
         uv[k * 2] = g0.uv[s * 2]; uv[k * 2 + 1] = g0.uv[s * 2 + 1];
         col.set(g0.col.subarray(s * 4, s * 4 + 4), k * 4);
-        if (g0.nor) for (let q = 0; q < 3; q++) nor[k * 3 + q] = g0.nor[s * 3 + q];
+        if (g0.nor) { const m = [g0.nor[s * 3], g0.nor[s * 3 + 1], g0.nor[s * 3 + 2]], w = dreh ? DREH(dreh.r, m) : m; for (let q = 0; q < 3; q++) nor[k * 3 + q] = w[q]; }
       }
       if (!g0.nor) {
         // ohne Normalen der Datei: flächengewichtete aus den Dreiecken (in der Umlaufrichtung des Exports)

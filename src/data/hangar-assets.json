@@ -21336,8 +21336,8 @@
     },
     "util-lrgtop": {
       "url": "/hangar/hall/util-lrgtop.glb",
-      "v": "d271bbac",
-      "tris": 1815431,
+      "v": "6589033c",
+      "tris": 1815479,
       "trisRaw": 574108,
       "textures": 263,
       "attached": {
@@ -21365,30 +21365,30 @@
           "diffuse": 136,
           "normal": 114,
           "trisOhneMaterial": 0,
-          "tris": 629206
+          "tris": 629254
         },
         "after": {
           "materials": 475,
           "diffuse": 353,
           "normal": 395,
           "trisOhneMaterial": 0,
-          "tris": 629206
+          "tris": 629254
         }
       },
       "lights": {
-        "total": 798,
+        "total": 912,
         "byType": {
-          "spot": 450,
-          "point": 298,
-          "area": 50
+          "spot": 496,
+          "point": 358,
+          "area": 58
         },
-        "matched": 798,
+        "matched": 912,
         "orient": {
-          "spots": 450,
-          "area": 50,
-          "areaMounted": 50,
-          "spotsAway": 227,
-          "spotsMounted": 299
+          "spots": 496,
+          "area": 58,
+          "areaMounted": 58,
+          "spotsAway": 251,
+          "spotsMounted": 323
         }
       },
       "furniture": 8,
@@ -21430,10 +21430,10 @@
         }
       },
       "aufkleber": {
-        "netze": 150,
-        "primitive": 223,
-        "tris": 54911,
-        "trisMitExemplaren": 99216,
+        "netze": 151,
+        "primitive": 225,
+        "tris": 54959,
+        "trisMitExemplaren": 99264,
         "materialien": 12,
         "fremd": [],
         "karten": {
@@ -22070,7 +22070,7 @@
         "drawCalls": 382
       },
       "crease": {
-        "corners": 5446293,
+        "corners": 5446437,
         "changedPct": 27.1
       },
       "uv": {
@@ -22093,7 +22093,7 @@
         }
       },
       "floor": 2.501,
-      "bytes": 22841916,
+      "bytes": 22842612,
       "game": "13165946",
       "room": {
         "center": [

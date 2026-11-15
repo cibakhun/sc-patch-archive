@@ -14,7 +14,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { NodeIO } from '@gltf-transform/core';
-import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { ALL_EXTENSIONS, KHRLightsPunctual } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './ivo-caf.mjs';
 
@@ -222,6 +222,126 @@ export function kindNur(doc, muster, name = 'Kind') {
   return r;
 }
 
+// ─── Lampen einer Lichtgruppe, die an einem Knochen hängt ────────────────
+// Der Export schreibt die Lampen einer gewöhnlichen Lichtgruppe als
+// Lichtknoten ins Modell. Hängt die Gruppe aber an einem Knochen eines
+// Bauteils (EntityClass LightGroupObjectAttach, AttachmentType CharacterBone),
+// lässt er sie ganz weg: Die Kabine des Frachtaufzugs kommt mit ihren
+// Leuchten als Netz und ohne eine einzige Lampe (61 am Knochen anim_lift der
+// Plattform), sie stand dunkel in der Wand. Hier werden diese Lampen aus den
+// Entities des Containers gelesen und so in seinen Export gehängt, wie der
+// Export es bei einer gewöhnlichen Gruppe selbst tut. Nachgemessen an den 60
+// Lampen des Aufzugmoduls (15.11.2026, Ort und Achse je Lampe auf 0,0001):
+// - Name „<Gruppe>-NNN“, NNN = Stelle der Lampe in der Gruppe
+// - Ort und Drehung aus RelativeXForm (rotation = w, x, y, z); die Lampe
+//   strahlt längs ihrer eigenen +X-Achse
+// - Zustand defaultState; Farbe aus der Farbtemperatur (kelvinFarbe), wenn
+//   useTemperature="1", sonst die genannte Farbe
+// - Stärke im Modell = Stärke im Spiel mal 1500, Reichweite = lightRadius,
+//   Projector = Spot mit halbem FOV als Kegel (innen 0,8 davon), alles
+//   andere Punktlicht; den Typ des Spiels trägt die Lichtzeile
+// Was für die angehängte Gruppe dazukommt, ist am Modell der Kabine gemessen:
+// RelativeXForm gilt im Raum des Knochens, nicht der Gruppe (mit dem Ort der
+// Gruppe läge jede Lampe 11 m neben ihrer Leuchte). Der Knochen ruht im
+// Ursprung des Bauteils, das Bauteil im Ursprung des Containers; so steht die
+// Angabe unverändert im Raum des Containers. Beides prüft dieser Schritt,
+// statt es zu glauben: anhangLampen am Träger, lampenEinhaengen an den
+// Leuchten des Modells (anLeuchte).
+// Abweichung vom Export, mit Absicht: Eine Lampe, deren defaultState keine
+// Stärke hat, bleibt aus. Der Export nimmt dann den Zustand auxiliary, und so
+// brennen in der Halle fünf Warnleuchten des Moduls, die im Spiel in Ruhe
+// dunkel sind.
+
+// Farbe einer Farbtemperatur in Kelvin, wie der Export sie schreibt (Näherung
+// von Tanner Helland; an 21 Lichtzeilen der Halle auf sechs Stellen gleich).
+export function kelvinFarbe(k) {
+  if (!(k > 0)) throw new Error(`Farbtemperatur ${k} ist keine positive Zahl`);
+  const t = k / 100, teil = (v) => Math.min(255, Math.max(0, v)) / 255;
+  const r = t <= 66 ? 255 : 329.698727446 * (t - 60) ** -0.1332047592;
+  const g = t <= 66 ? 99.4708025861 * Math.log(t) - 161.1195681661 : 288.1221695283 * (t - 60) ** -0.0755148492;
+  const b = t >= 66 ? 255 : t <= 19 ? 0 : 138.5177312231 * Math.log(t - 10) - 305.0447927307;
+  return [teil(r), teil(g), teil(b)];
+}
+
+// Die Lampen der Lichtgruppe `gruppe` aus den Entities eines Containers
+// (XML aus seiner .soc). Die Gruppe muss am Knochen `knochen` eines Bauteils
+// hängen, das im Ursprung des Containers ruht; alles andere ist nicht
+// nachgemessen und bricht ab. Liefert die Lampen, die brennen (lampen), die
+// Namen derer ohne Stärke (aus) und das Netz des Trägers (traeger, Dateiname
+// ohne Endung).
+export function anhangLampen(xml, { gruppe, knochen }) {
+  const at = (s, k) => (s.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
+  const ents = [...xml.matchAll(/<Entity\b([^>]*?)(?:\/>|>([\s\S]*?)<\/Entity>)/g)].map((m) => ({ kopf: m[1], rumpf: m[2] ?? '' }));
+  const treffer = ents.filter((e) => at(e.kopf, 'Name') === gruppe);
+  if (treffer.length !== 1) throw new Error(`Lichtgruppe ${gruppe}: ${treffer.length} Entities dieses Namens, erwartet ist genau eine`);
+  const { kopf, rumpf } = treffer[0];
+  const haengt = [at(kopf, 'EntityClass'), at(kopf, 'AttachmentType'), at(kopf, 'AttachmentTarget')];
+  if (haengt[0] !== 'LightGroupObjectAttach' || haengt[1] !== 'CharacterBone' || haengt[2] !== knochen) throw new Error(`Lichtgruppe ${gruppe}: erwartet ist eine LightGroupObjectAttach am Knochen ${knochen} (CharacterBone), gefunden ${haengt.map((x) => x ?? 'ohne Angabe').join(' / ')}`);
+  const reihe = (s, n, was) => {
+    const v = String(s ?? '').split(',').map(Number);
+    if (s === undefined || v.length !== n || !v.every(Number.isFinite)) throw new Error(`${was}: "${s ?? ''}" ist keine Reihe aus ${n} Zahlen`);
+    return v;
+  };
+  const ruht = (s, leer, was) => s === undefined || reihe(s, leer.length, was).every((v, i) => Math.abs(v - leer[i]) <= 1e-4);
+  const eltern = ents.filter((e) => at(e.kopf, 'EntityCryGUID') !== undefined && at(e.kopf, 'EntityCryGUID') === at(kopf, 'ParentEntityCryGUID'));
+  if (eltern.length !== 1) throw new Error(`Lichtgruppe ${gruppe}: der Träger (ParentEntityCryGUID) steht ${eltern.length} Mal im Container, erwartet ist genau einmal`);
+  const t = eltern[0], tName = at(t.kopf, 'Name') ?? '?';
+  if (!ruht(at(t.kopf, 'Pos'), [0, 0, 0], `${tName} Pos`) || !ruht(at(t.kopf, 'Rotate'), [1, 0, 0, 0], `${tName} Rotate`)) throw new Error(`Lichtgruppe ${gruppe}: der Träger ${tName} ruht nicht im Ursprung des Containers (Pos ${at(t.kopf, 'Pos') ?? 'ohne'}, Rotate ${at(t.kopf, 'Rotate') ?? 'ohne'}); nachgemessen ist nur ein Träger im Ursprung`);
+  if (!ruht(at(kopf, 'ParentOffsetRot'), [1, 0, 0, 0], `${gruppe} ParentOffsetRot`)) throw new Error(`Lichtgruppe ${gruppe}: ParentOffsetRot ${at(kopf, 'ParentOffsetRot')} dreht die Gruppe gegen ihren Träger; nachgemessen ist nur eine ungedrehte Gruppe`);
+  const traeger = ((t.rumpf.match(/GlobalResourceGeometry" path="([^"]+)"/) || [])[1] ?? '').replace(/\\/g, '/').split('/').pop().replace(/\.\w+$/, '');
+  const lampen = [], aus = [];
+  [...rumpf.matchAll(/<Light\b([^>]*)>([\s\S]*?)<\/Light>/g)].forEach((l, i) => {
+    const b = l[2], name = `${gruppe}-${String(i).padStart(3, '0')}`, wo = `${name} (${at(l[1], 'Name') ?? 'ohne Namen'})`;
+    const teil = (k) => (b.match(new RegExp(`<${k}\\b([^>]*?)\\/?>`)) || [])[1];
+    const comp = teil('EntityComponentLight'), zustand = b.match(/<defaultState\b([^>]*)>\s*<color\b([^>]*?)\/?>/), xf = teil('RelativeXForm');
+    if (comp === undefined || !zustand || xf === undefined) throw new Error(`${wo}: ohne EntityComponentLight, defaultState mit Farbe oder RelativeXForm`);
+    const zahl = (s, k) => { const v = Number(at(s ?? '', k)); if (at(s ?? '', k) === undefined || !Number.isFinite(v)) throw new Error(`${wo}: ${k}="${at(s ?? '', k) ?? ''}" ist keine Zahl`); return v; };
+    const staerke = zahl(zustand[1], 'intensity');
+    if (at(comp, 'active') !== '1' || !(staerke > 0)) { aus.push(name); return; }
+    const typ = at(comp, 'lightType') ?? '', temp = at(comp, 'useTemperature') === '1', kelvin = zahl(zustand[1], 'temperature');
+    const radius = zahl(teil('sizeParams'), 'lightRadius'), fov = typ === 'Projector' ? zahl(teil('projectorParams'), 'FOV') : null;
+    if (!typ || !(radius > 0) || (fov !== null && !(fov > 0 && fov <= 180))) throw new Error(`${wo}: Typ „${typ}“, Reichweite ${radius}${fov === null ? '' : `, FOV ${fov}`} ergeben keine Lampe`);
+    const dreh = reihe(at(xf, 'rotation'), 4, `${wo} rotation`), q = Math.hypot(...dreh);
+    if (Math.abs(q - 1) > 1e-3) throw new Error(`${wo}: rotation ${dreh.join(',')} ist keine Drehung (Betrag ${q.toFixed(4)})`);
+    lampen.push({ name, eigen: at(l[1], 'Name') ?? '', typ, temp, kelvin, staerke, radius, fov, farbe: temp ? kelvinFarbe(kelvin) : ['r', 'g', 'b'].map((k) => zahl(zustand[2], k)), ort: reihe(at(xf, 'translation'), 3, `${wo} translation`), dreh: dreh.map((v) => v / q) });
+  });
+  if (!lampen.length) throw new Error(`Lichtgruppe ${gruppe}: keine Lampe mit Stärke im defaultState (${aus.length} ohne), der Eintrag ist ohne Anlass`);
+  return { lampen, aus, traeger };
+}
+
+// Die Zeile, die der Export für eine Lampe ins Protokoll schreibt; der Build
+// verbindet sie über den Namen mit dem Lichtknoten (hallLights) und liest
+// daraus Typ, Stärke und Reichweite des Spiels.
+export const lampenZeile = (l) => `Light '${l.name}' type=${l.typ} useTemp=${l.temp} temperature=${l.kelvin} intensity=${l.staerke} radius=${l.radius} color=[${l.farbe.map((v) => +v.toFixed(8)).join(', ')}]`;
+
+// Wie stark ein Lichtknoten gegenüber dem Spiel ist (am Export nachgemessen)
+const LICHT_MAL = 1500;
+
+// Hängt die Lampen (anhangLampen) als Lichtknoten in den Export doc, unter
+// seine Wurzel, im Raum des Containers. Vorher die Probe am Modell: Wenigstens
+// anLeuchte Lampen müssen bis auf `nah` Meter am Ursprung eines Netzknotens
+// sitzen (eine Leuchte trägt ihre Lampe; an der Kabine sind es 24 von 57, mit
+// dem Ort der Gruppe dazugerechnet keine). Sitzen weniger dort, gilt der Raum
+// nicht mehr, in dem dieser Schritt die Angaben liest, und er bricht ab,
+// statt Lampen neben ihre Leuchten zu hängen. Liefert die Lichtzeilen.
+export function lampenEinhaengen(doc, lampen, { name = 'Kind', gruppe = 'anhang', anLeuchte = 0, nah = 0.3 } = {}) {
+  const wurzel = wurzelVon(doc, name);
+  const orte = [];
+  const sammle = (n, m) => { const hier = mul(m, n.getMatrix()); if (n.getMesh()) orte.push(hier.slice(12, 15)); n.listChildren().forEach((c) => sammle(c, hier)); };
+  wurzel.listChildren().forEach((c) => sammle(c, schub(0, 0, 0)));
+  const anNetz = lampen.filter((l) => orte.some((o) => Math.hypot(o[0] - l.ort[0], o[1] - l.ort[1], o[2] - l.ort[2]) <= nah)).length;
+  if (anNetz < anLeuchte) throw new Error(`${name}: nur ${anNetz} von ${lampen.length} Lampen der Gruppe ${gruppe} sitzen an einem Netzknoten (bis ${nah} m), erwartet sind wenigstens ${anLeuchte}; die Angaben gelten wohl in einem anderen Raum (Träger, Knochen oder Gruppe versetzt)`);
+  const ext = doc.createExtension(KHRLightsPunctual);
+  const halter = doc.createNode(`anhang_${gruppe}`).setExtras({ anhang: gruppe });
+  wurzel.addChild(halter);
+  for (const l of lampen) {
+    const licht = ext.createLight(l.name).setType(l.typ === 'Projector' ? 'spot' : 'point').setColor(l.farbe).setIntensity(l.staerke * LICHT_MAL).setRange(l.radius);
+    if (l.typ === 'Projector') { const aussen = (l.fov / 2) * Math.PI / 180; licht.setOuterConeAngle(aussen).setInnerConeAngle(aussen * 0.8); }
+    halter.addChild(doc.createNode(l.name).setTranslation(l.ort).setRotation([l.dreh[1], l.dreh[2], l.dreh[3], l.dreh[0]]).setExtension('KHR_lights_punctual', licht));
+  }
+  return { lampen: lampen.length, anNetz, zeilen: lampen.map(lampenZeile) };
+}
+
 // Hängt einen Baum von Kindern ein, von innen nach außen: erst die Kinder
 // des Kindes, dann es selbst. kinder: [{ id, name, stellen, kinder }].
 // lese(c) liefert den Export des Kindes als Dokument, zeilen(c) seine
@@ -231,10 +351,15 @@ export function kindNur(doc, muster, name = 'Kind') {
 // nur: [{ kind, muster: [RegExp], exemplare }] wählt bei dem genannten Kind
 // aus (kindNur), ebenfalls bevor seine eigenen Kinder dazukommen; seine
 // Lichtzeilen entfallen mit seinen Lichtern, exemplare wird hochgezählt.
+// anhang: [{ kind, gruppe, lampen, anLeuchte, exemplare }] hängt bei dem
+// genannten Kind die Lampen einer Lichtgruppe an, die der Export weglässt
+// (lampenEinhaengen), ebenfalls bevor seine eigenen Kinder dazukommen: Die
+// Probe an den Leuchten gilt nur seinem eigenen Modell. Ihre Zeilen stehen
+// hinter denen des Kindes; nur und anhang am selben Kind widersprechen sich.
 // mal: wie oft der Elterncontainer am Ende in der Halle steht.
 // Liefert die Lichtzeilen in der Reihenfolge der Exemplare; liste bekommt
 // je Kind einen Berichtseintrag.
-export async function kinderBaumEinhaengen(doc, kinder, { lese, zeilen = () => [], lagen = [], nur = [], liste = [], melde = () => {} }, ebene = 0, mal = 1) {
+export async function kinderBaumEinhaengen(doc, kinder, { lese, zeilen = () => [], lagen = [], nur = [], anhang = [], liste = [], melde = () => {} }, ebene = 0, mal = 1) {
   const lichter = [];
   for (const c of kinder) {
     const src = await lese(c);
@@ -243,12 +368,15 @@ export async function kinderBaumEinhaengen(doc, kinder, { lese, zeilen = () => [
     const regel = nur.find((n) => n.kind === c.id);
     const auswahl = regel ? kindNur(src, regel.muster, c.id) : null;
     if (regel) regel.exemplare += exemplare;
-    const innen = await kinderBaumEinhaengen(src, c.kinder ?? [], { lese, zeilen, lagen, nur, liste, melde }, ebene + 1, exemplare);
+    const hang = anhang.filter((a) => a.kind === c.id);
+    if (hang.length && regel) throw new Error(`${c.id}: nur und anhang am selben Kind widersprechen sich (nur lässt jedes Licht weg)`);
+    const dazu = hang.map((a) => { a.exemplare += exemplare; return { gruppe: a.gruppe, ...lampenEinhaengen(src, a.lampen, { name: c.id, gruppe: a.gruppe, anLeuchte: a.anLeuchte }) }; });
+    const innen = await kinderBaumEinhaengen(src, c.kinder ?? [], { lese, zeilen, lagen, nur, anhang, liste, melde }, ebene + 1, exemplare);
     const r = kindEinhaengen(doc, src, c.stellen, c.id);
-    const eigene = [...(regel ? [] : zeilen(c)), ...innen];
+    const eigene = [...(regel ? [] : zeilen(c)), ...dazu.flatMap((d) => d.zeilen), ...innen];
     for (let i = 0; i < c.stellen.length; i++) lichter.push(...eigene);
-    liste.push({ id: c.id, container: c.name, ebene, exemplare, stellen: c.stellen, jeExemplar: { knoten: r.knoten, dreiecke: r.dreiecke, lichtknoten: r.lichter, lichtzeilen: eigene.length }, ...(auswahl ? { nur: auswahl } : {}) });
-    melde(`  Kind ${c.id}: ${c.stellen.length} Stelle(n) ${ebene ? 'in seinem Elterncontainer' : 'in der Halle'}, ${exemplare} Exemplar(e), je ${r.dreiecke} Dreiecke, ${r.knoten} Knoten, ${r.lichter} Lichtknoten${c.kinder?.length ? ' (mit seinen eigenen Kindern)' : ''}${auswahl ? `; nur ${auswahl.netze} Netz(e) behalten, ${auswahl.wegNetze} Netz(e) mit ${auswahl.wegDreiecke} Dreiecken und ${auswahl.wegLichter} Licht(er) weggelassen` : ''}`);
+    liste.push({ id: c.id, container: c.name, ebene, exemplare, stellen: c.stellen, jeExemplar: { knoten: r.knoten, dreiecke: r.dreiecke, lichtknoten: r.lichter, lichtzeilen: eigene.length }, ...(auswahl ? { nur: auswahl } : {}), ...(dazu.length ? { anhang: dazu.map(({ zeilen: z, ...d }) => d) } : {}) });
+    melde(`  Kind ${c.id}: ${c.stellen.length} Stelle(n) ${ebene ? 'in seinem Elterncontainer' : 'in der Halle'}, ${exemplare} Exemplar(e), je ${r.dreiecke} Dreiecke, ${r.knoten} Knoten, ${r.lichter} Lichtknoten${c.kinder?.length ? ' (mit seinen eigenen Kindern)' : ''}${auswahl ? `; nur ${auswahl.netze} Netz(e) behalten, ${auswahl.wegNetze} Netz(e) mit ${auswahl.wegDreiecke} Dreiecken und ${auswahl.wegLichter} Licht(er) weggelassen` : ''}${dazu.map((d) => `; ${d.lampen} Lampe(n) der Lichtgruppe ${d.gruppe} angehängt, ${d.anNetz} davon an einer Leuchte`).join('')}`);
   }
   return lichter;
 }
@@ -263,7 +391,7 @@ const planKern = (baum) => baum.map((c) => ({ id: c.id, name: c.name, stellen: c
 export const planKennung = (baum) => JSON.stringify(planKern(baum));
 // Woran der Extraktor erkennt, dass das Eingehängte noch gilt (steht im
 // Bericht hall/<halle>.kinder.json): die Regeln des Eintrags und der Plan.
-export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.folge.map(String), lage: kinder.lage ?? [], ...(kinder.nur?.length ? { nur: kinder.nur } : {}), plan: planKennung(baum) });
+export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.folge.map(String), lage: kinder.lage ?? [], ...(kinder.nur?.length ? { nur: kinder.nur } : {}), ...(kinder.anhang?.length ? { anhang: kinder.anhang } : {}), plan: planKennung(baum) });
 
 // ─── Der Schritt im Extraktor (h.kinder) ─────────────────────────────────
 // h.kinder.folge: Muster auf den Containernamen; nur diese Kinder folgen, auf
@@ -277,14 +405,18 @@ export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.fol
 // h.kinder.nur: Kinder, von denen nur steht, was die Halle zeigt (kindNur):
 // [{ kind: Kennung des Containers, netz: [Dateiname der .cga ohne Endung] }].
 // Eine Regel, deren Kind nicht eingehängt wird, bricht ab.
+// h.kinder.anhang: Lichtgruppen, die an einem Knochen hängen und die der
+// Export deshalb weglässt (anhangLampen, lampenEinhaengen):
+// [{ kind: Kennung des Containers, gruppe: Name der Lichtgruppe, knochen,
+//    anLeuchte: so viele Lampen müssen an einem Netzknoten sitzen }].
 // Jedes Kind wird einmal exportiert (Stufe und Schalter wie die Halle, mit
 // Lichtprotokoll) und an jede Stelle gehängt, die sein Elterncontainer nennt.
 // Ergebnis: file (Halle mit Kindern), hall/<halle>.lights-src.txt (Zeilen der
 // Halle und je Exemplar die des Kindes; der Build verbindet über den Namen),
 // Bericht hall/<halle>.kinder.json.
-// w: Werkzeug des Extraktors { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, lichtZeilen, schalter }.
+// w: Werkzeug des Extraktors { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter }.
 export async function hallKinder(h, file, w) {
-  const { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, lichtZeilen, schalter } = w;
+  const { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter } = w;
   const RAW = `${SRC}hall-kinder/`;
   mkdirSync(RAW, { recursive: true });
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
@@ -294,13 +426,18 @@ export async function hallKinder(h, file, w) {
   const folgt = (name) => h.kinder.folge.some((re) => re.test(name));
   const kurz = (f) => f.slice(SRC.length);
 
-  // <name>.xml eines Containers aus seinem socpak
-  const xmlVon = (name) => {
+  // der socpak eines Containers (ein ZIP), aus der Data.p4k geholt
+  const pakVon = (name) => {
     const [dir, base] = ende(name);
     sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(dir)}[\\\\/]${esc(base)}$`]);
     const pak = listFiles(RAW).find((f) => f.toLowerCase().endsWith(`/${dir}/${base}`.toLowerCase()));
     if (!pak) throw new Error(`${dir}/${base} steht nicht in der Data.p4k`);
-    const zip = readZip(readFileSync(pak));
+    return readZip(readFileSync(pak));
+  };
+  // <name>.xml eines Containers aus seinem socpak
+  const xmlVon = (name) => {
+    const base = ende(name)[1];
+    const zip = pakVon(name);
     const key = [...zip.keys()].find((k) => k.replace(/\\/g, '/').toLowerCase() === `${kennung(name)}.xml`.toLowerCase());
     if (!key) throw new Error(`${base}: ohne ${kennung(name)}.xml`);
     const b = zip.get(key)();
@@ -311,6 +448,18 @@ export async function hallKinder(h, file, w) {
     spawnSync(STARBREAKER, ['cryxml', 'convert', `${t}.cryxml`, `${t}.xml`]);
     if (!existsSync(`${t}.xml`)) throw new Error(`${base}: ${kennung(name)}.xml lässt sich nicht wandeln`);
     return readFileSync(`${t}.xml`, 'utf8');
+  };
+  // die Entities eines Containers: XML aus jeder .soc seines socpak
+  const entitiesVon = (name) => {
+    const zip = pakVon(name);
+    const socs = [...zip.keys()].filter((k) => /\.soc$/i.test(k));
+    const xml = socs.map((k, i) => {
+      const t = `${RAW}${kennung(name)}.entities${i || ''}`;
+      rmSync(`${t}.xml`, { force: true });   // sonst gälte nach einer gescheiterten Wandlung die alte Fassung
+      return socEntitiesXml(zip.get(k)(), t);
+    }).join('\n');
+    if (!xml.trim()) throw new Error(`${ende(name)[1]}: keine lesbaren Entities (${socs.length} .soc)`);
+    return xml;
   };
 
   // Plan: der Baum der Kinder, die folgen, je Container mit seinen Stellen
@@ -385,21 +534,34 @@ export async function hallKinder(h, file, w) {
   });
 
   const nur = (h.kinder.nur ?? []).map((n) => ({ kind: n.kind, netz: n.netz, muster: n.netz.map((x) => new RegExp(`(^|[\\\\/])${esc(x)}\\.(cga|cgf)$`, 'i')), exemplare: 0 }));
+  // Lampen angehängter Lichtgruppen, aus den Entities des genannten Kindes
+  const anhang = (h.kinder.anhang ?? []).map((a) => {
+    const c = alle.get(a.kind);
+    if (!c) throw new Error(`anhang ${a.kind}: kein eingehängtes Kind heißt so, der Eintrag ist ohne Anlass`);
+    let r;
+    try { r = anhangLampen(entitiesVon(c.name), a); } catch (e) { throw new Error(`anhang ${a.kind}: ${e.message}`); }
+    // fährt eine Ruhelage denselben Knochen, müssten die Lampen mitfahren
+    const faehrt = lagen.find((l) => l.cga.toLowerCase() === r.traeger.toLowerCase() && l.knochen === a.knochen);
+    if (faehrt) throw new Error(`anhang ${a.kind}: die Ruhelage ${faehrt.cga} stellt den Knochen ${a.knochen}, an dem die Lichtgruppe ${a.gruppe} hängt; die Lampen blieben stehen`);
+    return { ...a, ...r, exemplare: 0 };
+  });
   const zeilen = (f) => readFileSync(f, 'utf8').split('\n').filter((z) => z.trim());
   const liste = [];
   const room = await io.read(h.raw);
   const vorher = { knoten: room.getRoot().listNodes().length, netze: room.getRoot().listMeshes().length };
-  const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => io.read(c.glb), zeilen: (c) => zeilen(c.licht), lagen, nur, liste, melde: (m) => console.log(m) });
+  const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => io.read(c.glb), zeilen: (c) => zeilen(c.licht), lagen, nur, anhang, liste, melde: (m) => console.log(m) });
   for (const n of nur) if (!n.exemplare) throw new Error(`nur ${n.kind}: kein eingehängtes Kind heißt so, der Eintrag ist ohne Anlass`);
   for (const l of lagen) if (!l.knoten) throw new Error(`Lage ${l.cga}: kein eingehängtes Kind trägt dieses Netz, der Eintrag ist ohne Anlass`);
+  for (const a of anhang) if (!a.exemplare) throw new Error(`anhang ${a.kind}: das Kind steht im Plan, wurde aber nicht eingehängt`);
   await room.transform(unpartition());
   const alleZeilen = [...zeilen(eigeneLichter), ...lichter];
   await eingehaengtSchreiben({
     berichtWeg: () => rmSync(bericht, { force: true }),
     licht: () => writeFileSync(gemerkt, alleZeilen.join('\n') + '\n'),
     modell: () => io.write(file, room),
-    bericht: () => writeFileSync(bericht, JSON.stringify({ konfig, kinder: liste, ausgelassen, lagen: lagen.map(({ muster, ...l }) => l), lichtzeilen: { halle: alleZeilen.length - lichter.length, kinder: lichter.length } }, null, 1)),
+    bericht: () => writeFileSync(bericht, JSON.stringify({ konfig, kinder: liste, ausgelassen, lagen: lagen.map(({ muster, ...l }) => l), anhang: anhang.map(({ lampen, ...a }) => ({ ...a, lampen: lampen.length })), lichtzeilen: { halle: alleZeilen.length - lichter.length, kinder: lichter.length } }, null, 1)),
   });
   console.log(`  Kinder eingehängt: ${room.getRoot().listNodes().length - vorher.knoten} Knoten und ${room.getRoot().listMeshes().length - vorher.netze} Netze dazu, ${lichter.length} Lichtzeilen zu ${alleZeilen.length - lichter.length} der Halle; gestellt: ${lagen.map((l) => `${l.cga} um ${l.versatz.join(',')} (${l.spur}, ${l.knoten} Knoten)`).join('; ') || 'nichts'}`);
+  for (const a of anhang) console.log(`  Lichtgruppe ${a.gruppe} am Knochen ${a.knochen} von ${a.traeger}: ${a.lampen.length} Lampe(n) je Exemplar angehängt (${a.exemplare} Exemplare), ${a.aus.length} ohne Stärke im Ruhezustand ausgelassen`);
   console.log(`  nicht eingehängt (kein Muster in kinder.folge): ${Object.entries(ausgelassen).map(([k, n]) => `${k} ${n}`).join(', ') || 'keiner'}`);
 }
