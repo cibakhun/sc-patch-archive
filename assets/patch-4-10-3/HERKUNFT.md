@@ -1,0 +1,64 @@
+# Herkunft der RSI-Bilder (Patchseite 4.10.3)
+
+Offizielles Bildmaterial von robertsspaceindustries.com bzw. media.robertsspaceindustries.com, mit Erlaubnis des Seitenbetreibers genutzt. Erzeugt von `scripts/patch-4-10-3-rsi-bilder.mjs`. Bei Comm-Link-Bildern ist die Comm-Link-Seite angegeben, bei Schiffsbildern die Originaldatei auf dem RSI-Medienserver. Abgerufen am 2026-11-15.
+
+- `iae-2956-halle-1920.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956 | Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo | 2026-11-15
+- `iae-2956-halle-1920.avif` | https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956 | Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo | 2026-11-15
+- `iae-2956-halle-1200.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956 | Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo | 2026-11-15
+- `iae-2956-halle-640.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956 | Raumfahrer im orange-blauen Anzug vor einem beleuchteten Torbogen mit dem IAE-2956-Logo | 2026-11-15
+- `iae-2956-stadt-1920.webp` | https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103 | Mehrere Raumschiffe fliegen bei Nacht durch eine Hochhausstadt, im Hintergrund das IAE-2956-Zeichen | 2026-11-15
+- `iae-2956-stadt-1200.webp` | https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103 | Mehrere Raumschiffe fliegen bei Nacht durch eine Hochhausstadt, im Hintergrund das IAE-2956-Zeichen | 2026-11-15
+- `iae-2956-stadt-640.webp` | https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103 | Mehrere Raumschiffe fliegen bei Nacht durch eine Hochhausstadt, im Hintergrund das IAE-2956-Zeichen | 2026-11-15
+- `iae-2956-logo-1920.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule | IAE-2956-Logo vor dunkelblauen, geschwungenen Lichtbahnen | 2026-11-15
+- `iae-2956-logo-1200.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule | IAE-2956-Logo vor dunkelblauen, geschwungenen Lichtbahnen | 2026-11-15
+- `iae-2956-logo-640.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule | IAE-2956-Logo vor dunkelblauen, geschwungenen Lichtbahnen | 2026-11-15
+- `vanduul-angriff-1920.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion | Vanduul-Kriegsschiff mit zackigem Rumpf feuert in einem Asteroidenfeld rote Strahlen auf kleinere Schiffe | 2026-11-15
+- `vanduul-angriff-1920.avif` | https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion | Vanduul-Kriegsschiff mit zackigem Rumpf feuert in einem Asteroidenfeld rote Strahlen auf kleinere Schiffe | 2026-11-15
+- `vanduul-angriff-1200.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion | Vanduul-Kriegsschiff mit zackigem Rumpf feuert in einem Asteroidenfeld rote Strahlen auf kleinere Schiffe | 2026-11-15
+- `vanduul-angriff-640.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion | Vanduul-Kriegsschiff mit zackigem Rumpf feuert in einem Asteroidenfeld rote Strahlen auf kleinere Schiffe | 2026-11-15
+- `vncl-scythe-1920.webp` | https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg | Vanduul Scythe mit ausladenden Flügeln vor einem rötlichen Planeten, Triebwerk glüht | 2026-11-15
+- `vncl-scythe-1200.webp` | https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg | Vanduul Scythe mit ausladenden Flügeln vor einem rötlichen Planeten, Triebwerk glüht | 2026-11-15
+- `vncl-scythe-640.webp` | https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg | Vanduul Scythe mit ausladenden Flügeln vor einem rötlichen Planeten, Triebwerk glüht | 2026-11-15
+- `vncl-glaive-1920.webp` | https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg | Rotes, gebogenes Vanduul-Schiff Glaive feuert mit hellen Triebwerksflammen vor schwarzem Hintergrund | 2026-11-15
+- `vncl-glaive-1200.webp` | https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg | Rotes, gebogenes Vanduul-Schiff Glaive feuert mit hellen Triebwerksflammen vor schwarzem Hintergrund | 2026-11-15
+- `vncl-glaive-640.webp` | https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg | Rotes, gebogenes Vanduul-Schiff Glaive feuert mit hellen Triebwerksflammen vor schwarzem Hintergrund | 2026-11-15
+- `vncl-blade-1920.webp` | https://media.robertsspaceindustries.com/0s9bslimticmx/source.png | Dunkles Vanduul-Schiff Blade steht nachts im Nebel auf dem Boden | 2026-11-15
+- `vncl-blade-1200.webp` | https://media.robertsspaceindustries.com/0s9bslimticmx/source.png | Dunkles Vanduul-Schiff Blade steht nachts im Nebel auf dem Boden | 2026-11-15
+- `vncl-blade-640.webp` | https://media.robertsspaceindustries.com/0s9bslimticmx/source.png | Dunkles Vanduul-Schiff Blade steht nachts im Nebel auf dem Boden | 2026-11-15
+- `vncl-stinger-1920.webp` | https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg | Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund | 2026-11-15
+- `vncl-stinger-1200.webp` | https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg | Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund | 2026-11-15
+- `vncl-stinger-640.webp` | https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg | Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund | 2026-11-15
+- `rsi-galaxy-1920.webp` | https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg | RSI Galaxy, ein großes dunkles Modulschiff mit blauen Akzenten, im Flug über Wolken | 2026-11-15
+- `rsi-galaxy-1920.avif` | https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg | RSI Galaxy, ein großes dunkles Modulschiff mit blauen Akzenten, im Flug über Wolken | 2026-11-15
+- `rsi-galaxy-1200.webp` | https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg | RSI Galaxy, ein großes dunkles Modulschiff mit blauen Akzenten, im Flug über Wolken | 2026-11-15
+- `rsi-galaxy-640.webp` | https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg | RSI Galaxy, ein großes dunkles Modulschiff mit blauen Akzenten, im Flug über Wolken | 2026-11-15
+- `rsi-galaxy-flug-1920.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy | RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier | 2026-11-15
+- `rsi-galaxy-flug-1200.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy | RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier | 2026-11-15
+- `rsi-galaxy-flug-640.webp` | https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy | RSI Galaxy schräg von vorn im schnellen Flug, Triebwerksspuren und Wolkenschleier | 2026-11-15
+- `anvl-liberator-1920.webp` | https://media.robertsspaceindustries.com/k2zu1md2ulfxn/source.png | Anvil Liberator mit großen Doppeltriebwerken auf einem Flugfeld, kleine Schiffe fliegen dahinter | 2026-11-15
+- `anvl-liberator-1200.webp` | https://media.robertsspaceindustries.com/k2zu1md2ulfxn/source.png | Anvil Liberator mit großen Doppeltriebwerken auf einem Flugfeld, kleine Schiffe fliegen dahinter | 2026-11-15
+- `anvl-liberator-640.webp` | https://media.robertsspaceindustries.com/k2zu1md2ulfxn/source.png | Anvil Liberator mit großen Doppeltriebwerken auf einem Flugfeld, kleine Schiffe fliegen dahinter | 2026-11-15
+- `aegs-tiburon-1920.webp` | https://media.robertsspaceindustries.com/yqgidk6parmtz/source.jpg | Aegis Tiburon feuert in einem grünlichen Asteroidenfeld | 2026-11-15
+- `aegs-tiburon-1200.webp` | https://media.robertsspaceindustries.com/yqgidk6parmtz/source.jpg | Aegis Tiburon feuert in einem grünlichen Asteroidenfeld | 2026-11-15
+- `aegs-tiburon-640.webp` | https://media.robertsspaceindustries.com/yqgidk6parmtz/source.jpg | Aegis Tiburon feuert in einem grünlichen Asteroidenfeld | 2026-11-15
+- `misc-starlite-1920.webp` | https://media.robertsspaceindustries.com/6cdv5u7nvigrn/source.jpg | MISC Starlite, ein silbergraues Schiff, steht nachts zwischen Palmen am Boden | 2026-11-15
+- `misc-starlite-1200.webp` | https://media.robertsspaceindustries.com/6cdv5u7nvigrn/source.jpg | MISC Starlite, ein silbergraues Schiff, steht nachts zwischen Palmen am Boden | 2026-11-15
+- `misc-starlite-640.webp` | https://media.robertsspaceindustries.com/6cdv5u7nvigrn/source.jpg | MISC Starlite, ein silbergraues Schiff, steht nachts zwischen Palmen am Boden | 2026-11-15
+- `drak-ironclad-1920.webp` | https://media.robertsspaceindustries.com/g948zfjuiznu4/source.jpg | Drake Ironclad, ein gepanzertes Frachtschiff, fliegt an einem Planeten vorbei | 2026-11-15
+- `drak-ironclad-1200.webp` | https://media.robertsspaceindustries.com/g948zfjuiznu4/source.jpg | Drake Ironclad, ein gepanzertes Frachtschiff, fliegt an einem Planeten vorbei | 2026-11-15
+- `drak-ironclad-640.webp` | https://media.robertsspaceindustries.com/g948zfjuiznu4/source.jpg | Drake Ironclad, ein gepanzertes Frachtschiff, fliegt an einem Planeten vorbei | 2026-11-15
+- `drak-ironclad-assault-1920.webp` | https://media.robertsspaceindustries.com/llaw71tcvmgmy/source.jpg | Drake Ironclad Assault von unten mit gelbem Rumpf und Bewaffnung, Rauch im Hintergrund | 2026-11-15
+- `drak-ironclad-assault-1200.webp` | https://media.robertsspaceindustries.com/llaw71tcvmgmy/source.jpg | Drake Ironclad Assault von unten mit gelbem Rumpf und Bewaffnung, Rauch im Hintergrund | 2026-11-15
+- `drak-ironclad-assault-640.webp` | https://media.robertsspaceindustries.com/llaw71tcvmgmy/source.jpg | Drake Ironclad Assault von unten mit gelbem Rumpf und Bewaffnung, Rauch im Hintergrund | 2026-11-15
+- `drak-pitbull-1920.webp` | https://media.robertsspaceindustries.com/9jazkmawt8ggi/source.jpg | Drake Pitbull fliegt mit Triebwerksflammen durch einen großen Industrieschacht | 2026-11-15
+- `drak-pitbull-1200.webp` | https://media.robertsspaceindustries.com/9jazkmawt8ggi/source.jpg | Drake Pitbull fliegt mit Triebwerksflammen durch einen großen Industrieschacht | 2026-11-15
+- `drak-pitbull-640.webp` | https://media.robertsspaceindustries.com/9jazkmawt8ggi/source.jpg | Drake Pitbull fliegt mit Triebwerksflammen durch einen großen Industrieschacht | 2026-11-15
+- `glsn-basher-1920.webp` | https://media.robertsspaceindustries.com/h84m7m1hw0dcq/source.jpg | Grey's Basher kippt in einer Wüste durch eine Staubwolke, weitere Renner dahinter | 2026-11-15
+- `glsn-basher-1200.webp` | https://media.robertsspaceindustries.com/h84m7m1hw0dcq/source.jpg | Grey's Basher kippt in einer Wüste durch eine Staubwolke, weitere Renner dahinter | 2026-11-15
+- `glsn-basher-640.webp` | https://media.robertsspaceindustries.com/h84m7m1hw0dcq/source.jpg | Grey's Basher kippt in einer Wüste durch eine Staubwolke, weitere Renner dahinter | 2026-11-15
+- `orig-m80-1920.webp` | https://media.robertsspaceindustries.com/nledgsyyzmjov/source.jpg | Origin M80, ein schlankes helles Schiff, fliegt in der Abenddämmerung über Berge | 2026-11-15
+- `orig-m80-1200.webp` | https://media.robertsspaceindustries.com/nledgsyyzmjov/source.jpg | Origin M80, ein schlankes helles Schiff, fliegt in der Abenddämmerung über Berge | 2026-11-15
+- `orig-m80-640.webp` | https://media.robertsspaceindustries.com/nledgsyyzmjov/source.jpg | Origin M80, ein schlankes helles Schiff, fliegt in der Abenddämmerung über Berge | 2026-11-15
+- `gama-tyilui-1920.webp` | https://media.robertsspaceindustries.com/fojrwsximct23/source.jpg | Gatac Tyilui mit zwei langen Flügeln fliegt über einer roten Planetenoberfläche | 2026-11-15
+- `gama-tyilui-1200.webp` | https://media.robertsspaceindustries.com/fojrwsximct23/source.jpg | Gatac Tyilui mit zwei langen Flügeln fliegt über einer roten Planetenoberfläche | 2026-11-15
+- `gama-tyilui-640.webp` | https://media.robertsspaceindustries.com/fojrwsximct23/source.jpg | Gatac Tyilui mit zwei langen Flügeln fliegt über einer roten Planetenoberfläche | 2026-11-15
