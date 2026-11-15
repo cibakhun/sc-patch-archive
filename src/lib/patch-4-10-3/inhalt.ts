@@ -371,6 +371,7 @@ export async function patchInhalt(lang: Locale): Promise<PatchInhalt> {
   const auecSchiffe: AuecSchiff[] = AUEC.map(([id, name, orte]) => {
     const v = fahrzeug(id);
     const buy = (priceInfo(id)?.buy ?? []) as Buy[];
+    if (!v.manufacturer) throw new Error(`inhalt 4.10.3: ${id} ohne Hersteller in vehicles.json`);
     return {
       id, name, hersteller: v.manufacturer, link: schiff(id, name),
       vorschau: pickThumb(v)?.src ?? null,
