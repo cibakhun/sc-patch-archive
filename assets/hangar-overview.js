@@ -651,13 +651,29 @@ export function dockSearch(ships, f, crew) {
 // - Die Zeile der leichten Ansicht zeigt schmal darunter die letzten
 //   Abbrueche und das Geraet, wie die Meldung (spurZeilen): Ein Bildschirmfoto
 //   der leichten Ansicht sagt dann, in welcher Phase die volle Halle abbrach.
-export const WAECHTER = { v: 4, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext', 'start'], anlauf: { zahl: 2, frist: 10 * 60e3, ruhe: 45e3 }, laeufe: 8 };
+//
+// Seit 15.11.2026 (Krisz' Bild der leichten Ansicht nach v 4: „Hoch, nach dem
+// Laden, Grafik verloren“ auf dem iPhone 12), v 5:
+// - Die volle Halle haelt am Telefon weniger Grafikspeicher (Texturen aus den
+//   kleinen komprimierten Zwillingen, KTX_TEL im Viewer: im Telefonformat
+//   82 statt 198 MB). Alte Deckel verfallen, jedes Telefon versucht die volle
+//   Halle einmal neu.
+// - Geht der Zeichenkontext verloren, lebt die Seite noch und kann mehr
+//   sagen als bei ihrem Ende: Die Spur fuehrt dann, wie viele Sekunden die
+//   Phase schon lief (d) und woher die Bilder kamen (b, WAECHTER.bilder;
+//   bilder() des Viewers). Im Bild der leichten Ansicht steht dann, ob die
+//   Halle sofort oder erst spaeter verloren ging und ob die Zwillinge liefen.
+export const WAECHTER = { v: 5, stufen: ['niedrig', 'mittel', 'hoch'], zweimal: 30 * 60e3, frisch: 30 * 60e3, puls: 5 * 60e3, deckel: 30 * 864e5, spur: 6, phasen: ['laden', 'bauen', 'steht'], arten: ['seite', 'kontext', 'start'], bilder: ['komprimiert', 'gemischt', 'webp'], anlauf: { zahl: 2, frist: 10 * 60e3, ruhe: 45e3 }, laeufe: 8 };
 const DECKEL = ['aus', ...WAECHTER.stufen];
 const istZeit = (t, now, frist) => Number.isFinite(t) && t <= now && now - t < frist;
 const eins = (liste, x) => (liste.includes(x) ? x : null);
-// Ein Eintrag der Spur: t wann, s Stufe, p Phase, w was abbrach; Unbekanntes wird null
+// Ein Eintrag der Spur: t wann, s Stufe, p Phase, w was abbrach; Unbekanntes
+// wird null. Dazu, nur wenn bekannt (verlorener Zeichenkontext): d Sekunden,
+// die die Phase schon lief (ganze Zahl bis zu einem Tag), b woher die Bilder
+// kamen (WAECHTER.bilder).
+const spurDauer = (d) => Number.isInteger(d) && d >= 0 && d <= 86400;
 const spurEintrag = (e, now) => (e && typeof e === 'object' && istZeit(e.t, now, WAECHTER.deckel)
-  ? { t: e.t, s: eins(WAECHTER.stufen, e.s), p: eins(WAECHTER.phasen, e.p), w: eins(WAECHTER.arten, e.w) }
+  ? { t: e.t, s: eins(WAECHTER.stufen, e.s), p: eins(WAECHTER.phasen, e.p), w: eins(WAECHTER.arten, e.w), ...(spurDauer(e.d) ? { d: e.d } : null), ...(eins(WAECHTER.bilder, e.b) ? { b: e.b } : null) }
   : null);
 const spurVon = (liste, now) => (Array.isArray(liste) ? liste : []).map((e) => spurEintrag(e, now)).filter(Boolean).slice(-WAECHTER.spur);
 
@@ -684,14 +700,16 @@ export function waechterStand(raw, now) {
  * Stand nach einem Abbruch. stufe: in welcher Stufe der abgebrochene Lauf
  * geladen hatte; null, wenn er abbrach, bevor sie feststand (dann gilt der
  * Deckel, ohne Deckel die hoechste). was.sofort: schon der erste Abbruch
- * senkt (Telefon); was.phase und was.wie gehen in die Spur.
+ * senkt (Telefon); was.phase und was.wie gehen in die Spur, ebenso
+ * was.dauer (Sekunden in der Phase) und was.bilder (WAECHTER.bilder), wenn
+ * die Seite sie kennt.
  * @param {{ ab: number|null, deckel: string|null, seit: number, spur?: object[] }} stand
  * @param {number} now
  * @param {string|null} stufe
- * @param {{ sofort?: boolean, phase?: string|null, wie?: string|null }} [was]
+ * @param {{ sofort?: boolean, phase?: string|null, wie?: string|null, dauer?: number|null, bilder?: string|null }} [was]
  */
-export function waechterAbbruch(stand, now, stufe, { sofort = false, phase = null, wie = null } = {}) {
-  const spur = [...spurVon(stand.spur, now), spurEintrag({ t: now, s: stufe, p: phase, w: wie }, now)].slice(-WAECHTER.spur);
+export function waechterAbbruch(stand, now, stufe, { sofort = false, phase = null, wie = null, dauer = null, bilder = null } = {}) {
+  const spur = [...spurVon(stand.spur, now), spurEintrag({ t: now, s: stufe, p: phase, w: wie, d: dauer, b: bilder }, now)].slice(-WAECHTER.spur);
   if (stand.ab === null && !sofort) return { ...stand, ab: now, spur };
   const lief = WAECHTER.stufen.includes(stufe) ? stufe : stand.deckel && stand.deckel !== 'aus' ? stand.deckel : 'hoch';
   const tiefer = DECKEL[Math.max(0, DECKEL.indexOf(lief) - 1)];
@@ -705,14 +723,19 @@ export const waechterText = (stand) => JSON.stringify({ v: WAECHTER.v, ab: stand
 
 /**
  * Die Spur als Zeilen fuer die Meldung, eine je Abbruch, aelteste zuerst:
- * „Hoch, beim Aufbau der Halle, Seite beendet“. wort(k) gibt das Wort der
- * Seite zu einer Stufe, Phase oder Art, '' wenn sie keins hat; Unbekanntes
- * faellt aus der Zeile.
+ * „Hoch, beim Aufbau der Halle, Seite beendet“, mit Dauer und Bildern
+ * „Hoch, nach dem Laden (14 s), Grafik verloren, Texturen komprimiert“.
+ * wort(k) gibt das Wort der Seite zu einer Stufe, Phase, Art oder Herkunft
+ * der Bilder, '' wenn sie keins hat; Unbekanntes faellt aus der Zeile, und
+ * die Dauer steht nur hinter einer Phase, die ein Wort hat.
  * @param {object[]} spur
  * @param {(k: string) => string} wort
  */
 export const waechterVerlauf = (spur, wort) => (spur ?? [])
-  .map((e) => [e.s, e.p, e.w].map((k) => (k ? wort(k) : '')).filter(Boolean).join(', '))
+  .map((e) => {
+    const [stufe, phase, art, bilder] = [e.s, e.p, e.w, e.b].map((k) => (k ? wort(k) : ''));
+    return [stufe, phase && spurDauer(e.d) ? `${phase} (${e.d} s)` : phase, art, bilder].filter(Boolean).join(', ');
+  })
   .filter(Boolean);
 
 /**
@@ -2679,9 +2702,10 @@ export function boot(doc) {
   // Ein Abbruch in der Stufe stufe: vermerken, und was der Besucher von Hand
   // gewaehlt hatte, gilt nicht weiter, wenn der Deckel darunter liegt.
   // wie: 'seite' oder 'kontext', phase: wie weit der Lauf war (beides fuer die Spur).
-  function abbruch(stufe, wie, phase) {
+  // mehr: { dauer, bilder } fuer die Spur, wenn die Seite sie kennt (waechterAbbruch)
+  function abbruch(stufe, wie, phase, mehr = null) {
     const vor = waechterStand(lies(() => localStorage, STAND_KEY), Date.now());
-    const stand = waechterAbbruch(vor, Date.now(), stufe, { sofort: TELEFON, phase, wie });
+    const stand = waechterAbbruch(vor, Date.now(), stufe, { sofort: TELEFON, phase, wie, ...mehr });
     const ok = standSchreiben(stand);
     if (stand.deckel && GRAFIK && (stand.deckel === 'aus' || WAECHTER.stufen.indexOf(GRAFIK) > WAECHTER.stufen.indexOf(stand.deckel))) {
       try { localStorage.removeItem(GRAFIK_KEY); } catch { /* dann gilt der Deckel ueber der Wahl */ }
@@ -2756,6 +2780,7 @@ export function boot(doc) {
   function laufPhase(phase) {
     if (!lauf || WAECHTER.phasen.indexOf(phase) <= WAECHTER.phasen.indexOf(lauf.phase)) return;
     lauf.phase = phase;
+    lauf.seit = Date.now();
     offenSetzen();
     // Steht die Buehne WAECHTER.anlauf.ruhe lang, traegt das Geraet sie: Die
     // Starts bis zu ihrem eigenen zaehlen nicht mehr (anlaufRuhe).
@@ -3096,7 +3121,7 @@ export function boot(doc) {
     if (miss) { noStage(miss, gpuWhy); return; }
     loadEl.hidden = false;
     // Lauf offen, die Stufe folgt, sobald der Viewer sie gewaehlt hat
-    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, t0: Date.now(), stufe: null, phase: 'laden' };
+    lauf = { id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`, t0: Date.now(), seit: Date.now(), stufe: null, phase: 'laden' };
     offenSetzen();
     anlaufSetzen();
     // Am Telefon unter einem Deckel die leichte Buehne: ohne echte Halle und
@@ -3144,8 +3169,10 @@ export function boot(doc) {
             // blendete sie sonst wieder ein.
             main.dataset.lost = 'on';
             const stufe = lauf?.stufe ?? v.quality().start, phase = lauf?.phase ?? null;
+            // fuer die Spur: wie lange die Phase lief und woher die Bilder kamen
+            const mehr = { dauer: lauf ? Math.round((Date.now() - lauf.seit) / 1000) : null, bilder: v.bilder?.() ?? null };
             laufEnde();
-            if (imVordergrund()) neuLaden = !!abbruch(stufe, 'kontext', phase);
+            if (imVordergrund()) neuLaden = !!abbruch(stufe, 'kontext', phase, mehr);
             else {
               neuLaden = true;
               console.warn('[hangar] Zeichenkontext im Hintergrund verloren, nicht als Abbruch gezaehlt');

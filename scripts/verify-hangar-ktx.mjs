@@ -3,7 +3,9 @@
    Hangar-Bilder (Schiene A, nur mit Hangar).
 
    WARUM ES DEN GIBT: Seit dem 13.11.2026 laedt der Hangar am PC jede
-   Textur aus einer KTX2-Datei unter /hangar/ktx/ statt aus ihrem WebP
+   Textur aus einer KTX2-Datei unter /hangar/ktx/ statt aus ihrem WebP,
+   seit dem 15.11.2026 am Telefon aus deren kleiner Fassung unter
+   /hangar/ktx-klein/ ([8])
    (Krisz: „es braucht viel zu viele Ressourcen um das Hangar laufen zu
    lassen"; Grafikspeicher 2,0 GB -> 1,0 GB, scripts/lib/hangar-ktx.mjs).
    Die Zwillinge haengen an nichts als an ihrem Namen: der Viewer rechnet
@@ -15,8 +17,9 @@
    fleckig oder schwarz.
 
    Dieses Tor liest das ARTEFAKT: jedes GLB unter dist/hangar/, die Bilder
-   der Ablage dist/hangar/tex/, die Zwillinge dist/hangar/ktx/ und den
-   ausgelieferten Viewer dist/assets/hangar-viewer.js (in Node geladen).
+   der Ablage dist/hangar/tex/, die Zwillinge dist/hangar/ktx/, ihre
+   kleinen Fassungen dist/hangar/ktx-klein/ und den ausgelieferten Viewer
+   dist/assets/hangar-viewer.js (in Node geladen).
 
    ZUSICHERUNGEN
      [1] Bestand: Jedes Bild, das ein GLB ueber eine Textur benutzt, ist
@@ -42,8 +45,10 @@
          wenn sie reissen, nur der Speicher wieder waechst oder ein Schiff
          fleckig wird: der Zwilling wird zuerst gefragt und ohne ihn das
          WebP geladen; Ladebalken, Farbmittel und die Merkmale des Bildes
-         kommen an den Zwilling; der Weg ist am Telefon und mit
-         ?bilder=webp aus und verlangt BC7 oder ASTC; die Schluessel werden
+         kommen an den Zwilling; der Weg ist mit ?bilder=webp aus, am
+         Telefon unter einem Deckel des Waechters und mit gewaehlter Stufe
+         auch (dort laeuft er sonst mit zwei Workern), und verlangt BC7
+         oder ASTC; die Schluessel werden
          gelesen, bevor der Puffer zum Umwandler geht; die Mip-Stufen gehen
          nach dem Hochladen aus dem Arbeitsspeicher (mit Falle); ein
          Sampler ohne Mips laedt nur die groesste Stufe; die niedrige Stufe
@@ -66,8 +71,24 @@
          Zwillinge jeder Art nach BC7 und ASTC um, und jedes Ergebnis ist
          bitgleich mit dem des unveraenderten Umwandlers aus
          node_modules/three (scripts/lib/hangar-basis.mjs).
+     [8] Kleine Fassungen fuers Telefon (15.11.2026): Zu jedem Zwilling
+         liegt unter dist/hangar/ktx-klein/ genau eine Datei gleichen
+         Namens, und der Ordner traegt nichts anderes. Jede ist Byte fuer
+         Byte, was ktxKlein (scripts/lib/hangar-ktx.mjs) aus ihrem
+         Zwilling macht: dieselbe Datei ohne die Mip-Stufen ueber
+         KTX_KLEIN_MAX. Dass eine so gekuerzte Datei dasselbe Bild traegt,
+         zeigt der ausgelieferte Umwandler: Er wandelt je Art mindestens
+         MIN_PROBEN gekuerzte Fassungen in die Formate eines Telefons um,
+         und jede Stufe ist bitgleich mit derselben Stufe des Zwillings.
+         Der Viewer holt am Telefon aus diesem Ordner, mit Rezept und
+         Kante an der URL, und seine Automatik am Telefon laedt genau
+         diese Kante ([5]). Fehlte eine Fassung, luede das Telefon fuer
+         das Bild still das WebP, viermal so schwer bei der Grafikkarte;
+         genau dieser Speicher hat Krisz' iPhone 12 am 15.11.2026 den
+         Zeichenkontext gekostet.
 
-   VORGEFUEHRT ROT (13.11.2026), jede Meldung im Commit:
+   VORGEFUEHRT ROT (13.11.2026; [8] und die Stellen des Telefons am
+   15.11.2026), jede Meldung im Commit:
      a  einen Zwilling loeschen                         -> [2]
      b  eine fremde Datei in den Ordner legen           -> [2]
      c  einen Zwilling durch den eines anderen Bildes
@@ -94,6 +115,26 @@
         verfaelschen (Empfaenger eines Aufrufs gestrichen;
         ebenso: `this` nicht uebergeben, Rueckgabe
         gestrichen)                                     -> [7]
+     k1 eine kleine Fassung loeschen                     -> [8]
+     k2 eine fremde Datei in ktx-klein/ legen            -> [8]
+     k3 eine kleine Fassung durch ihren ganzen Zwilling
+        ersetzen                                        -> [8]
+     k4 in einer kleinen Fassung ein Byte einer Stufe
+        aendern                                         -> [8]
+     k5 kleine Fassungen mit einem ktxKlein bauen, das die
+        Bildbeschreibungen der falschen Stufen behaelt
+        (die ersten statt der letzten)                  -> [8]
+     k6 KTX_KLEIN im Viewer auf 512                     -> [5]
+     k7 den Ordner der kleinen Fassungen im Viewer
+        aendern                                         -> [5]
+     k8 TEX_PHONE_AUTO im Viewer auf 128                 -> [5]
+     k9 KTX_TEL im Viewer ohne !opts.cap (die leichte
+        Ansicht bekaeme die Zwillinge auch)              -> [6]
+     k10 am Telefon vier statt zwei Worker               -> [6]
+   NICHT ERFASST: ob ein echtes Telefon die Zwillinge traegt (ASTC und ETC2
+   auf seinem Grafikchip, Speicher des Umwandlers). Das Tor wandelt mit dem
+   ausgelieferten Umwandler in Node um; ein Telefon gibt es hier nicht
+   (.planning/WINDOWS.md).
    NICHT ERFASST: der Abbau von Argumenten nach einem Aufruf
    (runDestructors, destructorFunction in der ersten Korrektur). Kein
    Aufruf des Umwandlers hat ein Argument, das abgebaut werden muss; ohne
@@ -103,11 +144,11 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { BAU, KTX_NAME, KTX_ORDNER, bestand, dateiAnfang, ktxKopf } from './lib/hangar-ktx.mjs';
-import { BASIS_FORMATE, basisStart } from './lib/hangar-basis.mjs';
+import { BAU, KTX_KLEIN_MAX, KTX_KLEIN_ORDNER, KTX_NAME, KTX_ORDNER, bestand, dateiAnfang, ktxKlein, ktxKleinWeg, ktxKopf } from './lib/hangar-ktx.mjs';
+import { BASIS_FORMATE, BASIS_FORMATE_TELEFON, basisStart } from './lib/hangar-basis.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DIST = join(ROOT, 'dist'), HANGAR = join(DIST, 'hangar'), ZIEL = join(HANGAR, KTX_ORDNER);
+const DIST = join(ROOT, 'dist'), HANGAR = join(DIST, 'hangar'), ZIEL = join(HANGAR, KTX_ORDNER), KLEIN = join(HANGAR, KTX_KLEIN_ORDNER);
 
 // Klinken (13.11.2026: 1.195 GLB, 9.621 Bilder, davon 1.809 Normal-Karten
 // und 5.296 Grundfarben-Karten)
@@ -117,6 +158,10 @@ const MIN_GLB = 1150, MIN_BILDER = 9300, MIN_NORMAL = 1700, MIN_GRUND = 5000, MI
 // der Schätzung „rund 460 MB" aus der Probe zugestimmt; was darüber wächst,
 // soll jemand entscheiden und nicht still passieren.
 const MAX_MB = 560, MAX_DATEI_MB = 8;
+// [8]: die kleinen Fassungen wogen am 15.11.2026 zusammen 163,5 MB (nur im
+// Image, nicht im Repo: public/hangar/ktx-klein/ ist gitignored), 5.447 von
+// 9.621 sind gekürzt, der Rest war schon klein
+const MAX_KLEIN_MB = 200, MIN_GEKUERZT = 5200;
 // [7]: so viele Zwillinge je Art wandelt das Tor mit dem ausgelieferten Umwandler um
 const MIN_PROBEN = 40;
 const ANFANG = 4096;
@@ -130,7 +175,7 @@ if (!existsSync(HANGAR)) {
   console.error('verify-hangar-ktx: dist/hangar/ fehlt — erst als Vorschau bauen (STAGING=1 npm run build).');
   process.exit(1);
 }
-say('Geprüftes Artefakt: dist/hangar/ (GLB, Ablage tex/, Zwillinge ktx/) und dist/assets/hangar-viewer.js');
+say('Geprüftes Artefakt: dist/hangar/ (GLB, Ablage tex/, Zwillinge ktx/, kleine Fassungen ktx-klein/) und dist/assets/hangar-viewer.js');
 
 // Breite und Höhe eines WebP aus seinem Kopf (VP8, VP8L, VP8X)
 function webpMass(b) {
@@ -174,6 +219,7 @@ say('[3] Inhalt jedes Zwillings, [4] Farbmittel der Grundfarben-Karten');
 let gut = 0, mitMittel = 0, bytes = 0, webpBytes = 0, schlecht = 0;
 const groesse = { n: 0, c: 0, d: 0 }, mittelWerte = new Set(), gross = [];
 let erster = null;   // Bytes eines guten Zwillings mit Farbmittel, für [5]
+const gekuerzt = new Map();   // Kennung -> gestrichene Stufen, für [8] (nur gute Zwillinge, die gekürzt werden)
 const melde = (id, text) => { if (++schlecht <= 12) fail(text); };
 for (const [id, b] of inv.bilder) {
   const f = join(ZIEL, `${id}.ktx2`);
@@ -199,6 +245,7 @@ for (const [id, b] of inv.bilder) {
   if (mangel) { melde(id, `[3] ${wo}: ${mangel} — ${BAUEN}`); continue; }
   if (laenge > MAX_DATEI_MB * 1048576) gross.push(`${wo} ${mb(laenge)} MB`);
   gut++; bytes += laenge; webpBytes += b.webp; groesse[b.art] += laenge;
+  if (ktxKleinWeg(k) > 0) gekuerzt.set(id, ktxKleinWeg(k));
   if (b.grund) {
     const m = (k.kv.HGmittel ?? '').split(',').map(Number);
     if (m.length !== 3 || !m.every((v) => Number.isFinite(v) && v >= 0 && v <= 1)) { melde(id, `[4] ${wo}: Grundfarben-Karte ohne Farbmittel (HGmittel ${k.kv.HGmittel ?? 'fehlt'}): der dunkelste Lack würde nicht mehr angehoben, das Schiff stünde fleckig schwarz da — ${BAUEN}`); continue; }
@@ -223,8 +270,19 @@ else {
   const bau = /^export const KTX_BAU = '([^']+)';$/m.exec(src)?.[1];
   if (bau !== BAU) fail(`[5] der Viewer hängt Rezept ${bau ?? '(keins gefunden)'} an die URL, die Zwillinge tragen ${BAU}: nach einem Rezeptwechsel lüde der Browser ein Jahr lang die alten Dateien aus seinem Cache (KTX_BAU in assets/hangar-viewer.js und BAU in scripts/lib/hangar-ktx.mjs gehören zusammen)`);
   else naht++;
-  const ziel = /fetch\(`(\/hangar\/[^`$]*)\$\{id\}\.ktx2\?v=\$\{KTX_BAU\}`/.exec(src)?.[1];
+  // Ort und Fassung an der URL: am PC der ganze Zwilling mit dem Rezept, am
+  // Telefon (KTX_TEL) die kleine Fassung mit Rezept und Kante
+  const ort = /const KTX_ORT = KTX_TEL \? '([^']+)' : '([^']+)', KTX_V = KTX_TEL \? `\$\{KTX_BAU\}-\$\{KTX_KLEIN\}` : KTX_BAU;/.exec(src);
+  const holt = /fetch\(`\$\{KTX_ORT\}\$\{id\}\.ktx2\?v=\$\{KTX_V\}`/.test(src);
+  const ziel = holt ? ort?.[2] : null, zielKlein = holt ? ort?.[1] : null;
   if (ziel !== `/hangar/${KTX_ORDNER}/`) fail(`[5] der Viewer holt die Zwillinge von ${ziel ?? '(keine Stelle gefunden)'}, sie liegen unter /hangar/${KTX_ORDNER}/`);
+  else naht++;
+  if (zielKlein !== `/hangar/${KTX_KLEIN_ORDNER}/`) fail(`[5] der Viewer holt am Telefon die kleinen Fassungen von ${zielKlein ?? '(keine Stelle gefunden)'}, sie liegen unter /hangar/${KTX_KLEIN_ORDNER}/, oder ihre URL trägt Rezept und Kante nicht mehr (ändert sich die Kante, lüde der Browser sonst ein Jahr lang die alten Dateien): jedes Bild käme am Telefon aus dem WebP`);
+  else naht++;
+  const kante = Number(/^export const KTX_KLEIN = (\d+);$/m.exec(src)?.[1] ?? NaN), auto = Number(/TEX_PHONE_AUTO = (\d+),/.exec(src)?.[1] ?? NaN);
+  if (kante !== KTX_KLEIN_MAX) fail(`[5] der Viewer nennt für die kleinen Fassungen ${Number.isFinite(kante) ? `${kante} px` : '(keine Kante gefunden)'}, gebaut sind sie bis ${KTX_KLEIN_MAX} px (KTX_KLEIN in assets/hangar-viewer.js und KTX_KLEIN_MAX in scripts/lib/hangar-ktx.mjs gehören zusammen)`);
+  else naht++;
+  if (auto !== KTX_KLEIN_MAX) fail(`[5] die Automatik am Telefon lädt ${Number.isFinite(auto) ? `${auto} px` : '(TEX_PHONE_AUTO nicht gefunden)'} Kante, die kleinen Fassungen tragen ${KTX_KLEIN_MAX} px: Darüber fehlten dem Telefon die Stufen (das Bild bliebe unschärfer als verlangt), darunter lüde es Stufen, die es nicht hochlädt`);
   else naht++;
   const pfad = /setTranscoderPath\('([^']+)'\)/.exec(src)?.[1];
   for (const n of ['basis_transcoder.js', 'basis_transcoder.wasm']) {
@@ -253,7 +311,7 @@ else {
     } catch (e) { fail(`[5] ktxKv des Viewers läuft nicht (${e.message})`); }
   }
 }
-say(`    ${naht} von 7 Stellen in Ordnung`);
+say(`    ${naht} von 10 Stellen in Ordnung`);
 
 /* ---------- [6] Nahtstellen im Viewer ---------- */
 say('[6] Nahtstellen im Viewer');
@@ -271,8 +329,10 @@ say('[6] Nahtstellen im Viewer');
       `${V}: der Zwilling meldet dem Ladebalken die Bytes seines WebP nicht mehr oder trägt sein Farbmittel nicht mehr an die Textur: der Balken bliebe stehen, oder der dunkelste Lack würde nicht mehr angehoben`],
     ['Merkmale des Bildes am Zwilling', /const t = dress\(z\.t\);/.test(src) && /const dress = \(t\) => \{\s*if \(def\.extras && typeof def\.extras === 'object'\) Object\.assign\(t\.userData, def\.extras\);/.test(src),
       `${V}: der Zwilling bekommt die Merkmale seines Bildes nicht mehr (images[].extras, etwa neutral): eine neutrale Karte gälte als echte, und ihr Farbmittel dunkelte das Material ab`],
-    ['aus am Telefon und mit ?bilder=webp', /const KTX_AN = !SMALL && opts\.bilder !== 'webp' && !!globalThis\.crypto\?\.subtle;/.test(src) && /const BILDER = new URLSearchParams\(location\.search\)\.get\('bilder'\);/.test(ctrl) && /pad: BODEN, bilder: BILDER,/.test(ctrl),
-      `${V} oder dist/assets/hangar-overview.js: der Weg über die Zwillinge ist am Telefon nicht mehr aus (dort unerprobt), oder ?bilder=webp stellt ihn nicht mehr ab (Vergleich beider Wege)`],
+    ['am Telefon nur in der Automatik ohne Deckel, mit ?bilder=webp aus', /const KTX_TEL = SMALL && !FORCED && !opts\.cap;/.test(src) && /const KTX_AN = \(!SMALL \|\| KTX_TEL\) && opts\.bilder !== 'webp' && !!globalThis\.crypto\?\.subtle;/.test(src) && /const BILDER = new URLSearchParams\(location\.search\)\.get\('bilder'\);/.test(ctrl) && /pad: BODEN, bilder: BILDER,/.test(ctrl) && /cap: deckel,/.test(ctrl),
+      `${V} oder dist/assets/hangar-overview.js: am Telefon laufen die Zwillinge auch unter einem Deckel des Wächters oder mit gewählter Stufe (die leichte Ansicht, die auf Krisz' iPhone steht, wäre nicht mehr der unveränderte Weg zurück), oder ?bilder=webp stellt den Weg nicht mehr ab (Vergleich beider Wege) (15.11.2026)`],
+    ['am Telefon zwei Worker', /\.setWorkerLimit\(KTX_TEL \? 2 : Math\.max\(2, Math\.min\(4, \(navigator\.hardwareConcurrency \|\| 4\) - 1\)\)\)/.test(src),
+      `${V}: am Telefon startet der Loader der Zwillinge wieder bis zu vier Worker, jeder mit seinem eigenen Umwandler im Arbeitsspeicher (15.11.2026: zwei)`],
     ['nur mit BC7 oder ASTC', /if \(!\(L\.workerConfig\.bptcSupported \|\| L\.workerConfig\.astcSupported\)\) \{ L\.dispose\(\); throw new Error\(/.test(src),
       `${V}: der Viewer verlangt für die Zwillinge kein BC7 oder ASTC mehr: ohne ein solches Format packt der Umwandler nach RGBA aus, nichts ist gewonnen und das Laden dauert länger`],
     ['Schlüssel vor dem Umwandeln gelesen', /const kv = ktxKv\(buf\);\s*if \(kv\.HGbau !== KTX_BAU\) throw[^\n]*\n\s*stage = 'Umwandeln';\s*const t = await ktxWandle\(L, buf\);/.test(src),
@@ -300,11 +360,12 @@ say('[6] Nahtstellen im Viewer');
   ];
   const gutN = NAHT.filter((l) => l[1]).length;
   say(`    ${gutN} von ${NAHT.length} Nahtstellen${gutN === NAHT.length ? '' : `, fehlt: ${NAHT.filter((l) => !l[1]).map((l) => l[0]).join(', ')}`}`);
-  for (const [, ok, msg] of NAHT) if (!ok) fail(`[6] ${msg} (13.11.2026)`);
+  for (const [, ok, msg] of NAHT) if (!ok) fail(`[6] ${msg}${/\(\d\d\.\d\d\.\d{4}[^)]*\)$/.test(msg) ? '' : ' (13.11.2026)'}`);
 }
 
 /* ---------- [7] Umwandler ohne Code aus Zeichenketten ---------- */
 say('[7] Der ausgelieferte Umwandler läuft ohne Code aus Zeichenketten und wandelt wie der unveränderte');
+let mein = null;   // der ausgelieferte Umwandler, auch für [8]
 {
   const ORT = join(DIST, 'vendor', 'three', 'addons', 'libs', 'basis'), QUELLE = join(ROOT, 'node_modules', 'three', 'examples', 'jsm', 'libs', 'basis');
   const jsF = join(ORT, 'basis_transcoder.js'), wasmF = join(ORT, 'basis_transcoder.wasm');
@@ -322,7 +383,7 @@ say('[7] Der ausgelieferte Umwandler läuft ohne Code aus Zeichenketten und wand
       const schritt = Math.max(1, Math.floor(ids.length / MIN_PROBEN));
       for (let i = 0; i < ids.length && proben.filter((x) => x.art === art).length < MIN_PROBEN; i += schritt) proben.push({ art, id: ids[i] });
     }
-    let mein = null, ihr = null;
+    let ihr = null;
     try { mein = await basisStart(glue, wasm, { zeichenketten: false }); }
     catch (e) { fail(`[7] der ausgelieferte Umwandler startet nicht ohne Code aus Zeichenketten (${String(e?.message ?? e).slice(0, 240)}): unter der Richtlinie der Seite antwortete kein Worker, und jedes Bild käme nach der Frist des Wächters aus dem WebP`); }
     try { ihr = await basisStart(readFileSync(join(QUELLE, 'basis_transcoder.js'), 'utf8'), readFileSync(join(QUELLE, 'basis_transcoder.wasm')), { zeichenketten: true }); }
@@ -349,6 +410,69 @@ say('[7] Der ausgelieferte Umwandler läuft ohne Code aus Zeichenketten und wand
       }
     }
     say(`    ${proben.length} Zwillinge (je Art ${MIN_PROBEN} verlangt) nach ${Object.keys(BASIS_FORMATE).join(' und ')}: ${gleich} von ${laeufe} Ergebnissen bitgleich mit dem unveränderten Umwandler, ${stellen} Stellen mit Code aus Zeichenketten`);
+  }
+}
+
+/* ---------- [8] Kleine Fassungen fürs Telefon ---------- */
+say('[8] Kleine Fassungen fürs Telefon');
+{
+  const BAUEN_KLEIN = 'node scripts/build-hangar-ktx-klein.mjs baut sie (läuft in npm run build vor Astro), dann neu bauen';
+  const klDa = existsSync(KLEIN) ? readdirSync(KLEIN) : [];
+  const zw = da.filter((n) => KTX_NAME.test(n)), zwSet = new Set(zw), klSet = new Set(klDa);
+  const klFehlt = zw.filter((n) => !klSet.has(n)), klFremd = klDa.filter((n) => !zwSet.has(n));
+  for (const n of klFehlt.slice(0, 8)) fail(`[8] ${KTX_KLEIN_ORDNER}/${n} fehlt: das Telefon lüde dieses Bild still aus dem WebP, viermal so schwer bei der Grafikkarte`);
+  if (klFehlt.length) fail(`[8] ${klFehlt.length} kleine Fassung${klFehlt.length === 1 ? '' : 'en'} fehl${klFehlt.length === 1 ? 't' : 'en'} — ${BAUEN_KLEIN}`);
+  for (const n of klFremd.slice(0, 5)) fail(`[8] ${KTX_KLEIN_ORDNER}/${n} gehört zu keinem Zwilling`);
+  if (klFremd.length) fail(`[8] ${klFremd.length} Datei${klFremd.length === 1 ? '' : 'en'} in ${KTX_KLEIN_ORDNER}/ ohne Zwilling — ${BAUEN_KLEIN} (der Lauf räumt sie weg)`);
+  // Byte für Byte, was ktxKlein aus dem Zwilling macht. Hier werden beide
+  // Ordner ganz gelesen (gut 600 MB, wenige Sekunden): Ein Kopf allein sagte
+  // nicht, dass die Stufen darin die des Zwillings sind.
+  let gleich = 0, anders = 0, klBytes = 0, klGekuerzt = 0, zuGross = 0;
+  for (const n of zw) {
+    if (!klSet.has(n)) continue;
+    const gross = readFileSync(join(ZIEL, n)), klein = readFileSync(join(KLEIN, n));
+    klBytes += klein.length;
+    let soll = null, warum = '';
+    try { soll = ktxKlein(gross, KTX_KLEIN_MAX); } catch (e) { warum = `ktxKlein kann den Zwilling nicht kürzen (${e.message})`; }
+    if (soll && soll !== gross) klGekuerzt++;
+    const k = soll && soll.equals(klein) ? ktxKopf(klein.subarray(0, ANFANG), klein.length) : null;
+    if (k && Math.max(k.breite, k.hoehe) > KTX_KLEIN_MAX) { zuGross++; warum = `${k.breite} x ${k.hoehe}, über ${KTX_KLEIN_MAX} px`; }
+    if (soll && soll.equals(klein) && !warum) { gleich++; continue; }
+    if (++anders <= 8) fail(`[8] ${KTX_KLEIN_ORDNER}/${n} ist nicht, was ktxKlein aus ${KTX_ORDNER}/${n} macht (${warum || `${klein.length} Bytes, erwartet ${soll.length}${klein.length === soll.length ? ', Inhalt weicht ab' : ''}`}) — ${BAUEN_KLEIN}`);
+  }
+  if (anders > 8) fail(`[8] … und ${anders - 8} weitere kleine Fassungen weichen ab`);
+  say(`    ${gleich} von ${zw.length} kleinen Fassungen Byte für Byte wie aus ihrem Zwilling gekürzt (bis ${KTX_KLEIN_MAX} px; ${klGekuerzt} gekürzt, Klinke ${MIN_GEKUERZT}; ${zw.length - klGekuerzt} waren schon klein), ${klFremd.length} fremde Dateien; ${mb(klBytes)} MB (Deckel ${MAX_KLEIN_MB} MB)`);
+  if (klGekuerzt < MIN_GEKUERZT && zw.length >= MIN_BILDER) fail(`[8] nur ${klGekuerzt} Zwillinge werden gekürzt, Klinke ${MIN_GEKUERZT} — kürzt ktxKlein noch (KTX_KLEIN_MAX ${KTX_KLEIN_MAX} px)? Ungekürzt lüde das Telefon die ganzen Dateien`);
+  if (klBytes > MAX_KLEIN_MB * 1048576) fail(`[8] die kleinen Fassungen wiegen zusammen ${mb(klBytes)} MB, Deckel ${MAX_KLEIN_MB} MB (Image): Ursache klären, nicht den Deckel heben`);
+  // Trägt eine gekürzte Datei dasselbe Bild? Der ausgelieferte Umwandler
+  // wandelt sie in die Formate eines Telefons um; jede Stufe muss bitgleich
+  // mit derselben Stufe des Zwillings sein. Proben je Art gleichmäßig über
+  // die sortierten Kennungen der gekürzten.
+  if (!mein) fail('[8] der ausgelieferte Umwandler läuft nicht ([7]): ob eine gekürzte Datei dasselbe Bild trägt, ließ sich nicht prüfen');
+  else {
+    let laeufe = 0, gut8 = 0;
+    const schief = [], jeArt = { n: 0, c: 0, d: 0 };
+    for (const art of ['n', 'c', 'd']) {
+      const ids = [...gekuerzt.keys()].filter((id) => inv.bilder.get(id)?.art === art && klSet.has(`${id}.ktx2`)).sort();
+      const schritt = Math.max(1, Math.floor(ids.length / MIN_PROBEN));
+      for (let i = 0; i < ids.length && jeArt[art] < MIN_PROBEN; i += schritt) {
+        const id = ids[i], weg = gekuerzt.get(id);
+        const gross = readFileSync(join(ZIEL, `${id}.ktx2`)), klein = readFileSync(join(KLEIN, `${id}.ktx2`));
+        jeArt[art]++;
+        for (const [name, format] of Object.entries(BASIS_FORMATE_TELEFON)) {
+          laeufe++;
+          try {
+            const a = mein.wandle(klein, format), b = mein.wandle(gross, format, weg);
+            if (a.sha === b.sha && a.bytes === b.bytes && a.stufen === b.stufen && a.bytes > 0 && Math.max(a.breite, a.hoehe) <= KTX_KLEIN_MAX) gut8++;
+            else schief.push(`${KTX_KLEIN_ORDNER}/${id}.ktx2 nach ${name}: ${a.stufen} Stufen, ${a.bytes} Bytes ${a.sha.slice(0, 12)}; dieselben Stufen des Zwillings: ${b.stufen}, ${b.bytes} Bytes ${b.sha.slice(0, 12)}`);
+          } catch (e) { schief.push(`${KTX_KLEIN_ORDNER}/${id}.ktx2 (${art}) nach ${name}: ${String(e?.message ?? e).slice(0, 160)}`); }
+        }
+      }
+      if (jeArt[art] < MIN_PROBEN) fail(`[8] nur ${jeArt[art]} gekürzte Proben der Art ${art} (Klinke ${MIN_PROBEN})`);
+    }
+    for (const z of schief.slice(0, 5)) fail(`[8] eine gekürzte Fassung trägt nicht dasselbe Bild wie ihr Zwilling: ${z} — ktxKlein in scripts/lib/hangar-ktx.mjs kürzt falsch`);
+    if (schief.length > 5) fail(`[8] … und ${schief.length - 5} weitere Abweichungen`);
+    say(`    ${jeArt.n + jeArt.c + jeArt.d} gekürzte Fassungen (je Art ${MIN_PROBEN} verlangt) nach ${Object.keys(BASIS_FORMATE_TELEFON).join(', ')}: ${gut8} von ${laeufe} Ergebnissen bitgleich mit denselben Stufen des Zwillings`);
   }
 }
 

@@ -1310,7 +1310,10 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // Schiff). v ist eine Klinke: Sinkt sie, gelten Deckel wieder, die fuer
   // eine schwerere Halle gemerkt wurden.
   // 14.11.2026 auf 4: Die volle Halle wurde leichter (Entpacker, unten).
-  const WAECHTER_V = 4;
+  // 15.11.2026 auf 5: Am Telefon kommen die Texturen der vollen Halle aus den
+  // kleinen komprimierten Zwillingen (verify:hangar-ktx [8]), und die Spur
+  // fuehrt bei verlorenem Zeichenkontext Dauer und Herkunft der Bilder.
+  const WAECHTER_V = 5;
   if (ctrlMod) {
     const W = ctrlMod.WAECHTER ?? {}, T = Date.UTC(2026, 10, 13, 12, 0, 0);
     const leer = ctrlMod.waechterStand?.(null, T);
@@ -1333,14 +1336,29 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     sollIst(`Waechter ab v ${WAECHTER_V}: am Telefon senkt der erste Abbruch, drei Laeufe bis aus, die Spur nennt Stufe, Phase und Art, ein Vermerk „Lauf offen“ zaehlt nur in der eigenen Fassung`,
       `v ${W.v}, erster Abbruch ohne sofort: Deckel ${erst?.deckel ?? 'keiner'}, mit sofort: ${sofort?.deckel ?? 'keiner'}; ${laeufe} Laeufe bis aus; Spur: ${zeilen.join(' | ') || 'leer'}; ${vermerkIst}`);
     if (!regelOk) fail(`[12] dist/assets/hangar-overview.js: der Waechter rechnet nicht mehr wie am 13.11.2026 abgenommen (v mindestens ${WAECHTER_V}; ohne sofort wird der erste Abbruch nur vermerkt, mit sofort senkt er auf mittel; am Telefon drei Laeufe bis aus; waechterVerlauf nennt je Abbruch Stufe, Phase und Art; waechterOffen nimmt nur Vermerke der eigenen Fassung): am Telefon liefe die Schleife laenger, die Meldung sagte nicht mehr, wie weit die Laeufe kamen, oder ein Lauf von vor einem Update setzte der neuen Halle einen Deckel`);
+    // Dauer und Herkunft der Bilder (v 5): nur gueltige Werte kommen in den
+    // Stand und in die Zeile; die Dauer steht hinter der Phase.
+    const zeileVon = (mehr) => {
+      const a = leer && ctrlMod.waechterAbbruch?.(leer, T, 'hoch', { sofort: true, phase: 'steht', wie: 'kontext', ...mehr });
+      return a ? ctrlMod.waechterVerlauf?.(ctrlMod.waechterStand(ctrlMod.waechterText(a), T).spur, (k) => k.toUpperCase())?.[0] ?? null : null;
+    };
+    const mehrIst = [zeileVon({ dauer: 14, bilder: 'komprimiert' }), zeileVon({ dauer: -3, bilder: 'irgendwas' }), zeileVon({ dauer: 0, bilder: 'webp' }), zeileVon({ dauer: 2.5, bilder: 'gemischt' })];
+    const mehrSoll = ['HOCH, STEHT (14 s), KONTEXT, KOMPRIMIERT', 'HOCH, STEHT, KONTEXT', 'HOCH, STEHT (0 s), KONTEXT, WEBP', 'HOCH, STEHT, KONTEXT, GEMISCHT'];
+    const mehrOk = mehrIst.every((z, i) => z === mehrSoll[i]) && Array.isArray(W.bilder) && W.bilder.join() === 'komprimiert,gemischt,webp';
+    sollIst('Spur bei verlorenem Zeichenkontext: Sekunden hinter der Phase, Herkunft der Bilder am Ende, Ungueltiges faellt weg', mehrIst.map((z) => z ?? 'keine Zeile').join(' | '));
+    if (!mehrOk) fail(`[12] dist/assets/hangar-overview.js: die Spur nennt Dauer und Herkunft der Bilder nicht mehr wie am 15.11.2026 abgenommen (erwartet ${mehrSoll.join(' | ')}; WAECHTER.bilder komprimiert, gemischt, webp): Das Bild der leichten Ansicht sagte nicht mehr, ob die volle Halle sofort oder erst spaeter verloren ging und ob die komprimierten Texturen liefen`);
     const telQ = /const TELEFON = window\.matchMedia\('([^']+)'\)\.matches;/.exec(ctrl)?.[1] ?? null;
     const smallQ = /const SMALL = matchMedia\('([^']+)'\)\.matches;/.exec(viewer)?.[1] ?? null;
     const naht = [
       [telQ !== null && telQ === smallQ, `Telefon heisst im Controller „${telQ}“, im Viewer „${smallQ}“`],
-      [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie \}\)/.test(ctrl), 'abbruch() gibt sofort, phase und wie nicht an waechterAbbruch'],
+      [/waechterAbbruch\(vor, Date\.now\(\), stufe, \{ sofort: TELEFON, phase, wie, \.\.\.mehr \}\)/.test(ctrl), 'abbruch() gibt sofort, phase, wie und mehr (Dauer, Bilder) nicht an waechterAbbruch'],
       [/const e = \{ id: lauf\.id, t: Date\.now\(\), stufe: lauf\.stufe, phase: lauf\.phase \};/.test(ctrl) && /JSON\.stringify\(\{ v: WAECHTER\.v, \.\.\.e(?:, g)? \}\)/.test(ctrl), 'der Vermerk „Lauf offen“ traegt Fassung oder Phase nicht'],
       [/if \(p >= 90\) laufPhase\('bauen'\);/.test(ctrl) && /placed = id;\s*laufPhase\('steht'\);/.test(ctrl), 'die Phase rueckt beim Laden nicht vor (bauen ab 90 %, steht mit dem ersten Schiff)'],
-      [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
+      [/abbruch\(was\.stufe, was\.wie, was\.phase\)/.test(ctrl) && /abbruch\(stufe, 'kontext', phase, mehr\)/.test(ctrl), 'die beiden Wege (Seite neu gestartet, Zeichenkontext verloren) nennen Art oder Phase nicht'],
+      // v 5: Dauer der Phase und Herkunft der Bilder, gelesen vor laufEnde() (danach ist der Lauf weg)
+      [/const mehr = \{ dauer: lauf \? Math\.round\(\(Date\.now\(\) - lauf\.seit\) \/ 1000\) : null, bilder: v\.bilder\?\.\(\) \?\? null \};\s*laufEnde\(\);/.test(ctrl) && /lauf\.phase = phase;\s*lauf\.seit = Date\.now\(\);/.test(ctrl) && /t0: Date\.now\(\), seit: Date\.now\(\), stufe: null, phase: 'laden' \};/.test(ctrl)
+        && /const bilder = \(\) => \(!ktxStat\.n \? 'webp' : ktxStat\.miss \|\| ktxWach\.aus \? 'gemischt' : 'komprimiert'\);/.test(viewer) && /\n    bilder,\n/.test(viewer),
+        'bei verlorenem Zeichenkontext gehen Dauer der Phase oder Herkunft der Bilder nicht in die Spur (mehr im Controller vor laufEnde(), lauf.seit je Phase, bilder() im Viewer)'],
       [/waechterVerlauf\(\(stand\.spur \?\? \[\]\)\.slice\(-letzte\),/.test(ctrl) && /notiz\(fallback, spurZeilen\(stand\)\);/.test(ctrl) && /if \(why === 'failed'\) grund\(fallback, detail\);/.test(ctrl) && /grund\(modelErr, e\);/.test(ctrl), 'die Meldungen zeigen Spur oder technischen Grund nicht mehr'],
       // Schmal waechst die Buehne mit der Meldung: mit Verlauf oder Grund ragte sie sonst in die Knoepfe unter dem Schiffsnamen
       [(ctrl.match(/(?:fallback|modelErr)\.hidden = false;\s*meldungPlatz\(\);/g) ?? []).length === 3 && /modelErr\.hidden = true;\s*meldungPlatz\(\);/.test(ctrl), 'eine Meldung der Buehne erscheint oder geht, ohne dass meldungPlatz() den Platz am Telefon nachmisst (erwartet nach jedem hidden = false von fallback und modelErr und nach modelErr.hidden = true)'],
@@ -1351,7 +1369,7 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
     sollIst(`${naht.length} Naehte von Spur und Sofort-Regel im Controller`, offen.length ? `${naht.length - offen.length} von ${naht.length}: ${offen.join('; ')}` : `${naht.length} von ${naht.length}`);
     for (const was of offen) fail(`[12] dist/assets/hangar-overview.js: ${was}. Vom Telefon kommt nichts zurueck ausser dieser Zeile unter der Meldung; ohne sie laesst sich von aussen nicht sagen, woran ein Lauf scheiterte`);
     // Die Woerter der Spur stehen auf jeder Hangarseite: je Phase und Art eines, dazu die beiden Einleitungen
-    const woerter = ['data-spur', 'data-grund', 'data-geraet', ...[...(W.phasen ?? []), ...(W.arten ?? [])].map((k) => `data-spur-${k}`)];
+    const woerter = ['data-spur', 'data-grund', 'data-geraet', ...[...(W.phasen ?? []), ...(W.arten ?? []), ...(W.bilder ?? [])].map((k) => `data-spur-${k}`)];
     let wortSeiten = 0;
     for (const page of PAGES) {
       const tag = /<div[^>]*id="hg-fallback"[^>]*>/.exec(page.html)?.[0] ?? '';

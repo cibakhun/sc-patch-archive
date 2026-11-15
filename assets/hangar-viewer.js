@@ -39,7 +39,8 @@
 // /hangar/tex/ (embeddedImages); opts.texBytes nennt je Modelldatei (Pfad
 // ohne ?v=) ihre Summe, damit der Ladebalken sie mitzählt.
 // Am PC kommt jedes Bild aus seinem komprimierten Zwilling unter
-// /hangar/ktx/ (KTX_BAU); opts.bilder 'webp' stellt das ab.
+// /hangar/ktx/ (KTX_BAU), am Telefon aus dessen kleiner Fassung unter
+// /hangar/ktx-klein/ (KTX_KLEIN); opts.bilder 'webp' stellt das ab.
 //
 // INNENRAUM: opts.interior nennt je Werkslack-Datei (Pfad ohne ?v=) den
 // begehbaren Innenraum im selben Modellraum (url) und seine Lampen und
@@ -544,12 +545,17 @@ Entpacker.AB = 'der Entpacker der Geometrie ist abgebaut';
 // Die Kennung ist der Inhalt des WebP: bei Bildern der Ablage steht sie im
 // Dateinamen, bei eingebetteten rechnet sie der Browser aus den Bytes im
 // GLB (SHA-256, erste 16 Hex-Zeichen). embeddedImages() fragt je Bild erst
-// den Zwilling (twin, nur am PC und nur, wenn die Grafikkarte ein
-// komprimiertes Format kann) und geht ohne ihn den Weg über das WebP.
+// den Zwilling (twin, nur wenn die Grafikkarte ein komprimiertes Format
+// kann) und geht ohne ihn den Weg über das WebP.
 // KTX_BAU ist das Rezept der Zwillinge (BAU in scripts/lib/hangar-ktx.mjs,
 // verify:hangar-ktx vergleicht beide) und hängt als ?v= an jeder URL:
 // /hangar/ wird ein Jahr unveränderlich gecacht.
+// Am Telefon kommt die kleine Fassung des Zwillings aus
+// /hangar/ktx-klein/ (seit 15.11.2026; KTX_TEL in initHangar): dieselbe
+// Datei ohne die Mip-Stufen über KTX_KLEIN px. Ihre URL trägt Rezept und
+// Kante (KTX_KLEIN_MAX in scripts/lib/hangar-ktx.mjs, verify:hangar-ktx [8]).
 export const KTX_BAU = 'd1';
+export const KTX_KLEIN = 256;
 const KTX_ABLAGE = /(?:^|\/)([0-9a-f]{16})\.webp$/;
 const hex16 = (hash) => Array.from(new Uint8Array(hash, 0, 8), (v) => v.toString(16).padStart(2, '0')).join('');
 // Schlüssel-Wert-Daten einer KTX2-Datei: Offset und Länge stehen im Kopf
@@ -643,8 +649,9 @@ const colourImages = (json) => {
 // twin (oder null): { id(bytes) -> Promise<kennung>, load(kennung) ->
 // Promise<{ t, webp, mean } | null> }, der Weg zu den komprimierten
 // Zwillingen (ktxTwin in initHangar). load() scheitert nie: ohne Zwilling
-// null, und das Bild kommt wie bisher aus dem WebP. max (Telefon) und twin
-// (PC) kommen nie zusammen: KTX_AN gilt nur ohne SMALL.
+// null, und das Bild kommt wie bisher aus dem WebP. Am Telefon (KTX_TEL)
+// kommen max und twin zusammen: Der Zwilling trägt dort schon nur die
+// kleinen Stufen, und max gilt dem WebP, wenn er fehlt.
 function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
   const pause = slicer(ms, nextTask);
   const gate = max ? limiter(FIT_AT_ONCE) : null;
@@ -8093,8 +8100,8 @@ export async function initHangar(container, opts = {}) {
   // Task-Manager 2,0 GB, komprimiert 1,0 GB; Bildrate und Ladezeit gleich.
   // Den Loader und seinen Umwandler (WebAssembly, in bis zu vier Workern)
   // holt erst das erste Bild. Aus bleibt der Weg
-  //  - am Telefon: dort ist er auf keinem echten Gerät erprobt, und der Weg
-  //    über das WebP packt dort schon klein aus;
+  //  - am Telefon unter einem Deckel des Wächters (opts.cap) und mit einer
+  //    gewählten Stufe (KTX_TEL unten);
   //  - ohne BC7 oder ASTC: der Umwandler packte sonst nach RGBA aus oder in
   //    ein schwächeres Format, und nichts wäre gewonnen;
   //  - mit ?bilder=webp (opts.bilder), zum Vergleich beider Wege;
@@ -8103,7 +8110,29 @@ export async function initHangar(container, opts = {}) {
   // Fehlt ein Zwilling, kommt das Bild aus dem WebP, und die Konsole nennt
   // es (verify:hangar-ktx hält die Zwillinge vollständig, check:hangar-shader
   // zählt einen fehlenden als FEHLER).
-  const KTX_AN = !SMALL && opts.bilder !== 'webp' && !!globalThis.crypto?.subtle;
+  //
+  // Am Telefon (seit 15.11.2026). Krisz' iPhone 12 lud die volle Halle an
+  // dem Tag zum ersten Mal ganz, danach nahm ihm das Telefon den
+  // Zeichenkontext („Hoch, nach dem Laden, Grafik verloren“). Im
+  // Telefonformat gezählt lagen mit Halle und Gladius 198 MB Texturen bei
+  // der Grafikkarte (540 Karten zu 256 px als RGBA8), dazu 139 MB Geometrie
+  // und 25 bis 39 MB Zwischenbilder; die leichte Ansicht, die auf dem Gerät
+  // steht, braucht zusammen 120 MB. Mit den Zwillingen sind es 82 MB
+  // Texturen bei derselben Kante, und beim Laden warten 38 statt 132 MB
+  // ausgepackte Bilder auf das Hochladen.
+  // Das Telefon holt die kleine Fassung jedes Zwillings (KTX_KLEIN oben,
+  // scripts/lib/hangar-ktx.mjs): die ganzen wögen für Halle und Gladius
+  // 34 MB, das WebP der Ablage 10 MB, und der Umwandler packte Stufen aus,
+  // die niemand hochlädt. Zwei Worker statt vier: jeder hält seinen eigenen
+  // Umwandler im Arbeitsspeicher.
+  // Unter einem Deckel des Wächters (leichte Ansicht) und mit einer
+  // gewählten Stufe bleibt es beim WebP: Die leichte Ansicht steht auf
+  // seinem Gerät so, wie sie ist, und sie ist der Weg zurück, wenn die
+  // Zwillinge dort etwas nicht tragen. Erprobt ist der Weg am Telefon erst,
+  // wenn er auf einem echten steht (.planning/WINDOWS.md).
+  const KTX_TEL = SMALL && !FORCED && !opts.cap;
+  const KTX_AN = (!SMALL || KTX_TEL) && opts.bilder !== 'webp' && !!globalThis.crypto?.subtle;
+  const KTX_ORT = KTX_TEL ? '/hangar/ktx-klein/' : '/hangar/ktx/', KTX_V = KTX_TEL ? `${KTX_BAU}-${KTX_KLEIN}` : KTX_BAU;
   const KTX_NAMEN = { 36492: 'BC7', 36493: 'BC7', 37808: 'ASTC', 37496: 'ETC2', 37492: 'ETC2', 33776: 'BC1', 33777: 'BC1', 33779: 'BC3' };
   const ktxStat = { n: 0, bytes: 0, miss: 0, fmt: new Map(), told: -1, timer: 0, why: null };
   const ktxTell = () => {
@@ -8116,6 +8145,11 @@ export async function initHangar(container, opts = {}) {
       console.info(`[hangar] Texturen komprimiert: ${ktxStat.n} (${fmt || 'keine'}; ${Math.round(ktxStat.bytes / 1048576)} MB für die Grafikkarte), ohne Zwilling aus dem WebP: ${ktxStat.miss}`);
     }, 2000);
   };
+  // Woher die Bilder dieses Laufs kamen, für die Spur des Wächters der Seite
+  // (hangar-overview.js, WAECHTER.bilder): 'komprimiert' (jedes aus seinem
+  // Zwilling), 'gemischt' (ein Teil aus dem WebP: ein Zwilling fehlte, oder
+  // der Umwandler wurde abgestellt), 'webp' (keines aus einem Zwilling).
+  const bilder = () => (!ktxStat.n ? 'webp' : ktxStat.miss || ktxWach.aus ? 'gemischt' : 'komprimiert');
   let ktxLoader = null;
   // Gibt einen Loader samt Workern frei. dispose() von three beendet nur,
   // was es gerade gibt: Ist der Umwandler noch unterwegs, baut init() danach
@@ -8131,7 +8165,7 @@ export async function initHangar(container, opts = {}) {
   };
   const ktxStart = () => (ktxLoader ??= import('three/addons/loaders/KTX2Loader.js').then(({ KTX2Loader }) => {
     if (ktxWach.aus) throw new Error(ktxStat.why ?? 'abgestellt');
-    const L = new KTX2Loader().setTranscoderPath('/vendor/three/addons/libs/basis/').setWorkerLimit(Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))).detectSupport(renderer);
+    const L = new KTX2Loader().setTranscoderPath('/vendor/three/addons/libs/basis/').setWorkerLimit(KTX_TEL ? 2 : Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 1))).detectSupport(renderer);
     if (!(L.workerConfig.bptcSupported || L.workerConfig.astcSupported)) { L.dispose(); throw new Error('die Grafikkarte kann weder BC7 noch ASTC'); }
     // Den Umwandler (basis_transcoder.js und .wasm) sofort anfordern, nicht
     // erst mit dem ersten Bild: three holte ihn sonst hinter Hunderten von
@@ -8200,7 +8234,7 @@ export async function initHangar(container, opts = {}) {
       if (!L) return null;
       let stage = 'Datei';
       try {
-        const r = await fetch(`/hangar/ktx/${id}.ktx2?v=${KTX_BAU}`, { credentials: 'same-origin', signal: ktxWach.ab.signal });
+        const r = await fetch(`${KTX_ORT}${id}.ktx2?v=${KTX_V}`, { credentials: 'same-origin', signal: ktxWach.ab.signal });
         if (!r.ok) throw new Error(`Antwort ${r.status}`);
         const buf = await r.arrayBuffer();
         // vor dem Umwandeln lesen: parse() gibt den Puffer an den Worker ab
@@ -8215,7 +8249,8 @@ export async function initHangar(container, opts = {}) {
         // dient, läse sonst an beiden Plätzen als Farbe.
         t.colorSpace = THREE.NoColorSpace;
         // Deckel der Stufe (TEX_MAX, shrinkTextures): die größeren Stufen
-        // gehen gar nicht erst zur Grafikkarte
+        // gehen gar nicht erst zur Grafikkarte. Die kleine Fassung am
+        // Telefon trägt sie schon nicht mehr (TEX_MAX ist dort KTX_KLEIN).
         if (TEX_MAX) while (t.mipmaps.length > 1 && Math.max(t.mipmaps[0].width, t.mipmaps[0].height) > TEX_MAX) t.mipmaps.shift();
         t.image.width = t.mipmaps[0].width; t.image.height = t.mipmaps[0].height;
         const mean = (kv.HGmittel ?? '').split(',').map(Number);
@@ -15204,6 +15239,8 @@ void main() {
     // Leistungsstufe: { level, start, why, pixelRatio, levels }; onQuality
     // meldet jede Änderung (Nachregeln)
     quality,
+    // Woher die Bilder kamen: 'komprimiert', 'gemischt' oder 'webp'
+    bilder,
     onQuality(fn) { qualityFn = fn; },
     onFrame(fn) { frameFn = fn; },
     onProgress(fn) { progressFn = fn; },

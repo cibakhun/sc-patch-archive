@@ -27,6 +27,8 @@ pinggy.log
 # Einrichtung der Halle und ihr Telefon-Teil, beim Build aus der vollen Stufe geschnitten (scripts/build-hall-furniture.mjs)
 /public/hangar/hall/*.furniture.glb
 /public/hangar/hall/*.patch.glb
+# Kleine Fassungen der komprimierten Zwillinge fuers Telefon, aus public/hangar/ktx/ abgeleitet (scripts/build-hangar-ktx-klein.mjs)
+/public/hangar/ktx-klein/
 
 build.log
 

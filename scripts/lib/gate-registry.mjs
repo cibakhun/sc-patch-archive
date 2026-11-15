@@ -422,13 +422,17 @@ export const CHECKS = [
     // fremde Datei im Ordner, der Zwilling eines anderen Bildes, falsche
     // Art, falsches Rezept, Grundfarben-Karte ohne Farbmittel, abgeschnittene
     // Datei, anderes Rezept im Viewer, Umwandler nicht in dist/.
+    // 15.11.2026: [8] kleine Fassungen fürs Telefon (ktx-klein/, beim Bau
+    // aus den Zwillingen abgeleitet). Das Tor liest dafür beide Ordner ganz,
+    // gut 600 MB: einige Sekunden mehr. Vorgeführt rot in zehn Fällen (Kopf
+    // des Skripts, k1 bis k10).
     id: 'verify:hangar-ktx',
     npm: 'verify:hangar-ktx',
     nurMitHangar: true,
     script: 'scripts/verify-hangar-ktx.mjs',
     rail: 'A',
     checks:
-      'komprimierte Hangar-Texturen: jedes Bild, das ein GLB unter dist/hangar/ benutzt, hat genau einen Zwilling unter dist/hangar/ktx/ und der Ordner trägt nichts anderes; jeder Zwilling ist eine lesbare KTX2-Datei im Basis-Format, so groß wie sein WebP, mit Mip-Stufen, der Art des Bestands (Normal-Karten UASTC, sonst ETC1S), dem Rezept und der Byte-Zahl seines WebP; jede Grundfarben-Karte trägt ihr Farbmittel; der ausgelieferte Viewer hängt dasselbe Rezept an die URL, liest die Schlüssel wie das Tor und findet Loader und Umwandler in dist/',
+      'komprimierte Hangar-Texturen: jedes Bild, das ein GLB unter dist/hangar/ benutzt, hat genau einen Zwilling unter dist/hangar/ktx/ und der Ordner trägt nichts anderes; jeder Zwilling ist eine lesbare KTX2-Datei im Basis-Format, so groß wie sein WebP, mit Mip-Stufen, der Art des Bestands (Normal-Karten UASTC, sonst ETC1S), dem Rezept und der Byte-Zahl seines WebP; jede Grundfarben-Karte trägt ihr Farbmittel; der ausgelieferte Viewer hängt dasselbe Rezept an die URL, liest die Schlüssel wie das Tor und findet Loader und Umwandler in dist/; zu jedem Zwilling liegt unter dist/hangar/ktx-klein/ die kleine Fassung fürs Telefon, Byte für Byte wie aus ihm gekürzt, und gekürzte Fassungen ergeben im ausgelieferten Umwandler je Stufe dasselbe Bild wie ihr Zwilling',
   },
   {
     // Neuzugang (29.10.2026, Sicherheitsbefund OPS-3), vor dem langen
