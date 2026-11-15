@@ -16,6 +16,8 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+/** Rangleiter wie in src/lib/patch-4-10-3/hologramm.ts (RANG_LEITER). */
+const RANG_LEITER = ['Neutral', 'Jr. Contractor', 'Contractor', 'Sr. Contractor', 'Veteran Contractor', 'Head Contractor', 'Elite Contractor'];
 const V = JSON.parse(readFileSync(resolve(ROOT, 'src/data/patch-vergleich/4.10.2__4.10.3.json'), 'utf8'));
 
 const finde = (kind, slug) => V.eintraege.find((e) => e.kind === kind && (e.slug === slug || e.id === slug));
@@ -74,11 +76,11 @@ const BEHAUPTUNGEN = [
     const teilbar = INTERSEC.filter((s) => wert(finde('mission', s), 'shareable') === true).length;
     return ja(teilbar > 6, `teilbar: ${teilbar} von 12`);
   }],
-  [567, 'Angeboten je nach Auftrag ab Jr. Contractor bis Head Contractor', () => {
-    const erste = INTERSEC.map((s) => [s, (wert(finde('mission', s), 'ranks') ?? [''])[0].split(' → ')[0]]);
-    const menge = [...new Set(erste.map(([, r]) => r))];
-    const elite = erste.filter(([, r]) => r === 'Elite Contractor').map(([s]) => s);
-    return ja(menge.includes('Jr. Contractor') && !elite.length, `niedrigster Rang je Auftrag: ${menge.join(', ')}; ab Elite Contractor: ${elite.join(', ') || 'keiner'} (Leiter laut Rangspannen der Daten: Jr. < Contractor < Sr. < Veteran < Head < Elite)`);
+  [567, 'Einstiegsrang je nach Auftrag von Jr. Contractor bis Elite Contractor', () => {
+    const erste = INTERSEC.map((s) => (wert(finde('mission', s), 'ranks') ?? [''])[0].split(' → ')[0]);
+    const stufen = erste.map((r) => RANG_LEITER.indexOf(r));
+    const lo = RANG_LEITER[Math.min(...stufen)], hi = RANG_LEITER[Math.max(...stufen)];
+    return ja(!stufen.includes(-1) && lo === 'Jr. Contractor' && hi === 'Elite Contractor', `niedrigster Rang je Auftrag reicht von ${lo} bis ${hi}; Leiter laut Rangspannen der Daten: ${RANG_LEITER.join(' < ')}`);
   }],
   [263, 'Mauler „STRIKER“: Energieschaden je Schuss 64 → 250', () => {
     const f = feld(finde('item', 'vanduul-mauler-striker-repeater'), 'damage.energy');
@@ -139,11 +141,11 @@ const BEHAUPTUNGEN = [
     const f = feld(finde('ship', 'rsi-polaris'), 'shields');
     return ja(/Deterrent/.test(f?.nachher), f ? `${f.vorher} → ${f.nachher}` : 'kein Schildwechsel (der Name wechselte am Item)');
   }],
-  [500, 'Lephari: neues ziviles Radar S3 für Galaxy, Centaurus, Zeus ES', () => {
-    const it = finde('item', 'lephari');
+  [500, 'Lephari: das Radar S3 in Centaurus und Zeus ES ist neu benannt, kein neues Radar', () => {
+    const bp = V.eintraege.find((e) => e.kind === 'blueprint' && e.name === 'Lephari');
     const r = ['rsi-constellation-mk5-centaurus', 'rsi-zeus-es'].map((id) => feld(finde('ship', id), 'radars'));
-    const vorher = r.every((f) => /Lephari \(S3\)/.test(f?.vorher?.join()));
-    return [it?.change === 'new' && !vorher ? OK : NEIN, `Item ${it?.change ?? '–'}; Centaurus und Zeus ES vorher: ${r.map((f) => f?.vorher).join(' / ')}${vorher ? ' (das Radar war schon verbaut, nur ohne Spielnamen; der Bauplan heißt jetzt Lephari statt Radr Wlop S03 Lephari)' : ''}`];
+    const intern = r.every((f) => /^1× RADR_WLOP_S03_Lephari \(S3\)$/.test(f?.vorher?.join()) && /^1× Lephari \(S3\)$/.test(f?.nachher?.join()));
+    return ja(bp?.change === 'renamed' && intern, `Bauplan ${bp?.change ?? '–'} (${bp?.nameVorher ?? ''} → ${bp?.name ?? ''}); Radar vorher: ${r.map((f) => f?.vorher).join(' / ')}`);
   }],
   [480, 'Skarnov neu in fünf Ausführungen, dazu die Batterie', neu('item', ['skarnov-rifle', 'skarnov-ferrite-rifle', 'skarnov-relay-rifle', 'skarnov-sparkplug-rifle', 'skarnov-raider-camo-rifle', 'skarnov-rifle-battery-30-cap'])],
   [509, 'IAE 2956: Kappe, T-Shirt, Bomber Jacket', neu('item', ['iae-2956-hat', 'iae-2956-t-shirt', '2956-best-in-show-bomber-jacket'])],
@@ -169,7 +171,17 @@ const BEHAUPTUNGEN = [
   [412, 'Perseus-Relais an einer Konsole, Starlancer-Radar im Maschinenraum', offen('Einbauort steht in keinem verglichenen Feld')],
 ];
 
-const ergebnisse = BEHAUPTUNGEN.map(([zeile, text, pruefe]) => { const [e, beleg] = pruefe(); return { zeile, text, e, beleg }; });
+/* Nicht abgedeckte Behauptungen, die als Hand-Ergaenzung gefuehrt werden
+   (src/data/patch-vergleich/ergaenzt/4.10.3.json, Tor: verify:patch-vergleich). */
+const ERG = JSON.parse(readFileSync(resolve(ROOT, 'src/data/patch-vergleich/ergaenzt/4.10.3.json'), 'utf8')).eintraege;
+const ERG_ZU = { 319: ['galaxy-frachtmodul'], 417: ['puffer-'], 427: ['high-risk-ruf'], 428: ['torpedos-scharf'], 429: ['bombenhalter-orison'], 431: ['vanduul-ki'], 412: ['einbau-'] };
+const ergIds = (zeile) => ERG.filter((x) => (ERG_ZU[zeile] ?? []).some((p) => x.id.startsWith(p))).map((x) => x.id);
+
+const ergebnisse = BEHAUPTUNGEN.map(([zeile, text, pruefe]) => {
+  const [e, beleg] = pruefe();
+  const ids = e === OFFEN ? ergIds(zeile) : [];
+  return { zeile, text, e, beleg: ids.length ? `${beleg}; von Hand ergänzt: ${ids.join(', ')}` : beleg };
+});
 for (const art of [NEIN, OK, OFFEN]) {
   const liste = ergebnisse.filter((r) => r.e === art);
   console.log(`\n${art.toUpperCase()} (${liste.length})`);
