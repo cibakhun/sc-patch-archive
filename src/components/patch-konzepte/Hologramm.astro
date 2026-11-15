@@ -47,7 +47,7 @@ const radarGroesser = I.schiffe.filter((s) => s.wechsel.some((w) => w.key.endsWi
 const intersec = reiter('auftraege').karten.filter((k) => k.herkunft === 'berechnet' && k.art === 'InterSec Defense Solutions').length;
 const highlights = [
   { t: `${intersec} InterSec-Aufträge in Nyx`, h: '#reiter-auftraege' },
-  { t: `Radar Gr. 2 → 3 an ${radarGroesser.length} Schiffen`, h: `#schiff=${radarGroesser[0]?.id ?? ''}`, schiff: radarGroesser[0]?.id },
+  { t: `Radar Gr. 2 → 3 an ${radarGroesser.length} Schiffen`, h: '#phwrap', schiff: radarGroesser[0]?.id },
   { t: `${reiter('kaufbar').karten.length} Schiffe neu für aUEC`, h: '#reiter-kaufbar' },
 ];
 

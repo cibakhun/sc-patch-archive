@@ -1,8 +1,11 @@
 ---
-// Nur Deutsch: die englische Route traegt denselben deutschen Entwurf.
+// The draft exists in German only; this route only points there.
 import Layout from '../layouts/Layout.astro';
-import Body from '../components/patch-konzepte/Hologramm.astro';
 ---
-<Layout title={"4.10.3 · Patch am Hologramm | VerseBase"} description={"Preview: Alpha 4.10.3 on the ship pages' hologram stage (German draft)."} themeColor="#05070d" ogType="article" ogImage="/assets/img-vanduul.jpg" translated={false} noindex={true}>
-<Body />
+<Layout title={"Patch on the hologram · Draft | VerseBase"} description={"Preview: draft of the Alpha 4.10.3 page on the ship pages' hologram stage, German only."} themeColor="#05070d" ogType="article" ogImage="/assets/img-vanduul.jpg" translated={false} noindex={true}>
+<main id="main" class="vp-en">
+  <h1>Patch on the hologram</h1>
+  <p>This draft is written in German only. <a href="/de/patches/4-10-3-hologramm.html">Open the German draft</a>.</p>
+</main>
+<style is:inline>.vp-en{max-width:1100px;margin:0 auto;padding:calc(var(--nav-h,68px) + 2rem) 1.5rem 4rem}.vp-en a{text-decoration:underline}</style>
 </Layout>
