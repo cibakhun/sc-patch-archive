@@ -130,6 +130,16 @@
    --ship gibt-es-nicht: „--ship gibt-es-nicht: auf dem Feld steht
    aegs-gladius: die Seite kennt diese Kennung nicht oder zeigt ein
    anderes Schiff, geprueft waere das falsche“.
+   Nachfrage dazu (15.11.2026, selbe PR): Steht nach der ganzen Frist
+   kein Schiff auf dem Feld, meldet ruhe() nur ihren Hinweis, und die
+   Vergleiche oben fielen still aus. Seither ist das ein FEHLER, wie
+   schon nach --wechsel; die Unruhe allein bleibt ein Hinweis.
+   Vorgefuehrt rot (Kopie des Skripts mit 3 min Frist, ohne --wechsel;
+   die Seite verliert data-live an der Leiste der Marken sofort
+   wieder): „nach 3 min steht kein Schiff auf dem Feld (die Leiste der
+   Marken traegt kein data-live): in welcher Halle es steht, ist
+   ungeprueft“. Das Skript des Stands davor endete mit demselben
+   Eingriff gruen, nur mit dem Hinweis zur Ruhe.
    Gesehen und offen: In einem von vier Laeufen linkten nach der
    gemeldeten Ruhe noch vier Programme ohne Namen (hoechstens eine
    Textur); ein Lauf ueber 15 min zaehlte 58 statt 54 Programme, keins
@@ -484,6 +494,9 @@ try {
     const soll = schiff ? await halleVon(schiff) : '';
     const ist = fest || (deko ? await frage('Halle der Seite', () => { try { return JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}').opts?.hall?.id || ''; } catch { return ''; } }) : '');
     console.log(`  Halle des Schiffs: ${schiff || 'kein Schiff auf dem Feld'}${schiff ? `, die Seite nennt ${soll || 'keine'}, es steht ${ist || 'unbekannt'}` : ''}`);
+    // Ohne Schiff auf dem Feld gibt es nichts zu vergleichen: ruhe() hat dann die ganze Frist auf es gewartet und
+    // meldet das nur als Hinweis (die Halle kam nicht zur Ruhe). Fuer diesen Lauf ist es ein FEHLER, wie nach --wechsel.
+    if (!schiff) fehler.push(`nach ${WARTE_MS / 60000} min steht kein Schiff auf dem Feld (die Leiste der Marken traegt kein data-live): in welcher Halle es steht${SHIP ? ` und ob es ${SHIP} ist` : ''}, ist ungeprueft`);
     // mit --ship muss auch dieses Schiff stehen: Eine Kennung, die die Seite nicht kennt, zeigt das erste der Liste
     if (SHIP && schiff && schiff !== SHIP) fehler.push(`--ship ${SHIP}: auf dem Feld steht ${schiff}: die Seite kennt diese Kennung nicht oder zeigt ein anderes Schiff, geprueft waere das falsche`);
     if (schiff && !(soll && ist)) fehler.push(`welche Halle die Seite fuer ${schiff} nennt (${soll || 'keine'}) oder welche steht (${ist || 'unbekannt'}), ist aus hg-stage nicht zu lesen: ob das Schiff in seiner Halle steht, ist ungeprueft`);

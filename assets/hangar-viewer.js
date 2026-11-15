@@ -645,11 +645,21 @@ const colourImages = (json) => {
 // Zwillingen (ktxTwin in initHangar). load() scheitert nie: ohne Zwilling
 // null, und das Bild kommt wie bisher aus dem WebP. max (Telefon) und twin
 // (PC) kommen nie zusammen: KTX_AN gilt nur ohne SMALL.
+// Die Bühne, die lädt, nennt sich an der Fabrik (images.buehne = { rast,
+// tot, signal }, in initHangar): Ist sie abgebaut, beginnt hier kein Bild
+// mehr, und was unterwegs ist, hält an seinem nächsten Schritt an (vor dem
+// Abruf, vor dem Auspacken, nach dem Auspacken; ein fertiges Bild wird
+// geschlossen, ein fertiger Zwilling freigegeben). Vorher fiel jeder
+// Zwilling, den der Abbau abbrach, auf sein WebP zurück: Die tote Bühne
+// holte und packte dann alle Bilder aus, die noch offen waren, neben der
+// neuen Halle (vierte Runde des Reviews an PR #371, 15.11.2026).
 function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
-  const pause = slicer(ms, nextTask);
+  const pause = slicer(ms, () => (fabrik.buehne?.rast ?? nextTask)());
+  const ende = () => !!fabrik.buehne?.tot();
+  const nie = () => new Promise(() => {});
   const gate = max ? limiter(FIT_AT_ONCE) : null;
   let turn = Promise.resolve();
-  return (mean) => (parser) => {
+  const fabrik = (mean) => (parser) => {
     const load = parser.loadImageSource.bind(parser);
     const count = tally(parser);
     const colour = colourImages(parser.json);
@@ -664,14 +674,16 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
         return t;
       };
       const bild = () => {
-        const got = pooled ? fetch(url, { credentials: 'same-origin' }).then((r) => {
+        if (ende()) return nie();
+        const got = pooled ? fetch(url, { credentials: 'same-origin', signal: fabrik.buehne?.signal }).then((r) => {
           if (!r.ok) throw new Error(`${r.status} ${url}`);
           return r.blob();
-        }).then((b) => { count?.(b.size); return b; }) : null;
+        }).then((b) => { count?.(b.size); return b; }, (e) => (ende() ? nie() : Promise.reject(e))) : null;
         const go = (turn = turn.then(pause));
         const q = go
           .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
           .then((blob) => {
+            if (ende()) return nie();
             const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
             if (!gate) return decode();
             return gate(async () => {
@@ -682,6 +694,7 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
             });
           })
           .then(async (bitmap) => {
+            if (ende()) { bitmap.close?.(); return nie(); }
             const t = dress(new THREE.Texture(bitmap));
             t.needsUpdate = true;
             if (mean && colour.has(i)) t.userData.mean = await imageMean(bitmap);
@@ -696,6 +709,7 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
       const id = !twin ? null : pooled ? KTX_ABLAGE.exec(def.uri)?.[1] ?? null
         : def.mimeType === 'image/webp' ? parser.getDependency('bufferView', def.bufferView).then(twin.id).catch(() => null) : null;
       const p = id === null ? bild() : Promise.resolve(id).then((k) => (k ? twin.load(k) : null)).then((z) => {
+        if (ende()) { z?.t.dispose(); return nie(); }
         if (!z) return bild();
         const t = dress(z.t);
         if (pooled) count?.(z.webp);
@@ -707,6 +721,8 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
     };
     return { name: 'hg_embedded_images', afterRoot: noteTextures };
   };
+  fabrik.buehne = null;
+  return fabrik;
 }
 
 // Spielteile, die in der Halle nicht stehen sollen, je Halle (Schlüssel wie
@@ -7580,6 +7596,9 @@ export async function initHangar(container, opts = {}) {
   // (Halle aufbereiten, Schiffsmaße, Texturen, Shader einzeln übersetzen),
   // statt am aufgegebenen Renderer weiterzuarbeiten.
   const rast = async () => { await nextTask(); if (tot) await nieMehr(); };
+  // Was diese Bühne über die Leitung holt und beim Abbau nicht mehr braucht
+  // (die Bilder aus dem WebP, embeddedImages): dispose() bricht es ab.
+  const abbau = new AbortController();
   // Echte Halle aus dem Spiel: Dann wird die gebaute Halle gar nicht erst
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
@@ -8440,6 +8459,7 @@ export async function initHangar(container, opts = {}) {
   if (KTX_AN) ktxStart();
   // Bilder aus der Ablage zählen zum Ladebalken des Schiffs (shipTex)
   const images = embeddedImages(8, (parser) => shipTex.count(parser), SMALL ? TEX_MAX : 0, ktxTwin);
+  images.buehne = { rast, tot: () => tot, signal: abbau.signal };
   const loader = new GLTFLoader().setDRACOLoader(draco).register(images(true));
   // Dateien der Halle (HALL_FILES) laden ohne Farbmittel: Ihre Materialien
   // gehen nie durch dressTextured(). Ein neuer Schlüssel misst, bis er hier steht.
@@ -15520,6 +15540,7 @@ void main() {
     dispose() {
       if (tot) return;
       tot = true;
+      abbau.abort();
       // der Seite meldet diese Bühne nichts mehr, auch nicht den Kontext, den sie unten selbst aufgibt
       lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo.onShow = null;
       cancelAnimationFrame(raf);

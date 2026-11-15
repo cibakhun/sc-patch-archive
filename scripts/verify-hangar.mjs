@@ -681,6 +681,14 @@
         Probe außerhalb des Repos (Hallenwechsel mitten im Laden,
         Stand davor gegen diesen); die Zahlen stehen in der PR der
         Large-Halle.
+    cv  dort in embeddedImages() die Frage am Anfang von bild()
+        streichen (if (ende()) return nie();; 15.11.2026, vierte
+        Runde desselben Reviews: Jeder Zwilling, den der Abbau
+        abbricht, kam neben der neuen Halle noch einmal aus dem
+        WebP)                                                       -> [24]
+    cw  dort die Zeile streichen, mit der sich die Bühne dem
+        Loader ihrer Bilder nennt (images.buehne = …)               -> [24]
+    cx  dort in dispose() abbau.abort() streichen                   -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3151,7 +3159,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 25, worte: 16 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 27, worte: 16 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3269,6 +3277,9 @@ const GROESSE_AUSNAHMEN = {
     [viewer, /const takt = \(\) => \{\s*if \(tot\) return;[\s\S]{0,300}?if \(mats\.size\) setTimeout\(takt, 10\); else fertig\(\);[\s\S]{0,1500}?try \{ mats = renderer\.compile\(root, camera, world\); \} finally \{ renderer\.setRenderTarget\(prev\); \}\s*await fertigUebersetzt\(mats\);/, 'das Warten auf die Übersetzung endet nicht mehr mit dem Abbau (fertigUebersetzt, takt): Beim Hallenwechsel fragte die alte Bühne ihre Programme alle 10 ms für immer weiter ab'],
     [viewer, /^(?![\s\S]*renderer\.compileAsync\()[\s\S]*?fertigUebersetzt/, 'der Viewer wartet wieder mit compileAsync von three.js auf seine Programme: Dessen Abfrage hat kein Ende, wenn die Bühne währenddessen abgebaut wird'],
     [viewer, /const fetchGltf = \(url, key = 'ship', guess = 8e6, my = null\) => \(tot \? nieMehr\(\) :/, 'eine abgebaute Bühne lädt weiter Modelle (fetchGltf): Sie baute in eine Szene, die es nicht mehr gibt'],
+    // Bilder (15.11.2026, vierte Runde desselben Reviews): Was der Abbau abbricht, fällt nicht mehr auf sein WebP zurück
+    [viewer, /const pause = slicer\(ms, \(\) => \(fabrik\.buehne\?\.rast \?\? nextTask\)\(\)\);\s*const ende = \(\) => !!fabrik\.buehne\?\.tot\(\);[\s\S]{0,1600}?const bild = \(\) => \{\s*if \(ende\(\)\) return nie\(\);[\s\S]{0,1200}?\.then\(\(blob\) => \{\s*if \(ende\(\)\) return nie\(\);[\s\S]{0,800}?\.then\(async \(bitmap\) => \{\s*if \(ende\(\)\) \{ bitmap\.close\?\.\(\); return nie\(\); \}[\s\S]{0,1500}?\.then\(\(z\) => \{\s*if \(ende\(\)\) \{ z\?\.t\.dispose\(\); return nie\(\); \}\s*if \(!z\) return bild\(\);/, 'die Bilder einer abgebauten Bühne laufen weiter (embeddedImages fragt die Bühne nicht mehr vor dem Abruf, vor und nach dem Auspacken und nach dem Zwilling): Jeder Zwilling, den der Abbau abbricht, käme neben der neuen Halle noch einmal aus dem WebP'],
+    [viewer, /images\.buehne = \{ rast, tot: \(\) => tot, signal: abbau\.signal \};[\s\S]*?dispose\(\) \{\s*if \(tot\) return;\s*tot = true;\s*abbau\.abort\(\);/, 'die Bühne nennt sich dem Loader ihrer Bilder nicht mehr oder bricht beim Abbau nicht mehr ab, was er holt (images.buehne, abbau.abort in dispose): Die Fragen in embeddedImages liefen leer'],
     // Material der Industrie-Hallen (HALL_FEST): Namen <Datei>_mtl_<Teil>, Schnitt nach dem Alpha der Karte
     [viewer, /if \(!sticker && \(fest \? \/_mtl_\.\*glow\/i : \/light\|glow\/i\)\.test\(m\.name\) && !\/glass\/i\.test\(m\.name\) && m\.map\) \{/, 'in den Industrie-Hallen leuchtet wieder jedes Material, dessen Datei „light“ heißt (Leuchtregel der Halle ohne fest): Gehäuse, Lack und Gummi der Lampen stünden als helle Flächen im Raum'],
     [viewer, /&& !sticker && !\(m\.alphaTest > 0\) && !\/decal\|logo\|glow\|leak\/i\.test\(m\.name\)\) \{ boxProject\(m, us\.mPerUv\);/, 'Material, das nach Alpha schneidet, bekommt wieder die Würfellage (boxProject ohne !(m.alphaTest > 0)): Der Pfeil am Tor der Large-Halle zerfiele in Bruchstücke'],
