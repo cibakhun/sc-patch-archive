@@ -13,6 +13,8 @@
 // Seit 14.11.2026 (Krisz waehlte „Volle Halle fuers Handy abspecken“): Die
 // Worker, die die Geometrie auspacken, enden ohne Arbeit, und grosse Stuecke
 // nehmen ihren Worker mit (Entpacker in assets/hangar-viewer.js).
+// Seit 15.11.2026 (Krisz' Bild: „Hoch, nach dem Laden, Grafik verloren“): Die
+// Spur fuehrt bei verlorenem Zeichenkontext Dauer und Herkunft der Bilder.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { WAECHTER, waechterStand, waechterAbbruch, waechterText, waechterOffen, waechterVerlauf, waechterLaeufe, waechterLaeufeText, waechterAnlauf, waechterAnlaufText, waechterAnspruch, waechterBefund, waechterLeicht, waechterGeraet } from '../../assets/hangar-overview.js';
@@ -162,7 +164,7 @@ describe('Hangar-Waechter: Vermerk „Lauf offen“', () => {
 });
 
 describe('Hangar-Waechter: Spur der Abbrueche', () => {
-  const wort = (k) => ({ hoch: 'Hoch', mittel: 'Mittel', niedrig: 'Niedrig', laden: 'beim Laden', bauen: 'beim Aufbau', steht: 'nach dem Laden', seite: 'Seite beendet', kontext: 'Grafik verloren' })[k] ?? '';
+  const wort = (k) => ({ hoch: 'Hoch', mittel: 'Mittel', niedrig: 'Niedrig', laden: 'beim Laden', bauen: 'beim Aufbau', steht: 'nach dem Laden', seite: 'Seite beendet', kontext: 'Grafik verloren', komprimiert: 'Texturen komprimiert', gemischt: 'Texturen teils komprimiert', webp: 'Texturen unkomprimiert' })[k] ?? '';
 
   test('jeder Abbruch haengt Stufe, Phase und Art an, auch der nur vermerkte', () => {
     const a = waechterAbbruch(leer(), T0, 'hoch', { phase: 'bauen', wie: 'seite' });
@@ -197,6 +199,31 @@ describe('Hangar-Waechter: Spur der Abbrueche', () => {
     const nur = waechterText(waechterAbbruch(leer(), T0, 'hoch', { phase: 'bauen', wie: 'seite' }));
     assert.equal(waechterStand(nur, T0 + MIN).spur.length, 1);
     assert.deepEqual(waechterStand(nur, T0 + WAECHTER.zweimal), { ab: null, deckel: null, seit: 0, spur: [] });
+  });
+
+  // v 5 (15.11.2026, Krisz' Bild „Hoch, nach dem Laden, Grafik verloren“):
+  // Bei verlorenem Zeichenkontext lebt die Seite noch und weiss, wie lange
+  // die Phase lief und woher die Bilder kamen.
+  test('Dauer der Phase und Herkunft der Bilder stehen in Spur und Zeile, Ungueltiges faellt weg', () => {
+    assert.deepEqual(WAECHTER.bilder, ['komprimiert', 'gemischt', 'webp']);
+    const mit = waechterAbbruch(leer(), T0, 'hoch', { sofort: true, phase: 'steht', wie: 'kontext', dauer: 14, bilder: 'komprimiert' });
+    assert.deepEqual(mit.spur, [{ t: T0, s: 'hoch', p: 'steht', w: 'kontext', d: 14, b: 'komprimiert' }]);
+    // durch den Speicher und zurueck
+    assert.deepEqual(waechterStand(waechterText(mit), T0 + MIN).spur, mit.spur);
+    assert.deepEqual(waechterVerlauf(mit.spur, wort), [`${wort('hoch')}, ${wort('steht')} (14 s), ${wort('kontext')}, ${wort('komprimiert')}`]);
+    // 0 s ist eine Dauer; ohne Angabe bleibt der Eintrag wie vor v 5
+    assert.deepEqual(waechterAbbruch(leer(), T0, 'hoch', { phase: 'steht', wie: 'kontext', dauer: 0, bilder: 'webp' }).spur, [{ t: T0, s: 'hoch', p: 'steht', w: 'kontext', d: 0, b: 'webp' }]);
+    assert.deepEqual(waechterAbbruch(leer(), T0, 'hoch', { phase: 'laden', wie: 'seite' }).spur, [{ t: T0, s: 'hoch', p: 'laden', w: 'seite' }]);
+    // Ungueltiges: negative, gebrochene, riesige Dauer, fremde Herkunft
+    for (const [dauer, bilder] of [[-1, 'astc'], [2.5, 7], [86401, null], ['14', 'KOMPRIMIERT'], [NaN, {}], [null, undefined]]) {
+      assert.deepEqual(waechterAbbruch(leer(), T0, 'hoch', { phase: 'steht', wie: 'kontext', dauer, bilder }).spur, [{ t: T0, s: 'hoch', p: 'steht', w: 'kontext' }], `${dauer} ${String(bilder)}`);
+    }
+    // ... auch aus dem Speicher
+    const raw = JSON.stringify({ v: WAECHTER.v, ab: T0, deckel: 'mittel', seit: T0, spur: [{ t: T0, s: 'hoch', p: 'steht', w: 'kontext', d: -4, b: 'x' }, { t: T0, s: 'hoch', p: 'steht', w: 'kontext', d: 86400, b: 'gemischt' }] });
+    assert.deepEqual(waechterStand(raw, T0 + MIN).spur, [{ t: T0, s: 'hoch', p: 'steht', w: 'kontext' }, { t: T0, s: 'hoch', p: 'steht', w: 'kontext', d: 86400, b: 'gemischt' }]);
+    // die Dauer steht hinter der Phase; ohne Wort fuer die Phase faellt sie mit ihr weg
+    assert.deepEqual(waechterVerlauf([{ t: T0, s: 'hoch', p: null, w: 'kontext', d: 9, b: 'webp' }], wort), [`${wort('hoch')}, ${wort('kontext')}, ${wort('webp')}`]);
+    assert.deepEqual(waechterVerlauf([{ t: T0, s: 'hoch', p: 'steht', w: 'kontext', d: 9 }], (k) => (k === 'steht' ? '' : wort(k))), [`${wort('hoch')}, ${wort('kontext')}`]);
   });
 
   test('der Knopf der Meldung behaelt sie: ein Versuch in der niedrigen Stufe, dann wieder aus', () => {

@@ -30,6 +30,9 @@ import { createHash } from 'node:crypto';
 
 // TranscoderFormat in KTX2Loader.js: was der Viewer am PC verlangt
 export const BASIS_FORMATE = { BC7: 7, ASTC: 10 };
+// ... und was ein Telefon bekommt (FORMAT_OPTIONS in KTX2Loader.js): UASTC
+// als ASTC, ETC1S als ETC1 (ohne Alpha) oder ETC2 (mit); ohne ETC2 auch ASTC
+export const BASIS_FORMATE_TELEFON = { ASTC: 10, ETC2: 1, ETC1: 0 };
 
 const WANDLE = `(function (M, ab, format) {
   const f = new M.KTX2File(new Uint8Array(ab));
@@ -72,14 +75,16 @@ export async function basisStart(glue, wasm, { zeichenketten = false, warteMs = 
   M.initializeBasis();
   if (M.KTX2File === undefined) throw new Error('der Umwandler kennt KTX2File nicht');
   return {
-    /** Wandelt eine KTX2-Datei um: Kennzahlen und ein SHA-256 ueber alle Stufen. */
-    wandle(buf, format) {
+    /** Wandelt eine KTX2-Datei um: Kennzahlen und ein SHA-256 ueber alle Stufen.
+     *  ohne: so viele der groessten Stufen bleiben aus Summe und Bytes (zum
+     *  Vergleich mit der kleinen Fassung, ktxKlein); stufen zaehlt dann die uebrigen. */
+    wandle(buf, format, ohne = 0) {
       const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
       const r = wandle(M, ab, format);
       const h = createHash('sha256');
       let bytes = 0;
-      for (const [w, hh, dst] of r.teile) { h.update(`${w}x${hh}:`); h.update(Buffer.from(dst.buffer, dst.byteOffset, dst.byteLength)); bytes += dst.byteLength; }
-      return { art: r.art, breite: r.breite, hoehe: r.hoehe, stufen: r.stufen, alpha: !!r.alpha, bytes, sha: h.digest('hex') };
+      for (const [w, hh, dst] of r.teile.slice(ohne)) { h.update(`${w}x${hh}:`); h.update(Buffer.from(dst.buffer, dst.byteOffset, dst.byteLength)); bytes += dst.byteLength; }
+      return { art: r.art, breite: r.breite, hoehe: r.hoehe, stufen: r.stufen - ohne, alpha: !!r.alpha, bytes, sha: h.digest('hex') };
     },
   };
 }

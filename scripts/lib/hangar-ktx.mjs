@@ -16,8 +16,10 @@
 // Bildern der Ablage (/hangar/tex/, scripts/lib/glb-texpool.mjs) also der
 // Dateiname, bei eingebetteten Bildern derselbe Hash über die Bytes im GLB.
 // Kein GLB wird angefasst und es gibt kein Verzeichnis: der Viewer rechnet
-// die Kennung selbst aus. Die WebP bleiben, wie sie sind; Telefone laden
-// weiter sie (assets/hangar-viewer.js), und sie sind die Quelle der Zwillinge.
+// die Kennung selbst aus. Die WebP bleiben, wie sie sind: Sie sind die Quelle
+// der Zwillinge und der Weg, wenn einer fehlt oder der Umwandler nicht
+// startet. Telefone laden seit dem 15.11.2026 kleine Fassungen der Zwillinge
+// (ktxKlein unten), unter einem Deckel des Wächters weiter die WebP.
 //
 // Was der Viewer außer den Bildpunkten braucht, steht in den Schlüssel-Wert-
 // Daten der KTX2-Datei (KV):
@@ -221,3 +223,90 @@ export function ktxMitKv(buf, neu) {
 }
 
 export const ktxUrl = (id) => posix.join(KTX_ORDNER, `${id}.ktx2`);
+
+// --- Kleine Zwillinge fürs Telefon (15.11.2026) ------------------------------
+// Krisz' iPhone 12 lud die volle Halle am 15.11.2026 zum ersten Mal ganz, und
+// danach nahm ihm das Telefon den Zeichenkontext („Hoch, nach dem Laden,
+// Grafik verloren"). Im Telefonformat gezählt lagen 198 MB Texturen bei der
+// Grafikkarte, jede als RGBA8 mit 256 px Kante; mit den Zwillingen sind es
+// 82 MB bei derselben Kante. Ein Telefon braucht von einem Zwilling aber nur
+// die Stufen bis 256 px, und die großen Stufen sind neun Zehntel der Datei:
+// Halle und Gladius wögen über die ganzen Zwillinge 34 MB statt 10 MB WebP.
+//
+// Darum bekommt jeder Zwilling eine kleine Fassung
+// public/hangar/ktx-klein/<kennung>.ktx2: dieselbe Datei ohne die Mip-Stufen,
+// deren längere Kante über KTX_KLEIN_MAX liegt. Nichts wird neu kodiert: Kopf,
+// DFD, Schlüssel-Wert-Daten, die Codebücher (BasisLZ) und die Bytes der
+// übrigen Stufen sind die des Zwillings, nur Breite, Höhe, Stufenzahl, die
+// Stufenliste und (BasisLZ) die Bildbeschreibungen der gestrichenen Stufen
+// ändern sich. Ein Zwilling, der schon klein ist, wird unverändert kopiert:
+// Das Telefon fragt immer denselben Ordner und braucht kein Verzeichnis.
+// Die Dateien baut scripts/build-hangar-ktx-klein.mjs vor jedem Bau (wie die
+// Einrichtung der Halle: gitignored, nicht im Repo), verify:hangar-ktx [8]
+// vergleicht sie im Artefakt mit dieser Funktion.
+export const KTX_KLEIN_ORDNER = 'ktx-klein';
+export const KTX_KLEIN_MAX = 256;
+
+// Wie viele der größten Stufen fallen, damit die längere Kante <= max ist
+// (die kleinste Stufe bleibt immer)
+export function ktxKleinWeg(k, max = KTX_KLEIN_MAX) {
+  let weg = 0;
+  while (weg < k.stufen - 1 && Math.max(k.breite >> weg, k.hoehe >> weg, 1) > max) weg++;
+  return weg;
+}
+
+// buf: ein ganzer Zwilling. Gibt die kleine Fassung zurück (buf selbst, wenn
+// keine Stufe fällt). Wirft, wenn die Datei anders gebaut ist, als diese
+// Funktion es versteht: ein Bild, eine Lage, eine Fläche, BasisLZ (1) oder
+// Zstandard (2).
+export function ktxKlein(buf, max = KTX_KLEIN_MAX) {
+  const k = ktxKopf(buf);
+  if (!k) throw new Error('keine lesbare KTX2-Datei');
+  const weg = ktxKleinWeg(k, max);
+  if (!weg) return buf;
+  if (k.super !== 1 && k.super !== 2) throw new Error(`Superkompression ${k.super}: ktxKlein kennt nur BasisLZ (1) und Zstandard (2)`);
+  const tiefe = buf.readUInt32LE(28), lagen = buf.readUInt32LE(32), flaechen = buf.readUInt32LE(36);
+  if (tiefe > 1 || lagen > 1 || flaechen !== 1) throw new Error(`Tiefe ${tiefe}, Lagen ${lagen}, Flächen ${flaechen}: ktxKlein kennt nur ein flaches Bild`);
+  if (k.dfdLen % 4 || k.kvdLen % 4) throw new Error('DFD oder Schlüssel-Wert-Daten enden nicht auf einer 4-Byte-Grenze');
+  const bleibt = k.stufen - weg;
+  // Superkompressions-Daten: BasisLZ führt nach 20 Byte Kopf je Bild (hier je
+  // Stufe, größte zuerst) 20 Byte Beschreibung, dann die Codebücher. Die
+  // Offsets darin zählen ab dem Anfang der Stufe und bleiben, wie sie sind.
+  let sgd = Buffer.alloc(0);
+  if (k.super === 1) {
+    const alt = buf.subarray(k.sgdOff, k.sgdOff + k.sgdLen);
+    if (alt.length < 20 + 20 * k.stufen) throw new Error('BasisLZ-Daten kürzer als ihre Bildbeschreibungen');
+    const rest = alt.readUInt32LE(4) + alt.readUInt32LE(8) + alt.readUInt32LE(12) + alt.readUInt32LE(16);
+    if (alt.length !== 20 + 20 * k.stufen + rest) throw new Error(`BasisLZ-Daten ${alt.length} Bytes, erwartet ${20 + 20 * k.stufen + rest} (eine Beschreibung je Stufe)`);
+    sgd = Buffer.concat([alt.subarray(0, 20), alt.subarray(20 + 20 * weg)]);
+  } else if (k.sgdLen) throw new Error('Zstandard mit Superkompressions-Daten: unbekannter Aufbau');
+  const kopf = Buffer.alloc(80 + 24 * bleibt);
+  buf.copy(kopf, 0, 0, 80);
+  kopf.writeUInt32LE(Math.max(1, k.breite >> weg), 20);
+  kopf.writeUInt32LE(k.hoehe ? Math.max(1, k.hoehe >> weg) : 0, 24);
+  kopf.writeUInt32LE(bleibt, 40);
+  const dfd = buf.subarray(k.dfdOff, k.dfdOff + k.dfdLen), kvd = buf.subarray(k.kvdOff, k.kvdOff + k.kvdLen);
+  let at = kopf.length;
+  kopf.writeUInt32LE(dfd.length ? at : 0, 48); at += dfd.length;
+  kopf.writeUInt32LE(kvd.length ? at : 0, 56); at += kvd.length;
+  const fuell = sgd.length ? (8 - (at % 8)) % 8 : 0;
+  at += fuell;
+  kopf.writeBigUInt64LE(BigInt(sgd.length ? at : 0), 64);
+  kopf.writeBigUInt64LE(BigInt(sgd.length), 72);
+  at += sgd.length;
+  // Stufen in der Reihenfolge der Datei (die kleinste liegt vorn), dicht an dicht
+  const teile = [];
+  for (const i of Array.from({ length: bleibt }, (_, n) => weg + n).sort((a, b) => k.ebenen[a].off - k.ebenen[b].off)) {
+    const e = k.ebenen[i], ziel = 80 + 24 * (i - weg);
+    buf.copy(kopf, ziel, 80 + 24 * i, 104 + 24 * i);
+    kopf.writeBigUInt64LE(BigInt(at), ziel);
+    teile.push(buf.subarray(e.off, e.off + e.len));
+    at += e.len;
+  }
+  const out = Buffer.concat([kopf, dfd, kvd, Buffer.alloc(fuell), sgd, ...teile]);
+  const probe = ktxKopf(out);
+  if (!probe || probe.stufen !== bleibt || probe.ebenen.some((e, i) => e.len !== k.ebenen[i + weg].len) || Math.max(probe.breite, probe.hoehe) > max) throw new Error('KTX2 nach dem Kürzen nicht mehr lesbar');
+  return out;
+}
+
+export const ktxKleinUrl = (id) => posix.join(KTX_KLEIN_ORDNER, `${id}.ktx2`);
