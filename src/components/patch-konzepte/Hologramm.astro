@@ -1,0 +1,566 @@
+---
+// „Patch am Hologramm": die 4.10.3-Seite auf der Projektorbuehne der
+// Schiffsseiten. Nur im Vorschau-Bau (scripts/lib/vorschau-patches.mjs).
+// Inhalt: src/lib/patch-4-10-3/hologramm.ts (berechnet aus dem Vergleich,
+// ergaenzt von Hand). Ohne WebGL steht das Standbild da, ohne Skript das
+// Standschiff, alle Reiter untereinander und die Beispielflotte.
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { href } from '../../i18n/ui';
+import { hologrammInhalt, BELEG, type BuehnenSchiff, type Wechsel } from '../../lib/patch-4-10-3/hologramm';
+import { jsonForScript } from '../../lib/safeJson';
+import { versioned } from '../../lib/assetVersion';
+import PATCH from '../../data/patches/4-10-3.json';
+import holoCalloutsCss from '../holo-callouts.css?raw';
+
+const de = (p: string) => href(p, 'de');
+const n = (x: number) => x.toLocaleString('de-DE');
+const I = await hologrammInhalt();
+const STAND = `${I.stand.von} → ${I.stand.nach}`;
+
+const GRUPPEN = [
+  { id: 'neu', titel: 'Neu', g: 'core' },
+  { id: 'geaendert', titel: 'Geändert', g: 'arms' },
+  { id: 'kaufbar', titel: 'Neu kaufbar', g: 'prop' },
+] as const;
+const imGrp = (g: string) => I.schiffe.filter((s) => s.gruppe === g);
+
+/* Je Ort am Rumpf eine Beschriftung: Texte derselben Stelle zusammen. */
+const ortKey = (w: Wechsel) => (w.ort ? ('k' in w.ort ? `k:${w.ort.k}` : `i:${w.ort.i.join(',')}`) : null);
+function callouts(s: BuehnenSchiff) {
+  const m = new Map<string, { k?: string; i?: number[]; text: string }>();
+  for (const w of s.wechsel) {
+    const key = ortKey(w);
+    if (!key || !w.ort) continue;
+    const da = m.get(key);
+    if (da) da.text = /DPS$/.test(da.text) ? `${w.kurz} · ${da.text}` : `${da.text} · ${w.kurz}`;
+    else m.set(key, { ...w.ort, text: w.kurz });
+  }
+  return [...m.values()];
+}
+const daten = I.schiffe.map((s) => ({ id: s.id, name: s.name, gruppe: s.gruppe, still: s.still, holo: s.holo, callouts: callouts(s) }));
+const start = Math.max(0, I.schiffe.findIndex((s) => s.id === 'rsi-galaxy'));
+
+/* Erster Bildschirm: drei Hervorhebungen, jede mit Ziel. */
+const reiter = (id: string) => I.reiter.find((r) => r.id === id)!;
+const radarGroesser = I.schiffe.filter((s) => s.wechsel.some((w) => w.key.endsWith(':radars') && /Gr\. \d+ → \d+/.test(w.kurz)));
+const intersec = reiter('auftraege').karten.filter((k) => k.herkunft === 'berechnet' && k.art === 'InterSec Defense Solutions').length;
+const highlights = [
+  { t: `${intersec} InterSec-Aufträge in Nyx`, h: '#reiter-auftraege' },
+  { t: `Radar Gr. 2 → 3 an ${radarGroesser.length} Schiffen`, h: `#schiff=${radarGroesser[0]?.id ?? ''}`, schiff: radarGroesser[0]?.id },
+  { t: `${reiter('kaufbar').karten.length} Schiffe neu für aUEC`, h: '#reiter-kaufbar' },
+];
+
+/* Beispielflotte, solange die eigene leer ist: drei betroffene, ein unberuehrtes Schiff. */
+const BEISPIEL = ['anvl-carrack', 'aegs-vanguard', 'aegs-reclaimer', 'drak-cutlass-black'];
+const flottenKarten = (ids: string[]) => ids.filter((id) => I.flotte[id]).map((id) => ({ id, ...I.flotte[id] }));
+const beispiel = flottenKarten(BEISPIEL);
+const beispielOhne = BEISPIEL.filter((id) => !I.flotte[id]).length;
+
+const viewerSrc = `/assets/holo-viewer.js?v=${createHash('sha1').update(readFileSync('assets/holo-viewer.js')).digest('hex').slice(0, 8)}`;
+const fleetSrc = versioned('assets/fleet.js', '/assets/fleet.js');
+const notesStempel = `ergänzt · ${BELEG.t}`;
+---
+<main id="main" class="ph" data-viewer={viewerSrc} data-start={start}>
+  <header class="ph-kopf">
+    <p class="sd__maker">Alpha {PATCH.version} · {PATCH.dateDisplay}<span class="ph-code"> · {PATCH.codename}</span></p>
+    <h1>Patch am Hologramm</h1>
+    <p class="ph-satz">Die Vanduul greifen in Nyx an, und die RSI Galaxy und die Anvil Liberator kommen ins Spiel.</p>
+    <ul class="holo__chips ph-high">
+      {highlights.map((h) => <li><a href={h.h} data-schiff={h.schiff}>{h.t}</a></li>)}
+    </ul>
+  </header>
+
+  <section class="holo ph-holo" aria-label="Betroffene Schiffe am Hologramm">
+    <div class="holo__wrap" id="phwrap">
+      <div class="holo__grid" aria-hidden="true"></div>
+      <div class="holo__pad" aria-hidden="true"></div>
+      <nav class="holo__rail" aria-label="Gruppe">
+        {GRUPPEN.map((g) => (
+          <a href={`#gruppe-${g.id}`} data-g={g.g} data-gruppe={g.id} aria-current={g.id === I.schiffe[start].gruppe ? 'true' : undefined}>
+            <span class="holo__rail-lb">{g.titel}</span>
+            <span class="holo__rail-ct">{imGrp(g.id).length}</span>
+          </a>
+        ))}
+      </nav>
+      <div class="ph-3d" id="ph3d"></div>
+      <figure class="ph-still" id="phstill">
+        <img id="phstillimg" src={I.schiffe[start].still ?? undefined} alt={`Hologramm der ${I.schiffe[start].name}`} />
+      </figure>
+      <p class="holo__hud">{STAND} · <b id="phzahl">{start + 1} / {I.schiffe.length}</b></p>
+      <button type="button" class="ph-schritt ph-schritt--zurueck" id="phzurueck" aria-label="Voriges Schiff" hidden>‹</button>
+      <button type="button" class="ph-schritt ph-schritt--vor" id="phvor" aria-label="Nächstes Schiff" hidden>›</button>
+      {I.schiffe.map((s, i) => (
+        <div class="holo__title" data-titel={s.id} hidden={i !== start}>
+          <span class="sd__maker">{s.art} · {s.stand}</span>
+          <h2>{s.name}</h2>
+          <div class="holo__chips"><a href={de(s.seite)}>Zur Schiffsseite</a></div>
+        </div>
+      ))}
+      <p class="holo__status" id="phstatus" aria-live="polite"></p>
+    </div>
+
+    <div class="ph-wahl" id="phwahl">
+      {GRUPPEN.map((g) => (
+        <div class="ph-wahl__grp" id={`gruppe-${g.id}`} data-gruppe={g.id} data-g={g.g}>
+          <p class="sd__sub">{g.titel} <span>{imGrp(g.id).length}</span></p>
+          <ul>
+            {imGrp(g.id).map((s) => {
+              const i = I.schiffe.indexOf(s);
+              return <li><a href={de(s.seite)} data-i={i} aria-pressed={i === start ? 'true' : 'false'}>{s.name}</a></li>;
+            })}
+          </ul>
+        </div>
+      ))}
+      {I.ohneHolo.length > 0 && (
+        <p class="ph-ohne">Ohne Hologramm: {I.ohneHolo.map((o, j) => <>{j > 0 && ', '}<a href={o.link ? de(o.link) : undefined}>{o.name}</a></>)} (neu, im Reiter <a href="#reiter-neu">Neu</a>).</p>
+      )}
+    </div>
+
+    {I.schiffe.map((s, i) => (
+      <div class="holo__bar ph-bar" data-leiste={s.id} hidden={i !== start}>
+        <p class="ph-bar__kopf"><b>{s.name}</b> · {s.stand}{s.wechsel.some((w) => w.ort) && <span class="ph-bar__amrumpf">● am Rumpf markiert</span>}</p>
+        <dl>
+          {s.wechsel.length === 0 && <div class="kv"><dt>Änderung</dt><dd>keine Werte</dd></div>}
+          {s.wechsel.map((w) => (
+            <div class={`kv${w.herkunft === 'ergaenzt' ? ' kv--erg' : ''}`} data-herkunft={w.herkunft} data-erg={w.herkunft === 'ergaenzt' ? w.key : undefined}>
+              <dt>{w.ort && <span class="ph-punkt" aria-label="am Rumpf"></span>}{w.label}</dt>
+              <dd>
+                {w.vorher && <span class="ph-vorher">{I.stand.von}: {w.vorher}</span>}
+                {w.link ? <a href={de(w.link)}>{w.nachher}</a> : w.nachher}
+              </dd>
+              {w.herkunft === 'ergaenzt' && <a class="holo__caveat ph-stempel" href={BELEG.h}>{notesStempel}</a>}
+            </div>
+          ))}
+        </dl>
+      </div>
+    ))}
+  </section>
+
+  <section class="sd ph-reiter" aria-labelledby="ph-reiter-h">
+    <h2 class="holo__sys-h" id="ph-reiter-h">Alle Änderungen</h2>
+    <p class="holo__sys-ct">{STAND} · aus dem Datenvergleich, {I.ergaenztAnzahl} Werte von Hand aus den <a href={BELEG.h}>Patch Notes</a> ergänzt und so markiert.</p>
+    <div class="holo__rail ph-tabs" role="tablist" aria-label="Änderungen nach Art">
+      {I.reiter.map((r, j) => (
+        <a href={`#reiter-${r.id}`} role="tab" id={`tab-${r.id}`} aria-controls={`reiter-${r.id}`} aria-selected={j === 0 ? 'true' : 'false'} aria-current={j === 0 ? 'true' : undefined} data-reiter={r.id}>
+          <span class="holo__rail-lb">{r.titel}</span><span class="holo__rail-ct">{r.karten.length + (r.extra?.anzahl ?? 0)}</span>
+        </a>
+      ))}
+    </div>
+    <div class="ph-panels" id="phpanels">
+      {I.reiter.map((r) => {
+        const ber = r.karten.filter((k) => k.herkunft === 'berechnet').length + (r.extra?.anzahl ?? 0);
+        const erg = r.karten.length - r.karten.filter((k) => k.herkunft === 'berechnet').length;
+        return (
+          <section class="ph-panel" id={`reiter-${r.id}`} role="tabpanel" aria-labelledby={`tab-${r.id}`} data-reiter={r.id}>
+            <h3 class="sd__sub">{r.titel} <span>{r.id === 'kaufbar' || r.id === 'neu' || r.id === 'auftraege' ? 'Stand 4.10.3' : STAND}</span></h3>
+            <p class="ph-panel__satz">{r.satz} {ber} aus dem Datenvergleich{erg > 0 && <>, {erg} ergänzt</>}.</p>
+            {r.id === 'auftraege' && (
+              <p class="ph-panel__satz">Einstieg nach Rang: {I.raenge.map((x, j) => <>{j > 0 && ' · '}{x.anzahl} ab {x.rang}</>)}.</p>
+            )}
+            {r.extra && (
+              <div class="ph-lack">
+                <p><b>{r.extra.anzahl} neue Lackierungen</b> für {r.extra.jeSchiff.length} Schiffe · <a href={de(r.extra.uebersicht)}>alle Lackierungen</a></p>
+                <ul>{r.extra.jeSchiff.map((x) => <li>{x.link ? <a href={de(x.link)}>{x.name}</a> : x.name} <span>{x.anzahl}</span></li>)}</ul>
+              </div>
+            )}
+            <div class="sd__slots ph-karten">
+              {r.karten.map((k) => (
+                <div class={`sd__slot ph-karte${k.herkunft === 'ergaenzt' ? ' ph-karte--erg' : ''}`} data-g={k.g} data-herkunft={k.herkunft} data-erg={k.herkunft === 'ergaenzt' ? k.key.slice(4) : undefined}>
+                  <div class="sd__slothead"><span class="t">{k.art}</span></div>
+                  <p class="n">{k.link ? <a href={de(k.link)}>{k.name}</a> : k.name}</p>
+                  {k.zeilen.length > 0 && (
+                    <dl class="ph-zeilen">
+                      {k.zeilen.map((z) => <div class={z.vorher || z.nachher.length > 22 ? 'is-lang' : undefined}><dt>{z.label}</dt><dd>{z.vorher && <span class="ph-vorher">{I.stand.von}: {z.vorher}</span>}{z.nachher}</dd></div>)}
+                    </dl>
+                  )}
+                  {k.herkunft === 'ergaenzt' && <a class="holo__caveat ph-stempel" href={BELEG.h}>{notesStempel}</a>}
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="sd ph-flotte" aria-labelledby="ph-flotte-h">
+    <h2 class="holo__sys-h" id="ph-flotte-h">Deine Flotte in 4.10.3</h2>
+    <p class="holo__sys-ct" id="phflottesatz"><span class="ph-beispiel">Beispiel</span> Deine Flotte ist leer. So sähe es mit vier Schiffen aus; {beispiel.length} davon ändert der Patch. Schiffe merkst du dir auf jeder <a href={de('/schiffe.html')}>Schiffsseite</a> mit „Zur Flotte".</p>
+    <div class="sd__slots ph-karten" id="phflotte">
+      {beispiel.map((f) => (
+        <div class="sd__slot ph-karte" data-g="core">
+          <div class="sd__slothead"><span class="t">{f.art}</span></div>
+          <p class="n"><a href={de(f.seite)}>{f.name}</a></p>
+          <ul class="ph-flotte__z">{f.zeilen.map((z) => <li>{z}</li>)}</ul>
+        </div>
+      ))}
+    </div>
+    {beispielOhne > 0 && <p class="ph-panel__satz" id="phflotteohne">Dazu {beispielOhne} Schiff ohne Änderung in 4.10.3.</p>}
+  </section>
+</main>
+
+<Fragment set:html={`<style>${holoCalloutsCss}</style>`} />
+<style is:inline>
+/* Farben und Schriften der Schiffsseite (ShipDetail.astro :root), unveraendert. */
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1100px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
+.ph a{color:inherit}
+.ph [data-g="core"]{--gc:var(--accent)}
+.ph [data-g="arms"]{--gc:var(--gold)}
+.ph [data-g="prop"]{--gc:var(--accent-2)}
+.ph [data-g="other"]{--gc:#a78bfa}
+
+/* Kopf: dieselbe Inhaltsspalte wie .sd */
+.ph-kopf{max-width:var(--maxw);margin:0 auto;padding:calc(var(--nav-h,68px) + .6rem) clamp(1rem,3vw,2.5rem) .9rem}
+.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--accent)}
+.ph-kopf h1{font-family:var(--font-display);font-weight:900;font-size:var(--fs-18);line-height:1.02;margin:.25rem 0 .4rem;color:var(--on-media)}
+.ph-satz{max-width:62ch;color:var(--muted);font-size:var(--fs-10);margin:0}
+.holo__chips{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.7rem;list-style:none;padding:0}
+.holo__chips a,.holo__chips span{display:inline-block;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;text-decoration:none;
+  color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:var(--scrim-4);padding:.28rem .6rem;
+  transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.holo__chips a:hover,.holo__chips a:focus-visible{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+
+/* Buehne: Projektor der Schiffsseite (.holo, .holo__grid, .holo__pad) */
+.ph-holo{position:relative;background:radial-gradient(120% 90% at 50% 8%,var(--media-void) 0%,var(--bg) 62%),var(--bg);border-bottom:1px solid var(--line)}
+.holo__wrap{position:relative;z-index:2;width:100%;overflow:hidden;height:clamp(420px,calc(100vh - 380px),720px);height:clamp(420px,calc(100dvh - 380px),720px)}
+.holo__grid{position:absolute;left:-24%;right:-24%;bottom:-4%;height:56%;pointer-events:none;
+  transform:perspective(760px) rotateX(63deg);transform-origin:50% 100%;
+  background:
+    repeating-linear-gradient(90deg,rgba(45,212,255,.13) 0 1px,transparent 1px 44px),
+    repeating-linear-gradient(0deg,rgba(45,212,255,.13) 0 1px,transparent 1px 44px);
+  -webkit-mask-image:linear-gradient(0deg,rgba(0,0,0,.85),transparent 82%);
+  mask-image:linear-gradient(0deg,rgba(0,0,0,.85),transparent 82%)}
+.holo__pad{position:absolute;bottom:7%;left:50%;transform:translateX(-50%);width:min(42%,520px);height:5%;pointer-events:none;
+  border-radius:50%;background:radial-gradient(50% 50% at 50% 50%,rgba(45,212,255,.55),rgba(45,212,255,.16) 55%,transparent 72%);filter:blur(5px)}
+.ph-3d{position:absolute;inset:0;z-index:2;cursor:grab}
+.ph-3d:active{cursor:grabbing}
+.ph-still{position:absolute;inset:0;margin:0;display:grid;place-items:center;z-index:1}
+.ph-still img{max-width:100%;max-height:100%;object-fit:contain}
+.ph-still[hidden]{display:none}
+.holo__hud{position:absolute;top:26px;left:30px;z-index:3;margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);
+  letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted);pointer-events:none}
+.holo__hud b{color:var(--accent);font-weight:700}
+.holo__status{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);z-index:5;white-space:nowrap;margin:0;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);letter-spacing:var(--ls-14);text-transform:uppercase;color:var(--accent)}
+.holo__title{position:absolute;bottom:clamp(18px,4vh,40px);z-index:6;
+  left:calc((100% - min(100%,var(--maxw)))/2 + clamp(1rem,3vw,2.5rem));
+  max-width:min(56%,600px);pointer-events:none;display:flex;flex-direction:column}
+.holo__title[hidden]{display:none}
+.holo__title h2{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.02;margin:.15rem 0 0;color:var(--on-media);text-shadow:0 2px 26px var(--on-media-shadow),0 0 44px rgba(45,212,255,.22)}
+.holo__title .holo__chips{pointer-events:auto}
+
+/* Blende der Schiffsseite (.holo__rail), hier fuer die drei Gruppen */
+.holo__rail{position:relative;z-index:6;display:flex;flex-wrap:wrap;gap:0;justify-content:center;margin:0 auto;
+  box-shadow:inset 0 -1px 0 0 color-mix(in srgb,var(--accent) 22%,transparent)}
+.ph-holo .holo__rail{position:absolute;top:1.1rem;left:50%;transform:translateX(-50%);max-width:calc(100% - 1.5rem);pointer-events:none}
+.holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;gap:.45rem;flex:none;margin:1px;pointer-events:auto;text-decoration:none;
+  background:color-mix(in srgb,var(--media-void) 62%,transparent);backdrop-filter:blur(7px);
+  padding:.54rem .62rem;box-shadow:inset 0 -2px 0 0 transparent;text-shadow:0 1px 4px var(--on-media-shadow);
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--on-media-dim);
+  transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.holo__rail a:hover,.holo__rail a:focus-visible{color:var(--on-media);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.holo__rail a[aria-current="true"]{color:var(--on-media);background:color-mix(in srgb,var(--gc) 12%,transparent);box-shadow:inset 0 -2px 0 0 var(--gc)}
+.holo__rail a[data-g="arms"]{--gc:var(--gold)}
+.holo__rail a[data-g="prop"]{--gc:var(--accent-2)}
+.holo__rail-lb{white-space:nowrap}
+.holo__rail-ct{font-variant-numeric:tabular-nums;color:var(--gc);background:color-mix(in srgb,var(--gc) 16%,transparent);padding:.08rem .4rem;min-width:1.4rem;text-align:center}
+
+/* Schritt-Knoepfe: Form des Modus-Umschalters (.holo__toggle) */
+.ph-schritt{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:44px;height:56px;cursor:pointer;
+  border:1px solid var(--line);background:var(--scrim-5);backdrop-filter:blur(4px);color:var(--muted);
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-15);line-height:1;
+  transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui)}
+.ph-schritt:hover,.ph-schritt:focus-visible{color:var(--accent);border-color:var(--accent)}
+.ph-schritt--zurueck{left:clamp(.5rem,2vw,1.6rem)}
+.ph-schritt--vor{right:clamp(.5rem,2vw,1.6rem)}
+.ph-schritt[hidden]{display:none}
+
+/* Schiffswahl unter der Buehne */
+.ph-wahl{max-width:var(--maxw);margin:0 auto;padding:.4rem clamp(1rem,3vw,2.5rem) .2rem}
+.sd__sub{display:flex;align-items:center;gap:.6rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-13);text-transform:uppercase;color:var(--muted);
+  margin:1.6rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--line)}
+.sd__sub span{font-variant-numeric:tabular-nums;color:var(--gc,var(--accent))}
+.ph-wahl .sd__sub{margin:.8rem 0 .5rem}
+.ph-wahl ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.4rem}
+.ph-wahl li a{display:inline-block;text-decoration:none;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-12);text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--line);background:var(--bg-2);padding:.42rem .7rem;
+  transition:color var(--dur-fast) var(--ease-ui),border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.ph-wahl li a:hover,.ph-wahl li a:focus-visible{color:var(--text);border-color:color-mix(in srgb,var(--gc) 60%,transparent)}
+.ph-wahl li a[aria-pressed="true"]{color:var(--on-media);border-color:var(--gc);background:color-mix(in srgb,var(--gc) 14%,transparent)}
+.ph-wahl.is-js .ph-wahl__grp:not(.is-an){display:none}
+.ph-ohne{margin:.7rem 0 0;font-size:var(--fs-7);color:var(--muted)}
+
+/* Kennwert-Leiste der Schiffsseite (.holo__bar) */
+.holo__bar{border-bottom:1px solid var(--line);background:linear-gradient(180deg,color-mix(in srgb,var(--media-void) 58%,transparent) 0%,transparent 88%)}
+.holo__bar[hidden]{display:none}
+.ph-bar__kopf{max-width:var(--maxw);margin:0 auto;padding:.9rem clamp(1rem,3vw,2.5rem) 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted)}
+.ph-bar__kopf b{color:var(--text)}
+.ph-bar__amrumpf{margin-left:.9rem;color:var(--accent)}
+.holo__bar dl{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:0;padding:0 clamp(1rem,3vw,2.5rem)}
+.holo__bar .kv{padding:.85rem 1rem .9rem;border-left:1px solid var(--line)}
+.holo__bar .kv:first-child{border-left:0;padding-left:0}
+.holo__bar dt{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted)}
+.holo__bar dd{margin:.1rem 0 0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12);font-variant-numeric:tabular-nums;color:var(--text)}
+.ph-vorher{display:block;font-size:var(--fs-6);font-weight:600;color:var(--muted);letter-spacing:var(--ls-4)}
+.holo__bar dd a{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 50%,transparent);text-underline-offset:3px}
+.ph-punkt{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--on-media);box-shadow:0 0 0 2px var(--media-void),0 0 6px var(--accent);margin-right:.45rem;vertical-align:1px}
+.holo__caveat{color:var(--gold);opacity:.95;letter-spacing:var(--ls-10);text-transform:none;font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);
+  padding-left:.5rem;border-left:2px dashed color-mix(in srgb,var(--gold) 55%,transparent)}
+.ph-stempel{display:inline-block;margin-top:.35rem;text-decoration:none}
+.ph-stempel:hover{text-decoration:underline}
+.kv--erg dd{color:var(--gold)}
+
+/* Abschnitte unter der Buehne: .sd und Systemkoepfe der Schiffsseite */
+.sd{position:relative;max-width:var(--maxw);margin:0 auto;padding:1.8rem clamp(1rem,3vw,2.5rem) 2rem}
+.holo__sys-h{display:flex;align-items:center;gap:.55rem;margin:0 0 .2rem;
+  font-family:var(--font-ui);font-weight:800;font-size:var(--fs-11);letter-spacing:var(--ls-6);text-transform:uppercase;color:var(--accent)}
+.holo__sys-ct{margin:0 0 1rem;font-size:var(--fs-7);color:var(--muted)}
+.holo__sys-ct a,.ph-panel__satz a,.ph-ohne a,.ph-lack a{text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--accent) 50%,transparent);text-underline-offset:3px}
+.ph-tabs{justify-content:flex-start;margin:0 0 .4rem}
+.ph-panel{scroll-margin-top:calc(var(--nav-h,68px) + 12px)}
+.ph-panel .sd__sub{margin-top:1.2rem}
+.ph-panel__satz{margin:0 0 .9rem;font-size:var(--fs-7);color:var(--muted)}
+.ph-panels.is-js .ph-panel:not(.is-an){display:none}
+
+/* Karten der Schiffsseite (.sd__slot) */
+.sd__slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr));gap:.7rem}
+.sd__slot{position:relative;display:flex;flex-direction:column;gap:.3rem;border:1px solid var(--line);padding:.6rem .8rem;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gc,var(--accent)) 6%,var(--bg-2)) 0%,var(--bg-2) 62%)}
+.sd__slot::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--gc,var(--accent)) 38%,transparent) 22%,transparent 78%);pointer-events:none}
+.sd__slot::before{content:"";position:absolute;left:-1px;top:-1px;width:10px;height:10px;
+  border-top:2px solid color-mix(in srgb,var(--gc,var(--accent)) 72%,transparent);border-left:2px solid color-mix(in srgb,var(--gc,var(--accent)) 72%,transparent);pointer-events:none}
+.sd__slothead{display:flex;align-items:center;justify-content:space-between;gap:.6rem;min-height:24px}
+.sd__slot .t{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--muted);min-width:0}
+.sd__slot .n{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:0;line-height:1.2}
+.sd__slot .n a{text-decoration:none}
+.sd__slot .n a:hover,.sd__slot .n a:focus-visible{color:var(--gc,var(--accent));text-decoration:underline;text-underline-offset:3px}
+.ph-karte--erg{border-style:dashed;border-color:color-mix(in srgb,var(--gold) 45%,transparent)}
+.ph-zeilen{margin:.15rem 0 0;display:flex;flex-direction:column;gap:.2rem}
+.ph-zeilen div{display:flex;flex-wrap:wrap;gap:.1rem .5rem;align-items:baseline;justify-content:space-between}
+.ph-zeilen dt{font-size:var(--fs-6);color:var(--muted)}
+.ph-zeilen dd{margin:0;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+.ph-zeilen div.is-lang{flex-direction:column;align-items:flex-start;gap:0}
+.ph-zeilen div.is-lang dd{text-align:left}
+.ph-lack{margin:0 0 1rem;padding:.7rem .9rem;border:1px solid var(--line);background:var(--bg-2)}
+.ph-lack p{margin:0 0 .5rem;font-size:var(--fs-8)}
+.ph-lack ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.35rem .9rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-6);letter-spacing:var(--ls-9)}
+.ph-lack li span{color:var(--accent);font-variant-numeric:tabular-nums}
+.ph-flotte__z{list-style:none;margin:.1rem 0 0;padding:0;font-size:var(--fs-7);color:var(--muted);display:flex;flex-direction:column;gap:.15rem}
+.ph-beispiel{display:inline-block;margin-right:.4rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
+  color:var(--gold);border:1px dashed color-mix(in srgb,var(--gold) 60%,transparent);padding:.1rem .45rem}
+.ph-flotte.is-beispiel #phflotte{opacity:.85}
+
+@media(max-width:760px){
+  .holo__wrap{height:clamp(320px,54vh,460px)}
+  .holo__title{left:clamp(1rem,3vw,2.5rem);right:clamp(1rem,3vw,2.5rem);max-width:none;bottom:18px}
+  .holo__title h2{font-size:var(--fs-17)}
+  .holo__hud{left:16px;top:auto;bottom:auto;display:none}
+  .ph-schritt{top:auto;bottom:18px;transform:none;width:40px;height:44px}
+  .ph-schritt--zurueck{left:auto;right:calc(.5rem + 46px)}
+  .ph-schritt--vor{right:.5rem}
+  .holo__title{right:7rem}
+  .ph-holo .holo__rail{flex-wrap:nowrap;left:.5rem;right:.5rem;transform:none;max-width:none;top:.6rem;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+  .ph-holo .holo__rail a{padding:.45rem .5rem;gap:.35rem}
+  .ph-code{display:none}
+  .ph-kopf h1{font-size:var(--fs-16)}
+  .ph-satz{font-size:var(--fs-8)}
+  .ph-high{gap:.35rem;margin-top:.55rem}
+  .ph-high a{font-size:var(--fs-4);padding:.22rem .5rem}
+  .holo__bar dl{grid-template-columns:repeat(2,1fr)}
+  .holo__bar .kv{border-left:0;border-top:1px solid var(--line);padding-left:0}
+  .ph-tabs{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;justify-content:flex-start;scrollbar-width:none}
+  .ph-tabs a{scroll-snap-align:start}
+  .ph-wahl ul{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:.2rem}
+  .ph-wahl li{flex:none}
+}
+@media(max-width:560px){.holo__bar dd{font-size:var(--fs-10)}.holo__bar dt{font-size:var(--fs-4);letter-spacing:var(--ls-12)}}
+@media(prefers-reduced-motion:reduce){.ph *{transition:none !important}}
+</style>
+<script type="application/json" id="phdata" set:html={jsonForScript({ schiffe: daten, flotte: I.flotte, beispiel: BEISPIEL })} />
+<script type="importmap" is:inline>
+{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}
+</script>
+<script is:inline src={fleetSrc} defer></script>
+<script is:inline>
+(function () {
+  var D = JSON.parse(document.getElementById('phdata').textContent);
+  var S = D.schiffe;
+  var main = document.querySelector('.ph');
+  var wahl = document.getElementById('phwahl');
+  var still = document.getElementById('phstill');
+  var stillImg = document.getElementById('phstillimg');
+  var status = document.getElementById('phstatus');
+  var zahl = document.getElementById('phzahl');
+  var links = wahl.querySelectorAll('a[data-i]');
+  var rail = document.querySelectorAll('.ph-holo .holo__rail a');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ohneWebgl = /[?&]nowebgl\b/.test(location.search);
+  var buehne = null, gewollt = -1, aktuell = +main.getAttribute('data-start');
+  var probe = window.__ph = { gezeigt: null, wechsel: 0, standbild: false, ohneMarker: [] };
+
+  wahl.classList.add('is-js');
+  function zeigeGruppe(g) {
+    wahl.querySelectorAll('.ph-wahl__grp').forEach(function (el) { el.classList.toggle('is-an', el.getAttribute('data-gruppe') === g); });
+    rail.forEach(function (a) { if (a.getAttribute('data-gruppe') === g) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+  }
+  function zeigeSchiff(i) {
+    var s = S[i];
+    document.querySelectorAll('[data-titel]').forEach(function (el) { el.hidden = el.getAttribute('data-titel') !== s.id; });
+    document.querySelectorAll('[data-leiste]').forEach(function (el) { el.hidden = el.getAttribute('data-leiste') !== s.id; });
+    links.forEach(function (a) { a.setAttribute('aria-pressed', +a.getAttribute('data-i') === i ? 'true' : 'false'); });
+    zahl.textContent = (i + 1) + ' / ' + S.length;
+    zeigeGruppe(s.gruppe);
+  }
+  function standbild(s) {
+    probe.standbild = true;
+    still.hidden = !s.still;
+    if (s.still) { stillImg.src = s.still; stillImg.alt = 'Hologramm der ' + s.name; }
+    status.textContent = s.still ? '' : 'Kein Standbild';
+    probe.gezeigt = s.id;
+  }
+  function wahlen(i, push) {
+    i = (i + S.length) % S.length;
+    var s = S[i];
+    aktuell = gewollt = i;
+    zeigeSchiff(i);
+    if (push) history.replaceState(null, '', '#schiff=' + s.id);
+    if (ohneWebgl || !buehne) { standbild(s); return; }
+    status.textContent = 'Lädt …';
+    buehne.load(Object.assign({}, s.holo, { reduceMotion: reduce, highlight: s.callouts })).then(function (v) {
+      if (gewollt !== i) return;
+      status.textContent = '';
+      still.hidden = true;
+      var ohne = v.highlight(s.callouts);
+      probe.ohneMarker = ohne.map(function (c) { return c.text; });
+      probe.wechsel++;
+      probe.gezeigt = s.id;
+    }).catch(function (e) {
+      console.error(e);
+      ohneWebgl = true;
+      standbild(s);
+    });
+  }
+  links.forEach(function (a) {
+    a.addEventListener('click', function (ev) { ev.preventDefault(); wahlen(+a.getAttribute('data-i'), true); });
+  });
+  rail.forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      var g = a.getAttribute('data-gruppe');
+      for (var i = 0; i < S.length; i++) if (S[i].gruppe === g) { wahlen(i, true); return; }
+    });
+  });
+  var zurueck = document.getElementById('phzurueck'), vor = document.getElementById('phvor');
+  zurueck.hidden = vor.hidden = false;
+  zurueck.addEventListener('click', function () { wahlen(aktuell - 1, true); });
+  vor.addEventListener('click', function () { wahlen(aktuell + 1, true); });
+  document.getElementById('phwrap').addEventListener('keydown', function (ev) {
+    if (ev.key === 'ArrowLeft') wahlen(aktuell - 1, true);
+    if (ev.key === 'ArrowRight') wahlen(aktuell + 1, true);
+  });
+  document.querySelectorAll('.ph-high a[data-schiff]').forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      var id = a.getAttribute('data-schiff');
+      for (var i = 0; i < S.length; i++) if (S[i].id === id) { ev.preventDefault(); wahlen(i, true); document.getElementById('phwrap').scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); return; }
+    });
+  });
+
+  var m = /schiff=([a-z0-9-]+)/.exec(location.hash);
+  var startI = aktuell;
+  if (m) for (var k = 0; k < S.length; k++) if (S[k].id === m[1]) startI = k;
+  zeigeSchiff(startI);
+  if (ohneWebgl) { wahlen(startI, false); }
+  else {
+    import(main.getAttribute('data-viewer')).then(function (mod) {
+      buehne = mod.holoBuehne(document.getElementById('ph3d'));
+      wahlen(startI, false);
+    }).catch(function () { ohneWebgl = true; wahlen(startI, false); });
+  }
+
+  /* Reiter: ohne Skript stehen alle Abschnitte untereinander. */
+  var panels = document.getElementById('phpanels');
+  var tabs = document.querySelectorAll('.ph-tabs a');
+  var ids = Array.prototype.map.call(tabs, function (t) { return t.getAttribute('data-reiter'); });
+  function reiter(id, fokus) {
+    panels.querySelectorAll('.ph-panel').forEach(function (p) { p.classList.toggle('is-an', p.getAttribute('data-reiter') === id); });
+    tabs.forEach(function (t) {
+      var an = t.getAttribute('data-reiter') === id;
+      t.setAttribute('aria-selected', an ? 'true' : 'false');
+      if (an) {
+        t.setAttribute('aria-current', 'true'); t.removeAttribute('tabindex');
+        if (fokus) t.focus();
+        var leiste = t.parentNode;
+        if (t.offsetLeft < leiste.scrollLeft || t.offsetLeft + t.offsetWidth > leiste.scrollLeft + leiste.clientWidth) leiste.scrollLeft = t.offsetLeft - 16;
+      }
+      else { t.removeAttribute('aria-current'); t.setAttribute('tabindex', '-1'); }
+    });
+  }
+  panels.classList.add('is-js');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function (ev) { ev.preventDefault(); reiter(t.getAttribute('data-reiter')); history.replaceState(null, '', '#reiter-' + t.getAttribute('data-reiter')); });
+    t.addEventListener('keydown', function (ev) {
+      var j = ids.indexOf(t.getAttribute('data-reiter'));
+      if (ev.key === 'ArrowRight') reiter(ids[(j + 1) % ids.length], true);
+      if (ev.key === 'ArrowLeft') reiter(ids[(j - 1 + ids.length) % ids.length], true);
+    });
+  });
+  var x0 = null, y0 = 0;
+  panels.addEventListener('touchstart', function (ev) { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; }, { passive: true });
+  panels.addEventListener('touchend', function (ev) {
+    if (x0 == null) return;
+    var dx = ev.changedTouches[0].clientX - x0, dy = ev.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+    var aktiv = panels.querySelector('.ph-panel.is-an');
+    var j = ids.indexOf(aktiv.getAttribute('data-reiter'));
+    reiter(ids[(j + (dx < 0 ? 1 : -1) + ids.length) % ids.length]);
+  }, { passive: true });
+  var rm = /reiter-([a-z]+)/.exec(location.hash);
+  reiter(rm && ids.indexOf(rm[1]) >= 0 ? rm[1] : ids[0]);
+  document.querySelectorAll('.ph-kopf a[href^="#reiter-"]').forEach(function (a) {
+    a.addEventListener('click', function () { reiter(a.getAttribute('href').slice(8)); });
+  });
+
+  /* Deine Flotte: die eigene, sobald sie Schiffe hat; sonst bleibt das Beispiel. */
+  var flotte = document.getElementById('phflotte');
+  var satz = document.getElementById('phflottesatz');
+  var ohneZeile = document.getElementById('phflotteohne');
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function zeigeFlotte(ids) {
+    if (!ids || !ids.length) return;
+    var drin = ids.filter(function (id) { return D.flotte[id]; });
+    flotte.textContent = '';
+    drin.forEach(function (id) {
+      var f = D.flotte[id];
+      var k = el('div', 'sd__slot ph-karte');
+      k.setAttribute('data-g', 'core');
+      var h = el('div', 'sd__slothead'); h.appendChild(el('span', 't', f.art)); k.appendChild(h);
+      var n = el('p', 'n'); var a = el('a', null, f.name); a.href = '/de' + f.seite; n.appendChild(a); k.appendChild(n);
+      var ul = el('ul', 'ph-flotte__z'); f.zeilen.forEach(function (z) { ul.appendChild(el('li', null, z)); }); k.appendChild(ul);
+      flotte.appendChild(k);
+    });
+    satz.textContent = drin.length
+      ? 'Von deinen ' + ids.length + ' Schiffen ändert 4.10.3 ' + drin.length + '.'
+      : 'Keines deiner ' + ids.length + ' Schiffe ändert sich in 4.10.3.';
+    if (ohneZeile) ohneZeile.textContent = ids.length > drin.length ? (ids.length - drin.length) + ' ohne Änderung in 4.10.3.' : '';
+  }
+  var flotteDa = false;
+  function flotteLesen() {
+    if (!window.VBFleet || flotteDa) return;
+    flotteDa = true;
+    zeigeFlotte(window.VBFleet.ids());
+    if (window.VBFleet.subscribe) window.VBFleet.subscribe(function (snap) { zeigeFlotte(snap && snap.ids ? snap.ids : window.VBFleet.ids()); });
+  }
+  if (window.VBFleet) flotteLesen(); else window.addEventListener('vb-fleet-ready', flotteLesen, { once: true });
+  document.addEventListener('DOMContentLoaded', function () { if (window.VBFleet) flotteLesen(); });
+})();
+</script>

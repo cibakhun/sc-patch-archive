@@ -10,6 +10,8 @@
        [3] die Seiten in beiden Sprachen sind da
        [4] die Entwurfsseiten (VORSCHAU_KONZEPT_DIST_FILES) tragen noindex,
            und keine Sitemap nennt sie
+       [5] „Patch am Hologramm" traegt jede Hand-Ergaenzung
+           (src/data/patch-vergleich/ergaenzt/4.10.3.json) markiert und gestempelt
 
    Selbstauskunft: wie viele Seiten und Daten-Dateien gelesen wurden, mit
    Klinke. Kein git, kein Netz, kein Kindprozess — liest nur dist/.
@@ -68,6 +70,25 @@ if (!vorschau) {
   const nennen = karten.filter((f) => VORSCHAU_KONZEPT_DIST_FILES.some((k) => readFileSync(resolve(DIST, f), 'utf8').includes(`/${k}`)));
   for (const f of nennen) fehler.push(`[4] dist/${f} nennt eine Entwurfsseite`);
   console.log(`  [4] ${VORSCHAU_KONZEPT_DIST_FILES.length} Entwurfsseiten auf noindex geprueft (${ohneNoindex.length} ohne), ${karten.length} Sitemaps gelesen (${nennen.length} mit Entwurf)`);
+
+  // [5] „Patch am Hologramm": jede Hand-Ergaenzung steht auf der Seite, als
+  // ergaenzt markiert und mit Stempel; nichts anderes traegt diese Marke.
+  const seite = resolve(DIST, 'de/patches/4-10-3-hologramm.html');
+  const ergDatei = resolve(ROOT, 'src/data/patch-vergleich/ergaenzt/4.10.3.json');
+  if (existsSync(seite) && existsSync(ergDatei)) {
+    const h = readFileSync(seite, 'utf8');
+    const soll = JSON.parse(readFileSync(ergDatei, 'utf8')).eintraege.map((x) => x.id);
+    const marken = [...h.matchAll(/data-herkunft="ergaenzt"[^>]*?data-erg="([^"]+)"/g)].map((m) => m[1]);
+    const stempel = (h.match(/class="holo__caveat ph-stempel"/g) ?? []).length;
+    const fehltAuf = soll.filter((id) => !marken.includes(id));
+    const fremd = [...new Set(marken.filter((id) => !soll.includes(id)))];
+    for (const id of fehltAuf) fehler.push(`[5] Ergaenzung ${id} steht nicht auf de/patches/4-10-3-hologramm.html`);
+    for (const id of fremd) fehler.push(`[5] de/patches/4-10-3-hologramm.html markiert ${id} als ergaenzt, die Datei kennt es nicht`);
+    if (stempel < marken.length) fehler.push(`[5] ${marken.length} ergaenzte Werte, aber nur ${stempel} Stempel`);
+    console.log(`  [5] ${soll.length} Ergaenzungen, ${marken.length} Marken und ${stempel} Stempel auf der Hologramm-Seite`);
+  } else {
+    fehler.push('[5] de/patches/4-10-3-hologramm.html oder die Ergaenzungsdatei fehlt im Vorschau-Bau');
+  }
 }
 
 if (html.length < MIN_SEITEN) fehler.push(`gelesen: ${html.length} Seiten, Klinke ${MIN_SEITEN} — unvollstaendiger Bau?`);
