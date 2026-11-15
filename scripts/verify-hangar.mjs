@@ -660,6 +660,27 @@
         abschaltbar). Das Verhalten selbst prüft
         tests/e2e/hangar-halter.test.js, dort ohne die Zeile
         5 von 6 grün                                                -> [24]
+    co  dort in umbauen() die Frage nach dem verlorenen Kontext am
+        Anfang des Durchgangs streichen (if (verloren()) …;
+        14.11.2026, dritte Runde desselben Reviews: Abbau der
+        Bühne mitten im Laden und Umbau nach einem verlorenen
+        Zeichenkontext)                                             -> [24]
+    cp  dort dieselbe Frage vor dem Abbau streichen (nach dem
+        Warten auf das Standbild)                                   -> [24]
+    cq  in dist/assets/hangar-viewer.js die Pause der Bühne ohne
+        die Frage nach tot (rast: nur await nextTask())             -> [24], zweimal
+    cr  dort die Maße des Schiffs wieder mit der bloßen Pause
+        rechnen (robustBox mit slicer(12, nextTask))                -> [24]
+    cs  dort im Takt von fertigUebersetzt if (tot) return;
+        streichen                                                   -> [24]
+    ct  dort in compileFor wieder mit renderer.compileAsync
+        warten                                                      -> [24], zweimal
+    cu  dort in dispose() renderer.dispose() hinter
+        forceContextLoss streichen                                  -> [24]
+        Was diese sieben Stellen im Browser bewirken, zeigte eine
+        Probe außerhalb des Repos (Hallenwechsel mitten im Laden,
+        Stand davor gegen diesen); die Zahlen stehen in der PR der
+        Large-Halle.
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3130,7 +3151,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 20, worte: 16 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 25, worte: 16 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3238,9 +3259,15 @@ const GROESSE_AUSNAHMEN = {
     [ctrl, /if \(hallNow && hallWant && hallWant !== hallNow && buehneNeu\) \{ umbauen\(\); return; \}/, 'ein Schiff einer anderen Stufe baut die Bühne nicht mehr um (viewerShow): Es stünde in der Halle der vorigen Stufe'],
     [ctrl, /viewer = null;\s*halter\.ab\(\);[\s\S]{0,500}?const roh = await buehneNeu\(halle\);\s*viewer = halter\.auf\(roh\);/, 'der Umbau baut die alte Bühne nicht mehr ab, bevor die neue lädt (umbauen): zwei Hallen zugleich im Grafikspeicher'],
     [ctrl, /ab\(\) \{ const b = cur; cur = null; b\?\.dispose\(\); \}/, 'der Stellvertreter der Bühne baut die alte nicht mehr ab (halter.ab): Sie zeichnete und lüde hinter der neuen weiter'],
+    [ctrl, /const verloren = \(\) => main\.dataset\.lost === 'on';[\s\S]{0,300}?for \(;;\) \{\s*if \(verloren\(\)\) \{ umbauAus\(\); return; \}[\s\S]{0,1800}?if \(verloren\(\)\) \{ umbauAus\(\); return; \}\s*\}\s*viewer = null;\s*halter\.ab\(\);/, 'der Umbau fragt nicht mehr vor jedem Durchgang und vor dem Abbau, ob die Bühne ihren Zeichenkontext verloren hat (verloren in umbauen): Unter der Meldung entstünde eine neue Bühne, und die Seite lüde nie neu'],
     [ctrl, /if \(k === 'setSound'\) antwort\.set\('sound', \{ \.\.\.antwort\.get\('sound'\), on: !!a\[0\] \}\);\s*if \(!cur\) return antwort\.get\(k\);/, 'der Stellvertreter der Bühne führt die Antwort von sound() nicht mehr mit setSound mit (buehnenHalter): Während eines Hallenwechsels ließe sich der Ton an-, aber nicht wieder ausschalten'],
     [viewer, /dispose\(\) \{\s*if \(tot\) return;\s*tot = true;[\s\S]{0,400}?lostFn = frameFn = progressFn = qualityFn = walkFn = placeFn = hangarFn = stAct = holo\.onShow = null;/, 'eine abgebaute Bühne meldet der Seite weiter (dispose): Der Kontext, den sie selbst aufgibt, zählte beim Hallenwechsel als Abbruch'],
-    [viewer, /renderer\.forceContextLoss\(\);\s*if \(!uebersetzt\) renderer\.dispose\(\);/, 'dispose gibt den Zeichenkontext nicht mehr auf: Der Grafikspeicher der alten Halle bliebe belegt, während die neue lädt'],
+    [viewer, /renderer\.forceContextLoss\(\);\s*renderer\.dispose\(\);/, 'dispose gibt den Zeichenkontext nicht mehr auf oder lässt dem Renderer seine Tabellen: Der Grafikspeicher der alten Halle bliebe belegt, während die neue lädt'],
+    // Abbau mitten im Laden (14.11.2026, dritte Runde des Reviews an PR #371): Was die alte Bühne noch tut, endet an ihrer nächsten Pause
+    [viewer, /const rast = async \(\) => \{ await nextTask\(\); if \(tot\) await nieMehr\(\); \};/, 'die Pause der Bühne fragt nicht mehr, ob sie abgebaut ist (rast): Was beim Hallenwechsel noch rechnet oder hochlädt, arbeitete am aufgegebenen Renderer weiter'],
+    [viewer.slice(Math.max(0, viewer.indexOf('export async function initHangar('))), /^(?![\s\S]*(?:slicer\(\d+, nextTask\)|await nextTask\(\)(?!; if \(tot\))|yieldToBrowser))[\s\S]*?slicer\(12, rast\)/, 'in der Bühne pausiert wieder etwas mit der bloßen Pause (nextTask, yieldToBrowser statt rast): Diese Schleife liefe nach dem Abbau der Bühne weiter'],
+    [viewer, /const takt = \(\) => \{\s*if \(tot\) return;[\s\S]{0,300}?if \(mats\.size\) setTimeout\(takt, 10\); else fertig\(\);[\s\S]{0,1500}?try \{ mats = renderer\.compile\(root, camera, world\); \} finally \{ renderer\.setRenderTarget\(prev\); \}\s*await fertigUebersetzt\(mats\);/, 'das Warten auf die Übersetzung endet nicht mehr mit dem Abbau (fertigUebersetzt, takt): Beim Hallenwechsel fragte die alte Bühne ihre Programme alle 10 ms für immer weiter ab'],
+    [viewer, /^(?![\s\S]*renderer\.compileAsync\()[\s\S]*?fertigUebersetzt/, 'der Viewer wartet wieder mit compileAsync von three.js auf seine Programme: Dessen Abfrage hat kein Ende, wenn die Bühne währenddessen abgebaut wird'],
     [viewer, /const fetchGltf = \(url, key = 'ship', guess = 8e6, my = null\) => \(tot \? nieMehr\(\) :/, 'eine abgebaute Bühne lädt weiter Modelle (fetchGltf): Sie baute in eine Szene, die es nicht mehr gibt'],
     // Material der Industrie-Hallen (HALL_FEST): Namen <Datei>_mtl_<Teil>, Schnitt nach dem Alpha der Karte
     [viewer, /if \(!sticker && \(fest \? \/_mtl_\.\*glow\/i : \/light\|glow\/i\)\.test\(m\.name\) && !\/glass\/i\.test\(m\.name\) && m\.map\) \{/, 'in den Industrie-Hallen leuchtet wieder jedes Material, dessen Datei „light“ heißt (Leuchtregel der Halle ohne fest): Gehäuse, Lack und Gummi der Lampen stünden als helle Flächen im Raum'],

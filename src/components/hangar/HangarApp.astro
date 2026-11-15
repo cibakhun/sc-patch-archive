@@ -34,7 +34,7 @@ const meshes = (holoMeshes as { meshes: Record<string, { url: string; v?: string
 // Halle. Fehlt ein Schiff dort, bekommt es die Geometrie-Fassung mit Shader-Lack.
 type Asset = { url: string; v?: string; room?: unknown; floor?: number; bytes?: number; gear?: boolean; pool?: { images: number; bytes: number; fresh: number } };
 type Gear = { pose: 'aus' | 'ein' | 'keins' | 'offen'; contacts?: number[][]; ground?: number; below?: { depth: number }[] };
-const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }>; geo?: Record<string, Asset>; gear?: Record<string, Gear>; interior?: Record<string, Asset> };
+const real = hangarAssets as unknown as { ships: Record<string, Asset>; hall: Record<string, Asset & { aufzug?: { json?: string } }>; npc?: Record<string, Asset>; lift?: Record<string, Asset & { json?: string; gate?: Asset & { json?: string }; rand?: Asset & { json?: string } }>; props?: Record<string, Asset & { json?: string; boden?: Asset }>; werkhalle?: Record<string, Asset & { json?: string; buehne?: string }>; geo?: Record<string, Asset>; gear?: Record<string, Gear>; interior?: Record<string, Asset> };
 const withV = (a: Asset) => (a.v ? `${a.url}?v=${a.v}` : a.url);
 // Werkslack-Fassungen, die zurückgehalten werden, jeweils mit Anlass. Das
 // Schiff zeigt solange die Geometrie-Fassung.
@@ -63,10 +63,13 @@ const lightsOf = (key: string | undefined) => {
   return f && existsSync(f) ? `/hangar/hall/${key}.lights.json?v=${contentV([f])}` : null;
 };
 const lights = lightsOf(hallKey);
-// Bahnen des eigenen Aufzugs einer Halle (Bodentor und Plattform sind Teile ihres Modells)
-const aufzugOf = (key: string) => {
+// Bahnen des eigenen Aufzugs einer Halle (Bodentor und Plattform sind Teile
+// ihres Modells). Genannt werden sie nur, wenn der Bau dieser Halle sie
+// gemeldet hat (Manifest, aufzug.json): Eine Datei, die von einem früheren
+// Bau liegen blieb, nennte Knoten, die das Modell nicht mehr trägt.
+const aufzugOf = (key: string, gebaut: boolean) => {
   const f = `${hallDir}/${key}.aufzug.json`;
-  return existsSync(f) ? `/hangar/hall/${key}.aufzug.json?v=${contentV([f])}` : null;
+  return gebaut && existsSync(f) ? `/hangar/hall/${key}.aufzug.json?v=${contentV([f])}` : null;
 };
 // Spiegelungssonden aus dem Spiel (PC-Lauf „Hallensonden“): Liste und die
 // HDR-Karten daneben, alle im Hash.
@@ -170,7 +173,7 @@ const halls: Partial<Record<HangarSize, HallConfig>> = {};
 for (const size of HANGAR_SIZES) {
   const key = HALL_OF_SIZE[size], a = real.hall?.[key];
   if (!a?.room || !existsSync(`public${a.url}`)) continue;
-  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null, aufzug: aufzugOf(key) };
+  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null, aufzug: aufzugOf(key, a.aufzug?.json === `/hangar/hall/${key}.aufzug.json`) };
 }
 // Crew: mit Skelett und Spielanimationen (scripts/build-hangar-crew.mjs,
 // Modul assets/hangar-crew.js), sonst die starre Figur aus hangar-assets

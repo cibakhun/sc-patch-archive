@@ -44,7 +44,8 @@
        vollständig, und gezählt wird gegen die Klinke, was die Bühne
        davon nach ihrer eigenen Regel setzt (hallLampeGilt im Viewer)
    [4] Kein Ballast: keine Einrichtungs-, Telefon- oder zweite Stufe einer
-       solchen Halle in dist/
+       solchen Halle in dist/, und keine Datei mit Bahnen eines Aufzugs,
+       die keine Hangarseite nennt
 
    Schiene A: liest dist/ und für [3] das Manifest
    src/data/hangar-assets.json. Kein git, kein Netz, kein Kindprozess. Im
@@ -137,6 +138,23 @@
        hallLampeGilt aus (loadHallLights) …“;
        der ausgelieferte Viewer gibt hallLampeGilt nicht mehr heraus:
        „[3] … der Viewer nennt nicht mehr, welche Lampen er setzt …“.
+   (n) 14.11.2026, dritte Runde desselben Reviews: Die Seite nannte die
+       Bahnen des Aufzugs, sobald die Datei <halle>.aufzug.json auf der
+       Platte lag, auch wenn der letzte Bau der Halle keinen Aufzug mehr
+       gemeldet hatte; die Datei eines früheren Baus blieb liegen. Jetzt
+       fragt die Seite das Manifest (aufzugOf in HangarApp.astro), der
+       Bau räumt die Datei weg, wenn er keinen Aufzug baut, und [4] hält
+       den Ordner frei davon. Zweimal gebrochen:
+       eine zweite Datei util-medtop.aufzug.json in dist/hangar/hall/:
+       „[4] dist/hangar/hall/ traegt util-medtop.aufzug.json, und keine
+       Hangarseite nennt sie: der Rest eines frueheren Baus …“;
+       das Manifest ohne den Eintrag aufzug der Large-Halle, die Datei
+       liegt weiter in public/, neu gebaut: Die Seite nennt sie nicht
+       mehr, 3 FEHLER: „[1] util-lrgtop: die Bahnen ihres Aufzugs
+       (aufzug: nicht genannt) fehlt in dist/ …“, „[1] nur 0 Halle(n)
+       fester Groesse ausgeliefert, Klinke 1“ und „[4] dist/hangar/hall/
+       traegt util-lrgtop.aufzug.json, und keine Hangarseite nennt sie
+       …“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -148,7 +166,7 @@
 
      node scripts/verify-hangar-hallen.mjs
    ============================================================ */
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { NodeIO } from '@gltf-transform/core';
@@ -386,7 +404,14 @@ for (const id of Object.keys(FEST)) {
   if (zuviel.length) fail(`[4] dist/hangar/hall/ traegt ${zuviel.join(', ')}: Die Seite laedt fuer eine Halle fester Groesse nur ihr Modell (die Moebel stehen darin), diese Dateien gingen ungenutzt mit hinaus (scripts/build-hall-furniture.mjs schneidet nur neben einer dichten Kopie)`);
   else frei++;
 }
-say(`    ${frei} von ${Object.keys(FEST).length} Halle(n) ohne ungenutzte Dateien`);
+// Bahnen eines Aufzugs, die keine Seite nennt: der Rest eines frueheren Baus. Die Seite nennt die Datei nur,
+// wenn der Bau der Halle sie gemeldet hat (aufzugOf in HangarApp.astro fragt das Manifest).
+const hallOrdner = join(DIST, 'hangar/hall');
+const genannt = new Set(proSeite.flatMap((h) => Object.values(h ?? {}).map((x) => (x?.aufzug ? inDist(x.aufzug) : ''))).filter(Boolean));
+const bahnDateien = existsSync(hallOrdner) ? readdirSync(hallOrdner).filter((n) => n.endsWith('.aufzug.json')) : [];
+const lose = bahnDateien.filter((n) => !genannt.has(join(hallOrdner, n)));
+if (lose.length) fail(`[4] dist/hangar/hall/ traegt ${lose.join(', ')}, und keine Hangarseite nennt sie: der Rest eines frueheren Baus, das Manifest meldet fuer diese Halle keinen Aufzug (mehr). Die Datei gehoert geloescht, oder die Halle neu gebaut (scripts/build-hangar-assets.mjs --kind hall)`);
+say(`    ${frei} von ${Object.keys(FEST).length} Halle(n) ohne ungenutzte Dateien; ${bahnDateien.length} Datei(en) mit Bahnen eines Aufzugs, ${bahnDateien.length - lose.length} davon von der Seite genannt`);
 
 if (fehler.length) {
   console.error(`\nverify-hangar-hallen: ${fehler.length} FEHLER`);

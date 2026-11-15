@@ -2473,6 +2473,9 @@ async function buildOne(kind, name, inPath) {
   if (werkJson) hash.update(readFileSync(werkJson.file));
   const aufzugJson = aufzug ? writeAufzugJson(written, name, aufzug) : null;
   if (aufzugJson) hash.update(readFileSync(aufzugJson.file));
+  // Baut die Halle diesmal keinen Aufzug (keine Zuordnung des Tors), geht die Datei eines früheren Baus mit:
+  // Ihre Bahnen nennten Knoten, die dieses Modell nicht trägt. Die Seite nennt sie ohnehin nur nach dem Manifest.
+  else if (kind === 'hall') rmSync(fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT)), { force: true });
   const liftProj = liftParts ? await liftProjectors(name) : null;
   const liftJson = liftParts ? writeLiftJson(name, liftParts, { extras: liftExtras, uv: liftUv, proj: liftProj }) : null;
   if (liftJson) hash.update(readFileSync(liftJson.file));

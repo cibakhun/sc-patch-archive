@@ -108,6 +108,28 @@
    Modelle ihrer Hallen fester Groesse geholt“); die Zeile zum Aufzug
    kommt nicht („weder die Zeile … noch …“, mit 1 min Frist statt 15).
    Die Meldungen stehen in der PR der Large-Halle.
+   Halle des Schiffs (15.11.2026, Befund von CodeRabbit an PR #371): Ob
+   das Schiff in der Halle steht, die die Seite fuer es nennt, verglich
+   der Lauf nur nach --wechsel. Mit --ship anvl-carrack haette eine
+   Seite, die die Carrack in der gestreckten Halle laesst, gruen gegen
+   deren Klinken geendet. Jetzt vergleicht jeder Lauf nach dem Laden:
+   die Halle, die hg-stage fuer das Schiff auf dem Feld nennt (wie hallOf
+   der Seite), gegen die, die steht (eine Halle fester Groesse am
+   geholten Modell, die gestreckte an der Zeile zur Hallendeko, die nur
+   sie meldet). FEHLER, wenn es zwei sind, oder wenn eine der beiden
+   nicht zu lesen ist. Mit --ship muss ausserdem dieses Schiff auf dem
+   Feld stehen: Eine Kennung, die die Seite nicht kennt, zeigt das erste
+   Schiff der Liste, und der Lauf pruefte gruen das falsche.
+   Vorgefuehrt rot (15.11.2026, Kopie des Skripts mit einem Eingriff in
+   das Skript der Seite auf dem Weg zum Browser: Sie nimmt fuer jedes
+   Schiff die Halle der Seite und baut nie um; --ship anvl-carrack):
+   „die Seite nennt fuer anvl-carrack die Halle util-lrgtop, es steht
+   aber revelyork-single: das Schiff steht in der falschen Halle, und
+   die Klinken dieses Laufs gelten der falschen“. Das Skript des Stands
+   davor endete mit demselben Eingriff gruen. Und ohne Eingriff mit
+   --ship gibt-es-nicht: „--ship gibt-es-nicht: auf dem Feld steht
+   aegs-gladius: die Seite kennt diese Kennung nicht oder zeigt ein
+   anderes Schiff, geprueft waere das falsche“.
    Gesehen und offen: In einem von vier Laeufen linkten nach der
    gemeldeten Ruhe noch vier Programme ohne Namen (hoechstens eine
    Textur); ein Lauf ueber 15 min zaehlte 58 statt 54 Programme, keins
@@ -186,6 +208,22 @@
    steht fleckig schwarz da. FEHLER, wenn die Zeile "[hangar] Lack:" eine
    deckende Farbkarte ohne Farbmittel meldet oder weniger Materialien mit
    Mittel als die Klinke (ohne --ship und --layout, also mit der Gladius).
+   Jedes Schiff des Laufs zaehlt (15.11.2026, Befund von CodeRabbit an
+   PR #371): Bis dahin behielt der Lauf nur die erste Zeile, nach
+   --wechsel blieb der Lack des zweiten Schiffs ungeprueft, auch der der
+   neuen Buehne nach einem Hallenwechsel. Jetzt merkt er jede Zeile: die
+   Klinke gilt weiter dem ersten Schiff, ohne Farbmittel darf keine
+   Karte eines Schiffs bleiben, und nach einem Hallenwechsel muss die
+   neue Buehne ihre eigene Zeile bringen.
+   Vorgefuehrt rot (15.11.2026, Kopie des Skripts mit einem Eingriff in
+   den Viewer auf dem Weg zum Browser, --wechsel anvl-carrack von der
+   Gladius aus): ab dem zweiten Schiff meldet der Viewer drei Karten
+   ohne Mittel („Schiff 2 des Laufs: 3 deckende Farbkarten ohne
+   Farbmittel (Lack: 59 von 173 Materialien …)“; das Skript des Stands
+   davor endete mit demselben Eingriff gruen); der Viewer meldet seinen
+   Lack nur fuer das erste Schiff („seit dem Hallenwechsel meldet der
+   Viewer keine Zeile "[hangar] Lack:": ob die Farbkarten des Schiffs
+   in der neuen Halle ihr Mittel tragen, ist ungeprueft“).
    Dazu die komprimierten Texturen (13.11.2026): Am PC laedt der Viewer
    jedes Bild aus seinem Zwilling unter /hangar/ktx/ (KTX2, bei der
    Grafikkarte BC7: 1 Byte je Bildpunkt statt 4) und nur ohne ihn aus dem
@@ -327,6 +365,8 @@ const kam = {};
 // Modelle unter /hangar/hall/, die die Seite geholt hat (welche Halle steht)
 const hallen = new Set();
 const verlangt = [], geoVerlangt = [], ktxFehlt = [];
+// Jede Zeile "[hangar] Lack:" des Laufs (eine je Schiff, das eine Buehne laedt) mit der Zeile, bei der sie kam
+const lacke = [];
 const shaderFehler = [];
 let zeilen = 0;
 // Dateien des Hangars (Modelle, Bilder, Zwillinge), die angefordert und noch nicht da sind
@@ -345,7 +385,7 @@ page.on('console', (m) => {
   if (/THREE\.WebGLProgram: Shader Error/.test(t)) shaderFehler.push(t.split('\n')[0].slice(0, 200));
   if (t.startsWith('[hangar] Bilder nach dem Hochladen freigegeben:')) { frei = t; kam.frei = zeilen; }
   if (t.startsWith('[hangar] Vollbildpässe:')) { paesse = t; kam.paesse = zeilen; }
-  if (t.startsWith('[hangar] Lack:') && !lack) lack = t;
+  if (t.startsWith('[hangar] Lack:')) { lacke.push({ t, bei: zeilen }); if (!lack) lack = t; }
   if (t.startsWith('[hangar] Wartungsplatz bei')) platz = t;
   if (t.startsWith('[hangar] Bild nach der Freigabe noch einmal verlangt')) verlangt.push(t.slice(9, 200));
   if (t.startsWith('[hangar] Geometrie nach dem Hochladen freigegeben:')) { geo = t; kam.geo = zeilen; }
@@ -429,14 +469,27 @@ try {
   }
   steht = Boolean(deko || (aufzug && K !== KLINKE && K !== OHNE_KLINKEN));
   if (steht) await ruhe('Laden', true);
+  // Steht ein Schiff, traegt die Leiste seiner Marken data-live und seine Kennung
+  // (syncMarks in hangar-overview.js, nach viewer.show()). Die Zeile "[hangar] Lack:"
+  // taugt dafuer nicht: sie kommt, sobald das Modell geladen ist, in Software-WebGL
+  // gut eine Minute, bevor die Halle gewachsen ist und das Schiff auf dem Feld steht.
+  const aufDemFeld = () => frage('steht das Schiff', () => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch((e) => { if (e instanceof Haengt) throw e; return ''; });
+  // Die Halle, die die Seite fuer ein Schiff nennt (hallOf in hangar-overview.js: die seiner Stufe, sonst die der Seite)
+  const halleVon = (schiff) => frage('Halle des Schiffs', (id) => { try { const j = JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}'), m = j.models?.[id]; return (m && m[3] === 'halle' && m[4] && j.halls?.[m[4]]?.id) || j.opts?.hall?.id || ''; } catch { return ''; } }, schiff);
+  // Steht die Halle, die die Seite fuer das Schiff auf dem Feld nennt (HALLEN FESTER GROESSE, Halle
+  // des Schiffs)? Welche steht, sagt die Buehne selbst: eine Halle fester Groesse am geholten Modell
+  // (fest), die gestreckte an der Zeile zur Hallendeko, die nur sie meldet; sie ist die der Seite.
+  if (steht) {
+    const schiff = await aufDemFeld();
+    const soll = schiff ? await halleVon(schiff) : '';
+    const ist = fest || (deko ? await frage('Halle der Seite', () => { try { return JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}').opts?.hall?.id || ''; } catch { return ''; } }) : '');
+    console.log(`  Halle des Schiffs: ${schiff || 'kein Schiff auf dem Feld'}${schiff ? `, die Seite nennt ${soll || 'keine'}, es steht ${ist || 'unbekannt'}` : ''}`);
+    // mit --ship muss auch dieses Schiff stehen: Eine Kennung, die die Seite nicht kennt, zeigt das erste der Liste
+    if (SHIP && schiff && schiff !== SHIP) fehler.push(`--ship ${SHIP}: auf dem Feld steht ${schiff}: die Seite kennt diese Kennung nicht oder zeigt ein anderes Schiff, geprueft waere das falsche`);
+    if (schiff && !(soll && ist)) fehler.push(`welche Halle die Seite fuer ${schiff} nennt (${soll || 'keine'}) oder welche steht (${ist || 'unbekannt'}), ist aus hg-stage nicht zu lesen: ob das Schiff in seiner Halle steht, ist ungeprueft`);
+    else if (schiff && soll !== ist) fehler.push(`die Seite nennt fuer ${schiff} die Halle ${soll}, es steht aber ${ist}: das Schiff steht in der falschen Halle, und die Klinken dieses Laufs gelten der falschen`);
+  }
   if (steht && WECHSEL) {
-    // Steht ein Schiff, traegt die Leiste seiner Marken data-live und seine Kennung
-    // (syncMarks in hangar-overview.js, nach viewer.show()). Die Zeile "[hangar] Lack:"
-    // taugt dafuer nicht: sie kommt, sobald das Modell geladen ist, in Software-WebGL
-    // gut eine Minute, bevor die Halle gewachsen ist und das Schiff auf dem Feld steht.
-    const aufDemFeld = () => frage('--wechsel, steht das Schiff', () => { const r = document.querySelector('[data-bay="marks"]'); return r?.hasAttribute('data-live') ? r.dataset.id : ''; }).catch((e) => { if (e instanceof Haengt) throw e; return ''; });
-    // Die Halle, die die Seite fuer ein Schiff nennt (hallOf in hangar-overview.js: die seiner Stufe, sonst die der Seite)
-    const halleVon = (schiff) => frage('--wechsel, Halle des Schiffs', (id) => { try { const j = JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}'), m = j.models?.[id]; return (m && m[3] === 'halle' && m[4] && j.halls?.[m[4]]?.id) || j.opts?.hall?.id || ''; } catch { return ''; } }, schiff);
     const t1 = Date.now(), vorher = await frage('--wechsel', () => window.__texProgramme.length);
     const stand = { K, frei, geo, ktx, n: vorher, dekoN, aufzugN, zeilen };
     let erst = '', dann = '', kam1 = 0, h0 = '', h1 = '';
@@ -556,6 +609,16 @@ console.log(`  Farbmittel: ${lack ? `${lackMit} Materialien des Schiffs mit geme
 if (steht && !lack) fehler.push('der Viewer meldet keine Zeile "[hangar] Lack:" mehr: ob die Farbkarten des Schiffs ihr Mittel tragen, ist ungeprueft');
 else if (steht && !(lackOhne === 0)) fehler.push(`${Number.isFinite(lackOhne) ? lackOhne : 'unbekannt viele'} deckende Farbkarten des Schiffs ohne Farbmittel: das Schiff laedt ueber einen Loader, der nicht misst (images(false), HALL_FILES), und der dunkelste Lack wird nicht mehr angehoben`);
 else if (steht && !SHIP && !LAYOUT && !(lackMit >= KLINKE.lack)) fehler.push(`nur ${lackMit} Materialien des Schiffs mit gemessener Farbkarte, Klinke ${KLINKE.lack}`);
+// Jedes weitere Schiff des Laufs (--wechsel) meldet seinen Lack selbst: die Klinke oben gilt dem ersten,
+// ohne Farbmittel darf keines bleiben, und nach einem Hallenwechsel muss die neue Buehne ihre Zeile bringen
+// (die der alten sagt nichts darueber, ob die neue ihr Schiff ueber einen Loader holt, der misst).
+const lackNeu = vor ? lacke.filter((l) => l.bei > vor.zeilen) : [];
+if (lacke.length > 1 || vor) console.log(`  Farbmittel, alle Schiffe des Laufs: ${lacke.length} Zeilen${vor ? `, davon ${lackNeu.length} seit dem Hallenwechsel` : ''}; ohne Farbmittel je Zeile: ${lacke.map((l) => /, (\d+) ohne Farbmittel\)/.exec(l.t)?.[1] ?? '?').join(', ') || '—'}`);
+lacke.slice(1).forEach((l, i) => {
+  const ohne = Number(/, (\d+) ohne Farbmittel\)/.exec(l.t)?.[1] ?? NaN);
+  if (steht && !(ohne === 0)) fehler.push(`Schiff ${i + 2} des Laufs: ${Number.isFinite(ohne) ? ohne : 'unbekannt viele'} deckende Farbkarten ohne Farbmittel (${l.t.slice(9, 200)})`);
+});
+if (steht && vor && !lackNeu.length) fehler.push('seit dem Hallenwechsel meldet der Viewer keine Zeile "[hangar] Lack:": ob die Farbkarten des Schiffs in der neuen Halle ihr Mittel tragen, ist ungeprueft');
 const ktxN = Number(/komprimiert: (\d+) /.exec(ktx)?.[1] ?? NaN), ktxOhne = Number(/aus dem WebP: (\d+)$/.exec(ktx)?.[1] ?? NaN);
 // Die Klinke ktx gilt mit dem ersten Schiff der Liste: nicht mit --ship und --layout, und nicht in der Halle nach einem Hallenwechsel
 const mitKtx = !SHIP && !LAYOUT && !vor;

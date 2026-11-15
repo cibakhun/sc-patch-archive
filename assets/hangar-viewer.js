@@ -7570,9 +7570,16 @@ export async function initHangar(container, opts = {}) {
   // Abgebaut (dispose): Die Seite baut die Bühne für eine andere Halle neu auf
   // (assets/hangar-overview.js, Hallenwechsel), diese hier ist dann am Ende.
   // Was sie noch lud, bleibt an den Engstellen stehen (fetchGltf, prepare,
-  // compileFor lösen nie mehr auf), statt in eine abgebaute Szene zu bauen.
-  let tot = false, uebersetzt = 0;
+  // compileFor lösen nie mehr auf, auch nicht nach einer Pause mittendrin),
+  // statt in eine abgebaute Szene zu bauen.
+  let tot = false;
   const nieMehr = () => new Promise(() => {});
+  // Jede Pause, die diese Bühne beim Laden und Rechnen macht (statt
+  // nextTask): Ist die Bühne danach abgebaut, geht es nicht weiter. So endet
+  // auch, was zwischen den Engstellen in Häppchen rechnet oder hochlädt
+  // (Halle aufbereiten, Schiffsmaße, Texturen, Shader einzeln übersetzen),
+  // statt am aufgegebenen Renderer weiterzuarbeiten.
+  const rast = async () => { await nextTask(); if (tot) await nieMehr(); };
   // Echte Halle aus dem Spiel: Dann wird die gebaute Halle gar nicht erst
   // gemalt (sie wiche ohnehin), und das Bild erscheint erst, wenn Halle und
   // Schiff übersetzt und hochgeladen sind — ohne Zwischenstand, der springt.
@@ -7669,7 +7676,7 @@ export async function initHangar(container, opts = {}) {
   // Aufbau gibt dann zwischen seinen großen Schritten dem Browser das Wort
   // (am Stück 0,5 s bei vierfach gedrosselter CPU, 15.10.2026). Nur vor den
   // Steuerelementen: danach könnten Ereignisse auf Späteres zugreifen.
-  const breathe = () => (REAL ? nextTask() : undefined);
+  const breathe = () => (REAL ? rast() : undefined);
   await breathe();
 
   const scene = new THREE.Scene();
@@ -8569,7 +8576,6 @@ export async function initHangar(container, opts = {}) {
   // Zug. Übersetzt wird mit dem Zwischenbild der Nachbearbeitung als Ziel,
   // sobald es sie gibt: Ziel mit/ohne Tonwertabbildung sind zwei Programme.
   const TEX_SLOTS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap', 'alphaMap'];
-  const yieldToBrowser = () => new Promise((r) => setTimeout(r, 0));
   let composerReady = Promise.resolve();
   // Spiellampen stehen (true) oder kommen nicht (false); vorher wird nichts übersetzt
   let lampsReady = Promise.resolve(false);
@@ -8582,6 +8588,20 @@ export async function initHangar(container, opts = {}) {
   // jedes in einer eigenen Aufgabe, statt alle am Stück im ersten Bild.
   const PARALLEL = renderer.extensions.has('KHR_parallel_shader_compile');
   const linked = new WeakSet();
+  // Warten, bis die Programme dieser Materialien übersetzt sind: wie
+  // compileAsync von three.js (0.185, alle 10 ms isReady fragen), nur mit
+  // Ende. Nach dem Abbau (forceContextLoss) meldet dort kein Programm mehr
+  // fertig, three fragte für immer weiter und griffe dabei in abgebaute
+  // Materialien. Dieser Takt hört mit dem Abbau auf; sein Versprechen löst
+  // dann nie auf, wie alles an den Engstellen.
+  const fertigUebersetzt = (mats) => new Promise((fertig) => {
+    const takt = () => {
+      if (tot) return;
+      for (const m of mats) { const pr = renderer.properties.get(m).currentProgram; if (!pr || pr.isReady()) mats.delete(m); }
+      if (mats.size) setTimeout(takt, 10); else fertig();
+    };
+    takt();
+  });
   // target: Zielbild beim späteren Zeichnen (null = Leinwand); world: die
   // Szene, deren Lichter mitzählen (Vollbildpässe zeichnen ohne Lichter).
   async function compileFor(root, target, world = scene) {
@@ -8589,12 +8609,9 @@ export async function initHangar(container, opts = {}) {
     const prev = renderer.getRenderTarget();
     if (PARALLEL) {
       renderer.setRenderTarget(target);
-      let p;
-      try { p = renderer.compileAsync(root, camera, world); } finally { renderer.setRenderTarget(prev); }
-      // übersetzt gerade: dispose lässt dem Renderer dann seine Tabellen (übersetzt unten)
-      uebersetzt++;
-      try { await p; } finally { uebersetzt--; }
-      if (tot) await nieMehr();
+      let mats;
+      try { mats = renderer.compile(root, camera, world); } finally { renderer.setRenderTarget(prev); }
+      await fertigUebersetzt(mats);
       return;
     }
     const items = [], seen = new Set();
@@ -8612,7 +8629,7 @@ export async function initHangar(container, opts = {}) {
         pr.getUniforms();
         fresh = true;
       }
-      if (fresh) await yieldToBrowser();
+      if (fresh) await rast();
     }
   }
   // Laden läuft (prepare, show): Nachregeln (adapt) misst dann nicht, und
@@ -8634,11 +8651,12 @@ export async function initHangar(container, opts = {}) {
         }
       });
       if (TEX_MAX) await shrinkTextures(tex);
+      if (tot) await nieMehr();
       const compiled = compileFor(root, composer ? composer.readBuffer : null);
       let t0 = performance.now();
       for (const t of tex) {
         renderer.initTexture(t);
-        if (performance.now() - t0 > 6) { await yieldToBrowser(); t0 = performance.now(); }
+        if (performance.now() - t0 > 6) { await rast(); t0 = performance.now(); }
       }
       freeImages(tex);
       await compiled;
@@ -9050,7 +9068,7 @@ export async function initHangar(container, opts = {}) {
     // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
     const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
     const t0 = performance.now();
-    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, nextTask));
+    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, rast));
     // in Häppchen gerechnet: scheiterte die Halle derweil, bleibt die gebaute samt Bühnenlicht
     if (hallFailed) { vol.a.dispose(); vol.b.dispose(); return false; }
     hallVol.a.value = vol.a; hallVol.b.value = vol.b;
@@ -11150,8 +11168,8 @@ void main() {
       model.traverse((n) => { if (Array.isArray(n.userData?.anchor)) furn.push(n); });
       // In Häppchen (siehe slicer): Die Halle hängt erst nach prepare() in
       // der Szene, zwischendurch zeichnet also nichts eine halb fertige.
-      const pause = slicer(12, nextTask);
-      await nextTask();
+      const pause = slicer(12, rast);
+      await rast();
       const t0 = performance.now();
       for (const r of await dropHallParts(model, HALL_DROP[h.id], pause)) {
         const ms = Math.round(performance.now() - t0);
@@ -13074,14 +13092,14 @@ void main() {
     wrap.add(lean);
     const stand = standOn(lean, gearOf(textured ? o.tex : url));
     wrap.updateMatrixWorld(true);
-    const box = await robustBox(wrap, slicer(12, nextTask), stand?.tilt ? lean.quaternion.clone().invert() : null);
+    const box = await robustBox(wrap, slicer(12, rast), stand?.tilt ? lean.quaternion.clone().invert() : null);
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     wrap.position.set(-center.x, stand ? -stand.ground : -box.min.y, -center.z);
     if (stand) console.info(`[hangar] Fahrwerk: ${stand.n} Aufstandspunkte, Neigung ${stand.tilt.toFixed(2)}°, Streuung ${(stand.spread * 100).toFixed(1)} cm, Hüllquader ${((box.min.y - stand.ground) * 100).toFixed(1)} cm über dem Boden`);
     // Grundriss von unten für den Wartungsplatz (layDienst)
-    const tu = performance.now(), under = (realHall ? realHall.dienst : DIENST_ON) ? await shipUnder(wrap, size.x / 2, size.z / 2, slicer(12, nextTask)) : null;
+    const tu = performance.now(), under = (realHall ? realHall.dienst : DIENST_ON) ? await shipUnder(wrap, size.x / 2, size.z / 2, slicer(12, rast)) : null;
     if (under) under.ms = Math.round(performance.now() - tu);
     if (my !== token) { disposeObject(gltf.scene); mat.dispose(); return; }   // überholt
     // Lack-Uniforms im Objektraum des Modells (Z oben, Meter)
@@ -14382,7 +14400,7 @@ void main() {
     const inner = await loadInner(c);
     if (walk !== me) return false;
     if (!inner) { leave(true); return false; }
-    const t0 = performance.now(), pause = slicer(12, nextTask);
+    const t0 = performance.now(), pause = slicer(12, rast);
     c.group.updateMatrixWorld(true);
     // an, bevor coarseOf misst: Gitter nehmen nur Sichtbares
     inner.root.visible = true;
@@ -15539,11 +15557,12 @@ void main() {
       pmremOf.get(renderer)?.dispose(); pmremOf.delete(renderer);
       // Den Zeichenkontext gleich aufgeben: Der Grafikspeicher ist sofort frei
       // (auch was oben keiner abgebaut hat), bevor die nächste Bühne ihre
-      // Halle lädt, und was hier noch nachläuft, zeichnet ins Leere. Läuft
-      // gerade eine Übersetzung, fragt three.js deren Programme noch ab: Der
-      // Renderer behält dann seine Tabellen, sie gehen mit ihm.
+      // Halle lädt, und was hier noch nachläuft, zeichnet ins Leere. Eine
+      // Übersetzung, die gerade läuft, fragt ihre Programme nicht weiter ab
+      // (fertigUebersetzt hört mit tot auf): Der Renderer gibt seine Tabellen
+      // deshalb immer her.
       renderer.forceContextLoss();
-      if (!uebersetzt) renderer.dispose();
+      renderer.dispose();
       renderer.domElement.remove();
     },
   };

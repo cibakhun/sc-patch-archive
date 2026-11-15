@@ -131,6 +131,18 @@ export async function kinderBaumEinhaengen(doc, kinder, { lese, zeilen = () => [
   return lichter;
 }
 
+// Der Plan als Kennung: welche Container (mit ihrem Namen im Spiel) in
+// welcher Reihenfolge wo hängen, bis in die Tiefe. Was am Ort des
+// Zwischenspeichers hängt (Pfade der Exporte), gehört nicht dazu. Der Bericht des Laufs trägt sie: Nennt die Container-XML
+// ein Kind später an anderer Stelle, gedreht, ein weiteres oder eines nicht
+// mehr, gilt das Eingehängte nicht mehr (an den Zeiten der Dateien ist das
+// nicht zu sehen, der Export eines Kindes bleibt derselbe).
+const planKern = (baum) => baum.map((c) => ({ id: c.id, name: c.name, stellen: c.stellen.map((s) => [...s.pos, ...s.rot].join(',')), kinder: planKern(c.kinder ?? []) }));
+export const planKennung = (baum) => JSON.stringify(planKern(baum));
+// Woran der Extraktor erkennt, dass das Eingehängte noch gilt (steht im
+// Bericht hall/<halle>.kinder.json): die Regeln des Eintrags und der Plan.
+export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.folge.map(String), lage: kinder.lage ?? [], plan: planKennung(baum) });
+
 // ─── Der Schritt im Extraktor (h.kinder) ─────────────────────────────────
 // h.kinder.folge: Muster auf den Containernamen; nur diese Kinder folgen, auf
 // jeder Ebene (das Aufzugsmodul hängt seinerseits Plattform und Kabine ein).
@@ -207,7 +219,8 @@ export async function hallKinder(h, file, w) {
   const eigeneLichter = `${RAW}${h.key}.lights-src.txt`;
   if (!existsSync(eigeneLichter)) throw new Error(`${kurz(eigeneLichter)} fehlt (das Lichtprotokoll des Rohexports): mit --force neu exportieren`);
   const bericht = `${SRC}hall/${h.key}.kinder.json`;
-  const konfig = JSON.stringify({ folge: h.kinder.folge.map(String), lage: h.kinder.lage ?? [] });
+  // gilt das Eingehängte noch: dieselben Regeln und derselbe Plan (kinderKonfig), keine Quelle jünger
+  const konfig = kinderKonfig(h.kinder, baum);
   const quellen = [h.raw, eigeneLichter, ...[...alle.values()].flatMap((c) => [c.glb, c.licht])];
   if (!FORCE && existsSync(file) && existsSync(bericht) && JSON.parse(readFileSync(bericht, 'utf8')).konfig === konfig && quellen.every((q) => statSync(q).mtimeMs <= statSync(file).mtimeMs)) {
     console.log(`  = ${kurz(file)}  (Kinder eingehängt)`);

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { Document, NodeIO } from '@gltf-transform/core';
 import { KHRLightsPunctual } from '@gltf-transform/extensions';
 import { unpartition } from '@gltf-transform/functions';
-import { kinderAusXml, kindEinhaengen, kindLage, kinderBaumEinhaengen, wurzelVon } from '../../scripts/lib/hall-kinder.mjs';
+import { kinderAusXml, kindEinhaengen, kindLage, kinderBaumEinhaengen, kinderKonfig, planKennung, wurzelVon } from '../../scripts/lib/hall-kinder.mjs';
 
 // Z oben nach Y oben, wie die Wurzel jedes Exports
 const Z_UP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
@@ -117,4 +117,42 @@ test('kinderBaumEinhaengen: Kind im Kind, zwei Exemplare; gestellt wird jedes Te
   assert.deepEqual(ort(unter(room, 'kind_modul_1', 'teil').find((n) => /modul\.cga$/.test(n.getMesh().getName()))), [-122, -1, 55]);
   assert.deepEqual(lichter, ["Light 'lg_modul-000' type=Omni intensity=1 radius=2", "Light 'lg_tor-000' type=Omni intensity=1 radius=2", "Light 'lg_modul-000' type=Omni intensity=1 radius=2", "Light 'lg_tor-000' type=Omni intensity=1 radius=2"]);
   assert.deepEqual(liste.map((e) => [e.id, e.ebene, e.exemplare, e.jeExemplar.dreiecke, e.jeExemplar.lichtknoten]), [['tor', 1, 2, 1, 1], ['modul', 0, 2, 2, 2]]);
+});
+
+test('planKennung: Stelle, Drehung, Zahl und Tiefe der Kinder zählen, der Ort der Exporte nicht', () => {
+  const plan = (aendern = (b) => b) => aendern([{ id: 'modul', name: 'a/modul.socpak', glb: '/tmp/a/modul-lod1.glb', licht: '/tmp/a/modul.txt',
+    stellen: [{ pos: [-120, -56, -4], rot: [W, 0, 0, W], label: 'eins' }, { pos: [-24, -164, -4], rot: [W, 0, 0, -W], label: 'zwei' }],
+    kinder: [{ id: 'tor', name: 'a/tor.socpak', glb: '/tmp/a/tor-lod1.glb', licht: '/tmp/a/tor.txt', stellen: [{ pos: [0, 10, 0], rot: [0, 0, 0, 1], label: '' }], kinder: [] }] }]);
+  const gleich = planKennung(plan());
+  assert.equal(planKennung(plan((b) => { b[0].glb = 'D:/anders/modul-lod1.glb'; b[0].licht = 'D:/anders/modul.txt'; b[0].stellen[0].label = 'umbenannt'; return b; })), gleich, 'Pfade und Etiketten ändern das Eingehängte nicht');
+  const anders = {
+    'derselbe Name aus einem anderen Ordner des Spiels': (b) => { b[0].name = 'b/modul.socpak'; return b; },
+    'Stelle verschoben': (b) => { b[0].stellen[1].pos = [-24, -164, -3.5]; return b; },
+    'Stelle gedreht': (b) => { b[0].stellen[0].rot = [1, 0, 0, 0]; return b; },
+    'eine Stelle weniger': (b) => { b[0].stellen.pop(); return b; },
+    'Stellen vertauscht (die Halter tragen ihre Nummer)': (b) => { b[0].stellen.reverse(); return b; },
+    'Kind des Kindes fehlt': (b) => { b[0].kinder = []; return b; },
+    'Kind des Kindes verschoben': (b) => { b[0].kinder[0].stellen[0].pos = [0, 11, 0]; return b; },
+    'ein Kind mehr': (b) => [...b, { id: 'kabine', name: 'a/kabine.socpak', stellen: [{ pos: [0, 0, 0], rot: [1, 0, 0, 0] }], kinder: [] }],
+    'kein Kind mehr': () => [],
+  };
+  const kennungen = new Set([gleich]);
+  for (const [was, f] of Object.entries(anders)) {
+    const k = planKennung(plan(f));
+    assert.notEqual(k, gleich, was);
+    kennungen.add(k);
+  }
+  assert.equal(kennungen.size, Object.keys(anders).length + 1, 'jede Änderung hat ihre eigene Kennung');
+});
+
+test('kinderKonfig: Regeln und Plan zusammen; ein Kind an anderer Stelle macht das Eingehängte ungültig', () => {
+  const regeln = { folge: [/[\\/]modul\.socpak$/i], lage: [{ cga: 'tor', knochen: 'tor', spur: 'open' }] };
+  const baum = (y) => [{ id: 'modul', stellen: [{ pos: [0, y, 0], rot: [1, 0, 0, 0] }], kinder: [] }];
+  const k = kinderKonfig(regeln, baum(10));
+  assert.equal(kinderKonfig(regeln, baum(10)), k, 'derselbe Stand, dieselbe Kennung');
+  assert.notEqual(kinderKonfig(regeln, baum(12)), k, 'das Kind steht woanders');
+  assert.notEqual(kinderKonfig(regeln, []), k, 'das Kind steht nicht mehr in der XML');
+  assert.notEqual(kinderKonfig({ ...regeln, folge: [/[\\/]anderes\.socpak$/i] }, baum(10)), k, 'andere Muster');
+  assert.notEqual(kinderKonfig({ folge: regeln.folge }, baum(10)), k, 'keine Lage mehr');
+  assert.equal(JSON.parse(k).plan, planKennung(baum(10)), 'der Bericht trägt den Plan');
 });

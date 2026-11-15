@@ -2719,11 +2719,22 @@ export function boot(doc) {
     stageOrte = stage3d && v.canPlace?.('leit') === true;
     if (!stageOrte && state.ort === 'leit') setState({ ort: 'halle' });
   }
+  // Hat die Buehne ihren Zeichenkontext verloren (onLost unten: Meldung,
+  // data-lost, Waechter), baut niemand um. Der Umbau naehme der alten Buehne
+  // das Wort, bevor sie die Rueckkehr des Kontexts melden kann (halter.ab),
+  // die Seite luede also nie neu, und unter der Meldung stuende eine neue
+  // Buehne, die niemand sieht und die der Waechter nicht gezaehlt hat. Das
+  // Schiff steht in der Adresse: Das Neuladen von onLost zeigt es in seiner
+  // Halle. Gefragt wird vor jedem Durchgang und noch einmal nach dem Warten
+  // auf das Standbild, der letzten Pause vor dem Abbau.
+  const verloren = () => main.dataset.lost === 'on';
+  const umbauAus = () => { umbau = false; standbildWeg(true); loadEl.hidden = true; };
   async function umbauen() {
     if (umbau) return;
     umbau = true;
     try {
       for (;;) {
+        if (verloren()) { umbauAus(); return; }
         const halle = hallOf(wunsch);
         // ein show(), das noch laeuft, gehoert der alten Buehne
         showTok++;
@@ -2743,6 +2754,7 @@ export function boot(doc) {
             bild.setAttribute('aria-hidden', 'true');
             canvasBox.append(standbild = bild);
           }
+          if (verloren()) { umbauAus(); return; }
         }
         viewer = null;
         halter.ab();
