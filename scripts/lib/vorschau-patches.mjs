@@ -31,10 +31,10 @@ export const VORSCHAU_PATCH_DATEIEN = VORSCHAU_PATCHES.map((id) => `${id}.json`)
 export const VORSCHAU_KONZEPTE = ['a', 'b', 'c'];
 /**
  * Probe der Hologramm-Buehne (HoloProbe.astro), der Entwurf „Patch am
- * Hologramm" (Hologramm.astro);
+ * Hologramm" (Hologramm.astro) und sein Archiv-Entwurf (ArchivZeitleiste.astro);
  * fallen mit den Entwuerfen heraus.
  */
-const KONZEPT_SEITEN = [...VORSCHAU_KONZEPTE.map((k) => `konzept-${k}`), 'konzepte', 'holo-probe', '4-10-3-hologramm'];
+const KONZEPT_SEITEN = [...VORSCHAU_KONZEPTE.map((k) => `konzept-${k}`), 'konzepte', 'holo-probe', '4-10-3-hologramm', '4-10-3-archiv'];
 
 /** Die Routen: Muster und Datei. Bewusst NICHT unter src/pages/. */
 export const VORSCHAU_PATCH_ROUTES = [...VORSCHAU_PATCHES.map((id) => `sc-${id}`), ...KONZEPT_SEITEN].flatMap((name) => [

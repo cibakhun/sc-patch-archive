@@ -1,0 +1,187 @@
+---
+// Entwurf der Archiv-Zeitleiste zu „Patch am Hologramm", nur im Vorschau-Bau.
+// Patches mit Datenvergleich (src/data/patch-vergleich/uebersicht.json)
+// bekommen Balken je Art; aeltere stehen als Redaktionsgut da, mit den
+// Schiffen, die ihre Seite nennt. Filter nach Schiff und Thema.
+import { getCollection } from 'astro:content';
+import { href } from '../../i18n/ui';
+import { uebersicht, patchVergleich, type Kind, type Zaehler } from '../../lib/patchVergleich';
+import { patchSeiteHref } from '../../lib/patchPages';
+
+const de = (p: string) => href(p, 'de');
+const PATCHES = import.meta.glob<{ version: string; codename: string; dateDisplay: string; date: string; tagline: string; ships: { name: string }[] }>('../../data/patches/*.json', { eager: true, import: 'default' });
+const patches = Object.values(PATCHES).sort((a, b) => b.date.localeCompare(a.date));
+
+const ARTEN: { id: string; titel: string; kinds: Kind[]; g: string }[] = [
+  { id: 'schiffe', titel: 'Schiffe', kinds: ['ship', 'price'], g: 'core' },
+  { id: 'gegenstaende', titel: 'Gegenstände', kinds: ['item'], g: 'arms' },
+  { id: 'bauplaene', titel: 'Baupläne', kinds: ['blueprint'], g: 'prop' },
+  { id: 'auftraege', titel: 'Aufträge', kinds: ['mission'], g: 'other' },
+];
+const summe = (z: Zaehler, kinds: Kind[]) => kinds.reduce((s, k) => s + z[k].new + z[k].renamed + z[k].changed + z[k].removed, 0);
+
+const fahrzeuge = (await getCollection('vehicles')).map((v) => ({ id: v.id, name: v.data.name }));
+const nachName = [...fahrzeuge].sort((a, b) => b.name.length - a.name.length);
+/** Redaktioneller Schiffsname ("Drake Ironclad") -> Fahrzeug-id, ueber den laengsten passenden Namen. */
+const idZu = (name: string) => nachName.find((f) => name === f.name || name.endsWith(` ${f.name}`))?.id ?? null;
+
+const zeilen = patches.map((p) => {
+  const id = p.version.replaceAll('.', '-');
+  const paar = uebersicht.find((z) => z.nach === p.version);
+  const v = paar ? patchVergleich(paar.von, paar.nach) : null;
+  const schiffe = v
+    ? [...new Set(v.eintraege.filter((e) => e.kind === 'ship' || e.kind === 'price').map((e) => e.id))]
+    : [...new Set(p.ships.map((s) => idZu(s.name)).filter((x): x is string => !!x))];
+  return {
+    id, version: p.version, codename: p.codename, datum: p.dateDisplay, tagline: p.tagline,
+    seite: patchSeiteHref(id, 'de'),
+    von: paar?.von ?? null,
+    werte: paar ? ARTEN.map((a) => summe(paar.zaehler, a.kinds)) : null,
+    redaktionell: paar ? null : p.ships.length,
+    schiffe,
+  };
+});
+const max = ARTEN.map((_, j) => Math.max(1, ...zeilen.map((z) => z.werte?.[j] ?? 0)));
+const imFilter = [...new Set(zeilen.flatMap((z) => z.schiffe))]
+  .map((id) => fahrzeuge.find((f) => f.id === id)!).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+const berechnet = zeilen.filter((z) => z.werte).length;
+---
+<main id="main" class="pa">
+  <header class="pa-kopf">
+    <p class="sd__maker">Entwurf · Archiv · {berechnet} Patches mit Datenvergleich</p>
+    <h1>Patch-Archiv</h1>
+    <p class="pa-satz">Je Patch, was sich an Schiffen, Gegenständen, Bauplänen und Aufträgen geändert hat. Ältere Patches ohne Datenvergleich stehen als Redaktion da.</p>
+  </header>
+  <section class="sd pa-liste" aria-label="Zeitleiste">
+    <div class="pa-filter" id="pafilter">
+      <label>Schiff
+        <select id="paschiff">
+          <option value="">alle</option>
+          {imFilter.map((f) => <option value={f.id}>{f.name}</option>)}
+        </select>
+      </label>
+      <fieldset class="holo__rail pa-thema" aria-label="Thema">
+        <a href="#" data-thema="" aria-current="true">Alle</a>
+        {ARTEN.map((a) => <a href="#" data-thema={a.id} data-g={a.g}>{a.titel}</a>)}
+      </fieldset>
+    </div>
+    <p class="holo__sys-ct">Zahl je Art: Einträge im Datenvergleich zum Vorgänger, neu, geändert, umbenannt und entfernt zusammen. Ein Klick auf den Patch öffnet seine Seite.</p>
+    <div class="pa-tab" role="table" aria-label="Änderungen je Patch">
+      <div class="pa-row pa-row--kopf" role="row">
+        <span role="columnheader">Patch</span>
+        {ARTEN.map((a) => <span role="columnheader" data-spalte={a.id} data-g={a.g}>{a.titel}</span>)}
+      </div>
+      {zeilen.map((z) => (
+        <div class={`pa-row${z.werte ? '' : ' pa-row--red'}`} role="row" data-schiffe={z.schiffe.join(' ')} data-werte={z.werte?.join(' ') ?? ''}>
+          <span role="rowheader" class="pa-patch">
+            {z.seite ? <a href={z.seite}>{z.version}</a> : <b>{z.version}</b>}
+            <small>{z.codename} · {z.datum}</small>
+          </span>
+          {z.werte
+            ? ARTEN.map((a, j) => (
+                <span role="cell" class="pa-zelle" data-spalte={a.id} data-g={a.g}>
+                  <i style={`--w:${Math.round((z.werte![j] / max[j]) * 100)}%`}></i>
+                  <b>{z.werte![j].toLocaleString('de-DE')}</b>
+                  <small>{z.von} → {z.version}</small>
+                </span>
+              ))
+            : (
+                <span role="cell" class="pa-zelle pa-zelle--red">
+                  <span class="holo__caveat">Redaktion</span> {z.redaktionell ? `${z.redaktionell} ${z.redaktionell === 1 ? 'Schiff' : 'Schiffe'} in den Patch Notes · ` : ''}{z.tagline}
+                </span>
+              )}
+        </div>
+      ))}
+    </div>
+    <p class="pa-leer" id="paleer" hidden>Kein Patch passt zu diesem Filter.</p>
+    <p class="holo__sys-ct">Zur Seite des Entwurfs: <a href={de('/patches/4-10-3-hologramm.html')}>4.10.3 am Hologramm</a>.</p>
+  </section>
+</main>
+<style is:inline>
+:root{
+  --bg:#05070d;--bg-2:#0a0e18;--surface:#0f1524;--surface-2:#141c30;
+  --accent:#2dd4ff;--accent-2:#6ea8ff;--gold:#d4af37;
+  --text:#e8eefc;--muted:#8a99b8;--line:rgba(110,168,255,.16);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;
+  --maxw:1100px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body)}
+.pa a{color:inherit}
+.pa [data-g="core"]{--gc:var(--accent)}
+.pa [data-g="arms"]{--gc:var(--gold)}
+.pa [data-g="prop"]{--gc:var(--accent-2)}
+.pa [data-g="other"]{--gc:#a78bfa}
+.pa-kopf{max-width:var(--maxw);margin:0 auto;padding:calc(var(--nav-h,68px) + 1.4rem) clamp(1rem,3vw,2.5rem) .4rem}
+.sd__maker{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--accent)}
+.pa-kopf h1{font-family:var(--font-display);font-weight:900;font-size:clamp(2rem,4.5vw,3.2rem);line-height:1.02;margin:.3rem 0 .5rem}
+.pa-satz{max-width:62ch;color:var(--muted);margin:0}
+.sd{position:relative;max-width:var(--maxw);margin:0 auto;padding:1.2rem clamp(1rem,3vw,2.5rem) 3rem}
+.holo__sys-ct{margin:.6rem 0 1rem;font-size:var(--fs-7);color:var(--muted)}
+.holo__sys-ct a{text-decoration:underline;text-underline-offset:3px}
+.holo__caveat{color:var(--gold);letter-spacing:var(--ls-10);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-5);padding-left:.5rem;border-left:2px dashed color-mix(in srgb,var(--gold) 55%,transparent);margin-right:.4rem}
+.pa-filter{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.4rem}
+.pa-filter label{display:flex;align-items:center;gap:.6rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-15);text-transform:uppercase;color:var(--muted)}
+.pa-filter select{font:inherit;font-family:var(--font-ui);font-size:var(--fs-7);letter-spacing:0;text-transform:none;color:var(--text);background:var(--bg-2);border:1px solid var(--line);padding:.4rem .6rem;min-width:14rem}
+.holo__rail{display:flex;flex-wrap:wrap;gap:0;border:0;margin:0;padding:0;box-shadow:inset 0 -1px 0 0 color-mix(in srgb,var(--accent) 22%,transparent)}
+.holo__rail a{--gc:var(--accent);display:inline-flex;align-items:center;margin:1px;text-decoration:none;background:color-mix(in srgb,var(--media-void) 62%,transparent);
+  padding:.54rem .62rem;box-shadow:inset 0 -2px 0 0 transparent;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-10);text-transform:uppercase;color:var(--on-media-dim);
+  transition:color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui)}
+.holo__rail a:hover,.holo__rail a:focus-visible{color:var(--on-media);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.holo__rail a[aria-current="true"]{color:var(--on-media);background:color-mix(in srgb,var(--gc) 12%,transparent);box-shadow:inset 0 -2px 0 0 var(--gc)}
+.pa-tab{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.pa-row{display:grid;grid-template-columns:minmax(150px,1.1fr) repeat(4,minmax(0,1fr));gap:0 1rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--line)}
+.pa-row--kopf span{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--gc,var(--muted))}
+.pa-row--red .pa-zelle--red{grid-column:2/-1;font-size:var(--fs-7);color:var(--muted)}
+.pa-patch{display:flex;flex-direction:column;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-12)}
+.pa-patch a{text-decoration:none}
+.pa-patch a:hover{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.pa-patch small{font-size:var(--fs-4);letter-spacing:var(--ls-9);color:var(--muted);font-weight:600}
+.pa-zelle{position:relative;display:flex;flex-direction:column;gap:.15rem}
+.pa-zelle i{display:block;height:8px;width:var(--w);min-width:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--gc) 45%,transparent),var(--gc))}
+.pa-zelle b{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);font-variant-numeric:tabular-nums}
+.pa-zelle small{font-size:var(--fs-3);color:var(--muted);letter-spacing:var(--ls-9)}
+.pa.is-thema .pa-zelle:not(.is-thema),.pa.is-thema .pa-row--kopf [data-spalte]:not(.is-thema){opacity:.25}
+.pa-row[hidden]{display:none}
+@media(max-width:760px){
+  .pa-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem .8rem}
+  .pa-patch{grid-column:1/-1}
+  .pa-row--kopf span:first-child{display:none}
+  .pa-row--red .pa-zelle--red{grid-column:1/-1}
+  .pa-zelle small{display:none}
+  .pa-filter select{min-width:0;max-width:60vw}
+}
+@media(prefers-reduced-motion:reduce){.pa *{transition:none !important}}
+</style>
+<script is:inline>
+(function () {
+  var main = document.querySelector('.pa');
+  var sel = document.getElementById('paschiff');
+  var themen = document.querySelectorAll('.pa-thema a');
+  var rows = document.querySelectorAll('.pa-row:not(.pa-row--kopf)');
+  var leer = document.getElementById('paleer');
+  var thema = '';
+  var SP = ['schiffe', 'gegenstaende', 'bauplaene', 'auftraege'];
+  function anwenden() {
+    var s = sel.value, sichtbar = 0;
+    rows.forEach(function (r) {
+      var passtS = !s || (' ' + r.getAttribute('data-schiffe') + ' ').indexOf(' ' + s + ' ') >= 0;
+      var w = r.getAttribute('data-werte');
+      var passtT = !thema || (w ? +w.split(' ')[SP.indexOf(thema)] > 0 : false);
+      r.hidden = !(passtS && passtT);
+      if (!r.hidden) sichtbar++;
+    });
+    main.classList.toggle('is-thema', !!thema);
+    document.querySelectorAll('[data-spalte]').forEach(function (c) { c.classList.toggle('is-thema', c.getAttribute('data-spalte') === thema); });
+    leer.hidden = sichtbar > 0;
+  }
+  sel.addEventListener('change', anwenden);
+  themen.forEach(function (a) {
+    a.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      thema = a.getAttribute('data-thema');
+      themen.forEach(function (b) { if (b === a) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); });
+      anwenden();
+    });
+  });
+})();
+</script>
