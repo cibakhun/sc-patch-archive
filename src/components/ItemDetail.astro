@@ -376,7 +376,7 @@ const crumbs = [
         Seitentitel. */}
     {/* Nennt die Patch-Seite schon ein Erwaehnungs-Knopf daneben („Alpha 4.10.2 ·
         RSI Discovery Month"), entfaellt der schlichte: zwei Knoepfe zur selben Seite. */}
-    {patchHref && !mentions.some((p) => href(p.page, lang) === patchHref) && <a class="dp-btn dp-btn--ghost" href={patchHref}>{patchLink.label}</a>}
-    {mentions.map((p) => <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a>)}
+    {patchHref && !mentions.some((p) => p.page && href(p.page, lang) === patchHref) && <a class="dp-btn dp-btn--ghost" href={patchHref}>{patchLink.label}</a>}
+    {mentions.map((p) => (p.page ? <a class="dp-btn dp-btn--ghost" href={href(p.page, lang)}>Alpha {p.version} · {p.codename}</a> : <span class="dp-btn dp-btn--ghost">Alpha {p.version} · {p.codename}</span>))}
   </div>
 </DataShell>

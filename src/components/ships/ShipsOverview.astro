@@ -20,6 +20,7 @@ import { standFlotte } from '../../lib/datenstand';
 import { priceInfo } from '../../lib/shipExtras';
 import { compAttr } from '../../lib/shipComponents';
 import { patchesFor } from '../../lib/patchSpine';
+import { patchSeiteHref } from '../../lib/patchPages';
 import { vType, vSize, vStatus, vRoleCig, vCareer, vRoleFamilies, vSignature, vSizeClass, sizeClassLabel, SIG_LABELS, SIG_STEPS, FEAT_LABELS } from '../../i18n/vehicleText';
 import { localeFromPath } from '../../i18n/ui';
 import { HAS_HANGAR } from '../../lib/seo';
@@ -436,11 +437,11 @@ a{color:inherit;text-decoration:none}
           <span class={`fcard__status${d.statusEn === 'flight-ready' ? ' fr' : ''}`}>
             <span class="fcard__dot"></span>{vStatus(d, lang) ?? '—'}
           </span>
-          {debut && (
-            <a class="fcard__patch" href={de ? `/de/patches/sc-${debut.replaceAll('.', '-')}.html` : `/patches/sc-${debut.replaceAll('.', '-')}.html`}>
+          {debut && (patchSeiteHref(debut.replaceAll('.', '-'), de ? 'de' : 'en') ? (
+            <a class="fcard__patch" href={patchSeiteHref(debut.replaceAll('.', '-'), de ? 'de' : 'en')}>
               {debut}
             </a>
-          )}
+          ) : <span class="fcard__patch">{debut}</span>)}
           <div class="fcard__id">
             <div class="fcard__maker">{d.manufacturer ?? '—'}</div>
             <div class="fcard__name"><a href={de ? `/de/schiffe/${id}.html` : `/schiffe/${id}.html`}>{d.name}</a></div>

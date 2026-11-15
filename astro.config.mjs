@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import { hangarImBau, HANGAR_ROUTES } from './scripts/lib/hangar-switch.mjs';
 import { VORSCHAU_ROUTES } from './scripts/lib/vorschau-seiten.mjs';
 import { zielImBau } from './scripts/lib/supabase-ziel.mjs';
+import { VORSCHAU_PATCH_ROUTES } from './scripts/lib/vorschau-patches.mjs';
 
 // All-in-One SC site — static, hand-built.
 // Data is baked at BUILD time (Phase 1+); the live site never calls an API
@@ -138,6 +139,22 @@ export function vorschauRoutes(env = process.env) {
   };
 }
 
+// Patch-Seiten vor der Abnahme nur im Vorschau-Bau; Begruendung in
+// scripts/lib/vorschau-patches.mjs.
+/** @returns {import('astro').AstroIntegration} */
+export function vorschauPatchRoutes(env = process.env) {
+  return {
+    name: 'vb-vorschau-patches',
+    hooks: {
+      'astro:config:setup': ({ injectRoute, logger }) => {
+        if (!hangarImBau(env)) return;
+        for (const r of VORSCHAU_PATCH_ROUTES) injectRoute({ pattern: r.pattern, entrypoint: r.entrypoint, prerender: true });
+        logger.info(`Vorschau-Bau: ${VORSCHAU_PATCH_ROUTES.length} Patch-Seiten vor der Abnahme eingehaengt`);
+      },
+    },
+  };
+}
+
 /** Was Seiten und Client-Bundles vom Supabase-Ziel brauchen — nicht mehr. */
 function supabaseFuerSeite() {
   const { url, publishableKey, storageKey } = zielImBau();
@@ -163,7 +180,7 @@ export default defineConfig({
   server: ({ command }) => ({
     allowedHosts: TUNNEL && command === 'preview' ? TUNNEL_HOSTS : [],
   }),
-  integrations: [hangarRoutes(), vorschauRoutes()],
+  integrations: [hangarRoutes(), vorschauRoutes(), vorschauPatchRoutes()],
   vite: {
     plugins: [blockOpenInEditor(), devLocalOnly()],
     // Browserseite des Hangar-Schalters (src/lib/hangarFlag.ts) und das

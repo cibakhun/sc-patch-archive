@@ -7,6 +7,7 @@
 import Layout from '../../layouts/Layout.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
+import { patchSeiteHref } from '../../lib/patchPages';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -272,9 +273,11 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
           {patches.map((p, pi) => (
             <th scope="col" class={`evo__col${cycleStarts[pi] ? ' evo__cyclestart' : ''}${eraStarts[pi] ? ' evo__erastart' : ''}`} style={`--c:${p.data.palette.accent}`}>
               {eraStarts[pi] && <span class="evo__era">{p.data.era}</span>}
-              <a href={`/de/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
-                {p.data.version}
-              </a>
+              {patchSeiteHref(p.id, 'de') ? (
+                <a href={patchSeiteHref(p.id, 'de')} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
+                  {p.data.version}
+                </a>
+              ) : <span title={`${p.data.codename} · ${p.data.dateDisplay}`}>{p.data.version}</span>}
             </th>
           ))}
           <th scope="col" class="evo__tot" title="Einträge gesamt">Σ</th>
@@ -322,9 +325,11 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
             <header class="edet__head">
               <span class="edet__sys">{sys}</span>
               <span class="edet__meta">
-                <a class="edet__patch" href={`/de/patches/sc-${p.id}.html`}>
-                  Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
-                </a>
+                {patchSeiteHref(p.id, 'de') ? (
+                  <a class="edet__patch" href={patchSeiteHref(p.id, 'de')}>
+                    Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
+                  </a>
+                ) : <span class="edet__patch">Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay}</span>}
                 <button class="edet__x" data-eclose aria-label="Details schließen">Esc</button>
               </span>
             </header>

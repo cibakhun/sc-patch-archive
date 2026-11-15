@@ -280,11 +280,11 @@ const eraStart = a.eras[0] ? `:root{--era:${a.eras[0].accent};--era-2:${a.eras[0
                     {e.isLatest && <span class="tag tag--live">{t('arch.badge.latest')}</span>}
                   </p>
                   <h4 class="node__name">
-                    <a href={e.href} aria-label={tf('arch.openAria', { v: e.version })}>{e.codename}</a>
+                    {e.href ? <a href={e.href} aria-label={tf('arch.openAria', { v: e.version })}>{e.codename}</a> : e.codename}
                   </h4>
                   <p class="node__tag">{e.tagline}</p>
                   <p class="node__foot">
-                    <span class="node__go">{t('arch.open')} <span class="ar" aria-hidden="true">→</span></span>
+                    {e.href && <span class="node__go">{t('arch.open')} <span class="ar" aria-hidden="true">→</span></span>}
                     {e.topics.length > 0 && (
                       <span class="node__dives">
                         {e.topics.map((tp) => (

@@ -219,7 +219,7 @@ const leadData = (() => { const [a, rest] = COPY.leadData.replace('%d', priceDat
       <h1>{COPY.title}</h1>
       <p>
         {COPY.lead.replace('%s', String(REFINERY.stations.length)).replace('%m', String(methods.length))}
-        {' '}{leadData[0]}{patch ? <a href={href(patch.path, lang)}>{patch.label}</a> : '—'}{leadData[1]}<a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">UEX</a>{leadData[2]}
+        {' '}{leadData[0]}{patch ? (patch.path ? <a href={href(patch.path, lang)}>{patch.label}</a> : patch.label) : '—'}{leadData[1]}<a href="https://uexcorp.space/commodities" target="_blank" rel="noopener">UEX</a>{leadData[2]}
       </p>
     </header>
 

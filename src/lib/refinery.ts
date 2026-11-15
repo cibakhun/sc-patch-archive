@@ -7,6 +7,7 @@
 // Terminal ein. Dieses Modul liefert nur die Auswahllisten, den Verkaufspreis
 // für die Wert-Schätzung und Formatierungs-/Zeit-Helfer.
 import DATA from '../../assets/refinery-data.json';
+import { patchPageSlugs } from './patchPages';
 
 export interface RefMethod {
   key: string;
@@ -70,10 +71,12 @@ export function rankStations(ore: string): { station: RefStation; bonus: number 
     .sort((a, b) => b.bonus - a.bonus || a.station.name.localeCompare(b.station.name));
 }
 
-/** Spielstand der Daten als Patch: „4.10.2-live.12881860" → { label: '4.10.2', path: '/patches/sc-4-10-2.html' }. */
-export function dataPatch(): { label: string; path: string } | null {
+/** Spielstand der Daten als Patch: „4.10.2-live.12881860" → { label: '4.10.2', path: '/patches/sc-4-10-2.html' }; path null, wenn dieser Bau die Seite nicht traegt. */
+export function dataPatch(): { label: string; path: string | null } | null {
   const v = REFINERY.meta.gameVersion?.match(/^(\d+)\.(\d+)\.(\d+)/);
-  return v ? { label: `${v[1]}.${v[2]}.${v[3]}`, path: `/patches/sc-${v[1]}-${v[2]}-${v[3]}.html` } : null;
+  if (!v) return null;
+  const slug = `sc-${v[1]}-${v[2]}-${v[3]}`;
+  return { label: `${v[1]}.${v[2]}.${v[3]}`, path: patchPageSlugs.has(slug) ? `/patches/${slug}.html` : null };
 }
 
 /** Stationen nach System gruppiert (Reihenfolge: Stanton, Pyro, Nyx, Rest). */
