@@ -1,0 +1,172 @@
+/* Palette: 4.10.2-Seite (Gold für die Version), Akzent Cyan wie Startseite und Schiffsseite. */
+:root{
+  --bg:#0e121b;--bg-2:#131926;--surface:#182030;--surface-2:#1f2a3d;
+  --gold:#d9b46a;--accent:#2dd4ff;--accent-2:#7cc6e6;
+  --text:#eef1f5;--muted:#a3abb8;
+  --line:rgba(217,180,106,.24);--line-soft:rgba(238,241,245,.10);--line-2:rgba(150,180,220,.26);
+  --font-display:'Orbitron',sans-serif;--font-ui:'Rajdhani',sans-serif;--font-body:'Barlow',system-ui,sans-serif;--font-mono:'Share Tech Mono',monospace;
+  --maxw:1280px;
+}
+html{font-size:112.5%}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:0;z-index:200;background:var(--accent);color:var(--ink);padding:.6rem 1rem;font-family:var(--font-ui);font-weight:700}.skip:focus{left:0}
+
+/* ===== Hero: sc-4-10-2.astro ===== */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:7rem clamp(1.25rem,5vw,4.5rem) 4rem;overflow:hidden}
+.hero__photo{position:absolute;inset:0;z-index:0;background:url('/assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp') 55% 30%/cover;animation:kb 30s ease-in-out infinite alternate}
+@media(max-width:900px){.hero__photo{background-image:url('/assets/patch-4-10-3/rsi/vanduul-angriff-1200.webp')}}
+@keyframes kb{from{transform:scale(1.06)}to{transform:scale(1.18) translate(-1.5%,-1.5%)}}
+.hero__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--scrim-0),var(--scrim-1) 35%,var(--scrim-4) 70%,var(--bg))}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,var(--scanline) 0 1px,transparent 1px 3px);opacity:var(--ambient-opacity)}
+.hero__back{position:absolute;top:1.2rem;left:clamp(1.25rem,5vw,4.5rem);z-index:3;font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-14);text-transform:uppercase;font-size:var(--fs-6);color:var(--on-media-dim);border:1px solid var(--line);background:var(--scrim-4);padding:.45rem .9rem}
+.hero__back:hover{border-color:var(--accent)}
+.hero__in{position:relative;z-index:2;max-width:var(--maxw);margin:0 auto;width:100%}
+.eyebrow{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-19);text-transform:uppercase;font-size:var(--fs-6);color:var(--accent-2)}
+.hero h1{position:relative;font-family:var(--font-display);font-weight:900;line-height:.82;letter-spacing:var(--ls-1);margin:.6rem 0 .1rem;font-size:clamp(3.4rem,17vw,14rem);background:linear-gradient(180deg,var(--title-hi),var(--gold) 75%,#6b4f1e);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 36px rgba(217,180,106,.45))}
+.hero h1::after{content:attr(data-text);position:absolute;left:3px;top:0;-webkit-text-fill-color:var(--accent-2);color:var(--accent-2);opacity:0;mix-blend-mode:screen;animation:rgbs 9s steps(1) infinite}
+@keyframes rgbs{0%,93%,100%{opacity:0;transform:translate(0,0)}94%{opacity:.5;transform:translate(-4px,2px)}96%{opacity:0}}
+.hero .codename{font-family:var(--font-display);font-weight:700;font-size:clamp(1.3rem,4vw,2.6rem);color:var(--on-media);line-height:1.2}
+.hero .codename span{color:var(--accent-2)}
+.hero .tagline{font-family:var(--font-ui);font-weight:600;font-size:clamp(1rem,2vw,1.4rem);color:var(--gold);letter-spacing:var(--ls-5);margin-top:.7rem;max-width:44rem;line-height:1.45}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.tag{font-family:var(--font-ui);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase;font-size:var(--fs-5);padding:.4rem .8rem;border:1px solid var(--line);border-radius:50px;background:var(--veil);color:var(--text);transition:border-color var(--dur-base) var(--ease-ui)}
+.tag:hover{border-color:var(--accent)}
+.tag.hot{border-color:rgba(124,198,230,.55);color:#c4e8f7}
+.scrollcue{position:absolute;bottom:1.3rem;left:50%;transform:translateX(-50%);z-index:2;font-family:var(--font-ui);letter-spacing:var(--ls-16);text-transform:uppercase;font-size:var(--fs-4);color:var(--muted);animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+/* ===== Abschnitte: index.astro ===== */
+.wrap{position:relative;z-index:1;max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.25rem,5vw,3.5rem)}
+.sec{margin:clamp(2.2rem,6vw,5rem) 0 0}
+.sec--last{padding-bottom:clamp(2.5rem,6vw,5rem)}
+.sec__head{display:flex;align-items:center;gap:1.1rem;margin-bottom:1.2rem}
+.sec__head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2.6vw,1.6rem);letter-spacing:var(--ls-5);white-space:nowrap}
+.sec__head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-2),transparent)}
+.sec__head .stand{font-family:var(--font-mono);font-size:var(--fs-4);letter-spacing:var(--ls-9);color:var(--muted);white-space:nowrap}
+.lead{color:var(--muted);font-size:var(--fs-9);margin:-.4rem 0 1rem}
+.lead b{color:var(--text);font-weight:600}
+
+/* ===== Bild-Kacheln: index.astro .tool ===== */
+.tools{display:grid;gap:.85rem;grid-template-columns:1fr}
+.tools__more{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-bottom:1.3rem;font-family:var(--font-ui);font-weight:700;font-size:var(--fs-8);align-items:baseline}
+.tools__more>span{color:var(--muted);text-transform:uppercase;letter-spacing:var(--ls-13);font-size:var(--fs-5)}
+.tools__more a{color:var(--accent);border-bottom:1px solid var(--line-2);padding-bottom:1px;transition:color var(--dur-base) var(--ease-ui),border-color var(--dur-base) var(--ease-ui)}
+.tools__more a:hover,.tools__more a:focus-visible{color:var(--text);border-color:var(--accent);outline:none}
+.tool{position:relative;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;
+  min-height:210px;padding:1.4rem 1.5rem;border-radius:14px;overflow:hidden;border:1px solid var(--line-2);
+  background:var(--media-void);color:var(--on-media);transition:border-color var(--dur-slow) var(--ease-ui),box-shadow var(--dur-slow) var(--ease-ui),transform var(--dur-slow) var(--ease-ui)}
+.tool::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--img) center/cover no-repeat;
+  filter:saturate(.8) brightness(.66);transform:scale(1.03);transition:transform .7s ease,filter .7s ease}
+.tool::after{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,var(--scrim-6) 4%,var(--scrim-4) 42%,var(--scrim-0) 100%)}
+/* Freigestellte Modelle: auf Hangarlicht statt randlos beschnitten. */
+.tool--render{background:radial-gradient(90% 80% at 60% 30%,#2a3b55,#0b111c 70%)}
+.tool--render::before{background:var(--img) 60% 22%/min(118%,560px) auto no-repeat;filter:saturate(.9) brightness(.92)}
+.tool--render::after{background:linear-gradient(to top,var(--scrim-6) 6%,var(--scrim-3) 40%,transparent 70%)}
+.tool:hover,.tool:focus-visible{transform:translateY(-4px);border-color:var(--accent);
+  box-shadow:0 22px 50px -24px var(--shadow-color);outline:none}
+.tool:hover::before,.tool:focus-visible::before{transform:scale(1.09);filter:saturate(1.02) brightness(.82)}
+.tool__name{font-family:var(--font-display);font-weight:800;font-size:var(--fs-14);line-height:1.04;letter-spacing:var(--ls-4);
+  text-shadow:0 2px 18px var(--on-media-shadow)}
+.tool__sub{margin-top:.3rem;font-family:var(--font-ui);font-weight:600;letter-spacing:var(--ls-7);color:var(--on-media-dim);font-size:var(--fs-8);line-height:1.35}
+.tool__arrow{position:absolute;top:1.15rem;right:1.25rem;width:38px;height:38px;display:grid;place-items:center;
+  border:1px solid var(--on-media-line);border-radius:50%;font-size:var(--fs-10);color:var(--on-media);line-height:1;
+  background:var(--scrim-1);backdrop-filter:blur(4px);opacity:.85;transition:var(--dur-slow) var(--ease-ui)}
+.tool:hover .tool__arrow,.tool:focus-visible .tool__arrow{background:var(--accent-media);color:var(--ink-media);
+  border-color:var(--accent-media);opacity:1;transform:translate(2px,-2px)}
+.tool--xl{min-height:300px}
+.tool--xl .tool__name{font-size:clamp(1.9rem,4vw,2.7rem)}
+.tool--xl .tool__sub{font-size:var(--fs-10)}
+@media(min-width:600px){
+  .tools{grid-template-columns:1fr 1fr}
+  .tool--xl{grid-column:1 / -1}
+}
+@media(min-width:980px){
+  .tools{grid-template-columns:repeat(6,1fr);grid-auto-rows:230px}
+  .tool--xl{grid-column:span 3;grid-row:span 2}
+  .tool--w{grid-column:span 3}
+  .tool--t{grid-column:span 2}
+}
+
+/* ===== Schiffskarten: ShipDetail.astro .sd__sim ===== */
+.sd__simgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}
+@media(max-width:900px){.sd__simgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){
+  .sd__simgrid{gap:.6rem}
+  .sd__sim .tx{padding:.5rem .6rem .6rem}
+  .sd__sim .nm{font-size:var(--fs-8)}
+  .sd__sim .mt{font-size:var(--fs-5)}
+}
+.sd__sim{position:relative;border:1px solid var(--line-2);background:var(--surface);transition:border-color var(--dur-fast) var(--ease-ui),background var(--dur-fast) var(--ease-ui);display:flex;flex-direction:column}
+.sd__sim::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 34%,transparent) 25%,transparent 80%)}
+.sd__sim::before{content:"";position:absolute;left:-1px;top:-1px;width:10px;height:10px;z-index:2;pointer-events:none;
+  border-top:2px solid color-mix(in srgb,var(--accent) 70%,transparent);
+  border-left:2px solid color-mix(in srgb,var(--accent) 70%,transparent)}
+.sd__sim:hover{border-color:color-mix(in srgb,var(--accent) 55%,transparent);background:var(--surface-2)}
+.sd__sim .im{aspect-ratio:16/9;overflow:hidden;background:var(--veil-2)}
+.sd__sim .im img{display:block;width:100%;height:100%;object-fit:cover}
+.sd__sim .tx{padding:.6rem .8rem .7rem}
+.sd__sim .nm{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);line-height:1.25}
+.sd__sim .mt{font-size:var(--fs-7);color:var(--muted)}
+
+/* ===== Dossier (zugeklappt) ===== */
+.dossier{border:1px solid var(--line-2);border-radius:14px;background:var(--surface)}
+.dossier summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:.15rem;padding:1rem 1.3rem;position:relative}
+.dossier summary::-webkit-details-marker{display:none}
+.dossier summary::after{content:"+";position:absolute;right:1.2rem;top:50%;transform:translateY(-50%);font-family:var(--font-display);color:var(--accent);font-size:var(--fs-14)}
+.dossier[open] summary::after{content:"–"}
+.dossier__t{font-family:var(--font-display);font-weight:800;font-size:var(--fs-12)}
+.dossier__s{font-family:var(--font-ui);font-weight:600;color:var(--muted);font-size:var(--fs-7)}
+.dossier__in{padding:0 1.3rem 1.4rem;font-size:var(--fs-8);color:var(--muted)}
+.dossier__in h3{font-family:var(--font-display);font-weight:700;font-size:var(--fs-11);color:var(--text);margin:1.6rem 0 .4rem;border-top:1px solid var(--line-soft);padding-top:1rem}
+.dossier__in h4{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-10);color:var(--text);margin:1rem 0 .2rem}
+.dossier__in small{font-weight:600;color:var(--muted);font-size:var(--fs-5);letter-spacing:var(--ls-5)}
+.dossier__in a{color:var(--accent)}
+.dossier__in p{margin:.3rem 0}
+.dl{list-style:none;display:grid;gap:.15rem}
+.dk{color:var(--text)}
+.dd{color:var(--gold);font-family:var(--font-mono);font-size:var(--fs-5)}
+.dossier table{border-collapse:collapse;margin:.5rem 0;font-size:var(--fs-6)}
+.dossier caption{text-align:left;color:var(--muted);padding-bottom:.2rem}
+.dossier th,.dossier td{padding:.15rem .9rem .15rem 0;text-align:left;font-weight:500}
+.dossier th{color:var(--text)}
+
+/* ===== Fuß: sc-4-10-2.astro ===== */
+footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(1.6rem,5vw,3rem) clamp(1.25rem,5vw,4.5rem) 2rem}
+.pager{display:flex;justify-content:space-between;gap:.8rem;flex-wrap:wrap;max-width:var(--maxw);margin-inline:auto}
+.pager>a,.pager>span{flex:1;min-width:min(140px,100%);display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;padding:.9rem 1.1rem;background:var(--surface);transition:border-color var(--dur-base) var(--ease-ui),transform var(--dur-base) var(--ease-ui)}
+.pager a:hover{border-color:var(--accent);transform:translateY(-2px)}
+.pager .dir{font-family:var(--font-ui);text-transform:uppercase;letter-spacing:var(--ls-14);font-size:var(--fs-4);color:var(--muted)}
+.pager .ttl{font-family:var(--font-display);font-weight:700;font-size:var(--fs-8);margin-top:.3rem;overflow-wrap:break-word}
+.pager .next{text-align:right}
+.pager .disabled{opacity:.35}
+.disclaimer{max-width:var(--maxw);margin:1.2rem auto 0;font-size:var(--fs-4);color:var(--muted);opacity:.75;border-top:1px solid var(--line-soft);padding-top:1rem}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+
+/* Handy: Stand-Zeile unter die Überschrift statt daneben, Kacheln etwas flacher. */
+@media(max-width:599px){
+  .sec__head{flex-wrap:wrap;row-gap:.2rem}
+  .sec__head .stand{flex-basis:100%;order:3}
+  .tool{min-height:188px;padding:1.1rem 1.2rem}
+  .tool--xl{min-height:250px}
+}
+
+/* Ende: dasselbe Muster wie der Hero, Foto randlos, Dossier und Fuß liegen darauf. */
+.ende{position:relative;margin-top:clamp(2.2rem,6vw,5rem);padding:clamp(9rem,40vw,22rem) clamp(1.25rem,5vw,4.5rem) 1.6rem;overflow:hidden;isolation:isolate}
+.ende__photo{position:absolute;inset:0;z-index:-1;background:url('/assets/patch-4-10-3/rsi/iae-2956-stadt-1200.webp') center top/cover}
+@media(min-width:901px){.ende__photo{background-image:url('/assets/patch-4-10-3/rsi/iae-2956-stadt-1920.webp')}}
+.ende__photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--bg),transparent 18%,var(--scrim-1) 45%,var(--scrim-5) 80%,var(--scrim-6))}
+.ende__in{max-width:calc(var(--maxw) - 2*clamp(1.25rem,5vw,3.5rem));margin:0 auto}
+.ende .tools__more{text-shadow:0 1px 8px var(--on-media-shadow)}
+.ende .tools__more>span{color:var(--on-media-dim)}
+.ende .dossier{background:color-mix(in srgb,var(--surface) 82%,transparent);backdrop-filter:blur(6px)}
+.ende footer{border:0;background:none;padding:1.2rem 0 0}
+.ende .pager>a{background:color-mix(in srgb,var(--surface) 82%,transparent)}
+.ende .disclaimer{color:var(--on-media-dim)}

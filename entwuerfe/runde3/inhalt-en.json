@@ -1,0 +1,5785 @@
+{
+ "lang": "en",
+ "version": "4.10.3",
+ "codename": "IAE 2956 & Vanduul Incursion",
+ "datum": "2026-11-12",
+ "notes": {
+  "t": "Patch notes ↗",
+  "h": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+ },
+ "vorgaenger": {
+  "t": "4.10.2",
+  "h": "/patches/sc-4-10-2.html",
+  "titel": "4.10.2 · RSI Discovery Month"
+ },
+ "kopf": {
+  "eyebrow": "November 12, 2026 · Point Release",
+  "titel": "4.10.3",
+  "codename": [
+   "IAE 2956 & ",
+   "Vanduul Incursion"
+  ],
+  "satz": "The Vanduul strike Nyx, and InterSec is hiring pilots. The RSI Galaxy and the Anvil Liberator are new.",
+  "bilder": [
+   {
+    "key": "vanduul-angriff",
+    "art": "rsi",
+    "thema": "vanduul-incursion",
+    "alt": "Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 960,
+      "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp",
+      "avif": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.avif"
+     },
+     {
+      "w": 1200,
+      "h": 600,
+      "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 320,
+      "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-640.webp"
+     }
+    ],
+    "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion"
+   },
+   {
+    "key": "iae-2956-halle",
+    "art": "rsi",
+    "thema": "iae-2956",
+    "alt": "Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 960,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.webp",
+      "avif": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.avif"
+     },
+     {
+      "w": 1200,
+      "h": 600,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 320,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-640.webp"
+     }
+    ],
+    "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956"
+   },
+   {
+    "key": "iae-2956-stadt",
+    "art": "rsi",
+    "thema": "iae-2956",
+    "alt": "Several spaceships flying through a skyscraper city at night with the IAE 2956 emblem behind them",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 960,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-1920.webp"
+     },
+     {
+      "w": 1200,
+      "h": 600,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 320,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-640.webp"
+     }
+    ],
+    "quelle": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+   },
+   {
+    "key": "iae-2956-logo",
+    "art": "rsi",
+    "thema": "iae-2956",
+    "alt": "IAE 2956 logo against dark blue sweeping light streaks",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 960,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1920.webp"
+     },
+     {
+      "w": 1200,
+      "h": 600,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 320,
+      "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-640.webp"
+     }
+    ],
+    "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule"
+   },
+   {
+    "key": "vanduul-szene",
+    "art": "szene",
+    "thema": "vanduul-incursion",
+    "alt": "Vanduul ships on approach: a Scythe up front, more Vanduul ships behind it against a dark nebula",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 1080,
+      "src": "/assets/patch-4-10-3/render/vanduul-szene.webp"
+     },
+     {
+      "w": 1200,
+      "h": 675,
+      "src": "/assets/patch-4-10-3/render/vanduul-szene-1200.webp"
+     }
+    ]
+   }
+  ]
+ },
+ "abschnitte": [
+  {
+   "id": "auftraege",
+   "t": "Contracts"
+  },
+  {
+   "id": "schiffe",
+   "t": "New ships"
+  },
+  {
+   "id": "auec",
+   "t": "For aUEC"
+  },
+  {
+   "id": "werte",
+   "t": "Changed values"
+  },
+  {
+   "id": "ausruestung",
+   "t": "Gear"
+  },
+  {
+   "id": "bestand",
+   "t": "Catalogue"
+  },
+  {
+   "id": "akte",
+   "t": "Dossier"
+  }
+ ],
+ "kacheln": [
+  {
+   "art": "event",
+   "ziel": "auftraege",
+   "k": "Vanduul Incursion",
+   "v": "12 contracts",
+   "s": "New from InterSec in Nyx, against the Vanduul and the Shattered Blade",
+   "link": {
+    "t": "InterSec",
+    "h": "/missionen.html"
+   },
+   "stand": "4.10.3",
+   "bilder": [
+    {
+     "key": "vanduul-angriff",
+     "art": "rsi",
+     "thema": "vanduul-incursion",
+     "alt": "Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 960,
+       "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp",
+       "avif": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.avif"
+      },
+      {
+       "w": 1200,
+       "h": 600,
+       "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 320,
+       "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-640.webp"
+      }
+     ],
+     "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion"
+    },
+    {
+     "key": "vncl-scythe",
+     "art": "rsi",
+     "thema": "vncl-scythe",
+     "alt": "Vanduul Scythe with sweeping wings in front of a reddish planet, engine glowing",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1080,
+       "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 675,
+       "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/rsi/vncl-scythe-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg"
+    },
+    {
+     "key": "vanduul-szene",
+     "art": "szene",
+     "thema": "vanduul-incursion",
+     "alt": "Vanduul ships on approach: a Scythe up front, more Vanduul ships behind it against a dark nebula",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1080,
+       "src": "/assets/patch-4-10-3/render/vanduul-szene.webp"
+      },
+      {
+       "w": 1200,
+       "h": 675,
+       "src": "/assets/patch-4-10-3/render/vanduul-szene-1200.webp"
+      }
+     ]
+    },
+    {
+     "key": "vncl-scythe",
+     "art": "render",
+     "thema": "vncl-scythe",
+     "alt": "Model of the Vanduul Scythe, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "vncl-scythe-holo",
+     "art": "holo",
+     "thema": "vncl-scythe",
+     "alt": "Hologram of the Vanduul Scythe, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "art": "new",
+   "ziel": "schiffe",
+   "k": "New ships",
+   "v": "Galaxy · Liberator",
+   "s": "Modular ship with a swappable module and a carrier for ships and vehicles",
+   "link": {
+    "t": "Galaxy",
+    "h": "/schiffe/rsi-galaxy.html"
+   },
+   "stand": "4.10.3",
+   "bilder": [
+    {
+     "key": "rsi-galaxy",
+     "art": "rsi",
+     "thema": "rsi-galaxy",
+     "alt": "RSI Galaxy, a large dark modular ship with blue accents, flying above clouds",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 823,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-1920.webp",
+       "avif": "/assets/patch-4-10-3/rsi/rsi-galaxy-1920.avif"
+      },
+      {
+       "w": 1200,
+       "h": 514,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 274,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg"
+    },
+    {
+     "key": "rsi-galaxy-flug",
+     "art": "rsi",
+     "thema": "rsi-galaxy",
+     "alt": "RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 960,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 600,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 320,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-640.webp"
+      }
+     ],
+     "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy"
+    },
+    {
+     "key": "anvl-liberator",
+     "art": "rsi",
+     "thema": "anvl-liberator",
+     "alt": "Anvil Liberator with large twin engines on an airfield, smaller ships flying behind it",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1080,
+       "src": "/assets/patch-4-10-3/rsi/anvl-liberator-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 675,
+       "src": "/assets/patch-4-10-3/rsi/anvl-liberator-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/rsi/anvl-liberator-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/k2zu1md2ulfxn/source.png"
+    },
+    {
+     "key": "rsi-galaxy",
+     "art": "render",
+     "thema": "rsi-galaxy",
+     "alt": "Model of the RSI Galaxy, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-liberator",
+     "art": "render",
+     "thema": "anvl-liberator",
+     "alt": "Model of the Anvil Liberator, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "rsi-galaxy-holo",
+     "art": "holo",
+     "thema": "rsi-galaxy",
+     "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "rsi-galaxy-hologramm",
+     "art": "holo",
+     "thema": "rsi-galaxy",
+     "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1600,
+       "h": 900,
+       "src": "/assets/patch-4-10-3/rsi-galaxy-holo.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-liberator-holo",
+     "art": "holo",
+     "thema": "anvl-liberator",
+     "alt": "Hologram of the Anvil Liberator, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-liberator-hologramm",
+     "art": "holo",
+     "thema": "anvl-liberator",
+     "alt": "Hologram of the Anvil Liberator, side three-quarter view",
+     "groessen": [
+      {
+       "w": 1600,
+       "h": 854,
+       "src": "/assets/patch-4-10-3/anvl-liberator-holo.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "art": "new",
+   "ziel": "auec",
+   "k": "For aUEC",
+   "v": "8 ships",
+   "s": "Buyable in game for the first time, in Stanton, Nyx and Pyro",
+   "link": null,
+   "stand": "4.10.3",
+   "bilder": [
+    {
+     "key": "drak-ironclad",
+     "art": "rsi",
+     "thema": "drak-ironclad",
+     "alt": "Drake Ironclad, an armored freighter, flying past a planet",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 823,
+       "src": "/assets/patch-4-10-3/rsi/drak-ironclad-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 514,
+       "src": "/assets/patch-4-10-3/rsi/drak-ironclad-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 274,
+       "src": "/assets/patch-4-10-3/rsi/drak-ironclad-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/g948zfjuiznu4/source.jpg"
+    },
+    {
+     "key": "orig-m80",
+     "art": "rsi",
+     "thema": "orig-m80",
+     "alt": "Origin M80, a sleek light-coloured ship, flying over mountains at dusk",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 823,
+       "src": "/assets/patch-4-10-3/rsi/orig-m80-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 514,
+       "src": "/assets/patch-4-10-3/rsi/orig-m80-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 274,
+       "src": "/assets/patch-4-10-3/rsi/orig-m80-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/nledgsyyzmjov/source.jpg"
+    },
+    {
+     "key": "drak-ironclad",
+     "art": "render",
+     "thema": "drak-ironclad",
+     "alt": "Model of the Drake Ironclad, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/drak-ironclad.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/drak-ironclad-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "orig-m80",
+     "art": "render",
+     "thema": "orig-m80",
+     "alt": "Model of the Origin M80, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/orig-m80.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/orig-m80-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "drak-ironclad-holo",
+     "art": "holo",
+     "thema": "drak-ironclad",
+     "alt": "Hologram of the Drake Ironclad, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/drak-ironclad-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/drak-ironclad-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "orig-m80-holo",
+     "art": "holo",
+     "thema": "orig-m80",
+     "alt": "Hologram of the Origin M80, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/orig-m80-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/orig-m80-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "art": "changed",
+   "ziel": "radar",
+   "k": "Radar",
+   "v": "Size 2 → 3",
+   "s": "Carrack, Perseus, Starlancer MAX · TAC",
+   "link": {
+    "t": "Surveyor-Max",
+    "h": "/items/surveyor-max.html"
+   },
+   "stand": "4.10.3",
+   "bilder": [
+    {
+     "key": "anvl-carrack",
+     "art": "render",
+     "thema": "anvl-carrack",
+     "alt": "Model of the Anvil Carrack, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-carrack-holo",
+     "art": "holo",
+     "thema": "anvl-carrack",
+     "alt": "Hologram of the Anvil Carrack, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "art": "changed",
+   "ziel": "salvage",
+   "k": "Salvage",
+   "v": "240 → 448 SCU",
+   "s": "Reclaimer buffer. The whole salvage fleet holds more.",
+   "link": {
+    "t": "Reclaimer",
+    "h": "/schiffe/aegs-reclaimer.html"
+   },
+   "stand": "4.10.3",
+   "bilder": [
+    {
+     "key": "aegs-reclaimer",
+     "art": "render",
+     "thema": "aegs-reclaimer",
+     "alt": "Model of the Aegis Reclaimer, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-reclaimer-holo",
+     "art": "holo",
+     "thema": "aegs-reclaimer",
+     "alt": "Hologram of the Aegis Reclaimer, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "art": "changed",
+   "ziel": "kampf",
+   "k": "Mauler „STRIKER“",
+   "v": "64 → 250",
+   "s": "Energy damage per shot, about 800 → 3,125 DPS",
+   "link": {
+    "t": "Mauler „STRIKER“",
+    "h": "/items/vanduul-mauler-striker-repeater.html"
+   },
+   "stand": "4.10.3",
+   "bilder": []
+  },
+  {
+   "art": "changed",
+   "ziel": "kampf",
+   "k": "Torpedoes",
+   "v": "from 700 m",
+   "s": "Size 5 and 7 only arm from there",
+   "link": null,
+   "stand": "4.10.3",
+   "bilder": []
+  },
+  {
+   "art": "new",
+   "ziel": "ausruestung",
+   "k": "Blueprints",
+   "v": "+17",
+   "s": "Raider Camo, Skarnov, Deterrent",
+   "link": {
+    "t": "Blueprints",
+    "h": "/crafting.html"
+   },
+   "stand": "4.10.3",
+   "bilder": []
+  }
+ ],
+ "auftraege": {
+  "titel": "Vanduul contracts in Nyx",
+  "auftraggeber": "InterSec Defense Solutions",
+  "lead": [
+   "Vanduul clans threaten the trade routes in Nyx. InterSec offers twelve contracts, from ",
+   {
+    "b": "Jr. Contractor"
+   },
+   " to ",
+   {
+    "b": "Head Contractor"
+   },
+   " depending on the contract. Most of them can be shared."
+  ],
+  "gruppen": [
+   {
+    "typ": "Fleets",
+    "titel": "Intercept strike groups",
+    "text": "A Vanduul strike group sits at a point in Nyx, and support waves follow the first strike.",
+    "auftraege": [
+     {
+      "titel": "Intercept Vanduul Fleet",
+      "link": {
+       "t": "Intercept Vanduul Fleet",
+       "h": "/missionen/intercept-vanduul-fleet.html"
+      },
+      "rang": "Veteran Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 2,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Vanduul Strike Group Detected",
+      "link": {
+       "t": "Vanduul Strike Group Detected",
+       "h": "/missionen/vanduul-strike-group-detected.html"
+      },
+      "rang": "Veteran Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 0,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Counterstrike Against Vanduul Raiders",
+      "link": {
+       "t": "Counterstrike Against Vanduul Raiders",
+       "h": "/missionen/counterstrike-against-vanduul-raiders.html"
+      },
+      "rang": "Veteran Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 2,
+      "belohnung": null,
+      "stand": "4.10.3"
+     }
+    ]
+   },
+   {
+    "typ": "Mauler",
+    "titel": "Draw out the leaders",
+    "text": "A Mauler leads the group and should only be engaged with strong backup.",
+    "auftraege": [
+     {
+      "titel": "Draw Out Maulers",
+      "link": {
+       "t": "Draw Out Maulers",
+       "h": "/missionen/draw-out-maulers.html"
+      },
+      "rang": "Elite Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 3,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Interdict Vanduul Maulers",
+      "link": {
+       "t": "Interdict Vanduul Maulers",
+       "h": "/missionen/interdict-vanduul-maulers.html"
+      },
+      "rang": "Elite Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 2,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Seek and Destroy Super Stingers",
+      "link": {
+       "t": "Seek and Destroy Super Stingers",
+       "h": "/missionen/seek-and-destroy-super-stingers.html"
+      },
+      "rang": "Head Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 0,
+      "belohnung": null,
+      "stand": "4.10.3"
+     }
+    ]
+   },
+   {
+    "typ": "Shattered Blade",
+    "titel": "Three-way fights",
+    "text": "The Vanduul and the Shattered Blade fight over the same ground, and InterSec wants both gone.",
+    "auftraege": [
+     {
+      "titel": "Engage Shattered Blade and Vanduul",
+      "link": {
+       "t": "Engage Shattered Blade and Vanduul",
+       "h": "/missionen/engage-shattered-blade-and-vanduul.html"
+      },
+      "rang": "Veteran Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 0,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Neutralize Vanduul and Shattered Blade Threat",
+      "link": {
+       "t": "Neutralize Vanduul and Shattered Blade Threat",
+       "h": "/missionen/neutralize-vanduul-and-shattered-blade-threat.html"
+      },
+      "rang": "Veteran Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 2,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Stop Vanduul and Shattered Blade Hostilities",
+      "link": {
+       "t": "Stop Vanduul and Shattered Blade Hostilities",
+       "h": "/missionen/stop-vanduul-and-shattered-blade-hostilities.html"
+      },
+      "rang": "Veteran Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 3,
+      "belohnung": null,
+      "stand": "4.10.3"
+     }
+    ]
+   },
+   {
+    "typ": "Aboard",
+    "titel": "Boarding and recovery",
+    "text": "Retake a boarded vessel, deliver a living Vanduul sample in its cryopod and eliminate specific targets.",
+    "auftraege": [
+     {
+      "titel": "Retake Boarded Vessel",
+      "link": {
+       "t": "Retake Boarded Vessel",
+       "h": "/missionen/retake-boarded-vessel.html"
+      },
+      "rang": "Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 0,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Living Vanduul Sample",
+      "link": {
+       "t": "Living Vanduul Sample",
+       "h": "/missionen/living-vanduul-sample.html"
+      },
+      "rang": "Jr. Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 7,
+      "belohnung": null,
+      "stand": "4.10.3"
+     },
+     {
+      "titel": "Intersec Eliminate Specific Rank1",
+      "link": {
+       "t": "Intersec Eliminate Specific Rank1",
+       "h": "/missionen/intersec-eliminate-specific-rank1.html"
+      },
+      "rang": "Jr. Contractor",
+      "ort": "Nyx",
+      "auftraggeber": "InterSec Defense Solutions",
+      "bauplaene": 2,
+      "belohnung": {
+       "t": "Skarnov \"Raider Camo\" blueprint",
+       "h": "/crafting/skarnov-raider-camo-rifle.html"
+      },
+      "stand": "4.10.3"
+     }
+    ]
+   }
+  ],
+  "bilder": [
+   {
+    "key": "vanduul-angriff",
+    "art": "rsi",
+    "thema": "vanduul-incursion",
+    "alt": "Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 960,
+      "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp",
+      "avif": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.avif"
+     },
+     {
+      "w": 1200,
+      "h": 600,
+      "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 320,
+      "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-640.webp"
+     }
+    ],
+    "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion"
+   },
+   {
+    "key": "vncl-scythe",
+    "art": "rsi",
+    "thema": "vncl-scythe",
+    "alt": "Vanduul Scythe with sweeping wings in front of a reddish planet, engine glowing",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 1080,
+      "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1920.webp"
+     },
+     {
+      "w": 1200,
+      "h": 675,
+      "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/rsi/vncl-scythe-640.webp"
+     }
+    ],
+    "quelle": "https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg"
+   },
+   {
+    "key": "vncl-glaive",
+    "art": "rsi",
+    "thema": "vncl-glaive",
+    "alt": "Red curved Vanduul Glaive firing with bright engine flares against a black backdrop",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 1080,
+      "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1920.webp"
+     },
+     {
+      "w": 1200,
+      "h": 675,
+      "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/rsi/vncl-glaive-640.webp"
+     }
+    ],
+    "quelle": "https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg"
+   },
+   {
+    "key": "vncl-blade",
+    "art": "rsi",
+    "thema": "vncl-blade",
+    "alt": "Dark Vanduul Blade resting on the ground in night fog",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 1080,
+      "src": "/assets/patch-4-10-3/rsi/vncl-blade-1920.webp"
+     },
+     {
+      "w": 1200,
+      "h": 675,
+      "src": "/assets/patch-4-10-3/rsi/vncl-blade-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/rsi/vncl-blade-640.webp"
+     }
+    ],
+    "quelle": "https://media.robertsspaceindustries.com/0s9bslimticmx/source.png"
+   },
+   {
+    "key": "vncl-stinger",
+    "art": "rsi",
+    "thema": "vncl-stinger",
+    "alt": "Vanduul Stinger in an attack run under a cloudy sky with other fighters behind it",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 823,
+      "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1920.webp"
+     },
+     {
+      "w": 1200,
+      "h": 514,
+      "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1200.webp"
+     },
+     {
+      "w": 640,
+      "h": 274,
+      "src": "/assets/patch-4-10-3/rsi/vncl-stinger-640.webp"
+     }
+    ],
+    "quelle": "https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg"
+   },
+   {
+    "key": "vanduul-szene",
+    "art": "szene",
+    "thema": "vanduul-incursion",
+    "alt": "Vanduul ships on approach: a Scythe up front, more Vanduul ships behind it against a dark nebula",
+    "groessen": [
+     {
+      "w": 1920,
+      "h": 1080,
+      "src": "/assets/patch-4-10-3/render/vanduul-szene.webp"
+     },
+     {
+      "w": 1200,
+      "h": 675,
+      "src": "/assets/patch-4-10-3/render/vanduul-szene-1200.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-scythe",
+    "art": "render",
+    "thema": "vncl-scythe",
+    "alt": "Model of the Vanduul Scythe, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-scythe.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-scythe-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-glaive",
+    "art": "render",
+    "thema": "vncl-glaive",
+    "alt": "Model of the Vanduul Glaive, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-glaive.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-glaive-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-blade",
+    "art": "render",
+    "thema": "vncl-blade",
+    "alt": "Model of the Vanduul Blade, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-blade.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-blade-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-stinger",
+    "art": "render",
+    "thema": "vncl-stinger",
+    "alt": "Model of the Vanduul Stinger, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-stinger.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-stinger-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-scythe-holo",
+    "art": "holo",
+    "thema": "vncl-scythe",
+    "alt": "Hologram of the Vanduul Scythe, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-scythe-holo.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-scythe-holo-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-glaive-holo",
+    "art": "holo",
+    "thema": "vncl-glaive",
+    "alt": "Hologram of the Vanduul Glaive, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-glaive-holo.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-glaive-holo-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-blade-holo",
+    "art": "holo",
+    "thema": "vncl-blade",
+    "alt": "Hologram of the Vanduul Blade, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-blade-holo.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-blade-holo-640.webp"
+     }
+    ]
+   },
+   {
+    "key": "vncl-stinger-holo",
+    "art": "holo",
+    "thema": "vncl-stinger",
+    "alt": "Hologram of the Vanduul Stinger, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1120,
+      "h": 630,
+      "src": "/assets/patch-4-10-3/render/vncl-stinger-holo.webp"
+     },
+     {
+      "w": 640,
+      "h": 360,
+      "src": "/assets/patch-4-10-3/render/vncl-stinger-holo-640.webp"
+     }
+    ]
+   }
+  ]
+ },
+ "neueSchiffe": [
+  {
+   "id": "rsi-galaxy",
+   "hersteller": "Roberts Space Industries",
+   "name": "Galaxy",
+   "link": {
+    "t": "Galaxy",
+    "h": "/schiffe/rsi-galaxy.html"
+   },
+   "text": "The central module sets the role. The cargo module takes the hold from 64 to 720 SCU and adds an industrial lift and tractor beam consoles. The med bay module turns the Galaxy into a field hospital with tier 1 to 3 medbeds.",
+   "werte": [
+    {
+     "k": "Role",
+     "v": [
+      "Modular"
+     ]
+    },
+    {
+     "k": "Minimum crew",
+     "v": [
+      "6"
+     ]
+    },
+    {
+     "k": "Hull / shield",
+     "v": [
+      "148,700 / 200,000 HP"
+     ]
+    },
+    {
+     "k": "SCM / Max",
+     "v": [
+      "145 / 950 m/s"
+     ]
+    },
+    {
+     "k": "Cargo",
+     "v": [
+      "64 SCU, 720 SCU with the cargo module"
+     ]
+    },
+    {
+     "k": "Missiles",
+     "v": [
+      "32 × ",
+      {
+       "t": "Tempest II",
+       "h": "/items/tempest-ii-missile.html"
+      }
+     ]
+    }
+   ],
+   "module": [
+    {
+     "t": "Cargo Module",
+     "h": "/items/galaxy-cargo-module.html"
+    },
+    {
+     "t": "Med Bay Module",
+     "h": "/items/galaxy-med-bay-module.html"
+    },
+    {
+     "t": "Stock Module",
+     "h": "/items/galaxy-stock-module.html"
+    },
+    {
+     "t": "Lephari radar",
+     "h": "/items/lephari.html"
+    }
+   ],
+   "vergleich": {
+    "schiff": {
+     "t": "Constellation Mk IV Andromeda",
+     "h": "/schiffe/rsi-constellation-andromeda.html"
+    },
+    "werte": [
+     {
+      "k": "Minimum crew",
+      "dieses": "6",
+      "jenes": "4"
+     },
+     {
+      "k": "Hull",
+      "dieses": "148,700 HP",
+      "jenes": "103,004 HP"
+     },
+     {
+      "k": "Shield",
+      "dieses": "200,000 HP",
+      "jenes": "100,000 HP"
+     },
+     {
+      "k": "SCM",
+      "dieses": "145 m/s",
+      "jenes": "190 m/s"
+     },
+     {
+      "k": "Max",
+      "dieses": "950 m/s",
+      "jenes": "1,000 m/s"
+     },
+     {
+      "k": "Cargo",
+      "dieses": "64 SCU",
+      "jenes": "96 SCU"
+     }
+    ]
+   },
+   "hologramm": {
+    "key": "rsi-galaxy-hologramm",
+    "art": "holo",
+    "thema": "rsi-galaxy",
+    "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+    "groessen": [
+     {
+      "w": 1600,
+      "h": 900,
+      "src": "/assets/patch-4-10-3/rsi-galaxy-holo.webp"
+     }
+    ]
+   },
+   "bilder": [
+    {
+     "key": "rsi-galaxy",
+     "art": "rsi",
+     "thema": "rsi-galaxy",
+     "alt": "RSI Galaxy, a large dark modular ship with blue accents, flying above clouds",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 823,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-1920.webp",
+       "avif": "/assets/patch-4-10-3/rsi/rsi-galaxy-1920.avif"
+      },
+      {
+       "w": 1200,
+       "h": 514,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 274,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg"
+    },
+    {
+     "key": "rsi-galaxy-flug",
+     "art": "rsi",
+     "thema": "rsi-galaxy",
+     "alt": "RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 960,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 600,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 320,
+       "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-640.webp"
+      }
+     ],
+     "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy"
+    },
+    {
+     "key": "rsi-galaxy",
+     "art": "render",
+     "thema": "rsi-galaxy",
+     "alt": "Model of the RSI Galaxy, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "rsi-galaxy-holo",
+     "art": "holo",
+     "thema": "rsi-galaxy",
+     "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/rsi-galaxy-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "rsi-galaxy-hologramm",
+     "art": "holo",
+     "thema": "rsi-galaxy",
+     "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1600,
+       "h": 900,
+       "src": "/assets/patch-4-10-3/rsi-galaxy-holo.webp"
+      }
+     ]
+    }
+   ],
+   "stand": "4.10.3"
+  },
+  {
+   "id": "anvl-liberator",
+   "hersteller": "Anvil Aerospace",
+   "name": "Liberator",
+   "link": {
+    "t": "Liberator",
+    "h": "/schiffe/anvl-liberator.html"
+   },
+   "text": "Ground vehicles drive up the rear ramp into the vehicle bay. Ships fit in the interior hangar or set down on pads inside the hull and along the top. Ships and vehicles aboard can be repaired, rearmed and refuelled there.",
+   "werte": [
+    {
+     "k": "Role",
+     "v": [
+      "Light carrier · capital"
+     ]
+    },
+    {
+     "k": "Hull / shield",
+     "v": [
+      "275,000 / 211,200 HP"
+     ]
+    },
+    {
+     "k": "SCM / Max",
+     "v": [
+      "115 / 950 m/s"
+     ]
+    },
+    {
+     "k": "Cargo",
+     "v": [
+      "400 SCU"
+     ]
+    },
+    {
+     "k": "Turrets",
+     "v": [
+      "4 × ",
+      {
+       "t": "Panther",
+       "h": "/items/cf-337-panther-repeater.html"
+      },
+      " · 2 × ",
+      {
+       "t": "Galdereen",
+       "h": "/items/cf-557-galdereen-repeater.html"
+      }
+     ]
+    }
+   ],
+   "module": [],
+   "vergleich": {
+    "schiff": {
+     "t": "Carrack",
+     "h": "/schiffe/anvl-carrack.html"
+    },
+    "werte": [
+     {
+      "k": "Minimum crew",
+      "dieses": "2",
+      "jenes": "6"
+     },
+     {
+      "k": "Hull",
+      "dieses": "275,000 HP",
+      "jenes": "88,000 HP"
+     },
+     {
+      "k": "Shield",
+      "dieses": "211,200 HP",
+      "jenes": "144,000 HP"
+     },
+     {
+      "k": "SCM",
+      "dieses": "115 m/s",
+      "jenes": "140 m/s"
+     },
+     {
+      "k": "Max",
+      "dieses": "950 m/s",
+      "jenes": "1,050 m/s"
+     },
+     {
+      "k": "Cargo",
+      "dieses": "400 SCU",
+      "jenes": "456 SCU"
+     }
+    ]
+   },
+   "hologramm": {
+    "key": "anvl-liberator-hologramm",
+    "art": "holo",
+    "thema": "anvl-liberator",
+    "alt": "Hologram of the Anvil Liberator, side three-quarter view",
+    "groessen": [
+     {
+      "w": 1600,
+      "h": 854,
+      "src": "/assets/patch-4-10-3/anvl-liberator-holo.webp"
+     }
+    ]
+   },
+   "bilder": [
+    {
+     "key": "anvl-liberator",
+     "art": "rsi",
+     "thema": "anvl-liberator",
+     "alt": "Anvil Liberator with large twin engines on an airfield, smaller ships flying behind it",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1080,
+       "src": "/assets/patch-4-10-3/rsi/anvl-liberator-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 675,
+       "src": "/assets/patch-4-10-3/rsi/anvl-liberator-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/rsi/anvl-liberator-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/k2zu1md2ulfxn/source.png"
+    },
+    {
+     "key": "anvl-liberator",
+     "art": "render",
+     "thema": "anvl-liberator",
+     "alt": "Model of the Anvil Liberator, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-liberator-holo",
+     "art": "holo",
+     "thema": "anvl-liberator",
+     "alt": "Hologram of the Anvil Liberator, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-liberator-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-liberator-hologramm",
+     "art": "holo",
+     "thema": "anvl-liberator",
+     "alt": "Hologram of the Anvil Liberator, side three-quarter view",
+     "groessen": [
+      {
+       "w": 1600,
+       "h": 854,
+       "src": "/assets/patch-4-10-3/anvl-liberator-holo.webp"
+      }
+     ]
+    }
+   ],
+   "stand": "4.10.3"
+  }
+ ],
+ "auec": {
+  "titel": "Now for aUEC",
+  "lead": [
+   "Eight ships that already flew can be ",
+   {
+    "b": "bought in game for the first time"
+   },
+   "."
+  ],
+  "schiffe": [
+   {
+    "id": "aegs-tiburon",
+    "name": "Tiburon",
+    "hersteller": "Aegis Dynamics",
+    "link": {
+     "t": "Tiburon",
+     "h": "/schiffe/aegs-tiburon.html"
+    },
+    "vorschau": "https://media.starcitizen.tools/thumb/d/d1/Tiburon_flying_over_world_firing_weapons_-_cropped.jpg/320px-Tiburon_flying_over_world_firing_weapons_-_cropped.jpg.webp?aikj6",
+    "angebote": [
+     {
+      "haendler": "New Deal",
+      "ort": "Lorville",
+      "preis": 37001700
+     }
+    ],
+    "bilder": [
+     {
+      "key": "aegs-tiburon",
+      "art": "rsi",
+      "thema": "aegs-tiburon",
+      "alt": "Aegis Tiburon firing in a greenish asteroid field",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/aegs-tiburon-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/aegs-tiburon-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/aegs-tiburon-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/yqgidk6parmtz/source.jpg"
+     },
+     {
+      "key": "aegs-tiburon",
+      "art": "render",
+      "thema": "aegs-tiburon",
+      "alt": "Model of the Aegis Tiburon, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/aegs-tiburon.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/aegs-tiburon-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "aegs-tiburon-holo",
+      "art": "holo",
+      "thema": "aegs-tiburon",
+      "alt": "Hologram of the Aegis Tiburon, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/aegs-tiburon-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/aegs-tiburon-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "misc-starlite",
+    "name": "Starlite",
+    "hersteller": "Musashi Industrial and Starflight Concern",
+    "link": {
+     "t": "Starlite",
+     "h": "/schiffe/misc-starlite.html"
+    },
+    "vorschau": null,
+    "angebote": [
+     {
+      "haendler": "New Deal",
+      "ort": "Lorville",
+      "preis": 1058400
+     },
+     {
+      "haendler": "Teach's Ship Shop",
+      "ort": "Levski",
+      "preis": 1058400
+     }
+    ],
+    "bilder": [
+     {
+      "key": "misc-starlite",
+      "art": "rsi",
+      "thema": "misc-starlite",
+      "alt": "MISC Starlite, a silver-grey ship, resting on the ground at night among palms",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/misc-starlite-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/misc-starlite-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/misc-starlite-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/6cdv5u7nvigrn/source.jpg"
+     },
+     {
+      "key": "misc-starlite",
+      "art": "render",
+      "thema": "misc-starlite",
+      "alt": "Model of the MISC Starlite, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/misc-starlite.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/misc-starlite-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "misc-starlite-holo",
+      "art": "holo",
+      "thema": "misc-starlite",
+      "alt": "Hologram of the MISC Starlite, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/misc-starlite-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/misc-starlite-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "drak-ironclad",
+    "name": "Ironclad",
+    "hersteller": "Drake Interplanetary",
+    "link": {
+     "t": "Ironclad",
+     "h": "/schiffe/drak-ironclad.html"
+    },
+    "vorschau": "https://media.starcitizen.tools/thumb/6/69/Ironclad_flying_away_from_world_-_cropped.png/320px-Ironclad_flying_away_from_world_-_cropped.png.webp?k60s0",
+    "angebote": [
+     {
+      "haendler": "Teach's Ship Shop",
+      "ort": "Levski",
+      "preis": 41773300
+     }
+    ],
+    "bilder": [
+     {
+      "key": "drak-ironclad",
+      "art": "rsi",
+      "thema": "drak-ironclad",
+      "alt": "Drake Ironclad, an armored freighter, flying past a planet",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/drak-ironclad-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/drak-ironclad-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/drak-ironclad-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/g948zfjuiznu4/source.jpg"
+     },
+     {
+      "key": "drak-ironclad",
+      "art": "render",
+      "thema": "drak-ironclad",
+      "alt": "Model of the Drake Ironclad, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "drak-ironclad-holo",
+      "art": "holo",
+      "thema": "drak-ironclad",
+      "alt": "Hologram of the Drake Ironclad, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "drak-pitbull",
+    "name": "Pitbull",
+    "hersteller": "Drake Interplanetary",
+    "link": {
+     "t": "Pitbull",
+     "h": "/schiffe/drak-pitbull.html"
+    },
+    "vorschau": "https://media.starcitizen.tools/thumb/3/32/Pitbull_swarm_flying_over_world_-_cropped.jpg/320px-Pitbull_swarm_flying_over_world_-_cropped.jpg.webp?o66q8",
+    "angebote": [
+     {
+      "haendler": "Teach's Ship Shop",
+      "ort": "Levski",
+      "preis": 637875
+     },
+     {
+      "haendler": "Buy and Fly",
+      "ort": "Ruin Station, Checkmate and Orbituary · Pyro",
+      "preis": 605982
+     }
+    ],
+    "bilder": [
+     {
+      "key": "drak-pitbull",
+      "art": "rsi",
+      "thema": "drak-pitbull",
+      "alt": "Drake Pitbull flying with engine flares through a large industrial shaft",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/drak-pitbull-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/drak-pitbull-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/drak-pitbull-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/9jazkmawt8ggi/source.jpg"
+     },
+     {
+      "key": "drak-pitbull",
+      "art": "render",
+      "thema": "drak-pitbull",
+      "alt": "Model of the Drake Pitbull, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-pitbull.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-pitbull-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "drak-pitbull-holo",
+      "art": "holo",
+      "thema": "drak-pitbull",
+      "alt": "Hologram of the Drake Pitbull, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-pitbull-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-pitbull-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "drak-ironclad-assault",
+    "name": "Ironclad Assault",
+    "hersteller": "Drake Interplanetary",
+    "link": {
+     "t": "Ironclad Assault",
+     "h": "/schiffe/drak-ironclad-assault.html"
+    },
+    "vorschau": "https://media.starcitizen.tools/thumb/c/c8/Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg/320px-Ironclad_Assault_flying_over_ground_attacking_ground_vehicles_-_cropped.jpg.webp?hrdso",
+    "angebote": [
+     {
+      "haendler": "Buy and Fly",
+      "ort": "Ruin Station, Checkmate and Orbituary · Pyro",
+      "preis": 42880200
+     }
+    ],
+    "bilder": [
+     {
+      "key": "drak-ironclad-assault",
+      "art": "rsi",
+      "thema": "drak-ironclad-assault",
+      "alt": "Drake Ironclad Assault seen from below with a yellow hull and weapons, smoke behind it",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/drak-ironclad-assault-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/drak-ironclad-assault-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/drak-ironclad-assault-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/llaw71tcvmgmy/source.jpg"
+     },
+     {
+      "key": "drak-ironclad-assault",
+      "art": "render",
+      "thema": "drak-ironclad-assault",
+      "alt": "Model of the Drake Ironclad Assault, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-assault.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-assault-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "drak-ironclad-assault-holo",
+      "art": "holo",
+      "thema": "drak-ironclad-assault",
+      "alt": "Hologram of the Drake Ironclad Assault, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-assault-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-ironclad-assault-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "glsn-basher",
+    "name": "Basher",
+    "hersteller": "Grey's Market",
+    "link": {
+     "t": "Basher",
+     "h": "/schiffe/glsn-basher.html"
+    },
+    "vorschau": "/assets/img-basher.jpg",
+    "angebote": [
+     {
+      "haendler": "Buy and Fly",
+      "ort": "Ruin Station, Checkmate and Orbituary · Pyro",
+      "preis": 3174190
+     }
+    ],
+    "bilder": [
+     {
+      "key": "glsn-basher",
+      "art": "rsi",
+      "thema": "glsn-basher",
+      "alt": "Grey's Basher tilting through a dust cloud in a desert with more racers behind it",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/glsn-basher-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/glsn-basher-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/glsn-basher-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/h84m7m1hw0dcq/source.jpg"
+     },
+     {
+      "key": "glsn-basher",
+      "art": "render",
+      "thema": "glsn-basher",
+      "alt": "Model of the Grey's Market Basher, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/glsn-basher.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/glsn-basher-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "glsn-basher-holo",
+      "art": "holo",
+      "thema": "glsn-basher",
+      "alt": "Hologram of the Grey's Market Basher, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/glsn-basher-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/glsn-basher-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "orig-m80",
+    "name": "M80",
+    "hersteller": "Origin Jumpworks",
+    "link": {
+     "t": "M80",
+     "h": "/schiffe/orig-m80.html"
+    },
+    "vorschau": "https://media.starcitizen.tools/thumb/4/4f/M80_flying_over_mountains_before_sun_rise_-_cropped.png/320px-M80_flying_over_mountains_before_sun_rise_-_cropped.png.webp?9gsfe",
+    "angebote": [
+     {
+      "haendler": "Astro Armada",
+      "ort": "Area18",
+      "preis": 7938000
+     }
+    ],
+    "bilder": [
+     {
+      "key": "orig-m80",
+      "art": "rsi",
+      "thema": "orig-m80",
+      "alt": "Origin M80, a sleek light-coloured ship, flying over mountains at dusk",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/orig-m80-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/orig-m80-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/orig-m80-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/nledgsyyzmjov/source.jpg"
+     },
+     {
+      "key": "orig-m80",
+      "art": "render",
+      "thema": "orig-m80",
+      "alt": "Model of the Origin M80, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/orig-m80.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/orig-m80-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "orig-m80-holo",
+      "art": "holo",
+      "thema": "orig-m80",
+      "alt": "Hologram of the Origin M80, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/orig-m80-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/orig-m80-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   },
+   {
+    "id": "gama-tyilui",
+    "name": "Tyilui",
+    "hersteller": "Gatac Manufacture",
+    "link": {
+     "t": "Tyilui",
+     "h": "/schiffe/gama-tyilui.html"
+    },
+    "vorschau": "https://media.starcitizen.tools/thumb/d/d7/Tyilui.webp/320px-Tyilui.webp",
+    "angebote": [
+     {
+      "haendler": "Astro Armada",
+      "ort": "Area18",
+      "preis": 9436330
+     }
+    ],
+    "bilder": [
+     {
+      "key": "gama-tyilui",
+      "art": "rsi",
+      "thema": "gama-tyilui",
+      "alt": "Gatac Tyilui with two long wings flying over a red planet surface",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 823,
+        "src": "/assets/patch-4-10-3/rsi/gama-tyilui-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 514,
+        "src": "/assets/patch-4-10-3/rsi/gama-tyilui-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 274,
+        "src": "/assets/patch-4-10-3/rsi/gama-tyilui-640.webp"
+       }
+      ],
+      "quelle": "https://media.robertsspaceindustries.com/fojrwsximct23/source.jpg"
+     },
+     {
+      "key": "gama-tyilui",
+      "art": "render",
+      "thema": "gama-tyilui",
+      "alt": "Model of the Gatac Tyilui, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/gama-tyilui.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/gama-tyilui-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "gama-tyilui-holo",
+      "art": "holo",
+      "thema": "gama-tyilui",
+      "alt": "Hologram of the Gatac Tyilui, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/gama-tyilui-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/gama-tyilui-holo-640.webp"
+       }
+      ]
+     }
+    ],
+    "stand": "4.10.3",
+    "preiseVom": "2026-11-14"
+   }
+  ],
+  "bildnachweis": "Ship images: starcitizen.tools"
+ },
+ "werte": [
+  {
+   "id": "radar",
+   "titel": "Size 3 radar",
+   "tag": "size 2 → 3",
+   "inNotes": true,
+   "einheit": null,
+   "zeilen": [
+    {
+     "schiffe": [
+      {
+       "t": "Carrack",
+       "h": "/schiffe/anvl-carrack.html"
+      },
+      {
+       "t": "Expedition",
+       "h": "/schiffe/anvl-carrack-expedition.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       {
+        "t": "Surveyor",
+        "h": "/items/surveyor.html"
+       }
+      ]
+     },
+     "nachher": {
+      "v": [
+       {
+        "t": "Surveyor-Max",
+        "h": "/items/surveyor-max.html"
+       }
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Starlancer MAX",
+       "h": "/schiffe/misc-starlancer-max.html"
+      },
+      {
+       "t": "TAC",
+       "h": "/schiffe/misc-starlancer-tac.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       {
+        "t": "Surveyor",
+        "h": "/items/surveyor.html"
+       }
+      ]
+     },
+     "nachher": {
+      "v": [
+       {
+        "t": "Surveyor-Max",
+        "h": "/items/surveyor-max.html"
+       }
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Perseus",
+       "h": "/schiffe/rsi-perseus.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       {
+        "t": "Epier",
+        "h": "/items/epier.html"
+       }
+      ]
+     },
+     "nachher": {
+      "v": [
+       {
+        "t": "Resolu",
+        "h": "/items/resolu.html"
+       }
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Hammerhead",
+       "h": "/schiffe/aegs-hammerhead.html"
+      },
+      {
+       "t": "Tiburon",
+       "h": "/schiffe/aegs-tiburon.html"
+      }
+     ],
+     "was": [],
+     "vorher": null,
+     "schon": true,
+     "nachher": {
+      "v": [
+       {
+        "t": "Resolu",
+        "h": "/items/resolu.html"
+       }
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    }
+   ],
+   "notiz": [
+    "The Perseus now has its relay on a console, and the Starlancer's radar sits in engineering."
+   ],
+   "bilder": [
+    {
+     "key": "anvl-carrack",
+     "art": "render",
+     "thema": "anvl-carrack",
+     "alt": "Model of the Anvil Carrack, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "rsi-perseus",
+     "art": "render",
+     "thema": "rsi-perseus",
+     "alt": "Model of the RSI Perseus, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/rsi-perseus.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/rsi-perseus-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "misc-starlancer-max",
+     "art": "render",
+     "thema": "misc-starlancer-max",
+     "alt": "Model of the MISC Starlancer MAX, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/misc-starlancer-max.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/misc-starlancer-max-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "anvl-carrack-holo",
+     "art": "holo",
+     "thema": "anvl-carrack",
+     "alt": "Hologram of the Anvil Carrack, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/anvl-carrack-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "rsi-perseus-holo",
+     "art": "holo",
+     "thema": "rsi-perseus",
+     "alt": "Hologram of the RSI Perseus, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/rsi-perseus-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/rsi-perseus-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "misc-starlancer-max-holo",
+     "art": "holo",
+     "thema": "misc-starlancer-max",
+     "alt": "Hologram of the MISC Starlancer MAX, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/misc-starlancer-max-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/misc-starlancer-max-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "salvage",
+   "titel": "Salvage buffer",
+   "tag": "SCU",
+   "inNotes": true,
+   "einheit": "SCU",
+   "zeilen": [
+    {
+     "schiffe": [
+      {
+       "t": "Reclaimer",
+       "h": "/schiffe/aegs-reclaimer.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       "240"
+      ],
+      "zahl": 240
+     },
+     "nachher": {
+      "v": [
+       "448"
+      ],
+      "zahl": 448
+     },
+     "delta": 87,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "MOTH",
+       "h": "/schiffe/argo-moth.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       "64"
+      ],
+      "zahl": 64
+     },
+     "nachher": {
+      "v": [
+       "240"
+      ],
+      "zahl": 240
+     },
+     "delta": 275,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Vulture",
+       "h": "/schiffe/drak-vulture.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       "13"
+      ],
+      "zahl": 13
+     },
+     "nachher": {
+      "v": [
+       "16"
+      ],
+      "zahl": 16
+     },
+     "delta": 23,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Fortune",
+       "h": "/schiffe/misc-fortune.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       "13"
+      ],
+      "zahl": 13
+     },
+     "nachher": {
+      "v": [
+       "14"
+      ],
+      "zahl": 14
+     },
+     "delta": 8,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Salvation",
+       "h": "/schiffe/rsi-salvation.html"
+      }
+     ],
+     "was": [],
+     "vorher": {
+      "v": [
+       "6"
+      ],
+      "zahl": 6
+     },
+     "nachher": {
+      "v": [
+       "8"
+      ],
+      "zahl": 8
+     },
+     "delta": 33,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    }
+   ],
+   "notiz": [
+    "The disintegration field is larger, and the beam needs less precise alignment."
+   ],
+   "bilder": [
+    {
+     "key": "aegs-reclaimer",
+     "art": "render",
+     "thema": "aegs-reclaimer",
+     "alt": "Model of the Aegis Reclaimer, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "argo-moth",
+     "art": "render",
+     "thema": "argo-moth",
+     "alt": "Model of the Argo MOTH, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/argo-moth.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/argo-moth-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "drak-vulture",
+     "art": "render",
+     "thema": "drak-vulture",
+     "alt": "Model of the Drake Vulture, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/drak-vulture.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/drak-vulture-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-reclaimer-holo",
+     "art": "holo",
+     "thema": "aegs-reclaimer",
+     "alt": "Hologram of the Aegis Reclaimer, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-reclaimer-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "argo-moth-holo",
+     "art": "holo",
+     "thema": "argo-moth",
+     "alt": "Hologram of the Argo MOTH, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/argo-moth-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/argo-moth-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "drak-vulture-holo",
+     "art": "holo",
+     "thema": "drak-vulture",
+     "alt": "Hologram of the Drake Vulture, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/drak-vulture-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/drak-vulture-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kampf",
+   "titel": "Combat",
+   "tag": "Vanduul, bounties, weapons",
+   "inNotes": true,
+   "einheit": null,
+   "zeilen": [
+    {
+     "schiffe": [],
+     "was": [
+      {
+       "t": "Mauler \"STRIKER\", energy damage per shot",
+       "h": "/items/vanduul-mauler-striker-repeater.html"
+      }
+     ],
+     "vorher": {
+      "v": [
+       "64"
+      ],
+      "zahl": 64
+     },
+     "nachher": {
+      "v": [
+       "250"
+      ],
+      "zahl": 250
+     },
+     "delta": 291,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [],
+     "was": [
+      "Mauler \"STRIKER\", DPS"
+     ],
+     "vorher": {
+      "v": [
+       "about 800"
+      ],
+      "zahl": 800
+     },
+     "nachher": {
+      "v": [
+       "3,125"
+      ],
+      "zahl": 3125
+     },
+     "delta": 291,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [],
+     "was": [
+      "High Risk Target, Bounty Hunters Guild rep"
+     ],
+     "vorher": {
+      "v": [
+       "2,000"
+      ],
+      "zahl": 2000
+     },
+     "nachher": {
+      "v": [
+       "4,000"
+      ],
+      "zahl": 4000
+     },
+     "delta": 100,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [],
+     "was": [
+      "Size 5 and 7 torpedoes"
+     ],
+     "vorher": null,
+     "nachher": {
+      "v": [
+       "armed from 700 m"
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [],
+     "was": [
+      "Bomb racks size 1 and 3, left and right"
+     ],
+     "vorher": null,
+     "nachher": {
+      "v": [
+       "now at the weapon kiosk in the Crusader showroom in Orison"
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    }
+   ],
+   "notiz": [
+    "Vanduul AI carries more ammo and regenerates it faster, while the Mauler has less health."
+   ],
+   "bilder": [
+    {
+     "key": "vncl-scythe",
+     "art": "rsi",
+     "thema": "vncl-scythe",
+     "alt": "Vanduul Scythe with sweeping wings in front of a reddish planet, engine glowing",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1080,
+       "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1920.webp"
+      },
+      {
+       "w": 1200,
+       "h": 675,
+       "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/rsi/vncl-scythe-640.webp"
+      }
+     ],
+     "quelle": "https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg"
+    },
+    {
+     "key": "vanduul-angriff",
+     "art": "rsi",
+     "thema": "vanduul-incursion",
+     "alt": "Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 960,
+       "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp",
+       "avif": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.avif"
+      },
+      {
+       "w": 1200,
+       "h": 600,
+       "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1200.webp"
+      },
+      {
+       "w": 640,
+       "h": 320,
+       "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-640.webp"
+      }
+     ],
+     "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion"
+    },
+    {
+     "key": "vanduul-szene",
+     "art": "szene",
+     "thema": "vanduul-incursion",
+     "alt": "Vanduul ships on approach: a Scythe up front, more Vanduul ships behind it against a dark nebula",
+     "groessen": [
+      {
+       "w": 1920,
+       "h": 1080,
+       "src": "/assets/patch-4-10-3/render/vanduul-szene.webp"
+      },
+      {
+       "w": 1200,
+       "h": 675,
+       "src": "/assets/patch-4-10-3/render/vanduul-szene-1200.webp"
+      }
+     ]
+    },
+    {
+     "key": "vncl-scythe",
+     "art": "render",
+     "thema": "vncl-scythe",
+     "alt": "Model of the Vanduul Scythe, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "vncl-scythe-holo",
+     "art": "holo",
+     "thema": "vncl-scythe",
+     "alt": "Hologram of the Vanduul Scythe, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/vncl-scythe-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vanguard",
+   "titel": "Vanguard",
+   "tag": "not in the notes",
+   "inNotes": false,
+   "einheit": null,
+   "zeilen": [
+    {
+     "schiffe": [
+      {
+       "t": "Warden",
+       "h": "/schiffe/aegs-vanguard.html"
+      },
+      {
+       "t": "Hoplite",
+       "h": "/schiffe/aegs-vanguard-hoplite.html"
+      }
+     ],
+     "was": [
+      "Turret DPS"
+     ],
+     "vorher": {
+      "v": [
+       "400"
+      ],
+      "zahl": 400
+     },
+     "nachher": {
+      "v": [
+       "750"
+      ],
+      "zahl": 750
+     },
+     "delta": 88,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Sentinel",
+       "h": "/schiffe/aegs-vanguard-sentinel.html"
+      }
+     ],
+     "was": [
+      "Turret gun"
+     ],
+     "vorher": {
+      "v": [
+       {
+        "t": "Suckerpunch-L",
+        "h": "/items/suckerpunch-l-cannon.html"
+       }
+      ]
+     },
+     "nachher": {
+      "v": [
+       {
+        "t": "Suckerpunch-XL",
+        "h": "/items/suckerpunch-xl-cannon.html"
+       }
+      ]
+     },
+     "delta": null,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    },
+    {
+     "schiffe": [
+      {
+       "t": "Harbinger",
+       "h": "/schiffe/aegs-vanguard-harbinger.html"
+      }
+     ],
+     "was": [
+      "Turret guns"
+     ],
+     "vorher": {
+      "v": [
+       "2"
+      ],
+      "zahl": 2
+     },
+     "nachher": {
+      "v": [
+       "3"
+      ],
+      "zahl": 3
+     },
+     "delta": 50,
+     "vorherStand": "4.10.2",
+     "stand": "4.10.3"
+    }
+   ],
+   "notiz": [
+    "Warden and Hoplite carry the size 3 ",
+    {
+     "t": "SW16BR3 \"Shredder\"",
+     "h": "/items/sw16br3-shredder-repeater.html"
+    },
+    " in the turret instead of the size 2 ",
+    {
+     "t": "\"Sawbuck\"",
+     "h": "/items/sw16br2-sawbuck-repeater.html"
+    },
+    "."
+   ],
+   "bilder": [
+    {
+     "key": "aegs-vanguard",
+     "art": "render",
+     "thema": "aegs-vanguard",
+     "alt": "Model of the Aegis Vanguard Warden, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-hoplite",
+     "art": "render",
+     "thema": "aegs-vanguard-hoplite",
+     "alt": "Model of the Aegis Vanguard Hoplite, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-sentinel",
+     "art": "render",
+     "thema": "aegs-vanguard-sentinel",
+     "alt": "Model of the Aegis Vanguard Sentinel, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-harbinger",
+     "art": "render",
+     "thema": "aegs-vanguard-harbinger",
+     "alt": "Model of the Aegis Vanguard Harbinger, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-holo",
+     "art": "holo",
+     "thema": "aegs-vanguard",
+     "alt": "Hologram of the Aegis Vanguard Warden, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-hoplite-holo",
+     "art": "holo",
+     "thema": "aegs-vanguard-hoplite",
+     "alt": "Hologram of the Aegis Vanguard Hoplite, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-sentinel-holo",
+     "art": "holo",
+     "thema": "aegs-vanguard-sentinel",
+     "alt": "Hologram of the Aegis Vanguard Sentinel, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-holo-640.webp"
+      }
+     ]
+    },
+    {
+     "key": "aegs-vanguard-harbinger-holo",
+     "art": "holo",
+     "thema": "aegs-vanguard-harbinger",
+     "alt": "Hologram of the Aegis Vanguard Harbinger, front three-quarter view",
+     "groessen": [
+      {
+       "w": 1120,
+       "h": 630,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-holo.webp"
+      },
+      {
+       "w": 640,
+       "h": 360,
+       "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-holo-640.webp"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ausruestung": {
+  "titel": "Gear and blueprints",
+  "bauplaeneNeu": 17,
+  "karten": [
+   {
+    "id": "skarnov",
+    "titel": "Skarnov",
+    "tag": "Energy rifle",
+    "marken": [
+     "neu"
+    ],
+    "stand": "4.10.3",
+    "text": [
+     "New in five versions. The \"Raider Camo\" version and its battery come as a blueprint from the InterSec contract ",
+     {
+      "t": "Intersec Eliminate Specific Rank1",
+      "h": "/missionen/intersec-eliminate-specific-rank1.html"
+     },
+     "."
+    ],
+    "liste": [
+     {
+      "k": "Versions",
+      "v": [
+       {
+        "t": "Skarnov",
+        "h": "/items/skarnov-rifle.html"
+       },
+       {
+        "t": "„Ferrite“",
+        "h": "/items/skarnov-ferrite-rifle.html"
+       },
+       {
+        "t": "„Relay“",
+        "h": "/items/skarnov-relay-rifle.html"
+       },
+       {
+        "t": "„Sparkplug“",
+        "h": "/items/skarnov-sparkplug-rifle.html"
+       },
+       {
+        "t": "„Raider Camo“",
+        "h": "/items/skarnov-raider-camo-rifle.html"
+       }
+      ]
+     },
+     {
+      "k": "Ammo",
+      "v": [
+       {
+        "t": "Battery (30 cap)",
+        "h": "/items/skarnov-rifle-battery-30-cap.html"
+       }
+      ]
+     }
+    ],
+    "bilder": []
+   },
+   {
+    "id": "raider-camo",
+    "titel": "Raider Camo",
+    "tag": "Blueprints",
+    "marken": [
+     "neu"
+    ],
+    "stand": "4.10.3",
+    "text": [
+     "\"Raider Camo\" comes as a blueprint for three armour sets, three ship cannons and the Skarnov."
+    ],
+    "liste": [
+     {
+      "k": "Armour",
+      "v": [
+       {
+        "t": "Corbel",
+        "h": "/crafting/corbel-core-raider-camo.html"
+       },
+       {
+        "t": "Palatino",
+        "h": "/crafting/palatino-core-raider-camo.html"
+       },
+       {
+        "t": "Tailwind",
+        "h": "/crafting/tailwind-flight-suit-raider-camo.html"
+       }
+      ]
+     },
+     {
+      "k": "Ship cannons",
+      "v": [
+       {
+        "t": "M3A",
+        "h": "/crafting/m3a-cannon-raider-camo.html"
+       },
+       {
+        "t": "M4A",
+        "h": "/crafting/m4a-cannon-raider-camo.html"
+       },
+       {
+        "t": "M5A",
+        "h": "/crafting/m5a-cannon-raider-camo.html"
+       }
+      ]
+     },
+     {
+      "k": "Rifle",
+      "v": [
+       {
+        "t": "Skarnov",
+        "h": "/crafting/skarnov-raider-camo-rifle.html"
+       }
+      ]
+     }
+    ],
+    "bilder": []
+   },
+   {
+    "id": "deterrent",
+    "titel": "Deterrent · Lephari",
+    "tag": "Components",
+    "marken": [
+     "neu",
+     "umbenannt"
+    ],
+    "stand": "4.10.3",
+    "text": [
+     "The RSI size 4 shield called \"Glacis\" up to ",
+     {
+      "t": "4.10.2",
+      "h": "/patches/sc-4-10-2.html"
+     },
+     " is now named ",
+     {
+      "t": "Deterrent",
+      "h": "/items/deterrent.html"
+     },
+     ". The ",
+     {
+      "t": "Polaris",
+      "h": "/schiffe/rsi-polaris.html"
+     },
+     " carries it from the factory. The ",
+     {
+      "t": "Glacis",
+      "h": "/items/glacis.html"
+     },
+     " name now belongs to a new Origin size 4 shield. ",
+     {
+      "t": "Lephari",
+      "h": "/items/lephari.html"
+     },
+     " is a size 3 civilian radar for the ",
+     {
+      "t": "Galaxy",
+      "h": "/schiffe/rsi-galaxy.html"
+     },
+     ", ",
+     {
+      "t": "Centaurus",
+      "h": "/schiffe/rsi-constellation-mk5-centaurus.html"
+     },
+     " and ",
+     {
+      "t": "Zeus ES",
+      "h": "/schiffe/rsi-zeus-es.html"
+     },
+     "."
+    ],
+    "liste": [
+     {
+      "k": null,
+      "v": [
+       {
+        "t": "Deterrent blueprint",
+        "h": "/crafting/deterrent.html"
+       }
+      ]
+     },
+     {
+      "k": null,
+      "v": [
+       {
+        "t": "Lephari blueprint",
+        "h": "/crafting/lephari.html"
+       }
+      ]
+     }
+    ],
+    "bilder": []
+   },
+   {
+    "id": "iae-2956",
+    "titel": "IAE 2956",
+    "tag": "Expo keepsakes",
+    "marken": [
+     "neu"
+    ],
+    "stand": "4.10.3",
+    "text": [
+     "Collector coins of the Best in Show ships with a display case, plus a ",
+     {
+      "t": "cap",
+      "h": "/items/iae-2956-hat.html"
+     },
+     ", a ",
+     {
+      "t": "T-Shirt",
+      "h": "/items/iae-2956-t-shirt.html"
+     },
+     " and the ",
+     {
+      "t": "2956 Best in Show Bomber Jacket",
+      "h": "/items/2956-best-in-show-bomber-jacket.html"
+     },
+     ". ",
+     {
+      "t": "Corsair",
+      "h": "/schiffe/drak-corsair.html"
+     },
+     ", ",
+     {
+      "t": "Ironclad Assault",
+      "h": "/schiffe/drak-ironclad-assault.html"
+     },
+     ", ",
+     {
+      "t": "M80",
+      "h": "/schiffe/orig-m80.html"
+     },
+     " and ",
+     {
+      "t": "Perseus",
+      "h": "/schiffe/rsi-perseus.html"
+     },
+     " each get a \"2956 Best In Show\" livery. ",
+     {
+      "t": "Patch notes ↗",
+      "h": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+     }
+    ],
+    "liste": [
+     {
+      "k": "Clothing",
+      "v": [
+       {
+        "t": "Cap",
+        "h": "/items/iae-2956-hat.html"
+       },
+       {
+        "t": "T-Shirt",
+        "h": "/items/iae-2956-t-shirt.html"
+       },
+       {
+        "t": "2956 Best in Show Bomber Jacket",
+        "h": "/items/2956-best-in-show-bomber-jacket.html"
+       }
+      ]
+     },
+     {
+      "k": "\"2956 Best In Show\" livery",
+      "v": [
+       {
+        "t": "Corsair",
+        "h": "/schiffe/drak-corsair.html"
+       },
+       {
+        "t": "Ironclad Assault",
+        "h": "/schiffe/drak-ironclad-assault.html"
+       },
+       {
+        "t": "M80",
+        "h": "/schiffe/orig-m80.html"
+       },
+       {
+        "t": "Perseus",
+        "h": "/schiffe/rsi-perseus.html"
+       }
+      ]
+     }
+    ],
+    "bilder": [
+     {
+      "key": "iae-2956-halle",
+      "art": "rsi",
+      "thema": "iae-2956",
+      "alt": "Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 960,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.webp",
+        "avif": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.avif"
+       },
+       {
+        "w": 1200,
+        "h": 600,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 320,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-640.webp"
+       }
+      ],
+      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956"
+     },
+     {
+      "key": "iae-2956-stadt",
+      "art": "rsi",
+      "thema": "iae-2956",
+      "alt": "Several spaceships flying through a skyscraper city at night with the IAE 2956 emblem behind them",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 960,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 600,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 320,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-640.webp"
+       }
+      ],
+      "quelle": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+     },
+     {
+      "key": "iae-2956-logo",
+      "art": "rsi",
+      "thema": "iae-2956",
+      "alt": "IAE 2956 logo against dark blue sweeping light streaks",
+      "groessen": [
+       {
+        "w": 1920,
+        "h": 960,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1920.webp"
+       },
+       {
+        "w": 1200,
+        "h": 600,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1200.webp"
+       },
+       {
+        "w": 640,
+        "h": 320,
+        "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-640.webp"
+       }
+      ],
+      "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule"
+     },
+     {
+      "key": "drak-corsair",
+      "art": "render",
+      "thema": "drak-corsair",
+      "alt": "Model of the Drake Corsair, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-corsair.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-corsair-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "drak-corsair-holo",
+      "art": "holo",
+      "thema": "drak-corsair",
+      "alt": "Hologram of the Drake Corsair, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/drak-corsair-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/drak-corsair-holo-640.webp"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "id": "namen",
+    "titel": "Names",
+    "tag": "HM6",
+    "marken": [
+     "umbenannt",
+     "entfernt"
+    ],
+    "stand": "4.10.3",
+    "text": [
+     "Anvil's ground vehicles are now called ",
+     {
+      "t": "HM6 Ballista",
+      "h": "/schiffe/anvl-ballista.html"
+     },
+     ", ",
+     {
+      "t": "HM6 Spartan",
+      "h": "/schiffe/anvl-spartan.html"
+     },
+     " and ",
+     {
+      "t": "HM6 Centurion",
+      "h": "/schiffe/anvl-centurion.html"
+     },
+     ". The Phoenix Emerald and the Hammerhead 2949 Best In Show are no longer separate vehicles in the game. Emerald is now a livery for the ",
+     {
+      "t": "Mk IV",
+      "h": "/schiffe/rsi-constellation-phoenix.html"
+     },
+     "."
+    ],
+    "liste": [],
+    "bilder": [
+     {
+      "key": "anvl-ballista",
+      "art": "render",
+      "thema": "anvl-ballista",
+      "alt": "Model of the Anvil HM6 Ballista, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/anvl-ballista.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/anvl-ballista-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "anvl-spartan",
+      "art": "render",
+      "thema": "anvl-spartan",
+      "alt": "Model of the Anvil HM6 Spartan, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/anvl-spartan.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/anvl-spartan-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "anvl-centurion",
+      "art": "render",
+      "thema": "anvl-centurion",
+      "alt": "Model of the Anvil HM6 Centurion, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/anvl-centurion.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/anvl-centurion-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "anvl-ballista-holo",
+      "art": "holo",
+      "thema": "anvl-ballista",
+      "alt": "Hologram of the Anvil HM6 Ballista, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/anvl-ballista-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/anvl-ballista-holo-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "anvl-spartan-holo",
+      "art": "holo",
+      "thema": "anvl-spartan",
+      "alt": "Hologram of the Anvil HM6 Spartan, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/anvl-spartan-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/anvl-spartan-holo-640.webp"
+       }
+      ]
+     },
+     {
+      "key": "anvl-centurion-holo",
+      "art": "holo",
+      "thema": "anvl-centurion",
+      "alt": "Hologram of the Anvil HM6 Centurion, front three-quarter view",
+      "groessen": [
+       {
+        "w": 1120,
+        "h": 630,
+        "src": "/assets/patch-4-10-3/render/anvl-centurion-holo.webp"
+       },
+       {
+        "w": 640,
+        "h": 360,
+        "src": "/assets/patch-4-10-3/render/anvl-centurion-holo-640.webp"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "skarnov": [
+   {
+    "name": "Skarnov",
+    "link": {
+     "t": "Skarnov",
+     "h": "/items/skarnov-rifle.html"
+    },
+    "neu": true,
+    "farbe": null,
+    "toene": [
+     "#3a3d42",
+     "#9aa0a8"
+    ]
+   },
+   {
+    "name": "„Ferrite“",
+    "link": {
+     "t": "„Ferrite“",
+     "h": "/items/skarnov-ferrite-rifle.html"
+    },
+    "neu": true,
+    "farbe": "The Ferrite edition features a deep black stain with metal accents.",
+    "toene": [
+     "#121212",
+     "#8a8d91"
+    ]
+   },
+   {
+    "name": "„Relay“",
+    "link": {
+     "t": "„Relay“",
+     "h": "/items/skarnov-relay-rifle.html"
+    },
+    "neu": true,
+    "farbe": "The Relay edition features a solid metal frame with a gray details.",
+    "toene": [
+     "#8c9096",
+     "#4a4d52"
+    ]
+   },
+   {
+    "name": "„Sparkplug“",
+    "link": {
+     "t": "„Sparkplug“",
+     "h": "/items/skarnov-sparkplug-rifle.html"
+    },
+    "neu": true,
+    "farbe": "The Sparkplug edition stands out with a bright metallic yellow finish along the barrel against a black frame.",
+    "toene": [
+     "#e5c22a",
+     "#121212"
+    ]
+   },
+   {
+    "name": "„Raider Camo“",
+    "link": {
+     "t": "„Raider Camo“",
+     "h": "/items/skarnov-raider-camo-rifle.html"
+    },
+    "neu": true,
+    "farbe": "The Raider Camo edition is a combination of dark greens and browns.",
+    "toene": [
+     "#3b4a2c",
+     "#5a4630"
+    ]
+   }
+  ],
+  "camo": [
+   {
+    "k": "Armour",
+    "v": [
+     {
+      "t": "Corbel",
+      "h": "/crafting/corbel-core-raider-camo.html"
+     },
+     {
+      "t": "Palatino",
+      "h": "/crafting/palatino-core-raider-camo.html"
+     },
+     {
+      "t": "Tailwind",
+      "h": "/crafting/tailwind-flight-suit-raider-camo.html"
+     }
+    ]
+   },
+   {
+    "k": "Ship cannons",
+    "v": [
+     {
+      "t": "M3A",
+      "h": "/crafting/m3a-cannon-raider-camo.html"
+     },
+     {
+      "t": "M4A",
+      "h": "/crafting/m4a-cannon-raider-camo.html"
+     },
+     {
+      "t": "M5A",
+      "h": "/crafting/m5a-cannon-raider-camo.html"
+     }
+    ]
+   },
+   {
+    "k": "Rifle",
+    "v": [
+     {
+      "t": "Skarnov",
+      "h": "/crafting/skarnov-raider-camo-rifle.html"
+     }
+    ]
+   }
+  ]
+ },
+ "bestand": {
+  "zeilen": [
+   {
+    "was": {
+     "t": "Items",
+     "h": "/items.html"
+    },
+    "vorher": 9412,
+    "nachher": 9515,
+    "vorherStand": "4.10.2",
+    "stand": "4.10.3"
+   },
+   {
+    "was": {
+     "t": "Blueprints",
+     "h": "/crafting.html"
+    },
+    "vorher": 1617,
+    "nachher": 1634,
+    "vorherStand": "4.10.2",
+    "stand": "4.10.3"
+   },
+   {
+    "was": {
+     "t": "Mission families",
+     "h": "/missionen.html"
+    },
+    "vorher": 1387,
+    "nachher": 1399,
+    "vorherStand": "4.10.2",
+    "stand": "4.10.3"
+   },
+   {
+    "was": {
+     "t": "Ships and vehicles",
+     "h": "/schiffe.html"
+    },
+    "vorher": 231,
+    "nachher": 235,
+    "vorherStand": "4.10.2",
+    "stand": "4.10.3"
+   }
+  ],
+  "neueFahrzeuge": [
+   {
+    "t": "Galaxy",
+    "h": "/schiffe/rsi-galaxy.html"
+   },
+   {
+    "t": "Liberator",
+    "h": "/schiffe/anvl-liberator.html"
+   },
+   {
+    "t": "ATLS Orange Line",
+    "h": "/schiffe/argo-atls-geo-collector-grad02.html"
+   },
+   {
+    "t": "ATLS IKTI",
+    "h": "/schiffe/argo-atls-ikti.html"
+   },
+   {
+    "t": "ATLS GEO IKTI",
+    "h": "/schiffe/argo-atls-geo-ikti.html"
+   },
+   {
+    "t": "ATLS IKTI Akuma",
+    "h": "/schiffe/argo-atls-geo-ikti-ntls.html"
+   }
+  ],
+  "notiz": [
+   "New ships and vehicles: ",
+   {
+    "t": "Galaxy",
+    "h": "/schiffe/rsi-galaxy.html"
+   },
+   ", ",
+   {
+    "t": "Liberator",
+    "h": "/schiffe/anvl-liberator.html"
+   },
+   ", ",
+   {
+    "t": "ATLS Orange Line",
+    "h": "/schiffe/argo-atls-geo-collector-grad02.html"
+   },
+   ", ",
+   {
+    "t": "ATLS IKTI",
+    "h": "/schiffe/argo-atls-ikti.html"
+   },
+   ", ",
+   {
+    "t": "ATLS GEO IKTI",
+    "h": "/schiffe/argo-atls-geo-ikti.html"
+   },
+   ", ",
+   {
+    "t": "ATLS IKTI Akuma",
+    "h": "/schiffe/argo-atls-geo-ikti-ntls.html"
+   },
+   ". Two editions were removed, see ",
+   {
+    "t": "Names",
+    "h": "#namen"
+   },
+   "."
+  ]
+ },
+ "dossier": {
+  "ziel": "akte",
+  "titel": "Dossier",
+  "text": "Every change as a list, ship table, data status and official notes"
+ },
+ "bilder": [
+  {
+   "key": "iae-2956-halle",
+   "art": "rsi",
+   "thema": "iae-2956",
+   "alt": "Spacefarer in an orange and blue suit in front of a lit archway with the IAE 2956 logo",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 960,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.webp",
+     "avif": "/assets/patch-4-10-3/rsi/iae-2956-halle-1920.avif"
+    },
+    {
+     "w": 1200,
+     "h": 600,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 320,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-halle-640.webp"
+    }
+   ],
+   "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21434-Twitch-Drops-IAE-2956"
+  },
+  {
+   "key": "iae-2956-stadt",
+   "art": "rsi",
+   "thema": "iae-2956",
+   "alt": "Several spaceships flying through a skyscraper city at night with the IAE 2956 emblem behind them",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 960,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 600,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 320,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-stadt-640.webp"
+    }
+   ],
+   "quelle": "https://robertsspaceindustries.com/en/comm-link/Patch-Notes/21429-Star-Citizen-Alpha-4103"
+  },
+  {
+   "key": "iae-2956-logo",
+   "art": "rsi",
+   "thema": "iae-2956",
+   "alt": "IAE 2956 logo against dark blue sweeping light streaks",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 960,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 600,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 320,
+     "src": "/assets/patch-4-10-3/rsi/iae-2956-logo-640.webp"
+    }
+   ],
+   "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21386-Intergalactic-Aerospace-Expo-2956-Free-Fly-And-Manufacturer-Schedule"
+  },
+  {
+   "key": "vanduul-angriff",
+   "art": "rsi",
+   "thema": "vanduul-incursion",
+   "alt": "Vanduul warship with a spiked hull firing red beams at smaller ships in an asteroid field",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 960,
+     "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.webp",
+     "avif": "/assets/patch-4-10-3/rsi/vanduul-angriff-1920.avif"
+    },
+    {
+     "w": 1200,
+     "h": 600,
+     "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 320,
+     "src": "/assets/patch-4-10-3/rsi/vanduul-angriff-640.webp"
+    }
+   ],
+   "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/21420-Star-Citizen-Alpha-4103-Vanduul-Incursion"
+  },
+  {
+   "key": "vncl-scythe",
+   "art": "rsi",
+   "thema": "vncl-scythe",
+   "alt": "Vanduul Scythe with sweeping wings in front of a reddish planet, engine glowing",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1080,
+     "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 675,
+     "src": "/assets/patch-4-10-3/rsi/vncl-scythe-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/rsi/vncl-scythe-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/kysobeqkurqyd/source.jpg"
+  },
+  {
+   "key": "vncl-glaive",
+   "art": "rsi",
+   "thema": "vncl-glaive",
+   "alt": "Red curved Vanduul Glaive firing with bright engine flares against a black backdrop",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1080,
+     "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 675,
+     "src": "/assets/patch-4-10-3/rsi/vncl-glaive-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/rsi/vncl-glaive-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/msy0lud5dd4eg/source.jpg"
+  },
+  {
+   "key": "vncl-blade",
+   "art": "rsi",
+   "thema": "vncl-blade",
+   "alt": "Dark Vanduul Blade resting on the ground in night fog",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1080,
+     "src": "/assets/patch-4-10-3/rsi/vncl-blade-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 675,
+     "src": "/assets/patch-4-10-3/rsi/vncl-blade-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/rsi/vncl-blade-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/0s9bslimticmx/source.png"
+  },
+  {
+   "key": "vncl-stinger",
+   "art": "rsi",
+   "thema": "vncl-stinger",
+   "alt": "Vanduul Stinger in an attack run under a cloudy sky with other fighters behind it",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/vncl-stinger-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/vncl-stinger-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/90r0njd8ob87b/source.jpg"
+  },
+  {
+   "key": "rsi-galaxy",
+   "art": "rsi",
+   "thema": "rsi-galaxy",
+   "alt": "RSI Galaxy, a large dark modular ship with blue accents, flying above clouds",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-1920.webp",
+     "avif": "/assets/patch-4-10-3/rsi/rsi-galaxy-1920.avif"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/bb6z60h2ou5a0/source.jpg"
+  },
+  {
+   "key": "rsi-galaxy-flug",
+   "art": "rsi",
+   "thema": "rsi-galaxy",
+   "alt": "RSI Galaxy seen at an angle in fast flight with engine trails and cloud streaks",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 960,
+     "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 600,
+     "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 320,
+     "src": "/assets/patch-4-10-3/rsi/rsi-galaxy-flug-640.webp"
+    }
+   ],
+   "quelle": "https://robertsspaceindustries.com/en/comm-link/transmission/18836-RSI-Galaxy"
+  },
+  {
+   "key": "anvl-liberator",
+   "art": "rsi",
+   "thema": "anvl-liberator",
+   "alt": "Anvil Liberator with large twin engines on an airfield, smaller ships flying behind it",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1080,
+     "src": "/assets/patch-4-10-3/rsi/anvl-liberator-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 675,
+     "src": "/assets/patch-4-10-3/rsi/anvl-liberator-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/rsi/anvl-liberator-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/k2zu1md2ulfxn/source.png"
+  },
+  {
+   "key": "aegs-tiburon",
+   "art": "rsi",
+   "thema": "aegs-tiburon",
+   "alt": "Aegis Tiburon firing in a greenish asteroid field",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/aegs-tiburon-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/aegs-tiburon-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/aegs-tiburon-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/yqgidk6parmtz/source.jpg"
+  },
+  {
+   "key": "misc-starlite",
+   "art": "rsi",
+   "thema": "misc-starlite",
+   "alt": "MISC Starlite, a silver-grey ship, resting on the ground at night among palms",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/misc-starlite-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/misc-starlite-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/misc-starlite-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/6cdv5u7nvigrn/source.jpg"
+  },
+  {
+   "key": "drak-ironclad",
+   "art": "rsi",
+   "thema": "drak-ironclad",
+   "alt": "Drake Ironclad, an armored freighter, flying past a planet",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/drak-ironclad-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/drak-ironclad-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/drak-ironclad-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/g948zfjuiznu4/source.jpg"
+  },
+  {
+   "key": "drak-ironclad-assault",
+   "art": "rsi",
+   "thema": "drak-ironclad-assault",
+   "alt": "Drake Ironclad Assault seen from below with a yellow hull and weapons, smoke behind it",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/drak-ironclad-assault-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/drak-ironclad-assault-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/drak-ironclad-assault-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/llaw71tcvmgmy/source.jpg"
+  },
+  {
+   "key": "drak-pitbull",
+   "art": "rsi",
+   "thema": "drak-pitbull",
+   "alt": "Drake Pitbull flying with engine flares through a large industrial shaft",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/drak-pitbull-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/drak-pitbull-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/drak-pitbull-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/9jazkmawt8ggi/source.jpg"
+  },
+  {
+   "key": "glsn-basher",
+   "art": "rsi",
+   "thema": "glsn-basher",
+   "alt": "Grey's Basher tilting through a dust cloud in a desert with more racers behind it",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/glsn-basher-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/glsn-basher-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/glsn-basher-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/h84m7m1hw0dcq/source.jpg"
+  },
+  {
+   "key": "orig-m80",
+   "art": "rsi",
+   "thema": "orig-m80",
+   "alt": "Origin M80, a sleek light-coloured ship, flying over mountains at dusk",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/orig-m80-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/orig-m80-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/orig-m80-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/nledgsyyzmjov/source.jpg"
+  },
+  {
+   "key": "gama-tyilui",
+   "art": "rsi",
+   "thema": "gama-tyilui",
+   "alt": "Gatac Tyilui with two long wings flying over a red planet surface",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 823,
+     "src": "/assets/patch-4-10-3/rsi/gama-tyilui-1920.webp"
+    },
+    {
+     "w": 1200,
+     "h": 514,
+     "src": "/assets/patch-4-10-3/rsi/gama-tyilui-1200.webp"
+    },
+    {
+     "w": 640,
+     "h": 274,
+     "src": "/assets/patch-4-10-3/rsi/gama-tyilui-640.webp"
+    }
+   ],
+   "quelle": "https://media.robertsspaceindustries.com/fojrwsximct23/source.jpg"
+  },
+  {
+   "key": "rsi-galaxy",
+   "art": "render",
+   "thema": "rsi-galaxy",
+   "alt": "Model of the RSI Galaxy, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-galaxy.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-galaxy-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-galaxy-holo",
+   "art": "holo",
+   "thema": "rsi-galaxy",
+   "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-galaxy-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-galaxy-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-liberator",
+   "art": "render",
+   "thema": "anvl-liberator",
+   "alt": "Model of the Anvil Liberator, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-liberator.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-liberator-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-liberator-holo",
+   "art": "holo",
+   "thema": "anvl-liberator",
+   "alt": "Hologram of the Anvil Liberator, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-liberator-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-liberator-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-tiburon",
+   "art": "render",
+   "thema": "aegs-tiburon",
+   "alt": "Model of the Aegis Tiburon, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-tiburon.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-tiburon-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-tiburon-holo",
+   "art": "holo",
+   "thema": "aegs-tiburon",
+   "alt": "Hologram of the Aegis Tiburon, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-tiburon-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-tiburon-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-starlite",
+   "art": "render",
+   "thema": "misc-starlite",
+   "alt": "Model of the MISC Starlite, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-starlite.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-starlite-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-starlite-holo",
+   "art": "holo",
+   "thema": "misc-starlite",
+   "alt": "Hologram of the MISC Starlite, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-starlite-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-starlite-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-ironclad",
+   "art": "render",
+   "thema": "drak-ironclad",
+   "alt": "Model of the Drake Ironclad, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-ironclad-holo",
+   "art": "holo",
+   "thema": "drak-ironclad",
+   "alt": "Hologram of the Drake Ironclad, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-pitbull",
+   "art": "render",
+   "thema": "drak-pitbull",
+   "alt": "Model of the Drake Pitbull, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-pitbull.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-pitbull-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-pitbull-holo",
+   "art": "holo",
+   "thema": "drak-pitbull",
+   "alt": "Hologram of the Drake Pitbull, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-pitbull-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-pitbull-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-ironclad-assault",
+   "art": "render",
+   "thema": "drak-ironclad-assault",
+   "alt": "Model of the Drake Ironclad Assault, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-assault.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-assault-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-ironclad-assault-holo",
+   "art": "holo",
+   "thema": "drak-ironclad-assault",
+   "alt": "Hologram of the Drake Ironclad Assault, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-assault-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-ironclad-assault-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "glsn-basher",
+   "art": "render",
+   "thema": "glsn-basher",
+   "alt": "Model of the Grey's Market Basher, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/glsn-basher.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/glsn-basher-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "glsn-basher-holo",
+   "art": "holo",
+   "thema": "glsn-basher",
+   "alt": "Hologram of the Grey's Market Basher, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/glsn-basher-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/glsn-basher-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "orig-m80",
+   "art": "render",
+   "thema": "orig-m80",
+   "alt": "Model of the Origin M80, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/orig-m80.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/orig-m80-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "orig-m80-holo",
+   "art": "holo",
+   "thema": "orig-m80",
+   "alt": "Hologram of the Origin M80, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/orig-m80-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/orig-m80-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "gama-tyilui",
+   "art": "render",
+   "thema": "gama-tyilui",
+   "alt": "Model of the Gatac Tyilui, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/gama-tyilui.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/gama-tyilui-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "gama-tyilui-holo",
+   "art": "holo",
+   "thema": "gama-tyilui",
+   "alt": "Hologram of the Gatac Tyilui, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/gama-tyilui-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/gama-tyilui-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-carrack",
+   "art": "render",
+   "thema": "anvl-carrack",
+   "alt": "Model of the Anvil Carrack, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-carrack-holo",
+   "art": "holo",
+   "thema": "anvl-carrack",
+   "alt": "Hologram of the Anvil Carrack, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-carrack-expedition",
+   "art": "render",
+   "thema": "anvl-carrack-expedition",
+   "alt": "Model of the Anvil Carrack Expedition, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-expedition.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-expedition-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-carrack-expedition-holo",
+   "art": "holo",
+   "thema": "anvl-carrack-expedition",
+   "alt": "Hologram of the Anvil Carrack Expedition, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-expedition-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-carrack-expedition-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-starlancer-max",
+   "art": "render",
+   "thema": "misc-starlancer-max",
+   "alt": "Model of the MISC Starlancer MAX, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-max.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-max-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-starlancer-max-holo",
+   "art": "holo",
+   "thema": "misc-starlancer-max",
+   "alt": "Hologram of the MISC Starlancer MAX, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-max-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-max-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-starlancer-tac",
+   "art": "render",
+   "thema": "misc-starlancer-tac",
+   "alt": "Model of the MISC Starlancer TAC, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-tac.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-tac-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-starlancer-tac-holo",
+   "art": "holo",
+   "thema": "misc-starlancer-tac",
+   "alt": "Hologram of the MISC Starlancer TAC, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-tac-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-starlancer-tac-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-perseus",
+   "art": "render",
+   "thema": "rsi-perseus",
+   "alt": "Model of the RSI Perseus, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-perseus.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-perseus-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-perseus-holo",
+   "art": "holo",
+   "thema": "rsi-perseus",
+   "alt": "Hologram of the RSI Perseus, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-perseus-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-perseus-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-hammerhead",
+   "art": "render",
+   "thema": "aegs-hammerhead",
+   "alt": "Model of the Aegis Hammerhead, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-hammerhead.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-hammerhead-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-hammerhead-holo",
+   "art": "holo",
+   "thema": "aegs-hammerhead",
+   "alt": "Hologram of the Aegis Hammerhead, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-hammerhead-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-hammerhead-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-reclaimer",
+   "art": "render",
+   "thema": "aegs-reclaimer",
+   "alt": "Model of the Aegis Reclaimer, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-reclaimer.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-reclaimer-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-reclaimer-holo",
+   "art": "holo",
+   "thema": "aegs-reclaimer",
+   "alt": "Hologram of the Aegis Reclaimer, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-reclaimer-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-reclaimer-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "argo-moth",
+   "art": "render",
+   "thema": "argo-moth",
+   "alt": "Model of the Argo MOTH, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/argo-moth.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/argo-moth-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "argo-moth-holo",
+   "art": "holo",
+   "thema": "argo-moth",
+   "alt": "Hologram of the Argo MOTH, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/argo-moth-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/argo-moth-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-vulture",
+   "art": "render",
+   "thema": "drak-vulture",
+   "alt": "Model of the Drake Vulture, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-vulture.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-vulture-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-vulture-holo",
+   "art": "holo",
+   "thema": "drak-vulture",
+   "alt": "Hologram of the Drake Vulture, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-vulture-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-vulture-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-fortune",
+   "art": "render",
+   "thema": "misc-fortune",
+   "alt": "Model of the MISC Fortune, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-fortune.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-fortune-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "misc-fortune-holo",
+   "art": "holo",
+   "thema": "misc-fortune",
+   "alt": "Hologram of the MISC Fortune, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/misc-fortune-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/misc-fortune-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-salvation",
+   "art": "render",
+   "thema": "rsi-salvation",
+   "alt": "Model of the RSI Salvation, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-salvation.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-salvation-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-salvation-holo",
+   "art": "holo",
+   "thema": "rsi-salvation",
+   "alt": "Hologram of the RSI Salvation, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-salvation-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-salvation-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard",
+   "art": "render",
+   "thema": "aegs-vanguard",
+   "alt": "Model of the Aegis Vanguard Warden, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-holo",
+   "art": "holo",
+   "thema": "aegs-vanguard",
+   "alt": "Hologram of the Aegis Vanguard Warden, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-hoplite",
+   "art": "render",
+   "thema": "aegs-vanguard-hoplite",
+   "alt": "Model of the Aegis Vanguard Hoplite, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-hoplite-holo",
+   "art": "holo",
+   "thema": "aegs-vanguard-hoplite",
+   "alt": "Hologram of the Aegis Vanguard Hoplite, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-hoplite-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-sentinel",
+   "art": "render",
+   "thema": "aegs-vanguard-sentinel",
+   "alt": "Model of the Aegis Vanguard Sentinel, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-sentinel-holo",
+   "art": "holo",
+   "thema": "aegs-vanguard-sentinel",
+   "alt": "Hologram of the Aegis Vanguard Sentinel, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-sentinel-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-harbinger",
+   "art": "render",
+   "thema": "aegs-vanguard-harbinger",
+   "alt": "Model of the Aegis Vanguard Harbinger, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "aegs-vanguard-harbinger-holo",
+   "art": "holo",
+   "thema": "aegs-vanguard-harbinger",
+   "alt": "Hologram of the Aegis Vanguard Harbinger, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/aegs-vanguard-harbinger-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-polaris",
+   "art": "render",
+   "thema": "rsi-polaris",
+   "alt": "Model of the RSI Polaris, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-polaris.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-polaris-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-polaris-holo",
+   "art": "holo",
+   "thema": "rsi-polaris",
+   "alt": "Hologram of the RSI Polaris, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-polaris-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-polaris-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-corsair",
+   "art": "render",
+   "thema": "drak-corsair",
+   "alt": "Model of the Drake Corsair, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-corsair.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-corsair-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "drak-corsair-holo",
+   "art": "holo",
+   "thema": "drak-corsair",
+   "alt": "Hologram of the Drake Corsair, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/drak-corsair-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/drak-corsair-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-ballista",
+   "art": "render",
+   "thema": "anvl-ballista",
+   "alt": "Model of the Anvil HM6 Ballista, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-ballista.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-ballista-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-ballista-holo",
+   "art": "holo",
+   "thema": "anvl-ballista",
+   "alt": "Hologram of the Anvil HM6 Ballista, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-ballista-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-ballista-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-spartan",
+   "art": "render",
+   "thema": "anvl-spartan",
+   "alt": "Model of the Anvil HM6 Spartan, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-spartan.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-spartan-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-spartan-holo",
+   "art": "holo",
+   "thema": "anvl-spartan",
+   "alt": "Hologram of the Anvil HM6 Spartan, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-spartan-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-spartan-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-centurion",
+   "art": "render",
+   "thema": "anvl-centurion",
+   "alt": "Model of the Anvil HM6 Centurion, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-centurion.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-centurion-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-centurion-holo",
+   "art": "holo",
+   "thema": "anvl-centurion",
+   "alt": "Hologram of the Anvil HM6 Centurion, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/anvl-centurion-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/anvl-centurion-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-constellation-phoenix",
+   "art": "render",
+   "thema": "rsi-constellation-phoenix",
+   "alt": "Model of the RSI Constellation Mk IV Phoenix, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-constellation-phoenix.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-constellation-phoenix-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-constellation-phoenix-holo",
+   "art": "holo",
+   "thema": "rsi-constellation-phoenix",
+   "alt": "Hologram of the RSI Constellation Mk IV Phoenix, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/rsi-constellation-phoenix-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/rsi-constellation-phoenix-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-blade",
+   "art": "render",
+   "thema": "vncl-blade",
+   "alt": "Model of the Vanduul Blade, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-blade.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-blade-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-blade-holo",
+   "art": "holo",
+   "thema": "vncl-blade",
+   "alt": "Hologram of the Vanduul Blade, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-blade-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-blade-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-glaive",
+   "art": "render",
+   "thema": "vncl-glaive",
+   "alt": "Model of the Vanduul Glaive, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-glaive.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-glaive-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-glaive-holo",
+   "art": "holo",
+   "thema": "vncl-glaive",
+   "alt": "Hologram of the Vanduul Glaive, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-glaive-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-glaive-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-scythe",
+   "art": "render",
+   "thema": "vncl-scythe",
+   "alt": "Model of the Vanduul Scythe, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-scythe.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-scythe-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-scythe-holo",
+   "art": "holo",
+   "thema": "vncl-scythe",
+   "alt": "Hologram of the Vanduul Scythe, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-scythe-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-scythe-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-stinger",
+   "art": "render",
+   "thema": "vncl-stinger",
+   "alt": "Model of the Vanduul Stinger, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-stinger.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-stinger-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vncl-stinger-holo",
+   "art": "holo",
+   "thema": "vncl-stinger",
+   "alt": "Hologram of the Vanduul Stinger, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1120,
+     "h": 630,
+     "src": "/assets/patch-4-10-3/render/vncl-stinger-holo.webp"
+    },
+    {
+     "w": 640,
+     "h": 360,
+     "src": "/assets/patch-4-10-3/render/vncl-stinger-holo-640.webp"
+    }
+   ]
+  },
+  {
+   "key": "vanduul-szene",
+   "art": "szene",
+   "thema": "vanduul-incursion",
+   "alt": "Vanduul ships on approach: a Scythe up front, more Vanduul ships behind it against a dark nebula",
+   "groessen": [
+    {
+     "w": 1920,
+     "h": 1080,
+     "src": "/assets/patch-4-10-3/render/vanduul-szene.webp"
+    },
+    {
+     "w": 1200,
+     "h": 675,
+     "src": "/assets/patch-4-10-3/render/vanduul-szene-1200.webp"
+    }
+   ]
+  },
+  {
+   "key": "rsi-galaxy-hologramm",
+   "art": "holo",
+   "thema": "rsi-galaxy",
+   "alt": "Hologram of the RSI Galaxy, front three-quarter view",
+   "groessen": [
+    {
+     "w": 1600,
+     "h": 900,
+     "src": "/assets/patch-4-10-3/rsi-galaxy-holo.webp"
+    }
+   ]
+  },
+  {
+   "key": "anvl-liberator-hologramm",
+   "art": "holo",
+   "thema": "anvl-liberator",
+   "alt": "Hologram of the Anvil Liberator, side three-quarter view",
+   "groessen": [
+    {
+     "w": 1600,
+     "h": 854,
+     "src": "/assets/patch-4-10-3/anvl-liberator-holo.webp"
+    }
+   ]
+  }
+ ]
+}
