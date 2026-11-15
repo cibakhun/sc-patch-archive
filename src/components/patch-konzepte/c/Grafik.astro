@@ -1,0 +1,134 @@
+---
+// Gezeichnete Anzeigen fuer Entwurf C: alles, wofuer es kein Bild gibt
+// (Mauler, Skarnov, Raider Camo), und die Instrumente (Radarschirm,
+// Radar-Groesse, Torpedo-Distanz).
+interface Props {
+  art: 'mauler' | 'skarnov' | 'camo' | 'torpedo' | 'radar' | 'scope' | 'akte';
+  /** Skarnov: Rahmen- und Akzentfarbe */
+  toene?: string[];
+  /** scope: Auftraege je Gruppe, ein Kontakt je Auftrag */
+  gruppen?: number[];
+  /** sichtbarer Name fuer Screenreader; ohne: rein dekorativ */
+  label?: string;
+  class?: string;
+}
+const { art, toene = ['#3a3d42', '#9aa0a8'], gruppen = [], label, class: cls } = Astro.props;
+const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' };
+
+// Kontakte auf dem Schirm: jede Gruppe ein Sektor, jeder Auftrag ein Punkt.
+const kontakte = gruppen.flatMap((anzahl, g) => Array.from({ length: anzahl }, (_, i) => {
+  const winkel = ((g * 90 + 28 + i * 17) * Math.PI) / 180;
+  const r = 46 + ((g * 3 + i * 7) % 5) * 11;
+  return { x: 120 + Math.cos(winkel) * r, y: 120 + Math.sin(winkel) * r };
+}));
+---
+{art === 'mauler' && (
+  <svg class:list={['kc-svg', cls]} viewBox="0 0 320 180" {...a11y}>
+    <defs>
+      <linearGradient id="kc-mauler-f" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6fd4f2" stop-opacity=".34" />
+        <stop offset="1" stop-color="#6fd4f2" stop-opacity=".06" />
+      </linearGradient>
+    </defs>
+    <g fill="url(#kc-mauler-f)" stroke="#6fd4f2" stroke-width="1.2" stroke-linejoin="round">
+      <path d="M38 98 C70 60 120 42 176 40 L260 30 L300 44 L246 56 L214 70 L268 84 L222 94 L166 100 C130 104 92 112 62 132 Z" />
+      <path d="M176 40 L150 18 L192 36 Z" />
+      <path d="M150 100 L132 150 L176 104 Z" />
+      <path d="M70 110 L44 150 L96 118 Z" />
+    </g>
+    <g stroke="#6fd4f2" stroke-opacity=".5" stroke-width=".8" fill="none">
+      <path d="M62 112 C110 84 170 66 248 50" />
+      <path d="M90 104 C130 88 176 78 214 70" />
+      <circle cx="214" cy="62" r="4" />
+    </g>
+  </svg>
+)}
+{art === 'skarnov' && (
+  <svg class:list={['kc-svg', cls]} viewBox="0 0 240 64" {...a11y}>
+    <path fill={toene[0]} stroke="#6fd4f2" stroke-opacity=".55" stroke-width=".8"
+      d="M6 30 L40 24 L58 24 L64 18 L150 18 L156 22 L232 22 L232 30 L156 30 L150 36 L112 36 L104 52 L88 52 L92 36 L64 36 L58 42 L40 42 L6 40 Z" />
+    <rect x="118" y="38" width="16" height="16" rx="1" fill={toene[1]} />
+    <rect x="160" y="24" width="64" height="3" fill={toene[1]} />
+    <rect x="70" y="12" width="48" height="6" rx="1" fill={toene[1]} opacity=".85" />
+  </svg>
+)}
+{art === 'camo' && (
+  <svg class:list={['kc-svg', cls]} viewBox="0 0 240 120" preserveAspectRatio="xMidYMid slice" {...a11y}>
+    <rect width="240" height="120" fill="#2b3421" />
+    <path fill="#3b4a2c" d="M0 18 C30 6 52 30 80 22 C104 14 120 34 96 50 C72 64 40 48 18 60 C6 66 0 52 0 44 Z" />
+    <path fill="#5a4630" d="M110 0 L170 0 C176 20 150 30 160 48 C168 62 140 70 124 58 C108 46 128 30 112 18 Z" />
+    <path fill="#4c5a35" d="M180 30 C210 18 240 30 240 48 L240 86 C220 96 196 78 186 92 C172 108 150 96 160 80 C168 66 160 42 180 30 Z" />
+    <path fill="#1e2418" d="M30 84 C50 70 84 76 96 92 C106 106 80 120 60 120 L20 120 C10 108 18 92 30 84 Z" />
+    <path fill="#6b5a3a" d="M120 86 C134 78 150 92 142 104 C136 114 118 112 114 102 C112 94 114 90 120 86 Z" />
+    <path fill="#5a4630" d="M200 100 C214 96 226 104 224 120 L196 120 C192 110 194 104 200 100 Z" />
+  </svg>
+)}
+{art === 'torpedo' && (
+  <svg class:list={['kc-svg', cls]} viewBox="0 0 240 64" {...a11y}>
+    <defs>
+      <pattern id="kc-torp-h" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="2" height="6" fill="#8ea3b2" opacity=".35" />
+      </pattern>
+    </defs>
+    <rect x="12" y="22" width="154" height="14" fill="url(#kc-torp-h)" />
+    <rect x="166" y="22" width="62" height="14" fill="#f0b049" opacity=".85" />
+    <g stroke="#8ea3b2" stroke-width="1">
+      <line x1="12" y1="40" x2="228" y2="40" />
+      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => <line x1={12 + i * 22} y1="40" x2={12 + i * 22} y2={i % 5 === 0 ? 47 : 44} />)}
+    </g>
+    <line x1="166" y1="14" x2="166" y2="48" stroke="#f0b049" stroke-width="1.6" />
+    <text x="12" y="60" fill="#8ea3b2" font-family="Share Tech Mono, monospace" font-size="11">0 m</text>
+    <text x="166" y="60" fill="#f0b049" font-family="Share Tech Mono, monospace" font-size="11" text-anchor="middle">700 m</text>
+  </svg>
+)}
+{art === 'radar' && (
+  <svg class:list={['kc-svg', cls]} viewBox="0 0 200 80" {...a11y}>
+    {[0, 1].map((reihe) => (
+      <g transform={`translate(0 ${reihe * 40})`}>
+        <text x="0" y="24" fill={reihe ? '#6fd4f2' : '#8ea3b2'} font-family="Share Tech Mono, monospace" font-size="12">{reihe ? '4.10.3' : '4.10.2'}</text>
+        {[0, 1, 2].map((i) => {
+          const an = reihe ? true : i < 2;
+          return <rect x={64 + i * 44} y="10" width="38" height="18" fill={an ? (reihe ? '#6fd4f2' : '#8ea3b2') : 'none'} fill-opacity={an ? (reihe ? '.85' : '.45') : '0'} stroke={reihe ? '#6fd4f2' : '#8ea3b2'} stroke-opacity=".7" />;
+        })}
+      </g>
+    ))}
+  </svg>
+)}
+{art === 'akte' && (
+  <svg class:list={['kc-svg', cls]} viewBox="0 0 64 48" {...a11y}>
+    <path d="M10 6 H40 L50 16 V44 H10 Z" fill="rgba(111,212,242,.08)" stroke="#6fd4f2" stroke-width="1.2" />
+    <path d="M40 6 V16 H50" fill="none" stroke="#6fd4f2" stroke-width="1.2" />
+    <g stroke="#6fd4f2" stroke-opacity=".6" stroke-width="2">
+      {[22, 28, 34, 40].map((y, i) => <line x1="16" y1={y} x2={i % 2 ? 36 : 44} y2={y} />)}
+    </g>
+    <rect x="16" y="11" width="14" height="5" fill="#f0b049" opacity=".8" />
+  </svg>
+)}
+{art === 'scope' && (
+  <svg class:list={['kc-svg kc-scope', cls]} viewBox="0 0 240 240" {...a11y}>
+    <defs>
+      <radialGradient id="kc-scope-g">
+        <stop offset="0" stop-color="#6fd4f2" stop-opacity=".14" />
+        <stop offset="1" stop-color="#6fd4f2" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="kc-sweep" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#6fd4f2" stop-opacity="0" />
+        <stop offset="1" stop-color="#6fd4f2" stop-opacity=".35" />
+      </linearGradient>
+    </defs>
+    <circle cx="120" cy="120" r="112" fill="url(#kc-scope-g)" />
+    <g fill="none" stroke="#6fd4f2" stroke-opacity=".28">
+      <circle cx="120" cy="120" r="112" />
+      <circle cx="120" cy="120" r="84" />
+      <circle cx="120" cy="120" r="56" />
+      <circle cx="120" cy="120" r="28" />
+      <line x1="8" y1="120" x2="232" y2="120" />
+      <line x1="120" y1="8" x2="120" y2="232" />
+    </g>
+    <path class="kc-scope__sweep" d="M120 120 L232 120 A112 112 0 0 0 199 41 Z" fill="url(#kc-sweep)" />
+    <g fill="#e0563f">
+      {kontakte.map((k) => <path d={`M${k.x} ${k.y - 4} L${k.x + 4} ${k.y} L${k.x} ${k.y + 4} L${k.x - 4} ${k.y} Z`} />)}
+    </g>
+    <circle cx="120" cy="120" r="3" fill="#6fd4f2" />
+  </svg>
+)}
