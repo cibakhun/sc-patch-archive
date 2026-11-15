@@ -18,7 +18,7 @@ const BREITEN = [1920, 1200, 640];
 const WEBP_Q = 82;
 const AVIF_Q = 52;
 const AVIF_MAX_ANTEIL = 0.8; // AVIF nur, wenn höchstens 80 % der WebP-Größe
-const BUDGET_KB = 4500;
+const BUDGET_KB = 5200;
 const ABGERUFEN = '2026-11-15';
 
 const MEDIA = 'https://media.robertsspaceindustries.com';
@@ -59,6 +59,33 @@ const BILDER = [
     quelle: `${MEDIA}/90r0njd8ob87b/source.jpg`,
     de: 'Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund',
     en: 'Vanduul Stinger in an attack run under a cloudy sky with other fighters behind it' },
+  // Eigenes Thema, damit Galerien zum Thema vncl-stinger das Motiv nicht doppelt zeigen.
+  { key: 'vncl-stinger-hell', roh: 'ship-stinger.jpg', thema: 'vncl-stinger-hell',
+    quelle: `${MEDIA}/90r0njd8ob87b/source.jpg`,
+    bearbeitung: { gamma: [1.4, 2.2], linear: [1.1, -10], saettigung: 1.12 },
+    de: 'Vanduul Stinger im Angriffsflug unter bewölktem Himmel, andere Jäger im Hintergrund',
+    en: 'Vanduul Stinger in an attack run under a cloudy sky with other fighters behind it' },
+
+  { key: 'anvl-carrack', roh: 'ship-carrack.png', thema: 'anvl-carrack',
+    quelle: `${MEDIA}/bau5bdotm8te8/source.png`,
+    de: 'Anvil Carrack, ein großes graues Erkundungsschiff, schräg von vorn vor einem wolkigen Planeten',
+    en: 'Anvil Carrack, a large grey exploration ship, seen from the front quarter in front of a cloudy planet' },
+  { key: 'aegs-reclaimer', roh: 'ship-reclaimer.jpg', thema: 'aegs-reclaimer',
+    quelle: `${MEDIA}/6hwlvqlaqgvs4/source.jpg`,
+    de: 'Aegis Reclaimer, ein klobiges dunkles Bergungsschiff, zwischen Trümmern vor grünlichem Nebel',
+    en: 'Aegis Reclaimer, a bulky dark salvage ship, among debris in front of a greenish haze' },
+  { key: 'aegs-vanguard-warden', roh: 'ship-vanguard-warden.jpg', thema: 'aegs-vanguard',
+    quelle: `${MEDIA}/xd9clc660apc3/source.jpg`,
+    de: 'Aegis Vanguard Warden feuert im Tiefflug über einer Stadt im orangefarbenen Dunst',
+    en: 'Aegis Vanguard Warden firing in a low pass over a city in orange haze' },
+  { key: 'rsi-polaris', roh: 'ship-polaris.jpg', thema: 'rsi-polaris',
+    quelle: `${MEDIA}/oe0wikh6g3ltm/source.jpg`,
+    de: 'RSI Polaris, eine dunkle Korvette, feuert aus mehreren Türmen zwischen Asteroiden',
+    en: 'RSI Polaris, a dark corvette, firing from several turrets among asteroids' },
+  { key: 'anvl-ballista', roh: 'ship-ballista.jpg', thema: 'anvl-ballista',
+    quelle: `${MEDIA}/fgwmyqm1gd658/source.jpg`,
+    de: 'Anvil Ballista, ein Raketenfahrzeug auf sechs Rädern, feuert auf einem brennenden Grasfeld',
+    en: 'Anvil Ballista, a six-wheeled missile vehicle, firing on a burning grass field' },
 
   { key: 'rsi-galaxy', roh: 'ship-galaxy.jpg', thema: 'rsi-galaxy', hero: true,
     quelle: `${MEDIA}/bb6z60h2ou5a0/source.jpg`,
@@ -122,6 +149,13 @@ fs.mkdirSync(AUS_DIR, { recursive: true });
 fs.mkdirSync(path.dirname(MANIFEST), { recursive: true });
 for (const f of fs.readdirSync(AUS_DIR)) fs.rmSync(path.join(AUS_DIR, f));
 
+function bearbeite(s, b) {
+  if (!b) return s;
+  return s.gamma(...b.gamma).linear(...b.linear).modulate({ saturation: b.saettigung });
+}
+const bearbeitungText = (b) =>
+  `aufgehellt aus dem Original (Gamma ${b.gamma.join('/')}, Kontrast ${b.linear[0]} mit Versatz ${b.linear[1]}, Sättigung ${b.saettigung})`;
+
 const kb = (n) => Math.round(n / 1024);
 const manifest = { bilder: [] };
 const zeilen = [];
@@ -134,7 +168,7 @@ for (const b of BILDER) {
   const groessen = [];
   for (const w of BREITEN) {
     if (w > quellBreite) continue;
-    const pipe = () => sharp(rohPfad).resize({ width: w, withoutEnlargement: true });
+    const pipe = () => bearbeite(sharp(rohPfad).resize({ width: w, withoutEnlargement: true }), b.bearbeitung);
     const webpName = `${b.key}-${w}.webp`;
     const webp = await pipe().webp({ quality: WEBP_Q, effort: 5 }).toBuffer({ resolveWithObject: true });
     fs.writeFileSync(path.join(AUS_DIR, webpName), webp.data);
@@ -169,7 +203,7 @@ const md = [
   '',
   'Offizielles Bildmaterial von robertsspaceindustries.com bzw. media.robertsspaceindustries.com, mit Erlaubnis des Seitenbetreibers genutzt. Erzeugt von `scripts/patch-4-10-3-rsi-bilder.mjs`. Bei Comm-Link-Bildern ist die Comm-Link-Seite angegeben, bei Schiffsbildern die Originaldatei auf dem RSI-Medienserver. Abgerufen am ' + ABGERUFEN + '.',
   '',
-  ...zeilen.map((z) => `- \`${z.datei}\` | ${z.b.quelle} | ${z.b.de} | ${ABGERUFEN}`),
+  ...zeilen.map((z) => `- \`${z.datei}\` | ${z.b.quelle} | ${z.b.de}${z.b.bearbeitung ? ` | ${bearbeitungText(z.b.bearbeitung)}` : ''} | ${ABGERUFEN}`),
   '',
 ].join('\n');
 fs.writeFileSync(HERKUNFT, md);
