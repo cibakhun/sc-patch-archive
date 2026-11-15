@@ -1,0 +1,15 @@
+---
+// Stoffmuster der Tarnung „Raider Camo“ (dunkle Gruen- und Brauntoene) als
+// Zeichnung: ein offizielles Bild gibt es nicht.
+interface Props { label: string; class?: string }
+const { label, class: cls } = Astro.props;
+---
+<svg class={cls} viewBox="0 0 320 200" role="img" aria-label={label} preserveAspectRatio="xMidYMid slice">
+  <rect width="320" height="200" fill="#3b4a2c" />
+  <path fill="#5a4630" d="M-10 30 C40 0 80 40 120 20 S190 -10 220 30 S180 80 120 70 S20 90 -10 60 Z" />
+  <path fill="#262f1c" d="M150 90 C190 60 250 80 280 60 S340 70 330 110 S260 150 220 130 S140 130 150 90 Z" />
+  <path fill="#6e6244" d="M10 120 C50 100 90 130 110 160 S60 210 20 190 S-20 140 10 120 Z" />
+  <path fill="#5a4630" d="M200 160 C230 140 280 160 300 190 L300 220 L180 220 C170 200 180 175 200 160 Z" />
+  <path fill="#262f1c" d="M60 40 C80 30 100 50 90 70 S50 80 50 60 Z" />
+  <path fill="#7c8a58" opacity=".55" d="M230 20 C250 10 280 25 270 45 S230 50 230 20 Z M120 110 C140 100 160 115 150 135 S115 135 120 110 Z" />
+</svg>

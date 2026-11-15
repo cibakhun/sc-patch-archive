@@ -1,0 +1,22 @@
+---
+// Schildgenerator und Radar als Zeichnung fuer Deterrent und Lephari:
+// zu beiden Bauteilen gibt es kein offizielles Bild.
+interface Props { label: string; class?: string }
+const { label, class: cls } = Astro.props;
+---
+<svg class={cls} viewBox="0 0 320 200" role="img" aria-label={label} preserveAspectRatio="xMidYMid slice">
+  <rect width="320" height="200" fill="#151a24" />
+  <g transform="translate(96 100)">
+    <path d="M0 -62 L52 -42 L46 22 C40 46 18 58 0 66 C-18 58 -40 46 -46 22 L-52 -42 Z" fill="#1f2a3a" stroke="#8fb8d8" stroke-width="2.5" />
+    <path d="M0 -40 L32 -28 L28 14 C24 30 12 38 0 44 C-12 38 -24 30 -28 14 L-32 -28 Z" fill="none" stroke="#8fb8d8" stroke-opacity=".5" />
+    <text y="10" text-anchor="middle" fill="#eef1f5" font-family="Teko, sans-serif" font-size="34">S4</text>
+  </g>
+  <g transform="translate(232 100)" fill="none" stroke="#e0563f">
+    <circle r="56" stroke-opacity=".35" />
+    <circle r="36" stroke-opacity=".55" />
+    <circle r="16" />
+    <path d="M0 0 L50 -26" stroke-width="2.5" />
+    <circle cx="28" cy="-34" r="3.5" fill="#e0563f" />
+    <text y="80" text-anchor="middle" fill="#eef1f5" stroke="none" font-family="Teko, sans-serif" font-size="22">S3</text>
+  </g>
+</svg>

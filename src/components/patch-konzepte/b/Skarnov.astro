@@ -1,0 +1,15 @@
+---
+// Seitenansicht des Skarnov-Energiegewehrs als Zeichnung, gefaerbt mit den
+// zwei Toenen einer Ausfuehrung (inhalt.ts skarnov[].toene).
+interface Props { toene: string[]; label: string; class?: string }
+const { toene, label, class: cls } = Astro.props;
+const [rahmen, akzent] = toene;
+---
+<svg class={cls} viewBox="0 0 400 140" role="img" aria-label={label}>
+  <path fill={rahmen} stroke="#000" stroke-opacity=".35" stroke-width="1.5" stroke-linejoin="round"
+    d="M18 70 L70 58 L96 58 L104 48 L250 44 L262 36 L300 36 L304 46 L382 48 L386 58 L304 62 L296 74 L226 76 L214 112 L190 112 L196 78 L150 80 L136 104 L110 104 L118 82 L96 82 L72 94 L22 100 Z" />
+  <rect x="150" y="50" width="70" height="14" rx="2" fill={akzent} />
+  <rect x="262" y="40" width="34" height="8" rx="2" fill={akzent} />
+  <path fill={akzent} d="M304 50 L376 52 L376 56 L304 58 Z" />
+  <rect x="228" y="78" width="26" height="22" rx="3" fill={akzent} stroke="#000" stroke-opacity=".35" />
+</svg>
