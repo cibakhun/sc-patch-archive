@@ -1,0 +1,90 @@
+/* Beschriftungen, Leader, Knoten und Masskette, die assets/holo-viewer.js
+   in die Buehne schreibt. Geteilt von der Schiffsseite (ShipDetail.astro)
+   und der Patchseite; beide binden sie inline ein (wie den Rest der Buehne).
+   Erwartet die Hausfarben (--accent, --on-media, --gold, ...) aus Layout. */
+
+/* Dauerhafte Komponenten-Beschriftungen: entzerrte HUD-Callouts. Gestapelt als
+   Leader-Linien (unten) · Text-Chips (Mitte) · Positions-Knoten (oben) — so
+   verdeckt kein Chip je den Punkt, der das Bauteil markiert. */
+.holo-lbllayer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:4}
+.holo-leaders,.holo-nodes{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+/* Leader müssen auf dem HELLEN Hologramm UND im dunklen Raum lesbar sein ->
+   heller Strich mit dunklem Halo (Kontrast überall) + Cyan-Glow. */
+.holo-leaders line{stroke:var(--accent);stroke-width:1.5;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 4px color-mix(in srgb,var(--accent) 60%,transparent));
+  transition:stroke var(--dur-fast) var(--ease-ui),stroke-width var(--dur-fast) var(--ease-ui)}
+.holo-leaders line.is-active{stroke:var(--on-media);stroke-width:2.2}
+/* Knoten = exakter Bauteil-Punkt. Muss auf dem hellen, leuchtenden Hologramm
+   ablesbar bleiben -> weißer Kern + kräftiger dunkler Ring (Kontrast) + WEISSER
+   Glow (Cyan-Glow ginge im Cyan-Holo unter) + harte Dunkelkante. Liegt über den
+   Chips -> immer sichtbar. */
+.holo-nodes circle{fill:var(--on-media);stroke:var(--media-void);stroke-width:2.2;paint-order:stroke;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 5px rgba(216,246,255,.95));transition:r var(--dur-fast) var(--ease-ui)}
+/* Der aktive Hardpoint-Marker liegt auf der dunklen Holo-Ansicht: dunkler
+   Saum zur Abgrenzung, heller Schein darüber. */
+.holo-nodes circle.is-active{stroke:var(--accent-media);
+  filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--on-media))}
+/* --- Maßkette (Phase 17, Gruppe „Ausstattung") --------------------------------
+   Für die Ausstattung ist die Antwort der Rumpf selbst: Länge und Höhe sind
+   keine Tabellenzeilen, sondern Ausdehnungen. Die Kette folgt der projizierten
+   Hülle je Bild und dreht sich mit dem Schiff mit.
+   Formensprache bewusst technische Zeichnung, nicht HUD: dünne gerade Striche,
+   Endmarken, Mono-Ziffern — dieselbe Handschrift wie die Maßketten in Attrappe
+   013-A. Ein zweiter Akzent kommt nicht dazu; die Kette ist Geometrie, keine
+   Meldung, und nimmt deshalb den ruhigen Vordergrundton. */
+.holo-masse{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;overflow:visible}
+.holo-masse .hm__l{stroke:color-mix(in srgb,var(--on-media) 52%,transparent);stroke-width:1}
+/* Hilfslinien vom Rumpf zur Kette: leiser als die Kette selbst — sie zeigen
+   nur, WO gemessen wurde, sie sind nicht das Maß. */
+.holo-masse .hm__h{stroke:color-mix(in srgb,var(--on-media) 24%,transparent);stroke-width:1;stroke-dasharray:3 3}
+/* Massszahl auf der Skala, nicht in Rohwerten: --fs-4 (12,6px) ist der
+   Nachbar der frueheren 12px und derselbe Grad, den die Beschriftungen tragen;
+   --ls-12 ist exakt die vormaligen .12em. verify:typo erzwingt das. */
+.holo-masse .hm__t{fill:var(--on-media-dim);font-family:var(--font-ui);font-weight:700;
+  font-size:var(--fs-4);letter-spacing:var(--ls-12);text-transform:uppercase;
+  paint-order:stroke;stroke:var(--media-void);stroke-width:3px;stroke-linejoin:round}
+.holo-lbl{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;
+  font-family:var(--font-ui);font-weight:700;font-size:var(--fs-4);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--on-media-dim);
+  padding:.22rem .5rem .22rem .62rem;background:linear-gradient(180deg,var(--scrim-6),var(--scrim-6));
+  border:1px solid color-mix(in srgb,var(--accent) 34%,transparent);border-left:2px solid var(--accent);box-shadow:0 4px 16px var(--on-media-shadow),inset 0 0 14px color-mix(in srgb,var(--accent) 9%,transparent);
+  backdrop-filter:blur(4px);text-shadow:0 1px 4px var(--on-media-shadow);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%);
+  transition:border-color var(--dur-fast) var(--ease-ui),box-shadow var(--dur-fast) var(--ease-ui),color var(--dur-fast) var(--ease-ui);will-change:left,top}
+.holo-lbl.is-active{border-color:var(--accent);color:var(--on-media);box-shadow:0 4px 18px var(--on-media-shadow),0 0 16px color-mix(in srgb,var(--accent) 42%,transparent),inset 0 0 14px color-mix(in srgb,var(--accent) 14%,transparent)}
+/* --- Dauer-Beschriftung im Raum (Phase 17 „Hangar") ---------------------------
+   Der Art-Vertreter steht STAENDIG da (höchstens fünf gleichzeitig, gemessen
+   über alle 227 Schiffe). Er darf deshalb nicht so laut sein wie der Callout,
+   den man selbst aufgerufen hat — sonst gewinnt der Dauerzustand gegen die
+   eigene Handlung, und genau das war die Ursache der alten Label-Leiter.
+   Leiser: kein Rahmen ringsum, nur die Akzentkante links; Fläche flacher;
+   kein Schein. Der aktive Kasten (.is-active) bleibt unverändert laut und
+   sticht dadurch heraus. */
+.holo-lbl.is-art{border-color:transparent;border-left-color:color-mix(in srgb,var(--accent) 70%,transparent);
+  background:linear-gradient(180deg,var(--scrim-4),var(--scrim-4));
+  box-shadow:none;color:var(--on-media-dim)}
+.holo-lbl.is-art.is-active{border-color:var(--accent)}
+
+/* --- Vorbehalt am Callout selbst ---------------------------------------------
+   Ein normaler Chip behauptet "Bauteil sitzt HIER". Zwei Abstufungen, bewusst
+   NICHT gleich laut — sonst stumpft die laute ab:
+
+   is-np  (Bauteil hat gar keinen Einbauort im Mesh, Marker frei erfunden):
+     Gold + gestrichelt + ausgeschriebenes Badge. Selten (24 Schiffe) und die
+     einzige Stelle, an der Gold "diese Position ist keine Messung" bedeutet.
+   is-est (echter Hardpoint, nur ungefähr auf ein Fremdmesh gemappt):
+     bleibt Cyan (es sind echte Daten), nur gestrichelt + hohler Knoten. Betrifft
+     83 Schiffe komplett — ein Badge an jedem Chip wäre Lärm, kein Signal. */
+.holo-lbl.is-np{border-style:dashed;
+  border-color:color-mix(in srgb,var(--gold) 46%,transparent);
+  border-left:2px dashed var(--gold);color:#f6e7c4;box-shadow:0 4px 16px var(--on-media-shadow),inset 0 0 14px color-mix(in srgb,var(--gold) 8%,transparent)}
+.holo-lbl.is-np.is-active{border-color:var(--gold);color:var(--on-media-dim);box-shadow:0 4px 18px var(--on-media-shadow),0 0 16px color-mix(in srgb,var(--gold) 40%,transparent),inset 0 0 14px color-mix(in srgb,var(--gold) 13%,transparent)}
+.holo-lbl.is-est{border-style:dashed;border-left:2px dashed color-mix(in srgb,var(--accent) 75%,transparent)}
+.holo-lbl__b{display:inline-block;margin-left:.2rem;padding:0 .3rem;font-style:normal;font-size:.86em;
+  font-weight:800;letter-spacing:var(--ls-9);color:var(--ink-media);background:var(--gold);border-radius:2px;vertical-align:baseline}
+/* Leader/Knoten tragen denselben Vorbehalt: gestrichelte Linie (keine feste
+   Zuordnung) und ein HOHLER Knoten — der gefüllte Punkt bleibt der exakten
+   Position vorbehalten. */
+.holo-leaders line.is-np{stroke:var(--gold);stroke-dasharray:5 5;stroke-width:1.4;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 4px color-mix(in srgb,var(--gold) 55%,transparent))}
+.holo-leaders line.is-np.is-active{stroke:#ffe9a8;stroke-width:2}
+.holo-leaders line.is-est{stroke-dasharray:5 5}
+.holo-nodes circle.is-np{fill:none;stroke:var(--gold);stroke-width:2.4;filter:drop-shadow(0 0 1.5px var(--on-media-shadow)) drop-shadow(0 0 5px color-mix(in srgb,var(--gold) 75%,transparent))}
+.holo-nodes circle.is-np.is-active{stroke:#ffe9a8;filter:drop-shadow(0 0 2px var(--on-media-shadow)) drop-shadow(0 0 8px var(--gold))}
+.holo-nodes circle.is-est{fill:none;stroke:#dff6ff;stroke-width:2.2}
