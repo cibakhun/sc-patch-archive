@@ -29,6 +29,16 @@ export const WERKBANK_DESIGN_CSS = `
   --tx:var(--text,#eef1f5);--mu:var(--muted,#9ba2ae);--mu2:#878e9b;
   --ctl:2.45rem;--kc:var(--o);
   --out:cubic-bezier(.16,1,.3,1);--feder:cubic-bezier(.34,1.5,.5,1);
+  /* Tempo (R8, Krisz 15.11.2026 zu den verlangsamten Filmen der siebten
+     Runde: „war gar nicht so schlecht, also du kannst gerne bisscehn
+     anpoassen“). Zwei Stellschrauben statt sechzig Zahlen: --zt streckt die
+     Auftritte (erster Blick, erstes Rezept, Reiter, Blatt des Planers), --zo
+     alles, was sich oft wiederholt (Rezeptwechsel, Liste, Zeilen und Zahlen
+     des Planers). 1 ist das Tempo der siebten Runde. Druck und Ueberfahren
+     (--dur-fast/-base, wb-knall) bleiben, wie sie sind: eine Antwort auf den
+     Finger darf nicht warten. crafting-app.js liest beide Werte fuer das,
+     was das Skript bewegt (wbZeit). */
+  --zt:1.5;--zo:1.3;
   font-variant-numeric:tabular-nums;
   background:
     linear-gradient(180deg,transparent 0,var(--bg,#16161a) 34rem),
@@ -113,7 +123,7 @@ export const WERKBANK_DESIGN_CSS = `
 /* ===== 3 Liste ===== */
 .cdb--wb .cdb-count-row{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.6rem;font-size:var(--fs-3);letter-spacing:var(--ls-11);text-transform:uppercase;color:var(--mu)}
 .cdb--wb .cdb-count-row b{display:inline-block;font-family:var(--font-display,inherit);font-size:var(--fs-11);letter-spacing:var(--ls-3);color:var(--o)}
-.cdb--wb .cdb-count-row b.is-tick{animation:wb-tick var(--dur-slow) var(--out)}
+.cdb--wb .cdb-count-row b.is-tick{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out)}
 .cdb--wb .cdb-count-row::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--hl2),transparent)}
 .cdb--wb .cdb-grid{gap:.7rem}
 /* Gerollte Liste: weiche Oberkante (is-oben setzt crafting-app.js). Die
@@ -132,7 +142,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbp.is-sel,.cdb--wb .cbp.is-sel:hover{border-color:var(--o);background:linear-gradient(100deg,color-mix(in srgb,var(--o) 15%,#222228),#222228 62%);box-shadow:0 0 0 1px var(--o),0 16px 34px -18px color-mix(in srgb,var(--o) 65%,transparent)}
 .cdb--wb .cbp.is-sel::before{background:var(--o)}
 /* Lichtstreif ueber die frisch gewaehlte Kachel (einmal). */
-.cdb--wb .cbp.is-sel::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.09) 50%,transparent 70%) -60% 0/250% 100% no-repeat;animation:wb-streif .7s var(--out) both;pointer-events:none}
+.cdb--wb .cbp.is-sel::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.09) 50%,transparent 70%) -60% 0/250% 100% no-repeat;animation:wb-streif calc(.7s*var(--zo)) var(--out) both;pointer-events:none}
 /* Kopf der Kachel: Zeichen der Bauteilart im getoenten Feld, dann Gruppe. */
 .cdb--wb .cbp__top{position:relative;align-items:center;gap:.6rem;min-height:30px}
 .cdb--wb .cbp[data-g] .cbp__top{padding-left:calc(30px + .6rem)}
@@ -193,7 +203,7 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-grid.is-list .cbp:not(:has(.cbp__spec)) .cbp__name{grid-row:1 / span 2}
 .cdb--wb .cdb-empty{padding:3rem 1rem;border:1px dashed var(--hl2);border-radius:10px}
 /* R6: leere Liste mit Zeichen, Grund und Ausweg. */
-.cdb--wb .cdb-empty--wb{display:grid;justify-items:center;gap:.45rem;padding:2.6rem 1.2rem 2.4rem;text-align:center;animation:wb-ein var(--dur-slow) var(--out)}
+.cdb--wb .cdb-empty--wb{display:grid;justify-items:center;gap:.45rem;padding:2.6rem 1.2rem 2.4rem;text-align:center;animation:wb-ein calc(var(--dur-slow)*var(--zt)) var(--out)}
 .cdb--wb .cdb-empty--wb[hidden]{display:none}
 .cdb--wb .cdb-empty__i{display:grid;place-items:center;width:52px;height:52px;margin-bottom:.4rem;border-radius:50%;background:color-mix(in srgb,var(--o) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--o) 30%,transparent)}
 .cdb--wb .cdb-empty__i::before{content:"";width:22px;height:22px;background:var(--o);-webkit-mask:var(--i-search) center/contain no-repeat;mask:var(--i-search) center/contain no-repeat}
@@ -378,32 +388,32 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .wbr-fest__p{display:inline-flex;align-items:center;gap:.35rem;height:1.9rem;padding:0 .7rem;border:0;border-radius:7px;background:var(--b);color:#041019;font-family:var(--font-ui,inherit);font-size:var(--fs-4);font-weight:800;cursor:pointer}
 .cdb--wb .is-rollt .cdb-modal__x{top:.4rem}
 /* Rezeptwechsel: der Inhalt kommt gestaffelt von unten. */
-.cdb--wb .cdb-modal__body.is-neu .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-neu .wbr-inh > *{animation:wb-auf .42s var(--out) both}
-.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div:nth-child(2){animation-delay:40ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div:nth-child(3){animation-delay:80ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div:nth-child(4){animation-delay:120ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(1){animation-delay:90ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(2){animation-delay:130ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(3){animation-delay:170ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(4){animation-delay:210ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(n+5){animation-delay:250ms}
-.cdb--wb .cdb-modal__body.is-neu .wbr-emb .wg{animation:wb-emb .5s var(--feder) both}
-.cdb--wb .cdb-modal__body.is-neu .wb-ring__b{stroke-dasharray:277;animation:wb-zieh .7s var(--out) both}
+.cdb--wb .cdb-modal__body.is-neu .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-neu .wbr-inh > *{animation:wb-auf calc(.42s*var(--zt)) var(--out) both}
+.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div:nth-child(2){animation-delay:calc(40ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div:nth-child(3){animation-delay:calc(80ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-kenn > div:nth-child(4){animation-delay:calc(120ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(1){animation-delay:calc(90ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(2){animation-delay:calc(130ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(3){animation-delay:calc(170ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(4){animation-delay:calc(210ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-inh > :nth-child(n+5){animation-delay:calc(250ms*var(--zt))}
+.cdb--wb .cdb-modal__body.is-neu .wbr-emb .wg{animation:wb-emb calc(.5s*var(--zt)) var(--feder) both}
+.cdb--wb .cdb-modal__body.is-neu .wb-ring__b{stroke-dasharray:277;animation:wb-zieh calc(.7s*var(--zt)) var(--out) both}
 /* R7: Wechsel von Rezept zu Rezept (is-wechsel setzt crafting-app.js, wenn
    schon ein Rezept dasteht). Vorher baute sich die ganze Mitte jedes Mal neu
    auf und war fuer zwei Bilder leer, samt dem Knopf, der doch derselbe
    bleibt. Jetzt bleibt stehen, was gleich bleibt (die Felder der Kennwerte,
    „Zum Planer“ und die Verweise); die Werte rucken, Name und Zutaten kommen
    knapper und mit kuerzerem Weg. */
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > *{animation:wb-nach .3s var(--out) both}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kopf__t,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > *{animation:wb-nach calc(.3s*var(--zo)) var(--out) both}
 .cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn > div,.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > .cbm__meta{animation:none}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn b{animation:wb-tick var(--dur-slow) var(--out) both}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(2){animation-delay:25ms}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(3){animation-delay:50ms}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(4){animation-delay:75ms}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(n+5){animation-delay:100ms}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-emb .wg{animation-duration:.38s}
-.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wb-ring__b{animation-duration:.45s}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-kenn b{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out) both}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(2){animation-delay:calc(25ms*var(--zo))}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(3){animation-delay:calc(50ms*var(--zo))}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(4){animation-delay:calc(75ms*var(--zo))}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-inh > :nth-child(n+5){animation-delay:calc(100ms*var(--zo))}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wbr-emb .wg{animation-duration:calc(.38s*var(--zo))}
+.cdb--wb .cdb-modal__body.is-neu.is-wechsel .wb-ring__b{animation-duration:calc(.45s*var(--zo))}
 /* Leere Mitte: Bauplan im Fadenkreuz. */
 .cdb--wb .cdb-wb-leer{gap:.55rem;padding:2rem 1.4rem}
 .cdb--wb .cdb-wb-leer__i{position:relative;width:132px;height:132px;margin-bottom:.9rem;border:0;background:radial-gradient(closest-side,color-mix(in srgb,var(--o) 16%,transparent),transparent)}
@@ -416,7 +426,7 @@ export const WERKBANK_DESIGN_CSS = `
   linear-gradient(rgba(238,241,245,.03) 1px,transparent 1px) 0 0/100% 22px,
   linear-gradient(90deg,rgba(238,241,245,.03) 1px,transparent 1px) 0 0/22px 100%,
   var(--e1)}
-.cdb--wb .cdb-modal.is-leer .cdb-wb-leer{animation:wb-ein .5s var(--out) both}
+.cdb--wb .cdb-modal.is-leer .cdb-wb-leer{animation:wb-ein calc(.5s*var(--zt)) var(--out) both}
 
 /* ===== 5 Planer ===== */
 .cdb--wb .cdb-drawer{background:var(--e1)}
@@ -459,10 +469,10 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-plan-item .pi__rm:hover{color:#ff7a7a}
 .cdb--wb .pi__ctrl button:active,.cdb--wb .cdb-plan-item .pi__rm:active{transform:scale(.88)}
 .cdb--wb .pi__ctrl span{display:inline-block;min-width:1.7em;font-size:var(--fs-7)}
-.cdb--wb .cdb-plan-item.is-neu{animation:wb-zeile .45s var(--out) both}
+.cdb--wb .cdb-plan-item.is-neu{animation:wb-zeile calc(.45s*var(--zo)) var(--out) both}
 .cdb--wb .cdb-plan-item.is-puls .pi__ctrl span{animation:wb-knall .36s var(--feder)}
 /* Kam das Stueck geflogen, wartet die Zeile, bis der Punkt da ist. */
-.cdb--wb .cdb-plan-item.is-spaet,.cdb--wb .cdb-plan-item.is-spaet .pi__ctrl span{animation-delay:.32s}
+.cdb--wb .cdb-plan-item.is-spaet,.cdb--wb .cdb-plan-item.is-spaet .pi__ctrl span{animation-delay:calc(.32s*var(--zo))}
 /* Leerer Planer: drei leere Plaetze, die nach unten ausblenden, darunter
    der Hinweis. */
 .cdb--wb .cdb-plan-empty{display:grid;gap:.9rem;padding:.1rem 0 0;border-radius:10px;outline-offset:4px;font-size:var(--fs-6);line-height:1.5;text-align:center;color:var(--mu)}
@@ -483,25 +493,25 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cdb-drawer:not(:has(.cdb-plan-list > .cdb-plan-item)) .cdb-sync--drawer{margin:0}
 .cdb--wb .cdb-plan-time-row{align-items:baseline;margin-bottom:.9rem;font-size:var(--fs-1);letter-spacing:var(--ls-11)}
 .cdb--wb .cdb-plan-time-row b{display:inline-block;font-family:var(--font-display,inherit);font-size:var(--fs-13);letter-spacing:var(--ls-3);text-transform:none;color:var(--tx)}
-.cdb--wb .cdb-plan-time-row b.is-tick{animation:wb-tick var(--dur-slow) var(--out)}
+.cdb--wb .cdb-plan-time-row b.is-tick{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out)}
 .cdb--wb .cdb-plan-sum h4{display:flex;align-items:center;gap:.6rem;margin:0 0 .45rem;font-size:var(--fs-1);letter-spacing:var(--ls-11);color:var(--b)}
 .cdb--wb .cdb-plan-sum h4::after{content:"";flex:1;height:1px;background:var(--hl)}
 .cdb--wb .cdb-plan-shop{gap:0;margin-bottom:.9rem}
 .cdb--wb .ps__row{padding:.38rem .1rem;border-bottom:1px solid var(--hl);border-radius:0;background:none;font-size:var(--fs-5)}
 .cdb--wb .ps__row:last-child{border-bottom:0}
 .cdb--wb .ps__row b{font-weight:700;color:var(--tx)}
-.cdb--wb .ps__row.is-neu{animation:wb-auf .4s var(--out) both}
+.cdb--wb .ps__row.is-neu{animation:wb-auf calc(.4s*var(--zo)) var(--out) both}
 /* R7: eine Menge, die sich aendert, ruckt wie die Gesamtzeit darueber. */
 .cdb--wb .ps__row b{display:inline-block}
-.cdb--wb .ps__row b.is-tick{animation:wb-tick var(--dur-slow) var(--out)}
+.cdb--wb .ps__row b.is-tick{animation:wb-tick calc(var(--dur-slow)*var(--zo)) var(--out)}
 /* R7: Der Planer springt nicht mehr. crafting-app.js laesst die Zeilen und
    den Summenblock an ihren neuen Platz gleiten; die entfernte Zeile bleibt
    als Abbild stehen und blendet aus. Das Abbild liegt ausserhalb der Liste
    (kein Fokus, keine Zaehlung trifft es) und unter dem klebenden Kopf. */
 .cdb--wb .wbp-geist{position:absolute;z-index:2;margin:0;padding:0;list-style:none;pointer-events:none}
-.cdb--wb .cdb-plan-empty.is-neu{animation:wb-blende .35s var(--out) .14s both}
-.cdb--wb .cdb-plan-sum.is-neu{animation:wb-blende .4s var(--out) both}
-.cdb--wb .cdb-plan-sum.is-neu.is-spaet{animation-delay:.32s}
+.cdb--wb .cdb-plan-empty.is-neu{animation:wb-blende calc(.35s*var(--zo)) var(--out) calc(.14s*var(--zo)) both}
+.cdb--wb .cdb-plan-sum.is-neu{animation:wb-blende calc(.4s*var(--zo)) var(--out) both}
+.cdb--wb .cdb-plan-sum.is-neu.is-spaet{animation-delay:calc(.32s*var(--zo))}
 /* R7: Platzhalter fuer die Zeilen eines gespeicherten Plans, solange die
    Daten laden (vorher stand dort kurz „noch nichts im Planer“). */
 .cdb--wb .wbp-skel{height:4.6rem;border:1px solid var(--hl);border-radius:8px;background:var(--e2);animation:wb-atem 1s ease-in-out infinite alternate}
@@ -624,18 +634,18 @@ export const WERKBANK_DESIGN_CSS = `
 /* ===== 7 Auftakt und Bewegung ===== */
 /* Einmal beim Laden (crafting-app.js setzt wb-auftakt fuer eine Sekunde):
    Leiste, erste Kacheln, Mitte und Planer kommen nacheinander. */
-.cdb--wb.wb-auftakt > .cdb-tabs,.cdb--wb.wb-auftakt .cdb-bar{animation:wb-ein .45s var(--out) both}
-.cdb--wb.wb-auftakt .cdb-bar{animation-delay:50ms}
-.cdb--wb.wb-auftakt .cdb-count-row{animation:wb-ein .45s var(--out) 100ms both}
-.cdb--wb.wb-auftakt .cbp:nth-child(-n+10){animation:wb-auf .5s var(--out) both}
-.cdb--wb.wb-auftakt .cbp:nth-child(2){animation-delay:30ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(3){animation-delay:60ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(4){animation-delay:90ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(5){animation-delay:120ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(6){animation-delay:150ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(7){animation-delay:180ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(8){animation-delay:210ms}
-.cdb--wb.wb-auftakt .cbp:nth-child(n+9){animation-delay:240ms}
+.cdb--wb.wb-auftakt > .cdb-tabs,.cdb--wb.wb-auftakt .cdb-bar{animation:wb-ein calc(.45s*var(--zt)) var(--out) both}
+.cdb--wb.wb-auftakt .cdb-bar{animation-delay:calc(50ms*var(--zt))}
+.cdb--wb.wb-auftakt .cdb-count-row{animation:wb-ein calc(.45s*var(--zt)) var(--out) calc(100ms*var(--zt)) both}
+.cdb--wb.wb-auftakt .cbp:nth-child(-n+10){animation:wb-auf calc(.5s*var(--zt)) var(--out) both}
+.cdb--wb.wb-auftakt .cbp:nth-child(2){animation-delay:calc(30ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(3){animation-delay:calc(60ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(4){animation-delay:calc(90ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(5){animation-delay:calc(120ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(6){animation-delay:calc(150ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(7){animation-delay:calc(180ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(8){animation-delay:calc(210ms*var(--zt))}
+.cdb--wb.wb-auftakt .cbp:nth-child(n+9){animation-delay:calc(240ms*var(--zt))}
 /* R7: Mitte und Planer stehen im Markup hinter den 1.626 Kacheln (rund
    0,9 MB) und kamen deshalb erst ins Bild, wenn der Rest der Seite geladen
    und gelesen war: zwei Drittel der Seite blieben so lange leer und sprangen
@@ -653,16 +663,16 @@ export const WERKBANK_DESIGN_CSS = `
 }
 @media (min-width:1180px) and (min-height:720px){
   .cdb--wb:not(:has(> .cdb-drawer))::after{content:"";grid-area:plan;box-sizing:border-box;height:var(--wb-h);border:1px solid var(--hl2);border-radius:12px;background:var(--e1);box-shadow:0 30px 70px -40px #000}
-  .cdb--wb.wb-auftakt > .cdb-drawer > *{animation:wb-blende .5s var(--out) 60ms both}
+  .cdb--wb.wb-auftakt > .cdb-drawer > *{animation:wb-blende calc(.5s*var(--zt)) var(--out) calc(60ms*var(--zt)) both}
 }
 /* R7: Stern und Plus haengt das Skript an die Kacheln. An den ersten, die
    man beim Laden sieht, blenden sie ein, statt aufzuspringen. */
-.cdb--wb.wb-auftakt .cbp:nth-child(-n+12) .cbp__btns{animation:wb-blende .35s var(--out) both}
+.cdb--wb.wb-auftakt .cbp:nth-child(-n+12) .cbp__btns{animation:wb-blende calc(.35s*var(--zt)) var(--out) both}
 /* R7: was die Liste zeigt, hat sich geaendert (Suche, Filter, Sortierung,
    Ansicht), oder ein Reiter wurde gewechselt: der Inhalt setzt einmal kurz
    neu an, statt hart umzuspringen (is-frisch setzt crafting-app.js). */
-.cdb--wb .is-frisch{animation:wb-nach .26s var(--out)}
-.cdb--wb .cdb-grid.is-frisch{animation:wb-frisch .22s var(--out)}
+.cdb--wb .is-frisch{animation:wb-nach calc(.26s*var(--zt)) var(--out)}
+.cdb--wb .cdb-grid.is-frisch{animation:wb-frisch calc(.22s*var(--zo)) var(--out)}
 @keyframes wb-nach{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes wb-frisch{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
 @keyframes wb-atem{from{opacity:.3}to{opacity:.75}}
@@ -699,7 +709,7 @@ export const WERKBANK_DESIGN_CSS = `
   .cdb--wb .cdb-sort{flex:1 1 auto}
   .cdb--wb .cdb-sort select{width:100%}
   .cdb--wb .cdb-modal{padding:.5rem;background:rgba(8,8,11,.78);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-  .cdb--wb .cdb-modal:not(.is-leer) .cdb-modal__box{animation:wb-blatt .34s var(--out) both}
+  .cdb--wb .cdb-modal:not(.is-leer) .cdb-modal__box{animation:wb-blatt calc(.34s*var(--zo)) var(--out) both}
   /* Das Fenster hat .5rem Rand, und eine klebende Leiste haelt unterhalb
      davon: sie reicht deshalb nach oben bis an die Fensterkante, sonst
      liefe der Inhalt in dem Streifen darueber sichtbar weiter. */
@@ -722,8 +732,8 @@ export const WERKBANK_DESIGN_CSS = `
      1700 ms). Jetzt kommen die Teile der Leiste einzeln, und die Planer-Leiste
      hebt sich als Letztes selbst von unten herein. */
   .cdb--wb.wb-auftakt .cdb-bar{animation:none}
-  .cdb--wb.wb-auftakt .cdb-bar > :not(.cdb-planner-open){animation:wb-ein .45s var(--out) 50ms both}
-  .cdb--wb.wb-auftakt .cdb-planner-open{animation:wb-hoch .5s var(--out) .3s both}
+  .cdb--wb.wb-auftakt .cdb-bar > :not(.cdb-planner-open){animation:wb-ein calc(.45s*var(--zt)) var(--out) calc(50ms*var(--zt)) both}
+  .cdb--wb.wb-auftakt .cdb-planner-open{animation:wb-hoch calc(.5s*var(--zt)) var(--out) calc(.3s*var(--zt)) both}
   .cdb--wb .cdb-planner-open{border-radius:10px;background:color-mix(in srgb,var(--b) 16%,var(--e1));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   /* R6: Listenansicht am Telefon. Kleinere Knoepfe und weniger Rand links
      geben dem Namen die Breite (vorher brach „10-Series Greatsword Cannon“
@@ -781,12 +791,12 @@ export const WERKBANK_DESIGN_CSS = `
 /* Rechner: die ersten Ergebnisse kommen gestaffelt, wenn sich aendert,
    welche Items passen (is-neu am Feld setzt crafting-app.js; beim Ziehen des
    Reglers aendern sich nur Zahlen, dann bleibt alles stehen). */
-.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(-n+6){animation:wb-nach .32s var(--out) backwards}
-.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(2){animation-delay:30ms}
-.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(3){animation-delay:60ms}
-.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(4){animation-delay:90ms}
-.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(5){animation-delay:120ms}
-.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(6){animation-delay:150ms}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(-n+6){animation:wb-nach calc(.32s*var(--zo)) var(--out) backwards}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(2){animation-delay:calc(30ms*var(--zo))}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(3){animation-delay:calc(60ms*var(--zo))}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(4){animation-delay:calc(90ms*var(--zo))}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(5){animation-delay:calc(120ms*var(--zo))}
+.cdb--wb .calc-grid.is-neu > .calc-card:nth-child(6){animation-delay:calc(150ms*var(--zo))}
 @media (max-width:820px){
   /* Der Planer kommt am Telefon von unten, aus seiner Leiste heraus, wie das
      Rezept. Vorher schob er sich als Wand von rechts ueber die ganze Seite,
@@ -794,6 +804,7 @@ export const WERKBANK_DESIGN_CSS = `
      Loch. Jetzt ist er so hoch wie sein Inhalt, hoechstens 88 % des Fensters. */
   .cdb--wb .cdb-drawer{top:auto;right:0;bottom:0;left:0;width:auto;height:auto;max-height:min(88dvh,calc(100dvh - 3.5rem));padding-bottom:env(safe-area-inset-bottom,0px);border-left:0;border-top:1px solid color-mix(in srgb,var(--b) 55%,transparent);border-radius:16px 16px 0 0;box-shadow:0 -24px 60px -20px #000;transform:translateY(105%)}
   .cdb--wb .cdb-drawer.is-open{transform:none}
+  html.cdb-ready .cdb--wb .cdb-drawer{transition-duration:calc(var(--dur-slow)*var(--zt))}
   .cdb--wb .cdb-drawer__hd{border-radius:16px 16px 0 0}
   /* Stern und Plus sind hier 44 px hoch (Fingermass, mobile-ux.css) und
      kommen erst mit dem Skript. Die Kopfzeile der Kachel haelt ihre Hoehe
