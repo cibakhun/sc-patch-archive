@@ -12,10 +12,13 @@
         jede Feldaenderung ist eine (vorher != nachher) mit Beschriftung.
      4  Bestand geht auf: nachher - vorher = neu - entfernt, je Art.
      5  Klinken: Paare und Eintraege.
+     6  Hand-Ergaenzungen (ergaenzt/<nach>.json): vollstaendig, mit Beleg, und
+        keine fuehrt ein Feld, das der Vergleich selbst rechnet (Zombie-Waechter;
+        vorgefuehrt rot am 15.11.2026 mit einer Carrack-Radar-Ergaenzung).
    WARNUNG statt FEHLER: der juengste Vergleich endet nicht auf dem
    Datenstand von src/data/vehicles.json (Datenlauf ohne Vergleich).
    ============================================================ */
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -93,6 +96,46 @@ console.log(`    Eintraege — Soll: >= ${MIN_EINTRAEGE}   Ist: ${eintraegeGesam
 need(dateien.length >= MIN_PAARE, `nur ${dateien.length} Paare, Klinke ${MIN_PAARE}`);
 need(eintraegeGesamt >= MIN_EINTRAEGE, `nur ${eintraegeGesamt} Eintraege, Klinke ${MIN_EINTRAEGE}`);
 
+console.log('[6] Hand-Ergaenzungen (ergaenzt/<nach>.json)');
+// Was eine Patchseite neben dem Vergleich behauptet, steht dort mit Beleg.
+// Zombie-Waechter (Grundsatz 6): fuehrt der Vergleich das Feld inzwischen
+// selbst, ist die Ergaenzung ueberholt und muss gestrichen werden.
+const ERG_DIR = resolve(DIR, 'ergaenzt');
+const ergDateien = existsSync(ERG_DIR) ? readdirSync(ERG_DIR).filter((n) => /^[\d.]+\.json$/.test(n)) : [];
+const fahrzeugIds = new Set(JSON.parse(readFileSync(resolve(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles.map((x) => x.id));
+const REITER = ['neu', 'geaendert', 'kaufbar', 'auftraege', 'bauplaene', 'entfernt'];
+let ergGesamt = 0;
+for (const n of ergDateien) {
+  let erg;
+  try { erg = JSON.parse(readFileSync(resolve(ERG_DIR, n), 'utf8')); } catch (e) { fail.push(`ergaenzt/${n}: nicht lesbar (${e.message})`); continue; }
+  const paar = uebersicht.paare.find((p) => p.nach === erg.nach && p.von === erg.von);
+  need(`${erg.nach}.json` === n && paar, `ergaenzt/${n}: kein Vergleich ${erg.von} -> ${erg.nach} in uebersicht.json`);
+  need(/^https:\/\//.test(erg.beleg?.h ?? '') && erg.beleg?.t, `ergaenzt/${n}: ohne Beleg (beleg.t, beleg.h)`);
+  if (!paar) continue;
+  const v = lies(paar.datei);
+  const ids = new Set();
+  for (const x of erg.eintraege ?? []) {
+    const wo = `ergaenzt/${n}: ${x.id}`;
+    need(x.id && !ids.has(x.id), `${wo}: id fehlt oder doppelt`);
+    ids.add(x.id);
+    need(['ship', 'thema'].includes(x.kind), `${wo}: Art ${x.kind} (erlaubt: ship, thema)`);
+    need(x.label && x.nachher && x.feld, `${wo}: ohne label, feld oder nachher`);
+    need(REITER.includes(x.reiter), `${wo}: Reiter ${x.reiter} unbekannt`);
+    if (x.kind === 'ship') need(fahrzeugIds.has(x.ziel), `${wo}: Fahrzeug ${x.ziel} nicht in src/data/vehicles.json`);
+    if (x.link) need(/^\/[a-z0-9/-]+\.html$/.test(x.link), `${wo}: Link ${x.link} ist kein Seitenpfad`);
+    const kinds = x.kind === 'ship' ? ['ship'] : KINDS.filter((k) => k !== 'price');
+    const berechnet = kinds.filter((k) => v.felder[k]?.[x.feld]);
+    need(!berechnet.length, `${wo}: der Vergleich ${paar.datei} fuehrt "${x.feld}" jetzt selbst (${berechnet.join(', ')}) — Ergaenzung streichen, die Seite rechnet den Wert`);
+    if (x.kind === 'ship') {
+      const e = v.eintraege.find((y) => y.kind === 'ship' && y.id === x.ziel);
+      const f = e?.felder?.find((y) => y.feld === x.feld) ?? e?.werte?.find((y) => y.feld === x.feld);
+      need(!f, `${wo}: ${x.ziel} hat im Vergleich ein Feld "${x.feld}" — Ergaenzung streichen`);
+    }
+  }
+  ergGesamt += ids.size;
+  console.log(`    ergaenzt/${n}: ${ids.size} Ergaenzungen gegen ${paar.datei} geprueft`);
+}
+console.log(`    Ergaenzungen gesamt: ${ergGesamt} in ${ergDateien.length} Datei(en)`);
 const juengster = uebersicht.paare.at(-1);
 if (juengster) {
   const fahrzeuge = JSON.parse(readFileSync(resolve(ROOT, 'src/data/vehicles.json'), 'utf8')).gameVersion ?? '';
@@ -106,4 +149,4 @@ if (fail.length) {
   console.error(`\nverify-patch-vergleich: ${fail.length} FEHLER\n`);
   process.exit(1);
 }
-console.log(`\nverify-patch-vergleich: ${dateien.length} Paare, ${eintraegeGesamt} Eintraege stimmig ✓\n`);
+console.log(`\nverify-patch-vergleich: ${dateien.length} Paare, ${eintraegeGesamt} Eintraege, ${ergGesamt} Hand-Ergaenzungen stimmig ✓\n`);

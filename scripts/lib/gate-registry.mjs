@@ -603,12 +603,15 @@ export const CHECKS = [
     // dann absichtlich in 4.10.2__4.10.3.json (Zaehler ship.new 6 -> 7,
     // Hoplite turretDps vorher = nachher): 3 FEHLER, Datei per sha256
     // zurueckgespielt, wieder gruen.
+    // Abschnitt [6] Hand-Ergaenzungen, VORGEFUEHRT ROT am 15.11.2026: eine
+    // Ergaenzung "radars" an der Carrack (das Feld rechnet der Vergleich
+    // selbst) gab 2 FEHLER, Datei zurueckkopiert, wieder gruen.
     id: 'verify:patch-vergleich',
     npm: 'verify:patch-vergleich',
     script: 'scripts/verify-patch-vergleich.mjs',
     rail: 'A',
     checks:
-      'die Patch-Vergleiche in src/data/patch-vergleich/ sind in sich stimmig: uebersicht.json deckt sich mit den Paardateien, die Paare bilden eine Kette, Zaehler = Eintraege, keine Feldaenderung ohne Unterschied oder Beschriftung, Bestand nachher - vorher = neu - entfernt; Klinken fuer Paare und Eintraege; WARNUNG, wenn der juengste Vergleich nicht auf dem Fahrzeug-Datenstand endet',
+      'die Patch-Vergleiche in src/data/patch-vergleich/ sind in sich stimmig: uebersicht.json deckt sich mit den Paardateien, die Paare bilden eine Kette, Zaehler = Eintraege, keine Feldaenderung ohne Unterschied oder Beschriftung, Bestand nachher - vorher = neu - entfernt; Klinken fuer Paare und Eintraege; Hand-Ergaenzungen (ergaenzt/<nach>.json) vollstaendig, belegt und ohne Feld, das der Vergleich selbst fuehrt; WARNUNG, wenn der juengste Vergleich nicht auf dem Fahrzeug-Datenstand endet',
   },
   {
     // Neuzugang 10.11.2026, neben verify:datastand (dieselbe Familie: eine
