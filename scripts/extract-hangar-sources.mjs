@@ -84,6 +84,9 @@ const HALLS = [
   // Kabine stand mit ihren Leuchten im Modell, aber dunkel. anLeuchte: so
   // viele Lampen müssen an einer Leuchte des Modells sitzen (gemessen 24 von
   // 57; im falschen Raum gelesen keine), sonst bricht der Schritt ab.
+  // Der Eintrag ohne kind meint die Halle selbst: die Landeleuchten der
+  // Schiffsplattform (Lichtgruppe am Knochen pad_large, 44 von 55 brennen in
+  // Ruhe; gemessen 40 an einer Leuchte des Modells).
   // ruhe: die Halle ohne die Lampen, die im Spiel in Ruhe dunkel sind
   // (Warnleuchten, Notlicht, die Strahler in der Grube unter der Plattform).
   // Der Export schreibt sie mit ihrem nächsten Zustand, der Stärke hat; die
@@ -95,7 +98,7 @@ const HALLS = [
       folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
       lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
       nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
-      anhang: [{ kind: 'elev_util_cargo_hangar_lrg_a', gruppe: 'lg_elev_util_cargo_hangar_lrg_a', knochen: 'anim_lift', anLeuchte: 12 }],
+      anhang: [{ kind: 'elev_util_cargo_hangar_lrg_a', gruppe: 'lg_elev_util_cargo_hangar_lrg_a', knochen: 'anim_lift', anLeuchte: 12 }, { gruppe: 'lg_lrgtop_001_lp-001', knochen: 'pad_large', anLeuchte: 20 }],
     } },
   { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];

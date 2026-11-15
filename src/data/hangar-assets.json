@@ -21336,7 +21336,7 @@
     },
     "util-lrgtop": {
       "url": "/hangar/hall/util-lrgtop.glb",
-      "v": "6d7f067d",
+      "v": "d7f5089a",
       "tris": 1815479,
       "trisRaw": 574108,
       "textures": 263,
@@ -21376,15 +21376,15 @@
         }
       },
       "lights": {
-        "total": 826,
+        "total": 870,
         "byType": {
-          "spot": 441,
-          "point": 327,
+          "spot": 447,
+          "point": 365,
           "area": 58
         },
-        "matched": 826,
+        "matched": 870,
         "orient": {
-          "spots": 441,
+          "spots": 447,
           "area": 58,
           "areaMounted": 27,
           "spotsAway": 227,

@@ -244,10 +244,15 @@ export function kindNur(doc, muster, name = 'Kind') {
 // Was für die angehängte Gruppe dazukommt, ist am Modell der Kabine gemessen:
 // RelativeXForm gilt im Raum des Knochens, nicht der Gruppe (mit dem Ort der
 // Gruppe läge jede Lampe 11 m neben ihrer Leuchte). Der Knochen ruht im
-// Ursprung des Bauteils, das Bauteil im Ursprung des Containers; so steht die
-// Angabe unverändert im Raum des Containers. Beides prüft dieser Schritt,
-// statt es zu glauben: anhangLampen am Träger, lampenEinhaengen an den
-// Leuchten des Modells (anLeuchte).
+// Ursprung des Bauteils. Steht das Bauteil (der Träger) im Ursprung des
+// Containers, gilt die Angabe unverändert in dessen Raum; steht es woanders,
+// kommt sein Ort dazu. Das ist an der Schiffsplattform der Large-Halle
+// gemessen (Träger bei -72/-112/2,5, Knochen pad_large): Mit dem Ort des
+// Trägers sitzen 40 ihrer 44 Lampen an einer Landeleuchte des Modells, ohne
+// ihn oder mit dem Versatz der Gruppe dazu keine. Ein gedrehter Träger ist
+// nicht nachgemessen. Dieser Schritt prüft das, statt es zu glauben:
+// anhangLampen am Träger, lampenEinhaengen an den Leuchten des Modells
+// (anLeuchte).
 // Abweichung vom Export, mit Absicht: Eine Lampe, deren defaultState keine
 // Stärke hat, bleibt aus. Der Export nimmt dann den Zustand auxiliary, und so
 // brennen in der Halle fünf Warnleuchten des Moduls, die im Spiel in Ruhe
@@ -266,10 +271,11 @@ export function kelvinFarbe(k) {
 
 // Die Lampen der Lichtgruppe `gruppe` aus den Entities eines Containers
 // (XML aus seiner .soc). Die Gruppe muss am Knochen `knochen` eines Bauteils
-// hängen, das im Ursprung des Containers ruht; alles andere ist nicht
-// nachgemessen und bricht ab. Liefert die Lampen, die brennen (lampen), die
-// Namen derer ohne Stärke (aus) und das Netz des Trägers (traeger, Dateiname
-// ohne Endung).
+// hängen, das ungedreht und frei im Container steht (ohne eigenen Träger);
+// alles andere ist nicht nachgemessen und bricht ab. Liefert die Lampen, die
+// brennen (lampen, ihr Ort im Raum des Containers: die Angabe plus der Ort
+// des Trägers), die Namen derer ohne Stärke (aus), das Netz des Trägers
+// (traeger, Dateiname ohne Endung) und seinen Ort (traegerOrt).
 export function anhangLampen(xml, { gruppe, knochen }) {
   const at = (s, k) => (s.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
   const ents = [...xml.matchAll(/<Entity\b([^>]*?)(?:\/>|>([\s\S]*?)<\/Entity>)/g)].map((m) => ({ kopf: m[1], rumpf: m[2] ?? '' }));
@@ -287,7 +293,9 @@ export function anhangLampen(xml, { gruppe, knochen }) {
   const eltern = ents.filter((e) => at(e.kopf, 'EntityCryGUID') !== undefined && at(e.kopf, 'EntityCryGUID') === at(kopf, 'ParentEntityCryGUID'));
   if (eltern.length !== 1) throw new Error(`Lichtgruppe ${gruppe}: der Träger (ParentEntityCryGUID) steht ${eltern.length} Mal im Container, erwartet ist genau einmal`);
   const t = eltern[0], tName = at(t.kopf, 'Name') ?? '?';
-  if (!ruht(at(t.kopf, 'Pos'), [0, 0, 0], `${tName} Pos`) || !ruht(at(t.kopf, 'Rotate'), [1, 0, 0, 0], `${tName} Rotate`)) throw new Error(`Lichtgruppe ${gruppe}: der Träger ${tName} ruht nicht im Ursprung des Containers (Pos ${at(t.kopf, 'Pos') ?? 'ohne'}, Rotate ${at(t.kopf, 'Rotate') ?? 'ohne'}); nachgemessen ist nur ein Träger im Ursprung`);
+  if (!ruht(at(t.kopf, 'Rotate'), [1, 0, 0, 0], `${tName} Rotate`)) throw new Error(`Lichtgruppe ${gruppe}: der Träger ${tName} ist gedreht (Rotate ${at(t.kopf, 'Rotate')}); nachgemessen ist nur ein ungedrehter Träger`);
+  if (at(t.kopf, 'ParentEntityCryGUID') !== undefined) throw new Error(`Lichtgruppe ${gruppe}: der Träger ${tName} hängt selbst an einem Bauteil (ParentEntityCryGUID); nachgemessen ist nur ein Träger, der frei im Container steht`);
+  const traegerOrt = at(t.kopf, 'Pos') === undefined ? [0, 0, 0] : reihe(at(t.kopf, 'Pos'), 3, `${tName} Pos`);
   if (!ruht(at(kopf, 'ParentOffsetRot'), [1, 0, 0, 0], `${gruppe} ParentOffsetRot`)) throw new Error(`Lichtgruppe ${gruppe}: ParentOffsetRot ${at(kopf, 'ParentOffsetRot')} dreht die Gruppe gegen ihren Träger; nachgemessen ist nur eine ungedrehte Gruppe`);
   const traeger = ((t.rumpf.match(/GlobalResourceGeometry" path="([^"]+)"/) || [])[1] ?? '').replace(/\\/g, '/').split('/').pop().replace(/\.\w+$/, '');
   const lampen = [], aus = [];
@@ -304,10 +312,10 @@ export function anhangLampen(xml, { gruppe, knochen }) {
     if (!typ || !(radius > 0) || (fov !== null && !(fov > 0 && fov <= 180))) throw new Error(`${wo}: Typ „${typ}“, Reichweite ${radius}${fov === null ? '' : `, FOV ${fov}`} ergeben keine Lampe`);
     const dreh = reihe(at(xf, 'rotation'), 4, `${wo} rotation`), q = Math.hypot(...dreh);
     if (Math.abs(q - 1) > 1e-3) throw new Error(`${wo}: rotation ${dreh.join(',')} ist keine Drehung (Betrag ${q.toFixed(4)})`);
-    lampen.push({ name, eigen: at(l[1], 'Name') ?? '', typ, temp, kelvin, staerke, radius, fov, farbe: temp ? kelvinFarbe(kelvin) : ['r', 'g', 'b'].map((k) => zahl(zustand[2], k)), ort: reihe(at(xf, 'translation'), 3, `${wo} translation`), dreh: dreh.map((v) => v / q) });
+    lampen.push({ name, eigen: at(l[1], 'Name') ?? '', typ, temp, kelvin, staerke, radius, fov, farbe: temp ? kelvinFarbe(kelvin) : ['r', 'g', 'b'].map((k) => zahl(zustand[2], k)), ort: reihe(at(xf, 'translation'), 3, `${wo} translation`).map((v, k) => v + traegerOrt[k]), dreh: dreh.map((v) => v / q) });
   });
   if (!lampen.length) throw new Error(`Lichtgruppe ${gruppe}: keine Lampe mit Stärke im defaultState (${aus.length} ohne), der Eintrag ist ohne Anlass`);
-  return { lampen, aus, traeger };
+  return { lampen, aus, traeger, traegerOrt };
 }
 
 // Die Zeile, die der Export für eine Lampe ins Protokoll schreibt; der Build
@@ -341,6 +349,22 @@ export function lampenEinhaengen(doc, lampen, { name = 'Kind', gruppe = 'anhang'
     halter.addChild(doc.createNode(l.name).setTranslation(l.ort).setRotation([l.dreh[1], l.dreh[2], l.dreh[3], l.dreh[0]]).setExtension('KHR_lights_punctual', licht));
   }
   return { lampen: lampen.length, anNetz, zeilen: lampen.map(lampenZeile) };
+}
+
+// Hängt die Lichtgruppen an, die an einem Knochen der Halle selbst hängen
+// (Einträge in anhang ohne kind; die Schiffsplattform der Large-Halle trägt
+// so ihre Landeleuchten). Vor den Kindern zu rufen: Die Probe an den Leuchten
+// gilt dem eigenen Modell der Halle. Zählt exemplare auf 1, merkt anNetz und
+// liefert die Lichtzeilen; Einträge mit kind bleiben, wie sie sind.
+export function halleAnhang(room, anhang) {
+  const zeilen = [];
+  for (const a of anhang.filter((x) => x.kind === undefined)) {
+    let r;
+    try { r = lampenEinhaengen(room, a.lampen, { name: 'Halle', gruppe: a.gruppe, anLeuchte: a.anLeuchte }); } catch (e) { throw new Error(`anhang Halle: ${e.message}`); }
+    a.exemplare = 1; a.anNetz = r.anNetz;
+    zeilen.push(...r.zeilen);
+  }
+  return zeilen;
 }
 
 // Hängt einen Baum von Kindern ein, von innen nach außen: erst die Kinder
@@ -493,6 +517,10 @@ export function hallRuhe(h, w, baum = []) {
 // Export deshalb weglässt (anhangLampen, lampenEinhaengen):
 // [{ kind: Kennung des Containers, gruppe: Name der Lichtgruppe, knochen,
 //    anLeuchte: so viele Lampen müssen an einem Netzknoten sitzen }].
+// Ein Eintrag ohne kind meint die Halle selbst (die Lampen der
+// Schiffsplattform). Ihre Lampen kommen dazu, bevor ein Kind eingehängt ist:
+// Die Probe an den Leuchten gilt dem eigenen Modell der Halle. Ihre Zeilen
+// stehen hinter denen der Halle, vor denen der Kinder.
 // Jedes Kind wird einmal exportiert (Stufe und Schalter wie die Halle, mit
 // Lichtprotokoll) und an jede Stelle gehängt, die sein Elterncontainer nennt.
 // Ergebnis: file (Halle mit Kindern), hall/<halle>.lights-src.txt (Zeilen der
@@ -583,25 +611,28 @@ export async function hallKinder(h, file, w) {
   const nur = (h.kinder.nur ?? []).map((n) => ({ kind: n.kind, netz: n.netz, muster: n.netz.map((x) => new RegExp(`(^|[\\\\/])${esc(x)}\\.(cga|cgf)$`, 'i')), exemplare: 0 }));
   // Lampen angehängter Lichtgruppen, aus den Entities des genannten Kindes
   const anhang = (h.kinder.anhang ?? []).map((a) => {
-    const c = alle.get(a.kind);
-    if (!c) throw new Error(`anhang ${a.kind}: kein eingehängtes Kind heißt so, der Eintrag ist ohne Anlass`);
+    const eigen = a.kind === undefined, wer = eigen ? 'Halle' : a.kind;
+    const c = eigen ? null : alle.get(a.kind);
+    if (!eigen && !c) throw new Error(`anhang ${a.kind}: kein eingehängtes Kind heißt so, der Eintrag ist ohne Anlass`);
     let r;
-    try { r = anhangLampen(entitiesVon(c.name), a); } catch (e) { throw new Error(`anhang ${a.kind}: ${e.message}`); }
+    try { r = anhangLampen(entitiesVon(eigen ? h.socpak : c.name), a); } catch (e) { throw new Error(`anhang ${wer}: ${e.message}`); }
     // fährt eine Ruhelage denselben Knochen, müssten die Lampen mitfahren
     const faehrt = lagen.find((l) => l.cga.toLowerCase() === r.traeger.toLowerCase() && l.knochen === a.knochen);
-    if (faehrt) throw new Error(`anhang ${a.kind}: die Ruhelage ${faehrt.cga} stellt den Knochen ${a.knochen}, an dem die Lichtgruppe ${a.gruppe} hängt; die Lampen blieben stehen`);
+    if (faehrt) throw new Error(`anhang ${wer}: die Ruhelage ${faehrt.cga} stellt den Knochen ${a.knochen}, an dem die Lichtgruppe ${a.gruppe} hängt; die Lampen blieben stehen`);
     return { ...a, ...r, exemplare: 0 };
   });
   const zeilen = (f) => readFileSync(f, 'utf8').split('\n').filter((z) => z.trim());
   const liste = [];
   const room = await io.read(h.raw);
+  // Lichtgruppen an einem Knochen der Halle selbst: vor den Kindern, die Probe an den Leuchten gilt ihrem eigenen Modell
+  const eigene = halleAnhang(room, anhang);
   const vorher = { knoten: room.getRoot().listNodes().length, netze: room.getRoot().listMeshes().length };
   const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => io.read(c.glb), zeilen: (c) => zeilen(c.licht), lagen, nur, anhang, liste, melde: (m) => console.log(m) });
   for (const n of nur) if (!n.exemplare) throw new Error(`nur ${n.kind}: kein eingehängtes Kind heißt so, der Eintrag ist ohne Anlass`);
   for (const l of lagen) if (!l.knoten) throw new Error(`Lage ${l.cga}: kein eingehängtes Kind trägt dieses Netz, der Eintrag ist ohne Anlass`);
-  for (const a of anhang) if (!a.exemplare) throw new Error(`anhang ${a.kind}: das Kind steht im Plan, wurde aber nicht eingehängt`);
+  for (const a of anhang) if (!a.exemplare) throw new Error(`anhang ${a.kind ?? 'Halle'}: ${a.kind === undefined ? 'die Lampen der Halle wurden nicht angehängt' : 'das Kind steht im Plan, wurde aber nicht eingehängt'}`);
   await room.transform(unpartition());
-  const alleZeilen = [...zeilen(eigeneLichter), ...lichter];
+  const alleZeilen = [...zeilen(eigeneLichter), ...eigene, ...lichter];
   await eingehaengtSchreiben({
     berichtWeg: () => rmSync(bericht, { force: true }),
     licht: () => writeFileSync(gemerkt, alleZeilen.join('\n') + '\n'),
@@ -609,6 +640,6 @@ export async function hallKinder(h, file, w) {
     bericht: () => writeFileSync(bericht, JSON.stringify({ konfig, kinder: liste, ausgelassen, lagen: lagen.map(({ muster, ...l }) => l), anhang: anhang.map(({ lampen, ...a }) => ({ ...a, lampen: lampen.length })), lichtzeilen: { halle: alleZeilen.length - lichter.length, kinder: lichter.length } }, null, 1)),
   });
   console.log(`  Kinder eingehängt: ${room.getRoot().listNodes().length - vorher.knoten} Knoten und ${room.getRoot().listMeshes().length - vorher.netze} Netze dazu, ${lichter.length} Lichtzeilen zu ${alleZeilen.length - lichter.length} der Halle; gestellt: ${lagen.map((l) => `${l.cga} um ${l.versatz.join(',')} (${l.spur}, ${l.knoten} Knoten)`).join('; ') || 'nichts'}`);
-  for (const a of anhang) console.log(`  Lichtgruppe ${a.gruppe} am Knochen ${a.knochen} von ${a.traeger}: ${a.lampen.length} Lampe(n) je Exemplar angehängt (${a.exemplare} Exemplare), ${a.aus.length} ohne Stärke im Ruhezustand ausgelassen`);
+  for (const a of anhang) console.log(`  Lichtgruppe ${a.gruppe} am Knochen ${a.knochen} von ${a.traeger}${a.kind === undefined ? ` (Halle, Träger bei ${a.traegerOrt.join('/')}, ${a.anNetz} an einer Leuchte)` : ''}: ${a.lampen.length} Lampe(n) je Exemplar angehängt (${a.exemplare} Exemplare), ${a.aus.length} ohne Stärke im Ruhezustand ausgelassen`);
   console.log(`  nicht eingehängt (kein Muster in kinder.folge): ${Object.entries(ausgelassen).map(([k, n]) => `${k} ${n}`).join(', ') || 'keiner'}`);
 }

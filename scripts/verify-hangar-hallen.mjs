@@ -449,8 +449,10 @@ const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die
 // der Stärke hat, und so brannten sie. Mit ihnen sank die Klinke lampen am 15.11.2026 von 912 auf 826: Die 86
 // fehlen der Halle nicht, das Spiel zeigt sie in Ruhe dunkel. Eine Halle ohne diese Klinke lässt keine Lampe weg;
 // nennt ihre Lampendatei doch welche, reißt das Tor.
+// Am selben Tag kamen die Landeleuchten der Schiffsplattform dazu (44 der 55 Lampen ihrer Lichtgruppe brennen in
+// Ruhe; sie hängt am Knochen der Plattform, wie die der Kabinen): 870 statt 826 Lampen.
 const KLINKE = {
-  'util-lrgtop': { lampen: 826, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86 },
+  'util-lrgtop': { lampen: 870, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
