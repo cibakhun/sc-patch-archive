@@ -20,7 +20,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './lib/ivo-caf.mjs';
 import { hallDecalDoc, hallTextDoc, meshBase, mtlQuelle } from './lib/hall-decals.mjs';
-import { hallKinder, nmcKnoten } from './lib/hall-kinder.mjs';
+import { hallKinder, hallRuhe, nmcKnoten } from './lib/hall-kinder.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -84,9 +84,13 @@ const HALLS = [
   // Kabine stand mit ihren Leuchten im Modell, aber dunkel. anLeuchte: so
   // viele Lampen müssen an einer Leuchte des Modells sitzen (gemessen 24 von
   // 57; im falschen Raum gelesen keine), sonst bricht der Schritt ab.
+  // ruhe: die Halle ohne die Lampen, die im Spiel in Ruhe dunkel sind
+  // (Warnleuchten, Notlicht, die Strahler in der Grube unter der Plattform).
+  // Der Export schreibt sie mit ihrem nächsten Zustand, der Stärke hat; die
+  // Liste <halle>.ruhe.json nennt sie dem Build (scripts/lib/hall-ruhe.mjs).
   { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
-  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' },
+  { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' }, ruhe: true,
     kinder: {
       folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
       lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
@@ -463,7 +467,9 @@ if (containers.length) {
         }
       }
       if (h.tor) await werkhalleCompose(h, file);
-      if (h.kinder) await hallKinder(h, file, { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter });
+      const werkzeug = { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter };
+      if (h.kinder) await hallKinder(h, file, werkzeug);
+      else if (h.ruhe) hallRuhe(h, werkzeug);   // mit Kindern schreibt hallKinder die Liste, es kennt ihren Plan
       if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }

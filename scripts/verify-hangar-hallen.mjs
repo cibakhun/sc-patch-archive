@@ -52,7 +52,10 @@
        vollständig, und gezählt wird gegen die Klinke, was die Bühne
        davon nach ihrer eigenen Regel setzt (hallLampeGilt im Viewer);
        mit diesen Lampen gerechnet ist das Lichtgitter überall die Summe
-       aus Lampenlicht und Grundlicht
+       aus Lampenlicht und Grundlicht; die Flächenlichter strahlen
+       entlang ihrer eigenen Achse, und die Lampen, die im Spiel in Ruhe
+       dunkel sind, stehen nicht in der Datei (beides nennt die Datei
+       selbst, Klinken je Halle)
    [4] Kein Ballast: keine Einrichtungs-, Telefon- oder zweite Stufe einer
        solchen Halle in dist/, und keine Datei mit Bahnen eines Aufzugs,
        die keine Hangarseite nennt
@@ -306,6 +309,85 @@
        hallLampenStaerke hebt. Das misst check:hangar-shader an ihrer
        Zeile „… Spiellampen … gesetzt, N gedämpft“ (dort im Kopf unter
        GEDAEMPFTE LAMPEN).
+   (t) 15.11.2026, Flächenlichter entlang ihrer eigenen Achse (Lesart
+       achse, scripts/lib/hall-lights.mjs): Von der nächsten Fläche weg
+       gedreht zeigten in der Large-Halle 22 von 58 ihrer eigenen Richtung
+       entgegen. Viermal an der ausgelieferten Lampendatei gebrochen und
+       einmal an einer Kopie des Tors, je 1 FEHLER:
+       die Datei nennt keine Lesart (so stand sie bis zu diesem Tag):
+       „[3] util-lrgtop: die ausgelieferte Lampendatei nennt fuer ihre
+       Flaechenlichter die Lesart null, erwartet "achse" — in den Hallen
+       fester Groesse strahlen sie entlang ihrer eigenen Achse; von der
+       naechsten Flaeche weg gedreht zeigen die Deckenpaneele der Kabinen
+       an die Decke und Lampen unter dem Dach in die Kehle
+       (FLAECHEN_LESART in build-hangar-assets.mjs, die Halle am PC neu
+       bauen)“;
+       ein Flächenlicht trägt einen Abstand zu einer Fläche (den schreibt
+       nur die alte Lesart): „[3] util-lrgtop: 1 von 58 Flaechenlichtern
+       der ausgelieferten Datei tragen einen Abstand zu einer Flaeche
+       (gap, zuerst lg_hangar_lrgtop-004), die Datei nennt aber die
+       Lesart achse — Liste und Lesart stammen nicht aus demselben Bau“;
+       ein Flächenlicht ohne Richtung, und eines mit halber Länge:
+       „[3] util-lrgtop: 1 von 58 Flaechenlichtern der ausgelieferten
+       Datei tragen keine Richtung der Laenge 1 (zuerst
+       lg_hangar_lrgtop-004: null) — sie strahlten rundum, auch in die
+       Wand, an der sie sitzen“ (im zweiten Lauf „… [0,-0.5,0]“);
+       die Klinke flaechen um eins über dem Bestand (Kopie des Tors):
+       „[3] util-lrgtop: 58 Flaechenlichter entlang ihrer eigenen Achse
+       in der ausgelieferten Datei, Klinke 59“.
+       Nicht hier geprüft: dass die Richtung die des Spiels ist. Die
+       Achsen der Lichtknoten kennt nur der Build am PC;
+       tests/e2e/hall-licht-richtung.test.js hält die Regel am echten
+       Strahl gegen ein kleines Modell, dort viermal vorgeführt rot (die
+       Lesart nicht beachtet, eine unbekannte still hingenommen, ein
+       Licht ohne Richtung behält sie, hindurch als weg gezählt).
+   (u) 15.11.2026, Lampen, die im Spiel in Ruhe dunkel sind
+       (scripts/lib/hall-ruhe.mjs): Der Export schrieb sie mit ihrem
+       nächsten Zustand, der Stärke hat, und so brannten in der
+       Large-Halle 86 Warnleuchten, Notlichter und Strahler. Fünfmal an
+       der ausgelieferten Lampendatei gebrochen und zweimal an einer Kopie
+       des Tors, je 1 FEHLER:
+       die Datei nennt die Regel nicht (ohne ruhe, und mit ruhe ohne
+       gruppen): „[3] util-lrgtop: die ausgelieferte Lampendatei nennt
+       nicht, welche Lampen im Spiel in Ruhe dunkel sind und wegblieben
+       (ruhe mit weg und gruppen) — ohne die Liste des Extraktors brennen
+       Warnleuchten, Notlicht und die Strahler in der Grube unter der
+       Plattform, die das Spiel erst schaltet (<halle>.ruhe.json fehlt
+       neben dem Rohmodell: Halle am PC neu holen und bauen)“;
+       eine Lampe der Datei trägt einen der genannten Namen: „[3]
+       util-lrgtop: 1 Lampe(n) der ausgelieferten Datei sind im Spiel in
+       Ruhe dunkel (zuerst lg_hangar_lrgtop-008); die Datei nennt sie
+       selbst unter ruhe — Liste und Lampen stammen nicht aus demselben
+       Bau“;
+       die Datei nennt eine Lampe weniger als das Manifest: „[3]
+       util-lrgtop: die ausgelieferte Lampendatei nennt 85 in Ruhe dunkle
+       Lampen, das Manifest 86 — Datei und Manifest stammen nicht aus
+       demselben Bau (gemeinsam einchecken)“;
+       die Datei nennt weniger Lampen als Namen: „[3] util-lrgtop: die
+       ausgelieferte Lampendatei nennt 80 weggelassene Lampen, ihre
+       Gruppen nennen 81 Namen — jeder Name steht fuer wenigstens eine
+       Lampe“;
+       die Klinke ruhe um eins über dem Bestand (Kopie des Tors): „[3]
+       util-lrgtop: 86 in Ruhe dunkle Lampen blieben weg, Klinke 87 — die
+       Liste nennt weniger als gemessen, ein Teil der Warnleuchten und
+       des Notlichts brennt wieder (ein Container fehlt in
+       <halle>.ruhe.json, oder das Spiel hat die Lampen geaendert: dann
+       die Klinke per Commit mit Ursache senken)“;
+       die Halle lässt Lampen weg und trägt keine Klinke ruhe (Kopie des
+       Tors ohne den Eintrag): „[3] util-lrgtop: die ausgelieferte
+       Lampendatei laesst in Ruhe dunkle Lampen weg (ruhe), die Halle hat
+       keine Klinke ruhe (KLINKE) — fiele die Regel wieder weg, bliebe
+       das Tor gruen“.
+       Nicht hier geprüft: dass die Liste die richtigen Lampen nennt. Das
+       hält der Extraktor am PC gegen das Protokoll seines Exports (jede
+       Lampe jeder exportierten Gruppe mit der Stärke ihres Zustands,
+       sonst bricht er ab), und der Build bricht ab, wenn ein genannter
+       Lichtknoten nicht so oft im Modell steht, wie die Liste sagt.
+       tests/e2e/hall-ruhe.test.js hält beides an kleinen Entities und
+       Protokollen, dort sechsmal vorgeführt rot (auxiliary gilt als
+       brennend, ohne die Probe am Protokoll, ohne Exemplare gezählt, ein
+       Name öfter im Modell als in der Liste, Kinder ohne Lichter
+       mitgezählt, dieselbe Gruppe in zwei Containern).
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -325,6 +407,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { floorLevel } from './lib/hall-hull.mjs';
 import { SCHRIFT, SCHIRM_AUS } from './lib/hall-decals.mjs';
+import { lampenName } from './lib/hall-ruhe.mjs';
 import { DataUtils } from 'three';
 import { gitterWerte, grundImGitter, gitterLicht, gitterDazu, gitterAufrufe, gitterDunkelste } from './lib/hall-gitter.mjs';
 
@@ -356,8 +439,18 @@ const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die
 // gedaempft: Lampen der ausgelieferten Datei, die der Viewer schwächer hebt als die Halle (HALL_FEST.daempf,
 // hallLampenStaerke): die 114 in den Kabinen. Fällt die Dämpfung weg, brennt der Kabinenboden wieder aus.
 // Eine Halle ohne diese Klinke dämpft keine Lampe; nennt HALL_FEST für sie doch eine Gruppe, reißt das Tor.
+// flaechen: Flächenlichter der ausgelieferten Datei, die entlang ihrer eigenen Achse strahlen (Lesart achse,
+// orientHallLights; die Messung steht in scripts/lib/hall-lights.mjs). Von der nächsten Fläche weg gedreht
+// zeigten in der Large-Halle 22 von 58 ihrer eigenen Richtung entgegen: die Deckenpaneele der Kabinen an die
+// Decke, acht Lampen unter dem Dach in die Kehle.
+// ruhe: Lampen, die im Spiel in Ruhe dunkel sind und deshalb nicht in der ausgelieferten Datei stehen
+// (scripts/lib/hall-ruhe.mjs): 76 der Hallengruppe (die Strahler in der Grube unter der Plattform, Drehlichter,
+// Notlicht, Hololichter) und je Frachtaufzug 5 Warnleuchten. Der Export schrieb sie mit ihrem nächsten Zustand,
+// der Stärke hat, und so brannten sie. Mit ihnen sank die Klinke lampen am 15.11.2026 von 912 auf 826: Die 86
+// fehlen der Halle nicht, das Spiel zeigt sie in Ruhe dunkel. Eine Halle ohne diese Klinke lässt keine Lampe weg;
+// nennt ihre Lampendatei doch welche, reißt das Tor.
 const KLINKE = {
-  'util-lrgtop': { lampen: 912, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114 },
+  'util-lrgtop': { lampen: 826, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
@@ -597,6 +690,47 @@ for (const [id, { bytes }] of HALLEN) {
   if (kaputt) fail(`[3] ${id}: ${kaputt} von ${lampenRoh.length} Lampen der ausgelieferten Datei sind unvollstaendig (ohne Art, ohne Ort aus drei Zahlen oder ohne Staerke)`);
   if (lampenRoh && lampenRoh.length !== M.lights?.total) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt ${lampenRoh.length} Lampen, das Manifest nennt ${M.lights?.total ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
   const lampenAus = (lampenRoh?.length ?? 0) - kaputt - lampen.length;
+  // Flaechenlichter: In den Hallen fester Groesse strahlen sie entlang ihrer eigenen Achse, wie im Spiel. Die
+  // Lampendatei nennt die Lesart, mit der der Build sie ausgerichtet hat (flaechen), und unter achse traegt jedes
+  // eine Richtung der Laenge 1 und keinen Abstand zu einer Flaeche (gap schreibt nur die Lesart flaeche). Nicht
+  // geprueft wird hier, dass die Richtung die des Spiels ist: Die Achsen der Lichtknoten kennt nur der Build am PC
+  // (orientHallLights, tests/e2e/hall-licht-richtung.test.js; seine Zeile "… Flaechenlichter entlang ihrer
+  // eigenen Achse" nennt, wie viele von ihrer Flaeche weg zeigen).
+  let flaechen = null;
+  if (lampenRoh) {
+    const fl = lampenRoh.filter((l) => wohlgeformt(l) && l.type === 'area');
+    const gerichtet = (l) => Array.isArray(l.dir) && l.dir.length === 3 && l.dir.every(Number.isFinite) && Math.abs(Math.hypot(...l.dir) - 1) < 0.01;
+    const mitAbstand = fl.filter((l) => l.gap !== undefined), ohne = fl.filter((l) => !gerichtet(l));
+    if (L.flaechen !== 'achse') fail(`[3] ${id}: die ausgelieferte Lampendatei nennt fuer ihre Flaechenlichter die Lesart ${JSON.stringify(L.flaechen ?? null)}, erwartet "achse" — in den Hallen fester Groesse strahlen sie entlang ihrer eigenen Achse; von der naechsten Flaeche weg gedreht zeigen die Deckenpaneele der Kabinen an die Decke und Lampen unter dem Dach in die Kehle (FLAECHEN_LESART in build-hangar-assets.mjs, die Halle am PC neu bauen)`);
+    else if (mitAbstand.length) fail(`[3] ${id}: ${mitAbstand.length} von ${fl.length} Flaechenlichtern der ausgelieferten Datei tragen einen Abstand zu einer Flaeche (gap, zuerst ${mitAbstand[0].name}), die Datei nennt aber die Lesart achse — Liste und Lesart stammen nicht aus demselben Bau`);
+    else if (ohne.length) fail(`[3] ${id}: ${ohne.length} von ${fl.length} Flaechenlichtern der ausgelieferten Datei tragen keine Richtung der Laenge 1 (zuerst ${ohne[0].name}: ${JSON.stringify(ohne[0].dir ?? null)}) — sie strahlten rundum, auch in die Wand, an der sie sitzen`);
+    else if (!(fl.length >= K.flaechen)) fail(`[3] ${id}: ${fl.length} Flaechenlichter entlang ihrer eigenen Achse in der ausgelieferten Datei, Klinke ${K.flaechen}`);
+    else flaechen = fl.length;
+  }
+  // In Ruhe dunkle Lampen: Der Export schreibt auch die Lampen, deren Ruhezustand im Spiel keine Staerke hat
+  // (Warnleuchten, Notlicht, die Strahler in der Grube unter der Plattform), mit ihrem naechsten Zustand, der
+  // Staerke hat. Der Build laesst sie nach der Liste des Extraktors weg (scripts/lib/hall-ruhe.mjs) und schreibt
+  // die Regel in die Lampendatei: wie viele wegblieben (weg) und je Lichtgruppe ihre Stellen. Hier geprueft an der
+  // ausgelieferten Datei: Sie nennt die Regel, keine ihrer Lampen traegt einen der genannten Namen, Datei und
+  // Manifest nennen dieselbe Zahl, und die Zahl haelt ihre Klinke. Nicht hier geprueft wird, dass die Liste die
+  // richtigen Lampen nennt: Das haelt der Extraktor am PC gegen das Protokoll seines Exports (jede Lampe jeder
+  // Gruppe, sonst bricht er ab) und tests/e2e/hall-ruhe.test.js an der Regel selbst.
+  let ruhe = null;
+  if (lampenRoh && K.ruhe === undefined && L.ruhe !== undefined) fail(`[3] ${id}: die ausgelieferte Lampendatei laesst in Ruhe dunkle Lampen weg (ruhe), die Halle hat keine Klinke ruhe (KLINKE) — fiele die Regel wieder weg, bliebe das Tor gruen`);
+  if (lampenRoh && K.ruhe !== undefined) {
+    const R = L.ruhe, G = R && R.gruppen && typeof R.gruppen === 'object' && !Array.isArray(R.gruppen) ? Object.entries(R.gruppen) : null;
+    const heil = G && G.length > 0 && Number.isInteger(R.weg) && G.every(([, d]) => Array.isArray(d) && d.length > 0 && d.every((i) => Number.isInteger(i) && i >= 0));
+    if (!heil) fail(`[3] ${id}: die ausgelieferte Lampendatei nennt nicht, welche Lampen im Spiel in Ruhe dunkel sind und wegblieben (ruhe mit weg und gruppen) — ohne die Liste des Extraktors brennen Warnleuchten, Notlicht und die Strahler in der Grube unter der Plattform, die das Spiel erst schaltet (<halle>.ruhe.json fehlt neben dem Rohmodell: Halle am PC neu holen und bauen)`);
+    else {
+      const namen = new Set(G.flatMap(([g, d]) => d.map((i) => lampenName(g, i))));
+      const brennt = lampenRoh.filter((l) => namen.has(l?.name));
+      if (brennt.length) fail(`[3] ${id}: ${brennt.length} Lampe(n) der ausgelieferten Datei sind im Spiel in Ruhe dunkel (zuerst ${brennt[0].name}); die Datei nennt sie selbst unter ruhe — Liste und Lampen stammen nicht aus demselben Bau`);
+      else if (!(R.weg >= namen.size)) fail(`[3] ${id}: die ausgelieferte Lampendatei nennt ${R.weg} weggelassene Lampen, ihre Gruppen nennen ${namen.size} Namen — jeder Name steht fuer wenigstens eine Lampe`);
+      else if (R.weg !== M.lights?.ruhe?.weg) fail(`[3] ${id}: die ausgelieferte Lampendatei nennt ${R.weg} in Ruhe dunkle Lampen, das Manifest ${M.lights?.ruhe?.weg ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
+      else if (!(R.weg >= K.ruhe)) fail(`[3] ${id}: ${R.weg} in Ruhe dunkle Lampen blieben weg, Klinke ${K.ruhe} — die Liste nennt weniger als gemessen, ein Teil der Warnleuchten und des Notlichts brennt wieder (ein Container fehlt in <halle>.ruhe.json, oder das Spiel hat die Lampen geaendert: dann die Klinke per Commit mit Ursache senken)`);
+      else ruhe = { weg: R.weg, namen: namen.size, gruppen: G.length };
+    }
+  }
   // Gedaempfte Lichtgruppen (HALL_FEST.daempf, hallLampenStaerke): Jede nennt einen Faktor zwischen 0 und 1 und
   // Lampen, die die ausgelieferte Datei wirklich traegt. Eine Daempfung ohne Lampen ist eine Ausnahme ohne Anlass
   // (Gruppe umbenannt oder nicht mehr geholt) und reisst. Fuer die Lampen der Datei gibt der Viewer licht mal
@@ -661,7 +795,7 @@ for (const [id, { bytes }] of HALLEN) {
   if (M.floor !== HALLEN.get(id).hall.floor) fail(`[3] ${id}: das Manifest nennt den Boden bei ${M.floor}, die Seite bei ${HALLEN.get(id).hall.floor}`);
   const ueber = [['tris', M.tris, 'Dreiecke'], ['bytes', bytes, 'Bytes'], ['texturen', M.textures, 'Texturen'], ['leck', M.hull?.pct, '% Blickstrahlen ins Leere']].filter(([k, v]) => !(v <= G[k]));
   for (const [k, v, was] of ueber) fail(`[3] ${id}: ${v ?? 'keine Zahl fuer'} ${was}, Obergrenze ${G[k]} — die Halle ist schwerer oder offener geworden`);
-  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}${dazu ? ` (${dazu})` : ''}${gedaempft ? `, gedaempft ${gedaempft} (Klinke ${K.gedaempft})` : ''}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
+  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}${dazu ? ` (${dazu})` : ''}${gedaempft ? `, gedaempft ${gedaempft} (Klinke ${K.gedaempft})` : ''}${flaechen !== null ? `, ${flaechen} Flaechenlichter entlang ihrer eigenen Achse (Klinke ${K.flaechen})` : ''}${ruhe ? `, ${ruhe.weg} in Ruhe dunkle Lampen weggelassen (${ruhe.namen} Namen in ${ruhe.gruppen} Lichtgruppen, Klinke ${K.ruhe})` : ''}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
 }
 for (const z of zeilen) say(z);
 if (!zeilen.length) say(`    ${HALLEN.size ? 'keine Halle vollstaendig gemessen' : 'keine Halle ausgeliefert, nichts zu messen'}`);

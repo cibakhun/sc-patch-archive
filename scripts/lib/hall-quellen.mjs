@@ -1,8 +1,9 @@
 // Quellen einer Halle im Rohordner (hall/ unter dem Quellordner des Builds).
 //
 // Neben dem Modell <halle>.glb legt der Extraktor Beilagen ab, die der Build
-// mit dem Modell liest: Maße und Palette (<halle>.info.json), die Teilnetze
-// der Aufkleber (<halle>.decals.glb) und die Schrift der vollen Stufe
+// mit dem Modell liest: Maße und Palette (<halle>.info.json), die Lampen,
+// die im Spiel in Ruhe dunkel sind (<halle>.ruhe.json), die Teilnetze der
+// Aufkleber (<halle>.decals.glb) und die Schrift der vollen Stufe
 // (<halle>.schrift.glb). Zwei davon enden selbst auf .glb.
 //
 // Zwei Fragen stellt der Build an diesen Ordner, und beide gingen an den
@@ -32,7 +33,7 @@ export const istHallenModell = (datei) => /\.glb$/i.test(datei) && !new RegExp(`
 // Was der Build neben dem Modell einer Halle liest (Endung hinter „<halle>.“).
 // Die ersten fünf gelten ebenso für Aufzug und Werkhalle.
 export const NEBEN_EINGABEN = ['lights-src.txt', 'matfix.json', 'entities.json', 'layers.json', 'tor.json'];
-export const HALL_EINGABEN = [...NEBEN_EINGABEN, 'info.json', ...HALL_BEILAGEN_GLB.map((b) => `${b}.glb`)];
+export const HALL_EINGABEN = [...NEBEN_EINGABEN, 'info.json', 'ruhe.json', ...HALL_BEILAGEN_GLB.map((b) => `${b}.glb`)];
 
 /**
  * Ist jede Ausgabe da und jünger als jede Eingabe?

@@ -34,6 +34,7 @@ import { sample as sampleCaf, sampleRot as sampleCafRot } from './lib/ivo-caf.mj
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights, lichtZeile } from './lib/hall-lights.mjs';
+import { ruheRegel, ruheZaehler } from './lib/hall-ruhe.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
 import { kinderBestand } from './lib/hall-kinder.mjs';
@@ -100,6 +101,10 @@ const HALL_ROOM = {
   'revelyork-single': { center: [36, 0, -68], halfW: 36, halfL: 68, height: 44 },
   'util-lrgtop': { center: [-72, 2, 112], halfW: 72, halfL: 108, height: 68 },
 };
+// Wohin die Flächenlichter einer Halle strahlen (orientHallLights, die Messung
+// steht in scripts/lib/hall-lights.mjs): in den Industriehallen entlang ihrer
+// eigenen Achse wie im Spiel; jede andere Halle bleibt bei 'flaeche'.
+const FLAECHEN_LESART = { 'util-smltop': 'achse', 'util-medtop': 'achse', 'util-lrgtop': 'achse', 'util-xltop': 'achse' };
 
 // Nie sichtbar oder nur im Spiel sinnvoll: Schadensmodelle, Kollisions-/
 // Schild-Hüllen, Stellvertreter, Effekt-Helfer. „*_Debris“ ohne Schaden im
@@ -572,6 +577,14 @@ function stripAttributes(doc, kind) {
 // Der Spieltyp kann auch <Uninitialized> heißen (zwei Warnleuchten in
 // util-lrgtop): Mit \w+ fiel die Zeile durch, und die Lampe bekam die Stärke
 // des glTF-Knotens (750 statt 0,5, eine andere Einheit).
+// Lampen, die im Spiel in Ruhe dunkel sind, bleiben weg: Der Export schreibt
+// sie mit ihrem nächsten Zustand, der Stärke hat (Warnleuchten, Notlicht).
+// Welche das sind, nennt <halle>.ruhe.json aus dem Extraktor
+// (scripts/lib/hall-ruhe.mjs). Jeder dort genannte Lichtknoten muss so oft im
+// Modell stehen, wie die Liste sagt; sonst passt sie nicht zu diesem Export,
+// und der Bau der Halle bricht ab, statt die falschen Lampen wegzulassen. Die
+// Lampendatei trägt die Regel mit (ruhe: weg und je Lichtgruppe die Stellen),
+// damit verify:hangar-hallen sie an der ausgelieferten Datei prüfen kann.
 const LIGHT_TYPE = { Planar: 'area', Projector: 'spot', Omni: 'point', Ambient: 'ambient' };
 // Werkhalle (fixtures): je Lampe der Leuchtkörper, in dessen um 0,6 m
 // erweiterter Box sie liegt (der nächste, wenn mehrere), als fixture.
@@ -588,6 +601,9 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
     if (!src.has(z.name)) src.set(z.name, []);
     src.get(z.name).push({ type: z.type, intensity: z.intensity, radius: z.radius });
   }
+  const ruheFile = fileURLToPath(new URL(`${kind}/${name}.ruhe.json`, SRC));
+  const ruhe = kind === 'hall' && existsSync(ruheFile) ? ruheRegel(JSON.parse(readFileSync(ruheFile, 'utf8'))) : null;
+  const zaehler = ruhe ? ruheZaehler(ruhe) : null;
   const lights = [];
   for (const node of doc.getRoot().listNodes()) {
     const l = node.getExtension('KHR_lights_punctual');
@@ -595,6 +611,8 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
     const w = node.getWorldMatrix();
     const len = Math.hypot(w[0], w[1], w[2]) || 1;
     const s = src.get(node.getName())?.shift();
+    // in Ruhe dunkel: bleibt weg; ihre Zeile ist oben schon verbraucht
+    if (zaehler?.dunkel(node.getName())) continue;
     const type = s ? (LIGHT_TYPE[s.type] || 'point') : l.getType();
     const r3 = (v) => Math.round(v * 1000) / 1000;
     lights.push({
@@ -609,7 +627,9 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
       name: node.getName(),
     });
   }
-  const orient = orientHallLights(lights, hallRaycaster(doc));
+  zaehler?.pruefe(`${kind}/${name}.ruhe.json`);
+  const flaechen = kind === 'hall' ? FLAECHEN_LESART[name] ?? 'flaeche' : 'flaeche';
+  const orient = orientHallLights(lights, hallRaycaster(doc), undefined, { flaechen });
   if (fixtures) for (const l of lights) {
     let best = null, bd = Infinity;
     for (const f of fixtures) {
@@ -621,10 +641,13 @@ function hallLights(doc, name, { kind = 'hall', fixtures = null } = {}) {
   }
   const outFile = fileURLToPath(new URL(`${kind}/${name}.lights.json`, OUT));
   mkdirSync(dirname(outFile), { recursive: true });
-  writeFileSync(outFile, JSON.stringify({ v: 2, lights }) + '\n');
+  // flaechen steht nur in der Datei einer Halle, deren Flächenlichter entlang
+  // ihrer eigenen Achse gelesen sind: verify:hangar-hallen verlangt es für die
+  // Hallen fester Größe. Die übrigen Dateien bleiben Byte für Byte.
+  writeFileSync(outFile, JSON.stringify({ v: 2, ...(flaechen === 'flaeche' ? {} : { flaechen }), ...(ruhe ? { ruhe: { weg: ruhe.weg, gruppen: ruhe.gruppen } } : {}), lights }) + '\n');
   const byType = {};
   for (const l of lights) byType[l.type] = (byType[l.type] || 0) + 1;
-  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient, ...(fixtures ? { withFixture: lights.filter((l) => l.fixture).length } : {}) };
+  return { total: lights.length, byType, matched: lights.length - [...src.values()].reduce((n, a) => n + a.length, 0), orient, ...(ruhe ? { ruhe: { weg: ruhe.weg, namen: ruhe.namen.size, gruppen: Object.fromEntries(Object.entries(ruhe.gruppen).map(([g, d]) => [g, d.length])) } } : {}), ...(fixtures ? { withFixture: lights.filter((l) => l.fixture).length } : {}) };
 }
 
 // Halle: Einrichtung bleibt drin (Spielobjekte gehören in die Halle). Nur
@@ -3710,7 +3733,10 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         const t = Object.entries(r.lights.byType).map(([k, n]) => `${n} ${k}`).join(', ');
         console.log(`    Halle: ${r.tris.toLocaleString()} Dreiecke, ${r.furniture != null ? `${r.furniture} Einrichtungsobjekte, ` : ''}${r.lights.total} Lichter (${t}; ${r.lights.matched} mit Spieltyp${r.lights.withFixture != null ? `, ${r.lights.withFixture} an einem Leuchtkörper` : ''}), ${(r.bytes / 1048576).toFixed(2)} MB`);
         const o = r.lights.orient;
-        if (o) console.log(`    Lampen: ${o.spots} Spots (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`);
+        if (o) console.log(`    Lampen: ${o.spots} Spots (${o.spotsAway} von ${o.spotsMounted} montierten zeigen von ihrer Fläche weg), ${o.flaechen === 'achse'
+          ? `${o.area} Flächenlichter entlang ihrer eigenen Achse (von ${o.areaMounted} an einer Fläche zeigen ${o.areaAway} von ihr weg, ${o.areaInto} durch sie hindurch: die Lampe sitzt im Gehäuse ihrer Leuchte)${o.areaOhne ? `; WARNUNG ${o.areaOhne} ohne eigene Richtung strahlen rundum` : ''}${o.areaInto > o.areaAway ? '; WARNUNG mehr zeigen in ihre Fläche als von ihr weg, die Lesart achse passt zu dieser Halle nicht (FLAECHEN_LESART)' : ''}`
+          : `${o.areaMounted} von ${o.area} Flächenlichtern an ihrer Fläche ausgerichtet`}`);
+        if (r.lights.ruhe) console.log(`    In Ruhe dunkel: ${r.lights.ruhe.weg} Lampen weggelassen, die das Spiel erst schaltet (${Object.entries(r.lights.ruhe.gruppen).map(([g, n]) => `${g} ${n}`).join(', ')}; ${r.lights.ruhe.namen} Namen)`);
         if (r.hallPalette) console.log(r.hallPalette.name
           ? `    Palette ${r.hallPalette.name}: ${r.hallPalette.materials} Materialien gefärbt; ${r.hallPalette.schichtTon ?? 0} Schichtmaterialien in der Farbe ihrer Schicht`
           : `    WARNUNG Palette: ${r.hallPalette.missing} Palettenmaterialien ohne Palette der Halle (palette fehlt in ${name}.info.json), sie behalten den dunklen Ersatzwert des Exports; Halle mit dem Extraktor neu exportieren.`);

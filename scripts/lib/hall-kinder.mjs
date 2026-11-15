@@ -17,6 +17,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS, KHRLightsPunctual } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './ivo-caf.mjs';
+import { ruheDunkel, ruheListe, ruheTeile } from './hall-ruhe.mjs';
 
 const WURZEL = 'CryEngine_Z_up';
 
@@ -393,42 +394,23 @@ export const planKennung = (baum) => JSON.stringify(planKern(baum));
 // Bericht hall/<halle>.kinder.json): die Regeln des Eintrags und der Plan.
 export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.folge.map(String), lage: kinder.lage ?? [], ...(kinder.nur?.length ? { nur: kinder.nur } : {}), ...(kinder.anhang?.length ? { anhang: kinder.anhang } : {}), plan: planKennung(baum) });
 
-// ─── Der Schritt im Extraktor (h.kinder) ─────────────────────────────────
-// h.kinder.folge: Muster auf den Containernamen; nur diese Kinder folgen, auf
-// jeder Ebene (das Aufzugsmodul hängt seinerseits Plattform und Kabine ein).
-// Alle anderen werden gezählt und genannt, damit keines still fehlt.
-// h.kinder.lage: Teile, die der Export in der Grundlage ihrer .cga zeigt, im
-// Spiel aber anders ruhen (Tor des Frachtaufzugs: offen, solange die Plattform
-// oben steht). Die Lage ist das letzte Bild der genannten Spur am genannten
-// Knochen, gelesen aus der .caf; gestellt wird nur, wenn jedes Netz der .cga
-// an diesem Knochen hängt und die Spur ihn nicht dreht.
-// h.kinder.nur: Kinder, von denen nur steht, was die Halle zeigt (kindNur):
-// [{ kind: Kennung des Containers, netz: [Dateiname der .cga ohne Endung] }].
-// Eine Regel, deren Kind nicht eingehängt wird, bricht ab.
-// h.kinder.anhang: Lichtgruppen, die an einem Knochen hängen und die der
-// Export deshalb weglässt (anhangLampen, lampenEinhaengen):
-// [{ kind: Kennung des Containers, gruppe: Name der Lichtgruppe, knochen,
-//    anLeuchte: so viele Lampen müssen an einem Netzknoten sitzen }].
-// Jedes Kind wird einmal exportiert (Stufe und Schalter wie die Halle, mit
-// Lichtprotokoll) und an jede Stelle gehängt, die sein Elterncontainer nennt.
-// Ergebnis: file (Halle mit Kindern), hall/<halle>.lights-src.txt (Zeilen der
-// Halle und je Exemplar die des Kindes; der Build verbindet über den Namen),
-// Bericht hall/<halle>.kinder.json.
-// w: Werkzeug des Extraktors { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter }.
-export async function hallKinder(h, file, w) {
-  const { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter } = w;
+// ─── Container aus der Data.p4k lesen ────────────────────────────────────
+// Der socpak eines Containers ist ein ZIP: darin <name>.xml (seine Kinder)
+// und eine oder mehrere .soc (seine Entities). Zwischenablage ist
+// hall-kinder/ im Quellordner. w: Werkzeug des Extraktors
+// { SRC, STARBREAKER, sb, listFiles, readZip, socEntitiesXml }.
+export function containerLeser(w) {
+  const { SRC, STARBREAKER, sb, listFiles, readZip, socEntitiesXml } = w;
   const RAW = `${SRC}hall-kinder/`;
   mkdirSync(RAW, { recursive: true });
-  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const ende = (name) => name.replace(/\\/g, '/').split('/').slice(-2);
   const kennung = (name) => ende(name)[1].replace(/\.socpak$/i, '');
-  const folgt = (name) => h.kinder.folge.some((re) => re.test(name));
-  const kurz = (f) => f.slice(SRC.length);
 
   // der socpak eines Containers (ein ZIP), aus der Data.p4k geholt
   const pakVon = (name) => {
     const [dir, base] = ende(name);
+    if (base === undefined) throw new Error(`${name}: der Container steht ohne Ordner da, gelesen wird nur Ordner/Name.socpak`);
     sb(['p4k', 'extract', '-o', RAW, '--regex', `(?i)[\\\\/]${esc(dir)}[\\\\/]${esc(base)}$`]);
     const pak = listFiles(RAW).find((f) => f.toLowerCase().endsWith(`/${dir}/${base}`.toLowerCase()));
     if (!pak) throw new Error(`${dir}/${base} steht nicht in der Data.p4k`);
@@ -461,6 +443,69 @@ export async function hallKinder(h, file, w) {
     if (!xml.trim()) throw new Error(`${ende(name)[1]}: keine lesbaren Entities (${socs.length} .soc)`);
     return xml;
   };
+  return { RAW, esc, ende, kennung, pakVon, xmlVon, entitiesVon };
+}
+
+// ─── Lampen, die im Spiel in Ruhe dunkel sind (h.ruhe) ───────────────────
+// Schreibt hall/<halle>.ruhe.json neben das Modell (scripts/lib/hall-ruhe.mjs
+// sagt, was darin steht und warum): je Lichtgruppe der Halle und ihrer
+// eingehängten Kinder die Lampen ohne Stärke im Ruhezustand. Der Build lässt
+// sie weg. Gelesen werden die Entities jedes Containers und das Protokoll
+// seines Exports; passt eine Lampe nicht zu ihrer Zeile, bricht der Schritt
+// ab. baum: der Plan der Kinder (hallKinder), leer für eine Halle ohne.
+// Die Datei wird nur geschrieben, wenn sich ihr Inhalt ändert: Der Build zählt
+// ihr Alter zu seinen Eingaben.
+export function hallRuhe(h, w, baum = []) {
+  const { SRC } = w;
+  const { RAW, entitiesVon } = containerLeser(w);
+  const zeilen = (f) => {
+    if (!existsSync(f)) throw new Error(`${f.slice(SRC.length)} fehlt (das Lichtprotokoll des Exports): mit --force neu exportieren`);
+    return readFileSync(f, 'utf8').split('\n').filter((z) => z.trim());
+  };
+  const teile = ruheTeile(h.key, baum, (h.kinder?.nur ?? []).map((n) => n.kind)).map((t) => {
+    const name = t.kind ? t.kind.name : h.socpak, licht = t.kind ? t.kind.licht : h.kinder ? `${RAW}${h.key}.lights-src.txt` : `${SRC}hall/${h.key}.lights-src.txt`;
+    try { return { id: t.id, exemplare: t.exemplare, ...ruheDunkel(entitiesVon(name), zeilen(licht)) }; } catch (e) { throw new Error(`ruhe ${t.id}: ${e.message}`); }
+  });
+  const liste = ruheListe(teile);
+  const datei = `${SRC}hall/${h.key}.ruhe.json`, neu = JSON.stringify(liste, null, 1) + '\n';
+  mkdirSync(`${SRC}hall`, { recursive: true });
+  const gleich = existsSync(datei) && readFileSync(datei, 'utf8') === neu;
+  if (!gleich) writeFileSync(datei, neu);
+  const geprueft = teile.flatMap((t) => Object.values(t.gruppen));
+  const ohne = teile.flatMap((t) => t.ohneExport.map((g) => `${g.gruppe} ${g.lampen}`));
+  console.log(`  ${gleich ? '=' : '+'} ${datei.slice(SRC.length)}  in Ruhe dunkel: ${liste.weg} Lichtknoten (${Object.entries(liste.gruppen).map(([g, r]) => `${g} ${r.dunkel.length} von ${r.lampen}${r.exemplare > 1 ? ` je Exemplar, ${r.exemplare} Exemplare` : ''}`).join('; ') || 'keiner'}); geprüft: ${geprueft.reduce((n, g) => n + g.lampen, 0)} Lampen in ${geprueft.length} exportierten Lichtgruppen stehen mit der Stärke ihres Zustands im Protokoll; ohne Export (hängen an einem Knochen): ${ohne.join(', ') || 'keine'}`);
+  return liste;
+}
+
+// ─── Der Schritt im Extraktor (h.kinder) ─────────────────────────────────
+// h.kinder.folge: Muster auf den Containernamen; nur diese Kinder folgen, auf
+// jeder Ebene (das Aufzugsmodul hängt seinerseits Plattform und Kabine ein).
+// Alle anderen werden gezählt und genannt, damit keines still fehlt.
+// h.kinder.lage: Teile, die der Export in der Grundlage ihrer .cga zeigt, im
+// Spiel aber anders ruhen (Tor des Frachtaufzugs: offen, solange die Plattform
+// oben steht). Die Lage ist das letzte Bild der genannten Spur am genannten
+// Knochen, gelesen aus der .caf; gestellt wird nur, wenn jedes Netz der .cga
+// an diesem Knochen hängt und die Spur ihn nicht dreht.
+// h.kinder.nur: Kinder, von denen nur steht, was die Halle zeigt (kindNur):
+// [{ kind: Kennung des Containers, netz: [Dateiname der .cga ohne Endung] }].
+// Eine Regel, deren Kind nicht eingehängt wird, bricht ab.
+// h.kinder.anhang: Lichtgruppen, die an einem Knochen hängen und die der
+// Export deshalb weglässt (anhangLampen, lampenEinhaengen):
+// [{ kind: Kennung des Containers, gruppe: Name der Lichtgruppe, knochen,
+//    anLeuchte: so viele Lampen müssen an einem Netzknoten sitzen }].
+// Jedes Kind wird einmal exportiert (Stufe und Schalter wie die Halle, mit
+// Lichtprotokoll) und an jede Stelle gehängt, die sein Elterncontainer nennt.
+// Ergebnis: file (Halle mit Kindern), hall/<halle>.lights-src.txt (Zeilen der
+// Halle und je Exemplar die des Kindes; der Build verbindet über den Namen),
+// Bericht hall/<halle>.kinder.json. Mit h.ruhe dazu hall/<halle>.ruhe.json
+// (hallRuhe), auch wenn das Eingehängte noch gilt.
+// w: Werkzeug des Extraktors { SRC, FORCE, STARBREAKER, sb, listFiles, readZip, socEntitiesXml, lichtZeilen, schalter }.
+export async function hallKinder(h, file, w) {
+  const { SRC, FORCE, STARBREAKER, sb, listFiles, lichtZeilen, schalter } = w;
+  const { RAW, esc, ende, kennung, xmlVon, entitiesVon } = containerLeser(w);
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+  const folgt = (name) => h.kinder.folge.some((re) => re.test(name));
+  const kurz = (f) => f.slice(SRC.length);
 
   // Plan: der Baum der Kinder, die folgen, je Container mit seinen Stellen
   const ausgelassen = {};
@@ -492,6 +537,8 @@ export async function hallKinder(h, file, w) {
 
   const eigeneLichter = `${RAW}${h.key}.lights-src.txt`;
   if (!existsSync(eigeneLichter)) throw new Error(`${kurz(eigeneLichter)} fehlt (das Lichtprotokoll des Rohexports): mit --force neu exportieren`);
+  // Lampen, die im Spiel in Ruhe dunkel sind: eigene Liste neben dem Modell, vom Eingehängten unabhängig
+  if (h.ruhe) hallRuhe(h, w, baum);
   const bericht = `${SRC}hall/${h.key}.kinder.json`, gemerkt = `${SRC}hall/${h.key}.lights-src.txt`;
   // gilt das Eingehängte noch: dieselben Regeln und derselbe Plan (kinderKonfig), keine Quelle jünger
   const konfig = kinderKonfig(h.kinder, baum);

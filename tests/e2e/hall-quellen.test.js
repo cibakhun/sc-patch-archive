@@ -25,11 +25,11 @@ describe('Quellen einer Halle', () => {
   });
 
   test('jede Beilage, die der Build mitliest, zählt als Eingabe der Halle', () => {
-    for (const x of ['info.json', 'decals.glb', 'schrift.glb']) assert.ok(HALL_EINGABEN.includes(x), `${x} fehlt unter den Eingaben`);
+    for (const x of ['info.json', 'ruhe.json', 'decals.glb', 'schrift.glb']) assert.ok(HALL_EINGABEN.includes(x), `${x} fehlt unter den Eingaben`);
     for (const x of NEBEN_EINGABEN) assert.ok(HALL_EINGABEN.includes(x), `${x} gilt für die Halle nicht mehr`);
     assert.equal(new Set(HALL_EINGABEN).size, HALL_EINGABEN.length);
     // Aufzug und Werkhalle haben diese Beilagen nicht
-    for (const x of ['info.json', 'decals.glb', 'schrift.glb']) assert.equal(NEBEN_EINGABEN.includes(x), false);
+    for (const x of ['info.json', 'ruhe.json', 'decals.glb', 'schrift.glb']) assert.equal(NEBEN_EINGABEN.includes(x), false);
   });
 
   test('frisch ist nur, was da ist und jünger als jede vorhandene Eingabe', () => {
