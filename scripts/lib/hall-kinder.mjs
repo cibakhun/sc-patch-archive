@@ -94,6 +94,31 @@ export function kindEinhaengen(room, src, stellen, name) {
   return { stellen: stellen.length, knoten, dreiecke, lichter };
 }
 
+// Was von den eingehängten Kindern im Modell steht: je Kennung die Halter
+// (kindEinhaengen: „kind_<Kennung>_<Nr>“ mit extras.kind), unter denen
+// Dreiecke hängen, und diese Dreiecke (mit den eigenen Kindern eines Kindes,
+// die zusätzlich unter ihrer Kennung zählen). Der Build zählt damit am
+// Rohmodell der Halle, solange die Halter im Baum stehen, und schreibt die
+// Zahl ins Manifest; verify:hangar-hallen hält sie über einer Klinke. Ein
+// Halter ohne Dreieck zählt nicht: Er stünde im Baum, und in der Wand bliebe
+// das Loch. Anlass: die Türen der Personenaufzüge und der Abgabe-Nische der
+// Large-Halle; fielen sie wieder weg, zeigte es keine andere Zahl deutlich.
+export function kinderBestand(doc) {
+  const je = new Map();
+  let exemplare = 0;
+  for (const n of doc.getRoot().listNodes()) {
+    const k = n.getExtras()?.kind, kopf = `kind_${k}_`;
+    if (typeof k !== 'string' || !k || !n.getName().startsWith(kopf) || !/^\d+$/.test(n.getName().slice(kopf.length))) continue;
+    let t = 0;
+    n.traverse((c) => { if (c.getMesh()) t += tris(c.getMesh()); });
+    if (!t) continue;
+    const e = je.get(k) ?? { exemplare: 0, tris: 0 };
+    e.exemplare++; e.tris += t; exemplare++;
+    je.set(k, e);
+  }
+  return { exemplare, je: Object.fromEntries([...je].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) };
+}
+
 // Knoten einer .cga, wie „nmc dump“ sie nennt: Index, Name, Elternknoten, Art
 // (geom 0 = Netz) und Lage im Raum der Datei (bone_to_world, drei Zeilen zu vier
 // Zahlen, die vierte ist der Ort). b2w ist null, wenn die Zeilen fehlen.
@@ -168,27 +193,62 @@ export function kindLage(doc, muster, versatz) {
   return n;
 }
 
+// Lässt von einem Export nur stehen, was die Halle zeigt: die Netze, deren
+// Name eines der Muster trifft. Alle anderen Netze und alle Lichter fallen
+// weg, ebenso Knoten, die danach nichts mehr tragen. Anlass: die Aufzüge für
+// Personen und die Abgabe-Nische der Large-Halle. Ihre Türen ruhen zu, die
+// Kabine dahinter sieht niemand, und ihre Lampen leuchteten durch die Wand in
+// das Lichtgitter der Halle. Liefert, was blieb und was fiel; trifft ein
+// Muster kein Netz, bricht es ab (eine Regel ohne Anlass).
+export function kindNur(doc, muster, name = 'Kind') {
+  const wurzel = wurzelVon(doc, name);
+  const treffer = muster.map(() => 0);
+  const r = { netze: 0, dreiecke: 0, wegNetze: 0, wegDreiecke: 0, wegLichter: 0 };
+  for (const node of doc.getRoot().listNodes()) {
+    if (node.getExtension('KHR_lights_punctual')) { node.setExtension('KHR_lights_punctual', null); r.wegLichter++; }
+    const mesh = node.getMesh();
+    if (!mesh) continue;
+    const i = muster.findIndex((re) => re.test(mesh.getName()));
+    if (i < 0) { r.wegNetze++; r.wegDreiecke += tris(mesh); node.setMesh(null); continue; }
+    treffer[i]++; r.netze++; r.dreiecke += tris(mesh);
+  }
+  const ohne = muster.filter((_, i) => !treffer[i]);
+  if (ohne.length) throw new Error(`${name}: kein Netz trifft ${ohne.map(String).join(', ')}; die Auswahl ist ohne Anlass`);
+  // leere Äste von den Blättern her
+  const leer = (n) => { for (const c of n.listChildren()) leer(c); if (n !== wurzel && !n.getMesh() && !n.listChildren().length) n.dispose(); };
+  leer(wurzel);
+  for (const m of doc.getRoot().listMeshes()) if (!m.listParents().some((x) => x.propertyType === 'Node')) m.dispose();
+  for (const l of doc.getRoot().listExtensionsUsed().flatMap((e) => (e.extensionName === 'KHR_lights_punctual' ? e.listProperties() : []))) if (!l.listParents().some((x) => x.propertyType === 'Node')) l.dispose();
+  return r;
+}
+
 // Hängt einen Baum von Kindern ein, von innen nach außen: erst die Kinder
 // des Kindes, dann es selbst. kinder: [{ id, name, stellen, kinder }].
 // lese(c) liefert den Export des Kindes als Dokument, zeilen(c) seine
 // Lichtzeilen. lagen: [{ muster, versatz, knoten }], knoten wird hier
 // hochgezählt. Gestellt wird ein Kind, BEVOR seine eigenen Kinder dazukommen:
 // die sind schon gestellt, und danach träfe das Muster sie ein zweites Mal.
+// nur: [{ kind, muster: [RegExp], exemplare }] wählt bei dem genannten Kind
+// aus (kindNur), ebenfalls bevor seine eigenen Kinder dazukommen; seine
+// Lichtzeilen entfallen mit seinen Lichtern, exemplare wird hochgezählt.
 // mal: wie oft der Elterncontainer am Ende in der Halle steht.
 // Liefert die Lichtzeilen in der Reihenfolge der Exemplare; liste bekommt
 // je Kind einen Berichtseintrag.
-export async function kinderBaumEinhaengen(doc, kinder, { lese, zeilen = () => [], lagen = [], liste = [], melde = () => {} }, ebene = 0, mal = 1) {
+export async function kinderBaumEinhaengen(doc, kinder, { lese, zeilen = () => [], lagen = [], nur = [], liste = [], melde = () => {} }, ebene = 0, mal = 1) {
   const lichter = [];
   for (const c of kinder) {
     const src = await lese(c);
     const exemplare = mal * c.stellen.length;
     for (const l of lagen) l.knoten += kindLage(src, l.muster, l.versatz) * exemplare;
-    const innen = await kinderBaumEinhaengen(src, c.kinder ?? [], { lese, zeilen, lagen, liste, melde }, ebene + 1, exemplare);
+    const regel = nur.find((n) => n.kind === c.id);
+    const auswahl = regel ? kindNur(src, regel.muster, c.id) : null;
+    if (regel) regel.exemplare += exemplare;
+    const innen = await kinderBaumEinhaengen(src, c.kinder ?? [], { lese, zeilen, lagen, nur, liste, melde }, ebene + 1, exemplare);
     const r = kindEinhaengen(doc, src, c.stellen, c.id);
-    const eigene = [...zeilen(c), ...innen];
+    const eigene = [...(regel ? [] : zeilen(c)), ...innen];
     for (let i = 0; i < c.stellen.length; i++) lichter.push(...eigene);
-    liste.push({ id: c.id, container: c.name, ebene, exemplare, stellen: c.stellen, jeExemplar: { knoten: r.knoten, dreiecke: r.dreiecke, lichtknoten: r.lichter, lichtzeilen: eigene.length } });
-    melde(`  Kind ${c.id}: ${c.stellen.length} Stelle(n) ${ebene ? 'in seinem Elterncontainer' : 'in der Halle'}, ${exemplare} Exemplar(e), je ${r.dreiecke} Dreiecke, ${r.knoten} Knoten, ${r.lichter} Lichtknoten${c.kinder?.length ? ' (mit seinen eigenen Kindern)' : ''}`);
+    liste.push({ id: c.id, container: c.name, ebene, exemplare, stellen: c.stellen, jeExemplar: { knoten: r.knoten, dreiecke: r.dreiecke, lichtknoten: r.lichter, lichtzeilen: eigene.length }, ...(auswahl ? { nur: auswahl } : {}) });
+    melde(`  Kind ${c.id}: ${c.stellen.length} Stelle(n) ${ebene ? 'in seinem Elterncontainer' : 'in der Halle'}, ${exemplare} Exemplar(e), je ${r.dreiecke} Dreiecke, ${r.knoten} Knoten, ${r.lichter} Lichtknoten${c.kinder?.length ? ' (mit seinen eigenen Kindern)' : ''}${auswahl ? `; nur ${auswahl.netze} Netz(e) behalten, ${auswahl.wegNetze} Netz(e) mit ${auswahl.wegDreiecke} Dreiecken und ${auswahl.wegLichter} Licht(er) weggelassen` : ''}`);
   }
   return lichter;
 }
@@ -203,7 +263,7 @@ const planKern = (baum) => baum.map((c) => ({ id: c.id, name: c.name, stellen: c
 export const planKennung = (baum) => JSON.stringify(planKern(baum));
 // Woran der Extraktor erkennt, dass das Eingehängte noch gilt (steht im
 // Bericht hall/<halle>.kinder.json): die Regeln des Eintrags und der Plan.
-export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.folge.map(String), lage: kinder.lage ?? [], plan: planKennung(baum) });
+export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.folge.map(String), lage: kinder.lage ?? [], ...(kinder.nur?.length ? { nur: kinder.nur } : {}), plan: planKennung(baum) });
 
 // ─── Der Schritt im Extraktor (h.kinder) ─────────────────────────────────
 // h.kinder.folge: Muster auf den Containernamen; nur diese Kinder folgen, auf
@@ -214,6 +274,9 @@ export const kinderKonfig = (kinder, baum) => JSON.stringify({ folge: kinder.fol
 // oben steht). Die Lage ist das letzte Bild der genannten Spur am genannten
 // Knochen, gelesen aus der .caf; gestellt wird nur, wenn jedes Netz der .cga
 // an diesem Knochen hängt und die Spur ihn nicht dreht.
+// h.kinder.nur: Kinder, von denen nur steht, was die Halle zeigt (kindNur):
+// [{ kind: Kennung des Containers, netz: [Dateiname der .cga ohne Endung] }].
+// Eine Regel, deren Kind nicht eingehängt wird, bricht ab.
 // Jedes Kind wird einmal exportiert (Stufe und Schalter wie die Halle, mit
 // Lichtprotokoll) und an jede Stelle gehängt, die sein Elterncontainer nennt.
 // Ergebnis: file (Halle mit Kindern), hall/<halle>.lights-src.txt (Zeilen der
@@ -321,11 +384,13 @@ export async function hallKinder(h, file, w) {
     return { ...l, caf: a[2], ruhe: ruhe.map(rund), versatz: versatz.map(rund), muster: new RegExp(`(^|[\\\\/])${esc(l.cga)}\\.cga$`, 'i'), knoten: 0 };
   });
 
+  const nur = (h.kinder.nur ?? []).map((n) => ({ kind: n.kind, netz: n.netz, muster: n.netz.map((x) => new RegExp(`(^|[\\\\/])${esc(x)}\\.(cga|cgf)$`, 'i')), exemplare: 0 }));
   const zeilen = (f) => readFileSync(f, 'utf8').split('\n').filter((z) => z.trim());
   const liste = [];
   const room = await io.read(h.raw);
   const vorher = { knoten: room.getRoot().listNodes().length, netze: room.getRoot().listMeshes().length };
-  const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => io.read(c.glb), zeilen: (c) => zeilen(c.licht), lagen, liste, melde: (m) => console.log(m) });
+  const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => io.read(c.glb), zeilen: (c) => zeilen(c.licht), lagen, nur, liste, melde: (m) => console.log(m) });
+  for (const n of nur) if (!n.exemplare) throw new Error(`nur ${n.kind}: kein eingehängtes Kind heißt so, der Eintrag ist ohne Anlass`);
   for (const l of lagen) if (!l.knoten) throw new Error(`Lage ${l.cga}: kein eingehängtes Kind trägt dieses Netz, der Eintrag ist ohne Anlass`);
   await room.transform(unpartition());
   const alleZeilen = [...zeilen(eigeneLichter), ...lichter];

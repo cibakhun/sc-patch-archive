@@ -20,7 +20,7 @@ import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { mergeDocuments, unpartition } from '@gltf-transform/functions';
 import { readCaf } from './lib/ivo-caf.mjs';
 import { hallDecalDoc, hallTextDoc, meshBase, mtlQuelle } from './lib/hall-decals.mjs';
-import { hallKinder } from './lib/hall-kinder.mjs';
+import { hallKinder, nmcKnoten } from './lib/hall-kinder.mjs';
 
 const STARBREAKER = process.env.SC_STARBREAKER ?? 'G:/Projects/games/Star Citizen/tools/starbreaker-cli/starbreaker.exe';
 const P4K = process.env.SC_P4K ?? 'F:/Games/Star Citizen/StarCitizen/LIVE/Data.p4k';
@@ -76,12 +76,16 @@ const HALLS = [
   // Stegen und Bedienpult, darin die Plattform mit Kabine). lage: das Tor des
   // Frachtaufzugs ruht im Spiel offen, solange die Plattform oben steht; der
   // Export zeigt es zu.
+  // nur: von den neun Aufzügen für Personen und dem Aufzug der Abgabe-Nische
+  // stehen nur die Türen. Sie ruhen zu; Kabine, Käfig und Leuchten dahinter
+  // sieht niemand, und ihre Lichter schienen durch die Wand in die Halle.
   { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
   { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' },
     kinder: {
-      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i],
+      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
       lage: [{ cga: 'roomsm_door_25x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
+      nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
     } },
   { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
 ];
@@ -907,7 +911,14 @@ async function hallDecals(h, doc) {
     mtlCache.set(rel, out);
     return out;
   };
-  const { doc: out, report } = hallDecalDoc({ doc, files: byBase, read: (f) => readFileSync(f), subMaterials, lod: h.lod, Document });
+  // Knotenbaum einer .cga (nmc dump), je Datei einmal gelesen: Daher kommt die Lage der Aufdrucke an Knoten,
+  // an denen der Export kein Teilnetz behalten hat (die Blätter der Tür der Abgabe-Nische)
+  const baeume = new Map();
+  const knoten = (kopf) => {
+    if (!baeume.has(kopf)) baeume.set(kopf, existsSync(kopf) ? nmcKnoten(spawnSync(STARBREAKER, ['nmc', 'dump', kopf], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout || '') : null);
+    return baeume.get(kopf);
+  };
+  const { doc: out, report } = hallDecalDoc({ doc, files: byBase, read: (f) => readFileSync(f), subMaterials, knoten, lod: h.lod, Document });
   const file = `${SRC}hall/${h.key}.decals.glb`;
   if (out) await new NodeIO().write(file, out);
   else if (existsSync(file)) rmSync(file);
@@ -921,7 +932,8 @@ async function hallDecals(h, doc) {
   writeFileSync(`${SRC}hall/${h.key}.decals.json`, JSON.stringify(report, null, 1));
   const A = report.aufkleber;
   console.log(`  Aufkleber: ${report.zugeordnet} von ${report.netze} Netzen ihrer Spieldatei zugeordnet (${report.ohneDatei.length} ohne Datei, ${report.unklar.length} unklar), ${A.teilnetze} ausgelassene Teilnetze an ${A.netze} Netzen zurückgeholt, ${A.trisMitExemplaren} Dreiecke mit allen Exemplaren, ${Object.keys(report.materialien).length} Materialien; ${report.ohneLage.length} ohne Lage, ${report.andere.teilnetze} ausgelassene ohne Aufkleber-Material`);
-  if (report.ohneLage.length) console.log(`    ohne Lage (kein behaltenes Teilnetz am selben Knoten): ${report.ohneLage.slice(0, 8).join(' | ')}`);
+  if (report.ausBaum.length) console.log(`    Lage aus dem Knotenbaum der Datei (kein behaltenes Teilnetz am selben Knoten, Baum an den behaltenen belegt): ${report.ausBaum.length}, ${report.ausBaum.slice(0, 8).join(' | ')}`);
+  if (report.ohneLage.length) console.log(`    ohne Lage (kein behaltenes Teilnetz am selben Knoten, kein belegter Knotenbaum): ${report.ohneLage.slice(0, 8).join(' | ')}`);
   const S = schrift.report;
   if (S.teilnetze || S.ohneLage.length) console.log(`  Schrift: ${S.teilnetze} in der leichteren Stufe ausgedünnte Teilnetze an ${S.netze} Netzen aus der Grundstufe geholt (${S.trisNeu} statt ${S.trisAlt} Dreiecke)${S.ohneLage.length ? `; ${S.ohneLage.length} ohne sichere Lage ausgelassen: ${S.ohneLage.slice(0, 8).join(' | ')}` : ''}`);
   return out ? out.getRoot().listMaterials().flatMap((m) => [m.getExtras().hall_decal.d, m.getExtras().hall_decal.n]).filter(Boolean) : [];

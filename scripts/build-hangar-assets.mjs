@@ -36,6 +36,7 @@ import { sealSeams, seamStats } from './lib/hall-seams.mjs';
 import { hallRaycaster, orientHallLights } from './lib/hall-lights.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
+import { kinderBestand } from './lib/hall-kinder.mjs';
 import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls, hallBestand, bestandPasst } from './lib/hall-quellen.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
@@ -2276,6 +2277,9 @@ function writeAufzugJson(written, name, plan) {
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
+  // Kind-Container, die der Extraktor in die Halle gehängt hat (Frachtaufzüge, Türen der Personenaufzüge und der
+  // Abgabe; scripts/lib/hall-kinder.mjs): jetzt zählen, solange ihre Halter im Baum stehen
+  const kinder = kind === 'hall' ? kinderBestand(doc) : null;
   // Halle mit eigenem Aufzug: Zuordnung jetzt, solange das Tor-Mesh noch alle Primitive des Exports trägt
   const torFile = kind === 'hall' ? fileURLToPath(new URL(`hall/${name}.tor.json`, SRC)) : null;
   const aufzug = torFile && existsSync(torFile) ? aufzugPlan(doc, JSON.parse(readFileSync(torFile, 'utf8'))) : null;
@@ -2501,6 +2505,7 @@ async function buildOne(kind, name, inPath) {
     ...(lights ? { lights, furniture } : {}),
     ...(hallPalette ? { hallPalette } : {}),
     ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
+    ...(kinder?.exemplare ? { kinder } : {}),
     ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
     ...(logo ? { logo: { ...logo, ...(decalMaps?.logo ?? {}) } } : {}),
     ...(schirme?.schirme ? { schirme: { aus: schirme.schirme, dreiecke: schirme.dreiecke } } : {}),
@@ -3716,6 +3721,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         if (r.logo) console.log(r.logo.tafeln
           ? `    Logo des Betreibers: ${r.logo.tafeln} Tafeln, Karte ${r.logo.karte ?? 'fehlt'}${r.logo.deckt != null ? `, ${Math.round(r.logo.deckt * 100)} % der Karte decken` : ''}`
           : `    Logo des Betreibers: ${r.logo.weg} Tafeln ohne Material weggelassen (die Palette in ${name}.info.json nennt kein Logo)`);
+        if (r.kinder) console.log(`    Kind-Container: ${r.kinder.exemplare} eingehängt (${Object.entries(r.kinder.je).map(([k, e]) => `${k} ${e.exemplare} mit ${e.tris.toLocaleString()} Dreiecken`).join(', ')})`);
         const a = r.aufkleber;
         if (a) console.log(`    Aufkleber: ${a.primitive} Teilnetze an ${a.netze} Netzen, ${a.trisMitExemplaren.toLocaleString()} Dreiecke mit allen Exemplaren, ${a.karten.materialien} Materialien mit ${a.karten.farbkarten} Farb- und ${a.karten.normalen} Normalenkarten; weggelassen: ${a.weg.relief.materialien} nur Relief (${a.weg.relief.tris.toLocaleString()} Dreiecke), ${a.weg.klein.materialien} klein (${a.weg.klein.tris.toLocaleString()})${a.fremd.length ? `; WARNUNG ${a.fremd.length} Netze passen nicht mehr zum Export (${a.fremd.slice(0, 5).join(', ')}), Halle mit dem Extraktor neu exportieren` : ''}${a.karten.ohneKarte.length ? `; WARNUNG ohne Farbkarte im Cache: ${a.karten.ohneKarte.join(', ')}` : ''}`);
       }
