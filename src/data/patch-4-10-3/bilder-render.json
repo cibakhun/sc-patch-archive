@@ -5,8 +5,8 @@
       "art": "render",
       "thema": "rsi-galaxy",
       "alt": {
-        "de": "Modell der Roberts Space Industries Galaxy, schräg von vorn",
-        "en": "Model of the Roberts Space Industries Galaxy, front three-quarter view"
+        "de": "Modell der RSI Galaxy, schräg von vorn",
+        "en": "Model of the RSI Galaxy, front three-quarter view"
       },
       "groessen": [
         {
@@ -26,8 +26,8 @@
       "art": "holo",
       "thema": "rsi-galaxy",
       "alt": {
-        "de": "Hologramm der Roberts Space Industries Galaxy, schräg von vorn",
-        "en": "Hologram of the Roberts Space Industries Galaxy, front three-quarter view"
+        "de": "Hologramm der RSI Galaxy, schräg von vorn",
+        "en": "Hologram of the RSI Galaxy, front three-quarter view"
       },
       "groessen": [
         {
@@ -47,8 +47,8 @@
       "art": "render",
       "thema": "anvl-liberator",
       "alt": {
-        "de": "Modell der Anvil Aerospace Liberator, schräg von vorn",
-        "en": "Model of the Anvil Aerospace Liberator, front three-quarter view"
+        "de": "Modell der Anvil Liberator, schräg von vorn",
+        "en": "Model of the Anvil Liberator, front three-quarter view"
       },
       "groessen": [
         {
@@ -68,8 +68,8 @@
       "art": "holo",
       "thema": "anvl-liberator",
       "alt": {
-        "de": "Hologramm der Anvil Aerospace Liberator, schräg von vorn",
-        "en": "Hologram of the Anvil Aerospace Liberator, front three-quarter view"
+        "de": "Hologramm der Anvil Liberator, schräg von vorn",
+        "en": "Hologram of the Anvil Liberator, front three-quarter view"
       },
       "groessen": [
         {
@@ -89,8 +89,8 @@
       "art": "render",
       "thema": "aegs-tiburon",
       "alt": {
-        "de": "Modell der Aegis Dynamics Tiburon, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Tiburon, front three-quarter view"
+        "de": "Modell der Aegis Tiburon, schräg von vorn",
+        "en": "Model of the Aegis Tiburon, front three-quarter view"
       },
       "groessen": [
         {
@@ -110,8 +110,8 @@
       "art": "holo",
       "thema": "aegs-tiburon",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Tiburon, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Tiburon, front three-quarter view"
+        "de": "Hologramm der Aegis Tiburon, schräg von vorn",
+        "en": "Hologram of the Aegis Tiburon, front three-quarter view"
       },
       "groessen": [
         {
@@ -173,8 +173,8 @@
       "art": "render",
       "thema": "drak-ironclad",
       "alt": {
-        "de": "Modell der Drake Interplanetary Ironclad, schräg von vorn",
-        "en": "Model of the Drake Interplanetary Ironclad, front three-quarter view"
+        "de": "Modell der Drake Ironclad, schräg von vorn",
+        "en": "Model of the Drake Ironclad, front three-quarter view"
       },
       "groessen": [
         {
@@ -194,8 +194,8 @@
       "art": "holo",
       "thema": "drak-ironclad",
       "alt": {
-        "de": "Hologramm der Drake Interplanetary Ironclad, schräg von vorn",
-        "en": "Hologram of the Drake Interplanetary Ironclad, front three-quarter view"
+        "de": "Hologramm der Drake Ironclad, schräg von vorn",
+        "en": "Hologram of the Drake Ironclad, front three-quarter view"
       },
       "groessen": [
         {
@@ -215,8 +215,8 @@
       "art": "render",
       "thema": "drak-pitbull",
       "alt": {
-        "de": "Modell der Drake Interplanetary Pitbull, schräg von vorn",
-        "en": "Model of the Drake Interplanetary Pitbull, front three-quarter view"
+        "de": "Modell der Drake Pitbull, schräg von vorn",
+        "en": "Model of the Drake Pitbull, front three-quarter view"
       },
       "groessen": [
         {
@@ -236,8 +236,8 @@
       "art": "holo",
       "thema": "drak-pitbull",
       "alt": {
-        "de": "Hologramm der Drake Interplanetary Pitbull, schräg von vorn",
-        "en": "Hologram of the Drake Interplanetary Pitbull, front three-quarter view"
+        "de": "Hologramm der Drake Pitbull, schräg von vorn",
+        "en": "Hologram of the Drake Pitbull, front three-quarter view"
       },
       "groessen": [
         {
@@ -257,8 +257,8 @@
       "art": "render",
       "thema": "drak-ironclad-assault",
       "alt": {
-        "de": "Modell der Drake Interplanetary Ironclad Assault, schräg von vorn",
-        "en": "Model of the Drake Interplanetary Ironclad Assault, front three-quarter view"
+        "de": "Modell der Drake Ironclad Assault, schräg von vorn",
+        "en": "Model of the Drake Ironclad Assault, front three-quarter view"
       },
       "groessen": [
         {
@@ -278,8 +278,8 @@
       "art": "holo",
       "thema": "drak-ironclad-assault",
       "alt": {
-        "de": "Hologramm der Drake Interplanetary Ironclad Assault, schräg von vorn",
-        "en": "Hologram of the Drake Interplanetary Ironclad Assault, front three-quarter view"
+        "de": "Hologramm der Drake Ironclad Assault, schräg von vorn",
+        "en": "Hologram of the Drake Ironclad Assault, front three-quarter view"
       },
       "groessen": [
         {
@@ -341,8 +341,8 @@
       "art": "render",
       "thema": "orig-m80",
       "alt": {
-        "de": "Modell der Origin Jumpworks M80, schräg von vorn",
-        "en": "Model of the Origin Jumpworks M80, front three-quarter view"
+        "de": "Modell der Origin M80, schräg von vorn",
+        "en": "Model of the Origin M80, front three-quarter view"
       },
       "groessen": [
         {
@@ -362,8 +362,8 @@
       "art": "holo",
       "thema": "orig-m80",
       "alt": {
-        "de": "Hologramm der Origin Jumpworks M80, schräg von vorn",
-        "en": "Hologram of the Origin Jumpworks M80, front three-quarter view"
+        "de": "Hologramm der Origin M80, schräg von vorn",
+        "en": "Hologram of the Origin M80, front three-quarter view"
       },
       "groessen": [
         {
@@ -383,8 +383,8 @@
       "art": "render",
       "thema": "gama-tyilui",
       "alt": {
-        "de": "Modell der Gatac Manufacture Tyilui, schräg von vorn",
-        "en": "Model of the Gatac Manufacture Tyilui, front three-quarter view"
+        "de": "Modell der Gatac Tyilui, schräg von vorn",
+        "en": "Model of the Gatac Tyilui, front three-quarter view"
       },
       "groessen": [
         {
@@ -404,8 +404,8 @@
       "art": "holo",
       "thema": "gama-tyilui",
       "alt": {
-        "de": "Hologramm der Gatac Manufacture Tyilui, schräg von vorn",
-        "en": "Hologram of the Gatac Manufacture Tyilui, front three-quarter view"
+        "de": "Hologramm der Gatac Tyilui, schräg von vorn",
+        "en": "Hologram of the Gatac Tyilui, front three-quarter view"
       },
       "groessen": [
         {
@@ -425,8 +425,8 @@
       "art": "render",
       "thema": "anvl-carrack",
       "alt": {
-        "de": "Modell der Anvil Aerospace Carrack, schräg von vorn",
-        "en": "Model of the Anvil Aerospace Carrack, front three-quarter view"
+        "de": "Modell der Anvil Carrack, schräg von vorn",
+        "en": "Model of the Anvil Carrack, front three-quarter view"
       },
       "groessen": [
         {
@@ -446,8 +446,8 @@
       "art": "holo",
       "thema": "anvl-carrack",
       "alt": {
-        "de": "Hologramm der Anvil Aerospace Carrack, schräg von vorn",
-        "en": "Hologram of the Anvil Aerospace Carrack, front three-quarter view"
+        "de": "Hologramm der Anvil Carrack, schräg von vorn",
+        "en": "Hologram of the Anvil Carrack, front three-quarter view"
       },
       "groessen": [
         {
@@ -467,8 +467,8 @@
       "art": "render",
       "thema": "anvl-carrack-expedition",
       "alt": {
-        "de": "Modell der Anvil Aerospace Carrack Expedition, schräg von vorn",
-        "en": "Model of the Anvil Aerospace Carrack Expedition, front three-quarter view"
+        "de": "Modell der Anvil Carrack Expedition, schräg von vorn",
+        "en": "Model of the Anvil Carrack Expedition, front three-quarter view"
       },
       "groessen": [
         {
@@ -488,8 +488,8 @@
       "art": "holo",
       "thema": "anvl-carrack-expedition",
       "alt": {
-        "de": "Hologramm der Anvil Aerospace Carrack Expedition, schräg von vorn",
-        "en": "Hologram of the Anvil Aerospace Carrack Expedition, front three-quarter view"
+        "de": "Hologramm der Anvil Carrack Expedition, schräg von vorn",
+        "en": "Hologram of the Anvil Carrack Expedition, front three-quarter view"
       },
       "groessen": [
         {
@@ -593,8 +593,8 @@
       "art": "render",
       "thema": "rsi-perseus",
       "alt": {
-        "de": "Modell der Roberts Space Industries Perseus, schräg von vorn",
-        "en": "Model of the Roberts Space Industries Perseus, front three-quarter view"
+        "de": "Modell der RSI Perseus, schräg von vorn",
+        "en": "Model of the RSI Perseus, front three-quarter view"
       },
       "groessen": [
         {
@@ -614,8 +614,8 @@
       "art": "holo",
       "thema": "rsi-perseus",
       "alt": {
-        "de": "Hologramm der Roberts Space Industries Perseus, schräg von vorn",
-        "en": "Hologram of the Roberts Space Industries Perseus, front three-quarter view"
+        "de": "Hologramm der RSI Perseus, schräg von vorn",
+        "en": "Hologram of the RSI Perseus, front three-quarter view"
       },
       "groessen": [
         {
@@ -635,8 +635,8 @@
       "art": "render",
       "thema": "aegs-hammerhead",
       "alt": {
-        "de": "Modell der Aegis Dynamics Hammerhead, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Hammerhead, front three-quarter view"
+        "de": "Modell der Aegis Hammerhead, schräg von vorn",
+        "en": "Model of the Aegis Hammerhead, front three-quarter view"
       },
       "groessen": [
         {
@@ -656,8 +656,8 @@
       "art": "holo",
       "thema": "aegs-hammerhead",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Hammerhead, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Hammerhead, front three-quarter view"
+        "de": "Hologramm der Aegis Hammerhead, schräg von vorn",
+        "en": "Hologram of the Aegis Hammerhead, front three-quarter view"
       },
       "groessen": [
         {
@@ -677,8 +677,8 @@
       "art": "render",
       "thema": "aegs-reclaimer",
       "alt": {
-        "de": "Modell der Aegis Dynamics Reclaimer, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Reclaimer, front three-quarter view"
+        "de": "Modell der Aegis Reclaimer, schräg von vorn",
+        "en": "Model of the Aegis Reclaimer, front three-quarter view"
       },
       "groessen": [
         {
@@ -698,8 +698,8 @@
       "art": "holo",
       "thema": "aegs-reclaimer",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Reclaimer, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Reclaimer, front three-quarter view"
+        "de": "Hologramm der Aegis Reclaimer, schräg von vorn",
+        "en": "Hologram of the Aegis Reclaimer, front three-quarter view"
       },
       "groessen": [
         {
@@ -719,8 +719,8 @@
       "art": "render",
       "thema": "argo-moth",
       "alt": {
-        "de": "Modell der Argo Astronautics MOTH, schräg von vorn",
-        "en": "Model of the Argo Astronautics MOTH, front three-quarter view"
+        "de": "Modell der Argo MOTH, schräg von vorn",
+        "en": "Model of the Argo MOTH, front three-quarter view"
       },
       "groessen": [
         {
@@ -740,8 +740,8 @@
       "art": "holo",
       "thema": "argo-moth",
       "alt": {
-        "de": "Hologramm der Argo Astronautics MOTH, schräg von vorn",
-        "en": "Hologram of the Argo Astronautics MOTH, front three-quarter view"
+        "de": "Hologramm der Argo MOTH, schräg von vorn",
+        "en": "Hologram of the Argo MOTH, front three-quarter view"
       },
       "groessen": [
         {
@@ -761,8 +761,8 @@
       "art": "render",
       "thema": "drak-vulture",
       "alt": {
-        "de": "Modell der Drake Interplanetary Vulture, schräg von vorn",
-        "en": "Model of the Drake Interplanetary Vulture, front three-quarter view"
+        "de": "Modell der Drake Vulture, schräg von vorn",
+        "en": "Model of the Drake Vulture, front three-quarter view"
       },
       "groessen": [
         {
@@ -782,8 +782,8 @@
       "art": "holo",
       "thema": "drak-vulture",
       "alt": {
-        "de": "Hologramm der Drake Interplanetary Vulture, schräg von vorn",
-        "en": "Hologram of the Drake Interplanetary Vulture, front three-quarter view"
+        "de": "Hologramm der Drake Vulture, schräg von vorn",
+        "en": "Hologram of the Drake Vulture, front three-quarter view"
       },
       "groessen": [
         {
@@ -845,8 +845,8 @@
       "art": "render",
       "thema": "rsi-salvation",
       "alt": {
-        "de": "Modell der Roberts Space Industries Salvation, schräg von vorn",
-        "en": "Model of the Roberts Space Industries Salvation, front three-quarter view"
+        "de": "Modell der RSI Salvation, schräg von vorn",
+        "en": "Model of the RSI Salvation, front three-quarter view"
       },
       "groessen": [
         {
@@ -866,8 +866,8 @@
       "art": "holo",
       "thema": "rsi-salvation",
       "alt": {
-        "de": "Hologramm der Roberts Space Industries Salvation, schräg von vorn",
-        "en": "Hologram of the Roberts Space Industries Salvation, front three-quarter view"
+        "de": "Hologramm der RSI Salvation, schräg von vorn",
+        "en": "Hologram of the RSI Salvation, front three-quarter view"
       },
       "groessen": [
         {
@@ -887,8 +887,8 @@
       "art": "render",
       "thema": "aegs-vanguard",
       "alt": {
-        "de": "Modell der Aegis Dynamics Vanguard Warden, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Vanguard Warden, front three-quarter view"
+        "de": "Modell der Aegis Vanguard Warden, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Warden, front three-quarter view"
       },
       "groessen": [
         {
@@ -908,8 +908,8 @@
       "art": "holo",
       "thema": "aegs-vanguard",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Vanguard Warden, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Vanguard Warden, front three-quarter view"
+        "de": "Hologramm der Aegis Vanguard Warden, schräg von vorn",
+        "en": "Hologram of the Aegis Vanguard Warden, front three-quarter view"
       },
       "groessen": [
         {
@@ -929,8 +929,8 @@
       "art": "render",
       "thema": "aegs-vanguard-hoplite",
       "alt": {
-        "de": "Modell der Aegis Dynamics Vanguard Hoplite, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Vanguard Hoplite, front three-quarter view"
+        "de": "Modell der Aegis Vanguard Hoplite, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Hoplite, front three-quarter view"
       },
       "groessen": [
         {
@@ -950,8 +950,8 @@
       "art": "holo",
       "thema": "aegs-vanguard-hoplite",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Vanguard Hoplite, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Vanguard Hoplite, front three-quarter view"
+        "de": "Hologramm der Aegis Vanguard Hoplite, schräg von vorn",
+        "en": "Hologram of the Aegis Vanguard Hoplite, front three-quarter view"
       },
       "groessen": [
         {
@@ -971,8 +971,8 @@
       "art": "render",
       "thema": "aegs-vanguard-sentinel",
       "alt": {
-        "de": "Modell der Aegis Dynamics Vanguard Sentinel, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Vanguard Sentinel, front three-quarter view"
+        "de": "Modell der Aegis Vanguard Sentinel, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Sentinel, front three-quarter view"
       },
       "groessen": [
         {
@@ -992,8 +992,8 @@
       "art": "holo",
       "thema": "aegs-vanguard-sentinel",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Vanguard Sentinel, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Vanguard Sentinel, front three-quarter view"
+        "de": "Hologramm der Aegis Vanguard Sentinel, schräg von vorn",
+        "en": "Hologram of the Aegis Vanguard Sentinel, front three-quarter view"
       },
       "groessen": [
         {
@@ -1013,8 +1013,8 @@
       "art": "render",
       "thema": "aegs-vanguard-harbinger",
       "alt": {
-        "de": "Modell der Aegis Dynamics Vanguard Harbinger, schräg von vorn",
-        "en": "Model of the Aegis Dynamics Vanguard Harbinger, front three-quarter view"
+        "de": "Modell der Aegis Vanguard Harbinger, schräg von vorn",
+        "en": "Model of the Aegis Vanguard Harbinger, front three-quarter view"
       },
       "groessen": [
         {
@@ -1034,8 +1034,8 @@
       "art": "holo",
       "thema": "aegs-vanguard-harbinger",
       "alt": {
-        "de": "Hologramm der Aegis Dynamics Vanguard Harbinger, schräg von vorn",
-        "en": "Hologram of the Aegis Dynamics Vanguard Harbinger, front three-quarter view"
+        "de": "Hologramm der Aegis Vanguard Harbinger, schräg von vorn",
+        "en": "Hologram of the Aegis Vanguard Harbinger, front three-quarter view"
       },
       "groessen": [
         {
@@ -1055,8 +1055,8 @@
       "art": "render",
       "thema": "rsi-polaris",
       "alt": {
-        "de": "Modell der Roberts Space Industries Polaris, schräg von vorn",
-        "en": "Model of the Roberts Space Industries Polaris, front three-quarter view"
+        "de": "Modell der RSI Polaris, schräg von vorn",
+        "en": "Model of the RSI Polaris, front three-quarter view"
       },
       "groessen": [
         {
@@ -1076,8 +1076,8 @@
       "art": "holo",
       "thema": "rsi-polaris",
       "alt": {
-        "de": "Hologramm der Roberts Space Industries Polaris, schräg von vorn",
-        "en": "Hologram of the Roberts Space Industries Polaris, front three-quarter view"
+        "de": "Hologramm der RSI Polaris, schräg von vorn",
+        "en": "Hologram of the RSI Polaris, front three-quarter view"
       },
       "groessen": [
         {
@@ -1097,8 +1097,8 @@
       "art": "render",
       "thema": "drak-corsair",
       "alt": {
-        "de": "Modell der Drake Interplanetary Corsair, schräg von vorn",
-        "en": "Model of the Drake Interplanetary Corsair, front three-quarter view"
+        "de": "Modell der Drake Corsair, schräg von vorn",
+        "en": "Model of the Drake Corsair, front three-quarter view"
       },
       "groessen": [
         {
@@ -1118,8 +1118,8 @@
       "art": "holo",
       "thema": "drak-corsair",
       "alt": {
-        "de": "Hologramm der Drake Interplanetary Corsair, schräg von vorn",
-        "en": "Hologram of the Drake Interplanetary Corsair, front three-quarter view"
+        "de": "Hologramm der Drake Corsair, schräg von vorn",
+        "en": "Hologram of the Drake Corsair, front three-quarter view"
       },
       "groessen": [
         {
@@ -1139,8 +1139,8 @@
       "art": "render",
       "thema": "anvl-ballista",
       "alt": {
-        "de": "Modell der Anvil Aerospace HM6 Ballista, schräg von vorn",
-        "en": "Model of the Anvil Aerospace HM6 Ballista, front three-quarter view"
+        "de": "Modell der Anvil HM6 Ballista, schräg von vorn",
+        "en": "Model of the Anvil HM6 Ballista, front three-quarter view"
       },
       "groessen": [
         {
@@ -1160,8 +1160,8 @@
       "art": "holo",
       "thema": "anvl-ballista",
       "alt": {
-        "de": "Hologramm der Anvil Aerospace HM6 Ballista, schräg von vorn",
-        "en": "Hologram of the Anvil Aerospace HM6 Ballista, front three-quarter view"
+        "de": "Hologramm der Anvil HM6 Ballista, schräg von vorn",
+        "en": "Hologram of the Anvil HM6 Ballista, front three-quarter view"
       },
       "groessen": [
         {
@@ -1181,8 +1181,8 @@
       "art": "render",
       "thema": "anvl-spartan",
       "alt": {
-        "de": "Modell der Anvil Aerospace HM6 Spartan, schräg von vorn",
-        "en": "Model of the Anvil Aerospace HM6 Spartan, front three-quarter view"
+        "de": "Modell der Anvil HM6 Spartan, schräg von vorn",
+        "en": "Model of the Anvil HM6 Spartan, front three-quarter view"
       },
       "groessen": [
         {
@@ -1202,8 +1202,8 @@
       "art": "holo",
       "thema": "anvl-spartan",
       "alt": {
-        "de": "Hologramm der Anvil Aerospace HM6 Spartan, schräg von vorn",
-        "en": "Hologram of the Anvil Aerospace HM6 Spartan, front three-quarter view"
+        "de": "Hologramm der Anvil HM6 Spartan, schräg von vorn",
+        "en": "Hologram of the Anvil HM6 Spartan, front three-quarter view"
       },
       "groessen": [
         {
@@ -1223,8 +1223,8 @@
       "art": "render",
       "thema": "anvl-centurion",
       "alt": {
-        "de": "Modell der Anvil Aerospace HM6 Centurion, schräg von vorn",
-        "en": "Model of the Anvil Aerospace HM6 Centurion, front three-quarter view"
+        "de": "Modell der Anvil HM6 Centurion, schräg von vorn",
+        "en": "Model of the Anvil HM6 Centurion, front three-quarter view"
       },
       "groessen": [
         {
@@ -1244,8 +1244,8 @@
       "art": "holo",
       "thema": "anvl-centurion",
       "alt": {
-        "de": "Hologramm der Anvil Aerospace HM6 Centurion, schräg von vorn",
-        "en": "Hologram of the Anvil Aerospace HM6 Centurion, front three-quarter view"
+        "de": "Hologramm der Anvil HM6 Centurion, schräg von vorn",
+        "en": "Hologram of the Anvil HM6 Centurion, front three-quarter view"
       },
       "groessen": [
         {
@@ -1265,8 +1265,8 @@
       "art": "render",
       "thema": "rsi-constellation-phoenix",
       "alt": {
-        "de": "Modell der Roberts Space Industries Constellation Mk IV Phoenix, schräg von vorn",
-        "en": "Model of the Roberts Space Industries Constellation Mk IV Phoenix, front three-quarter view"
+        "de": "Modell der RSI Constellation Mk IV Phoenix, schräg von vorn",
+        "en": "Model of the RSI Constellation Mk IV Phoenix, front three-quarter view"
       },
       "groessen": [
         {
@@ -1286,8 +1286,8 @@
       "art": "holo",
       "thema": "rsi-constellation-phoenix",
       "alt": {
-        "de": "Hologramm der Roberts Space Industries Constellation Mk IV Phoenix, schräg von vorn",
-        "en": "Hologram of the Roberts Space Industries Constellation Mk IV Phoenix, front three-quarter view"
+        "de": "Hologramm der RSI Constellation Mk IV Phoenix, schräg von vorn",
+        "en": "Hologram of the RSI Constellation Mk IV Phoenix, front three-quarter view"
       },
       "groessen": [
         {
@@ -1307,8 +1307,8 @@
       "art": "render",
       "thema": "vncl-blade",
       "alt": {
-        "de": "Modell der Esperia Blade, schräg von vorn",
-        "en": "Model of the Esperia Blade, front three-quarter view"
+        "de": "Modell der Vanduul Blade, schräg von vorn",
+        "en": "Model of the Vanduul Blade, front three-quarter view"
       },
       "groessen": [
         {
@@ -1328,8 +1328,8 @@
       "art": "holo",
       "thema": "vncl-blade",
       "alt": {
-        "de": "Hologramm der Esperia Blade, schräg von vorn",
-        "en": "Hologram of the Esperia Blade, front three-quarter view"
+        "de": "Hologramm der Vanduul Blade, schräg von vorn",
+        "en": "Hologram of the Vanduul Blade, front three-quarter view"
       },
       "groessen": [
         {
@@ -1349,8 +1349,8 @@
       "art": "render",
       "thema": "vncl-glaive",
       "alt": {
-        "de": "Modell der Esperia Glaive, schräg von vorn",
-        "en": "Model of the Esperia Glaive, front three-quarter view"
+        "de": "Modell der Vanduul Glaive, schräg von vorn",
+        "en": "Model of the Vanduul Glaive, front three-quarter view"
       },
       "groessen": [
         {
@@ -1370,8 +1370,8 @@
       "art": "holo",
       "thema": "vncl-glaive",
       "alt": {
-        "de": "Hologramm der Esperia Glaive, schräg von vorn",
-        "en": "Hologram of the Esperia Glaive, front three-quarter view"
+        "de": "Hologramm der Vanduul Glaive, schräg von vorn",
+        "en": "Hologram of the Vanduul Glaive, front three-quarter view"
       },
       "groessen": [
         {
@@ -1391,8 +1391,8 @@
       "art": "render",
       "thema": "vncl-scythe",
       "alt": {
-        "de": "Modell der Esperia Vanduul Scythe, schräg von vorn",
-        "en": "Model of the Esperia Vanduul Scythe, front three-quarter view"
+        "de": "Modell der Vanduul Scythe, schräg von vorn",
+        "en": "Model of the Vanduul Scythe, front three-quarter view"
       },
       "groessen": [
         {
@@ -1412,8 +1412,8 @@
       "art": "holo",
       "thema": "vncl-scythe",
       "alt": {
-        "de": "Hologramm der Esperia Vanduul Scythe, schräg von vorn",
-        "en": "Hologram of the Esperia Vanduul Scythe, front three-quarter view"
+        "de": "Hologramm der Vanduul Scythe, schräg von vorn",
+        "en": "Hologram of the Vanduul Scythe, front three-quarter view"
       },
       "groessen": [
         {
@@ -1433,8 +1433,8 @@
       "art": "render",
       "thema": "vncl-stinger",
       "alt": {
-        "de": "Modell der Esperia Stinger, schräg von vorn",
-        "en": "Model of the Esperia Stinger, front three-quarter view"
+        "de": "Modell der Vanduul Stinger, schräg von vorn",
+        "en": "Model of the Vanduul Stinger, front three-quarter view"
       },
       "groessen": [
         {
@@ -1454,8 +1454,8 @@
       "art": "holo",
       "thema": "vncl-stinger",
       "alt": {
-        "de": "Hologramm der Esperia Stinger, schräg von vorn",
-        "en": "Hologram of the Esperia Stinger, front three-quarter view"
+        "de": "Hologramm der Vanduul Stinger, schräg von vorn",
+        "en": "Hologram of the Vanduul Stinger, front three-quarter view"
       },
       "groessen": [
         {

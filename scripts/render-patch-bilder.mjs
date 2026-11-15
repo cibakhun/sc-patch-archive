@@ -15,6 +15,8 @@
    WIE (Schiene C, braucht Chromium mit WebGL):
      node scripts/render-patch-bilder.mjs --satz patch-4-10-3
      node scripts/render-patch-bilder.mjs --satz patch-4-10-3 --only rsi-galaxy,vanduul-szene
+     node scripts/render-patch-bilder.mjs --satz patch-4-10-3 --nur-verzeichnis   (nur Alt-Texte/JSON)
+   Rund 5 min fuer den ganzen Satz (SwiftShader).
    ============================================================ */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
@@ -64,18 +66,23 @@ const only = arg('--only')?.split(',').filter(Boolean) ?? null;
 const unknown = (only ?? []).filter((id) => !alle.includes(id));
 if (unknown.length) { console.error(`render-patch-bilder: unbekannte Id ${unknown.join(', ')}`); process.exit(2); }
 const todo = only ?? alle;
+const nurVerzeichnis = process.argv.includes('--nur-verzeichnis');
 
 const OUT = path.join(ROOT, 'assets', satzName, 'render');
 const DATA = path.join(ROOT, 'src/data', satzName, 'bilder-render.json');
 const WEB = `/assets/${satzName}/render`;
 const vehicles = JSON.parse(readFileSync(path.join(ROOT, 'src/data/vehicles.json'), 'utf8')).vehicles;
 
+const HERSTELLER_KURZ = { 'Roberts Space Industries': 'RSI', 'Anvil Aerospace': 'Anvil', 'Aegis Dynamics': 'Aegis', 'Drake Interplanetary': 'Drake', 'Origin Jumpworks': 'Origin', 'Argo Astronautics': 'Argo', 'Gatac Manufacture': 'Gatac' };
+
 /** „RSI Galaxy“, „MISC Starlite“: Hersteller vorn, ausser der Name traegt ihn schon. */
 function anzeige(id) {
   const v = vehicles.find((x) => x.id === id);
   if (!v) throw new Error(`${id} fehlt in vehicles.json`);
-  const kurz = v.makerCode ?? '';
-  return v.name.startsWith(`${kurz} `) || v.name.startsWith(`${v.manufacturer} `) ? v.name : `${v.manufacturer} ${v.name}`;
+  // Die Modelle der Seite zeigen Vanduul-Schiffe; die Daten fuehren sie als Esperia-Nachbau.
+  if (id.startsWith('vncl-')) return `Vanduul ${v.name.replace(/^Vanduul /, '')}`;
+  if (v.name.startsWith(`${v.makerCode} `)) return v.name;
+  return `${HERSTELLER_KURZ[v.manufacturer] ?? v.manufacturer} ${v.name}`;
 }
 
 const groessen = (key, w, h, klein) => [
@@ -168,6 +175,13 @@ const prev = existsSync(DATA) ? JSON.parse(await readFile(DATA, 'utf8')).bilder 
 const bilder = new Map(prev.map((b) => [b.key, b]));
 const ordnung = alle.flatMap((id) => (id === satz.szene?.key ? [id] : [id, `${id}-holo`]));
 const saveData = () => writeFile(DATA, `${JSON.stringify({ bilder: [...bilder.values()].sort((a, b) => ordnung.indexOf(a.key) - ordnung.indexOf(b.key)) }, null, 2)}\n`);
+
+if (nurVerzeichnis) {
+  for (const id of todo) if (satz.szene?.key === id || existsSync(path.join(OUT, `${id}.webp`))) for (const e of eintraege(id)) bilder.set(e.key, e);
+  await saveData();
+  console.log(`render-patch-bilder: nur Verzeichnis, ${bilder.size} Eintraege in ${path.relative(ROOT, DATA)}`);
+  process.exit(0);
+}
 
 const R = await openRenderer('render-patch-bilder');
 const t00 = Date.now();
