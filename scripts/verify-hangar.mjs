@@ -689,6 +689,14 @@
     cw  dort die Zeile streichen, mit der sich die Bühne dem
         Loader ihrer Bilder nennt (images.buehne = …)               -> [24]
     cx  dort in dispose() abbau.abort() streichen                   -> [24]
+    cy  dort in embeddedImages() die Frage am Anfang von decode()
+        streichen (ende() ? nie() : …; 15.11.2026, fünfte Runde
+        desselben Reviews: Am Telefon warten die Bilder im
+        Limiter, und was beim Abbau dort wartete, wurde neben
+        der neuen Halle noch ausgepackt und verkleinert)            -> [24]
+    cz  dort decode() nach dem Auspacken nicht mehr fragen lassen
+        (.then((b) => { if (!ende()) return b; …) streichen)        -> [24]
+    da  dort die Frage am Anfang von loadImageSource streichen      -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3159,7 +3167,7 @@ say('\n[24] Hangargrößen: vier feste Stufen im Viewer, jedes Schiff der Halle 
 // Large, eines (Javelin) in einer Halle nach Maß. Die Stufe kommt aus der
 // Größenklasse im Katalog und darf nach einem Datenlauf für einzelne
 // Schiffe wechseln, darum etwas Abstand.
-const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 27, worte: 16 };
+const GROESSE = { schiffe: 188, S: 100, M: 44, L: 24, XL: 6, draht: 29, worte: 16 };
 // Stufe je Größenklasse (vehicles.json sizeClass), wie src/lib/hangar/stage.ts
 // sie der Bühne mitgibt: hier ein zweites Mal, damit ein Dreher dort auffällt
 const GROESSE_KLASSE = { 1: 'S', 2: 'S', 3: 'M', 4: 'M', 5: 'L', 6: 'XL' };
@@ -3280,6 +3288,9 @@ const GROESSE_AUSNAHMEN = {
     // Bilder (15.11.2026, vierte Runde desselben Reviews): Was der Abbau abbricht, fällt nicht mehr auf sein WebP zurück
     [viewer, /const pause = slicer\(ms, \(\) => \(fabrik\.buehne\?\.rast \?\? nextTask\)\(\)\);\s*const ende = \(\) => !!fabrik\.buehne\?\.tot\(\);[\s\S]{0,1600}?const bild = \(\) => \{\s*if \(ende\(\)\) return nie\(\);[\s\S]{0,1200}?\.then\(\(blob\) => \{\s*if \(ende\(\)\) return nie\(\);[\s\S]{0,800}?\.then\(async \(bitmap\) => \{\s*if \(ende\(\)\) \{ bitmap\.close\?\.\(\); return nie\(\); \}[\s\S]{0,1500}?\.then\(\(z\) => \{\s*if \(ende\(\)\) \{ z\?\.t\.dispose\(\); return nie\(\); \}\s*if \(!z\) return bild\(\);/, 'die Bilder einer abgebauten Bühne laufen weiter (embeddedImages fragt die Bühne nicht mehr vor dem Abruf, vor und nach dem Auspacken und nach dem Zwilling): Jeder Zwilling, den der Abbau abbricht, käme neben der neuen Halle noch einmal aus dem WebP'],
     [viewer, /images\.buehne = \{ rast, tot: \(\) => tot, signal: abbau\.signal \};[\s\S]*?dispose\(\) \{\s*if \(tot\) return;\s*tot = true;\s*abbau\.abort\(\);/, 'die Bühne nennt sich dem Loader ihrer Bilder nicht mehr oder bricht beim Abbau nicht mehr ab, was er holt (images.buehne, abbau.abort in dispose): Die Fragen in embeddedImages liefen leer'],
+    // fünfte Runde (15.11.2026): Am Telefon wartet das Auspacken im Limiter; die Frage steht deshalb in decode() selbst und am Anfang jedes Bildes
+    [viewer, /const decode = \(\) => \(ende\(\) \? nie\(\) : createImageBitmap\(blob, \{ \.\.\.loader\.options, colorSpaceConversion: 'none' \}\)\.then\(\(b\) => \{ if \(!ende\(\)\) return b; b\.close\(\); return nie\(\); \}\)\);\s*if \(!gate\) return decode\(\);\s*return gate\(async \(\) => \{\s*const big = await decode\(\),/, 'am Telefon arbeitet eine abgebaute Bühne die Schlange ihrer Bilder weiter ab (decode in embeddedImages fragt die Bühne nicht mehr, wenn der Limiter das Bild an die Reihe lässt, oder nicht mehr nach dem Auspacken): Was beim Abbau im Limiter wartete, würde neben der neuen Halle Bild für Bild ausgepackt und verkleinert'],
+    [viewer, /parser\.loadImageSource = \(i, loader\) => \{\s*if \(ende\(\)\) return nie\(\);\s*const def = parser\.json\.images\[i\];/, 'eine abgebaute Bühne beginnt wieder Bilder (loadImageSource in embeddedImages fragt die Bühne nicht mehr als Erstes): Für ein Modell, das erst nach dem Abbau ankommt, rechnete sie die Kennung jedes Bildes aus dessen Bytes'],
     // Material der Industrie-Hallen (HALL_FEST): Namen <Datei>_mtl_<Teil>, Schnitt nach dem Alpha der Karte
     [viewer, /if \(!sticker && \(fest \? \/_mtl_\.\*glow\/i : \/light\|glow\/i\)\.test\(m\.name\) && !\/glass\/i\.test\(m\.name\) && m\.map\) \{/, 'in den Industrie-Hallen leuchtet wieder jedes Material, dessen Datei „light“ heißt (Leuchtregel der Halle ohne fest): Gehäuse, Lack und Gummi der Lampen stünden als helle Flächen im Raum'],
     [viewer, /&& !sticker && !\(m\.alphaTest > 0\) && !\/decal\|logo\|glow\|leak\/i\.test\(m\.name\)\) \{ boxProject\(m, us\.mPerUv\);/, 'Material, das nach Alpha schneidet, bekommt wieder die Würfellage (boxProject ohne !(m.alphaTest > 0)): Der Pfeil am Tor der Large-Halle zerfiele in Bruchstücke'],

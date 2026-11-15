@@ -653,6 +653,14 @@ const colourImages = (json) => {
 // Zwilling, den der Abbau abbrach, auf sein WebP zurück: Die tote Bühne
 // holte und packte dann alle Bilder aus, die noch offen waren, neben der
 // neuen Halle (vierte Runde des Reviews an PR #371, 15.11.2026).
+// Fünfte Runde, selber Tag: Am Telefon (max) warten die Bilder im Limiter,
+// höchstens FIT_AT_ONCE werden zugleich ausgepackt und verkleinert. Was beim
+// Abbau schon dort wartete, hatte die Frage vor dem Auspacken hinter sich
+// und kam trotzdem noch dran, Bild für Bild. Deshalb fragt decode() selbst,
+// und zwar erst, wenn es wirklich beginnt, und noch einmal, wenn es fertig
+// ist (das Bild wird geschlossen, verkleinert wird nicht mehr). Und kein
+// Bild beginnt mehr: Die Frage steht am Anfang von loadImageSource, vor der
+// Kennung des Zwillings, die aus den Bytes gerechnet wird.
 function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
   const pause = slicer(ms, () => (fabrik.buehne?.rast ?? nextTask)());
   const ende = () => !!fabrik.buehne?.tot();
@@ -664,6 +672,7 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
     const count = tally(parser);
     const colour = colourImages(parser.json);
     parser.loadImageSource = (i, loader) => {
+      if (ende()) return nie();
       const def = parser.json.images[i];
       const pooled = pooledImage(def);
       if (parser.sourceCache[i] !== undefined || (def.bufferView === undefined && !pooled) || !loader.isImageBitmapLoader) return load(i, loader);
@@ -684,7 +693,11 @@ function embeddedImages(ms, tally = () => null, max = 0, twin = null) {
           .then(() => got ?? parser.getDependency('bufferView', def.bufferView).then((view) => new Blob([view], { type: def.mimeType })))
           .then((blob) => {
             if (ende()) return nie();
-            const decode = () => createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' });
+            // decode() fragt die Bühne selbst: wenn es beginnt (am Telefon
+            // erst, wenn der Limiter das Bild an die Reihe lässt) und wenn
+            // es fertig ist. Ist sie abgebaut, endet es nie: Der Platz im
+            // Limiter bleibt belegt, und was dahinter wartet, beginnt nicht.
+            const decode = () => (ende() ? nie() : createImageBitmap(blob, { ...loader.options, colorSpaceConversion: 'none' }).then((b) => { if (!ende()) return b; b.close(); return nie(); }));
             if (!gate) return decode();
             return gate(async () => {
               const big = await decode(), small = await fitImage(big, max);
