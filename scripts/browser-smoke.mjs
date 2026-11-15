@@ -2428,12 +2428,27 @@ async function probeWerkbank(page) {
   // faellt bis 1440 px nicht auf (zwei Spalten, sechs Kacheln), auf einem
   // grossen Bildschirm standen aber alle ab der elften sofort da, waehrend die
   // ersten noch einblendeten (Krisz: „die ersten 2 reihen der blueprints
-  // [haben] eine animation die restilchen nicht“). Zwei Groessen, weil die
-  // Regel zwei Stufen hat (werkbankDesign.ts, AUF_GROSS_AB): 3840 x 2160 ist
-  // der groesste gemessene Fall der grossen Stufe (108 Kacheln), 1499 x 999
-  // das groesste Fenster der kleinen (acht). Gelesen wird, was die Regeln mit
-  // der Klasse wb-auftakt tun, nicht ein Zeitpunkt im Ablauf: die Klasse
-  // faellt nach dem Auftakt weg, die Probe setzt sie deshalb selbst.
+  // [haben] eine animation die restilchen nicht“). Die Regel hat zwei Stufen
+  // (werkbankDesign.ts, AUF_GROSS_AB: ab 1500 px Breite ODER 1000 px Hoehe die
+  // ersten 120 Kacheln, darunter die ersten zwoelf), deshalb vier Fenster:
+  //   3840 x 2160  der groesste gemessene Fall (108 Kacheln im Bild),
+  //   2560 x 900   nur breit, 18 Kacheln: reisst, wenn aus dem ODER ein UND wird,
+  //   1080 x 1920  nur hoch (hochkant gedrehter Bildschirm), 16 Kacheln: ebenso,
+  //   1499 x 999   das groesste Fenster der kleinen Stufe, acht Kacheln.
+  // Bei den beiden mittleren muessen mehr als zwoelf Kacheln im Bild stehen,
+  // sonst sagen sie ueber die grosse Stufe nichts. Im kleinen Fenster gilt
+  // zusaetzlich ein Deckel: laufen dort mehr als 30 Kacheln mit, greift die
+  // kleine Stufe nicht mehr, und ein Telefon bewegt Kacheln, die es nie zeigt.
+  // Gelesen wird, was die Regeln mit der Klasse wb-auftakt tun, nicht ein
+  // Zeitpunkt im Ablauf: die Klasse faellt nach dem Auftakt weg, die Probe
+  // setzt sie deshalb selbst.
+  const AUFTAKT_FENSTER = [
+    // Breite, Hoehe, Kacheln mindestens im Bild, Kacheln hoechstens im Auftakt (0: ohne Deckel)
+    [3840, 2160, 60, 0],
+    [2560, 900, 13, 0],
+    [1080, 1920, 13, 0],
+    [1499, 999, 6, 30],
+  ];
   const gross = await page.context().browser().newContext({
     viewport: { width: 3840, height: 2160 }, deviceScaleFactor: 1,
     colorScheme: 'dark', ignoreHTTPSErrors: true, extraHTTPHeaders: GATE_BYPASS_HEADERS,
@@ -2446,7 +2461,7 @@ async function probeWerkbank(page) {
     ziel.search = '';
     await g.goto(ziel.href, { waitUntil: 'load', timeout: 60000 });
     await g.locator('#cdb-grid .cbp').first().waitFor({ state: 'visible', timeout: 20000 });
-    for (const [breite, hoehe, mindestens] of [[3840, 2160, 60], [1499, 999, 6]]) {
+    for (const [breite, hoehe, mindestens, deckel] of AUFTAKT_FENSTER) {
       await g.setViewportSize({ width: breite, height: hoehe });
       const auf = await g.evaluate(async () => {
         const wurzel = document.querySelector('.cdb--wb');
@@ -2456,9 +2471,9 @@ async function probeWerkbank(page) {
         const unten = Math.min(feld.bottom, innerHeight);
         // Im Bild: wenigstens 24 px der Kachel stehen im Feld (eine laufende
         // Kachel ist bis zu 10 px versetzt, ein Streifen am Rand zaehlt nicht).
+        const kacheln = [...document.querySelectorAll('#cdb-grid .cbp')].filter((k) => !k.hidden);
         const imBild = [];
-        for (const k of document.querySelectorAll('#cdb-grid .cbp')) {
-          if (k.hidden) continue;
+        for (const k of kacheln) {
           const r = k.getBoundingClientRect();
           if (r.top >= unten) break;
           if (r.top < unten - 24 && r.bottom > feld.top + 24) imBild.push(k);
@@ -2471,13 +2486,17 @@ async function probeWerkbank(page) {
           const kn = k.querySelector('.cbp__btns');
           if (kn && !hat(kn, 'wb-blende')) ohneKnopf++;
         });
+        // Wie viele laufen ueberhaupt mit? Die ersten 400 reichen: mehr als 120
+        // nimmt keine Stufe mit, und der Deckel liegt weit darunter.
+        const gesamt = kacheln.slice(0, 400).filter((k) => hat(k, 'wb-auf')).length;
         wurzel.classList.remove('wb-auftakt');
-        return { imBild: imBild.length, ohne, erste, ohneKnopf };
+        return { imBild: imBild.length, ohne, erste, ohneKnopf, gesamt };
       });
       const wo = `Werkbank ${breite} x ${hoehe}`;
       if (auf.imBild < mindestens) return `${wo}: die Probe sieht nur ${auf.imBild} Kacheln im Bild (erwartet mindestens ${mindestens}) und kann den Auftakt bei dieser Groesse nicht beurteilen`;
       if (auf.ohne) return `${wo}: beim ersten Laden laufen ${auf.ohne} von ${auf.imBild} sichtbaren Kacheln im Auftakt nicht mit (ab der ${auf.erste}.); sie stehen sofort da, waehrend die ersten noch einblenden`;
       if (auf.ohneKnopf) return `${wo}: an ${auf.ohneKnopf} von ${auf.imBild} sichtbaren Kacheln springen Stern und Plus beim Laden auf, statt einzublenden`;
+      if (deckel && auf.gesamt > deckel) return `${wo}: im Auftakt laufen ${auf.gesamt} Kacheln mit, im Bild stehen ${auf.imBild}; die Stufe fuer kleine Bildschirme (hoechstens ${deckel}) greift nicht, ein Telefon bewegt so Kacheln, die es nie zeigt`;
     }
   } finally {
     await gross.close();
