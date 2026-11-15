@@ -1541,8 +1541,8 @@ async function probeCraftingSync(page) {
         // die Spalte beginnt bei Deckkraft 0). Am Schreibtisch misst die Probe
         // ohne Klick; ein Zustand, der sofort erreicht ist (synced), fiele
         // sonst in die Einblendung und gaelte als „nicht zu sehen“.
-        if (!(await p.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false))) {
-          probleme.push(`${wo}: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)`);
+        if (!(await auftaktVorbei(p))) {
+          probleme.push(`${wo}: der Auftakt endet nicht (${AUFTAKT_HAENGT})`);
           continue;
         }
         const planerKnopf = p.locator('#cdb-planner-open');
@@ -1594,6 +1594,25 @@ async function probeCraftingSync(page) {
     probleme.push(`verschiedene Zustaende teilen sich einen Text (${[...texte].map(([k, v]) => `${k}=„${v}"`).join(', ')})`);
   if (!probleme.length) return null;
   return `Crafting-Planer, ${probleme.length} Abweichung(en): ${probleme.join(' | ')}`;
+}
+
+/* Der Auftakt der Werkbank ist vorbei, wenn #cdb die Klasse wb-auftakt
+   verloren hat (crafting-app.js nimmt sie 1300 ms mal --zt nach dem Start
+   des Skripts weg, seit Runde 8 also nach knapp zwei Sekunden). Solange sie
+   steht, verschiebt der Auftakt Leiste, Kacheln und Spalten um wenige Pixel,
+   und die Seite setzt nichts neu an: weder das Raster nach einem
+   Ansichtswechsel noch ein zurueckkehrender Reiter bekommt .is-frisch.
+   Das gilt nach JEDEM frischen Laden, auch nach einem page.goto mitten in
+   einer Probe. Wer danach misst oder .is-frisch erwartet, wartet deshalb
+   hier, an der Bedingung und nicht an einer Zeit: wie lange die Schritte
+   davor dauern, haengt an der Maschine (Anlass 15.11.2026: nach dem tiefen
+   Link kam die Probe auf einem schnellen Runner vor dem Ende des Auftakts
+   am Ansichtswechsel an und meldete ein fehlendes .is-frisch, obwohl die
+   Seite in Ordnung war). false, wenn die Klasse nach der Frist noch steht. */
+const AUFTAKT_FRIST = 6000;
+const AUFTAKT_HAENGT = `#cdb traegt nach ${AUFTAKT_FRIST / 1000} s noch wb-auftakt`;
+function auftaktVorbei(p) {
+  return p.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: AUFTAKT_FRIST }).then(() => true, () => false);
 }
 
 /* Liegt etwas ueber dem ✕ der offenen Filter-Schublade? Gibt null zurueck,
@@ -1652,8 +1671,7 @@ async function probeWerkbank(page) {
   // Der Auftakt verschiebt Leiste, Kacheln und Spalten fuer eine gute
   // Sekunde um wenige Pixel; gemessen wird danach. Bleibt die Klasse
   // haengen, spielte er bei jedem Sortieren und Filtern neu.
-  const auftaktEndet = await page.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false);
-  if (!auftaktEndet) return 'Werkbank 1280 px: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)';
+  if (!(await auftaktVorbei(page))) return `Werkbank 1280 px: der Auftakt endet nicht (${AUFTAKT_HAENGT})`;
   // 1. Schreibtisch (1280 px): Liste | leere Mitte | Planer.
   if (!(await zuSehen(page, '#cdb-modal .cdb-wb-leer'))) return 'Werkbank 1280 px: die leere Mitte („Rezept waehlen“) ist nicht zu sehen';
   // Der Zaehler ueber der Liste nennt, was in der Liste steht: beide Zahlen
@@ -2119,6 +2137,8 @@ async function probeWerkbank(page) {
   tief.searchParams.set('bpi', i);
   await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  // Frisch geladen, der Auftakt laeuft also noch einmal: gemessen wird danach.
+  if (!(await auftaktVorbei(page))) return `Werkbank 1280 px: nach dem tiefen Link ?bpi=${i} endet der Auftakt nicht (${AUFTAKT_HAENGT})`;
   const t2 = await titel(page);
   if (t2 !== name) return `Werkbank 1280 px: der tiefe Link ?bpi=${i} zeigt „${t2 || 'nichts'}“ statt „${name}“`;
   if (JSON.stringify(await wahl(page)) !== JSON.stringify([i])) return 'Werkbank 1280 px: der tiefe Link markiert die Karte nicht';
@@ -2181,6 +2201,10 @@ async function probeWerkbank(page) {
   tief.searchParams.set('bpi', weit.i);
   await page.goto(tief.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.locator('#cdb-modal .cbm__name').first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
+  // Wieder frisch geladen. Alles bis zum Ende dieser Probe steht auf dieser
+  // Ladung, auch der Ansichtswechsel weiter unten, der am Raster .is-frisch
+  // erwartet: das setzt die Seite erst, wenn der Auftakt vorbei ist.
+  if (!(await auftaktVorbei(page))) return `Werkbank 1280 px: nach dem tiefen Link auf „${weit.name}“ endet der Auftakt nicht (${AUFTAKT_HAENGT})`;
   await page.waitForTimeout(150);
   const lage = await page.evaluate((n) => {
     const g = document.querySelector('#cdb-grid').getBoundingClientRect();
@@ -2549,8 +2573,8 @@ async function probeWerkbank(page) {
         return `Werkbank 390 px: die Planer-Leiste sitzt ${wann} nicht unten (${l ? `y=${Math.round(l.y)}, h=${Math.round(l.height)}` : 'fehlt'})`;
       return null;
     };
-    if (!(await p.waitForFunction(() => !document.querySelector('#cdb.wb-auftakt'), null, { timeout: 6000 }).then(() => true, () => false)))
-      return 'Werkbank 390 px: der Auftakt endet nicht (#cdb traegt nach 6 s noch wb-auftakt)';
+    if (!(await auftaktVorbei(p)))
+      return `Werkbank 390 px: der Auftakt endet nicht (${AUFTAKT_HAENGT})`;
     const lageRuhe = await leisteLage('nach dem Auftakt');
     if (lageRuhe) return lageRuhe;
     const laeuft = await p.evaluate(async () => {
