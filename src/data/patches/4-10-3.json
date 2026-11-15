@@ -8,7 +8,7 @@
   "type": "point",
   "tagline": "Die Vanduul greifen in Nyx an, und InterSec sucht Piloten. Dazu kommen die RSI Galaxy und die Anvil Liberator.",
   "heroImage": "/assets/img-vanduul.jpg",
-  "summary": "Alpha 4.10.3 bringt die Vanduul nach Nyx. InterSec Defense Solutions vergibt zwölf neue Aufträge gegen Vanduul-Verbände, Mauler und die Shattered Blade, vom Abfangen einer Flotte bis zur lebenden Vanduul-Probe. Neu im Bestand sind die RSI Galaxy mit austauschbarem Mittelmodul und die Anvil Liberator, ein Träger für Schiffe und Bodenfahrzeuge. Carrack, Perseus und Starlancer tragen jetzt Radare der Größe 3. Acht bereits flugfähige Schiffe sind zum ersten Mal im Spiel für aUEC zu haben. Die Salvage-Flotte schluckt deutlich mehr Rumpfmaterial, Vanduul-KI schießt länger und härter, und die Mauler-Waffen treffen fast viermal so stark. Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Zur IAE 2956 gibt es Sammelmünzen, Kleidung und Best-in-Show-Lackierungen.",
+  "summary": "Alpha 4.10.3 bringt die Vanduul nach Nyx. InterSec Defense Solutions vergibt zwölf neue Aufträge gegen Vanduul-Verbände, Mauler und die Shattered Blade, darunter Flottenabfang, Mauler-Jagd und eine lebende Vanduul-Probe. Neu im Bestand sind die RSI Galaxy mit austauschbarem Mittelmodul und die Anvil Liberator, ein Träger für Schiffe und Bodenfahrzeuge. Carrack, Perseus und Starlancer tragen jetzt Radare der Größe 3. Acht bereits flugfähige Schiffe sind zum ersten Mal im Spiel für aUEC zu haben. Der Reclaimer nimmt 448 statt 240 SCU Rumpfmaterial auf, Vanduul-KI hat mehr Munition, und die Mauler-Waffen treffen fast viermal so stark. Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Zur IAE 2956 gibt es Sammelmünzen, Kleidung und Best-in-Show-Lackierungen.",
   "palette": {
     "bg": "#0c0e13",
     "accent": "#e0563f",
@@ -34,7 +34,7 @@
     },
     {
       "label": "Salvage",
-      "value": "Reclaimer schluckt 448 statt 240 SCU Rumpfmaterial"
+      "value": "Reclaimer nimmt 448 statt 240 SCU Rumpfmaterial auf"
     },
     {
       "label": "Torpedos",
@@ -50,7 +50,7 @@
       "name": "Vanduul Incursion",
       "system": "Missionen & Aktivitäten",
       "kind": "event",
-      "desc": "Vanduul-Clans tauchen im Nyx-System auf und bedrohen die Handelsrouten. InterSec Defense Solutions sucht dafür erfahrene Kampfpiloten mit Begleitschutz. Zwölf neue Missionsfamilien stehen im Bestand. Sie reichen vom Abfangen eines Vanduul-Verbands über das Herauslocken einzelner Mauler und Kämpfe zwischen Vanduul und der Shattered Blade bis zur Rückeroberung eines geenterten Schiffs und einer lebenden Vanduul-Probe in der Kryokapsel. Die meisten Aufträge lassen sich teilen und sind für Gruppen ausgelegt.",
+      "desc": "Vanduul-Clans tauchen im Nyx-System auf und bedrohen die Handelsrouten. InterSec Defense Solutions sucht dafür erfahrene Kampfpiloten, die im Verband fliegen. Zwölf neue Missionsfamilien stehen im Bestand. Darunter sind Flottenabfang, Mauler-Jagd, Kämpfe gegen Vanduul und Shattered Blade zugleich, die Rückeroberung eines geenterten Schiffs und eine lebende Vanduul-Probe in der Kryokapsel. Die meisten Aufträge lassen sich teilen und sind für Gruppen ausgelegt.",
       "facts": [
         {
           "label": "Auftraggeber",
@@ -174,7 +174,7 @@
       "name": "Anvil Liberator",
       "system": "Schiffs-Systeme",
       "kind": "ship-system",
-      "desc": "Die Liberator ist ein schwerer Träger für Schiffe und Bodenfahrzeuge. Fahrzeuge rollen über die Heckrampe in die Fahrzeughalle. Schiffe passen in den inneren Hangar oder setzen auf den Landeflächen auf, die teils im Rumpf und teils oben auf der Außenhaut liegen. Alles, was in der Liberator steht, kann dort reparieren, aufmunitionieren und tanken.",
+      "desc": "Die Liberator ist ein Träger für Schiffe und Bodenfahrzeuge. Fahrzeuge rollen über die Heckrampe in die Fahrzeughalle. Schiffe passen in den inneren Hangar oder setzen auf den Landeflächen auf, die teils im Rumpf und teils oben auf der Außenhaut liegen. Was in der Liberator steht, wird dort repariert, aufmunitioniert und betankt.",
       "facts": [
         {
           "label": "Rolle",
@@ -208,7 +208,7 @@
       "name": "Radare der Größe 3",
       "system": "Schiffs-Systeme",
       "kind": "balance",
-      "desc": "Carrack, Perseus, Starlancer, Starlancer TAC, Hammerhead und Tiburon tragen jetzt Radare der Größe 3 statt 2, und ihre Standard-Loadouts sind angepasst. Die Komponentenbuchten sind dafür umgebaut. Bei der Perseus sitzt das Relais deshalb an einer Konsole, bei der Starlancer liegt das Radar jetzt im Maschinenraum. Hammerhead und Tiburon führten das Radar der Größe 3 im Bestand schon vorher.",
+      "desc": "Carrack, Carrack Expedition, Perseus, Starlancer MAX und TAC tragen jetzt Radare der Größe 3 statt 2, und ihre Standard-Loadouts sind angepasst. Die Komponentenbuchten sind dafür umgebaut. Bei der Perseus sitzt das Relais deshalb an einer Konsole, bei der Starlancer liegt das Radar jetzt im Maschinenraum. Hammerhead und Tiburon nennen die Notes ebenfalls, sie hatten das Radar der Größe 3 aber schon vorher.",
       "facts": [
         {
           "label": "Carrack · Starlancer",
@@ -328,7 +328,7 @@
       "name": "Vanduul-Kampf und Mauler",
       "system": "Combat & Waffen",
       "kind": "balance",
-      "desc": "Vanduul-KI führt mehr Munition mit und lädt sie schneller nach. In längeren Gefechten bleibt sie dadurch deutlich aggressiver. Die Waffen des Mauler sind erheblich tödlicher, und zum Ausgleich hat er weniger Lebenspunkte. Im Bestand trifft der „STRIKER\"-Repeater des Mauler mit 250 statt 64 Energieschaden pro Schuss.",
+      "desc": "Vanduul-KI führt mehr Munition mit und regeneriert sie schneller. Laut Notes kämpft sie dadurch in längeren Gefechten aggressiver. Der „STRIKER\"-Repeater des Mauler trifft mit 250 statt 64 Energieschaden pro Schuss, und zum Ausgleich hat der Mauler weniger Lebenspunkte.",
       "facts": [
         {
           "label": "Mauler „STRIKER\"",
@@ -358,7 +358,7 @@
       "name": "Salvage mit größerem Puffer",
       "system": "Salvage",
       "kind": "balance",
-      "desc": "Die ganze Salvage-Flotte nimmt mehr Rumpfmaterial auf, bevor sie abladen muss. Das Zerlegungsfeld ist bei allen fünf Schiffen größer, und die Ausrichtung verzeiht mehr. Einen Schnitt auf der Hülle zu halten, ist dadurch weniger fummelig.",
+      "desc": "Die ganze Salvage-Flotte nimmt mehr Rumpfmaterial auf, bevor sie abladen muss. Das Zerlegungsfeld ist bei allen fünf Schiffen größer, und der Strahl muss weniger genau ausgerichtet sein. Einen Schnitt auf der Hülle zu halten, ist dadurch leichter.",
       "facts": [
         {
           "label": "Reclaimer",
@@ -412,7 +412,7 @@
       "name": "Torpedos, Bombenhalter und Kopfgeld",
       "system": "Combat & Waffen",
       "kind": "balance",
-      "desc": "Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Am Waffenkiosk im Crusader-Showroom in Orison gibt es jetzt Bombenhalter der Größen 1 und 3, je für links und rechts. Kopfgeldaufträge der Stufe „High Risk Target\" bringen 4.000 statt 2.000 Ruf bei der Bounty Hunters Guild und liegen damit richtig zwischen Medium Risk und Very Hard.",
+      "desc": "Torpedos der Größen 5 und 7 machen sich erst ab 700 m scharf. Am Waffenkiosk im Crusader-Showroom in Orison gibt es jetzt Bombenhalter der Größen 1 und 3, je für links und rechts. Kopfgeldaufträge der Stufe „High Risk Target\" bringen 4.000 statt 2.000 Ruf bei der Bounty Hunters Guild und liegen damit zwischen Medium Risk und Very Hard.",
       "facts": [
         {
           "label": "Torpedos Gr. 5 und 7",
@@ -434,15 +434,15 @@
       "name": "Skarnov und Raider Camo",
       "system": "Waffen & Ausrüstung",
       "kind": "gameplay",
-      "desc": "Neu im Katalog ist das Energiegewehr Skarnov in sieben Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu, vor allem die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A. Dazu kommen der Schild Deterrent und das Radar Lephari. Deterrent ist der bisherige RSI-Schild der Größe 4, der bis 4.10.2 ebenfalls „Glacis\" hieß. Die Polaris trägt ihn ab Werk.",
+      "desc": "Neu im Bestand ist das Energiegewehr Skarnov in fünf Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu: die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A, der Skarnov „Raider Camo\" mit Batterie und der Schild Deterrent. Den Bauplan des Radars Lephari gab es schon, er trägt jetzt seinen Namen. Bis 4.10.2 hießen zwei RSI-Schilde der Größe 4 „Glacis\", einer davon heißt jetzt Deterrent. Die Polaris trägt ihn ab Werk.",
       "facts": [
         {
-          "label": "Item-Katalog",
+          "label": "Gegenstände im Bestand",
           "value": "9.412 → 9.515 Einträge"
         },
         {
           "label": "Baupläne",
-          "value": "1.606 → 1.623"
+          "value": "1.617 → 1.634"
         }
       ],
       "links": [
@@ -451,28 +451,76 @@
           "href": "/items/skarnov-rifle.html"
         },
         {
+          "label": "Skarnov \"Ferrite\" Rifle",
+          "href": "/items/skarnov-ferrite-rifle.html"
+        },
+        {
+          "label": "Skarnov \"Relay\" Rifle",
+          "href": "/items/skarnov-relay-rifle.html"
+        },
+        {
+          "label": "Skarnov \"Sparkplug\" Rifle",
+          "href": "/items/skarnov-sparkplug-rifle.html"
+        },
+        {
           "label": "Skarnov \"Raider Camo\" Rifle",
-          "href": "/items/skarnov-raider-camo-rifle.html"
+          "href": "/crafting/skarnov-raider-camo-rifle.html"
         },
         {
           "label": "Skarnov Rifle Battery (30 cap)",
-          "href": "/items/skarnov-rifle-battery-30-cap.html"
+          "href": "/crafting/skarnov-rifle-battery-30-cap.html"
         },
         {
-          "label": "Skarnov \"Raider Camo\" Rifle (Bauplan)",
-          "href": "/crafting/skarnov-raider-camo-rifle.html"
+          "label": "Corbel Arms Raider Camo",
+          "href": "/crafting/corbel-arms-raider-camo.html"
         },
         {
           "label": "Corbel Core Raider Camo",
           "href": "/crafting/corbel-core-raider-camo.html"
         },
         {
+          "label": "Corbel Helmet Raider Camo",
+          "href": "/crafting/corbel-helmet-raider-camo.html"
+        },
+        {
+          "label": "Corbel Legs Raider Camo",
+          "href": "/crafting/corbel-legs-raider-camo.html"
+        },
+        {
+          "label": "Palatino Arms Raider Camo",
+          "href": "/crafting/palatino-arms-raider-camo.html"
+        },
+        {
+          "label": "Palatino Backpack Raider Camo",
+          "href": "/crafting/palatino-backpack-raider-camo.html"
+        },
+        {
           "label": "Palatino Core Raider Camo",
           "href": "/crafting/palatino-core-raider-camo.html"
         },
         {
+          "label": "Palatino Helmet Raider Camo",
+          "href": "/crafting/palatino-helmet-raider-camo.html"
+        },
+        {
+          "label": "Palatino Legs Raider Camo",
+          "href": "/crafting/palatino-legs-raider-camo.html"
+        },
+        {
           "label": "Tailwind Flight Suit Raider Camo",
           "href": "/crafting/tailwind-flight-suit-raider-camo.html"
+        },
+        {
+          "label": "Tailwind Helmet Raider Camo",
+          "href": "/crafting/tailwind-helmet-raider-camo.html"
+        },
+        {
+          "label": "M3A Cannon Raider Camo",
+          "href": "/crafting/m3a-cannon-raider-camo.html"
+        },
+        {
+          "label": "M4A Cannon Raider Camo",
+          "href": "/crafting/m4a-cannon-raider-camo.html"
         },
         {
           "label": "M5A Cannon Raider Camo",
@@ -534,7 +582,7 @@
       "name": "Namen und Editionen",
       "system": "Schiffs-Systeme",
       "kind": "qol",
-      "desc": "Anvils Bodenfahrzeuge tragen jetzt die Plattform im Namen und heißen HM6 Ballista, HM6 Spartan und HM6 Centurion. Die Constellation Mk IV Phoenix Emerald und die Hammerhead 2949 Best In Show Edition stehen nicht mehr als eigene Fahrzeuge im Spiel. Emerald gibt es seither als Lackierung für die Mk IV. Die Constellation Mk V Centaurus fasst 32 statt 46,8 SCU Wasserstoff.",
+      "desc": "Anvils Bodenfahrzeuge tragen jetzt die Plattform im Namen und heißen HM6 Ballista, HM6 Spartan und HM6 Centurion. Die Constellation Mk IV Phoenix Emerald und die Hammerhead 2949 Best In Show Edition stehen nicht mehr als eigene Fahrzeuge im Spiel. Emerald gibt es jetzt als Lackierung für die Mk IV. Die Constellation Mk V Centaurus fasst 32 statt 46,8 SCU Wasserstoff.",
       "links": [
         {
           "label": "HM6 Ballista",
@@ -566,7 +614,7 @@
       "name": "IAE 2956",
       "system": "Events",
       "kind": "event",
-      "desc": "Zur Intergalactic Aerospace Expo 2956 kommen Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, eine Kappe und ein T-Shirt. Corsair, Ironclad Assault, M80 und Perseus haben dazu je eine Lackierung „2956 Best In Show\".",
+      "desc": "Zur Intergalactic Aerospace Expo 2956 kommen Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, dazu eine Kappe und ein T-Shirt. Corsair, Ironclad Assault, M80 und Perseus haben dazu je eine Lackierung „2956 Best In Show\".",
       "links": [
         {
           "label": "IAE 2956 Hat",

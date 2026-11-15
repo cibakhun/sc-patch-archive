@@ -167,13 +167,18 @@ const schalter = (lod) => COMMON.map((a, i, all) => (all[i - 1] === '--lod' ? St
 // die Lichtzeilen aus dem Protokoll eines Exports (-v), ohne Zeitstempel
 const lichtZeilen = (log) => log.split('\n').filter((l) => / Light '/.test(l)).map((l) => l.replace(/^.*?\] +/, ''));
 // skin export kennt keine Material-/LOD-Schalter: reine Geometrie, volle Stufe.
-const sbSkin = (part, file) => sb(['skin', 'export', part, file]);
+const sbSkin = (part, file) => { const r = sb(['skin', 'export', part, file]); stempel(file); return r; };
+
+function stempel(file) {
+  writeFileSync(file.replace(/\.glb$/i, '.build.json'), JSON.stringify(gameBuild()) + '\n');
+}
 
 function exportTo(file, args, common = COMMON, { log = false } = {}) {
   if (!FORCE && existsSync(file)) { console.log(`  = ${file.slice(SRC.length)}`); return false; }
   mkdirSync(dirname(file), { recursive: true });
   const t = Date.now();
   const r = sb([...args, file, ...common], { log });
+  stempel(file);
   console.log(`  + ${file.slice(SRC.length)}  (${((Date.now() - t) / 1000).toFixed(0)} s)`);
   return log ? r.log : true;
 }
@@ -447,6 +452,7 @@ if (containers.length) {
       if (h.aufzug) hallAufzug(h);
     } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); continue; }
     if (!existsSync(file)) { console.error(`  ! ${h.key}: ${file.slice(SRC.length)} fehlt (Teil von ${h.from})`); continue; }
+    if (h.raw || h.from) stempel(file);
     if (h.dir === 'lift') {
       const info = liftEntities(h);
       writeFileSync(`${SRC}lift/${h.key}.entities.json`, JSON.stringify(info, null, 1));

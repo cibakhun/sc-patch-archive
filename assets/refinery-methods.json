@@ -1,0 +1,74 @@
+{
+  "gameVersion": "4.10.3-live.13165946",
+  "source": "Raffinationsmethoden mit den Stufen, die das Spiel je Methode nennt",
+  "stufen": {
+    "yield": 3,
+    "cost": 3,
+    "speed": 9
+  },
+  "methods": [
+    {
+      "id": "SlowCareful",
+      "name": "Dinyx Solventation",
+      "yield": 3,
+      "cost": 1,
+      "speed": 1
+    },
+    {
+      "id": "NormalCareful",
+      "name": "Ferron Exchange",
+      "yield": 3,
+      "cost": 2,
+      "speed": 2
+    },
+    {
+      "id": "FastCareful",
+      "name": "Pyrometric Chromalysis",
+      "yield": 3,
+      "cost": 3,
+      "speed": 6
+    },
+    {
+      "id": "SlowNormal",
+      "name": "Thermonatic Deposition",
+      "yield": 2,
+      "cost": 1,
+      "speed": 3
+    },
+    {
+      "id": "NormalNormal",
+      "name": "Electrostarolysis",
+      "yield": 2,
+      "cost": 2,
+      "speed": 5
+    },
+    {
+      "id": "FastNormal",
+      "name": "Gaskin Process",
+      "yield": 2,
+      "cost": 3,
+      "speed": 7
+    },
+    {
+      "id": "SlowWasteful",
+      "name": "Kazen Winnowing",
+      "yield": 1,
+      "cost": 1,
+      "speed": 4
+    },
+    {
+      "id": "NormalWasteful",
+      "name": "Cormack Method",
+      "yield": 1,
+      "cost": 2,
+      "speed": 8
+    },
+    {
+      "id": "FastWasteful",
+      "name": "XCR Reaction",
+      "yield": 1,
+      "cost": 3,
+      "speed": 9
+    }
+  ]
+}

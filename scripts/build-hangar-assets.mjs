@@ -29,6 +29,7 @@ import { dedup, prune, weld, flatten, join, joinPrimitives, simplify, draco, tex
 import { MeshoptSimplifier } from 'meshoptimizer';
 import draco3d from 'draco3d';
 import { creaseNormals } from './lib/crease-normals.mjs';
+import { standNachtragen } from './lib/hangar-stand.mjs';
 import { sample as sampleCaf, sampleRot as sampleCafRot } from './lib/ivo-caf.mjs';
 import { normalizeUvIslands, degenerateUvShare, texcoordBits } from './lib/uv-islands.mjs';
 import { sealSeams, seamStats } from './lib/hall-seams.mjs';
@@ -1188,6 +1189,17 @@ function gearCheck(written, gear) {
   const deep = sink < -0.2;
   const why = worst > 0.02 ? `Aufstandspunkte weichen bis ${Number.isFinite(worst) ? worst.toFixed(3) : '∞'} m ab` : deep ? `ein Teil steckt ${Math.round(-sink * 100)} cm im Boden` : null;
   return { ok: !why, dev, sink: Math.round(sink * 1000) / 1000, ...(why ? { why } : {}) };
+}
+
+function rohStand(inPath) {
+  for (const f of [inPath.replace(/\.glb$/i, '.build.json'), inPath.replace(/\.glb$/i, '.json')]) {
+    if (!existsSync(f)) continue;
+    let j;
+    try { j = JSON.parse(readFileSync(f, 'utf8')); } catch { continue; }
+    const c = j?.change ?? j?.sig?.build?.change;
+    if (c) return String(c);
+  }
+  return null;
 }
 
 // Herkunft des Rohexports (Sidecar des Extraktors): welcher Record, welcher
@@ -3635,6 +3647,7 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
     }
     try {
       const r = await buildOne(kind, name, inPath);
+      if (r.game == null) r.game = rohStand(inPath);
       if (kind === 'hall') r.room = HALL_ROOM[name.replace(/-lod1$/, '')] ?? null;
       if (bestand) r.eingaben = bestand;
       manifest[slot][name] = r; built++;
@@ -3807,6 +3820,8 @@ if ((!ONLY || ONLY === 'katalog') && !KIND) {
 const merged = { source: 'StarBreaker entity/socpak export -> gltf-transform (Draco, WebP)' };
 for (const k of Object.keys(prev)) if (k !== 'source') merged[k] = k in manifest ? manifest[k] : prev[k];
 for (const k of Object.keys(manifest)) if (!(k in merged)) merged[k] = manifest[k];
+const stand = standNachtragen(merged);
+if (stand.offen.length) console.log(`WARNUNG Spielstand: keine Fassung im Launcher-Protokoll fuer CL ${stand.offen.join(', ')} — diese Modelle zeigen die Seiten als nicht belegt`);
 await writeFile(MANIFEST, JSON.stringify(merged, null, 2) + '\n', 'utf8');
 console.log(`${built} gebaut, ${reused} unveraendert -> ${PROBE ? fileURLToPath(MANIFEST) : 'src/data/hangar-assets.json'}`);
 if (fallbackRun.sister || fallbackRun.serie || fallbackRun.none || fallbackRun.alt.length) console.log(`Lackvarianten ohne eigene Palette: Schwester ${fallbackRun.sister}, Serie des Pakets ${fallbackRun.serie}, ohne Eintrag ${fallbackRun.none}, Abweichung ${fallbackRun.alt.length}${fallbackRun.alt.length ? ` (${fallbackRun.alt.join('; ')})` : ''}`);

@@ -34,12 +34,13 @@
         paarweise UEBEREINSTIMMEN.
      7  Genau 46 gebaute Patch-Seiten (23 je Sprache, unter einem
         patches/-Ordner mit Dateinamen sc-*.html) enthalten den
-        Ereignisnamen.
+        Ereignisnamen; im Live-Bau je Patch vor der Abnahme zwei weniger.
 
        node scripts/verify-fx.mjs
    ============================================================ */
 
 import { readdirSync, readFileSync } from 'node:fs';
+import { VORSCHAU_PATCHES } from './lib/vorschau-patches.mjs';
 import { join } from 'node:path';
 import { findPagePairs, assertMinimumPairs } from './lib/page-pairs.mjs';
 
@@ -173,18 +174,17 @@ console.log('\n[6] Sprachparitaet EN<->DE (Umschalter-Klasse, data-fx, Ereignisn
   }
 }
 
-/* ---- Zusicherung 7: exakt 46 Patch-Seiten mit dem Ereignisnamen ----
-   27.08.2026: 4.10.0 „Siege of Orison“ kam als 20. Patch dazu (DE+EN).
-   07.10.2026: 4.10.1 „Orison Relief Support“ kam als 21. Patch dazu (DE+EN).
-   12.11.2026: 4.10.3 „IAE 2956 & Vanduul Incursion“ kam als 23. Patch dazu (DE+EN). */
-console.log('\n[7] Genau 46 gebaute Patch-Seiten (23 je Sprache) enthalten den Ereignisnamen');
+// Live fehlen die Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs).
+const LIVE = JSON.parse(readFileSync('dist/build.json', 'utf8')).staging === false;
+const SOLL_PATCHSEITEN = 46 - (LIVE ? 2 * VORSCHAU_PATCHES.length : 0);
+console.log(`\n[7] Genau ${SOLL_PATCHSEITEN} gebaute Patch-Seiten (${SOLL_PATCHSEITEN / 2} je Sprache) enthalten den Ereignisnamen`);
 {
   const patchFiles = htmlFiles.filter((f) => /\/patches\/sc-[^/]+\.html$/.test(f));
   const withEvent = patchFiles.filter((f) => htmlCache.get(f).includes(EVENT));
   console.log(
-    `    Patch-Seiten gesamt: ${patchFiles.length}   mit ${EVENT}: ${withEvent.length}   Soll: 46   Ist: ${withEvent.length}`
+    `    Patch-Seiten gesamt: ${patchFiles.length}   mit ${EVENT}: ${withEvent.length}   Soll: ${SOLL_PATCHSEITEN}   Ist: ${withEvent.length}`
   );
-  if (withEvent.length !== 46) fail(`Erwartet genau 46 Patch-Seiten mit ${EVENT}, gefunden ${withEvent.length}`);
+  if (withEvent.length !== SOLL_PATCHSEITEN) fail(`Erwartet genau ${SOLL_PATCHSEITEN} Patch-Seiten mit ${EVENT}, gefunden ${withEvent.length}`);
 }
 
 console.log(`\nverify-fx: ${ok ? 'ALLE ZUSICHERUNGEN ERFUELLT ✓' : 'FEHLGESCHLAGEN ✗'}`);

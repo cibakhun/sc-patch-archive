@@ -9,6 +9,7 @@ import { pickThumb, pickHero } from './shipRenders';
 import { useTranslations, assertLocale, type Locale, type UIKey } from '../i18n/ui';
 import { vType } from '../i18n/vehicleText';
 import hardpointsSnapshot from '../data/ship-hardpoints.json';
+import vehiclesSnapshot from '../data/vehicles.json';
 
 type VehicleData = CollectionEntry<'vehicles'>['data'];
 // Ohne Vorgabe: eine fehlende Sprache bricht den Bau ab (assertLocale in
@@ -47,9 +48,14 @@ export type ShipExtras = {
 
 export const extrasFetchedAt: string = (extrasSnapshot as { fetchedAt: string }).fetchedAt;
 
+const ID_NACH_NAME = new Map(
+  (vehiclesSnapshot as { vehicles: { id: string; name: string }[] }).vehicles.map((v) => [v.name, v.id]),
+);
+const aufloesen = (refs: ShipRef[]): ShipRef[] => refs.map((r) => (r.id ? r : { ...r, id: ID_NACH_NAME.get(r.name) ?? null }));
+
 export function extrasInfo(id: string): ShipExtras {
   const e = (extrasSnapshot as { extras: Record<string, NonNullable<ShipExtras>> }).extras[id];
-  return e ?? null;
+  return e ? { ...e, variants: aufloesen(e.variants), loaners: aufloesen(e.loaners) } : null;
 }
 
 /* ---------- Kopf-Medien: Video (kuratiert) + Bild-Galerie ---------- */

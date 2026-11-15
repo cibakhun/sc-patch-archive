@@ -1,0 +1,25 @@
+//   node scripts/stempel-hand.mjs <datei> --geaendert YYYY-MM-DD   (Art "datum")
+//   node scripts/stempel-hand.mjs <datei> --patch X.Y.Z            (Art "patch")
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { pruefsumme, HANDBESTAENDE, PATCH_MUSTER } from './lib/handstand.mjs';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const [datei, schalter, wert] = process.argv.slice(2);
+const eintrag = HANDBESTAENDE.find((h) => h.datei === datei);
+if (!eintrag) { console.error(`stempel-hand: ${datei} ist kein Handbestand (${HANDBESTAENDE.map((h) => h.datei).join(', ')})`); process.exit(2); }
+const soll = eintrag.art === 'datum' ? '--geaendert' : '--patch';
+const muster = eintrag.art === 'datum' ? /^\d{4}-\d{2}-\d{2}$/ : PATCH_MUSTER;
+if (schalter !== soll || !muster.test(wert ?? '')) { console.error(`stempel-hand: ${datei} braucht ${soll} ${eintrag.art === 'datum' ? 'YYYY-MM-DD' : 'X.Y.Z oder X.Y'}`); process.exit(2); }
+
+const pfad = resolve(ROOT, datei);
+const roh = readFileSync(pfad, 'utf8');
+const daten = JSON.parse(roh);
+const stand = eintrag.art === 'datum'
+  ? { art: 'datum', geaendert: wert, pruefsumme: pruefsumme(daten) }
+  : { art: 'patch', patch: wert, pruefsumme: pruefsumme(daten) };
+const neu = { stand, ...Object.fromEntries(Object.entries(daten).filter(([k]) => k !== 'stand')) };
+const einzug = /\n( +)"/.exec(roh)?.[1].length ?? 2;
+writeFileSync(pfad, JSON.stringify(neu, null, einzug) + '\n');
+console.log(`stempel-hand: ${datei} → ${JSON.stringify(stand)}`);

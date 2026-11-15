@@ -3369,8 +3369,8 @@
     },
     "4-10-3": {
       "dateDisplayEn": "November 12, 2026",
-      "tagline": "The Vanduul strike Nyx and InterSec is hiring pilots. The RSI Galaxy and the Anvil Liberator arrive with them.",
-      "summary": "Alpha 4.10.3 brings the Vanduul to Nyx. InterSec Defense Solutions offers twelve new contracts against Vanduul strike groups, Maulers and the Shattered Blade, from intercepting a fleet to a living Vanduul sample. New in the catalogue are the RSI Galaxy with its swappable central module and the Anvil Liberator, a carrier for ships and ground vehicles. Carrack, Perseus and Starlancer now carry size 3 radars. Eight ships that were already flyable can be bought in game for aUEC for the first time. The salvage fleet holds far more hull material, Vanduul AI fights longer and harder, and the Mauler's weapons hit almost four times as hard. Size 5 and 7 torpedoes only arm from 700 m. For IAE 2956 there are collector coins, clothing and Best in Show liveries.",
+      "tagline": "The Vanduul strike Nyx and InterSec is hiring pilots. The RSI Galaxy and the Anvil Liberator are new too.",
+      "summary": "Alpha 4.10.3 brings the Vanduul to Nyx. InterSec Defense Solutions offers twelve new contracts against Vanduul strike groups, Maulers and the Shattered Blade, including fleet intercepts, Mauler hunts and a living Vanduul sample. New in the catalogue are the RSI Galaxy with its swappable central module and the Anvil Liberator, a carrier for ships and ground vehicles. Carrack, Perseus and Starlancer now carry size 3 radars. Eight ships that were already flyable can be bought in game for aUEC for the first time. The Reclaimer holds 448 instead of 240 SCU of hull material, Vanduul AI carries more ammo, and the Mauler's weapons hit almost four times as hard. Size 5 and 7 torpedoes only arm from 700 m. For IAE 2956 there are collector coins, clothing and Best in Show liveries.",
       "keyFacts": [
         {
           "label": "Vanduul Incursion",
@@ -3405,7 +3405,7 @@
         {
           "name": "Vanduul Incursion",
           "system": "Missions & Activities",
-          "desc": "Vanduul clans appear in the Nyx system and threaten the trade routes. InterSec Defense Solutions is looking for experienced combat pilots with backup. Twelve new mission families are in the catalogue. They range from intercepting a Vanduul strike group, drawing out individual Maulers and fights between the Vanduul and the Shattered Blade to retaking a boarded vessel and a living Vanduul sample in a cryopod. Most contracts can be shared and are built for groups.",
+          "desc": "Vanduul clans appear in the Nyx system and threaten the trade routes. InterSec Defense Solutions is looking for experienced combat pilots who fly in groups. Twelve new mission families are in the catalogue. They include fleet intercepts, Mauler hunts, fights against the Vanduul and the Shattered Blade at once, retaking a boarded vessel and a living Vanduul sample in a cryopod. Most contracts can be shared and are built for groups.",
           "facts": [
             {
               "label": "Contractor",
@@ -3451,7 +3451,7 @@
         {
           "name": "Anvil Liberator",
           "system": "Ship systems",
-          "desc": "The Liberator is a heavy carrier for ships and ground vehicles. Vehicles roll up the rear ramp into the vehicle bay. Ships fit in the interior hangar or set down on the landing pads, some inside the hull and some along the top. Anything parked in the Liberator can repair, rearm and refuel there.",
+          "desc": "The Liberator is a carrier for ships and ground vehicles. Vehicles roll up the rear ramp into the vehicle bay. Ships fit in the interior hangar or set down on the landing pads, some inside the hull and some along the top. Anything parked in the Liberator can be repaired, rearmed and refuelled there.",
           "facts": [
             {
               "label": "Role",
@@ -3478,7 +3478,7 @@
         {
           "name": "Size 3 radars",
           "system": "Ship systems",
-          "desc": "Carrack, Perseus, Starlancer, Starlancer TAC, Hammerhead and Tiburon now carry size 3 radars instead of size 2, with updated default loadouts. The component bays were reworked for it. The Perseus relay therefore sits on a console, and the Starlancer radar now lives in engineering. Hammerhead and Tiburon already carried the size 3 radar in the catalogue.",
+          "desc": "Carrack, Carrack Expedition, Perseus, Starlancer MAX and TAC now carry size 3 radars instead of size 2, with updated default loadouts. The component bays were reworked for it. The Perseus relay therefore sits on a console, and the Starlancer radar now sits in engineering. The notes list Hammerhead and Tiburon too, but they already had the size 3 radar.",
           "facts": [
             {
               "label": "Carrack · Starlancer",
@@ -3516,7 +3516,7 @@
         {
           "name": "Vanduul combat and the Mauler",
           "system": "Combat & Weapons",
-          "desc": "Vanduul AI carries more ammunition and regenerates it faster, which keeps it far more aggressive in long fights. The Mauler's weapons are considerably more deadly, and its health has been reduced to balance that. In the catalogue the Mauler's \"STRIKER\" repeater hits for 250 instead of 64 energy damage per shot.",
+          "desc": "Vanduul AI carries more ammunition and regenerates it faster. Per the notes this makes it more aggressive in long fights. The Mauler's \"STRIKER\" repeater hits for 250 instead of 64 energy damage per shot, and the Mauler has less health in return.",
           "facts": [
             {
               "label": "Mauler \"STRIKER\"",
@@ -3531,7 +3531,7 @@
         {
           "name": "Salvage with a bigger buffer",
           "system": "Salvage",
-          "desc": "The whole salvage fleet takes in more hull material before it has to unload. The disintegration field is larger on all five ships, and alignment is more forgiving. Holding a cut on a hull is less fiddly as a result.",
+          "desc": "The whole salvage fleet takes in more hull material before it has to unload. The disintegration field is larger on all five ships, and the beam needs less precise alignment. Holding a cut on a hull is easier as a result.",
           "facts": [
             {
               "label": "Reclaimer",
@@ -3558,7 +3558,7 @@
         {
           "name": "Torpedoes, bomb racks and bounties",
           "system": "Combat & Weapons",
-          "desc": "Size 5 and 7 torpedoes only arm from 700 m. The weaponry kiosk in the Crusader showroom at Orison now sells size 1 and size 3 bomb racks in left and right mountings. \"High Risk Target\" bounty contracts award 4,000 instead of 2,000 Bounty Hunters Guild reputation, which puts them correctly between Medium Risk and Very Hard.",
+          "desc": "Size 5 and 7 torpedoes only arm from 700 m. The weaponry kiosk in the Crusader showroom at Orison now sells size 1 and size 3 bomb racks in left and right mountings. \"High Risk Target\" bounty contracts award 4,000 instead of 2,000 Bounty Hunters Guild reputation, which puts them between Medium Risk and Very Hard.",
           "facts": [
             {
               "label": "Size 5 and 7 torpedoes",
@@ -3573,7 +3573,7 @@
         {
           "name": "Skarnov and Raider Camo",
           "system": "Weapons & Gear",
-          "desc": "New in the catalogue is the Skarnov energy rifle in seven versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Intersec Eliminate Specific Rank1\" in Nyx. The workbench gains 17 blueprints, mostly the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons. The Deterrent shield and the Lephari radar join them. Deterrent is the former RSI size 4 shield that was also called \"Glacis\" up to 4.10.2. The Polaris carries it from the factory.",
+          "desc": "New in the catalogue is the Skarnov energy rifle in five versions, among them \"Ferrite\", \"Relay\", \"Sparkplug\" and \"Raider Camo\". The blueprint for the \"Raider Camo\" version and its battery comes from the InterSec contract \"Intersec Eliminate Specific Rank1\" in Nyx. The workbench gains 17 blueprints: the \"Raider Camo\" camouflage for the Corbel, Palatino and Tailwind armour and for the M3A, M4A and M5A cannons, the Skarnov \"Raider Camo\" with its battery and the Deterrent shield. The Lephari radar already had a blueprint, which now carries its name. Up to 4.10.2 two RSI size 4 shields were called \"Glacis\", and one of them is now Deterrent. The Polaris carries it from the factory.",
           "facts": [
             {
               "label": "Item catalogue",
@@ -3581,7 +3581,7 @@
             },
             {
               "label": "Blueprints",
-              "value": "1,606 → 1,623"
+              "value": "1,617 → 1,634"
             }
           ]
         },
@@ -3612,7 +3612,7 @@
         {
           "name": "IAE 2956",
           "system": "Events",
-          "desc": "For the Intergalactic Aerospace Expo 2956 there are collector coins of the Best in Show ships with a display case, a cap and a T-shirt. Corsair, Ironclad Assault, M80 and Perseus each get a \"2956 Best In Show\" livery."
+          "desc": "For the Intergalactic Aerospace Expo 2956 there are collector coins of the Best in Show ships with a display case, plus a cap and a T-shirt. Corsair, Ironclad Assault, M80 and Perseus each get a \"2956 Best In Show\" livery."
         },
         {
           "name": "Comfort",

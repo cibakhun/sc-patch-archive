@@ -1,0 +1,84 @@
+{
+  "stand": {
+    "art": "patch",
+    "patch": "3.16",
+    "pruefsumme": "75a2434b98d27119"
+  },
+  "erzeugung": {
+    "fingerabdruck": "b50eca67d00bdd10",
+    "geprueft": "4.10.3-live.13165946"
+  },
+  "source": "Community-Vermessung der Aaron-Halo-Dichtebaender (cstone.space); Spitzendichte-Radius und Bandgrenzen in km vom Stanton-Ursprung",
+  "bands": {
+    "band1": {
+      "name": "Band 1",
+      "peakDensityRadiusKm": 19702000,
+      "innerRadiusKm": 19673000,
+      "outerRadiusKm": 19715000,
+      "densityClass": "low"
+    },
+    "band2": {
+      "name": "Band 2",
+      "peakDensityRadiusKm": 19857000,
+      "innerRadiusKm": 19815000,
+      "outerRadiusKm": 19914000,
+      "densityClass": "medium-low"
+    },
+    "band3": {
+      "name": "Band 3",
+      "peakDensityRadiusKm": 19995000,
+      "innerRadiusKm": 19914000,
+      "outerRadiusKm": 20071000,
+      "densityClass": "medium"
+    },
+    "band4": {
+      "name": "Band 4",
+      "peakDensityRadiusKm": 20168000,
+      "innerRadiusKm": 20129000,
+      "outerRadiusKm": 20230000,
+      "densityClass": "medium-low"
+    },
+    "band5": {
+      "name": "Band 5",
+      "peakDensityRadiusKm": 20320000,
+      "innerRadiusKm": 20230000,
+      "outerRadiusKm": 20407000,
+      "densityClass": "high"
+    },
+    "band6": {
+      "name": "Band 6",
+      "peakDensityRadiusKm": 20447000,
+      "innerRadiusKm": 20407000,
+      "outerRadiusKm": 20514000,
+      "densityClass": "medium"
+    },
+    "band7": {
+      "name": "Band 7",
+      "peakDensityRadiusKm": 20662000,
+      "innerRadiusKm": 20514000,
+      "outerRadiusKm": 20750000,
+      "densityClass": "medium"
+    },
+    "band8": {
+      "name": "Band 8",
+      "peakDensityRadiusKm": 20881000,
+      "innerRadiusKm": 20793000,
+      "outerRadiusKm": 20968000,
+      "densityClass": "low"
+    },
+    "band9": {
+      "name": "Band 9",
+      "peakDensityRadiusKm": 21082000,
+      "innerRadiusKm": 21046000,
+      "outerRadiusKm": 21132000,
+      "densityClass": "low"
+    },
+    "band10": {
+      "name": "Band 10",
+      "peakDensityRadiusKm": 21207000,
+      "innerRadiusKm": 21159000,
+      "outerRadiusKm": 21299000,
+      "densityClass": "medium"
+    }
+  }
+}

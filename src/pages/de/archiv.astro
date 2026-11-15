@@ -13,7 +13,6 @@ const topicCount = patches.reduce((n, p) => n + p.data.topics.length, 0);
 // Spanne aus dem Bestand statt von Hand: Titel und Beschreibung standen bis
 // 07.10.2026 noch auf "4.0 bis 4.9", zwei Patches nach 4.9.
 const latest = [...patches].sort((a, b) => a.data.date.localeCompare(b.data.date)).at(-1)!.data;
-const latestMinor = latest.version.split('.').slice(0, 2).join('.');
 
 // Cache-Bust für /assets/archive.css: feste URL, sonst liefert das CDN nach
 // einem Deploy bis zu 1 Tag die ALTE Datei aus (siehe SiteNav/account-lite.js).
@@ -24,7 +23,7 @@ try {
 ---
 
 <Layout
-  title={`Star Citizen Patch-Archiv — Alpha 4.0 bis ${latestMinor} | VerseBase`}
+  title={`Star Citizen Patch-Archiv — Alpha 4.0.0 bis ${latest.version} | VerseBase`}
   description={`Das komplette Star-Citizen-Patch-Archiv der Alpha-4-Ära: ${patchCount} Patches von Destination Pyro (4.0.0) bis ${latest.codename} (${latest.version}), mit ${topicCount} Themen-Deep-Dives.`}
   themeColor="#04060e"
   footer={true}

@@ -26,6 +26,7 @@
 // Nur fuer den Seitenbau (Frontmatter): die Datendateien landen sonst im
 // Client-Bundle.
 import type { Locale } from '../i18n/ui';
+import { fassung } from './fassung';
 import ITEMS from '../../assets/universal-items.json';
 import CRAFT from '../../assets/crafting-db.json';
 import MINING from '../../assets/mining-db.json';
@@ -36,8 +37,12 @@ import VEHICLES from '../data/vehicles.json';
 import VEHICLE_PRICES from '../data/vehicle-prices.json';
 import SHIP_EXTRAS from '../data/ship-extras.json';
 import VEHICLE_EXTERNAL from '../data/vehicle-external.json';
+import WIKELO from '../../assets/wikelo-trades.meta.json';
+import HALO from '../../assets/aaron-halo-gamefiles.json';
+import HANGAR from '../data/hangar-assets.json';
+import HALO_BAENDER from '../../assets/aaron-halo-bands.json';
 
-export type StandArt = 'spiel' | 'fremd' | 'hand' | 'schnappschuss' | 'quelle';
+export type StandArt = 'spiel' | 'fremd' | 'hand' | 'pflege' | 'schnappschuss' | 'quelle';
 
 export interface StandZeile {
   /** fester Schluessel, ueber den das Tor die Datendatei findet */
@@ -64,6 +69,14 @@ const T = {
     stand: 'Stand',
     hand: 'von Hand gepflegt',
     schnappschuss: 'Schnappschuss vom',
+    geaendert: 'zuletzt geändert am',
+    wikeloZusatz: 'Bilder, Ausstattung und Hinweise je Tausch',
+    halo: 'Halo-Hülle und QT-Anker',
+    baender: 'Dichtebänder',
+    erzeugung: 'Erzeugung der Dichtebänder im Spiel geprüft',
+    modell: '3D-Modell',
+    rezeptzahl: 'Zahl der Blueprints',
+    nichtBelegt: 'Stand nicht belegt',
     recherche: 'eigene Recherche',
     shopSchnappschuss: 'eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt',
     aufbereitung: 'eigene Aufbereitung',
@@ -83,6 +96,7 @@ const T = {
     bild: 'Bild',
     erzpreise: 'Erzpreise',
     ausbeute: 'Ausbeute je Station',
+    methoden: 'Bewertung der Raffinationsmethoden',
     dossier: 'Schiffswerte wie auf den Schiffsseiten.',
     frachtCrew: 'Fracht, Mindestcrew',
     pledgeCrew: 'Pledge-Preis, Höchstcrew',
@@ -95,6 +109,14 @@ const T = {
     stand: 'as of',
     hand: 'maintained by hand',
     schnappschuss: 'snapshot of',
+    geaendert: 'last changed',
+    wikeloZusatz: 'Images, equipment and notes per trade',
+    halo: 'Halo envelope and QT anchors',
+    baender: 'Density bands',
+    erzeugung: 'Density band generation checked in the game',
+    modell: '3D model',
+    rezeptzahl: 'Number of blueprints',
+    nichtBelegt: 'version not documented',
     recherche: 'own research',
     shopSchnappschuss: 'own shop snapshot, undated, only where UEX does not list the item',
     aufbereitung: 'processed in-house',
@@ -114,6 +136,7 @@ const T = {
     bild: 'Image',
     erzpreise: 'Ore prices',
     ausbeute: 'Yield per station',
+    methoden: 'Refining method ratings',
     dossier: 'Ship values as on the ship pages.',
     frachtCrew: 'Cargo, minimum crew',
     pledgeCrew: 'Pledge price, maximum crew',
@@ -121,6 +144,23 @@ const T = {
 } as const;
 
 export const standTexte = (lang: Locale) => T[lang];
+
+/**
+ * `patchLink` reichen die Astro-Bausteine herein: src/lib/patchPages.ts liest
+ * den Seitenbestand per import.meta.glob, das gibt es nur im Vite-Bau; dieses
+ * Modul laeuft auch in Node-Tests.
+ */
+export function standVerweis(
+  z: StandZeile,
+  lang: Locale,
+  patchLink: (kennung: string, lang: Locale) => { version: string; href: string | null },
+): { vor: string; href: string; nach: string } | null {
+  if ((z.art !== 'spiel' && z.art !== 'hand') || !/^\d+\.\d+\.\d+$/.test(z.wert ?? '') || !z.text.includes(z.wert!)) return null;
+  const p = patchLink(z.wert!, lang);
+  if (!p.href || p.version !== z.wert) return null;
+  const i = z.text.indexOf(z.wert);
+  return { vor: z.text.slice(0, i), href: p.href, nach: z.text.slice(i + z.wert.length) };
+}
 
 const MONATE = {
   de: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
@@ -136,12 +176,7 @@ export function datumLang(iso: string, lang: Locale): string {
   return lang === 'de' ? `${tag}. ${mon} ${m[1]}` : `${mon} ${tag}, ${m[1]}`;
 }
 
-/** Fassung X.Y.Z aus einer Kennung („sc-alpha-4.10.2@12881860", „4.10.2-live.…"). Ohne Fassung bricht der Bau. */
-export function fassung(kennung: unknown, wo: string): string {
-  const m = typeof kennung === 'string' ? /(\d+\.\d+\.\d+)/.exec(kennung) : null;
-  if (!m) throw new Error(`datenstand: ${wo} traegt keine Fassung X.Y.Z (${JSON.stringify(kennung)})`);
-  return m[1];
-}
+export { fassung };
 
 const zahl = (f: string) => f.split('.').map(Number);
 /** a < b fuer Fassungen X.Y.Z */
@@ -180,10 +215,13 @@ const MISSION_F = fassung((MISSIONS as { meta?: { patch?: string } }).meta?.patc
 const FAHRZEUG_F = fassung((VEHICLES as { gameVersion?: string }).gameVersion, 'src/data/vehicles.json gameVersion');
 const SCHIFF_PREISE = isoAus((VEHICLE_PRICES as { fetchedAt?: string }).fetchedAt, 'src/data/vehicle-prices.json fetchedAt');
 const EXTRAS_DATUM = isoAus((SHIP_EXTRAS as { fetchedAt?: string }).fetchedAt, 'src/data/ship-extras.json fetchedAt');
+const WIKI_F = /Wiki-Datenstand (\d+\.\d+\.\d+)/.exec((VEHICLE_EXTERNAL as { source?: string }).source ?? '')?.[1] ?? null;
+const WIKI_AELTER = !WIKI_F || frueher(WIKI_F, FAHRZEUG_F);
 const WIKI_DATUM = isoAus(/fetchedAt (\d{4}-\d{2}-\d{2})/.exec((VEHICLE_EXTERNAL as { source?: string }).source ?? '')?.[1], 'src/data/vehicle-external.json source (fetchedAt)');
 const MINING_F = fassung((MINING as { game_version?: string }).game_version, 'assets/mining-db.json game_version');
 const AUSBEUTE_F = fassung((FROZEN as { frozen_from?: string }).frozen_from, 'assets/mining-frozen.json frozen_from');
 const REFINERY_F = fassung((REFINERY as { meta?: { gameVersion?: string } }).meta?.gameVersion, 'assets/refinery-data.json meta.gameVersion');
+const METHODEN_F = fassung((REFINERY as { meta?: { methodsStand?: string } }).meta?.methodsStand, 'assets/refinery-data.json meta.methodsStand');
 const ERZ_PREISE = isoAus((REFINERY as { meta?: { priceDate?: string } }).meta?.priceDate, 'assets/refinery-data.json meta.priceDate');
 
 /** Fassungen und Daten fuer Stellen ausserhalb des Bausteins (Kennzahlen im Kopf, Einleitungen). */
@@ -219,8 +257,7 @@ export function standMission(lang: Locale): StandZeile[] {
 }
 
 /**
- * Schiffsseite. `kennung` ist der Stempel DES Datensatzes (ATLS: 4.9.0, gegen
- * den Kopf 4.10.2 also älterer Stand). `fleetyards`: was die Seite von dort
+ * Schiffsseite. `kennung` ist der Stempel DES Datensatzes. `fleetyards`: was die Seite von dort
  * zeigt; `wiki`: Pledge/Maße/Crew/Status aus dem Schnappschuss; `bild`: Quelle
  * des Kopfbilds.
  * `huelle`: woher die 3D-Hülle stammt, die die Seite zeigt. 'eigen' ist das
@@ -246,10 +283,37 @@ export function standSchiff(
   if (o.wiki) {
     z.push({
       quelle: 'wiki', art: 'schnappschuss', was: t.wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
-      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
     });
   }
   if (o.bild) z.push({ quelle: 'bild', art: 'quelle', was: t.bild, text: o.bild, aelter: false });
+  return z;
+}
+
+function flotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
+  const t = T[lang];
+  const z = [spiel(lang, 'flotte', t.schiffswerte, FAHRZEUG_F)];
+  const aelter = new Map<string, number>();
+  for (const k of kennungen) {
+    const f = fassung(k, 'Fahrzeug-Datensatz gameVersion');
+    if (frueher(f, FAHRZEUG_F)) aelter.set(f, (aelter.get(f) ?? 0) + 1);
+  }
+  for (const [f, n] of aelter) {
+    const was = lang === 'de' ? `${t.schiffswerte} von ${n} Fahrzeug${n === 1 ? '' : 'en'}` : `${t.schiffswerte} of ${n} vehicle${n === 1 ? '' : 's'}`;
+    z.push(spiel(lang, 'flotte-aelter', was, f, FAHRZEUG_F));
+  }
+  return z;
+}
+
+export function standFlotte(lang: Locale, kennungen: (string | null | undefined)[]): StandZeile[] {
+  const t = T[lang];
+  const z = flotte(lang, kennungen);
+  z.push(fremd(lang, 'uex-schiffe', t.ingamePreise, UEX.name, UEX.link, SCHIFF_PREISE));
+  z.push({
+    quelle: 'wiki', art: 'schnappschuss', was: t.wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
+    wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
+  });
+  z.push({ quelle: 'bild', art: 'quelle', was: t.bild, text: 'starcitizen.tools', aelter: false });
   return z;
 }
 
@@ -270,10 +334,21 @@ export function standDossier(lang: Locale, o: { kennungen: (string | null | unde
   if (o.wiki) {
     z.push({
       quelle: 'wiki', art: 'schnappschuss', was: t.pledgeCrew, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
-      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: true,
+      wert: WIKI_DATUM, text: `, ${t.schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
     });
   }
   return z;
+}
+
+const WIKELO_F = fassung((WIKELO as { gameVersion?: string }).gameVersion, 'assets/wikelo-trades.meta.json gameVersion');
+const WIKELO_GEAENDERT = isoAus((WIKELO as { curatedGeaendert?: string }).curatedGeaendert, 'assets/wikelo-trades.meta.json curatedGeaendert');
+
+export function standWikelo(lang: Locale): StandZeile[] {
+  const t = T[lang];
+  return [
+    spiel(lang, 'wikelo', t.spielwerte, WIKELO_F),
+    { quelle: 'wikelo-pflege', art: 'pflege', was: t.wikeloZusatz, wert: WIKELO_GEAENDERT, text: `${t.hand}, ${t.geaendert} ${datumLang(WIKELO_GEAENDERT, lang)}`, aelter: false },
+  ];
 }
 
 /** Refinery (Wissensteil). */
@@ -283,6 +358,7 @@ export function standRefinery(lang: Locale): StandZeile[] {
     spiel(lang, 'refinery', t.spielwerte, REFINERY_F),
     fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE),
     hand(lang, 'ausbeute', t.ausbeute, AUSBEUTE_F, REFINERY_F),
+    spiel(lang, 'methoden', t.methoden, METHODEN_F, REFINERY_F),
   ];
 }
 
@@ -299,4 +375,93 @@ export function standFracturing(lang: Locale): StandZeile[] {
 export function standMining(lang: Locale): StandZeile[] {
   const t = T[lang];
   return [spiel(lang, 'mining', t.spielwerte, MINING_F), hand(lang, 'ausbeute', t.ausbeute, AUSBEUTE_F, MINING_F)];
+}
+
+const HALO_F = fassung((HALO as { gameVersion?: string }).gameVersion, 'assets/aaron-halo-gamefiles.json gameVersion');
+const BAENDER_F = (HALO_BAENDER as { stand?: { patch?: string } }).stand?.patch ?? '';
+if (!/^\d+\.\d+(?:\.\d+)?$/.test(BAENDER_F)) throw new Error(`datenstand: assets/aaron-halo-bands.json stand.patch traegt keinen Patch (${JSON.stringify(BAENDER_F)})`);
+const ERZEUGUNG_F = fassung((HALO_BAENDER as { erzeugung?: { geprueft?: string } }).erzeugung?.geprueft, 'assets/aaron-halo-bands.json erzeugung.geprueft');
+
+export function standPrecision(lang: Locale): StandZeile[] {
+  const t = T[lang];
+  return [
+    spiel(lang, 'halo', t.halo, HALO_F),
+    hand(lang, 'halo-baender', t.baender, BAENDER_F, HALO_F),
+    spiel(lang, 'halo-erzeugung', t.erzeugung, ERZEUGUNG_F, HALO_F),
+  ];
+}
+
+
+type HangarEintrag = { gameVersion?: string };
+const HANGAR_TEILE_ALLE = HANGAR as unknown as Record<string, Record<string, HangarEintrag> | string>;
+const SCHIFFSMODELLE = HANGAR_TEILE_ALLE.ships as Record<string, HangarEintrag>;
+const FZ_STEMPEL = new Map((VEHICLES as { vehicles: { id: string; gameVersion?: string }[] }).vehicles.map((v) => [v.id, v.gameVersion]));
+const HANGAR_STEMPEL_AB = '4.10.3';
+const HANGAR_TEILE = [
+  { teile: ['weapons'], de: 'Waffen', en: 'weapons' },
+  { teile: ['components'], de: 'Komponenten', en: 'components' },
+  { teile: ['interior'], de: 'Innenräume', en: 'interiors' },
+  { teile: ['hall', 'hallLite'], de: 'Halle', en: 'hall' },
+  { teile: ['lift', 'npc', 'props', 'werkhalle'], de: 'Ausstattung', en: 'fixtures' },
+] as const;
+
+const aufzaehlen = (teile: string[], lang: Locale) =>
+  teile.length < 2 ? teile.join('') : `${teile.slice(0, -1).join(', ')} ${lang === 'de' ? 'und' : 'and'} ${teile[teile.length - 1]}`;
+
+export function standHangar(lang: Locale, ids: readonly string[]): StandZeile[] {
+  const t = T[lang];
+  const z = flotte(lang, ids.map((id) => FZ_STEMPEL.get(id)));
+  const modelle = new Map<string, number>();
+  let ohneModellStand = 0;
+  for (const id of ids) {
+    const g = SCHIFFSMODELLE[id]?.gameVersion;
+    if (!g) { ohneModellStand++; continue; }
+    const f = fassung(g, `src/data/hangar-assets.json ships.${id}.gameVersion`);
+    modelle.set(f, (modelle.get(f) ?? 0) + 1);
+  }
+  const fassungen = [...modelle.keys()].sort((a, b) => (frueher(a, b) ? 1 : frueher(b, a) ? -1 : 0));
+  for (const f of fassungen) {
+    const n = modelle.get(f)!;
+    const was = lang === 'de' ? `3D-Modelle von ${n} Schiff${n === 1 ? '' : 'en'}` : `3D models of ${n} ship${n === 1 ? '' : 's'}`;
+    z.push(spiel(lang, 'modelle', was, f, FAHRZEUG_F));
+  }
+  if (ids.some(hatWiki)) z.push(wikiZeile(lang));
+  const ohne: string[] = [];
+  if (ohneModellStand) ohne.push(lang === 'de' ? `${ohneModellStand} Schiffsmodelle` : `${ohneModellStand} ship models`);
+  for (const teil of HANGAR_TEILE) {
+    const eintraege = teil.teile.flatMap((k) => Object.values((HANGAR_TEILE_ALLE[k] ?? {}) as Record<string, HangarEintrag>));
+    if (eintraege.some((e) => !e.gameVersion)) ohne.push(teil[lang]);
+  }
+  if (ohne.length) {
+    const was = aufzaehlen(ohne, lang);
+    z.push({
+      quelle: 'modelle-ohne', art: 'quelle', was: was.charAt(0).toUpperCase() + was.slice(1),
+      text: lang === 'de' ? `vor ${HANGAR_STEMPEL_AB} erstellt, ${t.nichtBelegt}` : `made before ${HANGAR_STEMPEL_AB}, ${t.nichtBelegt}`,
+      aelter: false,
+    });
+  }
+  return z;
+}
+
+const wikiZeile = (lang: Locale): StandZeile => ({
+  quelle: 'wiki', art: 'schnappschuss', was: T[lang].wiki, name: 'starcitizen.tools', link: 'https://starcitizen.tools',
+  wert: WIKI_DATUM, text: `, ${T[lang].schnappschuss} ${datumLang(WIKI_DATUM, lang)}`, aelter: WIKI_AELTER,
+});
+const EXTERN = VEHICLE_EXTERNAL as { vehicles?: Record<string, unknown> };
+const hatWiki = (id: string) => !!EXTERN.vehicles?.[id];
+
+export function standBucht(lang: Locale, id: string): StandZeile[] {
+  const t = T[lang];
+  const z = [spiel(lang, 'fahrzeug', t.schiffswerte, fassung(FZ_STEMPEL.get(id), `src/data/vehicles.json ${id}.gameVersion`), FAHRZEUG_F)];
+  const g = SCHIFFSMODELLE[id]?.gameVersion;
+  z.push(g
+    ? spiel(lang, 'modell', t.modell, fassung(g, `src/data/hangar-assets.json ships.${id}.gameVersion`), FAHRZEUG_F)
+    : { quelle: 'modell', art: 'quelle', was: t.modell, text: t.nichtBelegt, aelter: false });
+  if (hatWiki(id)) z.push(wikiZeile(lang));
+  return z;
+}
+
+export function standKonto(lang: Locale): StandZeile[] {
+  const t = T[lang];
+  return [spiel(lang, 'rezeptzahl', t.rezeptzahl, CRAFT_F), fremd(lang, 'uex-erze', t.erzpreise, UEX.name, UEX.link, ERZ_PREISE)];
 }

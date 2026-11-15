@@ -100,6 +100,7 @@ const trades = game.contracts.map((c) => {
   if (cur.cat != null) mitKuratierterKategorie++;
 
   const card = { id: c.id, cat: cur.cat ?? DEFAULT_CAT, name };
+  if (c.rewardKlassen?.length === 1) card.cls = c.rewardKlassen[0];
   if (cur.get) card.get = cur.get;
   if (favor != null) card.favor = favor;
   card.mats = mats;
@@ -136,6 +137,7 @@ const meta = {
   // zuletzt gegen den Bestand gehalten — nicht, gegen welchen Client
   // ausgelesen wurde. Bleibt deshalb bestehen.
   curatedReviewedAt: curated.reviewedAt ?? null,
+  curatedGeaendert: curated.stand?.geaendert ?? null,
   // reviewedVersion/reviewedAt sind mit Phase 20 (D-04) entfallen: ihr
   // einziger Leser war die HANDPFLEGE-Zeile in verify-datastand.mjs, die
   // Wikelo jetzt als maschinellen Datenstand (STANDS, Feld gameVersion)

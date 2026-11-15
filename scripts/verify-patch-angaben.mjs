@@ -53,6 +53,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { resolve, dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { VORSCHAU_PATCHES } from './lib/vorschau-patches.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = resolve(ROOT, 'dist');
@@ -110,10 +111,7 @@ const OHNE_KENNUNG = {};
 // Fahrzeug-Datensaetze, deren Stempel bewusst vom Kopf von vehicles.json
 // abweicht. Schluessel = Fahrzeug-id, Wert = Anlass und der EINE Stempel,
 // den der Anlass erlaubt (ein anderer oder fehlender Stempel ist FEHLER).
-const ATLS_ANLASS = 'Die ATLS-Varianten haben im DataCore keinen Fahrzeug-Record (sie sind ein Power Suit) und werden seit D-13 als eingefrorener Wiki-Satz aus vehicle-external.json übernommen, samt dessen Stempel 4.9.0.';
-const STEMPEL_AUSNAHMEN = Object.fromEntries(
-  ['argo-atls', 'argo-atls-geo', 'argo-atls-geo-collector-grad01', 'argo-atls-geo-collector-grad03'].map((id) => [id, { anlass: ATLS_ANLASS, stempel: '4.9.0' }]),
-);
+const STEMPEL_AUSNAHMEN = {};
 
 // Klinken (Grundsatz 5), Messlauf 04.11.2026 gegen den korrigierten Stand
 // (Live-Bau und Vorschau gleich): Items 11.046 Seiten / 66.274 Angaben,
@@ -245,6 +243,8 @@ for (const [id, s] of Object.entries(STAENDE)) {
   console.log(`    ${id.padEnd(14)} ${f.padEnd(8)} (${kennung})`);
 }
 
+let wikiAelter = true;
+
 const zaehler = Object.fromEntries(FAMILIEN.map((f) => [f.stand, { seiten: 0, angaben: 0, wo: {}, fassungen: {} }]));
 const widersprueche = [];
 let seitenGesamt = 0;
@@ -278,12 +278,20 @@ if (!existsSync(DIST)) {
       if (v && !label) shipPagesOhneVersion.push(rel);
     }
 
+    const kartenFassungen = new Set();
+    if (pfad === 'schiffe.html') {
+      for (const m of html.matchAll(/class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g)) {
+        const f = fassungAus(vehicleById.get(m[1])?.gameVersion);
+        if (f) kartenFassungen.add(f);
+      }
+    }
+
     for (const a of angaben) {
       z.angaben++;
       z.wo[a.wo] = (z.wo[a.wo] ?? 0) + 1;
       z.fassungen[a.ver] = (z.fassungen[a.ver] ?? 0) + 1;
       if (soll == null) continue; // Familie ohne pruefbare Kennung — nur gemeldet
-      if (!passt(a.ver, soll)) widersprueche.push({ rel, stand: sollQuelle, soll, ...a });
+      if (!passt(a.ver, soll) && !kartenFassungen.has(a.ver)) widersprueche.push({ rel, stand: sollQuelle, soll, ...a });
     }
   }
 
@@ -321,7 +329,7 @@ if (!existsSync(DIST)) {
     if (!vehicleById.has(id)) fail.push(`Stempel-Ausnahme "${id}": kein Datensatz mit dieser id — Ausnahme zeigt ins Leere, entfernen`);
     else if (!ausnahmeGetroffen.has(id) && !ausnahmeVerletzt.has(id)) fail.push(`Stempel-Ausnahme "${id}": der Stempel passt wieder zum Katalog — Anlass erledigt, Ausnahme entfernen`);
   }
-  console.log(`    Stempel-Ausnahmen: ${Object.keys(STEMPEL_AUSNAHMEN).length}, je mit erlaubtem Stempel ${[...new Set(Object.values(STEMPEL_AUSNAHMEN).map((a) => a.stempel))].join(', ')}   (${ATLS_ANLASS})`);
+  console.log(`    Stempel-Ausnahmen: ${Object.keys(STEMPEL_AUSNAHMEN).length}, je mit erlaubtem Stempel ${[...new Set(Object.values(STEMPEL_AUSNAHMEN).map((a) => a.stempel))].join(', ')}`);
   for (const [fam, a] of Object.entries(OHNE_KENNUNG)) {
     let besteht = false;
     try { besteht = a.besteht(); } catch (e) { fail.push(`Ausnahme "${fam}": Pruefung nicht ausfuehrbar — ${e.message}`); continue; }
@@ -398,13 +406,20 @@ const STAND_GRUPPEN = [
   { name: 'Blueprint-Seiten', match: (p) => p === 'crafting.html' || p.startsWith('crafting/'), pflicht: ['crafting'], erlaubt: ['crafting'] },
   { name: 'Missionsseiten', match: (p) => p.startsWith('missionen/'), pflicht: ['missionen'], erlaubt: ['missionen'] },
   { name: 'Schiffsseiten', match: (p) => p.startsWith('schiffe/'), pflicht: ['fahrzeug', 'uex-schiffe'], erlaubt: ['fahrzeug', 'uex-schiffe', 'huelle', 'fleetyards', 'wiki', 'bild'], bedingt: ['huelle', 'fleetyards'] },
-  { name: 'Refinery', match: (p) => p === 'refinery.html', pflicht: ['refinery', 'uex-erze', 'ausbeute'], erlaubt: ['refinery', 'uex-erze', 'ausbeute'] },
+  { name: 'Refinery', match: (p) => p === 'refinery.html', pflicht: ['refinery', 'uex-erze', 'ausbeute', 'methoden'], erlaubt: ['refinery', 'uex-erze', 'ausbeute', 'methoden'] },
   { name: 'Mining-Datenbank', match: (p) => p === 'topics/mining.html', pflicht: ['mining', 'ausbeute'], erlaubt: ['mining', 'ausbeute'] },
   // Seit 06.11.2026 (Rest aus C1): die beiden Werkzeuge trugen bis dahin nur
   // die alte Fusszeile „Daten-Stand: <Datum des Datenlaufs>".
   { name: 'Crafting-Werkzeug', match: (p) => p === 'topics/crafting.html', pflicht: ['crafting'], erlaubt: ['crafting'] },
   // Der Rechner zeigt keine Ausbeute je Station, nur Spielwerte.
   { name: 'Fracturing', match: (p) => p === 'fracturing.html', pflicht: ['mining'], erlaubt: ['mining'] },
+  { name: 'Wikelo', match: (p) => p === 'topics/wikelo-emporium.html', pflicht: ['wikelo', 'wikelo-pflege'], erlaubt: ['wikelo', 'wikelo-pflege'] },
+  { name: 'Missionsübersicht', match: (p) => p === 'missionen.html', pflicht: ['missionen'], erlaubt: ['missionen'] },
+  { name: 'Precision Jump', match: (p) => p === 'precision-jump.html', pflicht: ['halo', 'halo-baender', 'halo-erzeugung'], erlaubt: ['halo', 'halo-baender', 'halo-erzeugung'] },
+  { name: 'Hangar', match: (p) => p === 'hangar.html', pflicht: ['flotte', 'modelle', 'wiki'], erlaubt: ['flotte', 'flotte-aelter', 'modelle', 'wiki', 'modelle-ohne'], lageFrei: true, nurMitHangar: true },
+  { name: 'Hangar-Buchten', match: (p) => p.startsWith('hangar-bay/'), pflicht: ['fahrzeug', 'modell'], erlaubt: ['fahrzeug', 'modell', 'wiki'], lageFrei: true, bucht: true, nurMitHangar: true },
+  { name: 'Konto', match: (p) => p === 'account.html', pflicht: ['rezeptzahl', 'uex-erze'], erlaubt: ['rezeptzahl', 'uex-erze'] },
+  { name: 'Schiffsübersicht', match: (p) => p === 'schiffe.html', pflicht: ['flotte', 'uex-schiffe', 'wiki', 'bild'], erlaubt: ['flotte', 'flotte-aelter', 'uex-schiffe', 'wiki', 'bild'] },
 ];
 // Klinken je Gruppe (Grundsatz 5), Messlauf 06.11.2026 im Live-Bau der
 // Baustein-Aenderung. Nur nach OBEN; nach unten nur per Commit mit Ursache.
@@ -416,6 +431,9 @@ const STAND_KLINKEN = {
   'Item-Seiten': 11000, 'Item-Finder': 2, 'Blueprint-Seiten': 3300, Missionsseiten: 2700, Schiffsseiten: 462, Refinery: 2, 'Mining-Datenbank': 2,
   // 06.11.2026, gemessen: je DE und EN.
   'Crafting-Werkzeug': 2, Fracturing: 2,
+  Wikelo: 2,
+  'Missionsübersicht': 2, 'Schiffsübersicht': 2, 'Precision Jump': 2,
+  Hangar: 2, 'Hangar-Buchten': 462, Konto: 2,
 };
 // Detailseiten mit Melde-Link (C2, 06.11.2026), Messlauf im Live-Bau der
 // Melde-Aenderung: 17.190 (Items, Blueprints, Schiffe, Missionen, je DE und
@@ -432,10 +450,14 @@ const STAND_WAS = {
   items: ['Spielwerte', 'Game values'], 'uex-items': ['Kaufpreise', 'Purchase prices'], 'shop-schnappschuss': ['Kaufpreise', 'Purchase prices'], fundorte: ['Fundorte', 'Loot locations'],
   'fundorte-spiel': ['Bestätigte Fundorte', 'Confirmed loot locations'],
   crafting: ['Rezepte und Drop-Chancen', 'Recipes and drop chances'], missionen: ['Missionsdaten', 'Mission data'],
-  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
+  fahrzeug: ['Werte und Bewaffnung', 'Stats and loadout'], flotte: ['Werte und Bewaffnung', 'Stats and loadout'], modell: ['3D-Modell', '3D model'], rezeptzahl: ['Zahl der Blueprints', 'Number of blueprints'], 'uex-schiffe': ['Ingame-Preise', 'In-game prices'],
   huelle: ['3D-Hülle', '3D hull'], wiki: ['Pledge-Preis, Maße, Crew, Status', 'Pledge price, dimensions, crew, status'], bild: ['Bild', 'Image'],
   refinery: ['Spielwerte', 'Game values'], mining: ['Spielwerte', 'Game values'],
   'uex-erze': ['Erzpreise', 'Ore prices'], ausbeute: ['Ausbeute je Station', 'Yield per station'],
+  methoden: ['Bewertung der Raffinationsmethoden', 'Refining method ratings'],
+  halo: ['Halo-Hülle und QT-Anker', 'Halo envelope and QT anchors'], 'halo-baender': ['Dichtebänder', 'Density bands'],
+  'halo-erzeugung': ['Erzeugung der Dichtebänder im Spiel geprüft', 'Density band generation checked in the game'],
+  wikelo: ['Spielwerte', 'Game values'], 'wikelo-pflege': ['Bilder, Ausstattung und Hinweise je Tausch', 'Images, equipment and notes per trade'],
 };
 // FleetYards-Zeile: die Wertegruppe zaehlt auf, was die Seite von dort zeigt.
 const FY_TEILE = [['lackierungen', 'Lackierungen', 'paints'], ['varianten', 'Varianten', 'variants'], ['leihschiffe', 'Leihschiffe', 'loaners'], ['huelle', '3D-Hülle', '3D hull']];
@@ -446,6 +468,8 @@ const STAND_QUELLTEXT = {
   fundorte: ['eigene Recherche', 'own research'],
   'shop-schnappschuss': ['eigener Shop-Schnappschuss ohne Datum, nur wo UEX das Item nicht führt', 'own shop snapshot, undated, only where UEX does not list the item'],
   huelle: ['eigene Aufbereitung', 'processed in-house'] };
+const HANGAR_TEILE = [[['weapons'], 'Waffen', 'weapons'], [['components'], 'Komponenten', 'components'], [['interior'], 'Innenräume', 'interiors'], [['hall', 'hallLite'], 'Halle', 'hall'], [['lift', 'npc', 'props', 'werkhalle'], 'Ausstattung', 'fixtures']];
+const HANGAR_STEMPEL_AB = '4.10.3';
 const SERIE_TITEL = { varianten: ['Varianten der Baureihe', 'Variants of the series'], leihschiffe: ['Loaner (bis zur Flugfreigabe)', 'Loaners (until flight-ready)'] };
 
 console.log('\n[6] Datenstand-Baustein: jede Zeile gegen ihre Datendatei');
@@ -466,6 +490,9 @@ const standSoll = {};
 const standFehler = [];
 const standSeiten = Object.fromEntries(STAND_GRUPPEN.map((g) => [g.name, 0]));
 const standZeilen = {};
+let standPatchLinks = 0;
+// Fassungen, deren Patch-Seite dieser Bau nicht traegt (Zeilen dann ohne Link).
+const fassungenOhneSeite = new Set();
 try {
   const items = rd('assets/universal-items.json');
   for (const it of items.items ?? []) {
@@ -474,13 +501,22 @@ try {
     if (it.fund != null) fundKatalog.set(it.id, items.fundorte?.profile?.[it.fund]?.length ?? 0);
   }
   const ext = rd('src/data/vehicle-external.json');
+  const wikiF = /Wiki-Datenstand (\d+\.\d+\.\d+)/.exec(ext.source ?? '')?.[1] ?? null;
+  wikiAelter = !wikiF || !fassung.Fahrzeuge || vor(wikiF, fassung.Fahrzeuge);
+  console.log(`    Wiki-Schnappschuss: Datenstand ${wikiF ?? 'ohne Angabe'}, Katalog ${fassung.Fahrzeuge} -> ${wikiAelter ? 'aelterer Stand' : 'aktuell'}`);
   const ref = rd('assets/refinery-data.json');
   const quellen = {
     items: { art: 'spiel', wert: fassung['Item-Katalog'], datei: 'assets/universal-items.json gameVersion' },
     'fundorte-spiel': { art: 'spiel', wert: fassung['Loot-Fundorte'], datei: 'assets/universal-items.json fundorte.patch' },
     crafting: { art: 'spiel', wert: fassung.Crafting, datei: 'assets/crafting-db.json version' },
+    rezeptzahl: { art: 'spiel', wert: fassung.Crafting, datei: 'assets/crafting-db.json version' },
     missionen: { art: 'spiel', wert: fassung.Missionen, datei: 'src/data/missions.json meta.patch' },
     fahrzeug: { art: 'spiel', wert: null, datei: 'Stempel des Fahrzeug-Datensatzes (src/data/vehicles.json)' },
+    flotte: { art: 'spiel', wert: fassungAus(rd('src/data/vehicles.json').gameVersion), datei: 'src/data/vehicles.json gameVersion' },
+    'flotte-aelter': { art: 'spiel', wert: null, datei: 'Stempel der Fahrzeuge auf den Karten der Schiffsuebersicht' },
+    modelle: { art: 'spiel', wert: null, datei: 'Stempel der Schiffsmodelle auf den Karten des Hangars (src/data/hangar-assets.json gameVersion)' },
+    modell: { art: 'spiel', wert: null, datei: 'src/data/hangar-assets.json ships.<id>.gameVersion' },
+    'modelle-ohne': { art: 'quelle', wert: null },
     mining: { art: 'spiel', wert: fassung.Mining, datei: 'assets/mining-db.json game_version' },
     refinery: { art: 'spiel', wert: fassung.Refinery, datei: 'assets/refinery-data.json meta.gameVersion' },
     'uex-items': { art: 'fremd', wert: isoDatum(items.pricesAsOf), datei: 'assets/universal-items.json pricesAsOf', name: 'UEX Item-Preise' },
@@ -489,6 +525,12 @@ try {
     fleetyards: { art: 'fremd', wert: isoDatum(rd('src/data/ship-extras.json').fetchedAt), datei: 'src/data/ship-extras.json fetchedAt', name: 'FleetYards' },
     wiki: { art: 'schnappschuss', wert: /fetchedAt (\d{4}-\d{2}-\d{2})/.exec(ext.source ?? '')?.[1] ?? null, datei: 'src/data/vehicle-external.json source', name: 'Wiki-Schnappschuss' },
     ausbeute: { art: 'hand', wert: fassungAus(rd('assets/mining-frozen.json').frozen_from), datei: 'assets/mining-frozen.json frozen_from' },
+    methoden: { art: 'spiel', wert: fassungAus(rd('assets/refinery-methods.json').gameVersion), datei: 'assets/refinery-methods.json gameVersion' },
+    halo: { art: 'spiel', wert: fassung['Präzisionssprung'], datei: 'assets/aaron-halo-gamefiles.json gameVersion' },
+    'halo-baender': { art: 'hand', wert: rd('assets/aaron-halo-bands.json').stand?.patch ?? null, datei: 'assets/aaron-halo-bands.json stand.patch' },
+    'halo-erzeugung': { art: 'spiel', wert: fassungAus(rd('assets/aaron-halo-bands.json').erzeugung?.geprueft), datei: 'assets/aaron-halo-bands.json erzeugung.geprueft' },
+    wikelo: { art: 'spiel', wert: fassung.Wikelo, datei: 'assets/wikelo-trades.meta.json gameVersion' },
+    'wikelo-pflege': { art: 'pflege', wert: isoDatum(rd('assets/wikelo-curated.json').stand?.geaendert), datei: 'assets/wikelo-curated.json stand.geaendert' },
     fundorte: { art: 'quelle', wert: null },
     'shop-schnappschuss': { art: 'quelle', wert: null },
     huelle: { art: 'quelle', wert: null },
@@ -501,7 +543,7 @@ try {
   if (modellF !== fassung.Mining) fail.push(`[6] assets/mining-model.json steht auf ${modellF}, assets/mining-db.json auf ${fassung.Mining} — der Fracturing-Rechner nennt nur eine Spielversion; beide Dateien aus demselben Datenlauf bauen`);
   for (const [k, q] of Object.entries(quellen)) {
     standSoll[k] = q;
-    if (q.art !== 'quelle' && k !== 'fahrzeug' && !q.wert) fail.push(`[6] ${k}: ${q.datei} liefert keinen Stand — der Baustein liefe gegen nichts`);
+    if (q.art !== 'quelle' && !['fahrzeug', 'flotte-aelter', 'modelle', 'modell'].includes(k) && !q.wert) fail.push(`[6] ${k}: ${q.datei} liefert keinen Stand — der Baustein liefe gegen nichts`);
   }
 } catch (e) {
   fail.push(`[6] Datendateien fuer den Datenstand nicht lesbar — ${e.message}`);
@@ -511,6 +553,9 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   const vehicles = rd('src/data/vehicles.json');
   const kopfFahrzeug = fassungAus(vehicles.gameVersion);
   const stempel = new Map(vehicles.vehicles.map((v) => [v.id, fassungAus(v.gameVersion)]));
+  const hangar = rd('src/data/hangar-assets.json');
+  const extern = rd('src/data/vehicle-external.json');
+  const hangarSchiffe = hangar.ships ?? {};
   // Tags weg, bis nichts mehr wegfaellt: ein verschachtelter Rest wie
   // "<scr<b></b>ipt>" bliebe nach einem einzigen Durchgang stehen.
   const ohneTags = (h) => {
@@ -533,7 +578,8 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
     // Seiten ohne eigenen Inhalt (Weiterleitungen) tragen keinen Baustein.
     if (/<meta http-equiv="refresh"/i.test(html.slice(0, 2000))) continue;
     standSeiten[g.name]++;
-    const bloecke = [...html.matchAll(/<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/g)];
+    const bloecke = [...html.matchAll(/<section class="vb-stand[^"]*"[^>]*>([\s\S]*?)<\/section>/g)]
+      .filter((b) => /^<section class="[^"]*\bvb-stand--bucht\b/.test(b[0]) === !!g.bucht);
     if (bloecke.length !== 1) { standFehler.push(`${rel}: ${bloecke.length === 0 ? 'kein' : bloecke.length + '×'} Datenstand-Baustein (Soll: genau einer)`); continue; }
     const innen = bloecke[0][1];
     // Neben dem Baustein keine zweite, alte Stand-Angabe: die Fusszeile
@@ -551,7 +597,7 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       // Endtags auch mit Leerraum oder Attributen („</script >"), sonst
       // bliebe ein so geschlossenes Skript als sichtbarer Text stehen.
       .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, ' ').replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, ' ').replace(/<template\b[\s\S]*?<\/template\b[^>]*>/gi, ' '));
-    if (rest) standFehler.push(`${rel}: nach dem Datenstand steht noch Inhalt („${rest.slice(0, 60)}") — der Baustein gehoert ans Ende des Inhalts`);
+    if (rest && !g.lageFrei) standFehler.push(`${rel}: nach dem Datenstand steht noch Inhalt („${rest.slice(0, 60)}") — der Baustein gehoert ans Ende des Inhalts`);
     const text = sichtbar(innen);
     const iso = /\b\d{4}-\d{2}-\d{2}\b/.exec(text);
     if (iso) standFehler.push(`${rel}: ISO-Datum ${iso[0]} im sichtbaren Datenstand — Datum in Seitensprache setzen`);
@@ -610,6 +656,27 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       fyTeile = FY_TEILE.filter(([k]) => zeigt[k]).map((t) => t[1 + sp]);
       if (fyTeile.length) soll.add('fleetyards');
     }
+    const flotteAelter = new Map();
+    const modelleSoll = new Map();
+    let modelleOhne = 0;
+    const kartenRx = g.name === 'Schiffsübersicht' ? /class="fcard__name"><a href="(?:\/de)?\/schiffe\/([^"]+)\.html"/g
+      : g.name === 'Hangar' ? /<a class="hg-card" href="[^"]*" data-id="([^"]+)"/g : null;
+    if (kartenRx) {
+      const karten = [...aussen.matchAll(kartenRx)].map((m) => m[1]);
+      if (g.name === 'Hangar') {
+        for (const id of karten) {
+          const mf = fassungAus(hangarSchiffe[id]?.gameVersion);
+          if (mf) modelleSoll.set(mf, (modelleSoll.get(mf) ?? 0) + 1);
+          else modelleOhne++;
+        }
+      }
+      if (!karten.length) standFehler.push(`${rel}: keine Fahrzeugkarten gefunden — die Zaehlung der aelteren Fassungen liefe gegen nichts`);
+      for (const id of karten) {
+        const f = stempel.get(id);
+        if (!f) standFehler.push(`${rel}: Karte ${id} ohne Datensatz in src/data/vehicles.json`);
+        else if (kopfFahrzeug && vor(f, kopfFahrzeug)) flotteAelter.set(f, (flotteAelter.get(f) ?? 0) + 1);
+      }
+    }
     const gesehen = new Set();
     const spielWert = zeilen.find((z) => standSoll[z.quelle]?.art === 'spiel')?.wert ?? null;
     for (const z of zeilen) {
@@ -617,41 +684,83 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       const q = standSoll[z.quelle];
       if (!q) { standFehler.push(`${rel}: Zeile mit unbekannter Quelle ${JSON.stringify(z.quelle)} — in src/lib/datenstand.ts und hier eintragen`); continue; }
       if (!g.erlaubt.includes(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" gehoert nicht auf ${g.name}`);
-      if (gesehen.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" doppelt`);
+      const schluessel = z.quelle === 'flotte-aelter' || z.quelle === 'modelle' ? `${z.quelle}@${z.wert}` : z.quelle;
+      if (gesehen.has(schluessel)) standFehler.push(`${rel}: Zeile „${schluessel}" doppelt`);
+      gesehen.add(schluessel);
       gesehen.add(z.quelle);
       if (g.bedingt?.includes(z.quelle) && !soll.has(z.quelle)) standFehler.push(`${rel}: Zeile „${z.quelle}" steht im Datenstand, die Seite zeigt diese Werte aber nicht`);
-      if (z.art !== q.art) standFehler.push(`${rel}: Zeile „${z.quelle}" ist als ${z.art} ausgezeichnet, Soll ${q.art}`);
+      const fzId = /^(?:schiffe|hangar-bay)\/([^/]+)\.html$/.exec(pfad)?.[1] ?? null;
+      const modellF = z.quelle === 'modell' ? fassungAus(hangarSchiffe[fzId]?.gameVersion) : null;
+      const sollArt = z.quelle === 'modell' && !modellF ? 'quelle' : q.art;
+      if (z.art !== sollArt) standFehler.push(`${rel}: Zeile „${z.quelle}" ist als ${z.art} ausgezeichnet, Soll ${sollArt}`);
       let sollWert = q.wert;
-      if (z.quelle === 'fahrzeug') sollWert = stempel.get(pfad.slice('schiffe/'.length, -'.html'.length)) ?? null;
+      if (z.quelle === 'fahrzeug') sollWert = stempel.get(fzId) ?? null;
+      if (z.quelle === 'modell') sollWert = modellF;
+      if (z.quelle === 'modelle') {
+        sollWert = modelleSoll.has(z.wert) ? z.wert : null;
+        if (!sollWert) standFehler.push(`${rel}: Zeile „modelle" nennt ${JSON.stringify(z.wert)}, auf den Karten steht kein Schiffsmodell auf dieser Fassung`);
+      }
+      if (z.quelle === 'flotte-aelter') {
+        sollWert = flotteAelter.has(z.wert) ? z.wert : null;
+        if (!sollWert) standFehler.push(`${rel}: Zeile „flotte-aelter" nennt ${JSON.stringify(z.wert)}, auf den Karten steht kein Fahrzeug auf dieser aelteren Fassung`);
+      }
       let aelterSoll = false;
       // Wertegruppe, Quellname und Link
       let was = STAND_WAS[z.quelle]?.[sp] ?? null;
       if (z.quelle === 'fleetyards') { const w = fyTeile.join(', '); was = w.charAt(0).toUpperCase() + w.slice(1); }
+      if (z.quelle === 'modelle') {
+        const n = modelleSoll.get(z.wert) ?? 0;
+        was = L ? `3D-Modelle von ${n} Schiff${n === 1 ? '' : 'en'}` : `3D models of ${n} ship${n === 1 ? '' : 's'}`;
+      }
+      if (z.quelle === 'modelle-ohne') {
+        const teile = [
+          ...(modelleOhne ? [L ? `${modelleOhne} Schiffsmodelle` : `${modelleOhne} ship models`] : []),
+          ...HANGAR_TEILE.filter(([k]) => k.some((x) => Object.values(hangar[x] ?? {}).some((e) => !e?.gameVersion))).map((t) => t[1 + sp]),
+        ];
+        const liste = teile.length < 2 ? teile.join('') : `${teile.slice(0, -1).join(', ')} ${L ? 'und' : 'and'} ${teile[teile.length - 1]}`;
+        was = liste ? liste.charAt(0).toUpperCase() + liste.slice(1) : '(nichts ohne Stand)';
+      }
+      if (z.quelle === 'flotte-aelter') {
+        const n = flotteAelter.get(z.wert) ?? 0;
+        was = L ? `Werte und Bewaffnung von ${n} Fahrzeug${n === 1 ? '' : 'en'}` : `Stats and loadout of ${n} vehicle${n === 1 ? '' : 's'}`;
+      }
       if (was && z.was !== `${was}:`) standFehler.push(`${rel}: Zeile „${z.quelle}" heisst „${z.was}", Soll „${was}:"`);
       const name = STAND_NAME[z.quelle] ?? null;
+      const patchSeite = (q.art === 'spiel' || q.art === 'hand') && sollWert && existsSync(join(DIST, 'patches', `sc-${sollWert.replace(/\./g, '-')}.html`))
+        ? `${L ? '/de' : ''}/patches/sc-${sollWert.replace(/\./g, '-')}.html` : null;
+      if ((q.art === 'spiel' || q.art === 'hand') && /^\d+\.\d+\.\d+$/.test(sollWert ?? '') && !patchSeite) fassungenOhneSeite.add(sollWert);
       if (name) {
         const istName = z.link ? sichtbar(z.link[2]) : null;
         if (istName !== name[0] || z.link?.[1] !== name[1]) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt die Quelle ${JSON.stringify(istName)} → ${JSON.stringify(z.link?.[1] ?? null)}, Soll „${name[0]}" → ${name[1]}`);
+      } else if (patchSeite) {
+        if (z.link?.[1] !== patchSeite || sichtbar(z.link[2]) !== sollWert) standFehler.push(`${rel}: Zeile „${z.quelle}" verweist mit ${JSON.stringify(z.link?.[1] ?? null)} auf ihre Fassung, Soll ${sollWert} → ${patchSeite}`);
+        else standPatchLinks++;
       } else if (z.link) standFehler.push(`${rel}: Zeile „${z.quelle}" traegt einen Link, Soll ohne`);
       // Wortlaut nach der Wertegruppe
       let kern = null;
       if (q.art === 'spiel') {
         kern = `${L ? 'Spielversion' : 'Game version'} ${sollWert}`;
-        aelterSoll = z.quelle === 'fahrzeug' && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
+        aelterSoll = ['fahrzeug', 'flotte-aelter', 'modelle', 'modell'].includes(z.quelle) && !!sollWert && !!kopfFahrzeug && vor(sollWert, kopfFahrzeug);
         // Fundorte aus einem frueheren Lauf als die Spielwerte des Katalogs
         if (z.quelle === 'fundorte-spiel') aelterSoll = !!sollWert && !!fassung['Item-Katalog'] && vor(sollWert, fassung['Item-Katalog']);
       } else if (q.art === 'fremd') {
         kern = sollWert ? `${name?.[0]}, ${L ? 'Stand' : 'as of'} ${datumIn(sollWert, lang)}` : null;
       } else if (q.art === 'schnappschuss') {
         kern = sollWert ? `${name?.[0]}, ${L ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(sollWert, lang)}` : null;
-        aelterSoll = true;
+        aelterSoll = wikiAelter;
       } else if (q.art === 'hand') {
         kern = `${L ? 'von Hand gepflegt, Stand' : 'maintained by hand, as of'} ${sollWert}`;
         aelterSoll = !!spielWert && !!sollWert && vor(sollWert, spielWert);
+      } else if (q.art === 'pflege') {
+        kern = sollWert ? `${L ? 'von Hand gepflegt, zuletzt geändert am' : 'maintained by hand, last changed'} ${datumIn(sollWert, lang)}` : null;
+      } else if (z.quelle === 'modelle-ohne') {
+        kern = L ? `vor ${HANGAR_STEMPEL_AB} erstellt, Stand nicht belegt` : `made before ${HANGAR_STEMPEL_AB}, version not documented`;
+      } else if (z.quelle === 'modell') {
+        kern = L ? 'Stand nicht belegt' : 'version not documented';
       } else if (STAND_QUELLTEXT[z.quelle]) {
         kern = STAND_QUELLTEXT[z.quelle][sp];
       }
-      if (q.art !== 'quelle') {
+      if (sollArt !== 'quelle') {
         if (sollWert == null) { standFehler.push(`${rel}: Zeile „${z.quelle}" ohne Sollwert (${q.datei})`); continue; }
         if (z.wert !== sollWert) standFehler.push(`${rel}: Zeile „${z.quelle}" nennt ${JSON.stringify(z.wert)}, ${q.datei} steht auf ${sollWert}`);
       }
@@ -660,6 +769,19 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
       if (aelterIst !== aelterSoll) standFehler.push(`${rel}: Zeile „${z.quelle}" ${aelterIst ? 'traegt „älterer Stand" ohne Tatsache' : 'liegt hinter den Spielwerten der Seite, das Etikett „älterer Stand" fehlt'} — „${z.text}"`);
       const istKern = (aelterIst ? z.text.slice(0, -marke.length) : z.text).trim().slice(z.was.length).trim();
       if (kern != null ? istKern !== kern : !istKern) standFehler.push(`${rel}: Zeile „${z.quelle}" zeigt „${z.text}", Soll „${z.was} ${kern ?? '(Bildquelle)'}"`);
+    }
+    for (const f of modelleSoll.keys()) if (!gesehen.has(`modelle@${f}`)) standFehler.push(`${rel}: ${modelleSoll.get(f)} Schiffsmodell(e) im Dock stehen auf ${f}, die Zeile „modelle" dafuer fehlt im Datenstand`);
+    if (g.name === 'Hangar') {
+      const ohneTeile = modelleOhne + HANGAR_TEILE.filter(([k]) => k.some((x) => Object.values(hangar[x] ?? {}).some((e) => !e?.gameVersion))).length;
+      if (ohneTeile && !gesehen.has('modelle-ohne')) standFehler.push(`${rel}: der Hangar zeigt Modelle ohne Stempel (src/data/hangar-assets.json ohne gameVersion), die Zeile „modelle-ohne" fehlt im Datenstand`);
+      if (!ohneTeile && gesehen.has('modelle-ohne')) standFehler.push(`${rel}: Zeile „modelle-ohne" steht im Datenstand, alle Modelle tragen aber einen Stand`);
+    }
+    for (const f of flotteAelter.keys()) if (!gesehen.has(`flotte-aelter@${f}`)) standFehler.push(`${rel}: ${flotteAelter.get(f)} Fahrzeug(e) auf den Karten stehen auf ${f}, die Zeile „flotte-aelter" dafuer fehlt im Datenstand`);
+    if (g.name === 'Hangar-Buchten') {
+      const bid = /^hangar-bay\/([^/]+)\.html$/.exec(pfad)?.[1];
+      const hat = !!extern.vehicles?.[bid];
+      if (hat && !gesehen.has('wiki')) standFehler.push(`${rel}: die Bucht zeigt Werte aus dem Wiki-Schnappschuss (src/data/vehicle-external.json), die Zeile „wiki" fehlt im Datenstand`);
+      if (!hat && gesehen.has('wiki')) standFehler.push(`${rel}: Zeile „wiki" steht im Datenstand, der Schnappschuss fuehrt dieses Schiff aber nicht`);
     }
     for (const p of g.pflicht) if (!gesehen.has(p)) standFehler.push(`${rel}: Pflichtzeile „${p}" fehlt im Datenstand`);
     for (const p of soll) if (!gesehen.has(p)) standFehler.push(`${rel}: die Seite zeigt ${p === 'uex-items' ? 'Kaufpreise' : p === 'shop-schnappschuss' ? 'Kaufpreise aus dem eigenen Shop-Schnappschuss' : p === 'fundorte' ? 'Loot-Fundorte' : p === 'fundorte-spiel' ? 'bestätigte Loot-Fundorte' : p === 'huelle' ? 'die eigene 3D-Hülle' : `Werte von FleetYards (${fyTeile.join(', ')})`}, die Zeile „${p}" fehlt im Datenstand`);
@@ -680,8 +802,9 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   for (const f of standFehler.slice(0, 40)) fail.push(`[6] ${f}`);
   if (standFehler.length > 40) fail.push(`[6] … und ${standFehler.length - 40} weitere Befunde derselben Art`);
 
+  const mitHangar = existsSync(join(DIST, 'hangar.html'));
   for (const g of STAND_GRUPPEN) {
-    const k = STAND_KLINKEN[g.name] ?? 0;
+    const k = g.nurMitHangar && !mitHangar ? 0 : STAND_KLINKEN[g.name] ?? 0;
     console.log(`    ${g.name.padEnd(17)} Seiten ${String(standSeiten[g.name]).padStart(6)} (Klinke ${k})`);
     if (standSeiten[g.name] < k) fail.push(`[6] ${g.name}: nur ${standSeiten[g.name]} Seiten mit Datenstand geprueft, Klinke ${k} — Zuordnung oder Build kaputt; Ursache klaeren, nicht die Klinke senken`);
   }
@@ -701,6 +824,13 @@ if (existsSync(DIST) && Object.keys(standSoll).length) {
   if (fundMitSeite < fundKatalog.size) fail.push(`[6] Bestätigte Fundorte: ${fundKatalog.size - fundMitSeite} Item(s) mit Profil ohne Datenblatt (dist/items/<id>.html) — Items mit Fundort sind indexierbar, die Seite muss es geben`);
   if (fundMitSeite && fundBlaetter < 2 * fundMitSeite) fail.push(`[6] Bestätigte Fundorte: nur ${fundBlaetter} von ${2 * fundMitSeite} Datenblaettern (DE+EN) geprueft — Zuordnung kaputt`);
   console.log(`    Zeilen je Quelle: ${Object.entries(standZeilen).map(([q, n]) => `${q} ${n}`).join(', ') || '—'}`);
+  console.log(`    Fassungen mit Verweis auf ihre Patch-Seite: ${standPatchLinks}`);
+  // Live fehlen die Patch-Seiten vor der Abnahme (scripts/lib/vorschau-patches.mjs):
+  // tragen alle Zeilen eine solche Fassung, ist "kein Link" dort das Richtige.
+  const live = JSON.parse(readFileSync(join(DIST, 'build.json'), 'utf8')).staging === false;
+  const offen = [...fassungenOhneSeite].filter((f) => !(live && VORSCHAU_PATCHES.includes(f.replace(/\./g, '-'))));
+  if (fassungenOhneSeite.size) console.log(`    Fassungen ohne gebaute Patch-Seite: ${[...fassungenOhneSeite].join(', ')}${live ? ` (live vor der Abnahme: ${VORSCHAU_PATCHES.join(', ')})` : ''}`);
+  if (!standPatchLinks && (offen.length || !fassungenOhneSeite.size)) fail.push('[6] keine Zeile verweist auf ihre Patch-Seite — der Verweis in standVerweis() (src/lib/datenstand.ts) fehlt oder die Patch-Seiten sind nicht gebaut');
   // Alter der Fremdquellen: nur genannt, nie bewertet (Grundsatz 3).
   let gebaut = null;
   try { gebaut = isoDatum(JSON.parse(readFileSync(resolve(DIST, 'build.json'), 'utf8')).gebautAm); } catch { /* ohne Baustempel: Alter gegen heute */ }
@@ -829,12 +959,13 @@ if (existsSync(DIST)) {
       const fassungen = [...new Set(gezeigt.map((v) => fassungAus(v.gameVersion)))];
       const marke = sp === 0 ? 'älterer Stand' : 'older data';
       const sollTeile = fassungen.map((f) => ({
-        quelle: 'fahrzeug', art: 'spiel', wert: f, link: null,
+        quelle: 'fahrzeug', art: 'spiel', wert: f,
+        link: existsSync(join(DIST, 'patches', `sc-${f.replace(/\./g, '-')}.html`)) ? `${sp === 0 ? '/de' : ''}/patches/sc-${f.replace(/\./g, '-')}.html` : null,
         text: `${DOSSIER_TEXT.fahrzeug[sp]}: ${sp === 0 ? 'Spielversion' : 'Game version'} ${f}${kopf && vor(f, kopf) ? ` ${marke}` : ''}`,
       }));
       if (wikiGezeigt && wikiDatum) sollTeile.push({
         quelle: 'wiki', art: 'schnappschuss', wert: wikiDatum, link: 'https://starcitizen.tools',
-        text: `${DOSSIER_TEXT.wiki[sp]}: starcitizen.tools, ${sp === 0 ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(wikiDatum, lang)} ${marke}`,
+        text: `${DOSSIER_TEXT.wiki[sp]}: starcitizen.tools, ${sp === 0 ? 'Schnappschuss vom' : 'snapshot of'} ${datumIn(wikiDatum, lang)}${wikiAelter ? ` ${marke}` : ''}`,
       });
       const key = (x) => `${x.quelle}|${x.wert}`;
       const istMap = new Map(teile.map((x) => [key(x), x]));

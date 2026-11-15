@@ -8,6 +8,7 @@ import Layout from '../layouts/Layout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import { getCollection } from 'astro:content';
 import { mergePatchEn, eraLabel } from '../i18n/patchText';
+import { patchSeiteHref } from '../lib/patchPages';
 
 const patches = (await getCollection('patches')).sort((a, b) =>
   a.data.date.localeCompare(b.data.date)
@@ -276,9 +277,11 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
                   mergePatchEn — es ist ein Schluessel, keine Uebersetzung.
                   Fuer die Anzeige muss eraLabel darueber. */}
               {eraStarts[pi] && <span class="evo__era">{eraLabel(p.data.era, 'en')}</span>}
-              <a href={`/patches/sc-${p.id}.html`} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
-                {p.data.version}
-              </a>
+              {patchSeiteHref(p.id, 'en') ? (
+                <a href={patchSeiteHref(p.id, 'en')} title={`${p.data.codename} · ${p.data.dateDisplay}`}>
+                  {p.data.version}
+                </a>
+              ) : <span title={`${p.data.codename} · ${p.data.dateDisplay}`}>{p.data.version}</span>}
             </th>
           ))}
           <th scope="col" class="evo__tot" title="Total entries">Σ</th>
@@ -326,9 +329,11 @@ tbody tr:hover .evo__sys{background:var(--surface);color:var(--text)}
             <header class="edet__head">
               <span class="edet__sys">{sys}</span>
               <span class="edet__meta">
-                <a class="edet__patch" href={`/patches/sc-${p.id}.html`}>
-                  Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
-                </a>
+                {patchSeiteHref(p.id, 'en') ? (
+                  <a class="edet__patch" href={patchSeiteHref(p.id, 'en')}>
+                    Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay} →
+                  </a>
+                ) : <span class="edet__patch">Alpha {p.data.version} — {p.data.codename} · {p.data.dateDisplay}</span>}
                 <button class="edet__x" data-eclose aria-label="Close details">Esc</button>
               </span>
             </header>

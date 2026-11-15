@@ -72,10 +72,11 @@ export const BASELINE = [
   // ---------------- Fahrzeuge ----------------
   {
     id: 'fahrzeuge',
-    wert: 231,
+    wert: 235,
     regel: 'exakt',
     anlass:
       'Phase 01.4-03: 223 aus der Extraktion plus die vier ATLS-Varianten. Exakt statt Minimum, weil jede Aenderung an dieser Zahl einen Datamine-Beleg braucht — nach oben wie nach unten. ' +
+      '14.11.2026: 231 -> 235 — die ATLS-Varianten kommen aus dem Spiel (Power Suits, scripts/lib/power-suits.mjs); neu sind ATLS IKTI, ATLS GEO IKTI (Wikelo-Vertraege), ATLS IKTI Akuma (Pledge-Store) und ATLS Orange Line (Wikelo). ' +
       '07.10.2026: 227 -> 229 — Sabre Raven EX (4.10.1) und S-65 Stingray neu aufgenommen; beide standen flugfaehig im DataCore, kamen aber wegen des zirkulaeren Katalogs nie hinein (extract-hardpoints.mjs --add, Waechter verify:vehicle-gap). ' +
       '11.10.2026 (4.10.2-Datenlauf): 229 -> 231 — Constellation Mk V Centaurus und Skylark neu aufgenommen; beide flugfaehig im DataCore, gemeldet von verify:vehicle-gap (extract-hardpoints.mjs --add).',
   },

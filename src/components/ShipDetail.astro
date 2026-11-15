@@ -29,8 +29,10 @@ import {
 } from '../lib/shipExtras';
 import type { SimilarShip, ShipExtras, ProfileBar } from '../lib/shipExtras';
 import { patchesFor } from '../lib/patchSpine';
+import { patchSeiteHref } from '../lib/patchPages';
 import { mergePatchEn } from '../i18n/patchText';
 import { useTranslations, href, assertLocale, type Locale } from '../i18n/ui';
+import { beiWikelo } from '../lib/wikeloShips';
 import { vRole, vSize, vStatus, vDesc } from '../i18n/vehicleText';
 import holoMeshesSnapshot from '../data/holo-meshes.json';
 import shipHardpointsSnapshot from '../data/ship-hardpoints.json';
@@ -58,14 +60,7 @@ interface Props {
 const { d, id, similar, profile, viz, hasEn = false } = Astro.props;
 // Sprache ohne Vorgabe (assertLocale, Anlass in src/i18n/ui.ts).
 const lang = assertLocale(Astro.props.lang, 'ShipDetail');
-// Pledge-Preis, Masse, Crew max. und Status stehen in keiner Spieldatei; sie
-// kommen aus dem eingefrorenen Wiki-Schnappschuss (vehicle-external.json). Der
-// Datenstand am Seitenende nennt ihn mit seinem eigenen Datum und als
-// aelteren Stand (src/lib/datenstand.ts, Bestandsaufnahme C 06.11.2026) —
-// aber nur, wenn die Seite einen dieser Werte auch zeigt.
-const wikiEintrag =
-  (vehicleExternal.vehicles as Record<string, object>)[d.id] ??
-  (vehicleExternal.overrides as Record<string, object>)[d.id];
+const wikiEintrag = (vehicleExternal.vehicles as Record<string, object>)[d.id];
 const zeigtWiki = !!wikiEintrag && [d.msrpUSD, d.lengthM, d.crewMax, d.statusDe, d.statusEn].some((x) => x != null);
 
 const t = useTranslations(lang);
@@ -2657,8 +2652,10 @@ span.sd__ref{color:var(--muted)}
             </details>
           )}
         </>
+      ) : beiWikelo(id) ? (
+        <p class="sd__nobuy">{t('ship.buy.wikelo')} <a href={L('/topics/wikelo-emporium.html')}>Wikelo</a>.</p>
       ) : (
-        <p class="sd__nobuy">{t('ship.buy.none')}</p>
+        <p class="sd__nobuy">{t(d.pledgeUrl ? 'ship.buy.none' : 'ship.buy.noneNoPledge')}</p>
       )}
       {rentMin && (
         <>
@@ -2791,11 +2788,13 @@ span.sd__ref{color:var(--muted)}
       <div class="sd__chsec">
       <section class="sd__spine" aria-label={t('ship.spine.title')}>
         <h3>{t('ship.spine.title')}</h3>
-        {spine.map((p) => (
-          <a href={L(`/patches/sc-${p!.id}.html`)}>
+        {spine.map((p) => (patchSeiteHref(p!.id, lang) ? (
+          <a href={patchSeiteHref(p!.id, lang)}>
             Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay} →</span>
           </a>
-        ))}
+        ) : (
+          <span>Alpha {p!.data.version} — {p!.data.codename} <span>· {p!.data.dateDisplay}</span></span>
+        )))}
       </section>
       </div>
     )}

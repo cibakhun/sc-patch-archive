@@ -5,7 +5,7 @@
 // Fakten sind game-sourced (aus den eigenen Mining-Extraktionen):
 //   - Erz-Liste + Attribute  ← assets/mining-db.json
 //   - Stationen + Yield-Boni  ← assets/mining-model.json (refineries/refineryProfiles)
-//   - Methoden (qualitativ)   ← hier gepflegt, identisch zu RefineryFinder.astro
+//   - Methoden + Stufen       ← assets/refinery-methods.json (datamine-refinery-methods)
 // Preise sind UEX (Community, attribuiert) ← src/data/commodity-prices.json
 //
 // Aufruf: node scripts/build-refinery-data.mjs   (npm run build:refinery-data)
@@ -22,21 +22,9 @@ const MODEL = readJson(R('assets', 'mining-model.json'));
 let PRICES = { commodities: {}, fetchedAt: null, source: null };
 try { PRICES = readJson(R('src', 'data', 'commodity-prices.json')); } catch { console.warn('! commodity-prices.json fehlt — Preise bleiben leer (npm run sync:commodity-prices)'); }
 
-// ---- Methoden (qualitativ, Stand 4.8.0; identisch zu RefineryFinder.astro) ----
-// Exakte Yield-%/Zeit/Kosten pro Methode sind serverseitig und NICHT öffentlich
-// dokumentiert — daher nur die Trade-off-Stufen als Auswahlhilfe.
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const METHODS = [
-  { name: 'Dinyx Solventation', speed: 'low', cost: 'high', yield: 'high' },
-  { name: 'Gaskin Process', speed: 'low', cost: 'mid', yield: 'high' },
-  { name: 'Pyrometric Chromalysis', speed: 'vlow', cost: 'low', yield: 'high' },
-  { name: 'Ferron Exchange', speed: 'low', cost: 'low', yield: 'mid' },
-  { name: 'Kazen Winnowing', speed: 'mid', cost: 'mid', yield: 'mid' },
-  { name: 'Thermonatic Deposition', speed: 'high', cost: 'high', yield: 'mid' },
-  { name: 'Cormack Method', speed: 'high', cost: 'mid', yield: 'low' },
-  { name: 'Electrostarolysis', speed: 'mid', cost: 'low', yield: 'low' },
-  { name: 'XCR Reaction', speed: 'high', cost: 'high', yield: 'low' },
-].map((m) => ({ key: slug(m.name), ...m }));
+const METHOD_FILE = readJson(R('assets', 'refinery-methods.json'));
+const METHODS = METHOD_FILE.methods.map(({ id: _id, ...m }) => ({ key: slug(m.name), ...m }));
 
 // ---- Stationen (game-sourced) ----
 const shortName = (n) => {
@@ -94,7 +82,9 @@ const out = {
     gameVersion: DB.game_version || null,
     priceDate: PRICES.fetchedAt || null,
     priceSource: PRICES.source || null,
-    note: 'Verkaufspreise UEX (Community). Methoden qualitativ — exakte Yield-/Zeit-/Kostenwerte der Raffinerie sind serverseitig und werden im Dashboard manuell aus dem Ingame-Terminal eingetragen.',
+    methodsStand: METHOD_FILE.gameVersion ?? null,
+    methodSteps: METHOD_FILE.stufen ?? null,
+    note: 'Verkaufspreise UEX (Community). Methoden in den Stufen des Spiels — exakte Yield-/Zeit-/Kostenwerte der Raffinerie sind serverseitig und werden im Dashboard manuell aus dem Ingame-Terminal eingetragen.',
   },
   methods: METHODS,
   stations: outStations,

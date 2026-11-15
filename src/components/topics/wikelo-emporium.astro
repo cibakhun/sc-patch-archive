@@ -14,9 +14,12 @@ import TRADES_META from '../../../assets/wikelo-trades.meta.json';
 import { existsSync } from 'node:fs';
 import TopicSeo from '../../components/dossier/TopicSeo.astro';
 import { versioned } from '../../lib/assetVersion';
-import { localeFromPath } from '../../i18n/ui';
+import { localeFromPath, href } from '../../i18n/ui';
+import { schiffZurBelohnung } from '../../lib/wikeloShips';
 import { useHelp } from '../../i18n/help';
 import ToolHelp from '../ToolHelp.astro';
+import Datenstand from '../../components/Datenstand.astro';
+import { standWikelo } from '../../lib/datenstand';
 
 const lang = localeFromPath(Astro.url.pathname);
 const de = lang === 'de';
@@ -36,6 +39,7 @@ const linkAttrs = (raw: string) => {
   const it = matchItemName(raw);
   return it ? { 'data-item': it, role: 'button' as const, tabindex: '0', title: (de ? 'Bezugsquellen anzeigen' : 'Show where to get it') } : {};
 };
+const schiffHref = (n: string, cls?: string) => { const id = schiffZurBelohnung(n, cls); return id ? href(`/schiffe/${id}.html`, lang) : null; };
 // On-brand inline SVG icons (instead of emojis) — line style, currentColor.
 const svg = (b: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
 const ICON = {
@@ -175,6 +179,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
 .wk-tc[data-cat="conv"] .wk-get-media--ph{color:var(--accent-2)}
 .wk-get-media--ph svg{width:42px;height:42px}
 .wk-get-name{font-family:var(--font-display);font-weight:800;font-size:var(--fs-10);line-height:1.15;color:var(--text)}
+.wk-ship{display:inline-block;margin-top:.3rem;font-size:var(--fs-6);color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.wk-ship:hover,.wk-ship:focus-visible{color:var(--text)}
 .wk-tc-empty{max-width:var(--maxw);margin:.5rem auto 0;color:var(--muted);font-size:var(--fs-8)}
 
 /* ---- Ship loadout (components) ---- */
@@ -342,6 +348,7 @@ const showImg = TRADES.map((t: { img?: string }) => {
                 ? (<div class:list={['wk-get-media', (t.cat === 'armor' || (t.img ?? '').startsWith('wk-atls')) && 'is-contain']} data-lb={`img:/assets/${t.img}`} data-title={t.get ?? t.name}><img src={`/assets/thumb/${(t.img ?? '').replace(/\.[^.]+$/, '')}.webp`} alt={t.name} loading="lazy" decoding="async" /><span class="zoomic" aria-hidden="true">⤢</span></div>)
                 : (<div class="wk-get-media wk-get-media--ph" aria-hidden="true" set:html={ICON[CAT_ICON[catOf(t.cat)]]}></div>)}
               <div class:list={['wk-get-name', matchItemName(t.get ?? t.name) && 'wk-linkable']} {...linkAttrs(t.get ?? t.name)}>{t.get ?? t.name}</div>
+              {schiffHref(t.get ?? t.name, t.cls) && (<a class="wk-ship" href={schiffHref(t.get ?? t.name, t.cls)}>{de ? 'Zum Datenblatt' : 'Data sheet'} →</a>)}
             </div>
           </div>
           {t.comps && (
@@ -436,6 +443,8 @@ const showImg = TRADES.map((t: { img?: string }) => {
 <WikeloBridge lang={de ? 'de' : 'en'} />
 
 <RelatedTopics topicSlug="wikelo-emporium" />
+
+<Datenstand lang={de ? 'de' : 'en'} zeilen={standWikelo(de ? 'de' : 'en')} />
 
 <Attribution sources={["starcitizen.tools", "wikelotrades.com", "RSI"]} />
 

@@ -7,6 +7,8 @@ import SiteNav from '../../components/SiteNav.astro';
 import Attribution from '../../components/Attribution.astro';
 import AccountShell from '../../components/account/AccountShell.astro';
 import AccountDashboard from '../../components/account/AccountDashboard.astro';
+import Datenstand from '../../components/Datenstand.astro';
+import { standKonto } from '../../lib/datenstand';
 import { versioned } from '../../lib/assetVersion';
 
 // CSS-Cache-Bust per Content-Hash (sha1): die Dateien haben feste URLs und
@@ -41,6 +43,7 @@ const dossierCss = `/assets/account-dossier.css?v=${cssVer('assets/account-dossi
   <AccountShell bare={true}>
     <AccountDashboard lang="en" />
   </AccountShell>
+  <Datenstand lang="en" zeilen={standKonto('en')} />
 </main>
 
 <Attribution sources={[]} />

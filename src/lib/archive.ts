@@ -9,6 +9,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { mergePatchEn, eraLabel, codenameLabel } from '../i18n/patchText';
 import { type Locale, href } from '../i18n/ui';
+import { patchSeiteHref } from './patchPages';
 
 type Patch = CollectionEntry<'patches'>;
 
@@ -97,7 +98,8 @@ export interface ArchiveEntry {
   type: 'major' | 'point';
   accent: string;
   accent2: string;
-  href: string;
+  /** null: dieser Bau traegt die Seite nicht (src/lib/patchPages.ts patchSeiteHref) */
+  href: string | null;
   art: string | null;
   topics: ArchiveTopic[];
   isLatest: boolean;
@@ -202,7 +204,7 @@ export function buildArchive(raw: Patch[], lang: Locale): Archive {
       type: data.type,
       accent,
       accent2: data.palette.accent2 ?? accent,
-      href: href(`/patches/sc-${id}.html`, lang),
+      href: patchSeiteHref(id, lang),
       art: artUrl(id),
       topics,
       isLatest: id === latestId,

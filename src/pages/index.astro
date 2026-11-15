@@ -6,11 +6,14 @@ import DiscordCard from '../components/DiscordCard.astro';
 import { getCollection } from 'astro:content';
 import { avifDa, avifSet } from '../../scripts/lib/avif.mjs';
 import { mergePatchEn } from '../i18n/patchText';
+import { patchSeiteHref } from '../lib/patchPages';
 
 const patches = (await getCollection('patches')).sort((a, b) => a.data.date.localeCompare(b.data.date)).map((p) => ({ ...p, data: mergePatchEn(p.id, p.data, 'en') }));
 
 const latest = patches[patches.length - 1];
 const first = patches[0];
+const freshHref = patchSeiteHref(latest.id, 'en');
+const FreshTag = freshHref ? 'a' : 'div';
 
 // Hero still image: cinematic wide render (ship, station, planet)
 const HERO_IMG = '/assets/t-polaris-5.jpg';
@@ -399,15 +402,15 @@ const tools = [
   <!-- LATEST -->
   <section class="sec reveal">
     <div class="sec__head"><h2>Latest</h2><span class="rule"></span></div>
-    <a class="fresh" href={`/patches/sc-${latest.id}.html`}>
+    <FreshTag class="fresh" href={freshHref ?? undefined}>
       <div class="fresh__body">
         <span class="fresh__ey"><span class="fresh__dot" aria-hidden="true"></span>Live · {latest.data.dateDisplay}</span>
         <span class="fresh__ver">Alpha {latest.data.version}</span>
         <span class="fresh__name">{latest.data.codename ?? latest.data.tagline}</span>
-        <span class="fresh__go">Open patch <span aria-hidden="true">→</span></span>
+        {freshHref && <span class="fresh__go">Open patch <span aria-hidden="true">→</span></span>}
       </div>
       <div class="fresh__media" style={`--img:url('${latest.data.heroImage ?? `/assets/trailer-${latest.id}.jpg`}')`} aria-hidden="true"></div>
-    </a>
+    </FreshTag>
   </section>
 
   <!-- DISCORD — letzter Abschnitt: wer bis hierher gescrollt hat, hat die

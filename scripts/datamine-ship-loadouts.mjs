@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { openP4k, DEFAULT_P4K } from './lib/p4k.mjs';
 import { preferGoldStandard } from './lib/vehicle-records.mjs';
+import { POWER_SUITS, powerSuitRecords } from './lib/power-suits.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll } from './lib/cryxml.mjs';
 
@@ -189,7 +190,7 @@ function subtreeItems(entry, acc = [], depth = 0, carrier = null) {
 
 // ---- Schiff-Records + ID-Join ----
 const hp = JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', 'ship-hardpoints.json'), 'utf8')).ships;
-const ourIds = Object.keys(hp);
+const ourIds = [...new Set([...Object.keys(hp), ...Object.keys(POWER_SUITS)])];
 const isVariantJunk = (f) => /_ai_|_pu_|_test|_template|_dummy|_unmanned|_hijacked|_turretless|_debug|_showdown_scramble|_swarm|_simpod|_modifiers/i.test(f);
 const shipRecs = db.records.filter((r) =>
   db.structs[r.structIndex]?.name === 'EntityClassDefinition' &&
@@ -200,6 +201,8 @@ const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
 const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
 if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
+const psFehlt = powerSuitRecords(db, byId);
+if (psFehlt.length) throw new Error(`Power-Suit-Record fehlt im Spiel: ${psFehlt.join(', ')} — scripts/lib/power-suits.mjs pruefen`);
 
 // Loadout eines Ship-Records extrahieren: { port -> {name,size,cat,cls,count} }
 // qtfueltank/h2fueltank/orepod (01.4-02, Gruppe B): nur cat+cls+count werden
@@ -386,7 +389,7 @@ const worstUnmatched = [];
 const gapHisto = {}; // Namensmuster der "echter Bone OHNE Item"
 for (const id of matched) {
   const lo = out[id];
-  const bones = (hp[id].hp || []).filter((h) => GRP[h.k]);
+  const bones = (hp[id]?.hp || []).filter((h) => GRP[h.k]);
   let named = 0, logical = 0, unm = 0;
   for (const h of bones) {
     if (SECONDARY.test(h.n)) { logical++; continue; }
@@ -413,7 +416,7 @@ for (const [n, c] of Object.entries(gapHisto).sort((a, b) => b[1] - a[1]).slice(
 // Schiffe, die mit dieser Regel (Marker nur bei Stock-Item) 0 core+arms-Marker bekämen
 const zero = matched.filter((id) => {
   const lo = out[id];
-  return (hp[id].hp || []).filter((h) => GRP[h.k] && !SECONDARY.test(h.n) && lo[h.n.toLowerCase()]).length === 0;
+  return (hp[id]?.hp || []).filter((h) => GRP[h.k] && !SECONDARY.test(h.n) && lo[h.n.toLowerCase()]).length === 0;
 });
 console.log(`\n=== Schiffe mit 0 benannten core+arms-Ports (${zero.length}) ===\n  ${zero.join(', ') || 'keine'}`);
 

@@ -31,11 +31,6 @@
 // Einmisch-Schleife unten übernimmt JEDES Feld, das die Fremddatei je Fahrzeug
 // führt, nicht eine feste Liste — bleibt also richtig, wenn die Liste schrumpft.
 //
-// Zusätzlich übernimmt vehicle-external.json (Block `overrides`) die vier
-// ARGO-ATLS-Varianten komplett aus dem Wiki-Snapshot (D-13): sie sind im
-// DataCore keine /spaceships/- oder /groundvehicles/-Fahrzeug-Entity, sondern
-// ein "Power Suit" (Character-Taxonomie) — s. Kommentar bei OVERRIDES unten.
-//
 // STAND 01.4-05 (der Tausch): schreibt jetzt ZWEI Dateien — die Zwischenstufe
 // src/data/vehicles-gamefiles.json (gitignored, frischer Lauf) UND das
 // ausgelieferte src/data/vehicles.json (committet). scripts/verify-vehicles.mjs
@@ -55,6 +50,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openP4k, DEFAULT_P4K, clientManifest } from './lib/p4k.mjs';
 import { preferGoldStandard } from './lib/vehicle-records.mjs';
+import { POWER_SUITS, powerSuitRecords } from './lib/power-suits.mjs';
 import { openDataCore } from './lib/datacore.mjs';
 import { parseCryXml, findAll, findAllLive, applyModification } from './lib/cryxml.mjs';
 
@@ -166,7 +162,7 @@ const findType = (o, name, d = 0) => {
 /* ---------------------------------------------------------------- */
 const HP = JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', 'ship-hardpoints.json'), 'utf8')).ships;
 const LOAD = JSON.parse(readFileSync(resolve(__dirname, '..', 'src', 'data', 'ship-loadouts.json'), 'utf8'));
-const ourIds = Object.keys(HP);
+const ourIds = [...new Set([...Object.keys(HP), ...Object.keys(POWER_SUITS)])];
 const isVariantJunk = (f) => /_ai_|_pu_|_test|_template|_dummy|_unmanned|_hijacked|_turretless|_debug|_showdown_scramble|_swarm|_simpod|_modifiers/i.test(f);
 const shipRecs = ECD.filter((r) => /\/(spaceships|groundvehicles)\/[^/]+\.xml$/i.test(norm(r.fileName)) && !isVariantJunk(norm(r.fileName)));
 const recId = (r) => (r.name || '').replace(/^EntityClassDefinition\./, '').toLowerCase().replace(/_/g, '-');
@@ -174,6 +170,8 @@ const byId = new Map();
 for (const r of shipRecs) { const id = recId(r); if (!byId.has(id)) byId.set(id, r); }
 const gsMoved = preferGoldStandard(byId); // 4.10.2: <id>-gs ist der Spieler-Record, s. lib/vehicle-records.mjs
 if (gsMoved.length) console.log(`Gold-Standard-Record statt Altfassung: ${gsMoved.join(', ')}`);
+const psFehlt = powerSuitRecords(db, byId);
+if (psFehlt.length) throw new Error(`Power-Suit-Record fehlt im Spiel: ${psFehlt.join(', ')} — scripts/lib/power-suits.mjs pruefen`);
 
 // Flugcontroller einmal indizieren (Basename ohne .xml -> Record)
 const flightCtrlByCls = new Map();
@@ -308,6 +306,11 @@ function manufacturer(ref) {
   return out;
 }
 
+function manufacturerByCode(code) {
+  const r = code ? db.records.find((x) => x.name === `SCItemManufacturer.${code}`) : null;
+  return r ? manufacturer({ __ref: r.id }) : null;
+}
+
 /* ---------------------------------------------------------------- */
 /* Marken-Urteile (01.4-03, Task 2, Schritt 3 — D-22): manufacturer/makerCode  */
 /* ---------------------------------------------------------------- */
@@ -409,8 +412,19 @@ function buildVehicle(id) {
   const o = db.readRecord(rec, { maxDepth: 14, typed: true });
   const att = findType(o, 'SAttachableComponentParams')?.AttachDef ?? {};
   const veh = findType(o, 'VehicleComponentParams');
-  const ins = findType(o, 'SEntityInsuranceProperties')?.shipInsuranceParams;
-  const mfr = manufacturer(att.Manufacturer);
+  const insProps = findType(o, 'SEntityInsuranceProperties');
+  const ins = insProps?.shipInsuranceParams;
+  // Power Suits (ATLS) tragen keine VehicleComponentParams; Laufbahn, Rolle,
+  // Besatzung und Hersteller stehen dann im Anzeigeblock der Versicherung,
+  // dieselben Lokalisierungsschluessel wie bei Fahrzeugen.
+  const disp = veh ? null : insProps?.displayParams ?? null;
+  // Hersteller des Klassenpraefixes (ARGO_ATLS -> SCItemManufacturer.ARGO): bei
+  // Power Suits Rueckfall, wenn der Record nur den Platzhalter "Unknown" nennt
+  // (ATLS IKTI Akuma), und Kandidat fuers Kuerzen des Namens, wenn er einen
+  // anderen Hersteller nennt (ATLS IKTI: Banu, von Wikelo gebaut).
+  const praefixMfr = disp ? manufacturerByCode((rec.name || '').replace(/^EntityClassDefinition\./, '').split('_')[0]) : null;
+  const mfrRoh = manufacturer(att.Manufacturer ?? disp?.manufacturer);
+  const mfr = disp && (!mfrRoh?.name || /^unknown$/i.test(mfrRoh.name)) ? praefixMfr ?? mfrRoh : mfrRoh;
   const mfrOverride = MFR_OVERRIDE[id];
   // Anzeigename des Herstellers: erst das per-Schiff-Urteil (Marken-Fälle,
   // s. o.), sonst der rohe Spielwert, danach die benannte Kosmetik-Ersetzung
@@ -449,7 +463,7 @@ function buildVehicle(id) {
   // Namen wie "MISC Fortune" heraus, die der Wiki-Bestand UNGEKÜRZT führt.
   const stripMfr = (s) => {
     if (!s) return s;
-    const pre = [mfrName?.split(/\s+/)[0], mfr?.code, initials].filter(Boolean);
+    const pre = [mfrName?.split(/\s+/)[0], mfr?.code, initials, praefixMfr?.name?.split(/\s+/)[0]].filter(Boolean);
     for (const p of pre) {
       const rx = new RegExp(`^${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s+`, 'i');
       if (rx.test(s)) return s.replace(rx, '').replace(/\s{2,}/g, ' ').trim();
@@ -720,20 +734,24 @@ function buildVehicle(id) {
     });
   }
 
+  if (disp && massKg == null) {
+    const m = findType(o, 'SEntityActorPhysicsControllerParams')?.Mass;
+    if (m > 0) { massKg = Math.round(m); stats.mass++; }
+  }
   const finalName = stripMfr(fullName);
   return {
     id,
     name: finalName,
     manufacturer: mfrName ?? null,
     makerCode,
-    typeEn: locEn(veh?.vehicleCareer),
-    typeDe: locDe(veh?.vehicleCareer),
-    roleEn: locEn(veh?.vehicleRole),
-    roleDe: locDe(veh?.vehicleRole),
+    typeEn: locEn(veh?.vehicleCareer ?? disp?.career),
+    typeDe: locDe(veh?.vehicleCareer ?? disp?.career),
+    roleEn: locEn(veh?.vehicleRole ?? disp?.role),
+    roleDe: locDe(veh?.vehicleRole ?? disp?.role),
     sizeClass,
     sizeDe: veh?.movementClass === 'Spaceship' ? SIZE_LABEL[sizeClass] ?? null : 'Fahrzeug',
-    descriptionEn: cleanDesc(locEn(veh?.vehicleDescription)),
-    descriptionDe: cleanDesc(locDe(veh?.vehicleDescription)),
+    descriptionEn: cleanDesc(locEn(veh?.vehicleDescription ?? (disp ? att.Localization?.Description : null))),
+    descriptionDe: cleanDesc(locDe(veh?.vehicleDescription ?? (disp ? att.Localization?.Description : null))),
     // Besatzung (D-17, 01.4-04): die Spanne bleibt auf dem Datenblatt.
     // `crewMin` kommt aus dem Spiel (`crewSize`) — Betriebsbesatzung, deckt
     // sich auf 223/223 gemessenen Fahrzeugen exakt mit der bisherigen
@@ -742,7 +760,7 @@ function buildVehicle(id) {
     // dem Wiki-Snapshot eingefroren, 9 rückläufige Spannen bewusst ausgelassen
     // — betroffene Fahrzeuge tragen dann nur `crewMin`, keine künstlich
     // gleichgesetzte Spanne).
-    crewMin: veh?.crewSize ?? null,
+    crewMin: veh?.crewSize ?? disp?.crewSize ?? null,
     isGravlev: veh?.isGravlevVehicle ?? null,
     isSpaceship: veh?.movementClass === 'Spaceship',
     scmSpeed: ifcs?.scmSpeed ?? null,
@@ -799,10 +817,9 @@ function findKeyObj(o, key, d = 0) {
 /* ---------------------------------------------------------------- */
 /* Lauf                                                              */
 /* ---------------------------------------------------------------- */
-const external = existsSync(EXTERNAL) ? JSON.parse(readFileSync(EXTERNAL, 'utf8')) : { vehicles: {}, overrides: {} };
+const external = existsSync(EXTERNAL) ? JSON.parse(readFileSync(EXTERNAL, 'utf8')) : { vehicles: {} };
 const ids = ONLY ? [ONLY] : ourIds;
 const out = [];
-const builtIds = new Set();
 for (const id of ids) {
   const v = buildVehicle(id);
   if (!v) continue;
@@ -813,26 +830,8 @@ for (const id of ids) {
   // kollidiert mit einem von buildVehicle() gelieferten Schlüssel.
   const ext = external.vehicles?.[id] ?? {};
   out.push({ ...v, ...ext });
-  builtIds.add(id);
 }
 
-// ATLS-Übernahmen (D-13, 01.4-03): vier Kennungen ohne DataCore-Record
-// (stats.noRec) — genau hier, an derselben Stelle, an der buildVehicle() sie
-// bisher stillschweigend übersprungen hat, kommen die aus dem Wiki-Snapshot
-// übernommenen Volldatensätze aus vehicle-external.json (Block `overrides`)
-// dazu. Ein `continue` ohne Ersatz war der Grund, warum der Katalog bislang
-// 223 statt 227 führte.
-let overridesAdded = 0;
-for (const id of ids) {
-  if (builtIds.has(id)) continue;
-  const ov = external.overrides?.[id];
-  if (!ov) continue;
-  // patches[] aus dem eingefrorenen Wiki-Satz NICHT übernehmen — das Rückgrat
-  // rechnet seit 08.10.2026 der Build (scripts/lib/patch-spine.mjs).
-  const { patches: _frozenSpine, ...rest } = ov;
-  out.push(rest);
-  overridesAdded++;
-}
 p4k.close();
 
 console.log(`Fahrzeuge gebaut: ${out.length}/${ids.length}`);
@@ -841,7 +840,6 @@ console.log(`  Flugwerte (IFCS):     ${stats.ifcs}`);
 console.log(`  Schild-HP:            ${stats.shield}   Quantum: ${stats.qt}   Fracht: ${stats.cargo}`);
 console.log(`  QT-Treibstoff:        ${stats.qtFuel}   QT-Reichweite: ${stats.qtRange}   H2-Treibstoff: ${stats.h2Fuel}   Erz: ${stats.ore}`);
 if (stats.noRec.length) console.log(`  ohne DataCore-Record: ${stats.noRec.length} (${stats.noRec.join(', ')})`);
-if (overridesAdded) console.log(`  aus vehicle-external.json übernommen (ATLS): ${overridesAdded}`);
 // Gap 1 (01.4-06): DPS-Deckung + wie oft die Teilsumme Waffen ohne bekannte
 // DPS übersprungen hat — billige Sichtbarkeit, s. Kommentar bei sumDps().
 console.log(`  Waffen-DPS: pilotDps ${stats.dpsPilot}/${out.length}   turretDps ${stats.dpsTurret}/${out.length}`);
@@ -857,7 +855,7 @@ if (!ONLY) {
     gameVersion: GAME_VERSION,
     source: 'Data.p4k — DataCore (Game2.dcb), Fahrzeug-Implementierungen (CryXmlB), InventoryContainer',
     external: 'src/data/vehicle-external.json (msrpUSD, pledgeUrl, Abmessungen, image, crewMax, statusEn/De,'
-      + ' fociDe — nicht in den Spieldateien; plus vier komplett übernommene ATLS-Datensätze, D-13)',
+      + ' fociDe — nicht in den Spieldateien)',
     count: out.length,
     vehicles: out,
   };
