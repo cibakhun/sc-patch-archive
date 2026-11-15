@@ -6,9 +6,16 @@
 // (COMPILED_BONES), im Buildstep aufs Mesh kalibriert. Keine Auto-Rotation:
 // OrbitControls, Hover + Klick auf Marker.
 //
-// API:  initHolo(container, cfg) -> Promise<{ dispose, setFilter, select }>
+// API:  initHolo(container, cfg) -> Promise<{ dispose, setFilter, select, highlight, … }>
 //   cfg = { url, ports:[{k,p:[x,y,z],g,dim}], mesh:{c,s}, ax:[len,lat],
-//           onProgress(p), onSelect(i|null), debug, reduceMotion }
+//           onProgress(p), onSelect(i|null), debug, reduceMotion,
+//           highlight, renderer }
+//   highlight: Startzustand fuer highlight() (siehe dort).
+//   renderer:  ein fremder WebGLRenderer (holoBuehne unten). Dann gehoert er
+//              dem Aufrufer: dispose() gibt nur die Szene frei.
+// API:  holoBuehne(container) -> { load(cfg), highlight(items), viewer(), dispose() }
+//   Eine Buehne, die zwischen Schiffen wechselt und dabei EINEN Renderer
+//   (einen WebGL-Kontext) behaelt. Fuer die Patchseite.
 // three.js liegt selbst gehostet unter /vendor/three (Import-Map der Seite).
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -121,6 +128,10 @@ function markerTexture(colorHex, style) {
   return tex;
 }
 
+const perfLite = () => document.documentElement.getAttribute('data-perf') === 'lite';
+const pixelRatio = () => (perfLite() ? 1 : Math.min(devicePixelRatio, 2));
+const neuerRenderer = () => new THREE.WebGLRenderer({ antialias: !perfLite(), alpha: true });
+
 export async function initHolo(container, cfg) {
   // Buehnengroesse zwischengespeichert: W()/H() laufen pro Bild mehrfach
   // (Masskette, Etiketten, Marker), und clientWidth nach einem DOM-Schreiben
@@ -141,9 +152,8 @@ export async function initHolo(container, cfg) {
   // war. Schaltet die Seite erst im Lauf um (Bildtakt-Messung), folgen
   // Pixeldichte und Takt sofort — die Kantenglaettung haengt am Kontext und
   // bleibt bis zum naechsten Laden.
-  const perfLite = () => document.documentElement.getAttribute('data-perf') === 'lite';
-  const pixelRatio = () => (perfLite() ? 1 : Math.min(devicePixelRatio, 2));
-  const renderer = new THREE.WebGLRenderer({ antialias: !perfLite(), alpha: true });
+  const eigenerRenderer = !cfg.renderer;
+  const renderer = cfg.renderer ?? neuerRenderer();
   renderer.setPixelRatio(pixelRatio());
   renderer.setSize(W(), H());
   renderer.localClippingEnabled = true;
@@ -180,8 +190,11 @@ export async function initHolo(container, cfg) {
   } catch (err) {
     // Fehlpfad sauber aufräumen — sonst stapelt jeder Retry einen toten
     // Canvas (der neue rendert geclippt darunter) und leakt WebGL-Kontexte
-    renderer.dispose();
-    renderer.domElement.remove();
+    draco.dispose();
+    if (eigenerRenderer) {
+      renderer.dispose();
+      renderer.domElement.remove();
+    }
     throw err;
   }
 
@@ -190,6 +203,8 @@ export async function initHolo(container, cfg) {
   const uTime = { value: 0 };
   const uYmin = { value: -1 }, uYmax = { value: 1 };   // Welt-Höhenspanne (für Scan-Sweep)
   const uScale = { value: renderer.domElement.height * 0.5 };   // Punktgröße-Skala (Funken)
+  // Grundleuchten des Rumpfs; highlight() senkt es, damit die Marker tragen.
+  let emiBasis = 0.34;
   const holoMat = new THREE.MeshStandardMaterial({
     color: 0x0c2838,
     emissive: 0x2dd4ff,
@@ -520,15 +535,24 @@ export async function initHolo(container, cfg) {
     const scl = baseScale * (port.g === 'core' ? 1.3 : port.g === 'arms' ? 0.92 : 1);
     sp.scale.setScalar(scl);
     sp.renderOrder = port.g === 'core' ? 22 : 20;
-    sp.userData = { i, port, base: scl };
+    // op: Grunddeckkraft (highlight() dimmt davon weg) · fv: vom Filter sichtbar
+    sp.userData = { i, port, base: scl, op: mat.opacity, fv: true };
     rig.add(sp);
     markers.push(sp);
   }
 
+  // highlight(): Marker-Index -> Text der Aenderung. Leer = nichts hervorgehoben.
+  let hlText = new Map();
+  // Ein hervorgehobener Marker bleibt sichtbar, auch wenn der Filter seine Gruppe ausblendet.
+  const sichtbarkeit = () => {
+    for (const sp of markers) sp.visible = sp.userData.fv || hlText.has(sp.userData.i);
+  };
+
   // Startsichtbarkeit je Gruppe (Standard: nur core+arms; Rest per Filter zu)
   if (cfg.defaultOn && cfg.defaultOn.length) {
     const vis = new Set(cfg.defaultOn);
-    for (const sp of markers) sp.visible = vis.has(sp.userData.port.g);
+    for (const sp of markers) sp.userData.fv = vis.has(sp.userData.port.g);
+    sichtbarkeit();
   }
 
   /* ---------- Beschriftungen (P-2, 15-01-PLAN.md Task 2 Schritt 3) ----------
@@ -628,9 +652,11 @@ export async function initHolo(container, cfg) {
       sp, el, line, node, shown: true, init: false, occ: false,
       w: 0, h: 0, mx: 0, my: 0, ax: 0, ay: 0, cx: 0, cy: 0,
       // rep: dieser Kasten steht dauerhaft im Raum (Art-Vertreter).
+      // dauer: steht JETZT dauerhaft — rep, solange nichts hervorgehoben ist,
+      // sonst der erste Marker jedes highlight()-Eintrags.
       // artText/portText + modus: Textwechsel nur beim Zustandswechsel, nicht
       // je Bild — sonst schreibt die Bildschleife 27-mal pro Frame ins DOM.
-      rep: istVertreter, artText, portText: lblText, modus: istVertreter ? 'art' : 'port',
+      rep: istVertreter, dauer: istVertreter, artText, portText: lblText, modus: istVertreter ? 'art' : 'port',
     });
   }
   labelLayer.appendChild(nodeSvg); // zuletzt -> Knoten liegen über den Chips
@@ -1003,13 +1029,17 @@ export async function initHolo(container, cfg) {
          Unveraendert gilt: der ueberfahrene/gewaehlte Marker traegt IMMER
          seinen eigenen Text, und er gewinnt gegen den Art-Zustand. */
       const eigen = L.sp.userData.i === hoverIdx || L.sp.userData.i === selectIdx;
-      const aktiv = eigen || (L.rep && raumBeschriftung);
+      const aktiv = eigen || (L.dauer && raumBeschriftung);
       if (!aktiv) { hideLabel(L); continue; }
       if (!L.sp.visible) { hideLabel(L); continue; }
-      const willModus = eigen ? 'port' : 'art';
-      if (L.modus !== willModus) {
+      // Ein hervorgehobener Marker spricht immer mit dem Text seiner Aenderung,
+      // auch unter dem Zeiger.
+      const hl = hlText.get(L.sp.userData.i);
+      const willModus = hl != null ? 'hl' : eigen ? 'port' : 'art';
+      if (L.modus !== willModus || (hl != null && L.hlGezeigt !== hl)) {
         L.modus = willModus;
-        const neu = willModus === 'art' ? L.artText : L.portText;
+        L.hlGezeigt = hl;
+        const neu = willModus === 'hl' ? hl : willModus === 'art' ? L.artText : L.portText;
         // firstChild ist der Textknoten aus `el.textContent = …`; bei leerem
         // Text gibt es keinen — dann anlegen statt auf null zugreifen.
         if (L.el.firstChild && L.el.firstChild.nodeType === 3) L.el.firstChild.nodeValue = neu;
@@ -1038,7 +1068,7 @@ export async function initHolo(container, cfg) {
       if (!L.w) { L.w = L.el.offsetWidth; L.h = L.el.offsetHeight; }
       L.mx = (_lblV.x * 0.5 + 0.5) * w;
       L.my = (-_lblV.y * 0.5 + 0.5) * h;
-      if (L.rep && !eigen) {
+      if (L.dauer && !eigen) {
         /* Dauer-Beschriftung (Phase 17): NACH AUSSEN vom Schiffsmittelpunkt
            weg, nicht stur nach oben.
 
@@ -1130,7 +1160,7 @@ export async function initHolo(container, cfg) {
          gilt nur, wo die Leiste ueberhaupt steht: unterhalb der Schwelle traegt
          der Raum keine Dauer-Beschriftung, und der Kasten des angetippten
          Markers soll auch dicht am oberen Rand stehen duerfen. */
-      const obenFrei = (L.rep && raumBeschriftung) ? RAUM_TOP_SPERRE : 2;
+      const obenFrei = (L.dauer && raumBeschriftung) ? RAUM_TOP_SPERRE : 2;
       L.cy = Math.max(obenFrei + L.h / 2, Math.min(h - L.h / 2 - 2, L.cy));
       L.el.style.left = L.cx.toFixed(1) + 'px';
       L.el.style.top = L.cy.toFixed(1) + 'px';
@@ -1142,7 +1172,7 @@ export async function initHolo(container, cfg) {
       L.line.setAttribute('x2', L.mx.toFixed(1)); L.line.setAttribute('y2', L.my.toFixed(1));
       L.node.setAttribute('cx', L.mx.toFixed(1)); L.node.setAttribute('cy', L.my.toFixed(1));
       // Zuordnung betonen: Beschriftung des gehoverten/gewählten Markers leuchtet
-      const active = (L.sp.userData.i === hoverIdx || L.sp.userData.i === selectIdx);
+      const active = (L.sp.userData.i === hoverIdx || L.sp.userData.i === selectIdx || L.modus === 'hl');
       L.el.classList.toggle('is-active', active);
       L.line.classList.toggle('is-active', active);
       L.node.classList.toggle('is-active', active);
@@ -1178,6 +1208,9 @@ export async function initHolo(container, cfg) {
   }
 
   /* ---------- Controls: keine Auto-Rotation, Rechtsklick-Ziehen = verschieben ---------- */
+  // Die Leinwand kann einer Buehne gehoeren, die das naechste Schiff zeigt:
+  // eigene Zuhoerer haengen deshalb an einem Signal, das dispose() kappt.
+  const ac = new AbortController();
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
@@ -1191,7 +1224,7 @@ export async function initHolo(container, cfg) {
   // unter dem Cursor bleibt beim Zoomen stehen.
   controls.zoomToCursor = true;
   // Kontextmenü auf dem Canvas unterdrücken, damit Rechtsklick-Ziehen läuft
-  renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+  renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault(), { signal: ac.signal });
 
   // Kamera so setzen, dass das GANZE Modell ins Bild passt — auch sehr große
   // oder sehr breite Schiffe (Bounding-Sphere gegen vertikales UND horizontales
@@ -1425,8 +1458,8 @@ export async function initHolo(container, cfg) {
       hoverIdx = i;
       renderer.domElement.style.cursor = i != null ? 'pointer' : 'grab';
     }
-  });
-  renderer.domElement.addEventListener('pointerdown', (ev) => { downAt = [ev.clientX, ev.clientY]; });
+  }, { signal: ac.signal });
+  renderer.domElement.addEventListener('pointerdown', (ev) => { downAt = [ev.clientX, ev.clientY]; }, { signal: ac.signal });
   renderer.domElement.addEventListener('pointerup', (ev) => {
     // Klick nur, wenn kein Drag (OrbitControls) dazwischen lag
     if (!downAt || Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) > 6) return;
@@ -1442,7 +1475,7 @@ export async function initHolo(container, cfg) {
     else { cycleKey = key; cycleAt = 0; }
     selectIdx = c[cycleAt].i;
     cfg.onSelect?.(selectIdx);
-  });
+  }, { signal: ac.signal });
 
   /* ---------- Render-Loop ---------- */
   // Steht still, wenn die Bühne aus dem Viewport gescrollt ist oder der Tab
@@ -1496,9 +1529,9 @@ export async function initHolo(container, cfg) {
     }
     // gelegentliches Holo-Flackern
     if (!reduceMotion && t > nextFlicker) {
-      holoMat.emissiveIntensity = 0.22 + Math.random() * 0.18;
+      holoMat.emissiveIntensity = (0.22 + Math.random() * 0.18) * (emiBasis / 0.34);
       if (t > nextFlicker + 0.08) {
-        holoMat.emissiveIntensity = 0.34;
+        holoMat.emissiveIntensity = emiBasis;
         nextFlicker = t + 2.5 + Math.random() * 4;
       }
     }
@@ -1561,6 +1594,7 @@ export async function initHolo(container, cfg) {
       let sc = base;
       if (i === selectIdx) sc = base * (1.25 + (reduceMotion ? 0 : Math.sin(t * 5) * 0.09));
       else if (i === hoverIdx) sc = base * 1.35;
+      else if (hlText.has(i)) sc = base * (1.3 + (reduceMotion ? 0 : Math.sin(t * 3) * 0.08));
       sp.scale.setScalar(sc);
     }
     controls.update();
@@ -1589,10 +1623,51 @@ export async function initHolo(container, cfg) {
   });
   ro.observe(container);
 
+  /* Aenderungen eines Patches am Rumpf zeigen (Patchseite).
+       items = [{ k?: Bauteilart, i?: Marker-Indizes, text: 'Radar Gr. 2 → 3' }]
+     Ein Eintrag trifft jeden Marker seiner Art k und jeden Index aus i. Die
+     getroffenen Marker leuchten (groesser, volle Deckkraft, Puls nur ohne
+     reduceMotion), alle anderen und der Rumpf treten zurueck. Der ERSTE
+     getroffene Marker je Eintrag traegt `text` als Dauer-Beschriftung, an
+     Stelle der Art-Beschriftungen — nach derselben Regel wie diese: unter
+     RAUM_LABEL_MIN_PX Leinwandbreite steht im Raum keine Dauer-Beschriftung,
+     die Seite fuehrt die Aenderungen deshalb immer auch als Liste unter der
+     Buehne. Antippen eines getroffenen Markers zeigt ebenfalls `text`.
+     null oder [] stellt den Ausgangszustand wieder her.
+     Rueckgabe: die Eintraege, die keinen Marker fanden (Bauteilart ohne
+     Einbauort am Rumpf) — die Seite nennt sie nur in der Liste. */
+  function highlight(items) {
+    hlText = new Map();
+    const dauer = new Set();
+    const ohneMarker = [];
+    for (const it of items ?? []) {
+      const treffer = markers
+        .filter((sp) => (it.k != null && sp.userData.port.k === it.k) || (it.i && it.i.includes(sp.userData.i)))
+        .map((sp) => sp.userData.i);
+      if (!treffer.length) { ohneMarker.push(it); continue; }
+      for (const i of treffer) if (!hlText.has(i)) hlText.set(i, it.text);
+      dauer.add(treffer[0]);
+    }
+    const an = hlText.size > 0;
+    for (const L of labels) L.dauer = an ? dauer.has(L.sp.userData.i) : L.rep;
+    for (const sp of markers) {
+      sp.material.opacity = !an ? sp.userData.op : hlText.has(sp.userData.i) ? 1 : sp.userData.op * 0.22;
+    }
+    emiBasis = an ? 0.2 : 0.34;
+    holoMat.emissiveIntensity = emiBasis;
+    holoMat.opacity = an ? 0.45 : 1;
+    sichtbarkeit();
+    for (const L of labels) { if (!L.sp.visible) hideLabel(L); }
+    return ohneMarker;
+  }
+
+  if (cfg.highlight) highlight(cfg.highlight);
+
   return {
     setFilter(groups) {
       const vis = new Set(groups);
-      for (const sp of markers) sp.visible = vis.has(sp.userData.port.g);
+      for (const sp of markers) sp.userData.fv = vis.has(sp.userData.port.g);
+      sichtbarkeit();
       // Labels + Leader sofort mit-schalten (nicht auf den nächsten Frame
       // warten — der Render-Loop kann pausiert sein, wenn die Bühne aus dem Bild ist)
       for (const L of labels) { if (!L.sp.visible) hideLabel(L); }
@@ -1610,6 +1685,7 @@ export async function initHolo(container, cfg) {
       labelsOn = on;
       labelLayer.style.display = on ? '' : 'none';
     },
+    highlight,
     /* Ein Element der SEITE, um das die Beschriftungen einen Bogen machen —
        die Detailkarte, die seit Phase 17 im Raum schwebt. Der Viewer kennt
        das Seiten-Markup nicht und soll es nicht kennen; er bekommt den Knoten
@@ -1699,14 +1775,89 @@ export async function initHolo(container, cfg) {
     },
     dispose() {
       alive = false;
+      ac.abort();
       ro.disconnect();
       vio.disconnect();
       document.removeEventListener('visibilitychange', wake);
       document.removeEventListener('vbperfchange', onPerf);
       controls.dispose();
-      renderer.dispose();
-      renderer.domElement.remove();
+      draco.dispose();
+      // GPU-Bestand der Szene freigeben: bei einem geteilten Renderer bliebe
+      // er sonst je Schiffswechsel im Kontext liegen.
+      scene.traverse((o) => {
+        o.geometry?.dispose();
+        for (const m of [].concat(o.material ?? [])) { m.map?.dispose(); m.dispose(); }
+      });
+      for (const tx of texCache.values()) tx.dispose();
+      softTex.dispose();
+      if (eigenerRenderer) {
+        renderer.dispose();
+        renderer.domElement.remove();
+      }
       labelLayer.remove();
+    },
+  };
+}
+
+/* Buehne fuer mehrere Schiffe nacheinander (Patchseite). Ein Renderer, also
+   ein WebGL-Kontext, fuer alle Wechsel: initHolo() bekommt ihn geliehen, und
+   dispose() des alten Schiffs gibt nur dessen Szene frei. Das alte Schiff
+   bleibt stehen, bis das neue geladen ist — kein leerer Raum beim Wechsel.
+   Kommen Wechsel schneller als das Laden, gewinnt der letzte Wunsch; die
+   dazwischen werden nie geladen.
+   load() verwirft, wenn WebGL fehlt (der Renderer laesst sich nicht bauen)
+   oder das Mesh nicht laedt. Die Seite zeigt dann ihr Standbild mit den
+   Texten der highlight-Eintraege als feste Beschriftung. */
+export function holoBuehne(container) {
+  let renderer = null;
+  let aktuell = null;
+  let wunsch = null;
+  let lauf = null;
+  return {
+    load(cfg) {
+      wunsch = cfg;
+      if (!lauf) {
+        lauf = (async () => {
+          try {
+            while (wunsch) {
+              const c = wunsch;
+              wunsch = null;
+              let v;
+              try {
+                renderer ??= neuerRenderer();
+                v = await initHolo(container, { ...c, renderer });
+              } catch (err) {
+                // Ein spaeterer Wunsch steht schon an: der zaehlt, nicht dieser Fehler.
+                if (wunsch) continue;
+                throw err;
+              }
+              aktuell?.dispose();
+              aktuell = v;
+            }
+            return aktuell;
+          } finally {
+            lauf = null;
+          }
+        })();
+      }
+      return lauf;
+    },
+    highlight(items) {
+      return aktuell ? aktuell.highlight(items) : [];
+    },
+    viewer() {
+      return aktuell;
+    },
+    dispose() {
+      wunsch = null;
+      aktuell?.dispose();
+      aktuell = null;
+      if (renderer) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+        renderer.domElement.remove();
+        renderer = null;
+      }
     },
   };
 }
