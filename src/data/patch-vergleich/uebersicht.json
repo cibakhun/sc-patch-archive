@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "paare": [
+    {
+      "von": "4.9.0",
+      "nach": "4.10.0",
+      "datei": "4.9.0__4.10.0.json",
+      "bestand": {
+        "ship": {
+          "vorher": 227,
+          "nachher": 227
+        },
+        "item": {
+          "vorher": 6642,
+          "nachher": 6686
+        },
+        "blueprint": {
+          "vorher": 1594,
+          "nachher": 1605
+        },
+        "mission": {
+          "vorher": 1347,
+          "nachher": 1355
+        },
+        "price": {
+          "vorher": 179,
+          "nachher": 179
+        },
+        "itemKatalog": {
+          "vorher": 9168,
+          "nachher": 9201
+        }
+      },
+      "zaehler": {
+        "ship": {
+          "new": 0,
+          "renamed": 0,
+          "changed": 186,
+          "removed": 0
+        },
+        "price": {
+          "new": 0,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 0
+        },
+        "item": {
+          "new": 44,
+          "renamed": 4,
+          "changed": 68,
+          "removed": 0
+        },
+        "blueprint": {
+          "new": 14,
+          "renamed": 6,
+          "changed": 39,
+          "removed": 3
+        },
+        "mission": {
+          "new": 15,
+          "renamed": 0,
+          "changed": 18,
+          "removed": 7
+        }
+      }
+    },
+    {
+      "von": "4.10.0",
+      "nach": "4.10.1",
+      "datei": "4.10.0__4.10.1.json",
+      "bestand": {
+        "ship": {
+          "vorher": 227,
+          "nachher": 227
+        },
+        "item": {
+          "vorher": 6686,
+          "nachher": 6709
+        },
+        "blueprint": {
+          "vorher": 1605,
+          "nachher": 1605
+        },
+        "mission": {
+          "vorher": 1355,
+          "nachher": 1355
+        },
+        "price": {
+          "vorher": 179,
+          "nachher": 174
+        },
+        "itemKatalog": {
+          "vorher": 9201,
+          "nachher": 9222
+        }
+      },
+      "zaehler": {
+        "ship": {
+          "new": 0,
+          "renamed": 0,
+          "changed": 3,
+          "removed": 0
+        },
+        "price": {
+          "new": 5,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 10
+        },
+        "item": {
+          "new": 23,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 0
+        },
+        "blueprint": {
+          "new": 1,
+          "renamed": 0,
+          "changed": 1,
+          "removed": 1
+        },
+        "mission": {
+          "new": 0,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 0
+        }
+      }
+    },
+    {
+      "von": "4.10.1",
+      "nach": "4.10.2",
+      "datei": "4.10.1__4.10.2.json",
+      "bestand": {
+        "ship": {
+          "vorher": 229,
+          "nachher": 231
+        },
+        "item": {
+          "vorher": 6709,
+          "nachher": 6808
+        },
+        "blueprint": {
+          "vorher": 1605,
+          "nachher": 1617
+        },
+        "mission": {
+          "vorher": 1355,
+          "nachher": 1387
+        },
+        "price": {
+          "vorher": 174,
+          "nachher": 174
+        },
+        "itemKatalog": {
+          "vorher": 9222,
+          "nachher": 9410
+        }
+      },
+      "zaehler": {
+        "ship": {
+          "new": 2,
+          "renamed": 5,
+          "changed": 3,
+          "removed": 0
+        },
+        "price": {
+          "new": 0,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 0
+        },
+        "item": {
+          "new": 103,
+          "renamed": 20,
+          "changed": 1,
+          "removed": 4
+        },
+        "blueprint": {
+          "new": 13,
+          "renamed": 2,
+          "changed": 1,
+          "removed": 1
+        },
+        "mission": {
+          "new": 32,
+          "renamed": 0,
+          "changed": 2,
+          "removed": 0
+        }
+      }
+    },
+    {
+      "von": "4.10.2",
+      "nach": "4.10.3",
+      "datei": "4.10.2__4.10.3.json",
+      "bestand": {
+        "ship": {
+          "vorher": 231,
+          "nachher": 235
+        },
+        "item": {
+          "vorher": 6808,
+          "nachher": 6885
+        },
+        "blueprint": {
+          "vorher": 1617,
+          "nachher": 1634
+        },
+        "mission": {
+          "vorher": 1387,
+          "nachher": 1399
+        },
+        "price": {
+          "vorher": 174,
+          "nachher": 182
+        },
+        "itemKatalog": {
+          "vorher": 9412,
+          "nachher": 9515
+        }
+      },
+      "zaehler": {
+        "ship": {
+          "new": 6,
+          "renamed": 5,
+          "changed": 12,
+          "removed": 2
+        },
+        "price": {
+          "new": 8,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 0
+        },
+        "item": {
+          "new": 77,
+          "renamed": 11,
+          "changed": 2,
+          "removed": 0
+        },
+        "blueprint": {
+          "new": 17,
+          "renamed": 1,
+          "changed": 7,
+          "removed": 0
+        },
+        "mission": {
+          "new": 12,
+          "renamed": 0,
+          "changed": 0,
+          "removed": 0
+        }
+      }
+    }
+  ]
+}

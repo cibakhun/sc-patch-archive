@@ -1,0 +1,386 @@
+{
+  "schema": 1,
+  "von": {
+    "version": "4.10.0",
+    "ref": "8f44c69a^",
+    "commit": "5a8adc5755ab",
+    "cl": {
+      "vehicles": "12519617",
+      "items": "12519617",
+      "crafting": "12519617",
+      "missions": "12519617"
+    },
+    "preiseVom": "2026-08-27"
+  },
+  "nach": {
+    "version": "4.10.1",
+    "ref": "8f44c69a",
+    "commit": "8f44c69a9bef",
+    "cl": {
+      "vehicles": "12660092",
+      "items": "12660092",
+      "crafting": "12660092",
+      "missions": "12660092"
+    },
+    "preiseVom": "2026-09-24"
+  },
+  "bestand": {
+    "ship": {
+      "vorher": 227,
+      "nachher": 227
+    },
+    "item": {
+      "vorher": 6686,
+      "nachher": 6709
+    },
+    "blueprint": {
+      "vorher": 1605,
+      "nachher": 1605
+    },
+    "mission": {
+      "vorher": 1355,
+      "nachher": 1355
+    },
+    "price": {
+      "vorher": 179,
+      "nachher": 174
+    },
+    "itemKatalog": {
+      "vorher": 9201,
+      "nachher": 9222
+    }
+  },
+  "zaehler": {
+    "ship": {
+      "new": 0,
+      "renamed": 0,
+      "changed": 3,
+      "removed": 0
+    },
+    "price": {
+      "new": 5,
+      "renamed": 0,
+      "changed": 0,
+      "removed": 10
+    },
+    "item": {
+      "new": 23,
+      "renamed": 0,
+      "changed": 0,
+      "removed": 0
+    },
+    "blueprint": {
+      "new": 1,
+      "renamed": 0,
+      "changed": 1,
+      "removed": 1
+    },
+    "mission": {
+      "new": 0,
+      "renamed": 0,
+      "changed": 0,
+      "removed": 0
+    }
+  },
+  "felder": {
+    "ship": {
+      "crewMin": {
+        "de": "Mindestcrew",
+        "en": "Minimum crew"
+      },
+      "sizeClass": {
+        "de": "Groessenklasse",
+        "en": "Size class"
+      },
+      "hullHp": {
+        "de": "Huelle (HP)",
+        "en": "Hull (HP)"
+      },
+      "shieldHp": {
+        "de": "Schild (HP)",
+        "en": "Shield (HP)"
+      },
+      "scmSpeed": {
+        "de": "SCM (m/s)",
+        "en": "SCM (m/s)"
+      },
+      "maxSpeed": {
+        "de": "Max (m/s)",
+        "en": "Max (m/s)"
+      },
+      "boostForward": {
+        "de": "Boost vorwaerts (m/s)",
+        "en": "Forward boost (m/s)"
+      },
+      "pitch": {
+        "de": "Nicken (°/s)",
+        "en": "Pitch (°/s)"
+      },
+      "yaw": {
+        "de": "Gieren (°/s)",
+        "en": "Yaw (°/s)"
+      },
+      "roll": {
+        "de": "Rollen (°/s)",
+        "en": "Roll (°/s)"
+      },
+      "cargoSCU": {
+        "de": "Fracht (SCU)",
+        "en": "Cargo (SCU)"
+      },
+      "oreSCU": {
+        "de": "Erz (SCU)",
+        "en": "Ore (SCU)"
+      },
+      "qtSpeedMs": {
+        "de": "Quantengeschwindigkeit (m/s)",
+        "en": "Quantum speed (m/s)"
+      },
+      "qtRangeM": {
+        "de": "Quantenreichweite (m)",
+        "en": "Quantum range (m)"
+      },
+      "qtFuel": {
+        "de": "Quantentreibstoff",
+        "en": "Quantum fuel"
+      },
+      "h2Fuel": {
+        "de": "Wasserstoff",
+        "en": "Hydrogen fuel"
+      },
+      "insClaimMin": {
+        "de": "Versicherung, Anspruch (min)",
+        "en": "Insurance claim (min)"
+      },
+      "pilotDps": {
+        "de": "Pilot-DPS",
+        "en": "Pilot DPS"
+      },
+      "turretDps": {
+        "de": "Turm-DPS",
+        "en": "Turret DPS"
+      },
+      "missileCount": {
+        "de": "Raketen",
+        "en": "Missiles"
+      },
+      "cmLaunchers": {
+        "de": "Taeuschkoerperwerfer",
+        "en": "Countermeasure launchers"
+      },
+      "fixedWeapons": {
+        "de": "Waffen",
+        "en": "Weapons"
+      },
+      "turretWeapons": {
+        "de": "Turmwaffen",
+        "en": "Turret weapons"
+      },
+      "missileRacks": {
+        "de": "Raketenbestueckung",
+        "en": "Missile loadout"
+      },
+      "powerPlants": {
+        "de": "Kraftwerk",
+        "en": "Power plant"
+      },
+      "shields": {
+        "de": "Schildgenerator",
+        "en": "Shield generator"
+      },
+      "coolers": {
+        "de": "Kuehler",
+        "en": "Cooler"
+      },
+      "quantumDrives": {
+        "de": "Quantenantrieb",
+        "en": "Quantum drive"
+      },
+      "radars": {
+        "de": "Radar",
+        "en": "Radar"
+      }
+    },
+    "item": {
+      "size": {
+        "de": "Groesse",
+        "en": "Size"
+      },
+      "grade": {
+        "de": "Grade",
+        "en": "Grade"
+      },
+      "class": {
+        "de": "Klasse",
+        "en": "Class"
+      },
+      "dps": {
+        "de": "DPS",
+        "en": "DPS"
+      },
+      "damage.physical": {
+        "de": "Schaden je Schuss, physisch",
+        "en": "Damage per shot, physical"
+      },
+      "damage.energy": {
+        "de": "Schaden je Schuss, Energie",
+        "en": "Damage per shot, energy"
+      },
+      "damage.distortion": {
+        "de": "Schaden je Schuss, Verzerrung",
+        "en": "Damage per shot, distortion"
+      },
+      "damage.thermal": {
+        "de": "Schaden je Schuss, thermisch",
+        "en": "Damage per shot, thermal"
+      },
+      "damage.stun": {
+        "de": "Schaden je Schuss, Betaeubung",
+        "en": "Damage per shot, stun"
+      },
+      "fireRate": {
+        "de": "Feuerrate (/min)",
+        "en": "Fire rate (/min)"
+      },
+      "magazine": {
+        "de": "Magazin",
+        "en": "Magazine"
+      },
+      "health": {
+        "de": "Lebenspunkte",
+        "en": "Health"
+      },
+      "shieldHp": {
+        "de": "Schild (HP)",
+        "en": "Shield (HP)"
+      },
+      "regen": {
+        "de": "Schild-Regeneration",
+        "en": "Shield regen"
+      },
+      "powerOutput": {
+        "de": "Leistung",
+        "en": "Power output"
+      },
+      "coolingRate": {
+        "de": "Kuehlrate",
+        "en": "Cooling rate"
+      },
+      "driveSpeed": {
+        "de": "Quantengeschwindigkeit (m/s)",
+        "en": "Quantum speed (m/s)"
+      },
+      "fuelCapacity": {
+        "de": "Tankinhalt",
+        "en": "Fuel capacity"
+      },
+      "armTime": {
+        "de": "Scharfschaltzeit (s)",
+        "en": "Arm time (s)"
+      },
+      "blastRadius": {
+        "de": "Explosionsradius (m)",
+        "en": "Blast radius (m)"
+      }
+    },
+    "blueprint": {
+      "craft_time_seconds": {
+        "de": "Herstellzeit (s)",
+        "en": "Craft time (s)"
+      },
+      "tiers": {
+        "de": "Stufen",
+        "en": "Tiers"
+      },
+      "ingredients": {
+        "de": "Zutaten",
+        "en": "Ingredients"
+      },
+      "missions": {
+        "de": "Auftraege mit diesem Bauplan",
+        "en": "Contracts rewarding it"
+      }
+    },
+    "mission": {
+      "ranks": {
+        "de": "Raenge",
+        "en": "Ranks"
+      },
+      "rewardMin": {
+        "de": "Belohnung ab (aUEC)",
+        "en": "Reward from (aUEC)"
+      },
+      "rewardMax": {
+        "de": "Belohnung bis (aUEC)",
+        "en": "Reward up to (aUEC)"
+      },
+      "shareable": {
+        "de": "Teilbar",
+        "en": "Shareable"
+      },
+      "maxPlayers": {
+        "de": "Hoechstzahl Spieler",
+        "en": "Max players"
+      },
+      "lawful": {
+        "de": "Legal",
+        "en": "Lawful"
+      },
+      "blueprints": {
+        "de": "Bauplaene als Belohnung",
+        "en": "Blueprint rewards"
+      },
+      "giverNames": {
+        "de": "Auftraggeber",
+        "en": "Contractor"
+      }
+    }
+  },
+  "ausnahmen": [],
+  "eintraege": [
+    {"kind":"ship","id":"drak-clipper","slug":"drak-clipper","name":"Clipper","change":"changed","felder":[{"feld":"hullHp","vorher":26350,"nachher":31551}]},
+    {"kind":"ship","id":"drak-corsair","slug":"drak-corsair","name":"Corsair","change":"changed","felder":[{"feld":"qtRangeM","vorher":1363521547508,"nachher":681760773754},{"feld":"qtFuel","vorher":16.2,"nachher":8.1}]},
+    {"kind":"ship","id":"anvl-lightning-f8","slug":"anvl-lightning-f8","name":"F8A Lightning","change":"changed","felder":[{"feld":"qtRangeM","vorher":71428570581,"nachher":91836733605},{"feld":"qtFuel","vorher":0.7,"nachher":0.9}]},
+    {"kind":"price","id":"rsi-aurora-mk2","slug":"rsi-aurora-mk2","name":"Aurora Mk II","change":"new","angebote":[{"preis":904932,"haendler":"New Deal Lorville","ort":"Lorville","system":"Stanton"}]},
+    {"kind":"price","id":"drak-golem-ox","slug":"drak-golem-ox","name":"Golem OX","change":"new","angebote":[{"preis":1149120,"haendler":"New Deal Lorville","ort":"Lorville","system":"Stanton"},{"preis":1209600,"haendler":"Buy and Fly Checkmate","ort":"Checkmate Station","system":"Pyro"},{"preis":1209600,"haendler":"Buy and Fly Orbituary","ort":"Orbituary","system":"Pyro"},{"preis":1209600,"haendler":"Buy and Fly Ruin Station","ort":"Ruin Station","system":"Pyro"}]},
+    {"kind":"price","id":"krig-l22-alphawolf","slug":"krig-l22-alphawolf","name":"L-22 Alpha Wolf","change":"new","angebote":[{"preis":4536000,"haendler":"Astro Armada","ort":"Area 18","system":"Stanton"}]},
+    {"kind":"price","id":"misc-hull-b","slug":"misc-hull-b","name":"MISC Hull B","change":"new","angebote":[{"preis":7541100,"haendler":"New Deal Lorville","ort":"Lorville","system":"Stanton"},{"preis":7938000,"haendler":"Teach's Levski","ort":"Levski","system":"Nyx"}]},
+    {"kind":"price","id":"grin-utv","slug":"grin-utv","name":"UTV","change":"new","angebote":[{"preis":75600,"haendler":"Astro Armada","ort":"Area 18","system":"Stanton"},{"preis":75600,"haendler":"Buy and Fly Checkmate","ort":"Checkmate Station","system":"Pyro"},{"preis":75600,"haendler":"Buy and Fly Orbituary","ort":"Orbituary","system":"Pyro"},{"preis":75600,"haendler":"Buy and Fly Ruin Station","ort":"Ruin Station","system":"Pyro"}]},
+    {"kind":"price","id":"rsi-aurora-gs-cl","slug":"rsi-aurora-gs-cl","name":"Aurora Mk I CL","change":"removed"},
+    {"kind":"price","id":"rsi-aurora-gs-es","slug":"rsi-aurora-gs-es","name":"Aurora Mk I ES","change":"removed"},
+    {"kind":"price","id":"rsi-aurora-gs-ln","slug":"rsi-aurora-gs-ln","name":"Aurora Mk I LN","change":"removed"},
+    {"kind":"price","id":"rsi-aurora-gs-lx","slug":"rsi-aurora-gs-lx","name":"Aurora Mk I LX","change":"removed"},
+    {"kind":"price","id":"rsi-aurora-gs-mr","slug":"rsi-aurora-gs-mr","name":"Aurora Mk I MR","change":"removed"},
+    {"kind":"price","id":"anvl-hornet-f7c","slug":"anvl-hornet-f7c","name":"F7C Hornet Mk I","change":"removed"},
+    {"kind":"price","id":"anvl-hornet-f7c-wildfire","slug":"anvl-hornet-f7c-wildfire","name":"F7C Hornet Wildfire Mk I","change":"removed"},
+    {"kind":"price","id":"anvl-hornet-f7cm","slug":"anvl-hornet-f7cm","name":"F7C-M Super Hornet Mk I","change":"removed"},
+    {"kind":"price","id":"anvl-hornet-f7cr","slug":"anvl-hornet-f7cr","name":"F7C-R Hornet Tracker Mk I","change":"removed"},
+    {"kind":"price","id":"anvl-hornet-f7cs","slug":"anvl-hornet-f7cs","name":"F7C-S Hornet Ghost Mk I","change":"removed"},
+    {"kind":"item","id":"374eab76a3c7774564b9ac2d8668de91","slug":"a03-akuma-sniper-rifle","name":"A03 Akuma Sniper Rifle","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":159.38},{"feld":"damage.physical","wert":42.5},{"feld":"fireRate","wert":225},{"feld":"magazine","wert":15}]},
+    {"kind":"item","id":"4f48ae37b9c0591e85e3b8994a89eea8","slug":"artimex-arms-akuma","name":"Artimex Arms Akuma","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"394ceb3feecb8a68b1b9fb826ba66cb7","slug":"artimex-legs-akuma","name":"Artimex Legs Akuma","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"db48c7ab56303fc05c5b059bbbc077b9","slug":"aurora-mk-ii-streamline-livery","name":"Aurora Mk II Streamline Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"c74b8ff0cd1049281bf9f95d48f05a90","slug":"cf-999-akuma-repeater","name":"CF-999 \"Akuma\" Repeater","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"dps","wert":70},{"feld":"damage.energy","wert":28},{"feld":"fireRate","wert":150},{"feld":"health","wert":525}]},
+    {"kind":"item","id":"21489b0d155c373fbbca6203b757c3ad","slug":"cq7-skullcap-rifle","name":"CQ7 \"Skullcap\" Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":195},{"feld":"damage.physical","wert":18},{"feld":"fireRate","wert":650},{"feld":"magazine","wert":40}]},
+    {"kind":"item","id":"d74228e42bf3d2d0c6fb82e861681a8a","slug":"cutlass-akuma-livery","name":"Cutlass Akuma Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"7a4096682609c4f71f9a2728bb8d4fbe","slug":"demeco-streamline-lmg","name":"Demeco \"Streamline\" LMG","change":"new","werte":[{"feld":"size","wert":4},{"feld":"grade","wert":"A"},{"feld":"dps","wert":153.33},{"feld":"damage.energy","wert":11.5},{"feld":"fireRate","wert":800},{"feld":"magazine","wert":100}]},
+    {"kind":"item","id":"9743d2296d96b3b74b5fb0703ab9758b","slug":"forceflex-undersuit-skeleton","name":"ForceFlex Undersuit Skeleton","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"ff4dd01c38f4692d64fda0b784d1beaf","slug":"lh86-akuma-pistol","name":"LH86 Akuma Pistol","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":205.83},{"feld":"damage.physical","wert":13},{"feld":"fireRate","wert":950},{"feld":"magazine","wert":25}]},
+    {"kind":"item","id":"1b43e034fa90afa66c864e6a3cba268e","slug":"monde-arms-streamline","name":"Monde Arms Streamline","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"ca4ddab18d1ee6bb4492b176b0dec597","slug":"monde-core-streamline","name":"Monde Core Streamline","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"474806fdced8d9c92906a19123e447bf","slug":"monde-helmet-streamline","name":"Monde Helmet Streamline","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b940aed5a071b5122edb84fd3eb9de94","slug":"monde-legs-streamline","name":"Monde Legs Streamline","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b3408c6faadcd727046cf6103b33a29d","slug":"p8ar-akuma-rifle","name":"P8AR Akuma Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":176.25},{"feld":"damage.physical","wert":45},{"feld":"fireRate","wert":235},{"feld":"magazine","wert":15}]},
+    {"kind":"item","id":"0f4472f12a77aa153b107f1cfbbe8484","slug":"sabre-beyond-livery","name":"Sabre Beyond Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"ee4ce8f5401dd14b00cc07f532196e9e","slug":"sabre-blue-steel-livery","name":"Sabre Blue Steel Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6142b2191e5069fd5fd7211234d9939b","slug":"sabre-darkshade-livery","name":"Sabre Darkshade Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3540539997e94e445e3ec5dec4c8afb9","slug":"sabre-tribunal-livery","name":"Sabre Tribunal Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"fd4615124785bbaae3844e0eba408896","slug":"shogun-kiba-helmet-akuma","name":"Shogun Kiba Helmet Akuma","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"ed4809b7238c12efae620704d305b38a","slug":"skullcap-helmet","name":"Skullcap Helmet","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6a423e5960f28a66e242ddba0a2818a9","slug":"vertine-qd","name":"Vertine QD","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"health","wert":1550}]},
+    {"kind":"item","id":"eb49f9d32dc72c32afa157c915d013b8","slug":"warden-backpack-streamline","name":"Warden Backpack Streamline","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"new","werte":[{"feld":"craft_time_seconds","wert":780},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASE: Torite 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Beryl 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"]}]},
+    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"changed","felder":[{"feld":"ingredients","vorher":["CASE: Torite 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Beryl 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"],"nachher":["CASE: Tungsten 0.35 SCU (ab Q1)","CONTAINMENT MATRIX: Laranite 0.14 SCU (ab Q1)","INJECTOR NOZZLES: Tungsten 0.14 SCU (ab Q1)"]}]},
+    {"kind":"blueprint","id":"c248f2d01893dcdad37f5f0cddf2d4aa","name":"FoxFire","change":"removed"}
+  ]
+}

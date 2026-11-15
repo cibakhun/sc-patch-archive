@@ -1,0 +1,542 @@
+{
+  "schema": 1,
+  "von": {
+    "version": "4.10.2",
+    "ref": "74f9a2ee^",
+    "commit": "0b4993325dee",
+    "cl": {
+      "vehicles": "12881860",
+      "items": "12913470",
+      "crafting": "12881860",
+      "missions": "12881860"
+    },
+    "preiseVom": "2026-10-11"
+  },
+  "nach": {
+    "version": "4.10.3",
+    "ref": "Arbeitsbaum",
+    "commit": "317b40bfe85d",
+    "cl": {
+      "vehicles": "13165946",
+      "items": "13165946",
+      "crafting": "13165946",
+      "missions": "13165946"
+    },
+    "preiseVom": "2026-11-14"
+  },
+  "bestand": {
+    "ship": {
+      "vorher": 231,
+      "nachher": 235
+    },
+    "item": {
+      "vorher": 6808,
+      "nachher": 6885
+    },
+    "blueprint": {
+      "vorher": 1617,
+      "nachher": 1634
+    },
+    "mission": {
+      "vorher": 1387,
+      "nachher": 1399
+    },
+    "price": {
+      "vorher": 174,
+      "nachher": 182
+    },
+    "itemKatalog": {
+      "vorher": 9412,
+      "nachher": 9515
+    }
+  },
+  "zaehler": {
+    "ship": {
+      "new": 6,
+      "renamed": 5,
+      "changed": 12,
+      "removed": 2
+    },
+    "price": {
+      "new": 8,
+      "renamed": 0,
+      "changed": 0,
+      "removed": 0
+    },
+    "item": {
+      "new": 77,
+      "renamed": 11,
+      "changed": 2,
+      "removed": 0
+    },
+    "blueprint": {
+      "new": 17,
+      "renamed": 1,
+      "changed": 7,
+      "removed": 0
+    },
+    "mission": {
+      "new": 12,
+      "renamed": 0,
+      "changed": 0,
+      "removed": 0
+    }
+  },
+  "felder": {
+    "ship": {
+      "crewMin": {
+        "de": "Mindestcrew",
+        "en": "Minimum crew"
+      },
+      "sizeClass": {
+        "de": "Groessenklasse",
+        "en": "Size class"
+      },
+      "hullHp": {
+        "de": "Huelle (HP)",
+        "en": "Hull (HP)"
+      },
+      "shieldHp": {
+        "de": "Schild (HP)",
+        "en": "Shield (HP)"
+      },
+      "scmSpeed": {
+        "de": "SCM (m/s)",
+        "en": "SCM (m/s)"
+      },
+      "maxSpeed": {
+        "de": "Max (m/s)",
+        "en": "Max (m/s)"
+      },
+      "boostForward": {
+        "de": "Boost vorwaerts (m/s)",
+        "en": "Forward boost (m/s)"
+      },
+      "pitch": {
+        "de": "Nicken (°/s)",
+        "en": "Pitch (°/s)"
+      },
+      "yaw": {
+        "de": "Gieren (°/s)",
+        "en": "Yaw (°/s)"
+      },
+      "roll": {
+        "de": "Rollen (°/s)",
+        "en": "Roll (°/s)"
+      },
+      "massKg": {
+        "de": "Masse (kg)",
+        "en": "Mass (kg)"
+      },
+      "cargoSCU": {
+        "de": "Fracht (SCU)",
+        "en": "Cargo (SCU)"
+      },
+      "oreSCU": {
+        "de": "Erz (SCU)",
+        "en": "Ore (SCU)"
+      },
+      "qtSpeedMs": {
+        "de": "Quantengeschwindigkeit (m/s)",
+        "en": "Quantum speed (m/s)"
+      },
+      "qtRangeM": {
+        "de": "Quantenreichweite (m)",
+        "en": "Quantum range (m)"
+      },
+      "qtFuel": {
+        "de": "Quantentreibstoff",
+        "en": "Quantum fuel"
+      },
+      "h2Fuel": {
+        "de": "Wasserstoff",
+        "en": "Hydrogen fuel"
+      },
+      "insClaimMin": {
+        "de": "Versicherung, Anspruch (min)",
+        "en": "Insurance claim (min)"
+      },
+      "pilotDps": {
+        "de": "Pilot-DPS",
+        "en": "Pilot DPS"
+      },
+      "turretDps": {
+        "de": "Turm-DPS",
+        "en": "Turret DPS"
+      },
+      "missileCount": {
+        "de": "Raketen",
+        "en": "Missiles"
+      },
+      "cmLaunchers": {
+        "de": "Taeuschkoerperwerfer",
+        "en": "Countermeasure launchers"
+      },
+      "fixedWeapons": {
+        "de": "Waffen",
+        "en": "Weapons"
+      },
+      "turretWeapons": {
+        "de": "Turmwaffen",
+        "en": "Turret weapons"
+      },
+      "missileRacks": {
+        "de": "Raketenbestueckung",
+        "en": "Missile loadout"
+      },
+      "powerPlants": {
+        "de": "Kraftwerk",
+        "en": "Power plant"
+      },
+      "shields": {
+        "de": "Schildgenerator",
+        "en": "Shield generator"
+      },
+      "coolers": {
+        "de": "Kuehler",
+        "en": "Cooler"
+      },
+      "quantumDrives": {
+        "de": "Quantenantrieb",
+        "en": "Quantum drive"
+      },
+      "radars": {
+        "de": "Radar",
+        "en": "Radar"
+      }
+    },
+    "item": {
+      "size": {
+        "de": "Groesse",
+        "en": "Size"
+      },
+      "grade": {
+        "de": "Grade",
+        "en": "Grade"
+      },
+      "class": {
+        "de": "Klasse",
+        "en": "Class"
+      },
+      "dps": {
+        "de": "DPS",
+        "en": "DPS"
+      },
+      "damage.physical": {
+        "de": "Schaden je Schuss, physisch",
+        "en": "Damage per shot, physical"
+      },
+      "damage.energy": {
+        "de": "Schaden je Schuss, Energie",
+        "en": "Damage per shot, energy"
+      },
+      "damage.distortion": {
+        "de": "Schaden je Schuss, Verzerrung",
+        "en": "Damage per shot, distortion"
+      },
+      "damage.thermal": {
+        "de": "Schaden je Schuss, thermisch",
+        "en": "Damage per shot, thermal"
+      },
+      "damage.stun": {
+        "de": "Schaden je Schuss, Betaeubung",
+        "en": "Damage per shot, stun"
+      },
+      "fireRate": {
+        "de": "Feuerrate (/min)",
+        "en": "Fire rate (/min)"
+      },
+      "range": {
+        "de": "Reichweite (m)",
+        "en": "Range (m)"
+      },
+      "speed": {
+        "de": "Projektilgeschwindigkeit (m/s)",
+        "en": "Projectile speed (m/s)"
+      },
+      "ammoLoad": {
+        "de": "Munition",
+        "en": "Ammo"
+      },
+      "magazine": {
+        "de": "Magazin",
+        "en": "Magazine"
+      },
+      "health": {
+        "de": "Lebenspunkte",
+        "en": "Health"
+      },
+      "shieldHp": {
+        "de": "Schild (HP)",
+        "en": "Shield (HP)"
+      },
+      "regen": {
+        "de": "Schild-Regeneration",
+        "en": "Shield regen"
+      },
+      "powerOutput": {
+        "de": "Leistung",
+        "en": "Power output"
+      },
+      "coolingRate": {
+        "de": "Kuehlrate",
+        "en": "Cooling rate"
+      },
+      "driveSpeed": {
+        "de": "Quantengeschwindigkeit (m/s)",
+        "en": "Quantum speed (m/s)"
+      },
+      "spoolTime": {
+        "de": "Anlaufzeit (s)",
+        "en": "Spool time (s)"
+      },
+      "fuelCapacity": {
+        "de": "Tankinhalt",
+        "en": "Fuel capacity"
+      },
+      "armTime": {
+        "de": "Scharfschaltzeit (s)",
+        "en": "Arm time (s)"
+      },
+      "blastRadius": {
+        "de": "Explosionsradius (m)",
+        "en": "Blast radius (m)"
+      },
+      "lockRange": {
+        "de": "Aufschaltreichweite (m)",
+        "en": "Lock range (m)"
+      },
+      "lockTime": {
+        "de": "Aufschaltzeit (s)",
+        "en": "Lock time (s)"
+      }
+    },
+    "blueprint": {
+      "craft_time_seconds": {
+        "de": "Herstellzeit (s)",
+        "en": "Craft time (s)"
+      },
+      "tiers": {
+        "de": "Stufen",
+        "en": "Tiers"
+      },
+      "ingredients": {
+        "de": "Zutaten",
+        "en": "Ingredients"
+      },
+      "missions": {
+        "de": "Auftraege mit diesem Bauplan",
+        "en": "Contracts rewarding it"
+      }
+    },
+    "mission": {
+      "ranks": {
+        "de": "Raenge",
+        "en": "Ranks"
+      },
+      "rewardMin": {
+        "de": "Belohnung ab (aUEC)",
+        "en": "Reward from (aUEC)"
+      },
+      "rewardMax": {
+        "de": "Belohnung bis (aUEC)",
+        "en": "Reward up to (aUEC)"
+      },
+      "shareable": {
+        "de": "Teilbar",
+        "en": "Shareable"
+      },
+      "maxPlayers": {
+        "de": "Hoechstzahl Spieler",
+        "en": "Max players"
+      },
+      "lawful": {
+        "de": "Legal",
+        "en": "Lawful"
+      },
+      "blueprints": {
+        "de": "Bauplaene als Belohnung",
+        "en": "Blueprint rewards"
+      },
+      "giverNames": {
+        "de": "Auftraggeber",
+        "en": "Contractor"
+      }
+    }
+  },
+  "ausnahmen": [
+    {
+      "kind": "ship",
+      "feld": "fixedWeapons",
+      "ids": [
+        "argo-atls",
+        "argo-atls-geo",
+        "argo-atls-geo-collector-grad01",
+        "argo-atls-geo-collector-grad03"
+      ],
+      "anlass": "db84ce3c liest die ATLS-Varianten erstmals vollstaendig aus; Traktorstrahl und Bergbaulaser hatten sie vorher auch"
+    }
+  ],
+  "eintraege": [
+    {"kind":"ship","id":"argo-atls-geo-ikti","slug":"argo-atls-geo-ikti","name":"ATLS GEO IKTI","change":"new","werte":[{"feld":"crewMin","wert":1},{"feld":"sizeClass","wert":1},{"feld":"massKg","wert":2300},{"feld":"cargoSCU","wert":0},{"feld":"insClaimMin","wert":7.5},{"feld":"pilotDps","wert":282.6},{"feld":"cmLaunchers","wert":0},{"feld":"fixedWeapons","wert":["2× CF-117 Bulldog Repeater (S1)"]},{"feld":"radars","wert":["1× Surveyor-Go (S0)"]}]},
+    {"kind":"ship","id":"argo-atls-ikti","slug":"argo-atls-ikti","name":"ATLS IKTI","change":"new","werte":[{"feld":"crewMin","wert":1},{"feld":"sizeClass","wert":1},{"feld":"massKg","wert":1800},{"feld":"cargoSCU","wert":0},{"feld":"insClaimMin","wert":3},{"feld":"pilotDps","wert":282.6},{"feld":"cmLaunchers","wert":0},{"feld":"fixedWeapons","wert":["2× CF-117 Bulldog Repeater (S1)"]},{"feld":"radars","wert":["1× Surveyor-Go (S0)"]}]},
+    {"kind":"ship","id":"argo-atls-geo-ikti-ntls","slug":"argo-atls-geo-ikti-ntls","name":"ATLS IKTI Akuma","change":"new","werte":[{"feld":"crewMin","wert":1},{"feld":"sizeClass","wert":1},{"feld":"massKg","wert":2300},{"feld":"cargoSCU","wert":0},{"feld":"insClaimMin","wert":7.5},{"feld":"pilotDps","wert":140},{"feld":"cmLaunchers","wert":0},{"feld":"fixedWeapons","wert":["2× CF-999 \"Akuma\" Repeater (S1)"]},{"feld":"radars","wert":["1× Surveyor-Go (S0)"]}]},
+    {"kind":"ship","id":"argo-atls-geo-collector-grad02","slug":"argo-atls-geo-collector-grad02","name":"ATLS Orange Line","change":"new","werte":[{"feld":"crewMin","wert":1},{"feld":"sizeClass","wert":1},{"feld":"massKg","wert":2100},{"feld":"cargoSCU","wert":0},{"feld":"insClaimMin","wert":3},{"feld":"cmLaunchers","wert":0},{"feld":"fixedWeapons","wert":["1× Lawson Mining Laser (S0)"]},{"feld":"radars","wert":["1× Surveyor-Go (S0)"]}]},
+    {"kind":"ship","id":"rsi-galaxy","slug":"rsi-galaxy","name":"Galaxy","change":"new","werte":[{"feld":"crewMin","wert":6},{"feld":"sizeClass","wert":5},{"feld":"hullHp","wert":148700},{"feld":"shieldHp","wert":200000},{"feld":"scmSpeed","wert":145},{"feld":"maxSpeed","wert":950},{"feld":"boostForward","wert":315},{"feld":"pitch","wert":14},{"feld":"yaw","wert":14},{"feld":"roll","wert":23},{"feld":"massKg","wert":5435000},{"feld":"cargoSCU","wert":64},{"feld":"qtSpeedMs","wert":459859392},{"feld":"qtRangeM","wert":324534149596},{"feld":"qtFuel","wert":20.9},{"feld":"h2Fuel","wert":56.4},{"feld":"insClaimMin","wert":35},{"feld":"pilotDps","wert":7364.4},{"feld":"missileCount","wert":32},{"feld":"cmLaunchers","wert":4},{"feld":"fixedWeapons","wert":["6× CF-557 Galdereen Repeater (S5)"]},{"feld":"missileRacks","wert":["32× Tempest II Missile (S2)"]},{"feld":"powerPlants","wert":["2× NewDawn (S3)"]},{"feld":"shields","wert":["2× 5CA 'Akura' (S3)"]},{"feld":"coolers","wert":["2× Frost-Star XL (S3)"]},{"feld":"quantumDrives","wert":["1× Wanderer (S3)"]},{"feld":"radars","wert":["1× Lephari (S3)"]}]},
+    {"kind":"ship","id":"anvl-liberator","slug":"anvl-liberator","name":"Liberator","change":"new","werte":[{"feld":"crewMin","wert":2},{"feld":"sizeClass","wert":6},{"feld":"hullHp","wert":275000},{"feld":"shieldHp","wert":211200},{"feld":"scmSpeed","wert":115},{"feld":"maxSpeed","wert":950},{"feld":"boostForward","wert":270},{"feld":"pitch","wert":9},{"feld":"yaw","wert":9},{"feld":"roll","wert":16},{"feld":"massKg","wert":4151386},{"feld":"cargoSCU","wert":400},{"feld":"qtSpeedMs","wert":392090592},{"feld":"qtRangeM","wert":141386075586},{"feld":"qtFuel","wert":17.3},{"feld":"h2Fuel","wert":53.2},{"feld":"insClaimMin","wert":45},{"feld":"turretDps","wert":4637.2},{"feld":"missileCount","wert":8},{"feld":"cmLaunchers","wert":2},{"feld":"turretWeapons","wert":["2× CF-557 Galdereen Repeater (S5)","4× CF-337 Panther Repeater (S3)"]},{"feld":"missileRacks","wert":["8× Arrester III Missile (S3)"]},{"feld":"powerPlants","wert":["1× SuperDrive (S3)"]},{"feld":"shields","wert":["2× SureStop (S3)"]},{"feld":"coolers","wert":["2× Mercury (S3)"]},{"feld":"quantumDrives","wert":["1× Pontes (S3)"]},{"feld":"radars","wert":["1× Epier (S2)"]}]},
+    {"kind":"ship","id":"anvl-ballista","slug":"anvl-ballista","name":"HM6 Ballista","change":"renamed","nameVorher":"Ballista","felder":[]},
+    {"kind":"ship","id":"anvl-ballista-dunestalker","slug":"anvl-ballista-dunestalker","name":"HM6 Ballista Dunestalker","change":"renamed","nameVorher":"Ballista Dunestalker","felder":[]},
+    {"kind":"ship","id":"anvl-ballista-snowblind","slug":"anvl-ballista-snowblind","name":"HM6 Ballista Snowblind","change":"renamed","nameVorher":"Ballista Snowblind","felder":[]},
+    {"kind":"ship","id":"anvl-centurion","slug":"anvl-centurion","name":"HM6 Centurion","change":"renamed","nameVorher":"Centurion","felder":[]},
+    {"kind":"ship","id":"anvl-spartan","slug":"anvl-spartan","name":"HM6 Spartan","change":"renamed","nameVorher":"Spartan","felder":[]},
+    {"kind":"ship","id":"anvl-carrack","slug":"anvl-carrack","name":"Carrack","change":"changed","felder":[{"feld":"radars","vorher":["1× Surveyor (S2)"],"nachher":["1× Surveyor-Max (S3)"]}]},
+    {"kind":"ship","id":"anvl-carrack-expedition","slug":"anvl-carrack-expedition","name":"Carrack Expedition","change":"changed","felder":[{"feld":"radars","vorher":["1× Surveyor (S2)"],"nachher":["1× Surveyor-Max (S3)"]}]},
+    {"kind":"ship","id":"rsi-constellation-mk5-centaurus","slug":"rsi-constellation-mk5-centaurus","name":"Constellation Mk V Centaurus","change":"changed","felder":[{"feld":"h2Fuel","vorher":46.8,"nachher":32},{"feld":"radars","vorher":["1× RADR_WLOP_S03_Lephari (S3)"],"nachher":["1× Lephari (S3)"]}]},
+    {"kind":"ship","id":"misc-starlancer-max","slug":"misc-starlancer-max","name":"MISC Starlancer MAX","change":"changed","felder":[{"feld":"radars","vorher":["1× Surveyor (S2)"],"nachher":["1× Surveyor-Max (S3)"]}]},
+    {"kind":"ship","id":"misc-starlancer-tac","slug":"misc-starlancer-tac","name":"MISC Starlancer TAC","change":"changed","felder":[{"feld":"radars","vorher":["1× Surveyor (S2)"],"nachher":["1× Surveyor-Max (S3)"]}]},
+    {"kind":"ship","id":"rsi-perseus","slug":"rsi-perseus","name":"Perseus","change":"changed","felder":[{"feld":"radars","vorher":["1× Epier (S2)"],"nachher":["1× Resolu (S3)"]}]},
+    {"kind":"ship","id":"rsi-polaris","slug":"rsi-polaris","name":"Polaris","change":"changed","felder":[{"feld":"shields","vorher":["1× Glacis (S4)"],"nachher":["1× Deterrent (S4)"]}]},
+    {"kind":"ship","id":"aegs-vanguard-harbinger","slug":"aegs-vanguard-harbinger","name":"Vanguard Harbinger","change":"changed","felder":[{"feld":"turretWeapons","vorher":["2× Jericho XL (S3)"],"nachher":["3× Jericho XL (S3)"]}]},
+    {"kind":"ship","id":"aegs-vanguard-hoplite","slug":"aegs-vanguard-hoplite","name":"Vanguard Hoplite","change":"changed","felder":[{"feld":"turretDps","vorher":400,"nachher":750},{"feld":"turretWeapons","vorher":["2× SW16BR2 “Sawbuck” Repeater (S2)"],"nachher":["2× SW16BR3 “Shredder” Repeater (S3)"]}]},
+    {"kind":"ship","id":"aegs-vanguard-sentinel","slug":"aegs-vanguard-sentinel","name":"Vanguard Sentinel","change":"changed","felder":[{"feld":"turretWeapons","vorher":["2× Suckerpunch-L Cannon (S2)"],"nachher":["2× Suckerpunch-XL Cannon (S3)"]}]},
+    {"kind":"ship","id":"aegs-vanguard","slug":"aegs-vanguard","name":"Vanguard Warden","change":"changed","felder":[{"feld":"turretDps","vorher":400,"nachher":750},{"feld":"turretWeapons","vorher":["2× SW16BR2 “Sawbuck” Repeater (S2)"],"nachher":["2× SW16BR3 “Shredder” Repeater (S3)"]}]},
+    {"kind":"ship","id":"rsi-zeus-es","slug":"rsi-zeus-es","name":"Zeus Mk II ES","change":"changed","felder":[{"feld":"radars","vorher":["1× RADR_WLOP_S03_Lephari (S3)"],"nachher":["1× Lephari (S3)"]}]},
+    {"kind":"ship","id":"rsi-constellation-phoenix-emerald","slug":"rsi-constellation-phoenix-emerald","name":"Constellation Mk IV Phoenix Emerald","change":"removed"},
+    {"kind":"ship","id":"aegs-hammerhead-showdown","slug":"aegs-hammerhead-showdown","name":"Hammerhead 2949 Best In Show Edition","change":"removed"},
+    {"kind":"price","id":"glsn-basher","slug":"glsn-basher","name":"Basher","change":"new","angebote":[{"preis":3174190,"haendler":"Buy and Fly Checkmate","ort":"Checkmate Station","system":"Pyro"},{"preis":3174190,"haendler":"Buy and Fly Orbituary","ort":"Orbituary","system":"Pyro"},{"preis":3174190,"haendler":"Buy and Fly Ruin Station","ort":"Ruin Station","system":"Pyro"}]},
+    {"kind":"price","id":"drak-ironclad","slug":"drak-ironclad","name":"Ironclad","change":"new","angebote":[{"preis":41773300,"haendler":"Teach's Levski","ort":"Levski","system":"Nyx"}]},
+    {"kind":"price","id":"drak-ironclad-assault","slug":"drak-ironclad-assault","name":"Ironclad Assault","change":"new","angebote":[{"preis":42880200,"haendler":"Buy and Fly Checkmate","ort":"Checkmate Station","system":"Pyro"},{"preis":42880200,"haendler":"Buy and Fly Orbituary","ort":"Orbituary","system":"Pyro"},{"preis":42880200,"haendler":"Buy and Fly Ruin Station","ort":"Ruin Station","system":"Pyro"}]},
+    {"kind":"price","id":"orig-m80","slug":"orig-m80","name":"M80","change":"new","angebote":[{"preis":7938000,"haendler":"Astro Armada","ort":"Area 18","system":"Stanton"}]},
+    {"kind":"price","id":"misc-starlite","slug":"misc-starlite","name":"MISC Starlite","change":"new","angebote":[{"preis":1058400,"haendler":"Teach's Levski","ort":"Levski","system":"Nyx"},{"preis":1058400,"haendler":"New Deal Lorville","ort":"Lorville","system":"Stanton"}]},
+    {"kind":"price","id":"drak-pitbull","slug":"drak-pitbull","name":"Pitbull","change":"new","angebote":[{"preis":605982,"haendler":"Buy and Fly Checkmate","ort":"Checkmate Station","system":"Pyro"},{"preis":605982,"haendler":"Buy and Fly Orbituary","ort":"Orbituary","system":"Pyro"},{"preis":605982,"haendler":"Buy and Fly Ruin Station","ort":"Ruin Station","system":"Pyro"},{"preis":637875,"haendler":"Teach's Levski","ort":"Levski","system":"Nyx"}]},
+    {"kind":"price","id":"aegs-tiburon","slug":"aegs-tiburon","name":"Tiburon","change":"new","angebote":[{"preis":37001700,"haendler":"New Deal Lorville","ort":"Lorville","system":"Stanton"}]},
+    {"kind":"price","id":"gama-tyilui","slug":"gama-tyilui","name":"Tyilui","change":"new","angebote":[{"preis":9436330,"haendler":"Astro Armada","ort":"Area 18","system":"Stanton"}]},
+    {"kind":"item","id":"d149d82a5b5a9f672981e38b66c93f93","slug":"2956-best-in-show-bomber-jacket","name":"2956 Best in Show Bomber Jacket","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3c420ec0c4be8863f748a999f0b3d089","slug":"aurora-mk-ii-deck-the-hull-livery","name":"Aurora Mk II Deck the Hull Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5e4b635dfcf5f355757c9d6cca4467ab","slug":"aurora-mk-ii-icebreak-livery","name":"Aurora Mk II IceBreak Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d5459c1075ccf23abba93aac44be75bf","slug":"bobcat-varsity-jacket-cousin-crow-s","name":"Bobcat Varsity Jacket Cousin Crow's","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"e2433822c5f33bc53badabfffce012b4","slug":"c54-epoque-smg","name":"C54 \"Epoque\" SMG","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":177.29},{"feld":"damage.physical","wert":11.5},{"feld":"fireRate","wert":925},{"feld":"magazine","wert":50}]},
+    {"kind":"item","id":"464d969af99bc6ce7e95192e0cb9f099","slug":"cambio-piconalia-srt","name":"Cambio \"Piconalia\" SRT","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Gadget"}]},
+    {"kind":"item","id":"6c43fb82fa15bd794a1f579f73ef2da8","slug":"coda-piconalia-pistol","name":"Coda \"Piconalia\" Pistol","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Ballistic"},{"feld":"dps","wert":180},{"feld":"damage.physical","wert":60},{"feld":"fireRate","wert":180},{"feld":"magazine","wert":6}]},
+    {"kind":"item","id":"b9497df7e01ab011f611551758bd58b7","slug":"corsair-2956-best-in-show-livery","name":"Corsair 2956 Best In Show Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"e944a9125ba6cf9c096ebb70c493b5a1","slug":"defender-deck-the-hull-livery","name":"Defender Deck the Hull Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"7743f617e8ced4f344cceb789bd0deb6","slug":"defender-icebreak-livery","name":"Defender IceBreak Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"1c4cc0872cf9148b623429793a6047a6","slug":"galaxy-bravura-livery","name":"Galaxy Bravura Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"874eea30eb929371e1cf41c3ac5e19b5","slug":"galaxy-candor-livery","name":"Galaxy Candor Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"f84cf9da2a72afc3971278c60b6d2197","slug":"galaxy-cargo-module","name":"Galaxy Cargo Module","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"C"},{"feld":"health","wert":20000}]},
+    {"kind":"item","id":"76410006cb84450903bdd23bb3cab4b5","slug":"galaxy-luster-livery","name":"Galaxy Luster Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"9548d3865fb3fc44cb59f9c54d877fb6","slug":"galaxy-magnitude-livery","name":"Galaxy Magnitude Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"604e7abda5f05560a229168089f6a5ba","slug":"galaxy-med-bay-module","name":"Galaxy Med Bay Module","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"C"},{"feld":"health","wert":20000}]},
+    {"kind":"item","id":"3f495723d45b5b0ad9904f224835b694","slug":"galaxy-protector-livery","name":"Galaxy Protector Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"af4fb354976c0e81abe9cf5481931494","slug":"galaxy-starwalker-livery","name":"Galaxy Starwalker Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3a459d9877d2af43c164304a4a33cc85","slug":"galaxy-stock-module","name":"Galaxy Stock Module","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"C"},{"feld":"health","wert":20000}]},
+    {"kind":"item","id":"ba4e970fd1f54fdf6f62357fc8a7d7a5","slug":"geist-armor-arms-epoque-ii","name":"Geist Armor Arms Epoque II","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"244c44821e00c5d9939873cfad8e39b5","slug":"geist-armor-core-epoque-ii","name":"Geist Armor Core Epoque II","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6f453f59810076e826d3cffd2aa7c29f","slug":"geist-armor-helmet-epoque","name":"Geist Armor Helmet Epoque","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"7c41fd112fd112cfa5c62980d64d1fa5","slug":"geist-armor-legs-epoque-ii","name":"Geist Armor Legs Epoque II","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"b7424727c082c96f32f7edec767c28a6","slug":"glacis","name":"Glacis","change":"new","werte":[{"feld":"size","wert":4},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Industrial"},{"feld":"health","wert":12000},{"feld":"shieldHp","wert":360000},{"feld":"regen","wert":26400}]},
+    {"kind":"item","id":"514479f70dfd8db45e2798b506fd47b5","slug":"hurricane-deck-the-hull-livery","name":"Hurricane Deck the Hull Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"944666a2185c12688765780a77518a92","slug":"hurricane-icebreak-livery","name":"Hurricane IceBreak Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"a147d98e3a8bc8b9d8d270252ed330b3","slug":"hyun-ch-iing-livery","name":"Hyun Ch.iing Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"0640ae098461b9325ea36366d9fbc6a3","slug":"hyun-chui-a-livery","name":"Hyun Chui'a Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"31475e75b3b86a5867e1b0836678a18e","slug":"hyun-hyaotan-livery","name":"Hyun Hyaotan Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"154337947d49271a859d7ed27a6322b4","slug":"hyun-suii-livery","name":"Hyun Suii Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"834d5e97de02b1e895940f3f0dc749a3","slug":"iae-2956-hat","name":"IAE 2956 Hat","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6b4dffbcd04dd46a1772767a6f82a6b2","slug":"iae-2956-t-shirt","name":"IAE 2956 T-Shirt","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"314cfaf8266c0c8e633aeae95e1dd1bd","slug":"ironclad-assault-2956-best-in-show-livery","name":"Ironclad Assault 2956 Best In Show Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"814225bca48ff8dcfa08004f37ef19bf","slug":"kamba-knife","name":"Kamba Knife","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Melee"}]},
+    {"kind":"item","id":"42495962371e2c46e4f07ee44d9ce191","slug":"lephari","name":"Lephari","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"C"},{"feld":"class","wert":"Civilian"},{"feld":"health","wert":3000}]},
+    {"kind":"item","id":"524aa8d8e069f478257cfc70c8f36cb9","slug":"liberator-brigade-livery","name":"Liberator Brigade Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"2b48f55d08adb9f42f7f2cdf0c331881","slug":"liberator-condor-livery","name":"Liberator Condor Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"474996c97d958698ff320540ee81769c","slug":"liberator-galahad-livery","name":"Liberator Galahad Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5a479dbfa02d025d790d6165e08c8a8f","slug":"liberator-last-light-livery","name":"Liberator Last Light Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6d4c533794000891a3e9bfd879ed8682","slug":"liberator-valhalla-livery","name":"Liberator Valhalla Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3a4c50cfde815c1c1bca194c4f047b96","slug":"lumin-v-piconalia-smg","name":"Lumin V \"Piconalia\" SMG","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Laser"},{"feld":"dps","wert":245},{"feld":"damage.energy","wert":21},{"feld":"fireRate","wert":700},{"feld":"magazine","wert":45}]},
+    {"kind":"item","id":"4e483bd3ca47db3649d57b1bf5fdcca2","slug":"m3a-cannon-raider-camo","name":"M3A Cannon Raider Camo","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"dps","wert":303.75},{"feld":"damage.energy","wert":182.25},{"feld":"fireRate","wert":100},{"feld":"range","wert":2004},{"feld":"speed","wert":1200},{"feld":"ammoLoad","wert":25},{"feld":"health","wert":550}]},
+    {"kind":"item","id":"96412f31c621ffb003a03c884dc2fb88","slug":"m4a-cannon-raider-camo","name":"M4A Cannon Raider Camo","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"dps","wert":455.63},{"feld":"damage.energy","wert":273.38},{"feld":"fireRate","wert":100},{"feld":"range","wert":2165},{"feld":"speed","wert":1196},{"feld":"ammoLoad","wert":25},{"feld":"health","wert":850}]},
+    {"kind":"item","id":"b540540ab0d7d59faa3acd02a8dc6ea3","slug":"m5a-cannon-raider-camo","name":"M5A Cannon Raider Camo","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"},{"feld":"dps","wert":683.63},{"feld":"damage.energy","wert":410.18},{"feld":"fireRate","wert":100},{"feld":"range","wert":2404},{"feld":"speed","wert":1184},{"feld":"ammoLoad","wert":25},{"feld":"health","wert":1024}]},
+    {"kind":"item","id":"cc43f48dfee7df6fa779f6a46bc32791","slug":"m80-2956-best-in-show-livery","name":"M80 2956 Best In Show Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d0417c01413c979d2b59297d865fff87","slug":"marauder-aquamarine-livery","name":"Marauder Aquamarine Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5140d925b5ca913b5191dafd472f97b0","slug":"marauder-bloodlet-livery","name":"Marauder Bloodlet Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d94092b66f89a579f04ca7ae1366b1b1","slug":"marauder-hardstrike-livery","name":"Marauder Hardstrike Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"904cbb177b7ebb061aee32748313cfa3","slug":"marauder-splendor-livery","name":"Marauder Splendor Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"a64a321ef6c49973b9d32bfffe2a93a2","slug":"meteor-epoque-livery","name":"Meteor Epoque Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"214c50c9384bec2e188de6f78018f3be","slug":"moth-braken-livery","name":"MOTH Braken Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"5243b9f78b41868da3e381f66d4bb0a1","slug":"moth-downrush-livery","name":"MOTH Downrush Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"934deda5e83ebeff56b8aaff1c69cb95","slug":"moth-skylight-livery","name":"MOTH Skylight Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"da45587fb39025311f4c69e139b1ec85","slug":"moth-stargazer-livery","name":"MOTH Stargazer Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"004e899ed77fcf60a29008c0af7445be","slug":"omarof-deadeye-16x-telescopic","name":"Omarof \"Deadeye\" (16x Telescopic)","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"214cf81c22803a71991e29df36d516a2","slug":"omarof-igniter-16x-telescopic","name":"Omarof \"Igniter\" (16x Telescopic)","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"e74529c82a7380abf8f1a893482fc092","slug":"omarof-mirage-16x-telescopic","name":"Omarof \"Mirage\" (16x Telescopic)","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"d847527210502faafa499125beb3aa84","slug":"omarof-venom-16x-telescopic","name":"Omarof \"Venom\" (16x Telescopic)","change":"new","werte":[{"feld":"size","wert":3},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"1b46c4fc05b8f478e2c73952e2a8acb3","slug":"perseus-2956-best-in-show-livery","name":"Perseus 2956 Best In Show Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6e48492ebe530ed6603904e7631420ac","slug":"perseus-adamantine-livery","name":"Perseus Adamantine Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"3449306b82b1607642d086250a0508ac","slug":"perseus-aftermath-livery","name":"Perseus Aftermath Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"73407d04ec2a631ecc3d52032695b9b9","slug":"perseus-arenosa-livery","name":"Perseus Arenosa Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"6d46b099f00708348e4a0ba012818397","slug":"perseus-mariner-camo-livery","name":"Perseus Mariner Camo Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"2d4795eaa3a14e03ea7b7a31273571bc","slug":"perseus-shoreline-camo-livery","name":"Perseus Shoreline Camo Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"38421d38205eb68325d1711c045c79b3","slug":"raft-deck-the-hull-livery","name":"RAFT Deck the Hull Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"4d48c3984b8343a5259883b927570bb7","slug":"raft-icebreak-livery","name":"RAFT IceBreak Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"4248e379f1087e4951e81f147e70c28d","slug":"salvage-arm-left","name":"Salvage Arm Left","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"health","wert":5000}]},
+    {"kind":"item","id":"754f7a93e1d1c72c262b95b2857f8e8f","slug":"salvage-arm-right","name":"Salvage Arm Right","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"},{"feld":"health","wert":5000}]},
+    {"kind":"item","id":"3349cd3571ba4cbf85d97924dac3f1b5","slug":"skarnov-ferrite-rifle","name":"Skarnov \"Ferrite\" Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Electron"},{"feld":"dps","wert":418.75},{"feld":"damage.energy","wert":30},{"feld":"damage.distortion","wert":35},{"feld":"damage.stun","wert":2},{"feld":"fireRate","wert":375},{"feld":"magazine","wert":30}]},
+    {"kind":"item","id":"5e496932d0ae5bcec6d93b7baff78bb3","slug":"skarnov-raider-camo-rifle","name":"Skarnov \"Raider Camo\" Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Electron"},{"feld":"dps","wert":418.75},{"feld":"damage.energy","wert":30},{"feld":"damage.distortion","wert":35},{"feld":"damage.stun","wert":2},{"feld":"fireRate","wert":375},{"feld":"magazine","wert":30}]},
+    {"kind":"item","id":"a54ac42a4d7679b29e4cff2ec7efae8c","slug":"skarnov-relay-rifle","name":"Skarnov \"Relay\" Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Electron"},{"feld":"dps","wert":418.75},{"feld":"damage.energy","wert":30},{"feld":"damage.distortion","wert":35},{"feld":"damage.stun","wert":2},{"feld":"fireRate","wert":375},{"feld":"magazine","wert":30}]},
+    {"kind":"item","id":"574d98e753347e31226ad2bdc4ad6eb3","slug":"skarnov-sparkplug-rifle","name":"Skarnov \"Sparkplug\" Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Electron"},{"feld":"dps","wert":418.75},{"feld":"damage.energy","wert":30},{"feld":"damage.distortion","wert":35},{"feld":"damage.stun","wert":2},{"feld":"fireRate","wert":375},{"feld":"magazine","wert":30}]},
+    {"kind":"item","id":"3b4c029a176df5847820083b4dacb998","slug":"skarnov-rifle","name":"Skarnov Rifle","change":"new","werte":[{"feld":"size","wert":2},{"feld":"grade","wert":"A"},{"feld":"class","wert":"Electron"},{"feld":"dps","wert":418.75},{"feld":"damage.energy","wert":30},{"feld":"damage.distortion","wert":35},{"feld":"damage.stun","wert":2},{"feld":"fireRate","wert":375},{"feld":"magazine","wert":30}]},
+    {"kind":"item","id":"9b4a3efd1cb9c562c382cf595ea3e68e","slug":"skarnov-rifle-battery-30-cap","name":"Skarnov Rifle Battery (30 cap)","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"bb4a30a0deb1b2fa60f8c3b303232b82","slug":"verdict-derivation-lmg","name":"Verdict \"Derivation\" LMG","change":"new","werte":[{"feld":"size","wert":4},{"feld":"grade","wert":"A"},{"feld":"dps","wert":143.5},{"feld":"damage.energy","wert":14.35},{"feld":"fireRate","wert":600},{"feld":"magazine","wert":75}]},
+    {"kind":"item","id":"4642fa1c376606d4a04c6c6f22729c90","slug":"wally-s-bar-retro-t-shirt","name":"Wally's Bar Retro T-Shirt","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"47476f9bd922670517129d71d7cb7db1","slug":"wolf-liberty-livery","name":"Wolf \"Liberty\" Livery","change":"new","werte":[{"feld":"size","wert":1},{"feld":"grade","wert":"A"}]},
+    {"kind":"item","id":"9a4a661a050a87d9cea3e367eb30c6be","slug":"deterrent","name":"Deterrent","change":"renamed","nameVorher":"Glacis","slugVorher":"glacis","felder":[]},
+    {"kind":"item","id":"3f467e3b807ffb144e4c9bdba3d972ba","slug":"venture-arms-infrared","name":"Venture Arms Infrared","change":"renamed","nameVorher":"Venture Arms Starwalker","slugVorher":"venture-arms-starwalker","felder":[]},
+    {"kind":"item","id":"c644e28dd1694d502892602cd16cc588","slug":"venture-arms-starwalker","name":"Venture Arms Starwalker","change":"renamed","nameVorher":"Venture Arms Infrared","slugVorher":"venture-arms-infrared","felder":[]},
+    {"kind":"item","id":"d34cccd46de8ad4d08f5dde1ca6eaeb3","slug":"venture-core-infrared","name":"Venture Core Infrared","change":"renamed","nameVorher":"Venture Core Starwalker","slugVorher":"venture-core-starwalker","felder":[]},
+    {"kind":"item","id":"86431d9428404cd4253f0f4c10afb8a4","slug":"venture-core-starwalker","name":"Venture Core Starwalker","change":"renamed","nameVorher":"Venture Core Infrared","slugVorher":"venture-core-infrared","felder":[]},
+    {"kind":"item","id":"d2434f80e3382deaa90a2ddcf404a9a3","slug":"venture-helmet-infrared","name":"Venture Helmet Infrared","change":"renamed","nameVorher":"Venture Helmet Starwalker","slugVorher":"venture-helmet-starwalker","felder":[]},
+    {"kind":"item","id":"c042a735da433aa65017149ce0bf5eb3","slug":"venture-helmet-starwalker","name":"Venture Helmet Starwalker","change":"renamed","nameVorher":"Venture Helmet Infrared","slugVorher":"venture-helmet-infrared","felder":[]},
+    {"kind":"item","id":"f6443f68ff759caed94896c0feb0eab4","slug":"venture-legs-infrared","name":"Venture Legs Infrared","change":"renamed","nameVorher":"Venture Legs Starwalker","slugVorher":"venture-legs-starwalker","felder":[]},
+    {"kind":"item","id":"064a27089c8cdf3f80876c57a0b4fb9e","slug":"venture-legs-starwalker","name":"Venture Legs Starwalker","change":"renamed","nameVorher":"Venture Legs Infrared","slugVorher":"venture-legs-infrared","felder":[]},
+    {"kind":"item","id":"3843c294f897107b4b70a6b2e9f5998e","slug":"venture-undersuit-infrared","name":"Venture Undersuit Infrared","change":"renamed","nameVorher":"Venture Undersuit Starwalker","slugVorher":"venture-undersuit-starwalker","felder":[]},
+    {"kind":"item","id":"a94870e3e5a919602a62e7af1b22258a","slug":"venture-undersuit-starwalker","name":"Venture Undersuit Starwalker","change":"renamed","nameVorher":"Venture Undersuit Infrared","slugVorher":"venture-undersuit-infrared","felder":[]},
+    {"kind":"item","id":"0640093f33450d066b6922b0ee7c85b3","slug":"constellation-andromeda-ship-armor","name":"Constellation Andromeda Ship Armor","change":"changed","felder":[{"feld":"health","vorher":25740,"nachher":30740}]},
+    {"kind":"item","id":"934976671826374ae472564b61d0e0ac","slug":"vanduul-mauler-striker-repeater","name":"Vanduul Mauler 'STRIKER' Repeater","change":"changed","felder":[{"feld":"dps","vorher":800,"nachher":3125},{"feld":"damage.energy","vorher":64,"nachher":250}]},
+    {"kind":"blueprint","id":"19446a8a6edf4943e711d111c39ce79c","name":"Corbel Arms Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Titanium 0.06 SCU","CASING: Laranite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["counterstrike-against-vanduul-raiders"]}]},
+    {"kind":"blueprint","id":"cc49c531b71fe53b5c1e1c162df9ca80","name":"Corbel Core Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Titanium 0.07 SCU (ab Q500)","CASING: Laranite 0.07 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["intercept-vanduul-fleet"]}]},
+    {"kind":"blueprint","id":"f048337b80081f57283eb778ee4a60a8","name":"Corbel Helmet Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Titanium 0.05 SCU","CASING: Laranite 0.05 SCU","INSULATIVE LINER: Aslarite 0.01 SCU"]},{"feld":"missions","wert":["intercept-vanduul-fleet"]}]},
+    {"kind":"blueprint","id":"b24d55fa071e3fab679e3b08b07dd696","name":"Corbel Legs Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Titanium 0.06 SCU","CASING: Laranite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["counterstrike-against-vanduul-raiders"]}]},
+    {"kind":"blueprint","id":"9a4a661a050a87d9cea3e367eb30c6be","name":"Deterrent","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["FIELD ARRAY: Riccite 5.7 SCU (ab Q1)","FREQUENCY CONTROLLER: Beradom 495 SCU (ab Q1)","SHELL: Riccite 3.5 SCU (ab Q1)"]}]},
+    {"kind":"blueprint","id":"4e483bd3ca47db3649d57b1bf5fdcca2","name":"M3A Cannon Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":540},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["APERTURE IRIS: Dolivine 7 SCU (ab Q1)","EMITTER: Hadanite 7 SCU (ab Q1)","FRAME: Agricium 0.36 SCU (ab Q1)"]},{"feld":"missions","wert":["draw-out-maulers"]}]},
+    {"kind":"blueprint","id":"96412f31c621ffb003a03c884dc2fb88","name":"M4A Cannon Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":960},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["APERTURE IRIS: Dolivine 13 SCU (ab Q1)","EMITTER: Hadanite 13 SCU (ab Q1)","FRAME: Agricium 0.64 SCU (ab Q1)"]},{"feld":"missions","wert":["draw-out-maulers"]}]},
+    {"kind":"blueprint","id":"b540540ab0d7d59faa3acd02a8dc6ea3","name":"M5A Cannon Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":1680},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["APERTURE IRIS: Dolivine 23 SCU (ab Q1)","EMITTER: Hadanite 23 SCU (ab Q1)","FRAME: Agricium 1.16 SCU (ab Q1)"]},{"feld":"missions","wert":["draw-out-maulers"]}]},
+    {"kind":"blueprint","id":"28453e01e6bad0ba4576f52ff6588890","name":"Palatino Arms Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":270},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Savrilium 0.06 SCU","CASING: Laranite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["neutralize-vanduul-and-shattered-blade-threat"]}]},
+    {"kind":"blueprint","id":"554145563e8cb749dfbbe228d6d914a6","name":"Palatino Backpack Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":105},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["FRAME: Ouratite 0.06 SCU"]},{"feld":"missions","wert":["stop-vanduul-and-shattered-blade-hostilities"]}]},
+    {"kind":"blueprint","id":"6b433a302657192319742fb8e655e6a3","name":"Palatino Core Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":270},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Savrilium 0.07 SCU","CASING: Laranite 0.07 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["stop-vanduul-and-shattered-blade-hostilities"]}]},
+    {"kind":"blueprint","id":"86423bce3b210c73add8c610cc08fca9","name":"Palatino Helmet Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":270},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Savrilium 0.05 SCU","CASING: Laranite 0.05 SCU","INSULATIVE LINER: Aslarite 0.01 SCU"]},{"feld":"missions","wert":["stop-vanduul-and-shattered-blade-hostilities"]}]},
+    {"kind":"blueprint","id":"3642280494aec7e0d9d4e700993eda90","name":"Palatino Legs Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":270},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CASING WEAVE: Savrilium 0.06 SCU","CASING: Laranite 0.06 SCU","INSULATIVE LINER: Aslarite 0.02 SCU"]},{"feld":"missions","wert":["neutralize-vanduul-and-shattered-blade-threat"]}]},
+    {"kind":"blueprint","id":"5e496932d0ae5bcec6d93b7baff78bb3","name":"Skarnov \"Raider Camo\" Rifle","change":"new","werte":[{"feld":"craft_time_seconds","wert":150},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["FRAME: Corundum 0.04 SCU","LENSES: Sadaryx 1 SCU","WIRING: Copper 0.02 SCU"]},{"feld":"missions","wert":["intersec-eliminate-specific-rank1"]}]},
+    {"kind":"blueprint","id":"9b4a3efd1cb9c562c382cf595ea3e68e","name":"Skarnov Rifle Battery (30 cap)","change":"new","werte":[{"feld":"craft_time_seconds","wert":10},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["CHARGE CHAMBER: Gold 0.01 SCU","MAGAZINE: Hephaestanite 0.02 SCU"]},{"feld":"missions","wert":["intersec-eliminate-specific-rank1"]}]},
+    {"kind":"blueprint","id":"0f41937e26bd47a19c9ad7a86d16f495","name":"Tailwind Flight Suit Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["SUIT UNDERLAY: Silicon 0.06 SCU"]},{"feld":"missions","wert":["interdict-vanduul-maulers"]}]},
+    {"kind":"blueprint","id":"8f4f6a15f0771be7f290af6f024a329d","name":"Tailwind Helmet Raider Camo","change":"new","werte":[{"feld":"craft_time_seconds","wert":90},{"feld":"tiers","wert":1},{"feld":"ingredients","wert":["SUIT UNDERLAY: Silicon 0.03 SCU"]},{"feld":"missions","wert":["interdict-vanduul-maulers"]}]},
+    {"kind":"blueprint","id":"42495962371e2c46e4f07ee44d9ce191","name":"Lephari","change":"renamed","nameVorher":"Radr Wlop S03 Lephari","felder":[]},
+    {"kind":"blueprint","id":"264829d7a048e802894aaea2068580a7","name":"Pulse Laser Pistol","change":"changed","felder":[{"feld":"missions","vorher":["need-resource-for-research","recover-vanduul-corpses","recover-vanduul-tech","vital-resources-needed-for-research"],"nachher":["living-vanduul-sample","need-resource-for-research","recover-vanduul-corpses","recover-vanduul-tech","vital-resources-needed-for-research"]}]},
+    {"kind":"blueprint","id":"a340fe2895976fb713c7e8c4dbff609a","name":"Pulse Laser Pistol Battery (60 Cap)","change":"changed","felder":[{"feld":"missions","vorher":["defend-intersec-operative","handle-vanduul-attack-on-ship","need-resource-for-research","operative-extraction","pilot-under-fire-from-vanduul","protect-vital-asset","recover-vanduul-corpses","recover-vanduul-tech","retrieve-additional-smuggler-intel","vital-resources-needed-for-research"],"nachher":["defend-intersec-operative","handle-vanduul-attack-on-ship","living-vanduul-sample","need-resource-for-research","operative-extraction","pilot-under-fire-from-vanduul","protect-vital-asset","recover-vanduul-corpses","recover-vanduul-tech","retrieve-additional-smuggler-intel","vital-resources-needed-for-research"]}]},
+    {"kind":"blueprint","id":"6d442024643775f77a7d6637da2e799b","name":"Testudo Arms Earthshake","change":"changed","felder":[{"feld":"missions","vorher":["recover-vanduul-corpses","recover-vanduul-tech"],"nachher":["living-vanduul-sample","recover-vanduul-corpses","recover-vanduul-tech"]}]},
+    {"kind":"blueprint","id":"00492c8ab5c6d917b670757026203996","name":"Testudo Backpack Earthshake","change":"changed","felder":[{"feld":"missions","vorher":["recover-vanduul-corpses","recover-vanduul-tech"],"nachher":["living-vanduul-sample","recover-vanduul-corpses","recover-vanduul-tech"]}]},
+    {"kind":"blueprint","id":"224fbccc5d5dd1a7cf27989a44aa73bc","name":"Testudo Core Earthshake","change":"changed","felder":[{"feld":"missions","vorher":["recover-vanduul-corpses","recover-vanduul-tech"],"nachher":["living-vanduul-sample","recover-vanduul-corpses","recover-vanduul-tech"]}]},
+    {"kind":"blueprint","id":"904f40dc03f11465acdfc741a0f179ba","name":"Testudo Helmet Earthshake","change":"changed","felder":[{"feld":"missions","vorher":["recover-vanduul-corpses","recover-vanduul-tech"],"nachher":["living-vanduul-sample","recover-vanduul-corpses","recover-vanduul-tech"]}]},
+    {"kind":"blueprint","id":"304c62649c25c57ba35b8995c82aab84","name":"Testudo Legs Earthshake","change":"changed","felder":[{"feld":"missions","vorher":["recover-vanduul-corpses","recover-vanduul-tech"],"nachher":["living-vanduul-sample","recover-vanduul-corpses","recover-vanduul-tech"]}]},
+    {"kind":"mission","id":"counterstrike-against-vanduul-raiders","slug":"counterstrike-against-vanduul-raiders","name":"Counterstrike Against Vanduul Raiders","change":"new","werte":[{"feld":"ranks","wert":["Veteran Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":2},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"draw-out-maulers","slug":"draw-out-maulers","name":"Draw Out Maulers","change":"new","werte":[{"feld":"ranks","wert":["Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":3},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"engage-shattered-blade-and-vanduul","slug":"engage-shattered-blade-and-vanduul","name":"Engage Shattered Blade and Vanduul","change":"new","werte":[{"feld":"ranks","wert":["Veteran Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"intercept-vanduul-fleet","slug":"intercept-vanduul-fleet","name":"Intercept Vanduul Fleet","change":"new","werte":[{"feld":"ranks","wert":["Veteran Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":2},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"interdict-vanduul-maulers","slug":"interdict-vanduul-maulers","name":"Interdict Vanduul Maulers","change":"new","werte":[{"feld":"ranks","wert":["Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":2},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"intersec-eliminate-specific-rank1","slug":"intersec-eliminate-specific-rank1","name":"Intersec Eliminate Specific Rank1","change":"new","werte":[{"feld":"ranks","wert":["Jr. Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":2},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"living-vanduul-sample","slug":"living-vanduul-sample","name":"Living Vanduul Sample","change":"new","werte":[{"feld":"ranks","wert":["Jr. Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":7},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"neutralize-vanduul-and-shattered-blade-threat","slug":"neutralize-vanduul-and-shattered-blade-threat","name":"Neutralize Vanduul and Shattered Blade Threat","change":"new","werte":[{"feld":"ranks","wert":["Veteran Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":2},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"retake-boarded-vessel","slug":"retake-boarded-vessel","name":"Retake Boarded Vessel","change":"new","werte":[{"feld":"ranks","wert":["Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"seek-and-destroy-super-stingers","slug":"seek-and-destroy-super-stingers","name":"Seek and Destroy Super Stingers","change":"new","werte":[{"feld":"ranks","wert":["Head Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"stop-vanduul-and-shattered-blade-hostilities","slug":"stop-vanduul-and-shattered-blade-hostilities","name":"Stop Vanduul and Shattered Blade Hostilities","change":"new","werte":[{"feld":"ranks","wert":["Veteran Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":3},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]},
+    {"kind":"mission","id":"vanduul-strike-group-detected","slug":"vanduul-strike-group-detected","name":"Vanduul Strike Group Detected","change":"new","werte":[{"feld":"ranks","wert":["Veteran Contractor → Elite Contractor"]},{"feld":"rewardMin","wert":0},{"feld":"rewardMax","wert":0},{"feld":"shareable","wert":false},{"feld":"lawful","wert":true},{"feld":"blueprints","wert":0},{"feld":"giverNames","wert":["InterSec Defense Solutions"]}]}
+  ]
+}
