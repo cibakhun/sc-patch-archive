@@ -720,6 +720,17 @@ summary:active {
 .vb-scrollbox {
   overscroll-behavior: contain;
 }
+/* Die Sperre gilt nur, solange der Kasten selbst rollt. Chrome wendet
+   `contain` auch auf einen Rollkasten OHNE Ueberlauf an: das Rad darueber
+   rollt dann nichts, weder den Kasten noch die Seite (15.11.2026, gemeldet
+   ueber der Missionsliste der Crafting-Seite, dieselbe tote Zone ueber jeder
+   kurzen Trefferliste). assets/scroll-affordance.js (SEL_DURCH) setzt
+   data-rad-durch mit den Achsen, in denen ein Kasten gerade nichts zu rollen
+   hat; dort geht das Rad wieder an den naechsten Kasten oder die Seite.
+   !important, weil manche Kaesten ihre Sperre mit hoeherem Gewicht setzen
+   (.cdb--wb > .cdb-modal .cdb-modal__box). */
+[data-rad-durch~="y"] { overscroll-behavior-y: auto !important; }
+[data-rad-durch~="x"] { overscroll-behavior-x: auto !important; }
 
 /* Weiche Unterkante, zustandsbewusst wie der waagerechte Verlauf in 5c, nur
    SENKRECHT: `is-more-y` kommt aus assets/scroll-affordance.js (SEL_VFADE),

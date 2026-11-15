@@ -52,8 +52,18 @@
   // Seite, Krisz 11.11.2026). Die Liste klebt nie, ihre Lage auf der Seite
   // haengt also nicht am Rollen. Gemessen wird auch, wenn sich die Seite
   // ueber der Werkbank aendert (Kopfleiste, Reiterzeile bricht um).
+  // Tempo der Werkbank (werkbankDesign.ts, R8): --zt streckt die Auftritte,
+  // --zo alles, was sich oft wiederholt. Der Stil rechnet selbst damit; hier
+  // gelten die Werte dem, was das Skript bewegt (Flug in den Planer, Gleiten
+  // der Zeilen, Abbild, Ende des Auftakts). Ohne Werkbank bleibt es bei 1.
+  var WB_ZT = 1, WB_ZO = 1;
   if (WB) {
     var wbRoot = $('#cdb'), wbBar = $('.cdb-bar'), wbCount = $('.cdb-count-row');
+    if (wbRoot) {
+      var wbStil = getComputedStyle(wbRoot);
+      WB_ZT = parseFloat(wbStil.getPropertyValue('--zt')) || 1;
+      WB_ZO = parseFloat(wbStil.getPropertyValue('--zo')) || 1;
+    }
     var wbLay = $('#cdb-tab-db-content > .cdb-layout');
     var wbZLay = $('#cdb-tab-dismantle-content .calc-layout'), wbZErg = $('#calc-results');
     var wbMiss = function () {
@@ -84,7 +94,7 @@
     // erscheint und dann noch einmal einfliegt) laeuft genau einmal. Danach
     // weg damit: umgehaengte Kacheln (Sortieren) und wieder eingeblendete
     // (Filter) setzten ihre Animation sonst jedes Mal neu an.
-    if (wbRoot) setTimeout(function () { wbRoot.classList.remove('wb-auftakt'); }, 1300);
+    if (wbRoot) setTimeout(function () { wbRoot.classList.remove('wb-auftakt'); }, Math.round(1300 * WB_ZT));
     // Rollt die Liste (am Schreibtisch ihr eigenes Feld), laeuft ihre
     // Oberkante weich aus statt die oberste Kachel hart abzuschneiden.
     var wbObenWartet = false;
@@ -1843,8 +1853,8 @@
     p.className = 'wb-flug';
     p.setAttribute('aria-hidden', 'true');
     document.body.appendChild(p);
-    wbFlugBis = performance.now() + 400;
-    var lauf = p.animate(bild, { duration: 620, easing: 'cubic-bezier(.4,0,.25,1)' });
+    wbFlugBis = performance.now() + 400 * WB_ZO;
+    var lauf = p.animate(bild, { duration: 620 * WB_ZO, easing: 'cubic-bezier(.4,0,.25,1)' });
     var weg = function () { if (p.parentNode) p.parentNode.removeChild(p); };
     lauf.onfinish = weg; lauf.oncancel = weg;
   }
@@ -1879,7 +1889,7 @@
     Object.keys(lage.z).forEach(function (k) { if (!da[k]) fehlt++; });
     // Geht eine Zeile, blendet erst sie aus, dann ruecken die anderen nach:
     // gleichzeitig laegen fuer einen Augenblick zwei Namen uebereinander.
-    var gleit = { duration: 320, delay: fehlt ? 90 : 0, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' };
+    var gleit = { duration: 320 * WB_ZO, delay: fehlt ? 90 * WB_ZO : 0, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' };
     // Am Handy ist der Planer ein Blatt am unteren Rand, so hoch wie sein
     // Inhalt: geht eine Zeile, sprang seine Oberkante um deren Hoehe nach
     // unten. Das Blatt gleitet deshalb mit (einzige Stelle, an der eine Hoehe
@@ -1928,7 +1938,7 @@
       g.style.width = alt.r.width + 'px';
       drawer.appendChild(g);
       var lauf = g.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(26px) scale(.97)' }],
-        { duration: 170, delay: n * 35, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+        { duration: 170 * WB_ZO, delay: n * 35 * WB_ZO, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
       var weg = function () { if (g.parentNode) g.parentNode.removeChild(g); };
       lauf.onfinish = weg; lauf.oncancel = weg;
       n++;
