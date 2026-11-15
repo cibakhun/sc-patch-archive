@@ -344,7 +344,11 @@ export const WERKBANK_DESIGN_CSS = `
 .cdb--wb .cbm__st span{font-size:var(--fs-1);font-weight:700;letter-spacing:var(--ls-10);text-transform:uppercase}
 .cdb--wb .cbm__st b{font-size:var(--fs-9)}
 /* Missionen und Pool: Zeilen mit Zeichen, Trefferquote als Marke. */
-.cdb--wb .cbm__mis{gap:.3rem;max-height:none}
+/* overflow:visible: die Liste ist hier nie gedeckelt und rollt deshalb nie
+   selbst. Als Rollkasten ohne Ueberlauf hielt sie mit ihrer Sperre aus
+   assets/mobile-ux.css das Rad fest, die Mitte liess sich darueber nicht
+   scrollen (Krisz, 15.11.2026). */
+.cdb--wb .cbm__mis{gap:.3rem;max-height:none;overflow:visible}
 .cdb--wb .cbm__mis li,.cdb--wb .cbm__pool li{padding:0 .7rem 0 0;border:1px solid var(--hl);border-radius:8px;background:var(--e2);transition:border-color var(--dur-fast) var(--ease-ui),background-color var(--dur-fast) var(--ease-ui)}
 .cdb--wb .cbm__mis li:hover,.cdb--wb .cbm__pool li:hover{border-color:color-mix(in srgb,var(--b) 55%,transparent);background:color-mix(in srgb,var(--b) 7%,var(--e2))}
 /* R6: justify-content, weil Knoepfe unter 821 px ihren Inhalt mittig stellen

@@ -2291,6 +2291,133 @@ async function probeWerkbank(page) {
   if (!wechsel.rasterVorher) return 'Werkbank 1280 px: nach dem Ansichtswechsel traegt das Raster kein .is-frisch, die Probe kann die Rueckkehr des Reiters nicht pruefen';
   if (wechsel.rasterNachher.klasse || wechsel.rasterNachher.laeuft) return `Werkbank 1280 px: nach dem Reiterwechsel setzt das Raster selbst noch einmal an (.is-frisch ${wechsel.rasterNachher.klasse ? 'steht noch' : 'fehlt'}, ${wechsel.rasterNachher.laeuft} eigene Bewegung(en) laufen), obwohl nur der Reiter hereinkommen soll`;
 
+  // Runde 8 (Krisz 15.11.2026: „in der crafting workbench kann man nicht
+  // scrollen wenn die maus über der missionen ist wo man ein blueprint
+  // herbekommen kann“). Ein Kasten mit overflow:auto und
+  // overscroll-behavior:contain haelt in Chrome das Rad fest, auch wenn er
+  // selbst nichts zu rollen hat: darueber rollte nichts, weder das Rezept
+  // noch die Seite. Geprueft wird mit dem echten Rad, je einmal ueber einem
+  // Kasten, der selbst nichts zu rollen hat, und in jedem Zustand darf kein
+  // sichtbarer Rollkasten ohne Ueberlauf die Sperre noch tragen
+  // (assets/scroll-affordance.js, SEL_DURCH).
+  const radUeber = async (sel) => {
+    const l = await page.evaluate((s) => {
+      const e = document.querySelector(s);
+      if (!e || !e.getClientRects().length) return null;
+      const r = e.getBoundingClientRect();
+      let punkt = null;
+      for (const fy of [0.5, 0.3, 0.7, 0.15, 0.85]) {
+        const x = r.left + r.width / 2, y = r.top + r.height * fy;
+        if (y < 4 || y > innerHeight - 4) continue;
+        const t = document.elementFromPoint(x, y);
+        if (t && e.contains(t)) { punkt = { x, y }; break; }
+      }
+      // Was das Rad von hier aus rollen koennte: jeder Rollkasten vom Ziel
+      // aufwaerts, zuletzt das Fenster. Das Rad nimmt den ersten, der nach
+      // unten noch Platz hat; gemerkt wird die Lage aller.
+      const kette = [];
+      let platz = 0;
+      for (let n = e; n && n !== document.documentElement; n = n.parentElement) {
+        if (!/(auto|scroll)/.test(getComputedStyle(n).overflowY)) continue;
+        kette.push([n, n.scrollTop]);
+        platz = Math.max(platz, n.scrollHeight - n.clientHeight - n.scrollTop);
+      }
+      kette.push([window, scrollY]);
+      platz = Math.max(platz, document.documentElement.scrollHeight - innerHeight - scrollY);
+      window.__radKette = kette;
+      return { punkt, selbst: /(auto|scroll)/.test(getComputedStyle(e).overflowY) && e.scrollHeight - e.clientHeight > 1, kann: platz > 20 };
+    }, sel);
+    if (!l || !l.punkt) return { fehlt: true };
+    if (l.selbst || !l.kann) return { leer: true, selbst: l.selbst };
+    await page.mouse.move(l.punkt.x, l.punkt.y);
+    await page.waitForTimeout(150);
+    await page.mouse.wheel(0, 200);
+    const rollt = await page.waitForFunction(() => window.__radKette.some(([n, t]) => (n === window ? scrollY : n.scrollTop) !== t), null, { timeout: 1500 }).then(() => true, () => false);
+    await page.mouse.wheel(0, -200);
+    await page.waitForTimeout(250);
+    await page.mouse.move(4, 4);
+    return { rollt };
+  };
+  const radBefund = (r, wo, was) => {
+    if (r.fehlt) return `Werkbank 1280 px: ${wo} ist nicht im Bild, die Probe kann das Mausrad dort nicht pruefen`;
+    if (r.leer) return `Werkbank 1280 px: ${r.selbst ? `${wo} rollt selbst` : `unter ${wo} hat nichts mehr Platz zum Rollen`}, die Probe kann das Mausrad dort nicht pruefen`;
+    if (!r.rollt) return `Werkbank 1280 px: mit der Maus ueber ${wo} rollt das Mausrad nichts, ${was}`;
+    return null;
+  };
+  // Sichtbare Rollkaesten ohne Ueberlauf, die das Weiterrollen noch sperren.
+  // Kaesten in einer festgestellten Ebene zaehlen nicht: dort ist die Sperre
+  // die Grenze zur Seite dahinter.
+  const sperrtLeer = (p) => p.evaluate(() => {
+    const aus = [];
+    for (const e of document.querySelectorAll('#cdb *')) {
+      const s = getComputedStyle(e);
+      if (!/(auto|scroll)/.test(s.overflowY) || s.overscrollBehaviorY === 'auto' || !e.getClientRects().length) continue;
+      if (e.scrollHeight - e.clientHeight > 1) continue;
+      let fest = false;
+      for (let n = e; n && n !== document.documentElement; n = n.parentElement) if (getComputedStyle(n).position === 'fixed') { fest = true; break; }
+      if (!fest) aus.push(e.id ? `#${e.id}` : `.${e.className.toString().trim().split(/\s+/)[0] || e.tagName.toLowerCase()}`);
+    }
+    return { aus, frei: document.querySelectorAll('#cdb [data-rad-durch]').length };
+  });
+  const sperrBefund = async (zustand) => {
+    await page.waitForTimeout(600);
+    const s = await sperrtLeer(page);
+    if (s.aus.length) return `Werkbank 1280 px (${zustand}): ${s.aus.length} Kasten ohne Ueberlauf haelt das Mausrad fest (${s.aus.join(', ')}); darueber rollt nichts, weder der Kasten noch die Seite`;
+    if (!s.frei) return `Werkbank 1280 px (${zustand}): kein Kasten traegt data-rad-durch, die Probe kann nicht sagen, ob assets/scroll-affordance.js die Kaesten noch misst`;
+    return null;
+  };
+  // Leere Mitte: sie hat nichts zu rollen.
+  let rad = await sperrBefund('leere Mitte');
+  if (rad) return rad;
+  // Rezept mit Missionen, die Liste mitten im Bild, darunter noch Rezept.
+  const mitMission = await page.evaluate(() => {
+    const k = [...document.querySelectorAll('#cdb-grid .cbp')].find((c) => !c.hidden && c.dataset.mis === '1');
+    if (!k) return '';
+    k.querySelector('.cbp__name a, .cbp__name').click();
+    return k.querySelector('.cbp__name').textContent.trim();
+  });
+  if (!mitMission) return 'Werkbank 1280 px: keine Kachel mit Missionen, die Probe kann das Mausrad ueber der Missionsliste nicht pruefen';
+  await page.locator('#cdb-modal .cbm__mis').first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+  await ruht(page, '#cdb-modal');
+  await page.evaluate(() => {
+    const box = document.querySelector('#cdb-modal .cdb-modal__box'), mis = document.querySelector('#cdb-modal .cbm__mis');
+    if (!box || !mis) return;
+    box.scrollTop += mis.getBoundingClientRect().top - box.getBoundingClientRect().top - 200;
+    box.scrollTop = Math.min(box.scrollTop, box.scrollHeight - box.clientHeight - 160);
+  });
+  await page.waitForTimeout(200);
+  rad = radBefund(await radUeber('#cdb-modal .cbm__mis'), `der Missionsliste von „${mitMission}“`, 'das Rezept laesst sich dort nicht weiterrollen')
+    ?? (await sperrBefund('Rezept offen'));
+  if (rad) return rad;
+  // Planer mit einer Zeile: die Einkaufsliste ist kurz und rollt nicht selbst.
+  const planVorher = await page.$$eval('#cdb-plan-list .cdb-plan-item', (z) => z.length);
+  if (!planVorher) {
+    await page.evaluate(() => { const k = [...document.querySelectorAll('#cdb-grid .cbp')].find((c) => !c.hidden); k?.querySelector('.cbp__add')?.click(); });
+    await page.waitForTimeout(700);
+  }
+  rad = radBefund(await radUeber('#cdb-plan-shop'), 'der Einkaufsliste des Planers', 'Planer und Seite bleiben stehen')
+    ?? (await sperrBefund('Planer mit Zeile'));
+  if (!planVorher) {
+    await page.evaluate(() => document.querySelectorAll('#cdb-plan-list .cdb-plan-item [data-rm]').forEach((x) => x.click()));
+    await page.waitForTimeout(400);
+  }
+  if (rad) return rad;
+  // Suche mit wenigen Treffern: die Liste ist kuerzer als ihr Kasten.
+  await page.locator('#cdb-modal .cdb-modal__x').first().click();
+  await page.locator('#cdb-search').fill(mitMission);
+  await page.waitForTimeout(500);
+  rad = radBefund(await radUeber('#cdb-grid'), `der kurzen Trefferliste (Suche „${mitMission}“)`, 'die Seite bleibt stehen')
+    ?? (await sperrBefund('Suche mit wenigen Treffern'));
+  await page.locator('#cdb-search').fill('');
+  await page.waitForTimeout(300);
+  if (rad) return rad;
+  // Zerlege-Rechner im Ruhezustand: linke Spalte und Ergebnisfeld.
+  await page.locator('.cdb-tab-btn[data-tab="dismantle"]').first().click();
+  rad = await sperrBefund('Zerlege-Rechner');
+  await page.locator('.cdb-tab-btn[data-tab="db"]').first().click();
+  await page.waitForTimeout(300);
+  if (rad) return rad;
+
   // 2. Telefon (390 px, Touch): eigener Kontext, wie probeSuche.
   const kontext = await page.context().browser().newContext({
     viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true,
@@ -2440,6 +2567,53 @@ async function probeWerkbank(page) {
     // darin, Esc gibt ihn zurueck (probeRezeptDialog).
     const dialog = await probeRezeptDialog(p, 'Werkbank 390 px');
     if (dialog) return dialog;
+    // Runde 8: dieselbe tote Zone mit dem Finger. Setzte er auf der
+    // Missionsliste auf, liess sich das Rezeptfenster nicht wischen (die
+    // Liste fuellt bei vielen Missionen das ganze Bild). Echter Finger ueber
+    // das Protokoll des Browsers: aufsetzen, ziehen, loslassen.
+    const finger = await (async () => {
+      const offen = await p.evaluate(() => {
+        const k = [...document.querySelectorAll('#cdb-grid .cbp')].find((c) => !c.hidden && c.dataset.mis === '1');
+        if (!k) return false;
+        k.querySelector('.cbp__name a, .cbp__name').click();
+        return true;
+      });
+      if (!offen) return { fehlt: 'keine Kachel mit Missionen' };
+      await p.locator('#cdb-modal .cbm__mis').first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+      await p.waitForTimeout(600);
+      const l = await p.evaluate(() => {
+        const mis = document.querySelector('#cdb-modal .cbm__mis');
+        if (!mis) return null;
+        // der Kasten, in dem das Rezept am Telefon rollt
+        let r = mis.parentElement;
+        while (r && !(/(auto|scroll)/.test(getComputedStyle(r).overflowY) && r.scrollHeight - r.clientHeight > 1)) r = r.parentElement;
+        if (!r) return null;
+        r.scrollTop += mis.getBoundingClientRect().top - r.getBoundingClientRect().top - 260;
+        r.scrollTop = Math.min(r.scrollTop, r.scrollHeight - r.clientHeight - 200);
+        window.__fingerKasten = r;
+        const q = mis.getBoundingClientRect();
+        const y = Math.max(q.top + 30, 120);
+        const t = document.elementFromPoint(q.left + q.width / 2, y);
+        return { x: q.left + q.width / 2, y, auf: !!t && mis.contains(t), top: r.scrollTop, rest: r.scrollHeight - r.clientHeight - r.scrollTop };
+      });
+      if (!l || !l.auf || l.y > 760 || l.rest < 100) return { fehlt: l ? `Liste bei y=${Math.round(l.y)}, darunter ${Math.round(l.rest)} px Rezept` : 'kein rollender Kasten um die Missionsliste' };
+      const cdp = await kontext.newCDPSession(p);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: l.x, y: l.y, id: 1 }] });
+      for (let i = 1; i <= 12; i++) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: l.x, y: l.y - (i * 180) / 12, id: 1 }] });
+        await p.waitForTimeout(16);
+      }
+      await p.waitForTimeout(120);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await p.waitForTimeout(400);
+      const danach = await p.evaluate(() => window.__fingerKasten.scrollTop);
+      await cdp.detach().catch(() => {});
+      await p.locator('#cdb-modal .cdb-modal__x').first().tap();
+      await p.waitForTimeout(300);
+      return { vorher: l.top, danach };
+    })();
+    if (finger.fehlt) return `Werkbank 390 px: die Probe kann das Wischen ueber der Missionsliste nicht pruefen (${finger.fehlt})`;
+    if (finger.danach <= finger.vorher + 20) return `Werkbank 390 px: setzt der Finger auf der Missionsliste auf, laesst sich das Rezeptfenster nicht wischen (vorher ${Math.round(finger.vorher)} px, danach ${Math.round(finger.danach)} px)`;
     // Filter-Schublade: das ✕ oben muss antippbar sein (nicht unter der
     // Site-Nav) und schliesst. Gilt fuer die klassische Seite genauso, die
     // Werkbank erbt die Telefon-Regel von CraftingApp.
