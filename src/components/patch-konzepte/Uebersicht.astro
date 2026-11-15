@@ -32,11 +32,11 @@ const KONZEPTE = [
 </main>
 <style>
   .konzepte{max-width:1280px;margin:0 auto;padding:7rem 1rem 3rem}
-  .konzepte .eyebrow{font-family:var(--font-ui,sans-serif);text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;color:var(--accent,#e0563f);margin:0 0 .4rem}
+  .konzepte .eyebrow{font-family:var(--font-ui,sans-serif);text-transform:uppercase;letter-spacing:var(--ls-12);font-size:var(--fs-6);color:var(--accent,#e0563f);margin:0 0 .4rem}
   .konzepte h1{font-family:var(--font-display,sans-serif);font-size:clamp(1.8rem,4.5vw,3rem);margin:0 0 .5rem}
   .konzepte .lead{color:var(--muted,#a3abb8);margin:0 0 2rem}
   .konzepte ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:1.4rem;padding:0;margin:0}
-  .konzepte a{display:block;color:inherit;text-decoration:none;border:1px solid var(--line-soft,rgba(255,255,255,.12));background:rgba(255,255,255,.02);transition:border-color .15s,transform .15s}
+  .konzepte a{display:block;color:inherit;text-decoration:none;border:1px solid var(--line-soft,rgba(255,255,255,.12));background:rgba(255,255,255,.02);transition:border-color var(--dur-fast) var(--ease-ui),transform var(--dur-fast) var(--ease-ui)}
   .konzepte a:hover,.konzepte a:focus-visible{border-color:var(--accent,#e0563f);transform:translateY(-2px)}
   .konzepte img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover}
   .konzepte h2{font-size:var(--fs-12,1.25rem);margin:.9rem 1rem .3rem}

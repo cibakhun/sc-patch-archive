@@ -13,7 +13,7 @@ interface Props {
   class?: string;
 }
 const { art, toene = ['#3a3d42', '#9aa0a8'], gruppen = [], label, class: cls } = Astro.props;
-const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' };
+const a11y: astroHTML.JSX.SVGAttributes = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' };
 
 // Kontakte auf dem Schirm: jede Gruppe ein Sektor, jeder Auftrag ein Punkt.
 const kontakte = gruppen.flatMap((anzahl, g) => Array.from({ length: anzahl }, (_, i) => {

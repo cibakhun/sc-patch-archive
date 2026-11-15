@@ -448,29 +448,29 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 var(--gut); }
   [id] { scroll-margin-top: 5.5rem; }
 
-  .stand { font-family: var(--f-mono); font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
-  .chip { display: inline-block; font-family: var(--f-ui); font-weight: 600; font-size: .8rem; line-height: 1.2; padding: .22rem .55rem; border: 1px solid currentColor; border-radius: 2px; text-decoration: none; white-space: nowrap; }
+  .stand { font-family: var(--f-mono); font-size: var(--fs-4); letter-spacing: var(--ls-7); text-transform: uppercase; opacity: .75; }
+  .chip { display: inline-block; font-family: var(--f-ui); font-weight: 600; font-size: var(--fs-6); line-height: 1.2; padding: .22rem .55rem; border: 1px solid currentColor; border-radius: 2px; text-decoration: none; white-space: nowrap; }
   .chip:hover { background: var(--rot); border-color: var(--rot); color: #fff; }
   .chip--rot { border-color: var(--rot); color: var(--rot); }
-  .tag { font-family: var(--f-ui); font-weight: 700; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; padding: .15rem .5rem; background: var(--rot); color: #fff; white-space: nowrap; }
+  .tag { font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-4); letter-spacing: var(--ls-12); text-transform: uppercase; padding: .15rem .5rem; background: var(--rot); color: #fff; white-space: nowrap; }
   .tag--aus { background: transparent; color: inherit; border: 1px dashed currentColor; }
-  .klein { font-size: .9rem; }
+  .klein { font-size: var(--fs-8); }
 
   /* ---------- Titelseite ---------- */
   .cover { padding: 6.3rem 0 2.2rem; background: radial-gradient(120% 70% at 80% 0, #1a1f2b, var(--ink) 60%); }
-  .mast { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; align-items: baseline; border-bottom: 3px solid var(--rot); padding-bottom: .45rem; font-family: var(--f-ui); font-weight: 600; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; color: var(--grau); }
+  .mast { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; align-items: baseline; border-bottom: 3px solid var(--rot); padding-bottom: .45rem; font-family: var(--f-ui); font-weight: 600; font-size: var(--fs-6); letter-spacing: var(--ls-13); text-transform: uppercase; color: var(--grau); }
   .brand { color: var(--hell); }
   .brand b { color: var(--rot); }
   .notes { margin-left: auto; text-decoration: none; color: var(--eis); }
   .titel { display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: end; padding: .8rem 0 1rem; }
   .titel h1 { margin: 0; display: flex; flex-direction: column; font-family: var(--f-display); font-weight: 600; line-height: .8; }
-  .nr { font-size: clamp(5rem, 10vw, 7rem); letter-spacing: -.01em; color: var(--hell); }
-  .cn { font-family: var(--f-ui); font-weight: 700; font-size: clamp(1rem, 1.9vw, 1.35rem); letter-spacing: .08em; text-transform: uppercase; line-height: 1.1; margin-top: .45rem; color: var(--grau); }
+  .nr { font-size: clamp(5rem, 10vw, 7rem); letter-spacing: var(--ls-2); color: var(--hell); }
+  .cn { font-family: var(--f-ui); font-weight: 700; font-size: clamp(1rem, 1.9vw, 1.35rem); letter-spacing: var(--ls-10); text-transform: uppercase; line-height: 1.1; margin-top: .45rem; color: var(--grau); }
   .cn em { font-style: normal; color: var(--rot); }
   .titel__rechts { max-width: 40rem; justify-self: end; }
-  .satz { margin: 0 0 .8rem; font-size: 1.12rem; line-height: 1.4; }
+  .satz { margin: 0 0 .8rem; font-size: var(--fs-11); line-height: 1.4; }
   .sprung { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; }
-  .sprung a { display: inline-block; font-family: var(--f-ui); font-weight: 600; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; padding: .25rem .6rem; background: var(--ink-3); border-radius: 2px; }
+  .sprung a { display: inline-block; font-family: var(--f-ui); font-weight: 600; font-size: var(--fs-6); letter-spacing: var(--ls-9); text-transform: uppercase; text-decoration: none; padding: .25rem .6rem; background: var(--ink-3); border-radius: 2px; }
   .sprung a:hover { background: var(--rot); color: #fff; }
 
   .bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 180px); gap: 10px; grid-template-areas: "gross gross schiffe schiffe" "gross gross auec mauler" "radar salvage torpedo bauplan"; }
@@ -486,18 +486,18 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .t--bauplan .t__bild { position: absolute; }
   .t--bauplan :global(.t__gewehr) { position: absolute; left: 6%; top: 8%; width: 88%; height: auto; filter: drop-shadow(0 0 1px #efe6c8) drop-shadow(0 0 1px #efe6c8) drop-shadow(0 8px 10px rgba(0, 0, 0, .6)); }
   .t__txt { text-shadow: 0 1px 3px rgba(0, 0, 0, .8); position: absolute; inset: auto 0 0 0; padding: .7rem .85rem .75rem; display: flex; flex-direction: column; gap: .1rem; }
-  .t__k { font-family: var(--f-ui); font-weight: 700; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--eis); display: flex; gap: .5rem; align-items: center; }
+  .t__k { font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--eis); display: flex; gap: .5rem; align-items: center; }
   .t--changed .t__k { color: #ffc7b8; }
-  .t__marke { background: var(--rot); color: #fff; padding: .05rem .4rem; letter-spacing: .1em; }
-  .t__v { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 2.15rem; line-height: .95; }
+  .t__marke { background: var(--rot); color: #fff; padding: .05rem .4rem; letter-spacing: var(--ls-11); }
+  .t__v { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-17); line-height: .95; }
   .t__v a { text-decoration: none; }
   .t__v a::after { content: ""; position: absolute; inset: 0; z-index: 0; }
   .t--gross .t__v { font-size: clamp(2.6rem, 5vw, 4.4rem); }
   .t--gross .t__txt { padding: 1.3rem 1.4rem 1.2rem; }
-  .t--gross .t__s { font-size: 1.05rem; max-width: 30rem; }
-  .t__s { margin: 0; font-size: .85rem; line-height: 1.3; color: #d5dae2; }
+  .t--gross .t__s { font-size: var(--fs-11); max-width: 30rem; }
+  .t__s { margin: 0; font-size: var(--fs-7); line-height: 1.3; color: #d5dae2; }
   .t__fuss { display: flex; flex-wrap: wrap; gap: .3rem .8rem; align-items: baseline; margin-top: .3rem; }
-  .t__link { position: relative; z-index: 1; font-family: var(--f-ui); font-weight: 700; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--eis); text-decoration: none; }
+  .t__link { position: relative; z-index: 1; font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-9); text-transform: uppercase; color: var(--eis); text-decoration: none; }
   .t__link:hover { text-decoration: underline; }
   .t:hover .t__bild :global(img) { transform: scale(1.04); }
   .t:has(.t__v a:focus-visible) { outline: 2px solid var(--eis); }
@@ -507,38 +507,38 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .hell { background: var(--paper); color: var(--on-paper); }
   .hell .stand { color: var(--on-paper-2); opacity: 1; }
   .kopf { display: grid; grid-template-columns: 1fr auto; gap: .2rem 2rem; align-items: end; margin-bottom: 2rem; border-top: 1px solid currentColor; padding-top: .7rem; }
-  .rubrik { grid-column: 1 / -1; font-family: var(--f-ui); font-weight: 700; font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; color: var(--rot); }
+  .rubrik { grid-column: 1 / -1; font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-15); text-transform: uppercase; color: var(--rot); }
   .hell .rubrik { color: var(--rot-tief); }
   .kopf h2 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: .9; }
-  .kopf .lead { grid-column: 1 / -1; max-width: 46rem; margin: .8rem 0 0; font-size: 1.08rem; }
+  .kopf .lead { grid-column: 1 / -1; max-width: 46rem; margin: .8rem 0 0; font-size: var(--fs-11); }
   .kopf__meta { margin: 0; display: flex; gap: 1rem; align-items: baseline; font-family: var(--f-ui); font-weight: 600; }
   .kopf__meta a { color: var(--rot-tief); }
   .dunkel .kopf__meta a { color: var(--eis); }
   .fakten { list-style: none; display: flex; gap: 1.6rem; margin: 0; padding: 0; }
-  .fakten li { display: flex; flex-direction: column; font-family: var(--f-ui); font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--grau); }
-  .fakten b { font-family: var(--f-display); font-weight: 600; font-size: 2.6rem; line-height: .9; letter-spacing: 0; color: var(--hell); }
-  .zwischen { font-family: var(--f-ui); font-weight: 700; font-size: .85rem; letter-spacing: .18em; text-transform: uppercase; margin: 3rem 0 1rem; padding-bottom: .4rem; border-bottom: 1px solid rgba(238, 241, 245, .2); }
+  .fakten li { display: flex; flex-direction: column; font-family: var(--f-ui); font-size: var(--fs-6); font-weight: 600; letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--grau); }
+  .fakten b { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-18); line-height: .9; letter-spacing: var(--ls-3); color: var(--hell); }
+  .zwischen { font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-7); letter-spacing: var(--ls-15); text-transform: uppercase; margin: 3rem 0 1rem; padding-bottom: .4rem; border-bottom: 1px solid rgba(238, 241, 245, .2); }
 
   /* Auftraege */
   .einsaetze { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
   .einsatz { background: var(--ink-2); display: flex; flex-direction: column; }
   .einsatz__bild { position: relative; margin: 0; aspect-ratio: 16 / 7; overflow: hidden; }
   .einsatz__bild :global(img) { height: 100%; object-fit: cover; }
-  .einsatz__bild figcaption { position: absolute; left: 0; bottom: 0; background: var(--rot); color: #fff; font-family: var(--f-ui); font-weight: 700; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; padding: .25rem .7rem; }
+  .einsatz__bild figcaption { position: absolute; left: 0; bottom: 0; background: var(--rot); color: #fff; font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-13); text-transform: uppercase; padding: .25rem .7rem; }
   .einsatz__txt { padding: 1rem 1.2rem 1.2rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
-  .einsatz h3 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.9rem; line-height: 1; }
-  .einsatz p { margin: 0; color: var(--grau); font-size: .92rem; }
+  .einsatz h3 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: var(--fs-16); line-height: 1; }
+  .einsatz p { margin: 0; color: var(--grau); font-size: var(--fs-8); }
   .einsatz ol { list-style: none; margin: .2rem 0 .2rem; padding: 0; display: flex; flex-direction: column; }
   .einsatz li { display: flex; flex-wrap: wrap; gap: .25rem .6rem; align-items: center; padding: .45rem 0; border-top: 1px solid rgba(238, 241, 245, .1); }
   .einsatz li > a:first-child { font-weight: 600; text-decoration: none; margin-right: auto; }
   .einsatz li > a:first-child:hover { color: var(--eis); text-decoration: underline; }
-  .rang { font-family: var(--f-mono); font-size: .72rem; color: var(--grau); }
+  .rang { font-family: var(--f-mono); font-size: var(--fs-4); color: var(--grau); }
   .einsatz .stand { margin-top: auto; }
   .galerie { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .galerie a { display: block; position: relative; text-decoration: none; background: var(--ink-3); }
   .galerie :global(img), .galerie :global(svg) { aspect-ratio: 16 / 10; height: auto; object-fit: cover; }
-  .galerie span { display: block; padding: .4rem .6rem; font-family: var(--f-ui); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--grau); }
-  .galerie b { color: var(--hell); font-size: 1rem; letter-spacing: .04em; }
+  .galerie span { display: block; padding: .4rem .6rem; font-family: var(--f-ui); font-size: var(--fs-6); letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--grau); }
+  .galerie b { color: var(--hell); font-size: var(--fs-10); letter-spacing: var(--ls-7); }
   .galerie a:hover b { color: var(--eis); }
 
   /* Neue Schiffe */
@@ -553,28 +553,28 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .spread__txt h3 { margin: .1rem 0 .4rem; font-family: var(--f-display); font-weight: 600; font-size: clamp(3rem, 6vw, 4.8rem); line-height: .85; }
   .spread__txt h3 a { text-decoration: none; }
   .spread__txt h3 a:hover { color: var(--rot-tief); }
-  .spread__txt > p { margin: 0 0 1rem; font-size: .95rem; color: var(--on-paper-2); }
+  .spread__txt > p { margin: 0 0 1rem; font-size: var(--fs-9); color: var(--on-paper-2); }
   .daten { margin: 0 0 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(17, 20, 26, .15); border: 1px solid rgba(17, 20, 26, .15); }
   .daten div { background: var(--paper-2); padding: .45rem .65rem; }
-  .daten dt { font-family: var(--f-ui); font-weight: 700; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--on-paper-2); }
-  .daten dd { margin: 0; font-weight: 600; font-size: .92rem; }
+  .daten dt { font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-4); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--on-paper-2); }
+  .daten dd { margin: 0; font-weight: 600; font-size: var(--fs-8); }
   .daten dd :global(a) { color: var(--rot-tief); }
   .chips { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem; margin: 0 0 1rem; padding: 0; }
   .vergleich { background: var(--paper-2); padding: .8rem .9rem; margin-bottom: 1rem; }
-  .vergleich__kopf { margin: 0 0 .5rem; font-family: var(--f-ui); font-weight: 700; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--on-paper-2); }
+  .vergleich__kopf { margin: 0 0 .5rem; font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-6); letter-spacing: var(--ls-11); text-transform: uppercase; color: var(--on-paper-2); }
   .vergleich__kopf a { color: var(--on-paper); }
   .vergleich ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
   .vergleich li { display: grid; grid-template-columns: 6.5rem 1fr; gap: 2px .6rem; align-items: center; }
-  .vergleich__k { grid-row: span 2; font-size: .8rem; font-weight: 600; }
+  .vergleich__k { grid-row: span 2; font-size: var(--fs-6); font-weight: 600; }
   .bar { position: relative; display: flex; align-items: center; height: 15px; }
   .bar i { display: block; height: 100%; width: calc(var(--w) * 70%); min-width: 2px; }
-  .bar em { font-style: normal; font-family: var(--f-mono); font-size: .68rem; margin-left: .4rem; white-space: nowrap; }
+  .bar em { font-style: normal; font-family: var(--f-mono); font-size: var(--fs-4); margin-left: .4rem; white-space: nowrap; }
   .bar--a i { background: var(--rot-tief); }
   .bar--b i { background: #9aa3b2; }
-  .legende { margin: .6rem 0 0; font-size: .78rem; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
+  .legende { margin: .6rem 0 0; font-size: var(--fs-6); display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
   .dot { width: .7rem; height: .7rem; display: inline-block; }
   .dot--a { background: var(--rot-tief); } .dot--b { background: #9aa3b2; margin-left: .5rem; }
-  .mehr { font-family: var(--f-ui); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--rot-tief); }
+  .mehr { font-family: var(--f-ui); font-weight: 700; letter-spacing: var(--ls-10); text-transform: uppercase; color: var(--rot-tief); }
 
   /* aUEC */
   .laden { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
@@ -583,16 +583,16 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .ware__bild :global(img) { height: 100%; object-fit: cover; transition: transform .4s ease; }
   .ware:hover .ware__bild :global(img) { transform: scale(1.04); }
   .ware__txt { padding: .7rem .85rem .85rem; }
-  .ware__hersteller { font-family: var(--f-ui); font-weight: 600; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--grau); }
-  .ware h3 { margin: 0 0 .4rem; font-family: var(--f-display); font-weight: 500; font-size: 1.9rem; line-height: 1; }
+  .ware__hersteller { font-family: var(--f-ui); font-weight: 600; font-size: var(--fs-4); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--grau); }
+  .ware h3 { margin: 0 0 .4rem; font-family: var(--f-display); font-weight: 500; font-size: var(--fs-16); line-height: 1; }
   .ware h3 a { text-decoration: none; }
   .ware h3 a:hover { color: var(--eis); }
   .ware dl { margin: 0; }
   .ware dl div { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; padding: .35rem 0; border-top: 1px solid rgba(238, 241, 245, .1); }
-  .ware dt { font-size: .76rem; color: var(--grau); line-height: 1.25; }
-  .ware dt b { display: block; color: var(--hell); font-size: .84rem; }
-  .ware dd { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 1.45rem; line-height: 1; white-space: nowrap; color: var(--eis); }
-  .ware dd small { font-family: var(--f-ui); font-size: .7rem; margin-left: .2rem; color: var(--grau); }
+  .ware dt { font-size: var(--fs-5); color: var(--grau); line-height: 1.25; }
+  .ware dt b { display: block; color: var(--hell); font-size: var(--fs-7); }
+  .ware dd { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: var(--fs-14); line-height: 1; white-space: nowrap; color: var(--eis); }
+  .ware dd small { font-family: var(--f-ui); font-size: var(--fs-4); margin-left: .2rem; color: var(--grau); }
   .stand--zeile { margin: 1rem 0 0; }
 
   /* Werte */
@@ -601,29 +601,29 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .tafel__bild { position: relative; margin: 0; aspect-ratio: 16 / 6; overflow: hidden; background: var(--ink); }
   .tafel__bild :global(img) { height: 100%; object-fit: cover; }
   .tafel__bild figcaption { position: absolute; inset: auto 0 0 0; display: flex; justify-content: space-between; align-items: end; gap: 1rem; padding: .6rem .9rem; background: linear-gradient(180deg, transparent, rgba(8, 10, 14, .85)); color: var(--hell); }
-  .tafel__bild h3 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 2rem; line-height: .9; }
+  .tafel__bild h3 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-17); line-height: .9; }
   .tafel .tag--aus { color: var(--hell); }
   .zeilen { list-style: none; margin: 0; padding: .3rem .9rem; }
   .zeilen li { display: grid; grid-template-columns: 1fr auto; gap: .2rem 1rem; align-items: center; padding: .55rem 0; border-bottom: 1px solid rgba(17, 20, 26, .12); }
-  .zeile__was { font-weight: 600; font-size: .9rem; }
+  .zeile__was { font-weight: 600; font-size: var(--fs-8); }
   .zeile__was a { color: var(--on-paper); }
-  .zeile__wert { font-weight: 400; color: var(--on-paper-2); font-size: .84rem; }
+  .zeile__wert { font-weight: 400; color: var(--on-paper-2); font-size: var(--fs-7); }
   .zeile__wert :global(a) { color: var(--on-paper-2); }
   .zeile__ba { display: flex; align-items: baseline; gap: .4rem; justify-content: end; flex-wrap: wrap; text-align: right; }
-  .vorher { color: var(--on-paper-2); text-decoration: line-through; text-decoration-thickness: 1px; font-size: .88rem; }
+  .vorher { color: var(--on-paper-2); text-decoration: line-through; text-decoration-thickness: 1px; font-size: var(--fs-8); }
   .vorher :global(a) { color: inherit; }
-  .vorher--ohne { text-decoration: none; font-family: var(--f-mono); font-size: .72rem; text-transform: uppercase; }
+  .vorher--ohne { text-decoration: none; font-family: var(--f-mono); font-size: var(--fs-4); text-transform: uppercase; }
   .pfeil { color: var(--rot-tief); }
-  .nachher { font-family: var(--f-display); font-weight: 600; font-size: 1.5rem; line-height: 1; }
+  .nachher { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-14); line-height: 1; }
   .nachher :global(a) { color: var(--on-paper); }
-  .nachher small { font-family: var(--f-ui); font-size: .75rem; }
-  .nachher--text { font-family: var(--f-body); font-size: .95rem; line-height: 1.3; }
-  .delta { font-family: var(--f-mono); font-size: .72rem; background: var(--on-paper); color: var(--paper-2); padding: .1rem .35rem; }
+  .nachher small { font-family: var(--f-ui); font-size: var(--fs-5); }
+  .nachher--text { font-family: var(--f-body); font-size: var(--fs-9); line-height: 1.3; }
+  .delta { font-family: var(--f-mono); font-size: var(--fs-4); background: var(--on-paper); color: var(--paper-2); padding: .1rem .35rem; }
   .zeile__bar { grid-column: 1 / -1; position: relative; height: 8px; background: rgba(17, 20, 26, .08); }
   .zeile__bar b, .zeile__bar i { position: absolute; left: 0; top: 0; bottom: 0; }
   .zeile__bar b { width: calc(var(--b) * 100%); background: var(--rot-tief); }
   .zeile__bar i { width: calc(var(--a) * 100%); background: var(--on-paper); z-index: 1; }
-  .notiz { margin: 0; padding: .7rem .9rem 1rem; font-size: .86rem; color: var(--on-paper-2); }
+  .notiz { margin: 0; padding: .7rem .9rem 1rem; font-size: var(--fs-7); color: var(--on-paper-2); }
   .notiz :global(a) { color: var(--rot-tief); }
 
   /* Ausruestung */
@@ -632,7 +632,7 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .karte > :not(svg):not(ul.karte__strip) { margin-left: 1rem; margin-right: 1rem; }
   .karte--breit { grid-column: 1 / -1; padding-top: 1rem; }
   .karte__kopf { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-  .karte h3 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 2rem; line-height: 1; }
+  .karte h3 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: var(--fs-17); line-height: 1; }
   .karte p { margin: 0; color: #cfd5de; }
   .karte p :global(a) { color: var(--eis); }
   .karte .stand { margin-top: auto; }
@@ -645,12 +645,12 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .gewehre li { background: var(--ink-3); padding: .6rem .6rem .5rem; display: flex; flex-direction: column; gap: .3rem; }
   .gewehre a { text-decoration: none; }
   .gewehre :global(svg) { height: auto; aspect-ratio: 400 / 140; }
-  .gewehr__name { font-family: var(--f-ui); font-weight: 700; letter-spacing: .04em; }
+  .gewehr__name { font-family: var(--f-ui); font-weight: 700; letter-spacing: var(--ls-7); }
   .gewehre a:hover .gewehr__name { color: var(--eis); }
   .toene { display: flex; gap: 3px; }
   .toene i { width: 1.4rem; height: .5rem; border: 1px solid rgba(255, 255, 255, .2); }
   .liste { margin: 0; display: grid; gap: .5rem; }
-  .liste dt { font-family: var(--f-ui); font-weight: 700; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--grau); margin-bottom: .2rem; }
+  .liste dt { font-family: var(--f-ui); font-weight: 700; font-size: var(--fs-4); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--grau); margin-bottom: .2rem; }
   .liste dd { margin: 0; display: flex; flex-wrap: wrap; gap: .3rem; }
   .hell .liste dt { color: var(--on-paper-2); }
 
@@ -668,18 +668,18 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   /* Bestand */
   .zaehler { list-style: none; margin: 0 0 2rem; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
   .zaehler li { background: var(--ink-2); padding: 1rem; display: flex; flex-direction: column; gap: .35rem; }
-  .zaehler a { font-family: var(--f-ui); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: .82rem; color: var(--eis); }
-  .zaehler b { font-family: var(--f-display); font-weight: 600; font-size: 3.4rem; line-height: .85; }
+  .zaehler a { font-family: var(--f-ui); font-weight: 700; letter-spacing: var(--ls-11); text-transform: uppercase; font-size: var(--fs-6); color: var(--eis); }
+  .zaehler b { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-19); line-height: .85; }
   .zaehler__bar { height: 6px; background: var(--ink-3); }
   .zaehler__bar i { display: block; height: 100%; width: calc(var(--w) * 100%); min-width: 4px; background: var(--rot); }
-  .zaehler__ba { font-family: var(--f-mono); font-size: .78rem; color: var(--grau); }
-  .zaehler__ba small { font-size: .62rem; opacity: .8; }
+  .zaehler__ba { font-family: var(--f-mono); font-size: var(--fs-6); color: var(--grau); }
+  .zaehler__ba small { font-size: var(--fs-2); opacity: .8; }
   .neuzugang { display: grid; grid-template-columns: auto 1fr; gap: 1.4rem; align-items: center; }
   .neuzugang ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
   .neuzugang li { width: 220px; }
   .neuzugang a { display: block; text-decoration: none; background: var(--ink-2); }
   .neuzugang :global(img) { aspect-ratio: 16 / 9; object-fit: cover; }
-  .neuzugang span { display: block; padding: .3rem .6rem; font-family: var(--f-display); font-size: 1.4rem; line-height: 1; }
+  .neuzugang span { display: block; padding: .3rem .6rem; font-family: var(--f-display); font-size: var(--fs-14); line-height: 1; }
   .neuzugang p { margin: 0; color: #cfd5de; }
   .neuzugang p :global(a) { color: var(--eis); }
 
@@ -690,7 +690,7 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .akte summary:hover { background: var(--ink-3); }
   .akte :global(.akte__bild) { width: 140px; flex: none; }
   .akte__t { display: flex; flex-direction: column; color: var(--grau); }
-  .akte__t b { font-family: var(--f-display); font-weight: 600; font-size: 2.2rem; line-height: 1; color: var(--hell); }
+  .akte__t b { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-17); line-height: 1; color: var(--hell); }
   .akte__t b::after { content: " +"; color: var(--rot); }
   .akte[open] .akte__t b::after { content: " −"; }
 
@@ -698,11 +698,11 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   .mag-fuss { padding: 2rem var(--gut) 3rem; border-top: 1px solid rgba(238, 241, 245, .1); }
   .pager { max-width: var(--wrap); margin: 0 auto; display: flex; justify-content: space-between; gap: 1rem; }
   .pager a { text-decoration: none; display: flex; flex-direction: column; }
-  .pager span { font-family: var(--f-ui); font-weight: 600; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--grau); }
-  .pager b { font-family: var(--f-display); font-weight: 500; font-size: 1.5rem; line-height: 1.1; }
+  .pager span { font-family: var(--f-ui); font-weight: 600; font-size: var(--fs-6); letter-spacing: var(--ls-12); text-transform: uppercase; color: var(--grau); }
+  .pager b { font-family: var(--f-display); font-weight: 500; font-size: var(--fs-14); line-height: 1.1; }
   .pager a:last-child { text-align: right; }
   .pager a:hover b { color: var(--eis); }
-  .disclaimer { max-width: var(--wrap); margin: 1.4rem auto 0; font-size: .78rem; color: var(--grau); }
+  .disclaimer { max-width: var(--wrap); margin: 1.4rem auto 0; font-size: var(--fs-6); color: var(--grau); }
 
   @media (max-width: 1100px) {
     .laden { grid-template-columns: repeat(2, 1fr); }
@@ -723,34 +723,34 @@ const preiseVom = datum(I.auec.schiffe[0].preiseVom);
   }
   @media (max-width: 760px) {
     .cover { padding-top: 6rem; }
-    .mast { font-size: .7rem; letter-spacing: .1em; }
+    .mast { font-size: var(--fs-4); letter-spacing: var(--ls-11); }
     .notes { margin-left: 0; }
-    .nr { font-size: 5.2rem; }
-    .satz { font-size: 1rem; }
+    .nr { font-size: clamp(var(--fs-19), 7vw, 5.2rem); }
+    .satz { font-size: var(--fs-10); }
     .bento { grid-template-columns: 1fr 1fr; grid-template-rows: 280px 200px 210px 210px 210px; gap: 6px; grid-template-areas: "gross gross" "schiffe schiffe" "auec mauler" "radar salvage" "torpedo bauplan"; }
-    .t__v { font-size: 1.55rem; }
-    .t__s { font-size: .78rem; }
+    .t__v { font-size: var(--fs-15); }
+    .t__s { font-size: var(--fs-6); }
     .t__txt { padding: .55rem .6rem .6rem; }
     .t--gross .t__txt { padding: .9rem; }
-    .t--gross .t__s { font-size: .9rem; }
+    .t--gross .t__s { font-size: var(--fs-8); }
     .kopf { grid-template-columns: 1fr; }
     .fakten { gap: 1.1rem; }
     .galerie { grid-template-columns: 1fr 1fr; }
     .laden { grid-template-columns: 1fr; }
     .ware { display: grid; grid-template-columns: 40% 1fr; }
     .ware__bild { aspect-ratio: auto; height: 100%; }
-    .ware h3 { font-size: 1.6rem; }
+    .ware h3 { font-size: var(--fs-15); }
     .ware dl div { flex-direction: column; gap: .15rem; }
     .ausr { grid-template-columns: 1fr; }
     .gewehre { grid-template-columns: 1fr 1fr; }
-    .daten dd { font-size: .84rem; }
+    .daten dd { font-size: var(--fs-7); }
     .vergleich li { grid-template-columns: 5.2rem 1fr; }
     .zeilen li { grid-template-columns: 1fr; }
     .zeile__ba { justify-content: start; text-align: left; }
     .neuzugang ul { display: grid; grid-template-columns: 1fr 1fr; }
     .neuzugang li { width: auto; }
     .akte :global(.akte__bild) { width: 90px; }
-    .akte__t b { font-size: 1.8rem; }
+    .akte__t b { font-size: var(--fs-16); }
   }
   @media (prefers-reduced-motion: reduce) {
     .t__bild :global(img), .ware__bild :global(img) { transition: none; }
