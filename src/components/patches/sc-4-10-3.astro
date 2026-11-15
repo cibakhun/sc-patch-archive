@@ -22,6 +22,7 @@ if (!entry) throw new Error('Patch-Daten 4-10-3 fehlen in src/data/patches/');
 const patch = mergePatchEn('4-10-3', entry.data, lang);
 
 type Ref = { t: string; h?: string };
+type Link = { t: string; h: string };
 
 const JUMPS = [
   { id: 'auftraege', t: T('Aufträge', 'Contracts') },
@@ -38,13 +39,13 @@ const GLANCE = [
   { to: 'schiffe', k: T('Neue Schiffe', 'New ships'), v: 'Galaxy · Liberator', s: T('Modulschiff mit Wechselmodul und Träger für Schiffe und Fahrzeuge', 'Modular ship with a swappable module and a carrier for ships and vehicles') },
   { to: 'auec', k: T('Für aUEC', 'For aUEC'), v: T('8 Schiffe', '8 ships'), s: T('Zum ersten Mal im Spiel kaufbar, in Stanton, Nyx und Pyro', 'Buyable in game for the first time, in Stanton, Nyx and Pyro') },
   { to: 'radar', k: 'Radar', v: T('Gr. 2 → 3', 'Size 2 → 3'), s: 'Carrack, Perseus, Starlancer MAX · TAC' },
-  { to: 'salvage', k: 'Salvage', v: '240 → 448 SCU', s: T('Reclaimer-Puffer, die ganze Salvage-Flotte nimmt mehr auf', 'Reclaimer buffer, the whole salvage fleet holds more') },
+  { to: 'salvage', k: 'Salvage', v: '240 → 448 SCU', s: T('Reclaimer-Puffer. Die ganze Salvage-Flotte nimmt mehr auf.', 'Reclaimer buffer. The whole salvage fleet holds more.') },
   { to: 'kampf', k: 'Mauler „STRIKER“', v: '64 → 250', s: T(`Energieschaden je Schuss, rund 800 → ${n(3125)} DPS`, `Energy damage per shot, about 800 → ${n(3125)} DPS`) },
   { to: 'kampf', k: T('Torpedos', 'Torpedoes'), v: T('ab 700 m', 'from 700 m'), s: T('Größe 5 und 7 machen sich erst dann scharf', 'Size 5 and 7 only arm from there') },
   { to: 'ausruestung', k: T('Baupläne', 'Blueprints'), v: '+17', s: T('Raider Camo, Skarnov, Deterrent', 'Raider Camo, Skarnov, Deterrent') },
 ];
 
-const MISSIONS: { type: string; title: string; desc: string; list: { slug: string; rank: string; t: string; reward?: Ref }[] }[] = [
+const MISSIONS: { type: string; title: string; desc: string; list: { slug: string; rank: string; t: string; reward?: Link }[] }[] = [
   {
     type: T('Flotten', 'Fleets'),
     title: T('Verbände abfangen', 'Intercept strike groups'),
@@ -110,7 +111,7 @@ const NEW_SHIPS = [
       { t: 'Med Bay Module', h: '/items/galaxy-med-bay-module.html' },
       { t: 'Stock Module', h: '/items/galaxy-stock-module.html' },
       { t: T('Radar Lephari', 'Lephari radar'), h: '/items/lephari.html' },
-    ] as Ref[],
+    ] as Link[],
   },
   {
     id: 'anvl-liberator',
@@ -128,7 +129,7 @@ const NEW_SHIPS = [
       { k: T('Fracht', 'Cargo'), v: [{ t: '400 SCU' }] },
       { k: T('Türme', 'Turrets'), v: [{ t: '4 × ' }, { t: 'Panther', h: '/items/cf-337-panther-repeater.html' }, { t: ' · 2 × ' }, { t: 'Galdereen', h: '/items/cf-557-galdereen-repeater.html' }] },
     ] as { k: string; v: Ref[] }[],
-    parts: [] as Ref[],
+    parts: [] as Link[],
   },
 ];
 
@@ -167,14 +168,14 @@ const auec = AUEC_SHIPS.map(([id, name, places]) => {
   };
 });
 
-const RADAR: { ships: Ref[]; before?: Ref; after: Ref }[] = [
+const RADAR: { ships: Link[]; before?: Link; after: Link }[] = [
   { ships: [{ t: 'Carrack', h: '/schiffe/anvl-carrack.html' }, { t: 'Expedition', h: '/schiffe/anvl-carrack-expedition.html' }], before: { t: 'Surveyor', h: '/items/surveyor.html' }, after: { t: 'Surveyor-Max', h: '/items/surveyor-max.html' } },
   { ships: [{ t: 'Starlancer MAX', h: '/schiffe/misc-starlancer-max.html' }, { t: 'TAC', h: '/schiffe/misc-starlancer-tac.html' }], before: { t: 'Surveyor', h: '/items/surveyor.html' }, after: { t: 'Surveyor-Max', h: '/items/surveyor-max.html' } },
   { ships: [{ t: 'Perseus', h: '/schiffe/rsi-perseus.html' }], before: { t: 'Epier', h: '/items/epier.html' }, after: { t: 'Resolu', h: '/items/resolu.html' } },
   { ships: [{ t: 'Hammerhead', h: '/schiffe/aegs-hammerhead.html' }, { t: 'Tiburon', h: '/schiffe/aegs-tiburon.html' }], after: { t: 'Resolu', h: '/items/resolu.html' } },
 ];
 
-const SALVAGE: [Ref, number, number][] = [
+const SALVAGE: [Link, number, number][] = [
   [{ t: 'Reclaimer', h: '/schiffe/aegs-reclaimer.html' }, 240, 448],
   [{ t: 'MOTH', h: '/schiffe/argo-moth.html' }, 64, 240],
   [{ t: 'Vulture', h: '/schiffe/drak-vulture.html' }, 13, 16],
@@ -183,7 +184,7 @@ const SALVAGE: [Ref, number, number][] = [
 ];
 const SALVAGE_MAX = Math.max(...SALVAGE.map((r) => r[2]));
 
-const VANGUARD: { ships: Ref[]; what: string; before: Ref; after: Ref }[] = [
+const VANGUARD: { ships: Link[]; what: string; before: Ref; after: Ref }[] = [
   { ships: [{ t: 'Warden', h: '/schiffe/aegs-vanguard.html' }, { t: 'Hoplite', h: '/schiffe/aegs-vanguard-hoplite.html' }], what: T('Turm-DPS', 'Turret DPS'), before: { t: '400' }, after: { t: '750' } },
   { ships: [{ t: 'Sentinel', h: '/schiffe/aegs-vanguard-sentinel.html' }], what: T('Turmwaffe', 'Turret gun'), before: { t: 'Suckerpunch-L', h: '/items/suckerpunch-l-cannon.html' }, after: { t: 'Suckerpunch-XL', h: '/items/suckerpunch-xl-cannon.html' } },
   { ships: [{ t: 'Harbinger', h: '/schiffe/aegs-vanguard-harbinger.html' }], what: T('Turmwaffen', 'Turret guns'), before: { t: '2' }, after: { t: '3' } },
@@ -197,7 +198,7 @@ const COMBAT: { what: Ref; before: string; after: string }[] = [
   { what: { t: T('Bombenhalter Größe 1 und 3, links und rechts', 'Bomb racks size 1 and 3, left and right') }, before: '', after: T('neu am Waffenkiosk im Crusader-Showroom in Orison', 'now at the weapon kiosk in the Crusader showroom in Orison') },
 ];
 
-const SKARNOV: Ref[] = [
+const SKARNOV: Link[] = [
   { t: 'Skarnov', h: '/items/skarnov-rifle.html' },
   { t: '„Ferrite“', h: '/items/skarnov-ferrite-rifle.html' },
   { t: '„Relay“', h: '/items/skarnov-relay-rifle.html' },
@@ -205,20 +206,20 @@ const SKARNOV: Ref[] = [
   { t: '„Raider Camo“', h: '/items/skarnov-raider-camo-rifle.html' },
 ];
 
-const CAMO: { k: string; v: Ref[] }[] = [
+const CAMO: { k: string; v: Link[] }[] = [
   { k: T('Panzerung', 'Armour'), v: [{ t: 'Corbel', h: '/crafting/corbel-core-raider-camo.html' }, { t: 'Palatino', h: '/crafting/palatino-core-raider-camo.html' }, { t: 'Tailwind', h: '/crafting/tailwind-flight-suit-raider-camo.html' }] },
   { k: T('Schiffskanonen', 'Ship cannons'), v: [{ t: 'M3A', h: '/crafting/m3a-cannon-raider-camo.html' }, { t: 'M4A', h: '/crafting/m4a-cannon-raider-camo.html' }, { t: 'M5A', h: '/crafting/m5a-cannon-raider-camo.html' }] },
   { k: T('Gewehr', 'Rifle'), v: [{ t: 'Skarnov', h: '/crafting/skarnov-raider-camo-rifle.html' }] },
 ];
 
-const CATALOGUE: { what: Ref; before: number; after: number }[] = [
+const CATALOGUE: { what: Link; before: number; after: number }[] = [
   { what: { t: T('Gegenstände', 'Items'), h: '/items.html' }, before: 9412, after: 9515 },
   { what: { t: T('Baupläne', 'Blueprints'), h: '/crafting.html' }, before: 1617, after: 1634 },
   { what: { t: T('Missionsfamilien', 'Mission families'), h: '/missionen.html' }, before: 1387, after: 1399 },
   { what: { t: T('Schiffe und Fahrzeuge', 'Ships and vehicles'), h: '/schiffe.html' }, before: 231, after: 235 },
 ];
 
-const NEW_VEHICLES: Ref[] = [
+const NEW_VEHICLES: Link[] = [
   { t: 'Galaxy', h: '/schiffe/rsi-galaxy.html' },
   { t: 'Liberator', h: '/schiffe/anvl-liberator.html' },
   ...['argo-atls-geo-collector-grad02', 'argo-atls-ikti', 'argo-atls-geo-ikti', 'argo-atls-geo-ikti-ntls'].map((id) => {
@@ -290,7 +291,7 @@ section.blk{position:relative;padding:clamp(1.8rem,3.5vw,2.8rem) var(--gut)}
 .tiles .k{font-family:var(--font-ui);font-weight:700;font-size:var(--fs-5);letter-spacing:var(--ls-12);text-transform:uppercase;color:var(--accent-2);padding-right:1.4rem}
 .tiles .v{font-family:var(--font-display);font-weight:800;font-size:clamp(1.15rem,2vw,1.55rem);line-height:1.15;color:var(--text);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .tiles .s{color:var(--muted);font-size:var(--fs-7);line-height:1.4}
-@media(max-width:520px){.tiles a{padding:.75rem .8rem}.tiles a::after{display:none}.tiles .k{padding-right:0;font-size:var(--fs-4)}.tiles .v{font-size:1.05rem}.tiles .s{font-size:var(--fs-6)}}
+@media(max-width:520px){.tiles a{padding:.75rem .8rem}.tiles a::after{display:none}.tiles .k{padding-right:0;font-size:var(--fs-4)}.tiles .v{font-size:var(--fs-11)}.tiles .s{font-size:var(--fs-6)}}
 
 .ops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}
 @media(max-width:860px){.ops{grid-template-columns:minmax(0,1fr)}}
@@ -438,7 +439,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
       <div class="eyebrow">{T('12. November 2026 · Point-Release', 'November 12, 2026 · Point Release')}</div>
       <h1>4.10.3</h1>
       <div class="codename">IAE 2956 &amp; <span>Vanduul Incursion</span></div>
-      <p class="tagline">{T('Die Vanduul greifen in Nyx an, und InterSec sucht Piloten. Dazu kommen die RSI Galaxy und die Anvil Liberator.', 'The Vanduul strike Nyx, and InterSec is hiring pilots. The RSI Galaxy and the Anvil Liberator join the fleet.')}</p>
+      <p class="tagline">{T('Die Vanduul greifen in Nyx an, und InterSec sucht Piloten. Dazu kommen die RSI Galaxy und die Anvil Liberator.', 'The Vanduul strike Nyx, and InterSec is hiring pilots. The RSI Galaxy and the Anvil Liberator are new.')}</p>
       <nav aria-label={T('Abschnitte', 'Sections')}>
         <ul class="jump">
           {JUMPS.map((j) => <li><a href={`#${j.id}`}>{j.t}</a></li>)}
@@ -475,7 +476,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
                 <li>
                   <a href={L(`/missionen/${x.slug}.html`)}>{x.t}</a>
                   <span class="rank">{T('ab', 'from')} {x.rank}</span>
-                  {x.reward && <a class="reward" href={L(x.reward.h!)}>{x.reward.t}</a>}
+                  {x.reward && <a class="reward" href={L(x.reward.h)}>{x.reward.t}</a>}
                 </li>
               ))}
             </ol>
@@ -505,7 +506,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
                 ))}
               </dl>
               {s.parts.length > 0 && (
-                <ul class="parts">{s.parts.map((p) => <li><a href={L(p.h!)}>{p.t}</a></li>)}</ul>
+                <ul class="parts">{s.parts.map((p) => <li><a href={L(p.h)}>{p.t}</a></li>)}</ul>
               )}
               <a class="more" href={L(`/schiffe/${s.id}.html`)}>{T('Zum Datenblatt →', 'Full data sheet →')}</a>
             </div>
@@ -558,9 +559,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
               <tbody>
                 {RADAR.map((r) => (
                   <tr>
-                    <td>{r.ships.map((x, i) => <>{i > 0 && ' · '}<a href={L(x.h!)}>{x.t}</a></>)}</td>
-                    {r.before ? <td class="was"><a href={L(r.before.h!)}>{r.before.t}</a></td> : <td class="was">{T('schon', 'already')}</td>}
-                    <td class="ist"><a href={L(r.after.h!)}>{r.after.t}</a></td>
+                    <td>{r.ships.map((x, i) => <>{i > 0 && ' · '}<a href={L(x.h)}>{x.t}</a></>)}</td>
+                    {r.before ? <td class="was"><a href={L(r.before.h)}>{r.before.t}</a></td> : <td class="was">{T('schon', 'already')}</td>}
+                    <td class="ist"><a href={L(r.after.h)}>{r.after.t}</a></td>
                   </tr>
                 ))}
               </tbody>
@@ -577,7 +578,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
               <tbody>
                 {SALVAGE.map(([s, a, b]) => (
                   <tr>
-                    <td><a href={L(s.h!)}>{s.t}</a></td>
+                    <td><a href={L(s.h)}>{s.t}</a></td>
                     <td class="was num">{a}</td>
                     <td class="ist num">{b}</td>
                     <td class="bar" aria-hidden="true"><i style={`--a:${a / SALVAGE_MAX};--b:${b / SALVAGE_MAX}`}></i></td>
@@ -616,7 +617,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
               <tbody>
                 {VANGUARD.map((r) => (
                   <tr>
-                    <td>{r.ships.map((x, i) => <>{i > 0 && ' · '}<a href={L(x.h!)}>{x.t}</a></>)}</td>
+                    <td>{r.ships.map((x, i) => <>{i > 0 && ' · '}<a href={L(x.h)}>{x.t}</a></>)}</td>
                     <td class="was">{r.what}</td>
                     <td class="was">{r.before.h ? <a href={L(r.before.h)}>{r.before.t}</a> : r.before.t}</td>
                     <td class="ist">{r.after.h ? <a href={L(r.after.h)}>{r.after.t}</a> : r.after.t}</td>
@@ -642,7 +643,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
           <header><h3>Skarnov</h3><span class="tag">{T('Energiegewehr', 'Energy rifle')}</span></header>
           <p class="txt">{T('Neu in fünf Ausführungen. „Raider Camo“ und ihre Batterie gibt es als Bauplan aus dem InterSec-Auftrag ', 'New in five versions. The "Raider Camo" version and its battery come as a blueprint from the InterSec contract ')}<a href={L('/missionen/intersec-eliminate-specific-rank1.html')}>Intersec Eliminate Specific Rank1</a>.</p>
           <ul class="list">
-            <li><span>{T('Ausführungen', 'Versions')}</span><span class="refs">{SKARNOV.map((x) => <a href={L(x.h!)}>{x.t}</a>)}</span></li>
+            <li><span>{T('Ausführungen', 'Versions')}</span><span class="refs">{SKARNOV.map((x) => <a href={L(x.h)}>{x.t}</a>)}</span></li>
             <li><span>{T('Munition', 'Ammo')}</span><a href={L('/items/skarnov-rifle-battery-30-cap.html')}>{T('Batterie (30 cap)', 'Battery (30 cap)')}</a></li>
           </ul>
         </article>
@@ -651,7 +652,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
           <p class="txt">{T('Die Tarnung „Raider Camo“ gibt es als Bauplan für drei Panzerungen, drei Schiffskanonen und den Skarnov.', '"Raider Camo" comes as a blueprint for three armour sets, three ship cannons and the Skarnov.')}</p>
           <ul class="list">
             {CAMO.map((c) => (
-              <li><span>{c.k}</span><span class="refs">{c.v.map((x) => <a href={L(x.h!)}>{x.t}</a>)}</span></li>
+              <li><span>{c.k}</span><span class="refs">{c.v.map((x) => <a href={L(x.h)}>{x.t}</a>)}</span></li>
             ))}
           </ul>
         </article>
@@ -688,7 +689,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
             <tbody>
               {CATALOGUE.map((c) => (
                 <tr>
-                  <td><a href={L(c.what.h!)}>{c.what.t}</a></td>
+                  <td><a href={L(c.what.h)}>{c.what.t}</a></td>
                   <td class="was num">{n(c.before)}</td>
                   <td class="ist num">{n(c.after)}</td>
                   <td class="num">+{n(c.after - c.before)}</td>
@@ -697,7 +698,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
             </tbody>
           </table>
         </div>
-        <p class="note">{T('Neu bei Schiffen und Fahrzeugen: ', 'New ships and vehicles: ')}{NEW_VEHICLES.map((x, i) => <>{i > 0 && ', '}<a href={L(x.h!)}>{x.t}</a></>)}{T('. Zwei Editionen entfallen, siehe ', '. Two editions were removed, see ')}<a href="#namen">{T('Namen', 'Names')}</a>.</p>
+        <p class="note">{T('Neu bei Schiffen und Fahrzeugen: ', 'New ships and vehicles: ')}{NEW_VEHICLES.map((x, i) => <>{i > 0 && ', '}<a href={L(x.h)}>{x.t}</a></>)}{T('. Zwei Editionen entfallen, siehe ', '. Two editions were removed, see ')}<a href="#namen">{T('Namen', 'Names')}</a>.</p>
       </div>
     </div>
   </section>
