@@ -39,7 +39,8 @@
        Feld des Aufzugs und Raum liegen ineinander; jede Bahn hat ihren
        Knoten
    [3] Bestand: Schrift, Schirme und die Zahlen des Manifests über ihren
-       Klinken und unter ihren Obergrenzen; die Lampen aus der
+       Klinken und unter ihren Obergrenzen (darunter die eingehängten
+       Kind-Container: Frachtaufzüge und Türen); die Lampen aus der
        ausgelieferten Datei, so viele, wie das Manifest nennt, jede
        vollständig, und gezählt wird gegen die Klinke, was die Bühne
        davon nach ihrer eigenen Regel setzt (hallLampeGilt im Viewer)
@@ -155,6 +156,21 @@
        fester Groesse ausgeliefert, Klinke 1“ und „[4] dist/hangar/hall/
        traegt util-lrgtop.aufzug.json, und keine Hangarseite nennt sie
        …“.
+   (o) 15.11.2026, mit den Türen der neun Personenaufzüge und der
+       Abgabe-Nische im Modell und der Klinke kinder (der Build zählt die
+       eingehängten Kind-Container am Rohmodell, kinderBestand in
+       scripts/lib/hall-kinder.mjs), am Vorschau-Bau im Cloud-Rechner;
+       verändert wurde das Manifest, danach zurückgestellt. Zweimal
+       gebrochen:
+       ohne den Eintrag kinder (so nennt es jeder Bau vor diesem Stand):
+       „[3] util-lrgtop: keine Kind-Container mit Geometrie eingehaengt
+       (das Manifest nennt keinen; …), Klinke 14“;
+       mit den Zahlen der Halle ohne ihre Türen (kinder 4: die beiden
+       Frachtaufzüge und ihre Kabinen; 148 Netze mit Aufklebern), 2
+       FEHLER: „[3] … 148 Netze mit Aufklebern, Klinke 150“ und „[3] … 4
+       Kind-Container mit Geometrie eingehaengt
+       (elev_util_cargo_hangar_lrg_a 2,
+       hangar_component_module_cargo_elevator_lrg 2; …), Klinke 14“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -183,17 +199,24 @@ const STUFEN = ['S', 'M', 'L', 'XL'];
 const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die Large-Halle)
 // je Halle, gemessen am gebauten Stand: Lampen des Spiels, Teile des Bodentors, Dreiecke der Schrift im Modell,
 // Dreiecke ausgeschalteter Schirme im Modell, vom Build ausgeschaltete Schirme, Tafeln mit Logo, Netze mit
-// Aufklebern, aus der vollen Stufe geholte Schilder.
+// Aufklebern, aus der vollen Stufe geholte Schilder, eingehängte Kind-Container mit Geometrie.
 // util-lrgtop mit ihren beiden Frachtaufzügen (Kind-Container, scripts/lib/hall-kinder.mjs): 678 Lampen der
 // Halle und 2 × 60 der Aufzüge, 7 Tafeln mit Logo und je eine am Bedienhäuschen. Fehlen die Aufzüge wieder,
 // reißen Lampen, Tafeln, Schirme und die Obergrenze für Strahlen ins Leere zugleich.
+// Seit dem 15.11.2026 trägt sie auch die Türen ihrer neun Personenaufzüge und der Abgabe-Nische (dieselbe
+// Bibliothek, von jedem dieser Container steht nur die Tür). Sie sind klein: Fehlten sie wieder, bliebe jede
+// andere Zahl über ihrer Klinke und die Hülle fast so dicht wie zuvor (7 statt 9 von 67 500 Strahlen gingen
+// ohne sie ins Leere). Darum zählt der Build die Halter der Kinder am Rohmodell (kinderBestand, kinder im
+// Manifest): 2 Frachtaufzüge, 2 Kabinen darin, 9 Türen der Personenaufzüge, 1 Tür der Abgabe. Beide Türnetze
+// tragen Aufkleber, die Klinke dafür stieg mit ihnen von 148 auf 150.
 const KLINKE = {
-  'util-lrgtop': { lampen: 798, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 148, schilder: 5 },
+  'util-lrgtop': { lampen: 798, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 150, schilder: 5, kinder: 14 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
-// 1 783 379. Ins Leere gingen ohne sie 1,27 % der Strahlen (zwei Löcher von 48 × 32 m in den Längswänden),
-// mit ihnen 0,01 %: Die Grenze 0,3 % hält die Hülle geschlossen.
+// 1 783 379, mit den zehn Türen und ihren Aufdrucken 1 815 431 (22,8 MB, 263 Texturen). Ohne die Frachtaufzüge
+// gingen 1,27 % der Strahlen ins Leere (zwei Löcher von 48 × 32 m in den Längswänden), mit ihnen 0,01 %: Die
+// Grenze 0,3 % hält die Hülle geschlossen.
 const OBERGRENZE = {
   'util-lrgtop': { tris: 1850000, bytes: 24e6, texturen: 270, leck: 0.3 },
 };
@@ -379,8 +402,8 @@ for (const [id, { bytes }] of HALLEN) {
   if (lampenRoh && lampenRoh.length !== M.lights?.total) fail(`[3] ${id}: die ausgelieferte Lampendatei traegt ${lampenRoh.length} Lampen, das Manifest nennt ${M.lights?.total ?? 'keine'} — Datei und Manifest stammen nicht aus demselben Bau (gemeinsam einchecken)`);
   const lampenAus = (lampenRoh?.length ?? 0) - kaputt - lampen.length;
   // im Manifest: was der Build gezaehlt hat (die Lampen aus der ausgelieferten Datei)
-  const ist = { lampen: lampen.length, tor: M.aufzug?.teile, schirme: M.schirme?.aus, tafeln: M.logo?.tafeln, aufkleber: M.aufkleber?.netze, schilder: M.schriftVoll?.teilnetze };
-  for (const [k, was] of [['lampen', gilt ? `Lampen des Spiels, die die Buehne setzt (von ${lampenRoh?.length ?? 0} in der ausgelieferten Datei${lampenAus ? `; ${lampenAus} laesst sie weg: Umgebungslicht, ohne Staerke oder Flaechenlicht unter ${viewer?.LAMP_MIN_RADIUS ?? '?'} m` : ''})` : 'Lampen des Spiels gezaehlt (ohne die Regel des Viewers zaehlt das Tor keine)'], ['tor', 'Teile des Bodentors'], ['schirme', 'vom Build ausgeschaltete Schirme'], ['tafeln', 'Tafeln mit dem Logo des Betreibers'], ['aufkleber', 'Netze mit Aufklebern'], ['schilder', 'aus der vollen Stufe geholte Schilder']]) {
+  const ist = { lampen: lampen.length, tor: M.aufzug?.teile, schirme: M.schirme?.aus, tafeln: M.logo?.tafeln, aufkleber: M.aufkleber?.netze, schilder: M.schriftVoll?.teilnetze, kinder: M.kinder?.exemplare };
+  for (const [k, was] of [['lampen', gilt ? `Lampen des Spiels, die die Buehne setzt (von ${lampenRoh?.length ?? 0} in der ausgelieferten Datei${lampenAus ? `; ${lampenAus} laesst sie weg: Umgebungslicht, ohne Staerke oder Flaechenlicht unter ${viewer?.LAMP_MIN_RADIUS ?? '?'} m` : ''})` : 'Lampen des Spiels gezaehlt (ohne die Regel des Viewers zaehlt das Tor keine)'], ['tor', 'Teile des Bodentors'], ['schirme', 'vom Build ausgeschaltete Schirme'], ['tafeln', 'Tafeln mit dem Logo des Betreibers'], ['aufkleber', 'Netze mit Aufklebern'], ['schilder', 'aus der vollen Stufe geholte Schilder'], ['kinder', `Kind-Container mit Geometrie eingehaengt (${Object.entries(M.kinder?.je ?? {}).map(([k, e]) => `${k} ${e?.exemplare}`).join(', ') || 'das Manifest nennt keinen'}; es sind Frachtaufzuege, ihre Kabinen und die Tueren der Personenaufzuege und der Abgabe, wo einer fehlt, steht ein Loch in der Wand)`]]) {
     if (!(ist[k] >= K[k])) fail(`[3] ${id}: ${ist[k] ?? 'keine'} ${was}, Klinke ${K[k]}`);
   }
   const fremd = [...(M.aufkleber?.fremd ?? []), ...(M.schriftVoll?.fremd ?? [])];
@@ -391,7 +414,7 @@ for (const [id, { bytes }] of HALLEN) {
   if (M.floor !== HALLEN.get(id).hall.floor) fail(`[3] ${id}: das Manifest nennt den Boden bei ${M.floor}, die Seite bei ${HALLEN.get(id).hall.floor}`);
   const ueber = [['tris', M.tris, 'Dreiecke'], ['bytes', bytes, 'Bytes'], ['texturen', M.textures, 'Texturen'], ['leck', M.hull?.pct, '% Blickstrahlen ins Leere']].filter(([k, v]) => !(v <= G[k]));
   for (const [k, v, was] of ueber) fail(`[3] ${id}: ${v ?? 'keine Zahl fuer'} ${was}, Obergrenze ${G[k]} — die Halle ist schwerer oder offener geworden`);
-  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
+  zeilen.push(`    ${id}: ${schrift} Dreiecke Schrift (Klinke ${K.schriftTris}), ${aus} Schirme ohne Bild aus mit ${ausTris} Dreiecken (Klinke ${K.schirmTris}), 0 hell; ${lampenRoh?.length ?? 0} Lampen in der ausgelieferten Datei, davon setzt die Buehne ${ist.lampen}, Bodentor ${ist.tor} Teile, ${ist.schirme} Schirme vom Build ausgeschaltet, ${ist.tafeln} Tafeln mit Logo, ${ist.aufkleber} Netze mit Aufklebern, ${ist.schilder} Schilder aus der vollen Stufe, ${ist.kinder} Kind-Container eingehaengt; ${M.tris} Dreiecke, ${(bytes / 1e6).toFixed(1)} MB, ${M.textures} Texturen, ${M.hull?.pct} % ins Leere`);
 }
 for (const z of zeilen) say(z);
 if (!zeilen.length) say(`    ${HALLEN.size ? 'keine Halle vollstaendig gemessen' : 'keine Halle ausgeliefert, nichts zu messen'}`);

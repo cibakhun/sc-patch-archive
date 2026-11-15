@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { Document, NodeIO } from '@gltf-transform/core';
 import { KHRLightsPunctual } from '@gltf-transform/extensions';
 import { unpartition } from '@gltf-transform/functions';
-import { kinderAusXml, kindEinhaengen, kindLage, kinderBaumEinhaengen, kinderKonfig, planKennung, wurzelVon, nmcKnoten, spurVersatz, eingehaengtGilt, eingehaengtSchreiben } from '../../scripts/lib/hall-kinder.mjs';
+import { kinderAusXml, kindEinhaengen, kindLage, kindNur, kinderBaumEinhaengen, kinderBestand, kinderKonfig, planKennung, wurzelVon, nmcKnoten, spurVersatz, eingehaengtGilt, eingehaengtSchreiben } from '../../scripts/lib/hall-kinder.mjs';
 
 // Z oben nach Y oben, wie die Wurzel jedes Exports
 const Z_UP = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
@@ -154,6 +154,10 @@ test('kinderKonfig: Regeln und Plan zusammen; ein Kind an anderer Stelle macht d
   assert.notEqual(kinderKonfig(regeln, []), k, 'das Kind steht nicht mehr in der XML');
   assert.notEqual(kinderKonfig({ ...regeln, folge: [/[\\/]anderes\.socpak$/i] }, baum(10)), k, 'andere Muster');
   assert.notEqual(kinderKonfig({ folge: regeln.folge }, baum(10)), k, 'keine Lage mehr');
+  const mitNur = kinderKonfig({ ...regeln, nur: [{ kind: 'schrank', netz: ['tuer'] }] }, baum(10));
+  assert.notEqual(mitNur, k, 'von einem Kind steht nur noch ein Teil');
+  assert.notEqual(kinderKonfig({ ...regeln, nur: [{ kind: 'schrank', netz: ['tuer', 'kabine'] }] }, baum(10)), mitNur, 'andere Auswahl');
+  assert.equal(kinderKonfig({ ...regeln, nur: [] }, baum(10)), k, 'eine leere Auswahl ist keine');
   assert.equal(JSON.parse(k).plan, planKennung(baum(10)), 'der Bericht trägt den Plan');
 });
 
@@ -253,4 +257,98 @@ test('eingehaengtSchreiben: ein Lauf, der an irgendeiner Stelle abbricht, gilt b
   const p = platte({ ...STAND, 'kind.glb': { zeit: 50 } });
   await eingehaengtSchreiben({ berichtWeg: () => p.weg('halle.kinder.json'), licht: () => p.schreib('halle.lights-src.txt'), modell: async () => p.schreib('halle.glb'), bericht: () => p.schreib('halle.kinder.json', '{"konfig":"K1"}') });
   assert.equal(eingehaengtGilt(FRAGE, p.w), true);
+});
+
+// Ein Aufzug für Personen, wie das Spiel ihn einhängt: die Tür vorn, dahinter in einer Gruppe die Kabine mit
+// ihrer Leuchte (Netz und Licht), dazu das Licht des Containers. Die Tür ist das Netz aus ausfuhr().
+function schrank(name = 'schrank') {
+  const doc = ausfuhr(name), innen = doc.getRoot().listNodes().find((n) => n.getName() === `interior_${name}`);
+  const buffer = doc.getRoot().listBuffers()[0];
+  const acc = (type, array) => doc.createAccessor().setType(type).setArray(array).setBuffer(buffer);
+  const netz = (datei, dreiecke) => doc.createMesh(`objects/probe/${datei}.cga`).addPrimitive(doc.createPrimitive()
+    .setAttribute('POSITION', acc('VEC3', new Float32Array(9 * dreiecke))).setIndices(acc('SCALAR', new Uint16Array(3 * dreiecke).map((_, i) => i))));
+  const gruppe = doc.createNode('gruppe_kabine').setTranslation([0, 4, 0]);
+  innen.addChild(gruppe);
+  gruppe.addChild(doc.createNode('kabine').setMesh(netz('kabine', 5)));
+  const leuchte = doc.createNode('leuchte').setMesh(netz('leuchte', 2));
+  gruppe.addChild(leuchte);
+  leuchte.addChild(doc.createNode('lg_leuchte-001').setExtension('KHR_lights_punctual', doc.createExtension(KHRLightsPunctual).createLight().setType('spot')));
+  return doc;
+}
+const TUER = /(^|[\\/])schrank\.(cga|cgf)$/i;
+
+test('kindNur: nur die Tür bleibt, Kabine, Leuchte und jedes Licht fallen samt ihren leeren Ästen', async () => {
+  const src = schrank();
+  const r = kindNur(src, [TUER], 'schrank');
+  assert.deepEqual(r, { netze: 1, dreiecke: 1, wegNetze: 2, wegDreiecke: 7, wegLichter: 2 });
+  assert.deepEqual(src.getRoot().listNodes().map((n) => n.getName()).sort(), ['CryEngine_Z_up', 'interior_schrank', 'teil']);
+  assert.deepEqual(src.getRoot().listMeshes().map((m) => m.getName()), ['objects/probe/schrank.cga']);
+  // die Tür steht, wo sie stand
+  assert.deepEqual(ort(src.getRoot().listNodes().find((n) => n.getName() === 'teil')), [1, 3, -2]);
+  // die Datei bleibt lesbar und trägt kein Licht mehr
+  await src.transform(unpartition());
+  const io = new NodeIO().registerExtensions([KHRLightsPunctual]);
+  const wieder = await io.readBinary(await io.writeBinary(src));
+  assert.equal(wieder.getRoot().listNodes().filter((n) => n.getExtension('KHR_lights_punctual')).length, 0);
+  assert.equal(wieder.getRoot().listMeshes().length, 1);
+});
+
+test('kindNur: ein Ast bleibt, solange ein behaltenes Netz darunter hängt; ein Muster ohne Netz bricht ab', () => {
+  const src = schrank();
+  const r = kindNur(src, [TUER, /(^|[\\/])leuchte\.cga$/i], 'schrank');
+  assert.deepEqual([r.netze, r.dreiecke, r.wegNetze, r.wegLichter], [2, 3, 1, 2]);
+  assert.deepEqual(src.getRoot().listNodes().map((n) => n.getName()).sort(), ['CryEngine_Z_up', 'gruppe_kabine', 'interior_schrank', 'leuchte', 'teil']);
+  assert.throws(() => kindNur(schrank(), [TUER, /(^|[\\/])gibt_es_nicht\.cga$/i], 'schrank'), /schrank: kein Netz trifft .*gibt_es_nicht.*ohne Anlass/);
+});
+
+test('kinderBaumEinhaengen mit nur: neun Türen, keine Kabine, keine Lichtzeile; andere Kinder bleiben ganz', async () => {
+  const stellen = Array.from({ length: 9 }, (_, i) => ({ pos: [10 * i, 0, 0], rot: [1, 0, 0, 0] }));
+  const baum = [{ id: 'schrank', name: 'a/schrank.socpak', stellen, kinder: [] }, { id: 'modul', name: 'a/modul.socpak', stellen: [{ pos: [0, 50, 0], rot: [1, 0, 0, 0] }], kinder: [] }];
+  const nur = [{ kind: 'schrank', muster: [TUER], exemplare: 0 }];
+  const liste = [], room = ausfuhr('halle');
+  const lichter = await kinderBaumEinhaengen(room, baum, { lese: (c) => (c.id === 'schrank' ? schrank() : ausfuhr(c.id)), zeilen: (c) => [`Light 'lg_${c.id}-000' type=Omni intensity=1 radius=2`], nur, liste });
+  assert.equal(nur[0].exemplare, 9);
+  assert.deepEqual(lichter, ["Light 'lg_modul-000' type=Omni intensity=1 radius=2"], 'nur das Modul bringt seine Lichtzeile mit');
+  const netze = room.getRoot().listNodes().filter((n) => n.getMesh()).map((n) => n.getMesh().getName().split('/').pop());
+  assert.equal(netze.filter((n) => n === 'schrank.cga').length, 9);
+  assert.equal(netze.filter((n) => n === 'kabine.cga' || n === 'leuchte.cga').length, 0);
+  assert.equal(room.getRoot().listNodes().filter((n) => n.getExtension('KHR_lights_punctual')).length, 2, 'Licht der Halle und des Moduls');
+  const e = liste.find((x) => x.id === 'schrank');
+  assert.deepEqual([e.exemplare, e.jeExemplar.dreiecke, e.jeExemplar.lichtknoten, e.jeExemplar.lichtzeilen], [9, 1, 0, 0]);
+  assert.deepEqual(e.nur, { netze: 1, dreiecke: 1, wegNetze: 2, wegDreiecke: 7, wegLichter: 2 });
+  assert.equal(liste.find((x) => x.id === 'modul').nur, undefined);
+  // die neunte Tür steht an ihrer Stelle: (1, 2, 3) + (80, 0, 0); glTF = (x, z, -y)
+  assert.deepEqual(ort(unter(room, 'kind_schrank_9', 'teil')[0]), [81, 3, -2]);
+});
+
+// Was der Build am Rohmodell zählt und ins Manifest schreibt (kinder); verify:hangar-hallen hält die Zahl über
+// einer Klinke. Fielen die Türen wieder weg, bliebe sonst nur ein Loch im Bild.
+test('kinderBestand: je Kennung die Halter mit Dreiecken; ein Kind im Kind zählt unter seiner Kennung und bei seinem Elterncontainer mit', async () => {
+  const stellen = Array.from({ length: 9 }, (_, i) => ({ pos: [10 * i, 0, 0], rot: [1, 0, 0, 0] }));
+  const baum = [{ id: 'schrank', name: 'a/schrank.socpak', stellen, kinder: [] },
+    { id: 'modul', name: 'a/modul.socpak', stellen: [{ pos: [0, 50, 0], rot: [1, 0, 0, 0] }, { pos: [0, -50, 0], rot: [1, 0, 0, 0] }], kinder: [{ id: 'tor', name: 'a/tor.socpak', stellen: [{ pos: [0, 10, 0], rot: [1, 0, 0, 0] }], kinder: [] }] }];
+  const room = ausfuhr('halle');
+  assert.deepEqual(kinderBestand(room), { exemplare: 0, je: {} }, 'eine Halle ohne Kinder nennt keine');
+  await kinderBaumEinhaengen(room, baum, { lese: (c) => (c.id === 'schrank' ? schrank() : ausfuhr(c.id)), nur: [{ kind: 'schrank', muster: [TUER], exemplare: 0 }] });
+  // neun Türen (je 1 Dreieck), zwei Module (je ihr Netz und das ihres Tors), zwei Tore (im zweiten Modul als Kopie)
+  assert.deepEqual(kinderBestand(room), { exemplare: 13, je: { modul: { exemplare: 2, tris: 4 }, schrank: { exemplare: 9, tris: 9 }, tor: { exemplare: 2, tris: 2 } } });
+  // die Datei, die der Build liest, trägt die Halter noch
+  await room.transform(unpartition());
+  const io = new NodeIO().registerExtensions([KHRLightsPunctual]);
+  assert.equal(kinderBestand(await io.readBinary(await io.writeBinary(room))).exemplare, 13);
+});
+
+test('kinderBestand: ein Halter ohne Dreieck zählt nicht, ein fremder Knoten mit extras.kind auch nicht', () => {
+  const room = ausfuhr('halle');
+  kindEinhaengen(room, schrank(), [{ pos: [0, 0, 0], rot: [1, 0, 0, 0] }, { pos: [10, 0, 0], rot: [1, 0, 0, 0] }], 'schrank');
+  assert.equal(kinderBestand(room).je.schrank.exemplare, 2);
+  // dem zweiten Exemplar jedes Netz genommen: Der Halter steht noch im Baum, in der Wand bliebe das Loch
+  const zwei = room.getRoot().listNodes().find((n) => n.getName() === 'kind_schrank_2');
+  zwei.traverse((n) => n.setMesh(null));
+  assert.deepEqual(kinderBestand(room), { exemplare: 1, je: { schrank: { exemplare: 1, tris: 8 } } });
+  // extras.kind an einem Knoten, der kein Halter ist (anderer Name), und ein Halter mit fremder Kennung im Namen
+  const teil = room.getRoot().listNodes().find((n) => n.getName() === 'teil');
+  teil.setExtras({ kind: 'schrank' });
+  room.getRoot().listNodes().find((n) => n.getName() === 'kind_schrank_1').setExtras({ kind: 'anders', stelle: 1 });
+  assert.deepEqual(kinderBestand(room), { exemplare: 0, je: {} });
 });

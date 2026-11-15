@@ -30,11 +30,79 @@ export const SCHRIFT = /_mtl_(alphabet|number)_/i;
 // gemessen wurde: nur in einer .cgfm (ein Netz ohne Knotenbaum, deckungsgleich
 // mit dem Export) und nur, wenn alles Gemessene unverschoben ist (still). In
 // einer .cga hat jeder Knoten seine eigene Ruhelage, und die Messung an einem
-// anderen Knoten belegt sie nicht: Dort bleibt die Lage offen, und das
-// Teilnetz geht in den Bericht (ohneLage) statt an eine geratene Stelle.
-// In util-lrgtop nimmt kein Teilnetz diesen Weg über eine .cga (15.11.2026:
-// 327 gemessen, 24 über eine .cgfm, 9 ohne Lage).
+// anderen Knoten belegt sie nicht: Dort antwortet der Knotenbaum der Datei,
+// wenn er belegt ist (knotenLagen, baumBelegt), sonst bleibt die Lage offen,
+// und das Teilnetz geht in den Bericht (ohneLage) statt an eine geratene
+// Stelle. Large-Halle am 15.11.2026: 358 ausgelassene Teilnetze an 224 Netzen
+// zurückgeholt, davon 7 über den Knotenbaum (die Aufdrucke auf den Blättern
+// der Abgabe-Tür, Knoten 3, 5, 8 und 9, einer davon um 180° gedreht); 2
+// bleiben ohne Lage (hangar_door_top_large_inner_a, Knoten 10 und 13).
 export const lageOhneMessung = (file, still) => (still && /\.cgfm$/i.test(file) ? [0, 0, 0] : undefined);
+
+// Lage der Knoten einer .cga im Raum der Datei, aus ihrem Knotenbaum
+// (nmcKnoten in hall-kinder.mjs). Der Baum nennt je Knoten die Lage im Raum
+// seines Elternknotens: drei Zeilen zu vier Zahlen, Drehung und Ort. Die Lage
+// in der Datei ist die Kette von der Wurzel her. Liefert Map Index ->
+// { r: neun Zahlen zeilenweise, t: Ort }. Ein Knoten fehlt in der Map, wenn in
+// seiner Kette eine Lage fehlt, ein Elternknoten nicht im Baum steht, die
+// Kette im Kreis läuft oder eine Lage keine reine Drehung ist (Spiegelung,
+// Streckung): Dort wird nichts angenommen.
+const MAL = (a, b) => [0, 1, 2].flatMap((i) => [0, 1, 2].map((j) => a[i * 3] * b[j] + a[i * 3 + 1] * b[3 + j] + a[i * 3 + 2] * b[6 + j]));
+const DREH = (r, v) => [0, 1, 2].map((i) => r[i * 3] * v[0] + r[i * 3 + 1] * v[1] + r[i * 3 + 2] * v[2]);
+const reineDrehung = (r) => {
+  for (let i = 0; i < 3; i++) for (let j = i; j < 3; j++) {
+    const d = r[i * 3] * r[j * 3] + r[i * 3 + 1] * r[j * 3 + 1] + r[i * 3 + 2] * r[j * 3 + 2];
+    if (Math.abs(d - (i === j ? 1 : 0)) > 1e-4) return false;
+  }
+  const det = r[0] * (r[4] * r[8] - r[5] * r[7]) - r[1] * (r[3] * r[8] - r[5] * r[6]) + r[2] * (r[3] * r[7] - r[4] * r[6]);
+  return Math.abs(det - 1) < 1e-4;
+};
+export function knotenLagen(knoten) {
+  const nach = new Map((knoten ?? []).map((k) => [k.index, k]));
+  const out = new Map(), offen = new Set();
+  const lage = (k) => {
+    if (out.has(k.index)) return out.get(k.index);
+    if (offen.has(k.index) || !k.b2w) return null;
+    const r = k.b2w.flatMap((z) => z.slice(0, 3)), t = k.b2w.map((z) => z[3]);
+    if (!reineDrehung(r)) return null;
+    let l = { r, t };
+    if (k.parent != null) {
+      const e = nach.get(k.parent);
+      offen.add(k.index);
+      const le = e ? lage(e) : null;
+      offen.delete(k.index);
+      if (!le) return null;
+      l = { r: MAL(le.r, r), t: DREH(le.r, t).map((x, q) => x + le.t[q]) };
+    }
+    out.set(k.index, l);
+    return l;
+  };
+  for (const k of nach.values()) lage(k);
+  return out;
+}
+
+// Gilt der Baum für das, was der Export zeigt? proben: je behaltenem Teilnetz
+// { node, datei: { lo, hi }, ausfuhr: { lo, hi } }, der Kasten des Teilnetzes
+// in der Datei und der seines Primitivs im Export. Der Baum gilt, wenn es
+// mindestens eine Probe gibt und jede Probe nach der Lage ihres Knotens auf
+// ihren Kasten im Export fällt (beide Ecken, tol). Gerechnet wird mit den acht
+// Ecken des Dateikastens: Bei einer Drehung, die kein Vielfaches von 90° ist,
+// ist ihr Kasten größer als der der Punkte, die Probe fällt durch, und der
+// Baum gilt nicht (streng: lieber ohne Lage als an einer geratenen Stelle).
+export function baumBelegt(lagen, proben, tol = 2e-3) {
+  if (!lagen || !proben?.length) return false;
+  for (const p of proben) {
+    const l = lagen.get(p.node);
+    if (!l) return false;
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (let e = 0; e < 8; e++) {
+      const v = DREH(l.r, [0, 1, 2].map((q) => ((e >> q) & 1 ? p.datei.hi[q] : p.datei.lo[q])));
+      for (let q = 0; q < 3; q++) { const x = v[q] + l.t[q]; if (x < lo[q]) lo[q] = x; if (x > hi[q]) hi[q] = x; }
+    }
+    for (let q = 0; q < 3; q++) if (!(Math.abs(lo[q] - p.ausfuhr.lo[q]) <= tol && Math.abs(hi[q] - p.ausfuhr.hi[q]) <= tol)) return false;
+  }
+  return true;
+}
 
 // Die .mtl eines Netzes im Rohordner des Extraktors: suchen, und auspacken,
 // wenn sie fehlt. Mit force (--force) wird sie auch dann neu ausgepackt,
@@ -93,8 +161,14 @@ function firstNormal(get, tri) {
 // der Fundstellen. read(pfad) -> Buffer. subMaterials(mtlPfad) -> Liste der
 // Untermaterialien ({ name, decal, d, n, s, … } wie parseSubMaterials des
 // Extraktors) oder null. lod: Stufe der Halle (bevorzugte Datei).
+// knoten(kopfPfad) -> Knotenbaum der .cga (nmcKnoten) oder null: Daraus kommt
+// die Lage eines Aufkleber-Teilnetzes, an dessen Knoten der Export kein
+// Teilnetz behalten hat (die Blätter einer Tür tragen ihre Aufdrucke an
+// eigenen Knoten). Ohne knoten bleibt es bei „ohne Lage“. leseNetz und
+// leseMaterial lesen Netz- und Kopfdatei (readSkinMesh, readSkinMaterial);
+// die Tests setzen dort ihre kleinen Netze ein.
 // Liefert { doc, report }; doc ist null, wenn kein Aufkleber gefunden wurde.
-export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document }) {
+export function hallDecalDoc({ doc, files, read, subMaterials, knoten = null, lod = 1, Document, leseNetz = readSkinMesh, leseMaterial = readSkinMaterial }) {
   const uses = new Map();
   for (const n of doc.getRoot().listNodes()) { const m = n.getMesh(); if (m) uses.set(m, (uses.get(m) || 0) + 1); }
   // nr: das wievielte Netz dieses Namens im Export (der Build findet es so wieder)
@@ -104,7 +178,7 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
   const buffer = out.createBuffer(), scene = out.createScene('aufkleber');
   const mats = new Map();
   const report = {
-    netze: uses.size, zugeordnet: 0, ohneDatei: [], unklar: [], ohneLage: [], gedreht: 0,
+    netze: uses.size, zugeordnet: 0, ohneDatei: [], unklar: [], ohneLage: [], ausBaum: [], gedreht: 0,
     aufkleber: { netze: 0, teilnetze: 0, tris: 0, trisMitExemplaren: 0 }, andere: { teilnetze: 0, tris: 0 }, materialien: {},
   };
   const stufen = lod ? [`_lod${lod}`, ''] : ['', '_lod1'];
@@ -118,7 +192,7 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
     let g = null, fit = null, file = null;
     for (const c of cands) {
       let gg;
-      try { gg = readSkinMesh(read(c)); } catch { continue; }
+      try { gg = leseNetz(read(c)); } catch { continue; }
       const f = fitSubsets(sig, gg.subs);
       if (f) { g = gg; fit = f; file = c; break; }
     }
@@ -128,7 +202,7 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
     // Material der Datei: im Kopf (.cgf/.cga) neben der Netzdatei (.cgfm/.cgam)
     const head = file.replace(/(_lod\d)?\.(cga|cgf)m$/i, '.$2');
     let mtl = null;
-    try { mtl = readSkinMaterial(read(head)); } catch { /* ohne Kopf kein Material */ }
+    try { mtl = leseMaterial(read(head)); } catch { /* ohne Kopf kein Material */ }
     const subMats = mtl ? subMaterials(mtl) : null;
     const want = fit.dropped.filter((k) => subMats?.[g.subs[k].mat]?.decal);
     for (const k of fit.dropped) if (!want.includes(k)) { report.andere.teilnetze++; report.andere.tris += (g.subs[k].numIndices / 3) * inst; }
@@ -137,13 +211,14 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
     // Verschiebung je Netz-Knoten und Umlaufrichtung, gemessen an den behaltenen Teilnetzen
     const filePos = (i, v) => { v[0] = g.pos[i * 3]; v[1] = g.pos[i * 3 + 1]; v[2] = g.pos[i * 3 + 2]; };
     const subIdx = (sub) => g.idx.subarray(sub.firstIndex, sub.firstIndex + sub.numIndices);
-    const shift = new Map();
+    const shift = new Map(), proben = [];
     let flips = 0, same = 0;
     prims.forEach((p, i) => {
       const sub = g.subs[fit.kept[i]], a = p.getAttribute('POSITION'), ix = p.getIndices()?.getArray();
       if (!a || !ix) return;
       const getA = (j, v) => a.getElement(j, v);
       const A = boxOfIndexed(getA, ix), B = boxOfIndexed(filePos, subIdx(sub));
+      proben.push({ node: sub.node, datei: B, ausfuhr: A });
       const size = Math.max(...[0, 1, 2].map((q) => Math.abs((A.hi[q] - A.lo[q]) - (B.hi[q] - B.lo[q]))));
       const t = [0, 1, 2].map((q) => A.lo[q] - B.lo[q]);
       const old = shift.get(sub.node);
@@ -156,11 +231,26 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
     if (flip) report.gedreht++;
     // ohne behaltenes Teilnetz am selben Knoten: nur in einer .cgf und nur, wenn alles Gemessene unverschoben ist (lageOhneMessung)
     const still = [...shift.values()].every((t) => t !== 'unklar' && Math.hypot(...t) < 2e-3);
+    // ohne behaltenes Teilnetz am selben Knoten einer .cga: die Lage aus ihrem Knotenbaum, wenn jedes behaltene
+    // Teilnetz ihn belegt (baumBelegt). Gefragt wird der Baum erst, wenn ein Teilnetz ihn braucht.
+    let lagen;
+    const ausBaum = (node) => {
+      if (lagen === undefined) {
+        lagen = null;
+        if (knoten && /\.cgam$/i.test(file)) {
+          let l = null;
+          try { l = knotenLagen(knoten(head)); } catch { /* ohne Baum keine Lage */ }
+          if (baumBelegt(l, proben)) lagen = l;
+        }
+      }
+      return lagen?.get(node);
+    };
     const made = [];
     for (const k of want) {
       const sub = g.subs[k], sm = subMats[sub.mat];
-      let t = shift.get(sub.node);
+      let t = shift.get(sub.node), dreh = null;
       if (t === undefined) t = lageOhneMessung(file, still);
+      if (t === undefined) { const l = ausBaum(sub.node); if (l) { t = l.t; dreh = l.r; report.ausBaum.push(`${base} #${sub.mat} Knoten ${sub.node}`); } }
       if (!t || t === 'unklar') { report.ohneLage.push(`${base} #${sub.mat} Knoten ${sub.node}`); continue; }
       const ix = subIdx(sub), neu = new Map(), alt = [];
       const idx = new Uint32Array(ix.length);
@@ -169,10 +259,11 @@ export function hallDecalDoc({ doc, files, read, subMaterials, lod = 1, Document
       const n = alt.length, pos = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Uint8Array(n * 4), nor = g.nor ? new Float32Array(n * 3) : null;
       for (let i = 0; i < n; i++) {
         const s = alt[i];
-        for (let q = 0; q < 3; q++) pos[i * 3 + q] = g.pos[s * 3 + q] + t[q];
+        const ort = [g.pos[s * 3], g.pos[s * 3 + 1], g.pos[s * 3 + 2]], o = dreh ? DREH(dreh, ort) : ort;
+        for (let q = 0; q < 3; q++) pos[i * 3 + q] = o[q] + t[q];
         uv[i * 2] = g.uv[s * 2]; uv[i * 2 + 1] = g.uv[s * 2 + 1];
         col.set(g.col.subarray(s * 4, s * 4 + 4), i * 4);
-        if (nor) for (let q = 0; q < 3; q++) nor[i * 3 + q] = g.nor[s * 3 + q];
+        if (nor) { const m = [g.nor[s * 3], g.nor[s * 3 + 1], g.nor[s * 3 + 2]], w = dreh ? DREH(dreh, m) : m; for (let q = 0; q < 3; q++) nor[i * 3 + q] = w[q]; }
       }
       const mtlBase = mtl.replace(/\\/g, '/').split('/').pop().replace(/\.mtl$/i, '');
       const name = `${mtlBase}_mtl_${sm.name}_0${sub.mat}`;
