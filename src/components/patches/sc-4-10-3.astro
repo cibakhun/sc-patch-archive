@@ -30,7 +30,7 @@ const JUMPS = [
   { id: 'werte', t: T('Geänderte Werte', 'Changed values') },
   { id: 'ausruestung', t: T('Ausrüstung', 'Gear') },
   { id: 'bestand', t: T('Bestand', 'Catalogue') },
-  { id: 'dossier', t: 'Dossier' },
+  { id: 'akte', t: 'Dossier' },
 ];
 
 const GLANCE = [
@@ -332,7 +332,6 @@ section.blk{position:relative;padding:clamp(1.8rem,3.5vw,2.8rem) var(--gut)}
 
 .shop{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;list-style:none}
 @media(max-width:1100px){.shop{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.shop{grid-template-columns:minmax(0,1fr)}.buy{flex-direction:row}.buy .pic{flex:0 0 36%;aspect-ratio:auto}.buy .in{flex:1;min-width:0;padding:.6rem .75rem .7rem}}
 .buy{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-soft);transition:border-color var(--dur-base) var(--ease-ui)}
 .buy:hover{border-color:var(--line)}
 .buy .pic{display:block;aspect-ratio:16/9;overflow:hidden;background:linear-gradient(140deg,var(--surface-2),var(--bg-2))}
@@ -347,6 +346,7 @@ section.blk{position:relative;padding:clamp(1.8rem,3.5vw,2.8rem) var(--gut)}
 .buy dt b{display:block;color:var(--text);font-family:var(--font-ui);font-weight:600;font-size:var(--fs-8)}
 .buy dd{font-family:var(--font-mono);font-size:var(--fs-9);color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
 .buy dd small{font-size:var(--fs-4);color:var(--muted);margin-left:.25rem}
+@media(max-width:520px){.shop{grid-template-columns:minmax(0,1fr)}.buy{flex-direction:row}.buy .pic{flex:0 0 34%;aspect-ratio:auto}.buy .in{flex:1;min-width:0;padding:.6rem .75rem .7rem}}
 .credit{margin-top:.7rem;font-size:var(--fs-5);color:var(--muted)}
 
 .panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}
@@ -399,6 +399,15 @@ table.ba{width:100%;border-collapse:collapse;font-size:var(--fs-8)}
 .list a{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-9);color:var(--text);text-decoration:underline;text-decoration-color:rgba(238,241,245,.25);text-underline-offset:3px}
 .list a:hover{color:var(--accent-2);text-decoration-color:var(--accent-2)}
 .list .refs{display:flex;flex-wrap:wrap;gap:.2rem .7rem}
+
+.fold summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem 1.2rem;cursor:pointer;list-style:none;padding:1rem 1.2rem;border:1px solid var(--line);border-top:2px solid var(--accent);background:var(--surface);transition:background var(--dur-base) var(--ease-ui)}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary::after{content:"+";margin-left:auto;font-family:var(--font-display);font-weight:700;color:var(--accent)}
+.fold details[open] summary::after{content:"−"}
+.fold summary:hover{background:var(--surface-2)}
+.fold summary .ttl{font-family:var(--font-display);font-weight:700;font-size:clamp(1.1rem,2.4vw,1.5rem)}
+.fold summary .sub{color:var(--muted);font-size:var(--fs-8)}
+.fold details .do{padding:1rem 0 0}
 
 footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5rem,6vw,4rem) var(--gut) 3rem}
 .pager{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;max-width:var(--maxw);margin-inline:auto}
@@ -693,7 +702,12 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
     </div>
   </section>
 
-  <PatchDossier patch={patch} lang={de ? 'de' : 'en'} />
+  <section class="blk fold">
+    <details class="wrap" id="akte">
+      <summary><span class="ttl">Dossier</span><span class="sub">{T('Alle Änderungen als Liste, Schiffstabelle, Datenstand und offizielle Notes', 'Every change as a list, ship table, data status and official notes')}</span></summary>
+      <PatchDossier patch={patch} lang={de ? 'de' : 'en'} />
+    </details>
+  </section>
 
 </main>
 
