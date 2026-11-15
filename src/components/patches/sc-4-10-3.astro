@@ -36,7 +36,7 @@ const JUMPS = [
 const GLANCE = [
   { to: 'auftraege', k: 'Vanduul Incursion', v: T('12 Aufträge', '12 contracts'), s: T('Neu von InterSec in Nyx, gegen Vanduul und Shattered Blade', 'New from InterSec in Nyx, against the Vanduul and the Shattered Blade') },
   { to: 'schiffe', k: T('Neue Schiffe', 'New ships'), v: 'Galaxy · Liberator', s: T('Modulschiff mit Wechselmodul und Träger für Schiffe und Fahrzeuge', 'Modular ship with a swappable module and a carrier for ships and vehicles') },
-  { to: 'auec', k: T('Für aUEC', 'For aUEC'), v: T('8 Schiffe', '8 ships'), s: T('Zum ersten Mal im Spiel kaufbar, in vier Shops', 'Buyable in game for the first time, at four shops') },
+  { to: 'auec', k: T('Für aUEC', 'For aUEC'), v: T('8 Schiffe', '8 ships'), s: T('Zum ersten Mal im Spiel kaufbar, in Stanton, Nyx und Pyro', 'Buyable in game for the first time, in Stanton, Nyx and Pyro') },
   { to: 'radar', k: 'Radar', v: T('Gr. 2 → 3', 'Size 2 → 3'), s: 'Carrack, Perseus, Starlancer MAX · TAC' },
   { to: 'salvage', k: 'Salvage', v: '240 → 448 SCU', s: T('Reclaimer-Puffer, die ganze Salvage-Flotte nimmt mehr auf', 'Reclaimer buffer, the whole salvage fleet holds more') },
   { to: 'kampf', k: 'Mauler „STRIKER“', v: '64 → 250', s: T(`Energieschaden je Schuss, rund 800 → ${n(3125)} DPS`, `Energy damage per shot, about 800 → ${n(3125)} DPS`) },
@@ -44,15 +44,15 @@ const GLANCE = [
   { to: 'ausruestung', k: T('Baupläne', 'Blueprints'), v: '+17', s: T('Raider Camo, Skarnov, Deterrent', 'Raider Camo, Skarnov, Deterrent') },
 ];
 
-const MISSIONS: { type: string; title: string; desc: string; list: { slug: string; t: string; reward?: Ref }[] }[] = [
+const MISSIONS: { type: string; title: string; desc: string; list: { slug: string; rank: string; t: string; reward?: Ref }[] }[] = [
   {
     type: T('Flotten', 'Fleets'),
     title: T('Verbände abfangen', 'Intercept strike groups'),
     desc: T('Ein Vanduul-Verband steht an einem Punkt in Nyx, und nach dem ersten Schlag folgen Unterstützungswellen.', 'A Vanduul strike group sits at a point in Nyx, and support waves follow the first strike.'),
     list: [
-      { slug: 'intercept-vanduul-fleet', t: 'Intercept Vanduul Fleet' },
-      { slug: 'vanduul-strike-group-detected', t: 'Vanduul Strike Group Detected' },
-      { slug: 'counterstrike-against-vanduul-raiders', t: 'Counterstrike Against Vanduul Raiders' },
+      { slug: 'intercept-vanduul-fleet', rank: 'Veteran Contractor', t: 'Intercept Vanduul Fleet' },
+      { slug: 'vanduul-strike-group-detected', rank: 'Veteran Contractor', t: 'Vanduul Strike Group Detected' },
+      { slug: 'counterstrike-against-vanduul-raiders', rank: 'Veteran Contractor', t: 'Counterstrike Against Vanduul Raiders' },
     ],
   },
   {
@@ -60,9 +60,9 @@ const MISSIONS: { type: string; title: string; desc: string; list: { slug: strin
     title: T('Anführer herauslocken', 'Draw out the leaders'),
     desc: T('Ein Mauler führt den Verband und soll nur mit starkem Begleitschutz angegangen werden.', 'A Mauler leads the group and should only be engaged with strong backup.'),
     list: [
-      { slug: 'draw-out-maulers', t: 'Draw Out Maulers' },
-      { slug: 'interdict-vanduul-maulers', t: 'Interdict Vanduul Maulers' },
-      { slug: 'seek-and-destroy-super-stingers', t: 'Seek and Destroy Super Stingers' },
+      { slug: 'draw-out-maulers', rank: 'Elite Contractor', t: 'Draw Out Maulers' },
+      { slug: 'interdict-vanduul-maulers', rank: 'Elite Contractor', t: 'Interdict Vanduul Maulers' },
+      { slug: 'seek-and-destroy-super-stingers', rank: 'Head Contractor', t: 'Seek and Destroy Super Stingers' },
     ],
   },
   {
@@ -70,9 +70,9 @@ const MISSIONS: { type: string; title: string; desc: string; list: { slug: strin
     title: T('Dreifrontenkampf', 'Three-way fights'),
     desc: T('Vanduul und die Shattered Blade kämpfen um dasselbe Gebiet, und InterSec will beide loswerden.', 'The Vanduul and the Shattered Blade fight over the same ground, and InterSec wants both gone.'),
     list: [
-      { slug: 'engage-shattered-blade-and-vanduul', t: 'Engage Shattered Blade and Vanduul' },
-      { slug: 'neutralize-vanduul-and-shattered-blade-threat', t: 'Neutralize Vanduul and Shattered Blade Threat' },
-      { slug: 'stop-vanduul-and-shattered-blade-hostilities', t: 'Stop Vanduul and Shattered Blade Hostilities' },
+      { slug: 'engage-shattered-blade-and-vanduul', rank: 'Veteran Contractor', t: 'Engage Shattered Blade and Vanduul' },
+      { slug: 'neutralize-vanduul-and-shattered-blade-threat', rank: 'Veteran Contractor', t: 'Neutralize Vanduul and Shattered Blade Threat' },
+      { slug: 'stop-vanduul-and-shattered-blade-hostilities', rank: 'Veteran Contractor', t: 'Stop Vanduul and Shattered Blade Hostilities' },
     ],
   },
   {
@@ -80,9 +80,9 @@ const MISSIONS: { type: string; title: string; desc: string; list: { slug: strin
     title: T('Entern und Bergen', 'Boarding and recovery'),
     desc: T('Ein geentertes Schiff zurückerobern, eine lebende Vanduul-Probe in der Kryokapsel abliefern und gezielt Ziele ausschalten.', 'Retake a boarded vessel, deliver a living Vanduul sample in its cryopod and eliminate specific targets.'),
     list: [
-      { slug: 'retake-boarded-vessel', t: 'Retake Boarded Vessel' },
-      { slug: 'living-vanduul-sample', t: 'Living Vanduul Sample' },
-      { slug: 'intersec-eliminate-specific-rank1', t: 'Intersec Eliminate Specific Rank1', reward: { t: T('Bauplan Skarnov „Raider Camo“', 'Skarnov "Raider Camo" blueprint'), h: '/crafting/skarnov-raider-camo-rifle.html' } },
+      { slug: 'retake-boarded-vessel', rank: 'Contractor', t: 'Retake Boarded Vessel' },
+      { slug: 'living-vanduul-sample', rank: 'Jr. Contractor', t: 'Living Vanduul Sample' },
+      { slug: 'intersec-eliminate-specific-rank1', rank: 'Jr. Contractor', t: 'Intersec Eliminate Specific Rank1', reward: { t: T('Bauplan Skarnov „Raider Camo“', 'Skarnov "Raider Camo" blueprint'), h: '/crafting/skarnov-raider-camo-rifle.html' } },
     ],
   },
 ];
@@ -136,7 +136,7 @@ type Buy = { price: number; shop: string; where: string; system: string };
 const PLACES: Record<string, { shop: string; where: string; match: (b: Buy) => boolean }> = {
   lorville: { shop: 'New Deal', where: 'Lorville', match: (b) => b.where === 'Lorville' },
   levski: { shop: "Teach's Ship Shop", where: 'Levski', match: (b) => b.where === 'Levski' },
-  pyro: { shop: 'Rundown Station', where: 'Pyro', match: (b) => b.system === 'Pyro' },
+  pyro: { shop: 'Buy and Fly', where: T('Ruin Station, Checkmate und Orbituary · Pyro', 'Ruin Station, Checkmate and Orbituary · Pyro'), match: (b) => b.system === 'Pyro' },
   area18: { shop: 'Astro Armada', where: 'Area18', match: (b) => b.where === 'Area 18' },
 };
 const AUEC_SHIPS: [string, string, string[]][] = [
@@ -160,9 +160,9 @@ const auec = AUEC_SHIPS.map(([id, name, places]) => {
     thumb: pickThumb(v),
     offers: places.map((p) => {
       const place = PLACES[p];
-      const hit = buy.find(place.match);
-      if (!hit) throw new Error(`sc-4-10-3: kein aUEC-Preis für ${id} in ${place.where}`);
-      return { shop: place.shop, where: place.where, price: hit.price };
+      const prices = new Set(buy.filter(place.match).map((b) => b.price));
+      if (prices.size !== 1) throw new Error(`sc-4-10-3: ${prices.size} aUEC-Preise für ${id} in ${place.where}, erwartet genau einer`);
+      return { shop: place.shop, where: place.where, price: [...prices][0] };
     }),
   };
 });
@@ -211,11 +211,21 @@ const CAMO: { k: string; v: Ref[] }[] = [
   { k: T('Gewehr', 'Rifle'), v: [{ t: 'Skarnov', h: '/crafting/skarnov-raider-camo-rifle.html' }] },
 ];
 
-const CATALOGUE: { what: Ref; before?: number; after: number; note?: string }[] = [
+const CATALOGUE: { what: Ref; before: number; after: number }[] = [
   { what: { t: T('Gegenstände', 'Items'), h: '/items.html' }, before: 9412, after: 9515 },
   { what: { t: T('Baupläne', 'Blueprints'), h: '/crafting.html' }, before: 1617, after: 1634 },
   { what: { t: T('Missionsfamilien', 'Mission families'), h: '/missionen.html' }, before: 1387, after: 1399 },
-  { what: { t: T('Schiffe', 'Ships'), h: '/schiffe.html' }, after: 231, note: T('zwei neue, zwei Editionen entfallen', 'two new, two editions removed') },
+  { what: { t: T('Schiffe und Fahrzeuge', 'Ships and vehicles'), h: '/schiffe.html' }, before: 231, after: 235 },
+];
+
+const NEW_VEHICLES: Ref[] = [
+  { t: 'Galaxy', h: '/schiffe/rsi-galaxy.html' },
+  { t: 'Liberator', h: '/schiffe/anvl-liberator.html' },
+  ...['argo-atls-geo-collector-grad02', 'argo-atls-ikti', 'argo-atls-geo-ikti', 'argo-atls-geo-ikti-ntls'].map((id) => {
+    const v = vehicles.get(id);
+    if (!v) throw new Error(`sc-4-10-3: Fahrzeug ${id} fehlt im Bestand`);
+    return { t: v.name, h: `/schiffe/${id}.html` };
+  }),
 ];
 ---
 <PatchSeo patch={patch} image="/assets/img-vanduul.jpg" />
@@ -293,7 +303,8 @@ section.blk{position:relative;padding:clamp(1.8rem,3.5vw,2.8rem) var(--gut)}
 .op li>a{font-family:var(--font-ui);font-weight:600;font-size:var(--fs-10);color:var(--text);transition:color var(--dur-base) var(--ease-ui)}
 .op li>a::after{content:" →";color:var(--accent)}
 .op li>a:hover{color:var(--accent)}
-.op .reward{font-family:var(--font-mono);font-size:var(--fs-5);color:var(--accent-2);text-decoration:underline;text-decoration-color:rgba(143,184,216,.4);text-underline-offset:3px}
+.op .rank{font-family:var(--font-mono);font-size:var(--fs-5);letter-spacing:var(--ls-7);color:var(--muted);white-space:nowrap}
+.op .reward{flex-basis:100%;font-family:var(--font-mono);font-size:var(--fs-5);color:var(--accent-2);text-decoration:underline;text-decoration-color:rgba(143,184,216,.4);text-underline-offset:3px}
 
 .bay{background:radial-gradient(90% 70% at 50% 0%,rgba(143,184,216,.10),transparent 70%),linear-gradient(180deg,var(--bg),#081018 30%,#081018 70%,var(--bg))}
 .ships{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem}
@@ -443,7 +454,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         <h2>{T('Vanduul-Aufträge in Nyx', 'Vanduul contracts in Nyx')}</h2>
         <span class="meta">{T('Auftraggeber', 'Contractor')} <b>InterSec Defense Solutions</b></span>
       </header>
-      <p class="lead reveal">{T('Vanduul-Clans bedrohen die Handelsrouten in Nyx. InterSec sucht dafür erfahrene Piloten ab dem Rang ', 'Vanduul clans threaten the trade routes in Nyx. InterSec wants experienced pilots from the rank of ')}<b>Veteran Contractor</b>{T('. Die meisten der zwölf Aufträge lassen sich teilen.', ' up. Most of the twelve contracts can be shared.')}</p>
+      <p class="lead reveal">{T('Vanduul-Clans bedrohen die Handelsrouten in Nyx. InterSec vergibt zwölf Aufträge, je nach Auftrag ab ', 'Vanduul clans threaten the trade routes in Nyx. InterSec offers twelve contracts, from ')}<b>Jr. Contractor</b>{T(' bis ', ' to ')}<b>Head Contractor</b>{T('. Die meisten lassen sich teilen.', ' depending on the contract. Most of them can be shared.')}</p>
       <div class="ops reveal">
         {MISSIONS.map((m) => (
           <article class="op">
@@ -454,6 +465,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
               {m.list.map((x) => (
                 <li>
                   <a href={L(`/missionen/${x.slug}.html`)}>{x.t}</a>
+                  <span class="rank">{T('ab', 'from')} {x.rank}</span>
                   {x.reward && <a class="reward" href={L(x.reward.h!)}>{x.reward.t}</a>}
                 </li>
               ))}
@@ -636,7 +648,7 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         </article>
         <article class="panel">
           <header><h3>Deterrent · Lephari</h3><span class="tag">{T('Komponenten', 'Components')}</span></header>
-          <p class="txt">{T('Bis ', 'Up to ')}<a href={L('/patches/sc-4-10-2.html')}>4.10.2</a>{T(' hießen zwei RSI-Schilde der Größe 4 „Glacis“, einer davon heißt jetzt ', ' two RSI size 4 shields were called "Glacis", and one of them is now ')}<a href={L('/items/deterrent.html')}>Deterrent</a>{T('. Die ', '. The ')}<a href={L('/schiffe/rsi-polaris.html')}>Polaris</a>{T(' trägt ihn ab Werk. ', ' carries it from the factory. ')}<a href={L('/items/lephari.html')}>Lephari</a>{T(' ist ein ziviles Radar der Größe 3 für Galaxy, Centaurus und Zeus ES.', ' is a size 3 civilian radar for the Galaxy, Centaurus and Zeus ES.')}</p>
+          <p class="txt">{T('Der RSI-Schild der Größe 4, der bis ', 'The RSI size 4 shield called "Glacis" up to ')}<a href={L('/patches/sc-4-10-2.html')}>4.10.2</a>{T(' „Glacis“ hieß, heißt jetzt ', ' is now named ')}<a href={L('/items/deterrent.html')}>Deterrent</a>{T('. Die ', '. The ')}<a href={L('/schiffe/rsi-polaris.html')}>Polaris</a>{T(' trägt ihn ab Werk. Den Namen ', ' carries it from the factory. The ')}<a href={L('/items/glacis.html')}>Glacis</a>{T(' trägt jetzt ein neuer Schild der Größe 4 von Origin. ', ' name now belongs to a new Origin size 4 shield. ')}<a href={L('/items/lephari.html')}>Lephari</a>{T(' ist ein ziviles Radar der Größe 3 für Galaxy, Centaurus und Zeus ES.', ' is a size 3 civilian radar for the Galaxy, Centaurus and Zeus ES.')}</p>
           <ul class="list">
             <li><a href={L('/crafting/deterrent.html')}>{T('Bauplan Deterrent', 'Deterrent blueprint')}</a></li>
             <li><a href={L('/crafting/lephari.html')}>{T('Bauplan Lephari', 'Lephari blueprint')}</a></li>
@@ -644,9 +656,9 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
         </article>
         <article class="panel wide">
           <header><h3>IAE 2956</h3><span class="tag">{T('Expo-Andenken', 'Expo keepsakes')}</span></header>
-          <p class="txt">{T('Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, dazu eine ', 'Collector coins of the Best in Show ships with a display case, plus a ')}<a href={L('/items/iae-2956-hat.html')}>{T('Kappe', 'cap')}</a>{T(' und ein ', ' and a ')}<a href={L('/items/iae-2956-t-shirt.html')}>T-Shirt</a>{T('. ', '. ')}<a href={L('/schiffe/drak-corsair.html')}>Corsair</a>, <a href={L('/schiffe/drak-ironclad-assault.html')}>Ironclad Assault</a>, <a href={L('/schiffe/orig-m80.html')}>M80</a>{T(' und ', ' and ')}<a href={L('/schiffe/rsi-perseus.html')}>Perseus</a>{T(' haben je eine Lackierung „2956 Best In Show“.', ' each get a "2956 Best In Show" livery.')}</p>
+          <p class="txt">{T('Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, dazu eine ', 'Collector coins of the Best in Show ships with a display case, plus a ')}<a href={L('/items/iae-2956-hat.html')}>{T('Kappe', 'cap')}</a>{T(', ein ', ', a ')}<a href={L('/items/iae-2956-t-shirt.html')}>T-Shirt</a>{T(' und die ', ' and the ')}<a href={L('/items/2956-best-in-show-bomber-jacket.html')}>2956 Best in Show Bomber Jacket</a>{T('. ', '. ')}<a href={L('/schiffe/drak-corsair.html')}>Corsair</a>, <a href={L('/schiffe/drak-ironclad-assault.html')}>Ironclad Assault</a>, <a href={L('/schiffe/orig-m80.html')}>M80</a>{T(' und ', ' and ')}<a href={L('/schiffe/rsi-perseus.html')}>Perseus</a>{T(' haben je eine Lackierung „2956 Best In Show“. ', ' each get a "2956 Best In Show" livery. ')}<a href={NOTES} target="_blank" rel="noopener">{T('Patch Notes ↗', 'Patch notes ↗')}</a></p>
         </article>
-        <article class="panel">
+        <article class="panel" id="namen">
           <header><h3>{T('Namen', 'Names')}</h3><span class="tag">HM6</span></header>
           <p class="txt">{T('Anvils Bodenfahrzeuge heißen jetzt ', 'Anvil\'s ground vehicles are now called ')}<a href={L('/schiffe/anvl-ballista.html')}>HM6 Ballista</a>, <a href={L('/schiffe/anvl-spartan.html')}>HM6 Spartan</a>{T(' und ', ' and ')}<a href={L('/schiffe/anvl-centurion.html')}>HM6 Centurion</a>{T('. Phoenix Emerald und Hammerhead 2949 Best In Show stehen nicht mehr als eigene Fahrzeuge im Spiel. Emerald gibt es jetzt als Lackierung für die ', '. The Phoenix Emerald and the Hammerhead 2949 Best In Show are no longer separate vehicles in the game. Emerald is now a livery for the ')}<a href={L('/schiffe/rsi-constellation-phoenix.html')}>Mk IV</a>.</p>
         </article>
@@ -668,14 +680,15 @@ footer{border-top:1px solid var(--line);background:var(--bg-2);padding:clamp(2.5
               {CATALOGUE.map((c) => (
                 <tr>
                   <td><a href={L(c.what.h!)}>{c.what.t}</a></td>
-                  <td class="was num">{c.before != null ? n(c.before) : '–'}</td>
+                  <td class="was num">{n(c.before)}</td>
                   <td class="ist num">{n(c.after)}</td>
-                  <td class="num">{c.before != null ? `+${n(c.after - c.before)}` : c.note}</td>
+                  <td class="num">+{n(c.after - c.before)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <p class="note">{T('Neu bei Schiffen und Fahrzeugen: ', 'New ships and vehicles: ')}{NEW_VEHICLES.map((x, i) => <>{i > 0 && ', '}<a href={L(x.h!)}>{x.t}</a></>)}{T('. Zwei Editionen entfallen, siehe ', '. Two editions were removed, see ')}<a href="#namen">{T('Namen', 'Names')}</a>.</p>
       </div>
     </div>
   </section>

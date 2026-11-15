@@ -58,7 +58,7 @@
         },
         {
           "label": "Ränge",
-          "value": "Veteran Contractor bis Elite Contractor"
+          "value": "Jr. Contractor bis Head Contractor, je nach Auftrag"
         },
         {
           "label": "Missionsfamilien",
@@ -266,7 +266,7 @@
       "name": "Neu für aUEC",
       "system": "Schiffs-Systeme",
       "kind": "gameplay",
-      "desc": "Acht Schiffe, die schon flugfähig waren, lassen sich zum ersten Mal im Spiel mit aUEC kaufen. New Deal in Lorville führt Tiburon und Starlite. Teach's Ship Shop auf Levski hat Ironclad, Pitbull und Starlite. Auf Rundown Station in Pyro stehen Ironclad Assault, Pitbull und Basher, und Astro Armada in Area18 verkauft M80 und Tyilui.",
+      "desc": "Acht Schiffe, die schon flugfähig waren, lassen sich zum ersten Mal im Spiel mit aUEC kaufen. New Deal in Lorville führt Tiburon und Starlite. Teach's Ship Shop auf Levski hat Ironclad, Pitbull und Starlite. Auf Ruin Station, Checkmate und Orbituary in Pyro stehen Ironclad Assault, Pitbull und Basher, und Astro Armada in Area18 verkauft M80 und Tyilui.",
       "facts": [
         {
           "label": "Lorville · New Deal",
@@ -277,7 +277,7 @@
           "value": "Ironclad, Pitbull, Starlite"
         },
         {
-          "label": "Pyro · Rundown Station",
+          "label": "Pyro · Ruin Station, Checkmate, Orbituary",
           "value": "Ironclad Assault, Pitbull, Basher"
         },
         {
@@ -434,7 +434,7 @@
       "name": "Skarnov und Raider Camo",
       "system": "Waffen & Ausrüstung",
       "kind": "gameplay",
-      "desc": "Neu im Bestand ist das Energiegewehr Skarnov in fünf Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu: die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A, der Skarnov „Raider Camo\" mit Batterie und der Schild Deterrent. Den Bauplan des Radars Lephari gab es schon, er trägt jetzt seinen Namen. Bis 4.10.2 hießen zwei RSI-Schilde der Größe 4 „Glacis\", einer davon heißt jetzt Deterrent. Die Polaris trägt ihn ab Werk.",
+      "desc": "Neu im Bestand ist das Energiegewehr Skarnov in fünf Ausführungen, darunter „Ferrite\", „Relay\", „Sparkplug\" und „Raider Camo\". Den Bauplan für die „Raider Camo\"-Fassung und ihre Batterie vergibt der InterSec-Auftrag „Intersec Eliminate Specific Rank1\" in Nyx. In der Werkbank kommen 17 Baupläne dazu: die Tarnung „Raider Camo\" für die Panzerungen Corbel, Palatino und Tailwind und für die Kanonen M3A, M4A und M5A, der Skarnov „Raider Camo\" mit Batterie und der Schild Deterrent. Den Bauplan des Radars Lephari gab es schon, er trägt jetzt seinen Namen. Der RSI-Schild der Größe 4, der bis 4.10.2 „Glacis\" hieß, heißt jetzt Deterrent. Die Polaris trägt ihn ab Werk. Den Namen Glacis trägt jetzt ein neuer Schild der Größe 4 von Origin.",
       "facts": [
         {
           "label": "Gegenstände im Bestand",
@@ -531,6 +531,10 @@
           "href": "/crafting/deterrent.html"
         },
         {
+          "label": "Glacis",
+          "href": "/items/glacis.html"
+        },
+        {
           "label": "Lephari",
           "href": "/crafting/lephari.html"
         },
@@ -614,7 +618,7 @@
       "name": "IAE 2956",
       "system": "Events",
       "kind": "event",
-      "desc": "Zur Intergalactic Aerospace Expo 2956 kommen Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, dazu eine Kappe und ein T-Shirt. Corsair, Ironclad Assault, M80 und Perseus haben dazu je eine Lackierung „2956 Best In Show\".",
+      "desc": "Zur Intergalactic Aerospace Expo 2956 kommen Sammelmünzen der Best-in-Show-Schiffe mit Vitrine, dazu eine Kappe, ein T-Shirt und die „2956 Best in Show Bomber Jacket\". Corsair, Ironclad Assault, M80 und Perseus haben dazu je eine Lackierung „2956 Best In Show\".",
       "links": [
         {
           "label": "IAE 2956 Hat",
@@ -623,6 +627,10 @@
         {
           "label": "IAE 2956 T-Shirt",
           "href": "/items/iae-2956-t-shirt.html"
+        },
+        {
+          "label": "2956 Best in Show Bomber Jacket",
+          "href": "/items/2956-best-in-show-bomber-jacket.html"
         },
         {
           "label": "Corsair",
