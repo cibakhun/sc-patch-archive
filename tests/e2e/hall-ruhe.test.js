@@ -66,6 +66,17 @@ test('ruheDunkel bricht ab, wenn die Stelle in der Gruppe nicht die Nummer des L
   assert.throws(() => ruheDunkel(HALLE(), [...HALLE_ZEILEN(), zeile('lg_halle-002', 1.5)]), /lg_halle-002 \(not\): 2 Zeilen im Protokoll/);
 });
 
+test('ruheDunkel: weggelassen ist eine Gruppe nur, wenn keine Zeile des Protokolls ihren Namen trägt', () => {
+  // der Export zählt ab 1: keine der erwarteten Nummern steht da, der Name der Gruppe aber schon
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0)]), [zeile('lg_a-001', 1)]), /Lichtgruppe lg_a: 1 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 1 Zeile\(n\) über die Gruppe hinaus \(lg_a-001\)/);
+  // alle Nummern um die Länge der Gruppe verschoben
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0), lampe('y', 0, 2, 0)]), [zeile('lg_a-002', 1), zeile('lg_a-003', 2)]), /Lichtgruppe lg_a: 2 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 2 Zeile\(n\) über die Gruppe hinaus/);
+  // eine andere Gruppe, deren Name mit dem der weggelassenen beginnt, zählt nicht als ihre Zeile
+  const r = ruheDunkel([gruppe('lg_a', [lampe('x', 1, 0, 0)], 'EntityClass="LightGroupObjectAttach"'), gruppe('lg_a-001', [lampe('y', 3, 0, 0)]), gruppe('lg_ab', [lampe('z', 4, 0, 0)])].join('\n'), [zeile('lg_a-001-000', 3), zeile('lg_ab-000', 4)]);
+  assert.deepEqual(r.ohneExport, [{ gruppe: 'lg_a', lampen: 1 }]);
+  assert.deepEqual(Object.keys(r.gruppen), ['lg_a-001', 'lg_ab']);
+});
+
 test('ruheDunkel bricht ab bei Entities, die es nicht lesen kann', () => {
   assert.throws(() => ruheDunkel(`${HALLE()}\n${gruppe('lg_halle', [lampe('x', 1, 0, 0)])}`, HALLE_ZEILEN()), /Lichtgruppe lg_halle steht zweimal im Container/);
   assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0).replace(/<auxiliaryState[\s\S]*?<\/auxiliaryState>/, '')]), zeilen('lg_a', [1])), /lg_a-000 \(x\): ohne auxiliaryState/);

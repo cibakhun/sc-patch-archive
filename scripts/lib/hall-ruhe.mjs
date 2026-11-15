@@ -49,7 +49,7 @@ const gleich = (a, b) => Math.abs(a - b) <= 1e-4 * Math.max(1, Math.abs(a), Math
  * @returns {{ gruppen: Record<string, { lampen: number, dunkel: number[], auxiliary: number, emergency: number }>, ohneExport: { gruppe: string, lampen: number }[] }}
  *   gruppen: je exportierter Gruppe die Zahl ihrer Lampen, die Stellen der
  *   dunklen und wie viele davon der Export mit welchem Zustand schrieb;
- *   ohneExport: Gruppen, von denen keine Lampe im Protokoll steht.
+ *   ohneExport: Gruppen, deren Namen keine Zeile des Protokolls trägt.
  */
 export function ruheDunkel(xml, zeilen) {
   const proto = new Map();
@@ -67,8 +67,11 @@ export function ruheDunkel(xml, zeilen) {
     if (!gruppe) throw new Error(`eine Lichtgruppe mit ${lampen.length} Lampen trägt keinen Namen`);
     if (Object.hasOwn(gruppen, gruppe) || ohneExport.some((g) => g.gruppe === gruppe)) throw new Error(`Lichtgruppe ${gruppe} steht zweimal im Container, ihre Lichtknoten wären nicht zu unterscheiden`);
     const imExport = lampen.filter((_, i) => proto.has(lampenName(gruppe, i))).length;
-    if (!imExport) { ohneExport.push({ gruppe, lampen: lampen.length }); continue; }
     const fremd = [...proto.keys()].filter((n) => n.startsWith(`${gruppe}-`) && /^\d+$/.test(n.slice(gruppe.length + 1)) && !(Number(n.slice(gruppe.length + 1)) < lampen.length));
+    // Weggelassen hat der Export eine Gruppe nur, wenn keine Zeile ihren Namen
+    // trägt. Steht er im Protokoll nur mit Nummern, die sie nicht hat, zählt
+    // der Export anders als die Stelle in der Gruppe: Das fällt unten durch.
+    if (!imExport && !fremd.length) { ohneExport.push({ gruppe, lampen: lampen.length }); continue; }
     if (imExport !== lampen.length || fremd.length) throw new Error(`Lichtgruppe ${gruppe}: ${lampen.length} Lampen in den Entities, ${imExport} davon im Protokoll des Exports${fremd.length ? `, dazu ${fremd.length} Zeile(n) über die Gruppe hinaus (${fremd.slice(0, 3).join(', ')})` : ''}; die Stelle in der Gruppe ist dann nicht die Nummer des Lichtknotens`);
     const dunkel = [];
     let auxiliary = 0, emergency = 0;
