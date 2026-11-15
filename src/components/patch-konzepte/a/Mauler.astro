@@ -1,0 +1,20 @@
+---
+// Vanduul Mauler als Umriss: Vom Mauler gibt es kein offizielles Bild.
+interface Props { label: string; class?: string }
+const { label, class: cls } = Astro.props;
+---
+<svg class={cls} viewBox="0 0 400 225" role="img" aria-label={label} preserveAspectRatio="xMidYMid meet">
+  <g fill="#14161b" stroke="#e0563f" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M188 112 C150 102 92 74 34 26 C66 92 118 142 184 164 Z" />
+    <path d="M212 112 C250 102 308 74 366 26 C334 92 282 142 216 164 Z" />
+    <path d="M186 176 L142 214 L194 192 Z" />
+    <path d="M214 176 L258 214 L206 192 Z" />
+    <path d="M200 18 L224 118 L215 190 L200 204 L185 190 L176 118 Z" />
+  </g>
+  <g fill="none" stroke="#8fb8d8" stroke-width="1" opacity=".55">
+    <path d="M200 40 L200 188" />
+    <path d="M70 52 C110 92 150 118 186 132" />
+    <path d="M330 52 C290 92 250 118 214 132" />
+  </g>
+  <circle cx="200" cy="96" r="5" fill="#e0563f" />
+</svg>

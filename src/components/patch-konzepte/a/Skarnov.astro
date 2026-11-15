@@ -1,0 +1,12 @@
+---
+// Skarnov als Umriss in den Farben einer Ausführung: Ein offizielles Bild gibt es nicht.
+interface Props { toene: string[]; label: string; class?: string }
+const { toene, label, class: cls } = Astro.props;
+const [rahmen, akzent = rahmen] = toene;
+---
+<svg class={cls} viewBox="0 0 320 90" role="img" aria-label={label}>
+  <path fill={rahmen} stroke="rgba(242,238,230,.35)" stroke-width="1" d="M18 34 L70 30 L84 22 L210 22 L222 30 L250 30 L250 44 L222 46 L214 52 L150 52 L138 74 L118 74 L124 52 L96 52 L84 64 L70 64 L64 52 L18 50 L10 42 Z" />
+  <rect x="250" y="33" width="58" height="8" rx="2" fill={akzent} />
+  <rect x="150" y="52" width="26" height="22" rx="2" fill={akzent} />
+  <rect x="100" y="26" width="90" height="4" fill={akzent} opacity=".8" />
+</svg>

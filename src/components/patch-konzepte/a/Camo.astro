@@ -1,0 +1,22 @@
+---
+// Muster „Raider Camo“ als Fläche aus Splittern in den Tönen der Tarnung.
+// Fester Startwert: jeder Bau zeichnet dasselbe Muster.
+interface Props { label: string; class?: string }
+const { label, class: cls } = Astro.props;
+const TOENE = ['#3b4a2c', '#5a4630', '#2a3020', '#6e6a4c', '#1b1d16'];
+let s = 7;
+const zufall = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+const splitter = Array.from({ length: 46 }, (_, i) => {
+  const x = zufall() * 420 - 10, y = zufall() * 245 - 10, r = 18 + zufall() * 42;
+  const ecken = Array.from({ length: 5 }, (_, k) => {
+    const w = (k / 5) * Math.PI * 2 + zufall() * 0.9;
+    const d = r * (0.45 + zufall() * 0.7);
+    return `${(x + Math.cos(w) * d * 1.6).toFixed(1)},${(y + Math.sin(w) * d).toFixed(1)}`;
+  });
+  return { punkte: ecken.join(' '), farbe: TOENE[i % TOENE.length] };
+});
+---
+<svg class={cls} viewBox="0 0 400 225" role="img" aria-label={label} preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="225" fill="#2f3826" />
+  {splitter.map((p) => <polygon points={p.punkte} fill={p.farbe} />)}
+</svg>
