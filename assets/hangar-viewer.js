@@ -939,12 +939,39 @@ function hallShiftPoint(h, p) {
 // Breite kommt davon an den Wänden kaum etwas an, sie blieben fast schwarz.
 // 0,5 hebt sie, ohne das Bild zu verflachen (so abgenommen, Krisz
 // 14.11.2026 zu den ersten Bildern: „ja“).
+// `grund`: Grundlicht der Halle, im Lichtgitter auf jede Hallenfläche gelegt
+// (hallGrund), nicht auf Schiff und Gerät. Krisz am 15.11.2026 zur
+// ausgelieferten Halle: „es ist zu dunkel in der halle, man sieht überhaupt
+// nicht die wände undso, also dass es dunkel ist ist gut aber es ist viel zu
+// dunkel“. Nachgemessen an seiner Startansicht (Carrack, 1600 × 900): 55 %
+// des Bildes lagen unter 16 von 255, in den oberen zwei Fünfteln mit Wänden
+// und Decke 84 %. Das Spiel hebt eine solche Halle mit Streulicht und
+// nachgeführter Belichtung; hier fehlt beides. Mehr Fülllicht (`fuell` 1,5)
+// oder mehr Lampenstärke im Gitter (vierfach) ließen oben noch 63 und 70 %
+// im Schwarz und hellen zuerst das Schiff auf, das schon richtig steht.
+// Am Bild abgeglichen (dieselbe Ansicht): bei 2 liegen oben noch 54 % unter
+// 16, bei 3 sind es 47 %, bei 4,5 noch 37 % (Decke und Schatten), bei 7
+// steht die Halle hell da und die dunkle Stimmung ist weg; 4,5 steht.
 // Der eigene Aufzug einer solchen Halle (Bodentor und Plattform aus ihrem
 // Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
 // durch, ownLift baut ihn.
 const HALL_FEST = /* hall-fest */ {
-  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5 }
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5 }
 } /* /hall-fest */;
+
+// Grundlicht einer Halle fester Größe (HALL_FEST.grund) als Bestrahlung im
+// Lichtgitter, in der Höhe `hoch` (0 = Boden, 1 = Decke): am Boden voll, zur
+// Decke hin weniger, damit die Halle oben dunkel ausläuft und die Stimmung
+// bleibt. Flächen, die nach unten zeigen, bekommen weniger, sonst stünde
+// jede Unterseite so hell wie ihre Wand und die Formen flachten ab. Kühles
+// Weiß in der Farbe der Hauptstrahler (linear). null: die Halle hat keins.
+export const VOL_GRUND = { decke: 0.4, unten: 0.6, farbe: [0.75, 0.92, 1] };
+export function hallGrund(id, hoch) {
+  const g = HALL_FEST[id]?.grund;
+  if (!(g > 0)) return null;
+  const s = g * (1 - (1 - VOL_GRUND.decke) * Math.min(1, Math.max(0, hoch)));
+  return { seite: s, oben: s, unten: s * VOL_GRUND.unten };
+}
 
 // Mitte des Schiffsfelds (mit Aufzug), der Landefläche (HALL_FEST) oder des
 // Raums, im Modellraum
@@ -9013,7 +9040,7 @@ export async function initHangar(container, opts = {}) {
     a: { value: null }, b: { value: null }, on: { value: 0 },
     min: { value: new THREE.Vector3() }, at: null, inv: { value: 1 / VOL_STEP }, res: { value: new THREE.Vector3(1, 1, 1) },
   };
-  async function buildHallVolume(list, room, f, pause = noPause) {
+  async function buildHallVolume(list, room, f, pause = noPause, id = null) {
     const { center: c, halfW, halfL, height } = room;
     const x0 = c[0] - halfW, y0 = f - 1, z0 = c[2] - halfL;
     const nx = Math.round((2 * halfW) / VOL_STEP) + 1, ny = Math.ceil((height + 1) / VOL_STEP) + 1, nz = Math.round((2 * halfL) / VOL_STEP) + 1;
@@ -9054,6 +9081,20 @@ export async function initHangar(container, opts = {}) {
         if (ly > 0) face[n * 6 + 2] += ly; else face[n * 6 + 3] -= ly;
         if (lz > 0) face[n * 6 + 4] += lz; else face[n * 6 + 5] -= lz;
         rgb[n * 3] += E * col[0]; rgb[n * 3 + 1] += E * col[1]; rgb[n * 3 + 2] += E * col[2];
+      }
+    }
+    // Grundlicht der Halle (hallGrund) in jede Zelle, je Schicht nach ihrer Höhe
+    if (hallGrund(id, 0)) {
+      const [gr, gg, gb] = VOL_GRUND.farbe, gl = 0.2126 * gr + 0.7152 * gg + 0.0722 * gb;
+      for (let j = 0; j < ny; j++) {
+        await pause();
+        const g = hallGrund(id, (y0 + j * VOL_STEP - f) / height), c = g.seite / gl;
+        for (let k = 0; k < nz; k++) for (let i = 0; i < nx; i++) {
+          const n = (k * ny + j) * nx + i;
+          face[n * 6] += g.seite; face[n * 6 + 1] += g.seite; face[n * 6 + 2] += g.oben;
+          face[n * 6 + 3] += g.unten; face[n * 6 + 4] += g.seite; face[n * 6 + 5] += g.seite;
+          rgb[n * 3] += c * gr; rgb[n * 3 + 1] += c * gg; rgb[n * 3 + 2] += c * gb;
+        }
       }
     }
     // zwei RGBA-Halbfloat-Texturen: A = +x −x +y −y, B = +z −z und die
@@ -9152,7 +9193,7 @@ export async function initHangar(container, opts = {}) {
     // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
     const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
     const t0 = performance.now();
-    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, rast));
+    const vol = await buildHallVolume(all.filter((l) => !lit.has(l)), h.room, f, slicer(12, rast), h.id);
     // in Häppchen gerechnet: scheiterte die Halle derweil, bleibt die gebaute samt Bühnenlicht
     if (hallFailed) { vol.a.dispose(); vol.b.dispose(); return false; }
     hallVol.a.value = vol.a; hallVol.b.value = vol.b;
@@ -9162,7 +9203,7 @@ export async function initHangar(container, opts = {}) {
     hallVol.min.value.fromArray(vol.min).add(lamps.position);
     hallVol.res.value.set(...vol.res);
     hallVol.on.value = 1;
-    console.info(`[hangar] Lichtgitter ${vol.res.join('x')} aus ${vol.used} Spiellampen, ${Math.round(performance.now() - t0)} ms`);
+    console.info(`[hangar] Lichtgitter ${vol.res.join('x')} aus ${vol.used} Spiellampen${hallGrund(h.id, 0) ? `, Grundlicht ${hallGrund(h.id, 0).seite}` : ''}, ${Math.round(performance.now() - t0)} ms`);
     // Das Bühnenlicht geht ganz: Auf null gedreht stünde es weiter in jedem
     // Shader und kostete jedes Pixel.
     scene.remove(key, rim, fill, doorLight);

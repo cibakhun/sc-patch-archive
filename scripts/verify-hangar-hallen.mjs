@@ -37,7 +37,8 @@
    [2] Modell: der Boden der Seite ist der, den das Lot am ausgelieferten
        Modell trifft; die Plattform liegt auf dieser Höhe; Landefläche,
        Feld des Aufzugs und Raum liegen ineinander; jede Bahn hat ihren
-       Knoten
+       Knoten; die Halle hat ihr Grundlicht (hallGrund, Klinke je Halle),
+       und der Viewer legt es ins Lichtgitter
    [3] Bestand: Schrift, Schirme und die Zahlen des Manifests über ihren
        Klinken und unter ihren Obergrenzen (darunter die eingehängten
        Kind-Container: Frachtaufzüge und Türen); die Lampen aus der
@@ -171,6 +172,22 @@
        Kind-Container mit Geometrie eingehaengt
        (elev_util_cargo_hangar_lrg_a 2,
        hangar_component_module_cargo_elevator_lrg 2; …), Klinke 14“.
+   (p) 15.11.2026, mit dem Grundlicht der Halle (Krisz zur ausgelieferten
+       Halle: „viel zu dunkel“, Wände und Decke standen im Schwarz),
+       fünfmal am ausgelieferten Viewer gebrochen:
+       HALL_FEST ohne grund: „[2] util-lrgtop: die Halle hat kein
+       Grundlicht (HALL_FEST.grund null) — Waende und Decke stuenden im
+       Schwarz …“;
+       grund 2 statt 4.5: „[2] util-lrgtop: das Grundlicht am Boden ist 2
+       (Waende) und 2 (Flaechen nach oben), Klinke 3 …“;
+       loadHallLights reicht buildHallVolume die Halle nicht mehr durch:
+       „[2] der ausgelieferte Viewer legt das Grundlicht der Hallen nicht
+       ins Lichtgitter …“;
+       VOL_GRUND.decke 0 statt 0.4: „[2] util-lrgtop: das Grundlicht
+       faellt unter der Decke oder an Unterseiten auf null (Decke 0, …)
+       — die Decke staende schwarz“;
+       hallGrund ohne export: „[2] util-lrgtop: der ausgelieferte Viewer
+       nennt das Grundlicht seiner Hallen nicht mehr (hallGrund) …“.
    KONTROLLE, bleibt grün: das Gehäuse
    comms_screenroom_large_screens_1_mtl_plastic_black_02 hell (0.9). Die
    erste Fassung zählte jedes Material mit „screen“ im Namen und meldete
@@ -209,8 +226,12 @@ const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die
 // ohne sie ins Leere). Darum zählt der Build die Halter der Kinder am Rohmodell (kinderBestand, kinder im
 // Manifest): 2 Frachtaufzüge, 2 Kabinen darin, 9 Türen der Personenaufzüge, 1 Tür der Abgabe. Beide Türnetze
 // tragen Aufkleber, die Klinke dafür stieg mit ihnen von 148 auf 150.
+// grund: Grundlicht der Halle am Boden (hallGrund im Viewer). Krisz am 15.11.2026 zur ausgelieferten Halle:
+// „viel zu dunkel“, Wände und Decke standen im Schwarz. In der Messreihe an seiner Startansicht lagen bei 2
+// noch 54 % des oberen Bildteils unter 16 von 255, bei 3 waren es 47 %; ausgeliefert wird 4,5 (37 %). Die
+// Klinke hält die kleinste Stufe, die er zur Auswahl bekam.
 const KLINKE = {
-  'util-lrgtop': { lampen: 798, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 150, schilder: 5, kinder: 14 },
+  'util-lrgtop': { lampen: 798, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 150, schilder: 5, kinder: 14, grund: 3 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
@@ -288,10 +309,16 @@ if (HALLEN.size < MIN_HALLEN) fail(`[1] nur ${HALLEN.size} Halle(n) fester Groes
 say(`    ${HALLEN.size} Halle(n) ausgeliefert (Klinke ${MIN_HALLEN})${HALLEN.size ? `: ${[...HALLEN.values()].map((h) => `${h.stufe} ${h.hall.id}`).join(', ')}` : ''}${ohne.length ? `; der Viewer nennt ausserdem ${ohne.join(', ')}, NICHT geprueft, weil dieser Bau sie nicht ausliefert` : ''}`);
 
 /* ---------- [2] Modell ---------- */
-say('[2] Modell: Boden der Seite wie das Lot am Modell, Plattform auf dieser Hoehe, Landeflaeche im Feld des Aufzugs und im Raum, jede Bahn mit Knoten');
+say('[2] Modell: Boden der Seite wie das Lot am Modell, Plattform auf dieser Hoehe, Landeflaeche im Feld des Aufzugs und im Raum, jede Bahn mit Knoten, Grundlicht je Halle ueber der Klinke und im Lichtgitter');
 const io = HALLEN.size ? new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() }) : null;
 const DOCS = new Map();
 let bahnen = 0, padFlaeche = 0;
+// Das Grundlicht steht nur dann auf den Flaechen, wenn das Lichtgitter es bekommt: buildHallVolume liest es
+// je Schicht aus hallGrund, und loadHallLights reicht ihm die Halle durch.
+const gitterBau = /async function buildHallVolume\(([^)]*)\) \{[\s\S]*?\n  \}\n/.exec(viewerSrc);
+const gitterLiest = !!gitterBau && /\bid\b/.test(gitterBau[1]) && /hallGrund\(id, [^)]+\)/.test(gitterBau[0]) && /await buildHallVolume\([^;]*, h\.id\);/.test(viewerSrc);
+if (HALLEN.size && !gitterLiest) fail('[2] der ausgelieferte Viewer legt das Grundlicht der Hallen nicht ins Lichtgitter (buildHallVolume liest hallGrund nicht mehr, oder loadHallLights reicht ihm die Halle nicht durch) — hallGrund nennte eine Staerke, die keine Flaeche bekommt, und Waende und Decke stuenden wieder im Schwarz');
+const grundlicht = [];
 for (const [id, { hall, F }] of HALLEN) {
   let doc;
   try { doc = await io.read(inDist(hall.url)); } catch (e) { fail(`[2] ${id}: das Modell laesst sich nicht lesen (${e.message})`); continue; }
@@ -301,6 +328,14 @@ for (const [id, { hall, F }] of HALLEN) {
   const mitte = [(P.from[0] + P.to[0]) / 2, (P.from[1] + P.to[1]) / 2];
   if (P.from[0] < c[0] - hall.room.halfW || P.to[0] > c[0] + hall.room.halfW || P.from[1] < c[2] - hall.room.halfL || P.to[1] > c[2] + hall.room.halfL) fail(`[2] ${id}: die Landeflaeche (HALL_FEST.pad ${JSON.stringify(P)}) liegt nicht im Raum der Halle (Mitte ${c[0]}, ${c[2]}, halbe Breite ${hall.room.halfW}, halbe Laenge ${hall.room.halfL})`);
   if (!(F.clear > 0 && F.clear <= hall.room.height)) fail(`[2] ${id}: HALL_FEST.clear ${F.clear} m passt nicht in den Raum (Hoehe ${hall.room.height} m)`);
+  // Grundlicht: am Boden ueber der Klinke, unter der Decke und an Unterseiten nicht null
+  const G0 = viewer?.hallGrund?.(id, 0), G1 = viewer?.hallGrund?.(id, 1), GK = KLINKE[id]?.grund;
+  if (!viewer?.hallGrund) fail(`[2] ${id}: der ausgelieferte Viewer nennt das Grundlicht seiner Hallen nicht mehr (hallGrund) — ob Waende und Decke zu sehen sind, laesst sich nicht pruefen`);
+  else if (!G0 || !G1) fail(`[2] ${id}: die Halle hat kein Grundlicht (HALL_FEST.grund ${JSON.stringify(F.grund ?? null)}) — Waende und Decke stuenden im Schwarz, so wie Krisz sie am 15.11.2026 abgelehnt hat („viel zu dunkel“)`);
+  else if (!(GK > 0)) fail(`[2] ${id}: keine Klinke fuer das Grundlicht (KLINKE.${id}.grund in diesem Skript) — eine neue Halle traegt die kleinste Stufe ein, die an ihren Bildern noch taugt`);
+  else if (!(G0.seite >= GK && G0.oben >= GK)) fail(`[2] ${id}: das Grundlicht am Boden ist ${G0.seite} (Waende) und ${G0.oben} (Flaechen nach oben), Klinke ${GK} — darunter lag in der Messreihe wieder die Haelfte des oberen Bildteils im Schwarz`);
+  else if (!(G1.seite > 0 && G1.unten > 0 && G0.unten > 0)) fail(`[2] ${id}: das Grundlicht faellt unter der Decke oder an Unterseiten auf null (Decke ${G1.seite}, Unterseiten ${G0.unten} am Boden und ${G1.unten} oben) — die Decke staende schwarz`);
+  else grundlicht.push(`${id} ${G0.seite} am Boden, ${+G1.seite.toFixed(2)} unter der Decke (Klinke ${GK})`);
   // der Ursprung, an den die Buehne das Modell setzt (ohne ihn lotet sie selbst)
   const O = viewer?.hallOrigin?.(hall);
   if (!Array.isArray(O) || Math.abs(O[0] - mitte[0]) > 1e-6 || Math.abs(O[2] - mitte[1]) > 1e-6 || O[1] !== hall.floor) fail(`[2] ${id}: die Buehne setzt die Halle nicht auf die Mitte ihrer Landeflaeche und den Boden der Seite (hallOrigin ${JSON.stringify(O ?? null)}, erwartet ${mitte[0]}, ${hall.floor}, ${mitte[1]})`);
@@ -353,6 +388,7 @@ for (const [id, { hall, F }] of HALLEN) {
   }
 }
 say(`    ${DOCS.size} Modell(e) gelesen, ${bahnen} Bahnen mit Knoten, ${padFlaeche.toFixed(0)} m² Plattform auf der Hoehe des Bodens`);
+say(`    Grundlicht in ${grundlicht.length} von ${HALLEN.size} Halle(n)${grundlicht.length ? `: ${grundlicht.join('; ')}` : ''}; das Lichtgitter liest es: ${gitterLiest ? 'ja' : 'NEIN'}`);
 
 /* ---------- [3] Bestand ---------- */
 say('[3] Bestand: Schrift und Schirme am Modell, Lampen in der ausgelieferten Datei, Zahlen des Manifests ueber ihren Klinken und unter ihren Obergrenzen');
