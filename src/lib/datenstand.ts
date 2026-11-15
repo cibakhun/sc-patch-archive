@@ -26,6 +26,7 @@
 // Nur fuer den Seitenbau (Frontmatter): die Datendateien landen sonst im
 // Client-Bundle.
 import type { Locale } from '../i18n/ui';
+import { fassung } from './fassung';
 import ITEMS from '../../assets/universal-items.json';
 import CRAFT from '../../assets/crafting-db.json';
 import MINING from '../../assets/mining-db.json';
@@ -175,12 +176,7 @@ export function datumLang(iso: string, lang: Locale): string {
   return lang === 'de' ? `${tag}. ${mon} ${m[1]}` : `${mon} ${tag}, ${m[1]}`;
 }
 
-/** Fassung X.Y.Z aus einer Kennung („sc-alpha-4.10.2@12881860", „4.10.2-live.…"). Ohne Fassung bricht der Bau. */
-export function fassung(kennung: unknown, wo: string): string {
-  const m = typeof kennung === 'string' ? /(\d+\.\d+\.\d+)/.exec(kennung) : null;
-  if (!m) throw new Error(`datenstand: ${wo} traegt keine Fassung X.Y.Z (${JSON.stringify(kennung)})`);
-  return m[1];
-}
+export { fassung };
 
 const zahl = (f: string) => f.split('.').map(Number);
 /** a < b fuer Fassungen X.Y.Z */

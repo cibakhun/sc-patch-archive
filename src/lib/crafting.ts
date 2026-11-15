@@ -9,6 +9,7 @@
 
 import DB from '../../assets/crafting-db.json';
 import type { Locale } from '../i18n/ui';
+import { fassung } from './fassung';
 import { HAS_WERKBANK } from './seo';
 import { hasGradeSemantics, hasMeaningfulGrade, itemSizes, items, type Item, type ItemVariant } from './items';
 
@@ -104,8 +105,8 @@ export interface CraftingDb {
 
 export const craftDb = DB as unknown as CraftingDb;
 
-/** Patch-Label aus der DB-Version ("PUBLIC-4.10.0-12519617" -> "4.10"). */
-export const craftPatch = (/(\d+\.\d+)/.exec(craftDb.version) ?? [])[1] ?? '4.10';
+/** Patch-Label aus der DB-Version ("PUBLIC-4.10.3-13165946" -> "4.10.3"). */
+export const craftPatch = fassung(craftDb.version, 'assets/crafting-db.json version');
 
 /* ---------- Slugs ---------- */
 
