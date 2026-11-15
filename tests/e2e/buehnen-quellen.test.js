@@ -63,6 +63,17 @@ test('ein Aufruf über mehrere Zeilen bleibt einer; die Zeile ist die, in der di
   assert.equal(r.quellen[0].text.trim(), 'fetch(');
 });
 
+test('jede Quelle trägt ihren eigenen Text: Zwei Quellen einer Zeile sind zwei Knoten', () => {
+  // der Fall aus dem Review (neunte Runde): ein Abruf auf der Zeile einer benannten Ausnahme. Das Tor band die
+  // Ausnahme an die Zeile, der zweite Abruf galt mit. Es bindet sie seither an knoten.
+  const r = buehnenQuellen(buehne("try { bild = await createImageBitmap(renderer.domElement); } catch { return null; } fetch('/spaet');"));
+  assert.deepEqual(r.quellen.map((q) => [q.knoten, q.geschuetzt]), [['createImageBitmap(renderer.domElement)', false], ["fetch('/spaet')", false]]);
+  assert.equal(r.quellen[0].text, r.quellen[1].text);
+  // über mehrere Zeilen: der ganze Aufruf, nicht nur seine erste Zeile
+  const m = buehnenQuellen(buehne('loader.load(url, (g) => {\n  resolve(g);\n}, undefined, reject);'));
+  assert.equal(m.quellen[0].knoten, 'loader.load(url, (g) => {\n  resolve(g);\n}, undefined, reject)');
+});
+
 test('nur der blanke Aufruf zählt als Abruf, ein gleichnamiges Glied nicht; Schutz und Funktion sind wählbar', () => {
   assert.deepEqual(kurz('const r = await zwischenlager.fetch(schluessel);').q, []);
   assert.deepEqual(kurz('const r = await wach(fetch(u));', { schutz: 'wach' }).q, ['fetch +']);
@@ -83,4 +94,6 @@ test('der Viewer des Repos: lesbar, und jede ungeschützte Quelle ist eine der v
   // Selbstauskunft: dieselbe Klinke wie GROESSE.quellen in scripts/verify-hangar.mjs
   assert.ok(geschuetzt >= 23, `nur ${geschuetzt} Quellen hinter lebt()`);
   assert.equal(ohne.length, 4, ohne.map((q) => `${q.zeile}: ${q.text.trim().slice(0, 80)}`).join('\n'));
+  // jede der vier beginnt anders: Nur so kann eine Ausnahme genau eine von ihnen meinen
+  assert.equal(new Set(ohne.map((q) => q.knoten.slice(0, 30))).size, 4);
 });

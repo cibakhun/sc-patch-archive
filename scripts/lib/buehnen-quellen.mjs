@@ -15,9 +15,11 @@ const GLIEDER = new Set(['load', 'loadAsync']);
 /**
  * @param {string} text Quelltext des Moduls
  * @param {{ funktion?: string, schutz?: string }} [o] Name der Funktion, deren Rumpf zählt, und der Schutzfunktion
- * @returns {{ fehler: string[], quellen: { zeile: number, text: string, art: string, geschuetzt: boolean }[] }}
+ * @returns {{ fehler: string[], quellen: { zeile: number, text: string, knoten: string, art: string, geschuetzt: boolean }[] }}
  *   fehler: warum der Text nicht (ganz) gelesen ist; dann ist die Liste keine Zählung.
- *   quellen: in der Reihenfolge des Texts; zeile ab 1, text die Zeile, in der die Quelle beginnt.
+ *   quellen: in der Reihenfolge des Texts; zeile ab 1, text die Zeile, in der die Quelle beginnt, knoten der Text
+ *   der Quelle selbst (der Aufruf mit seinen Argumenten). Wer eine einzelne Quelle meint, etwa eine benannte
+ *   Ausnahme, hält sich an knoten: Auf einer Zeile können mehrere Quellen stehen.
  */
 export function buehnenQuellen(text, { funktion = 'initHangar', schutz = 'lebt' } = {}) {
   const sf = ts.createSourceFile('buehne.js', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -52,7 +54,7 @@ export function buehnenQuellen(text, { funktion = 'initHangar', schutz = 'lebt' 
   const zeilen = text.split('\n'), quellen = [];
   const geh = (n) => {
     const a = art(n);
-    if (a) { const z = zeileVon(n.getStart(sf)); quellen.push({ zeile: z + 1, text: zeilen[z] ?? '', art: a, geschuetzt: geschuetzt(n) }); }
+    if (a) { const z = zeileVon(n.getStart(sf)); quellen.push({ zeile: z + 1, text: zeilen[z] ?? '', knoten: n.getText(sf), art: a, geschuetzt: geschuetzt(n) }); }
     ts.forEachChild(n, geh);
   };
   geh(rumpf);

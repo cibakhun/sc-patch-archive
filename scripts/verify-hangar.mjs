@@ -734,6 +734,13 @@
         Zeichenkette hielt den Schutz der Klammerzählung offen;
         gezählt wird seither am Syntaxbaum,
         scripts/lib/buehnen-quellen.mjs)                            -> [24]
+    dn  dort hinter das Standbild in still() einen Abruf auf
+        dieselbe Zeile stellen (… catch { return null; }
+        gefolgt von einem Abruf; neunte Runde: Die benannte
+        Ausnahme galt jeder Quelle ihrer Zeile, sie hängt seither
+        am Knoten der Quelle)                                       -> [24]
+    do  dort die Zeile des Standbilds in still() verdoppeln (eine
+        Ausnahme deckt genau eine Quelle)                           -> [24]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -3364,15 +3371,18 @@ const GROESSE_AUSNAHMEN = {
   // Quellen der Bühne (15.11.2026, sechste Runde): Jede Stelle im Rumpf von initHangar, an der etwas von außen
   // kommt (Leitung, Modul, Bild, Schrift), steht in einem Aufruf von lebt(…). Sechs Runden lang fand das
   // Review je eine andere Fortsetzung, die nach dem Abbau der Bühne weiterlief; gefragt wird deshalb an der
-  // Quelle, und eine neue Quelle ohne lebt() reißt hier. Ausnahmen sind benannt und tragen ihren Anlass: Fehlt
-  // die Zeile, die ihn belegt, reißt das Tor ebenfalls.
+  // Quelle, und eine neue Quelle ohne lebt() reißt hier. Ausnahmen sind benannt und tragen ihren Anlass. Eine
+  // Ausnahme gilt genau einer Quelle und hängt an deren Knoten im Syntaxbaum (knoten: so beginnt der Text der
+  // Quelle selbst), nicht an der Zeile: Bis zur neunten Runde des Reviews galt jeder weitere Abruf auf der Zeile
+  // einer Ausnahme mit. umfeld: was auf der Zeile der Quelle außerdem stehen muss, wo der Anlass daran hängt.
+  // Deckt eine Ausnahme keine Quelle mehr oder mehr als eine, reißt das Tor ebenfalls.
   const rumpf = viewer.slice(Math.max(0, viewer.indexOf('export async function initHangar(')));
   const QUELLE_OHNE = [
-    ["ktxLoader ??= import('three/addons/loaders/KTX2Loader.js')", 'ktxTot ersetzt den Loader beim Abbau durch null'],
-    // ohne das Wort des Abrufs davor: verify:wiring läse es in diesem Skript als Griff ins Netz
-    ["(`${KTX_ORT}${id}.ktx2?v=${KTX_V}`, { credentials: 'same-origin', signal: ktxWach.ab.signal })", 'ktxTot bricht die Anfrage beim Abbau ab'],
-    ['(HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }', 'fetchGltf fragt tot selbst, davor und bei der Ankunft'],
-    ['try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }', 'still() antwortet der Seite und fragt tot gleich danach'],
+    { knoten: "import('three/addons/loaders/KTX2Loader.js')", umfeld: "ktxLoader ??= import('three/addons/loaders/KTX2Loader.js')", anlass: 'ktxTot ersetzt den Loader beim Abbau durch null' },
+    // das Wort des Abrufs steht für sich: Mit der Klammer dahinter läse verify:wiring es in diesem Skript als Griff ins Netz
+    { knoten: 'fetch' + "(`${KTX_ORT}${id}.ktx2?v=${KTX_V}`, { credentials: 'same-origin', signal: ktxWach.ab.signal })", anlass: 'ktxTot bricht die Anfrage beim Abbau ab' },
+    { knoten: '(HALL_FILES.has(key) ? hallLoader : loader).load(url, (g) => { if (!tot) resolve(g); }', anlass: 'fetchGltf fragt tot selbst, davor und bei der Ankunft' },
+    { knoten: 'createImageBitmap(renderer.domElement)', umfeld: 'try { bild = await createImageBitmap(renderer.domElement); } catch { return null; }', anlass: 'still() antwortet der Seite und fragt tot gleich danach' },
   ];
   // Gezählt wird am Syntaxbaum (scripts/lib/buehnen-quellen.mjs): Eine Quelle ist geschützt, wenn sie in einem
   // Argument eines Aufrufs von lebt steht. Die Zählung über Zeilen und Klammern davor ließ sich zweimal täuschen
@@ -3381,12 +3391,17 @@ const GROESSE_AUSNAHMEN = {
   const zaehlung = buehnenQuellen(viewer);
   for (const f of zaehlung.fehler.slice(0, 3)) fail(`[24] dist/assets/hangar-viewer.js: die Zählung der Quellen liest den Viewer nicht ganz (${f}): Was der Syntaxbaum nicht kennt, ist nicht gezählt`);
   let quellen = 0, quellenOhne = 0;
+  const gedeckt = QUELLE_OHNE.map(() => 0);
   for (const q of zaehlung.quellen) {
-    if (q.geschuetzt) quellen++;
-    else if (QUELLE_OHNE.some(([stelle]) => q.text.includes(stelle))) quellenOhne++;
-    else fail(`[24] dist/assets/hangar-viewer.js: eine Quelle der Bühne geht nicht durch lebt() („${q.text.trim().slice(0, 110)}“): Kommt sie nach dem Abbau an, arbeitet die abgebaute Bühne neben der neuen Halle weiter. In lebt(…) fassen, oder die Ausnahme in QUELLE_OHNE benennen`);
+    if (q.geschuetzt) { quellen++; continue; }
+    const i = QUELLE_OHNE.findIndex((a) => q.knoten.startsWith(a.knoten) && (!a.umfeld || q.text.includes(a.umfeld)));
+    if (i >= 0) { gedeckt[i]++; quellenOhne++; }
+    else fail(`[24] dist/assets/hangar-viewer.js: eine Quelle der Bühne geht nicht durch lebt() („${q.knoten.replace(/\s+/g, ' ').slice(0, 70)}“ in Zeile ${q.zeile}: „${q.text.trim().slice(0, 110)}“): Kommt sie nach dem Abbau an, arbeitet die abgebaute Bühne neben der neuen Halle weiter. In lebt(…) fassen, oder die Ausnahme in QUELLE_OHNE benennen`);
   }
-  for (const [stelle, anlass] of QUELLE_OHNE) if (!rumpf.includes(stelle)) fail(`[24] die Ausnahme von lebt() „${stelle.slice(0, 60)}…“ (${anlass}) hat ihren Anlass verloren: Die Zeile steht so nicht mehr im Rumpf von initHangar. Ausnahme streichen oder an der neuen Zeile neu begründen`);
+  QUELLE_OHNE.forEach((a, i) => {
+    if (!gedeckt[i]) fail(`[24] die Ausnahme von lebt() „${a.knoten.slice(0, 60)}…“ (${a.anlass}) hat ihren Anlass verloren: Keine ungeschützte Quelle im Rumpf von initHangar beginnt mehr so${a.umfeld ? ', oder sie steht nicht mehr in ihrem Umfeld' : ''}. Ausnahme streichen oder an der neuen Stelle neu begründen`);
+    else if (gedeckt[i] > 1) fail(`[24] die Ausnahme von lebt() „${a.knoten.slice(0, 60)}…“ (${a.anlass}) deckt ${gedeckt[i]} Quellen der Bühne: Eine Ausnahme gilt einer Stelle. Die weitere Quelle in lebt(…) fassen, oder eigens benennen und begründen`);
+  });
   if (!/if \(tot\) \{ bild\.close\(\); return null; \}/.test(rumpf)) fail('[24] still() fragt nach dem Standbild nicht mehr, ob die Bühne abgebaut ist (if (tot) { bild.close(); return null; }): Die Ausnahme von lebt() gilt nur mit dieser Frage');
   sollIst(`Quellen der Bühne hinter lebt() >= ${GROESSE.quellen}, jede weitere benannt`, `${quellen} hinter lebt(), ${quellenOhne} benannte Ausnahmen (${QUELLE_OHNE.length} Stellen)`);
   if (quellen < GROESSE.quellen) fail(`[24] nur ${quellen} Quellen der Bühne hinter lebt() gefunden (Klinke ${GROESSE.quellen}): Liest die Suche den Rumpf von initHangar nicht mehr, oder sind Quellen aus der Bühne gewandert?`);
