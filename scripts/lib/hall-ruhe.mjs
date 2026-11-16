@@ -21,7 +21,8 @@
 //               exportierten Gruppe muss dort mit genau der Stärke stehen, die
 //               der Export nach der Regel oben nimmt; sonst ist die Stelle in
 //               der Gruppe nicht die Nummer des Lichtknotens, und der Schritt
-//               bricht ab, statt die falschen Lampen zu nennen.
+//               bricht ab, statt die falschen Lampen zu nennen. Ganz fehlen
+//               darf dem Protokoll nur eine Gruppe, die an einem Knochen hängt.
 //   ruheTeile   nennt die Container einer Halle, die Lampen beitragen, und wie
 //               oft jeder in ihr steht.
 //   ruheListe   legt sie zusammen (<halle>.ruhe.json, schreibt der Extraktor
@@ -49,7 +50,8 @@ const gleich = (a, b) => Math.abs(a - b) <= 1e-4 * Math.max(1, Math.abs(a), Math
  * @returns {{ gruppen: Record<string, { lampen: number, dunkel: number[], auxiliary: number, emergency: number }>, ohneExport: { gruppe: string, lampen: number }[] }}
  *   gruppen: je exportierter Gruppe die Zahl ihrer Lampen, die Stellen der
  *   dunklen und wie viele davon der Export mit welchem Zustand schrieb;
- *   ohneExport: Gruppen, deren Namen keine Zeile des Protokolls trägt.
+ *   ohneExport: Gruppen an einem Knochen, deren Namen keine Zeile des
+ *   Protokolls trägt (eine gewöhnliche Gruppe ohne Zeile bricht ab).
  */
 export function ruheDunkel(xml, zeilen) {
   const proto = new Map();
@@ -66,13 +68,26 @@ export function ruheDunkel(xml, zeilen) {
     const gruppe = attr(m[1], 'Name');
     if (!gruppe) throw new Error(`eine Lichtgruppe mit ${lampen.length} Lampen trägt keinen Namen`);
     if (Object.hasOwn(gruppen, gruppe) || ohneExport.some((g) => g.gruppe === gruppe)) throw new Error(`Lichtgruppe ${gruppe} steht zweimal im Container, ihre Lichtknoten wären nicht zu unterscheiden`);
-    const imExport = lampen.filter((_, i) => proto.has(lampenName(gruppe, i))).length;
-    const fremd = [...proto.keys()].filter((n) => n.startsWith(`${gruppe}-`) && /^\d+$/.test(n.slice(gruppe.length + 1)) && !(Number(n.slice(gruppe.length + 1)) < lampen.length));
+    const erwartet = new Set(lampen.map((_, i) => lampenName(gruppe, i)));
+    const imExport = [...erwartet].filter((n) => proto.has(n)).length;
+    // Zeilen, die den Namen der Gruppe mit einer Nummer tragen und keinen ihrer
+    // Lichtknoten nennen: eine Nummer über die Gruppe hinaus (lg_a-005 bei fünf
+    // Lampen) oder anders geschrieben (lg_a-0 statt lg_a-000). Der Rest muss
+    // rein aus Ziffern bestehen: lg_a-001-000 gehört der Gruppe lg_a-001.
+    const fremd = [...proto.keys()].filter((n) => n.startsWith(`${gruppe}-`) && /^\d+$/.test(n.slice(gruppe.length + 1)) && !erwartet.has(n));
     // Weggelassen hat der Export eine Gruppe nur, wenn keine Zeile ihren Namen
-    // trägt. Steht er im Protokoll nur mit Nummern, die sie nicht hat, zählt
+    // trägt UND sie an einem Knochen hängt (nur das ist nachgemessen). Steht der
+    // Name im Protokoll nur mit Nummern, die sie nicht hat, zählt oder schreibt
     // der Export anders als die Stelle in der Gruppe: Das fällt unten durch.
-    if (!imExport && !fremd.length) { ohneExport.push({ gruppe, lampen: lampen.length }); continue; }
-    if (imExport !== lampen.length || fremd.length) throw new Error(`Lichtgruppe ${gruppe}: ${lampen.length} Lampen in den Entities, ${imExport} davon im Protokoll des Exports${fremd.length ? `, dazu ${fremd.length} Zeile(n) über die Gruppe hinaus (${fremd.slice(0, 3).join(', ')})` : ''}; die Stelle in der Gruppe ist dann nicht die Nummer des Lichtknotens`);
+    // Fehlt eine gewöhnliche Gruppe dem Protokoll ganz, ist es unvollständig,
+    // oder der Export nennt sie anders; ihre dunklen Lampen blieben ungenannt.
+    if (!imExport && !fremd.length) {
+      const haengt = [attr(m[1], 'EntityClass'), attr(m[1], 'AttachmentType')];
+      if (haengt[0] !== 'LightGroupObjectAttach' || haengt[1] !== 'CharacterBone') throw new Error(`Lichtgruppe ${gruppe}: ${lampen.length} Lampen in den Entities, keine Zeile im Protokoll des Exports, und sie hängt an keinem Knochen (${haengt.map((x) => x ?? 'ohne Angabe').join(' / ')}); weggelassen wird nur eine LightGroupObjectAttach an einem CharacterBone. Das Protokoll ist unvollständig, oder der Export nennt die Gruppe anders`);
+      ohneExport.push({ gruppe, lampen: lampen.length });
+      continue;
+    }
+    if (imExport !== lampen.length || fremd.length) throw new Error(`Lichtgruppe ${gruppe}: ${lampen.length} Lampen in den Entities, ${imExport} davon im Protokoll des Exports${fremd.length ? `, dazu ${fremd.length} Zeile(n) mit ihrem Namen und einer Nummer, die keiner ihrer Lichtknoten trägt (${fremd.slice(0, 3).join(', ')})` : ''}; die Stelle in der Gruppe ist dann nicht die Nummer des Lichtknotens`);
     const dunkel = [];
     let auxiliary = 0, emergency = 0;
     lampen.forEach((l, i) => {
