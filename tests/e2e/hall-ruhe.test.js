@@ -25,6 +25,8 @@ const lampe = (name, d, a, e) => `<Light EntityCryGUID="x" Name="${name}">
   </EntityComponentLight>
 </Light>`;
 const gruppe = (name, lampen, kopf = 'EntityClass="LightGroup"') => `<Entity Name="${name}" ${kopf}><PropertiesDataCore><Lights>${lampen.join('\n')}</Lights></PropertiesDataCore></Entity>`;
+// Kopf einer Lichtgruppe, die an einem Knochen hängt: Nur eine solche lässt der Export weg
+const AM_KNOCHEN = 'EntityClass="LightGroupObjectAttach" AttachmentType="CharacterBone" AttachmentTarget="pad"';
 const zeile = (name, staerke) => `Light '${name}' type=Projector useTemp=true temperature=3500 intensity=${staerke} radius=12 color=[1.0, 0.75, 0.55]`;
 const zeilen = (g, staerken) => staerken.map((s, i) => zeile(lampenName(g, i), s));
 
@@ -32,7 +34,7 @@ const zeilen = (g, staerken) => staerken.map((s, i) => zeile(lampenName(g, i), s
 const HALLE = () => [
   `<Entity Name="tuer" EntityClass="Door" />`,
   gruppe('lg_halle', [lampe('decke', 5, 3, 3), lampe('warn', 0, 2, 4), lampe('not', 0, 0, 1.5), lampe('tot', 0, 0, 0), lampe('leiste', '0.30000001', 0, 0)]),
-  gruppe('lg_plattform', [lampe('p1', 8, 0, 0), lampe('p2', 0, 6, 0)], 'EntityClass="LightGroupObjectAttach" AttachmentType="CharacterBone" AttachmentTarget="pad"'),
+  gruppe('lg_plattform', [lampe('p1', 8, 0, 0), lampe('p2', 0, 6, 0)], AM_KNOCHEN),
 ].join('\n');
 const HALLE_ZEILEN = () => [...zeilen('lg_halle', [5, 2, 1.5, 0, 0.3]), zeile('einzellicht-096', 0.032)];
 
@@ -57,7 +59,7 @@ test('ruheDunkel bricht ab, wenn die Stelle in der Gruppe nicht die Nummer des L
   // eine Zeile fehlt
   assert.throws(() => ruheDunkel(HALLE(), HALLE_ZEILEN().filter((z) => !z.includes('lg_halle-003'))), /lg_halle: 5 Lampen in den Entities, 4 davon im Protokoll/);
   // eine Zeile über die Gruppe hinaus
-  assert.throws(() => ruheDunkel(HALLE(), [...HALLE_ZEILEN(), zeile('lg_halle-005', 1)]), /dazu 1 Zeile\(n\) über die Gruppe hinaus \(lg_halle-005\)/);
+  assert.throws(() => ruheDunkel(HALLE(), [...HALLE_ZEILEN(), zeile('lg_halle-005', 1)]), /dazu 1 Zeile\(n\) mit ihrem Namen und einer Nummer, die keiner ihrer Lichtknoten trägt \(lg_halle-005\)/);
   // zwei Lampen im Protokoll vertauscht: jede Zeile da, die Stärken passen nicht mehr
   assert.throws(() => ruheDunkel(HALLE(), [...zeilen('lg_halle', [2, 5, 1.5, 0, 0.3])]), /lg_halle-000 \(decke\): das Protokoll des Exports nennt die Stärke 2, nach den Entities wäre es 5/);
   // der Export nähme einen anderen Zustand als nachgemessen (emergency, obwohl auxiliary Stärke hat)
@@ -68,13 +70,29 @@ test('ruheDunkel bricht ab, wenn die Stelle in der Gruppe nicht die Nummer des L
 
 test('ruheDunkel: weggelassen ist eine Gruppe nur, wenn keine Zeile des Protokolls ihren Namen trägt', () => {
   // der Export zählt ab 1: keine der erwarteten Nummern steht da, der Name der Gruppe aber schon
-  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0)]), [zeile('lg_a-001', 1)]), /Lichtgruppe lg_a: 1 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 1 Zeile\(n\) über die Gruppe hinaus \(lg_a-001\)/);
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0)]), [zeile('lg_a-001', 1)]), /Lichtgruppe lg_a: 1 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 1 Zeile\(n\) mit ihrem Namen und einer Nummer, die keiner ihrer Lichtknoten trägt \(lg_a-001\)/);
   // alle Nummern um die Länge der Gruppe verschoben
-  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0), lampe('y', 0, 2, 0)]), [zeile('lg_a-002', 1), zeile('lg_a-003', 2)]), /Lichtgruppe lg_a: 2 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 2 Zeile\(n\) über die Gruppe hinaus/);
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0), lampe('y', 0, 2, 0)]), [zeile('lg_a-002', 1), zeile('lg_a-003', 2)]), /Lichtgruppe lg_a: 2 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 2 Zeile\(n\) mit ihrem Namen und einer Nummer, die keiner ihrer Lichtknoten trägt/);
   // eine andere Gruppe, deren Name mit dem der weggelassenen beginnt, zählt nicht als ihre Zeile
-  const r = ruheDunkel([gruppe('lg_a', [lampe('x', 1, 0, 0)], 'EntityClass="LightGroupObjectAttach"'), gruppe('lg_a-001', [lampe('y', 3, 0, 0)]), gruppe('lg_ab', [lampe('z', 4, 0, 0)])].join('\n'), [zeile('lg_a-001-000', 3), zeile('lg_ab-000', 4)]);
+  const r = ruheDunkel([gruppe('lg_a', [lampe('x', 1, 0, 0)], AM_KNOCHEN), gruppe('lg_a-001', [lampe('y', 3, 0, 0)]), gruppe('lg_ab', [lampe('z', 4, 0, 0)])].join('\n'), [zeile('lg_a-001-000', 3), zeile('lg_ab-000', 4)]);
   assert.deepEqual(r.ohneExport, [{ gruppe: 'lg_a', lampen: 1 }]);
   assert.deepEqual(Object.keys(r.gruppen), ['lg_a-001', 'lg_ab']);
+});
+
+test('ruheDunkel: eine Nummer in anderer Schreibweise ist keine Zeile der Gruppe, und ganz fehlen darf nur eine Gruppe am Knochen', () => {
+  // der Export schreibt die Nummer ohne führende Nullen: lg_a-0 ist nicht lg_a-000, steht aber für dieselbe Gruppe da
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 0, 2, 0)]), [zeile('lg_a-0', 2)]), /Lichtgruppe lg_a: 1 Lampen in den Entities, 0 davon im Protokoll des Exports, dazu 1 Zeile\(n\) mit ihrem Namen und einer Nummer, die keiner ihrer Lichtknoten trägt \(lg_a-0\)/);
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0), lampe('y', 0, 2, 0)]), [zeile('lg_a-0', 1), zeile('lg_a-1', 2)]), /0 davon im Protokoll des Exports, dazu 2 Zeile\(n\) mit ihrem Namen/);
+  // auch am Knochen: Steht der Name der Gruppe mit einer Nummer im Protokoll, ist sie nicht weggelassen
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 0, 2, 0)], AM_KNOCHEN), [zeile('lg_a-0', 2)]), /dazu 1 Zeile\(n\) mit ihrem Namen/);
+  // eine gewöhnliche Gruppe ohne eine einzige Zeile: Das Protokoll ist unvollständig, ihre dunkle Lampe bliebe ungenannt
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 0, 2, 0)]), []), /Lichtgruppe lg_a: 1 Lampen in den Entities, keine Zeile im Protokoll des Exports, und sie hängt an keinem Knochen \(LightGroup \/ ohne Angabe\)/);
+  assert.throws(() => ruheDunkel(`${HALLE()}\n${gruppe('lg_b', [lampe('x', 1, 0, 0)])}`, HALLE_ZEILEN()), /Lichtgruppe lg_b: 1 Lampen in den Entities, keine Zeile im Protokoll/);
+  // angehängt, aber nicht an einem Knochen: nicht nachgemessen, bricht ab
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0)], 'EntityClass="LightGroupObjectAttach" AttachmentType="Entity"'), []), /hängt an keinem Knochen \(LightGroupObjectAttach \/ Entity\)/);
+  assert.throws(() => ruheDunkel(gruppe('lg_a', [lampe('x', 1, 0, 0)], 'EntityClass="LightGroupObjectAttach"'), []), /hängt an keinem Knochen \(LightGroupObjectAttach \/ ohne Angabe\)/);
+  // am Knochen und ohne Zeile: weggelassen, wie gemessen
+  assert.deepEqual(ruheDunkel(gruppe('lg_a', [lampe('x', 0, 2, 0)], AM_KNOCHEN), []), { gruppen: {}, ohneExport: [{ gruppe: 'lg_a', lampen: 1 }] });
 });
 
 test('ruheDunkel bricht ab bei Entities, die es nicht lesen kann', () => {
