@@ -32,6 +32,7 @@ import { PURPOSES, ROLE_GROUPS, SIZES, CREW, CARGO_STEPS, PRICE_STEPS, shipFinde
 import hangarCards from '../../data/hangar-cards.json';
 import Datenstand from '../Datenstand.astro';
 import { standHangar } from '../../lib/datenstand';
+import CONTROLLER_SRC from '../../../assets/hangar-overview.js?raw';
 
 const lang = localeFromPath(Astro.url.pathname);
 const loc = lang === 'de' ? 'de-DE' : 'en-US';
@@ -99,6 +100,11 @@ const icon = (path: string, size = 18) => `<svg viewBox="0 0 24 24" width="${siz
 const bay = buildBay(HANGAR_DEFAULT_SHIP, lang);
 const count = t(new Intl.PluralRules(loc).select(ships.length) === 'one' ? 'msg.count.one' : 'msg.count.other', { n: ships.length.toLocaleString(loc) });
 const controller = versioned('assets/hangar-overview.js', '/assets/hangar-overview.js');
+// Einstieg am Bildschirm: Das Inline-Skript in <main> entscheidet vor dem
+// ersten Bild, ob dieser Aufruf im Leitstand beginnt, mit derselben Liste
+// wie der Controller (START_NENNT dort, hier aus seiner Quelle gelesen). Fehlt
+// sie, reisst der Bau; dass beide dasselbe sagen, prueft verify:hangar-orte [6].
+const START_NENNT: string[] = JSON.parse((CONTROLLER_SRC.match(/\nexport const START_NENNT = (\[[^\]\n]*\]);\n/)?.[1] ?? 'START_NENNT fehlt in assets/hangar-overview.js').replaceAll("'", '"'));
 // defer wie account-lite.js in SiteNav: verzoegerte Skripte laufen in
 // Dokumentfolge, fleet.js findet VBAccount vor und steht vor boot() bereit.
 const fleetSrc = versioned('assets/fleet.js', '/assets/fleet.js');
@@ -915,8 +921,17 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
   {/* Das Dock ist zu, bis jemand es aufklappt; die Halle bekommt seinen Platz.
       Vor der Buehne entschieden, damit ihre Hoehe nicht nach dem ersten Bild
       springt. Ohne Skript bleibt es offen. Ebenso vorab: ob der Bedienhinweis
-      schon gesehen ist, damit er nicht erst aufblitzt. */}
-  <script is:inline>(function(m){try{if(localStorage.getItem('hg-dock')!=='open')m.dataset.dock='closed';if(localStorage.getItem('hg-hint'))m.dataset.hint='seen'}catch(e){m.dataset.dock='closed'}})(document.currentScript.parentElement)</script>
+      schon gesehen ist, damit er nicht erst aufblitzt. Und ob der Aufruf im
+      Leitstand beginnt (erster Besuch der Sitzung mit einer Adresse, die
+      nichts nennt, oder ?ort=leit; nicht am Telefon): Sonst stuenden Tafel
+      und Titel des Felds da, bis der Controller geladen ist, und
+      verschwaenden dann. Dieselbe Regel wie startAmSchirm und guess3d im
+      Controller; er setzt data-ort danach selbst und merkt sich den Besuch.
+      Dort bleibt auch die Erklaerung zu, die beim allerersten Besuch von
+      selbst aufgeht (data-help-auto, gelesen von tool-help.js): Sie laege
+      ueber dem Anmeldebild. Ungesehen, also kommt sie beim naechsten Aufruf
+      auf dem Feld. */}
+  <script is:inline set:html={`(function(m){try{if(localStorage.getItem('hg-dock')!=='open')m.dataset.dock='closed';if(localStorage.getItem('hg-hint'))m.dataset.hint='seen'}catch(e){m.dataset.dock='closed'}try{var p=new URLSearchParams(location.search),k=${jsonForScript(START_NENNT)};if((p.get('ort')==='leit'||(sessionStorage.getItem('hg-besuch')===null&&location.hash.length<2&&!k.some(function(x){return p.has(x)})))&&!matchMedia('(max-width: 760px), (pointer: coarse)').matches){m.dataset.ort='leit';m.dataset.helpAuto='aus'}}catch(e){}})(document.currentScript.parentElement)`}></script>
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <ShipBay bay={bay} region="marks" />

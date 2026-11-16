@@ -103,6 +103,13 @@
       var section = sections[i];
       var id = section.getAttribute('data-tool-id');
       if (id && !seen[id]) {
+        // Die Seite kann das Aufklappen aufschieben: data-help-auto="aus" an
+        // einem Vorfahren, gesetzt bevor dieses Skript laeuft. Der Hangar tut
+        // das, wenn der Aufruf vor dem Terminal im Leitstand beginnt — die
+        // Erklaerung der Schiffsauswahl laege dort ueber dem Monitor.
+        // Ausdruecklich NICHT als gesehen vermerkt: Sie geht beim naechsten
+        // Aufruf auf, der auf dem Feld beginnt.
+        if (section.closest('[data-help-auto="aus"]')) continue;
         section.open = true;
         if (!bedienungBleibtImBild(section)) {
           // Zu wenig Platz: wieder zu — und ausdruecklich NICHT als gesehen

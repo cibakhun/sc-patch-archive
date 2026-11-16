@@ -89,6 +89,36 @@ export function placeShip(to, ship, memo, c) {
   return c.ids.find(fits) ?? null;
 }
 
+// Einstieg (Krisz 15.11.2026, Konzept „VerseBase in der Halle“): Beim ersten
+// Besuch einer Sitzung beginnt die Halle am Bildschirm im Leitstand, dort
+// meldet das Terminal an. Eine Adresse, die selbst etwas nennt, behaelt ihre
+// Bedeutung: Wer einem Link auf ein Schiff, ein Layout oder einen Vergleich
+// folgt, sieht zuerst das Schiff. START_NENNT sind die Schluessel, die das
+// tun: alles, was parseState liest, und die Schalter der Buehne (?grafik,
+// ?boden, ?bilder: wer sie setzt, vergleicht oder prueft die Halle und
+// beginnt wie bisher auf dem Feld). Fremde Schluessel (etwa ?utm_source)
+// nennen nichts. tests/e2e/hangar-state.test.js haelt die Liste an allen
+// Stellen fest, an denen dieses Modul die Adresse liest.
+export const START_NENNT = ['ship', 'tab', 'hp', 'cmp', 'view', 'layout', 'station', 'pane', 'tafel', 'ort', 'fleet', 'sort', 'q', 'pur', 'grp', 'size', 'crew', 'cargo', 'price', 'maker', 'grafik', 'boden', 'bilder'];
+/**
+ * Beginnt dieser Aufruf am Bildschirm im Leitstand?
+ *   startAmSchirm('', '', true) === true
+ *   startAmSchirm('?utm_source=x', '', true) === true
+ *   startAmSchirm('?ship=aegs-gladius', '', true) === false
+ *   startAmSchirm('', '#aegs-gladius', true) === false
+ *   startAmSchirm('', '', false) === false
+ * @param {string} search @param {string} hash
+ * @param {boolean} erster der erste Besuch dieser Sitzung
+ * @returns {boolean}
+ */
+export function startAmSchirm(search, hash, erster) {
+  if (erster !== true) return false;
+  // das alte '#<id>' waehlt ein Schiff (parseState)
+  if (String(hash ?? '').replace(/^#/, '')) return false;
+  const p = new URLSearchParams(search);
+  return !START_NENNT.some((k) => p.has(k));
+}
+
 /**
  * Bringt einen beliebigen Zustandsentwurf in die gueltige Form. Unbekannte Ids
  * fallen weg, cmp wird entdoppelt und auf drei gekappt, unbekannte Tabs und
@@ -926,6 +956,10 @@ export function boot(doc) {
   const loc = main.dataset.loc;
   const stageCfg = JSON.parse($('hg-stage').textContent);
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Vorhersage, ob die Buehne Stationen in 3D und Orte haben wird (dieselben
+  // Bedingungen wie im Viewer); gilt, bis sie selbst antwortet (buehneKann)
+  const guess3d = () => !!(stageCfg.opts?.hall?.url && stageCfg.opts.hall.room && stageCfg.opts.holo?.module)
+    && !doc.defaultView.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   const msg = (id) => doc.querySelector(`#hgx-msg [data-msg="${id}"]`).dataset;
   // Die hoefliche Live-Region (#hgx-live). Derselbe Satz zweimal hintereinander
   // aendert sonst nichts im DOM und bliebe stumm; das angehaengte geschuetzte
@@ -983,6 +1017,28 @@ export function boot(doc) {
   // fuer diesen Aufruf, writeUrl() schreibt es nicht zurueck.
   const BILDER = new URLSearchParams(location.search).get('bilder');
   let state = parseState(location.search, location.hash, ctx);
+  // Einstieg am Bildschirm (startAmSchirm): Der erste Besuch einer Sitzung
+  // beginnt im Leitstand. Die Sitzung ist die der Registerkarte, wie bei der
+  // Anmeldung am Terminal (hg-term-an); gemerkt wird der Besuch, nicht der
+  // Ort, ein Neuladen folgt also der Adresse. Nur wo die Halle voraussichtlich
+  // einen Leitstand hat (guess3d): Am Telefon stuende die Seite sonst erst
+  // ohne Werkstatt da und fiele dann zurueck. Sagt die Buehne spaeter, dass
+  // sie keinen hat, faellt der Zustand aufs Feld wie bei einem ?ort=leit aus
+  // der Adresse (buehneKann, noStage).
+  const BESUCH_KEY = 'hg-besuch';
+  let ersterBesuch = false;
+  try {
+    ersterBesuch = sessionStorage.getItem(BESUCH_KEY) === null;
+    sessionStorage.setItem(BESUCH_KEY, '1');
+  } catch { ersterBesuch = false; /* ohne Speicher beginnt die Halle auf dem Feld */ }
+  if (startAmSchirm(location.search, location.hash, ersterBesuch) && guess3d()) state = normalize({ ...state, ort: 'leit' }, ctx);
+  // startSitz: Beginnt der Aufruf im Leitstand (Einstieg, oder die Adresse
+  // nennt ihn: ein Neuladen dort, ein Link mit ?ort=leit), sitzt die Kamera
+  // mit dem ersten Bild vor dem Bildschirm, statt vom Feld hinaufzufahren
+  // (applyOrt): Der Startpunkt ist eine Wahl beim Ankommen, keine Fahrt von
+  // selbst. Gilt nur fuer diesen einen Wunsch: Wer vorher woandershin will,
+  // faehrt danach wie nach jedem Klick (commit).
+  let startSitz = state.ort === 'leit';
 
   // Auf- und Zuklappen des Docks. Gemerkt wird nur der Klick auf den Schalter
   // (das Inline-Skript in HangarPage.astro liest ihn vor dem ersten Bild). Ein
@@ -1054,6 +1110,8 @@ export function boot(doc) {
   function commit(next, how) {
     const prev = state;
     state = next;
+    // der Einstieg ohne Fahrt gilt nur, solange niemand etwas anderes gewaehlt hat
+    if (state.ort !== 'leit') startSitz = false;
     render(prev);
     if (how === 'keep') return;
     if (how === 'replace' && prev.q !== state.q) {
@@ -2249,9 +2307,8 @@ export function boot(doc) {
   // Bis die Buehne antwortet, gilt die Vorhersage (dieselben Bedingungen wie
   // im Viewer): sonst stuende beim Laden erst die flache Werkstatt da und
   // wiche nach Sekunden dem Hologramm. Ohne Buehne (noStage) gilt die Tafel.
+  // (guess3d steht oben beim Einstieg, der sie als Erster fragt)
   let stage3d = null;
-  const guess3d = () => !!(stageCfg.opts?.hall?.url && stageCfg.opts.hall.room && stageCfg.opts.holo?.module)
-    && !doc.defaultView.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
   // Drinnen (data-walk) stellt der Viewer keine Station auf: dann die Tafel
   // und im Leitstand keine: dort steht das Terminal im Bild
   const canHolo = () => (stage3d ?? guess3d()) && stageCfg.models[state.ship]?.[3] !== 'werk' && main.dataset.walk !== 'on' && state.ort !== 'leit';
@@ -2314,6 +2371,12 @@ export function boot(doc) {
     doc.fonts?.ready.then(fitBar);
   }
   let stageSafe = null;
+  // Der zuletzt gemalte Ort. Nicht aus main.dataset.ort gelesen: Das setzt
+  // beim Einstieg am Bildschirm schon das Seitengeruest vor dem ersten Bild
+  // (Vorentscheid in HangarPage.astro), und der erste Durchlauf hielte den
+  // Leitstand dann fuer den alten Ort: Die Erklaerung bliebe ueber dem Monitor
+  // offen (gesehen 15.11.2026 in der echten Halle).
+  let ortGemalt;
   function paintStation() {
     main.dataset.station = state.station;
     const holo = holoOn(), orte = canOrte(), at = placeNow(), leit = at === 'leit';
@@ -2325,10 +2388,13 @@ export function boot(doc) {
         else b.removeAttribute('aria-current');
       }
     }
-    const before = main.dataset.ort;
+    const before = ortGemalt;
+    ortGemalt = at;
     main.dataset.ort = at;
     // Vor dem Terminal weicht die Erklaerung der Schiffsauswahl, die beim
     // ersten Besuch von selbst aufgeht: Sie laege sonst ueber dem Monitor.
+    // Beginnt der Aufruf im Leitstand, geht sie gar nicht erst auf
+    // (data-help-auto am Geruest, tool-help.js) und bleibt ungesehen.
     if (leit && before !== 'leit') main.querySelector('.hg-dock details.tool-help[open]')?.removeAttribute('open');
     for (const b of stBtns) {
       const on = holo ? b.dataset.station === 'uebersicht' : b.dataset.station === state.station;
@@ -2411,8 +2477,9 @@ export function boot(doc) {
     const my = ++ortTok;
     if (state.ort !== 'leit') { viewer.place('halle'); return; }
     if (placed !== state.ship) return;
-    const ship = state.ship;
-    viewer.place('leit').then((ok) => {
+    const ship = state.ship, sitz = startSitz;
+    startSitz = false;
+    viewer.place('leit', sitz).then((ok) => {
       if (!ok && my === ortTok && state.ort === 'leit' && state.ship === ship) setState({ ort: 'halle' });
     }, () => {});
   }
@@ -2684,7 +2751,8 @@ export function boot(doc) {
     // Nur ein leiser Balken ohne Wort, und erst wenn das Laden spuerbar
     // dauert: ein schneller Wechsel zeigt gar nichts.
     const t = setTimeout(() => { if (my === showTok) loadEl.hidden = false; }, 1200);
-    viewer.show(glb, { maker, tex, ort, id, hangar, label: labelOf(id) })
+    // sitz: Der Aufruf beginnt im Leitstand, das erste Bild wartet dafuer laenger auf die Halle (startSitz)
+    viewer.show(glb, { maker, tex, ort, id, hangar, label: labelOf(id), sitz: startSitz })
       .then(() => {
         if (my !== showTok) return;
         placed = id;

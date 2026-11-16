@@ -3327,7 +3327,7 @@ const GROESSE_AUSNAHMEN = {
     [viewer, /id: o\.id \?\? null, hangar: o\.hangar \?\? null \};/, 'show() im Viewer gibt Id und Stufe des Schiffs nicht mehr in die Maße (info.id, info.hangar)'],
     [viewer, /onHangar\(fn\) \{ hangarFn = fn; if \(hangarNow\) fn\(\{ \.\.\.hangarNow \}\); \}/, 'der Viewer bietet onHangar nicht mehr an'],
     [viewer, /\[null, t\.maker, t\.name, t\.role, t\.hangar\]\.forEach\(/, 'das Hologramm über dem Schiff zeigt die Zeile der Hangargröße nicht mehr (t.hangar)'],
-    [ctrl, /const \[glb, tex, maker, ort, hangar\] = stageCfg\.models\[id\];[\s\S]{0,900}?viewer\.show\(glb, \{ maker, tex, ort, id, hangar, label: labelOf\(id\) \}\)/, 'der Controller gibt show() die Stufe des Schiffs nicht mehr mit (models[id][4]): Jedes Schiff bekäme die kleinste Halle, die es fasst'],
+    [ctrl, /const \[glb, tex, maker, ort, hangar\] = stageCfg\.models\[id\];[\s\S]{0,900}?viewer\.show\(glb, \{ maker, tex, ort, id, hangar, label: labelOf\(id\), sitz: startSitz \}\)/, 'der Controller gibt show() die Stufe des Schiffs nicht mehr mit (models[id][4]): Jedes Schiff bekäme die kleinste Halle, die es fasst'],
     [ctrl, /v\.onHangar\?\.\(onHangar\);/, 'der Controller hört nicht mehr auf onHangar: Die Zeile der Hangargröße bliebe leer'],
     [ctrl, /function onHangar\(e\) \{[\s\S]{0,300}?grOf\.set\(e\.id, e\);[\s\S]{0,200}?paintGr\(\);\s*viewer\?\.label\?\.\(e\.id, labelOf\(e\.id\)\);/, 'onHangar im Controller schreibt die Zeile nicht mehr in den Titelblock und ins Hologramm'],
     [ctrl, /role: txt\('\.hg-role'\), hangar: grText\(id\) \};/, 'labelOf im Controller gibt dem Hologramm die Hangargröße nicht mehr mit'],
