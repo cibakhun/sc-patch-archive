@@ -7043,6 +7043,11 @@ const WERK_PAD_DOWN = -(WERK.feld.tief - 0.5);
 // Hallenmetern (s = a + Weg / v, gedeckelt). Das Tor ist so viel früher
 // offen, als die Kamera es erreicht (ms).
 const WERK_TRIP = { a: 1.6, v: 22, min: 4.2, max: 6.4 };
+// So lange wartet das erste Bild auf die Halle, wenn der Aufruf im Leitstand
+// beginnt (showShip, o.sitz), statt 6 s: Dort gibt es ohne Halle nichts zu
+// zeigen. Danach kommt das Schiff allein, und die Kamera fährt hinauf, sobald
+// die Halle steht (leitGo).
+const SITZ_FRIST = 30000;
 const WERK_TOR_VOR = 1200;
 
 // Leitstand (13.11.2026). Krisz will die Seite nach und nach in die Halle
@@ -11921,8 +11926,17 @@ void main() {
       // auf (useHallProbe, captureHallEnv). Das geladene Bild geht mit.
       if (tot) { probe?.tex.dispose(); await nieMehr(); }
       if (probe) useHallProbe(probe); else captureHallEnv(true);
-      // die Kamera stand womöglich für die gebaute (größere) Halle
-      if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
+      // die Kamera stand womöglich für die gebaute (größere) Halle. Im
+      // Leitstand (post) gehört sie der Stellung vor dem Schirm oder der
+      // Fahrt dorthin: Kommt die Sonde erst, wenn die Kamera schon oben sitzt
+      // (die Halle ist gebaut, die Sonde hängt, und nach SITZ_FRIST beginnt
+      // der Aufruf ohne sie), setzte homePos() sie vom Blickpunkt am Monitor
+      // aus ins Leere, und das gemeldete Rechteck des Terminals passte nicht
+      // mehr zum Bild (Review PR #388). Die Korrektur gilt dann dem gemerkten
+      // Platz auf dem Feld, zu dem die Kamera zurückkehrt (leitLeave; saved
+      // steht in Hallenmetern).
+      if (post) { if (!post.saved.touched) post.saved.p.copy(homeDir()).multiplyScalar(homeDist() / hallRoot.scale.x).add(post.saved.t); }
+      else if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
       prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst'); prog.delete('deko');
@@ -13315,7 +13329,12 @@ void main() {
     await prepare(ship);
     if (my !== token) { drop(); return; }
     if (REAL && !revealed) {
-      await Promise.race([hallSettled, sleep(6000)]);
+      // Beginnt der Aufruf im Leitstand (o.sitz, siehe leitGo), wartet das
+      // erste Bild länger auf die Halle: Der Bildschirm kommt mit ihr, und
+      // stünde das Schiff schon ohne sie im Bild, führe die Kamera danach
+      // von selbst hinauf. Nicht ohne Frist: An einer Leitung, die hängt,
+      // bliebe sonst nur der Ladebalken.
+      await Promise.race([hallSettled, sleep(o.sitz && LEIT ? SITZ_FRIST : 6000)]);
       // Ist die Halle da schon gebaut und wird nur noch übersetzt und
       // hochgeladen, kommt sie gleich: darauf noch kurz warten. Seit das
       // Schiff früher bereit ist (13.11.2026: es wartete vorher 1 bis 2 s auf
@@ -15172,7 +15191,14 @@ void main() {
     return pts;
   }
   const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
-  async function leitGo() {
+  // sitz: Die Kamera sitzt gleich vor dem Schirm, ohne Fahrt. So beginnt ein
+  // Aufruf, der im Leitstand anfängt (erster Besuch einer Sitzung oder
+  // ?ort=leit in der Adresse, hangar-overview.js): Die Seite ruft im selben
+  // Zug, in dem das erste Bild aufblendet, das Feld war also nie zu sehen.
+  // Musste der Wunsch erst auf die Halle oder auf das Ende einer Fahrt
+  // warten, steht das Feld längst im Bild; dann fährt die Kamera wie nach
+  // jedem Klick, statt zu springen.
+  async function leitGo(sitz = false) {
     if (!LEIT || walk) return false;
     const wish = placeWish;
     // Der Schirm kommt mit der Halle. An einer langsamen Leitung steht das
@@ -15181,16 +15207,18 @@ void main() {
     // zurückzufallen (Review PR #355). hallSettled endet auch, wenn die Halle
     // scheitert: ohne sie gibt es keinen Schirm, und es bleibt beim Feld.
     if (!leitScreen) {
+      sitz = false;
       await hallSettled;
       if (!leitScreen || wish !== placeWish) return false;
     }
     if (post) {
       // schon dort oder unterwegs dorthin; auf dem Rückweg erst ankommen lassen
       if (post.state !== 'weg') return post.state === 'an' ? true : post.arrived;
+      sitz = false;
       await post.gone;
     }
     // eine Fahrt von oder zur Werkhalle fährt erst zu Ende
-    while (trip) await trip.done;
+    while (trip) { sitz = false; await trip.done; }
     // inzwischen wollte die Seite wieder aufs Feld: dort bleibt die Kamera
     if (wish !== placeWish) return false;
     if (post || walk || ort !== 'halle' || !current) return false;
@@ -15201,7 +15229,7 @@ void main() {
     leitShape(fit);
     leitTell();
     wake(1000);
-    if (reduceMotion) {
+    if (reduceMotion || sitz) {
       fly = null; onPoint = false; touched = false; panned = false; panLive = 0;
       controls.enabled = false;
     } else {
@@ -15653,13 +15681,15 @@ void main() {
     // Orte der Halle: place('leit') fährt die Kamera in den Leitstand vor
     // das Terminal, place('halle') zurück; beide lösen auf, wenn sie steht
     // (false: nicht möglich, etwa in der Werkhalle oder drinnen). Ein
-    // Schiffswechsel holt sie ohne Fahrt zurück. canPlace('leit'): diese
-    // Bühne hat einen Leitstand (echte Halle, nicht am Telefon).
+    // Schiffswechsel holt sie ohne Fahrt zurück. place('leit', true): ohne
+    // Fahrt, die Kamera sitzt gleich dort (nur für einen Aufruf, der im
+    // Leitstand beginnt, siehe leitGo). canPlace('leit'): diese Bühne hat
+    // einen Leitstand (echte Halle, nicht am Telefon).
     // onPlace(fn): fn({ ort, state, rect }) bei jedem Wechsel, ort 'halle',
     // 'werk' oder 'leit', state 'hin' | 'an' | 'weg'; rect { l, t, r, b } ist
     // das Fenster des Terminals auf dem Monitor im Bild (px der Bühne), solange
     // die Kamera davor steht: dorthin legt die Seite ihr Fenster.
-    place: (name) => { placeWish++; return name === 'leit' ? leitGo() : leitLeave(); },
+    place: (name, sitz = false) => { placeWish++; return name === 'leit' ? leitGo(sitz === true) : leitLeave(); },
     canPlace: (name) => (name === 'leit' ? !!LEIT : name === 'halle'),
     onPlace(fn) { placeFn = fn; placeTold = ''; leitTell(); },
     // setTerminal(wer): wer zuletzt am Terminal angemeldet war ({ name,
