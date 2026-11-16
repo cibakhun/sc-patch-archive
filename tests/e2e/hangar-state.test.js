@@ -130,7 +130,8 @@ describe('Hangar: Orte der Halle', () => {
 // beginnt die Halle im Leitstand, ausser die Adresse nennt selbst etwas. Die
 // Regel ist eine reine Funktion; wie Seite und Buehne sie verdrahten, steht
 // unten an der Quelle. Vorgefuehrt rot: 32 Eingriffe, jeder reisst den Test,
-// der ihn meint (Protokoll bei den Bildern des PR).
+// der ihn meint (Protokoll bei den Bildern des PR); dazu 8 Eingriffe fuer die
+// beiden Tests aus dem Review von PR #388 (rot-review.txt).
 describe('Hangar: Einstieg am Bildschirm', () => {
   const seite = fs.readFileSync(new URL('../../assets/hangar-overview.js', import.meta.url), 'utf8');
   const buehne = fs.readFileSync(new URL('../../assets/hangar-viewer.js', import.meta.url), 'utf8');
@@ -261,6 +262,61 @@ describe('Hangar: Einstieg am Bildschirm', () => {
     const ohneKommentar = seite.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
     assert.equal((ohneKommentar.match(/main\.dataset\.ort\b/g) ?? []).length, 1, 'main.dataset.ort wird nur geschrieben, nie gelesen');
     assert.match(seite, /if \(leit && before !== 'leit'\) main\.querySelector\('\.hg-dock details\.tool-help\[open\]'\)\?\.removeAttribute\('open'\);/);
+  });
+
+  // Review PR #388: Der Controller beginnt nur im Leitstand, wenn er den Besuch auch schreiben konnte. Das
+  // Geruest entschied allein nach dem Lesen. Liess sich die Sitzung lesen, aber nicht beschreiben, setzte es
+  // den Leitstand und schob die Erklaerung auf, der Controller begann auf dem Feld, und die Erklaerung blieb
+  // dort bei jedem Aufruf zu.
+  test('laesst sich die Sitzung lesen, aber nicht beschreiben, bleibt es im Geruest wie im Controller beim Feld, und die Erklaerung geht auf', () => {
+    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
+    const roh = /<script is:inline set:html=\{`(\(function\(m\)\{[^`]*)`\}><\/script>/.exec(geruest)?.[1] ?? '';
+    assert.ok(roh.includes("m.dataset.ort='leit'"), 'das Inline-Skript in <main> nicht gefunden');
+    assert.equal(roh.split('${jsonForScript(START_NENNT)}').length, 2, 'die Liste steht nicht mehr genau einmal im Inline-Skript');
+    const skript = roh.replace('${jsonForScript(START_NENNT)}', JSON.stringify(START_NENNT));
+    // sitzung: 'gut' | 'nurLesen' (Schreiben wirft) | 'zu' (jeder Zugriff wirft)
+    const lauf = (q, sitzung, besuch = null) => {
+      const m = { dataset: {} }, liegt = new Map(besuch === null ? [] : [['hg-besuch', besuch]]);
+      const zu = () => { throw new Error('gesperrt'); };
+      new Function('document', 'localStorage', 'sessionStorage', 'location', 'matchMedia', skript)(
+        { currentScript: { parentElement: m } },
+        { getItem: () => null },
+        sitzung === 'zu' ? { getItem: zu, setItem: zu, removeItem: zu } : {
+          getItem: (k) => (liegt.has(k) ? liegt.get(k) : null),
+          setItem: (k, v) => { if (sitzung === 'nurLesen') zu(); liegt.set(k, String(v)); },
+          removeItem: (k) => { liegt.delete(k); },
+        },
+        { search: q, hash: '' },
+        () => ({ matches: false }),
+      );
+      return { ort: m.dataset.ort ?? null, hilfe: m.dataset.helpAuto ?? null, liegt: [...liegt.keys()] };
+    };
+    // wie bisher: erster Besuch, die Sitzung nimmt an
+    assert.deepEqual(lauf('', 'gut'), { ort: 'leit', hilfe: 'aus', liegt: [] }, 'das Geruest vermerkt den Besuch nicht selbst und raeumt seine Probe weg');
+    // der Fall aus dem Review: Feld, und nichts schiebt die Erklaerung auf
+    assert.deepEqual(lauf('', 'nurLesen'), { ort: null, hilfe: null, liegt: [] });
+    assert.deepEqual(lauf('', 'zu'), { ort: null, hilfe: null, liegt: [] });
+    // ein spaeterer Besuch fragt nicht nach dem Schreiben
+    assert.deepEqual(lauf('', 'gut', '1'), { ort: null, hilfe: null, liegt: ['hg-besuch'] });
+    // nennt die Adresse den Leitstand, fragt niemand den Speicher (der Controller liest ihn dafuer auch nicht)
+    for (const sitzung of ['gut', 'nurLesen', 'zu']) assert.deepEqual(lauf('?ort=leit', sitzung), { ort: 'leit', hilfe: 'aus', liegt: [] }, sitzung);
+    // der Controller: Scheitert das Schreiben, gilt der Besuch nicht als erster (dieselbe Antwort wie oben)
+    assert.match(seite, /try \{\n\s*ersterBesuch = sessionStorage\.getItem\(BESUCH_KEY\) === null;\n\s*sessionStorage\.setItem\(BESUCH_KEY, '1'\);\n\s*\} catch \{ ersterBesuch = false;/);
+  });
+
+  // Review PR #388: Die Halle korrigiert die Startansicht, wenn ihre Sonde da ist. Sass die Kamera dann schon im
+  // Leitstand (die Halle gebaut, die Sonde haengt, nach SITZ_FRIST beginnt der Aufruf ohne sie), setzte homePos()
+  // sie vom Blickpunkt am Monitor aus ins Leere, der Zustand blieb „Leitstand“. Heute nennt die Seite keiner
+  // Halle eine Sonde, die Stelle ist also noch nicht zu erreichen; in der echten Halle ist sie nachgestellt.
+  test('kommt die Sonde der Halle erst, wenn die Kamera im Leitstand sitzt, bleibt sie dort; korrigiert wird der gemerkte Platz auf dem Feld', () => {
+    assert.match(buehne, /\n\s+if \(post\) \{ if \(!post\.saved\.touched\) post\.saved\.p\.copy\(homeDir\(\)\)\.multiplyScalar\(homeDist\(\) \/ hallRoot\.scale\.x\)\.add\(post\.saved\.t\); \}\n\s+else if \(fly\) fly\.b\.radius = Math\.min\(fly\.b\.radius, homeDist\(\)\);\n\s+else if \(!touched\) camera\.position\.copy\(homePos\(\)\);\n/);
+    // sonst setzt nur der Aufbau die Kamera so (vor jeder Halle): keine zweite Stelle ohne die Frage nach post
+    assert.equal((buehne.match(/camera\.position\.copy\(homePos\(\)\)/g) ?? []).length, 2);
+    // der gemerkte Platz steht in Hallenmetern und kommt so zurueck (leitGo, leitLeave)
+    assert.match(buehne, /saved: \{ t: controls\.target\.clone\(\)\.divideScalar\(k\), p: camera\.position\.clone\(\)\.divideScalar\(k\), touched, onPoint, panned \}/);
+    assert.match(buehne, /controls\.target\.copy\(me\.saved\.t\)\.multiplyScalar\(k\);\n\s*camera\.position\.copy\(me\.saved\.p\)\.multiplyScalar\(k\);/);
+    // und die Startansicht ist die Richtung mal Abstand ab dem Ziel
+    assert.match(buehne, /const homePos = \(\) => homeDir\(\)\.clone\(\)\.multiplyScalar\(homeDist\(\)\)\.add\(controls\.target\);/);
   });
 });
 

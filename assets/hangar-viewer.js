@@ -11926,8 +11926,17 @@ void main() {
       // auf (useHallProbe, captureHallEnv). Das geladene Bild geht mit.
       if (tot) { probe?.tex.dispose(); await nieMehr(); }
       if (probe) useHallProbe(probe); else captureHallEnv(true);
-      // die Kamera stand womöglich für die gebaute (größere) Halle
-      if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
+      // die Kamera stand womöglich für die gebaute (größere) Halle. Im
+      // Leitstand (post) gehört sie der Stellung vor dem Schirm oder der
+      // Fahrt dorthin: Kommt die Sonde erst, wenn die Kamera schon oben sitzt
+      // (die Halle ist gebaut, die Sonde hängt, und nach SITZ_FRIST beginnt
+      // der Aufruf ohne sie), setzte homePos() sie vom Blickpunkt am Monitor
+      // aus ins Leere, und das gemeldete Rechteck des Terminals passte nicht
+      // mehr zum Bild (Review PR #388). Die Korrektur gilt dann dem gemerkten
+      // Platz auf dem Feld, zu dem die Kamera zurückkehrt (leitLeave; saved
+      // steht in Hallenmetern).
+      if (post) { if (!post.saved.touched) post.saved.p.copy(homeDir()).multiplyScalar(homeDist() / hallRoot.scale.x).add(post.saved.t); }
+      else if (fly) fly.b.radius = Math.min(fly.b.radius, homeDist());
       else if (!touched) camera.position.copy(homePos());
       else camera.position.sub(controls.target).clampLength(controls.minDistance, controls.maxDistance).add(controls.target);
       prog.delete('hall'); prog.delete('furniture'); prog.delete('lift'); prog.delete('workshop'); prog.delete('workshop-floor'); prog.delete('dienst'); prog.delete('deko');

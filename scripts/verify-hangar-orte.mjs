@@ -351,6 +351,18 @@
    der laengeren Frist riss an den beiden Zeilen zu showShip und
    SITZ_FRIST. Die Meldungen stehen in der PR des Einstiegs.
 
+   VORGEFUEHRT ROT (16.11.2026, Review von PR #388), 8 weitere Eingriffe am
+   gebauten dist/, jeder fuer sich, alle rot ([6], Klinke 135 → 141):
+     z  die Sitzung laesst sich lesen, aber nicht beschreiben (der
+        Controller beginnt dann auf dem Feld): das Geruest prueft das
+        Schreiben nicht (dist/de/hangar.html, einmal nur dist/hangar.html),
+        vermerkt den Besuch selbst, raeumt seine Schreibprobe nicht weg,
+        fragt den Speicher, bevor es die Adresse liest. Und die spaete
+        Sonde der Halle (dist/assets/hangar-viewer.js): die Korrektur der
+        Startansicht fragt nicht nach dem Leitstand (der Stand vor dem
+        Review), setzt die Kamera dort weiter selbst, rechnet den
+        gemerkten Platz in Weltmetern.
+
      node scripts/verify-hangar-orte.mjs
    ============================================================ */
 import { existsSync, readFileSync } from 'node:fs';
@@ -375,7 +387,7 @@ const MIN_FAKT_PROBEN = 20;  // Karten der Anmeldung, die [4] durch termFakten s
 const MIN_BILD_PROBEN = 20;  // Namen fuer das Glas (leitWerVon) und gezeichnete Sperrbilder (leitFenster) in [4] (14.11.2026: 8 + 12)
 const MIN_GAST_WEGE = 6;     // Wege des Gasts auf dem Sperrbild, beschriftet und mit Ziel, in [2] (15.11.2026: 3 je Seite)
 const MIN_SITZ_PROBEN = 37;  // Pfade, Zeitstempel und Sitzungen, die [4] durch termKonto, termAnmeldung, termGruss und termBlende schickt (15.11.2026: 9 + 10 + 8 + 10)
-const MIN_START_PROBEN = 135; // Adressen und Besuche, die [6] durch startAmSchirm schickt (15.11.2026: 17 + 23 Schluessel) und durch den Vorentscheid im Geruest beider Seiten (je 15 + 23 + 7), dazu die Frage von guess3d nach dem Telefon und 4 Laeufe des Erstbesuchs in tool-help.js
+const MIN_START_PROBEN = 141; // Adressen und Besuche, die [6] durch startAmSchirm schickt (15.11.2026: 17 + 23 Schluessel) und durch den Vorentscheid im Geruest beider Seiten (je 15 + 23 + 7; 16.11.2026 je 15 + 23 + 10, mit der Sitzung, die sich nur lesen laesst), dazu die Frage von guess3d nach dem Telefon und 4 Laeufe des Erstbesuchs in tool-help.js
 const MIN_KONTO_SEITEN = 6;  // Kontoseiten (Anmelden, Registrieren, Konto, je Sprache), deren ausgelieferte Skripte [6] nach dem Kennzeichen des Terminals durchsucht (15.11.2026: 6)
 
 const fehler = [];
@@ -994,6 +1006,14 @@ let naht = 0, kontoSeiten = 0, startProben = 0;
     [vSrc, /\n\s+if \(reduceMotion \|\| sitz\) \{/, 'leitGo setzt die Kamera beim Einstieg nicht mehr ohne Fahrt vor den Schirm (reduceMotion || sitz)'],
     [vSrc, /sitz = false;\s*await hallSettled;/, 'musste der Einstieg auf die Halle warten, springt die Kamera danach trotzdem (sitz faellt nicht vor await hallSettled): ein Schnitt, Sekunden nachdem das Feld im Bild stand'],
     [vSrc, /sitz = false;\s*await post\.gone;/, 'musste der Wunsch auf eine Rueckfahrt warten, springt die Kamera danach (sitz faellt nicht vor await post.gone)'],
+    // Kommt die Sonde der Halle erst, wenn die Kamera schon im Leitstand sitzt
+    // (die Halle ist gebaut, die Sonde haengt, nach SITZ_FRIST beginnt der
+    // Aufruf ohne sie), darf die Korrektur der Startansicht die Kamera dort
+    // nicht anfassen (Review PR #388). Heute nennt die Seite keiner Halle
+    // eine Sonde ("probes":null), die Buehne wartet dann nicht auf sie, und
+    // die Stelle ist nicht zu erreichen; mit den Sonden aus dem PC-Lauf waere
+    // sie es. In der echten Halle nachgestellt (Bilder beim PR).
+    [vSrc, /\n\s+if \(post\) \{ if \(!post\.saved\.touched\) post\.saved\.p\.copy\(homeDir\(\)\)\.multiplyScalar\(homeDist\(\) \/ hallRoot\.scale\.x\)\.add\(post\.saved\.t\); \}\n\s+else if \(fly\) fly\.b\.radius = Math\.min\(fly\.b\.radius, homeDist\(\)\);\n\s+else if \(!touched\) camera\.position\.copy\(homePos\(\)\);/, 'kommt die Sonde der Halle erst, wenn die Kamera schon im Leitstand sitzt, setzt die Buehne sie wieder auf die Startansicht (homePos ohne Frage nach post): Der Zustand bliebe „Leitstand“, das Bild zeigte die Halle von irgendwo, und das Rechteck des Terminals passte nicht mehr dazu'],
     // Die Erklaerung der Schiffsauswahl geht beim allerersten Besuch von selbst
     // auf (tool-help.js). Vor dem Terminal laege sie ueber dem Anmeldebild.
     [cSrc, /const before = ortGemalt;\s*ortGemalt = at;\s*main\.dataset\.ort = at;/, 'der Controller liest den alten Ort wieder aus dem Dokument (paintStation): Das Seitengeruest setzt data-ort="leit" schon vor dem ersten Bild, der erste Durchlauf hielte den Leitstand fuer den alten Ort, und eine offene Erklaerung der Schiffsauswahl bliebe ueber dem Monitor'],
@@ -1158,27 +1178,37 @@ let naht = 0, kontoSeiten = 0, startProben = 0;
           continue;
         }
         // { leit, dock, mq } oder ein Wurf als Text
-        const lauf = (q, h, besuch, { telefon = false, ohne = false } = {}) => {
+        // ohne: jeder Zugriff auf den Speicher wirft; nurLesen: Lesen gelingt, Schreiben wirft (so beginnt der
+        // Controller auf dem Feld, sein catch). rest: was nach dem Lauf in der Sitzung liegt. Das Geruest darf
+        // dort nichts hinterlassen, schon gar nicht den Besuch: Der Controller saehe sonst keinen ersten mehr.
+        const lauf = (q, h, besuch, { telefon = false, ohne = false, nurLesen = false } = {}) => {
           const m = { dataset: {} };
           let mq = null;
-          const speicher = (lies) => ({ getItem: (k) => { if (ohne) throw new Error('Speicher gesperrt'); return lies(k); } });
+          const liegt = new Map();
+          const speicher = (lies, merkt) => ({
+            getItem: (k) => { if (ohne) throw new Error('Speicher gesperrt'); return merkt?.has(k) ? merkt.get(k) : lies(k); },
+            setItem: (k, v) => { if (ohne || nurLesen) throw new Error('Speicher nimmt nichts an'); merkt?.set(k, String(v)); },
+            removeItem: (k) => { if (ohne) throw new Error('Speicher gesperrt'); merkt?.delete(k); },
+          });
           try {
             new Function('document', 'localStorage', 'sessionStorage', 'location', 'matchMedia', vor[0])(
               { currentScript: { parentElement: m } },
               speicher(() => null),
-              speicher((k) => (k === 'hg-besuch' ? besuch : null)),
+              speicher((k) => (k === 'hg-besuch' ? besuch : null), liegt),
               { search: q, hash: h },
               (frage) => { mq = frage; return { matches: telefon }; },
             );
           } catch (e) { return `Wurf: ${e.message}`; }
-          return { leit: m.dataset.ort === 'leit', dock: m.dataset.dock, mq, hilfe: m.dataset.helpAuto };
+          return { leit: m.dataset.ort === 'leit', dock: m.dataset.dock, mq, hilfe: m.dataset.helpAuto, rest: [...liegt.keys()] };
         };
         const probe = (q, h, besuch, opt, soll, was) => {
           const ist = lauf(q, h, besuch, opt);
-          const fall = `${JSON.stringify(q)}${h ? ` ${JSON.stringify(h)}` : ''}, ${besuch === null ? 'erster Besuch' : 'spaeterer Besuch'}${opt.telefon ? ', Telefon' : ''}${opt.ohne ? ', ohne Speicher' : ''}`;
+          const fall = `${JSON.stringify(q)}${h ? ` ${JSON.stringify(h)}` : ''}, ${besuch === null ? 'erster Besuch' : 'spaeterer Besuch'}${opt.telefon ? ', Telefon' : ''}${opt.ohne ? ', ohne Speicher' : ''}${opt.nurLesen ? ', Sitzung nur lesbar' : ''}`;
           if (typeof ist === 'string' || ist.leit !== soll) fail(`[6] dist/${page.file}: der Vorentscheid im Seitengeruest sagt fuer ${fall} ${typeof ist === 'string' ? ist : ist.leit ? '„Leitstand“' : '„Feld“'} statt ${soll ? '„Leitstand“' : '„Feld“'}: ${was}`);
           // mit dem Leitstand schiebt das Geruest die Erklaerung der Schiffsauswahl auf, und nur mit ihm
           else if ((ist.hilfe === 'aus') !== ist.leit) fail(`[6] dist/${page.file}: der Vorentscheid im Seitengeruest ${ist.leit ? 'schiebt die Erklaerung der Schiffsauswahl nicht auf (data-help-auto fehlt), obwohl der Aufruf im Leitstand beginnt: Beim allerersten Besuch laege sie ueber dem Anmeldebild' : `schiebt die Erklaerung der Schiffsauswahl auf (data-help-auto ${JSON.stringify(ist.hilfe)}), obwohl der Aufruf auf dem Feld beginnt: Sie ginge dort beim ersten Besuch nicht mehr von selbst auf`} (${fall})`);
+          // und es hinterlaesst nichts in der Sitzung: Vermerkte es den Besuch selbst, begaenne der Controller nie im Leitstand
+          else if (ist.rest.length) fail(`[6] dist/${page.file}: der Vorentscheid im Seitengeruest hinterlaesst ${ist.rest.map((k) => `„${k}“`).join(', ')} in der Sitzung (${fall}): ${ist.rest.includes('hg-besuch') ? 'Der Controller saehe keinen ersten Besuch mehr und begaenne nie am Bildschirm' : 'Seine Schreibprobe raeumt nicht hinter sich auf'}`);
           else startProben++;
           return ist;
         };
@@ -1195,6 +1225,13 @@ let naht = 0, kontoSeiten = 0, startProben = 0;
         probe('?ort=leit', '', null, { telefon: true }, false, 'am Telefon fehlt die Tafel, bis der Controller geladen ist (dort gibt es keinen Leitstand)');
         const ohne = probe('', '', null, { ohne: true }, false, 'ohne Speicher der Sitzung beginnt der Controller auf dem Feld, das Geruest im Leitstand');
         if (typeof ohne !== 'string' && ohne.dock !== 'closed') fail(`[6] dist/${page.file}: ohne Speicher laesst das Inline-Skript das Dock offen (data-dock ${ohne.dock}): Die Halle spraenge nach dem ersten Bild`);
+        // Der Controller beginnt nur im Leitstand, wenn er den Besuch auch schreiben konnte (sein catch nach
+        // setItem). Laesst sich die Sitzung lesen, aber nicht beschreiben, muss das Geruest dasselbe sagen: Sonst
+        // bliebe die Erklaerung der Schiffsauswahl auf dem Feld bei jedem Aufruf zu (Review PR #388). Nennt die
+        // Adresse den Leitstand, fragt keiner von beiden den Speicher.
+        probe('', '', null, { nurLesen: true }, false, 'laesst sich die Sitzung lesen, aber nicht beschreiben, beginnt der Controller auf dem Feld (sein catch), das Geruest im Leitstand: Die Erklaerung der Schiffsauswahl bliebe dort bei jedem Aufruf zu');
+        probe('?ort=leit', '', null, { nurLesen: true }, true, 'nennt die Adresse den Leitstand, beginnt der Controller dort, auch wenn die Sitzung nichts annimmt; das Geruest zeigt erst die Tafel des Felds');
+        probe('?ort=leit', '', null, { ohne: true }, true, 'nennt die Adresse den Leitstand, beginnt der Controller dort, auch ohne Speicher; das Geruest zeigt erst die Tafel des Felds');
         const fenster = lauf('', '', null);
         if (typeof fenster === 'string' || fenster.mq !== TELEFON) fail(`[6] dist/${page.file}: der Vorentscheid fragt das Fenster nach „${typeof fenster === 'string' ? fenster : fenster.mq}“ statt „${TELEFON}“ wie guess3d im Controller`);
         else startProben++;

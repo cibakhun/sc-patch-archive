@@ -927,11 +927,16 @@ const dice = 'M7.5 3.5h9a4 4 0 014 4v9a4 4 0 01-4 4h-9a4 4 0 01-4-4v-9a4 4 0 014
       und Titel des Felds da, bis der Controller geladen ist, und
       verschwaenden dann. Dieselbe Regel wie startAmSchirm und guess3d im
       Controller; er setzt data-ort danach selbst und merkt sich den Besuch.
+      Der Controller beginnt nur im Leitstand, wenn er den Besuch auch
+      schreiben konnte (sein catch): Deshalb schreibt das Skript zur Probe
+      einen eigenen Schluessel und nimmt ihn wieder weg, ohne den Besuch
+      selbst zu vermerken. Laesst sich die Sitzung lesen, aber nicht
+      beschreiben, bleibt es bei beiden beim Feld (Review PR #388).
       Dort bleibt auch die Erklaerung zu, die beim allerersten Besuch von
       selbst aufgeht (data-help-auto, gelesen von tool-help.js): Sie laege
       ueber dem Anmeldebild. Ungesehen, also kommt sie beim naechsten Aufruf
       auf dem Feld. */}
-  <script is:inline set:html={`(function(m){try{if(localStorage.getItem('hg-dock')!=='open')m.dataset.dock='closed';if(localStorage.getItem('hg-hint'))m.dataset.hint='seen'}catch(e){m.dataset.dock='closed'}try{var p=new URLSearchParams(location.search),k=${jsonForScript(START_NENNT)};if((p.get('ort')==='leit'||(sessionStorage.getItem('hg-besuch')===null&&location.hash.length<2&&!k.some(function(x){return p.has(x)})))&&!matchMedia('(max-width: 760px), (pointer: coarse)').matches){m.dataset.ort='leit';m.dataset.helpAuto='aus'}}catch(e){}})(document.currentScript.parentElement)`}></script>
+  <script is:inline set:html={`(function(m){try{if(localStorage.getItem('hg-dock')!=='open')m.dataset.dock='closed';if(localStorage.getItem('hg-hint'))m.dataset.hint='seen'}catch(e){m.dataset.dock='closed'}try{var p=new URLSearchParams(location.search),k=${jsonForScript(START_NENNT)};if((p.get('ort')==='leit'||(sessionStorage.getItem('hg-besuch')===null&&location.hash.length<2&&!k.some(function(x){return p.has(x)})&&(sessionStorage.setItem('hg-besuch-probe','1'),sessionStorage.removeItem('hg-besuch-probe'),true)))&&!matchMedia('(max-width: 760px), (pointer: coarse)').matches){m.dataset.ort='leit';m.dataset.helpAuto='aus'}}catch(e){}})(document.currentScript.parentElement)`}></script>
   <div class="hg-stagewrap" data-media-surface>
     <HangarApp>
       <ShipBay bay={bay} region="marks" />
