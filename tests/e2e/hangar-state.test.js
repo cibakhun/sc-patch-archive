@@ -179,6 +179,26 @@ describe('Hangar: Einstieg am Bildschirm', () => {
     assert.equal((seite.match(/URLSearchParams\(/g) ?? []).length, 5, 'eine neue Stelle liest die Adresse: gehoert ihr Schluessel in START_NENNT?');
   });
 
+  // 18.11.2026: Auf Windows checkt git (core.autocrlf) den Controller mit CRLF aus. Das Geruest suchte die
+  // Liste mit einem Muster, das nur \n kannte, fand sie dort nicht, und der Bau riss an /de/hangar.html
+  // ("Unexpected token 'S', "START_NENN"... is not valid JSON"). Geprueft wird das Muster des Geruests
+  // selbst, an der Quelle des Controllers mit beiden Zeilenenden.
+  test('das Geruest findet die Liste im Controller mit LF und mit CRLF', () => {
+    const geruest = fs.readFileSync(new URL('../../src/components/hangar/HangarPage.astro', import.meta.url), 'utf8');
+    const stellen = [...geruest.matchAll(/CONTROLLER_SRC\.match\(\/(.+?)\/\)\?\.\[1\]/g)];
+    assert.equal(stellen.length, 1, 'das Geruest liest START_NENNT nicht mehr an genau einer Stelle aus der Quelle des Controllers');
+    const muster = new RegExp(stellen[0][1]);
+    const lf = seite.replace(/\r\n/g, '\n'), crlf = lf.replace(/\n/g, '\r\n');
+    assert.ok(crlf.includes('\r\nexport const START_NENNT = ['), 'die Probe mit CRLF traegt keine CRLF');
+    for (const [name, quelle] of [['LF', lf], ['CRLF', crlf]]) {
+      const roh = muster.exec(quelle)?.[1];
+      assert.ok(roh, `mit ${name} findet das Muster des Geruests die Liste nicht: Der Bau der Hangarseite reisst`);
+      assert.deepEqual(JSON.parse(roh.replaceAll("'", '"')), START_NENNT, name);
+    }
+    // Gegenprobe: das alte Muster (nur \n) findet sie mit CRLF nicht
+    assert.equal(/\nexport const START_NENNT = (\[[^\]\n]*\]);\n/.exec(crlf), null);
+  });
+
   test('die Seite merkt sich den Besuch in der Sitzung und beginnt nur dort im Leitstand, wo die Halle einen haben wird', () => {
     // erst lesen, dann setzen: Der Besuch gilt ab dem ersten Aufruf, auch wenn er bei einem Schiff begann
     assert.match(seite, /ersterBesuch = sessionStorage\.getItem\(BESUCH_KEY\) === null;\n\s*sessionStorage\.setItem\(BESUCH_KEY, '1'\);/);
