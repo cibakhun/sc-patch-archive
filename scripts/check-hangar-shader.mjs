@@ -312,6 +312,44 @@
    layDienst)“. Das Skript des Stands davor wertete dort die Zeile der
    Gladius und endete gruen.
 
+   HAUPTSTRAHLER (18.11.2026): Eine Halle fester Groesse kann ihre
+   staerksten Lampen als Hauptstrahler stellen (HALL_FEST.strahler): die
+   Farbe zu Weiss gemischt, die Staerke nach der Seite der Landeflaeche.
+   Anlass war Krisz' Urteil zur Large-Halle („wie man das auf dem nbild
+   sieht ist die beleuchtung super kacke“): Ihre sechs Fluter strahlten
+   tuerkis und von beiden Seiten gleich stark, das Schiff stand ohne Form
+   da. verify:hangar-hallen haelt die Regel fest (hallStrahler gibt fuer
+   die Lampen der ausgelieferten Datei Faktor und Farbe zurueck), kann die
+   Buehne aber nicht fahren. Darum zaehlt sie selbst, wie viele Lampen sie
+   so gestellt hat, und nennt die Zahl am Ende ihrer Zeile "[hangar] …
+   Lampen aus … Spiellampen … gesetzt, N gedämpft, M Hauptstrahler". Der
+   Lauf haelt sie gegen die Klinke strahler der Halle (KLINKE_FEST), nach
+   --wechsel wie bei den gedaempften Lampen. Eine Halle ohne diese Klinke
+   stellt keine: Meldet ihre Buehne trotzdem welche, ist der Lauf rot.
+   Die Zahl der gedaempften Lampen liest der Lauf weiter aus derselben
+   Zeile, mit und ohne den Zusatz.
+   Grenze: Der Lauf zaehlt, er sieht nicht hin. Ob die Halle damit gut
+   aussieht, ist ein Sichturteil (.planning/WINDOWS.md).
+   Vorgefuehrt rot (18.11.2026, vier Laeufe mit --ship anvl-carrack, je
+   1 FEHLER; drei mit einem Eingriff in den ausgelieferten Viewer, einer
+   mit einer Kopie des Skripts): HALL_FEST ohne strahler: „die Buehne der
+   Halle util-lrgtop hat 0 Hauptstrahler gestellt, Klinke 6: ihre Fluter
+   strahlen wieder in der Farbe des Spiels und von beiden Seiten gleich
+   stark, das Schiff steht tuerkis und ohne Form da (Krisz, 18.11.2026:
+   „die beleuchtung [ist] super kacke“; HALL_FEST.strahler, hallStrahler
+   und loadHallLights im Viewer; nennt die Lampendatei ihre Staerke
+   anders, passt die Schwelle ab nicht mehr)“; die Buehne nennt die Zahl
+   nicht mehr in ihrer Zeile: dieselbe Meldung; HALL_FEST ohne strahler
+   mit --wechsel aegs-gladius, die Large-Halle ist die erste: „vor dem
+   Hallenwechsel (util-lrgtop): die Buehne der Halle util-lrgtop hat 0
+   Hauptstrahler gestellt, Klinke 6: …“; die Halle ohne Klinke strahler:
+   „die Buehne der Halle util-lrgtop hat 6 Hauptstrahler gestellt, die
+   Halle hat keine Klinke strahler (KLINKE_FEST): fiele die Einstellung
+   wieder weg, bliebe dieser Lauf gruen“. Ohne Eingriff: „Lampen: 6
+   Lampen aus 870 Spiellampen (864 nach Gruppierung) gesetzt, 114
+   gedämpft, 6 Hauptstrahler (Klinke 114 gedaempfte)“ und
+   „Hauptstrahler: 6 (Klinke 6)“.
+
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
        (ein anderes Schiff als das erste der Liste; seit 25.10.2026 tragen
@@ -487,6 +525,10 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // GEDAEMPFTE LAMPEN). util-lrgtop, gemessen 15.11.2026: 114, die Lampen in den
 // Kabinen ihrer beiden Frachtaufzuege (2 × 57). Eine Halle ohne diese Klinke
 // daempft keine Lampe; meldet ihre Buehne doch gedaempfte, ist der Lauf rot.
+// strahler: so viele Lampen hat die Buehne als Hauptstrahler gestellt (dieselbe Zeile,
+// "…, N Hauptstrahler", im Kopf unter HAUPTSTRAHLER). util-lrgtop, gemessen
+// 18.11.2026: 6, die Fluter unter der Decke. Eine Halle ohne diese Klinke stellt
+// keine; meldet ihre Buehne doch welche, ist der Lauf rot.
 // plaetze: so viele Plaetze des Wartungsplatzes stehen am Schiff (Zeile "[hangar]
 // Wartungsplatz bei …: N von M Plätzen", im Kopf unter WARTUNGSPLATZ). Wie viele
 // WORK_DIENST stellt, haengt an der Groesse des Schiffs (ab/bis): 6 Plaetze bekommt
@@ -505,7 +547,7 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // util-lrgtop am 18.11.2026 mit der Carrack: 65 Programme, eins mit Schichttafel
 // (schichten 0 -> 1, der Wartungsplatz), 613 Bilder, 109 MB, 114 gedaempft.
 const KLINKE_FEST = {
-  'util-lrgtop': { programme: 48, schichten: 1, frei: 500, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6 },
+  'util-lrgtop': { programme: 48, schichten: 1, frei: 500, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6, strahler: 6 },
   'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, ktx: 530 },
   'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6 },
   'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6 },
@@ -826,13 +868,26 @@ function platzUrteil(zeile, k, halle, wo) {
 // gedaempfte, fehlt die Klinke, und der Lauf ist rot (fiele die Daempfung spaeter weg, bliebe er sonst gruen).
 let gedaempftGewertet = false;
 function lampenUrteil(zeile, k, halle, wo) {
-  const n = zeile ? Number(/ gesetzt, (\d+) gedämpft$/.exec(zeile)?.[1] ?? 0) : NaN;
+  const n = zeile ? Number(/ gesetzt, (\d+) gedämpft(?:, \d+ Hauptstrahler)?$/.exec(zeile)?.[1] ?? 0) : NaN;
   if (k.gedaempft === undefined && !(n > 0)) return;
   gedaempftGewertet = true;
   console.log(`  Lampen${wo ? ` ${wo}` : ''}: ${zeile ? zeile.slice(9, 160) : 'keine Zeile'} (Klinke ${k.gedaempft ?? '—'} gedaempfte)`);
   if (k.gedaempft === undefined) fehler.push(`${wo ? `${wo}: ` : ''}die Buehne der Halle ${halle} hat ${n} Lampen gedaempft, die Halle hat keine Klinke gedaempft (KLINKE_FEST): fiele die Daempfung wieder weg, bliebe dieser Lauf gruen`);
   else if (!zeile) fehler.push(`${wo ? `${wo}: ` : ''}der Viewer meldet keine Zeile "[hangar] … Lampen aus … Spiellampen": ob die Buehne der Halle ${halle} die Lampen ihrer gedaempften Lichtgruppen schwaecher gehoben hat (Klinke ${k.gedaempft}), ist ungeprueft`);
   else if (!(n >= k.gedaempft)) fehler.push(`${wo ? `${wo}: ` : ''}die Buehne der Halle ${halle} hat ${n} Lampen gedaempft, Klinke ${k.gedaempft}: Lampen ihrer gedaempften Lichtgruppen brennen mit der vollen Staerke der Halle, der Boden unter ihnen brennt aus (in util-lrgtop der Boden der Kabinen ihrer Frachtaufzuege; HALL_FEST.daempf, hallLampenStaerke und loadHallLights im Viewer)`);
+}
+// HAUPTSTRAHLER einer Halle fester Groesse: wie viele Lampen ihre Buehne als Hauptstrahler gestellt hat (Farbe zu
+// Weiss gemischt, Staerke nach der Seite der Landeflaeche), gegen die Klinke strahler. Eine Halle ohne diese
+// Klinke stellt keine; meldet ihre Buehne trotzdem welche, fehlt die Klinke, und der Lauf ist rot.
+let strahlerGewertet = false;
+function strahlerUrteil(zeile, k, halle, wo) {
+  const n = zeile ? Number(/, (\d+) Hauptstrahler$/.exec(zeile)?.[1] ?? 0) : NaN;
+  if (k.strahler === undefined && !(n > 0)) return;
+  strahlerGewertet = true;
+  console.log(`  Hauptstrahler${wo ? ` ${wo}` : ''}: ${Number.isFinite(n) ? n : 'keine Zeile'} (Klinke ${k.strahler ?? '—'})`);
+  if (k.strahler === undefined) fehler.push(`${wo ? `${wo}: ` : ''}die Buehne der Halle ${halle} hat ${n} Hauptstrahler gestellt, die Halle hat keine Klinke strahler (KLINKE_FEST): fiele die Einstellung wieder weg, bliebe dieser Lauf gruen`);
+  else if (!zeile) fehler.push(`${wo ? `${wo}: ` : ''}der Viewer meldet keine Zeile "[hangar] … Lampen aus … Spiellampen": ob die Buehne der Halle ${halle} ihre Hauptstrahler gestellt hat (Klinke ${k.strahler}), ist ungeprueft`);
+  else if (!(n >= k.strahler)) fehler.push(`${wo ? `${wo}: ` : ''}die Buehne der Halle ${halle} hat ${n} Hauptstrahler gestellt, Klinke ${k.strahler}: ihre Fluter strahlen wieder in der Farbe des Spiels und von beiden Seiten gleich stark, das Schiff steht tuerkis und ohne Form da (Krisz, 18.11.2026: „die beleuchtung [ist] super kacke“; HALL_FEST.strahler, hallStrahler und loadHallLights im Viewer; nennt die Lampendatei ihre Staerke anders, passt die Schwelle ab nicht mehr)`);
 }
 
 const ueber = progs.filter((p) => p.n > GRENZE), kaputt = progs.filter((p) => !p.ok);
@@ -856,7 +911,7 @@ if (vor) {
   if (/erst beim Probebild/.test(vor.paesse)) fehler.push(`${wo}: ${vor.paesse.slice(9, 160)}: der Schluessel des vorab uebersetzten Programms passt nicht zum Pass, die Seite steht beim Laden, bis sie uebersetzt sind`);
   else if (!/^\[hangar\] Vollbildpässe: \d+ Shader vorab übersetzt/.test(vor.paesse)) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Vollbildpässe: … Shader vorab übersetzt": die Nachbearbeitung (Verdeckung, Schein) der ersten Halle steht nicht, oder ihre Shader entstehen erst beim ersten Bild`);
   if (!vor.viewer) fehler.push(`${wo}: der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader"`);
-  if (vor.fest) { gitterUrteil(vor.gitter, vor.K, vor.halle, wo); lampenUrteil(vor.lampen, vor.K, vor.halle, wo); platzUrteil(vor.platz, vor.K, vor.halle, wo); }
+  if (vor.fest) { gitterUrteil(vor.gitter, vor.K, vor.halle, wo); lampenUrteil(vor.lampen, vor.K, vor.halle, wo); platzUrteil(vor.platz, vor.K, vor.halle, wo); strahlerUrteil(vor.lampen, vor.K, vor.halle, wo); }
 }
 console.log(`  Programme gelinkt: ${progs.length}${vor ? `, davon ${seit.length} seit dem Hallenwechsel` : ''} (Klinke ${K.programme}), davon mit Schichttafel: ${schichten} (Klinke ${K.schichten})`);
 console.log(`  hoechstens ${max} Texturen; die meisten: ${oben || '—'}`);
@@ -908,7 +963,7 @@ if (steht && seit.length < K.programme) fehler.push(`nur ${seit.length} Programm
 if (steht && schichten < K.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
 if (steht && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
 // nach einem Hallenwechsel die Endhalle mit ihrer eigenen Zeile (platz ist dann geleert, wenn die neue Buehne keine meldete)
-if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); platzUrteil(platz, K, fest, ''); }
+if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); platzUrteil(platz, K, fest, ''); strahlerUrteil(lampen, K, fest, ''); }
 
 for (const u of unruhig) console.log(`  HINWEIS: keine Ruhe (${u}): der Lauf wertet einen Zwischenstand aus`);
 if (fehler.length) {
@@ -918,4 +973,4 @@ if (fehler.length) {
   console.error('');
   process.exit(1);
 }
-console.log(`\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel, jedes Bild aus seinem komprimierten Zwilling${fest || vor?.fest ? ', das Lichtgitter der Halle fester Groesse mit ihrem Grundlicht geladen' : ''}${gedaempftGewertet ? ', die Lampen ihrer gedaempften Lichtgruppen schwaecher gehoben' : ''} ✓\n`);
+console.log(`\ncheck-hangar-shader: kein Bildshader ueber der Grenze, kein freigegebenes Bild und kein freigegebener Puffer noch einmal verlangt, Vollbildpaesse vorab uebersetzt, Farbkarten des Schiffs mit Mittel, jedes Bild aus seinem komprimierten Zwilling${fest || vor?.fest ? ', das Lichtgitter der Halle fester Groesse mit ihrem Grundlicht geladen' : ''}${gedaempftGewertet ? ', die Lampen ihrer gedaempften Lichtgruppen schwaecher gehoben' : ''}${strahlerGewertet ? ', ihre Hauptstrahler gestellt' : ''} ✓\n`);

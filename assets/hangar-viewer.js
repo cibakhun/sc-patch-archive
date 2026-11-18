@@ -938,7 +938,11 @@ function hallShiftPoint(h, p) {
 // Kugel wird über der Landefläche aufgenommen; in einer Halle von 144 m
 // Breite kommt davon an den Wänden kaum etwas an, sie blieben fast schwarz.
 // 0,5 hebt sie, ohne das Bild zu verflachen (so abgenommen, Krisz
-// 14.11.2026 zu den ersten Bildern: „ja“).
+// 14.11.2026 zu den ersten Bildern: „ja“). In der Large-Halle seit dem 18.11.2026 0,3: Die
+// Wände hebt inzwischen das Grundlicht (`grund`), und die Halbkugel trifft
+// auch das Schiff von allen Seiten gleich, es stand ohne Form da (siehe
+// `strahler`). Oben im Bild ändert das 0,5 Punkte (37,1 statt 36,6 % unter
+// 16, Grundlicht 4,5).
 // `grund`: Grundlicht der Halle, im Lichtgitter auf jede Hallenfläche gelegt
 // (hallGrund), nicht auf Schiff und Gerät. Krisz am 15.11.2026 zur
 // ausgelieferten Halle: „es ist zu dunkel in der halle, man sieht überhaupt
@@ -952,17 +956,51 @@ function hallShiftPoint(h, p) {
 // Am Bild abgeglichen (dieselbe Ansicht): bei 2 liegen oben noch 54 % unter
 // 16, bei 3 sind es 47 %, bei 4,5 noch 37 % (Decke und Schatten), bei 7
 // steht die Halle hell da und die dunkle Stimmung ist weg; 4,5 steht.
+// In der Large-Halle seit dem 18.11.2026 4 zusammen mit `gitter` 3: Was das
+// Grundlicht nachgibt, bringt das Lampenlicht. An derselben Ansicht liegen
+// oben 33,4 % unter 16 (vorher 36,6 %), das Bildmittel bleibt (60,0 gegen 58,7 von
+// 255); mit 3 und `gitter` 2,5 waren es 43,2 %, dunkler als abgenommen.
+// `gitter`: Faktor auf das Licht der Lampen im Lichtgitter, die
+// Hauptstrahler ausgenommen (hallGitterLampen). Das Grundlicht legt auf
+// jede Fläche denselben Ton; daneben ging das Licht der Wandleuchten unter,
+// und die Wände standen flach da, ohne dass man sah, woher ihr Licht kommt
+// (Krisz 18.11.2026 zur Beleuchtung: „super kacke“). Mit 3 zeichnen sich
+// die Lampen an Wänden und Pfeilern als Lichtflecken ab, dazwischen bleibt
+// das Grundlicht. Am Bild abgeglichen (Carrack, sechs Ansichten): 2,5 mit
+// Grundlicht 4,5 hebt die Flecken kaum ab, 3,5 mit 2,5 lässt die Flächen
+// dazwischen absaufen (oben 42,1 % unter 16).
 // `daempf`: Faktor auf die Stärke der Lampen einzelner Lichtgruppen, nach
 // `licht` (hallLampenStaerke; die Gruppe ist der Name der Lampe ohne ihre
 // Nummern). `licht` gleicht aus, dass in der weiten Halle wenig Licht am
 // Boden ankommt. In der Kabine eines Frachtaufzugs hängen die Lampen wenige
 // Meter über ihrem Boden: Mit `licht` 16 und dem Grundlicht brannte er aus,
-// der Rand weiß, die Farbe der Fläche weg (am Bild, 15.11.2026).
+// der Rand weiß, die Farbe der Fläche weg (am Bild, 15.11.2026). Damals
+// 0,25, so steht es in den Hallen ohne `gitter`; in der Large-Halle seit
+// `gitter` 3 das Lampenlicht im Gitter verdreifacht, 0,085, die
+// Kabine bekommt so viel Lampenlicht wie abgenommen (16 · 0,085 · 3 ≈ 4).
+// `strahler`: die Hauptstrahler der Halle, ihre Lampen ab der Spielstärke
+// `ab` (hallStrahler). In util-lrgtop sind es die sechs Fluter unter der
+// Decke, je 600 und drei über jeder Längsseite der Landefläche; die
+// nächststärkste Lampe der Halle hat 80. Krisz am 18.11.2026 zur
+// ausgelieferten Halle: „die beleuchtung [ist] super kacke“. Am Bild seiner
+// Ansicht (Carrack): Die sechs strahlen im Spiel türkis (0,52 / 0,95 / 0,96)
+// und von beiden Seiten gleich stark. Der weiße Lack stand türkis da, jede
+// Seite des Rumpfs gleich hell und ohne Form, der Boden mit türkisem Glanz,
+// der Schatten des Schiffs kaum zu sehen.
+// `weiss`: Anteil Weiß in ihrer Farbe (0 = Farbe des Spiels, 1 = weiß). Bei
+// 0,65 liest sich der Lack als Weiß mit einem kühlen Rest, der Boden grau.
+// `seiten`: Faktor auf ihre Stärke, zuerst die Seite +x der Landefläche
+// (Führungslicht; auf dieser Seite steht die Kamera beim Start), dann −x
+// (Aufhellung). Am Bild abgeglichen: 0,8 und 0,32 geben Form, die
+// abgewandte Seite steht aber zu dunkel; 1,2 und 0,35 brennen die
+// Glanzlichter auf dem Deck aus; 1 und 0,5 stehen. Die Rangfolge der Bühne
+// stellt die Hauptstrahler vor alle anderen Lampen, auch die schwächer
+// gestellten.
 // Der eigene Aufzug einer solchen Halle (Bodentor und Plattform aus ihrem
 // Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
 // durch, ownLift baut ihn.
 const HALL_FEST = /* hall-fest */ {
-  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.25 } },
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.3, "grund": 4, "gitter": 3, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.085 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } },
   "util-medtop": { "size": "M", "pad": { "from": [28, -111], "to": [84, -23] }, "clear": 32, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_med_a": 0.25 } },
   "util-smltop": { "size": "S", "pad": { "from": [30, 32], "to": [54, 64] }, "clear": 16, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_sml_a": 0.25 } },
   "util-xltop": { "size": "XL", "pad": { "from": [-192, 32], "to": [-32, 304] }, "clear": 64, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_xlrg_a": 0.25 } }
@@ -991,6 +1029,34 @@ export const lampenGruppe = (name) => String(name ?? '').replace(/(-\d+)+$/, '')
 export function hallLampenStaerke(id, name) {
   const F = HALL_FEST[id];
   return (F?.licht ?? 1) * (F?.daempf?.[lampenGruppe(name)] ?? 1);
+}
+
+// Hauptstrahler einer Halle fester Größe (HALL_FEST.strahler): die Lampen,
+// deren Stärke im Spiel mindestens `ab` beträgt. Für sie liefert die
+// Funktion den Faktor ihrer Seite der Landefläche (`seiten`: +x, −x; im
+// Modellraum gegen `mitteX`, die Mitte der Landefläche) und ihre Farbe mit
+// dem Anteil `weiss` zu Weiß gemischt; für jede andere Lampe null. Steht
+// hier oben wie hallLampenStaerke, damit Tor und Test dieselbe Rechnung
+// fahren wie die Bühne.
+export function hallStrahler(id, lampe, mitteX) {
+  const S = HALL_FEST[id]?.strahler;
+  if (!S || !(S.ab > 0) || !(lampe?.intensity >= S.ab) || !Array.isArray(lampe.pos)) return null;
+  const w = Math.min(1, Math.max(0, S.weiss ?? 0));
+  return {
+    staerke: (lampe.pos[0] > mitteX ? S.seiten?.[0] : S.seiten?.[1]) ?? 1,
+    farbe: (lampe.color || [1, 1, 1]).map((v) => v + (1 - v) * w),
+  };
+}
+
+// Die Lampen einer Halle fester Größe, wie sie ins Lichtgitter gehen: ihre
+// Stärke mal HALL_FEST.gitter. Die Hauptstrahler (`haupt`, von der Bühne
+// nach hallStrahler gesetzt) bleiben, wie sie sind: Brennt einer auf einer
+// kleineren Grafikstufe nicht echt, steht er im Gitter so stark wie als
+// Lampe, sonst wäre der Boden dort um den Faktor heller als auf „hoch“.
+// Die Liste selbst bleibt unverändert (die Bühne zählt an ihr).
+export function hallGitterLampen(id, list) {
+  const g = HALL_FEST[id]?.gitter ?? 1;
+  return g === 1 ? list : list.map((l) => (l.haupt ? l : { ...l, intensity: l.intensity * g }));
 }
 
 // Spielstärke -> three.js (Candela bei decay 2), am Render abgeglichen:
@@ -9222,12 +9288,19 @@ export async function initHangar(container, opts = {}) {
     // Lampen im Boden von Feld und Streifen wandern mit (HALL_SHIFT)
     for (const l of all) l.pos = hallShiftPoint(h, l.pos);
     if (!all.length) return false;
-    // Stärke je Halle und Lichtgruppe (hallLampenStaerke), vor Rangfolge, Gruppen und Gitter
+    const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
+    // Stärke je Halle und Lichtgruppe (hallLampenStaerke), vor Rangfolge, Gruppen und Gitter;
+    // die Hauptstrahler dazu mit dem Faktor ihrer Seite und ihrer Farbe (hallStrahler)
     const licht = hallLampenStaerke(h.id, '');
-    for (const l of all) { l.roh = l.intensity; l.intensity *= hallLampenStaerke(h.id, l.name); }
+    let haupt = 0;
+    for (const l of all) {
+      l.roh = l.intensity;
+      const s = hallStrahler(h.id, l, o[0]);
+      l.intensity *= hallLampenStaerke(h.id, l.name) * (s?.staerke ?? 1);
+      if (s) { l.color = s.farbe; l.haupt = true; haupt++; }
+    }
     const cand = [...all.filter((l) => l.type !== 'area'), ...clusterAreaLights(all.filter((l) => l.type === 'area'))];
     // Messpunkte: Boden und Schiff um die Plattform (doppelt), dazu die Wände
-    const { center: c, halfW, halfL, height } = h.room, f = Number.isFinite(h.floor) ? h.floor : c[1], o = hallSpot(h);
     const pts = [];
     for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) pts.push([o[0] + i * halfW * 0.22, f + 0.2, o[2] + j * halfL * 0.18, 2]);
     for (const y of [1.5, 4]) pts.push([o[0], f + y, o[2], 4]);
@@ -9236,7 +9309,13 @@ export async function initHangar(container, opts = {}) {
       pts.push([c[0] + t * halfW, f + y, c[2] - halfL + 1, 1], [c[0] + t * halfW, f + y, c[2] + halfL - 1, 1]);
     }
     for (const l of cand) l.score = lampScore(l, pts);
-    cand.sort((a, b) => b.score - a.score);
+    // Hauptstrahler zuerst: Schwächer gestellt (HALL_FEST.strahler.seiten)
+    // fielen sie sonst hinter kleine Lampen dicht am Boden zurück, die
+    // viele Messpunkte aus der Nähe treffen, und stünden nur noch im
+    // Gitter, das dem Schiff kein Licht gibt (gesehen 18.11.2026: zwei
+    // Punktlichter am Rand der Landefläche als echte Lampen, je ein
+    // gleißender Fleck am Boden).
+    cand.sort((a, b) => (b.haupt ? 1 : 0) - (a.haupt ? 1 : 0) || b.score - a.score);
     const lamps = new THREE.Group();
     lamps.position.set(-o[0], -f, -o[2]);
     for (const l of cand.slice(0, MAX_LIGHTS)) {
@@ -9276,10 +9355,12 @@ export async function initHangar(container, opts = {}) {
     hallRoot.add(lamps);
     if (!hallRoot.parent) scene.add(hallRoot);
     hallLamps = lamps;
-    // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen
+    // Die übrigen als Lichtgitter, ohne die echten und ihre Gruppen. Ihr
+    // Licht mal HALL_FEST.gitter (hallGitterLampen), die Hauptstrahler
+    // ausgenommen.
     const lit = new Set(cand.slice(0, MAX_LIGHTS).flatMap((l) => l.m || [l]));
     const t0 = performance.now();
-    const vol = await hallGitter(all.filter((l) => !lit.has(l)), h, f, slicer(12, rast));
+    const vol = await hallGitter(hallGitterLampen(h.id, all.filter((l) => !lit.has(l))), h, f, slicer(12, rast));
     // in Häppchen gerechnet: scheiterte die Halle derweil, bleibt die gebaute samt Bühnenlicht
     if (hallFailed) return false;
     hallVol.a.value = volTex(vol.a, vol.res); hallVol.b.value = volTex(vol.b, vol.res);
@@ -9300,8 +9381,8 @@ export async function initHangar(container, opts = {}) {
     const n = lamps.children.filter((q) => q.isLight).length;
     // zurückgelesen an der Stärke, mit der Rangfolge und Gitter gerechnet haben (nicht am Faktor): Lampen, die
     // schwächer gehoben sind als die Halle
-    const gedaempft = all.filter((l) => l.intensity < l.roh * licht).length;
-    console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt${gedaempft ? `, ${gedaempft} gedämpft` : ''}`);
+    const gedaempft = all.filter((l) => !l.haupt && l.intensity < l.roh * licht).length;
+    console.info(`[hangar] ${n} Lampen aus ${all.length} Spiellampen (${cand.length} nach Gruppierung) gesetzt${gedaempft ? `, ${gedaempft} gedämpft` : ''}${haupt ? `, ${haupt} Hauptstrahler` : ''}`);
     return true;
   }
 
@@ -9532,13 +9613,14 @@ export async function initHangar(container, opts = {}) {
     // Schatten ohne Schiff und Crew, wie die Aufnahme sie sieht
     renderer.shadowMap.needsUpdate = true;
     const R = realHall.grow ? grownRoom() : realHall.room;
-    // Ohne die Hologramme der Stationen (wie renderMirror): Ihr Schleier ist
-    // ein Rechteck über dem ganzen Bild, vor einem Zwischenziel halb
-    // deckend, und lag damit über jeder Seite der Kugel. Standen sie beim
+    // Ohne die Hologramme der Stationen (wie renderMirror): Tafeln und
+    // Lichtlinien gehören nicht in das Licht, das die Halle zurückwirft.
+    // Bis zum 18.11.2026 lag mit ihnen ein schwarzes Rechteck über dem
+    // ganzen Bild und damit über jeder Seite der Kugel: Standen sie beim
     // Aufnehmen schon (das Schiff war vor der Halle fertig, langsames
     // Laden), kam die Kugel halb so hell heraus (Mittel 0,094 statt 0,19,
-    // Wände im Bild ein Viertel dunkler), und die Halle blieb so bis zur
-    // nächsten Aufnahme (13.11.2026).
+    // Wände im Bild ein Viertel dunkler, 13.11.2026). Das Rechteck gibt es
+    // nicht mehr; die Halle steht mit und ohne Hologramme gleich hell.
     // Dazu in Ruhelage (hallRest): Beim Schiffswechsel steht die Halle
     // unter geschlossenem Tor ohne Feld und Wartungsplatz da.
     const unrest = hallRest();

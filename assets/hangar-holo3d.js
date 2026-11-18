@@ -22,9 +22,13 @@
 //   Seitenleiste, Knöpfen und Stationen-Leiste (setSafe der Seite). Beim
 //   Drehen bleiben sie stehen; steht die Kamera wieder still und sind sie
 //   aus ihrem Platz geraten, gleiten sie über den Boden zurück.
-// - Die Halle dunkelt ab (Stationsmodus): ein Schleier über allem, was vor
-//   ihm gezeichnet ist (renderOrder), die Hologramme kommen danach. Im
-//   Spiegelbild des Bodens fehlt er (mirror()).
+// - Die Halle bleibt so hell, wie sie ohne Hologramme steht. Bis zum
+//   18.11.2026 lag im Stationsmodus ein schwarzes Rechteck über dem ganzen
+//   Bild (etwa 72 % Helligkeit); mit „Als Tafel“ fiel es weg, und das Licht
+//   der Halle sprang bei jedem Umschalten (Krisz 18.11.2026: „ändert sich die
+//   beleuchtung wenn man zwischen panel an und ausmacht“). Diese Schicht
+//   legt nur noch ihre eigenen Teile in die Szene (root), nichts über die
+//   Halle; verify:hangar [12] hält das fest.
 // - Maße liegen als Lichtlinien auf dem Boden, an den beiden Seiten des
 //   Hüllquaders, die zur Kamera zeigen; Komponenten als Nummern am Port,
 //   durch den Rumpf sichtbar.
@@ -98,22 +102,16 @@ export function panelSpread(f, c, at, yaw) {
   const depth = Math.max(1, px * f.x + py * f.y + pz * f.z);
   return Math.max(0.5, ux * rx + uz * rz - ((px * rx + pz * rz) / depth) * (ux * f.x + uz * f.z));
 }
-// Schleier über der Halle, Ziel wie in den Entwürfen: etwa 72 % Helligkeit
-// am fertigen Bild. Auf „hoch“ liegt er vor Tonabbildung und Ausgabe (linear,
-// dort sind 0,5 etwa die 72 %; 0,28 sahen kaum dunkler aus), auf den kleineren
-// Stufen zeichnet er direkt ins fertige Bild: dort sind es 0,28. Gemessen
-// 10.11.2026: 0,5 halbierten auf „niedrig“ die Helligkeit.
-const DIM_LIN = 0.5, DIM_OUT = 0.28;
 const FADE_MS = 360, GLIDE_MS = 420, REST_MS = 280, HOP_MS = 180;
 // Steht die Kamera über dem Rumpf (Carrack, Idris: kein freier Boden in den
 // unteren Bildecken), schwebt die Tafel ohne Projektor so weit vor der Kamera
 // und folgt ihr wie eine Anzeige im Helm (gesehen 10.11.2026: ohne das
 // fehlten beide Tafeln, sie standen unter der Kamera).
 const FLOAT_M = 3;
-// Zeichenfolge: erst Halle und Schiff, dann der Schleier, dann alles hier.
+// Zeichenfolge: erst Halle und Schiff, dann alles hier.
 // Nichts hier schreibt Tiefe; die Tafeln kommen zuletzt, weil sie nah an der
 // Kamera stehen und Maße oder Nummern dahinter verdecken sollen.
-const RO = { dim: 800, glow: 802, floor: 803, beam: 804, line: 806, sprite: 808, panel: 810 };
+const RO = { glow: 802, floor: 803, beam: 804, line: 806, sprite: 808, panel: 810 };
 
 // ─── Zeichnen ────────────────────────────────────────────────────────────
 const ls = (g, v) => { if ('letterSpacing' in g) g.letterSpacing = v; };
@@ -1135,19 +1133,6 @@ export function holoLayer(ctx) {
     g.fillStyle = r; g.fillRect(0, 0, w, h);
   }, [4, 256]);
 
-  // Schleier: ein Rechteck über dem ganzen Bild, nach Halle und Schiff
-  const dimMat = new THREE.ShaderMaterial({
-    transparent: true, depthTest: false, depthWrite: false,
-    uniforms: { uA: { value: 0 } },
-    vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: 'uniform float uA; void main(){ gl_FragColor = vec4(0.0, 0.0, 0.0, uA); }',
-  });
-  const dim = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), dimMat);
-  dim.frustumCulled = false; dim.renderOrder = RO.dim; dim.visible = false; dim.name = 'hg-stationen-schleier';
-  // Zwischenziel = Nachbearbeitung folgt (linear), sonst fertiges Bild
-  dim.onBeforeRender = (r) => { dimMat.uniforms.uA.value = (r.getRenderTarget() ? DIM_LIN : DIM_OUT) * alpha; };
-  scene.add(dim);
-
   let want = null;       // { name, data } von der Seite
   let built = null;      // { key, panels, sprites, lines, box }
   let safe = { l: 0, t: 0, r: 0, rects: [] };
@@ -1858,7 +1843,7 @@ export function holoLayer(ctx) {
 
   function setAlpha(a) {
     for (const [m, base, P] of mats) m.opacity = base * a * (P ? P.k : 1);
-    root.visible = a > 0.001; dim.visible = a > 0.001;
+    root.visible = a > 0.001;
   }
   // Deckkraft des Bauteil-Hologramms: mit der Station, seiner Tafel und dem eigenen Einblenden
   function partAlpha() {
@@ -2020,9 +2005,9 @@ export function holoLayer(ctx) {
     safe(s) { safe = { l: 0, t: 0, r: 0, rects: [], ...s }; if (built) redraw(built.left); settledAt = 0; ctx.wake(300); },
     // Spiegelbild des Bodens („hoch“): ohne Hologramme, ihre Nummern lagen
     // dort als blasse Kreise auf dem Boden (Aufnahme 10.11.2026). Ebenso die
-    // Umgebungskugel der Halle (captureHallEnv im Viewer): Der Schleier lag
-    // über jeder ihrer Seiten und halbierte sie (13.11.2026).
-    mirror(on) { const vis = !on && alpha > 0.001; dim.visible = vis; root.visible = vis; },
+    // Umgebungskugel der Halle (captureHallEnv im Viewer): Tafeln und
+    // Lichtlinien gehören nicht in das Licht, das die Halle zurückwirft.
+    mirror(on) { root.visible = !on && alpha > 0.001; },
     tick(now) {
       const rest = ctx.rest();
       const ready = rest && fontsOk;
@@ -2068,10 +2053,10 @@ export function holoLayer(ctx) {
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerleave', onLeave);
       wheelHost.removeEventListener('wheel', onWheel, { capture: true });
-      clear(); scene.remove(root); scene.remove(dim);
+      clear(); scene.remove(root);
       for (const e of partStore.values()) { e.dead = true; partFree(e); }
       partStore.clear();
-      dim.geometry.dispose(); dimMat.dispose(); softTex.dispose(); beamTex.dispose(); bandTex.dispose();
+      softTex.dispose(); beamTex.dispose(); bandTex.dispose();
     },
   };
 }
