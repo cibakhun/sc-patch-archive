@@ -53,6 +53,9 @@ export function wurzelVon(doc, was = 'Export') {
 
 const mul = (a, b) => { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; };
 const schub = (x, y, z) => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, z, 1];
+// Drehungen als Quaternion w, x, y, z (so nennt sie die .soc): a mal b, und v gedreht um q
+const qMal = (a, b) => [a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3], a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2], a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1], a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]];
+const qDreh = (q, v) => { const [w, x, y, z] = q, [a, b, c] = v, tx = 2 * (y * c - z * b), ty = 2 * (z * a - x * c), tz = 2 * (x * b - y * a); return [a + w * tx + (y * tz - z * ty), b + w * ty + (z * tx - x * tz), c + w * tz + (x * ty - y * tx)]; };
 const tris = (mesh) => mesh.listPrimitives().reduce((a, p) => a + (p.getIndices()?.getCount() ?? 0) / 3, 0);
 
 // Teilbaum noch einmal: neue Knoten, dieselben Netze und Lichter (ein zweites
@@ -140,9 +143,12 @@ export function nmcKnoten(dump) {
 // das stimmt nur, wenn der Knochen im Ursprung ruht (so das Tor des
 // Frachtaufzugs: Ruhelage 0/0/0, letzter Wert 0/0/6), sonst zählte die
 // Ruhelage doppelt (Befund von CodeRabbit an PR #371, siebte Runde).
-// kindLage schiebt im Raum des Netzes: Ist der Knochen, einer seiner
-// Elternknoten oder ein Netz gedreht oder ohne lesbare Lage, bricht es ab,
-// statt zu raten.
+// kindLage schiebt im Raum des Netzes: Ist der Knochen oder einer seiner
+// Elternknoten gedreht oder ein Knoten ohne lesbare Lage, bricht es ab,
+// statt zu raten. Ein gedrehtes Netz geht nur, wenn seine Drehung den
+// Versatz nicht ändert (so das Tor des Frachtaufzugs der XL-Halle: Das Netz
+// des 25-m-Tors steht um 180° um die Hochachse gedreht im 30-m-Tor, das Tor
+// fährt senkrecht; im Raum des Netzes ist der Weg derselbe).
 export function spurVersatz(knoten, knochen, werte) {
   const k = knoten.find((n) => n.name === knochen);
   if (!k) throw new Error(`der Knotenbaum nennt keinen Knochen ${knochen}`);
@@ -150,10 +156,15 @@ export function spurVersatz(knoten, knochen, werte) {
   const kette = [];
   for (let n = k; n; n = knoten.find((x) => x.index === n.parent)) kette.push(n);
   const gerade = (n) => n.b2w && [0, 1, 2].every((r) => [0, 1, 2].every((c) => Math.abs(n.b2w[r][c] - (r === c ? 1 : 0)) < 1e-4));
-  const schief = [...new Set([...kette, ...knoten.filter((n) => n.geom === 0)])].filter((n) => !gerade(n));
+  const netze = knoten.filter((n) => n.geom === 0);
+  const schief = [...new Set([...kette, ...netze.filter((n) => !n.b2w)])].filter((n) => !gerade(n));
   if (schief.length) throw new Error(`${schief.map((n) => n.name).join(', ')} ${schief.some((n) => !n.b2w) ? 'ohne lesbare Lage' : 'gedreht'}: gestellt wird nur ein Versatz in ungedrehten Knoten`);
   const ruhe = [0, 1, 2].map((i) => k.b2w[i][3] - (kette[1] ? kette[1].b2w[i][3] : 0));
-  return { ruhe, versatz: werte.at(-1).map((v, i) => v - ruhe[i]) };
+  const versatz = werte.at(-1).map((v, i) => v - ruhe[i]);
+  // im Raum des Netzes: R⁻¹ · versatz; gleich nur, wenn die Drehung ihn auf sich selbst abbildet
+  const quer = netze.filter((n) => !gerade(n) && [0, 1, 2].some((c) => Math.abs([0, 1, 2].reduce((a, r) => a + n.b2w[r][c] * versatz[r], 0) - versatz[c]) > 1e-4));
+  if (quer.length) throw new Error(`${quer.map((n) => n.name).join(', ')} gedreht, und die Drehung ändert den Versatz ${versatz.join(',')}: gestellt wird nur ein Versatz, den die Drehung des Netzes nicht ändert`);
+  return { ruhe, versatz };
 }
 
 // Gilt das Eingehängte noch? Nur wenn Modell, Lichtprotokoll und Bericht da
@@ -241,18 +252,23 @@ export function kindNur(doc, muster, name = 'Kind') {
 // - Stärke im Modell = Stärke im Spiel mal 1500, Reichweite = lightRadius,
 //   Projector = Spot mit halbem FOV als Kegel (innen 0,8 davon), alles
 //   andere Punktlicht; den Typ des Spiels trägt die Lichtzeile
-// Was für die angehängte Gruppe dazukommt, ist am Modell der Kabine gemessen:
-// RelativeXForm gilt im Raum des Knochens, nicht der Gruppe (mit dem Ort der
-// Gruppe läge jede Lampe 11 m neben ihrer Leuchte). Der Knochen ruht im
-// Ursprung des Bauteils. Steht das Bauteil (der Träger) im Ursprung des
-// Containers, gilt die Angabe unverändert in dessen Raum; steht es woanders,
-// kommt sein Ort dazu. Das ist an der Schiffsplattform der Large-Halle
-// gemessen (Träger bei -72/-112/2,5, Knochen pad_large): Mit dem Ort des
-// Trägers sitzen 40 ihrer 44 Lampen an einer Landeleuchte des Modells, ohne
-// ihn oder mit dem Versatz der Gruppe dazu keine. Ein gedrehter Träger ist
-// nicht nachgemessen. Dieser Schritt prüft das, statt es zu glauben:
-// anhangLampen am Träger, lampenEinhaengen an den Leuchten des Modells
-// (anLeuchte).
+// Was für die angehängte Gruppe dazukommt: RelativeXForm gilt im Raum des
+// Knochens, nicht der Gruppe (mit dem Ort der Gruppe läge jede Lampe 11 m
+// neben ihrer Leuchte). Den Knochen nennt der Container nicht selbst. Er
+// folgt aus der Gruppe: Die nennt ihre Lage im Container (Pos, Rotate, Scale)
+// und ihren Versatz zum Knochen (ParentOffsetPos, -Rot, -Scale); Gruppe =
+// Knochen mal Versatz, also Knochen = Gruppe mal Versatz⁻¹. Nachgemessen an
+// den angehängten Gruppen der Hallen Small, Medium und Large (18.11.2026,
+// Lampen bis 0,3 m an einer Leuchte des Modells): Schiffsplattform Small
+// (Träger um 90° gedreht, Gruppe doppelt skaliert gegen einen doppelten
+// Versatz) 23 von 25, Kabine Small (Knochen 4,5 m vor dem Ursprung des
+// Bauteils) 18 von 32, Schiffsplattform Medium (Knochen 0,5 m unter dem
+// Träger) 28 von 31; dieselben Lampen mit dem Ort des Trägers allein 1, 0
+// und 0. An Large (Plattform 49 von 55, Kabine 28 von 61) ergibt der Knochen
+// den Ort des Trägers, wie zuvor gerechnet. Ein skalierter Knochen ist nicht
+// nachgemessen und bricht ab. Dieser Schritt prüft das Ergebnis, statt es zu
+// glauben: anhangLampen rechnet, lampenEinhaengen prüft an den Leuchten des
+// Modells (anLeuchte).
 // Abweichung vom Export, mit Absicht: Eine Lampe, deren defaultState keine
 // Stärke hat, bleibt aus. Der Export nimmt dann den Zustand auxiliary, und so
 // brennen in der Halle fünf Warnleuchten des Moduls, die im Spiel in Ruhe
@@ -271,11 +287,12 @@ export function kelvinFarbe(k) {
 
 // Die Lampen der Lichtgruppe `gruppe` aus den Entities eines Containers
 // (XML aus seiner .soc). Die Gruppe muss am Knochen `knochen` eines Bauteils
-// hängen, das ungedreht und frei im Container steht (ohne eigenen Träger);
-// alles andere ist nicht nachgemessen und bricht ab. Liefert die Lampen, die
-// brennen (lampen, ihr Ort im Raum des Containers: die Angabe plus der Ort
-// des Trägers), die Namen derer ohne Stärke (aus), das Netz des Trägers
-// (traeger, Dateiname ohne Endung) und seinen Ort (traegerOrt).
+// hängen, das frei im Container steht (ohne eigenen Träger); alles andere ist
+// nicht nachgemessen und bricht ab. Liefert die Lampen, die brennen (lampen,
+// Ort und Drehung im Raum des Containers: RelativeXForm im Raum des Knochens),
+// die Namen derer ohne Stärke (aus), das Netz des Trägers (traeger, Dateiname
+// ohne Endung), seinen Ort (traegerOrt) und die Lage des Knochens (knochenOrt,
+// knochenDreh = w, x, y, z).
 export function anhangLampen(xml, { gruppe, knochen }) {
   const at = (s, k) => (s.match(new RegExp(`\\b${k}="([^"]*)"`)) || [])[1];
   const ents = [...xml.matchAll(/<Entity\b([^>]*?)(?:\/>|>([\s\S]*?)<\/Entity>)/g)].map((m) => ({ kopf: m[1], rumpf: m[2] ?? '' }));
@@ -289,14 +306,30 @@ export function anhangLampen(xml, { gruppe, knochen }) {
     if (s === undefined || v.length !== n || !v.every(Number.isFinite)) throw new Error(`${was}: "${s ?? ''}" ist keine Reihe aus ${n} Zahlen`);
     return v;
   };
-  const ruht = (s, leer, was) => s === undefined || reihe(s, leer.length, was).every((v, i) => Math.abs(v - leer[i]) <= 1e-4);
   const eltern = ents.filter((e) => at(e.kopf, 'EntityCryGUID') !== undefined && at(e.kopf, 'EntityCryGUID') === at(kopf, 'ParentEntityCryGUID'));
   if (eltern.length !== 1) throw new Error(`Lichtgruppe ${gruppe}: der Träger (ParentEntityCryGUID) steht ${eltern.length} Mal im Container, erwartet ist genau einmal`);
   const t = eltern[0], tName = at(t.kopf, 'Name') ?? '?';
-  if (!ruht(at(t.kopf, 'Rotate'), [1, 0, 0, 0], `${tName} Rotate`)) throw new Error(`Lichtgruppe ${gruppe}: der Träger ${tName} ist gedreht (Rotate ${at(t.kopf, 'Rotate')}); nachgemessen ist nur ein ungedrehter Träger`);
   if (at(t.kopf, 'ParentEntityCryGUID') !== undefined) throw new Error(`Lichtgruppe ${gruppe}: der Träger ${tName} hängt selbst an einem Bauteil (ParentEntityCryGUID); nachgemessen ist nur ein Träger, der frei im Container steht`);
   const traegerOrt = at(t.kopf, 'Pos') === undefined ? [0, 0, 0] : reihe(at(t.kopf, 'Pos'), 3, `${tName} Pos`);
-  if (!ruht(at(kopf, 'ParentOffsetRot'), [1, 0, 0, 0], `${gruppe} ParentOffsetRot`)) throw new Error(`Lichtgruppe ${gruppe}: ParentOffsetRot ${at(kopf, 'ParentOffsetRot')} dreht die Gruppe gegen ihren Träger; nachgemessen ist nur eine ungedrehte Gruppe`);
+  // Knochen = Gruppe mal Versatz⁻¹ (Drehungen w, x, y, z)
+  const drehung = (k, was) => {
+    const q = at(kopf, k) === undefined ? [1, 0, 0, 0] : reihe(at(kopf, k), 4, was), b = Math.hypot(...q);
+    if (Math.abs(b - 1) > 1e-3) throw new Error(`${was} ${q.join(',')} ist keine Drehung (Betrag ${b.toFixed(4)})`);
+    return q.map((v) => v / b);
+  };
+  const skala = (k, was) => { const s = at(kopf, k); if (s === undefined) return [1, 1, 1]; const v = String(s).split(','); return reihe(s, v.length === 1 ? 1 : 3, was).flatMap((x, i, a) => (a.length === 1 ? [x, x, x] : [x])); };
+  const gSkala = skala('Scale', `${gruppe} Scale`), vSkala = skala('ParentOffsetScale', `${gruppe} ParentOffsetScale`);
+  // ein Versatz mit Skala 0 lässt sich nicht umkehren (v / 0 ergäbe NaN und rutschte am Toleranzvergleich vorbei)
+  if (vSkala.some((v) => v === 0)) throw new Error(`Lichtgruppe ${gruppe}: ParentOffsetScale ${vSkala.join(',')} hat eine Komponente 0, der Knochen lässt sich daraus nicht berechnen`);
+  if (gSkala.some((v, i) => !(Math.abs(v / vSkala[i] - 1) <= 1e-3))) throw new Error(`Lichtgruppe ${gruppe}: Scale ${gSkala.join(',')} gegen ParentOffsetScale ${vSkala.join(',')} ergibt einen skalierten Knochen; nachgemessen ist nur ein unskalierter`);
+  const gDreh = drehung('Rotate', `${gruppe} Rotate`), vDreh = drehung('ParentOffsetRot', `${gruppe} ParentOffsetRot`);
+  const gOrt = at(kopf, 'Pos') === undefined ? [0, 0, 0] : reihe(at(kopf, 'Pos'), 3, `${gruppe} Pos`), vOrt = at(kopf, 'ParentOffsetPos') === undefined ? [0, 0, 0] : reihe(at(kopf, 'ParentOffsetPos'), 3, `${gruppe} ParentOffsetPos`);
+  let knochenDreh = qMal(gDreh, [vDreh[0], -vDreh[1], -vDreh[2], -vDreh[3]]);
+  if (knochenDreh[0] < 0) knochenDreh = knochenDreh.map((v) => -v);
+  if (Math.max(...knochenDreh.slice(1).map(Math.abs)) < 1e-5) knochenDreh = [1, 0, 0, 0];
+  const ungedreht = knochenDreh.slice(1).every((v) => v === 0);
+  // auf 0,1 mm: an Large ergibt das den Ort des Trägers genau (die Gruppe nennt -111,99999976 und einen Versatz von 0,00001)
+  const knochenOrt = qDreh(knochenDreh, vOrt).map((v, k) => Math.round((gOrt[k] - v) * 1e4) / 1e4 + 0);
   const traeger = ((t.rumpf.match(/GlobalResourceGeometry" path="([^"]+)"/) || [])[1] ?? '').replace(/\\/g, '/').split('/').pop().replace(/\.\w+$/, '');
   const lampen = [], aus = [];
   [...rumpf.matchAll(/<Light\b([^>]*)>([\s\S]*?)<\/Light>/g)].forEach((l, i) => {
@@ -312,10 +345,11 @@ export function anhangLampen(xml, { gruppe, knochen }) {
     if (!typ || !(radius > 0) || (fov !== null && !(fov > 0 && fov <= 180))) throw new Error(`${wo}: Typ „${typ}“, Reichweite ${radius}${fov === null ? '' : `, FOV ${fov}`} ergeben keine Lampe`);
     const dreh = reihe(at(xf, 'rotation'), 4, `${wo} rotation`), q = Math.hypot(...dreh);
     if (Math.abs(q - 1) > 1e-3) throw new Error(`${wo}: rotation ${dreh.join(',')} ist keine Drehung (Betrag ${q.toFixed(4)})`);
-    lampen.push({ name, eigen: at(l[1], 'Name') ?? '', typ, temp, kelvin, staerke, radius, fov, farbe: temp ? kelvinFarbe(kelvin) : ['r', 'g', 'b'].map((k) => zahl(zustand[2], k)), ort: reihe(at(xf, 'translation'), 3, `${wo} translation`).map((v, k) => v + traegerOrt[k]), dreh: dreh.map((v) => v / q) });
+    const hier = reihe(at(xf, 'translation'), 3, `${wo} translation`), eigenDreh = dreh.map((v) => v / q);
+    lampen.push({ name, eigen: at(l[1], 'Name') ?? '', typ, temp, kelvin, staerke, radius, fov, farbe: temp ? kelvinFarbe(kelvin) : ['r', 'g', 'b'].map((k) => zahl(zustand[2], k)), ort: (ungedreht ? hier : qDreh(knochenDreh, hier)).map((v, k) => v + knochenOrt[k]), dreh: ungedreht ? eigenDreh : qMal(knochenDreh, eigenDreh) });
   });
   if (!lampen.length) throw new Error(`Lichtgruppe ${gruppe}: keine Lampe mit Stärke im defaultState (${aus.length} ohne), der Eintrag ist ohne Anlass`);
-  return { lampen, aus, traeger, traegerOrt };
+  return { lampen, aus, traeger, traegerOrt, knochenOrt, knochenDreh };
 }
 
 // Die Zeile, die der Export für eine Lampe ins Protokoll schreibt; der Build

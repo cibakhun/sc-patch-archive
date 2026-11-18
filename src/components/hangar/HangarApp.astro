@@ -168,12 +168,14 @@ const hall = !hallKey || !hallAsset?.room ? null : furniture && lite
 // Eigene Halle je Hangargröße (stage.ts HALL_OF_SIZE), sobald sie im Manifest
 // steht: die Halle des Spiels für diese Stufe mit ihren Lampen. Schacht,
 // Werkstatt und Werkhalle der Seite sind an der Halle oben vermessen und
-// bleiben bei ihr (HALL_FEST im Viewer).
+// bleiben bei ihr (HALL_FEST im Viewer). Den Gerätesatz des Wartungsplatzes
+// am Schiff (dienst) bekommt jede: Er steht im Feld ihres Aufzugs und fährt
+// mit ihm, gestellt je Schiff um seinen Umriss (layDienst).
 const halls: Partial<Record<HangarSize, HallConfig>> = {};
 for (const size of HANGAR_SIZES) {
   const key = HALL_OF_SIZE[size], a = real.hall?.[key];
   if (!a?.room || !existsSync(`public${a.url}`)) continue;
-  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null, aufzug: aufzugOf(key, a.aufzug?.json === `/hangar/hall/${key}.aufzug.json`) };
+  halls[size] = { id: key, url: withV(a), room: a.room, floor: a.floor, bytes: a.bytes, lights: lightsOf(key), probes: null, aufzug: aufzugOf(key, a.aufzug?.json === `/hangar/hall/${key}.aufzug.json`), dienst };
 }
 // Crew: mit Skelett und Spielanimationen (scripts/build-hangar-crew.mjs,
 // Modul assets/hangar-crew.js), sonst die starre Figur aus hangar-assets
