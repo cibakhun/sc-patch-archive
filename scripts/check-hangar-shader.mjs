@@ -299,6 +299,18 @@
    (…)“ und „nur 11 Plaetze des Wartungsplatzes stehen am Schiff der
    Halle util-medtop, Klinke 12 (…)“. Das Skript des Stands davor endete
    mit denselben Klinken gruen.
+   Zweite Runde desselben Reviews: Auch ohne Hallenwechsel stellt die
+   Buehne den Platz fuer jedes Schiff neu; die Zeile des ersten Schiffs
+   gilt nach --wechsel nicht mehr, und ohne eine neue Zeile wird platz
+   geleert. Gemessen 18.11.2026, --wechsel orig-300i von der Gladius aus
+   (beide in der Small-Halle), gruen: „Wartungsplatz bei 25 m: 10 von 10
+   Plätzen …“ (die Gladius stand bei 22 m). Vorgefuehrt rot an einer
+   Kopie von dist/, deren Viewer die Zeile nur fuer das erste Schiff
+   meldet, 1 FEHLER: „die Halle util-smltop traegt den Geraetesatz des
+   Wartungsplatzes, der Viewer meldet aber keine Zeile "[hangar]
+   Wartungsplatz bei": am Schiff steht kein Geraet (dienstSatz,
+   layDienst)“. Das Skript des Stands davor wertete dort die Zeile der
+   Gladius und endete gruen.
 
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
@@ -719,6 +731,9 @@ try {
       else {
         kam1 = Date.now() - t1;
         await ruhe(`Wechsel auf ${WECHSEL}`, true);
+        // Die Zeile zum Wartungsplatz davor gehoert dem ersten Schiff; ohne eine neue des Zielschiffs gilt sie
+        // nicht (auch ohne Hallenwechsel: die Buehne stellt den Platz fuer jedes Schiff neu)
+        if (!(kam.platz > stand.zeilen)) platz = '';
         // Nennt die Seite fuer das neue Schiff eine andere Halle, hat sie die Buehne umgebaut (umbauen in
         // hangar-overview.js): Was der Viewer danach meldet, gehoert der neuen Halle und wird gegen deren
         // Klinken gewertet, der Stand davor gegen die der ersten. Belegt wird der Wechsel an der Buehne
@@ -741,7 +756,6 @@ try {
             if (!(kam.paesse > stand.zeilen)) paesse = '';
             if (!(kam.gitter > stand.zeilen)) gitter = '';
             if (!(kam.lampen > stand.zeilen)) lampen = '';
-            if (!(kam.platz > stand.zeilen)) platz = '';
             if (neuFest && !KLINKE_FEST[h1]) { fehler.push(`die Halle ${h1} hat keine eigenen Klinken (KLINKE_FEST): ohne Untergrenze saehe ein Lauf, der sie nur halb erreicht, gruen aus`); K = OHNE_KLINKEN; steht = false; }
             else K = neuFest ? KLINKE_FEST[h1] : KLINKE;
           }

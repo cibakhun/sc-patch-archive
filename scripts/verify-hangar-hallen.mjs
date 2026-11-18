@@ -423,6 +423,26 @@
        keysRot.open behalten, 1 FEHLER: „[2] util-xltop: 1 Teil(e) des
        Bodentors unvollstaendig (aufzug_tor_34: keysRot.open mit 1
        Schluessel(n)) — …“.
+       Zweite Runde desselben Reviews: Jeder Schlüssel muss aus endlichen
+       Zahlen bestehen (vier in keys, fünf in keysRot mit einer Drehung,
+       die nicht aus lauter Nullen ist), und das Feld des Aufzugs aus zwei
+       Ecken zu je zwei Zahlen mit from kleiner als to; sonst ergaben
+       Mitte und Überdeckung NaN, und kein Vergleich schlug an. Viermal an
+       einer Kopie von dist/ gebrochen, je 1 FEHLER:
+       an die Öffnungsbahn des ersten Torteils der Medium-Halle ein
+       Schlüssel [1] gehängt: „[2] util-medtop: 1 Teil(e) des Bodentors
+       unvollstaendig (aufzug_tor_00: keys.open[61] ist kein Schluessel
+       aus 4 Zahlen) — …“;
+       am ersten Riegel der XL-Halle ein Schlüssel von keysRot.open mit
+       der Drehung 0,0,0,0: „[2] util-xltop: 1 Teil(e) des Bodentors
+       unvollstaendig (aufzug_tor_34: keysRot.open[3] ist kein Schluessel
+       aus 5 Zahlen mit einer Drehung) — …“;
+       feld.from der Small-Halle leer: „[2] util-smltop: die Bahnen nennen
+       das Feld des Aufzugs nicht als zwei Ecken aus je zwei Zahlen (feld
+       {"from":[],"to":[66,72]})“;
+       from und to der Large-Halle vertauscht: „[2] util-lrgtop: das Feld
+       des Aufzugs ist leer oder verkehrt herum (from -28.001, 192, to
+       -116, 32)“.
    (w) 18.11.2026, der Wartungsplatz am Schiff in jeder Halle fester
        Größe (dienstSatz im Viewer, dienst in der Zeile der Seite). Krisz:
        „die assets wieder um die schiffe herum platzieren in den neuen
@@ -710,7 +730,10 @@ for (const [id, { hall, F }] of HALLEN) {
   else bahnen += teile.length;
   if (!(A.plattform?.weg > 0)) fail(`[2] ${id}: die Plattform hat keinen Fahrweg (plattform.weg ${A.plattform?.weg ?? '—'})`);
   const feld = A.feld;
-  if (!(Array.isArray(feld?.from) && Array.isArray(feld?.to))) fail(`[2] ${id}: die Bahnen nennen das Feld des Aufzugs nicht (feld)`);
+  // je zwei endliche Zahlen und from kleiner als to: sonst ergaeben Mitte und Ueberdeckung NaN, und kein Vergleich schluege an
+  const ecke = (v) => Array.isArray(v) && v.length === 2 && v.every(Number.isFinite);
+  if (!(ecke(feld?.from) && ecke(feld?.to))) fail(`[2] ${id}: die Bahnen nennen das Feld des Aufzugs nicht als zwei Ecken aus je zwei Zahlen (feld ${JSON.stringify(feld ?? null)})`);
+  else if (!(feld.from[0] < feld.to[0] && feld.from[1] < feld.to[1])) fail(`[2] ${id}: das Feld des Aufzugs ist leer oder verkehrt herum (from ${feld.from.join(', ')}, to ${feld.to.join(', ')})`);
   else {
     const fm = [(feld.from[0] + feld.to[0]) / 2, (feld.from[1] + feld.to[1]) / 2];
     if (Math.hypot(fm[0] - mitte[0], fm[1] - mitte[1]) > 0.05) fail(`[2] ${id}: die Landeflaeche (Mitte ${mitte.join(', ')}) sitzt nicht mitten im Feld des Aufzugs (Mitte ${fm.map((v) => +v.toFixed(3)).join(', ')}) — das Schiff staende neben der Mitte der Plattform`);
@@ -719,15 +742,22 @@ for (const [id, { hall, F }] of HALLEN) {
     // Schluessel, sonst baut er den ganzen Aufzug nicht; ein Riegel mit Drehdaten dazu keysRot mit zwei
     // Schluesseln je Richtung und einen Drehpunkt aus drei Zahlen, sonst zeichnet er ihn ohne Schwenk
     const zahlen = (v, n) => Array.isArray(v) && v.length === n && v.every(Number.isFinite);
+    // eine Bahn: ein Feld aus mindestens zwei Schluesseln, jeder aus n endlichen Zahlen (Zeit und Versatz bzw.
+    // Zeit und Quaternion); eine Quaternion aus lauter Nullen ist keine Drehung
+    const bahnMangel = (b, n, wo, dreh) => {
+      if (!Array.isArray(b) || b.length < 2) return `${wo} mit ${Array.isArray(b) ? b.length : 0} Schluessel(n)`;
+      const schlecht = b.findIndex((s) => !zahlen(s, n) || (dreh && !s.slice(1).some((v) => v !== 0)));
+      return schlecht < 0 ? null : `${wo}[${schlecht}] ist kein Schluessel aus ${n} Zahlen${dreh ? ' mit einer Drehung' : ''}`;
+    };
     const torMangel = (t) => {
       const m = [];
       if (!(Array.isArray(t?.box) && t.box.length === 2 && t.box.every((e) => zahlen(e, 3)))) m.push('ohne box');
-      for (const k of ['close', 'open']) if (!(t?.keys?.[k]?.length > 1)) m.push(`keys.${k} mit ${t?.keys?.[k]?.length ?? 0} Schluessel(n)`);
+      for (const k of ['close', 'open']) m.push(bahnMangel(t?.keys?.[k], 4, `keys.${k}`, false));
       if (t?.keysRot || t?.pivot) {
-        for (const k of ['close', 'open']) if (!(t.keysRot?.[k]?.length > 1)) m.push(`keysRot.${k} mit ${t.keysRot?.[k]?.length ?? 0} Schluessel(n)`);
+        for (const k of ['close', 'open']) m.push(bahnMangel(t.keysRot?.[k], 5, `keysRot.${k}`, true));
         if (!zahlen(t.pivot, 3)) m.push('pivot ist kein Punkt');
       }
-      return m;
+      return m.filter(Boolean);
     };
     const mangel = (A.tor?.teile ?? []).map((t) => [t, torMangel(t)]).filter(([, m]) => m.length);
     if (mangel.length) fail(`[2] ${id}: ${mangel.length} Teil(e) des Bodentors unvollstaendig (${mangel.slice(0, 4).map(([t, m]) => `${t?.node ?? '(ohne Namen)'}: ${m.join(', ')}`).join('; ')}) — der Viewer baute den Aufzug nicht oder zoege einen Riegel ohne Schwenk; Bahnen neu bauen`);

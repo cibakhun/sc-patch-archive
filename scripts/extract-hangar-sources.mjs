@@ -466,6 +466,10 @@ if (want('components')) {
 // Nur die Bahnen der eigenen Aufzüge (hall ruft hallAufzug ohnehin): ausdrücklich verlangt, nie im Lauf ohne Teile
 if (parts.includes('aufzug')) {
   console.log('Aufzug der Hallen');
+  // ausdruecklich genannte Hallen ohne Aufzug: melden und Fehlerstatus (ein per && angehaengter Bau liefe sonst mit
+  // alten Bahnen weiter); die uebrigen Teile des Laufs bleiben unberuehrt
+  const ohneAufzug = hallArg ? HALLEN_WAHL.filter((x) => !x.aufzug) : [];
+  if (ohneAufzug.length) { console.error(`  ! --hallen nennt Hallen ohne eigenen Aufzug: ${ohneAufzug.map((h) => h.key).join(', ')} (mit Aufzug: ${HALLS.filter((h) => h.aufzug).map((h) => h.key).join(', ')})`); process.exitCode = 1; }
   for (const h of HALLEN_WAHL.filter((x) => x.aufzug)) {
     console.log(` ${h.key}`);
     // die übrigen Hallen weiter, aber mit Fehlerstatus: ein per && angehängter Bau nähme sonst die alte tor.json

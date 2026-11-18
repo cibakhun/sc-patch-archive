@@ -3669,7 +3669,10 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
   // Innenraum: Quelle ist der Rohexport der Schiffe; gebaut nur auf Verlangen (--kind interior)
   const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
-  if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
+  // ein Hallenordner ohne Hallenmodell (der Einzellauf "aufzug --hallen" legt hall/ an und schreibt nur die
+  // tor.json) zaehlt wie keiner: sonst ersetzten leere Eintraege hall und hallLite die bisherigen
+  const ohneModell = kind === 'hall' && existsSync(dir) && !readdirSync(dir).some((x) => istHallenModell(x));
+  if (!existsSync(dir) || ohneModell || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
   // im Ordner der Hallen liegen neben den Modellen ihre Beilagen (<halle>.decals.glb, <halle>.schrift.glb): keine Hallen
   for (const f of readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')))) {
     const name = f.replace(/\.glb$/i, '');
