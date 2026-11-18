@@ -8,7 +8,9 @@
 //   SC_STARBREAKER=<pfad zur starbreaker.exe>   (Default siehe unten)
 //   SC_P4K=<pfad zur Data.p4k>
 //
-// Usage:  node scripts/extract-hangar-sources.mjs [ships|ships-matfix|weapons|components|hall|lift|werkstatt|werkhalle|npc ...] [--ships slug,slug] [--force]
+// Usage:  node scripts/extract-hangar-sources.mjs [ships|ships-matfix|weapons|components|hall|aufzug|lift|werkstatt|werkhalle|npc ...] [--ships slug,slug] [--hallen key,key] [--force]
+//   aufzug: nur die Bahnen der eigenen Aufzüge (hall/<halle>.tor.json) neu lesen, ohne die Halle neu zu exportieren
+//   --hallen: hall und aufzug nur für diese Hallen (Schlüssel aus HALLS)
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { inflateRawSync } from 'node:zlib';
@@ -87,12 +89,27 @@ const HALLS = [
   // Der Eintrag ohne kind meint die Halle selbst: die Landeleuchten der
   // Schiffsplattform (Lichtgruppe am Knochen pad_large, 44 von 55 brennen in
   // Ruhe; gemessen 40 an einer Leuchte des Modells).
+  // Small, Medium und XL (18.11.2026, Knochen aus Gruppe und Versatz, siehe
+  // anhangLampen): an einer Leuchte sitzen in der Kabine 14, 16 und 24, an
+  // der Schiffsplattform 16, 24 und 42 Lampen; anLeuchte steht bei der Hälfte.
   // ruhe: die Halle ohne die Lampen, die im Spiel in Ruhe dunkel sind
   // (Warnleuchten, Notlicht, die Strahler in der Grube unter der Plattform).
   // Der Export schreibt sie mit ihrem nächsten Zustand, der Stärke hat; die
   // Liste <halle>.ruhe.json nennt sie dem Build (scripts/lib/hall-ruhe.mjs).
-  { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
-  { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
+  { key: 'util-smltop', socpak: 'util_a\\hangar_smltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_sml_a', plattform: 'utl_hangar_ship_elev_sml_a' }, ruhe: true,
+    kinder: {
+      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
+      lage: [{ cga: 'roomsm_door_10x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
+      nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
+      anhang: [{ kind: 'elev_util_cargo_hangar_sml_a', gruppe: 'lg_elev_util_cargo_hangar_sml_a', knochen: 'hardpoint_cargo_grid007', anLeuchte: 7 }, { gruppe: 'lg_smltop_lp', knochen: 'pad_helper_01', anLeuchte: 8 }],
+    } },
+  { key: 'util-medtop', socpak: 'util_a\\hangar_medtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_med_a', plattform: 'utl_hangar_ship_elev_med_a' }, ruhe: true,
+    kinder: {
+      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
+      lage: [{ cga: 'roomsm_door_15x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
+      nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
+      anhang: [{ kind: 'elev_util_cargo_hangar_med_a', gruppe: 'lg_elev_util_cargo_hangar_med_a', knochen: 'anim_lift', anLeuchte: 8 }, { gruppe: 'lg_medtop_lp', knochen: 'utl_hangar_ship_elev_med_a_rendermesh', anLeuchte: 12 }],
+    } },
   { key: 'util-lrgtop', socpak: 'util_a\\hangar_lrgtop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_lrg_a', plattform: 'utl_hangar_ship_elev_lrg_a' }, ruhe: true,
     kinder: {
       folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
@@ -100,7 +117,13 @@ const HALLS = [
       nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
       anhang: [{ kind: 'elev_util_cargo_hangar_lrg_a', gruppe: 'lg_elev_util_cargo_hangar_lrg_a', knochen: 'anim_lift', anLeuchte: 12 }, { gruppe: 'lg_lrgtop_001_lp-001', knochen: 'pad_large', anLeuchte: 20 }],
     } },
-  { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true },
+  { key: 'util-xltop', socpak: 'util_a\\hangar_xltop_001.socpak', lod: 1, info: true, layers: true, palette: 'hangar_default', decals: true, aufzug: { tor: 'utl_hangar_ship_elev_door_xl_a', plattform: 'utl_hangar_ship_elev_xl_a' }, ruhe: true,
+    kinder: {
+      folge: [/[\\/]hangar_component_module_cargo_elevator_\w+\.socpak$/i, /[\\/]elev_util_cargo_hangar_\w+\.socpak$/i, /[\\/]spawncloset_static_elev\.socpak$/i, /[\\/]elev_util_dropoff\.socpak$/i],
+      lage: [{ cga: 'roomsm_door_30x01x07_a', spur: 'door_open', knochen: 'anim_door' }],
+      nur: [{ kind: 'spawncloset_static_elev', netz: ['truck_shaft_door_double_a'] }, { kind: 'elev_util_dropoff', netz: ['hangar_dropoff_elevator_door_double_a'] }],
+      anhang: [{ kind: 'elev_util_cargo_hangar_xlrg_a', gruppe: 'lg_elev_util_cargo_hangar_xlrg_a', knochen: 'anim_lift002', anLeuchte: 12 }, { gruppe: 'lg_xlrg_lp', knochen: 'pad_xl', anLeuchte: 21 }],
+    } },
 ];
 // Schiffsaufzug der heutigen Hangars (Hightech, „medtop“: Landefläche 56 x 88 m,
 // am nächsten an unserem Schiffsfeld 32 x 96 m). Exportiert wird der ganze
@@ -162,8 +185,12 @@ const NPCS = [
 const argv = process.argv.slice(2);
 const FORCE = argv.includes('--force');
 const shipArg = argv.includes('--ships') ? argv[argv.indexOf('--ships') + 1].split(',') : null;
-const parts = argv.filter((a) => ['ships', 'ships-matfix', 'weapons', 'components', 'hall', 'lift', 'werkstatt', 'werkhalle', 'npc'].includes(a));
+const parts = argv.filter((a) => ['ships', 'ships-matfix', 'weapons', 'components', 'hall', 'aufzug', 'lift', 'werkstatt', 'werkhalle', 'npc'].includes(a));
 const want = (p) => !parts.length || parts.includes(p);
+const hallArg = argv.includes('--hallen') ? argv[argv.indexOf('--hallen') + 1].split(',') : null;
+const fremdeHallen = (hallArg ?? []).filter((k) => !HALLS.some((h) => h.key === k));
+if (fremdeHallen.length) { console.error(`--hallen nennt unbekannte Hallen: ${fremdeHallen.join(', ')} (bekannt: ${HALLS.map((h) => h.key).join(', ')})`); process.exit(1); }
+const HALLEN_WAHL = hallArg ? HALLS.filter((h) => hallArg.includes(h.key)) : HALLS;
 
 if (!existsSync(STARBREAKER)) { console.error(`StarBreaker fehlt: ${STARBREAKER} (SC_STARBREAKER setzen)`); process.exit(1); }
 if (!existsSync(P4K)) { console.error(`Data.p4k fehlt: ${P4K} (SC_P4K setzen)`); process.exit(1); }
@@ -433,10 +460,19 @@ if (want('components')) {
   if (fail) console.log(`  ${fail} Komponenten ohne Modell`);
 }
 
+// Nur die Bahnen der eigenen Aufzüge (hall ruft hallAufzug ohnehin): ausdrücklich verlangt, nie im Lauf ohne Teile
+if (parts.includes('aufzug')) {
+  console.log('Aufzug der Hallen');
+  for (const h of HALLEN_WAHL.filter((x) => x.aufzug)) {
+    console.log(` ${h.key}`);
+    try { hallAufzug(h); } catch (e) { console.error(`  ! ${h.key}: ${e.message}`); }
+  }
+}
+
 // Halle und Aufzug: socpak-Export mit Lichtprotokoll, Materialnachtrag, Texturen
 const containers = [
   // Halle mit Kind-Containern: Raum roh nach hall-kinder/, daraus die Halle mit Kindern (hallKinder)
-  ...(want('hall') ? HALLS.map((h) => ({ ...h, dir: 'hall', ...(h.kinder ? { raw: `${SRC}hall-kinder/${h.key}.raum.glb` } : {}) })) : []),
+  ...(want('hall') ? HALLEN_WAHL.map((h) => ({ ...h, dir: 'hall', ...(h.kinder ? { raw: `${SRC}hall-kinder/${h.key}.raum.glb` } : {}) })) : []),
   ...(want('lift') ? LIFTS.map((h) => ({ ...h, dir: 'lift' })) : []),
   ...(want('werkstatt') ? WERKSTATT.map((h) => ({ ...h, dir: 'werkstatt' })) : []),
   // Werkhalle: Raum roh nach werkhalle-raw/, daraus Raum mit Torblatt und die
@@ -838,24 +874,32 @@ function hallAufzug(h) {
     const cga = files.find((f) => f.toLowerCase().endsWith(`/${name}.cga`));
     if (!cga) throw new Error(`Aufzug: ${name}.cga fehlt im Auszug`);
     const dump = spawnSync(STARBREAKER, ['nmc', 'dump', cga], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout || '';
-    const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*\n\s*b2w\[0\] = \[([^\]]+)\]\n\s*b2w\[1\] = \[([^\]]+)\]\n\s*b2w\[2\] = \[([^\]]+)\]/g)].map((m) => ({
-      index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), t: [m[5], m[6], m[7]].map((r) => Number(r.split(',')[3])),
-    }));
+    // b2w: Lage des Knochens im Raum der .cga (3 Zeilen zu 4: Drehung, Ort); r nur, wo die Drehung nicht die Einheit ist
+    const nodes = [...dump.matchAll(/\[\s*(\d+)\] (\S+) parent=(\S+) geom=(\d+)[^\n]*\n\s*b2w\[0\] = \[([^\]]+)\]\n\s*b2w\[1\] = \[([^\]]+)\]\n\s*b2w\[2\] = \[([^\]]+)\]/g)].map((m) => {
+      const rows = [m[5], m[6], m[7]].map((r) => r.split(',').map(Number));
+      const r = rows.map((z) => z.slice(0, 3).map((v) => Math.round(v * 1e6) / 1e6 + 0));
+      const eins = r.every((z, i) => z.every((v, k) => Math.abs(v - (i === k ? 1 : 0)) < 1e-6));
+      return { index: Number(m[1]), name: m[2], parent: m[3] === 'root' ? null : Number(m[3]), t: rows.map((z) => z[3]), ...(eins ? {} : { r }) };
+    });
     if (!nodes.length) throw new Error(`Aufzug: nmc dump ${name}.cga nennt keinen Knoten`);
     const cgam = files.find((f) => f.toLowerCase().endsWith(`/${name}${h.lod ? `_lod${h.lod}` : ''}.cgam`));
     if (!cgam) throw new Error(`Aufzug: ${name}.cgam der Stufe ${h.lod} fehlt im Auszug`);
     const cafs = {};
     for (const f of files.filter((x) => x.toLowerCase().includes(`/${name}_`) && x.toLowerCase().endsWith('.caf'))) {
       const c = readCaf(readFileSync(f), nodes.map((n) => n.name));
-      const tracks = {}, dreht = [];
+      const tracks = {}, dreht = [], rot = {};
       for (const b of c.bones) {
         if (!b.name) continue;
         if (b.pos?.times && b.pos?.values) tracks[b.name] = b.pos.times.map((tt, k) => [tt, ...b.pos.values[k].map(r4)]);
-        // eine Drehspur, die sich ändert, kann der Build nicht: er meldet sie
+        // Drehspur, die sich ändert: [Bild, x, y, z, w] im Raum des Elternknochens (der Build dreht das Teil um seinen Knochen)
         const q = b.rot?.values;
-        if (q?.length > 1 && q.some((v) => v.some((x, i) => Math.abs(x - q[0][i]) > 1e-3))) dreht.push(b.name);
+        if (q?.length > 1 && q.some((v) => v.some((x, i) => Math.abs(x - q[0][i]) > 1e-3))) {
+          if (!b.rot.times || b.rot.times.length !== q.length) throw new Error(`Aufzug: Drehspur von ${b.name} in ${f.split('/').pop()} ohne lesbare Zeiten`);
+          dreht.push(b.name);
+          rot[b.name] = b.rot.times.map((tt, k) => [tt, ...q[k].map((v) => Math.round(v * 1e6) / 1e6 + 0)]);
+        }
       }
-      cafs[f.split('/').pop().slice(name.length + 1).replace(/\.caf$/i, '')] = { fps: c.fps, frames: c.frames, tracks, ...(dreht.length ? { dreht } : {}) };
+      cafs[f.split('/').pop().slice(name.length + 1).replace(/\.caf$/i, '')] = { fps: c.fps, frames: c.frames, tracks, ...(dreht.length ? { dreht, rot } : {}) };
     }
     for (const k of ['door_close', 'door_open']) if (!cafs[k]) throw new Error(`Aufzug: Spur ${name}_${k}.caf fehlt im Auszug`);
     return { cga: name, nodes, subsets: readSubsetsNode(readFileSync(cgam)), cafs };

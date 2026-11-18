@@ -24,6 +24,8 @@ export interface HallConfig {
   readonly probes?: string | null;
   /** Eigener Aufzug einer Halle in fester Groesse: Bahnen von Bodentor und Plattform (json); beide sind Knoten der Halle selbst (aufzug_tor_*, aufzug_pad), ownLift im Viewer */
   readonly aufzug?: string | null;
+  /** Geraetesatz des Wartungsplatzes am Schiff fuer eine Halle fester Groesse (die Halle von Revel & York traegt ihn in workshop.dienst); layDienst im Viewer */
+  readonly dienst?: { url: string; bytes?: number } | null;
   /** Leichtere Stufe fuers Telefon, nur ohne Moebeldatei */
   readonly lite?: { url: string; bytes?: number } | null;
   /** Moebel als eigene Datei, nur neben der leichteren Stufe als Halle */

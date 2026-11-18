@@ -240,12 +240,58 @@
    ueber 15 Texturen. Ein Programm, das so spaet linkt, zaehlt der Lauf
    nicht.
 
+   ALLE STUFEN (18.11.2026): Seit Krisz' „baue alle hallengrössen aus“
+   hat jede Stufe ihre Halle (Small util-smltop, Medium util-medtop,
+   Large util-lrgtop, XL util-xltop), und jede traegt eigene Klinken in
+   KLINKE_FEST. Auch die Gladius ohne --ship steht jetzt in einer Halle
+   fester Groesse (Small). Die gestreckte Halle von Revel & York mit
+   Hallendeko laedt nur noch ein Bodenfahrzeug (Werkhalle hinter der
+   Westnische); ihre Klinken (KLINKE) prueft ein Lauf mit --ship
+   anvl-ballista.
+
+   WARTUNGSPLATZ (18.11.2026): Krisz: „die assets wieder um die schiffe
+   herum platzieren in den neuen hallen“. Seit PR #371 stand in einer
+   Halle fester Groesse kein Geraet am Schiff; jetzt traegt ihre Zeile
+   der Seite den Geraetesatz (halls[…].dienst), der Viewer nimmt ihn
+   (dienstSatz) und meldet "[hangar] Wartungsplatz bei …: N von M
+   Plätzen". Der Lauf haelt N gegen die Klinke plaetze der Halle
+   (KLINKE_FEST, 6: so viele bekommt jedes Schiff, die uebrigen haengen
+   an seiner Groesse). Eine Halle, deren Zeile den Geraetesatz traegt,
+   ohne diese Klinke ist rot, ebenso eine Klinke ohne Geraetesatz in der
+   Zeile der Seite. Dass die Seite den Satz fuer jede Halle nennt und der
+   Viewer ihn nimmt, haelt verify:hangar-hallen [1] ohne Browser.
+   Gemessen 18.11.2026 (je ein Lauf bis zur Ruhe, alle gruen): Small mit
+   der Gladius 10 von 10, Medium mit --ship drak-cutlass-black 11 von 11,
+   Large mit --ship anvl-carrack 19 von 19, XL mit --ship rsi-polaris 19
+   von 19; je ein Programm mit Schichttafel, hoechstens 15 Texturen.
+   Vorgefuehrt rot (18.11.2026, ohne --ship; zwei Laeufe mit einer Kopie
+   des Skripts, je 1 FEHLER, zwei gegen eine Kopie von dist/ mit einem
+   Eingriff, je 2 FEHLER, weil dann auch die Klinke schichten reisst):
+   die Small-Halle ohne Klinke plaetze: „die Halle util-smltop traegt den
+   Geraetesatz des Wartungsplatzes, hat aber keine Klinke plaetze
+   (KLINKE_FEST): stuende kein Geraet am Schiff, bliebe dieser Lauf
+   gruen“; die Klinke 11 ueber den 10 der Gladius: „nur 10 Plaetze des
+   Wartungsplatzes stehen am Schiff der Halle util-smltop, Klinke 11
+   (Wartungsplatz bei 22 m: 10 von 10 Plätzen (…))“; der Viewer nimmt
+   fuer Hallen fester Groesse wieder nur den Satz der Werkstatt (wie vor
+   dem 18.11.): „die Halle util-smltop traegt den Geraetesatz des
+   Wartungsplatzes, der Viewer meldet aber keine Zeile "[hangar]
+   Wartungsplatz bei": am Schiff steht kein Geraet (dienstSatz,
+   layDienst)“ und „nur 0 Programme mit Schichttafel, Klinke 1:
+   Wartungsplatz oder Deko nicht uebersetzt“; die Seite nennt fuer die
+   Small-Halle keinen Geraetesatz: „die Halle util-smltop hat eine Klinke
+   plaetze, ihre Zeile der Seite nennt aber keinen Geraetesatz des
+   Wartungsplatzes (dienst): am Schiff steht kein Geraet“ und dieselbe
+   Meldung zur Klinke schichten.
+
      node scripts/check-hangar-shader.mjs --base http://localhost:4321
      node scripts/check-hangar-shader.mjs --base … --ship anvl-carrack
        (ein anderes Schiff als das erste der Liste; seit 25.10.2026 tragen
        alle Schiffe ihre echten Materialien, .planning/notes/hangar-alle-schiffe.md.
        Die Carrack steht seit 14.11.2026 in der Large-Halle: dieser Aufruf
-       prueft deren Programme, siehe HALLEN FESTER GROESSE)
+       prueft deren Programme, siehe HALLEN FESTER GROESSE; Medium mit
+       --ship drak-cutlass-black, XL mit --ship rsi-polaris, die Halle von
+       Revel & York mit --ship anvl-ballista, siehe ALLE STUFEN)
      … --shot schiff.png   Aufnahme der Halle am Ende (zum Hinsehen)
      … --layout <code>     mit Layout aus der Werkstatt (?layout=, encodeLayout in
        assets/hangar-layouts.js), etwa einer Lackierung als viertem Feld; sie
@@ -378,10 +424,19 @@ const GRENZE = 16;
 // Gladius: 958 am Ende des Prueflaufs (969, wenn die letzten Tauschteile
 // geladen sind; seit der Lauf auf die Ruhe wartet, 14.11.2026, endet er
 // dort), keins aus dem WebP.
+// Seit 18.11.2026 steht jedes Schiff in der Halle fester Groesse seiner Stufe
+// (KLINKE_FEST), auch die Gladius ohne --ship (Small-Halle). Die Halle von
+// Revel & York laedt nur noch ein Bodenfahrzeug (Werkhalle hinter der
+// Westnische); diese Klinken gelten also fuer einen Lauf mit --ship eines
+// Bodenfahrzeugs. Gemessen 18.11.2026 mit --ship anvl-ballista: 94 Programme,
+// 2 mit Schichttafel, 787 Bilder freigegeben, 157 MB Geometrie, hoechstens 16
+// Texturen. lack bleibt fuer jedes Schiff, ktx nur, falls das erste Schiff der
+// Liste wieder hier steht.
 const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, ktx: 850 };
 // Hallen fester Groesse (hg-stage, halls: der Industrie-Bausatz, 14.11.2026) haben
-// keine Hallendeko und noch keinen Wartungsplatz, also kein Programm mit
-// Schichttafel, und ihre Bilder und Netze sind andere: jede traegt ihre eigenen
+// keine Hallendeko; seit 18.11.2026 tragen sie den Wartungsplatz am Schiff (ein
+// Programm mit Schichttafel, Klinke plaetze). Ihre Bilder und Netze sind andere
+// als die der Halle von Revel & York: jede traegt ihre eigenen
 // Klinken (KLINKE_FEST). Welche Halle steht, sagt der Lauf an zwei Dingen:
 // der Zeile "[hangar] Aufzug der Halle:" (nur eine Halle fester Groesse baut ihren
 // Aufzug aus dem eigenen Modell) und dem Modell unter /hangar/hall/, das die Seite
@@ -404,8 +459,28 @@ const KLINKE = { programme: 60, schichten: 2, frei: 600, lack: 100, geoMB: 120, 
 // GEDAEMPFTE LAMPEN). util-lrgtop, gemessen 15.11.2026: 114, die Lampen in den
 // Kabinen ihrer beiden Frachtaufzuege (2 × 57). Eine Halle ohne diese Klinke
 // daempft keine Lampe; meldet ihre Buehne doch gedaempfte, ist der Lauf rot.
+// plaetze: so viele Plaetze des Wartungsplatzes stehen am Schiff (Zeile "[hangar]
+// Wartungsplatz bei …: N von M Plätzen", im Kopf unter WARTUNGSPLATZ). Wie viele
+// WORK_DIENST stellt, haengt an der Groesse des Schiffs (ab/bis): 6 Plaetze bekommt
+// jedes, darum steht die Klinke in jeder Halle bei 6 und gilt fuer jedes Schiff der
+// Stufe. Gemessen 18.11.2026: Gladius 10 von 10, Cutlass Black 11 von 11, Carrack
+// 19 von 19, Polaris 19 von 19.
+// util-smltop, util-medtop, util-xltop (18.11.2026, Small ohne --ship mit der
+// Gladius, Medium mit --ship drak-cutlass-black, XL mit --ship rsi-polaris; jeder
+// Lauf auf hoch bis zur Ruhe): Programme 65 / 67 / 67, je eins mit Schichttafel
+// (der Wartungsplatz); Bilder freigegeben 591 / 608 / 617; Geometrie 55 / 79 / 214
+// MB; hoechstens 15 Texturen je Bildshader; dunkelste Stelle des Lichtgitters je
+// 1.079; gedaempft 28 / 86 / 126 (die Kabinen ihrer Frachtaufzuege, wie
+// verify:hangar-hallen [3]). Die Klinken liegen rund ein Zehntel darunter, grund
+// wie bei Large. ktx gehoert zur Small-Halle, weil die Gladius dort steht: 591
+// Bilder aus komprimierten Zwillingen, keins aus dem WebP.
+// util-lrgtop am 18.11.2026 mit der Carrack: 65 Programme, eins mit Schichttafel
+// (schichten 0 -> 1, der Wartungsplatz), 613 Bilder, 109 MB, 114 gedaempft.
 const KLINKE_FEST = {
-  'util-lrgtop': { programme: 48, schichten: 0, frei: 500, geoMB: 95, grund: 0.7, gedaempft: 114 },
+  'util-lrgtop': { programme: 48, schichten: 1, frei: 500, geoMB: 95, grund: 0.7, gedaempft: 114, plaetze: 6 },
+  'util-smltop': { programme: 58, schichten: 1, frei: 530, geoMB: 49, grund: 0.7, gedaempft: 28, plaetze: 6, ktx: 530 },
+  'util-medtop': { programme: 60, schichten: 1, frei: 545, geoMB: 71, grund: 0.7, gedaempft: 86, plaetze: 6 },
+  'util-xltop': { programme: 60, schichten: 1, frei: 555, geoMB: 190, grund: 0.7, gedaempft: 126, plaetze: 6 },
 };
 // Eine Halle ohne Eintrag: der Lauf ist rot, und seine Zeilen nennen keine Klinke einer anderen Halle
 const OHNE_KLINKEN = { programme: '—', schichten: '—', frei: '—', geoMB: '—', ktx: '—' };
@@ -473,6 +548,8 @@ const browser = await chromium.launch({ executablePath: BROWSER, args: ['--use-a
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.addInitScript(vorSeite);
 let deko = '', aufzug = '', viewer = '', drinnen = '', frei = '', paesse = '', lack = '', geo = '', platz = '', ktx = '', ktxAus = '', gitter = '', lampen = '';
+// Hallen fester Groesse, deren Zeile der Seite den Geraetesatz des Wartungsplatzes traegt (platzUrteil)
+let mitDienst = [];
 // Wie oft die Halle sich gemeldet hat (dekoN, aufzugN: jede Buehne meldet sich einmal) und bei welcher Zeile des
 // Viewers eine Meldung zuletzt kam (kam): daran haengt nach einem Hallenwechsel, was der neuen Buehne gehoert
 let dekoN = 0, aufzugN = 0;
@@ -570,6 +647,8 @@ try {
   t0 = Date.now();
   // Hallen fester Groesse, wie die Seite sie mitgibt (hg-stage, halls)
   const feste = await frage('Hallen fester Groesse lesen', () => { try { return Object.values(JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}').halls ?? {}).map((h) => h.id); } catch { return []; } });
+  // und welche davon den Geraetesatz des Wartungsplatzes am Schiff tragen (dienst, 18.11.2026)
+  mitDienst = await frage('Hallen mit Wartungsplatz lesen', () => { try { return Object.values(JSON.parse(document.getElementById('hg-stage')?.textContent ?? '{}').halls ?? {}).filter((h) => h.dienst?.url).map((h) => h.id); } catch { return []; } });
   while (!deko && !aufzug && Date.now() - t0 < WARTE_MS) {
     if (await frage('Warten auf die Halle', () => document.getElementById('hg-fallback')?.hidden === false)) { fehler.push('die Seite zeigt ihren Rueckfall statt der Halle'); break; }
     await page.waitForTimeout(2000);
@@ -698,6 +777,19 @@ function gitterUrteil(zeile, k, halle, wo) {
   else if (!zeile) fehler.push(`${wo ? `${wo}: ` : ''}der Viewer meldet keine Zeile "[hangar] Lichtgitter": ob die Buehne der Halle ${halle} ein Lichtgitter mit Grundlicht geladen hat (Klinke ${k.grund} an der dunkelsten Stelle), ist ungeprueft`);
   else if (!(d >= k.grund)) fehler.push(`${wo ? `${wo}: ` : ''}${Number.isFinite(d) ? `das Lichtgitter, das die Buehne geladen hat, ist an seiner dunkelsten Stelle ${d}` : `die Buehne hat ihr Lichtgitter nicht geladen (${zeile.slice(9, 160)})`}, Klinke ${k.grund}: das Grundlicht der Halle ${halle} kommt bei ihren Flaechen nicht an, Waende und Decke stehen im Schwarz (Krisz, 15.11.2026: „viel zu dunkel“)`);
 }
+// WARTUNGSPLATZ einer Halle fester Groesse (18.11.2026): Traegt ihre Zeile der Seite den Geraetesatz (dienst),
+// stellt die Buehne um das Schiff Plaetze aus WORK_DIENST und meldet sie (Zeile "[hangar] Wartungsplatz bei …: N
+// von M Plätzen"). Gegen die Klinke plaetze: so viele stehen mindestens am Schiff des Laufs. Eine Halle mit
+// Geraetesatz ohne diese Klinke ist rot (stuende spaeter kein Geraet am Schiff, bliebe der Lauf sonst gruen).
+function platzUrteil(zeile, k, halle, wo) {
+  if (!mitDienst.includes(halle) && k.plaetze === undefined) return;
+  const m = /: (\d+) von (\d+) Plätzen/.exec(zeile ?? ''), n = m ? Number(m[1]) : NaN;
+  console.log(`  Wartungsplatz${wo ? ` ${wo}` : ''}: ${zeile ? zeile.slice(9, 200) : 'keine Zeile'} (Klinke ${k.plaetze ?? '—'} Plaetze)`);
+  if (!mitDienst.includes(halle)) fehler.push(`${wo ? `${wo}: ` : ''}die Halle ${halle} hat eine Klinke plaetze, ihre Zeile der Seite nennt aber keinen Geraetesatz des Wartungsplatzes (dienst): am Schiff steht kein Geraet`);
+  else if (k.plaetze === undefined) fehler.push(`${wo ? `${wo}: ` : ''}die Halle ${halle} traegt den Geraetesatz des Wartungsplatzes, hat aber keine Klinke plaetze (KLINKE_FEST): stuende kein Geraet am Schiff, bliebe dieser Lauf gruen`);
+  else if (!zeile) fehler.push(`${wo ? `${wo}: ` : ''}die Halle ${halle} traegt den Geraetesatz des Wartungsplatzes, der Viewer meldet aber keine Zeile "[hangar] Wartungsplatz bei": am Schiff steht kein Geraet (dienstSatz, layDienst)`);
+  else if (!(n >= k.plaetze)) fehler.push(`${wo ? `${wo}: ` : ''}${Number.isFinite(n) ? `nur ${n}` : 'unbekannt viele'} Plaetze des Wartungsplatzes stehen am Schiff der Halle ${halle}, Klinke ${k.plaetze} (${zeile.slice(9, 200)})`);
+}
 // GEDAEMPFTE LAMPEN einer Halle fester Groesse: wie viele Lampen ihre Buehne schwaecher gehoben hat als die Halle,
 // gegen die Klinke gedaempft. Eine Halle ohne diese Klinke daempft keine Lampe; meldet ihre Buehne trotzdem
 // gedaempfte, fehlt die Klinke, und der Lauf ist rot (fiele die Daempfung spaeter weg, bliebe er sonst gruen).
@@ -784,7 +876,7 @@ if (bildFehler.length) console.log(`  Bilder nicht geladen: ${bildFehler.length}
 if (steht && seit.length < K.programme) fehler.push(`nur ${seit.length} Programme ${vor ? 'seit dem Hallenwechsel ' : ''}gelinkt, Klinke ${K.programme}`);
 if (steht && schichten < K.schichten) fehler.push(`nur ${schichten} Programme mit Schichttafel, Klinke ${K.schichten}: Wartungsplatz oder Deko nicht uebersetzt`);
 if (steht && !viewer) fehler.push('der Viewer meldet keine Zeile "[hangar] Texturen je Bildshader" mehr');
-if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); }
+if (steht && fest) { gitterUrteil(gitter, K, fest, ''); lampenUrteil(lampen, K, fest, ''); if (!vor) platzUrteil(platz, K, fest, ''); }
 
 for (const u of unruhig) console.log(`  HINWEIS: keine Ruhe (${u}): der Lauf wertet einen Zwischenstand aus`);
 if (fehler.length) {

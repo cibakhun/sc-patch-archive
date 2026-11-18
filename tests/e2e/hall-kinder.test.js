@@ -210,6 +210,20 @@ test('spurVersatz: ein gedrehter Knochen, ein Knoten ohne Lage oder eine leere S
   assert.throws(() => spurVersatz(nmcKnoten(dumpVon()), 'anim_tor', [[0, 0, 6]]), /keinen Knochen anim_tor/);
 });
 
+test('spurVersatz: ein gedrehtes Netz geht, wenn seine Drehung den Versatz nicht ändert', () => {
+  // so das 30-m-Tor des Frachtaufzugs der XL-Halle: das Netz des 25-m-Tors um 180° um die Hochachse gedreht
+  // Zeilen 3 bis 5 sind die Lage des Netzes (Knoten 0)
+  const netzLage = (r0, r1, r2) => { const z = dumpVon().split('\r\n'); [z[3], z[4], z[5]] = [r0, r1, r2].map((r, i) => `       b2w[${i}] = [${r.map((v) => v.toFixed(5).padStart(11)).join(',')},     0.00000]`); return z.join('\r\n'); };
+  const dump = netzLage([-1, 0, 0], [0, -1, 0], [0, 0, 1]);
+  assert.match(dump, /b2w\[1\] = \[\s+0\.00000,\s+-1\.00000/, 'die Probe dreht das Netz (Knoten 0)');
+  assert.deepEqual(spurVersatz(nmcKnoten(dump), 'anim_door', [[0, 0, 0], [0, 0, 6]]), { ruhe: [0, 0, 0], versatz: [0, 0, 6] });
+  // fährt das Tor seitwärts, dreht die halbe Drehung den Weg um: das bricht ab
+  assert.throws(() => spurVersatz(nmcKnoten(dump), 'anim_door', [[0, 0, 0], [2, 0, 6]]), /probe_rendermesh gedreht, und die Drehung ändert den Versatz 2,0,6/);
+  // um die Querachse gedreht, ändert sich auch der senkrechte Weg
+  const kipp = netzLage([1, 0, 0], [0, 0, -1], [0, 1, 0]);
+  assert.throws(() => spurVersatz(nmcKnoten(kipp), 'anim_door', [[0, 0, 6]]), /probe_rendermesh gedreht, und die Drehung ändert den Versatz 0,0,6/);
+});
+
 // ein Rohordner als Tabelle: Name -> { zeit, text }
 function platte(anfang) {
   const d = new Map(Object.entries(anfang));
@@ -435,15 +449,19 @@ test('anhangLampen: was nicht nachgemessen ist, bricht ab', () => {
   // eine gewöhnliche Lichtgruppe schreibt der Export selbst
   assert.throws(lies({ gruppe: 'Name="lg_anhang" Pos="1,2,3" EntityClass="LightGroup" EntityCryGUID="g1"' }), /gefunden LightGroup \/ ohne Angabe \/ ohne Angabe/);
   assert.throws(lies({ gruppe: GRUPPE.replace('ParentEntityCryGUID="p1"', 'ParentEntityCryGUID="p9"') }), /der Träger \(ParentEntityCryGUID\) steht 0 Mal im Container/);
-  // ein gedrehter Träger, oder einer, der selbst an einem Bauteil hängt: dann gälte RelativeXForm in einem Raum, den niemand nachgemessen hat
-  assert.throws(lies({ traeger: `${TRAEGER} Rotate="${W},0,0,${W}"` }), /der Träger Plattform ist gedreht \(Rotate 0\.70710\d*,0,0,0\.70710\d*\); nachgemessen ist nur ein ungedrehter Träger/);
+  // ein Träger, der selbst an einem Bauteil hängt: dann gälte RelativeXForm in einem Raum, den niemand nachgemessen hat
   assert.throws(lies({ traeger: `${TRAEGER} Pos="0,0,2" ParentEntityCryGUID="s1"` }), /der Träger Plattform hängt selbst an einem Bauteil \(ParentEntityCryGUID\)/);
   assert.throws(lies({ traeger: `${TRAEGER} Pos="0,0"` }), /Plattform Pos: "0,0" ist keine Reihe aus 3 Zahlen/);
-  assert.throws(lies({ gruppe: GRUPPE.replace('ParentOffsetRot="1,0,0,0"', `ParentOffsetRot="${W},0,0,${W}"`) }), /dreht die Gruppe gegen ihren Träger/);
+  // ein skalierter Knochen (Gruppe doppelt so groß wie ihr Versatz) ist nicht nachgemessen; Lagen, die keine sind, ebenso
+  assert.throws(lies({ gruppe: GRUPPE.replace(' Pos="-0.01,-11,0.5"', ' Pos="-0.01,-11,0.5" Scale="2,2,2"') }), /Scale 2,2,2 gegen ParentOffsetScale 1,1,1 ergibt einen skalierten Knochen/);
+  assert.throws(lies({ gruppe: GRUPPE.replace('ParentOffsetRot="1,0,0,0"', 'ParentOffsetRot="0.5,0,0,0.5"') }), /lg_anhang ParentOffsetRot 0\.5,0,0,0\.5 ist keine Drehung/);
+  assert.throws(lies({ gruppe: GRUPPE.replace(' Pos="-0.01,-11,0.5"', ' Pos="-0.01,-11"') }), /lg_anhang Pos: "-0.01,-11" ist keine Reihe aus 3 Zahlen/);
   // ein Träger, der seinen Ort ausdrücklich im Ursprung nennt, gilt wie einer ohne Angabe
   const imUrsprung = anhangLampen(containerXml({ traeger: `${TRAEGER} Pos="0,0,0" Rotate="1,0,0,0"` }), WAS);
   assert.deepEqual([imUrsprung.lampen.length, imUrsprung.traegerOrt, imUrsprung.lampen[0].ort], [1, [0, 0, 0], [1, 2, 3.1]]);
   assert.deepEqual(anhangLampen(containerXml(), WAS).traegerOrt, [0, 0, 0]);
+  // der Knochen der Probe: Gruppe (-0.01, -11, 0.5) weniger ihr Versatz (-0.01, -11, 0.5), ungedreht
+  assert.deepEqual([imUrsprung.knochenOrt, imUrsprung.knochenDreh], [[0, 0, 0], [1, 0, 0, 0]]);
   // Angaben einer Lampe, aus denen keine Lampe wird
   assert.throws(lies({ lampen: [lampeXml({ rot: '0.5,0,0,0.5' })] }), /lg_anhang-000 \(l_probe-001\): rotation 0.5,0,0,0.5 ist keine Drehung/);
   assert.throws(lies({ lampen: [lampeXml({ ort: '1,2' })] }), /translation: "1,2" ist keine Reihe aus 3 Zahlen/);
@@ -460,13 +478,49 @@ test('anhangLampen: steht der Träger nicht im Ursprung, kommt sein Ort zu jeder
   const gruppe = GRUPPE.replace('ParentOffsetPos="-0.01,-11,0.5"', 'ParentOffsetPos="0,0,0.5"').replace('Pos="-0.01,-11,0.5"', 'Pos="-72,-112,3"');
   const r = anhangLampen(containerXml({ lampen: FUENF, gruppe, traeger: `${TRAEGER} Pos="-72,-112,2.5"` }), WAS);
   assert.deepEqual(r.traegerOrt, [-72, -112, 2.5]);
-  // die Angabe (1, 2, 3.1) plus der Ort des Trägers; der Versatz der Gruppe (0, 0, 0.5) zählt nicht
+  // der Knochen: die Gruppe (-72, -112, 3) weniger ihr Versatz (0, 0, 0.5), also der Ort des Trägers
+  assert.deepEqual([r.knochenOrt, r.knochenDreh], [[-72, -112, 2.5], [1, 0, 0, 0]]);
+  // die Angabe (1, 2, 3.1) plus der Ort des Knochens
   assert.ok(nah6(r.lampen[0].ort, [-71, -110, 5.6]), String(r.lampen[0].ort));
   assert.ok(nah6(r.lampen[1].ort, [-68, -107, 8.5]), String(r.lampen[1].ort));
   // Drehung, Stärke und Namen bleiben, wie sie ohne den Ort wären
   const ohne = anhangLampen(containerXml({ lampen: FUENF }), WAS);
   assert.deepEqual(r.lampen.map(({ ort: o, ...l }) => l), ohne.lampen.map(({ ort: o, ...l }) => l));
   assert.deepEqual(r.aus, ohne.aus);
+});
+
+test('anhangLampen: der Knochen folgt aus der Gruppe und ihrem Versatz, auch wo er nicht am Ort des Trägers ruht', () => {
+  // so nennt die .soc der Medium-Halle die Schiffsplattform: Träger bei 56/67/6,5, Knochen einen halben Meter darunter
+  const medium = GRUPPE.replace('ParentOffsetPos="-0.01,-11,0.5"', 'ParentOffsetPos="0,0.014277996595865261,6.2234089675527571"').replace('Pos="-0.01,-11,0.5"', 'Pos="56,67.014277989787388,12.223398668628704" Scale="1.0000005,1.0000005,1.0000005"').replace('EntityCryGUID="g1"', 'EntityCryGUID="g1" ParentOffsetScale="1.0000004768371582"');
+  const m = anhangLampen(containerXml({ lampen: FUENF, gruppe: medium, traeger: `${TRAEGER} Pos="56,67,6.5"` }), WAS);
+  assert.deepEqual([m.traegerOrt, m.knochenOrt, m.knochenDreh], [[56, 67, 6.5], [56, 67, 6], [1, 0, 0, 0]]);
+  assert.ok(nah6(m.lampen[0].ort, [57, 69, 9.1]), String(m.lampen[0].ort));
+  // so die Kabine des Frachtaufzugs der Small-Halle: das Bauteil im Ursprung, sein Knochen 4,5 m davor
+  const kabine = GRUPPE.replace('ParentOffsetPos="-0.01,-11,0.5"', 'ParentOffsetPos="0.19219599999999559,-0.48171699999997486,0.057314999999999117"').replace('ParentOffsetRot="1,0,0,0"', 'ParentOffsetRot="1,0,0,-3.2584137e-07"').replace('Pos="-0.01,-11,0.5"', 'Pos="0.19223537642574229,-4.9816582237786236,0.057224820558968048"');
+  const k = anhangLampen(containerXml({ lampen: FUENF, gruppe: kabine }), WAS);
+  assert.deepEqual([k.knochenOrt, k.knochenDreh], [[0, -4.4999, -0.0001], [1, 0, 0, 0]], 'die winzige Drehung des Versatzes (3e-7) zählt nicht');
+  assert.ok(nah6(k.lampen[0].ort, [1, -2.4999, 3.0999]), String(k.lampen[0].ort));
+  // Drehung, Stärke und Namen bleiben, wo der Knochen ungedreht ist
+  const ohne = anhangLampen(containerXml({ lampen: FUENF }), WAS);
+  assert.deepEqual(k.lampen.map(({ ort: o, ...l }) => l), ohne.lampen.map(({ ort: o, ...l }) => l));
+});
+
+test('anhangLampen: an einem gedrehten Träger drehen Ort und Achse jeder Lampe mit', () => {
+  // so nennt die .soc der Small-Halle die Schiffsplattform: Träger bei -48/-42/6,5, um 90° um Z gedreht; die Gruppe
+  // halb gedreht und doppelt skaliert, ihr Versatz um 90° gedreht und ebenso doppelt: der Knochen ist der Träger
+  const small = GRUPPE.replace('ParentOffsetPos="-0.01,-11,0.5"', 'ParentOffsetPos="-1.0000001111620804e-06,0.0077329993854391432,8.3565593282391433"').replace('ParentOffsetRot="1,0,0,0"', 'ParentOffsetRot="0.70710695,0,0,0.70710707" ParentOffsetScale="2.0000011920928955"').replace('Pos="-0.01,-11,0.5"', 'Pos="-48.007732998156598,-42.000000998156111,14.856558000000007" Rotate="0,0,0,1" Scale="2.0000012,2.0000012,2.0000012"');
+  const r = anhangLampen(containerXml({ lampen: FUENF, gruppe: small, traeger: `${TRAEGER} Pos="-48,-42,6.5" Rotate="0.70710677,0,0,0.70710677"` }), WAS);
+  assert.deepEqual(r.knochenOrt, [-48, -42, 6.5]);
+  assert.ok(nah6(r.knochenDreh, [W, 0, 0, W]), String(r.knochenDreh));
+  // (1, 2, 3.1) um 90° um Z: (-2, 1, 3.1), dazu der Knochen
+  assert.ok(nah6(r.lampen[0].ort, [-50, -41, 9.6]), String(r.lampen[0].ort));
+  assert.ok(nah6(r.lampen[1].ort, [-53, -38, 12.5]), String(r.lampen[1].ort));
+  // der Strahler war um 90° um Z gedreht, mit dem Knochen sind es 180°
+  assert.ok(nah6(r.lampen[1].dreh, [0, 0, 0, 1]), String(r.lampen[1].dreh));
+  // gleich gedreht, ob die Drehung als q oder -q dasteht
+  const minus = anhangLampen(containerXml({ lampen: FUENF, gruppe: small.replace('Rotate="0,0,0,1"', 'Rotate="0,0,0,-1"'), traeger: TRAEGER }), WAS);
+  assert.ok(nah6(minus.knochenDreh, r.knochenDreh), String(minus.knochenDreh));
+  assert.ok(minus.lampen.every((l, i) => nah6(l.ort, r.lampen[i].ort)));
 });
 
 test('halleAnhang: die Lichtgruppe an einem Knochen der Halle selbst, Probe an ihren eigenen Leuchten, Einträge mit kind bleiben', () => {
