@@ -38,6 +38,8 @@ import { ruheRegel, ruheZaehler } from './lib/hall-ruhe.mjs';
 import { hullLeaks, floorLevel } from './lib/hall-hull.mjs';
 import { hallDecalMaps, pickHallDecals, addHallDecals, addHallLogo, attachHallDecalTextures, hallScreensOff, liftHallText, swapHallText } from './lib/hall-decals.mjs';
 import { kinderBestand } from './lib/hall-kinder.mjs';
+import { hallDrehen } from './lib/hall-drehen.mjs';
+import { torBahn, achsAbstand, offenImFeld } from './lib/aufzug-dreh.mjs';
 import { istHallenModell, NEBEN_EINGABEN, HALL_EINGABEN, juengerAls, hallBestand, bestandPasst } from './lib/hall-quellen.mjs';
 import { poolGlbFile, prunePool } from './lib/glb-texpool.mjs';
 import { bodyFiles, findBodyCopies } from './lib/hangar-huellkopie.mjs';
@@ -100,11 +102,27 @@ const BUDGET = {
 const HALL_ROOM = {
   'revelyork-single': { center: [36, 0, -68], halfW: 36, halfL: 68, height: 44 },
   'util-lrgtop': { center: [-72, 2, 112], halfW: 72, halfL: 108, height: 68 },
+  'util-medtop': { center: [56, 6, -67], halfW: 56, halfL: 71, height: 45 },
+  'util-xltop': { center: [-112, 2, 168], halfW: 120, halfL: 180, height: 108 },
+  // um 90° gedreht (HALL_DREH): Mitte im Export (-48, 6, 42), 96 x 96 m
+  'util-smltop': { center: [42, 6, 48], halfW: 48, halfL: 48, height: 40 },
 };
 // Wohin die Flächenlichter einer Halle strahlen (orientHallLights, die Messung
 // steht in scripts/lib/hall-lights.mjs): in den Industriehallen entlang ihrer
 // eigenen Achse wie im Spiel; jede andere Halle bleibt bei 'flaeche'.
 const FLAECHEN_LESART = { 'util-smltop': 'achse', 'util-medtop': 'achse', 'util-lrgtop': 'achse', 'util-xltop': 'achse' };
+// Drehung einer Halle um die Hochachse (Grad, glTF y), gleich nach dem Lesen
+// auf die Wurzel des Exports gelegt (hallDrehen). Der Viewer stellt jedes
+// Schiff längs z (SHIP_YAW 0 oder π). Im Spiel steht ein Schiff längs der
+// y-Achse seiner Landefläche: In Medium, Large und XL ist die ungedreht und
+// liegt längs z. In Small ist sie um -90° um die Hochachse des Spiels gedreht
+// (Rotate 0.7071, 0, 0, -0.7071, 24 x 32 m), ihre Längsseite läge quer.
+// +90° um y bringt ihre y-Achse dahin, wo sie in den anderen Hallen liegt
+// (+x des Modells nach -z). Jeder Schritt danach rechnet mit Weltmatrizen
+// (Aufzug, Lampen, Einrichtung) oder im Raum eines Netzes (Aufkleber,
+// Schrift): Er sieht die Halle gedreht. HALL_ROOM und alles im Viewer
+// (HALL_FEST, HALL_LEIT) steht im gedrehten Raum.
+const HALL_DREH = { 'util-smltop': 90 };
 
 // Nie sichtbar oder nur im Spiel sinnvoll: Schadensmodelle, Kollisions-/
 // Schild-Hüllen, Stellvertreter, Effekt-Helfer. „*_Debris“ ohne Schaden im
@@ -2109,7 +2127,9 @@ async function writeWerkhalleJson(doc, name, werkNodes, lights) {
 // Teilnetze mit Decal-Material lässt der Export aus) und damit dem Knochen,
 // der es bewegt: dem nächsten Vorfahren seines Netz-Knotens, dessen Spur die
 // Ruhelage verlässt. Je solchem Knochen ein Teil; was an keinem hängt
-// (Rahmen), bleibt Halle.
+// (Rahmen), bleibt Halle. Ein Knochen mit Drehspur (die Riegel am Tor der
+// XL-Halle schwenken um rund 180°) ist ebenfalls ein Teil; liegt in seiner
+// Kette eine Drehung, trägt das Teil keysRot und pivot (lib/aufzug-dreh.mjs).
 // aufzugSplit (nach markFurniture, vor join): je Teil ein eigener Knoten
 // aufzug_tor_<nn>; die Plattform wird um ihren Fahrweg gehoben (Ruhelage der
 // Seite: Tor offen, Plattform oben, das Schiff steht darauf) und nimmt mit,
@@ -2127,9 +2147,11 @@ function aufzugPlan(doc, T) {
   };
   const door = one(T.tor.cga), pad = one(T.plattform.cga);
   const r3 = (v) => Math.round(v * 1000) / 1000;
-  // Lage eines Knochens im Raum seines Elternknotens in Ruhe (t steht im Raum der .cga)
-  const ruhe = (part) => { const by = new Map(part.nodes.map((n) => [n.index, n])); return { by, of: (n) => { const p = n.parent != null ? by.get(n.parent) : null; return n.t.map((v, i) => v - (p ? p.t[i] : 0)); } }; };
+  // Lage eines Knochens im Raum seines Elternknotens in Ruhe: t im tor.json ist schon diese Lage (lib/aufzug-dreh.mjs)
+  const ruhe = (part) => { const by = new Map(part.nodes.map((n) => [n.index, n])); return { by, of: (n) => n.t }; };
   const at = (tr, f) => { let a = tr[0]; for (const k of tr) { if (k[0] <= f) a = k; else { const w = (f - a[0]) / (k[0] - a[0] || 1); return [1, 2, 3].map((i) => a[i] + (k[i] - a[i]) * w); } } return tr[tr.length - 1].slice(1); };
+  // Knochen, die schwenken (Riegel am Tor der XL-Halle): je einer ein eigenes Teil, das um seinen Knochen dreht (lib/aufzug-dreh.mjs)
+  const drehtIn = (p) => new Set(Object.values(p.cafs).flatMap((c) => c.dreht ?? []));
   const moving = (part) => {
     const R = ruhe(part), set = new Set();
     for (const c of Object.values(part.cafs)) for (const [bone, tr] of Object.entries(c.tracks)) {
@@ -2138,10 +2160,14 @@ function aufzugPlan(doc, T) {
       const r = R.of(n);
       if (tr.some((k) => Math.hypot(k[1] - r[0], k[2] - r[1], k[3] - r[2]) > 1e-3)) set.add(bone);
     }
+    for (const b of drehtIn(part)) if (part.nodes.some((x) => x.name === b)) set.add(b);
     return set;
   };
-  const turning = [T.tor, T.plattform].flatMap((p) => Object.values(p.cafs).flatMap((c) => c.dreht ?? []));
-  if (turning.length) throw new Error(`Aufzug: Knochen mit Drehspur (${[...new Set(turning)].join(', ')}), der Build kann nur Schieben`);
+  const drehP = drehtIn(T.plattform);
+  if (drehP.size) throw new Error(`Aufzug: Plattform mit Drehspur (${[...drehP].join(', ')}), sie fährt im Viewer nur senkrecht`);
+  const drehT = drehtIn(T.tor);
+  const ohneSpur = [...drehT].filter((b) => !Object.values(T.tor.cafs).some((c) => c.rot?.[b]));
+  if (ohneSpur.length) throw new Error(`Aufzug: ${ohneSpur.join(', ')} drehen, die Drehspur fehlt in tor.json (Extraktor älter: extract-hangar-sources.mjs aufzug --hallen …)`);
   // Richtung aus dem Raum der .cga in den der Halle (ohne Verschiebung)
   const lin = (W, v) => [W[0] * v[0] + W[4] * v[1] + W[8] * v[2], W[1] * v[0] + W[5] * v[1] + W[9] * v[2], W[2] * v[0] + W[6] * v[1] + W[10] * v[2]];
   // Versatz eines Knochens gegen seine Ruhelage zur Bildnummer f: Summe über die Kette seiner Vorfahren
@@ -2172,13 +2198,23 @@ function aufzugPlan(doc, T) {
   const bones = [...new Set([...owner.values()].filter(Boolean))].sort((a, b) => a.name.localeCompare(b.name));
   if (!bones.length) throw new Error('Aufzug: kein Primitiv des Tors hängt an einem bewegten Knochen');
   const close = T.tor.cafs.door_close, open = T.tor.cafs.door_open;
+  // Mitte der Netze je Knochen im Modellraum: ein schwenkendes Teil muss um seinen Knochen drehen, nicht um einen fernen Punkt
+  const mitte = new Map(), v = [0, 0, 0];
+  for (const [p, b] of owner) {
+    if (!b || !drehT.size) continue;
+    // die Primitive des Tors teilen sich einen Puffer: nur die Ecken, die ihre Dreiecke nennen
+    const a = p.getAttribute('POSITION'), box = mitte.get(b) ?? [[Infinity, Infinity, Infinity], [-Infinity, -Infinity, -Infinity]];
+    for (const i of p.getIndices().getArray()) { a.getElement(i, v); const w = [0, 1, 2].map((k) => W[k] * v[0] + W[4 + k] * v[1] + W[8 + k] * v[2] + W[12 + k]); for (let k = 0; k < 3; k++) { box[0][k] = Math.min(box[0][k], w[k]); box[1][k] = Math.max(box[1][k], w[k]); } }
+    mitte.set(b, box);
+  }
+  // Bahnen aus der Kette der Knochen mit ihren Drehungen (lib/aufzug-dreh.mjs; prüft auch: zu = Ende von door_close = Anfang von door_open)
   const parts = bones.map((bone, i) => {
-    const keys = (caf) => frames(caf).map((f) => [r3(f / caf.fps), ...lin(W, offset(T.tor, RT, bone, caf, f)).map(r3)]);
-    const k = { close: keys(close), open: keys(open) };
-    // zu = Ruhelage der .cga: dort enden door_close und beginnt door_open
-    const off = Math.max(Math.hypot(...k.close.at(-1).slice(1)), Math.hypot(...k.open[0].slice(1)));
-    if (off > 0.01) throw new Error(`Aufzug: ${bone.name} steht am Ende von door_close ${off.toFixed(3)} m neben seiner Ruhelage`);
-    return { node: `aufzug_tor_${String(i).padStart(2, '0')}`, bone: bone.name, keys: k };
+    const node = `aufzug_tor_${String(i).padStart(2, '0')}`;
+    const b = torBahn(T.tor, bone.name, W, { steps: AUFZUG_STEPS });
+    if (!b.dreht) return { node, bone: bone.name, keys: b.keys };
+    const box = mitte.get(bone), ab = box ? achsAbstand(b, box[0].map((x, k) => (x + box[1][k]) / 2)) : 0;
+    if (ab > 6) throw new Error(`Aufzug: ${bone.name} schwenkt um ${b.maxGrad.toFixed(0)}°, seine Netze liegen aber ${ab.toFixed(1)} m neben der Achse durch seinen Knochen`);
+    return { node, bone: bone.name, keys: b.keys, keysRot: b.rot, pivot: b.pivot, achse: Math.round(ab * 100) / 100 };
   });
   const nodeOf = new Map(bones.map((b, i) => [b, parts[i].node]));
 
@@ -2279,7 +2315,7 @@ function writeAufzugJson(written, name, plan) {
     const n = find(p.node);
     if (!n) throw new Error(`Aufzug: Knoten ${p.node} fehlt im geschriebenen GLB`);
     const b = getBounds(n);
-    return { node: p.node, bone: p.bone, tris: p.tris, box: [b.min.map(r3), b.max.map(r3)], keys: p.keys };
+    return { node: p.node, bone: p.bone, tris: p.tris, box: [b.min.map(r3), b.max.map(r3)], keys: p.keys, ...(p.keysRot ? { keysRot: p.keysRot, pivot: p.pivot } : {}) };
   });
   const P = plan.plattform, pn = find(P.node);
   if (!pn) throw new Error(`Aufzug: Knoten ${P.node} fehlt im geschriebenen GLB`);
@@ -2287,11 +2323,14 @@ function writeAufzugJson(written, name, plan) {
   const json = {
     v: 1,
     achsen: 'Modellraum der Halle (glTF, y oben, Meter); Zeiten in Sekunden des Spiels',
-    ruhe: 'im GLB: Tor zu (aufzug_tor_*), Plattform oben (aufzug_pad); keys des Tors sind der Versatz gegen zu, keys der Plattform die Höhe gegen oben',
+    ruhe: 'im GLB: Tor zu (aufzug_tor_*), Plattform oben (aufzug_pad); keys des Tors sind der Versatz gegen zu, keys der Plattform die Höhe gegen oben; ein Teil mit keysRot dreht um pivot (x\' = q (x - pivot) + pivot + Versatz)',
     feld: { from: [r3(pb.min[0]), r3(pb.min[2])], to: [r3(pb.max[0]), r3(pb.max[2])] },
     tor: { s: plan.seconds, unten: r3(Math.min(...teile.map((t) => t.box[0][1]))), oben: r3(Math.max(...teile.map((t) => t.box[1][1]))), teile },
     plattform: { node: P.node, bone: P.bone, oben: P.oben, weg: P.weg, s: P.seconds, tris: P.tris, mit: P.mit, keys: P.keys },
   };
+  // offen liegt jedes Teil neben der Öffnung: eines im Feld führe falsch herum
+  const imFeld = offenImFeld(teile, json.feld);
+  if (imFeld.length) throw new Error(`Aufzug: offen liegen ${imFeld.length} Teile des Tors über dem Feld (${imFeld.slice(0, 4).map((t) => `${t.node} ${t.x} x ${t.z} m`).join(', ')})`);
   const file = fileURLToPath(new URL(`hall/${name}.aufzug.json`, OUT));
   writeFileSync(file, JSON.stringify(json) + '\n');
   return { file, json };
@@ -2300,6 +2339,7 @@ function writeAufzugJson(written, name, plan) {
 async function buildOne(kind, name, inPath) {
   const doc = await io.read(inPath);
   const root = doc.getRoot();
+  const dreh = kind === 'hall' ? hallDrehen(doc, HALL_DREH[name.replace(/-lod1$/, '')] ?? 0) : 0;
   // Kind-Container, die der Extraktor in die Halle gehängt hat (Frachtaufzüge, Türen der Personenaufzüge und der
   // Abgabe; scripts/lib/hall-kinder.mjs): jetzt zählen, solange ihre Halter im Baum stehen
   const kinder = kind === 'hall' ? kinderBestand(doc) : null;
@@ -2527,8 +2567,9 @@ async function buildOne(kind, name, inPath) {
     textures: root.listTextures().length, attached, ...(matfix ? { matfix, cover } : {}),
     ...(lights ? { lights, furniture } : {}),
     ...(hallPalette ? { hallPalette } : {}),
-    ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped } } : {}),
+    ...(aufzugJson ? { aufzug: { json: `/hangar/hall/${name}.aufzug.json`, ...aufzugParts, weg: aufzug.plattform.weg, uebersprungen: aufzug.skipped, ...(aufzug.parts.some((t) => t.keysRot) ? { schwenken: aufzug.parts.filter((t) => t.keysRot).length, achse: Math.max(...aufzug.parts.filter((t) => t.keysRot).map((t) => t.achse)) } : {}) } } : {}),
     ...(kinder?.exemplare ? { kinder } : {}),
+    ...(dreh ? { dreh } : {}),
     ...(decals ? { aufkleber: { ...decals.bericht, karten: decalMaps, weg: decals.weg } } : {}),
     ...(logo ? { logo: { ...logo, ...(decalMaps?.logo ?? {}) } } : {}),
     ...(schirme?.schirme ? { schirme: { aus: schirme.schirme, dreiecke: schirme.dreiecke } } : {}),
@@ -3621,6 +3662,8 @@ const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
 const manifest = { ships: {}, interior: {}, weapons: {}, components: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
 let built = 0, reused = 0;
+// die Hallenmodelle, die die Bauschleife im Quellordner vorfand (null: dieser Lauf baut keine Hallen)
+let hallenImOrdner = null;
 const webShip = (name) => !!prev.ships?.[name] || SHIPS_ARG.includes(name) || SHIPS_ARG.includes('all');
 // Komponenten zuerst: die Schiffe schreiben deren URL samt Version als
 // Serienteil in ihre Anker (stockUrl)
@@ -3628,9 +3671,12 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
   // Innenraum: Quelle ist der Rohexport der Schiffe; gebaut nur auf Verlangen (--kind interior)
   const dir = new URL(`${kind === 'interior' ? 'ships' : kind}/`, SRC);
   // ohne Quellordner auf diesem Rechner (oder andere Art verlangt): bisherige Einträge unverändert übernehmen
+  // (ein Hallenordner, dem Modelle fehlen, behaelt deren bisherige Eintraege: Block nach dieser Schleife)
   if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
   // im Ordner der Hallen liegen neben den Modellen ihre Beilagen (<halle>.decals.glb, <halle>.schrift.glb): keine Hallen
-  for (const f of readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')))) {
+  const dateien = readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')));
+  if (kind === 'hall') hallenImOrdner = new Set(dateien.map((x) => x.replace(/\.glb$/i, '')));
+  for (const f of dateien) {
     const name = f.replace(/\.glb$/i, '');
     const slot = slotOf(kind, name);
     if ((kind === 'ships' || kind === 'interior') && !webShip(name)) continue;
@@ -3752,7 +3798,32 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
         if (a) console.log(`    Aufkleber: ${a.primitive} Teilnetze an ${a.netze} Netzen, ${a.trisMitExemplaren.toLocaleString()} Dreiecke mit allen Exemplaren, ${a.karten.materialien} Materialien mit ${a.karten.farbkarten} Farb- und ${a.karten.normalen} Normalenkarten; weggelassen: ${a.weg.relief.materialien} nur Relief (${a.weg.relief.tris.toLocaleString()} Dreiecke), ${a.weg.klein.materialien} klein (${a.weg.klein.tris.toLocaleString()})${a.fremd.length ? `; WARNUNG ${a.fremd.length} Netze passen nicht mehr zum Export (${a.fremd.slice(0, 5).join(', ')}), Halle mit dem Extraktor neu exportieren` : ''}${a.karten.ohneKarte.length ? `; WARNUNG ohne Farbkarte im Cache: ${a.karten.ohneKarte.join(', ')}` : ''}`);
       }
     } catch (err) {
+      // Fehlerstatus, damit kein Lauf, der ein Teil nicht bauen konnte, wie ein fertiger aussieht: Das Teil fehlt
+      // dann im Manifest (bei einer Halle reisst verify:hangar-hallen [1] an seiner Klinke), und was buildOne schon
+      // geschrieben hatte, stellt git wieder her. Den alten Eintrag zu behalten, passte nicht mehr zu dessen Dateien.
       console.error(`  ${kind}/${name}: FEHLER ${err.stack || err.message}`);
+      process.exitCode = 1;
+    }
+  }
+}
+// Hallen, deren Modell nicht im Quellordner liegt, behalten ihren bisherigen Eintrag: Der Extraktor legt nur die
+// verlangten Hallen ab (--hallen, der Einzellauf "aufzug --hallen" nur die tor.json), und ein Lauf darf nur die
+// Eintraege ersetzen, fuer die er ein Modell vorfand. Ein Modell, das im Ordner liegt und scheitert, faellt wie
+// bisher heraus (Status 1). Massgeblich ist die Liste, die die Bauschleife las (kein zweites Lesen des Ordners).
+{
+  if (hallenImOrdner) {
+    const imOrdner = hallenImOrdner;
+    for (const slot of ['hall', 'hallLite']) {
+      const vorher = Object.keys(prev[slot] || {});
+      const bleiben = vorher.filter((name) => !imOrdner.has(name) && !manifest[slot][name]);
+      if (!bleiben.length) continue;
+      for (const name of bleiben) console.log(`  ${slot}/${name}: kein Modell im Quellordner, bisheriger Eintrag bleibt`);
+      reused += bleiben.length;
+      // Reihenfolge wie bisher: die Seite nimmt den ersten Eintrag unter hall als Halle
+      const neu = {};
+      for (const name of vorher) if (manifest[slot][name] || bleiben.includes(name)) neu[name] = manifest[slot][name] || prev[slot][name];
+      for (const [name, e] of Object.entries(manifest[slot])) if (!(name in neu)) neu[name] = e;
+      manifest[slot] = neu;
     }
   }
 }

@@ -22128,6 +22128,2317 @@
         "schrift.glb"
       ],
       "gameVersion": "4.10.3-live.13165946"
+    },
+    "util-medtop": {
+      "url": "/hangar/hall/util-medtop.glb",
+      "v": "577a73c6",
+      "tris": 1334693,
+      "trisRaw": 467069,
+      "textures": 250,
+      "attached": {
+        "attached": 608,
+        "color": 333,
+        "normal": 275,
+        "flatNormals": 109,
+        "rough": 374,
+        "tiled": 91,
+        "blended": 66,
+        "blendMetal": 1,
+        "blendSkipped": 0,
+        "blendAlpha": 13,
+        "glowMaske": 5,
+        "glowAus": 5
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 469,
+          "diffuse": 132,
+          "normal": 111,
+          "trisOhneMaterial": 0,
+          "tris": 499657
+        },
+        "after": {
+          "materials": 469,
+          "diffuse": 347,
+          "normal": 390,
+          "trisOhneMaterial": 0,
+          "tris": 499657
+        }
+      },
+      "lights": {
+        "total": 653,
+        "byType": {
+          "point": 256,
+          "area": 52,
+          "spot": 345
+        },
+        "matched": 653,
+        "orient": {
+          "spots": 345,
+          "area": 52,
+          "areaMounted": 29,
+          "spotsAway": 181,
+          "spotsMounted": 213,
+          "flaechen": "achse",
+          "areaAway": 21,
+          "areaInto": 8,
+          "areaOhne": 0
+        },
+        "ruhe": {
+          "weg": 75,
+          "namen": 70,
+          "gruppen": {
+            "lg_hangar_medtop": 65,
+            "lg_cargo_elevator_med-003": 5
+          }
+        }
+      },
+      "furniture": 8,
+      "hallPalette": {
+        "name": "hangar_default",
+        "materials": 56,
+        "missing": 0,
+        "schichtTon": 38
+      },
+      "aufzug": {
+        "json": "/hangar/hall/util-medtop.aufzug.json",
+        "teile": 12,
+        "tris": 48146,
+        "rahmen": 284,
+        "plattform": 9088,
+        "mit": 30,
+        "weg": 36,
+        "uebersprungen": 26
+      },
+      "kinder": {
+        "exemplare": 9,
+        "je": {
+          "elev_util_cargo_hangar_med_a": {
+            "exemplare": 2,
+            "tris": 52836
+          },
+          "elev_util_dropoff": {
+            "exemplare": 1,
+            "tris": 6280
+          },
+          "hangar_component_module_cargo_elevator_med": {
+            "exemplare": 2,
+            "tris": 182696
+          },
+          "spawncloset_static_elev": {
+            "exemplare": 4,
+            "tris": 4192
+          }
+        }
+      },
+      "aufkleber": {
+        "netze": 144,
+        "primitive": 212,
+        "tris": 32401,
+        "trisMitExemplaren": 60244,
+        "materialien": 12,
+        "fremd": [],
+        "karten": {
+          "materialien": 13,
+          "farbkarten": 7,
+          "normalen": 2,
+          "verstaerkt": 2,
+          "ohneKarte": [],
+          "logo": {
+            "karte": "512x512",
+            "deckt": 0.182
+          }
+        },
+        "weg": {
+          "relief": {
+            "materialien": 21,
+            "tris": 38542
+          },
+          "klein": {
+            "materialien": 41,
+            "tris": 9225
+          },
+          "ohneKarte": []
+        }
+      },
+      "logo": {
+        "tafeln": 9,
+        "weg": 0,
+        "karte": "512x512",
+        "deckt": 0.182
+      },
+      "schirme": {
+        "aus": 13,
+        "dreiecke": 96
+      },
+      "schrift": {
+        "primitive": 48,
+        "ecken": 2700,
+        "mm": 5
+      },
+      "schriftVoll": {
+        "netze": 4,
+        "teilnetze": 5,
+        "trisAlt": 144,
+        "trisNeu": 331,
+        "fremd": []
+      },
+      "vertexColors": [
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_c_042",
+          "origin": "eigen",
+          "tris": 80419,
+          "meanR": 0.971,
+          "below098": 5.3
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_c_042",
+          "origin": "eigen",
+          "tris": 53745,
+          "meanR": 0.966,
+          "below098": 4.3
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_paint_a__030",
+          "origin": "eigen",
+          "tris": 22772,
+          "meanR": 0.977,
+          "below098": 4.1
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_metal_bare_022",
+          "origin": "eigen",
+          "tris": 18149,
+          "meanR": 0.948,
+          "below098": 9.3
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_panel_c_041",
+          "origin": "eigen",
+          "tris": 14756,
+          "meanR": 0.986,
+          "below098": 2.4
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_tertiary_tint_panel_c_043",
+          "origin": "eigen",
+          "tris": 11078,
+          "meanR": 0.979,
+          "below098": 3.5
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_panel_c_043",
+          "origin": "eigen",
+          "tris": 9743,
+          "meanR": 0.966,
+          "below098": 4.3
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_paint_a_030",
+          "origin": "eigen",
+          "tris": 8541,
+          "meanR": 0.98,
+          "below098": 3.2
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_floor_b_048",
+          "origin": "eigen",
+          "tris": 7676,
+          "meanR": 0.964,
+          "below098": 4.5
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_panel_c_041",
+          "origin": "eigen",
+          "tris": 7265,
+          "meanR": 0.985,
+          "below098": 2.4
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_tertiary_tint_paint_a__031",
+          "origin": "eigen",
+          "tris": 6763,
+          "meanR": 0.95,
+          "below098": 9.6
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 6170,
+          "meanR": 0.997,
+          "below098": 0.7
+        },
+        {
+          "material": "util_a_default_mtl_trim_cables_018",
+          "origin": "eigen",
+          "tris": 5592,
+          "meanR": 0.973,
+          "below098": 4.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_trim_fabric_016",
+          "origin": "eigen",
+          "tris": 4268,
+          "meanR": 0.982,
+          "below098": 2.6
+        },
+        {
+          "material": "util_a_default_mtl_metal_bare_022",
+          "origin": "eigen",
+          "tris": 2934,
+          "meanR": 0.967,
+          "below098": 4.9
+        },
+        {
+          "material": "util_a_default_mtl_rubber_tread_028",
+          "origin": "eigen",
+          "tris": 2618,
+          "meanR": 0.965,
+          "below098": 7.1
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_metal_b_07",
+          "origin": "eigen",
+          "tris": 2311,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 2136,
+          "meanR": 0.945,
+          "below098": 8.9
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_b_039",
+          "origin": "eigen",
+          "tris": 1279,
+          "meanR": 0.968,
+          "below098": 4.8
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_pipe_paneling_b_023",
+          "origin": "eigen",
+          "tris": 1252,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_paint_a_031",
+          "origin": "eigen",
+          "tris": 1062,
+          "meanR": 0.945,
+          "below098": 9
+        },
+        {
+          "material": "hangar_shield_a_mtl_shield_edge_00",
+          "origin": "eigen",
+          "tris": 986,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_steel_a_07",
+          "origin": "eigen",
+          "tris": 830,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_ext_a_mtl_primary_tint_pipe_a_08",
+          "origin": "eigen",
+          "tris": 684,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_ext_a_mtl_aluminium_a_07",
+          "origin": "eigen",
+          "tris": 676,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_pipe_flexible_08",
+          "origin": "eigen",
+          "tris": 538,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_paint_warm_grey_02",
+          "origin": "eigen",
+          "tris": 518,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_metal_a_018",
+          "origin": "eigen",
+          "tris": 433,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_paint_grey_a_013",
+          "origin": "eigen",
+          "tris": 431,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_trim_mid_020",
+          "origin": "eigen",
+          "tris": 358,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "aircon_interior_mtl_decal diffuse_02",
+          "origin": "eigen",
+          "tris": 340,
+          "meanR": 0.973,
+          "below098": 8.3
+        },
+        {
+          "material": "lowtech_alpha_ext_mtl_rubber_large_014",
+          "origin": "eigen",
+          "tris": 335,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "kiosk_personal_inventory_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 327,
+          "meanR": 0.716,
+          "below098": 47.6
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_beams_atlas_019",
+          "origin": "eigen",
+          "tris": 322,
+          "meanR": 0.862,
+          "below098": 28.3
+        },
+        {
+          "material": "utilitarian_master_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 316,
+          "meanR": 0.634,
+          "below098": 55.4
+        },
+        {
+          "material": "lowtech_prop_old_mtl_iron_02_07",
+          "origin": "eigen",
+          "tris": 310,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "light_hazard_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 304,
+          "meanR": 0.5,
+          "below098": 80.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 302,
+          "meanR": 0.931,
+          "below098": 10.5
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_panels_walls_031",
+          "origin": "eigen",
+          "tris": 302,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "lorville_brand_a_mtl_alphabet_screen_a_07",
+          "origin": "eigen",
+          "tris": 298,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_mtl_paint_blue_bl_04",
+          "origin": "eigen",
+          "tris": 296,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "kiosk_freight_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 288,
+          "meanR": 0.621,
+          "below098": 54.8
+        },
+        {
+          "material": "kiosk_personal_inventory_1_a_mtl_decal diffuse_02",
+          "origin": "eigen",
+          "tris": 268,
+          "meanR": 0.716,
+          "below098": 47.6
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_trim_mid_019",
+          "origin": "eigen",
+          "tris": 266,
+          "meanR": 0.996,
+          "below098": 0.4
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_panel_b_038",
+          "origin": "eigen",
+          "tris": 244,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "drum_dry_1_dark_a_mtl_decal_diff_02",
+          "origin": "eigen",
+          "tris": 206,
+          "meanR": 0.594,
+          "below098": 73.3
+        },
+        {
+          "material": "util_a_default_mtl_asphalt_bare_025",
+          "origin": "eigen",
+          "tris": 188,
+          "meanR": 0.977,
+          "below098": 6.2
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_floor_b_048",
+          "origin": "eigen",
+          "tris": 174,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "freight_brand_a_mtl_Alphabet_a_Prim_Upper_nodecal_06",
+          "origin": "eigen",
+          "tris": 165,
+          "meanR": 0.129,
+          "below098": 100
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_a_036",
+          "origin": "eigen",
+          "tris": 156,
+          "meanR": 0.929,
+          "below098": 10.3
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_trim_mid_019",
+          "origin": "eigen",
+          "tris": 152,
+          "meanR": 0.982,
+          "below098": 3.5
+        },
+        {
+          "material": "util_a_default_mtl_trim_greeble_015",
+          "origin": "eigen",
+          "tris": 132,
+          "meanR": 0.986,
+          "below098": 1.7
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_pipe_paneling_b_023",
+          "origin": "eigen",
+          "tris": 125,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "aircon_interior_mtl_trim_04",
+          "origin": "eigen",
+          "tris": 114,
+          "meanR": 0.995,
+          "below098": 1.4
+        },
+        {
+          "material": "aircon_interior_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 108,
+          "meanR": 0.968,
+          "below098": 10
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_013",
+          "origin": "eigen",
+          "tris": 106,
+          "meanR": 0.929,
+          "below098": 10.3
+        },
+        {
+          "material": "lowtech_prop_old_mtl_lights_glow_017",
+          "origin": "eigen",
+          "tris": 96,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "medical_prop_a_mtl_light_glow_06",
+          "origin": "eigen",
+          "tris": 95,
+          "meanR": 0.994,
+          "below098": 1.2
+        },
+        {
+          "material": "light_ceiling_1_a_mtl_decal_glow_03",
+          "origin": "eigen",
+          "tris": 70,
+          "meanR": 0.696,
+          "below098": 60.2
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_paint_blue_a_02",
+          "origin": "eigen",
+          "tris": 70,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "lowtech_prop_old_mtl_paint_green_03",
+          "origin": "eigen",
+          "tris": 68,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "light_fluorescent_1_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 56,
+          "meanR": 0.593,
+          "below098": 50.7
+        },
+        {
+          "material": "cell_fuel_1_mtl_trim_03",
+          "origin": "eigen",
+          "tris": 38,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "util_a_default_mtl_glow_013",
+          "origin": "eigen",
+          "tris": 36,
+          "meanR": 0.965,
+          "below098": 4.4
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_trim_b_012",
+          "origin": "eigen",
+          "tris": 34,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "light_landing_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 32,
+          "meanR": 0.633,
+          "below098": 59.4
+        },
+        {
+          "material": "light_panel_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 30,
+          "meanR": 0.261,
+          "below098": 92.7
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_light_a_02",
+          "origin": "eigen",
+          "tris": 28,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lorville_brand_a_mtl_number_screen_a_08",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "sign_billboard_1_mtl_glow_main_05",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 0.575,
+          "below098": 73.3
+        },
+        {
+          "material": "util_a_default_mtl_trim_fabric_016",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "util_a_default_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 0.944,
+          "below098": 8.5
+        },
+        {
+          "material": "extinguisher_cabinet_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 22,
+          "meanR": 0.386,
+          "below098": 96.3
+        },
+        {
+          "material": "util_a_default_mtl_rubber_bare_027",
+          "origin": "eigen",
+          "tris": 20,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_chromium_a_06",
+          "origin": "eigen",
+          "tris": 16,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_b_039",
+          "origin": "eigen",
+          "tris": 12,
+          "meanR": 0.929,
+          "below098": 14.3
+        },
+        {
+          "material": "box_plastic_4_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 8,
+          "meanR": 0.5,
+          "below098": 67
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_plastic_dark_grey_a_024",
+          "origin": "eigen",
+          "tris": 4,
+          "meanR": 0.536,
+          "below098": 55.3
+        }
+      ],
+      "furnitureNodes": {
+        "roots": 8,
+        "nodes": 8,
+        "drawCalls": 348
+      },
+      "crease": {
+        "corners": 4004079,
+        "changedPct": 27.3
+      },
+      "uv": {
+        "rangeBefore": 923,
+        "rangeAfter": 912.5,
+        "bits": 22,
+        "degenerate": 4
+      },
+      "hull": {
+        "rays": 67500,
+        "escaped": 16,
+        "pct": 0.02,
+        "walls": {
+          "x-": 0,
+          "x+": 0,
+          "z-": 0,
+          "z+": 14,
+          "y+": 0,
+          "y-": 2
+        }
+      },
+      "floor": 6.481,
+      "bytes": 19065744,
+      "game": "13165946",
+      "room": {
+        "center": [
+          56,
+          6,
+          -67
+        ],
+        "halfW": 56,
+        "halfL": 71,
+        "height": 45
+      },
+      "eingaben": [
+        "lights-src.txt",
+        "matfix.json",
+        "layers.json",
+        "tor.json",
+        "info.json",
+        "ruhe.json",
+        "decals.glb",
+        "schrift.glb"
+      ],
+      "gameVersion": "4.10.3-live.13165946"
+    },
+    "util-smltop": {
+      "url": "/hangar/hall/util-smltop.glb",
+      "v": "00007f12",
+      "tris": 929357,
+      "trisRaw": 432192,
+      "textures": 245,
+      "attached": {
+        "attached": 590,
+        "color": 323,
+        "normal": 267,
+        "flatNormals": 102,
+        "rough": 359,
+        "tiled": 89,
+        "blended": 65,
+        "blendMetal": 1,
+        "blendSkipped": 0,
+        "blendAlpha": 13,
+        "glowMaske": 4,
+        "glowAus": 5
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 449,
+          "diffuse": 129,
+          "normal": 108,
+          "trisOhneMaterial": 0,
+          "tris": 467621
+        },
+        "after": {
+          "materials": 449,
+          "diffuse": 337,
+          "normal": 375,
+          "trisOhneMaterial": 0,
+          "tris": 467621
+        }
+      },
+      "lights": {
+        "total": 379,
+        "byType": {
+          "point": 154,
+          "area": 29,
+          "spot": 196
+        },
+        "matched": 379,
+        "orient": {
+          "spots": 196,
+          "area": 29,
+          "areaMounted": 13,
+          "spotsAway": 98,
+          "spotsMounted": 128,
+          "flaechen": "achse",
+          "areaAway": 12,
+          "areaInto": 1,
+          "areaOhne": 0
+        },
+        "ruhe": {
+          "weg": 57,
+          "namen": 57,
+          "gruppen": {
+            "lg_hangar_smltop": 52,
+            "lg_cargo_elevator_sml-002": 5
+          }
+        }
+      },
+      "furniture": 6,
+      "hallPalette": {
+        "name": "hangar_default",
+        "materials": 57,
+        "missing": 0,
+        "schichtTon": 38
+      },
+      "aufzug": {
+        "json": "/hangar/hall/util-smltop.aufzug.json",
+        "teile": 26,
+        "tris": 72092,
+        "rahmen": 332,
+        "plattform": 8292,
+        "mit": 21,
+        "weg": 32,
+        "uebersprungen": 50
+      },
+      "kinder": {
+        "exemplare": 7,
+        "je": {
+          "elev_util_cargo_hangar_sml_a": {
+            "exemplare": 1,
+            "tris": 12704
+          },
+          "elev_util_dropoff": {
+            "exemplare": 1,
+            "tris": 6280
+          },
+          "hangar_component_module_cargo_elevator_sml": {
+            "exemplare": 1,
+            "tris": 74159
+          },
+          "spawncloset_static_elev": {
+            "exemplare": 4,
+            "tris": 4192
+          }
+        }
+      },
+      "dreh": 90,
+      "aufkleber": {
+        "netze": 92,
+        "primitive": 186,
+        "tris": 35289,
+        "trisMitExemplaren": 50473,
+        "materialien": 11,
+        "fremd": [],
+        "karten": {
+          "materialien": 12,
+          "farbkarten": 6,
+          "normalen": 2,
+          "verstaerkt": 2,
+          "ohneKarte": [],
+          "logo": {
+            "karte": "512x512",
+            "deckt": 0.182
+          }
+        },
+        "weg": {
+          "relief": {
+            "materialien": 21,
+            "tris": 25511
+          },
+          "klein": {
+            "materialien": 41,
+            "tris": 9091
+          },
+          "ohneKarte": []
+        }
+      },
+      "logo": {
+        "tafeln": 4,
+        "weg": 0,
+        "karte": "512x512",
+        "deckt": 0.182
+      },
+      "schirme": {
+        "aus": 12,
+        "dreiecke": 84
+      },
+      "schrift": {
+        "primitive": 40,
+        "ecken": 2197,
+        "mm": 5
+      },
+      "schriftVoll": {
+        "netze": 3,
+        "teilnetze": 4,
+        "trisAlt": 103,
+        "trisNeu": 243,
+        "fremd": []
+      },
+      "vertexColors": [
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_c_042",
+          "origin": "eigen",
+          "tris": 77645,
+          "meanR": 0.95,
+          "below098": 7.2
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_c_042",
+          "origin": "eigen",
+          "tris": 60944,
+          "meanR": 0.964,
+          "below098": 5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_paint_a__030",
+          "origin": "eigen",
+          "tris": 19306,
+          "meanR": 0.964,
+          "below098": 6.8
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_metal_bare_022",
+          "origin": "eigen",
+          "tris": 16461,
+          "meanR": 0.938,
+          "below098": 9.8
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_panel_c_041",
+          "origin": "eigen",
+          "tris": 14132,
+          "meanR": 0.989,
+          "below098": 2
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_panel_c_043",
+          "origin": "eigen",
+          "tris": 12220,
+          "meanR": 0.964,
+          "below098": 5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_tertiary_tint_panel_c_043",
+          "origin": "eigen",
+          "tris": 10522,
+          "meanR": 0.957,
+          "below098": 5.5
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_floor_b_048",
+          "origin": "eigen",
+          "tris": 10058,
+          "meanR": 0.964,
+          "below098": 5
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_paint_a_030",
+          "origin": "eigen",
+          "tris": 6741,
+          "meanR": 0.976,
+          "below098": 3.6
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 6170,
+          "meanR": 0.997,
+          "below098": 0.7
+        },
+        {
+          "material": "util_a_default_mtl_trim_cables_018",
+          "origin": "eigen",
+          "tris": 5352,
+          "meanR": 0.961,
+          "below098": 6.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_tertiary_tint_paint_a__031",
+          "origin": "eigen",
+          "tris": 5276,
+          "meanR": 0.918,
+          "below098": 16.4
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_trim_fabric_016",
+          "origin": "eigen",
+          "tris": 4164,
+          "meanR": 0.982,
+          "below098": 2.6
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_panel_c_041",
+          "origin": "eigen",
+          "tris": 3933,
+          "meanR": 0.973,
+          "below098": 4.1
+        },
+        {
+          "material": "util_a_default_mtl_metal_bare_022",
+          "origin": "eigen",
+          "tris": 2576,
+          "meanR": 0.97,
+          "below098": 4.4
+        },
+        {
+          "material": "util_a_default_mtl_rubber_tread_028",
+          "origin": "eigen",
+          "tris": 2526,
+          "meanR": 0.973,
+          "below098": 5.5
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_metal_b_07",
+          "origin": "eigen",
+          "tris": 2311,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_b_039",
+          "origin": "eigen",
+          "tris": 2083,
+          "meanR": 0.952,
+          "below098": 5.6
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 1385,
+          "meanR": 0.92,
+          "below098": 13
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_paint_a_031",
+          "origin": "eigen",
+          "tris": 886,
+          "meanR": 0.95,
+          "below098": 8
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_panel_floor_b_049",
+          "origin": "eigen",
+          "tris": 808,
+          "meanR": 0.964,
+          "below098": 5
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_pipe_paneling_b_023",
+          "origin": "eigen",
+          "tris": 788,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_trim_mid_020",
+          "origin": "eigen",
+          "tris": 688,
+          "meanR": 0.945,
+          "below098": 6
+        },
+        {
+          "material": "lowtech_bravo_ext_a_mtl_primary_tint_pipe_a_08",
+          "origin": "eigen",
+          "tris": 684,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_ext_a_mtl_aluminium_a_07",
+          "origin": "eigen",
+          "tris": 676,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "hangar_shield_a_mtl_shield_edge_00",
+          "origin": "eigen",
+          "tris": 649,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_pipe_flexible_08",
+          "origin": "eigen",
+          "tris": 538,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_paint_warm_grey_02",
+          "origin": "eigen",
+          "tris": 518,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_steel_a_07",
+          "origin": "eigen",
+          "tris": 442,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_metal_a_018",
+          "origin": "eigen",
+          "tris": 433,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_paint_grey_a_013",
+          "origin": "eigen",
+          "tris": 431,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_trim_mid_019",
+          "origin": "eigen",
+          "tris": 344,
+          "meanR": 0.979,
+          "below098": 4
+        },
+        {
+          "material": "aircon_interior_mtl_decal diffuse_02",
+          "origin": "eigen",
+          "tris": 340,
+          "meanR": 0.973,
+          "below098": 8.3
+        },
+        {
+          "material": "lowtech_alpha_ext_mtl_rubber_large_014",
+          "origin": "eigen",
+          "tris": 335,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "kiosk_personal_inventory_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 327,
+          "meanR": 0.716,
+          "below098": 47.6
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_beams_atlas_019",
+          "origin": "eigen",
+          "tris": 322,
+          "meanR": 0.862,
+          "below098": 28.3
+        },
+        {
+          "material": "lowtech_prop_old_mtl_iron_02_07",
+          "origin": "eigen",
+          "tris": 310,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "light_hazard_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 304,
+          "meanR": 0.5,
+          "below098": 80.5
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_panels_walls_031",
+          "origin": "eigen",
+          "tris": 302,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "kiosk_freight_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 288,
+          "meanR": 0.621,
+          "below098": 54.8
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 282,
+          "meanR": 0.92,
+          "below098": 12.1
+        },
+        {
+          "material": "kiosk_personal_inventory_1_a_mtl_decal diffuse_02",
+          "origin": "eigen",
+          "tris": 268,
+          "meanR": 0.716,
+          "below098": 47.6
+        },
+        {
+          "material": "util_a_default_mtl_asphalt_bare_025",
+          "origin": "eigen",
+          "tris": 248,
+          "meanR": 0.872,
+          "below098": 25.8
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_panel_b_038",
+          "origin": "eigen",
+          "tris": 244,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lorville_brand_a_mtl_alphabet_screen_a_07",
+          "origin": "eigen",
+          "tris": 210,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "drum_dry_1_dark_a_mtl_decal_diff_02",
+          "origin": "eigen",
+          "tris": 206,
+          "meanR": 0.594,
+          "below098": 73.3
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_floor_b_048",
+          "origin": "eigen",
+          "tris": 174,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "freight_brand_a_mtl_Alphabet_a_Prim_Upper_nodecal_06",
+          "origin": "eigen",
+          "tris": 165,
+          "meanR": 0.129,
+          "below098": 100
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_a_036",
+          "origin": "eigen",
+          "tris": 156,
+          "meanR": 0.929,
+          "below098": 10.3
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_pipe_paneling_b_023",
+          "origin": "eigen",
+          "tris": 125,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "util_a_default_mtl_trim_greeble_015",
+          "origin": "eigen",
+          "tris": 124,
+          "meanR": 0.939,
+          "below098": 11.3
+        },
+        {
+          "material": "aircon_interior_mtl_trim_04",
+          "origin": "eigen",
+          "tris": 114,
+          "meanR": 0.995,
+          "below098": 1.4
+        },
+        {
+          "material": "aircon_interior_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 108,
+          "meanR": 0.968,
+          "below098": 10
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_013",
+          "origin": "eigen",
+          "tris": 106,
+          "meanR": 0.929,
+          "below098": 10.3
+        },
+        {
+          "material": "lowtech_prop_old_mtl_lights_glow_017",
+          "origin": "eigen",
+          "tris": 96,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "medical_prop_a_mtl_light_glow_06",
+          "origin": "eigen",
+          "tris": 95,
+          "meanR": 0.994,
+          "below098": 1.2
+        },
+        {
+          "material": "light_ceiling_1_a_mtl_decal_glow_03",
+          "origin": "eigen",
+          "tris": 70,
+          "meanR": 0.696,
+          "below098": 60.2
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_paint_blue_a_02",
+          "origin": "eigen",
+          "tris": 70,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "lowtech_prop_old_mtl_paint_green_03",
+          "origin": "eigen",
+          "tris": 68,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "lowtech_alpha_ext_mtl_paint_blue_bl_04",
+          "origin": "eigen",
+          "tris": 58,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "light_fluorescent_1_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 56,
+          "meanR": 0.593,
+          "below098": 50.7
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_trim_mid_019",
+          "origin": "eigen",
+          "tris": 56,
+          "meanR": 0.959,
+          "below098": 8
+        },
+        {
+          "material": "util_a_default_mtl_glow_013",
+          "origin": "eigen",
+          "tris": 48,
+          "meanR": 0.964,
+          "below098": 5
+        },
+        {
+          "material": "cell_fuel_1_mtl_trim_03",
+          "origin": "eigen",
+          "tris": 38,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_trim_b_012",
+          "origin": "eigen",
+          "tris": 34,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "light_landing_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 32,
+          "meanR": 0.633,
+          "below098": 59.4
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_light_a_02",
+          "origin": "eigen",
+          "tris": 28,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "util_a_default_mtl_trim_fabric_016",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "utilitarian_master_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 20,
+          "meanR": 0.278,
+          "below098": 90.2
+        },
+        {
+          "material": "sign_billboard_1_mtl_glow_main_05",
+          "origin": "eigen",
+          "tris": 20,
+          "meanR": 0.588,
+          "below098": 72.6
+        },
+        {
+          "material": "light_panel_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 20,
+          "meanR": 0.255,
+          "below098": 93
+        },
+        {
+          "material": "util_a_default_mtl_rubber_bare_027",
+          "origin": "eigen",
+          "tris": 20,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lorville_brand_a_mtl_number_screen_a_08",
+          "origin": "eigen",
+          "tris": 18,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_chromium_a_06",
+          "origin": "eigen",
+          "tris": 16,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "util_a_default_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 16,
+          "meanR": 0.948,
+          "below098": 7.5
+        },
+        {
+          "material": "extinguisher_cabinet_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 12,
+          "meanR": 0.383,
+          "below098": 96.5
+        },
+        {
+          "material": "box_plastic_4_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 8,
+          "meanR": 0.5,
+          "below098": 67
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_b_039",
+          "origin": "eigen",
+          "tris": 8,
+          "meanR": 0.938,
+          "below098": 12.6
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_plastic_dark_grey_a_024",
+          "origin": "eigen",
+          "tris": 4,
+          "meanR": 0.536,
+          "below098": 55.3
+        }
+      ],
+      "furnitureNodes": {
+        "roots": 6,
+        "nodes": 6,
+        "drawCalls": 414
+      },
+      "crease": {
+        "corners": 2788071,
+        "changedPct": 27.1
+      },
+      "uv": {
+        "rangeBefore": 923,
+        "rangeAfter": 912.5,
+        "bits": 22,
+        "degenerate": 3.2
+      },
+      "hull": {
+        "rays": 67500,
+        "escaped": 111,
+        "pct": 0.16,
+        "walls": {
+          "x-": 0,
+          "x+": 0,
+          "z-": 0,
+          "z+": 0,
+          "y+": 1,
+          "y-": 110
+        }
+      },
+      "floor": 6.5,
+      "bytes": 16052508,
+      "game": "13165946",
+      "room": {
+        "center": [
+          42,
+          6,
+          48
+        ],
+        "halfW": 48,
+        "halfL": 48,
+        "height": 40
+      },
+      "eingaben": [
+        "lights-src.txt",
+        "matfix.json",
+        "layers.json",
+        "tor.json",
+        "info.json",
+        "ruhe.json",
+        "decals.glb",
+        "schrift.glb"
+      ],
+      "gameVersion": "4.10.3-live.13165946"
+    },
+    "util-xltop": {
+      "url": "/hangar/hall/util-xltop.glb",
+      "v": "4d8bc0a1",
+      "tris": 3514537,
+      "trisRaw": 714802,
+      "textures": 258,
+      "attached": {
+        "attached": 615,
+        "color": 336,
+        "normal": 279,
+        "flatNormals": 109,
+        "rough": 378,
+        "tiled": 91,
+        "blended": 65,
+        "blendMetal": 1,
+        "blendSkipped": 0,
+        "blendAlpha": 13,
+        "glowMaske": 5,
+        "glowAus": 5
+      },
+      "matfix": {
+        "fixed": 0,
+        "dropped": 0,
+        "created": 0
+      },
+      "cover": {
+        "before": {
+          "materials": 476,
+          "diffuse": 131,
+          "normal": 111,
+          "trisOhneMaterial": 0,
+          "tris": 864786
+        },
+        "after": {
+          "materials": 476,
+          "diffuse": 354,
+          "normal": 395,
+          "trisOhneMaterial": 0,
+          "tris": 864786
+        }
+      },
+      "lights": {
+        "total": 1339,
+        "byType": {
+          "point": 483,
+          "spot": 749,
+          "area": 107
+        },
+        "matched": 1339,
+        "orient": {
+          "spots": 749,
+          "area": 107,
+          "areaMounted": 61,
+          "spotsAway": 449,
+          "spotsMounted": 537,
+          "flaechen": "achse",
+          "areaAway": 49,
+          "areaInto": 12,
+          "areaOhne": 0
+        },
+        "ruhe": {
+          "weg": 162,
+          "namen": 157,
+          "gruppen": {
+            "lg_hangar_xltop": 152,
+            "lg_cargo_elevator_xlrg-002": 5
+          }
+        }
+      },
+      "furniture": 11,
+      "hallPalette": {
+        "name": "hangar_default",
+        "materials": 58,
+        "missing": 0,
+        "schichtTon": 38
+      },
+      "aufzug": {
+        "json": "/hangar/hall/util-xltop.aufzug.json",
+        "teile": 38,
+        "tris": 368814,
+        "rahmen": 948,
+        "plattform": 12836,
+        "mit": 51,
+        "weg": 104,
+        "uebersprungen": 73,
+        "schwenken": 4,
+        "achse": 1.6
+      },
+      "kinder": {
+        "exemplare": 26,
+        "je": {
+          "elev_util_cargo_hangar_xlrg_a": {
+            "exemplare": 2,
+            "tris": 63328
+          },
+          "elev_util_dropoff": {
+            "exemplare": 2,
+            "tris": 12560
+          },
+          "hangar_component_module_cargo_elevator_xl": {
+            "exemplare": 2,
+            "tris": 225830
+          },
+          "spawncloset_static_elev": {
+            "exemplare": 20,
+            "tris": 20960
+          }
+        }
+      },
+      "aufkleber": {
+        "netze": 159,
+        "primitive": 273,
+        "tris": 149797,
+        "trisMitExemplaren": 246193,
+        "materialien": 16,
+        "fremd": [],
+        "karten": {
+          "materialien": 17,
+          "farbkarten": 11,
+          "normalen": 3,
+          "verstaerkt": 2,
+          "ohneKarte": [],
+          "logo": {
+            "karte": "512x512",
+            "deckt": 0.182
+          }
+        },
+        "weg": {
+          "relief": {
+            "materialien": 21,
+            "tris": 72832
+          },
+          "klein": {
+            "materialien": 37,
+            "tris": 15278
+          },
+          "ohneKarte": []
+        }
+      },
+      "logo": {
+        "tafeln": 12,
+        "weg": 0,
+        "karte": "512x512",
+        "deckt": 0.182
+      },
+      "schirme": {
+        "aus": 13,
+        "dreiecke": 96
+      },
+      "schrift": {
+        "primitive": 50,
+        "ecken": 2684,
+        "mm": 5
+      },
+      "schriftVoll": {
+        "netze": 4,
+        "teilnetze": 5,
+        "trisAlt": 144,
+        "trisNeu": 331,
+        "fremd": []
+      },
+      "vertexColors": [
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_c_042",
+          "origin": "eigen",
+          "tris": 189872,
+          "meanR": 0.963,
+          "below098": 5.2
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_c_042",
+          "origin": "eigen",
+          "tris": 88760,
+          "meanR": 0.965,
+          "below098": 6
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_panel_c_043",
+          "origin": "eigen",
+          "tris": 53518,
+          "meanR": 0.963,
+          "below098": 5.2
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_floor_b_048",
+          "origin": "eigen",
+          "tris": 38916,
+          "meanR": 0.963,
+          "below098": 5.2
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_paint_a__030",
+          "origin": "eigen",
+          "tris": 27696,
+          "meanR": 0.975,
+          "below098": 4.8
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_panel_c_041",
+          "origin": "eigen",
+          "tris": 20489,
+          "meanR": 0.988,
+          "below098": 2.1
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_metal_bare_022",
+          "origin": "eigen",
+          "tris": 18597,
+          "meanR": 0.94,
+          "below098": 10.9
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_panel_c_041",
+          "origin": "eigen",
+          "tris": 10412,
+          "meanR": 0.983,
+          "below098": 2.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_tertiary_tint_panel_c_043",
+          "origin": "eigen",
+          "tris": 9842,
+          "meanR": 0.972,
+          "below098": 4.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_tertiary_tint_paint_a__031",
+          "origin": "eigen",
+          "tris": 7698,
+          "meanR": 0.944,
+          "below098": 11.2
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_paint_a_030",
+          "origin": "eigen",
+          "tris": 6865,
+          "meanR": 0.968,
+          "below098": 5.7
+        },
+        {
+          "material": "util_a_default_mtl_trim_cables_018",
+          "origin": "eigen",
+          "tris": 6416,
+          "meanR": 0.967,
+          "below098": 6.1
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 6170,
+          "meanR": 0.997,
+          "below098": 0.7
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_panel_floor_b_049",
+          "origin": "eigen",
+          "tris": 5212,
+          "meanR": 0.963,
+          "below098": 5.2
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_trim_fabric_016",
+          "origin": "eigen",
+          "tris": 4804,
+          "meanR": 0.985,
+          "below098": 2.1
+        },
+        {
+          "material": "util_a_default_mtl_metal_bare_022",
+          "origin": "eigen",
+          "tris": 2800,
+          "meanR": 0.939,
+          "below098": 9.9
+        },
+        {
+          "material": "util_a_default_mtl_rubber_tread_028",
+          "origin": "eigen",
+          "tris": 2688,
+          "meanR": 0.944,
+          "below098": 11.9
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_metal_b_07",
+          "origin": "eigen",
+          "tris": 2311,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_paint_a_029",
+          "origin": "eigen",
+          "tris": 2266,
+          "meanR": 0.944,
+          "below098": 9.3
+        },
+        {
+          "material": "util_a_default_mtl_tertiary_tint_paint_a_031",
+          "origin": "eigen",
+          "tris": 1534,
+          "meanR": 0.933,
+          "below098": 12.5
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_pipe_paneling_b_023",
+          "origin": "eigen",
+          "tris": 1284,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_b_039",
+          "origin": "eigen",
+          "tris": 1279,
+          "meanR": 0.969,
+          "below098": 4.6
+        },
+        {
+          "material": "hangar_shield_a_mtl_shield_edge_00",
+          "origin": "eigen",
+          "tris": 987,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_steel_a_07",
+          "origin": "eigen",
+          "tris": 830,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_ext_a_mtl_primary_tint_pipe_a_08",
+          "origin": "eigen",
+          "tris": 684,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_ext_a_mtl_aluminium_a_07",
+          "origin": "eigen",
+          "tris": 676,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_pipe_flexible_08",
+          "origin": "eigen",
+          "tris": 538,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_paint_warm_grey_02",
+          "origin": "eigen",
+          "tris": 518,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_metal_a_018",
+          "origin": "eigen",
+          "tris": 433,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_paint_grey_a_013",
+          "origin": "eigen",
+          "tris": 431,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_trim_mid_020",
+          "origin": "eigen",
+          "tris": 408,
+          "meanR": 0.976,
+          "below098": 2.6
+        },
+        {
+          "material": "aircon_interior_mtl_decal diffuse_02",
+          "origin": "eigen",
+          "tris": 340,
+          "meanR": 0.973,
+          "below098": 8.3
+        },
+        {
+          "material": "utilitarian_master_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 340,
+          "meanR": 0.628,
+          "below098": 55.8
+        },
+        {
+          "material": "lowtech_alpha_ext_mtl_rubber_large_014",
+          "origin": "eigen",
+          "tris": 335,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "kiosk_personal_inventory_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 327,
+          "meanR": 0.716,
+          "below098": 47.6
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_beams_atlas_019",
+          "origin": "eigen",
+          "tris": 322,
+          "meanR": 0.862,
+          "below098": 28.3
+        },
+        {
+          "material": "lowtech_prop_old_mtl_iron_02_07",
+          "origin": "eigen",
+          "tris": 310,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "light_hazard_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 304,
+          "meanR": 0.5,
+          "below098": 80.5
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 302,
+          "meanR": 0.931,
+          "below098": 10.5
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_panels_walls_031",
+          "origin": "eigen",
+          "tris": 302,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "lorville_brand_a_mtl_alphabet_screen_a_07",
+          "origin": "eigen",
+          "tris": 298,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_mtl_paint_blue_bl_04",
+          "origin": "eigen",
+          "tris": 296,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "util_a_default_mtl_asphalt_bare_025",
+          "origin": "eigen",
+          "tris": 296,
+          "meanR": 0.974,
+          "below098": 5.7
+        },
+        {
+          "material": "kiosk_freight_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 288,
+          "meanR": 0.621,
+          "below098": 54.8
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_primary_tint_trim_mid_019",
+          "origin": "eigen",
+          "tris": 272,
+          "meanR": 0.989,
+          "below098": 1.8
+        },
+        {
+          "material": "kiosk_personal_inventory_1_a_mtl_decal diffuse_02",
+          "origin": "eigen",
+          "tris": 268,
+          "meanR": 0.716,
+          "below098": 47.6
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_panel_b_038",
+          "origin": "eigen",
+          "tris": 244,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "drum_dry_1_dark_a_mtl_decal_diff_02",
+          "origin": "eigen",
+          "tris": 206,
+          "meanR": 0.594,
+          "below098": 73.3
+        },
+        {
+          "material": "util_a_default_mtl_glow_013",
+          "origin": "eigen",
+          "tris": 192,
+          "meanR": 0.963,
+          "below098": 5.2
+        },
+        {
+          "material": "util_a_default_mtl_primary_tint_trim_mid_019",
+          "origin": "eigen",
+          "tris": 176,
+          "meanR": 0.979,
+          "below098": 3.7
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_floor_b_048",
+          "origin": "eigen",
+          "tris": 174,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "freight_brand_a_mtl_Alphabet_a_Prim_Upper_nodecal_06",
+          "origin": "eigen",
+          "tris": 165,
+          "meanR": 0.129,
+          "below098": 100
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_secondary_tint_panel_a_036",
+          "origin": "eigen",
+          "tris": 156,
+          "meanR": 0.929,
+          "below098": 10.3
+        },
+        {
+          "material": "util_a_default_mtl_trim_greeble_015",
+          "origin": "eigen",
+          "tris": 140,
+          "meanR": 0.986,
+          "below098": 1.7
+        },
+        {
+          "material": "lowtech_bravo_int_mtl_pipe_paneling_b_023",
+          "origin": "eigen",
+          "tris": 125,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_ext_a_mtl_glow_013",
+          "origin": "eigen",
+          "tris": 122,
+          "meanR": 0.952,
+          "below098": 7
+        },
+        {
+          "material": "aircon_interior_mtl_trim_04",
+          "origin": "eigen",
+          "tris": 114,
+          "meanR": 0.995,
+          "below098": 1.4
+        },
+        {
+          "material": "aircon_interior_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 108,
+          "meanR": 0.968,
+          "below098": 10
+        },
+        {
+          "material": "lowtech_prop_old_mtl_lights_glow_017",
+          "origin": "eigen",
+          "tris": 96,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "medical_prop_a_mtl_light_glow_06",
+          "origin": "eigen",
+          "tris": 95,
+          "meanR": 0.994,
+          "below098": 1.2
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_panel_b_039",
+          "origin": "eigen",
+          "tris": 76,
+          "meanR": 0.918,
+          "below098": 17.5
+        },
+        {
+          "material": "light_ceiling_1_a_mtl_decal_glow_03",
+          "origin": "eigen",
+          "tris": 70,
+          "meanR": 0.696,
+          "below098": 60.2
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_paint_blue_a_02",
+          "origin": "eigen",
+          "tris": 70,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "lowtech_prop_old_mtl_paint_green_03",
+          "origin": "eigen",
+          "tris": 68,
+          "meanR": 0.93,
+          "below098": 15.2
+        },
+        {
+          "material": "util_a_default_mtl_trim_fabric_016",
+          "origin": "eigen",
+          "tris": 60,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "light_fluorescent_1_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 56,
+          "meanR": 0.593,
+          "below098": 50.7
+        },
+        {
+          "material": "util_a_default_mtl_secondary_tint_trim_mid_020",
+          "origin": "eigen",
+          "tris": 44,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "cell_fuel_1_mtl_trim_03",
+          "origin": "eigen",
+          "tris": 38,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_trim_b_012",
+          "origin": "eigen",
+          "tris": 34,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "light_landing_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 32,
+          "meanR": 0.633,
+          "below098": 59.4
+        },
+        {
+          "material": "light_panel_1_a_mtl_decal_glow_lod_06",
+          "origin": "eigen",
+          "tris": 30,
+          "meanR": 0.261,
+          "below098": 92.7
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_light_a_02",
+          "origin": "eigen",
+          "tris": 28,
+          "meanR": 0.536,
+          "below098": 55.3
+        },
+        {
+          "material": "sign_billboard_1_mtl_glow_main_05",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 0.575,
+          "below098": 73.3
+        },
+        {
+          "material": "lorville_brand_a_mtl_number_screen_a_08",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "util_a_default_mtl_glow_linked_014",
+          "origin": "eigen",
+          "tris": 24,
+          "meanR": 0.933,
+          "below098": 11.9
+        },
+        {
+          "material": "extinguisher_cabinet_1_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 22,
+          "meanR": 0.386,
+          "below098": 96.3
+        },
+        {
+          "material": "util_a_default_mtl_rubber_bare_027",
+          "origin": "eigen",
+          "tris": 20,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "lowtech_bravo_int_b_mtl_chromium_a_06",
+          "origin": "eigen",
+          "tris": 16,
+          "meanR": 0.841,
+          "below098": 22.2
+        },
+        {
+          "material": "util_a_default_mtl_trim_mid_alpha_012",
+          "origin": "eigen",
+          "tris": 14,
+          "meanR": 1,
+          "below098": 0
+        },
+        {
+          "material": "box_plastic_4_a_mtl_decal glow_03",
+          "origin": "eigen",
+          "tris": 8,
+          "meanR": 0.5,
+          "below098": 67
+        },
+        {
+          "material": "lowtech_alpha_interior_a_mtl_plastic_dark_grey_a_024",
+          "origin": "eigen",
+          "tris": 4,
+          "meanR": 0.536,
+          "below098": 55.3
+        }
+      ],
+      "furnitureNodes": {
+        "roots": 11,
+        "nodes": 11,
+        "drawCalls": 496
+      },
+      "crease": {
+        "corners": 10543611,
+        "changedPct": 25.8
+      },
+      "uv": {
+        "rangeBefore": 1069,
+        "rangeAfter": 912.5,
+        "bits": 22,
+        "degenerate": 3.4
+      },
+      "hull": {
+        "rays": 67500,
+        "escaped": 41,
+        "pct": 0.06,
+        "walls": {
+          "x-": 0,
+          "x+": 0,
+          "z-": 5,
+          "z+": 0,
+          "y+": 36,
+          "y-": 0
+        }
+      },
+      "floor": 2.493,
+      "bytes": 35732696,
+      "game": "13165946",
+      "room": {
+        "center": [
+          -112,
+          2,
+          168
+        ],
+        "halfW": 120,
+        "halfL": 180,
+        "height": 108
+      },
+      "eingaben": [
+        "lights-src.txt",
+        "matfix.json",
+        "layers.json",
+        "tor.json",
+        "info.json",
+        "ruhe.json",
+        "decals.glb",
+        "schrift.glb"
+      ],
+      "gameVersion": "4.10.3-live.13165946"
     }
   },
   "hallLite": {

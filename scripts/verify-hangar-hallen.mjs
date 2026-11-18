@@ -33,11 +33,16 @@
 
    [1] Seite: je Stufe die Halle, die HALL_FEST für sie nennt, in beiden
        Sprachen gleich, mit Modell, Lampen und Aufzug in dist/, so groß,
-       wie Seite und Manifest sagen
+       wie Seite und Manifest sagen; jede mit dem Gerätesatz des
+       Wartungsplatzes am Schiff (dienst), den der Viewer für sie nimmt
+       (dienstSatz)
    [2] Modell: der Boden der Seite ist der, den das Lot am ausgelieferten
        Modell trifft; die Plattform liegt auf dieser Höhe; Landefläche,
        Feld des Aufzugs und Raum liegen ineinander; jede Bahn hat ihren
-       Knoten; die Halle hat ihr Grundlicht (hallGrund, Klinke je Halle),
+       Knoten, und offen liegt kein Teil des Tors über dem Feld (ein Flügel,
+       der falsch herum fährt: so am rechten der Medium-Halle, solange der
+       Build die Drehung seines Halters nicht mitrechnete; offenImFeld in
+       scripts/lib/aufzug-dreh.mjs); die Halle hat ihr Grundlicht (hallGrund, Klinke je Halle),
        und es steht im Lichtgitter: Das Tor rechnet das Gitter mit der
        Funktion des Viewers (hallGitter) ohne Lampen und liest jede Zelle
        zurück, alle sechs Richtungen und die Lichtfarbe; ohne den Namen
@@ -388,7 +393,90 @@
        brennend, ohne die Probe am Protokoll, ohne Exemplare gezählt, ein
        Name öfter im Modell als in der Liste, Kinder ohne Lichter
        mitgezählt, dieselbe Gruppe in zwei Containern).
-   (v) 18.11.2026, Hauptstrahler und Lampenlicht im Gitter
+   (v) 18.11.2026, das Bodentor offen neben dem Feld (offenImFeld aus
+       scripts/lib/aufzug-dreh.mjs): Die Bahnen der rechten Torflügel der
+       Medium-Halle fuhren, als die Hallen S, M und XL dazukamen, nach
+       innen, weil ihr Halter im Spiel um 180° gedreht steht; im Bild lag
+       das Schiff auf ihnen. An einer Kopie von dist/ (alles verlinkt, nur
+       die geänderte Datei kopiert) die Bahnen der fünf rechten Flügel
+       gespiegelt, 1 FEHLER: „[2] util-medtop: offen liegen 5 Teile des
+       Tors ueber dem Feld des Aufzugs (aufzug_tor_02 2.18 x 88 m,
+       aufzug_tor_03 6 x 88 m, aufzug_tor_04 6 x 88 m, aufzug_tor_05 6 x
+       88 m) — sie fahren falsch herum, das Schiff stuende auf ihnen;
+       Bahnen aus scripts/lib/aufzug-dreh.mjs neu bauen“.
+       Die Riegel am Tor der XL-Halle, die um ihren Knochen schwenken,
+       rechnet dieselbe Regel mit Drehung um den Drehpunkt; das hält
+       tests/e2e/aufzug-dreh.test.js an einem kleinen Tor (ein Riegel,
+       der offen ins Feld schwenkt, wird genannt, einer, der hinaus
+       schwenkt, nicht; der Flügel falsch herum wird genannt), und der Build bricht dort ab, wo eine Bahn
+       nicht zur Ruhelage des Knotenbaums passt.
+       Nach dem Review von CodeRabbit an PR #389 fallen unvollständige
+       Teile nicht mehr still aus der Probe: Jedes Teil braucht, was
+       ownLift im Viewer verlangt (box, je Richtung zwei Schlüssel), ein
+       Teil mit Drehdaten dazu keysRot mit zwei Schlüsseln je Richtung und
+       einen Drehpunkt. Zweimal an einer Kopie von dist/ gebrochen:
+       box des ersten Torteils der Medium-Halle gelöscht, 1 FEHLER: „[2]
+       util-medtop: 1 Teil(e) des Bodentors unvollstaendig (aufzug_tor_00:
+       ohne box) — der Viewer baute den Aufzug nicht oder zoege einen
+       Riegel ohne Schwenk; Bahnen neu bauen“;
+       am ersten Riegel der XL-Halle nur der letzte Schlüssel von
+       keysRot.open behalten, 1 FEHLER: „[2] util-xltop: 1 Teil(e) des
+       Bodentors unvollstaendig (aufzug_tor_34: keysRot.open mit 1
+       Schluessel(n)) — …“.
+       Zweite Runde desselben Reviews: Jeder Schlüssel muss aus endlichen
+       Zahlen bestehen (vier in keys, fünf in keysRot mit einer Drehung,
+       die nicht aus lauter Nullen ist), und das Feld des Aufzugs aus zwei
+       Ecken zu je zwei Zahlen mit from kleiner als to; sonst ergaben
+       Mitte und Überdeckung NaN, und kein Vergleich schlug an. Viermal an
+       einer Kopie von dist/ gebrochen, je 1 FEHLER:
+       an die Öffnungsbahn des ersten Torteils der Medium-Halle ein
+       Schlüssel [1] gehängt: „[2] util-medtop: 1 Teil(e) des Bodentors
+       unvollstaendig (aufzug_tor_00: keys.open[61] ist kein Schluessel
+       aus 4 Zahlen) — …“;
+       am ersten Riegel der XL-Halle ein Schlüssel von keysRot.open mit
+       der Drehung 0,0,0,0: „[2] util-xltop: 1 Teil(e) des Bodentors
+       unvollstaendig (aufzug_tor_34: keysRot.open[3] ist kein Schluessel
+       aus 5 Zahlen mit einer Drehung) — …“;
+       feld.from der Small-Halle leer: „[2] util-smltop: die Bahnen nennen
+       das Feld des Aufzugs nicht als zwei Ecken aus je zwei Zahlen (feld
+       {"from":[],"to":[66,72]})“;
+       from und to der Large-Halle vertauscht: „[2] util-lrgtop: das Feld
+       des Aufzugs ist leer oder verkehrt herum (from -28.001, 192, to
+       -116, 32)“.
+   (w) 18.11.2026, der Wartungsplatz am Schiff in jeder Halle fester
+       Größe (dienstSatz im Viewer, dienst in der Zeile der Seite). Krisz:
+       „die assets wieder um die schiffe herum platzieren in den neuen
+       hallen“; seit PR #371 stand dort kein Gerät mehr. Viermal an einer
+       Kopie von dist/ gebrochen:
+       dienst der Medium-Halle aus beiden Seiten genommen, 2 FEHLER: „[1]
+       util-medtop: die Seite nennt keinen Geraetesatz fuer den
+       Wartungsplatz am Schiff (dienst) — in dieser Halle stuende kein
+       Geraet um das Schiff“ und „[1] nur 3 Halle(n) fester Groesse mit
+       dem Geraetesatz des Wartungsplatzes, Klinke 4“;
+       der Viewer exportiert dienstSatz nicht mehr, 1 FEHLER: „[1] der
+       Viewer nennt nicht mehr, welchen Geraetesatz eine Halle fuer den
+       Wartungsplatz am Schiff nimmt (dienstSatz) — ob in den Hallen
+       fester Groesse Geraet am Schiff steht, liesse sich nur raten“;
+       der Viewer nimmt auch für Hallen fester Größe nur den Satz der
+       Werkstatt (wie vor diesem Tag), 5 FEHLER, je Halle „[1]
+       util-smltop: die Seite nennt den Geraetesatz, der Viewer nimmt
+       fuer diese Halle aber keinen (dienstSatz) — der Wartungsplatz
+       bliebe leer“ und „[1] nur 0 Halle(n) fester Groesse mit dem
+       Geraetesatz des Wartungsplatzes, Klinke 4“;
+       die Seite nennt für die XL-Halle eine Datei, die dist/ nicht hat,
+       2 FEHLER: „[1] util-xltop: der Geraetesatz des Wartungsplatzes
+       (/hangar/props/dienst-fehlt.glb) fehlt in dist/ — in dieser Halle
+       stuende kein Geraet um das Schiff“ und die Klinke wie oben.
+       Nicht hier geprüft: ob die Geräte dann auch am Schiff stehen. Das
+       zählt check:hangar-shader im Browser (Klinke plaetze je Halle in
+       KLINKE_FEST, dort vorgeführt rot).
+       Die Klinken und Obergrenzen der neuen Hallen laufen durch dieselben
+       Zeilen wie die der Large-Halle; an einer Kopie des Tors je eine
+       verschoben (Tor der XL-Halle 39 statt 38, Dreiecke der Small-Halle
+       höchstens 900000), 2 FEHLER: „[3] util-smltop: 929357 Dreiecke,
+       Obergrenze 900000 — die Halle ist schwerer oder offener geworden“
+       und „[3] util-xltop: 38 Teile des Bodentors, Klinke 39“.
+   (x) 18.11.2026, Hauptstrahler und Lampenlicht im Gitter
        (HALL_FEST.strahler, HALL_FEST.gitter; Krisz: „wie man das auf dem
        nbild sieht ist die beleuchtung super kacke“): Die sechs Fluter
        über der Landefläche strahlten türkis und von beiden Seiten gleich
@@ -484,6 +572,7 @@ import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import draco3d from 'draco3d';
 import { floorLevel } from './lib/hall-hull.mjs';
+import { offenImFeld } from './lib/aufzug-dreh.mjs';
 import { SCHRIFT, SCHIRM_AUS } from './lib/hall-decals.mjs';
 import { lampenName } from './lib/hall-ruhe.mjs';
 import { DataUtils } from 'three';
@@ -494,7 +583,8 @@ const DIST = join(ROOT, 'dist');
 const STUFEN = ['S', 'M', 'L', 'XL'];
 
 // Klinken (Grundsatz 5: nur nach oben; nach unten per Commit mit Ursache)
-const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die Large-Halle)
+const MIN_HALLEN = 4; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die Large-Halle; 18.11.2026: 4, dazu Small, Medium und XL)
+const MIN_DIENST = 4; // davon mit dem Gerätesatz des Wartungsplatzes am Schiff (18.11.2026: alle vier)
 // je Halle, gemessen am gebauten Stand: Lampen des Spiels, Teile des Bodentors, Dreiecke der Schrift im Modell,
 // Dreiecke ausgeschalteter Schirme im Modell, vom Build ausgeschaltete Schirme, Tafeln mit Logo, Netze mit
 // Aufklebern, aus der vollen Stufe geholte Schilder, eingehängte Kind-Container mit Geometrie.
@@ -536,6 +626,11 @@ const MIN_HALLEN = 1; // ausgelieferte Hallen fester Größe (14.11.2026: 1, die
 // nennt HALL_FEST für sie doch welche, reißt das Tor.
 const KLINKE = {
   'util-lrgtop': { lampen: 870, tor: 18, schriftTris: 2337, schirmTris: 244, schirme: 13, tafeln: 9, aufkleber: 151, schilder: 5, kinder: 14, grund: 3, gedaempft: 114, flaechen: 58, ruhe: 86, strahler: 6 },
+  // Small, Medium und XL (18.11.2026), gemessen am Vorschau-Bau mit ihren Modellen; dieselben Regeln wie Large.
+  // Gedämpft sind auch dort die Lampen der Kabinen ihrer Frachtaufzüge (Small 1 Aufzug, Medium und XL je 2).
+  'util-smltop': { lampen: 379, tor: 26, schriftTris: 1324, schirmTris: 190, schirme: 12, tafeln: 4, aufkleber: 92, schilder: 4, kinder: 7, grund: 3, gedaempft: 28, flaechen: 29, ruhe: 57 },
+  'util-medtop': { lampen: 653, tor: 12, schriftTris: 1893, schirmTris: 248, schirme: 13, tafeln: 9, aufkleber: 144, schilder: 5, kinder: 9, grund: 3, gedaempft: 86, flaechen: 52, ruhe: 75 },
+  'util-xltop': { lampen: 1339, tor: 38, schriftTris: 4348, schirmTris: 422, schirme: 13, tafeln: 12, aufkleber: 159, schilder: 5, kinder: 26, grund: 3, gedaempft: 126, flaechen: 107, ruhe: 162 },
 };
 // Dreiecke und Bytes des Modells, Texturen, Anteil der Blickstrahlen, die ins Leere gehen (%).
 // util-lrgtop: 1,70 Mio. Dreiecke galten für die Halle ohne ihre Frachtaufzüge (1 551 505); mit beiden sind es
@@ -544,6 +639,12 @@ const KLINKE = {
 // Grenze 0,3 % hält die Hülle geschlossen.
 const OBERGRENZE = {
   'util-lrgtop': { tris: 1850000, bytes: 24e6, texturen: 270, leck: 0.3 },
+  // 18.11.2026 gemessen: Small 929 357 Dreiecke, 16,1 MB, 245 Texturen, 0,16 % ins Leere; Medium 1 334 693, 19,1 MB,
+  // 250, 0,02 %; XL 3 514 537, 35,7 MB, 258, 0,06 %. Die XL liegt über der Warnschwelle des Builds (1,6 Mio., nicht
+  // dezimiert): Sie ist doppelt so lang wie Large und trägt zwei Kontrollräume, zwei Frachtaufzüge und 20 Türen.
+  'util-smltop': { tris: 950000, bytes: 17e6, texturen: 252, leck: 0.3 },
+  'util-medtop': { tris: 1360000, bytes: 20e6, texturen: 257, leck: 0.3 },
+  'util-xltop': { tris: 3550000, bytes: 37e6, texturen: 265, leck: 0.3 },
 };
 // Schirme ohne Bild. Aus ist ein Material ohne Farb- und Leuchtkarte in der Farbe, die das Spiel seinen
 // ausgeschalteten Schirmen gibt und der Build denen ohne Bild (SCHIRM_AUS, 0,0048). Ihre Dreiecke im Modell
@@ -611,12 +712,32 @@ for (const [stufe, hall] of Object.entries(proSeite[0] ?? {})) {
 const ohne = Object.keys(FEST).filter((id) => !HALLEN.has(id));
 if (HALLEN.size < MIN_HALLEN) fail(`[1] nur ${HALLEN.size} Halle(n) fester Groesse ausgeliefert, Klinke ${MIN_HALLEN}`);
 say(`    ${HALLEN.size} Halle(n) ausgeliefert (Klinke ${MIN_HALLEN})${HALLEN.size ? `: ${[...HALLEN.values()].map((h) => `${h.stufe} ${h.hall.id}`).join(', ')}` : ''}${ohne.length ? `; der Viewer nennt ausserdem ${ohne.join(', ')}, NICHT geprueft, weil dieser Bau sie nicht ausliefert` : ''}`);
+// Wartungsplatz am Schiff (WORK_DIENST, layDienst im Viewer): Jede Halle fester Groesse nennt den Geraetesatz in
+// ihrer Zeile (dienst), er liegt so gross in dist/, wie die Seite sagt, und der Viewer nimmt ihn fuer sie
+// (dienstSatz). Krisz am 18.11.2026: „die assets wieder um die schiffe herum platzieren in den neuen hallen“; seit
+// die Stufen ihre eigenen Hallen haben (PR #371), stand dort kein Geraet mehr am Schiff. Ob die Plaetze an einem
+// Schiff wirklich stehen, sagt die laufende Buehne (Zeile "[hangar] Wartungsplatz bei", check:hangar-shader).
+const satz = typeof viewer?.dienstSatz === 'function' ? viewer.dienstSatz : null;
+let mitDienst = 0;
+if (HALLEN.size && !satz) fail('[1] der Viewer nennt nicht mehr, welchen Geraetesatz eine Halle fuer den Wartungsplatz am Schiff nimmt (dienstSatz) — ob in den Hallen fester Groesse Geraet am Schiff steht, liesse sich nur raten');
+for (const [id, { hall }] of HALLEN) {
+  const D = hall.dienst;
+  if (!D?.url) { fail(`[1] ${id}: die Seite nennt keinen Geraetesatz fuer den Wartungsplatz am Schiff (dienst) — in dieser Halle stuende kein Geraet um das Schiff`); continue; }
+  if (!existsSync(inDist(D.url))) { fail(`[1] ${id}: der Geraetesatz des Wartungsplatzes (${D.url}) fehlt in dist/ — in dieser Halle stuende kein Geraet um das Schiff`); continue; }
+  const b = statSync(inDist(D.url)).size;
+  if (D.bytes !== b) { fail(`[1] ${id}: der Geraetesatz des Wartungsplatzes in dist/ hat ${b} Bytes, die Seite nennt ${D.bytes} — Seite und Datei stammen nicht aus demselben Bau`); continue; }
+  const nimmt = satz?.(hall);
+  if (satz && nimmt?.url !== D.url) { fail(`[1] ${id}: die Seite nennt den Geraetesatz, der Viewer nimmt fuer diese Halle aber ${nimmt?.url ?? 'keinen'} (dienstSatz) — der Wartungsplatz bliebe leer`); continue; }
+  mitDienst++;
+}
+if (mitDienst < MIN_DIENST) fail(`[1] nur ${mitDienst} Halle(n) fester Groesse mit dem Geraetesatz des Wartungsplatzes, Klinke ${MIN_DIENST}`);
+say(`    Wartungsplatz am Schiff: ${mitDienst} von ${HALLEN.size} Halle(n) mit Geraetesatz, den der Viewer fuer sie nimmt (Klinke ${MIN_DIENST})`);
 
 /* ---------- [2] Modell ---------- */
-say('[2] Modell: Boden der Seite wie das Lot am Modell, Plattform auf dieser Hoehe, Landeflaeche im Feld des Aufzugs und im Raum, jede Bahn mit Knoten, Grundlicht je Halle ueber der Klinke und im Lichtgitter');
+say('[2] Modell: Boden der Seite wie das Lot am Modell, Plattform auf dieser Hoehe, Landeflaeche im Feld des Aufzugs und im Raum, jede Bahn mit Knoten, das Tor offen neben dem Feld, Grundlicht je Halle ueber der Klinke und im Lichtgitter');
 const io = HALLEN.size ? new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'draco3d.decoder': await draco3d.createDecoderModule() }) : null;
 const DOCS = new Map();
-let bahnen = 0, padFlaeche = 0;
+let bahnen = 0, padFlaeche = 0, torOffen = 0, torSchwenk = 0;
 // Das Grundlicht steht nur dann auf den Flaechen, wenn es im Lichtgitter ankommt. Das Tor rechnet das Gitter
 // darum mit der Funktion des Viewers selbst (hallGitter; ihr Ergebnis laedt die Buehne als Textur) und liest
 // zurueck, was in jeder Zelle steht (scripts/lib/hall-gitter.mjs, dort auch, warum nicht mehr am Quelltext):
@@ -692,11 +813,43 @@ for (const [id, { hall, F }] of HALLEN) {
   else bahnen += teile.length;
   if (!(A.plattform?.weg > 0)) fail(`[2] ${id}: die Plattform hat keinen Fahrweg (plattform.weg ${A.plattform?.weg ?? '—'})`);
   const feld = A.feld;
-  if (!(Array.isArray(feld?.from) && Array.isArray(feld?.to))) fail(`[2] ${id}: die Bahnen nennen das Feld des Aufzugs nicht (feld)`);
+  // je zwei endliche Zahlen und from kleiner als to: sonst ergaeben Mitte und Ueberdeckung NaN, und kein Vergleich schluege an
+  const ecke = (v) => Array.isArray(v) && v.length === 2 && v.every(Number.isFinite);
+  if (!(ecke(feld?.from) && ecke(feld?.to))) fail(`[2] ${id}: die Bahnen nennen das Feld des Aufzugs nicht als zwei Ecken aus je zwei Zahlen (feld ${JSON.stringify(feld ?? null)})`);
+  else if (!(feld.from[0] < feld.to[0] && feld.from[1] < feld.to[1])) fail(`[2] ${id}: das Feld des Aufzugs ist leer oder verkehrt herum (from ${feld.from.join(', ')}, to ${feld.to.join(', ')})`);
   else {
     const fm = [(feld.from[0] + feld.to[0]) / 2, (feld.from[1] + feld.to[1]) / 2];
     if (Math.hypot(fm[0] - mitte[0], fm[1] - mitte[1]) > 0.05) fail(`[2] ${id}: die Landeflaeche (Mitte ${mitte.join(', ')}) sitzt nicht mitten im Feld des Aufzugs (Mitte ${fm.map((v) => +v.toFixed(3)).join(', ')}) — das Schiff staende neben der Mitte der Plattform`);
     if (P.from[0] < feld.from[0] || P.to[0] > feld.to[0] || P.from[1] < feld.from[1] || P.to[1] > feld.to[1]) fail(`[2] ${id}: die Landeflaeche ${JSON.stringify(P)} ragt ueber das Feld des Aufzugs ${JSON.stringify(feld)} hinaus`);
+    // jedes Teil so vollstaendig, wie der Viewer es verlangt (ownLift): box und je Richtung mindestens zwei
+    // Schluessel, sonst baut er den ganzen Aufzug nicht; ein Riegel mit Drehdaten dazu keysRot mit zwei
+    // Schluesseln je Richtung und einen Drehpunkt aus drei Zahlen, sonst zeichnet er ihn ohne Schwenk
+    const zahlen = (v, n) => Array.isArray(v) && v.length === n && v.every(Number.isFinite);
+    // eine Bahn: ein Feld aus mindestens zwei Schluesseln, jeder aus n endlichen Zahlen (Zeit und Versatz bzw.
+    // Zeit und Quaternion); eine Quaternion aus lauter Nullen ist keine Drehung
+    const bahnMangel = (b, n, wo, dreh) => {
+      if (!Array.isArray(b) || b.length < 2) return `${wo} mit ${Array.isArray(b) ? b.length : 0} Schluessel(n)`;
+      const schlecht = b.findIndex((s) => !zahlen(s, n) || (dreh && !s.slice(1).some((v) => v !== 0)));
+      return schlecht < 0 ? null : `${wo}[${schlecht}] ist kein Schluessel aus ${n} Zahlen${dreh ? ' mit einer Drehung' : ''}`;
+    };
+    const torMangel = (t) => {
+      const m = [];
+      if (!(Array.isArray(t?.box) && t.box.length === 2 && t.box.every((e) => zahlen(e, 3)))) m.push('ohne box');
+      for (const k of ['close', 'open']) m.push(bahnMangel(t?.keys?.[k], 4, `keys.${k}`, false));
+      if (t?.keysRot || t?.pivot) {
+        for (const k of ['close', 'open']) m.push(bahnMangel(t.keysRot?.[k], 5, `keysRot.${k}`, true));
+        if (!zahlen(t.pivot, 3)) m.push('pivot ist kein Punkt');
+      }
+      return m.filter(Boolean);
+    };
+    const mangel = (A.tor?.teile ?? []).map((t) => [t, torMangel(t)]).filter(([, m]) => m.length);
+    if (mangel.length) fail(`[2] ${id}: ${mangel.length} Teil(e) des Bodentors unvollstaendig (${mangel.slice(0, 4).map(([t, m]) => `${t?.node ?? '(ohne Namen)'}: ${m.join(', ')}`).join('; ')}) — der Viewer baute den Aufzug nicht oder zoege einen Riegel ohne Schwenk; Bahnen neu bauen`);
+    // offen liegt jedes Teil des Tors neben der Oeffnung (unter dem Boden, aus); geprueft werden die vollstaendigen
+    const tt = (A.tor?.teile ?? []).filter((t) => !torMangel(t).length);
+    const imFeld = offenImFeld(tt, feld);
+    if (imFeld.length) fail(`[2] ${id}: offen liegen ${imFeld.length} Teile des Tors ueber dem Feld des Aufzugs (${imFeld.slice(0, 4).map((t) => `${t.node} ${t.x} x ${t.z} m`).join(', ')}) — sie fahren falsch herum, das Schiff stuende auf ihnen; Bahnen aus scripts/lib/aufzug-dreh.mjs neu bauen`);
+    torOffen += tt.length;
+    torSchwenk += tt.filter((t) => t.keysRot).length;
   }
   // Oberseite der Plattform: die Hoehe, auf der die meiste nach oben gewandte Flaeche ihres Knotens liegt
   const pad = A.plattform?.node ? knoten.get(A.plattform.node) : null;
@@ -725,7 +878,8 @@ for (const [id, { hall, F }] of HALLEN) {
     else padFlaeche += flaeche;
   }
 }
-say(`    ${DOCS.size} Modell(e) gelesen, ${bahnen} Bahnen mit Knoten, ${padFlaeche.toFixed(0)} m² Plattform auf der Hoehe des Bodens`);
+if (HALLEN.size && !torOffen) fail('[2] kein Teil eines Bodentors offen gegen das Feld geprueft — die Bahnen nennen keine Torteile mit Kasten und Schliessbahn');
+say(`    ${DOCS.size} Modell(e) gelesen, ${bahnen} Bahnen mit Knoten, ${torOffen} Torteile offen neben dem Feld geprueft (${torSchwenk} davon schwenken um ihren Knochen), ${padFlaeche.toFixed(0)} m² Plattform auf der Hoehe des Bodens`);
 say(`    Grundlicht in ${grundlicht.length} von ${HALLEN.size} Halle(n)${grundlicht.length ? `: ${grundlicht.join('; ')}` : ''}; die Buehne rechnet ihr Gitter mit derselben Funktion: ${gitterNaht ? 'ja' : 'NEIN'}`);
 
 /* ---------- [3] Bestand ---------- */
@@ -852,7 +1006,7 @@ for (const [id, { bytes }] of HALLEN) {
   // Viewer gibt fuer jede den Faktor ihrer Seite und ihre Farbe mit dem Anteil weiss zu Weiss gemischt zurueck, fuer
   // jede andere Lampe nichts, und die Buehne stellt ihre Lampen mit dieser Funktion, bevor sie Rangfolge und Gitter
   // rechnet. Wie viele sie gestellt hat, nennt sie in ihrer Zeile "…, N Hauptstrahler"; check:hangar-shader haelt
-  // das gegen seine Klinke strahler (dort im Kopf unter HAUPTSTRAHLER; dieses Tor vorgefuehrt rot im Kopf unter (v)).
+  // das gegen seine Klinke strahler (dort im Kopf unter HAUPTSTRAHLER; dieses Tor vorgefuehrt rot im Kopf unter (x)).
   let strahler = '';
   const ST = FEST[id]?.strahler;
   if (ST !== undefined || K.strahler !== undefined) {

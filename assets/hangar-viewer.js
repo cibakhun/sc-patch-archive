@@ -938,7 +938,7 @@ function hallShiftPoint(h, p) {
 // Kugel wird über der Landefläche aufgenommen; in einer Halle von 144 m
 // Breite kommt davon an den Wänden kaum etwas an, sie blieben fast schwarz.
 // 0,5 hebt sie, ohne das Bild zu verflachen (so abgenommen, Krisz
-// 14.11.2026 zu den ersten Bildern: „ja“). Seit dem 18.11.2026 0,3: Die
+// 14.11.2026 zu den ersten Bildern: „ja“). In der Large-Halle seit dem 18.11.2026 0,3: Die
 // Wände hebt inzwischen das Grundlicht (`grund`), und die Halbkugel trifft
 // auch das Schiff von allen Seiten gleich, es stand ohne Form da (siehe
 // `strahler`). Oben im Bild ändert das 0,5 Punkte (37,1 statt 36,6 % unter
@@ -956,9 +956,9 @@ function hallShiftPoint(h, p) {
 // Am Bild abgeglichen (dieselbe Ansicht): bei 2 liegen oben noch 54 % unter
 // 16, bei 3 sind es 47 %, bei 4,5 noch 37 % (Decke und Schatten), bei 7
 // steht die Halle hell da und die dunkle Stimmung ist weg; 4,5 steht.
-// Seit dem 18.11.2026 4 zusammen mit `gitter` 3: Was das Grundlicht
-// nachgibt, bringt das Lampenlicht. An derselben Ansicht liegen oben 35,1 %
-// unter 16 (vorher 36,6 %), das Bildmittel bleibt (58,3 gegen 58,7 von
+// In der Large-Halle seit dem 18.11.2026 4 zusammen mit `gitter` 3: Was das
+// Grundlicht nachgibt, bringt das Lampenlicht. An derselben Ansicht liegen
+// oben 33,4 % unter 16 (vorher 36,6 %), das Bildmittel bleibt (60,0 gegen 58,7 von
 // 255); mit 3 und `gitter` 2,5 waren es 43,2 %, dunkler als abgenommen.
 // `gitter`: Faktor auf das Licht der Lampen im Lichtgitter, die
 // Hauptstrahler ausgenommen (hallGitterLampen). Das Grundlicht legt auf
@@ -975,12 +975,13 @@ function hallShiftPoint(h, p) {
 // Boden ankommt. In der Kabine eines Frachtaufzugs hängen die Lampen wenige
 // Meter über ihrem Boden: Mit `licht` 16 und dem Grundlicht brannte er aus,
 // der Rand weiß, die Farbe der Fläche weg (am Bild, 15.11.2026). Damals
-// 0,25; seit `gitter` 3 das Lampenlicht im Gitter verdreifacht, 0,085, die
+// 0,25, so steht es in den Hallen ohne `gitter`; in der Large-Halle seit
+// `gitter` 3 das Lampenlicht im Gitter verdreifacht, 0,085, die
 // Kabine bekommt so viel Lampenlicht wie abgenommen (16 · 0,085 · 3 ≈ 4).
 // `strahler`: die Hauptstrahler der Halle, ihre Lampen ab der Spielstärke
 // `ab` (hallStrahler). In util-lrgtop sind es die sechs Fluter unter der
 // Decke, je 600 und drei über jeder Längsseite der Landefläche; die
-// nächststärkste Lampe der Halle hat 40. Krisz am 18.11.2026 zur
+// nächststärkste Lampe der Halle hat 80. Krisz am 18.11.2026 zur
 // ausgelieferten Halle: „die beleuchtung [ist] super kacke“. Am Bild seiner
 // Ansicht (Carrack): Die sechs strahlen im Spiel türkis (0,52 / 0,95 / 0,96)
 // und von beiden Seiten gleich stark. Der weiße Lack stand türkis da, jede
@@ -999,7 +1000,10 @@ function hallShiftPoint(h, p) {
 // Modell) steht nicht hier: Die Seite reicht seine Bahnen als `aufzug`
 // durch, ownLift baut ihn.
 const HALL_FEST = /* hall-fest */ {
-  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.3, "grund": 4, "gitter": 3, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.085 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } }
+  "util-lrgtop": { "size": "L", "pad": { "from": [-108, 48], "to": [-36, 176] }, "clear": 48, "tint": 1, "licht": 16, "fuell": 0.3, "grund": 4, "gitter": 3, "daempf": { "lg_elev_util_cargo_hangar_lrg_a": 0.085 }, "strahler": { "ab": 300, "weiss": 0.65, "seiten": [1, 0.5] } },
+  "util-medtop": { "size": "M", "pad": { "from": [28, -111], "to": [84, -23] }, "clear": 32, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_med_a": 0.25 } },
+  "util-smltop": { "size": "S", "pad": { "from": [30, 32], "to": [54, 64] }, "clear": 16, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_sml_a": 0.25 } },
+  "util-xltop": { "size": "XL", "pad": { "from": [-192, 32], "to": [-32, 304] }, "clear": 64, "tint": 1, "licht": 16, "fuell": 0.5, "grund": 4.5, "daempf": { "lg_elev_util_cargo_hangar_xlrg_a": 0.25 } }
 } /* /hall-fest */;
 
 // Grundlicht einer Halle fester Größe (HALL_FEST.grund) als Bestrahlung im
@@ -1173,6 +1177,16 @@ export function gitterDunkel(a, b) {
 function hallSpot(h) {
   const c = h.room.center, L = liftField(h) ?? HALL_FEST[h.id]?.pad;
   return L ? [(L.from[0] + L.to[0]) / 2, c[1], (L.from[1] + L.to[1]) / 2] : c;
+}
+
+// Gerätesatz des Wartungsplatzes am Schiff (WORK_DIENST, layDienst) für die
+// Halle h: In der Halle von Revel & York kommt er mit ihrer Werkstatt
+// (h.workshop.dienst), in einer Halle fester Größe (HALL_FEST) steht er in
+// ihrer eigenen Zeile (h.dienst). Krisz am 18.11.2026: „die assets wieder
+// um die schiffe herum platzieren in den neuen hallen“; seit die Stufen
+// ihre eigenen Hallen haben (PR #371), stand dort kein Gerät mehr am Schiff.
+export function dienstSatz(h) {
+  return HALL_LIFT[h.id] ? h.workshop?.dienst ?? null : HALL_FEST[h.id] ? h.dienst ?? null : null;
 }
 
 // Ursprung der Halle im Modellraum: Ein Punkt p des Modells (Halle und
@@ -2642,16 +2656,25 @@ function ownLift(model, info, floorY) {
     gate.add(node);
     node.traverse((n) => { if (n.isMesh) tris += trisOf(n); });
     const rest = node.position.clone(), open = keys.open.at(-1);
+    // Riegel, die um ihren Knochen schwenken (Tor der XL-Halle): keysRot [t, qx, qy, qz, qw] um pivot, keys der Versatz des pivot
+    const R = p.keysRot, rot = R?.close?.length > 1 && R?.open?.length > 1 && p.pivot?.length === 3 ? { close: R.close, open: R.open } : null;
     // gatePose setzt Matrizen an Exemplaren (BatchedMesh); hier steht dafür der Knoten selbst
-    const self = { setMatrixAt(_, M) { node.position.setFromMatrixPosition(M).add(rest); } };
-    parts.push({ node: p.node, keys, rot: null, lo: p.box[0], hi: p.box[1], at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), q: new THREE.Quaternion(), snapQ: new THREE.Quaternion(), ids: [{ b: self, iid: 0 }] });
+    let self;
+    if (rot) {
+      node.updateMatrix();
+      const M0 = node.matrix.clone(), piv = new THREE.Vector3().fromArray(p.pivot), A = new THREE.Matrix4(), B = new THREE.Matrix4().makeTranslation(-piv.x, -piv.y, -piv.z);
+      // x' = q (x − pivot) + pivot + Versatz, auf die Lage des Knotens in Ruhe
+      self = { setMatrixAt(_, M) { A.copy(M); A.elements[12] += piv.x; A.elements[13] += piv.y; A.elements[14] += piv.z; node.matrix.multiplyMatrices(A, B).multiply(M0); node.matrix.decompose(node.position, node.quaternion, node.scale); } };
+    } else self = { setMatrixAt(_, M) { node.position.setFromMatrixPosition(M).add(rest); } };
+    parts.push({ node: p.node, keys, rot, lo: p.box[0], hi: p.box[1], at: new THREE.Vector3(open[1], open[2], open[3]), snap: new THREE.Vector3(), q: new THREE.Quaternion(), snapQ: new THREE.Quaternion(), ids: [{ b: self, iid: 0 }] });
   }
   model.add(gate);
   // Ab wann deckt das Tor das Feld? Zellen von 0,5 m unter den Teilen, die
   // bis an die Oberkante reichen; früheste Stützstelle der Schließbahn, zu
   // der keine Zelle offen ist
   const CELL = 0.5, nx = Math.round((F.to[0] - F.from[0]) / CELL), nz = Math.round((F.to[1] - F.from[1]) / CELL), cells = new Uint8Array(nx * nz), at = new THREE.Vector3();
-  const tops = parts.filter((u) => u.hi[1] >= D.oben - 0.6);
+  // schwenkende Riegel decken nur in der letzten Sekunde, und ihr Kasten gilt in Ruhe: sie zählen nicht
+  const tops = parts.filter((u) => !u.rot && u.hi[1] >= D.oben - 0.6);
   const full = (t) => {
     cells.fill(0);
     for (const u of tops) {
@@ -7192,6 +7215,24 @@ export const HALL_LEIT = {
   // Bildschirms hinaus. Gefunden hat es verify:hangar-orte [8] beim ersten
   // Lauf gegen das ausgelieferte Modell („trägt die Halle kein … Glas“).
   'util-lrgtop': { schirm: { x: -6.2808, y: 19.6959, z: 103.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, dreh: 180, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: 91.17, y: 19.9, x: 4.8 }, innen: 19.75, raum: { x: [-8, -4], y: [17.5, 20.5], z: [97.5, 104.1] }, voll: [{ x: [-8, -4.4], y: [17.5, 18.95], z: [102.45, 104.1] }] },
+  // Small- und Medium-Halle (18.11.2026): derselbe Kontrollraum wie in der
+  // Large-Halle, um 180° gedreht vor dem Bug (-z), das Gesicht des Monitors
+  // nach +z zur Halle. Gemessen an den gebauten Modellen: Monitor (6,2808,
+  // 19,6969, -43,837) und (6,2808, 19,7159, -67,837), 2,6661 × 1,5403 m, 15°
+  // geneigt; Glasfront bei z -31,175 und -55,176, Boden des Raums 17,5 und
+  // 17,519 über dem Boden der Halle (Medium lotet ihren Boden bei 6,481, der
+  // Raum steht wie in Small auf 24,0). Alles Übrige wie in Large, gespiegelt
+  // (x → −x, z → 60 − z und 36 − z).
+  'util-smltop': { schirm: { x: 6.2808, y: 19.6969, z: -43.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: -31.175, y: 19.9, x: 4.8 }, innen: 19.75, raum: { x: [4, 8], y: [17.5, 20.5], z: [-44.1, -37.5] }, voll: [{ x: [4.4, 8], y: [17.5, 18.95], z: [-44.1, -42.45] }] },
+  'util-medtop': { schirm: { x: 6.2808, y: 19.7159, z: -67.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: -55.176, y: 19.92, x: 4.8 }, innen: 19.77, raum: { x: [4, 8], y: [17.52, 20.52], z: [-68.1, -61.5] }, voll: [{ x: [4.4, 8], y: [17.52, 18.97], z: [-68.1, -66.45] }] },
+  // XL-Halle (18.11.2026): zwei Kontrollräume wie der der Large-Halle, einer
+  // an jeder Stirnseite. Der Terminal sitzt im Raum hinter dem Heck (+z),
+  // wie in Large: dort Monitor (-6,2808, 19,7039, 175,837), Glasfront bei z
+  // 163,174, Pult und Stühle; alles 72 m weiter als in Large und 8 mm höher
+  // (die XL lotet ihren Boden bei 2,493 statt 2,501), am gebauten Modell
+  // nachgemessen. Das Glas der Front ist hier gefrostet
+  // (glass_util_frosted_a).
+  'util-xltop': { schirm: { x: -6.2808, y: 19.7039, z: 175.837, b: 2.6661, h: 1.5403, ecke: 0.087, fase: true, saum: 0.03, dreh: 180, neig: 15, mat: 'screen_off_01' }, form: [0.5, 0.8], fov: 40, d: [2, 4.4], rand: 18, glas: { z: 163.174, y: 19.908, x: 4.8 }, innen: 19.758, raum: { x: [-8, -4], y: [17.508, 20.508], z: [169.5, 176.1] }, voll: [{ x: [-8, -4.4], y: [17.508, 18.958], z: [174.45, 176.1] }] },
 };
 /**
  * Achsen eines Monitors in Hallenmetern: X nach rechts (von vorn gesehen), Y
@@ -7911,7 +7952,7 @@ export async function initHangar(container, opts = {}) {
   const TEX_PHONE = { hoch: 512, mittel: 384, niedrig: 256 }, TEX_PHONE_AUTO = 256, TEX_PHONE_CAP = { mittel: 192, niedrig: 128 };
   const TEX_MAX = SMALL ? (FORCED ? TEX_PHONE[Q0] : (opts.cap === Q0 && TEX_PHONE_CAP[Q0]) || TEX_PHONE_AUTO) : Q0 === 'niedrig' ? 512 : 0;
   // Wartungsplatz am Schiff, wo die Stufe Requisiten hat (loadRealHall)
-  const DIENST_ON = REAL && !!opts.hall?.workshop?.dienst && (WORK_BUDGET[SMALL ? 'niedrig' : Q0]?.props ?? 0) > 0;
+  const DIENST_ON = REAL && !!(opts.hall && dienstSatz(opts.hall)) && (WORK_BUDGET[SMALL ? 'niedrig' : Q0]?.props ?? 0) > 0;
   let level = Q0;
   // Stand der Schattenkarten unter hoch (shadowsDue); leer = neu zeichnen
   let shadowSig = '';
@@ -11356,8 +11397,11 @@ void main() {
       })
       : Promise.resolve(null);
     // Gerätesatz für den Wartungsplatz am Schiff, wo die Stufe Requisiten hat
-    const dienstReady = W?.dienst?.url && WB.props > 0 && HALL_LIFT[h.id]
-      ? fetchGltf(W.dienst.url, 'dienst', W.dienst.bytes || 3.5e6).then(async (g) => ({ scene: g.scene, schichten: await dienstSchichten(g.asset?.extras?.dienst?.schichten, W.dienst.url) }), (e) => {
+    // (in der Halle von Revel & York aus ihrer Werkstatt, in einer Halle
+    // fester Größe aus ihrer eigenen Zeile: dienstSatz)
+    const DS = dienstSatz(h);
+    const dienstReady = DS?.url && WB.props > 0
+      ? fetchGltf(DS.url, 'dienst', DS.bytes || 3.5e6).then(async (g) => ({ scene: g.scene, schichten: await dienstSchichten(g.asset?.extras?.dienst?.schichten, DS.url) }), (e) => {
         console.warn('[hangar] Wartungsplatz nicht geladen', e);
         prog.delete('dienst');
         return null;
@@ -11455,7 +11499,7 @@ void main() {
         try {
           lift = ownLift(model, ownInfo, floorY);
           const G = lift.gate;
-          console.info(`[hangar] Aufzug der Halle: Plattform ${lift.tris} Dreiecke in ${lift.parts} Netzen (mit ${lift.riders} Landeleuchten und anderem darauf), Fahrweg ${lift.travel} m, Oberkante ${(lift.top - floorY).toFixed(3)} m über dem Boden; Bodentor ${G.used} Teile, ${Math.round(G.tris)} Dreiecke, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
+          console.info(`[hangar] Aufzug der Halle: Plattform ${lift.tris} Dreiecke in ${lift.parts} Netzen (mit ${lift.riders} Landeleuchten und anderem darauf), Fahrweg ${lift.travel} m, Oberkante ${(lift.top - floorY).toFixed(3)} m über dem Boden; Bodentor ${G.used} Teile${G.parts.some((u) => u.rot) ? ` (${G.parts.filter((u) => u.rot).length} schwenken um ihren Knochen)` : ''}, ${Math.round(G.tris)} Dreiecke, Unterkante ${G.bottom.toFixed(2)} m, deckt ab ${G.cover.toFixed(2)} von ${G.T} s; Fahrkurve ${G.ease ? 'aus dem Spiel' : 'eigene'}`);
           if (Math.abs(lift.top - floorY) > 0.1) console.warn(`[hangar] Aufzug der Halle: Plattform ${(lift.top - floorY).toFixed(2)} m neben der Bodenhöhe des Manifests, das Schiff stünde nicht auf ihr`);
         } catch (e) {
           console.warn('[hangar] Aufzug der Halle nicht gebaut', e);
@@ -15247,28 +15291,31 @@ void main() {
   // Pult und Pflanzkasten hinweg unter die abgehängte Decke und im Bogen
   // über die Stühle an den Platz vor dem Monitor. Auf der Seite, auf der die
   // Kamera steht. Steht das Schiff im geraden Weg, außen an ihm entlang zum
-  // Heck.
+  // Ende, das dem Leitstand zugewandt ist. Der Leitstand liegt auf der Seite
+  // seiner Glasfront (sz): in Revel & York und der Large-Halle hinter dem
+  // Heck (+z), in der Small- und der Medium-Halle vor dem Bug (-z); alles
+  // längs z zählt hier von der Feldmitte zum Leitstand hin.
   function leitPath(from, to) {
-    const G = LEIT.glas, k = hallRoot.scale.x, c = current, sx = from.x < 0 ? -1 : 1, O = new THREE.Vector3();
-    const pts = [from.clone()], glas = leitAt(sx * G.x, G.y, G.z), vor = leitAt(sx * (G.x + 1.4), G.y - 0.2, G.z - 9);
+    const G = LEIT.glas, k = hallRoot.scale.x, c = current, sx = from.x < 0 ? -1 : 1, sz = G.z < 0 ? -1 : 1, O = new THREE.Vector3();
+    const pts = [from.clone()], glas = leitAt(sx * G.x, G.y, G.z), vor = leitAt(sx * (G.x + 1.4), G.y - 0.2, G.z - sz * 9);
     const box = c && !c.werk && c.group.visible ? shipBox(c.info, c.group.scale.x, k) : null;
     if (box) {
-      // der Punkt vor dem Glas liegt hinter dem Heck, nicht über ihm
-      vor.z = Math.min(glas.z - 2.5, Math.max(vor.z, box.sz + 0.5));
+      // der Punkt vor dem Glas liegt hinter dem Ende des Schiffs, nicht über ihm
+      vor.z = sz * Math.min(sz * glas.z - 2.5, Math.max(sz * vor.z, box.sz + 0.5));
       if (segHits(from, vor, O, box.sx, box.sy, box.sz)) {
         const X = sx * (box.sx + 2.5), y = Math.min(G.y - 0.4, Math.max(from.y, 6));
-        // vor dem Bug oder über dem Rumpf: erst zur Seite hinaus
-        if (Math.abs(from.x) < box.sx + 1 && from.z < box.sz) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.3), Math.max(from.z, -box.sz - 2.5)));
-        if (pts.at(-1).z < box.sz * 0.4 - 4) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.7), box.sz * 0.4));
+        // vor dem anderen Ende oder über dem Rumpf: erst zur Seite hinaus
+        if (Math.abs(from.x) < box.sx + 1 && sz * from.z < box.sz) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.3), sz * Math.max(sz * from.z, -box.sz - 2.5)));
+        if (sz * pts.at(-1).z < box.sz * 0.4 - 4) pts.push(new THREE.Vector3(X, THREE.MathUtils.lerp(from.y, y, 0.7), sz * box.sz * 0.4));
         vor.x = sx * Math.max(G.x + 1.4, Math.min(Math.abs(X) * 0.5, 14));
       }
     }
     // Der letzte Punkt vor dem Ziel liegt hinter ihm auf der Blickachse des
-    // Monitors. Zeigt dieser der Halle den Rücken (nach Süden), kommt der
+    // Monitors. Zeigt dieser der Halle den Rücken (vom Feld weg), kommt der
     // Bogen zur Seite dazu, in dem die Kamera wendet; sieht er zur Halle,
     // fährt sie gerade auf ihn zu.
-    const Z = LEIT_A.Z, seit = 2.3 * Math.max(0, Z[2]);
-    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + 4.2), new THREE.Vector3(to.x + sx * seit + 1.1 * Z[0], Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1 * Z[2]), to.clone());
+    const Z = LEIT_A.Z, seit = 2.3 * Math.max(0, sz * Z[2]);
+    pts.push(vor, glas, leitAt(sx * (G.x - 0.4), LEIT.innen, G.z + sz * 4.2), new THREE.Vector3(to.x + sx * seit + 1.1 * Z[0], Math.min(to.y + 0.3, LEIT.innen), to.z + 1.1 * Z[2]), to.clone());
     return pts;
   }
   const fovPlain = () => 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * (1 + lensS)));
