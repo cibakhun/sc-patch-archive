@@ -3662,6 +3662,8 @@ const isLite = (kind, name) => kind === 'hall' && /-lod1$/.test(name);
 const slotOf = (kind, name) => (isLite(kind, name) ? 'hallLite' : kind);
 const manifest = { ships: {}, interior: {}, weapons: {}, components: {}, hall: {}, hallLite: {}, npc: {}, lift: {}, props: {}, werkhalle: {} };
 let built = 0, reused = 0;
+// die Hallenmodelle, die die Bauschleife im Quellordner vorfand (null: dieser Lauf baut keine Hallen)
+let hallenImOrdner = null;
 const webShip = (name) => !!prev.ships?.[name] || SHIPS_ARG.includes(name) || SHIPS_ARG.includes('all');
 // Komponenten zuerst: die Schiffe schreiben deren URL samt Version als
 // Serienteil in ihre Anker (stockUrl)
@@ -3672,7 +3674,9 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
   // (ein Hallenordner, dem Modelle fehlen, behaelt deren bisherige Eintraege: Block nach dieser Schleife)
   if (!existsSync(dir) || (KIND && KIND !== kind) || (kind === 'interior' && KIND !== 'interior')) { for (const slot of kind === 'hall' ? ['hall', 'hallLite'] : [kind]) Object.assign(manifest[slot], prev[slot] || {}); continue; }
   // im Ordner der Hallen liegen neben den Modellen ihre Beilagen (<halle>.decals.glb, <halle>.schrift.glb): keine Hallen
-  for (const f of readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')))) {
+  const dateien = readdirSync(dir).filter((x) => (kind === 'hall' ? istHallenModell(x) : x.toLowerCase().endsWith('.glb')));
+  if (kind === 'hall') hallenImOrdner = new Set(dateien.map((x) => x.replace(/\.glb$/i, '')));
+  for (const f of dateien) {
     const name = f.replace(/\.glb$/i, '');
     const slot = slotOf(kind, name);
     if ((kind === 'ships' || kind === 'interior') && !webShip(name)) continue;
@@ -3805,11 +3809,10 @@ for (const kind of ['components', ...Object.keys(BUDGET).filter((k) => k !== 'co
 // Hallen, deren Modell nicht im Quellordner liegt, behalten ihren bisherigen Eintrag: Der Extraktor legt nur die
 // verlangten Hallen ab (--hallen, der Einzellauf "aufzug --hallen" nur die tor.json), und ein Lauf darf nur die
 // Eintraege ersetzen, fuer die er ein Modell vorfand. Ein Modell, das im Ordner liegt und scheitert, faellt wie
-// bisher heraus (Status 1). Gelesen wird der Ordner nur, wenn dieser Lauf Hallen baut.
+// bisher heraus (Status 1). Massgeblich ist die Liste, die die Bauschleife las (kein zweites Lesen des Ordners).
 {
-  const dir = new URL('hall/', SRC);
-  if (existsSync(dir) && !(KIND && KIND !== 'hall')) {
-    const imOrdner = new Set(readdirSync(dir).filter((x) => istHallenModell(x)).map((x) => x.replace(/\.glb$/i, '')));
+  if (hallenImOrdner) {
+    const imOrdner = hallenImOrdner;
     for (const slot of ['hall', 'hallLite']) {
       const vorher = Object.keys(prev[slot] || {});
       const bleiben = vorher.filter((name) => !imOrdner.has(name) && !manifest[slot][name]);
