@@ -553,8 +553,8 @@
         new THREE.PMREMGenerator(renderer) bauen                    -> [12]
     an  dort in texBudget() p.fragmentShader streichen              -> [12]
     ao  dort in captureHallEnv() stLayer?.mirror(true) streichen
-        (13.11.2026: die Kugel der Halle kaeme wieder mit dem
-        Schleier der Hologramme, halb so hell)                      -> [12]
+        (13.11.2026: die Kugel der Halle kaeme wieder mit den
+        Hologrammen der Stationen)                                  -> [12]
     ap  dort in captureHallEnv() die Zeile const unrest = hallRest();
         streichen (13.11.2026: nach einem Schiffswechsel kaeme die
         Kugel wieder vom geschlossenen Tor statt vom Schiffsfeld,
@@ -741,6 +741,18 @@
         am Knoten der Quelle)                                       -> [24]
     do  dort die Zeile des Standbilds in still() verdoppeln (eine
         Ausnahme deckt genau eine Quelle)                           -> [24]
+    dp  dist/assets/hangar-holo3d.js: hinter scene.add(root) ein
+        zweites Teil in die Szene legen (scene.add(dim); Krisz
+        18.11.2026: „ändert sich die beleuchtung wenn man
+        ziwschen panel an und ausmacht". Ein Rechteck über dem
+        ganzen Bild lag nur mit Hologrammen vor Halle und Schiff
+        und nahm ihnen gut ein Viertel der Helligkeit)              -> [12]
+    dq  dort im Shader der Lichtlinien die Kamera streichen
+        (gl_Position = vec4(position.xy, 0.0, 1.0): derselbe
+        Schleier auf dem zweiten Weg, als Fläche in
+        Bildschirmkoordinaten innerhalb der Gruppe)                 -> [12]
+    dr  dort scene.add(root) umbenennen (szene.add: die Prüfung
+        fände kein Teil mehr und liefe leer)                        -> [12]
 
      node scripts/verify-hangar.mjs            Tor
      node scripts/verify-hangar.mjs --report   nur Ist-Werte, kein Urteil
@@ -1380,9 +1392,26 @@ const LEVELS = ['niedrig', 'mittel', 'hoch'];
   // fertig wurden. Die Aufnahme blendet sie aus wie das Spiegelbild des
   // Bodens (mirror() in hangar-holo3d.js).
   const kugelOhne = /function captureHallEnv\([\s\S]{0,3000}?stLayer\?\.mirror\(true\);\s*const rt = pmremFor\(renderer\)\.fromScene\(scene,[^\n]*\n\s*stLayer\?\.mirror\(false\);/.test(viewer)
-    && /mirror\(on\) \{[^}]*dim\.visible = vis;[^}]*root\.visible = vis;/.test(holoQ);
+    && /mirror\(on\) \{ root\.visible = !on && alpha > 0\.001; \}/.test(holoQ);
   sollIst('Umgebungskugel der Halle ohne Hologramme aufgenommen', kugelOhne ? 'ja' : 'nein');
-  if (!kugelOhne) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr ohne die Hologramme der Stationen auf (stLayer?.mirror um fromScene, oder mirror() in hangar-holo3d.js blendet Schleier und Tafeln nicht mehr aus): ihr Schleier halbiert die Kugel, und die Halle steht je nach Ladereihenfolge anders hell da (13.11.2026)');
+  if (!kugelOhne) fail('[12] dist/assets/hangar-viewer.js: captureHallEnv() nimmt die Umgebungskugel nicht mehr ohne die Hologramme der Stationen auf (stLayer?.mirror um fromScene, oder mirror() in hangar-holo3d.js blendet die Tafeln nicht mehr aus): Tafeln und Lichtlinien stuenden im Licht, das die Halle zurueckwirft (13.11.2026)');
+  // Die Halle steht mit und ohne Hologramme gleich hell (Krisz 18.11.2026:
+  // "aendert sich die beleuchtung wenn man zwischen panel an und ausmacht").
+  // Bis dahin legte die Schicht der Hologramme ein schwarzes Rechteck ueber
+  // das ganze Bild (hoch: halb deckend vor der Tonabbildung, etwa 72 %
+  // Helligkeit), mit "Als Tafel" fiel es weg. Gemessen am selben Bau,
+  // Carrack, 1700 x 900: Lampen, Belichtung, Umgebungskugel und Zeichenflaeche
+  // in beiden Zustaenden gleich, Bildmittel 37,4 gegen 44,9. Die Schicht legt
+  // seither genau ein Ding in die Szene, ihre eigene Gruppe (root), und kein
+  // Material von ihr zeichnet in Bildschirmkoordinaten (gl_Position ohne
+  // Kamera): so kaeme ein Rechteck ueber alles zurueck.
+  const holoLegt = [...holoQ.matchAll(/\bscene\.add\(([^)]*)\)/g)].map((m) => m[1].trim());
+  const holoBild = [...holoQ.matchAll(/gl_Position\s*=\s*([^;]*);/g)].map((m) => m[1]);
+  const holoFrei = holoBild.filter((z) => !/projectionMatrix/.test(z));
+  sollIst('Hologramme legen nichts ueber die Halle', `${holoLegt.length} Teil in der Szene (${holoLegt.join(', ') || 'keins'}), ${holoBild.length} Shader mit Kamera geprueft, ${holoFrei.length} ohne`);
+  if (holoQ && (holoLegt.length !== 1 || holoLegt[0] !== 'root')) fail(`[12] dist/assets/hangar-holo3d.js legt ${holoLegt.length ? holoLegt.join(', ') : 'nichts'} in die Szene statt genau seiner Gruppe (root): ein zweites Teil neben den Hologrammen ist der Weg, auf dem das Rechteck ueber dem ganzen Bild lag, und die Halle steht mit Hologrammen wieder anders hell da als mit "Als Tafel" (18.11.2026)`);
+  if (holoQ && holoBild.length < 1) fail('[12] dist/assets/hangar-holo3d.js: kein Shader der Hologramme mehr gefunden (gl_Position), die Pruefung auf ein Rechteck ueber dem ganzen Bild laeuft leer (18.11.2026)');
+  if (holoFrei.length) fail(`[12] dist/assets/hangar-holo3d.js: ${holoFrei.length} Shader der Hologramme setzt gl_Position ohne die Kamera (${holoFrei[0].slice(0, 60)}): das zeichnet in Bildschirmkoordinaten ueber die Halle, und sie steht mit Hologrammen wieder anders hell da als mit "Als Tafel" (18.11.2026)`);
   // Licht der Halle nach einem Schiffswechsel wie nach frischem Laden
   // (13.11.2026, im Bildvergleich Pisces <-> Carrack gefunden). Waechst die
   // Halle fuer das naechste Schiff, nimmt growSettled() die Kugel unter
